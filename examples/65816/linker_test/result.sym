@@ -1,0 +1,31 @@
+; this file was created with wlalink by ville helin <vhelin@iki.fi>.
+; wla symbolic information for "result.smc".
+
+[labels]
+0000:1016 Table
+0000:1600 List
+0000:0017 joopa
+0081:005a MAIN
+0081:0017 JOO
+0081:0019 MORE_ACTION
+0081:0057 DATA
+0081:0600 hk_sininen
+0080:0000 label01
+0080:0001 label02
+0080:0003 label03
+0080:000d label04
+0080:000e vbi_counter
+0080:000f player_lives
+0080:0036 test_00
+
+[definitions]
+0000000a TRIFORCE
+0000000a SEPI
+00000065 sdf
+00001234 XYZ
+0000000b TEPI
+00000001 TESB
+
+[symbols]
+0000:0032 SAFiiRi
+0081:0062 TIMANGI
