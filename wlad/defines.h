@@ -7,6 +7,8 @@
 
 #define OP_SIZE_MAX 16
 
+#define BANK_SIZE_MAX 0x6000
+
 
 
 struct optcode {
