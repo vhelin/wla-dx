@@ -17,6 +17,8 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 	if (opt_tmp->op[x] == 'x' || opt_tmp->op[x] == 's') {
 	  y = i;
 	  i = inz;
+    if (x > 0 && (opt_tmp->op[x-1] == '+' || opt_tmp->op[x-1] == '-'))
+      i--;
 	  z = input_number();
 	  inz = i;
 	  i = y;
