@@ -1,9 +1,9 @@
 
-CC?=gcc
-LD?=gcc
+CC=gcc
+LD=gcc
 
-CFLAGS?= -mno-cygwin -c -O3 -ansi -pedantic -Wall
-LDFLAGS = -mno-cygwin -lm -s
+CFLAGS= -c -O3 -ansi -pedantic -Wall
+LDFLAGS = -lm -s
 WLAFLAGS = $(CFLAGS) -DMSDOS -DMCS6502
 
 CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c

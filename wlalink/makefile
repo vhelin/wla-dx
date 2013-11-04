@@ -1,9 +1,8 @@
 
-CC?=egcs
-LD?=egcs
-
-CFLAGS?= -c -O3 -ansi -pedantic -Wall
-LDFLAGS =
+CC = gcc
+CFLAGS = -c -O3 -ansi -pedantic -Wall -DMSDOS
+LD = gcc
+LDFLAGS = 
 
 CFILES = main.c memory.c parse.c files.c check.c analyze.c write.c compute.c discard.c listfile.c
 HFILES = main.h memory.h parse.h files.h check.h analyze.h write.h compute.h discard.h listfile.h defines.h
@@ -11,7 +10,7 @@ OFILES = main.o memory.o parse.o files.o check.o analyze.o write.o compute.o dis
 
 
 all: $(OFILES) makefile
-	$(LD) $(LDFLAGS) $(OFILES) -o wlalink ; strip wlalink
+	$(LD) $(LDFLAGS) $(OFILES) -o wlalink.exe
 
 
 main.o: main.c main.h defines.h
@@ -49,7 +48,7 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	rm -f $(OFILES) core *~ wlalink
+	rm -f $(OFILES) *~ wlalink.exe
 
 install:
-	make ; cp wlalink /usr/local/bin
+	make ; cp wlalink.exe /usr/local/bin

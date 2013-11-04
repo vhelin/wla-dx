@@ -1,8 +1,8 @@
 
 CC = gcc
-CFLAGS = -m486 -c -mno-cygwin -ansi -O3 -pedantic -Wall
+CFLAGS = -c -ansi -O3 -pedantic -Wall
 LD = gcc
-LDFLAGS = -mno-cygwin 
+LDFLAGS = 
 
 CFILES = main.c
 HFILES = main.h

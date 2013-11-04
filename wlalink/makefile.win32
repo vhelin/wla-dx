@@ -1,8 +1,8 @@
 
 CC = gcc
-CFLAGS = -m486 -c -mno-cygwin -O3 -ansi -pedantic -Wall -DMSDOS
+CFLAGS = -c -O3 -ansi -pedantic -Wall -DMSDOS
 LD = gcc
-LDFLAGS = -mno-cygwin
+LDFLAGS = 
 
 CFILES = main.c memory.c parse.c files.c check.c analyze.c write.c compute.c discard.c listfile.c
 HFILES = main.h memory.h parse.h files.h check.h analyze.h write.h compute.h discard.h listfile.h defines.h

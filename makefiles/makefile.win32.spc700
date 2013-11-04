@@ -1,8 +1,9 @@
 
 CC = gcc
-CFLAGS = -m486 -c -mno-cygwin -O3 -ansi -pedantic -Wall -DMSDOS -DWIN32 -DSPC700
+CFLAGS = -c -O3 -ansi -pedantic -Wall -DMSDOS -DWIN32 -DSPC700
 LD = gcc
-LDFLAGS = -mno-cygwin -lkernel32
+LDFLAGS = -lkernel32
+WLAFLAGS = $(CFLAGS) -DMSDOS -DSPC700
 
 CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c
 HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h defines.h

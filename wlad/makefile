@@ -1,8 +1,7 @@
 
-CC?=egcs
-LD?=egcs
-
-CFLAGS?= -c -ansi -O3 -pedantic -Wall -DUNIX -DGB
+CC = gcc
+CFLAGS = -c -ansi -O3 -pedantic -Wall -DMSDOS -DGB
+LD = gcc
 LDFLAGS = 
 
 CFILES = main.c
@@ -10,7 +9,7 @@ HFILES = main.h
 OFILES = main.o
 
 all: $(OFILES) makefile
-	$(LD) $(LDFLAGS) $(OFILES) -o wlad ; strip wlad
+	$(LD) $(LDFLAGS) $(OFILES) -o wlad.exe
 
 main.o: main.c main.h makefile
 	$(CC) $(CFLAGS) main.c
@@ -20,7 +19,7 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	rm -f $(OFILES) core *~ wlad
+	rm -f $(OFILES) *~ wlad.exe
 
 install:
-	make ; cp wlad /usr/local/bin
+	make ; cp wlad.exe /usr/local/bin
