@@ -54,6 +54,11 @@ cp makefiles/makefile.win32.huc6280 makefile
 make
 cp wla-huc6280.exe binaries
 
+#make clean
+#cp makefiles/makefile.win32.superfx makefile
+#make
+#cp wla-superfx.exe binaries
+
 make clean
 
 cd wlalink

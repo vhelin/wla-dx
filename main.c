@@ -60,6 +60,9 @@ char version_string[] = "$VER: WLA-SPC700 9.5 (02.03.2008)";
 #ifdef HUC6280
 char version_string[] = "$VER: WLA-HuC6280 9.5 (02.03.2008)";
 #endif
+#ifdef SUPERFX
+char version_string[] = "$VER: WLA-SUPERFX 9.5 (05.11.2013)";
+#endif
 #endif
 
 char wla_version[] = "9.5";
@@ -141,7 +144,13 @@ int main(int argc, char *argv[]) {
 #ifdef HUC6280
     printf("\nWLA HuC6280 Macro Assembler v9.5\n");
 #endif
+#ifdef SUPERFX
+    printf("\nWLA SuperFX Macro Assembler v9.5\n");
+#endif
     printf("Written by Ville Helin in 1998-2008\n");
+#ifdef SUPERFX
+    printf("\nBackend written by William D. Jones in 2013\n");
+#endif    
     printf("USAGE: %s -[iMqtvx]{lo} [DEFINITIONS] <ASM FILE> [OUTPUT FILE]\n", argv[0]);
     printf("Commands:             Options:\n");
     printf("l  Library file       i  Add list file information\n");

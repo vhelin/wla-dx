@@ -403,6 +403,46 @@ struct optcode {
 
 #endif
 
+/**************************************************************/
+/* SUPERFX                                                    */
+/**************************************************************/
+
+#ifdef SUPERFX
+
+/* opcode types */
+
+/* 0 - plain text  8b */
+/* 1 - x              */
+/* 2 - ?              */
+/* 3 - &              */
+/* 4 - x/? (mem/acc)  */
+/* 5 - x x            */
+/* 6 - REP/SEP        */
+/* 7 - x/? (index)    */
+/* 8 - plain text 16b */
+/* 9 - relative ?     */
+/* a - x (absolute)   */
+
+#define OP_SIZE_MAX 16
+
+#ifdef AMIGA
+struct optcode {
+  char *op;
+  int  hex;
+  short int type;
+  short int skip_xbit;
+};
+#else
+struct optcode {
+  char *op;
+  int  hex;
+  int  type;
+  int  skip_xbit;
+};
+#endif
+
+#endif
+
 
 #define DEFINITION_TYPE_VALUE  0
 #define DEFINITION_TYPE_STRING 1

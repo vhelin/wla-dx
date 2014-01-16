@@ -157,6 +157,10 @@ __far /* put the following big table in the FAR data section */
 #include "opcodes_huc6280.c"
 #include "opcodes_huc6280_tables.c"
 #endif
+#ifdef SUPERFX
+#include "opcodes_superfx.c"
+#include "opcodes_superfx_tables.c"
+#endif
 
 
 int strcaselesscmp(char *s1, char *s2) {
@@ -775,6 +779,9 @@ int evaluate_token(void) {
 #endif
 #ifdef HUC6280
 #include "decode_huc6280.c"
+#endif
+#ifdef SUPERFX
+#include "decode_superfx.c"
 #endif
 
     }
