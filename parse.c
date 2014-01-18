@@ -17,13 +17,13 @@ int newline_beginning = ON;
 char label[MAX_NAME_LENGTH], xyz[256];
 char unevaluated_expression[256];
 char expanded_macro_string[256];
-double flo;
+double parsed_double;
 
 extern int i, size, d, macro_active;
 extern char *buffer, tmp[4096], cp[256];
 extern struct active_file_info *active_file_info_first, *active_file_info_last, *active_file_info_tmp;
 extern struct definition *defines, *tmp_def, *next_def;
-extern struct macro_runtime *macro_runtime_current;
+extern struct macro_runtime *macroRuntimeCurrent;
 extern int latest_stack;
 
 #if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
@@ -49,15 +49,15 @@ int compare_next_token(char *in, int s) {
 				break;
     }
 
-    if (d > macro_runtime_current->supplied_arguments) {
+    if (d > macroRuntimeCurrent->supplied_arguments) {
       if (input_number_error_msg == YES) {
-				sprintf(xyz, "COMPARE_NEXT_SYMBOL: Macro \"%s\" wasn't called with enough arguments.\n", macro_runtime_current->macro->name);
+				sprintf(xyz, "COMPARE_NEXT_SYMBOL: Macro \"%s\" wasn't called with enough arguments.\n", macroRuntimeCurrent->macro->name);
 				print_error(xyz, ERROR_NONE);
       }
       return FAILED;
     }
 
-    a = macro_runtime_current->argument_data[d - 1]->start;
+    a = macroRuntimeCurrent->argument_data[d - 1]->start;
 
     e = buffer[a];
     for (t = 0; t < s && e != ' ' && e != ',' && e != 0x0A; ) {
@@ -117,7 +117,7 @@ int input_next_string(void) {
 
   tmp[k] = 0;
 
-  /* expand eg. \1 and \@ */
+  /* expand e.g., \1 and \@ */
   if (macro_active != 0) {
     d = 0;
     if (expand_macro_arguments(tmp, &d) == FAILED)
@@ -134,7 +134,7 @@ int input_number(void) {
 
   unsigned char e, ee;
   int k, p, q;
-  double dn;
+  double decimal_mul;
 
 #if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
   operand_hint = HINT_NONE;
@@ -151,8 +151,7 @@ int input_number(void) {
   ee = e;
   while (ee != 0x0A) {
     /* string / symbol -> no calculating */
-    if (ee == '"' || ee == ',' || (ee == '=' && buffer[p] == '=') ||
-				(ee == '!' && buffer[p] == '='))
+    if (ee == '"' || ee == ',' || (ee == '=' && buffer[p] == '=') || (ee == '!' && buffer[p] == '='))
       break;
     if (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' ||
 				ee == '<' || ee == '>' || ee == '#' || ee == '~') {
@@ -177,7 +176,7 @@ int input_number(void) {
 
     if (buffer[i] == '@') {
       i++;
-      d = macro_runtime_current->macro->calls - 1;
+      d = macroRuntimeCurrent->macro->calls - 1;
       return SUCCEEDED;
     }
 
@@ -191,14 +190,14 @@ int input_number(void) {
       }
     }
 
-    if (d > macro_runtime_current->supplied_arguments) {
-      sprintf(xyz, "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", d, macro_runtime_current->macro->name, macro_runtime_current->supplied_arguments);
+    if (d > macroRuntimeCurrent->supplied_arguments) {
+      sprintf(xyz, "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", d, macroRuntimeCurrent->macro->name, macroRuntimeCurrent->supplied_arguments);
       print_error(xyz, ERROR_NUM);
       return FAILED;
     }
 
     /* return the macro argument */
-    ma = macro_runtime_current->argument_data[d - 1];
+    ma = macroRuntimeCurrent->argument_data[d - 1];
     k = ma->type;
 
     if (k == INPUT_NUMBER_ADDRESS_LABEL)
@@ -281,19 +280,20 @@ int input_number(void) {
   }
 
   if (e >= '0' && e <= '9') {
+	/* we are parsing the decimals when q=1 */
     q = 0;
-    flo = e-'0';
-    dn = 0.1;
+    parsed_double = e-'0';
+    decimal_mul = 0.1;
     for (k = 0; k < 9; k++, i++) {
       e = buffer[i];
       if (e >= '0' && e <= '9') {
 				if (q == 0) {
 					/* still parsing an integer */
-					flo = flo*10 + e-'0';
+					parsed_double = parsed_double*10 + e-'0';
 				}
 				else {
-					flo = flo + dn*(e-'0');
-					dn /= 10.0;
+					parsed_double = parsed_double + decimal_mul*(e-'0');
+					decimal_mul /= 10.0;
 				}
       }
       else if (e == '.') {
@@ -338,7 +338,7 @@ int input_number(void) {
     }
 
     /* drop the decimals */
-    d = flo;
+    d = parsed_double;
 
     if (q == 1 && input_float_mode == ON)
       return INPUT_NUMBER_FLOAT;
@@ -394,7 +394,6 @@ int input_number(void) {
   }
 
   if (e == '"') {
-
     for (k = 0; k < MAX_NAME_LENGTH - 1; ) {
       e = buffer[i++];
 
@@ -417,7 +416,7 @@ int input_number(void) {
 
     label[k] = 0;
 
-    /* expand eg. \1 and \@ */
+    /* expand e.g., \1 and \@ */
     if (macro_active != 0) {
       d = 0;
       if (expand_macro_arguments(label, &d) == FAILED)
@@ -441,7 +440,7 @@ int input_number(void) {
     return INPUT_NUMBER_STRING;
   }
 
-  /* last choice is a label */
+  /* the last choice is a label */
   label[0] = e;
   for (k = 1; k < MAX_NAME_LENGTH - 1; k++) {
     e = buffer[i++];
@@ -485,7 +484,7 @@ int input_number(void) {
 
   label[k] = 0;
 
-  /* expand eg. \1 and \@ */
+  /* expand e.g., \1 and \@ */
   if (macro_active != 0) {
     d = 0;
     if (expand_macro_arguments(label, &d) == FAILED)
@@ -556,7 +555,7 @@ int get_next_token(void) {
     tmp[ss] = 0;
     i++;
 
-    /* expand eg. \1 and \@ */
+    /* expand e.g., \1 and \@ */
     if (macro_active != 0) {
       q = 0;
       if (expand_macro_arguments(tmp, &q) == FAILED)
@@ -602,7 +601,7 @@ int get_next_token(void) {
 
   tmp[ss] = 0;
 
-  /* expand eg. \1 and \@ */
+  /* expand e.g., \1 and \@ */
   if (macro_active != 0) {
     q = 0;
     if (expand_macro_arguments(tmp, &q) == FAILED)
@@ -619,7 +618,8 @@ int get_next_token(void) {
 
 int skip_next_token(void) {
 
-  for (; buffer[i] == ' ' || buffer[i] == ','; i++);
+  for (; buffer[i] == ' ' || buffer[i] == ','; i++)
+	  ;
 
   if (buffer[i] == 0x0A)
     return FAILED;
@@ -635,7 +635,8 @@ int skip_next_token(void) {
     return SUCCEEDED;
   }
 
-  for (; buffer[i] != 0x0A && buffer[i] != ' ' && buffer[i] != ','; i++);
+  for (; buffer[i] != 0x0A && buffer[i] != ' ' && buffer[i] != ','; i++)
+	  ;
 
   return SUCCEEDED;
 }
@@ -668,7 +669,7 @@ int expand_macro_arguments(char *in, int *s) {
 
   if (in[i] == '@') {
     i++;
-    sprintf(&expanded_macro_string[k], "%d%c", macro_runtime_current->macro->calls - 1, 0);
+    sprintf(&expanded_macro_string[k], "%d%c", macroRuntimeCurrent->macro->calls - 1, 0);
     k = strlen(expanded_macro_string);
 
     for (; i < MAX_NAME_LENGTH; i++, k++) {
@@ -713,15 +714,15 @@ int expand_macro_arguments(char *in, int *s) {
       break;
   }
 
-  if (d > macro_runtime_current->supplied_arguments) {
+  if (d > macroRuntimeCurrent->supplied_arguments) {
     if (input_number_error_msg == YES) {
-      sprintf(xyz, "Macro \"%s\" wasn't called with enough arguments.\n", macro_runtime_current->macro->name);
+      sprintf(xyz, "Macro \"%s\" wasn't called with enough arguments.\n", macroRuntimeCurrent->macro->name);
       print_error(xyz, ERROR_NUM);
     }
     return FAILED;
   }
 
-  d = macro_runtime_current->argument_data[d - 1]->start;
+  d = macroRuntimeCurrent->argument_data[d - 1]->start;
 
   for (; k < MAX_NAME_LENGTH; d++, k++) {
     if (buffer[d] == 0 || buffer[d] == ' ' || buffer[d] == 0x0A || buffer[d] == ',')
