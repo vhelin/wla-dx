@@ -1,0 +1,6 @@
+#Compiled binaries go in this directory.
+
+# Ignore everything in this directory
+*
+# Except this file
+!.gitignore
