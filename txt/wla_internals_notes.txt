@@ -2,7 +2,8 @@ Please make sure your text file reader supports word wrap!
 
 These are my notes on WLA internals as I examine the source code...- cr1901
 
-Eventually, it might become a technical reference manual of sorts for porting new architectures.
+Eventually, it might become a technical reference manual of sorts for porting 
+new architectures.
 
 ================================================================================
 WLA:
@@ -10,9 +11,14 @@ WLA:
 -Retargetable.
 -Feature-Rich.
 -Mature.
--Written in (more-or-less) pure ANSI C, will compile with few complaints with GCC's -pedantic option.
--Attempts to follow language specifications for each backend. That is, the syntax of the languages themselves should be source-compatible with other assemblers. This includes, opcodes, operators, and labels.
--Directives are NOT source compatible with other assemblers for a given language. Though this perhaps could be mitigated with proper division of source files into directives and actual code.
+-Written in (more-or-less) pure ANSI C, will compile with few complaints with 
+GCC's -pedantic option.
+-Attempts to follow language specifications for each backend. That is, the 
+syntax of the languages themselves should be source-compatible with other 
+assemblers. This includes, opcodes, operators, and labels.
+-Directives are NOT source compatible with other assemblers for a given 
+language. Though this perhaps could be mitigated with proper division of source 
+files into directives and actual code.
 
 Divided into a number of core source files:
 main.c
@@ -21,29 +27,49 @@ include_file.c
 parse.c
 stack.c
 
-For those who wish to add a new architecture, users must provide their own source files for opcode tables, opcode structs, and opcode decoders. Additionally, the parser and include file facilities may need to be updated depending on the features of your target architecture.
+For those who wish to add a new architecture, users must provide their own 
+source files for opcode tables, opcode structs, and opcode decoders. 
+Additionally, the parser and include file facilities may need to be updated 
+depending on the features of your target architecture.
 
-WLA has provisions for helping a user generate their own opcodes in the following directories, relative to root of source tree:
+WLA has provisions for helping a user generate their own opcodes in the 
+following directories, relative to root of source tree:
 ./txt/opcodes
 ./opcode_table_generator
 ./print_opcodes
 
 ================================================================================
-What follows is my journey through analyzing the source code and adding my own backend (all directories relative to source tree root).
+What follows is my journey through analyzing the source code and adding my own 
+backend (all directories relative to source tree root).
 
-Zeroth, read the assembler manual and have some familiarity with the features of WLA before attempting a port (unsaid rule I suppose)!
+Zeroth, read the assembler manual and have some familiarity with the features 
+of WLA before attempting a port (unsaid rule I suppose)!
 
-First, make a git branch for your backend. I recommend the name of the type: backend/${TARGET}. i.e. "git checkout -b backend/superfx"
+First, make a git branch for your backend. I recommend the name of the type: 
+backend/${TARGET}. i.e. "git checkout -b backend/superfx"
 
-Next, create a Makefile for your target (see ./makefiles/makefile.${HOST_OS}.${TARGET} for examples). Choose a binary name, and a target-specific define, and other relevant compiler switches that are required for the compiler/linker so that it doesn't bitc- err, complain :P. Copy it to the top level directory. No need to create Makefiles for all host OSes now- just the one(s) you're using for adding your backend.
+Next, create a Makefile for your target (see 
+./makefiles/makefile.${HOST_OS}.${TARGET} for examples). Choose a binary name, 
+and a target-specific define, and other relevant compiler switches that are 
+required for the compiler/linker so that it doesn't bitc- err, complain :P. 
+Copy it to the top level directory. No need to create Makefiles for all host 
+OSes now- just the one(s) you're using for adding your backend.
 
--Future consideration: This BEGS for an m4 script, at the cost of some host-platform portability.
+-Future consideration: This BEGS for an m4 script, at the cost of some 
+host-platform portability.
 
 Start with ./main.c:
-Need to create a version string and a title for your assembler. Use the target-specific (called ${TARGET} from here on) define you chose in your Makefile to make sure the code conditionally compiles. Otherwise, main.c mainly does the housekeeping, initialization and calls the pass[1-4] functions.
+Need to create a version string and a title for your assembler. Use the 
+target-specific (called ${TARGET} from here on) define you chose in your 
+Makefile to make sure the code conditionally compiles. Otherwise, main.c mainly 
+does the housekeeping, initialization and calls the pass[1-4] functions.
 
 ./pass_1.c:
-Your opcode tables/opcode structs are used here, as well as the opcode decoder. The opcode struct (called 'optcode') tends to follow a specific format, but it IS backend-defined. The opcode struct is defined in ./defines.h. Use the ${TARGET} define to create an opcode struct in the relevant section of defines.h.
+Your opcode tables/opcode structs are used here, as well as the opcode decoder. 
+The opcode struct (called 'optcode') tends to follow a specific format, but it 
+IS backend-defined. The opcode struct is defined in ./defines.h. Use the 
+${TARGET} define to create an opcode struct in the relevant section of 
+defines.h.
 
 An example section follows for ${TARGET} => W65816
 
@@ -81,7 +107,10 @@ struct optcode {
 };
 #endif
 
-In the above example, skip_xbit is a target-specific field for the opcode struct. All processors in WLA, except SPC700 have at least one target-specific field to aid with opcode/mnemonic decoding. Thus, the base opcode struct consists of 3 fields: 
+In the above example, skip_xbit is a target-specific field for the opcode 
+struct. All processors in WLA, except SPC700 have at least one target-specific 
+field to aid with opcode/mnemonic decoding. Thus, the base opcode struct 
+consists of 3 fields: 
 
 struct optcode {
   char *op;
@@ -89,11 +118,15 @@ struct optcode {
   int  type;
 };
 
--Future consideration: ANSI C permits typecasting an initial struct to another struct whose fields are a subset (and in the same order) of the initial struct.
+-Future consideration: ANSI C permits typecasting an initial struct to another 
+struct whose fields are a subset (and in the same order) of the initial struct.
 
--Future consideration: Is the short qualifier actually needed for AMIGA, since int >= short?
+-Future consideration: Is the short qualifier actually needed for AMIGA, since 
+int >= short?
 
-WLA will generate temporary file(s) before constructing the final file. Depending on the host OS, this file will take on various names, as demonstrated by the following conditional code:
+WLA will generate temporary file(s) before constructing the final file. 
+Depending on the host OS, this file will take on various names, as demonstrated 
+by the following conditional code:
 
 #ifdef UNIX
   sprintf(gba_tmp_name, ".wla%da", (int)getpid());
@@ -115,7 +148,11 @@ WLA will generate temporary file(s) before constructing the final file. Dependin
 #endif  
 #endif
 
-These tempfiles consist of space-delimited text file (ASCII) representations of WLA's internal datatypes and values found as a source file is traversed, in the form of "${D}${V} ", where ${D} represents the current internal datatype, and ${V} is the corresponding value. A list of WLA's supported internal datatypes can be found in the corresponding section of ./defines.h.
+These tempfiles consist of space-delimited text file (ASCII) representations of 
+WLA's internal datatypes and values found as a source file is traversed, in the 
+form of "${D}${V} ", where ${D} represents the current internal datatype, and 
+${V} is the corresponding value. A list of WLA's supported internal datatypes 
+can be found in the corresponding section of ./defines.h.
 
 ================================================================================
 Guidelines for those working on WLA:
