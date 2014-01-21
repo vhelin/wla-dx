@@ -155,5 +155,10 @@ ${V} is the corresponding value. A list of WLA's supported internal datatypes
 can be found in the corresponding section of ./defines.h.
 
 ================================================================================
+Frequently used variables that may need additional explanation:
+extern i=> Current position in a buffer housing the open file.
+include_file.c => include_file(char *) => id... include file In Directory flag (NOT identification)
+
+================================================================================
 Guidelines for those working on WLA:
 No compiler-specific extensions!
