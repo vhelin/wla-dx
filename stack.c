@@ -19,7 +19,7 @@ extern struct definition *defines, *tmp_def, *next_def;
 extern struct active_file_info *active_file_info_first, *active_file_info_last, *active_file_info_tmp;
 extern struct macro_runtime *macro_runtime_current;
 extern struct section_def *sec_tmp;
-extern double flo;
+extern double parsed_double;
 
 int latest_stack = 0, stacks_inside = 0, stacks_outside = 0, stack_id = 0;
 struct stack *stacks_first = NULL, *stacks_tmp = NULL, *stacks_last = NULL;
@@ -811,7 +811,7 @@ int stack_calculate(char *in, int *value) {
       return FAILED;
 
     if (input_float_mode == ON) {
-      flo = dou;
+      parsed_double = dou;
       return INPUT_NUMBER_FLOAT;
     }
 

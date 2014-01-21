@@ -102,7 +102,7 @@ extern int stack_id, latest_stack, ss, commandline_parsing, newline_beginning;
 extern int extra_definitions, string_size, input_float_mode;
 extern int include_dir_size, parse_floats, listfile_data, quiet;
 extern FILE *file_out_ptr;
-extern double flo;
+extern double parsed_double;
 extern char *final_name;
 extern struct active_file_info *active_file_info_first, *active_file_info_last, *active_file_info_tmp;
 extern struct file_name_info *file_name_info_first, *file_name_info_last, *file_name_info_tmp;
@@ -4603,8 +4603,8 @@ int parse_directive(void) {
       sdsc_mi = 0;
     }
     else {
-      sdsc_ma = (int)flo;
-      sdsc_mi = ((int)((flo - ((double)((int)flo))) * 10001.0) / 100);
+      sdsc_ma = (int)parsed_double;
+      sdsc_mi = ((int)((parsed_double - ((double)((int)parsed_double))) * 10001.0) / 100);
     }
 
     if (sdsc_ma >= 100 || sdsc_mi >= 100) {
@@ -6183,7 +6183,7 @@ int parse_directive(void) {
     if (p == SUCCEEDED)
       a = d;
     else
-      a = flo;
+      a = parsed_double;
 
     if (input_number() != SUCCEEDED || d < 0) {
       sprintf(emsg, ".%s needs an non-negative integer value for additional angles.\n", cp);
@@ -6204,7 +6204,7 @@ int parse_directive(void) {
     if (p == SUCCEEDED)
       s = d;
     else
-      s = flo;
+      s = parsed_double;
 
     p = input_number();
     if (p != SUCCEEDED && p != INPUT_NUMBER_FLOAT) {
@@ -6216,7 +6216,7 @@ int parse_directive(void) {
     if (p == SUCCEEDED)
       m = d;
     else
-      m = flo;
+      m = parsed_double;
 
     p = input_number();
     input_float_mode = OFF;
@@ -6229,7 +6229,7 @@ int parse_directive(void) {
     if (p == SUCCEEDED)
       n = d;
     else
-      n = flo;
+      n = parsed_double;
 
     for (c++; c > 0; c--) {
       while (a >= 360)
@@ -6440,8 +6440,8 @@ int get_new_definition_data(int *b, char *c, int *size, double *data) {
         s = strlen(label);
       }
       else if (x == INPUT_NUMBER_FLOAT) {
-        *data = flo;
-        *b = flo;
+        *data = parsed_double;
+        *b = parsed_double;
       }
       else
         return x;
@@ -6468,7 +6468,7 @@ int get_new_definition_data(int *b, char *c, int *size, double *data) {
 
     /* transform floats to integers */
     if (x == INPUT_NUMBER_FLOAT) {
-      d = flo;
+      d = parsed_double;
       x = SUCCEEDED;
     }
 

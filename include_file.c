@@ -165,9 +165,9 @@ int include_file(char *name) {
     n = malloc(strlen(full_name)+1);
     if (file_name_info_tmp == NULL || n == NULL) {
       if (file_name_info_tmp != NULL)
-        free(file_name_info_tmp);
+				free(file_name_info_tmp);
       if (n != NULL)
-        free(n);
+				free(n);
       sprintf(emsg, "Out of memory while trying allocate info structure for file \"%s\".\n", full_name);
       print_error(emsg, ERROR_INC);
       return FAILED;
@@ -379,11 +379,11 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
     *skip = d;
 
-    if (d >= file_size) {
-      sprintf(emsg, "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", d, file_size, full_name);
-      print_error(emsg, ERROR_INB);
-      return FAILED;
-    }
+		if (d >= file_size) {
+			sprintf(emsg, "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", d, file_size, full_name);
+			print_error(emsg, ERROR_INB);
+			return FAILED;
+		}
   }
 
   /* READ bytes? */
@@ -399,11 +399,11 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
     *read = d;
 
-    if (*skip + *read > file_size) {
-      sprintf(emsg, "Overreading file \"%s\" by %d bytes.\n", full_name, *skip + *read - file_size);
-      print_error(emsg, ERROR_INB);
-      return FAILED;
-    }
+		if (*skip + *read > file_size) {
+			sprintf(emsg, "Overreading file \"%s\" by %d bytes.\n", full_name, *skip + *read - file_size);
+			print_error(emsg, ERROR_INB);
+			return FAILED;
+		}
   }
 
   /* SWAP bytes? */
@@ -430,7 +430,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     add_a_new_definition(tmp, (double)file_size, NULL, DEFINITION_TYPE_VALUE, 0);
   }
 
-  /* FILTER? */
+	/* FILTER? */
   if (compare_next_token("FILTER", 6) == SUCCEEDED) {
     skip_next_token();
 
@@ -438,16 +438,16 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     if (get_next_token() == FAILED)
       return FAILED;
 
-    *macro = macro_get(tmp);
+		*macro = macro_get(tmp);
 
-    if (*macro == NULL) {
-      sprintf(emsg, "No MACRO \"%s\" defined.\n", tmp);
-      print_error(emsg, ERROR_INB);
-      return FAILED;
-    }
-  }
-  else
-    *macro = NULL;
+		if (*macro == NULL) {
+			sprintf(emsg, "No MACRO \"%s\" defined.\n", tmp);
+			print_error(emsg, ERROR_INB);
+			return FAILED;
+		}
+	}
+	else
+		*macro = NULL;
 
   return SUCCEEDED;
 }
@@ -483,27 +483,27 @@ int print_file_names(void) {
   /* handle the main file name differently */
   if (f != NULL) {
     if (f->next != NULL || d != NULL)
-      fprintf(stdout, "%s \\\n", f->name);
+      fprintf(stderr, "%s \\\n", f->name);
     else
-      fprintf(stdout, "%s\n", f->name);
+      fprintf(stderr, "%s\n", f->name);
     f = f->next;
   }
 
   /* included files */
   while (f != NULL) {
     if (f->next != NULL || d != NULL)
-      fprintf(stdout, "\t%s \\\n", f->name);
+      fprintf(stderr, "\t%s \\\n", f->name);
     else
-      fprintf(stdout, "\t%s\n", f->name);
+      fprintf(stderr, "\t%s\n", f->name);
     f = f->next;
   }
 
   /* incbin files */
   while (d != NULL) {
     if (d->next != NULL)
-      fprintf(stdout, "\t%s \\\n", d->name);
+      fprintf(stderr, "\t%s \\\n", d->name);
     else
-      fprintf(stdout, "\t%s\n", d->name);
+      fprintf(stderr, "\t%s\n", d->name);
     d = d->next;
   }
 
@@ -514,227 +514,244 @@ int print_file_names(void) {
 /* the mystery preprocessor - touch it and prepare for trouble ;) the preprocessor
    removes as much white space as possible from the source file. this is to make
    the parsing of the file, that follows, simpler. */
-int preprocess_file(char *c, char *d, char *o, int *s, char *f) {
+int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_size, char *file_name) {
 
-  register int t = 0, z = 0;
-#if defined(W65816) || defined(SPC700)
-  register int u = 0;
-#endif
-  char *e;
+  /* chars_on_line - this is set to 1 when the parser finds a non white space symbol on the line it's parsing */
+  register int chars_on_line = 0, z = 0;
 
-  e = o + (*s);
-  while (c < d) {
-    switch (*c) {
-      case ';':
-        /* clear a commented line */
-        c++;
-        for ( ; c < d && *c != 0x0A && *c != 0x0D; c++);
-        e--;
-        for ( ; e > o && *e == ' '; e--);
-        if (e < o)
-          e = o;
-        else if (*e != ' ')
-          e++;
-        break;
-      case '*':
-        if (t == 0) {
-          /* clear a commented line */
-          c++;
-          for ( ; c < d && *c != 0x0A && *c != 0x0D; c++);
-        }
-        else {
-          /* multiplication! */
-          c++;
-          *e = '*';
-          e++;
-          t = 1;
-        }
-        break;
-      case '/':
-        if (*(c + 1) == '*') {
-          /* remove an ANSI C -style block comment */
-          t = 0;
-          c += 2;
-          while (t == 0) {
-            for ( ; c < d && *c != '/' && *c != 0x0A; c++);
-            if (c >= d) {
-              sprintf(emsg, "Comment wasn't terminated properly in file \"%s\".\n", f);
-              print_error(emsg, ERROR_INC);
-              return FAILED;
-            }
-            if (*c == 0x0A) {
-              *e = 0x0A;
-              e++;
-            }
-            if (*c == '/' && *(c - 1) == '*') {
-              t = 1;
-            }
-            c++;
-          }
-          e--;
-          for ( ; e > o && *e == ' '; e--);
-          if (e < o)
-            e = o;
-          else if (*e != ' ')
-            e++;
-        }
-        else {
-          c++;
-          *e = '/';
-          e++;
-          t = 1;
-        }
-        break;
-      case ':':
-        /* finding a label resets the counters */
-        c++;
-        *e = ':';
-        e++;
-        t = 0;
-        break;
-      case 0x09:
-      case ' ':
-        /* remove extra white space */
-        c++;
-        *e = ' ';
-        e++;
-        for ( ; c < d && (*c == ' ' || *c == 0x09); c++);
-        t = 1;
-        if (z == 1)
-          z = 2;
-        break;
-      case 0x0A:
-        /* take away white space from the end of the line */
-        c++;
-        e--;
-        for ( ; *e == ' '; e--);
-        e++;
-        *e = 0x0A;
-        e++;
-        t = 0;
-        z = 0;
 #if defined(W65816) || defined(SPC700)
-        u = 0;
+  register int square_bracket_open = 0;
 #endif
-        break;
-      case 0x0D:
-        c++;
-        break;
-      case '\'':
-        if (*(c + 2) == '\'') {
-          *e = '\'';
-          c++;
-          e++;
-          *e = *c;
-          c++;
-          e++;
-          *e = '\'';
-          c++;
-          e++;
-        }
-        else {
-          *e = '\'';
-          c++;
-          e++;
-        }
-        t = 1;
-        break;
-      case '"':
-        /* don't alter the strings */
-        *e = '"';
-        c++;
-        e++;
-        t = 0;
-        while (t == 0) {
-          for ( ; c < d && *c != '"'; ) {
-            *e = *c;
-            c++;
-            e++;
-          }
-          if (*c == '"' && *(c - 1) != '\\')
-            t = 1;
-          else {
-            *e = '"';
-            c++;
-            e++;
-          }
-        }
-        *e = '"';
-        c++;
-        e++;
-        break;
+
+  char *output;
+
+  /* WARNING: we also advance the output pointer by out_size! */
+  output = out_buffer + (*out_size);
+
+  while (input < input_end) {
+    switch (*input) {
+    case ';':
+      /* clear a commented line */
+      input++;
+      for ( ; input < input_end && *input != 0x0A && *input != 0x0D; input++)
+    	  ;
+      output--;
+      for ( ; output > out_buffer && *output == ' '; output--)
+    	  ;
+      if (output < out_buffer)
+				output = out_buffer;
+      else if (*output != ' ')
+				output++;
+      break;
+    case '*':
+      if (chars_on_line == 0) {
+				/* clear a commented line */
+				input++;
+				for ( ; input < input_end && *input != 0x0A && *input != 0x0D; input++)
+					;
+      }
+      else {
+				/* multiplication! */
+				input++;
+				*output = '*';
+				output++;
+      }
+      break;
+    case '/':
+      if (*(input + 1) == '*') {
+				/* remove an ANSI C -style block comment */
+				chars_on_line = 0;
+				input += 2;
+				while (chars_on_line == 0) {
+					for ( ; input < input_end && *input != '/' && *input != 0x0A; input++)
+						;
+					if (input >= input_end) {
+						sprintf(emsg, "Comment wasn't terminated properly in file \"%s\".\n", file_name);
+						print_error(emsg, ERROR_INC);
+						return FAILED;
+					}
+					if (*input == 0x0A) {
+						*output = 0x0A;
+						output++;
+					}
+					if (*input == '/' && *(input - 1) == '*') {
+						chars_on_line = 1;
+					}
+					input++;
+				}
+				output--;
+				for ( ; output > out_buffer && *output == ' '; output--)
+					;
+				if (output < out_buffer)
+					output = out_buffer;
+				else if (*output != ' ')
+					output++;
+      }
+      else {
+				input++;
+				*output = '/';
+				output++;
+				chars_on_line = 1;
+      }
+      break;
+    case ':':
+      /* finding a label resets the counters */
+      input++;
+      *output = ':';
+      output++;
+      chars_on_line = 0;
+      break;
+    case 0x09:
+    case ' ':
+      /* remove extra white space */
+      input++;
+      *output = ' ';
+      output++;
+      for ( ; input < input_end && (*input == ' ' || *input == 0x09); input++)
+    	  ;
+      chars_on_line = 1;
+      if (z == 1)
+				z = 2;
+      break;
+    case 0x0A:
+      /* take away white space from the end of the line */
+      input++;
+      output--;
+      for ( ; *output == ' '; output--)
+    	  ;
+      output++;
+      *output = 0x0A;
+      output++;
+      chars_on_line = 0;
+      z = 0;
+#if defined(W65816) || defined(SPC700)
+      square_bracket_open = 0;
+#endif
+      break;
+    case 0x0D:
+      input++;
+      break;
+    case '\'':
+      if (*(input + 2) == '\'') {
+				*output = '\'';
+				input++;
+				output++;
+				*output = *input;
+				input++;
+				output++;
+				*output = '\'';
+				input++;
+				output++;
+      }
+      else {
+				*output = '\'';
+				input++;
+				output++;
+      }
+      chars_on_line = 1;
+      break;
+    case '"':
+      /* don't alter strings */
+      *output = '"';
+      input++;
+      output++;
+      chars_on_line = 0;
+      while (chars_on_line == 0) {
+				for ( ; input < input_end && *input != '"'; ) {
+					*output = *input;
+					input++;
+					output++;
+				}
+				if (*input == '"' && *(input - 1) != '\\')
+					chars_on_line = 1;
+				else {
+					*output = '"';
+					input++;
+					output++;
+				}
+      }
+      *output = '"';
+      input++;
+      output++;
+      break;
 #if !defined(W65816) && !defined(SPC700)
-      case '[':
-        /* change '[' to '(' */
+    case '[':
+      /* change '[' to '(' */
 #endif
-      case '(':
-        *e = '(';
-        c++;
-        e++;
-        for ( ; c < d && (*c == ' ' || *c == 0x09); c++);
-        t = 1;
-        break;
+    case '(':
+      *output = '(';
+      input++;
+      output++;
+      for ( ; input < input_end && (*input == ' ' || *input == 0x09); input++)
+    	  ;
+      chars_on_line = 1;
+      break;
 #if !defined(W65816) && !defined(SPC700)
-      case ']':
-        /* change ']' to ')' */
+    case ']':
+      /* change ']' to ')' */
 #endif
-      case ')':
-        /* go back? */
-        if (t == 1 && *(e - 1) == ' ')
-          e--;
-        *e = ')';
-        c++;
-        e++;
-        t = 1;
-        break;
+    case ')':
+      /* go back? */
+      if (chars_on_line == 1 && *(output - 1) == ' ')
+				output--;
+      *output = ')';
+      input++;
+      output++;
+      chars_on_line = 1;
+      break;
 #if defined(W65816) || defined(SPC700)
-      case '[':
-        *e = *c;
-        c++;
-        e++;
-        t = 1;
-        u = 1;
-        break;
+    case '[':
+      *output = *input;
+      input++;
+      output++;
+      chars_on_line = 1;
+      square_bracket_open = 1;
+      break;
 #endif
-      case ',':
-      case '+':
-      case '-':
-        if (t == 0) {
-          for ( ; c < d && (*c == '+' || *c == '-'); c++, e++)
-            *e = *c;
-          t = 1;
-        }
-        else {
+    case ',':
+    case '+':
+    case '-':
+      if (chars_on_line == 0) {
+				for ( ; input < input_end && (*input == '+' || *input == '-'); input++, output++)
+					*output = *input;
+				chars_on_line = 1;
+      }
+      else {
 #if defined(W65816) || defined(SPC700)
-          /* go back? */
-          if (*(e - 1) == ' ' && u == 1)
-            e--;
+				/* go back? */
+				if (*(output - 1) == ' ' && square_bracket_open == 1)
+					output--;
 #else
-          /* go back? */
-          if ((z == 3 || *c == ',') && *(e - 1) == ' ')
-            e--;
+				/* go back? */
+				if ((z == 3 || *input == ',') && *(output - 1) == ' ')
+					output--;
 #endif
-          *e = *c;
-          c++;
-          e++;
-          for ( ; c < d && (*c == ' ' || *c == 0x09); c++);
-          t = 1;
-        }
-        break;
-      default:
-        *e = *c;
-        c++;
-        e++;
-        if (z == 0)
-          z = 1;
-        else if (z == 2)
-          z = 3;
-        t = 1;
-        break;
+				*output = *input;
+				input++;
+				output++;
+				for ( ; input < input_end && (*input == ' ' || *input == 0x09); input++)
+					;
+				chars_on_line = 1;
+      }
+      break;
+    default:
+      *output = *input;
+      input++;
+      output++;
+      chars_on_line = 1;
+
+      /* values for z */
+      /* 0 - new line -> 1 - 1+ characters on the line -> 2 - extra white space removed -> */
+      /* 3 - again 1+ characters follow */
+      if (z == 0)
+				z = 1;
+      else if (z == 2)
+				z = 3;
+      break;
     }
   }
 
-  *s = e - o;
+  *out_size = output - out_buffer;
 
   return SUCCEEDED;
 }
