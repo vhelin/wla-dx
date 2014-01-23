@@ -231,6 +231,7 @@ int include_file(char *name) {
     return SUCCEEDED;
   }
 
+  /* Why not just realloc() buffer?- W. Jones */
   tmp_b = malloc(sizeof(char) * (size + file_size + 4));
   if (tmp_b == NULL) {
     sprintf(emsg, "Out of memory while trying to expand the project to incorporate file \"%s\".\n", full_name);
@@ -526,6 +527,9 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
   char *output;
 
   /* WARNING: we also advance the output pointer by out_size! */
+  
+  /* Code with no net effect? Both places from which this function is called set out_size to
+  0.- W. Jones */
   output = out_buffer + (*out_size);
 
   while (input < input_end) {
@@ -536,7 +540,9 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       for ( ; input < input_end && *input != 0x0A && *input != 0x0D; input++)
     	  ;
       output--;
-      /* How can multiple whitespaces be next to each other in output file?- W. Jones */
+      /* How can multiple whitespaces be next to each other in output file if every
+      time whitespace is added to the output file, it represents multiple whitespace characters 
+      (between non-whitespace) in the input file compressed into one?- W. Jones */
       for ( ; output > out_buffer && *output == ' '; output--)
     	  ;
       if (output < out_buffer)
@@ -726,11 +732,14 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 				for ( ; input < input_end && (*input == '+' || *input == '-'); input++, output++)
 					*output = *input;
 				chars_on_line = 1;
-				/* For ',', this is okay as pointers aren't incremented. */
+				/* For ',', this is okay as pointers aren't incremented.
+				At least this is how I understand it.- W. Jones*/
       }
       else {
 #if defined(W65816) || defined(SPC700)
 				/* go back? */
+				/* What's the purpose of the whitespace handling in the 3
+				below cases?- W. Jones */
 				if (*(output - 1) == ' ' && square_bracket_open == 1)
 					output--;
 #else
