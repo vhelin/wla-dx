@@ -536,10 +536,13 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       for ( ; input < input_end && *input != 0x0A && *input != 0x0D; input++)
     	  ;
       output--;
+      /* How can multiple whitespaces be next to each other in output file?- W. Jones */
       for ( ; output > out_buffer && *output == ' '; output--)
     	  ;
       if (output < out_buffer)
 				output = out_buffer;
+	/* Edge case for when whitespace begins input file? Otherwise this code 
+	seems unreachable- W. Jones */		
       else if (*output != ' ')
 				output++;
       break;
@@ -571,10 +574,13 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 						return FAILED;
 					}
 					if (*input == 0x0A) {
+						/* Why include newlines in a C-style comment? Is it because it's
+						not considered whitespace?- W. Jones */
 						*output = 0x0A;
 						output++;
 					}
 					if (*input == '/' && *(input - 1) == '*') {
+						/* What's the difference between chars_on_line and z?- W. Jones */
 						chars_on_line = 1;
 					}
 					input++;
@@ -584,6 +590,8 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 					;
 				if (output < out_buffer)
 					output = out_buffer;
+				
+				/* Another edge-case?- W. Jones */
 				else if (*output != ' ')
 					output++;
       }
@@ -617,6 +625,9 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       /* take away white space from the end of the line */
       input++;
       output--;
+      
+      /* This seems dangerous when newline begins a file... because output will point
+      one before the output buffer, and who knows where there that is?- W. Jones */
       for ( ; *output == ' '; output--)
     	  ;
       output++;
@@ -715,6 +726,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 				for ( ; input < input_end && (*input == '+' || *input == '-'); input++, output++)
 					*output = *input;
 				chars_on_line = 1;
+				/* For ',', this is okay as pointers aren't incremented. */
       }
       else {
 #if defined(W65816) || defined(SPC700)

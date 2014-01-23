@@ -118,6 +118,10 @@ struct optcode {
   int  type;
 };
 
+Type 0 MUST be reserved for opcodes which do not take any operands (i.e. 
+implied). This is hardcoded into the opcode decoder when attempting to match 
+strings in the input file to recognized opcodes.
+
 -Future consideration: ANSI C permits typecasting an initial struct to another 
 struct whose fields are a subset (and in the same order) of the initial struct.
 
@@ -154,10 +158,32 @@ form of "${D}${V} ", where ${D} represents the current internal datatype, and
 ${V} is the corresponding value. A list of WLA's supported internal datatypes 
 can be found in the corresponding section of ./defines.h.
 
+Opcodes are first parsed during pass1.c in the evaluate_token() function. By 
+this point, the "lexer" in get_next_token() in parse.c has retrieved a string 
+of characters between whitespace, called a token, into a buffer called tmp[]. 
+Besides retrieving the string of characters, the lexer in get_next_token() has 
+also determined that the string of characters does not begin and end with '"'- 
+i.e. is NOT a C string. Therefore, beyond knowing the token is NOT a C 
+string, the function evaluate_token() has to determine what type of token the 
+lexer retrieved- i.e. "what is the significance of these retrieved characters 
+in creating the binary?".
+
+IMPORTANT: Because WLA is written in C, the lexer will always append a null 
+terminator
+to the token retrieved in tmp[].
+
+The evaluate_token() function first attempts to check if the retrieved token is 
+a label, or a directive, before attempting to match the token to an mnemonic.
+
 ================================================================================
 Frequently used variables that may need additional explanation:
 extern i=> Current position in a buffer housing the open file.
-include_file.c => include_file(char *) => id... include file In Directory flag (NOT identification)
+include_file.c => include_file(char *) => id... include file In Directory flag 
+(NOT identification)
+include_file.c => file_size => Size of the current open file
+extern size => size of the buffer holding all (preprocessed) files.
+extern buffer => holds all preprocessed files, indexed with i
+extern inz => general purpose variable used to index into multiple buffers
 
 ================================================================================
 Guidelines for those working on WLA:
