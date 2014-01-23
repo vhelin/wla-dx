@@ -530,6 +530,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
   
   /* Code with no net effect? Both places from which this function is called set out_size to
   0.- W. Jones */
+
   output = out_buffer + (*out_size);
 
   while (input < input_end) {
