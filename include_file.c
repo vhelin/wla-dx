@@ -530,6 +530,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
   
   /* Code with no net effect? Both places from which this function is called set out_size to
   0.- W. Jones */
+  /* Ville: True, some old legacy feature, can be taken away */
 
   output = out_buffer + (*out_size);
 
@@ -539,74 +540,84 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       /* clear a commented line */
       input++;
       for ( ; input < input_end && *input != 0x0A && *input != 0x0D; input++)
-    	  ;
+	;
       output--;
       /* How can multiple whitespaces be next to each other in output file if every
       time whitespace is added to the output file, it represents multiple whitespace characters 
       (between non-whitespace) in the input file compressed into one?- W. Jones */
+      /* Ville: This preprocess_file() compresses 2+ adjacent white space chars into 1 so that
+	 parsing the source code later is simpler, or this is what I remember.
+	 Line breaks are preserved for line counting. The above loop just advances input
+	 pointer to the end of the commented line, and then removes the copied ';' char
+	 from the output - damn, I should have written comments here also, to clarify this. :) */
       for ( ; output > out_buffer && *output == ' '; output--)
-    	  ;
+	;
       if (output < out_buffer)
-				output = out_buffer;
-	/* Edge case for when whitespace begins input file? Otherwise this code 
-	seems unreachable- W. Jones */		
+	output = out_buffer;
+      /* Edge case for when whitespace begins input file? Otherwise this code 
+	 seems unreachable- W. Jones */
+      /* Ville: I think you are correct */
       else if (*output != ' ')
-				output++;
+	output++;
       break;
     case '*':
       if (chars_on_line == 0) {
-				/* clear a commented line */
-				input++;
-				for ( ; input < input_end && *input != 0x0A && *input != 0x0D; input++)
-					;
+	/* clear a commented line */
+	input++;
+	for ( ; input < input_end && *input != 0x0A && *input != 0x0D; input++)
+	  ;
       }
       else {
-				/* multiplication! */
-				input++;
-				*output = '*';
-				output++;
+	/* multiplication! */
+	input++;
+	*output = '*';
+	output++;
       }
       break;
     case '/':
       if (*(input + 1) == '*') {
-				/* remove an ANSI C -style block comment */
-				chars_on_line = 0;
-				input += 2;
-				while (chars_on_line == 0) {
-					for ( ; input < input_end && *input != '/' && *input != 0x0A; input++)
-						;
-					if (input >= input_end) {
-						sprintf(emsg, "Comment wasn't terminated properly in file \"%s\".\n", file_name);
-						print_error(emsg, ERROR_INC);
-						return FAILED;
-					}
-					if (*input == 0x0A) {
-						/* Why include newlines in a C-style comment? Is it because it's
-						not considered whitespace?- W. Jones */
-						*output = 0x0A;
-						output++;
-					}
-					if (*input == '/' && *(input - 1) == '*') {
-						/* What's the difference between chars_on_line and z?- W. Jones */
-						chars_on_line = 1;
-					}
-					input++;
-				}
-				output--;
-				for ( ; output > out_buffer && *output == ' '; output--)
-					;
-				if (output < out_buffer)
-					output = out_buffer;
-				
-				/* Another edge-case?- W. Jones */
-				else if (*output != ' ')
-					output++;
+	/* remove an ANSI C -style block comment */
+	chars_on_line = 0;
+	input += 2;
+	while (chars_on_line == 0) {
+	  for ( ; input < input_end && *input != '/' && *input != 0x0A; input++)
+	    ;
+	  if (input >= input_end) {
+	    sprintf(emsg, "Comment wasn't terminated properly in file \"%s\".\n", file_name);
+	    print_error(emsg, ERROR_INC);
+	    return FAILED;
+	  }
+	  if (*input == 0x0A) {
+	    /* Why include newlines in a C-style comment? Is it because it's
+	       not considered whitespace?- W. Jones */
+	    /* Ville: We copy the newlines to the output always to make line number counting possible */
+	    *output = 0x0A;
+	    output++;
+	  }
+	  if (*input == '/' && *(input - 1) == '*') {
+	    /* What's the difference between chars_on_line and z?- W. Jones */
+	    /* Ville: z actually is some kind of a preprocess mode variable - it has states 0-3, and they are
+	       written out at the end of the function. I don't actually know how to call the z var, what
+	       would be a proper name for it. But perhaps I should at least make the modes enums? */
+	    chars_on_line = 1;
+	  }
+	  input++;
+	}
+	output--;
+	for ( ; output > out_buffer && *output == ' '; output--)
+	  ;
+	if (output < out_buffer)
+	  output = out_buffer;
+       	/* Another edge-case?- W. Jones */
+	/* Ville: Seems like it */
+	else if (*output != ' ')
+	  output++;
       }
       else {
-				input++;
-				*output = '/';
-				output++;
-				chars_on_line = 1;
+	input++;
+	*output = '/';
+	output++;
+	chars_on_line = 1;
       }
       break;
     case ':':
@@ -623,10 +634,10 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       *output = ' ';
       output++;
       for ( ; input < input_end && (*input == ' ' || *input == 0x09); input++)
-    	  ;
+	;
       chars_on_line = 1;
       if (z == 1)
-				z = 2;
+	z = 2;
       break;
     case 0x0A:
       /* take away white space from the end of the line */
@@ -634,7 +645,8 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       output--;
       
       /* This seems dangerous when newline begins a file... because output will point
-      one before the output buffer, and who knows where there that is?- W. Jones */
+	 one before the output buffer, and who knows where there that is?- W. Jones */
+      /* Ville: Good find, I can check out if the code really does that with a test case. */
       for ( ; *output == ' '; output--)
     	  ;
       output++;
@@ -651,20 +663,20 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       break;
     case '\'':
       if (*(input + 2) == '\'') {
-				*output = '\'';
-				input++;
-				output++;
-				*output = *input;
-				input++;
-				output++;
-				*output = '\'';
-				input++;
-				output++;
+	*output = '\'';
+	input++;
+	output++;
+	*output = *input;
+	input++;
+	output++;
+	*output = '\'';
+	input++;
+	output++;
       }
       else {
-				*output = '\'';
-				input++;
-				output++;
+	*output = '\'';
+	input++;
+	output++;
       }
       chars_on_line = 1;
       break;
@@ -675,18 +687,18 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       output++;
       chars_on_line = 0;
       while (chars_on_line == 0) {
-				for ( ; input < input_end && *input != '"'; ) {
-					*output = *input;
-					input++;
-					output++;
-				}
-				if (*input == '"' && *(input - 1) != '\\')
-					chars_on_line = 1;
-				else {
-					*output = '"';
-					input++;
-					output++;
-				}
+	for ( ; input < input_end && *input != '"'; ) {
+	  *output = *input;
+	  input++;
+	  output++;
+	}
+	if (*input == '"' && *(input - 1) != '\\')
+	  chars_on_line = 1;
+	else {
+	  *output = '"';
+	  input++;
+	  output++;
+	}
       }
       *output = '"';
       input++;
@@ -711,7 +723,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
     case ')':
       /* go back? */
       if (chars_on_line == 1 && *(output - 1) == ' ')
-				output--;
+	output--;
       *output = ')';
       input++;
       output++;
@@ -730,30 +742,34 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
     case '+':
     case '-':
       if (chars_on_line == 0) {
-				for ( ; input < input_end && (*input == '+' || *input == '-'); input++, output++)
-					*output = *input;
-				chars_on_line = 1;
-				/* For ',', this is okay as pointers aren't incremented.
-				At least this is how I understand it.- W. Jones*/
+	for ( ; input < input_end && (*input == '+' || *input == '-'); input++, output++)
+	  *output = *input;
+	chars_on_line = 1;
+	/* For ',', this is okay as pointers aren't incremented.
+	   At least this is how I understand it.- W. Jones*/
+	/* Ville: Some special cases (some instructions for some CPU) might disagree, but I don't really remember. :) */
       }
       else {
 #if defined(W65816) || defined(SPC700)
-				/* go back? */
-				/* What's the purpose of the whitespace handling in the 3
-				below cases?- W. Jones */
-				if (*(output - 1) == ' ' && square_bracket_open == 1)
-					output--;
+	/* go back? */
+	/* What's the purpose of the whitespace handling in the 3
+	   below cases?- W. Jones */
+	/* Ville: I think here we remove all white space from some special cases to make the parser later work properly?
+	   ... but I'm not 100% sure. I think these few lines enables the parser (that comes later) handle some special 65816/SPC700
+	   instructions properly? */
+	if (*(output - 1) == ' ' && square_bracket_open == 1)
+	  output--;
 #else
-				/* go back? */
-				if ((z == 3 || *input == ',') && *(output - 1) == ' ')
-					output--;
+	/* go back? */
+	if ((z == 3 || *input == ',') && *(output - 1) == ' ')
+	  output--;
 #endif
-				*output = *input;
-				input++;
-				output++;
-				for ( ; input < input_end && (*input == ' ' || *input == 0x09); input++)
-					;
-				chars_on_line = 1;
+	*output = *input;
+	input++;
+	output++;
+	for ( ; input < input_end && (*input == ' ' || *input == 0x09); input++)
+	  ;
+	chars_on_line = 1;
       }
       break;
     default:
@@ -766,9 +782,9 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       /* 0 - new line -> 1 - 1+ characters on the line -> 2 - extra white space removed -> */
       /* 3 - again 1+ characters follow */
       if (z == 0)
-				z = 1;
+	z = 1;
       else if (z == 2)
-				z = 3;
+	z = 3;
       break;
     }
   }
