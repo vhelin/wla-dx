@@ -515,8 +515,16 @@ int print_file_names(void) {
    the parsing of the file, that follows, simpler. */
 int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_size, char *file_name) {
 
-  /* got_chars_on_line - this is set to 1 when the parser finds a non white space symbol on the line it's parsing */
-  register int got_chars_on_line = 0, z = 0;
+  /* this is set to 1 when the parser finds a non white space symbol on the line it's parsing */
+  register int got_chars_on_line = 0;
+
+  /* values for z - z tells us the state of the preprocessor on the line it is processing
+     the value of z is 0 at the beginning of a new line, and can only grow: 0 -> 1 -> 2 -> 3
+     0 - new line
+     1 - 1+ characters on the line
+     2 - extra white space removed
+     3 - again 1+ characters follow */
+  register int z = 0;
 
 #if defined(W65816) || defined(SPC700)
   register int square_bracket_open = 0;
@@ -737,12 +745,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       output++;
       got_chars_on_line = 1;
 
-      /* values for z - z tells us the state of the preprocessor on the line it is processing
-	 the value of z is 0 at the beginning of a new line, and can only grow: 0 -> 1 -> 2 -> 3
-	 0 - new line
-	 1 - 1+ characters on the line
-	 2 - extra white space removed
-	 3 - again 1+ characters follow */
+      /* mode changes... */
       if (z == 0)
 	z = 1;
       else if (z == 2)
