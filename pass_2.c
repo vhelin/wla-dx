@@ -132,35 +132,35 @@ int pass_2(void) {
     /* create string sections */
     if (sdsctag_author_type == TYPE_STRING) {
       if (create_a_new_section_structure() == FAILED)
-				return FAILED;
+	return FAILED;
       strcpy(sec_tmp->name, "!__WLA_SDSCTAG_STRING_AUTHOR");
       sec_tmp->status = SECTION_STATUS_SEMIFREE;
 
       fprintf(file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_AUTHOR_PTR ", sec_tmp->id);
       for (q = 0; q < strlen(sdsctag_author_str); q++)
-				fprintf(file_out_ptr, "d%d ", sdsctag_author_str[q]);
+	fprintf(file_out_ptr, "d%d ", sdsctag_author_str[q]);
       fprintf(file_out_ptr, "d0 s ");
     }
     if (sdsctag_name_type == TYPE_STRING) {
       if (create_a_new_section_structure() == FAILED)
-				return FAILED;
+	return FAILED;
       strcpy(sec_tmp->name, "!__WLA_SDSCTAG_STRING_NAME");
       sec_tmp->status = SECTION_STATUS_SEMIFREE;
-
+      
       fprintf(file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_NAME_PTR ", sec_tmp->id);
       for (q = 0; q < strlen(sdsctag_name_str); q++)
-				fprintf(file_out_ptr, "d%d ", sdsctag_name_str[q]);
+	fprintf(file_out_ptr, "d%d ", sdsctag_name_str[q]);
       fprintf(file_out_ptr, "d0 s ");
     }
     if (sdsctag_notes_type == TYPE_STRING) {
       if (create_a_new_section_structure() == FAILED)
-				return FAILED;
+	return FAILED;
       strcpy(sec_tmp->name, "!__WLA_SDSCTAG_STRING_NOTES");
       sec_tmp->status = SECTION_STATUS_SEMIFREE;
 
       fprintf(file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_NOTES_PTR ", sec_tmp->id);
       for (q = 0; q < strlen(sdsctag_notes_str); q++)
-				fprintf(file_out_ptr, "d%d ", sdsctag_notes_str[q]);
+	fprintf(file_out_ptr, "d%d ", sdsctag_notes_str[q]);
       fprintf(file_out_ptr, "d0 s ");
     }
 
@@ -210,52 +210,52 @@ int pass_2(void) {
     if (snes_mode != 0) {
       inz = 32;
       if (hirom_defined != 0) {
-				ind = 0xFFD5;
-				inz += 1;
+	ind = 0xFFD5;
+	inz += 1;
       }
       else
-				ind = 0x7FD5;
+	ind = 0x7FD5;
       if (fastrom_defined != 0)
-				inz += 16;
+	inz += 16;
       mem_insert_absolute(ind, inz);
   
       if (cartridgetype_defined != 0) 
-				mem_insert_absolute(ind + 1, cartridgetype);
+	mem_insert_absolute(ind + 1, cartridgetype);
 
       if (snesromsize != 0) 
-				mem_insert_absolute(ind + 2, snesromsize);
+	mem_insert_absolute(ind + 2, snesromsize);
 
       if (sramsize_defined != 0) 
-				mem_insert_absolute(ind + 3, sramsize);
+	mem_insert_absolute(ind + 3, sramsize);
 
       if (country_defined != 0)
-				mem_insert_absolute(ind + 4, country);
+	mem_insert_absolute(ind + 4, country);
 
       if (licenseecode_defined != 0)
-				mem_insert_absolute(ind + 5, licenseecode);
+	mem_insert_absolute(ind + 5, licenseecode);
 
       if (version_defined != 0)
-				mem_insert_absolute(ind + 6, version);
+	mem_insert_absolute(ind + 6, version);
     }
   
     /* snes cartridge ID */
     if (snesid_defined != 0) {
       if (hirom_defined != 0)
-				inz = 0xFFB2;
+	inz = 0xFFB2;
       else 
-				inz = 0x7FB2;
+	inz = 0x7FB2;
       for (ind = 0; ind < 4; ind++) 
-				mem_insert_absolute(inz + ind, snesid[ind]);
+	mem_insert_absolute(inz + ind, snesid[ind]);
     }
     
     /* snes cartridge name */
     if (name_defined != 0) {
       if (hirom_defined != 0)
-				inz = 0xFFC0;
+	inz = 0xFFC0;
       else
-				inz = 0x7FC0;
+	inz = 0x7FC0;
       for (ind = 0; ind < 21; ind++)
-				mem_insert_absolute(inz + ind, name[ind]);
+	mem_insert_absolute(inz + ind, name[ind]);
     }
   }
 
@@ -286,11 +286,11 @@ int pass_2(void) {
     }
     if (name_defined != 0) {
       if (romgbc != 0)
-				inz = 15;
+	inz = 15;
       else
-				inz = 16;
+	inz = 16;
       for (ind = 0; ind < inz; ind++)
-				mem_insert_absolute(308 + ind, name[ind]);
+	mem_insert_absolute(308 + ind, name[ind]);
     }
   }
 #endif
@@ -304,33 +304,33 @@ int pass_2(void) {
 
 int create_a_new_section_structure(void) {
 
-	sec_tmp = malloc(sizeof(struct section_def));
-	if (sec_tmp == NULL) {
-		print_error("Out of memory while allocating room for a new SECTION.\n", ERROR_DIR);
-		return FAILED;
-	}
+  sec_tmp = malloc(sizeof(struct section_def));
+  if (sec_tmp == NULL) {
+    print_error("Out of memory while allocating room for a new SECTION.\n", ERROR_DIR);
+    return FAILED;
+  }
 
-	sec_tmp->listfile_items = 0;
-	sec_tmp->listfile_ints = NULL;
-	sec_tmp->listfile_cmds = NULL;
-	sec_tmp->maxsize_status = OFF;
-	sec_tmp->data = NULL;
-	sec_tmp->next = NULL;
-	sec_tmp->id = section_id;
-	sec_tmp->alive = ON;
-	sec_tmp->advance_org = NO;
-	section_id++;
-	sec_tmp->filename_id = 0;
-	sec_tmp->alignment = 1;
+  sec_tmp->listfile_items = 0;
+  sec_tmp->listfile_ints = NULL;
+  sec_tmp->listfile_cmds = NULL;
+  sec_tmp->maxsize_status = OFF;
+  sec_tmp->data = NULL;
+  sec_tmp->next = NULL;
+  sec_tmp->id = section_id;
+  sec_tmp->alive = ON;
+  sec_tmp->advance_org = NO;
+  section_id++;
+  sec_tmp->filename_id = 0;
+  sec_tmp->alignment = 1;
 
-	if (sections_first == NULL) {
-		sections_first = sec_tmp;
-		sections_last = sec_tmp;
-	}
-	else {
-		sections_last->next = sec_tmp;
-		sections_last = sec_tmp;
-	}
+  if (sections_first == NULL) {
+    sections_first = sec_tmp;
+    sections_last = sec_tmp;
+  }
+  else {
+    sections_last->next = sec_tmp;
+    sections_last = sec_tmp;
+  }
 
-	return SUCCEEDED;
+  return SUCCEEDED;
 }

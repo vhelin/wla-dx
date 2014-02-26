@@ -62,8 +62,8 @@ int filename_id, line_number;
 
 
 #define WRITEOUT_OV fprintf(final_ptr, "%c%c%c%c", (ov>>24)&0xFF, (ov>>16)&0xFF, (ov>>8)&0xFF, ov&0xFF);
-#define WRITEOUT_DOU {																									\
-  cp = (unsigned char *)&dou;																					\
+#define WRITEOUT_DOU { \
+  cp = (unsigned char *)&dou; \
   fprintf(final_ptr, "%c%c%c%c%c%c%c%c", cp[0], cp[1], cp[2], cp[3], cp[4], cp[5], cp[6], cp[7]); \
 }
 
@@ -114,7 +114,7 @@ int new_unknown_reference(int type) {
   else {
     if (t->label[0] == '_') {
       fprintf(stderr, "%s:%d: NEW_UNKNOWN_REFERENCE: Referring to a local label (\"%s\") from inside a bank header section is not allowed.\n",
-          get_file_name(filename_id), line_number, t->label);
+	      get_file_name(filename_id), line_number, t->label);
       return FAILED;
     }
     if (unknown_header_labels_last == NULL) {
@@ -206,7 +206,7 @@ int pass_4(void) {
         if (sec_tmp->maxsize_status == ON) {
           if (sec_tmp->maxsize < sec_tmp->size) {
             fprintf(stderr, "%s: INTERNAL_PASS_2: Section \"%s\" doesn't fit into the specified %d bytes. Enlarging to %d bytes.\n",
-                get_file_name(filename_id), sec_tmp->name, sec_tmp->maxsize, sec_tmp->size);
+		    get_file_name(filename_id), sec_tmp->name, sec_tmp->maxsize, sec_tmp->size);
           }
           else if (sec_tmp->size < sec_tmp->maxsize) {
             sec_tmp->size = sec_tmp->maxsize;
@@ -218,7 +218,7 @@ int pass_4(void) {
 
         if (sec_tmp->data == NULL) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Out of memory when trying to allocate room for section \"%s\".\n",
-              get_file_name(filename_id), line_number, sec_tmp->name);
+		  get_file_name(filename_id), line_number, sec_tmp->name);
           return FAILED;
         }
 
@@ -414,7 +414,7 @@ int pass_4(void) {
         /* this stack was referred from the code */
         stacks_tmp->position = STACK_POSITION_CODE;
 
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
 
         continue;
@@ -454,9 +454,9 @@ int pass_4(void) {
         /* this stack was referred from the code */
         stacks_tmp->position = STACK_POSITION_CODE;
 
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
 
         continue;
@@ -498,11 +498,11 @@ int pass_4(void) {
         /* this stack was referred from the code */
         stacks_tmp->position = STACK_POSITION_CODE;
 
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
 
         continue;
@@ -543,11 +543,11 @@ int pass_4(void) {
         if (new_unknown_reference(REFERENCE_TYPE_DIRECT_24BIT) == FAILED)
           return FAILED;
 
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
 
         continue;
@@ -586,9 +586,9 @@ int pass_4(void) {
         if (new_unknown_reference(REFERENCE_TYPE_RELATIVE_16BIT) == FAILED)
           return FAILED;
 
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
 
         continue;
@@ -628,9 +628,9 @@ int pass_4(void) {
         if (new_unknown_reference(REFERENCE_TYPE_DIRECT_16BIT) == FAILED)
           return FAILED;
 
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
 
         continue;
@@ -667,7 +667,7 @@ int pass_4(void) {
         if (new_unknown_reference(REFERENCE_TYPE_RELATIVE_8BIT) == FAILED)
           return FAILED;
 
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
 
         continue;
@@ -704,7 +704,7 @@ int pass_4(void) {
         if (new_unknown_reference(REFERENCE_TYPE_DIRECT_8BIT) == FAILED)
           return FAILED;
 
-        if (mem_insert_pad() == FAILED)
+        if (mem_insert_padding() == FAILED)
           return FAILED;
 
         continue;
@@ -716,7 +716,6 @@ int pass_4(void) {
 
   /* library file output */
   if (output_format == OUTPUT_LIBRARY && test_mode == OFF) {
-
     if ((final_ptr = fopen(final_name, "wb")) == NULL) {
       fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\".\n", final_name);
       return FAILED;
@@ -849,7 +848,6 @@ int pass_4(void) {
 
   /* object file output */
   else if (output_format == OUTPUT_OBJECT && test_mode == OFF) {
-
     if ((final_ptr = fopen(final_name, "wb")) == NULL) {
       fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\".\n", final_name);
       return FAILED;
@@ -1214,7 +1212,6 @@ int pass_4(void) {
 
   }
   else if (verbose_mode == ON && output_format == OUTPUT_LIBRARY) {
-
     sec_tmp = sections_first;
     while (sec_tmp != NULL) {
       printf("Section \"%s\" size %d.\n", sec_tmp->name, sec_tmp->size);
@@ -1263,7 +1260,11 @@ int mem_insert(unsigned char x) {
 }
 
 
-int mem_insert_pad(void) {
+int mem_insert_padding(void) {
+
+  /* we'll use this function to reserve space for writes that take place later; e.g., we know that here will be
+     written a 16bit value, but we don't know the numeric value itself yet, but we'll need to reserve the
+     space for the upcoming write or otherwise something else might get written here */
 
   if (section_status == ON) {
     sec_tmp->i++;
@@ -1274,15 +1275,15 @@ int mem_insert_pad(void) {
   }
 
   if (pc_bank >= banksize) {
-    fprintf(stderr, "MEM_INSERT_PAD: Origin ($%x) overflows from bank (%d).\n", pc_bank, rom_bank);
+    fprintf(stderr, "MEM_INSERT_PADDING: Origin ($%x) overflows from bank (%d).\n", pc_bank, rom_bank);
     return FAILED;
   }
   else if (pc_full >= max_address) {
-    fprintf(stderr, "MEM_INSERT_PAD: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", pc_full, max_address);
+    fprintf(stderr, "MEM_INSERT_PADDING: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", pc_full, max_address);
     return FAILED;
   }
   else if (pc_slot >= pc_slot_max) {
-    fprintf(stderr, "MEM_INSERT_PAD: The current address ($%.4x) overflows from SLOT %d.\n", pc_slot, slot);
+    fprintf(stderr, "MEM_INSERT_PADDING: The current address ($%.4x) overflows from SLOT %d.\n", pc_slot, slot);
     return FAILED;
   }
 
