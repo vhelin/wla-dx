@@ -192,7 +192,6 @@ int include_file(char *name) {
 
   /* reallocate buffer */
   if (include_in_tmp_size < file_size) {
-
     if (include_in_tmp != NULL)
       free(include_in_tmp);
 
@@ -239,8 +238,7 @@ int include_file(char *name) {
   }
 
   /* reallocate tmp_a */
-  if (tmp_a_size < file_size) {
-
+  if (tmp_a_size < file_size + 4) {
     if (tmp_a != NULL)
       free(tmp_a);
 

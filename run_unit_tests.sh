@@ -97,7 +97,6 @@ cd ..
 #####################################################################
 
 changePlatform z80
-runTest library_test
 runTest linker_header_test
 runTest linker_test_1
 runTest linker_test_2
