@@ -1,8 +1,8 @@
 
 /*
-   wlad - part of wla dx gb-z80/z80/6502/6510/65816 macro assembler package by
-   ville helin <vhelin@cc.hut.fi>. this is gpl software.
-   */
+  wlad - part of wla dx gb-z80/z80/6502/6510/65816 macro assembler package by
+  ville helin <vhelin@cc.hut.fi>. this is gpl software.
+*/
 
 #include <ctype.h>
 #include <stdio.h>
@@ -21,7 +21,7 @@ char version_string[] = "$VER: WLAD 1.3 (21.10.2000)";
 
 int databanks = OFF, strings = OFF, address = ON, code_hex = ON, tab_width = 8;
 int bank_first_size, bank_rest_size, slot;
-int bank_start=-1, bank_end=-1;
+int bank_start = -1, bank_end = -1;
 
 
 int main(int argc, char *argv[]) {
@@ -30,7 +30,6 @@ int main(int argc, char *argv[]) {
   unsigned char *in;
   int i, fs, a, b;
   char *name;
-
 
 
   i = SUCCEEDED;
@@ -55,6 +54,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "d  Disassemble upper banks (one and up) as data\n");
     fprintf(stderr, "h  Don't print hex data with address output\n");
     fprintf(stderr, "s  Disassemble upper banks as data with string detection\n\n");
+
     return 1;
   }
 
@@ -244,7 +244,6 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
     if (needs_label[a]) {
       labels[a] = num_labels++;
     }
-
 
     if (in[rom_pos] == 0xcb)
       ot = &opt_table_ext[in[rom_pos+1]];
@@ -496,12 +495,11 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
           fprintf(stdout, "\t%s\n", bu);
         x = 0;
       }
-
     }
     else {
       if (address == ON) {
         sprintf(bu, ".DB $%.2x", in[(*i)++]);
-        fprintf(stdout, bu);
+        fprintf(stdout, "%s", bu);
         tabs=strlen(bu)/tab_width;
         while (tabs++ < 32/tab_width)
           fprintf(stdout, "\t");
@@ -518,6 +516,7 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
 
   (*b)++;
   slot = 1;
+
   return SUCCEEDED;
 }
 
@@ -525,7 +524,6 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
 int output_bank_data(int fs, int *b, unsigned char *in, int bank_size, int *i) {
 
   int ad;
-
 
 
   fprintf(stdout, "\n.BANK $%.2x SLOT %d\n.ORG 0\n\n", *b, slot);
@@ -543,6 +541,7 @@ int output_bank_data(int fs, int *b, unsigned char *in, int bank_size, int *i) {
 
   (*b)++;
   slot = 1;
+
   return SUCCEEDED;
 }
 
@@ -551,7 +550,6 @@ int output_bank_data_detect_strings(int fs, int *b, unsigned char *in, int bank_
 
   int ad, t, x;
   char c;
-
 
 
   fprintf(stdout, "\n.BANK $%.2x SLOT %d\n.ORG 0\n\n", *b, slot);
@@ -587,11 +585,14 @@ int output_bank_data_detect_strings(int fs, int *b, unsigned char *in, int bank_
 
   (*b)++;
   slot = 1;
+
   return SUCCEEDED;
 }
 
 
-int letter_check(char c) {
+int letter_check(unsigned char c) {
+
+  /* here we assume that "c" is an ASCII char */
 
   if (c >= 'a' && c <= 'z')
     return SUCCEEDED;
@@ -599,7 +600,11 @@ int letter_check(char c) {
     return SUCCEEDED;
   else if (c >= '0' && c <= '9')
     return SUCCEEDED;
-  else if (c == ' ' || c == '!' || c == '?' || c == ',' || c == '.' || c == '-' || c == '*' || c == '|' || c == '&' || c == '/' || c == '\\' || c == '\'' || c == '"' || c == '@' || c == '#' || c == '£' || c == '$' || c == '%' || c == '(' || c == ')' || c == '[' || c == ']')
+  else if (c == ' ' || c == '!' || c == '?' || c == ',' || c == '.' || c == '-' || c == '*' || c == '|' || c == '&' || c == '/' || c == '\\' || c == '\'' || c == '"' || c == '@' || c == '#' || c == '$' || c == '%' || c == '(' || c == ')' || c == '[' || c == ']')
+    return SUCCEEDED;
+
+  /* 163 - pound sign */
+  if (c == 163)
     return SUCCEEDED;
 
   return FAILED;
@@ -607,6 +612,7 @@ int letter_check(char c) {
 
 
 int parse_int(char *s) {
+
   int i;
   char *e;
 
@@ -624,8 +630,11 @@ int parse_int(char *s) {
     if (*e != '\0')
       return -1;
   }
+
   return i;
 }
+
+
 int parse_flags(int argc, char *argv[]) {
 
   int l, arg;
@@ -648,7 +657,7 @@ int parse_flags(int argc, char *argv[]) {
         switch (*f) {
 
           case '4':
-            tab_width=4;
+            tab_width = 4;
             continue;
 
           case 'a':
@@ -701,11 +710,10 @@ int parse_flags(int argc, char *argv[]) {
 
       last_arg = 0;
     }
-
   }
 
-  if (last_arg != 0) {
+  if (last_arg != 0)
     return FAILED;
-  }
+
   return SUCCEEDED;
 }

@@ -16,7 +16,11 @@
 0080:000d label04
 0080:000e vbi_counter
 0080:000f player_lives
-0080:0036 test_00
+0080:0037 test_00
+
+[symbols]
+0000:0032 SAFiiRi
+0081:0062 TIMANGI
 
 [definitions]
 0000000a TRIFORCE
@@ -25,7 +29,3 @@
 00001234 XYZ
 0000000b TEPI
 00000001 TESB
-
-[symbols]
-0000:0032 SAFiiRi
-0081:0062 TIMANGI

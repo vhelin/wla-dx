@@ -1,8 +1,8 @@
 
 /*
-	wla - part of wla dx gb-z80/z80/6502/65c02/6510/65816/huc6280/spc-700
-	macro assembler package by ville helin <vhelin@iki.fi>.
-	this is gpl software.
+  wla - part of wla dx gb-z80/z80/6502/65c02/6510/65816/huc6280/spc-700
+  macro assembler package by ville helin <vhelin@iki.fi>.
+  this is gpl software.
 */
 
 #include <ctype.h>
@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
   if (argc >= 3) {
     if (parse_flags(argv[1]) == SUCCEEDED) {
       if (parse_defines_and_get_final_name(argv + 2, argc - 2) == FAILED)
-				return 1;
+	return 1;
     }
     else
       i = FAILED;
@@ -219,13 +219,13 @@ int parse_flags(char *f) {
 
     case 'o':
       if (output_format != OUTPUT_NONE)
-				return FAILED;
+	return FAILED;
       output_format = OUTPUT_OBJECT;
       continue;
 
     case 'l':
       if (output_format != OUTPUT_NONE)
-				return FAILED;
+	return FAILED;
       output_format = OUTPUT_LIBRARY;
       continue;
 
@@ -309,7 +309,7 @@ void procedures_at_exit(void) {
     /* free the argument labels */
     if (m->nargument_names > 0) {
       for (i = 0; i < m->nargument_names; i++)
-				free(m->argument_names[i]);
+	free(m->argument_names[i]);
       free(m->argument_names);
     }
     macros_first = m->next;
@@ -491,10 +491,10 @@ int parse_defines_and_get_final_name(char **c, int n) {
       break;
     if (strlen(*c) > 2) {
       if (**c != '-' || *((*c) + 1) != 'D')
-				break;
+	break;
       else
-				if (parse_and_add_definition(*c) == FAILED)
-					return FAILED;
+	if (parse_and_add_definition(*c) == FAILED)
+	  return FAILED;
     }
     if (strlen(*c) <= 2)
       break;
@@ -512,12 +512,12 @@ int parse_defines_and_get_final_name(char **c, int n) {
 
     if (asm_name == NULL || final_name == NULL) {
       if (asm_name != NULL) {
-				free(asm_name);
-				asm_name = NULL;
+	free(asm_name);
+	asm_name = NULL;
       }
       if (final_name != NULL) {
-				free(final_name);
-				final_name = NULL;
+	free(final_name);
+	final_name = NULL;
       }
       fprintf(stderr, "PARSE_DEFINES_AND_GET_FINAL_NAME: Out of memory error.\n");
       return FAILED;
@@ -575,20 +575,20 @@ int parse_and_add_definition(char *c) {
     /* hexadecimal value? */
     if (*c == '$' || ((c[strlen(c)-1] == 'h' || c[strlen(c)-1] == 'H') && (*c >= '0' && *c <= '9'))) {
       if (*c == '$')
-				c++;
+	c++;
       for (i = 0; *c != 0; c++) {
-				if (*c >= '0' && *c <= '9')
-					i = (i << 4) + *c - '0';
-				else if (*c >= 'a' && *c <= 'f')
-					i = (i << 4) + *c - 'a' + 10;
-				else if (*c >= 'A' && *c <= 'F')
-					i = (i << 4) + *c - 'A' + 10;
-				else if ((*c == 'h' || *c == 'H') && *(c+1) == 0)
-					break;
-				else {
-					fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value.\n");
-					return FAILED;
-				}
+	if (*c >= '0' && *c <= '9')
+	  i = (i << 4) + *c - '0';
+	else if (*c >= 'a' && *c <= 'f')
+	  i = (i << 4) + *c - 'a' + 10;
+	else if (*c >= 'A' && *c <= 'F')
+	  i = (i << 4) + *c - 'A' + 10;
+	else if ((*c == 'h' || *c == 'H') && *(c+1) == 0)
+	  break;
+	else {
+	  fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value.\n");
+	  return FAILED;
+	}
       }
       return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
     }
@@ -596,12 +596,12 @@ int parse_and_add_definition(char *c) {
     /* decimal value? */
     if (*c >= '0' && *c <= '9') {
       for (i = 0; *c != 0; c++) {
-				if (*c >= '0' && *c <= '9')
-					i = (i * 10) + *c - '0';
-				else {
-					fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value.\n");
-					return FAILED;
-				}
+	if (*c >= '0' && *c <= '9')
+	  i = (i * 10) + *c - '0';
+	else {
+	  fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value.\n");
+	  return FAILED;
+	}
       }
       return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
     }

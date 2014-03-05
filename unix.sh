@@ -19,6 +19,7 @@ echo "****************************************************************"
 echo
 
 cd opcode_table_generator
+chmod u+x ./create_tables.sh
 ./create_tables.sh
 cd ..
 

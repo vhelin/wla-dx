@@ -330,8 +330,8 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
     mrt->string_current = 1;
     mrt->string_last = strlen(label);
     /*
-       fprintf(stderr, "got string %s!\n", label);
-       */
+      fprintf(stderr, "got string %s!\n", label);
+    */
   }
   else if (inz == INPUT_NUMBER_STACK)
     mrt->argument_data[0]->value = latest_stack;
@@ -433,14 +433,14 @@ int macro_insert_byte_db(char *name) {
     }
     fprintf(file_out_ptr, "d%d ", (int)d->value);
     /*
-       fprintf(stderr, ".DBM: VALUE: %d\n", (int)d->value);
-       */
+      fprintf(stderr, ".DBM: VALUE: %d\n", (int)d->value);
+    */
   }
   else if (d->type == DEFINITION_TYPE_STACK) {
     fprintf(file_out_ptr, "c%d ", (int)d->value);
     /*
-       fprintf(stderr, ".DBM: STACK: %d\n", (int)d->value);
-       */
+      fprintf(stderr, ".DBM: STACK: %d\n", (int)d->value);
+    */
   }
   else {
     sprintf(emsg, ".%s cannot handle strings in \"_OUT/_out\".\n", name);
@@ -477,14 +477,14 @@ int macro_insert_word_db(char *name) {
     }
     fprintf(file_out_ptr, "y%d ", (int)d->value);
     /*
-       fprintf(stderr, ".DBM: VALUE: %d\n", (int)d->value);
-       */
+      fprintf(stderr, ".DBM: VALUE: %d\n", (int)d->value);
+    */
   }
   else if (d->type == DEFINITION_TYPE_STACK) {
     fprintf(file_out_ptr, "C%d ", (int)d->value);
     /*
-       fprintf(stderr, ".DBM: STACK: %d\n", (int)d->value);
-       */
+      fprintf(stderr, ".DBM: STACK: %d\n", (int)d->value);
+    */
   }
   else {
     sprintf(emsg, ".%s cannot handle strings in \"_OUT/_out\".\n", name);
@@ -493,6 +493,19 @@ int macro_insert_word_db(char *name) {
   }
 
   return SUCCEEDED;
+}
+
+
+struct structure* get_structure(char *name) {
+
+    struct structure *s = structures_first;
+    while (s != NULL) {
+      if (strcmp(name, s->name) == 0)
+        return s;
+      s = s->next;
+    }
+
+    return NULL;
 }
 
 
@@ -510,6 +523,8 @@ int pass_1(void) {
     slots[q].size = 0;
 
   /* start from the very first character */
+  /* WARNING: "i" is a global var that we use as the char index to the source file */
+  /* Ville: this must be one of the worst programming decicions I've even done, sorry about it... */
   i = 0;
 
   /* output the file id */
@@ -1545,12 +1560,7 @@ int parse_directive(void) {
     }
 
     /* find the structure */
-    s = structures_first;
-    while (s != NULL) {
-      if (strcmp(label, s->name) == 0)
-        break;
-      s = s->next;
-    }
+    s = get_structure(label);
 
     if (s == NULL) {
       sprintf(emsg, "Reference to an unidentified structure \"%s\".\n", label);
@@ -2201,12 +2211,7 @@ int parse_directive(void) {
           if (get_next_token() == FAILED)
             return FAILED;
 
-          st = structures_first;
-          while (st != NULL) {
-            if (strcmp(st->name, tmp) == 0)
-              break;
-            st = st->next;
-          }
+          st = get_structure(tmp);
 
           if (st == NULL) {
             sprintf(emsg, "No STRUCT named \"%s\" available.\n", tmp);
@@ -2540,7 +2545,6 @@ int parse_directive(void) {
   /* ENDIF */
 
   if (strcmp(cp, "ENDIF") == 0) {
-
     if (ifdef == 0) {
       print_error(".ENDIF was given before any .IF directive.\n", ERROR_DIR);
       return FAILED;
@@ -4383,12 +4387,7 @@ int parse_directive(void) {
         if (get_next_token() == FAILED)
           return FAILED;
 
-        st = structures_first;
-        while (st != NULL) {
-          if (strcmp(st->name, tmp) == 0)
-            break;
-          st = st->next;
-        }
+        st = get_structure(tmp);
 
         if (st == NULL) {
           sprintf(emsg, "No STRUCT named \"%s\" available.\n", tmp);

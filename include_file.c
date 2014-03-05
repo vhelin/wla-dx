@@ -165,9 +165,9 @@ int include_file(char *name) {
     n = malloc(strlen(full_name)+1);
     if (file_name_info_tmp == NULL || n == NULL) {
       if (file_name_info_tmp != NULL)
-				free(file_name_info_tmp);
+	free(file_name_info_tmp);
       if (n != NULL)
-				free(n);
+	free(n);
       sprintf(emsg, "Out of memory while trying allocate info structure for file \"%s\".\n", full_name);
       print_error(emsg, ERROR_INC);
       return FAILED;
@@ -192,7 +192,6 @@ int include_file(char *name) {
 
   /* reallocate buffer */
   if (include_in_tmp_size < file_size) {
-
     if (include_in_tmp != NULL)
       free(include_in_tmp);
 
@@ -240,8 +239,7 @@ int include_file(char *name) {
   }
 
   /* reallocate tmp_a */
-  if (tmp_a_size < file_size) {
-
+  if (tmp_a_size < file_size + 4) {
     if (tmp_a != NULL)
       free(tmp_a);
 
@@ -380,11 +378,11 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
     *skip = d;
 
-		if (d >= file_size) {
-			sprintf(emsg, "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", d, file_size, full_name);
-			print_error(emsg, ERROR_INB);
-			return FAILED;
-		}
+    if (d >= file_size) {
+      sprintf(emsg, "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", d, file_size, full_name);
+      print_error(emsg, ERROR_INB);
+      return FAILED;
+    }
   }
 
   /* READ bytes? */
@@ -400,11 +398,11 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
     *read = d;
 
-		if (*skip + *read > file_size) {
-			sprintf(emsg, "Overreading file \"%s\" by %d bytes.\n", full_name, *skip + *read - file_size);
-			print_error(emsg, ERROR_INB);
-			return FAILED;
-		}
+    if (*skip + *read > file_size) {
+      sprintf(emsg, "Overreading file \"%s\" by %d bytes.\n", full_name, *skip + *read - file_size);
+      print_error(emsg, ERROR_INB);
+      return FAILED;
+    }
   }
 
   /* SWAP bytes? */
@@ -431,7 +429,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     add_a_new_definition(tmp, (double)file_size, NULL, DEFINITION_TYPE_VALUE, 0);
   }
 
-	/* FILTER? */
+  /* FILTER? */
   if (compare_next_token("FILTER", 6) == SUCCEEDED) {
     skip_next_token();
 
@@ -439,16 +437,16 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     if (get_next_token() == FAILED)
       return FAILED;
 
-		*macro = macro_get(tmp);
+    *macro = macro_get(tmp);
 
-		if (*macro == NULL) {
-			sprintf(emsg, "No MACRO \"%s\" defined.\n", tmp);
-			print_error(emsg, ERROR_INB);
-			return FAILED;
-		}
-	}
-	else
-		*macro = NULL;
+    if (*macro == NULL) {
+      sprintf(emsg, "No MACRO \"%s\" defined.\n", tmp);
+      print_error(emsg, ERROR_INB);
+      return FAILED;
+    }
+  }
+  else
+    *macro = NULL;
 
   return SUCCEEDED;
 }
@@ -460,7 +458,6 @@ char get_file_name_error[] = "GET_FILE_NAME: Internal error.";
 char *get_file_name(int id) {
 
   struct file_name_info *f;
-
 
   f = file_name_info_first;
   while (f != NULL) {
@@ -517,22 +514,22 @@ int print_file_names(void) {
    the parsing of the file, that follows, simpler. */
 int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_size, char *file_name) {
 
-  /* chars_on_line - this is set to 1 when the parser finds a non white space symbol on the line it's parsing */
-  register int chars_on_line = 0, z = 0;
+  /* this is set to 1 when the parser finds a non white space symbol on the line it's parsing */
+  register int got_chars_on_line = 0;
+
+  /* values for z - z tells us the state of the preprocessor on the line it is processing
+     the value of z is 0 at the beginning of a new line, and can only grow: 0 -> 1 -> 2 -> 3
+     0 - new line
+     1 - 1+ characters on the line
+     2 - extra white space removed
+     3 - again 1+ characters follow */
+  register int z = 0;
 
 #if defined(W65816) || defined(SPC700)
   register int square_bracket_open = 0;
 #endif
 
-  char *output;
-
-  /* WARNING: we also advance the output pointer by out_size! */
-  
-  /* Code with no net effect? Both places from which this function is called set out_size to
-  0.- W. Jones */
-  /* Ville: True, some old legacy feature, can be taken away */
-
-  output = out_buffer + (*out_size);
+  char *output = out_buffer;
 
   while (input < input_end) {
     switch (*input) {
@@ -561,7 +558,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 	output++;
       break;
     case '*':
-      if (chars_on_line == 0) {
+      if (got_chars_on_line == 0) {
 	/* clear a commented line */
 	input++;
 	for ( ; input < input_end && *input != 0x0A && *input != 0x0D; input++)
@@ -577,9 +574,9 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
     case '/':
       if (*(input + 1) == '*') {
 	/* remove an ANSI C -style block comment */
-	chars_on_line = 0;
+	got_chars_on_line = 0;
 	input += 2;
-	while (chars_on_line == 0) {
+	while (got_chars_on_line == 0) {
 	  for ( ; input < input_end && *input != '/' && *input != 0x0A; input++)
 	    ;
 	  if (input >= input_end) {
@@ -595,11 +592,15 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 	    output++;
 	  }
 	  if (*input == '/' && *(input - 1) == '*') {
+<<<<<<< HEAD
 	    /* What's the difference between chars_on_line and z?- W. Jones */
 	    /* Ville: z actually is some kind of a preprocess mode variable - it has states 0-3, and they are
 	       written out at the end of the function. I don't actually know how to call the z var, what
 	       would be a proper name for it. But perhaps I should at least make the modes enums? */
 	    chars_on_line = 1;
+=======
+	    got_chars_on_line = 1;
+>>>>>>> master
 	  }
 	  input++;
 	}
@@ -617,7 +618,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 	input++;
 	*output = '/';
 	output++;
-	chars_on_line = 1;
+	got_chars_on_line = 1;
       }
       break;
     case ':':
@@ -625,7 +626,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       input++;
       *output = ':';
       output++;
-      chars_on_line = 0;
+      got_chars_on_line = 0;
       break;
     case 0x09:
     case ' ':
@@ -635,7 +636,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       output++;
       for ( ; input < input_end && (*input == ' ' || *input == 0x09); input++)
 	;
-      chars_on_line = 1;
+      got_chars_on_line = 1;
       if (z == 1)
 	z = 2;
       break;
@@ -648,11 +649,12 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 	 one before the output buffer, and who knows where there that is?- W. Jones */
       /* Ville: Good find, I can check out if the code really does that with a test case. */
       for ( ; *output == ' '; output--)
-    	  ;
+	;
       output++;
       *output = 0x0A;
       output++;
-      chars_on_line = 0;
+      /* moving on to a new line */
+      got_chars_on_line = 0;
       z = 0;
 #if defined(W65816) || defined(SPC700)
       square_bracket_open = 0;
@@ -678,22 +680,22 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 	input++;
 	output++;
       }
-      chars_on_line = 1;
+      got_chars_on_line = 1;
       break;
     case '"':
-      /* don't alter strings */
+      /* don't touch strings */
       *output = '"';
       input++;
       output++;
-      chars_on_line = 0;
-      while (chars_on_line == 0) {
+      got_chars_on_line = 0;
+      while (got_chars_on_line == 0) {
 	for ( ; input < input_end && *input != '"'; ) {
 	  *output = *input;
 	  input++;
 	  output++;
 	}
 	if (*input == '"' && *(input - 1) != '\\')
-	  chars_on_line = 1;
+	  got_chars_on_line = 1;
 	else {
 	  *output = '"';
 	  input++;
@@ -713,8 +715,8 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       input++;
       output++;
       for ( ; input < input_end && (*input == ' ' || *input == 0x09); input++)
-    	  ;
-      chars_on_line = 1;
+	;
+      got_chars_on_line = 1;
       break;
 #if !defined(W65816) && !defined(SPC700)
     case ']':
@@ -722,32 +724,32 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 #endif
     case ')':
       /* go back? */
-      if (chars_on_line == 1 && *(output - 1) == ' ')
+      if (got_chars_on_line == 1 && *(output - 1) == ' ')
 	output--;
       *output = ')';
       input++;
       output++;
-      chars_on_line = 1;
+      got_chars_on_line = 1;
       break;
 #if defined(W65816) || defined(SPC700)
     case '[':
       *output = *input;
       input++;
       output++;
-      chars_on_line = 1;
+      got_chars_on_line = 1;
       square_bracket_open = 1;
       break;
 #endif
     case ',':
     case '+':
     case '-':
-      if (chars_on_line == 0) {
-	for ( ; input < input_end && (*input == '+' || *input == '-'); input++, output++)
-	  *output = *input;
-	chars_on_line = 1;
 	/* For ',', this is okay as pointers aren't incremented.
 	   At least this is how I understand it.- W. Jones*/
 	/* Ville: Some special cases (some instructions for some CPU) might disagree, but I don't really remember. :) */
+      if (got_chars_on_line == 0) {
+	for ( ; input < input_end && (*input == '+' || *input == '-'); input++, output++)
+	  *output = *input;
+	got_chars_on_line = 1;
       }
       else {
 #if defined(W65816) || defined(SPC700)
@@ -769,18 +771,16 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 	output++;
 	for ( ; input < input_end && (*input == ' ' || *input == 0x09); input++)
 	  ;
-	chars_on_line = 1;
+	got_chars_on_line = 1;
       }
       break;
     default:
       *output = *input;
       input++;
       output++;
-      chars_on_line = 1;
+      got_chars_on_line = 1;
 
-      /* values for z */
-      /* 0 - new line -> 1 - 1+ characters on the line -> 2 - extra white space removed -> */
-      /* 3 - again 1+ characters follow */
+      /* mode changes... */
       if (z == 0)
 	z = 1;
       else if (z == 2)
