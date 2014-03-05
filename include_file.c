@@ -592,15 +592,11 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 	    output++;
 	  }
 	  if (*input == '/' && *(input - 1) == '*') {
-<<<<<<< HEAD
 	    /* What's the difference between chars_on_line and z?- W. Jones */
 	    /* Ville: z actually is some kind of a preprocess mode variable - it has states 0-3, and they are
 	       written out at the end of the function. I don't actually know how to call the z var, what
 	       would be a proper name for it. But perhaps I should at least make the modes enums? */
-	    chars_on_line = 1;
-=======
 	    got_chars_on_line = 1;
->>>>>>> master
 	  }
 	  input++;
 	}
