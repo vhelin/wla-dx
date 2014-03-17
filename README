@@ -1095,6 +1095,9 @@ can also type the following:
 This tells WLA to move into BANK 0 which will be put into the DEFAULTSLOT
 of .MEMORYMAP.
 
+Every time you use .BANK, supply .ORG/.ORGA as well, just to make sure
+WLA calculates addresses correctly.
+
 This is a compulsory directive.
 
 -------
@@ -1121,6 +1124,9 @@ This is a compulsory directive unless .ROMBANKMAP is defined.
 
 Defines the starting address. The value supplied here is relative to the
 ROM bank given with .BANK.
+
+When WLA starts to parse a source file, .ORG is set to $0, but it's always
+a good idea to explicitly use .ORG, for clarity.
 
 This is a compulsory directive.
 
@@ -1153,10 +1159,10 @@ BANKS 2
 
 MAIN:	JP	MAIN
 
-Here "MAIN" is at $0000 in the ROM file, but the address for "MAIN"
-is $4000.
-
-This is a compulsory directive.
+Here "MAIN" is at $0000 in the ROM file, but the address for label "MAIN"
+is $4000. By using .ORGA instead of .ORG, you can directly see from the
+value the address where you want the code to be as .ORG is just an offset
+to the SLOT.
 
 ------------
 .DS 256, $10
