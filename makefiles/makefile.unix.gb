@@ -12,7 +12,7 @@ OFILES = main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack
 
 
 all: $(OFILES) 
-	$(LD) $(LDFLAGS) $(OFILES) -o wla-gb ; strip wla-gb
+	$(LD) $(OFILES) -o wla-gb $(LDFLAGS) ; strip wla-gb
 
 main.o: main.c defines.h main.h 
 	$(CC) $(WLAFLAGS) main.c
