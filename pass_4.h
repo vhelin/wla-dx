@@ -6,7 +6,7 @@ int pass_4(void);
 int new_unknown_reference(int type);
 int mem_insert(unsigned char x);
 int mem_insert_padding(void);
-int mem_insert_absolute(unsigned int add, unsigned char x);
+int mem_insert_absolute(int add, unsigned char x);
 int export_definitions(FILE *final_ptr);
 int export_source_file_names(FILE *final_ptr);
 

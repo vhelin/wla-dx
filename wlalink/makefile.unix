@@ -2,7 +2,7 @@
 CC?=egcs
 LD?=egcs
 
-CFLAGS?= -c -O3 -ansi -pedantic -Wall
+CFLAGS?= -c -O3 -ansi -pedantic-errors -Wextra -Wall
 LDFLAGS =
 
 CFILES = main.c memory.c parse.c files.c check.c analyze.c write.c compute.c discard.c listfile.c

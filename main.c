@@ -525,7 +525,7 @@ int parse_defines_and_get_final_name(char **c, int n) {
   /* only the infile was given -> construct the outfile name */
   else if (n == 1) {
     strcpy(asm_name, *c);
-    for (x = 0; x < strlen(*c) && *((*c) + x) != '.'; x++)
+    for (x = 0; x < (int)strlen(*c) && *((*c) + x) != '.'; x++)
       final_name[x] = *((*c) + x);
     final_name[x++] = '.';
     if (output_format == OUTPUT_OBJECT) {

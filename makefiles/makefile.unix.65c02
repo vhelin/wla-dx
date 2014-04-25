@@ -2,7 +2,7 @@
 CC=gcc
 LD=gcc
 
-CFLAGS?= -c -O3 -ansi -pedantic -Wall
+CFLAGS?= -c -O3 -ansi -pedantic-errors -Wextra -Wall
 LDFLAGS = -lm
 WLAFLAGS = $(CFLAGS) -DUNIX -DWDC65C02
 

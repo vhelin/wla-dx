@@ -31,7 +31,7 @@ int compute_checksums(void) {
 
 int compute_gb_complement_check(void) {
 
-  unsigned int i, x;
+  int i, x;
 
   if (romsize < 0x8000) {
     fprintf(stderr, "COMPUTE_GB_COMPLEMENT_CHECK: GB complement check computing requires a ROM of at least 32KB.\n");
@@ -50,7 +50,7 @@ int compute_gb_complement_check(void) {
 
 int compute_gb_checksum(void) {
 
-  unsigned int i, x;
+  int i, x;
 
   if (romsize < 0x8000) {
     fprintf(stderr, "COMPUTE_GB_CHECKSUM: GB checksum computing requires a ROM of at least 32KB.\n");
@@ -72,7 +72,7 @@ int compute_gb_checksum(void) {
 
 int compute_snes_checksum(void) {
 
-  unsigned int i, x, n, m, l, o;
+  int i, x, n, m, l, o;
 
   if (snes_rom_mode == SNES_ROM_MODE_LOROM) {
     if (romsize < 0x8000) {
@@ -103,12 +103,12 @@ int compute_snes_checksum(void) {
     if (snes_rom_mode == SNES_ROM_MODE_LOROM) {
       /* skip the checksum bytes */
       if (!(i == 0x7FDC || i == 0x7FDD || i == 0x7FDE || i == 0x7FDF))
-				x += rom[i];
+	x += rom[i];
     }
     else {
       /* skip the checksum bytes */
       if (!(i == 0xFFDC || i == 0xFFDD || i == 0xFFDE || i == 0xFFDF))
-				x += rom[i];
+	x += rom[i];
     }
   }
 

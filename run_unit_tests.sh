@@ -22,6 +22,8 @@ function runTest {
     cd ..
 }
 
+export PATH=$PATH:$PWD/binaries
+echo $PATH
 cd examples
 
 #####################################################################
