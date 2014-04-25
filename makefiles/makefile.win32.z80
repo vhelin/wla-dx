@@ -1,6 +1,6 @@
 
 CC = gcc
-CFLAGS = -c -O3 -ansi -pedantic -Wall -DMSDOS -DWIN32 -DZ80
+CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra -DMSDOS -DWIN32 -DZ80
 LD = gcc
 LDFLAGS = 
 WLAFLAGS = $(CFLAGS) -DMSDOS -DZ80
