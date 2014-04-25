@@ -2,7 +2,7 @@
 CC = gcc
 CFLAGS = -c -O3 -ansi -pedantic -Wall -DMSDOS -DWIN32 -DSPC700
 LD = gcc
-LDFLAGS = -lkernel32
+LDFLAGS = 
 WLAFLAGS = $(CFLAGS) -DMSDOS -DSPC700
 
 CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c
