@@ -1,0 +1,25 @@
+
+CC = cl
+CFLAGS = /c /Ox /Za /W4
+LD = link
+LDFLAGS = 
+
+CFILES = main.c
+HFILES = main.h
+OFILES = main.obj
+
+all: $(OFILES) makefile
+	$(LD) $(LDFLAGS) $(OFILES) /out:wlab.exe
+
+main.obj: main.c main.h makefile
+	$(CC) $(CFLAGS) main.c
+
+
+$(OFILES): $(HFILES)
+
+
+clean:
+	del -f $(OFILES) *~ wlab.exe
+
+install:
+	make ; cp wlab.exe /usr/local/bin
