@@ -18,6 +18,7 @@ then
   make_host_suffix=$host_defines
 fi
 
+echo "Creating makefiles for target $make_host_suffix..."
 m4 -Dhost_defines=$host_defines.m4 -Dtarget_cpu=GB -Dout_suffix="gb" -Dopcode_prereq="opcodes_gb.c opcodes_z80.c" makefile.wla.m4 > makefile.$make_host_suffix.gb
 m4 -Dhost_defines=$host_defines.m4 -Dtarget_cpu=Z80 -Dout_suffix="z80" -Dopcode_prereq="opcodes_z80.c" makefile.wla.m4 > makefile.$make_host_suffix.z80
 m4 -Dhost_defines=$host_defines.m4 -Dtarget_cpu=MCS6502 -Dout_suffix="6502" -Dopcode_prereq="opcodes_6502.c" makefile.wla.m4 > makefile.$make_host_suffix.6502
@@ -29,5 +30,16 @@ m4 -Dhost_defines=$host_defines.m4 -Dtarget_cpu=HUC6280 -Dout_suffix="huc6280" -
 m4 -Dhost_defines=$host_defines.m4 makefile.wlalink.m4 > makefile.$make_host_suffix.wlalink
 m4 -Dhost_defines=$host_defines.m4 -Dout_name=wlad makefile.generic.m4 > makefile.$make_host_suffix.wlad
 m4 -Dhost_defines=$host_defines.m4 -Dout_name=wlab makefile.generic.m4 > makefile.$make_host_suffix.wlab
+m4 -Dhost_defines=$host_defines.m4 makefile.opcode_tables.m4 > makefile.$make_host_suffix.opcode_tables
+
+
+echo "Creating build scripts for target $make_host_suffix..."
+m4 -Dhost_defines=$host_defines.m4 -DMAKE_HOST_SUFFIX=$make_host_suffix -DOUTNAME=$make_host_suffix build.m4 > build.$make_host_suffix
+m4 -Dhost_defines=$host_defines.m4 -DMAKE_HOST_SUFFIX=$make_host_suffix create_tables.m4 > create_tables.$make_host_suffix
+
+echo "Done. Inspect the generated files for potential errors, and"
+echo "make any desired changes, i.e."
+echo "Adding conditional assignments (?=) for Unix Makefiles,"
+echo "before installing the scripts."
 
 #m4 -Dhost_defines=unix_gcc.m4 -Dtarget_cpu=Z80 -Dout_suffix="z80" -Dopcode_prereq="opcodes_z80.c" makefile.wla.m4 > makefile.unix.z80

@@ -1,13 +1,13 @@
 include(host_defines)dnl
 `CC' = CC
-`CFLAGS' = CFLAGS
+`CFLAGS' = CFLAGS HOSTFLAGS
 `LD' = LD
 `LDFLAGS' = LDFLAGS
 `RM' = RM
 
 CFILES = main.c memory.c parse.c files.c check.c analyze.c write.c compute.c discard.c listfile.c
 HFILES = main.h memory.h parse.h files.h check.h analyze.h write.h compute.h discard.h listfile.h defines.h
-OFILES = main.`'OBJ_EXTENSION memory.`'OBJ_EXTENSION parse.`'OBJ_EXTENSION files.`'OBJ_EXTENSION check.`'OBJ_EXTENSION analyze.`'OBJ_EXTENSION write.`'OBJ_EXTENSION compute.`'OBJ_EXTENSION discard.`'OBJ_EXTENSION listfile.`'OBJ_EXTENSION
+OFILES = main`'OBJ_EXTENSION memory`'OBJ_EXTENSION parse`'OBJ_EXTENSION files`'OBJ_EXTENSION check`'OBJ_EXTENSION analyze`'OBJ_EXTENSION write`'OBJ_EXTENSION compute`'OBJ_EXTENSION discard`'OBJ_EXTENSION listfile`'OBJ_EXTENSION
 
 
 all: $(OFILES) makefile

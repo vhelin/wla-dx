@@ -8,10 +8,10 @@ include(host_defines)dnl
 
 CFILES = main.c
 HFILES = main.h
-OFILES = main.`'OBJ_EXTENSION
+OFILES = main`'OBJ_EXTENSION
 
 all: $(OFILES) makefile
-	$(LD) $(LDFLAGS) $(OFILES) -o out_name.`'EXE_EXTENSION
+	$(LD) $(LDFLAGS) $(OFILES) -o out_name`'EXE_EXTENSION
 
 main.o: main.c main.h makefile
 	$(CC) $(CFLAGS) main.c
