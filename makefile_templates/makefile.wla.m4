@@ -46,7 +46,7 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	$(`RM') $(RMFLAGS) $(OFILES) *~ wla-'OUT_SUFFIX`'EXE_EXTENSION
+	$(`RM') $(OFILES) *~ wla-'OUT_SUFFIX`'EXE_EXTENSION
 
 install:
 	make ; cp wla-gb.exe /usr/local/bin
