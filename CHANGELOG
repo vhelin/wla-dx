@@ -2,7 +2,8 @@
 ------------------------------------------------------------------------------
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
-
+v9.5+ (25-Apr-2014) [ALL] Incremental changes for the open source version!
+                    Maybe someday soon we will increment the version number :P.
 
 v9.5 (14-Aug-2008) [ALL] The unix.sh now takes the number of jobs make
                      commands should create, speeding up the compiling

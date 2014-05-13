@@ -219,7 +219,7 @@ int load_files(char *argv[], int argc) {
 				return FAILED;
       }
 
-      if (load_file(ou, STATE_LIBRARY, bank, slot, base, base_defined) == FAILED) {
+      if (load_file(ou, bank, slot, base, base_defined) == FAILED) {
 				fclose(fop);
 				return FAILED;
       }
@@ -233,7 +233,7 @@ int load_files(char *argv[], int argc) {
       continue;
     }
     /* object file loading */
-    else if (load_file(ou, STATE_OBJECT, 0, 0, 0, OFF) == FAILED) {
+    else if (load_file(ou, 0, 0, 0, OFF) == FAILED) {
       fclose(fop);
       return FAILED;
     }
@@ -251,7 +251,7 @@ int load_files(char *argv[], int argc) {
 }
 
 
-int load_file(char *fn, int state, int bank, int slot, int base, int base_defined) {
+int load_file(char *fn, int bank, int slot, int base, int base_defined) {
 
   struct object_file *o;
   unsigned char *data;

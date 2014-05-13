@@ -1,8 +1,8 @@
 
 CC = gcc
-CFLAGS = -c -O3 -ansi -pedantic -Wall -DMSDOS -DWIN32 -DWDC65C02
+CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra -DMSDOS -DWIN32 -DWDC65C02
 LD = gcc
-LDFLAGS = -lkernel32
+LDFLAGS = 
 WLAFLAGS = $(CFLAGS) -DMSDOS -DWDC65C02
 
 CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c

@@ -137,7 +137,7 @@ int pass_2(void) {
       sec_tmp->status = SECTION_STATUS_SEMIFREE;
 
       fprintf(file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_AUTHOR_PTR ", sec_tmp->id);
-      for (q = 0; q < strlen(sdsctag_author_str); q++)
+      for (q = 0; q < (int)strlen(sdsctag_author_str); q++)
 	fprintf(file_out_ptr, "d%d ", sdsctag_author_str[q]);
       fprintf(file_out_ptr, "d0 s ");
     }
@@ -148,7 +148,7 @@ int pass_2(void) {
       sec_tmp->status = SECTION_STATUS_SEMIFREE;
       
       fprintf(file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_NAME_PTR ", sec_tmp->id);
-      for (q = 0; q < strlen(sdsctag_name_str); q++)
+      for (q = 0; q < (int)strlen(sdsctag_name_str); q++)
 	fprintf(file_out_ptr, "d%d ", sdsctag_name_str[q]);
       fprintf(file_out_ptr, "d0 s ");
     }
@@ -159,7 +159,7 @@ int pass_2(void) {
       sec_tmp->status = SECTION_STATUS_SEMIFREE;
 
       fprintf(file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_NOTES_PTR ", sec_tmp->id);
-      for (q = 0; q < strlen(sdsctag_notes_str); q++)
+      for (q = 0; q < (int)strlen(sdsctag_notes_str); q++)
 	fprintf(file_out_ptr, "d%d ", sdsctag_notes_str[q]);
       fprintf(file_out_ptr, "d0 s ");
     }

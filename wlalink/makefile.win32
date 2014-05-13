@@ -1,6 +1,6 @@
 
 CC = gcc
-CFLAGS = -c -O3 -ansi -pedantic -Wall -DMSDOS
+CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra -DMSDOS
 LD = gcc
 LDFLAGS = 
 

@@ -2,7 +2,7 @@
 CC=gcc
 LD=gcc
 
-CFLAGS?= -c -O3 -ansi -pedantic -Wall
+CFLAGS?= -c -O3 -ansi -pedantic-errors -Wextra -Wall
 LDFLAGS = -lm
 WLAFLAGS = $(CFLAGS) -DUNIX -DSPC700
 
@@ -12,7 +12,7 @@ OFILES = main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack
 
 
 all: $(OFILES) 
-	$(LD) $(LDFLAGS) $(OFILES) -o wla-spc700 ; strip wla-spc700
+	$(LD) $(OFILES) -o wla-spc700 $(LDFLAGS) ; strip wla-spc700
 
 main.o: main.c defines.h main.h 
 	$(CC) $(WLAFLAGS) main.c

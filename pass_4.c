@@ -57,7 +57,7 @@ extern int computesmschecksum_defined, smstag_defined;
 struct label_def *unknown_labels = NULL, *unknown_labels_last = NULL, *tul, *ltmp;
 struct label_def *unknown_header_labels = NULL, *unknown_header_labels_last = NULL;
 
-unsigned int pc_bank = 0, pc_full = 0, rom_bank, mem_insert_overwrite, slot, pc_slot, pc_slot_max;
+int pc_bank = 0, pc_full = 0, rom_bank, mem_insert_overwrite, slot, pc_slot, pc_slot_max;
 int filename_id, line_number;
 
 
@@ -1299,7 +1299,7 @@ int mem_insert_padding(void) {
 }
 
 
-int mem_insert_absolute(unsigned int add, unsigned char x) {
+int mem_insert_absolute(int add, unsigned char x) {
 
   if (add >= max_address) {
     fprintf(stderr, "MEM_INSERT_ABSOLUTE: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", add, max_address);
