@@ -12,15 +12,15 @@ dnl WLA_QUIET?=0
 `RM' = RM
 
 CFILES = main.c
-OFILES = main.o
+OFILES = main`'OBJ_EXTENSION
 
 
 
 all: $(OFILES) makefile
-	$(`LD') $(`LDFLAGS') $(`OFILES') LDFLAGS_OUT gen
+	$(`LD') $(`LDFLAGS') $(`OFILES') LDFLAGS_OUT`'gen
 dnl	STRIP(gen)
 
-main.o: main.c makefile
+main`'OBJ_EXTENSION: main.c makefile
 	$(`CC') $(`CFLAGS') main.c
 
 

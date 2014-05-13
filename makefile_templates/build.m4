@@ -23,7 +23,7 @@ CP(create_tables`'.MAKE_HOST_SUFFIX, create_tables`'SH_EXTENSION)
 CP(makefile.MAKE_HOST_SUFFIX, makefile)
 CHMOD(u+x, create_tables`'SH_EXTENSION)
 SHEXEC(create_tables`'SH_EXTENSION)
-RM(create_tables`'SH_EXTENSION)
+dnl RM(create_tables`'SH_EXTENSION)
 CHDIR(..)
 
 ECHO("")

@@ -42,12 +42,12 @@ define(`CFLAGS_DEFINE', `/D')dnl
 define(`CLAGS_COMPILE', `/c')dnl
 define(`CFLAGS_OPT', `/Ox')dnl
 define(`CFLAGS_ANSI', `/Za /W2')dnl
-define(`CFLAGS_OTHER', `')dnl
+define(`CFLAGS_OTHER', `/nologo')dnl
 dnl
 dnl Describe your Linker
 define(`LD', link)dnl
 define(`LDFLAGS_OUT', `/out:')dnl
-define(`LDFLAGS_OTHER', `')dnl
+define(`LDFLAGS_OTHER', `/nologo')dnl
 dnl
 dnl Macros created from the above...
 define(`CFLAGS', CLAGS_COMPILE CFLAGS_OPT CFLAGS_ANSI CFLAGS_OTHER)dnl

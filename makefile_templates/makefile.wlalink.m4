@@ -11,37 +11,37 @@ OFILES = main`'OBJ_EXTENSION memory`'OBJ_EXTENSION parse`'OBJ_EXTENSION files`'O
 
 
 all: $(OFILES) makefile
-	$(`LD') $(`LDFLAGS') $(OFILES) LDFLAGS_OUT wlalink.exe
+	$(`LD') $(`LDFLAGS') $(OFILES) LDFLAGS_OUT`'wlalink.exe
 
 
-main.o: main.c main.h defines.h
+main`'OBJ_EXTENSION: main.c main.h defines.h
 	$(`CC') $(`CFLAGS') main.c
 
-memory.o: memory.c memory.h defines.h
+memory`'OBJ_EXTENSION: memory.c memory.h defines.h
 	$(`CC') $(`CFLAGS') memory.c
 
-parse.o: parse.c parse.h defines.h
+parse`'OBJ_EXTENSION: parse.c parse.h defines.h
 	$(`CC') $(`CFLAGS') parse.c
 
-files.o: files.c files.h defines.h
+files`'OBJ_EXTENSION: files.c files.h defines.h
 	$(`CC') $(`CFLAGS') files.c
 
-check.o: check.c check.h defines.h
+check`'OBJ_EXTENSION: check.c check.h defines.h
 	$(`CC') $(`CFLAGS') check.c
 
-analyze.o: analyze.c analyze.h defines.h
+analyze`'OBJ_EXTENSION: analyze.c analyze.h defines.h
 	$(`CC') $(`CFLAGS') analyze.c
 
-write.o: write.c write.h defines.h
+write`'OBJ_EXTENSION: write.c write.h defines.h
 	$(`CC') $(`CFLAGS') write.c
 
-compute.o: compute.c compute.h defines.h
+compute`'OBJ_EXTENSION: compute.c compute.h defines.h
 	$(`CC') $(`CFLAGS') compute.c
 
-discard.o: discard.c discard.h defines.h
+discard`'OBJ_EXTENSION: discard.c discard.h defines.h
 	$(`CC') $(`CFLAGS') discard.c
 
-listfile.o: listfile.c listfile.h defines.h
+listfile`'OBJ_EXTENSION: listfile.c listfile.h defines.h
 	$(`CC') $(`CFLAGS') listfile.c
 
 
