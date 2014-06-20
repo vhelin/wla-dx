@@ -41,7 +41,7 @@ cd ..
 cd wlad
 cp makefile.unix makefile
 make -j $1 
-cp wlad ../binaries
+cp wlad ../binaries
 make  clean
 cd ..
 

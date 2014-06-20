@@ -2,7 +2,7 @@
 CC=gcc
 LD=gcc
 CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra  -DUNIX -D$(WLA_TARGET) -DQUIET=$(WLA_QUIET)
-LDFLAGS =  
+LDFLAGS = -lm 
 RM = rm -f 
 
 CFILES = main.c

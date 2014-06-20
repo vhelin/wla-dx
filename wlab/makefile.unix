@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra 
 LD = gcc
-LDFLAGS = 
+LDFLAGS = -lm
 RM = rm -f 
 
 CFILES = main.c

@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra  -DUNIX
 LD = gcc
-LDFLAGS = 
+LDFLAGS = -lm
 RM = rm -f 
 
 CFILES = main.c memory.c parse.c files.c check.c analyze.c write.c compute.c discard.c listfile.c

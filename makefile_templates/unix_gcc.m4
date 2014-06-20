@@ -46,7 +46,7 @@ dnl
 dnl Describe your Linker
 define(`LD', gcc)dnl
 define(`LDFLAGS_OUT', `-o')dnl
-define(`LDFLAGS_OTHER', `')dnl
+define(`LDFLAGS_OTHER', `-lm')dnl
 dnl
 dnl Macros created from the above...
 define(`CFLAGS', CLAGS_COMPILE CFLAGS_OPT CFLAGS_ANSI CFLAGS_OTHER)dnl
