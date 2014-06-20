@@ -1,8 +1,8 @@
-
 CC = cl
-CFLAGS = /c /Ox /Za /W4 /DMSDOS /DGB
+CFLAGS = /c /Ox /Za /W2 /nologo
 LD = link
-LDFLAGS = 
+LDFLAGS = /nologo
+RM = del 
 
 CFILES = main.c
 HFILES = main.h
@@ -19,7 +19,7 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	del $(OFILES) *~ wlad.exe
+	$(RM) -f $(OFILES) *~ wlad.exe
 
 install:
 	make ; cp wlad.exe /usr/local/bin

@@ -1,0 +1,24 @@
+
+CC=gcc
+LD=gcc
+CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra  -DMSDOS -DWIN32 -D$(WLA_TARGET) -DQUIET=$(WLA_QUIET)
+LDFLAGS =  
+RM = rm -f 
+
+CFILES = main.c
+OFILES = main.o
+
+
+
+all: $(OFILES) makefile
+	$(LD) $(LDFLAGS) $(OFILES) -ogen
+
+main.o: main.c makefile
+	$(CC) $(CFLAGS) main.c
+
+
+$(OFILES): $(CFILES)
+
+
+clean:
+	$(RM) $(OFILES) core *~ gen

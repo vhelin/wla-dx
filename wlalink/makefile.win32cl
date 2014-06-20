@@ -1,8 +1,8 @@
-
 CC = cl
-CFLAGS = /c /Ox /Za /W4 /DMSDOS
+CFLAGS = /c /Ox /Za /W2 /nologo /DMSDOS /DWIN32
 LD = link
-LDFLAGS = 
+LDFLAGS = /nologo
+RM = del 
 
 CFILES = main.c memory.c parse.c files.c check.c analyze.c write.c compute.c discard.c listfile.c
 HFILES = main.h memory.h parse.h files.h check.h analyze.h write.h compute.h discard.h listfile.h defines.h
@@ -48,7 +48,7 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	del $(OFILES) *~ wlalink.exe
+	$(RM) -f $(OFILES) *~ wlalink.exe
 
 install:
 	make ; cp wlalink.exe /usr/local/bin

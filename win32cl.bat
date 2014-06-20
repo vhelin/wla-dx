@@ -1,65 +1,104 @@
+@echo off
+
+ 
+set CC=cl
+set LD=link
+
+echo ""
+echo "****************************************************************"
+echo "*          creating opcode decoding speedup tables             *"
+echo "****************************************************************"
+echo ""
+
+cd opcode_table_generator
+copy create_tables.win32cl create_tables.bat
+copy makefile.win32cl makefile
+call .\create_tables.bat
+cd ..
+
+echo ""
+echo "****************************************************************"
+echo "*                   compiling few tools                        *"
+echo "****************************************************************"
+echo ""
 
 cd wlab
 copy makefile.win32cl makefile
-nmake clean
-nmake
-move wlab.exe ..\binaries
+nmake 
+copy wlab.exe ..\binaries
 nmake clean
 cd ..
 
 cd wlad
 copy makefile.win32cl makefile
-nmake clean
-nmake
-move wlad.exe ..\binaries
+nmake 
+copy wlad.exe ..\binaries
 nmake clean
 cd ..
 
-copy makefiles\makefile.win32cl.gb MAKEFILE
+echo ""
+echo "****************************************************************"
+echo "*                  compiling WLA binaries                      *"
+echo "****************************************************************"
+echo ""
+
 nmake clean
-nmake
-move wla-gb.exe binaries\
+copy makefiles\makefile.win32cl.gb makefile
+nmake 
+copy wla-gb.exe binaries
+
+nmake clean
+copy makefiles\makefile.win32cl.z80 makefile
+nmake 
+copy wla-z80.exe binaries
+
+nmake clean
+copy makefiles\makefile.win32cl.6502 makefile
+nmake 
+copy wla-6502.exe binaries
+
+nmake clean
+copy makefiles\makefile.win32cl.65c02 makefile
+nmake 
+copy wla-65c02.exe binaries
+
+nmake clean
+copy makefiles\makefile.win32cl.6510 makefile
+nmake 
+copy wla-6510.exe binaries
+
+nmake clean
+copy makefiles\makefile.win32cl.65816 makefile
+nmake 
+copy wla-65816.exe binaries
+
+nmake clean
+copy makefiles\makefile.win32cl.spc700 makefile
+nmake 
+copy wla-spc700.exe binaries
+
+nmake clean
+copy makefiles\makefile.win32cl.huc6280 makefile
+nmake 
+copy wla-huc6280.exe binaries
+
 nmake clean
 
-copy makefiles\makefile.win32cl.z80 MAKEFILE
-nmake
-move wla-z80.exe binaries\
-nmake clean
-
-copy makefiles\makefile.win32cl.6502 MAKEFILE
-nmake
-move wla-6502.exe binaries\
-nmake clean
-
-copy makefiles\makefile.win32cl.65c02 MAKEFILE
-nmake
-move wla-65c02.exe binaries\
-nmake clean
-
-copy makefiles\makefile.win32cl.6510 MAKEFILE
-nmake
-move wla-6510.exe binaries\
-nmake clean
-
-copy makefiles\makefile.win32cl.65816 MAKEFILE
-nmake
-move wla-65816.exe binaries\
-nmake clean
-
-copy makefiles\makefile.win32cl.spc700 MAKEFILE
-nmake
-move wla-spc700.exe binaries\
-nmake clean
-
-copy makefiles\makefile.win32cl.huc6280 MAKEFILE
-nmake
-move wla-huc6280.exe binaries\
-nmake clean
+echo ""
+echo "****************************************************************"
+echo "*                    compiling WLALINK                         *"
+echo "****************************************************************"
+echo ""
 
 cd wlalink
 copy makefile.win32cl makefile
-nmake clean
-nmake
-move wlalink.exe ..\binaries
+nmake 
+copy wlalink.exe ..\binaries
 nmake clean
 cd ..
+
+echo ""
+echo "****************************************************************"
+echo "*        all done! check ./binaries/ for the results           *"
+echo "****************************************************************"
+echo ""

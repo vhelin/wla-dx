@@ -3,7 +3,7 @@ SHEBANG
 
 IF_ARGCHECK
 	ECHO(" ")
-	ECHO("USAGE: ./OUTNAME {JOBS}")
+	ECHO("USAGE: ./OUTNAME`'SH_EXTENSION {JOBS}")
 	ECHO("Where {JOBS} is the number of jobs (i.e., compiler instances) to run simultaneously.")
 	ECHO(" ")
 	EXIT(1)

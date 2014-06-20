@@ -9,103 +9,105 @@ then
 	exit 1
 fi
 
-export CC='gcc'
-export LD='gcc'
+export CC=gcc
+export LD=gcc
 
-echo
+echo ""
 echo "****************************************************************"
 echo "*          creating opcode decoding speedup tables             *"
 echo "****************************************************************"
-echo
+echo ""
 
 cd opcode_table_generator
-chmod u+x ./create_tables.sh
+cp create_tables.unix create_tables.sh
+cp makefile.unix makefile
+chmod u+x create_tables.sh
 ./create_tables.sh
 cd ..
 
-echo
+echo ""
 echo "****************************************************************"
 echo "*                   compiling few tools                        *"
 echo "****************************************************************"
-echo
+echo ""
 
 cd wlab
 cp makefile.unix makefile
-make -j $1
+make -j $1 
 cp wlab ../binaries
-make clean
+make  clean
 cd ..
 
 cd wlad
 cp makefile.unix makefile
-make -j $1
-cp wlad ../binaries
-make clean
+make -j $1 
+cp wlad ../binaries
+make  clean
 cd ..
 
-echo
+echo ""
 echo "****************************************************************"
 echo "*                  compiling WLA binaries                      *"
 echo "****************************************************************"
-echo
+echo ""
 
-make clean
+make  clean
 cp makefiles/makefile.unix.gb makefile
-make -j $1
+make -j $1 
 cp wla-gb binaries
 
-make clean
+make  clean
 cp makefiles/makefile.unix.z80 makefile
-make -j $1
+make -j $1 
 cp wla-z80 binaries
 
-make clean
+make  clean
 cp makefiles/makefile.unix.6502 makefile
-make -j $1
+make -j $1 
 cp wla-6502 binaries
 
-make clean
+make  clean
 cp makefiles/makefile.unix.65c02 makefile
-make -j $1
+make -j $1 
 cp wla-65c02 binaries
 
-make clean
+make  clean
 cp makefiles/makefile.unix.6510 makefile
-make -j $1
+make -j $1 
 cp wla-6510 binaries
 
-make clean
+make  clean
 cp makefiles/makefile.unix.65816 makefile
-make -j $1
+make -j $1 
 cp wla-65816 binaries
 
-make clean
+make  clean
 cp makefiles/makefile.unix.spc700 makefile
-make -j $1
+make -j $1 
 cp wla-spc700 binaries
 
-make clean
+make  clean
 cp makefiles/makefile.unix.huc6280 makefile
-make -j $1
+make -j $1 
 cp wla-huc6280 binaries
 
-make clean
+make  clean
 
-echo
+echo ""
 echo "****************************************************************"
 echo "*                    compiling WLALINK                         *"
 echo "****************************************************************"
-echo
+echo ""
 
 cd wlalink
 cp makefile.unix makefile
-make -j $1
+make -j $1 
 cp wlalink ../binaries
-make clean
+make  clean
 cd ..
 
-echo
+echo ""
 echo "****************************************************************"
 echo "*        all done! check ./binaries/ for the results           *"
 echo "****************************************************************"
-echo
+echo ""

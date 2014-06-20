@@ -4,44 +4,44 @@
 
 export WLA_QUIET=1
 
-make clean
+make  clean
 export WLA_TARGET=GB
-make
+make  
 ./gen
 
-make clean
+make  clean
 export WLA_TARGET=Z80
-make
+make  
 ./gen
 
-make clean
+make  clean
 export WLA_TARGET=MCS6502
-make
+make  
 ./gen
 
-make clean
+make  clean
 export WLA_TARGET=WDC65C02
-make
+make  
 ./gen
 
-make clean
+make  clean
 export WLA_TARGET=MCS6510
-make
+make  
 ./gen
 
-make clean
+make  clean
 export WLA_TARGET=W65816
-make
+make  
 ./gen
 
-make clean
+make  clean
 export WLA_TARGET=SPC700
-make
+make  
 ./gen
 
-make clean
+make  clean
 export WLA_TARGET=HUC6280
-make
+make  
 ./gen
 
-make clean
+make  clean

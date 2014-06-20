@@ -10,7 +10,7 @@ define(`OUT_SUFFIX', out_suffix)dnl
 define(`OPCODE_PREREQ', opcode_prereq)dnl
 dnl
 dnl Defines which control build/make script generation
-define(`IF_ARGCHECK', `if [ `$#' -ne 1 ]
+define(`IF_ARGCHECK', `if [ `$'`'# -ne 1 ]
 then')dnl
 define(`ENDIF_ARGCHECK', `fi')dnl
 dnl
