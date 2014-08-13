@@ -3504,7 +3504,7 @@ int parse_directive(void) {
           }
 
           for (x = 0; x < d; x++) {
-            if (b > bt) {
+            if (b >= bt) {
               print_error("More BANKS than BANKSTOTAL suggests.\n", ERROR_DIR);
               return FAILED;
             }
