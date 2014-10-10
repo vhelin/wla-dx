@@ -145,21 +145,40 @@ int compute_sms_checksum(void) {
 
   unsigned int i, x;
 
-  if (romsize < 0x8000) {
-    fprintf(stderr, "COMPUTE_SMS_CHECKSUM: SMS/GG checksum computing requires a ROM of at least 32KBs.\n");
+  if (romsize < 0x4000) {
+    fprintf(stderr, "COMPUTE_SMS_CHECKSUM: SMS/GG checksum computing requires a ROM of at least 16KBs.\n");
     return SUCCEEDED;
   }
 
-  /* add together 32KB minus SMS/GG header */
-  i = 0;
-  for (x = 0; x < 0x7FF0; x++)
-    i += rom[x];
+  if (romsize == 0x4000) {
 
-  mem_insert(0x7FFA, i & 0xFF);
-  mem_insert(0x7FFB, (i >> 8) & 0xFF);
+    /* add together 16KB minus SMS/GG header */
+    i = 0;
+    for (x = 0; x < 0x3FF0; x++)
+      i += rom[x];
 
-  /* 32KB checksum and SMS export */
-  mem_insert(0x7FFF, 0x4C);
+    mem_insert(0x3FFA, i & 0xFF);
+    mem_insert(0x3FFB, (i >> 8) & 0xFF);
 
-  return SUCCEEDED;
+    /* 16KB checksum and SMS export */
+    mem_insert(0x3FFF, 0x4B);
+
+    return SUCCEEDED;
+  }
+
+  if (romsize >= 0x8000) {
+
+    /* add together 32KB minus SMS/GG header */
+    i = 0;
+    for (x = 0; x < 0x7FF0; x++)
+      i += rom[x];
+
+    mem_insert(0x7FFA, i & 0xFF);
+    mem_insert(0x7FFB, (i >> 8) & 0xFF);
+
+    /* 32KB checksum and SMS export */
+    mem_insert(0x7FFF, 0x4C);
+
+    return SUCCEEDED;
+  }
 }
