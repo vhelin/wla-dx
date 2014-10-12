@@ -2320,9 +2320,10 @@ int parse_directive(void) {
     /* check if the section size is supplied inside the name */
     l = strlen(tmp) - 1;
 
-    for (; l >= 0 && tmp[l] != '_'; l--);
+    for (; l >= 0 && tmp[l] != '_'; l--)
+      ;
 
-    if (tmp[l] == '_') {
+    if (l >= 0 && tmp[l] == '_') {
       l++;
       if (tmp[l] == '$') {
         for (l++, m = 0; tmp[l] != 0; l++) {
