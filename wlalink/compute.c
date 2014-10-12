@@ -10,7 +10,7 @@
 
 
 extern unsigned char *rom;
-extern int romsize, sms_checksum, gb_checksum, gb_complement_check, snes_checksum;
+extern int romsize, sms_checksum, smstag_defined, gb_checksum, gb_complement_check, snes_checksum;
 extern int snes_rom_mode;
 
 
@@ -18,6 +18,8 @@ int compute_checksums(void) {
 
   if (sms_checksum != 0)
     compute_sms_checksum();
+  if (smstag_defined != 0)
+    add_sms_tag();
   if (gb_complement_check != 0)
     compute_gb_complement_check();
   if (gb_checksum != 0)
@@ -141,25 +143,54 @@ int compute_snes_checksum(void) {
 }
 
 
-int compute_sms_checksum(void) {
+int add_sms_tag(void) {
 
-  unsigned int i, x;
+  int tag_address = 0x7FF0;
 
-  if (romsize < 0x8000) {
-    fprintf(stderr, "COMPUTE_SMS_CHECKSUM: SMS/GG checksum computing requires a ROM of at least 32KBs.\n");
+  if (romsize < 0x8000)
+    tag_address = 0x3FF0;
+
+  if (romsize < 0x4000) {
+    fprintf(stderr, "ADD_SMS_TAG: SMS/GG tag requires a ROM of at least 16KBs.\n");
     return SUCCEEDED;
   }
 
-  /* add together 32KB minus SMS/GG header */
+  /* TMR SEGA */
+  mem_insert(tag_address + 0x0, 0x54);
+  mem_insert(tag_address + 0x1, 0x4D);
+  mem_insert(tag_address + 0x2, 0x52);
+  mem_insert(tag_address + 0x3, 0x20);
+  mem_insert(tag_address + 0x4, 0x53);
+  mem_insert(tag_address + 0x5, 0x45);
+  mem_insert(tag_address + 0x6, 0x47);
+  mem_insert(tag_address + 0x7, 0x41);
+
+  return SUCCEEDED;
+}
+
+
+int compute_sms_checksum(void) {
+
+  int tag_address = 0x7FF0, x, i;
+
+  if (romsize < 0x8000)
+    tag_address = 0x3FF0;
+
+  if (romsize < 0x4000) {
+    fprintf(stderr, "COMPUTE_SMS_CHECKSUM: SMS/GG checksum computing requires a ROM of at least 16KBs.\n");
+    return SUCCEEDED;
+  }
+
+  /* add together 16/32KB minus SMS/GG header */
   i = 0;
-  for (x = 0; x < 0x7FF0; x++)
+  for (x = 0; x < tag_address; x++)
     i += rom[x];
 
-  mem_insert(0x7FFA, i & 0xFF);
-  mem_insert(0x7FFB, (i >> 8) & 0xFF);
+  mem_insert(tag_address + 0xA, i & 0xFF);
+  mem_insert(tag_address + 0xB, (i >> 8) & 0xFF);
 
-  /* 32KB checksum and SMS export */
-  mem_insert(0x7FFF, 0x4C);
+  /* checksum range - SMS export + 0-16/32KB minus SMS/GG header */
+  mem_insert(tag_address + 0xF, 0x4C);
 
   return SUCCEEDED;
 }

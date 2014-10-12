@@ -572,10 +572,9 @@ This is not a compulsory directive.
 -------------------
 
 When this directive is used WLA computes the ROM checksum found at $7FFA and
-$7FFB in a SMS/GG ROM. Note that this directive can only be used with wla-z80.
-Also note that the ROM size must be at least 32KB. Data beyond 256KB limit
-is not taken into account when calculating the SMS checksum, which should
-be the right way to do it.
+$7FFB (or $3FFA and $3FFB is the ROM is 16KBs) in a SMS/GG ROM. Note that this
+directive can only be used with wla-z80. Also note that the ROM size must be
+at least 16KB. The checksum is calculated using bytes 0x0000 - 0x3FEF/0x7FEF.
 
 This is not a compulsory directive.
 

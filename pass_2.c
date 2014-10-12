@@ -72,6 +72,7 @@ int pass_2(void) {
 #ifdef Z80
   /* SMSTAG */
   if (smstag_defined != 0) {
+    /* OBSOLETE: MOVED TO wlalink/compute.c/compute_sms_checksum()
     mem_insert_absolute(0x7FF0, 0x54);
     mem_insert_absolute(0x7FF1, 0x4D);
     mem_insert_absolute(0x7FF2, 0x52);
@@ -80,6 +81,7 @@ int pass_2(void) {
     mem_insert_absolute(0x7FF5, 0x45);
     mem_insert_absolute(0x7FF6, 0x47);
     mem_insert_absolute(0x7FF7, 0x41);
+    */
   }
 
   /* SDSCTAG */
