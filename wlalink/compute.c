@@ -172,9 +172,15 @@ int add_sms_tag(void) {
 int compute_sms_checksum(void) {
 
   int tag_address = 0x7FF0, x, i;
+  /* SMS Export + 32KB ROM */
+  int final_byte = 0x4C;
 
-  if (romsize < 0x8000)
+  if (romsize < 0x8000) {
+    /* let's assume it's a 16KB ROM */
     tag_address = 0x3FF0;
+    /* SMS Export + 16KB ROM */
+    final_byte = 0x4B;
+  }
 
   if (romsize < 0x4000) {
     fprintf(stderr, "COMPUTE_SMS_CHECKSUM: SMS/GG checksum computing requires a ROM of at least 16KBs.\n");
@@ -189,8 +195,8 @@ int compute_sms_checksum(void) {
   mem_insert(tag_address + 0xA, i & 0xFF);
   mem_insert(tag_address + 0xB, (i >> 8) & 0xFF);
 
-  /* checksum range - SMS export + 0-16/32KB minus SMS/GG header */
-  mem_insert(tag_address + 0xF, 0x4C);
+  /* region code + ROM size */
+  mem_insert(tag_address + 0xF, final_byte);
 
   return SUCCEEDED;
 }
