@@ -193,6 +193,30 @@ int pass_2(void) {
     ye -= (q * 10);
     ye_l = (q << 4) | ye;
 
+    if (create_a_new_section_structure() == FAILED)
+      return FAILED;
+    strcpy(sec_tmp->name, "!__WLA_SDSCTAG_TIMEDATE");
+    sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+    fprintf(file_out_ptr, "A%d %d ", sec_tmp->id, 0x7FE0);
+
+    /* insert the system line (0) */
+    fprintf(file_out_ptr, "k0 ");
+
+    /* the time & date data */
+    fprintf(file_out_ptr, "d%d ", 0x53);
+    fprintf(file_out_ptr, "d%d ", 0x44);
+    fprintf(file_out_ptr, "d%d ", 0x53);
+    fprintf(file_out_ptr, "d%d ", 0x43);
+    fprintf(file_out_ptr, "d%d ", sdsc_ma);
+    fprintf(file_out_ptr, "d%d ", sdsc_mi);
+    fprintf(file_out_ptr, "d%d ", da);
+    fprintf(file_out_ptr, "d%d ", mo);
+    fprintf(file_out_ptr, "d%d ", ye_l);
+    fprintf(file_out_ptr, "d%d ", ye_h);
+    
+    fprintf(file_out_ptr, "s ");
+
+    /*
     mem_insert_absolute(0x7FE0, 0x53);
     mem_insert_absolute(0x7FE1, 0x44);
     mem_insert_absolute(0x7FE2, 0x53);
@@ -203,6 +227,7 @@ int pass_2(void) {
     mem_insert_absolute(0x7FE7, mo);
     mem_insert_absolute(0x7FE8, ye_l);
     mem_insert_absolute(0x7FE9, ye_h);
+    */
   }
 #endif
 

@@ -453,12 +453,12 @@ struct macro_runtime {
   int  macro_end_line;
   int  macro_end_filename_id;
   int  supplied_arguments;
-	int  caller;
-	char string[MAX_NAME_LENGTH];
-	int  string_current;
-	int  string_last;
-	int  offset;
-	struct macro_incbin *incbin_data;
+  int  caller;
+  char string[MAX_NAME_LENGTH];
+  int  string_current;
+  int  string_last;
+  int  offset;
+  struct macro_incbin *incbin_data;
   struct macro_argument **argument_data;
 };
 
@@ -590,7 +590,7 @@ struct stack {
   int type;
   int bank;
   int slot;
-	int relative_references;
+  int relative_references;
 #ifdef W65816
   int base;
 #endif
@@ -631,4 +631,3 @@ struct filepointer {
 #define TYPE_STACK_CALCULATION 3
 
 #endif
-
