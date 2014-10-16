@@ -160,21 +160,21 @@ int main(int argc, char *argv[]) {
 
   if (databanks == OFF && strings == OFF) {
     if (b == 0)
-      output_bank_opcodes(fs, &b, in, bank_first_size, &i);
+      output_bank_opcodes(&b, in, bank_first_size, &i);
     while (b <= bank_end)
-      output_bank_opcodes(fs, &b, in, bank_rest_size, &i);
+      output_bank_opcodes(&b, in, bank_rest_size, &i);
   }
   else if (databanks == ON && strings == OFF) {
     if (b == 0)
-      output_bank_opcodes(fs, &b, in, bank_first_size, &i);
+      output_bank_opcodes(&b, in, bank_first_size, &i);
     while (b <= bank_end)
-      output_bank_data(fs, &b, in, bank_rest_size, &i);
+      output_bank_data(&b, in, bank_rest_size, &i);
   }
   else if (databanks == OFF && strings == ON) {
     if (b == 0)
-      output_bank_opcodes(fs, &b, in, bank_first_size, &i);
+      output_bank_opcodes(&b, in, bank_first_size, &i);
     while (b <= bank_end)
-      output_bank_data_detect_strings(fs, &b, in, bank_rest_size, &i);
+      output_bank_data_detect_strings(&b, in, bank_rest_size, &i);
   }
 
   free(in);
@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i) {
+int output_bank_opcodes(int *b, unsigned char *in, int bank_size, int *i) {
 
   char bu[256], tm[256];
   int q, oa, p, t, x, a, ad, tabs, rom_pos, label_pos, num_labels=0;
@@ -521,7 +521,7 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
 }
 
 
-int output_bank_data(int fs, int *b, unsigned char *in, int bank_size, int *i) {
+int output_bank_data(int *b, unsigned char *in, int bank_size, int *i) {
 
   int ad;
 
@@ -546,7 +546,7 @@ int output_bank_data(int fs, int *b, unsigned char *in, int bank_size, int *i) {
 }
 
 
-int output_bank_data_detect_strings(int fs, int *b, unsigned char *in, int bank_size, int *i) {
+int output_bank_data_detect_strings(int *b, unsigned char *in, int bank_size, int *i) {
 
   int ad, t, x;
   char c;

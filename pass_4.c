@@ -354,9 +354,9 @@ int pass_4(void) {
       case 'B':
 
         if (c == 'O')
-          fscanf(file_out_ptr, "%u", &pc_bank);
+          fscanf(file_out_ptr, "%d", &pc_bank);
         else {
-          fscanf(file_out_ptr, "%u %u", &rom_bank, &slot);
+          fscanf(file_out_ptr, "%d %d", &rom_bank, &slot);
           if (banksize_defined == 0)
             banksize = banks[rom_bank];
         }
@@ -859,16 +859,9 @@ int pass_4(void) {
     /* misc bits */
     ind = 0;
 
-#ifdef GB
-    if (computechecksum_defined != 0)
-      ind += 16;
-    if (computecomplementcheck_defined != 0)
-      ind += 32;
-#endif
-
 #ifdef Z80
     if (computesmschecksum_defined != 0)
-      ind = 1;
+      ind |= 1 << 0;
 #endif
 
 #ifdef W65816
@@ -887,16 +880,28 @@ int pass_4(void) {
     ind += 128;
 #endif
 
+#ifdef GB
+    if (computechecksum_defined != 0)
+      ind += 16;
+    if (computecomplementcheck_defined != 0)
+      ind += 32;
+#endif
+
     fprintf(final_ptr, "%c", ind);
 
     /* more bits */
     ind = 0;
 
     if (smc_defined != 0)
-      ind += 1;
+      ind |= 1 << 0;
 #ifdef W65816
     if (sramsize_defined != 0)
       ind |= (sramsize & 3) << 1;
+#endif
+
+#ifdef Z80
+    if (smstag_defined != 0)
+      ind |= 1 << 3;
 #endif
 
     fprintf(final_ptr, "%c", ind);

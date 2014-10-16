@@ -61,7 +61,7 @@ int compare_next_token(char *in, int s) {
 
     e = buffer[a];
     for (t = 0; t < s && e != ' ' && e != ',' && e != 0x0A; ) {
-      if (toupper(in[t]) != toupper(e))
+      if (toupper((int)in[t]) != toupper((int)e))
 	return FAILED;
       t++;
       e = buffer[++a];
@@ -70,7 +70,7 @@ int compare_next_token(char *in, int s) {
   /* not in MACRO mode */
   else {
     for (t = 0; t < s && e != ' ' && e != ',' && e != 0x0A; ) {
-      if (toupper(in[t]) != toupper(e))
+      if (toupper((int)in[t]) != toupper((int)e))
 	return FAILED;
       t++;
       e = buffer[++a];
