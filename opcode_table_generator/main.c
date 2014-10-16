@@ -66,9 +66,13 @@ int main(int argc, char *argv[]) {
   struct optcode *opt_tmp;
   FILE *out;
   char max_name[256];
-  int x, opcode_n[256], opcode_p[256], a, b, n, max = 0, ob;
+  unsigned int max = 0;
+  int x, opcode_n[256], opcode_p[256], a, b, n, ob;
 
 
+  /* just keep the compiler happy by accessing argc and argv */
+  if (argc > 1 && argv != NULL)
+    fprintf(stderr, "WARNING: \"%s\" doesn't take arguments.\n", argv[0]);
 
   /* generate opcode decoding jump tables */
   for (x = 0; x < 256; x++) {
@@ -129,7 +133,7 @@ int main(int argc, char *argv[]) {
   fclose(out);
 
 #if QUIET == 0
-  printf("MAIN: max opt[] (\"%s\") lenght was %d bytes.\n", max_name, max);
+  printf("MAIN: max opt[] (\"%s\") lenght was %u bytes.\n", max_name, max);
 #endif
 
   return 0;

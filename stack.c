@@ -89,7 +89,7 @@ int stack_calculate(char *in, int *value) {
   struct stack_item si[256], ta[256];
   struct stack s;
   unsigned char e;
-  double dou, dom;
+  double dou = 0.0, dom = 0.0;
 
 
   /* slice the data into infix format */
