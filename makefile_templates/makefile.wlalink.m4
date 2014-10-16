@@ -1,9 +1,10 @@
 include(host_defines)dnl
 `CC' = CC
-`CFLAGS' = CFLAGS HOSTFLAGS
+`CFLAGS' = CFLAGS CFLAGS_HOST
 `LD' = LD
 `LDFLAGS' = LDFLAGS
 `RM' = RM
+`RMFLAGS' = RMFLAGS
 
 CFILES = main.c memory.c parse.c files.c check.c analyze.c write.c compute.c discard.c listfile.c
 HFILES = main.h memory.h parse.h files.h check.h analyze.h write.h compute.h discard.h listfile.h defines.h
@@ -11,7 +12,7 @@ OFILES = main`'OBJ_EXTENSION memory`'OBJ_EXTENSION parse`'OBJ_EXTENSION files`'O
 
 
 all: $(OFILES) makefile
-	$(`LD') $(`LDFLAGS') $(OFILES) LDFLAGS_OUT`'wlalink.exe
+	$(`LD') $(`LDFLAGS') $(OFILES) LDFLAGS_OUT(wlalink`'EXE_EXTENSION)
 
 
 main`'OBJ_EXTENSION: main.c main.h defines.h
@@ -49,7 +50,8 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	$(`RM') -f $(OFILES) *~ wlalink.exe
+	$(`RM') -f $(OFILES) *~ wlalink`'EXE_EXTENSION
 
 install:
-	make ; cp wlalink.exe /usr/local/bin
+	MAKE()
+	INSTALL(wlalink`'EXE_EXTENSION, DEFAULT_DEST)

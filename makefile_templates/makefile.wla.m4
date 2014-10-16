@@ -5,6 +5,7 @@ include(host_defines)dnl
 `LDFLAGS' = LDFLAGS
 `WLAFLAGS' = $(`CFLAGS') WLAFLAGS
 `RM' = RM
+`RMFLAGS' = RMFLAGS
 
 CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c
 HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h defines.h
@@ -12,7 +13,7 @@ OFILES = main`'OBJ_EXTENSION parse`'OBJ_EXTENSION include_file`'OBJ_EXTENSION pa
 
 
 all: $(OFILES) makefile
-	$(`LD') $(`LDFLAGS') $(OFILES) LDFLAGS_OUT`'`wla-'OUT_SUFFIX`'EXE_EXTENSION
+	$(`LD') $(`LDFLAGS') $(OFILES) LDFLAGS_OUT(`wla-'OUT_SUFFIX`'EXE_EXTENSION)
 
 main`'OBJ_EXTENSION: main.c defines.h main.h makefile
 	$(`CC') $(`WLAFLAGS') main.c
@@ -49,4 +50,5 @@ clean:
 	$(`RM') $(OFILES) *~ wla-OUT_SUFFIX`'EXE_EXTENSION
 
 install:
-	make ; cp wla-gb.exe /usr/local/bin
+	MAKE() 
+	INSTALL(wla-OUT_SUFFIX`'EXE_EXTENSION, DEFAULT_DEST)

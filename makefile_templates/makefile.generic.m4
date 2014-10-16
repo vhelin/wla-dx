@@ -5,13 +5,14 @@ include(host_defines)dnl
 `LD' = LD
 `LDFLAGS' = LDFLAGS
 `RM' = RM
+`RMFLAGS' = RMFLAGS
 
 CFILES = main.c
 HFILES = main.h
 OFILES = main`'OBJ_EXTENSION
 
 all: $(OFILES) makefile
-	$(`LD') $(`LDFLAGS') $(OFILES) LDFLAGS_OUT`'out_name`'EXE_EXTENSION
+	$(`LD') $(`LDFLAGS') $(OFILES) LDFLAGS_OUT(out_name`'EXE_EXTENSION)
 
 main`'OBJ_EXTENSION: main.c main.h makefile
 	$(`CC') $(`CFLAGS') main.c
@@ -21,7 +22,8 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	$(`RM') -f $(OFILES) *~ wlad.exe
+	$(`RM') $(OFILES) *~ out_name`'EXE_EXTENSION
 
 install:
-	make ; cp wlad.exe /usr/local/bin
+	MAKE()
+	INSTALL(out_name`'EXE_EXTENSION, DEFAULT_DEST)
