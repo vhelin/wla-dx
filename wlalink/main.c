@@ -162,6 +162,22 @@ int main(int argc, char *argv[]) {
       return 1;
   }
 
+  /* if ROM size < 32KBs, correct SDSC tag sections' addresses */
+  if (smstag_defined != 0 && romsize < 0x8000) {
+    /* assume 16KB ROM size */
+    struct section *s = sec_first;
+    while (s != NULL) {
+      if (strcmp(s->name, "!__WLA_SDSCTAG_STRINGS") == 0 ||
+	  strcmp(s->name, "!__WLA_SDSCTAG_TIMEDATE") == 0) {
+	/* these sections would originally go to 0x7Fnm, but as we now
+	   assume that the ROM is 16KBs, we'll bring them 16KBs lower */
+	s->address -= 0x4000;
+      }
+
+      s = s->next;
+    }
+  }
+  
 #ifdef _MAIN_DEBUG
   {
     printf("\n*********************************************\n");

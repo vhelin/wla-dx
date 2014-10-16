@@ -775,7 +775,6 @@ int parse_data_blocks(void) {
       t = obj_tmp->data_blocks;
       p = obj_tmp->data + obj_tmp->size;
       for (y = 1; t < p; ) {
-
 	s = malloc(sizeof(struct section));
 	if (s == NULL) {
 	  fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");

@@ -6,13 +6,13 @@
 
 .MEMORYMAP
 DEFAULTSLOT 0
-SLOTSIZE $8000
+SLOTSIZE $4000
 SLOT 0 $0000
 .ENDME
 
 .ROMBANKMAP
 BANKSTOTAL 1
-BANKSIZE $8000
+BANKSIZE $4000
 BANKS 1
 .ENDRO
 
@@ -22,5 +22,8 @@ BANKS 1
 .org 0
 
 .section "Deliberately empty section" free
-nop
+	nop
+	nop
+	nop
+	nop
 .ends
