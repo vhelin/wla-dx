@@ -202,13 +202,16 @@ int pass_2(void) {
     /* insert the system line (0) */
     fprintf(file_out_ptr, "k0 ");
 
-    /* the time & date data */
+    /* SDSC header data */
+    /* SDSC */
     fprintf(file_out_ptr, "d%d ", 0x53);
     fprintf(file_out_ptr, "d%d ", 0x44);
     fprintf(file_out_ptr, "d%d ", 0x53);
     fprintf(file_out_ptr, "d%d ", 0x43);
+    /* version */
     fprintf(file_out_ptr, "d%d ", sdsc_ma);
     fprintf(file_out_ptr, "d%d ", sdsc_mi);
+    /* date */
     fprintf(file_out_ptr, "d%d ", da);
     fprintf(file_out_ptr, "d%d ", mo);
     fprintf(file_out_ptr, "d%d ", ye_l);

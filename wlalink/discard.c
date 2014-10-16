@@ -37,11 +37,11 @@ int discard_unused_sections(void) {
     s = sec_first;
     while (s != NULL) {
       if (s->referenced == 0)
-				s->alive = NO;
+	s->alive = NO;
       else
-				s->alive = YES;
+	s->alive = YES;
       if (s->alive == NO)
-				b++;
+	b++;
       s = s->next;
     }
   }
@@ -51,7 +51,7 @@ int discard_unused_sections(void) {
   while (s != NULL) {
     if (s->alive == NO)
       fprintf(stderr, "DISCARD: %s:%s: Section \"%s\" was discarded.\n",
-							get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+	      get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
     s = s->next;
   }
 
@@ -90,23 +90,23 @@ int discard_iteration(void) {
     l = labels_first;
     while (l != NULL) {
       if (strcmp(l->name, r->name) == 0)
-				break;
+	break;
       l = l->next;
     }
     if (l != NULL && l->section_status == ON) {
       s = sec_first;
       while (s->id != l->section)
-				s = s->next;
+	s = s->next;
       if (s == NULL)
-				fprintf(stderr, "DISCARD_ITERATION: Internal error!\n");
+	fprintf(stderr, "DISCARD_ITERATION: Internal error!\n");
       if (r->section_status == OFF)
-				s->referenced++;
+	s->referenced++;
       else if (r->section != s->id) {
-				se = sec_first;
-				while (se->id != r->section)
-					se = se->next;
-				if (se->alive == YES)
-					s->referenced++;
+	se = sec_first;
+	while (se->id != r->section)
+	  se = se->next;
+	if (se->alive == YES)
+	  s->referenced++;
       }
     }
     r = r->next;
@@ -119,24 +119,24 @@ int discard_iteration(void) {
     g = 0;
     while (g != st->stacksize) {
       if (si->type == STACK_ITEM_TYPE_STRING && is_label_anonymous(si->string) == FAILED) {
-				l = labels_first;
-				while (l != NULL) {
-					if (strcmp(l->name, si->string) == 0 && l->section_status == ON) {
-						s = sec_first;
-						while (s->id != l->section)
-							s = s->next;
-						if (st->section_status == OFF)
-							s->referenced++;
-						else if (st->section != s->id) {
-							se = sec_first;
-							while (se->id != st->section)
-								se = se->next;
-							if (se->alive == YES)
-								s->referenced++;
-						}
-					}
-					l = l->next;
-				}
+	l = labels_first;
+	while (l != NULL) {
+	  if (strcmp(l->name, si->string) == 0 && l->section_status == ON) {
+	    s = sec_first;
+	    while (s->id != l->section)
+	      s = s->next;
+	    if (st->section_status == OFF)
+	      s->referenced++;
+	    else if (st->section != s->id) {
+	      se = sec_first;
+	      while (se->id != st->section)
+		se = se->next;
+	      if (se->alive == YES)
+		s->referenced++;
+	    }
+	  }
+	  l = l->next;
+	}
       }
       si++;
       g++;
@@ -160,22 +160,22 @@ int discard_drop_labels(void) {
       /* find the section */
       s = sec_first;
       while (s->id != l->section)
-				s = s->next;
+	s = s->next;
       /* is it dead? */
       if (s->alive == NO) {
-				/* nope! remove the label! */
-				if (l->prev == NULL)
-					labels_first = l->next;
-				else
-					l->prev->next = l->next;
-				if (l->next != NULL)
-					l->next->prev = l->prev;
-				t = l->next;
-				free(l);
-				l = t;
+	/* nope! remove the label! */
+	if (l->prev == NULL)
+	  labels_first = l->next;
+	else
+	  l->prev->next = l->next;
+	if (l->next != NULL)
+	  l->next->prev = l->prev;
+	t = l->next;
+	free(l);
+	l = t;
       }
       else
-				l = l->next;
+	l = l->next;
     }
     else
       l = l->next;
