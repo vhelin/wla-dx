@@ -147,11 +147,13 @@ int add_sms_tag(void) {
 
   int tag_address = 0x7FF0;
 
-  if (romsize < 0x8000)
+  if (romsize < 0x4000)
+    tag_address = 0x1FF0;
+  else if (romsize < 0x8000)
     tag_address = 0x3FF0;
 
-  if (romsize < 0x4000) {
-    fprintf(stderr, "ADD_SMS_TAG: SMS/GG tag requires a ROM of at least 16KBs.\n");
+  if (romsize < 0x2000) {
+    fprintf(stderr, "ADD_SMS_TAG: SMS/GG tag requires a ROM of at least 8KBs.\n");
     return SUCCEEDED;
   }
 
@@ -175,19 +177,25 @@ int compute_sms_checksum(void) {
   /* SMS Export + 32KB ROM */
   int final_byte = 0x4C;
 
-  if (romsize < 0x8000) {
+  if (romsize < 0x4000) {
+    /* let's assume it's a 8KB ROM */
+    tag_address = 0x1FF0;
+    /* SMS Export + 8KB ROM */
+    final_byte = 0x4A;
+  }
+  else if (romsize < 0x8000) {
     /* let's assume it's a 16KB ROM */
     tag_address = 0x3FF0;
     /* SMS Export + 16KB ROM */
     final_byte = 0x4B;
   }
 
-  if (romsize < 0x4000) {
-    fprintf(stderr, "COMPUTE_SMS_CHECKSUM: SMS/GG checksum computing requires a ROM of at least 16KBs.\n");
+  if (romsize < 0x2000) {
+    fprintf(stderr, "COMPUTE_SMS_CHECKSUM: SMS/GG checksum computing requires a ROM of at least 8KBs.\n");
     return SUCCEEDED;
   }
 
-  /* add together 16/32KB minus SMS/GG header */
+  /* add together 8-32KB minus SMS/GG header */
   i = 0;
   for (x = 0; x < tag_address; x++)
     i += rom[x];

@@ -164,14 +164,17 @@ int main(int argc, char *argv[]) {
 
   /* if ROM size < 32KBs, correct SDSC tag sections' addresses */
   if (smstag_defined != 0 && romsize < 0x8000) {
-    /* assume 16KB ROM size */
     struct section *s = sec_first;
+    int sub = 0x4000; /* assume 16KB ROM size */
+    if (romsize < 0x4000)
+      sub = 0x6000; /* assume 8KB ROM size */
+    
     while (s != NULL) {
       if (strcmp(s->name, "!__WLA_SDSCTAG_STRINGS") == 0 ||
 	  strcmp(s->name, "!__WLA_SDSCTAG_TIMEDATE") == 0) {
 	/* these sections would originally go to 0x7Fnm, but as we now
-	   assume that the ROM is 16KBs, we'll bring them 16KBs lower */
-	s->address -= 0x4000;
+	   assume that the ROM is smaller, we'll bring them down */
+	s->address -= sub;
       }
 
       s = s->next;
@@ -355,42 +358,42 @@ int main(int argc, char *argv[]) {
     x = 0;
     for (i = 0; i < romsize; i++) {
       if (rom_usage[i] == 0 && x == 0) {
-				x = 1;
-				y = i;
+	x = 1;
+	y = i;
       }
       else if (rom_usage[i] != 0 && x == 1) {
-				if (y == (i - 1))
-					fprintf(stderr, "Free space at $%.4x.\n", y);
-				else
-					fprintf(stderr, "Free space at $%.4x-$%.4x.\n", y, i - 1);
-				x = 0;
+	if (y == (i - 1))
+	  fprintf(stderr, "Free space at $%.4x.\n", y);
+	else
+	  fprintf(stderr, "Free space at $%.4x-$%.4x.\n", y, i - 1);
+	x = 0;
       }
     }
 
     if (x == 1) {
       if (y == (i - 1))
-				fprintf(stderr, "Free space at $%.4x.\n", y);
+	fprintf(stderr, "Free space at $%.4x.\n", y);
       else
-				fprintf(stderr, "Free space at $%.4x-$%.4x.\n", y, i - 1);
+	fprintf(stderr, "Free space at $%.4x-$%.4x.\n", y, i - 1);
     }
 
     for (y = 0, q = 0; y < romsize; q++) {
       for (x = 0, inz = 0; inz < banks[q]; inz++) {
-				if (rom_usage[y++] == 0)
-					x++;
+	if (rom_usage[y++] == 0)
+	  x++;
       }
       f = (((float)x)/banks[q]) * 100.0f;
       if (f == 100.0f)
-				fprintf(stderr, "Bank %.2d has %.5d bytes (%.1f%%) free.\n", q, x, f);
+	fprintf(stderr, "Bank %.2d has %.5d bytes (%.1f%%) free.\n", q, x, f);
       else
-				fprintf(stderr, "Bank %.2d has %.5d bytes (%.2f%%) free.\n", q, x, f);
+	fprintf(stderr, "Bank %.2d has %.5d bytes (%.2f%%) free.\n", q, x, f);
     }
 
     /* ROM data */
     if (output_mode == OUTPUT_ROM) {
       for (i = 0, y = 0; i < romsize; i++) {
-				if (rom_usage[i] == 0)
-					y++;
+	if (rom_usage[i] == 0)
+	  y++;
       }
 
       fprintf(stderr, "%d unused bytes of total %d.\n", y, romsize);
@@ -399,8 +402,8 @@ int main(int argc, char *argv[]) {
     /* program file data */
     else {
       for (i = program_start, y = 0; i < program_end; i++) {
-				if (rom_usage[i] == 0)
-					y++;
+	if (rom_usage[i] == 0)
+	  y++;
       }
 
       q = program_end - program_start + 1;
