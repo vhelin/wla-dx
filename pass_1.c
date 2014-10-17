@@ -100,7 +100,7 @@ extern char *buffer, *unfolded_buffer, label[MAX_NAME_LENGTH], *include_dir, *fu
 extern int size, unfolded_size, input_number_error_msg, verbose_mode, output_format, open_files;
 extern int stack_id, latest_stack, ss, commandline_parsing, newline_beginning;
 extern int extra_definitions, string_size, input_float_mode;
-extern int include_dir_size, parse_floats, listfile_data, quiet;
+extern int include_dir_size, parse_floats, listfile_data, quiet, parsed_double_decimal_numbers;
 extern FILE *file_out_ptr;
 extern double parsed_double;
 extern char *final_name;
@@ -4597,7 +4597,7 @@ int parse_directive(void) {
     }
     else {
       sdsc_ma = (int)parsed_double;
-      sdsc_mi = ((int)((parsed_double - ((double)((int)parsed_double))) * 10001.0) / 100);
+      sdsc_mi = parsed_double_decimal_numbers;
     }
 
     if (sdsc_ma >= 100 || sdsc_mi >= 100) {

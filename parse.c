@@ -13,7 +13,7 @@
 
 
 int input_number_error_msg = YES, ss, string_size, input_float_mode = OFF, parse_floats = YES;
-int newline_beginning = ON;
+int newline_beginning = ON, parsed_double_decimal_numbers = 0;
 char label[MAX_NAME_LENGTH], xyz[256];
 char unevaluated_expression[256];
 char expanded_macro_string[256];
@@ -283,6 +283,7 @@ int input_number(void) {
     /* we are parsing the decimals when q=1 */
     q = 0;
     parsed_double = e-'0';
+    parsed_double_decimal_numbers = 0;
     decimal_mul = 0.1;
     for (k = 0; k < 9; k++, i++) {
       e = buffer[i];
@@ -294,6 +295,7 @@ int input_number(void) {
 	else {
 	  parsed_double = parsed_double + decimal_mul*(e-'0');
 	  decimal_mul /= 10.0;
+	  parsed_double_decimal_numbers = parsed_double_decimal_numbers*10 + (e-'0');
 	}
       }
       else if (e == '.') {
