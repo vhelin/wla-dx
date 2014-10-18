@@ -244,7 +244,8 @@ int obtain_source_file_names(void) {
       }
 
       /* compute the length of the name */
-      for (m = t, z = 0; *m != 0; m++, z++);
+      for (m = t, z = 0; *m != 0; m++, z++)
+	;
 
       s->name = malloc(z+1);
       if (s->name == NULL) {
@@ -438,12 +439,13 @@ int collect_dlr(void) {
 	t++;
 	l->slot = *(t++);
 	l->file_id_source = *(t++);
-	x = *(t++);
-	if (x == 0)
+
+	l->section = READ_T;
+	if (l->section == 0)
 	  l->section_status = OFF;
 	else {
 	  l->section_status = ON;
-	  l->section = x + section;
+	  l->section += section;
 	}
 	l->address = READ_T;
 	l->linenumber = READ_T;
@@ -471,12 +473,12 @@ int collect_dlr(void) {
 	r->type = *(t++);
 	r->file_id_source = *(t++);
 	r->slot = *(t++);
-	x = *(t++);
-	if (x == 0)
+	r->section = READ_T;
+	if (r->section == 0)
 	  r->section_status = OFF;
 	else {
 	  r->section_status = ON;
-	  r->section = x + section;
+	  r->section += section;
 	}
 	r->linenumber = READ_T;
 	r->address = READ_T;
@@ -497,17 +499,17 @@ int collect_dlr(void) {
 
 	s->id = READ_T;
 	s->type = *(t++);
-	s->section = section + *(t++);
+	s->section = READ_T;
+	if (s->section == 0)
+	  s->section_status = OFF;
+	else {
+	  s->section_status = ON;
+	  s->section += section;
+	}
 	s->file_id_source = *(t++);
 	x = *(t++);
 	s->position = *(t++);
 	s->slot = *(t++);
-
-	if (s->section == section)
-	  s->section_status = OFF;
-	else
-	  s->section_status = ON;
-
 	s->address = READ_T;
 	s->linenumber = READ_T;
 	s->bank = READ_T;
@@ -604,8 +606,8 @@ int collect_dlr(void) {
 	}
 
 	t++;
-	x = *(t++);
-	l->section = x + section;
+	l->section = READ_T;
+	l->section += section;
 	l->file_id_source = *(t++);
 	l->linenumber = READ_T;
 	l->section_status = ON;
@@ -633,8 +635,8 @@ int collect_dlr(void) {
 	r->name[x] = 0;
 	t++;
 	r->type = *(t++);
-	x = *(t++);
-	r->section = x + section;
+	r->section = READ_T;
+	r->section += section;
 	r->file_id_source = *(t++);
 	r->linenumber = READ_T;
 	r->section_status = ON;
@@ -659,7 +661,8 @@ int collect_dlr(void) {
 	s->id = READ_T;
 	s->type = *(t++);
 	s->section_status = ON;
-	s->section = section + *(t++);
+	s->section = READ_T;
+	s->section += section;
 	s->file_id_source = *(t++);
 	x = *(t++);
 	s->position = *(t++);
@@ -699,7 +702,7 @@ int collect_dlr(void) {
     }
 
     obj_tmp = obj_tmp->next;
-    section += 0x1000;
+    section += 1000000;
   }
 
   return SUCCEEDED;
@@ -747,7 +750,8 @@ int parse_data_blocks(void) {
 	    s->name[i++] = *(t++);
 	  s->name[i] = 0;
 	  s->status = *(t++);
-	  s->id = section + ((int)*(t++));
+	  s->id = READ_T;
+	  s->id += section;
 	  s->slot = *(t++);
 	  s->file_id_source = *(t++);
 	  s->address = READ_T;
@@ -767,7 +771,7 @@ int parse_data_blocks(void) {
 	}
       }
       obj_tmp = obj_tmp->next;
-      section += 0x1000;
+      section += 1000000;
       continue;
     }
     /* LIBRARY FILE */
@@ -788,7 +792,8 @@ int parse_data_blocks(void) {
 	  s->name[i++] = *(t++);
 	s->name[i] = 0;
 	s->status = *(t++);
-	s->id = section + ((int)*(t++));
+	s->id = READ_T;
+	s->id += section;
 	s->file_id_source = *(t++);
 	s->size = READ_T;
         s->alignment = READ_T;
@@ -808,7 +813,7 @@ int parse_data_blocks(void) {
 	add_section(s);
       }
       obj_tmp = obj_tmp->next;
-      section += 0x1000;
+      section += 1000000;
       continue;
     }
   }

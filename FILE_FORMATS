@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file format "WLAK"
+WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file format "WLAL"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAK" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 13 (24-Apr-2004)
+        "WLAL" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 14 (18-Oct-2014)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -66,7 +66,7 @@ labels, symbols and breakpoints:
   n     name (0 terminated if a label, 1 if a symbol, 2 if a breakpoint)
   1     slot number (0-255)
   1     file id
-  1     section (0 = no section, 1-255 = section id)
+  4     section (0 = no section, 1+ = section id) (int)
   4     relative address (int)
   4     line number (int)
   4     bank number (int)
@@ -81,7 +81,7 @@ outside references:
               4 = relative 16bit)
   1     file id
   1     slot number (0-255)
-  1     section (0 = no section, 1-255 = section id)
+  4     section (0 = no section, 1+ = section id) (int)
   4     line number (int)
   4     relative address (int)
   4     bank number (int)
@@ -94,7 +94,7 @@ pending calculations:
   4     id (int)
   1     result type (0 = 8bit, 1 = 16bit, 2 = 24bit)
         if bit 7 ~ 1, then the label references are relative, else absolute
-  1     section (0 = no section, 1-255 = section id)
+  4     section (0 = no section, 1+ = section id) (int)
   1     file id
   1     number of stack items
   1     position (0 = definition, 1 = elsewhere)
@@ -127,7 +127,7 @@ section:
   n     name (terminated with 0 (free), 1 (forced), 2 (overwrite), 3 (header),
                               4 (semifree), 5 (absolute), 6 (ram) or
                               7 (superfree))
-  1     section id
+  4     section id (int)
   1     slot number (0-255)
   1     file id
   4     relative address (int)
@@ -140,7 +140,7 @@ section:
 
 
 
-WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file format "WLAV"
+WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file format "WLAW"
 
 
 bytes   description
@@ -148,7 +148,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAV" - WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file version 11 (24-Apr-2004)
+        "WLAW" - WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file version 12 (18-Oct-2014)
 
 source file name list:
 
@@ -171,7 +171,7 @@ labels, symbols and breakpoints:
   4     number of entries (int)
   ...
   n     name (0 terminated if a label, 1 if a symbol, 2 if a breakpoint)
-  1     section (1-255 = section id)
+  4     section (1+ = section id) (int)
   1     file id
   4     line number (int)
   4     relative address (int)
@@ -184,7 +184,7 @@ outside references:
   n     label (0 terminated)
   1     type (0 = direct 16bit, 1 = relative 8bit, 2 = direct 8bit, 3 = direct 24bit,
               4 = relative 16bit)
-  1     section (1-255 = section id)
+  4     section (1+ = section id) (int)
   1     file id
   4     line number (int)
   4     relative address (int)
@@ -197,7 +197,7 @@ pending calculations:
   4     id (int)
   1     result type (0 = 8bit, 1 = 16bit, 2 = 24bit)
         if bit 7 ~ 1, then the label references are relative, else absolute
-  1     section (1-255 = section id)
+  4     section (1+ = section id) (int)
   1     file id
   1     number of stack items
   1     position (0 = definition, 1 = elsewhere)
@@ -215,7 +215,7 @@ sections:
 
   ...
   n     name (terminated with 0 (for free) or 7 (for superfree))
-  1     section id
+  4     section id (int)
   1     file id
   4     number of bytes (int)
   4     alignment (int)

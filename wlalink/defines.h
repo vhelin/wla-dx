@@ -200,7 +200,7 @@ struct stack {
   struct stack *next;
   struct stack *prev;
   int id;
-	int relative_references;
+  int relative_references;
   int under_work;
   int computed;
   int result;

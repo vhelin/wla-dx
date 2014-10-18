@@ -16,7 +16,7 @@ BANKSIZE $4000
 BANKS 1
 .ENDRO
 
-.sdsctag 98.12, "WLA bug causer", "", ""
+.sdsctag 98.2, "WLA bug causer", "", ""
 
 .bank 0
 .org 0

@@ -2047,10 +2047,6 @@ int parse_directive(void) {
       print_error("Libraries don't take RAMSECTIONs.\n", ERROR_DIR);
       return FAILED;
     }
-    if (section_id > 255) {
-      print_error("Out of section numbers. Please start a new file.\n", ERROR_DIR);
-      return FAILED;
-    }
     if (section_status == ON) {
       sprintf(emsg, "There is already an open section called \"%s\".", sections_last->name);
       print_error(emsg, ERROR_DIR);
@@ -2277,10 +2273,6 @@ int parse_directive(void) {
     int l, m;
 
 
-    if (section_id > 255) {
-      print_error("Out of section numbers. Please start a new file.\n", ERROR_DIR);
-      return FAILED;
-    }
     if (section_status == ON) {
       sprintf(emsg, "There is already an open section called \"%s\".", sections_last->name);
       print_error(emsg, ERROR_DIR);

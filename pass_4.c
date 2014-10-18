@@ -722,7 +722,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAV");
+    fprintf(final_ptr, "WLAW");
 
     if (export_source_file_names(final_ptr) == FAILED)
       return FAILED;
@@ -749,7 +749,10 @@ int pass_4(void) {
           fprintf(final_ptr, "%s", label_tmp->label);
         fprintf(final_ptr, "%c", label_tmp->symbol);
 
-        fprintf(final_ptr, "%c%c", label_tmp->section_id, label_tmp->filename_id);
+	ov = label_tmp->section_id;
+	WRITEOUT_OV;
+	
+        fprintf(final_ptr, "%c", label_tmp->filename_id);
 
         ov = label_tmp->linenumber;
         WRITEOUT_OV;
@@ -760,7 +763,7 @@ int pass_4(void) {
       label_tmp = label_tmp->next;
     }
 
-    /* unknown labels */
+    /* unknown labels (outside references) */
     ov = 0;
     label_tmp = unknown_labels;
     while (label_tmp != NULL) {
@@ -772,7 +775,12 @@ int pass_4(void) {
 
     label_tmp = unknown_labels;
     while (label_tmp != NULL) {
-      fprintf(final_ptr, "%s%c%c%c%c", label_tmp->label, 0x0, label_tmp->type, label_tmp->section_id, label_tmp->filename_id);
+      fprintf(final_ptr, "%s%c%c", label_tmp->label, 0x0, label_tmp->type);
+
+      ov = label_tmp->section_id;
+      WRITEOUT_OV;
+	
+      fprintf(final_ptr, "%c", label_tmp->filename_id);
 
       if (label_tmp->section_status == OFF) {
         fprintf(stderr, "INTERNAL_PASS_2: Label \"%s\" is outside all sections.\n", label_tmp->label);
@@ -801,7 +809,12 @@ int pass_4(void) {
       ov = stacks_tmp->id;
       WRITEOUT_OV;
 
-      fprintf(final_ptr, "%c%c%c%c%c", stacks_tmp->type | (stacks_tmp->relative_references << 7), stacks_tmp->section_id, stacks_tmp->filename_id, stacks_tmp->stacksize, stacks_tmp->position);
+      fprintf(final_ptr, "%c", stacks_tmp->type | (stacks_tmp->relative_references << 7));
+
+      ov = stacks_tmp->section_id;
+      WRITEOUT_OV;
+
+      fprintf(final_ptr, "%c%c%c", stacks_tmp->filename_id, stacks_tmp->stacksize, stacks_tmp->position);
 
       ov = stacks_tmp->address;
       WRITEOUT_OV;
@@ -826,7 +839,12 @@ int pass_4(void) {
     sec_tmp = sections_first;
     while (sec_tmp != NULL) {
       if (sec_tmp->alive == ON) {
-        fprintf(final_ptr, "%s%c%c%c", sec_tmp->name, sec_tmp->status, sec_tmp->id, sec_tmp->filename_id);
+	fprintf(final_ptr, "%s%c", sec_tmp->name, sec_tmp->status);
+
+	ov = sec_tmp->id;
+	WRITEOUT_OV;
+
+	fprintf(final_ptr, "%c", sec_tmp->filename_id);
 
         ov = sec_tmp->size;
         WRITEOUT_OV;
@@ -854,7 +872,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAK%c", emptyfill);
+    fprintf(final_ptr, "WLAL%c", emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -962,11 +980,14 @@ int pass_4(void) {
           fprintf(final_ptr, "%s", label_tmp->label);
         fprintf(final_ptr, "%c", label_tmp->symbol);
 
-        fprintf(final_ptr, "%c%c%c", label_tmp->slot, label_tmp->filename_id, label_tmp->section_id);
+        fprintf(final_ptr, "%c%c", label_tmp->slot, label_tmp->filename_id);
 
-        /* DEBUG
+	ov = label_tmp->section_id;
+	WRITEOUT_OV;
+
+	/* DEBUG
            fprintf(stderr, "LABEL: \"%s\" SLOT: %d LINE: %d\n", label_tmp->label, label_tmp->slot, label_tmp->linenumber);
-           */
+	*/
 
 #ifndef W65816
         ov = label_tmp->address;
@@ -1001,7 +1022,10 @@ int pass_4(void) {
 
     label_tmp = unknown_labels;
     while (label_tmp != NULL) {
-      fprintf(final_ptr, "%s%c%c%c%c%c", label_tmp->label, 0x0, label_tmp->type, label_tmp->filename_id, label_tmp->slot, label_tmp->section_id);
+      fprintf(final_ptr, "%s%c%c%c%c", label_tmp->label, 0x0, label_tmp->type, label_tmp->filename_id, label_tmp->slot);
+
+      ov = label_tmp->section_id;
+      WRITEOUT_OV;
 
       ov = label_tmp->linenumber;
       WRITEOUT_OV;
@@ -1017,8 +1041,11 @@ int pass_4(void) {
 
     label_tmp = unknown_header_labels;
     while (label_tmp != NULL) {
-      fprintf(final_ptr, "%s%c%c%c%c%c", label_tmp->label, 0x0, label_tmp->type, label_tmp->filename_id, label_tmp->slot, label_tmp->section_id);
+      fprintf(final_ptr, "%s%c%c%c%c", label_tmp->label, 0x0, label_tmp->type, label_tmp->filename_id, label_tmp->slot);
 
+      ov = label_tmp->section_id;
+      WRITEOUT_OV;
+      
       ov = label_tmp->linenumber;
       WRITEOUT_OV;
 
@@ -1040,7 +1067,12 @@ int pass_4(void) {
       ov = stacks_tmp->id;
       WRITEOUT_OV;
 
-      fprintf(final_ptr, "%c%c%c%c%c%c", stacks_tmp->type | (stacks_tmp->relative_references << 7), stacks_tmp->section_id, stacks_tmp->filename_id, stacks_tmp->stacksize, stacks_tmp->position, stacks_tmp->slot);
+      fprintf(final_ptr, "%c", stacks_tmp->type | (stacks_tmp->relative_references << 7));
+
+      ov = stacks_tmp->section_id;
+      WRITEOUT_OV;
+
+      fprintf(final_ptr, "%c%c%c%c", stacks_tmp->filename_id, stacks_tmp->stacksize, stacks_tmp->position, stacks_tmp->slot);
 
       ov = stacks_tmp->address;
       WRITEOUT_OV;
@@ -1066,7 +1098,12 @@ int pass_4(void) {
 
     stacks_tmp = stacks_header_first;
     while (stacks_tmp != NULL) {
-      fprintf(final_ptr, "%c%c%c%c%c%c", stacks_tmp->type, stacks_tmp->section_id, stacks_tmp->filename_id, stacks_tmp->stacksize, stacks_tmp->position, stacks_tmp->slot);
+      fprintf(final_ptr, "%c", stacks_tmp->type);
+
+      ov = stacks_tmp->section_id;
+      WRITEOUT_OV;
+
+      fprintf(final_ptr, "%c%c%c%c", stacks_tmp->filename_id, stacks_tmp->stacksize, stacks_tmp->position, stacks_tmp->slot);
 
       ov = stacks_tmp->address;
       WRITEOUT_OV;
@@ -1127,7 +1164,12 @@ int pass_4(void) {
     while (sec_tmp != NULL) {
       if (sec_tmp->alive == ON) {
         /* section block id */
-        fprintf(final_ptr, "%c%s%c%c%c%c", 0x1, sec_tmp->name, sec_tmp->status, sec_tmp->id, sec_tmp->slot, sec_tmp->filename_id);
+	fprintf(final_ptr, "%c%s%c", 0x1, sec_tmp->name, sec_tmp->status);
+
+	ov = sec_tmp->id;
+	WRITEOUT_OV;
+
+	fprintf(final_ptr, "%c%c", sec_tmp->slot, sec_tmp->filename_id);
 
         ov = sec_tmp->address;
         WRITEOUT_OV;
