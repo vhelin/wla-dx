@@ -3000,7 +3000,8 @@ int parse_directive(void) {
     if (get_next_token() == FAILED)
       return FAILED;
 
-    redefine(tmp, (double)c, NULL, DEFINITION_TYPE_VALUE, 0);
+    if (redefine(tmp, (double)c, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+      return FAILED;
 
     return SUCCEEDED;
   }
@@ -4812,7 +4813,7 @@ int parse_directive(void) {
 
   if (strcmp(cp, "REPT") == 0 || strcmp(cp, "REPEAT") == 0) {
 
-    char c[16];
+    char c[16], index_name[MAX_NAME_LENGTH];
 
 
     strcpy(c, cp);
@@ -4832,6 +4833,20 @@ int parse_directive(void) {
       return FAILED;
     }
 
+    index_name[0] = 0;
+    if (compare_next_token("INDEX", 5) == SUCCEEDED) {
+      skip_next_token();
+
+      ind = input_next_string();
+      if (ind != SUCCEEDED)
+	return FAILED;
+
+      if (redefine(tmp, 0.0, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+	return FAILED;
+
+      strcpy(index_name, tmp);
+    }
+    
     if (d == 0) {
       int l, r, m;
 
@@ -4877,7 +4892,9 @@ int parse_directive(void) {
 
     repeat_stack[repeat_active].start = i;
     repeat_stack[repeat_active].counter = d;
+    repeat_stack[repeat_active].repeats = 0;
     repeat_stack[repeat_active].start_line = active_file_info_last->line_current;
+    strcpy(repeat_stack[repeat_active].index_name, index_name);
 
     repeat_active++;
 
@@ -4888,19 +4905,29 @@ int parse_directive(void) {
 
   if (strcmp(cp, "ENDR") == 0) {
 
+    struct repeat_runtime *rr = NULL;
+    
     if (repeat_active == 0) {
       print_error("There is no open repetition.\n", ERROR_DIR);
       return FAILED;
     }
 
-    repeat_stack[repeat_active - 1].counter--;
-    if (repeat_stack[repeat_active - 1].counter == 0) {
+    rr = &repeat_stack[repeat_active - 1];
+
+    rr->counter--;
+    if (rr->counter == 0) {
       repeat_active--;
       return SUCCEEDED;
     }
 
-    i = repeat_stack[repeat_active - 1].start;
-    active_file_info_last->line_current = repeat_stack[repeat_active - 1].start_line;
+    rr->repeats++;
+    if (strlen(rr->index_name) > 0) {
+      if (redefine(rr->index_name, rr->repeats, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+	return FAILED;
+    }
+    
+    i = rr->start;
+    active_file_info_last->line_current = rr->start_line;
 
     return SUCCEEDED;
   }

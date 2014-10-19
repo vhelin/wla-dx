@@ -616,6 +616,8 @@ struct repeat_runtime {
   int start;
   int start_line;
   int counter;
+  int repeats;
+  char index_name[MAX_NAME_LENGTH];
 };
 
 struct filepointer {

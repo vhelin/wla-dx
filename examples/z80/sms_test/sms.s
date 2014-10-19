@@ -124,6 +124,13 @@ bone:
 
 .dw _f+1-1
 .db "hello!"
+
+	.db $ff
+	.repeat 9 index counter
+	.db counter + 1
+	.endr
+	.db $ff
+
 __
 
 .BANK 0 SLOT 1

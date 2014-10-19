@@ -572,9 +572,10 @@ This is not a compulsory directive.
 -------------------
 
 When this directive is used WLA computes the ROM checksum found at $7FFA and
-$7FFB (or $3FFA and $3FFB is the ROM is 16KBs) in a SMS/GG ROM. Note that this
-directive can only be used with wla-z80. Also note that the ROM size must be
-at least 16KB. The checksum is calculated using bytes 0x0000 - 0x3FEF/0x7FEF.
+$7FFB (or $3FFA-$3FFB is the ROM is 16KBs, or $1FFA-$1FFB for 8KB ROMs) in a
+SMS/GG ROM. Note that this directive can only be used with wla-z80. Also note
+that the ROM size must be at least 8KBs. The checksum is calculated using
+bytes 0x0000 - 0x1FEF/0x3FEF/0x7FEF.
 
 This is not a compulsory directive.
 
@@ -598,7 +599,8 @@ This is not a compulsory directive.
 
 .SMSTAG forces WLA to write an ordinary SMS/GG ROM tag to the ROM file.
 Currently only the string "TMR SEGA" and ROM checksum are written
-(meaning that .SMSTAG also defines .COMPUTESMSCHECKSUM).
+(meaning that .SMSTAG also defines .COMPUTESMSCHECKSUM). The ROM size must
+be at least 8KBs.
 
 This is not a compulsory directive.
 
@@ -607,9 +609,9 @@ This is not a compulsory directive.
 -----------------------------------------------------------------------------
 
 .SDSCTAG adds SDSC tag to your SMS/GG ROM file. The ROM size must be at least
-32KB just like with .COMPUTESMSCHECKSUM and .SMSTAG, as the data goes into
-$7FE0-$7FEF of the ROM. For more information about this header take a look
-at http://www.smspower.org/dev/sdsc/. Here's an explanation of the arguments:
+8KB just like with .COMPUTESMSCHECKSUM and .SMSTAG. For more information
+about this header take a look at http://www.smspower.org/dev/sdsc/. Here's
+an explanation of the arguments:
 
 .SDSCTAG {version number}, {program name}, {program release notes}, {program author}
 
@@ -1660,6 +1662,14 @@ you need also to apply this.
 
 Repeats the text enclosed between ".REPEAT x" and ".ENDR" x times (6 in
 this example). You can use .REPEATs inside .REPEATs. 'x' must be >= 0.
+
+It's also possible to have the repeat counter/index in a definition:
+
+.REPEAT 6 INDEX COUNT
+.DB COUNT
+.ENDR
+
+This would define bytes 0, 1, 2, 3, 4 and 5.
 
 This is not a compulsory directive.
 

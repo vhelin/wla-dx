@@ -89,7 +89,9 @@ int input_next_string(void) {
   char e;
   int k, d;
 
-  for (e = buffer[i++]; e == ' ' || e == ','; e = buffer[i++]);
+  /* skip white space */
+  for (e = buffer[i++]; e == ' ' || e == ','; e = buffer[i++])
+    ;
 
   if (e == 0x0A)
     return INPUT_NUMBER_EOL;
