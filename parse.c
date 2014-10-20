@@ -36,8 +36,10 @@ int compare_next_token(char *in, int s) {
   int a, t, d, k;
   char e;
 
+  /* skip white space */
   a = i;
-  for (e = buffer[a]; e == ' ' || e == ',' || e == 0x0A; e = buffer[++a]);
+  for (e = buffer[a]; e == ' ' || e == ',' || e == 0x0A; e = buffer[++a])
+    ;
 
   /* MACRO mode? */
   if (macro_active != 0 && e == '\\') {
@@ -142,6 +144,7 @@ int input_number(void) {
   operand_hint = HINT_NONE;
 #endif
 
+  /* skip white space */
   for (e = buffer[i++]; e == ' ' || e == ','; e = buffer[i++])
     ;
 
@@ -282,7 +285,7 @@ int input_number(void) {
   }
 
   if (e >= '0' && e <= '9') {
-    /* we are parsing the decimals when q=1 */
+    /* we are parsing decimals when q=1 */
     q = 0;
     parsed_double = e-'0';
     parsed_double_decimal_numbers = 0;

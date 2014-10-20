@@ -83,6 +83,27 @@ static int _stack_insert(void) {
 }
 
 
+static int _break_before_value_or_string(int i, struct stack_item *si) {
+
+  /* we use this function to test if the previous item in the stack
+     is something that cannot be followed by a value or a string.
+     in such a case we'll stop adding items to this stack computation */
+  
+  if (i <= 0)
+    return FAILED;
+
+  si = &si[i-1];
+  if (si->type == STACK_ITEM_TYPE_VALUE)
+    return SUCCEEDED;
+  if (si->type == STACK_ITEM_TYPE_STRING)
+    return SUCCEEDED;
+  if (si->type == STACK_ITEM_TYPE_OPERATOR && si->value == SI_OP_RIGHT)
+    return SUCCEEDED;
+
+  return FAILED;
+}
+
+
 int stack_calculate(char *in, int *value) {
 
   int q = 0, b = 0, d, k, op[256], n, o, l;
@@ -319,6 +340,10 @@ int stack_calculate(char *in, int *value) {
       q++;
     }
     else if (*in == '$') {
+      /* we'll break if the previous item in the stack was a value or a string */
+      if (_break_before_value_or_string(q, &si[0]) == SUCCEEDED)
+	break;
+      
       d = 0;
       for (k = 0; k < 8; k++, d = d << 4) {
 	in++;
@@ -350,6 +375,10 @@ int stack_calculate(char *in, int *value) {
       q++;
     }
     else if (*in >= '0' && *in <= '9') {
+      /* we'll break if the previous item in the stack was a value or a string */
+      if (_break_before_value_or_string(q, &si[0]) == SUCCEEDED)
+	break;
+
       /* is it a hexadecimal value after all? */
       n = 0;
       for (k = 0; k < 9; k++) {
@@ -456,6 +485,11 @@ int stack_calculate(char *in, int *value) {
     }
     else {
       /* it must be a string! */
+
+      /* we'll break if the previous item in the stack was a value or a string */
+      if (_break_before_value_or_string(q, &si[0]) == SUCCEEDED)
+	break;
+
       si[q].sign = SI_SIGN_POSITIVE;
       for (k = 0; k < 63; k++) {
 	e = *in;
