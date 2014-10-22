@@ -404,9 +404,10 @@ struct optcode {
 #endif
 
 
-#define DEFINITION_TYPE_VALUE  0
-#define DEFINITION_TYPE_STRING 1
-#define DEFINITION_TYPE_STACK  2
+#define DEFINITION_TYPE_VALUE         0
+#define DEFINITION_TYPE_STRING        1
+#define DEFINITION_TYPE_STACK         2
+#define DEFINITION_TYPE_ADDRESS_LABEL 3
 
 struct definition {
   char   alias[MAX_NAME_LENGTH];
@@ -436,10 +437,10 @@ struct macro_static {
 };
 
 struct macro_incbin {
-	unsigned char *data;
-	int swap;
-	int position;
-	int left;
+  unsigned char *data;
+  int swap;
+  int position;
+  int left;
 };
 
 #define MACRO_CALLER_NORMAL 0

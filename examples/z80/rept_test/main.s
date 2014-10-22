@@ -28,6 +28,19 @@ BANKS 10
 .bank 0 slot 0
 .org 0
 
+
+	.db	"meh"
+Label:	nop
+
+.macro test_macro args some_number
+	ld a,some_number
+
+.endm
+
+	test_macro :Label
+
+
+	
 .section "reptman" force
 repoman:
 .dw +

@@ -220,6 +220,8 @@ int input_number(void) {
       return FAILED;
     }
 
+    fprintf(stderr, "MACRO ARGUMENT %s %d\n", label, k);
+
     return k;
   }
 
@@ -510,6 +512,12 @@ int input_number(void) {
       }
       else if (tmp_def->type == DEFINITION_TYPE_STACK) {
 	/* skip stack definitions -> use its name instead */
+      }
+      else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+	string_size = tmp_def->size;
+	memcpy(label, tmp_def->string, string_size);
+	label[string_size] = 0;
+	return INPUT_NUMBER_ADDRESS_LABEL;
       }
       else {
 	string_size = tmp_def->size;

@@ -874,8 +874,7 @@ encounters a macro call at compile time.
 
 You can call macros from inside a macro. Note that the preprocessor
 does not expand the macros. WLA traverses through the code according to
-the macro calls, so macros really define a very simple programming
-language.
+the macro calls.
 
 Here are some examples:
 

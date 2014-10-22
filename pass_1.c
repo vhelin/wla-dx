@@ -642,7 +642,7 @@ int pass_1(void) {
         /* do we have a name for this argument? */
         if (p < m->nargument_names) {
           if (q == INPUT_NUMBER_ADDRESS_LABEL)
-            redefine(m->argument_names[p], 0.0, label, DEFINITION_TYPE_STRING, strlen(label));
+            redefine(m->argument_names[p], 0.0, label, DEFINITION_TYPE_ADDRESS_LABEL, strlen(label));
           else if (q == INPUT_NUMBER_STRING)
             redefine(m->argument_names[p], 0.0, label, DEFINITION_TYPE_STRING, strlen(label));
           else if (q == INPUT_NUMBER_STACK)
@@ -873,7 +873,7 @@ int redefine(char *name, double value, char *string, int type, int size) {
     d->value = value;
   else if (type == DEFINITION_TYPE_STACK)
     d->value = value;
-  else if (type == DEFINITION_TYPE_STRING) {
+  else if (type == DEFINITION_TYPE_STRING || type == DEFINITION_TYPE_ADDRESS_LABEL) {
     memcpy(d->string, string, size);
     d->string[size] = 0;
     d->size = size;
@@ -948,7 +948,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
     d->value = value;
   else if (type == DEFINITION_TYPE_STACK)
     d->value = value;
-  else if (type == DEFINITION_TYPE_STRING) {
+  else if (type == DEFINITION_TYPE_STRING || type == DEFINITION_TYPE_ADDRESS_LABEL) {
     memcpy(d->string, string, size);
     d->string[size] = 0;
     d->size = size;
@@ -3088,7 +3088,7 @@ int parse_directive(void) {
       else if (ma->type == INPUT_NUMBER_STACK)
         redefine(st->argument_names[q], (double)ma->value, NULL, DEFINITION_TYPE_STACK, 0);
       else if (ma->type == INPUT_NUMBER_ADDRESS_LABEL)
-        redefine(st->argument_names[q], 0.0, ma->string, DEFINITION_TYPE_STRING, strlen(ma->string));
+        redefine(st->argument_names[q], 0.0, ma->string, DEFINITION_TYPE_ADDRESS_LABEL, strlen(ma->string));
       else if (ma->type == INPUT_NUMBER_STRING)
         redefine(st->argument_names[q], 0.0, ma->string, DEFINITION_TYPE_STRING, strlen(ma->string));
     }
