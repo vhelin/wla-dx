@@ -10,7 +10,7 @@ OFILES = main.o memory.o parse.o files.o check.o analyze.o write.o compute.o dis
 
 
 all: $(OFILES) makefile
-	$(LD) $(LDFLAGS) $(OFILES) -owlalink.exe
+	$(LD) $(LDFLAGS) $(OFILES) -owlalink
 
 
 main.o: main.c main.h defines.h
@@ -48,7 +48,7 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	$(RM) -f $(OFILES) *~ wlalink.exe
+	$(RM) -f $(OFILES) *~ wlalink
 
 install:
-	make ; cp wlalink.exe /usr/local/bin
+	make ; cp wlalink /usr/local/bin
