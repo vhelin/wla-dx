@@ -1,9 +1,10 @@
 CC = gcc
 CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra 
 LD = gcc
-LDFLAGS = -lm
+LDFLAGS = 
 WLAFLAGS = $(CFLAGS) -DUNIX -DZ80
 RM = rm -f 
+RMFLAGS = 
 
 CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c
 HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h defines.h
@@ -11,7 +12,7 @@ OFILES = main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack
 
 
 all: $(OFILES) makefile
-	$(LD) $(LDFLAGS) $(OFILES) -owla-z80
+	$(LD) $(LDFLAGS) $(OFILES) -o wla-z80 -lm
 
 main.o: main.c defines.h main.h makefile
 	$(CC) $(WLAFLAGS) main.c
@@ -45,7 +46,8 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	$(RM) $(OFILES) *~ wla-z80
+	$(RM) $(RMFLAGS) $(OFILES) *~ wla-z80
 
 install:
-	make ; cp wla-gb.exe /usr/local/bin
+	make   
+	install wla-z80 /usr/local/bin

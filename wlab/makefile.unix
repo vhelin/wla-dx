@@ -1,15 +1,16 @@
 CC = gcc
 CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra 
 LD = gcc
-LDFLAGS = -lm
+LDFLAGS = 
 RM = rm -f 
+RMFLAGS = 
 
 CFILES = main.c
 HFILES = main.h
 OFILES = main.o
 
 all: $(OFILES) makefile
-	$(LD) $(LDFLAGS) $(OFILES) -owlab
+	$(LD) $(LDFLAGS) $(OFILES) -o wlab -lm
 
 main.o: main.c main.h makefile
 	$(CC) $(CFLAGS) main.c
@@ -19,7 +20,8 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	$(RM) -f $(OFILES) *~ wlad.exe
+	$(RM) $(RMFLAGS) $(OFILES) *~ wlab
 
 install:
-	make ; cp wlad.exe /usr/local/bin
+	make  
+	install wlab /usr/local/bin

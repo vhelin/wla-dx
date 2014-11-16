@@ -1,9 +1,9 @@
-
 CC=gcc
 LD=gcc
 CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra  -DUNIX -D$(WLA_TARGET) -DQUIET=$(WLA_QUIET)
-LDFLAGS = -lm 
+LDFLAGS =  
 RM = rm -f 
+RMFLAGS = 
 
 CFILES = main.c
 OFILES = main.o
@@ -11,7 +11,7 @@ OFILES = main.o
 
 
 all: $(OFILES) makefile
-	$(LD) $(LDFLAGS) $(OFILES) -ogen
+	$(LD) $(LDFLAGS) $(OFILES) -o gen -lm
 
 main.o: main.c makefile
 	$(CC) $(CFLAGS) main.c
@@ -21,4 +21,4 @@ $(OFILES): $(CFILES)
 
 
 clean:
-	$(RM) $(OFILES) core *~ gen
+	$(RM) $(RMFLAGS) $(OFILES) core *~ gen

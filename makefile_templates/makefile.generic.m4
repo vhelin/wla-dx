@@ -12,7 +12,7 @@ HFILES = main.h
 OFILES = main`'OBJ_EXTENSION
 
 all: $(OFILES) makefile
-	$(`LD') $(`LDFLAGS') $(OFILES) LDFLAGS_OUT(out_name`'EXE_EXTENSION)
+	$(`LD') $(`LDFLAGS') $(OFILES) LDFLAGS_OUT(out_name`'EXE_EXTENSION) LIBM_FLAG
 
 main`'OBJ_EXTENSION: main.c main.h makefile
 	$(`CC') $(`CFLAGS') main.c
@@ -22,7 +22,7 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	$(`RM') $(OFILES) *~ out_name`'EXE_EXTENSION
+	$(`RM') $(`RMFLAGS') $(OFILES) *~ out_name`'EXE_EXTENSION
 
 install:
 	MAKE()

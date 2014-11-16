@@ -18,7 +18,7 @@ OFILES = main`'OBJ_EXTENSION
 
 
 all: $(OFILES) makefile
-	$(`LD') $(`LDFLAGS') $(`OFILES') LDFLAGS_OUT(gen`'EXE_EXTENSION)
+	$(`LD') $(`LDFLAGS') $(`OFILES') LDFLAGS_OUT(gen`'EXE_EXTENSION) LIBM_FLAG
 dnl	STRIP(gen)
 
 main`'OBJ_EXTENSION: main.c makefile
@@ -29,4 +29,4 @@ $(OFILES): $(CFILES)
 
 
 clean:
-	$(`RM') $(OFILES) core *~ gen
+	$(`RM') $(`RMFLAGS') $(OFILES) core *~ gen

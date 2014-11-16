@@ -12,7 +12,7 @@ OFILES = main`'OBJ_EXTENSION memory`'OBJ_EXTENSION parse`'OBJ_EXTENSION files`'O
 
 
 all: $(OFILES) makefile
-	$(`LD') $(`LDFLAGS') $(OFILES) LDFLAGS_OUT(wlalink`'EXE_EXTENSION)
+	$(`LD') $(`LDFLAGS') $(OFILES) LDFLAGS_OUT(wlalink`'EXE_EXTENSION) LIBM_FLAG
 
 
 main`'OBJ_EXTENSION: main.c main.h defines.h
@@ -50,7 +50,7 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	$(`RM') -f $(OFILES) *~ wlalink`'EXE_EXTENSION
+	$(`RM') $(`RMFLAGS') $(OFILES) *~ wlalink`'EXE_EXTENSION
 
 install:
 	MAKE()

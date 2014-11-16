@@ -13,7 +13,7 @@ OFILES = main`'OBJ_EXTENSION parse`'OBJ_EXTENSION include_file`'OBJ_EXTENSION pa
 
 
 all: $(OFILES) makefile
-	$(`LD') $(`LDFLAGS') $(OFILES) LDFLAGS_OUT(`wla-'OUT_SUFFIX`'EXE_EXTENSION)
+	$(`LD') $(`LDFLAGS') $(OFILES) LDFLAGS_OUT(`wla-'OUT_SUFFIX`'EXE_EXTENSION) LIBM_FLAG
 
 main`'OBJ_EXTENSION: main.c defines.h main.h makefile
 	$(`CC') $(`WLAFLAGS') main.c
@@ -47,7 +47,7 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	$(`RM') $(OFILES) *~ wla-OUT_SUFFIX`'EXE_EXTENSION
+	$(`RM') $(`RMFLAGS') $(OFILES) *~ wla-OUT_SUFFIX`'EXE_EXTENSION
 
 install:
 	MAKE() 
