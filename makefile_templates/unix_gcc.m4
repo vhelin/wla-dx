@@ -15,7 +15,7 @@ then')dnl
 define(`ENDIF_ARGCHECK', `fi')dnl
 dnl
 dnl Basic commands on your host system
-define(`SHEBANG', `#!/bin/bash')dnl
+define(`SHEBANG', `#!/bin/sh')dnl
 define(`CP', cp $1 $2)dnl
 define(`CHDIR', cd $1)dnl
 define(`RM', rm -f $1)dnl

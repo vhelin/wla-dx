@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 if [ -z "$make_host_suffix" ]
 then
   echo "Please define the \$make_host_suffix of the makefiles you want to install."

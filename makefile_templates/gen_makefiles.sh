@@ -1,7 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
-#http://stackoverflow.com/questions/592620/how-to-check-if-a-program-exists-from-a-bash-script
-command -v m4 >/dev/null 2>&1 || { echo >&2 "m4 is required but it's not installed.  Aborting."; exit 1; }
+if ! type m4; then
+ echo >&2 "m4 is required but it's not installed.  Aborting."; exit 1 
+fi
 
 if [ -z "$host_defines" ]
 then

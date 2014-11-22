@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # create all the opcode decoding speedup tables
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 export host_defines=unix_gcc
 export make_host_suffix=unix 

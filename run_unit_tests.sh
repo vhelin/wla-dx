@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #
 # NOTE! All the small and ugly projects inside the "examples" directory
@@ -7,14 +7,14 @@
 # test projects to the lot.
 #
 
-function changePlatform {
+changePlatform() {
     echo ""
     echo $1
     echo ""
     cd $1
 }
 
-function runTest {
+runTest() {
     cd $1
     make clean
     make
