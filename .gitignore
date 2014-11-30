@@ -4,3 +4,4 @@
 makefile
 MAKEFILE
 Makefile
+opcodes_*_tables.c
