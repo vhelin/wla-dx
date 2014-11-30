@@ -125,8 +125,8 @@ data block:
 section:
 
   n     name (terminated with 0 (free), 1 (forced), 2 (overwrite), 3 (header),
-                              4 (semifree), 5 (absolute), 6 (ram) or
-                              7 (superfree))
+                              4 (semifree), 5 (absolute), 6 (ram),
+                              7 (superfree) or 8 (semisubfree))
   4     section id (int)
   1     slot number (0-255)
   1     file id

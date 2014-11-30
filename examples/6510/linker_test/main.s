@@ -77,12 +77,14 @@ xu:	ds 3
 xe	DB
 .ENDS
 
+
 .BANK 0 SLOT 0
-.ORGA 0
 
-
+	
+.ORG 0
 .SECTION "Beginning"
 
+	.db "S1"
 	.db "dance dance!"
 	.db	$ff, $ff
 	.db     MOOLA+1.49
@@ -91,12 +93,21 @@ MAIN:	.dw	second.x
 	.dw	xe
 	nop
 	JMP	MORE_ACTION
+	.db "E1"
 .ENDS
 
 
+.ORG $28
+.SECTION "SemiSubFree" SEMISUBFREE
+	.db "S3"
+	.db "E3"
+.ENDS
 
+
+.ORG 0
 .SECTION "Action" SEMIFREE
 
+	.db "S2"
 MORE_ACTION:
 	AND	#%10101010+1
 	AND	%10101010
@@ -124,7 +135,9 @@ MORE_ACTION:
 	ARR	#20
 	AXS	#20
 	XAA	#20
+	.db "E2"
 .ENDS
+	
 	EXPO	KEIJO SEPPO
 	DEF	SMIRK
 	EXP	SMIRK

@@ -17,9 +17,8 @@
 
 
 .BANK 0 SLOT 0
+	
 .ORG 0
-
-
 .SECTION "Beginning" FORCE
 
 MAIN:   and     :BANKLABEL+5,x
@@ -57,7 +56,6 @@ MORE_ACTION:
 
 
 .ORG 0
-
 .SECTION "Mohammed" OVERWRITE
 	LSR
 	LSR	A

@@ -38,7 +38,7 @@ struct slot slots[256];
 unsigned char *rom, *rom_usage, *file_header = NULL, *file_footer = NULL;
 int romsize, rombanks, banksize, verbose_mode = OFF, section_overwrite = OFF, symbol_mode = SYMBOL_MODE_NONE;
 int pc_bank, pc_full, pc_slot, pc_slot_max;
-int file_header_size, file_footer_size, *banks = NULL, *bankaddress = NULL;
+int file_header_size, file_footer_size, *banksizes = NULL, *bankaddress = NULL;
 int output_mode = OUTPUT_ROM, discard_unreferenced_sections = OFF;
 int program_start, program_end, sms_checksum, smstag_defined = 0, snes_rom_mode = SNES_ROM_MODE_LOROM, snes_rom_speed = SNES_ROM_SPEED_SLOWROM;
 int gb_checksum, gb_complement_check, snes_checksum, cpu_65816 = 0, snes_mode = 0;
@@ -77,15 +77,15 @@ int main(int argc, char *argv[]) {
   if (i == FAILED) {
     printf("\nWLALINK GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 WLA Macro Assembler Linker v5.7\n");
     printf("Written by Ville Helin in 2000-2008\n");
-    printf("USAGE: %s [-bdirvsS] <LINK FILE> <OUTPUT FILE>\n", argv[0]);
+    printf("USAGE: %s [-bdirsSv] <LINK FILE> <OUTPUT FILE>\n", argv[0]);
     printf("Options:\n");
     printf("b  Program file output\n");
     printf("d  Discard unreferenced sections\n");
     printf("i  Write list files\n");
     printf("r  ROM file output (default)\n");
-    printf("v  Verbose messages\n");
     printf("s  Write also a NO$GMB symbol file\n");
-    printf("S  Write also a WLA symbol file\n\n");
+    printf("S  Write also a WLA symbol file\n");
+    printf("v  Verbose messages\n\n");
     return 0;
   }
 
@@ -105,8 +105,8 @@ int main(int argc, char *argv[]) {
   if (obtain_rombanks() == FAILED)
     return 1;
 
-  banks = malloc(sizeof(int) * rombanks);
-  if (banks == NULL) {
+  banksizes = malloc(sizeof(int) * rombanks);
+  if (banksizes == NULL) {
     fprintf(stderr, "MAIN: Out of memory error.\n");
     return 1;
   }
@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
 
   /* calculate romsize */
   for (romsize = 0, x = 0; x < rombanks; x++)
-    romsize += banks[x];
+    romsize += banksizes[x];
 
   /* obtain source file names used in compiling */
   if (obtain_source_file_names() == FAILED)
@@ -378,11 +378,11 @@ int main(int argc, char *argv[]) {
     }
 
     for (y = 0, q = 0; y < romsize; q++) {
-      for (x = 0, inz = 0; inz < banks[q]; inz++) {
+      for (x = 0, inz = 0; inz < banksizes[q]; inz++) {
 	if (rom_usage[y++] == 0)
 	  x++;
       }
-      f = (((float)x)/banks[q]) * 100.0f;
+      f = (((float)x)/banksizes[q]) * 100.0f;
       if (f == 100.0f)
 	fprintf(stderr, "Bank %.2d has %.5d bytes (%.1f%%) free.\n", q, x, f);
       else
@@ -453,7 +453,7 @@ void procedures_at_exit(void) {
     f = obj_first->source_file_names_list;
     while (f != NULL) {
       if (f->name != NULL)
-				free(f->name);
+	free(f->name);
       fn = f->next;
       free(f);
       f = fn;
@@ -502,8 +502,8 @@ void procedures_at_exit(void) {
     sec_hd_first = s;
   }
 
-  if (banks != NULL)
-    free(banks);
+  if (banksizes != NULL)
+    free(banksizes);
   if (bankaddress != NULL)
     free(bankaddress);
 }
@@ -536,13 +536,13 @@ int parse_flags(char *f) {
       continue;
     case 'b':
       if (output_mode_defined == 1)
-				return FAILED;
+	return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_PRG;
       continue;
     case 'r':
       if (output_mode_defined == 1)
-				return FAILED;
+	return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_ROM;
       continue;

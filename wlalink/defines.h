@@ -118,14 +118,15 @@ struct reference {
   struct reference *prev;
 };
 
-#define SECTION_STATUS_FREE      0
-#define SECTION_STATUS_FORCE     1
-#define SECTION_STATUS_OVERWRITE 2
-#define SECTION_STATUS_HEADER    3
-#define SECTION_STATUS_SEMIFREE  4
-#define SECTION_STATUS_ABSOLUTE  5
-#define SECTION_STATUS_RAM       6
-#define SECTION_STATUS_SUPERFREE 7
+#define SECTION_STATUS_FREE        0
+#define SECTION_STATUS_FORCE       1
+#define SECTION_STATUS_OVERWRITE   2
+#define SECTION_STATUS_HEADER      3
+#define SECTION_STATUS_SEMIFREE    4
+#define SECTION_STATUS_ABSOLUTE    5
+#define SECTION_STATUS_RAM         6
+#define SECTION_STATUS_SUPERFREE   7
+#define SECTION_STATUS_SEMISUBFREE 8
 
 struct section {
   char name[MAX_NAME_LENGTH + 1];

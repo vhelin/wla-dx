@@ -21,7 +21,7 @@ extern unsigned char *rom, *rom_usage;
 extern unsigned char *file_header, *file_footer;
 extern int romsize, rombanks, banksize, verbose_mode, section_overwrite, symbol_mode;
 extern int pc_bank, pc_full, pc_slot, pc_slot_max, snes_rom_mode;
-extern int file_header_size, file_footer_size, *bankaddress, *banks;
+extern int file_header_size, file_footer_size, *bankaddress, *banksizes;
 extern int memory_file_id, memory_file_id_source, memory_line_number, output_mode;
 extern int program_start, program_end, cpu_65816, snes_mode, smc_status;
 extern int snes_sramsize;
@@ -194,7 +194,7 @@ int insert_sections(void) {
     s = sa[p++];
     if (s->status == SECTION_STATUS_FORCE) {
       memory_file_id = s->file_id;
-      banksize = banks[s->bank];
+      banksize = banksizes[s->bank];
       pc_bank = s->address;
       pc_slot = slots[s->slot].address + pc_bank;
       pc_full = pc_bank + bankaddress[s->bank];
@@ -246,6 +246,59 @@ int insert_sections(void) {
     }
   }
 
+  /* semisubfree sections */
+  p = 0;
+  while (p < sn) {
+    s = sa[p++];
+    if (s->status == SECTION_STATUS_SEMISUBFREE) {
+      pc_bank = 0;
+      d = bankaddress[s->bank];
+
+      /* align the starting address */
+      f = (pc_bank + d) % s->alignment;
+      if (f > 0)
+	pc_bank += s->alignment - f;
+
+      i = FAILED;
+      while (i == FAILED) {
+	f = pc_bank;
+	fprintf(stdout, "PC BANK %d\n", f);
+	for (x = 0; pc_bank < s->address && rom_usage[pc_bank + d] == 0 && x < s->size; pc_bank++, x++)
+	  ;
+	if (x == s->size) {
+	  i = SUCCEEDED;
+	  break;
+	}
+	if (pc_bank == s->address) {
+	  fprintf(stderr, "%s:%s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
+		  get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
+	  return FAILED;
+	}
+
+	/* find the next starting address */
+	f = (pc_bank + d) % s->alignment;
+	if (f > 0)
+	  pc_bank += s->alignment - f;
+        for (; pc_bank < s->address && rom_usage[pc_bank + d] != 0; pc_bank += s->alignment)
+	  ;
+      }
+
+      memory_file_id = s->file_id;
+      banksize = banksizes[s->bank];
+      pc_bank = f;
+      pc_slot = slots[s->slot].address + pc_bank;
+      pc_full = pc_bank + bankaddress[s->bank];
+      pc_slot_max = slots[s->slot].address + slots[s->slot].size;
+      s->address = pc_bank;
+      s->output_address = pc_full;
+      section_overwrite = OFF;
+      for (i = 0; i < s->size; i++) {
+	if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
+	  return FAILED;
+      }
+    }
+  }
+
   /* free & semifree sections */
   p = 0;
   while (p < sn) {
@@ -262,12 +315,13 @@ int insert_sections(void) {
       i = FAILED;
       while (i == FAILED) {
 	f = pc_bank;
-	for (x = 0; pc_bank < banks[s->bank] && rom_usage[pc_bank + d] == 0 && x < s->size; pc_bank++, x++);
+	for (x = 0; pc_bank < banksizes[s->bank] && rom_usage[pc_bank + d] == 0 && x < s->size; pc_bank++, x++)
+	  ;
 	if (x == s->size) {
 	  i = SUCCEEDED;
 	  break;
 	}
-	if (pc_bank == banks[s->bank]) {
+	if (pc_bank == banksizes[s->bank]) {
 	  fprintf(stderr, "%s:%s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
 		  get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
 	  return FAILED;
@@ -277,11 +331,12 @@ int insert_sections(void) {
 	f = (pc_bank + d) % s->alignment;
 	if (f > 0)
 	  pc_bank += s->alignment - f;
-        for (; pc_bank < banks[s->bank] && rom_usage[pc_bank + d] != 0; pc_bank += s->alignment);
+        for (; pc_bank < banksizes[s->bank] && rom_usage[pc_bank + d] != 0; pc_bank += s->alignment)
+	  ;
       }
 
       memory_file_id = s->file_id;
-      banksize = banks[s->bank];
+      banksize = banksizes[s->bank];
       pc_bank = f;
       pc_slot = slots[s->slot].address + pc_bank;
       pc_full = pc_bank + bankaddress[s->bank];
@@ -315,31 +370,33 @@ int insert_sections(void) {
 	  pc_bank += s->alignment - f;
 
 	/* if the slotsize and banksize differ -> try the next bank */
-	if (banks[q] != slots[s->slot].size)
+	if (banksizes[q] != slots[s->slot].size)
 	  continue;
 
 	while (i == FAILED) {
 	  f = pc_bank;
-	  for (x = 0; pc_bank < banks[q] && rom_usage[pc_bank + d] == 0 && x < s->size; pc_bank++, x++);
+	  for (x = 0; pc_bank < banksizes[q] && rom_usage[pc_bank + d] == 0 && x < s->size; pc_bank++, x++)
+	    ;
 	  if (x == s->size) {
 	    i = SUCCEEDED;
 	    break;
 	  }
-	  if (pc_bank == banks[q])
+	  if (pc_bank == banksizes[q])
 	    break;
 
 	  /* find the next starting address */
 	  f = (pc_bank + d) % s->alignment;
 	  if (f > 0)
 	    pc_bank += s->alignment - f;
-	  for (; pc_bank < banks[s->bank] && rom_usage[pc_bank + d] != 0; pc_bank += s->alignment);
+	  for (; pc_bank < banksizes[s->bank] && rom_usage[pc_bank + d] != 0; pc_bank += s->alignment)
+	    ;
 	}
       }
 
       if (i == SUCCEEDED) {
 	s->bank = q-1;
 	memory_file_id = s->file_id;
-	banksize = banks[s->bank];
+	banksize = banksizes[s->bank];
 	pc_bank = f;
 	pc_slot = pc_bank;
 	pc_full = pc_bank + bankaddress[s->bank];
@@ -366,7 +423,7 @@ int insert_sections(void) {
     s = sa[p++];
     if (s->status == SECTION_STATUS_OVERWRITE) {
       memory_file_id = s->file_id;
-      banksize = banks[s->bank];
+      banksize = banksizes[s->bank];
       pc_bank = s->address;
       pc_slot = slots[s->slot].address + pc_bank;
       pc_full = pc_bank + bankaddress[s->bank];
@@ -954,7 +1011,7 @@ int write_rom_file(char *outname) {
 	s = s->next;
       }
 
-      fwrite(rom + bankaddress[i], 1, banks[i], f);
+      fwrite(rom + bankaddress[i], 1, banksizes[i], f);
     }
   }
   /* program file output mode */

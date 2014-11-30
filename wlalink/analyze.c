@@ -14,16 +14,16 @@
 #define READ_T t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24); t += 4;
 
 /* read a double from t */
-#define READ_DOU {							\
-    dtmp = (unsigned char *)&dou;					\
-    dtmp[0] = *(t++);							\
-    dtmp[1] = *(t++);							\
-    dtmp[2] = *(t++);							\
-    dtmp[3] = *(t++);							\
-    dtmp[4] = *(t++);							\
-    dtmp[5] = *(t++);							\
-    dtmp[6] = *(t++);							\
-    dtmp[7] = *(t++);							\
+#define READ_DOU {				\
+    dtmp = (unsigned char *)&dou;		\
+    dtmp[0] = *(t++);				\
+    dtmp[1] = *(t++);				\
+    dtmp[2] = *(t++);				\
+    dtmp[3] = *(t++);				\
+    dtmp[4] = *(t++);				\
+    dtmp[5] = *(t++);				\
+    dtmp[6] = *(t++);				\
+    dtmp[7] = *(t++);				\
   }
 
 
@@ -35,7 +35,7 @@ extern struct label *labels_first, *labels_last;
 extern struct slot slots[256];
 extern int rombanks, verbose_mode, section_overwrite, symbol_mode, discard_unreferenced_sections;
 extern int emptyfill;
-extern int *banks, *bankaddress;
+extern int *banksizes, *bankaddress;
 
 
 
@@ -159,7 +159,7 @@ int obtain_rombankmap(void) {
 
   /* initialize values */
   for (i = 0; i < rombanks; i++)
-    banks[i] = 0;
+    banksizes[i] = 0;
 
   o = obj_first;
   while (o != NULL) {
@@ -178,11 +178,11 @@ int obtain_rombankmap(void) {
 	o->memorymap = t;
 	map_found = ON;
 	for (i = 0; i < o->rom_banks; i++) {
-	  if (banks[i] == 0) {
-	    banks[i] = banksize;
+	  if (banksizes[i] == 0) {
+	    banksizes[i] = banksize;
 	    bankaddress[i] = i * banksize;
 	  }
-	  else if (banks[i] != banksize) {
+	  else if (banksizes[i] != banksize) {
 	    fprintf(stderr, "OBTAIN_ROMBANKMAP: ROMBANKMAPs don't match.\n");
 	    return FAILED;
 	  }
@@ -191,11 +191,11 @@ int obtain_rombankmap(void) {
       else {
 	for (a = 0, x = 0; x < o->rom_banks; x++) {
 	  banksize = READ_T;
-	  if (banks[x] == 0) {
-	    banks[x] = banksize;
+	  if (banksizes[x] == 0) {
+	    banksizes[x] = banksize;
 	    bankaddress[x] = a;
 	  }
-	  else if (banks[x] != banksize) {
+	  else if (banksizes[x] != banksize) {
 	    fprintf(stderr, "OBTAIN_ROMBANKMAP: ROMBANKMAPs don't match.\n");
 	    return FAILED;
 	  }
@@ -746,7 +746,7 @@ int parse_data_blocks(void) {
 
 	  /* name */
 	  i = 0;
-	  while (*t != 0 && *t != 1 && *t != 2 && *t != 3 && *t != 4 && *t != 5 && *t != 6 && *t != 7)
+	  while (*t != 0 && *t != 1 && *t != 2 && *t != 3 && *t != 4 && *t != 5 && *t != 6 && *t != 7 && *t != 8)
 	    s->name[i++] = *(t++);
 	  s->name[i] = 0;
 	  s->status = *(t++);

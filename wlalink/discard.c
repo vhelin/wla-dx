@@ -72,7 +72,7 @@ int discard_iteration(void) {
      check if the section is of proper type */
   s = sec_first;
   while (s != NULL) {
-    if (s->name[0] == '!' || !(s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_SEMIFREE)) {
+    if (s->name[0] == '!' || !(s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_SEMIFREE || s->status == SECTION_STATUS_SEMISUBFREE)) {
       s->referenced++;
       s->alive = YES;
     }

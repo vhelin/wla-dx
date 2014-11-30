@@ -2077,6 +2077,9 @@ easily patch an existing ROM image just by .BACKGROUND'ing the ROM image and
 inserting OVERWRITE sections into it. SEMIFREE sections are also
 possible and they behave much like FREE sections. The only difference
 is that they are positioned somewhere in the bank starting from .ORG.
+SEMISUBFREE sections on the other hand are positioned somewhere in the bank
+starting from $0 and ending to .ORG.
+
 SUPERFREE sections are also available, and they will be positioned into
 the first suitable place inside the first suitable bank (candidates
 for these suitable banks have the same size with the slot of the section,
@@ -2127,9 +2130,10 @@ with SUPERFREE the section will be inserted somewhere in the
 
 Here's the order in which WLA writes the sections:
 1. FORCE
-2. SEMIFREE & FREE
-3. SUPERFREE
-4. OVERWRITE
+2. SEMISUBFREE
+3. SEMIFREE & FREE
+4. SUPERFREE
+5. OVERWRITE
 
 Before the sections are inserted into the output file, they are sorted by
 size, so that the biggest section gets processed first and the smallest

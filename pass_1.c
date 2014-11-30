@@ -2452,6 +2452,15 @@ int parse_directive(void) {
       if (skip_next_token() == FAILED)
         return FAILED;
     }
+    else if (compare_next_token("SEMISUBFREE", 11) == SUCCEEDED) {
+      if (output_format == OUTPUT_LIBRARY) {
+        print_error("Libraries don't take SEMISUBFREE sections.\n", ERROR_DIR);
+        return FAILED;
+      }
+      sec_tmp->status = SECTION_STATUS_SEMISUBFREE;
+      if (skip_next_token() == FAILED)
+        return FAILED;
+    }
     else if (compare_next_token("OVERWRITE", 9) == SUCCEEDED) {
       if (output_format == OUTPUT_LIBRARY) {
         print_error("Libraries don't take OVERWRITE sections.\n", ERROR_DIR);
