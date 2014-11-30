@@ -41,7 +41,8 @@ int load_files(char *argv[], int argc) {
       continue;
 
     /* remove garbage from the end */
-    for (i = 0; !(tmp[i] == 0x0D || tmp[i] == 0x0A); i++);
+    for (i = 0; !(tmp[i] == 0x0D || tmp[i] == 0x0A); i++)
+      ;
     tmp[i] = 0;
 
     /* empty line check */
@@ -251,7 +252,7 @@ int load_files(char *argv[], int argc) {
 }
 
 
-int load_file(char *fn, int bank, int slot, int base, int base_defined) {
+int load_file(char *file_name, int bank, int slot, int base, int base_defined) {
 
   struct object_file *o;
   unsigned char *data;
@@ -260,7 +261,7 @@ int load_file(char *fn, int bank, int slot, int base, int base_defined) {
   int size;
 
   o = malloc(sizeof(struct object_file));
-  n = malloc(strlen(fn)+1);
+  n = malloc(strlen(file_name)+1);
   if (o == NULL || n == NULL) {
     if (o != NULL)
       free(o);
@@ -270,7 +271,7 @@ int load_file(char *fn, int bank, int slot, int base, int base_defined) {
     return FAILED;
   }
 
-  if (load_file_data(fn, &data, &size) == FAILED) {
+  if (load_file_data(file_name, &data, &size) == FAILED) {
     free(n);
     free(o);
     return FAILED;
@@ -302,7 +303,7 @@ int load_file(char *fn, int bank, int slot, int base, int base_defined) {
   o->size = size;
   o->data = data;
 
-  strcpy(n, fn);
+  strcpy(n, file_name);
   o->name = n;
   o->id = id++;
 
@@ -310,13 +311,13 @@ int load_file(char *fn, int bank, int slot, int base, int base_defined) {
 }
 
 
-int load_file_data(char *fn, unsigned char **da, int *size) {
+int load_file_data(char *file_name, unsigned char **data, int *size) {
 
   FILE *fop;
 
-  fop = fopen(fn, "rb");
+  fop = fopen(file_name, "rb");
   if (fop == NULL) {
-    fprintf(stderr, "LOAD_FILE_DATA: Could not open file \"%s\".\n", fn);
+    fprintf(stderr, "LOAD_FILE_DATA: Could not open file \"%s\".\n", file_name);
     return FAILED;
   }
 
@@ -324,11 +325,11 @@ int load_file_data(char *fn, unsigned char **da, int *size) {
   *size = ftell(fop);
   fseek(fop, 0, SEEK_SET);
 
-  *da = malloc(*size);
-  if (*da == NULL)
+  *data = malloc(*size);
+  if (*data == NULL)
     return FAILED;
 
-  fread(*da, 1, *size, fop);
+  fread(*data, 1, *size, fop);
   fclose(fop);
 
   return SUCCEEDED;

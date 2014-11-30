@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
       printf("sect: \"%d\"\n", l->section);
       printf("slot: \"%d\"\n", l->slot);
       printf("base: \"%d\"\n", l->base);
-			printf("bank: \"%d\"\n", l->bank);
+      printf("bank: \"%d\"\n", l->bank);
       printf("address: \"%d\"\n", (int)l->address);
       printf("status: \"%d\"\n", l->status);
       printf("file_id: \"%d\"\n", l->file_id);

@@ -262,7 +262,6 @@ int insert_sections(void) {
       i = FAILED;
       while (i == FAILED) {
 	f = pc_bank;
-	fprintf(stdout, "PC BANK %d\n", f);
 	for (x = 0; pc_bank < s->address && rom_usage[pc_bank + d] == 0 && x < s->size; pc_bank++, x++)
 	  ;
 	if (x == s->size) {
