@@ -25,4 +25,4 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	rm -f $(OFILES) core *~ result.smc *.lib
+	rm -f $(OFILES) core *~ result.smc *.lib *.sym
