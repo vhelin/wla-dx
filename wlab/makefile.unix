@@ -1,10 +1,9 @@
 CC = gcc
 CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra 
 LD = gcc
-LDFLAGS = 
+LDFLAGS = -s
 RM = rm -f 
 RMFLAGS = 
-
 CFILES = main.c
 HFILES = main.h
 OFILES = main.o

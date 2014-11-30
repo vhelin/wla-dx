@@ -27,7 +27,7 @@ dnl Safe to leave as "dnl" on non-Unix systems, but "@echo off" is recommended
 dnl for DOS/Windows.
 define(`CP', cp $1 $2)dnl Copy command. Expects two arguments: source ($1), dest ($2).
 define(`CHDIR', cd $1)dnl Chdir command.
-define(`RM', rm $1)dnl Remove file command.
+define(`RM', rm -f $1)dnl Remove file command.
 define(`RMFLAGS', `dnl')dnl Reserved. Safe to leave as "dnl".
 define(`EXEC', ./$1)dnl How do you execute EXEs- by calling the exe name directly 
 dnl or prepending the current directory (./), or some other means?
@@ -73,12 +73,13 @@ define(`CLAGS_COMPILE', `-c')dnl Switch to compile only.
 define(`CFLAGS_OPT', `-O3')dnl Switch to optimize. 
 define(`CFLAGS_ANSI', `-ansi -pedantic-errors -Wall -Wextra')dnl Warnings and ANSI compliance switches.
 define(`CFLAGS_OTHER', `')dnl Miscellaneous switches.
-define(`CFLAGS_OUT', -o $1)dnl Output switch AND name. Takes one argument.
+define(`CFLAGS_OUT', `')dnl Output switch AND name. Takes one argument. Not used.
 dnl
 dnl Describe your Linker
 define(`LD', gcc)dnl Linker name.
-define(`LDFLAGS_OTHER', -g)dnl Miscellaneous switches.
-define(`LDFLAGS_OUT', `')dnl Output switch AND name. Takes one argument.
+define(`LDFLAGS_OTHER', `-s')dnl Miscellaneous switches.
+define(`LDFLAGS_OUT', `-o $1')dnl Output switch AND name. Takes one argument.
+define(`LIBM_FLAG', `')dnl If the math lib is linked separately, add it here.
 dnl
 dnl Macros created from the above...
 define(`CFLAGS', CLAGS_COMPILE CFLAGS_OPT CFLAGS_ANSI CFLAGS_OTHER)dnl
