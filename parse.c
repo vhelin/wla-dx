@@ -220,8 +220,6 @@ int input_number(void) {
       return FAILED;
     }
 
-    fprintf(stderr, "MACRO ARGUMENT %s %d\n", label, k);
-
     return k;
   }
 
