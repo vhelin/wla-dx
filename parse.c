@@ -31,20 +31,21 @@ int operand_hint;
 #endif
 
 
-int compare_next_token(char *in, int s) {
+int compare_next_token(char *token, int length) {
 
-  int a, t, d, k;
+  int ii, t, d, k;
   char e;
 
+  
   /* skip white space */
-  a = i;
-  for (e = buffer[a]; e == ' ' || e == ',' || e == 0x0A; e = buffer[++a])
+  ii = i;
+  for (e = buffer[ii]; e == ' ' || e == ',' || e == 0x0A; e = buffer[++ii])
     ;
 
   /* MACRO mode? */
   if (macro_active != 0 && e == '\\') {
     for (d = 0, k = 0; k < 16; k++) {
-      e = buffer[++a];
+      e = buffer[++ii];
       if (e >= '0' && e <= '9')
 	d = (d * 10) + e - '0';
       else
@@ -59,27 +60,27 @@ int compare_next_token(char *in, int s) {
       return FAILED;
     }
 
-    a = macro_runtime_current->argument_data[d - 1]->start;
+    ii = macro_runtime_current->argument_data[d - 1]->start;
 
-    e = buffer[a];
-    for (t = 0; t < s && e != ' ' && e != ',' && e != 0x0A; ) {
-      if (toupper((int)in[t]) != toupper((int)e))
+    e = buffer[ii];
+    for (t = 0; t < length && e != ' ' && e != ',' && e != 0x0A; ) {
+      if (toupper((int)token[t]) != toupper((int)e))
 	return FAILED;
       t++;
-      e = buffer[++a];
+      e = buffer[++ii];
     }
   }
   /* not in MACRO mode */
   else {
-    for (t = 0; t < s && e != ' ' && e != ',' && e != 0x0A; ) {
-      if (toupper((int)in[t]) != toupper((int)e))
+    for (t = 0; t < length && e != ' ' && e != ',' && e != 0x0A; ) {
+      if (toupper((int)token[t]) != toupper((int)e))
 	return FAILED;
       t++;
-      e = buffer[++a];
+      e = buffer[++ii];
     }
   }
 
-  if (t == s)
+  if (t == length)
     return SUCCEEDED;
 
   return FAILED;
@@ -91,6 +92,7 @@ int input_next_string(void) {
   char e;
   int k, d;
 
+  
   /* skip white space */
   for (e = buffer[i++]; e == ' ' || e == ','; e = buffer[i++])
     ;
@@ -123,7 +125,6 @@ int input_next_string(void) {
 
   /* expand e.g., \1 and \@ */
   if (macro_active != 0) {
-    d = 0;
     if (expand_macro_arguments(tmp, &d) == FAILED)
       return FAILED;
     if (d != 0)
@@ -139,6 +140,7 @@ int input_number(void) {
   unsigned char e, ee;
   int k, p, q;
   double decimal_mul;
+
 
 #if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
   operand_hint = HINT_NONE;
@@ -425,7 +427,6 @@ int input_number(void) {
 
     /* expand e.g., \1 and \@ */
     if (macro_active != 0) {
-      d = 0;
       if (expand_macro_arguments(label, &d) == FAILED)
 	return FAILED;
       if (d != 0) {
@@ -493,7 +494,6 @@ int input_number(void) {
 
   /* expand e.g., \1 and \@ */
   if (macro_active != 0) {
-    d = 0;
     if (expand_macro_arguments(label, &d) == FAILED)
       return FAILED;
     if (d != 0)
@@ -535,6 +535,7 @@ int get_next_token(void) {
 
   int q;
 
+  
   while (1) {
     if (i == size)
       break;
@@ -570,7 +571,6 @@ int get_next_token(void) {
 
     /* expand e.g., \1 and \@ */
     if (macro_active != 0) {
-      q = 0;
       if (expand_macro_arguments(tmp, &q) == FAILED)
 	return FAILED;
       if (q != 0) {
@@ -616,7 +616,6 @@ int get_next_token(void) {
 
   /* expand e.g., \1 and \@ */
   if (macro_active != 0) {
-    q = 0;
     if (expand_macro_arguments(tmp, &q) == FAILED)
       return FAILED;
     if (q != 0) {
@@ -655,11 +654,12 @@ int skip_next_token(void) {
 }
 
 
-int expand_macro_arguments(char *in, int *s) {
+int _expand_macro_arguments(char *in, int *expands) {
 
   char t[256];
   int i, k, d;
 
+  
   for (i = 0; i < MAX_NAME_LENGTH; i++) {
     if (in[i] == '\\') {
       if (in[i + 1] == '"' || in[i + 1] == 'n' || in[i + 1] == '\\') {
@@ -671,6 +671,7 @@ int expand_macro_arguments(char *in, int *s) {
       break;
     }
     expanded_macro_string[i] = in[i];
+
     if (in[i] == 0)
       return SUCCEEDED;
   }
@@ -678,7 +679,7 @@ int expand_macro_arguments(char *in, int *s) {
   k = i;
   i++;
 
-  (*s)++;
+  (*expands)++;
 
   if (in[i] == '@') {
     i++;
@@ -692,7 +693,8 @@ int expand_macro_arguments(char *in, int *s) {
     }
 
     strcpy(t, expanded_macro_string);
-    expand_macro_arguments(t, &d);
+    _expand_macro_arguments(t, &d);
+
     return SUCCEEDED;
   }
   
@@ -708,7 +710,7 @@ int expand_macro_arguments(char *in, int *s) {
     }
 
     strcpy(t, expanded_macro_string);
-    expand_macro_arguments(t, &d);
+    _expand_macro_arguments(t, &d);
 
     return SUCCEEDED;
   }
@@ -718,6 +720,7 @@ int expand_macro_arguments(char *in, int *s) {
       sprintf(xyz, "EXPAND_MACRO_ARGUMENTS: Unsupported special character '%c'.\n", in[i]);
       print_error(xyz, ERROR_NUM);
     }
+    
     return FAILED;
   }
 
@@ -733,6 +736,7 @@ int expand_macro_arguments(char *in, int *s) {
       sprintf(xyz, "Macro \"%s\" wasn't called with enough arguments.\n", macro_runtime_current->macro->name);
       print_error(xyz, ERROR_NUM);
     }
+    
     return FAILED;
   }
 
@@ -752,7 +756,15 @@ int expand_macro_arguments(char *in, int *s) {
   }
 
   strcpy(t, expanded_macro_string);
-  expand_macro_arguments(t, &d);
+  _expand_macro_arguments(t, &d);
 
   return SUCCEEDED;
+}
+
+
+int expand_macro_arguments(char *in, int *expands) {
+
+  *expands = 0;
+
+  return _expand_macro_arguments(in, expands);
 }

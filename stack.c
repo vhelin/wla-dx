@@ -978,7 +978,6 @@ int resolve_stack(struct stack_item s[], int x) {
       else {
 	if (macro_active != 0) {
 	  /* expand e.g., \1 and \@ */
-	  d = 0;
 	  if (expand_macro_arguments(s->string, &d) == FAILED)
 	    return FAILED;
 	  strcpy(s->string, expanded_macro_string);

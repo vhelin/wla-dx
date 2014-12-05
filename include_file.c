@@ -33,9 +33,10 @@ int size = 0;
 
 int create_full_name(char *dir, char *name) {
 
-  char *t;
+  char *tmp;
   int i;
 
+  
   if (dir == NULL && name == NULL)
     return SUCCEEDED;
 
@@ -48,12 +49,12 @@ int create_full_name(char *dir, char *name) {
   i++;
 
   if (i > full_name_size) {
-    t = realloc(full_name, i);
-    if (t == NULL) {
+    tmp = realloc(full_name, i);
+    if (tmp == NULL) {
       fprintf(stderr, "CREATE_FULL_NAME: Out of memory error.\n");
       return FAILED;
     }
-    full_name = t;
+    full_name = tmp;
     full_name_size = i;
   }
 
@@ -283,6 +284,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   int file_size, q;
   FILE *f;
 
+  
   /* create the full output file name */
   if (create_full_name(include_dir, name) == FAILED)
     return FAILED;
@@ -456,13 +458,14 @@ char get_file_name_error[] = "GET_FILE_NAME: Internal error.";
 
 char *get_file_name(int id) {
 
-  struct file_name_info *f;
+  struct file_name_info *fni;
 
-  f = file_name_info_first;
-  while (f != NULL) {
-    if (id == f->id)
-      return f->name;
-    f = f->next;
+  
+  fni = file_name_info_first;
+  while (fni != NULL) {
+    if (id == fni->id)
+      return fni->name;
+    fni = fni->next;
   }
 
   return get_file_name_error;
@@ -471,37 +474,38 @@ char *get_file_name(int id) {
 
 int print_file_names(void) {
 
-  struct incbin_file_data *d;
-  struct file_name_info *f;
+  struct incbin_file_data *ifd;
+  struct file_name_info *fni;
 
-  f = file_name_info_first;
-  d = incbin_file_data_first;
+  
+  fni = file_name_info_first;
+  ifd = incbin_file_data_first;
 
   /* handle the main file name differently */
-  if (f != NULL) {
-    if (f->next != NULL || d != NULL)
-      fprintf(stderr, "%s \\\n", f->name);
+  if (fni != NULL) {
+    if (fni->next != NULL || ifd != NULL)
+      fprintf(stderr, "%s \\\n", fni->name);
     else
-      fprintf(stderr, "%s\n", f->name);
-    f = f->next;
+      fprintf(stderr, "%s\n", fni->name);
+    fni = fni->next;
   }
 
   /* included files */
-  while (f != NULL) {
-    if (f->next != NULL || d != NULL)
-      fprintf(stderr, "\t%s \\\n", f->name);
+  while (fni != NULL) {
+    if (fni->next != NULL || ifd != NULL)
+      fprintf(stderr, "\t%s \\\n", fni->name);
     else
-      fprintf(stderr, "\t%s\n", f->name);
-    f = f->next;
+      fprintf(stderr, "\t%s\n", fni->name);
+    fni = fni->next;
   }
 
   /* incbin files */
-  while (d != NULL) {
-    if (d->next != NULL)
-      fprintf(stderr, "\t%s \\\n", d->name);
+  while (ifd != NULL) {
+    if (ifd->next != NULL)
+      fprintf(stderr, "\t%s \\\n", ifd->name);
     else
-      fprintf(stderr, "\t%s\n", d->name);
-    d = d->next;
+      fprintf(stderr, "\t%s\n", ifd->name);
+    ifd = ifd->next;
   }
 
   return SUCCEEDED;
