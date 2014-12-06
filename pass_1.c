@@ -180,16 +180,17 @@ int strcaselesscmp(char *s1, char *s2) {
 
 struct macro_static *macro_get(char *name) {
 
-  struct macro_static *m;
+  struct macro_static *macro;
 
-  m = macros_first;
-  while (m != NULL) {
-    if (strcmp(m->name, name) == 0)
+  
+  macro = macros_first;
+  while (macro != NULL) {
+    if (strcmp(macro->name, name) == 0)
       break;
-    m = m->next;
+    macro = macro->next;
   }
 
-  return m;
+  return macro;
 }
 
 
@@ -197,22 +198,22 @@ int macro_stack_grow(void) {
 
   if (macro_active == macro_stack_size) {
 
-    struct macro_runtime *n;
-    int old;
+    struct macro_runtime *macro;
+    int old_size;
 
+    
     /* enlarge the macro stack */
-    old = macro_stack_size;
+    old_size = macro_stack_size;
     macro_stack_size = (macro_stack_size<<1)+2;
 
-    n = calloc(sizeof(struct macro_runtime) * macro_stack_size, 1);
-    if (n == NULL) {
+    macro = calloc(sizeof(struct macro_runtime) * macro_stack_size, 1);
+    if (macro == NULL) {
       print_error("Out of memory error while enlarging macro stack buffer.\n", ERROR_ERR);
       return FAILED;
     }
 
-    memcpy(n, macro_stack, sizeof(struct macro_runtime) * old);
-
-    macro_stack = n;
+    memcpy(macro, macro_stack, sizeof(struct macro_runtime) * old_size);
+    macro_stack = macro;
   }
 
   return SUCCEEDED;
@@ -255,6 +256,7 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
   struct macro_runtime *mrt;
   int start;
 
+  
   /* start running a macro... run until .ENDM */
   mrt = &macro_stack[macro_active];
 
@@ -347,6 +349,7 @@ int macro_start_incbin(struct macro_static *m, struct macro_incbin *incbin_data,
 
   struct macro_runtime *mrt;
 
+  
   /* start running a macro... run until .ENDM */
   if (macro_stack_grow() == FAILED)
     return FAILED;
@@ -408,6 +411,7 @@ int macro_insert_byte_db(char *name) {
 
   struct definition *d;
 
+  
   d = defines;
   while (d != NULL) {
     if (strcmp(d->alias, "_out") == 0 || strcmp(d->alias, "_OUT") == 0)
@@ -452,6 +456,7 @@ int macro_insert_word_db(char *name) {
 
   struct definition *d;
 
+  
   d = defines;
   while (d != NULL) {
     if (strcmp(d->alias, "_out") == 0 || strcmp(d->alias, "_OUT") == 0)
@@ -494,14 +499,14 @@ int macro_insert_word_db(char *name) {
 
 struct structure* get_structure(char *name) {
 
-    struct structure *s = structures_first;
-    while (s != NULL) {
-      if (strcmp(name, s->name) == 0)
-        return s;
-      s = s->next;
-    }
+  struct structure *s = structures_first;
+  while (s != NULL) {
+    if (strcmp(name, s->name) == 0)
+      return s;
+    s = s->next;
+  }
 
-    return NULL;
+  return NULL;
 }
 
 
@@ -511,6 +516,7 @@ int pass_1(void) {
   struct macro_static *m = NULL;
   int o, p, q;
 
+  
   if (verbose_mode == ON)
     printf("Pass 1...\n");
 
@@ -690,6 +696,7 @@ int evaluate_token(void) {
   char labely[256];
 #endif
 
+  
   /* is it a directive? */
   if (tmp[0] == '.')
     return parse_directive();
@@ -855,6 +862,7 @@ int redefine(char *name, double value, char *string, int type, int size) {
 
   struct definition *d;
 
+  
   d = defines;
   while (d != NULL) {
     if (strcmp(d->alias, name) == 0)
@@ -887,6 +895,7 @@ int undefine(char *name) {
 
   struct definition *d, *p;
 
+  
   d = defines;
   p = NULL;
   while (d != NULL) {
@@ -910,6 +919,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
 
   struct definition *d, *l;
 
+  
   l = NULL;
   d = defines;
   while (d != NULL) {
@@ -962,6 +972,7 @@ int localize_path(char *path) {
 
   int i;
 
+  
   if (path == NULL)
     return FAILED;
 
@@ -981,7 +992,7 @@ int localize_path(char *path) {
 }
 
 
-void print_error(char *error, int i) {
+void print_error(char *error, int type) {
 
   char error_dir[] = "DIRECTIVE_ERROR:";
   char error_unf[] = "UNFOLD_ALIASES:";
@@ -995,7 +1006,8 @@ void print_error(char *error, int i) {
   char error_err[] = "ERROR:";
   char *t = NULL;
 
-  switch (i) {
+  
+  switch (type) {
     case ERROR_LOG:
       t = error_log;
       break;
@@ -1057,6 +1069,7 @@ int parse_directive(void) {
   char bak[256];
   int o, q;
 
+  
   /* ORG */
 
   if (strcmp(cp, "ORG") == 0) {
@@ -1323,6 +1336,7 @@ int parse_directive(void) {
   }
 
   /* ASCTABLE/ASCIITABLE? */
+
   if (strcmp(cp, "ASCTABLE") == 0 || strcmp(cp, "ASCIITABLE") == 0) {
 
     int astart, aend;
@@ -1446,6 +1460,7 @@ int parse_directive(void) {
   }
 
   /* ASC? */
+
   if (strcmp(cp, "ASC") == 0) {
     strcpy(bak, cp);
 
@@ -6091,6 +6106,7 @@ int parse_directive(void) {
   }
 
   /* DBRND/DWRND */
+
   if (strcmp(cp, "DBRND") == 0 || strcmp(cp, "DWRND") == 0) {
 
     int o, c, min, max, f;
@@ -6368,31 +6384,31 @@ int parse_directive(void) {
 }
 
 
-int find_next_point(char *n) {
+int find_next_point(char *name) {
 
-  int r, m, l;
+  int depth, m, line_current;
 
 
-  l = active_file_info_last->line_current;
+  line_current = active_file_info_last->line_current;
   /* find the next compiling point */
-  r = 1;
+  depth = 1;
   m = macro_active;
   /* disable macro decoding */
   macro_active = 0;
   while (get_next_token() != FAILED) {
     if (tmp[0] == '.') {
       if (strcmp(cp, "ENDIF") == 0)
-        r--;
-      if (strcmp(cp, "ELSE") == 0 && r == 1)
-        r--;
+        depth--;
+      if (strcmp(cp, "ELSE") == 0 && depth == 1)
+        depth--;
       if (strcmp(cp, "E") == 0)
         break;
       if (strcmp(cp, "IFDEF") == 0 || strcmp(cp, "IFNDEF") == 0 || strcmp(cp, "IFGR") == 0 || strcmp(cp, "IFLE") == 0 ||
           strcmp(cp, "IFEQ") == 0 || strcmp(cp, "IFNEQ") == 0 || strcmp(cp, "IFDEFM") == 0 || strcmp(cp, "IFNDEFM") == 0 ||
           strcmp(cp, "IF") == 0 || strcmp(cp, "IFGREQ") == 0 || strcmp(cp, "IFLEEQ") == 0 || strcmp(cp, "IFEXISTS") == 0)
-        r++;
+        depth++;
     }
-    if (r == 0) {
+    if (depth == 0) {
       if (strcmp(cp, "ELSE") == 0)
         ifdef++;
       macro_active = m;
@@ -6401,8 +6417,8 @@ int find_next_point(char *n) {
   }
 
   /* return the condition's line number */
-  active_file_info_last->line_current = l;
-  sprintf(emsg, ".%s must end to .ENDIF/.ELSE.\n", n);
+  active_file_info_last->line_current = line_current;
+  sprintf(emsg, ".%s must end to .ENDIF/.ELSE.\n", name);
   print_error(emsg, ERROR_DIR);
 
   return FAILED;
@@ -6427,6 +6443,7 @@ void delete_stack(struct stack *s) {
 int get_new_definition_data(int *b, char *c, int *size, double *data) {
 
   int a, x, n, s;
+
 
   x = input_number();
   a = x;
@@ -6528,39 +6545,39 @@ int get_new_definition_data(int *b, char *c, int *size, double *data) {
 }
 
 
-int export_a_definition(char *n) {
+int export_a_definition(char *name) {
 
-  struct export_def *e;
+  struct export_def *export;
 
 
   /* don't export it twice or more often */
-  e = export_first;
-  while (e != NULL) {
-    if (strcmp(e->name, n) == 0) {
-      sprintf(emsg, "\"%s\" was .EXPORTed for the second time.\n", n);
+  export = export_first;
+  while (export != NULL) {
+    if (strcmp(export->name, name) == 0) {
+      sprintf(emsg, "\"%s\" was .EXPORTed for the second time.\n", name);
       print_error(emsg, ERROR_WRN);
       return SUCCEEDED;
     }
-    e = e->next;
+    export = export->next;
   }
 
-  e = malloc(sizeof(struct export_def));
-  if (e == NULL) {
-    sprintf(emsg, "Out of memory while allocating room for \".EXPORT %s\".\n", n);
+  export = malloc(sizeof(struct export_def));
+  if (export == NULL) {
+    sprintf(emsg, "Out of memory while allocating room for \".EXPORT %s\".\n", name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
 
-  strcpy(e->name, n);
-  e->next = NULL;
+  strcpy(export->name, name);
+  export->next = NULL;
 
   if (export_first == NULL) {
-    export_first = e;
-    export_last = e;
+    export_first = export;
+    export_last = export;
   }
   else {
-    export_last->next = e;
-    export_last = e;
+    export_last->next = export;
+    export_last = export;
   }
 
   return SUCCEEDED;

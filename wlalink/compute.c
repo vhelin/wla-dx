@@ -33,18 +33,19 @@ int compute_checksums(void) {
 
 int compute_gb_complement_check(void) {
 
-  int i, x;
+  int res, j;
+
 
   if (romsize < 0x8000) {
     fprintf(stderr, "COMPUTE_GB_COMPLEMENT_CHECK: GB complement check computing requires a ROM of at least 32KB.\n");
     return FAILED;
   }
 
-  i = 0;
-  for (x = 0x134; x <= 0x14C; x++)
-    i += rom[x];
-  i += 25;
-  mem_insert(0x14D, 0 - (i & 0xFF));
+  res = 0;
+  for (j = 0x134; j <= 0x14C; j++)
+    res += rom[j];
+  res += 25;
+  mem_insert(0x14D, 0 - (res & 0xFF));
 
   return SUCCEEDED;
 }
@@ -52,21 +53,22 @@ int compute_gb_complement_check(void) {
 
 int compute_gb_checksum(void) {
 
-  int i, x;
+  int checksum, j;
 
+  
   if (romsize < 0x8000) {
     fprintf(stderr, "COMPUTE_GB_CHECKSUM: GB checksum computing requires a ROM of at least 32KB.\n");
     return FAILED;
   }
 
-  i = 0;
-  for (x = 0; x < 0x14E; x++)
-    i += rom[x];
-  for (x = 0x150; x < romsize; x++)
-    i += rom[x];
+  checksum = 0;
+  for (j = 0; j < 0x14E; j++)
+    checksum += rom[j];
+  for (j = 0x150; j < romsize; j++)
+    checksum += rom[j];
 
-  mem_insert(0x14E, (i >> 8) & 0xFF);
-  mem_insert(0x14F, i & 0xFF);
+  mem_insert(0x14E, (checksum >> 8) & 0xFF);
+  mem_insert(0x14F, checksum & 0xFF);
 
   return SUCCEEDED;
 }
@@ -74,8 +76,9 @@ int compute_gb_checksum(void) {
 
 int compute_snes_checksum(void) {
 
-  int i, x, n, m, l, o;
+  int i, j, k, res, n, m, inv;
 
+  
   if (snes_rom_mode == SNES_ROM_MODE_LOROM) {
     if (romsize < 0x8000) {
       fprintf(stderr, "COMPUTE_SNES_CHECKSUM: SNES checksum computing for a LoROM image requires a ROM of at least 32KB.\n");
@@ -100,43 +103,43 @@ int compute_snes_checksum(void) {
   }
 
   /* sum all the bytes inside the 4mbit blocks */
-  x = 0;
+  res = 0;
   for (i = 0; i < n; i++) {
     if (snes_rom_mode == SNES_ROM_MODE_LOROM) {
       /* skip the checksum bytes */
       if (!(i == 0x7FDC || i == 0x7FDD || i == 0x7FDE || i == 0x7FDF))
-	x += rom[i];
+	res += rom[i];
     }
     else {
       /* skip the checksum bytes */
       if (!(i == 0xFFDC || i == 0xFFDD || i == 0xFFDE || i == 0xFFDF))
-	x += rom[i];
+	res += rom[i];
     }
   }
 
   /* add to that the data outside the 4mbit blocks, ringbuffer style repeating 
      the remaining block until the the final part reaches 4mbits */
-  for (o = 0, l = i; i < romsize; i++, o++)
-    x += rom[(o % m) + l];
+  for (j = 0, k = i; i < romsize; i++, j++)
+    res += rom[(j % m) + k];
 
   /* 2*255 is for the checksum and its complement bytes that we skipped earlier */
-  x += 2*255;
+  res += 2*255;
 
   /* compute the inverse checksum */
-  l = (x & 0xFFFF) ^ 0xFFFF;
+  inv = (res & 0xFFFF) ^ 0xFFFF;
 
   /* insert the checksum bytes */
   if (snes_rom_mode == SNES_ROM_MODE_LOROM) {
-    mem_insert(0x7FDC, l & 0xFF);
-    mem_insert(0x7FDD, (l >> 8) & 0xFF);
-    mem_insert(0x7FDE, x & 0xFF);
-    mem_insert(0x7FDF, (x >> 8) & 0xFF);
+    mem_insert(0x7FDC, inv & 0xFF);
+    mem_insert(0x7FDD, (inv >> 8) & 0xFF);
+    mem_insert(0x7FDE, res & 0xFF);
+    mem_insert(0x7FDF, (res >> 8) & 0xFF);
   }
   else {
-    mem_insert(0xFFDC, l & 0xFF);
-    mem_insert(0xFFDD, (l >> 8) & 0xFF);
-    mem_insert(0xFFDE, x & 0xFF);
-    mem_insert(0xFFDF, (x >> 8) & 0xFF);
+    mem_insert(0xFFDC, inv & 0xFF);
+    mem_insert(0xFFDD, (inv >> 8) & 0xFF);
+    mem_insert(0xFFDE, res & 0xFF);
+    mem_insert(0xFFDF, (res >> 8) & 0xFF);
   }
 
   return SUCCEEDED;
@@ -147,6 +150,7 @@ int add_sms_tag(void) {
 
   int tag_address = 0x7FF0;
 
+  
   if (romsize < 0x4000)
     tag_address = 0x1FF0;
   else if (romsize < 0x8000)
@@ -173,10 +177,11 @@ int add_sms_tag(void) {
 
 int compute_sms_checksum(void) {
 
-  int tag_address = 0x7FF0, x, i;
+  int tag_address = 0x7FF0, j, checksum;
   /* SMS Export + 32KB ROM */
   int final_byte = 0x4C;
 
+  
   if (romsize < 0x4000) {
     /* let's assume it's a 8KB ROM */
     tag_address = 0x1FF0;
@@ -196,12 +201,12 @@ int compute_sms_checksum(void) {
   }
 
   /* add together 8-32KB minus SMS/GG header */
-  i = 0;
-  for (x = 0; x < tag_address; x++)
-    i += rom[x];
+  checksum = 0;
+  for (j = 0; j < tag_address; j++)
+    checksum += rom[j];
 
-  mem_insert(tag_address + 0xA, i & 0xFF);
-  mem_insert(tag_address + 0xB, (i >> 8) & 0xFF);
+  mem_insert(tag_address + 0xA, checksum & 0xFF);
+  mem_insert(tag_address + 0xB, (checksum >> 8) & 0xFF);
 
   /* region code + ROM size */
   mem_insert(tag_address + 0xF, final_byte);

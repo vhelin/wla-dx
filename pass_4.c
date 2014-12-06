@@ -71,59 +71,60 @@ int filename_id, line_number;
 
 int new_unknown_reference(int type) {
 
-  struct label_def *t;
+  struct label_def *label;
 
-  t = malloc(sizeof(struct label_def));
-  if (t == NULL) {
+
+  label = malloc(sizeof(struct label_def));
+  if (label == NULL) {
     fprintf(stderr, "%s:%d: NEW_UNKNOWN_REFERENCE: Out of memory.\n", get_file_name(filename_id), line_number);
     return FAILED;
   }
 
-  t->symbol = NO;
+  label->symbol = NO;
 
-  strcpy(t->label, tmp);
-  t->next = NULL;
-  t->type = type;
-  t->filename_id = filename_id;
-  t->linenumber = line_number;
-  t->section_status = section_status;
+  strcpy(label->label, tmp);
+  label->next = NULL;
+  label->type = type;
+  label->filename_id = filename_id;
+  label->linenumber = line_number;
+  label->section_status = section_status;
   if (section_status == ON) {
-    t->section_id = sec_tmp->id;
-    t->address = sec_tmp->i; /* relative address, to the beginning of the section */
+    label->section_id = sec_tmp->id;
+    label->address = sec_tmp->i; /* relative address, to the beginning of the section */
   }
   else {
-    t->section_id = 0;
-    t->address = pc_bank; /* bank address, in ROM memory */
+    label->section_id = 0;
+    label->address = pc_bank; /* bank address, in ROM memory */
   }
 
-  t->bank = rom_bank;
-  t->slot = slot;
+  label->bank = rom_bank;
+  label->slot = slot;
 
   /* outside bank header section */
   if (bankheader_status == OFF) {
     if (unknown_labels_last == NULL) {
-      unknown_labels = t;
-      unknown_labels_last = t;
+      unknown_labels = label;
+      unknown_labels_last = label;
     }
     else {
-      unknown_labels_last->next = t;
-      unknown_labels_last = t;
+      unknown_labels_last->next = label;
+      unknown_labels_last = label;
     }
   }
   /* bank header section */
   else {
-    if (t->label[0] == '_') {
+    if (label->label[0] == '_') {
       fprintf(stderr, "%s:%d: NEW_UNKNOWN_REFERENCE: Referring to a local label (\"%s\") from inside a bank header section is not allowed.\n",
-	      get_file_name(filename_id), line_number, t->label);
+	      get_file_name(filename_id), line_number, label->label);
       return FAILED;
     }
     if (unknown_header_labels_last == NULL) {
-      unknown_header_labels = t;
-      unknown_header_labels_last = t;
+      unknown_header_labels = label;
+      unknown_header_labels_last = label;
     }
     else {
-      unknown_header_labels_last->next = t;
-      unknown_header_labels_last = t;
+      unknown_header_labels_last->next = label;
+      unknown_header_labels_last = label;
     }
   }
 
@@ -144,6 +145,7 @@ int pass_4(void) {
   int base = 0x00;
 #endif
 
+  
   section_status = OFF;
   bankheader_status = OFF;
   mem_insert_overwrite = OFF;
@@ -157,7 +159,6 @@ int pass_4(void) {
   }
 
   while (fread(&c, 1, 1, file_out_ptr) != 0) {
-
     switch (c) {
 
       case 'E':

@@ -21,11 +21,12 @@ char file_name_error[] = "???";
 
 int load_files(char *argv[], int argc) {
 
+  int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n;
+  char tmp[1024], token[1024];
   struct label *l;
-  int st = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n;
-  char tmp[1024], ou[1024];
   FILE *fop;
 
+  
   fop = fopen(argv[argc - 2], "rb");
   if (fop == NULL) {
     fprintf(stderr, "LOAD_FILES: Could not open file \"%s\".\n", argv[argc - 2]);
@@ -46,40 +47,40 @@ int load_files(char *argv[], int argc) {
     tmp[i] = 0;
 
     /* empty line check */
-    if (get_next_token(tmp, ou, &x) == FAILED)
+    if (get_next_token(tmp, token, &x) == FAILED)
       continue;
 
     /* first checks */
-    if (ou[0] == '[') {
-      if (strcmp("[objects]", ou) == 0) {
-	st = STATE_OBJECT;
+    if (token[0] == '[') {
+      if (strcmp("[objects]", token) == 0) {
+	state = STATE_OBJECT;
 	continue;
       }
-      else if (strcmp("[libraries]", ou) == 0) {
-	st = STATE_LIBRARY;
+      else if (strcmp("[libraries]", token) == 0) {
+	state = STATE_LIBRARY;
 	continue;
       }
-      else if (strcmp("[header]", ou) == 0) {
-	st = STATE_HEADER;
+      else if (strcmp("[header]", token) == 0) {
+	state = STATE_HEADER;
 	continue;
       }
-      else if (strcmp("[footer]", ou) == 0) {
-	st = STATE_FOOTER;
+      else if (strcmp("[footer]", token) == 0) {
+	state = STATE_FOOTER;
 	continue;
       }
-      else if (strcmp("[definitions]", ou) == 0) {
-	st = STATE_DEFINITION;
+      else if (strcmp("[definitions]", token) == 0) {
+	state = STATE_DEFINITION;
 	continue;
       }
       else {
-	fprintf(stderr, "%s:%d LOAD_FILES: Unknown group \"%s\".\n", argv[argc - 2], line, ou);
+	fprintf(stderr, "%s:%d LOAD_FILES: Unknown group \"%s\".\n", argv[argc - 2], line, token);
 	fclose(fop);
 	return FAILED;
       }
     }
 
-    if (st == STATE_NONE) {
-      fprintf(stderr, "%s:%d: LOAD_FILES: Before file \"%s\" can be loaded you must define a group for it.\n", argv[argc - 2], line, ou);
+    if (state == STATE_NONE) {
+      fprintf(stderr, "%s:%d: LOAD_FILES: Before file \"%s\" can be loaded you must define a group for it.\n", argv[argc - 2], line, token);
       fclose(fop);
       return FAILED;
     }
@@ -92,13 +93,13 @@ int load_files(char *argv[], int argc) {
     base = 0;
 
     /* definition loading? */
-    if (st == STATE_DEFINITION) {
+    if (state == STATE_DEFINITION) {
       l = malloc(sizeof(struct label));
       if (l == NULL) {
 	fprintf(stderr, "LOAD_FILES: Out of memory.\n");
 	return FAILED;
       }
-      strcpy(l->name, ou);
+      strcpy(l->name, token);
       l->status = LABEL_STATUS_DEFINE;
       l->bank = 0;
       l->slot = 0;
@@ -115,18 +116,18 @@ int load_files(char *argv[], int argc) {
       continue;
     }
     /* header loading? */
-    else if (st == STATE_HEADER) {
+    else if (state == STATE_HEADER) {
       if (file_header != NULL) {
 	fprintf(stderr, "%s:%d: LOAD_FILES: There can be only one header file.\n", argv[argc - 2], line);
 	fclose(fop);
 	return FAILED;
       }
 
-      if (load_file_data(ou, &file_header, &file_header_size) == FAILED) {
+      if (load_file_data(token, &file_header, &file_header_size) == FAILED) {
 	fclose(fop);
 	return FAILED;
       }
-      if (get_next_token(&tmp[x], ou, &x) == FAILED)
+      if (get_next_token(&tmp[x], token, &x) == FAILED)
 	continue;
 
       fprintf(stderr, "%s:%d: LOAD_FILES: Syntax error.\n", argv[argc - 2], line);
@@ -134,18 +135,18 @@ int load_files(char *argv[], int argc) {
       return FAILED;
     }
     /* footer loading? */
-    else if (st == STATE_FOOTER) {
+    else if (state == STATE_FOOTER) {
       if (file_footer != NULL) {
 	fprintf(stderr, "%s:%d: LOAD_FILES: There can be only one footer file.\n", argv[argc - 2], line);
 	fclose(fop);
 	return FAILED;
       }
 
-      if (load_file_data(ou, &file_footer, &file_footer_size) == FAILED) {
+      if (load_file_data(token, &file_footer, &file_footer_size) == FAILED) {
 	fclose(fop);
 	return FAILED;
       }
-      if (get_next_token(&tmp[x], ou, &x) == FAILED)
+      if (get_next_token(&tmp[x], token, &x) == FAILED)
 	continue;
 
       fprintf(stderr, "%s:%d: LOAD_FILES: Syntax error.\n", argv[argc - 2], line);
@@ -153,10 +154,10 @@ int load_files(char *argv[], int argc) {
       return FAILED;
     }
     /* library loading? */
-    else if (st == STATE_LIBRARY) {
+    else if (state == STATE_LIBRARY) {
       i = SUCCEEDED;
       while (i == SUCCEEDED) {
-	if (strcmp(ou, "bank") == 0 || strcmp(ou, "BANK") == 0) {
+	if (strcmp(token, "bank") == 0 || strcmp(token, "BANK") == 0) {
 	  if (bank_defined == ON) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: BANK defined for the second time for a library file.\n", argv[argc - 2], line);
 	    fclose(fop);
@@ -170,7 +171,7 @@ int load_files(char *argv[], int argc) {
 	    return FAILED;
 	  }
 	}
-	else if (strcmp(ou, "slot") == 0 || strcmp(ou, "SLOT") == 0) {
+	else if (strcmp(token, "slot") == 0 || strcmp(token, "SLOT") == 0) {
 	  if (slot_defined == ON) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: SLOT defined for the second time for a library file.\n", argv[argc - 2], line);
 	    fclose(fop);
@@ -184,7 +185,7 @@ int load_files(char *argv[], int argc) {
 	    return FAILED;
 	  }
 	}
-	else if (strcmp(ou, "base") == 0 || strcmp(ou, "BASE") == 0) {
+	else if (strcmp(token, "base") == 0 || strcmp(token, "BASE") == 0) {
 	  if (base_defined == ON) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: BASE defined for the second time for a library file.\n", argv[argc - 2], line);
 	    fclose(fop);
@@ -201,7 +202,7 @@ int load_files(char *argv[], int argc) {
 	else
 	  break;
 	
-	i = get_next_token(&tmp[x], ou, &x);
+	i = get_next_token(&tmp[x], token, &x);
       }
       
       if (i == FAILED) {
@@ -220,12 +221,12 @@ int load_files(char *argv[], int argc) {
 	return FAILED;
       }
       
-      if (load_file(ou, bank, slot, base, base_defined) == FAILED) {
+      if (load_file(token, bank, slot, base, base_defined) == FAILED) {
 	fclose(fop);
 	return FAILED;
       }
       
-      if (get_next_token(&tmp[x], ou, &x) == SUCCEEDED) {
+      if (get_next_token(&tmp[x], token, &x) == SUCCEEDED) {
 	fprintf(stderr, "%s:%d: LOAD_FILES: Syntax error.\n", argv[argc - 2], line);
 	fclose(fop);
 	return FAILED;
@@ -234,11 +235,11 @@ int load_files(char *argv[], int argc) {
       continue;
     }
     /* object file loading */
-    else if (load_file(ou, 0, 0, 0, OFF) == FAILED) {
+    else if (load_file(token, 0, 0, 0, OFF) == FAILED) {
       fclose(fop);
       return FAILED;
     }
-    if (get_next_token(&tmp[x], ou, &x) == FAILED)
+    if (get_next_token(&tmp[x], token, &x) == FAILED)
       continue;
 
     fprintf(stderr, "%s:%d: LOAD_FILES: Syntax error.\n", argv[argc - 2], line);
@@ -257,22 +258,23 @@ int load_file(char *file_name, int bank, int slot, int base, int base_defined) {
   struct object_file *o;
   unsigned char *data;
   static int id = 0;
-  char *n;
+  char *name;
   int size;
 
+  
   o = malloc(sizeof(struct object_file));
-  n = malloc(strlen(file_name)+1);
-  if (o == NULL || n == NULL) {
+  name = malloc(strlen(file_name)+1);
+  if (o == NULL || name == NULL) {
     if (o != NULL)
       free(o);
-    if (n != NULL)
-      free(n);
+    if (name != NULL)
+      free(name);
     fprintf(stderr, "LOAD_FILE: Out of memory.\n");
     return FAILED;
   }
 
   if (load_file_data(file_name, &data, &size) == FAILED) {
-    free(n);
+    free(name);
     free(o);
     return FAILED;
   }
@@ -303,8 +305,8 @@ int load_file(char *file_name, int bank, int slot, int base, int base_defined) {
   o->size = size;
   o->data = data;
 
-  strcpy(n, file_name);
-  o->name = n;
+  strcpy(name, file_name);
+  o->name = name;
   o->id = id++;
 
   return SUCCEEDED;
@@ -314,6 +316,7 @@ int load_file(char *file_name, int bank, int slot, int base, int base_defined) {
 int load_file_data(char *file_name, unsigned char **data, int *size) {
 
   FILE *fop;
+
 
   fop = fopen(file_name, "rb");
   if (fop == NULL) {
@@ -338,9 +341,10 @@ int load_file_data(char *file_name, unsigned char **data, int *size) {
 
 char *get_file_name(int id) {
 
-  static char e[] = "GET_FILE_NAME: Internal data corruption.";
+  static char error[] = "GET_FILE_NAME: Internal data corruption.";
   struct object_file *o;
 
+  
   o = obj_first;
   while (o != NULL) {
     if (o->id == id)
@@ -348,7 +352,7 @@ char *get_file_name(int id) {
     o = o->next;
   }
 
-  return e;
+  return error;
 }
 
 
@@ -357,6 +361,7 @@ char *get_source_file_name(int file_id, int source_id) {
   struct source_file_name *s;
   struct object_file *o;
 
+  
   o = obj_first;
   while (o != NULL) {
     if (o->id == file_id)

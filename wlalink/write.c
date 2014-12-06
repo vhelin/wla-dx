@@ -31,6 +31,7 @@ static int _sections_sort(const void *a, const void *b) {
 
   if ((*((struct section **)a))->size < (*((struct section **)b))->size)
     return 1;
+
   return -1;
 }
 
@@ -39,6 +40,7 @@ int smc_create_and_write(FILE *f) {
 
   int i;
 
+  
   if (f == NULL)
     return FAILED;
 
@@ -88,6 +90,7 @@ int insert_sections(void) {
   int d, f, i, x, t, q, sn, p;
   char *ram_slots[256], *c;
 
+  
   /* initialize ram slots */
   for (i = 0; i < 256; i++)
     ram_slots[i] = NULL;
@@ -458,10 +461,10 @@ int transform_stack_definitions(void) {
   struct label *l;
   struct stack *s;
 
+  
   l = labels_first;
   while (l != NULL) {
     if (l->status == LABEL_STATUS_STACK) {
-
       /* DEBUG
 	 printf("--------------------------------------\n");
 	 printf("name: \"%s\"\n", l->name);
@@ -506,6 +509,7 @@ int fix_labels(void) {
   struct section *s = NULL;
   struct label *l, *m;
 
+  
   /* fix labels' addresses */
   l = labels_first;
   while (l != NULL) {
@@ -565,6 +569,7 @@ int fix_references(void) {
   struct label *l, lt;
   int i, x;
 
+  
   section_overwrite = OFF;
 
   /* insert references */
@@ -784,6 +789,7 @@ int write_symbol_file(char *outname, unsigned char mode) {
   FILE *f;
   int y;
 
+  
   if (outname == NULL)
     return FAILED;
 
@@ -984,6 +990,7 @@ int write_rom_file(char *outname) {
   FILE *f;
   int i, b, e;
 
+  
   f = fopen(outname, "wb");
   if (f == NULL) {
     fprintf(stderr, "WRITE_ROM_FILE: Error opening file \"%s\".\n", outname);
@@ -1052,6 +1059,7 @@ int compute_pending_calculations(void) {
   struct stack *sta;
   int k, a;
 
+  
   section_overwrite = ON;
 
   /* first place the calculation stacks into the output */
@@ -1231,6 +1239,7 @@ int compute_stack(struct stack *sta, int *result) {
   int r, t, z, x, res;
   double v[256], q;
 
+  
   if (sta->under_work == YES) {
     fprintf(stderr, "%s:%s:%d: COMPUTE_STACK: A loop found in computation.\n", get_file_name(sta->file_id),
 	    get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
@@ -1365,6 +1374,7 @@ int write_bank_header_calculations(struct stack *sta) {
   unsigned char *t;
   int k;
 
+  
   /* parse stack items */
   if (parse_stack(sta) == FAILED)
     return FAILED;
@@ -1421,6 +1431,7 @@ int write_bank_header_references(struct reference *r) {
   unsigned char *t;
   int a;
 
+  
   s = sec_hd_first;
   while (r->section != s->id)
     s = s->next;
@@ -1596,6 +1607,7 @@ int get_snes_pc_bank(struct label *l) {
 
   int x, k;
 
+
   /* do we override the user's banking scheme (.HIROM/.LOROM)? */
   if (snes_mode != 0) {
     /* use rom_address instead of address, as address points to
@@ -1623,6 +1635,7 @@ int correct_65816_library_sections(void) {
   struct section *s;
   struct label *l;
 
+  
   s = sec_first;
   while (s != NULL) {
     if (s->library_status == ON && s->base_defined == ON) {
@@ -1641,19 +1654,21 @@ int correct_65816_library_sections(void) {
 
 
 /* is the label of form -, --, ---, +, ++, +++, ... ? */
-int is_label_anonymous(char *l) {
+int is_label_anonymous(char *label) {
 
-  int x, y;
+  int length, i;
   char c;
 
-  if (strcmp(l, "_f") == 0 || strcmp(l, "_F") == 0 || strcmp(l, "_b") == 0 || strcmp(l, "_B") == 0 || strcmp(l, "__") == 0)
+  
+  if (strcmp(label, "_f") == 0 || strcmp(label, "_F") == 0 || strcmp(label, "_b") == 0 || strcmp(label, "_B") == 0 || strcmp(label, "__") == 0)
     return SUCCEEDED;
 
-  c = *l;
+  c = *label;
   if (!(c == '-' || c == '+'))
     return FAILED;
-  for (x = strlen(l), y = 0; y < x; y++) {
-    if (*(l + y) != c)
+  length = strlen(label);
+  for (i = 0; i < length; i++) {
+    if (*(label + i) != c)
       return FAILED;
   }
 
@@ -1666,6 +1681,7 @@ struct label *get_closest_anonymous_label(char *name, int rom_address, int file_
   struct label *closest = NULL;
   int d = 999999, e;
 
+  
   if (strcmp(name, "_b") == 0 || strcmp(name, "_B") == 0) {
     while (l != NULL) {
       if (strcmp("__", l->name) == 0 && file_id == l->file_id && section_status == l->section_status) {

@@ -21,8 +21,8 @@ int discard_unused_sections(void) {
   struct section *s;
   int a = 0, b = -1;
 
-  /* iterate section discarding until there's no change in the
-     amount of dropped sections */
+  
+  /* iterate section discarding until there's no change in the amount of dropped sections */
   while (a != b) {
     s = sec_first;
     while (s != NULL) {
@@ -63,13 +63,13 @@ int discard_iteration(void) {
 
   struct reference *r;
   struct stackitem *si;
-  struct section *s, *se;
+  struct section *s, *ss;
   struct label *l;
   struct stack *st;
-  int g;
+  int i;
 
-  /* check section names for special characters '!', and
-     check if the section is of proper type */
+  
+  /* check section names for special characters '!', and check if the section is of proper type */
   s = sec_first;
   while (s != NULL) {
     if (s->name[0] == '!' || !(s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_SEMIFREE || s->status == SECTION_STATUS_SEMISUBFREE)) {
@@ -102,10 +102,10 @@ int discard_iteration(void) {
       if (r->section_status == OFF)
 	s->referenced++;
       else if (r->section != s->id) {
-	se = sec_first;
-	while (se->id != r->section)
-	  se = se->next;
-	if (se->alive == YES)
+	ss = sec_first;
+	while (ss->id != r->section)
+	  ss = ss->next;
+	if (ss->alive == YES)
 	  s->referenced++;
       }
     }
@@ -116,8 +116,8 @@ int discard_iteration(void) {
   st = stacks_first;
   while (st != NULL) {
     si = st->stack;
-    g = 0;
-    while (g != st->stacksize) {
+    i = 0;
+    while (i != st->stacksize) {
       if (si->type == STACK_ITEM_TYPE_STRING && is_label_anonymous(si->string) == FAILED) {
 	l = labels_first;
 	while (l != NULL) {
@@ -128,10 +128,10 @@ int discard_iteration(void) {
 	    if (st->section_status == OFF)
 	      s->referenced++;
 	    else if (st->section != s->id) {
-	      se = sec_first;
-	      while (se->id != st->section)
-		se = se->next;
-	      if (se->alive == YES)
+	      ss = sec_first;
+	      while (ss->id != st->section)
+		ss = ss->next;
+	      if (ss->alive == YES)
 		s->referenced++;
 	    }
 	  }
@@ -139,7 +139,7 @@ int discard_iteration(void) {
 	}
       }
       si++;
-      g++;
+      i++;
     }
     st = st->next;
   }
@@ -151,9 +151,10 @@ int discard_iteration(void) {
 /* drop labels that are inside discarded sections */
 int discard_drop_labels(void) {
 
-  struct label *l, *t;
+  struct label *l, *ll;
   struct section *s;
 
+  
   l = labels_first;
   while (l != NULL) {
     if (l->section_status == ON) {
@@ -170,9 +171,9 @@ int discard_drop_labels(void) {
 	  l->prev->next = l->next;
 	if (l->next != NULL)
 	  l->next->prev = l->prev;
-	t = l->next;
+	ll = l->next;
 	free(l);
-	l = t;
+	l = ll;
       }
       else
 	l = l->next;

@@ -24,6 +24,7 @@ int check_file_types(void) {
 
   struct object_file *o;
 
+  
   o = obj_first;
   while (o != NULL) {
     if (strncmp((char *)o->data, "WLAL", 4) == 0)
@@ -44,12 +45,13 @@ int check_file_types(void) {
 int check_headers(void) {
 
   struct object_file *o;
-  int x = 0, misc_bits = 0, more_bits = 0;
+  int count = 0, misc_bits = 0, more_bits = 0;
 
+  
   o = obj_first;
   while (o != NULL) {
     if (o->format == WLA_VERSION_OBJ) {
-      if (x == 0) {
+      if (count == 0) {
 	/* misc bits */
 	emptyfill = *(o->data + OBJ_EMPTY_FILL);
 	misc_bits = *(o->data + OBJ_MISC_BITS);
@@ -66,18 +68,19 @@ int check_headers(void) {
 	smc_status = more_bits & 1;
 	snes_sramsize = (more_bits >> 1) & 3;
 	smstag_defined = (more_bits >> 3) & 1;
-	x++;
       }
       else if (emptyfill != *(o->data + OBJ_EMPTY_FILL) || misc_bits != *(o->data + OBJ_MISC_BITS) || more_bits != *(o->data + OBJ_MORE_BITS)) {
 	fprintf(stderr, "CHECK_HEADERS: The object files are from different projects.\n");
 	return FAILED;
       }
+
+      count++;
     }
 
     o = o->next;
   }
 
-  if (x == 0) {
+  if (count == 0) {
     fprintf(stderr, "CHECK_HEADERS: There's nothing to link.\n");
     return FAILED;
   }

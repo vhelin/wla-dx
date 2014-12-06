@@ -38,12 +38,12 @@ static int _listfile_sort(const void *a, const void *b) {
 }
 
 
-static int _listfile_write_hex(FILE *f, int i) {
+static int _listfile_write_hex(FILE *f, int data) {
 
-  if (i >= 10)
-    fprintf(f, "%c", i + 'A' - 10);
+  if (data >= 10)
+    fprintf(f, "%c", data + 'A' - 10);
   else
-    fprintf(f, "%c", i + '0');
+    fprintf(f, "%c", data + '0');
 
   return SUCCEEDED;
 }

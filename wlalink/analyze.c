@@ -90,20 +90,21 @@ int add_stack(struct stack *sta) {
 
 int add_section(struct section *s) {
 
-  struct section *q;
+  struct section *ss;
 
+  
   s->file_id = obj_tmp->id;
   s->next = NULL;
   s->alive = YES;
 
   if (strcmp(s->name, "BANKHEADER") == 0) {
-    q = sec_hd_first;
-    while (q != NULL) {
-      if (q->bank == s->bank) {
+    ss = sec_hd_first;
+    while (ss != NULL) {
+      if (ss->bank == s->bank) {
 	fprintf(stderr, "%s: ADD_SECTION: BANKHEADER section for bank %d was defined for the second time.\n", obj_tmp->name, s->bank);
 	return FAILED;
       }
-      q = q->next;
+      ss = ss->next;
     }
 
     if (sec_hd_first == NULL) {
@@ -157,6 +158,7 @@ int obtain_rombankmap(void) {
   struct object_file *o;
   unsigned char *t;
 
+  
   /* initialize values */
   for (i = 0; i < rombanks; i++)
     banksizes[i] = 0;
@@ -226,6 +228,7 @@ int obtain_source_file_names(void) {
   unsigned char *t, *m;
   int x, z;
 
+  
   o = obj_first;
   while (o != NULL) {
     if (o->format == WLA_VERSION_OBJ)
@@ -281,6 +284,7 @@ int obtain_memorymap(void) {
   unsigned char *t;
   struct slot s[256];
 
+  
   for (i = 0; i < 256; i++)
     slots[i].usage = OFF;
 
@@ -373,6 +377,7 @@ int collect_dlr(void) {
   unsigned char *t, *dtmp;
   double dou;
 
+  
   section = 0;
   obj_tmp = obj_first;
   while (obj_tmp != NULL) {
@@ -715,10 +720,11 @@ int parse_data_blocks(void) {
   int section, i, y, x;
   unsigned char *t, *p;
 
+  
   obj_tmp = obj_first;
   section = 0;
-  while (obj_tmp != NULL) {
 
+  while (obj_tmp != NULL) {
     /* OBJECT FILE */
     if (obj_tmp->format == WLA_VERSION_OBJ) {
       t = obj_tmp->data_blocks;
@@ -827,9 +833,11 @@ int obtain_rombanks(void) {
   unsigned char *t;
   int rb = 0, k, s;
 
+
   /* obtain the biggest rom size */
   s = 0;
   obj_tmp = obj_first;
+
   while (obj_tmp != NULL) {
     if (obj_tmp->format == WLA_VERSION_OBJ) {
 
@@ -863,7 +871,9 @@ int clean_up_dlr(void) {
   struct label *l, *la;
   struct section *se, *sec, *sect;
 
+
   se = sec_first;
+
   while (se != NULL) {
     /* remove duplicates of unique sections and all the related data */
     if (strlen(se->name) >= 3 && se->name[0] == '!' && se->name[1] == '_' && se->name[2] == '_') {

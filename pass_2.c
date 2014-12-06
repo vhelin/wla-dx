@@ -91,6 +91,7 @@ int pass_2(void) {
     time_t t;
     int da, mo, ye_l, ye_h, ye, x, q;
 
+    
     /* insert string pointers */
     if (create_a_new_section_structure() == FAILED)
       return FAILED;

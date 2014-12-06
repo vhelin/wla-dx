@@ -35,6 +35,7 @@ int pass_3(void) {
 #endif
   char c;
 
+  
   s = NULL;
 
   if (verbose_mode == ON)
@@ -560,17 +561,18 @@ int pass_3(void) {
 
 
 /* is the label of form -, --, ---, +, ++, +++, ... ? */
-int is_label_anonymous(char *l) {
+int is_label_anonymous(char *label) {
 
-  int x, y;
+  int length, i;
   char c;
 
 
-  c = *l;
+  c = *label;
   if (!(c == '-' || c == '+'))
     return FAILED;
-  for (x = strlen(l), y = 0; y < x; y++) {
-    if (*(l + y) != c)
+  length = strlen(label);
+  for (i = 0; i < length; i++) {
+    if (*(label + i) != c)
       return FAILED;
   }
 
