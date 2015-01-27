@@ -4,32 +4,32 @@
 ------------------------------------------------------------------------------
 v9.6 (27-Jan-2015) [ALL] Fixed usage info (was missing -i).
                    [ALL] Moved the project to GitHub:
-				     https://github.com/vhelin/wla-dx
-				   [ALL] Renamed local variables in a lot of functions to
-				     make the code easier to understand.
-				   [ALL] Moved LDFLAGS to end of GCC invocation to fix builds.
-				   [ALL] Changed "-pedantic" to "-pedantic-errors -Wextras"
-				     in WLA's and WLALINK's makefiles.
-				   [ALL] Add ability to compile using Microsoft CL, LINK,
-				     and NMAKE / Added makefile generator m4 scripts.
-				   [ALL] Fixed .ROMBANKMAP and .BANKS allocation to prevent
-				     heap corruption when .BANKS allocated exceeds .BANKSTOTAL
-				   [ALL] Added support for more than 255 sections per file.
+                     https://github.com/vhelin/wla-dx
+                   [ALL] Renamed local variables in a lot of functions to
+                     make the code easier to understand.
+                   [ALL] Moved LDFLAGS to end of GCC invocation to fix builds.
+                   [ALL] Changed "-pedantic" to "-pedantic-errors -Wextras"
+                     in WLA's and WLALINK's makefiles.
+                   [ALL] Add ability to compile using Microsoft CL, LINK,
+                     and NMAKE / Added makefile generator m4 scripts.
+                   [ALL] Fixed .ROMBANKMAP and .BANKS allocation to prevent
+                     heap corruption when .BANKS allocated exceeds .BANKSTOTAL
+                   [ALL] Added support for more than 255 sections per file.
                    [ALL] WLA compiles now "WLAW" library files and "WLAL"
                      object files.
-				   [ALL] Added optional running index definition to
-				     .REPEAT / .REPT.
-				   [ALL] The calculation parser in WLA DX is now smarter -
-				     it knows more places when to stop parsing.
-				   [ALL] Feeding address labels via named ARGS to a .MACRO
-				     failed before, because they were interpreted as
-				     strings, not address labels.
-				   [ALL] Changed all references to bash to sh in scripts.
-				   [ALL] Added support for SEMISUBFREE sections.
-				   [Z80] .SDSCTAG & .SMSTAG & .COMPUTESMSCHECKSUM now work
-				     with 8KB & 16KB ROMs.
-				   [Z80] .SDSCTAG's minor version number is now parsed
-				     correctly.
+                   [ALL] Added optional running index definition to
+                     .REPEAT / .REPT.
+                   [ALL] The calculation parser in WLA DX is now smarter -
+                     it knows more places when to stop parsing.
+                   [ALL] Feeding address labels via named ARGS to a .MACRO
+                     failed before, because they were interpreted as
+                     strings, not address labels.
+                   [ALL] Changed all references to bash to sh in scripts.
+                   [ALL] Added support for SEMISUBFREE sections.
+                   [Z80] .SDSCTAG & .SMSTAG & .COMPUTESMSCHECKSUM now work
+                     with 8KB & 16KB ROMs.
+                   [Z80] .SDSCTAG's minor version number is now parsed
+                     correctly.
 
 v9.5 (14-Aug-2008) [ALL] The unix.sh now takes the number of jobs make
                      commands should create, speeding up the compiling
