@@ -1,7 +1,7 @@
 
 To compile all the binaries, write
 
-./unix.sh {JOBS} ;under un*x. replace {JOBS} with 8 if you have a quad core,
+./unix.sh {JOBS} ;under un*x / OS X. replace {JOBS} with 8 if you have a quad core,
                   4 if you have a dual core CPU.
 msdos.bat        ;under msdos and djgpp.
 execute amiga    ;under amigaos 1-3.

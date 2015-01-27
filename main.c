@@ -37,32 +37,32 @@ long __stack = 65536;
 
 #ifdef AMIGA
 #ifdef GB
-char version_string[] = "$VER: WLA-GB 9.5 (02.03.2008)";
+char version_string[] = "$VER: WLA-GB 9.6 (27.01.2015)";
 #endif
 #ifdef Z80
-char version_string[] = "$VER: WLA-Z80 9.5 (02.03.2008)";
+char version_string[] = "$VER: WLA-Z80 9.6 (27.01.2015)";
 #endif
 #ifdef MCS6502
-char version_string[] = "$VER: WLA-6502 9.5 (02.03.2008)";
+char version_string[] = "$VER: WLA-6502 9.6 (27.01.2015)";
 #endif
 #ifdef WDC65C02
-char version_string[] = "$VER: WLA-65C02 9.5 (02.03.2008)";
+char version_string[] = "$VER: WLA-65C02 9.6 (27.01.2015)";
 #endif
 #ifdef W65816
-char version_string[] = "$VER: WLA-65816 9.5 (02.03.2008)";
+char version_string[] = "$VER: WLA-65816 9.6 (27.01.2015)";
 #endif
 #ifdef MCS6510
-char version_string[] = "$VER: WLA-6510 9.5 (02.03.2008)";
+char version_string[] = "$VER: WLA-6510 9.6 (27.01.2015)";
 #endif
 #ifdef SPC700
-char version_string[] = "$VER: WLA-SPC700 9.5 (02.03.2008)";
+char version_string[] = "$VER: WLA-SPC700 9.6 (27.01.2015)";
 #endif
 #ifdef HUC6280
-char version_string[] = "$VER: WLA-HuC6280 9.5 (02.03.2008)";
+char version_string[] = "$VER: WLA-HuC6280 9.6 (27.01.2015)";
 #endif
 #endif
 
-char wla_version[] = "9.5";
+char wla_version[] = "9.6";
 
 char gba_tmp_name[32], gba_unfolded_name[32];
 
@@ -118,30 +118,30 @@ int main(int argc, char *argv[]) {
 
   if (i == FAILED || output_format == OUTPUT_NONE) {
 #ifdef GB
-    printf("\nWLA GB-Z80 Macro Assembler v9.5\n");
+    printf("\nWLA GB-Z80 Macro Assembler v9.6\n");
 #endif
 #ifdef Z80
-    printf("\nWLA Z80 Macro Assembler v9.5\n");
+    printf("\nWLA Z80 Macro Assembler v9.6\n");
 #endif
 #ifdef MCS6502
-    printf("\nWLA 6502 Macro Assembler v9.5\n");
+    printf("\nWLA 6502 Macro Assembler v9.6\n");
 #endif
 #ifdef WDC65C02
-    printf("\nWLA 65C02 Macro Assembler v9.5\n");
+    printf("\nWLA 65C02 Macro Assembler v9.6\n");
 #endif
 #ifdef W65816
-    printf("\nWLA 65816 Macro Assembler v9.5\n");
+    printf("\nWLA 65816 Macro Assembler v9.6\n");
 #endif
 #ifdef MCS6510
-    printf("\nWLA 6510 Macro Assembler v9.5\n");
+    printf("\nWLA 6510 Macro Assembler v9.6\n");
 #endif
 #ifdef SPC700
-    printf("\nWLA SPC-700 Macro Assembler v9.5\n");
+    printf("\nWLA SPC-700 Macro Assembler v9.6\n");
 #endif
 #ifdef HUC6280
-    printf("\nWLA HuC6280 Macro Assembler v9.5\n");
+    printf("\nWLA HuC6280 Macro Assembler v9.6\n");
 #endif
-    printf("Written by Ville Helin in 1998-2008\n");
+    printf("Written by Ville Helin in 1998-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
     printf("USAGE: %s -[iMqtvx]{lo} [DEFINITIONS] <ASM FILE> [OUTPUT FILE]\n", argv[0]);
     printf("Commands:             Options:\n");
     printf("l  Library file       i  Add list file information\n");
