@@ -12,21 +12,28 @@ enable_language (C)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/binaries/")
 
 # --- Platform-specific config
-#CMake will automatically define WIN32 for us, how convenient! But we need MSDOS flag
-#as well.
+#CMake will automatically define WIN32 for us for Microsoft compilers, how 
+#convenient! But we need MSDOS flag as well. Additionally, other compilers
+#don't define it by default. WIN32 Does NOT include Cygwin.
 if (WIN32)
+    add_definitions( -DWIN32 )
     add_definitions( -DMSDOS )
 endif (WIN32)
 
+#This should work on ANY POSIX-compliant environment.
+if (UNIX)
+    add_definitions( -DUNIX )
+    link_libraries(m) #Deprecated, but best solution. See: 
+    #http://www.cmake.org/pipermail/cmake/2009-April/028439.html
+endif (UNIX)
+
 
 # --- Toolchain-specific config
-
-
 # --- GCC flags 
 if (CMAKE_COMPILER_IS_GNUCC)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -ansi -pedantic-errors -Wall -Wextra -lm")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ansi -pedantic-errors -Wall -Wextra")
+    string(REPLACE "-O2" "-O3" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 endif (CMAKE_COMPILER_IS_GNUCC)
-
 
 # --- Tell MSVC to STFU about _CRT_SECURE_NO_WARNINGS
 if (MSVC)
@@ -38,6 +45,14 @@ if (MSVC)
     #string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
     add_definitions( /D_CRT_SECURE_NO_WARNINGS )
 endif (MSVC)
+
+# --- WATCOM C Compiler works just fine as well. Might be a decent alternative
+#386 MSDOS compiler as well (compare to DJGPP).
+if (WATCOM)
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -za") #Disable extensions
+    string(REPLACE "-ot" "-ox" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+    string(REGEX REPLACE "-w=[0-4]" "-w=4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+endif (WATCOM)
 
 #Make the source tree available to includes
 include_directories(${PROJECT_SOURCE_DIR})
