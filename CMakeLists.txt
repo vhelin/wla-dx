@@ -7,14 +7,36 @@ project (WLA-DX)
 # --- Explicitly enable C
 enable_language (C)
 
+# --- Output into binaries directory
+#Is there a way to change this solely for the opcode_table_generator subproject?
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/binaries/")
+
+# --- Platform-specific config
+#CMake will automatically define WIN32 for us, how convenient! But we need MSDOS flag
+#as well.
+if (WIN32)
+    add_definitions( -DMSDOS )
+endif (WIN32)
+
+
+# --- Toolchain-specific config
+
+
 # --- GCC flags 
 if (CMAKE_COMPILER_IS_GNUCC)
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -ansi -pedantic-errors -Wall -Wextra -lm")
 endif (CMAKE_COMPILER_IS_GNUCC)
 
+
 # --- Tell MSVC to STFU about _CRT_SECURE_NO_WARNINGS
 if (MSVC)
-    add_definitions( -D_CRT_SECURE_NO_WARNINGS )
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Za") #Disable extensions
+    #Per http://www.cmake.org/pipermail/cmake/2011-October/046738.html,
+    #replace flags directly instead of appending them.
+    string(REPLACE "/O2" "/Ox" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+    #When ready, increase the warning level (no need for now).
+    #string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    add_definitions( /D_CRT_SECURE_NO_WARNINGS )
 endif (MSVC)
 
 #Make the source tree available to includes
