@@ -2592,13 +2592,6 @@ and #20.w
 bit loop.b
 bit loop.w
 
-Additionally there is an extra mnemonic in the GB-Z80 version of WLA
-called "DEBUG" which will translate to $ED. This one is not used in
-real GB-Z80, but my Game Boy emulator, Wzonka-Lad, will invert the
-Amiga's power light mode when $ED is executed.
-
-Don't use DEBUG if you are going to use your code elsewhere!
-
 
 3.7. Brackets?
 

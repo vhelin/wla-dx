@@ -120,8 +120,6 @@ struct optcode opt_table[] = {
 
   { "DAA", 0x27, 0, 0 },
 
-  { "DEBUG", 0xed, 0, 0 }, /* note that this works only with wzonka-lad */
-
   { "DEC A", 0x3d, 0, 0 },
   { "DEC B", 0x5, 0, 0 },
   { "DEC BC", 0xb, 0, 0 },
