@@ -1576,6 +1576,18 @@ int parse_directive(void) {
       return FAILED;
     }
 
+	/* DEBUG
+	{
+		struct structure_item *sS = s->items;
+		
+		fprintf(stderr, "STRUCT \"%s\" size %d\n", s->name, s->size);
+		while (sS != NULL) {
+			fprintf(stderr, "ITEM \"%s\" size %d\n", sS->name, sS->size);
+			sS = sS->next;
+		}
+	}
+	*/
+	
     if (compare_next_token("DATA", 4) == SUCCEEDED)
       skip_next_token();
 
@@ -1588,6 +1600,12 @@ int parse_directive(void) {
 
       fprintf(file_out_ptr, "k%d L%s.%s ", active_file_info_last->line_current, iname, it->name);
 
+	  if (it->size <= 0) {
+		  /* don't put data into empty structure items */
+		  it = it->next;
+		  continue;
+	  }
+	  
       /* take care of the strings */
       if (inz == INPUT_NUMBER_STRING) {
         if (it->size < string_size) {
@@ -1974,7 +1992,7 @@ int parse_directive(void) {
         }
 
         if (st->items == NULL) {
-          sprintf(emsg, "Structure \"%s\" is empty!\n", st->name);
+          sprintf(emsg, "STRUCT \"%s\" is empty!\n", st->name);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -2037,6 +2055,87 @@ int parse_directive(void) {
           return FAILED;
         }
         si->size = d*2;
+      }
+      else if (strcaselesscmp(tmp, "INSTANCEOF") == 0) {
+         struct structure *stt;
+         int arr = 1;
+         
+         /* zero the size of the root struct label */
+         si->size = 0;
+
+         /* get the structure type */
+         if (get_next_token() == FAILED)
+           return FAILED;
+         
+         stt = get_structure(tmp);
+         
+         if (stt != NULL) {
+            int j;
+			
+            q = input_number();
+            if (q == SUCCEEDED) {
+               arr = d;
+            }
+            
+            if (arr == 0) {
+               /* invalid structure array size */
+               sprintf(emsg, "Nested STRUCT \"%s\" in \"%s\" has an invalid array size.\n", si->name, tmp);
+               print_error(emsg, ERROR_DIR);
+               return FAILED;
+            }
+            
+            for (j = 0; j < arr; j++) {
+               struct structure_item *sti = stt->items;
+               
+               while (sti != NULL) {
+                  struct structure_item *sj = NULL;
+                  
+                  if (j == 0 && arr > 1) {
+                     /* add 0 size labels for the first elements */
+                     sj = malloc(sizeof(struct structure_item));
+                     if (sj == NULL) {
+                       print_error("Out of memory while allocating a nested STRUCT.\n", ERROR_DIR);
+                       return FAILED;
+                     }
+                     sj->next = NULL;
+                     sprintf(sj->name, "%s.%s", si->name, sti->name);
+                     sj->size = 0;
+                     
+                     if (sl != NULL)
+                       sl->next = sj;
+                     sl = sj;
+                  }
+                  
+                  /* add items for each of the structure item entries. combine si->name with the structure item name. */
+                  sj = malloc(sizeof(struct structure_item));
+                  if (sj == NULL) {
+                    print_error("Out of memory while allocating a nested STRUCT.\n", ERROR_DIR);
+                    return FAILED;
+                  }
+                  sj->next = NULL;
+                  if (arr == 1)
+                     sprintf(sj->name, "%s.%s", si->name, sti->name);
+                  else
+                     sprintf(sj->name, "%s.%i.%s", si->name, j + 1, sti->name);
+                  sj->size = sti->size;
+                  
+                  if (sl != NULL)
+                    sl->next = sj;
+                  sl = sj;
+                  
+                  sti = sti->next;
+               }
+               
+               /* adjust the total struct offset */
+               ssi += stt->size;
+            }
+         }
+         else {
+            /* failed to find structure */
+            sprintf(emsg, "Failed to find nested STRUCT \"%s\" type \"%s\" in .STRUCT.\n", si->name, tmp);
+            print_error(emsg, ERROR_DIR);
+            return FAILED;
+         }
       }
       else if (tmp[0] == '.')
         continue;
