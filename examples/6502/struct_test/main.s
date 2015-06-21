@@ -29,4 +29,9 @@ data2  db
 .ENDST
 
 .DSTRUCT waterPool1 INSTANCEOF waterPool DATA "myPool", 9, 120, 1, 2, 3, 4, 5,6
-.db $ff, $ff
+.db $ff, $fe
+
+.enum $a000
+waterPool2 instanceof waterPool
+.ende
+
