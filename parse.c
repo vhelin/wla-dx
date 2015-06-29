@@ -281,10 +281,20 @@ int input_number(void) {
       }
 #endif
     }
-	if (d > 0xFF)
+#if defined(W65186)
+	if (d > 0xFFFF && d <= 0xFFFFFF)
+		operand_hint = HINT_24BIT;
+	else if (d > 0xFF)
 		operand_hint = HINT_16BIT;
-		else
-			operand_hint = HINT_8BIT;
+	else
+		operand_hint = HINT_8BIT;
+		
+#else
+	if (d > 0xFF && d <= 0xFFFF)
+		operand_hint = HINT_16BIT;
+	else
+		operand_hint = HINT_8BIT;
+#endif
 #endif
 
     return SUCCEEDED;
@@ -352,10 +362,20 @@ int input_number(void) {
 
     /* drop the decimals */
     d = parsed_double;
-	if (d > 0xFF)
+#if defined(W65186)
+	if (d > 0xFFFF && d <= 0xFFFFFF)
+		operand_hint = HINT_24BIT;
+	else if (d > 0xFF)
 		operand_hint = HINT_16BIT;
-		else
-			operand_hint = HINT_8BIT;
+	else
+		operand_hint = HINT_8BIT;
+		
+#else
+	if (d > 0xFF && d <= 0xFFFF)
+		operand_hint = HINT_16BIT;
+	else
+		operand_hint = HINT_8BIT;
+#endif
 
     if (q == 1 && input_float_mode == ON)
       return INPUT_NUMBER_FLOAT;
@@ -514,10 +534,20 @@ int input_number(void) {
     if (strcmp(label, tmp_def->alias) == 0) {
       if (tmp_def->type == DEFINITION_TYPE_VALUE) {
 	d = tmp_def->value;
-	if (d > 0xFF)
+#if defined(W65186)
+	if (d > 0xFFFF && d <= 0xFFFFFF)
+		operand_hint = HINT_24BIT;
+	else if (d > 0xFF)
 		operand_hint = HINT_16BIT;
-		else
-			operand_hint = HINT_8BIT;
+	else
+		operand_hint = HINT_8BIT;
+		
+#else
+	if (d > 0xFF && d <= 0xFFFF)
+		operand_hint = HINT_16BIT;
+	else
+		operand_hint = HINT_8BIT;
+#endif
 	return SUCCEEDED;
       }
       else if (tmp_def->type == DEFINITION_TYPE_STACK) {
