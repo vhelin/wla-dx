@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra  -DMSDOS -DWIN32
+CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra  -DWIN32
 LD = gcc
 LDFLAGS = -s
 RM = rm -f 
@@ -49,7 +49,3 @@ $(OFILES): $(HFILES)
 
 clean:
 	$(RM) $(RMFLAGS) $(OFILES) *~ wlalink.exe
-
-install:
-	make 
-	install wlalink.exe /c/bin

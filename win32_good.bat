@@ -30,7 +30,7 @@ echo.
 
 set WLA1=Z80
 set WLA2=z80
-make --makefile=MAKEFILE
+make --makefile=makefiles\makefile.win32.all
 del main.o
 del parse.o
 del include_file.o
@@ -43,7 +43,7 @@ del listfile.o
 
 set WLA1=SPC700
 set WLA2=spc700
-make --makefile=MAKEFILE
+make --makefile=makefiles\makefile.win32.all
 del main.o
 del parse.o
 del include_file.o
@@ -56,7 +56,7 @@ del listfile.o
 
 set WLA1=GB
 set WLA2=gb
-make --makefile=MAKEFILE
+make --makefile=makefiles\makefile.win32.all
 del main.o
 del parse.o
 del include_file.o
@@ -70,7 +70,7 @@ del listfile.o
 
 set WLA1=MCS6502
 set WLA2=6502
-make --makefile=MAKEFILE
+make --makefile=makefiles\makefile.win32.all
 del main.o
 del parse.o
 del include_file.o
@@ -83,7 +83,7 @@ del listfile.o
 
 set WLA1=WDC65C02
 set WLA2=65c02
-make --makefile=MAKEFILE
+make --makefile=makefiles\makefile.win32.all
 del main.o
 del parse.o
 del include_file.o
@@ -96,7 +96,7 @@ del listfile.o
 
 set WLA1=MCS6510
 set WLA2=6510
-make --makefile=MAKEFILE
+make --makefile=makefiles\makefile.win32.all
 del main.o
 del parse.o
 del include_file.o
@@ -109,7 +109,7 @@ del listfile.o
 
 set WLA1=W65816
 set WLA2=65816
-make --makefile=MAKEFILE
+make --makefile=makefiles\makefile.win32.all
 del main.o
 del parse.o
 del include_file.o
@@ -122,7 +122,7 @@ del listfile.o
 
 set WLA1=HUC6280
 set WLA2=huc6280
-make --makefile=MAKEFILE
+make --makefile=makefiles\makefile.win32.all
 del main.o
 del parse.o
 del include_file.o
@@ -140,7 +140,7 @@ echo.
 
 
 cd wlalink
-make --makefile=MAKEFILE
+make --makefile=makefile.win32
 copy wlalink.exe ..\wlalink.exe
 cd ..\
 
