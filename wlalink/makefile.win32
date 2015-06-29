@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra  -DWIN32
+CFLAGS = -c -Os -s -ansi -pedantic-errors -Wall -Wextra  -DWIN32
 LD = gcc
 LDFLAGS = -s
 RM = rm -f 
@@ -9,8 +9,8 @@ HFILES = main.h memory.h parse.h files.h check.h analyze.h write.h compute.h dis
 OFILES = main.o memory.o parse.o files.o check.o analyze.o write.o compute.o discard.o listfile.o
 
 
-all: $(OFILES) makefile
-	$(LD) $(LDFLAGS) $(OFILES) -o wlalink.exe 
+all: $(OFILES) makefile.win32
+	$(LD) $(LDFLAGS) $(OFILES) -o wlalink.exe
 
 
 main.o: main.c main.h defines.h
@@ -45,7 +45,3 @@ listfile.o: listfile.c listfile.h defines.h
 
 
 $(OFILES): $(HFILES)
-
-
-clean:
-	$(RM) $(RMFLAGS) $(OFILES) *~ wlalink.exe
