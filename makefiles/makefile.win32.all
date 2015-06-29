@@ -1,6 +1,6 @@
 
 CC = gcc
-CFLAGS = -c -Os -s -ansi -pedantic -Wall -DWIN32 -D $(WLA1)
+CFLAGS = -c -Os -s -ansi -pedantic -Wall -DMSDOS -D $(WLA1)
 LD = gcc
 LDFLAGS = -lm
 WLAFLAGS = $(CFLAGS)

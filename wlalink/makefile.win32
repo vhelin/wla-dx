@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -c -Os -s -ansi -pedantic-errors -Wall -Wextra  -DWIN32
+CFLAGS = -c -Os -s -ansi -pedantic-errors -Wall -Wextra  -DMSDOS
 LD = gcc
 LDFLAGS = -s
 RM = rm -f 
