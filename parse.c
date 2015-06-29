@@ -289,7 +289,7 @@ int input_number(void) {
 	else
 		operand_hint = HINT_8BIT;
 		
-#else
+#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
 	if (d > 0xFF && d <= 0xFFFF)
 		operand_hint = HINT_16BIT;
 	else
@@ -370,7 +370,7 @@ int input_number(void) {
 	else
 		operand_hint = HINT_8BIT;
 		
-#else
+#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
 	if (d > 0xFF && d <= 0xFFFF)
 		operand_hint = HINT_16BIT;
 	else
@@ -542,7 +542,7 @@ int input_number(void) {
 	else
 		operand_hint = HINT_8BIT;
 		
-#else
+#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
 	if (d > 0xFF && d <= 0xFFFF)
 		operand_hint = HINT_16BIT;
 	else
