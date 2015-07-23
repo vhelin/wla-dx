@@ -738,7 +738,13 @@ int evaluate_token(void) {
 
   /* OPCODE? */
 
-  ind = opcode_p[(unsigned int)tmp[0]];
+  int op_id = tmp[0];
+  if (op_id < 0) {
+      print_error("Invalid value\n", ERROR_LOG);
+      return FAILED;
+  }
+
+  ind = opcode_p[op_id];
   opt_tmp = &opt_table[ind];
 
   for (f = opcode_n[(unsigned int)tmp[0]]; f > 0; f--) {
