@@ -6452,7 +6452,7 @@ int parse_directive(void) {
 
   if (strcmp(cp, "ENDASM") == 0) {
 
-    int asm = 1, x;
+    int endasm = 1, x;
 
 
     while (1) {
@@ -6467,12 +6467,12 @@ int parse_directive(void) {
         return SUCCEEDED;
       }
       if (strcaselesscmp(tmp, ".ASM") == 0) {
-        asm--;
-        if (asm == 0)
+        endasm--;
+        if (endasm == 0)
           return SUCCEEDED;
       }
       if (strcaselesscmp(tmp, ".ENDASM") == 0)
-        asm++;
+        endasm++;
     }
   }
 
