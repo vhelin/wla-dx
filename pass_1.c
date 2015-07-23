@@ -1477,7 +1477,7 @@ int parse_directive(void) {
         break;
       }
 
-      if (!q == INPUT_NUMBER_STRING) {
+      if (q != INPUT_NUMBER_STRING) {
         sprintf(emsg, ".%s needs string data.\n", bak);
         print_error(emsg, ERROR_INP);
         return FAILED;
