@@ -27,13 +27,8 @@ if (UNIX)
     #http://www.cmake.org/pipermail/cmake/2009-April/028439.html
 endif (UNIX)
 
-
-# --- Toolchain-specific config
-# --- GCC flags 
-if (CMAKE_COMPILER_IS_GNUCC)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ansi -pedantic-errors -Wall -Wextra")
-    string(REPLACE "-O2" "-O3" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
-endif (CMAKE_COMPILER_IS_GNUCC)
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ansi -pedantic-errors -Wall -Wextra")
+string(REPLACE "-O2" "-O3" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
 # --- Tell MSVC to STFU about _CRT_SECURE_NO_WARNINGS
 if (MSVC)
