@@ -34,6 +34,18 @@ int mem_insert(int address, unsigned char data) {
 }
 
 
+int mem_insert_allow_overwrite(int address, unsigned char data, unsigned int allowed_overwrites) {
+
+  if (rom_usage[address] > allowed_overwrites)
+    return mem_insert(address, data);
+
+  rom_usage[address]++;
+  rom[address] = data;
+
+  return SUCCEEDED;
+}
+
+
 int mem_insert_ref(int address, unsigned char data) {
 
   if (address > romsize || address < 0) {

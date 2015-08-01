@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 
   if (i == FAILED) {
     printf("\nWLALINK GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 WLA Macro Assembler Linker v5.7\n");
-    printf("Written by Ville Helin in 2000-2008\n");
+    printf("Written by Ville Helin in 2000-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
     printf("USAGE: %s [-bdirsSv] <LINK FILE> <OUTPUT FILE>\n", argv[0]);
     printf("Options:\n");
     printf("b  Program file output\n");
@@ -228,6 +228,9 @@ int main(int argc, char *argv[]) {
   }
 #endif
 
+  /* reserve the bytes the checksummers will use, so no (free type) sections will be placed there */
+  reserve_checksum_bytes();
+  
   /* insert sections */
   if (insert_sections() == FAILED)
     return 1;

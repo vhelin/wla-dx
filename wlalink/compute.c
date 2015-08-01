@@ -14,6 +14,74 @@ extern int romsize, sms_checksum, smstag_defined, gb_checksum, gb_complement_che
 extern int snes_rom_mode;
 
 
+int reserve_checksum_bytes(void) {
+
+  /* reserve checksum bytes so that no free type sections will be placed over them */
+  
+  if (sms_checksum != 0) {
+    int tag_address = 0x7FF0;
+    if (romsize < 0x4000)
+      tag_address = 0x1FF0;
+    else if (romsize < 0x8000)
+      tag_address = 0x3FF0;
+
+    if (romsize >= 0x2000) {
+      mem_insert(tag_address + 0xA, 0x0);
+      mem_insert(tag_address + 0xB, 0x0);
+      mem_insert(tag_address + 0xF, 0x0);
+    }
+  }
+	       
+  if (smstag_defined != 0) {
+    int tag_address = 0x7FF0;
+    if (romsize < 0x4000)
+      tag_address = 0x1FF0;
+    else if (romsize < 0x8000)
+      tag_address = 0x3FF0;
+    
+    if (romsize >= 0x2000) {
+      mem_insert(tag_address + 0x0, 0);
+      mem_insert(tag_address + 0x1, 0);
+      mem_insert(tag_address + 0x2, 0);
+      mem_insert(tag_address + 0x3, 0);
+      mem_insert(tag_address + 0x4, 0);
+      mem_insert(tag_address + 0x5, 0);
+      mem_insert(tag_address + 0x6, 0);
+      mem_insert(tag_address + 0x7, 0);
+    }
+  }
+
+  if (gb_complement_check != 0) {
+    if (romsize >= 0x8000)
+      mem_insert(0x14D, 0);
+  }
+
+  if (gb_checksum != 0) {
+    if (romsize >= 0x8000) {
+      mem_insert(0x14E, 0);
+      mem_insert(0x14F, 0);
+    }
+  }
+
+  if (snes_checksum != 0) {
+    if (snes_rom_mode == SNES_ROM_MODE_LOROM && romsize >= 0x8000) {
+      mem_insert(0x7FDC, 0);
+      mem_insert(0x7FDD, 0);
+      mem_insert(0x7FDE, 0);
+      mem_insert(0x7FDF, 0);
+    }
+    else if (snes_rom_mode == SNES_ROM_MODE_HIROM && romsize >= 0x10000) {
+      mem_insert(0xFFDC, 0);
+      mem_insert(0xFFDD, 0);
+      mem_insert(0xFFDE, 0);
+      mem_insert(0xFFDF, 0);
+    }
+  }
+  
+  return SUCCEEDED;
+}
+
+
 int compute_checksums(void) {
 
   if (sms_checksum != 0)
@@ -45,7 +113,7 @@ int compute_gb_complement_check(void) {
   for (j = 0x134; j <= 0x14C; j++)
     res += rom[j];
   res += 25;
-  mem_insert(0x14D, 0 - (res & 0xFF));
+  mem_insert_allow_overwrite(0x14D, 0 - (res & 0xFF), 1);
 
   return SUCCEEDED;
 }
@@ -67,8 +135,8 @@ int compute_gb_checksum(void) {
   for (j = 0x150; j < romsize; j++)
     checksum += rom[j];
 
-  mem_insert(0x14E, (checksum >> 8) & 0xFF);
-  mem_insert(0x14F, checksum & 0xFF);
+  mem_insert_allow_overwrite(0x14E, (checksum >> 8) & 0xFF, 1);
+  mem_insert_allow_overwrite(0x14F, checksum & 0xFF, 1);
 
   return SUCCEEDED;
 }
@@ -130,16 +198,16 @@ int compute_snes_checksum(void) {
 
   /* insert the checksum bytes */
   if (snes_rom_mode == SNES_ROM_MODE_LOROM) {
-    mem_insert(0x7FDC, inv & 0xFF);
-    mem_insert(0x7FDD, (inv >> 8) & 0xFF);
-    mem_insert(0x7FDE, res & 0xFF);
-    mem_insert(0x7FDF, (res >> 8) & 0xFF);
+    mem_insert_allow_overwrite(0x7FDC, inv & 0xFF, 1);
+    mem_insert_allow_overwrite(0x7FDD, (inv >> 8) & 0xFF, 1);
+    mem_insert_allow_overwrite(0x7FDE, res & 0xFF, 1);
+    mem_insert_allow_overwrite(0x7FDF, (res >> 8) & 0xFF, 1);
   }
   else {
-    mem_insert(0xFFDC, inv & 0xFF);
-    mem_insert(0xFFDD, (inv >> 8) & 0xFF);
-    mem_insert(0xFFDE, res & 0xFF);
-    mem_insert(0xFFDF, (res >> 8) & 0xFF);
+    mem_insert_allow_overwrite(0xFFDC, inv & 0xFF, 1);
+    mem_insert_allow_overwrite(0xFFDD, (inv >> 8) & 0xFF, 1);
+    mem_insert_allow_overwrite(0xFFDE, res & 0xFF, 1);
+    mem_insert_allow_overwrite(0xFFDF, (res >> 8) & 0xFF, 1);
   }
 
   return SUCCEEDED;
@@ -162,14 +230,14 @@ int add_sms_tag(void) {
   }
 
   /* TMR SEGA */
-  mem_insert(tag_address + 0x0, 0x54);
-  mem_insert(tag_address + 0x1, 0x4D);
-  mem_insert(tag_address + 0x2, 0x52);
-  mem_insert(tag_address + 0x3, 0x20);
-  mem_insert(tag_address + 0x4, 0x53);
-  mem_insert(tag_address + 0x5, 0x45);
-  mem_insert(tag_address + 0x6, 0x47);
-  mem_insert(tag_address + 0x7, 0x41);
+  mem_insert_allow_overwrite(tag_address + 0x0, 0x54, 1);
+  mem_insert_allow_overwrite(tag_address + 0x1, 0x4D, 1);
+  mem_insert_allow_overwrite(tag_address + 0x2, 0x52, 1);
+  mem_insert_allow_overwrite(tag_address + 0x3, 0x20, 1);
+  mem_insert_allow_overwrite(tag_address + 0x4, 0x53, 1);
+  mem_insert_allow_overwrite(tag_address + 0x5, 0x45, 1);
+  mem_insert_allow_overwrite(tag_address + 0x6, 0x47, 1);
+  mem_insert_allow_overwrite(tag_address + 0x7, 0x41, 1);
 
   return SUCCEEDED;
 }
@@ -205,11 +273,11 @@ int compute_sms_checksum(void) {
   for (j = 0; j < tag_address; j++)
     checksum += rom[j];
 
-  mem_insert(tag_address + 0xA, checksum & 0xFF);
-  mem_insert(tag_address + 0xB, (checksum >> 8) & 0xFF);
+  mem_insert_allow_overwrite(tag_address + 0xA, checksum & 0xFF, 1);
+  mem_insert_allow_overwrite(tag_address + 0xB, (checksum >> 8) & 0xFF, 1);
 
   /* region code + ROM size */
-  mem_insert(tag_address + 0xF, final_byte);
+  mem_insert_allow_overwrite(tag_address + 0xF, final_byte, 1);
 
   return SUCCEEDED;
 }
