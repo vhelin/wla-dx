@@ -416,27 +416,8 @@ void procedures_at_exit(void) {
 
 
 int generate_tmp_names(void) {
-
-#ifdef UNIX
-  sprintf(gba_tmp_name, ".wla%da", (int)getpid());
-  sprintf(gba_unfolded_name, ".wla%db", (int)getpid());
-#endif
-
-#ifdef AMIGA
   sprintf(gba_tmp_name, "wla_a.tmp");
   sprintf(gba_unfolded_name, "wla_b.tmp");
-#endif
-
-#ifdef MSDOS
-#if 1 /*ndef WIN32*/
-  sprintf(gba_tmp_name, "wla_a.tmp");
-  sprintf(gba_unfolded_name, "wla_b.tmp");
-#else
-  sprintf(gba_tmp_name, ".wla%lda", GetCurrentProcessId());
-  sprintf(gba_unfolded_name, ".wla%ldb", GetCurrentProcessId());
-#endif  
-#endif
-
   return SUCCEEDED;
 }
 

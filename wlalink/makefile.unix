@@ -1,9 +1,9 @@
 CC = gcc
-CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra  -DUNIX
+CFLAGS = -c -O3 -ansi -pedantic-errors -Wall -Wextra
 LD = gcc
 LDFLAGS = -s
 RM = rm -f 
-RMFLAGS = 
+RMFLAGS =
 CFILES = main.c memory.c parse.c files.c check.c analyze.c write.c compute.c discard.c listfile.c
 HFILES = main.h memory.h parse.h files.h check.h analyze.h write.h compute.h discard.h listfile.h defines.h
 OFILES = main.o memory.o parse.o files.o check.o analyze.o write.o compute.o discard.o listfile.o
@@ -48,7 +48,7 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	$(RM) $(RMFLAGS) $(OFILES) *~ wlalink
+	$(RM) $(RMFLAGS) $(OFILES)
 
 install:
 	make  

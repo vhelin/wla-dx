@@ -19,9 +19,6 @@ echo "****************************************************************"
 echo ""
 
 cd opcode_table_generator
-cp create_tables.unix create_tables.sh
-cp makefile.unix makefile
-chmod u+x create_tables.sh
 ./create_tables.sh
 cd ..
 
@@ -32,17 +29,15 @@ echo "****************************************************************"
 echo ""
 
 cd wlab
-cp makefile.unix makefile
-make -j $1 
+make --makefile=makefile.unix
 cp wlab ../binaries
-make  clean
+make  clean --makefile=makefile.unix
 cd ..
 
 cd wlad
-cp makefile.unix makefile
-make -j $1 
+make --makefile=makefile.unix
 cp wlad ../binaries
-make  clean
+make  clean --makefile=makefile.unix
 cd ..
 
 echo ""
@@ -51,47 +46,47 @@ echo "*                  compiling WLA binaries                      *"
 echo "****************************************************************"
 echo ""
 
-make  clean
-cp makefiles/makefile.unix.gb makefile
-make -j $1 
-cp wla-gb binaries
+set WLA1=Z80
+set WLA2=z80
+make --makefile=makefile.unix
+make clean --makefile=makefile.unix
 
-make  clean
-cp makefiles/makefile.unix.z80 makefile
-make -j $1 
-cp wla-z80 binaries
+export WLA1=SPC700
+export WLA2=spc700
+make --makefile=makefile.unix
+make clean --makefile=makefile.unix
 
-make  clean
-cp makefiles/makefile.unix.6502 makefile
-make -j $1 
-cp wla-6502 binaries
+export WLA1=GB
+export WLA2=gb
+make --makefile=makefile.unix
+make clean --makefile=makefile.unix
 
-make  clean
-cp makefiles/makefile.unix.65c02 makefile
-make -j $1 
-cp wla-65c02 binaries
 
-make  clean
-cp makefiles/makefile.unix.6510 makefile
-make -j $1 
-cp wla-6510 binaries
+export WLA1=MCS6502
+export WLA2=6502
+make --makefile=makefile.unix
+make clean --makefile=makefile.unix
 
-make  clean
-cp makefiles/makefile.unix.65816 makefile
-make -j $1 
-cp wla-65816 binaries
+export WLA1=WDC65C02
+export WLA2=65c02
+make --makefile=makefile.unix
+make clean --makefile=makefile.unix
 
-make  clean
-cp makefiles/makefile.unix.spc700 makefile
-make -j $1 
-cp wla-spc700 binaries
+export WLA1=MCS6510
+export WLA2=6510
+make --makefile=makefile.unix
+make clean --makefile=makefile.unix
 
-make  clean
-cp makefiles/makefile.unix.huc6280 makefile
-make -j $1 
-cp wla-huc6280 binaries
+export WLA1=W65816
+export WLA2=65816
+make --makefile=makefile.unix
+make clean --makefile=makefile.unix
 
-make  clean
+export WLA1=HUC6280
+export WLA2=huc6280
+make --makefile=makefile.unix
+make clean --makefile=makefile.unix
+
 
 echo ""
 echo "****************************************************************"
@@ -100,10 +95,9 @@ echo "****************************************************************"
 echo ""
 
 cd wlalink
-cp makefile.unix makefile
-make -j $1 
+make --makefile=makefile.unix
 cp wlalink ../binaries
-make  clean
+make clean --makefile=makefile.unix
 cd ..
 
 echo ""
