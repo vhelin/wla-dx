@@ -1,6 +1,6 @@
 
 CC = gcc
-CFLAGS = -m486 -c -O3 -ansi -pedantic -Wall -DMSDOS -DW65816
+CFLAGS = -c -Os -s -ansi -pedantic -Wall -D $(WLA1)
 LD = gcc
 LDFLAGS = -lm
 WLAFLAGS = $(CFLAGS)
@@ -11,7 +11,7 @@ OFILES = main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack
 
 
 all: $(OFILES) makefile
-	$(LD) $(LDFLAGS) $(OFILES) -o wla-65816.exe
+	$(LD) $(LDFLAGS) $(OFILES) -o wla-$(WLA2).exe
 
 main.o: main.c defines.h main.h makefile
 	$(CC) $(CFLAGS) main.c
@@ -22,7 +22,7 @@ parse.o: parse.c defines.h parse.h makefile
 include_file.o: include_file.c defines.h include_file.h makefile
 	$(CC) $(CFLAGS) include_file.c
 
-pass_1.o: pass_1.c defines.h pass_1.h parse.h makefile opcodes_gb.c opcodes_z80.c
+pass_1.o: pass_1.c defines.h pass_1.h parse.h makefile opcodes_$(WLA2).c
 	$(CC) $(CFLAGS) pass_1.c
 
 pass_2.o: pass_2.c defines.h pass_2.h makefile
@@ -42,7 +42,3 @@ listfile.o: listfile.c defines.h makefile
 
 
 $(OFILES): $(HFILES)
-
-
-clean:
-	del *.o ; del *~ ; del wla-65816.exe

@@ -20,39 +20,39 @@ echo **************************
 echo * compiling WLA binaries *
 echo **************************
 
-make -f makefiles/makefile.amiga.gb clean
-make -f makefiles/makefile.amiga.gb
+make -f amiga_make/makefile.amiga.gb clean
+make -f amiga_make/makefile.amiga.gb
 move wla-gb TO binaries
 
-make -f makefiles/makefile.amiga.gb clean
-make -f makefiles/makefile.amiga.z80
+make -f amiga_make/makefile.amiga.gb clean
+make -f amiga_make/makefile.amiga.z80
 move wla-z80 TO binaries
 
-make -f makefiles/makefile.amiga.z80 clean
-make -f makefiles/makefile.amiga.6502
+make -f amiga_make/makefile.amiga.z80 clean
+make -f amiga_make/makefile.amiga.6502
 move wla-6502 TO binaries
 
-make -f makefiles/makefile.amiga.6502 clean
-make -f makefiles/makefile.amiga.65c02
+make -f amiga_make/makefile.amiga.6502 clean
+make -f amiga_make/makefile.amiga.65c02
 move wla-65c02 TO binaries
 
-make -f makefiles/makefile.amiga.65c02 clean
-make -f makefiles/makefile.amiga.6510
+make -f amiga_make/makefile.amiga.65c02 clean
+make -f amiga_make/makefile.amiga.6510
 move wla-6510 TO binaries
 
-make -f makefiles/makefile.amiga.6510 clean
-make -f makefiles/makefile.amiga.65816
+make -f amiga_make/makefile.amiga.6510 clean
+make -f amiga_make/makefile.amiga.65816
 move wla-65816 TO binaries
 
-make -f makefiles/makefile.amiga.65816 clean
-make -f makefiles/makefile.amiga.spc700
+make -f amiga_make/makefile.amiga.65816 clean
+make -f amiga_make/makefile.amiga.spc700
 move wla-spc700 TO binaries
 
-make -f makefiles/makefile.amiga.spc700 clean
-make -f makefiles/makefile.amiga.huc6280
+make -f amiga_make/makefile.amiga.spc700 clean
+make -f amiga_make/makefile.amiga.huc6280
 move wla-huc6280 TO binaries
 
-make -f makefiles/makefile.amiga.huc6280 clean
+make -f amiga_make/makefile.amiga.huc6280 clean
 
 echo *********************
 echo * compiling WLALINK *
