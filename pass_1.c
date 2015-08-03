@@ -2273,6 +2273,20 @@ int parse_directive(void) {
     sec_tmp->slot = d;
     fprintf(file_out_ptr, "S%d ", sec_tmp->id);
 
+    /* align the ramsection? */
+    if (compare_next_token("ALIGN", 5) == SUCCEEDED) {
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      inz = input_number();
+      if (inz != SUCCEEDED) {
+        print_error("Could not parse the .RAMSECTION alignment.\n", ERROR_DIR);
+        return FAILED;
+      }
+
+      sec_tmp->alignment = d;
+    }
+
     /* ram section - read labels */
     if (sec_tmp->status == SECTION_STATUS_RAM) {
       while ((t = get_next_token()) != FAILED) {

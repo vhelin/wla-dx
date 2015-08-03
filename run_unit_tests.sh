@@ -6,7 +6,7 @@
 # errors, we'll assume that WLA DX is in ok shape. Feel free to add more
 # test projects to the lot.
 #
-# these tests aren't really unit tests, but hopefully one day the will be. :)
+# these tests aren't really unit tests, but hopefully one day they will be. :)
 #
 
 changePlatform() {
@@ -108,4 +108,5 @@ runTest linker_test_2
 runTest rept_test
 runTest sdsc_test
 runTest sms_test
+runTest ram_sections
 cd ..

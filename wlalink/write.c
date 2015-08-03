@@ -113,7 +113,6 @@ int insert_sections(void) {
   i = 0;
   s = sec_first;
   while (s != NULL) {
-    /* no references - skip it */
     if (s->alive == YES)
       i++;
     s = s->next;
@@ -155,14 +154,23 @@ int insert_sections(void) {
 
     /* search for free space */
     if (s->status == SECTION_STATUS_RAM) {
+      int slotAddress = slots[s->slot].address;
+
+      /* align the starting address */
+      int address = slotAddress % s->alignment;
+      if (address != 0)
+	address = s->alignment - address;
+
       c = ram_slots[s->slot];
       i = slots[s->slot].size;
       t = 0;
-      for (x = 0; x < i; x++, c++) {
-	if (*c == 0) {
-	  for (q = 0; x < i && q < s->size; x++, q++, c++) {
-	    if (*c != 0)
+      for (; address < i; address += s->alignment) {
+	if (c[address] == 0) {
+	  for (q = 0; address + q < i && q < s->size; q++) {
+	    if (c[address + q] != 0) {
+	      address += q;
 	      break;
+	    }
 	  }
 	  if (q == s->size) {
 	    t = 1;
@@ -172,16 +180,15 @@ int insert_sections(void) {
       }
 
       if (t == 0) {
-	fprintf(stderr, "INSERT_SECTIONS: No room for RAM section \"%s\" (%d bytes) in slot %d.\n", s->name, s->size, s->slot);
+	fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in slot %d.\n", s->name, s->size, s->slot);
 	return FAILED;
       }
 
+      s->address = address;
+      
       /* mark as used */
-      c = c - s->size;
-      for (i = 0; i < s->size; i++, c++)
-	*c = 1;
-
-      s->address = c - s->size - ram_slots[s->slot];
+      for (i = 0; i < s->size; i++, address++)
+	c[address] = 1;
     }
   }
 

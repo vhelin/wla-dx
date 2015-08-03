@@ -245,12 +245,13 @@ int main(int argc, char *argv[]) {
       printf("--------------------------------------\n");
       printf("file: \"%s\"\n", get_file_name(s->file_id));
       printf("name: \"%s\"\n", s->name);
-      printf("id:   %d\n", s->id);
-      printf("addr: %d\n", s->address);
-      printf("stat: %d\n", s->status);
-      printf("bank: %d\n", s->bank);
-      printf("slot: %d\n", s->slot);
-      printf("size: %d\n", s->size);
+      printf("id:    %d\n", s->id);
+      printf("addr:  %d\n", s->address);
+      printf("stat:  %d\n", s->status);
+      printf("bank:  %d\n", s->bank);
+      printf("slot:  %d\n", s->slot);
+      printf("size:  %d\n", s->size);
+      printf("align: %d\n", s->alignment);
       s = s->next;
     }
     printf("--------------------------------------\n");
@@ -332,7 +333,7 @@ int main(int argc, char *argv[]) {
       printf("sect: \"%d\"\n", l->section);
       printf("slot: \"%d\"\n", l->slot);
       printf("base: \"%d\"\n", l->base);
-      printf("address: \"%d\"\n", (int)l->address);
+      printf("address: \"%d\" / \"%x\"\n", (int)l->address, (int)l->address);
       printf("rom_address: \"%d\"\n", l->rom_address);
       printf("bank: \"%d\"\n", l->bank);
       printf("status: \"%d\"\n", l->status);

@@ -232,7 +232,7 @@ Group 3:
 [ALL] .ORGA $150
 [ALL] .PRINTT "Here we are...\n"
 [ALL] .PRINTV DEC DEBUG+1
-[ALL] .RAMSECTION "Vars" BANK 0 SLOT 1
+[ALL] .RAMSECTION "Vars" BANK 0 SLOT 1 ALIGN 4
 [ALL] .REDEFINE IF $F
 [ALL] .REDEF IF $F
 [ALL] .REPEAT 6
@@ -2144,9 +2144,9 @@ read the .RAMSECTION directive explanation.
 
 This is not a compulsory directive.
 
---------------------------------
-.RAMSECTION "Vars" BANK 0 SLOT 1
---------------------------------
+----------------------------------------
+.RAMSECTION "Vars" BANK 0 SLOT 1 ALIGN 4
+----------------------------------------
 
 RAMSECTIONs accept only variable labels and variable sizes, and the
 syntax to define these is identical to .ENUM (all the syntax rules that
