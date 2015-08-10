@@ -88,7 +88,7 @@ int insert_sections(void) {
 
   struct section *s, **sa;
   int d, f, i, x, t, q, sn, p;
-  char *ram_slots[256], *c;
+  char **ram_slots[256], *c;
 
   
   /* initialize ram slots */
@@ -98,13 +98,24 @@ int insert_sections(void) {
   /* find all touched slots */
   s = sec_first;
   while (s != NULL) {
-    if (s->status == SECTION_STATUS_RAM && ram_slots[s->slot] == NULL) {
-      ram_slots[s->slot] = malloc(slots[s->slot].size);
-      if (ram_slots[s->slot] == NULL) {
-	fprintf(stderr, "INSERT_SECTIONS: Out of memory error.\n");
-	return FAILED;
+    if (s->status == SECTION_STATUS_RAM) {
+      if (ram_slots[s->bank] == NULL) {
+	ram_slots[s->bank] = malloc(sizeof(char *) * 256);
+	if (ram_slots[s->bank] == NULL) {
+	  fprintf(stderr, "INSERT_SECTIONS: Out of memory error.\n");
+	  return FAILED;
+	}
+	for (i = 0; i < 256; i++)
+	  ram_slots[s->bank][i] = NULL;
       }
-      memset(ram_slots[s->slot], 0, slots[s->slot].size);
+      if (ram_slots[s->bank][s->slot] == NULL) {
+	ram_slots[s->bank][s->slot] = malloc(slots[s->slot].size);
+	if (ram_slots[s->bank][s->slot] == NULL) {
+	  fprintf(stderr, "INSERT_SECTIONS: Out of memory error.\n");
+	  return FAILED;
+	}
+	memset(ram_slots[s->bank][s->slot], 0, slots[s->slot].size);
+      }
     }
     s = s->next;
   }
@@ -161,7 +172,7 @@ int insert_sections(void) {
       if (address != 0)
 	address = s->alignment - address;
 
-      c = ram_slots[s->slot];
+      c = ram_slots[s->bank][s->slot];
       i = slots[s->slot].size;
       t = 0;
       for (; address < i; address += s->alignment) {
@@ -194,8 +205,16 @@ int insert_sections(void) {
 
   /* free tmp memory */
   for (i = 0; i < 256; i++) {
-    if (ram_slots[i] != NULL)
+    if (ram_slots[i] != NULL) {
+      for (p = 0; p < 256; p++) {
+	if (ram_slots[i][p] != NULL) {
+	  free(ram_slots[i][p]);
+	  ram_slots[i][p] = NULL;
+	}
+      }
       free(ram_slots[i]);
+      ram_slots[i] = NULL;
+    }
   }
 
   /* force sections */

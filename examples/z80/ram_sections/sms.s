@@ -23,36 +23,57 @@ TEST_RESULT                     DB
 .ENDS
 
 .ROMBANKMAP
-BANKSTOTAL 2
+BANKSTOTAL 4
 BANKSIZE $4000
-BANKS 2
+BANKS 4
 .ENDRO
 
 .EMPTYFILL $AA
 	
-.RAMSECTION "RamSection 1" BANK 0 SLOT 3 ALIGN 8
-rs1_a	dw
-rs1_b	db
+.RAMSECTION "RamSection 1 bank 0" BANK 0 SLOT 3 ALIGN 8
+rs1b0_a	dw
+rs1b0_b	db
 .ENDS
 
-.RAMSECTION "RamSection 2" BANK 0 SLOT 3 ALIGN 8
-rs2_a	db
-rs2_b	dw
-rs2_c	db
+.RAMSECTION "RamSection 1 bank 2" BANK 2 SLOT 3 ALIGN 8
+rs1b2_a	dw
+rs1b2_b	db
+.ENDS
+	
+.RAMSECTION "RamSection 2 bank 0" BANK 0 SLOT 3 ALIGN 8
+rs2b0_a	db
+rs2b0_b	dw
+rs2b0_c	db
 .ENDS
 
-.RAMSECTION "RamSection 3" BANK 0 SLOT 5 ALIGN 16
-rs3_a	db
-rs3_b	dw
-rs3_c	db
+.RAMSECTION "RamSection 3 bank 0" BANK 0 SLOT 5 ALIGN 16
+rs3b0_a	db
+rs3b0_b	dw
+rs3b0_c	db
 .ENDS
 
-.RAMSECTION "RamSection 4" BANK 0 SLOT 5 ALIGN 8
-rs4_a	db
-rs4_b	db
+.RAMSECTION "RamSection 4 bank 0" BANK 0 SLOT 5 ALIGN 8
+rs4b0_a	db
+rs4b0_b	db
 .ENDS
 
-.RAMSECTION "RamSection 5" BANK 0 SLOT 5 ALIGN 16
-rs5_a	db
-rs5_b	db
+.RAMSECTION "RamSection 5 bank 0" BANK 0 SLOT 5 ALIGN 16
+rs5b0_a	db
+rs5b0_b	db
+.ENDS
+
+.RAMSECTION "RamSection 3 bank 1" BANK 1 SLOT 5 ALIGN 16
+rs3b1_a	db
+rs3b1_b	dw
+rs3b1_c	db
+.ENDS
+
+.RAMSECTION "RamSection 4 bank 1" BANK 1 SLOT 5 ALIGN 8
+rs4b1_a	db
+rs4b1_b	db
+.ENDS
+
+.RAMSECTION "RamSection 5 bank 1" BANK 1 SLOT 5 ALIGN 16
+rs5b1_a	db
+rs5b1_b	db
 .ENDS

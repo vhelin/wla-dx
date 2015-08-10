@@ -2528,7 +2528,7 @@ int parse_directive(void) {
     /* the size of the section? */
     if (compare_next_token("SIZE", 4) == SUCCEEDED) {
       if (sec_tmp->maxsize_status == ON) {
-        print_error("The size of the section has already been defined.\n", ERROR_DIR);
+        print_error("The SIZE of the section has already been defined.\n", ERROR_DIR);
         return FAILED;
       }
 
@@ -2537,7 +2537,7 @@ int parse_directive(void) {
 
       inz = input_number();
       if (inz != SUCCEEDED) {
-        print_error("Could not parse the size.\n", ERROR_DIR);
+        print_error("Could not parse the SIZE.\n", ERROR_DIR);
         return FAILED;
       }
 
@@ -2552,7 +2552,7 @@ int parse_directive(void) {
 
       inz = input_number();
       if (inz != SUCCEEDED) {
-        print_error("Could not parse the section alignment.\n", ERROR_DIR);
+        print_error("Could not parse the .SECTION alignment.\n", ERROR_DIR);
         return FAILED;
       }
 
