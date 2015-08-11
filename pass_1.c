@@ -1584,17 +1584,17 @@ int parse_directive(void) {
       return FAILED;
     }
 
-	/* DEBUG
-	{
-		struct structure_item *sS = s->items;
+    /* DEBUG
+       {
+       struct structure_item *sS = s->items;
 		
-		fprintf(stderr, "STRUCT \"%s\" size %d\n", s->name, s->size);
-		while (sS != NULL) {
-			fprintf(stderr, "ITEM \"%s\" size %d\n", sS->name, sS->size);
-			sS = sS->next;
-		}
-	}
-	*/
+       fprintf(stderr, "STRUCT \"%s\" size %d\n", s->name, s->size);
+       while (sS != NULL) {
+       fprintf(stderr, "ITEM \"%s\" size %d\n", sS->name, sS->size);
+       sS = sS->next;
+       }
+       }
+    */
 	
     if (compare_next_token("DATA", 4) == SUCCEEDED)
       skip_next_token();
@@ -1608,11 +1608,11 @@ int parse_directive(void) {
 
       fprintf(file_out_ptr, "k%d L%s.%s ", active_file_info_last->line_current, iname, it->name);
 
-	  if (it->size <= 0) {
-		  /* don't put data into empty structure items */
-		  it = it->next;
-		  continue;
-	  }
+      if (it->size <= 0) {
+	/* don't put data into empty structure items */
+	it = it->next;
+	continue;
+      }
 	  
       /* take care of the strings */
       if (inz == INPUT_NUMBER_STRING) {
@@ -3163,6 +3163,8 @@ int parse_directive(void) {
     }
 
     block_status++;
+
+    fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
     fprintf(file_out_ptr, "g%s ", tmp);
 
     return SUCCEEDED;

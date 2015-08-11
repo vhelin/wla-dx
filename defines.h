@@ -538,6 +538,8 @@ struct slot {
 struct block {
   char name[MAX_NAME_LENGTH];
   int  address;
+  int  filename_id;
+  int  line_number;
   struct block *next;
 };
 

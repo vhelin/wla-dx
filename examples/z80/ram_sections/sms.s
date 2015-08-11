@@ -77,3 +77,12 @@ rs4b1_b	db
 rs5b1_a	db
 rs5b1_b	db
 .ENDS
+
+
+
+.BLOCK "Hello"
+.db 1, 2, 3, 4, 5
+.BLOCK "Hi!"
+.db 6, 7, 8
+.endb
+.endb

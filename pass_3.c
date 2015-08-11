@@ -119,6 +119,8 @@ int pass_3(void) {
 		  get_file_name(file_name_id), line_number, tmp);
 	  return FAILED;
 	}
+	b->filename_id = file_name_id;
+	b->line_number = line_number;
 	b->next = blocks;
 	blocks = b;
 	fscanf(f_in, "%64s ", b->name);
@@ -441,6 +443,8 @@ int pass_3(void) {
 		get_file_name(file_name_id), line_number, tmp);
 	return FAILED;
       }
+      b->filename_id = file_name_id;
+      b->line_number = line_number;
       b->next = blocks;
       blocks = b;
       fscanf(f_in, "%64s ", b->name);
@@ -555,6 +559,11 @@ int pass_3(void) {
   }
 
   fclose(f_in);
+  
+  if (blocks != NULL) {
+    fprintf(stderr, "%s:%d INTERNAL_PASS_1: .BLOCK \"%s\" was left open.\n", get_file_name(blocks->filename_id), blocks->line_number, blocks->name);
+    return FAILED;
+  }
 
   return SUCCEEDED;
 }
