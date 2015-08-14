@@ -6,7 +6,7 @@
 To generate the makefiles, go to the wla-dx main folder, and write
 
   cmake -G "Unix Makefiles" .  ; under Unix / OS X / Cygwin
-  cmake -G "MSYS Makefiles" .  ; under MSDOS
+  cmake -G "MSYS Makefiles" .  ; under MSYS
   cmake -G "MinGW Makefiles" . ; under MinGW
   cmake -G "Nmake Makefiles" . ; if you wish to use Nmake
 
@@ -52,7 +52,7 @@ To get to these, do:
   git pull origin master
 
 This will bring the source up to date with master and allow using the old style
-makefiles for older (and current ) systems that do not have CMake, such as
+makefiles for older (and current) systems that do not have CMake, such as
 Amiga and MSDOS.
 
 To compile all the binaries, write
