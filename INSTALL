@@ -1,4 +1,26 @@
-CMake:
+
+-----------------------------------------------------------------------------
+1. INSTALL (SHORT STORY)
+-----------------------------------------------------------------------------
+
+To generate the makefiles, go to the wla-dx main folder, and write
+
+  cmake -G "Unix Makefiles" .  ; under Unix / OS X / Cygwin
+  cmake -G "MSYS Makefiles" .  ; under MSDOS
+  cmake -G "MinGW Makefiles" . ; under MinGW
+  cmake -G "Nmake Makefiles" . ; if you wish to use Nmake
+
+After CMake has done its job, just run
+
+  make
+
+You will get all the executables in the "binaries" folder.
+
+
+-----------------------------------------------------------------------------
+2. INSTALL (LONG STORY)
+-----------------------------------------------------------------------------
+
 As of commit 1bc0c6a, WLA now uses the CMake Build System. As WLA is written
 in ANSI C and only depends on the C Standard Library, any hosted C89 compiler
 with an 8-bit character should be able to compile and run WLA. However, for
@@ -11,18 +33,23 @@ Makefiles can be transferred to the target machine to be compiled natively.
 
 Assuming $WLA_ROOT is the top level of WLA source, Makefiles can be generated
 using the following commands:
-mkdir build-wla
-cd build-wla
-cmake -G $MAKE_TYPE $WLA_ROOT,
+
+  mkdir build-wla
+  cd build-wla
+  cmake -G $MAKE_TYPE $WLA_ROOT
 
 $MAKE_TYPE can be any Makefile type that CMake supports.
 
 
-Legacy:
+-----------------------------------------------------------------------------
+3. INSTALL (THE OLD SCRIPTS)
+-----------------------------------------------------------------------------
+
 For compatibility purposes, legacy Makefiles are kept in the legacy_mk branch.
 To get to these, do:
-git checkout -b legacy_mk
-git pull origin master
+
+  git checkout -b legacy_mk
+  git pull origin master
 
 This will bring the source up to date with master and allow using the old style
 makefiles for older (and current ) systems that do not have CMake, such as
@@ -30,19 +57,19 @@ Amiga and MSDOS.
 
 To compile all the binaries, write
 
-./unix.sh {JOBS} ;under un*x / OS X. replace {JOBS} with 8 if you have a quad core,
-                  4 if you have a dual core CPU.
-msdos.bat        ;under msdos and djgpp.
-execute amiga    ;under amigaos 1-3.
-execute amigaos4 ;under amigaos 4.
-win32.bat        ;under win32 and cygwin (www.cygwin.com) or mingw (www.mingw.org).
+  ./unix.sh {JOBS} ;under un*x / OS X. replace {JOBS} with 8 if you have a quad core,
+                    4 if you have a dual core CPU.
+  msdos.bat        ;under msdos and djgpp.
+  execute amiga    ;under amigaos 1-3.
+  execute amigaos4 ;under amigaos 4.
+  win32.bat        ;under win32 and cygwin (www.cygwin.com) or mingw (www.mingw.org).
 
 You can find the executables under the binaries directory.
 
 If the system tries to link/compile with cc you might run into trouble.
 Try to redefine shell enviroment variables CC and LD to gcc, e.g., in bash:
 
-export CC='gcc'
-export LD='gcc'
+  export CC='gcc'
+  export LD='gcc'
 
 Gcc should compile WLA DX just fine.
