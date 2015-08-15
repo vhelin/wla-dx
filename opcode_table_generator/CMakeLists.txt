@@ -1,7 +1,7 @@
 # Subproject: opcode_table_generator
 project(opcode_table_generator)
 
-#add_definitions( -DWLA_QUIET )
+add_definitions( -DWLA_QUIET )
 set(CFILES main.c)
 
 # --- WLA_TARGET=GB

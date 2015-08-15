@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 
   fclose(out);
 
-#if QUIET == 0
+#if !defined(WLA_QUIET)
   printf("MAIN: max opt[] (\"%s\") lenght was %u bytes.\n", max_name, max);
 #endif
 

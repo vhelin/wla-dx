@@ -8,7 +8,7 @@ To generate the makefiles, go to the wla-dx main folder, and write
   cmake -G "Unix Makefiles" .  ; under Unix / OS X / Cygwin
   cmake -G "MSYS Makefiles" .  ; under MSYS
   cmake -G "MinGW Makefiles" . ; under MinGW
-  cmake -G "NMake Makefiles" . ; if you wish to use Nmake
+  cmake -G "NMake Makefiles" . ; if you wish to use NMake
 
 After CMake has done its job, just run
 
