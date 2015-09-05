@@ -11,7 +11,9 @@
 
 changePlatform() {
     echo ""
+    echo "************************************************************"
     echo $1
+    echo "************************************************************"
     echo ""
     cd $1
 }
@@ -19,6 +21,9 @@ changePlatform() {
 runTest() {
     cd $1
     make clean
+    echo ""
+    echo $1
+    echo ""
     make
     make clean
     cd ..
@@ -87,6 +92,7 @@ cd ..
 
 changePlatform huc6280
 runTest linker_test
+runTest ram_sections
 cd ..
 
 #####################################################################

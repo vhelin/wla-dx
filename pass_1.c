@@ -4197,7 +4197,7 @@ int parse_directive(void) {
         strcmp(tmp, "NARGS") == 0 || strcmp(tmp, "nargs") == 0 ||
         strcmp(tmp, "CADDR") == 0 || strcmp(tmp, "caddr") == 0) {
 
-      sprintf(emsg, "\"%s\" is a reserved definition label and is not user definiable.\n", tmp);
+      sprintf(emsg, "\"%s\" is a reserved definition label and is not user definable.\n", tmp);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -4347,7 +4347,7 @@ int parse_directive(void) {
         strcmp(tmp, "NARGS") == 0 || strcmp(tmp, "nargs") == 0 ||
         strcmp(tmp, "CADDR") == 0 || strcmp(tmp, "caddr") == 0) {
 
-      sprintf(emsg, "\"%s\" is a reserved definition label and is not user definiable.\n", tmp);
+      sprintf(emsg, "\"%s\" is a reserved definition label and is not user definable.\n", tmp);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
