@@ -24,5 +24,9 @@ start	.db 1
 .export kalkaros_2
 
 .section "rom man 2"
+	.dw $6666
 end:	.dw kalkaros_2
+	.dw $7777
+	lda	kalkaros_2.w
+	.dw $8888
 .ends
