@@ -35,3 +35,19 @@ end:	.dw kalkaros_2
 	.dw $8888
 	derp $100
 .ends
+
+
+.ramsection "vars" bank 0 slot 1
+derps	dw
+.ends
+
+.macro sub          	; subtract byte-sized value
+	sec
+	sbc \1.w
+.endm
+
+.bank 0 slot 0
+.org 0
+.section "code"
+	sub derps
+.ends
