@@ -37,17 +37,41 @@ end:	.dw kalkaros_2
 .ends
 
 
-.ramsection "vars" bank 0 slot 1
+.ramsection "vars 1" bank 0 slot 1
 derps	dw
 .ends
 
-.macro sub          	; subtract byte-sized value
+.macro sub1          	; subtract byte-sized value
 	sec
 	sbc \1.w
 .endm
 
 .bank 0 slot 0
 .org 0
-.section "code"
-	sub derps
+.section "code 1"
+	sub1 derps
 .ends
+
+
+.ramsection "vars 2" bank 0 slot 1
+derp dw
+.ends
+
+.bank 0 slot 0
+.org 0
+.section "code 2"
+	lda derp.w
+.ends
+
+
+.macro sub2          	; subtract byte-sized value
+	sec
+	sbc \1
+.endm
+
+.bank 0 slot 0
+.org 0
+.section "code 3"
+	sub2 $20
+.ends
+	
