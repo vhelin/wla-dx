@@ -222,6 +222,28 @@ int input_number(void) {
       return FAILED;
     }
 
+    /* does the MACRO argument number end with a .b/.w/.l? */
+
+#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
+    if (e == '.') {
+      e = buffer[i+1];
+      if (e == 'b' || e == 'B') {
+	operand_hint = HINT_8BIT;
+	i += 2;
+      }
+      else if (e == 'w' || e == 'W') {
+	operand_hint = HINT_16BIT;
+	i += 2;
+      }
+#if defined(W65816)
+      else if (e == 'l' || e == 'L') {
+	operand_hint = HINT_24BIT;
+	i += 2;
+      }
+#endif
+    }
+#endif
+
     return k;
   }
 
@@ -282,18 +304,18 @@ int input_number(void) {
 #endif
     }
 #if defined(W65186)
-	if (d > 0xFFFF && d <= 0xFFFFFF)
-		operand_hint = HINT_24BIT;
-	else if (d > 0xFF)
-		operand_hint = HINT_16BIT;
-	else
-		operand_hint = HINT_8BIT;
+    if (d > 0xFFFF && d <= 0xFFFFFF)
+      operand_hint = HINT_24BIT;
+    else if (d > 0xFF)
+      operand_hint = HINT_16BIT;
+    else
+      operand_hint = HINT_8BIT;
 		
 #elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
-	if (d > 0xFF && d <= 0xFFFF)
-		operand_hint = HINT_16BIT;
-	else
-		operand_hint = HINT_8BIT;
+    if (d > 0xFF && d <= 0xFFFF)
+      operand_hint = HINT_16BIT;
+    else
+      operand_hint = HINT_8BIT;
 #endif
 #endif
 
@@ -363,18 +385,18 @@ int input_number(void) {
     /* drop the decimals */
     d = parsed_double;
 #if defined(W65186)
-	if (d > 0xFFFF && d <= 0xFFFFFF)
-		operand_hint = HINT_24BIT;
-	else if (d > 0xFF)
-		operand_hint = HINT_16BIT;
-	else
-		operand_hint = HINT_8BIT;
+    if (d > 0xFFFF && d <= 0xFFFFFF)
+      operand_hint = HINT_24BIT;
+    else if (d > 0xFF)
+      operand_hint = HINT_16BIT;
+    else
+      operand_hint = HINT_8BIT;
 		
 #elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
-	if (d > 0xFF && d <= 0xFFFF)
-		operand_hint = HINT_16BIT;
-	else
-		operand_hint = HINT_8BIT;
+    if (d > 0xFF && d <= 0xFFFF)
+      operand_hint = HINT_16BIT;
+    else
+      operand_hint = HINT_8BIT;
 #endif
 
     if (q == 1 && input_float_mode == ON)
@@ -536,17 +558,17 @@ int input_number(void) {
 	d = tmp_def->value;
 #if defined(W65186)
 	if (d > 0xFFFF && d <= 0xFFFFFF)
-		operand_hint = HINT_24BIT;
+	  operand_hint = HINT_24BIT;
 	else if (d > 0xFF)
-		operand_hint = HINT_16BIT;
+	  operand_hint = HINT_16BIT;
 	else
-		operand_hint = HINT_8BIT;
+	  operand_hint = HINT_8BIT;
 		
 #elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
 	if (d > 0xFF && d <= 0xFFFF)
-		operand_hint = HINT_16BIT;
+	  operand_hint = HINT_16BIT;
 	else
-		operand_hint = HINT_8BIT;
+	  operand_hint = HINT_8BIT;
 #endif
 	return SUCCEEDED;
       }
