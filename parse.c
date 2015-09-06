@@ -23,7 +23,7 @@ extern int i, size, d, macro_active;
 extern char *buffer, tmp[4096], cp[256];
 extern struct active_file_info *active_file_info_first, *active_file_info_last, *active_file_info_tmp;
 extern struct definition *defines, *tmp_def, *next_def;
-extern struct macro_runtime *macro_runtime_current;
+extern struct macro_runtime *macro_stack, *macro_runtime_current;
 extern int latest_stack;
 
 #if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
@@ -723,7 +723,7 @@ int _expand_macro_arguments(char *in, int *expands) {
   char t[256];
   int i, k, d;
 
-  
+
   for (i = 0; i < MAX_NAME_LENGTH; i++) {
     if (in[i] == '\\') {
       if (in[i + 1] == '"' || in[i + 1] == 'n' || in[i + 1] == '\\') {
@@ -788,6 +788,9 @@ int _expand_macro_arguments(char *in, int *expands) {
     return FAILED;
   }
 
+  /* if we come this far, we are getting a macro argument number in the input, e.g., \1,
+     and we'll get ready to unfold that recursively... */
+
   for (d = 0; in[i] != 0; i++) {
     if (in[i] >= '0' && in[i] <= '9')
       d = (d * 10) + in[i] - '0';
@@ -819,6 +822,14 @@ int _expand_macro_arguments(char *in, int *expands) {
     }
   }
 
+  /* move up one macro call in the hierarchy */
+  macro_active--;
+  if (macro_active <= 0) {
+    sprintf(xyz, "EXPAND_MACRO_ARGUMENTS: Error in macro argument.\n");
+    return FAILED;
+  }
+  macro_runtime_current = &macro_stack[macro_active - 1];
+  
   strcpy(t, expanded_macro_string);
   _expand_macro_arguments(t, &d);
 
@@ -828,7 +839,18 @@ int _expand_macro_arguments(char *in, int *expands) {
 
 int expand_macro_arguments(char *in, int *expands) {
 
+  /* save the current macro_runtime pointers */
+  struct macro_runtime* mr = macro_runtime_current;
+  int ma = macro_active;
+  int ret = 0;
+  
   *expands = 0;
 
-  return _expand_macro_arguments(in, expands);
+  ret = _expand_macro_arguments(in, expands);
+
+  /* return the current macro_runtime as recursive _expand_macro_arguments() might have modified it */
+  macro_runtime_current = mr;
+  macro_active = ma;
+
+  return ret;
 }

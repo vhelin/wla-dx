@@ -524,9 +524,11 @@ int pass_1(void) {
   for (q = 0; q < 256; q++)
     slots[q].size = 0;
 
+  /* WARNING: "i" is a global variable that we use as the char index to the source file. */
+  /* Ville: this must be one of the worst programming decicions I've ever done, sorry about it... */
+  /* ... but the year was something like 1998 and I had just coded 6+ years 68k asm, and moved to C... */
+
   /* start from the very first character */
-  /* WARNING: "i" is a global var that we use as the char index to the source file */
-  /* Ville: this must be one of the worst programming decicions I've even done, sorry about it... */
   i = 0;
 
   /* output the file id */
@@ -985,14 +987,14 @@ int localize_path(char *path) {
     return FAILED;
 
   for (i = 0; path[i] != 0; i++) {
-#if defined(AMIGA) || defined(UNIX)
-    /* '\' -> '/' */
-    if (path[i] == '\\')
-      path[i] = '/';
-#else
+#if defined(MSDOS)
     /* '/' -> '\' */
     if (path[i] == '/')
       path[i] = '\\';
+#else
+    /* '\' -> '/' */
+    if (path[i] == '\\')
+      path[i] = '/';
 #endif
   }
 
