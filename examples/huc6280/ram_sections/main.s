@@ -23,10 +23,15 @@ start	.db 1
 .define kalkaros_2 kalkaros_1
 .export kalkaros_2
 
+.macro derp
+	lda \1.w
+.endm
+
 .section "rom man 2"
 	.dw $6666
 end:	.dw kalkaros_2
 	.dw $7777
-	lda	kalkaros_2.w
+	lda kalkaros_2.w
 	.dw $8888
+	derp $100
 .ends
