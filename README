@@ -287,7 +287,7 @@ giving the size with the operand (i.e., operand hinting). Here are few
 examples:
 
 LSR 11.B   ; $46 $0B
-LSR 11.W   ; $46 $0B $00
+LSR 11.W   ; $4E $0B $00
 
 In WLA-65816 .ACCU/.INDEX/SEP/REP override .8BIT/.16BIT/.24BIT when considering
 the immediate values, so be careful. Still, operand hints override all of
