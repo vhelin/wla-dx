@@ -119,3 +119,29 @@ ch:
 	UP_VRAM_DBANK_ADDR derp, $8000, 100
 load_vram:	nop
 .ends
+
+
+.macro UP_VRAM_ADDR_2 ARGS label, vram_addr, bytes
+/*	lda #:label	; LABEL */
+	sta <bl
+	lda #<label
+	sta <si
+	lda #>label
+	sta <si + 1
+	lda vram_addr.w + 0 ; must force .w + 0 due to another bug (Filed)
+	sta <di
+	lda vram_addr.w + 1
+	sta <di + 1
+	lda #<(\3/2) 	; words
+	sta <cl
+	lda #>(\3/2) 	; words
+	sta <ch
+	jsr load_vram
+.endm
+
+.bank 0 slot 0
+.org 0
+.section "code 5"
+	UP_VRAM_ADDR_2 derp, $8000, 100
+vram_addr:	nop
+.ends
