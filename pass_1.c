@@ -1487,19 +1487,30 @@ int parse_directive(void) {
         break;
       }
 
-      if (q != INPUT_NUMBER_STRING) {
-        sprintf(emsg, ".%s needs string data.\n", bak);
+      if (q == INPUT_NUMBER_STRING) {
+	/* remap the ascii string */
+	for (o = 0; o < string_size; o++) {
+	  ind = label[o];
+	  if (ind < 0)
+	    ind += 256;
+	  ind = (int)asciitable[ind];
+	  fprintf(file_out_ptr, "d%d ", ind);
+	}
+      }
+      else if (q == SUCCEEDED) {
+	/* remap the byte */
+	if (d < 0 || d > 255) {
+	  sprintf(emsg, ".%s needs string / byte (0-255) data.\n", bak);
+	  print_error(emsg, ERROR_INP);
+	  return FAILED;
+	}
+	ind = (int)asciitable[d];
+	fprintf(file_out_ptr, "d%d ", ind);
+      }
+      else {
+	sprintf(emsg, ".%s needs string / byte (0-255) data.\n", bak);
         print_error(emsg, ERROR_INP);
         return FAILED;
-      }
-
-      /* remap the data */
-      for (o = 0; o < string_size; o++) {
-        ind = label[o];
-        if (ind < 0)
-          ind += 256;
-        ind = (int)asciitable[ind];
-        fprintf(file_out_ptr, "d%d ", ind);
       }
     }
 
