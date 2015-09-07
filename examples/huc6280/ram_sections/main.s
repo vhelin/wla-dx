@@ -122,7 +122,9 @@ load_vram:	nop
 
 
 .macro UP_VRAM_ADDR_2 ARGS label, vram_addr, bytes
-/*	lda #:label	; LABEL */
+	.db 1, 2, 3, 4, 5
+	lda #:label	; LABEL
+	.db 1, 2, 3, 4, 5
 	sta <bl
 	lda #<label
 	sta <si

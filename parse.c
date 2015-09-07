@@ -137,6 +137,7 @@ int input_next_string(void) {
 
 int input_number(void) {
 
+  char label_tmp[MAX_NAME_LENGTH];
   unsigned char e, ee;
   int k, p, q;
   double decimal_mul;
@@ -550,10 +551,16 @@ int input_number(void) {
       strcpy(label, expanded_macro_string);
   }
 
+  /* label_tmp contains the label without possible prefix ':' */
+  if (strlen(label) > 1 && label[0] == ':')
+    strcpy(label_tmp, &label[1]);
+  else
+    strcpy(label_tmp, label);
+  
   /* check if the label is actually a definition */
   tmp_def = defines;
   while (tmp_def != NULL) {
-    if (strcmp(label, tmp_def->alias) == 0) {
+    if (strcmp(label, tmp_def->alias) == 0 || strcmp(label_tmp, tmp_def->alias) == 0) {
       if (tmp_def->type == DEFINITION_TYPE_VALUE) {
 	d = tmp_def->value;
 #if defined(W65186)
@@ -576,9 +583,16 @@ int input_number(void) {
 	/* skip stack definitions -> use its name instead */
       }
       else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
-	string_size = tmp_def->size;
-	memcpy(label, tmp_def->string, string_size);
-	label[string_size] = 0;
+	if (label[0] == ':') {
+	  /* we need to keep the ':' prefix */
+	  sprintf(label, ":%s%c", tmp_def->string, 0);
+	  string_size = tmp_def->size + 1;
+	}
+	else {
+	  string_size = tmp_def->size;
+	  memcpy(label, tmp_def->string, string_size);
+	  label[string_size] = 0;
+	}
 	return INPUT_NUMBER_ADDRESS_LABEL;
       }
       else {
