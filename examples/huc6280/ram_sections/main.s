@@ -53,11 +53,12 @@ derps	dw
 .ends
 
 
-.ramsection "vars 2" bank 0 slot 1
+.ramsection "vars 2" bank 3 slot 1
+tmp	db
 derp dw
 .ends
 
-.bank 0 slot 0
+.bank 1 slot 0
 .org 0
 .section "code 2"
 	lda derp.w
@@ -71,7 +72,50 @@ derp dw
 
 .bank 0 slot 0
 .org 0
-.section "code 3"
+	.section "code 3"
+bl:
+si:
+di:
+cl:
+ch:	
 	sub2 $20
 .ends
 	
+
+.macro CALC_PCE_BANK_FROM_WLA_DATABANK
+	lda #>(\1 >> 5) ; converts page-address into bank number offset
+	clc
+	.db $be, $ef
+	adc #:\1    	; get proper bank number
+	.db $be, $ef
+	.dw \1
+.endm
+
+.macro UP_VRAM_DBANK_ADDR ;ARGS label, vram_addr, bytes
+	CALC_PCE_BANK_FROM_WLA_DATABANK \1
+	sta <bl
+
+	lda #<\1
+	sta <si
+	lda #>\1
+	and #$1f    	; mask out page
+	sta <si + 1
+
+	lda \2.w + 0
+	sta <di
+	lda \2.w + 1
+	sta <di + 1
+	lda #<(\3>>1) 	; bytes
+	sta <cl
+	lda #>(\3>>1) 	; bytes
+	sta <ch
+	jsr load_vram
+.endm
+
+
+.bank 0 slot 0
+.org 0
+.section "code 4"
+	UP_VRAM_DBANK_ADDR derp, $8000, 100
+load_vram:	nop
+.ends
