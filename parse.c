@@ -825,8 +825,8 @@ int _expand_macro_arguments(char *in, int *expands) {
   /* move up one macro call in the hierarchy */
   macro_active--;
   if (macro_active <= 0) {
-    sprintf(xyz, "EXPAND_MACRO_ARGUMENTS: Error in macro argument.\n");
-    return FAILED;
+    /* we came out from the macro stack -> all done */
+    return SUCCEEDED;
   }
   macro_runtime_current = &macro_stack[macro_active - 1];
   
