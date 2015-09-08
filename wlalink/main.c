@@ -215,6 +215,14 @@ int main(int argc, char *argv[]) {
     s = stacks_first;
     while (s != NULL) {
       printf("--------------------------------------\n");
+      {
+	int z;
+	
+	for (z = 0; z < s->stacksize; z++) {
+	  struct stackitem *si = &s->stack[z];
+	  printf("stackitem: \"%s\" %d %d %f\n", si->string, si->type, si->sign, si->value);
+	}
+      }
       printf("result: \"%d\"\n", s->result);
       printf("id: \"%d\"\n", s->id);
       printf("file_id: \"%d\"\n", s->file_id);
@@ -274,6 +282,14 @@ int main(int argc, char *argv[]) {
     s = stacks_first;
     while (s != NULL) {
       printf("--------------------------------------\n");
+      {
+	int z;
+	
+	for (z = 0; z < s->stacksize; z++) {
+	  struct stackitem *si = &s->stack[z];
+	  printf("stackitem: \"%s\" %d %d %f\n", si->string, si->type, si->sign, si->value);
+	}
+      }
       printf("result: \"%d\"\n", s->result);
       printf("id: \"%d\"\n", s->id);
       printf("file_id: \"%d\"\n", s->file_id);
