@@ -159,3 +159,19 @@ ti:	dw
 tu:	ds 3
 te	DB
 .ENDS
+
+.macro ma1
+.db	\1, \2 \3, \4 \5
+_1_2_3_4_5_\1_\2_\3_\4_\5	.db 0
+.endm
+
+.macro ma2
+	ma1 \1 7, \2 \3, \4
+.endm
+
+.section "macro recursion"
+.db 1, 2, 3, 4, 5
+	ma2 6 8, 9, 10
+.db 1, 2, 3, 4, 5
+.ends
+	
