@@ -14,16 +14,15 @@ changePlatform() {
     echo "************************************************************"
     echo $1
     echo "************************************************************"
-    echo ""
     cd $1
 }
 
 runTest() {
     cd $1
-    make clean
     echo ""
     echo $1
     echo ""
+    make clean
     make
     make clean
     cd ..
@@ -81,7 +80,6 @@ cd ..
 
 changePlatform gb-z80
 runTest background_test
-runTest library_test
 runTest linker_test
 runTest sintest
 cd ..

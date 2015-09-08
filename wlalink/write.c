@@ -1293,6 +1293,7 @@ int compute_stack(struct stack *sta, int *result) {
       /* we have a stack inside a stack! find the stack */
       st = stacks_first;
       while (st != NULL) {
+	/* nice hack... */
 	if (st->id == s->value && st->file_id == s->sign)
 	  break;
 	st = st->next;
