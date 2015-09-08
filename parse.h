@@ -7,6 +7,6 @@ int input_next_string(void);
 int get_next_token(void);
 int skip_next_token(void);
 int compare_next_token(char *token, int length);
-int expand_macro_arguments(char *in, int *expands);
+int expand_macro_arguments(char *in);
 
 #endif

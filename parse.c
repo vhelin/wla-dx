@@ -16,7 +16,7 @@ int input_number_error_msg = YES, ss, string_size, input_float_mode = OFF, parse
 int newline_beginning = ON, parsed_double_decimal_numbers = 0;
 char label[MAX_NAME_LENGTH], xyz[256];
 char unevaluated_expression[256];
-char expanded_macro_string[256];
+char expanded_macro_string[MAX_NAME_LENGTH];
 double parsed_double;
 
 extern int i, size, d, macro_active;
@@ -90,7 +90,7 @@ int compare_next_token(char *token, int length) {
 int input_next_string(void) {
 
   char e;
-  int k, d;
+  int k;
 
   
   /* skip white space */
@@ -125,10 +125,8 @@ int input_next_string(void) {
 
   /* expand e.g., \1 and \@ */
   if (macro_active != 0) {
-    if (expand_macro_arguments(tmp, &d) == FAILED)
+    if (expand_macro_arguments(tmp) == FAILED)
       return FAILED;
-    if (d != 0)
-      strcpy(tmp, expanded_macro_string);
   }
 
   return SUCCEEDED;
@@ -478,12 +476,9 @@ int input_number(void) {
 
     /* expand e.g., \1 and \@ */
     if (macro_active != 0) {
-      if (expand_macro_arguments(label, &d) == FAILED)
+      if (expand_macro_arguments(label) == FAILED)
 	return FAILED;
-      if (d != 0) {
-	strcpy(label, expanded_macro_string);
-	k = strlen(label);
-      }
+      k = strlen(label);
     }
 
     if (k == MAX_NAME_LENGTH - 1) {
@@ -545,10 +540,8 @@ int input_number(void) {
 
   /* expand e.g., \1 and \@ */
   if (macro_active != 0) {
-    if (expand_macro_arguments(label, &d) == FAILED)
+    if (expand_macro_arguments(label) == FAILED)
       return FAILED;
-    if (d != 0)
-      strcpy(label, expanded_macro_string);
   }
 
   /* label_tmp contains the label without possible prefix ':' */
@@ -611,9 +604,6 @@ int input_number(void) {
 
 int get_next_token(void) {
 
-  int q;
-
-  
   while (1) {
     if (i == size)
       break;
@@ -649,12 +639,9 @@ int get_next_token(void) {
 
     /* expand e.g., \1 and \@ */
     if (macro_active != 0) {
-      if (expand_macro_arguments(tmp, &q) == FAILED)
+      if (expand_macro_arguments(tmp) == FAILED)
 	return FAILED;
-      if (q != 0) {
-	strcpy(tmp, expanded_macro_string);
-	ss = strlen(tmp);
-      }
+      ss = strlen(tmp);
     }
 
     return GET_NEXT_TOKEN_STRING;
@@ -694,12 +681,9 @@ int get_next_token(void) {
 
   /* expand e.g., \1 and \@ */
   if (macro_active != 0) {
-    if (expand_macro_arguments(tmp, &q) == FAILED)
+    if (expand_macro_arguments(tmp) == FAILED)
       return FAILED;
-    if (q != 0) {
-      strcpy(tmp, expanded_macro_string);
-      ss = strlen(tmp);
-    }
+    ss = strlen(tmp);
   }
 
   return SUCCEEDED;
@@ -732,135 +716,140 @@ int skip_next_token(void) {
 }
 
 
-int _expand_macro_arguments(char *in, int *expands) {
+int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
-  char t[256];
-  int i, k, d;
+  char t[MAX_NAME_LENGTH + 1];
+  int i, j, k;
 
 
-  for (i = 0; i < MAX_NAME_LENGTH; i++) {
+  memset(expanded_macro_string, 0, MAX_NAME_LENGTH + 1);
+  
+  for (i = 0, k = 0; i < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; i++) {
     if (in[i] == '\\') {
       if (in[i + 1] == '"' || in[i + 1] == 'n' || in[i + 1] == '\\') {
-	expanded_macro_string[i] = in[i];
+	expanded_macro_string[k++] = in[i];
 	i++;
-	expanded_macro_string[i] = in[i];
-	continue;
+	expanded_macro_string[k++] = in[i];
       }
-      break;
+      else if (in[i + 1] == '@') {
+	/* we found '@' -> expand! */
+	(*expands)++;
+	i++;
+
+	sprintf(t, "%d%c", macro_runtime_current->macro->calls - 1, 0);
+	for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
+	  expanded_macro_string[k] = t[j];
+	  if (t[j] == 0)
+	    break;
+	}
+      }
+      else if (in[i + 1] == '!') {
+	/* we found '!' -> expand! */
+	(*expands)++;
+	i++;
+
+	sprintf(t, "%s%c", get_file_name(active_file_info_last->filename_id), 0);
+	for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
+	  expanded_macro_string[k] = t[j];
+	  if (t[j] == 0)
+	    break;
+	}
+      }
+      else if (in[i + 1] >= '0' && in[i + 1] <= '9') {
+	/* handle numbers, e.g., \1 */
+	int d = 0;
+
+	(*expands)++;
+	(*move_up)++;
+	i++;
+	for (; i < MAX_NAME_LENGTH && in[i] != 0; i++) {
+	  if (in[i] >= '0' && in[i] <= '9')
+	    d = (d * 10) + in[i] - '0';
+	  else
+	    break;
+	}
+	i--;
+
+	if (d > macro_runtime_current->supplied_arguments) {
+	  if (input_number_error_msg == YES) {
+	    sprintf(xyz, "Macro \"%s\" wasn't called with enough arguments, \\%d is out of range.\n", macro_runtime_current->macro->name, d);
+	    print_error(xyz, ERROR_NUM);
+	  }
+    
+	  return FAILED;
+	}
+
+	d = macro_runtime_current->argument_data[d - 1]->start;
+
+	for (; k < MAX_NAME_LENGTH; d++, k++) {
+	  if (buffer[d] == 0 || buffer[d] == ' ' || buffer[d] == 0x0A || buffer[d] == ',')
+	    break;
+	  expanded_macro_string[k] = buffer[d];
+	}
+      }
+      else {
+	if (input_number_error_msg == YES) {
+	  sprintf(xyz, "EXPAND_MACRO_ARGUMENTS: Unsupported special character '%c'.\n", in[i + 1]);
+	  print_error(xyz, ERROR_NUM);
+	}
+    
+	return FAILED;
+      }
     }
-    expanded_macro_string[i] = in[i];
+    else
+      expanded_macro_string[k++] = in[i];
 
     if (in[i] == 0)
-      return SUCCEEDED;
+      break;
   }
 
-  k = i;
-  i++;
-
-  (*expands)++;
-
-  if (in[i] == '@') {
-    i++;
-    sprintf(&expanded_macro_string[k], "%d%c", macro_runtime_current->macro->calls - 1, 0);
-    k = strlen(expanded_macro_string);
-
-    for (; i < MAX_NAME_LENGTH; i++, k++) {
-      expanded_macro_string[k] = in[i];
-      if (in[i] == 0)
-	break;
-    }
-
-    strcpy(t, expanded_macro_string);
-    _expand_macro_arguments(t, &d);
-
-    return SUCCEEDED;
-  }
-  
-  if (in[i] == '!') {
-    i++;
-    sprintf(&expanded_macro_string[k], "%s%c", get_file_name(active_file_info_last->filename_id), 0);
-    k = strlen(expanded_macro_string);
-
-    for (; i < MAX_NAME_LENGTH; i++, k++) {
-      expanded_macro_string[k] = in[i];
-      if (in[i] == 0)
-	break;
-    }
-
-    strcpy(t, expanded_macro_string);
-    _expand_macro_arguments(t, &d);
-
-    return SUCCEEDED;
-  }
-
-  if (in[i] <= '0' || in[i] >= '9') {
+  if (k >= MAX_NAME_LENGTH) {
     if (input_number_error_msg == YES) {
-      sprintf(xyz, "EXPAND_MACRO_ARGUMENTS: Unsupported special character '%c'.\n", in[i]);
+      sprintf(xyz, "EXPAND_MACRO_ARGUMENTS: The result string is too large, increate MAX_NAME_LENGTH and compile WLA DX again.\n");
       print_error(xyz, ERROR_NUM);
     }
     
     return FAILED;
   }
-
-  /* if we come this far, we are getting a macro argument number in the input, e.g., \1,
-     and we'll get ready to unfold that recursively... */
-
-  for (d = 0; in[i] != 0; i++) {
-    if (in[i] >= '0' && in[i] <= '9')
-      d = (d * 10) + in[i] - '0';
-    else
-      break;
-  }
-
-  if (d > macro_runtime_current->supplied_arguments) {
-    if (input_number_error_msg == YES) {
-      sprintf(xyz, "Macro \"%s\" wasn't called with enough arguments.\n", macro_runtime_current->macro->name);
-      print_error(xyz, ERROR_NUM);
-    }
-    
-    return FAILED;
-  }
-
-  d = macro_runtime_current->argument_data[d - 1]->start;
-
-  for (; k < MAX_NAME_LENGTH; d++, k++) {
-    if (buffer[d] == 0 || buffer[d] == ' ' || buffer[d] == 0x0A || buffer[d] == ',')
-      break;
-    expanded_macro_string[k] = buffer[d];
-  }
-
-  for (; k < MAX_NAME_LENGTH; i++, k++) {
-    expanded_macro_string[k] = in[i];
-    if (in[i] == 0) {
-      break;
-    }
-  }
-
-  /* move up one macro call in the hierarchy */
-  macro_active--;
-  if (macro_active <= 0) {
-    /* we came out from the macro stack -> all done */
-    return SUCCEEDED;
-  }
-  macro_runtime_current = &macro_stack[macro_active - 1];
   
-  strcpy(t, expanded_macro_string);
-  _expand_macro_arguments(t, &d);
-
+  strncpy(in, expanded_macro_string, MAX_NAME_LENGTH);
+	
   return SUCCEEDED;
 }
 
 
-int expand_macro_arguments(char *in, int *expands) {
+int _expand_macro_arguments(char *in, int *expands) {
+
+  int move_up;
+
+
+  move_up = 0;
+  if (_expand_macro_arguments_one_pass(in, expands, &move_up) == FAILED)
+    return FAILED;
+
+  /* macro argument numbers? if we find and expand some, we'll need to recursively call this function */
+  if (move_up > 0) {
+    /* move up one macro call in the hierarchy */
+    macro_active--;
+    if (macro_active > 0) {
+      macro_runtime_current = &macro_stack[macro_active - 1];
+      /* recursive call to self */
+      return _expand_macro_arguments(in, expands);
+    }
+  }
+
+  return SUCCEEDED;
+}
+  
+
+int expand_macro_arguments(char *in) {
 
   /* save the current macro_runtime pointers */
   struct macro_runtime* mr = macro_runtime_current;
-  int ma = macro_active;
-  int ret = 0;
+  int ma = macro_active, ret = 0, expands = 0;
   
-  *expands = 0;
-
-  ret = _expand_macro_arguments(in, expands);
+  
+  ret = _expand_macro_arguments(in, &expands);
 
   /* return the current macro_runtime as recursive _expand_macro_arguments() might have modified it */
   macro_runtime_current = mr;
