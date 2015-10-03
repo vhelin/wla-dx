@@ -16,7 +16,7 @@ int input_number_error_msg = YES, ss, string_size, input_float_mode = OFF, parse
 int newline_beginning = ON, parsed_double_decimal_numbers = 0;
 char label[MAX_NAME_LENGTH], xyz[256];
 char unevaluated_expression[256];
-char expanded_macro_string[MAX_NAME_LENGTH];
+char expanded_macro_string[MAX_NAME_LENGTH+1];
 double parsed_double;
 
 extern int i, size, d, macro_active;
