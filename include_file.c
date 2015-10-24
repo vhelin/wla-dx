@@ -344,7 +344,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   /* complete the structure */
   ifd->next = NULL;
   ifd->size = file_size;
-  strcpy(n, name);
+  strcpy(n, full_name);
   ifd->name = n;
   ifd->data = in_tmp;
 
@@ -352,11 +352,11 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   q = 0;
   if (incbin_file_data_first != NULL) {
     ifd_tmp = incbin_file_data_first;
-    while (ifd_tmp->next != NULL && strcmp(ifd_tmp->name, name) != 0) {
+    while (ifd_tmp->next != NULL && strcmp(ifd_tmp->name, full_name) != 0) {
       ifd_tmp = ifd_tmp->next;
       q++;
     }
-    if (ifd_tmp->next == NULL) {
+    if (ifd_tmp->next == NULL && strcmp(ifd_tmp->name, full_name) != 0) {
       ifd_tmp->next = ifd;
       q++;
     }

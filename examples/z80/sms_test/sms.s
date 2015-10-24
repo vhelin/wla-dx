@@ -199,3 +199,19 @@ dragon    INSTANCEOF mon   ; one mon
 
 	ld hl, dragon
 	call dragon
+
+;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+; .incbin test
+;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+
+.macro macroOne 		; the input byte is \1, the output byte is "_out"
+.redefine _out \1+1
+.endm
+	
+data1a:	.incbin "data1/data.txt" skip 1 filter macroOne
+data2a:	.incbin "data2/data.txt" skip 1 filter macroOne
+	.incdir "data1"
+data1b:	.incbin "data.txt" skip 1 filter macroOne
+	.incbin "data3/data.txt"
+	.incdir "data2"
+data2b:	.incbin "data.txt" skip 1 filter macroOne

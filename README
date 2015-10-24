@@ -726,6 +726,12 @@ This example shows how to incbin eight bytes (swapped) after skipping
 size of the file into a definition label "size_of_kitten". All the data bytes
 are circulated through a filter macro.
 
+Here's an example of a filter macro that increments all the bytes by one:
+
+.macro filtermacro    ; the input byte is \1, the output byte is in "_out"
+.redefine _out \1+1
+.endm
+
 Note that the order of the extra commands is important.
 
 If the file's not found in the .INCDIR directory, WLA tries to find it
