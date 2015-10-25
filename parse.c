@@ -377,6 +377,11 @@ int input_number(void) {
 	}
 #endif
       }
+      else if ((e >= 'a' && e <= 'z') || (e >= 'A' && e <= 'Z')) {
+	/* a number directly followed by a letter when parsing a integer/float -> syntax error */
+	print_error("Syntax error.\n", ERROR_NUM);
+	return FAILED;
+      }
       else
 	break;
     }
