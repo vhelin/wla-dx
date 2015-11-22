@@ -192,6 +192,7 @@ Group 3:
 [ALL] .DWRND 20, 0, 10
 [ALL] .DWSIN 0.2, 10, 3.2, 1024, 1.3
 [ALL] .ELSE
+[ALL] .ENDA
 [ALL] .ENDASM
 [ALL] .ENDB
 [ALL] .ENDE
@@ -662,6 +663,10 @@ to this), use
 
 .INCDIR ""
 
+If the INCDIR is specified in the command line, that directory will be
+searched before the .INCDIR in the file. If the file is not found, WLA
+will then silently search the specified .INCDIR.
+
 This is not a compulsory directive.
 
 -------------------------
@@ -670,7 +675,9 @@ This is not a compulsory directive.
 
 Includes the specified file to the source file. If the file's not found
 in the .INCDIR directory, WLA tries to find it in the current working
-directory.
+directory. If the INCDIR is specified in the command line, WLA will first
+try to find the file specified in that directory. Then proceed as mentioned
+before if it is not found.
 
 This is not a compulsory directive.
 
@@ -735,7 +742,9 @@ Here's an example of a filter macro that increments all the bytes by one:
 Note that the order of the extra commands is important.
 
 If the file's not found in the .INCDIR directory, WLA tries to find it
-in the current working directory.
+in the current working directory. If the INCDIR is specified in the command line,
+WLA will first search for the file in that directory. If not found, it will then
+proceed as aforementioned.
 
 This is not a compulsory directive.
 
@@ -1327,6 +1336,15 @@ Also note that the characters that are not given any mapping in
 .ASCIITABLE map to themselves (i.e., 'A' maps to 'A', etc.).
 
 This is not a compulsory directive.
+
+-----
+.ENDA
+-----
+
+Ends the ASCII table.
+
+This is not a compulsory directive, but when .ASCIITABLE or .ASCTABLE is used
+this one is required to terminate them.
 
 ---------
 .ASCTABLE
@@ -2778,7 +2796,7 @@ of no further use.
 
 To compile an object file use:
 
-"wla -[itvx]o [DEFINITIONS] <ASM FILE> [OUTPUT FILE]"
+"wla -[itvx]o [INCDIR] [DEFINITIONS] <ASM FILE> [OUTPUT FILE]"
 
 These object files can be linked together (or with library files) later
 with "wlalink".
@@ -2818,7 +2836,7 @@ with value "math v1.0".
 
 To compile a library file use:
  
-"wla -[itvx]l [DEFINITIONS] <ASM FILE> [OUTPUT FILE]"
+"wla -[itvx]l [INCDIR] [DEFINITIONS] <ASM FILE> [OUTPUT FILE]"
 
 Name object files so that they can be recognized as library files. Normal
 suffix is ".lib" (WLA default).
@@ -2838,7 +2856,7 @@ After you have produced one or more object files and perhaps some library
 files, you might want to link them together to produce a ROM image / program
 file. "wlalink" is the program you use for that. Here's how you use it:
 
-"wlalink [-divsS]{b/r} <LINK FILE> <OUTPUT FILE>"
+"wlalink [-divsS]{b/r} [LIBDIR] <LINK FILE> <OUTPUT FILE>"
 
 Choose 'b' for program file or 'r' for ROM image linking.
 
@@ -2919,6 +2937,12 @@ has created a list file called "main.lst". This file contains the source
 text and the result data the source compiled into. List files are good for
 debugging.
 
+If flag 'L' is given after the above options, WLALINK will use the directory
+specified after the flag for including libraries. If WLALINK cannot find the
+library in the specified directory, it will then silently search the current
+working directory. This is useful when using WLA in an SDK environment where
+a global path is needed.
+
 Make sure you don't create duplicate labels in different places in the
 memory map as they break the linking loop. Duplicate labels are allowed when
 they overlap each other in the destination machine's memory. Look at the
@@ -2957,6 +2981,12 @@ INIT_LEVEL:
 
 Here duplicate INIT_LEVEL labels are accepted as they both point to the
 same memory address (in the program's point of view).
+
+Examples:
+
+[seravy@localhost tbp]# wlalink -r linkfile testa.sfc
+[seravy@localhost tbp]# wlalink -dib linkfile testb.sfc
+[seravy@localhost tbp]# wlalink -vS -L../../lib linkfile testc.sfc
 
 
 ------------------------------------------------------------------------------
@@ -3292,11 +3322,19 @@ One (and only one) of the following command flags must be defined.
 l - Output a library file.
 o - Output an object file.
 
+You may also use an extra option to specify the include directory. WLA will
+search this directory for included files before defaulting to the specified
+.INCDIR or current working directory.
+
+I - Directory to include files.
+
 Examples:
 
 [seravy@localhost tbp]# wla -voi testa.s
 [seravy@localhost tbp]# wla -oM testa.s
 [seravy@localhost tbp]# wla -l testb.s testb.lib
+[seravy@localhost tbp]# wla -l -I../../include testb.s testb.lib
+[seravy@localhost tbp]# wla -oM -Imyfiles testa.s
 
 Note that the first example produces file named "testa.o".
 
@@ -3398,11 +3436,11 @@ smail: Ville Helin
 - Ventzislav Tzvetkov for the AmigaOS4 makefiles.
 - FluBBa for crucial HuC6280 bug reports!
 - Christophe Iasci for the Win32 port!
-- Marc Dünster and Kevin Mantey for the big help and suggestions with
+- Marc DÃ¼nster and Kevin Mantey for the big help and suggestions with
   wla-65816 and wla-spc700!
 - Tobias Pflug for bug reports, and fixing SMC header writing!
 - John Schneider for makefile enhancements!
-- Daniël Hörchner for fixing the Win32 makefiles!
+- DaniÃ«l HÃ¶rchner for fixing the Win32 makefiles!
 - Timo Jantunen for helping me with makefiles.
 - Adam Klotblix for documentation improvements and bug reports.
 - Zachary Keene for writing .SNESHEADER, .ENDSNES, .SNESNATIVEVECTOR,
