@@ -624,7 +624,7 @@ int parse_and_set_libdir(char *c) {
   int i;
 
   if (strlen(c) > 2) {
-    if (c[0] == '-' || c[1] == 'L') {
+    if (c[0] == '-' && c[1] == 'L') {
       c += 2;
       for (i = 0; i < (MAX_NAME_LENGTH - 1) && *c != 0; i++, c++)
         n[i] = *c;
