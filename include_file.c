@@ -11,8 +11,8 @@
 #include "parse.h"
 
 
-extern int ind, inz, i, unfolded_size, extra_definitions, d;
-extern char *unfolded_buffer, emsg[256], tmp[4096];
+extern int ind, inz, i, unfolded_size, extra_definitions, d, use_incdir;
+extern char *unfolded_buffer, emsg[256], tmp[4096], ext_incdir[MAX_NAME_LENGTH];
 extern FILE *file_out_ptr;
 
 struct incbin_file_data *incbin_file_data_first = NULL, *ifd_tmp;
@@ -74,24 +74,47 @@ int include_file(char *name) {
 
   static int first_load = 0;
   int file_size, id;
-  char *tmp_b, *n;
+  char *tmp_b, *n, *tmp_c;
   FILE *f;
 
 
   /* create the full output file name */
-  if (create_full_name(include_dir, name) == FAILED)
+  if (use_incdir == YES)
+    tmp_c = ext_incdir;
+  else
+    tmp_c = include_dir;
+
+  if (create_full_name(tmp_c, name) == FAILED)
     return FAILED;
 
   f = fopen(full_name, "rb");
   id = 0;
 
-  if (f == NULL && (include_dir == NULL || include_dir[0] == 0)) {
+  if (f == NULL && (tmp_c == NULL || tmp_c[0] == 0)) {
     sprintf(emsg, "Error opening file \"%s\".\n", name);
     if (first_load == 0)
       fprintf(stderr, "INCLUDE_FILE: %s", emsg);
     else
       print_error(emsg, ERROR_INC);
     return FAILED;
+  }
+
+  /* if not found in ext_incdir silently try the include directory */
+  if (f == NULL && use_incdir == YES) {
+    if (create_full_name(include_dir, name) == FAILED)
+      return FAILED;
+  
+    f = fopen(full_name, "rb");
+    id = 0;
+  
+    if (f == NULL && (include_dir == NULL || include_dir[0] == 0)) {
+      sprintf(emsg, "Error opening file \"%s\".\n", name);
+      if (first_load == 0)
+        fprintf(stderr, "INCLUDE_FILE: %s", emsg);
+      else
+        print_error(emsg, ERROR_INC);
+      return FAILED;
+    }
   }
 
   /* if failed try to find the file in the current directory */
@@ -280,22 +303,42 @@ int include_file(char *name) {
 int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct macro_static **macro) {
 
   struct incbin_file_data *ifd;
-  char *in_tmp, *n;
+  char *in_tmp, *n, *tmp_c;
   int file_size, q;
   FILE *f;
 
   
   /* create the full output file name */
-  if (create_full_name(include_dir, name) == FAILED)
+  if (use_incdir == YES)
+    tmp_c = ext_incdir;
+  else
+    tmp_c = include_dir;
+
+  if (create_full_name(tmp_c, name) == FAILED)
     return FAILED;
 
   f = fopen(full_name, "rb");
   q = 0;
 
-  if (f == NULL && (include_dir == NULL || include_dir[0] == 0)) {
+  if (f == NULL && (tmp_c == NULL || tmp_c[0] == 0)) {
     sprintf(emsg, "Error opening file \"%s\".\n", name);
     print_error(emsg, ERROR_INB);
     return FAILED;
+  }
+
+  /* if not found in ext_incdir silently try the include directory */
+  if (f == NULL && use_incdir == YES) {
+    if (create_full_name(include_dir, name) == FAILED)
+      return FAILED;
+  
+    f = fopen(full_name, "rb");
+    q = 0;
+  
+    if (f == NULL && (include_dir == NULL || include_dir[0] == 0)) {
+      sprintf(emsg, "Error opening file \"%s\".\n", name);
+      print_error(emsg, ERROR_INB);
+      return FAILED;
+    }
   }
 
   /* if failed try to find the file in the current directory */
