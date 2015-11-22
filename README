@@ -1343,7 +1343,7 @@ This is not a compulsory directive.
 
 Ends the ASCII table.
 
-This is not a compulsory directive, but when .ASCIITABLE or .ASCTABLE is used
+This is not a compulsory directive, but when .ASCIITABLE or .ASCTABLE are used
 this one is required to terminate them.
 
 ---------
