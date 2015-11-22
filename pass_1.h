@@ -11,6 +11,7 @@ int undefine(char *name);
 int parse_directive(void);
 int find_next_point(char *name);
 int get_new_definition_data(int *b, char *c, int *size, double *data);
+int localize_path(char *path);
 
 void print_error(char *error, int type);
 void next_line(void);
