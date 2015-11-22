@@ -86,9 +86,9 @@ extern int include_in_tmp_size, tmp_a_size, *banks, *bankaddress;
 
 int output_format = OUTPUT_NONE, verbose_mode = OFF, test_mode = OFF;
 int extra_definitions = OFF, commandline_parsing = ON, makefile_rules = NO;
-int listfile_data = NO, quiet = NO;
+int listfile_data = NO, quiet = NO, use_incdir = NO;
 
-char *final_name = NULL, *asm_name = NULL;
+char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH];
 
 
 int main(int argc, char *argv[]) {
@@ -142,14 +142,15 @@ int main(int argc, char *argv[]) {
     printf("\nWLA HuC6280 Macro Assembler v9.6\n");
 #endif
     printf("Written by Ville Helin in 1998-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
-    printf("USAGE: %s -[iMqtvx]{lo} [DEFINITIONS] <ASM FILE> [OUTPUT FILE]\n", argv[0]);
+    printf("USAGE: %s -[iMqtvx]{lo} [INCDIR] [DEFINITIONS] <ASM FILE> [OUTPUT FILE]\n", argv[0]);
     printf("Commands:             Options:\n");
     printf("l  Library file       i  Add list file information\n");
     printf("o  Object file        M  Output makefile rules\n");
     printf("                      q  Quiet\n");
     printf("                      t  Test compile\n");
     printf("                      v  Verbose messages\n");
-    printf("                      x  Extra compile time definitions\n\n");
+    printf("                      x  Extra compile time definitions\n");
+    printf("                      I  Include directory\n\n");
 
     return 0;
   }
@@ -481,6 +482,21 @@ int parse_defines_and_get_final_name(char **c, int n) {
     if (n == 0)
       break;
     if (strlen(*c) > 2) {
+      if (**c != '-' || *((*c) + 1) != 'I')
+	break;
+      else
+	if (parse_and_set_incdir(*c) == FAILED)
+	  return FAILED;
+    }
+    c++;
+    n--;
+    break;
+  }
+
+  while (1) {
+    if (n == 0)
+      break;
+    if (strlen(*c) > 2) {
       if (**c != '-' || *((*c) + 1) != 'D')
 	break;
       else
@@ -599,6 +615,30 @@ int parse_and_add_definition(char *c) {
 
     /* string definition */
     return add_a_new_definition(n, 0.0, c, DEFINITION_TYPE_STRING, strlen(c));
+  }
+
+  return FAILED;
+}
+
+int parse_and_set_incdir(char *c) {
+
+  char n[MAX_NAME_LENGTH];
+  int i;
+
+  c += 2;
+  for (i = 0; i < (MAX_NAME_LENGTH - 1) && *c != 0; i++, c++)
+    n[i] = *c;
+  n[i] = 0;
+
+  if (*c == 0) {
+    localize_path(n);
+#if defined(MSDOS)
+    sprintf(ext_incdir, "%s\\", n);
+#else
+    sprintf(ext_incdir, "%s/", n);
+#endif
+	use_incdir = YES;
+    return SUCCEEDED;
   }
 
   return FAILED;
