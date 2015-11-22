@@ -39,18 +39,19 @@ unsigned char *rom, *rom_usage, *file_header = NULL, *file_footer = NULL;
 int romsize, rombanks, banksize, verbose_mode = OFF, section_overwrite = OFF, symbol_mode = SYMBOL_MODE_NONE;
 int pc_bank, pc_full, pc_slot, pc_slot_max;
 int file_header_size, file_footer_size, *banksizes = NULL, *bankaddress = NULL;
-int output_mode = OUTPUT_ROM, discard_unreferenced_sections = OFF;
+int output_mode = OUTPUT_ROM, discard_unreferenced_sections = OFF, use_libdir = NO;
 int program_start, program_end, sms_checksum, smstag_defined = 0, snes_rom_mode = SNES_ROM_MODE_LOROM, snes_rom_speed = SNES_ROM_SPEED_SLOWROM;
 int gb_checksum, gb_complement_check, snes_checksum, cpu_65816 = 0, snes_mode = 0;
 int listfile_data = NO, smc_status = 0, snes_sramsize = 0;
 
 extern int emptyfill;
+char ext_libdir[MAX_NAME_LENGTH];
 
 
 
 int main(int argc, char *argv[]) {
 
-  int i, x, y, q, inz;
+  int i, x, y, q, inz, u;
   struct section *s;
   float f;
 
@@ -63,21 +64,35 @@ int main(int argc, char *argv[]) {
 
   i = SUCCEEDED;
   x = SUCCEEDED;
+  u = SUCCEEDED;
 
-  if (argc > 1)
+  if (argc > 1) {
     x = parse_flags(argv[1]);
+    if (x == SUCCEEDED)
+      u = parse_and_set_libdir(argv[2]);
+    else
+      u = parse_and_set_libdir(argv[1]);
+  }
   else
     i = FAILED;
 
-  if (x == FAILED && argc != 3)
-    i = FAILED;
-  if (x == SUCCEEDED && argc != 4)
-    i = FAILED;
+  if (u == SUCCEEDED) {
+    if (x == FAILED && argc != 4)
+      i = FAILED;
+    if (x == SUCCEEDED && argc != 5)
+      i = FAILED;
+  }
+  else {
+    if (x == FAILED && argc != 3)
+      i = FAILED;
+    if (x == SUCCEEDED && argc != 4)
+      i = FAILED;
+  }
 
   if (i == FAILED) {
     printf("\nWLALINK GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 WLA Macro Assembler Linker v5.7\n");
     printf("Written by Ville Helin in 2000-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
-    printf("USAGE: %s [-bdirsSv] <LINK FILE> <OUTPUT FILE>\n", argv[0]);
+    printf("USAGE: %s [-bdirsSv] [LIBDIR] <LINK FILE> <OUTPUT FILE>\n", argv[0]);
     printf("Options:\n");
     printf("b  Program file output\n");
     printf("d  Discard unreferenced sections\n");
@@ -85,7 +100,8 @@ int main(int argc, char *argv[]) {
     printf("r  ROM file output (default)\n");
     printf("s  Write also a NO$GMB symbol file\n");
     printf("S  Write also a WLA symbol file\n");
-    printf("v  Verbose messages\n\n");
+    printf("v  Verbose messages\n");
+    printf("L  Library directory\n\n");
     return 0;
   }
 
@@ -459,6 +475,30 @@ int main(int argc, char *argv[]) {
 }
 
 
+int localize_path(char *path) {
+
+  int i;
+
+  
+  if (path == NULL)
+    return FAILED;
+
+  for (i = 0; path[i] != 0; i++) {
+#if defined(MSDOS)
+    /* '/' -> '\' */
+    if (path[i] == '/')
+      path[i] = '\\';
+#else
+    /* '\' -> '/' */
+    if (path[i] == '\\')
+      path[i] = '/';
+#endif
+  }
+
+  return SUCCEEDED;
+}
+
+
 void procedures_at_exit(void) {
 
   struct source_file_name *f, *fn;
@@ -575,6 +615,35 @@ int parse_flags(char *f) {
   }
 
   return SUCCEEDED;
+}
+
+
+int parse_and_set_libdir(char *c) {
+
+  char n[MAX_NAME_LENGTH];
+  int i;
+
+  if (strlen(c) > 2) {
+    if (c[0] == '-' || c[1] == 'L') {
+      c += 2;
+      for (i = 0; i < (MAX_NAME_LENGTH - 1) && *c != 0; i++, c++)
+        n[i] = *c;
+      n[i] = 0;
+
+      if (*c == 0) {
+        localize_path(n);
+#if defined(MSDOS)
+        sprintf(ext_libdir, "%s\\", n);
+#else
+        sprintf(ext_libdir, "%s/", n);
+#endif
+        use_libdir = YES;
+        return SUCCEEDED;
+      }
+    }
+  }
+
+  return FAILED;
 }
 
 
