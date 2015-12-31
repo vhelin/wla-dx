@@ -4071,8 +4071,8 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    if (rambanks_defined != 0) {
-      if (rambanks != d) {
+    if (countrycode_defined != 0) {
+      if (countrycode != d) {
         print_error(".COUNTRYCODE was defined for the second time.\n", ERROR_DIR);
         return FAILED;
       }
