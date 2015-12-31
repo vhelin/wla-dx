@@ -62,7 +62,7 @@ add_subdirectory (wlab)
 add_subdirectory (wlalink)
 
 # --- WLA executables ---
-set(CFILES main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c)
+set(CFILES wla-dx/main.c wla-dx/parse.c wla-dx/include_file.c wla-dx/pass_1.c wla-dx/pass_2.c wla-dx/pass_3.c wla-dx/pass_4.c wla-dx/stack.c wla-dx/listfile.c)
 
 # GB
 add_executable(wla-gb ${CFILES})

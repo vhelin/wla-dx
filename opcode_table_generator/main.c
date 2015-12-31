@@ -4,34 +4,34 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../defines.h"
+#include "../wla-dx/defines.h"
 #include "defines.h"
 
 
 #if defined(GB)
 char outname[] = "../opcodes_gb_tables.c";
-#include "../opcodes_gb.c"
+#include "../wla-dx/opcodes_gb.c"
 #elif defined(Z80)
 char outname[] = "../opcodes_z80_tables.c";
-#include "../opcodes_z80.c"
+#include "../wla-dx/opcodes_z80.c"
 #elif defined(MCS6502)
 char outname[] = "../opcodes_6502_tables.c";
-#include "../opcodes_6502.c"
+#include "../wla-dx/opcodes_6502.c"
 #elif defined(WDC65C02)
 char outname[] = "../opcodes_65c02_tables.c";
-#include "../opcodes_65c02.c"
+#include "../wla-dx/opcodes_65c02.c"
 #elif defined(MCS6510)
 char outname[] = "../opcodes_6510_tables.c";
-#include "../opcodes_6510.c"
+#include "../wla-dx/opcodes_6510.c"
 #elif defined(W65816)
 char outname[] = "../opcodes_65816_tables.c";
-#include "../opcodes_65816.c"
+#include "../wla-dx/opcodes_65816.c"
 #elif defined(SPC700)
 char outname[] = "../opcodes_spc700_tables.c";
-#include "../opcodes_spc700.c"
+#include "../wla-dx/opcodes_spc700.c"
 #elif defined(HUC6280)
 char outname[] = "../opcodes_huc6280_tables.c";
-#include "../opcodes_huc6280.c"
+#include "../wla-dx/opcodes_huc6280.c"
 #endif
 
 
