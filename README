@@ -134,6 +134,7 @@ Group 1:
 Group 2:
 
 [GB ] .CARTRIDGETYPE 1
+[GB ] .COUNTRYCODE 1
 [GB ] .COMPUTEGBCOMPLEMENTCHECK
 [ALL] .EMPTYFILL $C9
 [658] .ENDEMUVECTOR
@@ -196,13 +197,13 @@ Group 3:
 [ALL] .ENDB
 [ALL] .ENDE
 [ALL] .ENDIF
-[ALL] .ENDM 
+[ALL] .ENDM
 [ALL] .ENDME
 [ALL] .ENDR
 [ALL] .ENDRO
 [ALL] .ENDS
 [ALL] .ENDST
-[ALL] .ENUM $C000 
+[ALL] .ENUM $C000
 [ALL] .EQU IF $FF0F
 [ALL] .FAIL
 [ALL] .FCLOSE FP_DATABIN
@@ -533,6 +534,14 @@ This is not a compulsory directive.
 Indicates the type of the cartridge (mapper and so on). This is a standard
 Gameboy cartridge type indicator value found at $147 in a Gameboy ROM, and
 there this one is put to also.
+
+This is not a compulsory directive.
+
+----------------
+.COUNTRYCODE 1
+----------------
+
+Indicates the country code located at $14A of a Gameboy ROM.
 
 This is not a compulsory directive.
 

@@ -21,6 +21,7 @@ char licenseecodenew_c1, licenseecodenew_c2;
 int computechecksum_defined = 0, computecomplementcheck_defined = 0;
 int romgbc = 0, romdmg = 0, romsgb = 0;
 int cartridgetype = 0, cartridgetype_defined = 0;
+int countrycode = 0, countrycode_defined = 0;
 int licenseecodenew_defined = 0, licenseecodeold = 0, licenseecodeold_defined = 0;
 #endif
 
@@ -4050,6 +4051,40 @@ int parse_directive(void) {
 
     return SUCCEEDED;
   }
+
+
+  /* COUNTRYCODE */
+
+  if (strcmp(cp, "COUNTRYCODE") == 0) {
+
+    if (output_format == OUTPUT_LIBRARY) {
+      print_error("Library files don't take .COUNTRYCODE.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    q = input_number();
+
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED || q < 0) {
+      print_error(".COUNTRYCODE needs a non-negative value.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    if (countrycode_defined != 0) {
+      if (countrycode != d) {
+        print_error(".COUNTRYCODE was defined for the second time.\n", ERROR_DIR);
+        return FAILED;
+      }
+      return SUCCEEDED;
+    }
+
+    countrycode = d;
+    countrycode_defined = 1;
+
+    return SUCCEEDED;
+  }
+
 
   /* CARTRIDGETYPE */
 

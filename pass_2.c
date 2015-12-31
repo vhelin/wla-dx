@@ -14,6 +14,7 @@
 #ifdef GB
 extern int licenseecodeold;
 extern int name_defined, licenseecodeold_defined, licenseecodenew_defined;
+extern int countrycode, countrycode_defined;
 extern char name[32], licenseecodenew_c1, licenseecodenew_c2;
 #endif
 
@@ -314,6 +315,9 @@ int pass_2(void) {
       mem_insert_absolute(331, 51);
       mem_insert_absolute(324, licenseecodenew_c1);
       mem_insert_absolute(325, licenseecodenew_c2);
+    }
+    if (countrycode_defined != 0) {
+      mem_insert_absolute(330, countrycode);
     }
     if (name_defined != 0) {
       if (romgbc != 0)
