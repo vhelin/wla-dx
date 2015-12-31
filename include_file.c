@@ -484,27 +484,27 @@ int print_file_names(void) {
   /* handle the main file name differently */
   if (fni != NULL) {
     if (fni->next != NULL || ifd != NULL)
-      fprintf(stderr, "%s \\\n", fni->name);
+      fprintf(stdout, "%s \\\n", fni->name);
     else
-      fprintf(stderr, "%s\n", fni->name);
+      fprintf(stdout, "%s\n", fni->name);
     fni = fni->next;
   }
 
   /* included files */
   while (fni != NULL) {
     if (fni->next != NULL || ifd != NULL)
-      fprintf(stderr, "\t%s \\\n", fni->name);
+      fprintf(stdout, "\t%s \\\n", fni->name);
     else
-      fprintf(stderr, "\t%s\n", fni->name);
+      fprintf(stdout, "\t%s\n", fni->name);
     fni = fni->next;
   }
 
   /* incbin files */
   while (ifd != NULL) {
     if (ifd->next != NULL)
-      fprintf(stderr, "\t%s \\\n", ifd->name);
+      fprintf(stdout, "\t%s \\\n", ifd->name);
     else
-      fprintf(stderr, "\t%s\n", ifd->name);
+      fprintf(stdout, "\t%s\n", ifd->name);
     ifd = ifd->next;
   }
 
