@@ -4210,6 +4210,8 @@ int parse_directive(void) {
 
     if (computecomplementcheck_defined != 0)
       print_error(".COMPUTEGBCOMPLEMENTCHECK unecessary when .GBHEADER is defined.\n", ERROR_WRN);
+    else
+      computecomplementcheck_defined++;
 
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Libraries don't take .GBHEADER.\n", ERROR_DIR);
