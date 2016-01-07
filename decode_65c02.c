@@ -67,7 +67,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
     if (z == SUCCEEDED && (d > 65535 || d < -32768)) {
-      print_error("Out of 16bit range.\n", ERROR_NUM);
+      print_error("Out of 16-bit range.\n", ERROR_NUM);
       return FAILED;
     }
 

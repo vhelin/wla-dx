@@ -277,8 +277,8 @@ The first one could also be
 LSR 11       ; $4E $0B $00
 
 .8BIT is here to help WLA to decide to choose which one of the opcodes it
-selects. When you give .8BIT (default) no 8bit address/value is expanded
-to 16bits.
+selects. When you give .8BIT (default) no 8-bit address/value is expanded
+to 16-bits.
 
 By default WLA uses the smallest possible size. This is true also when WLA
 finds a computation it can't solve right away. WLA assumes the result will
@@ -303,7 +303,7 @@ This is not a compulsory directive.
 ------
 
 Analogous to .8BIT. .16BIT forces all addresses and immediate values to
-be expanded into 16bit range, when possible, that is.
+be expanded into 16-bit range, when possible, that is.
 
 LSR 11       ; $46 $0B
 
@@ -318,7 +318,7 @@ This is not a compulsory directive.
 ------
 
 Analogous to .8BIT and .16BIT. .24BIT forces all addresses to
-be expanded into 24bit range, when possible, that is.
+be expanded into 24-bit range, when possible, that is.
 
 AND $11       ; $25 $11
 
@@ -327,7 +327,7 @@ that would be the case, normally, but after .24BIT it becomes
 AND $11       ; $2F $11 $00 $00
 
 If it is not possible to expand the address into .24BIT range,
-then WLA tries to expand it into 16bit range.
+then WLA tries to expand it into 16-bit range.
 
 This is not a compulsory directive.
 
@@ -1062,7 +1062,7 @@ This is not a compulsory directive.
 
 With this directive you can define the SNES ROM mode to be HiROM.
 Issuing .HIROM will override the user's ROM bank map when
-WLALINK computes 24bit addresses and bank references. If no
+WLALINK computes 24-bit addresses and bank references. If no
 .HIROM or .LOROM are given then WLALINK obeys the banking
 defined in .ROMBANKMAP.
 
@@ -1076,7 +1076,7 @@ This is not a compulsory directive.
 
 With this directive you can define the SNES ROM mode to be LoROM.
 Issuing .LOROM will override the user's ROM bank map when
-WLALINK computes 24bit addresses and bank references. If no
+WLALINK computes 24-bit addresses and bank references. If no
 .HIROM or .LOROM are given then WLALINK obeys the banking
 defined in .ROMBANKMAP.
 
@@ -1088,7 +1088,7 @@ This is not a compulsory directive.
 .BASE $80
 ---------
 
-Defines the base value for the 65816 CPU bank number (used only in 24bit
+Defines the base value for the 65816 CPU bank number (used only in 24-bit
 addresses). Here are few examples of how to use .BASE (both examples assume
 the label resides in the first ROM bank):
 
@@ -1183,7 +1183,7 @@ This is a compulsory directive.
 Defines the starting address. The value supplied here is absolute and used
 directly in address computations. WLA computes the right position in
 ROM file. By using .ORGA you can instantly see from the source file where the
-following code is located in the 16bit memory.
+following code is located in the 16-bit memory.
 
 Here's an example:
 
@@ -1415,7 +1415,7 @@ This is not a compulsory directive.
 .DWM filtermacro 1, 2, 3
 ------------------------
 
-Defines 16bit words using a filter macro. All the data is passed to "filtermacro" in the
+Defines 16-bit words using a filter macro. All the data is passed to "filtermacro" in the
 first argument, one word at a time, and the word that actually gets defined is
 the value of definition "_OUT" ("_out" works as well). The second macro argument holds
 the offset from the beginning (the first word) in bytes (the series being 0, 2, 4, 6, ...).
@@ -1819,7 +1819,7 @@ And this is what is generated:
 .DEFINE bigapple   $BFFE
 .EXPORT bigapple, bigapple_l, bigapple_h
 
-This way you can generate a 16bit variable address along with pointers
+This way you can generate a 16-bit variable address along with pointers
 to its parts.
 
 If you want more flexible variable positioning, take a look at
@@ -3059,8 +3059,8 @@ The following operators are valid:
 
 Note that you can do NOT using XOR:
 
-VALUE_A ~ $FF   = 8bit NOT
-VALUE_B ~ $FFFF = 16bit NOT
+VALUE_A ~ $FF   = 8-bit NOT
+VALUE_B ~ $FFFF = 16-bit NOT
 
 WLA computes internally with real numbers so (5/2)*2 produces 5, not 4.
 
@@ -3231,7 +3231,7 @@ helpful. Remember that when you use .LOROM, .HIROM, .SLOWROM and .FASTROM
 WLA automatically writes the information into the output.
 .COMPUTESNESCHECKSUM, .SNESHEADER and few others could also be useful.
 
-Use .BASE to set the upmost eight bits of 24bit addresses.
+Use .BASE to set the upmost eight bits of 24-bit addresses.
 
 If possible, use operand hints to specify the size of the operand.
 WLA is able to deduce the accumulator/index mode to some extent from REP/SEP
@@ -3239,8 +3239,8 @@ WLA is able to deduce the accumulator/index mode to some extent from REP/SEP
 the operand with .B, .W or .L.
 
 AND #10     ; can be two different things, depending on the size of the accu.
-AND #10.B   ; forces 8bit immediate value.
-AND #10.W   ; forces 16bit immediate value.
+AND #10.B   ; forces 8-bit immediate value.
+AND #10.W   ; forces 16-bit immediate value.
 
 Or if you must, these work as well:
 
@@ -3283,7 +3283,7 @@ Opcodes that make relative label references:
 
 14.7. SPC-700
 
-Note that you'll have to put an exclamation mark before a 16bit value.
+Note that you'll have to put an exclamation mark before a 16-bit value.
 For example,
 
 CALL !Main
@@ -3397,7 +3397,7 @@ to store the time when the build process started into the ROM file you
 are compiling.
 
 Definition "CADDR", which is present without supplying the flag 'x',
-contains the current 16bit memory address. So
+contains the current 16-bit memory address. So
 
 LD HL, CADDR
 

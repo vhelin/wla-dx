@@ -26,7 +26,7 @@
 */
 
 #ifdef AMIGA
-char version_string[] = "$VER: WLALINK 5.7 (02.03.2008)";
+char version_string[] = "$VER: WLALINK 5.7 (07.01.2016)";
 #endif
 
 struct object_file *obj_first = NULL, *obj_last = NULL, *obj_tmp;
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
   if (i == FAILED) {
     printf("\nWLALINK GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 WLA Macro Assembler Linker v5.7\n");
     printf("Written by Ville Helin in 2000-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
-    printf("USAGE: %s [-bdirsSv] [LIBDIR] <LINK FILE> <OUTPUT FILE>\n", argv[0]);
+    printf("USAGE: %s [-bdirsSv] -L[LIBDIR] <LINK FILE> <OUTPUT FILE>\n", argv[0]);
     printf("Options:\n");
     printf("b  Program file output\n");
     printf("d  Discard unreferenced sections\n");

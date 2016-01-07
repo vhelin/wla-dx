@@ -90,11 +90,11 @@
 /* B - ROM bank            */
 /* b - BASE (65816)        */
 /* L - label               */
-/* r - 16bit reference     */
-/* R - 8bit pc ref         */
-/* M - 16bit pc ref        */
-/* Q - 8bit reference      */
-/* q - 24bit reference     */
+/* r - 16-bit reference    */
+/* R - 8-bit pc ref        */
+/* M - 16-bit pc ref       */
+/* Q - 8-bit reference     */
+/* q - 24-bit reference    */
 /* S - section             */
 /* s - end of section      */
 /* x - dsb                 */
