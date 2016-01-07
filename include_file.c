@@ -705,24 +705,32 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       *output = '"';
       input++;
       output++;
-      got_chars_on_line = 0;
-      while (got_chars_on_line == 0) {
-	for ( ; input < input_end && *input != '"'; ) {
+      got_chars_on_line = 1;
+      while (1) {
+	for ( ; input < input_end && *input != '"' && *input != 0x0A && *input != 0x0D; ) {
 	  *output = *input;
 	  input++;
 	  output++;
 	}
-	if (*input == '"' && *(input - 1) != '\\')
-	  got_chars_on_line = 1;
+
+	if (input >= input_end)
+	  break;
+	else if (*input == 0x0A || *input == 0x0D) {
+	  /* process 0x0A/0x0D as usual, and later when we try to input a string, the parser will fail as 0x0A comes before a " */
+	  break;
+	}
+	else if (*input == '"' && *(input - 1) != '\\') {
+	  *output = '"';
+	  input++;
+	  output++;
+	  break;
+	}
 	else {
 	  *output = '"';
 	  input++;
 	  output++;
 	}
       }
-      *output = '"';
-      input++;
-      output++;
       break;
 #if !defined(W65816) && !defined(SPC700)
     case '[':
