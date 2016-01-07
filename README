@@ -135,6 +135,7 @@ Group 2:
 
 [GB ] .CARTRIDGETYPE 1
 [GB ] .COUNTRYCODE 1
+[GB ] .GBHEADER
 [GB ] .COMPUTEGBCOMPLEMENTCHECK
 [ALL] .EMPTYFILL $C9
 [658] .ENDEMUVECTOR
@@ -542,6 +543,27 @@ This is not a compulsory directive.
 ----------------
 
 Indicates the country code located at $14A of a Gameboy ROM.
+
+This is not a compulsory directive.
+
+-----------
+.GBHEADER
+-----------
+
+This begins the GB header definition, and automatically defines
+.COMPUTEGBCHECKSUM. From here you may define any of the following:
+
+NAME "TANKBOMBPANIC" - identical to a freestanding .NAME.
+
+LICENSEECODEOLD $34 - identical to a freestanding .LICENSEECODEOLD.
+
+LICENSEECODENEW "HI" - identical to a freestanding .LICENSEECODENEW.
+
+CARTRIDGETYPE $00 - identical to a freestanding .CARTRIDGETYPE.
+
+RAMSIZE $09 - identical to a freestanding .RAMSIZE.
+
+COUNTRYCODE $01 - identical to a freestanding .COUNTRYCODE.
 
 This is not a compulsory directive.
 

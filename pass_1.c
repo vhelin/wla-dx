@@ -18,6 +18,7 @@
 
 #ifdef GB
 char licenseecodenew_c1, licenseecodenew_c2;
+int gbheader_defined = 0;
 int computechecksum_defined = 0, computecomplementcheck_defined = 0;
 int romgbc = 0, romdmg = 0, romsgb = 0;
 int cartridgetype = 0, cartridgetype_defined = 0;
@@ -4193,6 +4194,242 @@ int parse_directive(void) {
 
     return SUCCEEDED;
   }
+
+  /* GBHEADER */
+
+    if (strcmp(cp, "GBHEADER") == 0) {
+    if (gbheader_defined != 0) {
+      print_error(".GBHEADER can be defined only once.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    if (computechecksum_defined != 0)
+      print_error(".COMPUTEGBCHECKSUM unnecessary when .GBHEADER is defined.\n", ERROR_WRN);
+    else
+      computechecksum_defined++;
+
+    if (computecomplementcheck_defined != 0)
+      print_error(".COMPUTEGBCOMPLEMENTCHECK unecessary when .GBHEADER is defined.\n", ERROR_WRN);
+    else
+      computecomplementcheck_defined++;
+
+    if (output_format == OUTPUT_LIBRARY) {
+      print_error("Libraries don't take .GBHEADER.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    while ((ind = get_next_token()) == SUCCEEDED) {
+      if (strcaselesscmp(tmp, ".ENDGB") == 0)
+        break;
+      else if (strcaselesscmp(tmp, "ROMDMG") == 0) {
+        if (output_format == OUTPUT_LIBRARY) {
+          print_error("Library files don't take .ROMDMG.\n", ERROR_DIR);
+          return FAILED;
+        }
+        else if (romgbc != 0) {
+         print_error(".ROMGBC was defined prior to .ROMDMG.\n", ERROR_DIR);
+          return FAILED;
+        }
+        else if (romsgb != 0) {
+          print_error(".ROMDMG and .ROMSGB cannot be mixed.\n", ERROR_DIR);
+          return FAILED;
+        }
+        romdmg++;
+      }
+      else if (strcaselesscmp(tmp, "ROMGBC") == 0) {
+        if (output_format == OUTPUT_LIBRARY) {
+          print_error("Library files don't take .ROMGBC.\n", ERROR_DIR);
+          return FAILED;
+        }
+        else if (romdmg != 0) {
+         print_error(".ROMDMG was defined prior to .ROMGBC.\n", ERROR_DIR);
+          return FAILED;
+        }
+        romgbc++;
+      }
+      
+      else if (strcaselesscmp(tmp, "ROMSGB") == 0) {
+        if (output_format == OUTPUT_LIBRARY) {
+          print_error("Library files don't take .ROMSGB.\n", ERROR_DIR);
+          return FAILED;
+        }
+        else if (romdmg != 0) {
+          print_error(".ROMDMG and .ROMSGB cannot be mixed.\n", ERROR_DIR);
+          return FAILED;
+        }
+        romsgb++;
+      }
+
+      else if (strcaselesscmp(tmp, "NAME") == 0) {
+        if ((ind = get_next_token()) == FAILED)
+          return FAILED;
+
+        if (ind != GET_NEXT_TOKEN_STRING) {
+          print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        /* no name has been defined so far */
+        if (name_defined == 0) {
+          for (ind = 0; tmp[ind] != 0 && ind < 16; ind++)
+            name[ind] = tmp[ind];
+
+          if (ind == 16 && tmp[ind] != 0) {
+            print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
+            return FAILED;
+          }
+
+          for ( ; ind < 16; name[ind] = 0, ind++);
+
+          name_defined = 1;
+        }
+        /* compare the names */
+        else {
+          for (ind = 0; tmp[ind] != 0 && name[ind] != 0 && ind < 16; ind++)
+            if (name[ind] != tmp[ind])
+              break;
+
+          if (ind == 16 && tmp[ind] != 0) {
+            print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
+            return FAILED;
+          }
+          if (ind != 16 && (name[ind] != 0 || tmp[ind] != 0)) {
+            print_error("NAME was already defined.\n", ERROR_DIR);
+            return FAILED;
+          }
+        }
+      }
+      else if (strcaselesscmp(tmp, "LICENSEECODEOLD") == 0) {
+        if (licenseecodenew_defined != 0) {
+          print_error(".LICENSEECODENEW and .LICENSEECODEOLD cannot both be defined.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        q = input_number();
+
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED || d < -127 || d > 255) {
+          print_error(".LICENSEECODEOLD needs a 8bit value.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        if (licenseecodeold_defined != 0) {
+          if (licenseecodeold != d) {
+            print_error(".LICENSEECODEOLD was defined for the second time.\n", ERROR_DIR);
+            return FAILED;
+          }
+        }
+
+        licenseecodeold = d;
+        licenseecodeold_defined = 1;
+      }
+      else if (strcaselesscmp(tmp, "LICENSEECODENEW") == 0) {
+        if (output_format == OUTPUT_LIBRARY) {
+          print_error("Library files don't take .LICENSEECODENEW.\n", ERROR_DIR);
+          return FAILED;
+        }
+        if (licenseecodeold_defined != 0) {
+          print_error(".LICENSEECODENEW and .LICENSEECODEOLD cannot both be defined.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        if ((ind = get_next_token()) == FAILED)
+          return FAILED;
+
+        if (ind != GET_NEXT_TOKEN_STRING) {
+          print_error(".LICENSEECODENEW requires a string of two letters.\n", ERROR_DIR);
+          return FAILED;
+        }
+        if (!(tmp[0] != 0 && tmp[1] != 0 && tmp[2] == 0)) {
+          print_error(".LICENSEECODENEW requires a string of two letters.\n", ERROR_DIR);
+          return FAILED;
+      }
+
+        if (licenseecodenew_defined != 0) {
+          if (tmp[0] != licenseecodenew_c1 || tmp[1] != licenseecodenew_c2) {
+            print_error(".LICENSEECODENEW was defined for the second time.\n", ERROR_DIR);
+            return FAILED;
+          }
+
+        licenseecodenew_c1 = tmp[0];
+        licenseecodenew_c2 = tmp[1];
+        licenseecodenew_defined = 1;
+      }
+      }
+      else if (strcaselesscmp(tmp, "CARTRIDGETYPE") == 0) {
+        if (cartridgetype_defined != 0) {
+          print_error("CARTRIDGETYPE can be defined only once.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        inz = input_number();
+
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
+          sprintf(emsg, "CARTRIDGETYPE needs a 8-bit value.\n", d);
+          print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
+        else if (inz == SUCCEEDED) {
+          cartridgetype = d;
+          cartridgetype_defined++;
+        }
+
+        else return FAILED;
+      }
+      else if (strcaselesscmp(tmp, "RAMSIZE") == 0) {
+        if (rambanks != 0) {
+          print_error("RAMSIZE can be defined only once.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        inz = input_number();
+
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
+          sprintf(emsg, "RAMSIZE needs a 8-bit value.\n", d);
+          print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
+        else if (inz == SUCCEEDED)
+          rambanks = d;
+        else
+          return FAILED;
+      }
+      else if (strcaselesscmp(tmp, "COUNTRYCODE") == 0) {
+        if (countrycode_defined != 0) {
+          print_error("COUNTRYCODE can be defined only once.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        inz = input_number();
+
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
+          sprintf(emsg, "COUNTRYCODE needs a non-negative value.\n\n", d);
+          print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
+        else if (inz == SUCCEEDED) {
+          countrycode = d;
+          countrycode_defined++;
+        }
+        else
+          return FAILED;
+      }
+      else {
+        ind = FAILED;
+        break;
+      }
+    }
+
+    if (ind != SUCCEEDED) {
+      print_error("Error in .GBHEADER data structure.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    gbheader_defined = 1;
+
+    return SUCCEEDED;
+  }
 #endif
 
   /* EMPTYFILL */
@@ -4687,6 +4924,10 @@ int parse_directive(void) {
       print_error("Library files don't take .COMPUTEGBCHECKSUM.\n", ERROR_DIR);
       return FAILED;
     }
+    
+    if (gbheader_defined != 0) {
+      print_error(".COMPUTEGBCHECKSUM unnecessary when GBHEADER is defined.\n", ERROR_WRN);
+    }
 
     computechecksum_defined = 1;
 
@@ -4700,6 +4941,10 @@ int parse_directive(void) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .COMPUTEGBCOMPLEMENTCHECK.\n", ERROR_DIR);
       return FAILED;
+    }
+    
+    if (gbheader_defined != 0) {
+      print_error(".COMPUTEGBCOMPLEMENTCHECK unnecessary when GBHEADER is defined.\n", ERROR_WRN);
     }
 
     computecomplementcheck_defined = 1;
