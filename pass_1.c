@@ -1310,8 +1310,55 @@ int parse_directive(void) {
     inz = input_number();
     for (ind = 0; inz == SUCCEEDED || inz == INPUT_NUMBER_STRING || inz == INPUT_NUMBER_ADDRESS_LABEL || inz == INPUT_NUMBER_STACK; ind++) {
       if (inz == INPUT_NUMBER_STRING) {
-        for (o = 0; o < string_size; o++)
-          fprintf(file_out_ptr, "d%d ", (int)label[o]);
+	for (o = 0; o < string_size; o++) {
+	  /* handle '\0' */
+	  if (label[o] == '\\' && label[o + 1] == '0') {
+	    fprintf(file_out_ptr, "d%d ", '\0');
+	    o++;
+	  }
+	  /* handle '\x' */
+	  else if (label[o] == '\\' && label[o + 1] == 'x') {
+	    char tmp_a[2], *tmp_b;
+	    int tmp_c;
+	    
+	    o += 3;
+	    sprintf(tmp_a, "%c%c", label[o-1], label[o]);
+	    tmp_c = strtol(tmp_a, &tmp_b, 16);
+	    if (*tmp_b) {
+	      sprintf(emsg, ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
+	      print_error(emsg, ERROR_INP);
+	      return FAILED;
+	    }
+	    fprintf(file_out_ptr, "d%d ", tmp_c);
+	  }
+	  /* handle '\<' */
+	  else if (label[o] == '\\' && label[o + 1] == '<') {
+	    o += 2;
+	    if (o == string_size) {
+	      sprintf(emsg, ".%s '\\<' needs character data.\n", bak);
+	      print_error(emsg, ERROR_INP);
+	      return FAILED;
+	    }
+	    fprintf(file_out_ptr, "d%d ", (int)label[o]|0x80);
+	  }
+	  /* handle '\>' */
+	  else if (label[o] == '\\' && label[o + 1] == '>' && o == 0) {
+	    sprintf(emsg, ".%s '\\>' needs character data.\n", bak);
+	    print_error(emsg, ERROR_INP);
+	    return FAILED;
+	  }
+	  else if (label[o + 1] == '\\' && label[o + 2] == '>') {
+	    fprintf(file_out_ptr, "d%d ", (int)label[o]|0x80);
+	    o += 2;
+	  }
+	  /* handle '\\' */
+	  else if (label[o] == '\\' && label[o + 1] == '\\') {
+	    fprintf(file_out_ptr, "d%d ", '\\');
+	    o++;
+	  }
+	  else
+	    fprintf(file_out_ptr, "d%d ", (int)label[o]);
+	}
         inz = input_number();
         continue;
       }
@@ -1493,10 +1540,61 @@ int parse_directive(void) {
 	/* remap the ascii string */
 	for (o = 0; o < string_size; o++) {
 	  ind = label[o];
-	  if (ind < 0)
-	    ind += 256;
-	  ind = (int)asciitable[ind];
-	  fprintf(file_out_ptr, "d%d ", ind);
+	  /* handle '\0' */
+	  if (label[o] == '\\' && label[o + 1] == '0') {
+	    ind = 0;
+	    fprintf(file_out_ptr, "d%d ", ind);
+	    o++;
+	  }
+	  /* handle '\x' */
+	  else if (label[o] == '\\' && label[o + 1] == 'x') {
+	    char tmp_a[2], *tmp_b;
+	    int tmp_c;
+	    
+	    o += 3;
+	    sprintf(tmp_a, "%c%c", label[o-1], label[o]);
+	    tmp_c = strtol(tmp_a, &tmp_b, 16);
+	    if (*tmp_b) {
+	      sprintf(emsg, ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
+	      print_error(emsg, ERROR_INP);
+	      return FAILED;
+	    }
+	    ind = tmp_c;
+	    fprintf(file_out_ptr, "d%d ", ind);
+	  }
+	  else {
+	    int tmp_a = 0;
+	    /* handle '\<' */
+	    if (label[o] == '\\' && label[o + 1] == '<') {
+	      o += 2;
+	      if (o == string_size) {
+	        sprintf(emsg, ".%s '\\<' needs character data.\n", bak);
+	        print_error(emsg, ERROR_INP);
+	        return FAILED;
+	      }
+	      tmp_a = 0x80;
+	      ind = label[o];
+	    }
+	    /* handle '\>' */
+	    else if (label[o] == '\\' && label[o + 1] == '>' && o == 0) {
+	      sprintf(emsg, ".%s '\\>' needs character data.\n", bak);
+	      print_error(emsg, ERROR_INP);
+	      return FAILED;
+	    }
+	    else if (label[o + 1] == '\\' && label[o + 2] == '>') {
+	      tmp_a = 0x80;
+	      o += 2;
+	    }
+	    /* handle '\\' */
+	    else if (label[o] == '\\' && label[o + 1] == '\\') {
+	      ind = '\\';
+	      o++;
+	    }
+	    if (ind < 0)
+	      ind += 256;
+	    ind = (int)asciitable[ind];
+	    fprintf(file_out_ptr, "d%d ", ind|tmp_a);
+	  }
 	}
       }
       else if (q == SUCCEEDED) {
@@ -1556,6 +1654,46 @@ int parse_directive(void) {
 
     return SUCCEEDED;
   }
+
+#ifdef W65816
+  /* DL/LONG? */
+
+  if (strcmp(cp, "DL") == 0 || strcmp(cp, "LONG") == 0) {
+    strcpy(bak, cp);
+
+    inz = input_number();
+    for (ind = 0; inz == SUCCEEDED || inz == INPUT_NUMBER_ADDRESS_LABEL || inz == INPUT_NUMBER_STACK; ind++) {
+      if (inz == SUCCEEDED && (d < -8388608 || d > 16777215)) {
+        sprintf(emsg, ".%s expects 24-bit data, %d is out of range!\n", bak, d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
+      }
+
+      if (inz == SUCCEEDED)
+        fprintf(file_out_ptr, "z%d ", d);
+      else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
+        fprintf(file_out_ptr, "k%d q%s ", active_file_info_last->line_current, label);
+      else if (inz == INPUT_NUMBER_STACK)
+        fprintf(file_out_ptr, "T%d ", latest_stack);
+
+      inz = input_number();
+    }
+
+    if (inz == FAILED)
+      return FAILED;
+
+    if ((inz == INPUT_NUMBER_EOL || inz == INPUT_NUMBER_STRING) && ind == 0) {
+      sprintf(emsg, ".%s needs data.\n", bak);
+      print_error(emsg, ERROR_INP);
+      return FAILED;
+    }
+
+    if (inz == INPUT_NUMBER_EOL)
+      next_line();
+
+    return SUCCEEDED;
+  }
+#endif
 
   /* DSTRUCT */
 
