@@ -1,6 +1,12 @@
 # Main CMakeLists file
 cmake_minimum_required (VERSION 2.8.9)
 
+
+# NOTE! USE THESE TO GENERATE EXECUTABLES THAT ARE SUITABLE FOR gdb DEBUGGING!
+#set(CMAKE_C_FLAGS "-O0 -ggdb")
+#set(CMAKE_C_FLAGS_RELEASE "-O0 -ggdb")
+
+
 # --- Project name ---
 project (WLA-DX)
 

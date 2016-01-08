@@ -18,9 +18,11 @@
 
 #ifdef GB
 char licenseecodenew_c1, licenseecodenew_c2;
+int gbheader_defined = 0;
 int computechecksum_defined = 0, computecomplementcheck_defined = 0;
 int romgbc = 0, romdmg = 0, romsgb = 0;
 int cartridgetype = 0, cartridgetype_defined = 0;
+int countrycode = 0, countrycode_defined = 0;
 int licenseecodenew_defined = 0, licenseecodeold = 0, licenseecodeold_defined = 0;
 #endif
 
@@ -427,7 +429,7 @@ int macro_insert_byte_db(char *name) {
 
   if (d->type == DEFINITION_TYPE_VALUE) {
     if (d->value < -127 || d->value > 255) {
-      sprintf(emsg, ".%s expects 8bit data, %d is out of range!\n", name, (int)d->value);
+      sprintf(emsg, ".%s expects 8-bit data, %d is out of range!\n", name, (int)d->value);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -472,7 +474,7 @@ int macro_insert_word_db(char *name) {
 
   if (d->type == DEFINITION_TYPE_VALUE) {
     if (d->value < -32768 || d->value > 65535) {
-      sprintf(emsg, ".%s expects 16bit data, %d is out of range!\n", name, (int)d->value);
+      sprintf(emsg, ".%s expects 16-bit data, %d is out of range!\n", name, (int)d->value);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -1228,7 +1230,7 @@ int parse_directive(void) {
       if (q == FAILED)
         return FAILED;
       if (q != SUCCEEDED || d > 255 || d < 0) {
-        print_error("SLOT needs an unsigned 8bit value as an ID.\n", ERROR_DIR);
+        print_error("SLOT needs an unsigned 8-bit value as an ID.\n", ERROR_DIR);
         return FAILED;
       }
 
@@ -1315,7 +1317,7 @@ int parse_directive(void) {
       }
 
       if (inz == SUCCEEDED && (d < -127 || d > 255)) {
-        sprintf(emsg, ".%s expects 8bit data, %d is out of range!\n", bak, d);
+        sprintf(emsg, ".%s expects 8-bit data, %d is out of range!\n", bak, d);
         print_error(emsg, ERROR_DIR);
         return FAILED;
       }
@@ -1372,12 +1374,12 @@ int parse_directive(void) {
         if (q == FAILED)
           return FAILED;
         if (q == SUCCEEDED && (d < 0 || d > 255)) {
-          print_error("The entry must be a positive 8bit immediate value or one letter string.\n", ERROR_DIR);
+          print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
           return FAILED;
         }
         if (q == INPUT_NUMBER_STRING) {
           if (string_size != 1) {
-            print_error("The entry must be a positive 8bit immediate value or one letter string.\n", ERROR_DIR);
+            print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
             return FAILED;
           }
           else {
@@ -1399,12 +1401,12 @@ int parse_directive(void) {
           if (q == FAILED)
             return FAILED;
           if (q == SUCCEEDED && (d < 0 || d > 255)) {
-            print_error("The entry must be a positive 8bit immediate value or one letter string.\n", ERROR_DIR);
+            print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
             return FAILED;
           }
           if (q == INPUT_NUMBER_STRING) {
             if (string_size != 1) {
-              print_error("The entry must be a positive 8bit immediate value or one letter string.\n", ERROR_DIR);
+              print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
               return FAILED;
             }
             else {
@@ -1435,11 +1437,11 @@ int parse_directive(void) {
         if (q == FAILED)
           return FAILED;
         if (q == SUCCEEDED && (d < 0 || d > 255)) {
-          print_error("The entry must be a positive 8bit immediate value or one letter string.\n", ERROR_DIR);
+          print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
           return FAILED;
         }
         if (q != SUCCEEDED) {
-          print_error("The entry must be a positive 8bit immediate value.\n", ERROR_DIR);
+          print_error("The entry must be a positive 8-bit immediate value.\n", ERROR_DIR);
           return FAILED;
         }
 
@@ -1525,7 +1527,7 @@ int parse_directive(void) {
     inz = input_number();
     for (ind = 0; inz == SUCCEEDED || inz == INPUT_NUMBER_ADDRESS_LABEL || inz == INPUT_NUMBER_STACK; ind++) {
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-        sprintf(emsg, ".%s expects 16bit data, %d is out of range!\n", bak, d);
+        sprintf(emsg, ".%s expects 16-bit data, %d is out of range!\n", bak, d);
         print_error(emsg, ERROR_DIR);
         return FAILED;
       }
@@ -1645,7 +1647,7 @@ int parse_directive(void) {
       else {
         if (it->size == 1) {
           if ((inz == SUCCEEDED) && (d < -127 || d > 255)) {
-            sprintf(emsg, "\"%s.%s\" expects 8bit data, %d is out of range!\n", s->name, it->name, d);
+            sprintf(emsg, "\"%s.%s\" expects 8-bit data, %d is out of range!\n", s->name, it->name, d);
             print_error(emsg, ERROR_DIR);
             return FAILED;
           }
@@ -1661,7 +1663,7 @@ int parse_directive(void) {
         }
         else {
           if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-            sprintf(emsg, "\"%s.%s\" expects 16bit data, %d is out of range!\n", s->name, it->name, d);
+            sprintf(emsg, "\"%s.%s\" expects 16-bit data, %d is out of range!\n", s->name, it->name, d);
             print_error(emsg, ERROR_DIR);
             return FAILED;
           }
@@ -1729,7 +1731,7 @@ int parse_directive(void) {
     }
 
     if (d < 1 || d > 65535) {
-      sprintf(emsg, ".%s expects a 16bit positive integer as size, %d is out of range!\n", bak, d);
+      sprintf(emsg, ".%s expects a 16-bit positive integer as size, %d is out of range!\n", bak, d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -1746,7 +1748,7 @@ int parse_directive(void) {
     }
 
     if (q == SUCCEEDED && (d > 255 || d < -127)) {
-      sprintf(emsg, ".%s expects 8bit data, %d is out of range!\n", bak, d);
+      sprintf(emsg, ".%s expects 8-bit data, %d is out of range!\n", bak, d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -1778,7 +1780,7 @@ int parse_directive(void) {
     }
 
     if (d < 1 || d > 65535) {
-      sprintf(emsg, ".DSW expects a 16bit positive integer as size, %d is out of range!\n", d);
+      sprintf(emsg, ".DSW expects a 16-bit positive integer as size, %d is out of range!\n", d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -1794,7 +1796,7 @@ int parse_directive(void) {
     }
 
     if (q == SUCCEEDED && (d < -32768 || d > 65535)) {
-      sprintf(emsg, ".DSW expects 16bit data, %d is out of range!\n", d);
+      sprintf(emsg, ".DSW expects 16-bit data, %d is out of range!\n", d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -2273,7 +2275,7 @@ int parse_directive(void) {
     if (q == FAILED)
       return FAILED;
     if (q != SUCCEEDED || d > 255 || d < 0) {
-      print_error(".RAMSECTION needs an unsigned 8bit value as the SLOT number.\n", ERROR_DIR);
+      print_error(".RAMSECTION needs an unsigned 8-bit value as the SLOT number.\n", ERROR_DIR);
       return FAILED;
     }
 
@@ -4051,6 +4053,40 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
+
+  /* COUNTRYCODE */
+
+  if (strcmp(cp, "COUNTRYCODE") == 0) {
+
+    if (output_format == OUTPUT_LIBRARY) {
+      print_error("Library files don't take .COUNTRYCODE.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    q = input_number();
+
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED || q < 0) {
+      print_error(".COUNTRYCODE needs a non-negative value.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    if (countrycode_defined != 0) {
+      if (countrycode != d) {
+        print_error(".COUNTRYCODE was defined for the second time.\n", ERROR_DIR);
+        return FAILED;
+      }
+      return SUCCEEDED;
+    }
+
+    countrycode = d;
+    countrycode_defined = 1;
+
+    return SUCCEEDED;
+  }
+
+
   /* CARTRIDGETYPE */
 
   if (strcmp(cp, "CARTRIDGETYPE") == 0) {
@@ -4141,7 +4177,8 @@ int parse_directive(void) {
     if (q == FAILED)
       return FAILED;
     if (q != SUCCEEDED || d < -127 || d > 255) {
-      print_error(".LICENSEECODEOLD needs a 8bit value.\n", ERROR_DIR);
+      sprintf(emsg, ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", d);
+      print_error(emsg, ERROR_DIR);
       return FAILED;
     }
 
@@ -4155,6 +4192,243 @@ int parse_directive(void) {
 
     licenseecodeold = d;
     licenseecodeold_defined = 1;
+
+    return SUCCEEDED;
+  }
+
+  /* GBHEADER */
+
+    if (strcmp(cp, "GBHEADER") == 0) {
+    if (gbheader_defined != 0) {
+      print_error(".GBHEADER can be defined only once.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    if (computechecksum_defined != 0)
+      print_error(".COMPUTEGBCHECKSUM unnecessary when .GBHEADER is defined.\n", ERROR_WRN);
+    else
+      computechecksum_defined++;
+
+    if (computecomplementcheck_defined != 0)
+      print_error(".COMPUTEGBCOMPLEMENTCHECK unecessary when .GBHEADER is defined.\n", ERROR_WRN);
+    else
+      computecomplementcheck_defined++;
+
+    if (output_format == OUTPUT_LIBRARY) {
+      print_error("Libraries don't take .GBHEADER.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    while ((ind = get_next_token()) == SUCCEEDED) {
+      if (strcaselesscmp(tmp, ".ENDGB") == 0)
+        break;
+      else if (strcaselesscmp(tmp, "ROMDMG") == 0) {
+        if (output_format == OUTPUT_LIBRARY) {
+          print_error("Library files don't take .ROMDMG.\n", ERROR_DIR);
+          return FAILED;
+        }
+        else if (romgbc != 0) {
+         print_error(".ROMGBC was defined prior to .ROMDMG.\n", ERROR_DIR);
+          return FAILED;
+        }
+        else if (romsgb != 0) {
+          print_error(".ROMDMG and .ROMSGB cannot be mixed.\n", ERROR_DIR);
+          return FAILED;
+        }
+        romdmg++;
+      }
+      else if (strcaselesscmp(tmp, "ROMGBC") == 0) {
+        if (output_format == OUTPUT_LIBRARY) {
+          print_error("Library files don't take .ROMGBC.\n", ERROR_DIR);
+          return FAILED;
+        }
+        else if (romdmg != 0) {
+         print_error(".ROMDMG was defined prior to .ROMGBC.\n", ERROR_DIR);
+          return FAILED;
+        }
+        romgbc++;
+      }
+      
+      else if (strcaselesscmp(tmp, "ROMSGB") == 0) {
+        if (output_format == OUTPUT_LIBRARY) {
+          print_error("Library files don't take .ROMSGB.\n", ERROR_DIR);
+          return FAILED;
+        }
+        else if (romdmg != 0) {
+          print_error(".ROMDMG and .ROMSGB cannot be mixed.\n", ERROR_DIR);
+          return FAILED;
+        }
+        romsgb++;
+      }
+
+      else if (strcaselesscmp(tmp, "NAME") == 0) {
+        if ((ind = get_next_token()) == FAILED)
+          return FAILED;
+
+        if (ind != GET_NEXT_TOKEN_STRING) {
+          print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        /* no name has been defined so far */
+        if (name_defined == 0) {
+          for (ind = 0; tmp[ind] != 0 && ind < 16; ind++)
+            name[ind] = tmp[ind];
+
+          if (ind == 16 && tmp[ind] != 0) {
+            print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
+            return FAILED;
+          }
+
+          for ( ; ind < 16; name[ind] = 0, ind++);
+
+          name_defined = 1;
+        }
+        /* compare the names */
+        else {
+          for (ind = 0; tmp[ind] != 0 && name[ind] != 0 && ind < 16; ind++)
+            if (name[ind] != tmp[ind])
+              break;
+
+          if (ind == 16 && tmp[ind] != 0) {
+            print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
+            return FAILED;
+          }
+          if (ind != 16 && (name[ind] != 0 || tmp[ind] != 0)) {
+            print_error("NAME was already defined.\n", ERROR_DIR);
+            return FAILED;
+          }
+        }
+      }
+      else if (strcaselesscmp(tmp, "LICENSEECODEOLD") == 0) {
+        if (licenseecodenew_defined != 0) {
+          print_error(".LICENSEECODENEW and .LICENSEECODEOLD cannot both be defined.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        q = input_number();
+
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED || d < -127 || d > 255) {
+	  sprintf(emsg, ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", d);
+	  print_error(emsg, ERROR_DIR);
+	  return FAILED;
+        }
+
+        if (licenseecodeold_defined != 0) {
+          if (licenseecodeold != d) {
+            print_error(".LICENSEECODEOLD was defined for the second time.\n", ERROR_DIR);
+            return FAILED;
+          }
+        }
+
+        licenseecodeold = d;
+        licenseecodeold_defined = 1;
+      }
+      else if (strcaselesscmp(tmp, "LICENSEECODENEW") == 0) {
+        if (output_format == OUTPUT_LIBRARY) {
+          print_error("Library files don't take .LICENSEECODENEW.\n", ERROR_DIR);
+          return FAILED;
+        }
+        if (licenseecodeold_defined != 0) {
+          print_error(".LICENSEECODENEW and .LICENSEECODEOLD cannot both be defined.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        if ((ind = get_next_token()) == FAILED)
+          return FAILED;
+
+        if (ind != GET_NEXT_TOKEN_STRING) {
+          print_error(".LICENSEECODENEW requires a string of two letters.\n", ERROR_DIR);
+          return FAILED;
+        }
+        if (!(tmp[0] != 0 && tmp[1] != 0 && tmp[2] == 0)) {
+          print_error(".LICENSEECODENEW requires a string of two letters.\n", ERROR_DIR);
+          return FAILED;
+      }
+
+        if (licenseecodenew_defined != 0) {
+          if (tmp[0] != licenseecodenew_c1 || tmp[1] != licenseecodenew_c2) {
+            print_error(".LICENSEECODENEW was defined for the second time.\n", ERROR_DIR);
+            return FAILED;
+          }
+
+        licenseecodenew_c1 = tmp[0];
+        licenseecodenew_c2 = tmp[1];
+        licenseecodenew_defined = 1;
+      }
+      }
+      else if (strcaselesscmp(tmp, "CARTRIDGETYPE") == 0) {
+        if (cartridgetype_defined != 0) {
+          print_error("CARTRIDGETYPE can be defined only once.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        inz = input_number();
+
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
+          sprintf(emsg, "CARTRIDGETYPE needs a 8-bit value, got %d.\n", d);
+          print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
+        else if (inz == SUCCEEDED) {
+          cartridgetype = d;
+          cartridgetype_defined++;
+        }
+
+        else return FAILED;
+      }
+      else if (strcaselesscmp(tmp, "RAMSIZE") == 0) {
+        if (rambanks != 0) {
+          print_error("RAMSIZE can be defined only once.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        inz = input_number();
+
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
+          sprintf(emsg, "RAMSIZE needs a 8-bit value, got %d.\n", d);
+          print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
+        else if (inz == SUCCEEDED)
+          rambanks = d;
+        else
+          return FAILED;
+      }
+      else if (strcaselesscmp(tmp, "COUNTRYCODE") == 0) {
+        if (countrycode_defined != 0) {
+          print_error("COUNTRYCODE can be defined only once.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        inz = input_number();
+
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
+          sprintf(emsg, "COUNTRYCODE needs a non-negative value, got %d.\n\n", d);
+          print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
+        else if (inz == SUCCEEDED) {
+          countrycode = d;
+          countrycode_defined++;
+        }
+        else
+          return FAILED;
+      }
+      else {
+        ind = FAILED;
+        break;
+      }
+    }
+
+    if (ind != SUCCEEDED) {
+      print_error("Error in .GBHEADER data structure.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    gbheader_defined = 1;
 
     return SUCCEEDED;
   }
@@ -4174,7 +4448,8 @@ int parse_directive(void) {
     if (q == FAILED)
       return FAILED;
     if (q != SUCCEEDED || d < -127 || d > 255) {
-      print_error(".EMPTYFILL needs a 8bit value.\n", ERROR_DIR);
+      sprintf(emsg, ".EMPTYFILL needs a 8-bit value, got %d.\n", d);
+      print_error(emsg, ERROR_DIR);
       return FAILED;
     }
 
@@ -4652,6 +4927,10 @@ int parse_directive(void) {
       print_error("Library files don't take .COMPUTEGBCHECKSUM.\n", ERROR_DIR);
       return FAILED;
     }
+    
+    if (gbheader_defined != 0) {
+      print_error(".COMPUTEGBCHECKSUM unnecessary when GBHEADER is defined.\n", ERROR_WRN);
+    }
 
     computechecksum_defined = 1;
 
@@ -4665,6 +4944,10 @@ int parse_directive(void) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .COMPUTEGBCOMPLEMENTCHECK.\n", ERROR_DIR);
       return FAILED;
+    }
+    
+    if (gbheader_defined != 0) {
+      print_error(".COMPUTEGBCOMPLEMENTCHECK unnecessary when GBHEADER is defined.\n", ERROR_WRN);
     }
 
     computecomplementcheck_defined = 1;
@@ -5606,7 +5889,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -127 || d > 255)) {
-          sprintf(emsg, "CARTRIDGETYPE expects 8bit data, %d is out of range!\n", d);
+          sprintf(emsg, "CARTRIDGETYPE expects 8-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -5626,7 +5909,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -127 || d > 255)) {
-          sprintf(emsg, "ROMSIZE expects 8bit data, %d is out of range!\n", d);
+          sprintf(emsg, "ROMSIZE expects 8-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -5644,7 +5927,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -127 || d > 255)) {
-          sprintf(emsg, "SRAMSIZE expects 8bit data, %d is out of range!\n", d);
+          sprintf(emsg, "SRAMSIZE expects 8-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -5664,7 +5947,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -127 || d > 255)) {
-          sprintf(emsg, "COUNTRY expects 8bit data, %d is out of range!\n", d);
+          sprintf(emsg, "COUNTRY expects 8-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -5684,7 +5967,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -127 || d > 255)) {
-          sprintf(emsg, "LICENSEECODE expects 8bit data, %d is out of range!\n", d);
+          sprintf(emsg, "LICENSEECODE expects 8-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -5704,7 +5987,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -127 || d > 255)) {
-          sprintf(emsg, "VERSION expects 8bit data, %d is out of range!\n", d);
+          sprintf(emsg, "VERSION expects 8-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -5790,7 +6073,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-          sprintf(emsg, "COP expects 16bit data, %d is out of range!\n", d);
+          sprintf(emsg, "COP expects 16-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -5813,7 +6096,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-          sprintf(emsg, "BRK expects 16bit data, %d is out of range!\n", d);
+          sprintf(emsg, "BRK expects 16-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -5836,7 +6119,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-          sprintf(emsg, "ABORT expects 16bit data, %d is out of range!\n", d);
+          sprintf(emsg, "ABORT expects 16-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -5859,7 +6142,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-          sprintf(emsg, "NMI expects 16bit data, %d is out of range!\n", d);
+          sprintf(emsg, "NMI expects 16-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -5882,7 +6165,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-          sprintf(emsg, "UNUSED expects 16bit data, %d is out of range!\n", d);
+          sprintf(emsg, "UNUSED expects 16-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -5905,7 +6188,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-          sprintf(emsg, "IRQ expects 16bit data, %d is out of range!\n", d);
+          sprintf(emsg, "IRQ expects 16-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -5994,7 +6277,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-          sprintf(emsg, "COP expects 16bit data, %d is out of range!\n", d);
+          sprintf(emsg, "COP expects 16-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -6017,7 +6300,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-          sprintf(emsg, "RESET expects 16bit data, %d is out of range!\n", d);
+          sprintf(emsg, "RESET expects 16-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -6040,7 +6323,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-          sprintf(emsg, "ABORT expects 16bit data, %d is out of range!\n", d);
+          sprintf(emsg, "ABORT expects 16-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -6063,7 +6346,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-          sprintf(emsg, "NMI expects 16bit data, %d is out of range!\n", d);
+          sprintf(emsg, "NMI expects 16-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -6086,7 +6369,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-          sprintf(emsg, "UNUSED expects 16bit data, %d is out of range!\n", d);
+          sprintf(emsg, "UNUSED expects 16-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -6109,7 +6392,7 @@ int parse_directive(void) {
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-          sprintf(emsg, "IRQBRK expects 16bit data, %d is out of range!\n", d);
+          sprintf(emsg, "IRQBRK expects 16-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -6309,7 +6592,7 @@ int parse_directive(void) {
 
       if (o == 1) {
         if (d < -32768 || d > 65535) {
-          sprintf(emsg, ".%s: Expected a 16bit value, computed %d.\n", cp, d);
+          sprintf(emsg, ".%s: Expected a 16-bit value, computed %d.\n", cp, d);
           print_error(emsg, ERROR_NONE);
           return FAILED;
         }
@@ -6317,7 +6600,7 @@ int parse_directive(void) {
       }
       else {
         if (d > 255 || d < -127) {
-          sprintf(emsg, ".%s: Expected a 8bit value, computed %d.\n", cp, d);
+          sprintf(emsg, ".%s: Expected a 8-bit value, computed %d.\n", cp, d);
           print_error(emsg, ERROR_NONE);
           return FAILED;
         }
@@ -6415,7 +6698,7 @@ int parse_directive(void) {
 
       if (o == 1) {
         if (d < -32768 || d > 65535) {
-          sprintf(emsg, ".%s: Expected a 16bit value, computed %d.\n", cp, d);
+          sprintf(emsg, ".%s: Expected a 16-bit value, computed %d.\n", cp, d);
           print_error(emsg, ERROR_NONE);
           return FAILED;
         }
@@ -6423,7 +6706,7 @@ int parse_directive(void) {
       }
       else {
         if (d > 255 || d < -127) {
-          sprintf(emsg, ".%s: Expected a 8bit value, computed %d.\n", cp, d);
+          sprintf(emsg, ".%s: Expected a 8-bit value, computed %d.\n", cp, d);
           print_error(emsg, ERROR_NONE);
           return FAILED;
         }

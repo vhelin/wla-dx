@@ -228,10 +228,10 @@ int load_files(char *argv[], int argc) {
         /* use the current working directory if the library isn't found in the ext_libdir directory */
         if (f == NULL)
           sprintf(tmp_token, "%s%s", ext_libdir, token);
-        else
+        else {
           sprintf(tmp_token, "%s", token);
-      
-        fclose(f);
+	  fclose(f);
+	}
       }
       else
         sprintf(tmp_token, "%s", token);

@@ -671,24 +671,24 @@ int fix_references(void) {
       memory_file_id_source = r->file_id_source;
       memory_line_number = r->linenumber;
 
-      /* direct 16bit */
+      /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT || r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
 	mem_insert_ref(x, i & 0xFF);
 	mem_insert_ref(x + 1, (i >> 8) & 0xFF);
       }
-      /* direct / relative 8bit with a definition */
+      /* direct / relative 8-bit with a definition */
       else if (l->status == LABEL_STATUS_DEFINE) {
 	fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Bank number request for a definition \"%s\"?\n",
 		get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, l->name);
 	return FAILED;
       }
-      /* direct 24bit */
+      /* direct 24-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
 	mem_insert_ref(x, i & 0xFF);
 	mem_insert_ref(x + 1, (i >> 8) & 0xFF);
 	mem_insert_ref(x + 2, (i >> 16) & 0xFF);
       }
-      /* relative/direct 8bit with a label */
+      /* relative/direct 8-bit with a label */
       else {
 	mem_insert_ref(x, i & 0xFF);
       }
@@ -743,23 +743,23 @@ int fix_references(void) {
       memory_file_id_source = r->file_id_source;
       memory_line_number = r->linenumber;
 
-      /* direct 16bit */
+      /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
 	i = l->address;
 	mem_insert_ref(x, i & 0xFF);
 	mem_insert_ref(x + 1, (i >> 8) & 0xFF);
       }
-      /* direct / relative 8bit with a value definition */
+      /* direct / relative 8-bit with a value definition */
       else if (l->status == LABEL_STATUS_DEFINE && (r->type == REFERENCE_TYPE_DIRECT_8BIT || r->type == REFERENCE_TYPE_RELATIVE_8BIT)) {
 	i = ((int)l->address) & 0xFFFF;
 	if (i > 255 || i < -128) {
-	  fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8bit value.\n",
+	  fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8-bit value.\n",
 		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
 	  return FAILED;
 	}
 	mem_insert_ref(x, i & 0xFF);
       }
-      /* direct 24bit */
+      /* direct 24-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
 	i = l->address;
 	if (l->status == LABEL_STATUS_LABEL)
@@ -768,21 +768,21 @@ int fix_references(void) {
 	mem_insert_ref(x + 1, (i >> 8) & 0xFF);
 	mem_insert_ref(x + 2, (i >> 16) & 0xFF);
       }
-      /* relative 8bit with a label */
+      /* relative 8-bit with a label */
       else if (r->type == REFERENCE_TYPE_RELATIVE_8BIT) {
 	i = (((int)l->address) & 0xFFFF) - r->address - 1;
 	if (i < -128 || i > 127) {
-	  fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a 8bit reference.\n",
+	  fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a 8-bit reference.\n",
 		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
 	  return FAILED;
 	}
 	mem_insert_ref(x, i & 0xFF);
       }
-      /* relative 16bit with a label */
+      /* relative 16-bit with a label */
       else if (r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
 	i = (((int)l->address) & 0xFFFF) - r->address - 2;
 	if (i < -32768 || i > 65535) {
-	  fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a 16bit reference.\n",
+	  fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a 16-bit reference.\n",
 		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
 	  return FAILED;
 	}
@@ -792,7 +792,7 @@ int fix_references(void) {
       else {
 	i = ((int)l->address) & 0xFFFF;
 	if (i > 255) {
-	  fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8bit value.\n",
+	  fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8-bit value.\n",
 		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
 	  return FAILED;
 	}
@@ -1218,7 +1218,7 @@ int compute_pending_calculations(void) {
 
     if (sta->type == STACKS_TYPE_8BIT) {
       if (k < -128 || k > 255) {
-	fprintf(stderr, "%s:%s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 8bit range.\n",
+	fprintf(stderr, "%s:%s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 8-bit range.\n",
 		get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
 	return FAILED;
       }
@@ -1227,7 +1227,7 @@ int compute_pending_calculations(void) {
     }
     else if (sta->type == STACKS_TYPE_16BIT) {
       if (k < -32768 || k > 65535) {
-	fprintf(stderr, "%s:%s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 16bit range.\n",
+	fprintf(stderr, "%s:%s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range.\n",
 		get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
 	return FAILED;
       }
@@ -1238,7 +1238,7 @@ int compute_pending_calculations(void) {
     }
     else {
       if (k < -8388608 || k > 16777215) {
-	fprintf(stderr, "%s:%s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 24bit range.\n",
+	fprintf(stderr, "%s:%s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 24-bit range.\n",
 		get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
 	return FAILED;
       }
@@ -1321,10 +1321,10 @@ int compute_stack(struct stack *sta, int *result) {
 	t--;
 	break;
       case SI_OP_XOR:
-	/* 16bit XOR? */
+	/* 16-bit XOR? */
 	if (v[t - 2] > 0xFF || v[t - 2] < -128 || v[t - 1] > 0xFF || v[t - 1] < -128)
 	  v[t - 2] = ((int)v[t - 1] ^ (int)v[t - 2]) & 0xFFFF;
-	/* 8bit XOR */
+	/* 8-bit XOR */
 	else
 	  v[t - 2] = ((int)v[t - 1] ^ (int)v[t - 2]) & 0xFF;
 	t--;
@@ -1418,7 +1418,7 @@ int write_bank_header_calculations(struct stack *sta) {
 
   if (sta->type == STACKS_TYPE_8BIT) {
     if (k < -128 || k > 255) {
-      fprintf(stderr, "%s:%s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 8bit range.\n",
+      fprintf(stderr, "%s:%s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 8-bit range.\n",
 	      get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
       return FAILED;
     }
@@ -1426,7 +1426,7 @@ int write_bank_header_calculations(struct stack *sta) {
   }
   else if (sta->type == STACKS_TYPE_16BIT) {
     if (k < -32768 || k > 65535) {
-      fprintf(stderr, "%s:%s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 16bit range.\n",
+      fprintf(stderr, "%s:%s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range.\n",
 	      get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
       return FAILED;
     }
@@ -1436,7 +1436,7 @@ int write_bank_header_calculations(struct stack *sta) {
   }
   else {
     if (k < -8388608 || k > 16777215) {
-      fprintf(stderr, "%s:%s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 24bit range.\n",
+      fprintf(stderr, "%s:%s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 24-bit range.\n",
 	      get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
       return FAILED;
     }
@@ -1470,24 +1470,24 @@ int write_bank_header_references(struct reference *r) {
   while (l != NULL) {
     if (strcmp(l->name, r->name) == 0) {
       a = l->address;
-      /* direct 16bit */
+      /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
 	*t = a & 0xFF;
 	t++;
 	*t = (a >> 8) & 0xFF;
 	break;
       }
-      /* direct 8bit */
+      /* direct 8-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_8BIT) {
 	if (a > 255 || a < -128) {
-	  fprintf(stderr, "%s:%s:%d: WRITE_BANK_HEADER_REFERENCES: Value (%d/$%x) of \"%s\" is too much to be a 8bit value.\n",
+	  fprintf(stderr, "%s:%s:%d: WRITE_BANK_HEADER_REFERENCES: Value (%d/$%x) of \"%s\" is too much to be a 8-bit value.\n",
 		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, a, a, l->name);
 	  return FAILED;
 	}
 	*t = a & 0xFF;
 	break;
       }
-      /* direct 24bit */
+      /* direct 24-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
 	if (l->status == LABEL_STATUS_LABEL)
 	  a += get_snes_pc_bank(l);

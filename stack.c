@@ -1111,12 +1111,12 @@ int compute_stack(struct stack *sta, int x, double *result) {
 
 #ifdef W65816
   if (v[0] < -8388608 || v[0] > 16777215) {
-    print_error("Out of 24bit range.\n", ERROR_STC);
+    print_error("Out of 24-bit range.\n", ERROR_STC);
     return FAILED;
   }
 #else
   if (v[0] < -32768 || v[0] > 65536) {
-    print_error("Out of 16bit range.\n", ERROR_STC);
+    print_error("Out of 16-bit range.\n", ERROR_STC);
     return FAILED;
   }
 #endif
