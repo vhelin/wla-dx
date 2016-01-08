@@ -1542,7 +1542,7 @@ int parse_directive(void) {
 	  ind = label[o];
 	  /* handle '\0' */
 	  if (label[o] == '\\' && label[o + 1] == '0') {
-	    ind = 0;
+	    ind = '\0';
 	    fprintf(file_out_ptr, "d%d ", ind);
 	    o++;
 	  }
