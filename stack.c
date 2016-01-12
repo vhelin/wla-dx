@@ -187,7 +187,7 @@ int stack_calculate(char *in, int *value) {
       in++;
     }
     else if (*in == '#') {
-      if (q == 0) {
+      if (q != 0) {
 	if (input_number_error_msg == YES)
 	  print_error("Syntax error. Invalid use of modulo.\n", ERROR_STC);
 	return FAILED;
@@ -823,7 +823,7 @@ int stack_calculate(char *in, int *value) {
   /* DEBUG output
      printf("STACK ID %d LINE %d\n", stack_id, active_file_info_last->line_current);
      for (k = 0; k < d; k++) {
-     char ar[] = "+-*()|&/^«»%~<>";
+     char ar[] = "+-*()|&/^Â«Â»%~<>";
 
      if (ta[k].type == STACK_ITEM_TYPE_OPERATOR)
      printf("%c ", ar[((int)ta[k].value)]);
