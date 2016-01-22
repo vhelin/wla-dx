@@ -2084,6 +2084,13 @@ output mode. Library file's sections must all be FREE ones. .BANK tells
 the bank number where this section will be later relocated into. .ORG
 tells the offset for the relocation from the beginning of .BANK.
 
+You can put sections inside a namespace. For instance, if you put a section
+into a namespace called "bank0", then labels in that section can be
+accessed with "bank0.label". This is not necessary inside the section
+itself. The namespace directive should immediately follow the name.
+
+.SECTION "Init" NAMESPACE "bank0"
+
 You can supply the preferred section size (bytes) inside the section
 name string. Here's an example:
 
