@@ -90,10 +90,12 @@ int new_unknown_reference(int type) {
   label->section_status = section_status;
   if (section_status == ON) {
     label->section_id = sec_tmp->id;
+    label->section_struct = sec_tmp;
     label->address = sec_tmp->i; /* relative address, to the beginning of the section */
   }
   else {
     label->section_id = 0;
+    label->section_struct = NULL;
     label->address = pc_bank; /* bank address, in ROM memory */
   }
 
@@ -840,12 +842,13 @@ int pass_4(void) {
     sec_tmp = sections_first;
     while (sec_tmp != NULL) {
       if (sec_tmp->alive == ON) {
-	fprintf(final_ptr, "%s%c", sec_tmp->name, sec_tmp->status);
+        fprintf(final_ptr, "%s%c", sec_tmp->name, sec_tmp->status);
+        fprintf(final_ptr, "%s%c", sec_tmp->identifier, 0);
 
-	ov = sec_tmp->id;
-	WRITEOUT_OV;
+        ov = sec_tmp->id;
+        WRITEOUT_OV;
 
-	fprintf(final_ptr, "%c", sec_tmp->filename_id);
+        fprintf(final_ptr, "%c", sec_tmp->filename_id);
 
         ov = sec_tmp->size;
         WRITEOUT_OV;
@@ -1165,12 +1168,13 @@ int pass_4(void) {
     while (sec_tmp != NULL) {
       if (sec_tmp->alive == ON) {
         /* section block id */
-	fprintf(final_ptr, "%c%s%c", 0x1, sec_tmp->name, sec_tmp->status);
+        fprintf(final_ptr, "%c%s%c", 0x1, sec_tmp->name, sec_tmp->status);
+        fprintf(final_ptr, "%s%c", sec_tmp->identifier, 0);
 
-	ov = sec_tmp->id;
-	WRITEOUT_OV;
+        ov = sec_tmp->id;
+        WRITEOUT_OV;
 
-	fprintf(final_ptr, "%c%c", sec_tmp->slot, sec_tmp->filename_id);
+        fprintf(final_ptr, "%c%c", sec_tmp->slot, sec_tmp->filename_id);
 
         ov = sec_tmp->address;
         WRITEOUT_OV;

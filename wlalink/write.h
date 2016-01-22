@@ -3,7 +3,8 @@
 #define _WRITE_H
 
 int fix_references(void);
-int fix_labels(void);
+int fix_label_sections_and_names(void);
+int fix_label_addresses(void);
 int transform_stack_definitions(void);
 int insert_sections(void);
 int write_symbol_file(char *outname, unsigned char mode);

@@ -93,6 +93,7 @@ struct label {
   int slot;
   int status;
   double address;
+  struct section *section_struct;
   struct label *next;
   struct label *prev;
 };
@@ -130,6 +131,7 @@ struct reference {
 
 struct section {
   char name[MAX_NAME_LENGTH + 1];
+  char identifier[MAX_NAME_LENGTH + 1];
   int  file_id;
   int  file_id_source;
   int  address;

@@ -2540,6 +2540,21 @@ int parse_directive(void) {
       sections_last = sec_tmp;
     }
 
+    if (compare_next_token("IDENTIFIER", 10) == SUCCEEDED) {
+      if (skip_next_token() == FAILED)
+        return FAILED;
+      if (input_next_string() == FAILED)
+        return FAILED;
+      if (strlen(tmp) < 3 || tmp[0] != '\"' || tmp[strlen(tmp)-1] != '\"') {
+        print_error("Could not parse the IDENTIFIER.\n", ERROR_DIR);
+        return FAILED;
+      }
+      tmp[strlen(tmp)-1] = '\0';
+      strcpy(sec_tmp->identifier, tmp+1);
+    }
+    else
+      sec_tmp->identifier[0] = '\0';
+
     /* the size of the section? */
     if (compare_next_token("SIZE", 4) == SUCCEEDED) {
       if (sec_tmp->maxsize_status == ON) {

@@ -132,6 +132,34 @@ int add_section(struct section *s) {
   return SUCCEEDED;
 }
 
+int find_label_in_section(char *str, struct section *s, struct label **l) {
+  char buf[MAX_NAME_LENGTH*2];
+
+  if (s == NULL || s->identifier[0] == '\0')
+    return FAILED;
+
+  strcpy(buf, str);
+  buf[strlen(s->identifier)] = '\0';
+  if (strcmp(buf, s->identifier) == 0)
+    strcpy(buf, str);
+  else
+    sprintf(buf, "%s.%s", s->identifier, str);
+
+  *l = labels_first;
+  while (*l != NULL) {
+    if ((*l)->section != s->id) {
+      *l = (*l)->next;
+      continue;
+    }
+    if (strcmp(buf, (*l)->name) == 0)  {
+      return SUCCEEDED;
+    }
+    *l = (*l)->next;
+  }
+
+  return FAILED;
+}
+
 
 int add_label(struct label *l) {
 
@@ -413,6 +441,7 @@ int collect_dlr(void) {
 	l->base = 0;
 	l->file_id = obj_tmp->id;
 	l->section_status = OFF;
+        l->section_struct = NULL;
 
 	add_label(l);
       }
@@ -458,6 +487,7 @@ int collect_dlr(void) {
 	l->address = ((int)l->address) & 0xFFFF;
 	l->bank = READ_T;
 	l->file_id = obj_tmp->id;
+        l->section_struct = NULL;
 
 	add_label(l);
       }
@@ -720,7 +750,7 @@ int parse_data_blocks(void) {
   int section, i, y, x;
   unsigned char *t, *p;
 
-  
+
   obj_tmp = obj_first;
   section = 0;
 
@@ -730,51 +760,57 @@ int parse_data_blocks(void) {
       t = obj_tmp->data_blocks;
       p = obj_tmp->data + obj_tmp->size;
       for (y = 1; t < p; ) {
-	x = *(t++);
+        x = *(t++);
 
-	if (x == DATA_TYPE_BLOCK) {
-	  /* address */
-	  i = READ_T;
-	  /* amount of bytes */
-	  x = READ_T;
+        if (x == DATA_TYPE_BLOCK) {
+          /* address */
+          i = READ_T;
+          /* amount of bytes */
+          x = READ_T;
 
-	  for (; x > 0; x--, i++)
-	    if (mem_insert(i, *(t++)) == FAILED)
-	      return FAILED;
-	}
-	else if (x == DATA_TYPE_SECTION) {
-	  s = malloc(sizeof(struct section));
-	  if (s == NULL) {
-	    fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
-	    return FAILED;
-	  }
-	  y++;
+          for (; x > 0; x--, i++)
+            if (mem_insert(i, *(t++)) == FAILED)
+              return FAILED;
+        }
+        else if (x == DATA_TYPE_SECTION) {
+          s = malloc(sizeof(struct section));
+          if (s == NULL) {
+            fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
+            return FAILED;
+          }
+          y++;
 
-	  /* name */
-	  i = 0;
-	  while (*t != 0 && *t != 1 && *t != 2 && *t != 3 && *t != 4 && *t != 5 && *t != 6 && *t != 7 && *t != 8)
-	    s->name[i++] = *(t++);
-	  s->name[i] = 0;
-	  s->status = *(t++);
-	  s->id = READ_T;
-	  s->id += section;
-	  s->slot = *(t++);
-	  s->file_id_source = *(t++);
-	  s->address = READ_T;
-	  s->bank = READ_T;
-	  s->size = READ_T;
+          /* name */
+          i = 0;
+          while (*t != 0 && *t != 1 && *t != 2 && *t != 3 && *t != 4 && *t != 5 && *t != 6 && *t != 7 && *t != 8)
+            s->name[i++] = *(t++);
+          s->name[i] = 0;
+          s->status = *(t++);
+          /* identifier */
+          i = 0;
+          while (*t != 0)
+            s->identifier[i++] = *(t++);
+          s->identifier[i] = 0;
+          t++;
+          s->id = READ_T;
+          s->id += section;
+          s->slot = *(t++);
+          s->file_id_source = *(t++);
+          s->address = READ_T;
+          s->bank = READ_T;
+          s->size = READ_T;
           s->alignment = READ_T;
-	  s->data = t;
-	  s->library_status = OFF;
-	  t += s->size;
+          s->data = t;
+          s->library_status = OFF;
+          t += s->size;
 
-	  /* listfile block */
-	  if (listfile_block_read(&t, s) == FAILED)
-	    return FAILED;
-	  
-	  if (add_section(s) == FAILED)
-	    return FAILED;
-	}
+          /* listfile block */
+          if (listfile_block_read(&t, s) == FAILED)
+            return FAILED;
+
+          if (add_section(s) == FAILED)
+            return FAILED;
+        }
       }
       obj_tmp = obj_tmp->next;
       section += 1000000;
@@ -785,38 +821,44 @@ int parse_data_blocks(void) {
       t = obj_tmp->data_blocks;
       p = obj_tmp->data + obj_tmp->size;
       for (y = 1; t < p; ) {
-	s = malloc(sizeof(struct section));
-	if (s == NULL) {
-	  fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
-	  return FAILED;
-	}
-	y++;
+        s = malloc(sizeof(struct section));
+        if (s == NULL) {
+          fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
+          return FAILED;
+        }
+        y++;
 
-	/* name */
-	i = 0;
-	while (*t != 0 && *t != 7)
-	  s->name[i++] = *(t++);
-	s->name[i] = 0;
-	s->status = *(t++);
-	s->id = READ_T;
-	s->id += section;
-	s->file_id_source = *(t++);
-	s->size = READ_T;
+        /* name */
+        i = 0;
+        while (*t != 0 && *t != 7)
+          s->name[i++] = *(t++);
+        s->name[i] = 0;
+        s->status = *(t++);
+        /* identifier */
+        i = 0;
+        while (*t != 0)
+          s->identifier[i++] = *(t++);
+        s->identifier[i] = 0;
+        t++;
+        s->id = READ_T;
+        s->id += section;
+        s->file_id_source = *(t++);
+        s->size = READ_T;
         s->alignment = READ_T;
-	s->data = t;
-	s->address = 0;
-	s->bank = obj_tmp->bank;
-	s->slot = obj_tmp->slot;
-	s->base = obj_tmp->base;
-	s->library_status = ON;
-	s->base_defined = obj_tmp->base_defined;
-	t += s->size;
+        s->data = t;
+        s->address = 0;
+        s->bank = obj_tmp->bank;
+        s->slot = obj_tmp->slot;
+        s->base = obj_tmp->base;
+        s->library_status = ON;
+        s->base_defined = obj_tmp->base_defined;
+        t += s->size;
 
-	/* listfile block */
-	if (listfile_block_read(&t, s) == FAILED)
-	  return FAILED;
+        /* listfile block */
+        if (listfile_block_read(&t, s) == FAILED)
+          return FAILED;
 
-	add_section(s);
+        add_section(s);
       }
       obj_tmp = obj_tmp->next;
       section += 1000000;

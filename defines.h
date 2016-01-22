@@ -479,11 +479,13 @@ struct label_def {
 #endif
   int  filename_id;
   int  linenumber;
+  struct section_def *section_struct;
   struct label_def *next;
 };
 
 struct section_def {
   char name[MAX_NAME_LENGTH];
+  char identifier[MAX_NAME_LENGTH];
   int  alignment;
   int  address; /* in bank */
   int  bank;

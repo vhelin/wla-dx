@@ -163,6 +163,7 @@ int pass_3(void) {
 	l->linenumber = line_number;
 	l->alive = ON;
 	l->section_id = s->id;
+        l->section_struct = s;
 	/* section labels get a relative address */
 	l->address = add;
 	l->bank = s->bank;
@@ -185,7 +186,12 @@ int pass_3(void) {
 
 	label_next = labels;
 	while (label_next != NULL) {
-	  if (strcmp(l->label, label_next->label) == 0) {
+          if (strcmp(l->label, label_next->label) == 0 &&
+              ((l->section_struct == NULL && label_next->section_struct == NULL)
+               || (l->section_struct == NULL && label_next->section_struct->identifier[0] == 0)
+               || (label_next->section_struct == NULL && l->section_struct->identifier[0] == 0)
+               || (l->section_struct && label_next->section_struct
+                 && strcmp(l->section_struct->identifier, label_next->section_struct->identifier) == 0))) {
 	    if ((l->label[0] != '_') || /* both are not local labels */
 		(section_status == OFF && label_next->section_status == OFF) ||
 		(section_status == ON && label_next->section_status == ON && label_next->section_id == l->section_id)) {
@@ -488,6 +494,7 @@ int pass_3(void) {
       l->alive = ON;
       if (section_status == ON) {
 	l->section_id = s->id;
+        l->section_struct = s;
 	/* section labels get a relative address */
 	l->address = add - s->address;
 	l->bank = s->bank;
@@ -495,6 +502,7 @@ int pass_3(void) {
       }
       else {
 	l->section_id = 0;
+        l->section_struct = NULL;
 	l->address = add;
 	l->bank = bank;
 	l->slot = slot;
@@ -518,15 +526,20 @@ int pass_3(void) {
 
       label_next = labels;
       while (label_next != NULL) {
-	if (strcmp(l->label, label_next->label) == 0) {
-	  if ((l->label[0] != '_') || /* both are not local labels */
-	      (section_status == OFF && label_next->section_status == OFF) ||
-	      (section_status == ON && label_next->section_status == ON && label_next->section_id == l->section_id)) {
-	    fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
-	    return FAILED;
-	  }
-	}
-	label_next = label_next->next;
+        if (strcmp(l->label, label_next->label) == 0 &&
+            ((l->section_struct == NULL && label_next->section_struct == NULL)
+             || (l->section_struct == NULL && label_next->section_struct->identifier[0] == 0)
+             || (label_next->section_struct == NULL && l->section_struct->identifier[0] == 0)
+             || (l->section_struct && label_next->section_struct
+               && strcmp(l->section_struct->identifier, label_next->section_struct->identifier) == 0))) {
+          if ((l->label[0] != '_') || /* both are not local labels */
+              (section_status == OFF && label_next->section_status == OFF) ||
+              (section_status == ON && label_next->section_status == ON && label_next->section_id == l->section_id)) {
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
+            return FAILED;
+          }
+        }
+        label_next = label_next->next;
       }
 
       if (labels != NULL) {

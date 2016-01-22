@@ -8,6 +8,7 @@
 #include "memory.h"
 #include "write.h"
 #include "files.h"
+#include "analyze.h"
 
 
 
@@ -529,34 +530,63 @@ int transform_stack_definitions(void) {
   return SUCCEEDED;
 }
 
+int fix_label_sections_and_names(void) {
 
-int fix_labels(void) {
+  struct section *s;
+  struct label *l;
+  char b[MAX_NAME_LENGTH*2+2];
+
+  l = labels_first;
+  while (l != NULL) {
+    if (l->section_status == ON) {
+      s = sec_first;
+      while (s != NULL) {
+        if (s->id == l->section) {
+          if (is_label_anonymous(l->name) == FAILED
+              && (l->status == LABEL_STATUS_LABEL || l->status == LABEL_STATUS_DEFINE)
+              && s->identifier[0] != '\0') {
+            sprintf(b, "%s.%s", s->identifier, l->name);
+            strcpy(l->name, b);
+          }
+          l->section_struct = s;
+          break;
+        }
+        s = s->next;
+      }
+    }
+    l = l->next;
+  }
+
+  return SUCCEEDED;
+}
+
+int fix_label_addresses(void) {
 
   struct section *s = NULL;
   struct label *l, *m;
 
-  
   /* fix labels' addresses */
   l = labels_first;
   while (l != NULL) {
     if (l->status == LABEL_STATUS_LABEL || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
       if (l->section_status == ON) {
-	s = sec_first;
-	while (s != NULL) {
-	  if (s->id == l->section) {
-	    l->bank = s->bank;
-	    l->address += s->address;
-	    l->rom_address = l->address + bankaddress[l->bank];
-	    if (s->status != SECTION_STATUS_ABSOLUTE)
-	      l->address += slots[l->slot].address;
-	    break;
-	  }
-	  s = s->next;
-	}
+        if (l->section_struct == NULL) {
+          fprintf(stderr, "FIX_LABELS: Internal error: section_struct is null.\n");
+          return FAILED;
+        }
+        s = l->section_struct;
+        if (s->id == l->section) {
+          l->bank = s->bank;
+          l->address += s->address;
+          l->rom_address = l->address + bankaddress[l->bank];
+          if (s->status != SECTION_STATUS_ABSOLUTE)
+            l->address += slots[l->slot].address;
+          printf("%s: %x\n", l->name, l->rom_address);
+        }
       }
       else {
-	l->rom_address = l->address + bankaddress[l->bank];
-	l->address += slots[l->slot].address;
+        l->rom_address = l->address + bankaddress[l->bank];
+        l->address += slots[l->slot].address;
       }
     }
     l = l->next;
@@ -566,19 +596,20 @@ int fix_labels(void) {
   l = labels_first;
   while (l != NULL) {
     if (is_label_anonymous(l->name) == FAILED && (l->status == LABEL_STATUS_LABEL || l->status == LABEL_STATUS_DEFINE)) {
+      s = l->section_struct;
       m = l->next;
       while (m != NULL) {
-	if (strcmp(m->name, l->name) == 0) {
-	  if (l->address != m->address && !(m->name[0] == '*' || m->name[0] == '_')) {
-	    if (l->status == LABEL_STATUS_DEFINE)
-	      fprintf(stderr, "%s: FIX_LABELS: Definition \"%s\" was defined more than once.\n", get_file_name(l->file_id), l->name);
-	    else
-	      fprintf(stderr, "%s:%s:%d: FIX_LABELS: Label \"%s\" was defined more than once.\n", get_file_name(l->file_id),
-		      get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name);
-	    return FAILED;
-	  }
-	}
-	m = m->next;
+        if (strcmp(l->name, m->name) == 0) {
+          if (l->address != m->address && !(m->name[0] == '*' || m->name[0] == '_')) {
+            if (l->status == LABEL_STATUS_DEFINE)
+              fprintf(stderr, "%s: FIX_LABELS: Definition \"%s\" was defined more than once.\n", get_file_name(l->file_id), l->name);
+            else
+              fprintf(stderr, "%s:%s:%d: FIX_LABELS: Label \"%s\" was defined more than once.\n", get_file_name(l->file_id),
+                  get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name);
+            return FAILED;
+          }
+        }
+        m = m->next;
       }
     }
     l = l->next;
@@ -591,9 +622,10 @@ int fix_labels(void) {
 int fix_references(void) {
 
   struct reference *r;
-  struct section *s = NULL;
+  struct section *s = NULL, *s2 = NULL;
   struct label *l, lt;
   int i, x;
+  char buf[512];
 
   
   section_overwrite = OFF;
@@ -606,24 +638,24 @@ int fix_references(void) {
     if (r->section_status == ON) {
       s = sec_first;
       while (s != NULL) {
-	if (s->id == r->section) {
-	  r->bank = s->bank;
-	  x += s->address;
-	  r->address += s->address;
-	  break;
-	}
-	s = s->next;
+        if (s->id == r->section) {
+          r->bank = s->bank;
+          x += s->address;
+          r->address += s->address;
+          break;
+        }
+        s = s->next;
       }
       /* reference is inside a discarded section? */
       if (s != NULL && s->alive == NO) {
-	r = r->next;
-	continue;
+        r = r->next;
+        continue;
       }
       if (s == NULL) {
-	if (write_bank_header_references(r) == FAILED)
-	  return FAILED;
-	r = r->next;
-	continue;
+        if (write_bank_header_references(r) == FAILED)
+          return FAILED;
+        r = r->next;
+        continue;
       }
     }
 
@@ -638,34 +670,49 @@ int fix_references(void) {
     /* request for bank number? */
     if (r->name[0] == ':') {
       if (is_label_anonymous(&r->name[1]) == SUCCEEDED) {
-	l = get_closest_anonymous_label(&r->name[1], x, r->file_id, l, r->section_status, r->section);
+        l = get_closest_anonymous_label(&r->name[1], x, r->file_id, l, r->section_status, r->section);
       }
       else if (strcmp(&r->name[1], "CADDR") == 0 || strcmp(&r->name[1], "caddr") == 0) {
-	lt.status = LABEL_STATUS_LABEL;
-	strcpy(lt.name, &r->name[1]);
-	lt.address = r->address;
-	lt.bank = r->bank;
-	lt.section_status = OFF;
-	l = &lt;
+        lt.status = LABEL_STATUS_LABEL;
+        strcpy(lt.name, &r->name[1]);
+        lt.address = r->address;
+        lt.bank = r->bank;
+        lt.section_status = OFF;
+        l = &lt;
       }
       else {
-	while (l != NULL) {
-	  if (strcmp(l->name, &r->name[1]) == 0 && l->status != LABEL_STATUS_SYMBOL && l->status != LABEL_STATUS_BREAKPOINT)
-	    break;
-	  l = l->next;
-	}
+        l = NULL;
+        /* If the current section has an identifier, search for labels within
+         * the section to have priority over the global namespace. */
+        if (find_label_in_section(r->name, s, &l) == FAILED)
+          l = NULL;
+        if (l == NULL) {
+          l = labels_first;
+          while (l != NULL) {
+            s2 = l->section_struct;
+            if (s2 == NULL || s2->identifier[0] == '\0')
+              strcpy(buf, l->name);
+            else
+              strcpy(buf, &l->name[strlen(s2->identifier)+1]);
+
+            if ((strcmp(l->name, &r->name[1]) == 0 || (s == s2 && strcmp(buf, &r->name[1]) == 0))
+                && l->status != LABEL_STATUS_SYMBOL && l->status != LABEL_STATUS_BREAKPOINT)
+              break;
+            l = l->next;
+          }
+        }
       }
 
       if (l == NULL) {
-	fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Bank number request for an unknown label \"%s\".\n",
-		get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, &r->name[1]);
-	return FAILED;
+        fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Bank number request for an unknown label \"%s\".\n",
+            get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, &r->name[1]);
+        return FAILED;
       }
 
       if (cpu_65816 != 0)
-	i = get_snes_pc_bank(l) >> 16;
+        i = get_snes_pc_bank(l) >> 16;
       else
-	i = l->bank;
+        i = l->bank;
 
       memory_file_id = r->file_id;
       memory_file_id_source = r->file_id_source;
@@ -673,70 +720,85 @@ int fix_references(void) {
 
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT || r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
-	mem_insert_ref(x, i & 0xFF);
-	mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+        mem_insert_ref(x, i & 0xFF);
+        mem_insert_ref(x + 1, (i >> 8) & 0xFF);
       }
       /* direct / relative 8-bit with a definition */
       else if (l->status == LABEL_STATUS_DEFINE) {
-	fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Bank number request for a definition \"%s\"?\n",
-		get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, l->name);
-	return FAILED;
+        fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Bank number request for a definition \"%s\"?\n",
+            get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, l->name);
+        return FAILED;
       }
       /* direct 24-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
-	mem_insert_ref(x, i & 0xFF);
-	mem_insert_ref(x + 1, (i >> 8) & 0xFF);
-	mem_insert_ref(x + 2, (i >> 16) & 0xFF);
+        mem_insert_ref(x, i & 0xFF);
+        mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+        mem_insert_ref(x + 2, (i >> 16) & 0xFF);
       }
       /* relative/direct 8-bit with a label */
       else {
-	mem_insert_ref(x, i & 0xFF);
+        mem_insert_ref(x, i & 0xFF);
       }
     }
     /* normal reference */
     else {
       if (is_label_anonymous(r->name) == SUCCEEDED) {
-	l = get_closest_anonymous_label(r->name, x, r->file_id, l, r->section_status, r->section);
+        l = get_closest_anonymous_label(r->name, x, r->file_id, l, r->section_status, r->section);
       }
       else if (strcmp(r->name, "CADDR") == 0 || strcmp(r->name, "caddr") == 0) {
-	lt.status = LABEL_STATUS_DEFINE;
-	strcpy(lt.name, r->name);
-	lt.address = r->address;
-	lt.bank = r->bank;
-	lt.section_status = OFF;
-	l = &lt;
+        lt.status = LABEL_STATUS_DEFINE;
+        strcpy(lt.name, r->name);
+        lt.address = r->address;
+        lt.bank = r->bank;
+        lt.section_status = OFF;
+        l = &lt;
       }
       else {
-	while (l != NULL) {
-	  if (strcmp(l->name, r->name) != 0 || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT)
-	    l = l->next;
-	  else {
-	    /* search for the section of the referencee */
-	    if (r->name[0] == '_') {
-	      if (l->file_id == r->file_id) {
-		if (l->section_status != r->section_status) {
-		  l = l->next;
-		  continue;
-		}
-		if (l->section_status == ON && l->section != r->section) {
-		  l = l->next;
-		  continue;
-		}
-	      }
-	      else {
-		l = l->next;
-		continue;
-	      }
-	    }
-	    break;
-	  }
-	}
+        l = NULL;
+        /* If the current section has an identifier, search for labels within
+         * the section to have priority over the global namespace. */
+        if (find_label_in_section(r->name, s, &l) == FAILED)
+          l = NULL;
+        if (l == NULL) {
+          l = labels_first;
+          while (l != NULL) {
+            s2 = l->section_struct;
+            if (s2 == NULL || s2->identifier[0] == '\0')
+              strcpy(buf, l->name);
+            else
+              strcpy(buf, &l->name[strlen(s2->identifier)+1]);
+
+            if (!(strcmp(l->name, r->name) == 0 || (s == s2 && strcmp(buf, r->name) == 0))
+                || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT)
+              l = l->next;
+            else {
+              /* search for the section of the referencee */
+              if (r->name[0] == '_') {
+                if (l->file_id == r->file_id) {
+                  if (l->section_status != r->section_status) {
+                    l = l->next;
+                    continue;
+                  }
+                  if (l->section_status == ON && l->section != r->section) {
+                    l = l->next;
+                    continue;
+                  }
+                }
+                else {
+                  l = l->next;
+                  continue;
+                }
+              }
+              break;
+            }
+          }
+        }
       }
 
       if (l == NULL) {
-	fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Reference to an unknown label \"%s\".\n",
-		get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
-	return FAILED;
+        fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Reference to an unknown label \"%s\".\n",
+            get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
+        return FAILED;
       }
 
       memory_file_id = r->file_id;
@@ -745,58 +807,58 @@ int fix_references(void) {
 
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
-	i = l->address;
-	mem_insert_ref(x, i & 0xFF);
-	mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+        i = l->address;
+        mem_insert_ref(x, i & 0xFF);
+        mem_insert_ref(x + 1, (i >> 8) & 0xFF);
       }
       /* direct / relative 8-bit with a value definition */
       else if (l->status == LABEL_STATUS_DEFINE && (r->type == REFERENCE_TYPE_DIRECT_8BIT || r->type == REFERENCE_TYPE_RELATIVE_8BIT)) {
-	i = ((int)l->address) & 0xFFFF;
-	if (i > 255 || i < -128) {
-	  fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8-bit value.\n",
-		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
-	  return FAILED;
-	}
-	mem_insert_ref(x, i & 0xFF);
+        i = ((int)l->address) & 0xFFFF;
+        if (i > 255 || i < -128) {
+          fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8-bit value.\n",
+              get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
+          return FAILED;
+        }
+        mem_insert_ref(x, i & 0xFF);
       }
       /* direct 24-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
-	i = l->address;
-	if (l->status == LABEL_STATUS_LABEL)
-	  i += get_snes_pc_bank(l);
-	mem_insert_ref(x, i & 0xFF);
-	mem_insert_ref(x + 1, (i >> 8) & 0xFF);
-	mem_insert_ref(x + 2, (i >> 16) & 0xFF);
+        i = l->address;
+        if (l->status == LABEL_STATUS_LABEL)
+          i += get_snes_pc_bank(l);
+        mem_insert_ref(x, i & 0xFF);
+        mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+        mem_insert_ref(x + 2, (i >> 16) & 0xFF);
       }
       /* relative 8-bit with a label */
       else if (r->type == REFERENCE_TYPE_RELATIVE_8BIT) {
-	i = (((int)l->address) & 0xFFFF) - r->address - 1;
-	if (i < -128 || i > 127) {
-	  fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a 8-bit reference.\n",
-		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
-	  return FAILED;
-	}
-	mem_insert_ref(x, i & 0xFF);
+        i = (((int)l->address) & 0xFFFF) - r->address - 1;
+        if (i < -128 || i > 127) {
+          fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a 8-bit reference.\n",
+              get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
+          return FAILED;
+        }
+        mem_insert_ref(x, i & 0xFF);
       }
       /* relative 16-bit with a label */
       else if (r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
-	i = (((int)l->address) & 0xFFFF) - r->address - 2;
-	if (i < -32768 || i > 65535) {
-	  fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a 16-bit reference.\n",
-		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
-	  return FAILED;
-	}
-	mem_insert_ref(x, i & 0xFF);
-	mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+        i = (((int)l->address) & 0xFFFF) - r->address - 2;
+        if (i < -32768 || i > 65535) {
+          fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a 16-bit reference.\n",
+              get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
+          return FAILED;
+        }
+        mem_insert_ref(x, i & 0xFF);
+        mem_insert_ref(x + 1, (i >> 8) & 0xFF);
       }
       else {
-	i = ((int)l->address) & 0xFFFF;
-	if (i > 255) {
-	  fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8-bit value.\n",
-		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
-	  return FAILED;
-	}
-	mem_insert_ref(x, i & 0xFF);
+        i = ((int)l->address) & 0xFFFF;
+        if (i > 255) {
+          fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8-bit value.\n",
+              get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
+          return FAILED;
+        }
+        mem_insert_ref(x, i & 0xFF);
       }
     }
 

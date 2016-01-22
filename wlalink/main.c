@@ -164,6 +164,10 @@ int main(int argc, char *argv[]) {
   if (clean_up_dlr() == FAILED)
     return 1;
 
+  /* associate labels with their sections and prepend the section identifiers */
+  if (fix_label_sections_and_names() == FAILED)
+    return 1;
+
   /* drop all unreferenced sections */
   if (discard_unreferenced_sections == ON) {
     if (discard_unused_sections() == FAILED)
@@ -283,7 +287,7 @@ int main(int argc, char *argv[]) {
 #endif
 
   /* compute the labels' addresses */
-  if (fix_labels() == FAILED)
+  if (fix_label_addresses() == FAILED)
     return 1;
 
   /* compute pending calculations */
