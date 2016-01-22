@@ -581,7 +581,6 @@ int fix_label_addresses(void) {
           l->rom_address = l->address + bankaddress[l->bank];
           if (s->status != SECTION_STATUS_ABSOLUTE)
             l->address += slots[l->slot].address;
-          printf("%s: %x\n", l->name, l->rom_address);
         }
       }
       else {
@@ -1582,17 +1581,26 @@ int write_bank_header_references(struct reference *r) {
 int parse_stack(struct stack *sta) {
 
   struct stackitem *si;
+  struct section *s;
   struct label *l, lt;
   double k;
   int g;
+
+  s = NULL;
+  if (sta->section_status != 0) {
+    s = sec_first;
+    while (s != NULL) {
+      if (s->id == sta->section)
+        break;
+      s = s->next;
+    }
+  }
 
   si = sta->stack;
   g = 0;
   k = 0;
   while (g != sta->stacksize) {
     if (si->type == STACK_ITEM_TYPE_STRING) {
-      l = labels_first;
-
       /* bank number search */
       if (si->string[0] == ':') {
 	if (is_label_anonymous(&si->string[1]) == SUCCEEDED) {
@@ -1606,16 +1614,26 @@ int parse_stack(struct stack *sta) {
 	  l = &lt;
 	}
 	else {
-	  while (l != NULL) {
-	    if (strcmp(l->name, &si->string[1]) == 0) {
-	      if (cpu_65816 != 0)
-		k = get_snes_pc_bank(l) >> 16;
-	      else
-		k = l->bank;
-	      break;
-	    }
-	    l = l->next;
-	  }
+          /* If the current section has an identifier, search for labels within
+           * the section to have priority over the global namespace. */
+          if (find_label_in_section(&si->string[1], s, &l) == FAILED)
+            l = NULL;
+          
+          if (l == NULL) {
+            l = labels_first;
+            while (l != NULL) {
+              if (strcmp(l->name, &si->string[1]) == 0)
+                break;
+              l = l->next;
+            }
+          }
+
+          if (l != NULL) {
+            if (cpu_65816 != 0)
+              k = get_snes_pc_bank(l) >> 16;
+            else
+              k = l->bank;
+          }
 	}
       }
       /* normal label address search */
@@ -1635,29 +1653,33 @@ int parse_stack(struct stack *sta) {
 	  l = &lt;
 	}
 	else {
-	  while (l != NULL) {
-	    if (strcmp(l->name, si->string) == 0) {
-	      if (si->string[0] == '_') {
-		if (sta->section == l->section) {
-		  k = l->address;
-		  break;
-		}
-		else {
-		  l = l->next;
-		  continue;
-		}
-	      }
-	      else {
-		k = l->address;
-		break;
-	      }
-	    }
-	    l = l->next;
-	  }
+          /* If the current section has an identifier, search for labels within
+           * the section to have priority over the global namespace. */
+          if (find_label_in_section(si->string, s, &l) == FAILED)
+            l = NULL;
+          
+          if (l == NULL) {
+            l = labels_first;
+            while (l != NULL) {
+              if (strcmp(l->name, si->string) == 0) {
+                if (si->string[0] == '_' && sta->section != l->section) {
+                    l = l->next;
+                    continue;
+                }
+                else
+                  break;
+              }
+              l = l->next;
+            }
+          }
 
-	  /* is the reference relative? */
-	  if (l != NULL && sta->relative_references == YES)
-	    k = k - sta->memory_address - 1;
+          if (l != NULL) {
+            k = l->address;
+
+            /* is the reference relative? */
+            if (sta->relative_references == YES)
+              k = k - sta->memory_address - 1;
+          }
 	}
       }
 
