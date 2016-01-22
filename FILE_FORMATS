@@ -127,7 +127,7 @@ section:
   n     name (terminated with 0 (free), 1 (forced), 2 (overwrite), 3 (header),
                               4 (semifree), 5 (absolute), 6 (ram),
                               7 (superfree) or 8 (semisubfree))
-  n     identifier (terminated with 0)
+  n     namespace (terminated with 0)
   4     section id (int)
   1     slot number (0-255)
   1     file id
@@ -216,7 +216,7 @@ sections:
 
   ...
   n     name (terminated with 0 (for free) or 7 (for superfree))
-  n     identifier (terminated with 0)
+  n     namespace (terminated with 0)
   4     section id (int)
   1     file id
   4     number of bytes (int)

@@ -2540,7 +2540,7 @@ int parse_directive(void) {
       sections_last = sec_tmp;
     }
 
-    if (compare_next_token("IDENTIFIER", 10) == SUCCEEDED) {
+    if (compare_next_token("NAMESPACE", 9) == SUCCEEDED) {
       if (skip_next_token() == FAILED)
         return FAILED;
       if (input_next_string() == FAILED)
