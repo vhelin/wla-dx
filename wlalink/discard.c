@@ -90,6 +90,7 @@ int discard_iteration(void) {
     }
     /* If the current section has an identifier, search for labels within
      * the section to have priority over the global namespace. */
+    l = NULL;
     if (r->section_status != 0) {
       s = sec_first;
       while (s != NULL) {
