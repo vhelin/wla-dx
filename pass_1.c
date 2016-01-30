@@ -2546,7 +2546,7 @@ int parse_directive(void) {
       if (input_next_string() == FAILED)
         return FAILED;
       if (strlen(tmp) < 3 || tmp[0] != '\"' || tmp[strlen(tmp)-1] != '\"') {
-        print_error("Could not parse the IDENTIFIER.\n", ERROR_DIR);
+        print_error("Could not parse the NAMESPACE.\n", ERROR_DIR);
         return FAILED;
       }
       tmp[strlen(tmp)-1] = '\0';
