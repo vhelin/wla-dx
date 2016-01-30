@@ -260,13 +260,6 @@ int parse_flags(char *flags) {
   return SUCCEEDED;
 }
 
-int defines_element_free(any_t element) {
-  struct definition *d = (struct definition *) element;
-  free(d);
-
-  return MAP_OK;
-}
-
 void procedures_at_exit(void) {
 
   struct file_name_info *f, *ft;
@@ -299,7 +292,11 @@ void procedures_at_exit(void) {
   if (full_name != NULL)
     free(full_name);
 
-  hashmap_iterate(defines_map, defines_element_free);
+  tmp_def = hashmap_begin_iteration(defines_map);
+  while (tmp_def != NULL) {
+    free(tmp_def);
+    tmp_def = hashmap_next_iteration(defines_map);
+  }
   hashmap_free(defines_map);
 
   m = macros_first;

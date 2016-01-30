@@ -23,6 +23,7 @@ typedef struct _hashmap_map{
 	int table_size;
 	int size;
 	hashmap_element *data;
+    int iterator;
 } hashmap_map;
 
 /*
@@ -341,6 +342,42 @@ int hashmap_iterate(map_t in, PFany f) {
 		}
 
     return MAP_OK;
+}
+
+any_t hashmap_begin_iteration(map_t in) {
+	int i;
+
+	/* Cast the hashmap */
+	hashmap_map* m = (hashmap_map*) in;
+
+	/* On empty hashmap, return immediately */
+	if (hashmap_length(m) <= 0)
+		return NULL;	
+
+	/* Linear probing */
+	for(i = 0; i< m->table_size; i++)
+		if(m->data[i].in_use != 0) {
+            m->iterator = i;
+            return m->data[i].data;
+		}
+
+    return NULL;
+}
+
+any_t hashmap_next_iteration(map_t in) {
+	int i;
+
+	/* Cast the hashmap */
+	hashmap_map* m = (hashmap_map*) in;
+
+	/* Linear probing */
+	for(i = m->iterator+1; i< m->table_size; i++)
+		if(m->data[i].in_use != 0) {
+            m->iterator = i;
+            return m->data[i].data;
+		}
+
+    return NULL;
 }
 
 /*

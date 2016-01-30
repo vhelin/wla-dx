@@ -48,6 +48,18 @@ extern map_t hashmap_new();
 extern int hashmap_iterate(map_t in, PFany f);
 
 /*
+ * An alternative method to iterate. Initializes the map's iterator variable
+ * and returns the first element, or NULL if there's no element.
+ */
+extern any_t hashmap_begin_iteration(map_t in);
+
+/*
+ * Call after hashmap_begin_iteration. Returns the next element, or NULL for
+ * the end of the hashmap.
+ */
+extern any_t hashmap_next_iteration(map_t in);
+
+/*
  * Add an element to the hashmap. Return MAP_OK or MAP_OMEM.
  */
 extern int hashmap_put(map_t in, char* key, any_t value);
