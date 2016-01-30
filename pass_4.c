@@ -6,6 +6,7 @@
 
 #include "defines.h"
 
+#include "hashmap.h"
 #include "include_file.h"
 #include "listfile.h"
 #include "pass_4.h"
@@ -18,7 +19,8 @@ extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
 extern struct export_def *export_first, *export_last;
 extern struct stack *stacks_first, *stacks_tmp, *stacks_last, *stacks_header_first, *stacks_header_last;
 extern struct label_def *label_tmp, *label_last, *labels;
-extern struct definition *defines, *tmp_def, *next_def;
+extern struct definition *tmp_def;
+extern struct map_t *defines_map;
 extern struct file_name_info *file_name_info_first;
 extern struct slot slots[256];
 extern FILE *file_out_ptr;
@@ -516,28 +518,23 @@ int pass_4(void) {
         fscanf(file_out_ptr, "%256s", tmp);
 
         x = 0;
-        tmp_def = defines;
-        while (tmp_def != NULL) {
-          if (strcmp(tmp, tmp_def->alias) == 0) {
-            if (tmp_def->type == DEFINITION_TYPE_STACK)
-              break;
-            if (tmp_def->type == DEFINITION_TYPE_STRING) {
-              fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
-              return FAILED;
-            }
-            o = tmp_def->value;
-            x = 1;
-
-            if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 8) & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 16) & 0xFF) == FAILED)
-              return FAILED;
-
+        hashmap_get(defines_map, tmp, (void*)&tmp_def);
+        if (tmp_def != NULL) {
+          if (tmp_def->type == DEFINITION_TYPE_STACK)
             break;
+          if (tmp_def->type == DEFINITION_TYPE_STRING) {
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+            return FAILED;
           }
-          tmp_def = tmp_def->next;
+          o = tmp_def->value;
+          x = 1;
+
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert((o >> 8) & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert((o >> 16) & 0xFF) == FAILED)
+            return FAILED;
         }
 
         if (x == 1)
@@ -561,26 +558,21 @@ int pass_4(void) {
         fscanf(file_out_ptr, "%256s", tmp);
 
         x = 0;
-        tmp_def = defines;
-        while (tmp_def != NULL) {
-          if (strcmp(tmp, tmp_def->alias) == 0) {
-            if (tmp_def->type == DEFINITION_TYPE_STACK)
-              break;
-            if (tmp_def->type == DEFINITION_TYPE_STRING) {
-              fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
-              return FAILED;
-            }
-            o = tmp_def->value;
-            x = 1;
-
-            if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 8) & 0xFF) == FAILED)
-              return FAILED;
-
+        hashmap_get(defines_map, tmp, (void*)&tmp_def);
+        if (tmp_def != NULL) {
+          if (tmp_def->type == DEFINITION_TYPE_STACK)
             break;
+          if (tmp_def->type == DEFINITION_TYPE_STRING) {
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+            return FAILED;
           }
-          tmp_def = tmp_def->next;
+          o = tmp_def->value;
+          x = 1;
+
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert((o >> 8) & 0xFF) == FAILED)
+            return FAILED;
         }
 
         if (x == 1)
@@ -603,26 +595,21 @@ int pass_4(void) {
         fscanf(file_out_ptr, "%256s", tmp);
 
         x = 0;
-        tmp_def = defines;
-        while (tmp_def != NULL) {
-          if (strcmp(tmp, tmp_def->alias) == 0) {
-            if (tmp_def->type == DEFINITION_TYPE_STACK)
-              break;
-            if (tmp_def->type == DEFINITION_TYPE_STRING) {
-              fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
-              return FAILED;
-            }
-            o = tmp_def->value;
-            x = 1;
-
-            if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o & 0xFF00) >> 8) == FAILED)
-              return FAILED;
-
+        hashmap_get(defines_map, tmp, (void*)&tmp_def);
+        if (tmp_def != NULL) {
+          if (tmp_def->type == DEFINITION_TYPE_STACK)
             break;
+          if (tmp_def->type == DEFINITION_TYPE_STRING) {
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+            return FAILED;
           }
-          tmp_def = tmp_def->next;
+          o = tmp_def->value;
+          x = 1;
+
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert((o & 0xFF00) >> 8) == FAILED)
+            return FAILED;
         }
 
         if (x == 1)
@@ -644,24 +631,19 @@ int pass_4(void) {
         fscanf(file_out_ptr, "%256s", tmp);
 
         x = 0;
-        tmp_def = defines;
-        while (tmp_def != NULL) {
-          if (strcmp(tmp, tmp_def->alias) == 0) {
-            if (tmp_def->type == DEFINITION_TYPE_STACK)
-              break;
-            if (tmp_def->type == DEFINITION_TYPE_STRING) {
-              fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
-              return FAILED;
-            }
-            o = tmp_def->value;
-            x = 1;
-
-            if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-
+        hashmap_get(defines_map, tmp, (void*)&tmp_def);
+        if (tmp_def != NULL) {
+          if (tmp_def->type == DEFINITION_TYPE_STACK)
             break;
+          if (tmp_def->type == DEFINITION_TYPE_STRING) {
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+            return FAILED;
           }
-          tmp_def = tmp_def->next;
+          o = tmp_def->value;
+          x = 1;
+
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
         }
 
         if (x == 1)
@@ -681,24 +663,19 @@ int pass_4(void) {
         fscanf(file_out_ptr, "%256s", tmp);
 
         x = 0;
-        tmp_def = defines;
-        while (tmp_def != NULL) {
-          if (strcmp(tmp, tmp_def->alias) == 0) {
-            if (tmp_def->type == DEFINITION_TYPE_STACK)
-              break;
-            if (tmp_def->type == DEFINITION_TYPE_STRING) {
-              fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
-              return FAILED;
-            }
-            o = tmp_def->value;
-            x = 1;
-
-            if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-
+        hashmap_get(defines_map, tmp, (void*)&tmp_def);
+        if (tmp_def != NULL) {
+          if (tmp_def->type == DEFINITION_TYPE_STACK)
             break;
+          if (tmp_def->type == DEFINITION_TYPE_STRING) {
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+            return FAILED;
           }
-          tmp_def = tmp_def->next;
+          o = tmp_def->value;
+          x = 1;
+
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
         }
 
         if (x == 1)
@@ -1379,17 +1356,14 @@ int export_definitions(FILE *final_ptr) {
   ov = 0;
   export_tmp = export_first;
   while (export_tmp != NULL) {
-    tmp_def = defines;
-    while (tmp_def != NULL) {
-      if (strcmp(tmp_def->alias, export_tmp->name) == 0) {
-        if (tmp_def->type == DEFINITION_TYPE_VALUE)
-          ov++;
-        if (tmp_def->type == DEFINITION_TYPE_STACK)
-          ov++;
-        break;
-      }
-      tmp_def = tmp_def->next;
+    hashmap_get(defines_map, export_tmp->name, (void*)&tmp_def);
+    if (tmp_def != NULL) {
+      if (tmp_def->type == DEFINITION_TYPE_VALUE)
+        ov++;
+      if (tmp_def->type == DEFINITION_TYPE_STACK)
+        ov++;
     }
+
     export_tmp = export_tmp->next;
   }
 
@@ -1398,12 +1372,7 @@ int export_definitions(FILE *final_ptr) {
   export_tmp = export_first;
   while (export_tmp != NULL) {
 
-    tmp_def = defines;
-    while (tmp_def != NULL) {
-      if (strcmp(tmp_def->alias, export_tmp->name) == 0)
-        break;
-      tmp_def = tmp_def->next;
-    }
+    hashmap_get(defines_map, export_tmp->name, (void*)&tmp_def);
 
     if (tmp_def == NULL)
       fprintf(stderr, "WARNING: Trying to export an unkonwn definition \"%s\".\n", export_tmp->name);

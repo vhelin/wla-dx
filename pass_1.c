@@ -9,6 +9,7 @@
 #include "defines.h"
 
 #include "main.h"
+#include "hashmap.h"
 #include "include_file.h"
 #include "parse.h"
 #include "pass_1.h"
@@ -89,7 +90,8 @@ unsigned char *rom_banks = NULL, *rom_banks_usage_table = NULL;
 
 struct export_def *export_first = NULL, *export_last = NULL;
 struct optcode *opt_tmp;
-struct definition *defines = NULL, *tmp_def, *next_def;
+struct definition *tmp_def;
+struct map_t *defines_map;
 struct macro_static *macros_first = NULL, *macros_last;
 struct section_def *sections_first = NULL, *sections_last = NULL, *sec_tmp, *sec_next;
 struct macro_runtime *macro_stack = NULL, *macro_runtime_current = NULL;
@@ -414,12 +416,8 @@ int macro_insert_byte_db(char *name) {
   struct definition *d;
 
   
-  d = defines;
-  while (d != NULL) {
-    if (strcmp(d->alias, "_out") == 0 || strcmp(d->alias, "_OUT") == 0)
-      break;
-    d = d->next;
-  }
+  if (hashmap_get(defines_map, "_out", (void*)&d) != MAP_OK)
+      hashmap_get(defines_map, "_OUT", (void*)&d);
 
   if (d == NULL) {
     sprintf(emsg, "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
@@ -459,12 +457,8 @@ int macro_insert_word_db(char *name) {
   struct definition *d;
 
   
-  d = defines;
-  while (d != NULL) {
-    if (strcmp(d->alias, "_out") == 0 || strcmp(d->alias, "_OUT") == 0)
-      break;
-    d = d->next;
-  }
+  if (hashmap_get(defines_map, "_out", (void*)&d) != MAP_OK)
+      hashmap_get(defines_map, "_OUT", (void*)&d);
 
   if (d == NULL) {
     sprintf(emsg, "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
@@ -875,12 +869,7 @@ int redefine(char *name, double value, char *string, int type, int size) {
   struct definition *d;
 
   
-  d = defines;
-  while (d != NULL) {
-    if (strcmp(d->alias, name) == 0)
-      break;
-    d = d->next;
-  }
+  hashmap_get(defines_map, name, (void*)&d);
 
   /* it wasn't defined previously */
   if (d == NULL) {
@@ -905,46 +894,32 @@ int redefine(char *name, double value, char *string, int type, int size) {
 
 int undefine(char *name) {
 
-  struct definition *d, *p;
+  struct definition *d;
 
-  
-  d = defines;
-  p = NULL;
-  while (d != NULL) {
-    if (strcmp(name, d->alias) == 0) {
-      if (p != NULL)
-        p->next = d->next;
-      else
-        defines = d->next;
-      free(d);
-      return SUCCEEDED;
-    }
-    p = d;
-    d = d->next;
-  }
+  if (hashmap_get(defines_map, name, (void*)&d) != MAP_OK)
+      return FAILED;
 
-  return FAILED;
+  hashmap_remove(defines_map, name);
+
+  free(d);
+  return SUCCEEDED;
 }
 
 
 int add_a_new_definition(char *name, double value, char *string, int type, int size) {
 
-  struct definition *d, *l;
+  struct definition *d;
+  int err;
 
   
-  l = NULL;
-  d = defines;
-  while (d != NULL) {
-    l = d;
-    if (strcmp(name, d->alias) == 0) {
-      sprintf(emsg, "\"%s\" was defined for the second time.\n", name);
-      if (commandline_parsing == OFF)
-        print_error(emsg, ERROR_DIR);
-      else
-        fprintf(stderr, "ADD_A_NEW_DEFINITION: %s", emsg);
-      return FAILED;
-    }
-    d = d->next;
+  hashmap_get(defines_map, name, (void*)&d);
+  if (d != NULL) {
+    sprintf(emsg, "\"%s\" was defined for the second time.\n", name);
+    if (commandline_parsing == OFF)
+      print_error(emsg, ERROR_DIR);
+    else
+      fprintf(stderr, "ADD_A_NEW_DEFINITION: %s", emsg);
+    return FAILED;
   }
 
   d = malloc(sizeof(struct definition));
@@ -957,14 +932,13 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
     return FAILED;
   }
 
-  if (defines == NULL)
-    defines = d;
-  else
-    l->next = d;
-
   strcpy(d->alias, name);
-  d->next = NULL;
   d->type = type;
+
+  if ((err = hashmap_put(defines_map, d->alias, d)) != MAP_OK) {
+      fprintf(stderr, "ADD_A_NEW_DEFINITION: Hashmap error %d\n", err);
+      return FAILED;
+  }
 
   if (type == DEFINITION_TYPE_VALUE)
     d->value = value;
@@ -2721,17 +2695,13 @@ int parse_directive(void) {
 
     struct definition *d;
 
-
     if (get_next_token() == FAILED)
       return FAILED;
 
-    d = defines;
-    while (d != NULL) {
-      if (strcmp(tmp, d->alias) == 0) {
-        ifdef++;
-        return SUCCEEDED;
-      }
-      d = d->next;
+    hashmap_get(defines_map, tmp, (void*)&d);
+    if (d != NULL) {
+      ifdef++;
+      return SUCCEEDED;
     }
 
     return find_next_point("IFDEF");
@@ -2916,17 +2886,13 @@ int parse_directive(void) {
 
     struct definition *d;
 
-
     if (get_next_token() == FAILED)
       return FAILED;
 
-    d = defines;
-    while (d != NULL) {
-      if (strcmp(tmp, d->alias) == 0) {
-        strcpy(emsg, cp);
-        return find_next_point(emsg);
-      }
-      d = d->next;
+    hashmap_get(defines_map, tmp, (void*)&d);
+    if (d != NULL) {
+      strcpy(emsg, cp);
+      return find_next_point(emsg);
     }
 
     ifdef++;

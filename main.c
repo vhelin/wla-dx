@@ -17,6 +17,7 @@
 
 #include "main.h"
 #include "defines.h"
+#include "hashmap.h"
 
 #include "parse.h"
 #include "include_file.h"
@@ -70,7 +71,8 @@ extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
 extern struct file_name_info *file_name_info_first;
 extern struct label_def *label_tmp, *labels;
 extern struct macro_static *macros_first;
-extern struct definition *defines, *tmp_def;
+extern struct definition *tmp_def;
+extern struct map_t *defines_map;
 extern struct export_def *export_first, *export_last;
 extern struct stack *stacks_first, *stacks_tmp, *stacks_last, *stacks_header_first, *stacks_header_last;
 extern struct repeat_runtime *repeat_stack;
@@ -174,6 +176,8 @@ int main(int argc, char *argv[]) {
 
   commandline_parsing = OFF;
 
+  defines_map = hashmap_new();
+
   /* start the process */
   if (include_file(asm_name) == FAILED)
     return 1;
@@ -256,6 +260,12 @@ int parse_flags(char *flags) {
   return SUCCEEDED;
 }
 
+int defines_element_free(any_t element) {
+  struct definition *d = (struct definition *) element;
+  free(d);
+
+  return MAP_OK;
+}
 
 void procedures_at_exit(void) {
 
@@ -289,12 +299,8 @@ void procedures_at_exit(void) {
   if (full_name != NULL)
     free(full_name);
 
-  tmp_def = defines;
-  while (tmp_def != NULL) {
-    defines = tmp_def->next;
-    free(tmp_def);
-    tmp_def = defines;
-  }
+  hashmap_iterate(defines_map, defines_element_free);
+  hashmap_free(defines_map);
 
   m = macros_first;
   while (m != NULL) {

@@ -416,7 +416,6 @@ struct definition {
   double value;
   int    type;
   int    size;
-  struct definition *next;
 };
 
 struct macro_argument {
