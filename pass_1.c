@@ -99,6 +99,7 @@ struct repeat_runtime *repeat_stack = NULL;
 struct slot slots[256];
 struct structure *structures_first = NULL;
 struct filepointer *filepointers = NULL;
+struct map_t *namespace_map;
 
 extern char *buffer, *unfolded_buffer, label[MAX_NAME_LENGTH], *include_dir, *full_name;
 extern int size, unfolded_size, input_number_error_msg, verbose_mode, output_format, open_files;
@@ -2185,6 +2186,7 @@ int parse_directive(void) {
     sec_tmp->id = section_id;
     sec_tmp->alignment = 1;
     sec_tmp->advance_org = YES;
+    sec_tmp->nspace = NULL;
     section_id++;
 
     strcpy(sec_tmp->name, tmp);
@@ -2201,6 +2203,8 @@ int parse_directive(void) {
       }
       sec_next = sec_next->next;
     }
+
+    sec_tmp->local_label_map = hashmap_new();
 
     if (sections_first == NULL) {
       sections_first = sec_tmp;
@@ -2433,6 +2437,7 @@ int parse_directive(void) {
     sec_tmp->data = NULL;
     sec_tmp->alignment = 1;
     sec_tmp->advance_org = YES;
+    sec_tmp->nspace = NULL;
 
     /* check if the section size is supplied inside the name */
     l = strlen(tmp) - 1;
@@ -2484,6 +2489,7 @@ int parse_directive(void) {
         if (strcmp(sec_next->name, tmp) == 0 && sec_next->bank == bank) {
           sprintf(emsg, "BANKHEADER section was defined for the second time for bank %d.\n", bank);
           print_error(emsg, ERROR_DIR);
+          free(sec_tmp);
           return FAILED;
         }
         sec_next = sec_next->next;
@@ -2505,6 +2511,8 @@ int parse_directive(void) {
     strcpy(sec_tmp->name, tmp);
     sec_tmp->next = NULL;
 
+    sec_tmp->local_label_map = hashmap_new();
+
     if (sections_first == NULL) {
       sections_first = sec_tmp;
       sections_last = sec_tmp;
@@ -2515,6 +2523,8 @@ int parse_directive(void) {
     }
 
     if (compare_next_token("NAMESPACE", 9) == SUCCEEDED) {
+      struct namespace_def *nspace;
+
       if (skip_next_token() == FAILED)
         return FAILED;
       if (input_next_string() == FAILED)
@@ -2524,10 +2534,24 @@ int parse_directive(void) {
         return FAILED;
       }
       tmp[strlen(tmp)-1] = '\0';
-      strcpy(sec_tmp->identifier, tmp+1);
+
+      hashmap_get(namespace_map, tmp+1, (void*)&nspace);
+      if (nspace == NULL) {
+        nspace = calloc(1, sizeof(struct namespace_def));
+        if (nspace == NULL) {
+          print_error("Out of memory error.\n", ERROR_DIR);
+          return FAILED;
+        }
+        strcpy(nspace->name, tmp+1);
+        if (hashmap_put(namespace_map, nspace->name, nspace) != MAP_OK) {
+          print_error("Namespace hashmap error.\n", ERROR_DIR);
+          return FAILED;
+        }
+      }
+
+      nspace->label_map = hashmap_new();
+      sec_tmp->nspace = nspace;
     }
-    else
-      sec_tmp->identifier[0] = '\0';
 
     /* the size of the section? */
     if (compare_next_token("SIZE", 4) == SUCCEEDED) {

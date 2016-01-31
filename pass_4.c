@@ -820,7 +820,10 @@ int pass_4(void) {
     while (sec_tmp != NULL) {
       if (sec_tmp->alive == ON) {
         fprintf(final_ptr, "%s%c", sec_tmp->name, sec_tmp->status);
-        fprintf(final_ptr, "%s%c", sec_tmp->identifier, 0);
+        if (sec_tmp->nspace == NULL)
+          fprintf(final_ptr, "%c", 0);
+        else
+          fprintf(final_ptr, "%s%c", sec_tmp->nspace->name, 0);
 
         ov = sec_tmp->id;
         WRITEOUT_OV;
@@ -1146,7 +1149,10 @@ int pass_4(void) {
       if (sec_tmp->alive == ON) {
         /* section block id */
         fprintf(final_ptr, "%c%s%c", 0x1, sec_tmp->name, sec_tmp->status);
-        fprintf(final_ptr, "%s%c", sec_tmp->identifier, 0);
+        if (sec_tmp->nspace == NULL)
+          fprintf(final_ptr, "%c", 0);
+        else
+          fprintf(final_ptr, "%s%c", sec_tmp->nspace->name, 0);
 
         ov = sec_tmp->id;
         WRITEOUT_OV;

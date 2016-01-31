@@ -61,6 +61,7 @@ extern any_t hashmap_next_iteration(map_t in);
 
 /*
  * Add an element to the hashmap. Return MAP_OK or MAP_OMEM.
+ * The contents of the key are not copied, so they must remain available.
  */
 extern int hashmap_put(map_t in, char* key, any_t value);
 
@@ -84,6 +85,12 @@ extern int hashmap_get_one(map_t in, any_t *arg, int remove);
  * Free the hashmap
  */
 extern void hashmap_free(map_t in);
+
+/*
+ * Free all elements in the hashmap (not the hashmap itself). Doesn't remove
+ * the elements.
+ */
+extern void hashmap_free_all_elements(map_t in);
 
 /*
  * Get the current size of a hashmap

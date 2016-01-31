@@ -70,6 +70,7 @@ char gba_tmp_name[32], gba_unfolded_name[32];
 extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
 extern struct file_name_info *file_name_info_first;
 extern struct label_def *label_tmp, *labels;
+extern struct map_t *global_unique_label_map;
 extern struct macro_static *macros_first;
 extern struct definition *tmp_def;
 extern struct map_t *defines_map;
@@ -80,6 +81,7 @@ extern struct section_def *sections_first;
 extern struct macro_runtime *macro_stack;
 extern struct label_def *unknown_labels;
 extern struct filepointer *filepointers;
+extern struct map_t *namespace_map;
 extern char *unfolded_buffer;
 extern char *include_in_tmp, *tmp_a;
 extern char *rom_banks, *rom_banks_usage_table;
@@ -171,12 +173,14 @@ int main(int argc, char *argv[]) {
   }
 
   /* small inits */
+  defines_map = hashmap_new();
+  global_unique_label_map = hashmap_new();
+  namespace_map = hashmap_new();
+
   if (extra_definitions == ON)
     generate_extra_definitions();
 
   commandline_parsing = OFF;
-
-  defines_map = hashmap_new();
 
   /* start the process */
   if (include_file(asm_name) == FAILED)
@@ -292,12 +296,14 @@ void procedures_at_exit(void) {
   if (full_name != NULL)
     free(full_name);
 
-  tmp_def = hashmap_begin_iteration(defines_map);
-  while (tmp_def != NULL) {
-    free(tmp_def);
-    tmp_def = hashmap_next_iteration(defines_map);
-  }
+  hashmap_free_all_elements(defines_map);
   hashmap_free(defines_map);
+
+  /* don't free_all_elements, since labels contains _all_ labels. */
+  hashmap_free(global_unique_label_map);
+
+  hashmap_free_all_elements(namespace_map);
+  hashmap_free(namespace_map);
 
   m = macros_first;
   while (m != NULL) {

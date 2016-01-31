@@ -484,7 +484,6 @@ struct label_def {
 
 struct section_def {
   char name[MAX_NAME_LENGTH];
-  char identifier[MAX_NAME_LENGTH];
   int  alignment;
   int  address; /* in bank */
   int  bank;
@@ -502,7 +501,14 @@ struct section_def {
   int  *listfile_ints;
   char *listfile_cmds;
   unsigned char *data;
+  struct namespace_def *nspace;
+  struct map_t *local_label_map;
   struct section_def *next;
+};
+
+struct namespace_def {
+  char name[MAX_NAME_LENGTH];
+  struct map_t *label_map;
 };
 
 struct incbin_file_data {

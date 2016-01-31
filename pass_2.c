@@ -354,6 +354,7 @@ int create_a_new_section_structure(void) {
   sec_tmp->id = section_id;
   sec_tmp->alive = ON;
   sec_tmp->advance_org = NO;
+  sec_tmp->nspace = NULL;
   section_id++;
   sec_tmp->filename_id = 0;
   sec_tmp->alignment = 1;
