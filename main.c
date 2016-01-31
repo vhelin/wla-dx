@@ -295,14 +295,20 @@ void procedures_at_exit(void) {
   if (full_name != NULL)
     free(full_name);
 
-  hashmap_free_all_elements(defines_map);
-  hashmap_free(defines_map);
+  if (defines_map != NULL) {
+      hashmap_free_all_elements(defines_map);
+      hashmap_free(defines_map);
+  }
 
-  /* don't free_all_elements, since labels contains _all_ labels. */
-  hashmap_free(global_unique_label_map);
+  if (global_unique_label_map != NULL) {
+      /* don't free_all_elements, since labels contains _all_ labels. */
+      hashmap_free(global_unique_label_map);
+  }
 
-  hashmap_free_all_elements(namespace_map);
-  hashmap_free(namespace_map);
+  if (namespace_map != NULL) {
+      hashmap_free_all_elements(namespace_map);
+      hashmap_free(namespace_map);
+  }
 
   m = macros_first;
   while (m != NULL) {

@@ -90,7 +90,7 @@ unsigned char *rom_banks = NULL, *rom_banks_usage_table = NULL;
 struct export_def *export_first = NULL, *export_last = NULL;
 struct optcode *opt_tmp;
 struct definition *tmp_def;
-struct map_t *defines_map;
+struct map_t *defines_map = NULL;
 struct macro_static *macros_first = NULL, *macros_last;
 struct section_def *sections_first = NULL, *sections_last = NULL, *sec_tmp, *sec_next;
 struct macro_runtime *macro_stack = NULL, *macro_runtime_current = NULL;
@@ -98,7 +98,7 @@ struct repeat_runtime *repeat_stack = NULL;
 struct slot slots[256];
 struct structure *structures_first = NULL;
 struct filepointer *filepointers = NULL;
-struct map_t *namespace_map;
+struct map_t *namespace_map = NULL;
 
 extern char *buffer, *unfolded_buffer, label[MAX_NAME_LENGTH], *include_dir, *full_name;
 extern int size, unfolded_size, input_number_error_msg, verbose_mode, output_format, open_files;

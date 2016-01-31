@@ -20,7 +20,7 @@ extern int verbose_mode, section_status, cartridgetype, output_format;
 
 
 struct label_def *label_next, *label_last, *label_tmp, *labels = NULL;
-struct map_t *global_unique_label_map;
+struct map_t *global_unique_label_map = NULL;
 struct block *blocks = NULL;
 
 
