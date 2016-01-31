@@ -24,6 +24,9 @@ sharedFunc2: ; Trying to trick wlalink
 .section "A shared namespace" NAMESPACE "shared"
 
 	sharedFunc:
+		call _localFunc
+		ret
+	_localFunc:
 		ret
 
 .ends

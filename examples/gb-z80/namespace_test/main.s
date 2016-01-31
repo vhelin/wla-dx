@@ -46,12 +46,13 @@ MAIN:DI
 	call s3.func3
 	call shared.sharedFunc
 	call shared.sharedEntry
+	call _globalFunc
 
 	/*
 	; Uncomment for some errors
 	call sharedFunc
 	call sharedEntry
-	call func3
+	call shared._localFunc
 	*/
 
 	ld hl,_LOOP
@@ -81,5 +82,13 @@ data:
 
 sharedEntry:
 	call sharedFunc
+	; Uncomment for an error
+	; call _localFunc
 	ret
+
+_globalFunc: ; Should not be called
+	jr _globalFunc
 .ENDS
+
+_globalFunc:
+	ret
