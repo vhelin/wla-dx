@@ -34,6 +34,8 @@ struct reference *reference_first = NULL, *reference_last = NULL;
 struct section *sec_first = NULL, *sec_last = NULL, *sec_hd_first = NULL, *sec_hd_last = NULL;
 struct stack *stacks_first = NULL, *stacks_last = NULL;
 struct label *labels_first = NULL, *labels_last = NULL;
+struct map_t *global_unique_label_map = NULL;
+struct map_t *namespace_map = NULL;
 struct slot slots[256];
 unsigned char *rom, *rom_usage, *file_header = NULL, *file_footer = NULL;
 int romsize, rombanks, banksize, verbose_mode = OFF, section_overwrite = OFF, symbol_mode = SYMBOL_MODE_NONE;
@@ -105,6 +107,9 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
+  global_unique_label_map = hashmap_new();
+  namespace_map = hashmap_new();
+
   /* load files */
   if (load_files(argv, argc) == FAILED)
     return 1;
@@ -164,8 +169,8 @@ int main(int argc, char *argv[]) {
   if (clean_up_dlr() == FAILED)
     return 1;
 
-  /* associate labels with their sections and prepend the section identifiers */
-  if (fix_label_sections_and_names() == FAILED)
+  /* associate labels with their sections */
+  if (fix_label_sections() == FAILED)
     return 1;
 
   /* drop all unreferenced sections */
@@ -531,6 +536,14 @@ void procedures_at_exit(void) {
     free(o);
   }
 
+  if (global_unique_label_map != NULL)
+    hashmap_free(global_unique_label_map);
+
+  if (namespace_map != NULL) {
+    hashmap_free_all_elements(namespace_map);
+    hashmap_free(namespace_map);
+  }
+
   while (labels_first != NULL) {
     l = labels_first;
     labels_first = labels_first->next;
@@ -556,6 +569,7 @@ void procedures_at_exit(void) {
       free(sec_first->listfile_cmds);
     if (sec_first->listfile_ints != NULL)
       free(sec_first->listfile_ints);
+    hashmap_free(sec_first->label_map);
     free(sec_first);
     sec_first = s;
   }

@@ -17,6 +17,8 @@ extern struct label *labels_first, *labels_last;
 extern struct object_file *obj_first, *obj_last, *obj_tmp;
 extern struct section *sec_first, *sec_last, *sec_hd_first, sec_hd_last;
 extern struct stack *stacks_first, *stacks_last;
+extern struct map_t *global_unique_label_map;
+extern struct map_t *namespace_map;
 extern struct slot slots[256];
 extern unsigned char *rom, *rom_usage;
 extern unsigned char *file_header, *file_footer;
@@ -530,30 +532,71 @@ int transform_stack_definitions(void) {
   return SUCCEEDED;
 }
 
-int fix_label_sections_and_names(void) {
+int try_put_label(map_t map, struct label *l) {
+  int err;
+
+  if (hashmap_get(map, l->name, NULL) == MAP_OK) {
+    if (l->status == LABEL_STATUS_DEFINE)
+      fprintf(stderr, "%s: TRY_PUT_LABEL: Definition \"%s\" was defined more than once.\n", get_file_name(l->file_id), l->name);
+    else
+      fprintf(stderr, "%s:%s:%d: TRY_PUT_LABEL: Label \"%s\" was defined more than once.\n", get_file_name(l->file_id),
+          get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name);
+    return FAILED;
+  }
+  if ((err = hashmap_put(map, l->name, l)) != MAP_OK) {
+    fprintf(stderr, "TRY_PUT_LABEL: Hashmap error %d. Please send a bug report!\n", err);
+    return FAILED;
+  }
+  return SUCCEEDED;
+}
+
+int fix_label_sections(void) {
 
   struct section *s;
   struct label *l;
-  char b[MAX_NAME_LENGTH*2+2];
 
   l = labels_first;
   while (l != NULL) {
+    int put_in_global = 1;
+
     if (l->section_status == ON) {
       s = sec_first;
       while (s != NULL) {
         if (s->id == l->section) {
-          if (is_label_anonymous(l->name) == FAILED
-              && (l->status == LABEL_STATUS_LABEL || l->status == LABEL_STATUS_DEFINE)
-              && s->identifier[0] != '\0') {
-            sprintf(b, "%s.%s", s->identifier, l->name);
-            strcpy(l->name, b);
-          }
           l->section_struct = s;
+
+          if (is_label_anonymous(l->name) == FAILED) {
+
+            /* Put label into section's label map */
+            if (try_put_label(s->label_map, l) == FAILED)
+              return FAILED;
+
+            if (l->name[0] == '_')
+              put_in_global = 0;
+
+            /* Put label into section's namespace's label map, if it's not
+             * a local label */
+            if (s->nspace != NULL && l->name[0] != '_') {
+              if (try_put_label(s->nspace->label_map, l) == FAILED)
+                return FAILED;
+              put_in_global = 0;
+            }
+          }
           break;
         }
         s = s->next;
       }
     }
+
+    if (is_label_anonymous(l->name) == SUCCEEDED)
+      put_in_global = 0;
+
+    /* Put the label into the global namespace */
+    if (put_in_global) {
+      if (try_put_label(global_unique_label_map, l) == FAILED)
+        return FAILED;
+    }
+
     l = l->next;
   }
 
@@ -563,7 +606,7 @@ int fix_label_sections_and_names(void) {
 int fix_label_addresses(void) {
 
   struct section *s = NULL;
-  struct label *l, *m;
+  struct label *l;
 
   /* fix labels' addresses */
   l = labels_first;
@@ -591,29 +634,6 @@ int fix_label_addresses(void) {
     l = l->next;
   }
 
-  /* check out if a label exists more than once in a different place */
-  l = labels_first;
-  while (l != NULL) {
-    if (is_label_anonymous(l->name) == FAILED && (l->status == LABEL_STATUS_LABEL || l->status == LABEL_STATUS_DEFINE)) {
-      s = l->section_struct;
-      m = l->next;
-      while (m != NULL) {
-        if (strcmp(l->name, m->name) == 0) {
-          if (l->address != m->address && !(m->name[0] == '*' || m->name[0] == '_')) {
-            if (l->status == LABEL_STATUS_DEFINE)
-              fprintf(stderr, "%s: FIX_LABELS: Definition \"%s\" was defined more than once.\n", get_file_name(l->file_id), l->name);
-            else
-              fprintf(stderr, "%s:%s:%d: FIX_LABELS: Label \"%s\" was defined more than once.\n", get_file_name(l->file_id),
-                  get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name);
-            return FAILED;
-          }
-        }
-        m = m->next;
-      }
-    }
-    l = l->next;
-  }
-
   return SUCCEEDED;
 }
 
@@ -621,10 +641,9 @@ int fix_label_addresses(void) {
 int fix_references(void) {
 
   struct reference *r;
-  struct section *s = NULL, *s2 = NULL;
+  struct section *s = NULL;
   struct label *l, lt;
   int i, x;
-  char buf[512];
 
   
   section_overwrite = OFF;
@@ -680,29 +699,10 @@ int fix_references(void) {
         l = &lt;
       }
       else {
-        l = NULL;
-        /* If the current section has an identifier, search for labels within
-         * the section to have priority over the global namespace. */
-        if (find_label_in_section(r->name, s, &l) == FAILED)
-          l = NULL;
-        if (l == NULL) {
-          l = labels_first;
-          while (l != NULL) {
-            s2 = l->section_struct;
-            if (s2 == NULL || s2->identifier[0] == '\0')
-              strcpy(buf, l->name);
-            else
-              strcpy(buf, &l->name[strlen(s2->identifier)+1]);
-
-            if ((strcmp(l->name, &r->name[1]) == 0 || (s == s2 && strcmp(buf, &r->name[1]) == 0))
-                && l->status != LABEL_STATUS_SYMBOL && l->status != LABEL_STATUS_BREAKPOINT)
-              break;
-            l = l->next;
-          }
-        }
+        find_label(&r->name[1], s, &l);
       }
 
-      if (l == NULL) {
+      if (l == NULL || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
         fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Bank number request for an unknown label \"%s\".\n",
             get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, &r->name[1]);
         return FAILED;
@@ -753,48 +753,10 @@ int fix_references(void) {
         l = &lt;
       }
       else {
-        l = NULL;
-        /* If the current section has an identifier, search for labels within
-         * the section to have priority over the global namespace. */
-        if (find_label_in_section(r->name, s, &l) == FAILED)
-          l = NULL;
-        if (l == NULL) {
-          l = labels_first;
-          while (l != NULL) {
-            s2 = l->section_struct;
-            if (s2 == NULL || s2->identifier[0] == '\0')
-              strcpy(buf, l->name);
-            else
-              strcpy(buf, &l->name[strlen(s2->identifier)+1]);
-
-            if (!(strcmp(l->name, r->name) == 0 || (s == s2 && strcmp(buf, r->name) == 0))
-                || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT)
-              l = l->next;
-            else {
-              /* search for the section of the referencee */
-              if (r->name[0] == '_') {
-                if (l->file_id == r->file_id) {
-                  if (l->section_status != r->section_status) {
-                    l = l->next;
-                    continue;
-                  }
-                  if (l->section_status == ON && l->section != r->section) {
-                    l = l->next;
-                    continue;
-                  }
-                }
-                else {
-                  l = l->next;
-                  continue;
-                }
-              }
-              break;
-            }
-          }
-        }
+        find_label(r->name, s, &l);
       }
 
-      if (l == NULL) {
+      if (l == NULL || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
         fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Reference to an unknown label \"%s\".\n",
             get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
         return FAILED;
@@ -1527,47 +1489,41 @@ int write_bank_header_references(struct reference *r) {
   t = s->data + r->address;
 
   /* find the destination */
-  l = labels_first;
-  while (l != NULL) {
-    if (strcmp(l->name, r->name) == 0) {
-      a = l->address;
-      /* direct 16-bit */
-      if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
-	*t = a & 0xFF;
-	t++;
-	*t = (a >> 8) & 0xFF;
-	break;
-      }
-      /* direct 8-bit */
-      else if (r->type == REFERENCE_TYPE_DIRECT_8BIT) {
-	if (a > 255 || a < -128) {
-	  fprintf(stderr, "%s:%s:%d: WRITE_BANK_HEADER_REFERENCES: Value (%d/$%x) of \"%s\" is too much to be a 8-bit value.\n",
-		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, a, a, l->name);
-	  return FAILED;
-	}
-	*t = a & 0xFF;
-	break;
-      }
-      /* direct 24-bit */
-      else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
-	if (l->status == LABEL_STATUS_LABEL)
-	  a += get_snes_pc_bank(l);
-	*t = a & 0xFF;
-	t++;
-	*t = (a >> 8) & 0xFF;
-	t++;
-	*t = (a >> 16) & 0xFF;
-	break;
-      }
-      else {
-	fprintf(stderr, "%s:%s:%d: WRITE_BANK_HEADER_REFERENCES: A relative reference (type %d) to label \"%s\".\n",
-		get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->type, l->name);
-	return FAILED;
-      }
+  find_label(r->name, s, &l);
+  if (l != NULL) {
+    a = l->address;
+    /* direct 16-bit */
+    if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
+      *t = a & 0xFF;
+      t++;
+      *t = (a >> 8) & 0xFF;
     }
-    l = l->next;
+    /* direct 8-bit */
+    else if (r->type == REFERENCE_TYPE_DIRECT_8BIT) {
+      if (a > 255 || a < -128) {
+        fprintf(stderr, "%s:%s:%d: WRITE_BANK_HEADER_REFERENCES: Value (%d/$%x) of \"%s\" is too much to be a 8-bit value.\n",
+            get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, a, a, l->name);
+        return FAILED;
+      }
+      *t = a & 0xFF;
+    }
+    /* direct 24-bit */
+    else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
+      if (l->status == LABEL_STATUS_LABEL)
+        a += get_snes_pc_bank(l);
+      *t = a & 0xFF;
+      t++;
+      *t = (a >> 8) & 0xFF;
+      t++;
+      *t = (a >> 16) & 0xFF;
+    }
+    else {
+      fprintf(stderr, "%s:%s:%d: WRITE_BANK_HEADER_REFERENCES: A relative reference (type %d) to label \"%s\".\n",
+          get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->type, l->name);
+      return FAILED;
+    }
   }
-  if (l == NULL) {
+  else {
     fprintf(stderr, "%s:%s:%d: WRITE_BANK_HEADER_REFERENCES: Reference to an unknown label \"%s\".\n",
 	    get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
     return FAILED;
@@ -1614,19 +1570,7 @@ int parse_stack(struct stack *sta) {
 	  l = &lt;
 	}
 	else {
-          /* If the current section has an identifier, search for labels within
-           * the section to have priority over the global namespace. */
-          if (find_label_in_section(&si->string[1], s, &l) == FAILED)
-            l = NULL;
-          
-          if (l == NULL) {
-            l = labels_first;
-            while (l != NULL) {
-              if (strcmp(l->name, &si->string[1]) == 0)
-                break;
-              l = l->next;
-            }
-          }
+          find_label(&si->string[1], s, &l);
 
           if (l != NULL) {
             if (cpu_65816 != 0)
@@ -1653,25 +1597,7 @@ int parse_stack(struct stack *sta) {
 	  l = &lt;
 	}
 	else {
-          /* If the current section has an identifier, search for labels within
-           * the section to have priority over the global namespace. */
-          if (find_label_in_section(si->string, s, &l) == FAILED)
-            l = NULL;
-          
-          if (l == NULL) {
-            l = labels_first;
-            while (l != NULL) {
-              if (strcmp(l->name, si->string) == 0) {
-                if (si->string[0] == '_' && sta->section != l->section) {
-                    l = l->next;
-                    continue;
-                }
-                else
-                  break;
-              }
-              l = l->next;
-            }
-          }
+          find_label(si->string, s, &l);
 
           if (l != NULL) {
             k = l->address;

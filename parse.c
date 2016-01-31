@@ -6,7 +6,6 @@
 
 #include "defines.h"
 
-#include "hashmap.h"
 #include "parse.h"
 #include "pass_1.h"
 #include "stack.h"

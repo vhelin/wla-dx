@@ -1,3 +1,4 @@
+#include "hashmap.h"
 
 #ifndef _DEFINES_H
 #define _DEFINES_H
@@ -502,7 +503,7 @@ struct section_def {
   char *listfile_cmds;
   unsigned char *data;
   struct namespace_def *nspace;
-  struct map_t *local_label_map;
+  struct map_t *label_map;
   struct section_def *next;
 };
 

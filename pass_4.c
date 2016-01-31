@@ -6,7 +6,6 @@
 
 #include "defines.h"
 
-#include "hashmap.h"
 #include "include_file.h"
 #include "listfile.h"
 #include "pass_4.h"

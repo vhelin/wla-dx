@@ -32,6 +32,8 @@ extern struct reference *reference_first, *reference_last;
 extern struct section *sec_first, *sec_last, *sec_hd_first, *sec_hd_last;
 extern struct stack *stacks_first, *stacks_last;
 extern struct label *labels_first, *labels_last;
+extern struct map_t *global_unique_label_map;
+extern struct map_t *namespace_map;
 extern struct slot slots[256];
 extern int rombanks, verbose_mode, section_overwrite, symbol_mode, discard_unreferenced_sections;
 extern int emptyfill;
@@ -132,29 +134,57 @@ int add_section(struct section *s) {
   return SUCCEEDED;
 }
 
-int find_label_in_section(char *str, struct section *s, struct label **l) {
-  char buf[MAX_NAME_LENGTH*2];
+int find_label(char *str, struct section *s, struct label **out) {
+  char* str2;
+  char* stripped;
+  char prefix[MAX_NAME_LENGTH*2+2];
+  struct label *l = NULL;
+  int i;
 
-  if (s == NULL || s->identifier[0] == '\0')
-    return FAILED;
+  str2 = strchr(str, '.');
+  i = str2-str;
+  if (str2 == NULL) {
+    stripped = str;
+    prefix[0] = '\0';
+  }
+  else {
+    stripped = str2+1;
+    strncpy(prefix, str, i);
+    prefix[i] = '\0';
+  }
 
-  strcpy(buf, str);
-  buf[strlen(s->identifier)] = '\0';
-  if (strcmp(buf, s->identifier) == 0)
-    strcpy(buf, str);
-  else
-    sprintf(buf, "%s.%s", s->identifier, str);
+  *out = NULL;
 
-  *l = labels_first;
-  while (*l != NULL) {
-    if ((*l)->section != s->id) {
-      *l = (*l)->next;
-      continue;
+  if (prefix[0] != '\0') {
+    /* A namespace is specified (or at least there's a dot in the label) */
+    struct namespace_def *nspace;
+    if (hashmap_get(namespace_map, prefix, (void*)&nspace) == MAP_OK) {
+      if (hashmap_get(nspace->label_map, stripped, (void*)&l) == MAP_OK) {
+        *out = l;
+        return SUCCEEDED;
+      }
     }
-    if (strcmp(buf, (*l)->name) == 0)  {
+  }
+  if (s != NULL && s->nspace != NULL) {
+    /* Check the section's namespace */
+    if (hashmap_get(s->nspace->label_map, str, (void*)&l) == MAP_OK) {
+      *out = l;
       return SUCCEEDED;
     }
-    *l = (*l)->next;
+  }
+  if (s != NULL) {
+    /* Check the section's labels. This is a bit redundant but it might have
+     * local labels (labels starting with an underscore)
+     */
+    if (hashmap_get(s->label_map, str, (void*)&l) == MAP_OK) {
+      *out = l;
+      return SUCCEEDED;
+    }
+  }
+  /* Check the global namespace */
+  if (hashmap_get(global_unique_label_map, str, (void*)&l) == MAP_OK) {
+    *out = l;
+    return SUCCEEDED;
   }
 
   return FAILED;
@@ -416,7 +446,7 @@ int collect_dlr(void) {
 
       /* load defines */
       for (; i > 0; i--) {
-	l = malloc(sizeof(struct label));
+	l = calloc(1, sizeof(struct label));
 	if (l == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
@@ -450,7 +480,7 @@ int collect_dlr(void) {
       i = READ_T;
 
       for (; i > 0; i--) {
-	l = malloc(sizeof(struct label));
+	l = calloc(1, sizeof(struct label));
 	if (l == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
@@ -585,7 +615,7 @@ int collect_dlr(void) {
 
       /* load definitions */
       for (; i > 0; i--) {
-	l = malloc(sizeof(struct label));
+	l = calloc(1, sizeof(struct label));
 	if (l == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
@@ -620,7 +650,7 @@ int collect_dlr(void) {
 
       /* load labels and symbols */
       for (; i > 0; i--) {
-	l = malloc(sizeof(struct label));
+	l = calloc(1, sizeof(struct label));
 	if (l == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
@@ -749,6 +779,7 @@ int parse_data_blocks(void) {
   struct section *s;
   int section, i, y, x;
   unsigned char *t, *p;
+  char buf[256];
 
 
   obj_tmp = obj_first;
@@ -786,12 +817,32 @@ int parse_data_blocks(void) {
             s->name[i++] = *(t++);
           s->name[i] = 0;
           s->status = *(t++);
-          /* identifier */
+
+          /* namespace */
           i = 0;
           while (*t != 0)
-            s->identifier[i++] = *(t++);
-          s->identifier[i] = 0;
+            buf[i++] = *(t++);
+          buf[i] = 0;
           t++;
+          if (buf[0] == 0)
+            s->nspace = NULL;
+          else {
+            struct namespace_def *nspace;
+            hashmap_get(namespace_map, buf, (void*)&nspace);
+            if (nspace == NULL) {
+              nspace = malloc(sizeof(struct namespace_def));
+              if (nspace == NULL) {
+                fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
+                return FAILED;
+              }
+              nspace->label_map = hashmap_new();
+              strcpy(nspace->name, buf);
+              hashmap_put(namespace_map, nspace->name, nspace);
+            }
+
+            s->nspace = nspace;
+          }
+
           s->id = READ_T;
           s->id += section;
           s->slot = *(t++);
@@ -802,6 +853,7 @@ int parse_data_blocks(void) {
           s->alignment = READ_T;
           s->data = t;
           s->library_status = OFF;
+          s->label_map = hashmap_new();
           t += s->size;
 
           /* listfile block */
@@ -834,12 +886,32 @@ int parse_data_blocks(void) {
           s->name[i++] = *(t++);
         s->name[i] = 0;
         s->status = *(t++);
-        /* identifier */
+
+        /* namespace */
         i = 0;
         while (*t != 0)
-          s->identifier[i++] = *(t++);
-        s->identifier[i] = 0;
+          buf[i++] = *(t++);
+        buf[i] = 0;
         t++;
+        if (buf[0] == 0)
+          s->nspace = NULL;
+        else {
+          struct namespace_def *nspace;
+          hashmap_get(namespace_map, buf, (void*)&nspace);
+          if (nspace == NULL) {
+            nspace = malloc(sizeof(struct namespace_def));
+            if (nspace == NULL) {
+              fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
+              return FAILED;
+            }
+            nspace->label_map = hashmap_new();
+            strcpy(nspace->name, buf);
+            hashmap_put(namespace_map, nspace->name, nspace);
+          }
+
+          s->nspace = nspace;
+        }
+
         s->id = READ_T;
         s->id += section;
         s->file_id_source = *(t++);
@@ -852,6 +924,7 @@ int parse_data_blocks(void) {
         s->base = obj_tmp->base;
         s->library_status = ON;
         s->base_defined = obj_tmp->base_defined;
+        s->label_map = hashmap_new();
         t += s->size;
 
         /* listfile block */
@@ -996,6 +1069,9 @@ int clean_up_dlr(void) {
 	    else
 	      l = l->next;
 	  }
+
+          /* free label map */
+          hashmap_free(sec->label_map);
 	  
 	  sec = sec->next;
 	  free(sect);

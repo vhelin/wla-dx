@@ -88,9 +88,7 @@ int discard_iteration(void) {
       r = r->next;
       continue;
     }
-    /* If the current section has an identifier, search for labels within
-     * the section to have priority over the global namespace. */
-    l = NULL;
+    s = NULL;
     if (r->section_status != 0) {
       s = sec_first;
       while (s != NULL) {
@@ -98,17 +96,9 @@ int discard_iteration(void) {
           break;
         s = s->next;
       }
-      if (find_label_in_section(r->name, s, &l) == FAILED)
-        l = NULL;
     }
-    if (l == NULL) {
-      l = labels_first;
-      while (l != NULL) {
-        if (strcmp(l->name, r->name) == 0)
-          break;
-        l = l->next;
-      }
-    }
+    find_label(r->name, s, &l);
+
     if (l != NULL && l->section_status == ON) {
       s = l->section_struct;
       if (s == NULL)
@@ -143,21 +133,9 @@ int discard_iteration(void) {
     i = 0;
     while (i != st->stacksize) {
       if (si->type == STACK_ITEM_TYPE_STRING && is_label_anonymous(si->string) == FAILED) {
-        /* If the current section has an identifier, search for labels within
-         * the section to have priority over the global namespace. */
-        if (find_label_in_section(si->string, ss, &l) == FAILED)
-          l = NULL;
+        find_label(si->string, ss, &l);
 
-        if (l == NULL) {
-          l = labels_first;
-          while (l != NULL) {
-            if (strcmp(l->name, si->string) == 0 && l->section_status == ON)
-              break;
-            l = l->next;
-          }
-        }
-
-        if (l != NULL) {
+        if (l != NULL && l->section_struct != NULL) {
           s = l->section_struct;
           if (st->section_status == OFF)
             s->referenced++;

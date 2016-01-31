@@ -1,3 +1,4 @@
+#include "../hashmap.h"
 
 #define OBJ_FORMAT_INFO  0
 #define OBJ_EMPTY_FILL   4
@@ -131,7 +132,6 @@ struct reference {
 
 struct section {
   char name[MAX_NAME_LENGTH + 1];
-  char identifier[MAX_NAME_LENGTH + 1];
   int  file_id;
   int  file_id_source;
   int  address;
@@ -152,8 +152,15 @@ struct section {
   int  *listfile_ints;
   char *listfile_cmds;
   unsigned char *data;
+  struct namespace_def *nspace;
+  struct map_t *label_map;
   struct section *next;
   struct section *prev;
+};
+
+struct namespace_def {
+  char name[MAX_NAME_LENGTH + 1];
+  map_t *label_map;
 };
 
 struct slot {

@@ -9,7 +9,6 @@
 #include "defines.h"
 
 #include "main.h"
-#include "hashmap.h"
 #include "include_file.h"
 #include "parse.h"
 #include "pass_1.h"
@@ -2204,7 +2203,7 @@ int parse_directive(void) {
       sec_next = sec_next->next;
     }
 
-    sec_tmp->local_label_map = hashmap_new();
+    sec_tmp->label_map = hashmap_new();
 
     if (sections_first == NULL) {
       sections_first = sec_tmp;
@@ -2511,7 +2510,7 @@ int parse_directive(void) {
     strcpy(sec_tmp->name, tmp);
     sec_tmp->next = NULL;
 
-    sec_tmp->local_label_map = hashmap_new();
+    sec_tmp->label_map = hashmap_new();
 
     if (sections_first == NULL) {
       sections_first = sec_tmp;

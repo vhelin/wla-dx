@@ -6,7 +6,6 @@
 
 #include "defines.h"
 
-#include "hashmap.h"
 #include "include_file.h"
 #include "pass_3.h"
 
@@ -197,11 +196,11 @@ int pass_3(void) {
 
         if (s != NULL && l->label[0] == '_') {
           /* Local section-specific label */
-          if (hashmap_get(s->local_label_map, l->label, NULL) == MAP_OK) {
+          if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
             fprintf(stderr, emsg);
             return FAILED;
           }
-          if ((err = hashmap_put(s->local_label_map, l->label, l)) != MAP_OK) {
+          if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
             fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
             return FAILED;
           }
@@ -217,7 +216,7 @@ int pass_3(void) {
             fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
             return FAILED;
           }
-          if ((err = hashmap_put(s->local_label_map, l->label, l)) != MAP_OK) {
+          if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
             fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
             return FAILED;
           }
@@ -278,11 +277,11 @@ int pass_3(void) {
 	  s->alive = OFF;
 
 	  /* discard all labels which belong to this section */
-	  l = hashmap_begin_iteration(s->local_label_map);
+	  l = hashmap_begin_iteration(s->label_map);
 	  while (l != NULL) {
 	    if (l->section_status == ON && l->section_id == s->id) /* Should be a redundant check */
 	      l->alive = OFF;
-	    l = hashmap_next_iteration(s->local_label_map);
+	    l = hashmap_next_iteration(s->label_map);
 	  }
 	}
 
@@ -392,15 +391,15 @@ int pass_3(void) {
 
       /* discard an empty section? */
       if (s->size == 0) {
-	fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(file_name_id), s->name);
-	s->alive = OFF;
+        fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(file_name_id), s->name);
+        s->alive = OFF;
 
-	/* discard all labels which belong to this section */
-        l = hashmap_begin_iteration(s->local_label_map);
+        /* discard all labels which belong to this section */
+        l = hashmap_begin_iteration(s->label_map);
         while (l != NULL) {
           if (l->section_status == ON && l->section_id == s->id) /* Should be a redundant check */
             l->alive = OFF;
-          l = hashmap_next_iteration(s->local_label_map);
+          l = hashmap_next_iteration(s->label_map);
         }
       }
 
@@ -564,11 +563,11 @@ int pass_3(void) {
 
       if (s != NULL && l->label[0] == '_') {
         /* Local section-specific label */
-        if (hashmap_get(s->local_label_map, l->label, NULL) == MAP_OK) {
+        if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
           fprintf(stderr, emsg);
           return FAILED;
         }
-        if ((err = hashmap_put(s->local_label_map, l->label, l)) != MAP_OK) {
+        if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
           fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
           return FAILED;
         }
@@ -584,7 +583,7 @@ int pass_3(void) {
           fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
           return FAILED;
         }
-        if ((err = hashmap_put(s->local_label_map, l->label, l)) != MAP_OK) {
+        if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
           fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
           return FAILED;
         }

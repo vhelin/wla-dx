@@ -17,7 +17,6 @@
 
 #include "main.h"
 #include "defines.h"
-#include "hashmap.h"
 
 #include "parse.h"
 #include "include_file.h"
@@ -403,6 +402,7 @@ void procedures_at_exit(void) {
       free(s1->listfile_cmds);
     if (s1->listfile_ints != NULL)
       free(s1->listfile_ints);
+    hashmap_free(s1->label_map);
     s2 = s1->next;
     free(s1);
     s1 = s2;
