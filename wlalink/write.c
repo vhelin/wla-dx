@@ -558,30 +558,20 @@ int fix_label_sections(void) {
   l = labels_first;
   while (l != NULL) {
     int put_in_global = 1;
+    int put_in_anything = 1;
+
+    if (l->status == LABEL_STATUS_SYMBOL
+        || l->status == LABEL_STATUS_BREAKPOINT
+        || is_label_anonymous(l->name) == SUCCEEDED) {
+      /* Don't put anonymous labels, breakpoints, or symbols into any maps */
+      put_in_anything = 0;
+    }
 
     if (l->section_status == ON) {
       s = sec_first;
       while (s != NULL) {
         if (s->id == l->section) {
           l->section_struct = s;
-
-          if (is_label_anonymous(l->name) == FAILED) {
-
-            /* Put label into section's label map */
-            if (try_put_label(s->label_map, l) == FAILED)
-              return FAILED;
-
-            if (l->name[0] == '_')
-              put_in_global = 0;
-
-            /* Put label into section's namespace's label map, if it's not
-             * a local label */
-            if (s->nspace != NULL && l->name[0] != '_') {
-              if (try_put_label(s->nspace->label_map, l) == FAILED)
-                return FAILED;
-              put_in_global = 0;
-            }
-          }
           break;
         }
         s = s->next;
@@ -593,13 +583,27 @@ int fix_label_sections(void) {
             l->name);
         return FAILED;
       }
+
+      if (put_in_anything) {
+        /* Put label into section's label map */
+        if (try_put_label(s->label_map, l) == FAILED)
+          return FAILED;
+
+        if (l->name[0] == '_')
+          put_in_global = 0;
+
+        /* Put label into section's namespace's label map, if it's not
+         * a local label */
+        if (s->nspace != NULL && l->name[0] != '_') {
+          if (try_put_label(s->nspace->label_map, l) == FAILED)
+            return FAILED;
+          put_in_global = 0;
+        }
+      }
     }
 
-    if (is_label_anonymous(l->name) == SUCCEEDED)
-      put_in_global = 0;
-
     /* Put the label into the global namespace */
-    if (put_in_global) {
+    if (put_in_anything && put_in_global) {
       if (try_put_label(global_unique_label_map, l) == FAILED)
         return FAILED;
     }
