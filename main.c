@@ -108,6 +108,11 @@ int main(int argc, char *argv[]) {
   /* init the randon number generator */
   init_genrand(time(NULL));
 
+  /* Init hashmaps */
+  defines_map = hashmap_new();
+  global_unique_label_map = hashmap_new();
+  namespace_map = hashmap_new();
+
   if (argc >= 3) {
     if (parse_flags(argv[1]) == SUCCEEDED) {
       if (parse_defines_and_get_final_name(argv + 2, argc - 2) == FAILED)
@@ -172,10 +177,6 @@ int main(int argc, char *argv[]) {
   }
 
   /* small inits */
-  defines_map = hashmap_new();
-  global_unique_label_map = hashmap_new();
-  namespace_map = hashmap_new();
-
   if (extra_definitions == ON)
     generate_extra_definitions();
 
