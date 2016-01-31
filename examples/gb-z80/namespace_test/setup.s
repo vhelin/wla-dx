@@ -18,6 +18,16 @@
 func4:
 	ret
 
+sharedFunc2: ; Trying to trick wlalink
+	jr sharedFunc2
+
+.section "A shared namespace" NAMESPACE "shared"
+
+	sharedFunc:
+		ret
+
+.ends
+
 .section "Discard [1]"
 
 func1:

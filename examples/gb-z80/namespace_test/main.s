@@ -44,12 +44,42 @@ MAIN:DI
 	call func3
 	call func4
 	call s3.func3
+	call shared.sharedFunc
+	call shared.sharedEntry
+
+	/*
+	; Uncomment for some errors
+	call sharedFunc
+	call sharedEntry
+	call func3
+	*/
+
+	ld hl,_LOOP
+	push hl
+	ld hl,data
+	ldi a,(hl)
+	ld h,(hl)
+	ld l,a
+	ld b,20
+-
+	dec hl
+	dec b
+	jr nz,-
+	jp hl
 
 _LOOP:	LD	($FF00+R_BGP), A	;background palette.
 	INC	A 
 	JP	_LOOP
 
-.dw s3.func3
+data:
+	.dw s3.func3 + 20 ; Test arithmetic on namespaces
 
 
+.ENDS
+
+.SECTION "Second part of shared namespace" namespace "shared"
+
+sharedEntry:
+	call sharedFunc
+	ret
 .ENDS
