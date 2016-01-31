@@ -3484,6 +3484,8 @@ smail: Ville Helin
 - Zachary Keene for writing .SNESHEADER, .ENDSNES, .SNESNATIVEVECTOR,
   .ENDNATIVEVECTOR, .SNESEMUVECTOR and .ENDEMUVECTOR. I want more
   people like him! ;)
+- Matthew Stewart for implementing namespaces and speeding up WLA with
+  hashmaps.
 - People at gameboy@vip.co.za, gameboydev@listbot.com,
   gbadev@yahoogroups.com and s8-dev for keeping up the good work! ;)
 
