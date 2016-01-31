@@ -26,7 +26,7 @@
 */
 
 #ifdef AMIGA
-char version_string[] = "$VER: WLALINK 5.7 (07.01.2016)";
+char version_string[] = "$VER: WLALINK 5.7 (31.01.2016)";
 #endif
 
 struct object_file *obj_first = NULL, *obj_last = NULL, *obj_tmp;
@@ -46,6 +46,81 @@ int listfile_data = NO, smc_status = 0, snes_sramsize = 0;
 
 extern int emptyfill;
 char ext_libdir[MAX_NAME_LENGTH];
+
+
+
+static const char *si_operator_plus = "+";
+static const char *si_operator_minus = "-";
+static const char *si_operator_multiply = "*";
+static const char *si_operator_or = "|";
+static const char *si_operator_and = "&";
+static const char *si_operator_divide = "/";
+static const char *si_operator_power = "^";
+static const char *si_operator_shift_left = "<<";
+static const char *si_operator_shift_right = ">>";
+static const char *si_operator_modulo = "#";
+static const char *si_operator_xor = "~";
+static const char *si_operator_low_byte = "<";
+static const char *si_operator_high_byte = ">";
+static const char *si_operator_unknown = "UNKNOWN!";
+
+static const char *get_stack_item_operator_name(int operator) {
+
+  if (operator == SI_OP_PLUS)
+    return si_operator_plus;
+  else if (operator == SI_OP_MINUS)
+    return si_operator_minus;
+  else if (operator == SI_OP_MULTIPLY)
+    return si_operator_multiply;
+  else if (operator == SI_OP_OR)
+    return si_operator_or;
+  else if (operator == SI_OP_AND)
+    return si_operator_and;
+  else if (operator == SI_OP_DIVIDE)
+    return si_operator_divide;
+  else if (operator == SI_OP_POWER)
+    return si_operator_power;
+  else if (operator == SI_OP_SHIFT_LEFT)
+    return si_operator_shift_left;
+  else if (operator == SI_OP_SHIFT_RIGHT)
+    return si_operator_shift_right;
+  else if (operator == SI_OP_MODULO)
+    return si_operator_modulo;
+  else if (operator == SI_OP_XOR)
+    return si_operator_xor;
+  else if (operator == SI_OP_LOW_BYTE)
+    return si_operator_low_byte;
+  else if (operator == SI_OP_HIGH_BYTE)
+    return si_operator_high_byte;
+
+  return si_operator_unknown;
+}
+
+static char stack_item_description[512];
+
+static char *get_stack_item_description(struct stackitem *si) {
+
+  char *sid = stack_item_description;
+
+  if (si == NULL)
+    sprintf(sid, "NULL");
+  else {
+    int type = si->type;
+    
+    if (type == STACK_ITEM_TYPE_VALUE)
+      sprintf(sid, "stackitem: value              : %f\n", si->value);
+    else if (type == STACK_ITEM_TYPE_OPERATOR)
+      sprintf(sid, "stackitem: operator           : %s\n", get_stack_item_operator_name((int)si->value));
+    else if (type == STACK_ITEM_TYPE_STRING)
+      sprintf(sid, "stackitem: string             : %s\n", si->string);
+    else if (type == STACK_ITEM_TYPE_STACK)
+      sprintf(sid, "stackitem: (stack) calculation: %d\n", (int)si->value);
+    else
+      sprintf(sid, "stackitem: UNKNOWN!");
+  }
+  
+  return sid;
+}
 
 
 
@@ -197,11 +272,11 @@ int main(int argc, char *argv[]) {
     }
   }
   
-#ifdef _MAIN_DEBUG
+#ifdef WLALINK_DEBUG
   {
-    printf("\n*********************************************\n");
-    printf("JUST LOADED IN\n");
-    printf("*********************************************\n\n");
+    printf("\n*****************************************************************\n");
+    printf("*** LOADED                                                    ***\n");
+    printf("*****************************************************************\n\n");
   }
 
   {
@@ -211,14 +286,14 @@ int main(int argc, char *argv[]) {
     l = labels_first;
     while (l != NULL) {
       printf("--------------------------------------\n");
-      printf("name: \"%s\"\n", l->name);
-      printf("sect: \"%d\"\n", l->section);
-      printf("slot: \"%d\"\n", l->slot);
-      printf("base: \"%d\"\n", l->base);
-      printf("bank: \"%d\"\n", l->bank);
-      printf("address: \"%d\"\n", (int)l->address);
-      printf("status: \"%d\"\n", l->status);
-      printf("file_id: \"%d\"\n", l->file_id);
+      printf("name   : %s\n", l->name);
+      printf("sect   : %d\n", l->section);
+      printf("slot   : %d\n", l->slot);
+      printf("base   : %d\n", l->base);
+      printf("bank   : %d\n", l->bank);
+      printf("address: %d\n", (int)l->address);
+      printf("status : %d\n", l->status);
+      printf("file   : %s\n", get_file_name(l->file_id));
       l = l->next;
     }
     printf("--------------------------------------\n");
@@ -227,7 +302,7 @@ int main(int argc, char *argv[]) {
   {
     struct stack *s;
 
-    printf("STACKS:\n");
+    printf("(STACK) CALCULATIONS:\n");
     s = stacks_first;
     while (s != NULL) {
       printf("--------------------------------------\n");
@@ -236,16 +311,16 @@ int main(int argc, char *argv[]) {
 	
 	for (z = 0; z < s->stacksize; z++) {
 	  struct stackitem *si = &s->stack[z];
-	  printf("stackitem: \"%s\" %d %d %f\n", si->string, si->type, si->sign, si->value);
+	  printf(get_stack_item_description(si));
 	}
       }
-      printf("result: \"%d\"\n", s->result);
-      printf("id: \"%d\"\n", s->id);
-      printf("file_id: \"%d\"\n", s->file_id);
-      printf("bank: \"%d\"\n", s->bank);
-      printf("linenumber: \"%d\"\n", s->linenumber);
-      printf("type: \"%d\"\n", s->type);
-      printf("position: \"%d\"\n", s->position);
+      printf("result   : %d\n", s->result);
+      printf("id       : %d\n", s->id);
+      printf("file     : %s\n", get_file_name(s->file_id));
+      printf("bank     : %d\n", s->bank);
+      printf("line     : %d\n", s->linenumber);
+      printf("type     : %d\n", s->type);
+      printf("position : %d\n", s->position);
       s = s->next;
     }
     printf("--------------------------------------\n");
@@ -259,7 +334,13 @@ int main(int argc, char *argv[]) {
   if (insert_sections() == FAILED)
     return 1;
 
-#ifdef _MAIN_DEBUG
+#ifdef WLALINK_DEBUG
+  {
+    printf("\n*****************************************************************\n");
+    printf("*** RESOLVED                                                  ***\n");
+    printf("*****************************************************************\n\n");
+  }
+
   {
     struct section *s;
 
@@ -267,14 +348,14 @@ int main(int argc, char *argv[]) {
     s = sec_first;
     while (s != NULL) {
       printf("--------------------------------------\n");
-      printf("file: \"%s\"\n", get_file_name(s->file_id));
-      printf("name: \"%s\"\n", s->name);
-      printf("id:    %d\n", s->id);
-      printf("addr:  %d\n", s->address);
-      printf("stat:  %d\n", s->status);
-      printf("bank:  %d\n", s->bank);
-      printf("slot:  %d\n", s->slot);
-      printf("size:  %d\n", s->size);
+      printf("file : %s\n", get_file_name(s->file_id));
+      printf("name : %s\n", s->name);
+      printf("id   : %d\n", s->id);
+      printf("addr : %d\n", s->address);
+      printf("stat : %d\n", s->status);
+      printf("bank : %d\n", s->bank);
+      printf("slot : %d\n", s->slot);
+      printf("size : %d\n", s->size);
       printf("align: %d\n", s->alignment);
       s = s->next;
     }
@@ -290,11 +371,11 @@ int main(int argc, char *argv[]) {
   if (compute_pending_calculations() == FAILED)
     return 1;
 
-#ifdef _MAIN_DEBUG
+#ifdef WLALINK_DEBUG
   {
     struct stack *s;
 
-    printf("RESOLVED STACKS:\n");
+    printf("(STACK) CALCULATIONS:\n");
     s = stacks_first;
     while (s != NULL) {
       printf("--------------------------------------\n");
@@ -303,19 +384,19 @@ int main(int argc, char *argv[]) {
 	
 	for (z = 0; z < s->stacksize; z++) {
 	  struct stackitem *si = &s->stack[z];
-	  printf("stackitem: \"%s\" %d %d %f\n", si->string, si->type, si->sign, si->value);
+	  printf(get_stack_item_description(si));
 	}
       }
-      printf("result: \"%d\"\n", s->result);
-      printf("id: \"%d\"\n", s->id);
-      printf("file_id: \"%d\"\n", s->file_id);
+      printf("result   : %d\n", s->result);
+      printf("id       : %d\n", s->id);
+      printf("file     : %s\n", get_file_name(s->file_id));
       s = s->next;
     }
     printf("--------------------------------------\n");
   }
 #endif
 
-#ifdef _MAIN_DEBUG
+#ifdef WLALINK_DEBUG
   {
     struct reference *r;
 
@@ -323,8 +404,8 @@ int main(int argc, char *argv[]) {
     r = reference_first;
     while (r != NULL) {
       printf("--------------------------------------\n");
-      printf("name: \"%s\"\n", r->name);
-      printf("file_id: \"%d\"\n", r->file_id);
+      printf("name   : %s\n", r->name);
+      printf("file   : %s\n", get_file_name(r->file_id));
       r = r->next;
     }
     printf("--------------------------------------\n");
@@ -347,13 +428,7 @@ int main(int argc, char *argv[]) {
   if (write_rom_file(argv[argc - 1]) == FAILED)
     return 1;
 
-#ifdef _MAIN_DEBUG
-  {
-    printf("\n*********************************************\n");
-    printf("AFTER EVERYTHING\n");
-    printf("*********************************************\n\n");
-  }
-
+#ifdef WLALINK_DEBUG
   {
     struct label *l;
 
@@ -361,15 +436,15 @@ int main(int argc, char *argv[]) {
     l = labels_first;
     while (l != NULL) {
       printf("--------------------------------------\n");
-      printf("name: \"%s\"\n", l->name);
-      printf("sect: \"%d\"\n", l->section);
-      printf("slot: \"%d\"\n", l->slot);
-      printf("base: \"%d\"\n", l->base);
-      printf("address: \"%d\" / \"%x\"\n", (int)l->address, (int)l->address);
-      printf("rom_address: \"%d\"\n", l->rom_address);
-      printf("bank: \"%d\"\n", l->bank);
-      printf("status: \"%d\"\n", l->status);
-      printf("file_id: \"%d\"\n", l->file_id);
+      printf("name       : %s\n", l->name);
+      printf("sect       : %d\n", l->section);
+      printf("slot       : %d\n", l->slot);
+      printf("base       : %d\n", l->base);
+      printf("address    : %d / $%x\n", (int)l->address, (int)l->address);
+      printf("rom_address: %d\n", l->rom_address);
+      printf("bank       : %d\n", l->bank);
+      printf("status     : %d\n", l->status);
+      printf("file       : %s\n", get_file_name(l->file_id));
       l = l->next;
     }
     printf("--------------------------------------\n");
