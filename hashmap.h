@@ -76,12 +76,6 @@ extern int hashmap_get(map_t in, char* key, any_t *arg);
 extern int hashmap_remove(map_t in, char* key);
 
 /*
- * Get any element. Return MAP_OK or MAP_MISSING.
- * remove - should the element be removed from the hashmap
- */
-extern int hashmap_get_one(map_t in, any_t *arg, int remove);
-
-/*
  * Free the hashmap
  */
 extern void hashmap_free(map_t in);
