@@ -423,8 +423,9 @@ int hashmap_remove(map_t in, char* key){
       else {
         /* Located in the big array, not floating memory */
         if (e->next != NULL) {
+          hashmap_element *tmp = e->next;
           memcpy(e, e->next, sizeof(hashmap_element));
-          free(e->next);
+          free(tmp);
         }
       }
 
