@@ -586,6 +586,13 @@ int fix_label_sections(void) {
         }
         s = s->next;
       }
+
+      if (s == NULL) {
+        fprintf(stderr, "FIX_LABEL_SECTIONS: Internal error: couldn't find section %d for label \"%s\".\n",
+            l->section,
+            l->name);
+        return FAILED;
+      }
     }
 
     if (is_label_anonymous(l->name) == SUCCEEDED)
