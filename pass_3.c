@@ -276,10 +276,12 @@ int pass_3(void) {
 	  s->alive = OFF;
 
 	  /* discard all labels which belong to this section */
-	  l = hashmap_begin_iteration(s->label_map);
+	  l = labels;
 	  while (l != NULL) {
-            l->alive = OFF;
-	    l = hashmap_next_iteration(s->label_map);
+	    if (l->section_status == ON && l->section_id == s->id) {
+	      l->alive = OFF;
+            }
+	    l = l->next;
           }
 	}
 
@@ -393,11 +395,12 @@ int pass_3(void) {
         s->alive = OFF;
 
         /* discard all labels which belong to this section */
-        l = hashmap_begin_iteration(s->label_map);
+        l = labels;
         while (l != NULL) {
-          if (l->section_status == ON && l->section_id == s->id) /* Should be a redundant check */
+          if (l->section_status == ON && l->section_id == s->id) {
             l->alive = OFF;
-          l = hashmap_next_iteration(s->label_map);
+          }
+          l = l->next;
         }
       }
 
