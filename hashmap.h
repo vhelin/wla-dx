@@ -39,15 +39,6 @@ typedef any_t map_t;
 extern map_t hashmap_new();
 
 /*
- * Iteratively call f with argument (item, data) for
- * each element data in the hashmap. The function must
- * return a map status code. If it returns anything other
- * than MAP_OK the traversal is terminated. f must
- * not reenter any hashmap functions, or deadlock may arise.
- */
-extern int hashmap_iterate(map_t in, PFany f);
-
-/*
  * An alternative method to iterate. Initializes the map's iterator variable
  * and returns the first element, or NULL if there's no element.
  */
