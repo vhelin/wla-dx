@@ -558,7 +558,7 @@ int input_number(void) {
   
   /* check if the label is actually a definition */
   if (hashmap_get(defines_map, label, (void*)&tmp_def) != MAP_OK)
-    hashmap_get(defines_map, label, (void*)&tmp_def);
+    hashmap_get(defines_map, label_tmp, (void*)&tmp_def);
   if (tmp_def != NULL) {
     if (tmp_def->type == DEFINITION_TYPE_VALUE) {
       d = tmp_def->value;
