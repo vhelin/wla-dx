@@ -194,8 +194,8 @@ int pass_3(void) {
             line_number,
             l->label);
 
-        if (s != NULL && l->label[0] == '_') {
-          /* Local section-specific label */
+        if (s != NULL) {
+          /* Always put the label into the section's label_map */
           if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
             fprintf(stderr, emsg);
             return FAILED;
@@ -205,31 +205,30 @@ int pass_3(void) {
             return FAILED;
           }
         }
-        else if (s != NULL && s->nspace != NULL) {
-          /* Label in a namespace */
-          if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, emsg);
-            return FAILED;
+
+        /* Don't put local labels into namespaces or the global namespace */
+        if (s == NULL || l->label[0] != '_') {
+          if (s != NULL && s->nspace != NULL) {
+            /* Label in a namespace */
+            if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
+              fprintf(stderr, emsg);
+              return FAILED;
+            }
+            if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
+              fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+              return FAILED;
+            }
           }
-          /* Insert the label into both the namespace and section label maps */
-          if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
-            fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
-            return FAILED;
-          }
-          if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
-            fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
-            return FAILED;
-          }
-        }
-        else {
-          /* Global label */
-          if (hashmap_get(global_unique_label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, emsg);
-            return FAILED;
-          }
-          if ((err = hashmap_put(global_unique_label_map, l->label, l)) != MAP_OK) {
-            fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
-            return FAILED;
+          else {
+            /* Global label */
+            if (hashmap_get(global_unique_label_map, l->label, NULL) == MAP_OK) {
+              fprintf(stderr, emsg);
+              return FAILED;
+            }
+            if ((err = hashmap_put(global_unique_label_map, l->label, l)) != MAP_OK) {
+              fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+              return FAILED;
+            }
           }
         }
 
@@ -279,10 +278,9 @@ int pass_3(void) {
 	  /* discard all labels which belong to this section */
 	  l = hashmap_begin_iteration(s->label_map);
 	  while (l != NULL) {
-	    if (l->section_status == ON && l->section_id == s->id) /* Should be a redundant check */
-	      l->alive = OFF;
+            l->alive = OFF;
 	    l = hashmap_next_iteration(s->label_map);
-	  }
+          }
 	}
 
 	if (s->advance_org == NO)
@@ -561,8 +559,8 @@ int pass_3(void) {
           line_number,
           l->label);
 
-      if (s != NULL && l->label[0] == '_') {
-        /* Local section-specific label */
+      if (s != NULL) {
+        /* Always put the label into the section's label_map */
         if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
           fprintf(stderr, emsg);
           return FAILED;
@@ -572,31 +570,30 @@ int pass_3(void) {
           return FAILED;
         }
       }
-      else if (s != NULL && s->nspace != NULL) {
-        /* Label in a namespace */
-        if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
-          fprintf(stderr, emsg);
-          return FAILED;
+
+      /* Don't put local labels into namespaces or the global namespace */
+      if (s == NULL || l->label[0] != '_') {
+        if (s != NULL && s->nspace != NULL) {
+          /* Label in a namespace */
+          if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
+            fprintf(stderr, emsg);
+            return FAILED;
+          }
+          if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
+            fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+            return FAILED;
+          }
         }
-        /* Insert the label into both the namespace and section label maps */
-        if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
-          fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
-          return FAILED;
-        }
-        if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
-          fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
-          return FAILED;
-        }
-      }
-      else {
-        /* Global label */
-        if (hashmap_get(global_unique_label_map, l->label, NULL) == MAP_OK) {
-          fprintf(stderr, emsg);
-          return FAILED;
-        }
-        if ((err = hashmap_put(global_unique_label_map, l->label, l)) != MAP_OK) {
-          fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
-          return FAILED;
+        else {
+          /* Global label */
+          if (hashmap_get(global_unique_label_map, l->label, NULL) == MAP_OK) {
+            fprintf(stderr, emsg);
+            return FAILED;
+          }
+          if ((err = hashmap_put(global_unique_label_map, l->label, l)) != MAP_OK) {
+            fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+            return FAILED;
+          }
         }
       }
 
