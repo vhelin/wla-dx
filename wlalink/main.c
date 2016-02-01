@@ -22,7 +22,7 @@
 
 /* define this if you want to display debug information */
 /*
-#define _MAIN_DEBUG
+#define WLALINK_DEBUG
 */
 
 #ifdef AMIGA
@@ -49,6 +49,7 @@ char ext_libdir[MAX_NAME_LENGTH];
 
 
 
+#ifdef WLALINK_DEBUG
 static const char *si_operator_plus = "+";
 static const char *si_operator_minus = "-";
 static const char *si_operator_multiply = "*";
@@ -98,7 +99,7 @@ static const char *get_stack_item_operator_name(int operator) {
 
 static char stack_item_description[512];
 
-static char *get_stack_item_description(struct stackitem *si) {
+char *get_stack_item_description(struct stackitem *si) {
 
   char *sid = stack_item_description;
 
@@ -108,19 +109,31 @@ static char *get_stack_item_description(struct stackitem *si) {
     int type = si->type;
     
     if (type == STACK_ITEM_TYPE_VALUE)
-      sprintf(sid, "stackitem: value              : %f\n", si->value);
+      sprintf(sid, "stackitem: value              : %f/$%x\n", si->value, (int)si->value);
     else if (type == STACK_ITEM_TYPE_OPERATOR)
       sprintf(sid, "stackitem: operator           : %s\n", get_stack_item_operator_name((int)si->value));
     else if (type == STACK_ITEM_TYPE_STRING)
-      sprintf(sid, "stackitem: string             : %s\n", si->string);
-    else if (type == STACK_ITEM_TYPE_STACK)
-      sprintf(sid, "stackitem: (stack) calculation: %d\n", (int)si->value);
+      sprintf(sid, "stackitem: label              : %s\n", si->string);
+    else if (type == STACK_ITEM_TYPE_STACK) {
+      struct stack *st = find_stack(si->value, si->sign);
+
+      if (st->computed == YES)
+	sprintf(sid, "stackitem: (stack) calculation: %d (result = %d/$%x)\n", (int)si->value, st->result, st->result);
+      else
+	sprintf(sid, "stackitem: (stack) calculation: %d (result = ?)\n", (int)si->value);
+    }
     else
       sprintf(sid, "stackitem: UNKNOWN!");
   }
   
   return sid;
 }
+
+static void debug_print_label(struct label *l) {
+
+  printf("label: \"%s\" file: %s status: %d section: %d bank: %d slot: %d base: %d address: %d/$%x\n", l->name, get_file_name(l->file_id), l->status, l->section, l->bank, l->slot, l->base, (int)l->address, (int)l->address);
+}
+#endif
 
 
 
@@ -223,7 +236,7 @@ int main(int argc, char *argv[]) {
   if (obtain_source_file_names() == FAILED)
     return 1;
 
-  /* collect all defines, labels and outside references */
+  /* collect all defines, labels, outside references and pending (stack) calculations */
   if (collect_dlr() == FAILED)
     return 1;
 
@@ -271,41 +284,43 @@ int main(int argc, char *argv[]) {
       s = s->next;
     }
   }
-  
+
 #ifdef WLALINK_DEBUG
-  {
-    printf("\n*****************************************************************\n");
-    printf("*** LOADED                                                    ***\n");
-    printf("*****************************************************************\n\n");
-  }
+  printf("\n");
+  printf("**********************************************************************\n");
+  printf("**********************************************************************\n");
+  printf("**********************************************************************\n");
+  printf("*** LOADED LOADED LOADED LOADED LOADED LOADED LOADED LOADED LOADED ***\n");
+  printf("**********************************************************************\n");
+  printf("**********************************************************************\n");
+  printf("**********************************************************************\n");
+  
+  if (labels_first != NULL) {
+    struct label *l = labels_first;
 
-  {
-    struct label *l;
+    printf("\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("---                         LABELS                                 ---\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("\n");
 
-    printf("LABELS:\n");
-    l = labels_first;
     while (l != NULL) {
-      printf("--------------------------------------\n");
-      printf("name   : %s\n", l->name);
-      printf("sect   : %d\n", l->section);
-      printf("slot   : %d\n", l->slot);
-      printf("base   : %d\n", l->base);
-      printf("bank   : %d\n", l->bank);
-      printf("address: %d\n", (int)l->address);
-      printf("status : %d\n", l->status);
-      printf("file   : %s\n", get_file_name(l->file_id));
+      debug_print_label(l);
       l = l->next;
     }
-    printf("--------------------------------------\n");
   }
 
-  {
-    struct stack *s;
+  if (stacks_first != NULL) {
+    struct stack *s = stacks_first;
 
-    printf("(STACK) CALCULATIONS:\n");
-    s = stacks_first;
+    printf("\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("---                    (STACK) CALCULATIONS                        ---\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("\n");
+
     while (s != NULL) {
-      printf("--------------------------------------\n");
+      printf("----------------------------------------------------------------------\n");
       {
 	int z;
 	
@@ -314,42 +329,45 @@ int main(int argc, char *argv[]) {
 	  printf(get_stack_item_description(si));
 	}
       }
-      printf("result   : %d\n", s->result);
-      printf("id       : %d\n", s->id);
-      printf("file     : %s\n", get_file_name(s->file_id));
-      printf("bank     : %d\n", s->bank);
-      printf("line     : %d\n", s->linenumber);
-      printf("type     : %d\n", s->type);
-      printf("position : %d\n", s->position);
+      printf("id: %d file: %s line: %d type: %d bank: %d position: %d\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position);
       s = s->next;
     }
-    printf("--------------------------------------\n");
+    printf("----------------------------------------------------------------------\n");
   }
 #endif
 
   /* reserve the bytes the checksummers will use, so no (free type) sections will be placed there */
   reserve_checksum_bytes();
   
+#ifdef WLALINK_DEBUG
+  printf("\n");
+  printf("**********************************************************************\n");
+  printf("**********************************************************************\n");
+  printf("**********************************************************************\n");
+  printf("*** RESOLVED RESOLVED RESOLVED RESOLVED RESOLVED RESOLVED RESOLVED ***\n");
+  printf("**********************************************************************\n");
+  printf("**********************************************************************\n");
+  printf("**********************************************************************\n");
+    
+  if (sec_first != NULL) {
+    printf("\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("---                         SECTIONS                               ---\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("\n");
+  }
+#endif
+
   /* insert sections */
   if (insert_sections() == FAILED)
     return 1;
 
 #ifdef WLALINK_DEBUG
-  {
-    printf("\n*****************************************************************\n");
-    printf("*** RESOLVED                                                  ***\n");
-    printf("*****************************************************************\n\n");
-  }
-
-  {
-    struct section *s;
-
-    printf("SECTIONS:\n");
-    s = sec_first;
+  if (sec_first != NULL) {
+    struct section *s = sec_first;
     while (s != NULL) {
-      printf("--------------------------------------\n");
-      printf("file : %s\n", get_file_name(s->file_id));
-      printf("name : %s\n", s->name);
+      printf("----------------------------------------------------------------------\n");
+      printf("name: \"%s\" file: %s\n", s->name, get_file_name(s->file_id));
       printf("id   : %d\n", s->id);
       printf("addr : %d\n", s->address);
       printf("stat : %d\n", s->status);
@@ -359,7 +377,15 @@ int main(int argc, char *argv[]) {
       printf("align: %d\n", s->alignment);
       s = s->next;
     }
-    printf("--------------------------------------\n");
+    printf("----------------------------------------------------------------------\n");
+  }
+
+  if (labels_first != NULL) {
+    printf("\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("---                         LABELS                                 ---\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("\n");
   }
 #endif
 
@@ -367,18 +393,33 @@ int main(int argc, char *argv[]) {
   if (fix_labels() == FAILED)
     return 1;
 
+#ifdef WLALINK_DEBUG
+  if (labels_first != NULL) {
+    struct label *l = labels_first;
+    while (l != NULL) {
+      debug_print_label(l);
+      l = l->next;
+    }
+  }
+
+  if (stacks_first != NULL) {
+    printf("\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("---                    (STACK) CALCULATIONS                        ---\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("\n");
+  }
+#endif
+  
   /* compute pending calculations */
   if (compute_pending_calculations() == FAILED)
     return 1;
 
 #ifdef WLALINK_DEBUG
-  {
-    struct stack *s;
-
-    printf("(STACK) CALCULATIONS:\n");
-    s = stacks_first;
+  if (stacks_first != NULL) {
+    struct stack *s = stacks_first;
     while (s != NULL) {
-      printf("--------------------------------------\n");
+      printf("----------------------------------------------------------------------\n");
       {
 	int z;
 	
@@ -387,28 +428,18 @@ int main(int argc, char *argv[]) {
 	  printf(get_stack_item_description(si));
 	}
       }
-      printf("result   : %d\n", s->result);
-      printf("id       : %d\n", s->id);
-      printf("file     : %s\n", get_file_name(s->file_id));
+      printf("id: %d file: %s line: %d type: %d bank: %d position: %d result: %d/$%x\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->result, s->result);
       s = s->next;
     }
-    printf("--------------------------------------\n");
+    printf("----------------------------------------------------------------------\n");
   }
-#endif
 
-#ifdef WLALINK_DEBUG
-  {
-    struct reference *r;
-
-    printf("REFERENCES:\n");
-    r = reference_first;
-    while (r != NULL) {
-      printf("--------------------------------------\n");
-      printf("name   : %s\n", r->name);
-      printf("file   : %s\n", get_file_name(r->file_id));
-      r = r->next;
-    }
-    printf("--------------------------------------\n");
+  if (reference_first != NULL) {
+    printf("\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("---                          REFERENCES                            ---\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("\n");
   }
 #endif
 
@@ -420,6 +451,16 @@ int main(int argc, char *argv[]) {
   if (fix_references() == FAILED)
     return 1;
 
+#ifdef WLALINK_DEBUG
+  if (reference_first != NULL) {
+    struct reference *r = reference_first;
+    while (r != NULL) {
+      printf("name: \"%s\" file: %s\n", r->name, get_file_name(r->file_id));
+      r = r->next;
+    }
+  }
+#endif
+
   /* write checksums and other last minute data */
   if (compute_checksums() == FAILED)
     return 1;
@@ -427,29 +468,6 @@ int main(int argc, char *argv[]) {
   /* write rom file */
   if (write_rom_file(argv[argc - 1]) == FAILED)
     return 1;
-
-#ifdef WLALINK_DEBUG
-  {
-    struct label *l;
-
-    printf("LABELS:\n");
-    l = labels_first;
-    while (l != NULL) {
-      printf("--------------------------------------\n");
-      printf("name       : %s\n", l->name);
-      printf("sect       : %d\n", l->section);
-      printf("slot       : %d\n", l->slot);
-      printf("base       : %d\n", l->base);
-      printf("address    : %d / $%x\n", (int)l->address, (int)l->address);
-      printf("rom_address: %d\n", l->rom_address);
-      printf("bank       : %d\n", l->bank);
-      printf("status     : %d\n", l->status);
-      printf("file       : %s\n", get_file_name(l->file_id));
-      l = l->next;
-    }
-    printf("--------------------------------------\n");
-  }
-#endif
 
   /* export symbolic information file */
   if (symbol_mode != SYMBOL_MODE_NONE) {

@@ -2,7 +2,7 @@
 case 0:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
-    fprintf(file_out_ptr, "d%d ", opt_tmp->hex);
+    output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex);
     i = inz;
     return SUCCEEDED;
   }
@@ -28,11 +28,11 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     for (x++; x < OP_SIZE_MAX; inz++, x++) {
       if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
 	if (z == SUCCEEDED)
-	  fprintf(file_out_ptr, "d%d d%d ", opt_tmp->hex, d);
+	  output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
 	else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-	  fprintf(file_out_ptr, "k%d d%d R%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+	  output_assembled_opcode(opt_tmp, "k%d d%d R%s ", active_file_info_last->line_current, opt_tmp->hex, label);
 	else {
-	  fprintf(file_out_ptr, "d%d c%d ", opt_tmp->hex, latest_stack);
+	  output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
 	  if (opt_tmp->type == 0xE) {
 	    /* 0xE -> let's configure the stack so that all label references inside are relative */
 	    stacks_tmp->relative_references = 1;
@@ -69,11 +69,11 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     for (x++; x < OP_SIZE_MAX; inz++, x++) {
       if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
 	if (z == SUCCEEDED)
-	  fprintf(file_out_ptr, "d%d y%d ", opt_tmp->hex, d);
+	  output_assembled_opcode(opt_tmp, "d%d y%d ", opt_tmp->hex, d);
 	else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-	  fprintf(file_out_ptr, "k%d d%d r%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+	  output_assembled_opcode(opt_tmp, "k%d d%d r%s ", active_file_info_last->line_current, opt_tmp->hex, label);
 	else
-	  fprintf(file_out_ptr, "d%d C%d ", opt_tmp->hex, latest_stack);
+	  output_assembled_opcode(opt_tmp, "d%d C%d ", opt_tmp->hex, latest_stack);
 	
 	i = inz;
 	return SUCCEEDED;
@@ -122,14 +122,14 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 	
 	for (x++; x < OP_SIZE_MAX; inz++, x++) {
 	  if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
-	    fprintf(file_out_ptr, "d%d ", opt_tmp->hex | (d << 5));
+	    output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex | (d << 5));
 	    
 	    if (v == SUCCEEDED)
-	      fprintf(file_out_ptr, "d%d ", e);
+	      output_assembled_opcode(opt_tmp, "d%d ", e);
 	    else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-	      fprintf(file_out_ptr, "k%d R%s ", active_file_info_last->line_current, labelx);
+	      output_assembled_opcode(opt_tmp, "k%d R%s ", active_file_info_last->line_current, labelx);
 	    else
-	      fprintf(file_out_ptr, "c%d ", h);
+	      output_assembled_opcode(opt_tmp, "c%d ", h);
 	    
 	    i = inz;
 	    return SUCCEEDED;
@@ -182,14 +182,14 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 	
 	for (x++; x < OP_SIZE_MAX; inz++, x++) {
 	  if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
-	    fprintf(file_out_ptr, "d%d ", opt_tmp->hex | (((d << 1) + 1) << 4));
+	    output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex | (((d << 1) + 1) << 4));
 	    
 	    if (v == SUCCEEDED)
-	      fprintf(file_out_ptr, "d%d ", e);
+	      output_assembled_opcode(opt_tmp, "d%d ", e);
 	    else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-	      fprintf(file_out_ptr, "k%d R%s ", active_file_info_last->line_current, labelx);
+	      output_assembled_opcode(opt_tmp, "k%d R%s ", active_file_info_last->line_current, labelx);
 	    else
-	      fprintf(file_out_ptr, "c%d ", h);
+	      output_assembled_opcode(opt_tmp, "c%d ", h);
 	    
 	    i = inz;
 	    return SUCCEEDED;
@@ -222,7 +222,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 
     for (x++; x < OP_SIZE_MAX; inz++, x++) {
       if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
-	fprintf(file_out_ptr, "d%d ", opt_tmp->hex | (d << 4));
+	output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex | (d << 4));
 	i = inz;
 	return SUCCEEDED;
       }
@@ -269,18 +269,18 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 	for (x++; x < OP_SIZE_MAX; inz++, x++) {
 	  if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
 	    if (v == SUCCEEDED)
-	      fprintf(file_out_ptr, "d%d d%d ", opt_tmp->hex, e);
+	      output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, e);
 	    else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-	      fprintf(file_out_ptr, "k%d d%d R%s ", active_file_info_last->line_current, opt_tmp->hex, labelx);
+	      output_assembled_opcode(opt_tmp, "k%d d%d R%s ", active_file_info_last->line_current, opt_tmp->hex, labelx);
 	    else
-	      fprintf(file_out_ptr, "d%d c%d ", opt_tmp->hex, h);
+	      output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, h);
 
 	    if (z == SUCCEEDED)
-	      fprintf(file_out_ptr, "d%d ", d);
+	      output_assembled_opcode(opt_tmp, "d%d ", d);
 	    else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-	      fprintf(file_out_ptr, "k%d R%s ", active_file_info_last->line_current, label);
+	      output_assembled_opcode(opt_tmp, "k%d R%s ", active_file_info_last->line_current, label);
 	    else {
-	      fprintf(file_out_ptr, "c%d ", latest_stack);
+	      output_assembled_opcode(opt_tmp, "c%d ", latest_stack);
 	      /* let's configure the stack so that all label references inside are relative */
 	      stacks_tmp->relative_references = 1;
 	    }
@@ -337,18 +337,18 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 	for (x++; x < OP_SIZE_MAX; inz++, x++) {
 	  if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
 	    if (z == SUCCEEDED)
-	      fprintf(file_out_ptr, "d%d d%d ", opt_tmp->hex, d);
+	      output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
 	    else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-	      fprintf(file_out_ptr, "k%d d%d R%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+	      output_assembled_opcode(opt_tmp, "k%d d%d R%s ", active_file_info_last->line_current, opt_tmp->hex, label);
 	    else
-	      fprintf(file_out_ptr, "d%d c%d ", opt_tmp->hex, latest_stack);
+	      output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
 	    
 	    if (v == SUCCEEDED)
-	      fprintf(file_out_ptr, "d%d ", e);
+	      output_assembled_opcode(opt_tmp, "d%d ", e);
 	    else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-	      fprintf(file_out_ptr, "k%d R%s ", active_file_info_last->line_current, labelx);
+	      output_assembled_opcode(opt_tmp, "k%d R%s ", active_file_info_last->line_current, labelx);
 	    else
-	      fprintf(file_out_ptr, "c%d ", h);
+	      output_assembled_opcode(opt_tmp, "c%d ", h);
 	    
 	    i = inz;
 	    return SUCCEEDED;
@@ -414,21 +414,21 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 
 	    for (x++; x < OP_SIZE_MAX; inz++, x++) {
 	      if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
-		fprintf(file_out_ptr, "d%d ", opt_tmp->hex | (g << 5));
+		output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex | (g << 5));
 		
 		if (v == SUCCEEDED)
-		  fprintf(file_out_ptr, "d%d ", e);
+		  output_assembled_opcode(opt_tmp, "d%d ", e);
 		else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-		  fprintf(file_out_ptr, "k%d R%s ", active_file_info_last->line_current, labelx);
+		  output_assembled_opcode(opt_tmp, "k%d R%s ", active_file_info_last->line_current, labelx);
 		else
-		  fprintf(file_out_ptr, "c%d ", h);
+		  output_assembled_opcode(opt_tmp, "c%d ", h);
 
 		if (z == SUCCEEDED)
-		  fprintf(file_out_ptr, "d%d ", d);
+		  output_assembled_opcode(opt_tmp, "d%d ", d);
 		else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-		  fprintf(file_out_ptr, "k%d R%s ", active_file_info_last->line_current, label);
+		  output_assembled_opcode(opt_tmp, "k%d R%s ", active_file_info_last->line_current, label);
 		else {
-		  fprintf(file_out_ptr, "c%d ", latest_stack);
+		  output_assembled_opcode(opt_tmp, "c%d ", latest_stack);
 		  /* let's configure the stack so that all label references inside are relative */
 		  stacks_tmp->relative_references = 1;
 		}
@@ -501,21 +501,21 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 
 	    for (x++; x < OP_SIZE_MAX; inz++, x++) {
 	      if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
-		fprintf(file_out_ptr, "d%d ", opt_tmp->hex | (((g << 1) + 1) << 4));
+		output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex | (((g << 1) + 1) << 4));
 		
 		if (v == SUCCEEDED)
-		  fprintf(file_out_ptr, "d%d ", e);
+		  output_assembled_opcode(opt_tmp, "d%d ", e);
 		else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-		  fprintf(file_out_ptr, "k%d R%s ", active_file_info_last->line_current, labelx);
+		  output_assembled_opcode(opt_tmp, "k%d R%s ", active_file_info_last->line_current, labelx);
 		else
-		  fprintf(file_out_ptr, "c%d ", h);
+		  output_assembled_opcode(opt_tmp, "c%d ", h);
 		
 		if (z == SUCCEEDED)
-		  fprintf(file_out_ptr, "d%d ", d);
+		  output_assembled_opcode(opt_tmp, "d%d ", d);
 		else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-		  fprintf(file_out_ptr, "k%d R%s ", active_file_info_last->line_current, label);
+		  output_assembled_opcode(opt_tmp, "k%d R%s ", active_file_info_last->line_current, label);
 		else {
-		  fprintf(file_out_ptr, "c%d ", latest_stack);
+		  output_assembled_opcode(opt_tmp, "c%d ", latest_stack);
 		  /* let's configure the stack so that all label references inside are relative */
 		  stacks_tmp->relative_references = 1;
 		}

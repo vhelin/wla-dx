@@ -45,7 +45,7 @@ l4 dw
 
 .deFiNE timmi (7+kostaja)
 .def    legion (1+kostaja+7)
-.Equ    result legion-timmi+2
+.Equ    BAGI legion-timmi+2
 .define monster = "terrrmurrrrr"
 .dEF    dummy   = "testing", 1, 2, 3
 .eQu    kosher  = 102
@@ -53,7 +53,7 @@ l4 dw
 .RedefinE kosher = 104
 .redef  kosher 102
 
-.export kosher monster, legion, timmi, result, dummy
+.export kosher monster, legion, timmi, BAGI, dummy
 
 .bank 0 slot 0
 .org $0
@@ -79,7 +79,7 @@ nollasivu:
 .printv dec <(>($0402+1*$100))+1-1
 .printt " (should be 5)\n"
 
-.word legion, kostaja, result+2, $ffff
+.word legion, kostaja, BAGI+2, $ffff
 
 .dbsin 0.2, 10, 3.2, 120, 1.3
 

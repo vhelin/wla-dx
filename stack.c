@@ -309,7 +309,7 @@ int stack_calculate(char *in, int *value) {
 	  break;
 	else {
 	  if (input_number_error_msg == YES) {
-	    sprintf(xyz, "Got '%c' (%d) when expected (0/1).\n", e, e);
+	    sprintf(xyz, "Got '%c' (%d) when expected a 0 or 1.\n", e, e);
 	    print_error(xyz, ERROR_NUM);
 	  }
 	  return FAILED;
@@ -360,7 +360,7 @@ int stack_calculate(char *in, int *value) {
 	  break;
 	else {
 	  if (input_number_error_msg == YES) {
-	    sprintf(xyz, "Got '%c' (%d) when expected (0-F).\n", e, e);
+	    sprintf(xyz, "Got '%c' (%d) when expected [0-F].\n", e, e);
 	    print_error(xyz, ERROR_NUM);
 	  }
 	  return FAILED;
@@ -416,7 +416,7 @@ int stack_calculate(char *in, int *value) {
 	    break;
 	  else {
 	    if (input_number_error_msg == YES) {
-	      sprintf(xyz, "Got '%c' (%d) when expected (0-F).\n", e, e);
+	      sprintf(xyz, "Got '%c' (%d) when expected [0-F].\n", e, e);
 	      print_error(xyz, ERROR_NUM);
 	    }
 	    return FAILED;
@@ -468,7 +468,7 @@ int stack_calculate(char *in, int *value) {
 	  }
 	  else {
 	    if (input_number_error_msg == YES) {
-	      sprintf(xyz, "Got '%c' (%d) when expected (0-9).\n", e, e);
+	      sprintf(xyz, "Got '%c' (%d) when expected [0-9].\n", e, e);
 	      print_error(xyz, ERROR_NUM);
 	    }
 	    return FAILED;
@@ -820,21 +820,6 @@ int stack_calculate(char *in, int *value) {
     d++;
   }
 
-  /* DEBUG output
-     printf("STACK ID %d LINE %d\n", stack_id, active_file_info_last->line_current);
-     for (k = 0; k < d; k++) {
-     char ar[] = "+-*()|&/^«»%~<>";
-
-     if (ta[k].type == STACK_ITEM_TYPE_OPERATOR)
-     printf("%c ", ar[((int)ta[k].value)]);
-     else if (ta[k].type == STACK_ITEM_TYPE_VALUE)
-     printf("V(%f) ", ta[k].value);
-     else
-     printf("S(%s) ", ta[k].string);
-     }
-     printf("\n");
-  */
-
   /* are all the symbols known? */
   if (resolve_stack(ta, d) == SUCCEEDED) {
     s.stack = ta;
@@ -843,14 +828,14 @@ int stack_calculate(char *in, int *value) {
 
     if (compute_stack(&s, d, &dou) == FAILED)
       return FAILED;
-
+    
     if (input_float_mode == ON) {
       parsed_double = dou;
       return INPUT_NUMBER_FLOAT;
     }
 
     *value = (int)dou;
-
+    
     return SUCCEEDED;
   }
 
@@ -859,6 +844,41 @@ int stack_calculate(char *in, int *value) {
     strcpy(label, ta[0].string);
     return STACK_RETURN_LABEL;
   }
+
+  /*
+  printf("%d %d %s\n", d, ta[0].type, ta[0].string);
+  */
+
+#if WLA_DEBUG
+  /* DEBUG output */
+  printf("LINE %5d: (STACK) CALCULATION ID = %d (c%d): ", active_file_info_last->line_current, stack_id, stack_id);
+  for (k = 0; k < d; k++) {
+    char ar[] = "+-*()|&/^01%~<>";
+
+    if (ta[k].type == STACK_ITEM_TYPE_OPERATOR) {
+      int value = (int)ta[k].value;
+      char arr = ar[value];
+
+      /* 0 - shift left, 1 - shift right, otherwise it's the operator itself */
+      if (arr == '0')
+	printf("<<");
+      else if (arr == '1')
+	printf(">>");
+      else
+	printf("%c", arr);
+    }
+    else if (ta[k].type == STACK_ITEM_TYPE_VALUE)
+      printf("V(%f)", ta[k].value);
+    else if (ta[k].type == STACK_ITEM_TYPE_STACK)
+      printf("C(%d)", (int)ta[k].value);
+    else
+      printf("S(%s)", ta[k].string);
+
+    if (k < d-1)
+      printf(", ");
+  }
+  printf("\n");
+#endif
 
   /* we have a stack full of computation and we save it for wlalink */
   stacks_tmp = malloc(sizeof(struct stack));
@@ -917,7 +937,7 @@ int resolve_stack(struct stack_item s[], int x) {
 
   struct macro_argument *ma;
   struct stack_item *st;
-  int a, b, k, q = x;
+  int a, b, k, q = x, cannot_resolve = 0;
   char c;
 
 
@@ -991,7 +1011,13 @@ int resolve_stack(struct stack_item s[], int x) {
 	      return FAILED;
 	    }
 	    else if (tmp_def->type == DEFINITION_TYPE_STACK) {
-	      /* skip stack definitions -> use its name instead */
+	      /* skip stack definitions -> use its name instead, thus do nothing here */
+	    }
+	    else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+	      /* wla cannot resolve address labels (unless outside a section) -> only wlalink can do that */
+	      cannot_resolve = 1;
+	      strcpy(s->string, tmp_def->string);
+	      break;
 	    }
 	    else {
 	      s->type = STACK_ITEM_TYPE_VALUE;
@@ -1006,6 +1032,9 @@ int resolve_stack(struct stack_item s[], int x) {
     s++;
     x--;
   }
+
+  if (cannot_resolve != 0)
+    return FAILED;
 
   /* find a string or a stack and fail */
   while (q > 0) {

@@ -7,7 +7,6 @@
 
 .define jee (outro-intro)
 
-
 .define TXT1 "hello"
 .define TXT2 "hello"
 .define TXTX 10
@@ -22,7 +21,7 @@
 .BANK 0 SLOT 0
 .ORG $300
 
-.dw result+6
+.dw BAGI+6
 	
 josse
 --
@@ -120,7 +119,7 @@ __      das
 	sleep
 foul:	push a
 	pop psw
-jee	.dw jee, result-result
+jee	.dw jee, BAGI-BAGI
 	and a, [jee]  +        Y
 	and a,!foul   +  Y
 	das

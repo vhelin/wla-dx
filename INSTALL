@@ -73,3 +73,17 @@ Try to redefine shell enviroment variables CC and LD to gcc, e.g., in bash:
   export LD='gcc'
 
 Gcc should compile WLA DX just fine.
+
+
+-----------------------------------------------------------------------------
+4. HOW TO MAKE E.G. DEBUGGABLE EXECUTABLES
+-----------------------------------------------------------------------------
+
+Using CMake:
+
+  Edit CMakeLists.txt (contains some examples), run cmake again as adviced in
+  section 1 (to generate makefiles), and issue make.
+
+Using the old makefiles:
+
+  Well, just edit the makefiles directly.

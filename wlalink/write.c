@@ -1091,7 +1091,6 @@ int compute_pending_calculations(void) {
   /* first place the calculation stacks into the output */
   sta = stacks_first;
   while (sta != NULL) {
-
     if (sta->position == STACK_POSITION_DEFINITION) {
       /* skip definition stacks */
       sta = sta->next;
@@ -1258,6 +1257,20 @@ int compute_pending_calculations(void) {
 }
 
 
+struct stack *find_stack(int id, int file_id) {
+
+  struct stack *st = stacks_first;
+
+  while (st != NULL) {
+    if (st->id == id && st->file_id == file_id)
+      return st;
+    st = st->next;
+  }
+
+  return NULL;
+}
+
+
 int compute_stack(struct stack *sta, int *result) {
 
   struct stackitem *s;
@@ -1279,6 +1292,22 @@ int compute_stack(struct stack *sta, int *result) {
 
   sta->under_work = YES;
 
+  /*
+  {
+    char *get_stack_item_description(struct stackitem *si);
+    int z;
+    
+    printf("----------------------------------------------------------------------\n");
+	
+    for (z = 0; z < sta->stacksize; z++) {
+      struct stackitem *si = &sta->stack[z];
+      printf(get_stack_item_description(si));
+    }
+
+    printf("id: %d file: %s line: %d type %d bank: %d position %d\n", sta->id, get_file_name(sta->file_id), sta->linenumber, sta->type, sta->bank, sta->position);
+  }
+  */
+  
   x = sta->stacksize;
   s = sta->stack;
   for (r = 0, t = 0; r < x; r++, s++) {
@@ -1291,13 +1320,8 @@ int compute_stack(struct stack *sta, int *result) {
     }
     else if (s->type == STACK_ITEM_TYPE_STACK) {
       /* we have a stack inside a stack! find the stack */
-      st = stacks_first;
-      while (st != NULL) {
-	/* nice hack... */
-	if (st->id == s->value && st->file_id == s->sign)
-	  break;
-	st = st->next;
-      }
+      /* HACK! we abuse sign here... */
+      st = find_stack(s->value, s->sign);
 
       if (st == NULL) {
 	fprintf(stderr, "COMPUTE_STACK: A computation stack has gone missing. This is a fatal internal error. Please send the WLA DX author a bug report.\n");
@@ -1391,6 +1415,10 @@ int compute_stack(struct stack *sta, int *result) {
   sta->computed = YES;
   sta->under_work = NO;
 
+  /*
+  printf("RESULT: %d\n", sta->result);
+  */
+  
   return SUCCEEDED;
 }
 
@@ -1610,7 +1638,7 @@ int parse_stack(struct stack *sta) {
 	k += get_snes_pc_bank(l);
 
       if (l->status == LABEL_STATUS_STACK) {
-	/* here we abuse the stack item structure's members */
+	/* HACK: here we abuse the stack item structure's members */
 	si->value = l->address;
 	si->sign = l->file_id;
 	si->type = STACK_ITEM_TYPE_STACK;
@@ -1706,7 +1734,7 @@ int is_label_anonymous(char *label) {
 struct label *get_closest_anonymous_label(char *name, int rom_address, int file_id, struct label *l, int section_status, int section) {
 
   struct label *closest = NULL;
-  int d = 999999, e;
+  int d = 999999999, e;
 
   
   if (strcmp(name, "_b") == 0 || strcmp(name, "_B") == 0) {

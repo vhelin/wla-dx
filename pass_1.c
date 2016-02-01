@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include <math.h>
 #include <time.h>
 
@@ -685,6 +686,29 @@ int pass_1(void) {
 }
 
 
+void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
+
+  va_list ap;
+
+  if (oc == NULL)
+    return;
+  
+  va_start(ap, format);
+
+  vfprintf(file_out_ptr, format, ap);
+#if WLA_DEBUG
+  {
+    char ttt[64];
+
+    vsprintf(ttt, format, ap);
+    printf("LINE %5d: OPCODE: %16s ::: %s\n", active_file_info_last->line_current, oc->op, ttt);
+  }
+#endif
+
+  va_end(ap);
+}
+
+
 int evaluate_token(void) {
 
   int f, z = 0, x, y;
@@ -757,9 +781,9 @@ int evaluate_token(void) {
     for (inz = 0, d = SUCCEEDED; inz < OP_SIZE_MAX; inz++) {
       if (tmp[inz] == 0 && opt_tmp->op[inz] == 0 && buffer[i] == 0x0A) {
         if (opt_tmp->type == 0)
-          fprintf(file_out_ptr, "d%d ", opt_tmp->hex);
+          output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex);
         else
-          fprintf(file_out_ptr, "y%d ", opt_tmp->hex);
+          output_assembled_opcode(opt_tmp, "y%d ", opt_tmp->hex);
         return SUCCEEDED;
       }
       if (tmp[inz] == 0 && opt_tmp->op[inz] == ' ' && buffer[i] == ' ')
@@ -874,7 +898,7 @@ int redefine(char *name, double value, char *string, int type, int size) {
 
   struct definition *d;
 
-  
+
   d = defines;
   while (d != NULL) {
     if (strcmp(d->alias, name) == 0)
