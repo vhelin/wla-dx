@@ -539,17 +539,17 @@ there this one is put to also.
 
 This is not a compulsory directive.
 
-----------------
+--------------
 .COUNTRYCODE 1
-----------------
+--------------
 
 Indicates the country code located at $14A of a Gameboy ROM.
 
 This is not a compulsory directive.
 
------------
+---------
 .GBHEADER
------------
+---------
 
 This begins the GB header definition, and automatically defines
 .COMPUTEGBCHECKSUM. From here you may define any of the following:

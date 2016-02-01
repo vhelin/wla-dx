@@ -1,7 +1,7 @@
 
-CC = ../../../binaries/wla-6502.exe
+CC = wla-6502.exe
 CFLAGS = -o
-LD = ../../../binaries/wlalink.exe
+LD = wlalink.exe
 LDFLAGS = -vs
 
 SFILES = main.s
