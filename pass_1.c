@@ -1108,7 +1108,7 @@ int parse_directive(void) {
   
   /* ORG */
 
-  if (strcmp(cp, "ORG") == 0) {
+  if (strcaselesscmp(cp, "ORG") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .ORG definitions.\n", ERROR_DIR);
       return FAILED;
@@ -1139,7 +1139,7 @@ int parse_directive(void) {
 
   /* ORGA */
 
-  if (strcmp(cp, "ORGA") == 0) {
+  if (strcaselesscmp(cp, "ORGA") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .ORGA definitions.\n", ERROR_DIR);
       return FAILED;
@@ -1178,7 +1178,7 @@ int parse_directive(void) {
 
   /* SLOT */
 
-  if (strcmp(cp, "SLOT") == 0) {
+  if (strcaselesscmp(cp, "SLOT") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .SLOT definitions.\n", ERROR_DIR);
       return FAILED;
@@ -1213,7 +1213,7 @@ int parse_directive(void) {
 
   /* BANK */
 
-  if (strcmp(cp, "BANK") == 0) {
+  if (strcaselesscmp(cp, "BANK") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .BANK definitions.\n", ERROR_DIR);
       return FAILED;
@@ -1293,7 +1293,7 @@ int parse_directive(void) {
 
   /* DBM/DWM? */
 
-  if (strcmp(cp, "DBM") == 0 || strcmp(cp, "DWM") == 0) {
+  if (strcaselesscmp(cp, "DBM") == 0 || strcaselesscmp(cp, "DWM") == 0) {
 
     struct macro_static *m;
 
@@ -1314,7 +1314,7 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    if (strcmp(cp, "DBM") == 0) {
+    if (strcaselesscmp(cp, "DBM") == 0) {
       if (macro_start_dxm(m, MACRO_CALLER_DBM, cp, YES) == FAILED)
         return FAILED;
     }
@@ -1328,7 +1328,7 @@ int parse_directive(void) {
 
   /* DB/BYT/BYTE? */
 
-  if (strcmp(cp, "DB") == 0 || strcmp(cp, "BYT") == 0 || strcmp(cp, "BYTE") == 0) {
+  if (strcaselesscmp(cp, "DB") == 0 || strcaselesscmp(cp, "BYT") == 0 || strcaselesscmp(cp, "BYTE") == 0) {
     strcpy(bak, cp);
 
     inz = input_number();
@@ -1373,7 +1373,7 @@ int parse_directive(void) {
 
   /* ASCTABLE/ASCIITABLE? */
 
-  if (strcmp(cp, "ASCTABLE") == 0 || strcmp(cp, "ASCIITABLE") == 0) {
+  if (strcaselesscmp(cp, "ASCTABLE") == 0 || strcaselesscmp(cp, "ASCIITABLE") == 0) {
 
     int astart, aend;
 
@@ -1497,7 +1497,7 @@ int parse_directive(void) {
 
   /* ASC? */
 
-  if (strcmp(cp, "ASC") == 0) {
+  if (strcaselesscmp(cp, "ASC") == 0) {
     strcpy(bak, cp);
 
     if (asciitable_defined == 0) {
@@ -1545,7 +1545,7 @@ int parse_directive(void) {
 
   /* DW/WORD? */
 
-  if (strcmp(cp, "DW") == 0 || strcmp(cp, "WORD") == 0) {
+  if (strcaselesscmp(cp, "DW") == 0 || strcaselesscmp(cp, "WORD") == 0) {
     strcpy(bak, cp);
 
     inz = input_number();
@@ -1583,7 +1583,7 @@ int parse_directive(void) {
 
   /* DSTRUCT */
 
-  if (strcmp(cp, "DSTRUCT") == 0) {
+  if (strcaselesscmp(cp, "DSTRUCT") == 0) {
 
     struct structure_item *it;
     struct structure *s;
@@ -1742,7 +1742,7 @@ int parse_directive(void) {
 
   /* DS/DSB? */
 
-  if (strcmp(cp, "DSB") == 0 || strcmp(cp, "DS") == 0) {
+  if (strcaselesscmp(cp, "DSB") == 0 || strcaselesscmp(cp, "DS") == 0) {
     strcpy(bak, cp);
 
     q = input_number();
@@ -1794,7 +1794,7 @@ int parse_directive(void) {
 
   /* DSW? */
 
-  if (strcmp(cp, "DSW") == 0) {
+  if (strcaselesscmp(cp, "DSW") == 0) {
     q = input_number();
     if (q == FAILED)
       return FAILED;
@@ -1842,7 +1842,7 @@ int parse_directive(void) {
 
   /* INCDIR */
 
-  if (strcmp(cp, "INCDIR") == 0) {
+  if (strcaselesscmp(cp, "INCDIR") == 0) {
 
     char *c;
 
@@ -1896,7 +1896,7 @@ int parse_directive(void) {
 
   /* INCLUDE */
 
-  if (strcmp(cp, "INCLUDE") == 0) {
+  if (strcaselesscmp(cp, "INCLUDE") == 0) {
     o = input_number();
     if (o != INPUT_NUMBER_STRING) {
       print_error(".INCLUDE needs a file name string.\n", ERROR_DIR);
@@ -1920,7 +1920,7 @@ int parse_directive(void) {
 
   /* INCBIN */
 
-  if (strcmp(cp, "INCBIN") == 0) {
+  if (strcaselesscmp(cp, "INCBIN") == 0) {
 
     struct macro_static *m;
     int s, r, j;
@@ -1975,7 +1975,7 @@ int parse_directive(void) {
 
   /* OUTNAME */
 
-  if (strcmp(cp, "OUTNAME") == 0) {
+  if (strcaselesscmp(cp, "OUTNAME") == 0) {
 
     inz = input_number();
 
@@ -1991,7 +1991,7 @@ int parse_directive(void) {
 
   /* STRUCT */
 
-  if (strcmp(cp, "STRUCT") == 0) {
+  if (strcaselesscmp(cp, "STRUCT") == 0) {
 
     struct structure_item *si, *ss, *sl = NULL;
     struct structure *st;
@@ -2199,7 +2199,7 @@ int parse_directive(void) {
 
   /* RAMSECTION */
 
-  if (strcmp(cp, "RAMSECTION") == 0) {
+  if (strcaselesscmp(cp, "RAMSECTION") == 0) {
 
     char namebak[256];
 
@@ -2443,7 +2443,7 @@ int parse_directive(void) {
 
   /* SECTION */
 
-  if (strcmp(cp, "SECTION") == 0) {
+  if (strcaselesscmp(cp, "SECTION") == 0) {
 
     int l, m;
 
@@ -2675,7 +2675,7 @@ int parse_directive(void) {
 
   /* ELSE */
 
-  if (strcmp(cp, "ELSE") == 0) {
+  if (strcaselesscmp(cp, "ELSE") == 0) {
 
     int m, r;
 
@@ -2692,13 +2692,13 @@ int parse_directive(void) {
     macro_active = 0;
     while (get_next_token() != FAILED) {
       if (tmp[0] == '.') {
-        if (strcmp(cp, "ENDIF") == 0)
+        if (strcaselesscmp(cp, "ENDIF") == 0)
           r--;
-        if (strcmp(cp, "E") == 0)
+        if (strcaselesscmp(cp, "E") == 0)
           break;
-        if (strcmp(cp, "IFDEF") == 0 || strcmp(cp, "IFNDEF") == 0 || strcmp(cp, "IFGR") == 0 || strcmp(cp, "IFLE") == 0 || strcmp(cp, "IFEQ") == 0 ||
-            strcmp(cp, "IFNEQ") == 0 || strcmp(cp, "IFDEFM") == 0 || strcmp(cp, "IFNDEFM") == 0 || strcmp(cp, "IF") == 0 || strcmp(cp, "IFEXISTS") == 0 ||
-            strcmp(cp, "IFGREQ") == 0 || strcmp(cp, "IFLEEQ") == 0)
+        if (strcaselesscmp(cp, "IFDEF") == 0 || strcaselesscmp(cp, "IFNDEF") == 0 || strcaselesscmp(cp, "IFGR") == 0 || strcaselesscmp(cp, "IFLE") == 0 || strcaselesscmp(cp, "IFEQ") == 0 ||
+            strcaselesscmp(cp, "IFNEQ") == 0 || strcaselesscmp(cp, "IFDEFM") == 0 || strcaselesscmp(cp, "IFNDEFM") == 0 || strcaselesscmp(cp, "IF") == 0 || strcaselesscmp(cp, "IFEXISTS") == 0 ||
+            strcaselesscmp(cp, "IFGREQ") == 0 || strcaselesscmp(cp, "IFLEEQ") == 0)
           r++;
       }
       if (r == 0) {
@@ -2714,7 +2714,7 @@ int parse_directive(void) {
 
   /* ENDIF */
 
-  if (strcmp(cp, "ENDIF") == 0) {
+  if (strcaselesscmp(cp, "ENDIF") == 0) {
     if (ifdef == 0) {
       print_error(".ENDIF was given before any .IF directive.\n", ERROR_DIR);
       return FAILED;
@@ -2726,7 +2726,7 @@ int parse_directive(void) {
 
   /* IFDEF */
 
-  if (strcmp(cp, "IFDEF") == 0) {
+  if (strcaselesscmp(cp, "IFDEF") == 0) {
 
     struct definition *d;
 
@@ -2748,7 +2748,7 @@ int parse_directive(void) {
 
   /* IF */
 
-  if (strcmp(cp, "IF") == 0) {
+  if (strcaselesscmp(cp, "IF") == 0) {
 
     char k[256];
     int y, o, s;
@@ -2824,7 +2824,7 @@ int parse_directive(void) {
 
   /* IFGR/IFLE/IFEQ/IFNEQ/IFGREQ/IFLEEQ */
 
-  if (strcmp(cp, "IFGR") == 0 || strcmp(cp, "IFLE") == 0 || strcmp(cp, "IFEQ") == 0 || strcmp(cp, "IFNEQ") == 0 || strcmp(cp, "IFGREQ") == 0 || strcmp(cp, "IFLEEQ") == 0) {
+  if (strcaselesscmp(cp, "IFGR") == 0 || strcaselesscmp(cp, "IFLE") == 0 || strcaselesscmp(cp, "IFEQ") == 0 || strcaselesscmp(cp, "IFNEQ") == 0 || strcaselesscmp(cp, "IFGREQ") == 0 || strcaselesscmp(cp, "IFLEEQ") == 0) {
 
     char k[256];
     int y, o, s;
@@ -2897,7 +2897,7 @@ int parse_directive(void) {
 
   /* IFEXISTS */
 
-  if (strcmp(cp, "IFEXISTS") == 0) {
+  if (strcaselesscmp(cp, "IFEXISTS") == 0) {
 
     FILE *f;
 
@@ -2921,7 +2921,7 @@ int parse_directive(void) {
 
   /* IFNDEF */
 
-  if (strcmp(cp, "IFNDEF") == 0) {
+  if (strcaselesscmp(cp, "IFNDEF") == 0) {
 
     struct definition *d;
 
@@ -2944,7 +2944,7 @@ int parse_directive(void) {
 
   /* IFDEFM/IFNDEFM */
 
-  if (strcmp(cp, "IFDEFM") == 0 || strcmp(cp, "IFNDEFM") == 0) {
+  if (strcaselesscmp(cp, "IFDEFM") == 0 || strcaselesscmp(cp, "IFNDEFM") == 0) {
 
     int k, o;
     char e;
@@ -3001,7 +3001,7 @@ int parse_directive(void) {
 
   /* FOPEN */
 
-  if (strcmp(cp, "FOPEN") == 0) {
+  if (strcaselesscmp(cp, "FOPEN") == 0) {
 
     struct filepointer *f;
     char *c;
@@ -3076,7 +3076,7 @@ int parse_directive(void) {
 
   /* FCLOSE */
 
-  if (strcmp(cp, "FCLOSE") == 0) {
+  if (strcaselesscmp(cp, "FCLOSE") == 0) {
 
     struct filepointer *f, **t;
 
@@ -3115,7 +3115,7 @@ int parse_directive(void) {
 
   /* FSIZE */
 
-  if (strcmp(cp, "FSIZE") == 0) {
+  if (strcaselesscmp(cp, "FSIZE") == 0) {
 
     struct filepointer *f;
     long l, b;
@@ -3155,7 +3155,7 @@ int parse_directive(void) {
 
   /* FREAD */
 
-  if (strcmp(cp, "FREAD") == 0) {
+  if (strcaselesscmp(cp, "FREAD") == 0) {
 
     struct filepointer *f;
     unsigned char c;
@@ -3192,7 +3192,7 @@ int parse_directive(void) {
 
   /* BLOCK */
 
-  if (strcmp(cp, "BLOCK") == 0) {
+  if (strcaselesscmp(cp, "BLOCK") == 0) {
     if ((ind = get_next_token()) == FAILED)
       return FAILED;
 
@@ -3211,7 +3211,7 @@ int parse_directive(void) {
 
   /* ENDB */
 
-  if (strcmp(cp, "ENDB") == 0) {
+  if (strcaselesscmp(cp, "ENDB") == 0) {
 
     if (block_status <= 0) {
       print_error("There is no open .BLOCK.\n", ERROR_DIR);
@@ -3226,7 +3226,7 @@ int parse_directive(void) {
 
   /* SHIFT */
 
-  if (strcmp(cp, "SHIFT") == 0) {
+  if (strcaselesscmp(cp, "SHIFT") == 0) {
 
     struct macro_argument *ma;
     struct macro_runtime *rt;
@@ -3291,7 +3291,7 @@ int parse_directive(void) {
 #ifdef GB
   /* NAME */
 
-  if (strcmp(cp, "NAME") == 0) {
+  if (strcaselesscmp(cp, "NAME") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .NAME.\n", ERROR_DIR);
       return FAILED;
@@ -3343,7 +3343,7 @@ int parse_directive(void) {
 #ifdef W65816
   /* NAME */
 
-  if (strcmp(cp, "NAME") == 0) {
+  if (strcaselesscmp(cp, "NAME") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .NAME.\n", ERROR_DIR);
       return FAILED;
@@ -3395,7 +3395,7 @@ int parse_directive(void) {
 
   /* ENDS */
 
-  if (strcmp(cp, "ENDS") == 0) {
+  if (strcaselesscmp(cp, "ENDS") == 0) {
 
     if (section_status == OFF) {
       print_error("There is no open section.\n", ERROR_DIR);
@@ -3411,7 +3411,7 @@ int parse_directive(void) {
 
   /* ROMBANKS */
 
-  if (strcmp(cp, "ROMBANKS") == 0) {
+  if (strcaselesscmp(cp, "ROMBANKS") == 0) {
 
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .ROMBANKS.\n", ERROR_DIR);
@@ -3524,7 +3524,7 @@ int parse_directive(void) {
 
   /* ROMBANKMAP */
 
-  if (strcmp(cp, "ROMBANKMAP") == 0) {
+  if (strcaselesscmp(cp, "ROMBANKMAP") == 0) {
 
     int b = 0, a = 0, bt = 0, bt_defined = 0, x, bs = 0, bs_defined = 0;
 
@@ -3782,7 +3782,7 @@ int parse_directive(void) {
 
   /* MEMORYMAP */
 
-  if (strcmp(cp, "MEMORYMAP") == 0) {
+  if (strcaselesscmp(cp, "MEMORYMAP") == 0) {
 
     int slotsize = 0, slotsize_defined = 0, s = 0;
 
@@ -3918,7 +3918,7 @@ int parse_directive(void) {
 
   /* UNBACKGROUND */
 
-  if (strcmp(cp, "UNBACKGROUND") == 0) {
+  if (strcaselesscmp(cp, "UNBACKGROUND") == 0) {
 
     int start, end;
 
@@ -3980,7 +3980,7 @@ int parse_directive(void) {
 
   /* BACKGROUND */
 
-  if (strcmp(cp, "BACKGROUND") == 0) {
+  if (strcaselesscmp(cp, "BACKGROUND") == 0) {
 
     FILE *file_in_ptr;
 
@@ -4042,7 +4042,7 @@ int parse_directive(void) {
 #ifdef GB
   /* RAMSIZE */
 
-  if (strcmp(cp, "RAMSIZE") == 0) {
+  if (strcaselesscmp(cp, "RAMSIZE") == 0) {
 
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .RAMSIZE.\n", ERROR_DIR);
@@ -4080,7 +4080,7 @@ int parse_directive(void) {
 
   /* COUNTRYCODE */
 
-  if (strcmp(cp, "COUNTRYCODE") == 0) {
+  if (strcaselesscmp(cp, "COUNTRYCODE") == 0) {
 
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .COUNTRYCODE.\n", ERROR_DIR);
@@ -4113,7 +4113,7 @@ int parse_directive(void) {
 
   /* CARTRIDGETYPE */
 
-  if (strcmp(cp, "CARTRIDGETYPE") == 0) {
+  if (strcaselesscmp(cp, "CARTRIDGETYPE") == 0) {
 
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .CARTRIDGETYPE.\n", ERROR_DIR);
@@ -4145,7 +4145,7 @@ int parse_directive(void) {
 
   /* LICENSEECODENEW */
 
-  if (strcmp(cp, "LICENSEECODENEW") == 0) {
+  if (strcaselesscmp(cp, "LICENSEECODENEW") == 0) {
 
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .LICENSEECODENEW.\n", ERROR_DIR);
@@ -4185,7 +4185,7 @@ int parse_directive(void) {
 
   /* LICENSEECODEOLD */
 
-  if (strcmp(cp, "LICENSEECODEOLD") == 0) {
+  if (strcaselesscmp(cp, "LICENSEECODEOLD") == 0) {
 
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .LICENSEECODEOLD.\n", ERROR_DIR);
@@ -4460,7 +4460,7 @@ int parse_directive(void) {
 
   /* EMPTYFILL */
 
-  if (strcmp(cp, "EMPTYFILL") == 0) {
+  if (strcaselesscmp(cp, "EMPTYFILL") == 0) {
 
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .EMPTYFILL.\n", ERROR_DIR);
@@ -4493,7 +4493,7 @@ int parse_directive(void) {
 
   /* DEFINE/DEF/EQU */
 
-  if (strcmp(cp, "DEFINE") == 0 || strcmp(cp, "DEF") == 0 || strcmp(cp, "EQU") == 0) {
+  if (strcaselesscmp(cp, "DEFINE") == 0 || strcaselesscmp(cp, "DEF") == 0 || strcaselesscmp(cp, "EQU") == 0) {
 
     double dou;
     char k[256];
@@ -4545,7 +4545,7 @@ int parse_directive(void) {
 
   /* INPUT */
 
-  if (strcmp(cp, "INPUT") == 0) {
+  if (strcaselesscmp(cp, "INPUT") == 0) {
 
     char k[256];
     int j, v;
@@ -4642,7 +4642,7 @@ int parse_directive(void) {
 
   /* REDEFINE/REDEF */
 
-  if (strcmp(cp, "REDEFINE") == 0 || strcmp(cp, "REDEF") == 0) {
+  if (strcaselesscmp(cp, "REDEFINE") == 0 || strcaselesscmp(cp, "REDEF") == 0) {
 
     double dou;
     char k[256];
@@ -4693,7 +4693,7 @@ int parse_directive(void) {
 
   /* EXPORT */
 
-  if (strcmp(cp, "EXPORT") == 0) {
+  if (strcaselesscmp(cp, "EXPORT") == 0) {
     q = 0;
     while (1) {
       ind = input_next_string();
@@ -4719,7 +4719,7 @@ int parse_directive(void) {
 
   /* SYM/SYMBOL */
 
-  if (strcmp(cp, "SYM") == 0 || strcmp(cp, "SYMBOL") == 0) {
+  if (strcaselesscmp(cp, "SYM") == 0 || strcaselesscmp(cp, "SYMBOL") == 0) {
     ind = input_next_string();
     if (ind != SUCCEEDED) {
       print_error(".SYM requires a symbol name.\n", ERROR_DIR);
@@ -4733,14 +4733,14 @@ int parse_directive(void) {
 
   /* BR/BREAKPOINT */
 
-  if (strcmp(cp, "BR") == 0 || strcmp(cp, "BREAKPOINT") == 0) {
+  if (strcaselesscmp(cp, "BR") == 0 || strcaselesscmp(cp, "BREAKPOINT") == 0) {
     fprintf(file_out_ptr, "Z ");
     return SUCCEEDED;
   }
 
   /* ENUM */
 
-  if (strcmp(cp, "ENUM") == 0) {
+  if (strcaselesscmp(cp, "ENUM") == 0) {
 
     char tmpname[MAX_NAME_LENGTH];
     int exp = NO, ord = 1, type;
@@ -4945,7 +4945,7 @@ int parse_directive(void) {
 #ifdef GB
   /* COMPUTEGBCHECKSUM */
 
-  if (strcmp(cp, "COMPUTECHECKSUM") == 0 || strcmp(cp, "COMPUTEGBCHECKSUM") == 0) {
+  if (strcaselesscmp(cp, "COMPUTECHECKSUM") == 0 || strcaselesscmp(cp, "COMPUTEGBCHECKSUM") == 0) {
 
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .COMPUTEGBCHECKSUM.\n", ERROR_DIR);
@@ -4963,7 +4963,7 @@ int parse_directive(void) {
 
   /* COMPUTEGBCOMPLEMENTCHECK */
 
-  if (strcmp(cp, "COMPUTEGBCOMPLEMENTCHECK") == 0 || strcmp(cp, "COMPUTECOMPLEMENTCHECK") == 0) {
+  if (strcaselesscmp(cp, "COMPUTEGBCOMPLEMENTCHECK") == 0 || strcaselesscmp(cp, "COMPUTECOMPLEMENTCHECK") == 0) {
 
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .COMPUTEGBCOMPLEMENTCHECK.\n", ERROR_DIR);
@@ -4983,7 +4983,7 @@ int parse_directive(void) {
 #ifdef W65816
   /* COMPUTESNESCHECKSUM */
 
-  if (strcmp(cp, "COMPUTESNESCHECKSUM") == 0) {
+  if (strcaselesscmp(cp, "COMPUTESNESCHECKSUM") == 0) {
 
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .COMPUTESNESCHECKSUM.\n", ERROR_DIR);
@@ -5005,7 +5005,7 @@ int parse_directive(void) {
 #ifdef Z80
   /* COMPUTESMSCHECKSUM */
 
-  if (strcmp(cp, "COMPUTESMSCHECKSUM") == 0) {
+  if (strcaselesscmp(cp, "COMPUTESMSCHECKSUM") == 0) {
 
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .COMPUTESMSCHECKSUM.\n", ERROR_DIR);
@@ -5017,7 +5017,7 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
-  if (strcmp(cp, "SMSTAG") == 0) {
+  if (strcaselesscmp(cp, "SMSTAG") == 0) {
 
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .SMSTAG.\n", ERROR_DIR);
@@ -5032,7 +5032,7 @@ int parse_directive(void) {
 
   /* SDSCTAG */
 
-  if (strcmp(cp, "SDSCTAG") == 0) {
+  if (strcaselesscmp(cp, "SDSCTAG") == 0) {
 
     if (sdsctag_defined != 0) {
       print_error(".SDSCTAG can be defined only once.\n", ERROR_DIR);
@@ -5171,7 +5171,7 @@ int parse_directive(void) {
 
   /* MACRO */
 
-  if (strcmp(cp, "MACRO") == 0) {
+  if (strcaselesscmp(cp, "MACRO") == 0) {
 
     struct macro_static *m;
     int macro_start_line;
@@ -5180,7 +5180,7 @@ int parse_directive(void) {
     if (get_next_token() == FAILED)
       return FAILED;
 
-    if (strcmp(cp, "ENDM") == 0) {
+    if (strcaselesscmp(cp, "ENDM") == 0) {
       print_error("A MACRO must have a name.\n", ERROR_DIR);
       return FAILED;
     }
@@ -5278,7 +5278,7 @@ int parse_directive(void) {
 
   /* REPT/REPEAT */
 
-  if (strcmp(cp, "REPT") == 0 || strcmp(cp, "REPEAT") == 0) {
+  if (strcaselesscmp(cp, "REPT") == 0 || strcaselesscmp(cp, "REPEAT") == 0) {
 
     char c[16], index_name[MAX_NAME_LENGTH];
 
@@ -5325,11 +5325,11 @@ int parse_directive(void) {
       macro_active = 0;
       while (get_next_token() != FAILED) {
         if (tmp[0] == '.') {
-          if (strcmp(cp, "ENDR") == 0)
+          if (strcaselesscmp(cp, "ENDR") == 0)
             r--;
-          if (strcmp(cp, "E") == 0)
+          if (strcaselesscmp(cp, "E") == 0)
             break;
-          if (strcmp(cp, "REPT") == 0 || strcmp(cp, "REPEAT") == 0)
+          if (strcaselesscmp(cp, "REPT") == 0 || strcaselesscmp(cp, "REPEAT") == 0)
             r++;
         }
         if (r == 0) {
@@ -5370,7 +5370,7 @@ int parse_directive(void) {
 
   /* ENDR */
 
-  if (strcmp(cp, "ENDR") == 0) {
+  if (strcaselesscmp(cp, "ENDR") == 0) {
 
     struct repeat_runtime *rr = NULL;
     
@@ -5401,7 +5401,7 @@ int parse_directive(void) {
 
   /* E */
 
-  if (strcmp(cp, "E") == 0) {
+  if (strcaselesscmp(cp, "E") == 0) {
     if (active_file_info_last != NULL) {
       active_file_info_tmp = active_file_info_last;
       active_file_info_last = active_file_info_last->prev;
@@ -5428,7 +5428,7 @@ int parse_directive(void) {
 
   /* M */
 
-  if (strcmp(cp, "M") == 0) {
+  if (strcaselesscmp(cp, "M") == 0) {
     if (line_count_status == OFF)
       line_count_status = ON;
     else
@@ -5439,7 +5439,7 @@ int parse_directive(void) {
 #ifdef GB
   /* ROMGBC */
 
-  if (strcmp(cp, "ROMGBC") == 0) {
+  if (strcaselesscmp(cp, "ROMGBC") == 0) {
 
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .ROMGBC.\n", ERROR_DIR);
@@ -5457,7 +5457,7 @@ int parse_directive(void) {
 
   /* ROMDMG */
 
-  if (strcmp(cp, "ROMDMG") == 0) {
+  if (strcaselesscmp(cp, "ROMDMG") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .ROMDMG.\n", ERROR_DIR);
       return FAILED;
@@ -5478,7 +5478,7 @@ int parse_directive(void) {
 
   /* ROMSGB */
 
-  if (strcmp(cp, "ROMSGB") == 0) {
+  if (strcaselesscmp(cp, "ROMSGB") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .ROMSGB.\n", ERROR_DIR);
       return FAILED;
@@ -5496,7 +5496,7 @@ int parse_directive(void) {
 
   /* ROMBANKSIZE */
 
-  if (strcmp(cp, "ROMBANKSIZE") == 0 || strcmp(cp, "BANKSIZE") == 0) {
+  if (strcaselesscmp(cp, "ROMBANKSIZE") == 0 || strcaselesscmp(cp, "BANKSIZE") == 0) {
     q = input_number();
 
     if (q == FAILED)
@@ -5522,7 +5522,7 @@ int parse_directive(void) {
 
   /* ENDM */
 
-  if (strcmp(cp, "ENDM") == 0) {
+  if (strcaselesscmp(cp, "ENDM") == 0) {
     if (macro_active != 0) {
       macro_active--;
 
@@ -5611,14 +5611,14 @@ int parse_directive(void) {
 
   /* 8BIT */
 
-  if (strcmp(cp, "8BIT") == 0) {
+  if (strcaselesscmp(cp, "8BIT") == 0) {
     xbit_size = 8;
     return SUCCEEDED;
   }
 
   /* 16BIT */
 
-  if (strcmp(cp, "16BIT") == 0) {
+  if (strcaselesscmp(cp, "16BIT") == 0) {
     xbit_size = 16;
     return SUCCEEDED;
   }
@@ -5629,14 +5629,14 @@ int parse_directive(void) {
 
   /* 24BIT */
 
-  if (strcmp(cp, "24BIT") == 0) {
+  if (strcaselesscmp(cp, "24BIT") == 0) {
     xbit_size = 24;
     return SUCCEEDED;
   }
 
   /* INDEX */
 
-  if (strcmp(cp, "INDEX") == 0) {
+  if (strcaselesscmp(cp, "INDEX") == 0) {
     q = input_number();
 
     if (q == FAILED)
@@ -5653,7 +5653,7 @@ int parse_directive(void) {
 
   /* ACCU */
 
-  if (strcmp(cp, "ACCU") == 0) {
+  if (strcaselesscmp(cp, "ACCU") == 0) {
     q = input_number();
 
     if (q == FAILED)
@@ -5670,7 +5670,7 @@ int parse_directive(void) {
 
   /* BASE */
 
-  if (strcmp(cp, "BASE") == 0) {
+  if (strcaselesscmp(cp, "BASE") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .BASE definitions.\n", ERROR_DIR);
       return FAILED;
@@ -5692,7 +5692,7 @@ int parse_directive(void) {
 
   /* SMC */
 
-  if (strcmp(cp, "SMC") == 0) {
+  if (strcaselesscmp(cp, "SMC") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .SMC.\n", ERROR_DIR);
       return FAILED;
@@ -5706,7 +5706,7 @@ int parse_directive(void) {
 
   /* HIROM */
 
-  if (strcmp(cp, "HIROM") == 0) {
+  if (strcaselesscmp(cp, "HIROM") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .HIROM.\n", ERROR_DIR);
       return FAILED;
@@ -5724,7 +5724,7 @@ int parse_directive(void) {
 
   /* LOROM */
 
-  if (strcmp(cp, "LOROM") == 0) {
+  if (strcaselesscmp(cp, "LOROM") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .LOROM.\n", ERROR_DIR);
       return FAILED;
@@ -5742,7 +5742,7 @@ int parse_directive(void) {
 
   /* SLOWROM */
 
-  if (strcmp(cp, "SLOWROM") == 0) {
+  if (strcaselesscmp(cp, "SLOWROM") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .SLOWROM.\n", ERROR_DIR);
       return FAILED;
@@ -5760,7 +5760,7 @@ int parse_directive(void) {
 
   /* FASTROM */
 
-  if (strcmp(cp, "FASTROM") == 0) {
+  if (strcaselesscmp(cp, "FASTROM") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .FASTROM.\n", ERROR_DIR);
       return FAILED;
@@ -5778,7 +5778,7 @@ int parse_directive(void) {
 
   /* SNESHEADER */
 
-  if (strcmp(cp, "SNESHEADER") == 0) {
+  if (strcaselesscmp(cp, "SNESHEADER") == 0) {
     if (snesheader_defined != 0) {
       print_error(".SNESHEADER can be defined only once.\n", ERROR_DIR);
       return FAILED;
@@ -6041,7 +6041,7 @@ int parse_directive(void) {
 
   /* SNESNATIVEVECTOR */
 
-  if (strcmp(cp, "SNESNATIVEVECTOR") == 0) {
+  if (strcaselesscmp(cp, "SNESNATIVEVECTOR") == 0) {
 
     int cop_defined = 0, brk_defined = 0, abort_defined = 0;
     int nmi_defined = 0, unused_defined = 0, irq_defined = 0;
@@ -6245,7 +6245,7 @@ int parse_directive(void) {
 
   /* SNESEMUVECTOR */
 
-  if (strcmp(cp, "SNESEMUVECTOR") == 0) {
+  if (strcaselesscmp(cp, "SNESEMUVECTOR") == 0) {
 
     int cop_defined = 0, unused_defined = 0, abort_defined = 0;
     int nmi_defined = 0, reset_defined = 0, irqbrk_defined = 0;
@@ -6451,7 +6451,7 @@ int parse_directive(void) {
 
   /* PRINTT */
 
-  if (strcmp(cp, "PRINTT") == 0) {
+  if (strcaselesscmp(cp, "PRINTT") == 0) {
 
     char t[256];
     int s, u;
@@ -6491,7 +6491,7 @@ int parse_directive(void) {
 
   /* PRINTV */
 
-  if (strcmp(cp, "PRINTV") == 0) {
+  if (strcaselesscmp(cp, "PRINTV") == 0) {
 
     int m;
 
@@ -6532,7 +6532,7 @@ int parse_directive(void) {
 
   /* SEED */
 
-  if (strcmp(cp, "SEED") == 0) {
+  if (strcaselesscmp(cp, "SEED") == 0) {
 
     q = input_number();
     if (q == FAILED)
@@ -6550,7 +6550,7 @@ int parse_directive(void) {
 
   /* DBRND/DWRND */
 
-  if (strcmp(cp, "DBRND") == 0 || strcmp(cp, "DWRND") == 0) {
+  if (strcaselesscmp(cp, "DBRND") == 0 || strcaselesscmp(cp, "DWRND") == 0) {
 
     int o, c, min, max, f;
 
@@ -6637,7 +6637,7 @@ int parse_directive(void) {
 
   /* DWSIN/DBSIN/DWCOS/DBCOS */
 
-  if (strcmp(cp, "DWSIN") == 0 || strcmp(cp, "DBSIN") == 0 || strcmp(cp, "DWCOS") == 0 || strcmp(cp, "DBCOS") == 0) {
+  if (strcaselesscmp(cp, "DWSIN") == 0 || strcaselesscmp(cp, "DBSIN") == 0 || strcaselesscmp(cp, "DWCOS") == 0 || strcaselesscmp(cp, "DBCOS") == 0) {
 
     double m, a, s, n;
     int p, c, o, f;
@@ -6745,7 +6745,7 @@ int parse_directive(void) {
 
   /* FAIL */
 
-  if (strcmp(cp, "FAIL") == 0) {
+  if (strcaselesscmp(cp, "FAIL") == 0) {
     print_error("HALT: .FAIL found.\n", ERROR_NONE);
 
     /* make a silent exit */
@@ -6754,7 +6754,7 @@ int parse_directive(void) {
 
   /* UNDEF/UNDEFINE */
 
-  if (strcmp(cp, "UNDEF") == 0 || strcmp(cp, "UNDEFINE") == 0) {
+  if (strcaselesscmp(cp, "UNDEF") == 0 || strcaselesscmp(cp, "UNDEFINE") == 0) {
 
     char c[16];
 
@@ -6789,12 +6789,12 @@ int parse_directive(void) {
 
   /* ASM */
 
-  if (strcmp(cp, "ASM") == 0)
+  if (strcaselesscmp(cp, "ASM") == 0)
     return SUCCEEDED;
 
   /* ENDASM */
 
-  if (strcmp(cp, "ENDASM") == 0) {
+  if (strcaselesscmp(cp, "ENDASM") == 0) {
 
     int endasm = 1, x;
 
@@ -6840,19 +6840,19 @@ int find_next_point(char *name) {
   macro_active = 0;
   while (get_next_token() != FAILED) {
     if (tmp[0] == '.') {
-      if (strcmp(cp, "ENDIF") == 0)
+      if (strcaselesscmp(cp, "ENDIF") == 0)
         depth--;
-      if (strcmp(cp, "ELSE") == 0 && depth == 1)
+      if (strcaselesscmp(cp, "ELSE") == 0 && depth == 1)
         depth--;
-      if (strcmp(cp, "E") == 0)
+      if (strcaselesscmp(cp, "E") == 0)
         break;
-      if (strcmp(cp, "IFDEF") == 0 || strcmp(cp, "IFNDEF") == 0 || strcmp(cp, "IFGR") == 0 || strcmp(cp, "IFLE") == 0 ||
-          strcmp(cp, "IFEQ") == 0 || strcmp(cp, "IFNEQ") == 0 || strcmp(cp, "IFDEFM") == 0 || strcmp(cp, "IFNDEFM") == 0 ||
-          strcmp(cp, "IF") == 0 || strcmp(cp, "IFGREQ") == 0 || strcmp(cp, "IFLEEQ") == 0 || strcmp(cp, "IFEXISTS") == 0)
+      if (strcaselesscmp(cp, "IFDEF") == 0 || strcaselesscmp(cp, "IFNDEF") == 0 || strcaselesscmp(cp, "IFGR") == 0 || strcaselesscmp(cp, "IFLE") == 0 ||
+          strcaselesscmp(cp, "IFEQ") == 0 || strcaselesscmp(cp, "IFNEQ") == 0 || strcaselesscmp(cp, "IFDEFM") == 0 || strcaselesscmp(cp, "IFNDEFM") == 0 ||
+          strcaselesscmp(cp, "IF") == 0 || strcaselesscmp(cp, "IFGREQ") == 0 || strcaselesscmp(cp, "IFLEEQ") == 0 || strcaselesscmp(cp, "IFEXISTS") == 0)
         depth++;
     }
     if (depth == 0) {
-      if (strcmp(cp, "ELSE") == 0)
+      if (strcaselesscmp(cp, "ELSE") == 0)
         ifdef++;
       macro_active = m;
       return SUCCEEDED;
