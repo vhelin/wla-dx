@@ -108,7 +108,8 @@ _nams:	.dw _nams+1
 ; standard stuff?
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
-.bank 0 slot 0
+.define issue11 10
+.bank issue11-10 slot 6+issue11-4-2-10
 .org $300
 
 done:
