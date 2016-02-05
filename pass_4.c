@@ -701,7 +701,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAW");
+    fprintf(final_ptr, "WLAX");
 
     if (export_source_file_names(final_ptr) == FAILED)
       return FAILED;
@@ -855,7 +855,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAL%c", emptyfill);
+    fprintf(final_ptr, "WLAM%c", emptyfill);
 
     /* misc bits */
     ind = 0;
