@@ -32,6 +32,8 @@ extern struct reference *reference_first, *reference_last;
 extern struct section *sec_first, *sec_last, *sec_hd_first, *sec_hd_last;
 extern struct stack *stacks_first, *stacks_last;
 extern struct label *labels_first, *labels_last;
+extern struct map_t *global_unique_label_map;
+extern struct map_t *namespace_map;
 extern struct slot slots[256];
 extern int rombanks, verbose_mode, section_overwrite, symbol_mode, discard_unreferenced_sections;
 extern int emptyfill;
@@ -130,6 +132,62 @@ int add_section(struct section *s) {
   }
 
   return SUCCEEDED;
+}
+
+int find_label(char *str, struct section *s, struct label **out) {
+  char* str2;
+  char* stripped;
+  char prefix[MAX_NAME_LENGTH*2+2];
+  struct label *l = NULL;
+  int i;
+
+  str2 = strchr(str, '.');
+  i = str2-str;
+  if (str2 == NULL) {
+    stripped = str;
+    prefix[0] = '\0';
+  }
+  else {
+    stripped = str2+1;
+    strncpy(prefix, str, i);
+    prefix[i] = '\0';
+  }
+
+  *out = NULL;
+
+  if (prefix[0] != '\0') {
+    /* A namespace is specified (or at least there's a dot in the label) */
+    struct namespace_def *nspace;
+    if (hashmap_get(namespace_map, prefix, (void*)&nspace) == MAP_OK) {
+      if (hashmap_get(nspace->label_map, stripped, (void*)&l) == MAP_OK) {
+        *out = l;
+        return SUCCEEDED;
+      }
+    }
+  }
+  if (s != NULL && s->nspace != NULL) {
+    /* Check the section's namespace */
+    if (hashmap_get(s->nspace->label_map, str, (void*)&l) == MAP_OK) {
+      *out = l;
+      return SUCCEEDED;
+    }
+  }
+  if (s != NULL) {
+    /* Check the section's labels. This is a bit redundant but it might have
+     * local labels (labels starting with an underscore)
+     */
+    if (hashmap_get(s->label_map, str, (void*)&l) == MAP_OK) {
+      *out = l;
+      return SUCCEEDED;
+    }
+  }
+  /* Check the global namespace */
+  if (hashmap_get(global_unique_label_map, str, (void*)&l) == MAP_OK) {
+    *out = l;
+    return SUCCEEDED;
+  }
+
+  return FAILED;
 }
 
 
@@ -388,7 +446,7 @@ int collect_dlr(void) {
 
       /* load defines */
       for (; i > 0; i--) {
-	l = malloc(sizeof(struct label));
+	l = calloc(1, sizeof(struct label));
 	if (l == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
@@ -413,6 +471,7 @@ int collect_dlr(void) {
 	l->base = 0;
 	l->file_id = obj_tmp->id;
 	l->section_status = OFF;
+        l->section_struct = NULL;
 
 	add_label(l);
       }
@@ -421,7 +480,7 @@ int collect_dlr(void) {
       i = READ_T;
 
       for (; i > 0; i--) {
-	l = malloc(sizeof(struct label));
+	l = calloc(1, sizeof(struct label));
 	if (l == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
@@ -458,6 +517,7 @@ int collect_dlr(void) {
 	l->address = ((int)l->address) & 0xFFFF;
 	l->bank = READ_T;
 	l->file_id = obj_tmp->id;
+        l->section_struct = NULL;
 
 	add_label(l);
       }
@@ -555,7 +615,7 @@ int collect_dlr(void) {
 
       /* load definitions */
       for (; i > 0; i--) {
-	l = malloc(sizeof(struct label));
+	l = calloc(1, sizeof(struct label));
 	if (l == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
@@ -590,7 +650,7 @@ int collect_dlr(void) {
 
       /* load labels and symbols */
       for (; i > 0; i--) {
-	l = malloc(sizeof(struct label));
+	l = calloc(1, sizeof(struct label));
 	if (l == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
@@ -719,8 +779,9 @@ int parse_data_blocks(void) {
   struct section *s;
   int section, i, y, x;
   unsigned char *t, *p;
+  char buf[256];
 
-  
+
   obj_tmp = obj_first;
   section = 0;
 
@@ -730,51 +791,78 @@ int parse_data_blocks(void) {
       t = obj_tmp->data_blocks;
       p = obj_tmp->data + obj_tmp->size;
       for (y = 1; t < p; ) {
-	x = *(t++);
+        x = *(t++);
 
-	if (x == DATA_TYPE_BLOCK) {
-	  /* address */
-	  i = READ_T;
-	  /* amount of bytes */
-	  x = READ_T;
+        if (x == DATA_TYPE_BLOCK) {
+          /* address */
+          i = READ_T;
+          /* amount of bytes */
+          x = READ_T;
 
-	  for (; x > 0; x--, i++)
-	    if (mem_insert(i, *(t++)) == FAILED)
-	      return FAILED;
-	}
-	else if (x == DATA_TYPE_SECTION) {
-	  s = malloc(sizeof(struct section));
-	  if (s == NULL) {
-	    fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
-	    return FAILED;
-	  }
-	  y++;
+          for (; x > 0; x--, i++)
+            if (mem_insert(i, *(t++)) == FAILED)
+              return FAILED;
+        }
+        else if (x == DATA_TYPE_SECTION) {
+          s = malloc(sizeof(struct section));
+          if (s == NULL) {
+            fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
+            return FAILED;
+          }
+          y++;
 
-	  /* name */
-	  i = 0;
-	  while (*t != 0 && *t != 1 && *t != 2 && *t != 3 && *t != 4 && *t != 5 && *t != 6 && *t != 7 && *t != 8)
-	    s->name[i++] = *(t++);
-	  s->name[i] = 0;
-	  s->status = *(t++);
-	  s->id = READ_T;
-	  s->id += section;
-	  s->slot = *(t++);
-	  s->file_id_source = *(t++);
-	  s->address = READ_T;
-	  s->bank = READ_T;
-	  s->size = READ_T;
+          /* name */
+          i = 0;
+          while (*t != 0 && *t != 1 && *t != 2 && *t != 3 && *t != 4 && *t != 5 && *t != 6 && *t != 7 && *t != 8)
+            s->name[i++] = *(t++);
+          s->name[i] = 0;
+          s->status = *(t++);
+
+          /* namespace */
+          i = 0;
+          while (*t != 0)
+            buf[i++] = *(t++);
+          buf[i] = 0;
+          t++;
+          if (buf[0] == 0)
+            s->nspace = NULL;
+          else {
+            struct namespace_def *nspace;
+            hashmap_get(namespace_map, buf, (void*)&nspace);
+            if (nspace == NULL) {
+              nspace = malloc(sizeof(struct namespace_def));
+              if (nspace == NULL) {
+                fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
+                return FAILED;
+              }
+              nspace->label_map = hashmap_new();
+              strcpy(nspace->name, buf);
+              hashmap_put(namespace_map, nspace->name, nspace);
+            }
+
+            s->nspace = nspace;
+          }
+
+          s->id = READ_T;
+          s->id += section;
+          s->slot = *(t++);
+          s->file_id_source = *(t++);
+          s->address = READ_T;
+          s->bank = READ_T;
+          s->size = READ_T;
           s->alignment = READ_T;
-	  s->data = t;
-	  s->library_status = OFF;
-	  t += s->size;
+          s->data = t;
+          s->library_status = OFF;
+          s->label_map = hashmap_new();
+          t += s->size;
 
-	  /* listfile block */
-	  if (listfile_block_read(&t, s) == FAILED)
-	    return FAILED;
-	  
-	  if (add_section(s) == FAILED)
-	    return FAILED;
-	}
+          /* listfile block */
+          if (listfile_block_read(&t, s) == FAILED)
+            return FAILED;
+
+          if (add_section(s) == FAILED)
+            return FAILED;
+        }
       }
       obj_tmp = obj_tmp->next;
       section += 1000000;
@@ -785,38 +873,65 @@ int parse_data_blocks(void) {
       t = obj_tmp->data_blocks;
       p = obj_tmp->data + obj_tmp->size;
       for (y = 1; t < p; ) {
-	s = malloc(sizeof(struct section));
-	if (s == NULL) {
-	  fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
-	  return FAILED;
-	}
-	y++;
+        s = malloc(sizeof(struct section));
+        if (s == NULL) {
+          fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
+          return FAILED;
+        }
+        y++;
 
-	/* name */
-	i = 0;
-	while (*t != 0 && *t != 7)
-	  s->name[i++] = *(t++);
-	s->name[i] = 0;
-	s->status = *(t++);
-	s->id = READ_T;
-	s->id += section;
-	s->file_id_source = *(t++);
-	s->size = READ_T;
+        /* name */
+        i = 0;
+        while (*t != 0 && *t != 7)
+          s->name[i++] = *(t++);
+        s->name[i] = 0;
+        s->status = *(t++);
+
+        /* namespace */
+        i = 0;
+        while (*t != 0)
+          buf[i++] = *(t++);
+        buf[i] = 0;
+        t++;
+        if (buf[0] == 0)
+          s->nspace = NULL;
+        else {
+          struct namespace_def *nspace;
+          hashmap_get(namespace_map, buf, (void*)&nspace);
+          if (nspace == NULL) {
+            nspace = malloc(sizeof(struct namespace_def));
+            if (nspace == NULL) {
+              fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
+              return FAILED;
+            }
+            nspace->label_map = hashmap_new();
+            strcpy(nspace->name, buf);
+            hashmap_put(namespace_map, nspace->name, nspace);
+          }
+
+          s->nspace = nspace;
+        }
+
+        s->id = READ_T;
+        s->id += section;
+        s->file_id_source = *(t++);
+        s->size = READ_T;
         s->alignment = READ_T;
-	s->data = t;
-	s->address = 0;
-	s->bank = obj_tmp->bank;
-	s->slot = obj_tmp->slot;
-	s->base = obj_tmp->base;
-	s->library_status = ON;
-	s->base_defined = obj_tmp->base_defined;
-	t += s->size;
+        s->data = t;
+        s->address = 0;
+        s->bank = obj_tmp->bank;
+        s->slot = obj_tmp->slot;
+        s->base = obj_tmp->base;
+        s->library_status = ON;
+        s->base_defined = obj_tmp->base_defined;
+        s->label_map = hashmap_new();
+        t += s->size;
 
-	/* listfile block */
-	if (listfile_block_read(&t, s) == FAILED)
-	  return FAILED;
+        /* listfile block */
+        if (listfile_block_read(&t, s) == FAILED)
+          return FAILED;
 
-	add_section(s);
+        add_section(s);
       }
       obj_tmp = obj_tmp->next;
       section += 1000000;
@@ -954,6 +1069,9 @@ int clean_up_dlr(void) {
 	    else
 	      l = l->next;
 	  }
+
+          /* free label map */
+          hashmap_free(sec->label_map);
 	  
 	  sec = sec->next;
 	  free(sect);

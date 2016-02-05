@@ -95,7 +95,7 @@ int load_files(char *argv[], int argc) {
 
     /* definition loading? */
     if (state == STATE_DEFINITION) {
-      l = malloc(sizeof(struct label));
+      l = calloc(1, sizeof(struct label));
       if (l == NULL) {
 	fprintf(stderr, "LOAD_FILES: Out of memory.\n");
 	return FAILED;

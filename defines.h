@@ -1,3 +1,4 @@
+#include "hashmap.h"
 
 #ifndef _DEFINES_H
 #define _DEFINES_H
@@ -416,7 +417,6 @@ struct definition {
   double value;
   int    type;
   int    size;
-  struct definition *next;
 };
 
 struct macro_argument {
@@ -479,6 +479,7 @@ struct label_def {
 #endif
   int  filename_id;
   int  linenumber;
+  struct section_def *section_struct;
   struct label_def *next;
 };
 
@@ -501,7 +502,14 @@ struct section_def {
   int  *listfile_ints;
   char *listfile_cmds;
   unsigned char *data;
+  struct namespace_def *nspace;
+  struct map_t *label_map;
   struct section_def *next;
+};
+
+struct namespace_def {
+  char name[MAX_NAME_LENGTH];
+  struct map_t *label_map;
 };
 
 struct incbin_file_data {

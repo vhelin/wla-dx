@@ -6,6 +6,7 @@
 
 #include "defines.h"
 
+#include "hashmap.h"
 #include "parse.h"
 #include "pass_1.h"
 #include "stack.h"
@@ -15,7 +16,8 @@
 extern int input_number_error_msg, bankheader_status, input_float_mode;
 extern int i, size, d, macro_active, string_size, section_status, parse_floats;
 extern char xyz[256], *buffer, tmp[4096], expanded_macro_string[256], label[MAX_NAME_LENGTH];
-extern struct definition *defines, *tmp_def, *next_def;
+extern struct definition *tmp_def;
+extern struct map_t *defines_map;
 extern struct active_file_info *active_file_info_first, *active_file_info_last, *active_file_info_tmp;
 extern struct macro_runtime *macro_runtime_current;
 extern struct section_def *sec_tmp;
@@ -1002,31 +1004,26 @@ int resolve_stack(struct stack_item s[], int x) {
 	    return FAILED;
 	}
 
-	tmp_def = defines;
-	while (tmp_def != NULL) {
-	  if (strcmp(tmp_def->alias, s->string) == 0) {
-	    if (tmp_def->type == DEFINITION_TYPE_STRING) {
-	      sprintf(xyz, "Definition \"%s\" is a string definition.\n", tmp_def->alias);
-	      print_error(xyz, ERROR_STC);
-	      return FAILED;
-	    }
-	    else if (tmp_def->type == DEFINITION_TYPE_STACK) {
-	      /* skip stack definitions -> use its name instead, thus do nothing here */
-	    }
-	    else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
-	      /* wla cannot resolve address labels (unless outside a section) -> only wlalink can do that */
-	      cannot_resolve = 1;
-	      strcpy(s->string, tmp_def->string);
-	      break;
-	    }
-	    else {
-	      s->type = STACK_ITEM_TYPE_VALUE;
-	      s->value = tmp_def->value;
-	      break;
-	    }
+        hashmap_get(defines_map, s->string, (void*)&tmp_def);
+        if (tmp_def != NULL) {
+          if (tmp_def->type == DEFINITION_TYPE_STRING) {
+            sprintf(xyz, "Definition \"%s\" is a string definition.\n", tmp_def->alias);
+            print_error(xyz, ERROR_STC);
+            return FAILED;
+          }
+          else if (tmp_def->type == DEFINITION_TYPE_STACK) {
+	    /* skip stack definitions -> use its name instead, thus do nothing here */
+          }
+	  else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+	    /* wla cannot resolve address labels (unless outside a section) -> only wlalink can do that */
+	    cannot_resolve = 1;
+	    strcpy(s->string, tmp_def->string);
 	  }
-	  tmp_def = tmp_def->next;
-	}
+	  else {
+            s->type = STACK_ITEM_TYPE_VALUE;
+            s->value = tmp_def->value;
+          }
+        }
       }
     }
     s++;

@@ -20,11 +20,13 @@ extern int verbose_mode, section_status, cartridgetype, output_format;
 
 
 struct label_def *label_next, *label_last, *label_tmp, *labels = NULL;
+struct map_t *global_unique_label_map = NULL;
 struct block *blocks = NULL;
 
 
 int pass_3(void) {
 
+  char emsg[256];
   struct section_def *s;
   struct label_def *l;
   struct block *b;
@@ -34,6 +36,7 @@ int pass_3(void) {
   int base = 0x00;
 #endif
   char c;
+  int err;
 
   
   s = NULL;
@@ -163,6 +166,7 @@ int pass_3(void) {
 	l->linenumber = line_number;
 	l->alive = ON;
 	l->section_id = s->id;
+        l->section_struct = s;
 	/* section labels get a relative address */
 	l->address = add;
 	l->bank = s->bank;
@@ -183,18 +187,51 @@ int pass_3(void) {
 	  continue;
 	}
 
-	label_next = labels;
-	while (label_next != NULL) {
-	  if (strcmp(l->label, label_next->label) == 0) {
-	    if ((l->label[0] != '_') || /* both are not local labels */
-		(section_status == OFF && label_next->section_status == OFF) ||
-		(section_status == ON && label_next->section_status == ON && label_next->section_id == l->section_id)) {
-	      fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
-	      return FAILED;
-	    }
-	  }
-	  label_next = label_next->next;
-	}
+        /* Check the label is not already defined */
+
+        sprintf(emsg, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
+            get_file_name(file_name_id),
+            line_number,
+            l->label);
+
+        if (s != NULL) {
+          /* Always put the label into the section's label_map */
+          if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
+            fprintf(stderr, emsg);
+            return FAILED;
+          }
+          if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
+            fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+            return FAILED;
+          }
+        }
+
+        /* Don't put local labels into namespaces or the global namespace */
+        if (s == NULL || l->label[0] != '_') {
+          if (s != NULL && s->nspace != NULL) {
+            /* Label in a namespace */
+            if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
+              fprintf(stderr, emsg);
+              return FAILED;
+            }
+            if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
+              fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+              return FAILED;
+            }
+          }
+          else {
+            /* Global label */
+            if (hashmap_get(global_unique_label_map, l->label, NULL) == MAP_OK) {
+              fprintf(stderr, emsg);
+              return FAILED;
+            }
+            if ((err = hashmap_put(global_unique_label_map, l->label, l)) != MAP_OK) {
+              fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+              return FAILED;
+            }
+          }
+        }
+
 
 	if (labels != NULL) {
 	  label_last->next = l;
@@ -241,10 +278,11 @@ int pass_3(void) {
 	  /* discard all labels which belong to this section */
 	  l = labels;
 	  while (l != NULL) {
-	    if (l->section_status == ON && l->section_id == s->id)
+	    if (l->section_status == ON && l->section_id == s->id) {
 	      l->alive = OFF;
+            }
 	    l = l->next;
-	  }
+          }
 	}
 
 	if (s->advance_org == NO)
@@ -353,16 +391,17 @@ int pass_3(void) {
 
       /* discard an empty section? */
       if (s->size == 0) {
-	fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(file_name_id), s->name);
-	s->alive = OFF;
+        fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(file_name_id), s->name);
+        s->alive = OFF;
 
-	/* discard all labels which belong to this section */
-	l = labels;
-	while (l != NULL) {
-	  if (l->section_status == ON && l->section_id == s->id)
-	    l->alive = OFF;
-	  l = l->next;
-	}
+        /* discard all labels which belong to this section */
+        l = labels;
+        while (l != NULL) {
+          if (l->section_status == ON && l->section_id == s->id) {
+            l->alive = OFF;
+          }
+          l = l->next;
+        }
       }
 
       /* some sections don't affect the ORG outside of them */
@@ -488,6 +527,7 @@ int pass_3(void) {
       l->alive = ON;
       if (section_status == ON) {
 	l->section_id = s->id;
+        l->section_struct = s;
 	/* section labels get a relative address */
 	l->address = add - s->address;
 	l->bank = s->bank;
@@ -495,6 +535,7 @@ int pass_3(void) {
       }
       else {
 	l->section_id = 0;
+        l->section_struct = NULL;
 	l->address = add;
 	l->bank = bank;
 	l->slot = slot;
@@ -516,26 +557,56 @@ int pass_3(void) {
 	continue;
       }
 
-      label_next = labels;
-      while (label_next != NULL) {
-	if (strcmp(l->label, label_next->label) == 0) {
-	  if ((l->label[0] != '_') || /* both are not local labels */
-	      (section_status == OFF && label_next->section_status == OFF) ||
-	      (section_status == ON && label_next->section_status == ON && label_next->section_id == l->section_id)) {
-	    fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
-	    return FAILED;
-	  }
-	}
-	label_next = label_next->next;
+      sprintf(emsg, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
+          get_file_name(file_name_id),
+          line_number,
+          l->label);
+
+      if (s != NULL) {
+        /* Always put the label into the section's label_map */
+        if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
+          fprintf(stderr, emsg);
+          return FAILED;
+        }
+        if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
+          fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+          return FAILED;
+        }
+      }
+
+      /* Don't put local labels into namespaces or the global namespace */
+      if (s == NULL || l->label[0] != '_') {
+        if (s != NULL && s->nspace != NULL) {
+          /* Label in a namespace */
+          if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
+            fprintf(stderr, emsg);
+            return FAILED;
+          }
+          if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
+            fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+            return FAILED;
+          }
+        }
+        else {
+          /* Global label */
+          if (hashmap_get(global_unique_label_map, l->label, NULL) == MAP_OK) {
+            fprintf(stderr, emsg);
+            return FAILED;
+          }
+          if ((err = hashmap_put(global_unique_label_map, l->label, l)) != MAP_OK) {
+            fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+            return FAILED;
+          }
+        }
       }
 
       if (labels != NULL) {
-	label_last->next = l;
-	label_last = l;
+        label_last->next = l;
+        label_last = l;
       }
       else {
-	labels = l;
-	label_last = l;
+        labels = l;
+        label_last = l;
       }
 
       continue;

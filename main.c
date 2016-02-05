@@ -69,8 +69,10 @@ char gba_tmp_name[32], gba_unfolded_name[32];
 extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
 extern struct file_name_info *file_name_info_first;
 extern struct label_def *label_tmp, *labels;
+extern struct map_t *global_unique_label_map;
 extern struct macro_static *macros_first;
-extern struct definition *defines, *tmp_def;
+extern struct definition *tmp_def;
+extern struct map_t *defines_map;
 extern struct export_def *export_first, *export_last;
 extern struct stack *stacks_first, *stacks_tmp, *stacks_last, *stacks_header_first, *stacks_header_last;
 extern struct repeat_runtime *repeat_stack;
@@ -78,6 +80,7 @@ extern struct section_def *sections_first;
 extern struct macro_runtime *macro_stack;
 extern struct label_def *unknown_labels;
 extern struct filepointer *filepointers;
+extern struct map_t *namespace_map;
 extern char *unfolded_buffer;
 extern char *include_in_tmp, *tmp_a;
 extern char *rom_banks, *rom_banks_usage_table;
@@ -104,6 +107,11 @@ int main(int argc, char *argv[]) {
 
   /* init the randon number generator */
   init_genrand(time(NULL));
+
+  /* Init hashmaps */
+  defines_map = hashmap_new();
+  global_unique_label_map = hashmap_new();
+  namespace_map = hashmap_new();
 
   if (argc >= 3) {
     if (parse_flags(argv[1]) == SUCCEEDED) {
@@ -256,7 +264,6 @@ int parse_flags(char *flags) {
   return SUCCEEDED;
 }
 
-
 void procedures_at_exit(void) {
 
   struct file_name_info *f, *ft;
@@ -289,11 +296,19 @@ void procedures_at_exit(void) {
   if (full_name != NULL)
     free(full_name);
 
-  tmp_def = defines;
-  while (tmp_def != NULL) {
-    defines = tmp_def->next;
-    free(tmp_def);
-    tmp_def = defines;
+  if (defines_map != NULL) {
+      hashmap_free_all_elements(defines_map);
+      hashmap_free(defines_map);
+  }
+
+  if (global_unique_label_map != NULL) {
+      /* don't free_all_elements, since labels contains _all_ labels. */
+      hashmap_free(global_unique_label_map);
+  }
+
+  if (namespace_map != NULL) {
+      hashmap_free_all_elements(namespace_map);
+      hashmap_free(namespace_map);
   }
 
   m = macros_first;
@@ -394,6 +409,7 @@ void procedures_at_exit(void) {
       free(s1->listfile_cmds);
     if (s1->listfile_ints != NULL)
       free(s1->listfile_ints);
+    hashmap_free(s1->label_map);
     s2 = s1->next;
     free(s1);
     s1 = s2;

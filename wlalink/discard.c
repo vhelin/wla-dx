@@ -8,6 +8,7 @@
 #include "discard.h"
 #include "files.h"
 #include "write.h"
+#include "analyze.h"
 
 
 extern struct reference *reference_first, *reference_last;
@@ -37,11 +38,11 @@ int discard_unused_sections(void) {
     s = sec_first;
     while (s != NULL) {
       if (s->referenced == 0)
-	s->alive = NO;
+        s->alive = NO;
       else
-	s->alive = YES;
+        s->alive = YES;
       if (s->alive == NO)
-	b++;
+        b++;
       s = s->next;
     }
   }
@@ -87,26 +88,29 @@ int discard_iteration(void) {
       r = r->next;
       continue;
     }
-    l = labels_first;
-    while (l != NULL) {
-      if (strcmp(l->name, r->name) == 0)
-	break;
-      l = l->next;
-    }
-    if (l != NULL && l->section_status == ON) {
+    s = NULL;
+    if (r->section_status != 0) {
       s = sec_first;
-      while (s->id != l->section)
-	s = s->next;
+      while (s != NULL) {
+        if (s->id == r->section)
+          break;
+        s = s->next;
+      }
+    }
+    find_label(r->name, s, &l);
+
+    if (l != NULL && l->section_status == ON) {
+      s = l->section_struct;
       if (s == NULL)
-	fprintf(stderr, "DISCARD_ITERATION: Internal error!\n");
+        fprintf(stderr, "DISCARD_ITERATION: Internal error!\n");
       if (r->section_status == OFF)
-	s->referenced++;
+        s->referenced++;
       else if (r->section != s->id) {
-	ss = sec_first;
-	while (ss->id != r->section)
-	  ss = ss->next;
-	if (ss->alive == YES)
-	  s->referenced++;
+        ss = sec_first;
+        while (ss->id != r->section)
+          ss = ss->next;
+        if (ss->alive == YES)
+          s->referenced++;
       }
     }
     r = r->next;
@@ -115,34 +119,38 @@ int discard_iteration(void) {
   /* loop through computations */
   st = stacks_first;
   while (st != NULL) {
+    ss = NULL;
+    if (st->section_status != 0) {
+      ss = sec_first;
+      while (ss != NULL) {
+        if (ss->id == st->section)
+          break;
+        ss = ss->next;
+      }
+    }
+
     si = st->stack;
     i = 0;
     while (i != st->stacksize) {
       if (si->type == STACK_ITEM_TYPE_STRING && is_label_anonymous(si->string) == FAILED) {
-	l = labels_first;
-	while (l != NULL) {
-	  if (strcmp(l->name, si->string) == 0 && l->section_status == ON) {
-	    s = sec_first;
-	    while (s->id != l->section)
-	      s = s->next;
-	    if (st->section_status == OFF)
-	      s->referenced++;
-	    else if (st->section != s->id) {
-	      ss = sec_first;
-	      while (ss->id != st->section)
-		ss = ss->next;
-	      if (ss->alive == YES)
-		s->referenced++;
-	    }
-	  }
-	  l = l->next;
-	}
+        find_label(si->string, ss, &l);
+
+        if (l != NULL && l->section_struct != NULL) {
+          s = l->section_struct;
+          if (st->section_status == OFF)
+            s->referenced++;
+          else if (st->section != s->id) {
+            if (ss->alive == YES)
+              s->referenced++;
+          }
+        }
       }
       si++;
       i++;
     }
     st = st->next;
   }
+
 
   return SUCCEEDED;
 }
