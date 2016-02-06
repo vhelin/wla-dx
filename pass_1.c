@@ -2219,7 +2219,7 @@ int parse_directive(void) {
     sec_next = sections_first;
     while (sec_next != NULL) {
       if (strcmp(sec_next->name, tmp) == 0) {
-        sprintf(emsg, "SECTION \"%s\" was defined for the second time.\n", tmp);
+        sprintf(emsg, "RAMSECTION \"%s\" was defined for the second time.\n", tmp);
         print_error(emsg, ERROR_DIR);
         free(sec_tmp);
         return FAILED;
@@ -2550,22 +2550,27 @@ int parse_directive(void) {
 
       if (skip_next_token() == FAILED)
         return FAILED;
+
+      /* get the name */
       if (input_next_string() == FAILED)
         return FAILED;
-      if (strlen(tmp) < 3 || tmp[0] != '\"' || tmp[strlen(tmp)-1] != '\"') {
-        print_error("Could not parse the NAMESPACE.\n", ERROR_DIR);
-        return FAILED;
+      if (tmp[0] == '\"' && tmp[strlen(tmp)-1] == '\"') {
+	l = 0;
+	while (tmp[l+1] != '\"') {
+	  tmp[l] = tmp[l+1];
+	  l++;
+	}
+	tmp[l] = 0;
       }
-      tmp[strlen(tmp)-1] = '\0';
 
-      hashmap_get(namespace_map, tmp+1, (void*)&nspace);
+      hashmap_get(namespace_map, tmp, (void*)&nspace);
       if (nspace == NULL) {
         nspace = calloc(1, sizeof(struct namespace_def));
         if (nspace == NULL) {
           print_error("Out of memory error.\n", ERROR_DIR);
           return FAILED;
         }
-        strcpy(nspace->name, tmp+1);
+        strcpy(nspace->name, tmp);
         if (hashmap_put(namespace_map, nspace->name, nspace) != MAP_OK) {
           print_error("Namespace hashmap error.\n", ERROR_DIR);
           return FAILED;
