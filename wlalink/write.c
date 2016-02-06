@@ -662,6 +662,8 @@ int fix_references(void) {
   /* insert references */
   r = reference_first;
   while (r != NULL) {
+    s = NULL;
+
     x = r->address;
     /* search for the section of the reference and fix the address */
     if (r->section_status == ON) {
