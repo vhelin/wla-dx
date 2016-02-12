@@ -224,3 +224,24 @@ label04		db
 vbi_counter:   db
 player_lives:  db
 .ENDS
+
+
+.section asciitest namespace asciitest
+
+tests:	.db "ASCIITest\0\0\0\0ASCIITest", "\x0a\x10\xbb\x11ASCIITest"
+	.db "\\\\0123456789"
+	
+.ends
+
+.section dltest namespace dltest
+
+	.db ".DLTest"
+	.dl asciitest.tests
+	.db ".DLTest"
+	.dl $123456, $ab, $1122
+	.db ".DLTest"
+	.dl $1000 + $100 + $10 + $1 + $220000
+	.db ".DLTest"
+	
+.ends
+	
