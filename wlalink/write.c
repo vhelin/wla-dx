@@ -894,12 +894,12 @@ int write_symbol_file(char *outname, unsigned char mode) {
       }
       if (l->status == LABEL_STATUS_LABEL) {
 	if (snes_mode == 0)
-	  fprintf(f, "%.4x:%.4x %s\n", l->bank, (int)l->address, l->name);
+	  fprintf(f, "%.2x:%.4x %s\n", l->bank, (int)l->address, l->name);
 	else
-	  fprintf(f, "%.4x:%.4x %s\n", get_snes_pc_bank(l)>>16, (int)l->address, l->name);
+	  fprintf(f, "%.2x:%.4x %s\n", get_snes_pc_bank(l)>>16, (int)l->address, l->name);
       }
       else
-	fprintf(f, "0000:%.4x %s\n", (int)l->address, l->name);
+	fprintf(f, "00:%.4x %s\n", (int)l->address, l->name);
       l = l->next;
     }
   }
@@ -943,9 +943,9 @@ int write_symbol_file(char *outname, unsigned char mode) {
 	}
 	
 	if (snes_mode == 0)
-	  fprintf(f, "%.4x:%.4x %s\n", l->bank, (int)l->address, l->name);
+	  fprintf(f, "%.2x:%.4x %s\n", l->bank, (int)l->address, l->name);
 	else
-	  fprintf(f, "%.4x:%.4x %s\n", get_snes_pc_bank(l)>>16, (int)l->address, l->name);
+	  fprintf(f, "%.2x:%.4x %s\n", get_snes_pc_bank(l)>>16, (int)l->address, l->name);
 	
 	l = l->next;
       }
@@ -972,9 +972,9 @@ int write_symbol_file(char *outname, unsigned char mode) {
 	}
 	
 	if (snes_mode == 0)
-	  fprintf(f, "%.4x:%.4x %s\n", l->bank, (int)l->address, l->name);
+	  fprintf(f, "%.2x:%.4x %s\n", l->bank, (int)l->address, l->name);
 	else
-	  fprintf(f, "%.4x:%.4x %s\n", get_snes_pc_bank(l)>>16, (int)l->address, l->name);
+	  fprintf(f, "%.2x:%.4x %s\n", get_snes_pc_bank(l)>>16, (int)l->address, l->name);
 	
 	l = l->next;
       }
@@ -1001,9 +1001,9 @@ int write_symbol_file(char *outname, unsigned char mode) {
 	}
 
 	if (snes_mode == 0)
-	  fprintf(f, "%.4x:%.4x\n", l->bank, (int)l->address);
+	  fprintf(f, "%.2x:%.4x\n", l->bank, (int)l->address);
 	else
-	  fprintf(f, "%.4x:%.4x\n", get_snes_pc_bank(l)>>16, (int)l->address);
+	  fprintf(f, "%.2x:%.4x\n", get_snes_pc_bank(l)>>16, (int)l->address);
 	
 	l = l->next;
       }
