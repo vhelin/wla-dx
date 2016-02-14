@@ -13,9 +13,19 @@
 
 #ifdef GB
 extern int licenseecodeold;
+extern int nintendologo_defined;
 extern int name_defined, licenseecodeold_defined, licenseecodenew_defined;
 extern int countrycode, countrycode_defined;
 extern char name[32], licenseecodenew_c1, licenseecodenew_c2;
+
+unsigned char nintendo_logo_dat[] = {
+  0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B,
+  0x03, 0x73, 0x00, 0x83, 0x00, 0x0C, 0x00, 0x0D,
+  0x00, 0x08, 0x11, 0x1F, 0x88, 0x89, 0x00, 0x0E,
+  0xDC, 0xCC, 0x6E, 0xE6, 0xDD, 0xDD, 0xD9, 0x99,
+  0xBB, 0xBB, 0x67, 0x63, 0x6E, 0x0E, 0xEC, 0xCC,
+  0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E
+};
 #endif
 
 #ifdef Z80
@@ -296,6 +306,17 @@ int pass_2(void) {
 #ifdef GB
   /* insert the descriptive data (not in library files) */
   if (output_format == OUTPUT_OBJECT) {
+    if (nintendologo_defined != 0) {
+      int nl1 = 0x104;
+      unsigned int nl2 = 0;
+      
+      while (nl2 <= sizeof(nintendo_logo_dat)) {
+        mem_insert_absolute(nl1, nintendo_logo_dat[nl2]);
+        nl1++;
+        nl2++;
+      }
+    }
+    
     if (romgbc != 0)
       mem_insert_absolute(323, 128);
     if (romdmg != 0)
