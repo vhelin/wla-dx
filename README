@@ -135,6 +135,7 @@ Group 2:
 
 [GB ] .CARTRIDGETYPE 1
 [GB ] .COUNTRYCODE 1
+[GB ] .NINTENDOLOGO
 [GB ] .GBHEADER
 [GB ] .COMPUTEGBCOMPLEMENTCHECK
 [ALL] .EMPTYFILL $C9
@@ -544,6 +545,14 @@ This is not a compulsory directive.
 --------------
 
 Indicates the country code located at $14A of a Gameboy ROM.
+
+This is not a compulsory directive.
+
+-------------
+.NINTENDOLOGO
+-------------
+
+Places the required Nintendo logo into the Gameboy ROM at $104.
 
 This is not a compulsory directive.
 

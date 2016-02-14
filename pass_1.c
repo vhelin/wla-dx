@@ -20,6 +20,7 @@
 #ifdef GB
 char licenseecodenew_c1, licenseecodenew_c2;
 int gbheader_defined = 0;
+int nintendologo_defined = 0;
 int computechecksum_defined = 0, computecomplementcheck_defined = 0;
 int romgbc = 0, romdmg = 0, romsgb = 0;
 int cartridgetype = 0, cartridgetype_defined = 0;
@@ -3436,9 +3437,22 @@ int parse_directive(void) {
   }
 
 #ifdef GB
+  /* NINTENDOLOGO */
+  
+  if (strcaselesscmp(cp, "NINTENDOLOGO") == 0) {
+    if (output_format == OUTPUT_LIBRARY) {
+      print_error("Library files don't take .NINTENDOLOGO.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    nintendologo_defined++;
+
+    return SUCCEEDED;
+  }
+  
   /* NAME */
 
-  if (strcaselesscmp(cp, "NAME") == 0) {
+  else if (strcaselesscmp(cp, "NAME") == 0) {
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Library files don't take .NAME.\n", ERROR_DIR);
       return FAILED;
@@ -4393,6 +4407,15 @@ int parse_directive(void) {
     while ((ind = get_next_token()) == SUCCEEDED) {
       if (strcaselesscmp(tmp, ".ENDGB") == 0)
         break;
+       
+      else if (strcaselesscmp(cp, "NINTENDOLOGO") == 0) {
+        if (output_format == OUTPUT_LIBRARY) {
+          print_error("Library files don't take .NINTENDOLOGO.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        nintendologo_defined++;
+      }
       else if (strcaselesscmp(tmp, "ROMDMG") == 0) {
         if (output_format == OUTPUT_LIBRARY) {
           print_error("Library files don't take .ROMDMG.\n", ERROR_DIR);
