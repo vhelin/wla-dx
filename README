@@ -564,16 +564,12 @@ This begins the GB header definition, and automatically defines
 .COMPUTEGBCHECKSUM. From here you may define any of the following:
 
 NAME "TANKBOMBPANIC" - identical to a freestanding .NAME.
-
-LICENSEECODEOLD $34 - identical to a freestanding .LICENSEECODEOLD.
-
+LICENSEECODEOLD $34  - identical to a freestanding .LICENSEECODEOLD.
 LICENSEECODENEW "HI" - identical to a freestanding .LICENSEECODENEW.
-
-CARTRIDGETYPE $00 - identical to a freestanding .CARTRIDGETYPE.
-
-RAMSIZE $09 - identical to a freestanding .RAMSIZE.
-
-COUNTRYCODE $01 - identical to a freestanding .COUNTRYCODE.
+CARTRIDGETYPE $00    - identical to a freestanding .CARTRIDGETYPE.
+RAMSIZE $09          - identical to a freestanding .RAMSIZE.
+COUNTRYCODE $01      - identical to a freestanding .COUNTRYCODE.
+NINTENDOLOGO         - identical to a freestanding .NINTENDOLOGO.
 
 This is not a compulsory directive.
 
