@@ -78,16 +78,17 @@ int new_unknown_reference(int type) {
 
   struct label_def *label;
   int n=0;
+  int j=0;
 
-  while (n < 10 && tmp[n] == '@')
+  if (tmp[0] == ':')
+    j = 1;
+  while (n < 10 && tmp[n+j] == '@')
     n++;
-
   n--;
   while (n >= 0 && parent_labels[n] == NULL)
     n--;
-
   if (n >= 0)
-    mangle_label(tmp, parent_labels[n]->label, n);
+    mangle_label(&tmp[j], parent_labels[n]->label, n, MAX_NAME_LENGTH-j);
 
   label = malloc(sizeof(struct label_def));
   if (label == NULL) {
@@ -153,8 +154,12 @@ void mangle_stack_references(struct stack *stack) {
   for (ind = 0; ind < stack->stacksize; ind++) {
     if (stack->stack[ind].type == STACK_ITEM_TYPE_STRING) {
       int n=0;
+      int j=0;
 
-      while (n < 10 && stack->stack[ind].string[n] == '@')
+      if (stack->stack[ind].string[0] == ':')
+        j = 1;
+
+      while (n < 10 && stack->stack[ind].string[n+j] == '@')
         n++;
 
       n--;
@@ -162,7 +167,7 @@ void mangle_stack_references(struct stack *stack) {
         n--;
 
       if (n >= 0) {
-        mangle_label(stack->stack[ind].string, parent_labels[n]->label, n);
+        mangle_label(&stack->stack[ind].string[j], parent_labels[n]->label, n, MAX_NAME_LENGTH-j);
       }
     }
   }
@@ -440,7 +445,7 @@ int pass_4(void) {
               n--;
 
             if (n >= 0) {
-              mangle_label(tmp, parent_labels[n]->label, n);
+              mangle_label(tmp, parent_labels[n]->label, n, MAX_NAME_LENGTH);
             }
             if (m < 10 && find_label(tmp, sec_tmp, (void*)&l) == SUCCEEDED)
               parent_labels[m] = l;

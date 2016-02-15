@@ -79,12 +79,16 @@ parent:
 @@a
 	jr @b
 @c
-	jr parent2@continue
-@continue:
-	jr @continue
+	jr parent2@continue@continueChild
+
+	; Test bank referencing, calculations
+	.db :@a+1
+	.db >@a
+	.db <@a+1
 
 parent2:
 @continue:
+@@continueChild:
 	jr @b
 @b
 

@@ -180,7 +180,7 @@ int pass_3(void) {
             n--;
 
           if (n >= 0) {
-            mangle_label(l->label, parent_labels[n]->label, n);
+            mangle_label(l->label, parent_labels[n]->label, n, MAX_NAME_LENGTH);
           }
         }
 
@@ -563,7 +563,7 @@ int pass_3(void) {
           n--;
 
         if (n >= 0) {
-          mangle_label(l->label, parent_labels[n]->label, n);
+          mangle_label(l->label, parent_labels[n]->label, n, MAX_NAME_LENGTH);
         }
       }
 
@@ -708,13 +708,13 @@ int is_label_anonymous(char *label) {
   return SUCCEEDED;
 }
 
-int mangle_label(char *label, char *parent, int n) {
+int mangle_label(char *label, char *parent, int n, int label_size) {
   char buf[MAX_NAME_LENGTH*2+2];
   int len = strlen(parent);
 
   strcpy(buf, parent);
   strcpy(&buf[len], label+n);
-  buf[MAX_NAME_LENGTH-1] = 0;
+  buf[label_size-1] = 0;
   strcpy(label, buf);
 
   return SUCCEEDED;
