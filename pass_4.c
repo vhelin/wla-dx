@@ -87,8 +87,10 @@ int new_unknown_reference(int type) {
   n--;
   while (n >= 0 && parent_labels[n] == NULL)
     n--;
-  if (n >= 0)
-    mangle_label(&tmp[j], parent_labels[n]->label, n, MAX_NAME_LENGTH-j);
+  if (n >= 0) {
+    if (mangle_label(&tmp[j], parent_labels[n]->label, n, MAX_NAME_LENGTH-j) == FAILED)
+      return FAILED;
+  }
 
   label = malloc(sizeof(struct label_def));
   if (label == NULL) {
@@ -149,7 +151,7 @@ int new_unknown_reference(int type) {
   return SUCCEEDED;
 }
 
-void mangle_stack_references(struct stack *stack) {
+int mangle_stack_references(struct stack *stack) {
   int ind;
   for (ind = 0; ind < stack->stacksize; ind++) {
     if (stack->stack[ind].type == STACK_ITEM_TYPE_STRING) {
@@ -167,10 +169,13 @@ void mangle_stack_references(struct stack *stack) {
         n--;
 
       if (n >= 0) {
-        mangle_label(&stack->stack[ind].string[j], parent_labels[n]->label, n, MAX_NAME_LENGTH-j);
+        if (mangle_label(&stack->stack[ind].string[j], parent_labels[n]->label, n, MAX_NAME_LENGTH-j) == FAILED)
+          return FAILED;
       }
     }
   }
+
+  return SUCCEEDED;
 }
 
 
@@ -445,7 +450,8 @@ int pass_4(void) {
               n--;
 
             if (n >= 0) {
-              mangle_label(tmp, parent_labels[n]->label, n, MAX_NAME_LENGTH);
+              if (mangle_label(tmp, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+                return FAILED;
             }
             if (m < 10 && find_label(tmp, sec_tmp, (void*)&l) == SUCCEEDED)
               parent_labels[m] = l;
@@ -485,7 +491,8 @@ int pass_4(void) {
         stacks_tmp->slot = slot;
         stacks_tmp->type = STACKS_TYPE_8BIT;
 
-        mangle_stack_references(stacks_tmp);
+        if (mangle_stack_references(stacks_tmp) == FAILED)
+          return FAILED;
 
         /* this stack was referred from the code */
         stacks_tmp->position = STACK_POSITION_CODE;
@@ -527,7 +534,8 @@ int pass_4(void) {
         stacks_tmp->slot = slot;
         stacks_tmp->type = STACKS_TYPE_16BIT;
 
-        mangle_stack_references(stacks_tmp);
+        if (mangle_stack_references(stacks_tmp) == FAILED)
+          return FAILED;
 
         /* this stack was referred from the code */
         stacks_tmp->position = STACK_POSITION_CODE;
@@ -573,7 +581,8 @@ int pass_4(void) {
         stacks_tmp->type = STACKS_TYPE_24BIT;
         stacks_tmp->base = base;
 
-        mangle_stack_references(stacks_tmp);
+        if (mangle_stack_references(stacks_tmp) == FAILED)
+          return FAILED;
 
         /* this stack was referred from the code */
         stacks_tmp->position = STACK_POSITION_CODE;

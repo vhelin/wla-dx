@@ -87,6 +87,10 @@ parent:
 	.db <@a+1
 
 parent2:
+; Give this one more character to get an error (will be too long when turned
+; into "parent2@reallyreally...longname".
+@reallyreallyreallyreallyreallyreallyreallyreallylongnam:
+
 @continue:
 @@continueChild:
 	jr @b

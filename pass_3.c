@@ -180,7 +180,8 @@ int pass_3(void) {
             n--;
 
           if (n >= 0) {
-            mangle_label(l->label, parent_labels[n]->label, n, MAX_NAME_LENGTH);
+            if (mangle_label(l->label, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+              return FAILED;
           }
         }
 
@@ -563,7 +564,8 @@ int pass_3(void) {
           n--;
 
         if (n >= 0) {
-          mangle_label(l->label, parent_labels[n]->label, n, MAX_NAME_LENGTH);
+          if (mangle_label(l->label, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+            return FAILED;
         }
       }
 
@@ -708,12 +710,18 @@ int is_label_anonymous(char *label) {
   return SUCCEEDED;
 }
 
-int mangle_label(char *label, char *parent, int n, int label_size) {
+int mangle_label(char *label, char *parent, int n, unsigned int label_size) {
   char buf[MAX_NAME_LENGTH*2+2];
   int len = strlen(parent);
 
   strcpy(buf, parent);
   strcpy(&buf[len], label+n);
+
+  if (len+strlen(label+n)+1 > label_size) {
+    fprintf(stderr, "MANGLE_LABEL: Child label expands to \"%s\" which is %d bytes too large.\n", buf, (int)(strlen(buf)-label_size+1));
+    return FAILED;
+  }
+
   buf[label_size-1] = 0;
   strcpy(label, buf);
 
