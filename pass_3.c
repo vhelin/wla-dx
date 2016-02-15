@@ -29,6 +29,7 @@ int pass_3(void) {
   char emsg[256];
   struct section_def *s;
   struct label_def *l;
+  struct label_def *parent_labels[10];
   struct block *b;
   FILE *f_in;
   int bank = 0, slot = 0, add = 0, file_name_id = 0, inz, line_number = 0, o, add_old = 0;
@@ -38,7 +39,7 @@ int pass_3(void) {
   char c;
   int err;
 
-  
+  memset(parent_labels, 0, sizeof(parent_labels));
   s = NULL;
 
   if (verbose_mode == ON)
@@ -137,9 +138,9 @@ int pass_3(void) {
 	free(b);
 	continue;
 
-      case 'Z':
-      case 'Y':
-      case 'L':
+      case 'Z': /* Breakpoint */
+      case 'Y': /* Symbol */
+      case 'L': /* Label */
 	l = malloc(sizeof(struct label_def));
 	if (l == NULL) {
 	  fscanf(f_in, "%64s ", tmp);
@@ -160,6 +161,29 @@ int pass_3(void) {
 	else
 	  fscanf(f_in, "%64s ", l->label);
 
+        if (c == 'L' && is_label_anonymous(l->label) == FAILED) {
+          /* If the label has '@' at the start, mangle the label name to make it
+           * unique */
+          int n = 0, m;
+
+          while (n < 10 && l->label[n] == '@') {
+            n++;
+          }
+          m = n;
+          while (m < 10)
+            parent_labels[m++] = NULL;
+
+          if (n < 10)
+            parent_labels[n] = l;
+          n--;
+          while (n >= 0 && parent_labels[n] == 0)
+            n--;
+
+          if (n >= 0) {
+            mangle_label(l->label, parent_labels[n]->label, n);
+          }
+        }
+
 	l->next = NULL;
 	l->section_status = ON;
 	l->filename_id = file_name_id;
@@ -175,7 +199,7 @@ int pass_3(void) {
 	l->base = base;
 #endif
 
-	if (c == 'Z' || is_label_anonymous(l->label) == SUCCEEDED || strcmp(l->label, "__") == 0) {
+	if (c == 'Z' || is_label_anonymous(l->label) == SUCCEEDED) {
 	  if (labels != NULL) {
 	    label_last->next = l;
 	    label_last = l;
@@ -497,9 +521,9 @@ int pass_3(void) {
       free(b);
       continue;
 
-    case 'Z':
-    case 'Y':
-    case 'L':
+    case 'Z': /* Breakpoint */
+    case 'Y': /* Symbol */
+    case 'L': /* Label */
       l = malloc(sizeof(struct label_def));
       if (l == NULL) {
 	fscanf(f_in, "%64s ", tmp);
@@ -518,7 +542,30 @@ int pass_3(void) {
       if (c == 'Z')
 	l->label[0] = 0;
       else
-	fscanf(f_in, "%64s ", l->label);
+        fscanf(f_in, "%64s ", l->label);
+
+      if (c == 'L' && is_label_anonymous(l->label) == FAILED) {
+        /* If the label has '@' at the start, mangle the label name to make it
+         * unique */
+        int n = 0, m;
+
+        while (n < 10 && l->label[n] == '@') {
+          n++;
+        }
+        m = n;
+        while (m < 10)
+          parent_labels[m++] = NULL;
+
+        if (n < 10)
+          parent_labels[n] = l;
+        n--;
+        while (n >= 0 && parent_labels[n] == 0)
+          n--;
+
+        if (n >= 0) {
+          mangle_label(l->label, parent_labels[n]->label, n);
+        }
+      }
 
       l->next = NULL;
       l->section_status = section_status;
@@ -526,12 +573,12 @@ int pass_3(void) {
       l->linenumber = line_number;
       l->alive = ON;
       if (section_status == ON) {
-	l->section_id = s->id;
+        l->section_id = s->id;
         l->section_struct = s;
-	/* section labels get a relative address */
-	l->address = add - s->address;
-	l->bank = s->bank;
-	l->slot = s->slot;
+        /* section labels get a relative address */
+        l->address = add - s->address;
+        l->bank = s->bank;
+        l->slot = s->slot;
       }
       else {
 	l->section_id = 0;
@@ -545,7 +592,7 @@ int pass_3(void) {
       l->base = base;
 #endif
 
-      if (c == 'Z' || is_label_anonymous(l->label) == SUCCEEDED || strcmp(l->label, "__") == 0) {
+      if (c == 'Z' || is_label_anonymous(l->label) == SUCCEEDED) {
 	if (labels != NULL) {
 	  label_last->next = l;
 	  label_last = l;
@@ -640,12 +687,14 @@ int pass_3(void) {
 }
 
 
-/* is the label of form -, --, ---, +, ++, +++, ... ? */
+/* is the label of form __, -, --, ---, +, ++, +++, ... ? */
 int is_label_anonymous(char *label) {
 
   int length, i;
   char c;
 
+  if (strcmp(label, "__") == 0)
+    return SUCCEEDED;
 
   c = *label;
   if (!(c == '-' || c == '+'))
@@ -655,6 +704,18 @@ int is_label_anonymous(char *label) {
     if (*(label + i) != c)
       return FAILED;
   }
+
+  return SUCCEEDED;
+}
+
+int mangle_label(char *label, char *parent, int n) {
+  char buf[MAX_NAME_LENGTH*2+2];
+  int len = strlen(parent);
+
+  strcpy(buf, parent);
+  strcpy(&buf[len], label+n);
+  buf[MAX_NAME_LENGTH-1] = 0;
+  strcpy(label, buf);
 
   return SUCCEEDED;
 }

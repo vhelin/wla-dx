@@ -8,10 +8,10 @@
 
 #include "include_file.h"
 #include "listfile.h"
+#include "pass_3.h"
 #include "pass_4.h"
 #include "parse.h"
 #include "stack.h"
-
 
 extern struct section_def *sections_first, *sections_last, *sec_tmp, *sec_next;
 extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
@@ -20,6 +20,8 @@ extern struct stack *stacks_first, *stacks_tmp, *stacks_last, *stacks_header_fir
 extern struct label_def *label_tmp, *label_last, *labels;
 extern struct definition *tmp_def;
 extern struct map_t *defines_map;
+extern struct map_t *namespace_map;
+extern struct map_t *global_unique_label_map;
 extern struct file_name_info *file_name_info_first;
 extern struct slot slots[256];
 extern FILE *file_out_ptr;
@@ -58,6 +60,8 @@ extern int computesmschecksum_defined, smstag_defined;
 struct label_def *unknown_labels = NULL, *unknown_labels_last = NULL, *tul, *ltmp;
 struct label_def *unknown_header_labels = NULL, *unknown_header_labels_last = NULL;
 
+struct label_def *parent_labels[10];
+
 int pc_bank = 0, pc_full = 0, rom_bank, mem_insert_overwrite, slot, pc_slot, pc_slot_max;
 int filename_id, line_number;
 
@@ -73,7 +77,17 @@ int filename_id, line_number;
 int new_unknown_reference(int type) {
 
   struct label_def *label;
+  int n=0;
 
+  while (n < 10 && tmp[n] == '@')
+    n++;
+
+  n--;
+  while (n >= 0 && parent_labels[n] == NULL)
+    n--;
+
+  if (n >= 0)
+    mangle_label(tmp, parent_labels[n]->label, n);
 
   label = malloc(sizeof(struct label_def));
   if (label == NULL) {
@@ -134,6 +148,26 @@ int new_unknown_reference(int type) {
   return SUCCEEDED;
 }
 
+void mangle_stack_references(struct stack *stack) {
+  int ind;
+  for (ind = 0; ind < stack->stacksize; ind++) {
+    if (stack->stack[ind].type == STACK_ITEM_TYPE_STRING) {
+      int n=0;
+
+      while (n < 10 && stack->stack[ind].string[n] == '@')
+        n++;
+
+      n--;
+      while (n >= 0 && parent_labels[n] == NULL)
+        n--;
+
+      if (n >= 0) {
+        mangle_label(stack->stack[ind].string, parent_labels[n]->label, n);
+      }
+    }
+  }
+}
+
 
 int pass_4(void) {
 
@@ -148,6 +182,7 @@ int pass_4(void) {
   int base = 0x00;
 #endif
 
+  memset(parent_labels, 0, sizeof(parent_labels));
   
   section_status = OFF;
   bankheader_status = OFF;
@@ -376,11 +411,41 @@ int pass_4(void) {
       case 'Z':
         continue;
 
-        /* LABEL and SYMBOL */
+        /* SYMBOL */
 
       case 'Y':
+        fscanf(file_out_ptr, "%*s"); /* skip the symbol */
+        continue;
+
+        /* LABEL */
       case 'L':
-        fscanf(file_out_ptr, "%*s"); /* skip the label */
+        {
+          struct label_def *l;
+          int n=0;
+          int m;
+
+          fscanf(file_out_ptr, "%256s", tmp);
+
+          if (is_label_anonymous(tmp) == FAILED) {
+            while (n < 10 && tmp[n] == '@')
+              n++;
+
+            m = n+1;
+            while (m < 10)
+              parent_labels[m++] = NULL;
+
+            m = n;
+            n--;
+            while (n >= 0 && parent_labels[n] == NULL)
+              n--;
+
+            if (n >= 0) {
+              mangle_label(tmp, parent_labels[n]->label, n);
+            }
+            if (m < 10 && find_label(tmp, sec_tmp, (void*)&l) == SUCCEEDED)
+              parent_labels[m] = l;
+          }
+        }
         continue;
 
         /* 8BIT COMPUTATION */
@@ -414,6 +479,8 @@ int pass_4(void) {
         stacks_tmp->bank = rom_bank;
         stacks_tmp->slot = slot;
         stacks_tmp->type = STACKS_TYPE_8BIT;
+
+        mangle_stack_references(stacks_tmp);
 
         /* this stack was referred from the code */
         stacks_tmp->position = STACK_POSITION_CODE;
@@ -454,6 +521,8 @@ int pass_4(void) {
         stacks_tmp->bank = rom_bank;
         stacks_tmp->slot = slot;
         stacks_tmp->type = STACKS_TYPE_16BIT;
+
+        mangle_stack_references(stacks_tmp);
 
         /* this stack was referred from the code */
         stacks_tmp->position = STACK_POSITION_CODE;
@@ -498,6 +567,8 @@ int pass_4(void) {
         stacks_tmp->slot = slot;
         stacks_tmp->type = STACKS_TYPE_24BIT;
         stacks_tmp->base = base;
+
+        mangle_stack_references(stacks_tmp);
 
         /* this stack was referred from the code */
         stacks_tmp->position = STACK_POSITION_CODE;
@@ -1068,8 +1139,9 @@ int pass_4(void) {
 
       for (ind = 0; ind < stacks_tmp->stacksize; ind++) {
         fprintf(final_ptr, "%c%c", stacks_tmp->stack[ind].type, stacks_tmp->stack[ind].sign);
-        if (stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
+        if (stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING) {
           fprintf(final_ptr, "%s%c", stacks_tmp->stack[ind].string, 0);
+        }
         else {
           dou = stacks_tmp->stack[ind].value;
           WRITEOUT_DOU;
@@ -1254,6 +1326,62 @@ int pass_4(void) {
   }
 
   return SUCCEEDED;
+}
+
+int find_label(char *str, struct section_def *s, struct label_def **out) {
+  char* str2;
+  char* stripped;
+  char prefix[MAX_NAME_LENGTH*2+2];
+  struct label_def *l = NULL;
+  int i;
+
+  str2 = strchr(str, '.');
+  i = str2-str;
+  if (str2 == NULL) {
+    stripped = str;
+    prefix[0] = '\0';
+  }
+  else {
+    stripped = str2+1;
+    strncpy(prefix, str, i);
+    prefix[i] = '\0';
+  }
+
+  *out = NULL;
+
+  if (prefix[0] != '\0') {
+    /* A namespace is specified (or at least there's a dot in the label) */
+    struct namespace_def *nspace;
+    if (hashmap_get(namespace_map, prefix, (void*)&nspace) == MAP_OK) {
+      if (hashmap_get(nspace->label_map, stripped, (void*)&l) == MAP_OK) {
+        *out = l;
+        return SUCCEEDED;
+      }
+    }
+  }
+  if (s != NULL && s->nspace != NULL) {
+    /* Check the section's namespace */
+    if (hashmap_get(s->nspace->label_map, str, (void*)&l) == MAP_OK) {
+      *out = l;
+      return SUCCEEDED;
+    }
+  }
+  if (s != NULL) {
+    /* Check the section's labels. This is a bit redundant but it might have
+     * local labels (labels starting with an underscore)
+     */
+    if (hashmap_get(s->label_map, str, (void*)&l) == MAP_OK) {
+      *out = l;
+      return SUCCEEDED;
+    }
+  }
+  /* Check the global namespace */
+  if (hashmap_get(global_unique_label_map, str, (void*)&l) == MAP_OK) {
+    *out = l;
+    return SUCCEEDED;
+  }
+
+  return FAILED;
 }
 
 
