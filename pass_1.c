@@ -4264,6 +4264,40 @@ int parse_directive(void) {
 
     return SUCCEEDED;
   }
+  
+  
+  /* DESTINATIONCODE */
+
+  if (strcaselesscmp(cp, "DESTINATIONCODE") == 0) {
+
+    if (output_format == OUTPUT_LIBRARY) {
+      print_error("Library files don't take .DESTINATIONCODE.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    q = input_number();
+
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED || q < 0) {
+      print_error(".DESTINATIONCODE needs a non-negative value.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    if (countrycode_defined != 0) {
+      if (countrycode != d) {
+        print_error(".DESTINATIONCODE was defined for the second time.\n", ERROR_DIR);
+        return FAILED;
+      }
+      return SUCCEEDED;
+    }
+
+    countrycode = d;
+    countrycode_defined = 1;
+
+    return SUCCEEDED;
+  }
+  
 
 
   /* CARTRIDGETYPE */
@@ -4570,6 +4604,26 @@ int parse_directive(void) {
 
         if (inz == SUCCEEDED && (d < -128 || d > 255)) {
           sprintf(emsg, "COUNTRYCODE needs a non-negative value, got %d.\n\n", d);
+          print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
+        else if (inz == SUCCEEDED) {
+          countrycode = d;
+          countrycode_defined++;
+        }
+        else
+          return FAILED;
+      }
+      else if (strcaselesscmp(tmp, "DESTINATIONCODE") == 0) {
+        if (countrycode_defined != 0) {
+          print_error("DESTINATIONCODE can be defined only once.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        inz = input_number();
+
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
+          sprintf(emsg, "DESTINATIONCODE needs a non-negative value, got %d.\n\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
