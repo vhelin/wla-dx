@@ -15,6 +15,7 @@ extern struct reference *reference_first, *reference_last;
 extern struct section *sec_first, *sec_last;
 extern struct label *labels_first, *labels_last;
 extern struct stack *stacks_first, *stacks_last;
+extern int silent_discard;
 
 
 int discard_unused_sections(void) {
@@ -51,8 +52,9 @@ int discard_unused_sections(void) {
   s = sec_first;
   while (s != NULL) {
     if (s->alive == NO)
-      fprintf(stderr, "DISCARD: %s:%s: Section \"%s\" was discarded.\n",
-	      get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+      if (silent_discard == OFF)
+        fprintf(stderr, "DISCARD: %s:%s: Section \"%s\" was discarded.\n",
+	        get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
     s = s->next;
   }
 

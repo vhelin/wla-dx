@@ -2909,7 +2909,7 @@ After you have produced one or more object files and perhaps some library
 files, you might want to link them together to produce a ROM image / program
 file. "wlalink" is the program you use for that. Here's how you use it:
 
-"wlalink [-divsS]{b/r} [LIBDIR] <LINK FILE> <OUTPUT FILE>"
+"wlalink [-bdnirsSv] [LIBDIR] <LINK FILE> <OUTPUT FILE>"
 
 Choose 'b' for program file or 'r' for ROM image linking.
 
@@ -2980,6 +2980,9 @@ and definitions.
 If flag 'd' is used, WLALINK discards all unreferenced FREE and SEMIFREE
 sections. This way you can link big libraries to your project and WLALINK
 will choose only the used sections, so you won't be linking any dead code/data.
+
+If flag 'n' is used, WLALINK discards sections as if 'd' were used, but does
+not print to the console whenever a section is discarded.
 
 If flag 'i' is given, WLALINK will write list files. Note that you must
 compile the object and library files with -i flag as well. Otherwise WLALINK
