@@ -189,7 +189,7 @@ int stack_calculate(char *in, int *value) {
       in++;
     }
     else if (*in == '#') {
-      if (q == 0) {
+      if (q != 0) {
 	if (input_number_error_msg == YES)
 	  print_error("Syntax error. Invalid use of modulo.\n", ERROR_STC);
 	return FAILED;
