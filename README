@@ -1453,6 +1453,10 @@ By default all defines are local to the file where they are
 presented. If you want to make the definition visible to all the
 files in the project, use .EXPORT.
 
+WARNING: Please declare your definition lexically before using it as otherwise the assembler
+might make incorrect assumptions about its value and size and choose e.g. wrong opcodes and
+generate binary that doesn't run properly.
+
 Here are some examples:
 
 .DEFINE X 1000
