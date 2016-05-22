@@ -46,11 +46,10 @@
 15.... WLA Flags
 16.... Extra compile time definitions
 17.... Good things to know about WLA
-18.... Author
-19.... Thanks
-20.... Future
-21.... Support
-22.... Legal Note
+18.... WLA DX's architectural overview
+ 18.1. WLA
+ 18.2. WLALINK
+19.... Legal Note
 
 
 ------------------------------------------------------------------------------
@@ -58,7 +57,9 @@
 ------------------------------------------------------------------------------
 
 
-I wrote this because I had never written an assembler before and I really
+The history behind WLA DX, from the original author, Ville Helin:
+
+"I wrote this because I had never written an assembler before and I really
 needed a macro assembler which could compile the GB-Z80 code I wrote. ;)
 Gaelan Griffin needed real Z80 support for his SMS projects so I thought
 I could write WLA to be a little more open and nowadays it supports all
@@ -69,12 +70,20 @@ share of WLA as well. After finishing that few people said they'd like 65816
 support (they had SNES developing in mind) so I added support for that. And
 then I thought I should write a 6510 version of WLA as well...
 
-Almost all rules that apply to Z80 compiling apply also to 6502, 65C02, 6510,
-65816, HUC6280 and SPC-700.
-
 This is my ideal GB-Z80 macro assembler (not in final form, not yet). ;)
 Tastes differ. Thus WLA! Notice that WLA was initially made for Game Boy
-developers so the GB-Z80 version and the rest differ a little.
+developers so the GB-Z80 version and the rest differ a little."
+
+Good to know about WLA DX:
+
+Almost all rules that apply to Z80 source code processing with WLA DX
+apply also to 6502, 65C02, 6510, 65816, HUC6280 and SPC-700.
+
+About the names: WLA DX means all the tools covered in this documentation.
+So WLA DX includes WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700
+macro assembler (what a horribly long name), WLAB, WLAD and WLALINK
+GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 linker. We use plain WLA
+to refer to the macro assembler in this README.
 
 Currently WLA can also be used as a patch tool. Just include the original
 ROM image into the project with .BACKGROUND and insert e.g., OVERWRITE .SECTIONs
@@ -84,16 +93,8 @@ you have it. 100% readable (asm coded) patches are reality!
 Note that you can directly compile only object and library files. You must
 use WLALINK to link these (or only one, if you must) into a ROM/program file.
 
-About the names... WLA DX means all the tools covered in this documentation.
-So WLA DX includes WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700
-macro assembler (what a horribly long name), WLAB, WLAD and WLALINK
-GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 linker. I use plain WLA to refer
-to the macro assembler.
-
-WLA DX's homepage: http://www.iki.fi/~vhelin/wla.html
-
-And if you happen to write something cool using WLA DX, please let me know,
-I want to see it!
+WLA DX's old homepage: http://www.iki.fi/~vhelin/wla.html
+WLA DX's new homepage: https://github.com/vhelin/wla-dx
 
 
 ------------------------------------------------------------------------------
@@ -2790,9 +2791,8 @@ $FF - Hudson HuC-1
 ------------------------------------------------------------------------------
 
 
-If you find bugs, please let me know asap. Anything, small or big, send
-me email! I won't eat you for reporting a bug. Probably your name just ends
-up in the thanks-section of this documentation. ;)
+If you find bugs, please let us know about them via GitHub:
+https://github.com/vhelin/wla-dx/issues
 
 
 ------------------------------------------------------------------------------
@@ -2802,14 +2802,14 @@ up in the thanks-section of this documentation. ;)
 
 7.1. 'examples'
 
-The main purpose of the files in the 'examples' directory is to teach people
-few things about WLA. If you feel a little uncertain with the syntax check
-out this place. But beware! The code is ugly and doesn't do anything meaningful.
+The main purpose of the files in the 'examples' directory is to test that WLA
+and WLALINK can assemble and link the tiny project correctly. You can also
+take a look at the code and syntax in the files, but beware: if you run the
+rom files you probably don't see anything on screen.
 
-'examples' directory holds eight directories, 'gb-z80', 'z80', '6502', '65c02',
-'6510', '65816', 'huc6280' and 'spc-700'. 'include' directory under 'gb-z80'
-could be very useful as the six include files there have all the Game Boy
-hardware register address and memory definitions you could ever need and more.
+'include' directory under 'gb-z80' could be very useful as the six include
+files there have all the Game Boy hardware register address and memory
+definitions you could ever need and more.
 
 
 7.2. 'examples/gb-z80/lib'
@@ -3095,6 +3095,9 @@ WLA computes internally with real numbers so (5/2)*2 produces 5, not 4.
 12... Disassembling
 ------------------------------------------------------------------------------
 
+
+WARNING: WLAD is not being maintained any longer, and no plans regarding it
+have been made.
 
 WLAD is a disassembler that can be used to disassemble an existing GB-ROM image
 into a WLA-syntax compatible source file. It won't produce very readable
@@ -3452,97 +3455,71 @@ Note that you'll also get all these definitions in lower case
 
 
 ------------------------------------------------------------------------------
-18... Author
+18... WLA DX's architectural overview
 ------------------------------------------------------------------------------
 
 
-Ville Helin, the author of Wzonka-Lad, a Game Boy emulator for the Amiga
-machines, among other things. I work at Rovio Mobile Ltd.
-(http://www.rovio.com) as a senior game programmer. I like Nintendo
-(goes without saying), anime soap operas, gym and hardcore video gaming.
-
-email: vhelin#iki.fi
-hpage: http://www.iki.fi/~vhelin
-smail: Ville Helin
-       Agricolankatu 7 C 79
-       00530 Helsinki
-       Finland
+The two most important executables inside WLA DX are WLA (the assembler) and
+WLALINK (the linker).
 
 
-------------------------------------------------------------------------------
-19... Thanks
-------------------------------------------------------------------------------
+18.1. WLA
+
+WLA has four separate phases, called a little bit incorrectly passes:
+
+1. pass_1.c: pass_1():
+   - The biggest data processor in WLA.
+   - Includes the include files: every time time happens the file is read in,
+     white space is removed, lines formatted, etc.
+   - Macros are processed along with directives
+   - All textual data, code, etc. are transformed into WLA's internal byte
+     code that gets written into a tmp (TMP) file, and after this phase
+     the assembler or the linker has no idea of target CPU's opcodes - all is
+     just pure WLA byte code.
+   - The first and the only pass that handles the assembly source files
+     supplied by the user.
+   - The parser in this pass starts from the first byte of the first source
+     file, then moves forward parsing everything that it encounters, but
+     when a macro is called, the parser jumps to the beginning of the macro,
+     and continues parsing from there.
+2. pass_2.c: pass_2():
+   - If the user has issued directives like .SDSCTAG, here we generate the
+     needed data and write that into TMP.
+3. pass_3.c: pass_3():
+   - Here we read in TMP and do some sanity checks for the data, give labels
+     addresses (if possible), generate internal structures for labels and
+     sections.
+4. pass_4.c: pass_4():
+   - Again we read in TMP.
+   - Now we check that if there is a reference to a calculation, and that
+     calculation has been succesfully calculated, then we can replace the
+     reference with the result.
+   - This phase writes out object and library files, i.e., transforms TMP
+     to final output files (this write out could actually be pass_5)...
 
 
-- Maxim for the bug reports, feature suggestions, and win32 binaries. If
-  there were more people like Maxim, WLA DX would be much better than what
-  it is today. ;)
-- Gaelan Griffin for endless suggestions and fast bug reports!
-  Take one feature from WLA and you have a 30% propability that Gaelan
-  bugged me to implement it. ;)
-- Aleksi Eeben for lots of good bug reports and feature ideas!
-- Nicolas Warren for few some serious bug reports (and even
-  fixes to them!) and for the good ideas!
-- Madonna MkII (Matra Computer Corp.), Mike Blum, Anders Montonen,
-  Robert Kihl, Martin Konrad, Arto Salmi, Yoshiaki Ishida
-  Brad Jorsch and Michel Iwaniec for reporting bugs in WLA
-  and providing me with great ideas.
-- Mark Knox, Igor Wronsky and Anders Montonen for helping me with
-  the MSDOS port!
-- Gaelan Griffin for the Amiga port and valuable SPC-700 information!
-- Ventzislav Tzvetkov for the AmigaOS4 makefiles.
-- FluBBa for crucial HuC6280 bug reports!
-- Christophe Iasci for the Win32 port!
-- Marc Dünster and Kevin Mantey for the big help and suggestions with
-  wla-65816 and wla-spc700!
-- Tobias Pflug for bug reports, and fixing SMC header writing!
-- John Schneider for makefile enhancements!
-- Daniël Hörchner for fixing the Win32 makefiles!
-- Timo Jantunen for helping me with makefiles.
-- Adam Klotblix for documentation improvements and bug reports.
-- Zachary Keene for writing .SNESHEADER, .ENDSNES, .SNESNATIVEVECTOR,
-  .ENDNATIVEVECTOR, .SNESEMUVECTOR and .ENDEMUVECTOR. I want more
-  people like him! ;)
-- Matthew Stewart for implementing namespaces and speeding up WLA with
-  hashmaps.
-- People at gameboy@vip.co.za, gameboydev@listbot.com,
-  gbadev@yahoogroups.com and s8-dev for keeping up the good work! ;)
+18.2. WLALINK
+
+WLALINK is much simpler and more straight forward than WLA; WLALINK just reads
+in all the objects and library files, checks that target platforms for the
+files match, places the sections along with labels into the target memory
+map, solves pending calculations, calculates checksums, and writes out the
+final ROM/PRG files. 'wlalink/main.c:main()' should quite clearly display
+all the higher level phases in the linking process.
 
 
 ------------------------------------------------------------------------------
-20... Future
+19... Legal Note
 ------------------------------------------------------------------------------
 
 
-Future enhancements (if I get _really_ inspired):
+WLA DX (the whole package) was originally written by Ville Helin in 1998-2008.
+After that everybody has been able to take part in the development of WLA DX,
+and recently via GitHub. The authors are not responsible for anything the
+software does.
 
-- Listfiles.
-- Much more features to WLAD (I already know of three) and
-  Z80/6502/65C02/6510/65816/HUC6280/SPC-700 support.
-- Other optimizations, bug fixes and new features.
-- You tell me.
-
-
-------------------------------------------------------------------------------
-21... Support
-------------------------------------------------------------------------------
-
-
-The currently supported systems are MSDOS/x86, Win32/x86, AmigaOS/680x0,
-AmigaOS4/PPC and Unix/xyz. If you'd like to see WLA for other
-platforms/configurations, send me email and we'll see what I can do about it
-(if compiling WLA DX binaries from the source release archive doesn't work
-for some reason).
-
-
-------------------------------------------------------------------------------
-22... Legal Note
-------------------------------------------------------------------------------
-
-
-WLA DX (the whole package) was written by Ville Helin, except for those
-parts mentioned in section 19, in 1998-2008. WLA DX is GPL software. For
-more information about GPL, take a look at the LICENCE file.
+WLA DX is GPL software. For more information about GPL, take a look at the
+LICENCE file.
 
 Game Boy and Game Boy Color are copyrighted by Nintendo.
 
