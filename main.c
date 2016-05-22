@@ -97,6 +97,7 @@ char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH];
 int main(int argc, char *argv[]) {
 
   int i = SUCCEEDED;
+  int parse_flags_result;
 
   if (sizeof(double) != 8) {
     fprintf(stderr, "MAIN: sizeof(double) == %d != 8. WLA will not work properly.\n", (int)sizeof(double));
@@ -113,18 +114,11 @@ int main(int argc, char *argv[]) {
   global_unique_label_map = hashmap_new();
   namespace_map = hashmap_new();
 
-  if (argc >= 3) {
-    if (parse_flags(argv[1]) == SUCCEEDED) {
-      if (parse_defines_and_get_final_name(argv + 2, argc - 2) == FAILED)
-	return 1;
-    }
-    else
-      i = FAILED;
+  if (argc >= 2) {
+    parse_flags_result = parse_flags(argv, argc);
   }
-  else
-    i = FAILED;
-
-  if (i == FAILED || output_format == OUTPUT_NONE) {
+  
+  if (i == FAILED || output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
 #ifdef GB
     printf("\nWLA GB-Z80 Macro Assembler v9.7b\n");
 #endif
@@ -150,16 +144,18 @@ int main(int argc, char *argv[]) {
     printf("\nWLA HuC6280 Macro Assembler v9.7b\n");
 #endif
     printf("Written by Ville Helin in 1998-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
-    printf("USAGE: %s -[iMqtvx]{lo} -I[INCDIR] [DEFINITIONS] <ASM FILE> [OUTPUT FILE]\n", argv[0]);
-    printf("Commands:             Options:\n");
-    printf("l  Library file       i  Add list file information\n");
-    printf("o  Object file        M  Output makefile rules\n");
-    printf("                      q  Quiet\n");
-    printf("                      t  Test compile\n");
-    printf("                      v  Verbose messages\n");
-    printf("                      x  Extra compile time definitions\n");
-    printf("                      I  Include directory\n\n");
-
+    printf("USAGE: %s [OPTIONS] [DEFINITIONS] <ASM FILE>\n\n", argv[0]);
+    printf("Options:\n");
+    printf("-i  Add list file information\n");
+    printf("-M  Output makefile rules\n");
+    printf("-q  Quiet\n");
+    printf("-t  Test compile\n");
+    printf("-v  Verbose messages\n");
+    printf("-x  Extra compile time definitions\n");
+    printf("-I  Include directory\n\n");
+    printf("Output types:\n");
+    printf("-o [FILE]   Output object file\n");
+    printf("-l [FILE]   Output library file\n\n");
     return 0;
   }
 
@@ -203,64 +199,98 @@ int main(int argc, char *argv[]) {
 }
 
 
-int parse_flags(char *flags) {
+int parse_flags(char **flags, int flagc) {
 
-  int count;
-
-  if (*flags != '-')
-    return FAILED;
-
-  count = strlen(flags);
-  if (count <= 1)
-    return FAILED;
-
-  for (flags++, count--; count > 0; count--, flags++) {
-    switch (*flags) {
-
-    case 'o':
+  int count = 1;
+  int asm_name_def = 0;
+  
+  while (count < flagc) {
+    if (!strcmp(flags[count], "-o")) {
       if (output_format != OUTPUT_NONE)
-	return FAILED;
+	      return FAILED;
       output_format = OUTPUT_OBJECT;
+      if (count + 1 < flagc) {
+        /* set output */
+        final_name = malloc(strlen(flags[count+1])+1);
+        strcpy(final_name, flags[count+1]);
+      } else {
+        return FAILED;
+      }
+      count+=2;
       continue;
-
-    case 'l':
+    } else if (!strcmp(flags[count], "-l")) {
       if (output_format != OUTPUT_NONE)
-	return FAILED;
+	      return FAILED;
       output_format = OUTPUT_LIBRARY;
+      if (count + 1 < flagc) {
+        /* set output */
+        final_name = malloc(strlen(flags[count+1])+1);
+        strcpy(final_name, flags[count+1]);
+      } else {
+        return FAILED;
+      }
+      count+=2;
       continue;
-
-    case 'i':
-      listfile_data = YES;
+    } else if (!strcmp(flags[count], "-D")) {
+      if (count + 1 < flagc) {
+        /* get arg */
+        parse_and_add_definition(flags[count+1]);
+      } else {
+        return FAILED;
+      }
+      count+=2;
       continue;
-
-    case 'v':
-      verbose_mode = ON;
+    } else if (!strcmp(flags[count], "-I")) {
+      if (count + 1 < flagc) {
+        /* get arg */
+        parse_and_set_incdir(flags[count+1]);
+      } else {
+        return FAILED;
+      }
+      count+=2;
       continue;
-
-    case 't':
-      test_mode = ON;
-      continue;
-
-    case 'M':
-      makefile_rules = YES;
-      test_mode = ON;
-      verbose_mode = OFF;
-      quiet = YES;
-      continue;
-
-    case 'q':
-      quiet = YES;
-      continue;
-
-    case 'x':
-      extra_definitions = ON;
-      continue;
-
-    default:
-      return FAILED;
-    }
+    } else if (!strcmp(flags[count], "-i")) {
+       listfile_data = YES;
+       count++;
+       continue;
+    } else if (!strcmp(flags[count], "-v")) {
+       verbose_mode = ON;
+       count++;
+       continue;
+    } else if (!strcmp(flags[count], "-t")) {
+       test_mode = ON;
+       count++;
+       continue;
+    } else if (!strcmp(flags[count], "-M")) {
+       makefile_rules = YES;
+       test_mode = ON;
+       verbose_mode = OFF;
+       quiet = YES;
+       count++;
+       continue;
+    } else if (!strcmp(flags[count], "-q")) {
+       quiet = YES;
+       count++;
+       continue;
+    } else if (!strcmp(flags[count], "-x")) {
+       extra_definitions = ON;
+       count++;
+       continue;
+    } else {
+       if (count == flagc - 1) {
+         asm_name = malloc(strlen(flags[count]+1));
+         strcpy(asm_name, flags[count]); count++;
+         asm_name_def++;
+       } else {
+         return FAILED;
+       }
+     }
+   }
+  
+  if (!asm_name_def) {
+    return FAILED;
   }
-
+  
   return SUCCEEDED;
 }
 
@@ -487,94 +517,6 @@ int generate_extra_definitions(void) {
     return FAILED;
 
   return SUCCEEDED;
-}
-
-
-int parse_defines_and_get_final_name(char **c, int n) {
-
-  int x;
-
-  while (1) {
-    if (n == 0)
-      break;
-    if (strlen(*c) > 2) {
-      if (**c != '-' || *((*c) + 1) != 'I')
-	break;
-      else
-	if (parse_and_set_incdir(*c) == FAILED)
-	  return FAILED;
-    }
-    c++;
-    n--;
-    break;
-  }
-
-  while (1) {
-    if (n == 0)
-      break;
-    if (strlen(*c) > 2) {
-      if (**c != '-' || *((*c) + 1) != 'D')
-	break;
-      else
-	if (parse_and_add_definition(*c) == FAILED)
-	  return FAILED;
-    }
-    if (strlen(*c) <= 2)
-      break;
-    c++;
-    n--;
-  }
-
-  /* allocate room for names */
-  if (n == 1 || n == 2) {
-    asm_name = malloc(strlen(*c)+1);
-    if (n == 2)
-      final_name = malloc(strlen(*(c+1))+1);
-    else
-      final_name = malloc(strlen(*c)+1+4);
-
-    if (asm_name == NULL || final_name == NULL) {
-      if (asm_name != NULL) {
-	free(asm_name);
-	asm_name = NULL;
-      }
-      if (final_name != NULL) {
-	free(final_name);
-	final_name = NULL;
-      }
-      fprintf(stderr, "PARSE_DEFINES_AND_GET_FINAL_NAME: Out of memory error.\n");
-      return FAILED;
-    }
-  }
-
-  /* both infile and outfile were given */
-  if (n == 2) {
-    strcpy(asm_name, *c);
-    c++;
-    strcpy(final_name, *c);
-    return SUCCEEDED;
-  }
-  /* only the infile was given -> construct the outfile name */
-  else if (n == 1) {
-    strcpy(asm_name, *c);
-    for (x = 0; x < (int)strlen(*c) && *((*c) + x) != '.'; x++)
-      final_name[x] = *((*c) + x);
-    final_name[x++] = '.';
-    if (output_format == OUTPUT_OBJECT) {
-      final_name[x++] = 'o';
-      final_name[x] = 0;
-    }
-    else if (output_format == OUTPUT_LIBRARY) {
-      final_name[x++] = 'l';
-      final_name[x++] = 'i';
-      final_name[x++] = 'b';
-      final_name[x] = 0;
-    }
-    return SUCCEEDED;
-  }
-
-  fprintf(stderr, "PARSE_DEFINES_AND_GET_FINAL_NAME: Error in commandline options.\n");
-  return FAILED;
 }
 
 
