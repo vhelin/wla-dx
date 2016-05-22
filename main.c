@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
     printf("\nWLA HuC6280 Macro Assembler v9.7b\n");
 #endif
     printf("Written by Ville Helin in 1998-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
-    printf("USAGE: %s [OPTIONS] [DEFINITIONS] <ASM FILE>\n\n", argv[0]);
+    printf("USAGE: %s [OPTIONS] <ASM FILE>\n\n", argv[0]);
     printf("Options:\n");
     printf("-i  Add list file information\n");
     printf("-M  Output makefile rules\n");
@@ -152,7 +152,8 @@ int main(int argc, char *argv[]) {
     printf("-t  Test compile\n");
     printf("-v  Verbose messages\n");
     printf("-x  Extra compile time definitions\n");
-    printf("-I  Include directory\n\n");
+    printf("-I [DIR]   Include directory\n");
+    printf("-D [DEF]   Declare definition\n\n");
     printf("Output types:\n");
     printf("-o [FILE]   Output object file\n");
     printf("-l [FILE]   Output library file\n\n");
