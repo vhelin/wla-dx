@@ -96,7 +96,6 @@ char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH];
 
 int main(int argc, char *argv[]) {
 
-  int i = SUCCEEDED;
   int parse_flags_result;
 
   if (sizeof(double) != 8) {
@@ -118,7 +117,7 @@ int main(int argc, char *argv[]) {
     parse_flags_result = parse_flags(argv, argc);
   }
   
-  if (i == FAILED || output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
+  if (output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
 #ifdef GB
     printf("\nWLA GB-Z80 Macro Assembler v9.7b\n");
 #endif
