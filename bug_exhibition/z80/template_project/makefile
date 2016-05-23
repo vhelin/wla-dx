@@ -2,7 +2,7 @@
 CC = wla-z80
 CFLAGS = -o
 LD = wlalink
-LDFLAGS = -vs
+LDFLAGS = -v -s
 
 SFILES = main.s
 OFILES = main.o
