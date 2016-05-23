@@ -141,7 +141,7 @@ static void debug_print_label(struct label *l) {
 
 int main(int argc, char *argv[]) {
 
-  int i, x, y, q, inz, u;
+  int i, x, y, q, inz;
   struct section *s;
   float f;
 
@@ -154,44 +154,24 @@ int main(int argc, char *argv[]) {
 
   i = SUCCEEDED;
   x = SUCCEEDED;
-  u = SUCCEEDED;
 
   if (argc > 1) {
-    x = parse_flags(argv[1]);
-    if (x == SUCCEEDED)
-      u = parse_and_set_libdir(argv[2]);
-    else
-      u = parse_and_set_libdir(argv[1]);
-  }
-  else
-    i = FAILED;
-
-  if (u == SUCCEEDED) {
-    if (x == FAILED && argc != 4)
-      i = FAILED;
-    if (x == SUCCEEDED && argc != 5)
-      i = FAILED;
-  }
-  else {
-    if (x == FAILED && argc != 3)
-      i = FAILED;
-    if (x == SUCCEEDED && argc != 4)
-      i = FAILED;
+    x = parse_flags(argv, argc);
   }
 
-  if (i == FAILED) {
+  if (x == FAILED) {
     printf("\nWLALINK GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 WLA Macro Assembler Linker v5.8b\n");
     printf("Written by Ville Helin in 2000-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
-    printf("USAGE: %s [-bdirsSv] -L[LIBDIR] <LINK FILE> <OUTPUT FILE>\n", argv[0]);
+    printf("USAGE: %s [OPTIONS] <LINK FILE> <OUTPUT FILE>\n", argv[0]);
     printf("Options:\n");
-    printf("b  Program file output\n");
-    printf("d  Discard unreferenced sections\n");
-    printf("i  Write list files\n");
-    printf("r  ROM file output (default)\n");
-    printf("s  Write also a NO$GMB symbol file\n");
-    printf("S  Write also a WLA symbol file\n");
-    printf("v  Verbose messages\n");
-    printf("L  Library directory\n\n");
+    printf("-b  Program file output\n");
+    printf("-d  Discard unreferenced sections\n");
+    printf("-i  Write list files\n");
+    printf("-r  ROM file output (default)\n");
+    printf("-s  Write also a NO$GMB symbol file\n");
+    printf("-S  Write also a WLA symbol file\n");
+    printf("-v  Verbose messages\n");
+    printf("-L [DIR]   Library directory\n\n");
     return 0;
   }
 
@@ -680,50 +660,59 @@ void procedures_at_exit(void) {
 }
 
 
-int parse_flags(char *f) {
+int parse_flags(char **flags, int flagc) {
 
-  int l, output_mode_defined = 0;
-
-  if (*f != '-')
-    return FAILED;
-
-  l = strlen(f);
-  if (l == 1)
-    return FAILED;
-
-  for (f++, l--; l > 0; l--, f++) {
-    switch (*f) {
-    case 'v':
-      verbose_mode = ON;
-      continue;
-    case 'i':
-      listfile_data = YES;
-      continue;
-    case 's':
-      symbol_mode = SYMBOL_MODE_NOCA5H;
-      continue;
-    case 'S':
-      symbol_mode = SYMBOL_MODE_WLA;
-      continue;
-    case 'b':
+  int output_mode_defined = 0;
+  int count = 1;
+  
+  while (count < flagc - 2) {
+    if (!strcmp(flags[count], "-b")) {
       if (output_mode_defined == 1)
-	return FAILED;
+	      return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_PRG;
+      count++;
       continue;
-    case 'r':
+    } else if (!strcmp(flags[count], "-r")) {
       if (output_mode_defined == 1)
-	return FAILED;
+	      return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_ROM;
+      count++;
       continue;
-    case 'd':
-      discard_unreferenced_sections = ON;
+    } else if (!strcmp(flags[count], "-L")) {
+      if (count + 1 < flagc) {
+        /* get arg */
+        parse_and_set_libdir(flags[count+1]);
+      } else {
+        return FAILED;
+      }
+      count+=2;
       continue;
-    default:
-      return FAILED;
-    }
-  }
+    } else if (!strcmp(flags[count], "-i")) {
+       listfile_data = YES;
+       count++;
+       continue;
+    } else if (!strcmp(flags[count], "-v")) {
+       verbose_mode = ON;
+       count++;
+       continue;
+    } else if (!strcmp(flags[count], "-s")) {
+       symbol_mode = SYMBOL_MODE_NOCA5H;
+       count++;
+       continue;
+    } else if (!strcmp(flags[count], "-S")) {
+       symbol_mode = SYMBOL_MODE_WLA;
+       count++;
+       continue;
+    } else if (!strcmp(flags[count], "-d")) {
+       discard_unreferenced_sections = ON;
+       count++;
+       continue;
+    } else {
+       return FAILED;
+     }
+   }
 
   return SUCCEEDED;
 }
