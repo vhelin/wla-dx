@@ -97,7 +97,8 @@ char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH];
 int main(int argc, char *argv[]) {
 
   int parse_flags_result;
-
+  int n_ctr = 0;
+  
   if (sizeof(double) != 8) {
     fprintf(stderr, "MAIN: sizeof(double) == %d != 8. WLA will not work properly.\n", (int)sizeof(double));
     return -1;
@@ -115,6 +116,19 @@ int main(int argc, char *argv[]) {
 
   if (argc >= 2) {
     parse_flags_result = parse_flags(argv, argc);
+    
+    if (output_format == OUTPUT_NONE) {
+      if (parse_flags_result == SUCCEEDED) {
+        /* assume object file output name */
+        output_format = OUTPUT_OBJECT;
+        final_name = malloc(strlen(asm_name)+1);
+        for (n_ctr = 0; n_ctr < (int)strlen(asm_name) && *((asm_name) + n_ctr) != '.'; n_ctr++)
+          final_name[n_ctr] = *((asm_name) + n_ctr);
+          final_name[n_ctr++] = '.';
+        final_name[n_ctr++] = 'o';
+        final_name[n_ctr] = 0;
+      }
+    }
   }
   
   if (output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
