@@ -2,7 +2,7 @@
 CC = wla-z80
 CFLAGS = -i -o
 LD = wlalink
-LDFLAGS = -vsi
+LDFLAGS = -v -s -i
 
 SFILES = setup.s main.s
 IFILES = defines.i

@@ -2,7 +2,7 @@
 CC = wla-spc700
 CFLAGS = -o
 LD = wlalink
-LDFLAGS = -vS
+LDFLAGS = -v -S
 
 SFILES = setup.s main.s
 IFILES = defines.i

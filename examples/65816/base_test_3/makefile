@@ -2,7 +2,7 @@
 CC = wla-65816
 CFLAGS = -o
 LD = wlalink
-LDFLAGS = -vs
+LDFLAGS = -v -s
 
 SFILES = main.s
 IFILES = 

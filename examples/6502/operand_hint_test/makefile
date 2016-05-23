@@ -2,7 +2,7 @@
 CC = wla-6502
 CFLAGS = -D abba = 123h -D man = 0ah -o
 LD = wlalink
-LDFLAGS = -v
+LDFLAGS = -v -i
 
 SFILES = main.s
 IFILES = 

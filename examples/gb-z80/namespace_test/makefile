@@ -2,7 +2,7 @@
 CC = wla-gb
 CFLAGS = -x -o
 LD = wlalink
-LDFLAGS = -dvs
+LDFLAGS = -d -v -s
 
 SFILES = setup.s main.s
 IFILES = defines1.i defines2.i

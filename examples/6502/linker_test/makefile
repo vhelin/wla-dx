@@ -2,7 +2,7 @@
 CC = wla-6502
 CFLAGS = -i -o
 LD = wlalink
-LDFLAGS = -vi
+LDFLAGS = -v -i
 
 SFILES = setup.s linker_test.s
 IFILES = defines.i

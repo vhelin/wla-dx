@@ -1,8 +1,8 @@
 
-CC = wla-6502.exe
+CC = wla-6502
 CFLAGS = -o
-LD = wlalink.exe
-LDFLAGS = -vs
+LD = wlalink
+LDFLAGS = -v -s
 
 SFILES = main.s
 IFILES = 

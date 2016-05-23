@@ -2,7 +2,7 @@
 CC = wla-65c02
 CFLAGS = -o
 LD = wlalink
-LDFLAGS = -vs
+LDFLAGS = -v -s
 
 SFILES = setup.s main.s
 IFILES = defines.i

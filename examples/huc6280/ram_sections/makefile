@@ -2,7 +2,7 @@
 CC = wla-huc6280
 CFLAGS = -i -x -o
 LD = wlalink
-LDFLAGS = -vSi
+LDFLAGS = -v -S -i
 
 SFILES = main.s
 IFILES = defines.i

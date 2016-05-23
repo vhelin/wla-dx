@@ -1,6 +1,6 @@
 
 CC = wla-65816
-CFLAGS = -v -D NAME = "pu ppoe" -o
+CFLAGS = -v -D NAME="kullervo" -o
 LD = wlalink
 LDFLAGS = -v -S
 
