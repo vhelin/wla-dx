@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
 
   i = SUCCEEDED;
 
-  if (argc > 1) {
+  if (argc > 2) {
     x = parse_flags(argv, argc);
   } else {
     x = FAILED;
@@ -714,7 +714,7 @@ int parse_flags(char **flags, int flagc) {
        return FAILED;
      }
    }
-
+  
   return SUCCEEDED;
 }
 
