@@ -203,6 +203,7 @@ int parse_flags(char **flags, int flagc) {
 
   int count = 1;
   int asm_name_def = 0;
+  char *str_build;
   
   while (count < flagc) {
     if (!strcmp(flags[count], "-o")) {
@@ -233,8 +234,19 @@ int parse_flags(char **flags, int flagc) {
       continue;
     } else if (!strcmp(flags[count], "-D")) {
       if (count + 1 < flagc) {
-        /* get arg */
-        parse_and_add_definition(flags[count+1]);
+        if (count + 3 < flagc) {
+          if (!strcmp(flags[count+2], "=")) {
+            str_build = malloc(strlen(flags[count+1])+strlen(flags[count+3])+2);
+            sprintf(str_build, "%s=%s", flags[count+1], flags[count+3]);
+            parse_and_add_definition(str_build);
+            free(str_build);
+            count+=2;
+          } else {
+            parse_and_add_definition(flags[count+1]);
+          }
+        } else {
+          parse_and_add_definition(flags[count+1]);
+        }
       } else {
         return FAILED;
       }
