@@ -250,16 +250,22 @@ int parse_flags(char **flags, int flagc) {
       if (count + 1 < flagc) {
         if (count + 3 < flagc) {
           if (!strcmp(flags[count+2], "=")) {
-            str_build = malloc(strlen(flags[count+1])+strlen(flags[count+3])+2);
-            sprintf(str_build, "%s=%s", flags[count+1], flags[count+3]);
+            str_build = malloc(strlen(flags[count+1])+strlen(flags[count+3])+4);
+            sprintf(str_build, "00%s=%s", flags[count+1], flags[count+3]);
             parse_and_add_definition(str_build);
             free(str_build);
-            count++;
+            count+=2;
           } else {
-            parse_and_add_definition(flags[count+1]);
+            str_build = malloc(strlen(flags[count+1])+3);
+            sprintf(str_build, "00%s", flags[count+1]);
+            parse_and_add_definition(str_build);
+            free(str_build);
           }
         } else {
-          parse_and_add_definition(flags[count+1]);
+          str_build = malloc(strlen(flags[count+1])+3);
+          sprintf(str_build, "00%s", flags[count+1]);
+          parse_and_add_definition(str_build);
+          free(str_build);
         }
       } else {
         return FAILED;
@@ -544,7 +550,7 @@ int parse_and_add_definition(char *c) {
 
   char n[MAX_NAME_LENGTH];
   int i;
-
+  
   c += 2;
   for (i = 0; i < (MAX_NAME_LENGTH - 1) && *c != 0 && *c != '='; i++, c++)
     n[i] = *c;
