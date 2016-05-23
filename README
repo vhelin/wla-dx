@@ -2911,9 +2911,9 @@ After you have produced one or more object files and perhaps some library
 files, you might want to link them together to produce a ROM image / program
 file. "wlalink" is the program you use for that. Here's how you use it:
 
-"wlalink [-divsS]{b/r} [LIBDIR] <LINK FILE> <OUTPUT FILE>"
+"wlalink [OPTIONS] <LINK FILE> <OUTPUT FILE>"
 
-Choose 'b' for program file or 'r' for ROM image linking.
+Choose the option -b [OUT] for program file or -r [OUT] for ROM image linking.
 
 Link file is a text file that contains information about the files you want
 to link together. Here's the format:
@@ -3040,8 +3040,8 @@ same memory address (in the program's point of view).
 Examples:
 
 [seravy@localhost tbp]# wlalink -r linkfile testa.sfc
-[seravy@localhost tbp]# wlalink -dib linkfile testb.sfc
-[seravy@localhost tbp]# wlalink -vS -L../../lib linkfile testc.sfc
+[seravy@localhost tbp]# wlalink -d -i -b linkfile testb.sfc
+[seravy@localhost tbp]# wlalink -v -S -L ../../lib linkfile testc.sfc
 
 
 ------------------------------------------------------------------------------
