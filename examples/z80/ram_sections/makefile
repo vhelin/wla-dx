@@ -12,7 +12,7 @@ all: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.rom
 
 sms.o: sms.s
-	$(CC) $(CFLAGS) sms.s sms.o
+	$(CC) $(CFLAGS) sms.o sms.s
 
 
 $(OFILES): $(HFILES)

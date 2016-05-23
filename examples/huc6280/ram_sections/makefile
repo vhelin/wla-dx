@@ -1,6 +1,6 @@
 
 CC = wla-huc6280
-CFLAGS = -oxi
+CFLAGS = -i -x -o
 LD = wlalink
 LDFLAGS = -vSi
 
@@ -12,7 +12,7 @@ all: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile result.rom
 
 main.o: main.s defines.i
-	$(CC) $(CFLAGS) main.s main.o
+	$(CC) $(CFLAGS) main.o main.s
 
 
 $(OFILES): $(HFILES)

@@ -11,7 +11,7 @@ all: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.rom
 
 main.o: main.s
-	$(CC) $(CFLAGS) main.s main.o
+	$(CC) $(CFLAGS) main.o main.s
 
 
 $(OFILES): $(HFILES)

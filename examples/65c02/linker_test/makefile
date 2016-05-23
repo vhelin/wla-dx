@@ -12,10 +12,10 @@ all: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.rom
 
 main.o: main.s defines.i
-	$(CC) $(CFLAGS) main.s main.o
+	$(CC) $(CFLAGS) main.o main.s
 
 setup.o: setup.s defines.i
-	$(CC) $(CFLAGS) setup.s setup.o
+	$(CC) $(CFLAGS) setup.o setup.s
 
 
 $(OFILES): $(HFILES)

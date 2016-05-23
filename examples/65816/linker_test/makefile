@@ -1,24 +1,24 @@
 
 CC = wla-65816
-CFLAGS = -vo -DNAME=kullervo
+CFLAGS = -v -D NAME = kullervo -o
 LD = wlalink
 LDFLAGS = -vS
 
-SFILES = main.s hoaeihgoiahofkldnvoiwenrgiawrejgaopiengopidfngoknawoeignoiagnaoiwengoianeosergheoigh.s
+SFILES = main.s syntax.s
 IFILES = defines.i
-OFILES = main.o hoaeihgoiahofkldnvoiwenrgiawrejgaopiengopidfngoknawoeignoiagnaoiwengoianeosergheoigh.o
+OFILES = main.o syntax.o
 
 all: $(OFILES) test.lib makefile
 	$(LD) $(LDFLAGS) linkfile result.smc
 
 main.o: main.s defines.i
-	$(CC) $(CFLAGS) main.s
+	$(CC) $(CFLAGS) main.o main.s
 
-hoaeihgoiahofkldnvoiwenrgiawrejgaopiengopidfngoknawoeignoiagnaoiwengoianeosergheoigh.o: hoaeihgoiahofkldnvoiwenrgiawrejgaopiengopidfngoknawoeignoiagnaoiwengoianeosergheoigh.s defines.i
-	$(CC) $(CFLAGS) hoaeihgoiahofkldnvoiwenrgiawrejgaopiengopidfngoknawoeignoiagnaoiwengoianeosergheoigh.s hoaeihgoiahofkldnvoiwenrgiawrejgaopiengopidfngoknawoeignoiagnaoiwengoianeosergheoigh.o
+syntax.o: syntax.s defines.i
+	$(CC) $(CFLAGS) syntax.o syntax.s
 
 test.lib: test.s
-	$(CC) -l test.s test.lib
+	$(CC) -l test.lib test.s
 
 
 $(OFILES): $(HFILES)
