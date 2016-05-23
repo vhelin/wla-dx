@@ -664,22 +664,20 @@ void procedures_at_exit(void) {
 int parse_flags(char **flags, int flagc) {
 
   int output_mode_defined = 0;
-  int count = 1;
+  int count;
   
-  while (count < flagc - 2) {
+  for (count = 1; count < flagc - 2; count++) {
     if (!strcmp(flags[count], "-b")) {
       if (output_mode_defined == 1)
 	      return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_PRG;
-      count++;
       continue;
     } else if (!strcmp(flags[count], "-r")) {
       if (output_mode_defined == 1)
 	      return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_ROM;
-      count++;
       continue;
     } else if (!strcmp(flags[count], "-L")) {
       if (count + 1 < flagc) {
@@ -688,27 +686,22 @@ int parse_flags(char **flags, int flagc) {
       } else {
         return FAILED;
       }
-      count+=2;
+      count++;
       continue;
     } else if (!strcmp(flags[count], "-i")) {
        listfile_data = YES;
-       count++;
        continue;
     } else if (!strcmp(flags[count], "-v")) {
        verbose_mode = ON;
-       count++;
        continue;
     } else if (!strcmp(flags[count], "-s")) {
        symbol_mode = SYMBOL_MODE_NOCA5H;
-       count++;
        continue;
     } else if (!strcmp(flags[count], "-S")) {
        symbol_mode = SYMBOL_MODE_WLA;
-       count++;
        continue;
     } else if (!strcmp(flags[count], "-d")) {
        discard_unreferenced_sections = ON;
-       count++;
        continue;
     } else {
        return FAILED;

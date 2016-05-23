@@ -215,11 +215,11 @@ int main(int argc, char *argv[]) {
 
 int parse_flags(char **flags, int flagc) {
 
-  int count = 1;
+  int count;
   int asm_name_def = 0;
   char *str_build;
   
-  while (count < flagc) {
+  for (count = 1; count < flagc; count++) {
     if (!strcmp(flags[count], "-o")) {
       if (output_format != OUTPUT_NONE)
 	      return FAILED;
@@ -231,7 +231,7 @@ int parse_flags(char **flags, int flagc) {
       } else {
         return FAILED;
       }
-      count+=2;
+      count++;
       continue;
     } else if (!strcmp(flags[count], "-l")) {
       if (output_format != OUTPUT_NONE)
@@ -244,7 +244,7 @@ int parse_flags(char **flags, int flagc) {
       } else {
         return FAILED;
       }
-      count+=2;
+      count++;
       continue;
     } else if (!strcmp(flags[count], "-D")) {
       if (count + 1 < flagc) {
@@ -254,7 +254,7 @@ int parse_flags(char **flags, int flagc) {
             sprintf(str_build, "%s=%s", flags[count+1], flags[count+3]);
             parse_and_add_definition(str_build);
             free(str_build);
-            count+=2;
+            count++;
           } else {
             parse_and_add_definition(flags[count+1]);
           }
@@ -264,7 +264,7 @@ int parse_flags(char **flags, int flagc) {
       } else {
         return FAILED;
       }
-      count+=2;
+      count++;
       continue;
     } else if (!strcmp(flags[count], "-I")) {
       if (count + 1 < flagc) {
@@ -273,34 +273,28 @@ int parse_flags(char **flags, int flagc) {
       } else {
         return FAILED;
       }
-      count+=2;
+      count++;
       continue;
     } else if (!strcmp(flags[count], "-i")) {
        listfile_data = YES;
-       count++;
        continue;
     } else if (!strcmp(flags[count], "-v")) {
        verbose_mode = ON;
-       count++;
        continue;
     } else if (!strcmp(flags[count], "-t")) {
        test_mode = ON;
-       count++;
        continue;
     } else if (!strcmp(flags[count], "-M")) {
        makefile_rules = YES;
        test_mode = ON;
        verbose_mode = OFF;
        quiet = YES;
-       count++;
        continue;
     } else if (!strcmp(flags[count], "-q")) {
        quiet = YES;
-       count++;
        continue;
     } else if (!strcmp(flags[count], "-x")) {
        extra_definitions = ON;
-       count++;
        continue;
     } else {
        if (count == flagc - 1) {
