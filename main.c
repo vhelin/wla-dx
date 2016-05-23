@@ -290,7 +290,7 @@ int parse_flags(char **flags, int flagc) {
        continue;
     } else {
        if (count == flagc - 1) {
-         asm_name = malloc(strlen(flags[count]+1));
+         asm_name = malloc(strlen(flags[count])+1);
          strcpy(asm_name, flags[count]); count++;
          asm_name_def++;
        } else {
