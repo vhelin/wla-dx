@@ -153,10 +153,11 @@ int main(int argc, char *argv[]) {
   atexit(procedures_at_exit);
 
   i = SUCCEEDED;
-  x = SUCCEEDED;
 
   if (argc > 1) {
     x = parse_flags(argv, argc);
+  } else {
+    x = FAILED;
   }
 
   if (x == FAILED) {
