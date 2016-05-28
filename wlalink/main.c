@@ -41,7 +41,7 @@ unsigned char *rom, *rom_usage, *file_header = NULL, *file_footer = NULL;
 int romsize, rombanks, banksize, verbose_mode = OFF, section_overwrite = OFF, symbol_mode = SYMBOL_MODE_NONE;
 int pc_bank, pc_full, pc_slot, pc_slot_max;
 int file_header_size, file_footer_size, *banksizes = NULL, *bankaddress = NULL;
-int output_mode = OUTPUT_ROM, discard_unreferenced_sections = OFF, use_libdir = NO;
+int output_mode = OUTPUT_ROM, discard_unreferenced_sections = OFF, silent_discard = OFF, use_libdir = NO;
 int program_start, program_end, sms_checksum, smstag_defined = 0, snes_rom_mode = SNES_ROM_MODE_LOROM, snes_rom_speed = SNES_ROM_SPEED_SLOWROM;
 int gb_checksum, gb_complement_check, snes_checksum, cpu_65816 = 0, snes_mode = 0;
 int listfile_data = NO, smc_status = 0, snes_sramsize = 0;
@@ -182,10 +182,11 @@ int main(int argc, char *argv[]) {
   if (i == FAILED) {
     printf("\nWLALINK GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 WLA Macro Assembler Linker v5.8b\n");
     printf("Written by Ville Helin in 2000-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
-    printf("USAGE: %s [-bdirsSv] -L[LIBDIR] <LINK FILE> <OUTPUT FILE>\n", argv[0]);
+    printf("USAGE: %s [-bdnirsSv] -L[LIBDIR] <LINK FILE> <OUTPUT FILE>\n", argv[0]);
     printf("Options:\n");
     printf("b  Program file output\n");
     printf("d  Discard unreferenced sections\n");
+    printf("n  Silent discard unreferenced sections\n");
     printf("i  Write list files\n");
     printf("r  ROM file output (default)\n");
     printf("s  Write also a NO$GMB symbol file\n");
@@ -719,6 +720,10 @@ int parse_flags(char *f) {
       continue;
     case 'd':
       discard_unreferenced_sections = ON;
+      continue;
+    case 'n':
+      discard_unreferenced_sections = ON;
+      silent_discard = ON;
       continue;
     default:
       return FAILED;
