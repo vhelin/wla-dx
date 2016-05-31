@@ -9,22 +9,22 @@ all: $(LFILES) makefile
 
 
 speed.lib: src/speed.s
-	$(CC) $(CFLAGS) src/speed.s speed.lib
+	$(CC) $(CFLAGS) speed.lib src/speed.s
 
 memcpy.lib: src/memcpy.s
-	$(CC) $(CFLAGS) src/memcpy.s memcpy.lib
+	$(CC) $(CFLAGS) memcpy.lib src/memcpy.s
 
 vbi.lib: src/vbi.s
-	$(CC) $(CFLAGS) src/vbi.s vbi.lib
+	$(CC) $(CFLAGS) vbi.lib src/vbi.s
 
 spritedma.lib: src/spritedma.s
-	$(CC) $(CFLAGS) src/spritedma.s spritedma.lib
+	$(CC) $(CFLAGS) spritedma.lib src/spritedma.s
 
 palette.lib: src/palette.s
-	$(CC) $(CFLAGS) src/palette.s palette.lib
+	$(CC) $(CFLAGS) palette.lib src/palette.s
 
 screen.lib: src/screen.s
-	$(CC) $(CFLAGS) src/screen.s screen.lib
+	$(CC) $(CFLAGS) screen.lib src/screen.s
 
 
 clean:

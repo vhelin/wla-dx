@@ -2,7 +2,7 @@
 CC = wla-6510
 CFLAGS = -o
 LD = wlalink
-LDFLAGS = -vs
+LDFLAGS = -v -s
 
 SFILES = main.s
 IFILES = defines.i
@@ -12,7 +12,7 @@ all: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.rom
 
 main.o: main.s defines.i
-	$(CC) $(CFLAGS) main.s main.o
+	$(CC) $(CFLAGS) main.o main.s
 
 
 $(OFILES): $(HFILES)

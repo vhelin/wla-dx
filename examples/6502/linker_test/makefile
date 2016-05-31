@@ -1,21 +1,21 @@
 
 CC = wla-6502
-CFLAGS = -oi
+CFLAGS = -i -o
 LD = wlalink
-LDFLAGS = -vi
+LDFLAGS = -v -i
 
-SFILES = setup.s ighesohrgpieshgoehrgeihgoiehrogiheorighoerhgofidhgoihesfosidhoihgoseihrgoihdofihgoiehrgosihrg.s
+SFILES = setup.s linker_test.s
 IFILES = defines.i
-OFILES = setup.o ighesohrgpieshgoehrgeihgoiehrogiheorighoerhgofidhgoihesfosidhoihgoseihrgoihdofihgoiehrgosihrg.o
+OFILES = setup.o linker_test.o
 
 all: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.rom
 
-ighesohrgpieshgoehrgeihgoiehrogiheorighoerhgofidhgoihesfosidhoihgoseihrgoihdofihgoiehrgosihrg.o: ighesohrgpieshgoehrgeihgoiehrogiheorighoerhgofidhgoihesfosidhoihgoseihrgoihdofihgoiehrgosihrg.s defines.i
-	$(CC) $(CFLAGS) ighesohrgpieshgoehrgeihgoiehrogiheorighoerhgofidhgoihesfosidhoihgoseihrgoihdofihgoiehrgosihrg.s
+linker_test.o: linker_test.s defines.i
+	$(CC) $(CFLAGS) linker_test.o linker_test.s
 
 setup.o: setup.s defines.i
-	$(CC) $(CFLAGS) setup.s setup.o
+	$(CC) $(CFLAGS) setup.o setup.s
 
 
 $(OFILES): $(HFILES)

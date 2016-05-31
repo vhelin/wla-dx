@@ -1,24 +1,24 @@
 
 CC = wla-65816
-CFLAGS = -vo -DNAME=kullervo
+CFLAGS = -v -D NAME="kullervo" -o
 LD = wlalink
-LDFLAGS = -vS
+LDFLAGS = -v -S
 
-SFILES = main.s hoaeihgoiahofkldnvoiwenrgiawrejgaopiengopidfngoknawoeignoiagnaoiwengoianeosergheoigh.s
+SFILES = main.s can_you_tell_this_name_is_intended_to_test_the_capability_of_wla_to_handle_long_filenames_and_stufffffffff.s
 IFILES = defines.i
-OFILES = main.o hoaeihgoiahofkldnvoiwenrgiawrejgaopiengopidfngoknawoeignoiagnaoiwengoianeosergheoigh.o
+OFILES = main.o can_you_tell_this_name_is_intended_to_test_the_capability_of_wla_to_handle_long_filenames_and_stufffffffff.o
 
 all: $(OFILES) test.lib makefile
 	$(LD) $(LDFLAGS) linkfile result.smc
 
 main.o: main.s defines.i
-	$(CC) $(CFLAGS) main.s
+	$(CC) $(CFLAGS) main.o main.s
 
-hoaeihgoiahofkldnvoiwenrgiawrejgaopiengopidfngoknawoeignoiagnaoiwengoianeosergheoigh.o: hoaeihgoiahofkldnvoiwenrgiawrejgaopiengopidfngoknawoeignoiagnaoiwengoianeosergheoigh.s defines.i
-	$(CC) $(CFLAGS) hoaeihgoiahofkldnvoiwenrgiawrejgaopiengopidfngoknawoeignoiagnaoiwengoianeosergheoigh.s hoaeihgoiahofkldnvoiwenrgiawrejgaopiengopidfngoknawoeignoiagnaoiwengoianeosergheoigh.o
+can_you_tell_this_name_is_intended_to_test_the_capability_of_wla_to_handle_long_filenames_and_stufffffffff.o: can_you_tell_this_name_is_intended_to_test_the_capability_of_wla_to_handle_long_filenames_and_stufffffffff.s defines.i
+	$(CC) $(CFLAGS) can_you_tell_this_name_is_intended_to_test_the_capability_of_wla_to_handle_long_filenames_and_stufffffffff.o can_you_tell_this_name_is_intended_to_test_the_capability_of_wla_to_handle_long_filenames_and_stufffffffff.s
 
 test.lib: test.s
-	$(CC) -l test.s test.lib
+	$(CC) -l test.lib test.s
 
 
 $(OFILES): $(HFILES)
