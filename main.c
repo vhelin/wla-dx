@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
         final_name = malloc(strlen(asm_name)+1);
         for (n_ctr = 0; n_ctr < (int)strlen(asm_name) && *((asm_name) + n_ctr) != '.'; n_ctr++)
           final_name[n_ctr] = *((asm_name) + n_ctr);
-          final_name[n_ctr++] = '.';
+	final_name[n_ctr++] = '.';
         final_name[n_ctr++] = 'o';
         final_name[n_ctr] = 0;
       }
@@ -165,11 +165,11 @@ int main(int argc, char *argv[]) {
     printf("-t  Test compile\n");
     printf("-v  Verbose messages\n");
     printf("-x  Extra compile time definitions\n");
-    printf("-I [DIR]   Include directory\n");
-    printf("-D [DEF]   Declare definition\n\n");
+    printf("-I [DIR]  Include directory\n");
+    printf("-D [DEF]  Declare definition\n\n");
     printf("Output types:\n");
-    printf("-o [FILE]   Output object file\n");
-    printf("-l [FILE]   Output library file\n\n");
+    printf("-o [FILE]  Output object file\n");
+    printf("-l [FILE]  Output library file\n\n");
     return 0;
   }
 
@@ -222,31 +222,35 @@ int parse_flags(char **flags, int flagc) {
   for (count = 1; count < flagc; count++) {
     if (!strcmp(flags[count], "-o")) {
       if (output_format != OUTPUT_NONE)
-	      return FAILED;
+	return FAILED;
       output_format = OUTPUT_OBJECT;
       if (count + 1 < flagc) {
         /* set output */
         final_name = malloc(strlen(flags[count+1])+1);
         strcpy(final_name, flags[count+1]);
-      } else {
-        return FAILED;
       }
+      else
+        return FAILED;
+
       count++;
       continue;
-    } else if (!strcmp(flags[count], "-l")) {
+    }
+    else if (!strcmp(flags[count], "-l")) {
       if (output_format != OUTPUT_NONE)
-	      return FAILED;
+	return FAILED;
       output_format = OUTPUT_LIBRARY;
       if (count + 1 < flagc) {
         /* set output */
         final_name = malloc(strlen(flags[count+1])+1);
         strcpy(final_name, flags[count+1]);
-      } else {
-        return FAILED;
       }
+      else
+        return FAILED;
+
       count++;
       continue;
-    } else if (!strcmp(flags[count], "-D")) {
+    }
+    else if (!strcmp(flags[count], "-D")) {
       if (count + 1 < flagc) {
         if (count + 3 < flagc) {
           if (!strcmp(flags[count+2], "=")) {
@@ -254,68 +258,79 @@ int parse_flags(char **flags, int flagc) {
             sprintf(str_build, "00%s=%s", flags[count+1], flags[count+3]);
             parse_and_add_definition(str_build);
             free(str_build);
-            count+=2;
-          } else {
+            count += 2;
+          }
+	  else {
             str_build = malloc(strlen(flags[count+1])+3);
             sprintf(str_build, "00%s", flags[count+1]);
             parse_and_add_definition(str_build);
             free(str_build);
           }
-        } else {
+        }
+	else {
           str_build = malloc(strlen(flags[count+1])+3);
           sprintf(str_build, "00%s", flags[count+1]);
           parse_and_add_definition(str_build);
           free(str_build);
         }
-      } else {
-        return FAILED;
       }
+      else
+        return FAILED;
+
       count++;
       continue;
-    } else if (!strcmp(flags[count], "-I")) {
+    }
+    else if (!strcmp(flags[count], "-I")) {
       if (count + 1 < flagc) {
         /* get arg */
         parse_and_set_incdir(flags[count+1]);
-      } else {
-        return FAILED;
       }
+      else
+        return FAILED;
+
       count++;
       continue;
-    } else if (!strcmp(flags[count], "-i")) {
-       listfile_data = YES;
-       continue;
-    } else if (!strcmp(flags[count], "-v")) {
-       verbose_mode = ON;
-       continue;
-    } else if (!strcmp(flags[count], "-t")) {
-       test_mode = ON;
-       continue;
-    } else if (!strcmp(flags[count], "-M")) {
-       makefile_rules = YES;
-       test_mode = ON;
-       verbose_mode = OFF;
-       quiet = YES;
-       continue;
-    } else if (!strcmp(flags[count], "-q")) {
-       quiet = YES;
-       continue;
-    } else if (!strcmp(flags[count], "-x")) {
-       extra_definitions = ON;
-       continue;
-    } else {
-       if (count == flagc - 1) {
-         asm_name = malloc(strlen(flags[count])+1);
-         strcpy(asm_name, flags[count]); count++;
-         asm_name_def++;
-       } else {
-         return FAILED;
-       }
+    }
+    else if (!strcmp(flags[count], "-i")) {
+      listfile_data = YES;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-v")) {
+      verbose_mode = ON;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-t")) {
+      test_mode = ON;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-M")) {
+      makefile_rules = YES;
+      test_mode = ON;
+      verbose_mode = OFF;
+      quiet = YES;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-q")) {
+      quiet = YES;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-x")) {
+      extra_definitions = ON;
+      continue;
+    }
+    else {
+      if (count == flagc - 1) {
+	asm_name = malloc(strlen(flags[count])+1);
+	strcpy(asm_name, flags[count]); count++;
+	asm_name_def++;
+      }
+      else
+	return FAILED;
      }
    }
   
-  if (!asm_name_def) {
+  if (!asm_name_def)
     return FAILED;
-  }
   
   return SUCCEEDED;
 }

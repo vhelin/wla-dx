@@ -41,4 +41,8 @@ label:  lda #(label&$ff)
 	stx 1000.w
 .ENDS
 
+.section "Names, names, names..." free
+	.db name4, 0, name3, 1, name2, 2, name1, 3
+.ends
+
 .dbsin 0.2, 10, 3.2, 120, 1.3

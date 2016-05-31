@@ -20,7 +20,7 @@
 #include "discard.h"
 #include "listfile.h"
 
-/* define this if you want to display debug information */
+/* define this if you want to display debug information when you run WLALINK */
 /*
 #define WLALINK_DEBUG
 */
@@ -154,11 +154,10 @@ int main(int argc, char *argv[]) {
 
   i = SUCCEEDED;
 
-  if (argc > 2) {
+  if (argc > 2)
     x = parse_flags(argv, argc);
-  } else {
+  else
     x = FAILED;
-  }
 
   if (x == FAILED) {
     printf("\nWLALINK GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 WLA Macro Assembler Linker v5.8b\n");
@@ -172,7 +171,7 @@ int main(int argc, char *argv[]) {
     printf("-s  Write also a NO$GMB symbol file\n");
     printf("-S  Write also a WLA symbol file\n");
     printf("-v  Verbose messages\n");
-    printf("-L [DIR]   Library directory\n\n");
+    printf("-L [DIR]  Library directory\n\n");
     return 0;
   }
 
@@ -669,43 +668,50 @@ int parse_flags(char **flags, int flagc) {
   for (count = 1; count < flagc - 2; count++) {
     if (!strcmp(flags[count], "-b")) {
       if (output_mode_defined == 1)
-	      return FAILED;
+	return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_PRG;
       continue;
-    } else if (!strcmp(flags[count], "-r")) {
+    }
+    else if (!strcmp(flags[count], "-r")) {
       if (output_mode_defined == 1)
-	      return FAILED;
+	return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_ROM;
       continue;
-    } else if (!strcmp(flags[count], "-L")) {
+    }
+    else if (!strcmp(flags[count], "-L")) {
       if (count + 1 < flagc) {
         /* get arg */
         parse_and_set_libdir(flags[count+1]);
-      } else {
-        return FAILED;
       }
+      else
+        return FAILED;
       count++;
       continue;
-    } else if (!strcmp(flags[count], "-i")) {
-       listfile_data = YES;
-       continue;
-    } else if (!strcmp(flags[count], "-v")) {
-       verbose_mode = ON;
-       continue;
-    } else if (!strcmp(flags[count], "-s")) {
-       symbol_mode = SYMBOL_MODE_NOCA5H;
-       continue;
-    } else if (!strcmp(flags[count], "-S")) {
-       symbol_mode = SYMBOL_MODE_WLA;
-       continue;
-    } else if (!strcmp(flags[count], "-d")) {
-       discard_unreferenced_sections = ON;
-       continue;
-    } else {
-       return FAILED;
-     }
+    }
+    else if (!strcmp(flags[count], "-i")) {
+      listfile_data = YES;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-v")) {
+      verbose_mode = ON;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-s")) {
+      symbol_mode = SYMBOL_MODE_NOCA5H;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-S")) {
+      symbol_mode = SYMBOL_MODE_WLA;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-d")) {
+      discard_unreferenced_sections = ON;
+      continue;
+    }
+    else
+      return FAILED;
    }
   
   return SUCCEEDED;
