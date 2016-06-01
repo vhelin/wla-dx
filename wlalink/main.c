@@ -664,6 +664,7 @@ int parse_flags(char **flags, int flagc) {
 
   int output_mode_defined = 0;
   int count;
+  char *str_build;
   
   for (count = 1; count < flagc - 2; count++) {
     if (!strcmp(flags[count], "-b")) {
@@ -710,8 +711,22 @@ int parse_flags(char **flags, int flagc) {
       discard_unreferenced_sections = ON;
       continue;
     }
-    else
-      return FAILED;
+    else {
+      /* legacy support? */
+      str_build = malloc(3);
+      sprintf(str_build, "%c%c", flags[count][0], flags[count][1]);
+  
+      if (!strcmp(str_build, "-L")) {
+        /* old library directory */
+        flags[count] += 2;
+        parse_and_set_libdir(flags[count]);
+        free(str_build);
+        continue;
+      } else {
+        free(str_build);
+        return FAILED;
+      }
+    }
    }
   
   return SUCCEEDED;

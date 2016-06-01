@@ -324,10 +324,31 @@ int parse_flags(char **flags, int flagc) {
 	strcpy(asm_name, flags[count]); count++;
 	asm_name_def++;
       }
-      else
-	return FAILED;
-     }
+      else {
+  /* legacy support? */
+  str_build = malloc(3);
+  sprintf(str_build, "%c%c", flags[count][0], flags[count][1]);
+  
+  if (!strcmp(str_build, "-D")) {
+    /* old define */
+      parse_and_add_definition(flags[count]);
+      free(str_build);
+      continue;
+  }
+   else if (!strcmp(str_build, "-I")) {
+     /* old include directory */
+     flags[count] += 2;
+     parse_and_set_incdir(flags[count]);
+     free(str_build);
+     continue;
    }
+   else {
+     free(str_build);
+     return FAILED;
+   }
+  }
+    }
+  }
   
   if (!asm_name_def)
     return FAILED;
