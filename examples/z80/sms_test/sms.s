@@ -103,6 +103,32 @@ _nams:	.dw _nams+1
 _nams:	.dw _nams+1
 .ends
 
+.bank 0
+.org $500
+.section "LocalLabelsTest" semifree
+
+BOOM1:
+.db "HELLOMOTO"
+
+.db _f & $ff
+OOPS1:
+.dw _F
+OOPS2:
+OOPS3
+__				; here it is! :D
+OOPS4:
+OOPS5
+OOPS6
+.dw _b
+.dw _B
+OOPS7:
+.dw _b & $ff
+
+.db "BYEMOTO"
+
+BOOM2:
+.ends
+
 
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 ; standard stuff?
@@ -137,6 +163,7 @@ __
 .BANK 0 SLOT 1
 .ORGA $5000
 
+.dw BOOM1
 .dw caddr, CADDR+1, caddr+1, CADDR+1, 1+CADDR+2-2
 .db $ff, $ff, $ff, $ff
 

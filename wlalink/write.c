@@ -632,13 +632,13 @@ int fix_label_addresses(void) {
         if (s->id == l->section) {
           l->bank = s->bank;
           l->address += s->address;
-          l->rom_address = l->address + bankaddress[l->bank];
+          l->rom_address = (int)l->address + bankaddress[l->bank];
           if (s->status != SECTION_STATUS_ABSOLUTE)
             l->address += slots[l->slot].address;
         }
       }
       else {
-        l->rom_address = l->address + bankaddress[l->bank];
+        l->rom_address = (int)l->address + bankaddress[l->bank];
         l->address += slots[l->slot].address;
       }
     }
@@ -696,13 +696,12 @@ int fix_references(void) {
     }
 
     /* find the destination */
-    l = labels_first;
+    l = NULL;
 
     /* request for bank number? */
     if (r->name[0] == ':') {
-      if (is_label_anonymous(&r->name[1]) == SUCCEEDED) {
-        l = get_closest_anonymous_label(&r->name[1], x, r->file_id, l, r->section_status, r->section);
-      }
+      if (is_label_anonymous(&r->name[1]) == SUCCEEDED)
+        l = get_closest_anonymous_label(&r->name[1], x, r->file_id, r->section_status, r->section);
       else if (strcmp(&r->name[1], "CADDR") == 0 || strcmp(&r->name[1], "caddr") == 0) {
         lt.status = LABEL_STATUS_LABEL;
         strcpy(lt.name, &r->name[1]);
@@ -711,9 +710,8 @@ int fix_references(void) {
         lt.section_status = OFF;
         l = &lt;
       }
-      else {
+      else
         find_label(&r->name[1], s, &l);
-      }
 
       if (l == NULL || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
         fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Bank number request for an unknown label \"%s\".\n",
@@ -754,9 +752,8 @@ int fix_references(void) {
     }
     /* normal reference */
     else {
-      if (is_label_anonymous(r->name) == SUCCEEDED) {
-        l = get_closest_anonymous_label(r->name, x, r->file_id, l, r->section_status, r->section);
-      }
+      if (is_label_anonymous(r->name) == SUCCEEDED)
+        l = get_closest_anonymous_label(r->name, x, r->file_id, r->section_status, r->section);
       else if (strcmp(r->name, "CADDR") == 0 || strcmp(r->name, "caddr") == 0) {
         lt.status = LABEL_STATUS_DEFINE;
         strcpy(lt.name, r->name);
@@ -765,9 +762,8 @@ int fix_references(void) {
         lt.section_status = OFF;
         l = &lt;
       }
-      else {
+      else
         find_label(r->name, s, &l);
-      }
 
       if (l == NULL || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
         fprintf(stderr, "%s:%s:%d: FIX_REFERENCES: Reference to an unknown label \"%s\".\n",
@@ -781,7 +777,7 @@ int fix_references(void) {
 
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
-        i = l->address;
+        i = (int)l->address;
         mem_insert_ref(x, i & 0xFF);
         mem_insert_ref(x + 1, (i >> 8) & 0xFF);
       }
@@ -797,7 +793,7 @@ int fix_references(void) {
       }
       /* direct 24-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
-        i = l->address;
+        i = (int)l->address;
         if (l->status == LABEL_STATUS_LABEL)
           i += get_snes_pc_bank(l);
         mem_insert_ref(x, i & 0xFF);
@@ -1357,7 +1353,7 @@ int compute_stack(struct stack *sta, int *result) {
     else if (s->type == STACK_ITEM_TYPE_STACK) {
       /* we have a stack inside a stack! find the stack */
       /* HACK! we abuse sign here... */
-      st = find_stack(s->value, s->sign);
+      st = find_stack((int)s->value, s->sign);
 
       if (st == NULL) {
 	fprintf(stderr, "COMPUTE_STACK: A computation stack has gone missing. This is a fatal internal error. Please send the WLA DX author a bug report.\n");
@@ -1446,8 +1442,8 @@ int compute_stack(struct stack *sta, int *result) {
     }
   }
 
-  *result = v[0];
-  sta->result = v[0];
+  *result = (int)v[0];
+  sta->result = (int)v[0];
   sta->computed = YES;
   sta->under_work = NO;
 
@@ -1532,7 +1528,7 @@ int write_bank_header_references(struct reference *r) {
   /* find the destination */
   find_label(r->name, s, &l);
   if (l != NULL) {
-    a = l->address;
+    a = (int)l->address;
     /* direct 16-bit */
     if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
       *t = a & 0xFF;
@@ -1598,10 +1594,12 @@ int parse_stack(struct stack *sta) {
   k = 0;
   while (g != sta->stacksize) {
     if (si->type == STACK_ITEM_TYPE_STRING) {
+      l = NULL;
+
       /* bank number search */
       if (si->string[0] == ':') {
 	if (is_label_anonymous(&si->string[1]) == SUCCEEDED) {
-	  l = get_closest_anonymous_label(&si->string[1], sta->address, sta->file_id, l, sta->section_status, sta->section);
+	  l = get_closest_anonymous_label(&si->string[1], sta->address, sta->file_id, sta->section_status, sta->section);
 	  if (l != NULL)
 	    k = l->bank;
 	}
@@ -1624,7 +1622,7 @@ int parse_stack(struct stack *sta) {
       /* normal label address search */
       else {
 	if (is_label_anonymous(si->string) == SUCCEEDED) {
-	  l = get_closest_anonymous_label(si->string, sta->address, sta->file_id, l, sta->section_status, sta->section);
+	  l = get_closest_anonymous_label(si->string, sta->address, sta->file_id, sta->section_status, sta->section);
 	  if (l != NULL)
 	    k = l->address;
 
@@ -1754,8 +1752,9 @@ int is_label_anonymous(char *label) {
 }
 
 
-struct label *get_closest_anonymous_label(char *name, int rom_address, int file_id, struct label *l, int section_status, int section) {
+struct label *get_closest_anonymous_label(char *name, int rom_address, int file_id, int section_status, int section) {
 
+  struct label *l = labels_first;
   struct label *closest = NULL;
   int d = 999999999, e;
 
