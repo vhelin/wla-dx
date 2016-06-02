@@ -722,7 +722,8 @@ int parse_flags(char **flags, int flagc) {
         parse_and_set_libdir(flags[count]);
         free(str_build);
         continue;
-      } else {
+      }
+      else {
         free(str_build);
         return FAILED;
       }
