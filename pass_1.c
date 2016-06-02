@@ -166,10 +166,12 @@ __far /* put the following big table in the FAR data section */
 
 
 #define no_library_files(name)\
+ do {\
  if (output_format == OUTPUT_LIBRARY) {\
     print_error("Library files don't take " name ".\n", ERROR_DIR);\
     return FAILED;\
-  }
+  }\
+ } while (0)
 
 
 int strcaselesscmp(char *s1, char *s2) {
@@ -1157,7 +1159,7 @@ int parse_directive(void) {
   /* SLOT */
 
   if (strcaselesscmp(cp, "SLOT") == 0) {
-    no_library_files("SLOT definitions");
+    no_library_files(".SLOT definitions");
     
     if (section_status == ON) {
       print_error("You can't issue .SLOT inside a .SECTION.\n", ERROR_DIR);
