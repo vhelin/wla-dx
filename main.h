@@ -4,8 +4,8 @@
 
 void procedures_at_exit(void);
 int parse_flags(char **flags, int flagc);
-int parse_and_add_definition(char *c);
-int parse_and_set_incdir(char *c);
+int parse_and_add_definition(char *c, int contains_flag);
+int parse_and_set_incdir(char *c, int contains_flag);
 int generate_tmp_names(void);
 int generate_extra_definitions(void);
 

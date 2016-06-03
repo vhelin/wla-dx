@@ -217,7 +217,7 @@ int parse_flags(char **flags, int flagc) {
 
   int count;
   int asm_name_def = 0;
-  char *str_build;
+  char *str_build = NULL;
   
   for (count = 1; count < flagc; count++) {
     if (!strcmp(flags[count], "-o")) {
@@ -254,25 +254,17 @@ int parse_flags(char **flags, int flagc) {
       if (count + 1 < flagc) {
         if (count + 3 < flagc) {
           if (!strcmp(flags[count+2], "=")) {
-            str_build = malloc(strlen(flags[count+1])+strlen(flags[count+3])+4);
-            sprintf(str_build, "00%s=%s", flags[count+1], flags[count+3]);
-            parse_and_add_definition(str_build);
+            str_build = malloc(strlen(flags[count+1])+strlen(flags[count+3])+2);
+            sprintf(str_build, "%s=%s", flags[count+1], flags[count+3]);
+            parse_and_add_definition(str_build, NO);
             free(str_build);
             count += 2;
           }
-	  else {
-            str_build = malloc(strlen(flags[count+1])+3);
-            sprintf(str_build, "00%s", flags[count+1]);
-            parse_and_add_definition(str_build);
-            free(str_build);
-          }
+	  else
+            parse_and_add_definition(flags[count+1], NO);
         }
-	else {
-          str_build = malloc(strlen(flags[count+1])+3);
-          sprintf(str_build, "00%s", flags[count+1]);
-          parse_and_add_definition(str_build);
-          free(str_build);
-        }
+	else
+          parse_and_add_definition(flags[count+1], NO);
       }
       else
         return FAILED;
@@ -283,7 +275,7 @@ int parse_flags(char **flags, int flagc) {
     else if (!strcmp(flags[count], "-I")) {
       if (count + 1 < flagc) {
         /* get arg */
-        parse_and_set_incdir(flags[count+1]);
+        parse_and_set_incdir(flags[count+1], NO);
       }
       else
         return FAILED;
@@ -320,37 +312,30 @@ int parse_flags(char **flags, int flagc) {
     }
     else {
       if (count == flagc - 1) {
-	asm_name = malloc(strlen(flags[count])+1);
-	strcpy(asm_name, flags[count]); count++;
+	asm_name = malloc(strlen(flags[count]) + 1);
+	strcpy(asm_name, flags[count]);
+	count++;
 	asm_name_def++;
       }
       else {
 	/* legacy support? */
-	str_build = malloc(3);
-	sprintf(str_build, "%c%c", flags[count][0], flags[count][1]);
-  
-	if (!strcmp(str_build, "-D")) {
+	if (strncmp(flags[count], "-D", 2) == 0) {
 	  /* old define */
-	  parse_and_add_definition(flags[count]);
-	  free(str_build);
+	  parse_and_add_definition(flags[count], YES);
 	  continue;
 	}
-	else if (!strcmp(str_build, "-I")) {
+	else if (strncmp(flags[count], "-I", 2) == 0) {
 	  /* old include directory */
-	  flags[count] += 2;
-	  parse_and_set_incdir(flags[count]);
-	  free(str_build);
+	  parse_and_set_incdir(flags[count], YES);
 	  continue;
 	}
-	else {
-	  free(str_build);
+	else
 	  return FAILED;
-	}
       }
     }
   }
   
-  if (!asm_name_def)
+  if (asm_name_def <= 0)
     return FAILED;
   
   return SUCCEEDED;
@@ -582,12 +567,15 @@ int generate_extra_definitions(void) {
 }
 
 
-int parse_and_add_definition(char *c) {
+int parse_and_add_definition(char *c, int contains_flag) {
 
   char n[MAX_NAME_LENGTH];
   int i;
+
+  /* skip the flag? */
+  if (contains_flag == YES)
+    c += 2;
   
-  c += 2;
   for (i = 0; i < (MAX_NAME_LENGTH - 1) && *c != 0 && *c != '='; i++, c++)
     n[i] = *c;
   n[i] = 0;
@@ -640,26 +628,30 @@ int parse_and_add_definition(char *c) {
   return FAILED;
 }
 
-int parse_and_set_incdir(char *c) {
+
+int parse_and_set_incdir(char *c, int contains_flag) {
 
   char n[MAX_NAME_LENGTH];
   int i;
 
-  c += 2;
+  /* skip the flag? */
+  if (contains_flag == YES)
+    c += 2;
+
   for (i = 0; i < (MAX_NAME_LENGTH - 1) && *c != 0; i++, c++)
     n[i] = *c;
   n[i] = 0;
 
-  if (*c == 0) {
-    localize_path(n);
+  if (*c != 0)
+    return FAILED;
+
+  localize_path(n);
 #if defined(MSDOS)
-    sprintf(ext_incdir, "%s\\", n);
+  sprintf(ext_incdir, "%s\\", n);
 #else
-    sprintf(ext_incdir, "%s/", n);
+  sprintf(ext_incdir, "%s/", n);
 #endif
-	use_incdir = YES;
-    return SUCCEEDED;
-  }
+  use_incdir = YES;
 
   return FAILED;
 }

@@ -664,7 +664,6 @@ int parse_flags(char **flags, int flagc) {
 
   int output_mode_defined = 0;
   int count;
-  char *str_build;
   
   for (count = 1; count < flagc - 2; count++) {
     if (!strcmp(flags[count], "-b")) {
@@ -684,7 +683,7 @@ int parse_flags(char **flags, int flagc) {
     else if (!strcmp(flags[count], "-L")) {
       if (count + 1 < flagc) {
         /* get arg */
-        parse_and_set_libdir(flags[count+1]);
+        parse_and_set_libdir(flags[count+1], NO);
       }
       else
         return FAILED;
@@ -713,53 +712,48 @@ int parse_flags(char **flags, int flagc) {
     }
     else {
       /* legacy support? */
-      str_build = malloc(3);
-      sprintf(str_build, "%c%c", flags[count][0], flags[count][1]);
-  
-      if (!strcmp(str_build, "-L")) {
+      if (strncmp(flags[count], "-L", 2) == 0) {
         /* old library directory */
-        flags[count] += 2;
-        parse_and_set_libdir(flags[count]);
-        free(str_build);
+        parse_and_set_libdir(flags[count], YES);
         continue;
       }
-      else {
-        free(str_build);
+      else
         return FAILED;
-      }
     }
-   }
+  }
   
   return SUCCEEDED;
 }
 
 
-int parse_and_set_libdir(char *c) {
+int parse_and_set_libdir(char *c, int contains_flag) {
 
   char n[MAX_NAME_LENGTH];
   int i;
 
-  if (strlen(c) > 2) {
-    if (c[0] == '-' && c[1] == 'L') {
-      c += 2;
-      for (i = 0; i < (MAX_NAME_LENGTH - 1) && *c != 0; i++, c++)
-        n[i] = *c;
-      n[i] = 0;
+  /* skip the flag? */
+  if (contains_flag == YES)
+    c += 2;
 
-      if (*c == 0) {
-        localize_path(n);
+  if (strlen(c) < 2)
+    return FAILED;
+  
+  for (i = 0; i < (MAX_NAME_LENGTH - 1) && *c != 0; i++, c++)
+    n[i] = *c;
+  n[i] = 0;
+
+  if (*c != 0)
+    return FAILED;
+
+  localize_path(n);
 #if defined(MSDOS)
-        sprintf(ext_libdir, "%s\\", n);
+  sprintf(ext_libdir, "%s\\", n);
 #else
-        sprintf(ext_libdir, "%s/", n);
+  sprintf(ext_libdir, "%s/", n);
 #endif
-        use_libdir = YES;
-        return SUCCEEDED;
-      }
-    }
-  }
+  use_libdir = YES;
 
-  return FAILED;
+  return SUCCEEDED;
 }
 
 
