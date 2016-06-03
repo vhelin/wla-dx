@@ -197,7 +197,7 @@ int pass_3(void) {
         if (s != NULL) {
           /* Always put the label into the section's label_map */
           if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, emsg);
+            fprintf(stderr, "%s", emsg);
             return FAILED;
           }
           if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
@@ -211,7 +211,7 @@ int pass_3(void) {
           if (s != NULL && s->nspace != NULL) {
             /* Label in a namespace */
             if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
-              fprintf(stderr, emsg);
+              fprintf(stderr, "%s", emsg);
               return FAILED;
             }
             if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
@@ -222,7 +222,7 @@ int pass_3(void) {
           else {
             /* Global label */
             if (hashmap_get(global_unique_label_map, l->label, NULL) == MAP_OK) {
-              fprintf(stderr, emsg);
+              fprintf(stderr, "%s", emsg);
               return FAILED;
             }
             if ((err = hashmap_put(global_unique_label_map, l->label, l)) != MAP_OK) {
@@ -565,7 +565,7 @@ int pass_3(void) {
       if (s != NULL) {
         /* Always put the label into the section's label_map */
         if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
-          fprintf(stderr, emsg);
+          fprintf(stderr, "%s", emsg);
           return FAILED;
         }
         if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
@@ -579,7 +579,7 @@ int pass_3(void) {
         if (s != NULL && s->nspace != NULL) {
           /* Label in a namespace */
           if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, emsg);
+            fprintf(stderr, "%s", emsg);
             return FAILED;
           }
           if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
@@ -590,7 +590,7 @@ int pass_3(void) {
         else {
           /* Global label */
           if (hashmap_get(global_unique_label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, emsg);
+            fprintf(stderr, "%s", emsg);
             return FAILED;
           }
           if ((err = hashmap_put(global_unique_label_map, l->label, l)) != MAP_OK) {

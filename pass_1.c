@@ -52,6 +52,7 @@ int repeat_active = 0;
 int smc_defined = 0;
 int asciitable_defined = 0;
 int block_status = 0;
+int collecting_macro_args = 0;
 unsigned char asciitable[256];
 
 int unfolded_size;
@@ -114,6 +115,8 @@ extern struct active_file_info *active_file_info_first, *active_file_info_last, 
 extern struct file_name_info *file_name_info_first, *file_name_info_last, *file_name_info_tmp;
 extern struct stack *stacks_first, *stacks_tmp, *stacks_last;
 extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
+
+extern struct token_stack_root *buffer_stack;
 
 int opcode_n[256], opcode_p[256];
 int macro_stack_size = 0, repeat_stack_size = 0;
@@ -234,7 +237,7 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
 
   mrt->caller = caller;
   mrt->macro = m;
-  mrt->macro_end = i;
+  mrt->macro_end = buffer_stack->active_entry->buffer_offset;
   mrt->macro_end_line = active_file_info_last->line_current;
   mrt->macro_end_filename_id = active_file_info_last->filename_id;
 
@@ -245,7 +248,7 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
 
   active_file_info_last->line_current = m->start_line;
   active_file_info_last->filename_id = m->filename_id;
-  i = m->start;
+  token_stack_update_root_offset(buffer_stack, m->start);
 
   /* redefine NARGS */
   if (redefine("NARGS", (double)nargs, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
@@ -266,7 +269,7 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
   /* start running a macro... run until .ENDM */
   mrt = &macro_stack[macro_active];
 
-  start = i;
+  start = buffer_stack->active_entry->buffer_offset;
 
   if (first == NO && mrt->string_current < mrt->string_last) {
     inz = SUCCEEDED;
@@ -386,7 +389,7 @@ int macro_start_incbin(struct macro_static *m, struct macro_incbin *incbin_data,
   /* filter all the data through that macro */
   mrt->argument_data[1]->type = SUCCEEDED;
   mrt->argument_data[1]->value = mrt->offset;
-  mrt->argument_data[0]->start = i;
+  mrt->argument_data[0]->start = buffer_stack->active_entry->buffer_offset;
   mrt->argument_data[0]->type = SUCCEEDED;
   mrt->supplied_arguments = 2;
 
@@ -525,6 +528,8 @@ int pass_1(void) {
   /* WARNING: "i" is a global variable that we use as the char index to the source file. */
   /* Ville: this must be one of the worst programming decicions I've ever done, sorry about it... */
   /* ... but the year was something like 1998 and I had just coded 6+ years 68k asm, and moved to C... */
+  /* Jason: "i" has been replaced with the token_stack which manages the string pointer internally and ... */
+  /* ... internally manages macro replacement at the buffer level. */
 
   /* start from the very first character */
   i = 0;
@@ -589,9 +594,9 @@ int pass_1(void) {
 
         /* move to the end of the label */
         if (q != ss)
-          i -= ss - q - 1;
+          token_stack_move(buffer_stack, -(ss - q - 1));
         else
-          i -= ss - q;
+          token_stack_move(buffer_stack, -(ss - q));
 
         continue;
       }
@@ -613,14 +618,19 @@ int pass_1(void) {
       for (p = 0; 1; p++) {
         /* take away the white space */
         while (1) {
-          if (buffer[i] == ' ' || buffer[i] == ',')
-            i++;
+          char current_token = token_stack_get_current_token(buffer_stack);
+          if (current_token == ' ' || current_token == ',')
+            token_stack_move(buffer_stack, 1);
           else
             break;
         }
 
-        o = i;
+        /* Enter macro argument mode. */
+        collecting_macro_args++;
+        o = buffer_stack->active_entry->buffer_offset;
         q = input_number();
+        /* Exit macro argument mode. */
+        collecting_macro_args--;
         if (q == INPUT_NUMBER_EOL)
           break;
 
@@ -636,7 +646,7 @@ int pass_1(void) {
 
         if (q == INPUT_NUMBER_ADDRESS_LABEL)
           strcpy(mrt->argument_data[p]->string, label);
-        else if (q == INPUT_NUMBER_STRING)
+        else if (q == INPUT_NUMBER_STRING || q == INPUT_MACRO_ARGUMENT)
           strcpy(mrt->argument_data[p]->string, label);
         else if (q == INPUT_NUMBER_STACK)
           mrt->argument_data[p]->value = latest_stack;
@@ -655,6 +665,8 @@ int pass_1(void) {
             redefine(m->argument_names[p], (double)latest_stack, NULL, DEFINITION_TYPE_STACK, 0);
           else if (q == SUCCEEDED)
             redefine(m->argument_names[p], (double)d, NULL, DEFINITION_TYPE_VALUE, 0);
+          else if (q == INPUT_MACRO_ARGUMENT)
+            redefine(m->argument_names[p], 0.0, label, DEFINTIION_TYPE_MACRO_ARG, strlen(label));
         }
       }
 
@@ -706,7 +718,10 @@ void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
 
 int evaluate_token(void) {
 
-  int f, z = 0, x, y;
+  int f, z = 0, x;
+#if !defined(GB)
+  int y;
+#endif
 #if defined(Z80) || defined(SPC700) || defined(W65816) || defined(WDC65C02) || defined(HUC6280)
   int e = 0, v = 0, h = 0;
   char labelx[256];
@@ -773,15 +788,17 @@ int evaluate_token(void) {
   opt_tmp = &opt_table[ind];
 
   for (f = opcode_n[(unsigned int)tmp[0]]; f > 0; f--) {
+    char current_token = '\0';
     for (inz = 0, d = SUCCEEDED; inz < OP_SIZE_MAX; inz++) {
-      if (tmp[inz] == 0 && opt_tmp->op[inz] == 0 && buffer[i] == 0x0A) {
+      current_token = token_stack_get_current_token(buffer_stack);
+      if (tmp[inz] == 0 && opt_tmp->op[inz] == 0 && current_token == 0x0A) {
         if (opt_tmp->type == 0)
           output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex);
         else
           output_assembled_opcode(opt_tmp, "y%d ", opt_tmp->hex);
         return SUCCEEDED;
       }
-      if (tmp[inz] == 0 && opt_tmp->op[inz] == ' ' && buffer[i] == ' ')
+      if (tmp[inz] == 0 && opt_tmp->op[inz] == ' ' && current_token == ' ')
         break;
       if (opt_tmp->op[inz] != toupper((int)tmp[inz])) {
         d = FAILED;
@@ -794,9 +811,11 @@ int evaluate_token(void) {
       continue;
     }
 
+    token_stack_push_state(buffer_stack);
+    token_stack_move(buffer_stack, 1);
+
     /* beginning matches the input */
     x = inz + 1;
-    inz = i + 1;
 
 #ifndef GB
     /* no stack rollback */
@@ -879,6 +898,8 @@ int evaluate_token(void) {
     }
 #endif
 
+    token_stack_pop_state(buffer_stack, 0);
+
     opt_tmp = &opt_table[++ind];
   }
 
@@ -907,7 +928,7 @@ int redefine(char *name, double value, char *string, int type, int size) {
     d->value = value;
   else if (type == DEFINITION_TYPE_STACK)
     d->value = value;
-  else if (type == DEFINITION_TYPE_STRING || type == DEFINITION_TYPE_ADDRESS_LABEL) {
+  else if (type == DEFINITION_TYPE_STRING || type == DEFINITION_TYPE_ADDRESS_LABEL || type == DEFINTIION_TYPE_MACRO_ARG) {
     memcpy(d->string, string, size);
     d->string[size] = 0;
     d->size = size;
@@ -957,6 +978,11 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
     return FAILED;
   }
 
+  /* Set default; */
+  d->value = 0;
+  d->string[0] = 0;
+  d->size = 0;
+
   strcpy(d->alias, name);
   d->type = type;
 
@@ -969,7 +995,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
     d->value = value;
   else if (type == DEFINITION_TYPE_STACK)
     d->value = value;
-  else if (type == DEFINITION_TYPE_STRING || type == DEFINITION_TYPE_ADDRESS_LABEL) {
+  else if (type == DEFINITION_TYPE_STRING || type == DEFINITION_TYPE_ADDRESS_LABEL || type == DEFINTIION_TYPE_MACRO_ARG) {
     memcpy(d->string, string, size);
     d->string[size] = 0;
     d->size = size;
@@ -1005,17 +1031,18 @@ int localize_path(char *path) {
 
 void print_error(char *error, int type) {
 
-  char error_dir[] = "DIRECTIVE_ERROR:";
-  char error_unf[] = "UNFOLD_ALIASES:";
-  char error_num[] = "INPUT_NUMBER:";
-  char error_inc[] = "INCLUDE_FILE:";
-  char error_inb[] = "INCBIN_FILE:";
-  char error_inp[] = "INPUT_ERROR:";
-  char error_log[] = "LOGIC_ERROR:";
-  char error_stc[] = "STACK_CALCULATE:";
-  char error_wrn[] = "WARNING:";
-  char error_err[] = "ERROR:";
-  char *t = NULL;
+  char error_dir[] = " DIRECTIVE_ERROR:";
+  char error_unf[] = " UNFOLD_ALIASES:";
+  char error_num[] = " INPUT_NUMBER:";
+  char error_inc[] = " INCLUDE_FILE:";
+  char error_inb[] = " INCBIN_FILE:";
+  char error_inp[] = " INPUT_ERROR:";
+  char error_log[] = " LOGIC_ERROR:";
+  char error_stc[] = " STACK_CALCULATE:";
+  char error_wrn[] = " WARNING:";
+  char error_err[] = " ERROR:";
+  char error_none[] = "";
+  char *t = error_none;
 
   
   switch (type) {
@@ -1050,11 +1077,32 @@ void print_error(char *error, int type) {
       t = error_err;
       break;
     case ERROR_NONE:
-      fprintf(stderr, "%s:%d: %s", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current, error);
-      return;
+      t = error_none;
+      break;
   }
 
-  fprintf(stderr, "%s:%d: %s %s", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current, t, error);
+  fprintf(stderr, "%s:%d:%s %s", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current, t, error);
+  
+  /* Extended macro error data. */
+  if (macro_active != 0) {
+    int macro_index = macro_active - 1;
+
+    while (macro_index >= 0) {
+      int arg_index;
+      struct macro_runtime *cur_macro = &macro_stack[macro_index];
+
+      fprintf(stderr, "   Called From: %s:%d: %s ARGS:", get_file_name(cur_macro->macro_end_filename_id), cur_macro->macro_end_line - 1, cur_macro->macro->name);
+
+      for (arg_index = 0; arg_index < cur_macro->supplied_arguments; arg_index++) {
+        struct macro_argument *argument = cur_macro->argument_data[arg_index];
+        fprintf(stderr, " %s", argument->string);
+      }
+      fprintf(stderr, "\n");
+
+      macro_index--;
+    }
+  }
+
   return;
 }
 
@@ -1317,11 +1365,11 @@ int parse_directive(void) {
 	  }
 	  /* handle '\x' */
 	  else if (label[o] == '\\' && label[o + 1] == 'x') {
-	    char tmp_a[2], *tmp_b;
+	    char tmp_a[3], *tmp_b;
 	    int tmp_c;
 	    
 	    o += 3;
-	    sprintf(tmp_a, "%c%c", label[o-1], label[o]);
+	    sprintf(tmp_a, "%c%c%c", label[o-1], label[o], 0);
 	    tmp_c = strtol(tmp_a, &tmp_b, 16);
 	    if (*tmp_b) {
 	      sprintf(emsg, ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
@@ -1547,11 +1595,11 @@ int parse_directive(void) {
 	  }
 	  /* handle '\x' */
 	  else if (label[o] == '\\' && label[o + 1] == 'x') {
-	    char tmp_a[2], *tmp_b;
+	    char tmp_a[3], *tmp_b;
 	    int tmp_c;
 	    
 	    o += 3;
-	    sprintf(tmp_a, "%c%c", label[o-1], label[o]);
+	    sprintf(tmp_a, "%c%c%c", label[o-1], label[o], 0);
 	    tmp_c = strtol(tmp_a, &tmp_b, 16);
 	    if (*tmp_b) {
 	      sprintf(emsg, ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
@@ -1563,6 +1611,7 @@ int parse_directive(void) {
 	  }
 	  else {
 	    int tmp_a = 0;
+
 	    /* handle '\<' */
 	    if (label[o] == '\\' && label[o + 1] == '<') {
 	      o += 2;
@@ -2907,6 +2956,7 @@ int parse_directive(void) {
 
 
     q = input_number();
+    q = (q == INPUT_NUMBER_ADDRESS_LABEL) ? INPUT_NUMBER_STRING : q;
     if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
       sprintf(emsg, ".IF needs immediate data.\n");
       print_error(emsg, ERROR_INP);
@@ -2939,6 +2989,7 @@ int parse_directive(void) {
     }
 
     q = input_number();
+    q = (q == INPUT_NUMBER_ADDRESS_LABEL) ? INPUT_NUMBER_STRING : q;
     if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
       sprintf(emsg, ".IF needs immediate data.\n");
       print_error(emsg, ERROR_INP);
@@ -2998,6 +3049,7 @@ int parse_directive(void) {
       o = 5;
 
     q = input_number();
+    q = (q == INPUT_NUMBER_ADDRESS_LABEL) ? INPUT_NUMBER_STRING : q;
     if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
       sprintf(emsg, ".%s needs immediate data.\n", bak);
       print_error(emsg, ERROR_INP);
@@ -3010,6 +3062,7 @@ int parse_directive(void) {
     s = q;
 
     q = input_number();
+    q = (q == INPUT_NUMBER_ADDRESS_LABEL) ? INPUT_NUMBER_STRING : q;
     if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
       sprintf(emsg, ".%s needs immediate data.\n", bak);
       print_error(emsg, ERROR_INP);
@@ -3111,16 +3164,18 @@ int parse_directive(void) {
     else
       o = 1;
 
-    for (; i < size; i++) {
-
-      if (buffer[i] == 0x0A)
+    while (1) {
+      char current_token = token_stack_get_current_token(buffer_stack);
+      if (current_token == 0x0A || current_token == '\0')
         break;
-      else if (buffer[i] == '\\') {
-        e = buffer[++i];
+      else if (current_token == '\\') {
+        token_stack_move(buffer_stack, 1);
+        e = token_stack_get_current_token(buffer_stack);
         if (e >= '0' && e <= '9') {
           d = (e - '0') * 10;
           for (k = 2; k < 8; k++, d *= 10) {
-            e = buffer[++i];
+            token_stack_move(buffer_stack, 1);
+            e = token_stack_get_current_token(buffer_stack);
             if (e >= '0' && e <= '9')
               d += e - '0';
             else
@@ -3140,6 +3195,7 @@ int parse_directive(void) {
         }
         break;
       }
+      token_stack_move(buffer_stack, 1);
     }
 
     sprintf(emsg, ".%s needs an argument.\n", bak);
@@ -3424,6 +3480,8 @@ int parse_directive(void) {
         redefine(st->argument_names[q], 0.0, ma->string, DEFINITION_TYPE_ADDRESS_LABEL, strlen(ma->string));
       else if (ma->type == INPUT_NUMBER_STRING)
         redefine(st->argument_names[q], 0.0, ma->string, DEFINITION_TYPE_STRING, strlen(ma->string));
+      else if (ma->type == INPUT_MACRO_ARGUMENT)
+        redefine(st->argument_names[q], 0.0, ma->string, DEFINTIION_TYPE_MACRO_ARG, strlen(ma->string));
     }
 
     /* redefine NARGS */
@@ -3654,6 +3712,7 @@ int parse_directive(void) {
       return FAILED;
     }
 
+    memset(rom_banks, 0, sizeof(unsigned char) * max_address);
     memset(rom_banks_usage_table, 0, sizeof(unsigned char) * max_address);
 
     if (banks != NULL)
@@ -4435,7 +4494,7 @@ int parse_directive(void) {
     while ((ind = get_next_token()) == SUCCEEDED) {
       if (strcaselesscmp(tmp, ".ENDGB") == 0)
         break;
-      else if (strcaselesscmp(cp, "NINTENDOLOGO") == 0)
+      else if (strcaselesscmp(tmp, "NINTENDOLOGO") == 0)
         nintendologo_defined++;
       else if (strcaselesscmp(tmp, "ROMDMG") == 0) {
         if (romgbc != 0) {
@@ -5444,25 +5503,48 @@ int parse_directive(void) {
     }
 
     m->nargument_names = q;
-    m->start = i;
+    m->start = buffer_stack->active_entry->buffer_offset;
     m->start_line = active_file_info_last->line_current;
 
     /* go to the end of the macro */
-    for (; i < size; i++) {
-      if (buffer[i] == 0x0A) {
+    while (1) {
+      if (token_stack_get_current_token(buffer_stack) == '\0')
+        break;
+
+      if (token_stack_get_current_token (buffer_stack) == 0x0A) {
         next_line();
+        token_stack_move(buffer_stack, 1);
         continue;
       }
-      else if ((strncmp(&buffer[i], ".E", 2) == 0) && (buffer[i + 2] == 0x0A || buffer[i + 2] == ' ')) {
-        active_file_info_last->line_current = macro_start_line;
-        sprintf(emsg, "MACRO \"%s\" wasn't terminated with .ENDM.\n", m->name);
-        print_error(emsg, ERROR_DIR);
-        return FAILED;
+      else {
+	token_stack_push_state(buffer_stack);
+	if (token_stack_strncmp(buffer_stack, ".E", 2, 1) == 0) {
+	  char end_char = token_stack_get_current_token(buffer_stack);
+	  if (end_char == 0x0A || end_char == ' ') {
+	    token_stack_pop_state(buffer_stack, 0);
+	    active_file_info_last->line_current = macro_start_line;
+	    sprintf(emsg, "MACRO \"%s\" wasn't terminated with .ENDM.\n", m->name);
+	    print_error(emsg, ERROR_DIR);
+	    return FAILED;
+	  }
+
+	  token_stack_pop_state(buffer_stack, 0);
+	  token_stack_push_state(buffer_stack);
+	}
+	if (token_stack_strncmp(buffer_stack, ".ENDM", 5, 1) == 0) {
+	  char end_char = token_stack_get_current_token(buffer_stack);
+	  if (end_char == 0x0A || end_char == ' ') {
+	    token_stack_pop_state(buffer_stack, 1);
+	    break;
+	  }
+	  token_stack_pop_state(buffer_stack, 0);
+	  token_stack_push_state(buffer_stack);
+	}
+
+	token_stack_pop_state(buffer_stack, 0);
       }
-      else if ((strncmp(&buffer[i], ".ENDM", 5) == 0 || strncmp(&buffer[i], ".endm", 5) == 0) && (buffer[i + 5] == 0x0A || buffer[i + 5] == ' ')) {
-        i += 5;
-        break;
-      }
+
+      token_stack_move(buffer_stack, 1);
     }
 
     return SUCCEEDED;
@@ -5549,7 +5631,7 @@ int parse_directive(void) {
       repeat_stack = rr;
     }
 
-    repeat_stack[repeat_active].start = i;
+    repeat_stack[repeat_active].start = buffer_stack->active_entry->buffer_offset;
     repeat_stack[repeat_active].counter = d;
     repeat_stack[repeat_active].repeats = 0;
     repeat_stack[repeat_active].start_line = active_file_info_last->line_current;
@@ -5585,7 +5667,7 @@ int parse_directive(void) {
 	return FAILED;
     }
     
-    i = rr->start;
+    token_stack_update_root_offset(buffer_stack, rr->start);
     active_file_info_last->line_current = rr->start_line;
 
     return SUCCEEDED;
@@ -5730,7 +5812,7 @@ int parse_directive(void) {
       for (q = 0; q < macro_stack[macro_active].macro->nargument_names; q++)
         undefine(macro_stack[macro_active].macro->argument_names[q]);
 
-      i = macro_stack[macro_active].macro_end;
+      token_stack_update_root_offset(buffer_stack, macro_stack[macro_active].macro_end);
 
       if ((extra_definitions == ON) && (active_file_info_last->filename_id != macro_stack[macro_active].macro_end_filename_id)) {
         redefine("WLA_FILENAME", 0.0, get_file_name(macro_stack[macro_active].macro_end_filename_id), DEFINITION_TYPE_STRING,
@@ -6666,10 +6748,6 @@ int parse_directive(void) {
 #endif
         s += 2;
       }
-      else if (label[s] == '\\' && label[s + 1] == '\\') {
-        t[u++] = '\\';
-        s += 2;
-      }
       else
         t[u++] = label[s++];
     }
@@ -6988,27 +7066,33 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "ENDASM") == 0) {
 
-    int endasm = 1, x;
+    int endasm = 1;
 
 
     while (1) {
-      x = i;
+      token_stack_push_state(buffer_stack);
       q = get_next_token();
-      if (q == GET_NEXT_TOKEN_STRING)
+      if (q == GET_NEXT_TOKEN_STRING) {
+        token_stack_pop_state(buffer_stack, 1);
         continue;
+      }
 
       /* end of file? */
       if (strcmp(tmp, ".E") == 0) {
-        i = x;
+        token_stack_pop_state(buffer_stack, 0);
         return SUCCEEDED;
       }
       if (strcaselesscmp(tmp, ".ASM") == 0) {
         endasm--;
-        if (endasm == 0)
+        if (endasm == 0) {
+          token_stack_pop_state(buffer_stack, 1);
           return SUCCEEDED;
+        }
       }
       if (strcaselesscmp(tmp, ".ENDASM") == 0)
         endasm++;
+
+      token_stack_pop_state(buffer_stack, 1);
     }
   }
 
@@ -7114,7 +7198,7 @@ int get_new_definition_data(int *b, char *c, int *size, double *data) {
       }
       else if (x == INPUT_NUMBER_FLOAT) {
         *data = parsed_double;
-        *b = parsed_double;
+        *b = (int)parsed_double;
       }
       else
         return x;
@@ -7141,7 +7225,7 @@ int get_new_definition_data(int *b, char *c, int *size, double *data) {
 
     /* transform floats to integers */
     if (x == INPUT_NUMBER_FLOAT) {
-      d = parsed_double;
+      d = (int)parsed_double;
       x = SUCCEEDED;
     }
 

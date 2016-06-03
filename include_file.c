@@ -28,6 +28,7 @@ char *include_dir = NULL;
 int include_dir_size = 0;
 
 char *buffer = NULL;
+struct token_stack_root *buffer_stack = NULL;
 int size = 0;
 
 
@@ -251,6 +252,15 @@ int include_file(char *name) {
 
     open_files++;
 
+    if (buffer_stack == NULL) {
+      /* Allocate the initial buffer stack. */
+      buffer_stack = token_stack_new(buffer, 0);
+    }
+    else {
+      /* Update the buffer entry. */
+      buffer_stack->active_entry->buffer_root = buffer;
+    }
+
     return SUCCEEDED;
   }
 
@@ -287,6 +297,16 @@ int include_file(char *name) {
 
   open_files++;
 
+  {
+    struct token_stack_entry *entry = buffer_stack->active_entry;
+
+    while (entry->parent_entry != NULL)
+      entry = entry->parent_entry;
+
+    i = entry->buffer_offset;
+  }
+
+  /* Splice the new file in the buffer. */
   memcpy(tmp_b, buffer, i);
   memcpy(tmp_b + i, tmp_a, inz);
   memcpy(tmp_b + i + inz, buffer + i, size - i);
@@ -295,6 +315,15 @@ int include_file(char *name) {
 
   size += inz;
   buffer = tmp_b;
+
+  if (buffer_stack == NULL) {
+    /* Allocate the initial buffer stack. */
+    buffer_stack = token_stack_new(buffer, 0);
+  }
+  else {
+    /* Update the buffer entry. */
+    buffer_stack->active_entry->buffer_root = buffer;
+  }
 
   return SUCCEEDED;
 }

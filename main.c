@@ -81,6 +81,7 @@ extern struct macro_runtime *macro_stack;
 extern struct label_def *unknown_labels;
 extern struct filepointer *filepointers;
 extern struct map_t *namespace_map;
+extern struct token_stack_root *buffer_stack;
 extern char *unfolded_buffer;
 extern char *include_in_tmp, *tmp_a;
 extern char *rom_banks, *rom_banks_usage_table;
@@ -107,7 +108,7 @@ int main(int argc, char *argv[]) {
   atexit(procedures_at_exit);
 
   /* init the randon number generator */
-  init_genrand(time(NULL));
+  init_genrand((unsigned long)time(NULL));
 
   /* Init hashmaps */
   defines_map = hashmap_new();
@@ -374,18 +375,18 @@ void procedures_at_exit(void) {
     free(full_name);
 
   if (defines_map != NULL) {
-      hashmap_free_all_elements(defines_map);
-      hashmap_free(defines_map);
+    hashmap_free_all_elements(defines_map);
+    hashmap_free(defines_map);
   }
 
   if (global_unique_label_map != NULL) {
-      /* don't free_all_elements, since labels contains _all_ labels. */
-      hashmap_free(global_unique_label_map);
+    /* don't free_all_elements, since labels contains _all_ labels. */
+    hashmap_free(global_unique_label_map);
   }
 
   if (namespace_map != NULL) {
-      hashmap_free_all_elements(namespace_map);
-      hashmap_free(namespace_map);
+    hashmap_free_all_elements(namespace_map);
+    hashmap_free(namespace_map);
   }
 
   m = macros_first;
@@ -502,6 +503,9 @@ void procedures_at_exit(void) {
     free(f1);
     f1 = f2;
   }
+
+  /* clear the token stack, by parser / token_stack.[c|h] */
+  token_stack_free(buffer_stack);
 
   /* remove the tmp files */
   remove(gba_tmp_name);

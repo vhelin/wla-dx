@@ -148,7 +148,6 @@ int pass_4(void) {
   int base = 0x00;
 #endif
 
-  
   section_status = OFF;
   bankheader_status = OFF;
   mem_insert_overwrite = OFF;
@@ -524,7 +523,7 @@ int pass_4(void) {
             return FAILED;
           }
           else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-            o = tmp_def->value;
+            o = (int)tmp_def->value;
             x = 1;
 
             if (mem_insert(o & 0xFF) == FAILED)
@@ -564,7 +563,7 @@ int pass_4(void) {
             return FAILED;
           }
           else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-            o = tmp_def->value;
+            o = (int)tmp_def->value;
             x = 1;
 
             if (mem_insert(o & 0xFF) == FAILED)
@@ -601,7 +600,7 @@ int pass_4(void) {
             return FAILED;
           }
           else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-            o = tmp_def->value;
+            o = (int)tmp_def->value;
             x = 1;
 
             if (mem_insert(o & 0xFF) == FAILED)
@@ -637,7 +636,7 @@ int pass_4(void) {
             return FAILED;
           }
           else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-            o = tmp_def->value;
+            o = (int)tmp_def->value;
             x = 1;
 
             if (mem_insert(o & 0xFF) == FAILED)
@@ -669,7 +668,7 @@ int pass_4(void) {
             return FAILED;
           }
           else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-            o = tmp_def->value;
+            o = (int)tmp_def->value;
             x = 1;
 
             if (mem_insert(o & 0xFF) == FAILED)

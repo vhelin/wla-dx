@@ -181,7 +181,7 @@ unsigned int hashmap_hash_int(hashmap_map * m, char* keystring){
   key ^= (key >> 12);
 
   /* Knuth's Multiplicative Method */
-  key = (key >> 3) * 2654435761;
+  key = (key >> 3) * 2654435761ul;
 
   return key % m->table_size;
 }

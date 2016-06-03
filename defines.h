@@ -1,4 +1,5 @@
 #include "hashmap.h"
+#include "token_stack.h"
 
 #ifndef _DEFINES_H
 #define _DEFINES_H
@@ -13,6 +14,7 @@
 
 #define FAILED    0
 #define SUCCEEDED 1
+#define FAILED_WITH_ERROR 2
 
 #define OFF 0
 #define ON  1
@@ -47,6 +49,7 @@
 #define INPUT_NUMBER_STRING        4
 #define INPUT_NUMBER_STACK         5
 #define INPUT_NUMBER_FLOAT         6
+#define INPUT_MACRO_ARGUMENT       7
 
 #define GET_NEXT_TOKEN_STRING         2
 #define EVALUATE_TOKEN_NOT_IDENTIFIED 2
@@ -410,6 +413,7 @@ struct optcode {
 #define DEFINITION_TYPE_STRING        1
 #define DEFINITION_TYPE_STACK         2
 #define DEFINITION_TYPE_ADDRESS_LABEL 3
+#define DEFINTIION_TYPE_MACRO_ARG     4
 
 struct definition {
   char   alias[MAX_NAME_LENGTH];

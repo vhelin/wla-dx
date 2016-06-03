@@ -12,7 +12,6 @@
 #include "stack.h"
 #include "include_file.h"
 
-
 extern int input_number_error_msg, bankheader_status, input_float_mode;
 extern int i, size, d, macro_active, string_size, section_status, parse_floats;
 extern char xyz[256], *buffer, tmp[4096], expanded_macro_string[256], label[MAX_NAME_LENGTH];
@@ -34,6 +33,11 @@ extern int stack_inserted;
 #if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
 extern int operand_hint;
 #endif
+
+
+/* internal functions */
+int get_operator_precedence(int op_value);
+int compare_operator_precedence(int new_op, int old_op);
 
 
 static int _stack_insert(void) {
@@ -106,13 +110,14 @@ static int _break_before_value_or_string(int i, struct stack_item *si) {
 }
 
 
-int stack_calculate(char *in, int *value) {
+int stack_calculate(char *in, int *value, int *read_count) {
 
   int q = 0, b = 0, d, k, op[256], n, o, l;
   struct stack_item si[256], ta[256];
   struct stack s;
   unsigned char e;
   double dou = 0.0, dom = 0.0;
+  char *buffer_start = in;
 
 
   /* slice the data into infix format */
@@ -347,29 +352,33 @@ int stack_calculate(char *in, int *value) {
 	break;
       
       d = 0;
-      for (k = 0; k < 8; k++, d = d << 4) {
-	in++;
-	e = *in;
-	if (e >= '0' && e <= '9')
-	  d += e - '0';
-	else if (e >= 'A' && e <= 'F')
-	  d += e - 'A' + 10;
-	else if (e >= 'a' && e <= 'f')
-	  d += e - 'a' + 10;
-	else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' ||
-		 e == '*' || e == '/' || e == ',' || e == '^' || e == '<' || e == '>' ||
-		 e == '#' || e == '~' || e == ']' || e == '.' || e == 0xA)
-	  break;
-	else {
-	  if (input_number_error_msg == YES) {
-	    sprintf(xyz, "Got '%c' (%d) when expected [0-F].\n", e, e);
-	    print_error(xyz, ERROR_NUM);
-	  }
-	  return FAILED;
-	}
+      for (k = 0; k < 9; k++) {
+        in++;
+        e = *in;
+        if (e >= '0' && e <= '9') {
+          d = d << 4;
+          d += e - '0';
+        }
+        else if (e >= 'A' && e <= 'F') {
+          d = d << 4;
+          d += e - 'A' + 10;
+        }
+        else if (e >= 'a' && e <= 'f') {
+          d = d << 4;
+          d += e - 'a' + 10;
+        }
+        else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' ||
+          e == '*' || e == '/' || e == ',' || e == '^' || e == '<' || e == '>' ||
+          e == '#' || e == '~' || e == ']' || e == '.' || e == 0xA)
+            break;
+        else {
+          if (input_number_error_msg == YES) {
+            sprintf(xyz, "Got '%c' (%d) when expected [0-F].\n", e, e);
+            print_error(xyz, ERROR_NUM);
+          }
+          return FAILED;
+        }
       }
-
-      d = d >> 4;
 
       si[q].type = STACK_ITEM_TYPE_VALUE;
       si[q].value = d;
@@ -402,35 +411,39 @@ int stack_calculate(char *in, int *value) {
       }
 
       if (n == 1) {
-	/* it's hex */
-	d = 0;
-	for (k = 0; k < 8; k++, d = d << 4) {
-	  e = *(in++);
-	  if (e >= '0' && e <= '9')
-	    d += e - '0';
-	  else if (e >= 'A' && e <= 'F')
-	    d += e - 'A' + 10;
-	  else if (e >= 'a' && e <= 'f')
-	    d += e - 'a' + 10;
-	  else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' ||
-		   e == '*' || e == '/' || e == ',' || e == '^' || e == '<' || e == '>' ||
-		   e == '#' || e == '~' || e == ']' || e == '.' || e == 'h' || e == 'H' || e == 0xA)
-	    break;
-	  else {
-	    if (input_number_error_msg == YES) {
-	      sprintf(xyz, "Got '%c' (%d) when expected [0-F].\n", e, e);
-	      print_error(xyz, ERROR_NUM);
-	    }
-	    return FAILED;
-	  }
-	}
-
-	d = d >> 4;
-
-	si[q].type = STACK_ITEM_TYPE_VALUE;
-	si[q].value = d;
-	si[q].sign = SI_SIGN_POSITIVE;
-	q++;
+        /* it's hex */
+        d = 0;
+        for (k = 0; k < 9; k++) {
+          e = *(in++);
+          if (e >= '0' && e <= '9') {
+            d = d << 4;
+            d += e - '0';
+          }
+          else if (e >= 'A' && e <= 'F') {
+            d = d << 4;
+            d += e - 'A' + 10;
+          }
+          else if (e >= 'a' && e <= 'f') {
+            d = d << 4;
+            d += e - 'a' + 10;
+          }
+          else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' ||
+             e == '*' || e == '/' || e == ',' || e == '^' || e == '<' || e == '>' ||
+             e == '#' || e == '~' || e == ']' || e == '.' || e == 'h' || e == 'H' || e == 0xA)
+            break;
+          else {
+            if (input_number_error_msg == YES) {
+              sprintf(xyz, "Got '%c' (%d) when expected [0-F].\n", e, e);
+              print_error(xyz, ERROR_NUM);
+            }
+            return FAILED;
+          }
+        }
+        
+        si[q].type = STACK_ITEM_TYPE_VALUE;
+        si[q].value = d;
+        si[q].sign = SI_SIGN_POSITIVE;
+        q++;
       }
       else {
 	/* it's decimal */
@@ -560,7 +573,7 @@ int stack_calculate(char *in, int *value) {
   }
 
   /* update the source pointer */
-  i = in - buffer;
+  (*read_count) = (in - buffer_start);
 
   /* fix the sign in every operand */
   for (b = 1, k = 0; k < q; k++) {
@@ -637,179 +650,38 @@ int stack_calculate(char *in, int *value) {
     /* operators get inspected */
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR) {
       if (b == 0) {
-	op[0] = si[k].value;
-	b++;
+        op[0] = (int)si[k].value;
+        b++;
       }
       else {
-	if (si[k].value == SI_OP_PLUS) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_PLUS;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_MINUS) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_MINUS;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_LOW_BYTE) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_LOW_BYTE;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_HIGH_BYTE) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_HIGH_BYTE;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_XOR) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_XOR;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_MULTIPLY) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_MULTIPLY;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_DIVIDE) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_DIVIDE;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_MODULO) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_MODULO;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_POWER) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_POWER;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_SHIFT_LEFT) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_SHIFT_LEFT;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_SHIFT_RIGHT) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_SHIFT_RIGHT;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_AND) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_AND;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_OR) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_OR;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_LEFT) {
-	  op[b] = SI_OP_LEFT;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_RIGHT) {
-	  b--;
-	  while (op[b] != SI_OP_LEFT) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	}
+
+        if (si[k].value == SI_OP_LEFT) {
+          op[b] = SI_OP_LEFT;
+          b++;
+        }
+        else if (si[k].value == SI_OP_RIGHT) {
+          b--;
+          while (op[b] != SI_OP_LEFT) {
+            ta[d].type = STACK_ITEM_TYPE_OPERATOR;
+            ta[d].value = op[b];
+            b--;
+            d++;
+          }
+        }
+        else{
+          int op_value = (int)si[k].value;
+
+          b--;
+          while (b != -1 && op[b] != SI_OP_LEFT && compare_operator_precedence(op_value, op[b]) > 0) {
+            ta[d].type = STACK_ITEM_TYPE_OPERATOR;
+            ta[d].value = op[b];
+            b--;
+            d++;
+          }
+          b++;
+          op[b] = op_value;
+          b++;
+        }
       }
     }
   }
@@ -947,63 +819,57 @@ int resolve_stack(struct stack_item s[], int x) {
   while (x > 0) {
     if (s->type == STACK_ITEM_TYPE_STRING) {
       if (macro_active != 0 && s->string[0] == '\\') {
-	if (s->string[1] == '@' && s->string[2] == 0) {
-	  s->type = STACK_ITEM_TYPE_VALUE;
-	  s->value = macro_runtime_current->macro->calls - 1;
-	}
-	else {
-	  for (a = 0, b = 0; s->string[a + 1] != 0 && a < 10; a++) {
-	    c = s->string[a + 1];
-	    if (c < '0' && c > '9') {
-	      print_error("Error in MACRO argument number definition.\n", ERROR_DIR);
-	      return FAILED;
-	    }
-	    b = (b * 10) + (c - '0');
-	  }
-	  
-	  if (b > macro_runtime_current->supplied_arguments) {
-	    sprintf(xyz, "Reference to MACRO argument number %d is out of range.\n", b);
-	    print_error(xyz, ERROR_STC);
-	    return FAILED;
-	  }
-	  
-	  /* return the macro argument */
-	  ma = macro_runtime_current->argument_data[b - 1];
-	  k = ma->type;
-	  
-	  if (k == INPUT_NUMBER_ADDRESS_LABEL)
-	    strcpy(label, ma->string);
-	  else if (k == INPUT_NUMBER_STRING) {
-	    strcpy(label, ma->string);
-	    string_size = strlen(ma->string);
-	  }
-	  else if (k == INPUT_NUMBER_STACK)
-	    latest_stack = ma->value;
-	  else if (k == SUCCEEDED)
-	    d = ma->value;
-	  
-	  if (!(k == SUCCEEDED || k == INPUT_NUMBER_ADDRESS_LABEL || k == INPUT_NUMBER_STACK))
-	    return FAILED;
-	  
-	  if (k == SUCCEEDED) {
-	    s->type = STACK_ITEM_TYPE_VALUE;
-	    s->value = d;
-	  }
-	  else if (k == INPUT_NUMBER_STACK) {
-	    s->type = STACK_ITEM_TYPE_STACK;
-	    s->value = latest_stack;
-	  }
-	  else
-	    strcpy(s->string, label);
-	}
+        if (s->string[1] == '@' && s->string[2] == 0) {
+          s->type = STACK_ITEM_TYPE_VALUE;
+          s->value = macro_runtime_current->macro->calls - 1;
+        }
+        else {
+          for (a = 0, b = 0; s->string[a + 1] != 0 && a < 10; a++) {
+            c = s->string[a + 1];
+            if (c < '0' && c > '9') {
+              print_error("Error in MACRO argument number definition.\n", ERROR_DIR);
+              return FAILED;
+            }
+            b = (b * 10) + (c - '0');
+          }
+          
+          if (b > macro_runtime_current->supplied_arguments) {
+            sprintf(xyz, "Reference to MACRO argument number %d is out of range.\n", b);
+            print_error(xyz, ERROR_STC);
+            return FAILED;
+          }
+          
+          /* return the macro argument */
+          ma = macro_runtime_current->argument_data[b - 1];
+          k = ma->type;
+          
+          if (k == INPUT_NUMBER_ADDRESS_LABEL)
+            strcpy(label, ma->string);
+          else if (k == INPUT_NUMBER_STRING) {
+            strcpy(label, ma->string);
+            string_size = strlen(ma->string);
+          }
+          else if (k == INPUT_NUMBER_STACK)
+            latest_stack = ma->value;
+          else if (k == SUCCEEDED)
+            d = ma->value;
+          
+          if (!(k == SUCCEEDED || k == INPUT_NUMBER_ADDRESS_LABEL || k == INPUT_NUMBER_STACK))
+            return FAILED;
+          
+          if (k == SUCCEEDED) {
+            s->type = STACK_ITEM_TYPE_VALUE;
+            s->value = d;
+          }
+          else if (k == INPUT_NUMBER_STACK) {
+            s->type = STACK_ITEM_TYPE_STACK;
+            s->value = latest_stack;
+          }
+          else
+            strcpy(s->string, label);
+        }
       }
       else {
-	if (macro_active != 0) {
-	  /* expand e.g., \1 and \@ */
-	  if (expand_macro_arguments(s->string) == FAILED)
-	    return FAILED;
-	}
-
         hashmap_get(defines_map, s->string, (void*)&tmp_def);
         if (tmp_def != NULL) {
           if (tmp_def->type == DEFINITION_TYPE_STRING) {
@@ -1011,15 +877,45 @@ int resolve_stack(struct stack_item s[], int x) {
             print_error(xyz, ERROR_STC);
             return FAILED;
           }
-          else if (tmp_def->type == DEFINITION_TYPE_STACK) {
-	    /* skip stack definitions -> use its name instead, thus do nothing here */
+          else if (tmp_def->type == DEFINTIION_TYPE_MACRO_ARG) {
+            /* Resolve the macro argument, by passing it through input number. */
+            struct token_stack_root *arg_evaluate = token_stack_new(tmp_def->string, 0);
+            
+            if (arg_evaluate != NULL) {
+              /* Evaluate the token. */
+              int type = input_number_token(arg_evaluate);
+
+              switch (type) {
+              case INPUT_NUMBER_STRING:
+              case FAILED:
+                sprintf(xyz, "Definition \"%s\" is a string definition.\n", label);
+                print_error(xyz, ERROR_STC);
+                break;
+              case INPUT_NUMBER_STACK:
+                /* skip stack definitions -> use its name instead, thus do nothing here */
+                break;
+              case INPUT_NUMBER_ADDRESS_LABEL:
+                cannot_resolve = 1;
+                strcpy(s->string, label);
+                break;
+              default:
+                s->type = STACK_ITEM_TYPE_VALUE;
+                s->value = d;
+                break;
+              }
+            }
+
+            token_stack_free(arg_evaluate);
           }
-	  else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
-	    /* wla cannot resolve address labels (unless outside a section) -> only wlalink can do that */
-	    cannot_resolve = 1;
-	    strcpy(s->string, tmp_def->string);
-	  }
-	  else {
+          else if (tmp_def->type == DEFINITION_TYPE_STACK) {
+            /* skip stack definitions -> use its name instead, thus do nothing here */
+          }
+          else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+            /* wla cannot resolve address labels (unless outside a section) -> only wlalink can do that */
+            cannot_resolve = 1;
+            strcpy(s->string, tmp_def->string);
+          }
+          else {
             s->type = STACK_ITEM_TYPE_VALUE;
             s->value = tmp_def->value;
           }
@@ -1190,4 +1086,67 @@ int stack_create_label_stack(char *label) {
   _stack_insert();
 
   return SUCCEEDED;
+}
+
+
+int compare_operator_precedence(int new_op, int old_op) {
+  
+  return get_operator_precedence(new_op) >= get_operator_precedence(old_op);
+}
+
+
+int get_operator_precedence(int op_value) {
+
+  int precedence;
+
+  /* Using c operator precedence from:
+     http://en.cppreference.com/w/c/language/operator_precedence
+     Added exponents as the highest next to Parentheses.
+     Added byte operators as the lowest precedence. */
+
+  switch (op_value) {
+    case SI_OP_LEFT:
+    case SI_OP_RIGHT:
+      precedence = 1;
+      break;
+    case SI_OP_POWER:
+      precedence = 2;
+      break;
+    case SI_OP_MULTIPLY:
+    case SI_OP_DIVIDE:
+    case SI_OP_MODULO:
+      precedence = 3;
+      break;
+    case SI_OP_PLUS:
+    case SI_OP_MINUS:
+      precedence = 4;
+      break;
+    case SI_OP_AND:
+      precedence = 8;
+      break;
+    case SI_OP_XOR:
+      precedence = 9;
+      break;
+    case SI_OP_OR:
+      precedence = 10;
+      break;
+
+    /* TODO: shift should be precedence 5 to match the c standard, but to maintain compatibility with test it's
+       flagged below XOR:
+        65816 - linker_test L73: .db $ff~(%0+$ff-1)<<1
+       The normal priority of left shift should perform it before the XOR
+       but the test expects the shift after the XOR. */
+    case SI_OP_SHIFT_LEFT:
+    case SI_OP_SHIFT_RIGHT:
+      precedence = 11;
+      break;
+    case SI_OP_LOW_BYTE:
+    case SI_OP_HIGH_BYTE:
+      precedence = 20;
+      break;
+    default:
+      precedence = 30;
+  }
+
+  return precedence;
 }

@@ -11,6 +11,30 @@
 #include "stack.h"
 #include "include_file.h"
 
+struct operator_type {
+  int operator;
+  char *string;
+  int string_len;
+};
+
+#define OPERATOR_COUNT 15
+const struct operator_type operator_list[OPERATOR_COUNT] = {
+  { SI_OP_PLUS, "+", 1 },
+  { SI_OP_MINUS, "-", 1 },
+  { SI_OP_MULTIPLY, "*", 1 },
+  { SI_OP_LEFT, "(", 1 },
+  { SI_OP_RIGHT, ")", 1 },
+  { SI_OP_OR, "|", 1 },
+  { SI_OP_AND, "&", 1 },
+  { SI_OP_DIVIDE, "/", 1 },
+  { SI_OP_POWER, "^", 1 },
+  { SI_OP_SHIFT_LEFT, "<<", 2 },
+  { SI_OP_SHIFT_RIGHT, ">>", 2 },
+  { SI_OP_MODULO, "#", 1 },
+  { SI_OP_XOR, "~", 1 },
+  { SI_OP_LOW_BYTE, "<", 1 },
+  { SI_OP_HIGH_BYTE, ">", 1 },
+};
 
 int input_number_error_msg = YES, ss, string_size, input_float_mode = OFF, parse_floats = YES;
 int newline_beginning = ON, parsed_double_decimal_numbers = 0;
@@ -19,7 +43,7 @@ char unevaluated_expression[256];
 char expanded_macro_string[MAX_NAME_LENGTH+1];
 double parsed_double;
 
-extern int i, size, d, macro_active;
+extern int i, size, d, macro_active, collecting_macro_args;
 extern char *buffer, tmp[4096], cp[256];
 extern struct active_file_info *active_file_info_first, *active_file_info_last, *active_file_info_tmp;
 extern struct definition *tmp_def;
@@ -27,59 +51,33 @@ extern struct map_t *defines_map;
 extern struct macro_runtime *macro_stack, *macro_runtime_current;
 extern int latest_stack;
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
-int operand_hint;
-#endif
+extern struct token_stack_root *buffer_stack;
+
+int operand_hint = HINT_NONE;
 
 
 int compare_next_token(char *token, int length) {
 
-  int ii, t, d, k;
+  int t;
   char e;
 
-  
+  token_stack_push_state(buffer_stack);
+
   /* skip white space */
-  ii = i;
-  for (e = buffer[ii]; e == ' ' || e == ',' || e == 0x0A; e = buffer[++ii])
-    ;
+  parse_while_any_token(buffer_stack, " ,\x0A");
+  e = token_stack_get_current_token(buffer_stack);
 
-  /* MACRO mode? */
-  if (macro_active != 0 && e == '\\') {
-    for (d = 0, k = 0; k < 16; k++) {
-      e = buffer[++ii];
-      if (e >= '0' && e <= '9')
-	d = (d * 10) + e - '0';
-      else
-	break;
-    }
-
-    if (d > macro_runtime_current->supplied_arguments) {
-      if (input_number_error_msg == YES) {
-	sprintf(xyz, "COMPARE_NEXT_SYMBOL: Macro \"%s\" wasn't called with enough arguments.\n", macro_runtime_current->macro->name);
-	print_error(xyz, ERROR_NONE);
-      }
+  for (t = 0; t < length && e != ' ' && e != ',' && e != 0x0A; ) {
+    if (toupper((int)token[t]) != toupper((int)e)) {
+      token_stack_pop_state(buffer_stack, 0);
       return FAILED;
     }
-
-    ii = macro_runtime_current->argument_data[d - 1]->start;
-
-    e = buffer[ii];
-    for (t = 0; t < length && e != ' ' && e != ',' && e != 0x0A; ) {
-      if (toupper((int)token[t]) != toupper((int)e))
-	return FAILED;
-      t++;
-      e = buffer[++ii];
-    }
+    t++;
+    token_stack_move(buffer_stack, 1);
+    e = token_stack_get_current_token(buffer_stack);
   }
-  /* not in MACRO mode */
-  else {
-    for (t = 0; t < length && e != ' ' && e != ',' && e != 0x0A; ) {
-      if (toupper((int)token[t]) != toupper((int)e))
-	return FAILED;
-      t++;
-      e = buffer[++ii];
-    }
-  }
+
+  token_stack_pop_state(buffer_stack, 0);
 
   if (t == length)
     return SUCCEEDED;
@@ -91,603 +89,185 @@ int compare_next_token(char *token, int length) {
 int input_next_string(void) {
 
   char e;
-  int k;
+  int parse_result;
 
-  
   /* skip white space */
-  for (e = buffer[i++]; e == ' ' || e == ','; e = buffer[i++])
-    ;
+  parse_while_any_token(buffer_stack, " ,");
 
-  if (e == 0x0A)
+  e = token_stack_get_current_token(buffer_stack);
+  if (e == 0x0A) {
+    token_stack_move(buffer_stack, 1);
     return INPUT_NUMBER_EOL;
-
-  /* last choice is a label */
-  tmp[0] = e;
-  for (k = 1; k < MAX_NAME_LENGTH - 1; k++) {
-    e = buffer[i++];
-    if (e == 0x0A || e == ',') {
-      i--;
-      break;
-    }
-    else if (e == ' ')
-      break;
-    tmp[k] = e;
   }
 
-  if (k == MAX_NAME_LENGTH - 1) {
-    if (input_number_error_msg == YES) {
-      sprintf(xyz, "The string is too long (max %d bytes).\n", MAX_NAME_LENGTH - 1);
-      print_error(xyz, ERROR_NUM);
-    }
+  /* parse the next token as a label. */
+  parse_result = parse_type_label(buffer_stack, tmp, MAX_NAME_LENGTH);
+
+  if (parse_result == FAILED_WITH_ERROR)
     return FAILED;
-  }
-
-  tmp[k] = 0;
-
-  /* expand e.g., \1 and \@ */
-  if (macro_active != 0) {
-    if (expand_macro_arguments(tmp) == FAILED)
-      return FAILED;
-  }
 
   return SUCCEEDED;
 }
 
-
 int input_number(void) {
+  
+  /* TODO: expand input_number_token, to remove dependancy on globals:
+     d, label, string_size, parsed_double, parsed_double_decimal_numbers, operand_hint, string_size, tmp_def */
+  return input_number_token(buffer_stack);
+}
 
-  char label_tmp[MAX_NAME_LENGTH];
-  unsigned char e, ee;
-  int k, p, q;
-  double decimal_mul;
+int input_number_token(struct token_stack_root *token_stack) {
 
+  unsigned char e;
+  int parse_result;
 
 #if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
   operand_hint = HINT_NONE;
 #endif
 
   /* skip white space */
-  for (e = buffer[i++]; e == ' ' || e == ','; e = buffer[i++])
-    ;
+  parse_while_any_token(token_stack, " ,");
+  e = token_stack_get_current_token(token_stack);
 
-  if (e == 0x0A)
+  /* Found end of line. */
+  if (e == 0x0A) {
+    token_stack_move(token_stack, 1);
     return INPUT_NUMBER_EOL;
-
-  /* check the type of the expression */
-  p = i;
-  ee = e;
-  while (ee != 0x0A) {
-    /* string / symbol -> no calculating */
-    if (ee == '"' || ee == ',' || (ee == '=' && buffer[p] == '=') || (ee == '!' && buffer[p] == '='))
-      break;
-    if (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' ||
-	ee == '<' || ee == '>' || ee == '#' || ee == '~') {
-      /* launch stack calculator */
-      p = stack_calculate(&buffer[i - 1], &d);
-      if (p == STACK_CALCULATE_DELAY)
-	break;
-      else if (p == STACK_RETURN_LABEL)
-	return INPUT_NUMBER_ADDRESS_LABEL;
-      else
-	return p;
-    }
-    ee = buffer[p];
-    p++;
   }
 
-  /* MACRO */
-  if (macro_active != 0 && e == '\\') {
+  /* Attempt to parse a mathmatical expression. */
+  parse_result = parse_type_expression(token_stack, &d, label, MAX_NAME_LENGTH);
+  if (parse_result == FAILED_WITH_ERROR)
+    return FAILED;
+  else if (parse_result != FAILED)
+    return parse_result;
 
-    struct macro_argument *ma;
-
-
-    if (buffer[i] == '@') {
-      i++;
-      d = macro_runtime_current->macro->calls - 1;
-      return SUCCEEDED;
-    }
-
-    for (d = 0, k = 0; k < 4; k++) {
-      e = buffer[i++];
-      if (e >= '0' && e <= '9')
-        d = (d * 10) + (e - '0');
-      else {
-        i--;
-        break;
-      }
-    }
-
-    if (d > macro_runtime_current->supplied_arguments) {
-      sprintf(xyz, "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", d, macro_runtime_current->macro->name, macro_runtime_current->supplied_arguments);
-      print_error(xyz, ERROR_NUM);
-      return FAILED;
-    }
-
-    /* return the macro argument */
-    ma = macro_runtime_current->argument_data[d - 1];
-    k = ma->type;
-
-    if (k == INPUT_NUMBER_ADDRESS_LABEL)
-      strcpy(label, ma->string);
-    else if (k == INPUT_NUMBER_STRING) {
-      strcpy(label, ma->string);
-      string_size = strlen(ma->string);
-    }
-    else if (k == INPUT_NUMBER_STACK)
-      latest_stack = ma->value;
-    else if (k == SUCCEEDED)
-      d = ma->value;
-    else {
-      print_error("Macro argument list has been corrupted! Please send a bug report!\n", ERROR_ERR);
-      return FAILED;
-    }
-
-    /* does the MACRO argument number end with a .b/.w/.l? */
-
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
-    if (e == '.') {
-      e = buffer[i+1];
-      if (e == 'b' || e == 'B') {
-	operand_hint = HINT_8BIT;
-	i += 2;
-      }
-      else if (e == 'w' || e == 'W') {
-	operand_hint = HINT_16BIT;
-	i += 2;
-      }
-#if defined(W65816)
-      else if (e == 'l' || e == 'L') {
-	operand_hint = HINT_24BIT;
-	i += 2;
-      }
-#endif
-    }
-#endif
-
-    return k;
-  }
+  /* validate any unhandled macro indicies. */
+  parse_result = parse_validate_macro_bounds(token_stack);
+  if (parse_result == FAILED_WITH_ERROR)
+    return FAILED;
 
   /* is it a hexadecimal value? */
-  d = 0;
-  if (e >= '0' && e <= '9') {
-    for (k = 0; 1; k++) {
-      if (buffer[i+k] >= '0' && buffer[i+k] <= '9')
-	continue;
-      if (buffer[i+k] >= 'a' && buffer[i+k] <= 'f')
-	continue;
-      if (buffer[i+k] >= 'A' && buffer[i+k] <= 'F')
-	continue;
-      if (buffer[i+k] == 'h' || buffer[i+k] == 'H') {
-	d = 1;
-	break;
-      }
-      break;
-    }
-  }
+  parse_result = parse_type_hex_value(token_stack, &d, &operand_hint);
+  if (parse_result == FAILED_WITH_ERROR)
+    return FAILED;
+  else if (parse_result != FAILED)
+    return parse_result;
 
-  if (e == '$' || d == 1) {
-    if (d == 1)
-      i--;
-    for (d = 0, k = 0; k < 8; k++, i++) {
-      e = buffer[i];
-      if (e >= '0' && e <= '9')
-	d = (d << 4) + e - '0';
-      else if (e >= 'A' && e <= 'F')
-	d = (d << 4) + e - 'A' + 10;
-      else if (e >= 'a' && e <= 'f')
-	d = (d << 4) + e - 'a' + 10;
-      else if (e == 'h' || e == 'H') {
-	i++;
-	e = buffer[i];
-	break;
-      }
-      else
-	break;
-    }
+  /* is it an integer or double value? */
+  parse_result = parse_type_double_value(token_stack, &parsed_double, &parsed_double_decimal_numbers, &d, &operand_hint);
+  if (parse_result == FAILED_WITH_ERROR)
+    return FAILED;
+  else if (parse_result != FAILED)
+    return parse_result;
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
-    if (e == '.') {
-      e = buffer[i+1];
-      if (e == 'b' || e == 'B') {
-	operand_hint = HINT_8BIT;
-	i += 2;
-      }
-      else if (e == 'w' || e == 'W') {
-	operand_hint = HINT_16BIT;
-	i += 2;
-      }
-#if defined(W65816)
-      else if (e == 'l' || e == 'L') {
-	operand_hint = HINT_24BIT;
-	i += 2;
-      }
-#endif
-    }
-#if defined(W65186)
-    if (d > 0xFFFF && d <= 0xFFFFFF)
-      operand_hint = HINT_24BIT;
-    else if (d > 0xFF)
-      operand_hint = HINT_16BIT;
-    else
-      operand_hint = HINT_8BIT;
-		
-#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
-    if (d > 0xFF && d <= 0xFFFF)
-      operand_hint = HINT_16BIT;
-    else
-      operand_hint = HINT_8BIT;
-#endif
-#endif
+  /* is it a binary value? */
+  parse_result = parse_type_binary_value(token_stack, &d, &operand_hint);
+  if (parse_result == FAILED_WITH_ERROR)
+    return FAILED;
+  else if (parse_result != FAILED)
+    return parse_result;
 
-    return SUCCEEDED;
-  }
+  /* Attempt to parse a character literal. */
+  parse_result = parse_type_char(token_stack, &d);
+  if (parse_result == FAILED_WITH_ERROR)
+    return FAILED;
+  else if (parse_result != FAILED)
+    return parse_result;
 
-  if (e >= '0' && e <= '9') {
-    /* we are parsing decimals when q=1 */
-    q = 0;
-    parsed_double = e-'0';
-    parsed_double_decimal_numbers = 0;
-    decimal_mul = 0.1;
-    for (k = 0; k < 9; k++, i++) {
-      e = buffer[i];
-      if (e >= '0' && e <= '9') {
-	if (q == 0) {
-	  /* still parsing an integer */
-	  parsed_double = parsed_double*10 + e-'0';
-	}
-	else {
-	  parsed_double = parsed_double + decimal_mul*(e-'0');
-	  decimal_mul /= 10.0;
-	  parsed_double_decimal_numbers = parsed_double_decimal_numbers*10 + (e-'0');
-	}
-      }
-      else if (e == '.') {
-	if (q == 1) {
-	  print_error("Syntax error.\n", ERROR_NUM);
-	  return FAILED;
-	}
-	e = buffer[i+1];
-	if (e >= '0' && e <= '9') {
-	  /* float mode, read decimals */
-	  if (parse_floats == NO)
-	    break;
-	  q = 1;
-	}
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
-	else if (e == 'b' || e == 'B') {
-	  operand_hint = HINT_8BIT;
-	  i += 2;
-	  break;
-	}
-	else if (e == 'w' || e == 'W') {
-	  operand_hint = HINT_16BIT;
-	  i += 2;
-	  break;
-	}
-#if defined(W65816)
-	else if (e == 'l' || e == 'L') {
-	  operand_hint = HINT_24BIT;
-	  i += 2;
-	  break;
-	}
-#endif
-#else
-	else {
-	  print_error("Syntax error.\n", ERROR_NUM);
-	  return FAILED;
-	}
-#endif
-      }
-      else if ((e >= 'a' && e <= 'z') || (e >= 'A' && e <= 'Z')) {
-	/* a number directly followed by a letter when parsing a integer/float -> syntax error */
-	print_error("Syntax error.\n", ERROR_NUM);
-	return FAILED;
-      }
-      else
-	break;
-    }
-
-    /* drop the decimals */
-    d = parsed_double;
-#if defined(W65186)
-    if (d > 0xFFFF && d <= 0xFFFFFF)
-      operand_hint = HINT_24BIT;
-    else if (d > 0xFF)
-      operand_hint = HINT_16BIT;
-    else
-      operand_hint = HINT_8BIT;
-		
-#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
-    if (d > 0xFF && d <= 0xFFFF)
-      operand_hint = HINT_16BIT;
-    else
-      operand_hint = HINT_8BIT;
-#endif
-
-    if (q == 1 && input_float_mode == ON)
-      return INPUT_NUMBER_FLOAT;
-
-    return SUCCEEDED;
-  }
-
-  if (e == '%') {
-    for (d = 0, k = 0; k < 32; k++, i++) {
-      e = buffer[i];
-      if (e == '0' || e == '1')
-	d = (d << 1) + e - '0';
-      else
-	break;
-    }
-
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
-    if (e == '.') {
-      e = buffer[i+1];
-      if (e == 'b' || e == 'B') {
-	operand_hint = HINT_8BIT;
-	i += 2;
-      }
-      else if (e == 'w' || e == 'W') {
-	operand_hint = HINT_16BIT;
-	i += 2;
-      }
-#if defined(W65816)
-      else if (e == 'l' || e == 'L') {
-	operand_hint = HINT_24BIT;
-	i += 2;
-      }
-#endif
-    }
-#endif
-
-    return SUCCEEDED;
-  }
-
-  if (e == '\'') {
-    d = buffer[i++];
-    e = buffer[i];
-    if (e != '\'') {
-      if (input_number_error_msg == YES) {
-	sprintf(xyz, "Got '%c' (%d) when expected \"'\".\n", e, e);
-	print_error(xyz, ERROR_NUM);
-      }
-      return FAILED;
-    }
-    i++;
-
-    return SUCCEEDED;
-  }
-
-  if (e == '"') {
-    for (k = 0; k < MAX_NAME_LENGTH - 1; ) {
-      e = buffer[i++];
-
-      if (e == '\\' && buffer[i] == '"') {
-	label[k++] = '"';
-	i++;
-	continue;
-      }
-      
-      if (e == '"')
-	break;
-      
-      if (e == 0 || e == 0x0A) {
-	print_error("String wasn't terminated properly.\n", ERROR_NUM);
-	return FAILED;
-      }
-
-      label[k++] = e;
-    }
-
-    label[k] = 0;
-
-    /* expand e.g., \1 and \@ */
-    if (macro_active != 0) {
-      if (expand_macro_arguments(label) == FAILED)
-	return FAILED;
-      k = strlen(label);
-    }
-
-    if (k == MAX_NAME_LENGTH - 1) {
-      if (input_number_error_msg == YES) {
-	sprintf(xyz, "The string is too long (max %d bytes).\n", MAX_NAME_LENGTH - 1);
-	print_error(xyz, ERROR_NUM);
-      }
-      return FAILED;
-    }
-
-    label[k] = 0;
-    string_size = k;
-    return INPUT_NUMBER_STRING;
-  }
+  /* Attempt to parse a string literal. */
+  parse_result = parse_type_string(token_stack, label, MAX_NAME_LENGTH, &string_size);
+  if (parse_result == FAILED_WITH_ERROR)
+    return FAILED;
+  else if (parse_result != FAILED)
+    return parse_result;
 
   /* the last choice is a label */
-  label[0] = e;
-  for (k = 1; k < MAX_NAME_LENGTH - 1; k++) {
-    e = buffer[i++];
-    if (e == 0x0A || e == ')' || e == ',' || e == ']') {
-      i--;
-      break;
-    }
-    else if (e == ' ')
-      break;
-    label[k] = e;
-  }
-
-  if (k == MAX_NAME_LENGTH - 1) {
-    if (input_number_error_msg == YES) {
-      sprintf(xyz, "The label is too long (max %d bytes).\n", MAX_NAME_LENGTH - 1);
-      print_error(xyz, ERROR_NUM);
-    }
+  parse_result = parse_type_label(token_stack, label, MAX_NAME_LENGTH);
+  if (parse_result == FAILED_WITH_ERROR)
     return FAILED;
-  }
-
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
-  /* size hint? */
-  if (label[k-2] == '.') {
-    if (label[k-1] == 'b' || label[k-1] == 'B') {
-      operand_hint = HINT_8BIT;
-      k -= 2;
-    }
-    else if (label[k-1] == 'w' || label[k-1] == 'W') {
-      operand_hint = HINT_16BIT;
-      k -= 2;
-    }
-#if defined(W65816)
-    else if (label[k-1] == 'l' || label[k-1] == 'L') {
-      operand_hint = HINT_24BIT;
-      k -= 2;
-    }
-#endif
-
-  }
-#endif
-
-  label[k] = 0;
-
-  /* expand e.g., \1 and \@ */
-  if (macro_active != 0) {
-    if (expand_macro_arguments(label) == FAILED)
+  else if (parse_result != FAILED) {
+    /* Attempt to resolve the parsed label if a known value is availble. */
+    parse_result = parse_resolve_label(label, &string_size, &d, &operand_hint, &tmp_def);
+    if (parse_result == FAILED_WITH_ERROR)
       return FAILED;
   }
 
-  /* label_tmp contains the label without possible prefix ':' */
-  if (strlen(label) > 1 && label[0] == ':')
-    strcpy(label_tmp, &label[1]);
-  else
-    strcpy(label_tmp, label);
-  
-  /* check if the label is actually a definition */
-  if (hashmap_get(defines_map, label, (void*)&tmp_def) != MAP_OK)
-    hashmap_get(defines_map, label_tmp, (void*)&tmp_def);
-  if (tmp_def != NULL) {
-    if (tmp_def->type == DEFINITION_TYPE_VALUE) {
-      d = tmp_def->value;
-#if defined(W65186)
-      if (d > 0xFFFF && d <= 0xFFFFFF)
-        operand_hint = HINT_24BIT;
-      else if (d > 0xFF)
-        operand_hint = HINT_16BIT;
-      else
-        operand_hint = HINT_8BIT;
-
-#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
-      if (d > 0xFF && d <= 0xFFFF)
-        operand_hint = HINT_16BIT;
-      else
-        operand_hint = HINT_8BIT;
-#endif
-      return SUCCEEDED;
-    }
-    else if (tmp_def->type == DEFINITION_TYPE_STACK) {
-      /* skip stack definitions -> use its name instead */
-    }
-    else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
-      if (label[0] == ':') {
-        /* we need to keep the ':' prefix */
-        sprintf(label, ":%s%c", tmp_def->string, 0);
-        string_size = tmp_def->size + 1;
-      }
-      else {
-        string_size = tmp_def->size;
-        memcpy(label, tmp_def->string, string_size);
-        label[string_size] = 0;
-      }
-      return INPUT_NUMBER_ADDRESS_LABEL;
-    }
-    else {
-      string_size = tmp_def->size;
-      memcpy(label, tmp_def->string, string_size);
-      label[string_size] = 0;
-      return INPUT_NUMBER_STRING;
-    }
-  }
-
-  return INPUT_NUMBER_ADDRESS_LABEL;
+  return parse_result;
 }
 
 
 int get_next_token(void) {
 
+  char token;
+  int parse_result;
+
   while (1) {
-    if (i == size)
+    token = token_stack_get_current_token(buffer_stack);
+
+    /* Check for the end of the buffer. */
+    if (token == '\0')
       break;
-    if (buffer[i] == ' ') {
-      i++;
+
+    /* Skip whitespace. */
+    if (token == ' ') {
+      token_stack_move(buffer_stack, 1);
       newline_beginning = OFF;
       continue;
     }
-    if (buffer[i] == 0xA) {
-      i++;
+
+    /* Check for a newline. */
+    if (token == 0xA) {
+      token_stack_move(buffer_stack, 1);
       next_line();
       continue;
     }
     break;
   }
 
-  if (buffer[i] == '"') {
-    for (ss = 0, i++; buffer[i] != 0xA && buffer[i] != '"'; ) {
-      if (buffer[i] == '\\' && buffer[i + 1] == '"') {
-	tmp[ss++] = '"';
-	i += 2;
-      }
-      else
-	tmp[ss++] = buffer[i++];
-    }
+  /* Parse a string literal.  */
+  parse_result = parse_type_string(buffer_stack, tmp, 4096, &ss);
+  if (parse_result == FAILED_WITH_ERROR)
+    return FAILED;
+  else if (parse_result != FAILED)
+    return GET_NEXT_TOKEN_STRING;
 
-    if (buffer[i] == 0xA) {
-      print_error("GET_NEXT_TOKEN: String wasn't terminated properly.\n", ERROR_NONE);
-      return FAILED;
+  token = token_stack_get_current_token(buffer_stack);
+  /* Parse a directive. */
+  if (token == '.') {
+    int tmp_index;
+
+    ss = parse_until_any_token(buffer_stack, " \x0A", tmp, MAX_NAME_LENGTH + 1);
+    tmp[ss] = '\0';
+
+    /* Make cp uppercase. */
+    for (tmp_index = 1; tmp_index < ss; ++tmp_index)
+      cp[tmp_index - 1] = toupper(tmp[tmp_index]);
+    cp[ss - 1] = '\0';
+  }
+  /* Parse a multi character operator. */
+  else if (token == '=' || token == '>' || token == '<' || token == '!') {
+    for (ss = 0; token != 0xA && (token == '=' || token == '!' || token == '<' || token == '>')
+       && ss <= MAX_NAME_LENGTH;) {
+      tmp[ss++] = token;
+      token_stack_move(buffer_stack, 1);
+      token = token_stack_get_current_token(buffer_stack);
     }
     tmp[ss] = 0;
-    i++;
-
-    /* expand e.g., \1 and \@ */
-    if (macro_active != 0) {
-      if (expand_macro_arguments(tmp) == FAILED)
-	return FAILED;
-      ss = strlen(tmp);
-    }
-
-    return GET_NEXT_TOKEN_STRING;
-  }
-
-  if (buffer[i] == '.') {
-    tmp[0] = '.';
-    i++;
-    for (ss = 1; buffer[i] != 0x0A && buffer[i] != ' ' && ss <= MAX_NAME_LENGTH; ) {
-      tmp[ss] = buffer[i];
-      cp[ss - 1] = toupper((int)buffer[i]);
-      i++;
-      ss++;
-    }
-    cp[ss - 1] = 0;
-  }
-  else if (buffer[i] == '=' || buffer[i] == '>' || buffer[i] == '<' || buffer[i] == '!') {
-    for (ss = 0; buffer[i] != 0xA && (buffer[i] == '=' || buffer[i] == '!' || buffer[i] == '<' || buffer[i] == '>')
-	   && ss <= MAX_NAME_LENGTH; tmp[ss++] = buffer[i++]);
   }
   else {
-    for (ss = 0; buffer[i] != 0xA && buffer[i] != ',' && buffer[i] != ' ' && ss <= MAX_NAME_LENGTH; ) {
-      tmp[ss] = buffer[i];
-      ss++;
-      i++;
-    }
-    if (buffer[i] == ',')
-      i++;
+    /* Parse anything else (delimit on ',', ' ', 0x0A). */
+    ss = parse_until_any_token(buffer_stack, ", \x0A", tmp, MAX_NAME_LENGTH + 1);
+    tmp[ss] = 0;
+
+    token = token_stack_get_current_token(buffer_stack);
+    if (token == ',')
+      token_stack_move(buffer_stack, 1);
   }
 
   if (ss > MAX_NAME_LENGTH) {
     print_error("GET_NEXT_TOKEN: Too long for a token.\n", ERROR_NONE);
     return FAILED;
-  }
-
-  tmp[ss] = 0;
-
-  /* expand e.g., \1 and \@ */
-  if (macro_active != 0) {
-    if (expand_macro_arguments(tmp) == FAILED)
-      return FAILED;
-    ss = strlen(tmp);
   }
 
   return SUCCEEDED;
@@ -696,168 +276,756 @@ int get_next_token(void) {
 
 int skip_next_token(void) {
 
-  for (; buffer[i] == ' ' || buffer[i] == ','; i++)
-    ;
+  char temp_string[MAX_NAME_LENGTH];
+  char token;
+  int parse_result, string_length = 0;
 
-  if (buffer[i] == 0x0A)
+  /* Skip whitespace. */
+  parse_while_any_token(buffer_stack, " ,");
+
+  token = token_stack_get_current_token(buffer_stack);
+  if (token == 0x0A)
     return FAILED;
 
-  if (buffer[i] == '"') {
-    for (i++; buffer[i] != 0x0A && buffer[i] != '"'; i++);
-    if (buffer[i] == 0x0A) {
-      print_error("SKIP_NEXT_TOKEN: String wasn't terminated properly.\n", ERROR_NONE);
-      return FAILED;
+  /* Attempt to read a string literal. */
+  parse_result = parse_type_string(buffer_stack, temp_string, MAX_NAME_LENGTH, &string_length);
+  if (parse_result == FAILED_WITH_ERROR)
+    return FAILED;
+  else if (parse_result != FAILED)
+    return SUCCEEDED;
+
+  /* Read until the end of the token (delimited by ' ', ',', 0x0A). */
+  parse_until_any_token(buffer_stack, " ,\x0A", NULL, 0);
+
+  return SUCCEEDED;
+}
+
+
+void parse_while_any_token(struct token_stack_root *token_stack, char *tokens) {
+
+  int token_length = strlen(tokens);
+  int read = 1;
+
+  while (read != 0) {
+    int token_index;
+    char compare = token_stack_get_current_token(token_stack);
+
+    read = 0;
+
+    /* Test the current token against the compare tokens. */
+    for (token_index = 0; token_index < token_length && read == 0; token_index++)
+      read |= (compare == tokens[token_index]);
+
+    if (read == 1)
+      token_stack_move(token_stack, 1);
+  }
+}
+
+
+int parse_until_any_token(struct token_stack_root *token_stack, char *tokens, char *store, int size) {
+
+  int token_length = strlen(tokens);
+  int read = 0;
+  int read_count = 0;
+
+  while (read == 0) {
+    int token_index;
+    char compare = token_stack_get_current_token(token_stack);
+
+    /* Test the current token against the compare tokens. */
+    for (token_index = 0; token_index < token_length && read == 0; token_index++)
+      read |= (compare == tokens[token_index]);
+
+    if (read == 0) {
+      if (store == NULL || read_count < size) {
+        if (store != NULL) {
+          store[read_count] = compare;
+          read_count++;
+        }
+        token_stack_move(token_stack, 1);
+      }
+      else {
+        /* Exceeded the buffer storage size. */
+        break;
+      }
     }
-    i++;
+  }
+
+  return read_count;
+}
+
+
+int parse_type_expression(struct token_stack_root *token_stack, int *value, char *string, int max_buffer) {
+
+  char ee = token_stack_get_current_token(token_stack);
+  int pop_state, p;
+
+  /* check the type of the expression */
+  token_stack_push_state(token_stack);
+  pop_state = 1;
+  
+  if (collecting_macro_args == 0) {
+    while (ee != 0x0A && ee != '\0') {
+      char next_token = token_stack_get_current_token(token_stack);
+      
+      /* string / symbol -> no calculating */
+      if (ee == '"' || ee == ',' || (ee == '=' && next_token == '=') || (ee == '!' && next_token == '='))
+        break;
+      if (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' ||
+        ee == '<' || ee == '>' || ee == '#' || ee == '~') {
+        int stack_read_count = 0;
+	
+        /* launch stack calculator */
+
+        /* Extract the line. */
+        char *line_buffer = NULL;
+        int token_index = 0;
+        char token;
+
+        token_stack_pop_state(token_stack, 0);
+        token_stack_push_state(token_stack);
+        token_stack_push_state(token_stack);
+
+        while (1) {
+          token = token_stack_get_current_token(token_stack);
+          if (token == '\0' || token == 0x0A) {
+            break;
+          }
+          token_stack_move(token_stack, 1);
+          token_index++;
+        }
+
+        token_stack_pop_state(token_stack, 0);
+
+        line_buffer = malloc((token_index + 2) * sizeof(char));
+
+        if (line_buffer != NULL) {
+          int cur_token;
+	  
+          for (cur_token = 0; cur_token < token_index; ++cur_token) {
+            token = token_stack_get_current_token(token_stack);
+            line_buffer[cur_token] = token;
+            token_stack_move(token_stack, 1);
+          }
+          line_buffer[token_index] = 0x0A;
+          line_buffer[token_index + 1] = '\0';
+        }
+        else {
+          print_error("Out of memory failed to allocate buffer for expression.\n", ERROR_ERR);
+          return FAILED_WITH_ERROR;
+        }
+
+        token_stack_pop_state(token_stack, 0);
+
+        pop_state = 0;
+        p = stack_calculate(line_buffer, value, &stack_read_count);
+        token_stack_move(token_stack, stack_read_count);
+
+        free(line_buffer);
+
+        if (p == STACK_CALCULATE_DELAY)
+          break;
+        else if (p == STACK_RETURN_LABEL)
+          return INPUT_NUMBER_ADDRESS_LABEL;
+        else {
+          if (p == FAILED)
+            p = FAILED_WITH_ERROR;
+          return p;
+        }
+      }
+      ee = next_token;
+      token_stack_move(token_stack, 1);
+    }
+  }
+  else {
+    int result = INPUT_MACRO_ARGUMENT;
+    
+    token_stack_pop_state(token_stack, 0);
+    pop_state = 0;
+
+    result = parse_type_argument_to_string(token_stack, string, max_buffer);
+
+    if (result != FAILED_WITH_ERROR)
+      result = INPUT_MACRO_ARGUMENT;
+
+    return result;
+  }
+
+  if (pop_state == 1)
+    token_stack_pop_state(token_stack, 0);
+
+  return FAILED;
+}
+
+
+int parse_type_hex_value(struct token_stack_root *token_stack, int *value, int *hint) {
+
+  char e = token_stack_get_current_token(token_stack);
+  int working_value, hex_flag = 0, k;
+
+  /* is it a hexadecimal value? */
+  if (e >= '0' && e <= '9') {
+    token_stack_push_state(token_stack);
+    token_stack_move(token_stack, 1);
+    for (k = 0; 1; k++) {
+      char token_char = token_stack_get_current_token(token_stack);
+      if (token_char >= '0' && token_char <= '9') {
+        token_stack_move(token_stack, 1);
+        continue;
+      }
+      if (token_char >= 'a' && token_char <= 'f') {
+        token_stack_move(token_stack, 1);
+        continue;
+      }
+      if (token_char >= 'A' && token_char <= 'F') {
+        token_stack_move(token_stack, 1);
+        continue;
+      }
+      if (token_char == 'h' || token_char == 'H') {
+        hex_flag = 1;
+        break;
+      }
+      break;
+    }
+    token_stack_pop_state(token_stack, 0);
+  }
+
+  if (e == '$' || hex_flag == 1) {
+    if (hex_flag == 0)
+      token_stack_move(token_stack, 1);
+
+    working_value = 0;
+    for (k = 0; k <= 8; k++) {
+      e = token_stack_get_current_token(token_stack);
+      if (e >= '0' && e <= '9')
+        working_value = (working_value << 4) + e - '0';
+      else if (e >= 'A' && e <= 'F')
+        working_value = (working_value << 4) + e - 'A' + 10;
+      else if (e >= 'a' && e <= 'f')
+        working_value = (working_value << 4) + e - 'a' + 10;
+      else if (e == 'h' || e == 'H') {
+        token_stack_move(token_stack, 1);
+        e = token_stack_get_current_token(token_stack);
+        break;
+      }
+      else
+        break;
+      token_stack_move(token_stack, 1);
+    }
+
+    *value = working_value;
+    *hint = parse_hint_attribute (token_stack, *hint);
+    *hint = parse_hint_by_value (*value, *hint);
+  
+    return SUCCEEDED;
+  }
+
+  return FAILED;
+}
+
+
+int parse_type_double_value(struct token_stack_root *token_stack, double *value, int *dec_value, int *int_value, int *hint) {
+
+  char e = token_stack_get_current_token(token_stack);
+  int is_double;
+
+  if (e >= '0' && e <= '9') {
+    double decimal_mul = 0.1;
+    int k;
+
+    token_stack_move(token_stack, 1);
+
+    /* we are parsing decimals when is_double=1 */
+    is_double = 0;
+    *value = e - '0';
+    *dec_value = 0;
+    for (k = 0; k < 9; k++) {
+      e = token_stack_get_current_token(token_stack);
+      if (e >= '0' && e <= '9') {
+        if (is_double == 0) {
+          /* still parsing an integer */
+          *value = *value * 10 + e - '0';
+        }
+        else {
+          *value = *value + decimal_mul*(e - '0');
+          decimal_mul /= 10.0;
+          *dec_value = *dec_value * 10 + (e - '0');
+        }
+      }
+      else if (e == '.') {
+        if (is_double == 1) {
+          print_error("Syntax error.\n", ERROR_NUM);
+          return FAILED_WITH_ERROR;
+        }
+        e = token_stack_peek_token(token_stack, 1);
+        if (e >= '0' && e <= '9') {
+          /* float mode, read decimals */
+          if (parse_floats == NO)
+            break;
+          is_double = 1;
+        }
+        else{
+          *hint = parse_hint_attribute(token_stack, *hint);
+
+          if (*hint == HINT_NONE) {
+            print_error("Syntax error.\n", ERROR_NUM);
+            return FAILED_WITH_ERROR;
+          }
+          else
+            break;
+        }
+      }
+      else if ((e >= 'a' && e <= 'z') || (e >= 'A' && e <= 'Z')) {
+        /* a number directly followed by a letter when parsing a integer/float -> syntax error */
+        print_error("Syntax error.\n", ERROR_NUM);
+        return FAILED_WITH_ERROR;
+      }
+      else
+        break;
+
+      token_stack_move(token_stack, 1);
+    }
+
+    /* drop the decimals */
+    *int_value = (int)*value;
+    *hint = parse_hint_by_value(*int_value, *hint);
+
+    if (is_double == 1 && input_float_mode == ON)
+      return INPUT_NUMBER_FLOAT;
 
     return SUCCEEDED;
   }
 
-  for (; buffer[i] != 0x0A && buffer[i] != ' ' && buffer[i] != ','; i++)
-    ;
+  return FAILED;
+}
 
-  return SUCCEEDED;
+int parse_type_binary_value(struct token_stack_root *token_stack, int *value, int *hint) {
+
+  char e = token_stack_get_current_token(token_stack);
+
+  if (e == '%') {
+    int k;
+
+    token_stack_move(token_stack, 1);
+    *value = 0;
+    for (k = 0; k < 32; k++) {
+      e = token_stack_get_current_token(token_stack);
+      if (e == '0' || e == '1')
+        *value = ((*value) << 1) + e - '0';
+      else
+        break;
+      token_stack_move(token_stack, 1);
+    }
+
+    *hint = parse_hint_attribute(token_stack, *hint);
+
+    return SUCCEEDED;
+  }
+
+  return FAILED;
+}
+
+int parse_type_char(struct token_stack_root *token_stack, int *result) {
+
+  char e = token_stack_get_current_token(token_stack);
+
+  if (e == '\'') {
+    token_stack_move(token_stack, 1);
+    d = token_stack_get_current_token(token_stack);
+    token_stack_move(token_stack, 1);
+    e = token_stack_get_current_token(token_stack);
+    if (e != '\'') {
+      if (input_number_error_msg == YES) {
+        sprintf(xyz, "Got '%c' (%d) when expected \"'\".\n", e, e);
+        print_error(xyz, ERROR_NUM);
+      }
+      return FAILED_WITH_ERROR;
+    }
+    token_stack_move(token_stack, 1);
+
+    if (result != NULL)
+      *result = d;
+
+    return SUCCEEDED;
+  }
+
+  return FAILED;
+}
+
+int parse_type_string(struct token_stack_root *token_stack, char *string, int buffer_max, int *length) {
+
+  char e = token_stack_get_current_token(token_stack);
+
+  if(string != NULL && buffer_max > 0 && e == '"') {
+    int k = 0;
+
+    token_stack_set_state_flag(token_stack, TS_STATE_IN_STRING, TS_STATE_FLAG_GLOBAL);
+    token_stack_move(token_stack, 1);
+
+    for (k = 0; k < buffer_max - 1;) {
+      e = token_stack_get_current_token(token_stack);
+      token_stack_move(token_stack, 1);
+
+      if (e == '\\' && token_stack_get_current_token(token_stack) == '"') {
+        string[k++] = '"';
+        token_stack_move(token_stack, 1);
+        continue;
+      }
+
+      if (e == '"')
+        break;
+
+      if (e == 0 || e == 0x0A) {
+        token_stack_clear_state_flag(token_stack, TS_STATE_IN_STRING, TS_STATE_FLAG_GLOBAL);
+        print_error("String wasn't terminated properly.\n", ERROR_NUM);
+        return FAILED_WITH_ERROR;
+      }
+
+      string[k++] = e;
+    }
+
+    token_stack_clear_state_flag(token_stack, TS_STATE_IN_STRING, TS_STATE_FLAG_GLOBAL);
+    string[k] = 0;
+
+    if (k == buffer_max - 1) {
+      if (input_number_error_msg == YES) {
+        sprintf(xyz, "The string is too long (max %d bytes).\n", buffer_max - 1);
+        print_error(xyz, ERROR_NUM);
+      }
+      return FAILED_WITH_ERROR;
+    }
+
+    string[k] = 0;
+    if (length != NULL)
+      *length = k;
+    return INPUT_NUMBER_STRING;
+  }
+
+  return FAILED;
 }
 
 
-int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
+const struct operator_type *parse_type_operator(struct token_stack_root *token_stack) {
 
-  char t[MAX_NAME_LENGTH + 1];
-  int i, j, k;
+  int operator_index;
+
+  /* Determine if the next token is an operator. */
+  for (operator_index = 0; operator_index < OPERATOR_COUNT; ++operator_index) {
+    const struct operator_type *cur_op = &operator_list[operator_index];
+
+    if (token_stack_strncmp(token_stack, cur_op->string, cur_op->string_len, 0) == 0)
+      return cur_op;
+  }
+
+  return NULL;
+}
 
 
-  memset(expanded_macro_string, 0, MAX_NAME_LENGTH + 1);
-  
-  for (i = 0, k = 0; i < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; i++) {
-    if (in[i] == '\\') {
-      if (in[i + 1] == '"' || in[i + 1] == 'n' || in[i + 1] == '\\') {
-	expanded_macro_string[k++] = in[i];
-	i++;
-	expanded_macro_string[k++] = in[i];
+int parse_type_argument_to_string(struct token_stack_root *token_stack, char *string, int buffer_max) {
+
+  int paren_stack = 0;
+  int token_index = 0;
+  int result = FAILED;
+
+  /* Read the contents of token_stack and store them in string. */
+  char current_token = token_stack_get_current_token(token_stack);
+  while (current_token != ',' && current_token != '\x0A' && current_token != '\0') {
+    if (paren_stack > 0) {
+      /* Ignore whitespace if we are within a () expression. */
+      parse_while_any_token(token_stack, " ");
+    }
+    else if (paren_stack == 0) {
+      if (current_token == ' ') {
+        /* End this argument. */
+        break;
       }
-      else if (in[i + 1] == '@') {
-	/* we found '@' -> expand! */
-	(*expands)++;
-	i++;
+    }
 
-	sprintf(t, "%d%c", macro_runtime_current->macro->calls - 1, 0);
-	for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
-	  expanded_macro_string[k] = t[j];
-	  if (t[j] == 0)
-	    break;
-	}
+    if (current_token == '"') {
+      int string_len = 0;
+      
+      string[token_index] = '"';
+      /* Parse this token as a string. */
+      result = parse_type_string(token_stack, &string[token_index + 1], buffer_max - (token_index + 1), &string_len);
+
+      if (result == INPUT_NUMBER_STRING) {
+        token_index += string_len + 1;
+        string[token_index] = '"';
+        token_index++;
+        result = SUCCEEDED;
       }
-      else if (in[i + 1] == '!') {
-	/* we found '!' -> expand! */
-	(*expands)++;
-	i++;
-
-	sprintf(t, "%s%c", get_file_name(active_file_info_last->filename_id), 0);
-	for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
-	  expanded_macro_string[k] = t[j];
-	  if (t[j] == 0)
-	    break;
-	}
+      else if (result == FAILED_WITH_ERROR) {
+        /* Exit the loop error parsing the stack. */
+        break;
       }
-      else if (in[i + 1] >= '0' && in[i + 1] <= '9') {
-	/* handle numbers, e.g., \1 */
-	int d = 0;
+    }
+    else {
+      const struct operator_type *operator_result = parse_type_operator(token_stack);
 
-	(*expands)++;
-	(*move_up)++;
-	i++;
-	for (; i < MAX_NAME_LENGTH && in[i] != 0; i++) {
-	  if (in[i] >= '0' && in[i] <= '9')
-	    d = (d * 10) + in[i] - '0';
-	  else
-	    break;
-	}
-	i--;
+      if (operator_result != NULL) {
+        if (operator_result->operator == SI_OP_LEFT) {
+          /* Increment the stack count. */
+          paren_stack++;
+        }
+        else if (operator_result->operator == SI_OP_RIGHT) {
+          /* Decrement the stack count. */
+          paren_stack--;
 
-	if (d > macro_runtime_current->supplied_arguments) {
-	  if (input_number_error_msg == YES) {
-	    sprintf(xyz, "Macro \"%s\" wasn't called with enough arguments, \\%d is out of range.\n", macro_runtime_current->macro->name, d);
-	    print_error(xyz, ERROR_NUM);
-	  }
-    
-	  return FAILED;
-	}
+          if (paren_stack < 0) {
+            /* Print an error, too many closing parens. */
+            print_error("Unbalanced parentheses.\n", ERROR_STC);
+            result = FAILED_WITH_ERROR;
+            break;
+          }
+        }
 
-	d = macro_runtime_current->argument_data[d - 1]->start;
-
-	for (; k < MAX_NAME_LENGTH; d++, k++) {
-	  if (buffer[d] == 0 || buffer[d] == ' ' || buffer[d] == 0x0A || buffer[d] == ',')
-	    break;
-	  expanded_macro_string[k] = buffer[d];
-	}
+        /* Append the operator contents to the buffer. */
+        sprintf(&string[token_index], "%s", operator_result->string);
+        token_index += operator_result->string_len;
+        result = SUCCEEDED;
       }
       else {
-	if (input_number_error_msg == YES) {
-	  sprintf(xyz, "EXPAND_MACRO_ARGUMENTS: Unsupported special character '%c'.\n", in[i + 1]);
-	  print_error(xyz, ERROR_NUM);
-	}
-    
-	return FAILED;
+        /* Save the character and move to the next entry. */
+        string[token_index] = current_token;
+        token_index++;
+        token_stack_move(token_stack, 1);
+        result = SUCCEEDED;
       }
     }
-    else
-      expanded_macro_string[k++] = in[i];
 
-    if (in[i] == 0)
-      break;
+    current_token = token_stack_get_current_token(token_stack);
   }
 
-  if (k >= MAX_NAME_LENGTH) {
-    if (input_number_error_msg == YES) {
-      sprintf(xyz, "EXPAND_MACRO_ARGUMENTS: The result string is too large, increate MAX_NAME_LENGTH and compile WLA DX again.\n");
-      print_error(xyz, ERROR_NUM);
-    }
-    
-    return FAILED;
+  if (result == SUCCEEDED && paren_stack > 0) {
+    /* Print an error, too many closing parens. */
+    print_error("Unbalanced parentheses.\n", ERROR_STC);
+    result = FAILED_WITH_ERROR;
   }
-  
-  strncpy(in, expanded_macro_string, MAX_NAME_LENGTH);
-	
-  return SUCCEEDED;
+
+  if (result != SUCCEEDED)
+    token_index = 0;
+
+  string[token_index] = '\0';
+
+  return result;
 }
 
 
-int _expand_macro_arguments(char *in, int *expands) {
+int parse_type_label(struct token_stack_root *token_stack, char *string, int buffer_max) {
 
-  int move_up;
+  char e = token_stack_get_current_token(token_stack);
+  int k;
+
+  if (string != NULL && buffer_max > 0) {
+    token_stack_move(token_stack, 1);
+    string[0] = e;
+    for (k = 1; k < buffer_max - 1; k++) {
+      e = token_stack_get_current_token(token_stack);
+      token_stack_move(token_stack, 1);
+      if (e == '\0' || e == 0x0A || e == ',' || e == ')' || e == ']') {
+        token_stack_move(token_stack, -1);
+        break;
+      }
+      else if (e == ' ')
+        break;
+      string[k] = e;
+    }
+
+    if (k == buffer_max - 1) {
+      if (input_number_error_msg == YES) {
+        sprintf(xyz, "The label is too long (max %d bytes).\n", buffer_max - 1);
+        print_error(xyz, ERROR_NUM);
+      }
+      return FAILED_WITH_ERROR;
+    }
+
+    string[k] = 0;
+
+    return INPUT_NUMBER_ADDRESS_LABEL;
+  }
+
+  return FAILED;
+}
 
 
-  move_up = 0;
-  if (_expand_macro_arguments_one_pass(in, expands, &move_up) == FAILED)
-    return FAILED;
+int parse_hint_attribute(struct token_stack_root *token_stack, int hint) {
 
-  /* macro argument numbers? if we find and expand some, we'll need to recursively call this function */
-  if (move_up > 0) {
-    /* move up one macro call in the hierarchy */
-    macro_active--;
-    if (macro_active > 0) {
-      macro_runtime_current = &macro_stack[macro_active - 1];
-      /* recursive call to self */
-      return _expand_macro_arguments(in, expands);
+  char e = token_stack_get_current_token(token_stack);
+
+  if (e == '.') {
+    e = token_stack_peek_token(token_stack, 1);
+    if (e == 'b' || e == 'B') {
+      token_stack_move(token_stack, 2);
+      hint = HINT_8BIT;
+    }
+    else if (e == 'w' || e == 'W') {
+      token_stack_move(token_stack, 2);
+      hint = HINT_16BIT;
+    }
+#if defined(W65816)
+    else if (e == 'l' || e == 'L') {
+      token_stack_move(token_stack, 2);
+      hint = HINT_24BIT;
+    }
+#endif
+  }
+
+  return hint;
+}
+
+
+int parse_hint_by_value(int value, int hint) {
+
+#if defined(W65816)
+  if (value > 0xFFFF && value <= 0xFFFFFF)
+    hint = HINT_24BIT;
+  else if (value > 0xFF)
+    hint = HINT_16BIT;
+  else
+    hint = HINT_8BIT;
+#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(GB) || defined(SPC700) || defined(Z80)
+  if (value > 0xFF && value <= 0xFFFF)
+    hint = HINT_16BIT;
+  else
+    hint = HINT_8BIT;
+#endif
+
+  return hint;
+}
+
+
+int parse_resolve_label(char *string, int *string_len, int *value, int *hint, struct definition **label_def) {
+
+  char label_tmp[MAX_NAME_LENGTH];
+  int source_length = strlen(string);
+  int local_hint = HINT_NONE;
+  struct token_stack_root *token_stack = token_stack_new(string, source_length);
+
+  /* Seek backwards to parse the attribute. */
+  token_stack_push_state(token_stack);
+  token_stack_move(token_stack, -2);
+
+  local_hint = parse_hint_attribute(token_stack, local_hint);
+
+  /* Drop the hint if one was found. */
+  if (local_hint != HINT_NONE) {
+    *hint = local_hint;
+    string[source_length - 2] = '\0';
+  }
+
+  token_stack_pop_state(token_stack, 0);
+
+  /* label_tmp contains the label without possible prefix ':' */
+  if (strlen(string) > 1 && string[0] == ':')
+    strcpy(label_tmp, &string[1]);
+  else
+    strcpy(label_tmp, string);
+
+  /* check if the label is actually a definition */
+  if (hashmap_get(defines_map, string, (void*)label_def) != MAP_OK)
+    hashmap_get(defines_map, label_tmp, (void*)label_def);
+
+  if ((*label_def) != NULL) {
+    if ((*label_def)->type == DEFINITION_TYPE_VALUE) {
+      (*value) = (int)(*label_def)->value;
+
+      *hint = parse_hint_by_value(*value, *hint);
+      return SUCCEEDED;
+    }
+    else if ((*label_def)->type == DEFINITION_TYPE_STACK) {
+      /* skip stack definitions -> use its name instead */
+    }
+    else if ((*label_def)->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+      if (string[0] == ':') {
+        /* we need to keep the ':' prefix */
+        sprintf(string, ":%s%c", (*label_def)->string, 0);
+        *string_len = (*label_def)->size + 1;
+      }
+      else {
+        *string_len = (*label_def)->size;
+        memcpy(string, (*label_def)->string, *string_len);
+        string[*string_len] = 0;
+      }
+      return INPUT_NUMBER_ADDRESS_LABEL;
+    }
+    else if ((*label_def)->type == DEFINTIION_TYPE_MACRO_ARG) {
+      int parsed_macro = FAILED_WITH_ERROR;
+      struct token_stack_root *macro_stack = token_stack_new((*label_def)->string, 0);
+      char backup_string[MAX_NAME_LENGTH];
+
+      strcpy(backup_string, string);
+
+      parsed_macro = input_number_token(macro_stack);
+
+      token_stack_free(macro_stack);
+
+      if (parsed_macro == FAILED)
+        parsed_macro = FAILED_WITH_ERROR;
+      else if (parsed_macro == INPUT_NUMBER_STACK)
+        strcpy(string, backup_string);
+      else if (parsed_macro == INPUT_NUMBER_ADDRESS_LABEL) {
+        if (backup_string[0] == ':') {
+          /* we need to keep the ':' prefix */
+          sprintf(backup_string, ":%s%c", label, 0);
+          strcpy(string, backup_string);
+          *string_len = strlen(string);
+        }
+        else {
+          strcpy(string, label);
+          *string_len = strlen(string);
+        }
+      }
+
+      return parsed_macro;
+    }
+    else {
+      *string_len = (*label_def)->size;
+      memcpy(string, (*label_def)->string, *string_len);
+      string[*string_len] = 0;
+      return INPUT_NUMBER_STRING;
     }
   }
 
-  return SUCCEEDED;
+  return INPUT_NUMBER_ADDRESS_LABEL;
 }
-  
 
-int expand_macro_arguments(char *in) {
 
-  /* save the current macro_runtime pointers */
-  struct macro_runtime* mr = macro_runtime_current;
-  int ma = macro_active, ret = 0, expands = 0;
-  
-  
-  ret = _expand_macro_arguments(in, &expands);
+int parse_validate_macro_bounds(struct token_stack_root *token_stack) {
 
-  /* return the current macro_runtime as recursive _expand_macro_arguments() might have modified it */
-  macro_runtime_current = mr;
-  macro_active = ma;
+  /* The normal macro flow should never reach this point.
+     Finding a macro at this point means there was an error with the bounds. */
+  if (macro_active != 0) {
+    int macro_index = 0;
+    int valid_number = 0;
+    char current_token = token_stack_get_current_token(token_stack);
 
-  return ret;
+    if (current_token == '\\') {
+      token_stack_push_state(token_stack);
+      token_stack_move(token_stack, 1);
+      current_token = token_stack_get_current_token(token_stack);
+
+      while (current_token >= '0' && current_token <= '9') {
+        /* Get the argument number. */
+        macro_index *= 10;
+        macro_index += current_token - '0';
+        valid_number = 1;
+
+        token_stack_move(token_stack, 1);
+        current_token = token_stack_get_current_token(token_stack);
+      }
+
+      if (valid_number != 0) {
+        if (macro_index == 0 || macro_index > macro_runtime_current->supplied_arguments) {
+          sprintf(xyz, "Attemped to index invalid macro argument \"%i\" in macro \"%s\".\n", macro_index, 
+            macro_runtime_current->macro->name);
+          print_error(xyz, ERROR_ERR);
+          token_stack_pop_state(token_stack, 1);
+          return FAILED_WITH_ERROR;
+        }
+      }
+      token_stack_pop_state(token_stack, 0);
+    }
+  }
+
+  return FAILED;
 }
