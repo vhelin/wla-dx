@@ -18,6 +18,7 @@ struct operator_type {
 };
 
 #define OPERATOR_COUNT 15
+
 const struct operator_type operator_list[OPERATOR_COUNT] = {
   { SI_OP_PLUS, "+", 1 },
   { SI_OP_MINUS, "-", 1 },
@@ -33,7 +34,7 @@ const struct operator_type operator_list[OPERATOR_COUNT] = {
   { SI_OP_MODULO, "#", 1 },
   { SI_OP_XOR, "~", 1 },
   { SI_OP_LOW_BYTE, "<", 1 },
-  { SI_OP_HIGH_BYTE, ">", 1 },
+  { SI_OP_HIGH_BYTE, ">", 1 }
 };
 
 int input_number_error_msg = YES, ss, string_size, input_float_mode = OFF, parse_floats = YES;
@@ -109,12 +110,14 @@ int input_next_string(void) {
   return SUCCEEDED;
 }
 
+
 int input_number(void) {
   
   /* TODO: expand input_number_token, to remove dependancy on globals:
      d, label, string_size, parsed_double, parsed_double_decimal_numbers, operand_hint, string_size, tmp_def */
   return input_number_token(buffer_stack);
 }
+
 
 int input_number_token(struct token_stack_root *token_stack) {
 
@@ -316,7 +319,7 @@ void parse_while_any_token(struct token_stack_root *token_stack, char *tokens) {
     for (token_index = 0; token_index < token_length && read == 0; token_index++)
       read |= (compare == tokens[token_index]);
 
-    if (read == 1)
+    if (read != 0)
       token_stack_move(token_stack, 1);
   }
 }
@@ -599,6 +602,7 @@ int parse_type_double_value(struct token_stack_root *token_stack, double *value,
   return FAILED;
 }
 
+
 int parse_type_binary_value(struct token_stack_root *token_stack, int *value, int *hint) {
 
   char e = token_stack_get_current_token(token_stack);
@@ -624,6 +628,7 @@ int parse_type_binary_value(struct token_stack_root *token_stack, int *value, in
 
   return FAILED;
 }
+
 
 int parse_type_char(struct token_stack_root *token_stack, int *result) {
 
@@ -651,6 +656,7 @@ int parse_type_char(struct token_stack_root *token_stack, int *result) {
 
   return FAILED;
 }
+
 
 int parse_type_string(struct token_stack_root *token_stack, char *string, int buffer_max, int *length) {
 

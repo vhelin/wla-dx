@@ -10,11 +10,11 @@ int skip_next_token(void);
 int compare_next_token(char *token, int length);
 int expand_macro_arguments(char *in);
 
-/* Parse helper methods. */
+/* parse helper methods */
 void parse_while_any_token(struct token_stack_root *token_stack, char *tokens);
 int parse_until_any_token(struct token_stack_root *token_stack, char *tokens, char *store, int size);
 
-/* Parse type methods. */
+/* parse type methods */
 int parse_type_expression(struct token_stack_root *token_stack, int *value, char *string, int max_buffer);
 int parse_type_argument_to_string(struct token_stack_root *token_stack, char *string, int max_buffer);
 int parse_type_hex_value(struct token_stack_root *token_stack, int *value, int *hint);

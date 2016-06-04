@@ -313,7 +313,7 @@ char token_stack_get_current_token(struct token_stack_root *token_stack) {
   if (token_stack != NULL && token_stack->active_entry != NULL) {
     if (token_stack->active_entry->parent_entry == NULL && token_stack->active_entry->buffer_offset == 0) {
       /* Always perform macro analysis on the first character. */
-      token_stack_move (token_stack, 0);
+      token_stack_move(token_stack, 0);
     }
 
     token = token_stack_entry_get_current_token(token_stack->active_entry);
@@ -452,7 +452,7 @@ void token_stack_process_argument(struct token_stack_root *active_stack, int inc
             active_entry = token_stack_push(active_stack, argument->string, 0);
           }
           else if (argument->type == SUCCEEDED || argument->type == INPUT_NUMBER_STACK)
-            active_entry = token_stack_push_number (active_stack, argument->value, 1);
+            active_entry = token_stack_push_number(active_stack, argument->value, 1);
           else if (argument->type == INPUT_MACRO_ARGUMENT) {
             int string_length = strlen(argument->string);
             char *copy_string = NULL;
