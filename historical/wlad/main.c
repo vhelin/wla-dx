@@ -160,21 +160,21 @@ int main(int argc, char *argv[]) {
 
   if (databanks == OFF && strings == OFF) {
     if (b == 0)
-      output_bank_opcodes(&b, in, bank_first_size, &i);
+      output_bank_opcodes(fs, &b, in, bank_first_size, &i);
     while (b <= bank_end)
-      output_bank_opcodes(&b, in, bank_rest_size, &i);
+      output_bank_opcodes(fs, &b, in, bank_rest_size, &i);
   }
   else if (databanks == ON && strings == OFF) {
     if (b == 0)
-      output_bank_opcodes(&b, in, bank_first_size, &i);
+      output_bank_opcodes(fs, &b, in, bank_first_size, &i);
     while (b <= bank_end)
-      output_bank_data(&b, in, bank_rest_size, &i);
+      output_bank_data(fs, &b, in, bank_rest_size, &i);
   }
   else if (databanks == OFF && strings == ON) {
     if (b == 0)
-      output_bank_opcodes(&b, in, bank_first_size, &i);
+      output_bank_opcodes(fs, &b, in, bank_first_size, &i);
     while (b <= bank_end)
-      output_bank_data_detect_strings(&b, in, bank_rest_size, &i);
+      output_bank_data_detect_strings(fs, &b, in, bank_rest_size, &i);
   }
 
   free(in);
@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-int output_bank_opcodes(int *b, unsigned char *in, int bank_size, int *i) {
+int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i) {
 
   char bu[256], tm[256];
   int q, oa, p, t, x, a, ad, tabs, rom_pos, label_pos, num_labels=0;
@@ -245,6 +245,7 @@ int output_bank_opcodes(int *b, unsigned char *in, int bank_size, int *i) {
       labels[a] = num_labels++;
     }
 
+
     if (in[rom_pos] == 0xcb)
       ot = &opt_table_ext[in[rom_pos+1]];
     else
@@ -287,7 +288,7 @@ int output_bank_opcodes(int *b, unsigned char *in, int bank_size, int *i) {
       ot = &opt_table[in[*i]];
 
     if (labels[a] != -1) {
-      fprintf(stdout, "label_%.2x.%.3d:\n", *b, labels[a]);
+      fprintf(stdout, "label_%.2x_%.3d:\n", *b, labels[a]);
     }
 
     if (strlen(ot->op) != 0) {
@@ -315,6 +316,11 @@ int output_bank_opcodes(int *b, unsigned char *in, int bank_size, int *i) {
       /* type 1: 8-bit parameter */
 
       else if (ot->type == 1) {
+        if (*i+1 >= ad) {
+          fprintf(stdout, "\t.db $%.2x\n", in[*i]);
+          (*i)++;
+          break;
+        }
         (*i)++;
         a++;
         for (t = strlen(ot->op), x = 0, p = 0; x < t; ) {
@@ -349,6 +355,16 @@ int output_bank_opcodes(int *b, unsigned char *in, int bank_size, int *i) {
       /* type 2: 16-bit parameter */
 
       else if (ot->type == 2) {
+        if (*i+1 >= ad) {
+          fprintf(stdout, "\t.db $%.2x\n", in[*i]);
+          (*i)++;
+          break;
+        }
+        else if (*i+2 >= ad) {
+          fprintf(stdout, "\t.db $%.2x $%.2x\n", in[*i], in[(*i)+1]);
+          (*i)+=2;
+          break;
+        }
         (*i)++;
         a++;
         for (t = strlen(ot->op), x = 0, p = 0; x < t; ) {
@@ -385,6 +401,16 @@ int output_bank_opcodes(int *b, unsigned char *in, int bank_size, int *i) {
       /* type 3: extended (16-bit) opcode */
 
       else if (ot->type == 3) {
+        if (*i+1 >= ad) {
+          fprintf(stdout, "\t.db $%.2x\n", in[*i]);
+          (*i)++;
+          break;
+        }
+        else if (*i+2 >= ad) {
+          fprintf(stdout, "\t.db $%.2x $%.2x\n", in[*i], in[(*i)+1]);
+          (*i)+=2;
+          break;
+        }
         *i += 2;
         a += 2;
         if (address == ON) {
@@ -405,6 +431,11 @@ int output_bank_opcodes(int *b, unsigned char *in, int bank_size, int *i) {
       /* type 4: relative branch */
 
       else if (ot->type == 4) {
+        if (*i+1 >= ad) {
+          fprintf(stdout, "\t.db $%.2x\n", in[*i]);
+          (*i)++;
+          break;
+        }
         (*i)++;
         a++;
         for (t = strlen(ot->op), x = 0, p = 0; x < t; ) {
@@ -412,7 +443,7 @@ int output_bank_opcodes(int *b, unsigned char *in, int bank_size, int *i) {
             bu[p] = 0;
             label_pos = oa+(signed char)in[*i]+2;
             if (label_pos >= 0 && label_pos < bank_size && labels[label_pos] != -1) {
-              sprintf(tm, "label_%.2x.%.3d", *b, labels[label_pos]);
+              sprintf(tm, "label_%.2x_%.3d", *b, labels[label_pos]);
               (*i)++;
             }
             else {
@@ -456,6 +487,11 @@ int output_bank_opcodes(int *b, unsigned char *in, int bank_size, int *i) {
       /* type 5: signed 8-bit parameter */
 
       else if (ot->type == 5) {
+        if (*i+1 >= ad) {
+          fprintf(stdout, "\t.db $%.2x\n", in[*i]);
+          (*i)++;
+          break;
+        }
         (*i)++;
         a++;
         for (t = strlen(ot->op), x = 0, p = 0; x < t; ) {
@@ -521,7 +557,7 @@ int output_bank_opcodes(int *b, unsigned char *in, int bank_size, int *i) {
 }
 
 
-int output_bank_data(int *b, unsigned char *in, int bank_size, int *i) {
+int output_bank_data(int fs, int *b, unsigned char *in, int bank_size, int *i) {
 
   int ad;
 
@@ -546,7 +582,7 @@ int output_bank_data(int *b, unsigned char *in, int bank_size, int *i) {
 }
 
 
-int output_bank_data_detect_strings(int *b, unsigned char *in, int bank_size, int *i) {
+int output_bank_data_detect_strings(int fs, int *b, unsigned char *in, int bank_size, int *i) {
 
   int ad, t, x;
   char c;
@@ -589,10 +625,8 @@ int output_bank_data_detect_strings(int *b, unsigned char *in, int bank_size, in
   return SUCCEEDED;
 }
 
-
-int letter_check(unsigned char c) {
-
   /* here we assume that "c" is an ASCII char */
+int letter_check(char c) {
 
   if (c >= 'a' && c <= 'z')
     return SUCCEEDED;
@@ -600,11 +634,7 @@ int letter_check(unsigned char c) {
     return SUCCEEDED;
   else if (c >= '0' && c <= '9')
     return SUCCEEDED;
-  else if (c == ' ' || c == '!' || c == '?' || c == ',' || c == '.' || c == '-' || c == '*' || c == '|' || c == '&' || c == '/' || c == '\\' || c == '\'' || c == '"' || c == '@' || c == '#' || c == '$' || c == '%' || c == '(' || c == ')' || c == '[' || c == ']')
-    return SUCCEEDED;
-
-  /* 163 - pound sign */
-  if (c == 163)
+  else if (c == ' ' || c == '!' || c == '?' || c == ',' || c == '.' || c == '-' || c == '*' || c == '|' || c == '&' || c == '/' || c == '\\' || c == '\'' || c == '"' || c == '@' || c == '#' || c == '£' || c == '$' || c == '%' || c == '(' || c == ')' || c == '[' || c == ']')
     return SUCCEEDED;
 
   return FAILED;
