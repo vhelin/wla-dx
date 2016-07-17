@@ -21,7 +21,12 @@ find_program(SPHINX_EXECUTABLE
 
 if (SPHINX_EXECUTABLE-NOTFOUND)
     message(WARNING "Sphinx not found")
+    return()
 endif (SPHINX_EXECUTABLE-NOTFOUND)
+
+if (!GEN_DOC)
+    return()
+endif (!GEN_DOC)
 
 if (GEN_DOC_MAN)
     # TODO: Manpages generation.
