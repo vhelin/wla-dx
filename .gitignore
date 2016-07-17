@@ -16,3 +16,6 @@ wlalink/CMakeFiles/*
 wlalink/CMakeFiles/wlalink.dir/*
 wlab/CMakeFiles/*
 wlab/CMakeFiles/wlab.dir/*
+
+doc/build/*
+

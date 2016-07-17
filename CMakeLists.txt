@@ -80,6 +80,9 @@ add_subdirectory (opcode_table_generator)
 add_subdirectory (wlab)
 add_subdirectory (wlalink)
 
+# Generate documentation
+add_subdirectory (doc)
+
 # --- WLA executables ---
 set(CFILES main.c hashmap.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c)
 
