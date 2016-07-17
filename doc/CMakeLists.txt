@@ -19,10 +19,10 @@ find_program(SPHINX_EXECUTABLE
     DOC "Sphinx documentation generator"
 )
 
-if (SPHINX_EXECUTABLE-NOTFOUND)
+if (SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
     message(WARNING "Sphinx not found")
     return()
-endif (SPHINX_EXECUTABLE-NOTFOUND)
+endif (SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
 
 if (!GEN_DOC)
     return()
