@@ -14,7 +14,11 @@ After CMake has done its job, just run
 
   make
 
-You will get all the executables in the "binaries" folder.
+You will get all the executables in the "binaries" folder. Or with
+
+  make install
+
+all the executables will be copied to /usr/local/bin
 
 
 -----------------------------------------------------------------------------
@@ -81,8 +85,8 @@ Gcc should compile WLA DX just fine.
 
 Using CMake:
 
-  Edit CMakeLists.txt (contains some examples), run cmake again as adviced in
-  section 1 (to generate makefiles), and issue make.
+  cmake -DWLA_DEBUG=ON -DWLALINK_DEBUG=ON -DGDB_DEBUGGING=ON -G "[your platform]"
+  make
 
 Using the old makefiles:
 
