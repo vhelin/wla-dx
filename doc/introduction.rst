@@ -37,6 +37,5 @@ ROM image and there you have it. 100% readable (asm coded) patches are reality!
 Note that you can directly compile only object and library files. You must
 use WLALINK to link these (or only one, if you must) into a ROM/program file.
 
-WLA DX's old homepage: http://www.iki.fi/~vhelin/wla.html
-
-WLA DX's new homepage: https://github.com/vhelin/wla-dx
+| WLA DX's old homepage: http://www.iki.fi/~vhelin/wla.html
+| WLA DX's new homepage: https://github.com/vhelin/wla-dx

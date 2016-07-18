@@ -7,7 +7,7 @@ and recently via GitHub. The authors are not responsible for anything the
 software does.
 
 WLA DX is GPL software. For more information about GPL, take a look at the
-LICENCE file.
+``LICENCE`` file.
 
 Game Boy and Game Boy Color are copyrighted by Nintendo.
 
