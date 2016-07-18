@@ -5,11 +5,15 @@ project(DOCS)
 option(GEN_DOC "Generate Sphinx documentation" ON)
 option(GEN_DOC_MAN "Generate Manpages" ON)
 option(GEN_DOC_SINGLEHTML "Generate single HTML documentation" ON)
-option(GEN_DOC_TEXT "Generate text documentation" OFF)
+option(GEN_DOC_TEXT "Generate text documentation" ON)
 
 set(DOC_OUT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/doc")
 set(DOC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/source")
 set(DOC_DEPS )
+
+if (!GEN_DOC)
+    return()
+endif (!GEN_DOC)
 
 # Find sphix-build
 # eb2.co/blog/2012/03/sphinx-and-cmake-beautiful-documentation-for-c-projects/
@@ -19,10 +23,6 @@ find_program(SPHINX_EXECUTABLE
     PATH_SUFFIXES bin
     DOC "Sphinx documentation generator"
 )
-
-if (!GEN_DOC)
-    return()
-endif (!GEN_DOC)
 
 if (SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
     message(WARNING "Sphinx not found")
@@ -38,9 +38,9 @@ if (GEN_DOC_MAN)
     add_custom_command(
         OUTPUT "${DOC_OUT}/wla-dx.1" "${DOC_OUT}/wlalink.1" "${DOC_OUT}/wlad.1"
             ${DOC_MAN_CPUFILES}
-            COMMAND ${SPHINX_EXECUTABLE} -q -b man "${DOC_SRC}" man
-            COMMAND ${CMAKE_COMMAND} -E copy_directory man/ "${DOC_OUT}"
-            COMMENT "Generate manpages"
+        COMMAND ${SPHINX_EXECUTABLE} -q -b man "${DOC_SRC}" man
+        COMMAND ${CMAKE_COMMAND} -E copy_directory man/ "${DOC_OUT}"
+        COMMENT "Generate manpages"
     )
     LIST(APPEND DOC_DEPS "${DOC_OUT}/wla-dx.1" "${DOC_OUT}/wlalink.1"
         "${DOC_OUT}/wlad.1" ${DOC_MAN_CPUFILES})
@@ -58,6 +58,17 @@ if (GEN_DOC_SINGLEHTML)
     )
     LIST(APPEND DOC_DEPS "${DOC_OUT}/wla-dx-doc.html")
 endif (GEN_DOC_SINGLEHTML)
+
+if (GEN_DOC_TEXT)
+    add_custom_command(
+        OUTPUT "${DOC_OUT}/wla-dx-doc.txt"
+        COMMAND ${SPHINX_EXECUTABLE} -q -b text "${DOC_SRC}" text
+        COMMAND ${CMAKE_COMMAND} -E copy text/index.txt
+            "${DOC_OUT}/wla-dx-doc.txt"
+        COMMENT "Generate simple text documentation"
+    )
+    LIST(APPEND DOC_DEPS "${DOC_OUT}/wla-dx-doc.txt")
+endif (GEN_DOC_TEXT)
 
 add_custom_target(doc ALL DEPENDS ${DOC_DEPS})
 
