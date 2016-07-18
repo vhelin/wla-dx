@@ -44,7 +44,7 @@ if (GEN_DOC_MAN)
     add_custom_command(
         OUTPUT "${DOC_OUT}/wla-dx.1" "${DOC_OUT}/wlalink.1" "${DOC_OUT}/wlad.1"
             ${DOC_MAN_CPUFILES}
-            COMMAND ${SPHINX_EXECUTABLE} -b man "${DOC_SRC}" man
+            COMMAND ${SPHINX_EXECUTABLE} -q -b man "${DOC_SRC}" man
             COMMAND ${CMAKE_COMMAND} -E copy_directory man/ "${DOC_OUT}"
             COMMENT "Generate manpages"
     )
@@ -55,7 +55,7 @@ endif (GEN_DOC_MAN)
 if (GEN_DOC_SINGLEHTML)
     add_custom_command(
         OUTPUT "${DOC_OUT}/wla-dx-doc.html"
-        COMMAND ${SPHINX_EXECUTABLE} -b singlehtml "${DOC_SRC}" singlehtml
+        COMMAND ${SPHINX_EXECUTABLE} -q -b singlehtml "${DOC_SRC}" singlehtml
         COMMAND ${CMAKE_COMMAND} -E copy singlehtml/index.html
             "${DOC_OUT}/wla-dx-doc.html"
         COMMAND ${CMAKE_COMMAND} -E copy_directory singlehtml/_static/
