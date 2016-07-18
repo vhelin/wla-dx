@@ -30,12 +30,6 @@ if (SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
 endif (SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
 
 if (GEN_DOC_MAN)
-    # TODO: Manpages generation.
-    # What i thought:
-    #   wla-dx.?: Main documentation
-    #   wlalink.1: wlalink documentation
-    #   wla-CPU.1: wla-CPU combined documentation (all on one)
-    #       (see http://www.schweikhardt.net/man_page_howto.html#q4)
     set(DOC_MAN_CPUFILES "${DOC_OUT}/wla-gb.1" "${DOC_OUT}/wla-65c02.1"
         "${DOC_OUT}/wla-6502.1" "${DOC_OUT}/wla-6510.1" "${DOC_OUT}/wla-65816.1"
         "${DOC_OUT}/wla-huc6280.1" "${DOC_OUT}/wla-spc700.1"
