@@ -9,6 +9,7 @@ option(GEN_DOC_TEXT "Generate text documentation" OFF)
 
 set(DOC_OUT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/doc")
 set(DOC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/source")
+set(DOC_DEPS )
 
 # Find sphix-build
 # eb2.co/blog/2012/03/sphinx-and-cmake-beautiful-documentation-for-c-projects/
@@ -19,14 +20,14 @@ find_program(SPHINX_EXECUTABLE
     DOC "Sphinx documentation generator"
 )
 
+if (!GEN_DOC)
+    return()
+endif (!GEN_DOC)
+
 if (SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
     message(WARNING "Sphinx not found")
     return()
 endif (SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
-
-if (!GEN_DOC)
-    return()
-endif (!GEN_DOC)
 
 if (GEN_DOC_MAN)
     # TODO: Manpages generation.
@@ -35,6 +36,20 @@ if (GEN_DOC_MAN)
     #   wlalink.1: wlalink documentation
     #   wla-CPU.1: wla-CPU combined documentation (all on one)
     #       (see http://www.schweikhardt.net/man_page_howto.html#q4)
+    set(DOC_MAN_CPUFILES "${DOC_OUT}/wla-gb.1" "${DOC_OUT}/wla-65c02.1"
+        "${DOC_OUT}/wla-6502.1" "${DOC_OUT}/wla-6510.1" "${DOC_OUT}/wla-65816.1"
+        "${DOC_OUT}/wla-huc6280.1" "${DOC_OUT}/wla-spc700.1"
+        "${DOC_OUT}/wla-z80.1"
+    )
+    add_custom_command(
+        OUTPUT "${DOC_OUT}/wla-dx.1" "${DOC_OUT}/wlalink.1" "${DOC_OUT}/wlad.1"
+            ${DOC_MAN_CPUFILES}
+            COMMAND ${SPHINX_EXECUTABLE} -b man "${DOC_SRC}" man
+            COMMAND ${CMAKE_COMMAND} -E copy_directory man/ "${DOC_OUT}"
+            COMMENT "Generate manpages"
+    )
+    LIST(APPEND DOC_DEPS "${DOC_OUT}/wla-dx.1" "${DOC_OUT}/wlalink.1"
+        "${DOC_OUT}/wlad.1" ${DOC_MAN_CPUFILES})
 endif (GEN_DOC_MAN)
 
 if (GEN_DOC_SINGLEHTML)
@@ -47,6 +62,8 @@ if (GEN_DOC_SINGLEHTML)
             "${DOC_OUT}/_static/"
         COMMENT "Generate single HTML page documentation"
     )
-    add_custom_target(doc_singlehtml ALL DEPENDS "${DOC_OUT}/wla-dx-doc.html")
+    LIST(APPEND DOC_DEPS "${DOC_OUT}/wla-dx-doc.html")
 endif (GEN_DOC_SINGLEHTML)
+
+add_custom_target(doc ALL DEPENDS ${DOC_DEPS})
 
