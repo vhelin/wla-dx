@@ -4,16 +4,14 @@ This directory contains the documentation. It is built using
 [Sphinx](http://www.sphinx-doc.org/), a originally python documentation
 generator.
 
-### Tools
+### Generating
 
-This part was created using `sphinx-quickstart`. That tool creates a `Makefile`
-and a Windows `make.bat`. They output to the `build` folder. This should be
-used when testing, as it is way easier to run `make` than having to call CMake.
-The contents of the `build`-folder is also ignored by git, so you don't have
-to care about this folder for git.
+You can use CMake to generate the documentation. There is a target called
+`doc`, which generates the documentation. (e. g. use `make doc`)
+At the moment, only certain types can be used: Single HTML, Manpages and text.
 
-When using CMake, we use `sphinx-build` directly to specify the build-folder
-to be in the right build folder. This is preferred becuase of CMake.
+You can also directly use `sphinx-build` directly. Use the documentation of
+Sphnix for how to use it. (Quick reference: `sphnix-build -b TYPE . build`)
 
 ### Guidelines
 

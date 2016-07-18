@@ -8,7 +8,7 @@ option(GEN_DOC_SINGLEHTML "Generate single HTML documentation" ON)
 option(GEN_DOC_TEXT "Generate text documentation" ON)
 
 set(DOC_OUT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/doc")
-set(DOC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/source")
+set(DOC_SRC "${CMAKE_CURRENT_SOURCE_DIR}")
 set(DOC_DEPS )
 
 if (!GEN_DOC)
