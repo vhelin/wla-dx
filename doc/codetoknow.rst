@@ -10,39 +10,39 @@ Z80
 Check the Z80 specific directives. All SMS/GG coders should find ``.SMSTAG``,
 ``.SDSCTAG`` and ``.COMPUTESMSCHECKSUM`` very useful...
 
-Opcodes that make relative label references:
-::
-  JR *
-  DJNZ
+Opcodes that make relative label references::
+
+    JR *
+    DJNZ
 
 6502
 ----
 
 For example mnemonics ``ADC``, ``AND``, ``ASL``, etc... cause problems to WLA,
-because they take different sized arguments. Take a look at this:
-::
-  LSR 11       ; $46 $0B
-  LSR $A000    ; $4E $00 $A0
+because they take different sized arguments. Take a look at this::
 
-The first one could also be
-::
-  LSR 11       ; $4E $0B $00
+    LSR 11       ; $46 $0B
+    LSR $A000    ; $4E $00 $A0
+
+The first one could also be ::
+
+    LSR 11       ; $4E $0B $00
 
 To really get what you want, use ``.8BIT``, ``.16BIT`` and ``.24BIT``
-directives. Or even better, supply WLA the size of the argument:
-::
-  LSR 11.W     ; $4E $0B $00
+directives. Or even better, supply WLA the size of the argument::
 
-Opcodes that make relative label references:
-::
-  BCC
-  BCS
-  BEQ
-  BMI
-  BNE
-  BPL
-  BVC
-  BVS
+    LSR 11.W     ; $4E $0B $00
+
+Opcodes that make relative label references::
+
+    BCC
+    BCS
+    BEQ
+    BMI
+    BNE
+    BPL
+    BVC
+    BVS
 
 
 65C02
@@ -50,19 +50,19 @@ Opcodes that make relative label references:
 
 Read the subsection for 6502 as the information applies also to 65C02 coding...
 
-Opcodes that make relative label references:
-::
-  BCC
-  BCS
-  BEQ
-  BMI
-  BNE
-  BPL
-  BVC
-  BVS
-  BRA
-  BBR*
-  BBS*
+Opcodes that make relative label references::
+
+    BCC
+    BCS
+    BEQ
+    BMI
+    BNE
+    BPL
+    BVC
+    BVS
+    BRA
+    BBR*
+    BBS*
 
 
 6510
@@ -70,16 +70,16 @@ Opcodes that make relative label references:
 
 Read the subsection for 6502 as the information applies also to 6510 coding...
 
-Opcodes that make relative label references:
-::
-  BCC
-  BCS
-  BEQ
-  BMI
-  BNE
-  BPL
-  BVC
-  BVS
+Opcodes that make relative label references::
+
+    BCC
+    BCS
+    BEQ
+    BMI
+    BNE
+    BPL
+    BVC
+    BVS
 
 
 65816
@@ -97,30 +97,30 @@ Use ``.BASE`` to set the upmost eight bits of 24-bit addresses.
 If possible, use operand hints to specify the size of the operand.
 WLA is able to deduce the accumulator/index mode to some extent from
 ``REP``/``SEP``-mnemonics and ``.ACCU`` and ``.INDEX``-directives, but just to
-be sure, terminate the operand with ``.B``, ``.W`` or ``.L``.
-::
-  AND #10     ; can be two different things, depending on the size of the accu.
-  AND #10.B   ; forces 8-bit immediate value.
-  AND #10.W   ; forces 16-bit immediate value.
+be sure, terminate the operand with ``.B``, ``.W`` or ``.L``. ::
 
-Or if you must, these work as well:
-::
-  AND.B #10   ; the same as "AND #10.B".
-  AND.W #10   ; the same as "AND #10.W".
+    AND #10     ; can be two different things, depending on the size of the accu.
+    AND #10.B   ; forces 8-bit immediate value.
+    AND #10.W   ; forces 16-bit immediate value.
 
-Opcodes that make relative label references:
-::
-  BCC
-  BCS
-  BEQ
-  BMI
-  BNE
-  BPL
-  BVC
-  BVS
-  BRA
-  BRL
-  PER
+Or if you must, these work as well::
+
+    AND.B #10   ; the same as "AND #10.B".
+    AND.W #10   ; the same as "AND #10.W".
+
+Opcodes that make relative label references::
+
+    BCC
+    BCS
+    BEQ
+    BMI
+    BNE
+    BPL
+    BVC
+    BVS
+    BRA
+    BRL
+    PER
 
 
 HUC6280
@@ -129,45 +129,45 @@ HUC6280
 Read the subsection for 6502 as the information applies also to HUC6280
 coding...
 
-Opcodes that make relative label references:
-::
-  BCC
-  BCS
-  BEQ
-  BMI
-  BNE
-  BPL
-  BVC
-  BVS
-  BSR
-  BBR*
-  BBS*
+Opcodes that make relative label references::
+
+    BCC
+    BCS
+    BEQ
+    BMI
+    BNE
+    BPL
+    BVC
+    BVS
+    BSR
+    BBR*
+    BBS*
 
 
 SPC-700
 -------
 
 Note that you'll have to put an exclamation mark before a 16-bit value.
-For example,
-::
-  CALL !Main
-  AND  A, !$1000
+For example, :: 
 
-Opcodes that make relative label references:
-::
-  BCC
-  BCS
-  BEQ
-  BMI
-  BNE
-  BPL
-  BVC
-  BVS
-  BRA
-  BBS
-  BBC
-  CBNE *
-  DBNZ *
+    CALL !Main
+    AND  A, !$1000
+
+Opcodes that make relative label references::
+
+    BCC
+    BCS
+    BEQ
+    BMI
+    BNE
+    BPL
+    BVC
+    BVS
+    BRA
+    BBS
+    BBC
+    CBNE *
+    DBNZ *
 
 
 Pocket Voice (GB-Z80)
@@ -192,6 +192,6 @@ WLA outputs only ``$10`` when it decodes ``STOP``. Often it's necessary to put
 an extra ``NOP`` (``$00``) after a ``STOP``, and sometimes something else, but
 that's left entirely to the user.
 
-Opcodes that make relative label references:
-::
-  JR *
+Opcodes that make relative label references::
+
+    JR *

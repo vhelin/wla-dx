@@ -7,43 +7,42 @@ Welcome to wla-dx's documentation!
 ==================================
 
 .. toctree::
-   :maxdepth: 2
-   :numbered:
-   
-   introduction
-   errormsg
-   gb-support
-   bugs
-   files
-   tempfiles
-   compiling
-   linking
-   arithmetics
-   disassembling
-   bintodb
-   codetoknow
-   wlaflags
-   extraflags
-   goodtoknow
-   archoverview
-   legal
+    :numbered:
+    
+    introduction
+    errormsg
+    gb-support
+    bugs
+    files
+    tempfiles
+    compiling
+    linking
+    arithmetics
+    disassembling
+    bintodb
+    codetoknow
+    wlaflags
+    extraflags
+    goodtoknow
+    archoverview
+    legal
 
-.. ifconfig:: False
-  
-  .. include:: introduction.rst
-  .. include:: errormsg.rst
-  .. include:: gb-support.rst
-  .. include:: bugs.rst
-  .. include:: files.rst
-  .. include:: tempfiles.rst
-  .. include:: compiling.rst
-  .. include:: linking.rst
-  .. include:: arithmetics.rst
-  .. include:: disassembling.rst
-  .. include:: bintodb.rst
-  .. include:: codetoknow.rst
-  .. include:: wlaflags.rst
-  .. include:: extraflags.rst
-  .. include:: goodtoknow.rst
-  .. include:: archoverview.rst
-  .. include:: legal.rst
+.. ifconfig:: builder == "text"
+
+    .. include:: introduction.rst
+    .. include:: errormsg.rst
+    .. include:: gb-support.rst
+    .. include:: bugs.rst
+    .. include:: files.rst
+    .. include:: tempfiles.rst
+    .. include:: compiling.rst
+    .. include:: linking.rst
+    .. include:: arithmetics.rst
+    .. include:: disassembling.rst
+    .. include:: bintodb.rst
+    .. include:: codetoknow.rst
+    .. include:: wlaflags.rst
+    .. include:: extraflags.rst
+    .. include:: goodtoknow.rst
+    .. include:: archoverview.rst
+    .. include:: legal.rst
