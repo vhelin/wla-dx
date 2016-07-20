@@ -29,7 +29,6 @@ import os
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.todo',
     'sphinx.ext.ifconfig',
 ]
 
@@ -229,15 +228,16 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'wla-dx', u'wla-dx Documentation', [u'vhelin'], 1),
-    ('man/wlalink', 'wlalink', u'wlalink', [u'vhelin'], 1),
-    ('man/wlad', 'wlad', u'wla', [u'vhelin'], 1)
+    ('index', 'wla-dx', u'wla-dx Documentation', [u'vhelin'], 7),
+    ('man/wlalink', 'wlalink', u'WLA Linker', [u'vhelin'], 1),
+    ('man/wlad', 'wlad', u'WLA GB-Z80 Disassembler', [u'vhelin'], 1),
+    ('man/wlab', 'wlab', u'WLA Binary to DB converter', [u'vhelin'], 1)
 ]
 
 # Autogenerate man-files for the CPUs
 for cpu in ['gb', '65c02', '6502', '6510', '65816', 'huc6280', 'spc700', 'z80']:
-    man_pages.append(('man/wla-cpu', 'wla-%s' % cpu, u'wla-%s' % cpu, \
-        [u'vhelin'], 1))
+    man_pages.append(('man/wla-cpu', 'wla-%s' % cpu, \
+                      u'WLA assembler for %s' % cpu, [u'vhelin'], 1))
 
 # If true, show URL addresses after external links.
 #man_show_urls = False

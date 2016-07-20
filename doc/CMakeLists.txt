@@ -36,14 +36,14 @@ if (GEN_DOC_MAN)
         "${DOC_OUT}/wla-z80.1"
     )
     add_custom_command(
-        OUTPUT "${DOC_OUT}/wla-dx.1" "${DOC_OUT}/wlalink.1" "${DOC_OUT}/wlad.1"
-            ${DOC_MAN_CPUFILES}
+        OUTPUT "${DOC_OUT}/wla-dx.7" "${DOC_OUT}/wlalink.1" "${DOC_OUT}/wlad.1"
+            "${DOC_OUT}/wlab.1" ${DOC_MAN_CPUFILES}
         COMMAND ${SPHINX_EXECUTABLE} -q -b man "${DOC_SRC}" man
         COMMAND ${CMAKE_COMMAND} -E copy_directory man/ "${DOC_OUT}"
         COMMENT "Generate manpages"
     )
-    LIST(APPEND DOC_DEPS "${DOC_OUT}/wla-dx.1" "${DOC_OUT}/wlalink.1"
-        "${DOC_OUT}/wlad.1" ${DOC_MAN_CPUFILES})
+    LIST(APPEND DOC_DEPS "${DOC_OUT}/wla-dx.7" "${DOC_OUT}/wlalink.1"
+        "${DOC_OUT}/wlad.1" "${DOC_OUT}/wlab.1" ${DOC_MAN_CPUFILES})
 endif (GEN_DOC_MAN)
 
 if (GEN_DOC_SINGLEHTML)
