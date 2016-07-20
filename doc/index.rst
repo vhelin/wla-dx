@@ -10,6 +10,7 @@ Welcome to wla-dx's documentation!
     :numbered:
     
     introduction
+    asmdiv
     asmsyntax
     errormsg
     gb-support
@@ -31,6 +32,7 @@ Welcome to wla-dx's documentation!
 .. ifconfig:: builder == "text"
 
     .. include:: introduction.rst
+    .. include:: asmdiv.rst
     .. include:: asmsyntax.rst
     .. include:: errormsg.rst
     .. include:: gb-support.rst
