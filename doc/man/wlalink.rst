@@ -117,4 +117,4 @@ EXAMPLES
 SEE ALSO
 ========
 
-``wla-dx(7)``
+:manpage:`wla-dx(7)`

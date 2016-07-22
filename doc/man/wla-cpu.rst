@@ -93,4 +93,4 @@ DEFINITION EXAMPLES
 SEE ALSO
 ========
 
-``wla-dx(7)``, ``wlalink(1)``
+:manpage:`wla-dx(7)`, :manpage:`wlalink(1)`
