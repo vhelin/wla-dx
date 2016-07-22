@@ -29,7 +29,7 @@ Welcome to wla-dx's documentation!
     archoverview
     legal
 
-.. ifconfig:: builder == "text"
+.. only:: builder_text
 
     .. include:: introduction.rst
     .. include:: asmdiv.rst
