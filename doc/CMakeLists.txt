@@ -15,7 +15,7 @@ if (!GEN_DOC)
     return()
 endif (!GEN_DOC)
 
-# Find sphix-build
+# Find sphnix-build
 # eb2.co/blog/2012/03/sphinx-and-cmake-beautiful-documentation-for-c-projects/
 find_program(SPHINX_EXECUTABLE
     NAMES sphinx-build
@@ -42,32 +42,41 @@ if (GEN_DOC_MAN)
         COMMAND ${CMAKE_COMMAND} -E copy_directory man/ "${DOC_OUT}"
         COMMENT "Generate manpages"
     )
-    LIST(APPEND DOC_DEPS "${DOC_OUT}/wla-dx.7" "${DOC_OUT}/wlalink.1"
+    list(APPEND DOC_DEPS "${DOC_OUT}/wla-dx.7" "${DOC_OUT}/wlalink.1"
         "${DOC_OUT}/wlad.1" "${DOC_OUT}/wlab.1" ${DOC_MAN_CPUFILES})
+    
+    install(FILES "${DOC_OUT}/wla-dx.7" DESTINATION man/man7)
+    install(FILES "${DOC_OUT}/wlalink.1" "${DOC_OUT}/wlad.1"
+        "${DOC_OUT}/wlab.1" ${DOC_MAN_CPUFILES} DESTINATION man/man1)
 endif (GEN_DOC_MAN)
 
 if (GEN_DOC_SINGLEHTML)
     add_custom_command(
-        OUTPUT "${DOC_OUT}/wla-dx-doc.html"
+        OUTPUT "${DOC_OUT}/wla-dx.html"
         COMMAND ${SPHINX_EXECUTABLE} -q -b singlehtml "${DOC_SRC}" singlehtml
         COMMAND ${CMAKE_COMMAND} -E copy singlehtml/index.html
-            "${DOC_OUT}/wla-dx-doc.html"
+            "${DOC_OUT}/wla-dx.html"
         COMMAND ${CMAKE_COMMAND} -E copy_directory singlehtml/_static/
             "${DOC_OUT}/_static/"
         COMMENT "Generate single HTML page documentation"
     )
-    LIST(APPEND DOC_DEPS "${DOC_OUT}/wla-dx-doc.html")
+    list(APPEND DOC_DEPS "${DOC_OUT}/wla-dx.html")
+    
+    install(FILES "${DOC_OUT}/wla-dx.html" DESTINATION share/doc/wla-dx)
+    install(DIRECTORY "${DOC_OUT}/_static" DESTINATION share/doc/wla-dx)
 endif (GEN_DOC_SINGLEHTML)
 
 if (GEN_DOC_TEXT)
     add_custom_command(
-        OUTPUT "${DOC_OUT}/wla-dx-doc.txt"
+        OUTPUT "${DOC_OUT}/wla-dx.txt"
         COMMAND ${SPHINX_EXECUTABLE} -q -b text "${DOC_SRC}" text
         COMMAND ${CMAKE_COMMAND} -E copy text/index.txt
-            "${DOC_OUT}/wla-dx-doc.txt"
+            "${DOC_OUT}/wla-dx.txt"
         COMMENT "Generate simple text documentation"
     )
-    LIST(APPEND DOC_DEPS "${DOC_OUT}/wla-dx-doc.txt")
+    list(APPEND DOC_DEPS "${DOC_OUT}/wla-dx.txt")
+    
+    install(FILES "${DOC_OUT}/wla-dx.txt" DESTINATION share/doc/wla-dx)
 endif (GEN_DOC_TEXT)
 
 add_custom_target(doc ALL DEPENDS ${DOC_DEPS})
