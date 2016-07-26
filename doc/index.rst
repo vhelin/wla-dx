@@ -29,6 +29,17 @@ Welcome to wla-dx's documentation!
     archoverview
     legal
 
+.. only:: not builder_man
+    
+    .. toctree::
+        :numbered:
+        :maxdepth: 1
+        
+        man/wlalink
+        man/wla-cpu
+        man/wlab
+        man/wlad
+
 .. only:: builder_text
 
     .. include:: introduction.rst
@@ -50,3 +61,10 @@ Welcome to wla-dx's documentation!
     .. include:: goodtoknow.rst
     .. include:: archoverview.rst
     .. include:: legal.rst
+    
+    .. only:: not builder_man
+        
+        .. include:: man/wlalink.rst
+        .. include:: man/wla-cpu.rst
+        .. include:: man/wlab.rst
+        .. include:: man/wlad.rst
