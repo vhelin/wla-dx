@@ -15,6 +15,8 @@ Opcodes that make relative label references::
     JR *
     DJNZ
 
+.. _codesub6502:
+
 6502
 ----
 
@@ -48,7 +50,8 @@ Opcodes that make relative label references::
 65C02
 -----
 
-Read the subsection for 6502 as the information applies also to 65C02 coding...
+Read the subsection :ref:`codesub6502` as the information applies also to 65C02
+coding...
 
 Opcodes that make relative label references::
 
@@ -68,7 +71,8 @@ Opcodes that make relative label references::
 6510
 ----
 
-Read the subsection for 6502 as the information applies also to 6510 coding...
+Read the subsection :ref:`codesub6502` as the information applies also to 6510
+coding...
 
 Opcodes that make relative label references::
 
@@ -85,7 +89,8 @@ Opcodes that make relative label references::
 65816
 -----
 
-Read the subsection for 6502 as the information applies also to 65816 coding...
+Read the subsection :ref:`codesub6502` as the information applies also to 65816
+coding...
 
 WLA-65816 has also few SNES specific directives which are all very
 helpful. Remember that when you use ``.LOROM``, ``.HIROM``, ``.SLOWROM`` and
@@ -126,8 +131,8 @@ Opcodes that make relative label references::
 HUC6280
 -------
 
-Read the subsection for 6502 as the information applies also to HUC6280
-coding...
+Read the subsection :ref:`codesub6502` as the information applies also to
+HUC6280 coding...
 
 Opcodes that make relative label references::
 
@@ -148,7 +153,7 @@ SPC-700
 -------
 
 Note that you'll have to put an exclamation mark before a 16-bit value.
-For example, :: 
+For example, ::
 
     CALL !Main
     AND  A, !$1000
