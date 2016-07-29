@@ -9,10 +9,17 @@ Makefile
 opcodes_*_tables.c
 CMakeCache.txt
 cmake_install.cmake
-CMakeFiles/*
+CMakeFiles/
 opcode_table_generator/makefile
-opcode_table_generator/CMakeFiles/*
-wlalink/CMakeFiles/*
-wlalink/CMakeFiles/wlalink.dir/*
-wlab/CMakeFiles/*
-wlab/CMakeFiles/wlab.dir/*
+opcode_table_generator/CMakeFiles/
+wlalink/CMakeFiles/
+wlab/CMakeFiles/
+
+# Temporary files
+*.bak
+*.swp
+
+# Build directories
+/*build/
+/doc/*build/
+

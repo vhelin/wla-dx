@@ -1,0 +1,39 @@
+
+*       text=auto
+*.txt   text
+*.rst   text
+*.c     text
+*.h     text
+*.md    text
+*.sh    text eol=lf
+*.bat   text eol=crlf
+
+# bat-files usually works with LF, but Windows users might have a better
+#   editing time with notepad and CRLF, because nodepad is dumb with LF
+
+linkfile    text
+makefile    text
+*.s     text
+
+README  text
+INSTALL text
+LICENSE text
+CHANGELOG   text
+FILE_FORMATS    text
+
+# Legacy
+SCOPTIONS   text
+amiga   text
+amigaos4    text
+makefile.*  text
+smakefile   text
+scoptions.* text
+smake.* text
+
+# Is there any binary files in this repository?
+# Better be safe.
+*.bin   binary
+*.gb    binary
+*.smc   binary
+*.sfc   binary
+
