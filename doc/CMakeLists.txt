@@ -40,6 +40,7 @@ if (GEN_DOC_MAN)
             "${DOC_OUT}/wlab.1" ${DOC_MAN_CPUFILES}
         COMMAND ${SPHINX_EXECUTABLE} -q -b man "${DOC_SRC}" man
         COMMAND ${CMAKE_COMMAND} -E copy_directory man/ "${DOC_OUT}"
+        COMMAND ${CMAKE_COMMAND} -E remove_directory "${DOC_OUT}/.doctrees"
         COMMENT "Generate manpages"
     )
     list(APPEND DOC_DEPS "${DOC_OUT}/wla-dx.7" "${DOC_OUT}/wlalink.1"
@@ -54,7 +55,7 @@ if (GEN_DOC_SINGLEHTML)
     add_custom_command(
         OUTPUT "${DOC_OUT}/wla-dx.html"
         COMMAND ${SPHINX_EXECUTABLE} -q -b singlehtml "${DOC_SRC}" singlehtml
-        COMMAND ${CMAKE_COMMAND} -E copy singlehtml/index.html
+        COMMAND ${CMAKE_COMMAND} -E copy singlehtml/wla-dx.html
             "${DOC_OUT}/wla-dx.html"
         COMMAND ${CMAKE_COMMAND} -E copy_directory singlehtml/_static/
             "${DOC_OUT}/_static/"
@@ -70,7 +71,7 @@ if (GEN_DOC_TEXT)
     add_custom_command(
         OUTPUT "${DOC_OUT}/wla-dx.txt"
         COMMAND ${SPHINX_EXECUTABLE} -q -b text "${DOC_SRC}" text
-        COMMAND ${CMAKE_COMMAND} -E copy text/index.txt
+        COMMAND ${CMAKE_COMMAND} -E copy text/wla-dx.txt
             "${DOC_OUT}/wla-dx.txt"
         COMMENT "Generate simple text documentation"
     )
