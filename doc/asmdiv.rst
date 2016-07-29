@@ -2130,7 +2130,7 @@ This tells WLA that a ``FREE`` section called ``Init`` must be located
 somewhere in bank ``0``. If you replace ``FREE`` with ``SEMIFREE`` the section
 will be inserted somewhere in the bank ``0``, but not in the ``$0`` - ``$14F``
 area. If you replace ``FREE`` with ``SUPERFREE`` the section will be inserted
-somewhere in the **TODO?**
+somewhere in any bank with the same size as bank ``0``.
 
 Here's the order in which WLA writes the sections:
 
