@@ -23,3 +23,5 @@ wlab/CMakeFiles/
 /*build/
 /doc/*build/
 
+*.pyc
+

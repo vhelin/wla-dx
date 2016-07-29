@@ -30,7 +30,10 @@ import os
 # ones.
 extensions = [
     'sphinx.ext.ifconfig',
+    'globalindex' # fnch.users.sourceforge.net/sphinxindexinsinglehtml.html (modified)
 ]
+
+sys.path.insert(0, os.path.abspath('.'))
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
