@@ -44,7 +44,7 @@ int file_header_size, file_footer_size, *banksizes = NULL, *bankaddress = NULL;
 int output_mode = OUTPUT_ROM, discard_unreferenced_sections = OFF, use_libdir = NO;
 int program_start, program_end, sms_checksum, smstag_defined = 0, snes_rom_mode = SNES_ROM_MODE_LOROM, snes_rom_speed = SNES_ROM_SPEED_SLOWROM;
 int gb_checksum, gb_complement_check, snes_checksum, cpu_65816 = 0, snes_mode = 0;
-int listfile_data = NO, smc_status = 0, snes_sramsize = 0;
+int listfile_data = NO, smc_status = 0, snes_sramsize = 0, total_flags = 0;
 
 extern int emptyfill;
 char ext_libdir[MAX_NAME_LENGTH];
@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
   if (x == FAILED) {
     printf("\nWLALINK GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 WLA Macro Assembler Linker v5.8b\n");
     printf("Written by Ville Helin in 2000-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
-    printf("USAGE: %s [OPTIONS] <LINK FILE> <OUTPUT FILE>\n\n", argv[0]);
+    printf("USAGE: %s [OPTIONS] <OBJECT FILES> <OUTPUT FILE>\n\n", argv[0]);
     printf("Options:\n");
     printf("-b  Program file output\n");
     printf("-d  Discard unreferenced sections\n");
@@ -171,15 +171,18 @@ int main(int argc, char *argv[]) {
     printf("-s  Write also a NO$GMB symbol file\n");
     printf("-S  Write also a WLA symbol file\n");
     printf("-v  Verbose messages\n");
-    printf("-L [DIR]  Library directory\n\n");
+	printf("-l  LIBNAME\n");
+	printf("    Search for library LIBNAME\n");
+    printf("-L  DIRECTORY\n");
+	printf("    Add DIRECTORY to library search path\n\n");
     return 0;
   }
 
   global_unique_label_map = hashmap_new();
   namespace_map = hashmap_new();
 
-  /* load files */
-  if (load_files(argv, argc) == FAILED)
+  /* load objects */
+  if (load_objects(argv, argc) == FAILED)
     return 1;
 
   /* check file types */
@@ -663,22 +666,33 @@ void procedures_at_exit(void) {
 int parse_flags(char **flags, int flagc) {
 
   int output_mode_defined = 0;
-  int count;
+  int count = 1;
   
-  for (count = 1; count < flagc - 2; count++) {
+  while (1) {
     if (!strcmp(flags[count], "-b")) {
       if (output_mode_defined == 1)
 	return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_PRG;
-      continue;
+      total_flags++;
     }
     else if (!strcmp(flags[count], "-r")) {
       if (output_mode_defined == 1)
 	return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_ROM;
-      continue;
+      total_flags++;
+    }
+    else if (!strcmp(flags[count], "-l")) {
+      if (count + 1 < flagc) {
+        /* get arg */
+        if (load_library(flags[count+1], NO) == FAILED)
+          return FAILED;
+      }
+      else
+        return FAILED;
+      count++;
+      total_flags++;
     }
     else if (!strcmp(flags[count], "-L")) {
       if (count + 1 < flagc) {
@@ -688,38 +702,46 @@ int parse_flags(char **flags, int flagc) {
       else
         return FAILED;
       count++;
-      continue;
+      total_flags++;
     }
     else if (!strcmp(flags[count], "-i")) {
       listfile_data = YES;
-      continue;
+      total_flags++;
     }
     else if (!strcmp(flags[count], "-v")) {
       verbose_mode = ON;
-      continue;
+      total_flags++;
     }
     else if (!strcmp(flags[count], "-s")) {
       symbol_mode = SYMBOL_MODE_NOCA5H;
-      continue;
+      total_flags++;
     }
     else if (!strcmp(flags[count], "-S")) {
       symbol_mode = SYMBOL_MODE_WLA;
-      continue;
+      total_flags++;
     }
     else if (!strcmp(flags[count], "-d")) {
       discard_unreferenced_sections = ON;
-      continue;
+      total_flags++;
     }
     else {
       /* legacy support? */
-      if (strncmp(flags[count], "-L", 2) == 0) {
+      if (strncmp(flags[count], "-l", 2) == 0) {
+        /* old load library */
+        if (load_library(flags[count], YES) == FAILED)
+          return FAILED;
+        total_flags++;
+      }
+      else if (strncmp(flags[count], "-L", 2) == 0) {
         /* old library directory */
         parse_and_set_libdir(flags[count], YES);
-        continue;
+        total_flags++;
       }
+      /* reached object file? */
       else
-        return FAILED;
+        break;
     }
+    count++;
   }
   
   return SUCCEEDED;
