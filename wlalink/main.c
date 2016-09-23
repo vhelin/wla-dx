@@ -44,7 +44,7 @@ int file_header_size, file_footer_size, *banksizes = NULL, *bankaddress = NULL;
 int output_mode = OUTPUT_ROM, discard_unreferenced_sections = OFF, use_libdir = NO;
 int program_start, program_end, sms_checksum, smstag_defined = 0, snes_rom_mode = SNES_ROM_MODE_LOROM, snes_rom_speed = SNES_ROM_SPEED_SLOWROM;
 int gb_checksum, gb_complement_check, snes_checksum, cpu_65816 = 0, snes_mode = 0;
-int listfile_data = NO, smc_status = 0, snes_sramsize = 0, total_flags = 0;
+int listfile_data = NO, smc_status = 0, snes_sramsize = 0, total_flags;
 
 extern int emptyfill;
 char ext_libdir[MAX_NAME_LENGTH];
@@ -171,10 +171,10 @@ int main(int argc, char *argv[]) {
     printf("-s  Write also a NO$GMB symbol file\n");
     printf("-S  Write also a WLA symbol file\n");
     printf("-v  Verbose messages\n");
-	printf("-l  LIBNAME\n");
-	printf("    Search for library LIBNAME\n");
+    printf("-l  LIBNAME\n");
+    printf("    Search for library LIBNAME\n");
     printf("-L  DIRECTORY\n");
-	printf("    Add DIRECTORY to library search path\n\n");
+    printf("    Add DIRECTORY to library search path\n\n");
     return 0;
   }
 
@@ -666,84 +666,73 @@ void procedures_at_exit(void) {
 int parse_flags(char **flags, int flagc) {
 
   int output_mode_defined = 0;
-  int count = 1;
+  total_flags = 1;
   
   while (1) {
-    if (!strcmp(flags[count], "-b")) {
+    if (!strcmp(flags[total_flags], "-b")) {
       if (output_mode_defined == 1)
 	return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_PRG;
-      total_flags++;
     }
-    else if (!strcmp(flags[count], "-r")) {
+    else if (!strcmp(flags[total_flags], "-r")) {
       if (output_mode_defined == 1)
 	return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_ROM;
-      total_flags++;
     }
-    else if (!strcmp(flags[count], "-l")) {
-      if (count + 1 < flagc) {
+    else if (!strcmp(flags[total_flags], "-l")) {
+      if (total_flags + 1 < flagc) {
         /* get arg */
-        if (load_library(flags[count+1], NO) == FAILED)
+        if (load_library(flags[total_flags+1], NO) == FAILED)
           return FAILED;
       }
       else
         return FAILED;
-      count++;
       total_flags++;
     }
-    else if (!strcmp(flags[count], "-L")) {
-      if (count + 1 < flagc) {
+    else if (!strcmp(flags[total_flags], "-L")) {
+      if (total_flags + 1 < flagc) {
         /* get arg */
-        parse_and_set_libdir(flags[count+1], NO);
+        parse_and_set_libdir(flags[total_flags+1], NO);
       }
       else
         return FAILED;
-      count++;
       total_flags++;
     }
-    else if (!strcmp(flags[count], "-i")) {
+    else if (!strcmp(flags[total_flags], "-i")) {
       listfile_data = YES;
-      total_flags++;
     }
-    else if (!strcmp(flags[count], "-v")) {
+    else if (!strcmp(flags[total_flags], "-v")) {
       verbose_mode = ON;
-      total_flags++;
     }
-    else if (!strcmp(flags[count], "-s")) {
+    else if (!strcmp(flags[total_flags], "-s")) {
       symbol_mode = SYMBOL_MODE_NOCA5H;
-      total_flags++;
     }
-    else if (!strcmp(flags[count], "-S")) {
+    else if (!strcmp(flags[total_flags], "-S")) {
       symbol_mode = SYMBOL_MODE_WLA;
-      total_flags++;
     }
-    else if (!strcmp(flags[count], "-d")) {
+    else if (!strcmp(flags[total_flags], "-d")) {
       discard_unreferenced_sections = ON;
-      total_flags++;
     }
     else {
       /* legacy support? */
-      if (strncmp(flags[count], "-l", 2) == 0) {
+      if (strncmp(flags[total_flags], "-l", 2) == 0) {
         /* old load library */
-        if (load_library(flags[count], YES) == FAILED)
+        if (load_library(flags[total_flags], YES) == FAILED)
           return FAILED;
-        total_flags++;
       }
-      else if (strncmp(flags[count], "-L", 2) == 0) {
+      else if (strncmp(flags[total_flags], "-L", 2) == 0) {
         /* old library directory */
-        parse_and_set_libdir(flags[count], YES);
-        total_flags++;
+        parse_and_set_libdir(flags[total_flags], YES);
       }
       /* reached object file? */
       else
         break;
     }
-    count++;
+    total_flags++;
   }
-  
+
   return SUCCEEDED;
 }
 
