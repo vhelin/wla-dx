@@ -25,7 +25,7 @@ int load_objects(char *argv[], int argc) {
   int i;
 
 
-  for (i = total_flags + 1; i < argc - 1 ; i++) {
+  for (i = total_flags; i < argc - 1 ; i++) {
     if (load_file(argv[i]) == FAILED) return FAILED;
   }
 
@@ -51,19 +51,19 @@ int load_library(char *argv, int contains_flag) {
   fop = fopen(argv, "rb");
 
   if (fop == NULL) {
-	  /* append .lib extension if not found */
+      /* append .lib extension if not found */
      sprintf(tmp_name, "%s.lib", argv);
      fop = fopen(tmp_name, "rb");
 
      if (fop == NULL && use_libdir == YES) {
-	   /* try the lib dir if specified and not found */
+       /* try the lib dir if specified and not found */
        sprintf(tmp_name, "%s%s", ext_libdir, argv);
        fop = fopen(tmp_name, "rb");
 
        if (fop == NULL)
-		 /* append .lib extension if not found */
+         /* append .lib extension if not found */
          sprintf(tmp_name, "%s%s.lib", ext_libdir, argv);
-	 }
+     }
   }
 
   fclose(fop);
