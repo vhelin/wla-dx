@@ -684,8 +684,7 @@ int parse_flags(char **flags, int flagc) {
     else if (!strcmp(flags[total_flags], "-l")) {
       if (total_flags + 1 < flagc) {
         /* get arg */
-        if (load_library(flags[total_flags+1], NO) == FAILED)
-          return FAILED;
+        load_library(flags[total_flags+1], NO);
       }
       else
         return FAILED;
@@ -719,8 +718,7 @@ int parse_flags(char **flags, int flagc) {
       /* legacy support? */
       if (strncmp(flags[total_flags], "-l", 2) == 0) {
         /* old load library */
-        if (load_library(flags[total_flags], YES) == FAILED)
-          return FAILED;
+        load_library(flags[total_flags], YES);
       }
       else if (strncmp(flags[total_flags], "-L", 2) == 0) {
         /* old library directory */
