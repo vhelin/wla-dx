@@ -689,7 +689,7 @@ int parse_flags(char **flags, int flagc) {
         /* get arg */
         if (load_library(flags[total_flags+1], NO) == FAILED) {
           library_failed = YES;
-		  return FAILED;
+          return FAILED;
         }
       }
       else
@@ -726,7 +726,7 @@ int parse_flags(char **flags, int flagc) {
         /* old load library */
         if (load_library(flags[total_flags], YES) == FAILED) {
           library_failed = YES;
-		  return FAILED;
+          return FAILED;
         }
       }
       else if (strncmp(flags[total_flags], "-L", 2) == 0) {
