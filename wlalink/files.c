@@ -26,7 +26,7 @@ int load_objects(char *argv[], int argc) {
 
 
   for (i = total_flags; i < argc - 1 ; i++) {
-    if (load_file(argv[i]) == FAILED) return FAILED;
+    if (load_file(argv[i], NULL) == FAILED) return FAILED;
   }
 
   return SUCCEEDED;
@@ -68,13 +68,13 @@ int load_library(char *argv, int contains_flag) {
 
   fclose(fop);
 
-  if (load_file(tmp_name) == FAILED) return FAILED;
+  if (load_file(tmp_name, argv) == FAILED) return FAILED;
 
   return SUCCEEDED;
 }
 
 
-int load_file(char *file_name) {
+int load_file(char *file_name, char *lib_name) {
 
   struct object_file *o;
   unsigned char *data;
@@ -94,7 +94,7 @@ int load_file(char *file_name) {
     return FAILED;
   }
 
-  if (load_file_data(file_name, &data, &size) == FAILED) {
+  if (load_file_data(file_name, &data, &size, lib_name) == FAILED) {
     free(name);
     free(o);
     return FAILED;
@@ -134,14 +134,17 @@ int load_file(char *file_name) {
 }
 
 
-int load_file_data(char *file_name, unsigned char **data, int *size) {
+int load_file_data(char *file_name, unsigned char **data, int *size, char *lib_name) {
 
   FILE *fop;
 
 
   fop = fopen(file_name, "rb");
   if (fop == NULL) {
-    fprintf(stderr, "LOAD_FILE_DATA: Could not open file \"%s\".\n", file_name);
+    if (lib_name)
+      fprintf(stderr, "LOAD_FILE_DATA: Could not open library \"%s\".\n", lib_name);
+    else
+      fprintf(stderr, "LOAD_FILE_DATA: Could not open file \"%s\".\n", file_name);
     return FAILED;
   }
 
