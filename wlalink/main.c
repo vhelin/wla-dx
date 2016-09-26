@@ -44,7 +44,7 @@ int file_header_size, file_footer_size, *banksizes = NULL, *bankaddress = NULL;
 int output_mode = OUTPUT_ROM, discard_unreferenced_sections = OFF, use_libdir = NO;
 int program_start, program_end, sms_checksum, smstag_defined = 0, snes_rom_mode = SNES_ROM_MODE_LOROM, snes_rom_speed = SNES_ROM_SPEED_SLOWROM;
 int gb_checksum, gb_complement_check, snes_checksum, cpu_65816 = 0, snes_mode = 0;
-int listfile_data = NO, smc_status = 0, snes_sramsize = 0, total_flags;
+int listfile_data = NO, smc_status = 0, snes_sramsize = 0, total_flags, library_failed = NO;
 
 extern int emptyfill;
 char ext_libdir[MAX_NAME_LENGTH];
@@ -158,6 +158,9 @@ int main(int argc, char *argv[]) {
     x = parse_flags(argv, argc);
   else
     x = FAILED;
+
+  if (library_failed == YES)
+    return 0;
 
   if (x == FAILED) {
     printf("\nWLALINK GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 WLA Macro Assembler Linker v5.8b\n");
@@ -684,7 +687,10 @@ int parse_flags(char **flags, int flagc) {
     else if (!strcmp(flags[total_flags], "-l")) {
       if (total_flags + 1 < flagc) {
         /* get arg */
-        load_library(flags[total_flags+1], NO);
+        if (load_library(flags[total_flags+1], NO) == FAILED) {
+          library_failed = YES;
+		  return FAILED;
+        }
       }
       else
         return FAILED;
@@ -718,7 +724,10 @@ int parse_flags(char **flags, int flagc) {
       /* legacy support? */
       if (strncmp(flags[total_flags], "-l", 2) == 0) {
         /* old load library */
-        load_library(flags[total_flags], YES);
+        if (load_library(flags[total_flags], YES) == FAILED) {
+          library_failed = YES;
+		  return FAILED;
+        }
       }
       else if (strncmp(flags[total_flags], "-L", 2) == 0) {
         /* old library directory */
