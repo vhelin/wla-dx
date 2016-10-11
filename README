@@ -155,6 +155,7 @@ Group 2:
 [GB ] .RAMSIZE 0
 [GB ] .ROMDMG
 [GB ] .ROMGBC
+[GB ] .ROMGBCONLY
 [GB ] .ROMSGB
 [658] .SLOWROM
 [658] .SMC
@@ -571,16 +572,18 @@ This is not a compulsory directive.
 ---------
 
 This begins the GB header definition, and automatically defines
-.COMPUTEGBCHECKSUM. From here you may define any of the following:
+.COMPUTEGBCHECKSUM. End the header definition with .ENDGB. Here's an example:
 
-NAME "TANKBOMBPANIC" - identical to a freestanding .NAME.
-LICENSEECODEOLD $34  - identical to a freestanding .LICENSEECODEOLD.
-LICENSEECODENEW "HI" - identical to a freestanding .LICENSEECODENEW.
-CARTRIDGETYPE $00    - identical to a freestanding .CARTRIDGETYPE.
-RAMSIZE $09          - identical to a freestanding .RAMSIZE.
-COUNTRYCODE $01      - identical to a freestanding .COUNTRYCODE.
-DESTINATIONCODE $01  - identical to a freestanding .DESTINATIONCODE.
-NINTENDOLOGO         - identical to a freestanding .NINTENDOLOGO.
+.GBHEADER
+        NAME "TANKBOMBPANIC" ; identical to a freestanding .NAME.
+        LICENSEECODEOLD $34  ; identical to a freestanding .LICENSEECODEOLD.
+        LICENSEECODENEW "HI" ; identical to a freestanding .LICENSEECODENEW.
+        CARTRIDGETYPE $00    ; identical to a freestanding .CARTRIDGETYPE.
+        RAMSIZE $09          ; identical to a freestanding .RAMSIZE.
+        COUNTRYCODE $01      ; identical to a freestanding .COUNTRYCODE.
+        DESTINATIONCODE $01  ; identical to a freestanding .DESTINATIONCODE.
+        NINTENDOLOGO         ; identical to a freestanding .NINTENDOLOGO.
+.ENDGB
 
 This is not a compulsory directive.
 
@@ -2304,8 +2307,19 @@ required to terminate it.
 .ROMGBC
 -------
 
+Inserts data into the specific ROM location to mark the ROM as a dual-mode ROM
+($80 -> $0143, so ROM name is max. 15 characters long). It will run in either
+DMG or GBC mode.
+
+This is not a compulsory directive.
+
+-----------
+.ROMGBCONLY
+-----------
+
 Inserts data into the specific ROM location to mark the ROM as a Gameboy Color
-ROM ($C0 -> $0143, so ROM name is max. 15 characters long).
+ROM ($C0 -> $0143, so ROM name is max. 15 characters long). It will only run in
+GBC mode.
 
 This is not a compulsory directive.
 
@@ -2314,7 +2328,7 @@ This is not a compulsory directive.
 -------
 
 Inserts data into the specific ROM location to mark the ROM as a DMG
-(Gameboy) ROM ($00 -> $0146).
+(Gameboy) ROM ($00 -> $0146). It will only run in DMG mode.
 
 This is not a compulsory directive. .ROMDMG cannot be used with .ROMSGB.
 

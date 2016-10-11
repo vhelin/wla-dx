@@ -4404,11 +4404,15 @@ int parse_directive(void) {
     while ((ind = get_next_token()) == SUCCEEDED) {
       if (strcaselesscmp(tmp, ".ENDGB") == 0)
         break;
-      else if (strcaselesscmp(cp, "NINTENDOLOGO") == 0)
+      else if (strcaselesscmp(tmp, "NINTENDOLOGO") == 0)
         nintendologo_defined++;
       else if (strcaselesscmp(tmp, "ROMDMG") == 0) {
-        if (romgbc != 0) {
+        if (romgbc == 1) {
 	  print_error(".ROMGBC was defined prior to .ROMDMG.\n", ERROR_DIR);
+          return FAILED;
+        }
+        else if (romgbc == 2) {
+	  print_error(".ROMGBCONLY was defined prior to .ROMDMG.\n", ERROR_DIR);
           return FAILED;
         }
         else if (romsgb != 0) {
@@ -4422,7 +4426,22 @@ int parse_directive(void) {
 	  print_error(".ROMDMG was defined prior to .ROMGBC.\n", ERROR_DIR);
           return FAILED;
         }
-        romgbc++;
+        else if (romgbc == 2) {
+	  print_error(".ROMGBCONLY was defined prior to .ROMGBC.\n", ERROR_DIR);
+          return FAILED;
+        }
+        romgbc = 1;
+      }
+      else if (strcaselesscmp(tmp, "ROMGBCONLY") == 0) {
+        if (romdmg != 0) {
+	  print_error(".ROMDMG was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
+          return FAILED;
+        }
+        else if (romgbc == 1) {
+	  print_error(".ROMGBC was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
+          return FAILED;
+        }
+        romgbc = 2;
       }
       else if (strcaselesscmp(tmp, "ROMSGB") == 0) {
         if (romdmg != 0) {
@@ -5586,11 +5605,35 @@ int parse_directive(void) {
     no_library_files(".ROMGBC");
     
     if (romdmg != 0) {
-      print_error("ROMDMG was defined prior to .ROMGBC.\n", ERROR_DIR);
+      print_error(".ROMDMG was defined prior to .ROMGBC.\n", ERROR_DIR);
+      return FAILED;
+    }
+    else if (romgbc == 2) {
+      print_error(".ROMGBCONLY was defined prior to .ROMGBC.\n", ERROR_DIR);
       return FAILED;
     }
 
-    romgbc++;
+    romgbc = 1;
+
+    return SUCCEEDED;
+  }
+
+  /* ROMGBCONLY */
+
+  if (strcaselesscmp(cp, "ROMGBCONLY") == 0) {
+
+    no_library_files(".ROMGBCONLY");
+
+    if (romdmg != 0) {
+      print_error(".ROMDMG was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
+      return FAILED;
+    }
+    else if (romgbc == 1) {
+      print_error(".ROMGBC was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    romgbc = 2;
 
     return SUCCEEDED;
   }
@@ -5600,8 +5643,12 @@ int parse_directive(void) {
   if (strcaselesscmp(cp, "ROMDMG") == 0) {
     no_library_files(".ROMDMG");
     
-    if (romgbc != 0) {
+    if (romgbc == 1) {
       print_error(".ROMGBC was defined prior to .ROMDMG.\n", ERROR_DIR);
+      return FAILED;
+    }
+    else if (romgbc == 2) {
+      print_error(".ROMGBCONLY was defined prior to .ROMDMG.\n", ERROR_DIR);
       return FAILED;
     }
     else if (romsgb != 0) {
