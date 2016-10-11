@@ -1,8 +1,8 @@
 
 CC = wla-gb
-CFLAGS = -ox
+CFLAGS = -x -o
 LD = wlalink
-LDFLAGS = -dvs
+LDFLAGS = -d -v -s
 
 SFILES = setup.s exmain.s
 IFILES = defines1.i defines2.i
@@ -12,10 +12,10 @@ all: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.gb
 
 main.o: exmain.s defines1.i gb_memory1.i
-	$(CC) $(CFLAGS) exmain.s
+	$(CC) $(CFLAGS) main.o exmain.s
 
 setup.o: setup.s defines2.i gb_memory2.i
-	$(CC) $(CFLAGS) setup.s
+	$(CC) $(CFLAGS) setup.o setup.s
 
 
 $(OFILES): $(HFILES)

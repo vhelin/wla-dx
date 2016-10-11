@@ -237,7 +237,7 @@ struct optcode opt_table[] = {
   { "ld (?),a", 0xea, 2 },
   { "", 0xeb, 0 },
   { "", 0xec, 0 },
-  { "debug", 0xed, 0 },
+  { "", 0xed, 0 },
   { "xor ?", 0xee, 1 },
   { "rst $28", 0xef, 0 },
   { "ld a,($ff00+?)", 0xf0, 1 },

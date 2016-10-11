@@ -1,17 +1,22 @@
 # Main CMakeLists file
 cmake_minimum_required (VERSION 2.8.9)
 
+option(WLALINK_DEBUG "wlalink debug build" OFF)
+option(WLA_DEBUG "wla debug builds" OFF)
+option(GDB_DEBUGGING "Enable debugging via gdb" OFF)
 
+if (GDB_DEBUGGING)
+    set(CMAKE_C_FLAGS "-O0 -ggdb")
+    set(CMAKE_C_FLAGS_RELEASE "-O0 -ggdb")
+endif (GDB_DEBUGGING)
 
-# NOTE! UNCOMMENT THESE TO GENERATE EXECUTABLES THAT ARE SUITABLE FOR gdb DEBUGGING!
-#set(CMAKE_C_FLAGS "-O0 -ggdb")
-#set(CMAKE_C_FLAGS_RELEASE "-O0 -ggdb")
+if (WLALINK_DEBUG)
+    add_definitions( -DWLALINK_DEBUG )
+endif (WLALINK_DEBUG)
 
-# NOTE! UNCOMMENT THIS TO MAKE WLALINK OUTPUT LOTS OF DEBUG INFORMATION TO sdtout
-#add_definitions( -DWLALINK_DEBUG )
-
-# NOTE! UNCOMMENT THIS TO MAKE WLA OUTPUT LOTS OF DEBUG INFORMATION TO sdtout
-#add_definitions( -DWLA_DEBUG )
+if (WLA_DEBUG)
+    add_definitions( -DWLA_DEBUG )
+endif (WLA_DEBUG)
 
 
 
@@ -125,3 +130,6 @@ add_executable(wla-z80 ${CFILES})
 set_target_properties (wla-z80 PROPERTIES COMPILE_DEFINITIONS "Z80" )
 add_dependencies(wla-z80 Z80_table)
 add_custom_command(TARGET wla-z80 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_Z80*")
+
+install(TARGETS wla-gb wla-65c02 wla-6510 wla-65816 wla-huc6280 wla-spc700 wla-z80
+	DESTINATION bin)

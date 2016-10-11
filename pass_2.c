@@ -317,8 +317,11 @@ int pass_2(void) {
       }
     }
     
-    if (romgbc != 0)
-      mem_insert_absolute(323, 128);
+    if (romgbc == 1)
+      mem_insert_absolute(323, 0x80);
+    else if (romgbc == 2)
+      mem_insert_absolute(323, 0xc0);
+
     if (romdmg != 0)
       mem_insert_absolute(326, 0);
     if (romsgb != 0)

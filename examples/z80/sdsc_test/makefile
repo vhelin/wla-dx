@@ -2,7 +2,7 @@
 CC = wla-z80
 CFLAGS = -o
 LD = wlalink
-LDFLAGS = -vs
+LDFLAGS = -v -s
 
 SFILES = sms.s
 IFILES = 
@@ -12,7 +12,7 @@ all: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.rom
 
 sms.o: sms.s
-	$(CC) $(CFLAGS) sms.s sms.o
+	$(CC) $(CFLAGS) sms.o sms.s
 
 
 $(OFILES): $(HFILES)

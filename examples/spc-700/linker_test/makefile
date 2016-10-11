@@ -2,7 +2,7 @@
 CC = wla-spc700
 CFLAGS = -o
 LD = wlalink
-LDFLAGS = -vS
+LDFLAGS = -v -S
 
 SFILES = setup.s main.s
 IFILES = defines.i
@@ -12,10 +12,10 @@ all: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile result.rom
 
 main.o: main.s defines.i
-	$(CC) $(CFLAGS) main.s
+	$(CC) $(CFLAGS) main.o main.s
 
 setup.o: setup.s defines.i
-	$(CC) $(CFLAGS) setup.s setup.o
+	$(CC) $(CFLAGS) setup.o setup.s
 
 
 $(OFILES): $(HFILES)

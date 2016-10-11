@@ -2,7 +2,7 @@
 CC = wla-z80
 CFLAGS = -o
 LD = wlalink
-LDFLAGS = -vbs
+LDFLAGS = -v -b -s
 
 SFILES = setup.s main.s
 IFILES = defines.i
@@ -12,10 +12,10 @@ all: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.prg
 
 main.o: main.s defines.i
-	$(CC) $(CFLAGS) main.s main.o
+	$(CC) $(CFLAGS) main.o main.s
 
 setup.o: setup.s defines.i
-	$(CC) $(CFLAGS) setup.s setup.o
+	$(CC) $(CFLAGS) setup.o setup.s
 
 
 $(OFILES): $(HFILES)

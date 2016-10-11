@@ -165,6 +165,15 @@ __far /* put the following big table in the FAR data section */
 #endif
 
 
+#define no_library_files(name)\
+ do {\
+ if (output_format == OUTPUT_LIBRARY) {\
+    print_error("Library files don't take " name ".\n", ERROR_DIR);\
+    return FAILED;\
+  }\
+ } while (0)
+
+
 int strcaselesscmp(char *s1, char *s2) {
 
   if (s1 == NULL || s2 == NULL)
@@ -1084,10 +1093,8 @@ int parse_directive(void) {
   /* ORG */
 
   if (strcaselesscmp(cp, "ORG") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .ORG definitions.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".ORG definitions");
+    
     if (bank_defined == 0) {
       print_error("No .BANK is defined.\n", ERROR_LOG);
       return FAILED;
@@ -1115,10 +1122,8 @@ int parse_directive(void) {
   /* ORGA */
 
   if (strcaselesscmp(cp, "ORGA") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .ORGA definitions.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".ORGA definitions");
+    
     if (bank_defined == 0) {
       print_error("No .BANK is defined.\n", ERROR_LOG);
       return FAILED;
@@ -1154,10 +1159,8 @@ int parse_directive(void) {
   /* SLOT */
 
   if (strcaselesscmp(cp, "SLOT") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .SLOT definitions.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".SLOT definitions");
+    
     if (section_status == ON) {
       print_error("You can't issue .SLOT inside a .SECTION.\n", ERROR_DIR);
       return FAILED;
@@ -1189,10 +1192,8 @@ int parse_directive(void) {
   /* BANK */
 
   if (strcaselesscmp(cp, "BANK") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .BANK definitions.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".BANK definitions");
+    
     if (section_status == ON) {
       sprintf(emsg, "Section \"%s\" is open. Do not try to change the bank.\n", sections_last->name);
       print_error(emsg, ERROR_LOG);
@@ -2642,10 +2643,8 @@ int parse_directive(void) {
     }
 
     if (strcmp(tmp, "BANKHEADER") == 0) {
-      if (output_format == OUTPUT_LIBRARY) {
-        print_error("Library files don't take bank header sections.\n", ERROR_DIR);
-        return FAILED;
-      }
+      no_library_files("bank header sections");
+      
       sec_next = sections_first;
       while (sec_next != NULL) {
         if (strcmp(sec_next->name, tmp) == 0 && sec_next->bank == bank) {
@@ -3439,10 +3438,7 @@ int parse_directive(void) {
   /* NINTENDOLOGO */
   
   if (strcaselesscmp(cp, "NINTENDOLOGO") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .NINTENDOLOGO.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".NINTENDOLOGO");
 
     nintendologo_defined++;
 
@@ -3452,10 +3448,7 @@ int parse_directive(void) {
   /* NAME */
 
   if (strcaselesscmp(cp, "NAME") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .NAME.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".NAME");
 
     if ((ind = get_next_token()) == FAILED)
       return FAILED;
@@ -3503,10 +3496,7 @@ int parse_directive(void) {
   /* NAME */
 
   if (strcaselesscmp(cp, "NAME") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .NAME.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".NAME");
 
     if ((ind = get_next_token()) == FAILED)
       return FAILED;
@@ -3568,10 +3558,8 @@ int parse_directive(void) {
   /* ROMBANKS */
 
   if (strcaselesscmp(cp, "ROMBANKS") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .ROMBANKS.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".ROMBANKS");
+    
     if (banksize_defined == 0) {
       print_error("No .ROMBANKSIZE defined.\n", ERROR_DIR);
       return FAILED;
@@ -3684,10 +3672,7 @@ int parse_directive(void) {
     int b = 0, a = 0, bt = 0, bt_defined = 0, x, bs = 0, bs_defined = 0;
 
 
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .ROMBANKMAP.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".ROMBANKMAP");
 
     /* ROMBANKMAP has been defined previously */
     if (rombankmap_defined != 0 || rombanks_defined != 0) {
@@ -4199,10 +4184,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "RAMSIZE") == 0) {
 
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .RAMSIZE.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".RAMSIZE");
 
     q = input_number();
 
@@ -4237,10 +4219,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "COUNTRYCODE") == 0) {
 
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .COUNTRYCODE.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".COUNTRYCODE");
 
     q = input_number();
 
@@ -4264,16 +4243,44 @@ int parse_directive(void) {
 
     return SUCCEEDED;
   }
+  
+  
+  /* DESTINATIONCODE */
+
+  if (strcaselesscmp(cp, "DESTINATIONCODE") == 0) {
+
+    no_library_files(".DESTINATIONCODE");
+
+    q = input_number();
+
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED || q < 0) {
+      print_error(".DESTINATIONCODE needs a non-negative value.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    if (countrycode_defined != 0) {
+      if (countrycode != d) {
+        print_error(".DESTINATIONCODE was defined for the second time.\n", ERROR_DIR);
+        return FAILED;
+      }
+      return SUCCEEDED;
+    }
+
+    countrycode = d;
+    countrycode_defined = 1;
+
+    return SUCCEEDED;
+  }
+  
 
 
   /* CARTRIDGETYPE */
 
   if (strcaselesscmp(cp, "CARTRIDGETYPE") == 0) {
 
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .CARTRIDGETYPE.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".CARTRIDGETYPE");
 
     q = input_number();
 
@@ -4302,10 +4309,8 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "LICENSEECODENEW") == 0) {
 
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .LICENSEECODENEW.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".LICENSEECODENEW");
+    
     if (licenseecodeold_defined != 0) {
       print_error(".LICENSEECODENEW and .LICENSEECODEOLD cannot both be defined.\n", ERROR_DIR);
       return FAILED;
@@ -4342,10 +4347,8 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "LICENSEECODEOLD") == 0) {
 
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .LICENSEECODEOLD.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".LICENSEECODEOLD");
+    
     if (licenseecodenew_defined != 0) {
       print_error(".LICENSEECODENEW and .LICENSEECODEOLD cannot both be defined.\n", ERROR_DIR);
       return FAILED;
@@ -4401,11 +4404,15 @@ int parse_directive(void) {
     while ((ind = get_next_token()) == SUCCEEDED) {
       if (strcaselesscmp(tmp, ".ENDGB") == 0)
         break;
-      else if (strcaselesscmp(cp, "NINTENDOLOGO") == 0)
+      else if (strcaselesscmp(tmp, "NINTENDOLOGO") == 0)
         nintendologo_defined++;
       else if (strcaselesscmp(tmp, "ROMDMG") == 0) {
-        if (romgbc != 0) {
+        if (romgbc == 1) {
 	  print_error(".ROMGBC was defined prior to .ROMDMG.\n", ERROR_DIR);
+          return FAILED;
+        }
+        else if (romgbc == 2) {
+	  print_error(".ROMGBCONLY was defined prior to .ROMDMG.\n", ERROR_DIR);
           return FAILED;
         }
         else if (romsgb != 0) {
@@ -4419,7 +4426,22 @@ int parse_directive(void) {
 	  print_error(".ROMDMG was defined prior to .ROMGBC.\n", ERROR_DIR);
           return FAILED;
         }
-        romgbc++;
+        else if (romgbc == 2) {
+	  print_error(".ROMGBCONLY was defined prior to .ROMGBC.\n", ERROR_DIR);
+          return FAILED;
+        }
+        romgbc = 1;
+      }
+      else if (strcaselesscmp(tmp, "ROMGBCONLY") == 0) {
+        if (romdmg != 0) {
+	  print_error(".ROMDMG was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
+          return FAILED;
+        }
+        else if (romgbc == 1) {
+	  print_error(".ROMGBC was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
+          return FAILED;
+        }
+        romgbc = 2;
       }
       else if (strcaselesscmp(tmp, "ROMSGB") == 0) {
         if (romdmg != 0) {
@@ -4580,6 +4602,26 @@ int parse_directive(void) {
         else
           return FAILED;
       }
+      else if (strcaselesscmp(tmp, "DESTINATIONCODE") == 0) {
+        if (countrycode_defined != 0) {
+          print_error("DESTINATIONCODE can be defined only once.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        inz = input_number();
+
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
+          sprintf(emsg, "DESTINATIONCODE needs a non-negative value, got %d.\n\n", d);
+          print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
+        else if (inz == SUCCEEDED) {
+          countrycode = d;
+          countrycode_defined++;
+        }
+        else
+          return FAILED;
+      }
       else {
         ind = FAILED;
         break;
@@ -4600,10 +4642,7 @@ int parse_directive(void) {
   /* EMPTYFILL */
 
   if (strcaselesscmp(cp, "EMPTYFILL") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .EMPTYFILL.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".EMPTYFILL");
 
     q = input_number();
 
@@ -5085,10 +5124,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "COMPUTECHECKSUM") == 0 || strcaselesscmp(cp, "COMPUTEGBCHECKSUM") == 0) {
 
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .COMPUTEGBCHECKSUM.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".COMPUTEGBCHECKSUM");
     
     if (gbheader_defined != 0) {
       print_error(".COMPUTEGBCHECKSUM unnecessary when GBHEADER is defined.\n", ERROR_WRN);
@@ -5103,10 +5139,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "COMPUTEGBCOMPLEMENTCHECK") == 0 || strcaselesscmp(cp, "COMPUTECOMPLEMENTCHECK") == 0) {
 
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .COMPUTEGBCOMPLEMENTCHECK.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".COMPUTEGBCOMPLEMENTCHECK");
     
     if (gbheader_defined != 0) {
       print_error(".COMPUTEGBCOMPLEMENTCHECK unnecessary when GBHEADER is defined.\n", ERROR_WRN);
@@ -5123,10 +5156,8 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "COMPUTESNESCHECKSUM") == 0) {
 
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .COMPUTESNESCHECKSUM.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".COMPUTESNESCHECKSUM");
+    
     if (hirom_defined == 0 && lorom_defined == 0) {
       print_error(".COMPUTESNESCHECKSUM needs either .LOROM or .HIROM.\n", ERROR_DIR);
       return FAILED;
@@ -5145,10 +5176,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "COMPUTESMSCHECKSUM") == 0) {
 
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .COMPUTESMSCHECKSUM.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".COMPUTESMSCHECKSUM");
 
     computesmschecksum_defined++;
 
@@ -5157,10 +5185,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "SMSTAG") == 0) {
 
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .SMSTAG.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".SMSTAG");
 
     smstag_defined++;
     computesmschecksum_defined++;
@@ -5176,10 +5201,8 @@ int parse_directive(void) {
       print_error(".SDSCTAG can be defined only once.\n", ERROR_DIR);
       return FAILED;
     }
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .SDSCTAG.\n", ERROR_DIR);
-      return FAILED;
-    }
+    
+    no_library_files(".SDSCTAG");
 
     input_float_mode = ON;
     q = input_number();
@@ -5579,16 +5602,38 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "ROMGBC") == 0) {
 
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .ROMGBC.\n", ERROR_DIR);
+    no_library_files(".ROMGBC");
+    
+    if (romdmg != 0) {
+      print_error(".ROMDMG was defined prior to .ROMGBC.\n", ERROR_DIR);
       return FAILED;
     }
-    else if (romdmg != 0) {
-      print_error("ROMDMG was defined prior to .ROMGBC.\n", ERROR_DIR);
+    else if (romgbc == 2) {
+      print_error(".ROMGBCONLY was defined prior to .ROMGBC.\n", ERROR_DIR);
       return FAILED;
     }
 
-    romgbc++;
+    romgbc = 1;
+
+    return SUCCEEDED;
+  }
+
+  /* ROMGBCONLY */
+
+  if (strcaselesscmp(cp, "ROMGBCONLY") == 0) {
+
+    no_library_files(".ROMGBCONLY");
+
+    if (romdmg != 0) {
+      print_error(".ROMDMG was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
+      return FAILED;
+    }
+    else if (romgbc == 1) {
+      print_error(".ROMGBC was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    romgbc = 2;
 
     return SUCCEEDED;
   }
@@ -5596,12 +5641,14 @@ int parse_directive(void) {
   /* ROMDMG */
 
   if (strcaselesscmp(cp, "ROMDMG") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .ROMDMG.\n", ERROR_DIR);
+    no_library_files(".ROMDMG");
+    
+    if (romgbc == 1) {
+      print_error(".ROMGBC was defined prior to .ROMDMG.\n", ERROR_DIR);
       return FAILED;
     }
-    else if (romgbc != 0) {
-      print_error(".ROMGBC was defined prior to .ROMDMG.\n", ERROR_DIR);
+    else if (romgbc == 2) {
+      print_error(".ROMGBCONLY was defined prior to .ROMDMG.\n", ERROR_DIR);
       return FAILED;
     }
     else if (romsgb != 0) {
@@ -5617,11 +5664,9 @@ int parse_directive(void) {
   /* ROMSGB */
 
   if (strcaselesscmp(cp, "ROMSGB") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .ROMSGB.\n", ERROR_DIR);
-      return FAILED;
-    }
-    else if (romdmg != 0) {
+    no_library_files(".ROMSGB");
+    
+    if (romdmg != 0) {
       print_error(".ROMDMG and .ROMSGB cannot be mixed.\n", ERROR_DIR);
       return FAILED;
     }
@@ -5809,10 +5854,7 @@ int parse_directive(void) {
   /* BASE */
 
   if (strcaselesscmp(cp, "BASE") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .BASE definitions.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".BASE definitions");
 
     q = input_number();
 
@@ -5831,10 +5873,7 @@ int parse_directive(void) {
   /* SMC */
 
   if (strcaselesscmp(cp, "SMC") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .SMC.\n", ERROR_DIR);
-      return FAILED;
-    }
+    no_library_files(".SMC");
 
     smc_defined++;
     snes_mode++;
@@ -5845,11 +5884,9 @@ int parse_directive(void) {
   /* HIROM */
 
   if (strcaselesscmp(cp, "HIROM") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .HIROM.\n", ERROR_DIR);
-      return FAILED;
-    }
-    else if (lorom_defined != 0) {
+    no_library_files(".HIROM");
+    
+    if (lorom_defined != 0) {
       print_error(".LOROM was defined prior to .HIROM.\n", ERROR_DIR);
       return FAILED;
     }
@@ -5863,11 +5900,9 @@ int parse_directive(void) {
   /* LOROM */
 
   if (strcaselesscmp(cp, "LOROM") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .LOROM.\n", ERROR_DIR);
-      return FAILED;
-    }
-    else if (hirom_defined != 0) {
+    no_library_files(".LOROM");
+    
+    if (hirom_defined != 0) {
       print_error(".HIROM was defined prior to .LOROM.\n", ERROR_DIR);
       return FAILED;
     }
@@ -5881,11 +5916,9 @@ int parse_directive(void) {
   /* SLOWROM */
 
   if (strcaselesscmp(cp, "SLOWROM") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .SLOWROM.\n", ERROR_DIR);
-      return FAILED;
-    }
-    else if (fastrom_defined != 0) {
+    no_library_files(".SLOWROM");
+    
+    if (fastrom_defined != 0) {
       print_error(".FASTROM was defined prior to .SLOWROM.\n", ERROR_DIR);
       return FAILED;
     }
@@ -5899,11 +5932,9 @@ int parse_directive(void) {
   /* FASTROM */
 
   if (strcaselesscmp(cp, "FASTROM") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Library files don't take .FASTROM.\n", ERROR_DIR);
-      return FAILED;
-    }
-    else if (slowrom_defined != 0) {
+    no_library_files(".FASTROM");
+    
+    if (slowrom_defined != 0) {
       print_error(".SLOWROM was defined prior to .FASTROM.\n", ERROR_DIR);
       return FAILED;
     }

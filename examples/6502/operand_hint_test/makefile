@@ -1,8 +1,8 @@
 
 CC = wla-6502
-CFLAGS = -o -Dabba=123h -Dman=0ah
+CFLAGS = -D abba = 123h -D man=0ah -D name1=George -D name2="John" -D name3 = Peter -D name4 = "Susan" -o
 LD = wlalink
-LDFLAGS = -v
+LDFLAGS = -v -i
 
 SFILES = main.s
 IFILES = 
@@ -12,7 +12,7 @@ all: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile result.rom
 
 main.o: main.s
-	$(CC) $(CFLAGS) main.s main.o
+	$(CC) $(CFLAGS) main.o main.s
 
 
 $(OFILES): $(HFILES)
