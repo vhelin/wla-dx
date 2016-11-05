@@ -476,7 +476,8 @@ This is not a compulsory directive.
 -------------
 
 This begins the GB header definition, and automatically defines
-``.COMPUTEGBCHECKSUM``. From here you may define any of the following:
+``.COMPUTEGBCHECKSUM``. End the header definition with .ENDGB.
+In there you may define any of the following:
 
 ======================== =====================================================
 ``NAME "TANKBOMBPANIC"``   identical to a freestanding ``.NAME``.
@@ -2226,8 +2227,19 @@ required to terminate it.
 ``.ROMGBC``
 -----------
 
+Inserts data into the specific ROM location to mark the ROM as a dual-mode ROM
+(``$80`` -> ``$0143``, so ROM name is max. 15 characters long). It will run in
+either DMG or GBC mode.
+
+This is not a compulsory directive.
+
+
+``.ROMGBCONLY``
+---------------
+
 Inserts data into the specific ROM location to mark the ROM as a Gameboy Color
-ROM (``$C0`` -> ``$0143``, so ROM name is max. 15 characters long).
+ROM (``$C0`` -> ``$0143``, so ROM name is max. 15 characters long). It will
+only run in GBC mode.
 
 This is not a compulsory directive.
 
@@ -2236,7 +2248,7 @@ This is not a compulsory directive.
 -----------
 
 Inserts data into the specific ROM location to mark the ROM as a DMG
-(Gameboy) ROM (``$00`` -> ``$0146``).
+(Gameboy) ROM (``$00`` -> ``$0146``). It will only run in DMG mode.
 
 This is not a compulsory directive. ``.ROMDMG`` cannot be used with ``.ROMSGB``.
 
