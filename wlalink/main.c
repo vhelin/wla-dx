@@ -44,7 +44,7 @@ int file_header_size, file_footer_size, *banksizes = NULL, *bankaddress = NULL;
 int output_mode = OUTPUT_ROM, discard_unreferenced_sections = OFF, use_libdir = NO;
 int program_start, program_end, sms_checksum, smstag_defined = 0, snes_rom_mode = SNES_ROM_MODE_LOROM, snes_rom_speed = SNES_ROM_SPEED_SLOWROM;
 int gb_checksum, gb_complement_check, snes_checksum, cpu_65816 = 0, snes_mode = 0;
-int listfile_data = NO, smc_status = 0, snes_sramsize = 0;
+int listfile_data = NO, smc_status = 0, snes_sramsize = 0, total_flags, library_failed = NO;
 
 extern int emptyfill;
 char ext_libdir[MAX_NAME_LENGTH];
@@ -159,10 +159,13 @@ int main(int argc, char *argv[]) {
   else
     x = FAILED;
 
+  if (library_failed == YES)
+    return 0;
+
   if (x == FAILED) {
     printf("\nWLALINK GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 WLA Macro Assembler Linker v5.8b\n");
     printf("Written by Ville Helin in 2000-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
-    printf("USAGE: %s [OPTIONS] <LINK FILE> <OUTPUT FILE>\n\n", argv[0]);
+    printf("USAGE: %s [OPTIONS] <OBJECT FILES> <OUTPUT FILE>\n\n", argv[0]);
     printf("Options:\n");
     printf("-b  Program file output\n");
     printf("-d  Discard unreferenced sections\n");
@@ -171,15 +174,18 @@ int main(int argc, char *argv[]) {
     printf("-s  Write also a NO$GMB symbol file\n");
     printf("-S  Write also a WLA symbol file\n");
     printf("-v  Verbose messages\n");
-    printf("-L [DIR]  Library directory\n\n");
+    printf("-l  LIBNAME\n");
+    printf("    Search for library LIBNAME\n");
+    printf("-L  DIRECTORY\n");
+    printf("    Add DIRECTORY to library search path\n\n");
     return 0;
   }
 
   global_unique_label_map = hashmap_new();
   namespace_map = hashmap_new();
 
-  /* load files */
-  if (load_files(argv, argc) == FAILED)
+  /* load objects */
+  if (load_objects(argv, argc) == FAILED)
     return 1;
 
   /* check file types */
@@ -663,65 +669,77 @@ void procedures_at_exit(void) {
 int parse_flags(char **flags, int flagc) {
 
   int output_mode_defined = 0;
-  int count;
+  total_flags = 1;
   
-  for (count = 1; count < flagc - 2; count++) {
-    if (!strcmp(flags[count], "-b")) {
+  while (1) {
+    if (!strcmp(flags[total_flags], "-b")) {
       if (output_mode_defined == 1)
 	return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_PRG;
-      continue;
     }
-    else if (!strcmp(flags[count], "-r")) {
+    else if (!strcmp(flags[total_flags], "-r")) {
       if (output_mode_defined == 1)
 	return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_ROM;
-      continue;
     }
-    else if (!strcmp(flags[count], "-L")) {
-      if (count + 1 < flagc) {
+    else if (!strcmp(flags[total_flags], "-l")) {
+      if (total_flags + 1 < flagc) {
         /* get arg */
-        parse_and_set_libdir(flags[count+1], NO);
+        if (load_library(flags[total_flags+1], NO) == FAILED) {
+          library_failed = YES;
+          return FAILED;
+        }
       }
       else
         return FAILED;
-      count++;
-      continue;
+      total_flags++;
     }
-    else if (!strcmp(flags[count], "-i")) {
+    else if (!strcmp(flags[total_flags], "-L")) {
+      if (total_flags + 1 < flagc) {
+        /* get arg */
+        parse_and_set_libdir(flags[total_flags+1], NO);
+      }
+      else
+        return FAILED;
+      total_flags++;
+    }
+    else if (!strcmp(flags[total_flags], "-i")) {
       listfile_data = YES;
-      continue;
     }
-    else if (!strcmp(flags[count], "-v")) {
+    else if (!strcmp(flags[total_flags], "-v")) {
       verbose_mode = ON;
-      continue;
     }
-    else if (!strcmp(flags[count], "-s")) {
+    else if (!strcmp(flags[total_flags], "-s")) {
       symbol_mode = SYMBOL_MODE_NOCA5H;
-      continue;
     }
-    else if (!strcmp(flags[count], "-S")) {
+    else if (!strcmp(flags[total_flags], "-S")) {
       symbol_mode = SYMBOL_MODE_WLA;
-      continue;
     }
-    else if (!strcmp(flags[count], "-d")) {
+    else if (!strcmp(flags[total_flags], "-d")) {
       discard_unreferenced_sections = ON;
-      continue;
     }
     else {
       /* legacy support? */
-      if (strncmp(flags[count], "-L", 2) == 0) {
-        /* old library directory */
-        parse_and_set_libdir(flags[count], YES);
-        continue;
+      if (strncmp(flags[total_flags], "-l", 2) == 0) {
+        /* old load library */
+        if (load_library(flags[total_flags], YES) == FAILED) {
+          library_failed = YES;
+          return FAILED;
+        }
       }
+      else if (strncmp(flags[total_flags], "-L", 2) == 0) {
+        /* old library directory */
+        parse_and_set_libdir(flags[total_flags], YES);
+      }
+      /* reached object file? */
       else
-        return FAILED;
+        break;
     }
+    total_flags++;
   }
-  
+
   return SUCCEEDED;
 }
 
