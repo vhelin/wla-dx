@@ -43,7 +43,7 @@ int load_files(char *argv[], int argc) {
       continue;
 
     /* remove garbage from the end */
-    for (i = 0; !(tmp[i] == 0x0D || tmp[i] == 0x0A); i++)
+    for (i = 0; !(tmp[i] == 0x0D || tmp[i] == 0x0A || tmp[i] == 0x00); i++)
       ;
     tmp[i] = 0;
 
