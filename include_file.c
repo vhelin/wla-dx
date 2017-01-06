@@ -666,7 +666,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       /* take away white space from the end of the line */
       input++;
       output--;
-      for ( ; *output == ' '; output--)
+      for ( ; output > out_buffer && *output == ' '; output--)
 	;
       output++;
       *output = 0x0A;
