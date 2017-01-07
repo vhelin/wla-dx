@@ -23,6 +23,10 @@ struct label_def *label_next, *label_last, *label_tmp, *labels = NULL;
 struct map_t *global_unique_label_map = NULL;
 struct block *blocks = NULL;
 
+#define XSTRINGIFY(x) #x
+#define STRINGIFY(x) XSTRINGIFY(x)
+#define STRING_READ_FORMAT ("%" STRINGIFY(MAX_NAME_LENGTH) "s ")
+
 
 int pass_3(void) {
 
@@ -117,7 +121,7 @@ int pass_3(void) {
       case 'g':
 	b = malloc(sizeof(struct block));
 	if (b == NULL) {
-	  fscanf(f_in, "%64s ", tmp);
+	  fscanf(f_in, STRING_READ_FORMAT, tmp);
 	  fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for block \"%s\".\n",
 		  get_file_name(file_name_id), line_number, tmp);
 	  return FAILED;
@@ -126,7 +130,7 @@ int pass_3(void) {
 	b->line_number = line_number;
 	b->next = blocks;
 	blocks = b;
-	fscanf(f_in, "%64s ", b->name);
+	fscanf(f_in, STRING_READ_FORMAT, b->name);
 	b->address = add;
 	continue;
 
@@ -141,8 +145,9 @@ int pass_3(void) {
       case 'Y':
       case 'L':
 	l = malloc(sizeof(struct label_def));
+
 	if (l == NULL) {
-	  fscanf(f_in, "%64s ", tmp);
+		fscanf(f_in, STRING_READ_FORMAT, tmp);
 	  fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for label \"%s\".\n",
 		  get_file_name(file_name_id), line_number, tmp);
 	  return FAILED;
@@ -158,7 +163,7 @@ int pass_3(void) {
 	if (c == 'Z')
 	  l->label[0] = 0;
 	else
-	  fscanf(f_in, "%64s ", l->label);
+	  fscanf(f_in, STRING_READ_FORMAT, l->label);
 
 	l->next = NULL;
 	l->section_status = ON;
@@ -477,7 +482,7 @@ int pass_3(void) {
     case 'g':
       b = malloc(sizeof(struct block));
       if (b == NULL) {
-	fscanf(f_in, "%64s ", tmp);
+	fscanf(f_in, STRING_READ_FORMAT, tmp);
 	fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for block \"%s\".\n",
 		get_file_name(file_name_id), line_number, tmp);
 	return FAILED;
@@ -486,7 +491,7 @@ int pass_3(void) {
       b->line_number = line_number;
       b->next = blocks;
       blocks = b;
-      fscanf(f_in, "%64s ", b->name);
+      fscanf(f_in, STRING_READ_FORMAT, b->name);
       b->address = add;
       continue;
 
@@ -502,7 +507,7 @@ int pass_3(void) {
     case 'L':
       l = malloc(sizeof(struct label_def));
       if (l == NULL) {
-	fscanf(f_in, "%64s ", tmp);
+	fscanf(f_in, STRING_READ_FORMAT, tmp);
 	fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for label \"%s\".\n",
 		get_file_name(file_name_id), line_number, tmp);
 	return FAILED;
@@ -518,7 +523,7 @@ int pass_3(void) {
       if (c == 'Z')
 	l->label[0] = 0;
       else
-	fscanf(f_in, "%64s ", l->label);
+	fscanf(f_in, STRING_READ_FORMAT, l->label);
 
       l->next = NULL;
       l->section_status = section_status;
@@ -624,7 +629,7 @@ int pass_3(void) {
       continue;
 
     default:
-      fprintf(stderr, "%s: INTERNAL_PASS_1: Unknown internal symbol \"%c\".\n", get_file_name(file_name_id), c);
+      fprintf(stderr, "%s: INTERNAL_PASS_1: Unknown internal symbol \"%c\" in \"%s\" at offset %d.\n", get_file_name(file_name_id), c, gba_tmp_name, ftell(f_in)-1);
       return FAILED;
     }
   }
