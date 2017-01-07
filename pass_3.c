@@ -678,7 +678,7 @@ int pass_3(void) {
       continue;
 
     default:
-      fprintf(stderr, "%s: INTERNAL_PASS_1: Unknown internal symbol \"%c\" in \"%s\" at offset %d.\n", get_file_name(file_name_id), c, gba_tmp_name, ftell(f_in)-1);
+      fprintf(stderr, "%s: INTERNAL_PASS_1: Unknown internal symbol \"%c\" in \"%s\" at offset %ld.\n", get_file_name(file_name_id), c, gba_tmp_name, ftell(f_in)-1);
       return FAILED;
     }
   }

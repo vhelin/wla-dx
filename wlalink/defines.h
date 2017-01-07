@@ -48,7 +48,7 @@
 #define NO  0
 #define YES 1
 
-#define MAX_NAME_LENGTH 63
+#define MAX_NAME_LENGTH 255
 
 struct source_file_name {
   char *name;
