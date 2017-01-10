@@ -2570,6 +2570,25 @@ VBI_IRQ2
 _VBI_LOOP:
 main:
 
+Labels starting with "@" are considered to be child labels. They can only be
+referenced within the scope of their parent labels, unless the full name is
+specified. When there is more than one "@", the label is considered to be
+a child of a child.
+
+Here are some examples of child labels:
+
+PARENT1:
+@CHILD:
+@@SUBCHILD
+
+PARENT2:
+@CHILD:
+
+This is legal, since each of the @CHILD labels has a different parent. You can
+specify a parent to be explicit, like so:
+
+        jr PARENT1@CHILD@SUBCHILD
+
 Note that when you place ':' in front of the label string when referring to
 it, you'll get the bank number of the label, instead of the label's address.
 Here's an example:

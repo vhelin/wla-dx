@@ -4,5 +4,6 @@
 
 int pass_3(void);
 int is_label_anonymous(char *label);
+int mangle_label(char *label, char *parent, int n, unsigned int label_size);
 
 #endif

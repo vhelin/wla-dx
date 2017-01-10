@@ -157,6 +157,9 @@ int main(int argc, char *argv[]) {
     printf("\nWLA HuC6280 Macro Assembler v9.7b\n");
 #endif
     printf("Written by Ville Helin in 1998-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
+#ifdef WLA_DEBUG
+    printf("*** WLA_DEBUG defined - this executable is running in DEBUG mode ***\n");
+#endif
     printf("USAGE: %s [OPTIONS] <ASM FILE>\n\n", argv[0]);
     printf("Options:\n");
     printf("-i  Add list file information\n");

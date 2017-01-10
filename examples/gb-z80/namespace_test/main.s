@@ -25,6 +25,12 @@
 
 .SECTION "Beginning [NO]" FORCE
 
+; Try making local labels before any parent labels are available. Labels should
+; be interpreted as-is.
+@b:
+	jr @b
+
+
 MAIN:DI
 	LD	SP, stack_ptr-1		;stack_ptr is defined in setup.s
 	LD	A, 'C'                -   10
@@ -53,7 +59,42 @@ MAIN:DI
 	call sharedFunc
 	call sharedEntry
 	call shared._localFunc
+
+	jr @b
 	*/
+
+	; Test local labels
+parent:
+	jr @@b
+@@b
+	jr @a
+@@a
+	jr @@a
+@b
+; Uncomment for a compile error
+;	jr @@a
+	jr @c
+@a
+	jr @@a
+@@a
+	jr @b
+@c
+	jr parent2@continue@continueChild
+
+	; Test bank referencing, calculations
+	.db :@a+1
+	.db >@a
+	.db <@a+1
+
+parent2:
+; Give this one more character to get an error (will be too long when turned
+; into "parent2@reallyreally...longname".
+@reallyreallyreallyreallyreallyreallyreallyreallylongnam:
+
+@continue:
+@@continueChild:
+	jr @b
+@b
 
 	ld hl,_LOOP
 	push hl

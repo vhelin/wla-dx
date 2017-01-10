@@ -1158,6 +1158,8 @@ struct optcode opt_table[] = {
   { "SUB E", 0x93, 0, 0, 0 },
   { "SUB H", 0x94, 0, 0, 0 },
   { "SUB (HL)", 0x96, 0, 0, 0 },
+  { "SUB IXH", 0x94dd, 3, 0, 0 },
+  { "SUB IXL", 0x95dd, 3, 0, 0 },
   { "SUB IYH", 0x94fd, 3, 0, 0 },
   { "SUB IYL", 0x95fd, 3, 0, 0 },
   { "SUB (IYs)", 0x96fd, 4, 0, 0 },

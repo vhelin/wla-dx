@@ -28,6 +28,9 @@ BANKS 2
 .BANK 0 SLOT 0
 .ORG 0
 
+	SUB	IXL
+	SUB	IXH
+
 	JP	MAIN
         ret               
 
