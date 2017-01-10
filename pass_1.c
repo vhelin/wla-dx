@@ -437,7 +437,7 @@ int macro_insert_byte_db(char *name) {
   }
 
   if (d->type == DEFINITION_TYPE_VALUE) {
-    if (d->value < -127 || d->value > 255) {
+    if (d->value < -128 || d->value > 255) {
       sprintf(emsg, ".%s expects 8-bit data, %d is out of range!\n", name, (int)d->value);
       print_error(emsg, ERROR_DIR);
       return FAILED;
@@ -1363,7 +1363,7 @@ int parse_directive(void) {
         continue;
       }
 
-      if (inz == SUCCEEDED && (d < -127 || d > 255)) {
+      if (inz == SUCCEEDED && (d < -128 || d > 255)) {
         sprintf(emsg, ".%s expects 8-bit data, %d is out of range!\n", bak, d);
         print_error(emsg, ERROR_DIR);
         return FAILED;
@@ -1784,7 +1784,7 @@ int parse_directive(void) {
       /* take care of the rest */
       else {
         if (it->size == 1) {
-          if ((inz == SUCCEEDED) && (d < -127 || d > 255)) {
+          if ((inz == SUCCEEDED) && (d < -128 || d > 255)) {
             sprintf(emsg, "\"%s.%s\" expects 8-bit data, %d is out of range!\n", s->name, it->name, d);
             print_error(emsg, ERROR_DIR);
             return FAILED;
@@ -1885,7 +1885,7 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    if (q == SUCCEEDED && (d > 255 || d < -127)) {
+    if (q == SUCCEEDED && (d > 255 || d < -128)) {
       sprintf(emsg, ".%s expects 8-bit data, %d is out of range!\n", bak, d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
@@ -4358,7 +4358,7 @@ int parse_directive(void) {
 
     if (q == FAILED)
       return FAILED;
-    if (q != SUCCEEDED || d < -127 || d > 255) {
+    if (q != SUCCEEDED || d < -128 || d > 255) {
       sprintf(emsg, ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
@@ -4499,7 +4499,7 @@ int parse_directive(void) {
 
         if (q == FAILED)
           return FAILED;
-        if (q != SUCCEEDED || d < -127 || d > 255) {
+        if (q != SUCCEEDED || d < -128 || d > 255) {
 	  sprintf(emsg, ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", d);
 	  print_error(emsg, ERROR_DIR);
 	  return FAILED;
@@ -4648,7 +4648,7 @@ int parse_directive(void) {
 
     if (q == FAILED)
       return FAILED;
-    if (q != SUCCEEDED || d < -127 || d > 255) {
+    if (q != SUCCEEDED || d < -128 || d > 255) {
       sprintf(emsg, ".EMPTYFILL needs a 8-bit value, got %d.\n", d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
@@ -6081,7 +6081,7 @@ int parse_directive(void) {
 
         inz = input_number();
 
-        if (inz == SUCCEEDED && (d < -127 || d > 255)) {
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
           sprintf(emsg, "CARTRIDGETYPE expects 8-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
@@ -6101,7 +6101,7 @@ int parse_directive(void) {
 
         inz = input_number();
 
-        if (inz == SUCCEEDED && (d < -127 || d > 255)) {
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
           sprintf(emsg, "ROMSIZE expects 8-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
@@ -6119,7 +6119,7 @@ int parse_directive(void) {
 
         inz = input_number();
 
-        if (inz == SUCCEEDED && (d < -127 || d > 255)) {
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
           sprintf(emsg, "SRAMSIZE expects 8-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
@@ -6139,7 +6139,7 @@ int parse_directive(void) {
 
         inz = input_number();
 
-        if (inz == SUCCEEDED && (d < -127 || d > 255)) {
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
           sprintf(emsg, "COUNTRY expects 8-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
@@ -6159,7 +6159,7 @@ int parse_directive(void) {
 
         inz = input_number();
 
-        if (inz == SUCCEEDED && (d < -127 || d > 255)) {
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
           sprintf(emsg, "LICENSEECODE expects 8-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
@@ -6179,7 +6179,7 @@ int parse_directive(void) {
 
         inz = input_number();
 
-        if (inz == SUCCEEDED && (d < -127 || d > 255)) {
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
           sprintf(emsg, "VERSION expects 8-bit data, %d is out of range!\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
@@ -6792,7 +6792,7 @@ int parse_directive(void) {
         fprintf(file_out_ptr, "y %d ", d);
       }
       else {
-        if (d > 255 || d < -127) {
+        if (d > 255 || d < -128) {
           sprintf(emsg, ".%s: Expected a 8-bit value, computed %d.\n", cp, d);
           print_error(emsg, ERROR_NONE);
           return FAILED;
@@ -6898,7 +6898,7 @@ int parse_directive(void) {
         fprintf(file_out_ptr, "y %d ", d);
       }
       else {
-        if (d > 255 || d < -127) {
+        if (d > 255 || d < -128) {
           sprintf(emsg, ".%s: Expected a 8-bit value, computed %d.\n", cp, d);
           print_error(emsg, ERROR_NONE);
           return FAILED;
