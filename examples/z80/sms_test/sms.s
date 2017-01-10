@@ -157,6 +157,10 @@ bone:
 	.db counter + 1
 	.endr
 	.db $ff
+	.db "MARKER1"
+	sub	ixh
+	sub	ixl
+	.db "MARKER2"
 
 __
 
