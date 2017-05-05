@@ -139,6 +139,7 @@ Group 2:
 [GB ] .DESTINATIONCODE 1
 [GB ] .NINTENDOLOGO
 [GB ] .GBHEADER
+[Z80] .SMSHEADER
 [GB ] .COMPUTEGBCOMPLEMENTCHECK
 [ALL] .EMPTYFILL $C9
 [658] .ENDEMUVECTOR
@@ -575,15 +576,40 @@ This begins the GB header definition, and automatically defines
 .COMPUTEGBCHECKSUM. End the header definition with .ENDGB. Here's an example:
 
 .GBHEADER
-        NAME "TANKBOMBPANIC" ; identical to a freestanding .NAME.
-        LICENSEECODEOLD $34  ; identical to a freestanding .LICENSEECODEOLD.
-        LICENSEECODENEW "HI" ; identical to a freestanding .LICENSEECODENEW.
-        CARTRIDGETYPE $00    ; identical to a freestanding .CARTRIDGETYPE.
-        RAMSIZE $09          ; identical to a freestanding .RAMSIZE.
-        COUNTRYCODE $01      ; identical to a freestanding .COUNTRYCODE.
-        DESTINATIONCODE $01  ; identical to a freestanding .DESTINATIONCODE.
-        NINTENDOLOGO         ; identical to a freestanding .NINTENDOLOGO.
+        NAME "TANKBOMBPANIC"  ; identical to a freestanding .NAME.
+        LICENSEECODEOLD $34   ; identical to a freestanding .LICENSEECODEOLD.
+        LICENSEECODENEW "HI"  ; identical to a freestanding .LICENSEECODENEW.
+        CARTRIDGETYPE $00     ; identical to a freestanding .CARTRIDGETYPE.
+        RAMSIZE $09           ; identical to a freestanding .RAMSIZE.
+        COUNTRYCODE $01       ; identical to a freestanding .COUNTRYCODE.
+        DESTINATIONCODE $01   ; identical to a freestanding .DESTINATIONCODE.
+        NINTENDOLOGO          ; identical to a freestanding .NINTENDOLOGO.
+	ROMDMG                ; identical to a freestanding .ROMDMG. Alternatively
+	                      ; ROMGBC or ROMGBCONLY can be used
 .ENDGB
+
+This is not a compulsory directive.
+
+----------
+.SMSHEADER
+----------
+
+.SMSHEADER
+        PRODUCTCODE 26, 70, 2 ; 2.5 bytes
+	VERSION 1             ; 0-15
+	REGIONCODE 4          ; 3-7
+.ENDSMS
+
+The REGIONCODE also defines the system:
+ 3 - SMS Japan
+ 4 - SMS Export
+ 5 - GG Japan
+ 6 - GG Export
+ 7 - GG International
+
+When .SMSHEADER is defined, also the checksum is calculated, and TMR SEGA, two reserved
+bytes (0, 0) and ROM size are defined. See http://www.smspower.org/Development/ROMHeader
+for more information about SMS header.
 
 This is not a compulsory directive.
 

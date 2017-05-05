@@ -33,6 +33,7 @@ char sdsctag_name_str[MAX_NAME_LENGTH], sdsctag_notes_str[MAX_NAME_LENGTH], sdsc
 int sdsctag_name_type, sdsctag_notes_type, sdsctag_author_type, sdsc_ma, sdsc_mi;
 int sdsctag_name_value, sdsctag_notes_value, sdsctag_author_value;
 int computesmschecksum_defined = 0, sdsctag_defined = 0, smstag_defined = 0;
+int smsheader_defined = 0, smsversion = 0, smsversion_defined = 0, smsregioncode = 0, smsregioncode_defined = 0, smsproductcode_defined = 0, smsproductcode1 = 0, smsproductcode2 = 0, smsproductcode3 = 0;
 #endif
 
 int org_defined = 1, background_defined = 0, background_size = 0;
@@ -4164,8 +4165,7 @@ int parse_directive(void) {
     fseek(file_in_ptr, 0, SEEK_SET);
 
     if (max_address != background_size) {
-      sprintf(emsg, ".BACKGROUND file \"%s\" size (%d) and ROM size (%d) don't match.\n", full_name,
-          background_size, max_address);
+      sprintf(emsg, ".BACKGROUND file \"%s\" size (%d) and ROM size (%d) don't match.\n", full_name, background_size, max_address);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -4214,7 +4214,6 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
-
   /* COUNTRYCODE */
 
   if (strcaselesscmp(cp, "COUNTRYCODE") == 0) {
@@ -4243,8 +4242,7 @@ int parse_directive(void) {
 
     return SUCCEEDED;
   }
-  
-  
+    
   /* DESTINATIONCODE */
 
   if (strcaselesscmp(cp, "DESTINATIONCODE") == 0) {
@@ -4273,8 +4271,6 @@ int parse_directive(void) {
 
     return SUCCEEDED;
   }
-  
-
 
   /* CARTRIDGETYPE */
 
@@ -4387,12 +4383,12 @@ int parse_directive(void) {
     }
 
     if (computechecksum_defined != 0)
-      print_error(".COMPUTEGBCHECKSUM unnecessary when .GBHEADER is defined.\n", ERROR_WRN);
+      print_error(".COMPUTEGBCHECKSUM is unnecessary when .GBHEADER is defined.\n", ERROR_WRN);
     else
       computechecksum_defined++;
 
     if (computecomplementcheck_defined != 0)
-      print_error(".COMPUTEGBCOMPLEMENTCHECK unecessary when .GBHEADER is defined.\n", ERROR_WRN);
+      print_error(".COMPUTEGBCOMPLEMENTCHECK is unnecessary when .GBHEADER is defined.\n", ERROR_WRN);
     else
       computecomplementcheck_defined++;
 
@@ -4539,10 +4535,10 @@ int parse_directive(void) {
             return FAILED;
           }
 
-        licenseecodenew_c1 = tmp[0];
-        licenseecodenew_c2 = tmp[1];
-        licenseecodenew_defined = 1;
-      }
+	  licenseecodenew_c1 = tmp[0];
+	  licenseecodenew_c2 = tmp[1];
+	  licenseecodenew_defined = 1;
+	}
       }
       else if (strcaselesscmp(tmp, "CARTRIDGETYPE") == 0) {
         if (cartridgetype_defined != 0) {
@@ -5127,7 +5123,7 @@ int parse_directive(void) {
     no_library_files(".COMPUTEGBCHECKSUM");
     
     if (gbheader_defined != 0) {
-      print_error(".COMPUTEGBCHECKSUM unnecessary when GBHEADER is defined.\n", ERROR_WRN);
+      print_error(".COMPUTEGBCHECKSUM is unnecessary when GBHEADER is defined.\n", ERROR_WRN);
     }
 
     computechecksum_defined = 1;
@@ -5142,7 +5138,7 @@ int parse_directive(void) {
     no_library_files(".COMPUTEGBCOMPLEMENTCHECK");
     
     if (gbheader_defined != 0) {
-      print_error(".COMPUTEGBCOMPLEMENTCHECK unnecessary when GBHEADER is defined.\n", ERROR_WRN);
+      print_error(".COMPUTEGBCOMPLEMENTCHECK is unnecessary when GBHEADER is defined.\n", ERROR_WRN);
     }
 
     computecomplementcheck_defined = 1;
@@ -5163,7 +5159,7 @@ int parse_directive(void) {
       return FAILED;
     }
     if (snesheader_defined != 0) 
-      print_error(".COMPUTESNESCHECKSUM unnecessary when .SNESHEADER defined.\n", ERROR_WRN);
+      print_error(".COMPUTESNESCHECKSUM is unnecessary when .SNESHEADER defined.\n", ERROR_WRN);
 
     computesneschecksum_defined = 1;
 
@@ -5183,6 +5179,8 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
+  /* SMSTAG */
+
   if (strcaselesscmp(cp, "SMSTAG") == 0) {
 
     no_library_files(".SMSTAG");
@@ -5193,6 +5191,120 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
+  /* SMSHEADER */
+  if (strcmp(cp, "SMSHEADER") == 0) {
+    if (smsheader_defined != 0) {
+      print_error(".SMSHEADER can be defined only once.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    if (computesmschecksum_defined != 0)
+      print_error(".COMPUTESMSCHECKSUM is unnecessary when .SMSHEADER is defined.\n", ERROR_WRN);
+
+    if (smstag_defined != 0)
+      print_error(".SMSTAG is unnecessary when .SMSHEADER is defined.\n", ERROR_WRN);
+
+    if (output_format == OUTPUT_LIBRARY) {
+      print_error("Libraries don't take .SMSHEADER.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    while ((ind = get_next_token()) == SUCCEEDED) {
+      if (strcaselesscmp(tmp, ".ENDSMS") == 0)
+        break;
+      else if (strcaselesscmp(tmp, "VERSION") == 0) {
+        q = input_number();
+
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED || d < 0 || d > 15) {
+	  sprintf(emsg, "VERSION needs a value between 0 and 15, got %d.\n", d);
+	  print_error(emsg, ERROR_DIR);
+	  return FAILED;
+        }
+
+        if (smsversion_defined != 0) {
+          if (smsversion != d) {
+            print_error("VERSION was defined for the second time.\n", ERROR_DIR);
+            return FAILED;
+          }
+        }
+
+        smsversion = d;
+        smsversion_defined = 1;
+      }
+      else if (strcaselesscmp(tmp, "REGIONCODE") == 0) {
+        q = input_number();
+
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED || d < 3|| d > 7) {
+	  sprintf(emsg, "REGIONCODE needs a value between 3 and 7, got %d.\n", d);
+	  print_error(emsg, ERROR_DIR);
+	  return FAILED;
+        }
+
+        if (smsregioncode_defined != 0) {
+          if (smsregioncode != d) {
+            print_error("REGIONCODE was defined for the second time.\n", ERROR_DIR);
+            return FAILED;
+          }
+        }
+
+        smsregioncode = d;
+        smsregioncode_defined = 1;
+      }
+      else if (strcaselesscmp(tmp, "PRODUCTCODE") == 0) {
+        q = input_number();
+
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED) {
+	  print_error("PRODUCTCODE needs 2.5 bytes of data.\n", ERROR_DIR);
+	  return FAILED;
+        }
+
+        smsproductcode1 = d & 255;
+        smsproductcode_defined = 1;
+
+	q = input_number();
+
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED) {
+	  print_error("PRODUCTCODE needs 2.5 bytes of data.\n", ERROR_DIR);
+	  return FAILED;
+        }
+
+	smsproductcode2 = d & 255;
+
+	q = input_number();
+
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED) {
+	  print_error("PRODUCTCODE needs 2.5 bytes of data.\n", ERROR_DIR);
+	  return FAILED;
+        }
+
+	smsproductcode3 = d & 15;
+      }
+      else {
+        ind = FAILED;
+        break;
+      }
+    }
+
+    if (ind != SUCCEEDED) {
+      print_error("Error in .SMSHEADER data structure.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    smsheader_defined = 1;
+
+    return SUCCEEDED;
+  }
+  
   /* SDSCTAG */
 
   if (strcaselesscmp(cp, "SDSCTAG") == 0) {
@@ -5954,7 +6066,7 @@ int parse_directive(void) {
     }
 
     if (computesneschecksum_defined != 0)
-      print_error(".COMPUTESNESCHECKSUM unnecessary when .SNESHEADER is defined.\n", ERROR_WRN);
+      print_error(".COMPUTESNESCHECKSUM is unnecessary when .SNESHEADER is defined.\n", ERROR_WRN);
     else
       computesneschecksum_defined++;
 

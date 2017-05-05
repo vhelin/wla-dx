@@ -54,7 +54,7 @@ extern int computesneschecksum_defined, sramsize, sramsize_defined;
 #endif
 
 #ifdef Z80
-extern int computesmschecksum_defined, smstag_defined;
+extern int computesmschecksum_defined, smstag_defined, smsheader_defined;
 #endif
 
 struct label_def *unknown_labels = NULL, *unknown_labels_last = NULL, *tul, *ltmp;
@@ -988,6 +988,8 @@ int pass_4(void) {
 #ifdef Z80
     if (smstag_defined != 0)
       ind |= 1 << 3;
+    if (smsheader_defined != 0)
+      ind |= 1 << 4;
 #endif
 
     fprintf(final_ptr, "%c", ind);
