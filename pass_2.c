@@ -33,7 +33,7 @@ extern char sdsctag_name_str[MAX_NAME_LENGTH], sdsctag_notes_str[MAX_NAME_LENGTH
 extern int sdsctag_name_type, sdsctag_notes_type, sdsctag_author_type, sdsc_ma, sdsc_mi;
 extern int sdsctag_name_value, sdsctag_notes_value, sdsctag_author_value;
 extern int computesmschecksum_defined, sdsctag_defined, smstag_defined;
-extern int smsheader_defined, smsversion, smsversion_defined, smsregioncode, smsregioncode_defined, smsproductcode_defined, smsproductcode1, smsproductcode2, smsproductcode3;
+extern int smsheader_defined, smsversion, smsversion_defined, smsregioncode, smsregioncode_defined, smsproductcode_defined, smsproductcode1, smsproductcode2, smsproductcode3, smsreservedspace1, smsreservedspace2;
 #endif
 
 #ifdef W65816
@@ -109,6 +109,8 @@ int pass_2(void) {
       tag_address = 0x3FF0;
     }
 
+    mem_insert_absolute(tag_address + 0x8, smsreservedspace1);
+    mem_insert_absolute(tag_address + 0x9, smsreservedspace2);
     mem_insert_absolute(tag_address + 0xC, smsproductcode1);
     mem_insert_absolute(tag_address + 0xD, smsproductcode2);
     mem_insert_absolute(tag_address + 0xE, (smsproductcode3 << 4) | smsversion);

@@ -25,12 +25,6 @@ int reserve_checksum_bytes(void) {
     else if (romsize < 0x8000)
       tag_address = 0x3FF0;
 
-    if (sms_header != 0) {
-      /* reserved space */
-      mem_insert(tag_address + 0x8, 0x0);
-      mem_insert(tag_address + 0x9, 0x0);
-    }
-
     if (romsize >= 0x2000) {
       /* checksum */
       mem_insert(tag_address + 0xA, 0x0);

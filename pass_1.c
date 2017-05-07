@@ -33,7 +33,7 @@ char sdsctag_name_str[MAX_NAME_LENGTH], sdsctag_notes_str[MAX_NAME_LENGTH], sdsc
 int sdsctag_name_type, sdsctag_notes_type, sdsctag_author_type, sdsc_ma, sdsc_mi;
 int sdsctag_name_value, sdsctag_notes_value, sdsctag_author_value;
 int computesmschecksum_defined = 0, sdsctag_defined = 0, smstag_defined = 0;
-int smsheader_defined = 0, smsversion = 0, smsversion_defined = 0, smsregioncode = 0, smsregioncode_defined = 0, smsproductcode_defined = 0, smsproductcode1 = 0, smsproductcode2 = 0, smsproductcode3 = 0;
+int smsheader_defined = 0, smsversion = 0, smsversion_defined = 0, smsregioncode = 0, smsregioncode_defined = 0, smsproductcode_defined = 0, smsproductcode1 = 0, smsproductcode2 = 0, smsproductcode3 = 0, smsreservedspace1 = 0, smsreservedspace2 = 0, smsreservedspace_defined = 0;
 #endif
 
 int org_defined = 1, background_defined = 0, background_size = 0;
@@ -5288,6 +5288,30 @@ int parse_directive(void) {
         }
 
 	smsproductcode3 = d & 15;
+      }
+      else if (strcaselesscmp(tmp, "RESERVEDSPACE") == 0) {
+        q = input_number();
+
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED) {
+	  print_error("RESERVEDSPACE needs 2 bytes of data.\n", ERROR_DIR);
+	  return FAILED;
+        }
+
+        smsreservedspace1 = d & 255;
+        smsreservedspace_defined = 1;
+
+	q = input_number();
+
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED) {
+	  print_error("RESERVEDSPACE needs 2 bytes of data.\n", ERROR_DIR);
+	  return FAILED;
+        }
+
+        smsreservedspace2 = d & 255;
       }
       else {
         ind = FAILED;

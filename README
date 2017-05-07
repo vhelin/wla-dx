@@ -598,6 +598,7 @@ This is not a compulsory directive.
         PRODUCTCODE 26, 70, 2 ; 2.5 bytes
 	VERSION 1             ; 0-15
 	REGIONCODE 4          ; 3-7
+	RESERVEDSPACE 0, 0    ; 2 bytes
 .ENDSMS
 
 The REGIONCODE also defines the system:
@@ -608,7 +609,7 @@ The REGIONCODE also defines the system:
  7 - GG International
 
 When .SMSHEADER is defined, also the checksum is calculated, and TMR SEGA, two reserved
-bytes (0, 0) and ROM size are defined. See http://www.smspower.org/Development/ROMHeader
+bytes and ROM size are defined. See http://www.smspower.org/Development/ROMHeader
 for more information about SMS header.
 
 This is not a compulsory directive.
