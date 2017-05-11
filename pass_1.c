@@ -2300,7 +2300,7 @@ int parse_directive(void) {
          }
       }
       else if (tmp[0] == '.') {
-      	si->size = 0;
+        si->size = 0;
         continue;
       }
       else {
