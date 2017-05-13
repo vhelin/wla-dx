@@ -2299,8 +2299,10 @@ int parse_directive(void) {
             return FAILED;
          }
       }
-      else if (tmp[0] == '.')
+      else if (tmp[0] == '.') {
+        si->size = 0;
         continue;
+      }
       else {
         sprintf(emsg, "Unexpected symbol \"%s\" in .STRUCT.\n", tmp);
         print_error(emsg, ERROR_DIR);
