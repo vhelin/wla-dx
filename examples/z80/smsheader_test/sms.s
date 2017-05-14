@@ -167,6 +167,9 @@ bone:
 	sub	ixl
 	.db "MARKER2"
 
+	.repeat 65536*10 index counter
+	.endr
+
 __
 
 .BANK 0 SLOT 1
