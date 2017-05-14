@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "defines.h"
 
@@ -1048,7 +1049,7 @@ int resolve_stack(struct stack_item s[], int x) {
 int compute_stack(struct stack *sta, int x, double *result) {
 
   struct stack_item *s;
-  double v[256], q;
+  double v[256];
   int r, t, z;
 
 
@@ -1117,10 +1118,7 @@ int compute_stack(struct stack *sta, int x, double *result) {
 	t--;
 	break;
       case SI_OP_POWER:
-	q = 1;
-	for (z = 0; z < v[t - 1]; z++)
-	  q *= v[t - 2];
-	v[t - 2] = q;
+	v[t - 2] = pow(v[t - 2], v[t - 1]);
 	t--;
 	break;
       case SI_OP_SHIFT_LEFT:
