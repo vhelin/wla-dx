@@ -27,7 +27,7 @@ int check_file_types(void) {
   
   o = obj_first;
   while (o != NULL) {
-    if (strncmp((char *)o->data, "WLAM", 4) == 0)
+    if (strncmp((char *)o->data, "WLAN", 4) == 0)
       o->format = WLA_VERSION_OBJ;
     else if (strncmp((char *)o->data, "WLAX", 4) == 0)
       o->format = WLA_VERSION_LIB;

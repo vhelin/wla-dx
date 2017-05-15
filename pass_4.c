@@ -940,7 +940,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAM%c", emptyfill);
+    fprintf(final_ptr, "WLAN%c", emptyfill);
 
     /* misc bits */
     ind = 0;
