@@ -10,7 +10,7 @@
 
 
 extern unsigned char *rom;
-extern int romsize, sms_checksum, smstag_defined, gb_checksum, gb_complement_check, snes_checksum;
+extern int romsize, sms_checksum, smstag_defined, gb_checksum, gb_complement_check, snes_checksum, sms_header;
 extern int snes_rom_mode;
 
 
@@ -18,7 +18,7 @@ int reserve_checksum_bytes(void) {
 
   /* reserve checksum bytes so that no free type sections will be placed over them */
   
-  if (sms_checksum != 0) {
+  if (sms_checksum != 0 || sms_header != 0) {
     int tag_address = 0x7FF0;
     if (romsize < 0x4000)
       tag_address = 0x1FF0;
@@ -26,13 +26,17 @@ int reserve_checksum_bytes(void) {
       tag_address = 0x3FF0;
 
     if (romsize >= 0x2000) {
+      /* checksum */
       mem_insert(tag_address + 0xA, 0x0);
       mem_insert(tag_address + 0xB, 0x0);
-      mem_insert(tag_address + 0xF, 0x0);
+      if (sms_checksum != 0) {
+	/* region code */
+	mem_insert(tag_address + 0xF, 0x0);
+      }
     }
   }
-	       
-  if (smstag_defined != 0) {
+
+  if (smstag_defined != 0 || sms_header != 0) {
     int tag_address = 0x7FF0;
     if (romsize < 0x4000)
       tag_address = 0x1FF0;
@@ -40,6 +44,7 @@ int reserve_checksum_bytes(void) {
       tag_address = 0x3FF0;
     
     if (romsize >= 0x2000) {
+      /* tmr sega */
       mem_insert(tag_address + 0x0, 0);
       mem_insert(tag_address + 0x1, 0);
       mem_insert(tag_address + 0x2, 0);
@@ -85,9 +90,11 @@ int reserve_checksum_bytes(void) {
 int compute_checksums(void) {
 
   if (sms_checksum != 0)
-    compute_sms_checksum();
-  if (smstag_defined != 0)
-    add_sms_tag();
+    compute_sms_checksum(0);
+  if (sms_header != 0)
+    compute_sms_checksum(1);
+  if (smstag_defined != 0 || sms_header != 0)
+    add_tmr_sega();
   if (gb_complement_check != 0)
     compute_gb_complement_check();
   if (gb_checksum != 0)
@@ -214,7 +221,7 @@ int compute_snes_checksum(void) {
 }
 
 
-int add_sms_tag(void) {
+int add_tmr_sega(void) {
 
   int tag_address = 0x7FF0;
 
@@ -225,7 +232,7 @@ int add_sms_tag(void) {
     tag_address = 0x3FF0;
 
   if (romsize < 0x2000) {
-    fprintf(stderr, "ADD_SMS_TAG: SMS/GG tag requires a ROM of at least 8KBs.\n");
+    fprintf(stderr, "ADD_TMR_SEGA: A ROM of at least 8KBs is required.\n");
     return SUCCEEDED;
   }
 
@@ -243,7 +250,7 @@ int add_sms_tag(void) {
 }
 
 
-int compute_sms_checksum(void) {
+int compute_sms_checksum(int is_sms_header) {
 
   int tag_address = 0x7FF0, j, checksum;
   /* SMS Export + 32KB ROM */
@@ -266,6 +273,12 @@ int compute_sms_checksum(void) {
   if (romsize < 0x2000) {
     fprintf(stderr, "COMPUTE_SMS_CHECKSUM: SMS/GG checksum computing requires a ROM of at least 8KBs.\n");
     return SUCCEEDED;
+  }
+
+  if (is_sms_header != 0) {
+    /* get the region code from ROM */
+    final_byte &= 0xF;
+    final_byte |= rom[tag_address + 0xF] & 0xF0;
   }
 
   /* add together 8-32KB minus SMS/GG header */

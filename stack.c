@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "defines.h"
 
@@ -1048,7 +1049,7 @@ int resolve_stack(struct stack_item s[], int x) {
 int compute_stack(struct stack *sta, int x, double *result) {
 
   struct stack_item *s;
-  double v[256], q;
+  double v[256];
   int r, t, z;
 
 
@@ -1109,7 +1110,7 @@ int compute_stack(struct stack *sta, int x, double *result) {
 	t--;
 	break;
       case SI_OP_DIVIDE:
-	if (((int)v[t - 1]) == 0) {
+	if (v[t - 1] == 0.0) {
 	  fprintf(stderr, "%s:%d: COMPUTE_STACK: Division by zero.\n", get_file_name(sta->filename_id), sta->linenumber);
 	  return FAILED;
 	}
@@ -1117,10 +1118,7 @@ int compute_stack(struct stack *sta, int x, double *result) {
 	t--;
 	break;
       case SI_OP_POWER:
-	q = 1;
-	for (z = 0; z < v[t - 1]; z++)
-	  q *= v[t - 2];
-	v[t - 2] = q;
+	v[t - 2] = pow(v[t - 2], v[t - 1]);
 	t--;
 	break;
       case SI_OP_SHIFT_LEFT:
@@ -1135,6 +1133,7 @@ int compute_stack(struct stack *sta, int x, double *result) {
     }
   }
 
+  /*
 #ifdef W65816
   if (v[0] < -8388608 || v[0] > 16777215) {
     print_error("Out of 24-bit range.\n", ERROR_STC);
@@ -1146,6 +1145,7 @@ int compute_stack(struct stack *sta, int x, double *result) {
     return FAILED;
   }
 #endif
+  */
 
   *result = v[0];
 
@@ -1169,7 +1169,7 @@ int stack_create_label_stack(char *label) {
   stacks_tmp->bank = -123456;
   stacks_tmp->stacksize = 1;
   stacks_tmp->relative_references = 0;
-  stacks_tmp->stack = malloc(sizeof(struct stack_item) * 1);
+  stacks_tmp->stack = malloc(sizeof(struct stack_item));
   if (stacks_tmp->stack == NULL) {
     free(stacks_tmp);
     print_error("Out of memory error while allocating room for a new stack.\n", ERROR_STC);

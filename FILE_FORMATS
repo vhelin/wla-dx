@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAM" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 14 (05-Feb-2016)
+        "WLAN" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 15 (04-May-2017)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -24,7 +24,8 @@ header:
   1     more bits (bit 0 - smc (1 == add smc rom header)
                    bit 1 - snes sram size, lower bit
                    bit 2 - snes sram size, higher bit
-		   bit 3 - sms tag (1 == inject))
+		   bit 3 - sms tag (1 == inject)
+		   bit 4 - sms header (1 == inject))
 
 rom bank map:
 
