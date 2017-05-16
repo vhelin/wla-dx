@@ -134,13 +134,16 @@ int add_section(struct section *s) {
   return SUCCEEDED;
 }
 
+
 int find_label(char *str, struct section *s, struct label **out) {
+
   char* str2;
   char* stripped;
   char prefix[MAX_NAME_LENGTH*2+2];
   struct label *l = NULL;
   int i;
 
+  
   str2 = strchr(str, '.');
   i = str2-str;
   if (str2 == NULL) {
@@ -156,8 +159,9 @@ int find_label(char *str, struct section *s, struct label **out) {
   *out = NULL;
 
   if (prefix[0] != '\0') {
-    /* A namespace is specified (or at least there's a dot in the label) */
+    /* a namespace is specified (or at least there's a dot in the label) */
     struct namespace_def *nspace;
+
     if (hashmap_get(namespace_map, prefix, (void*)&nspace) == MAP_OK) {
       if (hashmap_get(nspace->label_map, stripped, (void*)&l) == MAP_OK) {
         *out = l;
@@ -166,14 +170,14 @@ int find_label(char *str, struct section *s, struct label **out) {
     }
   }
   if (s != NULL && s->nspace != NULL) {
-    /* Check the section's namespace */
+    /* check the section's namespace */
     if (hashmap_get(s->nspace->label_map, str, (void*)&l) == MAP_OK) {
       *out = l;
       return SUCCEEDED;
     }
   }
   if (s != NULL) {
-    /* Check the section's labels. This is a bit redundant but it might have
+    /* check the section's labels. This is a bit redundant but it might have
      * local labels (labels starting with an underscore)
      */
     if (hashmap_get(s->label_map, str, (void*)&l) == MAP_OK) {
@@ -181,7 +185,7 @@ int find_label(char *str, struct section *s, struct label **out) {
       return SUCCEEDED;
     }
   }
-  /* Check the global namespace */
+  /* check the global namespace */
   if (hashmap_get(global_unique_label_map, str, (void*)&l) == MAP_OK) {
     *out = l;
     return SUCCEEDED;

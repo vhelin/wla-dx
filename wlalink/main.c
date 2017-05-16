@@ -385,6 +385,10 @@ int main(int argc, char *argv[]) {
   if (fix_label_addresses() == FAILED)
     return 1;
 
+  /* generate _sizeof_[label] definitions */
+  if (generate_sizeof_label_definitions() == FAILED)
+    return 1;
+
 #ifdef WLALINK_DEBUG
   if (labels_first != NULL) {
     struct label *l = labels_first;

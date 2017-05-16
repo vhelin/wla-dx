@@ -552,9 +552,9 @@ Indicates the country code located at $14A of a Gameboy ROM.
 
 This is not a compulsory directive.
 
---------------
+------------------
 .DESTINATIONCODE 1
---------------
+------------------
 
 .DESTINATIONCODE is an alias for .COUNTRYCODE.
 
@@ -2705,6 +2705,15 @@ calculations and sees only the preprocessed output of WLA):
                 ; to # as it's closest to me in the output WLA produces
                 ; for WLALINK (so it's better to use \@ with labels inside
                 ; a macro).
+
+WLALINK will also generate _sizeof_[label] defines that measure the distance
+between two consecutive labels. Here is an example:
+
+Label1:
+   .db 1, 2, 3, 4
+Label2:
+
+In this case you'll get a definition _sizeof_Label1 that will have value 4.
 
 
 3.4. Number Types

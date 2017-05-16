@@ -115,7 +115,8 @@ _nams:	.dw _nams+1
 BOOM1:
 .db "HELLOMOTO"
 
-.db _f & $ff
+	.db _f & $ff
+	.db _sizeof_BOOM1
 OOPS1:
 .dw _F
 OOPS2:

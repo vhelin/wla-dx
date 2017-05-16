@@ -20,5 +20,6 @@ int correct_65816_library_sections(void);
 int is_label_anonymous(char *label);
 struct label *get_closest_anonymous_label(char *name, int rom_address, int file_id, int section_status, int section);
 struct stack *find_stack(int id, int file_id);
+int generate_sizeof_label_definitions(void);
 
 #endif

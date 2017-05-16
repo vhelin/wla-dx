@@ -1565,6 +1565,7 @@ int parse_directive(void) {
 	  }
 	  else {
 	    int tmp_a = 0;
+	    
 	    /* handle '\<' */
 	    if (label[o] == '\\' && label[o + 1] == '<') {
 	      o += 2;
