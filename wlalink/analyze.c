@@ -832,6 +832,7 @@ int parse_data_blocks(void) {
             s->nspace = NULL;
           else {
             struct namespace_def *nspace;
+
             hashmap_get(namespace_map, buf, (void*)&nspace);
             if (nspace == NULL) {
               nspace = malloc(sizeof(struct namespace_def));
@@ -901,6 +902,7 @@ int parse_data_blocks(void) {
           s->nspace = NULL;
         else {
           struct namespace_def *nspace;
+
           hashmap_get(namespace_map, buf, (void*)&nspace);
           if (nspace == NULL) {
             nspace = malloc(sizeof(struct namespace_def));

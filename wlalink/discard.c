@@ -73,7 +73,7 @@ int discard_iteration(void) {
   /* check section names for special characters '!', and check if the section is of proper type */
   s = sec_first;
   while (s != NULL) {
-    if (s->name[0] == '!' || !(s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_SEMIFREE || s->status == SECTION_STATUS_SEMISUBFREE)) {
+    if (s->name[0] == '!' || !(s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_SEMIFREE || s->status == SECTION_STATUS_SEMISUBFREE || s->status == SECTION_STATUS_RAM)) {
       s->referenced++;
       s->alive = YES;
     }
@@ -88,6 +88,7 @@ int discard_iteration(void) {
       r = r->next;
       continue;
     }
+
     s = NULL;
     if (r->section_status != 0) {
       s = sec_first;
