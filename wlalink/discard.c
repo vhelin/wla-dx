@@ -16,6 +16,8 @@ extern struct section *sec_first, *sec_last;
 extern struct label *labels_first, *labels_last;
 extern struct stack *stacks_first, *stacks_last;
 
+extern int verbose_mode;
+
 
 int discard_unused_sections(void) {
 
@@ -47,15 +49,17 @@ int discard_unused_sections(void) {
     }
   }
 
-  /* announce all the unreferenced sections that will get dropped */
-  s = sec_first;
-  while (s != NULL) {
-    if (s->alive == NO)
-      fprintf(stderr, "DISCARD: %s:%s: Section \"%s\" was discarded.\n",
-	      get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
-    s = s->next;
+  if (verbose_mode == ON) {
+    /* announce all the unreferenced sections that will get dropped */
+    s = sec_first;
+    while (s != NULL) {
+      if (s->alive == NO)
+	fprintf(stderr, "DISCARD: %s:%s: Section \"%s\" was discarded.\n",
+		get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+      s = s->next;
+    }
   }
-
+  
   return SUCCEEDED;
 }
 
@@ -103,7 +107,7 @@ int discard_iteration(void) {
     if (l != NULL && l->section_status == ON) {
       s = l->section_struct;
       if (s == NULL)
-        fprintf(stderr, "DISCARD_ITERATION: Internal error!\n");
+        fprintf(stderr, "DISCARD_ITERATION: Internal error! Please send a bug report.\n");
       if (r->section_status == OFF)
         s->referenced++;
       else if (r->section != s->id) {
