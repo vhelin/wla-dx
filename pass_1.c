@@ -102,6 +102,7 @@ struct slot slots[256];
 struct structure *structures_first = NULL;
 struct filepointer *filepointers = NULL;
 struct map_t *namespace_map = NULL;
+struct append_section *append_sections = NULL;
 
 extern char *buffer, *unfolded_buffer, label[MAX_NAME_LENGTH], *include_dir, *full_name;
 extern int size, unfolded_size, input_number_error_msg, verbose_mode, output_format, open_files;
@@ -2813,6 +2814,30 @@ int parse_directive(void) {
         return FAILED;
 
       sec_tmp->advance_org = NO;
+    }
+
+    if (compare_next_token("APPENDTO", 8) == SUCCEEDED) {
+      struct append_section *append_tmp;
+	
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      append_tmp = calloc(sizeof(struct append_section), 1);
+      if (append_tmp == NULL) {
+	sprintf(emsg, "Out of memory while allocating room for a new APPENDTO \"%s\".\n", tmp);
+	print_error(emsg, ERROR_DIR);
+	return FAILED;
+      }
+      
+      /* get the target section name */
+      if (get_next_token() == FAILED)
+	return FAILED;
+
+      strcpy(append_tmp->section, sec_tmp->name);
+      strcpy(append_tmp->append_to, tmp);
+
+      append_tmp->next = append_sections;
+      append_sections = append_tmp;
     }
 
     /* bankheader section? */

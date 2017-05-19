@@ -81,6 +81,7 @@ extern struct macro_runtime *macro_stack;
 extern struct label_def *unknown_labels;
 extern struct filepointer *filepointers;
 extern struct map_t *namespace_map;
+extern struct append_section *append_sections;
 extern char *unfolded_buffer;
 extern char *include_in_tmp, *tmp_a;
 extern char *rom_banks, *rom_banks_usage_table;
@@ -352,6 +353,7 @@ void procedures_at_exit(void) {
   struct label_def *l1, *l2;
   struct macro_static *m;
   struct filepointer *f1, *f2;
+  struct append_section *as;
   int i;
 
   /* free all the dynamically allocated data structures and close open files */
@@ -377,18 +379,18 @@ void procedures_at_exit(void) {
     free(full_name);
 
   if (defines_map != NULL) {
-      hashmap_free_all_elements(defines_map);
-      hashmap_free(defines_map);
+    hashmap_free_all_elements(defines_map);
+    hashmap_free(defines_map);
   }
 
   if (global_unique_label_map != NULL) {
-      /* don't free_all_elements, since labels contains _all_ labels. */
-      hashmap_free(global_unique_label_map);
+    /* don't free_all_elements, since labels contains _all_ labels. */
+    hashmap_free(global_unique_label_map);
   }
 
   if (namespace_map != NULL) {
-      hashmap_free_all_elements(namespace_map);
-      hashmap_free(namespace_map);
+    hashmap_free_all_elements(namespace_map);
+    hashmap_free(namespace_map);
   }
 
   m = macros_first;
@@ -450,6 +452,13 @@ void procedures_at_exit(void) {
     stacks_first = stacks_tmp->next;
     free(stacks_tmp);
     stacks_tmp = stacks_first;
+  }
+
+  as = append_sections;
+  while (as != NULL) {
+    append_sections = as->next;
+    free(as);
+    as = append_sections;
   }
 
   if (unfolded_buffer != NULL)

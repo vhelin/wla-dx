@@ -1,3 +1,4 @@
+
 #include "../hashmap.h"
 
 #define OBJ_FORMAT_INFO  0
@@ -73,6 +74,12 @@ struct object_file {
   int id;
   struct source_file_name *source_file_names_list;
   struct object_file *next;
+};
+
+struct append_section {
+  char section[MAX_NAME_LENGTH];
+  char append_to[MAX_NAME_LENGTH];
+  struct append_section *next;
 };
 
 #define LABEL_STATUS_LABEL      0

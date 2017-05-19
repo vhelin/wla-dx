@@ -37,6 +37,7 @@ struct label *labels_first = NULL, *labels_last = NULL;
 struct map_t *global_unique_label_map = NULL;
 struct map_t *namespace_map = NULL;
 struct slot slots[256];
+struct append_section *append_sections = NULL, *append_tmp;
 unsigned char *rom, *rom_usage, *file_header = NULL, *file_footer = NULL;
 int romsize, rombanks, banksize, verbose_mode = OFF, section_overwrite = OFF, symbol_mode = SYMBOL_MODE_NONE;
 int pc_bank, pc_full, pc_slot, pc_slot_max;
@@ -234,6 +235,10 @@ int main(int argc, char *argv[]) {
 
   /* parse data blocks */
   if (parse_data_blocks() == FAILED)
+    return 1;
+
+  /* append sections */
+  if (merge_sections() == FAILED)
     return 1;
 
   /* clean up the structures */
@@ -649,6 +654,8 @@ void procedures_at_exit(void) {
       free(sec_first->listfile_cmds);
     if (sec_first->listfile_ints != NULL)
       free(sec_first->listfile_ints);
+    if (sec_first->data != NULL)
+      free(sec_first->data);
     hashmap_free(sec_first->label_map);
     free(sec_first);
     sec_first = s;
@@ -658,6 +665,13 @@ void procedures_at_exit(void) {
     s = sec_hd_first->next;
     free(sec_hd_first);
     sec_hd_first = s;
+  }
+
+  append_tmp = append_sections;
+  while (append_tmp != NULL) {
+    append_sections = append_tmp->next;
+    free(append_tmp);
+    append_tmp = append_sections;
   }
 
   if (banksizes != NULL)

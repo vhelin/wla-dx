@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file format "WLAM"
+WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file format "WLAO"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAN" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 15 (04-May-2017)
+        "WLAO" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 16 (18-May-2017)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -111,6 +111,14 @@ pending calculations:
   ...
   ...
 
+section appends
+
+  4     number of appends (int)
+  ...
+  n     section name (0 terminated)
+  n     append to (0 terminated)
+  ...
+
 data area (loops to the end of the file):
 
   ...
@@ -142,7 +150,7 @@ section:
 
 
 
-WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file format "WLAX"
+WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file format "WLAY"
 
 
 bytes   description
@@ -150,7 +158,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAX" - WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file version 12 (05-Feb-2016)
+        "WLAY" - WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file version 13 (18-Feb-2016)
 
 source file name list:
 
@@ -211,6 +219,14 @@ pending calculations:
   8     value (double) OR
   n     string (0 terminated)
   ...
+  ...
+
+section appends
+
+  4     number of appends (int)
+  ...
+  n     section name (0 terminated)
+  n     append to (0 terminated)
   ...
 
 sections:

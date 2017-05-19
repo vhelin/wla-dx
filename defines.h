@@ -419,6 +419,12 @@ struct definition {
   int    size;
 };
 
+struct append_section {
+  char section[MAX_NAME_LENGTH];
+  char append_to[MAX_NAME_LENGTH];
+  struct append_section *next;
+};
+
 struct macro_argument {
   int type;
   int value;
