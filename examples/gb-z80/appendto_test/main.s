@@ -26,11 +26,13 @@ test1:
 
 .section "EXTRA"
 test3:	.db $20, $21, $22
+test3end:
 .ends
 
 .section "SLAVE1" appendto "MASTER"
 test2:
 	.db 7, 8, 9, (test1 & $ff) + 6, 11, 12
+test2end:
 .ends
 
 .section "SLAVE2" appendto "MASTER"
