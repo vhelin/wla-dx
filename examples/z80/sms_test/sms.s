@@ -4,6 +4,11 @@
 ; written by ville helin <vhelin@cc.hut.fi> in 2001-2008
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
+.define ABC 0-1
+.printt "ABC = "
+.printv dec ABC
+.printt "\n"
+	
 .MEMORYMAP
    DEFAULTSLOT     0
    ; ROM area

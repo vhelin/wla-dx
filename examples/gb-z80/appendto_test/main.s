@@ -36,5 +36,13 @@ test2:
 .section "SLAVE2" appendto "MASTER"
 	.db 13, 14, 15
 	.db test2 + 2 - 3 + 1
+	.db $ff, $ff, $ff
+	ld hl, _sizeof_label
+	.db $ff, $ff, $ff
+.ends
+	
+.section "SIZEOFs"
+label:	.dw test1, test2, test3
+label_END:	
 .ends
 	
