@@ -2238,6 +2238,10 @@ int parse_directive(void) {
             if (q == SUCCEEDED) {
                arr = d;
             }
+            else if (q == INPUT_NUMBER_EOL)
+            {
+                next_line();
+            }
             
             if (arr == 0) {
                /* invalid structure array size */
