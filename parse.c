@@ -579,7 +579,8 @@ int input_number(void) {
       return SUCCEEDED;
     }
     else if (tmp_def->type == DEFINITION_TYPE_STACK) {
-      /* skip stack definitions -> use its name instead */
+      latest_stack = (int)tmp_def->value;
+      return INPUT_NUMBER_STACK;
     }
     else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
       if (label[0] == ':') {
