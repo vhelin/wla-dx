@@ -87,9 +87,8 @@ parent:
 	.db <@a+1
 
 parent2:
-; Give this one more character to get an error (will be too long when turned
-; into "parent2@reallyreally...longname".
-@reallyreallyreallyreallyreallyreallyreallyreallylongnam:
+; This is higher than the old limit of ~64 characters, but now the limit is 255
+@reallyreallyreallyreallyreallyreallyreallyreallylongname:
 
 @continue:
 @@continueChild:
@@ -99,6 +98,14 @@ parent2:
 	ld hl,_LOOP
 	push hl
 	ld hl,data
+
+	; Test the value of the sizeof label
+	ldi a,(hl)
+-
+	cp 6
+	jr nz,-
+
+	; Make sure the arithmetic worked (if not it'll jump to some garbage place)
 	ldi a,(hl)
 	ld h,(hl)
 	ld l,a
@@ -114,6 +121,7 @@ _LOOP:	LD	($FF00+R_BGP), A	;background palette.
 	JP	_LOOP
 
 data:
+	.db _sizeof__LOOP ; Should be 6
 	.dw s3.func3 + 20 ; Test arithmetic on namespaces
 
 
