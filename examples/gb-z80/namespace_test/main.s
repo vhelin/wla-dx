@@ -122,10 +122,14 @@ parent2:
 
 _LOOP:	LD	($FF00+R_BGP), A	;background palette.
 	INC	A 
+
+@child: ; When calculating "sizeof" for _LOOP, it should skip over these child labels
+@@child:
+
 	JP	_LOOP
 
 data:
-	.db _sizeof__LOOP ; Should be 6
+	.db _sizeof__LOOP ; Should be 6 (skips over child label)
 	.db shared._sizeof_sharedEntry ; Should be 4
 	.dw s3.func3 + 20 ; Test arithmetic on namespaces
 

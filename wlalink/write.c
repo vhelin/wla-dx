@@ -1866,7 +1866,7 @@ static int _labels_sort(const void *a, const void *b) {
 
 int generate_sizeof_label_definitions(void) {
 
-  struct label *l, **labels = NULL;
+  struct label *l, *lastL, **labels = NULL;
   int labelsN = 0, j;
 
 
@@ -1875,10 +1875,17 @@ int generate_sizeof_label_definitions(void) {
   
   /* generate _sizeof_[label] definitions */
   l = labels_first;
+  lastL = NULL;
   while (l != NULL) {
-    /* skip anonymous labels */
-    if (l->status == LABEL_STATUS_LABEL && is_label_anonymous(l->name) != SUCCEEDED)
+    /* skip anonymous labels & child labels */
+    if (l->status == LABEL_STATUS_LABEL && is_label_anonymous(l->name) != SUCCEEDED
+        && (lastL == NULL
+            || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0
+                && l->name[strlen(lastL->name)] == '@'))) {
       labelsN++;
+      lastL = l;
+    }
+
     l = l->next;
   }
 
@@ -1893,9 +1900,17 @@ int generate_sizeof_label_definitions(void) {
   
   j = 0;
   l = labels_first;
+  lastL = NULL;
   while (l != NULL) {
-    if (l->status == LABEL_STATUS_LABEL && is_label_anonymous(l->name) != SUCCEEDED)
+    /* skip anonymous labels & child labels */
+    if (l->status == LABEL_STATUS_LABEL && is_label_anonymous(l->name) != SUCCEEDED
+        && (lastL == NULL
+            || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0
+                && l->name[strlen(lastL->name)] == '@'))) {
       labels[j++] = l;
+      lastL = l;
+    }
+
     l = l->next;
   }
       
