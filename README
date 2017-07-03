@@ -2717,13 +2717,25 @@ calculations and sees only the preprocessed output of WLA):
                 ; a macro).
 
 WLALINK will also generate _sizeof_[label] defines that measure the distance
-between two consecutive labels. Here is an example:
+between two consecutive labels. These labels have the same scope as the labels
+they describe. Here is an example:
 
 Label1:
    .db 1, 2, 3, 4
 Label2:
 
 In this case you'll get a definition _sizeof_Label1 that will have value 4.
+
+WLA will skip over any child labels when calculating _sizeof. So, in this
+example:
+
+Label1:
+   .db 1, 2
+@child:
+   .db 3, 4
+Label2:
+
+The value of "_sizeof_Label1" will still have a value of 4.
 
 
 3.4. Number Types
