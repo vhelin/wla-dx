@@ -99,10 +99,14 @@ parent2:
 	push hl
 	ld hl,data
 
-	; Test the value of the sizeof label
+	; Test the values of the sizeof labels
 	ldi a,(hl)
 -
 	cp 6
+	jr nz,-
+	ldi a,(hl)
+-
+ 	cp 4
 	jr nz,-
 
 	; Make sure the arithmetic worked (if not it'll jump to some garbage place)
@@ -122,7 +126,11 @@ _LOOP:	LD	($FF00+R_BGP), A	;background palette.
 
 data:
 	.db _sizeof__LOOP ; Should be 6
+	.db shared._sizeof_sharedEntry ; Should be 4
 	.dw s3.func3 + 20 ; Test arithmetic on namespaces
+
+	; Uncomment for error (since _globalFunc is a local name)
+	;.db shared._sizeof__globalFunc
 
 
 .ENDS
@@ -137,6 +145,8 @@ sharedEntry:
 
 _globalFunc: ; Should not be called
 	jr _globalFunc
+
+	.db _sizeof__globalFunc
 .ENDS
 
 _globalFunc:

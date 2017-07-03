@@ -582,7 +582,7 @@ int fix_label_sections(void) {
       }
     }
 
-    insert_label_into_maps(l);
+    insert_label_into_maps(l, 0);
 
     l = l->next;
   }
@@ -593,13 +593,20 @@ int fix_label_sections(void) {
 
 
 /* Determines which hashmaps are relevant for the label, and adds it to them. */
-int insert_label_into_maps(struct label* l) {
+int insert_label_into_maps(struct label* l, int is_sizeof) {
   int put_in_global = 1;
   int put_in_anything = 1;
+  char* base_name;
+
+  /* for "sizeof" labels, "base_name" refers to the label name without the "_sizeof_"
+   * prefix. */
+  base_name = l->name;
+  if (is_sizeof)
+    base_name += 8;
 
   if (l->status == LABEL_STATUS_SYMBOL
       || l->status == LABEL_STATUS_BREAKPOINT
-      || is_label_anonymous(l->name) == SUCCEEDED) {
+      || is_label_anonymous(base_name) == SUCCEEDED) {
     /* don't put anonymous labels, breakpoints, or symbols into any maps */
     put_in_anything = 0;
   }
@@ -614,11 +621,11 @@ int insert_label_into_maps(struct label* l) {
       if (try_put_label(s->label_map, l) == FAILED)
         return FAILED;
 
-      if (l->name[0] == '_')
+      if (base_name[0] == '_')
         put_in_global = 0;
 
       /* put label into section's namespace's label map, if it's not a local label */
-      if (s->nspace != NULL && l->name[0] != '_') {
+      if (s->nspace != NULL && base_name[0] != '_') {
         if (try_put_label(s->nspace->label_map, l) == FAILED)
           return FAILED;
         put_in_global = 0;
@@ -631,6 +638,8 @@ int insert_label_into_maps(struct label* l) {
     if (try_put_label(global_unique_label_map, l) == FAILED)
       return FAILED;
   }
+
+  return SUCCEEDED;
 }
 
 
@@ -1900,8 +1909,6 @@ int generate_sizeof_label_definitions(void) {
   */
   
   for (j = 0; j < labelsN-1; j++) {
-    int put_in_global = 1;
-
     if (labels[j]->section != labels[j+1]->section)
       continue;
     
@@ -1915,7 +1922,7 @@ int generate_sizeof_label_definitions(void) {
     if (strlen(labels[j]->name)+8 > MAX_NAME_LENGTH) {
       fprintf(stderr, "GENERATE_SIZEOF_LABEL_DEFINITIONS: Expanded label name \"_sizeof_%s\" is %d bytes too large.\n",
               labels[j]->name,
-              strlen(labels[j]->name)-MAX_NAME_LENGTH+8);
+              (int)(strlen(labels[j]->name)-MAX_NAME_LENGTH+8));
       free(labels);
       return FAILED;
     }
@@ -1930,10 +1937,12 @@ int generate_sizeof_label_definitions(void) {
     l->section_struct = labels[j]->section_struct;
     l->section        = labels[j]->section;
 
-    if (insert_label_into_maps(l) == FAILED) {
+    if (insert_label_into_maps(l, 1) == FAILED) {
       free(labels);
       return FAILED;
     }
+
+
     add_label(l);
   }
   
