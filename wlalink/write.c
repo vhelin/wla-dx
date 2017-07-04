@@ -556,25 +556,16 @@ int try_put_label(map_t map, struct label *l) {
 }
 
 
+/* Determines the section for each label, and calls "insert_label_into_maps" for each. */
 int fix_label_sections(void) {
 
   struct section *s;
   struct label *l;
 
-  
   l = labels_first;
   while (l != NULL) {
-    int put_in_global = 1;
-    int put_in_anything = 1;
-
-    if (l->status == LABEL_STATUS_SYMBOL
-        || l->status == LABEL_STATUS_BREAKPOINT
-        || is_label_anonymous(l->name) == SUCCEEDED) {
-      /* don't put anonymous labels, breakpoints, or symbols into any maps */
-      put_in_anything = 0;
-    }
-
     if (l->section_status == ON) {
+      /* Search for the label's section */
       s = sec_first;
       while (s != NULL) {
         if (s->id == l->section) {
@@ -586,34 +577,66 @@ int fix_label_sections(void) {
 
       if (s == NULL) {
         fprintf(stderr, "FIX_LABEL_SECTIONS: Internal error: couldn't find section %d for label \"%s\".\n",
-		l->section, l->name);
+                l->section, l->name);
         return FAILED;
-      }
-
-      if (put_in_anything) {
-        /* put label into section's label map */
-        if (try_put_label(s->label_map, l) == FAILED)
-          return FAILED;
-
-        if (l->name[0] == '_')
-          put_in_global = 0;
-
-        /* put label into section's namespace's label map, if it's not a local label */
-        if (s->nspace != NULL && l->name[0] != '_') {
-          if (try_put_label(s->nspace->label_map, l) == FAILED)
-            return FAILED;
-          put_in_global = 0;
-        }
       }
     }
 
-    /* put the label into the global namespace */
-    if (put_in_anything && put_in_global) {
-      if (try_put_label(global_unique_label_map, l) == FAILED)
-        return FAILED;
-    }
+    insert_label_into_maps(l, 0);
 
     l = l->next;
+  }
+
+  return SUCCEEDED;
+}
+
+
+
+/* Determines which hashmaps are relevant for the label, and adds it to them. */
+int insert_label_into_maps(struct label* l, int is_sizeof) {
+  int put_in_global = 1;
+  int put_in_anything = 1;
+  char* base_name;
+
+  /* for "sizeof" labels, "base_name" refers to the label name without the "_sizeof_"
+   * prefix. */
+  base_name = l->name;
+  if (is_sizeof)
+    base_name += 8;
+
+  if (l->status == LABEL_STATUS_SYMBOL
+      || l->status == LABEL_STATUS_BREAKPOINT
+      || is_label_anonymous(base_name) == SUCCEEDED) {
+    /* don't put anonymous labels, breakpoints, or symbols into any maps */
+    put_in_anything = 0;
+  }
+
+  if (l->section_status == ON) {
+    struct section *s;
+    
+    s = l->section_struct;
+
+    if (put_in_anything) {
+      /* put label into section's label map */
+      if (try_put_label(s->label_map, l) == FAILED)
+        return FAILED;
+
+      if (base_name[0] == '_')
+        put_in_global = 0;
+
+      /* put label into section's namespace's label map, if it's not a local label */
+      if (s->nspace != NULL && base_name[0] != '_') {
+        if (try_put_label(s->nspace->label_map, l) == FAILED)
+          return FAILED;
+        put_in_global = 0;
+      }
+    }
+  }
+
+  /* put the label into the global namespace */
+  if (put_in_anything && put_in_global) {
+    if (try_put_label(global_unique_label_map, l) == FAILED)
+      return FAILED;
   }
 
   return SUCCEEDED;
@@ -1843,7 +1866,7 @@ static int _labels_sort(const void *a, const void *b) {
 
 int generate_sizeof_label_definitions(void) {
 
-  struct label *l, **labels = NULL;
+  struct label *l, *lastL, **labels = NULL;
   int labelsN = 0, j;
 
 
@@ -1852,10 +1875,17 @@ int generate_sizeof_label_definitions(void) {
   
   /* generate _sizeof_[label] definitions */
   l = labels_first;
+  lastL = NULL;
   while (l != NULL) {
-    /* skip anonymous labels */
-    if (l->status == LABEL_STATUS_LABEL && is_label_anonymous(l->name) != SUCCEEDED)
+    /* skip anonymous labels & child labels */
+    if (l->status == LABEL_STATUS_LABEL && is_label_anonymous(l->name) != SUCCEEDED
+        && (lastL == NULL
+            || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0
+                && l->name[strlen(lastL->name)] == '@'))) {
       labelsN++;
+      lastL = l;
+    }
+
     l = l->next;
   }
 
@@ -1870,9 +1900,17 @@ int generate_sizeof_label_definitions(void) {
   
   j = 0;
   l = labels_first;
+  lastL = NULL;
   while (l != NULL) {
-    if (l->status == LABEL_STATUS_LABEL && is_label_anonymous(l->name) != SUCCEEDED)
+    /* skip anonymous labels & child labels */
+    if (l->status == LABEL_STATUS_LABEL && is_label_anonymous(l->name) != SUCCEEDED
+        && (lastL == NULL
+            || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0
+                && l->name[strlen(lastL->name)] == '@'))) {
       labels[j++] = l;
+      lastL = l;
+    }
+
     l = l->next;
   }
       
@@ -1896,21 +1934,31 @@ int generate_sizeof_label_definitions(void) {
       return FAILED;
     }
 
+    if (strlen(labels[j]->name)+8 > MAX_NAME_LENGTH) {
+      fprintf(stderr, "GENERATE_SIZEOF_LABEL_DEFINITIONS: Expanded label name \"_sizeof_%s\" is %d bytes too large.\n",
+              labels[j]->name,
+              (int)(strlen(labels[j]->name)-MAX_NAME_LENGTH+8));
+      free(labels);
+      return FAILED;
+    }
+
     sprintf(l->name, "_sizeof_%s", labels[j]->name);
     l->status = LABEL_STATUS_DEFINE;
     l->address = labels[j+1]->rom_address - labels[j]->rom_address;
     l->base = 0;
     l->file_id = labels[j]->file_id;
-    l->section_status = OFF;
-    l->section_struct = NULL;
-	
-    add_label(l);
 
-    /* put the label into the global namespace */
-    if (try_put_label(global_unique_label_map, l) == FAILED) {
+    l->section_status = labels[j]->section_status;
+    l->section_struct = labels[j]->section_struct;
+    l->section        = labels[j]->section;
+
+    if (insert_label_into_maps(l, 1) == FAILED) {
       free(labels);
       return FAILED;
     }
+
+
+    add_label(l);
   }
   
   free(labels);
