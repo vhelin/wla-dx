@@ -1851,13 +1851,17 @@ struct label *get_closest_anonymous_label(char *name, int rom_address, int file_
 
 
 static int _labels_sort(const void *a, const void *b) {
-
   if ((*((struct label **)a))->section > (*((struct label **)b))->section)
     return 1;
   else if ((*((struct label **)a))->section < (*((struct label **)b))->section)
     return -1;
   
   if ((*((struct label **)a))->rom_address > (*((struct label **)b))->rom_address)
+    return 1;
+  else if ((*((struct label **)a))->rom_address < (*((struct label **)b))->rom_address)
+    return -1;
+
+  if ((*((struct label **)a))->linenumber > (*((struct label **)b))->linenumber)
     return 1;
 
   return -1;
@@ -1923,10 +1927,16 @@ int generate_sizeof_label_definitions(void) {
   }
   */
   
-  for (j = 0; j < labelsN-1; j++) {
-    if (labels[j]->section != labels[j+1]->section)
-      continue;
-    
+  for (j = 0; j < labelsN; j++) {
+    double size;
+    if (j == labelsN - 1 || labels[j]->section != labels[j+1]->section)
+      /* last label in this section */
+        if (labels[j]->section_struct != NULL)
+          size = labels[j]->section_struct->output_address + labels[j]->section_struct->size - labels[j]->rom_address;
+      else
+        continue;
+    else
+      size = labels[j+1]->rom_address - labels[j]->rom_address;
     l = calloc(1, sizeof(struct label));
     if (l == NULL) {
       fprintf(stderr, "GENERATE_SIZEOF_LABEL_DEFINITIONS: Out of memory error.\n");
@@ -1944,7 +1954,7 @@ int generate_sizeof_label_definitions(void) {
 
     sprintf(l->name, "_sizeof_%s", labels[j]->name);
     l->status = LABEL_STATUS_DEFINE;
-    l->address = labels[j+1]->rom_address - labels[j]->rom_address;
+    l->address = size;
     l->base = 0;
     l->file_id = labels[j]->file_id;
 
