@@ -23,3 +23,11 @@ wlab/CMakeFiles/
 /*build/
 /doc/*build/
 
+# Visual Studio generated files
+*.vcxproj*
+.vs
+*.dir
+*.sln
+*.tlog
+*.VC.*
+*.log
