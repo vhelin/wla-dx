@@ -3,9 +3,6 @@
 
 #Cmake files also need to go.
 
-makefile
-MAKEFILE
-Makefile
 opcodes_*_tables.c
 CMakeCache.txt
 cmake_install.cmake

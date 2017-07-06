@@ -18,3 +18,8 @@ VBI_WAIT_POWER:
 	ret
 
 .ENDS
+
+.section "vbi_dummy"
+VBI_DUMMY:
+.include "src/nop.s"
+.ends

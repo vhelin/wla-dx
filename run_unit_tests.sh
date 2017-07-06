@@ -79,6 +79,7 @@ cd ..
 #####################################################################
 
 changePlatform gb-z80
+runTest appendto_test
 runTest background_test
 runTest linker_test
 runTest namespace_test

@@ -35,6 +35,7 @@ extern struct label *labels_first, *labels_last;
 extern struct map_t *global_unique_label_map;
 extern struct map_t *namespace_map;
 extern struct slot slots[256];
+extern struct append_section *append_sections, *append_tmp;
 extern int rombanks, verbose_mode, section_overwrite, symbol_mode, discard_unreferenced_sections;
 extern int emptyfill;
 extern int *banksizes, *bankaddress;
@@ -92,9 +93,22 @@ int add_stack(struct stack *sta) {
 
 int add_section(struct section *s) {
 
+  unsigned char *data;
   struct section *ss;
 
   
+  /* create a local copy of the data */
+  if (s->size > 0) {
+    data = malloc(s->size);
+    if (data == NULL) {
+      fprintf(stderr, "%s: ADD_SECTION: Out of memory.\n", obj_tmp->name);
+      return FAILED;
+    }
+
+    memcpy(data, s->data, s->size);
+    s->data = data;
+  }
+
   s->file_id = obj_tmp->id;
   s->next = NULL;
   s->alive = YES;
@@ -134,13 +148,39 @@ int add_section(struct section *s) {
   return SUCCEEDED;
 }
 
+
+int free_section(struct section *s) {
+
+  if (s == NULL)
+    return FAILED;
+
+  if (s->prev != NULL)
+    s->prev->next = s->next;
+  if (s->next != NULL)
+    s->next->prev = s->prev;
+  else
+    sec_last = s->prev;
+
+  /* free label map */
+  hashmap_free(s->label_map);
+	  
+  if (s->data != NULL)
+    free(s->data);
+  free(s);
+
+  return SUCCEEDED;
+}
+
+
 int find_label(char *str, struct section *s, struct label **out) {
+
   char* str2;
   char* stripped;
   char prefix[MAX_NAME_LENGTH*2+2];
   struct label *l = NULL;
   int i;
 
+  
   str2 = strchr(str, '.');
   i = str2-str;
   if (str2 == NULL) {
@@ -156,8 +196,9 @@ int find_label(char *str, struct section *s, struct label **out) {
   *out = NULL;
 
   if (prefix[0] != '\0') {
-    /* A namespace is specified (or at least there's a dot in the label) */
+    /* a namespace is specified (or at least there's a dot in the label) */
     struct namespace_def *nspace;
+
     if (hashmap_get(namespace_map, prefix, (void*)&nspace) == MAP_OK) {
       if (hashmap_get(nspace->label_map, stripped, (void*)&l) == MAP_OK) {
         *out = l;
@@ -166,14 +207,14 @@ int find_label(char *str, struct section *s, struct label **out) {
     }
   }
   if (s != NULL && s->nspace != NULL) {
-    /* Check the section's namespace */
+    /* check the section's namespace */
     if (hashmap_get(s->nspace->label_map, str, (void*)&l) == MAP_OK) {
       *out = l;
       return SUCCEEDED;
     }
   }
   if (s != NULL) {
-    /* Check the section's labels. This is a bit redundant but it might have
+    /* check the section's labels. This is a bit redundant but it might have
      * local labels (labels starting with an underscore)
      */
     if (hashmap_get(s->label_map, str, (void*)&l) == MAP_OK) {
@@ -181,7 +222,7 @@ int find_label(char *str, struct section *s, struct label **out) {
       return SUCCEEDED;
     }
   }
-  /* Check the global namespace */
+  /* check the global namespace */
   if (hashmap_get(global_unique_label_map, str, (void*)&l) == MAP_OK) {
     *out = l;
     return SUCCEEDED;
@@ -605,6 +646,32 @@ int collect_dlr(void) {
 	}
       }
 
+      /* append sections */
+      i = READ_T;
+
+      while (i > 0) {
+	i--;
+
+	append_tmp = calloc(1, sizeof(struct append_section));
+	if (append_tmp == NULL) {
+	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+	  return FAILED;
+	}
+
+	/* copy the names */
+	for (x = 0; *t != 0; t++, x++)
+	  append_tmp->section[x] = *t;
+	append_tmp->section[x] = 0;
+	t++;
+	for (x = 0; *t != 0; t++, x++)
+	  append_tmp->append_to[x] = *t;
+	append_tmp->append_to[x] = 0;
+	t++;
+	
+	append_tmp->next = append_sections;
+	append_sections = append_tmp;
+      }
+
       /* save pointer to data block area */
       obj_tmp->data_blocks = t;
     }
@@ -762,6 +829,32 @@ int collect_dlr(void) {
 	}
       }
 
+      /* append sections */
+      i = READ_T;
+
+      while (i > 0) {
+	i--;
+
+	append_tmp = calloc(1, sizeof(struct append_section));
+	if (append_tmp == NULL) {
+	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+	  return FAILED;
+	}
+
+	/* copy the names */
+	for (x = 0; *t != 0; t++, x++)
+	  append_tmp->section[x] = *t;
+	append_tmp->section[x] = 0;
+	t++;
+	for (x = 0; *t != 0; t++, x++)
+	  append_tmp->append_to[x] = *t;
+	append_tmp->append_to[x] = 0;
+	t++;
+	
+	append_tmp->next = append_sections;
+	append_sections = append_tmp;
+      }
+
       /* save pointer to data block area */
       obj_tmp->data_blocks = t;
     }
@@ -770,6 +863,109 @@ int collect_dlr(void) {
     section += 1000000;
   }
 
+  return SUCCEEDED;
+}
+
+
+int merge_sections(void) {
+
+  int warning_given_s = NO, warning_given_t = NO, size;
+  struct section *s, *s_source, *s_target;
+  struct append_section *as;
+  unsigned char *data;
+  struct reference *r;
+  struct stack *st;
+  struct label *l;
+
+
+  as = append_sections;
+  while (as != NULL) {
+    s_source = NULL;
+    s_target = NULL;
+    
+    s = sec_first;
+    while (s != NULL) {
+      if (strcmp(as->section, s->name) == 0) {
+	if (s_source != NULL && warning_given_s == NO) {
+	  fprintf(stderr, "MERGE_SECTIONS: Multiple source sections called \"%s\" found, using the latest for append.\n", s->name);
+	  warning_given_s = YES;
+	}
+	s_source = s;
+      }
+      else if (strcmp(as->append_to, s->name) == 0) {
+	if (s_target != NULL && warning_given_t == NO) {
+	  fprintf(stderr, "MERGE_SECTIONS: Multiple target sections called \"%s\" found, using the latest for append.\n", s->name);
+	  warning_given_t = YES;
+	}
+	s_target = s;
+      }
+      s = s->next;
+    }
+
+    if (s_source == NULL)
+      fprintf(stderr, "MERGE_SECTIONS: Source section \"%s\" was not found, ignoring the \"%s\" -> \"%s\" append.\n", as->section, as->section, as->append_to);
+    else if (s_target == NULL)
+      fprintf(stderr, "MERGE_SECTIONS: Target section \"%s\" was not found, ignoring the \"%s\" -> \"%s\" append.\n", as->append_to, as->section, as->append_to);
+    else {
+      /* merge data */
+      size = s_source->size + s_target->size;
+      data = malloc(size);
+      if (data == NULL) {
+	fprintf(stderr, "MERGE_SECTIONS: Out of memory while merging \"%s\" -> \"%s\" append.\n", as->section, as->append_to);
+	return FAILED;
+      }
+      memcpy(data, s_target->data, s_target->size);
+      memcpy(data + s_target->size, s_source->data, s_source->size);
+
+      free(s_target->data);
+      s_target->data = data;
+      
+      /* move labels */
+      l = labels_first;
+      while (l != NULL) {
+	if (l->section == s_source->id) {
+	  l->address += s_target->size;
+	  l->section = s_target->id;
+	  l->bank = s_target->bank;
+	  l->slot = s_target->slot;
+	}
+	l = l->next;
+      }
+
+      /* move references */
+      r = reference_first;
+      while (r != NULL) {
+	if (r->section == s_source->id) {
+	  r->address += s_target->size;
+	  r->section = s_target->id;
+	  r->bank = s_target->bank;
+	  r->slot = s_target->slot;
+	}
+	r = r->next;
+      }
+
+      /* move pending calculations */
+      st = stacks_first;
+      while (st != NULL) {
+	if (st->section == s_source->id) {
+	  st->address += s_target->size;
+	  st->section = s_target->id;
+	  st->bank = s_target->bank;
+	  st->slot = s_target->slot;
+	}
+	st = st->next;
+      }
+      
+      /* finalize */
+      s_target->size = size;
+
+      /* kill the appended section */
+      free_section(s_source);
+    }
+    
+    as = as->next;
+  }
+  
   return SUCCEEDED;
 }
 
@@ -828,6 +1024,7 @@ int parse_data_blocks(void) {
             s->nspace = NULL;
           else {
             struct namespace_def *nspace;
+
             hashmap_get(namespace_map, buf, (void*)&nspace);
             if (nspace == NULL) {
               nspace = malloc(sizeof(struct namespace_def));
@@ -897,6 +1094,7 @@ int parse_data_blocks(void) {
           s->nspace = NULL;
         else {
           struct namespace_def *nspace;
+
           hashmap_get(namespace_map, buf, (void*)&nspace);
           if (nspace == NULL) {
             nspace = malloc(sizeof(struct namespace_def));
@@ -995,18 +1193,10 @@ int clean_up_dlr(void) {
       sec = se->next;
       while (sec != NULL) {
 	if (strcmp(se->name, sec->name) == 0) {
-	  sect = sec;
-	  
-	  sect->prev->next = sect->next;
-	  if (sect->next != NULL)
-	    sect->next->prev = sect->prev;
-	  else
-	    sec_last = sect;
-	  
 	  /* free references */
 	  r = reference_first;
 	  while (r != NULL) {
-	    if (r->section_status == ON && r->section == sect->id) {
+	    if (r->section_status == ON && r->section == sec->id) {
 	      re = r;
 	      if (re->prev == NULL)
 		reference_first = re->next;
@@ -1024,10 +1214,10 @@ int clean_up_dlr(void) {
 	      r = r->next;
 	  }
 	  
-	  /* free stacks */
+	  /* free pending calculations */
 	  s = stacks_first;
 	  while (s != NULL) {
-	    if (s->section_status == ON && s->section == sect->id) {
+	    if (s->section_status == ON && s->section == sec->id) {
 	      st = s;
 	      if (st->stack != NULL) {
 		free(st->stack);
@@ -1052,7 +1242,7 @@ int clean_up_dlr(void) {
 	  /* free labels */
 	  l = labels_first;
 	  while (l != NULL) {
-	    if (l->section_status == ON && l->section == sect->id) {
+	    if (l->section_status == ON && l->section == sec->id) {
 	      la = l;
 	      if (la->prev == NULL)
 		labels_first = la->next;
@@ -1070,11 +1260,10 @@ int clean_up_dlr(void) {
 	      l = l->next;
 	  }
 
-          /* free label map */
-          hashmap_free(sec->label_map);
-	  
+	  sect = sec;
 	  sec = sec->next;
-	  free(sect);
+
+	  free_section(sect);
 	}
 	else
 	  sec = sec->next;

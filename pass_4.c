@@ -24,6 +24,7 @@ extern struct map_t *namespace_map;
 extern struct map_t *global_unique_label_map;
 extern struct file_name_info *file_name_info_first;
 extern struct slot slots[256];
+extern struct append_section *append_sections;
 extern FILE *file_out_ptr;
 extern unsigned char *rom_banks, *rom_banks_usage_table;
 extern char gba_tmp_name[32], tmp[4096], name[32], *final_name;
@@ -59,8 +60,9 @@ extern int computesmschecksum_defined, smstag_defined, smsheader_defined;
 
 struct label_def *unknown_labels = NULL, *unknown_labels_last = NULL, *tul, *ltmp;
 struct label_def *unknown_header_labels = NULL, *unknown_header_labels_last = NULL;
-
 struct label_def *parent_labels[10];
+
+struct append_section *append_tmp;
 
 int pc_bank = 0, pc_full = 0, rom_bank, mem_insert_overwrite, slot, pc_slot, pc_slot_max;
 int filename_id, line_number;
@@ -77,9 +79,10 @@ int filename_id, line_number;
 int new_unknown_reference(int type) {
 
   struct label_def *label;
-  int n=0;
-  int j=0;
+  int n = 0;
+  int j = 0;
 
+  
   if (tmp[0] == ':')
     j = 1;
   while (n < 10 && tmp[n+j] == '@')
@@ -151,12 +154,16 @@ int new_unknown_reference(int type) {
   return SUCCEEDED;
 }
 
+
 int mangle_stack_references(struct stack *stack) {
+
   int ind;
+
+
   for (ind = 0; ind < stack->stacksize; ind++) {
     if (stack->stack[ind].type == STACK_ITEM_TYPE_STRING) {
-      int n=0;
-      int j=0;
+      int n = 0;
+      int j = 0;
 
       if (stack->stack[ind].string[0] == ':')
         j = 1;
@@ -786,7 +793,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAX");
+    fprintf(final_ptr, "WLAY");
 
     if (export_source_file_names(final_ptr) == FAILED)
       return FAILED;
@@ -899,6 +906,22 @@ int pass_4(void) {
       stacks_tmp = stacks_tmp->next;
     }
 
+    /* append sections */
+    ov = 0;
+    append_tmp = append_sections;
+    while (append_tmp != NULL) {
+      ov++;
+      append_tmp = append_tmp->next;
+    }
+    WRITEOUT_OV;
+
+    append_tmp = append_sections;
+    while (append_tmp != NULL) {
+      fprintf(final_ptr, "%s%c", append_tmp->section, 0);
+      fprintf(final_ptr, "%s%c", append_tmp->append_to, 0);
+      append_tmp = append_tmp->next;
+    }
+    
     /* sections */
     sec_tmp = sections_first;
     while (sec_tmp != NULL) {
@@ -940,7 +963,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAM%c", emptyfill);
+    fprintf(final_ptr, "WLAO%c", emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -1198,13 +1221,29 @@ int pass_4(void) {
       stacks_tmp = stacks_tmp->next;
     }
 
+    /* append sections */
+    ov = 0;
+    append_tmp = append_sections;
+    while (append_tmp != NULL) {
+      ov++;
+      append_tmp = append_tmp->next;
+    }
+    WRITEOUT_OV;
+
+    append_tmp = append_sections;
+    while (append_tmp != NULL) {
+      fprintf(final_ptr, "%s%c", append_tmp->section, 0);
+      fprintf(final_ptr, "%s%c", append_tmp->append_to, 0);
+      append_tmp = append_tmp->next;
+    }
+
     /* data area */
     ind = 0;
     for (inz = 0; inz < max_address; inz++) {
       if (rom_banks_usage_table[inz] != 0) {
         /* data block id */
         fprintf(final_ptr, "%c", 0x0);
-        for (i = inz, ind = 0; inz < max_address; inz++, ind++)
+        for (i = inz, ind = 0; inz < max_address; inz++, ind++) {
           if (rom_banks_usage_table[inz] == 0) {
 
             ov = i;
@@ -1218,6 +1257,7 @@ int pass_4(void) {
             ind = 0;
             break;
           }
+	}
       }
     }
 
@@ -1344,13 +1384,16 @@ int pass_4(void) {
   return SUCCEEDED;
 }
 
+
 int find_label(char *str, struct section_def *s, struct label_def **out) {
+
   char* str2;
   char* stripped;
   char prefix[MAX_NAME_LENGTH*2+2];
   struct label_def *l = NULL;
   int i;
 
+  
   str2 = strchr(str, '.');
   i = str2-str;
   if (str2 == NULL) {

@@ -17,8 +17,16 @@
    SLOT            4       $E000
 .ENDME
 
-.RAMSECTION "Variables" SLOT 3
-TEST_RESULT                     DB
+.RAMSECTION "Variables1" SLOT 3
+RESULT_1        DB
+NOTHING_1	DB	
+NOTHING_2       DB
+.ENDS
+
+.RAMSECTION "Variables2" SLOT 3
+RESULT_2        DB
+NOTHING_4	DB	
+NOTHING_3       DB
 .ENDS
 
 .ROMBANKMAP
@@ -115,7 +123,9 @@ _nams:	.dw _nams+1
 BOOM1:
 .db "HELLOMOTO"
 
-.db _f & $ff
+	.db _f & $ff
+	.db _sizeof_BOOM1
+	.dw RESULT_2
 OOPS1:
 .dw _F
 OOPS2:

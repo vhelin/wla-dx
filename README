@@ -552,9 +552,9 @@ Indicates the country code located at $14A of a Gameboy ROM.
 
 This is not a compulsory directive.
 
---------------
+------------------
 .DESTINATIONCODE 1
---------------
+------------------
 
 .DESTINATIONCODE is an alias for .COUNTRYCODE.
 
@@ -2255,6 +2255,16 @@ last.
 You can also create a RAM section. For more information about them, please
 read the .RAMSECTION directive explanation.
 
+It is also possible to merge two or more sections using APPENDTO:
+
+.SECTION "Base"
+.DB 0
+.ENDS
+
+.SECTION "AppendToBase" FREE RETURNORG APPENDTO "Base"
+.DB 1
+.ENDS
+
 This is not a compulsory directive.
 
 ----------------------------------------
@@ -2705,6 +2715,27 @@ calculations and sees only the preprocessed output of WLA):
                 ; to # as it's closest to me in the output WLA produces
                 ; for WLALINK (so it's better to use \@ with labels inside
                 ; a macro).
+
+WLALINK will also generate _sizeof_[label] defines that measure the distance
+between two consecutive labels. These labels have the same scope as the labels
+they describe. Here is an example:
+
+Label1:
+   .db 1, 2, 3, 4
+Label2:
+
+In this case you'll get a definition _sizeof_Label1 that will have value 4.
+
+WLA will skip over any child labels when calculating _sizeof. So, in this
+example:
+
+Label1:
+   .db 1, 2
+@child:
+   .db 3, 4
+Label2:
+
+The value of "_sizeof_Label1" will still have a value of 4.
 
 
 3.4. Number Types

@@ -35,4 +35,5 @@ energy_h DB
 	lda	lives.w
 	lda	beats.w
 	lda	:slots+$fe
+.include "nop.s"
 .ends

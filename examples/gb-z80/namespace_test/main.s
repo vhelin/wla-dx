@@ -87,9 +87,8 @@ parent:
 	.db <@a+1
 
 parent2:
-; Give this one more character to get an error (will be too long when turned
-; into "parent2@reallyreally...longname".
-@reallyreallyreallyreallyreallyreallyreallyreallylongnam:
+; This is higher than the old limit of ~64 characters, but now the limit is 255
+@reallyreallyreallyreallyreallyreallyreallyreallylongname:
 
 @continue:
 @@continueChild:
@@ -99,6 +98,18 @@ parent2:
 	ld hl,_LOOP
 	push hl
 	ld hl,data
+
+	; Test the values of the sizeof labels
+	ldi a,(hl)
+-
+	cp 6
+	jr nz,-
+	ldi a,(hl)
+-
+ 	cp 4
+	jr nz,-
+
+	; Make sure the arithmetic worked (if not it'll jump to some garbage place)
 	ldi a,(hl)
 	ld h,(hl)
 	ld l,a
@@ -111,10 +122,19 @@ parent2:
 
 _LOOP:	LD	($FF00+R_BGP), A	;background palette.
 	INC	A 
+
+@child: ; When calculating "sizeof" for _LOOP, it should skip over these child labels
+@@child:
+
 	JP	_LOOP
 
 data:
+	.db _sizeof__LOOP ; Should be 6 (skips over child label)
+	.db shared._sizeof_sharedEntry ; Should be 4
 	.dw s3.func3 + 20 ; Test arithmetic on namespaces
+
+	; Uncomment for error (since _globalFunc is a local name)
+	;.db shared._sizeof__globalFunc
 
 
 .ENDS
@@ -129,6 +149,8 @@ sharedEntry:
 
 _globalFunc: ; Should not be called
 	jr _globalFunc
+
+	.db _sizeof__globalFunc
 .ENDS
 
 _globalFunc:
