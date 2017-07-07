@@ -5713,6 +5713,10 @@ int parse_directive(void) {
     rr->counter--;
     if (rr->counter == 0) {
       repeat_active--;
+      if (strlen(rr->index_name) > 0) {
+          if (undefine(rr->index_name) == FAILED)
+              return FAILED;
+      }
       return SUCCEEDED;
     }
 
