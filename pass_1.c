@@ -1325,10 +1325,8 @@ int parse_enum_token() {
       }
     }
   }
-  else if (in_enum && tmp[0] == '.' && strcaselesscmp(tmp, ".ENDE") != 0)
-    ;
-  else if (in_ramsection && tmp[0] == '.' && strcaselesscmp(tmp, ".ENDS") != 0)
-    ;
+  else if (strcaselesscmp(tmp, ".db") == 0 || strcaselesscmp(tmp, ".dw") == 0)
+    ; /* Don't do anything for "dotted" versions */
   else {
     if (in_enum)
       sprintf(emsg, "Unexpected symbol \"%s\" in .ENUM.\n", tmp);
