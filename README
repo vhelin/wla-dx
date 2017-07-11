@@ -1872,6 +1872,8 @@ And this is what is generated:
 This way you can generate a 16-bit variable address along with pointers
 to its parts.
 
+You can use all ".IF" and ".ELSE" directives within an enum.
+
 If you want more flexible variable positioning, take a look at
 .RAMSECTIONs.
 
@@ -2328,6 +2330,8 @@ If no other RAM sections are used, then this is what you will get:
 
 BANK in .RAMSECTION is optional so you can leave it away if you
 don't switch RAM banks, or the target doesn't have them.
+
+You can use all ".IF" and ".ELSE" directives within an enum.
 
 This is not a compulsory directive.
 
