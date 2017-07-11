@@ -1093,12 +1093,15 @@ void next_line(void) {
     active_file_info_last->line_current++;
 }
 
-/* Either "in_enum" or "in_ramsection" should be true when this is called. */
-int parse_enum_token() {
+
+/* wither "in_enum" or "in_ramsection" should be true when this is called. */
+int parse_enum_token(void) {
+
   char tmpname[MAX_NAME_LENGTH];
   int type;
   int q;
 
+  
   /* check for "if" directives (the only directives permitted in an enum/ramsection) */
   if (tmp[0] == '.') {
     if ((q = parse_if_directive()) != -1)
@@ -6837,13 +6840,14 @@ int parse_directive(void) {
 }
 
 
-/* Parses only "if" directives. */
-/* This is separate from parse_directive so that enums and ramsections can reuse this */
-int parse_if_directive() {
+/* parses only "if" directives. */
+/* this is separate from parse_directive so that enums and ramsections can reuse this */
+int parse_if_directive(void) {
 
   char bak[256];
-  int o, q;
+  int q;
 
+  
   /* ELSE */
 
   if (strcaselesscmp(cp, "ELSE") == 0) {
@@ -7092,6 +7096,7 @@ int parse_if_directive() {
 
     struct definition *d;
 
+    
     if (get_next_token() == FAILED)
       return FAILED;
 
@@ -7102,6 +7107,7 @@ int parse_if_directive() {
     }
 
     ifdef++;
+
     return SUCCEEDED;
   }
 
@@ -7159,12 +7165,14 @@ int parse_if_directive() {
 
     sprintf(emsg, ".%s needs an argument.\n", bak);
     print_error(emsg, ERROR_DIR);
+
     return FAILED;
   }
 
-  /* Neither success nor failure (didn't match any "if" directives) */
+  /* neither success nor failure (didn't match any "if" directives) */
   return -1;
 }
+
 
 int find_next_point(char *name) {
 
