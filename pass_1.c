@@ -125,6 +125,10 @@ int xbit_size = 0;
 int accu_size = 8, index_size = 8;
 #endif
 
+/* vars used when in an enum or ramsection */
+int in_enum=0, in_ramsection=0;
+int enum_exp, enum_ord, enum_offset;
+
 
 /* remember to run opcodesgen/gen with the proper flags defined */
 /*    (GB/Z80/MCS6502/WDC65C02/MCS6510/W65816/HUC6280/SPC700)   */
@@ -731,6 +735,10 @@ int evaluate_token(void) {
 #endif
 
   
+  /* are we in an enum or ramsection? */
+  if (in_enum == 1 || in_ramsection == 1)
+    return parse_enum_token();
+
   /* is it a directive? */
   if (tmp[0] == '.')
     return parse_directive();
@@ -1085,12 +1093,271 @@ void next_line(void) {
     active_file_info_last->line_current++;
 }
 
+/* Either "in_enum" or "in_ramsection" should be true when this is called. */
+int parse_enum_token() {
+  char tmpname[MAX_NAME_LENGTH];
+  int type;
+  int q;
+
+  /* check for "if" directives (the only directives permitted in an enum/ramsection) */
+  if (tmp[0] == '.') {
+    if ((q = parse_if_directive()) != -1)
+      return q;
+  }
+
+  if (in_enum && strcaselesscmp(tmp, ".ENDE") == 0) {
+    in_enum = 0;
+    return SUCCEEDED;
+  }
+  else if (in_ramsection && strcaselesscmp(tmp, ".ENDS") == 0) {
+    fprintf(file_out_ptr, "s ");
+    section_status = OFF;
+    in_ramsection = 0;
+    return SUCCEEDED;
+  }
+
+  if (tmp[strlen(tmp) - 1] == ':')
+    tmp[strlen(tmp) - 1] = 0;
+  if (in_ramsection)
+    fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
+
+  strcpy(tmpname, tmp);
+
+  /* ASC? */
+  if (in_enum && enum_ord == 1) {
+    if (add_a_new_definition(tmpname, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+      return FAILED;
+    if (enum_exp == YES)
+      if (export_a_definition(tmpname) == FAILED)
+        return FAILED;
+  }
+
+  /* get the size/type */
+  if (get_next_token() == FAILED)
+    return FAILED;
+
+  type = 0;
+
+  if (strcaselesscmp(tmp, "DB") == 0 || strcaselesscmp(tmp, "BYT") == 0 || strcaselesscmp(tmp, "BYTE") == 0) {
+    if (in_enum)
+      enum_offset += 1*enum_ord;
+    else /* ramsection */
+      fprintf(file_out_ptr, "d0 ");
+  }
+  else if (strcaselesscmp(tmp, "DW") == 0 || strcaselesscmp(tmp, "WORD") == 0) {
+    if (in_enum)
+      enum_offset += 2*enum_ord;
+    else /* ramsection */
+      fprintf(file_out_ptr, "y0 ");
+  }
+  else if (strcaselesscmp(tmp, "DS") == 0 || strcaselesscmp(tmp, "DSB") == 0) {
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      print_error("DS/DSB needs size.\n", ERROR_DIR);
+      return FAILED;
+    }
+    if (in_enum)
+      enum_offset += d*enum_ord;
+    else
+      fprintf(file_out_ptr, "x%d 0 ", d);
+  }
+  else if (strcaselesscmp(tmp, "DSW") == 0) {
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      print_error("DSW needs size.\n", ERROR_DIR);
+      return FAILED;
+    }
+    if (in_enum)
+      enum_offset += d*2*enum_ord;
+    else
+      fprintf(file_out_ptr, "x%d 0 ", d*2);
+  }
+  /* it's an instance of a structure! */
+  else if (strcaselesscmp(tmp, "INSTANCEOF") == 0) {
+
+    struct structure_item *si;
+    struct structure *st;
+    int g;
+
+
+    type = 1;
+
+    if (get_next_token() == FAILED)
+      return FAILED;
+
+    st = get_structure(tmp);
+
+    if (st == NULL) {
+      sprintf(emsg, "No STRUCT named \"%s\" available.\n", tmp);
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
+    }
+
+    /* generate labels (different for enum vs ramsection) */
+    if (in_enum) {
+      /* generate labels (first the basic ones, without index number) */
+      if (enum_ord == -1) {
+        enum_offset -= st->size;
+        if (add_a_new_definition(tmpname, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+          return FAILED;
+        if (enum_exp == YES)
+          if (export_a_definition(tmpname) == FAILED)
+            return FAILED;
+      }
+
+      si = st->items;
+      while (si != NULL) {
+        sprintf(tmp, "%s.%s%c", tmpname, si->name, 0);
+        if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+          return FAILED;
+        if (enum_exp == YES)
+          if (export_a_definition(tmp) == FAILED)
+            return FAILED;
+        enum_offset += si->size;
+        si = si->next;
+      }
+
+      if (enum_ord == -1)
+        enum_offset -= st->size;
+
+      /* the number of structures? */
+      inz = input_number();
+      if (inz == INPUT_NUMBER_EOL)
+        next_line();
+      else if (inz == SUCCEEDED) {
+        if (d < 1) {
+          print_error("The number of structures must be greater than 0.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        /* generate labels (now with the index numbers) */
+        if (d > 1) {
+          g = 1;
+
+          if (enum_ord == 1)
+            enum_offset -= st->size;
+
+          while (d > 0) {
+            si = st->items;
+            sprintf(tmp, "%s.%d%c", tmpname, g, 0);
+            if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+              return FAILED;
+            if (enum_exp == YES)
+              if (export_a_definition(tmp) == FAILED)
+                return FAILED;
+            while (si != NULL) {
+              sprintf(tmp, "%s.%d.%s%c", tmpname, g, si->name, 0);
+              if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+                return FAILED;
+              if (enum_exp == YES)
+                if (export_a_definition(tmp) == FAILED)
+                  return FAILED;
+              enum_offset += si->size;
+              si = si->next;
+            }
+            g++;
+            d--;
+            if (enum_ord == -1) {
+              if (d > 0)
+                enum_offset -= st->size*2;
+              else
+                enum_offset -= st->size;
+            }
+          }
+        }
+      }
+      else {
+        if (inz == INPUT_NUMBER_STRING)
+          sprintf(emsg, "Expected the number of structures, got \"%s\" instead.\n", label);
+        else
+          sprintf(emsg, "Expected the number of structures.\n");
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
+      }
+    }
+    else { /* ramsection */
+      /* amount of structures? */
+      inz = input_number();
+      if (inz == SUCCEEDED && d > 1)
+        fprintf(file_out_ptr, "k%d L%s.1 ", active_file_info_last->line_current, tmpname);
+
+      /* generate labels */
+      si = st->items;
+      while (si != NULL) {
+        if (inz == SUCCEEDED && d > 1)
+          fprintf(file_out_ptr, "k%d L%s.%s L%s.1.%s x%d 0 ", active_file_info_last->line_current, tmpname, si->name, tmpname, si->name, si->size);
+        else
+          fprintf(file_out_ptr, "k%d L%s.%s x%d 0 ", active_file_info_last->line_current, tmpname, si->name, si->size);
+        si = si->next;
+      }
+
+      if (inz == INPUT_NUMBER_EOL)
+        next_line();
+      else if (inz == SUCCEEDED) {
+        if (d < 1) {
+          print_error("The amount of structures must be greater than 0.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        g = 2;
+        while (d > 1) {
+          si = st->items;
+          fprintf(file_out_ptr, "k%d L%s.%d ", active_file_info_last->line_current, tmpname, g);
+          while (si != NULL) {
+            fprintf(file_out_ptr, "k%d L%s.%d.%s x%d 0 ", active_file_info_last->line_current, tmpname, g, si->name, si->size);
+            si = si->next;
+          }
+          g++;
+          d--;
+        }
+      }
+      else {
+        if (inz == INPUT_NUMBER_STRING)
+          sprintf(emsg, "Expected the amount of structures, got \"%s\" instead.\n", label);
+        else
+          sprintf(emsg, "Expected the amount of structures.\n");
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
+      }
+    }
+  }
+  else if (in_enum && tmp[0] == '.' && strcaselesscmp(tmp, ".ENDE") != 0)
+    ;
+  else if (in_ramsection && tmp[0] == '.' && strcaselesscmp(tmp, ".ENDS") != 0)
+    ;
+  else {
+    if (in_enum)
+      sprintf(emsg, "Unexpected symbol \"%s\" in .ENUM.\n", tmp);
+    else /* ramsection */
+      sprintf(emsg, "Unexpected symbol \"%s\" in .RAMSECTION.\n", tmp);
+    print_error(emsg, ERROR_DIR);
+    return FAILED;
+  }
+
+  /* DESC? */
+  if (in_enum && enum_ord == -1 && type == 0) {
+    if (add_a_new_definition(tmpname, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+      return FAILED;
+    if (enum_exp == YES)
+      if (export_a_definition(tmpname) == FAILED)
+        return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
 
 int parse_directive(void) {
 
   char bak[256];
   int o, q;
 
+  if ((q = parse_if_directive()) != -1)
+    return q;
   
   /* ORG */
 
@@ -2324,9 +2591,6 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "RAMSECTION") == 0) {
 
-    char namebak[256];
-
-
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Libraries don't take RAMSECTIONs.\n", ERROR_DIR);
       return FAILED;
@@ -2452,117 +2716,7 @@ int parse_directive(void) {
       sec_tmp->alignment = d;
     }
 
-    /* ram section - read labels */
-    if (sec_tmp->status == SECTION_STATUS_RAM) {
-      while ((t = get_next_token()) != FAILED) {
-        if (strcaselesscmp(tmp, ".ENDS") == 0) {
-          fprintf(file_out_ptr, "s ");
-          section_status = OFF;
-          return SUCCEEDED;
-        }
-        if (tmp[strlen(tmp) - 1] == ':')
-          tmp[strlen(tmp) - 1] = 0;
-        fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
-        strcpy(namebak, tmp);
-        if (get_next_token() == FAILED)
-          return FAILED;
-        if (strcaselesscmp(tmp, "DB") == 0 || strcaselesscmp(tmp, "BYT") == 0 || strcaselesscmp(tmp, "BYTE") == 0)
-          fprintf(file_out_ptr, "d0 ");
-        else if (strcaselesscmp(tmp, "DW") == 0 || strcaselesscmp(tmp, "WORD") == 0)
-          fprintf(file_out_ptr, "y0 ");
-        else if (strcaselesscmp(tmp, "DS") == 0 || strcaselesscmp(tmp, "DSB") == 0) {
-          q = input_number();
-          if (q == FAILED)
-            return FAILED;
-          if (q != SUCCEEDED) {
-            print_error("DS/DSB needs size.\n", ERROR_DIR);
-            return FAILED;
-          }
-          fprintf(file_out_ptr, "x%d 0 ", d);
-        }
-        else if (strcaselesscmp(tmp, "DSW") == 0) {
-          q = input_number();
-          if (q == FAILED)
-            return FAILED;
-          if (q != SUCCEEDED) {
-            print_error("DSW needs size.\n", ERROR_DIR);
-            return FAILED;
-          }
-          fprintf(file_out_ptr, "x%d 0 ", d*2);
-        }
-        /* it's an instance of a structure! */
-        else if (strcaselesscmp(tmp, "INSTANCEOF") == 0) {
-
-          struct structure_item *si;
-          struct structure *st;
-          int g;
-
-
-          if (get_next_token() == FAILED)
-            return FAILED;
-
-          st = get_structure(tmp);
-
-          if (st == NULL) {
-            sprintf(emsg, "No STRUCT named \"%s\" available.\n", tmp);
-            print_error(emsg, ERROR_DIR);
-            return FAILED;
-          }
-
-          /* amount of structures? */
-          inz = input_number();
-          if (inz == SUCCEEDED && d > 1)
-            fprintf(file_out_ptr, "k%d L%s.1 ", active_file_info_last->line_current, namebak);
-
-          /* generate labels */
-          si = st->items;
-          while (si != NULL) {
-            if (inz == SUCCEEDED && d > 1)
-              fprintf(file_out_ptr, "k%d L%s.%s L%s.1.%s x%d 0 ", active_file_info_last->line_current, namebak, si->name, namebak, si->name, si->size);
-            else
-              fprintf(file_out_ptr, "k%d L%s.%s x%d 0 ", active_file_info_last->line_current, namebak, si->name, si->size);
-            si = si->next;
-          }
-
-          if (inz == INPUT_NUMBER_EOL)
-            next_line();
-          else if (inz == SUCCEEDED) {
-            if (d < 1) {
-              print_error("The amount of structures must be greater than 0.\n", ERROR_DIR);
-              return FAILED;
-            }
-
-            g = 2;
-            while (d > 1) {
-              si = st->items;
-              fprintf(file_out_ptr, "k%d L%s.%d ", active_file_info_last->line_current, namebak, g);
-              while (si != NULL) {
-                fprintf(file_out_ptr, "k%d L%s.%d.%s x%d 0 ", active_file_info_last->line_current, namebak, g, si->name, si->size);
-                si = si->next;
-              }
-              g++;
-              d--;
-            }
-          }
-          else {
-            if (inz == INPUT_NUMBER_STRING)
-              sprintf(emsg, "Expected the amount of structures, got \"%s\" instead.\n", label);
-            else
-              sprintf(emsg, "Expected the amount of structures.\n");
-            print_error(emsg, ERROR_DIR);
-            return FAILED;
-          }
-        }
-        else if (tmp[0] == '.' && strcaselesscmp(tmp, ".ENDS") != 0)
-          continue;
-        else {
-          sprintf(emsg, "Unexpected symbol \"%s\".\n", tmp);
-          print_error(emsg, ERROR_DIR);
-          return FAILED;
-        }
-      }
-      return FAILED;
-    }
+    in_ramsection = 1;
 
     return SUCCEEDED;
   }
@@ -2859,324 +3013,6 @@ int parse_directive(void) {
     fprintf(file_out_ptr, "S%d ", sec_tmp->id);
 
     return SUCCEEDED;
-  }
-
-  /* ELSE */
-
-  if (strcaselesscmp(cp, "ELSE") == 0) {
-
-    int m, r;
-
-
-    if (ifdef == 0) {
-      print_error("There must be .IFxxx before .ELSE.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    /* find the next compiling point */
-    r = 1;
-    m = macro_active;
-    /* disable macro decoding */
-    macro_active = 0;
-    while (get_next_token() != FAILED) {
-      if (tmp[0] == '.') {
-        if (strcaselesscmp(cp, "ENDIF") == 0)
-          r--;
-        if (strcaselesscmp(cp, "E") == 0)
-          break;
-        if (strcaselesscmp(cp, "IFDEF") == 0 || strcaselesscmp(cp, "IFNDEF") == 0 || strcaselesscmp(cp, "IFGR") == 0 || strcaselesscmp(cp, "IFLE") == 0 || strcaselesscmp(cp, "IFEQ") == 0 ||
-            strcaselesscmp(cp, "IFNEQ") == 0 || strcaselesscmp(cp, "IFDEFM") == 0 || strcaselesscmp(cp, "IFNDEFM") == 0 || strcaselesscmp(cp, "IF") == 0 || strcaselesscmp(cp, "IFEXISTS") == 0 ||
-            strcaselesscmp(cp, "IFGREQ") == 0 || strcaselesscmp(cp, "IFLEEQ") == 0)
-          r++;
-      }
-      if (r == 0) {
-        ifdef--;
-        macro_active = m;
-        return SUCCEEDED;
-      }
-    }
-
-    print_error(".ELSE must end to .ENDIF.\n", ERROR_DIR);
-    return FAILED;
-  }
-
-  /* ENDIF */
-
-  if (strcaselesscmp(cp, "ENDIF") == 0) {
-    if (ifdef == 0) {
-      print_error(".ENDIF was given before any .IF directive.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    ifdef--;
-    return SUCCEEDED;
-  }
-
-  /* IFDEF */
-
-  if (strcaselesscmp(cp, "IFDEF") == 0) {
-
-    struct definition *d;
-
-    if (get_next_token() == FAILED)
-      return FAILED;
-
-    hashmap_get(defines_map, tmp, (void*)&d);
-    if (d != NULL) {
-      ifdef++;
-      return SUCCEEDED;
-    }
-
-    return find_next_point("IFDEF");
-  }
-
-  /* IF */
-
-  if (strcaselesscmp(cp, "IF") == 0) {
-
-    char k[256];
-    int y, o, s;
-
-
-    q = input_number();
-    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
-      sprintf(emsg, ".IF needs immediate data.\n");
-      print_error(emsg, ERROR_INP);
-      return FAILED;
-    }
-
-    strncpy(k, label, 255);
-    k[255] = 0;
-    y = d;
-    s = q;
-
-    if (get_next_token() == FAILED)
-      return FAILED;
-
-    if (strcmp(tmp, "<") == 0)
-      o = 0;
-    else if (strcmp(tmp, ">") == 0)
-      o = 1;
-    else if (strcmp(tmp, "==") == 0)
-      o = 2;
-    else if (strcmp(tmp, "!=") == 0)
-      o = 3;
-    else if (strcmp(tmp, ">=") == 0)
-      o = 4;
-    else if (strcmp(tmp, "<=") == 0)
-      o = 5;
-    else {
-      print_error(".IF needs an operator. Supported operators are '<', '>', '>=', '<=', '!=' and '=='.\n", ERROR_INP);
-      return FAILED;
-    }
-
-    q = input_number();
-    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
-      sprintf(emsg, ".IF needs immediate data.\n");
-      print_error(emsg, ERROR_INP);
-      return FAILED;
-    }
-
-    /* different types? */
-    if (s != q) {
-      print_error("Cannot compare strings with immediate values.\n", ERROR_INP);
-      return FAILED;
-    }
-
-    /* values? */
-    if (s == SUCCEEDED) {
-      if ((o == 0 && y < d) || (o == 1 && y > d) || (o == 2 && y == d) || (o == 3 && y != d) || (o == 4 && y >= d) || (o == 5 && y <= d))
-        q = SUCCEEDED;
-      else
-        q = FAILED;
-    }
-    /* strings? */
-    else {
-      if ((o == 0 && strcmp(k, label) < 0) || (o == 1 && strcmp(k, label) > 0) || (o == 2 && strcmp(k, label) == 0) || (o == 3 && strcmp(k, label) != 0) || (o == 4 && strcmp(k, label) >= 0) || (o == 5 && strcmp(k, label) <= 0))
-        q = SUCCEEDED;
-      else
-        q = FAILED;
-    }
-
-    if (q == SUCCEEDED) {
-      ifdef++;
-      return SUCCEEDED;
-    }
-    else
-      return find_next_point("IF");
-  }
-
-  /* IFGR/IFLE/IFEQ/IFNEQ/IFGREQ/IFLEEQ */
-
-  if (strcaselesscmp(cp, "IFGR") == 0 || strcaselesscmp(cp, "IFLE") == 0 || strcaselesscmp(cp, "IFEQ") == 0 || strcaselesscmp(cp, "IFNEQ") == 0 || strcaselesscmp(cp, "IFGREQ") == 0 || strcaselesscmp(cp, "IFLEEQ") == 0) {
-
-    char k[256];
-    int y, o, s;
-
-
-    strcpy(bak, cp);
-
-    if (strcmp(&cp[2], "LE") == 0)
-      o = 0;
-    else if (strcmp(&cp[2], "GR") == 0)
-      o = 1;
-    else if (strcmp(&cp[2], "EQ") == 0)
-      o = 2;
-    else if (strcmp(&cp[2], "NEQ") == 0)
-      o = 3;
-    else if (strcmp(&cp[2], "GREQ") == 0)
-      o = 4;
-    else
-      o = 5;
-
-    q = input_number();
-    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
-      sprintf(emsg, ".%s needs immediate data.\n", bak);
-      print_error(emsg, ERROR_INP);
-      return FAILED;
-    }
-
-    strncpy(k, label, 255);
-    k[255] = 0;
-    y = d;
-    s = q;
-
-    q = input_number();
-    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
-      sprintf(emsg, ".%s needs immediate data.\n", bak);
-      print_error(emsg, ERROR_INP);
-      return FAILED;
-    }
-
-    /* different types? */
-    if (s != q) {
-      print_error("Cannot compare strings with immediate values.\n", ERROR_INP);
-      return FAILED;
-    }
-
-    /* values? */
-    if (s == SUCCEEDED) {
-      if ((o == 0 && y < d) || (o == 1 && y > d) || (o == 2 && y == d) || (o == 3 && y != d) || (o == 4 && y >= d) || (o == 5 && y <= d))
-        q = SUCCEEDED;
-      else
-        q = FAILED;
-    }
-    /* strings? */
-    else {
-      if ((o == 0 && strcmp(k, label) < 0) || (o == 1 && strcmp(k, label) > 0) || (o == 2 && strcmp(k, label) == 0) || (o == 3 && strcmp(k, label) != 0) || (o == 4 && strcmp(k, label) >= 0) || (o == 5 && strcmp(k, label) <= 0))
-        q = SUCCEEDED;
-      else
-        q = FAILED;
-    }
-
-    if (q == SUCCEEDED) {
-      ifdef++;
-      return SUCCEEDED;
-    }
-    else {
-      strcpy(k, cp);
-      return find_next_point(k);
-    }
-  }
-
-  /* IFEXISTS */
-
-  if (strcaselesscmp(cp, "IFEXISTS") == 0) {
-
-    FILE *f;
-
-
-    inz = input_number();
-
-    if (inz != INPUT_NUMBER_STRING) {
-      print_error(".IFEXISTS needs a file name string.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    f = fopen(label, "r");
-    if (f == NULL)
-      return find_next_point("IFEXISTS");
-
-    fclose(f);
-    ifdef++;
-
-    return SUCCEEDED;
-  }
-
-  /* IFNDEF */
-
-  if (strcaselesscmp(cp, "IFNDEF") == 0) {
-
-    struct definition *d;
-
-    if (get_next_token() == FAILED)
-      return FAILED;
-
-    hashmap_get(defines_map, tmp, (void*)&d);
-    if (d != NULL) {
-      strcpy(emsg, cp);
-      return find_next_point(emsg);
-    }
-
-    ifdef++;
-    return SUCCEEDED;
-  }
-
-  /* IFDEFM/IFNDEFM */
-
-  if (strcaselesscmp(cp, "IFDEFM") == 0 || strcaselesscmp(cp, "IFNDEFM") == 0) {
-
-    int k, o;
-    char e;
-
-
-    strcpy(bak, cp);
-
-    if (macro_active == 0) {
-      sprintf(emsg, ".%s can be only used inside a macro.\n", bak);
-      print_error(emsg, ERROR_DIR);
-      return FAILED;
-    }
-
-    if (cp[2] == 'N')
-      o = 0;
-    else
-      o = 1;
-
-    for (; i < size; i++) {
-
-      if (buffer[i] == 0x0A)
-        break;
-      else if (buffer[i] == '\\') {
-        e = buffer[++i];
-        if (e >= '0' && e <= '9') {
-          d = (e - '0') * 10;
-          for (k = 2; k < 8; k++, d *= 10) {
-            e = buffer[++i];
-            if (e >= '0' && e <= '9')
-              d += e - '0';
-            else
-              break;
-          }
-
-          d /= 10;
-          if ((o == 0 && macro_runtime_current->supplied_arguments < d) ||
-              (o == 1 && macro_runtime_current->supplied_arguments >= d)) {
-            ifdef++;
-            return SUCCEEDED;
-          }
-          else {
-            strcpy(emsg, cp);
-            return find_next_point(emsg);
-          }
-        }
-        break;
-      }
-    }
-
-    sprintf(emsg, ".%s needs an argument.\n", bak);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
   }
 
   /* FOPEN */
@@ -4947,10 +4783,6 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "ENUM") == 0) {
 
-    char tmpname[MAX_NAME_LENGTH];
-    int exp = NO, ord = 1, type;
-
-
     q = input_number();
     if (q == FAILED)
       return FAILED;
@@ -4959,192 +4791,31 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    o = d;
+    enum_offset = d;
 
     /* "ASC" or "DESC"? */
     if (compare_next_token("ASC", 3) == SUCCEEDED) {
-      ord = 1;
+      enum_ord = 1;
       skip_next_token();
     }
     else if (compare_next_token("DESC", 4) == SUCCEEDED) {
-      ord = -1;
+      enum_ord = -1;
       skip_next_token();
     }
+    else
+      enum_ord = 1;
 
     /* do we have "EXPORT" defined? */
     if (compare_next_token("EXPORT", 6) == SUCCEEDED) {
       skip_next_token();
-      exp = YES;
+      enum_exp = YES;
     }
+    else
+      enum_exp = NO;
 
-    while ((t = get_next_token()) != FAILED) {
-      if (strcaselesscmp(tmp, ".ENDE") == 0)
-        return SUCCEEDED;
-      if (tmp[strlen(tmp) - 1] == ':')
-        tmp[strlen(tmp) - 1] = 0;
-      strcpy(tmpname, tmp);
+    in_enum = 1;
 
-      /* ASC? */
-      if (ord == 1) {
-        if (add_a_new_definition(tmpname, (double)o, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-          return FAILED;
-        if (exp == YES)
-          if (export_a_definition(tmpname) == FAILED)
-            return FAILED;
-      }
-
-      /* get the size/type */
-      if (get_next_token() == FAILED)
-        return FAILED;
-
-      type = 0;
-
-      if (strcaselesscmp(tmp, "DB") == 0 || strcaselesscmp(tmp, "BYT") == 0 || strcaselesscmp(tmp, "BYTE") == 0)
-        o += 1*ord;
-      else if (strcaselesscmp(tmp, "DW") == 0 || strcaselesscmp(tmp, "WORD") == 0)
-        o += 2*ord;
-      else if (strcaselesscmp(tmp, "DS") == 0 || strcaselesscmp(tmp, "DSB") == 0) {
-        strcpy(bak, tmp);
-        q = input_number();
-        if (q == FAILED)
-          return FAILED;
-        if (q != SUCCEEDED) {
-          sprintf(emsg, ".%s needs size.\n", bak);
-          print_error(emsg, ERROR_DIR);
-          return FAILED;
-        }
-        o += d*ord;
-      }
-      else if (strcaselesscmp(tmp, "DSW") == 0) {
-        q = input_number();
-        if (q == FAILED)
-          return FAILED;
-        if (q != SUCCEEDED) {
-          print_error("DSW needs size.\n", ERROR_DIR);
-          return FAILED;
-        }
-        o += d*2*ord;
-      }
-      /* it's an instance of a structure! */
-      else if (strcaselesscmp(tmp, "INSTANCEOF") == 0) {
-
-        struct structure_item *si;
-        struct structure *st;
-        int g;
-
-
-        type = 1;
-
-        if (get_next_token() == FAILED)
-          return FAILED;
-
-        st = get_structure(tmp);
-
-        if (st == NULL) {
-          sprintf(emsg, "No STRUCT named \"%s\" available.\n", tmp);
-          print_error(emsg, ERROR_DIR);
-          return FAILED;
-        }
-
-        /* generate labels (first the basic ones, without index number) */
-        if (ord == -1) {
-          o -= st->size;
-          if (add_a_new_definition(tmpname, (double)o, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-            return FAILED;
-          if (exp == YES)
-            if (export_a_definition(tmpname) == FAILED)
-              return FAILED;
-        }
-
-        si = st->items;
-        while (si != NULL) {
-          sprintf(tmp, "%s.%s%c", tmpname, si->name, 0);
-          if (add_a_new_definition(tmp, (double)o, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-            return FAILED;
-          if (exp == YES)
-            if (export_a_definition(tmp) == FAILED)
-              return FAILED;
-          o += si->size;
-          si = si->next;
-        }
-
-        if (ord == -1)
-          o -= st->size;
-
-        /* the number of structures? */
-        inz = input_number();
-        if (inz == INPUT_NUMBER_EOL)
-          next_line();
-        else if (inz == SUCCEEDED) {
-          if (d < 1) {
-            print_error("The number of structures must be greater than 0.\n", ERROR_DIR);
-            return FAILED;
-          }
-
-          /* generate labels (now with the index numbers) */
-          if (d > 1) {
-            g = 1;
-
-            if (ord == 1)
-              o -= st->size;
-
-            while (d > 0) {
-              si = st->items;
-              sprintf(tmp, "%s.%d%c", tmpname, g, 0);
-              if (add_a_new_definition(tmp, (double)o, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-                return FAILED;
-              if (exp == YES)
-                if (export_a_definition(tmp) == FAILED)
-                  return FAILED;
-              while (si != NULL) {
-                sprintf(tmp, "%s.%d.%s%c", tmpname, g, si->name, 0);
-                if (add_a_new_definition(tmp, (double)o, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-                  return FAILED;
-                if (exp == YES)
-                  if (export_a_definition(tmp) == FAILED)
-                    return FAILED;
-                o += si->size;
-                si = si->next;
-              }
-              g++;
-              d--;
-              if (ord == -1) {
-                if (d > 0)
-                  o -= st->size*2;
-                else
-                  o -= st->size;
-              }
-            }
-          }
-        }
-        else {
-          if (inz == INPUT_NUMBER_STRING)
-            sprintf(emsg, "Expected the number of structures, got \"%s\" instead.\n", label);
-          else
-            sprintf(emsg, "Expected the number of structures.\n");
-          print_error(emsg, ERROR_DIR);
-          return FAILED;
-        }
-      }
-      else if (tmp[0] == '.' && strcaselesscmp(tmp, ".ENDE") != 0)
-        ;
-      else {
-        sprintf(emsg, "Unexpected symbol \"%s\" in .ENUM.\n", tmp);
-        print_error(emsg, ERROR_DIR);
-        return FAILED;
-      }
-
-      /* DESC? */
-      if (ord == -1 && type == 0) {
-        if (add_a_new_definition(tmpname, (double)o, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-          return FAILED;
-        if (exp == YES)
-          if (export_a_definition(tmpname) == FAILED)
-            return FAILED;
-      }
-    }
-
-    return FAILED;
+    return SUCCEEDED;
   }
 
 #ifdef GB
@@ -7167,6 +6838,335 @@ int parse_directive(void) {
   return FAILED;
 }
 
+
+/* Parses only "if" directives. */
+/* This is separate from parse_directive so that enums and ramsections can reuse this */
+int parse_if_directive() {
+
+  char bak[256];
+  int o, q;
+
+  /* ELSE */
+
+  if (strcaselesscmp(cp, "ELSE") == 0) {
+
+    int m, r;
+
+
+    if (ifdef == 0) {
+      print_error("There must be .IFxxx before .ELSE.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    /* find the next compiling point */
+    r = 1;
+    m = macro_active;
+    /* disable macro decoding */
+    macro_active = 0;
+    while (get_next_token() != FAILED) {
+      if (tmp[0] == '.') {
+        if (strcaselesscmp(cp, "ENDIF") == 0)
+          r--;
+        if (strcaselesscmp(cp, "E") == 0)
+          break;
+        if (strcaselesscmp(cp, "IFDEF") == 0 || strcaselesscmp(cp, "IFNDEF") == 0 || strcaselesscmp(cp, "IFGR") == 0 || strcaselesscmp(cp, "IFLE") == 0 || strcaselesscmp(cp, "IFEQ") == 0 ||
+            strcaselesscmp(cp, "IFNEQ") == 0 || strcaselesscmp(cp, "IFDEFM") == 0 || strcaselesscmp(cp, "IFNDEFM") == 0 || strcaselesscmp(cp, "IF") == 0 || strcaselesscmp(cp, "IFEXISTS") == 0 ||
+            strcaselesscmp(cp, "IFGREQ") == 0 || strcaselesscmp(cp, "IFLEEQ") == 0)
+          r++;
+      }
+      if (r == 0) {
+        ifdef--;
+        macro_active = m;
+        return SUCCEEDED;
+      }
+    }
+
+    print_error(".ELSE must end to .ENDIF.\n", ERROR_DIR);
+    return FAILED;
+  }
+
+  /* ENDIF */
+
+  if (strcaselesscmp(cp, "ENDIF") == 0) {
+    if (ifdef == 0) {
+      print_error(".ENDIF was given before any .IF directive.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    ifdef--;
+    return SUCCEEDED;
+  }
+
+  /* IFDEF */
+
+  if (strcaselesscmp(cp, "IFDEF") == 0) {
+
+    struct definition *d;
+
+    if (get_next_token() == FAILED)
+      return FAILED;
+
+    hashmap_get(defines_map, tmp, (void*)&d);
+    if (d != NULL) {
+      ifdef++;
+      return SUCCEEDED;
+    }
+
+    return find_next_point("IFDEF");
+  }
+
+  /* IF */
+
+  if (strcaselesscmp(cp, "IF") == 0) {
+
+    char k[256];
+    int y, o, s;
+
+
+    q = input_number();
+    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
+      sprintf(emsg, ".IF needs immediate data.\n");
+      print_error(emsg, ERROR_INP);
+      return FAILED;
+    }
+
+    strncpy(k, label, 255);
+    k[255] = 0;
+    y = d;
+    s = q;
+
+    if (get_next_token() == FAILED)
+      return FAILED;
+
+    if (strcmp(tmp, "<") == 0)
+      o = 0;
+    else if (strcmp(tmp, ">") == 0)
+      o = 1;
+    else if (strcmp(tmp, "==") == 0)
+      o = 2;
+    else if (strcmp(tmp, "!=") == 0)
+      o = 3;
+    else if (strcmp(tmp, ">=") == 0)
+      o = 4;
+    else if (strcmp(tmp, "<=") == 0)
+      o = 5;
+    else {
+      print_error(".IF needs an operator. Supported operators are '<', '>', '>=', '<=', '!=' and '=='.\n", ERROR_INP);
+      return FAILED;
+    }
+
+    q = input_number();
+    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
+      sprintf(emsg, ".IF needs immediate data.\n");
+      print_error(emsg, ERROR_INP);
+      return FAILED;
+    }
+
+    /* different types? */
+    if (s != q) {
+      print_error("Cannot compare strings with immediate values.\n", ERROR_INP);
+      return FAILED;
+    }
+
+    /* values? */
+    if (s == SUCCEEDED) {
+      if ((o == 0 && y < d) || (o == 1 && y > d) || (o == 2 && y == d) || (o == 3 && y != d) || (o == 4 && y >= d) || (o == 5 && y <= d))
+        q = SUCCEEDED;
+      else
+        q = FAILED;
+    }
+    /* strings? */
+    else {
+      if ((o == 0 && strcmp(k, label) < 0) || (o == 1 && strcmp(k, label) > 0) || (o == 2 && strcmp(k, label) == 0) || (o == 3 && strcmp(k, label) != 0) || (o == 4 && strcmp(k, label) >= 0) || (o == 5 && strcmp(k, label) <= 0))
+        q = SUCCEEDED;
+      else
+        q = FAILED;
+    }
+
+    if (q == SUCCEEDED) {
+      ifdef++;
+      return SUCCEEDED;
+    }
+    else
+      return find_next_point("IF");
+  }
+
+  /* IFGR/IFLE/IFEQ/IFNEQ/IFGREQ/IFLEEQ */
+
+  if (strcaselesscmp(cp, "IFGR") == 0 || strcaselesscmp(cp, "IFLE") == 0 || strcaselesscmp(cp, "IFEQ") == 0 || strcaselesscmp(cp, "IFNEQ") == 0 || strcaselesscmp(cp, "IFGREQ") == 0 || strcaselesscmp(cp, "IFLEEQ") == 0) {
+
+    char k[256];
+    int y, o, s;
+
+
+    strcpy(bak, cp);
+
+    if (strcmp(&cp[2], "LE") == 0)
+      o = 0;
+    else if (strcmp(&cp[2], "GR") == 0)
+      o = 1;
+    else if (strcmp(&cp[2], "EQ") == 0)
+      o = 2;
+    else if (strcmp(&cp[2], "NEQ") == 0)
+      o = 3;
+    else if (strcmp(&cp[2], "GREQ") == 0)
+      o = 4;
+    else
+      o = 5;
+
+    q = input_number();
+    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
+      sprintf(emsg, ".%s needs immediate data.\n", bak);
+      print_error(emsg, ERROR_INP);
+      return FAILED;
+    }
+
+    strncpy(k, label, 255);
+    k[255] = 0;
+    y = d;
+    s = q;
+
+    q = input_number();
+    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
+      sprintf(emsg, ".%s needs immediate data.\n", bak);
+      print_error(emsg, ERROR_INP);
+      return FAILED;
+    }
+
+    /* different types? */
+    if (s != q) {
+      print_error("Cannot compare strings with immediate values.\n", ERROR_INP);
+      return FAILED;
+    }
+
+    /* values? */
+    if (s == SUCCEEDED) {
+      if ((o == 0 && y < d) || (o == 1 && y > d) || (o == 2 && y == d) || (o == 3 && y != d) || (o == 4 && y >= d) || (o == 5 && y <= d))
+        q = SUCCEEDED;
+      else
+        q = FAILED;
+    }
+    /* strings? */
+    else {
+      if ((o == 0 && strcmp(k, label) < 0) || (o == 1 && strcmp(k, label) > 0) || (o == 2 && strcmp(k, label) == 0) || (o == 3 && strcmp(k, label) != 0) || (o == 4 && strcmp(k, label) >= 0) || (o == 5 && strcmp(k, label) <= 0))
+        q = SUCCEEDED;
+      else
+        q = FAILED;
+    }
+
+    if (q == SUCCEEDED) {
+      ifdef++;
+      return SUCCEEDED;
+    }
+    else {
+      strcpy(k, cp);
+      return find_next_point(k);
+    }
+  }
+
+  /* IFEXISTS */
+
+  if (strcaselesscmp(cp, "IFEXISTS") == 0) {
+
+    FILE *f;
+
+
+    inz = input_number();
+
+    if (inz != INPUT_NUMBER_STRING) {
+      print_error(".IFEXISTS needs a file name string.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    f = fopen(label, "r");
+    if (f == NULL)
+      return find_next_point("IFEXISTS");
+
+    fclose(f);
+    ifdef++;
+
+    return SUCCEEDED;
+  }
+
+  /* IFNDEF */
+
+  if (strcaselesscmp(cp, "IFNDEF") == 0) {
+
+    struct definition *d;
+
+    if (get_next_token() == FAILED)
+      return FAILED;
+
+    hashmap_get(defines_map, tmp, (void*)&d);
+    if (d != NULL) {
+      strcpy(emsg, cp);
+      return find_next_point(emsg);
+    }
+
+    ifdef++;
+    return SUCCEEDED;
+  }
+
+  /* IFDEFM/IFNDEFM */
+
+  if (strcaselesscmp(cp, "IFDEFM") == 0 || strcaselesscmp(cp, "IFNDEFM") == 0) {
+
+    int k, o;
+    char e;
+
+
+    strcpy(bak, cp);
+
+    if (macro_active == 0) {
+      sprintf(emsg, ".%s can be only used inside a macro.\n", bak);
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
+    }
+
+    if (cp[2] == 'N')
+      o = 0;
+    else
+      o = 1;
+
+    for (; i < size; i++) {
+
+      if (buffer[i] == 0x0A)
+        break;
+      else if (buffer[i] == '\\') {
+        e = buffer[++i];
+        if (e >= '0' && e <= '9') {
+          d = (e - '0') * 10;
+          for (k = 2; k < 8; k++, d *= 10) {
+            e = buffer[++i];
+            if (e >= '0' && e <= '9')
+              d += e - '0';
+            else
+              break;
+          }
+
+          d /= 10;
+          if ((o == 0 && macro_runtime_current->supplied_arguments < d) ||
+              (o == 1 && macro_runtime_current->supplied_arguments >= d)) {
+            ifdef++;
+            return SUCCEEDED;
+          }
+          else {
+            strcpy(emsg, cp);
+            return find_next_point(emsg);
+          }
+        }
+        break;
+      }
+    }
+
+    sprintf(emsg, ".%s needs an argument.\n", bak);
+    print_error(emsg, ERROR_DIR);
+    return FAILED;
+  }
+
+  /* Neither success nor failure (didn't match any "if" directives) */
+  return -1;
+}
 
 int find_next_point(char *name) {
 
