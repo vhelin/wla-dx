@@ -332,7 +332,7 @@ int pass_2(void) {
       int nl1 = 0x104;
       unsigned int nl2 = 0;
       
-      while (nl2 <= sizeof(nintendo_logo_dat)) {
+      while (nl2 < sizeof(nintendo_logo_dat)) {
         mem_insert_absolute(nl1, nintendo_logo_dat[nl2]);
         nl1++;
         nl2++;
