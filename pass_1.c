@@ -1094,7 +1094,7 @@ void next_line(void) {
 }
 
 
-/* wither "in_enum" or "in_ramsection" should be true when this is called. */
+/* either "in_enum" or "in_ramsection" should be true when this is called. */
 int parse_enum_token(void) {
 
   char tmpname[MAX_NAME_LENGTH];
@@ -1678,6 +1678,16 @@ int parse_directive(void) {
 
     /* read the entries */
     while ((ind = get_next_token()) == SUCCEEDED) {
+      /* .IF directive? */
+      if (tmp[0] == '.') {
+        q = parse_if_directive();
+        if (q == FAILED)
+          return FAILED;
+        else if (q == SUCCEEDED)
+          continue;
+        /* else q == -1, continue executing below */
+      }
+
       if (strcaselesscmp(tmp, ".ENDA") == 0)
         break;
       else if (strcaselesscmp(tmp, "MAP") == 0) {
@@ -2403,6 +2413,16 @@ int parse_directive(void) {
       if (get_next_token() == FAILED)
         return FAILED;
 
+      /* .IF directive? */
+      if (tmp[0] == '.') {
+        q = parse_if_directive();
+        if (q == FAILED)
+          return FAILED;
+        else if (q == SUCCEEDED)
+          continue;
+        /* else q == -1, continue executing below */
+      }
+
       /* end of STRUCT? */
       if (strcaselesscmp(tmp, ".ENDST") == 0) {
         /* create the SIZEOF-definition */
@@ -2573,7 +2593,7 @@ int parse_directive(void) {
             return FAILED;
          }
       }
-      else if (tmp[0] == '.') {
+      else if (strcaselesscmp(tmp, ".db") == 0 || strcaselesscmp(tmp, ".dw") == 0) {
         si->size = 0;
         continue;
       }
@@ -3548,6 +3568,16 @@ int parse_directive(void) {
     if (rombankmap_defined != 0 || rombanks_defined != 0) {
       o = 0;
       while ((ind = get_next_token()) == SUCCEEDED) {
+        /* .IF directive? */
+        if (tmp[0] == '.') {
+          q = parse_if_directive();
+          if (q == FAILED)
+            return FAILED;
+          else if (q == SUCCEEDED)
+            continue;
+          /* else q == -1, continue executing below */
+        }
+
         if (strcaselesscmp(tmp, ".ENDRO") == 0) {
           break;
         }
@@ -3638,6 +3668,16 @@ int parse_directive(void) {
     else {
       o = 0;
       while ((ind = get_next_token()) == SUCCEEDED) {
+        /* .IF directive? */
+        if (tmp[0] == '.') {
+          q = parse_if_directive();
+          if (q == FAILED)
+            return FAILED;
+          else if (q == SUCCEEDED)
+            continue;
+          /* else q == -1, continue executing below */
+        }
+
         if (strcaselesscmp(tmp, ".ENDRO") == 0)
           break;
         else if (strcaselesscmp(tmp, "BANKSTOTAL") == 0) {
@@ -3805,6 +3845,16 @@ int parse_directive(void) {
       print_error("Libraries don't need .MEMORYMAP.\n", ERROR_WRN);
 
     while ((ind = get_next_token()) == SUCCEEDED) {
+      /* .IF directive? */
+      if (tmp[0] == '.') {
+        q = parse_if_directive();
+        if (q == FAILED)
+          return FAILED;
+        else if (q == SUCCEEDED)
+          continue;
+        /* else q == -1, continue executing below */
+      }
+
       if (strcaselesscmp(tmp, ".ENDME") == 0) {
         if (defaultslot_defined == 0) {
           print_error("No DEFAULTSLOT defined.\n", ERROR_DIR);
@@ -4267,6 +4317,16 @@ int parse_directive(void) {
     }
 
     while ((ind = get_next_token()) == SUCCEEDED) {
+      /* .IF directive? */
+      if (tmp[0] == '.') {
+        q = parse_if_directive();
+        if (q == FAILED)
+          return FAILED;
+        else if (q == SUCCEEDED)
+          continue;
+        /* else q == -1, continue executing below */
+      }
+
       if (strcaselesscmp(tmp, ".ENDGB") == 0)
         break;
       else if (strcaselesscmp(tmp, "NINTENDOLOGO") == 0)
@@ -4914,6 +4974,16 @@ int parse_directive(void) {
     }
 
     while ((ind = get_next_token()) == SUCCEEDED) {
+      /* .IF directive? */
+      if (tmp[0] == '.') {
+        q = parse_if_directive();
+        if (q == FAILED)
+          return FAILED;
+        else if (q == SUCCEEDED)
+          continue;
+        /* else q == -1, continue executing below */
+      }
+
       if (strcaselesscmp(tmp, ".ENDSMS") == 0)
         break;
       else if (strcaselesscmp(tmp, "VERSION") == 0) {
@@ -5808,6 +5878,16 @@ int parse_directive(void) {
     }
 
     while ((ind = get_next_token()) == SUCCEEDED) {
+      /* .IF directive? */
+      if (tmp[0] == '.') {
+        q = parse_if_directive();
+        if (q == FAILED)
+          return FAILED;
+        else if (q == SUCCEEDED)
+          continue;
+        /* else q == -1, continue executing below */
+      }
+
       if (strcaselesscmp(tmp, ".ENDSNES") == 0)
         break;
 
@@ -6083,6 +6163,16 @@ int parse_directive(void) {
     fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
 
     while ((ind = get_next_token()) == SUCCEEDED) {
+      /* .IF directive? */
+      if (tmp[0] == '.') {
+        q = parse_if_directive();
+        if (q == FAILED)
+          return FAILED;
+        else if (q == SUCCEEDED)
+          continue;
+        /* else q == -1, continue executing below */
+      }
+
       if (strcaselesscmp(tmp, ".ENDNATIVEVECTOR") == 0) {
         if (cop_defined == 0)
           sprintf(cop, "y%d ", 0x0000);
@@ -6287,6 +6377,16 @@ int parse_directive(void) {
     fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
 
     while ((ind = get_next_token()) == SUCCEEDED) {
+      /* .IF directive? */
+      if (tmp[0] == '.') {
+        q = parse_if_directive();
+        if (q == FAILED)
+          return FAILED;
+        else if (q == SUCCEEDED)
+          continue;
+        /* else q == -1, continue executing below */
+      }
+
       if (strcaselesscmp(tmp, ".ENDEMUVECTOR") == 0) {
         if (cop_defined == 0)
           sprintf(cop, "y%d ", 0);
