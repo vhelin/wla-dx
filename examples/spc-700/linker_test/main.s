@@ -32,7 +32,7 @@ age  byt
 .ENUM $C000 DESC EXPORT
 bigapple_h db
 bigapple_l db
-bigapple:  .word
+bigapple:  .dw
 .ENDE
 
 .enum $0100 desc export
