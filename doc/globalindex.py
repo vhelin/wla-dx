@@ -1,4 +1,4 @@
-# Note: Modified by Neui
+# Note: Modified by Neui (Note: sphinx.util.compat.Directive is deprecated)
 #
 # Copyright (C) 2011 by Matteo Franchin
 #
@@ -15,10 +15,9 @@
 #   A copy of the GNU General Public License is available at
 #   <http://www.gnu.org/licenses/>.
 
-from sphinx.util.compat import Directive
 from sphinx.builders.html import SingleFileHTMLBuilder
 from docutils import nodes
-from docutils.parsers.rst import directives
+from docutils.parsers.rst import Directive, directives
 import re
 
 class globalindex(nodes.General, nodes.Element):
