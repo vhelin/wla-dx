@@ -1,0 +1,63 @@
+{%- extends "haiku/layout.html" %}
+{% set script_files = [] %}
+{% set metatags = metatags + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" %}
+{%- block csss %}
+    <style>
+        {% include 'basic/static/basic.css_t' %}
+        {% include 'haiku/static/haiku.css_t' %}
+        /* Fix bullets */
+        div.content ul > li {
+            background: transparent;
+            text-indent: -0.9em;
+        }
+        div.content ul > li:before {
+            content: "\002022"; /* Dot */
+            color: orange;
+            margin-right: 3px;
+            font-size: 1em;
+            line-height: 0;
+        }
+        /* Improvments & fix header */
+        body {
+            min-width: 125px;
+            min-width: none;
+            max-width: unset;
+            background-image: none;
+        }
+        body > div, body > div > div.wrapper, body > div.content {
+            padding-left: 1em;
+            padding-right: 1em;
+            max-width: 1120px;
+            margin: 0 auto;
+        }
+        div.header, div.topnav {
+            position: initial;
+            height: initial;
+            margin-left: 0;
+            margin-right: 0;
+            padding-left: 0;
+            padding-right: 0;
+            max-width: none;
+        }
+        div.header .wrapper, div.topnav p {
+            padding: 0 40px;
+            max-width: 1120px;
+        }
+        div.header {
+            background: #EEE;
+        }
+        div.header h2 {
+            margin-bottom: 0;
+        }
+        div.topnav {
+            background: #E0E0E0;
+        }
+    </style>
+{%- endblock %}
+
+{%- block haikuheader %}
+    <div class="wrapper">
+        {{ super() }}
+    </div>
+{%- endblock %}
+

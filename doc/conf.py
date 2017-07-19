@@ -33,9 +33,9 @@ pygments_style = 'sphinx' # The name of the syntax highlighting style to use
 
 # -- Options for HTML output ----------------------------------------------
 
-html_theme = 'haiku'
+html_theme = 'theme'
 #html_theme_options = {}
-#html_theme_path = [] # Custom theme paths
+html_theme_path = ["."] # Custom theme paths
 #html_title = None # Default: "<project> v<release> documentation"
 #html_short_title = None # Default: html_title
 #html_logo = None

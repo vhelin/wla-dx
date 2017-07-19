@@ -96,7 +96,7 @@ if (GEN_DOC_SINGLEHTML)
             "${DOC_OUT}/wla-dx.html"
         COMMAND ${CMAKE_COMMAND} -E copy_directory "singlehtml/_static/"
             "${DOC_OUT}/_static/"
-        DEPENDS ${DOC_SRCS} ${DOC_META_SRCS}
+        DEPENDS ${DOC_SRCS} ${DOC_META_SRCS} theme/layout.html theme/theme.conf
         COMMENT "Generating single HTML page documentation"
     )
     list(APPEND DOC_DEPS "${DOC_OUT}/wla-dx.html")
