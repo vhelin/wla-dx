@@ -1,15 +1,17 @@
 
-*       text=auto
+*       text=auto eol=lf
 *.txt   text
-*.rst   text
 *.c     text
 *.h     text
 *.md    text
 *.sh    text eol=lf
 *.bat   text eol=crlf
 
-# Only used for Sphinx.
+# Only used for Sphinx/documentation
+*.rst   text
 *.py    text
+*.html  text
+*.conf  text
 
 # bat-files usually works with LF, but Windows users might have a better
 #   editing time with notepad and CRLF, because nodepad is dumb with LF

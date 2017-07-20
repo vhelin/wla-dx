@@ -16,8 +16,10 @@ find_program(SPHINX_EXECUTABLE
 )
 
 if (SPHINX_EXECUTABLE)
+	message(STATUS "Found sphinx-build: ${SPHINX_EXECUTABLE}")
     option(GEN_DOC "Generate documentation (Requires sphinx)" ON)
 else()
+	message(STATUS "Couldn't find sphinx-build")
     option(GEN_DOC "Generate documentation (Requires sphinx)" OFF)
 endif (SPHINX_EXECUTABLE)
 

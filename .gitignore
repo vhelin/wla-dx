@@ -22,6 +22,6 @@ wlab/CMakeFiles/
 # Build directories
 /*build/
 /doc/*build/
-
 *.pyc
+*.doctree
 
