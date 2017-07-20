@@ -96,8 +96,6 @@ if (GEN_DOC_SINGLEHTML)
             -d "${CMAKE_CURRENT_BINARY_DIR}/singlehtml.doctree"
         COMMAND ${CMAKE_COMMAND} -E copy "singlehtml/wla-dx.html"
             "${DOC_OUT}/wla-dx.html"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "singlehtml/_static/"
-            "${DOC_OUT}/_static/"
         DEPENDS ${DOC_SRCS} ${DOC_META_SRCS} theme/layout.html theme/theme.conf
         COMMENT "Generating single HTML page documentation"
     )
