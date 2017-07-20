@@ -2,7 +2,7 @@ project(DOCS)
 
 option(GEN_DOC_MAN "Generate Manpages" ON)
 option(GEN_DOC_SINGLEHTML "Generate single HTML documentation" ON)
-option(GEN_DOC_TEXT "Generate text documentation" ON)
+option(GEN_DOC_SINGLETEXT "Generate text documentation" ON)
 
 set(DOC_OUT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/doc")
 set(DOC_SRC "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -108,20 +108,20 @@ if (GEN_DOC_SINGLEHTML)
         "singlehtml.doctree")
 endif (GEN_DOC_SINGLEHTML)
 
-if (GEN_DOC_TEXT)
+if (GEN_DOC_SINGLETEXT)
     add_custom_command(
         OUTPUT "${DOC_OUT}/wla-dx.txt"
-        COMMAND ${SPHINX_EXECUTABLE} -q -b text "${DOC_SRC}" text
-            -d "${CMAKE_CURRENT_BINARY_DIR}/text.doctree"
-        COMMAND ${CMAKE_COMMAND} -E copy "text/wla-dx.txt"
+        COMMAND ${SPHINX_EXECUTABLE} -q -b singletext "${DOC_SRC}" stext
+            -d "${CMAKE_CURRENT_BINARY_DIR}/stext.doctree"
+        COMMAND ${CMAKE_COMMAND} -E copy "stext/wla-dx.txt"
             "${DOC_OUT}/wla-dx.txt"
-        DEPENDS ${DOC_SRCS} ${DOC_META_SRCS}
+        DEPENDS ${DOC_SRCS} ${DOC_META_SRCS} singletext.py
         COMMENT "Generating simple text documentation"
     )
-    add_custom_target(doc-text DEPENDS "${DOC_OUT}/wla-dx.txt")
-    add_dependencies(doc doc-text)
+    add_custom_target(doc-stext DEPENDS "${DOC_OUT}/wla-dx.txt")
+    add_dependencies(doc doc-stext)
     install(FILES "${DOC_OUT}/wla-dx.txt" DESTINATION "share/doc/wla-dx")
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
-        "text.doctree")
-endif (GEN_DOC_TEXT)
+	"stext.doctree")
+endif (GEN_DOC_SINGLETEXT)
 

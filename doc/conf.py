@@ -8,6 +8,7 @@ import os
 #needs_sphinx = '1.0'
 sys.path.insert(0, os.path.abspath('.'))
 extensions = [
+    'singletext',
     'globalindex' # fnch.users.sourceforge.net/sphinxindexinsinglehtml.html (modified)
 ]
 templates_path = ['_templates']
