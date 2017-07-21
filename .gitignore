@@ -21,7 +21,15 @@ wlab/CMakeFiles/
 
 # Build directories
 /*build/
-/doc/*build/
+/doc/**
+!/doc/man/
+!/doc/theme/
+!/doc/*.py
+!/doc/*.rst
+!/doc/CMakeLists.txt
+!/doc/README.md
+/doc/man/*
+!/doc/man/*.rst
 *.pyc
 *.doctree
 
