@@ -46,7 +46,7 @@ DESCRIPTION
 Assemble a BIN_FILE to an object file (``-o``) or to an library file (``-l``).
 
 These object files can be linked together (or with library files) later
-with wlalink(1).
+with :manpage:`wlalink(1)`.
 
 Name object files so that they can be recognized as object files. Normal
 suffix is ``.o`` (WLA default). This can also be changed with ``.OUTNAME``.

@@ -36,8 +36,8 @@ Choose one:
 DESCRIPTION
 -----------
 
-WLALINK is a part of WLA-DX. It links one or more object files (and perhaps
-some library files) together to produce a ROM image / program file.
+:manpage:`wlalink(1)` is a part of WLA-DX. It links one or more object files
+(and perhaps some library files) together to produce a ROM image / program file.
 
 LINK_FILE is a text file that contains information about the files you want
 to link together. Here's the format:
@@ -92,15 +92,16 @@ to link together. Here's the format:
         start $150
         ...
 
-If flag ``-i`` is given, WLALINK will write list files. Note that you must
-compile the object and library files with ``-i`` flag as well. Otherwise
-WLALINK has no extra information it needs to build list files.
+If flag ``-i`` is given, :manpage:`wlalink(1)` will write list files. Note that
+you must compile the object and library files with ``-i`` flag as well.
+Otherwise :manpage:`wlalink(1)` has no extra information it needs to build list
+files.
 
 Here is an example of a list file: Let's assume you've compiled a source file
 called ``main.s`` using the ``-i`` flag. After you've linked the result also
-with the ``-i`` flag WLALINK has created a list file called ``main.lst``. This
-file contains the source text and the result data the source compiled into.
-List files are good for debugging.
+with the ``-i`` flag :manpage:`wlalink(1)` has created a list file called
+``main.lst``. This file contains the source text and the result data the source
+compiled into. List files are good for debugging.
 
 Make sure you don't create duplicate labels in different places in the
 memory map as they break the linking loop. Duplicate labels are allowed when

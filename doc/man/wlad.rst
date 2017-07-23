@@ -29,23 +29,24 @@ OPTIONS
 DESCRIPTION
 -----------
 
-**WARNING**: WLAD is not being maintained any longer, and no plans regarding it
-have been made.
+**WARNING**: :manpage:`wlad(1)` is not being maintained any longer, and no
+plans regarding it have been made.
 
-WLAD is a disassembler that can be used to disassemble an existing GB-ROM
-image into a WLA-syntax compatible source file. It won't produce very readable
-code as all the labels etc. are discarded in the last phase of linking when
-the ROM image is made. In the current state WLAD doesn't generate labels,
-but it will in the future.
+:manpage:`wlad(1)` is a disassembler that can be used to disassemble an
+existing GB-ROM image into a WLA-syntax compatible source file. It won't
+produce very readable code as all the labels etc. are discarded in the last
+phase of linking when the ROM image is made. In the current state
+:manpage:`wlad(1)` doesn't generate labels, but it will in the future.
 
 Give it the binary file (usually the extension is ``.gb`` or ``.cgb``) and
-WLAD will output the source code into stdout (the shell you are using).
+:manpage:`wlad(1)` will output the source code into stdout (the shell you are
+using).
 
 Use ``-s`` if you intend to change texts in games.
 The flags ``-d`` and ``-s`` cannot be used at the same time.
 
-WLAD supports both normal GB-ROMs and Pocket Voice™ ROM images.
-Only WLAD GB-Z80 exists curently.
+:manpage:`wlad(1)` supports both normal GB-ROMs and Pocket Voice™ ROM images.
+Only :manpage:`wlad(1)` GB-Z80 exists curently.
 
 
 EXAMPLES

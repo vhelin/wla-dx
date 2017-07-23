@@ -33,8 +33,8 @@ Choose one:
 DESCRIPTION
 -----------
 
-WLAB converts binary files to WLA's byte definition strings and print it to
-the standard output.
+:manpage:`wla(1)` converts binary files to WLA's byte definition strings and
+print it to the standard output.
 
 
 EXAMPLES
