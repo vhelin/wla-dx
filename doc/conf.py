@@ -6,7 +6,7 @@ import os
 # -- General configuration ------------------------------------------------
 
 #needs_sphinx = '1.0'
-sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('./sphinx'))
 extensions = [
     'singletext',
     'globalindex' # fnch.users.sourceforge.net/sphinxindexinsinglehtml.html (modified)

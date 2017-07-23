@@ -16,10 +16,10 @@ find_program(SPHINX_EXECUTABLE
 )
 
 if (SPHINX_EXECUTABLE)
-	message(STATUS "Found sphinx-build: ${SPHINX_EXECUTABLE}")
+    message(STATUS "Found sphinx-build: ${SPHINX_EXECUTABLE}")
     option(GEN_DOC "Generate documentation (Requires sphinx)" ON)
 else()
-	message(STATUS "Couldn't find sphinx-build")
+    message(STATUS "Couldn't find sphinx-build")
     option(GEN_DOC "Generate documentation (Requires sphinx)" OFF)
 endif (SPHINX_EXECUTABLE)
 
@@ -61,7 +61,7 @@ set(DOC_SRCS
     )
 set(DOC_META_SRCS
     "conf.py"
-    "globalindex.py"
+    "sphinx/globalindex.py"
     )
 
 if (GEN_DOC_MAN)
@@ -86,7 +86,7 @@ if (GEN_DOC_MAN)
     list(REMOVE_ITEM DOC_MAN_FILES "${DOC_OUT}/wla-dx.7")
     install(FILES ${DOC_MAN_FILES} DESTINATION "man/man1")
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
-        "man.doctree")
+        "man" "man.doctree")
 endif (GEN_DOC_MAN)
 
 if (GEN_DOC_SINGLEHTML)
@@ -105,7 +105,7 @@ if (GEN_DOC_SINGLEHTML)
     install(FILES "${DOC_OUT}/wla-dx.html" DESTINATION "share/doc/wla-dx")
     install(DIRECTORY "${DOC_OUT}/_static" DESTINATION "share/doc/wla-dx")
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
-        "singlehtml.doctree")
+        "singlehtml" "singlehtml.doctree")
 endif (GEN_DOC_SINGLEHTML)
 
 if (GEN_DOC_SINGLETEXT)
@@ -115,13 +115,13 @@ if (GEN_DOC_SINGLETEXT)
             -d "${CMAKE_CURRENT_BINARY_DIR}/stext.doctree"
         COMMAND ${CMAKE_COMMAND} -E copy "stext/wla-dx.txt"
             "${DOC_OUT}/wla-dx.txt"
-        DEPENDS ${DOC_SRCS} ${DOC_META_SRCS} singletext.py
+        DEPENDS ${DOC_SRCS} ${DOC_META_SRCS} sphinx/singletext.py
         COMMENT "Generating simple text documentation"
     )
     add_custom_target(doc-stext DEPENDS "${DOC_OUT}/wla-dx.txt")
     add_dependencies(doc doc-stext)
     install(FILES "${DOC_OUT}/wla-dx.txt" DESTINATION "share/doc/wla-dx")
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
-	"stext.doctree")
+        "stext" "stext.doctree")
 endif (GEN_DOC_SINGLETEXT)
 
