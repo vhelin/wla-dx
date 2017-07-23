@@ -41,6 +41,7 @@ GB   ``.COUNTRYCODE 1``
 GB   ``.DESTINATIONCODE 1``
 GB   ``.NINTENDOLOGO``
 GB   ``.GBHEADER``
+Z80  ``.SMSHEADER``
 GB   ``.COMPUTEGBCOMPLEMENTCHECK``
 ALL  ``.EMPTYFILL $C9``
 658  ``.ENDEMUVECTOR``
@@ -57,6 +58,7 @@ ALL  ``.OUTNAME "other.o"``
 GB   ``.RAMSIZE 0``
 GB   ``.ROMDMG``
 GB   ``.ROMGBC``
+GB   ``.ROMGBCONLY``
 GB   ``.ROMSGB``
 658  ``.SLOWROM``
 658  ``.SMC``
@@ -477,18 +479,51 @@ This is not a compulsory directive.
 
 This begins the GB header definition, and automatically defines
 ``.COMPUTEGBCHECKSUM``. End the header definition with .ENDGB.
-In there you may define any of the following:
+Here's an example::
 
-======================== =====================================================
-``NAME "TANKBOMBPANIC"``   identical to a freestanding ``.NAME``.
-``LICENSEECODEOLD $34``    identical to a freestanding ``.LICENSEECODEOLD``.
-``LICENSEECODENEW "HI"``   identical to a freestanding ``.LICENSEECODENEW``.
-``CARTRIDGETYPE $00``      identical to a freestanding ``.CARTRIDGETYPE``.
-``RAMSIZE $09``            identical to a freestanding ``.RAMSIZE``.
-``COUNTRYCODE $01``        identical to a freestanding ``.COUNTRYCODE``.
-``DESTINATIONCODE $01``    identical to a freestanding ``.DESTINATIONCODE``.
-``NINTENDOLOGO``           identical to a freestanding ``.NINTENDOLOGO``.
-======================== =====================================================
+    .GBHEADER
+        NAME "TANKBOMBPANIC"  ; identical to a freestanding .NAME.
+        LICENSEECODEOLD $34   ; identical to a freestanding .LICENSEECODEOLD.
+        LICENSEECODENEW "HI"  ; identical to a freestanding .LICENSEECODENEW.
+        CARTRIDGETYPE $00     ; identical to a freestanding .CARTRIDGETYPE.
+        RAMSIZE $09           ; identical to a freestanding .RAMSIZE.
+        COUNTRYCODE $01       ; identical to a freestanding .COUNTRYCODE.
+        DESTINATIONCODE $01   ; identical to a freestanding .DESTINATIONCODE.
+        NINTENDOLOGO          ; identical to a freestanding .NINTENDOLOGO.
+        ROMDMG                ; identical to a freestanding .ROMDMG.
+                              ; Alternatively, ROMGBC or ROMGBCONLY can be used
+    .ENDGB
+
+This is not a compulsory directive.
+
+
+``.SMSHEADER``
+------------------------
+
+::
+
+    .SMSHEADER
+        PRODUCTCODE 26, 70, 2 ; 2.5 bytes
+        VERSION 1             ; 0-15
+        REGIONCODE 4          ; 3-7
+        RESERVEDSPACE 0, 0    ; 2 bytes
+    .ENDSMS
+
+The ``REGIONCODE`` also defines the system:
+
+======= ==================
+ ``3``   SMS Japan
+ ``4``   SMS Export
+ ``5``   GG Japan
+ ``6``   GG Export
+ ``7``   GG International
+======= ==================
+
+When ``.SMSHEADER`` is defined, also the checksum is calculated, and TMR SEGA,
+two reserved bytes and ROM size are defined.
+
+See http://www.smspower.org/Development/ROMHeader for more information about
+SMS header.
 
 This is not a compulsory directive.
 
@@ -1490,8 +1525,11 @@ The following operators are supported:
  ``!=``  doesn't equal to
 ======= =====================
 
-All ``IF`` (yes, including ``.IFDEF``, ``.IFNDEF``, etc) directives can be
-nested.
+All ``IF`` directives (yes, including ``.IFDEF``, ``.IFNDEF``, etc) can be
+nested. They can also be used within ``ENUM`` s, ``RAMSECTION`` s,
+``STRUCT`` s, ``ROMBANKMAP`` s, and most other directives that occupy multiple
+lines.
+
 
 This is not a compulsory directive.
 
@@ -2034,7 +2072,7 @@ itself. The namespace directive should immediately follow the name. ::
     .SECTION "Init" NAMESPACE "bank0"
 
 You can supply the preferred section size (bytes) inside the section
-name string. Here's an example: ::
+name string. Here's an example::
 
     .SECTION "Init_100" FREE
 
@@ -2147,6 +2185,16 @@ last.
 
 You can also create a RAM section. For more information about them, please
 read the ``.RAMSECTION`` directive explanation.
+
+It is also possible to merge two or more sections using ``APPENDTO``::
+
+    .SECTION "Base"
+    .DB 0
+    .ENDS
+    
+    .SECTION "AppendToBase" FREE RETURNORG APPENDTO "Base"
+    .DB 1
+    .ENDS
 
 This is not a compulsory directive.
 

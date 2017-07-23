@@ -36,6 +36,25 @@ Here are few examples of different labels::
     _VBI_LOOP:
     main:
 
+Labels starting with ``@`` are considered to be child labels. They can only be
+referenced within the scope of their parent labels, unless the full name is
+specified. When there is more than one ``@``, the label is considered to be
+a child of a child.
+
+Here are some examples of child labels::
+
+    PARENT1:
+    @CHILD:
+    @@SUBCHILD
+    
+    PARENT2:
+    @CHILD:
+
+This is legal, since each of the ``@CHILD`` labels has a different parent.
+You can specify a parent to be explicit, like so::
+
+    jr PARENT1@CHILD@SUBCHILD
+
 Note that when you place ``:`` in front of the label string when referring to
 it, you'll get the bank number of the label, instead of the label's address.
 Here's an example::
@@ -125,6 +144,28 @@ calculations and sees only the preprocessed output of WLA)::
                     ; to # as it's closest to me in the output WLA produces
                     ; for WLALINK (so it's better to use \@ with labels inside
                     ; a macro).
+
+WLALINK will also generate ``_sizeof_[label]`` defines that measure the
+distance between two consecutive labels. These labels have the same scope as
+the labels they describe. Here is an example::
+
+    Label1:
+        .db 1, 2, 3, 4
+    Label2:
+
+In this case you'll get a definition ``_sizeof_Label1`` that will have value
+``4``.
+
+WLA will skip over any child labels when calculating ``_sizeof``. So, in this
+example::
+
+    Label1:
+    .db 1, 2
+    @child:
+        .db 3, 4
+    Label2:
+
+The value of ``_sizeof_Label1`` will still have a value of ``4``.
 
 
 Number Types
