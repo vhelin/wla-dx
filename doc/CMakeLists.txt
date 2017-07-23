@@ -103,7 +103,6 @@ if (GEN_DOC_SINGLEHTML)
     add_custom_target(doc-shtml DEPENDS "${DOC_OUT}/wla-dx.html")
     add_dependencies(doc doc-shtml)
     install(FILES "${DOC_OUT}/wla-dx.html" DESTINATION "share/doc/wla-dx")
-    install(DIRECTORY "${DOC_OUT}/_static" DESTINATION "share/doc/wla-dx")
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
         "singlehtml" "singlehtml.doctree")
 endif (GEN_DOC_SINGLEHTML)
