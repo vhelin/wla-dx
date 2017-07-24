@@ -23,9 +23,9 @@ else()
     option(GEN_DOC "Generate documentation (Requires sphinx)" OFF)
 endif (SPHINX_EXECUTABLE)
 
-if (!GEN_DOC)
+if (NOT GEN_DOC)
     return()
-endif (!GEN_DOC)
+endif (NOT GEN_DOC)
 
 if (NOT SPHINX_EXECUTABLE)
     message(FATAL_ERROR "sphinx-build not found")
