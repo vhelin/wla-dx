@@ -134,42 +134,11 @@ int enum_exp, enum_ord, enum_offset;
 /*    (GB/Z80/MCS6502/WDC65C02/MCS6510/W65816/HUC6280/SPC700)   */
 
 #ifdef AMIGA
-__far /* put the following big table in the FAR data section */
+/*__far /* put the following big table in the FAR data section */
 #endif
 
-#ifdef GB
-#include "opcodes_gb.c"
-#include "opcodes_gb_tables.c"
-#endif
-#ifdef Z80
-#include "opcodes_z80.c"
-#include "opcodes_z80_tables.c"
-#endif
-#ifdef MCS6502
-#include "opcodes_6502.c"
-#include "opcodes_6502_tables.c"
-#endif
-#ifdef WDC65C02
-#include "opcodes_65c02.c"
-#include "opcodes_65c02_tables.c"
-#endif
-#ifdef MCS6510
-#include "opcodes_6510.c"
-#include "opcodes_6510_tables.c"
-#endif
-#ifdef W65816
-#include "opcodes_65816.c"
-#include "opcodes_65816_tables.c"
-#endif
-#ifdef SPC700
-#include "opcodes_spc700.c"
-#include "opcodes_spc700_tables.c"
-#endif
-#ifdef HUC6280
-#include "opcodes_huc6280.c"
-#include "opcodes_huc6280_tables.c"
-#endif
-
+extern int opcode_n[256];
+extern struct optcode opt_table[];
 
 #define no_library_files(name)\
  do {\

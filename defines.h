@@ -74,6 +74,15 @@
 #define ERROR_WRN  9
 #define ERROR_ERR 10
 
+#ifndef NDEBUG
+  #define WLA_DEBUG 1
+  #define WLALINK_DEBUG 1
+#endif
+
+#ifdef _CRT_SECURE_NO_WARNINGS
+  #pragma warning(disable:4996) /* Just in case */
+#endif
+
 /**************************************************************/
 /* wla internal datatypes                                     */
 /**************************************************************/
