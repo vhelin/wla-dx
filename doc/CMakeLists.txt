@@ -23,9 +23,9 @@ else()
     option(GEN_DOC "Generate documentation (Requires sphinx)" OFF)
 endif (SPHINX_EXECUTABLE)
 
-if (!GEN_DOC)
+if (NOT GEN_DOC)
     return()
-endif (!GEN_DOC)
+endif (NOT GEN_DOC)
 
 if (NOT SPHINX_EXECUTABLE)
     message(FATAL_ERROR "sphinx-build not found")
@@ -74,9 +74,12 @@ if (GEN_DOC_MAN)
         "${DOC_OUT}/wlad.1" "${DOC_OUT}/wlab.1" ${DOC_MAN_CPUFILES})
     add_custom_command(
         OUTPUT ${DOC_MAN_FILES}
-        COMMAND ${SPHINX_EXECUTABLE} -q -b man "${DOC_SRC}" man
+        COMMAND "${SPHINX_EXECUTABLE}" -q -b man
             -d "${CMAKE_CURRENT_BINARY_DIR}/man.doctree"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory man/ "${DOC_OUT}"
+            "${DOC_SRC}" "${CMAKE_CURRENT_BINARY_DIR}/gen-man"
+        COMMAND "${CMAKE_COMMAND}" -E copy_directory
+            "${CMAKE_CURRENT_BINARY_DIR}/gen-man/"
+            "${DOC_OUT}"
         DEPENDS ${DOC_SRCS} ${DOC_MAN_SRCS} ${DOC_META_SRCS}
         COMMENT "Generating man pages"
     )
@@ -86,15 +89,17 @@ if (GEN_DOC_MAN)
     list(REMOVE_ITEM DOC_MAN_FILES "${DOC_OUT}/wla-dx.7")
     install(FILES ${DOC_MAN_FILES} DESTINATION "man/man1")
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
-        "man" "man.doctree")
+        "gen-man" "man.doctree")
 endif (GEN_DOC_MAN)
 
 if (GEN_DOC_SINGLEHTML)
     add_custom_command(
         OUTPUT "${DOC_OUT}/wla-dx.html"
-        COMMAND ${SPHINX_EXECUTABLE} -q -b singlehtml "${DOC_SRC}" singlehtml
-            -d "${CMAKE_CURRENT_BINARY_DIR}/singlehtml.doctree"
-        COMMAND ${CMAKE_COMMAND} -E copy "singlehtml/wla-dx.html"
+        COMMAND "${SPHINX_EXECUTABLE}" -q -b singlehtml
+            -d "${CMAKE_CURRENT_BINARY_DIR}/shtml.doctree"
+            "${DOC_SRC}" "${CMAKE_CURRENT_BINARY_DIR}/gen-shtml"
+        COMMAND "${CMAKE_COMMAND}" -E copy
+            "${CMAKE_CURRENT_BINARY_DIR}/gen-shtml/wla-dx.html"
             "${DOC_OUT}/wla-dx.html"
         DEPENDS ${DOC_SRCS} ${DOC_META_SRCS} theme/layout.html theme/theme.conf
         COMMENT "Generating single HTML page documentation"
@@ -104,15 +109,17 @@ if (GEN_DOC_SINGLEHTML)
     add_dependencies(doc doc-shtml)
     install(FILES "${DOC_OUT}/wla-dx.html" DESTINATION "share/doc/wla-dx")
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
-        "singlehtml" "singlehtml.doctree")
+        "gen-shtml" "shtml.doctree")
 endif (GEN_DOC_SINGLEHTML)
 
 if (GEN_DOC_SINGLETEXT)
     add_custom_command(
         OUTPUT "${DOC_OUT}/wla-dx.txt"
-        COMMAND ${SPHINX_EXECUTABLE} -q -b singletext "${DOC_SRC}" stext
+        COMMAND "${SPHINX_EXECUTABLE}" -q -b singletext
             -d "${CMAKE_CURRENT_BINARY_DIR}/stext.doctree"
-        COMMAND ${CMAKE_COMMAND} -E copy "stext/wla-dx.txt"
+            "${DOC_SRC}" "${CMAKE_CURRENT_BINARY_DIR}/gen-stext"
+        COMMAND "${CMAKE_COMMAND}" -E copy
+            "${CMAKE_CURRENT_BINARY_DIR}/gen-stext/wla-dx.txt"
             "${DOC_OUT}/wla-dx.txt"
         DEPENDS ${DOC_SRCS} ${DOC_META_SRCS} sphinx/singletext.py
         COMMENT "Generating simple text documentation"
@@ -121,6 +128,6 @@ if (GEN_DOC_SINGLETEXT)
     add_dependencies(doc doc-stext)
     install(FILES "${DOC_OUT}/wla-dx.txt" DESTINATION "share/doc/wla-dx")
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
-        "stext" "stext.doctree")
+        "gen-stext" "stext.doctree")
 endif (GEN_DOC_SINGLETEXT)
 
