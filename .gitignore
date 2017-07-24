@@ -18,7 +18,9 @@ wlab/CMakeFiles/
 
 # Build directories
 /*build/
-/doc/*build/
+
+*.pyc
+*.doctree
 
 # Visual Studio generated files
 *.vcxproj*
