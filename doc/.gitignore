@@ -1,0 +1,10 @@
+**
+!/man/*.rst
+!/theme/
+!/sphinx/
+!*.py
+!*.rst
+!CMakeLists.txt
+!*.md
+!.gitignore
+*.pyc
