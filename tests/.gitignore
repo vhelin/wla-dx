@@ -1,0 +1,4 @@
+
+# *.bin is ignored, but expected.bin is useful for comparing binaries
+!expected*.bin
+

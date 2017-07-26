@@ -7,38 +7,44 @@
 *.sh    text eol=lf
 *.bat   text eol=crlf
 
+# bat-files usually works with LF, but Windows users might have a better
+# editing time with notepad and CRLF, because nodepad is dumb with LF
+
 # Only used for Sphinx/documentation
 *.rst   text
 *.py    text
 *.html  text
 *.conf  text
 
-# bat-files usually works with LF, but Windows users might have a better
-#   editing time with notepad and CRLF, because nodepad is dumb with LF
-
+Linkfile    text
 linkfile    text
+Makefile    text
 makefile    text
-*.s     text
+*.s         text
+*.i         text
 
-README  text
-INSTALL text
-LICENSE text
-CHANGELOG   text
+README          text
+INSTALL         text
+LICENSE         text
+CHANGELOG       text
 FILE_FORMATS    text
 
 # Legacy
 SCOPTIONS   text
-amiga   text
+amiga       text
 amigaos4    text
 makefile.*  text
 smakefile   text
 scoptions.* text
-smake.* text
+smake.*     text
 
 # Is there any binary files in this repository?
 # Better be safe.
+*.exe   binary
 *.bin   binary
 *.gb    binary
 *.smc   binary
 *.sfc   binary
+*.o     binary
+*.lib   binary
 
