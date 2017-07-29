@@ -99,6 +99,12 @@ enum {
   #pragma warning(disable:4996) /* Just in case */
 #endif
 
+#ifdef AMIGA
+  #define optcode_int short int
+#else
+  #define optcode_int int
+#endif
+
 /**************************************************************/
 /* wla internal datatypes                                     */
 /**************************************************************/
@@ -152,21 +158,12 @@ enum {
 
 #define OP_SIZE_MAX 16
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
-  short int value;
+  optcode_int type;
+  optcode_int value;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  value;
-};
-#endif
 
 #endif
 
@@ -186,21 +183,12 @@ struct optcode {
 
 #define OP_SIZE_MAX 12
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
-  short int skip_8bit;
+  optcode_int type;
+  optcode_int skip_8bit;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  skip_8bit;
-};
-#endif
 
 #endif
 
@@ -221,21 +209,12 @@ struct optcode {
 
 #define OP_SIZE_MAX 12
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
-  short int skip_8bit;
+  optcode_int type;
+  optcode_int skip_8bit;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  skip_8bit;
-};
-#endif
 
 #endif
 
@@ -259,21 +238,12 @@ struct optcode {
 
 #define OP_SIZE_MAX 12
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
-  short int skip_8bit;
+  optcode_int type;
+  optcode_int skip_8bit;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  skip_8bit;
-};
-#endif
 
 #endif
 
@@ -293,21 +263,12 @@ struct optcode {
 
 #define OP_SIZE_MAX 12
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
-  short int skip_8bit;
+  optcode_int type;
+  optcode_int skip_8bit;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  skip_8bit;
-};
-#endif
 
 #endif
 
@@ -332,19 +293,11 @@ struct optcode {
 
 #define OP_SIZE_MAX 12
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
+  optcode_int type;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-};
-#endif
 
 #endif
 
@@ -370,23 +323,13 @@ struct optcode {
 
 #define OP_SIZE_MAX 20
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
-  short int hex_x;
-  short int value;
+  optcode_int type;
+  optcode_int hex_x;
+  optcode_int value;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  hex_x;
-  int  value;
-};
-#endif
 
 #endif
 
@@ -412,29 +355,21 @@ struct optcode {
 
 #define OP_SIZE_MAX 16
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
-  short int skip_xbit;
+  optcode_int type;
+  optcode_int skip_xbit;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  skip_xbit;
-};
-#endif
 
 #endif
 
-
-#define DEFINITION_TYPE_VALUE         0
-#define DEFINITION_TYPE_STRING        1
-#define DEFINITION_TYPE_STACK         2
-#define DEFINITION_TYPE_ADDRESS_LABEL 3
+enum {
+  DEFINITION_TYPE_VALUE,
+  DEFINITION_TYPE_STRING,
+  DEFINITION_TYPE_STACK,
+  DEFINITION_TYPE_ADDRESS_LABEL
+};
 
 struct definition {
   char   alias[MAX_NAME_LENGTH];
@@ -475,10 +410,12 @@ struct macro_incbin {
   int left;
 };
 
-#define MACRO_CALLER_NORMAL 0
-#define MACRO_CALLER_DBM    1
-#define MACRO_CALLER_DWM    2
-#define MACRO_CALLER_INCBIN 3
+enum {
+  MACRO_CALLER_NORMAL,
+  MACRO_CALLER_DBM,
+  MACRO_CALLER_DWM,
+  MACRO_CALLER_INCBIN
+};
 
 struct macro_runtime {
   struct macro_static *macro;
@@ -580,38 +517,48 @@ struct block {
   struct block *next;
 };
 
-#define STACK_ITEM_TYPE_VALUE    0
-#define STACK_ITEM_TYPE_OPERATOR 1
-#define STACK_ITEM_TYPE_STRING   2
-#define STACK_ITEM_TYPE_DELETED  3
-#define STACK_ITEM_TYPE_STACK    4
+enum {
+  STACK_ITEM_TYPE_VALUE,
+  STACK_ITEM_TYPE_OPERATOR,
+  STACK_ITEM_TYPE_STRING,
+  STACK_ITEM_TYPE_DELETED,
+  STACK_ITEM_TYPE_STACK
+};
 
-#define SI_OP_PLUS         0
-#define SI_OP_MINUS        1
-#define SI_OP_MULTIPLY     2
-#define SI_OP_LEFT         3
-#define SI_OP_RIGHT        4
-#define SI_OP_OR           5
-#define SI_OP_AND          6
-#define SI_OP_DIVIDE       7
-#define SI_OP_POWER        8
-#define SI_OP_SHIFT_LEFT   9
-#define SI_OP_SHIFT_RIGHT 10
-#define SI_OP_MODULO      11
-#define SI_OP_XOR         12
-#define SI_OP_LOW_BYTE    13
-#define SI_OP_HIGH_BYTE   14
+enum {
+  SI_OP_PLUS,
+  SI_OP_MINUS,
+  SI_OP_MULTIPLY,
+  SI_OP_LEFT,
+  SI_OP_RIGHT,
+  SI_OP_OR,
+  SI_OP_AND,
+  SI_OP_DIVIDE,
+  SI_OP_POWER,
+  SI_OP_SHIFT_LEFT,
+  SI_OP_SHIFT_RIGHT,
+  SI_OP_MODULO,
+  SI_OP_XOR,
+  SI_OP_LOW_BYTE,
+  SI_OP_HIGH_BYTE
+};
 
-#define SI_SIGN_POSITIVE 0
-#define SI_SIGN_NEGATIVE 1
+enum {
+  SI_SIGN_POSITIVE,
+  SI_SIGN_NEGATIVE
+};
 
-#define STACKS_TYPE_8BIT    0
-#define STACKS_TYPE_16BIT   1
-#define STACKS_TYPE_24BIT   2
-#define STACKS_TYPE_UNKNOWN 3
+enum {
+  STACKS_TYPE_8BIT,
+  STACKS_TYPE_16BIT,
+  STACKS_TYPE_24BIT,
+  STACKS_TYPE_UNKNOWN
+};
 
-#define STACK_POSITION_DEFINITION 0
-#define STACK_POSITION_CODE       1
+enum {
+  STACK_POSITION_DEFINITION,
+  STACK_POSITION_CODE
+};
 
 struct stack_item {
   int type;
@@ -668,9 +615,11 @@ struct filepointer {
   struct filepointer *next;
 };
 
-#define TYPE_STRING            0
-#define TYPE_VALUE             1
-#define TYPE_LABEL             2
-#define TYPE_STACK_CALCULATION 3
+enum {
+  TYPE_STRING,
+  TYPE_VALUE,
+  TYPE_LABEL,
+  TYPE_STACK_CALCULATION
+};
 
 #endif
