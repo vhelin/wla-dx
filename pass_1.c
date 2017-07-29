@@ -134,7 +134,7 @@ int enum_exp, enum_ord, enum_offset;
 /*    (GB/Z80/MCS6502/WDC65C02/MCS6510/W65816/HUC6280/SPC700)   */
 
 #ifdef AMIGA
-/*__far /* put the following big table in the FAR data section */
+__far /* put the following big table in the FAR data section */
 #endif
 
 extern int opcode_n[256];
