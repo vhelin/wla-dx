@@ -34,6 +34,7 @@ struct reference *reference_first = NULL, *reference_last = NULL;
 struct section *sec_first = NULL, *sec_last = NULL, *sec_hd_first = NULL, *sec_hd_last = NULL;
 struct stack *stacks_first = NULL, *stacks_last = NULL;
 struct label *labels_first = NULL, *labels_last = NULL;
+struct label **sorted_anonymous_labels = NULL;
 struct map_t *global_unique_label_map = NULL;
 struct map_t *namespace_map = NULL;
 struct slot slots[256];
@@ -46,6 +47,7 @@ int output_mode = OUTPUT_ROM, discard_unreferenced_sections = OFF, use_libdir = 
 int program_start, program_end, sms_checksum, smstag_defined = 0, snes_rom_mode = SNES_ROM_MODE_LOROM, snes_rom_speed = SNES_ROM_SPEED_SLOWROM, sms_header = 0;
 int gb_checksum, gb_complement_check, snes_checksum, cpu_65816 = 0, snes_mode = 0;
 int listfile_data = NO, smc_status = 0, snes_sramsize = 0;
+int num_sorted_anonymous_labels = 0;
 
 extern int emptyfill;
 char ext_libdir[MAX_NAME_LENGTH];
@@ -394,6 +396,10 @@ int main(int argc, char *argv[]) {
   if (generate_sizeof_label_definitions() == FAILED)
     return 1;
 
+  /* sort anonymous labels to speed up searching for them */
+  if (sort_anonymous_labels() == FAILED)
+    return 1;
+
 #ifdef WLALINK_DEBUG
   if (labels_first != NULL) {
     struct label *l = labels_first;
@@ -678,6 +684,9 @@ void procedures_at_exit(void) {
     free(banksizes);
   if (bankaddress != NULL)
     free(bankaddress);
+
+  if (sorted_anonymous_labels != NULL)
+    free(sorted_anonymous_labels);
 }
 
 
