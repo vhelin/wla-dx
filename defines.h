@@ -20,6 +20,9 @@
 #define NO  0
 #define YES 1
 
+#define XSTRINGIFY(x) #x
+#define STRINGIFY(x) XSTRINGIFY(x)
+
 enum {
   HINT_NONE,
   HINT_8BIT,

@@ -25,6 +25,7 @@ wla_[ab].tmp
 
 # Generated files
 opcodes_*_tables.c
+version-info.h
 
 # CMake files
 /*[Bb]uild*/

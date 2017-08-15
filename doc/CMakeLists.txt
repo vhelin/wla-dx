@@ -72,7 +72,9 @@ if (GEN_DOC_MAN)
         "${DOC_OUT}/wlab.1" ${DOC_MAN_CPUFILES})
     add_custom_command(
         OUTPUT ${DOC_MAN_FILES}
-        COMMAND "${SPHINX_EXECUTABLE}" -q -b man
+        COMMAND "${CMAKE_COMMAND}" -E env
+                "VERSION_INFO_H_FILE=${VERSION_INFO_H_FILE}"
+            "${SPHINX_EXECUTABLE}" -q -b man
             -d "${CMAKE_CURRENT_BINARY_DIR}/man.doctree"
             "${DOC_SRC}" "${CMAKE_CURRENT_BINARY_DIR}/gen-man"
         COMMAND "${CMAKE_COMMAND}" -E copy_directory
@@ -81,7 +83,7 @@ if (GEN_DOC_MAN)
         DEPENDS ${DOC_SRCS} ${DOC_MAN_SRCS} ${DOC_META_SRCS}
         COMMENT "Generating man pages"
     )
-    add_custom_target(doc-man DEPENDS ${DOC_MAN_FILES})
+    add_custom_target(doc-man DEPENDS ${DOC_MAN_FILES} version)
     add_dependencies(doc doc-man)
     install(FILES "${DOC_OUT}/wla-dx.7" DESTINATION "man/man7")
     list(REMOVE_ITEM DOC_MAN_FILES "${DOC_OUT}/wla-dx.7")
@@ -93,7 +95,9 @@ endif (GEN_DOC_MAN)
 if (GEN_DOC_SINGLEHTML)
     add_custom_command(
         OUTPUT "${DOC_OUT}/wla-dx.html"
-        COMMAND "${SPHINX_EXECUTABLE}" -q -b singlehtml
+        COMMAND "${CMAKE_COMMAND}" -E env
+                "VERSION_INFO_H_FILE=${VERSION_INFO_H_FILE}"
+            "${SPHINX_EXECUTABLE}" -q -b singlehtml
             -d "${CMAKE_CURRENT_BINARY_DIR}/shtml.doctree"
             "${DOC_SRC}" "${CMAKE_CURRENT_BINARY_DIR}/gen-shtml"
         COMMAND "${CMAKE_COMMAND}" -E copy
@@ -103,7 +107,7 @@ if (GEN_DOC_SINGLEHTML)
         COMMENT "Generating single HTML page documentation"
     )
     list(APPEND DOC_DEPS "${DOC_OUT}/wla-dx.html")
-    add_custom_target(doc-shtml DEPENDS "${DOC_OUT}/wla-dx.html")
+    add_custom_target(doc-shtml DEPENDS "${DOC_OUT}/wla-dx.html" version)
     add_dependencies(doc doc-shtml)
     install(FILES "${DOC_OUT}/wla-dx.html" DESTINATION "share/doc/wla-dx")
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
@@ -113,7 +117,9 @@ endif (GEN_DOC_SINGLEHTML)
 if (GEN_DOC_SINGLETEXT)
     add_custom_command(
         OUTPUT "${DOC_OUT}/wla-dx.txt"
-        COMMAND "${SPHINX_EXECUTABLE}" -q -b singletext
+        COMMAND "${CMAKE_COMMAND}" -E env
+                "VERSION_INFO_H_FILE=${VERSION_INFO_H_FILE}"
+            "${SPHINX_EXECUTABLE}" -q -b singletext
             -d "${CMAKE_CURRENT_BINARY_DIR}/stext.doctree"
             "${DOC_SRC}" "${CMAKE_CURRENT_BINARY_DIR}/gen-stext"
         COMMAND "${CMAKE_COMMAND}" -E copy
@@ -122,7 +128,7 @@ if (GEN_DOC_SINGLETEXT)
         DEPENDS ${DOC_SRCS} ${DOC_META_SRCS} sphinx/singletext.py
         COMMENT "Generating simple text documentation"
     )
-    add_custom_target(doc-stext DEPENDS "${DOC_OUT}/wla-dx.txt")
+    add_custom_target(doc-stext DEPENDS "${DOC_OUT}/wla-dx.txt" version)
     add_dependencies(doc doc-stext)
     install(FILES "${DOC_OUT}/wla-dx.txt" DESTINATION "share/doc/wla-dx")
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES

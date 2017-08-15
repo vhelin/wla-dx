@@ -19,6 +19,7 @@
 #include "compute.h"
 #include "discard.h"
 #include "listfile.h"
+#include "version.h"
 
 /* define this if you want to display debug information when you run WLALINK */
 /*
@@ -26,7 +27,7 @@
 */
 
 #ifdef AMIGA
-char version_string[] = "$VER: WLALINK 5.8 (05.02.2016)";
+char version_string[] = "\0$VER: WLALINK " VERSION_AMIGA " (" VERSION_AMIGA_DATE ") " VERSION_FULL_STRING;
 #endif
 
 struct object_file *obj_first = NULL, *obj_last = NULL, *obj_tmp;
@@ -163,21 +164,26 @@ int main(int argc, char *argv[]) {
     x = FAILED;
 
   if (x == FAILED) {
-    printf("\nWLALINK GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 WLA Macro Assembler Linker v5.8b\n");
-    printf("Written by Ville Helin in 2000-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
+    printf(
+          "WLALINK GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 WLA Macro Assembler Linker " VERSION_FULL_STRING "\n"
+          "Written by Ville Helin in 2000-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n"
 #ifdef WLALINK_DEBUG
-    printf("*** WLALINK_DEBUG defined - this executable is running in DEBUG mode ***\n");
+          "*** This executable is running in DEBUG mode ***\n"
 #endif
-    printf("USAGE: %s [OPTIONS] <LINK FILE> <OUTPUT FILE>\n\n", argv[0]);
-    printf("Options:\n");
-    printf("-b  Program file output\n");
-    printf("-d  Discard unreferenced sections\n");
-    printf("-i  Write list files\n");
-    printf("-r  ROM file output (default)\n");
-    printf("-s  Write also a NO$GMB symbol file\n");
-    printf("-S  Write also a WLA symbol file\n");
-    printf("-v  Verbose messages\n");
-    printf("-L [DIR]  Library directory\n\n");
+          "USAGE: %s [OPTIONS] <LINK FILE> <OUTPUT FILE>\n"
+          "\n"
+          "Options:\n"
+          "\t-b  Program file output\n"
+          "\t-d  Discard unreferenced sections\n"
+          "\t-i  Write list files\n"
+          "\t-r  ROM file output (default)\n"
+          "\t-s  Write also a NO$GMB symbol file\n"
+          "\t-S  Write also a WLA symbol file\n"
+          "\t-v  Verbose messages\n"
+          "\t-L [DIR]  Library directory\n"
+        ,
+          argv[0]
+        );
     return 0;
   }
 

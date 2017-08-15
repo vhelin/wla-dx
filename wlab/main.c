@@ -11,11 +11,11 @@
 
 #include "main.h"
 #include "defines.h"
-
+#include "version.h"
 
 
 #ifdef AMIGA
-char version_string[] = "$VER: WLAB 1.2 (31.03.2003)";
+char version_string[] = "\0$VER: WLAB " VERSION_AMIGA " (" VERSION_AMIGA_DATE ") " VERSION_FULL_STRING;
 #endif
 
 
@@ -43,13 +43,18 @@ int main(int argc, char *argv[]) {
     i = FAILED;
 
   if (i == FAILED) {
-    fprintf(stderr, "\nWLAB Binary to WLA DB Converter v1.2\n");
-    fprintf(stderr, "Written by Ville Helin 2000-2003\n");
-    fprintf(stderr, "USAGE: %s -[ap]{bdh} <BIN FILE>\n", argv[0]);
-    fprintf(stderr, "Commands:             Options:\n");
-    fprintf(stderr, "b  Output binary      a  Print address\n");
-    fprintf(stderr, "d  Output decimal     p  Skip header\n");
-    fprintf(stderr, "h  Output hex\n\n");
+    fprintf(stderr,
+        "WLAB Binary to WLA DB Converter " VERSION_FULL_STRING "\n"
+        "Written by Ville Helin 2000-2003 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n"
+        "USAGE: %s -[ap]{bdh} <BIN FILE>\n"
+        "\n"
+        "Commands:             Options:\n"
+        "b  Output binary      a  Print address\n"
+        "d  Output decimal     p  Skip header\n"
+        "h  Output hex\n"
+      ,
+        argv[0]
+      );
     return 1;
   }
 

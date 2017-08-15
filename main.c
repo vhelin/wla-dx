@@ -17,6 +17,7 @@
 
 #include "main.h"
 #include "defines.h"
+#include "version.h"
 
 #include "parse.h"
 #include "include_file.h"
@@ -29,39 +30,11 @@
 
 FILE *file_out_ptr = NULL;
 
-/* amiga specific definitions */
-
 #ifdef AMIGA
 long __stack = 65536;
+/* See http://openamiga.org/?function=viewpage&pageid=16 */
+char version_string[] = "\0$VER: WLA-" CPU " " VERSION_AMIGA " (" VERSION_AMIGA_DATE ") " VERSION_FULL_STRING;
 #endif
-
-#ifdef AMIGA
-#ifdef GB
-char version_string[] = "$VER: WLA-GB 9.7 (05.02.2016)";
-#endif
-#ifdef Z80
-char version_string[] = "$VER: WLA-Z80 9.7 (05.02.2016)";
-#endif
-#ifdef MCS6502
-char version_string[] = "$VER: WLA-6502 9.7 (05.02.2016)";
-#endif
-#ifdef WDC65C02
-char version_string[] = "$VER: WLA-65C02 9.7 (05.02.2016)";
-#endif
-#ifdef W65816
-char version_string[] = "$VER: WLA-65816 9.7 (05.02.2016)";
-#endif
-#ifdef MCS6510
-char version_string[] = "$VER: WLA-6510 9.7 (05.02.2016)";
-#endif
-#ifdef SPC700
-char version_string[] = "$VER: WLA-SPC700 9.7 (05.02.2016)";
-#endif
-#ifdef HUC6280
-char version_string[] = "$VER: WLA-HuC6280 9.7 (05.02.2016)";
-#endif
-#endif
-
 char wla_version[] = "9.7";
 
 char gba_tmp_name[32], gba_unfolded_name[32];
@@ -133,47 +106,31 @@ int main(int argc, char *argv[]) {
   }
   
   if (output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
-#ifdef GB
-    printf("\nWLA GB-Z80 Macro Assembler v9.7b\n");
-#endif
-#ifdef Z80
-    printf("\nWLA Z80 Macro Assembler v9.7b\n");
-#endif
-#ifdef MCS6502
-    printf("\nWLA 6502 Macro Assembler v9.7b\n");
-#endif
-#ifdef WDC65C02
-    printf("\nWLA 65C02 Macro Assembler v9.7b\n");
-#endif
-#ifdef W65816
-    printf("\nWLA 65816 Macro Assembler v9.7b\n");
-#endif
-#ifdef MCS6510
-    printf("\nWLA 6510 Macro Assembler v9.7b\n");
-#endif
-#ifdef SPC700
-    printf("\nWLA SPC-700 Macro Assembler v9.7b\n");
-#endif
-#ifdef HUC6280
-    printf("\nWLA HuC6280 Macro Assembler v9.7b\n");
-#endif
-    printf("Written by Ville Helin in 1998-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
+    printf(
+          "WLA " CPU_NAME " Macro Assembler " VERSION_FULL_STRING "\n"
+          "Written by Ville Helin in 1998-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n"
 #ifdef WLA_DEBUG
-    printf("*** WLA_DEBUG defined - this executable is running in DEBUG mode ***\n");
+          "*** This executable is running in DEBUG mode ***\n"
 #endif
-    printf("USAGE: %s [OPTIONS] <ASM FILE>\n\n", argv[0]);
-    printf("Options:\n");
-    printf("-i  Add list file information\n");
-    printf("-M  Output makefile rules\n");
-    printf("-q  Quiet\n");
-    printf("-t  Test compile\n");
-    printf("-v  Verbose messages\n");
-    printf("-x  Extra compile time definitions\n");
-    printf("-I [DIR]  Include directory\n");
-    printf("-D [DEF]  Declare definition\n\n");
-    printf("Output types:\n");
-    printf("-o [FILE]  Output object file\n");
-    printf("-l [FILE]  Output library file\n\n");
+        ); /* Split here because of some string size limitation in C90/C89 */
+    printf(
+          "USAGE: %s [OPTIONS] <ASM FILE>\n"
+          "\n"
+          "Options:\n"
+          "\t-i  Add list file information\n"
+          "\t-M  Output makefile rules\n"
+          "\t-q  Quiet\n"
+          "\t-t  Test compile\n"
+          "\t-v  Verbose messages\n"
+          "\t-x  Extra compile time definitions\n"
+          "\t-I [DIR]   Include directory\n"
+          "\t-D [DEF]   Declare definition\n"
+          "\n"
+          "Output types:\n"
+          "\t-o [FILE]  Output object file\n"
+          "\t-l [FILE]  Output library file\n"
+        ,
+          argv[0]);
     return 0;
   }
 
