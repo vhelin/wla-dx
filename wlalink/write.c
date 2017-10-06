@@ -752,7 +752,7 @@ int fix_references(void) {
       if (cpu_65816 != 0)
         i = get_snes_pc_bank(l) >> 16;
       else
-        i = l->bank;
+        i = l->bank + l->base;
 
       memory_file_id = r->file_id;
       memory_file_id_source = r->file_id_source;

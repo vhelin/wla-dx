@@ -5704,6 +5704,25 @@ int parse_directive(void) {
     return FAILED;
   }
 
+  /* BASE */
+
+  if (strcaselesscmp(cp, "BASE") == 0) {
+    no_library_files(".BASE definitions");
+
+    q = input_number();
+
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED || d < 0) {
+      print_error(".BASE number must be zero or positive.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    fprintf(file_out_ptr, "b%d ", d);
+
+    return SUCCEEDED;
+  }
+
 #if defined(MCS6502) || defined(MCS6510) || defined(W65816) || defined(WDC65C02) || defined(HUC6280)
 
   /* 8BIT */
@@ -5761,25 +5780,6 @@ int parse_directive(void) {
     }
 
     accu_size = d;
-
-    return SUCCEEDED;
-  }
-
-  /* BASE */
-
-  if (strcaselesscmp(cp, "BASE") == 0) {
-    no_library_files(".BASE definitions");
-
-    q = input_number();
-
-    if (q == FAILED)
-      return FAILED;
-    if (q != SUCCEEDED || d < 0) {
-      print_error(".BASE number must be zero or positive.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    fprintf(file_out_ptr, "b%d ", d);
 
     return SUCCEEDED;
   }

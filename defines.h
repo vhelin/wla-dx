@@ -480,9 +480,7 @@ struct label_def {
   int  address; /* in bank */
   int  bank;
   int  slot;
-#ifdef W65816
   int  base;
-#endif
   int  filename_id;
   int  linenumber;
   struct section_def *section_struct;
