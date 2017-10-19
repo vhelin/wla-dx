@@ -11,7 +11,7 @@
 
 #include "main.h"
 #include "defines.h"
-#include "version.h"
+#include "../version.h"
 
 
 #ifdef AMIGA

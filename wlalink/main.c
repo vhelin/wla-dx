@@ -19,7 +19,7 @@
 #include "compute.h"
 #include "discard.h"
 #include "listfile.h"
-#include "version.h"
+#include "../version.h"
 
 /* define this if you want to display debug information when you run WLALINK */
 /*
