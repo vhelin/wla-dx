@@ -267,10 +267,10 @@ This is not a compulsory directive.
 ``.INDEX 8``
 ------------
 
-Forces WLA to override the index (X/Y) register size given with ``SEP``/``REP``.
-``.INDEX`` doesn't produce any code, it only affects the way WLA interprets the
-immediate values (8 for 8 bit operands, 16 for 16 bit operands) for opcodes
-dealing with the index registers.
+Forces WLA to override the index (``X``/``Y``) register size given with
+``SEP``/``REP``. ``.INDEX`` doesn't produce any code, it only affects the way
+WLA interprets the immediate values (``8`` for 8 bit operands, ``16`` for 16
+bit operands) for opcodes dealing with the index registers.
 
 So after giving ``.INDEX 8`` ::
 
@@ -315,7 +315,7 @@ Defines bytes, just like ``.DSB`` does, only this time they are filled with
 the random numbers. If you want to seed the random number generator,
 use ``.SEED``.
 
-The first parameter (20 in the example) defines the number of random
+The first parameter (``20`` in the example) defines the number of random
 numbers we want to generate. The next two tell the range of the random
 numbers, i.e. min and max.
 
@@ -412,7 +412,7 @@ This is not a compulsory directive.
 ---------------
 
 Indicates the size of the ROM in rombanks. This value is converted to a
-standard Gameboy ROM size indicator value found at $148 in a Gameboy ROM,
+standard Gameboy ROM size indicator value found at ``$148`` in a Gameboy ROM,
 and there this one is put into.
 
 This is a compulsory directive unless ``.ROMBANKMAP`` is defined.
@@ -426,7 +426,7 @@ way you can enlarge the size of the project on the fly.
 --------------
 
 Indicates the size of the RAM. This is a standard Gameboy RAM size indicator
-value found at $149 in a Gameboy ROM, and there this one is put to also.
+value found at ``$149`` in a Gameboy ROM, and there this one is put to also.
 
 This is not a compulsory directive.
 
@@ -1007,18 +1007,20 @@ SMC header is a chunk of 512 bytes. WLALINK touches only its first three
 bytes, and sets the rest to zeroes. Here's what will be inside the first
 three bytes:
 
-===== ===================================================================
-``0``  low byte of 8KB page count.
-``1``  high byte of 8KB page count.
-``2``  * Bit ``7``: ``0``
-       * Bit ``6``: ``0``
-       * Bit ``5``: ``0`` = LoROM, 1 = HiROM
-       * Bit ``4``: ``0`` = LoROM, 1 = HiROM
-       * Bit ``3`` and ``2``: SRAM size (``00`` = 256Kb, ``01`` = 64Kb,
-         ``10`` = 16Kb, ``11`` = 0Kb)
-       * Bit ``1``: ``0``
-       * Bit ``0``: ``0``
-===== ===================================================================
+====== ===================================================================
+ Byte   Description
+------ -------------------------------------------------------------------
+``0``   low byte of 8KB page count.
+``1``   high byte of 8KB page count.
+``2``   * Bit ``7``: ``0``
+        * Bit ``6``: ``0``
+        * Bit ``5``: ``0`` = LoROM, ``1`` = HiROM
+        * Bit ``4``: ``0`` = LoROM, ``1`` = HiROM
+        * Bit ``3`` and ``2``: SRAM size (``00`` = 256Kb, ``01`` = 64Kb,
+          ``10`` = 16Kb, ``11`` = 0Kb)
+        * Bit ``1``: ``0``
+        * Bit ``0``: ``0``
+====== ===================================================================
 
 This is not a compulsory directive.
 
@@ -1027,7 +1029,7 @@ This is not a compulsory directive.
 ----------
 
 With this directive you can define the SNES ROM mode to be HiROM.
-Issuing .HIROM will override the user's ROM bank map when
+Issuing ``.HIROM`` will override the user's ROM bank map when
 WLALINK computes 24-bit addresses and bank references. If no
 ``.HIROM`` or ``.LOROM`` are given then WLALINK obeys the banking
 defined in ``.ROMBANKMAP``.
@@ -1192,7 +1194,7 @@ This is not a compulsory directive.
 ``.DSB 256, $10``
 -----------------
 
-Defines 256 bytes of ``$10``.
+Defines ``256`` bytes of ``$10``.
 
 This is not a compulsory directive.
 
@@ -1235,7 +1237,7 @@ This is not a compulsory directive.
 ``.DSW 128, 20``
 ----------------
 
-Defines 128 words (two bytes) of ``20``.
+Defines ``128`` words (two bytes) of ``20``.
 
 This is not a compulsory directive.
 
@@ -1649,7 +1651,7 @@ This is not a compulsory directive.
 ``.IFLEEQ DEBUG 2``
 -------------------
 
-If the value of ``DEBUG`` is less or equal to 2, then the following piece of
+If the value of ``DEBUG`` is less or equal to ``2``, then the following piece of
 code is acknowledged until ``.ENDIF``/``.ELSE`` occurs in the text, otherwise
 it is skipped. Both arguments can be computations, defines or immediate values.
 
@@ -1669,9 +1671,10 @@ This is not a compulsory directive.
 ``.IFGREQ DEBUG 2``
 -------------------
 
-If the value of ``DEBUG`` is greater or equal to 2, then the following piece of
-code is acknowledged until ``.ENDIF``/``.ELSE`` occurs in the text, otherwise
-it is skipped. Both arguments can be computations, defines or immediate values.
+If the value of ``DEBUG`` is greater or equal to ``2``, then the following
+pieceof code is acknowledged until ``.ENDIF``/``.ELSE`` occurs in the text,
+otherwise it is skipped. Both arguments can be computations, defines or
+immediate values.
 
 This is not a compulsory directive.
 
@@ -1698,8 +1701,8 @@ you need also to apply this.
 -------------
 
 Repeats the text enclosed between ``.REPEAT x`` and ``.ENDR`` ``x`` times
-(``6`` in this example). You can use ``.REPEAT``s inside ``.REPEAT``s.
-``x`` must be >= ``0``.
+(``6`` in this example). You can use ``.REPEAT`` s inside ``.REPEAT`` s.
+``x`` must be bigger or equal than ``0``.
 
 It's also possible to have the repeat counter/index in a definition::
 
@@ -1871,7 +1874,7 @@ Take a look at the documentation on ``.RAMSECTION`` & ``.ENUM``, they have more
 examples of how you can use ``.STRUCT`` s.
 
 **A WORD OF WARNING**: Don't use labels ``b``, ``B``, ``w`` and ``W`` inside a
-struct as e.g., WLA sees ``enemy.b`` as a byte sized reference to enemy. All
+structure as e.g., WLA sees ``enemy.b`` as a byte sized reference to enemy. All
 other labels should be safe. ::
 
     lda enemy1.b  ; load a byte from zeropage address enemy1 or from the address
@@ -2044,15 +2047,15 @@ one is required to terminate it.
 Seeds the random number generator.
 
 This is not a compulsory directive. The random number generator is
-initially seeded with the output of time(), which is, according to
+initially seeded with the output of ``time()``, which is, according to
 the manual, *the time since the Epoch (00:00:00 UTC, January 1, 1970),
-measured in seconds*. So if you don't .``SEED`` the random number generator
+measured in seconds*. So if you don't ``.SEED`` the random number generator
 yourself with a constant value, ``.DBRND`` and ``.DWRND`` give you different
 values every time you run WLA.
 
-In WLA DX 9.4a and before we used the stdlib's srand() and rand() functions
-making the output differ on different platforms. Since v9.4 WLA DX contains
-its own Mersenne Twister pseudo random number generator.
+In WLA DX 9.4a and before we used the stdlib's ``srand()`` and ``rand()``
+functions making the output differ on different platforms. Since v9.4 WLA DX
+contains its own Mersenne Twister pseudo random number generator.
 
 
 ``.SECTION "Init" FORCE``
@@ -2380,14 +2383,14 @@ This begins the SNES header definition, and automatically defines
 ``.COMPUTESNESCHECKSUM``. From here you may define any of the following:
 
 
-- ``ID "ABCD"`` - inserts a one to four letter string starting at ``$7FB2``
+* ``ID "ABCD"`` - inserts a one to four letter string starting at ``$7FB2``
   (lorom) or ``$FFB2`` (hirom).
-- ``NAME "Hello World!"`` - identical to a freestanding ``.NAME``.
-- ``LOROM`` - identical to a freestanding ``.LOROM``.
-- ``HIROM`` - identical to a freestanding ``.HIROM``.
-- ``SLOWROM`` - identical to a freestanding ``.SLOWROM``.
-- ``FASTROM`` - identical to a freestanding ``.FASTROM``.
-- ``CARTRIDGETYPE $00`` - Places the given 8-bit value in ``$7FD6`` (``$FFD6``
+* ``NAME "Hello World!"`` - identical to a freestanding ``.NAME``.
+* ``LOROM`` - identical to a freestanding ``.LOROM``.
+* ``HIROM`` - identical to a freestanding ``.HIROM``.
+* ``SLOWROM`` - identical to a freestanding ``.SLOWROM``.
+* ``FASTROM`` - identical to a freestanding ``.FASTROM``.
+* ``CARTRIDGETYPE $00`` - Places the given 8-bit value in ``$7FD6`` (``$FFD6``
   in HiROM). Some possible values I've come across but cannot guarantee the
   accuracy of:
    
@@ -2400,7 +2403,7 @@ This begins the SNES header definition, and automatically defines
     ``$05``  ROM    SRAM    DSP1
     ``$13``  ROM            Super FX
    ======== ====== ====== ==========
-- ``ROMSIZE $09`` - Places the given 8-bit value in ``$7FD7`` (``$FFD7`` in
+* ``ROMSIZE $09`` - Places the given 8-bit value in ``$7FD7`` (``$FFD7`` in
   HiROM). Possible values include (but may not be limited to):
   
    ======== =============
@@ -2410,7 +2413,7 @@ This begins the SNES header definition, and automatically defines
     ``$0B``  16 Megabits
     ``$0C``  32 Megabits
    ======== =============
-- ``SRAMSIZE $01`` - Places the given 8-bit value into ``$7FD8`` (``$FFD8`` in
+* ``SRAMSIZE $01`` - Places the given 8-bit value into ``$7FD8`` (``$FFD8`` in
   HiROM). I believe these are the only possible values:
 
    ======== =============
@@ -2419,13 +2422,13 @@ This begins the SNES header definition, and automatically defines
     ``$02``  32 kilobits
     ``$03``  64 kilobits
    ======== =============
-- ``COUNTRY $00`` - Places the given 8-bit value into ``$7FD9`` (``$FFD9`` in
+* ``COUNTRY $00`` - Places the given 8-bit value into ``$7FD9`` (``$FFD9`` in
   HiROM). ``$00`` is Japan and ``$01`` is the United States, and there several
   more for other regions that I cannot recall off the top of my head.
-- ``LICENSEECODE $00`` - Places the given 8-bit value into ``$7FDA`` (``$FFDA``
+* ``LICENSEECODE $00`` - Places the given 8-bit value into ``$7FDA`` (``$FFDA``
   in HiROM.) You must find the legal values yourself as there are plenty of
   them. ;)
-- ``VERSION $01`` - Places the given 8-bit value into ``$7FDB`` (``$FFDB`` in
+* ``VERSION $01`` - Places the given 8-bit value into ``$7FDB`` (``$FFDB`` in
   HiROM) This is supposedly interpreted as version 1.byte, so a ``$01`` here
   would be version 1.01.
 
