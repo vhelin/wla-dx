@@ -43,9 +43,9 @@ You need:
 2. Open the terminal inside the repository folder: `cd wla-dx`
 3. Make building directory: `mkdir build && cd build`
 4. Generate CMake files: `cmake ..`
-5. Build: `cmake --build .`
-6. (Optional) Test: `cmake --build . --target test`
-7. (Optional) Install: `cmake --build . --target install`
+5. Build: `cmake --build . --config Release`
+6. (Optional) Test: `ctest . -C Release`
+7. (Optional) Install: `cmake -P cmake_install.cmake`
 
 If you didn't installed it, you can still access the binaries in the `binaries`
 folder. It also contains the compiled documentation in the subfolder `doc`.
