@@ -35,7 +35,7 @@ endif (NOT SPHINX_EXECUTABLE)
 add_custom_target(doc ALL)
 
 set(DOC_MAN_SRCS "man/wlab.rst" "man/wla-cpu.rst"
-    "man/wlad.rst" "man/wlalink.rst"
+    "man/wlalink.rst"
     "wla-dx.rst")
 set(DOC_SRCS
     "archoverview.rst"
@@ -46,7 +46,6 @@ set(DOC_SRCS
     "bugs.rst"
     "codetoknow.rst"
     "compiling.rst"
-    "disassembling.rst"
     "errormsg.rst"
     "extraflags.rst"
     "files.rst"
@@ -71,7 +70,7 @@ if (GEN_DOC_MAN)
         "${DOC_OUT}/wla-z80.1"
     )
     set(DOC_MAN_FILES "${DOC_OUT}/wla-dx.7" "${DOC_OUT}/wlalink.1"
-        "${DOC_OUT}/wlad.1" "${DOC_OUT}/wlab.1" ${DOC_MAN_CPUFILES})
+        "${DOC_OUT}/wlab.1" ${DOC_MAN_CPUFILES})
     add_custom_command(
         OUTPUT ${DOC_MAN_FILES}
         COMMAND "${SPHINX_EXECUTABLE}" -q -b man

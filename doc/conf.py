@@ -88,7 +88,6 @@ latex_documents = [
 man_pages = [
     ('wla-dx', 'wla-dx', u'wla-dx Documentation', [u'vhelin'], 7),
     ('man/wlalink', 'wlalink', u'WLA Linker', [u'vhelin'], 1),
-    ('man/wlad', 'wlad', u'WLA GB-Z80 Disassembler', [u'vhelin'], 1),
     ('man/wlab', 'wlab', u'WLA Binary to DB converter', [u'vhelin'], 1)
 ]
 

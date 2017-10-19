@@ -25,9 +25,12 @@ apply also to 6502, 65C02, 6510, 65816, HUC6280 and SPC-700.
 
 About the names: WLA DX means all the tools covered in this documentation.
 So WLA DX includes WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700
-macro assembler (what a horribly long name), WLAB, WLAD and WLALINK
+macro assembler (what a horribly long name), WLAB, and WLALINK
 GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 linker. We use plain WLA
 to refer to the macro assembler in this document.
+
+There was WLAD, an GB-Z80 dissassembler, but it has been discontinued and
+removed from the project and the documentation.
 
 Currently WLA can also be used as a patch tool. Just include the original
 ROM image into the project with ``.BACKGROUND`` and insert e.g.,
