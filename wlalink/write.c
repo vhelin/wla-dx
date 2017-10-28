@@ -14,6 +14,7 @@
 
 extern struct reference *reference_first, *reference_last;
 extern struct label *labels_first, *labels_last;
+extern struct label **sorted_anonymous_labels;
 extern struct object_file *obj_first, *obj_last, *obj_tmp;
 extern struct section *sec_first, *sec_last, *sec_hd_first, sec_hd_last;
 extern struct stack *stacks_first, *stacks_last;
@@ -28,6 +29,7 @@ extern int file_header_size, file_footer_size, *bankaddress, *banksizes;
 extern int memory_file_id, memory_file_id_source, memory_line_number, output_mode;
 extern int program_start, program_end, cpu_65816, snes_mode, smc_status;
 extern int snes_sramsize;
+extern int num_sorted_anonymous_labels;
 
 
 static int _sections_sort(const void *a, const void *b) {
@@ -1784,15 +1786,89 @@ int is_label_anonymous(char *label) {
 }
 
 
+static int _labels_compare(const void *a, const void *b) {
+  const struct label *l1 = a;
+  const struct label *l2 = b;
+
+  if (l1->section_status == OFF && l2->section_status == ON)
+    return 1;
+  if (l1->section_status == ON && l2->section_status == OFF)
+    return -1;
+
+  if (l1->section > l2->section)
+    return 1;
+  else if (l1->section < l2->section)
+    return -1;
+
+  if (l1->rom_address > l2->rom_address)
+    return 1;
+  else if (l1->rom_address < l2->rom_address)
+    return -1;
+
+  if (l1->linenumber > l2->linenumber)
+    return 1;
+
+  return -1;
+}
+
+static int _labels_sort(const void *a, const void *b) {
+  return _labels_compare(*(void**)a, *(void**)b);
+}
+
+
+int sort_anonymous_labels() {
+  int j=0;
+  struct label *l;
+
+  num_sorted_anonymous_labels = 0;
+
+  /* Count # of anonymous labels */
+  l = labels_first;
+  while (l != NULL) {
+    if (is_label_anonymous(l->name) == SUCCEEDED)
+      num_sorted_anonymous_labels++;
+    l = l->next;
+  }
+
+  if (num_sorted_anonymous_labels == 0)
+    return SUCCEEDED;
+
+  sorted_anonymous_labels = malloc(sizeof(struct label *) * num_sorted_anonymous_labels);
+  if (sorted_anonymous_labels == NULL) {
+    fprintf(stderr, "SORT_ANONYMOUS_LABELS: Out of memory error.\n");
+    return FAILED;
+  }
+
+  /* Load anonymous labels */
+  l = labels_first;
+  while (l != NULL) {
+    if (is_label_anonymous(l->name) == SUCCEEDED)
+      sorted_anonymous_labels[j++] = l;
+    l = l->next;
+  }
+
+  qsort(sorted_anonymous_labels, num_sorted_anonymous_labels, sizeof(struct label *), _labels_sort);
+
+
+  return SUCCEEDED;
+}
+
+
+/* sort_anonymous_labels must be called before this. */
+/* Though currently, this doesn't take advantage of the fact that they're sorted. */
 struct label *get_closest_anonymous_label(char *name, int rom_address, int file_id, int section_status, int section) {
 
-  struct label *l = labels_first;
+  struct label *l;
   struct label *closest = NULL;
   int d = 999999999, e;
+  int j;
 
   
+  j = 0;
+
   if (strcmp(name, "_b") == 0 || strcmp(name, "_B") == 0) {
-    while (l != NULL) {
+    while (j < num_sorted_anonymous_labels) {
+      l = sorted_anonymous_labels[j];
       if (strcmp("__", l->name) == 0 && file_id == l->file_id && section_status == l->section_status) {
 	if (section_status == OFF || (section_status == ON && section == l->section)) {
 	  e = rom_address - l->rom_address;
@@ -1802,13 +1878,14 @@ struct label *get_closest_anonymous_label(char *name, int rom_address, int file_
 	  }
 	}
       }
-      l = l->next;
+      j++;
     }
     return closest;
   }
 
   if (strcmp(name, "_f") == 0 || strcmp(name, "_F") == 0) {
-    while (l != NULL) {
+    while (j < num_sorted_anonymous_labels) {
+      l = sorted_anonymous_labels[j];
       if (strcmp("__", l->name) == 0 && file_id == l->file_id && section_status == l->section_status) {
 	if (section_status == OFF || (section_status == ON && section == l->section)) {
 	  e = l->rom_address - rom_address;
@@ -1818,53 +1895,37 @@ struct label *get_closest_anonymous_label(char *name, int rom_address, int file_
 	  }
 	}
       }
-      l = l->next;
+      j++;
     }
     return closest;
   }
 
+  j = 0;
   /* -, --, +, ++, ... */
-  while (l != NULL) {
+  while (j < num_sorted_anonymous_labels) {
+    l = sorted_anonymous_labels[j];
     if (strcmp(name, l->name) == 0 && file_id == l->file_id && section_status == l->section_status) {
       if (section_status == OFF || (section_status == ON && section == l->section)) {
-	if (name[0] == '-') {
-	  e = rom_address - l->rom_address;
-	  if (e >= 0 && e < d) {
-	    closest = l;
-	    d = e;
-	  }
-	}
-	else {
-	  e = l->rom_address - rom_address;
-	  if (e > 0 && e < d) {
-	    closest = l;
-	    d = e;
-	  }
-	}
+        if (name[0] == '-') {
+          e = rom_address - l->rom_address;
+          if (e >= 0 && e < d) {
+            closest = l;
+            d = e;
+          }
+        }
+        else {
+          e = l->rom_address - rom_address;
+          if (e > 0 && e < d) {
+            closest = l;
+            d = e;
+          }
+        }
       }
     }
-    l = l->next;
+    j++;
   }
 
   return closest;
-}
-
-
-static int _labels_sort(const void *a, const void *b) {
-  if ((*((struct label **)a))->section > (*((struct label **)b))->section)
-    return 1;
-  else if ((*((struct label **)a))->section < (*((struct label **)b))->section)
-    return -1;
-  
-  if ((*((struct label **)a))->rom_address > (*((struct label **)b))->rom_address)
-    return 1;
-  else if ((*((struct label **)a))->rom_address < (*((struct label **)b))->rom_address)
-    return -1;
-
-  if ((*((struct label **)a))->linenumber > (*((struct label **)b))->linenumber)
-    return 1;
-
-  return -1;
 }
 
 

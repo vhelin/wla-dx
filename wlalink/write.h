@@ -19,6 +19,7 @@ int parse_stack(struct stack *sta);
 int get_snes_pc_bank(struct label *l);
 int correct_65816_library_sections(void);
 int is_label_anonymous(char *label);
+int sort_anonymous_labels(void);
 struct label *get_closest_anonymous_label(char *name, int rom_address, int file_id, int section_status, int section);
 struct stack *find_stack(int id, int file_id);
 int generate_sizeof_label_definitions(void);
