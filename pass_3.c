@@ -37,9 +37,7 @@ int pass_3(void) {
   struct block *b;
   FILE *f_in;
   int bank = 0, slot = 0, add = 0, file_name_id = 0, inz, line_number = 0, o, add_old = 0;
-#ifdef W65816
   int base = 0x00;
-#endif
   char c;
   int err;
 
@@ -101,11 +99,9 @@ int pass_3(void) {
 	fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
 	return FAILED;
 
-#ifdef W65816
       case 'b':
 	fscanf(f_in, "%d ", &base);
 	continue;
-#endif
 
       case 'f':
 	fscanf(f_in, "%d ", &file_name_id);
@@ -201,9 +197,7 @@ int pass_3(void) {
 	l->address = add;
 	l->bank = s->bank;
 	l->slot = s->slot;
-#ifdef W65816
 	l->base = base;
-#endif
 
 	if (c == 'Z' || is_label_anonymous(l->label) == SUCCEEDED) {
 	  if (labels != NULL) {
@@ -464,10 +458,11 @@ int pass_3(void) {
       add += 3;
       continue;
 
+#endif
+
     case 'b':
       fscanf(f_in, "%d ", &base);
       continue;
-#endif
 
     case 'R':
     case 'Q':
@@ -595,9 +590,7 @@ int pass_3(void) {
 	l->slot = slot;
       }
 
-#ifdef W65816
       l->base = base;
-#endif
 
       if (c == 'Z' || is_label_anonymous(l->label) == SUCCEEDED) {
 	if (labels != NULL) {

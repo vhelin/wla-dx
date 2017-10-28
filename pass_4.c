@@ -195,9 +195,7 @@ int pass_4(void) {
   int i, o, z, y, add_old = 0;
   int x, q, ov;
   float f;
-#ifdef W65816
   int base = 0x00;
-#endif
 
   memset(parent_labels, 0, sizeof(parent_labels));
   
@@ -352,10 +350,11 @@ int pass_4(void) {
 
         continue;
 
-#ifdef W65816
       case 'b':
         fscanf(file_out_ptr, "%d", &base);
         continue;
+
+#ifdef W65816
 
       case 'z':
         fscanf(file_out_ptr, "%d", &inz);
@@ -861,11 +860,7 @@ int pass_4(void) {
       ov = label_tmp->linenumber;
       WRITEOUT_OV;
 
-#ifndef W65816
-      ov = label_tmp->address;
-#else
       ov = label_tmp->address + (label_tmp->base << 16);
-#endif
       WRITEOUT_OV;
 
       label_tmp = label_tmp->next;
@@ -1082,11 +1077,7 @@ int pass_4(void) {
            fprintf(stderr, "LABEL: \"%s\" SLOT: %d LINE: %d\n", label_tmp->label, label_tmp->slot, label_tmp->linenumber);
 	*/
 
-#ifndef W65816
-        ov = label_tmp->address;
-#else
         ov = label_tmp->address + (label_tmp->base << 16);
-#endif
         WRITEOUT_OV;
 
         ov = label_tmp->linenumber;

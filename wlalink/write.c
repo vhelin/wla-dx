@@ -752,7 +752,7 @@ int fix_references(void) {
       if (cpu_65816 != 0)
         i = get_snes_pc_bank(l) >> 16;
       else
-        i = l->bank;
+        i = l->bank + l->base;
 
       memory_file_id = r->file_id;
       memory_file_id_source = r->file_id_source;
@@ -920,7 +920,7 @@ int write_symbol_file(char *outname, unsigned char mode) {
       }
       if (l->status == LABEL_STATUS_LABEL) {
 	if (snes_mode == 0)
-	  fprintf(f, "%.2x:%.4x %s\n", l->bank, (int)l->address, l->name);
+	  fprintf(f, "%.2x:%.4x %s\n", l->base + l->bank, (int)l->address, l->name);
 	else
 	  fprintf(f, "%.2x:%.4x %s\n", get_snes_pc_bank(l)>>16, (int)l->address, l->name);
       }
@@ -969,7 +969,7 @@ int write_symbol_file(char *outname, unsigned char mode) {
 	}
 	
 	if (snes_mode == 0)
-	  fprintf(f, "%.2x:%.4x %s\n", l->bank, (int)l->address, l->name);
+	  fprintf(f, "%.2x:%.4x %s\n", l->base + l->bank, (int)l->address, l->name);
 	else
 	  fprintf(f, "%.2x:%.4x %s\n", get_snes_pc_bank(l)>>16, (int)l->address, l->name);
 	

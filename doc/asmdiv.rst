@@ -80,7 +80,7 @@ ALL  ``.ASCIITABLE``
 ALL  ``.ASM``
 ALL  ``.BACKGROUND "parallax.gb"``
 ALL  ``.BANK 0 SLOT 1``
-658  ``.BASE $80``
+ALL  ``.BASE $80``
 ALL  ``.BLOCK "Block1"``
 ALL  ``.BR``
 ALL  ``.BREAKPOINT``
@@ -1054,22 +1054,26 @@ This is not a compulsory directive.
 ``.BASE $80``
 -------------
 
-Defines the base value for the 65816 CPU bank number (used only in 24-bit
-addresses). Here are few examples of how to use ``.BASE`` (both examples assume
-the label resides in the first ROM bank)::
+Defines the base value for the bank number (used only in 24-bit addresses and
+when getting a label's bank number with ``:``). Here are few examples of how
+to use ``.BASE`` (both examples assume the label resides in the first ROM
+bank)::
 
     .BASE $00
-      JSL label    ; if label address is $1234, this will assemble into
-                   ; JSL $001234
+    label1:
     .BASE $80
-      JSL label    ; again, label is $1234, but this time the result will be
+    label2:
+
+      JSL label1   ; if label1 address is $1234, this will assemble into
+                   ; JSL $001234
+      JSL label2   ; label2 is also $1234, but this time the result will be
                    ; JSL $801234
 
-``.BASE`` defaults to ``$00``.
+``.BASE`` defaults to ``$00``. Note that the address of the label will also
+contribute to the bank number (bank number == ``.BASE`` + ROM bank of the
+label).
 
-Use ``.LOROM`` or ``.HIROM`` to define the ROM mode. Note that the address
-of the label will also contribute to the 65816 CPU bank number (CPU
-bank number == ``.BASE`` + CPU ROM bank of the label).
+On 65816, use ``.LOROM`` or ``.HIROM`` to define the ROM mode. 
 
 This is not a compulsory directive.
 

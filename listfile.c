@@ -102,10 +102,11 @@ int listfile_collect(void) {
       add += 3;
       continue;
 
+#endif
+
     case 'b':
       fscanf(file_in, "%*d ");
       continue;
-#endif
 
     case 'R':
     case 'Q':
