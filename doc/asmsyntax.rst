@@ -13,11 +13,11 @@ Comments
 Comments begin with ``;`` or ``*`` and end along with the line. ``;`` can be
 used anywhere, but ``*`` can be placed only at the beginning of a new line.
 
-Version 4.1 of WLA introduced ANSI-C -like commenting. This means you can
+Version 4.1 of WLA introduced ANSI C -like commenting. This means you can
 start a multiline comment with ``/*`` and end it with ``*/``.
 
 Version 6.0 of WLA introduced ``.ASM`` and ``.ENDASM`` directives. These
-function much like ANSI-C comments, but unlike the ANSI-C comments these can be
+function much like ANSI C comments, but unlike the ANSI C comments these can be
 nested.
 
 

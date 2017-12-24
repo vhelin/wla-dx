@@ -56,6 +56,10 @@
         table.docutils col {
             width: auto;
         }
+        /* Fix some weird <p> inside <li>'s */
+        li > p, li > p.first {
+            display: inline;
+        }
     </style>
 {%- endblock %}
 

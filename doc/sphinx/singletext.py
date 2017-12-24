@@ -12,7 +12,7 @@ logger = None # Declare it
 try: # Sphinx 1.2.3 compatibility
     from sphinx.util import logging
     logger = logging.getLogger(__name__)
-except ImportError:
+except (ImportError, AttributeError):
     logger = None # Set later
 
 try: # Sphinx 1.2.3 compatibility
@@ -63,10 +63,11 @@ class SingleFileTextBuilder(TextBuilder):
         logger.info('done')
 
         logger.info(bold('assembling single document... '), nonl=True)
-        if logger is self:
+        tree = None
+        try:
             tree = inline_all_toctrees(self, set(), mastername,
                     mastertree, darkgreen)
-        else:
+        except TypeError:
             tree = inline_all_toctrees(self, set(), mastername,
                     mastertree, darkgreen, [mastername])
         tree['docname'] = mastername
@@ -77,7 +78,8 @@ class SingleFileTextBuilder(TextBuilder):
         logger.info('done')
 
         logger.info(bold('writing... '), nonl=True)
-        self.write_doc_serialized(mastername, tree)
+        if hasattr(self, "write_doc_serialized"):
+            self.write_doc_serialized(mastername, tree)
         self.write_doc(mastername, tree)
         logger.info('done')
 

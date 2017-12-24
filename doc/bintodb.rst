@@ -9,7 +9,7 @@ you use it::
 Give it the binary file and WLAB will output the WLA DB formatted data of it
 into stdout. Here's an example from real life::
 
-    wlad -da gayskeletor.bin > gayskeletor.s
+    wlab -da gayskeletor.bin > gayskeletor.s
 
 WLAB has three command flags of which one must be given to WLAB:
 

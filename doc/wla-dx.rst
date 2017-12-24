@@ -15,7 +15,6 @@
     compiling
     linking
     arithmetics
-    disassembling
     bintodb
     codetoknow
     wlaflags
@@ -33,4 +32,3 @@
         man/wlalink
         man/wla-cpu
         man/wlab
-        man/wlad

@@ -42,7 +42,7 @@ EXAMPLES
 
 ::
 
-    wlad -da gayskeletor.bin > gayskeletor.s
+    wlab -da gayskeletor.bin > gayskeletor.s
     wlab -bap iscandar.bin > iscandar.s
     wlab -h starsha.bin > starsha.s
 
