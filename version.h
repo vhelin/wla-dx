@@ -21,12 +21,4 @@
   #define VERSION_FULL_STRING "v" VERSION "-unknown"
 #endif
 
-#ifndef CPU_NAME
-  #if defined(GB)
-    #define CPU_NAME "GB-Z80"
-  #else
-    #define CPU_NAME CPU
-  #endif
-#endif
-
 #endif

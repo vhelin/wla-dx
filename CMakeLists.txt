@@ -175,8 +175,6 @@ foreach(CPU IN LISTS CPUS)
     set_property(TARGET gen-${CPU_TARGET} APPEND
         PROPERTY COMPILE_DEFINITIONS
             "${CPU_UPPER}"
-            "CPU=\"${CPU_UPPER}\""
-            "CPU_STR=${CPU_UPPER}"
         )
     set_property(TARGET gen-${CPU_TARGET} PROPERTY
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/op_tbl_gen/")
@@ -196,8 +194,6 @@ foreach(CPU IN LISTS CPUS)
     set_property(TARGET wla-${CPU_TARGET} APPEND
         PROPERTY COMPILE_DEFINITIONS
             "${CPU_UPPER}"
-            "CPU=\"${CPU_UPPER}\""
-            "CPU_STR=${CPU_UPPER}"
         )
     install(TARGETS wla-${CPU_TARGET} DESTINATION bin)
 endforeach(CPU)

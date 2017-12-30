@@ -33,7 +33,7 @@ FILE *file_out_ptr = NULL;
 #ifdef AMIGA
 long __stack = 65536;
 /* See http://openamiga.org/?function=viewpage&pageid=16 */
-char version_string[] = "\0$VER: WLA-" CPU " " VERSION_AMIGA " (" VERSION_AMIGA_DATE ") " VERSION_FULL_STRING;
+char version_string[] = "\0$VER: WLA-" WLA_NAME " " VERSION_AMIGA " (" VERSION_AMIGA_DATE ") " VERSION_FULL_STRING;
 #endif
 char wla_version[] = "9.7";
 
@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
   
   if (output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
     printf(
-          "WLA " CPU_NAME " Macro Assembler " VERSION_FULL_STRING "\n"
+          "WLA " WLA_NAME " Macro Assembler " VERSION_FULL_STRING "\n"
           "Written by Ville Helin in 1998-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n"
 #ifdef WLA_DEBUG
           "*** This executable is running in DEBUG mode ***\n"
