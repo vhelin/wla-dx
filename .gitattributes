@@ -40,6 +40,8 @@ smake.*     text
 historical/msdos.bat text
 *.yml       text
 
+*.yml       text
+
 # Is there any binary files in this repository?
 # Better be safe.
 *.exe   binary
