@@ -144,7 +144,24 @@ add_subdirectory(wlab)
 add_subdirectory(wlalink)
 add_subdirectory(doc)
 
-# WLA-CPU executablesgit-version
+add_custom_target(generators)
+
+if(CMAKE_CROSSCOMPILING)
+    set(IMPORT_GENERATORS "IMPORT_GENERATORS-NOTFOUND"
+        CACHE FILEPATH "ImportGenerators.cmake of a native build")
+    set(CROSSCOMPILING_EMULATOR "${CMAKE_CROSSCOMPILING_EMULATOR}"
+        CACHE FILEPATH "Path/Command to an emulator that can execute foreign code")
+    if(CROSSCOMPILING_EMULATOR)
+        message(STATUS "Using crosscompiling emulator: ${CROSSCOMPILING_EMULATOR}")
+        set(EMU "${CROSSCOMPILING_EMULATOR}") # Easier to write
+    else()
+        include("${IMPORT_GENERATORS}")
+        set(GEN_PREFIX native-)
+    endif()
+endif()
+
+
+# WLA-CPU executables
 set(WLA_SRCS
     main.c
     hashmap.c
@@ -168,22 +185,26 @@ foreach(CPU IN LISTS CPUS)
     list(APPEND WLA_CPU_TARGETS "wla-${CPU_TARGET}")
 
     # Generate opcode table
-    add_executable(gen-${CPU_TARGET}
-        "opcode_table_generator.c"
-        "opcodes_${CPU_TARGET}.c"
-        )
-    set_property(TARGET gen-${CPU_TARGET} APPEND
-        PROPERTY COMPILE_DEFINITIONS
-            "${CPU_UPPER}"
-        )
-    set_property(TARGET gen-${CPU_TARGET} PROPERTY
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/op_tbl_gen/")
+    if(NOT CMAKE_CROSSCOMPILING OR CROSSCOMPILING_EMULATOR)
+        add_executable(gen-${CPU_TARGET}
+            "opcode_table_generator.c"
+            "opcodes_${CPU_TARGET}.c"
+            )
+        set_property(TARGET gen-${CPU_TARGET} APPEND
+            PROPERTY COMPILE_DEFINITIONS
+                "${CPU_UPPER}"
+            )
+        set_property(TARGET gen-${CPU_TARGET} PROPERTY
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/op_tbl_gen/")
+        list(APPEND GENERATOR_TARGETS gen-${CPU_TARGET})
+        add_dependencies(generators gen-${CPU_TARGET})
+    endif()
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/op_tbl_gen/")
     set(TABLE_GEN_OUTPUT
         "${CMAKE_BINARY_DIR}/op_tbl_gen/opcodes_${CPU_TARGET}_tables.c")
     add_custom_command(
         OUTPUT "${TABLE_GEN_OUTPUT}"
-        COMMAND gen-${CPU_TARGET} "${TABLE_GEN_OUTPUT}"
-        DEPENDS gen-${CPU_TARGET}
+        COMMAND ${EMU} $<TARGET_FILE:${GEN_PREFIX}gen-${CPU_TARGET}> "${TABLE_GEN_OUTPUT}"
         )
 
     # Generate actual wla binary
@@ -201,6 +222,13 @@ endforeach(CPU)
 foreach(t wlalink wlab ${WLA_CPU_TARGETS})
     add_dependencies(${t} version)
 endforeach(t)
+
+if(NOT CMAKE_CROSSCOMPILING)
+    export(TARGETS ${GENERATOR_TARGETS}
+        FILE "${CMAKE_BINARY_DIR}/ImportGenerators.cmake"
+        NAMESPACE native-
+        )
+endif()
 
 # Testing
 enable_testing()
