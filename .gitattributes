@@ -1,5 +1,5 @@
 
-*       text=auto eol=lf
+*       text=auto
 *.txt   text
 *.c     text
 *.h     text
@@ -37,6 +37,8 @@ makefile.*  text
 smakefile   text
 scoptions.* text
 smake.*     text
+historical/msdos.bat text
+*.yml       text
 
 # Is there any binary files in this repository?
 # Better be safe.
