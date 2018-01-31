@@ -1,0 +1,37 @@
+version: "av-1.0-{build}-{branch}"
+
+skip_tags: false
+skip_non_tags: false
+skip_branch_with_pr: false
+
+max_jobs: 1
+
+image:
+    - Visual Studio 2013
+
+platform:
+    - x86
+
+configuration:
+    - RelWithDebInfo
+
+before_build:
+    - mkdir avbuild && cd avbuild && cmake .. && cd ..
+
+build_script:
+    - cmake --build avbuild --config %CONFIGURATION%
+
+test_script:
+    - cd avbuild && ctest -C %CONFIGURATION% -V && cd ..
+
+after_test:
+    - cd avbuild && cpack -C %CONFIGURATION% -V && cd ..
+
+artifacts:
+    - path: "avbuild\\WLA-DX-*.zip"
+      type: File
+      name: CPack package
+    - path: "avbuild\\binaries\\$(configuration)\\"
+      type: Zip
+      name: Binaries only
+
