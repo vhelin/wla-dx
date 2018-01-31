@@ -237,3 +237,36 @@ add_custom_target(check
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
 add_subdirectory(tests)
 
+# Packaging via CPack
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+    "Yet Another GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 Multi Platform Cross Assembler Package")
+set(CPACK_PACKAGE_CHECKSUM MD5) # CPack 3.7+
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+set(CPACK_GENERATOR ZIP TGZ 7Z)
+
+set(CPACK_SOURCE_GENERATOR ZIP TGZ 7Z)
+set(CPACK_SOURCE_IGNORE_FILES "/.git/" "̇\\\\.swp" "#" "~" "build")
+
+SET(CPACK_PACKAGE_VERSION "@VERSION_FULL@")
+SET(CPACK_PACKAGE_VERSION_MAJOR "@VERSION_MAJOR@")
+SET(CPACK_PACKAGE_VERSION_MINOR "@VERSION_MINOR@")
+SET(CPACK_PACKAGE_VERSION_PATCH "@VERSION_PATCH@")
+
+set(CPACK_OUTPUT_CONFIG_FILE
+    "${CMAKE_CURRENT_BINARY_DIR}/CPackConfig.cmake.in")
+set(CPACK_SOURCE_OUTPUT_CONFIG_FILE
+    "${CMAKE_CURRENT_BINARY_DIR}/CPackSourceConfig.cmake.in")
+include(CPack)
+
+add_custom_command(OUTPUT CPackConfig.cmake CPackSourceConfig.cmake
+    COMMAND "${CMAKE_COMMAND}"
+        "-DSRCDIR=${CMAKE_CURRENT_SOURCE_DIR}"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/CPackGen.cmake"
+    DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/CPackGen.cmake"
+        "${BUILD_VERSION_FILE}"
+        "${CPACK_OUTPUT_CONFIG_FILE}" "${CPACK_SOURCE_OUTPUT_CONFIG_FILE}"
+    )
+add_custom_target(gen-cpack ALL
+    DEPENDS CPackConfig.cmake CPackSourceConfig.cmake)
+
