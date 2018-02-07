@@ -739,6 +739,7 @@ int fix_references(void) {
         strcpy(lt.name, &r->name[1]);
         lt.address = r->address;
         lt.bank = r->bank;
+        lt.base = 0;
         lt.section_status = OFF;
         l = &lt;
       }
@@ -754,7 +755,7 @@ int fix_references(void) {
       if (cpu_65816 != 0)
         i = get_snes_pc_bank(l) >> 16;
       else
-        i = l->bank + l->base;
+        i = l->base + l->bank;
 
       memory_file_id = r->file_id;
       memory_file_id_source = r->file_id_source;
@@ -791,6 +792,7 @@ int fix_references(void) {
         strcpy(lt.name, r->name);
         lt.address = r->address;
         lt.bank = r->bank;
+        lt.base = 0;
         lt.section_status = OFF;
         l = &lt;
       }
@@ -1649,7 +1651,7 @@ int parse_stack(struct stack *sta) {
             if (cpu_65816 != 0)
               k = get_snes_pc_bank(l) >> 16;
             else
-              k = l->bank;
+              k = l->base + l->bank;
           }
 	}
       }

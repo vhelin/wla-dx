@@ -448,6 +448,7 @@ int pass_3(void) {
 
 #ifdef W65816
     case 'z':
+#endif
     case 'q':
       fscanf(f_in, "%*s ");
       add += 3;
@@ -457,8 +458,6 @@ int pass_3(void) {
       fscanf(f_in, "%*d ");
       add += 3;
       continue;
-
-#endif
 
     case 'b':
       fscanf(f_in, "%d ", &base);

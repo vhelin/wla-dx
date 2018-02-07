@@ -553,7 +553,6 @@ int pass_4(void) {
 
         continue;
 
-#ifdef W65816
         /* 24BIT COMPUTATION */
 
       case 'T':
@@ -642,6 +641,7 @@ int pass_4(void) {
 
         continue;
 
+#ifdef W65816
         /* 16BIT PC RELATIVE REFERENCE */
 
       case 'M':
