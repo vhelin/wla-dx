@@ -7,35 +7,42 @@ set(DOC_OUT "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/doc")
 set(DOC_SRC "${CMAKE_CURRENT_SOURCE_DIR}")
 set(DOC_DEPS )
 
-find_program(SPHINX_EXECUTABLE
-    NAMES sphinx-build
-    HINTS $ENV{SPHINX_DIR}
-    PATH_SUFFIXES bin
-    DOC "Sphinx documentation generator"
-)
+if(NOT SPHINX_EXECUTABLE OR NOT EXISTS "${SPHINX_EXECUTABLE}")
+    find_program(SPHINX_EXECUTABLE
+        NAMES sphinx-build
+        HINTS "$ENV{SPHINX_DIR}"
+        PATH_SUFFIXES bin
+        DOC "Sphinx documentation generator"
+    )
+endif()
 
-if (SPHINX_EXECUTABLE)
+if(SPHINX_EXECUTABLE)
     message(STATUS "Found sphinx-build: ${SPHINX_EXECUTABLE}")
-    option(GEN_DOC "Generate documentation (Requires sphinx)" ON)
+    option(GEN_DOC "Generate documentation (requires sphinx)" ON)
 else()
     message(STATUS "Couldn't find sphinx-build")
-    option(GEN_DOC "Generate documentation (Requires sphinx)" OFF)
-endif (SPHINX_EXECUTABLE)
+    option(GEN_DOC "Generate documentation (requires sphinx)" OFF)
+endif()
 
-if (NOT GEN_DOC)
+if(NOT GEN_DOC)
     return()
-endif (NOT GEN_DOC)
+endif()
 
-if (NOT SPHINX_EXECUTABLE)
-    message(FATAL_ERROR "sphinx-build not found")
+if(NOT EXISTS "${SPHINX_EXECUTABLE}")
+    message(FATAL_ERROR "sphinx-build not found! Set SPHINX_EXECUTABLE"
+        "to a valid sphinx-build binary or set GEN_DOC=OFF to disable"
+        "documentation generation.")
     return()
-endif (NOT SPHINX_EXECUTABLE)
+endif()
 
 add_custom_target(doc ALL)
 
-set(DOC_MAN_SRCS "man/wlab.rst" "man/wla-cpu.rst"
+set(DOC_MAN_SRCS
+    "man/wlab.rst"
+    "man/wla-cpu.rst"
     "man/wlalink.rst"
-    "wla-dx.rst")
+    "wla-dx.rst"
+    )
 set(DOC_SRCS
     "archoverview.rst"
     "arithmetics.rst"
@@ -91,9 +98,9 @@ if(GEN_DOC_MAN)
     install(FILES ${DOC_MAN_FILES} DESTINATION "man/man1")
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
         "gen-man" "man.doctree")
-endif (GEN_DOC_MAN)
+endif()
 
-if (GEN_DOC_SINGLEHTML)
+if(GEN_DOC_SINGLEHTML)
     add_custom_command(
         OUTPUT "${DOC_OUT}/wla-dx.html"
         COMMAND "${SPHINX_EXECUTABLE}" -q -b singlehtml
@@ -111,9 +118,9 @@ if (GEN_DOC_SINGLEHTML)
     install(FILES "${DOC_OUT}/wla-dx.html" DESTINATION "share/doc/wla-dx")
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
         "gen-shtml" "shtml.doctree")
-endif (GEN_DOC_SINGLEHTML)
+endif()
 
-if (GEN_DOC_SINGLETEXT)
+if(GEN_DOC_SINGLETEXT)
     add_custom_command(
         OUTPUT "${DOC_OUT}/wla-dx.txt"
         COMMAND "${SPHINX_EXECUTABLE}" -q -b singletext
@@ -130,5 +137,5 @@ if (GEN_DOC_SINGLETEXT)
     install(FILES "${DOC_OUT}/wla-dx.txt" DESTINATION "share/doc/wla-dx")
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
         "gen-stext" "stext.doctree")
-endif (GEN_DOC_SINGLETEXT)
+endif()
 
