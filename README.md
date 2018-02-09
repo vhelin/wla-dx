@@ -39,16 +39,20 @@ You need:
     * Sphinx version might be bumped up to 1.5.0 when cygwin updates their
       `python-sphinx` version.
 
-1. Clone the repository: `git clone https://github.com/vhelin/wla-dx`
-2. Open the terminal inside the repository folder: `cd wla-dx`
-3. Make building directory: `mkdir build && cd build`
-4. Generate CMake files: `cmake ..`
-5. Build: `cmake --build . --config Release`
-6. (Optional) Test: `ctest . -C Release`
-7. (Optional) Install: `cmake -P cmake_install.cmake`
+    git clone https://github.com/vhelin/wla-dx && cd wla-dx
+    mkdir build && cd build
+    cmake ..
+    cmake --build . --config RelWithDebInfo
+    ctest -C RelWithDebInfo
+    cmake -P cmake_install.cmake
 
-If you didn't installed it, you can still access the binaries in the `binaries`
-folder. It also contains the compiled documentation in the subfolder `doc`.
+The `ctest` command runs the tests, and the last `cmake -P` command installs
+the binaries. The parameters `--config RelWithDebInfo` and `-C RelWithDebInfo`
+can be omitted if you're not using a build system with multiple configurations
+(like Ninja or Makefiles).
+
+The compiled binaries are in the `binaries` folder (`bin` when installing) and
+the compiled documentations are located in the `doc` folder.
 
 
 
