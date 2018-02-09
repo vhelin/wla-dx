@@ -118,7 +118,6 @@ id   dw
 .db $ff, $ff $ff     $ff
 
 	boola
-.db wla_filename, WLA_FILENAME, wla_time, WLA_TIME, wla_version, WLA_VERSION
 
 .SECTION "Beginning" FORCE
 
