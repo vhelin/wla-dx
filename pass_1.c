@@ -1557,7 +1557,7 @@ int parse_directive(void) {
 	  }
 	  /* handle '\x' */
 	  else if (label[o] == '\\' && label[o + 1] == 'x') {
-	    char tmp_a[2], *tmp_b;
+	    char tmp_a[3], *tmp_b;
 	    int tmp_c;
 	    
 	    o += 3;
