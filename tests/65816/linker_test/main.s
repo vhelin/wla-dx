@@ -71,6 +71,7 @@ joopa:
 
 .db $aa~$ff
 .db $ff~(%0+$ff-1)<<1
+TESB:
 .dw TESB~$ffff
 PER.W joopa
 

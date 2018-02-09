@@ -1,0 +1,1 @@
+set(DEFS "NAME=kullervo")
