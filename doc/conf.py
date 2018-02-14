@@ -168,3 +168,6 @@ texinfo_documents = [
 #texinfo_domain_indices = True # If false, no module index is generated
 #texinfo_show_urls = 'footnote'
 #texinfo_no_detailmenu = False
+
+if os.environ.get('READTHEDOCS') == 'True':
+    html_theme = 'default'
