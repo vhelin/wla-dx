@@ -259,11 +259,9 @@ int main(int argc, char *argv[]) {
     discard_drop_labels();
   }
 
-  /* correct 65816 library section addresses */
-  if (cpu_65816 != 0) {
-    if (correct_65816_library_sections() == FAILED)
-      return 1;
-  }
+  /* correct non-zero-BASE library section addresses */
+  if (correct_65816_library_sections() == FAILED)
+    return 1;
 
   /* if ROM size < 32KBs, correct SDSC tag sections' addresses */
   if (smstag_defined != 0 && romsize < 0x8000) {

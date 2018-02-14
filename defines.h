@@ -89,7 +89,7 @@
 /* O - origin              */
 /* o - absolute origin     */
 /* B - ROM bank            */
-/* b - BASE (65816)        */
+/* b - BASE                */
 /* L - label               */
 /* r - 16-bit reference    */
 /* R - 8-bit pc ref        */
@@ -607,9 +607,7 @@ struct stack {
   int bank;
   int slot;
   int relative_references;
-#ifdef W65816
   int base;
-#endif
   int section_status;
   int section_id;
   int address;
