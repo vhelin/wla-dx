@@ -52,7 +52,7 @@ elif use_git_version:
     if proc.returncode != 0:
         raise subprocess.CalledProcessError("Couldn't git describe: %d"
                                             % proc.returncode)
-    git_describe = stdout.read()
+    git_describe = stdout
 
     proc = subprocess.Popen('git rev-parse --abbrev-ref HEAD'.split(' '),
             cwd=repo_dir, stdout=subprocess.PIPE)
@@ -60,7 +60,7 @@ elif use_git_version:
     if proc.returncode != 0:
         raise subprocess.CalledProcessError("Couldn't git rev-parse: %d"
                                             % proc.returncode)
-    git_branch = stdout.read()
+    git_branch = stdout
 
     release = "g-%s-%s" % (git_branch, git_describe)
     if re.search('[0-9]+(\.[0-9]+)+', git_describe) is None:
