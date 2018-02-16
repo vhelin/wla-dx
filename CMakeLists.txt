@@ -114,3 +114,10 @@ foreach(CPU IN LISTS CPUS)
     install(TARGETS wla-${CPU_TARGET} DESTINATION bin)
 endforeach(CPU)
 
+# Testing
+enable_testing()
+add_custom_target(check
+    COMMAND "${CMAKE_CTEST_COMMAND}" --verbose
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+add_subdirectory(tests)
+
