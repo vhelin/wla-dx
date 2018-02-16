@@ -38,6 +38,7 @@ endforeach(DIR)
 
 # Test something with ALL wla-X things, mostly for definitions etc.
 foreach(DIR
+        "all/unused-section-defs-export"
         )
     string(REPLACE "/" "-" TEST_NAME "${DIR}")
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${DIR}")
