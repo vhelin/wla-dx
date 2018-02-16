@@ -1,0 +1,7 @@
+
+[objects]
+main.o
+can_you_tell_this_name_is_intended_to_test_the_capability_of_wla_to_handle_long_filenames_and_stufffffffff.o
+
+[libraries]
+bank 0 slot 0 base $80 test.lib
