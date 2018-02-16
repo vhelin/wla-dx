@@ -179,3 +179,10 @@ set(CPACK_SOURCE_IGNORE_FILES "/.git/" "̇\\\\.swp" "#" "~" "build")
 
 include(CPack)
 
+# Testing
+enable_testing()
+add_custom_target(check
+    COMMAND "${CMAKE_CTEST_COMMAND}" --verbose
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+add_subdirectory(tests)
+
