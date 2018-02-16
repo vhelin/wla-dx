@@ -12,6 +12,8 @@ endif()
 project(WLA-DX C)
 
 set(CPUS gb wdc65c02 mcs6502 mcs6510 w65816 huc6280 spc700 z80)
+set(CPU_TARGET_RE "^(wdc|w|mcs)(65)")
+set(CPU_TARGET_REPLACE "\\2")
 
 option(GDB_DEBUGGING
     "Enable debugging via gdb (Only when CMAKE_BUILD_TYPE is Debug)" ON)
@@ -160,7 +162,8 @@ set(WLA_CPU_TARGETS)
 foreach(CPU IN LISTS CPUS)
     # CPU_TARGET has the prefix WDC and MCS removed because they usually
     # named like that and for backwards compatibility
-    string(REGEX REPLACE "^(wdc|w|mcs)(65)" "\\2" CPU_TARGET "${CPU}")
+    string(REGEX REPLACE "${CPU_TARGET_RE}" "${CPU_TARGET_REPLACE}"
+        CPU_TARGET "${CPU}")
     string(TOUPPER "${CPU}" CPU_UPPER) # For COMPILE_DEFINITION
     list(APPEND WLA_CPU_TARGETS "wla-${CPU_TARGET}")
 
