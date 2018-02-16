@@ -61,7 +61,7 @@ endforeach(DIR)
 # Test something with ALL wla-X things, mostly for definitions etc.
 foreach(DIR
         #"all/unused-section-defs-export"
-        "all/negative-redefinition"
+        #"all/negative-redefinition"
         )
     string(REPLACE "/" "-" TEST_TARGET "${DIR}")
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${DIR}")
