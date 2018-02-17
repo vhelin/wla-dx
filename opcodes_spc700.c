@@ -1,4 +1,4 @@
-
+#include "opcodes_table.h"
 struct optcode opt_table[] = {
   { "ADC A,(X)", 0x86, 0 },
   { "ADC A,#x", 0x88, 1 },

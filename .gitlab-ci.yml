@@ -1,0 +1,100 @@
+# image: debian
+image: buildpack-deps:xenial
+
+before_script:
+    - apt-get update && apt-get install -y gcc clang cmake make ninja-build python-sphinx
+
+stages:
+    - build_and_test
+
+
+cmake-clang-release: &cmake-base
+    stage: build_and_test
+    script:
+        - mkdir build-$CI_JOB_NAME && cd build-$CI_JOB_NAME
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DGEN_DOC=ON
+        - cd ..
+        - cmake --build build-$CI_JOB_NAME
+        - cmake --build build-$CI_JOB_NAME --target check
+    variables:
+        CC: clang
+        BUILD_TYPE: Release
+    dependencies: []
+
+cmake-clang-debug:
+    <<: *cmake-base
+    variables:
+        BUILD_TYPE: Debug
+
+cmake-gcc-release: &gcc-cmake-base
+    <<: *cmake-base
+    variables:
+        CC: gcc
+        BUILD_TYPE: Release
+
+cmake-gcc-debug:
+    <<: *gcc-cmake-base
+    variables:
+        BUILD_TYPE: Debug
+
+
+make-clang-release: &make-base
+    stage: build_and_test
+    script:
+      - make -f mk/Makefile clean all
+    variables:
+        CC: clang
+        MAKE_OPTS: ""
+    dependencies: []
+
+make-clang-debug:
+    <<: *make-base
+    variables:
+        MAKE_OPTS: DEBUGFLAGS=
+
+make-gcc-release:
+    <<: *make-base
+    variables:
+        CC: gcc
+
+make-gcc-debug:
+    <<: *make-base
+    variables:
+        CC: gcc
+        MAKE_OPTS: DEBUGFLAGS=
+
+cmake-gcc-windows-release: &gcc-cmake-windows-base
+    <<: *gcc-cmake-base
+    before_script:
+        - >-
+            apt-get update
+            && apt-get install -y python-sphinx gcc gcc-mingw-w64-i686
+            cmake ninja-build
+    script:
+        - mkdir nbuild-$CI_JOB_NAME && cd nbuild-$CI_JOB_NAME
+        - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        - cmake --build . --target generators
+        - cd ..
+        - mkdir wbuild-$CI_JOB_NAME && cd wbuild-$CI_JOB_NAME
+        - >-
+            cmake .. -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DGEN_DOC=ON
+            -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc
+            -DCMAKE_FIND_ROOT_PATH=/usr/i686-w64-mingw32/
+            -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY
+            -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+            -DIMPORT_GENERATORS=../nbuild-$CI_JOB_NAME/ImportGenerators.cmake
+        - cmake --build .
+        - cpack -V
+        - cd ..
+    artifacts:
+        paths:
+            - "wbuild-$CI_JOB_NAME/WLA-DX-*.zip"
+        expire_in: "1 year"
+
+cmake-gcc-windows-release-tagged:
+    <<: *gcc-cmake-windows-base
+    artifacts:
+        paths:
+            - "wbuild-$CI_JOB_NAME/WLA-DX-*.zip"
+    only:
+        - tags

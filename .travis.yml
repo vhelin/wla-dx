@@ -1,0 +1,29 @@
+language: c
+compiler:
+    - gcc
+    - clang
+
+addons:
+    apt:
+        packages:
+          - cmake
+          - make
+          - ninja-build
+          - git
+          - python-sphinx
+
+env:
+    - BUILD_CHAIN=cmake BUILD_TYPE=Release
+    - BUILD_CHAIN=cmake BUILD_TYPE=Debug
+    - BUILD_CHAIN=make  MAKEOPTS=
+    - BUILD_CHAIN=make  MAKEOPTS=DEBUGFLAGS=
+
+before_script:
+    - mkdir b && cd b
+    - if [ "$BUILD_CHAIN" = "cmake" ]; then cmake .. -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DGEN_DOC=ON; fi
+    - cd ..
+
+script:
+    - if [ "$BUILD_CHAIN" = "cmake" ]; then cmake --build b && cmake --build b --target check; fi
+    - if [ "$BUILD_CHAIN" = "make" ]; then make -f mk/Makefile; fi
+

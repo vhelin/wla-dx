@@ -2,6 +2,8 @@
 
 import sys
 import os
+import re
+import subprocess
 
 # -- General configuration ------------------------------------------------
 
@@ -17,8 +19,9 @@ source_suffix = '.rst'
 master_doc = 'wla-dx'
 project = u'wla-dx'
 copyright = u'2016, vhelin'
-version = '9.7' # The short X.Y version, can be used with |version|
-release = '9.7' # The full version, including alpha/beta/rc tags, |release|
+# Set later in the code!
+version = '1.0' # The short X.Y version, can be used with |version|
+release = '1.0' # The full version, including alpha/beta/rc tags, |release|
 language = None
 #today = ''
 #today_fmt = '%B %d, %Y'
@@ -30,6 +33,58 @@ exclude_patterns = []
 pygments_style = 'sphinx' # The name of the syntax highlighting style to use
 #modindex_common_prefix = [] # List of ignored prefixes for module index sorting
 #keep_warnings = False # Keep warnings in documents
+
+repo_dir = os.getenv('REPO_DIR', '..')
+version_file_name = os.getenv('VERSION_FILE_NAME', 'VERSION')
+version_file = os.getenv('VERSION_FILE', repo_dir + '/' + version_file_name)
+use_git_version = os.getenv('USE_GIT_VERSION', 'true') in ('true', 'on', 'ON')
+git_repo_dir = os.getenv('GIT_REPO_DIR', repo_dir)
+version_info_h_file = os.getenv('VERSION_INFO_H_FILE', '')
+
+if version_info_h_file:
+    with open(version_info_h_file, 'rt') as h_file:
+        release = re.search('#define\s+VERSION_FULL_STRING\s+\"v?([^"]+)\"',
+                            h_file.read()).group(1)
+elif use_git_version:
+    proc = subprocess.Popen('git describe --always --dirty'.split(' '),
+            cwd=repo_dir, stdout=subprocess.PIPE)
+    stdout, stderr = proc.communicate()
+    if proc.returncode != 0:
+        raise subprocess.CalledProcessError("Couldn't git describe: %d"
+                                            % proc.returncode)
+    git_describe = stdout
+
+    proc = subprocess.Popen('git rev-parse --abbrev-ref HEAD'.split(' '),
+            cwd=repo_dir, stdout=subprocess.PIPE)
+    stdout, stderr = proc.communicate()
+    if proc.returncode != 0:
+        raise subprocess.CalledProcessError("Couldn't git rev-parse: %d"
+                                            % proc.returncode)
+    git_branch = stdout
+
+    release = "g-%s-%s" % (git_branch, git_describe)
+    if re.search('[0-9]+(\.[0-9]+)+', git_describe) is None:
+        # There is no correct tag, so let's use the VERSION file
+        verfilever = 1.0
+        try:
+            with open(version_file, 'rt') as verfile:
+                verfilever = verfile.read().replace('\n', '')
+        except (OSError, IOError) as e:
+            print("Couldn't open version file for git! Using 1.0")
+        release = verfilever + "-" + release
+else:
+    try:
+        with open(version_file, 'rt') as verfile:
+            release = verfile.read().replace('\n', '')
+    except (OSError, IOError) as e:
+        print("Couldn't open version file! Using 1.0")
+
+version = re.search('[0-9]+(\.[0-9]+)+', release)
+if version is not None:
+    version = version.group(0)
+else:
+    print("Couldn't find version from '%s'! Using 1.0" & (release,))
+    version = 1.0
 
 
 # -- Options for HTML output ----------------------------------------------
@@ -113,3 +168,6 @@ texinfo_documents = [
 #texinfo_domain_indices = True # If false, no module index is generated
 #texinfo_show_urls = 'footnote'
 #texinfo_no_detailmenu = False
+
+if os.environ.get('READTHEDOCS') == 'True':
+    html_theme = 'default'

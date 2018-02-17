@@ -1,0 +1,12 @@
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+
+[*.c,*.h]
+indent_size = 2
+
+# Required to be tabs
+[Makefile*,*.mk]
+indent_style = tab

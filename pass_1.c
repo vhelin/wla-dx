@@ -137,39 +137,8 @@ int enum_exp, enum_ord, enum_offset;
 __far /* put the following big table in the FAR data section */
 #endif
 
-#ifdef GB
-#include "opcodes_gb.c"
-#include "opcodes_gb_tables.c"
-#endif
-#ifdef Z80
-#include "opcodes_z80.c"
-#include "opcodes_z80_tables.c"
-#endif
-#ifdef MCS6502
-#include "opcodes_6502.c"
-#include "opcodes_6502_tables.c"
-#endif
-#ifdef WDC65C02
-#include "opcodes_65c02.c"
-#include "opcodes_65c02_tables.c"
-#endif
-#ifdef MCS6510
-#include "opcodes_6510.c"
-#include "opcodes_6510_tables.c"
-#endif
-#ifdef W65816
-#include "opcodes_65816.c"
-#include "opcodes_65816_tables.c"
-#endif
-#ifdef SPC700
-#include "opcodes_spc700.c"
-#include "opcodes_spc700_tables.c"
-#endif
-#ifdef HUC6280
-#include "opcodes_huc6280.c"
-#include "opcodes_huc6280_tables.c"
-#endif
-
+extern int opcode_n[256];
+extern struct optcode opt_table[];
 
 #define no_library_files(name)\
  do {\
@@ -710,6 +679,8 @@ void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
   {
     char ttt[64];
 
+    va_end(ap);
+    va_start(ap, format);
     vsprintf(ttt, format, ap);
     printf("LINE %5d: OPCODE: %16s ::: %s\n", active_file_info_last->line_current, oc->op, ttt);
   }
@@ -1588,7 +1559,7 @@ int parse_directive(void) {
 	  }
 	  /* handle '\x' */
 	  else if (label[o] == '\\' && label[o + 1] == 'x') {
-	    char tmp_a[2], *tmp_b;
+	    char tmp_a[3], *tmp_b;
 	    int tmp_c;
 	    
 	    o += 3;

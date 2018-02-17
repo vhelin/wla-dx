@@ -20,59 +20,93 @@
 #define NO  0
 #define YES 1
 
-#define HINT_NONE  0
-#define HINT_8BIT  1
-#define HINT_16BIT 2
-#define HINT_24BIT 3
+#define XSTRINGIFY(x) #x
+#define STRINGIFY(x) XSTRINGIFY(x)
+
+enum {
+  HINT_NONE,
+  HINT_8BIT,
+  HINT_16BIT,
+  HINT_24BIT
+};
 
 #define STACK_CALCULATE_DELAY 2
 #define STACK_RETURN_LABEL 1024
 
-#define STACK_NONE    0
-#define STACK_INSIDE  1
-#define STACK_OUTSIDE 2
+enum {
+  STACK_NONE,
+  STACK_INSIDE,
+  STACK_OUTSIDE
+};
 
-#define SECTION_STATUS_FREE        0
-#define SECTION_STATUS_FORCE       1
-#define SECTION_STATUS_OVERWRITE   2
-#define SECTION_STATUS_HEADER      3
-#define SECTION_STATUS_SEMIFREE    4
-#define SECTION_STATUS_ABSOLUTE    5
-#define SECTION_STATUS_RAM         6
-#define SECTION_STATUS_SUPERFREE   7
-#define SECTION_STATUS_SEMISUBFREE 8
+enum {
+  SECTION_STATUS_FREE,
+  SECTION_STATUS_FORCE,
+  SECTION_STATUS_OVERWRITE,
+  SECTION_STATUS_HEADER,
+  SECTION_STATUS_SEMIFREE,
+  SECTION_STATUS_ABSOLUTE,
+  SECTION_STATUS_RAM,
+  SECTION_STATUS_SUPERFREE,
+  SECTION_STATUS_SEMISUBFREE
+};
 
-#define INPUT_NUMBER_EOL           2
-#define INPUT_NUMBER_ADDRESS_LABEL 3
-#define INPUT_NUMBER_STRING        4
-#define INPUT_NUMBER_STACK         5
-#define INPUT_NUMBER_FLOAT         6
+enum {
+  INPUT_NUMBER_EOL = 2,
+  INPUT_NUMBER_ADDRESS_LABEL,
+  INPUT_NUMBER_STRING,
+  INPUT_NUMBER_STACK,
+  INPUT_NUMBER_FLOAT
+};
 
-#define GET_NEXT_TOKEN_STRING         2
-#define EVALUATE_TOKEN_NOT_IDENTIFIED 2
-#define EVALUATE_TOKEN_EOP            6
+enum {
+  GET_NEXT_TOKEN_STRING = 2,
+  EVALUATE_TOKEN_NOT_IDENTIFIED = 2,
+  EVALUATE_TOKEN_EOP = 6
+};
 
-#define OUTPUT_OBJECT  0
-#define OUTPUT_LIBRARY 1
-#define OUTPUT_NONE    2
+enum {
+  OUTPUT_OBJECT,
+  OUTPUT_LIBRARY,
+  OUTPUT_NONE
+};
 
-#define REFERENCE_TYPE_DIRECT_16BIT   0
-#define REFERENCE_TYPE_RELATIVE_8BIT  1
-#define REFERENCE_TYPE_DIRECT_8BIT    2
-#define REFERENCE_TYPE_DIRECT_24BIT   3
-#define REFERENCE_TYPE_RELATIVE_16BIT 4
+enum {
+  REFERENCE_TYPE_DIRECT_16BIT,
+  REFERENCE_TYPE_RELATIVE_8BIT,
+  REFERENCE_TYPE_DIRECT_8BIT,
+  REFERENCE_TYPE_DIRECT_24BIT,
+  REFERENCE_TYPE_RELATIVE_16BIT
+};
 
-#define ERROR_NONE 0
-#define ERROR_LOG  1
-#define ERROR_DIR  2
-#define ERROR_NUM  3
-#define ERROR_INC  4
-#define ERROR_INB  5
-#define ERROR_UNF  6
-#define ERROR_INP  7
-#define ERROR_STC  8
-#define ERROR_WRN  9
-#define ERROR_ERR 10
+enum {
+  ERROR_NONE,
+  ERROR_LOG,
+  ERROR_DIR,
+  ERROR_NUM,
+  ERROR_INC,
+  ERROR_INB,
+  ERROR_UNF,
+  ERROR_INP,
+  ERROR_STC,
+  ERROR_WRN,
+  ERROR_ERR
+};
+
+#ifndef NDEBUG
+  #define WLA_DEBUG 1
+  #define WLALINK_DEBUG 1
+#endif
+
+#ifdef _CRT_SECURE_NO_WARNINGS
+  #pragma warning(disable:4996) /* Just in case */
+#endif
+
+#ifdef AMIGA
+  #define optcode_int short int
+#else
+  #define optcode_int int
+#endif
 
 /**************************************************************/
 /* wla internal datatypes                                     */
@@ -126,22 +160,15 @@
 /* 9 - *          16b */
 
 #define OP_SIZE_MAX 16
+#define CPU_STR "GB-Z80"
+#define WLA_NAME "gb"
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
-  short int value;
+  optcode_int type;
+  optcode_int value;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  value;
-};
-#endif
 
 #endif
 
@@ -160,22 +187,15 @@ struct optcode {
 /* 4 - x (absolute)   */
 
 #define OP_SIZE_MAX 12
+#define CPU_STR "6502"
+#define WLA_NAME "6502"
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
-  short int skip_8bit;
+  optcode_int type;
+  optcode_int skip_8bit;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  skip_8bit;
-};
-#endif
 
 #endif
 
@@ -195,22 +215,15 @@ struct optcode {
 /* 5 - x-abs x-rel    */
 
 #define OP_SIZE_MAX 12
+#define CPU_STR "WDC65C02"
+#define WLA_NAME "65c02"
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
-  short int skip_8bit;
+  optcode_int type;
+  optcode_int skip_8bit;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  skip_8bit;
-};
-#endif
 
 #endif
 
@@ -233,22 +246,15 @@ struct optcode {
 /* 8 - x-abs x-rel    */
 
 #define OP_SIZE_MAX 12
+#define CPU_STR "HUC6280"
+#define WLA_NAME "huc6280"
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
-  short int skip_8bit;
+  optcode_int type;
+  optcode_int skip_8bit;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  skip_8bit;
-};
-#endif
 
 #endif
 
@@ -267,22 +273,15 @@ struct optcode {
 /* 4 - x (absolute)   */
 
 #define OP_SIZE_MAX 12
+#define CPU_STR "MCS6510"
+#define WLA_NAME "6512"
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
-  short int skip_8bit;
+  optcode_int type;
+  optcode_int skip_8bit;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  skip_8bit;
-};
-#endif
 
 #endif
 
@@ -306,20 +305,14 @@ struct optcode {
 /* d - x ~ x (even) [1, 2] */
 
 #define OP_SIZE_MAX 12
+#define CPU_STR "SPC700"
+#define WLA_NAME "spc700"
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
+  optcode_int type;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-};
-#endif
 
 #endif
 
@@ -344,24 +337,16 @@ struct optcode {
 /* a - * x        24b */
 
 #define OP_SIZE_MAX 20
+#define CPU_STR "Z80"
+#define WLA_NAME "z80"
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
-  short int hex_x;
-  short int value;
+  optcode_int type;
+  optcode_int hex_x;
+  optcode_int value;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  hex_x;
-  int  value;
-};
-#endif
 
 #endif
 
@@ -386,30 +371,31 @@ struct optcode {
 /* a - x (absolute)   */
 
 #define OP_SIZE_MAX 16
+#define CPU_STR "W65816"
+#define WLA_NAME "65816"
 
-#ifdef AMIGA
 struct optcode {
   char *op;
   int  hex;
-  short int type;
-  short int skip_xbit;
+  optcode_int type;
+  optcode_int skip_xbit;
 };
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  skip_xbit;
-};
-#endif
 
 #endif
 
+#ifndef WLA_NAME
+  #error "Unknown WLA_NAME!"
+#endif
+#ifndef CPU_STR
+  #error "Unknown CPU_STR!"
+#endif
 
-#define DEFINITION_TYPE_VALUE         0
-#define DEFINITION_TYPE_STRING        1
-#define DEFINITION_TYPE_STACK         2
-#define DEFINITION_TYPE_ADDRESS_LABEL 3
+enum {
+  DEFINITION_TYPE_VALUE,
+  DEFINITION_TYPE_STRING,
+  DEFINITION_TYPE_STACK,
+  DEFINITION_TYPE_ADDRESS_LABEL
+};
 
 struct definition {
   char   alias[MAX_NAME_LENGTH];
@@ -450,10 +436,12 @@ struct macro_incbin {
   int left;
 };
 
-#define MACRO_CALLER_NORMAL 0
-#define MACRO_CALLER_DBM    1
-#define MACRO_CALLER_DWM    2
-#define MACRO_CALLER_INCBIN 3
+enum {
+  MACRO_CALLER_NORMAL,
+  MACRO_CALLER_DBM,
+  MACRO_CALLER_DWM,
+  MACRO_CALLER_INCBIN
+};
 
 struct macro_runtime {
   struct macro_static *macro;
@@ -555,38 +543,48 @@ struct block {
   struct block *next;
 };
 
-#define STACK_ITEM_TYPE_VALUE    0
-#define STACK_ITEM_TYPE_OPERATOR 1
-#define STACK_ITEM_TYPE_STRING   2
-#define STACK_ITEM_TYPE_DELETED  3
-#define STACK_ITEM_TYPE_STACK    4
+enum {
+  STACK_ITEM_TYPE_VALUE,
+  STACK_ITEM_TYPE_OPERATOR,
+  STACK_ITEM_TYPE_STRING,
+  STACK_ITEM_TYPE_DELETED,
+  STACK_ITEM_TYPE_STACK
+};
 
-#define SI_OP_PLUS         0
-#define SI_OP_MINUS        1
-#define SI_OP_MULTIPLY     2
-#define SI_OP_LEFT         3
-#define SI_OP_RIGHT        4
-#define SI_OP_OR           5
-#define SI_OP_AND          6
-#define SI_OP_DIVIDE       7
-#define SI_OP_POWER        8
-#define SI_OP_SHIFT_LEFT   9
-#define SI_OP_SHIFT_RIGHT 10
-#define SI_OP_MODULO      11
-#define SI_OP_XOR         12
-#define SI_OP_LOW_BYTE    13
-#define SI_OP_HIGH_BYTE   14
+enum {
+  SI_OP_PLUS,
+  SI_OP_MINUS,
+  SI_OP_MULTIPLY,
+  SI_OP_LEFT,
+  SI_OP_RIGHT,
+  SI_OP_OR,
+  SI_OP_AND,
+  SI_OP_DIVIDE,
+  SI_OP_POWER,
+  SI_OP_SHIFT_LEFT,
+  SI_OP_SHIFT_RIGHT,
+  SI_OP_MODULO,
+  SI_OP_XOR,
+  SI_OP_LOW_BYTE,
+  SI_OP_HIGH_BYTE
+};
 
-#define SI_SIGN_POSITIVE 0
-#define SI_SIGN_NEGATIVE 1
+enum {
+  SI_SIGN_POSITIVE,
+  SI_SIGN_NEGATIVE
+};
 
-#define STACKS_TYPE_8BIT    0
-#define STACKS_TYPE_16BIT   1
-#define STACKS_TYPE_24BIT   2
-#define STACKS_TYPE_UNKNOWN 3
+enum {
+  STACKS_TYPE_8BIT,
+  STACKS_TYPE_16BIT,
+  STACKS_TYPE_24BIT,
+  STACKS_TYPE_UNKNOWN
+};
 
-#define STACK_POSITION_DEFINITION 0
-#define STACK_POSITION_CODE       1
+enum {
+  STACK_POSITION_DEFINITION,
+  STACK_POSITION_CODE
+};
 
 struct stack_item {
   int type;
@@ -641,9 +639,11 @@ struct filepointer {
   struct filepointer *next;
 };
 
-#define TYPE_STRING            0
-#define TYPE_VALUE             1
-#define TYPE_LABEL             2
-#define TYPE_STACK_CALCULATION 3
+enum {
+  TYPE_STRING,
+  TYPE_VALUE,
+  TYPE_LABEL,
+  TYPE_STACK_CALCULATION
+};
 
 #endif
