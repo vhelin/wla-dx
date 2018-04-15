@@ -308,6 +308,13 @@ int pass_4(void) {
 
       case 'x':
         fscanf(file_out_ptr, "%d %d", &ind, &x);
+        while (ind < 0) { /* going back... this is a hack for ramsections */
+          sec_tmp->i--;
+          pc_bank--;
+          pc_full--;
+          pc_slot--;
+          ind++;
+        }
         while (ind > 0) {
           if (mem_insert(x) == FAILED)
             return FAILED;
@@ -1438,6 +1445,10 @@ int find_label(char *str, struct section_def *s, struct label_def **out) {
 int mem_insert(unsigned char x) {
 
   if (section_status == ON) {
+    if (sec_tmp->i >= sec_tmp->size || sec_tmp->i < 0) {
+      fprintf(stderr, "MEM_INSERT: Overflowed data for section \"%s\"; please send a bug report!\n", sec_tmp->name);
+      return FAILED;
+    }
     sec_tmp->data[sec_tmp->i] = x;
     sec_tmp->i++;
     pc_bank++;

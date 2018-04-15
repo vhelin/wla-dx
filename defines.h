@@ -613,9 +613,23 @@ struct stack {
   int address;
 };
 
+#define STRUCTURE_ITEM_TYPE_DB              0
+#define STRUCTURE_ITEM_TYPE_DOT_DB          1
+#define STRUCTURE_ITEM_TYPE_DW              2
+#define STRUCTURE_ITEM_TYPE_DOT_DW          3
+#define STRUCTURE_ITEM_TYPE_DSB             4
+#define STRUCTURE_ITEM_TYPE_DSW             5
+#define STRUCTURE_ITEM_TYPE_INSTANCEOF      6
+
 struct structure_item {
   char name[MAX_NAME_LENGTH];
+  int type;
   int size;
+
+  /* only for TYPE_INSTANCEOF */
+  struct structure *instance;
+  int num_instances;
+
   struct structure_item *next;
 };
 

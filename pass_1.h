@@ -10,6 +10,7 @@ int redefine(char *name, double value, char *string, int type, int size);
 int undefine(char *name);
 int parse_directive(void);
 int parse_if_directive(void);
+int enum_add_label(char *name, int type, int size, struct structure *instance);
 int parse_enum_token(void);
 int find_next_point(char *name);
 int get_new_definition_data(int *b, char *c, int *size, double *data);

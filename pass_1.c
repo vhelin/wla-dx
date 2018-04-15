@@ -125,9 +125,15 @@ int xbit_size = 0;
 int accu_size = 8, index_size = 8;
 #endif
 
-/* vars used when in an enum or ramsection */
-int in_enum=0, in_ramsection=0;
-int enum_exp, enum_ord, enum_offset;
+/* vars used when in an enum, ramsection, or struct */
+int in_enum=0, in_ramsection=0, in_struct=0;
+/* for all 3 */
+int enum_ord, enum_offset, last_enum_offset, max_enum_offset;
+/* for enum only */
+int enum_exp;
+/* for struct */
+struct structure *active_struct;
+struct structure_item *last_active_struct_item;
 
 
 /* remember to run opcodesgen/gen with the proper flags defined */
@@ -736,7 +742,7 @@ int evaluate_token(void) {
 
   
   /* are we in an enum or ramsection? */
-  if (in_enum == 1 || in_ramsection == 1)
+  if (in_enum || in_ramsection || in_struct)
     return parse_enum_token();
 
   /* is it a directive? */
@@ -955,7 +961,6 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
   struct definition *d;
   int err;
 
-  
   hashmap_get(defines_map, name, (void*)&d);
   if (d != NULL) {
     sprintf(emsg, "\"%s\" was defined for the second time.\n", name);
@@ -1093,14 +1098,103 @@ void next_line(void) {
     active_file_info_last->line_current++;
 }
 
+/* Add a label at the current offset in the enum/ramsection/struct. The last 3 arguments
+ * are only needed when in_struct is true. */
+int enum_add_label(char *name, int type, int size, struct structure *st) {
+  if (in_enum) {
+    if (add_a_new_definition(name, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+      return FAILED;
+    if (enum_exp == YES)
+      if (export_a_definition(name) == FAILED)
+        return FAILED;
+  }
+  else if (in_ramsection) {
+    if (last_enum_offset != enum_offset) {
+      /* This sometimes abuses the "dsb" implementation to move backwards in the ramsection... */
+      fprintf(file_out_ptr, "x%d 0 ", enum_offset-last_enum_offset);
+    }
+    fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, name);
+  }
+  else if (in_struct) {
+    struct structure_item *si;
+    char tmpname[MAX_NAME_LENGTH];
 
-/* either "in_enum" or "in_ramsection" should be true when this is called. */
+    si = malloc(sizeof(struct structure_item));
+    if (si == NULL) {
+      print_error("Out of memory while allocating a new STRUCT.\n", ERROR_DIR);
+      return FAILED;
+    }
+    si->next = NULL;
+    strcpy(si->name, name);
+    si->size = size;
+    si->type = type;
+    if (type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
+      si->instance = st;
+      si->num_instances = si->size/st->size;
+    }
+
+    if (active_struct->items == NULL)
+      active_struct->items = si;
+    if (last_active_struct_item != NULL)
+      last_active_struct_item->next = si;
+    last_active_struct_item = si;
+
+    /* add struct item to definitions */
+    sprintf(tmpname, "%s.%s", active_struct->name, name);
+    if (add_a_new_definition(tmpname, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+      return FAILED;
+  }
+
+  last_enum_offset = enum_offset;
+
+  return SUCCEEDED;
+}
+
+/* Add all fields from a struct at the current offset in the enum/ramsection. (This isn't
+ * used within structs; it will just point to the next struct, whose contents will only be
+ * read when it's actually used in an enum/ramsection. */
+int enum_add_struct_fields(char *basename, struct structure *st) {
+  char tmp[MAX_NAME_LENGTH];
+  struct structure_item *si;
+  int g;
+
+  si = st->items;
+  while (si != NULL) {
+    sprintf(tmp, "%s.%s%c", basename, si->name, 0);
+    if (enum_add_label(tmp, -1, -1, NULL) == FAILED)
+      return FAILED;
+
+    /* If this struct has an .instanceof in it, we need to recurse */
+    if (si->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
+      int orig_offset = enum_offset;
+      enum_add_struct_fields(tmp, si->instance);
+
+      if (si->num_instances > 1) {
+        enum_offset = orig_offset;
+        g = 1;
+        while (g <= si->num_instances) {
+          sprintf(tmp, "%s.%s.%d%c", basename, si->name, g, 0);
+          enum_add_struct_fields(tmp, si->instance);
+          g++;
+        }
+      }
+    }
+    else
+      enum_offset += si->size;
+    si = si->next;
+  }
+
+  return SUCCEEDED;
+}
+
+/* either "in_enum", "in_ramsection", or "in_struct" should be true when this is called. */
 int parse_enum_token(void) {
 
   char tmpname[MAX_NAME_LENGTH];
   int type;
+  int size;
   int q;
-
+  struct structure *st = NULL;
   
   /* check for "if" directives (the only directives permitted in an enum/ramsection) */
   if (tmp[0] == '.') {
@@ -1113,45 +1207,51 @@ int parse_enum_token(void) {
     return SUCCEEDED;
   }
   else if (in_ramsection && strcaselesscmp(tmp, ".ENDS") == 0) {
+    if (max_enum_offset > last_enum_offset)
+      fprintf(file_out_ptr, "x%d 0 ", max_enum_offset-last_enum_offset);
     fprintf(file_out_ptr, "s ");
     section_status = OFF;
     in_ramsection = 0;
     return SUCCEEDED;
   }
+  else if (in_struct && strcaselesscmp(tmp, ".ENDST") == 0) {
+    /* create the SIZEOF-definition */
+    active_struct->size = max_enum_offset;
+    sprintf(tmpname, "_sizeof_%s", active_struct->name);
+
+    if (add_a_new_definition(tmpname, (double)max_enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+      return FAILED;
+
+    if (active_struct->items == NULL) {
+      sprintf(emsg, "STRUCT \"%s\" is empty!\n", active_struct->name);
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
+    }
+
+    in_struct = 0;
+    active_struct = NULL;
+    last_active_struct_item = NULL;
+    return SUCCEEDED;
+  }
 
   if (tmp[strlen(tmp) - 1] == ':')
     tmp[strlen(tmp) - 1] = 0;
-  if (in_ramsection)
-    fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
-
   strcpy(tmpname, tmp);
-
-  /* ASC? */
-  if (in_enum && enum_ord == 1) {
-    if (add_a_new_definition(tmpname, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-      return FAILED;
-    if (enum_exp == YES)
-      if (export_a_definition(tmpname) == FAILED)
-        return FAILED;
-  }
 
   /* get the size/type */
   if (get_next_token() == FAILED)
     return FAILED;
 
   type = 0;
+  size = 0;
 
   if (strcaselesscmp(tmp, "DB") == 0 || strcaselesscmp(tmp, "BYT") == 0 || strcaselesscmp(tmp, "BYTE") == 0) {
-    if (in_enum)
-      enum_offset += 1*enum_ord;
-    else /* ramsection */
-      fprintf(file_out_ptr, "d0 ");
+    size = 1;
+    type = STRUCTURE_ITEM_TYPE_DB;
   }
   else if (strcaselesscmp(tmp, "DW") == 0 || strcaselesscmp(tmp, "WORD") == 0) {
-    if (in_enum)
-      enum_offset += 2*enum_ord;
-    else /* ramsection */
-      fprintf(file_out_ptr, "y0 ");
+    size = 2;
+    type = STRUCTURE_ITEM_TYPE_DW;
   }
   else if (strcaselesscmp(tmp, "DS") == 0 || strcaselesscmp(tmp, "DSB") == 0) {
     q = input_number();
@@ -1161,10 +1261,8 @@ int parse_enum_token(void) {
       print_error("DS/DSB needs size.\n", ERROR_DIR);
       return FAILED;
     }
-    if (in_enum)
-      enum_offset += d*enum_ord;
-    else
-      fprintf(file_out_ptr, "x%d 0 ", d);
+    size = d;
+    type = STRUCTURE_ITEM_TYPE_DSB;
   }
   else if (strcaselesscmp(tmp, "DSW") == 0) {
     q = input_number();
@@ -1174,20 +1272,15 @@ int parse_enum_token(void) {
       print_error("DSW needs size.\n", ERROR_DIR);
       return FAILED;
     }
-    if (in_enum)
-      enum_offset += d*2*enum_ord;
-    else
-      fprintf(file_out_ptr, "x%d 0 ", d*2);
+    size = 2*d;
+    type = STRUCTURE_ITEM_TYPE_DSW;
   }
   /* it's an instance of a structure! */
   else if (strcaselesscmp(tmp, "INSTANCEOF") == 0) {
-
-    struct structure_item *si;
-    struct structure *st;
     int g;
+    int orig_enum_offset = enum_offset;
 
-
-    type = 1;
+    type = STRUCTURE_ITEM_TYPE_INSTANCEOF;
 
     if (get_next_token() == FAILED)
       return FAILED;
@@ -1200,152 +1293,114 @@ int parse_enum_token(void) {
       return FAILED;
     }
 
-    /* generate labels (different for enum vs ramsection) */
-    if (in_enum) {
+    /* get the number of structures to be made*/
+    inz = input_number();
+    if (inz == INPUT_NUMBER_EOL) {
+      next_line();
+      size = st->size;
+      d = 1;
+    }
+    else if (inz == SUCCEEDED) {
+      if (d < 1) {
+        print_error("The number of structures must be greater than 0.\n", ERROR_DIR);
+        return FAILED;
+      }
+
+      size = st->size * d;
+    }
+    else {
+      if (inz == INPUT_NUMBER_STRING)
+        sprintf(emsg, "Expected the number of structures, got \"%s\" instead.\n", label);
+      else
+        sprintf(emsg, "Expected the number of structures.\n");
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
+    }
+
+    if (in_struct) {
+      /* When in a struct, we don't recurse over other structs; instead, we just link to
+       * the struct in question. */
+    }
+    else {
+      /* When we call "enum_add_label", we pass -1 for type and size since that only
+       * matters when "in_struct" is set. */
+
       /* generate labels (first the basic ones, without index number) */
       if (enum_ord == -1) {
         enum_offset -= st->size;
-        if (add_a_new_definition(tmpname, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+        if (enum_add_label(tmpname, -1, -1, NULL) == FAILED)
           return FAILED;
-        if (enum_exp == YES)
-          if (export_a_definition(tmpname) == FAILED)
-            return FAILED;
       }
 
-      si = st->items;
-      while (si != NULL) {
-        sprintf(tmp, "%s.%s%c", tmpname, si->name, 0);
-        if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-          return FAILED;
-        if (enum_exp == YES)
-          if (export_a_definition(tmp) == FAILED)
-            return FAILED;
-        enum_offset += si->size;
-        si = si->next;
-      }
+      if (enum_add_struct_fields(tmpname, st) == FAILED)
+        return FAILED;
 
       if (enum_ord == -1)
         enum_offset -= st->size;
 
-      /* the number of structures? */
-      inz = input_number();
-      if (inz == INPUT_NUMBER_EOL)
-        next_line();
-      else if (inz == SUCCEEDED) {
-        if (d < 1) {
-          print_error("The number of structures must be greater than 0.\n", ERROR_DIR);
-          return FAILED;
-        }
+      /* generate labels (now with the index numbers) */
+      if (d > 1) {
+        g = 1;
 
-        /* generate labels (now with the index numbers) */
-        if (d > 1) {
-          g = 1;
+        if (enum_ord == 1)
+          enum_offset -= st->size;
 
-          if (enum_ord == 1)
-            enum_offset -= st->size;
-
-          while (d > 0) {
-            si = st->items;
-            sprintf(tmp, "%s.%d%c", tmpname, g, 0);
-            if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-              return FAILED;
-            if (enum_exp == YES)
-              if (export_a_definition(tmp) == FAILED)
-                return FAILED;
-            while (si != NULL) {
-              sprintf(tmp, "%s.%d.%s%c", tmpname, g, si->name, 0);
-              if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-                return FAILED;
-              if (enum_exp == YES)
-                if (export_a_definition(tmp) == FAILED)
-                  return FAILED;
-              enum_offset += si->size;
-              si = si->next;
-            }
-            g++;
-            d--;
-            if (enum_ord == -1) {
-              if (d > 0)
-                enum_offset -= st->size*2;
-              else
-                enum_offset -= st->size;
-            }
-          }
-        }
-      }
-      else {
-        if (inz == INPUT_NUMBER_STRING)
-          sprintf(emsg, "Expected the number of structures, got \"%s\" instead.\n", label);
-        else
-          sprintf(emsg, "Expected the number of structures.\n");
-        print_error(emsg, ERROR_DIR);
-        return FAILED;
-      }
-    }
-    else { /* ramsection */
-      /* amount of structures? */
-      inz = input_number();
-      if (inz == SUCCEEDED && d > 1)
-        fprintf(file_out_ptr, "k%d L%s.1 ", active_file_info_last->line_current, tmpname);
-
-      /* generate labels */
-      si = st->items;
-      while (si != NULL) {
-        if (inz == SUCCEEDED && d > 1)
-          fprintf(file_out_ptr, "k%d L%s.%s L%s.1.%s x%d 0 ", active_file_info_last->line_current, tmpname, si->name, tmpname, si->name, si->size);
-        else
-          fprintf(file_out_ptr, "k%d L%s.%s x%d 0 ", active_file_info_last->line_current, tmpname, si->name, si->size);
-        si = si->next;
-      }
-
-      if (inz == INPUT_NUMBER_EOL)
-        next_line();
-      else if (inz == SUCCEEDED) {
-        if (d < 1) {
-          print_error("The amount of structures must be greater than 0.\n", ERROR_DIR);
-          return FAILED;
-        }
-
-        g = 2;
-        while (d > 1) {
-          si = st->items;
-          fprintf(file_out_ptr, "k%d L%s.%d ", active_file_info_last->line_current, tmpname, g);
-          while (si != NULL) {
-            fprintf(file_out_ptr, "k%d L%s.%d.%s x%d 0 ", active_file_info_last->line_current, tmpname, g, si->name, si->size);
-            si = si->next;
-          }
+        while (d > 0) {
+          sprintf(tmp, "%s.%d%c", tmpname, g, 0);
+          if (enum_add_label(tmp, -1, -1, NULL) == FAILED)
+            return FAILED;
+          if (enum_add_struct_fields(tmp, st) == FAILED)
+            return FAILED;
           g++;
           d--;
+          if (enum_ord == -1) {
+            if (d > 0)
+              enum_offset -= st->size*2;
+            else
+              enum_offset -= st->size;
+          }
         }
       }
-      else {
-        if (inz == INPUT_NUMBER_STRING)
-          sprintf(emsg, "Expected the amount of structures, got \"%s\" instead.\n", label);
-        else
-          sprintf(emsg, "Expected the amount of structures.\n");
-        print_error(emsg, ERROR_DIR);
-        return FAILED;
-      }
     }
+
+    enum_offset = orig_enum_offset;
   }
-  else if (strcaselesscmp(tmp, ".db") == 0 || strcaselesscmp(tmp, ".dw") == 0)
-    ; /* Don't do anything for "dotted" versions */
+  else if (strcaselesscmp(tmp, ".db") == 0) {
+    size = 0;
+    type = STRUCTURE_ITEM_TYPE_DOT_DB;
+  }
+  else if (strcaselesscmp(tmp, ".dw") == 0) {
+    size = 0;
+    type = STRUCTURE_ITEM_TYPE_DOT_DW;
+  }
   else {
     if (in_enum)
       sprintf(emsg, "Unexpected symbol \"%s\" in .ENUM.\n", tmp);
-    else /* ramsection */
+    else if (in_ramsection)
       sprintf(emsg, "Unexpected symbol \"%s\" in .RAMSECTION.\n", tmp);
+    else /* struct */
+      sprintf(emsg, "Unexpected symbol \"%s\" in .STRUCT.\n", tmp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
 
-  /* DESC? */
-  if (in_enum && enum_ord == -1 && type == 0) {
-    if (add_a_new_definition(tmpname, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+  /* enum: make label if it's ascending (ASC). */
+  if (enum_ord == 1) {
+    if (enum_add_label(tmpname, type, size, st) == FAILED)
       return FAILED;
-    if (enum_exp == YES)
-      if (export_a_definition(tmpname) == FAILED)
-        return FAILED;
+  }
+
+  enum_offset += size*enum_ord;
+
+  /* max_enum_offset isn't useful for DESC enums, but it's only needed for
+   * structs/ramsections anyway */
+  if (enum_offset > max_enum_offset)
+    max_enum_offset = enum_offset;
+
+  /* DESC? */
+  if (enum_ord == -1 && type != STRUCTURE_ITEM_TYPE_INSTANCEOF) {
+    if (enum_add_label(tmpname, -1, -1, NULL) == FAILED)
+      return FAILED;
   }
 
   return SUCCEEDED;
@@ -2388,14 +2443,8 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "STRUCT") == 0) {
 
-    struct structure_item *si, *ss, *sl = NULL;
-    struct structure *st;
-    char name[512];
-    int ssi = 0;
-
-
-    st = malloc(sizeof(struct structure));
-    if (st == NULL) {
+    active_struct = malloc(sizeof(struct structure));
+    if (active_struct == NULL) {
       print_error("Out of memory while allocating a new STRUCT.\n", ERROR_DIR);
       return FAILED;
     }
@@ -2403,209 +2452,20 @@ int parse_directive(void) {
     if (get_next_token() == FAILED)
       return FAILED;
 
-    strcpy(st->name, tmp);
+    strcpy(active_struct->name, tmp);
 
-    st->next = structures_first;
-    structures_first = st;
-    st->items = NULL;
+    active_struct->next = structures_first;
+    structures_first = active_struct;
+    active_struct->items = NULL;
+    last_active_struct_item = NULL;
 
-    while (1) {
-      if (get_next_token() == FAILED)
-        return FAILED;
+    enum_ord = 1;
+    enum_offset = 0;
+    last_enum_offset = 0;
+    max_enum_offset = 0;
+    in_struct = 1;
 
-      /* .IF directive? */
-      if (tmp[0] == '.') {
-        q = parse_if_directive();
-        if (q == FAILED)
-          return FAILED;
-        else if (q == SUCCEEDED)
-          continue;
-        /* else q == -1, continue executing below */
-      }
-
-      /* end of STRUCT? */
-      if (strcaselesscmp(tmp, ".ENDST") == 0) {
-        /* create the SIZEOF-definition */
-        st->size = ssi;
-        sprintf(name, "_sizeof_%s", st->name);
-
-        if (add_a_new_definition(name, (double)ssi, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-          return FAILED;
-
-        /* create the structure definitions */
-        ssi = 0;
-        ss = st->items;
-        while (ss != NULL) {
-          sprintf(name, "%s.%s", st->name, ss->name);
-          if (add_a_new_definition(name, (double)ssi, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-            return FAILED;
-          ssi += ss->size;
-          ss = ss->next;
-        }
-
-        if (st->items == NULL) {
-          sprintf(emsg, "STRUCT \"%s\" is empty!\n", st->name);
-          print_error(emsg, ERROR_DIR);
-          return FAILED;
-        }
-
-        return SUCCEEDED;
-      }
-
-      if (tmp[strlen(tmp) - 1] == ':')
-        tmp[strlen(tmp) - 1] = 0;
-
-      /* check for duplicate labels */
-      ss = st->items;
-      while (ss != NULL) {
-        if (strcmp(ss->name, tmp) == 0) {
-          sprintf(emsg, "Duplicate label \"%s\" inside .STRUCT \"%s\".\n", tmp, st->name);
-          print_error(emsg, ERROR_DIR);
-          return FAILED;
-        }
-        ss = ss->next;
-      }
-
-      si = malloc(sizeof(struct structure_item));
-      if (si == NULL) {
-        print_error("Out of memory while allocating a new STRUCT.\n", ERROR_DIR);
-        return FAILED;
-      }
-      si->next = NULL;
-      strcpy(si->name, tmp);
-
-      if (st->items == NULL)
-        st->items = si;
-      if (sl != NULL)
-        sl->next = si;
-      sl = si;
-
-      /* get the item type */
-      if (get_next_token() == FAILED)
-        return FAILED;
-
-      if (strcaselesscmp(tmp, "DB") == 0 || strcaselesscmp(tmp, "BYT") == 0 || strcaselesscmp(tmp, "BYTE") == 0)
-        si->size = 1;
-      else if (strcaselesscmp(tmp, "DW") == 0 || strcaselesscmp(tmp, "WORD") == 0)
-        si->size = 2;
-      else if (strcaselesscmp(tmp, "DS") == 0 || strcaselesscmp(tmp, "DSB") == 0) {
-        q = input_number();
-        if (q == FAILED)
-          return FAILED;
-        if (q != SUCCEEDED) {
-          print_error("DS/DSB needs size.\n", ERROR_DIR);
-          return FAILED;
-        }
-        si->size = d;
-      }
-      else if (strcaselesscmp(tmp, "DSW") == 0) {
-        q = input_number();
-        if (q == FAILED)
-          return FAILED;
-        if (q != SUCCEEDED) {
-          print_error("DSW needs size.\n", ERROR_DIR);
-          return FAILED;
-        }
-        si->size = d*2;
-      }
-      else if (strcaselesscmp(tmp, "INSTANCEOF") == 0) {
-         struct structure *stt;
-         int arr = 1;
-         
-         /* zero the size of the root struct label */
-         si->size = 0;
-
-         /* get the structure type */
-         if (get_next_token() == FAILED)
-           return FAILED;
-         
-         stt = get_structure(tmp);
-         
-         if (stt != NULL) {
-            int j;
-			
-            q = input_number();
-            if (q == SUCCEEDED) {
-               arr = d;
-            }
-            else if (q == INPUT_NUMBER_EOL)
-            {
-                next_line();
-            }
-            
-            if (arr == 0) {
-               /* invalid structure array size */
-               sprintf(emsg, "Nested STRUCT \"%s\" in \"%s\" has an invalid array size.\n", si->name, tmp);
-               print_error(emsg, ERROR_DIR);
-               return FAILED;
-            }
-            
-            for (j = 0; j < arr; j++) {
-               struct structure_item *sti = stt->items;
-               
-               while (sti != NULL) {
-                  struct structure_item *sj = NULL;
-                  
-                  if (j == 0 && arr > 1) {
-                     /* add 0 size labels for the first elements */
-                     sj = malloc(sizeof(struct structure_item));
-                     if (sj == NULL) {
-                       print_error("Out of memory while allocating a nested STRUCT.\n", ERROR_DIR);
-                       return FAILED;
-                     }
-                     sj->next = NULL;
-                     sprintf(sj->name, "%s.%s", si->name, sti->name);
-                     sj->size = 0;
-                     
-                     if (sl != NULL)
-                       sl->next = sj;
-                     sl = sj;
-                  }
-                  
-                  /* add items for each of the structure item entries. combine si->name with the structure item name. */
-                  sj = malloc(sizeof(struct structure_item));
-                  if (sj == NULL) {
-                    print_error("Out of memory while allocating a nested STRUCT.\n", ERROR_DIR);
-                    return FAILED;
-                  }
-                  sj->next = NULL;
-                  if (arr == 1)
-                     sprintf(sj->name, "%s.%s", si->name, sti->name);
-                  else
-                     sprintf(sj->name, "%s.%i.%s", si->name, j + 1, sti->name);
-                  sj->size = sti->size;
-                  
-                  if (sl != NULL)
-                    sl->next = sj;
-                  sl = sj;
-                  
-                  sti = sti->next;
-               }
-               
-               /* adjust the total struct offset */
-               ssi += stt->size;
-            }
-         }
-         else {
-            /* failed to find structure */
-            sprintf(emsg, "Failed to find nested STRUCT \"%s\" type \"%s\" in .STRUCT.\n", si->name, tmp);
-            print_error(emsg, ERROR_DIR);
-            return FAILED;
-         }
-      }
-      else if (strcaselesscmp(tmp, ".db") == 0 || strcaselesscmp(tmp, ".dw") == 0) {
-        si->size = 0;
-        continue;
-      }
-      else {
-        sprintf(emsg, "Unexpected symbol \"%s\" in .STRUCT.\n", tmp);
-        print_error(emsg, ERROR_DIR);
-        return FAILED;
-      }
-      ssi += si->size;
-    }
-
-    return FAILED;
+    return SUCCEEDED;
   }
 
   /* RAMSECTION */
@@ -2737,6 +2597,10 @@ int parse_directive(void) {
       sec_tmp->alignment = d;
     }
 
+    enum_offset = 0;
+    last_enum_offset = 0;
+    max_enum_offset = 0;
+    enum_ord = 1;
     in_ramsection = 1;
 
     return SUCCEEDED;
@@ -4853,6 +4717,8 @@ int parse_directive(void) {
     }
 
     enum_offset = d;
+    last_enum_offset = d;
+    max_enum_offset = d;
 
     /* "ASC" or "DESC"? */
     if (compare_next_token("ASC", 3) == SUCCEEDED) {
