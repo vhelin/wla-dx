@@ -620,6 +620,9 @@ struct stack {
 #define STRUCTURE_ITEM_TYPE_DSB             4
 #define STRUCTURE_ITEM_TYPE_DSW             5
 #define STRUCTURE_ITEM_TYPE_INSTANCEOF      6
+#define STRUCTURE_ITEM_TYPE_UNION           7
+
+
 
 struct structure_item {
   char name[MAX_NAME_LENGTH];
@@ -629,6 +632,9 @@ struct structure_item {
   /* only for TYPE_INSTANCEOF */
   struct structure *instance;
   int num_instances;
+
+  /* only for TYPE_UNION; each union entry is stored as a structure. */
+  struct structure *union_items;
 
   struct structure_item *next;
 };

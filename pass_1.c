@@ -127,11 +127,9 @@ int accu_size = 8, index_size = 8;
 
 /* vars used when in an enum, ramsection, or struct */
 int in_enum=0, in_ramsection=0, in_struct=0;
-/* for all 3 */
-int enum_ord, enum_offset, last_enum_offset, max_enum_offset;
-/* for enum only */
-int enum_exp;
-/* for struct */
+int enum_ord, enum_exp, enum_offset, base_enum_offset, max_enum_offset;
+int last_enum_offset;
+/* temporary struct used to build up enums/ramsections */
 struct structure *active_struct;
 struct structure_item *last_active_struct_item;
 
@@ -1098,10 +1096,19 @@ void next_line(void) {
     active_file_info_last->line_current++;
 }
 
-/* Add a label at the current offset in the enum/ramsection/struct. The last 3 arguments
- * are only needed when in_struct is true. */
-int enum_add_label(char *name, int type, int size, struct structure *st) {
-  if (in_enum) {
+void free_struct(struct structure *st) {
+  struct structure_item *si = st->items;
+  while (si != NULL) {
+    struct structure_item *tmp = si;
+    si = si->next;
+    free(tmp);
+  }
+  free(st);
+}
+
+/* enum_offset and last_enum_offset should be set when calling this. */
+int add_label_to_enum_or_ramsection(char *name) {
+  if (in_enum || in_struct) {
     if (add_a_new_definition(name, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
     if (enum_exp == YES)
@@ -1115,35 +1122,6 @@ int enum_add_label(char *name, int type, int size, struct structure *st) {
     }
     fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, name);
   }
-  else if (in_struct) {
-    struct structure_item *si;
-    char tmpname[MAX_NAME_LENGTH];
-
-    si = malloc(sizeof(struct structure_item));
-    if (si == NULL) {
-      print_error("Out of memory while allocating a new STRUCT.\n", ERROR_DIR);
-      return FAILED;
-    }
-    si->next = NULL;
-    strcpy(si->name, name);
-    si->size = size;
-    si->type = type;
-    if (type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
-      si->instance = st;
-      si->num_instances = si->size/st->size;
-    }
-
-    if (active_struct->items == NULL)
-      active_struct->items = si;
-    if (last_active_struct_item != NULL)
-      last_active_struct_item->next = si;
-    last_active_struct_item = si;
-
-    /* add struct item to definitions */
-    sprintf(tmpname, "%s.%s", active_struct->name, name);
-    if (add_a_new_definition(tmpname, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-      return FAILED;
-  }
 
   last_enum_offset = enum_offset;
 
@@ -1154,30 +1132,76 @@ int enum_add_label(char *name, int type, int size, struct structure *st) {
  * used within structs; it will just point to the next struct, whose contents will only be
  * read when it's actually used in an enum/ramsection. */
 int enum_add_struct_fields(char *basename, struct structure *st) {
+  /* TODO: add MAX_NAME_LENGTH checks? */
   char tmp[MAX_NAME_LENGTH];
   struct structure_item *si;
   int g;
 
   si = st->items;
   while (si != NULL) {
-    sprintf(tmp, "%s.%s%c", basename, si->name, 0);
-    if (enum_add_label(tmp, -1, -1, NULL) == FAILED)
+    if (basename[0] != '\0')
+      sprintf(tmp, "%s.%s%c", basename, si->name, 0);
+    else
+      sprintf(tmp, "%s%c", si->name, 0);
+    if (add_label_to_enum_or_ramsection(tmp) == FAILED)
       return FAILED;
 
     /* If this struct has an .instanceof in it, we need to recurse */
     if (si->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
       int orig_offset = enum_offset;
-      enum_add_struct_fields(tmp, si->instance);
+      if (enum_add_struct_fields(tmp, si->instance) == FAILED)
+        return FAILED;
 
       if (si->num_instances > 1) {
         enum_offset = orig_offset;
         g = 1;
         while (g <= si->num_instances) {
-          sprintf(tmp, "%s.%s.%d%c", basename, si->name, g, 0);
-          enum_add_struct_fields(tmp, si->instance);
+          if (basename[0] != '\0')
+            sprintf(tmp, "%s.%s.%d%c", basename, si->name, g, 0);
+          else
+            sprintf(tmp, "%s.%d%c", si->name, g, 0);
+          if (enum_add_struct_fields(tmp, si->instance) == FAILED)
+            return FAILED;
           g++;
         }
       }
+    }
+    /* If this struct has a .union in it, we treat each union block like a struct */
+    else if (si->type == STRUCTURE_ITEM_TYPE_UNION) {
+      int orig_offset = enum_offset;
+      struct structure_item *ui;
+      char union_basename[MAX_NAME_LENGTH];
+
+      struct structure *un = si->union_items;
+      while (un != NULL) {
+        if (un->name[0] != '\0') {
+          if (basename[0] != '\0')
+            sprintf(union_basename, "%s.%s%c", basename, si->name, 0);
+          else
+            sprintf(union_basename, "%s%c", si->name, 0);
+          if (add_label_to_enum_or_ramsection(union_basename) == FAILED)
+            return FAILED;
+        }
+        else /* TODO */
+          sprintf(union_basename, "%s%c", basename, 0);
+
+        enum_offset = orig_offset;
+        ui = un->items;
+        while (ui != NULL) {
+          if (union_basename[0] != '\0')
+            sprintf(tmp, "%s.%s%c", union_basename, ui->name, 0);
+          else
+            sprintf(tmp, "%s%c", ui->name, 0);
+          if (add_label_to_enum_or_ramsection(tmp) == FAILED)
+            return FAILED;
+          enum_offset += ui->size;
+          ui = ui->next;
+        }
+        un = un->next;
+      }
+
+      /* This is the size of the largest union */
+      enum_offset += si->size;
     }
     else
       enum_offset += si->size;
@@ -1195,6 +1219,7 @@ int parse_enum_token(void) {
   int size;
   int q;
   struct structure *st = NULL;
+  struct structure_item *si;
   
   /* check for "if" directives (the only directives permitted in an enum/ramsection) */
   if (tmp[0] == '.') {
@@ -1203,18 +1228,36 @@ int parse_enum_token(void) {
   }
 
   if (in_enum && strcaselesscmp(tmp, ".ENDE") == 0) {
+    enum_offset = base_enum_offset;
+    enum_add_struct_fields("", active_struct);
+    free_struct(active_struct);
+    active_struct = NULL;
+    last_active_struct_item = NULL;
+
     in_enum = 0;
     return SUCCEEDED;
   }
   else if (in_ramsection && strcaselesscmp(tmp, ".ENDS") == 0) {
+    enum_offset = 0;
+    last_enum_offset = 0;
+    enum_add_struct_fields("", active_struct);
     if (max_enum_offset > last_enum_offset)
       fprintf(file_out_ptr, "x%d 0 ", max_enum_offset-last_enum_offset);
     fprintf(file_out_ptr, "s ");
+
+    free_struct(active_struct);
+    active_struct = NULL;
+    last_active_struct_item = NULL;
+
     section_status = OFF;
     in_ramsection = 0;
     return SUCCEEDED;
   }
   else if (in_struct && strcaselesscmp(tmp, ".ENDST") == 0) {
+    enum_offset = 0;
+    last_enum_offset = 0;
+    enum_add_struct_fields(active_struct->name, active_struct);
+
     /* create the SIZEOF-definition */
     active_struct->size = max_enum_offset;
     sprintf(tmpname, "_sizeof_%s", active_struct->name);
@@ -1227,6 +1270,9 @@ int parse_enum_token(void) {
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
+
+    active_struct->next = structures_first;
+    structures_first = active_struct;
 
     in_struct = 0;
     active_struct = NULL;
@@ -1277,9 +1323,6 @@ int parse_enum_token(void) {
   }
   /* it's an instance of a structure! */
   else if (strcaselesscmp(tmp, "INSTANCEOF") == 0) {
-    int g;
-    int orig_enum_offset = enum_offset;
-
     type = STRUCTURE_ITEM_TYPE_INSTANCEOF;
 
     if (get_next_token() == FAILED)
@@ -1316,54 +1359,9 @@ int parse_enum_token(void) {
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
-
-    if (in_struct) {
-      /* When in a struct, we don't recurse over other structs; instead, we just link to
-       * the struct in question. */
-    }
-    else {
-      /* When we call "enum_add_label", we pass -1 for type and size since that only
-       * matters when "in_struct" is set. */
-
-      /* generate labels (first the basic ones, without index number) */
-      if (enum_ord == -1) {
-        enum_offset -= st->size;
-        if (enum_add_label(tmpname, -1, -1, NULL) == FAILED)
-          return FAILED;
-      }
-
-      if (enum_add_struct_fields(tmpname, st) == FAILED)
-        return FAILED;
-
-      if (enum_ord == -1)
-        enum_offset -= st->size;
-
-      /* generate labels (now with the index numbers) */
-      if (d > 1) {
-        g = 1;
-
-        if (enum_ord == 1)
-          enum_offset -= st->size;
-
-        while (d > 0) {
-          sprintf(tmp, "%s.%d%c", tmpname, g, 0);
-          if (enum_add_label(tmp, -1, -1, NULL) == FAILED)
-            return FAILED;
-          if (enum_add_struct_fields(tmp, st) == FAILED)
-            return FAILED;
-          g++;
-          d--;
-          if (enum_ord == -1) {
-            if (d > 0)
-              enum_offset -= st->size*2;
-            else
-              enum_offset -= st->size;
-          }
-        }
-      }
-    }
-
-    enum_offset = orig_enum_offset;
+  }
+  else if (strcaselesscmp(tmp, ".union") == 0) {
+    
   }
   else if (strcaselesscmp(tmp, ".db") == 0) {
     size = 0;
@@ -1384,11 +1382,26 @@ int parse_enum_token(void) {
     return FAILED;
   }
 
-  /* enum: make label if it's ascending (ASC). */
-  if (enum_ord == 1) {
-    if (enum_add_label(tmpname, type, size, st) == FAILED)
-      return FAILED;
+  /* Add this label/value to the struct. */
+  si = malloc(sizeof(struct structure_item));
+  if (si == NULL) {
+    print_error("Out of memory while allocating a new STRUCT.\n", ERROR_DIR);
+    return FAILED;
   }
+  si->next = NULL;
+  strcpy(si->name, tmpname);
+  si->size = size;
+  si->type = type;
+  if (type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
+    si->instance = st;
+    si->num_instances = si->size/st->size;
+  }
+
+  if (active_struct->items == NULL)
+    active_struct->items = si;
+  if (last_active_struct_item != NULL)
+    last_active_struct_item->next = si;
+  last_active_struct_item = si;
 
   enum_offset += size*enum_ord;
 
@@ -1396,12 +1409,6 @@ int parse_enum_token(void) {
    * structs/ramsections anyway */
   if (enum_offset > max_enum_offset)
     max_enum_offset = enum_offset;
-
-  /* DESC? */
-  if (enum_ord == -1 && type != STRUCTURE_ITEM_TYPE_INSTANCEOF) {
-    if (enum_add_label(tmpname, -1, -1, NULL) == FAILED)
-      return FAILED;
-  }
 
   return SUCCEEDED;
 }
@@ -2454,14 +2461,13 @@ int parse_directive(void) {
 
     strcpy(active_struct->name, tmp);
 
-    active_struct->next = structures_first;
-    structures_first = active_struct;
     active_struct->items = NULL;
     last_active_struct_item = NULL;
 
     enum_ord = 1;
     enum_offset = 0;
-    last_enum_offset = 0;
+    enum_exp = 0;
+    base_enum_offset = 0;
     max_enum_offset = 0;
     in_struct = 1;
 
@@ -2598,9 +2604,16 @@ int parse_directive(void) {
     }
 
     enum_offset = 0;
-    last_enum_offset = 0;
+    base_enum_offset = 0;
     max_enum_offset = 0;
     enum_ord = 1;
+
+    /* setup active_struct (ramsection vars stored here temporarily) */
+    active_struct = malloc(sizeof(struct structure));
+    active_struct->name[0] = '\0';
+    active_struct->items = NULL;
+    last_active_struct_item = NULL;
+
     in_ramsection = 1;
 
     return SUCCEEDED;
@@ -4717,7 +4730,7 @@ int parse_directive(void) {
     }
 
     enum_offset = d;
-    last_enum_offset = d;
+    base_enum_offset = d;
     max_enum_offset = d;
 
     /* "ASC" or "DESC"? */
@@ -4739,6 +4752,12 @@ int parse_directive(void) {
     }
     else
       enum_exp = NO;
+
+    /* setup active_struct (enum vars stored here temporarily) */
+    active_struct = malloc(sizeof(struct structure));
+    active_struct->name[0] = '\0';
+    active_struct->items = NULL;
+    last_active_struct_item = NULL;
 
     in_enum = 1;
 
