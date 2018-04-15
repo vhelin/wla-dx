@@ -3150,7 +3150,8 @@ int parse_directive(void) {
     if (get_next_token() == FAILED)
       return FAILED;
 
-    add_a_new_definition(tmp, (double)b, NULL, DEFINITION_TYPE_VALUE, 0);
+    if (add_a_new_definition(tmp, (double)b, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+      return FAILED;
 
     return SUCCEEDED;
   }
@@ -4597,17 +4598,17 @@ int parse_directive(void) {
     }
 
     if (q == SUCCEEDED)
-      add_a_new_definition(tmp, (double)j, NULL, DEFINITION_TYPE_VALUE, 0);
+      q = add_a_new_definition(tmp, (double)j, NULL, DEFINITION_TYPE_VALUE, 0);
     else if (q == INPUT_NUMBER_FLOAT)
-      add_a_new_definition(tmp, dou, NULL, DEFINITION_TYPE_VALUE, 0);
+      q = add_a_new_definition(tmp, dou, NULL, DEFINITION_TYPE_VALUE, 0);
     else if (q == INPUT_NUMBER_STRING)
-      add_a_new_definition(tmp, 0.0, k, DEFINITION_TYPE_STRING, size);
+      q = add_a_new_definition(tmp, 0.0, k, DEFINITION_TYPE_STRING, size);
     else if (q == INPUT_NUMBER_STACK)
-      add_a_new_definition(tmp, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
+      q = add_a_new_definition(tmp, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
     else if (q == INPUT_NUMBER_EOL)
-      add_a_new_definition(tmp, 0, NULL, DEFINITION_TYPE_VALUE, 0);
+      q = add_a_new_definition(tmp, 0, NULL, DEFINITION_TYPE_VALUE, 0);
 
-    return SUCCEEDED;
+    return q;
   }
 
   /* INPUT */
