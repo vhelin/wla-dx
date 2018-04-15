@@ -1182,11 +1182,11 @@ int enum_add_struct_fields(char *basename, struct structure *st) {
       struct structure *un = si->union_items;
 
       while (un != NULL) {
-        if (si->name[0] != '\0') {
+        if (un->name[0] != '\0') {
           if (basename[0] != '\0')
-            sprintf(union_basename, "%s.%s%c", basename, si->name, 0);
+            sprintf(union_basename, "%s.%s%c", basename, un->name, 0);
           else
-            sprintf(union_basename, "%s%c", si->name, 0);
+            sprintf(union_basename, "%s%c", un->name, 0);
           if (add_label_to_enum_or_ramsection(union_basename) == FAILED)
             return FAILED;
         }
@@ -1226,11 +1226,19 @@ int parse_enum_token(void) {
       return q;
     else if (strcaselesscmp(tmp, ".UNION") == 0) {
       struct union_stack *ust;
+      int inz;
 
       st = malloc(sizeof(struct structure));
-      st->name[0] = '\0';
       st->items = NULL;
       st->last_item = NULL;
+
+      inz = input_next_string();
+      if (inz == FAILED)
+        return FAILED;
+      else if (inz == SUCCEEDED)
+        strcpy(st->name, tmp);
+      else
+        st->name[0] = '\0';
 
       /* Put previous union onto the "stack" */
       ust = malloc(sizeof(struct union_stack));
@@ -1248,13 +1256,28 @@ int parse_enum_token(void) {
       return SUCCEEDED;
     }
     else if (strcaselesscmp(tmp, ".NEXTU") == 0) {
+      int inz;
+
+      if (union_stack == NULL) {
+        print_error("There is no open union.\n", ERROR_DIR);
+        return FAILED;
+      }
+
       if (enum_offset > highest_union_offset)
         highest_union_offset = enum_offset;
       active_struct->size = enum_offset - union_base_offset;
       st = malloc(sizeof(struct structure));
-      st->name[0] = '\0';
       st->items = NULL;
       st->last_item = NULL;
+
+      inz = input_next_string();
+      if (inz == FAILED)
+        return FAILED;
+      else if (inz == SUCCEEDED)
+        strcpy(st->name, tmp);
+      else
+        st->name[0] = '\0';
+
       active_struct->next = st;
       active_struct = st;
       enum_offset = union_base_offset;
@@ -1294,6 +1317,7 @@ int parse_enum_token(void) {
       si->name[0] = '\0';
       si->type = STRUCTURE_ITEM_TYPE_UNION;
       si->size = total_size;
+      si->next = NULL;
       si->union_items = st;
       if (active_struct->items == NULL)
         active_struct->items = si;
