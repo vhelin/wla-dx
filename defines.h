@@ -642,8 +642,16 @@ struct structure_item {
 struct structure {
   char name[MAX_NAME_LENGTH];
   struct structure_item *items;
+  struct structure_item *last_item;
   int size;
   struct structure *next;
+};
+
+struct union_stack {
+  struct structure *active_struct;
+  struct structure *union_first_struct;
+  int union_base_offset, highest_union_offset;
+  struct union_stack *prev;
 };
 
 struct repeat_runtime {

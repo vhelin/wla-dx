@@ -129,9 +129,15 @@ int accu_size = 8, index_size = 8;
 int in_enum=0, in_ramsection=0, in_struct=0;
 int enum_ord, enum_exp, enum_offset, base_enum_offset, max_enum_offset;
 int last_enum_offset;
-/* temporary struct used to build up enums/ramsections */
+
+/* temporary struct used to build up enums/ramsections (and, of course, structs). */
+/* This gets temporarily replaced when inside a union (each union definition is considered
+ * a separate struct). */
 struct structure *active_struct;
-struct structure_item *last_active_struct_item;
+
+int union_base_offset, highest_union_offset; /* Keep track of the boundaries of the union */
+struct union_stack *union_stack; /* Stores variables for nested unions */
+struct structure *union_first_struct; /* First struct in current union */
 
 
 /* remember to run opcodesgen/gen with the proper flags defined */
@@ -1139,12 +1145,14 @@ int enum_add_struct_fields(char *basename, struct structure *st) {
 
   si = st->items;
   while (si != NULL) {
-    if (basename[0] != '\0')
-      sprintf(tmp, "%s.%s%c", basename, si->name, 0);
-    else
-      sprintf(tmp, "%s%c", si->name, 0);
-    if (add_label_to_enum_or_ramsection(tmp) == FAILED)
-      return FAILED;
+    if (si->name[0] != '\0') {
+      if (basename[0] != '\0')
+        sprintf(tmp, "%s.%s%c", basename, si->name, 0);
+      else
+        sprintf(tmp, "%s%c", si->name, 0);
+      if (add_label_to_enum_or_ramsection(tmp) == FAILED)
+        return FAILED;
+    }
 
     /* If this struct has an .instanceof in it, we need to recurse */
     if (si->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
@@ -1169,12 +1177,12 @@ int enum_add_struct_fields(char *basename, struct structure *st) {
     /* If this struct has a .union in it, we treat each union block like a struct */
     else if (si->type == STRUCTURE_ITEM_TYPE_UNION) {
       int orig_offset = enum_offset;
-      struct structure_item *ui;
       char union_basename[MAX_NAME_LENGTH];
 
       struct structure *un = si->union_items;
+
       while (un != NULL) {
-        if (un->name[0] != '\0') {
+        if (si->name[0] != '\0') {
           if (basename[0] != '\0')
             sprintf(union_basename, "%s.%s%c", basename, si->name, 0);
           else
@@ -1182,26 +1190,17 @@ int enum_add_struct_fields(char *basename, struct structure *st) {
           if (add_label_to_enum_or_ramsection(union_basename) == FAILED)
             return FAILED;
         }
-        else /* TODO */
+        else
           sprintf(union_basename, "%s%c", basename, 0);
 
         enum_offset = orig_offset;
-        ui = un->items;
-        while (ui != NULL) {
-          if (union_basename[0] != '\0')
-            sprintf(tmp, "%s.%s%c", union_basename, ui->name, 0);
-          else
-            sprintf(tmp, "%s%c", ui->name, 0);
-          if (add_label_to_enum_or_ramsection(tmp) == FAILED)
-            return FAILED;
-          enum_offset += ui->size;
-          ui = ui->next;
-        }
+        if (enum_add_struct_fields(union_basename, un) == FAILED)
+          return FAILED;
         un = un->next;
       }
 
       /* This is the size of the largest union */
-      enum_offset += si->size;
+      enum_offset = orig_offset + si->size;
     }
     else
       enum_offset += si->size;
@@ -1225,19 +1224,104 @@ int parse_enum_token(void) {
   if (tmp[0] == '.') {
     if ((q = parse_if_directive()) != -1)
       return q;
+    else if (strcaselesscmp(tmp, ".UNION") == 0) {
+      struct union_stack *ust;
+
+      st = malloc(sizeof(struct structure));
+      st->name[0] = '\0';
+      st->items = NULL;
+      st->last_item = NULL;
+
+      /* Put previous union onto the "stack" */
+      ust = malloc(sizeof(struct union_stack));
+      ust->active_struct = active_struct;
+      ust->union_first_struct = union_first_struct;
+      ust->union_base_offset = union_base_offset;
+      ust->highest_union_offset = highest_union_offset;
+      ust->prev = union_stack;
+      union_stack = ust;
+
+      active_struct = st;
+      union_first_struct = active_struct;
+      union_base_offset = enum_offset;
+      highest_union_offset = union_base_offset;
+      return SUCCEEDED;
+    }
+    else if (strcaselesscmp(tmp, ".NEXTU") == 0) {
+      if (enum_offset > highest_union_offset)
+        highest_union_offset = enum_offset;
+      active_struct->size = enum_offset - union_base_offset;
+      st = malloc(sizeof(struct structure));
+      st->name[0] = '\0';
+      st->items = NULL;
+      st->last_item = NULL;
+      active_struct->next = st;
+      active_struct = st;
+      enum_offset = union_base_offset;
+      return SUCCEEDED;
+    }
+    else if (strcaselesscmp(tmp, ".ENDU") == 0) {
+      struct union_stack *ust;
+      int total_size;
+
+      if (union_stack == NULL) {
+        print_error("There is no open union.\n", ERROR_DIR);
+        return FAILED;
+      }
+
+      if (enum_offset > highest_union_offset)
+        highest_union_offset = enum_offset;
+
+      total_size = highest_union_offset - union_base_offset;
+
+      active_struct->size = enum_offset - union_base_offset;
+      active_struct->next = NULL;
+
+      st = union_first_struct;
+
+      /* Pop previous union from the "stack" */
+      ust = union_stack;
+      active_struct = union_stack->active_struct;
+      union_first_struct = union_stack->union_first_struct;
+      union_base_offset = ust->union_base_offset;
+      highest_union_offset = ust->highest_union_offset;
+      union_stack = union_stack->prev;
+      free(ust);
+
+      enum_offset = highest_union_offset;
+
+      si = malloc(sizeof(struct structure_item));
+      si->name[0] = '\0';
+      si->type = STRUCTURE_ITEM_TYPE_UNION;
+      si->size = total_size;
+      si->union_items = st;
+      if (active_struct->items == NULL)
+        active_struct->items = si;
+      if (active_struct->last_item != NULL)
+        active_struct->last_item->next = si;
+      active_struct->last_item = si;
+      return SUCCEEDED;
+    }
   }
 
   if (in_enum && strcaselesscmp(tmp, ".ENDE") == 0) {
+    if (union_stack != NULL) {
+      print_error("Union not closed.\n", ERROR_DIR);
+      return FAILED;
+    }
     enum_offset = base_enum_offset;
     enum_add_struct_fields("", active_struct);
     free_struct(active_struct);
     active_struct = NULL;
-    last_active_struct_item = NULL;
 
     in_enum = 0;
     return SUCCEEDED;
   }
   else if (in_ramsection && strcaselesscmp(tmp, ".ENDS") == 0) {
+    if (union_stack != NULL) {
+      print_error("Union not closed.\n", ERROR_DIR);
+      return FAILED;
+    }
     enum_offset = 0;
     last_enum_offset = 0;
     enum_add_struct_fields("", active_struct);
@@ -1247,13 +1331,16 @@ int parse_enum_token(void) {
 
     free_struct(active_struct);
     active_struct = NULL;
-    last_active_struct_item = NULL;
 
     section_status = OFF;
     in_ramsection = 0;
     return SUCCEEDED;
   }
   else if (in_struct && strcaselesscmp(tmp, ".ENDST") == 0) {
+    if (union_stack != NULL) {
+      print_error("Union not closed.\n", ERROR_DIR);
+      return FAILED;
+    }
     enum_offset = 0;
     last_enum_offset = 0;
     enum_add_struct_fields(active_struct->name, active_struct);
@@ -1276,7 +1363,6 @@ int parse_enum_token(void) {
 
     in_struct = 0;
     active_struct = NULL;
-    last_active_struct_item = NULL;
     return SUCCEEDED;
   }
 
@@ -1360,14 +1446,11 @@ int parse_enum_token(void) {
       return FAILED;
     }
   }
-  else if (strcaselesscmp(tmp, ".union") == 0) {
-    
-  }
-  else if (strcaselesscmp(tmp, ".db") == 0) {
+  else if (strcaselesscmp(tmp, ".DB") == 0) {
     size = 0;
     type = STRUCTURE_ITEM_TYPE_DOT_DB;
   }
-  else if (strcaselesscmp(tmp, ".dw") == 0) {
+  else if (strcaselesscmp(tmp, ".DW") == 0) {
     size = 0;
     type = STRUCTURE_ITEM_TYPE_DOT_DW;
   }
@@ -1396,12 +1479,15 @@ int parse_enum_token(void) {
     si->instance = st;
     si->num_instances = si->size/st->size;
   }
+  else if (type == STRUCTURE_ITEM_TYPE_UNION) {
+    si->union_items = st;
+  }
 
   if (active_struct->items == NULL)
     active_struct->items = si;
-  if (last_active_struct_item != NULL)
-    last_active_struct_item->next = si;
-  last_active_struct_item = si;
+  if (active_struct->last_item != NULL)
+    active_struct->last_item->next = si;
+  active_struct->last_item = si;
 
   enum_offset += size*enum_ord;
 
@@ -2462,7 +2548,8 @@ int parse_directive(void) {
     strcpy(active_struct->name, tmp);
 
     active_struct->items = NULL;
-    last_active_struct_item = NULL;
+    active_struct->last_item = NULL;
+    union_stack = NULL;
 
     enum_ord = 1;
     enum_offset = 0;
@@ -2612,7 +2699,8 @@ int parse_directive(void) {
     active_struct = malloc(sizeof(struct structure));
     active_struct->name[0] = '\0';
     active_struct->items = NULL;
-    last_active_struct_item = NULL;
+    active_struct->last_item = NULL;
+    union_stack = NULL;
 
     in_ramsection = 1;
 
@@ -4757,7 +4845,8 @@ int parse_directive(void) {
     active_struct = malloc(sizeof(struct structure));
     active_struct->name[0] = '\0';
     active_struct->items = NULL;
-    last_active_struct_item = NULL;
+    active_struct->last_item = NULL;
+    union_stack = NULL;
 
     in_enum = 1;
 
