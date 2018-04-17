@@ -54,7 +54,7 @@ int discard_unused_sections(void) {
     s = sec_first;
     while (s != NULL) {
       if (s->alive == NO)
-	fprintf(stderr, "DISCARD: %s:%s: Section \"%s\" was discarded.\n",
+	fprintf(stderr, "DISCARD: %s: %s: Section \"%s\" was discarded.\n",
 		get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
       s = s->next;
     }

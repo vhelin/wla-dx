@@ -49,16 +49,16 @@ int mem_insert_allow_overwrite(int address, unsigned char data, unsigned int all
 int mem_insert_ref(int address, unsigned char data) {
 
   if (address > romsize || address < 0) {
-    fprintf(stderr, "%s:%s:%d: MEM_INSERT: Address $%x is out of the output range $0-$%x.\n",
+    fprintf(stderr, "%s: %s:%d: MEM_INSERT: Address $%x is out of the output range $0-$%x.\n",
 	    get_file_name(memory_file_id), get_source_file_name(memory_file_id, memory_file_id_source), memory_line_number, address, romsize);
     return FAILED;
   }
   if (rom_usage[address] > 1 && rom[address] != data) {
     if (memory_line_number != 0)
-      fprintf(stderr, "%s:%s:%d: MEM_INSERT: Overwrite at $%x (old $%.2x new $%.2x).\n",
+      fprintf(stderr, "%s: %s:%d: MEM_INSERT: Overwrite at $%x (old $%.2x new $%.2x).\n",
 	      get_file_name(memory_file_id), get_source_file_name(memory_file_id, memory_file_id_source), memory_line_number, address, rom[address], data);
     else
-      fprintf(stderr, "%s:%s:[WLA]: MEM_INSERT: Overwrite at $%x (old $%.2x new $%.2x).\n",
+      fprintf(stderr, "%s: %s:[WLA]: MEM_INSERT: Overwrite at $%x (old $%.2x new $%.2x).\n",
 	      get_file_name(memory_file_id), get_source_file_name(memory_file_id, memory_file_id_source), address, rom[address], data);
   }
 
