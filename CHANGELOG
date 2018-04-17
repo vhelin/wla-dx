@@ -2,6 +2,60 @@
 ------------------------------------------------------------------------------
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
+v9.7 (17-Apr-2018) [ALL] We now use CMake instead of plain Makefiles.
+                   [ALL] Added INSTANCEOF support to .STRUCT.
+                   [ALL] Removed DEBUG opcode from GB-Z80.
+                   [ALL] WLALINK now reserves the bytes the checksummer use
+                     if WLA is used to calculate a checksum.
+                   [ALL] Added ALIGN to .RAMSECTIONs.
+                   [ALL] .RANSECTIONs now use the BANK when placing sections.
+                   [ALL] .BLOCK needs to be now terminated with .ENDB.
+                   [ALL] Fixed some typos in error messages.
+                   [ALL] Added a directory called "bug_exhibition" for
+                     bug reports.
+                   [ALL] When parsing "\1.w" the parser now associates the
+	             ".w" part with the "\1" part.
+                   [ALL] Recursive macro calls with recursive argument
+	             references should work now.
+                   [ALL] .ASC can now map also byte data.
+                   [ALL] Rewrote the macro argument expander.
+                   [ALL] Fixed .INCDIR/.INCBIN cache bug.
+                   [ALL] Added support for -I [include directory].
+                   [ALL] Added ASCII commands to strings.
+                   [ALL] Renamed .SECTION IDENTIFIER to NAMESPACE.
+                   [ALL] Added support for local labels with @ prefix.
+                   [ALL] "historical" contains now old. depcerated files.
+                   [ALL] Updated WLA/WLALINK argument parser.
+                   [ALL] Sphnix is now used to generate the documents.
+                   [ALL] Various bug, crash and error message fixes.
+                   [ALL] Labels can now be 255 characters long instead of 63.
+                   [ALL] Various fixes to negative range for 8-bit two's
+                     complement.
+                   [ALL] Power operator supports fractional values.
+                   [ALL] Expressions are allowed to be outside 16bit range.
+                   [ALL] Added support for _sizeof_[label] automatic
+                     definitions to WLALINK, these measure the distance
+                     between two consecutive labels in bytes.
+                   [ALL] Unreferenced section discarding now handles also
+                     RAM sections.
+                   [ALL] It's possible to append to a section using APPENDTO.
+                   [ALL] .IFDEFs can be used in .ENUMs and .RAMSECTIONs.
+                   [ALL] .BASE is now universal, not just 65816 specific.
+                   [ALL] Speeded up label handling in WLALINK.
+                   [Z80] Added .SMSHEADER.
+                   [Z80] Added support for "SUB IXH" and "SUB IXL", and
+                     kept the old aliases "SUB A, IXH" and "SUB A, IXL".
+                   [Z80] Fixed .SDSCTAG parsing.
+                   [658] Added support for .DL.
+                   [GB ] Added support for .COUNTRYCODE.
+                   [GB ] Added support for .GBHEADER.
+                   [GB ] NO$GMB symbol files are now BGB (emulator)
+                     compatible.
+                   [GB ] Added support for .NINTENDOLOGO.
+                   [GB ] Added DESTINATIONCODE as an alias for
+                     COUNTRYCODE.
+                   [GB ] Added support for .ROMGBCONLY.
+
 v9.6 (27-Jan-2015) [ALL] Fixed usage info (was missing -i).
                    [ALL] Moved the project to GitHub:
                      https://github.com/vhelin/wla-dx
