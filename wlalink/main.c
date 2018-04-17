@@ -26,7 +26,7 @@
 */
 
 #ifdef AMIGA
-char version_string[] = "$VER: WLALINK 5.8 (05.02.2016)";
+char version_string[] = "$VER: WLALINK 5.9 (17.04.2018)";
 #endif
 
 struct object_file *obj_first = NULL, *obj_last = NULL, *obj_tmp;
