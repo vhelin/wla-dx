@@ -114,6 +114,7 @@ ALL  ``.ENDR``
 ALL  ``.ENDRO``
 ALL  ``.ENDS``
 ALL  ``.ENDST``
+ALL  ``.ENDU``
 ALL  ``.ENUM $C000``
 ALL  ``.EQU IF $FF0F``
 ALL  ``.FAIL``
@@ -140,6 +141,7 @@ ALL  ``.INCLUDE "cgb_hardware.i"``
 ALL  ``.INPUT NAME``
 ALL  ``.MACRO TEST``
 ALL  ``.MEMORYMAP``
+ALL  ``.NEXTU name``
 ALL  ``.ORG $150``
 ALL  ``.ORGA $150``
 ALL  ``.PRINTT "Here we are...\n"``
@@ -161,6 +163,7 @@ ALL  ``.SYMBOL SAUSAGE``
 ALL  ``.UNBACKGROUND $1000 $1FFF``
 ALL  ``.UNDEFINE DEBUG``
 ALL  ``.UNDEF DEBUG``
+ALL  ``.UNION name``
 ALL  ``.WORD 16000, 10, 255``
 === ================================================================
 
@@ -2502,3 +2505,65 @@ Ends definition of the emulation mode interrupt vector table.
 
 This is not a compulsory directive, but when ``.SNESEMUVECTOR``
 is used this one is required to terminate it.
+
+
+``.UNION name``
+---------------
+
+Begins a "union". This can only be used in enums, ramsections, and structs.
+
+When entering a union, the current address in the enum is saved, and the
+following data is processed as normal. When the ``.NEXTU`` directive is
+encountered, the address is reverted back to the start of the union. This allows
+one to assign an area of memory to multiple labels. ::
+
+    .ENUM $C000
+        .UNION
+            pos_lowbyte:  db
+            pos_highbyte: db
+            extra_word:   dw
+        .NEXTU
+            pos:          dw
+        .ENDU
+        after: db
+    .ENDE
+
+This example is equivalent to::
+
+    .DEFINE pos_lowbyte  $c000
+    .DEFINE pos_highbyte $c001
+    .DEFINE extra_word   $c002
+    .DEFINE pos          $c000
+    .DEFINE after        $c004
+
+The ``.UNION`` and ``.NEXTU`` commands can be given an argument to assign
+a prefix to the labels that follow. ::
+
+    .ENUM $C000
+        .UNION union1
+            byte1: db
+            byte2: db
+        .NEXTU union2
+            word1: dw
+        .ENDU
+    .ENDE
+
+This example is equivalent to::
+
+    .DEFINE union1.byte1 $c000
+    .DEFINE union1.byte2 $c001
+    .DEFINE union2.word1 $c000
+
+Unions can be nested.
+
+
+``.NEXTU name``
+---------------
+
+Proceeds to the next entry in a union.
+
+
+``.ENDU``
+---------
+
+Ends the current union.
