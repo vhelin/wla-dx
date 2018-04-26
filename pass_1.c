@@ -2268,10 +2268,17 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "DSTRUCT") == 0) {
 
+    char tmpname[MAX_NAME_LENGTH*2+5];
     struct structure_item *it;
     struct structure *s;
     char iname[256];
     int c, f;
+
+    /* this is used for traversing structs with instanceof */
+    struct structure_item *nested_structs[256];
+    char struct_prefixes[256][MAX_NAME_LENGTH*2+5];
+    char struct_instances[256]; /* Counters for number of instances remaining */
+    int nested_index = 0;
 
 
     /* get instance name */
@@ -2328,74 +2335,122 @@ int parse_directive(void) {
     inz = input_number();
     for (ind = 0; it != NULL && (inz == SUCCEEDED || inz == INPUT_NUMBER_STRING || inz == INPUT_NUMBER_ADDRESS_LABEL || inz == INPUT_NUMBER_STACK); ind++) {
 
-      fprintf(file_out_ptr, "k%d L%s.%s ", active_file_info_last->line_current, iname, it->name);
-
-      if (it->size <= 0) {
-	/* don't put data into empty structure items */
-	it = it->next;
-	continue;
-      }
-	  
-      /* take care of the strings */
-      if (inz == INPUT_NUMBER_STRING) {
-        if (it->size < string_size) {
-          sprintf(emsg, "String \"%s\" doesn't fit into the %d bytes of \"%s.%s\". Discarding the overflow.\n", label, it->size, s->name, it->name);
-          print_error(emsg, ERROR_WRN);
-          c = it->size;
-        }
-        else
-          c = string_size;
-
-        /* copy the string */
-        for (o = 0; o < c; o++)
-          fprintf(file_out_ptr, "d%d ", (int)label[o]);
-      }
-      /* take care of the rest */
+      if (nested_index == 0)
+        sprintf(tmpname, "%s.%s", iname, it->name);
       else {
-        if (it->size == 1) {
-          if ((inz == SUCCEEDED) && (d < -128 || d > 255)) {
-            sprintf(emsg, "\"%s.%s\" expects 8-bit data, %d is out of range!\n", s->name, it->name, d);
-            print_error(emsg, ERROR_DIR);
-            return FAILED;
-          }
-
-          if (inz == SUCCEEDED)
-            fprintf(file_out_ptr, "d%d ", d);
-          else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-            fprintf(file_out_ptr, "k%d Q%s ", active_file_info_last->line_current, label);
-          else if (inz == INPUT_NUMBER_STACK)
-            fprintf(file_out_ptr, "c%d ", latest_stack);
-
-          o = 1;
-        }
-        else {
-          if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-            sprintf(emsg, "\"%s.%s\" expects 16-bit data, %d is out of range!\n", s->name, it->name, d);
-            print_error(emsg, ERROR_DIR);
-            return FAILED;
-          }
-
-          if (inz == SUCCEEDED)
-            fprintf(file_out_ptr, "y%d", d);
-          else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-            fprintf(file_out_ptr, "k%d r%s ", active_file_info_last->line_current, label);
-          else if (inz == INPUT_NUMBER_STACK)
-            fprintf(file_out_ptr, "C%d ", latest_stack);
-
-          o = 2;
-        }
+        sprintf(tmpname, "%s", struct_prefixes[nested_index-1]);
+        if (struct_instances[nested_index-1] != 0)
+          sprintf(tmpname, "%s.%d", tmpname, 1+struct_instances[nested_index-1]);
+        sprintf(tmpname, "%s.%s", tmpname, it->name);
       }
+      if (verify_name_length(tmpname) == FAILED)
+        return FAILED;
+      fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
 
-      /* fill the rest of the item with emptyfill or zero */
-      if (emptyfill_defined != 0)
-        f = emptyfill;
-      else
-        f = 0;
+      if (it->type == STRUCTURE_ITEM_TYPE_UNION) {
+        print_error(".DSTRUCT doesn't support structs with unions.\n", ERROR_DIR);
+        return FAILED;
+      }
+      else if (it->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
+        if (nested_index >= 256) {
+          print_error("Too many nested structs for .DSTRUCT to handle.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-      for (; o < it->size; o++)
-        fprintf(file_out_ptr, "d%d ", f);
+        /* Handle .instanceof directive */
+        /* Update the naming prefix */
+        if (nested_index == 0)
+          sprintf(struct_prefixes[nested_index], "%s.%s", iname, it->name);
+        else
+          sprintf(struct_prefixes[nested_index], "%s.%s", struct_prefixes[nested_index-1], it->name);
+
+        if (verify_name_length(struct_prefixes[nested_index]) == FAILED)
+          return FAILED;
+
+        struct_instances[nested_index] = 0;
+        nested_structs[nested_index++] = it;
+        it = it->instance->items;
+        continue;
+      }
+      else if (it->size == 0) {
+        /* don't put data into empty structure items */
+        it = it->next;
+        while (it == NULL && nested_index > 0) {
+          if (++struct_instances[nested_index-1] < nested_structs[nested_index-1]->num_instances)
+            it = nested_structs[nested_index-1]->instance->items;
+          else
+            it = nested_structs[--nested_index]->next;
+        }
+        continue;
+      }
+      else {
+        /* take care of the strings */
+        if (inz == INPUT_NUMBER_STRING) {
+          if (it->size < string_size) {
+            sprintf(emsg, "String \"%s\" doesn't fit into the %d bytes of \"%s.%s\". Discarding the overflow.\n", label, it->size, s->name, it->name);
+            print_error(emsg, ERROR_WRN);
+            c = it->size;
+          }
+          else
+            c = string_size;
+
+          /* copy the string */
+          for (o = 0; o < c; o++)
+            fprintf(file_out_ptr, "d%d ", (int)label[o]);
+        }
+        /* take care of the rest */
+        else {
+          if (it->size == 1) {
+            if ((inz == SUCCEEDED) && (d < -128 || d > 255)) {
+              sprintf(emsg, "\"%s.%s\" expects 8-bit data, %d is out of range!\n", s->name, it->name, d);
+              print_error(emsg, ERROR_DIR);
+              return FAILED;
+            }
+
+            if (inz == SUCCEEDED)
+              fprintf(file_out_ptr, "d%d ", d);
+            else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
+              fprintf(file_out_ptr, "k%d Q%s ", active_file_info_last->line_current, label);
+            else if (inz == INPUT_NUMBER_STACK)
+              fprintf(file_out_ptr, "c%d ", latest_stack);
+
+            o = 1;
+          }
+          else {
+            if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
+              sprintf(emsg, "\"%s.%s\" expects 16-bit data, %d is out of range!\n", s->name, it->name, d);
+              print_error(emsg, ERROR_DIR);
+              return FAILED;
+            }
+
+            if (inz == SUCCEEDED)
+              fprintf(file_out_ptr, "y%d", d);
+            else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
+              fprintf(file_out_ptr, "k%d r%s ", active_file_info_last->line_current, label);
+            else if (inz == INPUT_NUMBER_STACK)
+              fprintf(file_out_ptr, "C%d ", latest_stack);
+
+            o = 2;
+          }
+        }
+
+        /* fill the rest of the item with emptyfill or zero */
+        if (emptyfill_defined != 0)
+          f = emptyfill;
+        else
+          f = 0;
+
+        for (; o < it->size; o++)
+          fprintf(file_out_ptr, "d%d ", f);
+      }
 
       it = it->next;
+      while (it == NULL && nested_index > 0) {
+        if (++struct_instances[nested_index-1] < nested_structs[nested_index-1]->num_instances)
+          it = nested_structs[nested_index-1]->instance->items;
+        else
+          it = nested_structs[--nested_index]->next;
+      }
       inz = input_number();
     }
 
