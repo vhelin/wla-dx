@@ -1360,71 +1360,87 @@ int parse_enum_token(void) {
       active_struct->last_item = si;
       return SUCCEEDED;
     }
-  }
+    else if (strcaselesscmp(tmp, ".ENDE") == 0) {
+      if (!in_enum) {
+        print_error("There is no open enum.\n", ERROR_DIR);
+        return FAILED;
+      }
+      if (union_stack != NULL) {
+        print_error("Union not closed.\n", ERROR_DIR);
+        return FAILED;
+      }
+      enum_offset = 0;
+      enum_add_struct_fields("", active_struct, (enum_ord == -1 ? 1 : 0));
+      free_struct(active_struct);
+      active_struct = NULL;
 
-  if (in_enum && strcaselesscmp(tmp, ".ENDE") == 0) {
-    if (union_stack != NULL) {
-      print_error("Union not closed.\n", ERROR_DIR);
-      return FAILED;
+      in_enum = 0;
+      return SUCCEEDED;
     }
-    enum_offset = 0;
-    enum_add_struct_fields("", active_struct, (enum_ord == -1 ? 1 : 0));
-    free_struct(active_struct);
-    active_struct = NULL;
+    else if (strcaselesscmp(tmp, ".ENDS") == 0) {
+      if (!in_ramsection) {
+        print_error("There is no open section.\n", ERROR_DIR);
+        return FAILED;
+      }
+      if (union_stack != NULL) {
+        print_error("Union not closed.\n", ERROR_DIR);
+        return FAILED;
+      }
+      enum_offset = 0;
+      last_enum_offset = 0;
+      enum_add_struct_fields("", active_struct, 0);
 
-    in_enum = 0;
-    return SUCCEEDED;
-  }
-  else if (in_ramsection && strcaselesscmp(tmp, ".ENDS") == 0) {
-    if (union_stack != NULL) {
-      print_error("Union not closed.\n", ERROR_DIR);
-      return FAILED;
+      if (max_enum_offset > last_enum_offset)
+        fprintf(file_out_ptr, "x%d 0 ", max_enum_offset-last_enum_offset);
+      fprintf(file_out_ptr, "s ");
+
+      free_struct(active_struct);
+      active_struct = NULL;
+
+      section_status = OFF;
+      in_ramsection = 0;
+      return SUCCEEDED;
     }
-    enum_offset = 0;
-    last_enum_offset = 0;
-    enum_add_struct_fields("", active_struct, 0);
+    else if (strcaselesscmp(tmp, ".ENDST") == 0) {
+      if (!in_struct) {
+        print_error("There is no open struct.\n", ERROR_DIR);
+        return FAILED;
+      }
+      if (union_stack != NULL) {
+        print_error("Union not closed.\n", ERROR_DIR);
+        return FAILED;
+      }
+      enum_offset = 0;
+      last_enum_offset = 0;
+      enum_add_struct_fields(active_struct->name, active_struct, 0);
 
-    if (max_enum_offset > last_enum_offset)
-      fprintf(file_out_ptr, "x%d 0 ", max_enum_offset-last_enum_offset);
-    fprintf(file_out_ptr, "s ");
+      /* create the SIZEOF-definition */
+      active_struct->size = max_enum_offset;
+      sprintf(tmpname, "_sizeof_%s", active_struct->name);
 
-    free_struct(active_struct);
-    active_struct = NULL;
+      if (verify_name_length(tmpname) == FAILED)
+        return FAILED;
+      if (add_a_new_definition(tmpname, (double)active_struct->size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+        return FAILED;
 
-    section_status = OFF;
-    in_ramsection = 0;
-    return SUCCEEDED;
-  }
-  else if (in_struct && strcaselesscmp(tmp, ".ENDST") == 0) {
-    if (union_stack != NULL) {
-      print_error("Union not closed.\n", ERROR_DIR);
-      return FAILED;
+      if (active_struct->items == NULL) {
+        sprintf(emsg, "STRUCT \"%s\" is empty!\n", active_struct->name);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
+      }
+
+      active_struct->next = structures_first;
+      structures_first = active_struct;
+
+      in_struct = 0;
+      active_struct = NULL;
+      return SUCCEEDED;
     }
-    enum_offset = 0;
-    last_enum_offset = 0;
-    enum_add_struct_fields(active_struct->name, active_struct, 0);
-
-    /* create the SIZEOF-definition */
-    active_struct->size = max_enum_offset;
-    sprintf(tmpname, "_sizeof_%s", active_struct->name);
-
-    if (verify_name_length(tmpname) == FAILED)
-      return FAILED;
-    if (add_a_new_definition(tmpname, (double)active_struct->size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-      return FAILED;
-
-    if (active_struct->items == NULL) {
-      sprintf(emsg, "STRUCT \"%s\" is empty!\n", active_struct->name);
+    else {
+      sprintf(emsg, "Unknown directive \"%s\".\n", tmp);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
-
-    active_struct->next = structures_first;
-    structures_first = active_struct;
-
-    in_struct = 0;
-    active_struct = NULL;
-    return SUCCEEDED;
   }
 
   if (tmp[strlen(tmp) - 1] == ':')
