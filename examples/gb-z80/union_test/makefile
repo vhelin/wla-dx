@@ -1,6 +1,6 @@
 
-CC = wla-6502
-CFLAGS = -o
+CC = wla-gb
+CFLAGS = -x -o
 LD = wlalink
 LDFLAGS = -v -s
 
@@ -9,8 +9,8 @@ IFILES =
 OFILES = main.o
 
 all: $(OFILES) makefile
-	$(LD) $(LDFLAGS) linkfile linked.rom
-	diff linked.rom expected.rom
+	$(LD) $(LDFLAGS) linkfile linked.gb
+	diff linked.sym expected.sym
 
 main.o: main.s
 	$(CC) $(CFLAGS) main.o main.s
@@ -20,4 +20,4 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	rm -f $(OFILES) core *~ linked.rom linked.sym
+	rm -f $(OFILES) core *~ linked.gb linked.sym
