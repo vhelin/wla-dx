@@ -1234,6 +1234,17 @@ In this example you would also get the following labels::
     waterdrop.age
     waterdrop.weight
 
+CAVEAT: This directive will generate ``_sizeof`` definitions, because
+the linker always generates such definitions between labels; however,
+they may not work as you expect.  In the above example, it will generate
+the following definition::
+
+    .DEFINE _sizeof_waterdrop 0
+
+This is because it detects that the distance between the labels "waterdrop" and
+"waterdrop.name" is zero! You should instead use "_sizeof_water" (the name of the struct)
+if you need the size of the structure.
+
 This is not a compulsory directive.
 
 
@@ -1792,9 +1803,19 @@ Previous example transforms into following definitions::
     .DEFINE dragon.name    $A03F
     .DEFINE dragon.age     $A041
 
+Enums also generate ``_sizeof`` labels::
+
+    .DEFINE _sizeof__scroll_x   $01
+    .DEFINE _sizeof__scroll_y   $01
+    .DEFINE _sizeof_player_x    $02
+    .DEFINE _sizeof_player_y    $02
+    .DEFINE _sizeof_map_01      $10
+
+    etc...
+
 ``DB``, ``DW``, ``DS``, ``DSB``, ``DSW`` and ``INSTANCEOF`` can also be in
 lowercase. You can also use a dotted version of the symbols, but it doesn't
-advance the memory address. Here's an exmple::
+advance the memory address. Here's an example::
 
     .ENUM $C000 DESC EXPORT
     bigapple_h db
@@ -1845,6 +1866,8 @@ inside ``RAMSECTION`` s and ``ENUM`` s. Here's an example::
 This also creates a definition ``_sizeof_[struct name]``, in our example
 this would be ``_sizeof_enemy_object``, and the value of this definition
 is the size of the object, in bytes (2+1+1+10+16+4*2 = 38 in the example).
+It also generates ``_sizeof_enemy_object.id = 2``,
+``_sizeof_enemy_object.x = 1``, etc.
 
 You'll get the following definitions as well::
 
