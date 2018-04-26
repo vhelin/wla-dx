@@ -1034,6 +1034,16 @@ int localize_path(char *path) {
   return SUCCEEDED;
 }
 
+int verify_name_length(char *name) {
+  if (strlen(name) > MAX_NAME_LENGTH) {
+      sprintf(emsg, "The label \"%s\" is too long. Max label length is %d bytes.\n", name, MAX_NAME_LENGTH);
+      print_error(emsg, ERROR_NONE);
+      return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
 
 void print_error(char *error, int type) {
 
@@ -1124,6 +1134,9 @@ void free_struct(struct structure *st) {
 
 /* enum_offset and last_enum_offset should be set when calling this. */
 int add_label_to_enum_or_ramsection(char *name) {
+  if (verify_name_length(name) == FAILED)
+    return FAILED;
+
   if (in_enum || in_struct) {
     if (add_a_new_definition(name, (double)(base_enum_offset+enum_offset), NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
@@ -1144,12 +1157,11 @@ int add_label_to_enum_or_ramsection(char *name) {
   return SUCCEEDED;
 }
 
-/* Add all fields from a struct at the current offset in the enum/ramsection. (This isn't
- * used within structs; it will just point to the next struct, whose contents will only be
- * read when it's actually used in an enum/ramsection. */
+/* Add all fields from a struct at the current offset in the enum/ramsection.
+ * This is used to construct enums or ramsections through temporary structs, even if
+ * INSTANCEOF isn't used. */
 int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
-  /* TODO: add MAX_NAME_LENGTH checks? */
-  char tmp[MAX_NAME_LENGTH*2+1];
+  char tmp[MAX_NAME_LENGTH*2+5];
   struct structure_item *si;
   int g;
 
@@ -1234,7 +1246,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 /* either "in_enum", "in_ramsection", or "in_struct" should be true when this is called. */
 int parse_enum_token(void) {
 
-  char tmpname[MAX_NAME_LENGTH];
+  char tmpname[MAX_NAME_LENGTH+20];
   int type;
   int size;
   int q;
@@ -1396,6 +1408,8 @@ int parse_enum_token(void) {
     active_struct->size = max_enum_offset;
     sprintf(tmpname, "_sizeof_%s", active_struct->name);
 
+    if (verify_name_length(tmpname) == FAILED)
+      return FAILED;
     if (add_a_new_definition(tmpname, (double)active_struct->size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
 
