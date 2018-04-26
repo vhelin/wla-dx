@@ -1281,6 +1281,10 @@ int parse_enum_token(void) {
       int inz;
 
       st = malloc(sizeof(struct structure));
+      if (st == NULL) {
+        print_error("PARSE_ENUM_TOKEN: Out of memory error.\n", ERROR_DIR);
+        return FAILED;
+      }
       st->items = NULL;
       st->last_item = NULL;
 
@@ -1294,6 +1298,10 @@ int parse_enum_token(void) {
 
       /* Put previous union onto the "stack" */
       ust = malloc(sizeof(struct union_stack));
+      if (ust == NULL) {
+        print_error("PARSE_ENUM_TOKEN: Out of memory error.\n", ERROR_DIR);
+        return FAILED;
+      }
       ust->active_struct = active_struct;
       ust->union_first_struct = union_first_struct;
       ust->union_base_offset = union_base_offset;
@@ -1319,6 +1327,10 @@ int parse_enum_token(void) {
         max_enum_offset = enum_offset;
       active_struct->size = enum_offset - union_base_offset;
       st = malloc(sizeof(struct structure));
+      if (st == NULL) {
+        print_error("PARSE_ENUM_TOKEN: Out of memory error.\n", ERROR_DIR);
+        return FAILED;
+      }
       st->items = NULL;
       st->last_item = NULL;
 
@@ -1371,6 +1383,10 @@ int parse_enum_token(void) {
 
       /* Create new structure item of type STRUCTURE_ITEM_TYPE_UNION */
       si = malloc(sizeof(struct structure_item));
+      if (si == NULL) {
+        print_error("PARSE_ENUM_TOKEN: Out of memory error.\n", ERROR_DIR);
+        return FAILED;
+      }
       si->name[0] = '\0';
       si->type = STRUCTURE_ITEM_TYPE_UNION;
       si->size = total_size;
@@ -2822,6 +2838,10 @@ int parse_directive(void) {
 
     /* setup active_struct (ramsection vars stored here temporarily) */
     active_struct = malloc(sizeof(struct structure));
+    if (active_struct == NULL) {
+      print_error("Out of memory while parsing .RAMSECTION.\n", ERROR_DIR);
+      return FAILED;
+    }
     active_struct->name[0] = '\0';
     active_struct->items = NULL;
     active_struct->last_item = NULL;
@@ -4970,6 +4990,10 @@ int parse_directive(void) {
 
     /* setup active_struct (enum vars stored here temporarily) */
     active_struct = malloc(sizeof(struct structure));
+    if (active_struct == NULL) {
+      print_error("Out of memory while parsing .ENUM.\n", ERROR_DIR);
+      return FAILED;
+    }
     active_struct->name[0] = '\0';
     active_struct->items = NULL;
     active_struct->last_item = NULL;
