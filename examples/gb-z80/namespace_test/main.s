@@ -1,7 +1,7 @@
 
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 ; This example means to test "namespaces" in wla-dx. Including "masking",
-; discarding, etc...
+; discarding, etc... also tests "child labels".
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 .OUTNAME "main.o"

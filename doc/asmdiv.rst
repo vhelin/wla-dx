@@ -2556,6 +2556,9 @@ This example is equivalent to::
 
 Unions can be nested.
 
+If a union is used in a DESC enum, everything within the union will be defined in
+increasing order.
+
 
 ``.NEXTU name``
 ---------------

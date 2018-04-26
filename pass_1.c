@@ -126,18 +126,22 @@ int accu_size = 8, index_size = 8;
 #endif
 
 /* vars used when in an enum, ramsection, or struct */
+/* some variables named "enum_" are used in enums, ramsections, and structs. */
 int in_enum=0, in_ramsection=0, in_struct=0;
-int enum_ord, enum_exp, enum_offset, base_enum_offset, max_enum_offset;
+int enum_ord, enum_exp;
+int enum_offset; /* Offset relative to enum start where we're at right now */
 int last_enum_offset;
+int base_enum_offset; /* Start address of enum */
 
 /* temporary struct used to build up enums/ramsections (and, of course, structs). */
 /* This gets temporarily replaced when inside a union (each union definition is considered
  * a separate struct). */
 struct structure *active_struct;
 
-int union_base_offset, highest_union_offset; /* Keep track of the boundaries of the union */
-struct union_stack *union_stack; /* Stores variables for nested unions */
+int union_base_offset; /* Start address of current union */
+int max_enum_offset; /* Highest position seen (reset to 0 within unions) */
 struct structure *union_first_struct; /* First struct in current union */
+struct union_stack *union_stack; /* Stores variables for nested unions */
 
 
 /* remember to run opcodesgen/gen with the proper flags defined */
@@ -1106,6 +1110,12 @@ void free_struct(struct structure *st) {
   struct structure_item *si = st->items;
   while (si != NULL) {
     struct structure_item *tmp = si;
+
+    if (si->type == STRUCTURE_ITEM_TYPE_UNION)
+      free_struct(si->union_items);
+    /* Don't free si->instance for STRUCTURE_ITEM_TYPE_INSTANCE since that's a reusable
+     * structure */
+
     si = si->next;
     free(tmp);
   }
@@ -1115,7 +1125,7 @@ void free_struct(struct structure *st) {
 /* enum_offset and last_enum_offset should be set when calling this. */
 int add_label_to_enum_or_ramsection(char *name) {
   if (in_enum || in_struct) {
-    if (add_a_new_definition(name, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+    if (add_a_new_definition(name, (double)(base_enum_offset+enum_offset), NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
     if (enum_exp == YES)
       if (export_a_definition(name) == FAILED)
@@ -1137,14 +1147,18 @@ int add_label_to_enum_or_ramsection(char *name) {
 /* Add all fields from a struct at the current offset in the enum/ramsection. (This isn't
  * used within structs; it will just point to the next struct, whose contents will only be
  * read when it's actually used in an enum/ramsection. */
-int enum_add_struct_fields(char *basename, struct structure *st) {
+int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
   /* TODO: add MAX_NAME_LENGTH checks? */
-  char tmp[MAX_NAME_LENGTH];
+  char tmp[MAX_NAME_LENGTH*2+1];
   struct structure_item *si;
   int g;
 
   si = st->items;
   while (si != NULL) {
+    if (reverse)
+      enum_offset -= si->size;
+
+    /* Make definition for this item */
     if (si->name[0] != '\0') {
       if (basename[0] != '\0')
         sprintf(tmp, "%s.%s%c", basename, si->name, 0);
@@ -1156,19 +1170,21 @@ int enum_add_struct_fields(char *basename, struct structure *st) {
 
     /* If this struct has an .instanceof in it, we need to recurse */
     if (si->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
-      int orig_offset = enum_offset;
-      if (enum_add_struct_fields(tmp, si->instance) == FAILED)
+      /* Add definition for first (possibly only) instance of struct */
+      if (enum_add_struct_fields(tmp, si->instance, 0) == FAILED)
         return FAILED;
 
       if (si->num_instances > 1) {
-        enum_offset = orig_offset;
+        /* Revert enum_offset back to start of struct data to define "numbered" structs */
+        enum_offset -= si->instance->size;
+
         g = 1;
         while (g <= si->num_instances) {
           if (basename[0] != '\0')
             sprintf(tmp, "%s.%s.%d%c", basename, si->name, g, 0);
           else
             sprintf(tmp, "%s.%d%c", si->name, g, 0);
-          if (enum_add_struct_fields(tmp, si->instance) == FAILED)
+          if (enum_add_struct_fields(tmp, si->instance, 0) == FAILED)
             return FAILED;
           g++;
         }
@@ -1177,11 +1193,13 @@ int enum_add_struct_fields(char *basename, struct structure *st) {
     /* If this struct has a .union in it, we treat each union block like a struct */
     else if (si->type == STRUCTURE_ITEM_TYPE_UNION) {
       int orig_offset = enum_offset;
-      char union_basename[MAX_NAME_LENGTH];
+      char union_basename[MAX_NAME_LENGTH*2+1];
 
       struct structure *un = si->union_items;
 
       while (un != NULL) {
+        enum_offset = orig_offset;
+
         if (un->name[0] != '\0') {
           if (basename[0] != '\0')
             sprintf(union_basename, "%s.%s%c", basename, un->name, 0);
@@ -1193,8 +1211,7 @@ int enum_add_struct_fields(char *basename, struct structure *st) {
         else
           sprintf(union_basename, "%s%c", basename, 0);
 
-        enum_offset = orig_offset;
-        if (enum_add_struct_fields(union_basename, un) == FAILED)
+        if (enum_add_struct_fields(union_basename, un, 0) == FAILED)
           return FAILED;
         un = un->next;
       }
@@ -1204,6 +1221,10 @@ int enum_add_struct_fields(char *basename, struct structure *st) {
     }
     else
       enum_offset += si->size;
+
+    if (reverse) /* After defining data, go back to start, for DESC enums */
+      enum_offset -= si->size;
+
     si = si->next;
   }
 
@@ -1220,7 +1241,7 @@ int parse_enum_token(void) {
   struct structure *st = NULL;
   struct structure_item *si;
   
-  /* check for "if" directives (the only directives permitted in an enum/ramsection) */
+  /* check for directives */
   if (tmp[0] == '.') {
     if ((q = parse_if_directive()) != -1)
       return q;
@@ -1245,14 +1266,14 @@ int parse_enum_token(void) {
       ust->active_struct = active_struct;
       ust->union_first_struct = union_first_struct;
       ust->union_base_offset = union_base_offset;
-      ust->highest_union_offset = highest_union_offset;
+      ust->max_enum_offset = max_enum_offset;
       ust->prev = union_stack;
       union_stack = ust;
 
       active_struct = st;
       union_first_struct = active_struct;
       union_base_offset = enum_offset;
-      highest_union_offset = union_base_offset;
+      max_enum_offset = union_base_offset;
       return SUCCEEDED;
     }
     else if (strcaselesscmp(tmp, ".NEXTU") == 0) {
@@ -1263,8 +1284,8 @@ int parse_enum_token(void) {
         return FAILED;
       }
 
-      if (enum_offset > highest_union_offset)
-        highest_union_offset = enum_offset;
+      if (enum_offset > max_enum_offset)
+        max_enum_offset = enum_offset;
       active_struct->size = enum_offset - union_base_offset;
       st = malloc(sizeof(struct structure));
       st->items = NULL;
@@ -1292,27 +1313,28 @@ int parse_enum_token(void) {
         return FAILED;
       }
 
-      if (enum_offset > highest_union_offset)
-        highest_union_offset = enum_offset;
+      if (enum_offset > max_enum_offset)
+        max_enum_offset = enum_offset;
 
-      total_size = highest_union_offset - union_base_offset;
+      total_size = max_enum_offset - union_base_offset;
 
       active_struct->size = enum_offset - union_base_offset;
       active_struct->next = NULL;
 
       st = union_first_struct;
 
+      enum_offset = max_enum_offset;
+
       /* Pop previous union from the "stack" */
       ust = union_stack;
       active_struct = union_stack->active_struct;
       union_first_struct = union_stack->union_first_struct;
       union_base_offset = ust->union_base_offset;
-      highest_union_offset = ust->highest_union_offset;
+      max_enum_offset = ust->max_enum_offset;
       union_stack = union_stack->prev;
       free(ust);
 
-      enum_offset = highest_union_offset;
-
+      /* Create new structure item of type STRUCTURE_ITEM_TYPE_UNION */
       si = malloc(sizeof(struct structure_item));
       si->name[0] = '\0';
       si->type = STRUCTURE_ITEM_TYPE_UNION;
@@ -1333,8 +1355,8 @@ int parse_enum_token(void) {
       print_error("Union not closed.\n", ERROR_DIR);
       return FAILED;
     }
-    enum_offset = base_enum_offset;
-    enum_add_struct_fields("", active_struct);
+    enum_offset = 0;
+    enum_add_struct_fields("", active_struct, (enum_ord == -1 ? 1 : 0));
     free_struct(active_struct);
     active_struct = NULL;
 
@@ -1348,7 +1370,8 @@ int parse_enum_token(void) {
     }
     enum_offset = 0;
     last_enum_offset = 0;
-    enum_add_struct_fields("", active_struct);
+    enum_add_struct_fields("", active_struct, 0);
+
     if (max_enum_offset > last_enum_offset)
       fprintf(file_out_ptr, "x%d 0 ", max_enum_offset-last_enum_offset);
     fprintf(file_out_ptr, "s ");
@@ -1367,13 +1390,13 @@ int parse_enum_token(void) {
     }
     enum_offset = 0;
     last_enum_offset = 0;
-    enum_add_struct_fields(active_struct->name, active_struct);
+    enum_add_struct_fields(active_struct->name, active_struct, 0);
 
     /* create the SIZEOF-definition */
     active_struct->size = max_enum_offset;
     sprintf(tmpname, "_sizeof_%s", active_struct->name);
 
-    if (add_a_new_definition(tmpname, (double)max_enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+    if (add_a_new_definition(tmpname, (double)active_struct->size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
 
     if (active_struct->items == NULL) {
@@ -1513,10 +1536,8 @@ int parse_enum_token(void) {
     active_struct->last_item->next = si;
   active_struct->last_item = si;
 
-  enum_offset += size*enum_ord;
+  enum_offset += size;
 
-  /* max_enum_offset isn't useful for DESC enums, but it's only needed for
-   * structs/ramsections anyway */
   if (enum_offset > max_enum_offset)
     max_enum_offset = enum_offset;
 
@@ -2575,11 +2596,11 @@ int parse_directive(void) {
     active_struct->last_item = NULL;
     union_stack = NULL;
 
-    enum_ord = 1;
     enum_offset = 0;
-    enum_exp = 0;
-    base_enum_offset = 0;
+    last_enum_offset = 0;
     max_enum_offset = 0;
+    base_enum_offset = 0;
+    enum_ord = 1;
     in_struct = 1;
 
     return SUCCEEDED;
@@ -2715,8 +2736,9 @@ int parse_directive(void) {
     }
 
     enum_offset = 0;
-    base_enum_offset = 0;
+    last_enum_offset = 0;
     max_enum_offset = 0;
+    base_enum_offset = 0;
     enum_ord = 1;
 
     /* setup active_struct (ramsection vars stored here temporarily) */
@@ -4622,17 +4644,17 @@ int parse_directive(void) {
     }
 
     if (q == SUCCEEDED)
-      q = add_a_new_definition(tmp, (double)j, NULL, DEFINITION_TYPE_VALUE, 0);
+      return add_a_new_definition(tmp, (double)j, NULL, DEFINITION_TYPE_VALUE, 0);
     else if (q == INPUT_NUMBER_FLOAT)
-      q = add_a_new_definition(tmp, dou, NULL, DEFINITION_TYPE_VALUE, 0);
+      return add_a_new_definition(tmp, dou, NULL, DEFINITION_TYPE_VALUE, 0);
     else if (q == INPUT_NUMBER_STRING)
-      q = add_a_new_definition(tmp, 0.0, k, DEFINITION_TYPE_STRING, size);
+      return add_a_new_definition(tmp, 0.0, k, DEFINITION_TYPE_STRING, size);
     else if (q == INPUT_NUMBER_STACK)
-      q = add_a_new_definition(tmp, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
+      return add_a_new_definition(tmp, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
     else if (q == INPUT_NUMBER_EOL)
-      q = add_a_new_definition(tmp, 0, NULL, DEFINITION_TYPE_VALUE, 0);
+      return add_a_new_definition(tmp, 0, NULL, DEFINITION_TYPE_VALUE, 0);
 
-    return q;
+    return SUCCEEDED;
   }
 
   /* INPUT */
@@ -4842,9 +4864,10 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    enum_offset = d;
+    enum_offset = 0;
+    last_enum_offset = 0;
+    max_enum_offset = 0;
     base_enum_offset = d;
-    max_enum_offset = d;
 
     /* "ASC" or "DESC"? */
     if (compare_next_token("ASC", 3) == SUCCEEDED) {

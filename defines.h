@@ -650,7 +650,7 @@ struct structure {
 struct union_stack {
   struct structure *active_struct;
   struct structure *union_first_struct;
-  int union_base_offset, highest_union_offset;
+  int union_base_offset, max_enum_offset;
   struct union_stack *prev;
 };
 
