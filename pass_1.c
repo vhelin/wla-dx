@@ -132,6 +132,7 @@ int enum_ord, enum_exp;
 int enum_offset; /* Offset relative to enum start where we're at right now */
 int last_enum_offset;
 int base_enum_offset; /* Start address of enum */
+int enum_sizeof_pass; /* Set on second pass through enum/ramsection, generating _sizeof labels */
 
 /* temporary struct used to build up enums/ramsections (and, of course, structs). */
 /* This gets temporarily replaced when inside a union (each union definition is considered
@@ -139,7 +140,7 @@ int base_enum_offset; /* Start address of enum */
 struct structure *active_struct;
 
 int union_base_offset; /* Start address of current union */
-int max_enum_offset; /* Highest position seen (reset to 0 within unions) */
+int max_enum_offset; /* Highest position seen within current union group */
 struct structure *union_first_struct; /* First struct in current union */
 struct union_stack *union_stack; /* Stores variables for nested unions */
 
@@ -1133,23 +1134,40 @@ void free_struct(struct structure *st) {
 }
 
 /* enum_offset and last_enum_offset should be set when calling this. */
-int add_label_to_enum_or_ramsection(char *name) {
-  if (verify_name_length(name) == FAILED)
-    return FAILED;
+int add_label_to_enum_or_ramsection(char *name, int size) {
+  char tmp[MAX_NAME_LENGTH+10];
 
-  if (in_enum || in_struct) {
-    if (add_a_new_definition(name, (double)(base_enum_offset+enum_offset), NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+  /* There are two passes done when adding a temporary struct to an enum/ramsection. First
+   * pass is to add the labels, second is to add sizeof definitions. If done in only one
+   * pass, the resulting sym file is very ugly... */
+  if (enum_sizeof_pass == NO) {
+    if (verify_name_length(name) == FAILED)
       return FAILED;
-    if (enum_exp == YES)
-      if (export_a_definition(name) == FAILED)
+
+    if (in_enum || in_struct) {
+      if (add_a_new_definition(name, (double)(base_enum_offset+enum_offset), NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
         return FAILED;
-  }
-  else if (in_ramsection) {
-    if (last_enum_offset != enum_offset) {
-      /* This sometimes abuses the "dsb" implementation to move backwards in the ramsection... */
-      fprintf(file_out_ptr, "x%d 0 ", enum_offset-last_enum_offset);
+      if (enum_exp == YES)
+        if (export_a_definition(name) == FAILED)
+          return FAILED;
     }
-    fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, name);
+    else if (in_ramsection) {
+      if (last_enum_offset != enum_offset) {
+        /* This sometimes abuses the "dsb" implementation to move backwards in the ramsection... */
+        fprintf(file_out_ptr, "x%d 0 ", enum_offset-last_enum_offset);
+      }
+      fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, name);
+    }
+  }
+  else { /* sizeof pass */
+    /* Generate _sizeof_ definition */
+    sprintf(tmp, "_sizeof_%s", name);
+    if (add_a_new_definition(tmp, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+      return FAILED;
+    if (in_ramsection || (in_enum && enum_exp == YES)) {
+      if (export_a_definition(tmp) == FAILED)
+        return FAILED;
+    }
   }
 
   last_enum_offset = enum_offset;
@@ -1159,7 +1177,8 @@ int add_label_to_enum_or_ramsection(char *name) {
 
 /* Add all fields from a struct at the current offset in the enum/ramsection.
  * This is used to construct enums or ramsections through temporary structs, even if
- * INSTANCEOF isn't used. */
+ * INSTANCEOF isn't used.
+ * enum_sizeof_pass should be set to YES or NO before calling. */
 int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
   char tmp[MAX_NAME_LENGTH*2+5];
   struct structure_item *si;
@@ -1176,7 +1195,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
         sprintf(tmp, "%s.%s%c", basename, si->name, 0);
       else
         sprintf(tmp, "%s%c", si->name, 0);
-      if (add_label_to_enum_or_ramsection(tmp) == FAILED)
+      if (add_label_to_enum_or_ramsection(tmp, si->size) == FAILED)
         return FAILED;
     }
 
@@ -1217,7 +1236,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
             sprintf(union_basename, "%s.%s%c", basename, un->name, 0);
           else
             sprintf(union_basename, "%s%c", un->name, 0);
-          if (add_label_to_enum_or_ramsection(union_basename) == FAILED)
+          if (add_label_to_enum_or_ramsection(union_basename, un->size) == FAILED)
             return FAILED;
         }
         else
@@ -1346,6 +1365,10 @@ int parse_enum_token(void) {
       union_stack = union_stack->prev;
       free(ust);
 
+      /* Just popped max_enum_offset; need to update it for end of union */
+      if (enum_offset > max_enum_offset)
+        max_enum_offset = enum_offset;
+
       /* Create new structure item of type STRUCTURE_ITEM_TYPE_UNION */
       si = malloc(sizeof(struct structure_item));
       si->name[0] = '\0';
@@ -1369,8 +1392,17 @@ int parse_enum_token(void) {
         print_error("Union not closed.\n", ERROR_DIR);
         return FAILED;
       }
+
       enum_offset = 0;
-      enum_add_struct_fields("", active_struct, (enum_ord == -1 ? 1 : 0));
+      enum_sizeof_pass = NO;
+      if (enum_add_struct_fields("", active_struct, (enum_ord == -1 ? 1 : 0)) == FAILED)
+        return FAILED;
+
+      enum_offset = 0;
+      enum_sizeof_pass = YES;
+      if (enum_add_struct_fields("", active_struct, (enum_ord == -1 ? 1 : 0)) == FAILED)
+        return FAILED;
+
       free_struct(active_struct);
       active_struct = NULL;
 
@@ -1386,9 +1418,18 @@ int parse_enum_token(void) {
         print_error("Union not closed.\n", ERROR_DIR);
         return FAILED;
       }
+
       enum_offset = 0;
       last_enum_offset = 0;
-      enum_add_struct_fields("", active_struct, 0);
+      enum_sizeof_pass = NO;
+      if (enum_add_struct_fields("", active_struct, 0) == FAILED)
+        return FAILED;
+
+      enum_offset = 0;
+      last_enum_offset = 0;
+      enum_sizeof_pass = YES;
+      if (enum_add_struct_fields("", active_struct, 0) == FAILED)
+        return FAILED;
 
       if (max_enum_offset > last_enum_offset)
         fprintf(file_out_ptr, "x%d 0 ", max_enum_offset-last_enum_offset);
@@ -1412,9 +1453,17 @@ int parse_enum_token(void) {
       }
       enum_offset = 0;
       last_enum_offset = 0;
-      enum_add_struct_fields(active_struct->name, active_struct, 0);
+      enum_sizeof_pass = NO;
+      if (enum_add_struct_fields(active_struct->name, active_struct, 0) == FAILED)
+        return FAILED;
 
-      /* create the SIZEOF-definition */
+      enum_offset = 0;
+      last_enum_offset = 0;
+      enum_sizeof_pass = YES;
+      if (enum_add_struct_fields(active_struct->name, active_struct, 0) == FAILED)
+        return FAILED;
+
+      /* create the SIZEOF-definition for the entire struct */
       active_struct->size = max_enum_offset;
       sprintf(tmpname, "_sizeof_%s", active_struct->name);
 

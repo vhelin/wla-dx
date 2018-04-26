@@ -12,7 +12,7 @@ int parse_directive(void);
 int parse_if_directive(void);
 void free_struct(struct structure *st);
 int enum_add_label(char *name, int type, int size, struct structure *instance);
-int add_label_to_enum_or_ramsection(char *name);
+int add_label_to_enum_or_ramsection(char *name, int size);
 int parse_enum_token(void);
 int find_next_point(char *name);
 int get_new_definition_data(int *b, char *c, int *size, double *data);

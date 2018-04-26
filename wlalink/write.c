@@ -1930,6 +1930,20 @@ struct label *get_closest_anonymous_label(char *name, int rom_address, int file_
   return closest;
 }
 
+int does_label_have_sizeof(struct label *l, struct label *lastL) {
+  /* Non-labels, anonymous labels */
+  if (l->status != LABEL_STATUS_LABEL || is_label_anonymous(l->name) == SUCCEEDED)
+    return FAILED;
+  /* Child labels */
+  if (lastL != NULL && strncmp(lastL->name, l->name, strlen(lastL->name)) == 0
+      && l->name[strlen(lastL->name)] == '@')
+    return FAILED;
+  /* Ramsection labels are skipped because there is loss of information, so it's done in
+   * the assembler instead... */
+  if (l->section_status == ON && l->section_struct->status == SECTION_STATUS_RAM)
+    return FAILED;
+  return SUCCEEDED;
+}
 
 int generate_sizeof_label_definitions(void) {
 
@@ -1940,15 +1954,11 @@ int generate_sizeof_label_definitions(void) {
   if (labels_first == NULL)
     return SUCCEEDED;
   
-  /* generate _sizeof_[label] definitions */
+  /* Count how many sizeof definitions there are */
   l = labels_first;
   lastL = NULL;
   while (l != NULL) {
-    /* skip anonymous labels & child labels */
-    if (l->status == LABEL_STATUS_LABEL && is_label_anonymous(l->name) != SUCCEEDED
-        && (lastL == NULL
-            || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0
-                && l->name[strlen(lastL->name)] == '@'))) {
+    if (does_label_have_sizeof(l, lastL) == SUCCEEDED) {
       labelsN++;
       lastL = l;
     }
@@ -1969,11 +1979,7 @@ int generate_sizeof_label_definitions(void) {
   l = labels_first;
   lastL = NULL;
   while (l != NULL) {
-    /* skip anonymous labels & child labels */
-    if (l->status == LABEL_STATUS_LABEL && is_label_anonymous(l->name) != SUCCEEDED
-        && (lastL == NULL
-            || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0
-                && l->name[strlen(lastL->name)] == '@'))) {
+    if (does_label_have_sizeof(l, lastL) == SUCCEEDED) {
       labels[j++] = l;
       lastL = l;
     }

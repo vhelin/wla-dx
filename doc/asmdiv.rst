@@ -2553,6 +2553,11 @@ This example is equivalent to::
     .DEFINE union1.byte1 $c000
     .DEFINE union1.byte2 $c001
     .DEFINE union2.word1 $c000
+    .DEFINE _sizeof_union1 2
+    .DEFINE _sizeof_union2 2
+
+Note the additional "sizeof" labels. This is the size of that entry in the union, NOT the
+size of the maximum space used by all entries in that union group.
 
 Unions can be nested.
 
