@@ -95,7 +95,7 @@ MAIN:	NOP
 .ENDS
 
 
-.SECTION "Copier_1000"
+.SECTION "Copier" SIZE 1000
 .DB	"CS"
 
 grid_put_sprite:
@@ -126,7 +126,7 @@ _loop:
 
 
 
-.section "BANKHEADER_$20"
+.section "BANKHEADER_$20" SIZE $20
 .db	"HS"
 
 .dw MAIN, MORE_ACTION, grid_put_sprite

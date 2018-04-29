@@ -2746,7 +2746,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "SECTION") == 0) {
 
-    int l, m;
+    int l, m, giveWarning = NO;
 
 
     if (section_status == ON) {
@@ -2806,10 +2806,8 @@ int parse_directive(void) {
             break;
         }
 
-        if (tmp[l] == 0) {
-          sec_tmp->maxsize_status = ON;
-          sec_tmp->maxsize = m;
-        }
+        if (tmp[l] == 0)
+	  giveWarning = YES;
       }
       else if (tmp[l] >= '0' && tmp[l] <= '9') {
         for (m = 0; tmp[l] != 0; l++) {
@@ -2819,10 +2817,16 @@ int parse_directive(void) {
             break;
         }
 
-        if (tmp[l] == 0) {
-          sec_tmp->maxsize_status = ON;
-          sec_tmp->maxsize = m;
-        }
+        if (tmp[l] == 0)
+	  giveWarning = YES;
+      }
+
+      if (giveWarning == YES) {
+	sprintf(emsg, "Section \"%s\" size of %d bytes was given the old way, inside the section name. Please use SIZE instead...\n", tmp, m);
+	print_error(emsg, ERROR_WRN);
+
+	sec_tmp->maxsize_status = ON;
+	sec_tmp->maxsize = m;
       }
     }
 
@@ -2905,17 +2909,17 @@ int parse_directive(void) {
 
     /* the size of the section? */
     if (compare_next_token("SIZE", 4) == SUCCEEDED) {
-      if (sec_tmp->maxsize_status == ON) {
-        print_error("The SIZE of the section has already been defined.\n", ERROR_DIR);
-        return FAILED;
-      }
-
       if (skip_next_token() == FAILED)
         return FAILED;
 
       inz = input_number();
       if (inz != SUCCEEDED) {
         print_error("Could not parse the SIZE.\n", ERROR_DIR);
+        return FAILED;
+      }
+
+      if (sec_tmp->maxsize_status == ON && sec_tmp->maxsize != d) {
+        print_error("The SIZE of the section has already been defined.\n", ERROR_DIR);
         return FAILED;
       }
 
@@ -2997,7 +3001,7 @@ int parse_directive(void) {
 
     if (compare_next_token("APPENDTO", 8) == SUCCEEDED) {
       struct append_section *append_tmp;
-	
+
       if (skip_next_token() == FAILED)
         return FAILED;
 

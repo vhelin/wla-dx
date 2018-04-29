@@ -2078,18 +2078,7 @@ itself. The namespace directive should immediately follow the name. ::
 
     .SECTION "Init" NAMESPACE "bank0"
 
-You can supply the preferred section size (bytes) inside the section
-name string. Here's an example::
-
-    .SECTION "Init_100" FREE
-
-will create a section (``Init``) with size of ``100`` bytes, unless the actual
-data overflows from the section, in which case the section size is enlarged to
-contain all the data. Note that the syntax for explicit section size defining
-is: ``NAME_X``, where ``NAME`` is the name of the section and ``X`` is the size
-(decimal or hexadecimal value).
-
-You can also give the size of the section the following way::
+You can give the size of the section the following way::
 
     .SECTION "Init" SIZE 100 FREE
 
