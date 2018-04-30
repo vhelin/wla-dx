@@ -1324,7 +1324,7 @@ Take a look at the example::
     .ENDA
 
 Here we set such a mapping that character ``A`` is equal to ``0``, ``B`` is
-equal to ``0``, ``C`` is equal to ``2``, and so on, and ``!`` is equal
+equal to ``1``, ``C`` is equal to ``2``, and so on, and ``!`` is equal
 to ``90``.
 
 After you've given the ``.ASCIITABLE``, use ``.ASC`` to define bytes using
