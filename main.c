@@ -134,28 +134,28 @@ int main(int argc, char *argv[]) {
   
   if (output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
 #ifdef GB
-    printf("\nWLA GB-Z80 Macro Assembler v9.7b\n");
+    printf("\nWLA GB-Z80 Macro Assembler v9.8a\n");
 #endif
 #ifdef Z80
-    printf("\nWLA Z80 Macro Assembler v9.7b\n");
+    printf("\nWLA Z80 Macro Assembler v9.8a\n");
 #endif
 #ifdef MCS6502
-    printf("\nWLA 6502 Macro Assembler v9.7b\n");
+    printf("\nWLA 6502 Macro Assembler v9.8a\n");
 #endif
 #ifdef WDC65C02
-    printf("\nWLA 65C02 Macro Assembler v9.7b\n");
+    printf("\nWLA 65C02 Macro Assembler v9.8a\n");
 #endif
 #ifdef W65816
-    printf("\nWLA 65816 Macro Assembler v9.7b\n");
+    printf("\nWLA 65816 Macro Assembler v9.8a\n");
 #endif
 #ifdef MCS6510
-    printf("\nWLA 6510 Macro Assembler v9.7b\n");
+    printf("\nWLA 6510 Macro Assembler v9.8a\n");
 #endif
 #ifdef SPC700
-    printf("\nWLA SPC-700 Macro Assembler v9.7b\n");
+    printf("\nWLA SPC-700 Macro Assembler v9.8a\n");
 #endif
 #ifdef HUC6280
-    printf("\nWLA HuC6280 Macro Assembler v9.7b\n");
+    printf("\nWLA HuC6280 Macro Assembler v9.8a\n");
 #endif
     printf("Written by Ville Helin in 1998-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
 #ifdef WLA_DEBUG
