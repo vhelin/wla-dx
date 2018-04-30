@@ -1791,7 +1791,7 @@ Previous example transforms into following definitions::
 
 ``DB``, ``DW``, ``DS``, ``DSB``, ``DSW`` and ``INSTANCEOF`` can also be in
 lowercase. You can also use a dotted version of the symbols, but it doesn't
-advance the memory address. Here's an exmple::
+advance the memory address. Here's an example::
 
     .ENUM $C000 DESC EXPORT
     bigapple_h db
