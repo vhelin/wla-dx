@@ -37,32 +37,32 @@ long __stack = 65536;
 
 #ifdef AMIGA
 #ifdef GB
-char version_string[] = "$VER: WLA-GB 9.7 (17.04.2018)";
+char version_string[] = "$VER: WLA-GB 9.8a (30.04.2018)";
 #endif
 #ifdef Z80
-char version_string[] = "$VER: WLA-Z80 9.7 (17.04.2018)";
+char version_string[] = "$VER: WLA-Z80 9.8a (30.04.2018)";
 #endif
 #ifdef MCS6502
-char version_string[] = "$VER: WLA-6502 9.7 (17.04.2018)";
+char version_string[] = "$VER: WLA-6502 9.8a (30.04.2018)";
 #endif
 #ifdef WDC65C02
-char version_string[] = "$VER: WLA-65C02 9.7 (17.04.2018)";
+char version_string[] = "$VER: WLA-65C02 9.8a (30.04.2018)";
 #endif
 #ifdef W65816
-char version_string[] = "$VER: WLA-65816 9.7 (17.04.2018)";
+char version_string[] = "$VER: WLA-65816 9.8a (30.04.2018)";
 #endif
 #ifdef MCS6510
-char version_string[] = "$VER: WLA-6510 9.7 (17.04.2018)";
+char version_string[] = "$VER: WLA-6510 9.8a (30.04.2018)";
 #endif
 #ifdef SPC700
-char version_string[] = "$VER: WLA-SPC700 9.7 (17.04.2018)";
+char version_string[] = "$VER: WLA-SPC700 9.8a (30.04.2018)";
 #endif
 #ifdef HUC6280
-char version_string[] = "$VER: WLA-HuC6280 9.7 (17.04.2018)";
+char version_string[] = "$VER: WLA-HuC6280 9.8a (30.04.2018)";
 #endif
 #endif
 
-char wla_version[] = "9.7";
+char wla_version[] = "9.8a";
 
 char gba_tmp_name[32], gba_unfolded_name[32];
 
