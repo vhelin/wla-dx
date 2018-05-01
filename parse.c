@@ -810,7 +810,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
   if (k >= MAX_NAME_LENGTH) {
     if (input_number_error_msg == YES) {
-      sprintf(xyz, "EXPAND_MACRO_ARGUMENTS: The result string is too large, increate MAX_NAME_LENGTH and compile WLA DX again.\n");
+      sprintf(xyz, "EXPAND_MACRO_ARGUMENTS: The result string is too large, increase MAX_NAME_LENGTH and compile WLA DX again.\n");
       print_error(xyz, ERROR_NUM);
     }
     
