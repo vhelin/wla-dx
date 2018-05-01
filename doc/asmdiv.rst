@@ -1330,13 +1330,13 @@ to ``90``.
 After you've given the ``.ASCIITABLE``, use ``.ASC`` to define bytes using
 this mapping (``.ASC`` is an alias for ``.DB``, but with ``.ASCIITABLE``
 mapping). For example, ``.ASC "ABZ"`` would define bytes ``0``, ``1`` and
-``90``.
+``25``.
 
 Note that the following works as well::
 
     .ASCIITABLE
     MAP 'A' TO 'Z' = 0
-    MAP 65 = 90
+    MAP 65 = 90          ; 65 is the decimal for ASCII 'A'
     .ENDA
 
 Also note that the characters that are not given any mapping in
