@@ -29,7 +29,7 @@ int licenseecodenew_defined = 0, licenseecodeold = 0, licenseecodeold_defined = 
 #endif
 
 #ifdef Z80
-char sdsctag_name_str[MAX_NAME_LENGTH], sdsctag_notes_str[MAX_NAME_LENGTH], sdsctag_author_str[MAX_NAME_LENGTH];
+char sdsctag_name_str[MAX_NAME_LENGTH + 1], sdsctag_notes_str[MAX_NAME_LENGTH + 1], sdsctag_author_str[MAX_NAME_LENGTH + 1];
 int sdsctag_name_type, sdsctag_notes_type, sdsctag_author_type, sdsc_ma, sdsc_mi;
 int sdsctag_name_value, sdsctag_notes_value, sdsctag_author_value;
 int computesmschecksum_defined = 0, sdsctag_defined = 0, smstag_defined = 0;
@@ -104,7 +104,7 @@ struct filepointer *filepointers = NULL;
 struct map_t *namespace_map = NULL;
 struct append_section *append_sections = NULL;
 
-extern char *buffer, *unfolded_buffer, label[MAX_NAME_LENGTH], *include_dir, *full_name;
+extern char *buffer, *unfolded_buffer, label[MAX_NAME_LENGTH + 1], *include_dir, *full_name;
 extern int size, unfolded_size, input_number_error_msg, verbose_mode, output_format, open_files;
 extern int stack_id, latest_stack, ss, commandline_parsing, newline_beginning;
 extern int extra_definitions, string_size, input_float_mode;
@@ -584,8 +584,8 @@ int pass_1(void) {
           print_error(emsg, ERROR_LOG);
           return FAILED;
         }
-        if (ss > MAX_NAME_LENGTH - 1) {
-          sprintf(emsg, "The label \"%s\" is too long. Max label length is %d bytes.\n", tmp, MAX_NAME_LENGTH - 1);
+        if (ss >= MAX_NAME_LENGTH) {
+          sprintf(emsg, "The label \"%s\" is too long. Max label length is %d characters.\n", tmp, MAX_NAME_LENGTH);
           print_error(emsg, ERROR_NONE);
           return FAILED;
         }
@@ -757,8 +757,8 @@ int evaluate_token(void) {
       print_error(emsg, ERROR_LOG);
       return FAILED;
     }
-    if (ss > MAX_NAME_LENGTH - 1) {
-      sprintf(emsg, "The label \"%s\" is too long. Max label length is %d bytes.\n", tmp, MAX_NAME_LENGTH - 1);
+    if (ss >= MAX_NAME_LENGTH) {
+      sprintf(emsg, "The label \"%s\" is too long. Max label length is %d characters.\n", tmp, MAX_NAME_LENGTH);
       print_error(emsg, ERROR_NONE);
       return FAILED;
     }
@@ -1097,7 +1097,7 @@ void next_line(void) {
 /* either "in_enum" or "in_ramsection" should be true when this is called. */
 int parse_enum_token(void) {
 
-  char tmpname[MAX_NAME_LENGTH];
+  char tmpname[MAX_NAME_LENGTH + 1];
   int type;
   int q;
 
@@ -5355,7 +5355,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "REPT") == 0 || strcaselesscmp(cp, "REPEAT") == 0) {
 
-    char c[16], index_name[MAX_NAME_LENGTH];
+    char c[16], index_name[MAX_NAME_LENGTH + 1];
 
 
     strcpy(c, cp);

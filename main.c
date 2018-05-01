@@ -92,7 +92,7 @@ int output_format = OUTPUT_NONE, verbose_mode = OFF, test_mode = OFF;
 int extra_definitions = OFF, commandline_parsing = ON, makefile_rules = NO;
 int listfile_data = NO, quiet = NO, use_incdir = NO;
 
-char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH];
+char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH + 1];
 
 
 int main(int argc, char *argv[]) {
@@ -581,14 +581,14 @@ int generate_extra_definitions(void) {
 
 int parse_and_add_definition(char *c, int contains_flag) {
 
-  char n[MAX_NAME_LENGTH];
+  char n[MAX_NAME_LENGTH + 1];
   int i;
 
   /* skip the flag? */
   if (contains_flag == YES)
     c += 2;
   
-  for (i = 0; i < (MAX_NAME_LENGTH - 1) && *c != 0 && *c != '='; i++, c++)
+  for (i = 0; i < MAX_NAME_LENGTH && *c != 0 && *c != '='; i++, c++)
     n[i] = *c;
   n[i] = 0;
 
@@ -643,14 +643,14 @@ int parse_and_add_definition(char *c, int contains_flag) {
 
 int parse_and_set_incdir(char *c, int contains_flag) {
 
-  char n[MAX_NAME_LENGTH];
+  char n[MAX_NAME_LENGTH + 1];
   int i;
 
   /* skip the flag? */
   if (contains_flag == YES)
     c += 2;
 
-  for (i = 0; i < (MAX_NAME_LENGTH - 1) && *c != 0; i++, c++)
+  for (i = 0; i < MAX_NAME_LENGTH && *c != 0; i++, c++)
     n[i] = *c;
   n[i] = 0;
 

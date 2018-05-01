@@ -14,9 +14,9 @@
 
 int input_number_error_msg = YES, ss, string_size, input_float_mode = OFF, parse_floats = YES;
 int newline_beginning = ON, parsed_double_decimal_numbers = 0;
-char label[MAX_NAME_LENGTH], xyz[256];
+char label[MAX_NAME_LENGTH + 1], xyz[256];
 char unevaluated_expression[256];
-char expanded_macro_string[MAX_NAME_LENGTH+1];
+char expanded_macro_string[MAX_NAME_LENGTH + 1];
 double parsed_double;
 
 extern int i, size, d, macro_active;
@@ -103,7 +103,7 @@ int input_next_string(void) {
 
   /* last choice is a label */
   tmp[0] = e;
-  for (k = 1; k < MAX_NAME_LENGTH - 1; k++) {
+  for (k = 1; k < MAX_NAME_LENGTH; k++) {
     e = buffer[i++];
     if (e == 0x0A || e == ',') {
       i--;
@@ -114,9 +114,9 @@ int input_next_string(void) {
     tmp[k] = e;
   }
 
-  if (k == MAX_NAME_LENGTH - 1) {
+  if (k == MAX_NAME_LENGTH) {
     if (input_number_error_msg == YES) {
-      sprintf(xyz, "The string is too long (max %d bytes).\n", MAX_NAME_LENGTH - 1);
+      sprintf(xyz, "The string is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
       print_error(xyz, ERROR_NUM);
     }
     return FAILED;
@@ -136,7 +136,7 @@ int input_next_string(void) {
 
 int input_number(void) {
 
-  char label_tmp[MAX_NAME_LENGTH];
+  char label_tmp[MAX_NAME_LENGTH + 1];
   unsigned char e, ee;
   int k, p, q;
   double decimal_mul;
@@ -458,7 +458,7 @@ int input_number(void) {
   }
 
   if (e == '"') {
-    for (k = 0; k < MAX_NAME_LENGTH - 1; ) {
+    for (k = 0; k < MAX_NAME_LENGTH; ) {
       e = buffer[i++];
 
       if (e == '\\' && buffer[i] == '"') {
@@ -487,9 +487,9 @@ int input_number(void) {
       k = strlen(label);
     }
 
-    if (k == MAX_NAME_LENGTH - 1) {
+    if (k == MAX_NAME_LENGTH) {
       if (input_number_error_msg == YES) {
-	sprintf(xyz, "The string is too long (max %d bytes).\n", MAX_NAME_LENGTH - 1);
+	sprintf(xyz, "The string is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
 	print_error(xyz, ERROR_NUM);
       }
       return FAILED;
@@ -502,7 +502,7 @@ int input_number(void) {
 
   /* the last choice is a label */
   label[0] = e;
-  for (k = 1; k < MAX_NAME_LENGTH - 1; k++) {
+  for (k = 1; k < MAX_NAME_LENGTH; k++) {
     e = buffer[i++];
     if (e == 0x0A || e == ')' || e == ',' || e == ']') {
       i--;
@@ -513,9 +513,9 @@ int input_number(void) {
     label[k] = e;
   }
 
-  if (k == MAX_NAME_LENGTH - 1) {
+  if (k == MAX_NAME_LENGTH) {
     if (input_number_error_msg == YES) {
-      sprintf(xyz, "The label is too long (max %d bytes).\n", MAX_NAME_LENGTH - 1);
+      sprintf(xyz, "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
       print_error(xyz, ERROR_NUM);
     }
     return FAILED;
@@ -655,7 +655,7 @@ int get_next_token(void) {
   if (buffer[i] == '.') {
     tmp[0] = '.';
     i++;
-    for (ss = 1; buffer[i] != 0x0A && buffer[i] != ' ' && ss <= MAX_NAME_LENGTH; ) {
+    for (ss = 1; buffer[i] != 0x0A && buffer[i] != ' ' && ss < MAX_NAME_LENGTH; ) {
       tmp[ss] = buffer[i];
       cp[ss - 1] = toupper((int)buffer[i]);
       i++;
@@ -665,10 +665,10 @@ int get_next_token(void) {
   }
   else if (buffer[i] == '=' || buffer[i] == '>' || buffer[i] == '<' || buffer[i] == '!') {
     for (ss = 0; buffer[i] != 0xA && (buffer[i] == '=' || buffer[i] == '!' || buffer[i] == '<' || buffer[i] == '>')
-	   && ss <= MAX_NAME_LENGTH; tmp[ss++] = buffer[i++]);
+	   && ss < MAX_NAME_LENGTH; tmp[ss++] = buffer[i++]);
   }
   else {
-    for (ss = 0; buffer[i] != 0xA && buffer[i] != ',' && buffer[i] != ' ' && ss <= MAX_NAME_LENGTH; ) {
+    for (ss = 0; buffer[i] != 0xA && buffer[i] != ',' && buffer[i] != ' ' && ss < MAX_NAME_LENGTH; ) {
       tmp[ss] = buffer[i];
       ss++;
       i++;
@@ -677,7 +677,7 @@ int get_next_token(void) {
       i++;
   }
 
-  if (ss > MAX_NAME_LENGTH) {
+  if (ss >= MAX_NAME_LENGTH) {
     print_error("GET_NEXT_TOKEN: Too long for a token.\n", ERROR_NONE);
     return FAILED;
   }
@@ -825,10 +825,9 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
 int _expand_macro_arguments(char *in, int *expands) {
 
-  int move_up;
+  int move_up = 0;
 
 
-  move_up = 0;
   if (_expand_macro_arguments_one_pass(in, expands, &move_up) == FAILED)
     return FAILED;
 

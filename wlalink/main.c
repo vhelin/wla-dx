@@ -50,7 +50,7 @@ int listfile_data = NO, smc_status = 0, snes_sramsize = 0;
 int num_sorted_anonymous_labels = 0;
 
 extern int emptyfill;
-char ext_libdir[MAX_NAME_LENGTH];
+char ext_libdir[MAX_NAME_LENGTH + 1];
 
 
 
@@ -756,7 +756,7 @@ int parse_flags(char **flags, int flagc) {
 
 int parse_and_set_libdir(char *c, int contains_flag) {
 
-  char n[MAX_NAME_LENGTH];
+  char n[MAX_NAME_LENGTH + 1];
   int i;
 
   /* skip the flag? */
@@ -766,7 +766,7 @@ int parse_and_set_libdir(char *c, int contains_flag) {
   if (strlen(c) < 2)
     return FAILED;
   
-  for (i = 0; i < (MAX_NAME_LENGTH - 1) && *c != 0; i++, c++)
+  for (i = 0; i < MAX_NAME_LENGTH && *c != 0; i++, c++)
     n[i] = *c;
   n[i] = 0;
 

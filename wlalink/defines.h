@@ -49,6 +49,7 @@
 #define NO  0
 #define YES 1
 
+/* want to use longer strings and labels? change this - PS. it doesn't contain the null terminator */
 #define MAX_NAME_LENGTH 255
 
 struct source_file_name {
@@ -77,8 +78,8 @@ struct object_file {
 };
 
 struct append_section {
-  char section[MAX_NAME_LENGTH];
-  char append_to[MAX_NAME_LENGTH];
+  char section[MAX_NAME_LENGTH + 1];
+  char append_to[MAX_NAME_LENGTH + 1];
   struct append_section *next;
 };
 

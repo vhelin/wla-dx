@@ -1944,10 +1944,8 @@ int generate_sizeof_label_definitions(void) {
   lastL = NULL;
   while (l != NULL) {
     /* skip anonymous labels & child labels */
-    if (l->status == LABEL_STATUS_LABEL && is_label_anonymous(l->name) != SUCCEEDED
-        && (lastL == NULL
-            || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0
-                && l->name[strlen(lastL->name)] == '@'))) {
+    if (l->status == LABEL_STATUS_LABEL && is_label_anonymous(l->name) != SUCCEEDED &&
+        (lastL == NULL || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0 && l->name[strlen(lastL->name)] == '@'))) {
       labelsN++;
       lastL = l;
     }
@@ -1991,14 +1989,16 @@ int generate_sizeof_label_definitions(void) {
   
   for (j = 0; j < labelsN; j++) {
     double size;
+    
     if (j == labelsN - 1 || labels[j]->section != labels[j+1]->section)
       /* last label in this section */
-        if (labels[j]->section_struct != NULL)
-          size = labels[j]->section_struct->output_address + labels[j]->section_struct->size - labels[j]->rom_address;
+      if (labels[j]->section_struct != NULL)
+	size = labels[j]->section_struct->output_address + labels[j]->section_struct->size - labels[j]->rom_address;
       else
         continue;
     else
       size = labels[j+1]->rom_address - labels[j]->rom_address;
+
     l = calloc(1, sizeof(struct label));
     if (l == NULL) {
       fprintf(stderr, "GENERATE_SIZEOF_LABEL_DEFINITIONS: Out of memory error.\n");
@@ -2007,9 +2007,8 @@ int generate_sizeof_label_definitions(void) {
     }
 
     if (strlen(labels[j]->name)+8 > MAX_NAME_LENGTH) {
-      fprintf(stderr, "GENERATE_SIZEOF_LABEL_DEFINITIONS: Expanded label name \"_sizeof_%s\" is %d bytes too large.\n",
-              labels[j]->name,
-              (int)(strlen(labels[j]->name)-MAX_NAME_LENGTH+8));
+      fprintf(stderr, "GENERATE_SIZEOF_LABEL_DEFINITIONS: Expanded label name \"_sizeof_%s\" is %d characters too large.\n",
+              labels[j]->name, (int)(strlen(labels[j]->name)-MAX_NAME_LENGTH+8));
       free(labels);
       return FAILED;
     }
@@ -2028,7 +2027,6 @@ int generate_sizeof_label_definitions(void) {
       free(labels);
       return FAILED;
     }
-
 
     add_label(l);
   }

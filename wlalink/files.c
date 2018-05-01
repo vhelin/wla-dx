@@ -16,14 +16,14 @@ extern struct label *labels_first, *labels_last;
 extern unsigned char *file_header, *file_footer;
 extern int file_header_size, file_footer_size, use_libdir;
 char file_name_error[] = "???";
-extern char ext_libdir[MAX_NAME_LENGTH];
+extern char ext_libdir[MAX_NAME_LENGTH + 1];
 
 
 
 int load_files(char *argv[], int argc) {
 
   int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n;
-  char tmp[1024], token[1024], tmp_token[MAX_NAME_LENGTH];
+  char tmp[1024], token[1024], tmp_token[MAX_NAME_LENGTH + 1];
   struct label *l;
   FILE *fop, *f;
 

@@ -3,8 +3,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* want to use longer strings and labels? change this */
-
+/* want to use longer strings and labels? change this - PS. it doesn't contain the null terminator */
 #define MAX_NAME_LENGTH 255
 
 #ifndef M_PI
@@ -412,16 +411,16 @@ struct optcode {
 #define DEFINITION_TYPE_ADDRESS_LABEL 3
 
 struct definition {
-  char   alias[MAX_NAME_LENGTH];
-  char   string[MAX_NAME_LENGTH];
+  char   alias[MAX_NAME_LENGTH + 1];
+  char   string[MAX_NAME_LENGTH + 1];
   double value;
   int    type;
   int    size;
 };
 
 struct append_section {
-  char section[MAX_NAME_LENGTH];
-  char append_to[MAX_NAME_LENGTH];
+  char section[MAX_NAME_LENGTH + 1];
+  char append_to[MAX_NAME_LENGTH + 1];
   struct append_section *next;
 };
 
@@ -429,11 +428,11 @@ struct macro_argument {
   int type;
   int value;
   int start;
-  char string[MAX_NAME_LENGTH];
+  char string[MAX_NAME_LENGTH + 1];
 };
 
 struct macro_static {
-  char name[MAX_NAME_LENGTH];
+  char name[MAX_NAME_LENGTH + 1];
   int  start;
   int  calls;
   int  filename_id;
@@ -462,7 +461,7 @@ struct macro_runtime {
   int  macro_end_filename_id;
   int  supplied_arguments;
   int  caller;
-  char string[MAX_NAME_LENGTH];
+  char string[MAX_NAME_LENGTH + 1];
   int  string_current;
   int  string_last;
   int  offset;
@@ -471,7 +470,7 @@ struct macro_runtime {
 };
 
 struct label_def {
-  char label[MAX_NAME_LENGTH];
+  char label[MAX_NAME_LENGTH + 1];
   unsigned char section_status;
   unsigned char alive;
   unsigned char type;
@@ -488,7 +487,7 @@ struct label_def {
 };
 
 struct section_def {
-  char name[MAX_NAME_LENGTH];
+  char name[MAX_NAME_LENGTH + 1];
   int  alignment;
   int  address; /* in bank */
   int  bank;
@@ -512,7 +511,7 @@ struct section_def {
 };
 
 struct namespace_def {
-  char name[MAX_NAME_LENGTH];
+  char name[MAX_NAME_LENGTH + 1];
   struct map_t *label_map;
 };
 
@@ -524,7 +523,7 @@ struct incbin_file_data {
 };
 
 struct export_def {
-  char   name[MAX_NAME_LENGTH];
+  char   name[MAX_NAME_LENGTH + 1];
   struct export_def *next;
 };
 
@@ -548,7 +547,7 @@ struct slot {
 };
 
 struct block {
-  char name[MAX_NAME_LENGTH];
+  char name[MAX_NAME_LENGTH + 1];
   int  address;
   int  filename_id;
   int  line_number;
@@ -592,7 +591,7 @@ struct stack_item {
   int type;
   int sign;
   double value;
-  char string[MAX_NAME_LENGTH];
+  char string[MAX_NAME_LENGTH + 1];
 };
 
 struct stack {
@@ -614,13 +613,13 @@ struct stack {
 };
 
 struct structure_item {
-  char name[MAX_NAME_LENGTH];
+  char name[MAX_NAME_LENGTH + 1];
   int size;
   struct structure_item *next;
 };
 
 struct structure {
-  char name[MAX_NAME_LENGTH];
+  char name[MAX_NAME_LENGTH + 1];
   struct structure_item *items;
   int size;
   struct structure *next;
@@ -631,11 +630,11 @@ struct repeat_runtime {
   int start_line;
   int counter;
   int repeats;
-  char index_name[MAX_NAME_LENGTH];
+  char index_name[MAX_NAME_LENGTH + 1];
 };
 
 struct filepointer {
-  char name[MAX_NAME_LENGTH];
+  char name[MAX_NAME_LENGTH + 1];
   char *filename;
   FILE *f;
   struct filepointer *next;
