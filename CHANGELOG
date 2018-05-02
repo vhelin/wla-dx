@@ -3,8 +3,9 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 v9.8 (29-Apr-2018) [ALL] Deprecated section's size giving inside section's
-	             name string. (REMOVE WARNING WHEN RELEASING v9.8!)
-	
+                     name string. (REMOVE WARNING WHEN RELEASING v9.8!)
+                   [ALL] Added APPENDTO to .RAMSECTIONs.
+
 v9.7 (17-Apr-2018) [ALL] We now use CMake instead of plain Makefiles.
                    [ALL] Added INSTANCEOF support to .STRUCT.
                    [ALL] Removed DEBUG opcode from GB-Z80.

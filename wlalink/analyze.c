@@ -887,14 +887,14 @@ int merge_sections(void) {
     while (s != NULL) {
       if (strcmp(as->section, s->name) == 0) {
 	if (s_source != NULL && warning_given_s == NO) {
-	  fprintf(stderr, "MERGE_SECTIONS: Multiple source sections called \"%s\" found, using the latest for append.\n", s->name);
+	  fprintf(stderr, "MERGE_SECTIONS: Multiple source sections called \"%s\" found, using the last one for append.\n", s->name);
 	  warning_given_s = YES;
 	}
 	s_source = s;
       }
       else if (strcmp(as->append_to, s->name) == 0) {
 	if (s_target != NULL && warning_given_t == NO) {
-	  fprintf(stderr, "MERGE_SECTIONS: Multiple target sections called \"%s\" found, using the latest for append.\n", s->name);
+	  fprintf(stderr, "MERGE_SECTIONS: Multiple target sections called \"%s\" found, using the last one for append.\n", s->name);
 	  warning_given_t = YES;
 	}
 	s_target = s;

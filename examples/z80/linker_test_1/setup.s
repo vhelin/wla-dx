@@ -20,3 +20,15 @@
 
 	JP	MAIN
 	ld	(ix+5), a
+
+;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+; RAM section APPENDTO test
+;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+	
+.RAMSECTION "RAMSection1" BANK 0 SLOT 0
+RAMLabel1 DB
+.ENDS
+    
+.RAMSECTION "RAMSection2" APPENDTO "RAMSection1"
+RAMLabel2 db
+.ENDS

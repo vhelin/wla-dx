@@ -2611,7 +2611,6 @@ int parse_directive(void) {
   /* RAMSECTION */
 
   if (strcaselesscmp(cp, "RAMSECTION") == 0) {
-
     if (output_format == OUTPUT_LIBRARY) {
       print_error("Libraries don't take RAMSECTIONs.\n", ERROR_DIR);
       return FAILED;
@@ -2696,31 +2695,26 @@ int parse_directive(void) {
       sec_tmp->bank = d;
     }
 
-    if (compare_next_token("SLOT", 4) != SUCCEEDED) {
-      if (get_next_token() == FAILED)
-        return FAILED;
-      sprintf(emsg, "Unknown symbol \"%s\".\n", tmp);
-      print_error(emsg, ERROR_DIR);
-      return FAILED;
+    if (compare_next_token("SLOT", 4) == SUCCEEDED) {
+      skip_next_token();
+
+      q = input_number();
+      if (q == FAILED)
+	return FAILED;
+      if (q != SUCCEEDED || d > 255 || d < 0) {
+	print_error(".RAMSECTION needs an unsigned 8-bit value as the SLOT number.\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      if (slots[d].size == 0) {
+	sprintf(emsg, "There is no SLOT number %d.\n", d);
+	print_error(emsg, ERROR_DIR);
+	return FAILED;
+      }
+
+      sec_tmp->slot = d;
     }
-
-    skip_next_token();
-
-    q = input_number();
-    if (q == FAILED)
-      return FAILED;
-    if (q != SUCCEEDED || d > 255 || d < 0) {
-      print_error(".RAMSECTION needs an unsigned 8-bit value as the SLOT number.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    if (slots[d].size == 0) {
-      sprintf(emsg, "There is no SLOT number %d.\n", d);
-      print_error(emsg, ERROR_DIR);
-      return FAILED;
-    }
-
-    sec_tmp->slot = d;
+    
     fprintf(file_out_ptr, "S%d ", sec_tmp->id);
 
     /* align the ramsection? */
@@ -2735,6 +2729,30 @@ int parse_directive(void) {
       }
 
       sec_tmp->alignment = d;
+    }
+
+    if (compare_next_token("APPENDTO", 8) == SUCCEEDED) {
+      struct append_section *append_tmp;
+
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      append_tmp = calloc(sizeof(struct append_section), 1);
+      if (append_tmp == NULL) {
+	sprintf(emsg, "Out of memory while allocating room for a new APPENDTO \"%s\".\n", tmp);
+	print_error(emsg, ERROR_DIR);
+	return FAILED;
+      }
+      
+      /* get the target section name */
+      if (get_next_token() == FAILED)
+	return FAILED;
+
+      strcpy(append_tmp->section, sec_tmp->name);
+      strcpy(append_tmp->append_to, tmp);
+
+      append_tmp->next = append_sections;
+      append_sections = append_tmp;
     }
 
     in_ramsection = 1;
