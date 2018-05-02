@@ -67,7 +67,7 @@ int discard_unused_sections(void) {
 int discard_iteration(void) {
 
   struct reference *r;
-  struct stackitem *si;
+  struct stack_item *si;
   struct section *s, *ss;
   struct label *l;
   struct stack *st;

@@ -1339,7 +1339,7 @@ struct stack *find_stack(int id, int file_id) {
 
 int compute_stack(struct stack *sta, int *result) {
 
-  struct stackitem *s;
+  struct stack_item *s;
   struct stack *st;
   int r, t, z, x, res;
   double v[256], q;
@@ -1360,13 +1360,13 @@ int compute_stack(struct stack *sta, int *result) {
 
   /*
   {
-    char *get_stack_item_description(struct stackitem *si);
+    char *get_stack_item_description(struct stack_item *si);
     int z;
     
     printf("----------------------------------------------------------------------\n");
 	
     for (z = 0; z < sta->stacksize; z++) {
-      struct stackitem *si = &sta->stack[z];
+      struct stack_item *si = &sta->stack[z];
       printf(get_stack_item_description(si));
     }
 
@@ -1607,7 +1607,7 @@ int write_bank_header_references(struct reference *r) {
 /* transform all string items inside a computation stack into corresponding numbers */
 int parse_stack(struct stack *sta) {
 
-  struct stackitem *si;
+  struct stack_item *si;
   struct section *s;
   struct label *l, lt;
   double k;

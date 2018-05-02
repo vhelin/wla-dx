@@ -104,7 +104,7 @@ static const char *get_stack_item_operator_name(int operator) {
 
 static char stack_item_description[512];
 
-char *get_stack_item_description(struct stackitem *si) {
+char *get_stack_item_description(struct stack_item *si) {
 
   char *sid = stack_item_description;
 
@@ -114,21 +114,21 @@ char *get_stack_item_description(struct stackitem *si) {
     int type = si->type;
     
     if (type == STACK_ITEM_TYPE_VALUE)
-      sprintf(sid, "stackitem: value              : %f/$%x\n", si->value, (int)si->value);
+      sprintf(sid, "stack_item: value              : %f/$%x\n", si->value, (int)si->value);
     else if (type == STACK_ITEM_TYPE_OPERATOR)
-      sprintf(sid, "stackitem: operator           : %s\n", get_stack_item_operator_name((int)si->value));
+      sprintf(sid, "stack_item: operator           : %s\n", get_stack_item_operator_name((int)si->value));
     else if (type == STACK_ITEM_TYPE_STRING)
-      sprintf(sid, "stackitem: label              : %s\n", si->string);
+      sprintf(sid, "stack_item: label              : %s\n", si->string);
     else if (type == STACK_ITEM_TYPE_STACK) {
       struct stack *st = find_stack(si->value, si->sign);
 
       if (st->computed == YES)
-	sprintf(sid, "stackitem: (stack) calculation: %d (result = %d/$%x)\n", (int)si->value, st->result, st->result);
+	sprintf(sid, "stack_item: (stack) calculation: %d (result = %d/$%x)\n", (int)si->value, st->result, st->result);
       else
-	sprintf(sid, "stackitem: (stack) calculation: %d (result = ?)\n", (int)si->value);
+	sprintf(sid, "stack_item: (stack) calculation: %d (result = ?)\n", (int)si->value);
     }
     else
-      sprintf(sid, "stackitem: UNKNOWN!");
+      sprintf(sid, "stack_item: UNKNOWN!");
   }
   
   return sid;
@@ -322,7 +322,7 @@ int main(int argc, char *argv[]) {
 	int z;
 	
 	for (z = 0; z < s->stacksize; z++) {
-	  struct stackitem *si = &s->stack[z];
+	  struct stack_item *si = &s->stack[z];
 	  printf(get_stack_item_description(si));
 	}
       }
@@ -429,7 +429,7 @@ int main(int argc, char *argv[]) {
 	int z;
 	
 	for (z = 0; z < s->stacksize; z++) {
-	  struct stackitem *si = &s->stack[z];
+	  struct stack_item *si = &s->stack[z];
 	  printf(get_stack_item_description(si));
 	}
       }

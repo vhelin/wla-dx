@@ -1,5 +1,9 @@
 
 #include "../hashmap.h"
+#include "../shared.h"
+
+#ifndef _DEFINES_H
+#define _DEFINES_H
 
 #define OBJ_FORMAT_INFO  0
 #define OBJ_EMPTY_FILL   4
@@ -26,12 +30,6 @@
 #define DATA_TYPE_BLOCK   0
 #define DATA_TYPE_SECTION 1
 
-#define FAILED    1
-#define SUCCEEDED 0
-
-#define TRUE  1
-#define FALSE 0
-
 #define STATE_NONE       0
 #define STATE_OBJECT     1
 #define STATE_LIBRARY    2
@@ -42,15 +40,6 @@
 #define SYMBOL_MODE_NONE   0
 #define SYMBOL_MODE_NOCA5H 1
 #define SYMBOL_MODE_WLA    2
-
-#define OFF 0
-#define ON  1
-
-#define NO  0
-#define YES 1
-
-/* want to use longer strings and labels? change this - PS. it doesn't contain the null terminator */
-#define MAX_NAME_LENGTH 255
 
 struct source_file_name {
   char *name;
@@ -107,12 +96,6 @@ struct label {
   struct label *prev;
 };
 
-#define REFERENCE_TYPE_DIRECT_16BIT   0
-#define REFERENCE_TYPE_RELATIVE_8BIT  1
-#define REFERENCE_TYPE_DIRECT_8BIT    2
-#define REFERENCE_TYPE_DIRECT_24BIT   3
-#define REFERENCE_TYPE_RELATIVE_16BIT 4
-
 struct reference {
   char name[MAX_NAME_LENGTH + 1];
   int  address;
@@ -127,16 +110,6 @@ struct reference {
   struct reference *next;
   struct reference *prev;
 };
-
-#define SECTION_STATUS_FREE        0
-#define SECTION_STATUS_FORCE       1
-#define SECTION_STATUS_OVERWRITE   2
-#define SECTION_STATUS_HEADER      3
-#define SECTION_STATUS_SEMIFREE    4
-#define SECTION_STATUS_ABSOLUTE    5
-#define SECTION_STATUS_RAM         6
-#define SECTION_STATUS_SUPERFREE   7
-#define SECTION_STATUS_SEMISUBFREE 8
 
 struct section {
   char name[MAX_NAME_LENGTH + 1];
@@ -166,55 +139,14 @@ struct section {
   struct section *prev;
 };
 
-struct namespace_def {
-  char name[MAX_NAME_LENGTH + 1];
-  map_t *label_map;
-};
-
 struct slot {
   int address;
   int size;
   int usage;
 };
 
-#define STACK_ITEM_TYPE_VALUE    0
-#define STACK_ITEM_TYPE_OPERATOR 1
-#define STACK_ITEM_TYPE_STRING   2
-#define STACK_ITEM_TYPE_STACK    4
-
-#define SI_OP_PLUS         0
-#define SI_OP_MINUS        1
-#define SI_OP_MULTIPLY     2
-#define SI_OP_OR           5
-#define SI_OP_AND          6
-#define SI_OP_DIVIDE       7
-#define SI_OP_POWER        8
-#define SI_OP_SHIFT_LEFT   9
-#define SI_OP_SHIFT_RIGHT 10
-#define SI_OP_MODULO      11
-#define SI_OP_XOR         12
-#define SI_OP_LOW_BYTE    13
-#define SI_OP_HIGH_BYTE   14
-
-#define SI_SIGN_POSITIVE 0
-#define SI_SIGN_NEGATIVE 1
-
-#define STACKS_TYPE_8BIT  0
-#define STACKS_TYPE_16BIT 1
-#define STACKS_TYPE_24BIT 2
-
-#define STACK_POSITION_DEFINITION 0
-#define STACK_POSITION_CODE       1
-
-struct stackitem {
-  char string[MAX_NAME_LENGTH + 1];
-  int type;
-  int sign;
-  double value;
-};
-
 struct stack {
-  struct stackitem *stack;
+  struct stack_item *stack;
   struct stack *next;
   struct stack *prev;
   int id;
@@ -235,3 +167,5 @@ struct stack {
   int address;
   int memory_address;
 };
+
+#endif /* _DEFINES_H */

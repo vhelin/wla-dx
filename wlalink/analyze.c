@@ -621,7 +621,7 @@ int collect_dlr(void) {
 	s->bank = READ_T;
 	s->stacksize = x;
 	
-	s->stack = malloc(sizeof(struct stackitem) * x);
+	s->stack = malloc(sizeof(struct stack_item) * x);
 	if (s->stack == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  free(s);
@@ -804,7 +804,7 @@ int collect_dlr(void) {
 	s->bank = obj_tmp->bank;
 	s->slot = obj_tmp->slot;
 
-	s->stack = malloc(sizeof(struct stackitem) * x);
+	s->stack = malloc(sizeof(struct stack_item) * x);
 	if (s->stack == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  free(s);
