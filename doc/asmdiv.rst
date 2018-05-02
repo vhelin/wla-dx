@@ -2256,6 +2256,16 @@ If no other RAM sections are used, then this is what you will get::
 ``BANK`` in ``.RAMSECTION`` is optional so you can leave it away if you
 don't switch RAM banks, or the target doesn't have them.
 
+It is also possible to merge two or more sections using ``APPENDTO``::
+
+    .RAMSECTION "RAMSection1" BANK 0 SLOT 0
+    label1    DB
+    .ENDS
+    
+    .RAMSECTION "RAMSection2" APPENDTO "RAMSection1"
+    label2    DB
+    .ENDS
+
 This is not a compulsory directive.
 
 
