@@ -108,12 +108,13 @@ cd ..
 #####################################################################
 
 changePlatform z80
+runTest caddr_test
 runTest linker_header_test
 runTest linker_test_1
 runTest linker_test_2
+runTest ram_sections
 runTest rept_test
 runTest sdsc_test
 runTest sms_test
 runTest smsheader_test
-runTest ram_sections
 cd ..
