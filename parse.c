@@ -388,7 +388,7 @@ int input_number(void) {
     }
 
     /* drop the decimals */
-    d = parsed_double;
+    d = (int)parsed_double;
 #if defined(W65186)
     if (d > 0xFFFF && d <= 0xFFFFFF)
       operand_hint = HINT_24BIT;
@@ -561,7 +561,7 @@ int input_number(void) {
     hashmap_get(defines_map, label_tmp, (void*)&tmp_def);
   if (tmp_def != NULL) {
     if (tmp_def->type == DEFINITION_TYPE_VALUE) {
-      d = tmp_def->value;
+      d = (int)tmp_def->value;
 #if defined(W65186)
       if (d > 0xFFFF && d <= 0xFFFFFF)
         operand_hint = HINT_24BIT;

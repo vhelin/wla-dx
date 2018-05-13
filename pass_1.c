@@ -7391,7 +7391,7 @@ int get_new_definition_data(int *b, char *c, int *size, double *data) {
       }
       else if (x == INPUT_NUMBER_FLOAT) {
         *data = parsed_double;
-        *b = parsed_double;
+        *b = (int)parsed_double;
       }
       else
         return x;
@@ -7418,7 +7418,7 @@ int get_new_definition_data(int *b, char *c, int *size, double *data) {
 
     /* transform floats to integers */
     if (x == INPUT_NUMBER_FLOAT) {
-      d = parsed_double;
+      d = (int)parsed_double;
       x = SUCCEEDED;
     }
 

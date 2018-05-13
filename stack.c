@@ -638,7 +638,7 @@ int stack_calculate(char *in, int *value) {
     /* operators get inspected */
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR) {
       if (b == 0) {
-	op[0] = si[k].value;
+	op[0] = (int)si[k].value;
 	b++;
       }
       else {
