@@ -3,9 +3,11 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (29-Apr-2018) [ALL] Deprecated section's size giving inside section's
+v9.8 (16-May-2018) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
                    [ALL] Added APPENDTO to .RAMSECTIONs.
+                   [ALL] When allocating a new unknown reference, we'll set
+                     its base to 0 instead of not initializing base at all.
 
 v9.7 (17-Apr-2018) [ALL] We now use CMake instead of plain Makefiles.
                    [ALL] Added INSTANCEOF support to .STRUCT.

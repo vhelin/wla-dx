@@ -122,6 +122,7 @@ int new_unknown_reference(int type) {
 
   label->bank = rom_bank;
   label->slot = slot;
+  label->base = 0;
 
   /* outside bank header section */
   if (bankheader_status == OFF) {
