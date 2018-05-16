@@ -1476,10 +1476,11 @@ int mem_insert(unsigned char x) {
 int mem_insert_padding(void) {
 
   /* we'll use this function to reserve space for writes that take place later; e.g., we know that here will be
-     written a 16-bit value, but we don't know the numeric value itself yet, but we'll need to reserve the
+     written an 8-bit value, but we don't know the numeric value itself yet, but we'll need to reserve the
      space for the upcoming write or otherwise something else might get written here */
 
   if (section_status == ON) {
+    sec_tmp->data[sec_tmp->i] = 0xCD;
     sec_tmp->i++;
     pc_bank++;
     pc_full++;
