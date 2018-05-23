@@ -26,6 +26,7 @@ int romgbc = 0, romdmg = 0, romsgb = 0;
 int cartridgetype = 0, cartridgetype_defined = 0;
 int countrycode = 0, countrycode_defined = 0;
 int licenseecodenew_defined = 0, licenseecodeold = 0, licenseecodeold_defined = 0;
+int version = 0, version_defined = 0;
 #endif
 
 #ifdef Z80
@@ -4315,6 +4316,36 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
+  /* VERSION */
+
+  if (strcaselesscmp(cp, "VERSION") == 0) {
+
+    no_library_files(".VERSION");
+    
+    q = input_number();
+
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED || d < -128 || d > 255) {
+      sprintf(emsg, ".VERSION needs a 8-bit value, got %d.\n", d);
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
+    }
+
+    if (version_defined != 0) {
+      if (version != d) {
+        print_error(".VERSION was defined for the second time.\n", ERROR_DIR);
+        return FAILED;
+      }
+      return SUCCEEDED;
+    }
+
+    version = d;
+    version_defined = 1;
+
+    return SUCCEEDED;
+  }
+
   /* GBHEADER */
 
   if (strcmp(cp, "GBHEADER") == 0) {
@@ -4512,7 +4543,7 @@ int parse_directive(void) {
         else return FAILED;
       }
       else if (strcaselesscmp(tmp, "RAMSIZE") == 0) {
-        if (rambanks != 0) {
+        if (rambanks_defined != 0) {
           print_error("RAMSIZE can be defined only once.\n", ERROR_DIR);
           return FAILED;
         }
@@ -4524,8 +4555,10 @@ int parse_directive(void) {
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
-        else if (inz == SUCCEEDED)
+        else if (inz == SUCCEEDED) {
           rambanks = d;
+	  rambanks_defined++;
+	}
         else
           return FAILED;
       }
@@ -4556,7 +4589,6 @@ int parse_directive(void) {
         }
 
         inz = input_number();
-
         if (inz == SUCCEEDED && (d < -128 || d > 255)) {
           sprintf(emsg, "DESTINATIONCODE needs a non-negative value, got %d.\n\n", d);
           print_error(emsg, ERROR_DIR);
@@ -4565,6 +4597,26 @@ int parse_directive(void) {
         else if (inz == SUCCEEDED) {
           countrycode = d;
           countrycode_defined++;
+        }
+        else
+          return FAILED;
+      }
+      else if (strcaselesscmp(tmp, "VERSION") == 0) {
+        if (version_defined != 0) {
+          print_error("VERSION can be defined only once.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        inz = input_number();
+
+        if (inz == SUCCEEDED && (d < -128 || d > 255)) {
+          sprintf(emsg, "VERSION needs a non-negative value, got %d.\n\n", d);
+          print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
+        else if (inz == SUCCEEDED) {
+          version = d;
+          version_defined++;
         }
         else
           return FAILED;

@@ -16,6 +16,7 @@ extern int licenseecodeold;
 extern int nintendologo_defined;
 extern int name_defined, licenseecodeold_defined, licenseecodenew_defined;
 extern int countrycode, countrycode_defined;
+extern int version, version_defined;
 extern char name[32], licenseecodenew_c1, licenseecodenew_c2;
 
 unsigned char nintendo_logo_dat[] = {
@@ -356,6 +357,8 @@ int pass_2(void) {
       mem_insert_absolute(327, cartridgetype);
     if (licenseecodeold_defined != 0) {
       mem_insert_absolute(331, licenseecodeold);
+      mem_insert_absolute(324, 0);
+      mem_insert_absolute(325, 0);
     }
     if (licenseecodenew_defined != 0) {
       mem_insert_absolute(331, 51);
@@ -373,6 +376,8 @@ int pass_2(void) {
       for (ind = 0; ind < inz; ind++)
 	mem_insert_absolute(308 + ind, name[ind]);
     }
+    if (version_defined != 0)
+      mem_insert_absolute(332, version);
   }
 #endif
 

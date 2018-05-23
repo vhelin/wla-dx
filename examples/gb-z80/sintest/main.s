@@ -2,6 +2,10 @@
 ; beware! just testing the floating point parser (these values
 ; get floored, so there is no danger, but don't do this at home).
 
+.gbheader
+  version $cd
+.endgb
+	
 .MEMORYMAP
 DEFAULTSLOT 1.01
 SLOT 0.001 $0000 $2000

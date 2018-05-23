@@ -38,6 +38,7 @@ Group 2:
 === ===============================
 GB   ``.CARTRIDGETYPE 1``
 GB   ``.COUNTRYCODE 1``
+GB   ``.VERSION 1``
 GB   ``.DESTINATIONCODE 1``
 GB   ``.NINTENDOLOGO``
 GB   ``.GBHEADER``
@@ -458,6 +459,14 @@ Indicates the country code located at ``$14A`` of a Gameboy ROM.
 This is not a compulsory directive.
 
 
+``.VERSION 1``
+------------------
+
+Indicates the Mask ROM version number located at ``$14C`` of a Gameboy ROM.
+
+This is not a compulsory directive.
+
+
 ``.DESTINATIONCODE 1``
 ----------------------
 
@@ -487,9 +496,10 @@ Here's an example::
         LICENSEECODENEW "HI"  ; identical to a freestanding .LICENSEECODENEW.
         CARTRIDGETYPE $00     ; identical to a freestanding .CARTRIDGETYPE.
         RAMSIZE $09           ; identical to a freestanding .RAMSIZE.
-        COUNTRYCODE $01       ; identical to a freestanding .COUNTRYCODE.
-        DESTINATIONCODE $01   ; identical to a freestanding .DESTINATIONCODE.
+        COUNTRYCODE $01       ; identical to a freestanding .COUNTRYCODE/DESTINATIONCODE.
+        DESTINATIONCODE $01   ; identical to a freestanding .DESTINATIONCODE/COUNTRYCODE.
         NINTENDOLOGO          ; identical to a freestanding .NINTENDOLOGO.
+	VERSION $01           ; identical to a freestanding .VERSION.
         ROMDMG                ; identical to a freestanding .ROMDMG.
                               ; Alternatively, ROMGBC or ROMGBCONLY can be used
     .ENDGB
