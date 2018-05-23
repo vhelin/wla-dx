@@ -4142,7 +4142,6 @@ int parse_directive(void) {
         print_error(".RAMSIZE was defined for the second time.\n", ERROR_DIR);
         return FAILED;
       }
-      return SUCCEEDED;
     }
 
     if (d != 0 && d != 1 && d != 2 && d != 3 && d != 4) {
@@ -4176,7 +4175,6 @@ int parse_directive(void) {
         print_error(".COUNTRYCODE was defined for the second time.\n", ERROR_DIR);
         return FAILED;
       }
-      return SUCCEEDED;
     }
 
     countrycode = d;
@@ -4200,12 +4198,11 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    if (countrycode_defined != 0) {
+    if (q == SUCCEEDED && countrycode_defined != 0) {
       if (countrycode != d) {
         print_error(".DESTINATIONCODE was defined for the second time.\n", ERROR_DIR);
         return FAILED;
       }
-      return SUCCEEDED;
     }
 
     countrycode = d;
@@ -4222,12 +4219,11 @@ int parse_directive(void) {
 
     q = input_number();
 
-    if (cartridgetype_defined != 0) {
+    if (q == SUCCEEDED && cartridgetype_defined != 0) {
       if (cartridgetype != d) {
         print_error(".CARTRIDGETYPE was defined for the second time.\n", ERROR_DIR);
         return FAILED;
       }
-      return SUCCEEDED;
     }
 
     if (q == FAILED)
@@ -4516,18 +4512,13 @@ int parse_directive(void) {
             print_error(".LICENSEECODENEW was defined for the second time.\n", ERROR_DIR);
             return FAILED;
           }
-
-	  licenseecodenew_c1 = tmp[0];
-	  licenseecodenew_c2 = tmp[1];
-	  licenseecodenew_defined = 1;
 	}
+
+	licenseecodenew_c1 = tmp[0];
+	licenseecodenew_c2 = tmp[1];
+	licenseecodenew_defined = 1;
       }
       else if (strcaselesscmp(tmp, "CARTRIDGETYPE") == 0) {
-        if (cartridgetype_defined != 0) {
-          print_error("CARTRIDGETYPE can be defined only once.\n", ERROR_DIR);
-          return FAILED;
-        }
-
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -128 || d > 255)) {
@@ -4536,18 +4527,18 @@ int parse_directive(void) {
           return FAILED;
         }
         else if (inz == SUCCEEDED) {
-          cartridgetype = d;
-          cartridgetype_defined++;
-        }
+	  if (cartridgetype_defined != 0 && cartridgetype != d) {
+	    print_error("CARTRIDGETYPE was defined for the second time.\n", ERROR_DIR);
+	    return FAILED;
+	  }
 
-        else return FAILED;
+	  cartridgetype = d;
+          cartridgetype_defined = 1;
+        }
+        else
+	  return FAILED;
       }
       else if (strcaselesscmp(tmp, "RAMSIZE") == 0) {
-        if (rambanks_defined != 0) {
-          print_error("RAMSIZE can be defined only once.\n", ERROR_DIR);
-          return FAILED;
-        }
-
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -128 || d > 255)) {
@@ -4556,18 +4547,18 @@ int parse_directive(void) {
           return FAILED;
         }
         else if (inz == SUCCEEDED) {
+	  if (rambanks_defined != 0 && rambanks != d) {
+	    print_error("RAMSIZE was defined for the second time.\n", ERROR_DIR);
+	    return FAILED;
+	  }
+
           rambanks = d;
-	  rambanks_defined++;
+	  rambanks_defined = 1;
 	}
         else
           return FAILED;
       }
       else if (strcaselesscmp(tmp, "COUNTRYCODE") == 0) {
-        if (countrycode_defined != 0) {
-          print_error("COUNTRYCODE can be defined only once.\n", ERROR_DIR);
-          return FAILED;
-        }
-
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -128 || d > 255)) {
@@ -4576,37 +4567,38 @@ int parse_directive(void) {
           return FAILED;
         }
         else if (inz == SUCCEEDED) {
+	  if (countrycode_defined != 0 && countrycode != d) {
+	    print_error("COUNTRYCODE was defined for the second time.\n", ERROR_DIR);
+	    return FAILED;
+	  }
+
           countrycode = d;
-          countrycode_defined++;
+          countrycode_defined = 1;
         }
         else
           return FAILED;
       }
       else if (strcaselesscmp(tmp, "DESTINATIONCODE") == 0) {
-        if (countrycode_defined != 0) {
-          print_error("DESTINATIONCODE can be defined only once.\n", ERROR_DIR);
-          return FAILED;
-        }
-
         inz = input_number();
+
         if (inz == SUCCEEDED && (d < -128 || d > 255)) {
           sprintf(emsg, "DESTINATIONCODE needs a non-negative value, got %d.\n\n", d);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
         else if (inz == SUCCEEDED) {
-          countrycode = d;
-          countrycode_defined++;
+	  if (countrycode_defined != 0 && countrycode != d) {
+	    print_error("DESTINATIONCODE was defined for the second time.\n", ERROR_DIR);
+	    return FAILED;
+	  }
+
+	  countrycode = d;
+          countrycode_defined = 1;
         }
         else
           return FAILED;
       }
       else if (strcaselesscmp(tmp, "VERSION") == 0) {
-        if (version_defined != 0) {
-          print_error("VERSION can be defined only once.\n", ERROR_DIR);
-          return FAILED;
-        }
-
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -128 || d > 255)) {
@@ -4615,8 +4607,13 @@ int parse_directive(void) {
           return FAILED;
         }
         else if (inz == SUCCEEDED) {
+	  if (version_defined != 0 && version != d) {
+	    print_error("VERSION was defined for the second time.\n", ERROR_DIR);
+	    return FAILED;
+	  }
+
           version = d;
-          version_defined++;
+          version_defined = 1;
         }
         else
           return FAILED;
@@ -6072,11 +6069,6 @@ int parse_directive(void) {
         fastrom_defined++;
       }
       else if (strcaselesscmp(tmp, "CARTRIDGETYPE") == 0) {
-        if (cartridgetype_defined != 0) {
-          print_error("CARTRIDGETYPE can be defined only once.\n", ERROR_DIR);
-          return FAILED;
-        }
-
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -128 || d > 255)) {
@@ -6085,11 +6077,16 @@ int parse_directive(void) {
           return FAILED;
         }
         else if (inz == SUCCEEDED) {
-          cartridgetype = d;
-          cartridgetype_defined++;
-        }
+	  if (cartridgetype_defined != 0 && d != cartridgetype) {
+	    print_error("CARTRIDGETYPE was defined for the second time.\n", ERROR_DIR);
+	    return FAILED;
+	  }
 
-        else return FAILED;
+          cartridgetype = d;
+          cartridgetype_defined = 1;
+        }
+        else
+	  return FAILED;
       }
       else if (strcaselesscmp(tmp, "ROMSIZE") == 0) {
         if (snesromsize != 0) {
@@ -6170,11 +6167,6 @@ int parse_directive(void) {
           return FAILED;
       }
       else if (strcaselesscmp(tmp, "VERSION") == 0) {
-        if (version_defined != 0) {
-          print_error("VERSION can be defined only once.\n", ERROR_DIR);
-          return FAILED;
-        }
-
         inz = input_number();
 
         if (inz == SUCCEEDED && (d < -128 || d > 255)) {
@@ -6183,6 +6175,11 @@ int parse_directive(void) {
           return FAILED;
         }
         else if (inz == SUCCEEDED) {
+	  if (version_defined != 0 && version != d) {
+	    print_error("VERSION was defined for the second time.\n", ERROR_DIR);
+	    return FAILED;
+	  }
+
           version = d;
           version_defined++;
         }

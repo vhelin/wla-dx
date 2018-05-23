@@ -3,7 +3,23 @@
 ; get floored, so there is no danger, but don't do this at home).
 
 .gbheader
-  version $cd
+	version $0f
+	version 15
+	countrycode 1
+	ramsize 2
+	cartridgetype 7
+	name "HELLO WORLD"
+	version $0f
+	licenseecodenew "FI"
+	ramsize $2
+	countrycode 1
+	name "HELLO WORLD"
+	destinationcode 1
+	cartridgetype $7
+	licenseecodenew "FI"
+	ramsize 2
+	countrycode $1
+	destinationcode $1
 .endgb
 	
 .MEMORYMAP
