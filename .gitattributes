@@ -1,5 +1,5 @@
 
-*       text=auto eol=lf
+*       text=auto
 *.txt   text
 *.c     text
 *.h     text
@@ -33,7 +33,8 @@ amigaos4    text
 makefile.*  text
 smakefile   text
 scoptions.* text
-smake.* text
+smake.*     text
+historical/wlad_new/makefile.win32* text eol=crlf
 
 # Is there any binary files in this repository?
 # Better be safe.
