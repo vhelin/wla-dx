@@ -10,6 +10,11 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+#ifndef NDEBUG
+  #define WLA_DEBUG 1
+  #define WLALINK_DEBUG 1
+#endif
+
 #define FAILED    0
 #define SUCCEEDED 1
 
