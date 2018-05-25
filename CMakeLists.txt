@@ -8,8 +8,17 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug"
 
 project(WLA-DX C)
 
-# --- Explicitly enable C
-enable_language (C)
+set(ARCHS
+    # wla-NAME:compile-def
+    "gb:GB"
+    "65c02:WDC65C02"
+    "6502:MCS6502"
+    "6510:MCS6510"
+    "65816:W65816"
+    "huc6280:HUC6280"
+    "spc700:SPC700"
+    "z80:Z80"
+    )
 
 option(GDB_DEBUGGING
     "Enable debugging via gdb (Only when CMAKE_BUILD_TYPE is Debug)" ON)
@@ -59,69 +68,56 @@ if (WATCOM)
     string(REGEX REPLACE "-w=[0-4]" "-w=4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 endif (WATCOM)
 
-# Make the source tree available to includes
-include_directories(${PROJECT_SOURCE_DIR})
-# Generated tables are created at the top build-tree directory
-include_directories(${CMAKE_BINARY_DIR})
+include_directories("${PROJECT_SOURCE_DIR}")
 
-# --- Dependencies ---
-add_subdirectory (opcode_table_generator)
-add_subdirectory (wlab)
-add_subdirectory (wlalink)
+add_subdirectory(wlab)
+add_subdirectory(wlalink)
+add_subdirectory(doc)
 
-# Generate documentation
-add_subdirectory (doc)
+# WLA-ARCH executables
+set(WLA_SRCS
+    main.c
+    crc32.c
+    hashmap.c
+    parse.c
+    include_file.c
+    pass_1.c
+    pass_2.c
+    pass_3.c
+    pass_4.c
+    stack.c
+    listfile.c
+    )
 
-# --- WLA executables ---
-set(CFILES main.c crc32.c hashmap.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c)
+foreach(ARCH IN LISTS ARCHS)
+    string(REPLACE ":" ";" ARCH "${ARCH}")
+    list(GET ARCH 0 WLA_NAME)
+    list(GET ARCH 1 COMPILE_DEF)
 
-# GB
-add_executable(wla-gb ${CFILES})
-set_target_properties (wla-gb PROPERTIES COMPILE_DEFINITIONS "GB" )
-add_dependencies(wla-gb GB_table)
-add_custom_command(TARGET wla-gb POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_GB*")
+    # Generate opcode table
+    add_executable(gen-${WLA_NAME}
+        "opcode_table_generator.c"
+        "opcodes_${WLA_NAME}.c"
+        )
+    set_property(TARGET gen-${WLA_NAME} APPEND PROPERTY
+        COMPILE_DEFINITIONS "${COMPILE_DEF}")
+    set_property(TARGET gen-${WLA_NAME} PROPERTY
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/op_tbl_gen/")
+    set(TABLE_GEN_OUTPUT
+        "${CMAKE_BINARY_DIR}/op_tbl_gen/opcodes_${WLA_NAME}_tables.c")
+    add_custom_command(
+        OUTPUT "${TABLE_GEN_OUTPUT}"
+        COMMAND gen-${WLA_NAME} "${TABLE_GEN_OUTPUT}"
+        DEPENDS gen-${WLA_NAME}
+        )
 
-# WDC65C02
-add_executable(wla-65c02 ${CFILES})
-set_target_properties (wla-65c02 PROPERTIES COMPILE_DEFINITIONS "WDC65C02" )
-add_dependencies(wla-65c02 WDC65C02_table)
-add_custom_command(TARGET wla-65c02 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_WDC65C02*")
+    # Generate actual wla binary
+    add_executable(wla-${WLA_NAME}
+        ${WLA_SRCS} "${TABLE_GEN_OUTPUT}"
+        "opcodes_${WLA_NAME}.c"
+        )
+    set_property(TARGET wla-${WLA_NAME} APPEND PROPERTY
+        COMPILE_DEFINITIONS "${COMPILE_DEF}")
+    install(TARGETS wla-${WLA_NAME} DESTINATION bin)
+endforeach(ARCH)
 
-# MCS6502
-add_executable(wla-6502 ${CFILES})
-set_target_properties (wla-6502 PROPERTIES COMPILE_DEFINITIONS "MCS6502" )
-add_dependencies(wla-6502 MCS6502_table)
-add_custom_command(TARGET wla-6502 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_MCS6502*")
-
-# MCS6510
-add_executable(wla-6510 ${CFILES})
-set_target_properties (wla-6510 PROPERTIES COMPILE_DEFINITIONS "MCS6510" )
-add_dependencies(wla-6510 MCS6510_table)
-add_custom_command(TARGET wla-6510 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_MCS6510*")
-
-# W65816
-add_executable(wla-65816 ${CFILES})
-set_target_properties (wla-65816 PROPERTIES COMPILE_DEFINITIONS "W65816" )
-add_dependencies(wla-65816 W65816_table)
-add_custom_command(TARGET wla-65816 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_W65816*")
-
-# HUC6280
-add_executable(wla-huc6280 ${CFILES})
-set_target_properties (wla-huc6280 PROPERTIES COMPILE_DEFINITIONS "HUC6280" )
-add_dependencies(wla-huc6280 HUC6280_table)
-add_custom_command(TARGET wla-huc6280 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_HUC6280*")
-
-# SPC700
-add_executable(wla-spc700 ${CFILES})
-set_target_properties (wla-spc700 PROPERTIES COMPILE_DEFINITIONS "SPC700" )
-add_dependencies(wla-spc700 SPC700_table)
-add_custom_command(TARGET wla-spc700 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_SPC700*")
-
-# Z80
-add_executable(wla-z80 ${CFILES})
-set_target_properties (wla-z80 PROPERTIES COMPILE_DEFINITIONS "Z80" )
-add_dependencies(wla-z80 Z80_table)
-add_custom_command(TARGET wla-z80 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_Z80*")
-
-install(TARGETS wla-gb wla-65c02 wla-6510 wla-65816 wla-huc6280 wla-spc700 wla-z80
-	DESTINATION bin)

@@ -1,3 +1,6 @@
+#define FILE void
+#include "defines.h"
+
 /* the Z80 has a set of shadow registers A', F' (technically AF'),
    BC', DE' & HL'. the `ex` instruction swaps A & F with A' & F',
    whereas the `exx` instruction swaps BC, DE & HL with BC', DE', HL'
@@ -6,6 +9,7 @@
    BC, DE, HL & BC', DE', HL', but BC, DE, HL cannot be mixed
    with BC',DE',HL'
 */
+
 struct optcode opt_table[] = {
   { "ADC A',A'", 0x8f, 0, 0, 0 },
   { "ADC A,A", 0x8f, 0, 0, 0 },
