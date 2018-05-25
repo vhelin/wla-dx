@@ -1,3 +1,5 @@
+#define FILE void
+#include "defines.h"
 
 /* got the defines from https://stackoverflow.com/questions/18244726/why-doesnt-c-have-binary-literals */
 #define B0_(X) ((X) % 8 + B1_((X)/8) * 2)

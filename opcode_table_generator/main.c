@@ -12,90 +12,9 @@
 
 #include "defines.h"
 
-#if defined(AMIGA)
-
-#if defined(GB)
-char outname[] = "/opcodes_gb_tables.c";
-#include "/opcodes_gb.c"
-#elif defined(Z80)
-char outname[] = "/opcodes_z80_tables.c";
-#include "/opcodes_z80.c"
-#elif defined(MCS6502)
-char outname[] = "/opcodes_6502_tables.c";
-#include "/opcodes_6502.c"
-#elif defined(WDC65C02)
-char outname[] = "/opcodes_65c02_tables.c";
-#include "/opcodes_65c02.c"
-#elif defined(MC6800)
-char outname[] = "/opcodes_6800_tables.c";
-#include "/opcodes_6800.c"
-#elif defined(MC6801)
-char outname[] = "/opcodes_6801_tables.c";
-#include "/opcodes_6801.c"
-#elif defined(MC6809)
-char outname[] = "/opcodes_6809_tables.c";
-#include "/opcodes_6809.c"
-#elif defined(I8008)
-char outname[] = "/opcodes_8008_tables.c";
-#include "/opcodes_8008.c"
-#elif defined(MCS6510)
-char outname[] = "/opcodes_6510_tables.c";
-#include "/opcodes_6510.c"
-#elif defined(W65816)
-char outname[] = "/opcodes_65816_tables.c";
-#include "/opcodes_65816.c"
-#elif defined(SPC700)
-char outname[] = "/opcodes_spc700_tables.c";
-#include "/opcodes_spc700.c"
-#elif defined(HUC6280)
-char outname[] = "/opcodes_huc6280_tables.c";
-#include "/opcodes_huc6280.c"
-#endif
-
-#else
-
-#if defined(GB)
-char outname[] = "../opcodes_gb_tables.c";
-#include "../opcodes_gb.c"
-#elif defined(Z80)
-char outname[] = "../opcodes_z80_tables.c";
-#include "../opcodes_z80.c"
-#elif defined(MCS6502)
-char outname[] = "../opcodes_6502_tables.c";
-#include "../opcodes_6502.c"
-#elif defined(WDC65C02)
-char outname[] = "../opcodes_65c02_tables.c";
-#include "../opcodes_65c02.c"
-#elif defined(MC6800)
-char outname[] = "../opcodes_6800_tables.c";
-#include "../opcodes_6800.c"
-#elif defined(MC6801)
-char outname[] = "../opcodes_6801_tables.c";
-#include "../opcodes_6801.c"
-#elif defined(MC6809)
-char outname[] = "../opcodes_6809_tables.c";
-#include "../opcodes_6809.c"
-#elif defined(I8008)
-char outname[] = "../opcodes_8008_tables.c";
-#include "../opcodes_8008.c"
-#elif defined(MCS6510)
-char outname[] = "../opcodes_6510_tables.c";
-#include "../opcodes_6510.c"
-#elif defined(W65816)
-char outname[] = "../opcodes_65816_tables.c";
-#include "../opcodes_65816.c"
-#elif defined(SPC700)
-char outname[] = "../opcodes_spc700_tables.c";
-#include "../opcodes_spc700.c"
-#elif defined(HUC6280)
-char outname[] = "../opcodes_huc6280_tables.c";
-#include "../opcodes_huc6280.c"
-#endif
-
-#endif
+extern struct optcode opt_table[];
 
 /* this program is used to generate the opcode decoding speedup tables */
-
 
 int print_table(FILE *f, int *d) {
 
@@ -129,9 +48,11 @@ int main(int argc, char *argv[]) {
   int x, opcode_n[256], opcode_p[256], a, b, n, ob;
 
 
-  /* just keep the compiler happy by accessing argc and argv */
-  if (argc > 1 && argv != NULL)
-    fprintf(stderr, "WARNING: \"%s\" doesn't take arguments.\n", argv[0]);
+  char *outname = NULL;
+  if (argc > 2 && argv != NULL)
+    fprintf(stderr, "WARNING: \"%s\" got too many arguments!\n", argv[0]);
+  if (argc > 1)
+    outname = argv[1];
 
   /* generate opcode decoding jump tables */
   for (x = 0; x < 256; x++) {
@@ -175,10 +96,13 @@ int main(int argc, char *argv[]) {
   opcode_n[(int)a] = x;
   opcode_n[(int)b] = x;
 
-  out = fopen(outname, "wb");
-  if (out == NULL) {
-    fprintf(stderr, "MAIN: Unable to create file \"%s\".\n", outname);
-    return 1;
+  out = stdout;
+  if (outname) {
+    out = fopen(outname, "wb");
+    if (out == NULL) {
+      fprintf(stderr, "MAIN: Unable to create file \"%s\".\n", outname);
+      return 1;
+    }
   }
 
   /* opcode_n[256] */
@@ -189,7 +113,8 @@ int main(int argc, char *argv[]) {
   fprintf(out, "int opcode_p[256] = {\n");
   print_table(out, opcode_p);
 
-  fclose(out);
+  if (outname)
+    fclose(out);
 
 #if !defined(WLA_QUIET)
   printf("MAIN: max opt[] (\"%s\") lenght was %u bytes.\n", max_name, max);

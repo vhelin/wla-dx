@@ -63,14 +63,17 @@ set(DOC_META_SRCS
     "sphinx/globalindex.py"
     )
 
-if (GEN_DOC_MAN)
-    set(DOC_MAN_CPUFILES "${DOC_OUT}/wla-gb.1" "${DOC_OUT}/wla-65c02.1"
-        "${DOC_OUT}/wla-6502.1" "${DOC_OUT}/wla-6510.1" "${DOC_OUT}/wla-65816.1"
-        "${DOC_OUT}/wla-huc6280.1" "${DOC_OUT}/wla-spc700.1"
-        "${DOC_OUT}/wla-z80.1"
-    )
-    set(DOC_MAN_FILES "${DOC_OUT}/wla-dx.7" "${DOC_OUT}/wlalink.1"
-        "${DOC_OUT}/wlab.1" ${DOC_MAN_CPUFILES})
+if(GEN_DOC_MAN)
+    set(DOC_MAN_FILES
+        "${DOC_OUT}/wla-dx.7"
+        "${DOC_OUT}/wlalink.1"
+        "${DOC_OUT}/wlab.1"
+        )
+    foreach(ARCH IN LISTS ARCHS)
+        string(REPLACE ":" ";" ARCH "${ARCH}")
+        list(GET ARCH 0 WLA_NAME)
+        list(APPEND DOC_MAN_CPUFILES "${DOC_OUT}/wla-${WLA_NAME}.1")
+    endforeach(ARCH)
     add_custom_command(
         OUTPUT ${DOC_MAN_FILES}
         COMMAND "${SPHINX_EXECUTABLE}" -q -b man
