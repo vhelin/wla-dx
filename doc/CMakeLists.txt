@@ -1,4 +1,3 @@
-project(DOCS)
 
 option(GEN_DOC_MAN "Generate Manpages" ON)
 option(GEN_DOC_SINGLEHTML "Generate single HTML documentation" ON)
