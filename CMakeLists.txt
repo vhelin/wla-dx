@@ -32,6 +32,12 @@ endif (UNIX)
 if (CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ansi -pedantic-errors -Wall -Wextra")
     string(REPLACE "-O2" "-O3" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang" AND
+            CMAKE_C_COMPILER_VERSION VERSION_LESS 3.8)
+        set(GDB_DEBUGGING OFF)
+        message(STATUS "You need at least clang 3.8 for GDB_DEBUGGING."
+            " Disabling it for now.")
+    endif()
     if(GDB_DEBUGGING)
         set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")
     endif(GDB_DEBUGGING)
