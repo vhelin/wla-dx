@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/binaries/")
 
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Type of build")
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug"
+    "MinSizeRel" "RelWithDebInfo")
 
 project(WLA-DX C)
 
