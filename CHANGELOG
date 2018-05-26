@@ -14,6 +14,8 @@ v9.8 (26-May-2018) [ALL] Deprecated section's size giving inside section's
                    [ALL] References from bank header sections are now found
                      when we discard unreferenced sections.
                    [ALL] Fix buffer overflow for \xXX strings.
+                   [ALL] Fixed a possible crash bug when printing opcodes
+                     in DEBUG executable.
                    [GB ] Added support for .VERSION (Mask ROM version number).
                    [GB ] Fixed the handling of RAMSIZE inside of .GBHEADER.
                    [GB ] New licensee code is set to $0000 if old licensee

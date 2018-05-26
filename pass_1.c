@@ -701,6 +701,7 @@ void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
 
   va_list ap;
 
+  
   if (oc == NULL)
     return;
   
@@ -709,7 +710,7 @@ void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
   vfprintf(file_out_ptr, format, ap);
 #if WLA_DEBUG
   {
-    char ttt[64];
+    char ttt[256];
 
     va_end(ap);
     va_start(ap, format);
