@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (23-May-2018) [ALL] Deprecated section's size giving inside section's
+v9.8 (26-May-2018) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
                    [ALL] Added APPENDTO to .RAMSECTIONs.
                    [ALL] When allocating a new unknown reference, we'll set
@@ -11,6 +11,9 @@ v9.8 (23-May-2018) [ALL] Deprecated section's size giving inside section's
                    [ALL] When inserting padding to a section (for example
                      for an unsolved 8-bit reference) we now set the padding
                      to be $CD instead of letting it be uninitialized.
+                   [ALL] References from bank header sections are now found
+                     when we discard unreferenced sections.
+                   [ALL] Fix buffer overflow for \xXX strings.
                    [GB ] Added support for .VERSION (Mask ROM version number).
                    [GB ] Fixed the handling of RAMSIZE inside of .GBHEADER.
                    [GB ] New licensee code is set to $0000 if old licensee
