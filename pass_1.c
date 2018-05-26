@@ -1594,6 +1594,7 @@ int parse_directive(void) {
 	    
 	    o += 3;
 	    sprintf(tmp_a, "%c%c", label[o-1], label[o]);
+	    tmp_a[2] = 0;
 	    tmp_c = strtol(tmp_a, &tmp_b, 16);
 	    if (*tmp_b) {
 	      sprintf(emsg, ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
