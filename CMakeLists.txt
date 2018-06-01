@@ -1,71 +1,51 @@
-# Main CMakeLists file
-cmake_minimum_required (VERSION 2.8.9)
+cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
 
-option(WLALINK_DEBUG "wlalink debug build" OFF)
-option(WLA_DEBUG "wla debug builds" OFF)
-option(GDB_DEBUGGING "Enable debugging via gdb" OFF)
-
-if (GDB_DEBUGGING)
-    set(CMAKE_C_FLAGS "-O0 -ggdb")
-    set(CMAKE_C_FLAGS_RELEASE "-O0 -ggdb")
-endif (GDB_DEBUGGING)
-
-if (WLALINK_DEBUG)
-    add_definitions( -DWLALINK_DEBUG )
-endif (WLALINK_DEBUG)
-
-if (WLA_DEBUG)
-    add_definitions( -DWLA_DEBUG )
-endif (WLA_DEBUG)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/binaries/")
 
 
-
-# --- Project name ---
-project (WLA-DX)
+project(WLA-DX C)
 
 # --- Explicitly enable C
 enable_language (C)
 
-# --- Output into binaries directory
-# Is there a way to change this solely for the opcode_table_generator subproject?
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/binaries/")
+option(GDB_DEBUGGING
+    "Enable debugging via gdb (Only when CMAKE_BUILD_TYPE is Debug)" ON)
 
-# --- Platform-specific config
-# CMake will automatically define WIN32 for us for Microsoft compilers, how 
+# CMake will automatically define WIN32 for us for Microsoft compilers, how
 # convenient! But we need MSDOS flag as well. Additionally, other compilers
-# don't define it by default. WIN32 Does NOT include Cygwin.
+# don't define it by default. WIN32 does NOT include Cygwin.
 if (WIN32)
-    add_definitions( -DWIN32 )
-    add_definitions( -DMSDOS )
+    add_definitions(-DWIN32)
+    add_definitions(-DMSDOS)
 endif (WIN32)
 
 # This should work on ANY POSIX-compliant environment.
 if (UNIX)
-    add_definitions( -DUNIX )
-    link_libraries(m) #Deprecated, but best solution. See: 
+    add_definitions(-DUNIX)
+    link_libraries(m) # Deprecated, but best solution. See
     # http://www.cmake.org/pipermail/cmake/2009-April/028439.html
 endif (UNIX)
 
-if ((CMAKE_C_COMPILER_ID MATCHES "Clang") OR (CMAKE_C_COMPILER_ID MATCHES "GNU"))
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ansi -pedantic-errors -Wall -Wextra")
+if (CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ansi -pedantic-errors -Wall -Wextra")
     string(REPLACE "-O2" "-O3" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+    if(GDB_DEBUGGING)
+        set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")
+    endif(GDB_DEBUGGING)
 endif ()
 
-# --- Tell MSVC to STFU about _CRT_SECURE_NO_WARNINGS
 if (MSVC)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Za") #Disable extensions
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Za") # Disable extensions
     # Per http://www.cmake.org/pipermail/cmake/2011-October/046738.html,
     # replace flags directly instead of appending them.
-    string(REPLACE "/O2" "/Ox" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
-    # When ready, increase the warning level (no need for now).
-    #string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-    add_definitions( /D_CRT_SECURE_NO_WARNINGS )
+    string(REPLACE "/O[0-4]" "/Ox" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+    add_definitions(/D_CRT_SECURE_NO_WARNINGS) # STFU about "unsecure" functions
 endif (MSVC)
 
-# --- WATCOM C Compiler works just fine as well. Might be a decent alternative
+# WATCOM C Compiler works just fine as well. Might be a decent alternative
 # 386 MSDOS compiler as well (compare to DJGPP).
 if (WATCOM)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -za") #Disable extensions
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -za") # Disable extensions
     string(REPLACE "-ot" "-ox" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
     string(REGEX REPLACE "-w=[0-4]" "-w=4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 endif (WATCOM)
