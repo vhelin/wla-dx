@@ -32,6 +32,8 @@ cmake_install.cmake
 CTestfile.cmake
 [Mm]akefile
 *.ninja
+CPack*Config.cmake
+ImportGenerators.cmake
 
 # Visual Studio generated files
 *.vcxproj*
