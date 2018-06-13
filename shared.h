@@ -15,6 +15,10 @@
   #define WLALINK_DEBUG 1
 #endif
 
+#ifdef _CRT_SECURE_NO_WARNINGS
+  #pragma warning(disable:4996) /* Just in case */
+#endif
+
 #define FAILED    0
 #define SUCCEEDED 1
 
