@@ -4109,13 +4109,13 @@ int parse_directive(void) {
     background_size = ftell(file_in_ptr);
     fseek(file_in_ptr, 0, SEEK_SET);
 
-    if (max_address != background_size) {
-      sprintf(emsg, ".BACKGROUND file \"%s\" size (%d) and ROM size (%d) don't match.\n", full_name, background_size, max_address);
+    if (background_size > max_address) {
+      sprintf(emsg, ".BACKGROUND file \"%s\" size (%d) is larger than ROM size (%d).\n", full_name, background_size, max_address);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
 
-    memset(rom_banks_usage_table, 2, max_address);
+    memset(rom_banks_usage_table, 2, background_size);
     fread(rom_banks, 1, max_address, file_in_ptr);
 
     background_defined = 1;
