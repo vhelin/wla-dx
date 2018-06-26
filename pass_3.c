@@ -15,7 +15,7 @@ extern struct section_def *sections_first, *sections_last, *sec_tmp, *sec_next;
 extern struct file_name_info *file_name_info_first, *file_name_info_last, *file_name_info_tmp;
 extern unsigned char *rom_banks, *rom_banks_usage_table;
 extern FILE *file_out_ptr;
-extern char gba_tmp_name[32], *gba_tmp_last_name, tmp[4096];
+extern char gba_tmp_name[32], *gba_tmp_last_name, tmp[4096], emsg[1024];
 extern int verbose_mode, section_status, cartridgetype, output_format;
 
 
@@ -30,7 +30,6 @@ struct block *blocks = NULL;
 
 int pass_3(void) {
 
-  char emsg[256];
   struct section_def *s;
   struct label_def *l;
   struct label_def *parent_labels[10];
@@ -40,6 +39,7 @@ int pass_3(void) {
   int base = 0x00;
   char c;
   int err;
+  
 
   memset(parent_labels, 0, sizeof(parent_labels));
   s = NULL;

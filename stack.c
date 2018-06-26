@@ -16,7 +16,7 @@
 
 extern int input_number_error_msg, bankheader_status, input_float_mode;
 extern int i, size, d, macro_active, string_size, section_status, parse_floats;
-extern char xyz[256], *buffer, tmp[4096], expanded_macro_string[256], label[MAX_NAME_LENGTH + 1];
+extern char xyz[512], *buffer, tmp[4096], expanded_macro_string[256], label[MAX_NAME_LENGTH + 1];
 extern struct definition *tmp_def;
 extern struct map_t *defines_map;
 extern struct active_file_info *active_file_info_first, *active_file_info_last, *active_file_info_tmp;
