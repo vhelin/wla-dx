@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (26-May-2018) [ALL] Deprecated section's size giving inside section's
+v9.8 (26-Jun-2018) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
                    [ALL] Added APPENDTO to .RAMSECTIONs.
                    [ALL] When allocating a new unknown reference, we'll set
@@ -16,6 +16,8 @@ v9.8 (26-May-2018) [ALL] Deprecated section's size giving inside section's
                    [ALL] Fix buffer overflow for \xXX strings.
                    [ALL] Fixed a possible crash bug when printing opcodes
                      in DEBUG executable.
+	           [ALL] Allow .BACKGROUND file to be smaller than the
+	             output ROM.
                    [GB ] Added support for .VERSION (Mask ROM version number).
                    [GB ] Fixed the handling of RAMSIZE inside of .GBHEADER.
                    [GB ] New licensee code is set to $0000 if old licensee
