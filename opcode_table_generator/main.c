@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #if defined(AMIGA)
 #include "/defines.h"
@@ -100,7 +101,7 @@ int main(int argc, char *argv[]) {
   if (outname) {
     out = fopen(outname, "wb");
     if (out == NULL) {
-      fprintf(stderr, "MAIN: Unable to create file \"%s\".\n", outname);
+      fprintf(stderr, "MAIN: Unable to open file \"%s\": %s\n", outname, strerror(errno));
       return 1;
     }
   }
