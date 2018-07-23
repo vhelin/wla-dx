@@ -874,11 +874,16 @@ int fix_references(void) {
 
 int write_symbol_file(char *outname, unsigned char mode) {
 
+  struct source_file_name *src_file = NULL;
+  struct object_file *obj_file; 
   struct section *s;
   struct label *l;
   char name[256], *p;
   FILE *f;
   int y;
+  int list_address_offset;
+  char list_cmd;
+  int list_cmd_idx;
 
   
   if (outname == NULL)
@@ -1067,6 +1072,46 @@ int write_symbol_file(char *outname, unsigned char mode) {
 	l = l->next;
       }
     }
+
+    /* file_id_source to source file names */
+    fprintf(f, "\n[source-files]\n");
+    obj_file = obj_first;
+    while (obj_file != NULL) {
+      src_file = obj_file->source_file_names_list;
+      while (src_file != NULL) {
+        fprintf(f, "%.4d %s\n", src_file->id, src_file->name);
+        src_file = src_file->next;
+      }
+      obj_file = obj_file->next;
+    }
+
+    /* addr -> file/line mappings */
+    s = sec_first;
+    while (s != NULL) {
+      if (s->listfile_items > 0) {
+        fprintf(f, "\n[addr-to-line-mapping]\n");
+        break;
+      }
+      s = s->next;
+    }
+
+    s = sec_first;
+    while (s != NULL) {
+      /* parse the list file information */
+      list_address_offset = 0;
+      for (list_cmd_idx = 0; list_cmd_idx < s->listfile_items; list_cmd_idx++) {
+        list_cmd = s->listfile_cmds[list_cmd_idx];
+        if (list_cmd == 'k') {
+          /* new line */
+          if (s->listfile_ints[list_cmd_idx * 2 + 1] > 0) {
+            fprintf(f, "%.2x:%.4x %d:%d\n", s->bank, s->output_address + list_address_offset, s->file_id_source, s->listfile_ints[list_cmd_idx * 2 + 0]);
+            list_address_offset += s->listfile_ints[list_cmd_idx * 2 + 1];
+          }
+        }
+      }
+      s = s->next;
+    }
+
   }
 
   fclose(f);
