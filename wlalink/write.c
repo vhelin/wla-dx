@@ -1083,7 +1083,7 @@ int write_symbol_file(char *outname, unsigned char mode) {
     while (obj_file != NULL) {
       src_file = obj_file->source_file_names_list;
       while (src_file != NULL) {
-        fprintf(f, "%.4d %s %ul\n", src_file->id, src_file->name, src_file->checksum);
+        fprintf(f, "%.4d %s %lu\n", src_file->id, src_file->name, src_file->checksum);
         src_file = src_file->next;
       }
       obj_file = obj_file->next;
