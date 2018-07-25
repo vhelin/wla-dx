@@ -15,8 +15,25 @@ BANKSIZE $6000
 BANKS 1
 .ENDRO
 
+.macro Times100 args guuggeli bayonetta
+.printt "*** BEGIN *** "
+.printv dec guuggeli*100
+.printt " "
+.printv dec \1*100
+.printt " "
+.printv dec bayonetta*0.1
+.printt " "
+.printv dec \2*0.1
+.db guuggeli*100, \1*100, bayonetta*0.1, \2*0.1, "HELLO"
+.printt " *** END ***\n"
+.endm
+
 .BANK 0 SLOT 0
 .ORGA 0
+
+.section "MacroTest" force
+  Times100 0.1 100
+.ends
 
 .section "MASTER"
 	.db 0, 1, 2, 3

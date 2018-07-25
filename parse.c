@@ -585,7 +585,14 @@ int input_number(void) {
     else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
       if (label[0] == ':') {
         /* we need to keep the ':' prefix */
-        sprintf(label, ":%s%c", tmp_def->string, 0);
+	if (strlen(tmp_def->string) >= MAX_NAME_LENGTH-1) {
+	  if (input_number_error_msg == YES) {
+	    sprintf(xyz, "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
+	    print_error(xyz, ERROR_NUM);
+	  }
+	  return FAILED;	  
+	}
+        sprintf(label, ":%.254s", tmp_def->string);
         string_size = tmp_def->size + 1;
       }
       else {

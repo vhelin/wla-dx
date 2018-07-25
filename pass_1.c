@@ -598,7 +598,7 @@ int pass_1(void) {
         /* check out for \@-symbols */
         if (macro_active != 0) {
           if (tmp[q - 2] == '\\' && tmp[q - 1] == '@')
-            sprintf(&tmp[q - 2], "%d%c", macro_runtime_current->macro->calls - 1, 0);
+            sprintf(&tmp[q - 2], "%d", macro_runtime_current->macro->calls - 1);
         }
 
         fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
@@ -657,7 +657,7 @@ int pass_1(void) {
         else if (q == INPUT_NUMBER_STACK)
           mrt->argument_data[p]->value = latest_stack;
         else if (q == SUCCEEDED)
-          mrt->argument_data[p]->value = d;
+          mrt->argument_data[p]->value = parsed_double;
         else
           return FAILED;
 
@@ -670,7 +670,7 @@ int pass_1(void) {
           else if (q == INPUT_NUMBER_STACK)
             redefine(m->argument_names[p], (double)latest_stack, NULL, DEFINITION_TYPE_STACK, 0);
           else if (q == SUCCEEDED)
-            redefine(m->argument_names[p], (double)d, NULL, DEFINITION_TYPE_VALUE, 0);
+            redefine(m->argument_names[p], parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
         }
       }
 
@@ -774,7 +774,7 @@ int evaluate_token(void) {
     /* check for \@-symbols */
     if (macro_active != 0) {
       if (tmp[ss - 3] == '\\' && tmp[ss - 2] == '@')
-        sprintf(&tmp[ss - 3], "%d%c", macro_runtime_current->macro->calls - 1, 0);
+        sprintf(&tmp[ss - 3], "%d", macro_runtime_current->macro->calls - 1);
     }
 
     fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
@@ -918,7 +918,7 @@ int redefine(char *name, double value, char *string, int type, int size) {
 
   
   hashmap_get(defines_map, name, (void*)&d);
-
+  
   /* it wasn't defined previously */
   if (d == NULL) {
     return add_a_new_definition(name, value, string, type, size);
@@ -944,12 +944,14 @@ int undefine(char *name) {
 
   struct definition *d;
 
+  
   if (hashmap_get(defines_map, name, (void*)&d) != MAP_OK)
       return FAILED;
 
   hashmap_remove(defines_map, name);
 
   free(d);
+
   return SUCCEEDED;
 }
 
@@ -959,7 +961,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
   struct definition *d;
   int err;
 
-  
+
   hashmap_get(defines_map, name, (void*)&d);
   if (d != NULL) {
     sprintf(emsg, "\"%s\" was defined for the second time.\n", name);
@@ -984,8 +986,8 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
   d->type = type;
 
   if ((err = hashmap_put(defines_map, d->alias, d)) != MAP_OK) {
-      fprintf(stderr, "ADD_A_NEW_DEFINITION: Hashmap error %d\n", err);
-      return FAILED;
+    fprintf(stderr, "ADD_A_NEW_DEFINITION: Hashmap error %d\n", err);
+    return FAILED;
   }
 
   if (type == DEFINITION_TYPE_VALUE)
@@ -1218,7 +1220,7 @@ int parse_enum_token(void) {
 
       si = st->items;
       while (si != NULL) {
-        sprintf(tmp, "%s.%s%c", tmpname, si->name, 0);
+        sprintf(tmp, "%s.%s", tmpname, si->name);
         if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
           return FAILED;
         if (enum_exp == YES)
@@ -1250,14 +1252,14 @@ int parse_enum_token(void) {
 
           while (d > 0) {
             si = st->items;
-            sprintf(tmp, "%s.%d%c", tmpname, g, 0);
+            sprintf(tmp, "%s.%d", tmpname, g);
             if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
               return FAILED;
             if (enum_exp == YES)
               if (export_a_definition(tmp) == FAILED)
                 return FAILED;
             while (si != NULL) {
-              sprintf(tmp, "%s.%d.%s%c", tmpname, g, si->name, 0);
+              sprintf(tmp, "%s.%d.%s", tmpname, g, si->name);
               if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
                 return FAILED;
               if (enum_exp == YES)
