@@ -46,6 +46,7 @@
 struct source_file_name {
   char *name;
   int  id;
+  unsigned long checksum;
   struct source_file_name *next;
 };
 

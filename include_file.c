@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "crc32.h"
 #include "defines.h"
 
 #include "include_file.h"
@@ -232,6 +233,9 @@ int include_file(char *name) {
   /* read the whole file into a buffer */
   fread(include_in_tmp, 1, file_size, f);
   fclose(f);
+
+  /* calculate checksum for post-compilation file verification */
+  file_name_info_tmp->checksum = crc32((unsigned char*)include_in_tmp, file_size);
 
   if (size == 0) {
     buffer = malloc(sizeof(char) * (file_size + 4));

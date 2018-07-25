@@ -1611,6 +1611,10 @@ int export_source_file_names(FILE *final_ptr) {
   f = file_name_info_first;
   while (f != NULL) {
     fprintf(final_ptr, "%s%c%c", f->name, 0x00, f->id);
+    
+    ov = f->checksum;
+    WRITEOUT_OV;
+
     f = f->next;
   }
 

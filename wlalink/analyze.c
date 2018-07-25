@@ -363,6 +363,7 @@ int obtain_source_file_names(void) {
 
       t++;
       s->id = *(t++);
+      s->checksum = READ_T;
       s->next = NULL;
       *p = s;
       p = &(s->next);

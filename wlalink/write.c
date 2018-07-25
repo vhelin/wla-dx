@@ -8,6 +8,7 @@
 #include "write.h"
 #include "files.h"
 #include "analyze.h"
+#include "..\crc32.h"
 
 
 
@@ -884,7 +885,10 @@ int write_symbol_file(char *outname, unsigned char mode) {
   int list_address_offset;
   char list_cmd;
   int list_cmd_idx;
-
+  FILE *outfile;
+  int outfile_size;
+  char* outfile_tmp;
+  unsigned long outfile_crc;
   
   if (outname == NULL)
     return FAILED;
@@ -1073,17 +1077,29 @@ int write_symbol_file(char *outname, unsigned char mode) {
       }
     }
 
-    /* file_id_source to source file names */
+    /* file_id_source to source files  */
     fprintf(f, "\n[source-files]\n");
     obj_file = obj_first;
     while (obj_file != NULL) {
       src_file = obj_file->source_file_names_list;
       while (src_file != NULL) {
-        fprintf(f, "%.4d %s\n", src_file->id, src_file->name);
+        fprintf(f, "%.4d %s %ul\n", src_file->id, src_file->name, src_file->checksum);
         src_file = src_file->next;
       }
       obj_file = obj_file->next;
     }
+
+    /* full rom-output checksum */
+    outfile = fopen(outname, "rb");
+    fseek(outfile, 0, SEEK_END);
+    outfile_size = ftell(outfile);
+    fseek(outfile, 0, SEEK_SET);
+    outfile_tmp = malloc(sizeof(char) * outfile_size);
+    fread(outfile_tmp, 1, outfile_size, outfile);
+    fclose(outfile);
+    outfile_crc = crc32((unsigned char*)outfile_tmp, outfile_size);
+    free(outfile_tmp);
+    fprintf(f, "\n[rom-file checksum]\n%lu\n", outfile_crc);
 
     /* addr -> file/line mappings */
     s = sec_first;

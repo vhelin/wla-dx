@@ -502,6 +502,7 @@ struct active_file_info {
 struct file_name_info {
   char   *name;
   int    id;
+  unsigned long checksum;
   struct file_name_info *next;
 };
 
