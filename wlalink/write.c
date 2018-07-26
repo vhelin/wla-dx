@@ -1083,7 +1083,7 @@ int write_symbol_file(char *outname, unsigned char mode) {
     while (obj_file != NULL) {
       src_file = obj_file->source_file_names_list;
       while (src_file != NULL) {
-        fprintf(f, "%.4d %s %lu\n", src_file->id, src_file->name, src_file->checksum);
+        fprintf(f, "%.4x %.8x %s \n", src_file->id, src_file->checksum, src_file->name);
         src_file = src_file->next;
       }
       obj_file = obj_file->next;
@@ -1099,7 +1099,7 @@ int write_symbol_file(char *outname, unsigned char mode) {
     fclose(outfile);
     outfile_crc = crc32((unsigned char*)outfile_tmp, outfile_size);
     free(outfile_tmp);
-    fprintf(f, "\n[rom-file checksum]\n%lu\n", outfile_crc);
+    fprintf(f, "\n[rom-file checksum]\n%.8x\n", outfile_crc);
 
     /* addr -> file/line mappings */
     s = sec_first;
@@ -1121,7 +1121,7 @@ int write_symbol_file(char *outname, unsigned char mode) {
         if (list_cmd == 'k') {
           /* new line */
           if (s->listfile_ints[list_cmd_idx * 2 + 1] > 0) {
-            fprintf(f, "%.2x:%.4x %d:%d\n", s->bank + s->base, (s->output_address + list_address_offset) & 0xFFFF, list_source_file, s->listfile_ints[list_cmd_idx * 2 + 0]);
+            fprintf(f, "%.2x:%.4x %.4x:%.8x\n", s->bank + s->base, (s->output_address + list_address_offset) & 0xFFFF, list_source_file, s->listfile_ints[list_cmd_idx * 2 + 0]);
             list_address_offset += s->listfile_ints[list_cmd_idx * 2 + 1];
           }
         }
