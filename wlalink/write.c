@@ -884,7 +884,7 @@ int write_symbol_file(char *outname, unsigned char mode) {
   int y;
   int list_address_offset;
   char list_cmd;
-  int list_cmd_idx;
+  int list_cmd_idx, list_source_file;
   FILE *outfile;
   int outfile_size;
   char* outfile_tmp;
@@ -1115,14 +1115,19 @@ int write_symbol_file(char *outname, unsigned char mode) {
     while (s != NULL) {
       /* parse the list file information */
       list_address_offset = 0;
+      list_source_file = -1;
       for (list_cmd_idx = 0; list_cmd_idx < s->listfile_items; list_cmd_idx++) {
         list_cmd = s->listfile_cmds[list_cmd_idx];
         if (list_cmd == 'k') {
           /* new line */
           if (s->listfile_ints[list_cmd_idx * 2 + 1] > 0) {
-            fprintf(f, "%.2x:%.4x %d:%d\n", s->bank, s->output_address + list_address_offset, s->file_id_source, s->listfile_ints[list_cmd_idx * 2 + 0]);
+            fprintf(f, "%.2x:%.4x %d:%d\n", s->bank, (s->output_address + list_address_offset) & 0xFFFF, list_source_file, s->listfile_ints[list_cmd_idx * 2 + 0]);
             list_address_offset += s->listfile_ints[list_cmd_idx * 2 + 1];
           }
+        }
+        else if (list_cmd == 'f') {
+          /* another file */
+          list_source_file = s->listfile_ints[list_cmd_idx * 2 + 0];
         }
       }
       s = s->next;
