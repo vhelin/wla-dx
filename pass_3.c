@@ -353,6 +353,7 @@ int pass_3(void) {
 
 	s->address = add;
 	s->bank = bank;
+	s->base = base;
 	s->slot = slot;
 	s->listfile_items = 1;
 	s->listfile_ints = NULL;
@@ -400,8 +401,9 @@ int pass_3(void) {
 	add = 0;
 
       if (s->status != SECTION_STATUS_RAM) {
-	s->bank = bank;
-	s->slot = slot;
+        s->bank = bank;
+        s->base = base;
+        s->slot = slot;
       }
       s->address = add;
       s->listfile_items = 1;

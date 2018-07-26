@@ -1047,6 +1047,7 @@ int parse_data_blocks(void) {
           s->file_id_source = *(t++);
           s->address = READ_T;
           s->bank = READ_T;
+          s->base = READ_T;
           s->size = READ_T;
           s->alignment = READ_T;
           s->data = t;

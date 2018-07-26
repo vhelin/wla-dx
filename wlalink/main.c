@@ -368,6 +368,7 @@ int main(int argc, char *argv[]) {
       printf("addr : %d\n", s->address);
       printf("stat : %d\n", s->status);
       printf("bank : %d\n", s->bank);
+      printf("base : %d\n", s->base);
       printf("slot : %d\n", s->slot);
       printf("size : %d\n", s->size);
       printf("align: %d\n", s->alignment);

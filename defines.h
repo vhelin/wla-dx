@@ -461,6 +461,7 @@ struct section_def {
   int  alignment;
   int  address; /* in bank */
   int  bank;
+  int  base;
   int  slot;
   int  size;
   int  status; /* see SECTION_STATUS_* */

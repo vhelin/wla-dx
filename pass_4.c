@@ -1291,6 +1291,8 @@ int pass_4(void) {
         WRITEOUT_OV;
         ov = sec_tmp->bank;
         WRITEOUT_OV;
+        ov = sec_tmp->base;
+        WRITEOUT_OV;
         ov = sec_tmp->size;
         WRITEOUT_OV;
         ov = sec_tmp->alignment;

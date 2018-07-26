@@ -1121,7 +1121,7 @@ int write_symbol_file(char *outname, unsigned char mode) {
         if (list_cmd == 'k') {
           /* new line */
           if (s->listfile_ints[list_cmd_idx * 2 + 1] > 0) {
-            fprintf(f, "%.2x:%.4x %d:%d\n", s->bank, (s->output_address + list_address_offset) & 0xFFFF, list_source_file, s->listfile_ints[list_cmd_idx * 2 + 0]);
+            fprintf(f, "%.2x:%.4x %d:%d\n", s->bank + s->base, (s->output_address + list_address_offset) & 0xFFFF, list_source_file, s->listfile_ints[list_cmd_idx * 2 + 0]);
             list_address_offset += s->listfile_ints[list_cmd_idx * 2 + 1];
           }
         }
