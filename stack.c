@@ -832,13 +832,13 @@ int stack_calculate(char *in, int *value) {
     if (compute_stack(&s, d, &dou) == FAILED)
       return FAILED;
     
-    if (input_float_mode == ON) {
-      parsed_double = dou;
+    parsed_double = dou;
+
+    if (input_float_mode == ON)
       return INPUT_NUMBER_FLOAT;
-    }
 
     *value = (int)dou;
-    
+
     return SUCCEEDED;
   }
 
@@ -980,15 +980,17 @@ int resolve_stack(struct stack_item s[], int x) {
 	  }
 	  else if (k == INPUT_NUMBER_STACK)
 	    latest_stack = ma->value;
-	  else if (k == SUCCEEDED)
+	  else if (k == SUCCEEDED) {
 	    d = ma->value;
+	    parsed_double = ma->value;
+	  }
 	  
 	  if (!(k == SUCCEEDED || k == INPUT_NUMBER_ADDRESS_LABEL || k == INPUT_NUMBER_STACK))
 	    return FAILED;
 	  
 	  if (k == SUCCEEDED) {
 	    s->type = STACK_ITEM_TYPE_VALUE;
-	    s->value = d;
+	    s->value = parsed_double;
 	  }
 	  else if (k == INPUT_NUMBER_STACK) {
 	    s->type = STACK_ITEM_TYPE_STACK;

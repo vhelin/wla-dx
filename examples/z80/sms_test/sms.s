@@ -244,8 +244,10 @@ dragon    INSTANCEOF mon   ; one mon
 .macro macroOne 		; the input byte is \1, the output byte is "_out"
 .redefine _out \1+1
 .endm
-	
+
+	.db "data1/data.txt START="
 data1a:	.incbin "data1/data.txt" skip 1 filter macroOne
+	.db "=END"
 data2a:	.incbin "data2/data.txt" skip 1 filter macroOne
 	.incdir "data1"
 data1b:	.incbin "data.txt" skip 1 filter macroOne

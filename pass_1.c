@@ -354,7 +354,7 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
     */
   }
   else if (inz == INPUT_NUMBER_STACK)
-    mrt->argument_data[0]->value = latest_stack;
+    mrt->argument_data[0]->value = (double)latest_stack;
   else if (inz == SUCCEEDED)
     mrt->argument_data[0]->value = d;
   else
@@ -655,7 +655,7 @@ int pass_1(void) {
         else if (q == INPUT_NUMBER_STRING)
           strcpy(mrt->argument_data[p]->string, label);
         else if (q == INPUT_NUMBER_STACK)
-          mrt->argument_data[p]->value = latest_stack;
+          mrt->argument_data[p]->value = (double)latest_stack;
         else if (q == SUCCEEDED)
           mrt->argument_data[p]->value = parsed_double;
         else
@@ -3334,9 +3334,9 @@ int parse_directive(void) {
     for (q = 0; q < o; q++) {
       ma = rt->argument_data[q];
       if (ma->type == SUCCEEDED)
-        redefine(st->argument_names[q], (double)ma->value, NULL, DEFINITION_TYPE_VALUE, 0);
+        redefine(st->argument_names[q], ma->value, NULL, DEFINITION_TYPE_VALUE, 0);
       else if (ma->type == INPUT_NUMBER_STACK)
-        redefine(st->argument_names[q], (double)ma->value, NULL, DEFINITION_TYPE_STACK, 0);
+        redefine(st->argument_names[q], ma->value, NULL, DEFINITION_TYPE_STACK, 0);
       else if (ma->type == INPUT_NUMBER_ADDRESS_LABEL)
         redefine(st->argument_names[q], 0.0, ma->string, DEFINITION_TYPE_ADDRESS_LABEL, strlen(ma->string));
       else if (ma->type == INPUT_NUMBER_STRING)

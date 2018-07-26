@@ -99,6 +99,7 @@ int main(int argc, char *argv[]) {
 
   int parse_flags_result;
   int n_ctr = 0;
+
   
   if (sizeof(double) != 8) {
     fprintf(stderr, "MAIN: sizeof(double) == %d != 8. WLA will not work properly.\n", (int)sizeof(double));

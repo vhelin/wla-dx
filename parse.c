@@ -164,6 +164,7 @@ int input_number(void) {
 	ee == '<' || ee == '>' || ee == '#' || ee == '~') {
       /* launch stack calculator */
       p = stack_calculate(&buffer[i - 1], &d);
+
       if (p == STACK_CALCULATE_DELAY)
 	break;
       else if (p == STACK_RETURN_LABEL)
@@ -215,8 +216,10 @@ int input_number(void) {
     }
     else if (k == INPUT_NUMBER_STACK)
       latest_stack = ma->value;
-    else if (k == SUCCEEDED)
+    else if (k == SUCCEEDED) {
       d = ma->value;
+      parsed_double = ma->value;
+    }
     else {
       print_error("Macro argument list has been corrupted! Please send a bug report!\n", ERROR_ERR);
       return FAILED;

@@ -396,7 +396,7 @@ struct append_section {
 
 struct macro_argument {
   int type;
-  int value;
+  double value;
   int start;
   char string[MAX_NAME_LENGTH + 1];
 };

@@ -57,7 +57,7 @@
 .else
  .printv dec \1
  .printt "\n"
- spiral \1+1
+  spiral \1+1
  .printt "exit "
  .printv dec \1
  .printt "\n"
