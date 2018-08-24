@@ -116,3 +116,9 @@ texinfo_documents = [
 
 if os.environ.get('READTHEDOCS') == 'True':
     html_theme = 'default'
+    # ReadTheDocs uses index.html as the index site
+    # However, the current setup doesn't do that, so instead we make
+    # a copy of wla-dx.rst to index.rst so a index.html gets created.
+    master_doc = 'index'
+    import shutil
+    shutil.copyfile('wla-dx.rst', 'index.rst')
