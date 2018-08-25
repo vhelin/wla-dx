@@ -19,6 +19,9 @@ v9.8 (26-Jun-2018) [ALL] Deprecated section's size giving inside section's
 	           [ALL] Allow .BACKGROUND file to be smaller than the
 	             output ROM.
                    [ALL] Fixed a couple possible buffer overflows.
+                   [ALL] Macros rounded all floating point arguments to
+                     integers - not any more.
+	           [ALL] The documentation is now ReadTheDocs.org compatible.
                    [GB ] Added support for .VERSION (Mask ROM version number).
                    [GB ] Fixed the handling of RAMSIZE inside of .GBHEADER.
                    [GB ] New licensee code is set to $0000 if old licensee
