@@ -1,5 +1,8 @@
 {%- extends "haiku/layout.html" %}
 {% set script_files = [] %}
+{% if metatags is none %}
+{% set metatags = "" %}
+{% endif %}
 {% set metatags = metatags + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" %}
 {%- block csss %}
     <style>
