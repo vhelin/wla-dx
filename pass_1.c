@@ -234,7 +234,9 @@ int macro_stack_grow(void) {
       return FAILED;
     }
 
-    memcpy(macro, macro_stack, sizeof(struct macro_runtime) * old_size);
+    if (macro_stack != NULL) {
+      memcpy(macro, macro_stack, sizeof(struct macro_runtime) * old_size);
+    }
     macro_stack = macro;
   }
 
