@@ -250,3 +250,17 @@ nono:swap	A
 .SECTION "empty"
 joopa:	
 .ENDS
+
+.macro printvalue args value
+ .printt "VALUE = "
+ .printv dec \1
+ .printt " or "
+ .printv dec value
+ .printt "\n"
+.endm
+
+.printt "\nNext we should get values 10, 11 and 12:\n"
+ printvalue $a
+ printvalue 11
+ printvalue %1100
+.printt "\n"

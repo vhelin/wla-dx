@@ -322,6 +322,8 @@ int input_number(void) {
 #endif
 #endif
 
+    parsed_double = (double)d;
+    
     return SUCCEEDED;
   }
 
@@ -442,6 +444,8 @@ int input_number(void) {
     }
 #endif
 
+    parsed_double = (double)d;
+
     return SUCCEEDED;
   }
 
@@ -457,6 +461,8 @@ int input_number(void) {
     }
     i++;
 
+    parsed_double = (double)d;
+    
     return SUCCEEDED;
   }
 
