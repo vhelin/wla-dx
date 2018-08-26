@@ -236,6 +236,7 @@ int macro_stack_grow(void) {
 
     if (macro_stack != NULL) {
       memcpy(macro, macro_stack, sizeof(struct macro_runtime) * old_size);
+      free(macro_stack);
     }
     macro_stack = macro;
   }
