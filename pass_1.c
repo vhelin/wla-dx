@@ -234,7 +234,10 @@ int macro_stack_grow(void) {
       return FAILED;
     }
 
-    memcpy(macro, macro_stack, sizeof(struct macro_runtime) * old_size);
+    if (macro_stack != NULL) {
+      memcpy(macro, macro_stack, sizeof(struct macro_runtime) * old_size);
+      free(macro_stack);
+    }
     macro_stack = macro;
   }
 
@@ -596,7 +599,7 @@ int pass_1(void) {
         }
 
         /* check out for \@-symbols */
-        if (macro_active != 0) {
+        if (macro_active != 0 && q >= 2) {
           if (tmp[q - 2] == '\\' && tmp[q - 1] == '@')
             sprintf(&tmp[q - 2], "%d", macro_runtime_current->macro->calls - 1);
         }
