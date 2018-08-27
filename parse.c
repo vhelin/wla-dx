@@ -585,6 +585,8 @@ int input_number(void) {
       else
         operand_hint = HINT_8BIT;
 #endif
+      parsed_double = (double)d;
+      
       return SUCCEEDED;
     }
     else if (tmp_def->type == DEFINITION_TYPE_STACK) {

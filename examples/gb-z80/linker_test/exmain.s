@@ -264,3 +264,21 @@ joopa:
  printvalue 11
  printvalue %1100
 .printt "\n"
+
+.macro nops ARGS count
+  .repeat count
+    .printt "nop\n"
+  .endr
+.endm
+
+.macro hello ARGS arg1 arg2 arg3 arg4
+  .printt "ld a, "
+  .printv dec arg1
+  .printt "\nNEXT: 2 nop's...\n"
+  nops arg2
+  .printt "ld a, arg1\nNEXT: 4 nop's...\n"
+  nops arg3
+.endm
+
+ hello $80, 2, 4, 5
+ .printt "\n"
