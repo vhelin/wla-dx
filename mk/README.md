@@ -26,6 +26,7 @@ Files
 * `generate.sh` - This script generates makefiles from templates
   Run it once for more information.
 * `posix.mk` - A makefile that should work on POSIX-compatible systems and tools.
+* `gcc.mk` - Like `posix.mk`, but uses gcc (and clang) specific stuff
 
 
 Targets

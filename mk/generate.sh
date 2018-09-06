@@ -46,6 +46,17 @@ setup_posix() {
     test -z "$1" || "$*"
 }
 
+SETUPS="$SETUPS gcc"
+setup_gcc() {
+    setup_posix
+    CC=gcc
+    CFLAGS_OPT=-O3
+    CFLAGS_MISC="-Wall -ansi -pedantic"
+    LDLIBS="-l m"
+    LDLIBS_GEN="-l m"
+    test -z "$1" || "$*"
+}
+
 generate_for() {
     for target in $SETUPS; do
         test "$1" = "$target" && setup_"$target" gen > "$OUTDIR"/"$target".mk
