@@ -13,6 +13,7 @@
 # LD - Linker (default: $LD, or \$(CC))
 # LDFLAGS - Linker flags, overwritable by user (default: make default)
 # LDFLAGS_MISC - Misc linker flags (default: )
+# LDFLAGS_SRCS - Format string for defining srcs (default: %s)
 # LDLIBS - Libraries to link with (std c and math lib) (default: -l c -l m)
 # LDLIBS_GEN - Libraries to link when making gen-binaries (default: -l c)
 # NO_POSIX - Don't insert .POSIX when 1 (default: 0)
@@ -96,6 +97,7 @@ COMPILE_DEF="${COMPILE_DEF:--D%s}"
 CFLAGS_OPT="${CFLAGS_OPT:--O3}"
 DBGFLAGS="$(pf "$COMPILE_DEF" "NDEBUG=1")"
 LD="${LD:-\$(CC)}"
+LDFLAGS_SRCS="${LDFLAGS_SRCS:-%s}"
 LDLIBS="${LDLIBS:--l c -l m}"
 LDLIBS_GEN="${LDLIBS:--l c}"
 
@@ -137,11 +139,11 @@ clean-gen: $(cc 'clean-gen-\2')
 
 wlab: $(bindir)wlab
 $(bindir)wlab: \$(WLAB_SRCS:.c=.o)
-	\$(LD) \$(LDFLAGS_ALL) \$(WLAB_SRCS:.c=.o) \$(LDLIBS) \$@
+	\$(LD) \$(LDFLAGS_ALL) $(pf "$LDFLAGS_SRCS" "\$(WLAB_SRCS:.c=.o)") \$(LDLIBS) \$@
 
 wlalink: $(bindir)wlalink
 $(bindir)wlalink: \$(WLALINK_SRCS:.c=.o)
-	\$(LD) \$(LDFLAGS_ALL) \$(WLALINK_SRCS:.c=.o) \$(LDLIBS) \$@
+	\$(LD) \$(LDFLAGS_ALL) $(pf "$LDFLAGS_SRCS" "\$(WLALINK_SRCS:.c=.o)") \$(LDLIBS) \$@
 EOF
 
 # Now let's generate stuff for each cpu/arch supported
@@ -164,9 +166,9 @@ WLA_${W}_FLAGS=$(printf -- "$COMPILE_DEF" "${D}=1")
 	\$(CC) \$(DEBUGFLAGS) \$(WLA_${W}_FLAGS) \$(CFLAGS_ALL) -c \$*.c -o \$@
 wla-${W}: $(bindir)wla-${W}
 $(bindir)wla-${W}: \$(WLA_${W}_O) \$(WLA_${W}_GENSO)
-	\$(LD) \$(LDFLAGS_ALL) \$(WLA_${W}_O) \$(WLA_${W}_GENSO) \$(LDLIBS) \$@
+	\$(LD) \$(LDFLAGS_ALL) $(pf "$LDFLAGS_SRCS" "\$(WLA_${W}_O) \$(WLA_${W}_GENSO)") \$(LDLIBS) \$@
 gen-${W}: \$(WLA_${W}_GENO)
-	\$(LD) \$(LDFLAGS_ALL) \$(WLA_${W}_GENO) \$(LDLIBS_GEN) \$@
+	\$(LD) \$(LDFLAGS_ALL) $(pf "$LDFLAGS_SRCS" "\$(WLA_${W}_GENO)") \$(LDLIBS_GEN) \$@
 opcodes_${W}_tables.c: gen-${W}
 	./\$< \$@
 clean-wla-${W}:
