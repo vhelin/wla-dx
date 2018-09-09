@@ -15,6 +15,7 @@
 # LDFLAGS_MISC - Misc linker flags (default: )
 # LDLIBS - Libraries to link with (std c and math lib) (default: -l c -l m)
 # LDLIBS_GEN - Libraries to link when making gen-binaries (default: -l c)
+# NO_POSIX - Don't insert .POSIX when 1 (default: 0)
 #
 # Uses echo, printf, tr, sed, awk, cat and sh
 #env >&2
@@ -93,7 +94,7 @@ LDLIBS_GEN="${LDLIBS:--l c}"
 cat << EOF
 #!/usr/bin/env make -f
 # This makefile has been auto-generated.
-.POSIX:
+$(test "${NO_POSIX:-0}" = "0" && echo ".POSIX:")
 
 WLA_SRCS=${WLA_SRCS}
 WLALINK_SRCS=${WLALINK_SRCS}

@@ -9,6 +9,7 @@ gen(){
     export RM
     export CC COMPILE_DEF CFLAGS CFLAGS_MISC CFLAGS_OPT
     export LD LDFLAGS LDFLAGS_MISC LDLIBS LDLIBS_GEN
+    export NO_POSIX
     test -f mk/gen_mk.sh && ./mk/gen_mk.sh \
             || ( test -f ./gen_mk.sh && ./gen_mk.sh )
     )
@@ -30,6 +31,7 @@ setup_posix() {
     LDFLAGS_MISC=
     LDLIBS=
     LDLIBS_GEN=
+    NO_POSIX=
     test -z "$1" || "$*"
 }
 
