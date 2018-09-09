@@ -9,7 +9,7 @@ gen(){
     export RM
     export CC COMPILE_DEF CFLAGS CFLAGS_MISC CFLAGS_OPT
     export LD LDFLAGS LDFLAGS_MISC LDLIBS LDLIBS_GEN
-    export NO_POSIX
+    export NO_POSIX BACKSLASH_SRC_DIR BACKSLASH_BIN_DIR
     test -f mk/gen_mk.sh && ./mk/gen_mk.sh \
             || ( test -f ./gen_mk.sh && ./gen_mk.sh )
     )
@@ -32,6 +32,8 @@ setup_posix() {
     LDLIBS=
     LDLIBS_GEN=
     NO_POSIX=
+    BACKSLASH_SRC_DIR=
+    BACKSLASH_BIN_DIR=
     test -z "$1" || "$*"
 }
 

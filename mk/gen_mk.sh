@@ -16,6 +16,8 @@
 # LDLIBS - Libraries to link with (std c and math lib) (default: -l c -l m)
 # LDLIBS_GEN - Libraries to link when making gen-binaries (default: -l c)
 # NO_POSIX - Don't insert .POSIX when 1 (default: 0)
+# BACKSLASH_SRC_DIR - 1 for \ than / for src dirs seperator (default: 0)
+# BACKSLASH_BIN_DIR - 1 for \ than / for bin dirs seperator (default: 0)
 #
 # Uses echo, printf, tr, sed, awk, cat and sh
 #env >&2
@@ -64,11 +66,13 @@ hashmap.c
 crc32.c
 "
 WLALINK_SRCS="$(echo "$WLALINK_SRCS" | tr '\n' ' ')"
+test "${BACKSLASH_SRC_DIR:-0}" = 1 && WLALINK_SRCS="$(echo "$WLALINK_SRCS" | tr '/' '\\')"
 
 WLAB_SRCS="
 wlab/main.c
 "
 WLAB_SRCS="$(echo "$WLAB_SRCS" | tr '\n' ' ')"
+test "${BACKSLASH_SRC_DIR:-0}" = 1 && WLAB_SRCS="$(echo "$WLAB_SRCS" | tr '/' '\\')"
 
 # \1 is the first part, \2 is the second, etc.
 c() {
@@ -79,6 +83,10 @@ cc() {
 }
 pf() {
     printf -- "$1" "$2"
+}
+bindir() {
+    test "${BACKSLASH_BIN_DIR:-0}" = 1 && \
+        echo "binaries\\" || echo "binaries/"
 }
 
 # Header
@@ -119,20 +127,20 @@ clean-objects:
 	-\$(RM) $(cc '$(WLA_SRCS:.c=.o\1) $(WLA_\2_GENO) $(WLA_\2_GENSO)')
 	-\$(RM) \$(WLAB_SRCS:.c=.o) \$(WLALINK_SRCS:.c=.o)
 clean-wlab:
-	-\$(RM) binaries/wlab
+	-\$(RM) $(bindir)wlab
 	-\$(RM) \$(WLAB_SRCS:.c=.o)
 clean-wlalink:
-	-\$(RM) binaries/wlalink
+	-\$(RM) $(bindir)wlalink
 	-\$(RM) \$(WLALINK_SRCS:.c=.o)
 clean-wla: $(cc 'clean-wla-\2')
 clean-gen: $(cc 'clean-gen-\2')
 
-wlab: binaries/wlab
-binaries/wlab: \$(WLAB_SRCS:.c=.o)
+wlab: $(bindir)wlab
+$(bindir)wlab: \$(WLAB_SRCS:.c=.o)
 	\$(LD) \$(LDFLAGS_ALL) \$(WLAB_SRCS:.c=.o) \$(LDLIBS) \$@
 
-wlalink: binaries/wlalink
-binaries/wlalink: \$(WLALINK_SRCS:.c=.o)
+wlalink: $(bindir)wlalink
+$(bindir)wlalink: \$(WLALINK_SRCS:.c=.o)
 	\$(LD) \$(LDFLAGS_ALL) \$(WLALINK_SRCS:.c=.o) \$(LDLIBS) \$@
 EOF
 
@@ -154,15 +162,15 @@ WLA_${W}_FLAGS=$(printf -- "$COMPILE_DEF" "${D}=1")
 .SUFFIXES: .${OW}
 .c.${OW}:
 	\$(CC) \$(DEBUGFLAGS) \$(WLA_${W}_FLAGS) \$(CFLAGS_ALL) -c \$*.c -o \$@
-wla-${W}: binaries/wla-${W}
-binaries/wla-${W}: \$(WLA_${W}_O) \$(WLA_${W}_GENSO)
+wla-${W}: $(bindir)wla-${W}
+$(bindir)wla-${W}: \$(WLA_${W}_O) \$(WLA_${W}_GENSO)
 	\$(LD) \$(LDFLAGS_ALL) \$(WLA_${W}_O) \$(WLA_${W}_GENSO) \$(LDLIBS) \$@
 gen-${W}: \$(WLA_${W}_GENO)
 	\$(LD) \$(LDFLAGS_ALL) \$(WLA_${W}_GENO) \$(LDLIBS_GEN) \$@
 opcodes_${W}_tables.c: gen-${W}
 	./\$< \$@
 clean-wla-${W}:
-	-\$(RM) binaries/wla-${W} \$(WLA_${W}_O)
+	-\$(RM) $(bindir)wla-${W} \$(WLA_${W}_O)
 clean-gen-${W}:
 	-\$(RM) gen-${W} \$(WLA_${W}_GENO) \$(WLA_${W}_GENSO)
 EOF
