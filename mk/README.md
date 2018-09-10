@@ -27,6 +27,10 @@ Files
   Run it once for more information.
 * `posix.mk` - A makefile that should work on POSIX-compatible systems and tools.
 * `gcc.mk` - Like `posix.mk`, but uses gcc (and clang) specific stuff
+* `mingw.mk` - Like `gcc.mk`, but uses Windows-specific defines and tools.
+  Note that your GCC name might be different. Append `GCC=mingw32-gcc` or
+  similar to the make innovation. Also the make tool is probably called
+  `mingw32-make`.
 
 
 Targets

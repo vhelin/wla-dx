@@ -57,6 +57,17 @@ setup_gcc() {
     test -z "$1" || "$*"
 }
 
+SETUPS="$SETUPS mingw"
+setup_mingw() {
+    setup_gcc
+    RM=del
+    EXT=.exe
+    CFLAGS_MISC="$CFLAGS_MISC -DMSDOS=1 -DWIN32=1"
+    BACKSLASH_SRC_DIR=1
+    BACKSLASH_BIN_DIR=1
+    test -z "$1" || "$*"
+}
+
 generate_for() {
     for target in $SETUPS; do
         test "$1" = "$target" && setup_"$target" gen > "$OUTDIR"/"$target".mk
