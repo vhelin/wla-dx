@@ -68,6 +68,27 @@ setup_mingw() {
     test -z "$1" || "$*"
 }
 
+SETUPS="$SETUPS win32cl"
+setup_win32cl() {
+    setup_posix
+    RM=del
+    EXT=.exe
+    CC=cl
+    CC_TEMPLATE="\$(CC) \$(DEBUGFLAGS) {flags} \$(CFLAGS_ALL) /c {in} /Fo: {out}"
+    COMPILE_DEF="/D%s"
+    CFLAGS_MISC="/nologo /Za /DMSDOS=1 /DWIN32=1"
+    CFLAGS_OPT=/Ox
+    LD=link
+    LD_TEMPLATE="\$(LD) \$(LDFLAGS_ALL) {in} {libs} /out:{out}"
+    LDFLAGS_MISC=/nologo
+    LDLIBS=" "
+    LDLIBS_GEN=" "
+    BACKSLASH_SRC_DIR=1
+    BACKSLASH_BIN_DIR=1
+    GEN_EXEC="\$?"
+    test -z "$1" || "$*"
+}
+
 generate_for() {
     for target in $SETUPS; do
         test "$1" = "$target" && setup_"$target" gen > "$OUTDIR"/"$target".mk

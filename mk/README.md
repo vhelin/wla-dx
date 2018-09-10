@@ -31,7 +31,10 @@ Files
   Note that your GCC name might be different. Append `GCC=mingw32-gcc` or
   similar to the make innovation. Also the make tool is probably called
   `mingw32-make`.
-
+* `win32cl.mk` - For Microsofts (and clang) CL compiler; Also make sure to
+  use NMake and use it inside the "Developer Command Prompt" (or
+  "Native Tools Command Prompt") from Visual Studio to be able to access the
+  tools you need.
 
 Targets
 -------
