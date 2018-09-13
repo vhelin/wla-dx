@@ -205,6 +205,11 @@ int input_number(void) {
       print_error(xyz, ERROR_NUM);
       return FAILED;
     }
+	if (d == 0) {
+      sprintf(xyz, "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", d, macro_runtime_current->macro->name);
+      print_error(xyz, ERROR_NUM);
+      return FAILED;
+	}
 
     /* return the macro argument */
     ma = macro_runtime_current->argument_data[d - 1];
