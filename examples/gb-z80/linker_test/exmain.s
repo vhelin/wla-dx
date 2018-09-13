@@ -282,3 +282,26 @@ joopa:
 
  hello $80, 2, 4, 5
  .printt "\n"
+
+; --------------------------------------------------------------------------------------
+; This should print: "x = 5"
+; --------------------------------------------------------------------------------------
+
+.define val1 5
+.define val2 2.3
+
+.struct struct2
+  y db
+.endst
+
+.struct struct1
+  ys instanceof struct2 64
+.endst
+
+.macro themacro args x
+.printt "x = "
+.printv dec x
+.printt " (should be 5)\n\n"
+.endm
+
+  themacro val1

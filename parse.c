@@ -12,6 +12,8 @@
 #include "include_file.h"
 
 
+int parse_string_length(char *end);
+
 int input_number_error_msg = YES, ss, string_size, input_float_mode = OFF, parse_floats = YES;
 int newline_beginning = ON, parsed_double_decimal_numbers = 0;
 char label[MAX_NAME_LENGTH + 1], xyz[512];
@@ -476,8 +478,25 @@ int input_number(void) {
 	continue;
       }
       
-      if (e == '"')
+      if (e == '"') {
+	/* check for "string".length */
+	if (buffer[i+0] == '.' &&
+	    (buffer[i+1] == 'l' || buffer[i+1] == 'L') &&
+	    (buffer[i+2] == 'e' || buffer[i+2] == 'E') &&
+	    (buffer[i+3] == 'n' || buffer[i+3] == 'N') &&
+	    (buffer[i+4] == 'g' || buffer[i+4] == 'G') &&
+	    (buffer[i+5] == 't' || buffer[i+5] == 'T') &&
+	    (buffer[i+6] == 'h' || buffer[i+6] == 'H')) {
+	  /* yes, we've got it! calculate the length and return the integer */
+	  i += 7;
+	  label[k] = 0;
+	  d = strlen(label);
+	  parsed_double = (double)d;
+
+	  return SUCCEEDED;
+	}
 	break;
+      }
       
       if (e == 0 || e == 0x0A) {
 	print_error("String wasn't terminated properly.\n", ERROR_NUM);
@@ -564,7 +583,17 @@ int input_number(void) {
     strcpy(label_tmp, &label[1]);
   else
     strcpy(label_tmp, label);
-  
+
+  /* check for "string".length */
+  if (strstr(label, ".length") != NULL) {
+    parse_string_length(strstr(label, ".length"));
+    return SUCCEEDED;
+  }
+  else if (strstr(label, ".LENGTH") != NULL) {
+    parse_string_length(strstr(label, ".LENGTH"));
+    return SUCCEEDED;
+  }
+
   /* check if the label is actually a definition */
   if (hashmap_get(defines_map, label, (void*)&tmp_def) != MAP_OK)
     hashmap_get(defines_map, label_tmp, (void*)&tmp_def);
@@ -622,6 +651,49 @@ int input_number(void) {
   }
 
   return INPUT_NUMBER_ADDRESS_LABEL;
+}
+
+
+int parse_string_length(char *end) {
+
+  /* remove ".length" from the end of label (end points to inside of label) */
+  end[0] = 0;
+
+  /* check if the label is actually a definition - it should be or else we'll give an error */
+  hashmap_get(defines_map, label, (void*)&tmp_def);
+  
+  if (tmp_def != NULL) {
+    if (tmp_def->type == DEFINITION_TYPE_VALUE) {
+      if (input_number_error_msg == YES) {
+	print_error(".length of a value does not make any sense.\n", ERROR_NUM);
+      }
+      return FAILED;
+    }
+    else if (tmp_def->type == DEFINITION_TYPE_STACK) {
+      if (input_number_error_msg == YES) {
+	print_error(".length of a pending computation does not make any sense.\n", ERROR_NUM);
+      }
+      return FAILED;
+    }
+    else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+      if (input_number_error_msg == YES) {
+	print_error(".length of an address label does not make any sense.\n", ERROR_NUM);
+      }
+      return FAILED;
+    }
+    else {
+      string_size = tmp_def->size;
+      memcpy(label, tmp_def->string, string_size);
+      label[string_size] = 0;
+
+      d = strlen(label);
+      parsed_double = (double)d;
+	  
+      return SUCCEEDED;
+    }
+  }
+
+  return FAILED;
 }
 
 

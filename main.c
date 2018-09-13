@@ -35,31 +35,29 @@ FILE *file_out_ptr = NULL;
 long __stack = 65536;
 #endif
 
-#ifdef AMIGA
 #ifdef GB
-char version_string[] = "$VER: WLA-GB 9.8a (16.05.2018)";
+char version_string[] = "$VER: WLA-GB 9.8a (13.09.2018)";
 #endif
 #ifdef Z80
-char version_string[] = "$VER: WLA-Z80 9.8a (16.05.2018)";
+char version_string[] = "$VER: WLA-Z80 9.8a (13.09.2018)";
 #endif
 #ifdef MCS6502
-char version_string[] = "$VER: WLA-6502 9.8a (16.05.2018)";
+char version_string[] = "$VER: WLA-6502 9.8a (13.09.2018)";
 #endif
 #ifdef WDC65C02
-char version_string[] = "$VER: WLA-65C02 9.8a (16.05.2018)";
+char version_string[] = "$VER: WLA-65C02 9.8a (13.09.2018)";
 #endif
 #ifdef W65816
-char version_string[] = "$VER: WLA-65816 9.8a (16.05.2018)";
+char version_string[] = "$VER: WLA-65816 9.8a (13.09.2018)";
 #endif
 #ifdef MCS6510
-char version_string[] = "$VER: WLA-6510 9.8a (16.05.2018)";
+char version_string[] = "$VER: WLA-6510 9.8a (13.09.2018)";
 #endif
 #ifdef SPC700
-char version_string[] = "$VER: WLA-SPC700 9.8a (16.05.2018)";
+char version_string[] = "$VER: WLA-SPC700 9.8a (13.09.2018)";
 #endif
 #ifdef HUC6280
-char version_string[] = "$VER: WLA-HuC6280 9.8a (16.05.2018)";
-#endif
+char version_string[] = "$VER: WLA-HuC6280 9.8a (13.09.2018)";
 #endif
 
 char wla_version[] = "9.8a";
@@ -162,6 +160,7 @@ int main(int argc, char *argv[]) {
 #ifdef WLA_DEBUG
     printf("*** WLA_DEBUG defined - this executable is running in DEBUG mode ***\n");
 #endif
+    printf("%s\n\n", version_string);
     printf("USAGE: %s [OPTIONS] <ASM FILE>\n\n", argv[0]);
     printf("Options:\n");
     printf("-i  Add list file information\n");

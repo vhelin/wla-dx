@@ -1,7 +1,7 @@
 
-CC = ./wla-z80
+CC = wla-z80
 CFLAGS = -o
-LD = ./wlalink
+LD = wlalink
 LDFLAGS = -v -d -s
 
 SFILES = sms.s

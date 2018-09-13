@@ -244,4 +244,30 @@ tests:	.db "ASCIITest\0\0\0\0ASCIITest", "\x0a\x10\xbb\x11ASCIITest"
 	.db ".DLTest"
 	
 .ends
+
+.section stringLengthTest force
+
+.macro printarg1 args arg1
+.printt ".printarg1 = "
+.printv dec arg1
+.printt "\n"
+.endm
+
+ printarg1 1
+ printarg1 "hi".length
+ printarg1 3
+ printarg1 "test".LENGTH
+
+.macro storearg args arg1
+.db "DATA START ="
+.db arg1.length, arg1
+.db "= DATA END"
+.endm
+
+ storearg "four"
+ storearg "55555"
+ storearg "1********0"
 	
+.db "DATA START =", "h".length, "he".LENGTH, "hel".length, "hell".LENGTH, "hello".length, "= DATA END"
+
+.ends

@@ -25,9 +25,7 @@
 #define WLALINK_DEBUG
 */
 
-#ifdef AMIGA
 char version_string[] = "$VER: WLALINK 5.10a (30.04.2018)";
-#endif
 
 struct object_file *obj_first = NULL, *obj_last = NULL, *obj_tmp;
 struct reference *reference_first = NULL, *reference_last = NULL;
@@ -168,6 +166,7 @@ int main(int argc, char *argv[]) {
 #ifdef WLALINK_DEBUG
     printf("*** WLALINK_DEBUG defined - this executable is running in DEBUG mode ***\n");
 #endif
+    printf("%s\n\n", version_string);
     printf("USAGE: %s [OPTIONS] <LINK FILE> <OUTPUT FILE>\n\n", argv[0]);
     printf("Options:\n");
     printf("-b  Program file output\n");
