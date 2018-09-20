@@ -50,8 +50,8 @@ extern int bankheader_status;
 extern int smc_defined, makefile_rules;
 
 #ifdef W65816
-extern int lorom_defined, hirom_defined, slowrom_defined, fastrom_defined, snes_mode;
-extern int computesneschecksum_defined, sramsize, sramsize_defined;
+extern int lorom_defined, hirom_defined, slowrom_defined, fastrom_defined, snes_mode, exhirom_defined;
+extern int computesneschecksum_defined, sramsize, sramsize_defined, exlorom_defined;
 #endif
 
 #ifdef Z80
@@ -959,7 +959,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAO%c", emptyfill);
+    fprintf(final_ptr, "WLAP%c", emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -978,7 +978,7 @@ int pass_4(void) {
       if (computesneschecksum_defined != 0)
         ind += 64;
       /* use snes banking scheme */
-      if (hirom_defined != 0 || lorom_defined != 0)
+      if (hirom_defined != 0 || lorom_defined != 0 || exhirom_defined != 0 || exlorom_defined != 0)
         ind += 4;
     }
     /* 65816 bit */
@@ -1011,6 +1011,15 @@ int pass_4(void) {
       ind |= 1 << 4;
 #endif
 
+#ifdef W65816
+    if (snes_mode != 0) {
+      if (exhirom_defined != 0)
+        ind |= 1 << 5;
+      if (exlorom_defined != 0)
+        ind |= 1 << 6;
+    }
+#endif
+      
     fprintf(final_ptr, "%c", ind);
 
     /* rom bank map */
@@ -1018,20 +1027,20 @@ int pass_4(void) {
     WRITEOUT_OV;                                   /* number of rom banks */
 
     if (rombankmap_defined != 0) {
-      fprintf(final_ptr, "%c", 1);                /* status */
+      fprintf(final_ptr, "%c", 1);                 /* status */
       for (i = 0; i < rombanks; i++) {
         ov = banks[i];
         WRITEOUT_OV;                               /* banksize */
       }
     }
     else {
-      fprintf(final_ptr, "%c", 0);                /* status */
+      fprintf(final_ptr, "%c", 0);                 /* status */
       ov = banksize;
       WRITEOUT_OV;                                 /* banksize */
     }
 
     /* memory map */
-    fprintf(final_ptr, "%c", slots_amount);       /* number of slots */
+    fprintf(final_ptr, "%c", slots_amount);        /* number of slots */
 
     for (i = 0; i < slots_amount; i++) {
       if (slots[i].size != 0) {

@@ -73,6 +73,7 @@ int sramsize_defined = 0, sramsize = 0, country_defined = 0, country = 0;
 int cartridgetype = 0, cartridgetype_defined = 0, licenseecode_defined = 0, licenseecode = 0;
 int version_defined = 0, version = 0, snesnativevector_defined = 0, snesemuvector_defined = 0;
 int hirom_defined = 0, lorom_defined = 0, slowrom_defined = 0, fastrom_defined = 0, snes_mode = 0;
+int exlorom_defined = 0, exhirom_defined = 0;
 int computesneschecksum_defined = 0;
 #endif
 
@@ -1085,6 +1086,31 @@ void print_error(char *error, int type) {
   fprintf(stderr, "%s:%d: %s %s", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current, t, error);
   return;
 }
+
+
+#ifdef W65816
+
+void give_snes_rom_mode_defined_error(char *prior) {
+
+  if (lorom_defined != 0) {
+    sprintf(emsg, ".LOROM was defined prior to %s.\n", prior);
+    print_error(emsg, ERROR_DIR);
+  }
+  else if (hirom_defined != 0) {
+    sprintf(emsg, ".HIROM was defined prior to %s.\n", prior);
+    print_error(emsg, ERROR_DIR);
+  }
+  else if (exlorom_defined != 0) {
+    sprintf(emsg, ".EXLOROM was defined prior to %s.\n", prior);
+    print_error(emsg, ERROR_DIR);
+  }
+  else if (exhirom_defined != 0) {
+    sprintf(emsg, ".EXHIROM was defined prior to %s.\n", prior);
+    print_error(emsg, ERROR_DIR);
+  }
+}
+
+#endif
 
 
 void next_line(void) {
@@ -4997,8 +5023,8 @@ int parse_directive(void) {
 
     no_library_files(".COMPUTESNESCHECKSUM");
     
-    if (hirom_defined == 0 && lorom_defined == 0) {
-      print_error(".COMPUTESNESCHECKSUM needs either .LOROM or .HIROM.\n", ERROR_DIR);
+    if (hirom_defined == 0 && lorom_defined == 0 && exhirom_defined == 0 && exlorom_defined == 0) {
+      print_error(".COMPUTESNESCHECKSUM needs .LOROM, .HIROM or .EXHIROM defined earlier.\n", ERROR_DIR);
       return FAILED;
     }
     if (snesheader_defined != 0) 
@@ -5878,9 +5904,9 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "HIROM") == 0) {
     no_library_files(".HIROM");
-    
-    if (lorom_defined != 0) {
-      print_error(".LOROM was defined prior to .HIROM.\n", ERROR_DIR);
+
+    if (lorom_defined != 0 || exlorom_defined != 0 || exhirom_defined != 0) {
+      give_snes_rom_mode_defined_error(".HIROM");
       return FAILED;
     }
 
@@ -5890,13 +5916,29 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
+  /* EXHIROM */
+
+  if (strcaselesscmp(cp, "EXHIROM") == 0) {
+    no_library_files(".EXHIROM");
+
+    if (lorom_defined != 0 || exlorom_defined != 0 || hirom_defined != 0) {
+      give_snes_rom_mode_defined_error(".EXHIROM");
+      return FAILED;
+    }
+
+    exhirom_defined++;
+    snes_mode++;
+
+    return SUCCEEDED;
+  }
+  
   /* LOROM */
 
   if (strcaselesscmp(cp, "LOROM") == 0) {
     no_library_files(".LOROM");
-    
-    if (hirom_defined != 0) {
-      print_error(".HIROM was defined prior to .LOROM.\n", ERROR_DIR);
+
+    if (hirom_defined != 0 || exlorom_defined != 0 || exhirom_defined != 0) {
+      give_snes_rom_mode_defined_error(".LOROM");
       return FAILED;
     }
 
@@ -5906,6 +5948,22 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
+  /* EXLOROM */
+  /*
+  if (strcaselesscmp(cp, "EXLOROM") == 0) {
+    no_library_files(".EXLOROM");
+
+    if (hirom_defined != 0 || lorom_defined != 0 || exhirom_defined != 0) {
+      give_snes_rom_mode_defined_error(".EXLOROM");
+      return FAILED;
+    }
+
+    exlorom_defined++;
+    snes_mode++;
+
+    return SUCCEEDED;
+  }
+  */
   /* SLOWROM */
 
   if (strcaselesscmp(cp, "SLOWROM") == 0) {
@@ -6045,21 +6103,39 @@ int parse_directive(void) {
         }
       }
       else if (strcaselesscmp(tmp, "HIROM") == 0) {
-        if (lorom_defined != 0) {
-          print_error(".LOROM was defined prior to .HIROM.\n", ERROR_DIR);
-          return FAILED;
-        }
+	if (lorom_defined != 0 || exlorom_defined != 0 || exhirom_defined != 0) {
+	  give_snes_rom_mode_defined_error(".HIROM");
+	  return FAILED;
+	}
 
         hirom_defined++;
       }
+      else if (strcaselesscmp(tmp, "EXHIROM") == 0) {
+	if (lorom_defined != 0 || exlorom_defined != 0 || hirom_defined != 0) {
+	  give_snes_rom_mode_defined_error(".EXHIROM");
+	  return FAILED;
+	}
+
+        exhirom_defined++;
+      }
       else if (strcaselesscmp(tmp, "LOROM") == 0) {
-        if (hirom_defined != 0) {
-          print_error(".HIROM was defined prior to .LOROM.\n", ERROR_DIR);
-          return FAILED;
-        }
+	if (hirom_defined != 0 || exlorom_defined != 0 || exhirom_defined != 0) {
+	  give_snes_rom_mode_defined_error(".LOROM");
+	  return FAILED;
+	}
 
         lorom_defined++;
       }
+      /*
+      else if (strcaselesscmp(tmp, "EXLOROM") == 0) {
+	if (hirom_defined != 0 || lorom_defined != 0 || exhirom_defined != 0) {
+	  give_snes_rom_mode_defined_error(".EXLOROM");
+	  return FAILED;
+	}
+
+        exlorom_defined++;
+      }
+      */
       else if (strcaselesscmp(tmp, "SLOWROM") == 0) {
         if (fastrom_defined != 0) {
           print_error(".FASTROM was defined prior to .SLOWROM.\n", ERROR_DIR);
@@ -6215,7 +6291,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "SNESNATIVEVECTOR") == 0) {
 
-    int cop_defined = 0, brk_defined = 0, abort_defined = 0;
+    int cop_defined = 0, brk_defined = 0, abort_defined = 0, base_address;
     int nmi_defined = 0, unused_defined = 0, irq_defined = 0;
     char cop[512], brk[512], abort[512], nmi[512], unused[512], irq[512];
 
@@ -6224,8 +6300,8 @@ int parse_directive(void) {
       print_error(".SNESNATIVEVECTOR can be defined only once.\n", ERROR_DIR);
       return FAILED;
     }
-    if (hirom_defined == 0 && lorom_defined == 0) {
-      print_error(".SNESNATIVEVECTOR needs either .LOROM or .HIROM.\n", ERROR_DIR);
+    if (hirom_defined == 0 && lorom_defined == 0 && exhirom_defined == 0 && exlorom_defined == 0) {
+      print_error(".SNESNATIVEVECTOR needs .LOROM, .HIROM or .EXHIROM defined earlier.\n", ERROR_DIR);
       return FAILED;
     }
     if (output_format == OUTPUT_LIBRARY) {
@@ -6238,7 +6314,15 @@ int parse_directive(void) {
       return FAILED;
     strcpy(sec_tmp->name, "!__WLA_SNESNATIVEVECTOR");
     sec_tmp->status = SECTION_STATUS_ABSOLUTE;
-    fprintf(file_out_ptr, "P O0 A%d %d ", sec_tmp->id, 0x7FE4 + (hirom_defined ? 0x8000 : 0x0000));
+
+    if (lorom_defined || exlorom_defined)
+      base_address = 0x7FE4;
+    else if (hirom_defined)
+      base_address = 0xFFE4;
+    else if (exhirom_defined)
+      base_address = 0x40FFE4;
+    
+    fprintf(file_out_ptr, "P O0 A%d %d ", sec_tmp->id, base_address);
     fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
 
     while ((ind = get_next_token()) == SUCCEEDED) {
@@ -6429,7 +6513,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "SNESEMUVECTOR") == 0) {
 
-    int cop_defined = 0, unused_defined = 0, abort_defined = 0;
+    int cop_defined = 0, unused_defined = 0, abort_defined = 0, base_address;
     int nmi_defined = 0, reset_defined = 0, irqbrk_defined = 0;
     char cop[512], unused[512], abort[512], nmi[512], reset[512], irqbrk[512];
 
@@ -6438,8 +6522,8 @@ int parse_directive(void) {
       print_error(".SNESEMUVECTOR can be defined only once.\n", ERROR_DIR);
       return FAILED;
     }
-    if (hirom_defined == 0 && lorom_defined == 0) {
-      print_error(".SNESEMUVECTOR needs .LOROM or .HIROM.\n", ERROR_DIR);
+    if (hirom_defined == 0 && lorom_defined == 0 && exhirom_defined == 0 && exlorom_defined == 0) {
+      print_error(".SNESEMUVECTOR needs .LOROM, .HIROM or .EXHIROM defined earlier.\n", ERROR_DIR);
       return FAILED;
     }
     if (output_format == OUTPUT_LIBRARY) {
@@ -6452,7 +6536,15 @@ int parse_directive(void) {
       return FAILED;
     strcpy(sec_tmp->name, "!__WLA_SNESEMUVECTOR");
     sec_tmp->status = SECTION_STATUS_ABSOLUTE;
-    fprintf(file_out_ptr, "P O0 A%d %d ", sec_tmp->id, 0x7FF4 + (hirom_defined ? 0x8000 : 0x0000));
+
+    if (lorom_defined || exlorom_defined)
+      base_address = 0x7FF4;
+    else if (hirom_defined)
+      base_address = 0xFFF4;
+    else if (exhirom_defined)
+      base_address = 0x40FFF4;
+
+    fprintf(file_out_ptr, "P O0 A%d %d ", sec_tmp->id, base_address);
     fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
 
     while ((ind = get_next_token()) == SUCCEEDED) {

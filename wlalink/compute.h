@@ -6,3 +6,4 @@ int compute_gb_checksum(void);
 int compute_sms_checksum(int is_sms_header);
 int compute_snes_checksum(void);
 int add_tmr_sega(void);
+int finalize_snes_rom(void);

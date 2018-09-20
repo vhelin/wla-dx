@@ -69,13 +69,13 @@ int reserve_checksum_bytes(void) {
   }
 
   if (snes_checksum != 0) {
-    if (snes_rom_mode == SNES_ROM_MODE_LOROM && romsize >= 0x8000) {
+    if ((snes_rom_mode == SNES_ROM_MODE_LOROM || snes_rom_mode == SNES_ROM_MODE_EXLOROM) && romsize >= 0x8000) {
       mem_insert(0x7FDC, 0);
       mem_insert(0x7FDD, 0);
       mem_insert(0x7FDE, 0);
       mem_insert(0x7FDF, 0);
     }
-    else if (snes_rom_mode == SNES_ROM_MODE_HIROM && romsize >= 0x10000) {
+    else if ((snes_rom_mode == SNES_ROM_MODE_HIROM || snes_rom_mode == SNES_ROM_MODE_EXHIROM) && romsize >= 0x10000) {
       mem_insert(0xFFDC, 0);
       mem_insert(0xFFDD, 0);
       mem_insert(0xFFDE, 0);
@@ -149,20 +149,80 @@ int compute_gb_checksum(void) {
 }
 
 
+int finalize_snes_rom(void) {
+
+  int i;
+  
+  
+  if (snes_rom_mode == SNES_ROM_MODE_EXHIROM && romsize >= 0x410000) {
+    /* mirror the cartridge rom header from $40ffb0-$40ffff -> $ffb0-$ffff */
+    for (i = 0; i < 5*16; i++)
+      mem_insert(0xffb0 + i, rom[0x40ffb0 + i]);
+  }
+
+  return SUCCEEDED;
+}
+
+
+int compute_snes_exhirom_checksum(void) {
+
+  int i, j, res, inv;
+
+
+  res = 0;
+
+  /* do first the low 40-8Mbits (32MBits) */
+  for (i = 0; i < 32/8*1024*1024; i++) {
+    /* skip the (mirrored) checksum bytes */
+    if (!(i == 0xFFDC || i == 0xFFDD || i == 0xFFDE || i == 0xFFDF))
+      res += rom[i];
+  }
+
+  /* next loop the remaining data until 64MBits are summed */
+  j = 32/8*1024*1024;
+  for (i = 0; i < 32/8*1024*1024; i++) {
+    /* loop around? */
+    if (j > 32/8*1024*1024)
+      j = 32/8*1024*1024;
+    if (!(j == 0x40FFDC || j == 0x40FFDD || j == 0x40FFDE || j == 0x40FFDF))
+      res += rom[j];
+    j++;
+  }
+
+  /* 2*255 is for the checksum and its complement bytes that we skipped earlier */
+  res += 2*255;
+
+  /* compute the inverse checksum */
+  inv = (res & 0xFFFF) ^ 0xFFFF;
+
+  /* insert the checksum bytes */
+  mem_insert_allow_overwrite(0x40FFDC, inv & 0xFF, 1);
+  mem_insert_allow_overwrite(0x40FFDD, (inv >> 8) & 0xFF, 1);
+  mem_insert_allow_overwrite(0x40FFDE, res & 0xFF, 1);
+  mem_insert_allow_overwrite(0x40FFDF, (res >> 8) & 0xFF, 1);
+
+  return SUCCEEDED;  
+}
+
+
 int compute_snes_checksum(void) {
 
   int i, j, k, res, n, m, inv;
 
+
+  /* ExHiROM jump */
+  if (snes_rom_mode == SNES_ROM_MODE_EXHIROM && romsize >= 0x410000)
+    return compute_snes_exhirom_checksum();
   
-  if (snes_rom_mode == SNES_ROM_MODE_LOROM) {
+  if (snes_rom_mode == SNES_ROM_MODE_LOROM || snes_rom_mode == SNES_ROM_MODE_EXLOROM) {
     if (romsize < 0x8000) {
-      fprintf(stderr, "COMPUTE_SNES_CHECKSUM: SNES checksum computing for a LoROM image requires a ROM of at least 32KB.\n");
+      fprintf(stderr, "COMPUTE_SNES_CHECKSUM: SNES checksum computing for a LoROM/ExLoROM image requires a ROM of at least 32KB.\n");
       return FAILED;
     }
   }
   else {
     if (romsize < 0x10000) {
-      fprintf(stderr, "COMPUTE_SNES_CHECKSUM: SNES checksum computing for a HiROM image requires a ROM of at least 64KB.\n");
+      fprintf(stderr, "COMPUTE_SNES_CHECKSUM: SNES checksum computing for a HiROM/ExHiROM image requires a ROM of at least 64KB.\n");
       return FAILED;
     }
   }
@@ -180,7 +240,7 @@ int compute_snes_checksum(void) {
   /* sum all the bytes inside the 4mbit blocks */
   res = 0;
   for (i = 0; i < n; i++) {
-    if (snes_rom_mode == SNES_ROM_MODE_LOROM) {
+    if (snes_rom_mode == SNES_ROM_MODE_LOROM || snes_rom_mode == SNES_ROM_MODE_EXLOROM) {
       /* skip the checksum bytes */
       if (!(i == 0x7FDC || i == 0x7FDD || i == 0x7FDE || i == 0x7FDF))
 	res += rom[i];
@@ -204,7 +264,7 @@ int compute_snes_checksum(void) {
   inv = (res & 0xFFFF) ^ 0xFFFF;
 
   /* insert the checksum bytes */
-  if (snes_rom_mode == SNES_ROM_MODE_LOROM) {
+  if (snes_rom_mode == SNES_ROM_MODE_LOROM || snes_rom_mode == SNES_ROM_MODE_EXLOROM) {
     mem_insert_allow_overwrite(0x7FDC, inv & 0xFF, 1);
     mem_insert_allow_overwrite(0x7FDD, (inv >> 8) & 0xFF, 1);
     mem_insert_allow_overwrite(0x7FDE, res & 0xFF, 1);

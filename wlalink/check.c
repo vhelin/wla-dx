@@ -27,7 +27,7 @@ int check_file_types(void) {
   
   o = obj_first;
   while (o != NULL) {
-    if (strncmp((char *)o->data, "WLAO", 4) == 0)
+    if (strncmp((char *)o->data, "WLAP", 4) == 0)
       o->format = WLA_VERSION_OBJ;
     else if (strncmp((char *)o->data, "WLAY", 4) == 0)
       o->format = WLA_VERSION_LIB;
@@ -69,6 +69,10 @@ int check_headers(void) {
 	snes_sramsize = (more_bits >> 1) & 3;
 	smstag_defined = (more_bits >> 3) & 1;
 	sms_header = (more_bits >> 4) & 1;
+	if (((more_bits >> 5) & 1) == 1)
+	  snes_rom_mode = SNES_ROM_MODE_EXHIROM;
+	if (((more_bits >> 6) & 1) == 1)
+	  snes_rom_mode = SNES_ROM_MODE_EXLOROM;
       }
       else if (emptyfill != *(o->data + OBJ_EMPTY_FILL) || misc_bits != *(o->data + OBJ_MISC_BITS) || more_bits != *(o->data + OBJ_MORE_BITS)) {
 	fprintf(stderr, "CHECK_HEADERS: The object files are from different projects.\n");

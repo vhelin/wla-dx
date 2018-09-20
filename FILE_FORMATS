@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file format "WLAO"
+WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file format "WLAP"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAO" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 16 (18-May-2017)
+        "WLAP" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 17 (20-Sep-2018)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -19,13 +19,15 @@ header:
                    bit 3 - snes rom speed indicator (0 == 200ns, 1 == 120ns)
                    bit 4 - gb checksum (1 == compute)
                    bit 5 - gb complement check (1 == compute)
-		   bit 6 - snes checksum (1 == compute)
+                   bit 6 - snes checksum (1 == compute)
                    bit 7 - 65816 indicator (1 == 65816))
   1     more bits (bit 0 - smc (1 == add smc rom header)
                    bit 1 - snes sram size, lower bit
                    bit 2 - snes sram size, higher bit
-		   bit 3 - sms tag (1 == inject)
-		   bit 4 - sms header (1 == inject))
+                   bit 3 - sms tag (1 == inject)
+                   bit 4 - sms header (1 == inject))
+                   bit 5 - snes exhirom (1 = yes)
+                   bit 6 - snes exlorom (1 = yes)
 
 rom bank map:
 

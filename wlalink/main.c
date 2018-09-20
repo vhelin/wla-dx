@@ -25,7 +25,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: WLALINK 5.10a (30.04.2018)";
+char version_string[] = "$VER: WLALINK 5.10a (20.09.2018)";
 
 struct object_file *obj_first = NULL, *obj_last = NULL, *obj_tmp;
 struct reference *reference_first = NULL, *reference_last = NULL;
@@ -468,6 +468,9 @@ int main(int argc, char *argv[]) {
   /* write checksums and other last minute data */
   if (compute_checksums() == FAILED)
     return 1;
+
+  if (snes_mode != 0)
+    finalize_snes_rom();
 
   /* write rom file */
   if (write_rom_file(argv[argc - 1]) == FAILED)

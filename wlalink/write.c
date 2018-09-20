@@ -60,7 +60,7 @@ int smc_create_and_write(FILE *f) {
 
   /* emulation mode select (?) */
   i = 0;
-  if (snes_rom_mode == SNES_ROM_MODE_HIROM)
+  if (snes_rom_mode == SNES_ROM_MODE_HIROM || snes_rom_mode == SNES_ROM_MODE_EXHIROM)
     i |= (1<<5) | (1<<4);
   i |= (snes_sramsize ^ 3) << 2;
 
@@ -592,12 +592,13 @@ int fix_label_sections(void) {
 }
 
 
-
-/* Determines which hashmaps are relevant for the label, and adds it to them. */
+/* determines which hashmaps are relevant for the label, and adds it to them. */
 int insert_label_into_maps(struct label* l, int is_sizeof) {
+
   int put_in_global = 1;
   int put_in_anything = 1;
   char* base_name;
+
 
   /* for "sizeof" labels, "base_name" refers to the label name without the "_sizeof_"
    * prefix. */
@@ -605,8 +606,7 @@ int insert_label_into_maps(struct label* l, int is_sizeof) {
   if (is_sizeof)
     base_name += 8;
 
-  if (l->status == LABEL_STATUS_SYMBOL
-      || l->status == LABEL_STATUS_BREAKPOINT
+  if (l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT
       || is_label_anonymous(base_name) == SUCCEEDED) {
     /* don't put anonymous labels, breakpoints, or symbols into any maps */
     put_in_anything = 0;
@@ -1719,13 +1719,13 @@ int get_snes_pc_bank(struct label *l) {
   int x, k;
 
 
-  /* do we override the user's banking scheme (.HIROM/.LOROM)? */
+  /* do we override the user's banking scheme (.HIROM/.LOROM/.EXHIROM/.EXLOROM)? */
   if (snes_mode != 0) {
     /* use rom_address instead of address, as address points to
        the position in destination machine's memory, not in rom */
     k = l->rom_address;
 
-    if (snes_rom_mode == SNES_ROM_MODE_HIROM)
+    if (snes_rom_mode == SNES_ROM_MODE_HIROM || snes_rom_mode == SNES_ROM_MODE_EXHIROM)
       x = k / 0x10000;
     else
       x = k / 0x8000;
@@ -1788,9 +1788,11 @@ int is_label_anonymous(char *label) {
 
 
 static int _labels_compare(const void *a, const void *b) {
+
   const struct label *l1 = a;
   const struct label *l2 = b;
 
+  
   if (l1->section_status == OFF && l2->section_status == ON)
     return 1;
   if (l1->section_status == ON && l2->section_status == OFF)
@@ -1812,18 +1814,22 @@ static int _labels_compare(const void *a, const void *b) {
   return -1;
 }
 
+
 static int _labels_sort(const void *a, const void *b) {
+
   return _labels_compare(*(void**)a, *(void**)b);
 }
 
 
 int sort_anonymous_labels() {
-  int j=0;
+
+  int j = 0;
   struct label *l;
 
+  
   num_sorted_anonymous_labels = 0;
 
-  /* Count # of anonymous labels */
+  /* count # of anonymous labels */
   l = labels_first;
   while (l != NULL) {
     if (is_label_anonymous(l->name) == SUCCEEDED)
@@ -1840,7 +1846,7 @@ int sort_anonymous_labels() {
     return FAILED;
   }
 
-  /* Load anonymous labels */
+  /* load anonymous labels */
   l = labels_first;
   while (l != NULL) {
     if (is_label_anonymous(l->name) == SUCCEEDED)
@@ -1849,7 +1855,6 @@ int sort_anonymous_labels() {
   }
 
   qsort(sorted_anonymous_labels, num_sorted_anonymous_labels, sizeof(struct label *), _labels_sort);
-
 
   return SUCCEEDED;
 }
