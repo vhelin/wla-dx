@@ -178,19 +178,23 @@ int compute_snes_exhirom_checksum(void) {
       res += rom[i];
   }
 
+  /* 2*255 is for the checksum and its complement bytes that we skipped earlier */
+  res += 2*255;
+
   /* next loop the remaining data until 64MBits are summed */
   j = 32/8*1024*1024;
   for (i = 0; i < 32/8*1024*1024; i++) {
     /* loop around? */
-    if (j > 32/8*1024*1024)
+    if (j >= romsize)
       j = 32/8*1024*1024;
     if (!(j == 0x40FFDC || j == 0x40FFDD || j == 0x40FFDE || j == 0x40FFDF))
       res += rom[j];
+    if (j == 0x40FFDC) {
+      /* 2*255 is for the checksum and its complement bytes that we are skipping */
+      res += 2*255;
+    }
     j++;
   }
-
-  /* 2*255 is for the checksum and its complement bytes that we skipped earlier */
-  res += 2*255;
 
   /* compute the inverse checksum */
   inv = (res & 0xFFFF) ^ 0xFFFF;
