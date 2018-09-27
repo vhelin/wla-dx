@@ -465,12 +465,12 @@ int main(int argc, char *argv[]) {
   }
 #endif
 
+  if (snes_mode != 0)
+    finalize_snes_rom();
+
   /* write checksums and other last minute data */
   if (compute_checksums() == FAILED)
     return 1;
-
-  if (snes_mode != 0)
-    finalize_snes_rom();
 
   /* write rom file */
   if (write_rom_file(argv[argc - 1]) == FAILED)

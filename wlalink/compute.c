@@ -205,6 +205,12 @@ int compute_snes_exhirom_checksum(void) {
   mem_insert_allow_overwrite(0x40FFDE, res & 0xFF, 1);
   mem_insert_allow_overwrite(0x40FFDF, (res >> 8) & 0xFF, 1);
 
+  /* ... and mirror them */
+  mem_insert_allow_overwrite(0xFFDC, inv & 0xFF, 1);
+  mem_insert_allow_overwrite(0xFFDD, (inv >> 8) & 0xFF, 1);
+  mem_insert_allow_overwrite(0xFFDE, res & 0xFF, 1);
+  mem_insert_allow_overwrite(0xFFDF, (res >> 8) & 0xFF, 1);
+  
   return SUCCEEDED;  
 }
 
