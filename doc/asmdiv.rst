@@ -51,6 +51,7 @@ ALL  ``.EMPTYFILL $C9``
 ALL  ``.EXPORT work_x``
 658  ``.FASTROM``
 658  ``.HIROM``
+658  ``.EXHIROM``
 GB   ``.LICENSEECODENEW "1A"``
 GB   ``.LICENSEECODEOLD $1A``
 658  ``.LOROM``
@@ -400,8 +401,10 @@ This is not a compulsory directive.
 
 If ``.NAME`` is used with WLA-GB then the 16 bytes ranging from ``$0134``
 to ``$0143`` are filled with the provided string. WLA-65816 fills
-the 21 bytes from ``$FFC0`` to ``$FFD4`` in HiROM- and from ``$7FC0`` to
-``$7FD4`` in LoROM-mode with the name string (SNES ROM title).
+the 21 bytes from ``$FFC0`` to ``$FFD4`` in HiROM and from ``$7FC0`` to
+``$7FD4`` in LoROM mode with the name string (SNES ROM title). For ExHiROM
+the ranges are from ``$40FFC0`` to ``$40FFD4`` and from ``$FFC0`` to ``$FFD4``
+(mirrored).
 
 If the string is shorter than 16/21 bytes the remaining space is
 filled with ``$00``.
@@ -588,12 +591,13 @@ This is not a compulsory directive.
 ------------------------
 
 When this directive is used WLA computes the SNES ROM checksum and
-inverse checksum found at ``$7FDC`` - ``$7FDF`` (LoROM) or ``$FFDC``-``$FFDF``
-(HiROM). Note that this directive can only be used with WLA-65816. Also note
-that the ROM size must be at least 32KB for LoROM images and 64KB for
-HiROM images.
+inverse checksum found at ``$7FDC`` - ``$7FDF`` (LoROM), ``$FFDC`` - ``$FFDF``
+(HiROM) or ``$40FFDC`` - ``$40FFDF`` and ``$FFDC`` - ``$FFDF`` (ExHiROM).
+Note that this directive can only be used with WLA-65816. Also note
+that the ROM size must be at least 32KB for LoROM images, 64KB for
+HiROM images and 5MBit for ExHiROM.
 
-``.LOROM`` or ``.HIROM`` must be issued before ``.COMPUTESNESCHECKSUM``.
+``.LOROM``, ``.HIROM`` or ``.EXHIROM`` must be issued before ``.COMPUTESNESCHECKSUM``.
 
 This is not a compulsory directive.
 
@@ -993,8 +997,9 @@ This is not a compulsory directive.
 ``.FASTROM``
 ------------
 
-Sets the ROM memory speed bit in ``$FFD5`` (``.HIROM``) or
-``$7FD5`` (``.LOROM``) to indicate that the SNES ROM chips are 120ns chips.
+Sets the ROM memory speed bit in ``$FFD5`` (``.HIROM``), ``$7FD5`` (``.LOROM``)
+or ``$FFD5`` and ``$40FFD5`` (``.EXHIROM``) to indicate that the SNES ROM chips
+are 120ns chips.
 
 This is not a compulsory directive.
 
@@ -1002,8 +1007,10 @@ This is not a compulsory directive.
 ``.SLOWROM``
 ------------
 
-Clears the ROM memory speed bit in ``$FFD5`` (``.HIROM``) or
-``$7FD5`` (``.LOROM``) to indicate that the SNES ROM chips are 200ns chips.
+Clears the ROM memory speed bit in ``$FFD5`` (``.HIROM``), ``$7FD5`` (``.LOROM``)
+or ``$FFD5`` and ``$40FFD5`` (``.EXHIROM``) to indicate that the SNES ROM chips
+are 200ns chips.
+
 
 This is not a compulsory directive.
 
@@ -1041,13 +1048,26 @@ This is not a compulsory directive.
 With this directive you can define the SNES ROM mode to be HiROM.
 Issuing ``.HIROM`` will override the user's ROM bank map when
 WLALINK computes 24-bit addresses and bank references. If no
-``.HIROM`` or ``.LOROM`` are given then WLALINK obeys the banking
-defined in ``.ROMBANKMAP``.
+``.HIROM``, ``.LOROM`` or ``.EXHIROM`` are given then WLALINK obeys the
+banking defined in ``.ROMBANKMAP``.
 
 ``.HIROM`` also sets the ROM mode bit in ``$FFD5``.
 
 This is not a compulsory directive.
 
+``.EXHIROM``
+------------
+
+With this directive you can define the SNES ROM mode to be ExHiROM.
+Issuing ``.EXHIROM`` will override the user's ROM bank map when
+WLALINK computes 24-bit addresses and bank references. If no
+``.HIROM``, ``.LOROM`` or ``.EXHIROM`` are given then WLALINK obeys the
+banking defined in ``.ROMBANKMAP``.
+
+``.EXHIROM`` also sets the ROM mode bit in ``$40FFD5`` (mirrored in
+``$FFD5``).
+
+This is not a compulsory directive.
 
 ``.LOROM``
 ----------
@@ -1055,8 +1075,8 @@ This is not a compulsory directive.
 With this directive you can define the SNES ROM mode to be LoROM.
 Issuing ``.LOROM`` will override the user's ROM bank map when
 WLALINK computes 24-bit addresses and bank references. If no
-``.HIROM`` or ``.LOROM`` are given then WLALINK obeys the banking
-defined in ``.ROMBANKMAP``.
+``.HIROM``, ``.LOROM`` or ``.EXHIROM`` are given then WLALINK obeys the
+banking defined in ``.ROMBANKMAP``.
 
 WLA defaults to ``.LOROM``.
 
@@ -1085,7 +1105,7 @@ bank)::
 contribute to the bank number (bank number == ``.BASE`` + ROM bank of the
 label).
 
-On 65816, use ``.LOROM`` or ``.HIROM`` to define the ROM mode. 
+On 65816, use ``.LOROM``, ``.HIROM`` or ``.EXHIROM`` to define the ROM mode. 
 
 This is not a compulsory directive.
 
@@ -2397,11 +2417,12 @@ This begins the SNES header definition, and automatically defines
 * ``NAME "Hello World!"`` - identical to a freestanding ``.NAME``.
 * ``LOROM`` - identical to a freestanding ``.LOROM``.
 * ``HIROM`` - identical to a freestanding ``.HIROM``.
+* ``EXHIROM`` - identical to a freestanding ``.EXHIROM``.
 * ``SLOWROM`` - identical to a freestanding ``.SLOWROM``.
 * ``FASTROM`` - identical to a freestanding ``.FASTROM``.
 * ``CARTRIDGETYPE $00`` - Places the given 8-bit value in ``$7FD6`` (``$FFD6``
-  in HiROM). Some possible values I've come across but cannot guarantee the
-  accuracy of:
+  in HiROM, ``$40FFD6`` and ``$FFD6`` in ExHiROM). Some possible values I've
+  come across but cannot guarantee the accuracy of:
    
    ======== ====== ====== ==========
     ``$00``  ROM
@@ -2413,8 +2434,9 @@ This begins the SNES header definition, and automatically defines
     ``$13``  ROM            Super FX
    ======== ====== ====== ==========
 * ``ROMSIZE $09`` - Places the given 8-bit value in ``$7FD7`` (``$FFD7`` in
-  HiROM). Possible values include (but may not be limited to):
-  
+  HiROM, ``$40FFD7`` and ``$FFD7`` in ExHiROM). Possible values include (but
+  may not be limited to):
+
    ======== =============
     ``$08``   2 Megabits
     ``$09``   4 Megabits
@@ -2423,7 +2445,8 @@ This begins the SNES header definition, and automatically defines
     ``$0C``  32 Megabits
    ======== =============
 * ``SRAMSIZE $01`` - Places the given 8-bit value into ``$7FD8`` (``$FFD8`` in
-  HiROM). I believe these are the only possible values:
+  HiROM, ``$40FFD8`` and ``$FFD8`` in ExHiROM). I believe these are the only possible
+  values:
 
    ======== =============
     ``$00``   0 kilobits
@@ -2432,14 +2455,15 @@ This begins the SNES header definition, and automatically defines
     ``$03``  64 kilobits
    ======== =============
 * ``COUNTRY $00`` - Places the given 8-bit value into ``$7FD9`` (``$FFD9`` in
-  HiROM). ``$00`` is Japan and ``$01`` is the United States, and there several
-  more for other regions that I cannot recall off the top of my head.
+  HiROM, ``$40FFD9`` and ``$FFD9`` in ExHiROM). ``$00`` is Japan and ``$01`` is the
+  United States, and there several more for other regions that I cannot recall off
+  the top of my head.
 * ``LICENSEECODE $00`` - Places the given 8-bit value into ``$7FDA`` (``$FFDA``
-  in HiROM.) You must find the legal values yourself as there are plenty of
-  them. ;)
+  in HiROM, ``$40FFDA`` and ``$FFDA`` in ExHiROM). You must find the legal values
+  yourself as there are plenty of them. ;)
 * ``VERSION $01`` - Places the given 8-bit value into ``$7FDB`` (``$FFDB`` in
-  HiROM) This is supposedly interpreted as version 1.byte, so a ``$01`` here
-  would be version 1.01.
+  HiROM, ``$40FFDB`` and ``$FFDB`` in ExHiROM). This is supposedly interpreted as
+  version 1.byte, so a ``$01`` here would be version 1.01.
 
 This is not a compulsory directive.
 
@@ -2468,8 +2492,8 @@ Begins definition of the native mode interrupt vector table. ::
     .ENDNATIVEVECTOR
 
 These can be defined in any order, but they will be placed into
-memory starting at ``$7FE4`` (``$FFE4`` in HiROM) in the order listed above.
-All the vectors default to ``$0000``.
+memory starting at ``$7FE4`` (``$FFE4`` in HiROM, ``$40FFE4`` and ``$FFE4`` in
+ExHiROM) in the order listed above. All the vectors default to ``$0000``.
 
 This is not a compulsory directive.
 
@@ -2498,8 +2522,8 @@ Begins definition of the emulation mode interrupt vector table. ::
     .ENDEMUVECTOR
 
 These can be defined in any order, but they will be placed into
-memory starting at ``$7FF4`` (``$FFF4`` in HiROM) in the order listed
-above. All the vectors default to ``$0000``.
+memory starting at ``$7FF4`` (``$FFF4`` in HiROM, ``$40FFF4`` and ``$FFF4`` in
+ExHiROM) in the order listed above. All the vectors default to ``$0000``.
 
 This is not a compulsory directive.
 
