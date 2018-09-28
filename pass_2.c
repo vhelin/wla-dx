@@ -359,7 +359,7 @@ void write_snes_cartridge_information(int start) {
   if (hirom_defined != 0)
     inz |= 1;
   else if (exhirom_defined != 0)
-    inz |= (1 << 2) || 1;
+    inz |= (1 << 2) | 1;
   else if (exlorom_defined != 0)
     inz |= (1 << 1);
 
