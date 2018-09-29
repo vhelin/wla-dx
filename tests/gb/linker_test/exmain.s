@@ -7,7 +7,7 @@
 ; this is a good example of very ugly and horrible code
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
-.OUTNAME "main.o"
+;.OUTNAME "main.o"
 
 .DEFINE Q 0
 .IF 1 == 1
