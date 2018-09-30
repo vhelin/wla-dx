@@ -595,7 +595,7 @@ inverse checksum found at ``$7FDC`` - ``$7FDF`` (LoROM), ``$FFDC`` - ``$FFDF``
 (HiROM) or ``$40FFDC`` - ``$40FFDF`` and ``$FFDC`` - ``$FFDF`` (ExHiROM).
 Note that this directive can only be used with WLA-65816. Also note
 that the ROM size must be at least 32KB for LoROM images, 64KB for
-HiROM images and 5MBit for ExHiROM.
+HiROM images and 32.5MBit for ExHiROM.
 
 ``.LOROM``, ``.HIROM`` or ``.EXHIROM`` must be issued before ``.COMPUTESNESCHECKSUM``.
 
