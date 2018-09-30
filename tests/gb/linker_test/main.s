@@ -3,8 +3,11 @@
 ; a small example showing and testing the wla preprocessor
 ; this little program flashes the background colour
 ; you should see stripes of different colours
-; written by ville helin <vhelin@cc.hut.fi> in 1998-2001
+; written by ville helin <vhelin@cc.hut.fi> in 1998-2003
+; this is a good example of very ugly and horrible code
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+
+;.OUTNAME "main.o"
 
 .DEFINE Q 0
 .IF 1 == 1
@@ -18,23 +21,15 @@
 .ENDR
 .ENDR
 
-.enum $A000
-_scroll_x DB
-_scroll_y DB
-player_x: DW
-player_y: DW
-map_01:   DS 1024
-map_02    DS 2048
-.ende
-
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 ; project includes
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
+.incdir  "bogus"
 .INCLUDE "gb_memory1.i"
+.incdir  ""
 .INCLUDE "defines1.i"
 .include "cgb_hardware.i"
-.include "kosso"
 
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 ; test macros - don't do anything wise, are here just for testing
@@ -53,6 +48,21 @@ map_02    DS 2048
 .endr
 .ENDM
 
+.macro spiral
+.if \1 == 1
+ .printt "the start of SPIRAL!\n"
+.endif
+.if \1 == 10
+ .printt "the end of SPIRAL!\n"
+.else
+ .printv dec \1
+ .printt "\n"
+  spiral \1+1
+ .printt "exit "
+ .printv dec \1
+ .printt "\n"
+.endif
+.endm
 
 .MACRO RECUR
 	PRINT "*** Recursive macros ***\n"
@@ -115,15 +125,11 @@ map_02    DS 2048
 .BANK 0 SLOT 0
 .ORG $150
 
-.SECTION "Beginning" FORCE
+	spiral 1
 
-	.db	jessie,james,"HERE!"
+.SECTION "Beginning [NO]" FORCE
 
-.macro foobar2
-    ld    a,\1
-.endm
-
- foobar2 0
+	.db	jessie,love,james,"HERE!"
 
 MAIN:DI
 	LD	SP, stack_ptr-1		;stack_ptr is defined in setup.s
@@ -149,7 +155,7 @@ _LOOP:	LD	($FF00+R_BGP), A	;background palette.
 
 .ENDS
 
-.SECTION "Gusto_Victor_128"
+.SECTION "Gusto_Victor_128 [OK]"
 	NOP
 .ENDS
 
@@ -169,8 +175,9 @@ symbol_check_test:
 .DB	'U', 'P', '!', BELMONT, 'Q'
 .DB	MOUSEMAN
 
-	LUPIN 6
-	LUPIN 666 2
+;	LUPIN 6
+	
+	LUPIN 6 2
 
 .PRINTT "Trying to trick .INCBIN...\n"
 .PRINTT ".INCDIR \"other\"\n"
@@ -199,39 +206,39 @@ symbol_check_test:
 ; here we test wlalink's ability to discard unreferenced sections
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
-.SECTION "NO ERROR 1"
+.SECTION "NO ERROR 1 [OK]"
 jii:	JP	jaasssss+1
 	jp	_jee
 _jee:	NOP
-	.db	"NO ERROR 1"
+	.db	"ERROR 1"
 .ENDS
 
 
-.SECTION "NO ERROR 2"
+.SECTION "NO ERROR 2 [OK]"
 	nOp
 joo:	.dw	joo
 	JP	jii
 	jp	_jee
 _jee:	NOP
-	.db	"NO ERROR 2"
+	.db	"ERROR 2"
 .ENDS
 
 
-.SECTION "NO ERROR 3"
+.SECTION "NO ERROR 3 [OK]"
 	nOp
 jaa:	.dw	nono
 	jp	_jee
 _jee:	NOP
-	.db	"NO ERROR 3"
+	.db	"ERROR 3"
 .ENDS
 
 
-.SECTION "what will happen to me?"
+.SECTION "what will happen to me? i should go [OK]"
 	NOP
 .ENDS
 
 
-.SECTION "do i go as well?" free
+.SECTION "do i go as well? i should not [NO]" free
 	noP
 	LD	a,1
 	Rla
@@ -243,3 +250,58 @@ nono:swap	A
 .SECTION "empty"
 joopa:	
 .ENDS
+
+.macro printvalue args value
+ .printt "VALUE = "
+ .printv dec \1
+ .printt " or "
+ .printv dec value
+ .printt "\n"
+.endm
+
+.printt "\nNext we should get values 10, 11 and 12:\n"
+ printvalue $a
+ printvalue 11
+ printvalue %1100
+.printt "\n"
+
+.macro nops ARGS count
+  .repeat count
+    .printt "nop\n"
+  .endr
+.endm
+
+.macro hello ARGS arg1 arg2 arg3 arg4
+  .printt "ld a, "
+  .printv dec arg1
+  .printt "\nNEXT: 2 nop's...\n"
+  nops arg2
+  .printt "ld a, arg1\nNEXT: 4 nop's...\n"
+  nops arg3
+.endm
+
+ hello $80, 2, 4, 5
+ .printt "\n"
+
+; --------------------------------------------------------------------------------------
+; This should print: "x = 5"
+; --------------------------------------------------------------------------------------
+
+.define val1 5
+.define val2 2.3
+
+.struct struct2
+  y db
+.endst
+
+.struct struct1
+  ys instanceof struct2 64
+.endst
+
+.macro themacro args x
+.printt "x = "
+.printv dec x
+.printt " (should be 5)\n\n"
+.endm
+
+  themacro val1
