@@ -270,4 +270,14 @@ tests:	.db "ASCIITest\0\0\0\0ASCIITest", "\x0a\x10\xbb\x11ASCIITest"
 	
 .db "DATA START =", "h".length, "he".LENGTH, "hel".length, "hell".LENGTH, "hello".length, "= DATA END"
 
+.macro CentrePaddedText args s
+  .dsb (26-s.length)/2, ' '
+  .db s, 0, s.length
+  .printt "s.length = "
+  .printv dec s.length+2-1-1
+  .printt "\n"
+.endm
+
+	CentrePaddedText "CONVERTED IN THE UK"
+
 .ends

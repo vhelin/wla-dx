@@ -8,5 +8,6 @@ int get_next_token(void);
 int skip_next_token(void);
 int compare_next_token(char *token, int length);
 int expand_macro_arguments(char *in);
+int is_string_ending_with(char *s, char *e);
 
 #endif

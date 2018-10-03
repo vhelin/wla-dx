@@ -34,6 +34,29 @@ int operand_hint;
 #endif
 
 
+int is_string_ending_with(char *s, char *e) {
+
+  int length_s, length_e, k;
+
+  
+  if (s == NULL || e == NULL)
+    return -1;
+
+  length_s = strlen(s);
+  length_e = strlen(e);
+
+  if (length_e > length_s)
+    return -1;
+
+  for (k = 0; k < length_e; k++) {
+    if (s[length_s - length_e + k] != e[k])
+      return -1;
+  }
+
+  return 1;
+}
+
+
 int compare_next_token(char *token, int length) {
 
   int ii, t, d, k;

@@ -554,6 +554,30 @@ int stack_calculate(char *in, int *value) {
   }
 #endif
 
+  /* calculate all X.length strings */
+  for (k = 0; k < q; k++) {
+    if (si[k].type == STACK_ITEM_TYPE_STRING) {
+      if (is_string_ending_with(si[k].string, ".length") > 0 ||
+	  is_string_ending_with(si[k].string, ".LENGTH") > 0) {
+	/* we have a X.length -> parse */
+	strcpy(label, si[k].string);
+	label[strlen(label) - 7] = 0;
+
+	hashmap_get(defines_map, label, (void*)&tmp_def);
+
+	if (tmp_def != NULL) {
+	  if (tmp_def->type == DEFINITION_TYPE_STRING) {
+	    memcpy(label, tmp_def->string, tmp_def->size);
+	    label[tmp_def->size] = 0;
+
+	    si[k].value = strlen(label);
+	    si[k].type = STACK_ITEM_TYPE_VALUE;
+	  }
+	}
+      }
+    }
+  }
+  
   /* check if the computation is of the form "+-..." and remove that leading "+" */
   if (q > 2 && si[0].type == STACK_ITEM_TYPE_OPERATOR && si[0].value == SI_OP_PLUS &&
       si[1].type == STACK_ITEM_TYPE_OPERATOR && si[1].value == SI_OP_MINUS) {
