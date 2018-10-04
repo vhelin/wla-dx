@@ -240,6 +240,7 @@ int macro_stack_grow(void) {
       free(macro_stack);
     }
     macro_stack = macro;
+    macro_runtime_current = &macro_stack[macro_active - 1];
   }
 
   return SUCCEEDED;
