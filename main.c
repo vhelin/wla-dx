@@ -66,7 +66,7 @@ char version_string[] = "$VER: WLA-HuC6280 9.8a (20.09.2018)";
 
 char wla_version[] = "9.8a";
 
-char *tmp_name, *tmp_unfolded_name;
+char *tmp_name;
 
 extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
 extern struct file_name_info *file_name_info_first;
@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  generate_tmp_names(&tmp_name, &tmp_unfolded_name);
+  generate_tmp_names(&tmp_name);
 
   file_out_ptr = fopen(tmp_name, "wb");
   if (file_out_ptr == NULL) {
@@ -520,14 +520,12 @@ void procedures_at_exit(void) {
 
   /* remove the tmp files */
   remove(tmp_name);
-  remove(tmp_unfolded_name);
 }
 
 
-int generate_tmp_names(char **first, char **second) {
+int generate_tmp_names(char **filename) {
 #if defined(UNIX) || defined(WIN32)
   static char normal[32];
-  static char unfolded[32];
   int pid;
   #if defined(UNIX)
     pid = (int)getpid();
@@ -537,12 +535,9 @@ int generate_tmp_names(char **first, char **second) {
     #error "Invalid configuration!"
   #endif
   sprintf(normal, ".wla%da", pid);
-  sprintf(unfolded, ".wla%db", pid);
-  *first = normal;
-  *second = unfolded;
+  *filename = normal;
 #else /* AMIGA, WIN32, MSDOS and others */
-  *first = "wla_a.tmp";
-  *second = "wla_b.tmp";
+  *filename = "wla_a.tmp";
 #endif
   return SUCCEEDED;
 }
