@@ -13,6 +13,10 @@
 
 #ifdef UNIX
 #include <unistd.h>
+#elif defined(WIN32)
+/* Windows.h can't be included since it relies on compiler extensions */
+typedef unsigned long DWORD;
+DWORD __stdcall GetCurrentProcessId(void);
 #endif
 
 #include "main.h"
@@ -62,7 +66,7 @@ char version_string[] = "$VER: WLA-HuC6280 9.8a (20.09.2018)";
 
 char wla_version[] = "9.8a";
 
-char gba_tmp_name[32], gba_unfolded_name[32];
+char *tmp_name, *tmp_unfolded_name;
 
 extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
 extern struct file_name_info *file_name_info_first;
@@ -94,7 +98,6 @@ char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH + 1];
 
 
 int main(int argc, char *argv[]) {
-
   int parse_flags_result;
   int n_ctr = 0;
 
@@ -182,11 +185,11 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  generate_tmp_names();
+  generate_tmp_names(&tmp_name, &tmp_unfolded_name);
 
-  file_out_ptr = fopen(gba_tmp_name, "wb");
+  file_out_ptr = fopen(tmp_name, "wb");
   if (file_out_ptr == NULL) {
-    fprintf(stderr, "MAIN: Error opening file \"%s\".\n", gba_tmp_name);
+    fprintf(stderr, "MAIN: Error opening file \"%s\".\n", tmp_name);
     return 1;
   }
 
@@ -516,21 +519,30 @@ void procedures_at_exit(void) {
   }
 
   /* remove the tmp files */
-  remove(gba_tmp_name);
-  remove(gba_unfolded_name);
+  remove(tmp_name);
+  remove(tmp_unfolded_name);
 }
 
 
-int generate_tmp_names(void) {
-#if defined(UNIX)
-  sprintf(gba_tmp_name, ".wla%da", (int)getpid());
-  sprintf(gba_unfolded_name, ".wla%db", (int)getpid());
-#elif defined(WIN32)
-  sprintf(gba_tmp_name, ".wla%lda", GetCurrentProcessId());
-  sprintf(gba_unfolded_name, ".wla%ldb", GetCurrentProcessId());
+int generate_tmp_names(char **first, char **second) {
+#if defined(UNIX) || defined(WIN32)
+  static char normal[32];
+  static char unfolded[32];
+  int pid;
+  #if defined(UNIX)
+    pid = (int)getpid();
+  #elif defined(WIN32)
+    pid = GetCurrentProcessId();
+  #else
+    #error "Invalid configuration!"
+  #endif
+  sprintf(normal, ".wla%da", pid);
+  sprintf(unfolded, ".wla%db", pid);
+  *first = normal;
+  *second = unfolded;
 #else /* AMIGA, WIN32, MSDOS and others */
-  sprintf(gba_tmp_name, "wla_a.tmp");
-  sprintf(gba_unfolded_name, "wla_b.tmp");
+  *first = "wla_a.tmp";
+  *second = "wla_b.tmp";
 #endif
   return SUCCEEDED;
 }
