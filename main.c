@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  generate_tmp_names(&tmp_name);
+  generate_tmp_name(&tmp_name);
 
   file_out_ptr = fopen(tmp_name, "wb");
   if (file_out_ptr == NULL) {
@@ -523,7 +523,7 @@ void procedures_at_exit(void) {
 }
 
 
-int generate_tmp_names(char **filename) {
+int generate_tmp_name(char **filename) {
 #if defined(UNIX) || defined(WIN32)
   static char normal[32];
   int pid;
