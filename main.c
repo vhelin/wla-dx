@@ -363,23 +363,12 @@ void procedures_at_exit(void) {
   if (file_out_ptr != NULL)
     fclose(file_out_ptr);
 
-  if (macro_stack != NULL)
-    free(macro_stack);
-
-  if (repeat_stack != NULL)
-    free(repeat_stack);
-
-  if (final_name != NULL)
-    free(final_name);
-
-  if (asm_name != NULL)
-    free(asm_name);
-
-  if (include_dir != NULL)
-    free(include_dir);
-
-  if (full_name != NULL)
-    free(full_name);
+  free(macro_stack);
+  free(repeat_stack);
+  free(final_name);
+  free(asm_name);
+  free(include_dir);
+  free(full_name);
 
   if (defines_map != NULL) {
     hashmap_free_all_elements(defines_map);
@@ -433,10 +422,8 @@ void procedures_at_exit(void) {
   ifd_tmp = incbin_file_data_first;
   while(ifd_tmp != NULL) {
     incbin_file_data_first = ifd_tmp->next;
-    if (ifd_tmp->data != NULL)
-      free(ifd_tmp->data);
-    if (ifd_tmp->name != NULL)
-      free(ifd_tmp->name);
+    free(ifd_tmp->data);
+    free(ifd_tmp->name);
     free(ifd_tmp);
     ifd_tmp = incbin_file_data_first;
   }
@@ -464,30 +451,21 @@ void procedures_at_exit(void) {
     as = append_sections;
   }
 
-  if (unfolded_buffer != NULL)
-    free(unfolded_buffer);
+  free(unfolded_buffer);
 
-  if (buffer != NULL)
-    free(buffer);
+  free(buffer);
 
-  if (include_in_tmp != NULL)
-    free(include_in_tmp);
-  if (tmp_a != NULL)
-    free(tmp_a);
+  free(include_in_tmp);
+  free(tmp_a);
 
-  if (rom_banks != NULL)
-    free(rom_banks);
-  if (rom_banks_usage_table != NULL)
-    free(rom_banks_usage_table);
-  if (banks != NULL)
-    free(banks);
-  if (bankaddress != NULL)
-    free(bankaddress);
+  free(rom_banks);
+  free(rom_banks_usage_table);
+  free(banks);
+  free(bankaddress);
 
   f = file_name_info_first;
   while (f != NULL) {
-    if (f->name != NULL)
-      free(f->name);
+    free(f->name);
     ft = f->next;
     free(f);
     f = ft;
@@ -495,12 +473,9 @@ void procedures_at_exit(void) {
 
   s1 = sections_first;
   while (s1 != NULL) {
-    if (s1->data != NULL)
-      free(s1->data);
-    if (s1->listfile_cmds != NULL)
-      free(s1->listfile_cmds);
-    if (s1->listfile_ints != NULL)
-      free(s1->listfile_ints);
+    free(s1->data);
+    free(s1->listfile_cmds);
+    free(s1->listfile_ints);
     hashmap_free(s1->label_map);
     s2 = s1->next;
     free(s1);
@@ -512,8 +487,7 @@ void procedures_at_exit(void) {
     f2 = f1->next;
     if (f1->f != NULL)
       fclose(f1->f);
-    if (f1->filename != NULL)
-      free(f1->filename);
+    free(f1->filename);
     free(f1);
     f1 = f2;
   }
