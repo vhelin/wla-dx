@@ -26,22 +26,22 @@ option(GDB_DEBUGGING
 # CMake will automatically define WIN32 for us for Microsoft compilers, how
 # convenient! But we need MSDOS flag as well. Additionally, other compilers
 # don't define it by default. WIN32 does NOT include Cygwin.
-if (WIN32)
+if(WIN32)
     add_definitions(-DWIN32)
     add_definitions(-DMSDOS)
-endif (WIN32)
+endif()
 
 # This should work on ANY POSIX-compliant environment.
 if (UNIX)
     add_definitions(-DUNIX)
     link_libraries(m) # Deprecated, but best solution. See
     # http://www.cmake.org/pipermail/cmake/2009-April/028439.html
-endif (UNIX)
+endif()
 
 set(CMAKE_C_STANDARD 90)
 set(CMAKE_C_EXTENSIONS OFF)
 
-if (CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic-errors -Wall -Wextra")
     string(REPLACE "-O2" "-O3" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
     if(CMAKE_C_COMPILER_ID MATCHES "Clang" AND
@@ -55,8 +55,8 @@ if (CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     endif()
     if(GDB_DEBUGGING)
         set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")
-    endif(GDB_DEBUGGING)
-endif ()
+    endif()
+endif()
 
 if (MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Za") # Disable extensions
@@ -64,15 +64,15 @@ if (MSVC)
     # replace flags directly instead of appending them.
     string(REPLACE "/O[0-4]" "/Ox" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
     add_definitions(/D_CRT_SECURE_NO_WARNINGS) # STFU about "unsecure" functions
-endif (MSVC)
+endif()
 
 # WATCOM C Compiler works just fine as well. Might be a decent alternative
 # 386 MSDOS compiler as well (compare to DJGPP).
-if (WATCOM)
+if(WATCOM)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -za") # Disable extensions
     string(REPLACE "-ot" "-ox" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
     string(REGEX REPLACE "-w=[0-4]" "-w=4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-endif (WATCOM)
+endif()
 
 include_directories("${PROJECT_SOURCE_DIR}")
 
