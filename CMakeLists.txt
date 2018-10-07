@@ -42,16 +42,14 @@ set(CMAKE_C_STANDARD 90)
 set(CMAKE_C_EXTENSIONS OFF)
 
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic-errors -Wall -Wextra")
+    set(CMAKE_C_STANDARD) # Empty because we use -ansi
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic-errors -Wall -Wextra -ansi")
     string(REPLACE "-O2" "-O3" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
     if(CMAKE_C_COMPILER_ID MATCHES "Clang" AND
             CMAKE_C_COMPILER_VERSION VERSION_LESS 3.8)
         set(GDB_DEBUGGING OFF)
         message(STATUS "You need at least clang 3.8 for GDB_DEBUGGING."
             " Disabling it for now.")
-    endif()
-    if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" VERSION_LESS "3.1")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c90")
     endif()
     if(GDB_DEBUGGING)
         set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")
