@@ -27,7 +27,7 @@ extern struct slot slots[256];
 extern struct append_section *append_sections;
 extern FILE *file_out_ptr;
 extern unsigned char *rom_banks, *rom_banks_usage_table;
-extern char gba_tmp_name[32], tmp[4096], name[32], *final_name;
+extern char *tmp_name, tmp[4096], name[32], *final_name;
 extern int rombanks, ind, inz, output_format, test_mode, listfile_data;
 
 #ifdef GB
@@ -207,8 +207,8 @@ int pass_4(void) {
   if (verbose_mode == ON)
     printf("Internal pass 2...\n");
 
-  if ((file_out_ptr = fopen(gba_tmp_name, "rb")) == NULL) {
-    fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\".\n", gba_tmp_name);
+  if ((file_out_ptr = fopen(tmp_name, "rb")) == NULL) {
+    fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\".\n", tmp_name);
     return FAILED;
   }
 

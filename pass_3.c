@@ -15,7 +15,7 @@ extern struct section_def *sections_first, *sections_last, *sec_tmp, *sec_next;
 extern struct file_name_info *file_name_info_first, *file_name_info_last, *file_name_info_tmp;
 extern unsigned char *rom_banks, *rom_banks_usage_table;
 extern FILE *file_out_ptr;
-extern char gba_tmp_name[32], *gba_tmp_last_name, tmp[4096], emsg[1024];
+extern char *tmp_name, tmp[4096], emsg[1024];
 extern int verbose_mode, section_status, cartridgetype, output_format;
 
 
@@ -47,8 +47,8 @@ int pass_3(void) {
   if (verbose_mode == ON)
     printf("Internal pass 1...\n");
 
-  if ((f_in = fopen(gba_tmp_name, "rb")) == NULL) {
-    fprintf(stderr, "INTERNAL_PASS_1: Error opening file \"%s\".\n", gba_tmp_name);
+  if ((f_in = fopen(tmp_name, "rb")) == NULL) {
+    fprintf(stderr, "INTERNAL_PASS_1: Error opening file \"%s\".\n", tmp_name);
     return FAILED;
   }
 
@@ -670,7 +670,7 @@ int pass_3(void) {
       continue;
 
     default:
-      fprintf(stderr, "%s: INTERNAL_PASS_1: Unknown internal symbol \"%c\" in \"%s\" at offset %ld.\n", get_file_name(file_name_id), c, gba_tmp_name, ftell(f_in)-1);
+      fprintf(stderr, "%s: INTERNAL_PASS_1: Unknown internal symbol \"%c\" in \"%s\" at offset %ld.\n", get_file_name(file_name_id), c, tmp_name, ftell(f_in)-1);
       return FAILED;
     }
   }
