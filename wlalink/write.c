@@ -1080,7 +1080,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
     if (outputAddrToLine == ON)
     {
       /* file_id_source to source files  */
-      fprintf(f, "\n[source-files]\n");
+      fprintf(f, "\n[source files]\n");
       obj_file = obj_first;
       while (obj_file != NULL) {
         src_file = obj_file->source_file_names_list;
@@ -1098,16 +1098,16 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
       fseek(outfile, 0, SEEK_SET);
       outfile_tmp = malloc(sizeof(char) * outfile_size);
       fread(outfile_tmp, 1, outfile_size, outfile);
-    fclose(outfile);
-    outfile_crc = crc32((unsigned char*)outfile_tmp, outfile_size);
-    free(outfile_tmp);
-    fprintf(f, "\n[rom-file checksum]\n%.8x\n", outfile_crc);
+      fclose(outfile);
+      outfile_crc = crc32((unsigned char*)outfile_tmp, outfile_size);
+      free(outfile_tmp);
+      fprintf(f, "\n[rom checksum]\n%.8x\n", outfile_crc);
 
-    /* addr -> file/line mappings */
-    s = sec_first;
+      /* addr -> file/line mappings */
+      s = sec_first;
       while (s != NULL) {
         if (s->listfile_items > 0) {
-          fprintf(f, "\n[addr-to-line-mapping]\n");
+          fprintf(f, "\n[addr-to-line mapping]\n");
           break;
         }
         s = s->next;
