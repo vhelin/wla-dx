@@ -8,7 +8,7 @@ int insert_label_into_maps(struct label *l, int is_sizeof);
 int fix_label_addresses(void);
 int transform_stack_definitions(void);
 int insert_sections(void);
-int write_symbol_file(char *outname, unsigned char mode);
+int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAddrToLine);
 int write_gb_header(int name_status);
 int write_rom_file(char *outname);
 int compute_pending_calculations(void);

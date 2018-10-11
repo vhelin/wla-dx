@@ -38,7 +38,7 @@ struct map_t *namespace_map = NULL;
 struct slot slots[256];
 struct append_section *append_sections = NULL, *append_tmp;
 unsigned char *rom, *rom_usage, *file_header = NULL, *file_footer = NULL;
-int romsize, rombanks, banksize, verbose_mode = OFF, section_overwrite = OFF, symbol_mode = SYMBOL_MODE_NONE;
+int romsize, rombanks, banksize, verbose_mode = OFF, section_overwrite = OFF, symbol_mode = SYMBOL_MODE_NONE, output_addr_to_line = OFF;
 int pc_bank, pc_full, pc_slot, pc_slot_max;
 int file_header_size, file_footer_size, *banksizes = NULL, *bankaddress = NULL;
 int output_mode = OUTPUT_ROM, discard_unreferenced_sections = OFF, use_libdir = NO;
@@ -175,6 +175,7 @@ int main(int argc, char *argv[]) {
     printf("-r  ROM file output (default)\n");
     printf("-s  Write also a NO$GMB symbol file\n");
     printf("-S  Write also a WLA symbol file\n");
+    printf("-A  Add address-to-line mapping data to WLA symbol file\n");
     printf("-v  Verbose messages\n");
     printf("-L [DIR]  Library directory\n\n");
     return 0;
@@ -479,7 +480,7 @@ int main(int argc, char *argv[]) {
 
   /* export symbolic information file */
   if (symbol_mode != SYMBOL_MODE_NONE) {
-    if (write_symbol_file(argv[argc - 1], symbol_mode) == FAILED)
+    if (write_symbol_file(argv[argc - 1], symbol_mode, output_addr_to_line) == FAILED)
       return FAILED;
   }
 
@@ -735,6 +736,10 @@ int parse_flags(char **flags, int flagc) {
     }
     else if (!strcmp(flags[count], "-S")) {
       symbol_mode = SYMBOL_MODE_WLA;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-A")) {
+      output_addr_to_line = ON;
       continue;
     }
     else if (!strcmp(flags[count], "-d")) {

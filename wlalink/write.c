@@ -873,7 +873,7 @@ int fix_references(void) {
 }
 
 
-int write_symbol_file(char *outname, unsigned char mode) {
+int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAddrToLine) {
 
   struct source_file_name *src_file = NULL;
   struct object_file *obj_file; 
@@ -1077,25 +1077,27 @@ int write_symbol_file(char *outname, unsigned char mode) {
       }
     }
 
-    /* file_id_source to source files  */
-    fprintf(f, "\n[source-files]\n");
-    obj_file = obj_first;
-    while (obj_file != NULL) {
-      src_file = obj_file->source_file_names_list;
-      while (src_file != NULL) {
-        fprintf(f, "%.4x %.8x %s \n", src_file->id, src_file->checksum, src_file->name);
-        src_file = src_file->next;
+    if (outputAddrToLine == ON)
+    {
+      /* file_id_source to source files  */
+      fprintf(f, "\n[source-files]\n");
+      obj_file = obj_first;
+      while (obj_file != NULL) {
+        src_file = obj_file->source_file_names_list;
+        while (src_file != NULL) {
+          fprintf(f, "%.4x %.8x %s \n", src_file->id, src_file->checksum, src_file->name);
+          src_file = src_file->next;
+        }
+        obj_file = obj_file->next;
       }
-      obj_file = obj_file->next;
-    }
 
-    /* full rom-output checksum */
-    outfile = fopen(outname, "rb");
-    fseek(outfile, 0, SEEK_END);
-    outfile_size = ftell(outfile);
-    fseek(outfile, 0, SEEK_SET);
-    outfile_tmp = malloc(sizeof(char) * outfile_size);
-    fread(outfile_tmp, 1, outfile_size, outfile);
+      /* full rom-output checksum */
+      outfile = fopen(outname, "rb");
+      fseek(outfile, 0, SEEK_END);
+      outfile_size = ftell(outfile);
+      fseek(outfile, 0, SEEK_SET);
+      outfile_tmp = malloc(sizeof(char) * outfile_size);
+      fread(outfile_tmp, 1, outfile_size, outfile);
     fclose(outfile);
     outfile_crc = crc32((unsigned char*)outfile_tmp, outfile_size);
     free(outfile_tmp);
@@ -1103,37 +1105,38 @@ int write_symbol_file(char *outname, unsigned char mode) {
 
     /* addr -> file/line mappings */
     s = sec_first;
-    while (s != NULL) {
-      if (s->listfile_items > 0) {
-        fprintf(f, "\n[addr-to-line-mapping]\n");
-        break;
+      while (s != NULL) {
+        if (s->listfile_items > 0) {
+          fprintf(f, "\n[addr-to-line-mapping]\n");
+          break;
+        }
+        s = s->next;
       }
-      s = s->next;
-    }
 
-    s = sec_first;
-    while (s != NULL) {
-      /* parse the list file information */
-      list_address_offset = 0;
-      list_source_file = -1;
-      for (list_cmd_idx = 0; list_cmd_idx < s->listfile_items; list_cmd_idx++) {
-        list_cmd = s->listfile_cmds[list_cmd_idx];
-        if (list_cmd == 'k') {
-          /* new line */
-          if (s->listfile_ints[list_cmd_idx * 2 + 1] > 0) {
-            fprintf(f, "%.2x:%.4x %.4x:%.8x\n", s->bank + s->base, (s->output_address + list_address_offset) & 0xFFFF, list_source_file, s->listfile_ints[list_cmd_idx * 2 + 0]);
-            list_address_offset += s->listfile_ints[list_cmd_idx * 2 + 1];
+      s = sec_first;
+      while (s != NULL) {
+        /* parse the list file information */
+        list_address_offset = 0;
+        list_source_file = -1;
+        for (list_cmd_idx = 0; list_cmd_idx < s->listfile_items; list_cmd_idx++) {
+          list_cmd = s->listfile_cmds[list_cmd_idx];
+          if (list_cmd == 'k') {
+            /* new line */
+            if (s->listfile_ints[list_cmd_idx * 2 + 1] > 0) {
+              fprintf(f, "%.2x:%.4x %.4x:%.8x\n", s->bank + s->base, (s->output_address + list_address_offset) & 0xFFFF, list_source_file, s->listfile_ints[list_cmd_idx * 2 + 0]);
+              list_address_offset += s->listfile_ints[list_cmd_idx * 2 + 1];
+            }
+          }
+          else if (list_cmd == 'f') {
+            /* another file */
+            list_source_file = s->listfile_ints[list_cmd_idx * 2 + 0];
           }
         }
-        else if (list_cmd == 'f') {
-          /* another file */
-          list_source_file = s->listfile_ints[list_cmd_idx * 2 + 0];
-        }
+        s = s->next;
       }
-      s = s->next;
-    }
 
-  }
+    }
+      }
 
   fclose(f);
 
