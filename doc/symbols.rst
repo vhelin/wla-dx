@@ -32,6 +32,20 @@ This is a list of various definitions provided in code - or automatically during
 - Regex match: ``[0-9a-fA-F]{8} .*``
 - Format specifier: ``%8x %s``
 
+[breakpoints]
+--------
+This is a list of hexadecimal ROM addresses where the ``.BREAKPOINT`` directive was used in the source assembly. Each line lists an address in hexadecimal (bank and offset).
+
+- Regex match: ``[0-9a-fA-F]{2}:[0-9a-fA-F]{4}``
+- Format specificer: ``%2x:%4x``
+
+[symbols]
+--------
+This is a list of hexadecimal ROM addresses where the ``.SYMBOL`` directive was used in the source assembly. Each line lists an address in hexadecimal (bank and offset) and a string associated with that address. 
+
+- Regex match: ``[0-9a-fA-F]{2}:[0-9a-fA-F]{4} .*``
+- Format specifier: ``%2x:%4x %s``
+
 [source files]
 --------
 These are used to identify what files were used during the assembly process, especially to map generated assembly back to source file contents. Each line lists a hexadecimal file index, a hexadecimal CRC32 checksum of the file, and a file path relative to the generated ROM's root. This could be used to load in the contents of one of the input files when running the ROM and verifying the file is up-to-date by checking its CRC32 checksum against the one generated during assembly.
