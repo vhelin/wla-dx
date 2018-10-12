@@ -32,35 +32,35 @@ This is a list of all Labels to sections of the ROM, such as subroutine location
 - Format specifier: ``%2x:%4x %s``
 
 [definitions]
---------
+-------------
 This is a list of various definitions provided in code - or automatically during WLA's processing - and values associated with them. Most prominently, WLA outputs the size of each section of the ROM. Each line lists an integer value in hexadecimal, and a string (name) associated with that value.
 
 - Regex match: ``[0-9a-fA-F]{8} .*``
 - Format specifier: ``%8x %s``
 
 [breakpoints]
---------
+-------------
 This is a list of hexadecimal ROM addresses where the ``.BREAKPOINT`` directive was used in the source assembly. Each line lists an address in hexadecimal (bank and offset).
 
 - Regex match: ``[0-9a-fA-F]{2}:[0-9a-fA-F]{4}``
 - Format specificer: ``%2x:%4x``
 
 [symbols]
---------
+---------
 This is a list of hexadecimal ROM addresses where the ``.SYMBOL`` directive was used in the source assembly. Each line lists an address in hexadecimal (bank and offset) and a string associated with that address. 
 
 - Regex match: ``[0-9a-fA-F]{2}:[0-9a-fA-F]{4} .*``
 - Format specifier: ``%2x:%4x %s``
 
 [source files]
---------
+--------------
 These are used to identify what files were used during the assembly process, especially to map generated assembly back to source file contents. Each line lists a hexadecimal file index, a hexadecimal CRC32 checksum of the file, and a file path relative to the generated ROM's root. This could be used to load in the contents of one of the input files when running the ROM and verifying the file is up-to-date by checking its CRC32 checksum against the one generated during assembly.
 
 - Regex match: ``[0-9a-fA-F]{4} [0-9a-fA-F]{8} .*``
 - Format specifier: ``%4x %8x %s``
 
 [rom checksum]
---------
+--------------
 This is just a single line identifying what the hexadecimal CRC32 checksum of the ROM file was when the symbol file was generated. This could be used to verify that the symbol file itself is up-to-date with the ROM in question. This checksum is calculated by reading the ROM file's entire binary, and not by reading any platform-specific checksum value embedded in the ROM itself.
 
 - Regex match:  ``[0-9a-fA-F]{8}``
