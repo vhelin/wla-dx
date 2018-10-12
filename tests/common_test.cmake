@@ -44,6 +44,8 @@ function(get_full_path PATH PREFIX OUTPUT_VAR)
     endif(NOT PREFIX)
     if(NOT IS_ABSOLUTE "${PATH}")
         set(${OUTPUT_VAR} "${PREFIX}/${PATH}" PARENT_SCOPE)
+    else()
+        set(${OUTPUT_VAR} "${PATH}" PARENT_SCOPE)
     endif(NOT IS_ABSOLUTE "${PATH}")
 endfunction()
 
@@ -108,17 +110,17 @@ endmacro(execute_process_cmd)
 # Assemble a file to an object/library file
 # wla(
 #     <OBJECT|LIBRARY> # Whenever to comile either an object or an library
-#     ARCH arch         # Use wla-ARCH
-#     SOURCES source [source]... # Source files
-#     [OUT_VAR var]    # Variable to put list of object files
+#     ARCH arch        # Use wla-ARCH
+#     SOURCE source    # Source file
+#     OUTPUT outfile   # Output file
 #     [DEFINES def=value [def=value]...] # Defines
 #     [FLAGS flag [flag]...]  # Extra flags
 #     [VERBOSE]               # Be verbose
 #     )
 function(wla)
     set(options OBJECT LIBRARY VERBOSE)
-    set(oneValueArgs ARCH OUT_VAR)
-    set(multiValueArgs SOURCES DEFINES FLAGS)
+    set(oneValueArgs ARCH SOURCE OUTPUT)
+    set(multiValueArgs DEFINES FLAGS)
     cmake_parse_arguments(TW "${options}" "${oneValueArgs}"
         "${multiValueArgs}" ${ARGN})
     
@@ -134,6 +136,70 @@ function(wla)
         abort("Couldn't find ARCH '${TW_ARCH}'")
     endif(NOT WLA_${TW_ARCH})
     
+    if(NOT TW_SOURCE)
+        abort("Please specify SOURCE for wla!")
+    endif()
+    
+    if(NOT TW_OUTPUT)
+        abort("Please specify OUTPUT for wla!")
+    endif()
+    
+    if(TW_VERBOSE)
+        list(APPEND TW_FLAGS "-v")
+    endif(TW_VERBOSE)
+    
+    foreach(DEFINE IN LISTS TW_DEFINES)
+        list(APPEND TW_FLAGS "-D${DEFINE}")
+    endforeach(DEFINE)
+    
+    get_full_path("${TW_SOURCE}" "${SOURCE_DIR}" SRC)
+    get_full_path("${TW_OUTPUT}" "${BINARY_DIR}" OUT)
+    execute_process_cmd(
+        COMMAND "${WLA_${TW_ARCH}}" ${TW_FLAGS} -o "${OUT}" "${SRC}"
+        WORKING_DIRECTORY "${SOURCE_DIR}"
+        RESULT_VARIABLE RESULT
+        )
+    abort_result("${RESULT}" "assemble" "wla-${TW_ARCH}" "${SRC}")
+    
+    list(APPEND FILES_TO_CLEAN_UP ${TW_OUTPUT})
+    set(FILES_TO_CLEAN_UP ${FILES_TO_CLEAN_UP} PARENT_SCOPE)
+endfunction(wla)
+
+# Assemble files to object files
+# wlas(
+#     <OBJECT|LIBRARY> # Whenever to comile either an object or an library
+#     ARCH arch        # Use wla-ARCH
+#     SOURCES source [source]... # Source files
+#     [OUT_VAR var]    # Variable to put list of object files
+#     [DEFINES def=value [def=value]...] # Defines
+#     [FLAGS flag [flag]...]  # Extra flags
+#     [VERBOSE]               # Be verbose
+#     )
+function(wlas)
+    set(options OBJECT LIBRARY VERBOSE)
+    set(oneValueArgs ARCH OUT_VAR)
+    set(multiValueArgs SOURCES DEFINES FLAGS)
+    cmake_parse_arguments(TW "${options}" "${oneValueArgs}"
+        "${multiValueArgs}" ${ARGN})
+    
+    if(NOT (TW_OBJECT OR TW_LIBRARY))
+        abort("Please put either OBJECT or LIBRARY for wlas!")
+    endif(NOT (TW_OBJECT OR TW_LIBRARY))
+    
+    if(TW_OBJECT AND TW_LIBRARY)
+        abort("You can't create an OBJECT and an LIBRARY at the same time!")
+    endif(TW_OBJECT AND TW_LIBRARY)
+    
+    if(TW_OBJECT)
+        set(OUTPUT_FORMAT OBJECT)
+    else()
+        set(OUTPUT_FORMAT LIBRARY)
+    endif()
+    
+    if(NOT WLA_${TW_ARCH})
+        abort("Couldn't find ARCH '${TW_ARCH}'")
+    endif(NOT WLA_${TW_ARCH})
+    
     if(TW_VERBOSE)
         list(APPEND TW_FLAGS "-v")
     endif(TW_VERBOSE)
@@ -144,23 +210,23 @@ function(wla)
     
     set(OUT_SRCS)
     foreach(SRC IN LISTS TW_SOURCES)
-        convert_to_binary_path("${SRC}.o" OUT_SRC)
+        convert_to_binary_path("${SRC}" OUT_SRC)
+        string(REGEX REPLACE "\\.s$" ".o" OUT_SRC "${OUT_SRC}")
         get_full_path("${SRC}" "${SOURCE_DIR}" SRC)
-        execute_process_cmd(
-            COMMAND "${WLA_${TW_ARCH}}" ${TW_FLAGS} -o "${OUT_SRC}" "${SRC}"
-            WORKING_DIRECTORY "${SOURCE_DIR}"
-            RESULT_VARIABLE RESULT
+        wla(${OUTPUT_FORMAT}
+            ARCH ${TW_ARCH}
+            SOURCE "${SRC}"
+            OUTPUT "${OUT_SRC}"
+            FLAGS ${TW_FLAGS}
             )
         list(APPEND OUT_SRCS "${OUT_SRC}")
-        abort_result("${RESULT}" "assemble" "wla-${TW_ARCH}" "${SRC}")
     endforeach(SRC)
-    list(APPEND FILES_TO_CLEAN_UP ${OUT_SRCS})
     
     if(TW_OUT_VAR)
         set(${TW_OUT_VAR} ${OUT_SRCS} PARENT_SCOPE)
     endif(TW_OUT_VAR)
     set(FILES_TO_CLEAN_UP ${FILES_TO_CLEAN_UP} PARENT_SCOPE)
-endfunction(wla)
+endfunction(wlas)
 
 # Create a linkfile
 # create_linkfile(
@@ -241,7 +307,7 @@ function(wlalink)
     
     execute_process_cmd(
         COMMAND "${WLALINK}" ${TW_FLAGS} "${LINKFILE}" "${OUTPUT}"
-        WORKING_DIRECTORY "${SOURCE_DIR}"
+        WORKING_DIRECTORY "${BINARY_DIR}"
         RESULT_VARIABLE RESULT
         )
     list(APPEND FILES_TO_CLEAN_UP "${OUTPUT}")
@@ -254,6 +320,8 @@ endfunction(wlalink)
 #     OUTPUT output  # Output file, shouldn't matter
 #     ARCH arch       # ARCH, wla-ARCH
 #     SOURCES source1 [source2]...       # Soruce files
+#     [LINKFILE linkfile] # Linkfile to use rather to generate it.
+#          # If set, LINK_DEFINES, LIBRARIES and OBJECTS are not used
 #     [LIBSOURCES source1 [source2]...]  # Library source files
 #     [OBJECTS object [object]...]       # Additional object files
 #     [LIBRARIES library [library]...]   # Additional library files
@@ -270,7 +338,7 @@ endfunction(wlalink)
 function(wla_all)
     set(options WLA_VERBOSE LINK_VERBOSE VERBOSE
         SYMBOL_WLA SYMBOL_NOGMB)
-    set(oneValueArgs OUTPUT ARCH)
+    set(oneValueArgs OUTPUT ARCH LINKFILE)
     set(multiValueArgs SOURCES LIBSOURCES OBJECTS LIBRARIES
         DEFINES LINK_DEFINES WLA_FLAGS LINK_FLAGS)
     cmake_parse_arguments(TW "${options}" "${oneValueArgs}"
@@ -284,7 +352,7 @@ function(wla_all)
         set(LINK_VERBOSE VERBOSE)
     endif(TW_LINK_VERBOSE OR TW_VERBOSE)
     
-    wla(
+    wlas(
         OBJECT ARCH "${TW_ARCH}"
         SOURCES ${TW_SOURCES}
         OUT_VAR OBJECTS
@@ -293,7 +361,7 @@ function(wla_all)
         ${WLA_VERBOSE}
         )
     
-    wla(
+    wlas(
         LIBRARY ARCH "${TW_ARCH}"
         SOURCES ${TW_LIBSOURCES}
         OUT_VAR LIBRARIES
@@ -305,13 +373,18 @@ function(wla_all)
     list(APPEND OBJECTS ${TW_OBJECTS})
     list(APPEND LIBRARIES ${TW_LIBRARIES})
     
-    get_full_path("${TW_OUTPUT}.link" "${BINARY_DIR}" LINKFILE)
-    create_linkfile(
-        OUTPUT "${LINKFILE}"
-        OBJECTS ${OBJECTS}
-        LIBRARIES ${LIBRARIES}
-        DEFINES ${TW_LINK_DEFINES}
-        )
+    if(TW_LINKFILE)
+        get_full_path("${TW_LINKFILE}" "${BINARY_DIR}" LINKFILE)
+        message(STATUS "[LINKFILE] Using custom linkfile: ${LINKFILE}")
+    else()
+        get_full_path("${TW_OUTPUT}.link" "${BINARY_DIR}" LINKFILE)
+        create_linkfile(
+            OUTPUT "${LINKFILE}"
+            OBJECTS ${OBJECTS}
+            LIBRARIES ${LIBRARIES}
+            DEFINES ${TW_LINK_DEFINES}
+            )
+    endif()
     file(READ "${LINKFILE}" LINKFILE_CONTENT) # For easier debugging
     message(STATUS "[LINKFILE CONTENTS] ${LINKFILE}\n${LINKFILE_CONTENT}")
     

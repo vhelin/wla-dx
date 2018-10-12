@@ -14,7 +14,7 @@ set(LDEFS)
 set(WLA_FLAGS -x)
 set(LINK_FLAGS )
 set(LINKFILE)
-
+# USE_CUSTOM_LINKFILE needs to be unset for now
 
 if(EXISTS "${SOURCE_DIR}/linkfile")
     set(LINKFILE "${SOURCE_DIR}/linkfile")
@@ -22,34 +22,11 @@ elseif(EXISTS "${SOURCE_DIR}/Linkfile")
     set(LINKFILE "${SOURCE_DIR}/Linkfile")
 endif()
 
-if(LINKFILE)
-    read_linkfile(
-        LINKFILE "${LINKFILE}"
-        OBJECTS SRCS_PRE
-        #LIBRARIES LIBSRCS_PRE
-        DEFINITIONS LDEFS
-        #HEADER HEADER
-        #FOOTER FOOTER
-        )
-    # Convert from objects to source files
-    foreach(OBJ IN LISTS SRCS_PRE)
-        foreach(REGEXP "(.)$;\\1.s" "\\.o;.s")
-            list(GET REGEXP 0 MATCH)
-            list(GET REGEXP 1 REPLACEMENT)
-            string(REGEX REPLACE "${MATCH}" "${REPLACEMENT}" FILENAME "${OBJ}")
-            if(EXISTS "${SOURCE_DIR}/${FILENAME}")
-                list(APPEND SRCS "${SOURCE_DIR}/${FILENAME}")
-                break()
-            endif(EXISTS "${SOURCE_DIR}/${FILENAME}")
-        endforeach(REGEXP)
-    endforeach(OBJ)
-    # TODO: Libraries
-else()
-    file(GLOB SRCS "*.s")
-endif()
-
 set(OUTPUT "out.bin")
-set(EXPECTED "expected.bin")
+set(EXPECTED)
+if(EXISTS "expected.bin")
+    set(EXPECTED "expected.bin")
+endif()
 
 set(ASSEMBLE_NORMALLY ON)
 set(CHECK_FILE_EQUALS OFF)
@@ -57,15 +34,60 @@ if(EXISTS "${EXPECTED}")
     set(CHECK_FILE_EQUALS ON)
 endif()
 
+set(RAN_SETUP NO)
+macro(setup)
+    set(RAN_SETUP YES)
+    if(ASSEMBLE_NORMALLY AND EXISTS "${EXPECTED}")
+        set(CHECK_FILE_EQUALS ON)
+    endif()
+    if(EXISTS "${LINKFILE}")
+        if(NOT DEFINED USE_CUSTOM_LINKFILE)
+            set(USE_CUSTOM_LINKFILE ON)
+        endif()
+        read_linkfile(
+            LINKFILE "${LINKFILE}"
+            OBJECTS SRCS_PRE
+            #LIBRARIES LIBSRCS_PRE
+            DEFINITIONS LDEFS
+            #HEADER HEADER
+            #FOOTER FOOTER
+            )
+        # Convert from objects to source files
+        foreach(OBJ IN LISTS SRCS_PRE)
+            foreach(REGEXP "(.)$;\\1.s" "\\.o;.s")
+                list(GET REGEXP 0 MATCH)
+                list(GET REGEXP 1 REPLACEMENT)
+                string(REGEX REPLACE "${MATCH}" "${REPLACEMENT}" FILENAME "${OBJ}")
+                if(EXISTS "${SOURCE_DIR}/${FILENAME}")
+                    list(APPEND SRCS "${SOURCE_DIR}/${FILENAME}")
+                    break()
+                endif(EXISTS "${SOURCE_DIR}/${FILENAME}")
+            endforeach(REGEXP)
+        endforeach(OBJ)
+        # TODO: Libraries
+    elseif(NOT SRCS)
+        file(GLOB SRCS "*.s")
+    endif()
+endmacro(setup)
+
 if(EXISTS "./test.cmake")
     include("./test.cmake")
 endif()
 
+if(NOT RAN_SETUP)
+    setup()
+endif()
+
+
 if(ASSEMBLE_NORMALLY)
     # Automatic compilation
+    if(USE_CUSTOM_LINKFILE)
+        set(CUSTOM_LINKFILE_SETTING LINKFILE "${LINKFILE}")
+    endif()
     wla_all(
         OUTPUT "${OUTPUT}"
         ARCH "${ARCH}"
+        ${CUSTOM_LINKFILE_SETTING}
         SOURCES ${SRCS}
         LIBSOURCES ${LIBSRCS}
         OBJECTS ${OBJECTS}
