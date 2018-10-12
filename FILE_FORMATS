@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAP" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 17 (20-Sep-2018)
+        "WLAQ" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 17 (12-Oct-2018)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -52,6 +52,7 @@ source file name list:
   ...
   n     source file name (0 terminated)
   1     id
+  4     checksum
   ...
 
 exported definitions:
@@ -144,6 +145,7 @@ section:
   1     file id
   4     relative address (int)
   4     bank number (int)
+  4     base (int)
   4     size (int)
   4     alignment (int)
   n     data
@@ -152,7 +154,7 @@ section:
 
 
 
-WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file format "WLAY"
+WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file format "WLAZ"
 
 
 bytes   description
@@ -160,7 +162,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAY" - WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file version 13 (18-Feb-2016)
+        "WLAZ" - WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file version 14 (12-Oct-2018)
 
 source file name list:
 
@@ -168,6 +170,7 @@ source file name list:
   ...
   n     source file name (0 terminated)
   1     id
+  4     checksum
   ...
 
 exported definitions:

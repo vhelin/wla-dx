@@ -793,7 +793,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAY");
+    fprintf(final_ptr, "WLAZ");
 
     if (export_source_file_names(final_ptr) == FAILED)
       return FAILED;
@@ -959,7 +959,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAP%c", emptyfill);
+    fprintf(final_ptr, "WLAQ%c", emptyfill);
 
     /* misc bits */
     ind = 0;

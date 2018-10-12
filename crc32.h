@@ -7,4 +7,4 @@
 
 extern unsigned long crc32(const unsigned char *s, unsigned int len);
 
-#endif // __CRC32_H__
+#endif /* __CRC32_H__ */
