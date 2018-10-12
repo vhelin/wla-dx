@@ -8,7 +8,7 @@
 #include "write.h"
 #include "files.h"
 #include "analyze.h"
-#include "..\crc32.h"
+#include "../crc32.h"
 
 
 
