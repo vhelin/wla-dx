@@ -461,6 +461,7 @@ struct section_def {
   int  alignment;
   int  address; /* in bank */
   int  bank;
+  int  base;
   int  slot;
   int  size;
   int  status; /* see SECTION_STATUS_* */
@@ -502,6 +503,7 @@ struct active_file_info {
 struct file_name_info {
   char   *name;
   int    id;
+  unsigned long checksum;
   struct file_name_info *next;
 };
 
