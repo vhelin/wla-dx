@@ -21,6 +21,7 @@
     extraflags
     goodtoknow
     archoverview
+    symbols
     legal
 
 .. only:: not builder_man
