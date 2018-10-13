@@ -80,6 +80,7 @@ endforeach(DIR)
 foreach(DIR
         #"all/unused-section-defs-export"
         "all/negative-redefinition"
+        "all/long-filename"
         )
     string(REPLACE "/" "-" TEST_NAME "${DIR}")
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${DIR}")
