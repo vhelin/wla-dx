@@ -91,3 +91,18 @@ foreach(DIR
     endforeach(ARCH)
 endforeach(DIR)
 
+# Copy simplemap.i to the binary dir since we build from there
+foreach(ARCH IN LISTS ARCHS "all")
+    string(REPLACE ":" ";" ARCH "${ARCH}")
+    list(GET ARCH 0 WLA_NAME)
+    set(FILES
+        "simplemap.i"
+        )
+    foreach(FILE IN LISTS FILES)
+        if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${WLA_NAME}/${FILE}")
+            configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${WLA_NAME}/${FILE}"
+                "${CMAKE_CURRENT_BINARY_DIR}/${WLA_NAME}/${FILE}"
+                COPYONLY)
+        endif()
+    endforeach(FILE)
+endforeach(ARCH)
