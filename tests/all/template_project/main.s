@@ -1,4 +1,4 @@
-.INCLUDE "../simpemap.i"
+.INCLUDE "../simplemap.i"
 
 ; Insert description here
 ; It should say what happened and what it should've happen instead.
