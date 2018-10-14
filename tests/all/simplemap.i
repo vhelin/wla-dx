@@ -1,7 +1,12 @@
+.MEMORYMAP
+  SLOTSIZE $1000
+  DEFAULTSLOT 0
+  SLOT 0 $0000
+.ENDME
+
+; Note: It needs to be 2 banks otherwise wla-gb complains
 .ROMBANKMAP
   BANKSTOTAL 2
-  BANKSIZE $2000
-  BANKS 1
-  BANKSIZE $6000
-  BANKS 1
+  BANKSIZE $1000
+  BANKS 2
 .ENDRO
