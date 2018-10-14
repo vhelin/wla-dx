@@ -1,4 +1,4 @@
-.INCLUDE "../simpemap.i"
+.INCLUDE "../simplemap.i"
 
 ; This test should test long filename support, to make sure that WLA won't
 ; crash or something.
