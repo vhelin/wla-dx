@@ -144,4 +144,9 @@ y    db
 id   dw
 .endst
 
+.db "DATA START >>> "
+	mvn $1, $2
+	mvp $3, $4
+.db " <<< DATA END"
+	
 .export monsta.x, monsta.y, monsta.id, monsta.name

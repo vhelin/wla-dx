@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (12-Oct-2018) [ALL] Deprecated section's size giving inside section's
+v9.8 (19-Oct-2018) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
                    [ALL] Added APPENDTO to .RAMSECTIONs.
                    [ALL] When allocating a new unknown reference, we'll set
@@ -33,6 +33,8 @@ v9.8 (12-Oct-2018) [ALL] Deprecated section's size giving inside section's
                      code is used.
                    [GB ] Added VERSION ($014C) to .GBHEADER.
                    [658] Added support for .EXHIROM.
+                   [658] MVN and MVP had source and destination in wrong
+                     order in the output binary.
 
 v9.7 (17-Apr-2018) [ALL] We now use CMake instead of plain Makefiles.
                    [ALL] Added INSTANCEOF support to .STRUCT.
