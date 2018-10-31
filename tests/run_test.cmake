@@ -110,6 +110,13 @@ if(CHECK_FILE_EQUALS)
     endif(EXPECTED)
 endif()
 
+# DEBUG: Set environment variable WLA_DONT_CLEAN_OUTPUT=1 to not to clean
+# the output, so you can use it as a expected output.
+if(ENV:WLA_DONT_CLEAN_OUTPUT)
+    message("WLA_DONT_CLEAN_OUTPUT defined! Not gonna clean output!")
+    list(REMOVE_ITEM FILES_TO_CLEAN_UP "${OUTPUT}")
+endif()
+
 # Add temporary files
 file(GLOB TEMP_FILES ".wla*a" ".wla*b" "wla_a.tmp" "wla_b.tmp")
 list(APPEND FILES_TO_CLEAN_UP ${TEMP_FILES})
