@@ -8,9 +8,9 @@ LINKER = slink
 LLIB = LIB LIB:sc$(MATH).lib LIB:sc.lib LIB:amiga.lib
 LFLAGS = STRIPDEBUG NOICONS
 
-CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c
-HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h defines.h
-OFILES = LIB:c.o main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o
+CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c
+HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h crc32.h defines.h
+OFILES = LIB:c.o main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o
 ALLFILES = $(CFILES) $(HFILES) $(OFILES)
 
 
@@ -45,8 +45,11 @@ pass_4.o: pass_4.c defines.h pass_4.h
 stack.o: stack.c defines.h stack.h makefile
 	$(CC) $(CFLAGS) stack.c
 
-listfile.o: listfile.c defines.h makefile
+listfile.o: listfile.c defines.h listfile.h makefile
 	$(CC) $(WLAFLAGS) listfile.c
+
+crc32.o: crc32.c defines.h crc32.h makefile
+	$(CC) $(WLAFLAGS) crc32.c
 
 
 $(OFILES): $(HFILES)
