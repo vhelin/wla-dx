@@ -107,6 +107,82 @@ macro(execute_process_cmd)
     execute_process(${ARGN})       # Run original function
 endmacro(execute_process_cmd)
 
+function(library_object_new VAR_OUTPUT)
+    set(options)
+    set(oneValueArgs BANK SLOT BASE FILE)
+    set(multiValueArgs)
+    cmake_parse_arguments(TW "${options}" "${oneValueArgs}"
+        "${multiValueArgs}" ${ARGN})
+    
+    set(OBJ "${TW_BANK}" "${TW_SLOT}" "${TW_BASE}" "${FILE}")
+    string(REPLACE ";" ":" OBJ OBJ)
+    set("${VAR_OUTPUT}" "${OBJ}" PARENT_SCOPE)
+endfunction(library_object_new)
+
+function(library_object_get OBJ)
+    set(options)
+    set(oneValueArgs BANK SLOT BASE FILE)
+    set(multiValueArgs)
+    cmake_parse_arguments(TW "${options}" "${oneValueArgs}"
+        "${multiValueArgs}" ${ARGN})
+    
+    string(replace ":" ";" OBJ OBJ)
+    
+    if(TW_BANK)
+        list(GET OBJ 0 "${TW_BANK}")
+        set("${TW_BANK}" "${TW_BANK}" PARENT_SCOPE)
+    endif()
+    
+    if(TW_SLOT)
+        list(GET OBJ 1 "${TW_SLOT}")
+        set("${TW_SLOT}" "${TW_SLOT}" PARENT_SCOPE)
+    endif()
+    
+    if(TW_BASE)
+        list(GET OBJ 2 "${TW_BASE}")
+        set("${TW_BASE}" "${TW_BASE}" PARENT_SCOPE)
+    endif()
+    
+    if(TW_FILE)
+        list(GET OBJ 3 "${TW_FILE}")
+        set("${TW_FILE}" "${TW_FILE}" PARENT_SCOPE)
+    endif()
+endfunction(library_object_get)
+
+
+function(library_object_set OBJ OUT_VAR)
+    set(options)
+    set(oneValueArgs BANK SLOT BASE FILE)
+    set(multiValueArgs)
+    cmake_parse_arguments(TW "${options}" "${oneValueArgs}"
+        "${multiValueArgs}" ${ARGN})
+    
+    string(replace ":" ";" OBJ OBJ)
+    
+    if(TW_BANK)
+        list(REMOVE_AT OBJ 0)
+        list(SET OBJ 0 "${TW_BANK}")
+    endif()
+    
+    if(TW_SLOT)
+        list(REMOVE_AT OBJ 0)
+        list(SET OBJ 0 "${TW_SLOT}")
+    endif()
+    
+    if(TW_BASE)
+        list(REMOVE_AT OBJ 0)
+        list(SET OBJ 0 "${TW_BASE}")
+    endif()
+    
+    if(TW_FILE)
+        list(REMOVE_AT OBJ 0)
+        list(SET OBJ 0 "${TW_FILE}")
+    endif()
+    
+    string(replace ";" ":" OBJ OBJ)
+    set("${OUT_VAR}" "${OBJ}" PARENT_SCOPE)
+endfunction(library_object_set)
+
 # Assemble a file to an object/library file
 # wla(
 #     <OBJECT|LIBRARY> # Whenever to comile either an object or an library
@@ -152,10 +228,16 @@ function(wla)
         list(APPEND TW_FLAGS "-D${DEFINE}")
     endforeach(DEFINE)
     
+    if(TW_OBJECT)
+        list(APPEND TW_FLAGS "-o")
+    elseif(TW_LIBRARY)
+        list(APPEND TW_FLAGS "-l")
+    endif()
+    
     get_full_path("${TW_SOURCE}" "${SOURCE_DIR}" SRC)
     get_full_path("${TW_OUTPUT}" "${BINARY_DIR}" OUT)
     execute_process_cmd(
-        COMMAND "${WLA_${TW_ARCH}}" ${TW_FLAGS} -o "${OUT}" "${SRC}"
+        COMMAND "${WLA_${TW_ARCH}}" ${TW_FLAGS} "${OUT}" "${SRC}"
         WORKING_DIRECTORY "${SOURCE_DIR}"
         RESULT_VARIABLE RESULT
         )
@@ -265,6 +347,17 @@ function(create_linkfile)
             file(APPEND "${LINKFILE}" "${KEY} ${VALUE}\n")
         endforeach(DEF)
     endif(TL_DEFINES)
+    if(TL_LIBRARIES)
+        foreach(LIB IN LISTS TL_LIBRARIES)
+            library_object_get(LIB BANK BANK SLOT SLOT BASE BASE FILE FNAME)
+            file(APPEND "${LINKFILE}" "bank ${BANK}")
+            file(APPEND "${LINKFILE}" "slot ${SLOT}")
+            if(BASE)
+                file(APPEND "${LINKFILE}" "base ${BASE}")
+            endif()
+            file(APPEND "${LINKFILE}" "${FNAME}\n")
+        endforeach(LIB)
+    endif()
     file(APPEND "${LINKFILE}" "${TL_APPEND_STR}\n")
     set(FILES_TO_CLEAN_UP ${FILES_TO_CLEAN_UP} PARENT_SCOPE)
 endfunction(create_linkfile)
@@ -444,7 +537,27 @@ function(read_linkfile)
         elseif(SECTION STREQUAL "objects")
             list(APPEND OBJECTS "${LINE}")
         elseif(SECTION STREQUAL "libraries")
-            list(APPEND LIBRARIES "${LINE}")
+            string(REGEX REPLACE "bank +([^ ]+) *" "" LINE "${LINE}")
+            set(BANK "${CMAKE_MATCH_1}")
+            string(REGEX REPLACE "slot +([^ ]+) *" "" LINE "${LINE}")
+            set(SLOT "${CMAKE_MATCH_1}")
+            string(REGEX REPLACE "base +([^ ]+) *" "" LINE "${LINE}")
+            set(BASE "${CMAKE_MATCH_1}")
+            
+            string(REGEX REPLACE " " ";" LINE "${LINE}")
+            list(GET LINE -1 FNAME)
+            list(REMOVE_AT LINE -1)
+            
+            library_object_new(LIBOBJ
+                BANK "${BANK}"
+                SLOT "${SLOT}"
+                BASE "${BASE}"
+                FILE "${FNAME}")
+            list(APPEND LIBRARIES "${LIBOBJ}")
+            
+            if(LINE)
+                message("[LINKILE PARSER] Leftover library: ${LINE}")
+            endif()
         elseif(SECTION STREQUAL "definitions")
             string(REGEX MATCH "([^ ]+) +(.*)" IS_DEFS "${LINE}")
             if(NOT IS_DEFS)
