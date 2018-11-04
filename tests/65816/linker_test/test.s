@@ -6,9 +6,6 @@
 test_00:	NOP
 .ENDS
 
-.PRINTT "what's the name of this program? "
-.INPUT INFO
-
 .SECTION "information"
-.DB INFO
+.DB 1
 .ENDS
