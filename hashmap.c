@@ -2,8 +2,8 @@
  * Generic map implementation.
  */
 #include "hashmap.h"
+#include "crc32.h"
 
-#include <crc32.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -32,19 +32,25 @@ typedef struct _hashmap_map{
  * Return an empty hashmap, or NULL on failure.
  */
 map_t hashmap_new() {
+
   hashmap_map* m = (hashmap_map*) malloc(sizeof(hashmap_map));
-  if(!m) goto err;
+  if(!m)
+    goto err;
 
   m->data = (hashmap_element*) calloc(INITIAL_SIZE, sizeof(hashmap_element));
-  if(!m->data) goto err;
+  if(!m->data)
+    goto err;
 
   m->table_size = INITIAL_SIZE;
   m->size = 0;
 
   return m;
-err:
+
+ err:
+  
   if (m)
     hashmap_free(m);
+
   return NULL;
 }
 
@@ -76,6 +82,7 @@ unsigned int hashmap_hash_int(hashmap_map * m, char* keystring){
  * a larger table.
  */
 hashmap_element* hashmap_hash(map_t in, char* key){
+
   int hash;
   hashmap_element *e, *p;
 
@@ -83,7 +90,8 @@ hashmap_element* hashmap_hash(map_t in, char* key){
   hashmap_map* m = (hashmap_map *) in;
 
   /* If full, return immediately */
-  if(m->size >= (m->table_size/2)) return NULL;
+  if(m->size >= (m->table_size/2))
+    return NULL;
 
   /* Find the best index */
   hash = hashmap_hash_int(m, key);
@@ -110,6 +118,7 @@ hashmap_element* hashmap_hash(map_t in, char* key){
  * Doubles the size of the hashmap, and rehashes all the elements
  */
 int hashmap_rehash(map_t in){
+
   int i;
   int old_size;
   hashmap_element* curr;
@@ -117,9 +126,9 @@ int hashmap_rehash(map_t in){
 
   /* Setup the new elements */
   hashmap_map *m = (hashmap_map *) in;
-  hashmap_element* temp = (hashmap_element *)
-    calloc(2 * m->table_size, sizeof(hashmap_element));
-  if(!temp) return MAP_OMEM;
+  hashmap_element* temp = (hashmap_element *) calloc(2 * m->table_size, sizeof(hashmap_element));
+  if(!temp)
+    return MAP_OMEM;
 
   /* Update the array */
   curr = m->data;
@@ -163,6 +172,7 @@ int hashmap_rehash(map_t in){
  * Add a pointer to the hashmap with some key
  */
 int hashmap_put(map_t in, char* key, any_t value){
+
   hashmap_element *e;
   hashmap_map* m;
 
@@ -192,6 +202,7 @@ int hashmap_put(map_t in, char* key, any_t value){
  * Get your pointer out of the hashmap with a key
  */
 int hashmap_get(map_t in, char* key, any_t *arg){
+
   int curr;
   hashmap_map* m;
   hashmap_element *e;
@@ -224,6 +235,7 @@ int hashmap_get(map_t in, char* key, any_t *arg){
 }
 
 any_t hashmap_begin_iteration(map_t in) {
+
   int i;
 
   /* Cast the hashmap */
@@ -246,9 +258,9 @@ any_t hashmap_begin_iteration(map_t in) {
 }
 
 any_t hashmap_next_iteration(map_t in) {
-  int i,j;
 
   hashmap_element* e;
+  int i,j;
 
   /* Cast the hashmap */
   hashmap_map* m = (hashmap_map*) in;
@@ -278,6 +290,7 @@ any_t hashmap_next_iteration(map_t in) {
  * Remove an element with that key from the map
  */
 int hashmap_remove(map_t in, char* key){
+
   int curr;
   hashmap_map* m;
   hashmap_element *e, *p;
@@ -328,6 +341,7 @@ int hashmap_remove(map_t in, char* key){
 
 /* Deallocate the hashmap */
 void hashmap_free(map_t in){
+
   hashmap_map* m = (hashmap_map*) in;
   hashmap_element *e, *p;
   int i;
@@ -353,6 +367,7 @@ void hashmap_free(map_t in){
 
 /* free all elements */
 void hashmap_free_all_elements(map_t in){
+
   any_t *e;
 
   e = hashmap_begin_iteration(in);
@@ -364,7 +379,10 @@ void hashmap_free_all_elements(map_t in){
 
 /* Return the length of the hashmap */
 int hashmap_length(map_t in){
+
   hashmap_map* m = (hashmap_map *) in;
-  if(m != NULL) return m->size;
-  else return 0;
+  if (m != NULL)
+    return m->size;
+  else
+    return 0;
 }
