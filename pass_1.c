@@ -6768,8 +6768,10 @@ int parse_directive(void) {
     }
 
     t[u] = 0;
-    if (quiet == NO)
+    if (quiet == NO) {
       printf("%s", t);
+      fflush(stdout);
+    }
 
     return SUCCEEDED;
   }
@@ -6810,6 +6812,7 @@ int parse_directive(void) {
         printf("%x", d);
       else
         printf("%d", d);
+      fflush(stdout);
     }
 
     return SUCCEEDED;
@@ -6896,8 +6899,6 @@ int parse_directive(void) {
     /* generate the numbers */
     for (f = 0; f < c; f++) {
       d = (genrand_int32() % (max-min+1)) + min;
-
-      fprintf(stderr, "got %d\n", d);
 
       if (o == 1) {
         if (d < -32768 || d > 65535) {
