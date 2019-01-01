@@ -4,7 +4,7 @@ struct optcode opt_table[] = {
   { "ADC A,#x", 0x88, 1 },
   { "ADC A,!?+X", 0x95, 2 },
   { "ADC A,!?+Y", 0x96, 2 },
-  { "ADC A,!?", 0x85, 2 }, 
+  { "ADC A,!?", 0x85, 2 },
   { "ADC A,[x+X]", 0x87, 1 },
   { "ADC A,[x]+Y", 0x97, 1 },
   { "ADC A,x+X", 0x94, 1 },
@@ -15,7 +15,6 @@ struct optcode opt_table[] = {
   { "ADDW YA,x", 0x7A, 1 },
   { "AND1 C,/x.x", 0x6A, 0xB },
   { "AND1 C,x.x", 0x4A, 0xB },
-  { "AND1 x.x,C", 0xCA, 0xB },
   { "AND A,(X)", 0x26, 0 },
   { "AND A,#x", 0x28, 1 },
   { "AND A,!?+X", 0x35, 2 },
@@ -165,6 +164,7 @@ struct optcode opt_table[] = {
   { "MOVW YA,x", 0xBA, 1 },
   { "MOVW x,YA", 0xDA, 1 },
   { "MOV1 C,x.x", 0xAA, 0xB },
+  { "MOV1 x.x,C", 0xCA, 0xB },
   { "MUL YA", 0xCF, 0 },
 
   { "NOP", 0x00, 0 },
@@ -197,7 +197,7 @@ struct optcode opt_table[] = {
   { "PUSH Y", 0x6D, 0 },
 
   { "RET", 0x6F, 0 },
-  { "RET1", 0x7F, 0 },
+  { "RETI", 0x7F, 0 },
   { "ROL A", 0x3C, 0 },
   { "ROL !?", 0x2C, 2 },
   { "ROL x+X", 0x3B, 1 },
