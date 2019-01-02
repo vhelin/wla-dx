@@ -11,7 +11,6 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
  }
 break;
 
-case 0xE:
 case 1:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == 'x') {
@@ -30,13 +29,9 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 	if (z == SUCCEEDED)
 	  output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
 	else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-	  output_assembled_opcode(opt_tmp, "k%d d%d R%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+	  output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", active_file_info_last->line_current, opt_tmp->hex, label);
 	else {
 	  output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
-	  if (opt_tmp->type == 0xE) {
-	    /* 0xE -> let's configure the stack so that all label references inside are relative */
-	    stacks_tmp->relative_references = 1;
-	  }
 	}
 
 	i = inz;
@@ -127,7 +122,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 	    if (v == SUCCEEDED)
 	      output_assembled_opcode(opt_tmp, "d%d ", e);
 	    else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-	      output_assembled_opcode(opt_tmp, "k%d R%s ", active_file_info_last->line_current, labelx);
+	      output_assembled_opcode(opt_tmp, "k%d Q%s ", active_file_info_last->line_current, labelx);
 	    else
 	      output_assembled_opcode(opt_tmp, "c%d ", h);
 
@@ -187,7 +182,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 	    if (v == SUCCEEDED)
 	      output_assembled_opcode(opt_tmp, "d%d ", e);
 	    else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-	      output_assembled_opcode(opt_tmp, "k%d R%s ", active_file_info_last->line_current, labelx);
+	      output_assembled_opcode(opt_tmp, "k%d Q%s ", active_file_info_last->line_current, labelx);
 	    else
 	      output_assembled_opcode(opt_tmp, "c%d ", h);
 
@@ -271,7 +266,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 	    if (v == SUCCEEDED)
 	      output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, e);
 	    else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-	      output_assembled_opcode(opt_tmp, "k%d d%d R%s ", active_file_info_last->line_current, opt_tmp->hex, labelx);
+	      output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", active_file_info_last->line_current, opt_tmp->hex, labelx);
 	    else
 	      output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, h);
 
@@ -339,14 +334,14 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 	    if (z == SUCCEEDED)
 	      output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
 	    else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-	      output_assembled_opcode(opt_tmp, "k%d d%d R%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+	      output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", active_file_info_last->line_current, opt_tmp->hex, label);
 	    else
 	      output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
 
 	    if (v == SUCCEEDED)
 	      output_assembled_opcode(opt_tmp, "d%d ", e);
 	    else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-	      output_assembled_opcode(opt_tmp, "k%d R%s ", active_file_info_last->line_current, labelx);
+	      output_assembled_opcode(opt_tmp, "k%d Q%s ", active_file_info_last->line_current, labelx);
 	    else
 	      output_assembled_opcode(opt_tmp, "c%d ", h);
 
@@ -419,7 +414,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 		if (v == SUCCEEDED)
 		  output_assembled_opcode(opt_tmp, "d%d ", e);
 		else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-		  output_assembled_opcode(opt_tmp, "k%d R%s ", active_file_info_last->line_current, labelx);
+		  output_assembled_opcode(opt_tmp, "k%d Q%s ", active_file_info_last->line_current, labelx);
 		else
 		  output_assembled_opcode(opt_tmp, "c%d ", h);
 
@@ -506,7 +501,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 		if (v == SUCCEEDED)
 		  output_assembled_opcode(opt_tmp, "d%d ", e);
 		else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-		  output_assembled_opcode(opt_tmp, "k%d R%s ", active_file_info_last->line_current, labelx);
+		  output_assembled_opcode(opt_tmp, "k%d Q%s ", active_file_info_last->line_current, labelx);
 		else
 		  output_assembled_opcode(opt_tmp, "c%d ", h);
 
@@ -530,6 +525,42 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 	  if (opt_tmp->op[x] != toupper((int)buffer[inz]))
 	    break;
 	}
+      }
+      if (opt_tmp->op[x] != toupper((int)buffer[inz]))
+	break;
+    }
+  }
+  if (opt_tmp->op[x] != toupper((int)buffer[inz]))
+    break;
+ }
+break;
+
+case 0xE:
+for ( ; x < OP_SIZE_MAX; inz++, x++) {
+  if (opt_tmp->op[x] == 'x') {
+    y = i;
+    i = inz;
+    z = input_number();
+    inz = i;
+    i = y;
+    if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
+      return FAILED;
+    if (z == SUCCEEDED && (d > 255 || d < -128))
+      break;
+
+    for (x++; x < OP_SIZE_MAX; inz++, x++) {
+      if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
+	if (z == SUCCEEDED)
+	  output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
+	else if (z == INPUT_NUMBER_ADDRESS_LABEL)
+	  output_assembled_opcode(opt_tmp, "k%d d%d R%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+	else {
+	  output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
+      stacks_tmp->relative_references = 1;
+	}
+
+	i = inz;
+	return SUCCEEDED;
       }
       if (opt_tmp->op[x] != toupper((int)buffer[inz]))
 	break;
