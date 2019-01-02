@@ -82,7 +82,7 @@ int new_unknown_reference(int type) {
   int n = 0;
   int j = 0;
 
-  
+
   if (tmp[0] == ':')
     j = 1;
   while (n < 10 && tmp[n+j] == '@')
@@ -199,7 +199,7 @@ int pass_4(void) {
   int base = 0x00;
 
   memset(parent_labels, 0, sizeof(parent_labels));
-  
+
   section_status = OFF;
   bankheader_status = OFF;
   mem_insert_overwrite = OFF;
@@ -554,6 +554,53 @@ int pass_4(void) {
 
         continue;
 
+#ifdef SPC700
+        /* 13BIT COMPUTATION */
+
+      case 'N':
+        fscanf(file_out_ptr, "%d %d", &x, &inz);
+
+        if (bankheader_status == OFF)
+          stacks_tmp = stacks_first;
+        else
+          stacks_tmp = stacks_header_first;
+
+        while (stacks_tmp != NULL) {
+          if (stacks_tmp->id == inz)
+            break;
+          stacks_tmp = stacks_tmp->next;
+        }
+
+        if (stacks_tmp == NULL) {
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(filename_id), line_number, inz);
+          return FAILED;
+        }
+
+        if (stacks_tmp->section_status == ON) {
+          stacks_tmp->address = sec_tmp->i; /* relative address, to the beginning of the section */
+        }
+        else {
+          stacks_tmp->address = pc_bank; /* complete address, in ROM memory */
+        }
+
+        stacks_tmp->bank = rom_bank;
+        stacks_tmp->slot = slot;
+        stacks_tmp->type = STACKS_TYPE_13BIT;
+
+        if (mangle_stack_references(stacks_tmp) == FAILED)
+          return FAILED;
+
+        /* this stack was referred from the code */
+        stacks_tmp->position = STACK_POSITION_CODE;
+
+        if (mem_insert(0x00) == FAILED)
+          return FAILED;
+        if (mem_insert(x << (13 - 8)) == FAILED)
+          return FAILED;
+
+        continue;
+#endif
+
         /* 24BIT COMPUTATION */
 
       case 'T':
@@ -716,6 +763,48 @@ int pass_4(void) {
 
         continue;
 
+#ifdef SPC700
+        /* 13BIT REFERENCE */
+
+      case 'n':
+        fscanf(file_out_ptr, "%d %256s", &inz, tmp);
+
+        x = 0;
+        hashmap_get(defines_map, tmp, (void*)&tmp_def);
+        if (tmp_def != NULL) {
+          if (tmp_def->type == DEFINITION_TYPE_STRING) {
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+            return FAILED;
+          }
+          else if (tmp_def->type != DEFINITION_TYPE_STACK) {
+            o = (int)tmp_def->value;
+            x = 1;
+            if (o > 8191 || o < 0) {
+              fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference value of \"%s\" is out of 13-bit range.\n", get_file_name(filename_id), line_number, tmp);
+              return FAILED;
+            }
+
+            if (mem_insert(o & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert(((o | inz << 13) & 0xFF00) >> 8) == FAILED)
+              return FAILED;
+          }
+        }
+
+        if (x == 1)
+          continue;
+
+        if (new_unknown_reference(REFERENCE_TYPE_DIRECT_13BIT) == FAILED)
+          return FAILED;
+
+        if (mem_insert(0x00) == FAILED)
+          return FAILED;
+        if (mem_insert(inz << (13 - 8)) == FAILED)
+          return FAILED;
+
+        continue;
+#endif
+
         /* 8BIT PC RELATIVE REFERENCE */
 
       case 'R':
@@ -822,7 +911,7 @@ int pass_4(void) {
 
 	ov = label_tmp->section_id;
 	WRITEOUT_OV;
-	
+
         fprintf(final_ptr, "%c", label_tmp->filename_id);
 
         ov = label_tmp->linenumber;
@@ -850,7 +939,7 @@ int pass_4(void) {
 
       ov = label_tmp->section_id;
       WRITEOUT_OV;
-	
+
       fprintf(final_ptr, "%c", label_tmp->filename_id);
 
       if (label_tmp->section_status == OFF) {
@@ -917,7 +1006,7 @@ int pass_4(void) {
       fprintf(final_ptr, "%s%c", append_tmp->append_to, 0);
       append_tmp = append_tmp->next;
     }
-    
+
     /* sections */
     sec_tmp = sections_first;
     while (sec_tmp != NULL) {
@@ -1019,7 +1108,7 @@ int pass_4(void) {
         ind |= 1 << 6;
     }
 #endif
-      
+
     fprintf(final_ptr, "%c", ind);
 
     /* rom bank map */
@@ -1139,7 +1228,7 @@ int pass_4(void) {
 
       ov = label_tmp->section_id;
       WRITEOUT_OV;
-      
+
       ov = label_tmp->linenumber;
       WRITEOUT_OV;
 
@@ -1396,7 +1485,7 @@ int find_label(char *str, struct section_def *s, struct label_def **out) {
   struct label_def *l = NULL;
   int i;
 
-  
+
   str2 = strchr(str, '.');
   i = str2-str;
   if (str2 == NULL) {
@@ -1613,7 +1702,7 @@ int export_source_file_names(FILE *final_ptr) {
   f = file_name_info_first;
   while (f != NULL) {
     fprintf(final_ptr, "%s%c%c", f->name, 0x00, f->id);
-    
+
     ov = f->checksum;
     WRITEOUT_OV;
 

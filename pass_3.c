@@ -39,7 +39,7 @@ int pass_3(void) {
   int base = 0x00;
   char c;
   int err;
-  
+
 
   memset(parent_labels, 0, sizeof(parent_labels));
   s = NULL;
@@ -156,7 +156,7 @@ int pass_3(void) {
 	  l->symbol = 0;
 	else
 	  l->symbol = 2;
-	
+
 	if (c == 'Z')
 	  l->label[0] = 0;
 	else
@@ -265,7 +265,7 @@ int pass_3(void) {
 	  labels = l;
 	  label_last = l;
 	}
-	
+
 	continue;
 
       case 'S':
@@ -487,6 +487,18 @@ int pass_3(void) {
       add += 2;
       continue;
 
+#ifdef SPC700
+    case 'n':
+      fscanf(f_in, "%*d %*s ");
+      add += 2;
+      continue;
+
+    case 'N':
+      fscanf(f_in, "%*d %*d ");
+      add += 2;
+      continue;
+#endif
+
     case 'D':
       fscanf(f_in, "%*d %*d %*d %d ", &inz);
       add += inz;
@@ -678,7 +690,7 @@ int pass_3(void) {
   }
 
   fclose(f_in);
-  
+
   if (blocks != NULL) {
     fprintf(stderr, "%s:%d INTERNAL_PASS_1: .BLOCK \"%s\" was left open.\n", get_file_name(blocks->filename_id), blocks->line_number, blocks->name);
     return FAILED;
@@ -715,9 +727,9 @@ int mangle_label(char *label, char *parent, int n, unsigned int label_size) {
   char buf[MAX_NAME_LENGTH*2+2];
   int len;
 
-  
+
   len = strlen(parent);
-  
+
   strcpy(buf, parent);
   strcpy(&buf[len], label+n);
 

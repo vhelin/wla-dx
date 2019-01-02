@@ -578,9 +578,9 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 	    if (v == SUCCEEDED)
 	      output_assembled_opcode(opt_tmp, "d%d y%d ", opt_tmp->hex, e | d << 13);
 	    else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-	      output_assembled_opcode(opt_tmp, "k%d d%d r%s ", active_file_info_last->line_current, opt_tmp->hex, labelx);
+	      output_assembled_opcode(opt_tmp, "k%d d%d n%d %s ", active_file_info_last->line_current, opt_tmp->hex, d, labelx);
 	    else
-	      output_assembled_opcode(opt_tmp, "d%d C%d ", opt_tmp->hex, h);
+	      output_assembled_opcode(opt_tmp, "d%d N%d %d ", opt_tmp->hex, d, h);
 
 	    i = inz;
 	    return SUCCEEDED;

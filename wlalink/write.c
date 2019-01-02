@@ -45,7 +45,7 @@ int smc_create_and_write(FILE *f) {
 
   int i;
 
-  
+
   if (f == NULL)
     return FAILED;
 
@@ -95,7 +95,7 @@ int insert_sections(void) {
   int d, f, i, x, t, q, sn, p;
   char **ram_slots[256], *c;
 
-  
+
   /* initialize ram slots */
   for (i = 0; i < 256; i++)
     ram_slots[i] = NULL;
@@ -201,7 +201,7 @@ int insert_sections(void) {
       }
 
       s->address = address;
-      
+
       /* mark as used */
       for (i = 0; i < s->size; i++, address++)
 	c[address] = 1;
@@ -492,7 +492,7 @@ int transform_stack_definitions(void) {
   struct label *l;
   struct stack *s;
 
-  
+
   l = labels_first;
   while (l != NULL) {
     if (l->status == LABEL_STATUS_STACK) {
@@ -528,7 +528,7 @@ int transform_stack_definitions(void) {
       l->status = LABEL_STATUS_DEFINE;
       l->address = s->result;
     }
-    
+
     l = l->next;
   }
 
@@ -540,7 +540,7 @@ int try_put_label(map_t map, struct label *l) {
 
   int err;
 
-  
+
   if (hashmap_get(map, l->name, NULL) == MAP_OK) {
     if (l->status == LABEL_STATUS_DEFINE)
       fprintf(stderr, "%s: TRY_PUT_LABEL: Definition \"%s\" was defined more than once.\n", get_file_name(l->file_id), l->name);
@@ -615,7 +615,7 @@ int insert_label_into_maps(struct label* l, int is_sizeof) {
 
   if (l->section_status == ON) {
     struct section *s;
-    
+
     s = l->section_struct;
 
     if (put_in_anything) {
@@ -650,7 +650,7 @@ int fix_label_addresses(void) {
   struct section *s = NULL;
   struct label *l;
 
-  
+
   /* fix labels' addresses */
   l = labels_first;
   while (l != NULL) {
@@ -688,7 +688,7 @@ int fix_references(void) {
   struct label *l, lt;
   int i, x;
 
-  
+
   section_overwrite = OFF;
 
   /* insert references */
@@ -766,6 +766,11 @@ int fix_references(void) {
         mem_insert_ref(x, i & 0xFF);
         mem_insert_ref(x + 1, (i >> 8) & 0xFF);
       }
+      /* direct 13-bit */
+      else if (r->type == REFERENCE_TYPE_DIRECT_13BIT) {
+        mem_insert(x, i & 0xFF);
+		mem_insert_ref_13bit_high(x + 1, (i >> 8) & 0xFF);
+      }
       /* direct / relative 8-bit with a definition */
       else if (l->status == LABEL_STATUS_DEFINE) {
         fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Bank number request for a definition \"%s\"?\n",
@@ -814,6 +819,17 @@ int fix_references(void) {
         i = (int)l->address;
         mem_insert_ref(x, i & 0xFF);
         mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+      }
+      /* direct 13-bit */
+      else if (r->type == REFERENCE_TYPE_DIRECT_13BIT) {
+        i = (int)l->address;
+		if (i > 8191 || i < 0) {
+          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 13-bit value.\n",
+		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
+          return FAILED;
+        }
+        mem_insert_ref(x, i & 0xFF);
+        mem_insert_ref_13bit_high(x + 1, (i >> 8) & 0xFF);
       }
       /* direct / relative 8-bit with a value definition */
       else if (l->status == LABEL_STATUS_DEFINE && (r->type == REFERENCE_TYPE_DIRECT_8BIT || r->type == REFERENCE_TYPE_RELATIVE_8BIT)) {
@@ -876,7 +892,7 @@ int fix_references(void) {
 int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAddrToLine) {
 
   struct source_file_name *src_file = NULL;
-  struct object_file *obj_file; 
+  struct object_file *obj_file;
   struct section *s;
   struct label *l;
   char name[256], *p;
@@ -889,7 +905,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
   int outfile_size;
   char* outfile_tmp;
   unsigned long outfile_crc;
-  
+
   if (outname == NULL)
     return FAILED;
 
@@ -909,7 +925,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
   }
 
   fprintf(f, "; this file was created with wlalink by ville helin <vhelin@iki.fi>.\n");
-  
+
   if (mode == SYMBOL_MODE_NOCA5H) {
     /* NO$GMB SYMBOL FILE */
     fprintf(f, "; no$gmb symbolic information for \"%s\".\n", outname);
@@ -979,12 +995,12 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 	    continue;
 	  }
 	}
-	
+
 	if (snes_mode == 0)
 	  fprintf(f, "%.2x:%.4x %s\n", l->base + l->bank, (int)l->address, l->name);
 	else
 	  fprintf(f, "%.2x:%.4x %s\n", get_snes_pc_bank(l)>>16, (int)l->address, l->name);
-	
+
 	l = l->next;
       }
     }
@@ -1008,12 +1024,12 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 	  l = l->next;
 	  continue;
 	}
-	
+
 	if (snes_mode == 0)
 	  fprintf(f, "%.2x:%.4x %s\n", l->bank, (int)l->address, l->name);
 	else
 	  fprintf(f, "%.2x:%.4x %s\n", get_snes_pc_bank(l)>>16, (int)l->address, l->name);
-	
+
 	l = l->next;
       }
     }
@@ -1042,7 +1058,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 	  fprintf(f, "%.2x:%.4x\n", l->bank, (int)l->address);
 	else
 	  fprintf(f, "%.2x:%.4x\n", get_snes_pc_bank(l)>>16, (int)l->address);
-	
+
 	l = l->next;
       }
     }
@@ -1070,9 +1086,9 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 	  l = l->next;
 	  continue;
 	}
-	
+
 	fprintf(f, "%.8lx %s\n", (long unsigned int)l->address, l->name);
-	
+
 	l = l->next;
       }
     }
@@ -1149,7 +1165,7 @@ int write_rom_file(char *outname) {
   FILE *f;
   int i, b, e;
 
-  
+
   f = fopen(outname, "wb");
   if (f == NULL) {
     fprintf(stderr, "WRITE_ROM_FILE: Error opening file \"%s\".\n", outname);
@@ -1218,7 +1234,7 @@ int compute_pending_calculations(void) {
   struct stack *sta;
   int k, a;
 
-  
+
   section_overwrite = ON;
 
   /* first place the calculation stacks into the output */
@@ -1368,6 +1384,17 @@ int compute_pending_calculations(void) {
       if (mem_insert_ref(a + 1, (k >> 8) & 0xFF) == FAILED)
 	return FAILED;
     }
+    else if (sta->type == STACKS_TYPE_13BIT) {
+      if (k < 0 || k > 8191) {
+	fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 13-bit range.\n",
+		get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
+	return FAILED;
+      }
+      if (mem_insert_ref(a, k & 0xFF) == FAILED)
+	return FAILED;
+      if (mem_insert_ref_13bit_high(a + 1, (k >> 8) & 0xFF) == FAILED)
+	return FAILED;
+    }
     else {
       if (k < -8388608 || k > 16777215) {
 	fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 24-bit range.\n",
@@ -1394,7 +1421,7 @@ struct stack *find_stack(int id, int file_id) {
 
   struct stack *st = stacks_first;
 
-  
+
   while (st != NULL) {
     if (st->id == id && st->file_id == file_id)
       return st;
@@ -1412,7 +1439,7 @@ int compute_stack(struct stack *sta, int *result) {
   int r, t, z, x, res;
   double v[256], q;
 
-  
+
   if (sta->under_work == YES) {
     fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: A loop found in computation.\n", get_file_name(sta->file_id),
 	    get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
@@ -1430,9 +1457,9 @@ int compute_stack(struct stack *sta, int *result) {
   {
     char *get_stack_item_description(struct stack_item *si);
     int z;
-    
+
     printf("----------------------------------------------------------------------\n");
-	
+
     for (z = 0; z < sta->stacksize; z++) {
       struct stack_item *si = &sta->stack[z];
       printf(get_stack_item_description(si));
@@ -1441,7 +1468,7 @@ int compute_stack(struct stack *sta, int *result) {
     printf("id: %d file: %s line: %d type %d bank: %d position %d\n", sta->id, get_file_name(sta->file_id), sta->linenumber, sta->type, sta->bank, sta->position);
   }
   */
-  
+
   x = sta->stacksize;
   s = sta->stack;
   for (r = 0, t = 0; r < x; r++, s++) {
@@ -1490,7 +1517,7 @@ int compute_stack(struct stack *sta, int *result) {
       case SI_OP_MULTIPLY:
 	v[t - 2] *= v[t - 1];
 	t--;
-	break;      
+	break;
       case SI_OP_OR:
 	v[t - 2] = (int)v[t - 1] | (int)v[t - 2];
 	t--;
@@ -1552,7 +1579,7 @@ int compute_stack(struct stack *sta, int *result) {
   /*
   printf("RESULT: %d\n", sta->result);
   */
-  
+
   return SUCCEEDED;
 }
 
@@ -1563,7 +1590,7 @@ int write_bank_header_calculations(struct stack *sta) {
   unsigned char *t;
   int k;
 
-  
+
   /* parse stack items */
   if (parse_stack(sta) == FAILED)
     return FAILED;
@@ -1584,7 +1611,7 @@ int write_bank_header_calculations(struct stack *sta) {
 	      get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
       return FAILED;
     }
-    *t = k & 0xFF;    
+    *t = k & 0xFF;
   }
   else if (sta->type == STACKS_TYPE_16BIT) {
     if (k < -32768 || k > 65535) {
@@ -1595,6 +1622,16 @@ int write_bank_header_calculations(struct stack *sta) {
     *t = k & 0xFF;
     t++;
     *t = (k >> 8) & 0xFF;
+  }
+  else if (sta->type == STACKS_TYPE_13BIT) {
+    if (k < 0 || k > 8191) {
+      fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 13-bit range.\n",
+	      get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
+      return FAILED;
+    }
+    *t = k & 0xFF;
+    t++;
+    *t = (*t & 0xE0) | ((k >> 8) & 0x1F);
   }
   else {
     if (k < -8388608 || k > 16777215) {
@@ -1620,7 +1657,7 @@ int write_bank_header_references(struct reference *r) {
   unsigned char *t;
   int a;
 
-  
+
   s = sec_hd_first;
   while (r->section != s->id)
     s = s->next;
@@ -1636,6 +1673,17 @@ int write_bank_header_references(struct reference *r) {
       *t = a & 0xFF;
       t++;
       *t = (a >> 8) & 0xFF;
+    }
+    /* direct 13-bit */
+    else if (r->type == REFERENCE_TYPE_DIRECT_13BIT) {
+      if (a > 8191 || a < 0) {
+        fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: Value (%d/$%x) of \"%s\" is too much to be a 13-bit value.\n",
+		get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, a, a, l->name);
+        return FAILED;
+      }
+      *t = a & 0xFF;
+      t++;
+      *t = (*t & 0xE0) | ((a >> 8) & 0x1F);
     }
     /* direct 8-bit */
     else if (r->type == REFERENCE_TYPE_DIRECT_8BIT) {
@@ -1680,7 +1728,7 @@ int parse_stack(struct stack *sta) {
   struct label *l, lt;
   double k;
   int g;
-  
+
 
   s = NULL;
   if (sta->section_status != 0) {
@@ -1814,7 +1862,7 @@ int correct_65816_library_sections(void) {
   struct section *s;
   struct label *l;
 
-  
+
   s = sec_first;
   while (s != NULL) {
     if (s->library_status == ON && s->base_defined == ON) {
@@ -1838,7 +1886,7 @@ int is_label_anonymous(char *label) {
   int length, i;
   char c;
 
-  
+
   if (strcmp(label, "_f") == 0 || strcmp(label, "_F") == 0 || strcmp(label, "_b") == 0 || strcmp(label, "_B") == 0 || strcmp(label, "__") == 0)
     return SUCCEEDED;
 
@@ -1860,7 +1908,7 @@ static int _labels_compare(const void *a, const void *b) {
   const struct label *l1 = a;
   const struct label *l2 = b;
 
-  
+
   if (l1->section_status == OFF && l2->section_status == ON)
     return 1;
   if (l1->section_status == ON && l2->section_status == OFF)
@@ -1894,7 +1942,7 @@ int sort_anonymous_labels() {
   int j = 0;
   struct label *l;
 
-  
+
   num_sorted_anonymous_labels = 0;
 
   /* count # of anonymous labels */
@@ -1937,7 +1985,7 @@ struct label *get_closest_anonymous_label(char *name, int rom_address, int file_
   int d = 999999999, e;
   int j;
 
-  
+
   j = 0;
 
   if (strcmp(name, "_b") == 0 || strcmp(name, "_B") == 0) {
@@ -2011,7 +2059,7 @@ int generate_sizeof_label_definitions(void) {
 
   if (labels_first == NULL)
     return SUCCEEDED;
-  
+
   /* generate _sizeof_[label] definitions */
   l = labels_first;
   lastL = NULL;
@@ -2034,7 +2082,7 @@ int generate_sizeof_label_definitions(void) {
     fprintf(stderr, "GENERATE_SIZEOF_LABEL_DEFINITIONS: Out of memory error.\n");
     return FAILED;
   }
-  
+
   j = 0;
   l = labels_first;
   lastL = NULL;
@@ -2050,7 +2098,7 @@ int generate_sizeof_label_definitions(void) {
 
     l = l->next;
   }
-      
+
   /* sort the labels by address, smallest first */
   qsort(labels, labelsN, sizeof(struct label *), _labels_sort);
 
@@ -2059,10 +2107,10 @@ int generate_sizeof_label_definitions(void) {
     fprintf(stderr, "LABEL: %s:%d section=%d\n", labels[j]->name, labels[j]->rom_address, labels[j]->section);
   }
   */
-  
+
   for (j = 0; j < labelsN; j++) {
     double size;
-    
+
     if (j == labelsN - 1 || labels[j]->section != labels[j+1]->section)
       /* last label in this section */
       if (labels[j]->section_struct != NULL)
@@ -2103,8 +2151,8 @@ int generate_sizeof_label_definitions(void) {
 
     add_label(l);
   }
-  
+
   free(labels);
-  
+
   return SUCCEEDED;
 }
