@@ -125,4 +125,3 @@ jee	.dw jee, BAGI-BAGI
 	das
 	div ya,x
 	asl 10  +  X
-	asl jee+x

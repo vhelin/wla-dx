@@ -163,6 +163,17 @@ dator_end:
 
 .ends
 
+.section "important"
+
+.db "IMPORTANT-1"
+	AND1 C, $C8.1		; expected: $4A $C8 $20
+.db "END"
+
+.db "IMPORTANT-2"
+	AND1 C, $200.3		; expected: $4A $00 $62
+.db "END"
+
+.ends
 
 .org $1000
 	CBNE $1+X, ookoo+111-110-1
