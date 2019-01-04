@@ -273,6 +273,7 @@ struct optcode {
 /* b - x x          [2, 1] */
 /* c - x ~ x (odd)  [1, 2] */
 /* d - x ~ x (even) [1, 2] */
+/* f - ? (13-bit) ~ */
 
 #define OP_SIZE_MAX 12
 

@@ -68,6 +68,29 @@ int mem_insert_ref(int address, unsigned char data) {
   return SUCCEEDED;
 }
 
+int mem_insert_ref_13bit_high(int address, unsigned char data)
+{
+
+  if (address > romsize || address < 0) {
+    fprintf(stderr, "%s: %s:%d: MEM_INSERT: Address $%x is out of the output range $0-$%x.\n",
+	    get_file_name(memory_file_id), get_source_file_name(memory_file_id, memory_file_id_source), memory_line_number, address, romsize);
+    return FAILED;
+  }
+  if (rom_usage[address] > 1 && (rom[address] & 0x1F) != data) {
+    if (memory_line_number != 0)
+      fprintf(stderr, "%s: %s:%d: MEM_INSERT: Overwrite at $%x (old $%.2x new $%.2x).\n",
+	      get_file_name(memory_file_id), get_source_file_name(memory_file_id, memory_file_id_source), memory_line_number, address, rom[address], data);
+    else
+      fprintf(stderr, "%s: %s:[WLA]: MEM_INSERT: Overwrite at $%x (old $%.2x new $%.2x).\n",
+	      get_file_name(memory_file_id), get_source_file_name(memory_file_id, memory_file_id_source), address, rom[address], data);
+  }
+
+  rom_usage[address]++;
+  rom[address] = (rom[address] & 0xE0) | data;
+
+  return SUCCEEDED;
+}
+
 
 int mem_insert_pc(unsigned char d, int slot_current, int bank_current) {
 
