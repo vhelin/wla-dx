@@ -25,7 +25,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: WLALINK 5.10a (12.10.2018)";
+char version_string[] = "$VER: WLALINK 5.10a (4.1.2019)";
 
 struct object_file *obj_first = NULL, *obj_last = NULL, *obj_tmp;
 struct reference *reference_first = NULL, *reference_last = NULL;

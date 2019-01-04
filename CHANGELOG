@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (22-Nov-2018) [ALL] Deprecated section's size giving inside section's
+v9.8 (04-Jan-2019) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
                    [ALL] Added APPENDTO to .RAMSECTIONs.
                    [ALL] When allocating a new unknown reference, we'll set
@@ -38,6 +38,13 @@ v9.8 (22-Nov-2018) [ALL] Deprecated section's size giving inside section's
                    [658] Added support for .EXHIROM.
                    [658] MVN and MVP had source and destination in wrong
                      order in the output binary.
+                   [SPC] Fixed a typo, RET1 is now RETI.
+                   [SPC] Fixed a typo, "AND1 mem.bit, C" ($CA) is now
+                     "MOV1 mem.bit, C"
+                   [SPC] Fixed AND1, EOR1, MOV1, NOT1 and OR1 (used to take
+                     two 8-bit arguments, now 13-bit address and 3-bit value.
+                   [SPC] Fixed many 8-bit PC relative label references to be
+                     direct references.
 
 v9.7 (17-Apr-2018) [ALL] We now use CMake instead of plain Makefiles.
                    [ALL] Added INSTANCEOF support to .STRUCT.
