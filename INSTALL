@@ -3,7 +3,8 @@
 1. INSTALL (SHORT STORY)
 -----------------------------------------------------------------------------
 
-To generate the makefiles, go to the wla-dx main folder, and write
+First make sure you have gcc, g++, make and cmake installed. To generate
+the makefiles, go to the wla-dx main folder, and write
 
   cmake -G "Unix Makefiles" .  ; under Unix / OS X / Cygwin / MSYS2
   cmake -G "MSYS Makefiles" .  ; under MSYS / MinGW
