@@ -10,6 +10,13 @@ Z80
 Check the Z80 specific directives. All SMS/GG coders should find ``.SMSTAG``,
 ``.SDSCTAG`` and ``.COMPUTESMSCHECKSUM`` very useful...
 
+There are shadow register aliases for opcodes that use registers A, F, BC, DE and HL.
+The shadow register versions are just for convenience, if the programmer wants to
+explicitly show that he is now using the shadow registers. For example:
+
+  AND A     ; (original, assembles to 0xA7)
+  AND A'    ; (alias, assembles to 0xA7 and is in reality "AND A")
+
 Opcodes that make relative label references::
 
     JR *
