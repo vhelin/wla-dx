@@ -11,7 +11,7 @@
 
 
 /* read an integer from t */
-#define READ_T t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24); t += 4;
+#define READ_T (t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24)); t += 4;
 
 /* read a double from t */
 #define READ_DOU {				\
@@ -363,7 +363,7 @@ int obtain_source_file_names(void) {
 
       t++;
       s->id = *(t++);
-      s->checksum = READ_T;
+      s->checksum = (unsigned) READ_T;
       s->next = NULL;
       *p = s;
       p = &(s->next);

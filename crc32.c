@@ -110,14 +110,14 @@ unsigned long crc32(const unsigned char *s, unsigned int len)
   unsigned int i;
   unsigned long crc32val;
 
-  crc32val = ~0;
+  crc32val = 0xffffffffUL;
   for (i = 0;  i < len;  i ++)
   {
     crc32val =
       crc32_tab[(crc32val ^ s[i]) & 0xff] ^
       (crc32val >> 8);
   }
-  return ~crc32val;
+  return ~crc32val & 0xffffffffUL;
 }
 
 
