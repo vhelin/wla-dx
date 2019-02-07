@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (05-Feb-2019) [ALL] Deprecated section's size giving inside section's
+v9.8 (07-Feb-2019) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
                    [ALL] Added APPENDTO to .RAMSECTIONs.
                    [ALL] When allocating a new unknown reference, we'll set
@@ -19,6 +19,7 @@ v9.8 (05-Feb-2019) [ALL] Deprecated section's size giving inside section's
                    [ALL] Allow .BACKGROUND file to be smaller than the
                      output ROM.
                    [ALL] Fixed a couple possible buffer overflows.
+                   [ALL] Fixed CRC calculating on some 64-bit platforms.
                    [ALL] Macros rounded all floating point arguments to
                      integers - not any more.
                    [ALL] Added support for "string".length.
