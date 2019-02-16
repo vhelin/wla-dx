@@ -6,7 +6,7 @@ test ! -d mk && OUTDIR=.
 # Calls the actual generator
 gen(){
     (
-    export RM
+    export RM EXT
     export CC COMPILE_DEF CFLAGS CFLAGS_MISC CFLAGS_OPT
     export LD LDFLAGS LDFLAGS_MISC LDFLAGS_SRCS LDLIBS LDLIBS_GEN
     export CC_TEMPLATE LD_TEMPLATE
@@ -22,6 +22,7 @@ setup_posix() {
     # This is meant to set everything to their default values,
     # so just keep it empty
     RM=
+    EXT=
     CC=
     CC_TEMPLATE=
     COMPILE_DEF=

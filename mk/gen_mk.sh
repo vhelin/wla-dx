@@ -5,6 +5,7 @@
 #
 # Accepted parameters are passed through environment variables:
 # RM - Remove command (default: rm -rf)
+# EXT - Extension (default: )
 # CC - C compiler (default: $CC, otherwise make default)
 # CC_TEMPLATE - Command (def: \$(CC) \$(DEBUGFLAGS) {flags} \$(CFLAGS_ALL) -c {in} -o {out})
 # COMPILE_DEF - Format string for defining defs (default: -D%s)
@@ -131,6 +132,7 @@ WLA_SRCS=${WLA_SRCS}
 WLALINK_SRCS=${WLALINK_SRCS}
 WLAB_SRCS=${WLAB_SRCS}
 RM=${RM}
+EXT=${EXT}
 $(test -z "$CC" || echo "CC=${CC}")
 CFLAGS_ALL=${CFLAGS_MISC} ${CFLAGS_OPT} \$(CFLAGS)
 DEBUGFLAGS=${DBGFLAGS}
@@ -150,21 +152,21 @@ clean-objects:
 	-\$(RM) $(cc '$(WLA_SRCS:.c=.o\1) $(WLA_\2_GENO) $(WLA_\2_GENSO)')
 	-\$(RM) \$(WLAB_SRCS:.c=.o) \$(WLALINK_SRCS:.c=.o)
 clean-wlab:
-	-\$(RM) $(bindir)wlab
+	-\$(RM) $(bindir)wlab\$(EXT)
 	-\$(RM) \$(WLAB_SRCS:.c=.o)
 clean-wlalink:
-	-\$(RM) $(bindir)wlalink
+	-\$(RM) $(bindir)wlalink\$(EXT)
 	-\$(RM) \$(WLALINK_SRCS:.c=.o)
 clean-wla: $(cc 'clean-wla-\2')
 clean-gen: $(cc 'clean-gen-\2')
 
-wlab: $(bindir)wlab
-$(bindir)wlab: \$(WLAB_SRCS:.c=.o)
+wlab: $(bindir)wlab\$(EXT)
+$(bindir)wlab\$(EXT): \$(WLAB_SRCS:.c=.o)
 	$(ld_template "$(pf "$LDFLAGS_SRCS" "\$(WLAB_SRCS:.c=.o)")" \
         "\$@" "\$(LDLIBS)")
 
-wlalink: $(bindir)wlalink
-$(bindir)wlalink: \$(WLALINK_SRCS:.c=.o)
+wlalink: $(bindir)wlalink\$(EXT)
+$(bindir)wlalink\$(EXT): \$(WLALINK_SRCS:.c=.o)
 	$(ld_template "$(pf "$LDFLAGS_SRCS" "\$(WLALINK_SRCS:.c=.o)")" \
         "\$@" "\$(LDLIBS)")
 EOF
@@ -187,19 +189,19 @@ WLA_${W}_FLAGS=$(printf -- "$COMPILE_DEF" "${D}=1")
 .SUFFIXES: .${OW}
 .c.${OW}:
 	$(cc_template '$*.c' '$@' "\$(WLA_${W}_FLAGS)")
-wla-${W}: $(bindir)wla-${W}
-$(bindir)wla-${W}: \$(WLA_${W}_O) \$(WLA_${W}_GENSO)
+wla-${W}: $(bindir)wla-${W}\$(EXT)
+$(bindir)wla-${W}\$(EXT): \$(WLA_${W}_O) \$(WLA_${W}_GENSO)
 	$(ld_template "$(pf "$LDFLAGS_SRCS" "\$(WLA_${W}_O) \$(WLA_${W}_GENSO)")" \
         "\$@" "\$(LDLIBS)")
-gen-${W}: \$(WLA_${W}_GENO)
+gen-${W}\$(EXT): \$(WLA_${W}_GENO)
 	$(ld_template "$(pf "$LDFLAGS_SRCS" "\$(WLA_${W}_GENO)")" \
         "\$@" "\$(LDLIBS_GEN)")
-opcodes_${W}_tables.c: gen-${W}
+opcodes_${W}_tables.c: gen-${W}\$(EXT)
 	./\$< \$@
 clean-wla-${W}:
-	-\$(RM) $(bindir)wla-${W} \$(WLA_${W}_O)
+	-\$(RM) $(bindir)wla-${W}\$(EXT) \$(WLA_${W}_O)
 clean-gen-${W}:
-	-\$(RM) gen-${W} \$(WLA_${W}_GENO) \$(WLA_${W}_GENSO)
+	-\$(RM) gen-${W}\$(EXT) \$(WLA_${W}_GENO) \$(WLA_${W}_GENSO)
 EOF
     done
 
