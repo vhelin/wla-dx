@@ -9,6 +9,7 @@ gen(){
     export RM
     export CC COMPILE_DEF CFLAGS CFLAGS_MISC CFLAGS_OPT
     export LD LDFLAGS LDFLAGS_MISC LDFLAGS_SRCS LDLIBS LDLIBS_GEN
+    export CC_TEMPLATE LD_TEMPLATE
     export NO_POSIX BACKSLASH_SRC_DIR BACKSLASH_BIN_DIR
     test -f mk/gen_mk.sh && ./mk/gen_mk.sh \
             || ( test -f ./gen_mk.sh && ./gen_mk.sh )
@@ -22,11 +23,14 @@ setup_posix() {
     # so just keep it empty
     RM=
     CC=
+    CC_TEMPLATE=
     COMPILE_DEF=
     CFLAGS=
     CFLAGS_MISC=
     CFLAGS_OPT=
     LD=
+    LD_TEMPLATE=
+    LDFLAGS_SRCS=
     LDFLAGS=
     LDFLAGS_MISC=
     LDLIBS=

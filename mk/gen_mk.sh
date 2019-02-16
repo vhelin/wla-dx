@@ -6,11 +6,13 @@
 # Accepted parameters are passed through environment variables:
 # RM - Remove command (default: rm -rf)
 # CC - C compiler (default: $CC, otherwise make default)
+# CC_TEMPLATE - Command (def: \$(CC) \$(DEBUGFLAGS) {flags} \$(CFLAGS_ALL) -c {in} -o {out})
 # COMPILE_DEF - Format string for defining defs (default: -D%s)
 # CFLAGS - C flags, overwritable by user (default: make default)
 # CFLAGS_MISC - Misc C flags (default: )
 # CFLAGS_OPT - C flags about optimization (default: -O3)
 # LD - Linker (default: $LD, or \$(CC))
+# LD_TEMPLATE - Command (default: \$(LD) \$(LDFLAGS_ALL) {in} {libs} -o {out})
 # LDFLAGS - Linker flags, overwritable by user (default: make default)
 # LDFLAGS_MISC - Misc linker flags (default: )
 # LDFLAGS_SRCS - Format string for defining srcs (default: %s)
@@ -89,14 +91,33 @@ bindir() {
     test "${BACKSLASH_BIN_DIR:-0}" = 1 && \
         echo "binaries\\" || echo "binaries/"
 }
+templatenize() {
+    STR="$1"
+    shift
+    while ! [ -z "$1" ]; do
+        SAFE="$(printf "%s" "$2" | sed -e 's,\\,\\\\,g')"
+        STR="$(printf "%s" "$STR" | sed -e "s^$1^$SAFE^")"
+        shift
+        shift
+    done
+    printf "%s" "$STR"
+}
+ld_template() {
+    templatenize "$LD_TEMPLATE" "{in}" "$1" "{out}" "$2" "{libs}" "$3"
+}
+cc_template() {
+    templatenize "$CC_TEMPLATE" "{in}" "$1" "{out}" "$2" "{flags}" "$3"
+}
 
 # Header
 RM="${RM:-rm -rf}"
 CC="${CC}"
+test -z "$CC_TEMPLATE" && CC_TEMPLATE="\$(CC) \$(DEBUGFLAGS) {flags} \$(CFLAGS_ALL) -c {in} -o {out}"
 COMPILE_DEF="${COMPILE_DEF:--D%s}"
 CFLAGS_OPT="${CFLAGS_OPT:--O3}"
 DBGFLAGS="$(pf "$COMPILE_DEF" "NDEBUG=1")"
 LD="${LD:-\$(CC)}"
+test -z "$LD_TEMPLATE" && LD_TEMPLATE="\$(LD) \$(LDFLAGS_ALL) {in} {libs} -o {out}"
 LDFLAGS_SRCS="${LDFLAGS_SRCS:-%s}"
 LDLIBS="${LDLIBS:--l c -l m}"
 LDLIBS_GEN="${LDLIBS:--l c}"
@@ -119,7 +140,7 @@ LDLIBS=${LDLIBS}
 LDLIBS_GEN=${LDLIBS_GEN}
 
 .c.o:
-	\$(CC) \$(DEBUGFLAGS) \$(CFLAGS_ALL) -c \$*.c -o \$@
+	$(cc_template '$*.c' '$@' "")
 
 all: wlab wlalink $(cc 'wla-\2')
 generators: $(cc 'gen-\2')
@@ -139,11 +160,13 @@ clean-gen: $(cc 'clean-gen-\2')
 
 wlab: $(bindir)wlab
 $(bindir)wlab: \$(WLAB_SRCS:.c=.o)
-	\$(LD) \$(LDFLAGS_ALL) $(pf "$LDFLAGS_SRCS" "\$(WLAB_SRCS:.c=.o)") \$(LDLIBS) \$@
+	$(ld_template "$(pf "$LDFLAGS_SRCS" "\$(WLAB_SRCS:.c=.o)")" \
+        "\$@" "\$(LDLIBS)")
 
 wlalink: $(bindir)wlalink
 $(bindir)wlalink: \$(WLALINK_SRCS:.c=.o)
-	\$(LD) \$(LDFLAGS_ALL) $(pf "$LDFLAGS_SRCS" "\$(WLALINK_SRCS:.c=.o)") \$(LDLIBS) \$@
+	$(ld_template "$(pf "$LDFLAGS_SRCS" "\$(WLALINK_SRCS:.c=.o)")" \
+        "\$@" "\$(LDLIBS)")
 EOF
 
 # Now let's generate stuff for each cpu/arch supported
@@ -163,12 +186,14 @@ WLA_${W}_GENSO=\$(WLA_${W}_GENS:.c=.${OW})
 WLA_${W}_FLAGS=$(printf -- "$COMPILE_DEF" "${D}=1")
 .SUFFIXES: .${OW}
 .c.${OW}:
-	\$(CC) \$(DEBUGFLAGS) \$(WLA_${W}_FLAGS) \$(CFLAGS_ALL) -c \$*.c -o \$@
+	$(cc_template '$*.c' '$@' "\$(WLA_${W}_FLAGS)")
 wla-${W}: $(bindir)wla-${W}
 $(bindir)wla-${W}: \$(WLA_${W}_O) \$(WLA_${W}_GENSO)
-	\$(LD) \$(LDFLAGS_ALL) $(pf "$LDFLAGS_SRCS" "\$(WLA_${W}_O) \$(WLA_${W}_GENSO)") \$(LDLIBS) \$@
+	$(ld_template "$(pf "$LDFLAGS_SRCS" "\$(WLA_${W}_O) \$(WLA_${W}_GENSO)")" \
+        "\$@" "\$(LDLIBS)")
 gen-${W}: \$(WLA_${W}_GENO)
-	\$(LD) \$(LDFLAGS_ALL) $(pf "$LDFLAGS_SRCS" "\$(WLA_${W}_GENO)") \$(LDLIBS_GEN) \$@
+	$(ld_template "$(pf "$LDFLAGS_SRCS" "\$(WLA_${W}_GENO)")" \
+        "\$@" "\$(LDLIBS_GEN)")
 opcodes_${W}_tables.c: gen-${W}
 	./\$< \$@
 clean-wla-${W}:
