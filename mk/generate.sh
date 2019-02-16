@@ -11,6 +11,7 @@ gen(){
     export LD LDFLAGS LDFLAGS_MISC LDFLAGS_SRCS LDLIBS LDLIBS_GEN
     export CC_TEMPLATE LD_TEMPLATE
     export NO_POSIX BACKSLASH_SRC_DIR BACKSLASH_BIN_DIR
+    export FOOTER_FILE
     test -f mk/gen_mk.sh && ./mk/gen_mk.sh \
             || ( test -f ./gen_mk.sh && ./gen_mk.sh )
     )
@@ -39,6 +40,7 @@ setup_posix() {
     NO_POSIX=
     BACKSLASH_SRC_DIR=
     BACKSLASH_BIN_DIR=
+    FOOTER_FILE=
     test -z "$1" || "$*"
 }
 

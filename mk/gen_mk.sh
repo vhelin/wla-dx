@@ -22,6 +22,7 @@
 # NO_POSIX - Don't insert .POSIX when 1 (default: 0)
 # BACKSLASH_SRC_DIR - 1 for \ than / for src dirs seperator (default: 0)
 # BACKSLASH_BIN_DIR - 1 for \ than / for bin dirs seperator (default: 0)
+# FOOTER_FILE - Additional footer to include (default: )
 #
 # Uses echo, printf, tr, sed, awk, cat and sh
 #env >&2
@@ -205,4 +206,5 @@ clean-gen-${W}:
 EOF
     done
 
+test -e "$FOOTER_FILE" && cat "$FOOTER_FILE"
 
