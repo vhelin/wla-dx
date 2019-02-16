@@ -41,6 +41,7 @@ Files
   instructions if you get a crash in DJGPP-GCC, because you need to set some
   variables. Also prepare to wait for it to compile.
 * `amiga_gcc.mk` - Like `gcc.mk`, but for amiga systems (usually AmigaOS4).
+* `amiga.mk` - For amiga systems with SAS/C (SC and SLINK).
 
 
 Targets

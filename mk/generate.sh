@@ -97,6 +97,24 @@ setup_win32cl() {
     test -z "$1" || "$*"
 }
 
+SETUPS="$SETUPS amiga"
+setup_amiga() {
+    setup_posix
+    RM=delete
+    EXT=".\$(CPU)"
+    CC=sc
+    COMPILE_DEF="define %s"
+    CFLAGS_MISC="define AMIGA=1"
+    LD=slink
+    LD_TEMPLATE="\$(LD) \$(LDFLAGS_ALL) FROM {in} TO {out} {libs}"
+    LDFLAGS_MISC="STRIPDEBUG NOICONS MATH=STANDARD CPU=68\$(CPU)"
+    LDLIBS="LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib"
+    LDLIBS_GEN="LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib"
+    NO_POSIX=1
+    FOOTER_FILE="$OUTDIR"/amiga.footer
+    test -z "$1" || "$*"
+}
+
 SETUPS="$SETUPS amiga_gcc"
 setup_amiga_gcc() {
     setup_gcc
