@@ -218,4 +218,4 @@ EOF
     done
 
 test -e "$FOOTER_FILE" && cat "$FOOTER_FILE"
-
+exit 0
