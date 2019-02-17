@@ -97,6 +97,14 @@ setup_win32cl() {
     test -z "$1" || "$*"
 }
 
+SETUPS="$SETUPS amiga_gcc"
+setup_amiga_gcc() {
+    setup_gcc
+    RM=delete
+    CFLAGS_MISC=-DUNIX
+    test -z "$1" || "$*"
+}
+
 generate_for() {
     for target in $SETUPS; do
         test "$1" = "$target" && setup_"$target" gen > "$OUTDIR"/"$target".mk
