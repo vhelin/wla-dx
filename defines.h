@@ -96,22 +96,6 @@
 
 #define OP_SIZE_MAX 16
 
-#ifdef AMIGA
-struct optcode {
-  char *op;
-  int  hex;
-  short int type;
-  short int value;
-};
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  value;
-};
-#endif
-
 #endif
 
 /**************************************************************/
@@ -129,22 +113,7 @@ struct optcode {
 /* 4 - x (absolute)   */
 
 #define OP_SIZE_MAX 12
-
-#ifdef AMIGA
-struct optcode {
-  char *op;
-  int  hex;
-  short int type;
-  short int skip_8bit;
-};
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  skip_8bit;
-};
-#endif
+#define BASED_ON_6502 1
 
 #endif
 
@@ -164,22 +133,7 @@ struct optcode {
 /* 5 - x-abs x-rel    */
 
 #define OP_SIZE_MAX 12
-
-#ifdef AMIGA
-struct optcode {
-  char *op;
-  int  hex;
-  short int type;
-  short int skip_8bit;
-};
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  skip_8bit;
-};
-#endif
+#define BASED_ON_6502 1
 
 #endif
 
@@ -202,22 +156,7 @@ struct optcode {
 /* 8 - x-abs x-rel    */
 
 #define OP_SIZE_MAX 12
-
-#ifdef AMIGA
-struct optcode {
-  char *op;
-  int  hex;
-  short int type;
-  short int skip_8bit;
-};
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  skip_8bit;
-};
-#endif
+#define BASED_ON_6502 1
 
 #endif
 
@@ -236,22 +175,7 @@ struct optcode {
 /* 4 - x (absolute)   */
 
 #define OP_SIZE_MAX 12
-
-#ifdef AMIGA
-struct optcode {
-  char *op;
-  int  hex;
-  short int type;
-  short int skip_8bit;
-};
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  skip_8bit;
-};
-#endif
+#define BASED_ON_6502 1
 
 #endif
 
@@ -277,20 +201,6 @@ struct optcode {
 
 #define OP_SIZE_MAX 12
 
-#ifdef AMIGA
-struct optcode {
-  char *op;
-  int  hex;
-  short int type;
-};
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-};
-#endif
-
 #endif
 
 /**************************************************************/
@@ -314,24 +224,6 @@ struct optcode {
 /* a - * x        24b */
 
 #define OP_SIZE_MAX 20
-
-#ifdef AMIGA
-struct optcode {
-  char *op;
-  int  hex;
-  short int type;
-  short int hex_x;
-  short int value;
-};
-#else
-struct optcode {
-  char *op;
-  int  hex;
-  int  type;
-  int  hex_x;
-  int  value;
-};
-#endif
 
 #endif
 
@@ -357,23 +249,32 @@ struct optcode {
 
 #define OP_SIZE_MAX 16
 
+#endif
+
+
 #ifdef AMIGA
-struct optcode {
-  char *op;
-  int  hex;
-  short int type;
-  short int skip_xbit;
-};
+#define amiga_short short
 #else
+#define amiga_short
+#endif
+
 struct optcode {
   char *op;
   int  hex;
   int  type;
-  int  skip_xbit;
+#if defined(GB) || defined(Z80)
+  amiga_short int value;
+#endif
+#ifdef Z80
+  amiga_short int hex_x;
+#endif
+#ifdef BASED_ON_6502
+  amiga_short int skip_8bit;
+#endif
+#ifdef W65816
+  amiga_short int skip_xbit;
+#endif
 };
-#endif
-
-#endif
 
 
 #define DEFINITION_TYPE_VALUE         0
