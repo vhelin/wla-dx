@@ -35,6 +35,12 @@ Files
   use NMake and use it inside the "Developer Command Prompt" (or
   "Native Tools Command Prompt") from Visual Studio to be able to access the
   tools you need.
+* `dosdjgpp.mk` - Like `mingw.mk`, but make binaries for dos on dos using
+  [DJGPP-GCC](http://www.delorie.com/djgpp/). Note that you also need Long
+  FileName support (usually `doslfn`). Also make sure to read DJGPP installing
+  instructions if you get a crash in DJGPP-GCC, because you need to set some
+  variables. Also prepare to wait for it to compile.
+
 
 Targets
 -------

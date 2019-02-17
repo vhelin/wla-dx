@@ -68,6 +68,14 @@ setup_mingw() {
     test -z "$1" || "$*"
 }
 
+SETUPS="$SETUPS dosdjgpp"
+setup_dosdjgpp() {
+    setup_mingw
+    CFLAGS_OPT=-O2 # It's DOS, it's slow to compile on
+    CFLAGS_MISC="$(echo "$CFLAGS_MISC" | sed 's/-DWIN32=1//')"
+    test -z "$1" || "$*"
+}
+
 SETUPS="$SETUPS win32cl"
 setup_win32cl() {
     setup_posix
