@@ -903,49 +903,49 @@ the macro calls.
 Here are some examples::
 
     .MACRO NOPMONSTER
-           .REPT 32         ; evil...
-           NOP
-           .ENDR
+        .REPT 32         ; gives us 32 NOPs
+        NOP
+        .ENDR
     .ENDM
     
     .MACRO LOAD_ABCD
-           LD A, \1
-           LD B, \2
-           LD C, \3
-           LD D, \4
-           NOPMONSTER
-           LD HL, 1<<\1
+        LD A, \1
+        LD B, \2
+        LD C, \3
+        LD D, :\4        ; load the bank number of \4 into register D
+        NOPMONSTER
+        LD HL, 1<<\1
     .INCBIN \5
     .ENDM
     
     .MACRO QUEEN
     
     QUEEN\@:
-    	LD   A, \1
+        LD   A, \1
     	LD   B, \1
     	CALL QUEEN\@
 
     	.DB  "\@", 0     ; will translate into a zero terminated string
-                             ; holding the amount of macro QUEEN calls.
-            .DB  "\\@", 0    ; will translate into a string containing
-                             ; \@.
-            .DB  \@          ; will translate into a number indicating
-                             ; the amount of macro QUEEN calls.
+                         ; holding the amount of macro QUEEN calls.
+        .DB  "\\@", 0    ; will translate into a string containing
+                         ; \@.
+        .DB  \@          ; will translate into a number indicating
+                         ; the amount of macro QUEEN calls.
 
     .ENDM
     
     .MACRO LOAD_ABCD_2 ARGS ONE, TWO, THREE, FOUR, FIVE
-           LD A, ONE
-           LD B, TWO
-           LD C, THREE
-           LD D, FOUR
-           NOPMONSTER
-           LD HL, 1<<ONE
+        LD A, ONE
+        LD B, TWO
+        LD C, THREE
+        LD D, FOUR
+        NOPMONSTER
+        LD HL, 1<<ONE
     .INCBIN FIVE
     .ENDM
     
     .MACRO TEST NARGS 3
-           .DB \1, \2, \3
+        .DB \1, \2, \3
     .ENDM
 
 And here's how they can be used::
