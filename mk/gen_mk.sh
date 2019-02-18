@@ -23,6 +23,7 @@
 # NO_POSIX - Don't insert .POSIX when 1 (default: 0)
 # BACKSLASH_SRC_DIR - 1 for \ than / for src dirs seperator (default: 0)
 # BACKSLASH_BIN_DIR - 1 for \ than / for bin dirs seperator (default: 0)
+# GEN_EXEC - printf on how to execute the gen executable (default: ./\$?)
 # FOOTER_FILE - Additional footer to include (default: )
 #
 # Uses echo, printf, tr, sed, awk, cat and sh
@@ -131,6 +132,7 @@ LDLIBS="${LDLIBS:--l c -l m}"
 LDLIBS_GEN="${LDLIBS:--l c}"
 SLASH="/"
 test "${BACKSLASH_SRC_DIR:-0}" = 1 && SLASH="\\"
+GEN_EXEC="${GEN_EXEC:-./\$?}"
 
 cat << EOF
 #!/usr/bin/env make -f
@@ -209,7 +211,7 @@ gen-${W}\$(EXT): \$(WLA_${W}_GENO)
 	$(ld_template "$(pf "$LDFLAGS_SRCS" "\$(WLA_${W}_GENO)")" \
         "\$@" "\$(LDLIBS_GEN)")
 opcodes_${W}_tables.c: gen-${W}\$(EXT)
-	./\$< \$@
+	$(pf "$GEN_EXEC" "gen-${W}\\\$(EXT)") \$@
 clean-wla-${W}:
 	-\$(RM) $(bindir)wla-${W}\$(EXT) \$(WLA_${W}_O)
 clean-gen-${W}:
