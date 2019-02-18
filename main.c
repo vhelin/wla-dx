@@ -117,6 +117,7 @@ int main(int argc, char *argv[]) {
   global_unique_label_map = hashmap_new();
   namespace_map = hashmap_new();
 
+  parse_flags_result = FAILED;
   if (argc >= 2) {
     parse_flags_result = parse_flags(argv, argc);
     
