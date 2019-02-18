@@ -66,7 +66,7 @@ char version_string[] = "$VER: WLA-HuC6280 9.8a (7.2.2019)";
 
 char wla_version[] = "9.8a";
 
-char *tmp_name;
+char *tmp_name = NULL;
 
 extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
 extern struct file_name_info *file_name_info_first;
@@ -493,7 +493,8 @@ void procedures_at_exit(void) {
   }
 
   /* remove the tmp files */
-  remove(tmp_name);
+  if (tmp_name != NULL)
+    remove(tmp_name);
 }
 
 
