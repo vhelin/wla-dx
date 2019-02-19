@@ -934,9 +934,10 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
     
     return FAILED;
   }
-  
-  strncpy(in, expanded_macro_string, MAX_NAME_LENGTH);
-	
+
+  memcpy(in, expanded_macro_string, MAX_NAME_LENGTH);
+  in[MAX_NAME_LENGTH] = '\0';
+
   return SUCCEEDED;
 }
 
