@@ -6292,7 +6292,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "SNESNATIVEVECTOR") == 0) {
 
-    int cop_defined = 0, brk_defined = 0, abort_defined = 0, base_address;
+    int cop_defined = 0, brk_defined = 0, abort_defined = 0, base_address = 0;
     int nmi_defined = 0, unused_defined = 0, irq_defined = 0;
     char cop[512], brk[512], abort[512], nmi[512], unused[512], irq[512];
 
@@ -6514,7 +6514,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "SNESEMUVECTOR") == 0) {
 
-    int cop_defined = 0, unused_defined = 0, abort_defined = 0, base_address;
+    int cop_defined = 0, unused_defined = 0, abort_defined = 0, base_address = 0;
     int nmi_defined = 0, reset_defined = 0, irqbrk_defined = 0;
     char cop[512], unused[512], abort[512], nmi[512], reset[512], irqbrk[512];
 
