@@ -86,7 +86,7 @@ int name_defined = 0;
 extern int operand_hint;
 #endif
 
-char tmp[4096], emsg[1024];
+char tmp[4096], emsg[sizeof(tmp) + MAX_NAME_LENGTH + 1 + 1024];
 char *tmp_bf;
 char cp[256];
 

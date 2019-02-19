@@ -13,7 +13,7 @@
 
 
 extern int ind, inz, i, unfolded_size, extra_definitions, d, use_incdir;
-extern char *unfolded_buffer, emsg[1024], tmp[4096], ext_incdir[MAX_NAME_LENGTH + 2];
+extern char *unfolded_buffer, tmp[4096], emsg[sizeof(tmp) + MAX_NAME_LENGTH + 1 + 1024], ext_incdir[MAX_NAME_LENGTH + 2];
 extern FILE *file_out_ptr;
 
 struct incbin_file_data *incbin_file_data_first = NULL, *ifd_tmp;
