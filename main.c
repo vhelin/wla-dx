@@ -94,7 +94,7 @@ int output_format = OUTPUT_NONE, verbose_mode = OFF, test_mode = OFF;
 int extra_definitions = OFF, commandline_parsing = ON, makefile_rules = NO;
 int listfile_data = NO, quiet = NO, use_incdir = NO;
 
-char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH + 1];
+char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH + 2];
 
 
 int main(int argc, char *argv[]) {
