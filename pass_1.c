@@ -86,7 +86,7 @@ int name_defined = 0;
 extern int operand_hint;
 #endif
 
-char tmp[4096], emsg[1024];
+char tmp[4096], emsg[sizeof(tmp) + MAX_NAME_LENGTH + 1 + 1024];
 char *tmp_bf;
 char cp[256];
 
@@ -2590,8 +2590,13 @@ int parse_directive(void) {
                        return FAILED;
                      }
                      sj->next = NULL;
-                     sprintf(sj->name, "%s.%s", si->name, sti->name);
                      sj->size = 0;
+                     if (strlen(si->name) + strlen(sti->name) + 1 < sizeof(sj->name))
+                       sprintf(sj->name, "%s.%s", si->name, sti->name);
+                     else {
+                       print_error("Maximum length exceeded for unique name of nested STRUCT.\n", ERROR_DIR);
+                       return FAILED;
+	             }
                      
                      if (sl != NULL)
                        sl->next = sj;
@@ -2605,11 +2610,16 @@ int parse_directive(void) {
                     return FAILED;
                   }
                   sj->next = NULL;
-                  if (arr == 1)
-                     sprintf(sj->name, "%s.%s", si->name, sti->name);
-                  else
-                     sprintf(sj->name, "%s.%i.%s", si->name, j + 1, sti->name);
                   sj->size = sti->size;
+                  if ((arr == 1) &&
+                      (strlen(si->name) + strlen(sti->name) + 1 < sizeof(sj->name)))
+                    sprintf(sj->name, "%s.%s", si->name, sti->name);
+                  else if (strlen(si->name) + strlen(sti->name) + 1 + INT_MAX_DECIMAL_DIGITS < sizeof(sj->name))
+                    sprintf(sj->name, "%s.%i.%s", si->name, j + 1, sti->name);
+                  else {
+                    print_error("Maximum length exceeded for unique name of item in nested STRUCT.\n", ERROR_DIR);
+                    return FAILED;
+	          }
                   
                   if (sl != NULL)
                     sl->next = sj;
@@ -6292,7 +6302,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "SNESNATIVEVECTOR") == 0) {
 
-    int cop_defined = 0, brk_defined = 0, abort_defined = 0, base_address;
+    int cop_defined = 0, brk_defined = 0, abort_defined = 0, base_address = 0;
     int nmi_defined = 0, unused_defined = 0, irq_defined = 0;
     char cop[512], brk[512], abort[512], nmi[512], unused[512], irq[512];
 
@@ -6514,7 +6524,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "SNESEMUVECTOR") == 0) {
 
-    int cop_defined = 0, unused_defined = 0, abort_defined = 0, base_address;
+    int cop_defined = 0, unused_defined = 0, abort_defined = 0, base_address = 0;
     int nmi_defined = 0, reset_defined = 0, irqbrk_defined = 0;
     char cop[512], unused[512], abort[512], nmi[512], reset[512], irqbrk[512];
 

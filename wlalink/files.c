@@ -23,7 +23,7 @@ extern char ext_libdir[MAX_NAME_LENGTH + 1];
 int load_files(char *argv[], int argc) {
 
   int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n;
-  char tmp[1024], token[1024], tmp_token[MAX_NAME_LENGTH + 1];
+  char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2];
   struct label *l;
   FILE *fop, *f;
 

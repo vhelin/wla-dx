@@ -4,6 +4,7 @@
 
 /* want to use longer strings and labels? change this - PS. it doesn't contain the null terminator */
 #define MAX_NAME_LENGTH 255
+#define INT_MAX_DECIMAL_DIGITS 10
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
