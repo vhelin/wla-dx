@@ -2611,15 +2611,22 @@ int parse_directive(void) {
                   }
                   sj->next = NULL;
                   sj->size = sti->size;
-                  if ((arr == 1) &&
-                      (strlen(si->name) + strlen(sti->name) + 1 < sizeof(sj->name)))
-                    sprintf(sj->name, "%s.%s", si->name, sti->name);
-                  else if (strlen(si->name) + strlen(sti->name) + 1 + INT_MAX_DECIMAL_DIGITS < sizeof(sj->name))
-                    sprintf(sj->name, "%s.%i.%s", si->name, j + 1, sti->name);
-                  else {
-                    print_error("Maximum length exceeded for unique name of item in nested STRUCT.\n", ERROR_DIR);
-                    return FAILED;
-	          }
+                  if (arr == 1) {
+		    if (strlen(si->name) + strlen(sti->name) + 1 < sizeof(sj->name))
+		      sprintf(sj->name, "%s.%s", si->name, sti->name);
+		    else {
+		      print_error("Maximum length exceeded for unique name of item in nested STRUCT.\n", ERROR_DIR);
+		      return FAILED;
+		    }
+		  }
+		  else {
+		    if (strlen(si->name) + strlen(sti->name) + 1 + INT_MAX_DECIMAL_DIGITS < sizeof(sj->name))
+		      sprintf(sj->name, "%s.%i.%s", si->name, j + 1, sti->name);
+		    else {
+		      print_error("Maximum length exceeded for unique name of item in nested STRUCT.\n", ERROR_DIR);
+		      return FAILED;
+		    }
+		  }
                   
                   if (sl != NULL)
                     sl->next = sj;
