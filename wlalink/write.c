@@ -1,3 +1,4 @@
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +12,6 @@
 #include "../crc32.h"
 
 
-
 extern struct reference *reference_first, *reference_last;
 extern struct label *labels_first, *labels_last;
 extern struct label **sorted_anonymous_labels;
@@ -23,6 +23,7 @@ extern struct map_t *namespace_map;
 extern struct slot slots[256];
 extern unsigned char *rom, *rom_usage;
 extern unsigned char *file_header, *file_footer;
+extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern int romsize, rombanks, banksize, verbose_mode, section_overwrite, symbol_mode;
 extern int pc_bank, pc_full, pc_slot, pc_slot_max, snes_rom_mode;
 extern int file_header_size, file_footer_size, *bankaddress, *banksizes;
@@ -251,6 +252,10 @@ int insert_sections(void) {
 	if (rom_usage[d] != 0 && rom[d] != s->data[d - pc_full])
 	  break;
       }
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      sprintf(mem_insert_action, "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+
       if (d == i) {
 	for (i = 0; i < s->size; i++) {
 	  if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
@@ -273,6 +278,10 @@ int insert_sections(void) {
       d = s->address;
       s->output_address = d;
       section_overwrite = ON;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      sprintf(mem_insert_action, "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+
       for (i = 0; i < s->size; i++) {
 	if (mem_insert(d + i, s->data[i]) == FAILED)
 	  return FAILED;
@@ -325,6 +334,10 @@ int insert_sections(void) {
       s->address = pc_bank;
       s->output_address = pc_full;
       section_overwrite = OFF;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      sprintf(mem_insert_action, "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+
       for (i = 0; i < s->size; i++) {
 	if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
 	  return FAILED;
@@ -377,6 +390,10 @@ int insert_sections(void) {
       s->address = pc_bank;
       s->output_address = pc_full;
       section_overwrite = OFF;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      sprintf(mem_insert_action, "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+
       for (i = 0; i < s->size; i++) {
 	if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
 	  return FAILED;
@@ -438,6 +455,9 @@ int insert_sections(void) {
 	s->output_address = pc_full;
 	section_overwrite = OFF;
 
+	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
+	sprintf(mem_insert_action, "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+
 	for (i = 0; i < s->size; i++)
 	  if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
 	    return FAILED;
@@ -473,6 +493,10 @@ int insert_sections(void) {
 		get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
 	return FAILED;
       }
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      sprintf(mem_insert_action, "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+
       for (i = 0; i < s->size; i++) {
 	if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
 	  return FAILED;
@@ -761,6 +785,9 @@ int fix_references(void) {
       memory_file_id_source = r->file_id_source;
       memory_line_number = r->linenumber;
 
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      sprintf(mem_insert_action, "Writing reference %s: %s:%d: %s.", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
+
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT || r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
         mem_insert_ref(x, i & 0xFF);
@@ -769,7 +796,7 @@ int fix_references(void) {
       /* direct 13-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_13BIT) {
         mem_insert(x, i & 0xFF);
-		mem_insert_ref_13bit_high(x + 1, (i >> 8) & 0xFF);
+	mem_insert_ref_13bit_high(x + 1, (i >> 8) & 0xFF);
       }
       /* direct / relative 8-bit with a definition */
       else if (l->status == LABEL_STATUS_DEFINE) {
@@ -813,6 +840,9 @@ int fix_references(void) {
       memory_file_id = r->file_id;
       memory_file_id_source = r->file_id_source;
       memory_line_number = r->linenumber;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      sprintf(mem_insert_action, "Writing reference %s: %s:%d: %s.", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
 
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
@@ -1363,6 +1393,9 @@ int compute_pending_calculations(void) {
     memory_file_id = sta->file_id;
     memory_file_id_source = sta->file_id_source;
     memory_line_number = sta->linenumber;
+
+    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+    sprintf(mem_insert_action, "Writing pending calculation %s: %s:%d.", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 
     if (sta->type == STACKS_TYPE_8BIT) {
       if (k < -128 || k > 255) {

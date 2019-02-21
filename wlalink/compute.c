@@ -10,6 +10,7 @@
 
 
 extern unsigned char *rom;
+extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern int romsize, sms_checksum, smstag_defined, gb_checksum, gb_complement_check, snes_checksum, sms_header;
 extern int snes_rom_mode;
 
@@ -26,10 +27,17 @@ int reserve_checksum_bytes(void) {
       tag_address = 0x3FF0;
 
     if (romsize >= 0x2000) {
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      sprintf(mem_insert_action, "%s", "Reserving SMS ROM checmsum bytes");
+
       /* checksum */
       mem_insert(tag_address + 0xA, 0x0);
       mem_insert(tag_address + 0xB, 0x0);
+
       if (sms_checksum != 0) {
+	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
+	sprintf(mem_insert_action, "%s", "Reserving SMS ROM region code byte");
+
 	/* region code */
 	mem_insert(tag_address + 0xF, 0x0);
       }
@@ -44,6 +52,9 @@ int reserve_checksum_bytes(void) {
       tag_address = 0x3FF0;
     
     if (romsize >= 0x2000) {
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      sprintf(mem_insert_action, "%s", "Reserving SMS ROM TMR SEGA bytes");
+
       /* tmr sega */
       mem_insert(tag_address + 0x0, 0);
       mem_insert(tag_address + 0x1, 0);
@@ -57,18 +68,28 @@ int reserve_checksum_bytes(void) {
   }
 
   if (gb_complement_check != 0) {
-    if (romsize >= 0x8000)
+    if (romsize >= 0x8000) {
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      sprintf(mem_insert_action, "%s", "Reserving GB ROM complement check byte");
+
       mem_insert(0x14D, 0);
+    }
   }
 
   if (gb_checksum != 0) {
     if (romsize >= 0x8000) {
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      sprintf(mem_insert_action, "%s", "Reserving GB ROM checmsum bytes");
+
       mem_insert(0x14E, 0);
       mem_insert(0x14F, 0);
     }
   }
 
   if (snes_checksum != 0) {
+    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+    sprintf(mem_insert_action, "%s", "Reserving SNES ROM checmsum bytes");
+
     if ((snes_rom_mode == SNES_ROM_MODE_LOROM || snes_rom_mode == SNES_ROM_MODE_EXLOROM) && romsize >= 0x8000) {
       mem_insert(0x7FDC, 0);
       mem_insert(0x7FDD, 0);
@@ -155,6 +176,9 @@ int finalize_snes_rom(void) {
   
   
   if (snes_rom_mode == SNES_ROM_MODE_EXHIROM && romsize >= 0x410000) {
+    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+    sprintf(mem_insert_action, "%s", "Mirroring SNES ROM header from $40ffb0-$40ffff -> $ffb0-$ffff");
+
     /* mirror the cartridge rom header from $40ffb0-$40ffff -> $ffb0-$ffff */
     for (i = 0; i < 5*16; i++)
       mem_insert(0xffb0 + i, rom[0x40ffb0 + i]);

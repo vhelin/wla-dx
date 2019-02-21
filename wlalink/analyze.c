@@ -36,6 +36,7 @@ extern struct map_t *global_unique_label_map;
 extern struct map_t *namespace_map;
 extern struct slot slots[256];
 extern struct append_section *append_sections, *append_tmp;
+extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern int rombanks, verbose_mode, section_overwrite, symbol_mode, discard_unreferenced_sections;
 extern int emptyfill;
 extern int *banksizes, *bankaddress;
@@ -996,7 +997,10 @@ int parse_data_blocks(void) {
           /* amount of bytes */
           x = READ_T;
 
-          for (; x > 0; x--, i++)
+	  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+	  sprintf(mem_insert_action, "Writing fixed data block from \"%s\".", obj_tmp->name);
+
+	  for (; x > 0; x--, i++)
             if (mem_insert(i, *(t++)) == FAILED)
               return FAILED;
         }

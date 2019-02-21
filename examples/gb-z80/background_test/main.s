@@ -25,7 +25,7 @@
 .ORG 0
 
 	rlc b
-.db $ff, :whereami
+.db "START>", :whereami, "<END"
 
 .section "alku" superfree
 whereami:
