@@ -47,6 +47,7 @@ int gb_checksum, gb_complement_check, snes_checksum, cpu_65816 = 0, snes_mode = 
 int listfile_data = NO, smc_status = 0, snes_sramsize = 0;
 int num_sorted_anonymous_labels = 0;
 
+extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern int emptyfill;
 char ext_libdir[MAX_NAME_LENGTH + 1];
 
@@ -181,6 +182,8 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
+  /* initialize some variables */
+  mem_insert_action[0] = 0;  
   global_unique_label_map = hashmap_new();
   namespace_map = hashmap_new();
 
