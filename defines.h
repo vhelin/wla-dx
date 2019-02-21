@@ -54,7 +54,7 @@
 /* d - data (1 byte)       */
 /* y - data (2 bytes)      */
 /* z - data (3 bytes)      */
-/* D - data block          */
+/* D - data block (incbin) */
 /* O - origin              */
 /* o - absolute origin     */
 /* B - ROM bank            */
@@ -113,7 +113,6 @@
 /* 4 - x (absolute)   */
 
 #define OP_SIZE_MAX 12
-#define BASED_ON_6502 1
 
 #endif
 
@@ -133,7 +132,6 @@
 /* 5 - x-abs x-rel    */
 
 #define OP_SIZE_MAX 12
-#define BASED_ON_6502 1
 
 #endif
 
@@ -156,7 +154,6 @@
 /* 8 - x-abs x-rel    */
 
 #define OP_SIZE_MAX 12
-#define BASED_ON_6502 1
 
 #endif
 
@@ -175,7 +172,6 @@
 /* 4 - x (absolute)   */
 
 #define OP_SIZE_MAX 12
-#define BASED_ON_6502 1
 
 #endif
 
@@ -252,27 +248,21 @@
 #endif
 
 
-#ifdef AMIGA
-#define amiga_short short
-#else
-#define amiga_short
-#endif
-
 struct optcode {
   char *op;
   int  hex;
   int  type;
-#if defined(GB) || defined(Z80)
-  amiga_short int value;
+#if defined(Z80)
+  int  hex_x;
 #endif
-#ifdef Z80
-  amiga_short int hex_x;
+#if defined(Z80) || defined(GB)
+  int  value;
 #endif
-#ifdef BASED_ON_6502
-  amiga_short int skip_8bit;
+#if defined(MCS6502) || defined(WDC65C02) || defined(HUC6280) || defined(MCS6510)
+  int  skip_8bit;
 #endif
-#ifdef W65816
-  amiga_short int skip_xbit;
+#if defined(W65816)
+  int  skip_xbit;
 #endif
 };
 
