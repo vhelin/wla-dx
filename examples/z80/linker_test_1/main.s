@@ -53,7 +53,16 @@ lab3:
 _camilla
   JESUS "evil", "emperor"
 */
-	
+
+
+.section "HELLO"
+.db "START >"
+	BIT	0, A
+	IM	0
+.db "< END"
+.ends
+
+
 .SECTION "Action" SEMIFREE
 .DB	"AS"
 
@@ -65,6 +74,7 @@ MORE_ACTION:
 	JR	NC, MORE_ACTION
 	LD	(1234), ix
 	JP	MORE_ACTION
+	RST
 	RST	$10
 	RST	SKELETOR
 	ld	(MORE_ACTION), iy
@@ -124,9 +134,7 @@ _loop:
 .ENDS
 
 
-
-
-.section "BANKHEADER_$20" SIZE $20
+.section "BANKHEADER_NOT_REALLY" SIZE $20
 .db	"HS"
 
 .dw MAIN, MORE_ACTION, grid_put_sprite
@@ -144,4 +152,35 @@ _loop:
 ----
 	jp	----
 .db	"HE" , 1    ,     2,3,4,5,    9
+.ends
+
+
+.org $1000
+.section "LAYER 0" overwrite
+
+.db "START >"
+.db $00
+.dw $00
+.db "< END"
+
+.ends
+
+.org $1000
+.section "LAYER 1" overwrite
+
+.db "START >"
+.db $01
+.dw $01
+.db "< END"
+
+.ends
+
+.org $1000
+.section "LAYER 2" overwrite
+
+.db "START >"
+.db $02
+.dw $02
+.db "< END"
+
 .ends

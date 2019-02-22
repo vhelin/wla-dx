@@ -4445,7 +4445,7 @@ int parse_directive(void) {
           print_error(".ROMDMG and .ROMSGB cannot be mixed.\n", ERROR_DIR);
           return FAILED;
         }
-        romdmg++;
+        romdmg = 1;
       }
       else if (strcaselesscmp(tmp, "ROMGBC") == 0) {
         if (romdmg != 0) {
@@ -5693,7 +5693,7 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    romdmg++;
+    romdmg = 1;
 
     return SUCCEEDED;
   }
@@ -5708,7 +5708,7 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    romsgb++;
+    romsgb = 1;
 
     return SUCCEEDED;
   }

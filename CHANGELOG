@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (21-Feb-2019) [ALL] Deprecated section's size giving inside section's
+v9.8 (22-Feb-2019) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
                    [ALL] Added APPENDTO to .RAMSECTIONs.
                    [ALL] When allocating a new unknown reference, we'll set
@@ -28,8 +28,8 @@ v9.8 (21-Feb-2019) [ALL] Deprecated section's size giving inside section's
                      now also the version's date.
                    [ALL] Added -A to WLALINK - Add address-to-line mapping
                      data to WLA symbol file.
-                   [ALL] WLALINK gives now more information about the cause
-                     when a memory overwrite occurs.
+                   [ALL] WLA and WLALINK give now more information about the
+                     cause when a memory overwrite/overflow occurs.
                    [GB ] Added support for .VERSION (Mask ROM version number).
                    [GB ] Fixed the handling of RAMSIZE inside of .GBHEADER.
                    [GB ] New licensee code is set to $0000 if old licensee

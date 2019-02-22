@@ -40,28 +40,28 @@ long __stack = 65536;
 #endif
 
 #ifdef GB
-char version_string[] = "$VER: WLA-GB 9.8a (20.2.2019)";
+char version_string[] = "$VER: WLA-GB 9.8a (22.2.2019)";
 #endif
 #ifdef Z80
-char version_string[] = "$VER: WLA-Z80 9.8a (20.2.2019)";
+char version_string[] = "$VER: WLA-Z80 9.8a (22.2.2019)";
 #endif
 #ifdef MCS6502
-char version_string[] = "$VER: WLA-6502 9.8a (20.2.2019)";
+char version_string[] = "$VER: WLA-6502 9.8a (22.2.2019)";
 #endif
 #ifdef WDC65C02
-char version_string[] = "$VER: WLA-65C02 9.8a (20.2.2019)";
+char version_string[] = "$VER: WLA-65C02 9.8a (22.2.2019)";
 #endif
 #ifdef W65816
-char version_string[] = "$VER: WLA-65816 9.8a (20.2.2019)";
+char version_string[] = "$VER: WLA-65816 9.8a (22.2.2019)";
 #endif
 #ifdef MCS6510
-char version_string[] = "$VER: WLA-6510 9.8a (20.2.2019)";
+char version_string[] = "$VER: WLA-6510 9.8a (22.2.2019)";
 #endif
 #ifdef SPC700
-char version_string[] = "$VER: WLA-SPC700 9.8a (20.2.2019)";
+char version_string[] = "$VER: WLA-SPC700 9.8a (22.2.2019)";
 #endif
 #ifdef HUC6280
-char version_string[] = "$VER: WLA-HuC6280 9.8a (20.2.2019)";
+char version_string[] = "$VER: WLA-HuC6280 9.8a (22.2.2019)";
 #endif
 
 char wla_version[] = "9.8a";
@@ -84,6 +84,7 @@ extern struct label_def *unknown_labels;
 extern struct filepointer *filepointers;
 extern struct map_t *namespace_map;
 extern struct append_section *append_sections;
+extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern char *unfolded_buffer;
 extern char *include_in_tmp, *tmp_a;
 extern char *rom_banks, *rom_banks_usage_table;
@@ -100,7 +101,6 @@ char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH + 2];
 int main(int argc, char *argv[]) {
   int parse_flags_result;
   int n_ctr = 0;
-
   
   if (sizeof(double) != 8) {
     fprintf(stderr, "MAIN: sizeof(double) == %d != 8. WLA will not work properly.\n", (int)sizeof(double));
@@ -112,7 +112,10 @@ int main(int argc, char *argv[]) {
   /* init the randon number generator */
   init_genrand(time(NULL));
 
-  /* Init hashmaps */
+  /* init mem_insert() buffer */
+  mem_insert_action[0] = 0;
+  
+  /* init hashmaps */
   defines_map = hashmap_new();
   global_unique_label_map = hashmap_new();
   namespace_map = hashmap_new();
@@ -349,6 +352,7 @@ int parse_flags(char **flags, int flagc) {
   return SUCCEEDED;
 }
 
+
 void procedures_at_exit(void) {
 
   struct file_name_info *f, *ft;
@@ -359,7 +363,7 @@ void procedures_at_exit(void) {
   struct filepointer *f1, *f2;
   struct append_section *as;
   int i;
-
+  
   /* free all the dynamically allocated data structures and close open files */
   if (file_out_ptr != NULL)
     fclose(file_out_ptr);
@@ -453,12 +457,9 @@ void procedures_at_exit(void) {
   }
 
   free(unfolded_buffer);
-
   free(buffer);
-
   free(include_in_tmp);
   free(tmp_a);
-
   free(rom_banks);
   free(rom_banks_usage_table);
   free(banks);
@@ -501,27 +502,30 @@ void procedures_at_exit(void) {
 
 int generate_tmp_name(char **filename) {
 #if defined(UNIX) || defined(WIN32)
-  static char name[32]; /* Should be enough */
+  static char name[32]; /* should be enough */
   int status;
   int pid;
-  #if defined(UNIX)
+
+#if defined(UNIX)
     pid = (int)getpid();
-  #elif defined(WIN32)
+#elif defined(WIN32)
     pid = GetCurrentProcessId();
-  #else
+#else
     #error "Invalid configuration!"
-  #endif
+#endif
+
   status = sprintf(name, ".wla%da", pid) + 1;
   if (status >= (int)sizeof(name)) {
     fprintf(stderr, "MAIN: Temp filename exceeded limit: %d >= %d! "
-        "Aborting...\n",
-        status, (int)sizeof(name));
+	    "Aborting...\n", status, (int)sizeof(name));
     abort();
   }
+
   *filename = name;
 #else /* AMIGA, WIN32, MSDOS and others */
   *filename = "wla_a.tmp";
 #endif
+
   return SUCCEEDED;
 }
 
