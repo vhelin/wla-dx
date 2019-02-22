@@ -29,6 +29,7 @@ DWORD __stdcall GetCurrentProcessId(void);
 #include "pass_3.h"
 #include "pass_4.h"
 #include "listfile.h"
+#include "hashmap.h"
 
 
 FILE *file_out_ptr = NULL;
@@ -99,6 +100,7 @@ char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH + 2];
 
 
 int main(int argc, char *argv[]) {
+
   int parse_flags_result;
   int n_ctr = 0;
   

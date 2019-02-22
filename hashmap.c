@@ -1,12 +1,12 @@
 /*
  * Generic map implementation.
  */
-#include "hashmap.h"
-#include "crc32.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "hashmap.h"
+#include "crc32.h"
 
 #define INITIAL_SIZE (256)
 
@@ -84,7 +84,7 @@ unsigned int hashmap_hash_int(hashmap_map * m, char* keystring){
 hashmap_element* hashmap_hash(map_t in, char* key){
 
   int hash;
-  hashmap_element *e, *p;
+  hashmap_element *e, *p = NULL;
 
   /* Cast the hashmap */
   hashmap_map* m = (hashmap_map *) in;

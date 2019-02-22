@@ -15,6 +15,7 @@
 #include "pass_1.h"
 #include "pass_2.h"
 #include "stack.h"
+#include "hashmap.h"
 
 
 #ifdef GB

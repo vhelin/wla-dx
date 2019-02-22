@@ -9,6 +9,7 @@
 #include "pass_1.h"
 #include "pass_2.h"
 #include "pass_4.h"
+#include "hashmap.h"
 
 
 #ifdef GB
