@@ -113,9 +113,17 @@ int stack_calculate(char *in, int *value) {
   struct stack_item si[256], ta[256];
   struct stack s;
   unsigned char e;
-  double dou = 0.0, dom = 0.0;
+  double dou = 0.0, dom;
 
 
+  /* initialize (from Amiga's SAS/C) */
+  for (k = 0; k < 256; k++) {
+    si[k].type = STACK_ITEM_TYPE_VALUE;
+    si[k].sign = SI_SIGN_POSITIVE;
+    si[k].value = 0.0;
+    si[k].string[0] = 0;
+  }
+  
   /* slice the data into infix format */
   while (*in != 0xA) {
     /* init the stack item */
@@ -1078,6 +1086,8 @@ int compute_stack(struct stack *sta, int x, double *result) {
   double v[256];
   int r, t, z;
 
+
+  v[0] = 0.0;
 
   s = sta->stack;
   for (r = 0, t = 0; r < x; r++, s++) {

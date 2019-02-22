@@ -51,7 +51,7 @@ static int _listfile_write_hex(FILE *f, int data) {
 
 int listfile_write_listfiles(struct section *e) {
 
-  struct listfileitem **l = NULL, *d = NULL;
+  struct listfileitem **l, *d = NULL;
   struct section *s;
   int n, i, j, k, m, o, p, sid = -1, add, w;
   char c, tmp[512], *b, *na;

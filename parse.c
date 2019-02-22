@@ -969,9 +969,8 @@ int expand_macro_arguments(char *in) {
 
   /* save the current macro_runtime pointers */
   struct macro_runtime* mr = macro_runtime_current;
-  int ma = macro_active, ret = 0, expands = 0;
-  
-  
+  int ma = macro_active, expands = 0, ret;
+   
   ret = _expand_macro_arguments(in, &expands);
 
   /* return the current macro_runtime as recursive _expand_macro_arguments() might have modified it */

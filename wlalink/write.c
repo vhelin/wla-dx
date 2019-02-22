@@ -311,10 +311,8 @@ int insert_sections(void) {
 	f = pc_bank;
 	for (x = 0; pc_bank < s->address && rom_usage[pc_bank + d] == 0 && x < s->size; pc_bank++, x++)
 	  ;
-	if (x == s->size) {
-	  i = SUCCEEDED;
+	if (x == s->size)
 	  break;
-	}
 	if (pc_bank == s->address) {
 	  fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
 		  get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
@@ -367,10 +365,8 @@ int insert_sections(void) {
 	f = pc_bank;
 	for (x = 0; pc_bank < banksizes[s->bank] && rom_usage[pc_bank + d] == 0 && x < s->size; pc_bank++, x++)
 	  ;
-	if (x == s->size) {
-	  i = SUCCEEDED;
+	if (x == s->size)
 	  break;
-	}
 	if (pc_bank == banksizes[s->bank]) {
 	  fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
 		  get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
@@ -675,7 +671,7 @@ int insert_label_into_maps(struct label* l, int is_sizeof) {
 
 int fix_label_addresses(void) {
 
-  struct section *s = NULL;
+  struct section *s;
   struct label *l;
 
 
@@ -712,7 +708,7 @@ int fix_label_addresses(void) {
 int fix_references(void) {
 
   struct reference *r;
-  struct section *s = NULL;
+  struct section *s;
   struct label *l, lt;
   int i, x;
 
@@ -925,7 +921,7 @@ int fix_references(void) {
 
 int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAddrToLine) {
 
-  struct source_file_name *src_file = NULL;
+  struct source_file_name *src_file;
   struct object_file *obj_file;
   struct section *s;
   struct label *l;
@@ -1489,6 +1485,7 @@ int compute_stack(struct stack *sta, int *result) {
   }
 
   sta->under_work = YES;
+  v[0] = 0.0;
 
   /*
   {
@@ -2090,7 +2087,7 @@ struct label *get_closest_anonymous_label(char *name, int rom_address, int file_
 
 int generate_sizeof_label_definitions(void) {
 
-  struct label *l, *lastL, **labels = NULL;
+  struct label *l, *lastL, **labels;
   int labelsN = 0, j;
 
 

@@ -532,7 +532,7 @@ struct structure* get_structure(char *name) {
 
 int pass_1(void) {
 
-  struct macro_runtime *mrt = NULL;
+  struct macro_runtime *mrt;
   struct macro_static *m = NULL;
   int o, p, q;
 
@@ -731,7 +731,7 @@ void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
 
 int evaluate_token(void) {
 
-  int f, z = 0, x, y;
+  int f, z, x, y;
 #if defined(Z80) || defined(SPC700) || defined(W65816) || defined(WDC65C02) || defined(HUC6280)
   int e = 0, v = 0, h = 0;
   char labelx[256];
@@ -2581,7 +2581,7 @@ int parse_directive(void) {
                struct structure_item *sti = stt->items;
                
                while (sti != NULL) {
-                  struct structure_item *sj = NULL;
+                  struct structure_item *sj;
                   
                   if (j == 0 && arr > 1) {
                      /* add 0 size labels for the first elements */
@@ -2818,7 +2818,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "SECTION") == 0) {
 
-    int l, m, giveWarning = NO;
+    int l, m = 0, giveWarning = NO;
 
 
     if (section_status == ON) {
@@ -5567,7 +5567,7 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "ENDR") == 0) {
 
-    struct repeat_runtime *rr = NULL;
+    struct repeat_runtime *rr;
     
     if (repeat_active == 0) {
       print_error("There is no open repetition.\n", ERROR_DIR);

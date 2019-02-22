@@ -102,7 +102,7 @@ char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH + 2];
 int main(int argc, char *argv[]) {
 
   int parse_flags_result;
-  int n_ctr = 0;
+  int n_ctr;
   
   if (sizeof(double) != 8) {
     fprintf(stderr, "MAIN: sizeof(double) == %d != 8. WLA will not work properly.\n", (int)sizeof(double));
@@ -230,7 +230,7 @@ int parse_flags(char **flags, int flagc) {
 
   int count;
   int asm_name_def = 0;
-  char *str_build = NULL;
+  char *str_build;
   
   for (count = 1; count < flagc; count++) {
     if (!strcmp(flags[count], "-o")) {
