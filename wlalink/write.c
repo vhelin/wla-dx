@@ -9,8 +9,12 @@
 #include "write.h"
 #include "files.h"
 #include "analyze.h"
-#include "../crc32.h"
 
+#ifdef AMIGA
+#include "/crc32.h"
+#else
+#include "../crc32.h"
+#endif
 
 extern struct reference *reference_first, *reference_last;
 extern struct label *labels_first, *labels_last;

@@ -1,6 +1,11 @@
 
+#ifdef AMIGA
+#include "/hashmap.h"
+#include "/shared.h"
+#else
 #include "../hashmap.h"
 #include "../shared.h"
+#endif
 
 #ifndef _DEFINES_H
 #define _DEFINES_H

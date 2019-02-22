@@ -4764,7 +4764,7 @@ int parse_directive(void) {
     else if (q == INPUT_NUMBER_STACK)
       add_a_new_definition(tmp, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
     else if (q == INPUT_NUMBER_EOL)
-      add_a_new_definition(tmp, 0, NULL, DEFINITION_TYPE_VALUE, 0);
+      add_a_new_definition(tmp, 0.0, NULL, DEFINITION_TYPE_VALUE, 0);
 
     return SUCCEEDED;
   }
@@ -5588,7 +5588,7 @@ int parse_directive(void) {
 
     rr->repeats++;
     if (strlen(rr->index_name) > 0) {
-      if (redefine(rr->index_name, rr->repeats, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+      if (redefine(rr->index_name, (double)rr->repeats, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
 	return FAILED;
     }
     

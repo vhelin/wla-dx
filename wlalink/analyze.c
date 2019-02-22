@@ -323,7 +323,7 @@ int obtain_rombankmap(void) {
 
 int obtain_source_file_names(void) {
 
-  struct source_file_name *s = NULL, **p;
+  struct source_file_name *s, **p;
   struct object_file *o;
   unsigned char *t, *m;
   int x, z;
@@ -975,7 +975,7 @@ int merge_sections(void) {
 int parse_data_blocks(void) {
 
   struct section *s;
-  int section, i, y, x;
+  int section, i, x;
   unsigned char *t, *p;
   char buf[256];
 
@@ -988,7 +988,7 @@ int parse_data_blocks(void) {
     if (obj_tmp->format == WLA_VERSION_OBJ) {
       t = obj_tmp->data_blocks;
       p = obj_tmp->data + obj_tmp->size;
-      for (y = 1; t < p; ) {
+      for ( ; t < p; ) {
         x = *(t++);
 
         if (x == DATA_TYPE_BLOCK) {
@@ -1010,7 +1010,6 @@ int parse_data_blocks(void) {
             fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
             return FAILED;
           }
-          y++;
 
           /* name */
           i = 0;
@@ -1075,13 +1074,12 @@ int parse_data_blocks(void) {
     else if (obj_tmp->format == WLA_VERSION_LIB) {
       t = obj_tmp->data_blocks;
       p = obj_tmp->data + obj_tmp->size;
-      for (y = 1; t < p; ) {
+      for ( ; t < p; ) {
         s = malloc(sizeof(struct section));
         if (s == NULL) {
           fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
           return FAILED;
         }
-        y++;
 
         /* name */
         i = 0;

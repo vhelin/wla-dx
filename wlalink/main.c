@@ -154,8 +154,6 @@ int main(int argc, char *argv[]) {
 
   atexit(procedures_at_exit);
 
-  i = SUCCEEDED;
-
   if (argc > 2)
     x = parse_flags(argv, argc);
   else
