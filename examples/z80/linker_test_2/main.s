@@ -124,8 +124,7 @@ MAIN:	NOP
 .DB	"BE"
 .ENDS
 
-
-.SECTION "Copier_1000"
+.SECTION "Copier 1000"
 .DB	"CS"
 
 grid_put_sprite:
