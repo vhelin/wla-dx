@@ -6,9 +6,9 @@ CFLAGS= -c -O3 -ansi -pedantic -Wall
 LDFLAGS = -lm
 WLAFLAGS = $(CFLAGS) -DUNIX -DSPC700
 
-CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c
-HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h defines.h crc32.h
-OFILES = main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o
+CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c
+HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h crc32.h hashmap.h defines.h
+OFILES = main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o
 
 
 all: $(OFILES) makefile
@@ -45,6 +45,8 @@ listfile.o: listfile.c defines.h listfile.h makefile
 crc32.o: crc32.c defines.h crc32.h makefile
 	$(CC) $(WLAFLAGS) crc32.c
 
+hashmap.o: hashmap.c defines.h hashmap.h makefile
+	$(CC) $(WLAFLAGS) hashmap.c
 
 
 $(OFILES): $(HFILES)
