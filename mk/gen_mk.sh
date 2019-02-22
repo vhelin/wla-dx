@@ -5,6 +5,7 @@
 #
 # Accepted parameters are passed through environment variables:
 # RM - Remove command (default: rm -rf)
+# RM_GLOB - Remove command glob syntax (default: *.%s)
 # EXT - Extension (default: )
 # CC - C compiler (default: $CC, otherwise make default)
 # CC_TEMPLATE - Command (def: \$(CC) \$(DEBUGFLAGS) {flags} \$(CFLAGS_ALL) -c {in} -o {out})
@@ -110,9 +111,14 @@ ld_template() {
 cc_template() {
     templatenize "$CC_TEMPLATE" "{in}" "$1" "{out}" "$2" "{flags}" "$3"
 }
+rm_glob() {
+    test -z "$RM_GLOB" && echo "$1" || \
+        templatenize "$RM_GLOB" "{pre}" "$2" "{suf}" "$3"
+}
 
 # Header
 RM="${RM:-rm -rf}"
+test -z "$RM_GLOB" && RM_GLOB="{pre}*.{suf}"
 CC="${CC}"
 test -z "$CC_TEMPLATE" && CC_TEMPLATE="\$(CC) \$(DEBUGFLAGS) {flags} \$(CFLAGS_ALL) -c {in} -o {out}"
 COMPILE_DEF="${COMPILE_DEF:--D%s}"
@@ -123,6 +129,8 @@ test -z "$LD_TEMPLATE" && LD_TEMPLATE="\$(LD) \$(LDFLAGS_ALL) {in} {libs} -o {ou
 LDFLAGS_SRCS="${LDFLAGS_SRCS:-%s}"
 LDLIBS="${LDLIBS:--l c -l m}"
 LDLIBS_GEN="${LDLIBS:--l c}"
+SLASH="/"
+test "${BACKSLASH_SRC_DIR:-0}" = 1 && SLASH="\\"
 
 cat << EOF
 #!/usr/bin/env make -f
@@ -150,14 +158,17 @@ generators: $(cc 'gen-\2')
 
 clean: clean-wlab clean-wlalink clean-wla clean-gen
 clean-objects:
-	-\$(RM) $(cc '$(WLA_SRCS:.c=.o\1) $(WLA_\2_GENO) $(WLA_\2_GENSO)')
-	-\$(RM) \$(WLAB_SRCS:.c=.o) \$(WLALINK_SRCS:.c=.o)
+	-\$(RM) $(cc "$(rm_glob '$(WLA_SRCS:.c=.o\1) $(WLA_\2_GENO) $(WLA_\2_GENSO)' \
+		"" 'o\1')")
+	-\$(RM) $(rm_glob "\$(WLAB_SRCS:.c=.o)" "wlab${SLASH}" "o")
+	-\$(RM) $(rm_glob "\$(WLALINK_SRCS:.c=.o)" "wlalink${SLASH}" "o") $(rm_glob "" "" "o")
 clean-wlab:
 	-\$(RM) $(bindir)wlab\$(EXT)
 	-\$(RM) \$(WLAB_SRCS:.c=.o)
+	-\$(RM) $(rm_glob "\$(WLAB_SRCS:.c=.o)" "wlab${SLASH}" "o")
 clean-wlalink:
 	-\$(RM) $(bindir)wlalink\$(EXT)
-	-\$(RM) \$(WLALINK_SRCS:.c=.o)
+	-\$(RM) $(rm_glob "\$(WLALINK_SRCS:.c=.o)" "wlalink${SLASH}" "o") $(rm_glob "" "" "o")
 clean-wla: $(cc 'clean-wla-\2')
 clean-gen: $(cc 'clean-gen-\2')
 
