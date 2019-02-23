@@ -600,7 +600,7 @@ struct optcode opt_table[] = {
   { "LD C,IYL", 0x4dfd, 3, 0, 0 },
   { "LD C',(IYs)", 0x4efd, 4, 0, 0 },
   { "LD C,(IYs)", 0x4efd, 4, 0, 0 },
-  { "LD C',L", 0x4d, 0, 0, 0 },
+  { "LD C',L'", 0x4d, 0, 0, 0 },
   { "LD C,L", 0x4d, 0, 0, 0 },
   { "LD C',x", 0xe, 1, 0, 0 },
   { "LD C,x", 0xe, 1, 0, 0 },
