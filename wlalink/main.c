@@ -27,6 +27,10 @@
 
 char version_string[] = "$VER: WLALINK 5.10a (21.2.2019)";
 
+#ifdef AMIGA
+long __stack = 200000;
+#endif
+
 struct object_file *obj_first = NULL, *obj_last = NULL, *obj_tmp;
 struct reference *reference_first = NULL, *reference_last = NULL;
 struct section *sec_first = NULL, *sec_last = NULL, *sec_hd_first = NULL, *sec_hd_last = NULL;

@@ -37,7 +37,7 @@ FILE *file_out_ptr = NULL;
 /* amiga specific definitions */
 
 #ifdef AMIGA
-long __stack = 65536;
+long __stack = 200000;
 #endif
 
 #ifdef GB
