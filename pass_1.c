@@ -1195,6 +1195,14 @@ int parse_enum_token(void) {
     else /* ramsection */
       fprintf(file_out_ptr, "y0 ");
   }
+#ifdef W65816
+  else if (strcaselesscmp(tmp, "DL") == 0 || strcaselesscmp(tmp, "LONG") == 0) {
+    if (in_enum)
+      enum_offset += 3*enum_ord;
+    else /* ramsection */
+      fprintf(file_out_ptr, "z0 ");
+  }
+#endif
   else if (strcaselesscmp(tmp, "DS") == 0 || strcaselesscmp(tmp, "DSB") == 0) {
     q = input_number();
     if (q == FAILED)
@@ -1221,6 +1229,21 @@ int parse_enum_token(void) {
     else
       fprintf(file_out_ptr, "x%d 0 ", d*2);
   }
+#ifdef W65816
+  else if (strcaselesscmp(tmp, "DSL") == 0) {
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      print_error("DSL needs size.\n", ERROR_DIR);
+      return FAILED;
+    }
+    if (in_enum)
+      enum_offset += d*3*enum_ord;
+    else
+      fprintf(file_out_ptr, "x%d 0 ", d*3);
+  }
+#endif
   /* it's an instance of a structure! */
   else if (strcaselesscmp(tmp, "INSTANCEOF") == 0) {
 
@@ -1371,7 +1394,11 @@ int parse_enum_token(void) {
     }
   }
   else if (strcaselesscmp(tmp, ".db") == 0 || strcaselesscmp(tmp, ".dw") == 0)
-    ; /* Don't do anything for "dotted" versions */
+    ; /* don't do anything for "dotted" versions */
+#ifdef W65816
+  else if (strcaselesscmp(tmp, ".dl") == 0)
+    ; /* don't do anything for "dotted" versions */
+#endif
   else {
     if (in_enum)
       sprintf(emsg, "Unexpected symbol \"%s\" in .ENUM.\n", tmp);
@@ -2501,6 +2528,56 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
+#ifdef W65816
+  /* DSL? */
+
+  if (strcaselesscmp(cp, "DSL") == 0) {
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      print_error(".DSL needs size.\n", ERROR_INP);
+      return FAILED;
+    }
+
+    if (d < 1 || d > 65535) {
+      sprintf(emsg, ".DSL expects a 16-bit positive integer as size, %d is out of range!\n", d);
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
+    }
+
+    inz = d;
+
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (!(q == SUCCEEDED || q == INPUT_NUMBER_ADDRESS_LABEL || q == INPUT_NUMBER_STACK)) {
+      print_error(".DSL needs data.\n", ERROR_INP);
+      return FAILED;
+    }
+
+    if (q == SUCCEEDED && (d < -8388608 || d > 16777215)) {
+      sprintf(emsg, ".DSL expects 24-bit data, %d is out of range!\n", d);
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
+    }
+
+    if (q == SUCCEEDED)
+      fprintf(file_out_ptr, "h%d %d ", inz, d);
+    else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
+      fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+      for (q = 0; q < inz; q++)
+        fprintf(file_out_ptr, "q%s ", label);
+    }
+    else if (q == INPUT_NUMBER_STACK) {
+      for (q = 0; q < inz; q++)
+        fprintf(file_out_ptr, "T%d ", latest_stack);
+    }
+
+    return SUCCEEDED;
+  }
+#endif
+  
   /* INCDIR */
 
   if (strcaselesscmp(cp, "INCDIR") == 0) {
@@ -2754,6 +2831,10 @@ int parse_directive(void) {
         si->size = 1;
       else if (strcaselesscmp(tmp, "DW") == 0 || strcaselesscmp(tmp, "WORD") == 0)
         si->size = 2;
+#ifdef W65816
+      else if (strcaselesscmp(tmp, "DL") == 0 || strcaselesscmp(tmp, "LONG") == 0)
+        si->size = 3;
+#endif
       else if (strcaselesscmp(tmp, "DS") == 0 || strcaselesscmp(tmp, "DSB") == 0) {
         q = input_number();
         if (q == FAILED)
@@ -2774,6 +2855,18 @@ int parse_directive(void) {
         }
         si->size = d*2;
       }
+#ifdef W65816
+      else if (strcaselesscmp(tmp, "DSL") == 0) {
+        q = input_number();
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED) {
+          print_error("DSL needs size.\n", ERROR_DIR);
+          return FAILED;
+        }
+        si->size = d*3;
+      }
+#endif
       else if (strcaselesscmp(tmp, "INSTANCEOF") == 0) {
          struct structure *stt;
          int arr = 1;
@@ -2880,6 +2973,12 @@ int parse_directive(void) {
         si->size = 0;
         continue;
       }
+#ifdef W65816
+      else if (strcaselesscmp(tmp, ".dl") == 0) {
+        si->size = 0;
+        continue;
+      }
+#endif
       else {
         sprintf(emsg, "Unexpected symbol \"%s\" in .STRUCT.\n", tmp);
         print_error(emsg, ERROR_DIR);

@@ -40,6 +40,9 @@ v9.8 (26-Feb-2019) [ALL] Deprecated section's size giving inside section's
                    [GB ] Added the following mnemonic aliases:
                      - LDH A,(C) --> LD A,($FF00+C)
                      - LDH (C),A --> LD ($FF00+C),A
+                   [658] Added .DSL.
+                   [658] Added support for DL/LONG/DSL to .STRUCT and
+                     .RAMSECTION.
                    [658] Added support for .EXHIROM.
                    [658] MVN and MVP had source and destination in wrong
                      order in the output binary.

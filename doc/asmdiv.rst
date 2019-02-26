@@ -95,6 +95,7 @@ ALL  ``.DBRND 20, 0, 10``
 ALL  ``.DBSIN 0.2, 10, 3.2, 120, 1.3``
 ALL  ``.DEFINE IF $FF0F``
 ALL  ``.DEF IF $FF0F``
+ALL  ``.DL $102030, $405060``
 ALL  ``.DS 256, $10``
 ALL  ``.DSB 256, $10``
 ALL  ``.DSTRUCT waterdrop INSTANCEOF water DATA "tingle", 40, 120``
@@ -140,6 +141,7 @@ ALL  ``.INCDIR "/usr/programming/gb/include/"``
 ALL  ``.INCLUDE "cgb_hardware.i"``
 658  ``.INDEX 8``
 ALL  ``.INPUT NAME``
+ALL  ``.LONG $102030, $405060``
 ALL  ``.MACRO TEST``
 ALL  ``.MEMORYMAP``
 ALL  ``.ORG $150``
@@ -1487,15 +1489,33 @@ This is not a compulsory directive.
 ``.DW 16000, 10, 255``
 ----------------------
 
-Defines words (two bytes each). ``.DW`` takes only numbers and
+Defines words (two bytes each). ``.DW`` takes only numbers, labels and
 characters as input, not strings.
 
 This is not a compulsory directive.
+
 
 ``.WORD 16000, 10, 255``
 ------------------------
 
 ``.WORD`` is an alias for ``.DW``.
+
+This is not a compulsory directive.
+
+
+``.DL $102030, $405060``
+------------------------
+
+Defines long words (three bytes each). ``.DL`` takes only numbers, labels and
+characters as input, not strings. Works only on wla-65816.
+
+This is not a compulsory directive.
+
+
+``.LONG $102030, $405060``
+--------------------------
+
+``.LONG`` is an alias for ``.DL``. Works only on wla-65816.
 
 This is not a compulsory directive.
 
@@ -1922,6 +1942,9 @@ And this is what is generated::
 
 This way you can generate a 16-bit variable address along with pointers
 to its parts.
+
+Note that you can also use ``DL`` (define long word, a 24-bit value) and
+``DSL`` (define size, long words) when running wla-65816.
 
 If you want more flexible variable positioning, take a look at
 ``.RAMSECTION`` s.

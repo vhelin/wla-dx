@@ -307,7 +307,7 @@ int pass_4(void) {
 
         continue;
 
-        /* DSB & DSW */
+        /* DSB & DSW & DSL */
 
       case 'x':
         fscanf(file_out_ptr, "%d %d", &ind, &x);
@@ -340,6 +340,31 @@ int pass_4(void) {
 
         continue;
 
+#ifdef W65816
+
+      case 'h':
+        fscanf(file_out_ptr, "%d %d", &ind, &inz);
+        x = inz & 0xFF;
+        i = (inz >> 8) & 0xFF;
+        inz = (inz >> 16) & 0xFF;
+
+	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
+	sprintf(mem_insert_action, "%s:%d: Writing DSL data", get_file_name(filename_id), line_number);
+
+	while (ind > 0) {
+	  if (mem_insert(x) == FAILED)
+	    return FAILED;
+	  if (mem_insert(i) == FAILED)
+	    return FAILED;
+	  if (mem_insert(inz) == FAILED)
+	    return FAILED;
+          ind--;
+        }
+
+        continue;
+
+#endif
+	
         /* DATA & OPTCODE */
 
       case 'd':
@@ -391,6 +416,7 @@ int pass_4(void) {
           return FAILED;
 
         continue;
+
 #endif
 
         /* DATA BLOCK from INCBIN */

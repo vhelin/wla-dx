@@ -69,6 +69,7 @@
 /* s - end of section      */
 /* x - dsb                 */
 /* X - dsw                 */
+/* h - dsl                 */
 /* E - end of file         */
 /* f - file name id        */
 /* k - line number         */

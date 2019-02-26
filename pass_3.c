@@ -138,9 +138,9 @@ int pass_3(void) {
 	free(b);
 	continue;
 
-      case 'Z': /* Breakpoint */
-      case 'Y': /* Symbol */
-      case 'L': /* Label */
+      case 'Z': /* breakpoint */
+      case 'Y': /* symbol */
+      case 'L': /* label */
 	l = malloc(sizeof(struct label_def));
 
 	if (l == NULL) {
@@ -163,8 +163,7 @@ int pass_3(void) {
 	  fscanf(f_in, STRING_READ_FORMAT, l->label);
 
         if (c == 'L' && is_label_anonymous(l->label) == FAILED) {
-          /* If the label has '@' at the start, mangle the label name to make it
-           * unique */
+          /* if the label has '@' at the start, mangle the label name to make it unique */
           int n = 0, m;
 
           while (n < 10 && l->label[n] == '@') {
@@ -211,7 +210,7 @@ int pass_3(void) {
 	  continue;
 	}
 
-        /* Check the label is not already defined */
+        /* check the label is not already defined */
 
         sprintf(emsg, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
             get_file_name(file_name_id),
@@ -219,7 +218,7 @@ int pass_3(void) {
             l->label);
 
         if (s != NULL) {
-          /* Always put the label into the section's label_map */
+          /* always put the label into the section's label_map */
           if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
             fprintf(stderr, "%s", emsg);
             return FAILED;
@@ -230,10 +229,10 @@ int pass_3(void) {
           }
         }
 
-        /* Don't put local labels into namespaces or the global namespace */
+        /* don't put local labels into namespaces or the global namespace */
         if (s == NULL || l->label[0] != '_') {
           if (s != NULL && s->nspace != NULL) {
-            /* Label in a namespace */
+            /* label in a namespace */
             if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
               fprintf(stderr, "%s", emsg);
               return FAILED;
@@ -244,7 +243,7 @@ int pass_3(void) {
             }
           }
           else {
-            /* Global label */
+            /* global label */
             if (hashmap_get(global_unique_label_map, l->label, NULL) == MAP_OK) {
               fprintf(stderr, "%s", emsg);
               return FAILED;
@@ -445,8 +444,15 @@ int pass_3(void) {
 
     case 'X':
       fscanf(f_in, "%d %*d ", &inz);
-      add += inz << 1;
+      add += inz * 2;
       continue;
+
+#ifdef W65816
+    case 'h':
+      fscanf(f_in, "%d %*d ", &inz);
+      add += inz * 3;
+      continue;
+#endif
 
 #ifdef W65816
     case 'z':

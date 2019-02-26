@@ -138,10 +138,13 @@ _tst1:	.db $de, $ad
 kose:	lda kose.w,x
 
 .struct monsta
-x    db
-name ds 10
-y    db
-id   dw
+x     db
+name  ds 10
+y     db
+id    dw
+trio1 dl
+trio2 dsl 2
+trio3 dl
 .endst
 
 .db "DATA START >>> "
@@ -156,6 +159,14 @@ id   dw
 .row "a", "bc", "d", "ef", "g", "h", "ijk", "l"
 .row tableX+1, tableX+2, tableX+3, tableX+4, tableX+5, tableX+6, tableX+7, tableX+8
 .db "</TABLE"
+.ends
+
+.section "longs"
+.db "<LONG>"
+.dl $010203, $040506
+.long $010203, $040506
+.dsl 3 $aabbcc
+.db "</LONG>"
 .ends
 
 .export monsta.x, monsta.y, monsta.id, monsta.name
