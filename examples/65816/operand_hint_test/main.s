@@ -148,5 +148,14 @@ id   dw
 	mvn $1, $2
 	mvp $3, $4
 .db " <<< DATA END"
-	
+
+.section "table" force
+.db "<TABLE>"
+.table byte, word, byte, word, byte, BYTE, long, byte
+.data $01, $0302, $04, $0605, $07, $08, $0b0a09, $0c
+.row "a", "bc", "d", "ef", "g", "h", "ijk", "l"
+.row tableX+1, tableX+2, tableX+3, tableX+4, tableX+5, tableX+6, tableX+7, tableX+8
+.db "</TABLE"
+.ends
+
 .export monsta.x, monsta.y, monsta.id, monsta.name

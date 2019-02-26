@@ -3,9 +3,11 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (22-Feb-2019) [ALL] Deprecated section's size giving inside section's
+v9.8 (26-Feb-2019) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
                    [ALL] Added APPENDTO to .RAMSECTIONs.
+                   [ALL] Added .TABLE, .ROW and .DATA - an alternative
+                     to .DB, .DW and .DL.
                    [ALL] When allocating a new unknown reference, we'll set
                      its base to 0 instead of not initializing base at all.
                    [ALL] When inserting padding to a section (for example

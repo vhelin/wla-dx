@@ -184,3 +184,14 @@ _loop:
 .db "< END"
 
 .ends
+
+.org $1200
+.section "table" force
+.db "<TABLE>"
+.table byte, word, byte, word, byte, BYTE
+.row $01, $0302, $04, $0605, $07, $08
+.row "a", "bc", "d", "ef", "g", "h"
+.db "</TABLE"
+.ends
+
+

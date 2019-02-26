@@ -87,7 +87,7 @@ ALL  ``.BLOCK "Block1"``
 ALL  ``.BR``
 ALL  ``.BREAKPOINT``
 ALL  ``.BYT 100, $30, %1000, "HELLO WORLD!"``
-ALL  ``.ROMBANKSIZE $4000``
+ALL  ``.DATA $ff00, 2``
 ALL  ``.DB 100, $30, %1000, "HELLO WORLD!"``
 ALL  ``.DBM filtermacro 1, 2, "encrypt me"``
 ALL  ``.DBCOS 0.2, 10, 3.2, 120, 1.3``
@@ -153,6 +153,8 @@ ALL  ``.REPEAT 6``
 ALL  ``.REPT 6``
 ALL  ``.ROMBANKMAP``
 ALL  ``.ROMBANKS 2``
+ALL  ``.ROMBANKSIZE $4000``
+ALL  ``.ROW $ff00, 1, "3"``
 ALL  ``.SEED 123``
 ALL  ``.SECTION "Init" FORCE``
 ALL  ``.SHIFT``
@@ -160,6 +162,7 @@ ALL  ``.SLOT 1``
 ALL  ``.STRUCT enemy_object``
 ALL  ``.SYM SAUSAGE``
 ALL  ``.SYMBOL SAUSAGE``
+ALL  ``.TABLE byte, word, byte``
 ALL  ``.UNBACKGROUND $1000 $1FFF``
 ALL  ``.UNDEFINE DEBUG``
 ALL  ``.UNDEF DEBUG``
@@ -167,6 +170,87 @@ ALL  ``.WORD 16000, 10, 255``
 === ================================================================
 
 Descriptions:
+
+``.TABLE byte, word, byte``
+---------------------------
+
+Defines table's columns. With .DATA and .ROW you can define data much
+like using .DB or .DW, but .TABLE makes it convenient to feed big
+amounts of data in mixed format.
+
+For example::
+
+    .TABLE byte, word, byte
+
+After the columns have been defined, you can define rows using e.g.,
+
+    .ROW $01, $0302, $04
+
+This is the same as::
+
+    .DB $01
+    .DW $0302
+    .DB $04
+
+Note that .DATA can also be used instead of .ROW, if one wants to
+give the data in pieces.
+
+WLA-65816 also supports column format "long" (24-bit data).
+
+This is not a compulsory directive.
+
+
+``.ROW $ff00, 1, "3"``
+----------------------
+
+Defines bytes after a .TABLE has been used to define the format.
+An alternative way of defining bytes to .DB/.DW.
+
+Note that when you use .ROW you'll need to give all the items
+.TABLE defines, i.e. one full row. To give more or less bytes
+use .DATA.
+
+Example::
+
+    .TABLE word, byte, word
+    .ROW $aabb, "H", $ddee
+
+This is the same as
+
+    .DW $aabb
+    .DB "H"
+    .DW $ddee
+
+This is not a compulsory directive.
+
+
+``.DATA $ff00, 2``
+------------------
+
+Defines bytes after a .TABLE has been used to define the format.
+An alternative way of defining bytes to .DB/.DW.
+
+Note that when you use .DATA you can give as many items .TABLE
+defines. The next time you'll use .DATA you'll continue from
+the point the previous .DATA ended.
+
+Examples::
+
+    .TABLE word, word, byte, byte
+
+This defines two rows worth of bytes::
+
+    .DATA $ff00, $aabb, $10, $20, $1020, $3040, $50, $60
+
+This does the same::
+
+    .DATA $ff00, $aabb
+    .DATA $10, $20
+    .DATA $1020, $3040
+    .DATA $50, $60
+  
+This is not a compulsory directive.
+
 
 ``.8BIT``
 ---------

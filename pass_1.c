@@ -129,8 +129,12 @@ int accu_size = 8, index_size = 8;
 #endif
 
 /* vars used when in an enum or ramsection */
-int in_enum=0, in_ramsection=0;
+int in_enum = 0, in_ramsection = 0;
 int enum_exp, enum_ord, enum_offset;
+
+/* for .TABLE, .DATA and .ROW */
+char table_format[256];
+int table_defined = 0, table_size = 0, table_index = 0;
 
 
 /* remember to run opcodesgen/gen with the proper flags defined */
@@ -175,11 +179,11 @@ __far /* put the following big table in the FAR data section */
 
 
 #define no_library_files(name)\
- do {\
- if (output_format == OUTPUT_LIBRARY) {\
-    print_error("Library files don't take " name ".\n", ERROR_DIR);\
-    return FAILED;\
-  }\
+ do { \
+ if (output_format == OUTPUT_LIBRARY) { \
+    print_error("Library files don't take " name ".\n", ERROR_DIR); \
+    return FAILED; \
+  } \
  } while (0)
 
 
@@ -791,6 +795,7 @@ int evaluate_token(void) {
   /* OPCODE? */
   {
     int op_id = tmp[0];
+
     if (op_id < 0) {
         print_error("Invalid value\n", ERROR_LOG);
         return FAILED;
@@ -1605,6 +1610,230 @@ int parse_directive(void) {
       if (macro_start_dxm(m, MACRO_CALLER_DWM, cp, YES) == FAILED)
         return FAILED;
     }
+
+    return SUCCEEDED;
+  }
+
+  /* TABLE? */
+
+  if (strcaselesscmp(cp, "TABLE") == 0) {
+    inz = input_number();
+    for (table_size = 0; table_size < (int)sizeof(table_format) && (inz == INPUT_NUMBER_STRING || inz == INPUT_NUMBER_ADDRESS_LABEL); table_size++) {
+      if (strcaselesscmp(label, "byte") == 0) {
+	table_format[table_size] = 'b';
+      }
+      else if (strcaselesscmp(label, "word") == 0) {
+	table_format[table_size] = 'w';
+      }
+#ifdef W65816
+      else if (strcaselesscmp(label, "long") == 0) {
+	table_format[table_size] = 'l';
+      }
+#endif
+      else {
+#ifdef W65816
+	sprintf(emsg, ".TABLE takes only BYTE, WORD and LONG as data. \"%s\" is unknown.\n", label);
+#else
+	sprintf(emsg, ".TABLE takes only BYTE and WORD as data. \"%s\" is unknown.\n", label);
+#endif
+	print_error(emsg, ERROR_DIR);
+	return FAILED;
+      }
+      
+      inz = input_number();
+    }
+
+    if (table_size >= (int)sizeof(table_format)) {
+      sprintf(emsg, ".TABLE is out of size.\n");
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
+    }
+
+    if (inz == FAILED)
+      return FAILED;
+    else if (inz == INPUT_NUMBER_EOL && table_size == 0) {
+      sprintf(emsg, ".TABLE needs data.\n");
+      print_error(emsg, ERROR_INP);
+      return FAILED;
+    }
+    else if (inz == INPUT_NUMBER_EOL)
+      next_line();
+    else {
+#ifdef W65816
+      sprintf(emsg, ".TABLE takes only BYTE, WORD and LONG as data.\n");
+#else
+      sprintf(emsg, ".TABLE takes only BYTE and WORD as data.\n");
+#endif
+      print_error(emsg, ERROR_DIR);
+      return FAILED;      
+    }
+
+    table_defined = 1;
+    table_index = 0;
+
+    return SUCCEEDED;    
+  }
+
+  /* ROW/DATA? */
+
+  if (strcaselesscmp(cp, "ROW") == 0 || strcaselesscmp(cp, "DATA") == 0) {
+    int rows = 0;
+    
+    strcpy(bak, cp);
+
+    if (table_defined == 0) {
+      sprintf(emsg, ".TABLE needs to be defined before .%s can be used.\n", bak);
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
+    }
+    
+    if (strcaselesscmp(bak, "ROW") == 0) {
+      if (table_index != 0) {
+	sprintf(emsg, ".ROW cannot be used here. .DATA needs to be used again to give the remaining of the row.\n");
+	print_error(emsg, ERROR_DIR);
+	return FAILED;
+      }
+    }
+	
+    inz = input_number();
+    for ( ; inz == SUCCEEDED || inz == INPUT_NUMBER_STRING || inz == INPUT_NUMBER_ADDRESS_LABEL || inz == INPUT_NUMBER_STACK; ) {
+      if (inz == INPUT_NUMBER_STRING) {
+	if (table_format[table_index] == 'b') {
+	  if (strlen(label) != 1) {
+	    sprintf(emsg, ".%s was expecting a byte, got %d bytes instead.\n", bak, (int)strlen(label));
+	    print_error(emsg, ERROR_INP);
+	    return FAILED;
+	  }
+
+	  fprintf(file_out_ptr, "d%d ", label[0]);	  
+	}
+	else if (table_format[table_index] == 'w') {
+	  if (strlen(label) > 2 || strlen(label) <= 0) {
+	    sprintf(emsg, ".%s was expecting a word (2 bytes), got %d bytes instead.\n", bak, (int)strlen(label));
+	    print_error(emsg, ERROR_INP);
+	    return FAILED;
+	  }
+
+	  fprintf(file_out_ptr, "y%d", (label[0] << 8) | label[1]);
+	}
+#ifdef W65816
+	else if (table_format[table_index] == 'l') {
+	  if (strlen(label) > 3 || strlen(label) <= 0) {
+	    sprintf(emsg, ".%s was expecting a long (3 bytes), got %d bytes instead.\n", bak, (int)strlen(label));
+	    print_error(emsg, ERROR_INP);
+	    return FAILED;
+	  }
+
+	  fprintf(file_out_ptr, "z%d", (label[0] << 16) | (label[1] << 8) | label[2]);
+	}
+#endif
+	else {
+	  sprintf(emsg, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
+	  print_error(emsg, ERROR_DIR);
+	  return FAILED;
+	}
+      }
+      else if (inz == SUCCEEDED) {
+	if (table_format[table_index] == 'b') {
+	  if (d < -128 || d > 255) {
+	    sprintf(emsg, ".%s expects 8-bit data, %d is out of range!\n", bak, d);
+	    print_error(emsg, ERROR_DIR);
+	    return FAILED;
+	  }
+
+	  fprintf(file_out_ptr, "d%d ", d);
+	}
+	else if (table_format[table_index] == 'w') {
+	  if (d < -32768 || d > 65535) {
+	    sprintf(emsg, ".%s expects 16-bit data, %d is out of range!\n", bak, d);
+	    print_error(emsg, ERROR_DIR);
+	    return FAILED;
+	  }
+
+	  fprintf(file_out_ptr, "y%d", d);
+	}
+#ifdef W65816
+	else if (table_format[table_index] == 'l') {
+	  if (d < -8388608 || d > 16777215) {
+	    sprintf(emsg, ".%s expects 24-bit data, %d is out of range!\n", bak, d);
+	    print_error(emsg, ERROR_DIR);
+	    return FAILED;
+	  }
+
+	  fprintf(file_out_ptr, "z%d ", d);
+	}
+#endif
+	else {
+	  sprintf(emsg, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
+	  print_error(emsg, ERROR_DIR);
+	  return FAILED;
+	}
+      }
+      else if (inz == INPUT_NUMBER_ADDRESS_LABEL) {
+	if (table_format[table_index] == 'b') {
+	  fprintf(file_out_ptr, "k%d Q%s ", active_file_info_last->line_current, label);
+	}
+	else if (table_format[table_index] == 'w') {
+	  fprintf(file_out_ptr, "k%d r%s ", active_file_info_last->line_current, label);
+	}
+#ifdef W65816
+	else if (table_format[table_index] == 'l') {
+	  fprintf(file_out_ptr, "k%d q%s ", active_file_info_last->line_current, label);
+	}
+#endif
+	else {
+	  sprintf(emsg, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
+	  print_error(emsg, ERROR_DIR);
+	  return FAILED;
+	}
+      }
+      else if (inz == INPUT_NUMBER_STACK) {
+	if (table_format[table_index] == 'b') {
+	  fprintf(file_out_ptr, "c%d ", latest_stack);
+	}
+	else if (table_format[table_index] == 'w') {
+	  fprintf(file_out_ptr, "C%d ", latest_stack);
+	}
+#ifdef W65816
+	else if (table_format[table_index] == 'l') {
+	  fprintf(file_out_ptr, "T%d ", latest_stack);
+	}
+#endif
+	else {
+	  sprintf(emsg, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
+	  print_error(emsg, ERROR_DIR);
+	  return FAILED;
+	}
+      }
+
+      table_index++;
+      if (table_index >= table_size) {
+	rows++;
+	table_index = 0;
+      }
+
+      inz = input_number();
+    }
+
+    if (inz == FAILED)
+      return FAILED;
+
+    if (inz == INPUT_NUMBER_EOL && ind == 0) {
+      sprintf(emsg, ".%s needs data.\n", bak);
+      print_error(emsg, ERROR_INP);
+      return FAILED;
+    }
+
+    if (strcaselesscmp(bak, "ROW") == 0) {
+      if (table_index != 0 || rows != 1) {
+	sprintf(emsg, ".ROW needs exactly one row of data, no more, no less.\n");
+	print_error(emsg, ERROR_INP);
+	return FAILED;
+      }
+    }
+
+    if (inz == INPUT_NUMBER_EOL)
+      next_line();
 
     return SUCCEEDED;
   }
