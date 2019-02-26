@@ -1645,24 +1645,65 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "TABLE") == 0) {
     inz = input_number();
-    for (table_size = 0; table_size < (int)sizeof(table_format) && (inz == INPUT_NUMBER_STRING || inz == INPUT_NUMBER_ADDRESS_LABEL); table_size++) {
-      if (strcaselesscmp(label, "byte") == 0) {
-	table_format[table_size] = 'b';
+    for (table_size = 0; table_size < (int)sizeof(table_format) && (inz == INPUT_NUMBER_STRING || inz == INPUT_NUMBER_ADDRESS_LABEL); ) {
+      if (strcaselesscmp(label, "db") == 0 || strcaselesscmp(label, "byte") == 0 || strcaselesscmp(label, "byt") == 0) {
+	table_format[table_size++] = 'b';
       }
-      else if (strcaselesscmp(label, "word") == 0) {
-	table_format[table_size] = 'w';
+      else if (strcaselesscmp(label, "ds") == 0 || strcaselesscmp(label, "dsb") == 0) {
+	strcpy(bak, label);
+
+	inz = input_number();
+	if (inz == FAILED)
+	  return FAILED;
+	if (inz != SUCCEEDED) {
+	  sprintf(emsg, "%s needs size.\n", bak);
+	  print_error(emsg, ERROR_INP);
+	  return FAILED;
+	}
+
+	for (inz = 0; inz < d && table_size < (int)sizeof(table_format); inz++)
+	  table_format[table_size++] = 'b';
+      }
+      else if (strcaselesscmp(label, "dw") == 0 || strcaselesscmp(label, "word") == 0) {
+	table_format[table_size++] = 'w';
+      }
+      else if (strcaselesscmp(label, "dsw") == 0) {
+	strcpy(bak, label);
+
+	inz = input_number();
+	if (inz == FAILED)
+	  return FAILED;
+	if (inz != SUCCEEDED) {
+	  sprintf(emsg, "%s needs size.\n", bak);
+	  print_error(emsg, ERROR_INP);
+	  return FAILED;
+	}
+
+	for (inz = 0; inz < d && table_size < (int)sizeof(table_format); inz++)
+	  table_format[table_size++] = 'w';
       }
 #ifdef W65816
-      else if (strcaselesscmp(label, "long") == 0) {
-	table_format[table_size] = 'l';
+      else if (strcaselesscmp(label, "dl") == 0 || strcaselesscmp(label, "long") == 0) {
+	table_format[table_size++] = 'l';
+      }
+      else if (strcaselesscmp(label, "dsl") == 0) {
+	strcpy(bak, label);
+
+	inz = input_number();
+	if (inz == FAILED)
+	  return FAILED;
+	if (inz != SUCCEEDED) {
+	  sprintf(emsg, "%s needs size.\n", bak);
+	  print_error(emsg, ERROR_INP);
+	  return FAILED;
+	}
+
+	for (inz = 0; inz < d && table_size < (int)sizeof(table_format); inz++)
+	  table_format[table_size++] = 'l';
       }
 #endif
       else {
-#ifdef W65816
-	sprintf(emsg, ".TABLE takes only BYTE, WORD and LONG as data. \"%s\" is unknown.\n", label);
-#else
-	sprintf(emsg, ".TABLE takes only BYTE and WORD as data. \"%s\" is unknown.\n", label);
-#endif
+	sprintf(emsg, "Unknown symbol \"%s\".\n", label);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -1686,11 +1727,7 @@ int parse_directive(void) {
     else if (inz == INPUT_NUMBER_EOL)
       next_line();
     else {
-#ifdef W65816
-      sprintf(emsg, ".TABLE takes only BYTE, WORD and LONG as data.\n");
-#else
-      sprintf(emsg, ".TABLE takes only BYTE and WORD as data.\n");
-#endif
+      sprintf(emsg, "Unknown symbol.\n");
       print_error(emsg, ERROR_DIR);
       return FAILED;      
     }

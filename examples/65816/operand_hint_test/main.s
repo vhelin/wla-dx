@@ -154,7 +154,7 @@ trio3 dl
 
 .section "table" force
 .db "<TABLE>"
-.table byte, word, byte, word, byte, BYTE, long, byte
+.table byte, word, BYTE, dw, dsb 2, long, byt
 .data $01, $0302, $04, $0605, $07, $08, $0b0a09, $0c
 .row "a", "bc", "d", "ef", "g", "h", "ijk", "l"
 .row tableX+1, tableX+2, tableX+3, tableX+4, tableX+5, tableX+6, tableX+7, tableX+8

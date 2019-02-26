@@ -197,7 +197,13 @@ This is the same as::
 Note that .DATA can also be used instead of .ROW, if one wants to
 give the data in pieces.
 
-WLA-65816 also supports column format "long" (24-bit data).
+All supported column formats:
+    - DB, BYT, BYTE
+    - DW, WORD
+    - DL, LONG       ; wla-65816 only
+    - DS, DSB
+    - DSW
+    - DSL            ; wla-65816 only
 
 This is not a compulsory directive.
 
@@ -238,7 +244,7 @@ the point the previous .DATA ended.
 
 Examples::
 
-    .TABLE word, word, byte, byte
+    .TABLE dsw 2, dsb 2
 
 This defines two rows worth of bytes::
 
