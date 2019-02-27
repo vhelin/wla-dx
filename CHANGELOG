@@ -36,6 +36,8 @@ v9.8 (27-Feb-2019) [ALL] Deprecated section's size giving inside section's
                    [ALL] WLA and WLALINK give now more information about the
                      cause when a memory overwrite/overflow occurs.
                    [ALL] Added .ADDR (alias of .DW).
+                   [ALL] Updated the dotted to-be-skipped directives list
+                     in .ENUM and .RAMSECTION to contain missing items.
                    [GB ] Added support for .VERSION (Mask ROM version number).
                    [GB ] Fixed the handling of RAMSIZE inside of .GBHEADER.
                    [GB ] New licensee code is set to $0000 if old licensee
