@@ -79,11 +79,29 @@ rs5b1_b	db
 .ENDS
 
 
+.enum $100
+enum_1  db
+enum_2  .db
+enum_3  .dw
+enum_4  .word
+enum_5  .addr
+enum_6  .byt
+enum_7  .byte
+enum_8  .ds 5
+enum_9  .dsb 10
+enum_a  .dsw 16
+enum_b:	dw
+enum_c  db
+.ende
+
+.export enum_1, enum_2, enum_3, enum_4, enum_5, enum_6, enum_7, enum_8, enum_9, enum_a, enum_b, enum_c
+
 
 .BLOCK "Hello"
 .db 1, 2, 3, 4, 5
 .BLOCK "Hi!"
 .db 6, 7, 8
-.dw library_hook
+.dw library_hook, rs3b0_a
 .endb
 .endb
+

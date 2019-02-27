@@ -1140,14 +1140,16 @@ void next_line(void) {
 int parse_enum_token(void) {
 
   char tmpname[MAX_NAME_LENGTH + 1];
+  char bak[256];
   int type;
   int q;
 
   
   /* check for "if" directives (the only directives permitted in an enum/ramsection) */
   if (tmp[0] == '.') {
-    if ((q = parse_if_directive()) != -1)
+    if ((q = parse_if_directive()) != -1) {
       return q;
+    }
   }
 
   if (in_enum && strcaselesscmp(tmp, ".ENDE") == 0) {
@@ -1180,7 +1182,7 @@ int parse_enum_token(void) {
   /* get the size/type */
   if (get_next_token() == FAILED)
     return FAILED;
-
+    
   type = 0;
 
   if (strcaselesscmp(tmp, "DB") == 0 || strcaselesscmp(tmp, "BYT") == 0 || strcaselesscmp(tmp, "BYTE") == 0) {
@@ -1393,11 +1395,38 @@ int parse_enum_token(void) {
       }
     }
   }
-  else if (strcaselesscmp(tmp, ".db") == 0 || strcaselesscmp(tmp, ".dw") == 0)
+  else if (strcaselesscmp(tmp, ".db") == 0 || strcaselesscmp(tmp, ".dw") == 0 ||
+	   strcaselesscmp(tmp, ".byt") == 0 || strcaselesscmp(tmp, ".byte") == 0 ||
+	   strcaselesscmp(tmp, ".word") == 0 || strcaselesscmp(tmp, ".addr") == 0)
     ; /* don't do anything for "dotted" versions */
+  else if (strcaselesscmp(tmp, ".ds") == 0 || strcaselesscmp(tmp, ".dsb") == 0 || strcaselesscmp(tmp, ".dsw") == 0) {
+    /* don't do anything for "dotted" versions */
+    strcpy(bak, tmp);
+    
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      sprintf(emsg, "%s needs size.\n", bak);
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
+    }
+  }
 #ifdef W65816
-  else if (strcaselesscmp(tmp, ".dl") == 0)
+  else if (strcaselesscmp(tmp, ".dl") == 0 || strcaselesscmp(tmp, ".long") == 0 || strcaselesscmp(tmp, ".faraddr") == 0)
     ; /* don't do anything for "dotted" versions */
+  else if (strcaselesscmp(tmp, ".dsl") == 0) {
+    /* don't do anything for "dotted" versions */
+    strcpy(bak, tmp);
+    
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      print_error(".DSL needs size.\n", ERROR_DIR);
+      return FAILED;
+    }
+  }
 #endif
   else {
     if (in_enum)
@@ -2905,114 +2934,142 @@ int parse_directive(void) {
       }
 #endif
       else if (strcaselesscmp(tmp, "INSTANCEOF") == 0) {
-         struct structure *stt;
-         int arr = 1;
+	struct structure *stt;
+	int arr = 1;
          
-         /* zero the size of the root struct label */
-         si->size = 0;
+	/* zero the size of the root struct label */
+	si->size = 0;
 
-         /* get the structure type */
-         if (get_next_token() == FAILED)
-           return FAILED;
+	/* get the structure type */
+	if (get_next_token() == FAILED)
+	  return FAILED;
          
-         stt = get_structure(tmp);
+	stt = get_structure(tmp);
          
-         if (stt != NULL) {
-            int j;
+	if (stt != NULL) {
+	  int j;
 			
-            q = input_number();
-            if (q == SUCCEEDED) {
-               arr = d;
-            }
-            else if (q == INPUT_NUMBER_EOL)
-            {
-                next_line();
-            }
+	  q = input_number();
+	  if (q == SUCCEEDED) {
+	    arr = d;
+	  }
+	  else if (q == INPUT_NUMBER_EOL) {
+	    next_line();
+	  }
             
-            if (arr == 0) {
-               /* invalid structure array size */
-               sprintf(emsg, "Nested STRUCT \"%s\" in \"%s\" has an invalid array size.\n", si->name, tmp);
-               print_error(emsg, ERROR_DIR);
-               return FAILED;
-            }
+	  if (arr == 0) {
+	    /* invalid structure array size */
+	    sprintf(emsg, "Nested STRUCT \"%s\" in \"%s\" has an invalid array size.\n", si->name, tmp);
+	    print_error(emsg, ERROR_DIR);
+	    return FAILED;
+	  }
             
-            for (j = 0; j < arr; j++) {
-               struct structure_item *sti = stt->items;
+	  for (j = 0; j < arr; j++) {
+	    struct structure_item *sti = stt->items;
                
-               while (sti != NULL) {
-                  struct structure_item *sj;
+	    while (sti != NULL) {
+	      struct structure_item *sj;
                   
-                  if (j == 0 && arr > 1) {
-                     /* add 0 size labels for the first elements */
-                     sj = malloc(sizeof(struct structure_item));
-                     if (sj == NULL) {
-                       print_error("Out of memory while allocating a nested STRUCT.\n", ERROR_DIR);
-                       return FAILED;
-                     }
-                     sj->next = NULL;
-                     sj->size = 0;
-                     if (strlen(si->name) + strlen(sti->name) + 1 < sizeof(sj->name))
-                       sprintf(sj->name, "%s.%s", si->name, sti->name);
-                     else {
-                       print_error("Maximum length exceeded for unique name of nested STRUCT.\n", ERROR_DIR);
-                       return FAILED;
-	             }
-                     
-                     if (sl != NULL)
-                       sl->next = sj;
-                     sl = sj;
-                  }
+	      if (j == 0 && arr > 1) {
+		/* add 0 size labels for the first elements */
+		sj = malloc(sizeof(struct structure_item));
+		if (sj == NULL) {
+		  print_error("Out of memory while allocating a nested STRUCT.\n", ERROR_DIR);
+		  return FAILED;
+		}
+		sj->next = NULL;
+		sj->size = 0;
+		if (strlen(si->name) + strlen(sti->name) + 1 < sizeof(sj->name))
+		  sprintf(sj->name, "%s.%s", si->name, sti->name);
+		else {
+		  print_error("Maximum length exceeded for unique name of nested STRUCT.\n", ERROR_DIR);
+		  return FAILED;
+		}
                   
-                  /* add items for each of the structure item entries. combine si->name with the structure item name. */
-                  sj = malloc(sizeof(struct structure_item));
-                  if (sj == NULL) {
-                    print_error("Out of memory while allocating a nested STRUCT.\n", ERROR_DIR);
-                    return FAILED;
-                  }
-                  sj->next = NULL;
-                  sj->size = sti->size;
-                  if (arr == 1) {
-		    if (strlen(si->name) + strlen(sti->name) + 1 < sizeof(sj->name))
-		      sprintf(sj->name, "%s.%s", si->name, sti->name);
-		    else {
-		      print_error("Maximum length exceeded for unique name of item in nested STRUCT.\n", ERROR_DIR);
-		      return FAILED;
-		    }
-		  }
-		  else {
-		    if (strlen(si->name) + strlen(sti->name) + 1 + INT_MAX_DECIMAL_DIGITS < sizeof(sj->name))
-		      sprintf(sj->name, "%s.%i.%s", si->name, j + 1, sti->name);
-		    else {
-		      print_error("Maximum length exceeded for unique name of item in nested STRUCT.\n", ERROR_DIR);
-		      return FAILED;
-		    }
-		  }
+		if (sl != NULL)
+		  sl->next = sj;
+		sl = sj;
+	      }
                   
-                  if (sl != NULL)
-                    sl->next = sj;
-                  sl = sj;
+	      /* add items for each of the structure item entries. combine si->name with the structure item name. */
+	      sj = malloc(sizeof(struct structure_item));
+	      if (sj == NULL) {
+		print_error("Out of memory while allocating a nested STRUCT.\n", ERROR_DIR);
+		return FAILED;
+	      }
+	      sj->next = NULL;
+	      sj->size = sti->size;
+	      if (arr == 1) {
+		if (strlen(si->name) + strlen(sti->name) + 1 < sizeof(sj->name))
+		  sprintf(sj->name, "%s.%s", si->name, sti->name);
+		else {
+		  print_error("Maximum length exceeded for unique name of item in nested STRUCT.\n", ERROR_DIR);
+		  return FAILED;
+		}
+	      }
+	      else {
+		if (strlen(si->name) + strlen(sti->name) + 1 + INT_MAX_DECIMAL_DIGITS < sizeof(sj->name))
+		  sprintf(sj->name, "%s.%i.%s", si->name, j + 1, sti->name);
+		else {
+		  print_error("Maximum length exceeded for unique name of item in nested STRUCT.\n", ERROR_DIR);
+		  return FAILED;
+		}
+	      }
                   
-                  sti = sti->next;
-               }
+	      if (sl != NULL)
+		sl->next = sj;
+	      sl = sj;
+                  
+	      sti = sti->next;
+	    }
                
-               /* adjust the total struct offset */
-               ssi += stt->size;
-            }
-         }
-         else {
-            /* failed to find structure */
-            sprintf(emsg, "Failed to find nested STRUCT \"%s\" type \"%s\" in .STRUCT.\n", si->name, tmp);
-            print_error(emsg, ERROR_DIR);
-            return FAILED;
-         }
+	    /* adjust the total struct offset */
+	    ssi += stt->size;
+	  }
+	}
+	else {
+	  /* failed to find structure */
+	  sprintf(emsg, "Failed to find nested STRUCT \"%s\" type \"%s\" in .STRUCT.\n", si->name, tmp);
+	  print_error(emsg, ERROR_DIR);
+	  return FAILED;
+	}
       }
-      else if (strcaselesscmp(tmp, ".db") == 0 || strcaselesscmp(tmp, ".dw") == 0) {
-        si->size = 0;
+      else if (strcaselesscmp(tmp, ".db") == 0 || strcaselesscmp(tmp, ".dw") == 0 ||
+	       strcaselesscmp(tmp, ".byt") == 0 || strcaselesscmp(tmp, ".byte") == 0 ||
+	       strcaselesscmp(tmp, ".word") == 0 || strcaselesscmp(tmp, ".addr") == 0) {
+	si->size = 0;
+        continue;
+      }
+      else if (strcaselesscmp(tmp, ".ds") == 0 || strcaselesscmp(tmp, ".dsb") == 0 || strcaselesscmp(tmp, ".dsw") == 0) {
+	strcpy(bak, tmp);
+
+	q = input_number();
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED) {
+	  sprintf(emsg, "%s needs size.\n", bak);
+	  print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
+
+	si->size = 0;
         continue;
       }
 #ifdef W65816
-      else if (strcaselesscmp(tmp, ".dl") == 0) {
+      else if (strcaselesscmp(tmp, ".dl") == 0 || strcaselesscmp(tmp, ".faraddr") == 0) {
         si->size = 0;
+        continue;
+      }
+      else if (strcaselesscmp(tmp, ".dsl") == 0) {
+	q = input_number();
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED) {
+	  print_error(".DSL needs size.", ERROR_DIR);
+          return FAILED;
+        }
+
+	si->size = 0;
         continue;
       }
 #endif
@@ -5348,7 +5405,7 @@ int parse_directive(void) {
     if (q == FAILED)
       return FAILED;
     if (q != SUCCEEDED) {
-      print_error(".ENUM needs a starting address.\n", ERROR_DIR);
+      print_error(".ENUM needs a starting value.\n", ERROR_DIR);
       return FAILED;
     }
 

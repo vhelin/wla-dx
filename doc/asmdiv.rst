@@ -1906,7 +1906,7 @@ required to terminate it.
 Starts enumeration from ``$C000``. Very useful for defining variables.
 
 To start a descending enumeration, put ``DESC`` after the starting
-address. WLA defaults to ``ASC`` (ascending enumeration).
+value. WLA defaults to ``ASC`` (ascending enumeration).
 
 You can also add ``EXPORT`` after these if you want to export all
 the generated definitions automatically.
