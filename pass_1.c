@@ -1189,14 +1189,14 @@ int parse_enum_token(void) {
     else /* ramsection */
       fprintf(file_out_ptr, "d0 ");
   }
-  else if (strcaselesscmp(tmp, "DW") == 0 || strcaselesscmp(tmp, "WORD") == 0) {
+  else if (strcaselesscmp(tmp, "DW") == 0 || strcaselesscmp(tmp, "WORD") == 0 || strcaselesscmp(tmp, "ADDR") == 0) {
     if (in_enum)
       enum_offset += 2*enum_ord;
     else /* ramsection */
       fprintf(file_out_ptr, "y0 ");
   }
 #ifdef W65816
-  else if (strcaselesscmp(tmp, "DL") == 0 || strcaselesscmp(tmp, "LONG") == 0) {
+  else if (strcaselesscmp(tmp, "DL") == 0 || strcaselesscmp(tmp, "LONG") == 0 || strcaselesscmp(tmp, "FARADDR") == 0) {
     if (in_enum)
       enum_offset += 3*enum_ord;
     else /* ramsection */
@@ -2228,9 +2228,9 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
-  /* DW/WORD? */
+  /* DW/WORD/ADDR? */
 
-  if (strcaselesscmp(cp, "DW") == 0 || strcaselesscmp(cp, "WORD") == 0) {
+  if (strcaselesscmp(cp, "DW") == 0 || strcaselesscmp(cp, "WORD") == 0 || strcaselesscmp(cp, "ADDR") == 0) {
     strcpy(bak, cp);
 
     inz = input_number();
@@ -2267,9 +2267,9 @@ int parse_directive(void) {
   }
 
 #ifdef W65816
-  /* DL/LONG? */
+  /* DL/LONG/FARADDR? */
 
-  if (strcmp(cp, "DL") == 0 || strcmp(cp, "LONG") == 0) {
+  if (strcaselesscmp(cp, "DL") == 0 || strcaselesscmp(cp, "LONG") == 0 || strcaselesscmp(cp, "FARADDR") == 0) {
     strcpy(bak, cp);
 
     inz = input_number();
@@ -2866,10 +2866,10 @@ int parse_directive(void) {
 
       if (strcaselesscmp(tmp, "DB") == 0 || strcaselesscmp(tmp, "BYT") == 0 || strcaselesscmp(tmp, "BYTE") == 0)
         si->size = 1;
-      else if (strcaselesscmp(tmp, "DW") == 0 || strcaselesscmp(tmp, "WORD") == 0)
+      else if (strcaselesscmp(tmp, "DW") == 0 || strcaselesscmp(tmp, "WORD") == 0 || strcaselesscmp(tmp, "ADDR") == 0)
         si->size = 2;
 #ifdef W65816
-      else if (strcaselesscmp(tmp, "DL") == 0 || strcaselesscmp(tmp, "LONG") == 0)
+      else if (strcaselesscmp(tmp, "DL") == 0 || strcaselesscmp(tmp, "LONG") == 0 || strcaselesscmp(tmp, "FARADDR") == 0)
         si->size = 3;
 #endif
       else if (strcaselesscmp(tmp, "DS") == 0 || strcaselesscmp(tmp, "DSB") == 0) {

@@ -95,9 +95,10 @@ ALL  ``.DBRND 20, 0, 10``
 ALL  ``.DBSIN 0.2, 10, 3.2, 120, 1.3``
 ALL  ``.DEFINE IF $FF0F``
 ALL  ``.DEF IF $FF0F``
-ALL  ``.DL $102030, $405060``
+658  ``.DL $102030, $405060``
 ALL  ``.DS 256, $10``
 ALL  ``.DSB 256, $10``
+658  ``.DSL 16, $102030``
 ALL  ``.DSTRUCT waterdrop INSTANCEOF water DATA "tingle", 40, 120``
 ALL  ``.DSW 128, 20``
 ALL  ``.DW 16000, 10, 255``
@@ -141,7 +142,8 @@ ALL  ``.INCDIR "/usr/programming/gb/include/"``
 ALL  ``.INCLUDE "cgb_hardware.i"``
 658  ``.INDEX 8``
 ALL  ``.INPUT NAME``
-ALL  ``.LONG $102030, $405060``
+658  ``.LONG $102030, $405060``
+658  ``.FARADDR main, irq_1``
 ALL  ``.MACRO TEST``
 ALL  ``.MEMORYMAP``
 ALL  ``.ORG $150``
@@ -169,6 +171,7 @@ ALL  ``.UNBACKGROUND $1000 $1FFF``
 ALL  ``.UNDEFINE DEBUG``
 ALL  ``.UNDEF DEBUG``
 ALL  ``.WORD 16000, 10, 255``
+ALL  ``.ADDR 16000, main, 255``
 === ================================================================
 
 Descriptions:
@@ -199,11 +202,11 @@ give the data in pieces.
 
 All supported column formats:
     - DB, BYT, BYTE
-    - DW, WORD
-    - DL, LONG       ; wla-65816 only
+    - DW, WORD, ADDR
+    - DL, LONG, FARADDR ; wla-65816 only
     - DS, DSB
     - DSW
-    - DSL            ; wla-65816 only
+    - DSL               ; wla-65816 only
 
 This is not a compulsory directive.
 
@@ -1364,6 +1367,15 @@ Defines ``128`` words (two bytes) of ``20``.
 This is not a compulsory directive.
 
 
+``.DSL 16, $102030``
+--------------------
+
+Defines ``16`` long words (three bytes) of ``$102030``. Works only
+on wla-65816.
+
+This is not a compulsory directive.
+
+
 ``.DB 100, $30, %1000, "HELLO WORLD!"``
 ---------------------------------------
 
@@ -1509,6 +1521,14 @@ This is not a compulsory directive.
 This is not a compulsory directive.
 
 
+``.ADDR 16000, main, 255``
+--------------------------
+
+``.ADDR`` is an alias for ``.DW``.
+
+This is not a compulsory directive.
+
+
 ``.DL $102030, $405060``
 ------------------------
 
@@ -1522,6 +1542,14 @@ This is not a compulsory directive.
 --------------------------
 
 ``.LONG`` is an alias for ``.DL``. Works only on wla-65816.
+
+This is not a compulsory directive.
+
+
+``.FARADDR main, irq_1``
+------------------------
+
+``.FARADDR`` is an alias for ``.DL``. Works only on wla-65816.
 
 This is not a compulsory directive.
 
