@@ -1083,7 +1083,7 @@ int parse_data_blocks(void) {
 
         /* name */
         i = 0;
-        while (*t != 0 && *t != 7)
+        while (*t != 0 && *t != 6 && *t != 7)
           s->name[i++] = *(t++);
         s->name[i] = 0;
         s->status = *(t++);
@@ -1128,6 +1128,12 @@ int parse_data_blocks(void) {
         s->base_defined = obj_tmp->base_defined;
         s->label_map = hashmap_new();
         t += s->size;
+
+	/* library RAM sections have no slots nor banks unless given in [rambanks] in linkfile */
+	if (s->status == SECTION_STATUS_RAM) {
+	  s->bank = -1;
+	  s->slot = -1;
+	}
 
         /* listfile block */
         if (listfile_block_read(&t, s) == FAILED)

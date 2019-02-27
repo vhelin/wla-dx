@@ -14,9 +14,11 @@
 extern struct object_file *obj_first, *obj_last, *obj_tmp;
 extern struct label *labels_first, *labels_last;
 extern unsigned char *file_header, *file_footer;
-extern int file_header_size, file_footer_size, use_libdir;
-char file_name_error[] = "???";
 extern char ext_libdir[MAX_NAME_LENGTH + 1];
+extern int file_header_size, file_footer_size, use_libdir;
+
+struct section_fix *sec_fix_first = NULL, *sec_fix_tmp;
+char file_name_error[] = "???";
 
 
 
@@ -73,6 +75,10 @@ int load_files(char *argv[], int argc) {
 	state = STATE_DEFINITION;
 	continue;
       }
+      else if (strcmp("[ramsections]", token) == 0) {
+	state = STATE_RAMSECTIONS;
+	continue;
+      }
       else {
 	fprintf(stderr, "%s:%d LOAD_FILES: Unknown group \"%s\".\n", argv[argc - 2], line, token);
 	fclose(fop);
@@ -93,7 +99,7 @@ int load_files(char *argv[], int argc) {
     slot = 0;
     base = 0;
 
-    /* definition loading? */
+    /* definitions? */
     if (state == STATE_DEFINITION) {
       l = calloc(1, sizeof(struct label));
       if (l == NULL) {
@@ -153,6 +159,78 @@ int load_files(char *argv[], int argc) {
       fprintf(stderr, "%s:%d: LOAD_FILES: Syntax error.\n", argv[argc - 2], line);
       fclose(fop);
       return FAILED;
+    }
+    /* ramsection settings? */
+    else if (state == STATE_RAMSECTIONS) {
+      i = SUCCEEDED;
+      while (i == SUCCEEDED) {
+	if (strcmp(token, "bank") == 0 || strcmp(token, "BANK") == 0) {
+	  if (bank_defined == ON) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: BANK defined for the second time for a RAM section.\n", argv[argc - 2], line);
+	    fclose(fop);
+	    return FAILED;
+	  }
+	  bank_defined = ON;
+	  
+	  if (get_next_number(&tmp[x], &bank, &x) == FAILED) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: Error in BANK number.\n", argv[argc - 2], line);
+	    fclose(fop);
+	    return FAILED;
+	  }
+	}
+	else if (strcmp(token, "slot") == 0 || strcmp(token, "SLOT") == 0) {
+	  if (slot_defined == ON) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: SLOT defined for the second time for a RAM section.\n", argv[argc - 2], line);
+	    fclose(fop);
+	    return FAILED;
+	  }
+	  slot_defined = ON;
+	  
+	  if (get_next_number(&tmp[x], &slot, &x) == FAILED) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: Error in SLOT number.\n", argv[argc - 2], line);
+	    fclose(fop);
+	    return FAILED;
+	  }
+	}
+	else
+	  break;
+	
+	i = get_next_token(&tmp[x], token, &x);
+      }
+      
+      if (i == FAILED) {
+	fprintf(stderr, "%s:%d: LOAD_FILES: There is something wrong in a RAM section's settings.\n", argv[argc - 2], line);
+	fclose(fop);
+	return FAILED;
+      }
+      if (slot_defined == OFF) {
+	fprintf(stderr, "%s:%d: LOAD_FILES: RAM section requires a SLOT.\n", argv[argc - 2], line);
+	fclose(fop);
+	return FAILED;
+      }
+      if (bank_defined == OFF) {
+	fprintf(stderr, "%s:%d: LOAD_FILES: RAM sections requires a BANK.\n", argv[argc - 2], line);
+	fclose(fop);
+	return FAILED;
+      }
+
+      /* add a new entry */
+      sec_fix_tmp = malloc(sizeof(struct section_fix));
+      if (sec_fix_tmp == NULL) {
+	fprintf(stderr, "%s:%d: LOAD_FILES: Out of memory error.\n", argv[argc - 2], line);
+	return FAILED;	
+      }
+
+      strcpy(sec_fix_tmp->name, token);
+      strcpy(sec_fix_tmp->file_name, argv[argc - 2]);
+      sec_fix_tmp->line_number = line;
+      sec_fix_tmp->bank = bank;
+      sec_fix_tmp->slot = slot;
+
+      sec_fix_tmp->next = sec_fix_first;
+      sec_fix_first = sec_fix_tmp;
+      
+      continue;
     }
     /* library loading? */
     else if (state == STATE_LIBRARY) {

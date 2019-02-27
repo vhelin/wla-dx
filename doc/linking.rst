@@ -21,6 +21,7 @@ to link together. Here's the format:
         [header]
         [footer]
         [definitions]
+	[ramsections]
 
 2. Start to list the file names. ::
     
@@ -55,7 +56,14 @@ to link together. Here's the format:
         [footer]
         footer.dat
 
-5. If you want to make value definitions, here's your chance::
+5. If you have RAMSECTIONs inside the libraries, you must place
+   the sections inside BANKs and SLOTs::
+
+        [ramsections]
+	bank 0 slot 3 "library 1 vars 1"
+	bank 0 slot 3 "library 1 vars 2"
+
+6. If you want to make value definitions, here's your chance::
    
         [definitions]
         debug 1

@@ -2,6 +2,8 @@
 #ifndef _WRITE_H
 #define _WRITE_H
 
+int check_ramsections(void);
+int fix_ramsections(void);
 int fix_references(void);
 int fix_label_sections(void);
 int insert_label_into_maps(struct label *l, int is_sizeof);

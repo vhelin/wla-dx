@@ -37,12 +37,13 @@
 #define DATA_TYPE_BLOCK   0
 #define DATA_TYPE_SECTION 1
 
-#define STATE_NONE       0
-#define STATE_OBJECT     1
-#define STATE_LIBRARY    2
-#define STATE_HEADER     3
-#define STATE_FOOTER     4
-#define STATE_DEFINITION 5
+#define STATE_NONE        0
+#define STATE_OBJECT      1
+#define STATE_LIBRARY     2
+#define STATE_HEADER      3
+#define STATE_FOOTER      4
+#define STATE_DEFINITION  5
+#define STATE_RAMSECTIONS 6
 
 #define SYMBOL_MODE_NONE   0
 #define SYMBOL_MODE_NOCA5H 1
@@ -145,6 +146,15 @@ struct section {
   struct map_t *label_map;
   struct section *next;
   struct section *prev;
+};
+
+struct section_fix {
+  char name[MAX_NAME_LENGTH + 1];
+  char file_name[MAX_NAME_LENGTH + 1];
+  int  line_number;
+  int  bank;
+  int  slot;
+  struct section_fix *next;
 };
 
 struct slot {

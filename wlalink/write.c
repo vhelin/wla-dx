@@ -16,6 +16,7 @@
 #include "../crc32.h"
 #endif
 
+extern struct section_fix *sec_fix_first, *sec_fix_tmp;
 extern struct reference *reference_first, *reference_last;
 extern struct label *labels_first, *labels_last;
 extern struct label **sorted_anonymous_labels;
@@ -582,7 +583,58 @@ int try_put_label(map_t map, struct label *l) {
 }
 
 
-/* Determines the section for each label, and calls "insert_label_into_maps" for each. */
+/* check that all RAM sections inside libraries are given a bank and a slot */
+int check_ramsections(void) {
+
+  struct section *s;
+
+
+  s = sec_first;
+  while (s != NULL) {
+    if (s->bank < 0 && s->slot < 0) {
+      fprintf(stderr, "%s: %s: CHECK_RAMSECTIONS: RAM section \"%s\" has no BANK/SLOT. Give them in the linkfile under [ramsections].\n", get_file_name(s->file_id),
+	      get_source_file_name(s->file_id, s->file_id_source), s->name);
+      return FAILED;
+    }
+    s = s->next;
+  }
+
+  return SUCCEEDED;
+}
+
+
+/* fix the slot and bank of RAM sections inside libraries, as given in the linkfile */
+int fix_ramsections(void) {
+
+  struct section *s;
+
+  
+  sec_fix_tmp = sec_fix_first;
+  while (sec_fix_tmp != NULL) {
+    /* find the section, and fix bank and slot */
+    s = sec_first;
+    while (s != NULL) {
+      if (strcmp(s->name, sec_fix_tmp->name) == 0) {
+	s->bank = sec_fix_tmp->bank;
+	s->slot = sec_fix_tmp->slot;
+	break;
+      }
+      s = s->next;
+    }
+
+    if (s == NULL) {
+      fprintf(stderr, "%s:%d: LOAD_FILES: Could not find RAM section \"%s\".\n", sec_fix_tmp->file_name, sec_fix_tmp->line_number, sec_fix_tmp->name);
+      return FAILED;
+    }
+
+    sec_fix_tmp = sec_fix_tmp->next;
+  }
+
+  return SUCCEEDED;
+}
+
+
+/* determines the section for each label, and calls "insert_label_into_maps" for each. */
 int fix_label_sections(void) {
 
   struct section *s;

@@ -25,7 +25,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: WLALINK 5.10a (21.2.2019)";
+char version_string[] = "$VER: WLALINK 5.10a (27.2.2019)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -51,6 +51,8 @@ int gb_checksum, gb_complement_check, snes_checksum, cpu_65816 = 0, snes_mode = 
 int listfile_data = NO, smc_status = 0, snes_sramsize = 0;
 int num_sorted_anonymous_labels = 0;
 
+
+extern struct section_fix *sec_fix_first, *sec_fix_tmp;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern int emptyfill;
 char ext_libdir[MAX_NAME_LENGTH + 1];
@@ -244,6 +246,14 @@ int main(int argc, char *argv[]) {
   if (parse_data_blocks() == FAILED)
     return 1;
 
+  /* fix the library bank and slot of RAM sections, if specified in linkfile */
+  if (fix_ramsections() == FAILED)
+    return 1;
+
+  /* check that all library RAM sections are given a bank and a slot */
+  if (check_ramsections() == FAILED)
+    return 1;
+
   /* append sections */
   if (merge_sections() == FAILED)
     return 1;
@@ -272,6 +282,7 @@ int main(int argc, char *argv[]) {
   if (smstag_defined != 0 && romsize < 0x8000) {
     struct section *s = sec_first;
     int sub = 0x4000; /* assume 16KB ROM size */
+
     if (romsize < 0x4000)
       sub = 0x6000; /* assume 8KB ROM size */
     
@@ -678,6 +689,12 @@ void procedures_at_exit(void) {
     s = sec_hd_first->next;
     free(sec_hd_first);
     sec_hd_first = s;
+  }
+
+  while (sec_fix_first != NULL) {
+    sec_fix_tmp = sec_fix_first;
+    sec_fix_first = sec_fix_first->next;
+    free(sec_fix_tmp);
   }
 
   append_tmp = append_sections;

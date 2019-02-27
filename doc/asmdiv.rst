@@ -2409,6 +2409,9 @@ It is also possible to merge two or more sections using ``APPENDTO``::
     label2    DB
     .ENDS
 
+NOTE: When you have ``RAMSECTION`` s inside libraries, you must give
+them BANKs and SLOTs in the linkfile, under [ramsections].
+
 This is not a compulsory directive.
 
 

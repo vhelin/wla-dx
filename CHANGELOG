@@ -3,8 +3,11 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (26-Feb-2019) [ALL] Deprecated section's size giving inside section's
+v9.8 (27-Feb-2019) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
+                   [ALL] .RAMSECTIONs can now be used inside libraries
+                     but BANK and SLOT must be defined for the RAMSECTIONs
+                     under [ramsections] in WLALINK's linkfile.
                    [ALL] Added APPENDTO to .RAMSECTIONs.
                    [ALL] Added .TABLE, .ROW and .DATA - an alternative
                      to .DB, .DW and .DL.

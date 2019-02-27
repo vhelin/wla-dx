@@ -84,5 +84,6 @@ rs5b1_b	db
 .db 1, 2, 3, 4, 5
 .BLOCK "Hi!"
 .db 6, 7, 8
+.dw library_hook
 .endb
 .endb

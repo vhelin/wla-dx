@@ -18,9 +18,19 @@ int get_next_token(char *in, char *out, int *pos) {
   if (in[i] == 0)
     return FAILED;
 
-  for (t = 0; in[i] != ' ' && in[i] != 0x09 && in[i] != 0; i++, t++)
-    out[t] = in[i];
-
+  /* something between ""? */
+  if (in[i] == '"') {
+    i++;
+    for (t = 0; in[i] != '"' && in[i] != 0x09 && in[i] != 0; i++, t++)
+      out[t] = in[i];
+    if (in[i] == '"')
+      i++;
+  }
+  else {
+    for (t = 0; in[i] != ' ' && in[i] != 0x09 && in[i] != 0; i++, t++)
+      out[t] = in[i];
+  }
+  
   out[t] = 0;
   *pos += i;
 

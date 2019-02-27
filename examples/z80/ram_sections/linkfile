@@ -1,2 +1,7 @@
 [objects]
 sms.o
+[libraries]
+bank 0 slot 0 library.lib
+[ramsections]
+bank 1 slot 4 "LIB VARS 1"
+bank 1 slot 4 "LIB VARS 2"

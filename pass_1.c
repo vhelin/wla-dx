@@ -3030,10 +3030,6 @@ int parse_directive(void) {
   /* RAMSECTION */
 
   if (strcaselesscmp(cp, "RAMSECTION") == 0) {
-    if (output_format == OUTPUT_LIBRARY) {
-      print_error("Libraries don't take RAMSECTIONs.\n", ERROR_DIR);
-      return FAILED;
-    }
     if (section_status == ON) {
       sprintf(emsg, "There is already an open section called \"%s\".", sections_last->name);
       print_error(emsg, ERROR_DIR);
@@ -3094,6 +3090,11 @@ int parse_directive(void) {
     if (compare_next_token("BANK", 4) != SUCCEEDED)
       sec_tmp->bank = 0;
     else {
+      if (output_format == OUTPUT_LIBRARY) {
+	print_error(".RAMSECTION cannot take BANK when inside a library.\n", ERROR_DIR);
+	return FAILED;
+      }
+
       skip_next_token();
 
       q = input_number();
@@ -3115,6 +3116,11 @@ int parse_directive(void) {
     }
 
     if (compare_next_token("SLOT", 4) == SUCCEEDED) {
+      if (output_format == OUTPUT_LIBRARY) {
+	print_error(".RAMSECTION cannot take SLOT when inside a library.\n", ERROR_DIR);
+	return FAILED;
+      }
+
       skip_next_token();
 
       q = input_number();
@@ -3138,6 +3144,11 @@ int parse_directive(void) {
 
     /* align the ramsection? */
     if (compare_next_token("ALIGN", 5) == SUCCEEDED) {
+      if (output_format == OUTPUT_LIBRARY) {
+	print_error(".RAMSECTION cannot take ALIGN when inside a library.\n", ERROR_DIR);
+	return FAILED;
+      }
+
       if (skip_next_token() == FAILED)
         return FAILED;
 
