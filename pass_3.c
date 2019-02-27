@@ -361,6 +361,10 @@ int pass_3(void) {
 	o++;
 	continue;
 
+      case 'k':
+	fscanf(f_in, "%d ", &line_number);
+	continue;
+
       default:
 	fprintf(stderr, "INTERNAL_PASS_1: A section must be open before any code/data can be accepted.\n");
 	return FAILED;
