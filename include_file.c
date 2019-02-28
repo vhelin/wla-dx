@@ -414,7 +414,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   *id = q;
 
   /* SKIP bytes? */
-  if (compare_next_token("SKIP", 4) == FAILED)
+  if (compare_next_token("SKIP") == FAILED)
     *skip = 0;
   else {
     skip_next_token();
@@ -434,7 +434,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   }
 
   /* READ bytes? */
-  if (compare_next_token("READ", 4) == FAILED)
+  if (compare_next_token("READ") == FAILED)
     *read = file_size - *skip;
   else {
     skip_next_token();
@@ -454,7 +454,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   }
 
   /* SWAP bytes? */
-  if (compare_next_token("SWAP", 4) == FAILED)
+  if (compare_next_token("SWAP") == FAILED)
     *swap = 0;
   else {
     if ((*read & 1) == 1) {
@@ -467,7 +467,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   }
 
   /* FSIZE? */
-  if (compare_next_token("FSIZE", 5) == SUCCEEDED) {
+  if (compare_next_token("FSIZE") == SUCCEEDED) {
     skip_next_token();
 
     /* get the definition label */
@@ -478,7 +478,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   }
 
   /* FILTER? */
-  if (compare_next_token("FILTER", 6) == SUCCEEDED) {
+  if (compare_next_token("FILTER") == SUCCEEDED) {
     skip_next_token();
 
     /* get the filter macro name */

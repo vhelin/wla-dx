@@ -1591,7 +1591,7 @@ int parse_directive(void) {
     bank = d;
     bank_defined = 1;
 
-    if (compare_next_token("SLOT", 4) == SUCCEEDED) {
+    if (compare_next_token("SLOT") == SUCCEEDED) {
       skip_next_token();
 
       q = input_number();
@@ -2082,7 +2082,7 @@ int parse_directive(void) {
         aend = d+1;
 
         /* do we have a range? */
-        if (compare_next_token("TO", 2) == SUCCEEDED) {
+        if (compare_next_token("TO") == SUCCEEDED) {
           skip_next_token();
 
           q = input_number();
@@ -2114,7 +2114,7 @@ int parse_directive(void) {
         }
 
         /* skip the "=" */
-        if (compare_next_token("=", 1) != SUCCEEDED) {
+        if (compare_next_token("=") != SUCCEEDED) {
           ind = FAILED;
           break;
         }
@@ -2359,7 +2359,7 @@ int parse_directive(void) {
 
     strcpy(iname, label);
 
-    if (compare_next_token("INSTANCEOF", 10) == SUCCEEDED)
+    if (compare_next_token("INSTANCEOF") == SUCCEEDED)
       skip_next_token();
 
     /* get structure name */
@@ -2392,7 +2392,7 @@ int parse_directive(void) {
        }
     */
 	
-    if (compare_next_token("DATA", 4) == SUCCEEDED)
+    if (compare_next_token("DATA") == SUCCEEDED)
       skip_next_token();
 
     fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, iname);
@@ -3147,7 +3147,7 @@ int parse_directive(void) {
     }
 
     /* check for optional BANK */
-    if (compare_next_token("BANK", 4) != SUCCEEDED)
+    if (compare_next_token("BANK") != SUCCEEDED)
       sec_tmp->bank = 0;
     else {
       if (output_format == OUTPUT_LIBRARY) {
@@ -3175,7 +3175,7 @@ int parse_directive(void) {
       sec_tmp->bank = d;
     }
 
-    if (compare_next_token("SLOT", 4) == SUCCEEDED) {
+    if (compare_next_token("SLOT") == SUCCEEDED) {
       if (output_format == OUTPUT_LIBRARY) {
 	print_error(".RAMSECTION cannot take SLOT when inside a library.\n", ERROR_DIR);
 	return FAILED;
@@ -3203,7 +3203,7 @@ int parse_directive(void) {
     fprintf(file_out_ptr, "S%d ", sec_tmp->id);
 
     /* align the ramsection? */
-    if (compare_next_token("ALIGN", 5) == SUCCEEDED) {
+    if (compare_next_token("ALIGN") == SUCCEEDED) {
       if (output_format == OUTPUT_LIBRARY) {
 	print_error(".RAMSECTION cannot take ALIGN when inside a library.\n", ERROR_DIR);
 	return FAILED;
@@ -3221,7 +3221,7 @@ int parse_directive(void) {
       sec_tmp->alignment = d;
     }
 
-    if (compare_next_token("APPENDTO", 8) == SUCCEEDED) {
+    if (compare_next_token("APPENDTO") == SUCCEEDED) {
       struct append_section *append_tmp;
 
       if (skip_next_token() == FAILED)
@@ -3379,7 +3379,7 @@ int parse_directive(void) {
       sections_last = sec_tmp;
     }
 
-    if (compare_next_token("NAMESPACE", 9) == SUCCEEDED) {
+    if (compare_next_token("NAMESPACE") == SUCCEEDED) {
       struct namespace_def *nspace;
 
       if (skip_next_token() == FAILED)
@@ -3416,7 +3416,7 @@ int parse_directive(void) {
     }
 
     /* the size of the section? */
-    if (compare_next_token("SIZE", 4) == SUCCEEDED) {
+    if (compare_next_token("SIZE") == SUCCEEDED) {
       if (skip_next_token() == FAILED)
         return FAILED;
 
@@ -3436,7 +3436,7 @@ int parse_directive(void) {
     }
 
     /* align the section? */
-    if (compare_next_token("ALIGN", 5) == SUCCEEDED) {
+    if (compare_next_token("ALIGN") == SUCCEEDED) {
       if (skip_next_token() == FAILED)
         return FAILED;
 
@@ -3450,7 +3450,7 @@ int parse_directive(void) {
     }
 
     /* the type of the section */
-    if (compare_next_token("FORCE", 5) == SUCCEEDED) {
+    if (compare_next_token("FORCE") == SUCCEEDED) {
       if (output_format == OUTPUT_LIBRARY) {
         print_error("Libraries don't take FORCE sections.\n", ERROR_DIR);
         return FAILED;
@@ -3459,17 +3459,17 @@ int parse_directive(void) {
       if (skip_next_token() == FAILED)
         return FAILED;
     }
-    else if (compare_next_token("FREE", 4) == SUCCEEDED) {
+    else if (compare_next_token("FREE") == SUCCEEDED) {
       sec_tmp->status = SECTION_STATUS_FREE;
       if (skip_next_token() == FAILED)
         return FAILED;
     }
-    else if (compare_next_token("SUPERFREE", 9) == SUCCEEDED) {
+    else if (compare_next_token("SUPERFREE") == SUCCEEDED) {
       sec_tmp->status = SECTION_STATUS_SUPERFREE;
       if (skip_next_token() == FAILED)
         return FAILED;
     }
-    else if (compare_next_token("SEMIFREE", 8) == SUCCEEDED) {
+    else if (compare_next_token("SEMIFREE") == SUCCEEDED) {
       if (output_format == OUTPUT_LIBRARY) {
         print_error("Libraries don't take SEMIFREE sections.\n", ERROR_DIR);
         return FAILED;
@@ -3478,7 +3478,7 @@ int parse_directive(void) {
       if (skip_next_token() == FAILED)
         return FAILED;
     }
-    else if (compare_next_token("SEMISUBFREE", 11) == SUCCEEDED) {
+    else if (compare_next_token("SEMISUBFREE") == SUCCEEDED) {
       if (output_format == OUTPUT_LIBRARY) {
         print_error("Libraries don't take SEMISUBFREE sections.\n", ERROR_DIR);
         return FAILED;
@@ -3487,7 +3487,7 @@ int parse_directive(void) {
       if (skip_next_token() == FAILED)
         return FAILED;
     }
-    else if (compare_next_token("OVERWRITE", 9) == SUCCEEDED) {
+    else if (compare_next_token("OVERWRITE") == SUCCEEDED) {
       if (output_format == OUTPUT_LIBRARY) {
         print_error("Libraries don't take OVERWRITE sections.\n", ERROR_DIR);
         return FAILED;
@@ -3500,14 +3500,14 @@ int parse_directive(void) {
       sec_tmp->status = SECTION_STATUS_FREE;
 
     /* return the org after the section? */
-    if (compare_next_token("RETURNORG", 9) == SUCCEEDED) {
+    if (compare_next_token("RETURNORG") == SUCCEEDED) {
       if (skip_next_token() == FAILED)
         return FAILED;
 
       sec_tmp->advance_org = NO;
     }
 
-    if (compare_next_token("APPENDTO", 8) == SUCCEEDED) {
+    if (compare_next_token("APPENDTO") == SUCCEEDED) {
       struct append_section *append_tmp;
 
       if (skip_next_token() == FAILED)
@@ -4430,7 +4430,7 @@ int parse_directive(void) {
         o = d;
 
         /* skip "START" if present */
-        if (compare_next_token("START", 5) == SUCCEEDED)
+        if (compare_next_token("START") == SUCCEEDED)
           skip_next_token();
 
         q = input_number();
@@ -4445,7 +4445,7 @@ int parse_directive(void) {
         slots[o].address = d;
 
         /* skip "SIZE" if present */
-        if (compare_next_token("SIZE", 4) == SUCCEEDED)
+        if (compare_next_token("SIZE") == SUCCEEDED)
           skip_next_token();
 
         q = input_number();
@@ -5177,7 +5177,7 @@ int parse_directive(void) {
     }
 
     /* skip "=", if present */
-    if (compare_next_token("=", 1) == SUCCEEDED)
+    if (compare_next_token("=") == SUCCEEDED)
       skip_next_token();
 
     input_float_mode = ON;
@@ -5332,7 +5332,7 @@ int parse_directive(void) {
     }
 
     /* skip "=", if present */
-    if (compare_next_token("=", 1) == SUCCEEDED)
+    if (compare_next_token("=") == SUCCEEDED)
       skip_next_token();
 
     input_float_mode = ON;
@@ -5425,11 +5425,11 @@ int parse_directive(void) {
     enum_offset = d;
 
     /* "ASC" or "DESC"? */
-    if (compare_next_token("ASC", 3) == SUCCEEDED) {
+    if (compare_next_token("ASC") == SUCCEEDED) {
       enum_ord = 1;
       skip_next_token();
     }
-    else if (compare_next_token("DESC", 4) == SUCCEEDED) {
+    else if (compare_next_token("DESC") == SUCCEEDED) {
       enum_ord = -1;
       skip_next_token();
     }
@@ -5437,7 +5437,7 @@ int parse_directive(void) {
       enum_ord = 1;
 
     /* do we have "EXPORT" defined? */
-    if (compare_next_token("EXPORT", 6) == SUCCEEDED) {
+    if (compare_next_token("EXPORT") == SUCCEEDED) {
       skip_next_token();
       enum_exp = YES;
     }
@@ -5858,7 +5858,7 @@ int parse_directive(void) {
 
     /* is ARGS defined? */
     q = 0;
-    if (compare_next_token("ARGS", 4) == SUCCEEDED) {
+    if (compare_next_token("ARGS") == SUCCEEDED) {
       skip_next_token();
 
       while (1) {
@@ -5942,7 +5942,7 @@ int parse_directive(void) {
     }
 
     index_name[0] = 0;
-    if (compare_next_token("INDEX", 5) == SUCCEEDED) {
+    if (compare_next_token("INDEX") == SUCCEEDED) {
       skip_next_token();
 
       ind = input_next_string();
@@ -7990,7 +7990,7 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
     stacks_tmp->position = STACK_POSITION_DEFINITION;
 
     /* export the definition? */
-    if (compare_next_token("EXPORT", 6) == SUCCEEDED) {
+    if (compare_next_token("EXPORT") == SUCCEEDED) {
       skip_next_token();
       *export = YES;
     }
@@ -8023,7 +8023,7 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
       n++;
 
       /* export the definition? */
-      if (compare_next_token("EXPORT", 6) == SUCCEEDED) {
+      if (compare_next_token("EXPORT") == SUCCEEDED) {
 	skip_next_token();
 	*export = YES;
       }
@@ -8076,7 +8076,7 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
     n++;
 
     /* export the definition? */
-    if (compare_next_token("EXPORT", 6) == SUCCEEDED) {
+    if (compare_next_token("EXPORT") == SUCCEEDED) {
       skip_next_token();
       *export = YES;
     }

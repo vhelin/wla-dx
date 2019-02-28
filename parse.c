@@ -57,12 +57,14 @@ int is_string_ending_with(char *s, char *e) {
 }
 
 
-int compare_next_token(char *token, int length) {
+int compare_next_token(char *token) {
 
-  int ii, t, d, k;
+  int ii, t, d, k, length;
   char e;
 
   
+  length = strlen(token);
+
   /* skip white space */
   ii = i;
   for (e = buffer[ii]; e == ' ' || e == ',' || e == 0x0A; e = buffer[++ii])
