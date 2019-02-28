@@ -1579,7 +1579,9 @@ Assigns a number or a string to a definition label.
 
 By default all defines are local to the file where they are
 presented. If you want to make the definition visible to all the
-files in the project, use ``.EXPORT``.
+files in the project, use ``.EXPORT`` or add EXPORT to the end of .DEFINE::
+
+    .DEFINE ID_0 0 EXPORT
 
 WARNING: Please declare your definition lexically before using it as otherwise
 the assembler might make incorrect assumptions about its value and size and

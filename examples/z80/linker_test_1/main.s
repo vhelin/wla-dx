@@ -207,3 +207,10 @@ _loop:
 
 .ends
 
+.define DEF_0 4
+.define DEF_1 4 EXPORT
+.define DEF_2 DEF_1+4 EXPORT
+.define DEF_3 = DEF_2+4 EXPORT
+
+
+

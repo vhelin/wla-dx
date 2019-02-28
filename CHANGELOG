@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (27-Feb-2019) [ALL] Deprecated section's size giving inside section's
+v9.8 (28-Feb-2019) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
                    [ALL] .RAMSECTIONs can now be used inside libraries
                      but BANK and SLOT must be defined for the RAMSECTIONs
@@ -38,6 +38,7 @@ v9.8 (27-Feb-2019) [ALL] Deprecated section's size giving inside section's
                    [ALL] Added .ADDR (alias of .DW).
                    [ALL] Updated the dotted to-be-skipped directives list
                      in .ENUM and .RAMSECTION to contain missing items.
+                   [ALL] .DEFINE now supports keyword EXPORT (auto export).
                    [GB ] Added support for .VERSION (Mask ROM version number).
                    [GB ] Fixed the handling of RAMSIZE inside of .GBHEADER.
                    [GB ] New licensee code is set to $0000 if old licensee

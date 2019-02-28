@@ -5159,7 +5159,7 @@ int parse_directive(void) {
 
     double dou;
     char k[256];
-    int j, size;
+    int j, size, export;
 
     if (get_next_token() == FAILED)
       return FAILED;
@@ -5181,7 +5181,7 @@ int parse_directive(void) {
       skip_next_token();
 
     input_float_mode = ON;
-    q = get_new_definition_data(&j, k, &size, &dou);
+    q = get_new_definition_data(&j, k, &size, &dou, &export);
     input_float_mode = OFF;
     if (q == FAILED)
       return FAILED;
@@ -5202,6 +5202,11 @@ int parse_directive(void) {
     else if (q == INPUT_NUMBER_EOL)
       add_a_new_definition(tmp, 0.0, NULL, DEFINITION_TYPE_VALUE, 0);
 
+    if (export == YES) {
+      if (export_a_definition(tmp) == FAILED)
+	return FAILED;
+    }
+    
     return SUCCEEDED;
   }
 
@@ -5308,7 +5313,7 @@ int parse_directive(void) {
 
     double dou;
     char k[256];
-    int j, size;
+    int j, size, export;
 
 
     if (get_next_token() == FAILED)
@@ -5331,7 +5336,7 @@ int parse_directive(void) {
       skip_next_token();
 
     input_float_mode = ON;
-    q = get_new_definition_data(&j, k, &size, &dou);
+    q = get_new_definition_data(&j, k, &size, &dou, &export);
     input_float_mode = OFF;
     if (q == FAILED)
       return FAILED;
@@ -5350,6 +5355,11 @@ int parse_directive(void) {
     else if (q == INPUT_NUMBER_STACK)
       redefine(tmp, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
 
+    if (export == YES) {
+      if (export_a_definition(tmp) == FAILED)
+	return FAILED;
+    }
+	
     return SUCCEEDED;
   }
 
@@ -7957,11 +7967,13 @@ void delete_stack(struct stack *s) {
 #endif
 
 
-int get_new_definition_data(int *b, char *c, int *size, double *data) {
+int get_new_definition_data(int *b, char *c, int *size, double *data, int *export) {
 
   int a, x, n, s;
 
 
+  *export = NO;
+  
   x = input_number();
   a = x;
   n = 0;
@@ -7976,6 +7988,13 @@ int get_new_definition_data(int *b, char *c, int *size, double *data) {
   if (x == INPUT_NUMBER_STACK) {
     *b = stacks_tmp->id;
     stacks_tmp->position = STACK_POSITION_DEFINITION;
+
+    /* export the definition? */
+    if (compare_next_token("EXPORT", 6) == SUCCEEDED) {
+      skip_next_token();
+      *export = YES;
+    }
+
     x = input_number();
     if (x != INPUT_NUMBER_EOL) {
       print_error("A computation cannot be output as a string.\n", ERROR_DIR);
@@ -8002,6 +8021,13 @@ int get_new_definition_data(int *b, char *c, int *size, double *data) {
         return x;
 
       n++;
+
+      /* export the definition? */
+      if (compare_next_token("EXPORT", 6) == SUCCEEDED) {
+	skip_next_token();
+	*export = YES;
+      }
+
       x = input_number();
       continue;
     }
@@ -8048,6 +8074,13 @@ int get_new_definition_data(int *b, char *c, int *size, double *data) {
       return x;
 
     n++;
+
+    /* export the definition? */
+    if (compare_next_token("EXPORT", 6) == SUCCEEDED) {
+      skip_next_token();
+      *export = YES;
+    }
+
     x = input_number();
   }
 
