@@ -186,12 +186,24 @@ _loop:
 .ends
 
 .org $1200
-.section "table" force
-.db "<TABLE>"
+.section "table1" force
+
+.db "<TABLE1>"
 .table byte, word, byte, word, byte, BYTE
 .row $01, $0302, $04, $0605, $07, $08
 .row "a", "bc", "d", "ef", "g", "h"
-.db "</TABLE"
+.db "</TABLE1>"
+
 .ends
 
+.org $1300
+.section "table2" force
+
+.TABLE DSB 16
+.db "<TABLE2>"
+@tile: .ROW $10 $14 $14 $18 $35 $34 $2C $39 $21 $20 $1E $09 $04 $1E $10 $3F
+@sprite:.ROW $00 $20 $35 $2E $29 $3A $00 $3F $14 $29 $3A $14 $3E $3A $19 $25
+.db "</TABLE2>"
+
+.ends
 

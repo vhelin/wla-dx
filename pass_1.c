@@ -571,9 +571,10 @@ int pass_1(void) {
       return SUCCEEDED;
     else if (q == EVALUATE_TOKEN_NOT_IDENTIFIED) {
       /* check if it is of the form "LABEL:XYZ" */
-      for (q = 0; q < ss; q++)
+      for (q = 0; q < ss; q++) {
         if (tmp[q] == ':')
           break;
+      }
 
       /* is it a macro? */
       if (q == ss)
@@ -1787,8 +1788,9 @@ int parse_directive(void) {
 	return FAILED;
       }
     }
-	
+
     inz = input_number();
+    ind = 0;
     for ( ; inz == SUCCEEDED || inz == INPUT_NUMBER_STRING || inz == INPUT_NUMBER_ADDRESS_LABEL || inz == INPUT_NUMBER_STACK; ) {
       if (inz == INPUT_NUMBER_STRING) {
 	if (table_format[table_index] == 'b') {
@@ -1899,6 +1901,7 @@ int parse_directive(void) {
 	}
       }
 
+      ind++;
       table_index++;
       if (table_index >= table_size) {
 	rows++;

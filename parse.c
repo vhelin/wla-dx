@@ -358,7 +358,7 @@ int input_number(void) {
   }
 
   if (e >= '0' && e <= '9') {
-    /* we are parsing decimals when q=1 */
+    /* we are parsing decimals when q == 1 */
     q = 0;
     parsed_double = e-'0';
     parsed_double_decimal_numbers = 0;
