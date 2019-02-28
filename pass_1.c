@@ -7198,14 +7198,83 @@ int parse_directive(void) {
 
 #endif
 
+  /* PRINT */
+
+  if (strcaselesscmp(cp, "PRINT") == 0) {
+
+    int get_value, value_type;
+    
+    while (1) {
+      get_value = NO;
+      value_type = 0;
+      
+      if (compare_next_token("HEX") == SUCCEEDED) {
+	if (skip_next_token() == FAILED)
+	  return FAILED;
+
+	value_type = 0;
+	get_value = YES;
+      }
+      else if (compare_next_token("DEC") == SUCCEEDED) {
+	if (skip_next_token() == FAILED)
+	  return FAILED;
+
+	value_type = 1;
+	get_value = YES;
+      }
+
+      inz = input_number();
+
+      if (inz == INPUT_NUMBER_STRING) {
+
+	char t[256];
+	
+	if (get_value == YES) {
+	  print_error(".PRINT was expecting a value, got a string instead.\n", ERROR_INP);
+	  return FAILED;
+	}
+
+	parse_print_string(label, t, 256);
+
+	if (quiet == NO) {
+	  printf("%s", t);
+	  fflush(stdout);
+	}
+      }
+      else if (inz == SUCCEEDED) {
+	if (get_value == NO) {
+	  print_error(".PRINT was expecting a string or HEX/DEC, got a value instead.\n", ERROR_INP);
+	  return FAILED;
+	}
+
+	if (quiet == NO) {
+	  if (value_type == 0)
+	    printf("%x", d);
+	  else
+	    printf("%d", d);
+	  fflush(stdout);
+	}
+      }
+      else if (inz == INPUT_NUMBER_EOL) {
+	next_line();
+	break;
+      }
+      else {
+	print_error(".PRINT needs a string or HEX/DEC plus a value.\n", ERROR_DIR);
+	return FAILED;
+      }
+    }
+
+    return SUCCEEDED;
+  }
+  
   /* PRINTT */
 
   if (strcaselesscmp(cp, "PRINTT") == 0) {
 
     char t[256];
-    int s, u;
 
-
+    
     inz = input_number();
 
     if (inz != INPUT_NUMBER_STRING) {
@@ -7213,25 +7282,8 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    for (s = 0, u = 0; label[s] != 0;) {
-      if (label[s] == '\\' && label[s + 1] == 'n') {
-#ifdef MSDOS
-        t[u++] = '\r';
-        t[u++] = '\n';
-#else
-        t[u++] = '\n';
-#endif
-        s += 2;
-      }
-      else if (label[s] == '\\' && label[s + 1] == '\\') {
-        t[u++] = '\\';
-        s += 2;
-      }
-      else
-        t[u++] = label[s++];
-    }
-
-    t[u] = 0;
+    parse_print_string(label, t, 256);
+    
     if (quiet == NO) {
       printf("%s", t);
       fflush(stdout);
@@ -7965,6 +8017,33 @@ void delete_stack(struct stack *s) {
   free(s);
 }
 #endif
+
+
+void parse_print_string(char *input, char *output, int output_size) {
+
+  int s, u;
+
+
+  for (s = 0, u = 0; input[s] != 0 && u < output_size-1; ) {
+    if (input[s] == '\\' && input[s + 1] == 'n') {
+#ifdef MSDOS
+      output[u++] = '\r';
+      output[u++] = '\n';
+#else
+      output[u++] = '\n';
+#endif
+      s += 2;
+    }
+    else if (input[s] == '\\' && input[s + 1] == '\\') {
+      output[u++] = '\\';
+      s += 2;
+    }
+    else
+      output[u++] = input[s++];
+  }
+
+  output[u] = 0;
+}
 
 
 int get_new_definition_data(int *b, char *c, int *size, double *data, int *export) {

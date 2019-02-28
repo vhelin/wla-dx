@@ -18,6 +18,7 @@ int localize_path(char *path);
 void print_error(char *error, int type);
 void next_line(void);
 void delete_stack(struct stack *s);
+void parse_print_string(char *input, char *output, int output_size);
 
 struct macro_static *macro_get(char *name);
 

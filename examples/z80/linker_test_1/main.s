@@ -212,5 +212,8 @@ _loop:
 .define DEF_2 DEF_1+4 EXPORT
 .define DEF_3 = DEF_2+4 EXPORT
 
-
-
+.print "Numbers from 0 to 2: ", dec 0, dec 1, dec 2, "\n"
+.print "Nothing special here\n"
+.print hex $100 hex $200
+.PRINT "\nNumbers 1 and 2: ", DEC 1, " ", DEC 2, "\n"
+.print "Bye\n"

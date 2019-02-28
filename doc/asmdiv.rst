@@ -148,6 +148,7 @@ ALL  ``.MACRO TEST``
 ALL  ``.MEMORYMAP``
 ALL  ``.ORG $150``
 ALL  ``.ORGA $150``
+ALL  ``.PRINT "Numbers 1 and 2: ", DEC 1, " ", DEC 2, "\n"``
 ALL  ``.PRINTT "Here we are...\n"``
 ALL  ``.PRINTV DEC DEBUG+1``
 ALL  ``.RAMSECTION "Vars" BANK 0 SLOT 1 ALIGN 4``
@@ -606,7 +607,7 @@ This is not a compulsory directive.
 
 
 ``.SMSHEADER``
-------------------------
+--------------
 
 ::
 
@@ -2503,6 +2504,18 @@ You can export as many definitions as you wish with one ``.EXPORT``::
 
     .EXPORT NUMBER, NAME, ADDRESS, COUNTRY
     .EXPORT NAME, AGE
+
+This is not a compulsory directive.
+
+
+``.PRINT "Numbers 1 and 2: ", DEC 1, " ", DEC 2, "\n"``
+-------------------------------------------------------
+
+Prints strings and numbers to stdout. A combination and a more usable version
+of .PRINTT and .PRINTV. Useful for debugging.
+
+Give ``DEC`` (decimal) or ``HEX`` (hexadecimal) before the value you want
+to print.
 
 This is not a compulsory directive.
 
