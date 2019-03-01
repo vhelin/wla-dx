@@ -5259,7 +5259,7 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    if (compare_next_token("ADDER") == SUCCEEDED) {
+    if (compare_next_token("STEP") == SUCCEEDED) {
       skip_next_token();
 
       q = input_number();
@@ -5268,7 +5268,7 @@ int parse_directive(void) {
 	return FAILED;
 
       if (q != SUCCEEDED) {
-	print_error("ADDER needs a value\n", ERROR_DIR);
+	print_error("STEP needs a value\n", ERROR_DIR);
 	return FAILED;
       }
 

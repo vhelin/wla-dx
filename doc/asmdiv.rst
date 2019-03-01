@@ -196,7 +196,7 @@ For example::
 
 You can also specify the adder::
 
-    .ENUMID MONSTER_ID_1 0 ADDER 2
+    .ENUMID MONSTER_ID_1 0 STEP 2
     .ENUMID MONSTER_ID_2
     .ENUMID MONSTER_ID_3
 
@@ -208,7 +208,7 @@ You can also specify the adder::
 
 If you wish to export the definitions automatically, use EXPORT::
 
-    .ENUMID MUSIC_1 16 ADDER 2 EXPORT
+    .ENUMID MUSIC_1 16 STEP 2 EXPORT
     .ENUMID MUSIC_2
     .ENUMID MUSIC_3
 
