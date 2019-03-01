@@ -39,6 +39,7 @@ int smsheader_defined = 0, smsversion = 0, smsversion_defined = 0, smsregioncode
 #endif
 
 int org_defined = 1, background_defined = 0, background_size = 0;
+int enumid_defined = 0, enumid = 0, enumid_adder = 1, enumid_export = 0;
 int bank = 0, bank_defined = 1;
 int rombanks = 0, rombanks_defined = 0, romtype = 0, max_address;
 int rambanks = 0, rambanks_defined = 0;
@@ -5165,12 +5166,7 @@ int parse_directive(void) {
       return FAILED;
 
     /* check the user doesn't try to define reserved labels */
-    if (strcmp(tmp, "WLA_TIME") == 0 || strcmp(tmp, "wla_time") == 0 ||
-        strcmp(tmp, "WLA_VERSION") == 0 || strcmp(tmp, "wla_version") == 0 ||
-        strcmp(tmp, "WLA_FILENAME") == 0 || strcmp(tmp, "wla_filename") == 0 ||
-        strcmp(tmp, "NARGS") == 0 || strcmp(tmp, "nargs") == 0 ||
-        strcmp(tmp, "CADDR") == 0 || strcmp(tmp, "caddr") == 0) {
-
+    if (is_reserved_label(tmp) == YES) {
       sprintf(emsg, "\"%s\" is a reserved definition label and is not user definable.\n", tmp);
       print_error(emsg, ERROR_DIR);
       return FAILED;
@@ -5207,6 +5203,93 @@ int parse_directive(void) {
 	return FAILED;
     }
     
+    return SUCCEEDED;
+  }
+
+  /* ENUMID */
+
+  if (strcaselesscmp(cp, "ENUMID") == 0) {
+
+    char name[MAX_NAME_LENGTH + 1];
+    int needs_value = NO;
+    
+    if (get_next_token() == FAILED)
+      return FAILED;
+
+    /* check the user doesn't try to define reserved labels */
+    if (is_reserved_label(tmp) == YES) {
+      sprintf(emsg, "\"%s\" is a reserved definition label and is not user definable.\n", tmp);
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
+    }
+
+    strcpy(name, tmp);
+
+    if (compare_next_token("=") == SUCCEEDED) {
+      skip_next_token();
+      needs_value = YES;
+    }
+    
+    q = input_number();
+
+    if (q == FAILED)
+      return FAILED;
+
+    if (q == INPUT_NUMBER_EOL) {
+      if (enumid_defined == 0) {
+	print_error(".ENUMID needs the initial value when .ENUMID is used the first time.\n", ERROR_DIR);
+	return FAILED;
+      }
+      if (needs_value == YES) {
+	print_error(".ENUMID needs a value.\n", ERROR_DIR);
+	return FAILED;
+      }
+      
+      next_line();
+
+      enumid += enumid_adder;
+    }
+    else if (q == SUCCEEDED) {
+      enumid = d;
+      enumid_adder = 1;
+      enumid_export = 0;
+    }
+    else {
+      print_error(".ENUMID needs a value.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    if (compare_next_token("ADDER") == SUCCEEDED) {
+      skip_next_token();
+
+      q = input_number();
+
+      if (q == FAILED)
+	return FAILED;
+
+      if (q != SUCCEEDED) {
+	print_error("ADDER needs a value\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      enumid_adder = d;
+    }
+
+    if (compare_next_token("EXPORT") == SUCCEEDED) {
+      skip_next_token();
+
+      enumid_export = 1;
+    }
+    
+    add_a_new_definition(name, enumid, NULL, DEFINITION_TYPE_VALUE, 0);
+
+    if (enumid_export == 1) {
+      if (export_a_definition(tmp) == FAILED)
+	return FAILED;
+    }
+    
+    enumid_defined = 1;
+
     return SUCCEEDED;
   }
 
@@ -5315,17 +5398,11 @@ int parse_directive(void) {
     char k[256];
     int j, size, export;
 
-
     if (get_next_token() == FAILED)
       return FAILED;
 
     /* check the user doesn't try to define reserved labels */
-    if (strcmp(tmp, "WLA_TIME") == 0 || strcmp(tmp, "wla_time") == 0 ||
-        strcmp(tmp, "WLA_VERSION") == 0 || strcmp(tmp, "wla_version") == 0 ||
-        strcmp(tmp, "WLA_FILENAME") == 0 || strcmp(tmp, "wla_filename") == 0 ||
-        strcmp(tmp, "NARGS") == 0 || strcmp(tmp, "nargs") == 0 ||
-        strcmp(tmp, "CADDR") == 0 || strcmp(tmp, "caddr") == 0) {
-
+    if (is_reserved_label(tmp) == YES) {
       sprintf(emsg, "\"%s\" is a reserved definition label and is not user definable.\n", tmp);
       print_error(emsg, ERROR_DIR);
       return FAILED;
@@ -8043,6 +8120,19 @@ void parse_print_string(char *input, char *output, int output_size) {
   }
 
   output[u] = 0;
+}
+
+
+int is_reserved_label(char *t) {
+
+  if (strcaselesscmp(t, "WLA_TIME") == 0 ||
+      strcaselesscmp(t, "WLA_VERSION") == 0 ||
+      strcaselesscmp(t, "WLA_FILENAME") == 0 ||
+      strcaselesscmp(t, "NARGS") == 0 ||
+      strcaselesscmp(t, "CADDR") == 0)
+    return YES;
+
+  return NO;
 }
 
 

@@ -119,6 +119,7 @@ ALL  ``.ENDRO``
 ALL  ``.ENDS``
 ALL  ``.ENDST``
 ALL  ``.ENUM $C000``
+ALL  ``.ENUMID ID_1 0``
 ALL  ``.EQU IF $FF0F``
 ALL  ``.FAIL``
 ALL  ``.FCLOSE FP_DATABIN``
@@ -176,6 +177,53 @@ ALL  ``.ADDR 16000, main, 255``
 === ================================================================
 
 Descriptions:
+
+``.ENUMID ID_1 0``
+------------------
+
+``.ENUMID`` will create definitions with an autoincrementing value.
+For example::
+
+    .ENUMID ID_1 0
+    .ENUMID ID_2
+    .ENUMID ID_3
+
+... will create the following definitions::
+
+    ID_1 = 0
+    ID_2 = 1
+    ID_3 = 2
+
+You can also specify the adder::
+
+    .ENUMID MONSTER_ID_1 0 ADDER 2
+    .ENUMID MONSTER_ID_2
+    .ENUMID MONSTER_ID_3
+
+... to create definitions::
+
+    MONSTER_ID_1 = 0
+    MONSTER_ID_2 = 2
+    MONSTER_ID_3 = 4
+
+If you wish to export the definitions automatically, use EXPORT::
+
+    .ENUMID MUSIC_1 16 ADDER 2 EXPORT
+    .ENUMID MUSIC_2
+    .ENUMID MUSIC_3
+
+... will create the following definitions and export them all::
+
+    MUSIC_1 = 16
+    MUSIC_2 = 18
+    MUSIC_3 = 20
+
+Note that this will work as well::
+
+    .ENUMID SPRITE_1 = 0
+    
+This is not a compulsory directive.
+
 
 ``.TABLE byte, word, byte``
 ---------------------------
