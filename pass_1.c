@@ -5209,88 +5209,73 @@ int parse_directive(void) {
   /* ENUMID */
 
   if (strcaselesscmp(cp, "ENUMID") == 0) {
-
-    char name[MAX_NAME_LENGTH + 1];
-    int needs_value = NO;
-    
-    if (get_next_token() == FAILED)
-      return FAILED;
-
-    /* check the user doesn't try to define reserved labels */
-    if (is_reserved_label(tmp) == YES) {
-      sprintf(emsg, "\"%s\" is a reserved definition label and is not user definable.\n", tmp);
-      print_error(emsg, ERROR_DIR);
-      return FAILED;
-    }
-
-    strcpy(name, tmp);
-
-    if (compare_next_token("=") == SUCCEEDED) {
-      skip_next_token();
-      needs_value = YES;
-    }
-    
     q = input_number();
 
     if (q == FAILED)
       return FAILED;
 
     if (q == INPUT_NUMBER_EOL) {
+      print_error(".ENUMID needs a value or a definition name.\n", ERROR_DIR);
+      return FAILED;
+    }
+    else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
       if (enumid_defined == 0) {
 	print_error(".ENUMID needs the initial value when .ENUMID is used the first time.\n", ERROR_DIR);
 	return FAILED;
       }
-      if (needs_value == YES) {
-	print_error(".ENUMID needs a value.\n", ERROR_DIR);
+
+      if (is_reserved_label(label) == YES) {
+	sprintf(emsg, "\"%s\" is a reserved definition label and is not user definable.\n", label);
+	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
-      
-      next_line();
+
+      add_a_new_definition(label, enumid, NULL, DEFINITION_TYPE_VALUE, 0);
+
+      if (enumid_export == 1) {
+	if (export_a_definition(label) == FAILED)
+	  return FAILED;
+      }
 
       enumid += enumid_adder;
+
+      return SUCCEEDED;
     }
     else if (q == SUCCEEDED) {
       enumid = d;
       enumid_adder = 1;
       enumid_export = 0;
-    }
-    else {
-      print_error(".ENUMID needs a value.\n", ERROR_DIR);
-      return FAILED;
-    }
 
-    if (compare_next_token("STEP") == SUCCEEDED) {
-      skip_next_token();
+      if (compare_next_token("STEP") == SUCCEEDED) {
+	skip_next_token();
 
-      q = input_number();
+	q = input_number();
 
-      if (q == FAILED)
-	return FAILED;
+	if (q == FAILED)
+	  return FAILED;
 
-      if (q != SUCCEEDED) {
-	print_error("STEP needs a value\n", ERROR_DIR);
-	return FAILED;
+	if (q != SUCCEEDED) {
+	  print_error("STEP needs a value\n", ERROR_DIR);
+	  return FAILED;
+	}
+
+	enumid_adder = d;
       }
 
-      enumid_adder = d;
+      if (compare_next_token("EXPORT") == SUCCEEDED) {
+	skip_next_token();
+
+	enumid_export = 1;
+      }
+
+      enumid_defined = 1;
+
+      return SUCCEEDED;
     }
-
-    if (compare_next_token("EXPORT") == SUCCEEDED) {
-      skip_next_token();
-
-      enumid_export = 1;
+    else {
+      print_error(".ENUMID needs a value or a definition name.\n", ERROR_DIR);
+      return FAILED;
     }
-    
-    add_a_new_definition(name, enumid, NULL, DEFINITION_TYPE_VALUE, 0);
-
-    if (enumid_export == 1) {
-      if (export_a_definition(tmp) == FAILED)
-	return FAILED;
-    }
-    
-    enumid_defined = 1;
-
-    return SUCCEEDED;
   }
 
   /* INPUT */
