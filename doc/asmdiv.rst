@@ -149,7 +149,7 @@ ALL  ``.MACRO TEST``
 ALL  ``.MEMORYMAP``
 ALL  ``.ORG $150``
 ALL  ``.ORGA $150``
-ALL  ``.PRINT "Numbers 1 and 2: ", DEC 1, " ", DEC 2, "\n"``
+ALL  ``.PRINT "Numbers 1 and 10: ", DEC 1, " $", HEX 10, "\n"``
 ALL  ``.PRINTT "Here we are...\n"``
 ALL  ``.PRINTV DEC DEBUG+1``
 ALL  ``.RAMSECTION "Vars" BANK 0 SLOT 1 ALIGN 4``
@@ -2556,14 +2556,14 @@ You can export as many definitions as you wish with one ``.EXPORT``::
 This is not a compulsory directive.
 
 
-``.PRINT "Numbers 1 and 2: ", DEC 1, " ", DEC 2, "\n"``
--------------------------------------------------------
+``.PRINT "Numbers 1 and 10: ", DEC 1, " $", HEX 10, "\n"``
+----------------------------------------------------------
 
 Prints strings and numbers to stdout. A combination and a more usable version
 of .PRINTT and .PRINTV. Useful for debugging.
 
-Give ``DEC`` (decimal) or ``HEX`` (hexadecimal) before the value you want
-to print.
+Optional: Give ``DEC`` (decimal) or ``HEX`` (hexadecimal) before the value you
+want to print.
 
 This is not a compulsory directive.
 
@@ -2583,8 +2583,9 @@ This is not a compulsory directive.
 
 Prints the value of the supplied definition or computation into stdout.
 Computation must be solvable at the time of printing (just like definitions
-values). ``PRINTV`` takes two parameters. The first describes the type of the
-print output. ``DEC`` means decimal, ``HEX`` means hexadecimal.
+values). ``PRINTV`` takes max two parameters. The first describes the type of the
+print output. ``DEC`` means decimal, ``HEX`` means hexadecimal. This is optional.
+Default is ``DEC``.
 
 Use ``PRINTV`` with ``PRINTT`` as ``PRINTV`` doesn't print linefeeds, only the
 result. Here's an example::

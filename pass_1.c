@@ -7283,7 +7283,7 @@ int parse_directive(void) {
     
     while (1) {
       get_value = NO;
-      value_type = 0;
+      value_type = 1;
       
       if (compare_next_token("HEX") == SUCCEEDED) {
 	if (skip_next_token() == FAILED)
@@ -7319,11 +7319,6 @@ int parse_directive(void) {
 	}
       }
       else if (inz == SUCCEEDED) {
-	if (get_value == NO) {
-	  print_error(".PRINT was expecting a string or HEX/DEC, got a value instead.\n", ERROR_INP);
-	  return FAILED;
-	}
-
 	if (quiet == NO) {
 	  if (value_type == 0)
 	    printf("%x", d);
@@ -7337,7 +7332,7 @@ int parse_directive(void) {
 	break;
       }
       else {
-	print_error(".PRINT needs a string or HEX/DEC plus a value.\n", ERROR_DIR);
+	print_error(".PRINT needs a string or (an optional) HEX/DEC plus a value.\n", ERROR_DIR);
 	return FAILED;
       }
     }
@@ -7373,19 +7368,16 @@ int parse_directive(void) {
 
   if (strcaselesscmp(cp, "PRINTV") == 0) {
 
-    int m;
+    int m = 1;
 
 
-    if (get_next_token() == FAILED)
-      return FAILED;
-
-    if (strcaselesscmp(tmp, "HEX") == 0)
+    if (compare_next_token("HEX") == SUCCEEDED) {
+      skip_next_token();
       m = 0;
-    else if (strcaselesscmp(tmp, "DEC") == 0)
+    }
+    else if (compare_next_token("DEC") == SUCCEEDED) {
+      skip_next_token();
       m = 1;
-    else {
-      print_error(".PRINTV needs to know the format of the output, HEX or DEC.\n", ERROR_DIR);
-      return FAILED;
     }
 
     q = input_number();
