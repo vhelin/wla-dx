@@ -5,9 +5,9 @@ LD = gcc
 LDFLAGS = -lm
 WLAFLAGS = $(CFLAGS)
 
-CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c
+CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c opcodes_gb_tables.c opcodes_gb.c
 HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h crc32.h hashmap.h defines.h
-OFILES = main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o
+OFILES = main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o opcodes_gb_tables.o opcodes_gb.o
 
 
 all: $(OFILES) makefile
@@ -22,7 +22,13 @@ parse.o: parse.c defines.h parse.h makefile
 include_file.o: include_file.c defines.h include_file.h makefile
 	$(CC) $(CFLAGS) include_file.c
 
-pass_1.o: pass_1.c defines.h pass_1.h parse.h makefile opcodes_gb.c opcodes_z80.c
+opcodes_gb_tables.o: opcodes_gb_tables.c
+	$(CC) $(CFLAGS) opcodes_gb_tables.c
+
+opcodes_gb.o: opcodes_gb.c
+	$(CC) $(CFLAGS) opcodes_gb.c
+
+pass_1.o: pass_1.c defines.h pass_1.h parse.h makefile
 	$(CC) $(CFLAGS) pass_1.c
 
 pass_2.o: pass_2.c defines.h pass_2.h makefile

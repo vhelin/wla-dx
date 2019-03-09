@@ -8,9 +8,9 @@ LINKER = slink
 LLIB = LIB LIB:sc$(MATH).lib LIB:sc.lib LIB:amiga.lib
 LFLAGS = STRIPDEBUG NOICONS
 
-CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c
+CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c opcodes_z80_tables.c opcodes_z80.c
 HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h crc32.h hashmap.h defines.h
-OFILES = LIB:c.o main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o
+OFILES = LIB:c.o main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o opcodes_z80_tables.o opcodes_z80.o
 ALLFILES = $(CFILES) $(HFILES) $(OFILES)
 
 
@@ -29,6 +29,12 @@ parse.o: parse.c defines.h parse.h
 
 include_file.o: include_file.c defines.h include_file.h
 	$(CC) $(CFLAGS) include_file.c
+
+opcodes_z80_tables.o: opcodes_z80_tables.c
+	$(CC) $(CFLAGS) opcodes_z80_tables.c
+
+opcodes_z80.o: opcodes_z80.c
+	$(CC) $(CFLAGS) opcodes_z80.c
 
 pass_1.o: pass_1.c defines.h pass_1.h parse.h
 	$(CC) $(CFLAGS) pass_1.c
