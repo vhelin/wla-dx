@@ -7,64 +7,76 @@ copy makefiles/scoptions.000 to opcode_table_generator/scoptions
 cd opcode_table_generator
 
 sc define AMIGA=1 define GB=1 main.c
+sc define AMIGA=1 define GB=1 opcodes_gb.c
 slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-opcode_table_generator
-delete opcode_table_generator main.o
+opcode_table_generator /opcodes_gb_tables.c
+delete opcode_table_generator main.o opcodes_gb.o
 
 sc define AMIGA=1 define Z80=1 main.c
+sc define AMIGA=1 define Z80=1 opcodes_z80.c
 slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-opcode_table_generator
-delete opcode_table_generator main.o
+opcode_table_generator /opcodes_z80_tables.c
+delete opcode_table_generator main.o opcodes_z80.o
 
 sc define AMIGA=1 define MCS6502=1 main.c
+sc define AMIGA=1 define MCS6502=1 opcodes_6502.c
 slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-opcode_table_generator
-delete opcode_table_generator main.o
+opcode_table_generator /opcodes_6502_tables.c
+delete opcode_table_generator main.o opcodes_6502.o
 
 sc define AMIGA=1 define WDC65C02=1 main.c
+sc define AMIGA=1 define WDC65c02=1 opcodes_65c02.c
 slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-opcode_table_generator
-delete opcode_table_generator main.o
+opcode_table_generator /opcodes_65c02_tables.c
+delete opcode_table_generator main.o opcodes_65c02.o
 
 sc define AMIGA=1 define MC6800=1 main.c
+sc define AMIGA=1 define MC6800=1 opcodes_6800.c
 slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-opcode_table_generator
-delete opcode_table_generator main.o
+opcode_table_generator /opcodes_65c02_tables.c
+delete opcode_table_generator main.o opcodes_6800.o
 
 sc define AMIGA=1 define MC6801=1 main.c
+sc define AMIGA=1 define MC6809=1 opcodes_6801.c
 slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
 opcode_table_generator
-delete opcode_table_generator main.o
+delete opcode_table_generator main.o opcodes_8601.o
 
 sc define AMIGA=1 define MC6809=1 main.c
+sc define AMIGA=1 define MC6809=1 opcodes_6809.c
 slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-opcode_table_generator
-delete opcode_table_generator main.o
+opcode_table_generator /opcodes_6809_tables.c
+delete opcode_table_generator main.o opcodes_6809.o
 
 sc define AMIGA=1 define I8008=1 main.c
+sc define AMIGA=1 define I8008=1 opcodes_8008.c
 slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-opcode_table_generator
-delete opcode_table_generator main.o
+opcode_table_generator /opcodes_8008_tables.c
+delete opcode_table_generator main.o opcodes_8008.o
 
 sc define AMIGA=1 define MCS6510=1 main.c
+sc define AMIGA=1 define MCS6510=1 opcodes_6510.c
 slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-opcode_table_generator
-delete opcode_table_generator main.o
+opcode_table_generator /opcodes_6510_tables.c
+delete opcode_table_generator main.o opcodes_6510.o
 
 sc define AMIGA=1 define W65816=1 main.c
+sc define AMIGA=1 define W65816=1 opcodes_65816.c
 slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-opcode_table_generator
-delete opcode_table_generator main.o
+opcode_table_generator /opcodes_65816_tables.c
+delete opcode_table_generator main.o opcodes_65816.o
 
 sc define AMIGA=1 define SPC700=1 main.c
+sc define AMIGA=1 define SPC700=1 opcodes_spc700.c
 slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-opcode_table_generator
-delete opcode_table_generator main.o
+opcode_table_generator /opcodes_spc700_tables.c
+delete opcode_table_generator main.o opcodes_spc700.o
 
 sc define AMIGA=1 define HUC6280=1 main.c
+sc define AMIGA=1 define HUC6280=1 opcodes_huc6280.c
 slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-opcode_table_generator
-delete opcode_table_generator main.o
+opcode_table_generator /opcodes_huc6280_tables.c
+delete opcode_table_generator main.o opcodes_huc6280.o
 
 cd /
 
