@@ -113,20 +113,20 @@ smake
 copy wla to binaries/wla-6510.000
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; WLA-65C10
+; WLA-65C02
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-copy makefiles/smake.65c10 to smakefile
+copy makefiles/smake.65c02 to smakefile
 copy makefiles/scoptions.020 to scoptions
 smake clean
 smake
-copy wla to binaries/wla-65c10.020
+copy wla to binaries/wla-65c02.020
 
-copy makefiles/smake.65c10 to smakefile
+copy makefiles/smake.65c02 to smakefile
 copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
-copy wla to binaries/wla-65c10.000
+copy wla to binaries/wla-65c02.000
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WLA-65816
@@ -148,13 +148,13 @@ copy wla to binaries/wla-65816.000
 ; WLA-SPC700
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-copy makefiles/smake.SPC700 to smakefile
+copy makefiles/smake.spc700 to smakefile
 copy makefiles/scoptions.020 to scoptions
 smake clean
 smake
 copy wla to binaries/wla-spc700.020
 
-copy makefiles/smake.SPC700 to smakefile
+copy makefiles/smake.spc700 to smakefile
 copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
