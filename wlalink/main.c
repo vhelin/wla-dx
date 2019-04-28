@@ -25,7 +25,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: WLALINK 5.10a (27.2.2019)";
+char version_string[] = "$VER: WLALINK 5.10a (28.4.2019)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -183,6 +183,7 @@ int main(int argc, char *argv[]) {
     printf("-A  Add address-to-line mapping data to WLA symbol file\n");
     printf("-v  Verbose messages\n");
     printf("-L [DIR]  Library directory\n\n");
+    printf("EXAMPLE: %s -d -v -S linkfile linked.rom\n\n", argv[0]);
     return 0;
   }
 
