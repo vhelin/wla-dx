@@ -10,6 +10,9 @@ v9.8 (28-Apr-2019) [ALL] Deprecated section's size giving inside section's
                    [ALL] .RAMSECTIONs can now be used inside libraries
                      but BANK and SLOT must be defined for the RAMSECTIONs
                      under [ramsections] in WLALINK's linkfile.
+                   [ALL] WLA (WLALINK did this already) assumes that there
+                     are 256 RAM banks for each SLOT. The number of ROM
+                     banks doesn't affect the number of RAM banks any more.
                    [ALL] Added APPENDTO to .RAMSECTIONs.
                    [ALL] Added .TABLE, .ROW and .DATA - an alternative
                      to .DB, .DW and .DL.
