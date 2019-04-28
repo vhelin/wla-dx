@@ -34,11 +34,11 @@ typedef struct _hashmap_map{
 map_t hashmap_new() {
 
   hashmap_map* m = (hashmap_map*) malloc(sizeof(hashmap_map));
-  if(!m)
+  if (!m)
     goto err;
 
   m->data = (hashmap_element*) calloc(INITIAL_SIZE, sizeof(hashmap_element));
-  if(!m->data)
+  if (!m->data)
     goto err;
 
   m->table_size = INITIAL_SIZE;
@@ -57,7 +57,7 @@ map_t hashmap_new() {
 /*
  * Hashing function for a string
  */
-unsigned int hashmap_hash_int(hashmap_map * m, char* keystring){
+unsigned int hashmap_hash_int(hashmap_map * m, char* keystring) {
 
   unsigned long key = crc32((unsigned char*)(keystring), strlen(keystring));
 
@@ -81,7 +81,7 @@ unsigned int hashmap_hash_int(hashmap_map * m, char* keystring){
  * Return the pointer to the element to use for the key, or NULL to request
  * a larger table.
  */
-hashmap_element* hashmap_hash(map_t in, char* key){
+hashmap_element* hashmap_hash(map_t in, char* key) {
 
   int hash;
   hashmap_element *e, *p = NULL;
@@ -90,7 +90,7 @@ hashmap_element* hashmap_hash(map_t in, char* key){
   hashmap_map* m = (hashmap_map *) in;
 
   /* If full, return immediately */
-  if(m->size >= (m->table_size/2))
+  if (m->size >= (m->table_size/2))
     return NULL;
 
   /* Find the best index */
@@ -111,13 +111,14 @@ hashmap_element* hashmap_hash(map_t in, char* key){
 
   p->next = calloc(1, sizeof(hashmap_element));
   p->next->next = NULL;
+
   return p->next;
 }
 
 /*
  * Doubles the size of the hashmap, and rehashes all the elements
  */
-int hashmap_rehash(map_t in){
+int hashmap_rehash(map_t in) {
 
   int i;
   int old_size;
@@ -127,7 +128,7 @@ int hashmap_rehash(map_t in){
   /* Setup the new elements */
   hashmap_map *m = (hashmap_map *) in;
   hashmap_element* temp = (hashmap_element *) calloc(2 * m->table_size, sizeof(hashmap_element));
-  if(!temp)
+  if (!temp)
     return MAP_OMEM;
 
   /* Update the array */
@@ -140,7 +141,7 @@ int hashmap_rehash(map_t in){
   m->size = 0;
 
   /* Rehash the elements */
-  for(i = 0; i < old_size; i++){
+  for (i = 0; i < old_size; i++) {
     int first = 1;
 
     if (curr[i].in_use == 0)
@@ -171,7 +172,7 @@ int hashmap_rehash(map_t in){
 /*
  * Add a pointer to the hashmap with some key
  */
-int hashmap_put(map_t in, char* key, any_t value){
+int hashmap_put(map_t in, char* key, any_t value) {
 
   hashmap_element *e;
   hashmap_map* m;
@@ -181,7 +182,7 @@ int hashmap_put(map_t in, char* key, any_t value){
 
   /* Find a place to put our value */
   e = hashmap_hash(in, key);
-  while(e == NULL){
+  while (e == NULL) {
     if (hashmap_rehash(in) == MAP_OMEM) {
       return MAP_OMEM;
     }
@@ -201,7 +202,7 @@ int hashmap_put(map_t in, char* key, any_t value){
 /*
  * Get your pointer out of the hashmap with a key
  */
-int hashmap_get(map_t in, char* key, any_t *arg){
+int hashmap_get(map_t in, char* key, any_t *arg) {
 
   int curr;
   hashmap_map* m;
@@ -222,7 +223,7 @@ int hashmap_get(map_t in, char* key, any_t *arg){
 
   /* Linear probing, if necessary */
   while (e != NULL) {
-    if (strcmp(e->key,key)==0){
+    if (strcmp(e->key,key)==0) {
       if (arg != NULL)
         *arg = e->data;
       return MAP_OK;
@@ -246,8 +247,8 @@ any_t hashmap_begin_iteration(map_t in) {
     return NULL;	
 
   /* Linear probing */
-  for(i = 0; i< m->table_size; i++) {
-    if(m->data[i].in_use != 0) {
+  for (i = 0; i< m->table_size; i++) {
+    if (m->data[i].in_use != 0) {
       m->iterator = i;
       m->iterator_lower = 1;
       return m->data[i].data;
@@ -266,7 +267,7 @@ any_t hashmap_next_iteration(map_t in) {
   hashmap_map* m = (hashmap_map*) in;
 
   /* Linear probing */
-  for(i = m->iterator; i< m->table_size; i++) {
+  for (i = m->iterator; i< m->table_size; i++) {
     e = &m->data[i];
 
     if (e->in_use == 0)
@@ -289,7 +290,7 @@ any_t hashmap_next_iteration(map_t in) {
 /*
  * Remove an element with that key from the map
  */
-int hashmap_remove(map_t in, char* key){
+int hashmap_remove(map_t in, char* key) {
 
   int curr;
   hashmap_map* m;
@@ -308,7 +309,7 @@ int hashmap_remove(map_t in, char* key){
   /* Linear probing, if necessary */
   p = NULL;
   while (e != NULL) {
-    if (strcmp(e->key,key)==0){
+    if (strcmp(e->key,key)==0) {
       /* Blank out the fields */
       e->in_use = 0;
       e->data = NULL;
@@ -340,7 +341,7 @@ int hashmap_remove(map_t in, char* key){
 }
 
 /* Deallocate the hashmap */
-void hashmap_free(map_t in){
+void hashmap_free(map_t in) {
 
   hashmap_map* m = (hashmap_map*) in;
   hashmap_element *e, *p;
@@ -366,7 +367,7 @@ void hashmap_free(map_t in){
 }
 
 /* free all elements */
-void hashmap_free_all_elements(map_t in){
+void hashmap_free_all_elements(map_t in) {
 
   any_t *e;
 
@@ -378,7 +379,7 @@ void hashmap_free_all_elements(map_t in){
 }
 
 /* Return the length of the hashmap */
-int hashmap_length(map_t in){
+int hashmap_length(map_t in) {
 
   hashmap_map* m = (hashmap_map *) in;
   if (m != NULL)
