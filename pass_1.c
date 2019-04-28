@@ -3213,8 +3213,8 @@ int directive_ramsection(void) {
       return FAILED;
     }
 
-    if (rombanks <= d && output_format != OUTPUT_LIBRARY) {
-      sprintf(emsg, "ROM banks == %d, selected bank %d.\n", rombanks, d);
+    if (d > 255 && output_format != OUTPUT_LIBRARY) {
+      sprintf(emsg, "RAM banks == 256 (0-255), selected bank %d.\n", d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }

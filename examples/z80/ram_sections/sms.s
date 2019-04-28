@@ -29,53 +29,60 @@ BANKS 4
 .ENDRO
 
 .EMPTYFILL $AA
+
+.RAMSECTION "RamSection 0 bank $7f slot 5 YES REF" BANK $7f SLOT 5
+rs0b127_a	dw
+rs0b127_b	dw
+rs0b127_c	dw
+.ENDS
 	
-.RAMSECTION "RamSection 1 bank 0" BANK 0 SLOT 3 ALIGN 8
+.RAMSECTION "RamSection 1 bank 0 slot 3 NO REF" BANK 0 SLOT 3 ALIGN 8
 rs1b0_a	dw
 rs1b0_b	db
 .ENDS
 
-.RAMSECTION "RamSection 1 bank 2" BANK 2 SLOT 3 ALIGN 8
-rs1b2_a	dw
-rs1b2_b	db
+.RAMSECTION "RamSection 2 bank 2 slot 3 NO REF" BANK 2 SLOT 3 ALIGN 8
+rs2b2_a	dw
+rs2b2_b	db
 .ENDS
 	
-.RAMSECTION "RamSection 2 bank 0" BANK 0 SLOT 3 ALIGN 8
-rs2b0_a	db
-rs2b0_b	dw
-rs2b0_c	db
-.ENDS
-
-.RAMSECTION "RamSection 3 bank 0" BANK 0 SLOT 5 ALIGN 16
+.RAMSECTION "RamSection 3 bank 0 slot 3 YES REF" BANK 0 SLOT 3 ALIGN 8
 rs3b0_a	db
 rs3b0_b	dw
 rs3b0_c	db
 .ENDS
 
-.RAMSECTION "RamSection 4 bank 0" BANK 0 SLOT 5 ALIGN 8
-rs4b0_a	db
-rs4b0_b	db
+.RAMSECTION "RamSection 4 bank $7f slot 5 YES REF" BANK $7f SLOT 5 ALIGN 16
+rs4b127_a	db
+rs4b127_b	dw
+rs4b127_c	db
+rs4b127_d dsb 16-1-2-1
 .ENDS
 
-.RAMSECTION "RamSection 5 bank 0" BANK 0 SLOT 5 ALIGN 16
+.RAMSECTION "RamSection 5 bank 0 slot 5 NO REF" BANK 0 SLOT 5 ALIGN 8
 rs5b0_a	db
 rs5b0_b	db
 .ENDS
 
-.RAMSECTION "RamSection 3 bank 1" BANK 1 SLOT 5 ALIGN 16
-rs3b1_a	db
-rs3b1_b	dw
-rs3b1_c	db
+.RAMSECTION "RamSection 6 bank 0 slot 5 NO REF" BANK 0 SLOT 5 ALIGN 16
+rs6b0_a	db
+rs6b0_b	db
 .ENDS
 
-.RAMSECTION "RamSection 4 bank 1" BANK 1 SLOT 5 ALIGN 8
-rs4b1_a	db
-rs4b1_b	db
+.RAMSECTION "RamSection 7 bank $7f slot 5 YES REF" BANK $7f SLOT 5 ALIGN 16
+rs7b127_a	db
+rs7b127_b	dw
+rs7b127_c	db
 .ENDS
 
-.RAMSECTION "RamSection 5 bank 1" BANK 1 SLOT 5 ALIGN 16
-rs5b1_a	db
-rs5b1_b	db
+.RAMSECTION "RamSection 8 bank 1 slot 5 NO REF" BANK 1 SLOT 5 ALIGN 8
+rs8b1_a	db
+rs8b1_b	db
+.ENDS
+
+.RAMSECTION "RamSection 9 bank 1 slot 5 NO REF" BANK 1 SLOT 5 ALIGN 16
+rs9b1_a	db
+rs9b1_b	db
 .ENDS
 
 
@@ -101,7 +108,7 @@ enum_c  db
 .db 1, 2, 3, 4, 5
 .BLOCK "Hi!"
 .db 6, 7, 8
-.dw library_hook, rs3b0_a
+.dw library_hook, rs3b0_a, rs4b127_c, rs7b127_b, rs0b127_c
 .endb
 .endb
 

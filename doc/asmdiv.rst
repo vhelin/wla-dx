@@ -2430,10 +2430,15 @@ structures (``.STRUCT``) into a ``RAMSECTION``. Here's an example::
     .ENDS
 
 ``RAMSECTION`` s behave like ``FREE`` sections, but instead of filling any banks
-RAM sections will occupy area inside slots. You can fill different slots
+RAM sections will occupy RAM banks inside slots. You can fill different slots
 with different variable labels. It's recommend that you create separate
 slots for holding variables (as ROM and RAM don't usually overlap).
-Here's another example::
+
+NOTE! Currently WLA-DX assumes that there are 256 RAM banks available for
+each slot in the memory map. There is no other way to limit this number at the
+moment than manually keep the ``BANK`` number inside real limits.
+
+Anyway, here's another example::
 
     .MEMORYMAP
     SLOTSIZE $4000
@@ -2475,7 +2480,7 @@ If no other RAM sections are used, then this is what you will get::
     .DEFINE moomin3 $A002
 
 ``BANK`` in ``.RAMSECTION`` is optional so you can leave it away if you
-don't switch RAM banks, or the target doesn't have them.
+don't switch RAM banks, or the target doesn't have them (defaults to 0).
 
 It is also possible to merge two or more sections using ``APPENDTO``::
 
