@@ -977,15 +977,9 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
   struct object_file *obj_file;
   struct section *s;
   struct label *l;
-  char name[256], *p;
-  FILE *f;
-  int y;
-  int list_address_offset;
-  char list_cmd;
-  int list_cmd_idx, list_source_file;
-  FILE *outfile;
-  int outfile_size;
-  char* outfile_tmp;
+  char name[256], *p, list_cmd, *outfile_tmp;
+  FILE *f, *outfile;
+  int list_cmd_idx, list_source_file, list_address_offset, y, outfile_size;
   unsigned long outfile_crc;
 
   if (outname == NULL)
@@ -1010,7 +1004,10 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 
   if (mode == SYMBOL_MODE_NOCA5H) {
     /* NO$GMB SYMBOL FILE */
-    fprintf(f, "; no$gmb symbolic information for \"%s\".\n", outname);
+    if (snes_mode == 0)
+      fprintf(f, "; no$gmb symbolic information for \"%s\".\n", outname);
+    else
+      fprintf(f, "; no$snes symbolic information for \"%s\".\n", outname);
 
     l = labels_first;
     while (l != NULL) {
@@ -1028,14 +1025,18 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 	  continue;
 	}
       }
-      if (l->status == LABEL_STATUS_LABEL) {
-	if (snes_mode == 0)
+      if (snes_mode == 0) {
+	if (l->status == LABEL_STATUS_LABEL)
 	  fprintf(f, "%.2x:%.4x %s\n", l->base + l->bank, (int)l->address, l->name);
 	else
-	  fprintf(f, "%.2x:%.4x %s\n", get_snes_pc_bank(l)>>16, (int)l->address, l->name);
+	  fprintf(f, "00:%.4x %s\n", (int)l->address, l->name);
       }
-      else
-	fprintf(f, "00:%.4x %s\n", (int)l->address, l->name);
+      else {
+	if (l->status == LABEL_STATUS_LABEL)
+	  fprintf(f, "%.4x%.4x %s\n", get_snes_pc_bank(l) >> 16, (int)l->address, l->name);
+	else
+	  fprintf(f, "0000%.4x %s\n", (int)l->address, l->name);
+      }
       l = l->next;
     }
   }
