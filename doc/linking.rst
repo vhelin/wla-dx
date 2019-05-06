@@ -74,7 +74,7 @@ to link together. Here's the format:
 If flag ``v`` is used, WLALINK displays information about ROM file after a
 succesful linking.
 
-If flag ``s`` is used, WLALINK will produce a NO$GMB symbol file. It's
+If flag ``s`` is used, WLALINK will produce a NO$GMB/NO$SNES symbol file. It's
 useful when you work under MSDOS (NO$GMB is a very good Game Boy emulator for
 MSDOS/Windows) as it contains information about the labels in your project.
 

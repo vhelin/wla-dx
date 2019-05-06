@@ -531,7 +531,7 @@ v7.4 (02-May-2001) [ALL] Added many new error messages.
                    [ALL] Win32 port uses now PID in the temp file name.
                    [ALL] Fixed few places which could generate incorrect
                      destination memory overwrite warnings.
-                   [ALL] Program file compiler dislayed a wrong binary size
+                   [ALL] Program file compiler dislayed a wrong binary size
                      in verbose mode.
                    [ALL] Enhanced .INCBIN.
                    [Z80] Loose strings given to .SDSCTAG don't cause
@@ -1037,7 +1037,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.10 (05-May-2019) Updated NO$GMB symbol file support so that it works again.
+v5.10 (05-May-2019) Added support for NO$SNES symbol files.
 
    ... version history of v5.7 (02-Mar-2008) - v5.10 (28-Apr-2019)
        is missing...

@@ -178,7 +178,7 @@ int main(int argc, char *argv[]) {
     printf("-d  Discard unreferenced sections\n");
     printf("-i  Write list files\n");
     printf("-r  ROM file output (default)\n");
-    printf("-s  Write also a NO$GMB symbol file\n");
+    printf("-s  Write also a NO$GMB/NO$SNES symbol file\n");
     printf("-S  Write also a WLA symbol file\n");
     printf("-A  Add address-to-line mapping data to WLA symbol file\n");
     printf("-v  Verbose messages\n");
