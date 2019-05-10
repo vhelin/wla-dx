@@ -321,7 +321,7 @@ v8.9 (12-Jun-2003) [ALL] Added .SEED, .DBRND and .DWRND.
                      BANKSIZE, .ASM and .ENDASM.
                    [ALL] WLA compiles now "WLAS" library files and "WLAG"
                      object files.
-                   [ALL] Used Valgrind to locate memory allocated from the
+                   [ALL] Used Valgrind to locate memory allocated from the
                      heap that WLA didn't free at exit (good for Amiga users).
                    [ALL] Fixed few error messages to show the address in
                      hexadecimal format instead of decimal.
@@ -453,7 +453,7 @@ v8.2 (19-Jul-2001) [ALL] Added .OUTNAME.
                    [ALL] Definition labels inside .ENUM can now end to ':'.
                    [ALL] Fixed parser holes in .ENUM.
                    [ALL] Added XOR-operator (~) support to computations.
-                   [658] Fixed "BRL" to work (the fix was partially missing in 
+                   [658] Fixed "BRL" to work (the fix was partially missing in
                      v8.1 due to a uncareful source tree merge).
                    [658] Fixed "PER" to work.
 
@@ -1037,7 +1037,8 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.10 (05-May-2019) Added support for NO$SNES symbol files.
+v5.10 (10-May-2019) Added support for NO$SNES symbol files.
+                    -d discards now also SUPERFREE sections.
 
    ... version history of v5.7 (02-Mar-2008) - v5.10 (28-Apr-2019)
        is missing...

@@ -82,10 +82,10 @@ If flag ``S`` is used, WLALINK will create a WLA symbol file, that is much
 like NO$GMB symbol file, but shows also symbols and breakpoints, not just labels
 and definitions.
 
-If flag ``d`` is used, WLALINK discards all unreferenced ``FREE`` and
-``SEMIFREE`` sections. This way you can link big libraries to your project
-and WLALINK will choose only the used sections, so you won't be linking any
-dead code/data.
+If flag ``d`` is used, WLALINK discards all unreferenced ``FREE``, ``SEMIFREE``,
+``SEMISUBFREE``, ``SUPERFREE`` and ``RAM`` sections. This way you can link big
+libraries to your project and WLALINK will choose only the used sections, so you
+won't be linking any dead code/data.
 
 If flag ``i`` is given, WLALINK will write list files. Note that you must
 compile the object and library files with ``-i`` flag as well. Otherwise
