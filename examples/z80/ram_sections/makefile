@@ -1,6 +1,6 @@
 
 CC = wla-z80
-CFLAGS = -o
+CFLAGS = -x -o
 LD = wlalink
 LDFLAGS = -v -d -s
 

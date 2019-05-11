@@ -12,8 +12,9 @@ You can supply WLA with some (or all or none) of the following option flags.
 -q  Quiet mode. ``.PRINT*`` -directives output nothing.
 -t  Test compile. Doesn't output any files.
 -v  Verbose mode. Shows a lot of information about the compiling process.
--x  Extra compile time definitions. WLA does extra work by creating
-    few helpful definitions on the fly.
+-x  Extra compile time labels & definitions. WLA does extra work by creating
+    few helpful definitions, and labels SECTIONSTART_[section name] and
+    SECTIONEND_[section name] at the beginning and end of a section.
 
 One (and only one) of the following command flags must be defined.
 
@@ -28,7 +29,7 @@ search this directory for included files before defaulting to the specified
 
 Examples::
 
-    [seravy@localhost tbp]# wla -v -i -o testa.o testa.s
+    [seravy@localhost tbp]# wla -x -v -i -o testa.o testa.s
     [seravy@localhost tbp]# wla -M -o testa.o testa.s
     [seravy@localhost tbp]# wla -l testb.lib testb.s
     [seravy@localhost tbp]# wla -I ../../include -l testb.lib testb.s

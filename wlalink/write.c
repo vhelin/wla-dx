@@ -2138,6 +2138,20 @@ struct label *get_closest_anonymous_label(char *name, int rom_address, int file_
 }
 
 
+int is_label_ok_for_sizeof(char *label) {
+
+  if (is_label_anonymous(label) == SUCCEEDED)
+    return NO;
+
+  if (strncmp("SECTIONSTART", label, 12) == 0)
+    return NO;
+  if (strncmp("SECTIONEND", label, 10) == 0)
+    return NO;
+  
+  return YES;
+}
+
+
 int generate_sizeof_label_definitions(void) {
 
   struct label *l, *lastL, **labels;
@@ -2152,7 +2166,7 @@ int generate_sizeof_label_definitions(void) {
   lastL = NULL;
   while (l != NULL) {
     /* skip anonymous labels & child labels */
-    if (l->status == LABEL_STATUS_LABEL && is_label_anonymous(l->name) != SUCCEEDED &&
+    if (l->status == LABEL_STATUS_LABEL && is_label_ok_for_sizeof(l->name) == YES &&
         (lastL == NULL || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0 && l->name[strlen(lastL->name)] == '@'))) {
       labelsN++;
       lastL = l;
@@ -2175,7 +2189,7 @@ int generate_sizeof_label_definitions(void) {
   lastL = NULL;
   while (l != NULL) {
     /* skip anonymous labels & child labels */
-    if (l->status == LABEL_STATUS_LABEL && is_label_anonymous(l->name) != SUCCEEDED
+    if (l->status == LABEL_STATUS_LABEL && is_label_ok_for_sizeof(l->name) == YES
         && (lastL == NULL
             || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0
                 && l->name[strlen(lastL->name)] == '@'))) {

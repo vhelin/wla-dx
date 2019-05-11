@@ -18,8 +18,12 @@
    SLOT            5       $FF01
 .ENDME
 
-.RAMSECTION "Variables" SLOT 3
-TEST_RESULT                     DB
+.RAMSECTION "Variables-1" SLOT 3
+TEST_RESULT_1                     DB
+.ENDS
+
+.RAMSECTION "Variables-2" SLOT 3
+TEST_RESULT_2                     DB
 .ENDS
 
 .ROMBANKMAP
@@ -108,7 +112,7 @@ enum_c  db
 .db 1, 2, 3, 4, 5
 .BLOCK "Hi!"
 .db 6, 7, 8
-.dw library_hook, rs3b0_a, rs4b127_c, rs7b127_b, rs0b127_c
+.dw library_hook, rs3b0_a, rs4b127_c, rs7b127_b, rs0b127_c, TEST_RESULT_2
 .endb
 .endb
 

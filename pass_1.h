@@ -14,8 +14,9 @@ int parse_enum_token(void);
 int find_next_point(char *name);
 int get_new_definition_data(int *b, char *c, int *size, double *data, int *export);
 int localize_path(char *path);
-int is_reserved_label(char *t);
+int is_reserved_definition(char *t);
 
+void generate_label(char *header, char *footer);
 void print_error(char *error, int type);
 void next_line(void);
 void delete_stack(struct stack *s);

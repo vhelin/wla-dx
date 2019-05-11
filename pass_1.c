@@ -130,7 +130,7 @@ int accu_size = 8, index_size = 8;
 #endif
 
 /* vars used when in an enum or ramsection */
-int in_enum = 0, in_ramsection = 0;
+int in_enum = NO, in_ramsection = NO;
 int enum_exp, enum_ord, enum_offset;
 
 /* for .TABLE, .DATA and .ROW */
@@ -752,7 +752,7 @@ int evaluate_token(void) {
 
   
   /* are we in an enum or ramsection? */
-  if (in_enum == 1 || in_ramsection == 1)
+  if (in_enum == YES || in_ramsection == YES)
     return parse_enum_token();
 
   /* is it a directive? */
@@ -1154,26 +1154,31 @@ int parse_enum_token(void) {
     }
   }
 
-  if (in_enum && strcaselesscmp(tmp, ".ENDE") == 0) {
-    in_enum = 0;
+  if (in_enum == YES && strcaselesscmp(tmp, ".ENDE") == 0) {
+    in_enum = NO;
     return SUCCEEDED;
   }
-  else if (in_ramsection && strcaselesscmp(tmp, ".ENDS") == 0) {
+  else if (in_ramsection == YES && strcaselesscmp(tmp, ".ENDS") == 0) {
+    /* generate a section end label? */
+    if (extra_definitions == ON)
+      generate_label("SECTIONEND_", sections_last->name);
+
     fprintf(file_out_ptr, "s ");
     section_status = OFF;
-    in_ramsection = 0;
+    in_ramsection = NO;
+
     return SUCCEEDED;
   }
 
   if (tmp[strlen(tmp) - 1] == ':')
     tmp[strlen(tmp) - 1] = 0;
-  if (in_ramsection)
+  if (in_ramsection == YES)
     fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
 
   strcpy(tmpname, tmp);
 
   /* ASC? */
-  if (in_enum && enum_ord == 1) {
+  if (in_enum == YES && enum_ord == 1) {
     if (add_a_new_definition(tmpname, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
     if (enum_exp == YES)
@@ -1188,20 +1193,20 @@ int parse_enum_token(void) {
   type = 0;
 
   if (strcaselesscmp(tmp, "DB") == 0 || strcaselesscmp(tmp, "BYT") == 0 || strcaselesscmp(tmp, "BYTE") == 0) {
-    if (in_enum)
+    if (in_enum == YES)
       enum_offset += 1*enum_ord;
     else /* ramsection */
       fprintf(file_out_ptr, "d0 ");
   }
   else if (strcaselesscmp(tmp, "DW") == 0 || strcaselesscmp(tmp, "WORD") == 0 || strcaselesscmp(tmp, "ADDR") == 0) {
-    if (in_enum)
+    if (in_enum == YES)
       enum_offset += 2*enum_ord;
     else /* ramsection */
       fprintf(file_out_ptr, "y0 ");
   }
 #ifdef W65816
   else if (strcaselesscmp(tmp, "DL") == 0 || strcaselesscmp(tmp, "LONG") == 0 || strcaselesscmp(tmp, "FARADDR") == 0) {
-    if (in_enum)
+    if (in_enum == YES)
       enum_offset += 3*enum_ord;
     else /* ramsection */
       fprintf(file_out_ptr, "z0 ");
@@ -1215,7 +1220,7 @@ int parse_enum_token(void) {
       print_error("DS/DSB needs size.\n", ERROR_DIR);
       return FAILED;
     }
-    if (in_enum)
+    if (in_enum == YES)
       enum_offset += d*enum_ord;
     else
       fprintf(file_out_ptr, "x%d 0 ", d);
@@ -1228,7 +1233,7 @@ int parse_enum_token(void) {
       print_error("DSW needs size.\n", ERROR_DIR);
       return FAILED;
     }
-    if (in_enum)
+    if (in_enum == YES)
       enum_offset += d*2*enum_ord;
     else
       fprintf(file_out_ptr, "x%d 0 ", d*2);
@@ -1242,7 +1247,7 @@ int parse_enum_token(void) {
       print_error("DSL needs size.\n", ERROR_DIR);
       return FAILED;
     }
-    if (in_enum)
+    if (in_enum == YES)
       enum_offset += d*3*enum_ord;
     else
       fprintf(file_out_ptr, "x%d 0 ", d*3);
@@ -1270,7 +1275,7 @@ int parse_enum_token(void) {
     }
 
     /* generate labels (different for enum vs ramsection) */
-    if (in_enum) {
+    if (in_enum == YES) {
       /* generate labels (first the basic ones, without index number) */
       if (enum_ord == -1) {
         enum_offset -= st->size;
@@ -1431,7 +1436,7 @@ int parse_enum_token(void) {
   }
 #endif
   else {
-    if (in_enum)
+    if (in_enum == YES)
       sprintf(emsg, "Unexpected symbol \"%s\" in .ENUM.\n", tmp);
     else /* ramsection */
       sprintf(emsg, "Unexpected symbol \"%s\" in .RAMSECTION.\n", tmp);
@@ -1440,7 +1445,7 @@ int parse_enum_token(void) {
   }
 
   /* DESC? */
-  if (in_enum && enum_ord == -1 && type == 0) {
+  if (in_enum == YES && enum_ord == -1 && type == 0) {
     if (add_a_new_definition(tmpname, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
     if (enum_exp == YES)
@@ -3292,8 +3297,12 @@ int directive_ramsection(void) {
     append_sections = append_tmp;
   }
 
-  in_ramsection = 1;
-  
+  in_ramsection = YES;
+
+  /* generate a section start label? */
+  if (extra_definitions == ON)
+    generate_label("SECTIONSTART_", sec_tmp->name);
+
   return SUCCEEDED;
 }
 
@@ -3589,6 +3598,10 @@ int directive_section(void) {
   section_id++;
   section_status = ON;
   fprintf(file_out_ptr, "S%d ", sec_tmp->id);
+
+  /* generate a section start label? */
+  if (extra_definitions == ON)
+    generate_label("SECTIONSTART_", sec_tmp->name);
   
   return SUCCEEDED;
 }
@@ -4847,7 +4860,7 @@ int directive_define_def_equ(void) {
     return FAILED;
 
   /* check the user doesn't try to define reserved labels */
-  if (is_reserved_label(tmp) == YES) {
+  if (is_reserved_definition(tmp) == YES) {
     sprintf(emsg, "\"%s\" is a reserved definition label and is not user definable.\n", tmp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
@@ -4941,7 +4954,7 @@ int directive_enumid(void) {
       return FAILED;
     }
     
-    if (is_reserved_label(label) == YES) {
+    if (is_reserved_definition(label) == YES) {
       sprintf(emsg, "\"%s\" is a reserved definition label and is not user definable.\n", label);
       print_error(emsg, ERROR_DIR);
       return FAILED;
@@ -5102,7 +5115,7 @@ int directive_redefine_redef(void) {
     return FAILED;
 
   /* check the user doesn't try to define reserved labels */
-  if (is_reserved_label(tmp) == YES) {
+  if (is_reserved_definition(tmp) == YES) {
     sprintf(emsg, "\"%s\" is a reserved definition label and is not user definable.\n", tmp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
@@ -6977,8 +6990,14 @@ int parse_directive(void) {
       return FAILED;
     }
 
+    /* generate a section end label? */
+    if (extra_definitions == ON)
+      generate_label("SECTIONEND_", sections_last->name);
+  
     section_status = OFF;
     bankheader_status = OFF;
+    in_ramsection = NO;
+    
     fprintf(file_out_ptr, "s ");
 
     return SUCCEEDED;
@@ -7375,7 +7394,7 @@ int parse_directive(void) {
     else
       enum_exp = NO;
 
-    in_enum = 1;
+    in_enum = YES;
 
     return SUCCEEDED;
   }
@@ -8368,7 +8387,7 @@ void parse_print_string(char *input, char *output, int output_size) {
 }
 
 
-int is_reserved_label(char *t) {
+int is_reserved_definition(char *t) {
 
   if (strcaselesscmp(t, "WLA_TIME") == 0 ||
       strcaselesscmp(t, "WLA_VERSION") == 0 ||
@@ -8543,4 +8562,22 @@ int export_a_definition(char *name) {
   }
 
   return SUCCEEDED;
+}
+
+
+void generate_label(char *header, char *footer) {
+
+  int q, o;
+  
+  /* check if the footer contains spaces */
+  o = strlen(footer);
+  for (q = 0; q < o; q++) {
+    if (footer[q] == ' ') {
+      sprintf(emsg, "Could not create label \"%s%s\" as it contains spaces.\n", header, footer);
+      print_error(emsg, ERROR_WRN);
+      return;
+    }
+  }
+  
+  fprintf(file_out_ptr, "L%s%s ", header, footer);
 }
