@@ -236,6 +236,7 @@ int find_label(char *str, struct section *s, struct label **out) {
 int add_label(struct label *l) {
 
   l->next = NULL;
+  l->alive = YES;
 
   if (labels_first == NULL) {
     labels_first = l;

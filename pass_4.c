@@ -1779,7 +1779,6 @@ int export_definitions(FILE *final_ptr) {
 
   export_tmp = export_first;
   while (export_tmp != NULL) {
-
     hashmap_get(defines_map, export_tmp->name, (void*)&tmp_def);
 
     if (tmp_def == NULL)

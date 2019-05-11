@@ -93,12 +93,14 @@ struct label {
   int file_id_source;
   int linenumber;
   int rom_address;
+  int address_in_section;
   int section;
   int section_status;
   int bank;
   int base;
   int slot;
   int status;
+  int alive;
   double address;
   struct section *section_struct;
   struct label *next;

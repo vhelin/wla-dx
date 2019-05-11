@@ -111,6 +111,7 @@ int load_files(char *argv[], int argc) {
       l->bank = 0;
       l->slot = 0;
       l->base = 0;
+      l->alive = YES;
 
       if (get_next_number(&tmp[x], &n, &x) == FAILED) {
 	fprintf(stderr, "%s:%d: LOAD_FILES: Error in DEFINITION value.\n", argv[argc - 2], line);
@@ -229,7 +230,7 @@ int load_files(char *argv[], int argc) {
 
       sec_fix_tmp->next = sec_fix_first;
       sec_fix_first = sec_fix_tmp;
-      
+
       continue;
     }
     /* library loading? */

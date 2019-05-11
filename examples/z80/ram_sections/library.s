@@ -10,9 +10,15 @@ var1_c db
 .ENDS
 
 .RAMSECTION "LIB VARS 2"
-var2_a db
+var2_a dw
 var2_b db
-var2_c db
+var2_c dw
+.ENDS
+
+.RAMSECTION "LIB VARS 3"
+var3_a db
+var3_b db
+var3_c dw
 .ENDS
 
 ;-----------------------------------------------------------
@@ -22,7 +28,7 @@ var2_c db
 .SECTION "LIB ROM 1"
 library_hook:
 .dw var1_a, var1_b, var1_c
-.dw var2_a, var2_b, var2_c
+.dw var3_a, var3_b, var3_c
 .ENDS
 
 

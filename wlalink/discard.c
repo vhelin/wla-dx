@@ -89,7 +89,7 @@ int discard_iteration(void) {
   r = reference_first;
   while (r != NULL) {
     /* references to local labels don't count */
-    if (r->name[0] == '_' || is_label_anonymous(r->name) == SUCCEEDED) {
+    if (r->name[0] == '_' || is_label_anonymous(r->name) == YES) {
       r = r->next;
       continue;
     }
@@ -144,7 +144,7 @@ int discard_iteration(void) {
     si = st->stack;
     i = 0;
     while (i != st->stacksize) {
-      if (si->type == STACK_ITEM_TYPE_STRING && is_label_anonymous(si->string) == FAILED) {
+      if (si->type == STACK_ITEM_TYPE_STRING && is_label_anonymous(si->string) == NO) {
         find_label(si->string, ss, &l);
 
         if (l != NULL && l->section_struct != NULL) {
@@ -171,8 +171,8 @@ int discard_iteration(void) {
 /* drop labels that are inside discarded sections */
 int discard_drop_labels(void) {
 
-  struct label *l, *ll;
   struct section *s;
+  struct label *l;
 
   
   l = labels_first;
@@ -185,6 +185,10 @@ int discard_drop_labels(void) {
       /* is it dead? */
       if (s->alive == NO) {
 	/* nope! remove the label! */
+
+	/* don't actually free the label from memory, but mark it dead
+	struct label *ll;
+
 	if (l->prev == NULL)
 	  labels_first = l->next;
 	else
@@ -192,8 +196,14 @@ int discard_drop_labels(void) {
 	if (l->next != NULL)
 	  l->next->prev = l->prev;
 	ll = l->next;
+
 	free(l);
+
 	l = ll;
+	*/
+	l->alive = NO;
+
+	l = l->next;
       }
       else
 	l = l->next;

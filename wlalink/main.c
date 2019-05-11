@@ -141,7 +141,7 @@ char *get_stack_item_description(struct stack_item *si) {
 
 static void debug_print_label(struct label *l) {
 
-  printf("label: \"%s\" file: %s status: %d section: %d bank: %d slot: %d base: %d address: %d/$%x\n", l->name, get_file_name(l->file_id), l->status, l->section, l->bank, l->slot, l->base, (int)l->address, (int)l->address);
+  printf("label: \"%s\" file: %s status: %d section: %d bank: %d slot: %d base: %d address: %d/$%x alive: %d\n", l->name, get_file_name(l->file_id), l->status, l->section, l->bank, l->slot, l->base, (int)l->address, (int)l->address, l->alive);
 }
 #endif
 
@@ -274,7 +274,7 @@ int main(int argc, char *argv[]) {
     /* remove dropped labels */
     discard_drop_labels();
   }
-
+  
   /* correct non-zero-BASE library section addresses */
   if (correct_65816_library_sections() == FAILED)
     return 1;
@@ -308,7 +308,9 @@ int main(int argc, char *argv[]) {
   printf("**********************************************************************\n");
   printf("**********************************************************************\n");
   printf("**********************************************************************\n");
-  
+#endif
+
+#ifdef WLALINK_DEBUG
   if (labels_first != NULL) {
     struct label *l = labels_first;
 
@@ -319,11 +321,15 @@ int main(int argc, char *argv[]) {
     printf("\n");
 
     while (l != NULL) {
-      debug_print_label(l);
-      l = l->next;
+      if (l->alive == YES) {
+	debug_print_label(l);
+	l = l->next;
+      }
     }
   }
-
+#endif
+      
+#ifdef WLALINK_DEBUG
   if (stacks_first != NULL) {
     struct stack *s = stacks_first;
 
@@ -362,14 +368,6 @@ int main(int argc, char *argv[]) {
   printf("**********************************************************************\n");
   printf("**********************************************************************\n");
   printf("**********************************************************************\n");
-    
-  if (sec_first != NULL) {
-    printf("\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("---                         SECTIONS                               ---\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("\n");
-  }
 #endif
 
   /* insert sections */
@@ -379,6 +377,13 @@ int main(int argc, char *argv[]) {
 #ifdef WLALINK_DEBUG
   if (sec_first != NULL) {
     struct section *s = sec_first;
+
+    printf("\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("---                         SECTIONS                               ---\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("\n");
+
     while (s != NULL) {
       printf("----------------------------------------------------------------------\n");
       printf("name: \"%s\" file: %s\n", s->name, get_file_name(s->file_id));
@@ -390,17 +395,10 @@ int main(int argc, char *argv[]) {
       printf("slot : %d\n", s->slot);
       printf("size : %d\n", s->size);
       printf("align: %d\n", s->alignment);
+      printf("alive: %d\n", s->alive);
       s = s->next;
     }
     printf("----------------------------------------------------------------------\n");
-  }
-
-  if (labels_first != NULL) {
-    printf("\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("---                         LABELS                                 ---\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("\n");
   }
 #endif
 
@@ -419,18 +417,19 @@ int main(int argc, char *argv[]) {
 #ifdef WLALINK_DEBUG
   if (labels_first != NULL) {
     struct label *l = labels_first;
-    while (l != NULL) {
-      debug_print_label(l);
-      l = l->next;
-    }
-  }
 
-  if (stacks_first != NULL) {
     printf("\n");
     printf("----------------------------------------------------------------------\n");
-    printf("---                    (STACK) CALCULATIONS                        ---\n");
+    printf("---                         LABELS                                 ---\n");
     printf("----------------------------------------------------------------------\n");
     printf("\n");
+
+    while (l != NULL) {
+      if (l->alive == YES) {
+	debug_print_label(l);
+	l = l->next;
+      }
+    }
   }
 #endif
   
@@ -441,6 +440,13 @@ int main(int argc, char *argv[]) {
 #ifdef WLALINK_DEBUG
   if (stacks_first != NULL) {
     struct stack *s = stacks_first;
+
+    printf("\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("---                    (STACK) CALCULATIONS                        ---\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("\n");
+
     while (s != NULL) {
       printf("----------------------------------------------------------------------\n");
       {
@@ -456,14 +462,6 @@ int main(int argc, char *argv[]) {
     }
     printf("----------------------------------------------------------------------\n");
   }
-
-  if (reference_first != NULL) {
-    printf("\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("---                          REFERENCES                            ---\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("\n");
-  }
 #endif
 
   /* transform computation stack definitions to ordinary definitions */
@@ -477,6 +475,13 @@ int main(int argc, char *argv[]) {
 #ifdef WLALINK_DEBUG
   if (reference_first != NULL) {
     struct reference *r = reference_first;
+
+    printf("\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("---                          REFERENCES                            ---\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("\n");
+
     while (r != NULL) {
       printf("name: \"%s\" file: %s\n", r->name, get_file_name(r->file_id));
       r = r->next;

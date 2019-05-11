@@ -207,6 +207,7 @@ int insert_sections(void) {
       }
 
       s->address = address;
+      s->output_address = address;
 
       /* mark as used */
       for (i = 0; i < s->size; i++, address++)
@@ -643,7 +644,7 @@ int fix_label_sections(void) {
   l = labels_first;
   while (l != NULL) {
     if (l->section_status == ON) {
-      /* Search for the label's section */
+      /* search for the label's section */
       s = sec_first;
       while (s != NULL) {
         if (s->id == l->section) {
@@ -684,7 +685,7 @@ int insert_label_into_maps(struct label* l, int is_sizeof) {
     base_name += 8;
 
   if (l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT
-      || is_label_anonymous(base_name) == SUCCEEDED) {
+      || is_label_anonymous(base_name) == YES) {
     /* don't put anonymous labels, breakpoints, or symbols into any maps */
     put_in_anything = 0;
   }
@@ -730,24 +731,32 @@ int fix_label_addresses(void) {
   /* fix labels' addresses */
   l = labels_first;
   while (l != NULL) {
-    if (l->status == LABEL_STATUS_LABEL || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
-      if (l->section_status == ON) {
-        if (l->section_struct == NULL) {
-          fprintf(stderr, "FIX_LABELS: Internal error: section_struct is NULL.\n");
-          return FAILED;
-        }
-        s = l->section_struct;
-        if (s->id == l->section) {
-          l->bank = s->bank;
-          l->address += s->address;
-          l->rom_address = (int)l->address + bankaddress[l->bank];
-          if (s->status != SECTION_STATUS_ABSOLUTE)
-            l->address += slots[l->slot].address;
-        }
-      }
-      else {
-        l->rom_address = (int)l->address + bankaddress[l->bank];
-        l->address += slots[l->slot].address;
+    if (l->alive == YES) {
+      if (l->status == LABEL_STATUS_LABEL || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
+	if (l->section_status == ON) {
+	  if (l->section_struct == NULL) {
+	    fprintf(stderr, "FIX_LABELS: Internal error: section_struct is NULL.\n");
+	    return FAILED;
+	  }
+	  s = l->section_struct;
+	  if (s->id == l->section) {
+	    l->bank = s->bank;
+	    l->slot = s->slot;
+	    l->address_in_section = (int)l->address;
+	    l->address += s->address;
+	    l->rom_address = (int)l->address + bankaddress[l->bank];
+	    if (s->status != SECTION_STATUS_ABSOLUTE)
+	      l->address += slots[l->slot].address;
+	  }
+	  else {
+	    fprintf(stderr, "FIX_LABELS: Internal error: label's section ID and its sections section ID don't match!\n");
+	  }
+	}
+	else {
+	  l->address_in_section = (int)l->address;
+	  l->rom_address = (int)l->address + bankaddress[l->bank];
+	  l->address += slots[l->slot].address;
+	}
       }
     }
     l = l->next;
@@ -808,7 +817,7 @@ int fix_references(void) {
 
     /* request for bank number? */
     if (r->name[0] == ':') {
-      if (is_label_anonymous(&r->name[1]) == SUCCEEDED)
+      if (is_label_anonymous(&r->name[1]) == YES)
         l = get_closest_anonymous_label(&r->name[1], x, r->file_id, r->section_status, r->section);
       else if (strcmp(&r->name[1], "CADDR") == 0 || strcmp(&r->name[1], "caddr") == 0) {
         lt.status = LABEL_STATUS_LABEL;
@@ -869,7 +878,7 @@ int fix_references(void) {
     }
     /* normal reference */
     else {
-      if (is_label_anonymous(r->name) == SUCCEEDED)
+      if (is_label_anonymous(r->name) == YES)
         l = get_closest_anonymous_label(r->name, x, r->file_id, r->section_status, r->section);
       else if (strcmp(r->name, "CADDR") == 0 || strcmp(r->name, "caddr") == 0) {
         lt.status = LABEL_STATUS_DEFINE;
@@ -1011,7 +1020,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 
     l = labels_first;
     while (l != NULL) {
-      if (is_label_anonymous(l->name) == SUCCEEDED || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
+      if (l->alive == NO || is_label_anonymous(l->name) == YES || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
 	l = l->next;
 	continue;
       }
@@ -1059,11 +1068,11 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 
       l = labels_first;
       while (l != NULL) {
-	if (l->status != LABEL_STATUS_LABEL) {
+	if (l->alive == NO || l->status != LABEL_STATUS_LABEL) {
 	  l = l->next;
 	  continue;
 	}
-	if (is_label_anonymous(l->name) == SUCCEEDED) {
+	if (is_label_anonymous(l->name) == YES) {
 	  l = l->next;
 	  continue;
 	}
@@ -1103,7 +1112,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 
       l = labels_first;
       while (l != NULL) {
-	if (l->status != LABEL_STATUS_SYMBOL) {
+	if (l->alive == NO || l->status != LABEL_STATUS_SYMBOL) {
 	  l = l->next;
 	  continue;
 	}
@@ -1132,7 +1141,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 
       l = labels_first;
       while (l != NULL) {
-	if (l->status != LABEL_STATUS_BREAKPOINT) {
+	if (l->alive == NO || l->status != LABEL_STATUS_BREAKPOINT) {
 	  l = l->next;
 	  continue;
 	}
@@ -1161,11 +1170,11 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 
       l = labels_first;
       while (l != NULL) {
-	if (l->status != LABEL_STATUS_DEFINE) {
+	if (l->alive == NO || l->status != LABEL_STATUS_DEFINE) {
 	  l = l->next;
 	  continue;
 	}
-	if (is_label_anonymous(l->name) == SUCCEEDED) {
+	if (is_label_anonymous(l->name) == YES) {
 	  l = l->next;
 	  continue;
 	}
@@ -1234,7 +1243,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
       }
 
     }
-      }
+  }
 
   fclose(f);
 
@@ -1836,7 +1845,7 @@ int parse_stack(struct stack *sta) {
 
       /* bank number search */
       if (si->string[0] == ':') {
-	if (is_label_anonymous(&si->string[1]) == SUCCEEDED) {
+	if (is_label_anonymous(&si->string[1]) == YES) {
 	  l = get_closest_anonymous_label(&si->string[1], sta->address, sta->file_id, sta->section_status, sta->section);
 	  if (l != NULL)
 	    k = l->bank;
@@ -1859,7 +1868,7 @@ int parse_stack(struct stack *sta) {
       }
       /* normal label address search */
       else {
-	if (is_label_anonymous(si->string) == SUCCEEDED) {
+	if (is_label_anonymous(si->string) == YES) {
 	  l = get_closest_anonymous_label(si->string, sta->address, sta->file_id, sta->section_status, sta->section);
 	  if (l != NULL)
 	    k = l->address;
@@ -1975,18 +1984,18 @@ int is_label_anonymous(char *label) {
 
 
   if (strcmp(label, "_f") == 0 || strcmp(label, "_F") == 0 || strcmp(label, "_b") == 0 || strcmp(label, "_B") == 0 || strcmp(label, "__") == 0)
-    return SUCCEEDED;
+    return YES;
 
   c = *label;
   if (!(c == '-' || c == '+'))
-    return FAILED;
+    return NO;
   length = strlen(label);
   for (i = 0; i < length; i++) {
     if (*(label + i) != c)
-      return FAILED;
+      return NO;
   }
 
-  return SUCCEEDED;
+  return YES;
 }
 
 
@@ -2035,7 +2044,7 @@ int sort_anonymous_labels() {
   /* count # of anonymous labels */
   l = labels_first;
   while (l != NULL) {
-    if (is_label_anonymous(l->name) == SUCCEEDED)
+    if (l->alive == YES && is_label_anonymous(l->name) == YES)
       num_sorted_anonymous_labels++;
     l = l->next;
   }
@@ -2052,7 +2061,7 @@ int sort_anonymous_labels() {
   /* load anonymous labels */
   l = labels_first;
   while (l != NULL) {
-    if (is_label_anonymous(l->name) == SUCCEEDED)
+    if (l->alive == YES && is_label_anonymous(l->name) == YES)
       sorted_anonymous_labels[j++] = l;
     l = l->next;
   }
@@ -2140,7 +2149,7 @@ struct label *get_closest_anonymous_label(char *name, int rom_address, int file_
 
 int is_label_ok_for_sizeof(char *label) {
 
-  if (is_label_anonymous(label) == SUCCEEDED)
+  if (is_label_anonymous(label) == YES)
     return NO;
 
   if (strncmp("SECTIONSTART", label, 12) == 0)
@@ -2166,7 +2175,7 @@ int generate_sizeof_label_definitions(void) {
   lastL = NULL;
   while (l != NULL) {
     /* skip anonymous labels & child labels */
-    if (l->status == LABEL_STATUS_LABEL && is_label_ok_for_sizeof(l->name) == YES &&
+    if (l->status == LABEL_STATUS_LABEL && is_label_ok_for_sizeof(l->name) == YES && l->alive == YES &&
         (lastL == NULL || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0 && l->name[strlen(lastL->name)] == '@'))) {
       labelsN++;
       lastL = l;
@@ -2189,10 +2198,8 @@ int generate_sizeof_label_definitions(void) {
   lastL = NULL;
   while (l != NULL) {
     /* skip anonymous labels & child labels */
-    if (l->status == LABEL_STATUS_LABEL && is_label_ok_for_sizeof(l->name) == YES
-        && (lastL == NULL
-            || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0
-                && l->name[strlen(lastL->name)] == '@'))) {
+    if (l->status == LABEL_STATUS_LABEL && is_label_ok_for_sizeof(l->name) == YES && l->alive == YES &&
+        (lastL == NULL || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0 && l->name[strlen(lastL->name)] == '@'))) {
       labels[j++] = l;
       lastL = l;
     }
@@ -2212,12 +2219,13 @@ int generate_sizeof_label_definitions(void) {
   for (j = 0; j < labelsN; j++) {
     double size;
 
-    if (j == labelsN - 1 || labels[j]->section != labels[j+1]->section)
+    if (j == labelsN - 1 || labels[j]->section != labels[j+1]->section) {
       /* last label in this section */
       if (labels[j]->section_struct != NULL)
-	size = labels[j]->section_struct->output_address + labels[j]->section_struct->size - labels[j]->rom_address;
+	size = labels[j]->section_struct->size - labels[j]->address_in_section;
       else
         continue;
+    }
     else
       size = labels[j+1]->rom_address - labels[j]->rom_address;
 
@@ -2238,6 +2246,7 @@ int generate_sizeof_label_definitions(void) {
       sprintf(l->name, "_sizeof_%s", labels[j]->name);
 
     l->status = LABEL_STATUS_DEFINE;
+    l->alive = YES;
     l->address = size;
     l->base = 0;
     l->file_id = labels[j]->file_id;

@@ -134,7 +134,9 @@ int pass_3(void) {
       case 'G':
 	b = blocks;
 	blocks = blocks->next;
+	/*
 	fprintf(stderr, "INTERNAL_PASS_1: Block \"%s\" is %d bytes.\n", b->name, add - b->address);
+	*/
 	free(b);
 	continue;
 
@@ -213,9 +215,7 @@ int pass_3(void) {
         /* check the label is not already defined */
 
         sprintf(emsg, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
-            get_file_name(file_name_id),
-            line_number,
-            l->label);
+            get_file_name(file_name_id), line_number, l->label);
 
         if (s != NULL) {
           /* always put the label into the section's label_map */
@@ -541,7 +541,9 @@ int pass_3(void) {
     case 'G':
       b = blocks;
       blocks = blocks->next;
+      /*
       fprintf(stderr, "INTERNAL_PASS_1: Block \"%s\" is %d bytes.\n", b->name, add - b->address);
+      */
       free(b);
       continue;
 
