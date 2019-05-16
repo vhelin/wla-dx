@@ -3,8 +3,10 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (11-May-2019) [ALL] Deprecated section's size giving inside section's
+v9.8 (16-May-2019) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
+                   [ALL] _sizeof_[label]'s are now calculated correctly
+                     for .STRUCTs in .RAMSECTIONs.
                    [ALL] WLA's -x flag now creates SECTIONSTART_[section name]
                      and SECTIONEND_[section name] labels for each section.
                    [ALL] The assembler and the linker now display examples
@@ -1039,7 +1041,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.10 (10-May-2019) Added support for NO$SNES symbol files.
+v5.10 (16-May-2019) Added support for NO$SNES symbol files.
                     -d discards now also SUPERFREE sections.
 
    ... version history of v5.7 (02-Mar-2008) - v5.10 (28-Apr-2019)

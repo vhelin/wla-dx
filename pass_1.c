@@ -1281,70 +1281,22 @@ int parse_enum_token(void) {
         enum_offset -= st->size;
         if (add_a_new_definition(tmpname, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
           return FAILED;
-        if (enum_exp == YES)
+        if (enum_exp == YES) {
           if (export_a_definition(tmpname) == FAILED)
             return FAILED;
+	}
       }
-
-      si = st->items;
-      while (si != NULL) {
-        sprintf(tmp, "%s.%s", tmpname, si->name);
-        if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-          return FAILED;
-        if (enum_exp == YES)
-          if (export_a_definition(tmp) == FAILED)
-            return FAILED;
-        enum_offset += si->size;
-        si = si->next;
-      }
-
-      if (enum_ord == -1)
-        enum_offset -= st->size;
 
       /* the number of structures? */
       inz = input_number();
-      if (inz == INPUT_NUMBER_EOL)
+      if (inz == INPUT_NUMBER_EOL) {
         next_line();
+	d = 1;
+      }
       else if (inz == SUCCEEDED) {
         if (d < 1) {
           print_error("The number of structures must be greater than 0.\n", ERROR_DIR);
           return FAILED;
-        }
-
-        /* generate labels (now with the index numbers) */
-        if (d > 1) {
-          g = 1;
-
-          if (enum_ord == 1)
-            enum_offset -= st->size;
-
-          while (d > 0) {
-            si = st->items;
-            sprintf(tmp, "%s.%d", tmpname, g);
-            if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-              return FAILED;
-            if (enum_exp == YES)
-              if (export_a_definition(tmp) == FAILED)
-                return FAILED;
-            while (si != NULL) {
-              sprintf(tmp, "%s.%d.%s", tmpname, g, si->name);
-              if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-                return FAILED;
-              if (enum_exp == YES)
-                if (export_a_definition(tmp) == FAILED)
-                  return FAILED;
-              enum_offset += si->size;
-              si = si->next;
-            }
-            g++;
-            d--;
-            if (enum_ord == -1) {
-              if (d > 0)
-                enum_offset -= st->size*2;
-              else
-                enum_offset -= st->size;
-            }
-          }
         }
       }
       else {
@@ -1354,6 +1306,63 @@ int parse_enum_token(void) {
           sprintf(emsg, "Expected the number of structures.\n");
         print_error(emsg, ERROR_DIR);
         return FAILED;
+      }
+
+      si = st->items;
+      while (si != NULL) {
+	if (d == 1) {
+	  sprintf(tmp, "%s.%s", tmpname, si->name);
+	  if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+	    return FAILED;
+	  if (enum_exp == YES) {
+	    if (export_a_definition(tmp) == FAILED)
+	      return FAILED;
+	  }
+	}
+	  
+	enum_offset += si->size;
+	si = si->next;
+      }
+
+      if (enum_ord == -1)
+	enum_offset -= st->size;
+
+      /* generate labels (now with the index numbers) */
+      if (d > 1) {
+	g = 1;
+
+	if (enum_ord == 1)
+	  enum_offset -= st->size;
+
+	while (d > 0) {
+	  si = st->items;
+	  sprintf(tmp, "%s.%d", tmpname, g);
+	  if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+	    return FAILED;
+	  if (enum_exp == YES) {
+	    if (export_a_definition(tmp) == FAILED)
+	      return FAILED;
+	  }
+	  while (si != NULL) {
+	    sprintf(tmp, "%s.%d.%s", tmpname, g, si->name);
+	    if (add_a_new_definition(tmp, (double)enum_offset, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+	      return FAILED;
+	    if (enum_exp == YES) {
+	      if (export_a_definition(tmp) == FAILED)
+		return FAILED;
+	    }
+	    enum_offset += si->size;
+	    si = si->next;
+	  }
+	  g++;
+	  d--;
+	  if (enum_ord == -1) {
+	    if (d > 0)
+	      enum_offset -= st->size*2;
+	    else
+	      enum_offset -= st->size;
+	  }
+	}
       }
     }
     else { /* ramsection */
@@ -1366,7 +1375,7 @@ int parse_enum_token(void) {
       si = st->items;
       while (si != NULL) {
         if (inz == SUCCEEDED && d > 1)
-          fprintf(file_out_ptr, "k%d L%s.%s L%s.1.%s x%d 0 ", active_file_info_last->line_current, tmpname, si->name, tmpname, si->name, si->size);
+          fprintf(file_out_ptr, "k%d L%s.1.%s x%d 0 ", active_file_info_last->line_current, tmpname, si->name, si->size);
         else
           fprintf(file_out_ptr, "k%d L%s.%s x%d 0 ", active_file_info_last->line_current, tmpname, si->name, si->size);
         si = si->next;
@@ -1386,7 +1395,7 @@ int parse_enum_token(void) {
           fprintf(file_out_ptr, "k%d L%s.%d ", active_file_info_last->line_current, tmpname, g);
           while (si != NULL) {
             fprintf(file_out_ptr, "k%d L%s.%d.%s x%d 0 ", active_file_info_last->line_current, tmpname, g, si->name, si->size);
-            si = si->next;
+	    si = si->next;
           }
           g++;
           d--;
@@ -1484,6 +1493,7 @@ int directive_org(void) {
 
   org_defined = 1;
   fprintf(file_out_ptr, "O%d ", d);
+
   return SUCCEEDED;
 }
 

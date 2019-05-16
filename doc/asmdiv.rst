@@ -1992,8 +1992,6 @@ Previous example transforms into following definitions::
     .DEFINE map_02         $A016
     .DEFINE map_03         $A026
     .DEFINE monster        $A036
-    .DEFINE monster.name   $A036
-    .DEFINE monster.age    $A038
     .DEFINE monster.1      $A036
     .DEFINE monster.1.name $A036
     .DEFINE monster.1.age  $A038

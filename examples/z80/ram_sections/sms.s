@@ -108,11 +108,43 @@ enum_c  db
 .export enum_1, enum_2, enum_3, enum_4, enum_5, enum_6, enum_7, enum_8, enum_9, enum_a, enum_b, enum_c
 
 
+.struct point
+x:	db
+y:	db
+.endst
+
+.ramsection "Vars1" slot 0
+points1   instanceof point 1
+otherVar1 db
+.ends
+
+.ramsection "Vars2" slot 0
+points2   instanceof point
+otherVar2 db
+.ends
+
+.ramsection "Vars3" slot 0
+points3   instanceof point 2
+otherVar3 db
+.ends
+
+.enum $0 export
+vertices1 instanceof point 1
+.ende
+
+.enum $0 export
+vertices2 instanceof point
+.ende
+
+.enum $0 export
+vertices3 instanceof point 2
+.ende
+
 .BLOCK "Hello"
 .db 1, 2, 3, 4, 5
 .BLOCK "Hi!"
 .db 6, 7, 8
-.dw library_hook, rs3b0_a, rs4b127_c, rs7b127_b, rs0b127_c, TEST_RESULT_2
+.dw otherVar1, points2, otherVar3, library_hook, rs3b0_a, rs4b127_c, rs7b127_b, rs0b127_c, TEST_RESULT_2
 .endb
 .endb
 
