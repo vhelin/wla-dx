@@ -8577,17 +8577,18 @@ int export_a_definition(char *name) {
 
 void generate_label(char *header, char *footer) {
 
+  char footer2[MAX_NAME_LENGTH*2];
   int q, o;
   
   /* check if the footer contains spaces */
   o = strlen(footer);
   for (q = 0; q < o; q++) {
-    if (footer[q] == ' ') {
-      sprintf(emsg, "Could not create label \"%s%s\" as it contains spaces.\n", header, footer);
-      print_error(emsg, ERROR_WRN);
-      return;
-    }
+    if (footer[q] == ' ')
+      footer2[q] = '_';
+    else
+      footer2[q] = footer[q];
   }
+  footer2[q] = 0;
   
-  fprintf(file_out_ptr, "L%s%s ", header, footer);
+  fprintf(file_out_ptr, "L%s%s ", header, footer2);
 }
