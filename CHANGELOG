@@ -3,8 +3,10 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (16-May-2019) [ALL] Deprecated section's size giving inside section's
+v9.8 (21-May-2019) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
+                   [ALL] The maximum allowed number of digits for floats is
+                     now 24 instead of the old 8.
                    [ALL] _sizeof_[label]'s are now calculated correctly
                      for .STRUCTs in .RAMSECTIONs.
                    [ALL] WLA's -x flag now creates SECTIONSTART_[section name]
