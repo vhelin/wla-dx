@@ -2050,12 +2050,12 @@ Begins the definition of a structure. These structures can be placed
 inside ``RAMSECTION`` s and ``ENUM`` s. Here's an example::
 
     .STRUCT enemy_object
-    id    dw               ; the insides of a .STRUCT are 1:1 like in .ENUM
-    x     db               ; except that no structs inside structs are
-    y     db               ; allowed.
-    data  ds  10
-    info  dsb 16
-    stats dsw  4
+    id      dw             ; the insides of a .STRUCT are 1:1 like in .ENUM
+    x       db             ; except that no structs inside structs are
+    y       db             ; allowed.
+    data    ds  10
+    info    dsb 16
+    stats   dsw  4
     .ENDST
 
 This also creates a definition ``_sizeof_[struct name]``, in our example
@@ -2463,22 +2463,35 @@ Anyway, here's another example::
     .ENDS
 
     .RAMSECTION "vars 3" BANK 1 SLOT 2
-    moomin3   DW
+    moomin3_all .DSB 3
+    moomin3_a    DB
+    moomin3_b    DB
+    moomin3_c    DB
     .ENDS
 
 If no other RAM sections are used, then this is what you will get::
 
-    .DEFINE moomin1 $A000
-    .DEFINE phantom $A002
-    .DEFINE nyanko  $A003
-    .DEFINE enemy   $A004
-    .DEFINE enemy.x $A004
-    .DEFINE enemy.y $A005
-    .DEFINE moomin2 $A000
-    .DEFINE moomin3 $A002
+    .DEFINE moomin1     $A000
+    .DEFINE phantom     $A002
+    .DEFINE nyanko      $A003
+    .DEFINE enemy       $A004
+    .DEFINE enemy.x     $A004
+    .DEFINE enemy.y     $A005
+    .DEFINE moomin2     $A000
+    .DEFINE moomin3_all $A002
+    .DEFINE moomin3_a   $A002
+    .DEFINE moomin3_b   $A003
+    .DEFINE moomin3_c   $A004
 
 ``BANK`` in ``.RAMSECTION`` is optional so you can leave it away if you
 don't switch RAM banks, or the target doesn't have them (defaults to 0).
+
+NOTE! The generated _sizeof_ labels for ``.RAMSECTION`` "vars 3" will be::
+
+    _sizeof_moomin3_all (== 3)
+    _sizeof_moomin3_a   (== 1)
+    _sizeof_moomin3_b   (== 1)
+    _sizeof_moomin3_c   (== 1)
 
 It is also possible to merge two or more sections using ``APPENDTO``::
 

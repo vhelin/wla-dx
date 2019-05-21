@@ -107,6 +107,7 @@ struct structure *structures_first = NULL;
 struct filepointer *filepointers = NULL;
 struct map_t *namespace_map = NULL;
 struct append_section *append_sections = NULL;
+struct label_sizeof *label_sizeofs = NULL;
 
 extern char *buffer, *unfolded_buffer, label[MAX_NAME_LENGTH + 1], *include_dir, *full_name;
 extern int size, unfolded_size, input_number_error_msg, verbose_mode, output_format, open_files;
@@ -1138,13 +1139,28 @@ void next_line(void) {
 }
 
 
+void add_label_sizeof(char *label, int size) {
+
+  struct label_sizeof *ls;
+
+  ls = calloc(sizeof(struct label_sizeof), 1);
+  if (ls == NULL) {
+    print_error("Out of memory error while allocating a label sizeof structure.\n", ERROR_DIR);
+    return;
+  }
+
+  strcpy(ls->name, label);
+  ls->size = size;
+  ls->next = label_sizeofs;
+  label_sizeofs = ls;
+}
+
+
 /* either "in_enum" or "in_ramsection" should be true when this is called. */
 int parse_enum_token(void) {
 
-  char tmpname[MAX_NAME_LENGTH + 1];
-  char bak[256];
-  int type;
-  int q;
+  char tmpname[MAX_NAME_LENGTH + 1], bak[256];
+  int type, q;
 
   
   /* check for "if" directives (the only directives permitted in an enum/ramsection) */
@@ -1413,8 +1429,10 @@ int parse_enum_token(void) {
   }
   else if (strcaselesscmp(tmp, ".db") == 0 || strcaselesscmp(tmp, ".dw") == 0 ||
 	   strcaselesscmp(tmp, ".byt") == 0 || strcaselesscmp(tmp, ".byte") == 0 ||
-	   strcaselesscmp(tmp, ".word") == 0 || strcaselesscmp(tmp, ".addr") == 0)
-    ; /* don't do anything for "dotted" versions */
+	   strcaselesscmp(tmp, ".word") == 0 || strcaselesscmp(tmp, ".addr") == 0) {
+    /* don't do anything for "dotted" versions */
+    add_label_sizeof(tmpname, 1);
+  }
   else if (strcaselesscmp(tmp, ".ds") == 0 || strcaselesscmp(tmp, ".dsb") == 0 || strcaselesscmp(tmp, ".dsw") == 0) {
     /* don't do anything for "dotted" versions */
     strcpy(bak, tmp);
@@ -1427,10 +1445,17 @@ int parse_enum_token(void) {
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
+
+    if (strcaselesscmp(bak, ".dsw") == 0)
+      d *= 2;
+
+    add_label_sizeof(tmpname, d);
   }
 #ifdef W65816
-  else if (strcaselesscmp(tmp, ".dl") == 0 || strcaselesscmp(tmp, ".long") == 0 || strcaselesscmp(tmp, ".faraddr") == 0)
-    ; /* don't do anything for "dotted" versions */
+  else if (strcaselesscmp(tmp, ".dl") == 0 || strcaselesscmp(tmp, ".long") == 0 || strcaselesscmp(tmp, ".faraddr") == 0) {
+    /* don't do anything for "dotted" versions */
+    add_label_sizeof(tmpname, 3);
+  }
   else if (strcaselesscmp(tmp, ".dsl") == 0) {
     /* don't do anything for "dotted" versions */
     strcpy(bak, tmp);
@@ -1442,6 +1467,8 @@ int parse_enum_token(void) {
       print_error(".DSL needs size.\n", ERROR_DIR);
       return FAILED;
     }
+    
+    add_label_sizeof(tmpname, d*3);
   }
 #endif
   else {
@@ -3013,12 +3040,10 @@ int directive_struct(void) {
 	int j;
 			
 	q = input_number();
-	if (q == SUCCEEDED) {
+	if (q == SUCCEEDED)
 	  arr = d;
-	}
-	else if (q == INPUT_NUMBER_EOL) {
+	else if (q == INPUT_NUMBER_EOL)
 	  next_line();
-	}
             
 	if (arr == 0) {
 	  /* invalid structure array size */
@@ -8577,7 +8602,7 @@ int export_a_definition(char *name) {
 
 void generate_label(char *header, char *footer) {
 
-  char footer2[MAX_NAME_LENGTH*2];
+  char footer2[MAX_NAME_LENGTH + 1];
   int q, o;
   
   /* check if the footer contains spaces */

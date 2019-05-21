@@ -36,6 +36,7 @@ extern struct map_t *global_unique_label_map;
 extern struct map_t *namespace_map;
 extern struct slot slots[256];
 extern struct append_section *append_sections, *append_tmp;
+extern struct label_sizeof *label_sizeofs;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern int rombanks, verbose_mode, section_overwrite, symbol_mode, discard_unreferenced_sections;
 extern int emptyfill;
@@ -475,6 +476,7 @@ int collect_dlr(void) {
   struct reference *r;
   struct stack *s;
   struct label *l;
+  struct label_sizeof *ls;
   int section, x, i, n, q;
   unsigned char *t, *dtmp;
   double dou;
@@ -647,6 +649,31 @@ int collect_dlr(void) {
 	    s->stack[n].value = dou;
 	  }
 	}
+      }
+
+      /* label sizeofs */
+      i = READ_T;
+
+      while (i > 0) {
+	i--;
+
+	ls = calloc(1, sizeof(struct label_sizeof));
+	if (ls == NULL) {
+	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+	  return FAILED;
+	}
+
+	/* copy the name */
+	for (x = 0; *t != 0; t++, x++)
+	  ls->name[x] = *t;
+	ls->name[x] = 0;
+	t++;
+
+	ls->size = READ_T;
+	ls->file_id = obj_tmp->id;
+	
+	ls->next = label_sizeofs;
+	label_sizeofs = ls;
       }
 
       /* append sections */
@@ -832,6 +859,31 @@ int collect_dlr(void) {
 	}
       }
 
+      /* label sizeofs */
+      i = READ_T;
+
+      while (i > 0) {
+	i--;
+
+	ls = calloc(1, sizeof(struct label_sizeof));
+	if (ls == NULL) {
+	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+	  return FAILED;
+	}
+
+	/* copy the name */
+	for (x = 0; *t != 0; t++, x++)
+	  ls->name[x] = *t;
+	ls->name[x] = 0;
+	t++;
+
+	ls->size = READ_T;
+	ls->file_id = obj_tmp->id;
+	
+	ls->next = label_sizeofs;
+	label_sizeofs = ls;
+      }
+      
       /* append sections */
       i = READ_T;
 

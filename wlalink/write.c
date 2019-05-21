@@ -26,6 +26,7 @@ extern struct stack *stacks_first, *stacks_last;
 extern struct map_t *global_unique_label_map;
 extern struct map_t *namespace_map;
 extern struct slot slots[256];
+extern struct label_sizeof *label_sizeofs;
 extern unsigned char *rom, *rom_usage;
 extern unsigned char *file_header, *file_footer;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
@@ -2022,6 +2023,8 @@ static int _labels_compare(const void *a, const void *b) {
 
   if (l1->linenumber > l2->linenumber)
     return 1;
+  else if (l1->linenumber < l2->linenumber)
+    return -1;
 
   if (strlen(l1->name) < strlen(l2->name))
     return -1;
@@ -2270,6 +2273,19 @@ int generate_sizeof_label_definitions(void) {
       }
       else
 	size = labels[j+1]->rom_address - labels[j]->rom_address;
+    }
+
+    if (size == 0) {
+      struct label_sizeof *ls = label_sizeofs;
+      
+      /* try to find the size in "label sizeofs"... */
+      while (ls != NULL) {
+	if (labels[j]->file_id == ls->file_id && strcmp(labels[j]->name, ls->name) == 0) {
+	  size = ls->size;
+	  break;
+	}
+	ls = ls->next;
+      }
     }
 
     l = calloc(1, sizeof(struct label));

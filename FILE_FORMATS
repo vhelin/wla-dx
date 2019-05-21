@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file format "WLAP"
+WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file format "WLAR"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAQ" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 17 (12-Oct-2018)
+        "WLAR" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 18 (21-May-2019)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -114,6 +114,14 @@ pending calculations:
   ...
   ...
 
+label sizeofs
+
+  4     number of label sizeofs (int)
+  ...
+  n     name (0 terminated)
+  4     size
+  ...
+
 section appends
 
   4     number of appends (int)
@@ -154,7 +162,7 @@ section:
 
 
 
-WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file format "WLAZ"
+WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file format "WLA1"
 
 
 bytes   description
@@ -162,7 +170,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAZ" - WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file version 14 (12-Oct-2018)
+        "WLA1" - WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file version 15 (21-May-2019)
 
 source file name list:
 
@@ -224,6 +232,14 @@ pending calculations:
   8     value (double) OR
   n     string (0 terminated)
   ...
+  ...
+
+label sizeofs
+
+  4     number of label sizeofs (int)
+  ...
+  n     name (0 terminated)
+  4     size
   ...
 
 section appends

@@ -68,6 +68,13 @@ struct namespace_def {
   map_t *label_map;
 };
 
+struct label_sizeof {
+  char name[MAX_NAME_LENGTH + 1];
+  int size;
+  int file_id;
+  struct label_sizeof *next;
+};
+
 #define SECTION_STATUS_FREE        0
 #define SECTION_STATUS_FORCE       1
 #define SECTION_STATUS_OVERWRITE   2

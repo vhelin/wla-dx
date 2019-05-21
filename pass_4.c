@@ -25,6 +25,7 @@ extern struct map_t *global_unique_label_map;
 extern struct file_name_info *file_name_info_first;
 extern struct slot slots[256];
 extern struct append_section *append_sections;
+extern struct label_sizeof *label_sizeofs;
 extern FILE *file_out_ptr;
 extern unsigned char *rom_banks, *rom_banks_usage_table;
 extern char *tmp_name, tmp[4096], name[32], *final_name;
@@ -61,8 +62,8 @@ extern int computesmschecksum_defined, smstag_defined, smsheader_defined;
 struct label_def *unknown_labels = NULL, *unknown_labels_last = NULL, *tul, *ltmp;
 struct label_def *unknown_header_labels = NULL, *unknown_header_labels_last = NULL;
 struct label_def *parent_labels[10];
-
 struct append_section *append_tmp;
+struct label_sizeof *label_sizeof_tmp;
 
 char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 
@@ -81,8 +82,7 @@ int filename_id, line_number;
 int new_unknown_reference(int type) {
 
   struct label_def *label;
-  int n = 0;
-  int j = 0;
+  int n = 0, j = 0;
 
   if (tmp[0] == ':')
     j = 1;
@@ -161,12 +161,12 @@ int new_unknown_reference(int type) {
 
 int mangle_stack_references(struct stack *stack) {
 
-  int ind;
+  int ind, n, j;
 
   for (ind = 0; ind < stack->stacksize; ind++) {
     if (stack->stack[ind].type == STACK_ITEM_TYPE_STRING) {
-      int n = 0;
-      int j = 0;
+      n = 0;
+      j = 0;
 
       if (stack->stack[ind].string[0] == ':')
         j = 1;
@@ -196,9 +196,8 @@ int pass_4(void) {
   double dou;
   char *t, c;
   int i, o, z, y, add_old = 0;
-  int x, q, ov;
+  int x, q, ov, base = 0x00;
   float f;
-  int base = 0x00;
 
   memset(parent_labels, 0, sizeof(parent_labels));
 
@@ -987,7 +986,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAZ");
+    fprintf(final_ptr, "WLA1");
 
     if (export_source_file_names(final_ptr) == FAILED)
       return FAILED;
@@ -1096,6 +1095,26 @@ int pass_4(void) {
       stacks_tmp = stacks_tmp->next;
     }
 
+    /* label sizeofs */
+    ov = 0;
+    label_sizeof_tmp = label_sizeofs;
+    while (label_sizeof_tmp != NULL) {
+      ov++;
+      label_sizeof_tmp = label_sizeof_tmp->next;
+    }
+
+    WRITEOUT_OV;
+
+    label_sizeof_tmp = label_sizeofs;
+    while (label_sizeof_tmp != NULL) {
+      fprintf(final_ptr, "%s%c", label_sizeof_tmp->name, 0);
+
+      ov = label_sizeof_tmp->size;
+      WRITEOUT_OV;
+
+      label_sizeof_tmp = label_sizeof_tmp->next;
+    }
+    
     /* append sections */
     ov = 0;
     append_tmp = append_sections;
@@ -1153,7 +1172,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAQ%c", emptyfill);
+    fprintf(final_ptr, "WLAR%c", emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -1416,6 +1435,26 @@ int pass_4(void) {
       stacks_tmp = stacks_tmp->next;
     }
 
+    /* label sizeofs */
+    ov = 0;
+    label_sizeof_tmp = label_sizeofs;
+    while (label_sizeof_tmp != NULL) {
+      ov++;
+      label_sizeof_tmp = label_sizeof_tmp->next;
+    }
+
+    WRITEOUT_OV;
+
+    label_sizeof_tmp = label_sizeofs;
+    while (label_sizeof_tmp != NULL) {
+      fprintf(final_ptr, "%s%c", label_sizeof_tmp->name, 0);
+
+      ov = label_sizeof_tmp->size;
+      WRITEOUT_OV;
+
+      label_sizeof_tmp = label_sizeof_tmp->next;
+    }    
+    
     /* append sections */
     ov = 0;
     append_tmp = append_sections;

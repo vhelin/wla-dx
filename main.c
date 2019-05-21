@@ -85,6 +85,7 @@ extern struct label_def *unknown_labels;
 extern struct filepointer *filepointers;
 extern struct map_t *namespace_map;
 extern struct append_section *append_sections;
+extern struct label_sizeof *label_sizeofs;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern char *unfolded_buffer;
 extern char *include_in_tmp, *tmp_a;
@@ -365,6 +366,7 @@ void procedures_at_exit(void) {
   struct macro_static *m;
   struct filepointer *f1, *f2;
   struct append_section *as;
+  struct label_sizeof *ls;
   int i;
   
   /* free all the dynamically allocated data structures and close open files */
@@ -418,6 +420,13 @@ void procedures_at_exit(void) {
     l2 = l1->next;
     free(l1);
     l1 = l2;
+  }
+
+  ls = label_sizeofs;
+  while (ls != NULL) {
+    label_sizeofs = ls->next;
+    free(ls);
+    ls = label_sizeofs;
   }
 
   export_tmp = export_first;

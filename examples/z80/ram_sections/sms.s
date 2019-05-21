@@ -51,9 +51,13 @@ rs2b2_b	db
 .ENDS
 	
 .RAMSECTION "RamSection 3 bank 0 slot 3 YES REF" BANK 0 SLOT 3 ALIGN 8
+rs3b0_all:	.dsb 1+2+1
 rs3b0_a	db
 rs3b0_b	dw
 rs3b0_c	db
+rs3b0_next .dsw 32
+rs3b0_d dsw 16
+rs3b0_e dsw 16
 .ENDS
 
 .RAMSECTION "RamSection 4 bank $7f slot 5 YES REF" BANK $7f SLOT 5 ALIGN 16
@@ -91,6 +95,7 @@ rs9b1_b	db
 
 
 .enum $100
+enum_all: .dsb 57
 enum_1  db
 enum_2  .db
 enum_3  .dw
@@ -105,7 +110,7 @@ enum_b:	dw
 enum_c  db
 .ende
 
-.export enum_1, enum_2, enum_3, enum_4, enum_5, enum_6, enum_7, enum_8, enum_9, enum_a, enum_b, enum_c
+.export enum_all, enum_1, enum_2, enum_3, enum_4, enum_5, enum_6, enum_7, enum_8, enum_9, enum_a, enum_b, enum_c
 
 
 .struct point

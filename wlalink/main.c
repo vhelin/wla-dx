@@ -25,7 +25,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: WLALINK 5.10a (16.5.2019)";
+char version_string[] = "$VER: WLALINK 5.10a (21.5.2019)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -41,6 +41,7 @@ struct map_t *global_unique_label_map = NULL;
 struct map_t *namespace_map = NULL;
 struct slot slots[256];
 struct append_section *append_sections = NULL, *append_tmp;
+struct label_sizeof *label_sizeofs = NULL;
 unsigned char *rom, *rom_usage, *file_header = NULL, *file_footer = NULL;
 int romsize, rombanks, banksize, verbose_mode = OFF, section_overwrite = OFF, symbol_mode = SYMBOL_MODE_NONE, output_addr_to_line = OFF;
 int pc_bank, pc_full, pc_slot, pc_slot_max;
@@ -326,6 +327,26 @@ int main(int argc, char *argv[]) {
 	l = l->next;
       }
     }
+  }
+#endif
+
+#ifdef WLALINK_DEBUG
+  if (label_sizeofs != NULL) {
+    struct label_sizeof *ls = label_sizeofs;
+
+    printf("\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("---                      LABEL SIZEOFS                             ---\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("\n");
+
+    while (ls != NULL) {
+      printf("----------------------------------------------------------------------\n");
+      printf("name: \"%s\" file: %s\n", ls->name, get_file_name(ls->file_id));
+      printf("size: %d\n", ls->size);
+      ls = ls->next;
+    }
+    printf("----------------------------------------------------------------------\n");
   }
 #endif
       
@@ -631,6 +652,7 @@ void procedures_at_exit(void) {
   struct section *s;
   struct stack *sta;
   struct label *l;
+  struct label_sizeof *ls;
 
   /* free all the dynamically allocated data structures */
   while (obj_first != NULL) {
@@ -663,6 +685,12 @@ void procedures_at_exit(void) {
     l = labels_first;
     labels_first = labels_first->next;
     free(l);
+  }
+
+  while (label_sizeofs != NULL) {
+    ls = label_sizeofs;
+    label_sizeofs = label_sizeofs->next;
+    free(ls);
   }
 
   while (reference_first != NULL) {
