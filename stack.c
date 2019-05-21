@@ -442,11 +442,13 @@ int stack_calculate(char *in, int *value) {
 	q++;
       }
       else {
+	int max_digits = 9;
+	
 	/* it's decimal */
 	dou = (*in - '0')*10.0;
 	dom = 1.0;
 	n = 0;
-	for (k = 0; k < 9; k++) {
+	for (k = 0; k < max_digits; k++) {
 	  in++;
 	  e = *in;
 	  if (e >= '0' && e <= '9') {
@@ -476,6 +478,7 @@ int stack_calculate(char *in, int *value) {
 	      return FAILED;
 	    }
 	    n = 1;
+	    max_digits = 24;
 	  }
 	  else {
 	    if (input_number_error_msg == YES) {

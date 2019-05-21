@@ -360,12 +360,14 @@ int input_number(void) {
   }
 
   if (e >= '0' && e <= '9') {
+    int max_digits = 9;
+    
     /* we are parsing decimals when q == 1 */
     q = 0;
     parsed_double = e-'0';
     parsed_double_decimal_numbers = 0;
     decimal_mul = 0.1;
-    for (k = 0; k < 9; k++, i++) {
+    for (k = 0; k < max_digits; k++, i++) {
       e = buffer[i];
       if (e >= '0' && e <= '9') {
 	if (q == 0) {
@@ -389,6 +391,7 @@ int input_number(void) {
 	  if (parse_floats == NO)
 	    break;
 	  q = 1;
+	  max_digits = 24;
 	}
 #if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
 	else if (e == 'b' || e == 'B') {
@@ -555,6 +558,7 @@ int input_number(void) {
 
     label[k] = 0;
     string_size = k;
+    
     return INPUT_NUMBER_STRING;
   }
 
@@ -676,6 +680,7 @@ int input_number(void) {
       string_size = tmp_def->size;
       memcpy(label, tmp_def->string, string_size);
       label[string_size] = 0;
+      
       return INPUT_NUMBER_STRING;
     }
   }
