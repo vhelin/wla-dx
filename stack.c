@@ -442,7 +442,7 @@ int stack_calculate(char *in, int *value) {
 	q++;
       }
       else {
-	int max_digits = 9;
+	int max_digits = 10;
 	
 	/* it's decimal */
 	dou = (*in - '0')*10.0;
@@ -452,6 +452,16 @@ int stack_calculate(char *in, int *value) {
 	  in++;
 	  e = *in;
 	  if (e >= '0' && e <= '9') {
+	    if (k == max_digits - 1) {
+	      if (n == 0)
+		print_error("Too many digits in the integer value. Max 10 is supported.\n", ERROR_NUM);
+	      else {
+		sprintf(xyz, "Too many digits in the floating point value. Max %d is supported.\n", MAX_FLOAT_DIGITS);
+		print_error(xyz, ERROR_NUM);
+	      }
+	      return FAILED;
+	    }
+
 	    if (n == 0) {
 	      dou += e - '0';
 	      dou *= 10.0;
@@ -478,7 +488,7 @@ int stack_calculate(char *in, int *value) {
 	      return FAILED;
 	    }
 	    n = 1;
-	    max_digits = 24;
+	    max_digits = MAX_FLOAT_DIGITS+1;
 	  }
 	  else {
 	    if (input_number_error_msg == YES) {

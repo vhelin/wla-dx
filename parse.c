@@ -230,11 +230,11 @@ int input_number(void) {
       print_error(xyz, ERROR_NUM);
       return FAILED;
     }
-	if (d == 0) {
+    if (d == 0) {
       sprintf(xyz, "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", d, macro_runtime_current->macro->name);
       print_error(xyz, ERROR_NUM);
       return FAILED;
-	}
+    }
 
     /* return the macro argument */
     ma = macro_runtime_current->argument_data[d - 1];
@@ -360,7 +360,7 @@ int input_number(void) {
   }
 
   if (e >= '0' && e <= '9') {
-    int max_digits = 9;
+    int max_digits = 10;
     
     /* we are parsing decimals when q == 1 */
     q = 0;
@@ -370,6 +370,16 @@ int input_number(void) {
     for (k = 0; k < max_digits; k++, i++) {
       e = buffer[i];
       if (e >= '0' && e <= '9') {
+	if (k == max_digits - 1) {
+	  if (q == 0)
+	    print_error("Too many digits in the integer value. Max 10 is supported.\n", ERROR_NUM);
+	  else {
+	    sprintf(xyz, "Too many digits in the floating point value. Max %d is supported.\n", MAX_FLOAT_DIGITS);
+	    print_error(xyz, ERROR_NUM);
+	  }
+	  return FAILED;
+	}
+	
 	if (q == 0) {
 	  /* still parsing an integer */
 	  parsed_double = parsed_double*10 + e-'0';
@@ -391,7 +401,7 @@ int input_number(void) {
 	  if (parse_floats == NO)
 	    break;
 	  q = 1;
-	  max_digits = 24;
+	  max_digits = MAX_FLOAT_DIGITS+1;
 	}
 #if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
 	else if (e == 'b' || e == 'B') {
