@@ -27,7 +27,7 @@
 .define VALUE_1 = 111.123456789
 .define VALUE_2 VALUE_0*0.987654321987654321
 
-.SECTION "__testing..."
+.SECTION "__testing"
 sME:	LD	HL, sME
 	LD	A, 10+REALLY
 	.dw	VALUE_0

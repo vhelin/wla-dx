@@ -2326,3 +2326,40 @@ int generate_sizeof_label_definitions(void) {
 
   return SUCCEEDED;
 }
+
+
+int fix_sectionstartend_labels(void) {
+
+  struct label *l1, *l2;
+  int count;
+  char tmp[MAX_NAME_LENGTH * 2];
+
+
+  if (labels_first == NULL)
+    return SUCCEEDED;
+
+  /* generate _sizeof_[label] definitions */
+  l1 = labels_first;
+  while (l1 != NULL) {
+    if (strncmp("SECTIONSTART", l1->name, 12) == 0 || strncmp("SECTIONEND", l1->name, 10) == 0) {
+      l2 = l1->next;
+      count = 1;
+      while (l2 != NULL) {
+	if (strcmp(l1->name, l2->name) == 0) {
+	  /* l2 has the same name as l1! change l2's name... */
+	  sprintf(tmp, "%s_%d", l2->name, count);
+	  count++;
+	  if (strlen(tmp) < MAX_NAME_LENGTH)
+	    strcpy(l2->name, tmp);
+	  else
+	    fprintf(stderr, "FIX_SECTIONSTARTEND_LABELS: Duplicate label \"%s\" is too long to be renamed.\n", l2->name);	    
+	}
+	l2 = l2->next;
+      }
+    }
+
+    l1 = l1->next;
+  }  
+  
+  return SUCCEEDED;
+}

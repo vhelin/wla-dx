@@ -153,7 +153,7 @@ _loop:
 .ENDS
 
 
-.SECTION "__testing..."
+.SECTION "__testing"
 ME:	LD	HL, ME
 	LD	A, 10+REALLY
 .ENDS

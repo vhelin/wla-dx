@@ -25,7 +25,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: WLALINK 5.10a (21.5.2019)";
+char version_string[] = "$VER: WLALINK 5.10a (23.5.2019)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -238,6 +238,10 @@ int main(int argc, char *argv[]) {
 
   /* collect all defines, labels, outside references and pending (stack) calculations */
   if (collect_dlr() == FAILED)
+    return 1;
+
+  /* make sure all SECTIONSTART_* and SECTIONEND_* labels have no duplicates */
+  if (fix_sectionstartend_labels() == FAILED)
     return 1;
 
   /* take rom size and allocate memory */
