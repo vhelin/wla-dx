@@ -42,8 +42,8 @@ int is_string_ending_with(char *s, char *e) {
   if (s == NULL || e == NULL)
     return -1;
 
-  length_s = strlen(s);
-  length_e = strlen(e);
+  length_s = (int)strlen(s);
+  length_e = (int)strlen(e);
 
   if (length_e > length_s)
     return -1;
@@ -63,7 +63,7 @@ int compare_next_token(char *token) {
   char e;
 
   
-  length = strlen(token);
+  length = (int)strlen(token);
 
   /* skip white space */
   ii = i;
@@ -244,7 +244,7 @@ int input_number(void) {
       strcpy(label, ma->string);
     else if (k == INPUT_NUMBER_STRING) {
       strcpy(label, ma->string);
-      string_size = strlen(ma->string);
+      string_size = (int)strlen(ma->string);
     }
     else if (k == INPUT_NUMBER_STACK)
       latest_stack = ma->value;
@@ -533,7 +533,7 @@ int input_number(void) {
 	  /* yes, we've got it! calculate the length and return the integer */
 	  i += 7;
 	  label[k] = 0;
-	  d = strlen(label);
+	  d = (int)strlen(label);
 	  parsed_double = (double)d;
 
 	  return SUCCEEDED;
@@ -555,7 +555,7 @@ int input_number(void) {
     if (macro_active != 0) {
       if (expand_macro_arguments(label) == FAILED)
 	return FAILED;
-      k = strlen(label);
+      k = (int)strlen(label);
     }
 
     if (k == MAX_NAME_LENGTH) {
@@ -731,7 +731,7 @@ int parse_string_length(char *end) {
       memcpy(label, tmp_def->string, string_size);
       label[string_size] = 0;
 
-      d = strlen(label);
+      d = (int)strlen(label);
       parsed_double = (double)d;
 	  
       return SUCCEEDED;
@@ -781,7 +781,7 @@ int get_next_token(void) {
     if (macro_active != 0) {
       if (expand_macro_arguments(tmp) == FAILED)
 	return FAILED;
-      ss = strlen(tmp);
+      ss = (int)strlen(tmp);
     }
 
     return GET_NEXT_TOKEN_STRING;
@@ -823,7 +823,7 @@ int get_next_token(void) {
   if (macro_active != 0) {
     if (expand_macro_arguments(tmp) == FAILED)
       return FAILED;
-    ss = strlen(tmp);
+    ss = (int)strlen(tmp);
   }
 
   return SUCCEEDED;

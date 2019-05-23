@@ -59,7 +59,7 @@ map_t hashmap_new() {
  */
 unsigned int hashmap_hash_int(hashmap_map * m, char* keystring) {
 
-  unsigned long key = crc32((unsigned char*)(keystring), strlen(keystring));
+  unsigned long key = crc32((unsigned char*)(keystring), (unsigned int)strlen(keystring));
 
   /* Robert Jenkins' 32 bit Mix Function */
   key += (key << 12);

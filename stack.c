@@ -606,7 +606,7 @@ int stack_calculate(char *in, int *value) {
   }
 
   /* update the source pointer */
-  i = in - buffer;
+  i = (int)(in - buffer);
 
   /* fix the sign in every operand */
   for (b = 1, k = 0; k < q; k++) {
@@ -1021,7 +1021,7 @@ int resolve_stack(struct stack_item s[], int x) {
 	    strcpy(label, ma->string);
 	  else if (k == INPUT_NUMBER_STRING) {
 	    strcpy(label, ma->string);
-	    string_size = strlen(ma->string);
+	    string_size = (int)strlen(ma->string);
 	  }
 	  else if (k == INPUT_NUMBER_STACK)
 	    latest_stack = ma->value;

@@ -724,7 +724,7 @@ int is_label_anonymous(char *label) {
   c = *label;
   if (!(c == '-' || c == '+'))
     return FAILED;
-  length = strlen(label);
+  length = (int)strlen(label);
   for (i = 0; i < length; i++) {
     if (*(label + i) != c)
       return FAILED;
@@ -740,7 +740,7 @@ int mangle_label(char *label, char *parent, int n, unsigned int label_size) {
   int len;
 
 
-  len = strlen(parent);
+  len = (int)strlen(parent);
 
   strcpy(buf, parent);
   strcpy(&buf[len], label+n);

@@ -267,8 +267,8 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
   mrt->macro_end_filename_id = active_file_info_last->filename_id;
 
   if ((extra_definitions == ON) && (active_file_info_last->filename_id != m->filename_id)) {
-    redefine("WLA_FILENAME", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING, strlen(get_file_name(m->filename_id)));
-    redefine("wla_filename", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING, strlen(get_file_name(m->filename_id)));
+    redefine("WLA_FILENAME", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(m->filename_id)));
+    redefine("wla_filename", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(m->filename_id)));
   }
 
   active_file_info_last->line_current = m->start_line;
@@ -360,7 +360,7 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
     mrt->argument_data[0]->value = label[0];
     strcpy(mrt->string, label);
     mrt->string_current = 1;
-    mrt->string_last = strlen(label);
+    mrt->string_last = (int)strlen(label);
     /*
       fprintf(stderr, "got string %s!\n", label);
     */
@@ -677,9 +677,9 @@ int pass_1(void) {
         /* do we have a name for this argument? */
         if (p < m->nargument_names) {
           if (q == INPUT_NUMBER_ADDRESS_LABEL)
-            redefine(m->argument_names[p], 0.0, label, DEFINITION_TYPE_ADDRESS_LABEL, strlen(label));
+            redefine(m->argument_names[p], 0.0, label, DEFINITION_TYPE_ADDRESS_LABEL, (int)strlen(label));
           else if (q == INPUT_NUMBER_STRING)
-            redefine(m->argument_names[p], 0.0, label, DEFINITION_TYPE_STRING, strlen(label));
+            redefine(m->argument_names[p], 0.0, label, DEFINITION_TYPE_STRING, (int)strlen(label));
           else if (q == INPUT_NUMBER_STACK)
             redefine(m->argument_names[p], (double)latest_stack, NULL, DEFINITION_TYPE_STACK, 0);
           else if (q == SUCCEEDED)
@@ -2003,7 +2003,7 @@ int directive_db_byt_byte(void) {
 	    
 	  o += 3;
 	  sprintf(tmp_a, "%c%c", label[o-1], label[o]);
-	  tmp_c = strtol(tmp_a, &tmp_b, 16);
+	  tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
 	  if (*tmp_b) {
 	    sprintf(emsg, ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
 	    print_error(emsg, ERROR_INP);
@@ -2246,7 +2246,7 @@ int directive_asc(void) {
 	  
 	  o += 3;
 	  sprintf(tmp_a, "%c%c", label[o-1], label[o]);
-	  tmp_c = strtol(tmp_a, &tmp_b, 16);
+	  tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
 	  if (*tmp_b) {
 	    sprintf(emsg, ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
 	    print_error(emsg, ERROR_INP);
@@ -2773,7 +2773,7 @@ int directive_incdir(void) {
   }
 
   /* use the given dir */
-  o = strlen(tmp) + 2;
+  o = (int)(strlen(tmp) + 2);
   if (o > include_dir_size) {
     c = realloc(include_dir, o);
     if (c == NULL) {
@@ -3384,7 +3384,7 @@ int directive_section(void) {
   sec_tmp->nspace = NULL;
 
   /* check if the section size is supplied inside the name */
-  l = strlen(tmp) - 1;
+  l = (int)(strlen(tmp) - 1);
 
   for (; l >= 0 && tmp[l] != '_'; l--)
     ;
@@ -3874,9 +3874,9 @@ int directive_shift(void) {
     else if (ma->type == INPUT_NUMBER_STACK)
       redefine(st->argument_names[q], ma->value, NULL, DEFINITION_TYPE_STACK, 0);
     else if (ma->type == INPUT_NUMBER_ADDRESS_LABEL)
-      redefine(st->argument_names[q], 0.0, ma->string, DEFINITION_TYPE_ADDRESS_LABEL, strlen(ma->string));
+      redefine(st->argument_names[q], 0.0, ma->string, DEFINITION_TYPE_ADDRESS_LABEL, (int)strlen(ma->string));
     else if (ma->type == INPUT_NUMBER_STRING)
-      redefine(st->argument_names[q], 0.0, ma->string, DEFINITION_TYPE_STRING, strlen(ma->string));
+      redefine(st->argument_names[q], 0.0, ma->string, DEFINITION_TYPE_STRING, (int)strlen(ma->string));
   }
 
   /* redefine NARGS */
@@ -4568,7 +4568,7 @@ int directive_background(void) {
   }
 
   fseek(file_in_ptr, 0, SEEK_END);
-  background_size = ftell(file_in_ptr);
+  background_size = (int)ftell(file_in_ptr);
   fseek(file_in_ptr, 0, SEEK_SET);
   
   if (background_size > max_address) {
@@ -5134,7 +5134,7 @@ int directive_input(void) {
   }
 
   /* it's a string */
-  redefine(tmp, 0.0, k, DEFINITION_TYPE_STRING, strlen(k));
+  redefine(tmp, 0.0, k, DEFINITION_TYPE_STRING, (int)strlen(k));
 
   return SUCCEEDED;
 }
@@ -5701,9 +5701,9 @@ int directive_endm(void) {
 
     if ((extra_definitions == ON) && (active_file_info_last->filename_id != macro_stack[macro_active].macro_end_filename_id)) {
       redefine("WLA_FILENAME", 0.0, get_file_name(macro_stack[macro_active].macro_end_filename_id), DEFINITION_TYPE_STRING,
-	       strlen(get_file_name(macro_stack[macro_active].macro_end_filename_id)));
+	       (int)strlen(get_file_name(macro_stack[macro_active].macro_end_filename_id)));
       redefine("wla_filename", 0.0, get_file_name(macro_stack[macro_active].macro_end_filename_id), DEFINITION_TYPE_STRING,
-	       strlen(get_file_name(macro_stack[macro_active].macro_end_filename_id)));
+	       (int)strlen(get_file_name(macro_stack[macro_active].macro_end_filename_id)));
     }
 
     active_file_info_last->filename_id = macro_stack[macro_active].macro_end_filename_id;
@@ -7585,9 +7585,9 @@ int parse_directive(void) {
 
     if (extra_definitions == ON) {
       redefine("WLA_FILENAME", 0.0, get_file_name(active_file_info_last->filename_id), DEFINITION_TYPE_STRING,
-          strlen(get_file_name(active_file_info_last->filename_id)));
+	       (int)strlen(get_file_name(active_file_info_last->filename_id)));
       redefine("wla_filename", 0.0, get_file_name(active_file_info_last->filename_id), DEFINITION_TYPE_STRING,
-          strlen(get_file_name(active_file_info_last->filename_id)));
+	       (int)strlen(get_file_name(active_file_info_last->filename_id)));
     }
 
     return SUCCEEDED;
@@ -8478,7 +8478,7 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
         *b = d;
       else if (x == INPUT_NUMBER_STRING) {
         strcpy(c, label);
-        s = strlen(label);
+        s = (int)strlen(label);
       }
       else if (x == INPUT_NUMBER_FLOAT) {
         *data = parsed_double;
@@ -8606,7 +8606,7 @@ void generate_label(char *header, char *footer) {
   int q, o;
   
   /* check if the footer contains spaces */
-  o = strlen(footer);
+  o = (int)strlen(footer);
   for (q = 0; q < o; q++) {
     if (footer[q] == ' ')
       footer2[q] = '_';

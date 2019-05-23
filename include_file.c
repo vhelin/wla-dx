@@ -144,12 +144,12 @@ int include_file(char *name) {
   first_load = 1;
 
   if (extra_definitions == ON) {
-    redefine("WLA_FILENAME", 0.0, name, DEFINITION_TYPE_STRING, strlen(name));
-    redefine("wla_filename", 0.0, name, DEFINITION_TYPE_STRING, strlen(name));
+    redefine("WLA_FILENAME", 0.0, name, DEFINITION_TYPE_STRING, (int)strlen(name));
+    redefine("wla_filename", 0.0, name, DEFINITION_TYPE_STRING, (int)strlen(name));
   }
 
   fseek(f, 0, SEEK_END);
-  file_size = ftell(f);
+  file_size = (int)ftell(f);
   fseek(f, 0, SEEK_SET);
 
   active_file_info_tmp = malloc(sizeof(struct active_file_info));
@@ -366,7 +366,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   }
 
   fseek(f, 0, SEEK_END);
-  file_size = ftell(f);
+  file_size = (int)ftell(f);
   fseek(f, 0, SEEK_SET);
 
   ifd = (struct incbin_file_data *)malloc(sizeof(struct incbin_file_data));
@@ -811,7 +811,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
     }
   }
 
-  *out_size = output - out_buffer;
+  *out_size = (int)(output - out_buffer);
 
   return SUCCEEDED;
 }

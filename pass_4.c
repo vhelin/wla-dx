@@ -1630,7 +1630,7 @@ int find_label(char *str, struct section_def *s, struct label_def **out) {
   int i;
 
   str2 = strchr(str, '.');
-  i = str2-str;
+  i = (int)(str2-str);
   if (str2 == NULL) {
     stripped = str;
     prefix[0] = '\0';
@@ -1863,7 +1863,7 @@ int export_source_file_names(FILE *final_ptr) {
   while (f != NULL) {
     fprintf(final_ptr, "%s%c%c", f->name, 0x00, f->id);
 
-    ov = f->checksum;
+    ov = (int)f->checksum;
     WRITEOUT_OV;
 
     f = f->next;

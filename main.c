@@ -553,7 +553,7 @@ int generate_extra_definitions(void) {
   q = ctime(&ti);
   strcpy(tmp, q);
   /* remove the linefeed */
-  length = strlen(tmp);
+  length = (int)strlen(tmp);
   for (i = 0; i < length; i++) {
     if (tmp[i] == 0x0A) {
       tmp[i] = 0;
@@ -561,13 +561,13 @@ int generate_extra_definitions(void) {
     }
   }
 
-  if (add_a_new_definition("WLA_TIME", 0.0, tmp, DEFINITION_TYPE_STRING, strlen(tmp)) == FAILED)
+  if (add_a_new_definition("WLA_TIME", 0.0, tmp, DEFINITION_TYPE_STRING, (int)strlen(tmp)) == FAILED)
     return FAILED;
-  if (add_a_new_definition("wla_time", 0.0, tmp, DEFINITION_TYPE_STRING, strlen(tmp)) == FAILED)
+  if (add_a_new_definition("wla_time", 0.0, tmp, DEFINITION_TYPE_STRING, (int)strlen(tmp)) == FAILED)
     return FAILED;
-  if (add_a_new_definition("WLA_VERSION", 0.0, wla_version, DEFINITION_TYPE_STRING, strlen(wla_version)) == FAILED)
+  if (add_a_new_definition("WLA_VERSION", 0.0, wla_version, DEFINITION_TYPE_STRING, (int)strlen(wla_version)) == FAILED)
     return FAILED;
-  if (add_a_new_definition("wla_version", 0.0, wla_version, DEFINITION_TYPE_STRING, strlen(wla_version)) == FAILED)
+  if (add_a_new_definition("wla_version", 0.0, wla_version, DEFINITION_TYPE_STRING, (int)strlen(wla_version)) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
@@ -629,7 +629,7 @@ int parse_and_add_definition(char *c, int contains_flag) {
     }
 
     /* string definition */
-    return add_a_new_definition(n, 0.0, c, DEFINITION_TYPE_STRING, strlen(c));
+    return add_a_new_definition(n, 0.0, c, DEFINITION_TYPE_STRING, (int)strlen(c));
   }
 
   return FAILED;
