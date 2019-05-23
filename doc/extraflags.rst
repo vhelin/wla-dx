@@ -2,12 +2,12 @@ Extra compile time definitions
 ==============================
 
 When you supply WLA with the flag ``x`` it will maintain few useful definitions
-while compiling your source codes. Please use the enhanced error reporting
-engine (so don't use flag ``f``) in conjunction with flag ``x`` as some of the
-definitions require extra information about the flow of the data which isn't
-available when using the old, crippled error reporting engine.
+and labels while compiling your source codes. Please use the enhanced error
+reporting engine (so don't use flag ``f``) in conjunction with flag ``x`` as
+some of the definitions require extra information about the flow of the data
+which isn't available when using the old, crippled error reporting engine.
 
-Here's a list of what you get when you use flag ``x``:
+Here's a list of definitions you get when you use flag ``x``:
 
 +------------------+--------------------------------------------------------+
 | ``WLA_FILENAME`` | A string definition holding the file name WLA is       |
@@ -44,3 +44,7 @@ the ``CADDR``.
 
 Note that you'll also get all these definitions in lower case
 (e.g., ``wla_filename``).
+
+But that is not all. You will also get SECTIONSTART_[section name] labels
+that are inserted into the start of every section, and SECTIONEND_[section name]
+labels that are inserted into the end of every section.
