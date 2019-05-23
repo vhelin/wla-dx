@@ -419,7 +419,7 @@ int load_file_data(char *file_name, unsigned char **data, int *size) {
   }
 
   fseek(fop, 0, SEEK_END);
-  *size = ftell(fop);
+  *size = (int)ftell(fop);
   fseek(fop, 0, SEEK_SET);
 
   *data = malloc(*size);

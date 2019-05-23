@@ -176,15 +176,14 @@ int free_section(struct section *s) {
 
 int find_label(char *str, struct section *s, struct label **out) {
 
-  char* str2;
-  char* stripped;
+  char *str2, *stripped;
   char prefix[MAX_NAME_LENGTH*2+2];
   struct label *l = NULL;
   int i;
 
   
   str2 = strchr(str, '.');
-  i = str2-str;
+  i = (int)(str2-str);
   if (str2 == NULL) {
     stripped = str;
     prefix[0] = '\0';

@@ -1202,7 +1202,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
       /* full rom-output checksum */
       outfile = fopen(outname, "rb");
       fseek(outfile, 0, SEEK_END);
-      outfile_size = ftell(outfile);
+      outfile_size = (int)ftell(outfile);
       fseek(outfile, 0, SEEK_SET);
       outfile_tmp = malloc(sizeof(char) * outfile_size);
       fread(outfile_tmp, 1, outfile_size, outfile);
@@ -1990,7 +1990,7 @@ int is_label_anonymous(char *label) {
   c = *label;
   if (!(c == '-' || c == '+'))
     return NO;
-  length = strlen(label);
+  length = (int)strlen(label);
   for (i = 0; i < length; i++) {
     if (*(label + i) != c)
       return NO;

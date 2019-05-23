@@ -121,7 +121,7 @@ int listfile_write_listfiles(struct section *e) {
     na = l[j]->sourcefilename;
     f = fopen(na, "rb");
     fseek(f, 0, SEEK_END);
-    n = ftell(f);
+    n = (int)ftell(f);
     fseek(f, 0, SEEK_SET);
 
     b = malloc(n);
@@ -135,7 +135,7 @@ int listfile_write_listfiles(struct section *e) {
     fclose(f);
 
     strcpy(tmp, na);
-    for (k = strlen(tmp)-1; k >= 0; k--) {
+    for (k = (int)(strlen(tmp)-1); k >= 0; k--) {
       if (tmp[k] == '.')
 	break;
     }
