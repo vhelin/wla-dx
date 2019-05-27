@@ -750,7 +750,12 @@ int fix_label_addresses(void) {
 	    l->slot = s->slot;
 	    l->address_in_section = (int)l->address;
 	    l->address += s->address;
-	    l->rom_address = (int)l->address + bankaddress[l->bank];
+
+	    if (s->status == SECTION_STATUS_RAM)
+	      l->rom_address = (int)l->address + ((l->bank + l->base) << 16);
+	    else
+	      l->rom_address = (int)l->address + bankaddress[l->bank];
+
 	    if (s->status != SECTION_STATUS_ABSOLUTE)
 	      l->address += slots[l->slot].address;
 	  }
@@ -1911,6 +1916,11 @@ int parse_stack(struct stack *sta) {
       if (sta->type == STACKS_TYPE_24BIT && l->status == LABEL_STATUS_LABEL)
 	k += get_snes_pc_bank(l);
 
+      /*
+      fprintf(stdout, "%s: %s:%d: %s %x %d\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber,
+	      si->string, (int)k, sta->relative_references);
+      */
+
       if (l->status == LABEL_STATUS_STACK) {
 	/* HACK: here we abuse the stack item structure's members */
 	si->value = l->address;
@@ -1952,7 +1962,7 @@ int get_snes_pc_bank(struct label *l) {
   else {
     x = l->bank;
   }
-
+  
   x = (x + l->base) << 16;
 
   return x;

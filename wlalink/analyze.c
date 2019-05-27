@@ -530,6 +530,7 @@ int collect_dlr(void) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
 	}
+	
 	for (x = 0; !(*t == 0 || *t == 1 || *t == 2); t++, x++)
 	  l->name[x] = *t;
 	l->name[x] = 0;
@@ -751,6 +752,7 @@ int collect_dlr(void) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
 	}
+	
 	for (x = 0; !(*t == 0 || *t == 1 || *t == 2); t++, x++)
 	  l->name[x] = *t;
 	l->name[x] = 0;

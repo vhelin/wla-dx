@@ -422,16 +422,17 @@ int main(int argc, char *argv[]) {
 
     while (s != NULL) {
       printf("----------------------------------------------------------------------\n");
-      printf("name: \"%s\" file: %s\n", s->name, get_file_name(s->file_id));
-      printf("id   :  %d\n", s->id);
-      printf("addr :  %d\n", s->address);
-      printf("stat :  %d\n", s->status);
-      printf("bank :  %d\n", s->bank);
-      printf("base :  %d\n", s->base);
-      printf("slot :  %d\n", s->slot);
-      printf("size :  %d\n", s->size);
-      printf("align:  %d\n", s->alignment);
-      printf("alive:  %d\n", s->alive);
+      printf("name  : \"%s\"\n", s->name);
+      printf("file  : \"%s\"\n", get_file_name(s->file_id));
+      printf("id    : %d\n", s->id);
+      printf("addr  : %d\n", s->address);
+      printf("stat  : %d\n", s->status);
+      printf("bank  : %d\n", s->bank);
+      printf("base  : %d\n", s->base);
+      printf("slot  : %d\n", s->slot);
+      printf("size  : %d\n", s->size);
+      printf("align : %d\n", s->alignment);
+      printf("alive : %d\n", s->alive);
       printf("status: %s\n", section_status[s->status]);
       s = s->next;
     }
