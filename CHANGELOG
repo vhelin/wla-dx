@@ -3,8 +3,10 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (21-May-2019) [ALL] Deprecated section's size giving inside section's
+v9.8 (27-May-2019) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
+                   [ALL] Added support for prioritizing sections when
+                     placing them to the output ROM/PRG.
                    [ALL] The _sizeof_[label]s for labels that are followed by
                      a dotted .DSB etc. are now calculated correctly.
                    [ALL] The maximum allowed number of digits for floats is
@@ -1045,8 +1047,9 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.10 (16-May-2019) Added support for NO$SNES symbol files.
+v5.10 (27-May-2019) Added support for NO$SNES symbol files.
                     -d discards now also SUPERFREE sections.
+                    Added support for prioritizing sections.
 
    ... version history of v5.7 (02-Mar-2008) - v5.10 (28-Apr-2019)
        is missing...

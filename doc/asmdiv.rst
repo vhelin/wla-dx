@@ -2373,7 +2373,7 @@ Here's an example of an ordinary section::
 
     .BANK 0
     .ORG $150
-    .SECTION "Init" FREE
+    .SECTION "Init" FREE PRIORITY 1000
             DI
             LD  SP, $FFFE
             SUB A
@@ -2381,10 +2381,10 @@ Here's an example of an ordinary section::
     .ENDS
 
 This tells WLA that a ``FREE`` section called ``Init`` must be located
-somewhere in bank ``0``. If you replace ``FREE`` with ``SEMIFREE`` the section
-will be inserted somewhere in the bank ``0``, but not in the ``$0`` - ``$14F``
-area. If you replace ``FREE`` with ``SUPERFREE`` the section will be inserted
-somewhere in any bank with the same size as bank ``0``.
+somewhere in bank ``0`` and it has a sorting ``PRIORITY`` of 1000. If you replace
+``FREE`` with ``SEMIFREE`` the section will be inserted somewhere in the bank ``0``,
+but not in the ``$0`` - ``$14F`` area. If you replace ``FREE`` with ``SUPERFREE``
+the section will be inserted somewhere in any bank with the same size as bank ``0``.
 
 Here's the order in which WLA writes the sections:
 
@@ -2395,8 +2395,10 @@ Here's the order in which WLA writes the sections:
 5. ``OVERWRITE``
 
 Before the sections are inserted into the output file, they are sorted by
-size, so that the biggest section gets processed first and the smallest
-last.
+priorities, so that the section with the highest priority is processed first.
+If priorities are the same, then the size of the section matters, and bigger
+sections are processed before smaller ones. The default ``PRIORITY``, when not
+explicitly given, is 0.
 
 You can also create a RAM section. For more information about them, please
 read the ``.RAMSECTION`` directive explanation.
@@ -2422,7 +2424,7 @@ syntax to define these is identical to ``.ENUM`` (all the syntax rules that
 apply to ``.ENUM`` apply also to ``.RAMSECTION``). Additionally you can embed
 structures (``.STRUCT``) into a ``RAMSECTION``. Here's an example::
 
-    .RAMSECTION "Some of my variables" BANK 0 SLOT 1
+    .RAMSECTION "Some of my variables" BANK 0 SLOT 1 PRIORITY 100
     vbi_counter:   db
     player_lives:  db
     .ENDS
@@ -2431,6 +2433,11 @@ structures (``.STRUCT``) into a ``RAMSECTION``. Here's an example::
 RAM sections will occupy RAM banks inside slots. You can fill different slots
 with different variable labels. It's recommend that you create separate
 slots for holding variables (as ROM and RAM don't usually overlap).
+
+Keyword ``PRIORITY`` means just the same as ``PRIORITY`` of a ``.SECTION``,
+it is used to prioritize some sections when placing them in the output ROM/PRG.
+The ``RAMSECTION`` s with higher ``PRIORITY`` are placed first in the output,
+and if the priorities match, then bigger ``RAMSECTION`` s are placed first.
 
 NOTE! Currently WLA-DX assumes that there are 256 RAM banks available for
 each slot in the memory map. There is no other way to limit this number at the
@@ -2514,8 +2521,8 @@ This is not a compulsory directive.
 
 Ends the section.
 
-This is not a compulsory directive, but when ``.SECTION`` is used this one is
-required to terminate it.
+This is not a compulsory directive, but when ``.SECTION`` or ``.RAMSECTION``
+is used this one is required to terminate it.
 
 
 ``.ROMGBC``

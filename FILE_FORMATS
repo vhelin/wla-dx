@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file format "WLAR"
+WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file format "WLAS"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAR" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 18 (21-May-2019)
+        "WLAS" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 18 (27-May-2019)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -156,13 +156,14 @@ section:
   4     base (int)
   4     size (int)
   4     alignment (int)
+  4     priority (int)
   n     data
   1     list file information (0 == no, 1 == yes)
   n     list file information block (if present)
 
 
 
-WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file format "WLA1"
+WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file format "WLA2"
 
 
 bytes   description
@@ -170,7 +171,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLA1" - WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file version 15 (21-May-2019)
+        "WLA2" - WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file version 15 (27-May-2019)
 
 source file name list:
 
@@ -259,6 +260,7 @@ sections:
   1     file id
   4     number of bytes (int)
   4     alignment (int)
+  4     priority (int)
   n     data
   1     list file information (0 == no, 1 == yes)
   n     list file information block (if present)

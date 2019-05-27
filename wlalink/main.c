@@ -25,7 +25,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: WLALINK 5.10a (23.5.2019)";
+char version_string[] = "$VER: WLALINK 5.10a (27.5.2019)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -402,6 +402,17 @@ int main(int argc, char *argv[]) {
 #ifdef WLALINK_DEBUG
   if (sec_first != NULL) {
     struct section *s = sec_first;
+    char *section_status[] = {
+     "FREE",
+     "FORCE",
+     "OVERWRITE",
+     "HEADER",
+     "SEMIFREE",
+     "ABSOLUTE",
+     "RAM",
+     "SUPERFREE",
+     "SEMISUBFREE"
+    };
 
     printf("\n");
     printf("----------------------------------------------------------------------\n");
@@ -412,15 +423,16 @@ int main(int argc, char *argv[]) {
     while (s != NULL) {
       printf("----------------------------------------------------------------------\n");
       printf("name: \"%s\" file: %s\n", s->name, get_file_name(s->file_id));
-      printf("id   : %d\n", s->id);
-      printf("addr : %d\n", s->address);
-      printf("stat : %d\n", s->status);
-      printf("bank : %d\n", s->bank);
-      printf("base : %d\n", s->base);
-      printf("slot : %d\n", s->slot);
-      printf("size : %d\n", s->size);
-      printf("align: %d\n", s->alignment);
-      printf("alive: %d\n", s->alive);
+      printf("id   :  %d\n", s->id);
+      printf("addr :  %d\n", s->address);
+      printf("stat :  %d\n", s->status);
+      printf("bank :  %d\n", s->bank);
+      printf("base :  %d\n", s->base);
+      printf("slot :  %d\n", s->slot);
+      printf("size :  %d\n", s->size);
+      printf("align:  %d\n", s->alignment);
+      printf("alive:  %d\n", s->alive);
+      printf("status: %s\n", section_status[s->status]);
       s = s->next;
     }
     printf("----------------------------------------------------------------------\n");

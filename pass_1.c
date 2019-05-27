@@ -3193,6 +3193,7 @@ int directive_ramsection(void) {
     return FAILED;
   }
 
+  sec_tmp->priority = 0;
   sec_tmp->listfile_items = 0;
   sec_tmp->listfile_ints = NULL;
   sec_tmp->listfile_cmds = NULL;
@@ -3332,6 +3333,19 @@ int directive_ramsection(void) {
     append_sections = append_tmp;
   }
 
+  if (compare_next_token("PRIORITY") == SUCCEEDED) {
+    if (skip_next_token() == FAILED)
+      return FAILED;
+
+    inz = input_number();
+    if (inz != SUCCEEDED) {
+      print_error("Could not parse the .RAMSECTION priority.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    sec_tmp->priority = d;
+  }
+  
   in_ramsection = YES;
 
   /* generate a section start label? */
@@ -3373,7 +3387,8 @@ int directive_section(void) {
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
-
+  
+  sec_tmp->priority = 0;
   sec_tmp->listfile_items = 0;
   sec_tmp->listfile_ints = NULL;
   sec_tmp->listfile_cmds = NULL;
@@ -3618,6 +3633,19 @@ int directive_section(void) {
 
     append_tmp->next = append_sections;
     append_sections = append_tmp;
+  }
+
+  if (compare_next_token("PRIORITY") == SUCCEEDED) {
+    if (skip_next_token() == FAILED)
+      return FAILED;
+
+    inz = input_number();
+    if (inz != SUCCEEDED) {
+      print_error("Could not parse the .SECTION priority.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    sec_tmp->priority = d;
   }
 
   /* bankheader section? */

@@ -118,7 +118,7 @@ x:	db
 y:	db
 .endst
 
-.ramsection "Vars1" slot 0
+.ramsection "Vars1" slot 0 priority 1
 points1   instanceof point 1
 otherVar1 db
 .ends

@@ -986,7 +986,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLA1");
+    fprintf(final_ptr, "WLA2");
 
     if (export_source_file_names(final_ptr) == FAILED)
       return FAILED;
@@ -1150,7 +1150,9 @@ int pass_4(void) {
         WRITEOUT_OV;
         ov = sec_tmp->alignment;
         WRITEOUT_OV;
-
+	ov = sec_tmp->priority;
+	WRITEOUT_OV;
+	
         fwrite(sec_tmp->data, 1, sec_tmp->size, final_ptr);
 
         if (listfile_data == YES && sec_tmp->listfile_items > 0)
@@ -1172,7 +1174,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAR%c", emptyfill);
+    fprintf(final_ptr, "WLAS%c", emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -1530,6 +1532,8 @@ int pass_4(void) {
         WRITEOUT_OV;
         ov = sec_tmp->alignment;
         WRITEOUT_OV;
+	ov = sec_tmp->priority;
+	WRITEOUT_OV;
 
         fwrite(sec_tmp->data, 1, sec_tmp->size, final_ptr);
 

@@ -352,6 +352,7 @@ struct label_def {
 struct section_def {
   char name[MAX_NAME_LENGTH + 1];
   int  alignment;
+  int  priority;
   int  address; /* in bank */
   int  bank;
   int  base;

@@ -41,6 +41,11 @@ extern int num_sorted_anonymous_labels;
 
 static int _sections_sort(const void *a, const void *b) {
 
+  if ((*((struct section **)a))->priority < (*((struct section **)b))->priority)
+    return 1;
+  else if ((*((struct section **)a))->priority > (*((struct section **)b))->priority)
+    return -1;
+  
   if ((*((struct section **)a))->size < (*((struct section **)b))->size)
     return 1;
 

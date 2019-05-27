@@ -126,6 +126,7 @@ struct section {
   char name[MAX_NAME_LENGTH + 1];
   int  file_id;
   int  file_id_source;
+  int  priority;
   int  address;
   int  output_address;
   int  status;
