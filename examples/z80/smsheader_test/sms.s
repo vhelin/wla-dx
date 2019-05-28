@@ -30,9 +30,9 @@ NOTHING_3       DB
 .ENDS
 
 .ROMBANKMAP
-BANKSTOTAL 2
+BANKSTOTAL 4
 BANKSIZE $4000
-BANKS 2
+BANKS 4
 .ENDRO
 
 .EMPTYFILL $C9
@@ -249,6 +249,22 @@ dragon    INSTANCEOF mon   ; one mon
 
 	ld hl, dragon
 	call dragon
+
+;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+; .base test
+;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+
+.bank 2 slot 0
+.base 1
+
+.section "BaseTest" force
+
+	.db "DATA>"
+	.db :CADDR
+	.db 1 + :CADDR - 1
+	.db "<DATA"
+
+.ends
 
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 ; .incbin test
