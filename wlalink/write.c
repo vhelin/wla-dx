@@ -117,7 +117,7 @@ int insert_sections(void) {
   while (s != NULL) {
     if (s->status == SECTION_STATUS_RAM) {
       if (ram_slots[s->bank] == NULL) {
-	ram_slots[s->bank] = malloc(sizeof(char *) * 256);
+	ram_slots[s->bank] = calloc(sizeof(char *) * 256, 1);
 	if (ram_slots[s->bank] == NULL) {
 	  fprintf(stderr, "INSERT_SECTIONS: Out of memory error.\n");
 	  return FAILED;
@@ -126,7 +126,7 @@ int insert_sections(void) {
 	  ram_slots[s->bank][i] = NULL;
       }
       if (ram_slots[s->bank][s->slot] == NULL) {
-	ram_slots[s->bank][s->slot] = malloc(slots[s->slot].size);
+	ram_slots[s->bank][s->slot] = calloc(slots[s->slot].size, 1);
 	if (ram_slots[s->bank][s->slot] == NULL) {
 	  fprintf(stderr, "INSERT_SECTIONS: Out of memory error.\n");
 	  return FAILED;
@@ -150,7 +150,7 @@ int insert_sections(void) {
   if (sn == 0)
     return SUCCEEDED;
 
-  sa = malloc(sizeof(struct section *) * sn);
+  sa = calloc(sizeof(struct section *) * sn, 1);
   if (sa == NULL) {
     fprintf(stderr, "INSERT_SECTIONS: Out of memory error.\n");
     return FAILED;
@@ -835,7 +835,7 @@ int fix_references(void) {
         strcpy(lt.name, &r->name[1]);
         lt.address = r->address;
         lt.bank = r->bank;
-        lt.base = 0;
+	lt.base = r->base;
         lt.section_status = OFF;
         l = &lt;
       }
@@ -896,7 +896,7 @@ int fix_references(void) {
         strcpy(lt.name, r->name);
         lt.address = r->address;
         lt.bank = r->bank;
-        lt.base = 0;
+        lt.base = r->base;
         lt.section_status = OFF;
         l = &lt;
       }
@@ -1214,7 +1214,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
       fseek(outfile, 0, SEEK_END);
       outfile_size = (int)ftell(outfile);
       fseek(outfile, 0, SEEK_SET);
-      outfile_tmp = malloc(sizeof(char) * outfile_size);
+      outfile_tmp = calloc(sizeof(char) * outfile_size, 1);
       fread(outfile_tmp, 1, outfile_size, outfile);
       fclose(outfile);
       outfile_crc = crc32((unsigned char*)outfile_tmp, outfile_size);
@@ -1862,7 +1862,7 @@ int parse_stack(struct stack *sta) {
 	    k = l->bank;
 	}
 	else if (strcmp(&si->string[1], "CADDR") == 0 || strcmp(&si->string[1], "caddr") == 0) {
-	  k = sta->bank;
+	  k = sta->bank + sta->base;
 	  lt.status = LABEL_STATUS_DEFINE;
 	  l = &lt;
 	}
@@ -2075,7 +2075,7 @@ int sort_anonymous_labels() {
   if (num_sorted_anonymous_labels == 0)
     return SUCCEEDED;
 
-  sorted_anonymous_labels = malloc(sizeof(struct label *) * num_sorted_anonymous_labels);
+  sorted_anonymous_labels = calloc(sizeof(struct label *) * num_sorted_anonymous_labels, 1);
   if (sorted_anonymous_labels == NULL) {
     fprintf(stderr, "SORT_ANONYMOUS_LABELS: Out of memory error.\n");
     return FAILED;
@@ -2227,7 +2227,7 @@ int generate_sizeof_label_definitions(void) {
   if (labelsN <= 1)
     return SUCCEEDED;
 
-  labels = malloc(sizeof(struct label *) * labelsN);
+  labels = calloc(sizeof(struct label *) * labelsN, 1);
   if (labels == NULL) {
     fprintf(stderr, "GENERATE_SIZEOF_LABEL_DEFINITIONS: Out of memory error.\n");
     return FAILED;

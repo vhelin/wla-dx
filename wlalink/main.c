@@ -209,12 +209,12 @@ int main(int argc, char *argv[]) {
   if (obtain_rombanks() == FAILED)
     return 1;
 
-  banksizes = malloc(sizeof(int) * rombanks);
+  banksizes = calloc(sizeof(int) * rombanks, 1);
   if (banksizes == NULL) {
     fprintf(stderr, "MAIN: Out of memory error.\n");
     return 1;
   }
-  bankaddress = malloc(sizeof(int) * rombanks);
+  bankaddress = calloc(sizeof(int) * rombanks, 1);
   if (bankaddress == NULL) {
     fprintf(stderr, "MAIN: Out of memory error.\n");
     return 1;
@@ -868,12 +868,12 @@ int parse_and_set_libdir(char *c, int contains_flag) {
 
 int allocate_rom(void) {
 
-  rom = malloc(sizeof(unsigned char) * romsize);
+  rom = calloc(sizeof(unsigned char) * romsize, 1);
   if (rom == NULL) {
     fprintf(stderr, "ALLOCATE_ROM: Out of memory.\n");
     return FAILED;
   }
-  rom_usage = malloc(sizeof(unsigned char) * romsize);
+  rom_usage = calloc(sizeof(unsigned char) * romsize, 1);
   if (rom_usage == NULL) {
     fprintf(stderr, "ALLOCATE_ROM: Out of memory.\n");
     return FAILED;

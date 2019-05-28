@@ -67,7 +67,7 @@ struct label_sizeof *label_sizeof_tmp;
 
 char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 
-int pc_bank = 0, pc_full = 0, rom_bank, mem_insert_overwrite, slot, pc_slot, pc_slot_max;
+int pc_bank = 0, pc_full = 0, rom_bank, mem_insert_overwrite, slot = 0, base = 0, pc_slot, pc_slot_max;
 int filename_id, line_number;
 
 
@@ -125,7 +125,7 @@ int new_unknown_reference(int type) {
 
   label->bank = rom_bank;
   label->slot = slot;
-  label->base = 0;
+  label->base = base;
 
   /* outside bank header section */
   if (bankheader_status == OFF) {
@@ -195,8 +195,7 @@ int pass_4(void) {
   FILE *final_ptr;
   double dou;
   char *t, c;
-  int i, o, z, y, add_old = 0;
-  int x, q, ov, base = 0x00;
+  int i, o, z, y, add_old = 0, x, q, ov;
   float f;
 
   memset(parent_labels, 0, sizeof(parent_labels));
@@ -547,7 +546,8 @@ int pass_4(void) {
         stacks_tmp->bank = rom_bank;
         stacks_tmp->slot = slot;
         stacks_tmp->type = STACKS_TYPE_8BIT;
-
+        stacks_tmp->base = base;
+	
         if (mangle_stack_references(stacks_tmp) == FAILED)
           return FAILED;
 
@@ -595,7 +595,8 @@ int pass_4(void) {
         stacks_tmp->bank = rom_bank;
         stacks_tmp->slot = slot;
         stacks_tmp->type = STACKS_TYPE_16BIT;
-
+        stacks_tmp->base = base;
+	
         if (mangle_stack_references(stacks_tmp) == FAILED)
           return FAILED;
 
@@ -646,7 +647,8 @@ int pass_4(void) {
         stacks_tmp->bank = rom_bank;
         stacks_tmp->slot = slot;
         stacks_tmp->type = STACKS_TYPE_13BIT;
-
+        stacks_tmp->base = base;
+	
         if (mangle_stack_references(stacks_tmp) == FAILED)
           return FAILED;
 
@@ -1054,7 +1056,7 @@ int pass_4(void) {
       ov = label_tmp->linenumber;
       WRITEOUT_OV;
 
-      ov = label_tmp->address + (label_tmp->base << 16);
+      ov = label_tmp->address; /* + (label_tmp->base << 16); */
       WRITEOUT_OV;
 
       label_tmp = label_tmp->next;
@@ -1174,7 +1176,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAS%c", emptyfill);
+    fprintf(final_ptr, "WLAT%c", emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -1302,13 +1304,16 @@ int pass_4(void) {
            fprintf(stderr, "LABEL: \"%s\" SLOT: %d LINE: %d\n", label_tmp->label, label_tmp->slot, label_tmp->linenumber);
 	*/
 
-        ov = label_tmp->address + (label_tmp->base << 16);
+        ov = label_tmp->address;
         WRITEOUT_OV;
 
         ov = label_tmp->linenumber;
         WRITEOUT_OV;
 
         ov = label_tmp->bank;
+        WRITEOUT_OV;
+
+	ov = label_tmp->base;
         WRITEOUT_OV;
       }
       label_tmp = label_tmp->next;
@@ -1345,6 +1350,9 @@ int pass_4(void) {
       ov = label_tmp->bank;
       WRITEOUT_OV;
 
+      ov = label_tmp->base;
+      WRITEOUT_OV;
+
       label_tmp = label_tmp->next;
     }
 
@@ -1364,6 +1372,9 @@ int pass_4(void) {
       ov = label_tmp->bank;
       WRITEOUT_OV;
 
+      ov = label_tmp->base;
+      WRITEOUT_OV;
+      
       label_tmp = label_tmp->next;
     }
 
@@ -1392,6 +1403,9 @@ int pass_4(void) {
       ov = stacks_tmp->bank;
       WRITEOUT_OV;
 
+      ov = stacks_tmp->base;
+      WRITEOUT_OV;
+      
       for (ind = 0; ind < stacks_tmp->stacksize; ind++) {
         fprintf(final_ptr, "%c%c", stacks_tmp->stack[ind].type, stacks_tmp->stack[ind].sign);
         if (stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING) {

@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file format "WLAS"
+WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file format "WLAT"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAS" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 18 (27-May-2019)
+        "WLAT" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 20 (28-May-2019)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -74,6 +74,7 @@ labels, symbols and breakpoints:
   4     relative address (int)
   4     line number (int)
   4     bank number (int)
+  4     base (int)
   ...
 
 outside references:
@@ -89,6 +90,7 @@ outside references:
   4     line number (int)
   4     relative address (int)
   4     bank number (int)
+  4     base (int)
   ...
 
 pending calculations:
@@ -106,6 +108,7 @@ pending calculations:
   4     relative address (int)
   4     line number (int)
   4     bank number (int)
+  4     base (int)
   ...
   1     type (0 = value, 1 = operator, 2 = string, 3 = deleted, 4 = stack)
   1     sign (0 = positive, 1 = negative)
@@ -171,7 +174,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLA2" - WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file version 15 (27-May-2019)
+        "WLA2" - WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file version 16 (27-May-2019)
 
 source file name list:
 

@@ -165,6 +165,8 @@ bone:
 	.db "MARKER1"
 	sub	ixh
 	sub	ixl
+	.db :CADDR
+	.db 1 + :CADDR - 1
 	.db "MARKER2"
 
 __

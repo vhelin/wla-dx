@@ -27,7 +27,7 @@ int check_file_types(void) {
   
   o = obj_first;
   while (o != NULL) {
-    if (strncmp((char *)o->data, "WLAS", 4) == 0)
+    if (strncmp((char *)o->data, "WLAT", 4) == 0)
       o->format = WLA_VERSION_OBJ;
     else if (strncmp((char *)o->data, "WLA2", 4) == 0)
       o->format = WLA_VERSION_LIB;

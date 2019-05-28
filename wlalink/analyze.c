@@ -101,7 +101,7 @@ int add_section(struct section *s) {
   
   /* create a local copy of the data */
   if (s->size > 0) {
-    data = malloc(s->size);
+    data = calloc(s->size, 1);
     if (data == NULL) {
       fprintf(stderr, "%s: ADD_SECTION: Out of memory.\n", obj_tmp->name);
       return FAILED;
@@ -341,7 +341,7 @@ int obtain_source_file_names(void) {
 
     p = &(o->source_file_names_list);
     for (; x > 0; x--) {
-      s = malloc(sizeof(struct source_file_name));
+      s = calloc(sizeof(struct source_file_name), 1);
       if (s == NULL) {
 	fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	return FAILED;
@@ -351,7 +351,7 @@ int obtain_source_file_names(void) {
       for (m = t, z = 0; *m != 0; m++, z++)
 	;
 
-      s->name = malloc(z+1);
+      s->name = calloc(z+1, 1);
       if (s->name == NULL) {
 	free(s);
 	fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
@@ -559,9 +559,8 @@ int collect_dlr(void) {
 	}
 	l->address = READ_T;
 	l->linenumber = READ_T;
-	l->base = (((int)l->address) >> 16) & 0xFF;
-	l->address = ((int)l->address) & 0xFFFF;
 	l->bank = READ_T;
+	l->base = READ_T;
 	l->file_id = obj_tmp->id;
         l->section_struct = NULL;
 
@@ -572,7 +571,7 @@ int collect_dlr(void) {
 
       /* load references */
       for (; i > 0; i--) {
-	r = malloc(sizeof(struct reference));
+	r = calloc(sizeof(struct reference), 1);
 	if (r == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
@@ -594,6 +593,7 @@ int collect_dlr(void) {
 	r->linenumber = READ_T;
 	r->address = READ_T;
 	r->bank = READ_T;
+	r->base = READ_T;
 
 	add_reference(r);
       }
@@ -602,7 +602,7 @@ int collect_dlr(void) {
 
       /* load pending calculations */
       for (; i > 0; i--) {
-	s = malloc(sizeof(struct stack));
+	s = calloc(sizeof(struct stack), 1);
 	if (s == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
@@ -624,9 +624,10 @@ int collect_dlr(void) {
 	s->address = READ_T;
 	s->linenumber = READ_T;
 	s->bank = READ_T;
+	s->base = READ_T;
 	s->stacksize = x;
 	
-	s->stack = malloc(sizeof(struct stack_item) * x);
+	s->stack = calloc(sizeof(struct stack_item) * x, 1);
 	if (s->stack == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  free(s);
@@ -657,7 +658,7 @@ int collect_dlr(void) {
       while (i > 0) {
 	i--;
 
-	ls = calloc(1, sizeof(struct label_sizeof));
+	ls = calloc(sizeof(struct label_sizeof), 1);
 	if (ls == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
@@ -736,7 +737,7 @@ int collect_dlr(void) {
 	l->address = dou;
 	l->bank = obj_tmp->bank;
 	l->slot = obj_tmp->slot;
-	l->base = 0;
+	l->base = obj_tmp->base;
 	l->file_id = obj_tmp->id;
 	l->section_status = OFF;
 
@@ -775,8 +776,7 @@ int collect_dlr(void) {
 	l->linenumber = READ_T;
 	l->section_status = ON;
 	l->address = READ_T;
-	l->base = (((int)l->address) >> 16) & 0xFF;
-	l->address = ((int)l->address) & 0xFFFF;
+	l->base = obj_tmp->base; /* (((int)l->address) >> 16) & 0xFF; */
 	l->bank = obj_tmp->bank;
 	l->slot = obj_tmp->slot;
 	l->file_id = obj_tmp->id;
@@ -788,7 +788,7 @@ int collect_dlr(void) {
 
       /* load references */
       for (; i > 0; i--) {
-	r = malloc(sizeof(struct reference));
+	r = calloc(sizeof(struct reference), 1);
 	if (r == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
@@ -807,6 +807,7 @@ int collect_dlr(void) {
 
 	r->bank = obj_tmp->bank;
 	r->slot = obj_tmp->slot;
+	r->base = obj_tmp->base;
 
 	add_reference(r);
       }
@@ -815,7 +816,7 @@ int collect_dlr(void) {
 
       /* load pending calculations */
       for (; i > 0; i--) {
-	s = malloc(sizeof(struct stack));
+	s = calloc(sizeof(struct stack), 1);
 	if (s == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;
@@ -834,8 +835,9 @@ int collect_dlr(void) {
 	s->stacksize = x;
 	s->bank = obj_tmp->bank;
 	s->slot = obj_tmp->slot;
+	s->base = obj_tmp->base;
 
-	s->stack = malloc(sizeof(struct stack_item) * x);
+	s->stack = calloc(sizeof(struct stack_item) * x, 1);
 	if (s->stack == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  free(s);
@@ -965,7 +967,7 @@ int merge_sections(void) {
     else {
       /* merge data */
       size = s_source->size + s_target->size;
-      data = malloc(size);
+      data = calloc(size, 1);
       if (data == NULL) {
 	fprintf(stderr, "MERGE_SECTIONS: Out of memory while merging \"%s\" -> \"%s\" append.\n", as->section, as->append_to);
 	return FAILED;
@@ -1059,7 +1061,7 @@ int parse_data_blocks(void) {
               return FAILED;
         }
         else if (x == DATA_TYPE_SECTION) {
-          s = malloc(sizeof(struct section));
+          s = calloc(sizeof(struct section), 1);
           if (s == NULL) {
             fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
             return FAILED;
@@ -1085,7 +1087,7 @@ int parse_data_blocks(void) {
 
             hashmap_get(namespace_map, buf, (void*)&nspace);
             if (nspace == NULL) {
-              nspace = malloc(sizeof(struct namespace_def));
+              nspace = calloc(sizeof(struct namespace_def), 1);
               if (nspace == NULL) {
                 fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
                 return FAILED;
@@ -1130,7 +1132,7 @@ int parse_data_blocks(void) {
       t = obj_tmp->data_blocks;
       p = obj_tmp->data + obj_tmp->size;
       for ( ; t < p; ) {
-        s = malloc(sizeof(struct section));
+        s = calloc(sizeof(struct section), 1);
         if (s == NULL) {
           fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
           return FAILED;
@@ -1156,7 +1158,7 @@ int parse_data_blocks(void) {
 
           hashmap_get(namespace_map, buf, (void*)&nspace);
           if (nspace == NULL) {
-            nspace = malloc(sizeof(struct namespace_def));
+            nspace = calloc(sizeof(struct namespace_def), 1);
             if (nspace == NULL) {
               fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
               return FAILED;

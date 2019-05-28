@@ -216,7 +216,7 @@ int load_files(char *argv[], int argc) {
       }
 
       /* add a new entry */
-      sec_fix_tmp = malloc(sizeof(struct section_fix));
+      sec_fix_tmp = calloc(sizeof(struct section_fix), 1);
       if (sec_fix_tmp == NULL) {
 	fprintf(stderr, "%s:%d: LOAD_FILES: Out of memory error.\n", argv[argc - 2], line);
 	return FAILED;	
@@ -356,8 +356,8 @@ int load_file(char *file_name, int bank, int slot, int base, int base_defined) {
   int size;
 
   
-  o = malloc(sizeof(struct object_file));
-  name = malloc(strlen(file_name)+1);
+  o = calloc(sizeof(struct object_file), 1);
+  name = calloc(strlen(file_name)+1, 1);
   if (o == NULL || name == NULL) {
     if (o != NULL)
       free(o);
@@ -422,7 +422,7 @@ int load_file_data(char *file_name, unsigned char **data, int *size) {
   *size = (int)ftell(fop);
   fseek(fop, 0, SEEK_SET);
 
-  *data = malloc(*size);
+  *data = calloc(*size, 1);
   if (*data == NULL)
     return FAILED;
 

@@ -103,7 +103,7 @@ int listfile_write_listfiles(struct section *e) {
   }
 
   /* create pointers for sorting */
-  l = malloc(sizeof(struct listfileitem *) * i);
+  l = calloc(sizeof(struct listfileitem *) * i, 1);
   if (l == NULL) {
     fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
     return FAILED;
@@ -124,7 +124,7 @@ int listfile_write_listfiles(struct section *e) {
     n = (int)ftell(f);
     fseek(f, 0, SEEK_SET);
 
-    b = malloc(n);
+    b = calloc(n, 1);
     if (b == NULL) {
       fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
       fclose(f);
@@ -290,8 +290,8 @@ int listfile_block_read(unsigned char **d, struct section *s) {
   t = *d;
   t++;
   s->listfile_items = READ_T;
-  s->listfile_cmds = malloc(s->listfile_items);
-  s->listfile_ints = malloc(sizeof(int) * s->listfile_items*2);
+  s->listfile_cmds = calloc(s->listfile_items, 1);
+  s->listfile_ints = calloc(sizeof(int) * s->listfile_items*2, 1);
 
   if (s->listfile_cmds == NULL || s->listfile_ints == NULL) {
     s->listfile_items = 0;

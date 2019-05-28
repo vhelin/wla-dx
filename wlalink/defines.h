@@ -115,6 +115,7 @@ struct reference {
   int  section_status;
   int  bank;
   int  slot;
+  int  base;
   int  file_id;
   int  file_id_source;
   int  linenumber;
@@ -183,6 +184,7 @@ struct stack {
   int type;
   int bank;
   int slot;
+  int base;
   int section_status;
   int section;
   int address;
