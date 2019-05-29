@@ -62,8 +62,8 @@ int listfile_collect(void) {
       command = 0;
 
       /* allocate the listfile data */
-      section->listfile_ints = malloc(sizeof(int) * section->listfile_items*2);
-      section->listfile_cmds = malloc(section->listfile_items);
+      section->listfile_ints = calloc(sizeof(int) * section->listfile_items*2, 1);
+      section->listfile_cmds = calloc(section->listfile_items, 1);
       if (section->listfile_ints == NULL || section->listfile_cmds == NULL) {
 	fprintf(stderr, "LISTFILE_COLLECT: Out of memory error.\n");
 	return FAILED;

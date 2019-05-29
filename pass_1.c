@@ -328,9 +328,9 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
     return FAILED;
 
   mrt = &macro_stack[macro_active];
-  mrt->argument_data = malloc(sizeof(struct macro_argument *) << 1);
-  mrt->argument_data[0] = malloc(sizeof(struct macro_argument));
-  mrt->argument_data[1] = malloc(sizeof(struct macro_argument));
+  mrt->argument_data = calloc(sizeof(struct macro_argument *) << 1, 1);
+  mrt->argument_data[0] = calloc(sizeof(struct macro_argument), 1);
+  mrt->argument_data[1] = calloc(sizeof(struct macro_argument), 1);
   if (mrt->argument_data == NULL || mrt->argument_data[0] == NULL || mrt->argument_data[1] == NULL) {
     print_error("Out of memory error while collecting macro arguments.\n", ERROR_NONE);
     return FAILED;
@@ -403,9 +403,9 @@ int macro_start_incbin(struct macro_static *m, struct macro_incbin *incbin_data,
   else
     mrt->offset++;
 
-  mrt->argument_data = malloc(sizeof(struct macro_argument *) << 1);
-  mrt->argument_data[0] = malloc(sizeof(struct macro_argument));
-  mrt->argument_data[1] = malloc(sizeof(struct macro_argument));
+  mrt->argument_data = calloc(sizeof(struct macro_argument *) << 1, 1);
+  mrt->argument_data[0] = calloc(sizeof(struct macro_argument), 1);
+  mrt->argument_data[1] = calloc(sizeof(struct macro_argument), 1);
   if (mrt->argument_data == NULL || mrt->argument_data[0] == NULL || mrt->argument_data[1] == NULL) {
     print_error("Out of memory error while collecting macro arguments.\n", ERROR_NONE);
     return FAILED;
@@ -654,7 +654,7 @@ int pass_1(void) {
           break;
 
         mrt->argument_data = realloc(mrt->argument_data, (p+1)*sizeof(struct macro_argument *));
-        mrt->argument_data[p] = malloc(sizeof(struct macro_argument));
+        mrt->argument_data[p] = calloc(sizeof(struct macro_argument), 1);
         if (mrt->argument_data == NULL || mrt->argument_data[p] == NULL) {
           print_error("Out of memory error while collecting macro arguments.\n", ERROR_NONE);
           return FAILED;
@@ -986,7 +986,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
     return FAILED;
   }
 
-  d = malloc(sizeof(struct definition));
+  d = calloc(sizeof(struct definition), 1);
   if (d == NULL) {
     sprintf(emsg, "Out of memory while trying to add a new definition (\"%s\").\n", name);
     if (commandline_parsing == OFF)
@@ -2863,7 +2863,7 @@ int directive_incbin(void) {
     struct incbin_file_data *ifd;
     struct macro_incbin *min;
 
-    min = malloc(sizeof(struct macro_incbin));
+    min = calloc(sizeof(struct macro_incbin), 1);
     if (min == NULL) {
       print_error("Out of memory error while starting to filter the .INCBINed data.\n", ERROR_NONE);
       return FAILED;
@@ -2893,7 +2893,7 @@ int directive_struct(void) {
   char name[512], bak[256];
   int ssi = 0, q;
 
-  st = malloc(sizeof(struct structure));
+  st = calloc(sizeof(struct structure), 1);
   if (st == NULL) {
     print_error("Out of memory while allocating a new STRUCT.\n", ERROR_DIR);
     return FAILED;
@@ -2965,7 +2965,7 @@ int directive_struct(void) {
       ss = ss->next;
     }
 
-    si = malloc(sizeof(struct structure_item));
+    si = calloc(sizeof(struct structure_item), 1);
     if (si == NULL) {
       print_error("Out of memory while allocating a new STRUCT.\n", ERROR_DIR);
       return FAILED;
@@ -3060,7 +3060,7 @@ int directive_struct(void) {
                   
 	    if (j == 0 && arr > 1) {
 	      /* add 0 size labels for the first elements */
-	      sj = malloc(sizeof(struct structure_item));
+	      sj = calloc(sizeof(struct structure_item), 1);
 	      if (sj == NULL) {
 		print_error("Out of memory while allocating a nested STRUCT.\n", ERROR_DIR);
 		return FAILED;
@@ -3080,7 +3080,7 @@ int directive_struct(void) {
 	    }
                   
 	    /* add items for each of the structure item entries. combine si->name with the structure item name. */
-	    sj = malloc(sizeof(struct structure_item));
+	    sj = calloc(sizeof(struct structure_item), 1);
 	    if (sj == NULL) {
 	      print_error("Out of memory while allocating a nested STRUCT.\n", ERROR_DIR);
 	      return FAILED;
@@ -3685,7 +3685,7 @@ int directive_fopen(void) {
   /* convert the path to local enviroment */
   localize_path(label);
 
-  c = malloc(strlen(label) + 1);
+  c = calloc(strlen(label) + 1, 1);
   if (c == NULL) {
     print_error("Out of memory error.\n", ERROR_DIR);
     return FAILED;
@@ -3717,7 +3717,7 @@ int directive_fopen(void) {
   }
   else {
     /* allocate a new filepointer */
-    f = malloc(sizeof(struct filepointer));
+    f = calloc(sizeof(struct filepointer), 1);
     if (f == NULL) {
       print_error("Out of memory error.\n", ERROR_DIR);
       return FAILED;
@@ -4048,8 +4048,8 @@ int directive_rombanks(void) {
   if (rom_banks_usage_table != NULL)
     free(rom_banks_usage_table);
 
-  rom_banks = malloc(sizeof(unsigned char) * max_address);
-  rom_banks_usage_table = malloc(sizeof(unsigned char) * max_address);
+  rom_banks = calloc(sizeof(unsigned char) * max_address, 1);
+  rom_banks_usage_table = calloc(sizeof(unsigned char) * max_address, 1);
   if (rom_banks == NULL || rom_banks_usage_table == NULL) {
     print_error("Out of memory while allocating ROM banks.\n", ERROR_DIR);
     return FAILED;
@@ -4062,8 +4062,8 @@ int directive_rombanks(void) {
   if (bankaddress != NULL)
     free(bankaddress);
 
-  banks = malloc(sizeof(int) * rombanks);
-  bankaddress = malloc(sizeof(int) * rombanks);
+  banks = calloc(sizeof(int) * rombanks, 1);
+  bankaddress = calloc(sizeof(int) * rombanks, 1);
   if (banks == NULL || bankaddress == NULL) {
     print_error("Out of memory while allocating ROM banks.\n", ERROR_DIR);
     return FAILED;
@@ -4211,8 +4211,8 @@ int directive_rombankmap(void) {
 	  return FAILED;
 	}
 
-	banks = malloc(sizeof(int) * d);
-	bankaddress = malloc(sizeof(int) * d);
+	banks = calloc(sizeof(int) * d, 1);
+	bankaddress = calloc(sizeof(int) * d, 1);
 	if (banks == NULL || bankaddress == NULL) {
 	  print_error("Out of memory while allocating ROM banks.\n", ERROR_DIR);
 	  return FAILED;
@@ -4338,8 +4338,8 @@ int directive_rombankmap(void) {
   if (rom_banks_usage_table != NULL)
     free(rom_banks_usage_table);
 
-  rom_banks = malloc(sizeof(unsigned char) * max_address);
-  rom_banks_usage_table = malloc(sizeof(unsigned char) * max_address);
+  rom_banks = calloc(sizeof(unsigned char) * max_address, 1);
+  rom_banks_usage_table = calloc(sizeof(unsigned char) * max_address, 1);
   if (rom_banks == NULL || rom_banks_usage_table == NULL) {
     print_error("Out of memory while allocating ROM banks.\n", ERROR_DIR);
     return FAILED;
@@ -5532,7 +5532,7 @@ int directive_macro(void) {
     return FAILED;
   }
 
-  m = malloc(sizeof(struct macro_static));
+  m = calloc(sizeof(struct macro_static), 1);
   if (m == NULL) {
     print_error("Out of memory while allocating room for a new MACRO.\n", ERROR_DIR);
     return FAILED;
@@ -5579,7 +5579,7 @@ int directive_macro(void) {
 	print_error("Out of memory error.\n", ERROR_NONE);
 	return FAILED;
       }
-      m->argument_names[q-1] = malloc(strlen(tmp)+1);
+      m->argument_names[q-1] = calloc(strlen(tmp)+1, 1);
       if (m->argument_names[q-1] == NULL) {
 	print_error("Out of memory error.\n", ERROR_NONE);
 	return FAILED;
@@ -8605,7 +8605,7 @@ int export_a_definition(char *name) {
     export = export->next;
   }
 
-  export = malloc(sizeof(struct export_def));
+  export = calloc(sizeof(struct export_def), 1);
   if (export == NULL) {
     sprintf(emsg, "Out of memory while allocating room for \".EXPORT %s\".\n", name);
     print_error(emsg, ERROR_DIR);

@@ -929,7 +929,7 @@ int stack_calculate(char *in, int *value) {
 #endif
 
   /* we have a stack full of computation and we save it for wlalink */
-  stacks_tmp = malloc(sizeof(struct stack));
+  stacks_tmp = calloc(sizeof(struct stack), 1);
   if (stacks_tmp == NULL) {
     print_error("Out of memory error while allocating room for a new stack.\n", ERROR_STC);
     return FAILED;
@@ -939,7 +939,7 @@ int stack_calculate(char *in, int *value) {
   stacks_tmp->bank = -123456;
   stacks_tmp->stacksize = d;
   stacks_tmp->relative_references = 0;
-  stacks_tmp->stack = malloc(sizeof(struct stack_item) * d);
+  stacks_tmp->stack = calloc(sizeof(struct stack_item) * d, 1);
   if (stacks_tmp->stack == NULL) {
     free(stacks_tmp);
     print_error("Out of memory error while allocating room for a new stack.\n", ERROR_STC);
@@ -1208,7 +1208,7 @@ int stack_create_label_stack(char *label) {
     return FAILED;
 
   /* we need to create a stack that holds just one label */
-  stacks_tmp = malloc(sizeof(struct stack));
+  stacks_tmp = calloc(sizeof(struct stack), 1);
   if (stacks_tmp == NULL) {
     print_error("Out of memory error while allocating room for a new stack.\n", ERROR_STC);
     return FAILED;
@@ -1218,7 +1218,7 @@ int stack_create_label_stack(char *label) {
   stacks_tmp->bank = -123456;
   stacks_tmp->stacksize = 1;
   stacks_tmp->relative_references = 0;
-  stacks_tmp->stack = malloc(sizeof(struct stack_item));
+  stacks_tmp->stack = calloc(sizeof(struct stack_item), 1);
   if (stacks_tmp->stack == NULL) {
     free(stacks_tmp);
     print_error("Out of memory error while allocating room for a new stack.\n", ERROR_STC);

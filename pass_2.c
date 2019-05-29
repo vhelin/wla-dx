@@ -461,7 +461,7 @@ void write_snes_cartridge_information(int start) {
 
 int create_a_new_section_structure(void) {
 
-  sec_tmp = malloc(sizeof(struct section_def));
+  sec_tmp = calloc(sizeof(struct section_def), 1);
   if (sec_tmp == NULL) {
     print_error("Out of memory while allocating room for a new SECTION.\n", ERROR_DIR);
     return FAILED;

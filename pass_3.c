@@ -116,7 +116,7 @@ int pass_3(void) {
 	continue;
 
       case 'g':
-	b = malloc(sizeof(struct block));
+	b = calloc(sizeof(struct block), 1);
 	if (b == NULL) {
 	  fscanf(f_in, STRING_READ_FORMAT, tmp);
 	  fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for block \"%s\".\n",
@@ -143,10 +143,9 @@ int pass_3(void) {
       case 'Z': /* breakpoint */
       case 'Y': /* symbol */
       case 'L': /* label */
-	l = malloc(sizeof(struct label_def));
-
+	l = calloc(sizeof(struct label_def), 1);
 	if (l == NULL) {
-		fscanf(f_in, STRING_READ_FORMAT, tmp);
+	  fscanf(f_in, STRING_READ_FORMAT, tmp);
 	  fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for label \"%s\".\n",
 		  get_file_name(file_name_id), line_number, tmp);
 	  return FAILED;
@@ -523,7 +522,7 @@ int pass_3(void) {
       continue;
 
     case 'g':
-      b = malloc(sizeof(struct block));
+      b = calloc(sizeof(struct block), 1);
       if (b == NULL) {
 	fscanf(f_in, STRING_READ_FORMAT, tmp);
 	fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for block \"%s\".\n",
@@ -550,7 +549,7 @@ int pass_3(void) {
     case 'Z': /* Breakpoint */
     case 'Y': /* Symbol */
     case 'L': /* Label */
-      l = malloc(sizeof(struct label_def));
+      l = calloc(sizeof(struct label_def), 1);
       if (l == NULL) {
 	fscanf(f_in, STRING_READ_FORMAT, tmp);
 	fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for label \"%s\".\n",

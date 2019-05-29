@@ -33,7 +33,7 @@ typedef struct _hashmap_map{
  */
 map_t hashmap_new() {
 
-  hashmap_map* m = (hashmap_map*) malloc(sizeof(hashmap_map));
+  hashmap_map* m = (hashmap_map*) calloc(sizeof(hashmap_map), 1);
   if (!m)
     goto err;
 

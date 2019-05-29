@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
   fs = ftell(fp);
   fseek(fp, 0, SEEK_SET);
 
-  in = malloc(sizeof(char) * fs);
+  in = calloc(sizeof(char) * fs, 1);
   if (in == NULL) {
     fprintf(stderr, "MAIN: Out of memory. Could not allocate %d bytes.\n", fs);
     fclose(fp);

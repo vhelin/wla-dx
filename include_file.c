@@ -152,7 +152,7 @@ int include_file(char *name) {
   file_size = (int)ftell(f);
   fseek(f, 0, SEEK_SET);
 
-  active_file_info_tmp = malloc(sizeof(struct active_file_info));
+  active_file_info_tmp = calloc(sizeof(struct active_file_info), 1);
   if (active_file_info_tmp == NULL) {
     sprintf(emsg, "Out of memory while trying allocate error tracking data structure for file \"%s\".\n", full_name);
     print_error(emsg, ERROR_INC);
@@ -186,8 +186,8 @@ int include_file(char *name) {
   }
 
   if (id == 0) {
-    file_name_info_tmp = malloc(sizeof(struct file_name_info));
-    n = malloc(strlen(full_name)+1);
+    file_name_info_tmp = calloc(sizeof(struct file_name_info), 1);
+    n = calloc(strlen(full_name)+1, 1);
     if (file_name_info_tmp == NULL || n == NULL) {
       if (file_name_info_tmp != NULL)
 	free(file_name_info_tmp);
@@ -220,7 +220,7 @@ int include_file(char *name) {
     if (include_in_tmp != NULL)
       free(include_in_tmp);
 
-    include_in_tmp = malloc(sizeof(char) * file_size);
+    include_in_tmp = calloc(sizeof(char) * file_size, 1);
     if (include_in_tmp == NULL) {
       sprintf(emsg, "Out of memory while trying to allocate room for \"%s\".\n", full_name);
       print_error(emsg, ERROR_INC);
@@ -238,7 +238,7 @@ int include_file(char *name) {
   file_name_info_tmp->checksum = crc32((unsigned char*)include_in_tmp, file_size);
 
   if (size == 0) {
-    buffer = malloc(sizeof(char) * (file_size + 4));
+    buffer = calloc(sizeof(char) * (file_size + 4), 1);
     if (buffer == NULL) {
       sprintf(emsg, "Out of memory while trying to allocate room for \"%s\".\n", full_name);
       print_error(emsg, ERROR_INC);
@@ -258,7 +258,7 @@ int include_file(char *name) {
     return SUCCEEDED;
   }
 
-  tmp_b = malloc(sizeof(char) * (size + file_size + 4));
+  tmp_b = calloc(sizeof(char) * (size + file_size + 4), 1);
   if (tmp_b == NULL) {
     sprintf(emsg, "Out of memory while trying to expand the project to incorporate file \"%s\".\n", full_name);
     print_error(emsg, ERROR_INC);
@@ -270,7 +270,7 @@ int include_file(char *name) {
     if (tmp_a != NULL)
       free(tmp_a);
 
-    tmp_a = malloc(sizeof(char) * (file_size + 4));
+    tmp_a = calloc(sizeof(char) * (file_size + 4), 1);
     if (tmp_a == NULL) {
       sprintf(emsg, "Out of memory while allocating new room for \"%s\".\n", full_name);
       print_error(emsg, ERROR_INC);
@@ -369,9 +369,9 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   file_size = (int)ftell(f);
   fseek(f, 0, SEEK_SET);
 
-  ifd = (struct incbin_file_data *)malloc(sizeof(struct incbin_file_data));
-  n = malloc(sizeof(char) * (strlen(full_name)+1));
-  in_tmp = (char *)malloc(sizeof(char) * file_size);
+  ifd = (struct incbin_file_data *)calloc(sizeof(struct incbin_file_data), 1);
+  n = calloc(sizeof(char) * (strlen(full_name)+1), 1);
+  in_tmp = (char *)calloc(sizeof(char) * file_size, 1);
   if (ifd == NULL || n == NULL || in_tmp == NULL) {
     if (ifd != NULL)
       free(ifd);

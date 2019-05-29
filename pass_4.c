@@ -96,7 +96,7 @@ int new_unknown_reference(int type) {
       return FAILED;
   }
 
-  label = malloc(sizeof(struct label_def));
+  label = calloc(sizeof(struct label_def), 1);
   if (label == NULL) {
     fprintf(stderr, "%s:%d: NEW_UNKNOWN_REFERENCE: Out of memory.\n", get_file_name(filename_id), line_number);
     return FAILED;
@@ -269,8 +269,7 @@ int pass_4(void) {
           }
         }
 
-        sec_tmp->data = malloc(sizeof(unsigned char) * sec_tmp->size);
-
+        sec_tmp->data = calloc(sizeof(unsigned char) * sec_tmp->size, 1);
         if (sec_tmp->data == NULL) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Out of memory when trying to allocate room for section \"%s\".\n",
 		  get_file_name(filename_id), line_number, sec_tmp->name);

@@ -41,28 +41,28 @@ long __stack = 200000;
 #endif
 
 #ifdef GB
-char version_string[] = "$VER: WLA-GB 9.8a (27.5.2019)";
+char version_string[] = "$VER: WLA-GB 9.8a (29.5.2019)";
 #endif
 #ifdef Z80
-char version_string[] = "$VER: WLA-Z80 9.8a (27.5.2019)";
+char version_string[] = "$VER: WLA-Z80 9.8a (29.5.2019)";
 #endif
 #ifdef MCS6502
-char version_string[] = "$VER: WLA-6502 9.8a (27.5.2019)";
+char version_string[] = "$VER: WLA-6502 9.8a (29.5.2019)";
 #endif
 #ifdef WDC65C02
-char version_string[] = "$VER: WLA-65C02 9.8a (27.5.2019)";
+char version_string[] = "$VER: WLA-65C02 9.8a (29.5.2019)";
 #endif
 #ifdef W65816
-char version_string[] = "$VER: WLA-65816 9.8a (27.5.2019)";
+char version_string[] = "$VER: WLA-65816 9.8a (29.5.2019)";
 #endif
 #ifdef MCS6510
-char version_string[] = "$VER: WLA-6510 9.8a (27.5.2019)";
+char version_string[] = "$VER: WLA-6510 9.8a (29.5.2019)";
 #endif
 #ifdef SPC700
-char version_string[] = "$VER: WLA-SPC700 9.8a (27.5.2019)";
+char version_string[] = "$VER: WLA-SPC700 9.8a (29.5.2019)";
 #endif
 #ifdef HUC6280
-char version_string[] = "$VER: WLA-HuC6280 9.8a (27.5.2019)";
+char version_string[] = "$VER: WLA-HuC6280 9.8a (29.5.2019)";
 #endif
 
 char wla_version[] = "9.8a";
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
       if (parse_flags_result == SUCCEEDED) {
         /* assume object file output name */
         output_format = OUTPUT_OBJECT;
-        final_name = malloc(strlen(asm_name)+1);
+        final_name = calloc(strlen(asm_name)+1, 1);
         for (n_ctr = 0; n_ctr < (int)strlen(asm_name) && *((asm_name) + n_ctr) != '.'; n_ctr++)
           final_name[n_ctr] = *((asm_name) + n_ctr);
 	final_name[n_ctr++] = '.';
@@ -241,7 +241,7 @@ int parse_flags(char **flags, int flagc) {
       output_format = OUTPUT_OBJECT;
       if (count + 1 < flagc) {
         /* set output */
-        final_name = malloc(strlen(flags[count+1])+1);
+        final_name = calloc(strlen(flags[count+1])+1, 1);
         strcpy(final_name, flags[count+1]);
       }
       else
@@ -256,7 +256,7 @@ int parse_flags(char **flags, int flagc) {
       output_format = OUTPUT_LIBRARY;
       if (count + 1 < flagc) {
         /* set output */
-        final_name = malloc(strlen(flags[count+1])+1);
+        final_name = calloc(strlen(flags[count+1])+1, 1);
         strcpy(final_name, flags[count+1]);
       }
       else
@@ -269,7 +269,7 @@ int parse_flags(char **flags, int flagc) {
       if (count + 1 < flagc) {
         if (count + 3 < flagc) {
           if (!strcmp(flags[count+2], "=")) {
-            str_build = malloc(strlen(flags[count+1])+strlen(flags[count+3])+2);
+            str_build = calloc(strlen(flags[count+1])+strlen(flags[count+3])+2, 1);
             sprintf(str_build, "%s=%s", flags[count+1], flags[count+3]);
             parse_and_add_definition(str_build, NO);
             free(str_build);
@@ -327,7 +327,7 @@ int parse_flags(char **flags, int flagc) {
     }
     else {
       if (count == flagc - 1) {
-	asm_name = malloc(strlen(flags[count]) + 1);
+	asm_name = calloc(strlen(flags[count]) + 1, 1);
 	strcpy(asm_name, flags[count]);
 	count++;
 	asm_name_def++;
