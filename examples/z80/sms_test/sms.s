@@ -88,7 +88,7 @@ _start:
 
 -  .dw caddr, CADDR
   .db $ff, $ff, :caddr, :CADDR, $ff, $ff
-  .dw $aaaa, $bbbb, $cccc
+  .dw $aaaa, $bbbb, :CADDR, $cccc
   ldbc _dataend-_data,$be
   .dw $ffff
   .dw _data+1

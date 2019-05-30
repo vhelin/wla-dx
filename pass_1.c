@@ -2319,8 +2319,9 @@ int directive_asc(void) {
 
 int directive_dw_word_addr(void) {
 
-  int line_number_output = NO;
   char bak[256];
+
+  fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
 
   strcpy(bak, cp);
 
@@ -2334,14 +2335,8 @@ int directive_dw_word_addr(void) {
 
     if (inz == SUCCEEDED)
       fprintf(file_out_ptr, "y%d", d);
-    else if (inz == INPUT_NUMBER_ADDRESS_LABEL) {
-      if (line_number_output == NO) {
-	/* this is for listfiles */
-	line_number_output = YES;
-	fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
-      }
+    else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
       fprintf(file_out_ptr, "r%s ", label);
-    }
     else if (inz == INPUT_NUMBER_STACK)
       fprintf(file_out_ptr, "C%d ", latest_stack);
 
@@ -2367,9 +2362,10 @@ int directive_dw_word_addr(void) {
 #ifdef W65816
 
 int directive_dl_long_faraddr(void) {
-      
-  int line_number_output = NO;
+
   char bak[256];
+
+  fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
 
   strcpy(bak, cp);
 
@@ -2383,14 +2379,8 @@ int directive_dl_long_faraddr(void) {
 
     if (inz == SUCCEEDED)
       fprintf(file_out_ptr, "z%d ", d);
-    else if (inz == INPUT_NUMBER_ADDRESS_LABEL) {
-      if (line_number_output == NO) {
-	/* this is for listfiles */
-	line_number_output = YES;
-	fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
-      }
+    else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
       fprintf(file_out_ptr, "q%s ", label);
-    }
     else if (inz == INPUT_NUMBER_STACK)
       fprintf(file_out_ptr, "T%d ", latest_stack);
 
