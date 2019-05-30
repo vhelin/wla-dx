@@ -79,6 +79,10 @@
 /* G - block (end)         */
 /* Y - symbol              */
 /* Z - breakpoint          */
+/* i - macro call start    */
+/* I - macro call end      */
+/* j - rept start          */
+/* J - rept end            */
 
 /**************************************************************/
 /* gb-z80                                                     */

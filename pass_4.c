@@ -195,7 +195,7 @@ int pass_4(void) {
   FILE *final_ptr;
   double dou;
   char *t, c;
-  int i, o, z, y, add_old = 0, x, q, ov;
+  int i, o, z, y, add_old = 0, x, q, ov, inside_macro = 0, inside_repeat = 0;
   float f;
 
   memset(parent_labels, 0, sizeof(parent_labels));
@@ -218,6 +218,22 @@ int pass_4(void) {
       case 'E':
         continue;
 
+      case 'j':
+	inside_repeat++;
+	continue;
+      case 'J':
+	inside_repeat--;
+	continue;
+
+      case 'i':
+	fscanf(file_out_ptr, "%*s ");
+	inside_macro++;
+	continue;
+      case 'I':
+	fscanf(file_out_ptr, "%*s ");
+	inside_macro--;
+	continue;
+	
       case 'g':
         fscanf(file_out_ptr, "%*s ");
         continue;
@@ -987,7 +1003,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLA2");
+    fprintf(final_ptr, "WLA3");
 
     if (export_source_file_names(final_ptr) == FAILED)
       return FAILED;
@@ -1175,7 +1191,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAT%c", emptyfill);
+    fprintf(final_ptr, "WLAU%c", emptyfill);
 
     /* misc bits */
     ind = 0;

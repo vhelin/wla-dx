@@ -35,7 +35,7 @@ int pass_3(void) {
   struct label_def *parent_labels[10];
   struct block *b;
   FILE *f_in;
-  int bank = 0, slot = 0, add = 0, file_name_id = 0, inz, line_number = 0, o, add_old = 0;
+  int bank = 0, slot = 0, add = 0, file_name_id = 0, inz, line_number = 0, o, add_old = 0, inside_macro = 0, inside_repeat = 0;
   int base = 0x00;
   char c;
   int err;
@@ -60,6 +60,22 @@ int pass_3(void) {
 
       case ' ':
       case 'E':
+	continue;
+
+      case 'j':
+	inside_repeat++;
+	continue;
+      case 'J':
+	inside_repeat--;
+	continue;
+
+      case 'i':
+	fscanf(f_in, "%*s ");
+	inside_macro++;
+	continue;
+      case 'I':
+	fscanf(f_in, "%*s ");
+	inside_macro--;
 	continue;
 
       case 'P':
@@ -333,6 +349,22 @@ int pass_3(void) {
       case 'E':
 	continue;
 
+      case 'j':
+	inside_repeat++;
+	continue;
+      case 'J':
+	inside_repeat--;
+	continue;
+
+      case 'i':
+	fscanf(f_in, "%*s ");
+	inside_macro++;
+	continue;
+      case 'I':
+	fscanf(f_in, "%*s ");
+	inside_macro--;
+	continue;
+
       case 'f':
 	fscanf(f_in, "%d ", &file_name_id);
 	continue;
@@ -371,12 +403,31 @@ int pass_3(void) {
     }
   }
 
+  inside_macro = 0;
+  inside_repeat = 0;
+
   /* second (major) loop */
   while (fread(&c, 1, 1, f_in) != 0) {
     switch (c) {
 
     case ' ':
     case 'E':
+      continue;
+
+    case 'j':
+      inside_repeat++;
+      continue;
+    case 'J':
+      inside_repeat--;
+      continue;
+
+    case 'i':
+      fscanf(f_in, "%*s ");
+      inside_macro++;
+      continue;
+    case 'I':
+      fscanf(f_in, "%*s ");
+      inside_macro--;
       continue;
 
     case 'P':
@@ -629,12 +680,10 @@ int pass_3(void) {
       }
 
       sprintf(emsg, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
-          get_file_name(file_name_id),
-          line_number,
-          l->label);
+	      get_file_name(file_name_id), line_number, l->label);
 
       if (s != NULL) {
-        /* Always put the label into the section's label_map */
+        /* always put the label into the section's label_map */
         if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
           fprintf(stderr, "%s", emsg);
           return FAILED;
@@ -645,10 +694,10 @@ int pass_3(void) {
         }
       }
 
-      /* Don't put local labels into namespaces or the global namespace */
+      /* don't put local labels into namespaces or the global namespace */
       if (s == NULL || l->label[0] != '_') {
         if (s != NULL && s->nspace != NULL) {
-          /* Label in a namespace */
+          /* label in a namespace */
           if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
             fprintf(stderr, "%s", emsg);
             return FAILED;
@@ -659,7 +708,7 @@ int pass_3(void) {
           }
         }
         else {
-          /* Global label */
+          /* global label */
           if (hashmap_get(global_unique_label_map, l->label, NULL) == MAP_OK) {
             fprintf(stderr, "%s", emsg);
             return FAILED;
@@ -690,7 +739,7 @@ int pass_3(void) {
 
     case 'k':
       fscanf(f_in, "%d ", &line_number);
-      if (s != NULL)
+      if (s != NULL && inside_macro == 0 && inside_repeat == 0)
 	s->listfile_items++;
       continue;
 

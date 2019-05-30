@@ -21,9 +21,9 @@ extern int verbose_mode, section_status, cartridgetype, output_format;
 
 int listfile_collect(void) {
 
+  int add = 0, skip = 0, file_name_id = 0, inz, line_number = 0, command = 0, inside_macro = 0, inside_repeat = 0;
   struct section_def *section = NULL;
   FILE *file_in;
-  int add = 0, file_name_id = 0, inz, line_number = 0, command = 0;
   char c;
 
 
@@ -34,6 +34,22 @@ int listfile_collect(void) {
 
   while (fread(&c, 1, 1, file_in) != 0) {
     switch (c) {
+
+    case 'j':
+      inside_repeat++;
+      continue;
+    case 'J':
+      inside_repeat--;
+      continue;
+
+    case 'i':
+      fscanf(file_in, "%*s ");
+      inside_macro++;
+      continue;
+    case 'I':
+      fscanf(file_in, "%*s ");
+      inside_macro--;
+      continue;
 
     case ' ':
     case 'E':
@@ -59,10 +75,11 @@ int listfile_collect(void) {
 	section = section->next;
 
       add = 0;
+      skip = 0;
       command = 0;
 
       /* allocate the listfile data */
-      section->listfile_ints = calloc(sizeof(int) * section->listfile_items*2, 1);
+      section->listfile_ints = calloc(sizeof(int) * section->listfile_items * 3, 1);
       section->listfile_cmds = calloc(section->listfile_items, 1);
       if (section->listfile_ints == NULL || section->listfile_cmds == NULL) {
 	fprintf(stderr, "LISTFILE_COLLECT: Out of memory error.\n");
@@ -71,7 +88,7 @@ int listfile_collect(void) {
 
       /* add file name */
       section->listfile_cmds[command] = 'f';
-      section->listfile_ints[command*2 + 0] = file_name_id;
+      section->listfile_ints[command*3 + 0] = file_name_id;
       command++;
 
       continue;
@@ -101,7 +118,6 @@ int listfile_collect(void) {
       fscanf(file_in, "%*d ");
       add += 3;
       continue;
-
 #endif
 
     case 'b':
@@ -156,12 +172,13 @@ int listfile_collect(void) {
 
       if (section != NULL) {
 	/* terminate the previous line */
-	section->listfile_ints[command*2 + 1] = add;
+	section->listfile_ints[command*3 + 1] = add;
 	add = 0;
+	skip = 0;
 
 	/* add file name */
 	section->listfile_cmds[command] = 'f';
-	section->listfile_ints[command*2 + 0] = file_name_id;
+	section->listfile_ints[command*3 + 0] = file_name_id;
 	command++;
       }
       continue;
@@ -169,14 +186,23 @@ int listfile_collect(void) {
     case 'k':
       fscanf(file_in, "%d ", &line_number);
 
+      if (inside_macro > 0 || inside_repeat > 0) {
+	skip += add;
+	add = 0;
+	continue;
+      }
+
       if (section != NULL) {
 	/* terminate the previous line */
-	section->listfile_ints[command*2 + 1] = add;
+	section->listfile_ints[command*3 + 1] = add;
+	section->listfile_ints[command*3 + 2] = skip;
+
 	add = 0;
+	skip = 0;
 
 	/* add line number */
 	section->listfile_cmds[command] = 'k';
-	section->listfile_ints[command*2 + 0] = line_number;
+	section->listfile_ints[command*3 + 0] = line_number;
 	command++;
       }
       continue;
@@ -212,19 +238,21 @@ int listfile_block_write(FILE *file_out, struct section_def *section) {
   for (i = 0; i < section->listfile_items; i++) {
     fprintf(file_out, "%c", section->listfile_cmds[i]);
     if (section->listfile_cmds[i] == 'k') {
-      /* next line: line number, line length */
-      d = section->listfile_ints[i*2 + 0];
+      /* next line: line number, line length, skip bytes */
+      d = section->listfile_ints[i*3 + 0];
       WRITEOUT_D;
-      d = section->listfile_ints[i*2 + 1];
+      d = section->listfile_ints[i*3 + 1];
+      WRITEOUT_D;
+      d = section->listfile_ints[i*3 + 2];
       WRITEOUT_D;
     }
     else if (section->listfile_cmds[i] == 'f') {
       /* next file: file name id */
-      d = section->listfile_ints[i*2 + 0];
+      d = section->listfile_ints[i*3 + 0];
       WRITEOUT_D;
     }
     else {
-      fprintf(stderr, "LISTFILE_BLOCK_WRITE: Unknown command %d.\n", section->listfile_cmds[i]);
+      fprintf(stderr, "LISTFILE_BLOCK_WRITE: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", section->listfile_cmds[i]);
       return FAILED;
     }
   }

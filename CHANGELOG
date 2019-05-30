@@ -3,8 +3,10 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (27-May-2019) [ALL] Deprecated section's size giving inside section's
+v9.8 (30-May-2019) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
+                   [ALL] .REPEATs, .DBs, .DWs, .DLs and macro calls don't
+                     mess up listfiles any more.
                    [ALL] Added support for prioritizing sections when
                      placing them to the output ROM/PRG.
                    [ALL] The _sizeof_[label]s for labels that are followed by

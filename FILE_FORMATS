@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file format "WLAT"
+WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file format "WLAU"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAT" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 20 (28-May-2019)
+        "WLAU" - WLA GB-Z80/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 object file version 21 (30-May-2019)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -166,7 +166,7 @@ section:
 
 
 
-WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file format "WLA2"
+WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file format "WLA3"
 
 
 bytes   description
@@ -174,7 +174,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLA2" - WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file version 16 (27-May-2019)
+        "WLA3" - WLA-GB/Z80/6502/65C02/6510/65816/HuC6280/SPC-700 library file version 17 (30-May-2019)
 
 source file name list:
 
@@ -281,4 +281,5 @@ bytes   description
   1     command ('f' == file name, 'k' == new line)
   4     data 0 (int)
   4     data 1 (present only if command == 'k') (int)
+  4     data 2 (present only if command == 'k') (int)
   ...

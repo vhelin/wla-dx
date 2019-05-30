@@ -260,6 +260,9 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
   macro_active++;
   m->calls++;
 
+  /* macro call start */
+  fprintf(file_out_ptr, "i%s ", m->name);
+  
   mrt->caller = caller;
   mrt->macro = m;
   mrt->macro_end = i;
@@ -1981,9 +1984,11 @@ int directive_row_data(void) {
 
 
 int directive_db_byt_byte(void) {
-      
+
   char bak[256];
   int o;
+
+  fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
 
   strcpy(bak, cp);
 
@@ -2052,7 +2057,7 @@ int directive_db_byt_byte(void) {
     if (inz == SUCCEEDED)
       fprintf(file_out_ptr, "d%d ", d);
     else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-      fprintf(file_out_ptr, "k%d Q%s ", active_file_info_last->line_current, label);
+      fprintf(file_out_ptr, "Q%s ", label);
     else if (inz == INPUT_NUMBER_STACK)
       fprintf(file_out_ptr, "c%d ", latest_stack);
 
@@ -2314,6 +2319,7 @@ int directive_asc(void) {
 
 int directive_dw_word_addr(void) {
 
+  int line_number_output = NO;
   char bak[256];
 
   strcpy(bak, cp);
@@ -2328,8 +2334,14 @@ int directive_dw_word_addr(void) {
 
     if (inz == SUCCEEDED)
       fprintf(file_out_ptr, "y%d", d);
-    else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-      fprintf(file_out_ptr, "k%d r%s ", active_file_info_last->line_current, label);
+    else if (inz == INPUT_NUMBER_ADDRESS_LABEL) {
+      if (line_number_output == NO) {
+	/* this is for listfiles */
+	line_number_output = YES;
+	fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+      }
+      fprintf(file_out_ptr, "r%s ", label);
+    }
     else if (inz == INPUT_NUMBER_STACK)
       fprintf(file_out_ptr, "C%d ", latest_stack);
 
@@ -2356,6 +2368,7 @@ int directive_dw_word_addr(void) {
 
 int directive_dl_long_faraddr(void) {
       
+  int line_number_output = NO;
   char bak[256];
 
   strcpy(bak, cp);
@@ -2370,8 +2383,14 @@ int directive_dl_long_faraddr(void) {
 
     if (inz == SUCCEEDED)
       fprintf(file_out_ptr, "z%d ", d);
-    else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-      fprintf(file_out_ptr, "k%d q%s ", active_file_info_last->line_current, label);
+    else if (inz == INPUT_NUMBER_ADDRESS_LABEL) {
+      if (line_number_output == NO) {
+	/* this is for listfiles */
+	line_number_output = YES;
+	fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+      }
+      fprintf(file_out_ptr, "q%s ", label);
+    }
     else if (inz == INPUT_NUMBER_STACK)
       fprintf(file_out_ptr, "T%d ", latest_stack);
 
@@ -3178,7 +3197,7 @@ int directive_ramsection(void) {
   int q;
       
   if (section_status == ON) {
-    sprintf(emsg, "There is already an open section called \"%s\".", sections_last->name);
+    sprintf(emsg, "There is already an open section called \"%s\".\n", sections_last->name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -3361,7 +3380,7 @@ int directive_section(void) {
   int l, m = 0, give_warning = NO;
 
   if (section_status == ON) {
-    sprintf(emsg, "There is already an open section called \"%s\".", sections_last->name);
+    sprintf(emsg, "There is already an open section called \"%s\".\n", sections_last->name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -5702,6 +5721,9 @@ int directive_rept_repeat(void) {
 
   repeat_active++;
 
+  /* repeat start */
+  fprintf(file_out_ptr, "j ");
+      
   return SUCCEEDED;
 }
 
@@ -5713,6 +5735,9 @@ int directive_endm(void) {
   if (macro_active != 0) {
     macro_active--;
 
+    /* macro call end */
+    fprintf(file_out_ptr, "I%s ", macro_stack[macro_active].macro->name);
+    
     /* free the arguments */
     if (macro_stack[macro_active].supplied_arguments > 0) {
       for (d = 0; d < macro_stack[macro_active].supplied_arguments; d++)
@@ -7575,6 +7600,10 @@ int parse_directive(void) {
     rr->counter--;
     if (rr->counter == 0) {
       repeat_active--;
+      
+      /* repeat end */
+      fprintf(file_out_ptr, "J ");
+
       if (strlen(rr->index_name) > 0) {
           if (undefine(rr->index_name) == FAILED)
               return FAILED;

@@ -54,7 +54,7 @@ int listfile_write_listfiles(struct section *e) {
   struct listfileitem **l, *d = NULL;
   struct section *s;
   int n, i, j, k, m, o, p, sid = -1, add, w;
-  char c, tmp[512], *b, *na;
+  char c, tmp[1024], *b, *na;
   FILE *f;
 
 
@@ -84,18 +84,27 @@ int listfile_write_listfiles(struct section *e) {
       c = s->listfile_cmds[j];
       if (c == 'k') {
 	/* new line */
-	if (s->listfile_ints[j*2 + 1] > 0) {
+	if (s->listfile_ints[j*3 + 1] > 0) {
 	  d[i].sourcefilename = get_source_file_name(s->file_id, sid);
-	  d[i].linenumber = s->listfile_ints[j*2 + 0];
-	  d[i].length = s->listfile_ints[j*2 + 1];
+	  d[i].linenumber = s->listfile_ints[j*3 + 0];
+	  d[i].length = s->listfile_ints[j*3 + 1];
+	  add += s->listfile_ints[j*3 + 2];
 	  d[i].address = s->output_address + add;
-	  add += s->listfile_ints[j*2 + 1];
+	  add += s->listfile_ints[j*3 + 1];
 	  i++;
+	}
+	else {
+	  /* skip */
+	  add += s->listfile_ints[j*3 + 2];
 	}
       }
       else if (c == 'f') {
 	/* another file */
-	sid = s->listfile_ints[j*2 + 0];
+	sid = s->listfile_ints[j*3 + 0];
+      }
+      else {
+	fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", c);
+	return FAILED;
       }
     }
 
@@ -150,7 +159,7 @@ int listfile_write_listfiles(struct section *e) {
     /* write the lines */
     k = 0;
     m = 0;
-    while (j < i && l[j]->sourcefilename == na) {
+    while (j < i && strcmp(l[j]->sourcefilename, na) == 0) {
       /* goto line x */
       while (k < l[j]->linenumber-1) {
 	for (o = 0; o < 40; o++)
@@ -291,7 +300,7 @@ int listfile_block_read(unsigned char **d, struct section *s) {
   t++;
   s->listfile_items = READ_T;
   s->listfile_cmds = calloc(s->listfile_items, 1);
-  s->listfile_ints = calloc(sizeof(int) * s->listfile_items*2, 1);
+  s->listfile_ints = calloc(sizeof(int) * s->listfile_items*3, 1);
 
   if (s->listfile_cmds == NULL || s->listfile_ints == NULL) {
     s->listfile_items = 0;
@@ -304,16 +313,17 @@ int listfile_block_read(unsigned char **d, struct section *s) {
     s->listfile_cmds[i] = *(t++);
     if (s->listfile_cmds[i] == 'k') {
       /* new line */
-      s->listfile_ints[i*2 + 0] = READ_T;
-      s->listfile_ints[i*2 + 1] = READ_T;
+      s->listfile_ints[i*3 + 0] = READ_T;
+      s->listfile_ints[i*3 + 1] = READ_T;
+      s->listfile_ints[i*3 + 2] = READ_T;
     }
     else if (s->listfile_cmds[i] == 'f') {
       /* file name */
-      s->listfile_ints[i*2 + 0] = READ_T;
+      s->listfile_ints[i*3 + 0] = READ_T;
     }
     else {
       s->listfile_items = 0;
-      fprintf(stderr, "LISTFILE_BLOCK_READ: Unknown command %d.\n", s->listfile_cmds[i]);
+      fprintf(stderr, "LISTFILE_BLOCK_READ: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", s->listfile_cmds[i]);
       return FAILED;
     }
   }
