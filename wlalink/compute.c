@@ -195,7 +195,7 @@ int compute_snes_exhirom_checksum(void) {
 
   res = 0;
 
-  /* do first the low 40-8Mbits (32MBits) */
+  /* do first the low 40-8Mbits (32Mbits) */
   for (i = 0; i < 32/8*1024*1024; i++) {
     /* skip the (mirrored) checksum bytes */
     if (!(i == 0xFFDC || i == 0xFFDD || i == 0xFFDE || i == 0xFFDF))
@@ -241,7 +241,7 @@ int compute_snes_exhirom_checksum(void) {
 
 int compute_snes_checksum(void) {
 
-  int i, j, k, res, n, m, inv;
+  int i, j, k, checksum, n, m, inv;
 
 
   /* ExHiROM jump */
@@ -261,7 +261,7 @@ int compute_snes_checksum(void) {
     }
   }
 
-  /* n = data inside 4mbit blocks, m = data outside that */
+  /* n = data inside 4Mbit blocks, m = data outside that */
   if (romsize < 512*1024) {
     n = romsize;
     m = 0;
@@ -271,44 +271,44 @@ int compute_snes_checksum(void) {
     m = romsize - n;
   }
 
-  /* sum all the bytes inside the 4mbit blocks */
-  res = 0;
+  /* sum all the bytes inside the 4Mbit blocks */
+  checksum = 0;
   for (i = 0; i < n; i++) {
     if (snes_rom_mode == SNES_ROM_MODE_LOROM || snes_rom_mode == SNES_ROM_MODE_EXLOROM) {
       /* skip the checksum bytes */
       if (!(i == 0x7FDC || i == 0x7FDD || i == 0x7FDE || i == 0x7FDF))
-	res += rom[i];
+	checksum += rom[i];
     }
     else {
       /* skip the checksum bytes */
       if (!(i == 0xFFDC || i == 0xFFDD || i == 0xFFDE || i == 0xFFDF))
-	res += rom[i];
+	checksum += rom[i];
     }
   }
 
   /* add to that the data outside the 4mbit blocks, ringbuffer style repeating 
-     the remaining block until the the final part reaches 4mbits */
+     the remaining block until the the final part reaches 4Mbits */
   for (j = 0, k = i; i < romsize; i++, j++)
-    res += rom[(j % m) + k];
+    checksum += rom[(j % m) + k];
 
-  /* 2*255 is for the checksum and its complement bytes that we skipped earlier */
-  res += 2*255;
+  /* 2*255 (0x1FE) is for the checksum and its complement bytes that we skipped earlier */
+  checksum += 2*255;
 
   /* compute the inverse checksum */
-  inv = (res & 0xFFFF) ^ 0xFFFF;
+  inv = (checksum & 0xFFFF) ^ 0xFFFF;
 
   /* insert the checksum bytes */
   if (snes_rom_mode == SNES_ROM_MODE_LOROM || snes_rom_mode == SNES_ROM_MODE_EXLOROM) {
     mem_insert_allow_overwrite(0x7FDC, inv & 0xFF, 1);
     mem_insert_allow_overwrite(0x7FDD, (inv >> 8) & 0xFF, 1);
-    mem_insert_allow_overwrite(0x7FDE, res & 0xFF, 1);
-    mem_insert_allow_overwrite(0x7FDF, (res >> 8) & 0xFF, 1);
+    mem_insert_allow_overwrite(0x7FDE, checksum & 0xFF, 1);
+    mem_insert_allow_overwrite(0x7FDF, (checksum >> 8) & 0xFF, 1);
   }
   else {
     mem_insert_allow_overwrite(0xFFDC, inv & 0xFF, 1);
     mem_insert_allow_overwrite(0xFFDD, (inv >> 8) & 0xFF, 1);
-    mem_insert_allow_overwrite(0xFFDE, res & 0xFF, 1);
-    mem_insert_allow_overwrite(0xFFDF, (res >> 8) & 0xFF, 1);
+    mem_insert_allow_overwrite(0xFFDE, checksum & 0xFF, 1);
+    mem_insert_allow_overwrite(0xFFDF, (checksum >> 8) & 0xFF, 1);
   }
 
   return SUCCEEDED;
