@@ -144,8 +144,15 @@ int compute_gb_complement_check(void) {
   for (j = 0x134; j <= 0x14C; j++)
     res += rom[j];
   res += 25;
+
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "%s", "Writing GB ROM checksum complement");
+
   mem_insert_allow_overwrite(0x14D, 0 - (res & 0xFF), 1);
 
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "???");
+  
   return SUCCEEDED;
 }
 
@@ -166,9 +173,15 @@ int compute_gb_checksum(void) {
   for (j = 0x150; j < romsize; j++)
     checksum += rom[j];
 
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "%s", "Writing GB ROM checksum bytes");
+    
   mem_insert_allow_overwrite(0x14E, (checksum >> 8) & 0xFF, 1);
   mem_insert_allow_overwrite(0x14F, checksum & 0xFF, 1);
 
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "???");
+  
   return SUCCEEDED;
 }
 
@@ -345,6 +358,9 @@ int add_tmr_sega(void) {
     return SUCCEEDED;
   }
 
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "%s", "Writing TMR SEGA");
+
   /* TMR SEGA */
   mem_insert_allow_overwrite(tag_address + 0x0, 0x54, 1);
   mem_insert_allow_overwrite(tag_address + 0x1, 0x4D, 1);
@@ -355,6 +371,9 @@ int add_tmr_sega(void) {
   mem_insert_allow_overwrite(tag_address + 0x6, 0x47, 1);
   mem_insert_allow_overwrite(tag_address + 0x7, 0x41, 1);
 
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "???");
+  
   return SUCCEEDED;
 }
 
@@ -395,11 +414,20 @@ int compute_sms_checksum(int is_sms_header) {
   for (j = 0; j < tag_address; j++)
     checksum += rom[j];
 
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "%s", "Writing SMS/GG ROM checksum bytes");
+  
   mem_insert_allow_overwrite(tag_address + 0xA, checksum & 0xFF, 1);
   mem_insert_allow_overwrite(tag_address + 0xB, (checksum >> 8) & 0xFF, 1);
 
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "%s", "Writing SMS/GG region code + ROM size");
+  
   /* region code + ROM size */
   mem_insert_allow_overwrite(tag_address + 0xF, final_byte, 1);
 
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "???");
+  
   return SUCCEEDED;
 }
