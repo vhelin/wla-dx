@@ -196,20 +196,18 @@ int finalize_snes_rom(void) {
 
 int compute_snes_exhirom_checksum(void) {
 
-  int i, j, res, inv;
+  int i, j, checksum = 0, inv;
 
-
-  res = 0;
 
   /* do first the low 40-8Mbits (32Mbits) */
   for (i = 0; i < 32/8*1024*1024; i++) {
     /* skip the (mirrored) checksum bytes */
     if (!(i == 0xFFDC || i == 0xFFDD || i == 0xFFDE || i == 0xFFDF))
-      res += rom[i];
+      checksum += rom[i];
   }
 
   /* 2*255 is for the checksum and its complement bytes that we skipped earlier */
-  res += 2*255;
+  checksum += 2*255;
 
   /* next loop the remaining data until 64MBits are summed */
   j = 32/8*1024*1024;
@@ -218,16 +216,16 @@ int compute_snes_exhirom_checksum(void) {
     if (j >= romsize)
       j = 32/8*1024*1024;
     if (!(j == 0x40FFDC || j == 0x40FFDD || j == 0x40FFDE || j == 0x40FFDF))
-      res += rom[j];
+      checksum += rom[j];
     if (j == 0x40FFDC) {
       /* 2*255 is for the checksum and its complement bytes that we are skipping */
-      res += 2*255;
+      checksum += 2*255;
     }
     j++;
   }
 
   /* compute the inverse checksum */
-  inv = (res & 0xFFFF) ^ 0xFFFF;
+  inv = (checksum & 0xFFFF) ^ 0xFFFF;
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
   sprintf(mem_insert_action, "%s", "Writing SNES ROM checksum bytes");
@@ -235,14 +233,14 @@ int compute_snes_exhirom_checksum(void) {
   /* insert the checksum bytes */
   mem_insert_allow_overwrite(0x40FFDC, inv & 0xFF, 1);
   mem_insert_allow_overwrite(0x40FFDD, (inv >> 8) & 0xFF, 1);
-  mem_insert_allow_overwrite(0x40FFDE, res & 0xFF, 1);
-  mem_insert_allow_overwrite(0x40FFDF, (res >> 8) & 0xFF, 1);
+  mem_insert_allow_overwrite(0x40FFDE, checksum & 0xFF, 1);
+  mem_insert_allow_overwrite(0x40FFDF, (checksum >> 8) & 0xFF, 1);
 
   /* ... and mirror them */
   mem_insert_allow_overwrite(0xFFDC, inv & 0xFF, 1);
   mem_insert_allow_overwrite(0xFFDD, (inv >> 8) & 0xFF, 1);
-  mem_insert_allow_overwrite(0xFFDE, res & 0xFF, 1);
-  mem_insert_allow_overwrite(0xFFDF, (res >> 8) & 0xFF, 1);
+  mem_insert_allow_overwrite(0xFFDE, checksum & 0xFF, 1);
+  mem_insert_allow_overwrite(0xFFDF, (checksum >> 8) & 0xFF, 1);
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
   sprintf(mem_insert_action, "???");
