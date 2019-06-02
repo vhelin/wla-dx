@@ -28,7 +28,7 @@ int reserve_checksum_bytes(void) {
 
     if (romsize >= 0x2000) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "%s", "Reserving SMS ROM checmsum bytes");
+      sprintf(mem_insert_action, "%s", "Reserving SMS ROM checksum bytes");
 
       /* checksum */
       mem_insert(tag_address + 0xA, 0x0);
@@ -79,7 +79,7 @@ int reserve_checksum_bytes(void) {
   if (gb_checksum != 0) {
     if (romsize >= 0x8000) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "%s", "Reserving GB ROM checmsum bytes");
+      sprintf(mem_insert_action, "%s", "Reserving GB ROM checksum bytes");
 
       mem_insert(0x14E, 0);
       mem_insert(0x14F, 0);
@@ -88,7 +88,7 @@ int reserve_checksum_bytes(void) {
 
   if (snes_checksum != 0) {
     /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-    sprintf(mem_insert_action, "%s", "Reserving SNES ROM checmsum bytes");
+    sprintf(mem_insert_action, "%s", "Reserving SNES ROM checksum bytes");
 
     if ((snes_rom_mode == SNES_ROM_MODE_LOROM || snes_rom_mode == SNES_ROM_MODE_EXLOROM) && romsize >= 0x8000) {
       mem_insert(0x7FDC, 0);
@@ -103,7 +103,10 @@ int reserve_checksum_bytes(void) {
       mem_insert(0xFFDF, 0);
     }
   }
-  
+
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "???");
+    
   return SUCCEEDED;
 }
 
@@ -184,6 +187,9 @@ int finalize_snes_rom(void) {
       mem_insert(0xffb0 + i, rom[0x40ffb0 + i]);
   }
 
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "???");
+  
   return SUCCEEDED;
 }
 
@@ -223,6 +229,9 @@ int compute_snes_exhirom_checksum(void) {
   /* compute the inverse checksum */
   inv = (res & 0xFFFF) ^ 0xFFFF;
 
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "%s", "Writing SNES ROM checksum bytes");
+  
   /* insert the checksum bytes */
   mem_insert_allow_overwrite(0x40FFDC, inv & 0xFF, 1);
   mem_insert_allow_overwrite(0x40FFDD, (inv >> 8) & 0xFF, 1);
@@ -234,6 +243,9 @@ int compute_snes_exhirom_checksum(void) {
   mem_insert_allow_overwrite(0xFFDD, (inv >> 8) & 0xFF, 1);
   mem_insert_allow_overwrite(0xFFDE, res & 0xFF, 1);
   mem_insert_allow_overwrite(0xFFDF, (res >> 8) & 0xFF, 1);
+
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "???");
   
   return SUCCEEDED;  
 }
@@ -242,7 +254,6 @@ int compute_snes_exhirom_checksum(void) {
 int compute_snes_checksum(void) {
 
   int i, j, k, checksum, n, m, inv;
-
 
   /* ExHiROM jump */
   if (snes_rom_mode == SNES_ROM_MODE_EXHIROM && romsize >= 0x410000)
@@ -297,6 +308,9 @@ int compute_snes_checksum(void) {
   /* compute the inverse checksum */
   inv = (checksum & 0xFFFF) ^ 0xFFFF;
 
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "%s", "Writing SNES ROM checksum bytes");
+
   /* insert the checksum bytes */
   if (snes_rom_mode == SNES_ROM_MODE_LOROM || snes_rom_mode == SNES_ROM_MODE_EXLOROM) {
     mem_insert_allow_overwrite(0x7FDC, inv & 0xFF, 1);
@@ -311,6 +325,9 @@ int compute_snes_checksum(void) {
     mem_insert_allow_overwrite(0xFFDF, (checksum >> 8) & 0xFF, 1);
   }
 
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  sprintf(mem_insert_action, "???");
+    
   return SUCCEEDED;
 }
 
