@@ -94,7 +94,9 @@ example of a list file: Let's assume you've compiled a source file called
 ``main.s`` using the ``i`` flag. After you've linked the result also with the
 ``i`` flag WLALINK has created a list file called ``main.lst``. This file
 contains the source text and the result data the source compiled into. List
-files are good for debugging.
+files are good for debugging. NOTE: list file data can currently be generated
+only for code inside sections. ``.MACRO`` calls and ``.REPT`` s don't produce
+list file data either.
 
 If flag ``L`` is given after the above options, WLALINK will use the
 directory specified after the flag for including libraries. If WLALINK
