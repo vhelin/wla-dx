@@ -5,6 +5,8 @@
 
 v9.8 (30-May-2019) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
+                   [ALL] WLA assembles now "WLA3" library files and "WLAU"
+                     object files.
                    [ALL] .REPEATs, .DBs, .DWs, .DLs and macro calls don't
                      mess up listfiles any more.
                    [ALL] Added support for prioritizing sections when
@@ -92,7 +94,7 @@ v9.8 (30-May-2019) [ALL] Deprecated section's size giving inside section's
 v9.7 (17-Apr-2018) [ALL] We now use CMake instead of plain Makefiles.
                    [ALL] Added INSTANCEOF support to .STRUCT.
                    [ALL] Removed DEBUG opcode from GB-Z80.
-                   [ALL] WLALINK now reserves the bytes the checksummer use
+                   [ALL] WLALINK now reserves the bytes the checksummer uses
                      if WLA is used to calculate a checksum.
                    [ALL] Added ALIGN to .RAMSECTIONs.
                    [ALL] .RANSECTIONs now use the BANK when placing sections.
@@ -156,7 +158,7 @@ v9.6 (27-Jan-2015) [ALL] Fixed usage info (was missing -i).
                    [ALL] Fixed .ROMBANKMAP and .BANKS allocation to prevent
                      heap corruption when .BANKS allocated exceeds .BANKSTOTAL
                    [ALL] Added support for more than 255 sections per file.
-                   [ALL] WLA compiles now "WLAW" library files and "WLAL"
+                   [ALL] WLA assembles now "WLAW" library files and "WLAL"
                      object files.
                    [ALL] Added optional running index definition to
                      .REPEAT / .REPT.
@@ -250,7 +252,7 @@ v9.2 (22-Aug-2004) [ALL] WLA can generate makefile rules (flag 'M')
 v9.1 (26-Jun-2004) [ALL] Sections do not affect the .ORG outside of them.
                    [ALL] Code cleanups.
                    [ALL] .IFs can compare string definitions.
-                   [ALL] WLA compiles now "WLAV" library files and "WLAK"
+                   [ALL] WLA assembles now "WLAV" library files and "WLAK"
                      object files.
                    [ALL] Added preliminary support for list files.
                    [ALL] Added aliases .DEF (.DEFINE), .REDEF (.REDEFINE),
@@ -302,7 +304,7 @@ v9.0 (23-Nov-2003) [ALL] The number of arguments macros take is not limited
                    [ALL] Added .SLOT.
                    [ALL] .INCDIR, .INCLUDE and .INCBIN try to convert the
                      directory paths to the host operating system's syntax.
-                   [ALL] WLA compiles now "WLAT" library files and "WLAH"
+                   [ALL] WLA assembles now "WLAT" library files and "WLAH"
                      object files.
                    [ALL] It is possible to use floating point numbers in
                      all computations.
@@ -331,7 +333,7 @@ v8.9 (12-Jun-2003) [ALL] Added .SEED, .DBRND and .DWRND.
                      following symbols and directives: DEFAULTSLOT,
                      SLOTSIZE, SLOT, .ENDME, .ENDRO, BANKSTOTAL, BANKS,
                      BANKSIZE, .ASM and .ENDASM.
-                   [ALL] WLA compiles now "WLAS" library files and "WLAG"
+                   [ALL] WLA assembles now "WLAS" library files and "WLAG"
                      object files.
                    [ALL] Used Valgrind to locate memory allocated from the
                      heap that WLA didn't free at exit (good for Amiga users).
@@ -387,7 +389,7 @@ v8.8 (25-Feb-2003) [65c] "DEA" assembled to $3a, $00. Removed the extra $00.
                      an error message.
                    [ALL] Fixed a rare bug which caused WLA and WLALINK to
                      disagree on section id numbers.
-                   [ALL] WLA compiles now "WLAR" library files and "WLAE"
+                   [ALL] WLA assembles now "WLAR" library files and "WLAE"
                      object files.
 
 v8.7 (28-Nov-2002) [ALL] Added DSB and DSW, and EXPORT to .ENUM.
@@ -504,7 +506,7 @@ v8.0 (19-May-2001) [ALL] Simplified WLA engine a lot by leaving away ROM and
                      program file compiling, and the old, crippled error
                      reporting engine.
                    [ALL] Removed .FOOTER and .HEADER (no longer required).
-                   [ALL] WLA compiles now "WLAQ" library files and "WLAD"
+                   [ALL] WLA assembles now "WLAQ" library files and "WLAD"
                      object files (merged old object file formats).
                    [ALL] Removed few redundant error messages.
                    [ALL] Removed label name compactor.
@@ -543,7 +545,7 @@ v7.4 (02-May-2001) [ALL] Added many new error messages.
                    [ALL] Win32 port uses now PID in the temp file name.
                    [ALL] Fixed few places which could generate incorrect
                      destination memory overwrite warnings.
-                   [ALL] Program file compiler dislayed a wrong binary size
+                   [ALL] Program file assembler dislayed a wrong binary size
                      in verbose mode.
                    [ALL] Enhanced .INCBIN.
                    [Z80] Loose strings given to .SDSCTAG don't cause
@@ -584,7 +586,7 @@ v7.2 (08-Apr-2001) [ALL] Rewrote the preprocessor code, now it produces
                    [Z80] Fixed "LD BC,(?)" and "LD BC,?" recognition to
                      work better.
 
-v7.1 (13-Mar-2001) [ALL] Added 'x' switch to generate extra compile time
+v7.1 (13-Mar-2001) [ALL] Added 'x' switch to generate extra assembly time
                      definitions (WLA_TIME, WLA_FILENAME).
                    [ALL] Characters can now be used in computations (eg.
                      LD A, 'F'-10).
@@ -788,10 +790,10 @@ v6.0 (23-Aug-2000) [ALL] Rewrote and optimized opcode decoding.
                    [ALL] Added .MEMORYMAP and .ENDME.
                    [ALL] Added .ENDASM and .ASM.
                    [ALL] '*' can also be used to comment away lines.
-                   [ALL] WLA can now test compile (flag t).
+                   [ALL] WLA can now test assemble (flag t).
                    [ALL] .ROMSIZE is replaced with .ROMBANKS.
                    [ALL] Changed FREE section positioning a little.
-                   [Z80] Binary files can be compiled with the flag 'b'.
+                   [Z80] Binary files can be assembled with the flag 'b'.
                    [Z80] Added .HEADER.
                    [Z80] Added .FOOTER.
 
@@ -822,7 +824,7 @@ v4.5 (15-Jun-2000) Enhanced the documentation.
                    Target file name can now be left away as WLA has now
                      built in default suffices (.gb, .o and .lib).
                    Added lib-directory to the archive.
-                   Trying to compile a compact ROM file will give a warning.
+                   Trying to assemble a compact ROM file will give a warning.
 
 v4.4 (09-Jun-2000) Enhanced the documentation.
                    Fixed "RR A"->"RRCA" and "RL A"->"RLCA" transformations.
@@ -988,7 +990,7 @@ v1.4 (25-May-1999) Renamed nintendo_logo.s to nintendo_logo.i.
 
 v1.3 (01-Jan-1999) Enhanced the documents.
                    WLA now shows the unused areas of the ROM file after
-                    a successful compile in hexadecimal format.
+                    a successful assembly in hexadecimal format.
                    Many WLA directives accepted non-pure values, not anymore.
                    Added .DSB.
                    .DB handles now strings as well.
@@ -996,7 +998,7 @@ v1.3 (01-Jan-1999) Enhanced the documents.
 v1.2 (21-Dec-1998) Enhanced the documents.
                    Added a list ("gb-z80.txt") of the supported GB-Z80 commands
                     to the archive.
-                   Free strings don't break the compile loop anymore.
+                   Free strings don't break the assembler loop anymore.
                    Added .INCBIN.
 
 v1.1 (13-Dec-1998) Enhanced the documents.
@@ -1004,7 +1006,7 @@ v1.1 (13-Dec-1998) Enhanced the documents.
                    Number input now detects and discards numbers from
                     outside the word boundaries.
                    WLA now shows the unused areas of the ROM file after
-                    a successful compile.
+                    a successful assembly.
                    Added .IFNDEF.
                    Added .IFDEF.
                    Added .ELSE.
