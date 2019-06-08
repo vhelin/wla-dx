@@ -5,6 +5,7 @@
 
 v9.8 (30-May-2019) [ALL] Deprecated section's size giving inside section's
                      name string. (REMOVE WARNING WHEN RELEASING v9.8!)
+                   [ALL] Getting bank number with :CADDR works again.
                    [ALL] WLA assembles now "WLA3" library files and "WLAU"
                      object files.
                    [ALL] .REPEATs, .DBs, .DWs, .DLs and macro calls don't
