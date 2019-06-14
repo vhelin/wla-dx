@@ -1512,7 +1512,7 @@ to ``90``.
 After you've given the ``.ASCIITABLE``, use ``.ASC`` to define bytes using
 this mapping (``.ASC`` is an alias for ``.DB``, but with ``.ASCIITABLE``
 mapping). For example, ``.ASC "ABZ"`` would define bytes ``0``, ``1`` and
-``25``.
+``25`` in our previous example.
 
 Note that the following works as well::
 
@@ -1522,7 +1522,8 @@ Note that the following works as well::
     .ENDA
 
 Also note that the characters that are not given any mapping in
-``.ASCIITABLE`` map to themselves (i.e., ``A`` maps to ``A``, etc.).
+``.ASCIITABLE`` map to themselves (i.e., ``2`` maps to ``2`` in our previous
+example, etc.).
 
 This is not a compulsory directive.
 
