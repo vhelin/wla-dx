@@ -98,6 +98,7 @@ int listfile_collect(void) {
       continue;
 
     case 'x':
+    case 'o':
       fscanf(file_in, "%d %*d ", &inz);
       add += inz;
       continue;

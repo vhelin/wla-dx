@@ -321,17 +321,36 @@ int pass_4(void) {
         continue;
 
         /* DSB & DSW & DSL */
+        /* ('o' skips over memory without claiming it) */
 
       case 'x':
+      case 'o':
         fscanf(file_out_ptr, "%d %d", &ind, &x);
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
 	sprintf(mem_insert_action, "%s:%d: Writing DSB data", get_file_name(filename_id), line_number);
 
-	while (ind > 0) {
-          if (mem_insert(x) == FAILED)
-            return FAILED;
-          ind--;
+        if (ind < 0) { /* going backward */
+          if (section_status == ON)
+            sec_tmp->i += ind;
+          pc_bank += ind;
+          pc_full += ind;
+          pc_slot += ind;
+          ind++;
+        }
+        else {
+          while (ind > 0) {
+            if (c == 'o') {
+              pc_bank++;
+              pc_full++;
+              pc_slot++;
+            }
+            else {
+              if (mem_insert(x) == FAILED)
+                return FAILED;
+            }
+            ind--;
+          }
         }
         continue;
 
@@ -1715,6 +1734,10 @@ int find_label(char *str, struct section_def *s, struct label_def **out) {
 int mem_insert(unsigned char x) {
 
   if (section_status == ON) {
+    if (sec_tmp->i >= sec_tmp->size || sec_tmp->i < 0) {
+      fprintf(stderr, "MEM_INSERT: Overflowed data for section \"%s\"; please send a bug report!\n", sec_tmp->name);
+      return FAILED;
+    }
     sec_tmp->data[sec_tmp->i] = x;
     sec_tmp->i++;
     pc_bank++;

@@ -86,6 +86,7 @@ int pass_3(void) {
 	continue;
 
       case 'x':
+      case 'o':
 	fscanf(f_in, "%d %*d ", &inz);
 	if (section_status == ON) {
 	  add += inz;
@@ -492,6 +493,7 @@ int pass_3(void) {
       continue;
 
     case 'x':
+    case 'o':
       fscanf(f_in, "%d %*d ", &inz);
       add += inz;
       continue;
