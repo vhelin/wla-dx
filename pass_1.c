@@ -3367,7 +3367,7 @@ int directive_ramsection(void) {
 
 int directive_section(void) {
   
-  int l, m = 0, give_warning = NO;
+  int l;
 
   if (section_status == ON) {
     sprintf(emsg, "There is already an open section called \"%s\".\n", sections_last->name);
@@ -3406,50 +3406,6 @@ int directive_section(void) {
   sec_tmp->alignment = 1;
   sec_tmp->advance_org = YES;
   sec_tmp->nspace = NULL;
-
-  /* check if the section size is supplied inside the name */
-  l = (int)(strlen(tmp) - 1);
-
-  for (; l >= 0 && tmp[l] != '_'; l--)
-    ;
-
-  if (l >= 0 && tmp[l] == '_') {
-    l++;
-    if (tmp[l] == '$') {
-      for (l++, m = 0; tmp[l] != 0; l++) {
-	if (tmp[l] >= '0' && tmp[l] <= '9')
-	  m = (m << 4) + tmp[l] - '0';
-	else if (tmp[l] >= 'a' && tmp[l] <= 'f')
-	  m = (m << 4) + tmp[l] - 'a' + 10;
-	else if (tmp[l] >= 'A' && tmp[l] <= 'F')
-	  m = (m << 4) + tmp[l] - 'A' + 10;
-	else
-	  break;
-      }
-
-      if (tmp[l] == 0)
-	give_warning = YES;
-    }
-    else if (tmp[l] >= '0' && tmp[l] <= '9') {
-      for (m = 0; tmp[l] != 0; l++) {
-	if (tmp[l] >= '0' && tmp[l] <= '9')
-	  m = (m * 10) + tmp[l] - '0';
-	else
-	  break;
-      }
-
-      if (tmp[l] == 0)
-	give_warning = YES;
-    }
-
-    if (give_warning == YES) {
-      sprintf(emsg, "Section \"%s\" size of %d bytes was given the old way, inside the section name. Please use SIZE instead...\n", tmp, m);
-      print_error(emsg, ERROR_WRN);
-
-      sec_tmp->maxsize_status = ON;
-      sec_tmp->maxsize = m;
-    }
-  }
 
   if (strcmp(tmp, "BANKHEADER") == 0) {
     no_library_files("bank header sections");
