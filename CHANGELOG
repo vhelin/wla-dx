@@ -3,8 +3,8 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.8 (30-May-2019) [ALL] Deprecated section's size giving inside section's
-                     name string. (REMOVE WARNING WHEN RELEASING v9.8!)
+v9.8 (20-Jun-2019) [ALL] Deprecated and removed section's size giving inside
+                     section's name string.
                    [ALL] Getting bank number with :CADDR works again.
                    [ALL] WLA assembles now "WLA3" library files and "WLAU"
                      object files.
