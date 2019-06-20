@@ -56,6 +56,7 @@ int repeat_active = 0;
 int smc_defined = 0;
 int asciitable_defined = 0;
 int block_status = 0;
+int dstruct_status = OFF;
 unsigned char asciitable[256];
 
 int unfolded_size;
@@ -1706,7 +1707,7 @@ int parse_enum_token(void) {
     size = 2;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
-  else if (strcaselesscmp(tmp, ".ds") == 0 || strcaselesscmp(tmp, ".dsb") == 0 || strcaselesscmp(tmp, ".dsw") == 0) { /* TODO: test */
+  else if (strcaselesscmp(tmp, ".ds") == 0 || strcaselesscmp(tmp, ".dsb") == 0 || strcaselesscmp(tmp, ".dsw") == 0) {
     /* don't do anything for "dotted" versions */
     strcpy(bak, tmp);
     
@@ -1726,12 +1727,12 @@ int parse_enum_token(void) {
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
 #ifdef W65816
-  else if (strcaselesscmp(tmp, ".dl") == 0 || strcaselesscmp(tmp, ".long") == 0 || strcaselesscmp(tmp, ".faraddr") == 0) { /* TODO: test */
+  else if (strcaselesscmp(tmp, ".dl") == 0 || strcaselesscmp(tmp, ".long") == 0 || strcaselesscmp(tmp, ".faraddr") == 0) {
     /* don't do anything for "dotted" versions */
     size = 3;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
-  else if (strcaselesscmp(tmp, ".dsl") == 0) { /* TODO: test */
+  else if (strcaselesscmp(tmp, ".dsl") == 0) {
     /* don't do anything for "dotted" versions */
     strcpy(bak, tmp);
     
@@ -1806,6 +1807,10 @@ int directive_org(void) {
     print_error("You can't issue .ORG inside a .SECTION.\n", ERROR_DIR);
     return FAILED;
   }
+  if (dstruct_status == ON) {
+    print_error("You can't issue .ORGA inside .DSTRUCT.\n", ERROR_DIR);
+    return FAILED;
+  }
 
   q = input_number();
 
@@ -1836,6 +1841,10 @@ int directive_orga(void) {
   }
   if (section_status == ON) {
     print_error("You can't issue .ORGA inside a .SECTION.\n", ERROR_DIR);
+    return FAILED;
+  }
+  if (dstruct_status == ON) {
+    print_error("You can't issue .ORGA inside .DSTRUCT.\n", ERROR_DIR);
     return FAILED;
   }
 
@@ -1873,6 +1882,10 @@ int directive_slot(void) {
     print_error("You can't issue .SLOT inside a .SECTION.\n", ERROR_DIR);
     return FAILED;
   }
+  if (dstruct_status == ON) {
+    print_error("You can't issue .SLOT inside .DSTRUCT.\n", ERROR_DIR);
+    return FAILED;
+  }
 
   q = input_number();
 
@@ -1907,6 +1920,10 @@ int directive_bank(void) {
   if (section_status == ON) {
     sprintf(emsg, "Section \"%s\" is open. Do not try to change the bank.\n", sections_last->name);
     print_error(emsg, ERROR_LOG);
+    return FAILED;
+  }
+  if (dstruct_status == ON) {
+    print_error("You can't use .BANK inside .DSTRUCT.\n", ERROR_DIR);
     return FAILED;
   }
   if (rombanks_defined == 0 && output_format != OUTPUT_LIBRARY) {
@@ -2797,11 +2814,13 @@ int directive_name_w65816(void) {
 #endif
 
 
+/* This is used for legacy .dstruct syntax, and only for generating labels in the new
+ * dstruct syntax. */
 int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
   char tmpname[MAX_NAME_LENGTH*2+10];
   struct structure_item *it;
 
-  int q, f, o, c, g;
+  int f, o, c, g;
 
   /* read the data */
   it = s->items;
@@ -2809,13 +2828,42 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
     sprintf(tmpname, "%s.%s", iname, it->name);
     if (verify_name_length(tmpname) == FAILED)
       return FAILED;
-    fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
-    if (add_label_sizeof(tmpname, it->size) == FAILED)
-      return FAILED;
+
+    if (it->type != STRUCTURE_ITEM_TYPE_UNION) { /* Add field label */
+      fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
+      if (add_label_sizeof(tmpname, it->size) == FAILED)
+        return FAILED;
+    }
 
     if (it->type == STRUCTURE_ITEM_TYPE_UNION) {
-      print_error(".DSTRUCT doesn't support structs with unions.\n", ERROR_DIR);
-      return FAILED;
+      if (*labels_only == NO) {
+        print_error(".DSTRUCT doesn't support structs with unions.\n", ERROR_DIR);
+        return FAILED;
+      }
+      else {
+        struct structure *us; /* union structure */
+
+        us = it->union_items;
+        while (us != NULL) {
+          if (us->name[0] != '\0') { /* Check if the union is named */
+            sprintf(tmpname, "%s.%s", iname, us->name);
+            if (verify_name_length(tmpname) == FAILED)
+              return FAILED;
+
+            fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
+            if (add_label_sizeof(tmpname, us->size) == FAILED)
+              return FAILED;
+          }
+          else
+            strcpy(tmpname, iname);
+
+          parse_dstruct_entry(tmpname, us, labels_only);
+          fprintf(file_out_ptr, "o%d 0 ", -us->size); /* Rewind */
+          us = us->next;
+        }
+
+        fprintf(file_out_ptr, "o%d 0 ", it->size); /* Jump to union end */
+      }
     }
     else if (it->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
       /* Handle .instanceof directive */
@@ -2909,6 +2957,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
 
             o = 2;
           }
+          /* TODO: longs */
         }
         /* fill the rest of the item with emptyfill or zero */
         if (emptyfill_defined != 0)
@@ -2936,10 +2985,103 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
   return SUCCEEDED;
 }
 
+/* Search for "field_name" within a structure. Return the corresponding structure_item and
+ * the offset within the structure it's located at. Recurses through instanceof's and
+ * unions. */
+int find_struct_field(struct structure *s, char *field_name, int *item_size, int *field_offset) {
+  int offset = 0;
+  char prefix[MAX_NAME_LENGTH + 1];
+  char *after_dot;
+  struct structure_item *si;
+
+  strcpy(prefix, field_name);
+  if (strchr(prefix, '.') != NULL) {
+    *strchr(prefix, '.') = '\0';
+    after_dot = field_name + strlen(prefix) + 1;
+  }
+  else
+    after_dot = NULL;
+
+  si = s->items;
+
+  while (si != NULL) {
+    if (si->type == STRUCTURE_ITEM_TYPE_UNION) {
+      /* Unions don't necessarily have names, so we need to check them all */
+      struct structure *us;
+
+      us = si->union_items;
+      while (us != NULL) {
+        if (us->name[0] != '\0') { /* Has name */
+          if (strcmp(field_name, us->name) == 0) {
+            *item_size = us->size;
+            *field_offset = offset;
+            return SUCCEEDED;
+          }
+          if (after_dot != NULL && strcmp(prefix, us->name) == 0) {
+            if (find_struct_field(us, after_dot, item_size, field_offset) == SUCCEEDED) {
+              *field_offset += offset;
+              return SUCCEEDED;
+            }
+          }
+        }
+        /* No name */
+        else if (find_struct_field(us, field_name, item_size, field_offset) == SUCCEEDED) {
+          *field_offset += offset;
+          return SUCCEEDED;
+        }
+        us = us->next;
+      }
+    }
+    else if (strcmp(field_name, si->name) == 0) {
+      *field_offset = offset;
+      *item_size = si->size;
+      return SUCCEEDED;
+    }
+    /* Look for prefix for an ".instanceof" */
+    else if (after_dot != NULL && strcmp(prefix, si->name) == 0) {
+      if (si->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
+        if (find_struct_field(si->instance, after_dot, item_size, field_offset) == SUCCEEDED) {
+          *field_offset += offset;
+          return SUCCEEDED;
+        }
+        /* Look for ie. "struct.1.field" */
+        else if (si->num_instances > 1) {
+          int g;
+          for (g=1; g<=si->num_instances; g++) {
+            char num_str[256];
+            sprintf(num_str, "%d", g);
+            if (strncmp(num_str, after_dot, strlen(num_str)) == 0) {
+              /* Entire string matched? */
+              if (strcmp(num_str, after_dot) == 0) {
+                *field_offset = offset + (g-1) * si->instance->size;
+                *item_size = si->instance->size;
+                return SUCCEEDED;
+              }
+              /* Only prefix matched */
+              if (after_dot[strlen(num_str)] == '.' && find_struct_field(si->instance, after_dot + strlen(num_str) + 1, item_size, field_offset) == SUCCEEDED) {
+                *field_offset += offset + (g-1) * si->instance->size;
+                return SUCCEEDED;
+              }
+            }
+          }
+        }
+      }
+      /* else keep looking */
+    }
+
+    if (si->type != STRUCTURE_ITEM_TYPE_DOTTED)
+      offset += si->size;
+
+    si = si->next;
+  }
+
+  return FAILED;
+}
+
 int directive_dstruct(void) {
   char iname[MAX_NAME_LENGTH*2+5];
   struct structure *s;
-  int q;
+  int q, q2;
   int labels_only;
 
   /* get instance name */
@@ -2985,13 +3127,89 @@ int directive_dstruct(void) {
      }
      }
   */
-	
-  if (compare_next_token("DATA") == SUCCEEDED)
-    skip_next_token();
 
   fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, iname);
   if (add_label_sizeof(iname, s->size) == FAILED)
     return FAILED;
+
+  if (compare_next_token("VALUES") == SUCCEEDED) {
+    /* New syntax */
+
+    int field_offset;
+    char field_name[MAX_NAME_LENGTH + 1];
+    int item_size;
+
+    if (dstruct_status == ON) {
+      print_error("You can't have nested .DSTRUCT's.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    dstruct_status = ON;
+
+    skip_next_token();
+
+    fprintf(file_out_ptr, "e%d -1 ", s->size); /* Mark start address of dstruct */
+
+    q = get_next_token();
+
+    while (q == SUCCEEDED) {
+      if ((q2 = parse_if_directive()) != -1) {
+        return q2;
+      }
+      if (strcaselesscmp(tmp, ".ENDST") == 0) {
+        break;
+      }
+      else {
+        if (tmp[strlen(tmp)-1] == ':')
+          tmp[strlen(tmp)-1] = '\0';
+        strcpy(field_name, tmp);
+
+        if (find_struct_field(s, field_name, &item_size, &field_offset) == FAILED) {
+          sprintf(emsg, ".DSTRUCT: Couldn't find field \"%s\" in structure \"%s\".\n", field_name, s->name);
+          print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
+
+        fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+        fprintf(file_out_ptr, "e%d %d ", field_offset, item_size);
+
+        do {
+          if ((q = get_next_token()) == FAILED) {
+            print_error("Error parsing .DSTRUCT.\n", ERROR_ERR);
+            return FAILED;
+          }
+
+          if (tmp[0] != '.' || strcmp(tmp, ".ENDST") == 0)
+            break;
+
+          if (parse_directive() == FAILED)
+            return FAILED;
+        }
+        while(1);
+      }
+    }
+
+    if (q != SUCCEEDED) {
+      print_error("Error parsing .DSTRUCT.\n", ERROR_ERR);
+      return FAILED;
+    }
+
+    /* Now generate labels */
+    labels_only = YES;
+    fprintf(file_out_ptr, "e%d -3 ", 0); /* Back to start of struct */
+    if (parse_dstruct_entry(iname, s, &labels_only) == FAILED)
+      return FAILED;
+
+    fprintf(file_out_ptr, "e%d -3 ", 0); /* Back to start of struct */
+    fprintf(file_out_ptr, "e%d -2 ", s->size); /* Mark end of .DSTRUCT */
+
+    dstruct_status = OFF;
+    return SUCCEEDED;
+  }
+  else if (compare_next_token("DATA") == SUCCEEDED)
+    skip_next_token();
+
+  /* Legacy syntax */
 
   inz = input_number();
   labels_only = NO;
@@ -3249,6 +3467,10 @@ int directive_incbin(void) {
 
 
 int directive_struct(void) {
+  if (dstruct_status == ON) {
+    print_error("You can't use .STRUCT inside .DSTRUCT.\n", ERROR_DIR);
+    return FAILED;
+  }
 
   active_struct = calloc(sizeof(struct structure), 1);
   if (active_struct == NULL) {
@@ -3284,6 +3506,10 @@ int directive_ramsection(void) {
   if (section_status == ON) {
     sprintf(emsg, "There is already an open section called \"%s\".\n", sections_last->name);
     print_error(emsg, ERROR_DIR);
+    return FAILED;
+  }
+  if (dstruct_status == ON) {
+    print_error("You can't use .RAMSECTION inside .DSTRUCT.\n", ERROR_DIR);
     return FAILED;
   }
 
@@ -3481,7 +3707,11 @@ int directive_section(void) {
   
   int l, m = 0, give_warning = NO;
 
-  if (section_status == ON) {
+  if (dstruct_status == ON) {
+    print_error("You can't set the section inside .DSTRUCT.\n", ERROR_DIR);
+    return FAILED;
+  }
+  else if (section_status == ON) {
     sprintf(emsg, "There is already an open section called \"%s\".\n", sections_last->name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
@@ -5641,6 +5871,11 @@ int directive_macro(void) {
   int macro_start_line;
   int q;
 
+  if (dstruct_status == ON) {
+    print_error("You can't define a macro inside .DSTRUCT.\n", ERROR_DIR);
+    return FAILED;
+  }
+
   if (get_next_token() == FAILED)
     return FAILED;
 
@@ -7184,6 +7419,10 @@ int parse_directive(void) {
       print_error("There is no open section.\n", ERROR_DIR);
       return FAILED;
     }
+    if (dstruct_status == ON) {
+      print_error("You can't close a section inside .DSTRUCT.\n", ERROR_DIR);
+      return FAILED;
+    }
 
     /* generate a section end label? */
     if (extra_definitions == ON)
@@ -7559,6 +7798,11 @@ int parse_directive(void) {
   /* ENUM */
 
   if (strcaselesscmp(cp, "ENUM") == 0) {
+    if (dstruct_status == ON) {
+      print_error("You can't use start an ENUM inside .DSTRUCT.\n", ERROR_DIR);
+      return FAILED;
+    }
+
     q = input_number();
     if (q == FAILED)
       return FAILED;

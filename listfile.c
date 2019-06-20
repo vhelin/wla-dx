@@ -22,6 +22,8 @@ extern int verbose_mode, section_status, cartridgetype, output_format;
 int listfile_collect(void) {
 
   int add = 0, skip = 0, file_name_id = 0, inz, line_number = 0, command = 0, inside_macro = 0, inside_repeat = 0;
+  int x, y;
+  int dstruct_start = -1;
   struct section_def *section = NULL;
   FILE *file_in;
   char c;
@@ -206,6 +208,14 @@ int listfile_collect(void) {
 	section->listfile_ints[command*3 + 0] = line_number;
 	command++;
       }
+      continue;
+
+    case 'e':
+      fscanf(file_in, "%d %d ", &x, &y);
+      if (y == -1) /* Mark start of .DSTRUCT */
+        dstruct_start = add;
+      else
+        add = dstruct_start + x;
       continue;
 
     default:

@@ -23,6 +23,8 @@ struct label_def *label_next, *label_last, *label_tmp, *labels = NULL;
 struct map_t *global_unique_label_map = NULL;
 struct block *blocks = NULL;
 
+int dstruct_start, dstruct_item_offset, dstruct_item_size;
+
 #define XSTRINGIFY(x) #x
 #define STRINGIFY(x) XSTRINGIFY(x)
 #define STRING_READ_FORMAT ("%" STRINGIFY(MAX_NAME_LENGTH) "s ")
@@ -37,6 +39,7 @@ int pass_3(void) {
   FILE *f_in;
   int bank = 0, slot = 0, add = 0, file_name_id = 0, inz, line_number = 0, o, add_old = 0, inside_macro = 0, inside_repeat = 0;
   int base = 0x00;
+  int x, y;
   char c;
   int err;
 
@@ -743,6 +746,28 @@ int pass_3(void) {
       fscanf(f_in, "%d ", &line_number);
       if (s != NULL && inside_macro == 0 && inside_repeat == 0)
 	s->listfile_items++;
+      continue;
+
+    case 'e':
+      fscanf(f_in, "%d %d ", &x, &y);
+      if (y == -1) { /* Mark start of .DSTRUCT */
+        dstruct_start = add;
+        dstruct_item_offset = -1;
+      }
+      else {
+        if (dstruct_item_offset != -1 && add - dstruct_item_offset > dstruct_item_size) {
+          fprintf(stderr, "%s:%d INTERNAL_PASS_1: %d too many bytes in struct field.\n", get_file_name(file_name_id), line_number, (add - dstruct_item_offset) - dstruct_item_size);
+          return FAILED;
+        }
+
+        add = dstruct_start + x;
+        if (y < 0)
+          dstruct_item_offset = -1;
+        else {
+          dstruct_item_offset = add;
+          dstruct_item_size = y;
+        }
+      }
       continue;
 
     default:
