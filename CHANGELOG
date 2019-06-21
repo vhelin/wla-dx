@@ -3,6 +3,8 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
+v9.9a (21-Jun-2019)
+
 v9.8 (21-Jun-2019) [ALL] Deprecated and removed section's size giving inside
                      section's name string.
                    [ALL] Getting bank number with :CADDR works again.
@@ -1051,6 +1053,8 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
+
+v5.11a (21-Jun-2019)
 
 v5.10 (21-Jun-2019) Added support for NO$SNES symbol files.
                     -d discards now also SUPERFREE sections.
