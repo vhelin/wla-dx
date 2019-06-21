@@ -171,7 +171,7 @@
 00:03be drops.waterdrops.2.name
 00:03c6 drops.waterdrops.2.age
 00:03c7 drops.waterdrops.2.weight
-00:03c9 SECTIONEND_StructSection
+00:03d4 SECTIONEND_StructSection
 00:c000 SECTIONSTART_RAM
 00:c000 ram
 00:c000 ram.union1

@@ -1463,6 +1463,13 @@ in this context, as opposed to the 11 bytes for the entire
 Named unions can be assigned to in a similar way, by writing its full
 name with a ``.`` separating the union name and the field name.
 
+The struct can be defined namelessly, in which case no labels will be
+generated, like so::
+
+    .DSTRUCT INSTANCEOF drop_pair VALUES
+        ...
+    .ENDST
+
 This is not a compulsory directive.
 
 

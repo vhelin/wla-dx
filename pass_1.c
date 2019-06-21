@@ -3084,19 +3084,24 @@ int directive_dstruct(void) {
   int q, q2;
   int labels_only;
 
-  /* get instance name */
-  q = input_number();
-  if (q == FAILED)
-    return FAILED;
-  if (q != INPUT_NUMBER_ADDRESS_LABEL) {
-    print_error(".DSTRUCT needs a name for the instance.\n", ERROR_INP);
-    return FAILED;
-  }
-
-  strcpy(iname, label);
-
-  if (compare_next_token("INSTANCEOF") == SUCCEEDED)
+  if (compare_next_token("INSTANCEOF") == SUCCEEDED) { /* Nameless */
     skip_next_token();
+    iname[0] = '\0';
+  }
+  else {
+    /* get instance name */
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (q != INPUT_NUMBER_ADDRESS_LABEL) {
+      print_error(".DSTRUCT needs a name for the instance.\n", ERROR_INP);
+      return FAILED;
+    }
+    strcpy(iname, label);
+
+    if (compare_next_token("INSTANCEOF") == SUCCEEDED)
+      skip_next_token();
+  }
 
   /* get structure name */
   q = input_number();
@@ -3128,9 +3133,11 @@ int directive_dstruct(void) {
      }
   */
 
-  fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, iname);
-  if (add_label_sizeof(iname, s->size) == FAILED)
-    return FAILED;
+  if (iname[0] != '\0') {
+    fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, iname);
+    if (add_label_sizeof(iname, s->size) == FAILED)
+      return FAILED;
+  }
 
   if (compare_next_token("VALUES") == SUCCEEDED) {
     /* New syntax */
@@ -3195,10 +3202,12 @@ int directive_dstruct(void) {
     }
 
     /* Now generate labels */
-    labels_only = YES;
-    fprintf(file_out_ptr, "e%d -3 ", 0); /* Back to start of struct */
-    if (parse_dstruct_entry(iname, s, &labels_only) == FAILED)
-      return FAILED;
+    if (iname[0] != '\0') {
+      labels_only = YES;
+      fprintf(file_out_ptr, "e%d -3 ", 0); /* Back to start of struct */
+      if (parse_dstruct_entry(iname, s, &labels_only) == FAILED)
+        return FAILED;
+    }
 
     fprintf(file_out_ptr, "e%d -3 ", 0); /* Back to start of struct */
     fprintf(file_out_ptr, "e%d -2 ", s->size); /* Mark end of .DSTRUCT */

@@ -224,6 +224,12 @@ struct1End:
     waterdrops.2.weight: .dw 12
 .ENDST
 
+.DSTRUCT INSTANCEOF water VALUES /* Nameless struct */
+    name:   .db "nameless"
+    age:    .db 50
+    weight: .dw 100
+.ENDST
+
 .ends
 
 
