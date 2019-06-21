@@ -16,6 +16,7 @@ SLOT 2 $c000
 
 .emptyfill $01
 
+.ORGA $150
 
 .STRUCT MyStruct1
 	b0:	db
@@ -132,7 +133,7 @@ struct1End:
 	.db $ff
 
 
-.section StructSection
+.section StructSection SEMIFREE
 
 /* Test inside a section */
 .DSTRUCT data3 INSTANCEOF MyStruct4 VALUES
@@ -195,6 +196,32 @@ struct1End:
 		.db $e8 $e9 $ea $eb $ec $ed $ee $ef
 		.db $f0 $f1 $f2 $f3 $f4 $f5 $f6 $f7
 		.db $f8 $f9 $fa $fb $fc $fd $fe $ff
+.ENDST
+
+
+/* Example from the readme */
+.STRUCT water
+    name   ds 8
+    age    db
+    weight dw
+.ENDST
+
+.STRUCT drop_pair
+    waterdrops: instanceof water 2
+.ENDST
+
+.DSTRUCT waterdrop INSTANCEOF water VALUES
+    name:   .db "tingle"
+    age:    .db 40
+    weight: .dw 120
+.ENDST
+
+.DSTRUCT drops drop_pair VALUES
+    waterdrops.1:        .db "qwertyui" 40
+			 .dw 120
+    waterdrops.2.name:   .db "tingle"
+    waterdrops.2.age:    .db 40
+    waterdrops.2.weight: .dw 12
 .ENDST
 
 .ends
