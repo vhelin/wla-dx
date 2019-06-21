@@ -2298,7 +2298,8 @@ itself. The namespace directive should immediately follow the name. ::
 
     .SECTION "Init" NAMESPACE "bank0"
 
-You can give the size of the section the following way::
+You can give the size of the section, if you wish to force the section
+to some specific size, the following way::
 
     .SECTION "Init" SIZE 100 FREE
 
