@@ -118,6 +118,7 @@ ALL  ``.ENDR``
 ALL  ``.ENDRO``
 ALL  ``.ENDS``
 ALL  ``.ENDST``
+ALL  ``.ENDU``
 ALL  ``.ENUM $C000``
 ALL  ``.ENUMID ID_1 0``
 ALL  ``.EQU IF $FF0F``
@@ -147,6 +148,7 @@ ALL  ``.INPUT NAME``
 658  ``.FARADDR main, irq_1``
 ALL  ``.MACRO TEST``
 ALL  ``.MEMORYMAP``
+ALL  ``.NEXTU name``
 ALL  ``.ORG $150``
 ALL  ``.ORGA $150``
 ALL  ``.PRINT "Numbers 1 and 10: ", DEC 1, " $", HEX 10, "\n"``
@@ -172,6 +174,7 @@ ALL  ``.TABLE byte, word, byte``
 ALL  ``.UNBACKGROUND $1000 $1FFF``
 ALL  ``.UNDEFINE DEBUG``
 ALL  ``.UNDEF DEBUG``
+ALL  ``.UNION name``
 ALL  ``.WORD 16000, 10, 255``
 ALL  ``.ADDR 16000, main, 255``
 === ================================================================
@@ -1372,7 +1375,7 @@ Defines ``256`` bytes of ``$10``.
 This is not a compulsory directive.
 
 
-``.DSTRUCT waterdrop INSTANCEOF water DATA "tingle", 40, 120``
+``.DSTRUCT waterdrop INSTANCEOF water VALUES``
 --------------------------------------------------------------
 
 Defines an instance of struct water, called waterdrop, and fills
@@ -1380,29 +1383,92 @@ it with the given data. Before calling ``.DSTRUCT`` we must have defined
 the structure, and in this example it could be like::
 
     .STRUCT water
-    name   ds 8
-    age    db
-    weight dw
+        name   ds 8
+        age    db
+        weight dw
     .ENDST
 
-Note that the keywords ``INSTANCEOF`` and ``DATA`` are optional, so ::
+There are two syntaxes for .DSTRUCT; the new and legacy versions. To use
+the new syntax, put the keyword "VALUES" at the end of the first line.
+The old syntax uses the keyword "DATA" or none at all.
 
-    .DSTRUCT waterdrop, water, "tingle", 40, 120
+The new syntax looks like this::
 
-also works. And one can define instances without supplying values to
-all struct members::
+    .DSTRUCT waterdrop INSTANCEOF water VALUES
+        name:   .db "tingle"
+        age:    .db 40
+        weight: .dw 120
+    .ENDST
 
-    .DSTRUCT waterdrop, water, "somedrop"
+The fields can be put in any order. Any omitted fields are set to the
+``.EMPTYFILL`` value (``$00`` by default). Any data-defining directive
+can be used within .DSTRUCT, as long as it does not exceed the size of
+the data it is being defined for. The only exception is .DSTRUCT itself,
+which cannot be nested.
 
-Note that WLA fills the missing bytes with the data defined with
-``.EMPTYFILL``, or ``$00`` if no ``.EMPTYFILL`` has been issued.
+The old syntax looks like this::
 
-In this example you would also get the following labels::
+    .DSTRUCT waterdrop INSTANCEOF water DATA "tingle", 40, 120
+
+The ``DATA`` and ``INSTANCEOF`` keywords are optional. This will assign
+data for each field of the struct in the order they were defined.
+
+In either example you would get the following labels::
 
     waterdrop
     waterdrop.name
     waterdrop.age
     waterdrop.weight
+    _sizeof_waterdrop        = 11
+    _sizeof_waterdrop.name   = 8
+    _sizeof_waterdrop.age    = 1
+    _sizeof_waterdrop.weight = 2
+
+The legacy syntax does not support unions; it will give an error if you
+attempt to define data for a union.
+
+For the new syntax, nested structs are supported like so (assume the
+``water`` struct is also defined::
+
+    .STRUCT drop_pair
+        waterdrops: instanceof water 2
+    .ENDST
+
+    .DSTRUCT drops drop_pair VALUES
+        waterdrops.1:        .db "qwertyui" 40
+                             .dw 120
+        waterdrops.2.name:   .db "tingle"
+        waterdrops.2.age:    .db 40
+        waterdrops.2.weight: .dw 12
+    .ENDST
+
+In this case, the properties of ``waterdrops.1`` were defined
+implicitly; 8 bytes for the name, followed by a byte for the age,
+followed by a word for the weight. The values for ``waterdrops.2`` were
+defined in a more clear way.
+
+In this case, ``waterdrops`` and ``waterdrops.1`` are equivalent.
+``waterdrops.1.name`` is different, even though its address is the same,
+because it has a size of 8. If you attempted to do this::
+
+    .DSTRUCT drops drop_pair VALUES
+        waterdrops.1.name:   .db "qwertyui" 40
+                             .dw 120
+    .ENDST
+
+It would fail, because only the 8 name bytes are available to be defined
+in this context, as opposed to the 11 bytes for the entire
+``waterdrops.1`` structure.
+
+Named unions can be assigned to in a similar way, by writing its full
+name with a ``.`` separating the union name and the field name.
+
+The struct can be defined namelessly, in which case no labels will be
+generated, like so::
+
+    .DSTRUCT INSTANCEOF drop_pair VALUES
+        ...
+    .ENDST
 
 This is not a compulsory directive.
 
@@ -2767,3 +2833,65 @@ Ends definition of the emulation mode interrupt vector table.
 
 This is not a compulsory directive, but when ``.SNESEMUVECTOR``
 is used this one is required to terminate it.
+
+
+``.UNION name``
+---------------
+
+Begins a "union". This can only be used in enums, ramsections, and structs.
+
+When entering a union, the current address in the enum is saved, and the
+following data is processed as normal. When the ``.NEXTU`` directive is
+encountered, the address is reverted back to the start of the union. This allows
+one to assign an area of memory to multiple labels. ::
+
+    .ENUM $C000
+        .UNION
+            pos_lowbyte:  db
+            pos_highbyte: db
+            extra_word:   dw
+        .NEXTU
+            pos:          dw
+        .ENDU
+        after: db
+    .ENDE
+
+This example is equivalent to::
+
+    .DEFINE pos_lowbyte  $c000
+    .DEFINE pos_highbyte $c001
+    .DEFINE extra_word   $c002
+    .DEFINE pos          $c000
+    .DEFINE after        $c004
+
+The ``.UNION`` and ``.NEXTU`` commands can be given an argument to assign
+a prefix to the labels that follow. ::
+
+    .ENUM $C000
+        .UNION union1
+            byte1: db
+            byte2: db
+        .NEXTU union2
+            word1: dw
+        .ENDU
+    .ENDE
+
+This example is equivalent to::
+
+    .DEFINE union1.byte1 $c000
+    .DEFINE union1.byte2 $c001
+    .DEFINE union2.word1 $c000
+
+Unions can be nested.
+
+
+``.NEXTU name``
+---------------
+
+Proceeds to the next entry in a union.
+
+
+``.ENDU``
+---------
+
+Ends the current union.

@@ -437,17 +437,40 @@ struct stack {
   int address;
 };
 
+#define STRUCTURE_ITEM_TYPE_DATA            0
+#define STRUCTURE_ITEM_TYPE_DOTTED          1
+#define STRUCTURE_ITEM_TYPE_INSTANCEOF      2
+#define STRUCTURE_ITEM_TYPE_UNION           3
+
+
 struct structure_item {
   char name[MAX_NAME_LENGTH + 1];
+  int type;
   int size;
+
+  /* only for TYPE_INSTANCE */
+  struct structure *instance;
+  int num_instances;
+
+  /* only for TYPE_UNION; each union entry is stored as a structure. */
+  struct structure *union_items;
+
   struct structure_item *next;
 };
 
 struct structure {
   char name[MAX_NAME_LENGTH + 1];
   struct structure_item *items;
+  struct structure_item *last_item;
   int size;
   struct structure *next;
+};
+
+struct union_stack {
+  struct structure *active_struct;
+  struct structure *union_first_struct;
+  int union_base_offset, max_enum_offset;
+  struct union_stack *prev;
 };
 
 struct repeat_runtime {

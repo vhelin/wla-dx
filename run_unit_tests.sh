@@ -84,6 +84,7 @@ runTest background_test
 runTest linker_test
 runTest namespace_test
 runTest sintest
+runTest union_test
 cd ..
 
 #####################################################################

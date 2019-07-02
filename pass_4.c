@@ -68,6 +68,7 @@ struct label_sizeof *label_sizeof_tmp;
 char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 
 int pc_bank = 0, pc_full = 0, rom_bank, mem_insert_overwrite, slot = 0, base = 0, pc_slot, pc_slot_max;
+int dstruct_start = -1;
 int filename_id, line_number;
 
 
@@ -321,17 +322,38 @@ int pass_4(void) {
         continue;
 
         /* DSB & DSW & DSL */
+        /* ('o' skips over memory without claiming it) */
 
       case 'x':
+      case 'o':
         fscanf(file_out_ptr, "%d %d", &ind, &x);
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
 	sprintf(mem_insert_action, "%s:%d: Writing DSB data", get_file_name(filename_id), line_number);
 
-	while (ind > 0) {
-          if (mem_insert(x) == FAILED)
-            return FAILED;
-          ind--;
+        if (ind < 0) { /* going backward */
+          if (section_status == ON)
+            sec_tmp->i += ind;
+          pc_bank += ind;
+          pc_full += ind;
+          pc_slot += ind;
+          ind++;
+        }
+        else {
+          while (ind > 0) {
+            if (c == 'o') {
+              if (section_status == ON)
+                sec_tmp->i++;
+              pc_bank++;
+              pc_full++;
+              pc_slot++;
+            }
+            else {
+              if (mem_insert(x) == FAILED)
+                return FAILED;
+            }
+            ind--;
+          }
         }
         continue;
 
@@ -988,6 +1010,38 @@ int pass_4(void) {
 	if (mem_insert_padding() == FAILED)
           return FAILED;
 
+        continue;
+
+        /* .DSTRUCT stuff */
+
+      case 'e':
+        fscanf(file_out_ptr, "%d %d ", &x, &y);
+        if (y == -1) { /* Mark start of .DSTRUCT */
+          dstruct_start = pc_full;
+          /* Make sure all data in a section gets set to emptyfill */
+          if (section_status == ON)
+            memset(sec_tmp->data + sec_tmp->i, emptyfill, x);
+        }
+        else if (y == -2) { /* End of .DSTRUCT. Make sure all memory is claimed. */
+          while (pc_full < dstruct_start + x) {
+            if (section_status == OFF && rom_banks_usage_table[pc_full] == 0) {
+              rom_banks_usage_table[pc_full] = 2;
+              rom_banks[pc_full] = emptyfill;
+            }
+            if (section_status == ON)
+              sec_tmp->i++;
+            pc_bank++;
+            pc_slot++;
+            pc_full++;
+          }
+        }
+        else { /* Seek offset relative to dstruct start */
+          if (section_status == ON)
+            sec_tmp->i = sec_tmp->i + (dstruct_start - pc_full) + x;
+          pc_bank = pc_bank + (dstruct_start - pc_full) + x;
+          pc_slot = pc_slot + (dstruct_start - pc_full) + x;
+          pc_full = dstruct_start + x;
+        }
         continue;
     }
   }
@@ -1715,6 +1769,10 @@ int find_label(char *str, struct section_def *s, struct label_def **out) {
 int mem_insert(unsigned char x) {
 
   if (section_status == ON) {
+    if (sec_tmp->i >= sec_tmp->size || sec_tmp->i < 0) {
+      fprintf(stderr, "MEM_INSERT: Overflowed data for section \"%s\"; please send a bug report!\n", sec_tmp->name);
+      return FAILED;
+    }
     sec_tmp->data[sec_tmp->i] = x;
     sec_tmp->i++;
     pc_bank++;

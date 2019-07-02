@@ -2184,26 +2184,10 @@ int is_label_ok_for_sizeof(char *label) {
 }
 
 
-int count_dots(char *label) {
-
-  int dots = 0;
-
-  while (1) {
-    if (*label == 0)
-      break;
-    if (*label == '.')
-      dots++;
-    label++;
-  }
-
-  return dots;
-}
-
-
 int generate_sizeof_label_definitions(void) {
 
   struct label *l, *lastL, **labels;
-  int labelsN = 0, j, k, dots_1, dots_2;
+  int labelsN = 0, j;
   double size;
 
 
@@ -2258,48 +2242,27 @@ int generate_sizeof_label_definitions(void) {
 
   /* process the labels */
   for (j = 0; j < labelsN; j++) {
-    if (j == labelsN - 1 || labels[j]->section != labels[j+1]->section) {
-      /* last label in this section */
-      if (labels[j]->section_struct != NULL)
-	size = labels[j]->section_struct->size - labels[j]->address_in_section;
-      else
-        continue;
-    }
-    else {
-      dots_1 = count_dots(labels[j]->name);
-      dots_2 = count_dots(labels[j+1]->name);
+    struct label_sizeof *ls = label_sizeofs;
 
-      if (dots_1 < dots_2) {
-	/* find the next label on the same level of struct label hierarchy */
-	for (k = j+2; k < labelsN; k++) {
-	  if (count_dots(labels[k]->name) <= dots_1)
-	    break;
-	}
-
-	if (k < labelsN)
-	  size = labels[k]->rom_address - labels[j]->rom_address;
-	else {
-	  /* last label in this section */
-	  if (labels[j]->section_struct != NULL)
-	    size = labels[j]->section_struct->size - labels[j]->address_in_section;
-	  else
-	    continue;
-	}
+    /* try to find the size in "label sizeofs"... */
+    while (ls != NULL) {
+      if (labels[j]->file_id == ls->file_id && strcmp(labels[j]->name, ls->name) == 0) {
+        size = ls->size;
+        break;
       }
-      else
-	size = labels[j+1]->rom_address - labels[j]->rom_address;
+      ls = ls->next;
     }
 
-    if (size == 0) {
-      struct label_sizeof *ls = label_sizeofs;
-      
-      /* try to find the size in "label sizeofs"... */
-      while (ls != NULL) {
-	if (labels[j]->file_id == ls->file_id && strcmp(labels[j]->name, ls->name) == 0) {
-	  size = ls->size;
-	  break;
-	}
-	ls = ls->next;
+    if (ls == NULL) {
+      if (j == labelsN - 1 || labels[j]->section != labels[j+1]->section) {
+        /* last label in this section */
+        if (labels[j]->section_struct != NULL)
+          size = labels[j]->section_struct->size - labels[j]->address_in_section;
+        else
+          continue;
+      }
+      else {
+        size = labels[j+1]->rom_address - labels[j]->rom_address;
       }
     }
 
