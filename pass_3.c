@@ -295,7 +295,7 @@ int pass_3(void) {
 	while (s->id != inz)
 	  s = s->next;
 
-	/* a RAMSECTION? */
+	/* a .RAMSECTION? */
 	if (s->status == SECTION_STATUS_RAM) {
 	  s->address = 0;
 	  s->listfile_items = 1;
@@ -602,9 +602,9 @@ int pass_3(void) {
       free(b);
       continue;
 
-    case 'Z': /* Breakpoint */
-    case 'Y': /* Symbol */
-    case 'L': /* Label */
+    case 'Z': /* breakpoint */
+    case 'Y': /* symbol */
+    case 'L': /* label */
       l = calloc(sizeof(struct label_def), 1);
       if (l == NULL) {
 	fscanf(f_in, STRING_READ_FORMAT, tmp);
@@ -626,8 +626,7 @@ int pass_3(void) {
 	fscanf(f_in, STRING_READ_FORMAT, l->label);
 
       if (c == 'L' && is_label_anonymous(l->label) == FAILED) {
-        /* If the label has '@' at the start, mangle the label name to make it
-         * unique */
+        /* if the label has '@' at the start, mangle the label name to make it unique */
         int n = 0, m;
 
         while (n < 10 && l->label[n] == '@') {
@@ -750,7 +749,7 @@ int pass_3(void) {
 
     case 'e':
       fscanf(f_in, "%d %d ", &x, &y);
-      if (y == -1) { /* Mark start of .DSTRUCT */
+      if (y == -1) { /* mark start of .DSTRUCT */
         dstruct_start = add;
         dstruct_item_offset = -1;
       }
@@ -813,7 +812,6 @@ int mangle_label(char *label, char *parent, int n, unsigned int label_size) {
 
   char buf[MAX_NAME_LENGTH*2+2];
   int len;
-
 
   len = (int)strlen(parent);
 

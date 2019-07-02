@@ -1069,6 +1069,7 @@ int verify_name_length(char *name) {
   return SUCCEEDED;
 }
 
+
 void print_error(char *error, int type) {
 
   char error_dir[] = "DIRECTIVE_ERROR:";
@@ -1166,7 +1167,7 @@ void next_line(void) {
 }
 
 
-/* Used by ramsections only */
+/* used by .RAMSECTIONs only */
 int add_label_sizeof(char *label, int size) {
 
   struct label_sizeof *ls;
@@ -1183,7 +1184,7 @@ int add_label_sizeof(char *label, int size) {
   ls->next = label_sizeofs;
   label_sizeofs = ls;
 
-  /* Define locally also, since we can */
+  /* define locally also, since we can */
   sprintf(tmpname, "_sizeof_%s", label);
   if (add_a_new_definition(tmpname, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
@@ -1193,28 +1194,33 @@ int add_label_sizeof(char *label, int size) {
 
 
 void free_struct(struct structure *st) {
+
   struct structure_item *si = st->items;
+
   while (si != NULL) {
     struct structure_item *tmp = si;
 
     if (si->type == STRUCTURE_ITEM_TYPE_UNION)
       free_struct(si->union_items);
-    /* Don't free si->instance for STRUCTURE_ITEM_TYPE_INSTANCE since that's a reusable
-     * structure */
+    /* don't free si->instance for STRUCTURE_ITEM_TYPE_INSTANCE since that's a reusable
+       structure */
 
     si = si->next;
     free(tmp);
   }
+
   free(st);
 }
 
+
 /* enum_offset and last_enum_offset should be set when calling this. */
 int add_label_to_enum_or_ramsection(char *name, int size) {
+
   char tmp[MAX_NAME_LENGTH+10];
 
-  /* There are two passes done when adding a temporary struct to an enum/ramsection. First
-   * pass is to add the labels, second is to add sizeof definitions. If done in only one
-   * pass, the resulting sym file is very ugly... */
+  /* there are two passes done when adding a temporary struct to an enum/ramsection. first
+     pass is to add the labels, second is to add sizeof definitions. if done in only one
+     pass, the resulting sym file is very ugly... */
   if (enum_sizeof_pass == NO) {
     if (verify_name_length(name) == FAILED)
       return FAILED;
@@ -1228,7 +1234,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
     }
     else if (in_ramsection) {
       if (last_enum_offset != enum_offset) {
-        /* This sometimes abuses the "dsb" implementation to move backwards in the ramsection. */
+        /* this sometimes abuses the "dsb" implementation to move backwards in the ramsection. */
         fprintf(file_out_ptr, "x%d 0 ", enum_offset-last_enum_offset);
       }
       fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, name);
@@ -1256,11 +1262,12 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
 }
 
 
-/* Add all fields from a struct at the current offset in the enum/ramsection.
- * This is used to construct enums or ramsections through temporary structs, even if
- * INSTANCEOF isn't used.
- * enum_sizeof_pass should be set to YES or NO before calling. */
+/* add all fields from a struct at the current offset in the enum/ramsection.
+   this is used to construct enums or ramsections through temporary structs, even if
+   INSTANCEOF isn't used.
+   enum_sizeof_pass should be set to YES or NO before calling. */
 int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
+
   char tmp[MAX_NAME_LENGTH * 2 + 5];
   struct structure_item *si;
   int g;
@@ -1281,7 +1288,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
     if (reverse)
       enum_offset -= real_si_size;
 
-    /* Make definition for this item */
+    /* make definition for this item */
     if (si->name[0] != '\0') {
       if (basename[0] != '\0')
         sprintf(tmp, "%s.%s", basename, si->name);
@@ -1295,14 +1302,14 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
         return FAILED;
     }
 
-    /* If this struct has an .instanceof in it, we need to recurse */
+    /* if this struct has an .instanceof in it, we need to recurse */
     if (si->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
-      /* Add definition for first (possibly only) instance of struct */
+      /* add definition for first (possibly only) instance of struct */
       if (enum_add_struct_fields(tmp, si->instance, 0) == FAILED)
         return FAILED;
 
       if (si->num_instances > 1) {
-        /* Revert enum_offset back to start of struct data to define "numbered" structs */
+        /* revert enum_offset back to start of struct data to define "numbered" structs */
         enum_offset -= si->instance->size;
 
         g = 1;
@@ -1322,7 +1329,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
         }
       }
     }
-    /* If this struct has a .union in it, we treat each union block like a struct */
+    /* if this struct has a .union in it, we treat each union block like a struct */
     else if (si->type == STRUCTURE_ITEM_TYPE_UNION) {
       int orig_offset = enum_offset;
       char union_basename[MAX_NAME_LENGTH * 2 + 5];
@@ -1349,16 +1356,17 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 
         if (enum_add_struct_fields(union_basename, un, 0) == FAILED)
           return FAILED;
+
         un = un->next;
       }
 
-      /* This is the size of the largest union */
+      /* this is the size of the largest union */
       enum_offset = orig_offset + real_si_size;
     }
     else
       enum_offset += real_si_size;
 
-    if (reverse) /* After defining data, go back to start, for DESC enums */
+    if (reverse) /* after defining data, go back to start, for DESC enums */
       enum_offset -= real_si_size;
 
     si = si->next;
@@ -1371,7 +1379,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 /* either "in_enum", "in_ramsection", or "in_struct" should be true when this is called. */
 int parse_enum_token(void) {
 
-  char tmpname[MAX_NAME_LENGTH + 1], bak[256];
+  char tmpname[MAX_NAME_LENGTH + 8 + 1], bak[256];
   int type, size, q;
   
   struct structure *st = NULL;
@@ -1405,7 +1413,7 @@ int parse_enum_token(void) {
     else
       st->name[0] = '\0';
 
-    /* Put previous union onto the "stack" */
+    /* put previous union onto the "stack" */
     ust = calloc(sizeof(struct union_stack), 1);
     if (ust == NULL) {
       print_error("PARSE_ENUM_TOKEN: Out of memory error.\n", ERROR_DIR);
@@ -1477,7 +1485,7 @@ int parse_enum_token(void) {
 
     enum_offset = max_enum_offset;
 
-    /* Pop previous union from the "stack" */
+    /* pop previous union from the "stack" */
     ust = union_stack;
     active_struct = union_stack->active_struct;
     union_first_struct = union_stack->union_first_struct;
@@ -1486,11 +1494,11 @@ int parse_enum_token(void) {
     union_stack = union_stack->prev;
     free(ust);
 
-    /* Just popped max_enum_offset; need to update it for end of union */
+    /* just popped max_enum_offset; need to update it for end of union */
     if (enum_offset > max_enum_offset)
       max_enum_offset = enum_offset;
 
-    /* Create a new structure item of type STRUCTURE_ITEM_TYPE_UNION */
+    /* create a new structure item of type STRUCTURE_ITEM_TYPE_UNION */
     si = calloc(sizeof(struct structure_item), 1);
     if (si == NULL) {
       print_error("PARSE_ENUM_TOKEN: Out of memory error.\n", ERROR_DIR);
@@ -1577,6 +1585,11 @@ int parse_enum_token(void) {
     
     /* create the SIZEOF-definition for the entire struct */
     active_struct->size = max_enum_offset;
+    if (strlen(active_struct->name) > MAX_NAME_LENGTH - 8) {
+      sprintf(emsg, "STRUCT \"%s\"'s name is too long!\n", active_struct->name);
+      print_error(emsg, ERROR_DIR);      
+      return FAILED;
+    }
     sprintf(tmpname, "_sizeof_%s", active_struct->name);
     if (add_a_new_definition(tmpname, (double)active_struct->size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
@@ -1759,7 +1772,7 @@ int parse_enum_token(void) {
     return FAILED;
   }
 
-  /* Add this label/value to the struct. */
+  /* add this label/value to the struct. */
   si = calloc(sizeof(struct structure_item), 1);
   if (si == NULL) {
     print_error("Out of memory while allocating a new STRUCT.\n", ERROR_DIR);
@@ -2814,12 +2827,12 @@ int directive_name_w65816(void) {
 #endif
 
 
-/* This is used for legacy .dstruct syntax, and only for generating labels in the new
- * dstruct syntax. */
+/* this is used for legacy .DSTRUCT syntax, and only for generating labels in the new
+ * .DSTRUCT syntax. */
 int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
+
   char tmpname[MAX_NAME_LENGTH*2+10];
   struct structure_item *it;
-
   int f, o, c, g;
 
   /* read the data */
@@ -2829,7 +2842,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
     if (verify_name_length(tmpname) == FAILED)
       return FAILED;
 
-    if (it->type != STRUCTURE_ITEM_TYPE_UNION) { /* Add field label */
+    if (it->type != STRUCTURE_ITEM_TYPE_UNION) { /* add field label */
       fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
       if (add_label_sizeof(tmpname, it->size) == FAILED)
         return FAILED;
@@ -2841,11 +2854,11 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
         return FAILED;
       }
       else {
-        struct structure *us; /* union structure */
+        struct structure *us;
 
         us = it->union_items;
         while (us != NULL) {
-          if (us->name[0] != '\0') { /* Check if the union is named */
+          if (us->name[0] != '\0') { /* check if the union is named */
             sprintf(tmpname, "%s.%s", iname, us->name);
             if (verify_name_length(tmpname) == FAILED)
               return FAILED;
@@ -2858,16 +2871,16 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             strcpy(tmpname, iname);
 
           parse_dstruct_entry(tmpname, us, labels_only);
-          fprintf(file_out_ptr, "o%d 0 ", -us->size); /* Rewind */
+          fprintf(file_out_ptr, "o%d 0 ", -us->size); /* rewind */
           us = us->next;
         }
 
-        fprintf(file_out_ptr, "o%d 0 ", it->size); /* Jump to union end */
+        fprintf(file_out_ptr, "o%d 0 ", it->size); /* jump to union end */
       }
     }
     else if (it->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
-      /* Handle .instanceof directive */
-      /* Update the naming prefix */
+      /* handle .INSTANCEOF directive */
+      /* update the naming prefix */
       sprintf(tmpname, "%s.%s", iname, it->name);
       if (verify_name_length(tmpname) == FAILED)
         return FAILED;
@@ -2878,14 +2891,16 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
       }
       else {
         int labels_only_tmp = YES;
+
         sprintf(tmpname, "%s.%s", iname, it->name);
-        /* We have "struct.instance" and "struct.1.instance" referencing the same data. */
+
+        /* we have "struct.instance" and "struct.1.instance" referencing the same data. */
         parse_dstruct_entry(tmpname, it->instance, &labels_only_tmp);
 
-        /* Return to start of struct */
+        /* return to start of struct */
         fprintf(file_out_ptr, "o%d 0 ", -it->instance->size);
 
-        for (g=1; g<=it->num_instances; g++) {
+        for (g = 1; g <= it->num_instances; g++) {
           sprintf(tmpname, "%s.%s.%d", iname, it->name, g);
           if (verify_name_length(tmpname) == FAILED)
             return FAILED;
@@ -2978,17 +2993,18 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
     if (*labels_only == NO) {
       inz = input_number();
       if (!(inz == SUCCEEDED || inz == INPUT_NUMBER_STRING || inz == INPUT_NUMBER_ADDRESS_LABEL || inz == INPUT_NUMBER_STACK))
-        *labels_only = YES; /* Ran out of data to read */
+        *labels_only = YES; /* ran out of data to read */
     }
   }
 
   return SUCCEEDED;
 }
 
-/* Search for "field_name" within a structure. Return the corresponding structure_item and
- * the offset within the structure it's located at. Recurses through instanceof's and
- * unions. */
+/* search for "field_name" within a structure. return the corresponding structure_item and
+   the offset within the structure it's located at. recurses through instanceof's and
+   unions. */
 int find_struct_field(struct structure *s, char *field_name, int *item_size, int *field_offset) {
+
   int offset = 0;
   char prefix[MAX_NAME_LENGTH + 1];
   char *after_dot;
@@ -3006,12 +3022,12 @@ int find_struct_field(struct structure *s, char *field_name, int *item_size, int
 
   while (si != NULL) {
     if (si->type == STRUCTURE_ITEM_TYPE_UNION) {
-      /* Unions don't necessarily have names, so we need to check them all */
+      /* unions don't necessarily have names, so we need to check them all */
       struct structure *us;
 
       us = si->union_items;
       while (us != NULL) {
-        if (us->name[0] != '\0') { /* Has name */
+        if (us->name[0] != '\0') { /* has name */
           if (strcmp(field_name, us->name) == 0) {
             *item_size = us->size;
             *field_offset = offset;
@@ -3024,7 +3040,7 @@ int find_struct_field(struct structure *s, char *field_name, int *item_size, int
             }
           }
         }
-        /* No name */
+        /* no name */
         else if (find_struct_field(us, field_name, item_size, field_offset) == SUCCEEDED) {
           *field_offset += offset;
           return SUCCEEDED;
@@ -3037,27 +3053,28 @@ int find_struct_field(struct structure *s, char *field_name, int *item_size, int
       *item_size = si->size;
       return SUCCEEDED;
     }
-    /* Look for prefix for an ".instanceof" */
+    /* look for prefix for an ".instanceof" */
     else if (after_dot != NULL && strcmp(prefix, si->name) == 0) {
       if (si->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
         if (find_struct_field(si->instance, after_dot, item_size, field_offset) == SUCCEEDED) {
           *field_offset += offset;
           return SUCCEEDED;
         }
-        /* Look for ie. "struct.1.field" */
+        /* look for ie. "struct.1.field" */
         else if (si->num_instances > 1) {
           int g;
           for (g=1; g<=si->num_instances; g++) {
             char num_str[256];
+	    
             sprintf(num_str, "%d", g);
             if (strncmp(num_str, after_dot, strlen(num_str)) == 0) {
-              /* Entire string matched? */
+              /* entire string matched? */
               if (strcmp(num_str, after_dot) == 0) {
                 *field_offset = offset + (g-1) * si->instance->size;
                 *item_size = si->instance->size;
                 return SUCCEEDED;
               }
-              /* Only prefix matched */
+              /* only prefix matched */
               if (after_dot[strlen(num_str)] == '.' && find_struct_field(si->instance, after_dot + strlen(num_str) + 1, item_size, field_offset) == SUCCEEDED) {
                 *field_offset += offset + (g-1) * si->instance->size;
                 return SUCCEEDED;
@@ -3078,13 +3095,15 @@ int find_struct_field(struct structure *s, char *field_name, int *item_size, int
   return FAILED;
 }
 
+
 int directive_dstruct(void) {
+
   char iname[MAX_NAME_LENGTH*2+5];
   struct structure *s;
   int q, q2;
   int labels_only;
 
-  if (compare_next_token("INSTANCEOF") == SUCCEEDED) { /* Nameless */
+  if (compare_next_token("INSTANCEOF") == SUCCEEDED) { /* nameless */
     skip_next_token();
     iname[0] = '\0';
   }
@@ -3140,7 +3159,7 @@ int directive_dstruct(void) {
   }
 
   if (compare_next_token("VALUES") == SUCCEEDED) {
-    /* New syntax */
+    /* new syntax */
 
     int field_offset;
     char field_name[MAX_NAME_LENGTH + 1];
@@ -3155,7 +3174,7 @@ int directive_dstruct(void) {
 
     skip_next_token();
 
-    fprintf(file_out_ptr, "e%d -1 ", s->size); /* Mark start address of dstruct */
+    fprintf(file_out_ptr, "e%d -1 ", s->size); /* mark start address of dstruct */
 
     q = get_next_token();
 
@@ -3201,24 +3220,25 @@ int directive_dstruct(void) {
       return FAILED;
     }
 
-    /* Now generate labels */
+    /* now generate labels */
     if (iname[0] != '\0') {
       labels_only = YES;
-      fprintf(file_out_ptr, "e%d -3 ", 0); /* Back to start of struct */
+      fprintf(file_out_ptr, "e%d -3 ", 0); /* back to start of struct */
       if (parse_dstruct_entry(iname, s, &labels_only) == FAILED)
         return FAILED;
     }
 
-    fprintf(file_out_ptr, "e%d -3 ", 0); /* Back to start of struct */
-    fprintf(file_out_ptr, "e%d -2 ", s->size); /* Mark end of .DSTRUCT */
+    fprintf(file_out_ptr, "e%d -3 ", 0); /* back to start of struct */
+    fprintf(file_out_ptr, "e%d -2 ", s->size); /* mark end of .DSTRUCT */
 
     dstruct_status = OFF;
+
     return SUCCEEDED;
   }
   else if (compare_next_token("DATA") == SUCCEEDED)
     skip_next_token();
 
-  /* Legacy syntax */
+  /* legacy syntax */
 
   inz = input_number();
   labels_only = NO;

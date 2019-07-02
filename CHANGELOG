@@ -3,7 +3,9 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.9a (21-Jun-2019)
+v9.9 (02-Jul-2019) [ALL] Added unions: .UNION (and .NEXTU and .ENDU).
+                   [ALL] Added a new syntax to .DSTRUCT (old works, too).
+                   [ALL] Changed the way ".ENUM xyz DESC" works.
 
 v9.8 (21-Jun-2019) [ALL] Deprecated and removed section's size giving inside
                      section's name string.

@@ -454,7 +454,7 @@ int pass_4(void) {
 
 #endif
 
-        /* DATA BLOCK from INCBIN */
+        /* DATA BLOCK from .INCBIN */
 
       case 'D':
         fscanf(file_out_ptr, "%d %d %d %d", &x, &inz, &z, &y);
