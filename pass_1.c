@@ -2183,7 +2183,7 @@ int directive_row_data(void) {
 	  return FAILED;
 	}
 
-	fprintf(file_out_ptr, "y%d", (label[0] << 8) | label[1]);
+	fprintf(file_out_ptr, "y%d ", (label[0] << 8) | label[1]);
       }
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
@@ -2193,7 +2193,7 @@ int directive_row_data(void) {
 	  return FAILED;
 	}
 
-	fprintf(file_out_ptr, "z%d", (label[0] << 16) | (label[1] << 8) | label[2]);
+	fprintf(file_out_ptr, "z%d ", (label[0] << 16) | (label[1] << 8) | label[2]);
       }
 #endif
       else {
@@ -2219,7 +2219,7 @@ int directive_row_data(void) {
 	  return FAILED;
 	}
 
-	fprintf(file_out_ptr, "y%d", d);
+	fprintf(file_out_ptr, "y%d ", d);
       }
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
@@ -5256,7 +5256,7 @@ int directive_define_def_equ(void) {
   double dou;
   char k[256];
 
-  if (get_next_token() == FAILED)
+  if (get_next_plain_string() == FAILED)
     return FAILED;
 
   /* check the user doesn't try to define reserved labels */
@@ -5515,7 +5515,7 @@ int directive_redefine_redef(void) {
   double dou;
   char k[256];
 
-  if (get_next_token() == FAILED)
+  if (get_next_plain_string() == FAILED)
     return FAILED;
 
   /* check the user doesn't try to define reserved labels */

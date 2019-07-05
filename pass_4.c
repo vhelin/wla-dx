@@ -1770,7 +1770,7 @@ int mem_insert(unsigned char x) {
 
   if (section_status == ON) {
     if (sec_tmp->i >= sec_tmp->size || sec_tmp->i < 0) {
-      fprintf(stderr, "MEM_INSERT: Overflowed data for section \"%s\"; please send a bug report!\n", sec_tmp->name);
+      fprintf(stderr, "MEM_INSERT: Overflowed from section \"%s\"; Please send a bug report!\n", sec_tmp->name);
       return FAILED;
     }
     sec_tmp->data[sec_tmp->i] = x;

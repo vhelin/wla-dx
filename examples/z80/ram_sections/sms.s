@@ -4,6 +4,9 @@
 ; written by ville helin <vhelin@cc.hut.fi> in 2015
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
+.define MINUS_THREE -3 export
+.define MINUS_ONE = -1 EXPORT
+
 .MEMORYMAP
    DEFAULTSLOT     0
    ; ROM area
@@ -146,7 +149,9 @@ vertices3 instanceof point 2
 .ende
 
 .BLOCK "Hello"
-.db 1, 2, 3, 4, 5
+.db "HERE>"
+.db 1, 2, MINUS_THREE * MINUS_ONE, 4, 5, MINUS_ONE, MINUS_THREE
+.db "<HERE"
 .BLOCK "Hi!"
 .db 6, 7, 8
 .dw otherVar1, points2, otherVar3, library_hook, rs3b0_a, rs4b127_c, rs7b127_b, rs0b127_c, TEST_RESULT_2

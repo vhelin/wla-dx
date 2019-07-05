@@ -742,7 +742,7 @@ int parse_string_length(char *end) {
 }
 
 
-int get_next_token(void) {
+void skip_whitespace(void) {
 
   while (1) {
     if (i == size)
@@ -759,7 +759,50 @@ int get_next_token(void) {
     }
     break;
   }
+}
 
+
+int get_next_plain_string(void) {
+
+  char c;
+  
+  skip_whitespace();
+
+  ss = 0;
+  while (1) {
+    if (ss >= MAX_NAME_LENGTH) {
+      print_error("GET_NEXT_PLAIN_STRING: Too long for a string.\n", ERROR_NONE);
+      return FAILED;
+    }
+
+    c = buffer[i];
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '\\' || c == '@') {
+      tmp[ss] = c;
+      ss++;
+      i++;
+    }
+    else
+      break;
+  }
+
+  tmp[ss] = 0;
+
+  /* expand e.g., \1 and \@ */
+  if (macro_active != 0) {
+    if (expand_macro_arguments(tmp) == FAILED)
+      return FAILED;
+    ss = (int)strlen(tmp);
+  }
+
+  return SUCCEEDED;
+}
+
+
+int get_next_token(void) {
+
+  skip_whitespace();
+
+  /* "string"? */
   if (buffer[i] == '"') {
     for (ss = 0, i++; buffer[i] != 0xA && buffer[i] != '"'; ) {
       if (buffer[i] == '\\' && buffer[i + 1] == '"') {
@@ -839,7 +882,8 @@ int skip_next_token(void) {
     return FAILED;
 
   if (buffer[i] == '"') {
-    for (i++; buffer[i] != 0x0A && buffer[i] != '"'; i++);
+    for (i++; buffer[i] != 0x0A && buffer[i] != '"'; i++)
+      ;
     if (buffer[i] == 0x0A) {
       print_error("SKIP_NEXT_TOKEN: String wasn't terminated properly.\n", ERROR_NONE);
       return FAILED;
@@ -848,10 +892,15 @@ int skip_next_token(void) {
 
     return SUCCEEDED;
   }
-
-  for (; buffer[i] != 0x0A && buffer[i] != ' ' && buffer[i] != ','; i++)
-    ;
-
+  else if (buffer[i] == '=' || buffer[i] == '>' || buffer[i] == '<' || buffer[i] == '!') {
+    for (; buffer[i] != 0xA && (buffer[i] == '=' || buffer[i] == '!' || buffer[i] == '<' || buffer[i] == '>'); i++)
+      ;
+  }
+  else {
+    for (; buffer[i] != 0x0A && buffer[i] != ' ' && buffer[i] != ','; i++)
+      ;
+  }
+  
   return SUCCEEDED;
 }
 
