@@ -18,7 +18,8 @@
 #define OBJ_ROMBANKMAP  11
 
 #define LIB_FORMAT_INFO       0
-#define LIB_SOURCE_FILE_NAMES 4
+#define LIB_MISC_BITS         4
+#define LIB_SOURCE_FILE_NAMES 5
 
 #define OUTPUT_ROM 0
 #define OUTPUT_PRG 1

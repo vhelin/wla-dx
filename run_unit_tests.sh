@@ -119,3 +119,11 @@ runTest sdsc_test
 runTest sms_test
 runTest smsheader_test
 cd ..
+
+#####################################################################
+# 6800
+#####################################################################
+
+changePlatform 6800
+runTest linker_test
+cd ..

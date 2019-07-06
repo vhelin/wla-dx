@@ -29,7 +29,7 @@ extern struct label_sizeof *label_sizeofs;
 extern FILE *file_out_ptr;
 extern unsigned char *rom_banks, *rom_banks_usage_table;
 extern char *tmp_name, tmp[4096], name[32], *final_name;
-extern int rombanks, ind, inz, output_format, test_mode, listfile_data;
+extern int rombanks, ind, inz, output_format, test_mode, listfile_data, little_endian;
 
 #ifdef GB
 extern char licenseecodenew_c1, licenseecodenew_c2;
@@ -366,10 +366,18 @@ int pass_4(void) {
 	sprintf(mem_insert_action, "%s:%d: Writing DSW data", get_file_name(filename_id), line_number);
 
 	while (ind > 0) {
-          if (mem_insert(i) == FAILED)
-            return FAILED;
-          if (mem_insert(inz) == FAILED)
-            return FAILED;
+	  if (little_endian == YES) {
+	    if (mem_insert(i) == FAILED)
+	      return FAILED;
+	    if (mem_insert(inz) == FAILED)
+	      return FAILED;
+	  }
+	  else {
+	    if (mem_insert(inz) == FAILED)
+	      return FAILED;
+	    if (mem_insert(i) == FAILED)
+	      return FAILED;
+	  }
           ind--;
         }
 
@@ -387,12 +395,22 @@ int pass_4(void) {
 	sprintf(mem_insert_action, "%s:%d: Writing DSL data", get_file_name(filename_id), line_number);
 
 	while (ind > 0) {
-	  if (mem_insert(x) == FAILED)
-	    return FAILED;
-	  if (mem_insert(i) == FAILED)
-	    return FAILED;
-	  if (mem_insert(inz) == FAILED)
-	    return FAILED;
+	  if (little_endian == YES) {
+	    if (mem_insert(x) == FAILED)
+	      return FAILED;
+	    if (mem_insert(i) == FAILED)
+	      return FAILED;
+	    if (mem_insert(inz) == FAILED)
+	      return FAILED;
+	  }
+	  else {
+	    if (mem_insert(inz) == FAILED)
+	      return FAILED;
+	    if (mem_insert(i) == FAILED)
+	      return FAILED;
+	    if (mem_insert(x) == FAILED)
+	      return FAILED;
+	  }
           ind--;
         }
 
@@ -420,12 +438,20 @@ int pass_4(void) {
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
 	sprintf(mem_insert_action, "%s:%d: Writing two bytes", get_file_name(filename_id), line_number);
-	
-        if (mem_insert(x) == FAILED)
-          return FAILED;
-        if (mem_insert(inz) == FAILED)
-          return FAILED;
 
+	if (little_endian == YES) {
+	  if (mem_insert(x) == FAILED)
+	    return FAILED;
+	  if (mem_insert(inz) == FAILED)
+	    return FAILED;
+	}
+	else {
+	  if (mem_insert(inz) == FAILED)
+	    return FAILED;
+	  if (mem_insert(x) == FAILED)
+	    return FAILED;
+	}
+	
         continue;
 
       case 'b':
@@ -443,12 +469,22 @@ int pass_4(void) {
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
 	sprintf(mem_insert_action, "%s:%d: Writing three bytes", get_file_name(filename_id), line_number);
 
-	if (mem_insert(x) == FAILED)
-          return FAILED;
-        if (mem_insert(ind) == FAILED)
-          return FAILED;
-        if (mem_insert(inz) == FAILED)
-          return FAILED;
+	if (little_endian == YES) {
+	  if (mem_insert(x) == FAILED)
+	    return FAILED;
+	  if (mem_insert(ind) == FAILED)
+	    return FAILED;
+	  if (mem_insert(inz) == FAILED)
+	    return FAILED;
+	}
+	else {
+	  if (mem_insert(inz) == FAILED)
+	    return FAILED;
+	  if (mem_insert(ind) == FAILED)
+	    return FAILED;
+	  if (mem_insert(x) == FAILED)
+	    return FAILED;
+	}
 
         continue;
 
@@ -775,13 +811,23 @@ int pass_4(void) {
 	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
 	    sprintf(mem_insert_action, "%s:%d: Writing a 24-bit reference", get_file_name(filename_id), line_number);
 
-	    if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 8) & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 16) & 0xFF) == FAILED)
-              return FAILED;
-          }
+	    if (little_endian == YES) {
+	      if (mem_insert(o & 0xFF) == FAILED)
+		return FAILED;
+	      if (mem_insert((o >> 8) & 0xFF) == FAILED)
+		return FAILED;
+	      if (mem_insert((o >> 16) & 0xFF) == FAILED)
+		return FAILED;
+	    }
+	    else {
+	      if (mem_insert((o >> 16) & 0xFF) == FAILED)
+		return FAILED;
+	      if (mem_insert((o >> 8) & 0xFF) == FAILED)
+		return FAILED;
+	      if (mem_insert(o & 0xFF) == FAILED)
+		return FAILED;
+	    }
+	  }
         }
 
         if (x == 1)
@@ -821,11 +867,19 @@ int pass_4(void) {
 
 	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
 	    sprintf(mem_insert_action, "%s:%d: Writing a 16-bit reference", get_file_name(filename_id), line_number);
-	    
-	    if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 8) & 0xFF) == FAILED)
-              return FAILED;
+
+	    if (little_endian == YES) {
+	      if (mem_insert(o & 0xFF) == FAILED)
+		return FAILED;
+	      if (mem_insert((o >> 8) & 0xFF) == FAILED)
+		return FAILED;
+	    }
+	    else {
+	      if (mem_insert((o >> 8) & 0xFF) == FAILED)
+		return FAILED;
+	      if (mem_insert(o & 0xFF) == FAILED)
+		return FAILED;
+	    }
           }
         }
 
@@ -864,11 +918,19 @@ int pass_4(void) {
 
 	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
 	    sprintf(mem_insert_action, "%s:%d: Writing a 16-bit reference", get_file_name(filename_id), line_number);
-	    
-	    if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o & 0xFF00) >> 8) == FAILED)
-              return FAILED;
+
+	    if (little_endian == YES) {
+	      if (mem_insert(o & 0xFF) == FAILED)
+		return FAILED;
+	      if (mem_insert((o & 0xFF00) >> 8) == FAILED)
+		return FAILED;
+	    }
+	    else {
+	      if (mem_insert((o >> 8) & 0xFF) == FAILED)
+		return FAILED;
+	      if (mem_insert(o & 0xFF) == FAILED)
+		return FAILED;
+	    }
           }
         }
 
@@ -1057,8 +1119,16 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLA3");
+    fprintf(final_ptr, "WLA4");
 
+    /* misc bits */
+    ind = 0;
+
+    if (little_endian == NO)
+      ind |= 1 << 0;
+
+    fprintf(final_ptr, "%c", ind);
+    
     if (export_source_file_names(final_ptr) == FAILED)
       return FAILED;
 
@@ -1245,7 +1315,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAU%c", emptyfill);
+    fprintf(final_ptr, "WLAV%c", emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -1306,6 +1376,9 @@ int pass_4(void) {
     }
 #endif
 
+    if (little_endian == NO)
+      ind |= 1 << 7;
+    
     fprintf(final_ptr, "%c", ind);
 
     /* rom bank map */

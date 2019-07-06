@@ -32,7 +32,7 @@ struct stack *stacks_header_first = NULL, *stacks_header_last = NULL;
 extern int stack_inserted;
 #endif
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
+#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
 extern int operand_hint;
 #endif
 
@@ -263,7 +263,7 @@ int stack_calculate(char *in, int *value) {
       b++;
       in++;
     }
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
+#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
     else if (*in == '.') {
       in++;
       d = operand_hint;

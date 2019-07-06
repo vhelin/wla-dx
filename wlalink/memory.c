@@ -76,8 +76,8 @@ int mem_insert_ref(int address, unsigned char data) {
   return SUCCEEDED;
 }
 
-int mem_insert_ref_13bit_high(int address, unsigned char data)
-{
+
+int mem_insert_ref_13bit_high(int address, unsigned char data) {
 
   if (address > romsize || address < 0) {
     fprintf(stderr, "%s: %s:%d: MEM_INSERT: Address $%x is out of the output range $0-$%x.\n",

@@ -14,7 +14,7 @@
 extern struct object_file *obj_first;
 extern int emptyfill, sms_checksum, smstag_defined, snes_rom_mode, snes_rom_speed, smc_status, sms_header;
 extern int gb_checksum, gb_complement_check, snes_checksum, snes_mode, cpu_65816;
-extern int snes_sramsize;
+extern int snes_sramsize, little_endian;
 
 int emptyfill;
 
@@ -27,9 +27,9 @@ int check_file_types(void) {
   
   o = obj_first;
   while (o != NULL) {
-    if (strncmp((char *)o->data, "WLAU", 4) == 0)
+    if (strncmp((char *)o->data, "WLAV", 4) == 0)
       o->format = WLA_VERSION_OBJ;
-    else if (strncmp((char *)o->data, "WLA3", 4) == 0)
+    else if (strncmp((char *)o->data, "WLA4", 4) == 0)
       o->format = WLA_VERSION_LIB;
     else {
       fprintf(stderr, "CHECK_FILE_TYPES: File \"%s\" is of unknown format (\"%c%c%c%c\").\n", o->name, o->data[0], o->data[1], o->data[2], o->data[3]);
@@ -73,6 +73,8 @@ int check_headers(void) {
 	  snes_rom_mode = SNES_ROM_MODE_EXHIROM;
 	if (((more_bits >> 6) & 1) == 1)
 	  snes_rom_mode = SNES_ROM_MODE_EXLOROM;
+	if (((more_bits >> 7) & 1) == 1)
+	  little_endian = NO;
       }
       else if (emptyfill != *(o->data + OBJ_EMPTY_FILL) || misc_bits != *(o->data + OBJ_MISC_BITS) || more_bits != *(o->data + OBJ_MORE_BITS)) {
 	fprintf(stderr, "CHECK_HEADERS: The object files are from different projects.\n");
@@ -81,7 +83,21 @@ int check_headers(void) {
 
       count++;
     }
+    else {
+      int little_endian_lib, misc_bits_lib;
+      
+      misc_bits_lib = *(o->data + LIB_MISC_BITS);
+      if (((misc_bits_lib >> 0) & 1) == 1)
+	little_endian_lib = NO;
+      else
+	little_endian_lib = YES;
 
+      if (little_endian != little_endian_lib) {
+	fprintf(stderr, "CHECK_HEADERS: The endianess of the library file(s) is different than that of the objects.\n");
+	return FAILED;
+      }
+    }
+    
     o = o->next;
   }
 

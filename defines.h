@@ -229,6 +229,24 @@
 #endif
 
 /**************************************************************/
+/* 6800                                                       */
+/**************************************************************/
+
+#ifdef MC6800
+
+/* opcode types */
+
+/* 0 - plain text  8b */
+/* 1 - x              */
+/* 2 - ?              */
+/* 3 - plain text 16b */
+/* 4 - x (absolute)   */
+
+#define OP_SIZE_MAX 12
+
+#endif
+
+/**************************************************************/
 /* 65816                                                      */
 /**************************************************************/
 
@@ -263,7 +281,7 @@ struct optcode {
 #if defined(Z80) || defined(GB)
   int  value;
 #endif
-#if defined(MCS6502) || defined(WDC65C02) || defined(HUC6280) || defined(MCS6510)
+#if defined(MCS6502) || defined(WDC65C02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800)
   int  skip_8bit;
 #endif
 #if defined(W65816)

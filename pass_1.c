@@ -85,7 +85,7 @@ char name[32];
 int name_defined = 0;
 #endif
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
+#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
 extern int operand_hint;
 #endif
 
@@ -126,7 +126,7 @@ extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
 int opcode_n[256], opcode_p[256];
 int macro_stack_size = 0, repeat_stack_size = 0;
 
-#if defined(MCS6502) || defined(WDC65C02) || defined(MCS6510) || defined(W65816) || defined(HUC6280)
+#if defined(MCS6502) || defined(WDC65C02) || defined(MCS6510) || defined(W65816) || defined(HUC6280) || defined(MC6800)
 int xbit_size = 0;
 int accu_size = 8, index_size = 8;
 #endif
@@ -137,25 +137,24 @@ int in_enum = NO, in_ramsection = NO, in_struct = NO;
 int enum_exp, enum_ord;
 int enum_offset; /* Offset relative to enum start where we're at right now */
 int last_enum_offset;
-int base_enum_offset; /* Start address of enum */
-int enum_sizeof_pass; /* Set on second pass through enum/ramsection, generating _sizeof labels */
-/* temporary struct used to build up enums/ramsections (and, of course, structs) */
-/* This gets temporarily replaced when inside a union (each union is considered a separate
- * struct). */
+int base_enum_offset; /* start address of enum */
+int enum_sizeof_pass; /* set on second pass through enum/ramsection, generating _sizeof labels */
+/* temporary struct used to build up enums/ramsections (and, of course, structs)
+   this gets temporarily replaced when inside a union (each union is considered a separate struct). */
 struct structure *active_struct;
 
-int union_base_offset; /* Start address of current union */
-int max_enum_offset; /* Highest position seen within current union group */
-struct structure *union_first_struct; /* First struct in current union */
-struct union_stack *union_stack; /* Stores variables for nested unions */
+int union_base_offset; /* start address of current union */
+int max_enum_offset; /* highest position seen within current union group */
+struct structure *union_first_struct; /* first struct in current union */
+struct union_stack *union_stack; /* stores variables for nested unions */
 
 /* for .TABLE, .DATA and .ROW */
 char table_format[256];
 int table_defined = 0, table_size = 0, table_index = 0;
 
 
-/* remember to run opcodesgen/gen with the proper flags defined */
-/*    (GB/Z80/MCS6502/WDC65C02/MCS6510/W65816/HUC6280/SPC700)   */
+/*  remember to run opcodesgen/gen with the proper flags defined  */
+/* (GB/Z80/MCS6502/WDC65C02/MC6800/MCS6510/W65816/HUC6280/SPC700) */
 
 #ifdef AMIGA
 __far /* put the following big table in the FAR data section */
@@ -177,6 +176,10 @@ __far /* put the following big table in the FAR data section */
 #include "opcodes_65c02.c"
 #include "opcodes_65c02_tables.c"
 #endif
+#ifdef MC6800
+#include "opcodes_6800.c"
+#include "opcodes_6800_tables.c"
+#endif
 #ifdef MCS6510
 #include "opcodes_6510.c"
 #include "opcodes_6510_tables.c"
@@ -195,13 +198,13 @@ __far /* put the following big table in the FAR data section */
 #endif
 
 
-#define no_library_files(name)\
- do { \
- if (output_format == OUTPUT_LIBRARY) { \
-    print_error("Library files don't take " name ".\n", ERROR_DIR); \
-    return FAILED; \
-  } \
- } while (0)
+#define no_library_files(name)                                         \
+  do {                                                                 \
+    if (output_format == OUTPUT_LIBRARY) {                             \
+      print_error("Library files don't take " name ".\n", ERROR_DIR);  \
+      return FAILED;                                                   \
+    }                                                                  \
+  } while (0)
 
 
 int strcaselesscmp(char *s1, char *s2) {
@@ -877,6 +880,9 @@ int evaluate_token(void) {
 #endif
 #ifdef W65816
 #include "decode_65816.c"
+#endif
+#ifdef MC6800
+#include "decode_6800.c"
 #endif
 #ifdef SPC700
 #include "decode_spc700.c"
@@ -8139,7 +8145,7 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
-#if defined(MCS6502) || defined(MCS6510) || defined(W65816) || defined(WDC65C02) || defined(HUC6280)
+#if defined(MCS6502) || defined(MCS6510) || defined(W65816) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
 
   /* 8BIT */
 

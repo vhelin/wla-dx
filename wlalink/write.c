@@ -35,8 +35,7 @@ extern int pc_bank, pc_full, pc_slot, pc_slot_max, snes_rom_mode;
 extern int file_header_size, file_footer_size, *bankaddress, *banksizes;
 extern int memory_file_id, memory_file_id_source, memory_line_number, output_mode;
 extern int program_start, program_end, cpu_65816, snes_mode, smc_status;
-extern int snes_sramsize;
-extern int num_sorted_anonymous_labels;
+extern int snes_sramsize, num_sorted_anonymous_labels, little_endian;
 
 
 static int _sections_sort(const void *a, const void *b) {
@@ -862,11 +861,18 @@ int fix_references(void) {
 
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT || r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
-        mem_insert_ref(x, i & 0xFF);
-        mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+	if (little_endian == YES) {
+	  mem_insert_ref(x, i & 0xFF);
+	  mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+	}
+	else {
+	  mem_insert_ref(x, (i >> 8) & 0xFF);
+	  mem_insert_ref(x + 1, i & 0xFF);
+	}
       }
       /* direct 13-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_13BIT) {
+	/* this is always little endian */
         mem_insert(x, i & 0xFF);
 	mem_insert_ref_13bit_high(x + 1, (i >> 8) & 0xFF);
       }
@@ -878,9 +884,16 @@ int fix_references(void) {
       }
       /* direct 24-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
-        mem_insert_ref(x, i & 0xFF);
-        mem_insert_ref(x + 1, (i >> 8) & 0xFF);
-        mem_insert_ref(x + 2, (i >> 16) & 0xFF);
+	if (little_endian == YES) {
+	  mem_insert_ref(x, i & 0xFF);
+	  mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+	  mem_insert_ref(x + 2, (i >> 16) & 0xFF);
+	}
+	else {
+	  mem_insert_ref(x, (i >> 16) & 0xFF);
+	  mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+	  mem_insert_ref(x + 2, i & 0xFF);
+	}
       }
       /* relative/direct 8-bit with a label */
       else {
@@ -919,17 +932,24 @@ int fix_references(void) {
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
         i = (int)l->address;
-        mem_insert_ref(x, i & 0xFF);
-        mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+	if (little_endian == YES) {
+	  mem_insert_ref(x, i & 0xFF);
+	  mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+	}
+	else {
+	  mem_insert_ref(x, (i >> 8) & 0xFF);
+	  mem_insert_ref(x + 1, i & 0xFF);
+	}
       }
       /* direct 13-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_13BIT) {
         i = (int)l->address;
-		if (i > 8191 || i < 0) {
+	if (i > 8191 || i < 0) {
           fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 13-bit value.\n",
 		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
           return FAILED;
         }
+	/* this is always little endian */
         mem_insert_ref(x, i & 0xFF);
         mem_insert_ref_13bit_high(x + 1, (i >> 8) & 0xFF);
       }
@@ -948,9 +968,16 @@ int fix_references(void) {
         i = (int)l->address;
         if (l->status == LABEL_STATUS_LABEL)
           i += get_snes_pc_bank(l);
-        mem_insert_ref(x, i & 0xFF);
-        mem_insert_ref(x + 1, (i >> 8) & 0xFF);
-        mem_insert_ref(x + 2, (i >> 16) & 0xFF);
+	if (little_endian == YES) {
+	  mem_insert_ref(x, i & 0xFF);
+	  mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+	  mem_insert_ref(x + 2, (i >> 16) & 0xFF);
+	}
+	else {
+	  mem_insert_ref(x, (i >> 16) & 0xFF);
+	  mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+	  mem_insert_ref(x + 2, i & 0xFF);
+	}
       }
       /* relative 8-bit with a label */
       else if (r->type == REFERENCE_TYPE_RELATIVE_8BIT) {
@@ -970,8 +997,14 @@ int fix_references(void) {
 		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
           return FAILED;
         }
-        mem_insert_ref(x, i & 0xFF);
-        mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+	if (little_endian == YES) {
+	  mem_insert_ref(x, i & 0xFF);
+	  mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+	}
+	else {
+	  mem_insert_ref(x, (i >> 8) & 0xFF);
+	  mem_insert_ref(x + 1, i & 0xFF);
+	}
       }
       else {
         i = ((int)l->address) & 0xFFFF;
@@ -1485,10 +1518,18 @@ int compute_pending_calculations(void) {
 		get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
 	return FAILED;
       }
-      if (mem_insert_ref(a, k & 0xFF) == FAILED)
-	return FAILED;
-      if (mem_insert_ref(a + 1, (k >> 8) & 0xFF) == FAILED)
-	return FAILED;
+      if (little_endian == YES) {
+	if (mem_insert_ref(a, k & 0xFF) == FAILED)
+	  return FAILED;
+	if (mem_insert_ref(a + 1, (k >> 8) & 0xFF) == FAILED)
+	  return FAILED;
+      }
+      else {
+	if (mem_insert_ref(a, (k >> 8) & 0xFF) == FAILED)
+	  return FAILED;
+	if (mem_insert_ref(a + 1, k & 0xFF) == FAILED)
+	  return FAILED;
+      }
     }
     else if (sta->type == STACKS_TYPE_13BIT) {
       if (k < 0 || k > 8191) {
@@ -1496,23 +1537,38 @@ int compute_pending_calculations(void) {
 		get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
 	return FAILED;
       }
+      /* this is always little endian */
       if (mem_insert_ref(a, k & 0xFF) == FAILED)
 	return FAILED;
       if (mem_insert_ref_13bit_high(a + 1, (k >> 8) & 0xFF) == FAILED)
 	return FAILED;
     }
-    else {
+    else if (sta->type == STACKS_TYPE_24BIT) {
       if (k < -8388608 || k > 16777215) {
 	fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 24-bit range.\n",
 		get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
 	return FAILED;
       }
-      if (mem_insert_ref(a, k & 0xFF) == FAILED)
-	return FAILED;
-      if (mem_insert_ref(a + 1, (k >> 8) & 0xFF) == FAILED)
-	return FAILED;
-      if (mem_insert_ref(a + 2, (k >> 16) & 0xFF) == FAILED)
-	return FAILED;
+      if (little_endian == YES) {
+	if (mem_insert_ref(a, k & 0xFF) == FAILED)
+	  return FAILED;
+	if (mem_insert_ref(a + 1, (k >> 8) & 0xFF) == FAILED)
+	  return FAILED;
+	if (mem_insert_ref(a + 2, (k >> 16) & 0xFF) == FAILED)
+	  return FAILED;
+      }
+      else {
+	if (mem_insert_ref(a, (k >> 16) & 0xFF) == FAILED)
+	  return FAILED;
+	if (mem_insert_ref(a + 1, (k >> 8) & 0xFF) == FAILED)
+	  return FAILED;
+	if (mem_insert_ref(a + 2, k & 0xFF) == FAILED)
+	  return FAILED;
+      }
+    }
+    else {
+      fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Unsupported pending calculation type. Please send an error report!\n",
+	      get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
     }
 
     /* next stack computation */

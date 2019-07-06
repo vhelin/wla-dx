@@ -26,6 +26,17 @@ add_custom_command(
 	)
 ADD_CUSTOM_TARGET(Z80_table ALL DEPENDS ${CMAKE_BINARY_DIR}/opcodes_z80_tables.c)
 
+# --- WLA_TARGET=MC6800
+add_executable (gen_MC6800 ${CFILES})
+set_target_properties (gen_MC6800 PROPERTIES COMPILE_DEFINITIONS "MC6800")
+# Generate tables
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/opcodes_6800_tables.c
+	COMMAND gen_MC6800
+	DEPENDS gen_MC6800
+	)
+ADD_CUSTOM_TARGET(MC6800_table ALL DEPENDS ${CMAKE_BINARY_DIR}/opcodes_6800_tables.c)
+
 # --- WLA_TARGET=MCS6502
 add_executable (gen_MCS6502 ${CFILES})
 set_target_properties (gen_MCS6502 PROPERTIES COMPILE_DEFINITIONS "MCS6502")

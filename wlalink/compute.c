@@ -21,6 +21,7 @@ int reserve_checksum_bytes(void) {
   
   if (sms_checksum != 0 || sms_header != 0) {
     int tag_address = 0x7FF0;
+    
     if (romsize < 0x4000)
       tag_address = 0x1FF0;
     else if (romsize < 0x8000)
@@ -46,6 +47,7 @@ int reserve_checksum_bytes(void) {
 
   if (smstag_defined != 0 || sms_header != 0) {
     int tag_address = 0x7FF0;
+    
     if (romsize < 0x4000)
       tag_address = 0x1FF0;
     else if (romsize < 0x8000)

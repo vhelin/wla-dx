@@ -41,28 +41,31 @@ long __stack = 200000;
 #endif
 
 #ifdef GB
-char version_string[] = "$VER: WLA-GB 9.9a (2.7.2019)";
+char version_string[] = "$VER: WLA-GB 9.9a (6.7.2019)";
 #endif
 #ifdef Z80
-char version_string[] = "$VER: WLA-Z80 9.9a (2.7.2019)";
+char version_string[] = "$VER: WLA-Z80 9.9a (6.7.2019)";
 #endif
 #ifdef MCS6502
-char version_string[] = "$VER: WLA-6502 9.9a (2.7.2019)";
+char version_string[] = "$VER: WLA-6502 9.9a (6.7.2019)";
 #endif
 #ifdef WDC65C02
-char version_string[] = "$VER: WLA-65C02 9.9a (2.7.2019)";
+char version_string[] = "$VER: WLA-65C02 9.9a (6.7.2019)";
 #endif
 #ifdef W65816
-char version_string[] = "$VER: WLA-65816 9.9a (2.7.2019)";
+char version_string[] = "$VER: WLA-65816 9.9a (6.7.2019)";
 #endif
 #ifdef MCS6510
-char version_string[] = "$VER: WLA-6510 9.9a (2.7.2019)";
+char version_string[] = "$VER: WLA-6510 9.9a (6.7.2019)";
+#endif
+#ifdef MC6800
+char version_string[] = "$VER: WLA-6800 9.9a (6.7.2019)";
 #endif
 #ifdef SPC700
-char version_string[] = "$VER: WLA-SPC700 9.9a (2.7.2019)";
+char version_string[] = "$VER: WLA-SPC700 9.9a (6.7.2019)";
 #endif
 #ifdef HUC6280
-char version_string[] = "$VER: WLA-HuC6280 9.9a (2.7.2019)";
+char version_string[] = "$VER: WLA-HuC6280 9.9a (6.7.2019)";
 #endif
 
 char wla_version[] = "9.9a";
@@ -95,7 +98,7 @@ extern int include_in_tmp_size, tmp_a_size, *banks, *bankaddress;
 
 int output_format = OUTPUT_NONE, verbose_mode = OFF, test_mode = OFF;
 int extra_definitions = OFF, commandline_parsing = ON, makefile_rules = NO;
-int listfile_data = NO, quiet = NO, use_incdir = NO;
+int listfile_data = NO, quiet = NO, use_incdir = NO, little_endian = YES;
 
 char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH + 2];
 
@@ -115,6 +118,13 @@ int main(int argc, char *argv[]) {
   /* init the randon number generator */
   init_genrand(time(NULL));
 
+  /* select little/big endianess */
+#if MC6800
+  little_endian = NO;
+#else
+  little_endian = YES;
+#endif
+  
   /* init mem_insert() buffer */
   mem_insert_action[0] = 0;
   
@@ -153,6 +163,9 @@ int main(int argc, char *argv[]) {
 #endif
 #ifdef WDC65C02
     printf("\nWLA 65C02 Macro Assembler v9.9a\n");
+#endif
+#ifdef MC6800
+    printf("\nWLA 6800 Macro Assembler v9.9a\n");
 #endif
 #ifdef W65816
     printf("\nWLA 65816 Macro Assembler v9.9a\n");
