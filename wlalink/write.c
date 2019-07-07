@@ -2035,16 +2035,24 @@ int get_snes_pc_bank(struct label *l) {
   int x, k;
 
 
+  /* TODO: clean up this mess */
+
   /* do we override the user's banking scheme (.HIROM/.LOROM/.EXHIROM/.EXLOROM)? */
   if (snes_mode != 0) {
-    /* use rom_address instead of address, as address points to
-       the position in destination machine's memory, not in rom */
-    k = l->rom_address;
+    if (l->section_status == ON && l->section_struct != NULL && l->section_struct->status == SECTION_STATUS_RAM) {
+      /* on SNES RAMSECTION labels are handled differently */
+      x = l->bank;
+    }
+    else {
+      /* use rom_address instead of address, as address points to
+	 the position in destination machine's memory, not in rom */
+      k = l->rom_address;
 
-    if (snes_rom_mode == SNES_ROM_MODE_HIROM || snes_rom_mode == SNES_ROM_MODE_EXHIROM)
-      x = k / 0x10000;
-    else
-      x = k / 0x8000;
+      if (snes_rom_mode == SNES_ROM_MODE_HIROM || snes_rom_mode == SNES_ROM_MODE_EXHIROM)
+	x = k / 0x10000;
+      else
+	x = k / 0x8000;
+    }
   }
   /* or just use the user's banking chart */
   else {
