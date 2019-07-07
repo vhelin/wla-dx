@@ -14,16 +14,16 @@
 #define READ_T (t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24)); t += 4;
 
 /* read a double from t */
-#define READ_DOU {				\
-    dtmp = (unsigned char *)&dou;		\
-    dtmp[0] = *(t++);				\
-    dtmp[1] = *(t++);				\
-    dtmp[2] = *(t++);				\
-    dtmp[3] = *(t++);				\
-    dtmp[4] = *(t++);				\
-    dtmp[5] = *(t++);				\
-    dtmp[6] = *(t++);				\
-    dtmp[7] = *(t++);				\
+#define READ_DOU {			\
+    dtmp = (unsigned char *)&dou;	\
+    dtmp[0] = *(t++);			\
+    dtmp[1] = *(t++);			\
+    dtmp[2] = *(t++);			\
+    dtmp[3] = *(t++);			\
+    dtmp[4] = *(t++);			\
+    dtmp[5] = *(t++);			\
+    dtmp[6] = *(t++);			\
+    dtmp[7] = *(t++);			\
   }
 
 

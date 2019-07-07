@@ -751,7 +751,7 @@ int fix_label_addresses(void) {
 	    l->address += s->address;
 
 	    if (s->status == SECTION_STATUS_RAM)
-	      l->rom_address = (int)l->address + ((l->bank + l->base) << 16);
+	      l->rom_address = (int)l->address;
 	    else
 	      l->rom_address = (int)l->address + bankaddress[l->bank];
 
@@ -2050,7 +2050,7 @@ int get_snes_pc_bank(struct label *l) {
   else {
     x = l->bank;
   }
-  
+
   x = (x + l->base) << 16;
 
   return x;
