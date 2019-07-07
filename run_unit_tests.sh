@@ -61,6 +61,7 @@ changePlatform 65816
 runTest base_test_1
 runTest base_test_2
 runTest base_test_3
+runTest base_test_4
 runTest linker_test
 runTest name_test
 runTest operand_hint_test
