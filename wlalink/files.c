@@ -92,9 +92,9 @@ int load_files(char *argv[], int argc) {
       return FAILED;
     }
 
-    bank_defined = OFF;
-    slot_defined = OFF;
-    base_defined = OFF;
+    bank_defined = NO;
+    slot_defined = NO;
+    base_defined = NO;
     bank = 0;
     slot = 0;
     base = 0;
@@ -166,12 +166,12 @@ int load_files(char *argv[], int argc) {
       i = SUCCEEDED;
       while (i == SUCCEEDED) {
 	if (strcmp(token, "bank") == 0 || strcmp(token, "BANK") == 0) {
-	  if (bank_defined == ON) {
+	  if (bank_defined == YES) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: BANK defined for the second time for a RAM section.\n", argv[argc - 2], line);
 	    fclose(fop);
 	    return FAILED;
 	  }
-	  bank_defined = ON;
+	  bank_defined = YES;
 	  
 	  if (get_next_number(&tmp[x], &bank, &x) == FAILED) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: Error in BANK number.\n", argv[argc - 2], line);
@@ -180,12 +180,12 @@ int load_files(char *argv[], int argc) {
 	  }
 	}
 	else if (strcmp(token, "slot") == 0 || strcmp(token, "SLOT") == 0) {
-	  if (slot_defined == ON) {
+	  if (slot_defined == YES) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: SLOT defined for the second time for a RAM section.\n", argv[argc - 2], line);
 	    fclose(fop);
 	    return FAILED;
 	  }
-	  slot_defined = ON;
+	  slot_defined = YES;
 	  
 	  if (get_next_number(&tmp[x], &slot, &x) == FAILED) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: Error in SLOT number.\n", argv[argc - 2], line);
@@ -204,12 +204,12 @@ int load_files(char *argv[], int argc) {
 	fclose(fop);
 	return FAILED;
       }
-      if (slot_defined == OFF) {
+      if (slot_defined == NO) {
 	fprintf(stderr, "%s:%d: LOAD_FILES: RAM section requires a SLOT.\n", argv[argc - 2], line);
 	fclose(fop);
 	return FAILED;
       }
-      if (bank_defined == OFF) {
+      if (bank_defined == NO) {
 	fprintf(stderr, "%s:%d: LOAD_FILES: RAM sections requires a BANK.\n", argv[argc - 2], line);
 	fclose(fop);
 	return FAILED;
@@ -238,12 +238,12 @@ int load_files(char *argv[], int argc) {
       i = SUCCEEDED;
       while (i == SUCCEEDED) {
 	if (strcmp(token, "bank") == 0 || strcmp(token, "BANK") == 0) {
-	  if (bank_defined == ON) {
+	  if (bank_defined == YES) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: BANK defined for the second time for a library file.\n", argv[argc - 2], line);
 	    fclose(fop);
 	    return FAILED;
 	  }
-	  bank_defined = ON;
+	  bank_defined = YES;
 	  
 	  if (get_next_number(&tmp[x], &bank, &x) == FAILED) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: Error in BANK number.\n", argv[argc - 2], line);
@@ -252,12 +252,12 @@ int load_files(char *argv[], int argc) {
 	  }
 	}
 	else if (strcmp(token, "slot") == 0 || strcmp(token, "SLOT") == 0) {
-	  if (slot_defined == ON) {
+	  if (slot_defined == YES) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: SLOT defined for the second time for a library file.\n", argv[argc - 2], line);
 	    fclose(fop);
 	    return FAILED;
 	  }
-	  slot_defined = ON;
+	  slot_defined = YES;
 	  
 	  if (get_next_number(&tmp[x], &slot, &x) == FAILED) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: Error in SLOT number.\n", argv[argc - 2], line);
@@ -266,12 +266,12 @@ int load_files(char *argv[], int argc) {
 	  }
 	}
 	else if (strcmp(token, "base") == 0 || strcmp(token, "BASE") == 0) {
-	  if (base_defined == ON) {
+	  if (base_defined == YES) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: BASE defined for the second time for a library file.\n", argv[argc - 2], line);
 	    fclose(fop);
 	    return FAILED;
 	  }
-	  base_defined = ON;
+	  base_defined = YES;
 	  
 	  if (get_next_number(&tmp[x], &base, &x) == FAILED) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: Error in BASE number.\n", argv[argc - 2], line);
@@ -290,12 +290,12 @@ int load_files(char *argv[], int argc) {
 	fclose(fop);
 	return FAILED;
       }
-      if (slot_defined == OFF) {
+      if (slot_defined == NO) {
 	fprintf(stderr, "%s:%d: LOAD_FILES: Library file requires a SLOT.\n", argv[argc - 2], line);
 	fclose(fop);
 	return FAILED;
       }
-      if (bank_defined == OFF) {
+      if (bank_defined == NO) {
 	fprintf(stderr, "%s:%d: LOAD_FILES: Library file requires a BANK.\n", argv[argc - 2], line);
 	fclose(fop);
 	return FAILED;

@@ -1782,9 +1782,16 @@ int write_bank_header_calculations(struct stack *sta) {
 	      get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
       return FAILED;
     }
-    *t = k & 0xFF;
-    t++;
-    *t = (k >> 8) & 0xFF;
+    if (little_endian == YES) {
+      *t = k & 0xFF;
+      t++;
+      *t = (k >> 8) & 0xFF;
+    }
+    else {
+      *t = (k >> 8) & 0xFF;
+      t++;
+      *t = k & 0xFF;
+    }
   }
   else if (sta->type == STACKS_TYPE_13BIT) {
     if (k < 0 || k > 8191) {
@@ -1802,11 +1809,20 @@ int write_bank_header_calculations(struct stack *sta) {
 	      get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
       return FAILED;
     }
-    *t = k & 0xFF;
-    t++;
-    *t = (k >> 8) & 0xFF;
-    t++;
-    *t = (k >> 16) & 0xFF;
+    if (little_endian == YES) {
+      *t = k & 0xFF;
+      t++;
+      *t = (k >> 8) & 0xFF;
+      t++;
+      *t = (k >> 16) & 0xFF;
+    }
+    else {
+      *t = (k >> 16) & 0xFF;
+      t++;
+      *t = (k >> 8) & 0xFF;
+      t++;
+      *t = k & 0xFF;
+    }
   }
 
   return SUCCEEDED;
@@ -1833,9 +1849,16 @@ int write_bank_header_references(struct reference *r) {
     a = (int)l->address;
     /* direct 16-bit */
     if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
-      *t = a & 0xFF;
-      t++;
-      *t = (a >> 8) & 0xFF;
+      if (little_endian == YES) {
+	*t = a & 0xFF;
+	t++;
+	*t = (a >> 8) & 0xFF;
+      }
+      else {
+	*t = (a >> 8) & 0xFF;
+	t++;
+	*t = a & 0xFF;
+      }
     }
     /* direct 13-bit */
     else if (r->type == REFERENCE_TYPE_DIRECT_13BIT) {
@@ -1861,11 +1884,20 @@ int write_bank_header_references(struct reference *r) {
     else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
       if (l->status == LABEL_STATUS_LABEL)
         a += get_snes_pc_bank(l);
-      *t = a & 0xFF;
-      t++;
-      *t = (a >> 8) & 0xFF;
-      t++;
-      *t = (a >> 16) & 0xFF;
+      if (little_endian == YES) {
+	*t = a & 0xFF;
+	t++;
+	*t = (a >> 8) & 0xFF;
+	t++;
+	*t = (a >> 16) & 0xFF;
+      }
+      else {
+	*t = (a >> 16) & 0xFF;
+	t++;
+	*t = (a >> 8) & 0xFF;
+	t++;
+	*t = a & 0xFF;
+      }
     }
     else {
       fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: A relative reference (type %d) to label \"%s\".\n",
@@ -2033,7 +2065,7 @@ int correct_65816_library_sections(void) {
 
   s = sec_first;
   while (s != NULL) {
-    if (s->library_status == ON && s->base_defined == ON) {
+    if (s->library_status == ON && s->base_defined == YES) {
       l = labels_first;
       while (l != NULL) {
 	if (l->section_status == ON && l->section == s->id)

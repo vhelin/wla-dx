@@ -2431,11 +2431,11 @@ Here's an example of a ``BANKHEADER`` section::
     .ENDS
     
     .SECTION "Program"
-    MAIN:	 CALL	MONTY_ON_THE_RUN
-    VBI:	 PUSH	HL
-    	 ...
-    	 POP	HL
-    	 RETI
+    MAIN: CALL MONTY_ON_THE_RUN
+    VBI:  PUSH HL
+    	  ...
+    	  POP HL
+          RETI
     .ENDS
 
 Here's an example of an ordinary section::
