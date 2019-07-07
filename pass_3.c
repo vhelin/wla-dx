@@ -154,9 +154,7 @@ int pass_3(void) {
       case 'G':
 	b = blocks;
 	blocks = blocks->next;
-	/*
-	fprintf(stderr, "INTERNAL_PASS_1: Block \"%s\" is %d bytes.\n", b->name, add - b->address);
-	*/
+	printf("INTERNAL_PASS_1: Block \"%s\" is %d bytes in size.\n", b->name, add - b->address);
 	free(b);
 	continue;
 
@@ -596,9 +594,7 @@ int pass_3(void) {
     case 'G':
       b = blocks;
       blocks = blocks->next;
-      /*
-      fprintf(stderr, "INTERNAL_PASS_1: Block \"%s\" is %d bytes.\n", b->name, add - b->address);
-      */
+      printf("INTERNAL_PASS_1: Block \"%s\" is %d bytes in size.\n", b->name, add - b->address);
       free(b);
       continue;
 

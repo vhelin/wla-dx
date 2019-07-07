@@ -29,8 +29,15 @@ BANKS 4
 .ORG 0
 
 .SECTION "MAIN" FORCE
-.BLOCK "theSizeOfThisShouldBe2"
+.BLOCK "theSizeOfThisShouldBe9"
+.DW $10
+.BLOCK "theSizeOfThisShouldBe6"
 .DW LibraryMain
+.DB $11
+Main:	nop
+	bra Main
+.ENDB
+.DB $10
 .ENDB
 .ENDS
 
