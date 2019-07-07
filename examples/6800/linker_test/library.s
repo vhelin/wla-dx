@@ -7,15 +7,15 @@
 LibraryMain:
 .DB "01>"
 	ABA
-	ADC A #$22
-	ADC A $A0,X
-	ADC A $1f
-	ADC A $1234
+	ADCA #$22
+	ADCA $A0,X
+	ADCA $1f
+	ADCA $1234
 .DB "<01"
 .DB " "
 .DB "02>"
-	ASL A
-	ASL B
+	ASLA
+	ASLB
 	ASL $11, X
 	ASL $1234
 .DB "<02"
@@ -44,10 +44,10 @@ Library03End:
 .DB "<05"
 .DB " "
 .DB "06>"
-	STA B Library03Start, X
-	STA B Library03Start
-	STA.W B Library03Start
-	STA B Library03Start.w
+	STAB Library03Start, X
+	STAB Library03Start
+	STAB.W Library03Start
+	STAB Library03Start.w
 .DB "<06"
 .ENDS
 	
