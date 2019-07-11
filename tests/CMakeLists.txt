@@ -26,9 +26,12 @@ function(add_wla_test NAME ARCH DIR)
             "-DCOMMON_INCLUDE=${CMAKE_CURRENT_SOURCE_DIR}/common_test.cmake"
             "-DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/${DIR}"
             "-DBINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}/${DIR}"
+            "-DDIFF_EXE=${DIFF_EXE}"
             "-P" "${CMAKE_CURRENT_SOURCE_DIR}/run_test.cmake"
         )
 endfunction(add_wla_test)
+
+find_program(DIFF_EXE diff)
 
 foreach(DIR
         "6502/compiler_test"

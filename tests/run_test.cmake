@@ -23,15 +23,23 @@ elseif(EXISTS "${SOURCE_DIR}/Linkfile")
 endif()
 
 set(OUTPUT "out.bin")
+set(OUTPUT_SYM "out.sym")
 set(EXPECTED)
+set(EXPECTED_SYM)
 if(EXISTS "expected.bin")
     set(EXPECTED "expected.bin")
+if(EXISTS "expected.sym")
+    set(EXPECTED_SYM "expected.sym")
+    list(APPEND LINK_FLAGS -s)
 endif()
 
 set(ASSEMBLE_NORMALLY ON)
 set(CHECK_FILE_EQUALS OFF)
 if(EXISTS "${EXPECTED}")
     set(CHECK_FILE_EQUALS ON)
+endif()
+if(EXISTS "${EXPECTED_SYM}")
+    set(CHECK_SYM_FILE_EQUALS ON)
 endif()
 
 set(RAN_SETUP NO)
@@ -108,6 +116,13 @@ if(CHECK_FILE_EQUALS)
         abort_if_file_unequal("${OUTPUT}" "${EXPECTED}"
             "Output file doesn't equals expected file!")
     endif(EXPECTED)
+endif()
+
+if(CHECK_SYM_FILE_EQUALS)
+    if(EXPECTED_SYM)
+        abort_if_sym_file_unequal("${OUTPUT_SYM}" "${EXPECTED_SYM}"
+            "Output sym file doesn't equals sym expected file!")
+    endif(EXPECTED_SYM)
 endif()
 
 # DEBUG: Set environment variable WLA_DONT_CLEAN_OUTPUT=1 to not to clean
