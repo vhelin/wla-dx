@@ -1435,7 +1435,7 @@ For the new syntax, nested structs are supported like so (assume the
         waterdrops: instanceof water 2
     .ENDST
 
-    .DSTRUCT drops drop_pair VALUES
+    .DSTRUCT drops INSTANCEOF drop_pair VALUES
         waterdrops.1:        .db "qwertyui" 40
                              .dw 120
         waterdrops.2.name:   .db "tingle"
@@ -1452,7 +1452,7 @@ In this case, ``waterdrops`` and ``waterdrops.1`` are equivalent.
 ``waterdrops.1.name`` is different, even though its address is the same,
 because it has a size of 8. If you attempted to do this::
 
-    .DSTRUCT drops drop_pair VALUES
+    .DSTRUCT drops INSTANCEOF drop_pair VALUES
         waterdrops.1.name:   .db "qwertyui" 40
                              .dw 120
     .ENDST

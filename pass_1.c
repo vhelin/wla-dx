@@ -1270,8 +1270,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
 
 /* add all fields from a struct at the current offset in the enum/ramsection.
    this is used to construct enums or ramsections through temporary structs, even if
-   INSTANCEOF isn't used.
-   enum_sizeof_pass should be set to YES or NO before calling. */
+   INSTANCEOF isn't used. enum_sizeof_pass should be set to YES or NO before calling. */
 int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 
   char tmp[MAX_NAME_LENGTH * 2 + 5];
@@ -1676,7 +1675,6 @@ int parse_enum_token(void) {
 #endif
   /* it's an instance of a structure! */
   else if (strcaselesscmp(tmp, "INSTANCEOF") == 0) {
-
     type = STRUCTURE_ITEM_TYPE_INSTANCEOF;
 
     if (get_next_token() == FAILED)
@@ -1690,7 +1688,7 @@ int parse_enum_token(void) {
       return FAILED;
     }
 
-    /* get the number of structures to be made*/
+    /* get the number of structures to be made */
     inz = input_number();
     if (inz == INPUT_NUMBER_EOL) {
       next_line();
