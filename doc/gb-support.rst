@@ -16,6 +16,8 @@ one of the following values to ``.ROMBANKS``.
 ``$04``   4Mbit   512KByte    32 banks
 ``$05``   8Mbit     1MByte    64 banks
 ``$06``  16Mbit     2MByte   128 banks
+``$07``  32Mbit     4MByte   256 banks
+``$08``  64Mbit     8MByte   512 banks
 ``$52``   9Mbit   1.1MByte    72 banks
 ``$53``  10Mbit   1.2MByte    80 banks
 ``$54``  12Mbit   1.5MByte    96 banks
