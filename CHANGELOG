@@ -3,18 +3,20 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.9 (08-Jul-2019) [ALL] Added unions: .UNION (and .NEXTU and .ENDU).
+v9.9 (21-Jul-2019) [ALL] Added unions: .UNION (and .NEXTU and .ENDU).
                    [ALL] Added a new syntax to .DSTRUCT (old works, too).
                    [ALL] Changed the way ".ENUM xyz DESC" works.
-                   [ALL] .ROW and .DATA should now work better with 16- and
-                     24-bit values.
+                   [ALL] .ROW and .DATA should now work better with 16-bit
+                     and 24-bit values.
                    [ALL] Defines with negative values are now parsed better.
                    [ALL] .BLOCK (and .ENDB) prints the block size once again.
+                   [ALL] WLA assembles now "WLA4" library files and "WLAV"
+                     object files.
                    [680] Added support for MC6800.
                    [658] 24-bit addresses of RAMSECTION labels should work
                      now when using .LOROM / .HIROM. / .EXHIROM.
-                   [ALL] WLA assembles now "WLA4" library files and "WLAV"
-                     object files.
+                   [GB ] Fixed Pocket Camera cartridge type, added support
+                     for 64Mbit ROM and 512kbit RAM types.
 
 v9.8 (21-Jun-2019) [ALL] Deprecated and removed section's size giving inside
                      section's name string.
