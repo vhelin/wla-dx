@@ -4330,7 +4330,7 @@ int directive_rombanks(void) {
 
 #ifdef GB
   if (d != 2 && d != 4 && d != 8 && d != 16 && d != 32 && d != 64 &&
-      d != 128 && d != 256 && d != 72 && d != 80 && d != 96) {
+      d != 128 && d != 256 && d != 512 && d != 72 && d != 80 && d != 96) {
     print_error("Unsupported amount of ROM banks.\n", ERROR_DIR);
     return FAILED;
   }
@@ -4351,6 +4351,8 @@ int directive_rombanks(void) {
     romtype = 6;
   else if (d == 256)
     romtype = 7;
+  else if (d == 512)
+    romtype = 8;
   else if (d == 72)
     romtype = 0x52;
   else if (d == 80)
@@ -4631,7 +4633,7 @@ int directive_rombankmap(void) {
 
 #ifdef GB
   if (b != 2 && b != 4 && b != 8 && b != 16 && b != 32 && b != 64 &&
-      b != 128 && b != 256 && b != 72 && b != 80 && b != 96) {
+      b != 128 && b != 256 && b != 512 && b != 72 && b != 80 && b != 96) {
     print_error("Unsupported amount of ROM banks.\n", ERROR_DIR);
     return FAILED;
   }
@@ -4652,6 +4654,8 @@ int directive_rombankmap(void) {
     romtype = 6;
   else if (b == 256)
     romtype = 7;
+  else if (b == 512)
+    romtype = 8;
   else if (b == 72)
     romtype = 0x52;
   else if (b == 80)
@@ -7489,7 +7493,7 @@ int parse_directive(void) {
       }
     }
 
-    if (d != 0 && d != 1 && d != 2 && d != 3 && d != 4) {
+    if (d != 0 && d != 1 && d != 2 && d != 3 && d != 4 && d != 5) {
       print_error("Unsupported RAM size.\n", ERROR_DIR);
       return FAILED;
     }
