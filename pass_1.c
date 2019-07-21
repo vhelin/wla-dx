@@ -7493,7 +7493,7 @@ int parse_directive(void) {
       }
     }
 
-    if (d != 0 && d != 1 && d != 2 && d != 3 && d != 4) {
+    if (d != 0 && d != 1 && d != 2 && d != 3 && d != 4 && d != 5) {
       print_error("Unsupported RAM size.\n", ERROR_DIR);
       return FAILED;
     }

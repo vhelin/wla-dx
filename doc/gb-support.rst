@@ -35,6 +35,7 @@ of WLA.
 ``$02``  64kbit     8kByte    1 bank
 ``$03`` 256kbit    32kByte    4 banks
 ``$04``   1Mbit   128kByte   16 banks
+``$05`` 512kbit    64kByte    8 banks
 ======= ======== ========== ==========
 
 Cartridge Type
