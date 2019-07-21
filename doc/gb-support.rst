@@ -68,8 +68,10 @@ one the the following values to ``.CARTRIDGETYPE`` in the GB-Z80 version of WLA.
 ``$1C`` ROM              MBC5                            RUMBLE
 ``$1D`` ROM              MBC5   SRAM                     RUMBLE
 ``$1E`` ROM              MBC5   SRAM   BATTERY           RUMBLE
-``$1F`` Pocket Camera
+``$20`` MBC6
+``$22`` MBC7
 ``$BE`` Pocket Voice
+``$FC`` Pocket Camera
 ``$FD`` Bandai TAMA5
 ``$FE`` Hudson HuC-3
 ``$FF`` Hudson HuC-1
