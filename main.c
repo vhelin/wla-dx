@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
     printf("\nWLA 6800 Macro Assembler v9.9a\n");
 #endif
 #ifdef I8008
-    printf("\nWLA 8008 Macro Assembler v9.9b\n");
+    printf("\nWLA 8008 Macro Assembler v9.9a\n");
 #endif
 #ifdef W65816
     printf("\nWLA 65816 Macro Assembler v9.9a\n");

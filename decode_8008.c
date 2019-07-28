@@ -93,3 +93,29 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     break;
  }
 break;
+
+case 8:
+for ( ; x < OP_SIZE_MAX; inz++, x++) {
+  if (opt_tmp->op[x] == '*') {
+    y = i;
+    i = inz;
+    z = input_number();
+    inz = i;
+    i = y;
+    if (z != SUCCEEDED || d != opt_tmp->value)
+      break;
+    
+    for (x++ ; x < OP_SIZE_MAX; inz++, x++) {
+      if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
+	output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex);
+	i = inz;
+	return SUCCEEDED;
+      }
+      if (opt_tmp->op[x] != toupper((int)buffer[inz]))
+	break;
+    }
+  }
+  if (opt_tmp->op[x] != toupper((int)buffer[inz]))
+    break;
+ }
+break;
