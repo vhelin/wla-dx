@@ -824,9 +824,13 @@ int collect_dlr(void) {
 
 	s->id = READ_T;
 	s->type = *(t++);
-	s->section_status = ON;
 	s->section = READ_T;
-	s->section += section;
+	if (s->section == 0)
+	  s->section_status = OFF;
+	else {
+	  s->section_status = ON;
+	  s->section += section;
+	}
 	s->file_id_source = *(t++);
 	x = *(t++);
 	s->position = *(t++);

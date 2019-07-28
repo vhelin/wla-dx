@@ -1763,9 +1763,16 @@ int write_bank_header_calculations(struct stack *sta) {
     return FAILED;
 
   s = sec_hd_first;
-  while (sta->section != s->id)
+  while (s != NULL && sta->section != s->id)
     s = s->next;
 
+  /* the calculation was not in any bank header? */
+  if (s == NULL) {
+    fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: This calculation is marked to be in a section, but we cannot find the section. Skipping... Please send us a bug report about this!\n",
+	    get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+    return SUCCEEDED;
+  }
+  
   t = s->data + sta->address;
 
   if (sta->type == STACKS_TYPE_8BIT) {

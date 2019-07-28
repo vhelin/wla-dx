@@ -1067,7 +1067,8 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.11a (21-Jun-2019)
+v5.11a (28-Jul-2019) Defines that contain computations that are issued inside
+                       libraries are now handled correctly.
 
 v5.10 (21-Jun-2019) Added support for NO$SNES symbol files.
                     -d discards now also SUPERFREE sections.
