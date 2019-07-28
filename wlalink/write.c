@@ -21,7 +21,7 @@ extern struct reference *reference_first, *reference_last;
 extern struct label *labels_first, *labels_last;
 extern struct label **sorted_anonymous_labels;
 extern struct object_file *obj_first, *obj_last, *obj_tmp;
-extern struct section *sec_first, *sec_last, *sec_hd_first, sec_hd_last;
+extern struct section *sec_first, *sec_last, *sec_bankhd_first, sec_bankhd_last;
 extern struct stack *stacks_first, *stacks_last;
 extern struct map_t *global_unique_label_map;
 extern struct map_t *namespace_map;
@@ -1319,7 +1319,7 @@ int write_rom_file(char *outname) {
   if (output_mode == OUTPUT_ROM) {
     /* write bank by bank and bank header sections */
     for (i = 0; i < rombanks; i++) {
-      s = sec_hd_first;
+      s = sec_bankhd_first;
       while (s != NULL) {
 	if (s->bank == i) {
 	  fwrite(s->data, 1, s->size, f);
@@ -1341,7 +1341,7 @@ int write_rom_file(char *outname) {
       if (rom_usage[i] != 0)
 	e = i;
 
-    s = sec_hd_first;
+    s = sec_bankhd_first;
     while (s != NULL) {
       if (s->bank == 0) {
 	fwrite(s->data, 1, s->size, f);
@@ -1762,7 +1762,7 @@ int write_bank_header_calculations(struct stack *sta) {
   if (compute_stack(sta, &k) == FAILED)
     return FAILED;
 
-  s = sec_hd_first;
+  s = sec_bankhd_first;
   while (s != NULL && sta->section != s->id)
     s = s->next;
 
@@ -1844,7 +1844,7 @@ int write_bank_header_references(struct reference *r) {
   int a;
 
 
-  s = sec_hd_first;
+  s = sec_bankhd_first;
   while (r->section != s->id)
     s = s->next;
 

@@ -13,7 +13,7 @@
 
 extern struct reference *reference_first, *reference_last;
 extern struct section *sec_first, *sec_last;
-extern struct section *sec_hd_first;
+extern struct section *sec_bankhd_first;
 extern struct label *labels_first, *labels_last;
 extern struct stack *stacks_first, *stacks_last;
 
@@ -112,7 +112,7 @@ int discard_iteration(void) {
       if (r->section_status == OFF)
         s->referenced++;
       else if (r->section != s->id) {
-        ss = sec_hd_first;
+        ss = sec_bankhd_first;
         /* find it in special sections first */
         while (ss != NULL && ss->id != r->section)
           ss = ss->next;

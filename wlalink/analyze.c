@@ -29,7 +29,7 @@
 
 extern struct object_file *obj_first, *obj_last, *obj_tmp;
 extern struct reference *reference_first, *reference_last;
-extern struct section *sec_first, *sec_last, *sec_hd_first, *sec_hd_last;
+extern struct section *sec_first, *sec_last, *sec_bankhd_first, *sec_bankhd_last;
 extern struct stack *stacks_first, *stacks_last;
 extern struct label *labels_first, *labels_last;
 extern struct map_t *global_unique_label_map;
@@ -116,7 +116,7 @@ int add_section(struct section *s) {
   s->alive = YES;
 
   if (strcmp(s->name, "BANKHEADER") == 0) {
-    ss = sec_hd_first;
+    ss = sec_bankhd_first;
     while (ss != NULL) {
       if (ss->bank == s->bank) {
 	fprintf(stderr, "%s: ADD_SECTION: BANKHEADER section for bank %d was defined for the second time.\n", obj_tmp->name, s->bank);
@@ -125,13 +125,13 @@ int add_section(struct section *s) {
       ss = ss->next;
     }
 
-    if (sec_hd_first == NULL) {
-      sec_hd_first = s;
-      sec_hd_last = s;
+    if (sec_bankhd_first == NULL) {
+      sec_bankhd_first = s;
+      sec_bankhd_last = s;
     }
     else {
-      sec_hd_last->next = s;
-      sec_hd_last = s;
+      sec_bankhd_last->next = s;
+      sec_bankhd_last = s;
     }
   }
   else {

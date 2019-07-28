@@ -33,7 +33,7 @@ long __stack = 200000;
 
 struct object_file *obj_first = NULL, *obj_last = NULL, *obj_tmp;
 struct reference *reference_first = NULL, *reference_last = NULL;
-struct section *sec_first = NULL, *sec_last = NULL, *sec_hd_first = NULL, *sec_hd_last = NULL;
+struct section *sec_first = NULL, *sec_last = NULL, *sec_bankhd_first = NULL, *sec_bankhd_last = NULL;
 struct stack *stacks_first = NULL, *stacks_last = NULL;
 struct label *labels_first = NULL, *labels_last = NULL;
 struct label **sorted_anonymous_labels = NULL;
@@ -620,7 +620,7 @@ int main(int argc, char *argv[]) {
     else
       i = file_header_size + file_footer_size;
 
-    s = sec_hd_first;
+    s = sec_bankhd_first;
     while (s != NULL) {
       fprintf(stderr, "Bank %d header section size %d.\n", s->bank, s->size);
       i += s->size;
@@ -736,10 +736,10 @@ void procedures_at_exit(void) {
     sec_first = s;
   }
 
-  while (sec_hd_first != NULL) {
-    s = sec_hd_first->next;
-    free(sec_hd_first);
-    sec_hd_first = s;
+  while (sec_bankhd_first != NULL) {
+    s = sec_bankhd_first->next;
+    free(sec_bankhd_first);
+    sec_bankhd_first = s;
   }
 
   while (sec_fix_first != NULL) {
