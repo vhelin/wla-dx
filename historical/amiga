@@ -31,6 +31,11 @@ slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib L
 opcode_table_generator
 delete opcode_table_generator main.o
 
+sc define AMIGA=1 define I8008=1 main.c
+slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+opcode_table_generator
+delete opcode_table_generator main.o
+
 sc define AMIGA=1 define MCS6510=1 main.c
 slink FROM LIB:c.o main.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
 opcode_table_generator
@@ -148,6 +153,22 @@ copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
 copy wla to binaries/wla-6800.000
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WLA-8008
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+copy makefiles/smake.8008 to smakefile
+copy makefiles/scoptions.020 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-8008.020
+
+copy makefiles/smake.8008 to smakefile
+copy makefiles/scoptions.000 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-8008.000
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WLA-65816
