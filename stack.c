@@ -107,6 +107,43 @@ static int _break_before_value_or_string(int i, struct stack_item *si) {
 }
 
 
+#if WLA_DEBUG
+static void _debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int count, int id) {
+
+  int k;
+  
+  printf("LINE %5d: ID = %d (STACK) CALCULATION ID = %d (c%d): ", line_number, id, stack_id, stack_id);
+
+  for (k = 0; k < count; k++) {
+    char ar[] = "+-*()|&/^01%~<>";
+
+    if (ta[k].type == STACK_ITEM_TYPE_OPERATOR) {
+      int value = (int)ta[k].value;
+      char arr = ar[value];
+
+      /* 0 - shift left, 1 - shift right, otherwise it's the operator itself */
+      if (arr == '0')
+	printf("<<");
+      else if (arr == '1')
+	printf(">>");
+      else
+	printf("%c", arr);
+    }
+    else if (ta[k].type == STACK_ITEM_TYPE_VALUE)
+      printf("V(%f)", ta[k].value);
+    else if (ta[k].type == STACK_ITEM_TYPE_STACK)
+      printf("C(%d)", (int)ta[k].value);
+    else
+      printf("S(%s)", ta[k].string);
+
+    if (k < d-1)
+      printf(", ");
+  }
+  printf("\n");
+}
+#endif
+
+
 int stack_calculate(char *in, int *value) {
 
   int q = 0, b = 0, d, k, op[256], n, o, l;
@@ -897,37 +934,6 @@ int stack_calculate(char *in, int *value) {
   printf("%d %d %s\n", d, ta[0].type, ta[0].string);
   */
 
-#if WLA_DEBUG
-  /* DEBUG output */
-  printf("LINE %5d: (STACK) CALCULATION ID = %d (c%d): ", active_file_info_last->line_current, stack_id, stack_id);
-  for (k = 0; k < d; k++) {
-    char ar[] = "+-*()|&/^01%~<>";
-
-    if (ta[k].type == STACK_ITEM_TYPE_OPERATOR) {
-      int value = (int)ta[k].value;
-      char arr = ar[value];
-
-      /* 0 - shift left, 1 - shift right, otherwise it's the operator itself */
-      if (arr == '0')
-	printf("<<");
-      else if (arr == '1')
-	printf(">>");
-      else
-	printf("%c", arr);
-    }
-    else if (ta[k].type == STACK_ITEM_TYPE_VALUE)
-      printf("V(%f)", ta[k].value);
-    else if (ta[k].type == STACK_ITEM_TYPE_STACK)
-      printf("C(%d)", (int)ta[k].value);
-    else
-      printf("S(%s)", ta[k].string);
-
-    if (k < d-1)
-      printf(", ");
-  }
-  printf("\n");
-#endif
-
   /* we have a stack full of computation and we save it for wlalink */
   stacks_tmp = calloc(sizeof(struct stack), 1);
   if (stacks_tmp == NULL) {
@@ -974,6 +980,10 @@ int stack_calculate(char *in, int *value) {
       strcpy(stacks_tmp->stack[q].string, ta[q].string);
     }
   }
+
+#if WLA_DEBUG
+  _debug_print_stack(stacks_tmp->linenumber, stack_id, stacks_tmp->stack, d, 0);
+#endif
 
   _stack_insert();
 
@@ -1060,7 +1070,11 @@ int resolve_stack(struct stack_item s[], int x) {
             return FAILED;
           }
           else if (tmp_def->type == DEFINITION_TYPE_STACK) {
-	    /* skip stack definitions -> use its name instead, thus do nothing here */
+	    /* turn this reference to a stack calculation define into a direct reference to the stack calculation as */
+	    /* this way we don't have to care if the define is exported or not as stack calculations are always exported */
+	    s->type = STACK_ITEM_TYPE_STACK;
+	    s->sign = SI_SIGN_POSITIVE;
+	    s->value = tmp_def->value;
           }
 	  else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
 	    /* wla cannot resolve address labels (unless outside a section) -> only wlalink can do that */
@@ -1236,7 +1250,52 @@ int stack_create_label_stack(char *label) {
   stacks_tmp->stack[0].sign = SI_SIGN_POSITIVE;
   strcpy(stacks_tmp->stack[0].string, label);
 
+#if WLA_DEBUG
+  _debug_print_stack(stacks_tmp->linenumber, stack_id, stacks_tmp->stack, 1, 1);
+#endif
+  
   _stack_insert();
 
+  return SUCCEEDED;
+}
+
+
+int stack_create_stack_stack(int stack_id) {
+
+  /* we need to create a stack that holds just one computation stack */
+  stacks_tmp = calloc(sizeof(struct stack), 1);
+  if (stacks_tmp == NULL) {
+    print_error("Out of memory error while allocating room for a new stack.\n", ERROR_STC);
+    return FAILED;
+  }
+  stacks_tmp->next = NULL;
+  stacks_tmp->type = STACKS_TYPE_UNKNOWN;
+  stacks_tmp->bank = -123456;
+  stacks_tmp->stacksize = 1;
+  stacks_tmp->relative_references = 0;
+  stacks_tmp->stack = calloc(sizeof(struct stack_item), 1);
+  if (stacks_tmp->stack == NULL) {
+    free(stacks_tmp);
+    print_error("Out of memory error while allocating room for a new stack.\n", ERROR_STC);
+    return FAILED;
+  }
+
+  stacks_tmp->linenumber = active_file_info_last->line_current;
+  stacks_tmp->filename_id = active_file_info_last->filename_id;
+
+  /* all stacks will be definition stacks by default. pass_4 will mark
+     those that are referenced to be STACK_POSITION_CODE stacks */
+  stacks_tmp->position = STACK_POSITION_DEFINITION;
+
+  stacks_tmp->stack[0].type = STACK_ITEM_TYPE_STACK;
+  stacks_tmp->stack[0].value = stack_id;
+  stacks_tmp->stack[0].sign = SI_SIGN_POSITIVE;
+
+#if WLA_DEBUG
+  _debug_print_stack(stacks_tmp->linenumber, stack_id, stacks_tmp->stack, 1, 2);
+#endif
+
+  _stack_insert();
+    
   return SUCCEEDED;
 }

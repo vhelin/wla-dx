@@ -289,7 +289,6 @@ struct optcode {
 #endif
 };
 
-
 #define DEFINITION_TYPE_VALUE         0
 #define DEFINITION_TYPE_STRING        1
 #define DEFINITION_TYPE_STACK         2
@@ -459,7 +458,6 @@ struct stack {
 #define STRUCTURE_ITEM_TYPE_DOTTED          1
 #define STRUCTURE_ITEM_TYPE_INSTANCEOF      2
 #define STRUCTURE_ITEM_TYPE_UNION           3
-
 
 struct structure_item {
   char name[MAX_NAME_LENGTH + 1];

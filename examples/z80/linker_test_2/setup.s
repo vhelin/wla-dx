@@ -1,11 +1,5 @@
 
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
-; a small example showing the wla syntax
-; this little program flashes the background colour
-; written by ville helin <vhelin@cc.hut.fi> in 1998-2000
-;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
-
-;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 ; includes
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
@@ -17,6 +11,10 @@
 
 .DEFINE REALLY 10
 .EXPORT REALLY
+
+.define RESULT_A (4 + VALUE_A)
+.define RESULT_B (6 + VALUE_B)
+.define RESULT_C (RESULT_B - RESULT_A)
 
 .BANK 0 SLOT 0
 .ORG $100
@@ -33,4 +31,23 @@ sME:	LD	HL, sME
 	.dw	VALUE_0
 	.dw     VALUE_1
 	.dw     VALUE_2
+	.db "6>>>"
+	.db RESULT_A + 1 - 1
+	.db "<<<6|"
+	.db "9>>>"
+	.db RESULT_B - 2 + 2
+	.db "<<<9|"
+	.db "3>>>"
+	.db RESULT_C + 3 - RESULT_C + RESULT_C - 3
+	.db "<<<3|"
+	.db "NEXT|"
+	.db "6>>>"
+	.db RESULT_A
+	.db "<<<6|"
+	.db "3>>>"
+	.db RESULT_C
+	.db "<<<3|"
+	.db "6>>>"
+	.db RESULT_A
+	.db "<<<6"
 .ENDS
