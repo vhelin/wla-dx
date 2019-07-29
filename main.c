@@ -61,6 +61,9 @@ char version_string[] = "$VER: WLA-6510 9.9a (29.7.2019)";
 #ifdef MC6800
 char version_string[] = "$VER: WLA-6800 9.9a (29.7.2019)";
 #endif
+#ifdef I8008
+char version_string[] = "$VER: WLA-8008 9.9b (28.7.2019)";
+#endif
 #ifdef SPC700
 char version_string[] = "$VER: WLA-SPC700 9.9a (29.7.2019)";
 #endif
@@ -166,6 +169,9 @@ int main(int argc, char *argv[]) {
 #endif
 #ifdef MC6800
     printf("\nWLA 6800 Macro Assembler v9.9a\n");
+#endif
+#ifdef I8008
+    printf("\nWLA 8008 Macro Assembler v9.9a\n");
 #endif
 #ifdef W65816
     printf("\nWLA 65816 Macro Assembler v9.9a\n");

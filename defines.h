@@ -245,6 +245,23 @@
 #define OP_SIZE_MAX 12
 
 #endif
+	
+/**************************************************************/
+/* 8008                                                       */
+/**************************************************************/
+
+#ifdef I8008
+	
+	/* opcode types */
+ 
+	/* 0 - plain text  8b */
+	/* 1 - x              */
+	/* 2 - ?              */
+	/* 8 - *           8b */
+ 
+	#define OP_SIZE_MAX 12
+	
+#endif
 
 /**************************************************************/
 /* 65816                                                      */
@@ -278,7 +295,7 @@ struct optcode {
 #if defined(Z80)
   int  hex_x;
 #endif
-#if defined(Z80) || defined(GB)
+#if defined(Z80) || defined(GB) || defined(I8008)
   int  value;
 #endif
 #if defined(MCS6502) || defined(WDC65C02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800)

@@ -154,7 +154,7 @@ int table_defined = 0, table_size = 0, table_index = 0;
 
 
 /*  remember to run opcodesgen/gen with the proper flags defined  */
-/* (GB/Z80/MCS6502/WDC65C02/MC6800/MCS6510/W65816/HUC6280/SPC700) */
+/* (GB/Z80/MCS6502/WDC65C02/MC6800/I8008/MCS6510/W65816/HUC6280/SPC700) */
 
 #ifdef AMIGA
 __far /* put the following big table in the FAR data section */
@@ -179,6 +179,10 @@ __far /* put the following big table in the FAR data section */
 #ifdef MC6800
 #include "opcodes_6800.c"
 #include "opcodes_6800_tables.c"
+#endif
+#ifdef I8008
+#include "opcodes_8008.c"
+#include "opcodes_8008_tables.c"
 #endif
 #ifdef MCS6510
 #include "opcodes_6510.c"
@@ -883,6 +887,9 @@ int evaluate_token(void) {
 #endif
 #ifdef MC6800
 #include "decode_6800.c"
+#endif
+#ifdef I8008
+#include "decode_8008.c"
 #endif
 #ifdef SPC700
 #include "decode_spc700.c"
