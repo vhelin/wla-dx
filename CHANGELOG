@@ -15,6 +15,7 @@ v9.9 (29-Jul-2019) [ALL] Added unions: .UNION (and .NEXTU and .ENDU).
                    [ALL] References to a pending computation from inside a
                      define from inside a pending computation should work now.
                    [680] Added support for MC6800.
+                   [800] Added support for I8008.
                    [658] 24-bit addresses of RAMSECTION labels should work
                      now when using .LOROM / .HIROM. / .EXHIROM.
                    [GB ] Fixed Pocket Camera cartridge type, added support
