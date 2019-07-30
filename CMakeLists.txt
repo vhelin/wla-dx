@@ -116,6 +116,12 @@ set_target_properties (wla-6800 PROPERTIES COMPILE_DEFINITIONS "MC6800" )
 add_dependencies(wla-6800 MC6800_table)
 add_custom_command(TARGET wla-6800 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_MC6800*")
 
+# I8008
+add_executable(wla-8008 ${CFILES})
+set_target_properties (wla-8008 PROPERTIES COMPILE_DEFINITIONS "I8008" )
+add_dependencies(wla-8008 I8008_table)
+add_custom_command(TARGET wla-8008 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_I8008*")
+
 # W65816
 add_executable(wla-65816 ${CFILES})
 set_target_properties (wla-65816 PROPERTIES COMPILE_DEFINITIONS "W65816" )
