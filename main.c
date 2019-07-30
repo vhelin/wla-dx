@@ -41,31 +41,34 @@ long __stack = 200000;
 #endif
 
 #ifdef GB
-char version_string[] = "$VER: WLA-GB 9.9a (21.7.2019)";
+char version_string[] = "$VER: WLA-GB 9.9a (29.7.2019)";
 #endif
 #ifdef Z80
-char version_string[] = "$VER: WLA-Z80 9.9a (21.7.2019)";
+char version_string[] = "$VER: WLA-Z80 9.9a (29.7.2019)";
 #endif
 #ifdef MCS6502
-char version_string[] = "$VER: WLA-6502 9.9a (21.7.2019)";
+char version_string[] = "$VER: WLA-6502 9.9a (29.7.2019)";
 #endif
 #ifdef WDC65C02
-char version_string[] = "$VER: WLA-65C02 9.9a (21.7.2019)";
+char version_string[] = "$VER: WLA-65C02 9.9a (29.7.2019)";
 #endif
 #ifdef W65816
-char version_string[] = "$VER: WLA-65816 9.9a (21.7.2019)";
+char version_string[] = "$VER: WLA-65816 9.9a (29.7.2019)";
 #endif
 #ifdef MCS6510
-char version_string[] = "$VER: WLA-6510 9.9a (21.7.2019)";
+char version_string[] = "$VER: WLA-6510 9.9a (29.7.2019)";
 #endif
 #ifdef MC6800
-char version_string[] = "$VER: WLA-6800 9.9a (21.7.2019)";
+char version_string[] = "$VER: WLA-6800 9.9a (29.7.2019)";
+#endif
+#ifdef I8008
+char version_string[] = "$VER: WLA-8008 9.9b (28.7.2019)";
 #endif
 #ifdef SPC700
-char version_string[] = "$VER: WLA-SPC700 9.9a (21.7.2019)";
+char version_string[] = "$VER: WLA-SPC700 9.9a (29.7.2019)";
 #endif
 #ifdef HUC6280
-char version_string[] = "$VER: WLA-HuC6280 9.9a (21.7.2019)";
+char version_string[] = "$VER: WLA-HuC6280 9.9a (29.7.2019)";
 #endif
 
 char wla_version[] = "9.9a";
@@ -166,6 +169,9 @@ int main(int argc, char *argv[]) {
 #endif
 #ifdef MC6800
     printf("\nWLA 6800 Macro Assembler v9.9a\n");
+#endif
+#ifdef I8008
+    printf("\nWLA 8008 Macro Assembler v9.9a\n");
 #endif
 #ifdef W65816
     printf("\nWLA 65816 Macro Assembler v9.9a\n");

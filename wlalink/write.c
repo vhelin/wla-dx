@@ -1643,9 +1643,8 @@ int compute_stack(struct stack *sta, int *result) {
       t++;
     }
     else if (s->type == STACK_ITEM_TYPE_STACK) {
-      /* we have a stack inside a stack! find the stack */
-      /* HACK! we abuse sign here... */
-      st = find_stack((int)s->value, s->sign);
+      /* we have a stack (A) inside a stack (B)! find the stack (A)! */
+      st = find_stack((int)s->value, sta->file_id);
 
       if (st == NULL) {
 	fprintf(stderr, "COMPUTE_STACK: A computation stack has gone missing. This is a fatal internal error. Please send the WLA DX author a bug report.\n");

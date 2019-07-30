@@ -245,6 +245,23 @@
 #define OP_SIZE_MAX 12
 
 #endif
+	
+/**************************************************************/
+/* 8008                                                       */
+/**************************************************************/
+
+#ifdef I8008
+	
+	/* opcode types */
+ 
+	/* 0 - plain text  8b */
+	/* 1 - x              */
+	/* 2 - ?              */
+	/* 8 - *           8b */
+ 
+	#define OP_SIZE_MAX 12
+	
+#endif
 
 /**************************************************************/
 /* 65816                                                      */
@@ -278,7 +295,7 @@ struct optcode {
 #if defined(Z80)
   int  hex_x;
 #endif
-#if defined(Z80) || defined(GB)
+#if defined(Z80) || defined(GB) || defined(I8008)
   int  value;
 #endif
 #if defined(MCS6502) || defined(WDC65C02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800)
@@ -288,7 +305,6 @@ struct optcode {
   int  skip_xbit;
 #endif
 };
-
 
 #define DEFINITION_TYPE_VALUE         0
 #define DEFINITION_TYPE_STRING        1
@@ -459,7 +475,6 @@ struct stack {
 #define STRUCTURE_ITEM_TYPE_DOTTED          1
 #define STRUCTURE_ITEM_TYPE_INSTANCEOF      2
 #define STRUCTURE_ITEM_TYPE_UNION           3
-
 
 struct structure_item {
   char name[MAX_NAME_LENGTH + 1];

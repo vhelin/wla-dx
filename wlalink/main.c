@@ -25,7 +25,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: WLALINK 5.11a (28.7.2019)";
+char version_string[] = "$VER: WLALINK 5.11a (29.7.2019)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -110,7 +110,7 @@ static const char *get_stack_item_operator_name(int operator) {
 
 static char stack_item_description[512];
 
-char *get_stack_item_description(struct stack_item *si) {
+char *get_stack_item_description(struct stack_item *si, int file_id) {
 
   char *sid = stack_item_description;
 
@@ -126,7 +126,7 @@ char *get_stack_item_description(struct stack_item *si) {
     else if (type == STACK_ITEM_TYPE_STRING)
       sprintf(sid, "stack_item: label              : %s\n", si->string);
     else if (type == STACK_ITEM_TYPE_STACK) {
-      struct stack *st = find_stack(si->value, si->sign);
+      struct stack *st = find_stack(si->value, file_id);
 
       if (st->computed == YES)
 	sprintf(sid, "stack_item: (stack) calculation: %d (result = %d/$%x)\n", (int)si->value, st->result, st->result);
@@ -371,7 +371,7 @@ int main(int argc, char *argv[]) {
 	
 	for (z = 0; z < s->stacksize; z++) {
 	  struct stack_item *si = &s->stack[z];
-	  printf(get_stack_item_description(si));
+	  printf(get_stack_item_description(si, s->file_id));
 	}
       }
       printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section);
@@ -492,7 +492,7 @@ int main(int argc, char *argv[]) {
 	
 	for (z = 0; z < s->stacksize; z++) {
 	  struct stack_item *si = &s->stack[z];
-	  printf(get_stack_item_description(si));
+	  printf(get_stack_item_description(si, s->file_id));
 	}
       }
       printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d result: %d/$%x\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->result, s->result);

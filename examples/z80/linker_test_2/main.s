@@ -52,7 +52,8 @@ wt\@:
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 .DEFINE SKELETOR $10*2
-
+.define VALUE_A 2 EXPORT
+.define VALUE_B 3 EXPORT
 
 .BANK 0 SLOT 0
 .ORG 0
