@@ -41,34 +41,34 @@ long __stack = 200000;
 #endif
 
 #ifdef GB
-char version_string[] = "$VER: WLA-GB 9.9a (29.7.2019)";
+char version_string[] = "$VER: WLA-GB 9.9a (31.7.2019)";
 #endif
 #ifdef Z80
-char version_string[] = "$VER: WLA-Z80 9.9a (29.7.2019)";
+char version_string[] = "$VER: WLA-Z80 9.9a (31.7.2019)";
 #endif
 #ifdef MCS6502
-char version_string[] = "$VER: WLA-6502 9.9a (29.7.2019)";
+char version_string[] = "$VER: WLA-6502 9.9a (31.7.2019)";
 #endif
 #ifdef WDC65C02
-char version_string[] = "$VER: WLA-65C02 9.9a (29.7.2019)";
+char version_string[] = "$VER: WLA-65C02 9.9a (31.7.2019)";
 #endif
 #ifdef W65816
-char version_string[] = "$VER: WLA-65816 9.9a (29.7.2019)";
+char version_string[] = "$VER: WLA-65816 9.9a (31.7.2019)";
 #endif
 #ifdef MCS6510
-char version_string[] = "$VER: WLA-6510 9.9a (29.7.2019)";
+char version_string[] = "$VER: WLA-6510 9.9a (31.7.2019)";
 #endif
 #ifdef MC6800
-char version_string[] = "$VER: WLA-6800 9.9a (29.7.2019)";
+char version_string[] = "$VER: WLA-6800 9.9a (31.7.2019)";
 #endif
 #ifdef I8008
 char version_string[] = "$VER: WLA-8008 9.9b (28.7.2019)";
 #endif
 #ifdef SPC700
-char version_string[] = "$VER: WLA-SPC700 9.9a (29.7.2019)";
+char version_string[] = "$VER: WLA-SPC700 9.9a (31.7.2019)";
 #endif
 #ifdef HUC6280
-char version_string[] = "$VER: WLA-HuC6280 9.9a (29.7.2019)";
+char version_string[] = "$VER: WLA-HuC6280 9.9a (31.7.2019)";
 #endif
 
 char wla_version[] = "9.9a";
@@ -595,7 +595,7 @@ int generate_extra_definitions(void) {
 
 int parse_and_add_definition(char *c, int contains_flag) {
 
-  char n[MAX_NAME_LENGTH + 1];
+  char n[MAX_NAME_LENGTH + 1], *value;
   int i;
 
   /* skip the flag? */
@@ -613,6 +613,8 @@ int parse_and_add_definition(char *c, int contains_flag) {
     if (*c == 0)
       return FAILED;
 
+    value = c;
+    
     /* hexadecimal value? */
     if (*c == '$' || ((c[strlen(c)-1] == 'h' || c[strlen(c)-1] == 'H') && (*c >= '0' && *c <= '9'))) {
       if (*c == '$')
@@ -627,7 +629,7 @@ int parse_and_add_definition(char *c, int contains_flag) {
 	else if ((*c == 'h' || *c == 'H') && *(c+1) == 0)
 	  break;
 	else {
-	  fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value.\n");
+	  fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value (%s).\n", value);
 	  return FAILED;
 	}
       }
@@ -640,41 +642,47 @@ int parse_and_add_definition(char *c, int contains_flag) {
 	if (*c >= '0' && *c <= '9')
 	  i = (i * 10) + *c - '0';
 	else {
-	  fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value.\n");
+	  fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value (%s).\n", value);
 	  return FAILED;
 	}
       }
       return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
     }
-    
+
+    /* quoted string? */
     if (*c == '"' && c[strlen(c) - 1] == '"') {
       int t;
-      char * s = calloc(strlen(c) + 1, 1);
+      char *s = calloc(strlen(c) + 1, 1);
       int result;
+
       c++;
       for (t = 0; *c != 0; c++, t++) {
         if (*c == '\\' && *(c + 1) == '"') {
           c++;
           s[t] = '"';
-        } else if (*c == '"') {
+        }
+	else if (*c == '"') {
           c++;
           break;
-        } else {
-          s[t] = *c;
         }
+	else
+          s[t] = *c;
       }
-      if (*c == 0) {
+      s[t] = 0;
+      
+      if (*c == 0)
         result = add_a_new_definition(n, 0.0, s, DEFINITION_TYPE_STRING, strlen(s));
-      } else {
-        fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Incorrectly terminated quoted string.\n");
+      else {
+        fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Incorrectly terminated quoted string (%s).\n", value);
         result = FAILED;
       }
+      
       free(s);
       return result;
-    } else {
-      /* unquoted string */
-      return add_a_new_definition(n, 0.0, c, DEFINITION_TYPE_STRING, strlen(c));
     }
+
+    /* unquoted string */
+    return add_a_new_definition(n, 0.0, c, DEFINITION_TYPE_STRING, strlen(c));
   }
 
   return FAILED;

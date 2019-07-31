@@ -50,4 +50,5 @@ sME:	LD	HL, sME
 	.db "6>>>"
 	.db RESULT_A
 	.db "<<<6"
+	.db TEST_STRING
 .ENDS
