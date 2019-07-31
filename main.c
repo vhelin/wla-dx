@@ -646,9 +646,35 @@ int parse_and_add_definition(char *c, int contains_flag) {
       }
       return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
     }
-
-    /* string definition */
-    return add_a_new_definition(n, 0.0, c, DEFINITION_TYPE_STRING, (int)strlen(c));
+    
+    if (*c == '"' && c[strlen(c) - 1] == '"') {
+      int t;
+      char * s = calloc(strlen(c) + 1, 1);
+      int result;
+      c++;
+      for (t = 0; *c != 0; c++, t++) {
+        if (*c == '\\' && *(c + 1) == '"') {
+          c++;
+          s[t] = '"';
+        } else if (*c == '"') {
+          c++;
+          break;
+        } else {
+          s[t] = *c;
+        }
+      }
+      if (*c == 0) {
+        result = add_a_new_definition(n, 0.0, s, DEFINITION_TYPE_STRING, strlen(s));
+      } else {
+        fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Incorrectly terminated quoted string.\n");
+        result = FAILED;
+      }
+      free(s);
+      return result;
+    } else {
+      /* unquoted string */
+      return add_a_new_definition(n, 0.0, c, DEFINITION_TYPE_STRING, strlen(c));
+    }
   }
 
   return FAILED;
