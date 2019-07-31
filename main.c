@@ -592,6 +592,7 @@ int generate_extra_definitions(void) {
   return SUCCEEDED;
 }
 
+
 int parse_and_add_definition(char *c, int contains_flag) {
 
   char n[MAX_NAME_LENGTH + 1];
@@ -600,61 +601,85 @@ int parse_and_add_definition(char *c, int contains_flag) {
   /* skip the flag? */
   if (contains_flag == YES)
     c += 2;
-
+  
   for (i = 0; i < MAX_NAME_LENGTH && *c != 0 && *c != '='; i++, c++)
     n[i] = *c;
   n[i] = 0;
-  
+
   if (*c == 0)
     return add_a_new_definition(n, 0.0, NULL, DEFINITION_TYPE_VALUE, 0);
   else if (*c == '=') {
-    char * c_start = ++c;
+    c++;
     if (*c == 0)
       return FAILED;
 
     /* hexadecimal value? */
     if (*c == '$' || ((c[strlen(c)-1] == 'h' || c[strlen(c)-1] == 'H') && (*c >= '0' && *c <= '9'))) {
       if (*c == '$')
-        c++;
+	c++;
       for (i = 0; *c != 0; c++) {
-        if (*c >= '0' && *c <= '9')
-          i = (i << 4) + *c - '0';
-        else if (*c >= 'a' && *c <= 'f')
-          i = (i << 4) + *c - 'a' + 10;
-        else if (*c >= 'A' && *c <= 'F')
-          i = (i << 4) + *c - 'A' + 10;
-        else if ((*c == 'h' || *c == 'H')) {
-          c++;
-          break;
-        } else {
-          break; /* not a hex value */
-        }
+	if (*c >= '0' && *c <= '9')
+	  i = (i << 4) + *c - '0';
+	else if (*c >= 'a' && *c <= 'f')
+	  i = (i << 4) + *c - 'a' + 10;
+	else if (*c >= 'A' && *c <= 'F')
+	  i = (i << 4) + *c - 'A' + 10;
+	else if ((*c == 'h' || *c == 'H') && *(c+1) == 0)
+	  break;
+	else {
+	  fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value.\n");
+	  return FAILED;
+	}
       }
-      if (*c == 0) {
-        return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
-      }
+      return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
     }
 
-    c = c_start;
     /* decimal value? */
     if (*c >= '0' && *c <= '9') {
       for (i = 0; *c != 0; c++) {
-        if (*c >= '0' && *c <= '9')
-          i = (i * 10) + *c - '0';
-        else
-          break; /* not a decimal value */
+	if (*c >= '0' && *c <= '9')
+	  i = (i * 10) + *c - '0';
+	else {
+	  fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value.\n");
+	  return FAILED;
+	}
+      }
+      return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
+    }
+    
+    if (*c == '"' && c[strlen(c) - 1] == '"') {
+      int t;
+      char * s = calloc(strlen(c) + 1, 1);
+      int result;
+      c++;
+      for (t = 0; *c != 0; c++, t++) {
+        if (*c == '\\' && *(c + 1) == '"') {
+          c++;
+          s[t] = '"';
+        } else if (*c == '"') {
+          c++;
+          break;
+        } else {
+          s[t] = *c;
+        }
       }
       if (*c == 0) {
-        return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
+        result = add_a_new_definition(n, 0.0, s, DEFINITION_TYPE_STRING, strlen(s));
+      } else {
+        fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Incorrectly terminated quoted string.\n");
+        result = FAILED;
       }
+      free(s);
+      return result;
+    } else {
+      /* unquoted string */
+      return add_a_new_definition(n, 0.0, c, DEFINITION_TYPE_STRING, strlen(c));
     }
-    c = c_start;
-    /* string definition */
-    return add_a_new_definition(n, 0.0, c, DEFINITION_TYPE_STRING, (int)strlen(c));
   }
 
   return FAILED;
 }
+
 
 int parse_and_set_incdir(char *c, int contains_flag) {
 
