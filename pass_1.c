@@ -154,7 +154,7 @@ int table_defined = 0, table_size = 0, table_index = 0;
 
 
 /*  remember to run opcodesgen/gen with the proper flags defined  */
-/* (GB/Z80/MCS6502/WDC65C02/MC6800/MC6809/MCS6510/W65816/HUC6280/SPC700) */
+/* (GB/Z80/MCS6502/WDC65C02/MC6800/MC6809/I8008/MCS6510/W65816/HUC6280/SPC700) */
 
 #ifdef AMIGA
 __far /* put the following big table in the FAR data section */
@@ -183,6 +183,10 @@ __far /* put the following big table in the FAR data section */
 #ifdef MC6809
 #include "opcodes_6809.c"
 #include "opcodes_6809_tables.c"
+#endif
+#ifdef I8008
+#include "opcodes_8008.c"
+#include "opcodes_8008_tables.c"
 #endif
 #ifdef MCS6510
 #include "opcodes_6510.c"
@@ -1068,6 +1072,9 @@ int evaluate_token(void) {
 #ifdef MC6809
 #include "decode_6809.c"
 #endif
+#ifdef I8008
+#include "decode_8008.c"
+#endif
 #ifdef SPC700
 #include "decode_spc700.c"
 #endif
@@ -1454,8 +1461,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
 
 /* add all fields from a struct at the current offset in the enum/ramsection.
    this is used to construct enums or ramsections through temporary structs, even if
-   INSTANCEOF isn't used.
-   enum_sizeof_pass should be set to YES or NO before calling. */
+   INSTANCEOF isn't used. enum_sizeof_pass should be set to YES or NO before calling. */
 int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 
   char tmp[MAX_NAME_LENGTH * 2 + 5];
@@ -1860,7 +1866,6 @@ int parse_enum_token(void) {
 #endif
   /* it's an instance of a structure! */
   else if (strcaselesscmp(tmp, "INSTANCEOF") == 0) {
-
     type = STRUCTURE_ITEM_TYPE_INSTANCEOF;
 
     if (get_next_token() == FAILED)
@@ -1874,7 +1879,7 @@ int parse_enum_token(void) {
       return FAILED;
     }
 
-    /* get the number of structures to be made*/
+    /* get the number of structures to be made */
     inz = input_number();
     if (inz == INPUT_NUMBER_EOL) {
       next_line();
@@ -4516,7 +4521,7 @@ int directive_rombanks(void) {
 
 #ifdef GB
   if (d != 2 && d != 4 && d != 8 && d != 16 && d != 32 && d != 64 &&
-      d != 128 && d != 256 && d != 72 && d != 80 && d != 96) {
+      d != 128 && d != 256 && d != 512 && d != 72 && d != 80 && d != 96) {
     print_error("Unsupported amount of ROM banks.\n", ERROR_DIR);
     return FAILED;
   }
@@ -4537,6 +4542,8 @@ int directive_rombanks(void) {
     romtype = 6;
   else if (d == 256)
     romtype = 7;
+  else if (d == 512)
+    romtype = 8;
   else if (d == 72)
     romtype = 0x52;
   else if (d == 80)
@@ -4817,7 +4824,7 @@ int directive_rombankmap(void) {
 
 #ifdef GB
   if (b != 2 && b != 4 && b != 8 && b != 16 && b != 32 && b != 64 &&
-      b != 128 && b != 256 && b != 72 && b != 80 && b != 96) {
+      b != 128 && b != 256 && b != 512 && b != 72 && b != 80 && b != 96) {
     print_error("Unsupported amount of ROM banks.\n", ERROR_DIR);
     return FAILED;
   }
@@ -4838,6 +4845,8 @@ int directive_rombankmap(void) {
     romtype = 6;
   else if (b == 256)
     romtype = 7;
+  else if (b == 512)
+    romtype = 8;
   else if (b == 72)
     romtype = 0x52;
   else if (b == 80)
@@ -7675,7 +7684,7 @@ int parse_directive(void) {
       }
     }
 
-    if (d != 0 && d != 1 && d != 2 && d != 3 && d != 4) {
+    if (d != 0 && d != 1 && d != 2 && d != 3 && d != 4 && d != 5) {
       print_error("Unsupported RAM size.\n", ERROR_DIR);
       return FAILED;
     }

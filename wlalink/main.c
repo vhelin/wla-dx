@@ -25,7 +25,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: WLALINK 5.11a (7.7.2019)";
+char version_string[] = "$VER: WLALINK 5.11a (29.7.2019)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -33,7 +33,7 @@ long __stack = 200000;
 
 struct object_file *obj_first = NULL, *obj_last = NULL, *obj_tmp;
 struct reference *reference_first = NULL, *reference_last = NULL;
-struct section *sec_first = NULL, *sec_last = NULL, *sec_hd_first = NULL, *sec_hd_last = NULL;
+struct section *sec_first = NULL, *sec_last = NULL, *sec_bankhd_first = NULL, *sec_bankhd_last = NULL;
 struct stack *stacks_first = NULL, *stacks_last = NULL;
 struct label *labels_first = NULL, *labels_last = NULL;
 struct label **sorted_anonymous_labels = NULL;
@@ -110,7 +110,7 @@ static const char *get_stack_item_operator_name(int operator) {
 
 static char stack_item_description[512];
 
-char *get_stack_item_description(struct stack_item *si) {
+char *get_stack_item_description(struct stack_item *si, int file_id) {
 
   char *sid = stack_item_description;
 
@@ -126,7 +126,7 @@ char *get_stack_item_description(struct stack_item *si) {
     else if (type == STACK_ITEM_TYPE_STRING)
       sprintf(sid, "stack_item: label              : %s\n", si->string);
     else if (type == STACK_ITEM_TYPE_STACK) {
-      struct stack *st = find_stack(si->value, si->sign);
+      struct stack *st = find_stack(si->value, file_id);
 
       if (st->computed == YES)
 	sprintf(sid, "stack_item: (stack) calculation: %d (result = %d/$%x)\n", (int)si->value, st->result, st->result);
@@ -371,10 +371,10 @@ int main(int argc, char *argv[]) {
 	
 	for (z = 0; z < s->stacksize; z++) {
 	  struct stack_item *si = &s->stack[z];
-	  printf(get_stack_item_description(si));
+	  printf(get_stack_item_description(si, s->file_id));
 	}
       }
-      printf("id: %d file: %s line: %d type: %d bank: %d position: %d\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position);
+      printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section);
       s = s->next;
     }
     printf("----------------------------------------------------------------------\n");
@@ -492,10 +492,10 @@ int main(int argc, char *argv[]) {
 	
 	for (z = 0; z < s->stacksize; z++) {
 	  struct stack_item *si = &s->stack[z];
-	  printf(get_stack_item_description(si));
+	  printf(get_stack_item_description(si, s->file_id));
 	}
       }
-      printf("id: %d file: %s line: %d type: %d bank: %d position: %d result: %d/$%x\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->result, s->result);
+      printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d result: %d/$%x\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->result, s->result);
       s = s->next;
     }
     printf("----------------------------------------------------------------------\n");
@@ -620,7 +620,7 @@ int main(int argc, char *argv[]) {
     else
       i = file_header_size + file_footer_size;
 
-    s = sec_hd_first;
+    s = sec_bankhd_first;
     while (s != NULL) {
       fprintf(stderr, "Bank %d header section size %d.\n", s->bank, s->size);
       i += s->size;
@@ -736,10 +736,10 @@ void procedures_at_exit(void) {
     sec_first = s;
   }
 
-  while (sec_hd_first != NULL) {
-    s = sec_hd_first->next;
-    free(sec_hd_first);
-    sec_hd_first = s;
+  while (sec_bankhd_first != NULL) {
+    s = sec_bankhd_first->next;
+    free(sec_bankhd_first);
+    sec_bankhd_first = s;
   }
 
   while (sec_fix_first != NULL) {

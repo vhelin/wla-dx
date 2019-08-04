@@ -650,6 +650,7 @@ int input_number(void) {
   if (tmp_def != NULL) {
     if (tmp_def->type == DEFINITION_TYPE_VALUE) {
       d = (int)tmp_def->value;
+
 #if defined(W65186)
       if (d > 0xFFFF && d <= 0xFFFFFF)
         operand_hint = HINT_24BIT;
@@ -664,12 +665,16 @@ int input_number(void) {
       else
         operand_hint = HINT_8BIT;
 #endif
+
       parsed_double = (double)d;
       
       return SUCCEEDED;
     }
     else if (tmp_def->type == DEFINITION_TYPE_STACK) {
-      latest_stack = (int)tmp_def->value;
+      /* wrap the referenced, existing stack calculation inside a new stack calculation as stack
+	 calculation contains a write. the 2nd, 3rd etc. reference don't do anything by themselves.
+	 but wrapping creates a new stack calculation that also makes a write */
+      stack_create_stack_stack((int)tmp_def->value);
       return INPUT_NUMBER_STACK;
     }
     else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
@@ -782,7 +787,7 @@ int get_next_plain_string(void) {
     }
 
     c = buffer[i];
-    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '\\' || c == '@') {
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '\\' || c == '@' || c == ':') {
       tmp[ss] = c;
       ss++;
       i++;

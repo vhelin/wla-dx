@@ -122,6 +122,12 @@ set_target_properties (wla-6809 PROPERTIES COMPILE_DEFINITIONS "MC6809" )
 add_dependencies(wla-6809 MC6809_table)
 add_custom_command(TARGET wla-6809 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_MC6809*")
 
+# I8008
+add_executable(wla-8008 ${CFILES})
+set_target_properties (wla-8008 PROPERTIES COMPILE_DEFINITIONS "I8008" )
+add_dependencies(wla-8008 I8008_table)
+add_custom_command(TARGET wla-8008 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_I8008*")
+
 # W65816
 add_executable(wla-65816 ${CFILES})
 set_target_properties (wla-65816 PROPERTIES COMPILE_DEFINITIONS "W65816" )
@@ -146,5 +152,4 @@ set_target_properties (wla-z80 PROPERTIES COMPILE_DEFINITIONS "Z80" )
 add_dependencies(wla-z80 Z80_table)
 add_custom_command(TARGET wla-z80 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_Z80*")
 
-install(TARGETS wla-gb wla-65c02 wla-6510 wla-65816 wla-huc6280 wla-spc700 wla-z80
-	DESTINATION bin)
+install(TARGETS wla-gb wla-65c02 wla-6510 wla-65816 wla-huc6280 wla-spc700 wla-z80 DESTINATION bin)

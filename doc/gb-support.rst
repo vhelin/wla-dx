@@ -5,8 +5,8 @@ ROM Size
 --------
 
 GB-Z80 version of WLA supports the following ROM bank sizes. There's no such
-limit in the Z80/6502/65C02/6510/65816/6800/6809/HUC6280/SPC-700 version of WLA.
-Supply one of the following values to ``.ROMBANKS``.
+limit in the Z80/6502/65C02/6510/65816/6800/6809/8008/HUC6280/SPC-700 version
+of WLA. Supply one of the following values to ``.ROMBANKS``.
 
 ======= ======== ========== ===========
 ``$00`` 256Kbit    32KByte     2 banks
@@ -16,6 +16,8 @@ Supply one of the following values to ``.ROMBANKS``.
 ``$04``   4Mbit   512KByte    32 banks
 ``$05``   8Mbit     1MByte    64 banks
 ``$06``  16Mbit     2MByte   128 banks
+``$07``  32Mbit     4MByte   256 banks
+``$08``  64Mbit     8MByte   512 banks
 ``$52``   9Mbit   1.1MByte    72 banks
 ``$53``  10Mbit   1.2MByte    80 banks
 ``$54``  12Mbit   1.5MByte    96 banks
@@ -33,6 +35,7 @@ of WLA.
 ``$02``  64kbit     8kByte    1 bank
 ``$03`` 256kbit    32kByte    4 banks
 ``$04``   1Mbit   128kByte   16 banks
+``$05`` 512kbit    64kByte    8 banks
 ======= ======== ========== ==========
 
 Cartridge Type
@@ -65,8 +68,10 @@ one the the following values to ``.CARTRIDGETYPE`` in the GB-Z80 version of WLA.
 ``$1C`` ROM              MBC5                            RUMBLE
 ``$1D`` ROM              MBC5   SRAM                     RUMBLE
 ``$1E`` ROM              MBC5   SRAM   BATTERY           RUMBLE
-``$1F`` Pocket Camera
+``$20`` MBC6
+``$22`` MBC7
 ``$BE`` Pocket Voice
+``$FC`` Pocket Camera
 ``$FD`` Bandai TAMA5
 ``$FE`` Hudson HuC-3
 ``$FF`` Hudson HuC-1

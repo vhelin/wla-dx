@@ -61,6 +61,10 @@ make -f makefiles/makefile.amiga.6809
 move wla-6809 TO binaries
 
 make -f makefiles/makefile.amiga.6809 clean
+make -f makefiles/makefile.amiga.8008
+move wla-8008 TO binaries
+
+make -f makefiles/makefile.amiga.8008 clean
 
 echo *********************
 echo * compiling WLALINK *

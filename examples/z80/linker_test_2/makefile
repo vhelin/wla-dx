@@ -1,6 +1,6 @@
 
 CC = wla-z80
-CFLAGS = -i -o
+CFLAGS = -D TEST_STRING="S>HELLO<S" -i -o
 LD = wlalink
 LDFLAGS = -v -s -i
 

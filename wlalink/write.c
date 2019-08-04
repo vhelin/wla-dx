@@ -21,7 +21,7 @@ extern struct reference *reference_first, *reference_last;
 extern struct label *labels_first, *labels_last;
 extern struct label **sorted_anonymous_labels;
 extern struct object_file *obj_first, *obj_last, *obj_tmp;
-extern struct section *sec_first, *sec_last, *sec_hd_first, sec_hd_last;
+extern struct section *sec_first, *sec_last, *sec_bankhd_first, sec_bankhd_last;
 extern struct stack *stacks_first, *stacks_last;
 extern struct map_t *global_unique_label_map;
 extern struct map_t *namespace_map;
@@ -1319,7 +1319,7 @@ int write_rom_file(char *outname) {
   if (output_mode == OUTPUT_ROM) {
     /* write bank by bank and bank header sections */
     for (i = 0; i < rombanks; i++) {
-      s = sec_hd_first;
+      s = sec_bankhd_first;
       while (s != NULL) {
 	if (s->bank == i) {
 	  fwrite(s->data, 1, s->size, f);
@@ -1341,7 +1341,7 @@ int write_rom_file(char *outname) {
       if (rom_usage[i] != 0)
 	e = i;
 
-    s = sec_hd_first;
+    s = sec_bankhd_first;
     while (s != NULL) {
       if (s->bank == 0) {
 	fwrite(s->data, 1, s->size, f);
@@ -1643,9 +1643,8 @@ int compute_stack(struct stack *sta, int *result) {
       t++;
     }
     else if (s->type == STACK_ITEM_TYPE_STACK) {
-      /* we have a stack inside a stack! find the stack */
-      /* HACK! we abuse sign here... */
-      st = find_stack((int)s->value, s->sign);
+      /* we have a stack (A) inside a stack (B)! find the stack (A)! */
+      st = find_stack((int)s->value, sta->file_id);
 
       if (st == NULL) {
 	fprintf(stderr, "COMPUTE_STACK: A computation stack has gone missing. This is a fatal internal error. Please send the WLA DX author a bug report.\n");
@@ -1762,10 +1761,17 @@ int write_bank_header_calculations(struct stack *sta) {
   if (compute_stack(sta, &k) == FAILED)
     return FAILED;
 
-  s = sec_hd_first;
-  while (sta->section != s->id)
+  s = sec_bankhd_first;
+  while (s != NULL && sta->section != s->id)
     s = s->next;
 
+  /* the calculation was not in any bank header? */
+  if (s == NULL) {
+    fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: This calculation is marked to be in a section, but we cannot find the section. Skipping... Please send us a bug report about this!\n",
+	    get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+    return SUCCEEDED;
+  }
+  
   t = s->data + sta->address;
 
   if (sta->type == STACKS_TYPE_8BIT) {
@@ -1837,7 +1843,7 @@ int write_bank_header_references(struct reference *r) {
   int a;
 
 
-  s = sec_hd_first;
+  s = sec_bankhd_first;
   while (r->section != s->id)
     s = s->next;
 
