@@ -247,6 +247,31 @@
 #endif
 
 /**************************************************************/
+/* 6809                                                       */
+/**************************************************************/
+
+#ifdef MC6809
+
+/* opcode types */
+
+/* 0  - plain text  8b */
+/* 1  - x              */
+/* 2  - ?              */
+/* 3  - plain text 16b */
+/* 4  - x (absolute)   */
+/* 5  - 8-bit signed operand, relative address */
+/* 6  - 5-bit signed operand, absolute address + post op byte code */
+/* 7  - 8-bit signed operand, relative address + post op byte code */
+/* 8  - 16-bit operand + post op byte code */
+/* 9  - plain text 8-bit + post op byte code */
+/* 10 - exg / tfr */
+/* 11 - pshs / pshu / puls / pulu */
+
+#define OP_SIZE_MAX 16
+
+#endif
+
+/**************************************************************/
 /* 65816                                                      */
 /**************************************************************/
 
@@ -281,11 +306,14 @@ struct optcode {
 #if defined(Z80) || defined(GB)
   int  value;
 #endif
-#if defined(MCS6502) || defined(WDC65C02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800)
+#if defined(MCS6502) || defined(WDC65C02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800) || defined(MC6809)
   int  skip_8bit;
 #endif
 #if defined(W65816)
   int  skip_xbit;
+#endif
+#if defined(MC6809)
+  int  addressing_mode_bits;
 #endif
 };
 

@@ -848,7 +848,6 @@ int pass_4(void) {
 
         continue;
 
-#ifdef W65816
         /* 16BIT PC RELATIVE REFERENCE */
 
       case 'M':
@@ -898,7 +897,6 @@ int pass_4(void) {
           return FAILED;
 
         continue;
-#endif
 
         /* 16BIT REFERENCE */
 

@@ -299,7 +299,7 @@ int include_file(char *name) {
 
   size += inz;
   buffer = tmp_b;
-
+  
   return SUCCEEDED;
 }
 
@@ -632,6 +632,19 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 	  }
 	  input++;
 	}
+	output--;
+	for ( ; output > out_buffer && *output == ' '; output--)
+	  ;
+	if (output < out_buffer)
+	  output = out_buffer;
+	else if (*output != ' ')
+	  output++;
+      }
+      else if (*(input + 1) == '/') {
+	/* C++ style comment -> clear a commented line */
+	input += 2;
+	for ( ; input < input_end && *input != 0x0A && *input != 0x0D; input++)
+	  ;
 	output--;
 	for ( ; output > out_buffer && *output == ' '; output--)
 	  ;

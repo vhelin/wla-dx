@@ -1,16 +1,18 @@
 
 ------------------------------------------------------------------------------
-1... WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/HUC6280/SPC-700 History
+1... WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6809/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------
 
-v9.9 (08-Jul-2019) [ALL] Added unions: .UNION (and .NEXTU and .ENDU).
+v9.9 (04-Aug-2019) [ALL] Added unions: .UNION (and .NEXTU and .ENDU).
                    [ALL] Added a new syntax to .DSTRUCT (old works, too).
                    [ALL] Changed the way ".ENUM xyz DESC" works.
                    [ALL] .ROW and .DATA should now work better with 16- and
                      24-bit values.
                    [ALL] Defines with negative values are now parsed better.
                    [ALL] .BLOCK (and .ENDB) prints the block size once again.
+                   [ALL] Added support for C++ style comments (//).
                    [680] Added support for MC6800.
+                   [680] Added support for MC6809.
                    [658] 24-bit addresses of RAMSECTION labels should work
                      now when using .LOROM / .HIROM. / .EXHIROM.
                    [ALL] WLA assembles now "WLA4" library files and "WLAV"

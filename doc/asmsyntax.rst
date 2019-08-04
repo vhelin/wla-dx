@@ -13,10 +13,13 @@ Comments
 Comments begin with ``;`` or ``*`` and end along with the line. ``;`` can be
 used anywhere, but ``*`` can be placed only at the beginning of a new line.
 
-Version 4.1 of WLA introduced ANSI C -like commenting. This means you can
-start a multiline comment with ``/*`` and end it with ``*/``.
+WLA supports also ANSI C style commenting. This means you can start a
+multiline comment with ``/*`` and end it with ``*/``.
 
-Version 6.0 of WLA introduced ``.ASM`` and ``.ENDASM`` directives. These
+What also is supported are C++ style comments. This means you can start a
+comment with ``//``.
+
+You can also use ``.ASM`` and ``.ENDASM`` directives to skip characters. These
 function much like ANSI C comments, but unlike the ANSI C comments these can be
 nested.
 
@@ -202,7 +205,7 @@ Mnemonics
 ---------
 
 You can give the operand size with the operand itself (and this is
-highly recommended) in WLA 6502/65C02/6510/HUC6280/65816::
+highly recommended) in WLA 6502/65C02/6510/HUC6280/65816/6800/6809::
 
     and #20.b
     and #20.w
@@ -213,8 +216,7 @@ highly recommended) in WLA 6502/65C02/6510/HUC6280/65816::
 Brackets?
 ---------
 
-Brackets are also supported in the GB-Z80/Z80/6502/65C02/HUC6280/6510 syntax.
-So you can write ::
+You can write ::
 
     LDI (HL), A
 
@@ -222,11 +224,12 @@ or  ::
 
     LDI [HL], A
 
+as both mean the same thing in the syntax of most of the supported CPUs.
 Yes, you could write ::
 
     LDI [HL), A
 
-but I don't recommend that. ;)
+but that is not recommended.
 
 Note that brackets have special meaning when dealing with a 65816/SPC-700
 system so you can't use ::

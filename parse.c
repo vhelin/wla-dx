@@ -29,7 +29,7 @@ extern struct map_t *defines_map;
 extern struct macro_runtime *macro_stack, *macro_runtime_current;
 extern int latest_stack;
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
+#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6809)
 int operand_hint;
 #endif
 
@@ -169,7 +169,7 @@ int input_number(void) {
   double decimal_mul;
 
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
+#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6809)
   operand_hint = HINT_NONE;
 #endif
 
@@ -259,7 +259,7 @@ int input_number(void) {
 
     /* does the MACRO argument number end with a .b/.w/.l? */
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
+#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6809)
     if (e == '.') {
       e = buffer[i+1];
       if (e == 'b' || e == 'B') {
@@ -320,7 +320,7 @@ int input_number(void) {
 	break;
     }
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
+#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6809)
     if (e == '.') {
       e = buffer[i+1];
       if (e == 'b' || e == 'B') {
@@ -346,7 +346,7 @@ int input_number(void) {
     else
       operand_hint = HINT_8BIT;
 		
-#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
+#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6809)
     if (d > 0xFF && d <= 0xFFFF)
       operand_hint = HINT_16BIT;
     else
@@ -354,6 +354,12 @@ int input_number(void) {
 #endif
 #endif
 
+#if defined(MC6809)
+    /* 5-bit values need this */
+    if (d >= -16 && d <= 15)
+      operand_hint = HINT_NONE;
+#endif
+    
     parsed_double = (double)d;
     
     return SUCCEEDED;
@@ -403,7 +409,7 @@ int input_number(void) {
 	  q = 1;
 	  max_digits = MAX_FLOAT_DIGITS+1;
 	}
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
+#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6809)
 	else if (e == 'b' || e == 'B') {
 	  operand_hint = HINT_8BIT;
 	  i += 2;
@@ -447,7 +453,7 @@ int input_number(void) {
     else
       operand_hint = HINT_8BIT;
 		
-#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
+#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6809)
     if (d > 0xFF && d <= 0xFFFF)
       operand_hint = HINT_16BIT;
     else
@@ -469,7 +475,7 @@ int input_number(void) {
 	break;
     }
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
+#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6809)
     if (e == '.') {
       e = buffer[i+1];
       if (e == 'b' || e == 'B') {
@@ -593,7 +599,7 @@ int input_number(void) {
     return FAILED;
   }
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
+#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6809)
   /* size hint? */
   if (label[k-2] == '.') {
     if (label[k-1] == 'b' || label[k-1] == 'B') {
@@ -652,7 +658,7 @@ int input_number(void) {
       else
         operand_hint = HINT_8BIT;
 
-#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
+#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6809)
       if (d > 0xFF && d <= 0xFFFF)
         operand_hint = HINT_16BIT;
       else
@@ -802,6 +808,10 @@ int get_next_token(void) {
 
   skip_whitespace();
 
+  /* skip leading commas */
+  while (buffer[i] == ',')
+    i++;
+  
   /* "string"? */
   if (buffer[i] == '"') {
     for (ss = 0, i++; buffer[i] != 0xA && buffer[i] != '"'; ) {
@@ -851,8 +861,6 @@ int get_next_token(void) {
       ss++;
       i++;
     }
-    if (buffer[i] == ',')
-      i++;
   }
 
   if (ss >= MAX_NAME_LENGTH) {

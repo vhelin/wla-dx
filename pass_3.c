@@ -536,9 +536,7 @@ int pass_3(void) {
       add++;
       continue;
 
-#ifdef W65816
     case 'M':
-#endif
     case 'r':
       fscanf(f_in, "%*s ");
       add += 2;

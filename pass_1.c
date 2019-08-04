@@ -85,7 +85,7 @@ char name[32];
 int name_defined = 0;
 #endif
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
+#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6809)
 extern int operand_hint;
 #endif
 
@@ -126,7 +126,7 @@ extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
 int opcode_n[256], opcode_p[256];
 int macro_stack_size = 0, repeat_stack_size = 0;
 
-#if defined(MCS6502) || defined(WDC65C02) || defined(MCS6510) || defined(W65816) || defined(HUC6280) || defined(MC6800)
+#if defined(MCS6502) || defined(WDC65C02) || defined(MCS6510) || defined(W65816) || defined(HUC6280) || defined(MC6800) || defined(MC6809)
 int xbit_size = 0;
 int accu_size = 8, index_size = 8;
 #endif
@@ -154,7 +154,7 @@ int table_defined = 0, table_size = 0, table_index = 0;
 
 
 /*  remember to run opcodesgen/gen with the proper flags defined  */
-/* (GB/Z80/MCS6502/WDC65C02/MC6800/MCS6510/W65816/HUC6280/SPC700) */
+/* (GB/Z80/MCS6502/WDC65C02/MC6800/MC6809/MCS6510/W65816/HUC6280/SPC700) */
 
 #ifdef AMIGA
 __far /* put the following big table in the FAR data section */
@@ -179,6 +179,10 @@ __far /* put the following big table in the FAR data section */
 #ifdef MC6800
 #include "opcodes_6800.c"
 #include "opcodes_6800_tables.c"
+#endif
+#ifdef MC6809
+#include "opcodes_6809.c"
+#include "opcodes_6809_tables.c"
 #endif
 #ifdef MCS6510
 #include "opcodes_6510.c"
@@ -757,6 +761,188 @@ void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
 }
 
 
+#if MC6809
+static char error_no_u[] = "Was expecting register X/Y/S/PC/A/B/CC/DP";
+static char error_no_s[] = "Was expecting register X/Y/U/PC/A/B/CC/DP";
+
+static int parse_push_pull_registers(int accept_u) {
+
+  int register_byte = 0, reg, y, z, prev_i;
+
+  while (1) {
+    y = i;
+    i = inz;
+    prev_i = i;
+    z = input_number();
+    inz = i;
+    i = y;
+
+    if (z == INPUT_NUMBER_EOL) {
+      /* roll back to the index before EOL */
+      inz = prev_i;
+      break;
+    }
+    
+    if (z != INPUT_NUMBER_ADDRESS_LABEL) {
+      if (accept_u == 1) {
+	sprintf(emsg, "%s, got something else instead.\n", error_no_s);
+	print_error(emsg, ERROR_ERR);
+      }
+      else {
+	sprintf(emsg, "%s, got something else instead.\n", error_no_u);
+	print_error(emsg, ERROR_ERR);
+      }
+      return -1;
+    }
+
+    if (strcaselesscmp(label, "X") == 0)
+      reg = 1 << 4;
+    else if (strcaselesscmp(label, "Y") == 0)
+      reg = 1 << 5;
+    else if (strcaselesscmp(label, "U") == 0) {
+      if (accept_u == 0) {
+	sprintf(emsg, "%s, got \"%s\" instead.\n", error_no_u, label);
+	print_error(emsg, ERROR_ERR);
+	return -1;
+      }
+      reg = 1 << 6;
+    }
+    else if (strcaselesscmp(label, "S") == 0) {
+      if (accept_u == 1) {
+	sprintf(emsg, "%s, got \"%s\" instead.\n", error_no_s, label);
+	print_error(emsg, ERROR_ERR);
+	return -1;
+      }
+      reg = 1 << 6;
+    }
+    else if (strcaselesscmp(label, "PC") == 0)
+      reg = 1 << 7;
+    else if (strcaselesscmp(label, "A") == 0)
+      reg = 1 << 1;
+    else if (strcaselesscmp(label, "B") == 0)
+      reg = 1 << 2;
+    else if (strcaselesscmp(label, "CC") == 0)
+      reg = 1 << 0;
+    else if (strcaselesscmp(label, "DP") == 0)
+      reg = 1 << 3;
+    else {
+      if (accept_u == 1) {
+	sprintf(emsg, "%s, got \"%s\" instead.\n", error_no_s, label);
+	print_error(emsg, ERROR_ERR);
+      }
+      else {
+	sprintf(emsg, "%s, got \"%s\" instead.\n", error_no_u, label);
+	print_error(emsg, ERROR_ERR);
+      }
+      return -1;
+    }
+
+    if ((register_byte & reg) != 0) {
+      sprintf(emsg, "Register \"%s\" was already defined.\n", label);
+      print_error(emsg, ERROR_ERR);
+      return -1;
+    }
+
+    register_byte |= reg;
+  }
+
+  if (register_byte == 0) {
+    if (accept_u == 1)
+      sprintf(emsg, "%s, got nothing instead.\n", error_no_s);
+    else
+      sprintf(emsg, "%s, got nothing instead.\n", error_no_u);
+    print_error(emsg, ERROR_ERR);
+
+    return -1;
+  }
+  
+  return register_byte;
+}
+
+
+static int get_register_byte_from_label_exg_tfr() {
+
+  /* 16-bit */
+  if (strcaselesscmp(label, "D") == 0)
+    return 0;
+  if (strcaselesscmp(label, "X") == 0)
+    return 1;
+  if (strcaselesscmp(label, "Y") == 0)
+    return 2;
+  if (strcaselesscmp(label, "U") == 0)
+    return 3;
+  if (strcaselesscmp(label, "S") == 0)
+    return 4;
+  if (strcaselesscmp(label, "PC") == 0)
+    return 5;
+
+  /* 8-bit */
+  if (strcaselesscmp(label, "A") == 0)
+    return 8;
+  if (strcaselesscmp(label, "B") == 0)
+    return 9;
+  if (strcaselesscmp(label, "CC") == 0)
+    return 0xA;
+  if (strcaselesscmp(label, "DP") == 0)
+    return 0xB;
+
+  sprintf(emsg, "Was expecting register D/X/Y/U/S/PC/A/B/CC/DP, got \"%s\" instead.\n", label);
+  print_error(emsg, ERROR_ERR);
+
+  return -1;
+}
+
+
+static int parse_exg_tfr_registers() {
+
+  int register_byte = 0, data = 0, y, z;
+
+  /* source register */
+  y = i;
+  i = inz;
+  z = input_number();
+  inz = i;
+  i = y;
+
+  if (z != INPUT_NUMBER_ADDRESS_LABEL) {
+    print_error("Was expecting register D/X/Y/U/S/PC/A/B/CC/DP, got something else instead.\n", ERROR_ERR);
+    return -1;
+  }
+
+  data = get_register_byte_from_label_exg_tfr();
+  if (data < 0)
+    return -1;
+  register_byte = data;
+
+  /* destination register */
+  y = i;
+  i = inz;
+  z = input_number();
+  inz = i;
+  i = y;
+
+  if (z != INPUT_NUMBER_ADDRESS_LABEL) {
+    print_error("Was expecting register D/X/Y/U/S/PC/A/B/CC/DP, got something else instead.\n", ERROR_ERR);
+    return -1;
+  }
+
+  data = get_register_byte_from_label_exg_tfr();
+  if (data < 0)
+    return -1;
+
+  /* are we mixing 16-bit and 8-bit registers? */
+  if ((register_byte <= 5 && data > 5) || (register_byte > 5 && data <= 5)) {
+    print_error("Mixing of 8-bit and 16-bit registers is not allowed here.\n", ERROR_ERR);
+    return -1;    
+  }
+  
+  register_byte = (register_byte << 4) | data;
+  
+  return register_byte;
+}
+#endif
+
+
 int evaluate_token(void) {
 
   int f, z, x, y;
@@ -831,15 +1017,9 @@ int evaluate_token(void) {
   opt_tmp = &opt_table[ind];
 
   for (f = opcode_n[(unsigned int)tmp[0]]; f > 0; f--) {
+    /* try to match the first part of the mnemonic, already read into tmp */
     for (inz = 0, d = SUCCEEDED; inz < OP_SIZE_MAX; inz++) {
-      if (tmp[inz] == 0 && opt_tmp->op[inz] == 0 && buffer[i] == 0x0A) {
-        if (opt_tmp->type == 0)
-          output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex);
-        else
-          output_assembled_opcode(opt_tmp, "y%d ", opt_tmp->hex);
-        return SUCCEEDED;
-      }
-      if (tmp[inz] == 0 && opt_tmp->op[inz] == ' ' && buffer[i] == ' ')
+      if (tmp[inz] == 0)
         break;
       if (opt_tmp->op[inz] != toupper((int)tmp[inz])) {
         d = FAILED;
@@ -848,13 +1028,14 @@ int evaluate_token(void) {
     }
 
     if (d == FAILED) {
+      /* try the next mnemonic in the array */
       opt_tmp = &opt_table[++ind];
       continue;
     }
 
     /* beginning matches the input */
-    x = inz + 1;
-    inz = i + 1;
+    x = inz;
+    inz = i;
 
 #ifndef GB
     /* no stack rollback */
@@ -883,6 +1064,9 @@ int evaluate_token(void) {
 #endif
 #ifdef MC6800
 #include "decode_6800.c"
+#endif
+#ifdef MC6809
+#include "decode_6809.c"
 #endif
 #ifdef SPC700
 #include "decode_spc700.c"
@@ -8145,7 +8329,7 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
-#if defined(MCS6502) || defined(MCS6510) || defined(W65816) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800)
+#if defined(MCS6502) || defined(MCS6510) || defined(W65816) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6809)
 
   /* 8BIT */
 
