@@ -1,5 +1,6 @@
 struct optcode opt_table[] = {
   { "ABA", 0x1B, 0, 0 },
+  { "ABX", 0x3A, 0, 0 },
   
   { "ADCA #x", 0x89, 1, 0 },
   { "ADCA x,X", 0xA9, 4, 1 },
@@ -27,7 +28,11 @@ struct optcode opt_table[] = {
   { "ADDB x,X", 0xEB, 4, 1 },
   { "ADDB x", 0xDB, 4, 1 },
   { "ADDB ?", 0xFB, 2, 0 },
-
+  { "ADDD #x", 0xC3, 1, 0 },		      
+  { "ADDD x,X", 0xE3, 4, 1 },
+  { "ADDD x", 0xD3, 4, 1 },
+  { "ADDD ?", 0xF3, 2, 0 },
+  
   { "ADDA.B #x", 0x8B, 1, 0 },
   { "ADDA.B x,X", 0xAB, 4, 1 },
   { "ADDA.B x", 0x9B, 4, 1 },
@@ -36,7 +41,11 @@ struct optcode opt_table[] = {
   { "ADDB.B x,X", 0xEB, 4, 1 },
   { "ADDB.B x", 0xDB, 4, 1 },
   { "ADDB.W ?", 0xFB, 2, 0 },
-
+  { "ADDD.B #x", 0xC3, 1, 0 },		      
+  { "ADDD.B x,X", 0xE3, 4, 1 },
+  { "ADDD.B x", 0xD3, 4, 1 },
+  { "ADDD.W ?", 0xF3, 2, 0 },
+  
   { "ANDA #x", 0x84, 1, 0 },
   { "ANDA x,X", 0xA4, 4, 1 },
   { "ANDA x", 0x94, 4, 1 },
@@ -57,6 +66,7 @@ struct optcode opt_table[] = {
 
   { "ASLA", 0x48, 0, 0 },
   { "ASLB", 0x58, 0, 0 },
+  { "ASLD", 0x05, 0, 0 },
   { "ASL x,X", 0x68, 4, 1 },
   { "ASL ?", 0x78, 2, 0 },
 
@@ -72,14 +82,18 @@ struct optcode opt_table[] = {
   { "ASR.W ?", 0x77, 2, 0 },
 
   { "BCC x", 0x24, 5, 0 },
+  { "BHS x", 0x24, 5, 0 },
   { "BCS x", 0x25, 5, 0 },
+  { "BLO x", 0x25, 5, 0 },
   { "BEQ x", 0x27, 5, 0 },
   { "BGE x", 0x2C, 5, 0 },
   { "BGT x", 0x2E, 5, 0 },
   { "BHI x", 0x22, 5, 0 },
 
   { "BCC.B x", 0x24, 5, 0 },
+  { "BHS.B x", 0x24, 5, 0 },
   { "BCS.B x", 0x25, 5, 0 },
+  { "BLO.B x", 0x25, 5, 0 },
   { "BEQ.B x", 0x27, 5, 0 },
   { "BGE.B x", 0x2C, 5, 0 },
   { "BGT.B x", 0x2E, 5, 0 },
@@ -110,6 +124,7 @@ struct optcode opt_table[] = {
   { "BNE x", 0x26, 5, 0 },
   { "BPL x", 0x2A, 5, 0 },
   { "BRA x", 0x20, 5, 0 },
+  { "BRN x", 0x21, 5, 0 },
   { "BSR x", 0x8D, 5, 0 },
   { "BVC x", 0x28, 5, 0 },
   { "BVS x", 0x29, 5, 0 },
@@ -121,6 +136,7 @@ struct optcode opt_table[] = {
   { "BNE.B x", 0x26, 5, 0 },
   { "BPL.B x", 0x2A, 5, 0 },
   { "BRA.B x", 0x20, 5, 0 },
+  { "BRN.B x", 0x21, 5, 0 },
   { "BSR.B x", 0x8D, 5, 0 },
   { "BVC.B x", 0x28, 5, 0 },
   { "BVS.B x", 0x29, 5, 0 },
@@ -220,11 +236,13 @@ struct optcode opt_table[] = {
   { "JMP x,X", 0x6E, 4, 1 },
   { "JMP ?", 0x7E, 2, 0 },
   { "JSR x,X", 0xAD, 4, 1 },
+  { "JSR x", 0x9D, 4, 1 },
   { "JSR ?", 0xBD, 2, 0 },
 
   { "JMP.B x,X", 0x6E, 4, 1 },
   { "JMP.W ?", 0x7E, 2, 0 },
   { "JSR.B x,X", 0xAD, 4, 1 },
+  { "JSR.B x", 0x9D, 4, 1 },
   { "JSR.W ?", 0xBD, 2, 0 },
 
   { "LDAA #x", 0x86, 1, 0 },
@@ -235,6 +253,10 @@ struct optcode opt_table[] = {
   { "LDAB x,X", 0xE6, 4, 1 },
   { "LDAB x", 0xD6, 4, 1 },
   { "LDAB ?", 0xF6, 2, 0 },
+  { "LDD #x", 0xCC, 1, 0 },		      
+  { "LDD x,X", 0xEC, 4, 1 },
+  { "LDD x", 0xDC, 4, 1 },
+  { "LDD ?", 0xFC, 2, 0 },
 
   { "LDAA.B #x", 0x86, 1, 0 },
   { "LDAA.B x,X", 0xA6, 4, 1 },
@@ -244,7 +266,11 @@ struct optcode opt_table[] = {
   { "LDAB.B x,X", 0xE6, 4, 1 },
   { "LDAB.B x", 0xD6, 4, 1 },
   { "LDAB.W ?", 0xF6, 2, 0 },
-
+  { "LDD.B #x", 0xCC, 1, 0 },		      
+  { "LDD.B x,X", 0xEC, 4, 1 },
+  { "LDD.B x", 0xDC, 4, 1 },
+  { "LDD.W ?", 0xFC, 2, 0 },
+  
   { "LDS #?", 0x8E, 2, 0 },
   { "LDS x,X", 0xAE, 4, 1 },
   { "LDS x", 0x9E, 4, 1 },
@@ -264,14 +290,26 @@ struct optcode opt_table[] = {
   { "LDX.B x,X", 0xEE, 4, 1 },
   { "LDX.B x", 0xDE, 4, 1 },
   { "LDX.W ?", 0xFE, 2, 0 },
-  
+
+  { "LSLA", 0x48, 0, 0 },
+  { "LSLB", 0x58, 0, 0 },
+  { "LSLD", 0x05, 0, 0 },
+  { "LSL x,X", 0x65, 4, 1 },
+  { "LSL ?", 0x78, 2, 0 },
+
+  { "LSL.B x,X", 0x65, 4, 1 },
+  { "LSL.W ?", 0x78, 2, 0 },
+
   { "LSRA", 0x44, 0, 0 },
   { "LSRB", 0x54, 0, 0 },
+  { "LSRD", 0x04, 0, 0 },
   { "LSR x,X", 0x64, 4, 1 },
   { "LSR ?", 0x74, 2, 0 },
 
   { "LSR.B x,X", 0x64, 4, 1 },
   { "LSR.W ?", 0x74, 2, 0 },
+
+  { "MUL", 0x3D, 0, 0 },
   
   { "NEGA", 0x40, 0, 0 },
   { "NEGB", 0x50, 0, 0 },
@@ -303,8 +341,10 @@ struct optcode opt_table[] = {
 
   { "PSHA", 0x36, 0, 0 },
   { "PSHB", 0x37, 0, 0 },
+  { "PSHX", 0x3C, 0, 0 },
   { "PULA", 0x32, 0, 0 },
   { "PULB", 0x33, 0, 0 },
+  { "PULX", 0x38, 0, 0 },
 
   { "ROLA", 0x49, 0, 0 },
   { "ROLB", 0x59, 0, 0 },
@@ -355,6 +395,9 @@ struct optcode opt_table[] = {
   { "STAB x,X", 0xE7, 4, 1 },
   { "STAB x", 0xD7, 4, 1 },
   { "STAB ?", 0xF7, 2, 0 },
+  { "STD x,X", 0xED, 4, 1 },
+  { "STD x", 0xDD, 4, 1 },
+  { "STD ?", 0xFD, 2, 0 },
 
   { "STAA.B x,X", 0xA7, 4, 1 },
   { "STAA.B x", 0x97, 4, 1 },
@@ -362,7 +405,10 @@ struct optcode opt_table[] = {
   { "STAB.B x,X", 0xE7, 4, 1 },
   { "STAB.B x", 0xD7, 4, 1 },
   { "STAB.W ?", 0xF7, 2, 0 },
-
+  { "STD.B x,X", 0xED, 4, 1 },
+  { "STD.B x", 0xDD, 4, 1 },
+  { "STD.W ?", 0xFD, 2, 0 },
+  
   { "STS x,X", 0xAF, 4, 1 },
   { "STS x", 0x9F, 4, 1 },
   { "STS ?", 0xBF, 2, 0 },
@@ -387,7 +433,11 @@ struct optcode opt_table[] = {
   { "SUBB x,X", 0xE0, 4, 1 },
   { "SUBB x", 0xD0, 4, 1 },
   { "SUBB ?", 0xF0, 2, 0 },
-
+  { "SUBD #x", 0x83, 1, 0 },
+  { "SUBD x,X", 0xA3, 4, 1 },
+  { "SUBD x", 0x93, 4, 1 },
+  { "SUBD ?", 0xB3, 2, 0 },
+  
   { "SUBA.B #x", 0x80, 1, 0 },
   { "SUBA.B x,X", 0xA0, 4, 1 },
   { "SUBA.B x", 0x90, 4, 1 },
@@ -396,7 +446,11 @@ struct optcode opt_table[] = {
   { "SUBB.B x,X", 0xE0, 4, 1 },
   { "SUBB.B x", 0xD0, 4, 1 },
   { "SUBB.W ?", 0xF0, 2, 0 },
-
+  { "SUBD.B #x", 0x83, 1, 0 },
+  { "SUBD.B x,X", 0xA3, 4, 1 },
+  { "SUBD.B x", 0x93, 4, 1 },
+  { "SUBD.W ?", 0xB3, 2, 0 },
+  
   { "SWI", 0x3F, 0, 0 },
   { "TAB", 0x16, 0, 0 },
   { "TAP", 0x06, 0, 0 },

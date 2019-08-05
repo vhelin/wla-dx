@@ -57,6 +57,10 @@ make -f makefiles/makefile.amiga.6800
 move wla-6800 TO binaries
 
 make -f makefiles/makefile.amiga.6800 clean
+make -f makefiles/makefile.amiga.6801
+move wla-6801 TO binaries
+
+make -f makefiles/makefile.amiga.6801 clean
 make -f makefiles/makefile.amiga.6809
 move wla-6809 TO binaries
 

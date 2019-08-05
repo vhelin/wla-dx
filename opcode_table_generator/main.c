@@ -29,6 +29,9 @@ char outname[] = "/opcodes_65c02_tables.c";
 #elif defined(MC6800)
 char outname[] = "/opcodes_6800_tables.c";
 #include "/opcodes_6800.c"
+#elif defined(MC6801)
+char outname[] = "/opcodes_6801_tables.c";
+#include "/opcodes_6801.c"
 #elif defined(MC6809)
 char outname[] = "/opcodes_6809_tables.c";
 #include "/opcodes_6809.c"
@@ -66,6 +69,9 @@ char outname[] = "../opcodes_65c02_tables.c";
 #elif defined(MC6800)
 char outname[] = "../opcodes_6800_tables.c";
 #include "../opcodes_6800.c"
+#elif defined(MC6801)
+char outname[] = "../opcodes_6801_tables.c";
+#include "../opcodes_6801.c"
 #elif defined(MC6809)
 char outname[] = "../opcodes_6809_tables.c";
 #include "../opcodes_6809.c"

@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6809/HuC6280/SPC-700 object file format "WLAV"
+WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/HuC6280/SPC-700 object file format "WLAV"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAV" - WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6809/HuC6280/SPC-700 object file version 22 (06-Jul-2019)
+        "WLAV" - WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/HuC6280/SPC-700 object file version 22 (06-Jul-2019)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -167,7 +167,7 @@ section:
 
 
 
-WLA-GB/Z80/6502/65C02/6510/65816/6800/6809/HuC6280/SPC-700 library file format "WLA4"
+WLA-GB/Z80/6502/65C02/6510/65816/6800/6801/6809/HuC6280/SPC-700 library file format "WLA4"
 
 
 bytes   description
@@ -175,7 +175,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLA4" - WLA-GB/Z80/6502/65C02/6510/65816/6800/6809/HuC6280/SPC-700 library file version 18 (06-Jul-2019)
+        "WLA4" - WLA-GB/Z80/6502/65C02/6510/65816/6800/6801/6809/HuC6280/SPC-700 library file version 18 (06-Jul-2019)
   1     misc bits (bit 0 - endianess (1 = big endian))
 
 source file name list:

@@ -245,22 +245,23 @@
 #define OP_SIZE_MAX 12
 
 #endif
-	
+
 /**************************************************************/
-/* 8008                                                       */
+/* 6801                                                       */
 /**************************************************************/
 
-#ifdef I8008
-	
-	/* opcode types */
- 
-	/* 0 - plain text  8b */
-	/* 1 - x              */
-	/* 2 - ?              */
-	/* 8 - *           8b */
- 
-	#define OP_SIZE_MAX 12
-	
+#ifdef MC6801
+
+/* opcode types */
+
+/* 0 - plain text  8b */
+/* 1 - x              */
+/* 2 - ?              */
+/* 3 - plain text 16b */
+/* 4 - x (absolute)   */
+
+#define OP_SIZE_MAX 12
+
 #endif
 
 /**************************************************************/
@@ -286,6 +287,23 @@
 
 #define OP_SIZE_MAX 16
 
+#endif
+
+/**************************************************************/
+/* 8008                                                       */
+/**************************************************************/
+
+#ifdef I8008
+	
+/* opcode types */
+ 
+/* 0 - plain text  8b */
+/* 1 - x              */
+/* 2 - ?              */
+/* 8 - *           8b */
+ 
+#define OP_SIZE_MAX 12
+	
 #endif
 
 /**************************************************************/
@@ -323,7 +341,7 @@ struct optcode {
 #if defined(Z80) || defined(GB) || defined(I8008)
   int  value;
 #endif
-#if defined(MCS6502) || defined(WDC65C02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800) || defined(MC6809)
+#if defined(MCS6502) || defined(WDC65C02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800) || defined(MC6801) || defined(MC6809)
   int  skip_8bit;
 #endif
 #if defined(W65816)
