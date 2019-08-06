@@ -44,5 +44,26 @@ make
 start gen
 
 if exist main.o del main.o
+set WLA_TARGET=MC6800
+make 
+start gen
+
+if exist main.o del main.o
+set WLA_TARGET=MC6801
+make 
+start gen
+
+if exist main.o del main.o
+set WLA_TARGET=MC6809
+make 
+start gen
+
+if exist main.o del main.o
+set WLA_TARGET=I8008
+make 
+start gen
+
+if exist main.o del main.o
 
 exit
+
