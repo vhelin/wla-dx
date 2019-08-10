@@ -24,12 +24,30 @@ runTest() {
     echo ""
     make clean
     make
+    if test -f "testsfile"; then
+        eval "$BYTE_TESTER testsfile"
+    fi
     make clean
     cd ..
 }
 
 export PATH=$PATH:$PWD/binaries
 echo $PATH
+
+# byte_tester
+
+cd byte_tester
+make install
+
+if test -f "byte_tester"; then
+    BYTE_TESTER="byte_tester"
+fi
+if test -f "byte_tester.exe"; then
+    BYTE_TESTER="byte_tester.exe"
+fi
+
+cd ..
+
 cd examples
 
 #####################################################################
