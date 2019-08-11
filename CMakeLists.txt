@@ -80,6 +80,7 @@ include_directories("${PROJECT_SOURCE_DIR}")
 
 add_subdirectory(wlab)
 add_subdirectory(wlalink)
+add_subdirectory(byte_tester)
 add_subdirectory(doc)
 
 add_custom_target(generators)
