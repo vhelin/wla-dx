@@ -42,16 +42,16 @@ pass_3.o: pass_3.c defines.h pass_3.h
 pass_4.o: pass_4.c defines.h pass_4.h
 	$(CC) $(CFLAGS) pass_4.c $(CMATH)
 
-stack.o: stack.c defines.h stack.h makefile
+stack.o: stack.c defines.h stack.h
 	$(CC) $(CFLAGS) stack.c
 
-listfile.o: listfile.c defines.h listfile.h makefile
+listfile.o: listfile.c defines.h listfile.h
 	$(CC) $(CFLAGS) listfile.c
 
-crc32.o: crc32.c defines.h crc32.h makefile
+crc32.o: crc32.c defines.h crc32.h
 	$(CC) $(CFLAGS) crc32.c
 
-hashmap.o: hashmap.c defines.h hashmap.h makefile
+hashmap.o: hashmap.c defines.h hashmap.h
 	$(CC) $(CFLAGS) hashmap.c
 
 

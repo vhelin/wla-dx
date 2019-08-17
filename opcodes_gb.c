@@ -548,5 +548,5 @@ struct optcode opt_table[] = {
   { "XOR L", 0xad, 0, 0 },
   { "XOR x", 0xee, 1, 0 },
 
-  { "E", 0x100, -1, 0 }
+  { "E", 0x100, 0xFF, 0 }
 };

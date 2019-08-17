@@ -253,7 +253,6 @@ int listfile_write_listfiles(struct section *e) {
 	  m++;
 	  if (b[m] == 0xD)
 	    m++;
-	  k++;
 	  fprintf(f, "\n");
 	  break;
 	}

@@ -68,8 +68,9 @@ struct label_sizeof *label_sizeof_tmp;
 char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 
 int pc_bank = 0, pc_full = 0, rom_bank, mem_insert_overwrite, slot = 0, base = 0, pc_slot, pc_slot_max;
-int dstruct_start = -1;
 int filename_id, line_number;
+
+static int dstruct_start = -1;
 
 
 #define WRITEOUT_OV fprintf(final_ptr, "%c%c%c%c", (ov>>24)&0xFF, (ov>>16)&0xFF, (ov>>8)&0xFF, ov&0xFF);

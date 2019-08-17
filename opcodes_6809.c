@@ -4922,5 +4922,5 @@ struct optcode opt_table[] = {
   { "TST x", 0x0D, 4, 1, 0 },
   { "TST ?", 0x7D, 2, 0, 0 },
   
-  { "E", 0x100, -1, 0, 0 }
+  { "E", 0x100, 0xFF, 0, 0 }
 };

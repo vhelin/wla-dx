@@ -23,7 +23,7 @@ struct label_def *label_next, *label_last, *label_tmp, *labels = NULL;
 struct map_t *global_unique_label_map = NULL;
 struct block *blocks = NULL;
 
-int dstruct_start, dstruct_item_offset, dstruct_item_size;
+static int dstruct_start, dstruct_item_offset, dstruct_item_size;
 
 #define XSTRINGIFY(x) #x
 #define STRINGIFY(x) XSTRINGIFY(x)

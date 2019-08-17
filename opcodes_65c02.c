@@ -393,5 +393,5 @@ struct optcode opt_table[] = {
   { "TSB.B x", 0x04, 4, 1 },
   { "TSB.W ?", 0x0C, 2, 0 },
 
-  { "E", 0x100, -1, 0 }
+  { "E", 0x100, 0xFF, 0 }
 };

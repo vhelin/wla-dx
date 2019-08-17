@@ -2290,7 +2290,7 @@ int generate_sizeof_label_definitions(void) {
 
   struct label *l, *lastL, **labels;
   int labelsN = 0, j;
-  double size;
+  double size = 0.0;
 
 
   if (labels_first == NULL)

@@ -233,5 +233,5 @@ struct optcode opt_table[] = {
 
   { "XCN A", 0x9F, 0 },
 
-  { "E", 0x100, -1 }
+  { "E", 0x100, 0xFF }
 };

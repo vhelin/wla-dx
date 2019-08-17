@@ -333,22 +333,22 @@
 
 struct optcode {
   char *op;
-  int  hex;
-  int  type;
+  unsigned short hex;
+  unsigned char type;
 #if defined(Z80)
-  int  hex_x;
+  unsigned char hex_x;
 #endif
 #if defined(Z80) || defined(GB) || defined(I8008)
-  int  value;
+  unsigned char value;
 #endif
 #if defined(MCS6502) || defined(WDC65C02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800) || defined(MC6801) || defined(MC6809)
-  int  skip_8bit;
+  unsigned char skip_8bit;
 #endif
 #if defined(W65816)
-  int  skip_xbit;
+  unsigned char skip_xbit;
 #endif
 #if defined(MC6809)
-  int  addressing_mode_bits;
+  unsigned char addressing_mode_bits;
 #endif
 };
 

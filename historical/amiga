@@ -268,23 +268,9 @@ cd wlalink
 smake clean
 smake
 copy wlalink to /binaries/
-cd /
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; MISC
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-cd wlad
 smake clean
-smake
-copy wlad to /binaries/
 cd /
-
-cd wlab
 smake clean
-smake
-copy wlab to /binaries/
-cd /
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ARCHIVE
