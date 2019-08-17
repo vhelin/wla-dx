@@ -44,6 +44,7 @@ historical/wlad_new/makefile.win32* text eol=crlf
 *.exe   binary
 *.bin   binary
 *.gb    binary
+historical/makefiles/*make*.gb -binary
 *.smc   binary
 *.sfc   binary
 *.o     binary
