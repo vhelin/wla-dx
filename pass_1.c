@@ -156,10 +156,6 @@ int table_defined = 0, table_size = 0, table_index = 0;
 /*  remember to run opcodesgen/gen with the proper flags defined  */
 /* (GB/Z80/MCS6502/WDC65C02/MC6800/MC6801/MC6809/I8008/MCS6510/W65816/HUC6280/SPC700) */
 
-#ifdef AMIGA
-/*__far /* put the following big table in the FAR data section */
-#endif
-
 extern int opcode_n[256];
 extern struct optcode opt_table[];
 

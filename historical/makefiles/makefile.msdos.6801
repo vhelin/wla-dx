@@ -22,10 +22,10 @@ parse.o: parse.c defines.h parse.h makefile
 include_file.o: include_file.c defines.h include_file.h makefile
 	$(CC) $(CFLAGS) include_file.c
 
-opcodes_8600_tables.o: opcodes_6801_tables.c
+opcodes_6801_tables.o: opcodes_6801_tables.c
 	$(CC) $(WLAFLAGS) opcodes_6801_tables.c
 
-opcodes_8600.o: opcodes_6801.c
+opcodes_6801.o: opcodes_6801.c
 	$(CC) $(WLAFLAGS) opcodes_6801.c
 
 pass_1.o: pass_1.c defines.h pass_1.h parse.h makefile
