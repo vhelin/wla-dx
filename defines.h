@@ -257,7 +257,7 @@
 /* 4 - x (absolute)   */
 
 #define OP_SIZE_MAX 12
-#define ARCH_STR "MC8600"
+#define ARCH_STR "MC6800"
 #define WLA_NAME "6800"
 
 #endif
@@ -277,7 +277,7 @@
 /* 4 - x (absolute)   */
 
 #define OP_SIZE_MAX 12
-#define ARCH_STR "6801"
+#define ARCH_STR "MC6801"
 #define WLA_NAME "6801"
 
 #endif
@@ -323,7 +323,7 @@
 /* 8 - *           8b */
  
 #define OP_SIZE_MAX 12
-#define ARCH_STR "8008"
+#define ARCH_STR "I8008"
 #define WLA_NAME "8008"
 	
 #endif
