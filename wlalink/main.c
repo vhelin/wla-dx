@@ -126,7 +126,7 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
     else if (type == STACK_ITEM_TYPE_STRING)
       sprintf(sid, "stack_item: label              : %s\n", si->string);
     else if (type == STACK_ITEM_TYPE_STACK) {
-      struct stack *st = find_stack(si->value, file_id);
+      struct stack *st = find_stack((int)si->value, file_id);
 
       if (st->computed == YES)
 	sprintf(sid, "stack_item: (stack) calculation: %d (result = %d/$%x)\n", (int)si->value, st->result, st->result);
