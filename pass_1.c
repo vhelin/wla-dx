@@ -123,7 +123,6 @@ extern struct file_name_info *file_name_info_first, *file_name_info_last, *file_
 extern struct stack *stacks_first, *stacks_tmp, *stacks_last;
 extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
 
-int opcode_n[256], opcode_p[256];
 int macro_stack_size = 0, repeat_stack_size = 0;
 
 #if defined(MCS6502) || defined(WDC65C02) || defined(MCS6510) || defined(W65816) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
@@ -152,11 +151,7 @@ struct union_stack *union_stack; /* stores variables for nested unions */
 char table_format[256];
 int table_defined = 0, table_size = 0, table_index = 0;
 
-
-/*  remember to run opcodesgen/gen with the proper flags defined  */
-/* (GB/Z80/MCS6502/WDC65C02/MC6800/MC6801/MC6809/I8008/MCS6510/W65816/HUC6280/SPC700) */
-
-extern int opcode_n[256];
+extern int opcode_n[256], opcode_p[256];
 extern struct optcode opt_table[];
 
 #define no_library_files(name)                                         \
