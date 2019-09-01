@@ -1,161 +1,180 @@
-# Main CMakeLists file
-cmake_minimum_required (VERSION 2.8.9)
+cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
 
-option(WLALINK_DEBUG "wlalink debug build" OFF)
-option(WLA_DEBUG "wla debug builds" OFF)
-option(GDB_DEBUGGING "Enable debugging via gdb" OFF)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/binaries/")
 
-if (GDB_DEBUGGING)
-    set(CMAKE_C_FLAGS "-O0 -ggdb")
-    set(CMAKE_C_FLAGS_RELEASE "-O0 -ggdb")
-endif (GDB_DEBUGGING)
+set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Type of build")
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug"
+    "MinSizeRel" "RelWithDebInfo")
 
-if (WLALINK_DEBUG)
-    add_definitions( -DWLALINK_DEBUG )
-endif (WLALINK_DEBUG)
+project(WLA-DX C)
 
-if (WLA_DEBUG)
-    add_definitions( -DWLA_DEBUG )
-endif (WLA_DEBUG)
+set(ARCHS
+    # wla-NAME:compile-def
+    "gb:GB"
+    "65c02:WDC65C02"
+    "6502:MCS6502"
+    "6510:MCS6510"
+    "65816:W65816"
+    "huc6280:HUC6280"
+    "spc700:SPC700"
+    "z80:Z80"
+    "6800:MC6800"
+    "8008:I8008"
+    "6809:MC6809"
+    "6801:MC6801"
+    )
 
+option(GDB_DEBUGGING
+    "Enable debugging via gdb (Only when CMAKE_BUILD_TYPE is Debug)" ON)
 
-
-# --- Project name ---
-project (WLA-DX)
-
-# --- Explicitly enable C
-enable_language (C)
-
-# --- Output into binaries directory
-# Is there a way to change this solely for the opcode_table_generator subproject?
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/binaries/")
-
-# --- Platform-specific config
-# CMake will automatically define WIN32 for us for Microsoft compilers, how 
+# CMake will automatically define WIN32 for us for Microsoft compilers, how
 # convenient! But we need MSDOS flag as well. Additionally, other compilers
-# don't define it by default. WIN32 Does NOT include Cygwin.
-if (WIN32)
-    add_definitions( -DWIN32 )
-    add_definitions( -DMSDOS )
-endif (WIN32)
+# don't define it by default. WIN32 does NOT include Cygwin.
+if(WIN32)
+    add_definitions(-DWIN32)
+    add_definitions(-DMSDOS)
+endif()
 
 # This should work on ANY POSIX-compliant environment.
-if (UNIX)
-    add_definitions( -DUNIX )
-    link_libraries(m) #Deprecated, but best solution. See: 
+if(UNIX)
+    add_definitions(-DUNIX)
+    link_libraries(m) # Deprecated, but best solution. See
     # http://www.cmake.org/pipermail/cmake/2009-April/028439.html
-endif (UNIX)
+endif()
 
-if ((CMAKE_C_COMPILER_ID MATCHES "Clang") OR (CMAKE_C_COMPILER_ID MATCHES "GNU"))
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ansi -pedantic-errors -Wall -Wextra")
+set(CMAKE_C_STANDARD 90)
+set(CMAKE_C_EXTENSIONS OFF)
+
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    set(CMAKE_C_STANDARD) # Empty because we use -ansi
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic-errors -Wall -Wextra -ansi")
     string(REPLACE "-O2" "-O3" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
-endif ()
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang" AND
+            CMAKE_C_COMPILER_VERSION VERSION_LESS 3.8)
+        set(GDB_DEBUGGING OFF)
+        message(STATUS "You need at least clang 3.8 for GDB_DEBUGGING."
+            " Disabling it for now.")
+    endif()
+    if(GDB_DEBUGGING)
+        set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")
+    endif()
+endif()
 
-# --- Tell MSVC to STFU about _CRT_SECURE_NO_WARNINGS
-if (MSVC)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Za") #Disable extensions
+if(MSVC)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Za") # Disable extensions
     # Per http://www.cmake.org/pipermail/cmake/2011-October/046738.html,
     # replace flags directly instead of appending them.
-    string(REPLACE "/O2" "/Ox" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
-    # When ready, increase the warning level (no need for now).
-    #string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-    add_definitions( /D_CRT_SECURE_NO_WARNINGS )
-endif (MSVC)
+    string(REPLACE "/O[0-4]" "/Ox" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+    add_definitions(/D_CRT_SECURE_NO_WARNINGS) # STFU about "unsecure" functions
+endif()
 
-# --- WATCOM C Compiler works just fine as well. Might be a decent alternative
+# WATCOM C Compiler works just fine as well. Might be a decent alternative
 # 386 MSDOS compiler as well (compare to DJGPP).
-if (WATCOM)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -za") #Disable extensions
+if(WATCOM)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -za") # Disable extensions
     string(REPLACE "-ot" "-ox" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
     string(REGEX REPLACE "-w=[0-4]" "-w=4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-endif (WATCOM)
+endif()
 
-# Make the source tree available to includes
-include_directories(${PROJECT_SOURCE_DIR})
-# Generated tables are created at the top build-tree directory
-include_directories(${CMAKE_BINARY_DIR})
+include_directories("${PROJECT_SOURCE_DIR}")
 
-# --- Dependencies ---
-add_subdirectory (opcode_table_generator)
-add_subdirectory (wlab)
-add_subdirectory (wlalink)
+add_subdirectory(wlab)
+add_subdirectory(wlalink)
+add_subdirectory(byte_tester)
+add_subdirectory(doc)
 
-# Generate documentation
-add_subdirectory (doc)
+add_custom_target(generators)
+add_custom_target(gens DEPENDS generators)
 
-# --- WLA executables ---
-set(CFILES main.c crc32.c hashmap.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c)
+if(CMAKE_CROSSCOMPILING)
+    set(IMPORT_GENERATORS "IMPORT_GENERATORS-NOTFOUND"
+        CACHE FILEPATH "ImportGenerators.cmake of a native build")
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.5)
+        set(CMAKE_CROSSCOMPILING_EMULATOR "${CMAKE_CROSSCOMPILING_EMULATOR}"
+            CACHE FILEPATH "Path/Command to an emulator that can execute foreign code")
+    else()
+        set(CMAKE_CROSSCOMPILING_EMULATOR OFF) # If not supported, use import
+    endif()
+    if(CMAKE_CROSSCOMPILING_EMULATOR)
+        message(STATUS "Using crosscompiling emulator: ${CMAKE_CROSSCOMPILING_EMULATOR}")
+    else()
+        include("${IMPORT_GENERATORS}")
+        set(GEN_PREFIX native-)
+    endif()
+endif()
 
-# GB
-add_executable(wla-gb ${CFILES})
-set_target_properties (wla-gb PROPERTIES COMPILE_DEFINITIONS "GB" )
-add_dependencies(wla-gb GB_table)
-add_custom_command(TARGET wla-gb POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_GB*")
 
-# WDC65C02
-add_executable(wla-65c02 ${CFILES})
-set_target_properties (wla-65c02 PROPERTIES COMPILE_DEFINITIONS "WDC65C02" )
-add_dependencies(wla-65c02 WDC65C02_table)
-add_custom_command(TARGET wla-65c02 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_WDC65C02*")
+# WLA-ARCH executables
+set(WLA_SRCS
+    main.c
+    crc32.c
+    hashmap.c
+    parse.c
+    include_file.c
+    pass_1.c
+    pass_2.c
+    pass_3.c
+    pass_4.c
+    stack.c
+    listfile.c
+    )
 
-# MCS6502
-add_executable(wla-6502 ${CFILES})
-set_target_properties (wla-6502 PROPERTIES COMPILE_DEFINITIONS "MCS6502" )
-add_dependencies(wla-6502 MCS6502_table)
-add_custom_command(TARGET wla-6502 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_MCS6502*")
+foreach(ARCH IN LISTS ARCHS)
+    string(REPLACE ":" ";" ARCH "${ARCH}")
+    list(GET ARCH 0 WLA_NAME)
+    list(GET ARCH 1 COMPILE_DEF)
 
-# MCS6510
-add_executable(wla-6510 ${CFILES})
-set_target_properties (wla-6510 PROPERTIES COMPILE_DEFINITIONS "MCS6510" )
-add_dependencies(wla-6510 MCS6510_table)
-add_custom_command(TARGET wla-6510 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_MCS6510*")
+    # Generate opcode table
+    if((NOT CMAKE_CROSSCOMPILING) OR CMAKE_CROSSCOMPILING_EMULATOR)
+        add_executable(gen-${WLA_NAME}
+            "opcode_table_generator/main.c"
+            "opcodes_${WLA_NAME}.c"
+            )
+        set_property(TARGET gen-${WLA_NAME} APPEND
+            PROPERTY COMPILE_DEFINITIONS
+                "${COMPILE_DEF}"
+            )
+        set_property(TARGET gen-${WLA_NAME} PROPERTY
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/op_tbl_gen/")
+        list(APPEND GENERATOR_TARGETS gen-${WLA_NAME})
+        add_dependencies(generators gen-${WLA_NAME})
+    endif()
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/op_tbl_gen/")
+    set(TABLE_GEN_OUTPUT
+        "${CMAKE_BINARY_DIR}/op_tbl_gen/opcodes_${WLA_NAME}_tables.c")
+    add_custom_command(
+        OUTPUT "${TABLE_GEN_OUTPUT}"
+        COMMAND ${GEN_PREFIX}gen-${WLA_NAME}
+            "${TABLE_GEN_OUTPUT}"
+        )
 
-# MC6800
-add_executable(wla-6800 ${CFILES})
-set_target_properties (wla-6800 PROPERTIES COMPILE_DEFINITIONS "MC6800" )
-add_dependencies(wla-6800 MC6800_table)
-add_custom_command(TARGET wla-6800 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_MC6800*")
+    # Generate actual wla binary
+    add_executable(wla-${WLA_NAME}
+        ${WLA_SRCS} "${TABLE_GEN_OUTPUT}"
+        "opcodes_${WLA_NAME}.c"
+        )
+    set_property(TARGET wla-${WLA_NAME} APPEND PROPERTY
+        COMPILE_DEFINITIONS "${COMPILE_DEF}")
+    install(TARGETS wla-${WLA_NAME} DESTINATION bin)
+endforeach(ARCH)
 
-# MC6801
-add_executable(wla-6801 ${CFILES})
-set_target_properties (wla-6801 PROPERTIES COMPILE_DEFINITIONS "MC6801" )
-add_dependencies(wla-6801 MC6801_table)
-add_custom_command(TARGET wla-6801 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_MC6801*")
+if(NOT CMAKE_CROSSCOMPILING)
+    export(TARGETS ${GENERATOR_TARGETS}
+        FILE "${CMAKE_BINARY_DIR}/ImportGenerators.cmake"
+        NAMESPACE native-
+        )
+endif()
 
-# MC6809
-add_executable(wla-6809 ${CFILES})
-set_target_properties (wla-6809 PROPERTIES COMPILE_DEFINITIONS "MC6809" )
-add_dependencies(wla-6809 MC6809_table)
-add_custom_command(TARGET wla-6809 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_MC6809*")
 
-# I8008
-add_executable(wla-8008 ${CFILES})
-set_target_properties (wla-8008 PROPERTIES COMPILE_DEFINITIONS "I8008" )
-add_dependencies(wla-8008 I8008_table)
-add_custom_command(TARGET wla-8008 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_I8008*")
+# Packaging via CPack
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+    "Yet Another GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/HUC6280/SPC-700 Multi Platform Cross Assembler Package")
+set(CPACK_PACKAGE_CHECKSUM MD5) # CPack 3.7+
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+set(CPACK_GENERATOR ZIP TGZ 7Z)
 
-# W65816
-add_executable(wla-65816 ${CFILES})
-set_target_properties (wla-65816 PROPERTIES COMPILE_DEFINITIONS "W65816" )
-add_dependencies(wla-65816 W65816_table)
-add_custom_command(TARGET wla-65816 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_W65816*")
+set(CPACK_SOURCE_GENERATOR ZIP TGZ 7Z)
+set(CPACK_SOURCE_IGNORE_FILES "/.git/" "̇\\\\.swp" "#" "~" "build")
 
-# HUC6280
-add_executable(wla-huc6280 ${CFILES})
-set_target_properties (wla-huc6280 PROPERTIES COMPILE_DEFINITIONS "HUC6280" )
-add_dependencies(wla-huc6280 HUC6280_table)
-add_custom_command(TARGET wla-huc6280 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_HUC6280*")
+include(CPack)
 
-# SPC700
-add_executable(wla-spc700 ${CFILES})
-set_target_properties (wla-spc700 PROPERTIES COMPILE_DEFINITIONS "SPC700" )
-add_dependencies(wla-spc700 SPC700_table)
-add_custom_command(TARGET wla-spc700 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_SPC700*")
-
-# Z80
-add_executable(wla-z80 ${CFILES})
-set_target_properties (wla-z80 PROPERTIES COMPILE_DEFINITIONS "Z80" )
-add_dependencies(wla-z80 Z80_table)
-add_custom_command(TARGET wla-z80 POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gen_Z80*")
-
-install(TARGETS wla-gb wla-65c02 wla-6510 wla-65816 wla-huc6280 wla-spc700 wla-z80 DESTINATION bin)
