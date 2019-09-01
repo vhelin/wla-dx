@@ -86,8 +86,7 @@ Gcc should compile WLA DX just fine.
 
 Using CMake:
 
-  cmake -DWLA_DEBUG=ON -DWLALINK_DEBUG=ON -DGDB_DEBUGGING=ON \
-        -DCMAKE_BUILD_TYPE=Debug -G "[your platform]"
+  cmake -DGDB_DEBUGGING=ON -DCMAKE_BUILD_TYPE=Debug -G "[your platform]"
   make
 
 Using the old makefiles:
