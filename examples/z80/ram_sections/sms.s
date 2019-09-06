@@ -149,6 +149,13 @@ vertices2 instanceof point
 vertices3 instanceof point 2
 .ende
 
+
+.MACRO TryCrashWLA
+.DEFINE Index \@ export
+.ENDM
+        TryCrashWLA
+
+
 .BLOCK "Hello"
 .db "HERE>"
 .db 1, 2, MINUS_THREE * MINUS_ONE, 4, 5, MINUS_ONE, MINUS_THREE, :JANK

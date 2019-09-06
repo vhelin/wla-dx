@@ -1026,6 +1026,9 @@ int evaluate_token(void) {
 #ifdef I8008
 #include "decode_8008.c"
 #endif
+#ifdef I8080
+#include "decode_8080.c"
+#endif
 #ifdef SPC700
 #include "decode_spc700.c"
 #endif
@@ -1270,6 +1273,8 @@ void print_error(char *error, int type) {
   }
 
   fprintf(stderr, "%s:%d: %s %s", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current, t, error);
+  fflush(stderr);
+
   return;
 }
 
@@ -7037,7 +7042,7 @@ int directive_snesemuvector(void) {
 int directive_print(void) {
 
   int get_value, value_type;
-    
+
   while (1) {
     get_value = NO;
     value_type = 1;

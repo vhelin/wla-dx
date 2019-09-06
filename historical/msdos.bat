@@ -56,6 +56,11 @@ make
 move wla-8008.exe binaries\
 make clean
 
+copy makefiles\makefile.msdos.8080 MAKEFILE
+make
+move wla-8080.exe binaries\
+make clean
+
 copy makefiles\makefile.msdos.6510 MAKEFILE
 make
 move wla-6510.exe binaries\

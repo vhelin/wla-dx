@@ -72,30 +72,45 @@ int compare_next_token(char *token) {
 
   /* MACRO mode? */
   if (macro_active != 0 && e == '\\') {
-    for (d = 0, k = 0; k < 16; k++) {
-      e = buffer[++ii];
-      if (e >= '0' && e <= '9')
-	d = (d * 10) + e - '0';
-      else
-	break;
-    }
+    if (buffer[ii + 1] == '@') {
+      char tmp_buffer[64];
 
-    if (d > macro_runtime_current->supplied_arguments) {
-      if (input_number_error_msg == YES) {
-	sprintf(xyz, "COMPARE_NEXT_SYMBOL: Macro \"%s\" wasn't called with enough arguments.\n", macro_runtime_current->macro->name);
-	print_error(xyz, ERROR_NONE);
+      sprintf(tmp_buffer, "%d", macro_runtime_current->macro->calls - 1);
+
+      e = tmp_buffer[0];
+      for (t = 0; t < length && e != 0; ) {
+	if (toupper((int)token[t]) != toupper((int)e))
+	  return FAILED;
+	t++;
+	e = tmp_buffer[t];
       }
-      return FAILED;
     }
+    else {
+      for (d = 0, k = 0; k < 16; k++) {
+	e = buffer[++ii];
+	if (e >= '0' && e <= '9')
+	  d = (d * 10) + e - '0';
+	else
+	  break;
+      }
 
-    ii = macro_runtime_current->argument_data[d - 1]->start;
-
-    e = buffer[ii];
-    for (t = 0; t < length && e != ' ' && e != ',' && e != 0x0A; ) {
-      if (toupper((int)token[t]) != toupper((int)e))
+      if (d > macro_runtime_current->supplied_arguments) {
+	if (input_number_error_msg == YES) {
+	  sprintf(xyz, "COMPARE_NEXT_SYMBOL: Macro \"%s\" wasn't called with enough arguments.\n", macro_runtime_current->macro->name);
+	  print_error(xyz, ERROR_NONE);
+	}
 	return FAILED;
-      t++;
-      e = buffer[++ii];
+      }
+
+      ii = macro_runtime_current->argument_data[d - 1]->start;
+
+      e = buffer[ii];
+      for (t = 0; t < length && e != ' ' && e != ',' && e != 0x0A; ) {
+	if (toupper((int)token[t]) != toupper((int)e))
+	  return FAILED;
+	t++;
+	e = buffer[++ii];
+      }
     }
   }
   /* not in MACRO mode */

@@ -12,6 +12,7 @@ sc define AMIGA=1 define MC6800=1 opcodes_6800.c
 sc define AMIGA=1 define MC6801=1 opcodes_6801.c
 sc define AMIGA=1 define MC6809=1 opcodes_6809.c
 sc define AMIGA=1 define I8008=1 opcodes_8008.c
+sc define AMIGA=1 define I8080=1 opcodes_8080.c
 sc define AMIGA=1 define MCS6510=1 opcodes_6510.c
 sc define AMIGA=1 define W65816=1 opcodes_65816.c
 sc define AMIGA=1 define SPC700=1 opcodes_spc700.c
@@ -59,6 +60,11 @@ sc define AMIGA=1 define I8008=1 main.c
 slink FROM LIB:c.o main.o /opcodes_8008.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
 opcode_table_generator /opcodes_8008_tables.c
 delete opcode_table_generator main.o /opcodes_8008.o
+
+sc define AMIGA=1 define I8080=1 main.c
+slink FROM LIB:c.o main.o /opcodes_8080.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+opcode_table_generator /opcodes_8080_tables.c
+delete opcode_table_generator main.o /opcodes_8080.o
 
 sc define AMIGA=1 define MCS6510=1 main.c
 slink FROM LIB:c.o main.o /opcodes_6510.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
@@ -225,6 +231,22 @@ copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
 copy wla to binaries/wla-8008.000
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WLA-8080
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+copy makefiles/smake.8080 to smakefile
+copy makefiles/scoptions.020 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-8080.020
+
+copy makefiles/smake.8080 to smakefile
+copy makefiles/scoptions.000 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-8080.000
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WLA-65816
