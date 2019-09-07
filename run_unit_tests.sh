@@ -9,6 +9,8 @@
 # these tests aren't really unit tests, but hopefully one day they will be. :)
 #
 
+set -e
+
 changePlatform() {
     echo ""
     echo "************************************************************"
