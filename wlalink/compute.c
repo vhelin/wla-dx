@@ -264,9 +264,23 @@ int compute_snes_exhirom_checksum(void) {
 }
 
 
+static int round_up_to_next_power_of_2(int x) {
+  int exponent;
+  if (x < 0)
+    return -1;
+  for (exponent = 0; exponent < 31; exponent++) {
+    int power_of_two = 1 << exponent;
+    if (x <= power_of_two)
+      return power_of_two;
+  }
+  return -1;
+}
+
+
 int compute_snes_checksum(void) {
 
-  int i, j, k, checksum, n, m, inv;
+  int i, checksum, inv;
+  int mirror_begin, mirror_end;
 
   /* ExHiROM jump */
   if (snes_rom_mode == SNES_ROM_MODE_EXHIROM && romsize >= 0x410000)
@@ -285,19 +299,15 @@ int compute_snes_checksum(void) {
     }
   }
 
-  /* n = data inside 4Mbit blocks, m = data outside that */
-  if (romsize < 512*1024) {
-    n = romsize;
-    m = 0;
+  mirror_end = round_up_to_next_power_of_2(romsize);
+  if (mirror_end == -1) {
+    fprintf(stderr, "COMPUTE_SNES_CHECKSUM: Internal error: failed to round ROM size (%#x).\n", romsize);
+    return FAILED;
   }
-  else {
-    n = (romsize/(512*1024))*512*1024;
-    m = romsize - n;
-  }
+  mirror_begin = (mirror_end == romsize) ? romsize : mirror_end / 2;
 
-  /* sum all the bytes inside the 4Mbit blocks */
   checksum = 0;
-  for (i = 0; i < n; i++) {
+  for (i = 0; i < mirror_begin; i++) {
     if (snes_rom_mode == SNES_ROM_MODE_LOROM || snes_rom_mode == SNES_ROM_MODE_EXLOROM) {
       /* skip the checksum bytes */
       if (!(i == 0x7FDC || i == 0x7FDD || i == 0x7FDE || i == 0x7FDF))
@@ -309,11 +319,14 @@ int compute_snes_checksum(void) {
 	checksum += rom[i];
     }
   }
-
-  /* add to that the data outside the 4mbit blocks, ringbuffer style repeating 
-     the remaining block until the the final part reaches 4Mbits */
-  for (j = 0, k = i; i < romsize; i++, j++)
-    checksum += rom[(j % m) + k];
+  for (i = mirror_begin; i < mirror_end; i++) {
+    int index = (i - mirror_begin) % (romsize - mirror_begin) + mirror_begin;
+    if (index >= romsize) {
+      fprintf(stderr, "COMPUTE_SNES_CHECKSUM: Internal error: attempted to access byte %#x of ROM with size %#x.\n", index, romsize);
+      return FAILED;
+    }
+    checksum += rom[index];
+  }
 
   /* 2*255 (0x1FE) is for the checksum and its complement bytes that we skipped earlier */
   checksum += 2*255;
