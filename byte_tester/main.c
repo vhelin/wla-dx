@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
 
   char tmp[256], test_id[256], tag_id[256];
   unsigned char *binary_file, bytes[256];
-  int file_size, end, byte_count, i, tag_start, tag_end, wrong_bytes;
+  int file_size, end, byte_count, i, tag_start, tag_end, wrong_bytes, failures;
   FILE *f, *fb;
   
   if (argc != 2 || argv == NULL) {
@@ -65,6 +65,7 @@ int main(int argc, char *argv[]) {
   fclose(fb);
 
   /* execute the tests */
+  failures = 0;
   end = 0;
   while (end == 0) {
     if (fscanf(f, "%255s", test_id) == EOF)
@@ -74,6 +75,7 @@ int main(int argc, char *argv[]) {
 
     if (strlen(tag_id) != 2) {
       fprintf(stderr, "Test \"%s\" FAILED - TAG ID must be exactly two characters long. Error in \"%s\".\n", test_id, tag_id);
+      failures = 1;
       break;
     }
 
@@ -82,6 +84,7 @@ int main(int argc, char *argv[]) {
 
     if (strcmp(tmp, "START") != 0) {
       fprintf(stderr, "Test \"%s\" FAILED - START is missing.\n", test_id);
+      failures = 1;
       break;
     }
 
@@ -90,6 +93,7 @@ int main(int argc, char *argv[]) {
     while (1) {
       if (byte_count == 256) {
 	fprintf(stderr, "Test \"%s\" FAILED - Each test can contain max 256 bytes.\n", test_id);
+	failures = 1;
 	end = 1;
 	break;
       }
@@ -108,6 +112,7 @@ int main(int argc, char *argv[]) {
 	bytes[byte_count] = (unsigned char)strtol(tmp, NULL, 16);
       else {
 	fprintf(stderr, "Test \"%s\" FAILED - Unknown data \"%s\" in test \"%s\"! Must either be a character, two character hexadecimal value or END.\n", test_id, tmp, test_id);
+        failures = 1;
 	end = 1;
 	break;
       }
@@ -123,6 +128,7 @@ int main(int argc, char *argv[]) {
 
     if (i == file_size - 3) {
       fprintf(stderr, "Test \"%s\" FAILED - Could not find tag \"%s>\".\n", test_id, tag_id);
+      failures = 1;
       continue;
     }
 
@@ -135,6 +141,7 @@ int main(int argc, char *argv[]) {
 
     if (i == file_size - 3) {
       fprintf(stderr, "Test \"%s\" FAILED - Could not find tag \"<%s\".\n", test_id, tag_id);
+      failures = 1;
       continue;
     }
 
@@ -142,6 +149,7 @@ int main(int argc, char *argv[]) {
 
     if (tag_end - tag_start != byte_count) {
       fprintf(stderr, "Test \"%s\" FAILED - There is %d bytes between the tags \"%s\", but the test \"%s\" defines only %d bytes.\n", test_id, tag_end - tag_start, tag_id, test_id, byte_count);
+      failures = 1;
       continue;
     }
 
@@ -157,8 +165,10 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    if (wrong_bytes > 0)
+    if (wrong_bytes > 0) {
+      failures = 1;
       fprintf(stderr, "\n");
+    }
     else
       fprintf(stderr, "Test \"%s\" SUCCEEDED!\n", test_id);
   }
@@ -167,5 +177,5 @@ int main(int argc, char *argv[]) {
   
   free(binary_file);
   
-  return 0;
+  return failures;
 }
