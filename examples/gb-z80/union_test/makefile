@@ -10,8 +10,6 @@ OFILES = main.o
 
 all: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.gb
-	diff linked.sym expected.sym
-	md5sum -c linked.md5
 
 main.o: main.s
 	$(CC) $(CFLAGS) main.o main.s
