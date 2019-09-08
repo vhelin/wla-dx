@@ -82,6 +82,10 @@ runTest base_test_1
 runTest base_test_2
 runTest base_test_3
 runTest base_test_4
+runTest checksum_12mbit_lorom
+runTest checksum_24mbit_lorom
+runTest checksum_8mbit_hirom
+runTest checksum_8mbit_lorom
 runTest linker_test
 runTest name_test
 runTest operand_hint_test
