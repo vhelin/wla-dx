@@ -127,6 +127,10 @@ int listfile_collect(void) {
       fscanf(file_in, "%*d ");
       continue;
 
+    case 'v':
+      fscanf(file_in, "%*d ");
+      continue;
+
     case 'R':
     case 'Q':
     case 'd':

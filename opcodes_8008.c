@@ -206,6 +206,7 @@ struct optcode opt_table[] = {
   { "RST *", 0x2D, 8, 5 },
   { "RST *", 0x35, 8, 6 },
   { "RST *", 0x3D, 8, 7 },
+  { "RST *", 0x00, 100, 0 },
   { "RTC", 0x23, 0, 0 },
   { "RTP", 0x3B, 0, 0 },
   { "RTS", 0x33, 0, 0 },

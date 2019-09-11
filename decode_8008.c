@@ -119,3 +119,38 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     break;
  }
 break;
+
+case 100:
+/* "RST *" that gets delayed to WLALINK */
+for ( ; x < OP_SIZE_MAX; inz++, x++) {
+  if (opt_tmp->op[x] == '*') {
+    y = i;
+    i = inz;
+    z = input_number();
+    inz = i;
+    i = y;
+    if (!(z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
+      break;
+
+    for (x++ ; x < OP_SIZE_MAX; inz++, x++) {
+      if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
+	output_assembled_opcode(opt_tmp, "k%d v2 ", active_file_info_last->line_current);
+	if (z == INPUT_NUMBER_ADDRESS_LABEL)
+	  output_assembled_opcode(opt_tmp, "Q%s ", label);
+	else
+	  output_assembled_opcode(opt_tmp, "c%d ", latest_stack);	
+
+	/* reset to "no special case" */
+	output_assembled_opcode(opt_tmp, "v0 ");
+	
+	i = inz;
+	return SUCCEEDED;
+      }
+      if (opt_tmp->op[x] != toupper((int)buffer[inz]))
+	break;
+    }
+  }
+  if (opt_tmp->op[x] != toupper((int)buffer[inz]))
+    break;
+ }
+break;

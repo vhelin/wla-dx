@@ -120,6 +120,7 @@ struct reference {
   int  file_id;
   int  file_id_source;
   int  linenumber;
+  int  special_id;
   struct reference *next;
   struct reference *prev;
 };
@@ -190,6 +191,7 @@ struct stack {
   int section;
   int address;
   int memory_address;
+  int special_id;
 };
 
 #endif /* _DEFINES_H */

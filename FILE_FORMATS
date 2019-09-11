@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/HuC6280/SPC-700 object file format "WLAV"
+WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 object file format "WLAW"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAV" - WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/HuC6280/SPC-700 object file version 22 (06-Jul-2019)
+        "WLAW" - WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 object file version 23 (11-Sep-2019)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -85,6 +85,7 @@ outside references:
   n     label (0 terminated)
   1     type (0 = direct 16-bit, 1 = relative 8-bit, 2 = direct 8-bit, 3 = direct 24-bit,
               4 = relative 16-bit)
+  1     special case ID (0 == not a special case, 1 == Z80 RST)
   1     file id
   1     slot number (0-255)
   4     section (0 = no section, 1+ = section id) (int)
@@ -100,7 +101,8 @@ pending calculations:
   ...
   4     id (int)
   1     result type (0 = 8-bit, 1 = 16-bit, 2 = 24-bit)
-        if bit 7 ~ 1, then the label references are relative, else absolute
+        if bit 7 == 1, then the label references are relative, else absolute
+  1     special case ID (0 == not a special case, 1 == Z80 RST)
   4     section (0 = no section, 1+ = section id) (int)
   1     file id
   1     number of stack items
@@ -167,7 +169,7 @@ section:
 
 
 
-WLA-GB/Z80/6502/65C02/6510/65816/6800/6801/6809/HuC6280/SPC-700 library file format "WLA4"
+WLA-GB/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 library file format "WLA5"
 
 
 bytes   description
@@ -175,7 +177,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLA4" - WLA-GB/Z80/6502/65C02/6510/65816/6800/6801/6809/HuC6280/SPC-700 library file version 18 (06-Jul-2019)
+        "WLA5" - WLA-GB/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 library file version 19 (11-Sep-2019)
   1     misc bits (bit 0 - endianess (1 = big endian))
 
 source file name list:
@@ -213,6 +215,7 @@ outside references:
   n     label (0 terminated)
   1     type (0 = direct 16-bit, 1 = relative 8-bit, 2 = direct 8-bit, 3 = direct 24-bit,
               4 = relative 16-bit)
+  1     special case ID (0 == not a special case, 1 == Z80 RST)
   4     section (1+ = section id) (int)
   1     file id
   4     line number (int)
@@ -225,7 +228,8 @@ pending calculations:
   ...
   4     id (int)
   1     result type (0 = 8-bit, 1 = 16-bit, 2 = 24-bit)
-        if bit 7 ~ 1, then the label references are relative, else absolute
+        if bit 7 == 1, then the label references are relative, else absolute
+  1     special case ID (0 == not a special case, 1 == Z80 RST)
   4     section (1+ = section id) (int)
   1     file id
   1     number of stack items

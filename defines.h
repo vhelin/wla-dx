@@ -83,6 +83,7 @@
 /* I - macro call end      */
 /* j - rept start          */
 /* J - rept end            */
+/* v - special case ID     */
 
 /**************************************************************/
 /* gb-z80                                                     */
@@ -473,6 +474,7 @@ struct label_def {
   unsigned char type;
   unsigned char symbol;
   int  section_id;
+  int  special_id;
   int  address; /* in bank */
   int  bank;
   int  slot;
@@ -565,6 +567,7 @@ struct stack {
   int section_status;
   int section_id;
   int address;
+  int special_id;
 };
 
 #define STRUCTURE_ITEM_TYPE_DATA            0

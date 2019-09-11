@@ -1855,6 +1855,7 @@ struct optcode opt_table[] = {
   { "RST *", 0xef, 8, 0, 0x28 },
   { "RST *", 0xf7, 8, 0, 0x30 },
   { "RST *", 0xff, 8, 0, 0x38 },
+  { "RST *", 0x00, 100, 0, 0 }, /* if we choose this, then WLALINK chooses the opcode */
   { "RST", 0xc7, 0, 0, 0 },
 
   { "SBC A',A'", 0x9f, 0, 0, 0 },

@@ -954,6 +954,7 @@ int stack_calculate(char *in, int *value) {
 
   stacks_tmp->linenumber = active_file_info_last->line_current;
   stacks_tmp->filename_id = active_file_info_last->filename_id;
+  stacks_tmp->special_id = 0;
 
   /* all stacks will be definition stacks by default. pass_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
@@ -1241,7 +1242,8 @@ int stack_create_label_stack(char *label) {
 
   stacks_tmp->linenumber = active_file_info_last->line_current;
   stacks_tmp->filename_id = active_file_info_last->filename_id;
-
+  stacks_tmp->special_id = 0;
+  
   /* all stacks will be definition stacks by default. pass_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
   stacks_tmp->position = STACK_POSITION_DEFINITION;
@@ -1282,7 +1284,8 @@ int stack_create_stack_stack(int stack_id) {
 
   stacks_tmp->linenumber = active_file_info_last->line_current;
   stacks_tmp->filename_id = active_file_info_last->filename_id;
-
+  stacks_tmp->special_id = 0;
+  
   /* all stacks will be definition stacks by default. pass_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
   stacks_tmp->position = STACK_POSITION_DEFINITION;

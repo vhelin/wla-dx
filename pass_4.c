@@ -70,7 +70,7 @@ char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 int pc_bank = 0, pc_full = 0, rom_bank, mem_insert_overwrite, slot = 0, base = 0, pc_slot, pc_slot_max;
 int filename_id, line_number;
 
-static int dstruct_start = -1;
+static int dstruct_start = -1, special_id = 0;
 
 
 #define WRITEOUT_OV fprintf(final_ptr, "%c%c%c%c", (ov>>24)&0xFF, (ov>>16)&0xFF, (ov>>8)&0xFF, ov&0xFF);
@@ -128,6 +128,7 @@ int new_unknown_reference(int type) {
   label->bank = rom_bank;
   label->slot = slot;
   label->base = base;
+  label->special_id = special_id;
 
   /* outside bank header section */
   if (bankheader_status == OFF) {
@@ -217,6 +218,12 @@ int pass_4(void) {
   while (fread(&c, 1, 1, file_out_ptr) != 0) {
     switch (c) {
 
+      /* SPECIAL CASE ID */
+      
+      case 'v':
+        fscanf(file_out_ptr, "%d ", &special_id);	
+        continue;
+      
       case 'E':
         continue;
 
@@ -621,6 +628,7 @@ int pass_4(void) {
         stacks_tmp->slot = slot;
         stacks_tmp->type = STACKS_TYPE_8BIT;
         stacks_tmp->base = base;
+	stacks_tmp->special_id = special_id;
 	
         if (mangle_stack_references(stacks_tmp) == FAILED)
           return FAILED;
@@ -1118,7 +1126,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLA4");
+    fprintf(final_ptr, "WLA5");
 
     /* misc bits */
     ind = 0;
@@ -1179,7 +1187,7 @@ int pass_4(void) {
 
     label_tmp = unknown_labels;
     while (label_tmp != NULL) {
-      fprintf(final_ptr, "%s%c%c", label_tmp->label, 0x0, label_tmp->type);
+      fprintf(final_ptr, "%s%c%c%c", label_tmp->label, 0x0, label_tmp->type, label_tmp->special_id);
 
       ov = label_tmp->section_id;
       WRITEOUT_OV;
@@ -1209,7 +1217,7 @@ int pass_4(void) {
       ov = stacks_tmp->id;
       WRITEOUT_OV;
 
-      fprintf(final_ptr, "%c", stacks_tmp->type | (stacks_tmp->relative_references << 7));
+      fprintf(final_ptr, "%c%c", stacks_tmp->type | (stacks_tmp->relative_references << 7), stacks_tmp->special_id);
 
       ov = stacks_tmp->section_id;
       WRITEOUT_OV;
@@ -1314,7 +1322,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAV%c", emptyfill);
+    fprintf(final_ptr, "WLAW%c", emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -1477,7 +1485,7 @@ int pass_4(void) {
 
     label_tmp = unknown_labels;
     while (label_tmp != NULL) {
-      fprintf(final_ptr, "%s%c%c%c%c", label_tmp->label, 0x0, label_tmp->type, label_tmp->filename_id, label_tmp->slot);
+      fprintf(final_ptr, "%s%c%c%c%c%c", label_tmp->label, 0x0, label_tmp->type, label_tmp->special_id, label_tmp->filename_id, label_tmp->slot);
 
       ov = label_tmp->section_id;
       WRITEOUT_OV;
@@ -1499,7 +1507,7 @@ int pass_4(void) {
 
     label_tmp = unknown_header_labels;
     while (label_tmp != NULL) {
-      fprintf(final_ptr, "%s%c%c%c%c", label_tmp->label, 0x0, label_tmp->type, label_tmp->filename_id, label_tmp->slot);
+      fprintf(final_ptr, "%s%c%c%c%c%c", label_tmp->label, 0x0, label_tmp->type, 0, label_tmp->filename_id, label_tmp->slot);
 
       ov = label_tmp->section_id;
       WRITEOUT_OV;
@@ -1528,7 +1536,7 @@ int pass_4(void) {
       ov = stacks_tmp->id;
       WRITEOUT_OV;
 
-      fprintf(final_ptr, "%c", stacks_tmp->type | (stacks_tmp->relative_references << 7));
+      fprintf(final_ptr, "%c%c", stacks_tmp->type | (stacks_tmp->relative_references << 7), stacks_tmp->special_id);
 
       ov = stacks_tmp->section_id;
       WRITEOUT_OV;

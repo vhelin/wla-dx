@@ -581,6 +581,7 @@ int collect_dlr(void) {
 	r->name[x] = 0;
 	t++;
 	r->type = *(t++);
+	r->special_id = *(t++);
 	r->file_id_source = *(t++);
 	r->slot = *(t++);
 	r->section = READ_T;
@@ -610,6 +611,7 @@ int collect_dlr(void) {
 
 	s->id = READ_T;
 	s->type = *(t++);
+	s->special_id = *(t++);
 	s->section = READ_T;
 	if (s->section == 0)
 	  s->section_status = OFF;
@@ -798,6 +800,7 @@ int collect_dlr(void) {
 	r->name[x] = 0;
 	t++;
 	r->type = *(t++);
+	r->special_id = *(t++);
 	r->section = READ_T;
 	r->section += section;
 	r->file_id_source = *(t++);
@@ -824,6 +827,7 @@ int collect_dlr(void) {
 
 	s->id = READ_T;
 	s->type = *(t++);
+	s->special_id = *(t++);
 	s->section = READ_T;
 	if (s->section == 0)
 	  s->section_status = OFF;

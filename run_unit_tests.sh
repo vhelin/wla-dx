@@ -135,6 +135,7 @@ cd ..
 
 changePlatform z80
 runTest caddr_test
+runTest rst_test
 runTest linker_header_test
 runTest linker_test_1
 runTest linker_test_2
@@ -175,6 +176,7 @@ cd ..
 
 changePlatform 8008
 runTest linker_test
+runTest rst_test
 cd ..
 
 #####################################################################
@@ -183,4 +185,5 @@ cd ..
 
 changePlatform 8080
 runTest linker_test
+runTest rst_test
 cd ..

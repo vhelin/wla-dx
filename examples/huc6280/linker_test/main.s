@@ -199,7 +199,7 @@ MORE_ACTION:
 
 .ORG 0
 
-.SECTION "Mohammed" FREE
+.SECTION "FooBar" FREE
 	LSR
 	LSR	A
 	LSR	10,X

@@ -119,6 +119,10 @@ int pass_3(void) {
 	fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
 	return FAILED;
 
+      case 'v':
+	fscanf(f_in, "%*d ");
+	continue;
+	
       case 'b':
 	fscanf(f_in, "%d ", &base);
 	continue;
@@ -524,6 +528,10 @@ int pass_3(void) {
       add += 3;
       continue;
 
+    case 'v':
+      fscanf(f_in, "%*d ");
+      continue;
+	
     case 'b':
       fscanf(f_in, "%d ", &base);
       continue;

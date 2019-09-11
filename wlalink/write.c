@@ -776,6 +776,89 @@ int fix_label_addresses(void) {
 }
 
 
+static int _handle_special_case(int special_id, int file_id, int file_id_source, int linenumber, int value, int *out) {
+
+  if (special_id == 1) {
+    /* Z80/GB-Z80 RST */
+    if (value == 0x00)
+      *out = 0xC7;
+    else if (value == 0x08)
+      *out = 0xCF;
+    else if (value == 0x10)
+      *out = 0xD7;
+    else if (value == 0x18)
+      *out = 0xDF;
+    else if (value == 0x20)
+      *out = 0xE7;
+    else if (value == 0x28)
+      *out = 0xEF;
+    else if (value == 0x30)
+      *out = 0xF7;
+    else if (value == 0x38)
+      *out = 0xFF;
+    else {
+      fprintf(stderr, "%s: %s:%d: _HANDLE_SPECIAL_CASE: RST is expecting $00/$08/$10/$18/$20/$28/$30/$38, got $%.2x instead.\n",
+	      get_file_name(file_id), get_source_file_name(file_id, file_id_source), linenumber, value);
+      return FAILED;
+    }
+  }
+  else if (special_id == 2) {
+    /* 8008 RST */
+    if (value == 0)
+      *out = 0x05;
+    else if (value == 1)
+      *out = 0x0D;
+    else if (value == 2)
+      *out = 0x15;
+    else if (value == 3)
+      *out = 0x1D;
+    else if (value == 4)
+      *out = 0x25;
+    else if (value == 5)
+      *out = 0x2D;
+    else if (value == 6)
+      *out = 0x35;
+    else if (value == 7)
+      *out = 0x3D;
+    else {
+      fprintf(stderr, "%s: %s:%d: _HANDLE_SPECIAL_CASE: RST is expecting 0/1/2/3/4/5/6/7, got $%.2x instead.\n",
+	      get_file_name(file_id), get_source_file_name(file_id, file_id_source), linenumber, value);
+      return FAILED;
+    }
+  }
+  else if (special_id == 3) {
+    /* 8080 RST */
+    if (value == 0)
+      *out = 0xC7;
+    else if (value == 1)
+      *out = 0xCF;
+    else if (value == 2)
+      *out = 0xD7;
+    else if (value == 3)
+      *out = 0xDF;
+    else if (value == 4)
+      *out = 0xE7;
+    else if (value == 5)
+      *out = 0xEF;
+    else if (value == 6)
+      *out = 0xF7;
+    else if (value == 7)
+      *out = 0xFF;
+    else {
+      fprintf(stderr, "%s: %s:%d: _HANDLE_SPECIAL_CASE: RST is expecting 0/1/2/3/4/5/6/7, got $%.2x instead.\n",
+	      get_file_name(file_id), get_source_file_name(file_id, file_id_source), linenumber, value);
+      return FAILED;
+    }
+  }
+  else {
+    fprintf(stderr, "_HANDLE_SPECIAL_CASE: Unknown special case ID %d! This in an internal WLA error. Please submit a bug report!\n", special_id);
+    return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
 int fix_references(void) {
 
   struct reference *r;
@@ -1013,7 +1096,14 @@ int fix_references(void) {
 		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
           return FAILED;
         }
-        mem_insert_ref(x, i & 0xFF);
+
+	/* special case ID handling! */
+	if (r->special_id > 0) {
+	  if (_handle_special_case(r->special_id, r->file_id, r->file_id_source, r->linenumber, i, &i) == FAILED)
+	    return FAILED;
+	}
+
+	mem_insert_ref(x, i & 0xFF);
       }
     }
 
@@ -1509,6 +1599,13 @@ int compute_pending_calculations(void) {
 		get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
 	return FAILED;
       }
+
+      /* special case ID handling! */
+      if (sta->special_id > 0) {
+	if (_handle_special_case(sta->special_id, sta->file_id, sta->file_id_source, sta->linenumber, k, &k) == FAILED)
+	  return FAILED;
+      }
+
       if (mem_insert_ref(a, k) == FAILED)
 	return FAILED;
     }
