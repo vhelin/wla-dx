@@ -1178,7 +1178,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 	if (l->status == LABEL_STATUS_LABEL)
 	  fprintf(f, "%.4x%.4x %s\n", get_snes_pc_bank(l) >> 16, (int)l->address, l->name);
 	else
-	  fprintf(f, "0000%.4x %s\n", (int)l->address, l->name);
+	  fprintf(f, "%.8x %s\n", (int)l->address, l->name);
       }
       l = l->next;
     }
