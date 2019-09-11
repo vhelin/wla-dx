@@ -3,8 +3,10 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------------------
 
-v9.10 (08-Sep-2019) [808] Added support for I8080.
+v9.10 (11-Sep-2019) [808] Added support for I8080.
                     [658] Fixed SNES ROM checksum calculation.
+                    [658] Fixed 24-bit non-label symbols in NO$SNES symbol
+                      file generator.
                     [ALL] ".DEFINE INDEX \@" inside a macro works now.
                     [ALL] Added a fflush() to print_error() - now all error
                       messages should be printed on screen no matter what.
