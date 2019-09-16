@@ -2025,7 +2025,7 @@ int parse_stack(struct stack *sta) {
   struct section *s;
   struct label *l, lt;
   double k;
-  int g;
+  int g, ed;
 
 
   s = NULL;
@@ -2038,6 +2038,23 @@ int parse_stack(struct stack *sta) {
     }
   }
 
+  /* calculate extra displacement (ed) depending on relative operand size:
+     6809 and 65816 can have 16-bit relative operands so the start of
+     next instruction is one byte farther away than "usual" */
+  switch(sta->type) {
+    case STACKS_TYPE_8BIT:
+      ed = 1;
+      break;
+    case STACKS_TYPE_16BIT:
+      ed = 2;
+      break;
+    case STACKS_TYPE_24BIT: /* not presently used by any CPU arch supported */
+      ed = 3;
+      break;
+    default:
+      ed = 1;
+      break;
+  }
   si = sta->stack;
   g = 0;
   k = 0;
@@ -2077,7 +2094,7 @@ int parse_stack(struct stack *sta) {
 
 	  /* is the reference relative? */
 	  if (sta->relative_references == YES)
-	    k = k - sta->memory_address - 1;
+	    k = k - sta->memory_address - ed;
 	}
 	else if (strcmp(si->string, "CADDR") == 0 || strcmp(si->string, "caddr") == 0) {
 	  k = sta->memory_address;
@@ -2092,7 +2109,7 @@ int parse_stack(struct stack *sta) {
 
             /* is the reference relative? */
             if (sta->relative_references == YES)
-              k = k - sta->memory_address - 1;
+              k = k - sta->memory_address - ed;
           }
 	}
       }
