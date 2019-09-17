@@ -1086,7 +1086,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.12 (15-Aug-2019) ...
+v5.12 (17-Sep-2019) Fixed pending, relative 16-bit and 24-bit calculations.
 
 v5.11 (15-Aug-2019) Defines that contain computations that are issued inside
                       libraries are now handled correctly.
