@@ -6,6 +6,7 @@
 .SECTION "LIBRARY 1"
 LibraryMain:
 .DB "01>"
+.block "Hello World"
 	ABX
 	ADCB #$12
 	ADCB ,S
@@ -33,6 +34,7 @@ LibraryMain:
 	ADCB $1234,PCR
 	ADCB $1f
 	ADCB $1234
+.endb
 .DB "<01"
 .DB " "
 .DB "02>"

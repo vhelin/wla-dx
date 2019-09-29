@@ -4342,6 +4342,34 @@ int directive_fread(void) {
 }
 
 
+int directive_block(void) {
+
+  int q, o;
+  
+  if ((ind = get_next_token()) == FAILED)
+    return FAILED;
+
+  if (ind != GET_NEXT_TOKEN_STRING) {
+    print_error(".BLOCK requires a name string.\n", ERROR_DIR);
+    return FAILED;
+  }
+
+  /* encode space as ASCII 96 */
+  o = strlen(tmp);
+  for (q = 0; q < o; q++) {
+    if (tmp[q] == ' ')
+      tmp[q] = 96;
+  }
+  
+  block_status++;
+
+  fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+  fprintf(file_out_ptr, "g%s ", tmp);
+
+  return SUCCEEDED;
+}
+
+
 int directive_shift(void) {
 
   struct macro_argument *ma;
@@ -7516,22 +7544,8 @@ int parse_directive(void) {
 
   /* BLOCK */
 
-  if (strcaselesscmp(cp, "BLOCK") == 0) {
-    if ((ind = get_next_token()) == FAILED)
-      return FAILED;
-
-    if (ind != GET_NEXT_TOKEN_STRING) {
-      print_error(".BLOCK requires a name string.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    block_status++;
-
-    fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
-    fprintf(file_out_ptr, "g%s ", tmp);
-
-    return SUCCEEDED;
-  }
+  if (strcaselesscmp(cp, "BLOCK") == 0)
+    return directive_block();
 
   /* ENDB */
 

@@ -30,6 +30,7 @@ static int dstruct_start, dstruct_item_offset, dstruct_item_size;
 #define STRING_READ_FORMAT ("%" STRINGIFY(MAX_NAME_LENGTH) "s ")
 
 
+
 int pass_3(void) {
 
   struct section_def *s;
@@ -140,18 +141,27 @@ int pass_3(void) {
 	continue;
 
       case 'g':
+	fscanf(f_in, STRING_READ_FORMAT, tmp);
+
+	/* decode block name, map ASCII 96 to space */
+	x = strlen(tmp);
+	for (y = 0; y < x; y++) {
+	  if (tmp[y] == 96)
+	    tmp[y] = ' ';
+	}
+	
 	b = calloc(sizeof(struct block), 1);
 	if (b == NULL) {
-	  fscanf(f_in, STRING_READ_FORMAT, tmp);
 	  fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for block \"%s\".\n",
 		  get_file_name(file_name_id), line_number, tmp);
 	  return FAILED;
 	}
+
 	b->filename_id = file_name_id;
 	b->line_number = line_number;
 	b->next = blocks;
 	blocks = b;
-	fscanf(f_in, STRING_READ_FORMAT, b->name);
+	strcpy(b->name, tmp);
 	b->address = add;
 	continue;
 
@@ -582,9 +592,17 @@ int pass_3(void) {
       continue;
 
     case 'g':
+      fscanf(f_in, STRING_READ_FORMAT, tmp);
+
+      /* decode block name, map ASCII 96 to space */
+      x = strlen(tmp);
+      for (y = 0; y < x; y++) {
+	if (tmp[y] == 96)
+	  tmp[y] = ' ';
+      }
+
       b = calloc(sizeof(struct block), 1);
       if (b == NULL) {
-	fscanf(f_in, STRING_READ_FORMAT, tmp);
 	fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for block \"%s\".\n",
 		get_file_name(file_name_id), line_number, tmp);
 	return FAILED;
@@ -593,7 +611,7 @@ int pass_3(void) {
       b->line_number = line_number;
       b->next = blocks;
       blocks = b;
-      fscanf(f_in, STRING_READ_FORMAT, b->name);
+      strcpy(b->name, tmp);
       b->address = add;
       continue;
 
