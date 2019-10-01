@@ -13,6 +13,7 @@
 extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
 extern struct section_def *sections_first, *sections_last, *sec_tmp, *sec_next;
 extern struct file_name_info *file_name_info_first, *file_name_info_last, *file_name_info_tmp;
+extern struct block_name *block_names;
 extern unsigned char *rom_banks, *rom_banks_usage_table;
 extern FILE *file_out_ptr;
 extern char *tmp_name, tmp[4096], emsg[1024];
@@ -35,6 +36,7 @@ int pass_3(void) {
 
   struct section_def *s;
   struct label_def *l;
+  struct block_name *bn;
   struct label_def *parent_labels[10];
   struct block *b;
   FILE *f_in;
@@ -141,19 +143,18 @@ int pass_3(void) {
 	continue;
 
       case 'g':
-	fscanf(f_in, STRING_READ_FORMAT, tmp);
+	fscanf(f_in, "%d ", &x);
 
-	/* decode block name, map ASCII 96 to space */
-	x = strlen(tmp);
-	for (y = 0; y < x; y++) {
-	  if (tmp[y] == 96)
-	    tmp[y] = ' ';
+	bn = block_names;
+	while (bn != NULL) {
+	  if (bn->id == x)
+	    break;
 	}
 	
 	b = calloc(sizeof(struct block), 1);
 	if (b == NULL) {
 	  fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for block \"%s\".\n",
-		  get_file_name(file_name_id), line_number, tmp);
+		  get_file_name(file_name_id), line_number, bn->name);
 	  return FAILED;
 	}
 
@@ -161,7 +162,7 @@ int pass_3(void) {
 	b->line_number = line_number;
 	b->next = blocks;
 	blocks = b;
-	strcpy(b->name, tmp);
+	strcpy(b->name, bn->name);
 	b->address = add;
 	continue;
 
@@ -592,26 +593,25 @@ int pass_3(void) {
       continue;
 
     case 'g':
-      fscanf(f_in, STRING_READ_FORMAT, tmp);
+      fscanf(f_in, "%d ", &x);
 
-      /* decode block name, map ASCII 96 to space */
-      x = strlen(tmp);
-      for (y = 0; y < x; y++) {
-	if (tmp[y] == 96)
-	  tmp[y] = ' ';
+      bn = block_names;
+      while (bn != NULL) {
+	if (bn->id == x)
+	  break;
       }
 
       b = calloc(sizeof(struct block), 1);
       if (b == NULL) {
 	fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for block \"%s\".\n",
-		get_file_name(file_name_id), line_number, tmp);
+		get_file_name(file_name_id), line_number, bn->name);
 	return FAILED;
       }
       b->filename_id = file_name_id;
       b->line_number = line_number;
       b->next = blocks;
       blocks = b;
-      strcpy(b->name, tmp);
+      strcpy(b->name, bn->name);
       b->address = add;
       continue;
 

@@ -55,7 +55,7 @@ int macro_active = 0;
 int repeat_active = 0;
 int smc_defined = 0;
 int asciitable_defined = 0;
-int block_status = 0;
+int block_status = 0, block_name_id = 0;
 int dstruct_status = OFF;
 unsigned char asciitable[256];
 
@@ -109,6 +109,7 @@ struct filepointer *filepointers = NULL;
 struct map_t *namespace_map = NULL;
 struct append_section *append_sections = NULL;
 struct label_sizeof *label_sizeofs = NULL;
+struct block_name *block_names = NULL;
 
 extern char *buffer, *unfolded_buffer, label[MAX_NAME_LENGTH + 1], *include_dir, *full_name;
 extern int size, unfolded_size, input_number_error_msg, verbose_mode, output_format, open_files;
@@ -4344,7 +4345,7 @@ int directive_fread(void) {
 
 int directive_block(void) {
 
-  int q, o;
+  struct block_name *b;
   
   if ((ind = get_next_token()) == FAILED)
     return FAILED;
@@ -4354,17 +4355,21 @@ int directive_block(void) {
     return FAILED;
   }
 
-  /* encode space as ASCII 96 */
-  o = strlen(tmp);
-  for (q = 0; q < o; q++) {
-    if (tmp[q] == ' ')
-      tmp[q] = 96;
+  b = calloc(sizeof(struct block_name), 1);
+  if (b == NULL) {
+    print_error("Out of memory while allocating block name.\n", ERROR_DIR);
+    return FAILED;
   }
+
+  strcpy(b->name, tmp);
+  b->id = block_name_id++;
+  b->next = block_names;
+  block_names = b;
   
   block_status++;
 
   fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
-  fprintf(file_out_ptr, "g%s ", tmp);
+  fprintf(file_out_ptr, "g%d ", b->id);
 
   return SUCCEEDED;
 }

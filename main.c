@@ -40,7 +40,7 @@ FILE *file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char version_string[] = "$VER: wla-" WLA_NAME " 9.10a (29.9.2019)";
+char version_string[] = "$VER: wla-" WLA_NAME " 9.10a (1.10.2019)";
 char wla_version[] = "9.10a";
 
 char *tmp_name = NULL;
@@ -62,6 +62,7 @@ extern struct filepointer *filepointers;
 extern struct map_t *namespace_map;
 extern struct append_section *append_sections;
 extern struct label_sizeof *label_sizeofs;
+extern struct block_name *block_names;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern char *unfolded_buffer;
 extern char *include_in_tmp, *tmp_a;
@@ -326,6 +327,7 @@ void procedures_at_exit(void) {
   struct filepointer *f1, *f2;
   struct append_section *as;
   struct label_sizeof *ls;
+  struct block_name *bn;
   int i;
   
   /* free all the dynamically allocated data structures and close open files */
@@ -388,6 +390,13 @@ void procedures_at_exit(void) {
     ls = label_sizeofs;
   }
 
+  bn = block_names;
+  while (bn != NULL) {
+    block_names = bn->next;
+    free(bn);
+    bn = block_names;
+  }
+  
   export_tmp = export_first;
   while (export_tmp != NULL) {
     export_last = export_tmp->next;

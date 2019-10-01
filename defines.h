@@ -551,6 +551,12 @@ struct block {
   struct block *next;
 };
 
+struct block_name {
+  char name[MAX_NAME_LENGTH + 1];
+  int  id;
+  struct block_name *next;
+};
+
 struct stack {
   struct stack_item *stack;
   struct stack *next;
