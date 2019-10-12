@@ -149,6 +149,7 @@ int pass_3(void) {
 	while (bn != NULL) {
 	  if (bn->id == x)
 	    break;
+	  bn = bn->next;
 	}
 	
 	b = calloc(sizeof(struct block), 1);
@@ -599,6 +600,7 @@ int pass_3(void) {
       while (bn != NULL) {
 	if (bn->id == x)
 	  break;
+	bn = bn->next;
       }
 
       b = calloc(sizeof(struct block), 1);
