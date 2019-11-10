@@ -1,0 +1,7 @@
+# Ignore some stuff inside the invidual tests directory
+*/*/simplemap.i
+
+!makefile
+!linkfile
+
+!expected.*

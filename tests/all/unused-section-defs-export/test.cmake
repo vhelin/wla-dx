@@ -1,0 +1,1 @@
+list(APPEND LINK_FLAGS -d)

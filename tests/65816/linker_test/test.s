@@ -1,0 +1,11 @@
+
+.DEFINE TESB 1
+.EXPORT TESB
+
+.SECTION "test"
+test_00:	NOP
+.ENDS
+
+.SECTION "information"
+.DB 1
+.ENDS
