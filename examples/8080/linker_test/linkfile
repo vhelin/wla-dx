@@ -1,0 +1,4 @@
+[objects]
+main.o
+[libraries]
+bank 0 slot 0 library.lib
