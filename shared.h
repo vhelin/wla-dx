@@ -53,15 +53,16 @@
 #define SI_OP_XOR         12
 #define SI_OP_LOW_BYTE    13
 #define SI_OP_HIGH_BYTE   14
+#define SI_OP_NOT         15
 
 #define SI_SIGN_POSITIVE 0
 #define SI_SIGN_NEGATIVE 1
 
-#define STACKS_TYPE_8BIT    0
-#define STACKS_TYPE_16BIT   1
-#define STACKS_TYPE_24BIT   2
-#define STACKS_TYPE_UNKNOWN 3
-#define STACKS_TYPE_13BIT   4
+#define STACK_TYPE_8BIT    0
+#define STACK_TYPE_16BIT   1
+#define STACK_TYPE_24BIT   2
+#define STACK_TYPE_UNKNOWN 3
+#define STACK_TYPE_13BIT   4
 
 #define STACK_POSITION_DEFINITION 0
 #define STACK_POSITION_CODE       1

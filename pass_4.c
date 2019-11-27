@@ -626,7 +626,7 @@ int pass_4(void) {
 
         stacks_tmp->bank = rom_bank;
         stacks_tmp->slot = slot;
-        stacks_tmp->type = STACKS_TYPE_8BIT;
+        stacks_tmp->type = STACK_TYPE_8BIT;
         stacks_tmp->base = base;
 	stacks_tmp->special_id = special_id;
 	
@@ -676,7 +676,7 @@ int pass_4(void) {
 
         stacks_tmp->bank = rom_bank;
         stacks_tmp->slot = slot;
-        stacks_tmp->type = STACKS_TYPE_16BIT;
+        stacks_tmp->type = STACK_TYPE_16BIT;
         stacks_tmp->base = base;
 	
         if (mangle_stack_references(stacks_tmp) == FAILED)
@@ -728,7 +728,7 @@ int pass_4(void) {
 
         stacks_tmp->bank = rom_bank;
         stacks_tmp->slot = slot;
-        stacks_tmp->type = STACKS_TYPE_13BIT;
+        stacks_tmp->type = STACK_TYPE_13BIT;
         stacks_tmp->base = base;
 	
         if (mangle_stack_references(stacks_tmp) == FAILED)
@@ -780,7 +780,7 @@ int pass_4(void) {
 
         stacks_tmp->bank = rom_bank;
         stacks_tmp->slot = slot;
-        stacks_tmp->type = STACKS_TYPE_24BIT;
+        stacks_tmp->type = STACK_TYPE_24BIT;
         stacks_tmp->base = base;
 
         if (mangle_stack_references(stacks_tmp) == FAILED)

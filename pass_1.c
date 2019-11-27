@@ -85,10 +85,6 @@ char name[32];
 int name_defined = 0;
 #endif
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
-extern int operand_hint;
-#endif
-
 char tmp[4096], emsg[sizeof(tmp) + MAX_NAME_LENGTH + 1 + 1024];
 char *tmp_bf;
 char cp[256];
@@ -114,7 +110,7 @@ struct block_name *block_names = NULL;
 extern char *buffer, *unfolded_buffer, label[MAX_NAME_LENGTH + 1], *include_dir, *full_name;
 extern int size, unfolded_size, input_number_error_msg, verbose_mode, output_format, open_files;
 extern int stack_id, latest_stack, ss, commandline_parsing, newline_beginning;
-extern int extra_definitions, string_size, input_float_mode;
+extern int extra_definitions, string_size, input_float_mode, operand_hint;
 extern int include_dir_size, parse_floats, listfile_data, quiet, parsed_double_decimal_numbers;
 extern FILE *file_out_ptr;
 extern double parsed_double;

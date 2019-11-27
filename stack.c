@@ -32,9 +32,7 @@ struct stack *stacks_header_first = NULL, *stacks_header_last = NULL;
 extern int stack_inserted;
 #endif
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
 extern int operand_hint;
-#endif
 
 
 static int _stack_insert(void) {
@@ -300,8 +298,7 @@ int stack_calculate(char *in, int *value) {
       b++;
       in++;
     }
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
-    else if (*in == '.') {
+    else if (*in == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L')) {
       in++;
       d = operand_hint;
       if (*in == 'b' || *in == 'B') {
@@ -312,12 +309,10 @@ int stack_calculate(char *in, int *value) {
 	operand_hint = HINT_16BIT;
 	in++;
       }
-#if defined(W65816)
       else if (*in == 'l' || *in == 'L') {
 	operand_hint = HINT_24BIT;
 	in++;
       }
-#endif
       else
 	break;
 
@@ -326,10 +321,6 @@ int stack_calculate(char *in, int *value) {
 	in++;
       }
     }
-#else
-    else if (*in == '.')
-      break;
-#endif
     else if (*in == ')') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
       si[q].value = SI_OP_RIGHT;
@@ -513,10 +504,8 @@ int stack_calculate(char *in, int *value) {
 		   e == ']' || e == 0xA)
 	    break;
 	  else if (e == '.') {
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280)
-	    if (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W')
+	    if (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L')
 	      break;
-#endif
 	    if (parse_floats == NO)
 	      break;
 	    if (n == 1) {
@@ -702,6 +691,16 @@ int stack_calculate(char *in, int *value) {
       b = 1;
   }
 
+  /* turn unary XORs into NOTs */
+  for (b = 1, k = 0; k < q; k++) {
+    if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_XOR && b == 1)
+      si[k].value = SI_OP_NOT;
+    else if (si[k].type == STACK_ITEM_TYPE_VALUE || si[k].type == STACK_ITEM_TYPE_STRING)
+      b = 0;
+    else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_LEFT)
+      b = 1;
+  }
+
   /* convert infix stack into postfix stack */
   for (b = 0, k = 0, d = 0; k < q; k++) {
     /* operands pass through */
@@ -880,6 +879,18 @@ int stack_calculate(char *in, int *value) {
 	  op[b] = SI_OP_OR;
 	  b++;
 	}
+	else if (si[k].value == SI_OP_NOT) {
+	  b--;
+	  while (b != -1 && op[b] != SI_OP_LEFT) {
+	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
+	    ta[d].value = op[b];
+	    b--;
+	    d++;
+	  }
+	  b++;
+	  op[b] = SI_OP_NOT;
+	  b++;
+	}
 	else if (si[k].value == SI_OP_LEFT) {
 	  op[b] = SI_OP_LEFT;
 	  b++;
@@ -941,7 +952,7 @@ int stack_calculate(char *in, int *value) {
     return FAILED;
   }
   stacks_tmp->next = NULL;
-  stacks_tmp->type = STACKS_TYPE_UNKNOWN;
+  stacks_tmp->type = STACK_TYPE_UNKNOWN;
   stacks_tmp->bank = -123456;
   stacks_tmp->stacksize = d;
   stacks_tmp->relative_references = 0;
@@ -1096,9 +1107,9 @@ int resolve_stack(struct stack_item s[], int x) {
   if (cannot_resolve != 0)
     return FAILED;
 
-  /* find a string or a stack and fail */
+  /* find a string, a stack or a NOT and fail */
   while (q > 0) {
-    if (st->type == STACK_ITEM_TYPE_STRING || st->type == STACK_ITEM_TYPE_STACK)
+    if (st->type == STACK_ITEM_TYPE_STRING || st->type == STACK_ITEM_TYPE_STACK || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_NOT))
       return FAILED;
     q--;
     st++;
@@ -1137,6 +1148,10 @@ int compute_stack(struct stack *sta, int x, double *result) {
 	t--;
 	break;
       case SI_OP_MULTIPLY:
+	if (t <= 1) {
+	  fprintf(stderr, "%s:%d: COMPUTE_STACK: Multiply is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+	  return FAILED;
+	}
 	v[t - 2] *= v[t - 1];
 	t--;
 	break;
@@ -1148,26 +1163,41 @@ int compute_stack(struct stack *sta, int x, double *result) {
 	z = (int)v[t - 1];
 	v[t - 1] = (z>>8) & 0xFF;
 	break;
+      case SI_OP_NOT:
+	fprintf(stderr, "%s:%d: COMPUTE_STACK: NOT cannot determine the output size.\n", get_file_name(sta->filename_id), sta->linenumber);
+	return FAILED;
+	break;
       case SI_OP_XOR:
-	/* 16bit XOR? */
-	if (v[t - 2] > 0xFF || v[t - 2] < -128 || v[t - 1] > 0xFF || v[t - 1] < -128)
-	  v[t - 2] = ((int)v[t - 1] ^ (int)v[t - 2]) & 0xFFFF;
-	/* 8bit XOR */
-	else
-	  v[t - 2] = ((int)v[t - 1] ^ (int)v[t - 2]) & 0xFF;
+	if (t <= 1) {
+	  fprintf(stderr, "%s:%d: COMPUTE_STACK: XOR is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+	  return FAILED;
+	}
+	v[t - 2] = (int)v[t - 1] ^ (int)v[t - 2];
 	t--;
 	break;
       case SI_OP_OR:
+	if (t <= 1) {
+	  fprintf(stderr, "%s:%d: COMPUTE_STACK: OR is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+	  return FAILED;
+	}
 	v[t - 2] = (int)v[t - 1] | (int)v[t - 2];
 	t--;
 	break;
       case SI_OP_AND:
+	if (t <= 1) {
+	  fprintf(stderr, "%s:%d: COMPUTE_STACK: AND is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+	  return FAILED;
+	}
 	v[t - 2] = (int)v[t - 1] & (int)v[t - 2];
 	t--;
 	break;
       case SI_OP_MODULO:
 	if (((int)v[t - 1]) == 0) {
 	  fprintf(stderr, "%s:%d: COMPUTE_STACK: Modulo by zero.\n", get_file_name(sta->filename_id), sta->linenumber);
+	  return FAILED;
+	}
+	if (t <= 1) {
+	  fprintf(stderr, "%s:%d: COMPUTE_STACK: Modulo is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
 	  return FAILED;
 	}
 	v[t - 2] = (int)v[t - 2] % (int)v[t - 1];
@@ -1178,18 +1208,34 @@ int compute_stack(struct stack *sta, int x, double *result) {
 	  fprintf(stderr, "%s:%d: COMPUTE_STACK: Division by zero.\n", get_file_name(sta->filename_id), sta->linenumber);
 	  return FAILED;
 	}
+	if (t <= 1) {
+	  fprintf(stderr, "%s:%d: COMPUTE_STACK: Division is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+	  return FAILED;
+	}
 	v[t - 2] /= v[t - 1];
 	t--;
 	break;
       case SI_OP_POWER:
+	if (t <= 1) {
+	  fprintf(stderr, "%s:%d: COMPUTE_STACK: Power is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+	  return FAILED;
+	}
 	v[t - 2] = pow(v[t - 2], v[t - 1]);
 	t--;
 	break;
       case SI_OP_SHIFT_LEFT:
+	if (t <= 1) {
+	  fprintf(stderr, "%s:%d: COMPUTE_STACK: Shift left is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+	  return FAILED;
+	}
 	v[t - 2] = (int)v[t - 2] << (int)v[t - 1];
 	t--;
 	break;
       case SI_OP_SHIFT_RIGHT:
+	if (t <= 1) {
+	  fprintf(stderr, "%s:%d: COMPUTE_STACK: Shift right is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+	  return FAILED;
+	}
 	v[t - 2] = (int)v[t - 2] >> (int)v[t - 1];
 	t--;
 	break;
@@ -1229,7 +1275,7 @@ int stack_create_label_stack(char *label) {
     return FAILED;
   }
   stacks_tmp->next = NULL;
-  stacks_tmp->type = STACKS_TYPE_UNKNOWN;
+  stacks_tmp->type = STACK_TYPE_UNKNOWN;
   stacks_tmp->bank = -123456;
   stacks_tmp->stacksize = 1;
   stacks_tmp->relative_references = 0;
@@ -1271,7 +1317,7 @@ int stack_create_stack_stack(int stack_id) {
     return FAILED;
   }
   stacks_tmp->next = NULL;
-  stacks_tmp->type = STACKS_TYPE_UNKNOWN;
+  stacks_tmp->type = STACK_TYPE_UNKNOWN;
   stacks_tmp->bank = -123456;
   stacks_tmp->stacksize = 1;
   stacks_tmp->relative_references = 0;

@@ -52,11 +52,18 @@ MORE_ACTION:
 .incdir ""
 .incbin "defines.i"
 
+.DB "CC>"
+	.db ~1
+	.dw ~1
+	.db ~ONE
+	.dw ~ONE
+.DB "<CC"
+
 .ENDS
 
 
 .ORG 0
-.SECTION "Mohammed" OVERWRITE
+.SECTION "MACKEREL" OVERWRITE
 	LSR
 	LSR	A
 	LSR	10,X

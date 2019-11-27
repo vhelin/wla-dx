@@ -1593,7 +1593,7 @@ int compute_pending_calculations(void) {
     /* create a what-we-are-doing message for mem_insert*() warnings/errors */
     sprintf(mem_insert_action, "Writing pending calculation %s: %s:%d.", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 
-    if (sta->type == STACKS_TYPE_8BIT) {
+    if (sta->type == STACK_TYPE_8BIT) {
       if (k < -128 || k > 255) {
 	fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 8-bit range.\n",
 		get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
@@ -1609,7 +1609,7 @@ int compute_pending_calculations(void) {
       if (mem_insert_ref(a, k) == FAILED)
 	return FAILED;
     }
-    else if (sta->type == STACKS_TYPE_16BIT) {
+    else if (sta->type == STACK_TYPE_16BIT) {
       if (k < -32768 || k > 65535) {
 	fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range.\n",
 		get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
@@ -1628,7 +1628,7 @@ int compute_pending_calculations(void) {
 	  return FAILED;
       }
     }
-    else if (sta->type == STACKS_TYPE_13BIT) {
+    else if (sta->type == STACK_TYPE_13BIT) {
       if (k < 0 || k > 8191) {
 	fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 13-bit range.\n",
 		get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
@@ -1640,7 +1640,7 @@ int compute_pending_calculations(void) {
       if (mem_insert_ref_13bit_high(a + 1, (k >> 8) & 0xFF) == FAILED)
 	return FAILED;
     }
-    else if (sta->type == STACKS_TYPE_24BIT) {
+    else if (sta->type == STACK_TYPE_24BIT) {
       if (k < -8388608 || k > 16777215) {
 	fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 24-bit range.\n",
 		get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
@@ -1695,7 +1695,7 @@ int compute_stack(struct stack *sta, int *result) {
 
   struct stack_item *s;
   struct stack *st;
-  int r, t, z, x, res;
+  int r, t, z, y, x, res;
   double v[256], q;
 
 
@@ -1764,24 +1764,50 @@ int compute_stack(struct stack *sta, int *result) {
 	v[t - 2] -= v[t - 1];
 	t--;
 	break;
+      case SI_OP_NOT:
+	if (sta->type == STACK_TYPE_8BIT)
+	  y = 0xFF;
+	else if (sta->type == STACK_TYPE_13BIT)
+	  y = 8191;
+	else if (sta->type == STACK_TYPE_16BIT)
+	  y = 0xFFFF;
+	else if (sta->type == STACK_TYPE_24BIT)
+	  y = 0xFFFFFF;
+	else {
+	  fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: NOT cannot determine the output size.\n", get_file_name(sta->file_id),
+		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+	  return FAILED;
+	}
+	v[t - 1] = (int)v[t - 1] ^ y;
+	break;
       case SI_OP_XOR:
-	/* 16-bit XOR? */
-	if (v[t - 2] > 0xFF || v[t - 2] < -128 || v[t - 1] > 0xFF || v[t - 1] < -128)
-	  v[t - 2] = ((int)v[t - 1] ^ (int)v[t - 2]) & 0xFFFF;
-	/* 8-bit XOR */
-	else
-	  v[t - 2] = ((int)v[t - 1] ^ (int)v[t - 2]) & 0xFF;
+        v[t - 2] = (int)v[t - 1] ^ (int)v[t - 2];
 	t--;
 	break;
       case SI_OP_MULTIPLY:
+	if (t <= 1) {
+	  fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Multiply is missing an operand.\n", get_file_name(sta->file_id),
+		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+	  return FAILED;
+	}
 	v[t - 2] *= v[t - 1];
 	t--;
 	break;
       case SI_OP_OR:
+	if (t <= 1) {
+	  fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: OR is missing an operand.\n", get_file_name(sta->file_id),
+		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+	  return FAILED;
+	}
 	v[t - 2] = (int)v[t - 1] | (int)v[t - 2];
 	t--;
 	break;
       case SI_OP_AND:
+	if (t <= 1) {
+	  fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: AND is missing an operand.\n", get_file_name(sta->file_id),
+		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+	  return FAILED;
+	}
 	v[t - 2] = (int)v[t - 1] & (int)v[t - 2];
 	t--;
 	break;
@@ -1799,6 +1825,11 @@ int compute_stack(struct stack *sta, int *result) {
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 	  return FAILED;
 	}
+	if (t <= 1) {
+	  fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Modulo is missing an operand.\n", get_file_name(sta->file_id),
+		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+	  return FAILED;
+	}
 	v[t - 2] = (int)v[t - 2] % (int)v[t - 1];
 	t--;
 	break;
@@ -1808,10 +1839,20 @@ int compute_stack(struct stack *sta, int *result) {
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 	  return FAILED;
 	}
+	if (t <= 1) {
+	  fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Division is missing an operand.\n", get_file_name(sta->file_id),
+		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+	  return FAILED;
+	}
 	v[t - 2] /= v[t - 1];
 	t--;
 	break;
       case SI_OP_POWER:
+	if (t <= 1) {
+	  fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Power is missing an operand.\n", get_file_name(sta->file_id),
+		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+	  return FAILED;
+	}
 	q = 1;
 	for (z = 0; z < v[t - 1]; z++)
 	  q *= v[t - 2];
@@ -1819,10 +1860,20 @@ int compute_stack(struct stack *sta, int *result) {
 	t--;
 	break;
       case SI_OP_SHIFT_LEFT:
+	if (t <= 1) {
+	  fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Shift left is missing an operand.\n", get_file_name(sta->file_id),
+		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+	  return FAILED;
+	}
 	v[t - 2] = (int)v[t - 2] << (int)v[t - 1];
 	t--;
 	break;
       case SI_OP_SHIFT_RIGHT:
+	if (t <= 1) {
+	  fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Shift right is missing an operand.\n", get_file_name(sta->file_id),
+		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+	  return FAILED;
+	}
 	v[t - 2] = (int)v[t - 2] >> (int)v[t - 1];
 	t--;
 	break;
@@ -1871,7 +1922,7 @@ int write_bank_header_calculations(struct stack *sta) {
   
   t = s->data + sta->address;
 
-  if (sta->type == STACKS_TYPE_8BIT) {
+  if (sta->type == STACK_TYPE_8BIT) {
     if (k < -128 || k > 255) {
       fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 8-bit range.\n",
 	      get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
@@ -1879,7 +1930,7 @@ int write_bank_header_calculations(struct stack *sta) {
     }
     *t = k & 0xFF;
   }
-  else if (sta->type == STACKS_TYPE_16BIT) {
+  else if (sta->type == STACK_TYPE_16BIT) {
     if (k < -32768 || k > 65535) {
       fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range.\n",
 	      get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
@@ -1896,7 +1947,7 @@ int write_bank_header_calculations(struct stack *sta) {
       *t = k & 0xFF;
     }
   }
-  else if (sta->type == STACKS_TYPE_13BIT) {
+  else if (sta->type == STACK_TYPE_13BIT) {
     if (k < 0 || k > 8191) {
       fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 13-bit range.\n",
 	      get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
@@ -2042,13 +2093,13 @@ int parse_stack(struct stack *sta) {
      6809 and 65816 can have 16-bit relative operands so the start of
      next instruction is one byte farther away than "usual" */
   switch(sta->type) {
-    case STACKS_TYPE_8BIT:
+    case STACK_TYPE_8BIT:
       ed = 1;
       break;
-    case STACKS_TYPE_16BIT:
+    case STACK_TYPE_16BIT:
       ed = 2;
       break;
-    case STACKS_TYPE_24BIT: /* not presently used by any CPU arch supported */
+    case STACK_TYPE_24BIT: /* not presently used by any CPU arch supported */
       ed = 3;
       break;
     default:
@@ -2121,7 +2172,7 @@ int parse_stack(struct stack *sta) {
       }
 
       /* 65816 cpu bank fix */
-      if (sta->type == STACKS_TYPE_24BIT && l->status == LABEL_STATUS_LABEL)
+      if (sta->type == STACK_TYPE_24BIT && l->status == LABEL_STATUS_LABEL)
 	k += get_snes_pc_bank(l);
 
       /*

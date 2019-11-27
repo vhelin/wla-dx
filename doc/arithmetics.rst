@@ -40,5 +40,7 @@ Note that you can do NOT using XOR:
 - ``VALUE_A ~ $FF``   is  8-bit NOT
 - ``VALUE_B ~ $FFFF`` is 16-bit NOT
 
+Unary XOR (e.g., ``~$FF``) is the same as NOT.
+  
 WLA computes internally with real numbers so ``(5/2)*2`` produces ``5``,
 not ``4``.

@@ -8,3 +8,4 @@ main.o
 
 [definitions]
 love 11
+VALUE_FF $ff

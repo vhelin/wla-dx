@@ -15,7 +15,7 @@
 int parse_string_length(char *end);
 
 int input_number_error_msg = YES, ss, string_size, input_float_mode = OFF, parse_floats = YES;
-int newline_beginning = ON, parsed_double_decimal_numbers = 0;
+int newline_beginning = ON, parsed_double_decimal_numbers = 0, operand_hint;
 char label[MAX_NAME_LENGTH + 1], xyz[512];
 char unevaluated_expression[256];
 char expanded_macro_string[MAX_NAME_LENGTH + 1];
@@ -29,9 +29,6 @@ extern struct map_t *defines_map;
 extern struct macro_runtime *macro_stack, *macro_runtime_current;
 extern int latest_stack;
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
-int operand_hint;
-#endif
 
 
 int is_string_ending_with(char *s, char *e) {
@@ -184,9 +181,7 @@ int input_number(void) {
   double decimal_mul;
 
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
   operand_hint = HINT_NONE;
-#endif
 
   /* skip white space */
   for (e = buffer[i++]; e == ' ' || e == ','; e = buffer[i++])
@@ -273,8 +268,6 @@ int input_number(void) {
     }
 
     /* does the MACRO argument number end with a .b/.w/.l? */
-
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
     if (e == '.') {
       e = buffer[i+1];
       if (e == 'b' || e == 'B') {
@@ -285,14 +278,11 @@ int input_number(void) {
 	operand_hint = HINT_16BIT;
 	i += 2;
       }
-#if defined(W65816)
       else if (e == 'l' || e == 'L') {
 	operand_hint = HINT_24BIT;
 	i += 2;
       }
-#endif
     }
-#endif
 
     return k;
   }
@@ -335,7 +325,6 @@ int input_number(void) {
 	break;
     }
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
     if (e == '.') {
       e = buffer[i+1];
       if (e == 'b' || e == 'B') {
@@ -346,14 +335,12 @@ int input_number(void) {
 	operand_hint = HINT_16BIT;
 	i += 2;
       }
-#if defined(W65816)
       else if (e == 'l' || e == 'L') {
 	operand_hint = HINT_24BIT;
 	i += 2;
       }
-#endif
     }
-#if defined(W65186)
+
     if (d > 0xFFFF && d <= 0xFFFFFF)
       operand_hint = HINT_24BIT;
     else if (d > 0xFF)
@@ -361,14 +348,6 @@ int input_number(void) {
     else
       operand_hint = HINT_8BIT;
 		
-#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
-    if (d > 0xFF && d <= 0xFFFF)
-      operand_hint = HINT_16BIT;
-    else
-      operand_hint = HINT_8BIT;
-#endif
-#endif
-
 #if defined(MC6809)
     /* 5-bit values need this */
     if (d >= -16 && d <= 15)
@@ -424,7 +403,6 @@ int input_number(void) {
 	  q = 1;
 	  max_digits = MAX_FLOAT_DIGITS+1;
 	}
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
 	else if (e == 'b' || e == 'B') {
 	  operand_hint = HINT_8BIT;
 	  i += 2;
@@ -435,19 +413,11 @@ int input_number(void) {
 	  i += 2;
 	  break;
 	}
-#if defined(W65816)
 	else if (e == 'l' || e == 'L') {
 	  operand_hint = HINT_24BIT;
 	  i += 2;
 	  break;
 	}
-#endif
-#else
-	else {
-	  print_error("Syntax error.\n", ERROR_NUM);
-	  return FAILED;
-	}
-#endif
       }
       else if ((e >= 'a' && e <= 'z') || (e >= 'A' && e <= 'Z')) {
 	/* a number directly followed by a letter when parsing a integer/float -> syntax error */
@@ -460,7 +430,7 @@ int input_number(void) {
 
     /* drop the decimals */
     d = (int)parsed_double;
-#if defined(W65186)
+
     if (d > 0xFFFF && d <= 0xFFFFFF)
       operand_hint = HINT_24BIT;
     else if (d > 0xFF)
@@ -468,13 +438,6 @@ int input_number(void) {
     else
       operand_hint = HINT_8BIT;
 		
-#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
-    if (d > 0xFF && d <= 0xFFFF)
-      operand_hint = HINT_16BIT;
-    else
-      operand_hint = HINT_8BIT;
-#endif
-
     if (q == 1 && input_float_mode == ON)
       return INPUT_NUMBER_FLOAT;
 
@@ -490,7 +453,6 @@ int input_number(void) {
 	break;
     }
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
     if (e == '.') {
       e = buffer[i+1];
       if (e == 'b' || e == 'B') {
@@ -501,14 +463,11 @@ int input_number(void) {
 	operand_hint = HINT_16BIT;
 	i += 2;
       }
-#if defined(W65816)
       else if (e == 'l' || e == 'L') {
 	operand_hint = HINT_24BIT;
 	i += 2;
       }
-#endif
     }
-#endif
 
     parsed_double = (double)d;
 
@@ -614,7 +573,6 @@ int input_number(void) {
     return FAILED;
   }
 
-#if defined(MCS6502) || defined(W65816) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
   /* size hint? */
   if (label[k-2] == '.') {
     if (label[k-1] == 'b' || label[k-1] == 'B') {
@@ -625,15 +583,11 @@ int input_number(void) {
       operand_hint = HINT_16BIT;
       k -= 2;
     }
-#if defined(W65816)
     else if (label[k-1] == 'l' || label[k-1] == 'L') {
       operand_hint = HINT_24BIT;
       k -= 2;
     }
-#endif
-
   }
-#endif
 
   label[k] = 0;
 
@@ -666,20 +620,12 @@ int input_number(void) {
     if (tmp_def->type == DEFINITION_TYPE_VALUE) {
       d = (int)tmp_def->value;
 
-#if defined(W65186)
       if (d > 0xFFFF && d <= 0xFFFFFF)
         operand_hint = HINT_24BIT;
       else if (d > 0xFF)
         operand_hint = HINT_16BIT;
       else
         operand_hint = HINT_8BIT;
-
-#elif defined(MCS6502) || defined(MCS6510) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
-      if (d > 0xFF && d <= 0xFFFF)
-        operand_hint = HINT_16BIT;
-      else
-        operand_hint = HINT_8BIT;
-#endif
 
       parsed_double = (double)d;
       

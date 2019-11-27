@@ -193,8 +193,20 @@ symbol_check_test:
 	RECUR
 	REPETOR 10
 	OUTSIDE 11
+
 .PRINTT WLA_FILENAME
 .PRINTT "\n"
+
+.DEFINE X2 $20
+.DEFINE Y2 $40
+
+	.db "01>"
+	.db ~(X2 | Y2)
+	.db ~0
+	.db ~VALUE_FF
+	.db 2~3
+	.db 0+(~1)
+	.db "<01"
 
 .DEFINE MOUSEMAN 10
 .DEFINE MUDMAN 11

@@ -1,5 +1,5 @@
-
 [objects]
 linker_test.o
 setup.o
-
+[definitions]
+ONE 1

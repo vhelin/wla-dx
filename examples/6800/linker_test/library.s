@@ -34,7 +34,7 @@ Library03End:
 .DB "04>"
 	JMP Library03Start,X
 	JMP Library03Start
-.DB "<04>"
+.DB "<04"
 .DB " "
 .DB "05>"
 	LDS #Library03Start

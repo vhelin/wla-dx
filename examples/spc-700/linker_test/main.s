@@ -65,8 +65,11 @@ nollasivu:
 
 .byt 1,>KORBA
 
-	and1 c, /4+1+2.1+2-2+1
+	.db "01>"
+	and1 c, /1.1+1
+	and1 c,/4+1+2.1+2-2+1
 	bbc 1+2+3.1+2,3+4+5
+	.db "<01"
 
 .if 1 >= 2
  ijo oijo

@@ -3,10 +3,13 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------------------
 
-v9.10 (01-Oct-2019) [808] Added support for I8080.
+v9.10 (27-Nov-2019) [808] Added support for I8080.
                     [658] Fixed SNES ROM checksum calculation.
                     [658] Fixed 24-bit non-label symbols in NO$SNES symbol
                       file generator.
+                    [ALL] Unary XOR (e.g., "~$FF") is now calculated as NOT.
+                    [ALL] Added support for 24-bit and 32-bit XORs in
+                      calculations.
                     [ALL] RST can now be used with a label/pending calculation.
                     [ALL] ".DEFINE INDEX \@" inside a macro works now.
                     [ALL] Added a fflush() to print_error() - now all error
