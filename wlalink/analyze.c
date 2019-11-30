@@ -507,6 +507,7 @@ int collect_dlr(void) {
 	  l->status = LABEL_STATUS_STACK;
 	else {
 	  fprintf(stderr, "COLLECT_DLR: Unknown definition type \"%d\".\n", *t);
+	  free(l);
 	  return FAILED;
 	}
 	t++;
@@ -543,6 +544,7 @@ int collect_dlr(void) {
 	  l->status = LABEL_STATUS_BREAKPOINT;
 	else {
 	  fprintf(stderr, "COLLECT_DLR: Unknown label type \"%d\".\n", *t);
+	  free(l);
 	  return FAILED;
 	}
 
@@ -731,6 +733,7 @@ int collect_dlr(void) {
 	  l->status = LABEL_STATUS_STACK;
 	else {
 	  fprintf(stderr, "COLLECT_DLR: Unknown definition type \"%d\".\n", *t);
+	  free(l);
 	  return FAILED;
 	}
 	t++;
@@ -768,6 +771,7 @@ int collect_dlr(void) {
 	  l->status = LABEL_STATUS_BREAKPOINT;
 	else {
 	  fprintf(stderr, "COLLECT_DLR: Unknown label type \"%d\".\n", *t);
+	  free(l);
 	  return FAILED;
 	}
 

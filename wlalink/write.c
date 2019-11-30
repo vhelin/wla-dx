@@ -207,8 +207,9 @@ int insert_sections(void) {
       }
 
       if (t == 0) {
-	fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in slot %d.\n", s->name, s->size, s->slot);
-	return FAILED;
+        fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in slot %d.\n", s->name, s->size, s->slot);
+        free(sa);
+        return FAILED;
       }
 
       s->address = address;
@@ -274,9 +275,10 @@ int insert_sections(void) {
 	}
       }
       else {
-	fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes).\n", get_file_name(s->file_id),
-		get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
-	return FAILED;
+        fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes).\n", get_file_name(s->file_id),
+        get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
+        free(sa);
+        return FAILED;
       }
     }
   }
