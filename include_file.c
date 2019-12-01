@@ -156,6 +156,7 @@ int include_file(char *name) {
   if (active_file_info_tmp == NULL) {
     sprintf(emsg, "Out of memory while trying allocate error tracking data structure for file \"%s\".\n", full_name);
     print_error(emsg, ERROR_INC);
+    fclose(f);
     return FAILED;
   }
   active_file_info_tmp->next = NULL;
@@ -274,6 +275,7 @@ int include_file(char *name) {
     if (tmp_a == NULL) {
       sprintf(emsg, "Out of memory while allocating new room for \"%s\".\n", full_name);
       print_error(emsg, ERROR_INC);
+      free(tmp_b);
       return FAILED;
     }
 
@@ -381,6 +383,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       free(in_tmp);
     sprintf(emsg, "Out of memory while allocating data structure for \"%s\".\n", full_name);
     print_error(emsg, ERROR_INB);
+    fclose(f);
     return FAILED;
   }
 

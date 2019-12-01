@@ -1555,8 +1555,10 @@ int parse_enum_token(void) {
     st->last_item = NULL;
 
     inz = input_next_string();
-    if (inz == FAILED)
+    if (inz == FAILED) {
+      free(st);
       return FAILED;
+    }
     else if (inz == SUCCEEDED)
       strcpy(st->name, tmp);
     else
@@ -1566,6 +1568,7 @@ int parse_enum_token(void) {
     ust = calloc(sizeof(struct union_stack), 1);
     if (ust == NULL) {
       print_error("PARSE_ENUM_TOKEN: Out of memory error.\n", ERROR_DIR);
+      free(st);
       return FAILED;
     }
     ust->active_struct = active_struct;
@@ -1601,8 +1604,10 @@ int parse_enum_token(void) {
     st->last_item = NULL;
     
     inz = input_next_string();
-    if (inz == FAILED)
+    if (inz == FAILED) {
+      free(st);
       return FAILED;
+    }
     else if (inz == SUCCEEDED)
       strcpy(st->name, tmp);
     else
@@ -3830,8 +3835,10 @@ int directive_ramsection(void) {
     }
       
     /* get the target section name */
-    if (get_next_token() == FAILED)
+    if (get_next_token() == FAILED) {
+      free(append_tmp);
       return FAILED;
+    }
     
     strcpy(append_tmp->section, sec_tmp->name);
     strcpy(append_tmp->append_to, tmp);
@@ -4109,8 +4116,10 @@ int directive_section(void) {
     }
       
     /* get the target section name */
-    if (get_next_token() == FAILED)
+    if (get_next_token() == FAILED) {
+      free(append_tmp);
       return FAILED;
+    }
 
     strcpy(append_tmp->section, sec_tmp->name);
     strcpy(append_tmp->append_to, tmp);
@@ -4177,8 +4186,10 @@ int directive_fopen(void) {
   strcpy(c, label);
 
   /* get the file pointer name */
-  if (get_next_token() == FAILED)
+  if (get_next_token() == FAILED) {
+    free(c);
     return FAILED;
+  }
 
   /* is it defined already? */
   f = filepointers;
@@ -4204,6 +4215,7 @@ int directive_fopen(void) {
     f = calloc(sizeof(struct filepointer), 1);
     if (f == NULL) {
       print_error("Out of memory error.\n", ERROR_DIR);
+      free(c);
       return FAILED;
     }
 
@@ -5123,6 +5135,7 @@ int directive_background(void) {
   if (background_size > max_address) {
     sprintf(emsg, ".BACKGROUND file \"%s\" size (%d) is larger than ROM size (%d).\n", full_name, background_size, max_address);
     print_error(emsg, ERROR_DIR);
+    fclose(file_in_ptr);
     return FAILED;
   }
 

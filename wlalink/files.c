@@ -114,9 +114,10 @@ int load_files(char *argv[], int argc) {
       l->alive = YES;
 
       if (get_next_number(&tmp[x], &n, &x) == FAILED) {
-	fprintf(stderr, "%s:%d: LOAD_FILES: Error in DEFINITION value.\n", argv[argc - 2], line);
-	fclose(fop);
-	return FAILED;
+        fprintf(stderr, "%s:%d: LOAD_FILES: Error in DEFINITION value.\n", argv[argc - 2], line);
+        fclose(fop);
+        free(l);
+        return FAILED;
       }
 
       l->address = n;
@@ -423,8 +424,10 @@ int load_file_data(char *file_name, unsigned char **data, int *size) {
   fseek(fop, 0, SEEK_SET);
 
   *data = calloc(*size, 1);
-  if (*data == NULL)
+  if (*data == NULL) {
+    fclose(fop);
     return FAILED;
+  }
 
   fread(*data, 1, *size, fop);
   fclose(fop);

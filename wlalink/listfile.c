@@ -103,8 +103,9 @@ int listfile_write_listfiles(struct section *e) {
 	sid = s->listfile_ints[j*3 + 0];
       }
       else {
-	fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", c);
-	return FAILED;
+        fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", c);
+        free(d);
+        return FAILED;
       }
     }
 
@@ -115,6 +116,7 @@ int listfile_write_listfiles(struct section *e) {
   l = calloc(sizeof(struct listfileitem *) * i, 1);
   if (l == NULL) {
     fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
+    free(d);
     return FAILED;
   }
 
@@ -137,6 +139,7 @@ int listfile_write_listfiles(struct section *e) {
     if (b == NULL) {
       fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
       fclose(f);
+      free(l);
       return FAILED;
     }
 
@@ -153,6 +156,8 @@ int listfile_write_listfiles(struct section *e) {
     f = fopen(tmp, "wb");
     if (f == NULL) {
       fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Could not open file \"%s\" for writing.\n", tmp);
+      free(l);
+      free(b);
       return FAILED;
     }
 
