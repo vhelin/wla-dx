@@ -140,11 +140,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
       return FAILED;
 
     /* select the mode */
-    if (operand_hint == HINT_8BIT)
-      y = 0;
-    else if (operand_hint == HINT_16BIT)
-      y = 1;
-    else if (accu_size == 8)
+    if (accu_size == 8)
       y = 0;
     else
       y = 1;
@@ -327,11 +323,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
       return FAILED;
 
     /* select the mode */
-    if (operand_hint == HINT_8BIT)
-      y = 0;
-    else if (operand_hint == HINT_16BIT)
-      y = 1;
-    else if (index_size == 8)
+    if (index_size == 8)
       y = 0;
     else
       y = 1;

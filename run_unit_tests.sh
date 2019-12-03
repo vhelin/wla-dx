@@ -89,6 +89,7 @@ runTest checksum_8mbit_lorom
 runTest linker_test
 runTest name_test
 runTest nocashsns_symbol_file
+runTest opcode_test
 runTest operand_hint_test
 cd ..
 
