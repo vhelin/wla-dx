@@ -23,7 +23,7 @@ Supported architectures are:
 * 6809
 * 8008
 * 8080
-* huc6580
+* huc6280
 * spc700
 
 
