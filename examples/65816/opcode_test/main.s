@@ -67,4 +67,7 @@ SLOT 0 $0000
 	LDX #$A2   ; 8-bit
 	.DB 'B'
 	LDX #$A2.w ; manually generate wrong opcode
+	.DB 'W'
+	LDX #$0100.w
+	.DB 'E'
 	.DB "<05>"
