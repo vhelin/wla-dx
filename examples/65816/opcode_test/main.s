@@ -8,6 +8,8 @@ SLOT 0 $0000
 .ROMBANKSIZE $100
 .ROMBANKS 1
 
+.DEFINE HEXSIXHUNDRED $600
+
 // WLA v9.10a had a bug, and we used the following test code
 // in fixing it...
 
@@ -70,4 +72,13 @@ SLOT 0 $0000
 	.DB 'W'
 	LDX #$0100.w
 	.DB 'E'
-	.DB "<05>"
+	.DB "<05"
+.ORG $A0
+	.DB "06>"
+	; 8-bit index
+	SEP #$10
+	.DB 'A'
+	LDX #$A2   ; 8-bit
+	.DB 'B'
+	LDX #HEXSIXHUNDRED.w ; manually generate wrong opcode
+	.DB "<06"

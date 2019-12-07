@@ -654,22 +654,24 @@ int input_number(void) {
     if (tmp_def->type == DEFINITION_TYPE_VALUE) {
       d = (int)tmp_def->value;
 
-      if (d > 0xFFFF && d <= 0xFFFFFF)
-        operand_hint = HINT_24BIT;
-      else if (d > 0xFF)
-        operand_hint = HINT_16BIT;
-      else
-        operand_hint = HINT_8BIT;
+      if (operand_hint == HINT_NONE) {
+	if (d > 0xFFFF && d <= 0xFFFFFF)
+	  operand_hint = HINT_24BIT;
+	else if (d > 0xFF)
+	  operand_hint = HINT_16BIT;
+	else
+	  operand_hint = HINT_8BIT;
 
-      operand_hint_type = HINT_TYPE_DEDUCED;
+	operand_hint_type = HINT_TYPE_DEDUCED;
 
 #if defined(MC6809)
-      /* 5-bit values need this */
-      if (d >= -16 && d <= 15) {
-	operand_hint = HINT_NONE;
-	operand_hint_type = HINT_TYPE_NONE;
-      }
+	/* 5-bit values need this */
+	if (d >= -16 && d <= 15) {
+	  operand_hint = HINT_NONE;
+	  operand_hint_type = HINT_TYPE_NONE;
+	}
 #endif
+      }
       
       parsed_double = (double)d;
 
