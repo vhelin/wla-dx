@@ -32,7 +32,7 @@ struct stack *stacks_header_first = NULL, *stacks_header_last = NULL;
 extern int stack_inserted;
 #endif
 
-extern int operand_hint;
+extern int operand_hint, operand_hint_type;
 
 
 static int _stack_insert(void) {
@@ -303,14 +303,17 @@ int stack_calculate(char *in, int *value) {
       d = operand_hint;
       if (*in == 'b' || *in == 'B') {
 	operand_hint = HINT_8BIT;
+	operand_hint_type = HINT_TYPE_GIVEN;
 	in++;
       }
       else if (*in == 'w' || *in == 'W') {
 	operand_hint = HINT_16BIT;
+	operand_hint_type = HINT_TYPE_GIVEN;
 	in++;
       }
       else if (*in == 'l' || *in == 'L') {
 	operand_hint = HINT_24BIT;
+	operand_hint_type = HINT_TYPE_GIVEN;
 	in++;
       }
       else

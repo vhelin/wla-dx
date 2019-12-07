@@ -191,7 +191,7 @@ MORE_ACTION:
 	AND	($12),Y
 	INC	$10
 	INC	$1000
-	bbr0	MORE_ACTION, 0
+	// bbr0	MORE_ACTION, 0
 	cmp	(10)
 	stz	MORE_ACTION.w
 .ENDS

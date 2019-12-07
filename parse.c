@@ -15,7 +15,7 @@
 int parse_string_length(char *end);
 
 int input_number_error_msg = YES, ss, string_size, input_float_mode = OFF, parse_floats = YES;
-int newline_beginning = ON, parsed_double_decimal_numbers = 0, operand_hint;
+int newline_beginning = ON, parsed_double_decimal_numbers = 0, operand_hint, operand_hint_type;
 char label[MAX_NAME_LENGTH + 1], xyz[512];
 char unevaluated_expression[256];
 char expanded_macro_string[MAX_NAME_LENGTH + 1];
@@ -182,6 +182,7 @@ int input_number(void) {
 
 
   operand_hint = HINT_NONE;
+  operand_hint_type = HINT_TYPE_NONE;
 
   /* skip white space */
   for (e = buffer[i++]; e == ' ' || e == ','; e = buffer[i++])
@@ -272,14 +273,17 @@ int input_number(void) {
       e = buffer[i+1];
       if (e == 'b' || e == 'B') {
 	operand_hint = HINT_8BIT;
+	operand_hint_type = HINT_TYPE_GIVEN;
 	i += 2;
       }
       else if (e == 'w' || e == 'W') {
 	operand_hint = HINT_16BIT;
+	operand_hint_type = HINT_TYPE_GIVEN;
 	i += 2;
       }
       else if (e == 'l' || e == 'L') {
 	operand_hint = HINT_24BIT;
+	operand_hint_type = HINT_TYPE_GIVEN;
 	i += 2;
       }
     }
@@ -329,30 +333,39 @@ int input_number(void) {
       e = buffer[i+1];
       if (e == 'b' || e == 'B') {
 	operand_hint = HINT_8BIT;
+	operand_hint_type = HINT_TYPE_GIVEN;
 	i += 2;
       }
       else if (e == 'w' || e == 'W') {
 	operand_hint = HINT_16BIT;
+	operand_hint_type = HINT_TYPE_GIVEN;
 	i += 2;
       }
       else if (e == 'l' || e == 'L') {
 	operand_hint = HINT_24BIT;
+	operand_hint_type = HINT_TYPE_GIVEN;
 	i += 2;
       }
     }
 
-    if (d > 0xFFFF && d <= 0xFFFFFF)
-      operand_hint = HINT_24BIT;
-    else if (d > 0xFF)
-      operand_hint = HINT_16BIT;
-    else
-      operand_hint = HINT_8BIT;
-		
+    if (operand_hint == HINT_NONE) {
+      if (d > 0xFFFF && d <= 0xFFFFFF)
+	operand_hint = HINT_24BIT;
+      else if (d > 0xFF)
+	operand_hint = HINT_16BIT;
+      else
+	operand_hint = HINT_8BIT;
+
+      operand_hint_type = HINT_TYPE_DEDUCED;
+
 #if defined(MC6809)
-    /* 5-bit values need this */
-    if (d >= -16 && d <= 15)
-      operand_hint = HINT_NONE;
+      /* 5-bit values need this */
+      if (d >= -16 && d <= 15) {
+	operand_hint = HINT_NONE;
+	operand_hint_type = HINT_TYPE_NONE;
+      }
 #endif
+    }
     
     parsed_double = (double)d;
     
@@ -405,16 +418,19 @@ int input_number(void) {
 	}
 	else if (e == 'b' || e == 'B') {
 	  operand_hint = HINT_8BIT;
+	  operand_hint_type = HINT_TYPE_GIVEN;
 	  i += 2;
 	  break;
 	}
 	else if (e == 'w' || e == 'W') {
 	  operand_hint = HINT_16BIT;
+	  operand_hint_type = HINT_TYPE_GIVEN;
 	  i += 2;
 	  break;
 	}
 	else if (e == 'l' || e == 'L') {
 	  operand_hint = HINT_24BIT;
+	  operand_hint_type = HINT_TYPE_GIVEN;
 	  i += 2;
 	  break;
 	}
@@ -431,13 +447,25 @@ int input_number(void) {
     /* drop the decimals */
     d = (int)parsed_double;
 
-    if (d > 0xFFFF && d <= 0xFFFFFF)
-      operand_hint = HINT_24BIT;
-    else if (d > 0xFF)
-      operand_hint = HINT_16BIT;
-    else
-      operand_hint = HINT_8BIT;
-		
+    if (operand_hint == HINT_NONE) {
+      if (d > 0xFFFF && d <= 0xFFFFFF)
+	operand_hint = HINT_24BIT;
+      else if (d > 0xFF)
+	operand_hint = HINT_16BIT;
+      else
+	operand_hint = HINT_8BIT;
+
+      operand_hint_type = HINT_TYPE_DEDUCED;
+
+#if defined(MC6809)
+      /* 5-bit values need this */
+      if (d >= -16 && d <= 15) {
+	operand_hint = HINT_NONE;
+	operand_hint_type = HINT_TYPE_NONE;
+      }
+#endif
+    }
+    
     if (q == 1 && input_float_mode == ON)
       return INPUT_NUMBER_FLOAT;
 
@@ -457,14 +485,17 @@ int input_number(void) {
       e = buffer[i+1];
       if (e == 'b' || e == 'B') {
 	operand_hint = HINT_8BIT;
+	operand_hint_type = HINT_TYPE_GIVEN;
 	i += 2;
       }
       else if (e == 'w' || e == 'W') {
 	operand_hint = HINT_16BIT;
+	operand_hint_type = HINT_TYPE_GIVEN;
 	i += 2;
       }
       else if (e == 'l' || e == 'L') {
 	operand_hint = HINT_24BIT;
+	operand_hint_type = HINT_TYPE_GIVEN;
 	i += 2;
       }
     }
@@ -577,14 +608,17 @@ int input_number(void) {
   if (label[k-2] == '.') {
     if (label[k-1] == 'b' || label[k-1] == 'B') {
       operand_hint = HINT_8BIT;
+      operand_hint_type = HINT_TYPE_GIVEN;
       k -= 2;
     }
     else if (label[k-1] == 'w' || label[k-1] == 'W') {
       operand_hint = HINT_16BIT;
+      operand_hint_type = HINT_TYPE_GIVEN;
       k -= 2;
     }
     else if (label[k-1] == 'l' || label[k-1] == 'L') {
       operand_hint = HINT_24BIT;
+      operand_hint_type = HINT_TYPE_GIVEN;
       k -= 2;
     }
   }
@@ -627,8 +661,18 @@ int input_number(void) {
       else
         operand_hint = HINT_8BIT;
 
-      parsed_double = (double)d;
+      operand_hint_type = HINT_TYPE_DEDUCED;
+
+#if defined(MC6809)
+      /* 5-bit values need this */
+      if (d >= -16 && d <= 15) {
+	operand_hint = HINT_NONE;
+	operand_hint_type = HINT_TYPE_NONE;
+      }
+#endif
       
+      parsed_double = (double)d;
+
       return SUCCEEDED;
     }
     else if (tmp_def->type == DEFINITION_TYPE_STACK) {

@@ -10,6 +10,10 @@
 #define HINT_16BIT 2
 #define HINT_24BIT 3
 
+#define HINT_TYPE_NONE    0
+#define HINT_TYPE_GIVEN   1
+#define HINT_TYPE_DEDUCED 2
+
 #define STACK_CALCULATE_DELAY 2
 #define STACK_RETURN_LABEL 1024
 

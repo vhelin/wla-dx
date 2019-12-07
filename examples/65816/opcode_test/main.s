@@ -59,4 +59,12 @@ SLOT 0 $0000
 	LDX.W #$A2 ; right opcode
 	.DB 'E'
 	.DB "<04"
-
+.ORG $80
+	.DB "05>"
+	; 8-bit index
+	SEP #$10
+	.DB 'A'
+	LDX #$A2   ; 8-bit
+	.DB 'B'
+	LDX #$A2.w ; manually generate wrong opcode
+	.DB "<05>"

@@ -140,10 +140,18 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
       return FAILED;
 
     /* select the mode */
-    if (accu_size == 8)
-      y = 0;
-    else
-      y = 1;
+    if (operand_hint_type == HINT_TYPE_GIVEN) {
+      if (operand_hint == HINT_8BIT)
+	y = 0;
+      else
+	y = 1;
+    }
+    else {
+      if (accu_size == 8)
+	y = 0;
+      else
+	y = 1;
+    }
     
     if (y == 0) {
       if (z == SUCCEEDED && (d > 255 || d < -128)) {
@@ -323,10 +331,18 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
       return FAILED;
 
     /* select the mode */
-    if (index_size == 8)
-      y = 0;
-    else
-      y = 1;
+    if (operand_hint_type == HINT_TYPE_GIVEN) {
+      if (operand_hint == HINT_8BIT)
+	y = 0;
+      else
+	y = 1;
+    }
+    else {
+      if (index_size == 8)
+	y = 0;
+      else
+	y = 1;
+    }
     
     if (y == 0) {
       if (z == SUCCEEDED && (d > 255 || d < -128)) {
