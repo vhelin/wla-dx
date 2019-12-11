@@ -71,6 +71,8 @@ struct object_file {
   int size;
   int base;
   int base_defined;
+  int little_endian;
+  int cpu_65816;
   int id;
   struct source_file_name *source_file_names_list;
   struct object_file *next;

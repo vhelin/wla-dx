@@ -34,8 +34,8 @@ extern int romsize, rombanks, banksize, verbose_mode, section_overwrite, symbol_
 extern int pc_bank, pc_full, pc_slot, pc_slot_max, snes_rom_mode;
 extern int file_header_size, file_footer_size, *bankaddress, *banksizes;
 extern int memory_file_id, memory_file_id_source, memory_line_number, output_mode;
-extern int program_start, program_end, cpu_65816, snes_mode, smc_status;
-extern int snes_sramsize, num_sorted_anonymous_labels, little_endian;
+extern int program_start, program_end, snes_mode, smc_status;
+extern int snes_sramsize, num_sorted_anonymous_labels;
 
 
 static int _sections_sort(const void *a, const void *b) {
@@ -932,7 +932,7 @@ int fix_references(void) {
         return FAILED;
       }
 
-      if (cpu_65816 != 0)
+      if (get_file(r->file_id)->cpu_65816 == YES)
         i = get_snes_pc_bank(l) >> 16;
       else
         i = l->base + l->bank;
@@ -946,7 +946,7 @@ int fix_references(void) {
 
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT || r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
-	if (little_endian == YES) {
+	if (get_file(r->file_id)->little_endian == YES) {
 	  mem_insert_ref(x, i & 0xFF);
 	  mem_insert_ref(x + 1, (i >> 8) & 0xFF);
 	}
@@ -969,7 +969,7 @@ int fix_references(void) {
       }
       /* direct 24-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
-	if (little_endian == YES) {
+	if (get_file(r->file_id)->little_endian == YES) {
 	  mem_insert_ref(x, i & 0xFF);
 	  mem_insert_ref(x + 1, (i >> 8) & 0xFF);
 	  mem_insert_ref(x + 2, (i >> 16) & 0xFF);
@@ -1017,7 +1017,7 @@ int fix_references(void) {
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
         i = (int)l->address;
-	if (little_endian == YES) {
+	if (get_file(r->file_id)->little_endian == YES) {
 	  mem_insert_ref(x, i & 0xFF);
 	  mem_insert_ref(x + 1, (i >> 8) & 0xFF);
 	}
@@ -1053,7 +1053,7 @@ int fix_references(void) {
         i = (int)l->address;
         if (l->status == LABEL_STATUS_LABEL)
           i += get_snes_pc_bank(l);
-	if (little_endian == YES) {
+	if (get_file(r->file_id)->little_endian == YES) {
 	  mem_insert_ref(x, i & 0xFF);
 	  mem_insert_ref(x + 1, (i >> 8) & 0xFF);
 	  mem_insert_ref(x + 2, (i >> 16) & 0xFF);
@@ -1082,7 +1082,7 @@ int fix_references(void) {
 		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
           return FAILED;
         }
-	if (little_endian == YES) {
+	if (get_file(r->file_id)->little_endian == YES) {
 	  mem_insert_ref(x, i & 0xFF);
 	  mem_insert_ref(x + 1, (i >> 8) & 0xFF);
 	}
@@ -1617,7 +1617,7 @@ int compute_pending_calculations(void) {
 		get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
 	return FAILED;
       }
-      if (little_endian == YES) {
+      if (get_file(sta->file_id)->little_endian == YES) {
 	if (mem_insert_ref(a, k & 0xFF) == FAILED)
 	  return FAILED;
 	if (mem_insert_ref(a + 1, (k >> 8) & 0xFF) == FAILED)
@@ -1648,7 +1648,7 @@ int compute_pending_calculations(void) {
 		get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
 	return FAILED;
       }
-      if (little_endian == YES) {
+      if (get_file(sta->file_id)->little_endian == YES) {
 	if (mem_insert_ref(a, k & 0xFF) == FAILED)
 	  return FAILED;
 	if (mem_insert_ref(a + 1, (k >> 8) & 0xFF) == FAILED)
@@ -1938,7 +1938,7 @@ int write_bank_header_calculations(struct stack *sta) {
 	      get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
       return FAILED;
     }
-    if (little_endian == YES) {
+    if (get_file(sta->file_id)->little_endian == YES) {
       *t = k & 0xFF;
       t++;
       *t = (k >> 8) & 0xFF;
@@ -1965,7 +1965,7 @@ int write_bank_header_calculations(struct stack *sta) {
 	      get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
       return FAILED;
     }
-    if (little_endian == YES) {
+    if (get_file(sta->file_id)->little_endian == YES) {
       *t = k & 0xFF;
       t++;
       *t = (k >> 8) & 0xFF;
@@ -2005,7 +2005,7 @@ int write_bank_header_references(struct reference *r) {
     a = (int)l->address;
     /* direct 16-bit */
     if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
-      if (little_endian == YES) {
+      if (get_file(r->file_id)->little_endian == YES) {
 	*t = a & 0xFF;
 	t++;
 	*t = (a >> 8) & 0xFF;
@@ -2040,7 +2040,7 @@ int write_bank_header_references(struct reference *r) {
     else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
       if (l->status == LABEL_STATUS_LABEL)
         a += get_snes_pc_bank(l);
-      if (little_endian == YES) {
+      if (get_file(r->file_id)->little_endian == YES) {
 	*t = a & 0xFF;
 	t++;
 	*t = (a >> 8) & 0xFF;
@@ -2094,7 +2094,7 @@ int parse_stack(struct stack *sta) {
   /* calculate extra displacement (ed) depending on relative operand size:
      6809 and 65816 can have 16-bit relative operands so the start of
      next instruction is one byte farther away than "usual" */
-  switch(sta->type) {
+  switch (sta->type) {
     case STACK_TYPE_8BIT:
       ed = 1;
       break;
@@ -2108,6 +2108,7 @@ int parse_stack(struct stack *sta) {
       ed = 1;
       break;
   }
+  
   si = sta->stack;
   g = 0;
   k = 0;
@@ -2131,7 +2132,7 @@ int parse_stack(struct stack *sta) {
           find_label(&si->string[1], s, &l);
 
           if (l != NULL) {
-            if (cpu_65816 != 0)
+            if (get_file(sta->file_id)->cpu_65816 == YES)
               k = get_snes_pc_bank(l) >> 16;
             else
               k = l->base + l->bank;

@@ -1666,7 +1666,11 @@ struct optcode opt_table[] = {
   { "LD L,SRL (IXs)", 0xcbdd, 5, 0x3d, 0 },
   { "LD L',SRL (IYs)", 0xcbfd, 5, 0x3d, 0 },
   { "LD L,SRL (IYs)", 0xcbfd, 5, 0x3d, 0 },
-
+  { "LD PC,HL'", 0xe9, 0, 0, 0 },
+  { "LD PC,HL", 0xe9, 0, 0, 0 },
+  { "LD PC,IX", 0xe9dd, 3, 0, 0 },
+  { "LD PC,IY", 0xe9fd, 3, 0, 0 },
+  
   { "LDDR", 0xb8ed, 3, 0, 0 },
   { "LDD", 0xa8ed, 3, 0, 0 },
   { "LDIR", 0xb0ed, 3, 0, 0 },

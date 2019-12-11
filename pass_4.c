@@ -1126,14 +1126,18 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLA5");
+    fprintf(final_ptr, "WLA6");
 
     /* misc bits */
     ind = 0;
 
     if (little_endian == NO)
       ind |= 1 << 0;
-
+#ifdef W65816
+    /* 65816 bit */
+    ind |= 1 << 1;
+#endif
+    
     fprintf(final_ptr, "%c", ind);
     
     if (export_source_file_names(final_ptr) == FAILED)

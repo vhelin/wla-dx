@@ -3,12 +3,17 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------------------
 
-v9.10 (10-Dec-2019) [808] Added support for I8080.
+v9.10 (11-Dec-2019) [808] Added support for I8080.
                     [658] Fixed SNES ROM checksum calculation.
                     [658] Fixed 24-bit non-label symbols in NO$SNES symbol
                       file generator.
-                    [Z80] Added aliases for ADC, ADD. AND, CP, OR, SUB,
-                      SBC and XOR.
+                    [Z80] Added aliases for ADC, ADD, AND, CP, OR, SBC,
+                      SUB and XOR.
+                    [Z80] Added aliases "LD PC,HL", "LD PC,IX" and
+                      "LD PC,IY".
+                    [GB ] Added aliases for ADC, ADD, AND, CP, OR, SBC,
+                      SUB and XOR.
+                    [GB ] Added alias "JP (HL)".
                     [ALL] Unary XOR (e.g., "~$FF") is now calculated as NOT.
                     [ALL] Added support for 24-bit and 32-bit XORs in
                       calculations.
@@ -17,7 +22,7 @@ v9.10 (10-Dec-2019) [808] Added support for I8080.
                     [ALL] Added a fflush() to print_error() - now all error
                       messages should be printed on screen no matter what.
                     [ALL] .BLOCK name can now contain spaces.
-                    [ALL] WLA assembles now "WLA5" library files and "WLAW"
+                    [ALL] WLA assembles now "WLA6" library files and "WLAW"
                       object files.
 
 v9.9 (15-Aug-2019) [ALL] Added unions: .UNION (and .NEXTU and .ENDU).
@@ -1092,7 +1097,9 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.12 (17-Sep-2019) Fixed pending, relative 16-bit and 24-bit calculations.
+v5.12 (11-Dec-2019) Relaxed the checks regarding misc bits (e.g., SNES ROM
+                      mode, GB checksum...) when loading the object files.
+                    Fixed pending, relative 16-bit and 24-bit calculations.
 
 v5.11 (15-Aug-2019) Defines that contain computations that are issued inside
                       libraries are now handled correctly.

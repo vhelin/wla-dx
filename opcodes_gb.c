@@ -1,6 +1,15 @@
 #define FILE void
 #include "defines.h"
 struct optcode opt_table[] = {
+  { "ADC A,A", 0x8f, 0, 0 },
+  { "ADC A,B", 0x88, 0, 0 },
+  { "ADC A,C", 0x89, 0, 0 },
+  { "ADC A,D", 0x8a, 0, 0 },
+  { "ADC A,E", 0x8b, 0, 0 },
+  { "ADC A,H", 0x8c, 0, 0 },
+  { "ADC A,(HL)", 0x8e, 0, 0 },
+  { "ADC A,L", 0x8d, 0, 0 },
+  { "ADC A,x", 0xce, 1, 0 },
   { "ADC A", 0x8f, 0, 0 },
   { "ADC B", 0x88, 0, 0 },
   { "ADC C", 0x89, 0, 0 },
@@ -11,6 +20,15 @@ struct optcode opt_table[] = {
   { "ADC L", 0x8d, 0, 0 },
   { "ADC x", 0xce, 1, 0 },
 
+  { "ADD A,A", 0x87, 0, 0 },
+  { "ADD A,B", 0x80, 0, 0 },
+  { "ADD A,C", 0x81, 0, 0 },
+  { "ADD A,D", 0x82, 0, 0 },
+  { "ADD A,E", 0x83, 0, 0 },
+  { "ADD A,H", 0x84, 0, 0 },
+  { "ADD A,(HL)", 0x86, 0, 0 },
+  { "ADD A,L", 0x85, 0, 0 },
+  { "ADD A,x", 0xc6, 1, 0 },
   { "ADD A", 0x87, 0, 0 },
   { "ADD B", 0x80, 0, 0 },
   { "ADD C", 0x81, 0, 0 },
@@ -26,6 +44,15 @@ struct optcode opt_table[] = {
   { "ADD SP,s", 0xe8, 1, 0 },
   { "ADD x", 0xc6, 1, 0 },
 
+  { "AND A,A", 0xa7, 0, 0 },
+  { "AND A,B", 0xa0, 0, 0 },
+  { "AND A,C", 0xa1, 0, 0 },
+  { "AND A,D", 0xa2, 0, 0 },
+  { "AND A,E", 0xa3, 0, 0 },
+  { "AND A,H", 0xa4, 0, 0 },
+  { "AND A,(HL)", 0xa6, 0, 0 },
+  { "AND A,L", 0xa5, 0, 0 },
+  { "AND A,x", 0xe6, 1, 0 },
   { "AND A", 0xa7, 0, 0 },
   { "AND B", 0xa0, 0, 0 },
   { "AND C", 0xa1, 0, 0 },
@@ -109,6 +136,15 @@ struct optcode opt_table[] = {
 
   { "CCF", 0x3f, 0, 0 },
 
+  { "CP A,A", 0xbf, 0, 0 },
+  { "CP A,B", 0xb8, 0, 0 },
+  { "CP A,C", 0xb9, 0, 0 },
+  { "CP A,D", 0xba, 0, 0 },
+  { "CP A,E", 0xbb, 0, 0 },
+  { "CP A,H", 0xbc, 0, 0 },
+  { "CP A,(HL)", 0xbe, 0, 0 },
+  { "CP A,L", 0xbd, 0, 0 },
+  { "CP A,x", 0xfe, 1, 0 },
   { "CP A", 0xbf, 0, 0 },
   { "CP B", 0xb8, 0, 0 },
   { "CP C", 0xb9, 0, 0 },
@@ -157,6 +193,7 @@ struct optcode opt_table[] = {
 
   { "JP C,?", 0xda, 2, 0 },
   { "JP HL", 0xe9, 0, 0 },
+  { "JP (HL)", 0xe9, 0, 0 },
   { "JP NC,?", 0xd2, 2, 0 },
   { "JP NZ,?", 0xc2, 2, 0 },
   { "JP Z,?", 0xca, 2, 0 },
@@ -278,6 +315,15 @@ struct optcode opt_table[] = {
 
   { "NOP", 0x0, 0, 0 },
 
+  { "OR A,A", 0xb7, 0, 0 },
+  { "OR A,B", 0xb0, 0, 0 },
+  { "OR A,C", 0xb1, 0, 0 },
+  { "OR A,D", 0xb2, 0, 0 },
+  { "OR A,E", 0xb3, 0, 0 },
+  { "OR A,H", 0xb4, 0, 0 },
+  { "OR A,(HL)", 0xb6, 0, 0 },
+  { "OR A,L", 0xb5, 0, 0 },
+  { "OR A,x", 0xf6, 1, 0 },
   { "OR A", 0xb7, 0, 0 },
   { "OR B", 0xb0, 0, 0 },
   { "OR C", 0xb1, 0, 0 },
@@ -420,6 +466,15 @@ struct optcode opt_table[] = {
   { "RST *", 0xff, 8, 0x38 },
   { "RST *", 0x00, 100, 0 }, /* if we choose this, then WLALINK chooses the opcode */
   
+  { "SBC A,A", 0x9f, 0, 0 },
+  { "SBC A,B", 0x98, 0, 0 },
+  { "SBC A,C", 0x99, 0, 0 },
+  { "SBC A,D", 0x9a, 0, 0 },
+  { "SBC A,E", 0x9b, 0, 0 },
+  { "SBC A,H", 0x9c, 0, 0 },
+  { "SBC A,(HL)", 0x9e, 0, 0 },
+  { "SBC A,L", 0x9d, 0, 0 },
+  { "SBC A,x", 0xde, 1, 0 },
   { "SBC A", 0x9f, 0, 0 },
   { "SBC B", 0x98, 0, 0 },
   { "SBC C", 0x99, 0, 0 },
@@ -526,6 +581,15 @@ struct optcode opt_table[] = {
 
   { "STOP", 0x10, 0, 0 },
 
+  { "SUB A,A", 0x97, 0, 0 },
+  { "SUB A,B", 0x90, 0, 0 },
+  { "SUB A,C", 0x91, 0, 0 },
+  { "SUB A,D", 0x92, 0, 0 },
+  { "SUB A,E", 0x93, 0, 0 },
+  { "SUB A,H", 0x94, 0, 0 },
+  { "SUB A,(HL)", 0x96, 0, 0 },
+  { "SUB A,L", 0x95, 0, 0 },
+  { "SUB A,x", 0xd6, 1, 0 },
   { "SUB A", 0x97, 0, 0 },
   { "SUB B", 0x90, 0, 0 },
   { "SUB C", 0x91, 0, 0 },
@@ -545,6 +609,15 @@ struct optcode opt_table[] = {
   { "SWAP (HL)", 0x36cb, 3, 0 },
   { "SWAP L", 0x35cb, 3, 0 },
 
+  { "XOR A,A", 0xaf, 0, 0 },
+  { "XOR A,B", 0xa8, 0, 0 },
+  { "XOR A,C", 0xa9, 0, 0 },
+  { "XOR A,D", 0xaa, 0, 0 },
+  { "XOR A,E", 0xab, 0, 0 },
+  { "XOR A,H", 0xac, 0, 0 },
+  { "XOR A,(HL)", 0xae, 0, 0 },
+  { "XOR A,L", 0xad, 0, 0 },
+  { "XOR A,x", 0xee, 1, 0 },
   { "XOR A", 0xaf, 0, 0 },
   { "XOR B", 0xa8, 0, 0 },
   { "XOR C", 0xa9, 0, 0 },
@@ -554,6 +627,6 @@ struct optcode opt_table[] = {
   { "XOR (HL)", 0xae, 0, 0 },
   { "XOR L", 0xad, 0, 0 },
   { "XOR x", 0xee, 1, 0 },
-
+  
   { "E", 0x100, 0xFF, 0 }
 };

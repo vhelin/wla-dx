@@ -52,8 +52,8 @@ WLALINK
 -------
 
 WLALINK is much simpler and more straight forward than WLA; WLALINK just
-reads in all the objects and library files, checks that target platforms for
-the files match, places the sections along with labels into the target memory
-map, solves pending calculations, calculates checksums, and writes out the
-final ROM/PRG files. ``wlalink/main.c:main()`` should quite clearly display
-all the higher level phases in the linking process.
+reads in all the objects and library files, places the sections along with
+labels into the target memory map, solves pending calculations, calculates
+checksums, and writes out the final ROM/PRG files.
+``wlalink/main.c:main()`` should quite clearly display all the higher level
+phases in the linking process.

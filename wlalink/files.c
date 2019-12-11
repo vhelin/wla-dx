@@ -481,3 +481,21 @@ char *get_source_file_name(int file_id, int source_id) {
 
   return s->name;
 }
+
+
+struct object_file *get_file(int file_id) {
+
+  struct object_file *o;
+
+  
+  o = obj_first;
+  while (o != NULL) {
+    if (o->id == file_id)
+      return o;
+    o = o->next;
+  }
+
+  fprintf(stderr, "GET_FILE: Internal error, file %d is missing!\n", file_id);
+
+  return NULL;
+}

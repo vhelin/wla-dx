@@ -2745,7 +2745,7 @@ This begins the SNES header definition, and automatically defines
     ``$0B``  16 Megabits
     ``$0C``  32 Megabits
    ======== =============
-* ``SRAMSIZE $01`` - Places the given 8-bit value into ``$7FD8`` (``$FFD8`` in
+* ``SRAMSIZE $01`` - Places the given 2-bit value into ``$7FD8`` (``$FFD8`` in
   HiROM, ``$40FFD8`` and ``$FFD8`` in ExHiROM). I believe these are the only possible
   values:
 

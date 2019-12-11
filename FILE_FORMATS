@@ -169,7 +169,7 @@ section:
 
 
 
-WLA-GB/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 library file format "WLA5"
+WLA-GB/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 library file format "WLA6"
 
 
 bytes   description
@@ -177,9 +177,10 @@ bytes   description
 header:
 
   4     format information,
-        "WLA5" - WLA-GB/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 library file version 19 (11-Sep-2019)
+        "WLA6" - WLA-GB/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 library file version 19 (11-Dec-2019)
   1     misc bits (bit 0 - endianess (1 = big endian))
-
+                   bit 1 - 65816 indicator (1 == 65816))
+		   
 source file name list:
 
   4     number of source file names (int)

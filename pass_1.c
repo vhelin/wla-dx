@@ -6549,8 +6549,8 @@ int directive_snesheader(void) {
 
       inz = input_number();
 
-      if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-	sprintf(emsg, "SRAMSIZE expects 8-bit data, %d is out of range!\n", d);
+      if (inz == SUCCEEDED && (d < 0 || d > 3)) {
+	sprintf(emsg, "SRAMSIZE expects 0-3, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
