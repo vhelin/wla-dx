@@ -40,7 +40,7 @@ FILE *file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char version_string[] = "$VER: wla-" WLA_NAME " 9.10a (11.12.2019)";
+char version_string[] = "$VER: wla-" WLA_NAME " 9.10a (13.12.2019)";
 char wla_version[] = "9.10a";
 
 char *tmp_name = NULL;

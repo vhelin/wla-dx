@@ -193,7 +193,6 @@ struct optcode opt_table[] = {
 
   { "JP C,?", 0xda, 2, 0 },
   { "JP HL", 0xe9, 0, 0 },
-  { "JP (HL)", 0xe9, 0, 0 },
   { "JP NC,?", 0xd2, 2, 0 },
   { "JP NZ,?", 0xc2, 2, 0 },
   { "JP Z,?", 0xca, 2, 0 },
