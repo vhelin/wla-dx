@@ -4,6 +4,11 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
     output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex);
     i = inz;
+
+    /* give a warning when assembling "JP (HL)"! */
+    if (opt_tmp->hex == 0xE9 && strcmp(opt_tmp->op, "JP (HL)") == 0)
+      print_error("\"JP (HL)\" is semantically incorrect. Please use \"JP HL\" instead.\n", ERROR_WRN);
+
     return SUCCEEDED;
   }
   if (opt_tmp->op[x] != toupper((int)buffer[inz]))

@@ -148,6 +148,7 @@ MAIN:DI
 _LOOP:	LD	($FF00+R_BGP), A	;background palette.
 	INC	A 
 	JP	_LOOP
+	JP	(HL)
 
 .REPT 8
 .DB	(_LOOP - _LOOP) + 1
