@@ -9,8 +9,11 @@ v9.10 (14-Dec-2019) [808] Added support for I8080.
                       file generator.
                     [Z80] Added aliases for ADC, ADD, AND, CP, OR, SBC,
                       SUB and XOR.
-                    [Z80] Added aliases "LD PC,HL", "LD PC,IX" and
-                      "LD PC,IY".
+                    [Z80] Added aliases "LD PC,HL", "LD PC,IX",
+                      "LD PC,IY", "JP HL", "JP IX" and "JP IY".
+                    [Z80] WLA will now issue a warning if "JP (HL)",
+                      "JP (IX)" or "JP (IY)" are used as they are
+                      semantically wrong.
                     [Z80] Added register aliases HX (IXH), LX (IXL),
                       HY (IYH) and LY (IYL).
                     [GB ] Added aliases for ADC, ADD, AND, CP, OR, SBC,

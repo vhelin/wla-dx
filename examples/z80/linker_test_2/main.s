@@ -91,6 +91,12 @@ MORE_ACTION:
 	LD	A, 'c'
 	EXX			; ?
 	NOP			/* just testing */
+	JP	(HL)
+	JP	HL
+	JP	(IX)
+	JP	IX
+	JP	(IY)
+	JP	IY
 	DEC	A
 	JR	NC, MORE_ACTION
 	JP	MORE_ACTION
