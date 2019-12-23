@@ -6,11 +6,15 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     i = inz;
 
     /* give a warning when assembling "JP (HL)"! */
+    /*
     if (opt_tmp->hex == 0xE9 && strcmp(opt_tmp->op, "JP (HL)") == 0)
       print_error("\"JP (HL)\" is semantically incorrect. Please use \"JP HL\" instead.\n", ERROR_WRN);
+    */
     /* give a warning when assembling "JP (HL')"! */
+    /*
     if (opt_tmp->hex == 0xE9 && strcmp(opt_tmp->op, "JP (HL')") == 0)
       print_error("\"JP (HL')\" is semantically incorrect. Please use \"JP HL'\" instead.\n", ERROR_WRN);
+    */
 
     return SUCCEEDED;
   }

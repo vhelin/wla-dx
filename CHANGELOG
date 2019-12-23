@@ -3,6 +3,9 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------------------
 
+v9.11 (23-Dec-2019) [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
+                      "JP (IY)".
+
 v9.10 (22-Dec-2019) [808] Added support for I8080.
                     [658] Fixed SNES ROM checksum calculation.
                     [658] Fixed 24-bit non-label symbols in NO$SNES symbol
@@ -155,9 +158,9 @@ v9.7 (17-Apr-2018) [ALL] We now use CMake instead of plain Makefiles.
                    [ALL] Added a directory called "bug_exhibition" for
                      bug reports.
                    [ALL] When parsing "\1.w" the parser now associates the
-	             ".w" part with the "\1" part.
+                     ".w" part with the "\1" part.
                    [ALL] Recursive macro calls with recursive argument
-	             references should work now.
+                     references should work now.
                    [ALL] .ASC can now map also byte data.
                    [ALL] Rewrote the macro argument expander.
                    [ALL] Fixed .INCDIR/.INCBIN cache bug.
@@ -1102,6 +1105,8 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
+
+v5.13 (22-Dec-2019) 
 
 v5.12 (22-Dec-2019) Relaxed the checks regarding misc bits (e.g., SNES ROM
                       mode, GB checksum...) when loading the object files.

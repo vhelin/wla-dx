@@ -1,7 +1,7 @@
 
 /*
-	wlalink - part of wla dx gb-z80/z80/6502/65c02/6510/65816/huc6280/spc-700
-	macro assembler package by ville helin <vhelin@iki.fi>. this is gpl software.
+  wlalink - part of wla dx gb-z80/z80/6502/65c02/6510/6800/6801/6809/65816/huc6280/spc-700/8008/8080
+  macro assembler package by ville helin <vhelin@iki.fi>. this is gpl software.
 */
 
 #include <ctype.h>
@@ -25,7 +25,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.12 (22.12.2019)";
+char version_string[] = "$VER: wlalink 5.13a (22.12.2019)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
     x = FAILED;
 
   if (x == FAILED) {
-    printf("\nWLALINK GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/HUC6280/SPC-700 WLA Macro Assembler Linker v5.12a\n");
+    printf("\nWLALINK GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 WLA Macro Assembler Linker v5.13a\n");
     printf("Written by Ville Helin in 2000-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
 #ifdef WLALINK_DEBUG
     printf("*** WLALINK_DEBUG defined - this executable is running in DEBUG mode ***\n");

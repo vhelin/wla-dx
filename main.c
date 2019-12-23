@@ -1,8 +1,7 @@
 
 /*
-  wla - part of wla dx gb-z80/z80/6502/65c02/6510/6800/6801/6809/65816/huc6280/spc-700
-  macro assembler package by ville helin <vhelin@iki.fi>.
-  this is gpl software.
+  wla - part of wla dx gb-z80/z80/6502/65c02/6510/6800/6801/6809/65816/huc6280/spc-700/8008/8080
+  macro assembler package by ville helin <vhelin@iki.fi>. this is gpl software.
 */
 
 #include <ctype.h>
@@ -40,8 +39,8 @@ FILE *file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char version_string[] = "$VER: wla-" WLA_NAME " 9.10 (22.12.2019)";
-char wla_version[] = "9.10";
+char version_string[] = "$VER: wla-" WLA_NAME " 9.11a (23.12.2019)";
+char wla_version[] = "9.11a";
 
 char *tmp_name = NULL;
 
@@ -126,7 +125,7 @@ int main(int argc, char *argv[]) {
   }
   
   if (output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
-    printf("\nWLA " ARCH_STR " Macro Assembler v9.10\n");
+    printf("\nWLA " ARCH_STR " Macro Assembler v9.11a\n");
     printf("Written by Ville Helin in 1998-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
 #ifdef WLA_DEBUG
     printf("*** WLA_DEBUG defined - this executable is running in DEBUG mode ***\n");
