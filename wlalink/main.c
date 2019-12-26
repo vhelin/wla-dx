@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
     printf("-S  Write also a WLA symbol file\n");
     printf("-A  Add address-to-line mapping data to WLA symbol file\n");
     printf("-v  Verbose messages\n");
-    printf("-L [DIR]  Library directory\n\n");
+    printf("-L <DIR>  Library directory\n\n");
     printf("EXAMPLE: %s -d -v -S linkfile linked.rom\n\n", argv[0]);
     return 0;
   }

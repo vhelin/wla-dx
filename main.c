@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
     printf("*** WLA_DEBUG defined - this executable is running in DEBUG mode ***\n");
 #endif
     printf("%s\n\n", version_string);
-    printf("USAGE: %s [OPTIONS] <ASM FILE>\n\n", argv[0]);
+    printf("USAGE: %s [OPTIONS] <OUTPUT> <ASM FILE>\n\n", argv[0]);
     printf("Options:\n");
     printf("-i  Add list file information\n");
     printf("-M  Output makefile rules\n");
@@ -139,12 +139,12 @@ int main(int argc, char *argv[]) {
     printf("-t  Test compile\n");
     printf("-v  Verbose messages\n");
     printf("-x  Extra compile time labels & definitions\n");
-    printf("-I [DIR]  Include directory\n");
-    printf("-D [DEF]  Declare definition\n\n");
-    printf("Output types:\n");
-    printf("-o [FILE]  Output object file\n");
-    printf("-l [FILE]  Output library file\n\n");
-    printf("EXAMPLE: %s -v -o main.obj main.asm\n\n", argv[0]);
+    printf("-I <DIR>  Include directory\n");
+    printf("-D <DEF>  Declare definition\n\n");
+    printf("Output:\n");
+    printf("-o <FILE>  Output object file\n");
+    printf("-l <FILE>  Output library file\n\n");
+    printf("EXAMPLE: %s -D VERSION=1 -D TWO=2 -v -o main.obj main.asm\n\n", argv[0]);
     return 0;
   }
 
