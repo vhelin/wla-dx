@@ -855,7 +855,7 @@ int get_next_token(void) {
   if (buffer[i] == '.') {
     tmp[0] = '.';
     i++;
-    for (ss = 1; buffer[i] != 0x0A && buffer[i] != ' ' && ss < MAX_NAME_LENGTH; ) {
+    for (ss = 1; buffer[i] != 0x0A && buffer[i] != ' ' && buffer[i] != '-' && ss < MAX_NAME_LENGTH; ) {
       tmp[ss] = buffer[i];
       cp[ss - 1] = toupper((int)buffer[i]);
       i++;

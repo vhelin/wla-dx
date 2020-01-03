@@ -3,7 +3,11 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------------------
 
-v9.11 (23-Dec-2019) [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
+v9.11 (03-Jan-2020) [ALL] Stack calculator's string checker handled only
+                      63 characters long strings.
+                    [ALL] A directive with the first argument being
+                      negative wasn't parsed properly.
+                    [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
                       "JP (IY)".
 
 v9.10 (22-Dec-2019) [808] Added support for I8080.

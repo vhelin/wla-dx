@@ -25,6 +25,19 @@
 .ENDM
 
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+; structs with long names
+;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
+
+.STRUCT demo
+    ABCDEFGHIJKLMNO  DB
+    ABCDEFGHIJKLMNOP DB
+.ENDST
+
+.STRUCT ABCDEFGHIJKLMN
+    abcdefghijklmnopqrstuvwxyzabcdef INSTANCEOF demo
+.ENDST
+
+;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 ; main
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
@@ -54,6 +67,25 @@ _camilla
   JESUS "evil", "emperor"
 */
 
+.section "structTest"
+	ld (iy + ABCDEFGHIJKLMN.abcdefghijklmnopqrstuvwxyzabcdef.ABCDEFGHIJKLMNO), $00
+	ld (iy + ABCDEFGHIJKLMN.abcdefghijklmnopqrstuvwxyzabcdef.ABCDEFGHIJKLMNOP), $00
+
+.STRUCT MyStruct
+    ByteVal DB
+    WordVal DW	
+.ENDST
+	
+	.db "01>"
+	
+.DSTRUCT defStruct INSTANCEOF MyStruct VALUES
+    ByteVal .DB -1
+    WordVal .DW -1	
+.ENDST
+
+	.db "<01"
+	
+.ends
 
 .section "HELLO"
 .db "START >"

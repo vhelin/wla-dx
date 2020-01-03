@@ -544,7 +544,7 @@ int stack_calculate(char *in, int *value) {
 	break;
 
       si[q].sign = SI_SIGN_POSITIVE;
-      for (k = 0; k < 63; k++) {
+      for (k = 0; k < MAX_NAME_LENGTH; k++) {
 	e = *in;
 	if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
 	    e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == ']' ||
