@@ -77,13 +77,9 @@ xu:	ds 3
 xe	DB
 .ENDS
 
-
 .BANK 0 SLOT 0
 
-	
-.ORG 0
 .SECTION "Beginning"
-
 	.db "S1"
 	.db "dance dance!"
 	.db	$ff, $ff
@@ -97,11 +93,13 @@ MAIN:	.dw	second.x
 .ENDS
 
 
+/*
 .ORG $28
 .SECTION "SemiSubFree" SEMISUBFREE
 	.db "S3"
 	.db "E3"
 .ENDS
+*/
 
 
 .ORG 0

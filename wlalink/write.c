@@ -30,12 +30,16 @@ extern struct label_sizeof *label_sizeofs;
 extern unsigned char *rom, *rom_usage;
 extern unsigned char *file_header, *file_footer;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
+extern char load_address_label[MAX_NAME_LENGTH + 1];
+extern int load_address, load_address_type;
 extern int romsize, rombanks, banksize, verbose_mode, section_overwrite, symbol_mode;
 extern int pc_bank, pc_full, pc_slot, pc_slot_max, snes_rom_mode;
 extern int file_header_size, file_footer_size, *bankaddress, *banksizes;
 extern int memory_file_id, memory_file_id_source, memory_line_number, output_mode;
 extern int program_start, program_end, snes_mode, smc_status;
 extern int snes_sramsize, num_sorted_anonymous_labels;
+extern int output_type;
+
 
 
 static int _sections_sort(const void *a, const void *b) {
@@ -52,7 +56,85 @@ static int _sections_sort(const void *a, const void *b) {
 }
 
 
-int smc_create_and_write(FILE *f) {
+int _c64_write_prg_header(FILE *f) {
+
+  int address = 0, k;
+
+  
+  if (f == NULL)
+    return FAILED;
+
+  if (load_address_type == LOAD_ADDRESS_TYPE_VALUE)
+    address = load_address;
+  else if (load_address_type == LOAD_ADDRESS_TYPE_LABEL) {
+    /* find the address of the label */
+    struct label *l;
+    
+    find_label(load_address_label, NULL, &l);
+
+    if (l == NULL) {
+      fprintf(stderr, "_C64_WRITE_PRG_HEADER: Cannot find label \"%s\".\n", load_address_label);
+      return FAILED;
+    }
+
+    if (l->status != LABEL_STATUS_LABEL || (l->section_struct != NULL && (l->section_struct->status == SECTION_STATUS_RAM ||
+									  l->section_struct->alive == NO))) {
+      fprintf(stderr, "_C64_WRITE_PRG_HEADER: \"%s\" cannot be used as the load address.\n", load_address_label);
+      return FAILED;
+    }
+
+    address = l->rom_address;
+  }
+  else if (load_address_type == LOAD_ADDRESS_TYPE_UNDEFINED) {
+    /* find a suitable load address, i.e., the label with the smallest address value */
+    /*
+    struct label *l = labels_first, *label = NULL;
+    int rom_address = 0xFFFFFF;
+    
+    while (l != NULL) {
+      if (l->status != LABEL_STATUS_LABEL || (l->section_struct != NULL && (l->section_struct->status == SECTION_STATUS_RAM ||
+									    l->section_struct->alive == NO))) {
+	l = l->next;
+	continue;
+      }
+      
+      if (l->rom_address < rom_address || label == NULL) {
+	rom_address = l->rom_address;
+	label = l;
+      }
+
+      l = l->next;
+    }
+
+    if (label == NULL) {
+      fprintf(stderr, "_C64_WRITE_PRG_HEADER: Cannot find a suitable label to be used as the load address for the PRG.\n");
+      return FAILED;
+    }
+
+    fprintf(stderr, "Using the address of the label \"%s\" ($%x) as the load address for the PRG.\n", label->name, rom_address);
+
+    address = rom_address;
+    */
+
+    /* find the address of the first used byte */
+    for (k = 0; k < romsize; k++) {
+      if (rom_usage[k] != 0) {
+	address = k;
+	break;
+      }
+    }
+    
+    fprintf(stderr, "Using the address $%x as the load address for the PRG.\n", address);
+  }
+
+  fprintf(f, "%c", address & 0xFF);
+  fprintf(f, "%c", (address >> 8) & 0xFF);
+
+  return SUCCEEDED;
+}
+
+
+int _smc_create_and_write(FILE *f) {
 
   int i;
 
@@ -1405,8 +1487,16 @@ int write_rom_file(char *outname) {
 
   /* SMC header */
   if (smc_status != 0)
-    smc_create_and_write(f);
+    _smc_create_and_write(f);
 
+  /* c64 PRG */
+  if (output_type == OUTPUT_TYPE_C64_PRG) {
+    if (_c64_write_prg_header(f) == FAILED) {
+      fclose(f);
+      return FAILED;
+    }
+  }
+  
   /* ROM output mode */
   if (output_mode == OUTPUT_ROM) {
     /* write bank by bank and bank header sections */
@@ -1425,13 +1515,15 @@ int write_rom_file(char *outname) {
   }
   /* program file output mode */
   else {
-    for (i = 0; i < romsize; i++)
+    for (i = 0; i < romsize; i++) {
       if (rom_usage[i] != 0)
 	break;
+    }
     b = i;
-    for (e = b; i < romsize; i++)
+    for (e = b; i < romsize; i++) {
       if (rom_usage[i] != 0)
 	e = i;
+    }
 
     s = sec_bankhd_first;
     while (s != NULL) {
