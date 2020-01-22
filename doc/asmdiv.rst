@@ -144,6 +144,7 @@ ALL  ``.IFNDEFM \2``
 ALL  ``.IFNEQ DEBUG 2``
 ALL  ``.INCBIN "sorority.bin"``
 ALL  ``.INCDIR "/usr/programming/gb/include/"``
+ALL  ``.INC "cgb_hardware.i"``
 ALL  ``.INCLUDE "cgb_hardware.i"``
 658  ``.INDEX 8``
 ALL  ``.INPUT NAME``
@@ -823,6 +824,14 @@ to this), use ::
 If the ``INCDIR`` is specified in the command line, that directory will be
 searched before the ``.INCDIR`` in the file. If the file is not found, WLA
 will then silently search the specified ``.INCDIR``.
+
+This is not a compulsory directive.
+
+
+``.INC "cgb_hardware.i"``
+-----------------------------
+
+``INC`` is an alias for ``INCLUDE``.
 
 This is not a compulsory directive.
 

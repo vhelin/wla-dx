@@ -7496,9 +7496,9 @@ int parse_directive(void) {
   if (strcaselesscmp(cp, "INCDIR") == 0)
     return directive_incdir();
 
-  /* INCLUDE */
+  /* INCLUDE/INC */
 
-  if (strcaselesscmp(cp, "INCLUDE") == 0)
+  if (strcaselesscmp(cp, "INCLUDE") == 0 || strcaselesscmp(cp, "INC") == 0)
     return directive_include();
 
   /* INCBIN */
