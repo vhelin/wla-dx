@@ -64,8 +64,10 @@ int _c64_write_prg_header(FILE *f) {
   if (f == NULL)
     return FAILED;
 
-  if (load_address_type == LOAD_ADDRESS_TYPE_VALUE)
+  if (load_address_type == LOAD_ADDRESS_TYPE_VALUE) {
     address = load_address;
+    fprintf(stderr, "Using the address $%x as the load address for the PRG.\n", address & 0xFFFF);
+  }
   else if (load_address_type == LOAD_ADDRESS_TYPE_LABEL) {
     /* find the address of the label */
     struct label *l;
@@ -84,6 +86,8 @@ int _c64_write_prg_header(FILE *f) {
     }
 
     address = (int)l->address;
+
+    fprintf(stderr, "Using the address $%x (of label \"%s\") as the load address for the PRG.\n", address & 0xFFFF, l->name);
   }
   else if (load_address_type == LOAD_ADDRESS_TYPE_UNDEFINED) {
     /* find a suitable load address, i.e., the label with the smallest address value */
@@ -111,9 +115,9 @@ int _c64_write_prg_header(FILE *f) {
     }
 
     address = address2;
-  }
 
-  fprintf(stderr, "Using the address $%x as the load address for the PRG.\n", address & 0xFFFF);
+    fprintf(stderr, "Using the address $%x (of label \"%s\") as the load address for the PRG.\n", address & 0xFFFF, label->name);
+  }
       
   fprintf(f, "%c", address & 0xFF);
   fprintf(f, "%c", (address >> 8) & 0xFF);
