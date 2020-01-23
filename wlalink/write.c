@@ -83,7 +83,7 @@ int _c64_write_prg_header(FILE *f) {
       return FAILED;
     }
 
-    address = l->rom_address;
+    address = (int)l->address;
   }
   else if (load_address_type == LOAD_ADDRESS_TYPE_UNDEFINED) {
     /* find a suitable load address, i.e., the label with the smallest address value */
@@ -123,10 +123,10 @@ int _c64_write_prg_header(FILE *f) {
 	break;
       }
     }
-    
-    fprintf(stderr, "Using the address $%x as the load address for the PRG.\n", address);
   }
 
+  fprintf(stderr, "Using the address $%x as the load address for the PRG.\n", address & 0xFFFF);
+      
   fprintf(f, "%c", address & 0xFF);
   fprintf(f, "%c", (address >> 8) & 0xFF);
 
