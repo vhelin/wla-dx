@@ -2,7 +2,7 @@
 CC = ../../../binaries/wla-6510
 CFLAGS = -o
 LD = ../../../binaries/wlalink
-LDFLAGS = -v -b -s -t CMBPRG
+LDFLAGS = -v -b -s -t CBMPRG
 
 SFILES = main.s
 IFILES = 

@@ -56,7 +56,7 @@ static int _sections_sort(const void *a, const void *b) {
 }
 
 
-int _cmb_write_prg_header(FILE *f) {
+int _cbm_write_prg_header(FILE *f) {
 
   int address = 0;
 
@@ -75,13 +75,13 @@ int _cmb_write_prg_header(FILE *f) {
     find_label(load_address_label, NULL, &l);
 
     if (l == NULL) {
-      fprintf(stderr, "_CMB_WRITE_PRG_HEADER: Cannot find label \"%s\".\n", load_address_label);
+      fprintf(stderr, "_CBM_WRITE_PRG_HEADER: Cannot find label \"%s\".\n", load_address_label);
       return FAILED;
     }
 
     if (l->status != LABEL_STATUS_LABEL || (l->section_struct != NULL && (l->section_struct->status == SECTION_STATUS_RAM ||
 									  l->section_struct->alive == NO))) {
-      fprintf(stderr, "_CMB_WRITE_PRG_HEADER: \"%s\" cannot be used as the load address.\n", load_address_label);
+      fprintf(stderr, "_CBM_WRITE_PRG_HEADER: \"%s\" cannot be used as the load address.\n", load_address_label);
       return FAILED;
     }
 
@@ -110,7 +110,7 @@ int _cmb_write_prg_header(FILE *f) {
     }
 
     if (label == NULL) {
-      fprintf(stderr, "_CMB_WRITE_PRG_HEADER: Cannot find a suitable label to be used as the load address for the PRG.\n");
+      fprintf(stderr, "_CBM_WRITE_PRG_HEADER: Cannot find a suitable label to be used as the load address for the PRG.\n");
       return FAILED;
     }
 
@@ -1481,9 +1481,9 @@ int write_rom_file(char *outname) {
   if (smc_status != 0)
     _smc_create_and_write(f);
 
-  /* CMB PRG */
-  if (output_type == OUTPUT_TYPE_CMB_PRG) {
-    if (_cmb_write_prg_header(f) == FAILED) {
+  /* CBM PRG */
+  if (output_type == OUTPUT_TYPE_CBM_PRG) {
+    if (_cbm_write_prg_header(f) == FAILED) {
       fclose(f);
       return FAILED;
     }

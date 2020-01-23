@@ -188,8 +188,8 @@ int main(int argc, char *argv[]) {
     printf("-A  Add address-to-line mapping data to WLA symbol file\n");
     printf("-v  Verbose messages\n");
     printf("-L <DIR>  Library directory\n");
-    printf("-t <TYPE> Output type (supported types: 'CMBPRG')\n");
-    printf("-a <ADDR> Load address for CMB PRG\n\n");
+    printf("-t <TYPE> Output type (supported types: 'CBMPRG')\n");
+    printf("-a <ADDR> Load address for CBM PRG\n\n");
     printf("EXAMPLE: %s -d -v -S linkfile linked.rom\n\n", argv[0]);
     return 0;
   }
@@ -794,8 +794,8 @@ int parse_flags(char **flags, int flagc) {
     else if (!strcmp(flags[count], "-t")) {
       if (count + 1 < flagc) {
         /* get arg */
-	if (!strcmp(flags[count + 1], "CMBPRG"))
-	  output_type = OUTPUT_TYPE_CMB_PRG;
+	if (!strcmp(flags[count + 1], "CBMPRG"))
+	  output_type = OUTPUT_TYPE_CBM_PRG;
 	else
 	  return FAILED;
       }
