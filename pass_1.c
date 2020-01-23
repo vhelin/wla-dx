@@ -3821,6 +3821,14 @@ int directive_ramsection(void) {
     sec_tmp->alignment = d;
   }
 
+  /* return the org after the section? */
+  if (compare_next_token("RETURNORG") == SUCCEEDED) {
+    if (skip_next_token() == FAILED)
+      return FAILED;
+
+    sec_tmp->advance_org = NO;
+  }
+
   if (compare_next_token("APPENDTO") == SUCCEEDED) {
     struct append_section *append_tmp;
     

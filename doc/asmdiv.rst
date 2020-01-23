@@ -2504,7 +2504,7 @@ syntax to define these is identical to ``.ENUM`` (all the syntax rules that
 apply to ``.ENUM`` apply also to ``.RAMSECTION``). Additionally you can embed
 structures (``.STRUCT``) into a ``RAMSECTION``. Here's an example::
 
-    .RAMSECTION "Some of my variables" BANK 0 SLOT 1 PRIORITY 100
+    .RAMSECTION "Some of my variables" BANK 0 SLOT 1 RETURNORG PRIORITY 100
     vbi_counter:   db
     player_lives:  db
     .ENDS
@@ -2513,6 +2513,9 @@ structures (``.STRUCT``) into a ``RAMSECTION``. Here's an example::
 RAM sections will occupy RAM banks inside slots. You can fill different slots
 with different variable labels. It's recommend that you create separate
 slots for holding variables (as ROM and RAM don't usually overlap).
+
+If you want that WLA returns the ``ORG`` to what it was before issuing
+the ``RAMSECTION``, use the keyword ``RETURNORG``.
 
 Keyword ``PRIORITY`` means just the same as ``PRIORITY`` of a ``.SECTION``,
 it is used to prioritize some sections when placing them in the output ROM/PRG.

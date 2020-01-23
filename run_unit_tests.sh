@@ -71,6 +71,7 @@ changePlatform 6510
 runTest zero_page
 runTest linker_test
 runTest operand_hint_test
+runTest c64_prg_test
 cd ..
 
 #####################################################################
