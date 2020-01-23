@@ -26,7 +26,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.13a (22.1.2020)";
+char version_string[] = "$VER: wlalink 5.13a (23.1.2020)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -188,8 +188,8 @@ int main(int argc, char *argv[]) {
     printf("-A  Add address-to-line mapping data to WLA symbol file\n");
     printf("-v  Verbose messages\n");
     printf("-L <DIR>  Library directory\n");
-    printf("-t <TYPE> Output type (supported types: 'c64PRG')\n");
-    printf("-a <ADDR> Load address for c64 PRG\n\n");
+    printf("-t <TYPE> Output type (supported types: 'CMBPRG')\n");
+    printf("-a <ADDR> Load address for CMB PRG\n\n");
     printf("EXAMPLE: %s -d -v -S linkfile linked.rom\n\n", argv[0]);
     return 0;
   }
@@ -794,8 +794,8 @@ int parse_flags(char **flags, int flagc) {
     else if (!strcmp(flags[count], "-t")) {
       if (count + 1 < flagc) {
         /* get arg */
-	if (!strcmp(flags[count + 1], "c64PRG"))
-	  output_type = OUTPUT_TYPE_C64_PRG;
+	if (!strcmp(flags[count + 1], "CMBPRG"))
+	  output_type = OUTPUT_TYPE_CMB_PRG;
 	else
 	  return FAILED;
       }
