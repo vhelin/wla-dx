@@ -58,7 +58,7 @@ static int _sections_sort(const void *a, const void *b) {
 
 int _c64_write_prg_header(FILE *f) {
 
-  int address = 0, k;
+  int address = 0;
 
   
   if (f == NULL)
@@ -87,9 +87,8 @@ int _c64_write_prg_header(FILE *f) {
   }
   else if (load_address_type == LOAD_ADDRESS_TYPE_UNDEFINED) {
     /* find a suitable load address, i.e., the label with the smallest address value */
-    /*
     struct label *l = labels_first, *label = NULL;
-    int rom_address = 0xFFFFFF;
+    int address2 = 0xFFFFFF;
     
     while (l != NULL) {
       if (l->status != LABEL_STATUS_LABEL || (l->section_struct != NULL && (l->section_struct->status == SECTION_STATUS_RAM ||
@@ -98,8 +97,8 @@ int _c64_write_prg_header(FILE *f) {
 	continue;
       }
       
-      if (l->rom_address < rom_address || label == NULL) {
-	rom_address = l->rom_address;
+      if ((int)l->address < address2 || label == NULL) {
+	address2 = (int)l->address;
 	label = l;
       }
 
@@ -111,18 +110,7 @@ int _c64_write_prg_header(FILE *f) {
       return FAILED;
     }
 
-    fprintf(stderr, "Using the address of the label \"%s\" ($%x) as the load address for the PRG.\n", label->name, rom_address);
-
-    address = rom_address;
-    */
-
-    /* find the address of the first used byte */
-    for (k = 0; k < romsize; k++) {
-      if (rom_usage[k] != 0) {
-	address = k;
-	break;
-      }
-    }
+    address = address2;
   }
 
   fprintf(stderr, "Using the address $%x as the load address for the PRG.\n", address & 0xFFFF);
