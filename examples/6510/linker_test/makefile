@@ -2,7 +2,7 @@
 CC = wla-6510
 CFLAGS = -o
 LD = wlalink
-LDFLAGS = -v -b -s -t c64PRG -a 123h
+LDFLAGS = -v -b -s -t CBMPRG -a 123h
 
 SFILES = setup.s main.s
 IFILES = defines.i

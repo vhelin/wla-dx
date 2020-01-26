@@ -1675,10 +1675,12 @@ int parse_enum_token(void) {
       print_error("Union not closed.\n", ERROR_DIR);
       return FAILED;
     }
+    
     enum_offset = 0;
     enum_sizeof_pass = NO;
     if (enum_add_struct_fields("", active_struct, (enum_ord == -1 ? 1 : 0)) == FAILED)
       return FAILED;
+
     enum_offset = 0;
     enum_sizeof_pass = YES;
     if (enum_add_struct_fields("", active_struct, (enum_ord == -1 ? 1 : 0)) == FAILED)
@@ -1939,9 +1941,8 @@ int parse_enum_token(void) {
     si->instance = st;
     si->num_instances = si->size/st->size;
   }
-  else if (type == STRUCTURE_ITEM_TYPE_UNION) {
+  else if (type == STRUCTURE_ITEM_TYPE_UNION)
     si->union_items = st;
-  }
 
   if (active_struct->items == NULL)
     active_struct->items = si;
@@ -3799,7 +3800,7 @@ int directive_ramsection(void) {
 
     sec_tmp->slot = d;
   }
-    
+
   fprintf(file_out_ptr, "S%d ", sec_tmp->id);
 
   /* align the ramsection? */

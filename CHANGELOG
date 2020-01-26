@@ -3,12 +3,14 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------------------
 
-v9.11 (23-Jan-2020) [ALL] Stack calculator's string checker handled only
+v9.11 (26-Jan-2020) [ALL] Stack calculator's string checker handled only
                       63 characters long strings.
                     [ALL] A directive with the first argument being
                       negative wasn't parsed properly.
                     [ALL] Added an alias for .INCLUDE (.INC).
                     [ALL] Added RETURNORG to .RAMSECTION.
+                    [ALL] Using a .RAMSECTION without RETURNORG doesn't mess
+                      up the .ORG any more.
                     [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
                       "JP (IY)".
 

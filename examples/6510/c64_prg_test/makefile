@@ -1,7 +1,7 @@
 
-CC = ../../../binaries/wla-6510
+CC = wla-6510
 CFLAGS = -o
-LD = ../../../binaries/wlalink
+LD = wlalink
 LDFLAGS = -v -b -s -t CBMPRG
 
 SFILES = main.s
