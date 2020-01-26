@@ -913,8 +913,16 @@ int evaluate_token(void) {
     return parse_enum_token();
 
   /* is it a directive? */
-  if (tmp[0] == '.')
-    return parse_directive();
+  if (tmp[0] == '.') {
+    x = parse_directive();
+    if (x != DIRECTIVE_NOT_IDENTIFIED)
+      return x;
+
+    /* allow error messages from input_numbers() */
+    input_number_error_msg = YES;
+
+    return EVALUATE_TOKEN_NOT_IDENTIFIED;
+  }
 
   /* is it a label? */
   if (tmp[ss - 1] == ':' && newline_beginning == ON) {
@@ -8604,10 +8612,7 @@ int parse_directive(void) {
     }
   }
 
-  sprintf(emsg, "Unknown directive \"%s\".\n", tmp);
-  print_error(emsg, ERROR_NONE);
-
-  return FAILED;
+  return DIRECTIVE_NOT_IDENTIFIED;
 }
 
 

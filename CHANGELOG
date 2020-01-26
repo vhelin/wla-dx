@@ -11,6 +11,7 @@ v9.11 (26-Jan-2020) [ALL] Stack calculator's string checker handled only
                     [ALL] Added RETURNORG to .RAMSECTION.
                     [ALL] Using a .RAMSECTION without RETURNORG doesn't mess
                       up the .ORG any more.
+                    [ALL] Macro names can now start with a '.'.
                     [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
                       "JP (IY)".
 
