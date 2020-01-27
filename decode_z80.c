@@ -106,11 +106,15 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     i = inz;
 
     /* give a warning when assembling "JP (IX)"! */
+    /*
     if (opt_tmp->hex == 0xE9DD && strcmp(opt_tmp->op, "JP (IX)") == 0)
       print_error("\"JP (IX)\" is semantically incorrect. Please use \"JP IX\" instead.\n", ERROR_WRN);
+    */
     /* give a warning when assembling "JP (IY)"! */
+    /*
     if (opt_tmp->hex == 0xE9FD && strcmp(opt_tmp->op, "JP (IY)") == 0)
       print_error("\"JP (IY)\" is semantically incorrect. Please use \"JP IY\" instead.\n", ERROR_WRN);
+    */
     
     return SUCCEEDED;
   }
