@@ -27,7 +27,7 @@ z  ds 3
 .DEFINE \1 1
 .ENDM
 
-.MACRO EXPO
+.MACRO .EXPO
 \1_\2:
 	.EXPORT \1 \2
 	.PRINTV DEC \1
@@ -77,13 +77,9 @@ xu:	ds 3
 xe	DB
 .ENDS
 
-
 .BANK 0 SLOT 0
 
-	
-.ORG 0
 .SECTION "Beginning"
-
 	.db "S1"
 	.db "dance dance!"
 	.db	$ff, $ff
@@ -97,11 +93,13 @@ MAIN:	.dw	second.x
 .ENDS
 
 
+/*
 .ORG $28
 .SECTION "SemiSubFree" SEMISUBFREE
 	.db "S3"
 	.db "E3"
 .ENDS
+*/
 
 
 .ORG 0
@@ -138,7 +136,7 @@ MORE_ACTION:
 	.db "E2"
 .ENDS
 	
-	EXPO	KEIJO SEPPO
+	.EXPO	KEIJO SEPPO
 	DEF	SMIRK
 	EXP	SMIRK
 	SUPA	MORE_ACTION 20-1

@@ -32,7 +32,9 @@ int get_next_token(char *in, char *out, int *pos) {
   }
   
   out[t] = 0;
-  *pos += i;
+
+  if (pos != NULL)
+    *pos += i;
 
   return SUCCEEDED;
 }
@@ -117,7 +119,9 @@ int get_next_number(char *in, int *out, int *pos) {
     return FAILED;
 
   *out = o;
-  *pos += i;
+
+  if (pos != NULL)
+    *pos += i;
 
   return SUCCEEDED;
 }

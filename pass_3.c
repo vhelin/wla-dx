@@ -343,6 +343,8 @@ int pass_3(void) {
 
 	if (s->advance_org == NO)
 	  add = add_old;
+	else
+	  add = add_old + s->size;
 
 	section_status = OFF;
 	s = NULL;
@@ -504,7 +506,9 @@ int pass_3(void) {
       /* some sections don't affect the ORG outside of them */
       if (s->advance_org == NO)
 	add = add_old;
-
+      else
+	add = add_old + s->size;
+      
       section_status = OFF;
       s = NULL;
       continue;
@@ -651,9 +655,8 @@ int pass_3(void) {
         /* if the label has '@' at the start, mangle the label name to make it unique */
         int n = 0, m;
 
-        while (n < 10 && l->label[n] == '@') {
+        while (n < 10 && l->label[n] == '@')
           n++;
-        }
         m = n;
         while (m < 10)
           parent_labels[m++] = NULL;

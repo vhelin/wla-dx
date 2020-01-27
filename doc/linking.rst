@@ -87,6 +87,11 @@ If flag ``d`` is used, WLALINK discards all unreferenced ``FREE``, ``SEMIFREE``,
 libraries to your project and WLALINK will choose only the used sections, so you
 won't be linking any dead code/data.
 
+If flag ``t`` is used with ``c64PRG``, WLALINK will add a two byte header to the
+program file (use with flag ``b``). The header contains the load address for
+the PRG. Use the flag ``a`` to specify the load address. It can be a value or
+the name of a label.
+
 If flag ``i`` is given, WLALINK will write list files. Note that you must
 compile the object and library files with ``-i`` flag as well. Otherwise
 WLALINK has no extra information it needs to build list files. Here is an
@@ -148,3 +153,4 @@ Examples::
     [seravy@localhost tbp]# wlalink -r linkfile testa.sfc
     [seravy@localhost tbp]# wlalink -d -i -b linkfile testb.sfc
     [seravy@localhost tbp]# wlalink -v -S -L ../../lib linkfile testc.sfc
+    [seravy@localhost tbp]# wlalink -v -b -s -t c64PRG -a LOAD_ADDRESS linkfile linked.prg

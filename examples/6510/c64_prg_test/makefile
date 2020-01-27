@@ -2,20 +2,17 @@
 CC = wla-6510
 CFLAGS = -o
 LD = wlalink
-LDFLAGS = -v -b -s -t CBMPRG -a 123h
+LDFLAGS = -v -b -s -t CBMPRG
 
-SFILES = setup.s main.s
-IFILES = defines.i
-OFILES = main.o setup.o
+SFILES = main.s
+IFILES = 
+OFILES = main.o
 
 all: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.prg
 
-main.o: main.s defines.i
+main.o: main.s
 	$(CC) $(CFLAGS) main.o main.s
-
-setup.o: setup.s defines.i
-	$(CC) $(CFLAGS) setup.o setup.s
 
 
 $(OFILES): $(HFILES)
