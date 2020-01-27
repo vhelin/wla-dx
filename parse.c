@@ -199,7 +199,7 @@ int input_number(void) {
     if (ee == '"' || ee == ',' || (ee == '=' && buffer[p] == '=') || (ee == '!' && buffer[p] == '='))
       break;
     if (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' ||
-	ee == '<' || ee == '>' || ee == '#' || ee == '~') {
+	ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':') {
       /* launch stack calculator */
       p = stack_calculate(&buffer[i - 1], &d);
 

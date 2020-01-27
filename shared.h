@@ -54,6 +54,7 @@
 #define SI_OP_LOW_BYTE    13
 #define SI_OP_HIGH_BYTE   14
 #define SI_OP_NOT         15
+#define SI_OP_BANK        16
 
 #define SI_SIGN_POSITIVE 0
 #define SI_SIGN_NEGATIVE 1

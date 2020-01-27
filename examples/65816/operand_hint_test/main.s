@@ -55,9 +55,34 @@ irqbrk hotto
 .define GPU_ScanlineStatus 1
 .define GPU_hBlankStatus 2
 
+
+.MACRO LoadBlockToVRAM
+	.db :\1
+.ENDM
+
+.MACRO LoadBlockToXRAM
+	.db \1
+.ENDM
+	
+
+.base $20
 .BANK 0 SLOT 0
 .ORG $0000
 
+	.EQU Intro_greyText2nd = Intro_greyText+$8c00
+	.db "01>"
+	LoadBlockToVRAM Intro_greyText+$8c00,$4e00,$1c00
+	.db "<01"
+	.db "02>"
+	LoadBlockToVRAM Intro_greyText2nd,$100,$200,$300
+	.db "<02"
+	.db "03>"
+	LoadBlockToXRAM :(Intro_greyText2nd)+1
+	.db "<03"
+	.db "04>"
+	LoadBlockToXRAM (Intro_greyText2nd >> 16)
+	.db "<04"
+Intro_greyText:	
 	lda.b	#($80 | (>40))
 
 	lda	(instrument.SampleLength+1).w,X

@@ -52,6 +52,25 @@ static int _sections_sort(const void *a, const void *b) {
 }
 
 
+int strcaselesscmp(char *s1, char *s2) {
+
+  if (s1 == NULL || s2 == NULL)
+    return 0;
+
+  while (*s1 != 0) {
+    if (toupper((int)*s1) != toupper((int)*s2))
+      return 1;
+    s1++;
+    s2++;
+  }
+
+  if (*s2 != 0)
+    return 1;
+
+  return 0;
+}
+
+
 int smc_create_and_write(FILE *f) {
 
   int i;
@@ -914,7 +933,7 @@ int fix_references(void) {
     if (r->name[0] == ':') {
       if (is_label_anonymous(&r->name[1]) == YES)
         l = get_closest_anonymous_label(&r->name[1], x, r->file_id, r->section_status, r->section);
-      else if (strcmp(&r->name[1], "CADDR") == 0 || strcmp(&r->name[1], "caddr") == 0) {
+      else if (strcaselesscmp(&r->name[1], "CADDR") == 0) {
         lt.status = LABEL_STATUS_LABEL;
         strcpy(lt.name, &r->name[1]);
         lt.address = r->address;
@@ -989,7 +1008,7 @@ int fix_references(void) {
     else {
       if (is_label_anonymous(r->name) == YES)
         l = get_closest_anonymous_label(r->name, x, r->file_id, r->section_status, r->section);
-      else if (strcmp(r->name, "CADDR") == 0 || strcmp(r->name, "caddr") == 0) {
+      else if (strcaselesscmp(r->name, "CADDR") == 0) {
         lt.status = LABEL_STATUS_DEFINE;
         strcpy(lt.name, r->name);
         lt.address = r->address;
@@ -1538,7 +1557,7 @@ int compute_pending_calculations(void) {
 	k = 1;
     }
     if (k == 1) {
-      if (parse_stack(sta) == FAILED)
+      if (parse_stack(sta, NO) == FAILED)
 	return FAILED;
     }
     sta = sta->next;
@@ -1550,7 +1569,7 @@ int compute_pending_calculations(void) {
     /* is the stack inside a definition? */
     if (sta->position == STACK_POSITION_DEFINITION) {
       /* all the references have been decoded, now compute */
-      if (compute_stack(sta, &k) == FAILED)
+      if (compute_stack(sta, &k, NO) == FAILED)
 	return FAILED;
       /* next stack computation */
       sta = sta->next;
@@ -1585,7 +1604,7 @@ int compute_pending_calculations(void) {
     a = sta->address;
 
     /* all the references have been decoded, now compute */
-    if (compute_stack(sta, &k) == FAILED)
+    if (compute_stack(sta, &k, NO) == FAILED)
       return FAILED;
 
     memory_file_id = sta->file_id;
@@ -1678,6 +1697,19 @@ int compute_pending_calculations(void) {
 }
 
 
+static int _get_rom_bank_of_address(int address) {
+
+  int y;
+  
+  for (y = 0; y < rombanks; y++) {
+    if (address >= bankaddress[y] && address < bankaddress[y] + banksizes[y])
+      return y;
+  }
+
+  return -1;
+}
+
+
 struct stack *find_stack(int id, int file_id) {
 
   struct stack *st = stacks_first;
@@ -1693,7 +1725,7 @@ struct stack *find_stack(int id, int file_id) {
 }
 
 
-int compute_stack(struct stack *sta, int *result) {
+int compute_stack(struct stack *sta, int *result, int using_op_bank) {
 
   struct stack_item *s;
   struct stack *st;
@@ -1707,10 +1739,12 @@ int compute_stack(struct stack *sta, int *result) {
     return FAILED;
   }
 
+  /*
   if (sta->computed == YES) {
     *result = sta->result;
     return SUCCEEDED;
   }
+  */
 
   sta->under_work = YES;
   v[0] = 0.0;
@@ -1741,7 +1775,14 @@ int compute_stack(struct stack *sta, int *result) {
 	v[t] = s->value;
       t++;
     }
+    else if (s->type == STACK_ITEM_TYPE_STRING) {
+      /* parse_stack() turned this string into a value */
+      v[t] = s->value;
+      t++;
+    }
     else if (s->type == STACK_ITEM_TYPE_STACK) {
+      int using = using_op_bank;
+      
       /* we have a stack (A) inside a stack (B)! find the stack (A)! */
       st = find_stack((int)s->value, sta->file_id);
 
@@ -1750,8 +1791,17 @@ int compute_stack(struct stack *sta, int *result) {
 	return FAILED;
       }
 
-      if (compute_stack(st, &res) == FAILED)
+      if (sta->using_op_bank == YES)
+	using = YES;
+
+      /* we need to reparse the stack as it might depend on the type (using_op_bank) of this stack... */      
+      if (parse_stack(st, using) == FAILED)
 	return FAILED;
+      if (compute_stack(st, &res, using) == FAILED)
+	return FAILED;
+
+      if (sta->base_in_labels < 0 && st->base_in_labels >= 0)
+	sta->base_in_labels = st->base_in_labels;
 
       v[t] = res;
       t++;
@@ -1812,6 +1862,18 @@ int compute_stack(struct stack *sta, int *result) {
 	}
 	v[t - 2] = (int)v[t - 1] & (int)v[t - 2];
 	t--;
+	break;
+      case SI_OP_BANK:
+	z = (int)v[t - 1];
+	y = _get_rom_bank_of_address(z);
+	if (y < 0) {
+	  fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Could not get the bank number for ROM address %d/$%x (out of bounds).\n", get_file_name(sta->file_id),
+		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, z, z);
+	  return FAILED;
+	}
+	if (sta->base_in_labels >= 0)
+	  y += sta->base_in_labels;
+	v[t - 1] = y & 0xFF;
 	break;
       case SI_OP_LOW_BYTE:
 	z = (int)v[t - 1];
@@ -1904,11 +1966,11 @@ int write_bank_header_calculations(struct stack *sta) {
 
 
   /* parse stack items */
-  if (parse_stack(sta) == FAILED)
+  if (parse_stack(sta, NO) == FAILED)
     return FAILED;
 
   /* all the references have been decoded, now compute */
-  if (compute_stack(sta, &k) == FAILED)
+  if (compute_stack(sta, &k, NO) == FAILED)
     return FAILED;
 
   s = sec_bankhd_first;
@@ -2072,7 +2134,7 @@ int write_bank_header_references(struct reference *r) {
 
 
 /* transform all string items inside a computation stack into corresponding numbers */
-int parse_stack(struct stack *sta) {
+int parse_stack(struct stack *sta, int using_op_bank) {
 
   struct stack_item *si;
   struct section *s;
@@ -2108,7 +2170,21 @@ int parse_stack(struct stack *sta) {
       ed = 1;
       break;
   }
-  
+
+  /* does the stack contain SI_OP_BANK? */
+  si = sta->stack;
+  g = 0;
+  sta->using_op_bank = NO;
+  while (g != sta->stacksize) {
+    if (si->type == STACK_ITEM_TYPE_OPERATOR && (int)si->value == SI_OP_BANK) {
+      /* yes! all addresses are then ROM addresses */
+      sta->using_op_bank = YES;
+      break;
+    }
+    si++;
+    g++;
+  }
+
   si = sta->stack;
   g = 0;
   k = 0;
@@ -2123,7 +2199,7 @@ int parse_stack(struct stack *sta) {
 	  if (l != NULL)
 	    k = l->bank;
 	}
-	else if (strcmp(&si->string[1], "CADDR") == 0 || strcmp(&si->string[1], "caddr") == 0) {
+	else if (strcaselesscmp(&si->string[1], "CADDR") == 0) {
 	  k = sta->bank + sta->base;
 	  lt.status = LABEL_STATUS_DEFINE;
 	  l = &lt;
@@ -2143,15 +2219,26 @@ int parse_stack(struct stack *sta) {
       else {
 	if (is_label_anonymous(si->string) == YES) {
 	  l = get_closest_anonymous_label(si->string, sta->address, sta->file_id, sta->section_status, sta->section);
-	  if (l != NULL)
-	    k = l->address;
+	  if (l != NULL) {
+	    if (sta->using_op_bank == YES || using_op_bank == YES)
+	      k = l->rom_address;
+	    else
+	      k = l->address;
+	  }
 
 	  /* is the reference relative? */
-	  if (sta->relative_references == YES)
-	    k = k - sta->memory_address - ed;
+	  if (sta->relative_references == YES) {
+	    if (sta->using_op_bank == YES || using_op_bank == YES)
+	      k = k - sta->address - ed;
+	    else
+	      k = k - sta->memory_address - ed;
+	  }
 	}
-	else if (strcmp(si->string, "CADDR") == 0 || strcmp(si->string, "caddr") == 0) {
-	  k = sta->memory_address;
+	else if (strcaselesscmp(si->string, "CADDR") == 0) {
+	  if (sta->using_op_bank == YES || using_op_bank == YES)
+	    k = sta->address;
+	  else
+	    k = sta->memory_address;
 	  lt.status = LABEL_STATUS_DEFINE;
 	  l = &lt;
 	}
@@ -2159,11 +2246,18 @@ int parse_stack(struct stack *sta) {
           find_label(si->string, s, &l);
 
           if (l != NULL) {
-            k = l->address;
+	    if (sta->using_op_bank == YES || using_op_bank == YES)
+	      k = l->rom_address;
+	    else
+	      k = l->address;
 
             /* is the reference relative? */
-            if (sta->relative_references == YES)
-              k = k - sta->memory_address - ed;
+            if (sta->relative_references == YES) {
+	      if (sta->using_op_bank == YES || using_op_bank == YES)
+		k = k - sta->address - ed;
+	      else
+		k = k - sta->memory_address - ed;
+	    }
           }
 	}
       }
@@ -2175,13 +2269,22 @@ int parse_stack(struct stack *sta) {
       }
 
       /* 65816 cpu bank fix */
-      if (sta->type == STACK_TYPE_24BIT && l->status == LABEL_STATUS_LABEL)
-	k += get_snes_pc_bank(l);
+      if (sta->type == STACK_TYPE_24BIT && l->status == LABEL_STATUS_LABEL) {
+	if (sta->using_op_bank == NO && using_op_bank == NO)
+	  k += get_snes_pc_bank(l);
+      }
 
       /*
       fprintf(stdout, "%s: %s:%d: %s %x %d\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber,
 	      si->string, (int)k, sta->relative_references);
       */
+
+      if (sta->base_in_labels < 0)
+	sta->base_in_labels = l->base;
+      else if (sta->base_in_labels >= 0 && sta->base_in_labels != l->base) {
+	fprintf(stderr, "%s: %s:%d: PARSE_STACK: .BASE $%x of label \"%s\" differs from the previously supplied .BASE $%x.\n", get_file_name(sta->file_id),
+		get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, l->base, l->name, sta->base_in_labels);
+      }
 
       if (l->status == LABEL_STATUS_STACK) {
 	/* HACK: here we abuse the stack item structure's members */
@@ -2189,11 +2292,8 @@ int parse_stack(struct stack *sta) {
 	si->sign = l->file_id;
 	si->type = STACK_ITEM_TYPE_STACK;
       }
-      else {
-	/* transform the label string into a value */
+      else
 	si->value = k;
-	si->type = STACK_ITEM_TYPE_VALUE;
-      }
     }
 
     si++;

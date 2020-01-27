@@ -41,7 +41,7 @@ z  ds 3
 l\@_\1\@:
 	jmp	l\@_\1\@
 	jmp	first.z
-	lda	:\1N
+	lda	:\1
 	and	\2,y
 .ENDM
 
@@ -141,8 +141,8 @@ MORE_ACTION:
 	EXPO	KEIJO SEPPO
 	DEF	SMIRK
 	EXP	SMIRK
-	SUPA	MORE_ACTIO 20-1
-	SUPA	MAI 30+20
+	SUPA	MORE_ACTION 20-1
+	SUPA	MAIN 30+20
 	JAMES	MAIN
 
 

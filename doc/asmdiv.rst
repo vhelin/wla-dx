@@ -1062,8 +1062,8 @@ Here are some examples::
         LD B, \2
         LD C, \3
         LD D, :\4        ; load the bank number of \4 into register D.
-        NOPMONSTER       ; note that \4 must be a label for this to work.
-        LD HL, 1<<\1
+        NOPMONSTER       ; note that \4 must be a label or ROM address
+        LD HL, 1<<\1     ; for this to work...
     .INCBIN \5
     .ENDM
     

@@ -14,10 +14,10 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 int write_gb_header(int name_status);
 int write_rom_file(char *outname);
 int compute_pending_calculations(void);
-int compute_stack(struct stack *s, int *result);
+int compute_stack(struct stack *s, int *result, int using_op_bank);
 int write_bank_header_calculations(struct stack *sta);
 int write_bank_header_references(struct reference *r);
-int parse_stack(struct stack *sta);
+int parse_stack(struct stack *sta, int using_op_bank);
 int get_snes_pc_bank(struct label *l);
 int correct_65816_library_sections(void);
 int is_label_anonymous(char *label);

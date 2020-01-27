@@ -194,6 +194,8 @@ struct stack {
   int address;
   int memory_address;
   int special_id;
+  int using_op_bank;
+  int base_in_labels;
 };
 
 #endif /* _DEFINES_H */

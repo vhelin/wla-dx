@@ -287,6 +287,12 @@ int stack_calculate(char *in, int *value) {
       q++;
       in++;
     }
+    else if (*in == ':') {
+      si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].value = SI_OP_BANK;
+      q++;
+      in++;
+    }
     else if (*in == '=' && *(in + 1) == '=')
       break;
     else if (*in == '!' && *(in + 1) == '=')
@@ -639,7 +645,7 @@ int stack_calculate(char *in, int *value) {
 
   /* fix the sign in every operand */
   for (b = 1, k = 0; k < q; k++) {
-    if ((q - k) != 1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR) {
+    if ((q - k) != 1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].value != SI_OP_BANK) {
       if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
 	print_error("Error in computation syntax.\n", ERROR_STC);
 	return FAILED;
@@ -772,6 +778,18 @@ int stack_calculate(char *in, int *value) {
 	  }
 	  b++;
 	  op[b] = SI_OP_HIGH_BYTE;
+	  b++;
+	}
+	else if (si[k].value == SI_OP_BANK) {
+	  b--;
+	  while (b != -1 && op[b] != SI_OP_LEFT) {
+	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
+	    ta[d].value = op[b];
+	    b--;
+	    d++;
+	  }
+	  b++;
+	  op[b] = SI_OP_BANK;
 	  b++;
 	}
 	else if (si[k].value == SI_OP_XOR) {
@@ -1033,7 +1051,7 @@ int resolve_stack(struct stack_item s[], int x) {
 	  }
 	  
 	  if (b > macro_runtime_current->supplied_arguments) {
-	    sprintf(xyz, "Reference to MACRO argument number %d is out of range.\n", b);
+	    sprintf(xyz, "Reference to MACRO argument number %d (\"%s\") is out of range.\n", b, s->string);
 	    print_error(xyz, ERROR_STC);
 	    return FAILED;
 	  }
@@ -1110,9 +1128,9 @@ int resolve_stack(struct stack_item s[], int x) {
   if (cannot_resolve != 0)
     return FAILED;
 
-  /* find a string, a stack or a NOT and fail */
+  /* find a string, a stack, bank, or a NOT and fail */
   while (q > 0) {
-    if (st->type == STACK_ITEM_TYPE_STRING || st->type == STACK_ITEM_TYPE_STACK || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_NOT))
+    if (st->type == STACK_ITEM_TYPE_STRING || st->type == STACK_ITEM_TYPE_STACK || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_NOT) || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
       return FAILED;
     q--;
     st++;

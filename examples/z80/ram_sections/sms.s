@@ -6,7 +6,7 @@
 
 .define MINUS_THREE -3 export
 .define MINUS_ONE = -1 EXPORT
-.define :JANK $22 export
+.define JANK $4001 export
 
 .MEMORYMAP
    DEFAULTSLOT     0
@@ -157,9 +157,9 @@ vertices3 instanceof point 2
 
 
 .BLOCK "Hello"
-.db "HERE>"
+.db "01>"
 .db 1, 2, MINUS_THREE * MINUS_ONE, 4, 5, MINUS_ONE, MINUS_THREE, :JANK
-.db "<HERE"
+.db "<01"
 .BLOCK "Hi!"
 .db 6, 7, 8
 .dw otherVar1, points2, otherVar3, library_hook, rs3b0_a, rs4b127_c, rs7b127_b, rs0b127_c, TEST_RESULT_2

@@ -59,8 +59,8 @@ extern int emptyfill;
 char ext_libdir[MAX_NAME_LENGTH + 1];
 
 
-
 #ifdef WLALINK_DEBUG
+
 static const char *si_operator_plus = "+";
 static const char *si_operator_minus = "-";
 static const char *si_operator_multiply = "*";
@@ -74,6 +74,7 @@ static const char *si_operator_modulo = "#";
 static const char *si_operator_xor = "~";
 static const char *si_operator_low_byte = "<";
 static const char *si_operator_high_byte = ">";
+static const char *si_operator_bank = ":";
 static const char *si_operator_unknown = "UNKNOWN!";
 
 static const char *get_stack_item_operator_name(int operator) {
@@ -104,6 +105,8 @@ static const char *get_stack_item_operator_name(int operator) {
     return si_operator_low_byte;
   else if (operator == SI_OP_HIGH_BYTE)
     return si_operator_high_byte;
+  else if (operator == SI_OP_BANK)
+    return si_operator_bank;
 
   return si_operator_unknown;
 }
@@ -144,8 +147,8 @@ static void debug_print_label(struct label *l) {
 
   printf("label: \"%s\" file: %s status: %d section: %d bank: %d slot: %d base: %d address: %d/$%x alive: %d\n", l->name, get_file_name(l->file_id), l->status, l->section, l->bank, l->slot, l->base, (int)l->address, (int)l->address, l->alive);
 }
-#endif
 
+#endif
 
 
 int main(int argc, char *argv[]) {
