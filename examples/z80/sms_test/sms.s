@@ -27,9 +27,9 @@ TEST_RESULT                     DB
 .ENDS
 
 .ROMBANKMAP
-BANKSTOTAL 2
+BANKSTOTAL 8
 BANKSIZE $4000
-BANKS 2
+BANKS 8
 .ENDRO
 
 .EMPTYFILL $C9
@@ -86,8 +86,13 @@ _start:
 	ld (ix+1), 0
 	ld (iy-1), 0
 
--  .dw caddr, CADDR
-  .db $ff, $ff, :caddr, :CADDR, $ff, $ff
+  .db "01>"
+- .dw caddr, CADDR
+  .db $ff, $ff, :caddr, :CADDR+1, $ff, $ff
+  .db "<01"
+  .db "02>"
+  .db :LabelInBank03, (:LabelInBank03)+1
+  .db "<02"
   .dw $aaaa, $bbbb, :CADDR, $cccc
   ldbc _dataend-_data,$be
   .dw $ffff
@@ -96,6 +101,16 @@ _start:
 _data:
   .db 1,2,3,4,5
 _dataend:
+.ends
+
+.bank 3 slot 0
+.org 0
+
+.section "Bank3" overwrite
+LabelInBank03:
+  .db "02>"
+  .db :Caddr, :(CADDR+$4000)
+  .db "<02"
 .ends
 
   TileAddress 1

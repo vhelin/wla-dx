@@ -2286,6 +2286,11 @@ int parse_stack(struct stack *sta, int using_op_bank) {
 	else if (strcaselesscmp(&si->string[1], "CADDR") == 0) {
 	  k = sta->bank + sta->base;
 	  lt.status = LABEL_STATUS_DEFINE;
+	  strcpy(lt.name, &si->string[1]);
+	  lt.address = sta->address;
+	  lt.bank = sta->bank;
+	  lt.base = sta->base;
+	  lt.section_status = OFF;
 	  l = &lt;
 	}
 	else {
@@ -2324,6 +2329,11 @@ int parse_stack(struct stack *sta, int using_op_bank) {
 	  else
 	    k = sta->memory_address;
 	  lt.status = LABEL_STATUS_DEFINE;
+	  strcpy(lt.name, si->string);
+	  lt.address = sta->address;
+	  lt.bank = sta->bank;
+	  lt.base = sta->base;
+	  lt.section_status = OFF;
 	  l = &lt;
 	}
 	else {
@@ -2363,11 +2373,13 @@ int parse_stack(struct stack *sta, int using_op_bank) {
 	      si->string, (int)k, sta->relative_references);
       */
 
-      if (sta->base_in_labels < 0)
-	sta->base_in_labels = l->base;
-      else if (sta->base_in_labels >= 0 && sta->base_in_labels != l->base) {
-	fprintf(stderr, "%s: %s:%d: PARSE_STACK: .BASE $%x of label \"%s\" differs from the previously supplied .BASE $%x.\n", get_file_name(sta->file_id),
-		get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, l->base, l->name, sta->base_in_labels);
+      if (l->status == LABEL_STATUS_LABEL) {
+	if (sta->base_in_labels < 0)
+	  sta->base_in_labels = l->base;
+	else if (sta->base_in_labels >= 0 && sta->base_in_labels != l->base) {
+	  fprintf(stderr, "%s: %s:%d: PARSE_STACK: .BASE $%x of label \"%s\" differs from the previously supplied .BASE $%x.\n", get_file_name(sta->file_id),
+		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, l->base, l->name, sta->base_in_labels);
+	}
       }
 
       if (l->status == LABEL_STATUS_STACK) {

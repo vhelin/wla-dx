@@ -335,10 +335,9 @@ int main(int argc, char *argv[]) {
     printf("\n");
 
     while (l != NULL) {
-      if (l->alive == YES) {
+      if (l->alive == YES)
 	debug_print_label(l);
-	l = l->next;
-      }
+      l = l->next;
     }
   }
 #endif
@@ -472,10 +471,9 @@ int main(int argc, char *argv[]) {
     printf("\n");
 
     while (l != NULL) {
-      if (l->alive == YES) {
+      if (l->alive == YES)
 	debug_print_label(l);
-	l = l->next;
-      }
+      l = l->next;
     }
   }
 #endif
