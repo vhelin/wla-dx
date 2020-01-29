@@ -60,7 +60,7 @@ int num_sorted_anonymous_labels = 0;
 extern struct section_fix *sec_fix_first, *sec_fix_tmp;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern int emptyfill;
-char ext_libdir[MAX_NAME_LENGTH + 1];
+char ext_libdir[MAX_NAME_LENGTH + 2];
 
 
 #ifdef WLALINK_DEBUG
