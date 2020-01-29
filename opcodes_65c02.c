@@ -355,6 +355,8 @@ struct optcode opt_table[] = {
   { "STA.B x", 0x85, 4, 0 },
   { "STA.W ?", 0x8D, 2, 0 },
 
+  { "STP", 0xDB, 0, 0 },
+
   { "STX x,Y", 0x96, 4, 0 },
   { "STX x", 0x86, 4, 1 },
   { "STX ?", 0x8E, 2, 0 },
@@ -394,6 +396,8 @@ struct optcode opt_table[] = {
   { "TSB ?", 0x0C, 2, 0 },
   { "TSB.B x", 0x04, 4, 1 },
   { "TSB.W ?", 0x0C, 2, 0 },
+
+  { "WAI", 0xCB, 0, 0 },
 
   { "E", 0x100, 0xFF, 0 }
 };
