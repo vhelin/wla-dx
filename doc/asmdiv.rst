@@ -1041,7 +1041,7 @@ inside a macro or just as a plain value. Look at the following examples
 for more information.
 
 You can also type ``\!`` to get the name of the source file currently being
-parsed.
+parsed. ``\.`` can be used the same way to get the name of the macro.
 
 Also, if you want to use macro arguments in e.g., calculation, you can
 type ``\X`` where ``X`` is the number of the argument. Another way to refer

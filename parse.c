@@ -945,7 +945,19 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 	(*expands)++;
 	i++;
 
-	sprintf(t, "%d%c", macro_runtime_current->macro->calls - 1, 0);
+	sprintf(t, "%d", macro_runtime_current->macro->calls - 1);
+	for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
+	  expanded_macro_string[k] = t[j];
+	  if (t[j] == 0)
+	    break;
+	}
+      }
+      else if (in[i + 1] == '.') {
+	/* we found '.' -> expand! */
+	(*expands)++;
+	i++;
+
+	sprintf(t, "%s", macro_runtime_current->macro->name);
 	for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
 	  expanded_macro_string[k] = t[j];
 	  if (t[j] == 0)
@@ -957,7 +969,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 	(*expands)++;
 	i++;
 
-	sprintf(t, "%s%c", get_file_name(active_file_info_last->filename_id), 0);
+	sprintf(t, "%s", get_file_name(active_file_info_last->filename_id));
 	for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
 	  expanded_macro_string[k] = t[j];
 	  if (t[j] == 0)

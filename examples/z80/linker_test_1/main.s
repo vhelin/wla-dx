@@ -21,6 +21,7 @@
 .endm
 
 .MACRO JESUS
+\._\@:
 .DB \1, " ", \2, 0
 .ENDM
 
@@ -181,6 +182,8 @@ _loop:
 	LD	H, res 5, (   ix     +   100)
 
 	JESUS "accept", "rules ok"
+	JESUS "deny", "disobey"
+	JESUS "idle", "whatever"
 ----
 	jp	----
 .db	"HE" , 1    ,     2,3,4,5,    9
