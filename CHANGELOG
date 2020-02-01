@@ -16,6 +16,8 @@ v9.11 (01-Feb-2020) [ALL] Stack calculator's string checker handled only
                       used also with ROM addresses and their calculations.
                     [ALL] When using .MACROs, use '\.' to get the macro's name.
                     [ALL] SLOTs can now be given names.
+                    [ALL] SLOTs can now be referenced by their name, ID
+                      or address.
                     [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
                       "JP (IY)".
                     [650] Added support for W65C02S's "WAI" and "STP".

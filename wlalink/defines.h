@@ -82,6 +82,7 @@ struct object_file {
   int little_endian;
   int cpu_65816;
   int id;
+  int fix_slot;
   struct source_file_name *source_file_names_list;
   struct object_file *next;
 };

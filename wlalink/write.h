@@ -28,5 +28,6 @@ struct stack *find_stack(int id, int file_id);
 int generate_sizeof_label_definitions(void);
 int fix_sectionstartend_labels(void);
 int get_slot_by_its_name(char *name, int *slot);
+int get_slot_by_a_value(int value, int *slot);
 
 #endif

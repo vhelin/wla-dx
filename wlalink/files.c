@@ -329,8 +329,8 @@ int load_files(char *argv[], int argc) {
       }
       else
         sprintf(tmp_token, "%s", token);
-      
-      if (load_file(tmp_token, bank, slot, slot_name, base, base_defined) == FAILED) {
+
+      if (load_file(tmp_token, bank, slot, slot_name, YES, base, base_defined) == FAILED) {
 	fclose(fop);
 	return FAILED;
       }
@@ -344,7 +344,7 @@ int load_files(char *argv[], int argc) {
       continue;
     }
     /* object file loading */
-    else if (load_file(token, 0, 0, NULL, 0, OFF) == FAILED) {
+    else if (load_file(token, 0, 0, NULL, NO, 0, OFF) == FAILED) {
       fclose(fop);
       return FAILED;
     }
@@ -362,7 +362,7 @@ int load_files(char *argv[], int argc) {
 }
 
 
-int load_file(char *file_name, int bank, int slot, char *slot_name, int base, int base_defined) {
+int load_file(char *file_name, int bank, int slot, char *slot_name, int fix_slot, int base, int base_defined) {
 
   struct object_file *o;
   unsigned char *data;
@@ -374,10 +374,8 @@ int load_file(char *file_name, int bank, int slot, char *slot_name, int base, in
   o = calloc(sizeof(struct object_file), 1);
   name = calloc(strlen(file_name)+1, 1);
   if (o == NULL || name == NULL) {
-    if (o != NULL)
-      free(o);
-    if (name != NULL)
-      free(name);
+    free(o);
+    free(name);
     fprintf(stderr, "LOAD_FILE: Out of memory.\n");
     return FAILED;
   }
@@ -417,6 +415,7 @@ int load_file(char *file_name, int bank, int slot, char *slot_name, int base, in
   o->next = NULL;
   o->size = size;
   o->data = data;
+  o->fix_slot = fix_slot;
 
   strcpy(name, file_name);
   o->name = name;
@@ -519,17 +518,25 @@ struct object_file *get_file(int file_id) {
 }
 
 
-int convert_slot_names() {
+int convert_slot_names_and_addresses() {
 
   struct object_file *o;
 
   
   o = obj_first;
   while (o != NULL) {
-    if (o->slot < 0) {
-      if (get_slot_by_its_name(o->slot_name, &(o->slot)) == FAILED)
-	return FAILED;
+    if (o->fix_slot) {
+      if (o->slot < 0) {
+	if (get_slot_by_its_name(o->slot_name, &(o->slot)) == FAILED)
+	  return FAILED;
+      }
+      else {
+	/* here o->slot, given in the linkfile, might be $2000, so we'll need to find its SLOT number */
+	if (get_slot_by_a_value(o->slot, &(o->slot)) == FAILED)
+	  return FAILED;
+      }
     }
+    
     o = o->next;
   }
   

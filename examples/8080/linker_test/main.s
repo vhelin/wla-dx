@@ -8,7 +8,7 @@
    ; ROM area
    SLOTSIZE        $4000
    SLOT            0       $0000      "SlotZero"
-   SLOT            1       $4000
+   SLOT            1       $4000      "SlotOne"
    SLOT            2       $8000
    ; RAM area
    SLOTSIZE        $1000
@@ -28,9 +28,15 @@ BANKS 4
 .BANK 0 SLOT 0
 .ORG 0
 
+.SLOT 1
+.SLOT $4000
+.SLOT "SlotOne"
+.SLOT 0
+
 .SECTION "MAIN" FORCE
 .DW $10
 .DW LibraryMain
+.DW ExtrasMain
 .DB $11
 Main:	nop
 	jmp Main

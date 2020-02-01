@@ -237,8 +237,8 @@ int main(int argc, char *argv[]) {
   if (obtain_memorymap() == FAILED)
     return 1;
 
-  /* convert slot names to slot numbers */
-  if (convert_slot_names() == FAILED)
+  /* convert slot names and addresses to slot numbers */
+  if (convert_slot_names_and_addresses() == FAILED)
     return 1;
   
   /* calculate romsize */

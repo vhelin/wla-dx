@@ -179,6 +179,63 @@ int strcaselesscmp(char *s1, char *s2) {
 }
 
 
+static int _get_slot_number_by_its_name(char *slot_name, int *number) {
+
+  int i;
+  
+  for (i = 0; i < slots_amount; i++) {
+    if (strcmp(slot_name, slots[i].name) == 0) {
+      *number = i;
+      return SUCCEEDED;
+    }
+  }
+
+  sprintf(emsg, "Cannot find SLOT \"%s\".\n", slot_name);
+  print_error(emsg, ERROR_DIR);
+
+  return FAILED;  
+}
+
+
+static int _get_slot_number_by_a_value(int value, int *slot) {
+
+  int i;
+
+  if (value < 0) {
+    *slot = value;
+    return FAILED;
+  }
+  
+  if (value < slots_amount) {
+    /* value can be the direct SLOT ID, but can it be a SLOT's address as well? */
+    for (i = 0; i < slots_amount; i++) {
+      if (slots[i].address == value && value != i) {
+	sprintf(emsg, "There is a SLOT number %d, but there also is a SLOT (with ID %d) with starting address %d ($%x)... Using SLOT %d.\n", value, i, value, value, value);
+	print_error(emsg, ERROR_WRN);
+	break;
+      }
+    }
+    
+    *slot = value;
+    return SUCCEEDED;
+  }
+
+  for (i = 0; i < slots_amount; i++) {
+    if (slots[i].address == value) {
+      *slot = i;
+      return SUCCEEDED;
+    }
+  }
+
+  *slot = -1;
+
+  sprintf(emsg, "Cannot find SLOT %d.\n", value);
+  print_error(emsg, ERROR_DIR);
+  
+  return FAILED;
+}
+
+
 struct macro_static *macro_get(char *name) {
 
   struct macro_static *macro;
@@ -2066,15 +2123,25 @@ int directive_slot(void) {
 
   q = input_number();
 
+  if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
+    /* turn the label into a number */
+    if (_get_slot_number_by_its_name(label, &d) == FAILED)
+      return FAILED;
+    q = SUCCEEDED;
+  }
+  else if (q == SUCCEEDED) {
+    /* is the number a direct SLOT number, or is it an address? */
+    q = _get_slot_number_by_a_value(d, &d);
+  }
   if (q == FAILED)
     return FAILED;
 
   if (q != SUCCEEDED) {
-    print_error(".SLOT needs a positive or zero integer value.\n", ERROR_DIR);
+    print_error("Cannot find the SLOT.\n", ERROR_DIR);
     return FAILED;
   }
 
-  if (slots[d].size == 0) {
+  if (d < 0 || d > 255 || slots[d].size == 0) {
     sprintf(emsg, "There is no SLOT number %d.\n", d);
     print_error(emsg, ERROR_DIR);
     return FAILED;
@@ -2085,24 +2152,6 @@ int directive_slot(void) {
   current_slot = d;
 
   return SUCCEEDED;
-}
-
-
-static int _get_slot_number(char *slot_name, int *number) {
-
-  int i;
-  
-  for (i = 0; i < 256; i++) {
-    if (strcmp(slot_name, slots[i].name) == 0) {
-      *number = i;
-      return SUCCEEDED;
-    }
-  }
-
-  sprintf(emsg, "Cannot find SLOT \"%s\".\n", slot_name);
-  print_error(emsg, ERROR_DIR);
-
-  return FAILED;  
 }
 
 
@@ -2153,12 +2202,16 @@ int directive_bank(void) {
       return FAILED;
     if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
       /* turn the label into a number */
-      if (_get_slot_number(label, &d) == FAILED)
+      if (_get_slot_number_by_its_name(label, &d) == FAILED)
 	return FAILED;
       q = SUCCEEDED;
     }
-    if (q != SUCCEEDED || d > 255 || d < 0) {
-      print_error("SLOT needs an unsigned 8-bit value as an ID.\n", ERROR_DIR);
+    else if (q == SUCCEEDED) {
+      /* is the number a direct SLOT number, or is it an address? */
+      q = _get_slot_number_by_a_value(d, &d);
+    }
+    if (q != SUCCEEDED) {
+      print_error("Cannot find the SLOT.\n", ERROR_DIR);
       return FAILED;
     }
 
@@ -3823,12 +3876,16 @@ int directive_ramsection(void) {
       return FAILED;
     if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
       /* turn the label into a number */
-      if (_get_slot_number(label, &d) == FAILED)
+      if (_get_slot_number_by_its_name(label, &d) == FAILED)
 	return FAILED;
       q = SUCCEEDED;
     }
-    if (q != SUCCEEDED || d > 255 || d < 0) {
-      print_error(".RAMSECTION needs an unsigned 8-bit value as the SLOT number.\n", ERROR_DIR);
+    else if (q == SUCCEEDED) {
+      /* is the number a direct SLOT number, or is it an address? */
+      q = _get_slot_number_by_a_value(d, &d);
+    }
+    if (q != SUCCEEDED) {
+      print_error("Cannot find the SLOT.\n", ERROR_DIR);
       return FAILED;
     }
 

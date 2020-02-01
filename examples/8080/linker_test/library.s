@@ -38,11 +38,17 @@ Library03End:
 	IN TWENTY-FIVE
 	EI
 .DB "<05"
-.DW ramvar2
+.DW ramvar2, othervar2
 .ENDS
 
 .RAMSECTION "RAM VARS"
 ramvar1 db
 ramvar2 db
 ramvar3 db
+.ENDS
+
+.RAMSECTION "OTHER VARS"
+othervar1 db
+othervar2 db
+othervar3 db
 .ENDS

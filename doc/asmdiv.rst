@@ -1314,6 +1314,12 @@ Changes the currently active memory slot. This directive is meant to be
 used with ``SUPERFREE`` sections, where only the slot number is constant
 when placing the sections.
 
+You can use the number, address or name of the slot here::
+
+    .SLOT 1           ; Use slot 1.
+    .SLOT $2000       ; Use a slot with starting address of $2000.
+    .SLOT "SlotOne"   ; Use a slot with a name "SlotOne"
+
 This is not a compulsory directive.
 
 
@@ -2548,11 +2554,11 @@ Anyway, here's another example::
     enemy     INSTANCEOF game_object
     .ENDS
 
-    .RAMSECTION "vars 2" BANK 1 SLOT "RAMSlot"
+    .RAMSECTION "vars 2" BANK 1 SLOT "RAMSlot"  ; Here we use slot 2
     moomin2   DW
     .ENDS
 
-    .RAMSECTION "vars 3" BANK 1 SLOT 2
+    .RAMSECTION "vars 3" BANK 1 SLOT $A000      ; Slot 2 here as well...
     moomin3_all .DSB 3
     moomin3_a    DB
     moomin3_b    DB

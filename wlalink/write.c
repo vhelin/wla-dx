@@ -722,8 +722,10 @@ int fix_ramsections(void) {
 	  if (get_slot_by_its_name(sec_fix_tmp->slot_name, &(s->slot)) == FAILED)
 	    return FAILED;
 	}
-	else
-	  s->slot = sec_fix_tmp->slot;
+	else {
+	  if (get_slot_by_a_value(sec_fix_tmp->slot, &(s->slot)) == FAILED)
+	    return FAILED;
+	}
 	
 	break;
       }
@@ -2833,6 +2835,48 @@ int get_slot_by_its_name(char *name, int *slot) {
   }
 
   fprintf(stderr, "GET_SLOT_BY_ITS_NAME: Could not find SLOT \"%s\".\n", name);
+
+  return FAILED;
+}
+
+
+int get_slot_by_a_value(int value, int *slot) {
+
+  int i;
+
+  if (slot == NULL)
+    return FAILED;
+
+  if (value < 0) {
+    *slot = value;
+    fprintf(stderr, "GET_SLOT_BY_A_VALUE: Internal error.\n");
+    return FAILED;
+  }
+  
+  /* value can be the direct SLOT ID, but can it be a SLOT's address as well? */
+  if (value < 256) {
+    for (i = 0; i < 256; i++) {
+      if (slots[i].usage == ON && slots[i].address == value && value != i && slots[value].usage == ON) {
+	fprintf(stderr, "GET_SLOT_BY_A_VALUE: There is a SLOT number %d, but there also is a SLOT (with ID %d) with starting address %d ($%x)... Using SLOT %d.\n", value, i, value, value, value);
+	*slot = value;
+	return SUCCEEDED;
+      }
+    }
+
+    *slot = value;
+    return SUCCEEDED;
+  }
+
+  for (i = 0; i < 256; i++) {
+    if (slots[i].usage == ON && slots[i].address == value) {
+      *slot = i;
+      return SUCCEEDED;
+    }
+  }
+
+  *slot = -1;
+
+  fprintf(stderr, "GET_SLOT_BY_A_VALUE: Cannot find SLOT %d.\n", value);
 
   return FAILED;
 }
