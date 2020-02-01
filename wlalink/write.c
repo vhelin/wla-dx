@@ -717,7 +717,14 @@ int fix_ramsections(void) {
     while (s != NULL) {
       if (strcmp(s->name, sec_fix_tmp->name) == 0) {
 	s->bank = sec_fix_tmp->bank;
-	s->slot = sec_fix_tmp->slot;
+
+	if (sec_fix_tmp->slot < 0) {
+	  if (get_slot_by_its_name(sec_fix_tmp->slot_name, &(s->slot)) == FAILED)
+	    return FAILED;
+	}
+	else
+	  s->slot = sec_fix_tmp->slot;
+	
 	break;
       }
       s = s->next;
@@ -2806,4 +2813,26 @@ int fix_sectionstartend_labels(void) {
   }  
   
   return SUCCEEDED;
+}
+
+
+int get_slot_by_its_name(char *name, int *slot) {
+
+  int i;
+  
+  if (name == NULL || slot == NULL)
+    return FAILED;
+
+  for (i = 0; i < 256; i++) {
+    if (slots[i].usage == ON) {
+      if (strcmp(slots[i].name, name) == 0) {
+	*slot = i;
+	return SUCCEEDED;
+      }
+    }
+  }
+
+  fprintf(stderr, "GET_SLOT_BY_ITS_NAME: Could not find SLOT \"%s\".\n", name);
+
+  return FAILED;
 }

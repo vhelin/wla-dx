@@ -60,6 +60,7 @@ changePlatform 6502
 runTest compiler_test
 runTest linker_test
 runTest operand_hint_test
+runTest slots_test
 runTest struct_test
 cd ..
 

@@ -2211,14 +2211,14 @@ Examples::
     
     .MEMORYMAP
     DEFAULTSLOT 0
-    SLOT 0 $0000 $4000
-    SLOT 1 $4000 $4000
+    SLOT 0 $0000 $4000 "ROMSlot"
+    SLOT 1 $4000 $4000 "RAMSlot"
     .ENDME
     
     .MEMORYMAP
     DEFAULTSLOT 0
-    SLOT 0 START $0000 SIZE $4000
-    SLOT 1 START $4000 SIZE $4000
+    SLOT 0 START $0000 SIZE $4000 NAME "ROMSlot"
+    SLOT 1 START $4000 SIZE $4000 NAME "RAMSlot"
     .ENDME
     
     .MEMORYMAP
@@ -2531,9 +2531,9 @@ Anyway, here's another example::
     .MEMORYMAP
     SLOTSIZE $4000
     DEFAULTSLOT 0
-    SLOT 0 $0000   ; ROM slot 0.
-    SLOT 1 $4000   ; ROM slot 1.
-    SLOT 2 $A000   ; variable RAM is here!
+    SLOT 0 $0000           ; ROM slot 0.
+    SLOT 1 $4000           ; ROM slot 1.
+    SLOT 2 $A000 "RAMSlot" ; variable RAM is here!
     .ENDME
 
     .STRUCT game_object
@@ -2548,7 +2548,7 @@ Anyway, here's another example::
     enemy     INSTANCEOF game_object
     .ENDS
 
-    .RAMSECTION "vars 2" BANK 1 SLOT 2
+    .RAMSECTION "vars 2" BANK 1 SLOT "RAMSlot"
     moomin2   DW
     .ENDS
 

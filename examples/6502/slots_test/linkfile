@@ -1,0 +1,6 @@
+[objects]
+main.o
+
+[definitions]
+MyAddressÍs0Bh 0bh
+MyAddressIs22h 22h

@@ -521,8 +521,10 @@ int pass_1(void) {
     printf("Pass 1...\n");
 
   /* mark all slots as empty */
-  for (q = 0; q < 256; q++)
+  for (q = 0; q < 256; q++) {
     slots[q].size = 0;
+    slots[q].name[0] = 0;
+  }
 
   /* WARNING: "i" is a global variable that we use as the char index to the source file. */
   /* Ville: this must be one of the worst programming decicions I've ever done, sorry about it... */
@@ -2086,6 +2088,24 @@ int directive_slot(void) {
 }
 
 
+static int _get_slot_number(char *slot_name, int *number) {
+
+  int i;
+  
+  for (i = 0; i < 256; i++) {
+    if (strcmp(slot_name, slots[i].name) == 0) {
+      *number = i;
+      return SUCCEEDED;
+    }
+  }
+
+  sprintf(emsg, "Cannot find SLOT \"%s\".\n", slot_name);
+  print_error(emsg, ERROR_DIR);
+
+  return FAILED;  
+}
+
+
 int directive_bank(void) {
 
   int q;
@@ -2131,6 +2151,12 @@ int directive_bank(void) {
 
     if (q == FAILED)
       return FAILED;
+    if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
+      /* turn the label into a number */
+      if (_get_slot_number(label, &d) == FAILED)
+	return FAILED;
+      q = SUCCEEDED;
+    }
     if (q != SUCCEEDED || d > 255 || d < 0) {
       print_error("SLOT needs an unsigned 8-bit value as an ID.\n", ERROR_DIR);
       return FAILED;
@@ -3795,6 +3821,12 @@ int directive_ramsection(void) {
     q = input_number();
     if (q == FAILED)
       return FAILED;
+    if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
+      /* turn the label into a number */
+      if (_get_slot_number(label, &d) == FAILED)
+	return FAILED;
+      q = SUCCEEDED;
+    }
     if (q != SUCCEEDED || d > 255 || d < 0) {
       print_error(".RAMSECTION needs an unsigned 8-bit value as the SLOT number.\n", ERROR_DIR);
       return FAILED;
@@ -5006,6 +5038,7 @@ int directive_memorymap(void) {
 	skip_next_token();
 
       q = input_number();
+
       if (q == INPUT_NUMBER_EOL) {
 	if (slotsize_defined == 0) {
 	  print_error("SLOTSIZE must be defined if you don't explicitly give the size.\n", ERROR_DIR);
@@ -5019,13 +5052,38 @@ int directive_memorymap(void) {
       else {
 	if (q == FAILED)
 	  return FAILED;
-	if (q != SUCCEEDED) {
+	if (q == INPUT_NUMBER_ADDRESS_LABEL || q == INPUT_NUMBER_STRING) {
+	  /* we got the name for the SLOT instead of its SIZE */
+	  strcpy(slots[o].name, label);
+	  d = slotsize;
+	}
+	else if (q != SUCCEEDED) {
 	  print_error("The size of the slot needs to be an immediate value.\n", ERROR_DIR);
 	  return FAILED;
 	}
       }
-
+      
       slots[o].size = d;
+
+      if (q != INPUT_NUMBER_EOL) {
+	/* skip "NAME" if present */
+	if (compare_next_token("NAME") == SUCCEEDED)
+	  skip_next_token();
+
+	q = input_number();
+
+	if (q == INPUT_NUMBER_EOL)
+	  next_line();
+	else {
+	  if (q != INPUT_NUMBER_ADDRESS_LABEL && q != INPUT_NUMBER_STRING) {
+	    print_error("NAME needs a label/string for name.\n", ERROR_DIR);
+	    return FAILED;	
+	  }
+
+	  strcpy(slots[o].name, label);
+	}
+      }
+      
       slots_amount++;
       s++;
     }

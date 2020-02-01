@@ -1326,7 +1326,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAW%c", emptyfill);
+    fprintf(final_ptr, "WLAX%c", emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -1418,6 +1418,10 @@ int pass_4(void) {
         WRITEOUT_OV;                               /* slot address */
         ov = slots[i].size;
         WRITEOUT_OV;                               /* slot size */
+	if (slots[i].name[0] == 0x0)               /* slot name */
+	  fprintf(final_ptr, "%c", 0x0);
+	else
+	  fprintf(final_ptr, "%s%c", slots[i].name, 0x0);
       }
     }
 

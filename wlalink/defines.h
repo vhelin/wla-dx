@@ -70,6 +70,7 @@ struct object_file {
   unsigned char *source_file_names;
   unsigned char *exported_defines;
   unsigned char *data_blocks;
+  char slot_name[MAX_NAME_LENGTH + 1];
   char *name;
   int rom_banks;
   int format;
@@ -166,6 +167,7 @@ struct section {
 struct section_fix {
   char name[MAX_NAME_LENGTH + 1];
   char file_name[MAX_NAME_LENGTH + 1];
+  char slot_name[MAX_NAME_LENGTH + 1];
   int  line_number;
   int  bank;
   int  slot;
@@ -176,6 +178,7 @@ struct slot {
   int address;
   int size;
   int usage;
+  char name[MAX_NAME_LENGTH + 1];
 };
 
 struct stack {

@@ -7,14 +7,14 @@
    DEFAULTSLOT     0
    ; ROM area
    SLOTSIZE        $4000
-   SLOT            0       $0000
+   SLOT            0       $0000      "SlotZero"
    SLOT            1       $4000
    SLOT            2       $8000
    ; RAM area
    SLOTSIZE        $1000
-   SLOT            3       $D000
-   SLOT            4       $E000
-   SLOT            5       $F000
+   SLOT            3       $D000      "RAM 1"
+   SLOT            4       $E000      "RAM 2"
+   SLOT            5       $F000      "RAM 3"
 .ENDME
 
 .ROMBANKMAP

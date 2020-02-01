@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 object file format "WLAW"
+WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 object file format "WLAX"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAW" - WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 object file version 23 (11-Sep-2019)
+        "WLAX" - WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 object file version 24 (01-Feb-2020)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -45,6 +45,7 @@ memory map:
   ...
   4     slot address (int)
   4     slot size (int)
+  n     slot name (0 terminated)
   ...
 
 source file name list:

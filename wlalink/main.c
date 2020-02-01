@@ -26,7 +26,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.13a (23.1.2020)";
+char version_string[] = "$VER: wlalink 5.13a (1.2.2020)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -237,6 +237,10 @@ int main(int argc, char *argv[]) {
   if (obtain_memorymap() == FAILED)
     return 1;
 
+  /* convert slot names to slot numbers */
+  if (convert_slot_names() == FAILED)
+    return 1;
+  
   /* calculate romsize */
   for (romsize = 0, x = 0; x < rombanks; x++)
     romsize += banksizes[x];

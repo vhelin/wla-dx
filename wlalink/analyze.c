@@ -382,7 +382,7 @@ int obtain_source_file_names(void) {
 int obtain_memorymap(void) {
 
   struct object_file *o;
-  int map_found = OFF, i, x;
+  int map_found = OFF, i, x, y;
   unsigned char *t;
   struct slot s[256];
 
@@ -403,6 +403,10 @@ int obtain_memorymap(void) {
 	slots[x].usage = ON;
 	slots[x].address =  READ_T;
 	slots[x].size =  READ_T;
+	for (y = 0; *t != 0; t++, y++)
+	  slots[x].name[y] = *t;
+	slots[x].name[y] = 0;
+	t++;
       }
 
       o->source_file_names = t;
@@ -434,6 +438,10 @@ int obtain_memorymap(void) {
 	s[x].usage = ON;
 	s[x].address =  READ_T;
 	s[x].size =  READ_T;
+	for (y = 0; *t != 0; t++, y++)
+	  s[x].name[y] = *t;
+	s[x].name[y] = 0;
+	t++;
       }
 
       o->source_file_names = t;
@@ -444,8 +452,19 @@ int obtain_memorymap(void) {
 	    x = 1;
 	    break;
 	  }
-	  if (slots[i].address == s[i].address && slots[i].size == s[i].size)
+	  if (slots[i].address == s[i].address && slots[i].size == s[i].size) {
+	    if (slots[i].name[0] == 0 && s[i].name[0] != 0) {
+	      /* use the name given to the other slot */
+	      strcpy(slots[i].name, s[i].name);
+	    }
+	    else if (slots[i].name[0] != 0 && s[i].name[0] != 0) {
+	      /* check that the names match */
+	      if (strcmp(slots[i].name, s[i].name) != 0)
+		fprintf(stderr, "OBTAIN_MEMORYMAP: SLOT %d has two different names (\"%s\" and \"%s\"). Using \"%s\"...\n",
+			i, slots[i].name, s[i].name, slots[i].name);
+	    }
 	    continue;
+	  }
 	  x = 1;
 	  break;
 	}

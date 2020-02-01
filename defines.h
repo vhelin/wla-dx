@@ -543,8 +543,9 @@ struct file_name_info {
 };
 
 struct slot {
-  int address;
-  int size;
+  char name[MAX_NAME_LENGTH + 1];
+  int  address;
+  int  size;
   struct slot *next;
 };
 

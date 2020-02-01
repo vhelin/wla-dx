@@ -1,4 +1,7 @@
 [objects]
 main.o
 [libraries]
-bank 0 slot 0 library.lib
+bank 0 slot "SlotZero" library.lib
+[ramsections]
+bank 0 slot "RAM 2" "RAM VARS"
+
