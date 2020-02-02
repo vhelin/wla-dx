@@ -108,9 +108,9 @@ _dataend:
 
 .section "Bank3" overwrite
 LabelInBank03:
-  .db "02>"
+  .db "03>"
   .db :Caddr, :(CADDR+$4000)
-  .db "<02"
+  .db "<03"
 .ends
 
   TileAddress 1

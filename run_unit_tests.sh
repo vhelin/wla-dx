@@ -80,6 +80,7 @@ cd ..
 #####################################################################
 
 changePlatform 65816
+runTest bank_number
 runTest base_test_1
 runTest base_test_2
 runTest base_test_3

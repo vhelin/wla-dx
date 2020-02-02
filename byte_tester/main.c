@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
 	break;
 
       if (strcmp(tmp, "START") != 0) {
-	fprintf(stderr, "Test \"%s\" FAILED - START is missing.\n", test_id);
+	fprintf(stderr, "Test \"%s\" FAILED - START is missing in \"%s\".\n", test_id, argv[1]);
 	failures = 1;
 	break;
       }
@@ -193,7 +193,7 @@ int main(int argc, char *argv[]) {
 	break;
 
       if (strcmp(tmp, "START") != 0) {
-	fprintf(stderr, "Test \"%s\" FAILED - START/-a is missing.\n", test_id);
+	fprintf(stderr, "Test \"%s\" FAILED - START/-a is missing in \"%s\".\n", test_id, argv[1]);
 	failures = 1;
 	break;
       }

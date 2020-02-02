@@ -190,7 +190,8 @@ struct stack {
   int relative_references;
   int under_work;
   int computed;
-  int result;
+  int result_ram;
+  int result_rom;
   int position;
   int file_id;
   int file_id_source;
@@ -205,8 +206,15 @@ struct stack {
   int address;
   int memory_address;
   int special_id;
-  int using_op_bank;
   int base_in_labels;
+};
+
+struct stack_item {
+  int type;
+  int sign;
+  double value_ram;
+  double value_rom;
+  char string[MAX_NAME_LENGTH + 1];
 };
 
 #endif /* _DEFINES_H */

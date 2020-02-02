@@ -582,6 +582,13 @@ struct stack {
   int special_id;
 };
 
+struct stack_item {
+  int type;
+  int sign;
+  double value;
+  char string[MAX_NAME_LENGTH + 1];
+};
+
 #define STRUCTURE_ITEM_TYPE_DATA            0
 #define STRUCTURE_ITEM_TYPE_DOTTED          1
 #define STRUCTURE_ITEM_TYPE_INSTANCEOF      2

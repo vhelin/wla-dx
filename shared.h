@@ -68,13 +68,6 @@
 #define STACK_POSITION_DEFINITION 0
 #define STACK_POSITION_CODE       1
 
-struct stack_item {
-  int type;
-  int sign;
-  double value;
-  char string[MAX_NAME_LENGTH + 1];
-};
-
 struct namespace_def {
   char name[MAX_NAME_LENGTH + 1];
   map_t *label_map;

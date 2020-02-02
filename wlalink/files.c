@@ -122,6 +122,7 @@ int load_files(char *argv[], int argc) {
       }
 
       l->address = n;
+      l->rom_address = n;
       add_label(l);
       continue;
     }

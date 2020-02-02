@@ -652,7 +652,8 @@ int transform_stack_definitions(void) {
 
       /* do the transformation */
       l->status = LABEL_STATUS_DEFINE;
-      l->address = s->result;
+      l->address = s->result_ram;
+      l->rom_address = s->result_rom;
     }
 
     l = l->next;
@@ -1650,7 +1651,7 @@ int compute_pending_calculations(void) {
 	k = 1;
     }
     if (k == 1) {
-      if (parse_stack(sta, NO) == FAILED)
+      if (parse_stack(sta) == FAILED)
 	return FAILED;
     }
     sta = sta->next;
@@ -1662,7 +1663,7 @@ int compute_pending_calculations(void) {
     /* is the stack inside a definition? */
     if (sta->position == STACK_POSITION_DEFINITION) {
       /* all the references have been decoded, now compute */
-      if (compute_stack(sta, &k, NO) == FAILED)
+      if (compute_stack(sta, NULL, NULL) == FAILED)
 	return FAILED;
       /* next stack computation */
       sta = sta->next;
@@ -1697,7 +1698,7 @@ int compute_pending_calculations(void) {
     a = sta->address;
 
     /* all the references have been decoded, now compute */
-    if (compute_stack(sta, &k, NO) == FAILED)
+    if (compute_stack(sta, &k, NULL) == FAILED)
       return FAILED;
 
     memory_file_id = sta->file_id;
@@ -1807,7 +1808,6 @@ struct stack *find_stack(int id, int file_id) {
 
   struct stack *st = stacks_first;
 
-
   while (st != NULL) {
     if (st->id == id && st->file_id == file_id)
       return st;
@@ -1818,12 +1818,12 @@ struct stack *find_stack(int id, int file_id) {
 }
 
 
-int compute_stack(struct stack *sta, int *result, int using_op_bank) {
+int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
 
   struct stack_item *s;
   struct stack *st;
-  int r, t, z, y, x, res;
-  double v[256], q;
+  int r, t, z, y, x, res_ram, res_rom;
+  double v_ram[256], v_rom[256], q;
 
 
   if (sta->under_work == YES) {
@@ -1832,26 +1832,28 @@ int compute_stack(struct stack *sta, int *result, int using_op_bank) {
     return FAILED;
   }
 
-  /*
   if (sta->computed == YES) {
-    *result = sta->result;
+    if (result_ram != NULL)
+      *result_ram = sta->result_ram;
+    if (result_rom != NULL)
+      *result_rom = sta->result_rom;
     return SUCCEEDED;
   }
-  */
 
   sta->under_work = YES;
-  v[0] = 0.0;
+  v_ram[0] = 0.0;
+  v_rom[0] = 0.0;
 
   /*
   {
-    char *get_stack_item_description(struct stack_item *si);
+    char *get_stack_item_description(struct stack_item *si, int file_id);
     int z;
 
     printf("----------------------------------------------------------------------\n");
 
     for (z = 0; z < sta->stacksize; z++) {
       struct stack_item *si = &sta->stack[z];
-      printf(get_stack_item_description(si));
+      printf(get_stack_item_description(si, sta->file_id));
     }
 
     printf("id: %d file: %s line: %d type %d bank: %d position %d\n", sta->id, get_file_name(sta->file_id), sta->linenumber, sta->type, sta->bank, sta->position);
@@ -1862,51 +1864,53 @@ int compute_stack(struct stack *sta, int *result, int using_op_bank) {
   s = sta->stack;
   for (r = 0, t = 0; r < x; r++, s++) {
     if (s->type == STACK_ITEM_TYPE_VALUE) {
+      /* RAM */
       if (s->sign == SI_SIGN_NEGATIVE)
-	v[t] = -s->value;
+	v_ram[t] = -s->value_ram;
       else
-	v[t] = s->value;
+	v_ram[t] = s->value_ram;
+      /* ROM */
+      if (s->sign == SI_SIGN_NEGATIVE)
+	v_rom[t] = -s->value_rom;
+      else
+	v_rom[t] = s->value_rom;
       t++;
     }
     else if (s->type == STACK_ITEM_TYPE_STRING) {
       /* parse_stack() turned this string into a value */
-      v[t] = s->value;
+      v_ram[t] = s->value_ram;
+      v_rom[t] = s->value_rom;
       t++;
     }
     else if (s->type == STACK_ITEM_TYPE_STACK) {
-      int using = using_op_bank;
-      
       /* we have a stack (A) inside a stack (B)! find the stack (A)! */
-      st = find_stack((int)s->value, sta->file_id);
+      st = find_stack((int)s->value_ram, sta->file_id);
 
       if (st == NULL) {
 	fprintf(stderr, "COMPUTE_STACK: A computation stack has gone missing. This is a fatal internal error. Please send the WLA DX author a bug report.\n");
 	return FAILED;
       }
 
-      if (sta->using_op_bank == YES)
-	using = YES;
-
-      /* we need to reparse the stack as it might depend on the type (using_op_bank) of this stack... */      
-      if (parse_stack(st, using) == FAILED)
-	return FAILED;
-      if (compute_stack(st, &res, using) == FAILED)
+      if (compute_stack(st, &res_ram, &res_rom) == FAILED)
 	return FAILED;
 
       if (sta->base_in_labels < 0 && st->base_in_labels >= 0)
 	sta->base_in_labels = st->base_in_labels;
 
-      v[t] = res;
+      v_ram[t] = res_ram;
+      v_rom[t] = res_rom;
       t++;
     }
     else {
-      switch ((int)s->value) {
+      switch ((int)s->value_ram) {
       case SI_OP_PLUS:
-	v[t - 2] += v[t - 1];
+	v_ram[t - 2] += v_ram[t - 1];
+	v_rom[t - 2] += v_rom[t - 1];
 	t--;
 	break;
       case SI_OP_MINUS:
-	v[t - 2] -= v[t - 1];
+	v_ram[t - 2] -= v_ram[t - 1];
+	v_rom[t - 2] -= v_rom[t - 1];
 	t--;
 	break;
       case SI_OP_NOT:
@@ -1923,10 +1927,12 @@ int compute_stack(struct stack *sta, int *result, int using_op_bank) {
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 	  return FAILED;
 	}
-	v[t - 1] = (int)v[t - 1] ^ y;
+	v_ram[t - 1] = (int)v_ram[t - 1] ^ y;
+	v_rom[t - 1] = (int)v_rom[t - 1] ^ y;
 	break;
       case SI_OP_XOR:
-        v[t - 2] = (int)v[t - 1] ^ (int)v[t - 2];
+        v_ram[t - 2] = (int)v_ram[t - 1] ^ (int)v_ram[t - 2];
+	v_rom[t - 2] = (int)v_rom[t - 1] ^ (int)v_rom[t - 2];
 	t--;
 	break;
       case SI_OP_MULTIPLY:
@@ -1935,7 +1941,8 @@ int compute_stack(struct stack *sta, int *result, int using_op_bank) {
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 	  return FAILED;
 	}
-	v[t - 2] *= v[t - 1];
+	v_ram[t - 2] *= v_ram[t - 1];
+	v_rom[t - 2] *= v_rom[t - 1];
 	t--;
 	break;
       case SI_OP_OR:
@@ -1944,7 +1951,8 @@ int compute_stack(struct stack *sta, int *result, int using_op_bank) {
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 	  return FAILED;
 	}
-	v[t - 2] = (int)v[t - 1] | (int)v[t - 2];
+	v_ram[t - 2] = (int)v_ram[t - 1] | (int)v_ram[t - 2];
+	v_rom[t - 2] = (int)v_rom[t - 1] | (int)v_rom[t - 2];
 	t--;
 	break;
       case SI_OP_AND:
@@ -1953,11 +1961,12 @@ int compute_stack(struct stack *sta, int *result, int using_op_bank) {
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 	  return FAILED;
 	}
-	v[t - 2] = (int)v[t - 1] & (int)v[t - 2];
+	v_ram[t - 2] = (int)v_ram[t - 1] & (int)v_ram[t - 2];
+	v_rom[t - 2] = (int)v_rom[t - 1] & (int)v_rom[t - 2];
 	t--;
 	break;
       case SI_OP_BANK:
-	z = (int)v[t - 1];
+	z = (int)v_rom[t - 1];
 	y = _get_rom_bank_of_address(z);
 	if (y < 0) {
 	  fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Could not get the bank number for ROM address %d/$%x (out of bounds).\n", get_file_name(sta->file_id),
@@ -1966,18 +1975,19 @@ int compute_stack(struct stack *sta, int *result, int using_op_bank) {
 	}
 	if (sta->base_in_labels >= 0)
 	  y += sta->base_in_labels;
-	v[t - 1] = y & 0xFF;
+	v_ram[t - 1] = y & 0xFF;
+	v_rom[t - 1] = y & 0xFF;
 	break;
       case SI_OP_LOW_BYTE:
-	z = (int)v[t - 1];
-	v[t - 1] = z & 0xFF;
+	v_ram[t - 1] = ((int)v_ram[t - 1]) & 0xFF;
+	v_rom[t - 1] = ((int)v_rom[t - 1]) & 0xFF;
 	break;
       case SI_OP_HIGH_BYTE:
-	z = (int)v[t - 1];
-	v[t - 1] = (z>>8) & 0xFF;
+	v_ram[t - 1] = (((int)v_ram[t - 1]) >> 8) & 0xFF;
+	v_rom[t - 1] = (((int)v_rom[t - 1]) >> 8) & 0xFF;
 	break;
       case SI_OP_MODULO:
-	if (((int)v[t - 1]) == 0) {
+	if (((int)v_ram[t - 1]) == 0 || ((int)v_rom[t - 1]) == 0) {
 	  fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Modulo by zero.\n", get_file_name(sta->file_id),
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 	  return FAILED;
@@ -1987,11 +1997,12 @@ int compute_stack(struct stack *sta, int *result, int using_op_bank) {
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 	  return FAILED;
 	}
-	v[t - 2] = (int)v[t - 2] % (int)v[t - 1];
+	v_ram[t - 2] = (int)v_ram[t - 2] % (int)v_ram[t - 1];
+	v_rom[t - 2] = (int)v_rom[t - 2] % (int)v_rom[t - 1];
 	t--;
 	break;
       case SI_OP_DIVIDE:
-	if (v[t - 1] == 0.0) {
+	if (v_ram[t - 1] == 0.0 || v_rom[t - 1] == 0.0) {
 	  fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Division by zero.\n", get_file_name(sta->file_id),
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 	  return FAILED;
@@ -2001,7 +2012,8 @@ int compute_stack(struct stack *sta, int *result, int using_op_bank) {
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 	  return FAILED;
 	}
-	v[t - 2] /= v[t - 1];
+	v_ram[t - 2] /= v_ram[t - 1];
+	v_rom[t - 2] /= v_rom[t - 1];
 	t--;
 	break;
       case SI_OP_POWER:
@@ -2010,10 +2022,16 @@ int compute_stack(struct stack *sta, int *result, int using_op_bank) {
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 	  return FAILED;
 	}
+	/* RAM */
 	q = 1;
-	for (z = 0; z < v[t - 1]; z++)
-	  q *= v[t - 2];
-	v[t - 2] = q;
+	for (z = 0; z < v_ram[t - 1]; z++)
+	  q *= v_ram[t - 2];
+	v_ram[t - 2] = q;
+	/* ROM */
+	q = 1;
+	for (z = 0; z < v_rom[t - 1]; z++)
+	  q *= v_rom[t - 2];
+	v_rom[t - 2] = q;
 	t--;
 	break;
       case SI_OP_SHIFT_LEFT:
@@ -2022,7 +2040,8 @@ int compute_stack(struct stack *sta, int *result, int using_op_bank) {
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 	  return FAILED;
 	}
-	v[t - 2] = (int)v[t - 2] << (int)v[t - 1];
+	v_ram[t - 2] = (int)v_ram[t - 2] << (int)v_ram[t - 1];
+	v_rom[t - 2] = (int)v_rom[t - 2] << (int)v_rom[t - 1];
 	t--;
 	break;
       case SI_OP_SHIFT_RIGHT:
@@ -2031,20 +2050,26 @@ int compute_stack(struct stack *sta, int *result, int using_op_bank) {
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 	  return FAILED;
 	}
-	v[t - 2] = (int)v[t - 2] >> (int)v[t - 1];
+	v_ram[t - 2] = (int)v_ram[t - 2] >> (int)v_ram[t - 1];
+	v_rom[t - 2] = (int)v_rom[t - 2] >> (int)v_rom[t - 1];
 	t--;
 	break;
       }
     }
   }
 
-  *result = (int)v[0];
-  sta->result = (int)v[0];
+  if (result_ram != NULL)
+    *result_ram = (int)v_ram[0];
+  if (result_rom != NULL)
+    *result_rom = (int)v_rom[0];
+  
+  sta->result_ram = (int)v_ram[0];
+  sta->result_rom = (int)v_rom[0];
   sta->computed = YES;
   sta->under_work = NO;
 
   /*
-  printf("RESULT: %d\n", sta->result);
+  printf("RESULT: %d (RAM) %d (ROM)\n", sta->result_ram, sta->result_rom);
   */
 
   return SUCCEEDED;
@@ -2059,11 +2084,11 @@ int write_bank_header_calculations(struct stack *sta) {
 
 
   /* parse stack items */
-  if (parse_stack(sta, NO) == FAILED)
+  if (parse_stack(sta) == FAILED)
     return FAILED;
 
   /* all the references have been decoded, now compute */
-  if (compute_stack(sta, &k, NO) == FAILED)
+  if (compute_stack(sta, &k, NULL) == FAILED)
     return FAILED;
 
   s = sec_bankhd_first;
@@ -2227,12 +2252,12 @@ int write_bank_header_references(struct reference *r) {
 
 
 /* transform all string items inside a computation stack into corresponding numbers */
-int parse_stack(struct stack *sta, int using_op_bank) {
+int parse_stack(struct stack *sta) {
 
   struct stack_item *si;
   struct section *s;
   struct label *l, lt;
-  double k;
+  double k_ram, k_rom;
   int g, ed;
 
 
@@ -2264,29 +2289,19 @@ int parse_stack(struct stack *sta, int using_op_bank) {
       break;
   }
 
-  /* does the stack contain SI_OP_BANK? */
   si = sta->stack;
   g = 0;
-  sta->using_op_bank = NO;
-  while (g != sta->stacksize) {
-    if (si->type == STACK_ITEM_TYPE_OPERATOR && (int)si->value == SI_OP_BANK) {
-      /* yes! all addresses are then ROM addresses */
-      sta->using_op_bank = YES;
-      break;
-    }
-    si++;
-    g++;
-  }
-
-  si = sta->stack;
-  g = 0;
-  k = 0;
+  k_ram = 0.0;
+  k_rom = 0.0;
   while (g != sta->stacksize) {
     if (si->type == STACK_ITEM_TYPE_STRING) {
       l = NULL;
 
       /* bank number search */
       if (si->string[0] == ':') {
+	fprintf(stderr, "%s: %s:%d: PARSE_STACK: It should be impossible for a string in the stack calculator to begin with ':', but here we are with the label \"%s\"... Internal error!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, si->string);
+	return FAILED;
+	/*
 	if (is_label_anonymous(&si->string[1]) == YES) {
 	  l = get_closest_anonymous_label(&si->string[1], sta->address, sta->file_id, sta->section_status, sta->section);
 	  if (l != NULL)
@@ -2312,31 +2327,26 @@ int parse_stack(struct stack *sta, int using_op_bank) {
               k = l->base + l->bank;
           }
 	}
+	*/
       }
       /* normal label address search */
       else {
 	if (is_label_anonymous(si->string) == YES) {
 	  l = get_closest_anonymous_label(si->string, sta->address, sta->file_id, sta->section_status, sta->section);
 	  if (l != NULL) {
-	    if (sta->using_op_bank == YES || using_op_bank == YES)
-	      k = l->rom_address;
-	    else
-	      k = l->address;
+	    k_rom = l->rom_address;
+	    k_ram = l->address;
 	  }
 
 	  /* is the reference relative? */
 	  if (sta->relative_references == YES) {
-	    if (sta->using_op_bank == YES || using_op_bank == YES)
-	      k = k - sta->address - ed;
-	    else
-	      k = k - sta->memory_address - ed;
+	    k_rom = k_rom - sta->address - ed;
+	    k_ram = k_ram - sta->memory_address - ed;
 	  }
 	}
 	else if (strcaselesscmp(si->string, "CADDR") == 0) {
-	  if (sta->using_op_bank == YES || using_op_bank == YES)
-	    k = sta->address;
-	  else
-	    k = sta->memory_address;
+	  k_rom = sta->address;
+	  k_ram = sta->memory_address;
 	  lt.status = LABEL_STATUS_DEFINE;
 	  strcpy(lt.name, si->string);
 	  lt.address = sta->address;
@@ -2349,17 +2359,13 @@ int parse_stack(struct stack *sta, int using_op_bank) {
           find_label(si->string, s, &l);
 
           if (l != NULL) {
-	    if (sta->using_op_bank == YES || using_op_bank == YES)
-	      k = l->rom_address;
-	    else
-	      k = l->address;
+	    k_rom = l->rom_address;
+	    k_ram = l->address;
 
             /* is the reference relative? */
             if (sta->relative_references == YES) {
-	      if (sta->using_op_bank == YES || using_op_bank == YES)
-		k = k - sta->address - ed;
-	      else
-		k = k - sta->memory_address - ed;
+	      k_rom = k_rom - sta->address - ed;
+	      k_ram = k_ram - sta->memory_address - ed;
 	    }
           }
 	}
@@ -2373,8 +2379,8 @@ int parse_stack(struct stack *sta, int using_op_bank) {
 
       /* 65816 cpu bank fix */
       if (sta->type == STACK_TYPE_24BIT && l->status == LABEL_STATUS_LABEL) {
-	if (sta->using_op_bank == NO && using_op_bank == NO)
-	  k += get_snes_pc_bank(l);
+	k_rom += get_snes_pc_bank(l);
+	k_ram += get_snes_pc_bank(l);
       }
 
       /*
@@ -2386,19 +2392,22 @@ int parse_stack(struct stack *sta, int using_op_bank) {
 	if (sta->base_in_labels < 0)
 	  sta->base_in_labels = l->base;
 	else if (sta->base_in_labels >= 0 && sta->base_in_labels != l->base) {
-	  fprintf(stderr, "%s: %s:%d: PARSE_STACK: .BASE $%x of label \"%s\" differs from the previously supplied .BASE $%x.\n", get_file_name(sta->file_id),
+	  fprintf(stderr, "%s: %s:%d: PARSE_STACK: .BASE $%x of label \"%s\" differs from the previously found .BASE $%x in this calculation stack.\n", get_file_name(sta->file_id),
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, l->base, l->name, sta->base_in_labels);
 	}
       }
 
       if (l->status == LABEL_STATUS_STACK) {
 	/* HACK: here we abuse the stack item structure's members */
-	si->value = l->address;
+	si->value_ram = l->address;
+	si->value_rom = l->address;
 	si->sign = l->file_id;
 	si->type = STACK_ITEM_TYPE_STACK;
       }
-      else
-	si->value = k;
+      else {
+	si->value_rom = k_rom;
+	si->value_ram = k_ram;
+      }
     }
 
     si++;
@@ -2760,6 +2769,7 @@ int generate_sizeof_label_definitions(void) {
     l->status = LABEL_STATUS_DEFINE;
     l->alive = YES;
     l->address = size;
+    l->rom_address = size;
     l->base = 0;
     l->file_id = labels[j]->file_id;
 

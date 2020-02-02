@@ -649,7 +649,6 @@ int collect_dlr(void) {
 	s->bank = READ_T;
 	s->base = READ_T;
 	s->stacksize = x;
-	s->using_op_bank = NO;
 	s->base_in_labels = -1;
 	
 	s->stack = calloc(sizeof(struct stack_item) * x, 1);
@@ -672,7 +671,8 @@ int collect_dlr(void) {
 	  }
 	  else {
 	    READ_DOU;
-	    s->stack[n].value = dou;
+	    s->stack[n].value_ram = dou;
+	    s->stack[n].value_rom = dou;
 	  }
 	}
       }
@@ -869,7 +869,6 @@ int collect_dlr(void) {
 	s->bank = obj_tmp->bank;
 	s->slot = obj_tmp->slot;
 	s->base = obj_tmp->base;
-	s->using_op_bank = NO;
 	s->base_in_labels = -1;
 	
 	s->stack = calloc(sizeof(struct stack_item) * x, 1);
@@ -892,7 +891,8 @@ int collect_dlr(void) {
 	  }
 	  else {
 	    READ_DOU;
-            s->stack[n].value = dou;
+            s->stack[n].value_ram = dou;
+	    s->stack[n].value_rom = dou;
 	  }
 	}
       }
@@ -903,7 +903,7 @@ int collect_dlr(void) {
       while (i > 0) {
 	i--;
 
-	ls = calloc(1, sizeof(struct label_sizeof));
+	ls = calloc(sizeof(struct label_sizeof), 1);
 	if (ls == NULL) {
 	  fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
 	  return FAILED;

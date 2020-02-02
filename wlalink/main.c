@@ -26,7 +26,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.13a (1.2.2020)";
+char version_string[] = "$VER: wlalink 5.13a (2.2.2020)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -127,18 +127,18 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
     int type = si->type;
     
     if (type == STACK_ITEM_TYPE_VALUE)
-      sprintf(sid, "stack_item: value              : %f/$%x\n", si->value, (int)si->value);
+      sprintf(sid, "stack_item: value              : %f/$%x (RAM) %f/$%x (ROM)\n", si->value_ram, (int)si->value_ram, si->value_rom, (int)si->value_rom);
     else if (type == STACK_ITEM_TYPE_OPERATOR)
-      sprintf(sid, "stack_item: operator           : %s\n", get_stack_item_operator_name((int)si->value));
+      sprintf(sid, "stack_item: operator           : %s\n", get_stack_item_operator_name((int)si->value_ram));
     else if (type == STACK_ITEM_TYPE_STRING)
       sprintf(sid, "stack_item: label              : %s\n", si->string);
     else if (type == STACK_ITEM_TYPE_STACK) {
-      struct stack *st = find_stack((int)si->value, file_id);
+      struct stack *st = find_stack((int)si->value_ram, file_id);
 
       if (st->computed == YES)
-	sprintf(sid, "stack_item: (stack) calculation: %d (result = %d/$%x)\n", (int)si->value, st->result, st->result);
+	sprintf(sid, "stack_item: (stack) calculation: %d (result = %d/$%x (RAM) %d/$%x (ROM))\n", (int)si->value_ram, st->result_ram, st->result_ram, st->result_rom, st->result_rom);
       else
-	sprintf(sid, "stack_item: (stack) calculation: %d (result = ?)\n", (int)si->value);
+	sprintf(sid, "stack_item: (stack) calculation: %d (result = ?)\n", (int)si->value_ram);
     }
     else
       sprintf(sid, "stack_item: UNKNOWN!");
