@@ -276,6 +276,7 @@ int main(int argc, char *argv[]) {
 	  fprintf(stderr, "Test \"%s\" FAILED - Bytes that don't match: %d", test_id, (i+1));
 	else
 	  fprintf(stderr, ", %d", (i+1));
+	fprintf(stderr, " (GOT: $%.2x EXPECTED: $%.2x)", binary_file[tag_start + i], bytes[i]);
 	wrong_bytes++;
       }
     }

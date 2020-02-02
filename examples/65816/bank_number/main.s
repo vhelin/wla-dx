@@ -48,8 +48,13 @@ test_data:
 	.db "<04"
 .ends
 
-.bank 1 slot 1
 .base $20	
+
+.ramsection "LowRAM" bank $7E slot 0 returnorg
+    test_var db
+.ends
+
+.bank 1 slot 1
 .section "Bank1" force returnorg
 more_data:
 	.db "05>"
@@ -57,4 +62,10 @@ more_data:
 	.db 1+(:(more_data+1))
 	.db ((:more_data)+1) + (1+(:(more_data+1))) + (more_data - $8000)
 	.db "<05"
+	
+	.db "06>"
+	.db :test_var
+	.db :(test_var + $8000)
+	.db :test_var + (more_data - $8000)
+	.db "<06"
 .ends

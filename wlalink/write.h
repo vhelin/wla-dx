@@ -15,7 +15,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 int write_gb_header(int name_status);
 int write_rom_file(char *outname);
 int compute_pending_calculations(void);
-int compute_stack(struct stack *s, int *result_ram, int *result_rom);
+int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *result_slot, int *result_base);
 int write_bank_header_calculations(struct stack *sta);
 int write_bank_header_references(struct reference *r);
 int parse_stack(struct stack *sta);

@@ -856,7 +856,7 @@ int fix_label_addresses(void) {
 	    l->address += s->address;
 
 	    if (s->status == SECTION_STATUS_RAM)
-	      l->rom_address = (int)l->address;
+	      l->rom_address = (int)l->address + slots[l->slot].size * l->bank;
 	    else
 	      l->rom_address = (int)l->address + bankaddress[l->bank];
 
@@ -1023,6 +1023,7 @@ int fix_references(void) {
         lt.address = r->address;
         lt.bank = r->bank;
 	lt.base = r->base;
+	lt.slot = r->slot;
         lt.section_status = OFF;
         l = &lt;
       }
@@ -1097,6 +1098,7 @@ int fix_references(void) {
         strcpy(lt.name, r->name);
         lt.address = r->address;
         lt.bank = r->bank;
+	lt.slot = r->slot;
         lt.base = r->base;
         lt.section_status = OFF;
         l = &lt;
@@ -1663,7 +1665,7 @@ int compute_pending_calculations(void) {
     /* is the stack inside a definition? */
     if (sta->position == STACK_POSITION_DEFINITION) {
       /* all the references have been decoded, now compute */
-      if (compute_stack(sta, NULL, NULL) == FAILED)
+      if (compute_stack(sta, NULL, NULL, NULL, NULL) == FAILED)
 	return FAILED;
       /* next stack computation */
       sta = sta->next;
@@ -1698,7 +1700,7 @@ int compute_pending_calculations(void) {
     a = sta->address;
 
     /* all the references have been decoded, now compute */
-    if (compute_stack(sta, &k, NULL) == FAILED)
+    if (compute_stack(sta, &k, NULL, NULL, NULL) == FAILED)
       return FAILED;
 
     memory_file_id = sta->file_id;
@@ -1791,16 +1793,34 @@ int compute_pending_calculations(void) {
 }
 
 
-static int _get_rom_bank_of_address(int address) {
+static int _get_bank_of_address(int address, int slot) {
 
-  int y;
-  
-  for (y = 0; y < rombanks; y++) {
-    if (address >= bankaddress[y] && address < bankaddress[y] + banksizes[y])
-      return y;
+  int start_address, slot_size, j, k;
+
+  if (address < 0)
+    return -1;
+
+  if (slot < 0) {
+    fprintf(stderr, "_GET_BANK_OF_ADDRESS: SLOT %d < 0! Internal error. Please submit a bug report.\n", slot);
+    return -1;
   }
 
-  return -1;
+  slot_size = slots[slot].size;;
+  start_address = 0;
+  j = 0;
+  k = 0;
+
+  while (1) {
+    if (address >= start_address && address < start_address + slot_size)
+      return j;
+    start_address += slot_size;
+    j++;
+    k++;
+    if (k > 1000000000) {
+      fprintf(stderr, "_GET_BANK_OF_ADDRESS: k > 1000000000! Internal error. Cannot find the BANK. Please submit a bug report.\n");
+      return -1;
+    }
+  }
 }
 
 
@@ -1818,11 +1838,39 @@ struct stack *find_stack(int id, int file_id) {
 }
 
 
-int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
+static void _pass_on_slot(int *slot, int t, struct stack *sta) {
+
+  if (slot[t - 2] < 0 && slot[t - 1] >= 0)
+    slot[t - 2] = slot[t - 1];
+  else if (slot[t - 2] >= 0 && slot[t - 1] >= 0) {
+    /* sanity check */
+    if (slot[t - 2] != slot[t - 1]) {
+      fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: The passed on SLOT changed from $%x to $%x. This might have no effect, but just to let you know. Please check that the result of this calculation is correct.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, slot[t - 2], slot[t - 1]);
+    }
+    slot[t - 2] = slot[t - 1];
+  }
+}
+
+
+static void _pass_on_base(int *base, int t, struct stack *sta) {
+
+  if (base[t - 2] < 0 && base[t - 1] >= 0)
+    base[t - 2] = base[t - 1];
+  else if (base[t - 2] >= 0 && base[t - 1] >= 0) {
+    /* sanity check */
+    if (base[t - 2] != base[t - 1]) {
+      fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: The passed on BASE changed from $%x to $%x. This might have no effect, but just to let you know. Please check that the result of this calculation is correct.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, base[t - 2], base[t - 1]);
+    }
+    base[t - 2] = base[t - 1];
+  }
+}
+
+
+int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *result_slot, int *result_base) {
 
   struct stack_item *s;
   struct stack *st;
-  int r, t, z, y, x, res_ram, res_rom;
+  int r, t, z, y, x, res_ram, res_rom, res_base, res_slot, slot[256], base[256];
   double v_ram[256], v_rom[256], q;
 
 
@@ -1837,7 +1885,16 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
       *result_ram = sta->result_ram;
     if (result_rom != NULL)
       *result_rom = sta->result_rom;
+    if (result_slot != NULL)
+      *result_slot = sta->result_slot;
+    if (result_base != NULL)
+      *result_base = sta->result_base;
     return SUCCEEDED;
+  }
+
+  for (x = 0; x < 256; x++) {
+    slot[x] = -1;
+    base[x] = -1;
   }
 
   sta->under_work = YES;
@@ -1874,12 +1931,16 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
 	v_rom[t] = -s->value_rom;
       else
 	v_rom[t] = s->value_rom;
+      slot[t] = s->slot;
+      base[t] = s->base;
       t++;
     }
     else if (s->type == STACK_ITEM_TYPE_STRING) {
       /* parse_stack() turned this string into a value */
       v_ram[t] = s->value_ram;
       v_rom[t] = s->value_rom;
+      slot[t] = s->slot;
+      base[t] = s->base;
       t++;
     }
     else if (s->type == STACK_ITEM_TYPE_STACK) {
@@ -1891,14 +1952,13 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
 	return FAILED;
       }
 
-      if (compute_stack(st, &res_ram, &res_rom) == FAILED)
+      if (compute_stack(st, &res_ram, &res_rom, &res_slot, &res_base) == FAILED)
 	return FAILED;
-
-      if (sta->base_in_labels < 0 && st->base_in_labels >= 0)
-	sta->base_in_labels = st->base_in_labels;
 
       v_ram[t] = res_ram;
       v_rom[t] = res_rom;
+      slot[t] = res_slot;
+      base[t] = res_base;
       t++;
     }
     else {
@@ -1906,11 +1966,15 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
       case SI_OP_PLUS:
 	v_ram[t - 2] += v_ram[t - 1];
 	v_rom[t - 2] += v_rom[t - 1];
+	_pass_on_slot(slot, t, sta);
+	_pass_on_base(base, t, sta);
 	t--;
 	break;
       case SI_OP_MINUS:
 	v_ram[t - 2] -= v_ram[t - 1];
 	v_rom[t - 2] -= v_rom[t - 1];
+	_pass_on_slot(slot, t, sta);
+	_pass_on_base(base, t, sta);
 	t--;
 	break;
       case SI_OP_NOT:
@@ -1933,6 +1997,8 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
       case SI_OP_XOR:
         v_ram[t - 2] = (int)v_ram[t - 1] ^ (int)v_ram[t - 2];
 	v_rom[t - 2] = (int)v_rom[t - 1] ^ (int)v_rom[t - 2];
+	_pass_on_slot(slot, t, sta);
+	_pass_on_base(base, t, sta);
 	t--;
 	break;
       case SI_OP_MULTIPLY:
@@ -1943,6 +2009,8 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
 	}
 	v_ram[t - 2] *= v_ram[t - 1];
 	v_rom[t - 2] *= v_rom[t - 1];
+	_pass_on_slot(slot, t, sta);
+	_pass_on_base(base, t, sta);
 	t--;
 	break;
       case SI_OP_OR:
@@ -1953,6 +2021,8 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
 	}
 	v_ram[t - 2] = (int)v_ram[t - 1] | (int)v_ram[t - 2];
 	v_rom[t - 2] = (int)v_rom[t - 1] | (int)v_rom[t - 2];
+	if (slot[t - 2] < 0 && slot[t - 1] >= 0)
+	  slot[t - 2] = slot[t - 1];
 	t--;
 	break;
       case SI_OP_AND:
@@ -1963,18 +2033,20 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
 	}
 	v_ram[t - 2] = (int)v_ram[t - 1] & (int)v_ram[t - 2];
 	v_rom[t - 2] = (int)v_rom[t - 1] & (int)v_rom[t - 2];
+	_pass_on_slot(slot, t, sta);
+	_pass_on_base(base, t, sta);
 	t--;
 	break;
       case SI_OP_BANK:
 	z = (int)v_rom[t - 1];
-	y = _get_rom_bank_of_address(z);
+	y = _get_bank_of_address(z, slot[t - 1]);
 	if (y < 0) {
 	  fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Could not get the bank number for ROM address %d/$%x (out of bounds).\n", get_file_name(sta->file_id),
 		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, z, z);
 	  return FAILED;
 	}
-	if (sta->base_in_labels >= 0)
-	  y += sta->base_in_labels;
+	if (base[t - 1] >= 0)
+	  y += base[t - 1];
 	v_ram[t - 1] = y & 0xFF;
 	v_rom[t - 1] = y & 0xFF;
 	break;
@@ -1999,6 +2071,8 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
 	}
 	v_ram[t - 2] = (int)v_ram[t - 2] % (int)v_ram[t - 1];
 	v_rom[t - 2] = (int)v_rom[t - 2] % (int)v_rom[t - 1];
+	_pass_on_slot(slot, t, sta);
+	_pass_on_base(base, t, sta);
 	t--;
 	break;
       case SI_OP_DIVIDE:
@@ -2014,6 +2088,8 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
 	}
 	v_ram[t - 2] /= v_ram[t - 1];
 	v_rom[t - 2] /= v_rom[t - 1];
+	_pass_on_slot(slot, t, sta);
+	_pass_on_base(base, t, sta);
 	t--;
 	break;
       case SI_OP_POWER:
@@ -2032,6 +2108,8 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
 	for (z = 0; z < v_rom[t - 1]; z++)
 	  q *= v_rom[t - 2];
 	v_rom[t - 2] = q;
+	_pass_on_slot(slot, t, sta);
+	_pass_on_base(base, t, sta);
 	t--;
 	break;
       case SI_OP_SHIFT_LEFT:
@@ -2042,6 +2120,8 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
 	}
 	v_ram[t - 2] = (int)v_ram[t - 2] << (int)v_ram[t - 1];
 	v_rom[t - 2] = (int)v_rom[t - 2] << (int)v_rom[t - 1];
+	_pass_on_slot(slot, t, sta);
+	_pass_on_base(base, t, sta);
 	t--;
 	break;
       case SI_OP_SHIFT_RIGHT:
@@ -2052,6 +2132,8 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
 	}
 	v_ram[t - 2] = (int)v_ram[t - 2] >> (int)v_ram[t - 1];
 	v_rom[t - 2] = (int)v_rom[t - 2] >> (int)v_rom[t - 1];
+	_pass_on_slot(slot, t, sta);
+	_pass_on_base(base, t, sta);
 	t--;
 	break;
       }
@@ -2062,9 +2144,16 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom) {
     *result_ram = (int)v_ram[0];
   if (result_rom != NULL)
     *result_rom = (int)v_rom[0];
-  
+  if (result_slot != NULL)
+    *result_slot = sta->result_slot;
+  if (result_base != NULL)
+    *result_base = sta->result_base;
+
   sta->result_ram = (int)v_ram[0];
   sta->result_rom = (int)v_rom[0];
+  sta->result_slot = (int)slot[0];
+  sta->result_base = (int)base[0];
+  
   sta->computed = YES;
   sta->under_work = NO;
 
@@ -2088,7 +2177,7 @@ int write_bank_header_calculations(struct stack *sta) {
     return FAILED;
 
   /* all the references have been decoded, now compute */
-  if (compute_stack(sta, &k, NULL) == FAILED)
+  if (compute_stack(sta, &k, NULL, NULL, NULL) == FAILED)
     return FAILED;
 
   s = sec_bankhd_first;
@@ -2351,6 +2440,7 @@ int parse_stack(struct stack *sta) {
 	  strcpy(lt.name, si->string);
 	  lt.address = sta->address;
 	  lt.bank = sta->bank;
+	  lt.slot = sta->slot;
 	  lt.base = sta->base;
 	  lt.section_status = OFF;
 	  l = &lt;
@@ -2383,19 +2473,13 @@ int parse_stack(struct stack *sta) {
 	k_ram += get_snes_pc_bank(l);
       }
 
+      si->slot = l->slot;
+      si->base = l->base;
+
       /*
       fprintf(stdout, "%s: %s:%d: %s %x %d\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber,
 	      si->string, (int)k, sta->relative_references);
       */
-
-      if (l->status == LABEL_STATUS_LABEL) {
-	if (sta->base_in_labels < 0)
-	  sta->base_in_labels = l->base;
-	else if (sta->base_in_labels >= 0 && sta->base_in_labels != l->base) {
-	  fprintf(stderr, "%s: %s:%d: PARSE_STACK: .BASE $%x of label \"%s\" differs from the previously found .BASE $%x in this calculation stack.\n", get_file_name(sta->file_id),
-		  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, l->base, l->name, sta->base_in_labels);
-	}
-      }
 
       if (l->status == LABEL_STATUS_STACK) {
 	/* HACK: here we abuse the stack item structure's members */

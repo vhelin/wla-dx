@@ -192,6 +192,8 @@ struct stack {
   int computed;
   int result_ram;
   int result_rom;
+  int result_slot;
+  int result_base;
   int position;
   int file_id;
   int file_id_source;
@@ -206,12 +208,13 @@ struct stack {
   int address;
   int memory_address;
   int special_id;
-  int base_in_labels;
 };
 
 struct stack_item {
   int type;
   int sign;
+  int slot;
+  int base;
   double value_ram;
   double value_rom;
   char string[MAX_NAME_LENGTH + 1];

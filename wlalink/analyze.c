@@ -649,7 +649,6 @@ int collect_dlr(void) {
 	s->bank = READ_T;
 	s->base = READ_T;
 	s->stacksize = x;
-	s->base_in_labels = -1;
 	
 	s->stack = calloc(sizeof(struct stack_item) * x, 1);
 	if (s->stack == NULL) {
@@ -661,6 +660,8 @@ int collect_dlr(void) {
 	add_stack(s);
 
 	for (n = 0; n != x; n++) {
+	  s->stack[n].slot = -1;
+	  s->stack[n].base = -1;
 	  s->stack[n].type = *(t++);
 	  s->stack[n].sign = *(t++);
 	  if (s->stack[n].type == STACK_ITEM_TYPE_STRING) {
@@ -869,7 +870,6 @@ int collect_dlr(void) {
 	s->bank = obj_tmp->bank;
 	s->slot = obj_tmp->slot;
 	s->base = obj_tmp->base;
-	s->base_in_labels = -1;
 	
 	s->stack = calloc(sizeof(struct stack_item) * x, 1);
 	if (s->stack == NULL) {
@@ -881,6 +881,8 @@ int collect_dlr(void) {
 	add_stack(s);
 
 	for (n = 0; n != x; n++) {
+	  s->stack[n].slot = -1;
+	  s->stack[n].base = -1;
 	  s->stack[n].type = *(t++);
 	  s->stack[n].sign = *(t++);
 	  if (s->stack[n].type == STACK_ITEM_TYPE_STRING) {
