@@ -26,7 +26,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.13a (2.2.2020)";
+char version_string[] = "$VER: wlalink 5.13a (5.2.2020)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -506,7 +506,7 @@ int main(int argc, char *argv[]) {
 	  printf(get_stack_item_description(si, s->file_id));
 	}
       }
-      printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d result: %d/$%x\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->result, s->result);
+      printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d result: %d/$%x (ROM) %d/$%x (RAM)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->result_rom, s->result_rom, s->result_ram, s->result_ram);
       s = s->next;
     }
     printf("----------------------------------------------------------------------\n");

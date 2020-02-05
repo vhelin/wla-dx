@@ -40,6 +40,8 @@ extern int program_start, program_end, snes_mode, smc_status;
 extern int snes_sramsize, num_sorted_anonymous_labels;
 extern int output_type;
 
+int current_stack_calculation_addr = 0;
+
 
 
 static int _sections_sort(const void *a, const void *b) {
@@ -1699,6 +1701,10 @@ int compute_pending_calculations(void) {
 
     a = sta->address;
 
+    /* we save the address for all those CADDRs inside definition stacks that are
+       encountered during the next compute_stack() */
+    current_stack_calculation_addr = a;
+
     /* all the references have been decoded, now compute */
     if (compute_stack(sta, &k, NULL, NULL, NULL) == FAILED)
       return FAILED;
@@ -1880,7 +1886,10 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
     return FAILED;
   }
 
-  if (sta->computed == YES) {
+  /* because there might be CADDR in a definition stack calculation, we'll need to recalculate 
+     the stack calculation every time again... */
+  /*
+  if (sta->computed == YES && sta->position != STACK_POSITION_DEFINITION) {
     if (result_ram != NULL)
       *result_ram = sta->result_ram;
     if (result_rom != NULL)
@@ -1891,6 +1900,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
       *result_base = sta->result_base;
     return SUCCEEDED;
   }
+  */
 
   for (x = 0; x < 256; x++) {
     slot[x] = -1;
@@ -1952,6 +1962,11 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
 	return FAILED;
       }
 
+      if (st->position == STACK_POSITION_DEFINITION) {
+	/* we'll need to do this as "st" might contain CADDR */
+	if (parse_stack(st) == FAILED)
+	  return FAILED;
+      }
       if (compute_stack(st, &res_ram, &res_rom, &res_slot, &res_base) == FAILED)
 	return FAILED;
 
@@ -2434,8 +2449,14 @@ int parse_stack(struct stack *sta) {
 	  }
 	}
 	else if (strcaselesscmp(si->string, "CADDR") == 0) {
-	  k_rom = sta->address;
-	  k_ram = sta->memory_address;
+	  if (sta->position == STACK_POSITION_DEFINITION) {
+	    k_rom = current_stack_calculation_addr;
+	    k_ram = current_stack_calculation_addr;
+	  }
+	  else {
+	    k_rom = sta->address;
+	    k_ram = sta->memory_address;
+	  }
 	  lt.status = LABEL_STATUS_DEFINE;
 	  strcpy(lt.name, si->string);
 	  lt.address = sta->address;

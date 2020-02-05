@@ -90,6 +90,7 @@ runTest checksum_24mbit_lorom
 runTest checksum_8mbit_hirom
 runTest checksum_8mbit_lorom
 runTest linker_test
+runTest macro_test
 runTest name_test
 runTest nocashsns_symbol_file
 runTest opcode_test
