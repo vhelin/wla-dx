@@ -14,12 +14,13 @@
 .DEF    prev_term       $0000
 
 .MACRO  .term   ARGS    str
+__\._\@:
         .WORD   prev_term
         .REDEF  prev_term       CADDR - 2
         .BYTE   str.length, str, 0
 .ENDM
 
-.bank 0 slot 0
+.bank 0 slot 1
 .section "Bank0" force returnorg
 main:
 	.db "01>"

@@ -1703,7 +1703,7 @@ int compute_pending_calculations(void) {
 
     /* we save the address for all those CADDRs inside definition stacks that are
        encountered during the next compute_stack() */
-    current_stack_calculation_addr = a;
+    current_stack_calculation_addr = sta->memory_address;
 
     /* all the references have been decoded, now compute */
     if (compute_stack(sta, &k, NULL, NULL, NULL) == FAILED)
