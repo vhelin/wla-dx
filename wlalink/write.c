@@ -2452,6 +2452,8 @@ int parse_stack(struct stack *sta) {
 	  if (sta->position == STACK_POSITION_DEFINITION) {
 	    k_rom = current_stack_calculation_addr;
 	    k_ram = current_stack_calculation_addr;
+	    fprintf(stderr, "%s: %s:%d: PARSE_STACK: We have a CADDR inside a calculation inside a definition. Please check that the result is correct...\n", get_file_name(sta->file_id),
+		    get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 	  }
 	  else {
 	    k_rom = sta->address;

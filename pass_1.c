@@ -7238,12 +7238,11 @@ int directive_print(void) {
 
     inz = input_number();
 
-    if (inz == INPUT_NUMBER_STRING) {
-
+    if (inz == INPUT_NUMBER_STRING || inz == INPUT_NUMBER_ADDRESS_LABEL) {
       char t[256];
 	
       if (get_value == YES) {
-	print_error(".PRINT was expecting a value, got a string instead.\n", ERROR_INP);
+	print_error(".PRINT was expecting a value, got a string/label instead.\n", ERROR_INP);
 	return FAILED;
       }
 
@@ -7268,7 +7267,7 @@ int directive_print(void) {
       break;
     }
     else {
-      print_error(".PRINT needs a string or (an optional) HEX/DEC plus a value.\n", ERROR_DIR);
+      print_error(".PRINT needs a string/label or (an optional) HEX/DEC plus a value.\n", ERROR_DIR);
       return FAILED;
     }
   }
@@ -7283,8 +7282,8 @@ int directive_printt(void) {
     
   inz = input_number();
 
-  if (inz != INPUT_NUMBER_STRING) {
-    print_error(".PRINTT needs a string.\n", ERROR_DIR);
+  if (inz != INPUT_NUMBER_STRING && inz != INPUT_NUMBER_ADDRESS_LABEL) {
+    print_error(".PRINTT needs a string/label.\n", ERROR_DIR);
     return FAILED;
   }
 

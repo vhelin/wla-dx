@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------------------
 
-v9.11 (01-Feb-2020) [ALL] Stack calculator's string checker handled only
+v9.11 (06-Feb-2020) [ALL] Stack calculator's string checker handled only
                       63 characters long strings.
                     [ALL] A directive with the first argument being
                       negative wasn't parsed properly.
@@ -18,6 +18,9 @@ v9.11 (01-Feb-2020) [ALL] Stack calculator's string checker handled only
                     [ALL] SLOTs can now be given names.
                     [ALL] SLOTs can now be referenced by their name, ID
                       or address.
+                    [ALL] .PRINT & .PRINTT can now print address labels.
+                    [ALL] Simple additions and subtractions can be used with "\@"
+                      in macros when creating/referencing a label.
                     [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
                       "JP (IY)".
                     [650] Added support for W65C02S's "WAI" and "STP".

@@ -198,8 +198,13 @@ int input_number(void) {
     /* string / symbol -> no calculating */
     if (ee == '"' || ee == ',' || (ee == '=' && buffer[p] == '=') || (ee == '!' && buffer[p] == '='))
       break;
-    if (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' ||
-	ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':') {
+    /* HACK: special case, skip "_\@-1" and alike as we'll parse them later as strings */
+    if (((ee >= 'a' && ee <= 'z') || (ee >= 'A' && ee <= 'Z') || (ee >= '0' && ee <= '9') || (ee == '_' || ee == '.')) &&
+	buffer[p] == '\\' && buffer[p+1] == '@' && (buffer[p+2] == '-' || buffer[p+2] == '+') && (buffer[p+3] >= '0' && buffer[p+3] <= '9')) {
+      p += 4;
+    }
+    else if (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' ||
+	     ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':') {
       /* launch stack calculator */
       p = stack_calculate(&buffer[i - 1], &d);
 
@@ -216,9 +221,7 @@ int input_number(void) {
 
   /* MACRO */
   if (macro_active != 0 && e == '\\') {
-
     struct macro_argument *ma;
-
 
     if (buffer[i] == '@') {
       i++;
@@ -928,7 +931,7 @@ int skip_next_token(void) {
 int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
   char t[MAX_NAME_LENGTH + 1];
-  int i, j, k;
+  int i, j, k, adder;
 
 
   memset(expanded_macro_string, 0, MAX_NAME_LENGTH + 1);
@@ -945,7 +948,19 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 	(*expands)++;
 	i++;
 
-	sprintf(t, "%d", macro_runtime_current->macro->calls - 1);
+	adder = 0;
+	if (in[i + 1] == '-' && in[i + 2] >= '0' && in[i + 2] <= '9') {
+	  /* found "\@-1" and alike */
+	  adder = -(in[i + 2] - '0');
+	  i += 2;
+	}
+	else if (in[i + 1] == '+' && in[i + 2] >= '0' && in[i + 2] <= '9') {
+	  /* found "\@+1" and alike */
+	  adder = in[i + 2] - '0';
+	  i += 2;
+	}
+	
+	sprintf(t, "%d", macro_runtime_current->macro->calls - 1 + adder);
 	for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
 	  expanded_macro_string[k] = t[j];
 	  if (t[j] == 0)
