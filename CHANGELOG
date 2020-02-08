@@ -23,8 +23,9 @@ v9.11 (08-Feb-2020) [ALL] Stack calculator's string checker handled only
                       "\@" in macros when creating/referencing a label.
                     [ALL] Plain "OFFSET = 10" is now also accepted as
                       a define. No .DEFINE/.DEF is required.
-                    [ALL] .INCDIR, .INCBIN, .FOPEN, .INCLUDE and
-                      .BACKGROUND now take strings without quotation marks.
+                    [ALL] .INCDIR, .INCBIN, .FOPEN, .INCLUDE, .OUTNAME,
+                      .IFEXISTS and .BACKGROUND now take strings without
+                      quotation marks.
                     [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
                       "JP (IY)".
                     [650] Added support for W65C02S's "WAI" and "STP".

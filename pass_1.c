@@ -7683,9 +7683,11 @@ int parse_directive(void) {
   /* OUTNAME */
 
   if (strcaselesscmp(cp, "OUTNAME") == 0) {
+    expect_calculations = NO;
     inz = input_number();
+    expect_calculations = YES;
 
-    if (inz != INPUT_NUMBER_STRING) {
+    if (inz != INPUT_NUMBER_STRING && inz != INPUT_NUMBER_ADDRESS_LABEL) {
       print_error(".OUTNAME needs a file name string.\n", ERROR_DIR);
       return FAILED;
     }
@@ -9001,9 +9003,11 @@ int parse_if_directive(void) {
 
     FILE *f;
 
+    expect_calculations = NO;
     inz = input_number();
+    expect_calculations = YES;
 
-    if (inz != INPUT_NUMBER_STRING) {
+    if (inz != INPUT_NUMBER_STRING && inz != INPUT_NUMBER_ADDRESS_LABEL) {
       print_error(".IFEXISTS needs a file name string.\n", ERROR_DIR);
       return FAILED;
     }
