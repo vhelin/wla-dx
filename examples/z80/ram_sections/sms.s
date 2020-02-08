@@ -165,3 +165,9 @@ vertices3 instanceof point 2
 .endb
 .endb
 
+.ENUM $FFF0 EXPORT
+scroll_x  DB
+scroll_y  DB
+player_x: DW
+player_y: DW
+.ENDE

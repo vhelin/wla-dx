@@ -20,12 +20,17 @@ SYNOPSIS
 OPTIONS
 -------
 
--v          Display information about ROM file after a succesful linking
--s          Produce NO$GMB symbol file
--S          Produce WLA symbol file
--d          Discard all unreferenced ``FREE`` and ``SEMIFREE`` sections
+-b          Program file output
+-d          Discard unreferenced sections
 -i          Write list files (Note: WLA needs ``-i`` as wel)
+-r          ROM file output (default)
+-s          Write also a NO$GMB/NO$SNES symbol file
+-S          Write also a WLA symbol file
+-A          Add address-to-line mapping data to WLA symbol file
+-v          Verbose messages
 -L LIBDIR   Look in LIBDIR for libaries before looking in CWD
+-t TYPE     Output type (supported types: 'CBMPRG')
+-a ADDR     Load address for CBM PRG
 
 Choose one:
 
