@@ -4,7 +4,7 @@
 	defaultslot 1
 	slot 0 $0000
 	slot 1 $8000
-.endme
+.endme                    
 
 .lorom
 
@@ -64,4 +64,18 @@ main:
 	.db "07>"
 	.storager
 	.db "<07"
+
+MIDDLE1 = 1+2+3
+MIDDLE2= 1+1+1
+        MIDDLE3 = 1+2
+MIDDLE4 =1+1-1
+MIDDLE5=2+1+1
+        MIDDLE6=1+1
+        MIDDLE7= 1+1
+        MIDDLE8 =1+1
+
+	.db "08>"
+	.db MIDDLE1+ 1, 1 + MIDDLE2 + 1, MIDDLE3+ 1, 2+ MIDDLE4 +1, 3+MIDDLE5+1
+	.db 1+MIDDLE6+1, 2+ MIDDLE7+ 2, 3 +MIDDLE8 +3
+	.db "<08"
 .ends

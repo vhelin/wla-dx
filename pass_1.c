@@ -567,6 +567,9 @@ struct structure* get_structure(char *name) {
 }
 
 
+int directive_define_def_equ(void);
+
+
 int pass_1(void) {
 
   struct macro_runtime *mrt;
@@ -597,7 +600,11 @@ int pass_1(void) {
   if (output_format != OUTPUT_LIBRARY)
     fprintf(file_out_ptr, "B%d %d O%d", 0, 0, 0);
 
-  while ((t = get_next_token()) == SUCCEEDED) {
+  while (1) {
+    t = get_next_token();
+    if (t != SUCCEEDED)
+      break;
+    
     q = evaluate_token();
 
     if (q == SUCCEEDED)
@@ -609,6 +616,8 @@ int pass_1(void) {
       for (q = 0; q < ss; q++) {
         if (tmp[q] == ':')
           break;
+	if (tmp[q] == '=')
+	  break;
       }
 
       /* is it a macro? */
@@ -617,47 +626,65 @@ int pass_1(void) {
 
       /* it is a label after all? */
       if (q != ss || newline_beginning == ON) {
+	char old_tmp_q = tmp[q];
+	
         tmp[q] = 0;
 
-        /* reset the flag as there can be only one label / line */
+	/* reset the flag as there can be only one label / line */
         newline_beginning = OFF;
 
-        if (output_format == OUTPUT_LIBRARY && section_status == OFF) {
-          print_error("All labels must be inside sections when compiling a library.\n", ERROR_LOG);
-          return FAILED;
-        }
-        if (org_defined == 0) {
-          sprintf(emsg, "\"%s\" needs a position in memory.\n", tmp);
-          print_error(emsg, ERROR_LOG);
-          return FAILED;
-        }
-        if (ss >= MAX_NAME_LENGTH) {
-          sprintf(emsg, "The label \"%s\" is too long. Max label length is %d characters.\n", tmp, MAX_NAME_LENGTH);
-          print_error(emsg, ERROR_NONE);
-          return FAILED;
-        }
-        if (bankheader_status == ON) {
-          print_error("BANKHEADER sections don't take labels.\n", ERROR_LOG);
-          return FAILED;
-        }
+	if (compare_next_token("=") == SUCCEEDED || old_tmp_q == '=') {
+	  /* it's actually a definition! */
+	  i -= ss;
 
-        /* check out for \@-symbols */
-        if (macro_active != 0 && q >= 2) {
-          if (tmp[q - 2] == '\\' && tmp[q - 1] == '@')
-            sprintf(&tmp[q - 2], "%d", macro_runtime_current->macro->calls - 1);
-        }
+	  if (directive_define_def_equ() == FAILED)
+	    return FAILED;
+	}
+	else {
+	  if (output_format == OUTPUT_LIBRARY && section_status == OFF) {
+	    print_error("All labels must be inside sections when compiling a library.\n", ERROR_LOG);
+	    return FAILED;
+	  }
+	  if (org_defined == 0) {
+	    sprintf(emsg, "\"%s\" needs a position in memory.\n", tmp);
+	    print_error(emsg, ERROR_LOG);
+	    return FAILED;
+	  }
+	  if (ss >= MAX_NAME_LENGTH) {
+	    sprintf(emsg, "The label \"%s\" is too long. Max label length is %d characters.\n", tmp, MAX_NAME_LENGTH);
+	    print_error(emsg, ERROR_NONE);
+	    return FAILED;
+	  }
+	  if (bankheader_status == ON) {
+	    print_error("BANKHEADER sections don't take labels.\n", ERROR_LOG);
+	    return FAILED;
+	  }
 
-        fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
+	  /* check out for \@-symbols */
+	  if (macro_active != 0 && q >= 2) {
+	    if (tmp[q - 2] == '\\' && tmp[q - 1] == '@')
+	      sprintf(&tmp[q - 2], "%d", macro_runtime_current->macro->calls - 1);
+	  }
 
-        /* move to the end of the label */
-        if (q != ss)
-          i -= ss - q - 1;
-        else
-          i -= ss - q;
+	  fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
 
-        continue;
+	  /* move to the end of the label */
+	  if (q != ss)
+	    i -= ss - q - 1;
+	}
+	
+	continue;
       }
+      else if (compare_next_token("=") == SUCCEEDED) {
+	/* it's actually a definition! */
+	i -= ss;
 
+	if (directive_define_def_equ() == FAILED)
+	  return FAILED;
+
+	continue;
+      }
+      
       if (m == NULL) {
         sprintf(emsg, "Unknown symbol \"%s\".\n", tmp);
         print_error(emsg, ERROR_ERR);
@@ -5628,7 +5655,7 @@ int directive_define_def_equ(void) {
     if (export_a_definition(tmp) == FAILED)
       return FAILED;
   }
-    
+
   return SUCCEEDED;
 }
 

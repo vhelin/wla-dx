@@ -1785,7 +1785,9 @@ Note that ::
 
     .DEFINE AAA = 10   ; the same as ".DEFINE AAA 10".
 
-works as well.
+works as well. And this works also ::
+
+    AAA = 10
 
 This is not a compulsory directive.
 
