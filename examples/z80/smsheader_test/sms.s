@@ -275,9 +275,20 @@ dragon    INSTANCEOF mon   ; one mon
 .endm
 	
 data1a:	.incbin "data1/data.txt" skip 1 filter macroOne
-data2a:	.incbin "data2/data.txt" skip 1 filter macroOne
+data2a:	.incbin  data2/data.txt  skip 1 filter macroOne
 	.incdir "data1"
 data1b:	.incbin "data.txt" skip 1 filter macroOne
 	.incbin "data3/data.txt"
-	.incdir "data2"
+	.incdir ""
+	.incdir  data2
 data2b:	.incbin "data.txt" skip 1 filter macroOne
+
+	.fopen "data1/data.txt" fp
+	.fread fp d
+	.db d
+	.undefine d
+
+	.fopen data2/data.txt fp
+	.fread fp d
+	.db d
+	.undefine d

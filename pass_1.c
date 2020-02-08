@@ -109,7 +109,7 @@ struct block_name *block_names = NULL;
 
 extern char *buffer, *unfolded_buffer, label[MAX_NAME_LENGTH + 1], *include_dir, *full_name;
 extern int size, unfolded_size, input_number_error_msg, verbose_mode, output_format, open_files;
-extern int stack_id, latest_stack, ss, commandline_parsing, newline_beginning;
+extern int stack_id, latest_stack, ss, commandline_parsing, newline_beginning, expect_calculations;
 extern int extra_definitions, string_size, input_float_mode, operand_hint, operand_hint_type;
 extern int include_dir_size, parse_floats, listfile_data, quiet, parsed_double_decimal_numbers;
 extern FILE *file_out_ptr;
@@ -1281,7 +1281,6 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
 int localize_path(char *path) {
 
   int i;
-
   
   if (path == NULL)
     return FAILED;
@@ -1301,7 +1300,9 @@ int localize_path(char *path) {
   return SUCCEEDED;
 }
 
+
 int verify_name_length(char *name) {
+
   if (strlen(name) > MAX_NAME_LENGTH) {
     sprintf(emsg, "The label \"%s\" is too long. Max label length is %d bytes.\n", name, MAX_NAME_LENGTH);
     print_error(emsg, ERROR_NONE);
@@ -3634,13 +3635,17 @@ int directive_incdir(void) {
   
   int q, o;
   char *c;
-  
-  if (get_next_token() != GET_NEXT_TOKEN_STRING) {
+
+  expect_calculations = NO;
+  o = input_number();
+  expect_calculations = YES;
+
+  if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error(".INCDIR needs a directory string.\n", ERROR_DIR);
     return FAILED;
   }
 
-  q = ss;
+  q = strlen(label);
 
   /* use the default dir? */
   if (q == 0) {
@@ -3650,7 +3655,7 @@ int directive_incdir(void) {
   }
 
   /* use the given dir */
-  o = (int)(strlen(tmp) + 2);
+  o = (int)(strlen(label) + 2);
   if (o > include_dir_size) {
     c = realloc(include_dir, o);
     if (c == NULL) {
@@ -3662,9 +3667,8 @@ int directive_incdir(void) {
   }
 
   /* convert the path string to local enviroment */
-  localize_path(tmp);
-
-  strcpy(include_dir, tmp);
+  strcpy(include_dir, label);
+  localize_path(include_dir);
 
   /* terminate the string with '/' */
 #ifdef MSDOS
@@ -3685,13 +3689,17 @@ int directive_incdir(void) {
 
 int directive_include(void) {
 
-  int q;
+  int o;
   
-  q = input_number();
-  if (q != INPUT_NUMBER_STRING) {
+  expect_calculations = NO;
+  o = input_number();
+  expect_calculations = YES;
+
+  if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error(".INCLUDE needs a file name string.\n", ERROR_DIR);
     return FAILED;
   }
+
   if (macro_active != 0) {
     print_error("You cannot include a file inside a MACRO.\n", ERROR_DIR);
     return FAILED;
@@ -3718,9 +3726,12 @@ int directive_incbin(void) {
     print_error("Before you can .INCBIN data you'll need to use ORG.\n", ERROR_LOG);
     return FAILED;
   }
-
+  
+  expect_calculations = NO;
   o = input_number();
-  if (o != INPUT_NUMBER_STRING) {
+  expect_calculations = YES;
+
+  if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error(".INCBIN needs a file name string.\n", ERROR_DIR);
     return FAILED;
   }
@@ -3764,6 +3775,7 @@ int directive_incbin(void) {
 
 
 int directive_struct(void) {
+
   if (dstruct_status == ON) {
     print_error("You can't use .STRUCT inside .DSTRUCT.\n", ERROR_DIR);
     return FAILED;
@@ -4302,8 +4314,11 @@ int directive_fopen(void) {
   char *c;
   int o;
 
+  expect_calculations = NO;
   o = input_number();
-  if (o != INPUT_NUMBER_STRING) {
+  expect_calculations = YES;
+
+  if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error(".FOPEN needs a file name string.\n", ERROR_DIR);
     return FAILED;
   }
@@ -5262,10 +5277,11 @@ int directive_background(void) {
     return FAILED;
   }
 
+  expect_calculations = NO;
   q = input_number();
-  if (q == FAILED)
-    return FAILED;
-  if (q != INPUT_NUMBER_STRING) {
+  expect_calculations = YES;
+
+  if (q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error(".BACKGROUND needs a file name string.\n", ERROR_DIR);
     return FAILED;
   }

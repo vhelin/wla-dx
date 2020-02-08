@@ -14,7 +14,7 @@
 
 int parse_string_length(char *end);
 
-int input_number_error_msg = YES, ss, string_size, input_float_mode = OFF, parse_floats = YES;
+int input_number_error_msg = YES, ss, string_size, input_float_mode = OFF, parse_floats = YES, expect_calculations = YES;
 int newline_beginning = ON, parsed_double_decimal_numbers = 0, operand_hint, operand_hint_type;
 char label[MAX_NAME_LENGTH + 1], xyz[512];
 char unevaluated_expression[256];
@@ -191,32 +191,34 @@ int input_number(void) {
   if (e == 0x0A)
     return INPUT_NUMBER_EOL;
 
-  /* check the type of the expression */
-  p = i;
-  ee = e;
-  while (ee != 0x0A) {
-    /* string / symbol -> no calculating */
-    if (ee == '"' || ee == ',' || (ee == '=' && buffer[p] == '=') || (ee == '!' && buffer[p] == '='))
-      break;
-    /* HACK: special case, skip "_\@-1" and alike as we'll parse them later as strings */
-    if (((ee >= 'a' && ee <= 'z') || (ee >= 'A' && ee <= 'Z') || (ee >= '0' && ee <= '9') || (ee == '_' || ee == '.')) &&
-	buffer[p] == '\\' && buffer[p+1] == '@' && (buffer[p+2] == '-' || buffer[p+2] == '+') && (buffer[p+3] >= '0' && buffer[p+3] <= '9')) {
-      p += 4;
-    }
-    else if (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' ||
-	     ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':') {
-      /* launch stack calculator */
-      p = stack_calculate(&buffer[i - 1], &d);
-
-      if (p == STACK_CALCULATE_DELAY)
+  if (expect_calculations == YES) {
+    /* check the type of the expression */
+    p = i;
+    ee = e;
+    while (ee != 0x0A) {
+      /* string / symbol -> no calculating */
+      if (ee == '"' || ee == ',' || (ee == '=' && buffer[p] == '=') || (ee == '!' && buffer[p] == '='))
 	break;
-      else if (p == STACK_RETURN_LABEL)
-	return INPUT_NUMBER_ADDRESS_LABEL;
-      else
-	return p;
+      /* HACK: special case, skip "_\@-1" and alike as we'll parse them later as strings */
+      if (((ee >= 'a' && ee <= 'z') || (ee >= 'A' && ee <= 'Z') || (ee >= '0' && ee <= '9') || (ee == '_' || ee == '.')) &&
+	  buffer[p] == '\\' && buffer[p+1] == '@' && (buffer[p+2] == '-' || buffer[p+2] == '+') && (buffer[p+3] >= '0' && buffer[p+3] <= '9')) {
+	p += 4;
+      }
+      else if (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' ||
+	       ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':') {
+	/* launch stack calculator */
+	p = stack_calculate(&buffer[i - 1], &d);
+
+	if (p == STACK_CALCULATE_DELAY)
+	  break;
+	else if (p == STACK_RETURN_LABEL)
+	  return INPUT_NUMBER_ADDRESS_LABEL;
+	else
+	  return p;
+      }
+      ee = buffer[p];
+      p++;
     }
-    ee = buffer[p];
-    p++;
   }
 
   /* MACRO */

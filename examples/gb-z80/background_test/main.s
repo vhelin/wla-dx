@@ -6,7 +6,7 @@
 
 .INCLUDE "gb_memory.i"
 .INCLUDE "defines.i"
-.INCLUDE "cgb_hardware.i"
+.INCLUDE  cgb_hardware.i
 
 .DEFINE SIMON "old.gb"
 .DEFINE BELMONT "apua", 0, "!!!", 6
