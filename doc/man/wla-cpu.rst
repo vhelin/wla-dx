@@ -11,11 +11,16 @@ Manpage: WLA-CPU
 SYNOPSIS
 --------
 
-| ``wla-gb`` [``OPTIONS``] ``SRC_FILE``
-| ``wla-65c02`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-6502`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-6510`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-65816`` [``OPTIONS``] ``SRC_FILE``
+| ``wla-65c02`` [``OPTIONS``] ``SRC_FILE``
+| ``wla-6800`` [``OPTIONS``] ``SRC_FILE``
+| ``wla-6801`` [``OPTIONS``] ``SRC_FILE``
+| ``wla-6809`` [``OPTIONS``] ``SRC_FILE``
+| ``wla-8008`` [``OPTIONS``] ``SRC_FILE``
+| ``wla-8080`` [``OPTIONS``] ``SRC_FILE``
+| ``wla-gb`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-huc6280`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-spc700`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-z80`` [``OPTIONS``] ``SRC_FILE``
