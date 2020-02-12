@@ -8,6 +8,7 @@
 
 #include "include_file.h"
 #include "pass_3.h"
+#include "printf.h"
 
 
 extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
@@ -247,7 +248,7 @@ int pass_3(void) {
 
         /* check the label is not already defined */
 
-        sprintf(emsg, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
+        snprintf(emsg, sizeof(emsg), "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
             get_file_name(file_name_id), line_number, l->label);
 
         if (s != NULL) {
@@ -708,7 +709,7 @@ int pass_3(void) {
 	continue;
       }
 
-      sprintf(emsg, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
+      snprintf(emsg, sizeof(emsg), "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
 	      get_file_name(file_name_id), line_number, l->label);
 
       if (s != NULL) {

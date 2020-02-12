@@ -10,6 +10,7 @@
 #include "pass_2.h"
 #include "pass_4.h"
 #include "hashmap.h"
+#include "printf.h"
 
 
 #ifdef GB
@@ -116,7 +117,7 @@ int pass_2(void) {
     }
 
     /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-    sprintf(mem_insert_action, "Writing SMS ROM header bytes");
+    snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing SMS ROM header bytes");
 
     mem_insert_absolute(tag_address + 0x8, smsreservedspace1);
     mem_insert_absolute(tag_address + 0x9, smsreservedspace2);
@@ -300,7 +301,7 @@ int pass_2(void) {
       unsigned int nl2 = 0;
       
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing GB ROM Nintendo logo bytes");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM Nintendo logo bytes");
 
       while (nl2 < sizeof(nintendo_logo_dat)) {
         mem_insert_absolute(nl1, nintendo_logo_dat[nl2]);
@@ -311,50 +312,50 @@ int pass_2(void) {
     
     if (romgbc == 1) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing GB ROM type: GB Color compatible");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM type: GB Color compatible");
 
       mem_insert_absolute(323, 0x80);
     }
     else if (romgbc == 2) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing GB ROM type: GB Color only");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM type: GB Color only");
 
       mem_insert_absolute(323, 0xc0);
     }
     if (romdmg != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing GB ROM type: GB original");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM type: GB original");
 
       mem_insert_absolute(326, 0);
     }
     if (romsgb != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing GB ROM type: Super GB");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM type: Super GB");
 
       mem_insert_absolute(326, 3);
     }
     
     if (rambanks_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing GB RAM banks");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB RAM banks");
 
       mem_insert_absolute(329, rambanks);
     }
     if (rombanks_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing GB ROM banks");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM banks");
 
       mem_insert_absolute(328, romtype);
     }
     if (cartridgetype_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing GB cartridge type");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB cartridge type");
 
       mem_insert_absolute(327, cartridgetype);
     }
     if (licenseecodeold_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing GB ROM licensee code (old)");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM licensee code (old)");
 
       mem_insert_absolute(331, licenseecodeold);
       mem_insert_absolute(324, 0);
@@ -362,7 +363,7 @@ int pass_2(void) {
     }
     if (licenseecodenew_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing GB ROM licensee code (new)");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM licensee code (new)");
 
       mem_insert_absolute(331, 51);
       mem_insert_absolute(324, licenseecodenew_c1);
@@ -370,7 +371,7 @@ int pass_2(void) {
     }
     if (countrycode_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing GB ROM country code");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM country code");
 
       mem_insert_absolute(330, countrycode);
     }
@@ -381,14 +382,14 @@ int pass_2(void) {
 	inz = 16;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing GB ROM name");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM name");
 
       for (ind = 0; ind < inz; ind++)
 	mem_insert_absolute(308 + ind, name[ind]);
     }
     if (version_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing GB ROM version");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM version");
 
       mem_insert_absolute(332, version);
     }
@@ -421,7 +422,7 @@ void write_snes_cartridge_information(int start) {
     inz += 16;
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "Writing SNES ROM information");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing SNES ROM information");
 
   mem_insert_absolute(start, inz);
   

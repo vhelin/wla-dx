@@ -9,6 +9,12 @@
 #include "memory.h"
 #include "listfile.h"
 
+#ifdef AMIGA
+#include "/printf.h"
+#else
+#include "../printf.h"
+#endif
+
 
 /* read an integer from t */
 #define READ_T (t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24)); t += 4;
@@ -1091,7 +1097,7 @@ int parse_data_blocks(void) {
           x = READ_T;
 
 	  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	  sprintf(mem_insert_action, "Writing fixed data block from \"%s\".", obj_tmp->name);
+	  snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing fixed data block from \"%s\".", obj_tmp->name);
 
 	  for (; x > 0; x--, i++)
             if (mem_insert(i, *(t++)) == FAILED)

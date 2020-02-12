@@ -118,6 +118,7 @@ set(WLA_SRCS
     pass_4.c
     stack.c
     listfile.c
+    printf.c
     )
 
 foreach(ARCH IN LISTS ARCHS)

@@ -10,6 +10,11 @@
 #include "analyze.h"
 #include "write.h"
 
+#ifdef AMIGA
+#include "/printf.h"
+#else
+#include "../printf.h"
+#endif
 
 
 extern struct object_file *obj_first, *obj_last, *obj_tmp;
@@ -322,14 +327,14 @@ int load_files(char *argv[], int argc) {
       
         /* use the current working directory if the library isn't found in the ext_libdir directory */
         if (f == NULL)
-          sprintf(tmp_token, "%s%s", ext_libdir, token);
+          snprintf(tmp_token, sizeof(tmp_token), "%s%s", ext_libdir, token);
         else {
-          sprintf(tmp_token, "%s", token);
+          snprintf(tmp_token, sizeof(tmp_token), "%s", token);
 	  fclose(f);
 	}
       }
       else
-        sprintf(tmp_token, "%s", token);
+        snprintf(tmp_token, sizeof(tmp_token), "%s", token);
 
       if (load_file(tmp_token, bank, slot, slot_name, YES, base, base_defined) == FAILED) {
 	fclose(fop);

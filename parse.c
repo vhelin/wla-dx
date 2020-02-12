@@ -10,6 +10,7 @@
 #include "pass_1.h"
 #include "stack.h"
 #include "include_file.h"
+#include "printf.h"
 
 
 int parse_string_length(char *end);
@@ -72,7 +73,7 @@ int compare_next_token(char *token) {
     if (buffer[ii + 1] == '@') {
       char tmp_buffer[64];
 
-      sprintf(tmp_buffer, "%d", macro_runtime_current->macro->calls - 1);
+      snprintf(tmp_buffer, sizeof(tmp_buffer), "%d", macro_runtime_current->macro->calls - 1);
 
       e = tmp_buffer[0];
       for (t = 0; t < length && e != 0; ) {
@@ -93,7 +94,7 @@ int compare_next_token(char *token) {
 
       if (d > macro_runtime_current->supplied_arguments) {
 	if (input_number_error_msg == YES) {
-	  sprintf(xyz, "COMPARE_NEXT_SYMBOL: Macro \"%s\" wasn't called with enough arguments.\n", macro_runtime_current->macro->name);
+	  snprintf(xyz, sizeof(xyz), "COMPARE_NEXT_SYMBOL: Macro \"%s\" wasn't called with enough arguments.\n", macro_runtime_current->macro->name);
 	  print_error(xyz, ERROR_NONE);
 	}
 	return FAILED;
@@ -155,7 +156,7 @@ int input_next_string(void) {
 
   if (k == MAX_NAME_LENGTH) {
     if (input_number_error_msg == YES) {
-      sprintf(xyz, "The string is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
+      snprintf(xyz, sizeof(xyz), "The string is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
       print_error(xyz, ERROR_NUM);
     }
     return FAILED;
@@ -242,12 +243,12 @@ int input_number(void) {
     }
 
     if (d > macro_runtime_current->supplied_arguments) {
-      sprintf(xyz, "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", d, macro_runtime_current->macro->name, macro_runtime_current->supplied_arguments);
+      snprintf(xyz, sizeof(xyz), "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", d, macro_runtime_current->macro->name, macro_runtime_current->supplied_arguments);
       print_error(xyz, ERROR_NUM);
       return FAILED;
     }
     if (d == 0) {
-      sprintf(xyz, "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", d, macro_runtime_current->macro->name);
+      snprintf(xyz, sizeof(xyz), "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", d, macro_runtime_current->macro->name);
       print_error(xyz, ERROR_NUM);
       return FAILED;
     }
@@ -392,7 +393,7 @@ int input_number(void) {
 	  if (q == 0)
 	    print_error("Too many digits in the integer value. Max 10 is supported.\n", ERROR_NUM);
 	  else {
-	    sprintf(xyz, "Too many digits in the floating point value. Max %d is supported.\n", MAX_FLOAT_DIGITS);
+	    snprintf(xyz, sizeof(xyz), "Too many digits in the floating point value. Max %d is supported.\n", MAX_FLOAT_DIGITS);
 	    print_error(xyz, ERROR_NUM);
 	  }
 	  return FAILED;
@@ -515,7 +516,7 @@ int input_number(void) {
     e = buffer[i];
     if (e != '\'') {
       if (input_number_error_msg == YES) {
-	sprintf(xyz, "Got '%c' (%d) when expected \"'\".\n", e, e);
+	snprintf(xyz, sizeof(xyz), "Got '%c' (%d) when expected \"'\".\n", e, e);
 	print_error(xyz, ERROR_NUM);
       }
       return FAILED;
@@ -576,7 +577,7 @@ int input_number(void) {
 
     if (k == MAX_NAME_LENGTH) {
       if (input_number_error_msg == YES) {
-	sprintf(xyz, "The string is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
+	snprintf(xyz, sizeof(xyz), "The string is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
 	print_error(xyz, ERROR_NUM);
       }
       return FAILED;
@@ -603,7 +604,7 @@ int input_number(void) {
 
   if (k == MAX_NAME_LENGTH) {
     if (input_number_error_msg == YES) {
-      sprintf(xyz, "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
+      snprintf(xyz, sizeof(xyz), "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
       print_error(xyz, ERROR_NUM);
     }
     return FAILED;
@@ -694,12 +695,12 @@ int input_number(void) {
         /* we need to keep the ':' prefix */
 	if (strlen(tmp_def->string) >= MAX_NAME_LENGTH-1) {
 	  if (input_number_error_msg == YES) {
-	    sprintf(xyz, "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
+	    snprintf(xyz, sizeof(xyz), "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
 	    print_error(xyz, ERROR_NUM);
 	  }
 	  return FAILED;	  
 	}
-        sprintf(label, ":%.254s", tmp_def->string);
+        snprintf(label, sizeof(label), ":%.254s", tmp_def->string);
         string_size = tmp_def->size + 1;
       }
       else {
@@ -962,7 +963,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 	  i += 2;
 	}
 	
-	sprintf(t, "%d", macro_runtime_current->macro->calls - 1 + adder);
+	snprintf(t, sizeof(t), "%d", macro_runtime_current->macro->calls - 1 + adder);
 	for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
 	  expanded_macro_string[k] = t[j];
 	  if (t[j] == 0)
@@ -974,7 +975,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 	(*expands)++;
 	i++;
 
-	sprintf(t, "%s", macro_runtime_current->macro->name);
+	snprintf(t, sizeof(t), "%s", macro_runtime_current->macro->name);
 	for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
 	  expanded_macro_string[k] = t[j];
 	  if (t[j] == 0)
@@ -986,7 +987,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 	(*expands)++;
 	i++;
 
-	sprintf(t, "%s", get_file_name(active_file_info_last->filename_id));
+	snprintf(t, sizeof(t), "%s", get_file_name(active_file_info_last->filename_id));
 	for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
 	  expanded_macro_string[k] = t[j];
 	  if (t[j] == 0)
@@ -1010,7 +1011,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
 	if (d > macro_runtime_current->supplied_arguments) {
 	  if (input_number_error_msg == YES) {
-	    sprintf(xyz, "Macro \"%s\" wasn't called with enough arguments, \\%d is out of range.\n", macro_runtime_current->macro->name, d);
+	    snprintf(xyz, sizeof(xyz), "Macro \"%s\" wasn't called with enough arguments, \\%d is out of range.\n", macro_runtime_current->macro->name, d);
 	    print_error(xyz, ERROR_NUM);
 	  }
     
@@ -1027,7 +1028,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
       }
       else {
 	if (input_number_error_msg == YES) {
-	  sprintf(xyz, "EXPAND_MACRO_ARGUMENTS: Unsupported special character '%c'.\n", in[i + 1]);
+	  snprintf(xyz, sizeof(xyz), "EXPAND_MACRO_ARGUMENTS: Unsupported special character '%c'.\n", in[i + 1]);
 	  print_error(xyz, ERROR_NUM);
 	}
     
@@ -1043,7 +1044,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
   if (k >= MAX_NAME_LENGTH) {
     if (input_number_error_msg == YES) {
-      sprintf(xyz, "EXPAND_MACRO_ARGUMENTS: The result string is too large, increase MAX_NAME_LENGTH and compile WLA DX again.\n");
+      snprintf(xyz, sizeof(xyz), "EXPAND_MACRO_ARGUMENTS: The result string is too large, increase MAX_NAME_LENGTH and compile WLA DX again.\n");
       print_error(xyz, ERROR_NUM);
     }
     

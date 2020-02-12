@@ -5,9 +5,9 @@ LD = gcc
 LDFLAGS = -lm
 WLAFLAGS = $(CFLAGS)
 
-CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c opcodes_spc700_tables.c opcodes_spc700.c
-HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h crc32.h hashmap.h defines.h
-OFILES = main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o opcodes_spc700_tables.o opcodes_spc700.o
+CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c printf.c opcodes_spc700_tables.c opcodes_spc700.c
+HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h crc32.h hashmap.h printf.h defines.h
+OFILES = main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o printf.o opcodes_spc700_tables.o opcodes_spc700.o
 
 
 all: $(OFILES) makefile
@@ -15,6 +15,9 @@ all: $(OFILES) makefile
 
 main.o: main.c defines.h main.h makefile
 	$(CC) $(CFLAGS) main.c
+
+printf.o: printf.c printf.h makefile
+	$(CC) $(CFLAGS) printf.c
 
 parse.o: parse.c defines.h parse.h makefile
 	$(CC) $(CFLAGS) parse.c
@@ -44,13 +47,13 @@ stack.o: stack.c defines.h stack.h makefile
 	$(CC) $(CFLAGS) stack.c
 
 listfile.o: listfile.c defines.h listfile.h makefile
-	$(CC) $(WLAFLAGS) listfile.c
+	$(CC) $(CFLAGS) listfile.c
 
 crc32.o: crc32.c defines.h crc32.h makefile
-	$(CC) $(WLAFLAGS) crc32.c
+	$(CC) $(CFLAGS) crc32.c
 
 hashmap.o: hashmap.c defines.h hashmap.h makefile
-	$(CC) $(WLAFLAGS) hashmap.c
+	$(CC) $(CFLAGS) hashmap.c
 
 
 $(OFILES): $(HFILES)

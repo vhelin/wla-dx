@@ -12,6 +12,7 @@
 #include "pass_1.h"
 #include "stack.h"
 #include "include_file.h"
+#include "printf.h"
 
 
 extern int input_number_error_msg, bankheader_status, input_float_mode;
@@ -357,7 +358,7 @@ int stack_calculate(char *in, int *value) {
 	  break;
 	else {
 	  if (input_number_error_msg == YES) {
-	    sprintf(xyz, "Got '%c' (%d) when expected a 0 or 1.\n", e, e);
+	    snprintf(xyz, sizeof(xyz), "Got '%c' (%d) when expected a 0 or 1.\n", e, e);
 	    print_error(xyz, ERROR_NUM);
 	  }
 	  return FAILED;
@@ -376,7 +377,7 @@ int stack_calculate(char *in, int *value) {
       d = *in;
       in++;
       if (*in != '\'') {
-        sprintf(xyz, "Got '%c' (%d) when expected \"'\".\n", *in, *in);
+        snprintf(xyz, sizeof(xyz), "Got '%c' (%d) when expected \"'\".\n", *in, *in);
         print_error(xyz, ERROR_NUM);
 	return FAILED;
       }
@@ -408,7 +409,7 @@ int stack_calculate(char *in, int *value) {
 	  break;
 	else {
 	  if (input_number_error_msg == YES) {
-	    sprintf(xyz, "Got '%c' (%d) when expected [0-F].\n", e, e);
+	    snprintf(xyz, sizeof(xyz), "Got '%c' (%d) when expected [0-F].\n", e, e);
 	    print_error(xyz, ERROR_NUM);
 	  }
 	  return FAILED;
@@ -464,7 +465,7 @@ int stack_calculate(char *in, int *value) {
 	    break;
 	  else {
 	    if (input_number_error_msg == YES) {
-	      sprintf(xyz, "Got '%c' (%d) when expected [0-F].\n", e, e);
+	      snprintf(xyz, sizeof(xyz), "Got '%c' (%d) when expected [0-F].\n", e, e);
 	      print_error(xyz, ERROR_NUM);
 	    }
 	    return FAILED;
@@ -493,7 +494,7 @@ int stack_calculate(char *in, int *value) {
 	      if (n == 0)
 		print_error("Too many digits in the integer value. Max 10 is supported.\n", ERROR_NUM);
 	      else {
-		sprintf(xyz, "Too many digits in the floating point value. Max %d is supported.\n", MAX_FLOAT_DIGITS);
+		snprintf(xyz, sizeof(xyz), "Too many digits in the floating point value. Max %d is supported.\n", MAX_FLOAT_DIGITS);
 		print_error(xyz, ERROR_NUM);
 	      }
 	      return FAILED;
@@ -527,7 +528,7 @@ int stack_calculate(char *in, int *value) {
 	  }
 	  else {
 	    if (input_number_error_msg == YES) {
-	      sprintf(xyz, "Got '%c' (%d) when expected [0-9].\n", e, e);
+	      snprintf(xyz, sizeof(xyz), "Got '%c' (%d) when expected [0-9].\n", e, e);
 	      print_error(xyz, ERROR_NUM);
 	    }
 	    return FAILED;
@@ -1051,7 +1052,7 @@ int resolve_stack(struct stack_item s[], int x) {
 	  }
 	  
 	  if (b > macro_runtime_current->supplied_arguments) {
-	    sprintf(xyz, "Reference to MACRO argument number %d (\"%s\") is out of range.\n", b, s->string);
+	    snprintf(xyz, sizeof(xyz), "Reference to MACRO argument number %d (\"%s\") is out of range.\n", b, s->string);
 	    print_error(xyz, ERROR_STC);
 	    return FAILED;
 	  }
@@ -1098,7 +1099,7 @@ int resolve_stack(struct stack_item s[], int x) {
         hashmap_get(defines_map, s->string, (void*)&tmp_def);
         if (tmp_def != NULL) {
           if (tmp_def->type == DEFINITION_TYPE_STRING) {
-            sprintf(xyz, "Definition \"%s\" is a string definition.\n", tmp_def->alias);
+            snprintf(xyz, sizeof(xyz), "Definition \"%s\" is a string definition.\n", tmp_def->alias);
             print_error(xyz, ERROR_STC);
             return FAILED;
           }

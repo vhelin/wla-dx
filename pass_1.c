@@ -16,6 +16,7 @@
 #include "pass_2.h"
 #include "stack.h"
 #include "hashmap.h"
+#include "printf.h"
 
 
 #ifdef GB
@@ -190,7 +191,7 @@ static int _get_slot_number_by_its_name(char *slot_name, int *number) {
     }
   }
 
-  sprintf(emsg, "Cannot find SLOT \"%s\".\n", slot_name);
+  snprintf(emsg, sizeof(emsg), "Cannot find SLOT \"%s\".\n", slot_name);
   print_error(emsg, ERROR_DIR);
 
   return FAILED;  
@@ -210,7 +211,7 @@ static int _get_slot_number_by_a_value(int value, int *slot) {
     /* value can be the direct SLOT ID, but can it be a SLOT's address as well? */
     for (i = 0; i < slots_amount; i++) {
       if (slots[i].address == value && value != i) {
-	sprintf(emsg, "There is a SLOT number %d, but there also is a SLOT (with ID %d) with starting address %d ($%x)... Using SLOT %d.\n", value, i, value, value, value);
+	snprintf(emsg, sizeof(emsg), "There is a SLOT number %d, but there also is a SLOT (with ID %d) with starting address %d ($%x)... Using SLOT %d.\n", value, i, value, value, value);
 	print_error(emsg, ERROR_WRN);
 	break;
       }
@@ -229,7 +230,7 @@ static int _get_slot_number_by_a_value(int value, int *slot) {
 
   *slot = -1;
 
-  sprintf(emsg, "Cannot find SLOT %d.\n", value);
+  snprintf(emsg, sizeof(emsg), "Cannot find SLOT %d.\n", value);
   print_error(emsg, ERROR_DIR);
   
   return FAILED;
@@ -377,7 +378,7 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
   if (inz == FAILED)
     return FAILED;
   else if (inz == INPUT_NUMBER_EOL) {
-    sprintf(emsg, ".%s needs data.\n", name);
+    snprintf(emsg, sizeof(emsg), ".%s needs data.\n", name);
     print_error(emsg, ERROR_INP);
     return FAILED;
   }
@@ -481,14 +482,14 @@ int macro_insert_byte_db(char *name) {
       hashmap_get(defines_map, "_OUT", (void*)&d);
 
   if (d == NULL) {
-    sprintf(emsg, "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
+    snprintf(emsg, sizeof(emsg), "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
 
   if (d->type == DEFINITION_TYPE_VALUE) {
     if (d->value < -128 || d->value > 255) {
-      sprintf(emsg, ".%s expects 8-bit data, %d is out of range!\n", name, (int)d->value);
+      snprintf(emsg, sizeof(emsg), ".%s expects 8-bit data, %d is out of range!\n", name, (int)d->value);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -504,7 +505,7 @@ int macro_insert_byte_db(char *name) {
     */
   }
   else {
-    sprintf(emsg, ".%s cannot handle strings in \"_OUT/_out\".\n", name);
+    snprintf(emsg, sizeof(emsg), ".%s cannot handle strings in \"_OUT/_out\".\n", name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -522,14 +523,14 @@ int macro_insert_word_db(char *name) {
       hashmap_get(defines_map, "_OUT", (void*)&d);
 
   if (d == NULL) {
-    sprintf(emsg, "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
+    snprintf(emsg, sizeof(emsg), "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
 
   if (d->type == DEFINITION_TYPE_VALUE) {
     if (d->value < -32768 || d->value > 65535) {
-      sprintf(emsg, ".%s expects 16-bit data, %d is out of range!\n", name, (int)d->value);
+      snprintf(emsg, sizeof(emsg), ".%s expects 16-bit data, %d is out of range!\n", name, (int)d->value);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -545,7 +546,7 @@ int macro_insert_word_db(char *name) {
     */
   }
   else {
-    sprintf(emsg, ".%s cannot handle strings in \"_OUT/_out\".\n", name);
+    snprintf(emsg, sizeof(emsg), ".%s cannot handle strings in \"_OUT/_out\".\n", name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -646,12 +647,12 @@ int pass_1(void) {
 	    return FAILED;
 	  }
 	  if (org_defined == 0) {
-	    sprintf(emsg, "\"%s\" needs a position in memory.\n", tmp);
+	    snprintf(emsg, sizeof(emsg), "\"%s\" needs a position in memory.\n", tmp);
 	    print_error(emsg, ERROR_LOG);
 	    return FAILED;
 	  }
 	  if (ss >= MAX_NAME_LENGTH) {
-	    sprintf(emsg, "The label \"%s\" is too long. Max label length is %d characters.\n", tmp, MAX_NAME_LENGTH);
+	    snprintf(emsg, sizeof(emsg), "The label \"%s\" is too long. Max label length is %d characters.\n", tmp, MAX_NAME_LENGTH);
 	    print_error(emsg, ERROR_NONE);
 	    return FAILED;
 	  }
@@ -663,7 +664,7 @@ int pass_1(void) {
 	  /* check out for \@-symbols */
 	  if (macro_active != 0 && q >= 2) {
 	    if (tmp[q - 2] == '\\' && tmp[q - 1] == '@')
-	      sprintf(&tmp[q - 2], "%d", macro_runtime_current->macro->calls - 1);
+	      snprintf(&tmp[q - 2], sizeof(tmp) - (q - 2), "%d", macro_runtime_current->macro->calls - 1);
 	  }
 
 	  fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
@@ -686,7 +687,7 @@ int pass_1(void) {
       }
       
       if (m == NULL) {
-        sprintf(emsg, "Unknown symbol \"%s\".\n", tmp);
+        snprintf(emsg, sizeof(emsg), "Unknown symbol \"%s\".\n", tmp);
         print_error(emsg, ERROR_ERR);
         return FAILED;
       }
@@ -756,7 +757,7 @@ int pass_1(void) {
       continue;
     }
     else if (q == FAILED) {
-      sprintf(emsg, "Couldn't parse \"%s\".\n", tmp);
+      snprintf(emsg, sizeof(emsg), "Couldn't parse \"%s\".\n", tmp);
       print_error(emsg, ERROR_ERR);
       return FAILED;
     }
@@ -787,7 +788,7 @@ void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
 
     va_end(ap);
     va_start(ap, format);
-    vsprintf(ttt, format, ap);
+    vnsprintf(ttt, sizeof(ttt), format, ap);
     printf("LINE %5d: OPCODE: %16s ::: %s\n", active_file_info_last->line_current, oc->op, ttt);
   }
 #endif
@@ -820,11 +821,11 @@ static int parse_push_pull_registers(int accept_u) {
     
     if (z != INPUT_NUMBER_ADDRESS_LABEL) {
       if (accept_u == 1) {
-	sprintf(emsg, "%s, got something else instead.\n", error_no_s);
+	snprintf(emsg, sizeof(emsg), "%s, got something else instead.\n", error_no_s);
 	print_error(emsg, ERROR_ERR);
       }
       else {
-	sprintf(emsg, "%s, got something else instead.\n", error_no_u);
+	snprintf(emsg, sizeof(emsg), "%s, got something else instead.\n", error_no_u);
 	print_error(emsg, ERROR_ERR);
       }
       return -1;
@@ -836,7 +837,7 @@ static int parse_push_pull_registers(int accept_u) {
       reg = 1 << 5;
     else if (strcaselesscmp(label, "U") == 0) {
       if (accept_u == 0) {
-	sprintf(emsg, "%s, got \"%s\" instead.\n", error_no_u, label);
+	snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_u, label);
 	print_error(emsg, ERROR_ERR);
 	return -1;
       }
@@ -844,7 +845,7 @@ static int parse_push_pull_registers(int accept_u) {
     }
     else if (strcaselesscmp(label, "S") == 0) {
       if (accept_u == 1) {
-	sprintf(emsg, "%s, got \"%s\" instead.\n", error_no_s, label);
+	snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_s, label);
 	print_error(emsg, ERROR_ERR);
 	return -1;
       }
@@ -862,18 +863,18 @@ static int parse_push_pull_registers(int accept_u) {
       reg = 1 << 3;
     else {
       if (accept_u == 1) {
-	sprintf(emsg, "%s, got \"%s\" instead.\n", error_no_s, label);
+	snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_s, label);
 	print_error(emsg, ERROR_ERR);
       }
       else {
-	sprintf(emsg, "%s, got \"%s\" instead.\n", error_no_u, label);
+	snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_u, label);
 	print_error(emsg, ERROR_ERR);
       }
       return -1;
     }
 
     if ((register_byte & reg) != 0) {
-      sprintf(emsg, "Register \"%s\" was already defined.\n", label);
+      snprintf(emsg, sizeof(emsg), "Register \"%s\" was already defined.\n", label);
       print_error(emsg, ERROR_ERR);
       return -1;
     }
@@ -883,9 +884,9 @@ static int parse_push_pull_registers(int accept_u) {
 
   if (register_byte == 0) {
     if (accept_u == 1)
-      sprintf(emsg, "%s, got nothing instead.\n", error_no_s);
+      snprintf(emsg, sizeof(emsg), "%s, got nothing instead.\n", error_no_s);
     else
-      sprintf(emsg, "%s, got nothing instead.\n", error_no_u);
+      snprintf(emsg, sizeof(emsg), "%s, got nothing instead.\n", error_no_u);
     print_error(emsg, ERROR_ERR);
 
     return -1;
@@ -921,7 +922,7 @@ static int get_register_byte_from_label_exg_tfr() {
   if (strcaselesscmp(label, "DP") == 0)
     return 0xB;
 
-  sprintf(emsg, "Was expecting register D/X/Y/U/S/PC/A/B/CC/DP, got \"%s\" instead.\n", label);
+  snprintf(emsg, sizeof(emsg), "Was expecting register D/X/Y/U/S/PC/A/B/CC/DP, got \"%s\" instead.\n", label);
   print_error(emsg, ERROR_ERR);
 
   return -1;
@@ -1020,12 +1021,12 @@ int evaluate_token(void) {
       return FAILED;
     }
     if (org_defined == 0) {
-      sprintf(emsg, "\"%s\" needs a position in memory.\n", tmp);
+      snprintf(emsg, sizeof(emsg), "\"%s\" needs a position in memory.\n", tmp);
       print_error(emsg, ERROR_LOG);
       return FAILED;
     }
     if (ss >= MAX_NAME_LENGTH) {
-      sprintf(emsg, "The label \"%s\" is too long. Max label length is %d characters.\n", tmp, MAX_NAME_LENGTH);
+      snprintf(emsg, sizeof(emsg), "The label \"%s\" is too long. Max label length is %d characters.\n", tmp, MAX_NAME_LENGTH);
       print_error(emsg, ERROR_NONE);
       return FAILED;
     }
@@ -1037,7 +1038,7 @@ int evaluate_token(void) {
     /* check for \@-symbols */
     if (macro_active != 0) {
       if (tmp[ss - 3] == '\\' && tmp[ss - 2] == '@')
-        sprintf(&tmp[ss - 3], "%d", macro_runtime_current->macro->calls - 1);
+        snprintf(&tmp[ss - 3], sizeof(tmp) - (ss - 3), "%d", macro_runtime_current->macro->calls - 1);
     }
 
     fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
@@ -1238,7 +1239,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
 
   hashmap_get(defines_map, name, (void*)&d);
   if (d != NULL) {
-    sprintf(emsg, "\"%s\" was defined for the second time.\n", name);
+    snprintf(emsg, sizeof(emsg), "\"%s\" was defined for the second time.\n", name);
     if (commandline_parsing == OFF)
       print_error(emsg, ERROR_DIR);
     else
@@ -1248,7 +1249,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
 
   d = calloc(sizeof(struct definition), 1);
   if (d == NULL) {
-    sprintf(emsg, "Out of memory while trying to add a new definition (\"%s\").\n", name);
+    snprintf(emsg, sizeof(emsg), "Out of memory while trying to add a new definition (\"%s\").\n", name);
     if (commandline_parsing == OFF)
       print_error(emsg, ERROR_DIR);
     else
@@ -1304,7 +1305,7 @@ int localize_path(char *path) {
 int verify_name_length(char *name) {
 
   if (strlen(name) > MAX_NAME_LENGTH) {
-    sprintf(emsg, "The label \"%s\" is too long. Max label length is %d bytes.\n", name, MAX_NAME_LENGTH);
+    snprintf(emsg, sizeof(emsg), "The label \"%s\" is too long. Max label length is %d bytes.\n", name, MAX_NAME_LENGTH);
     print_error(emsg, ERROR_NONE);
     return FAILED;
   }
@@ -1376,19 +1377,19 @@ void print_error(char *error, int type) {
 void give_snes_rom_mode_defined_error(char *prior) {
 
   if (lorom_defined != 0) {
-    sprintf(emsg, ".LOROM was defined prior to %s.\n", prior);
+    snprintf(emsg, sizeof(emsg), ".LOROM was defined prior to %s.\n", prior);
     print_error(emsg, ERROR_DIR);
   }
   else if (hirom_defined != 0) {
-    sprintf(emsg, ".HIROM was defined prior to %s.\n", prior);
+    snprintf(emsg, sizeof(emsg), ".HIROM was defined prior to %s.\n", prior);
     print_error(emsg, ERROR_DIR);
   }
   else if (exlorom_defined != 0) {
-    sprintf(emsg, ".EXLOROM was defined prior to %s.\n", prior);
+    snprintf(emsg, sizeof(emsg), ".EXLOROM was defined prior to %s.\n", prior);
     print_error(emsg, ERROR_DIR);
   }
   else if (exhirom_defined != 0) {
-    sprintf(emsg, ".EXHIROM was defined prior to %s.\n", prior);
+    snprintf(emsg, sizeof(emsg), ".EXHIROM was defined prior to %s.\n", prior);
     print_error(emsg, ERROR_DIR);
   }
 }
@@ -1430,7 +1431,7 @@ int add_label_sizeof(char *label, int size) {
   label_sizeofs = ls;
 
   /* define locally also, since we can */
-  sprintf(tmpname, "_sizeof_%s", label);
+  snprintf(tmpname, sizeof(tmpname), "_sizeof_%s", label);
   if (add_a_new_definition(tmpname, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
 
@@ -1491,7 +1492,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
         return FAILED;
     }
     else {
-      sprintf(tmp, "_sizeof_%s", name);
+      snprintf(tmp, sizeof(tmp), "_sizeof_%s", name);
       if (add_a_new_definition(tmp, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
         return FAILED;
       if (in_enum == YES && enum_exp == YES) {
@@ -1514,11 +1515,10 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 
   char tmp[MAX_NAME_LENGTH * 2 + 5];
   struct structure_item *si;
-  int g;
-  int real_si_size;
+  int real_si_size, g;
 
   if (strlen(basename) > MAX_NAME_LENGTH) {
-    sprintf(emsg, "Name \"%s\" is too long!\n", basename);
+    snprintf(emsg, sizeof(emsg), "Name \"%s\" is too long!\n", basename);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -1535,9 +1535,9 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
     /* make definition for this item */
     if (si->name[0] != '\0') {
       if (basename[0] != '\0')
-        sprintf(tmp, "%s.%s", basename, si->name);
+        snprintf(tmp, sizeof(tmp), "%s.%s", basename, si->name);
       else
-        sprintf(tmp, "%s", si->name);
+        snprintf(tmp, sizeof(tmp), "%s", si->name);
 
       if (verify_name_length(tmp) == FAILED)
         return FAILED;
@@ -1559,9 +1559,9 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
         g = 1;
         while (g <= si->num_instances) {
           if (basename[0] != '\0')
-            sprintf(tmp, "%s.%s.%d", basename, si->name, g);
+            snprintf(tmp, sizeof(tmp), "%s.%s.%d", basename, si->name, g);
           else
-            sprintf(tmp, "%s.%d", si->name, g);
+            snprintf(tmp, sizeof(tmp), "%s.%d", si->name, g);
 
           if (verify_name_length(tmp) == FAILED)
             return FAILED;
@@ -1585,9 +1585,9 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 
         if (un->name[0] != '\0') {
           if (basename[0] != '\0')
-            sprintf(union_basename, "%s.%s", basename, un->name);
+            snprintf(union_basename, sizeof(union_basename), "%s.%s", basename, un->name);
           else
-            sprintf(union_basename, "%s", un->name);
+            snprintf(union_basename, sizeof(union_basename), "%s", un->name);
 
           if (verify_name_length(union_basename) == FAILED)
             return FAILED;
@@ -1596,7 +1596,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
             return FAILED;
         }
         else
-          sprintf(union_basename, "%s", basename);
+          snprintf(union_basename, sizeof(union_basename), "%s", basename);
 
         if (enum_add_struct_fields(union_basename, un, 0) == FAILED)
           return FAILED;
@@ -1837,16 +1837,16 @@ int parse_enum_token(void) {
     /* create the SIZEOF-definition for the entire struct */
     active_struct->size = max_enum_offset;
     if (strlen(active_struct->name) > MAX_NAME_LENGTH - 8) {
-      sprintf(emsg, "STRUCT \"%s\"'s name is too long!\n", active_struct->name);
+      snprintf(emsg, sizeof(emsg), "STRUCT \"%s\"'s name is too long!\n", active_struct->name);
       print_error(emsg, ERROR_DIR);      
       return FAILED;
     }
-    sprintf(tmpname, "_sizeof_%s", active_struct->name);
+    snprintf(tmpname, sizeof(tmpname), "_sizeof_%s", active_struct->name);
     if (add_a_new_definition(tmpname, (double)active_struct->size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
     
     if (active_struct->items == NULL) {
-      sprintf(emsg, "STRUCT \"%s\" is empty!\n", active_struct->name);
+      snprintf(emsg, sizeof(emsg), "STRUCT \"%s\" is empty!\n", active_struct->name);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -1929,7 +1929,7 @@ int parse_enum_token(void) {
     st = get_structure(tmp);
 
     if (st == NULL) {
-      sprintf(emsg, "No STRUCT named \"%s\" available.\n", tmp);
+      snprintf(emsg, sizeof(emsg), "No STRUCT named \"%s\" available.\n", tmp);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -1951,9 +1951,9 @@ int parse_enum_token(void) {
     }
     else {
       if (inz == INPUT_NUMBER_STRING)
-        sprintf(emsg, "Expected the number of structures, got \"%s\" instead.\n", label);
+        snprintf(emsg, sizeof(emsg), "Expected the number of structures, got \"%s\" instead.\n", label);
       else
-        sprintf(emsg, "Expected the number of structures.\n");
+        snprintf(emsg, sizeof(emsg), "Expected the number of structures.\n");
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -1978,7 +1978,7 @@ int parse_enum_token(void) {
     if (q == FAILED)
       return FAILED;
     if (q != SUCCEEDED) {
-      sprintf(emsg, "%s needs size.\n", bak);
+      snprintf(emsg, sizeof(emsg), "%s needs size.\n", bak);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -2013,11 +2013,11 @@ int parse_enum_token(void) {
 #endif
   else {
     if (in_enum == YES)
-      sprintf(emsg, "Unexpected symbol \"%s\" in .ENUM.\n", tmp);
+      snprintf(emsg, sizeof(emsg), "Unexpected symbol \"%s\" in .ENUM.\n", tmp);
     else if (in_ramsection == YES)
-      sprintf(emsg, "Unexpected symbol \"%s\" in .RAMSECTION.\n", tmp);
+      snprintf(emsg, sizeof(emsg), "Unexpected symbol \"%s\" in .RAMSECTION.\n", tmp);
     else /* struct */
-      sprintf(emsg, "Unexpected symbol \"%s\" in .STRUCT.\n", tmp);
+      snprintf(emsg, sizeof(emsg), "Unexpected symbol \"%s\" in .STRUCT.\n", tmp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -2170,7 +2170,7 @@ int directive_slot(void) {
   }
 
   if (d < 0 || d > 255 || slots[d].size == 0) {
-    sprintf(emsg, "There is no SLOT number %d.\n", d);
+    snprintf(emsg, sizeof(emsg), "There is no SLOT number %d.\n", d);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -2190,7 +2190,7 @@ int directive_bank(void) {
   no_library_files(".BANK definitions");
     
   if (section_status == ON) {
-    sprintf(emsg, "Section \"%s\" is open. Do not try to change the bank.\n", sections_last->name);
+    snprintf(emsg, sizeof(emsg), "Section \"%s\" is open. Do not try to change the bank.\n", sections_last->name);
     print_error(emsg, ERROR_LOG);
     return FAILED;
   }
@@ -2213,7 +2213,7 @@ int directive_bank(void) {
   }
 
   if (rombanks <= d && output_format != OUTPUT_LIBRARY) {
-    sprintf(emsg, "ROM banks == %d, selected bank %d.\n", rombanks, d);
+    snprintf(emsg, sizeof(emsg), "ROM banks == %d, selected bank %d.\n", rombanks, d);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -2244,7 +2244,7 @@ int directive_bank(void) {
     }
 
     if (slots[d].size == 0) {
-      sprintf(emsg, "There is no SLOT number %d.\n", d);
+      snprintf(emsg, sizeof(emsg), "There is no SLOT number %d.\n", d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -2264,12 +2264,12 @@ int directive_bank(void) {
   }
 
   if (slots[inz].size < banks[ind]) {
-    sprintf(emsg, "SLOT %d's size %d < BANK %d's size %d.\n", inz, slots[inz].size, ind, banks[ind]);
+    snprintf(emsg, sizeof(emsg), "SLOT %d's size %d < BANK %d's size %d.\n", inz, slots[inz].size, ind, banks[ind]);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
   if (slots[inz].size > banks[ind]) {
-    sprintf(emsg, "SLOT %d's size %d > BANK %d's size %d, but the bank fits inside.\n", inz, slots[inz].size, ind, banks[ind]);
+    snprintf(emsg, sizeof(emsg), "SLOT %d's size %d > BANK %d's size %d, but the bank fits inside.\n", inz, slots[inz].size, ind, banks[ind]);
     print_error(emsg, ERROR_WRN);
   }
 
@@ -2285,7 +2285,7 @@ int directive_dbm_dwm(void) {
   strcpy(bak, cp);
   inz = input_number();
   if (inz != INPUT_NUMBER_ADDRESS_LABEL) {
-    sprintf(emsg, ".%s requires macro name.\n", bak);
+    snprintf(emsg, sizeof(emsg), ".%s requires macro name.\n", bak);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -2294,7 +2294,7 @@ int directive_dbm_dwm(void) {
   m = macro_get(label);
 
   if (m == NULL) {
-    sprintf(emsg, "No MACRO \"%s\" defined.\n", label);
+    snprintf(emsg, sizeof(emsg), "No MACRO \"%s\" defined.\n", label);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -2328,7 +2328,7 @@ int directive_table(void) {
       if (inz == FAILED)
 	return FAILED;
       if (inz != SUCCEEDED) {
-	sprintf(emsg, "%s needs size.\n", bak);
+	snprintf(emsg, sizeof(emsg), "%s needs size.\n", bak);
 	print_error(emsg, ERROR_INP);
 	return FAILED;
       }
@@ -2346,7 +2346,7 @@ int directive_table(void) {
       if (inz == FAILED)
 	return FAILED;
       if (inz != SUCCEEDED) {
-	sprintf(emsg, "%s needs size.\n", bak);
+	snprintf(emsg, sizeof(emsg), "%s needs size.\n", bak);
 	print_error(emsg, ERROR_INP);
 	return FAILED;
       }
@@ -2365,7 +2365,7 @@ int directive_table(void) {
       if (inz == FAILED)
 	return FAILED;
       if (inz != SUCCEEDED) {
-	sprintf(emsg, "%s needs size.\n", bak);
+	snprintf(emsg, sizeof(emsg), "%s needs size.\n", bak);
 	print_error(emsg, ERROR_INP);
 	return FAILED;
       }
@@ -2375,7 +2375,7 @@ int directive_table(void) {
     }
 #endif
     else {
-      sprintf(emsg, "Unknown symbol \"%s\".\n", label);
+      snprintf(emsg, sizeof(emsg), "Unknown symbol \"%s\".\n", label);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -2384,7 +2384,7 @@ int directive_table(void) {
   }
 
   if (table_size >= (int)sizeof(table_format)) {
-    sprintf(emsg, ".TABLE is out of size.\n");
+    snprintf(emsg, sizeof(emsg), ".TABLE is out of size.\n");
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -2392,14 +2392,14 @@ int directive_table(void) {
   if (inz == FAILED)
     return FAILED;
   else if (inz == INPUT_NUMBER_EOL && table_size == 0) {
-    sprintf(emsg, ".TABLE needs data.\n");
+    snprintf(emsg, sizeof(emsg), ".TABLE needs data.\n");
     print_error(emsg, ERROR_INP);
     return FAILED;
   }
   else if (inz == INPUT_NUMBER_EOL)
     next_line();
   else {
-    sprintf(emsg, "Unknown symbol.\n");
+    snprintf(emsg, sizeof(emsg), "Unknown symbol.\n");
     print_error(emsg, ERROR_DIR);
     return FAILED;      
   }
@@ -2419,14 +2419,14 @@ int directive_row_data(void) {
   strcpy(bak, cp);
 
   if (table_defined == 0) {
-    sprintf(emsg, ".TABLE needs to be defined before .%s can be used.\n", bak);
+    snprintf(emsg, sizeof(emsg), ".TABLE needs to be defined before .%s can be used.\n", bak);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
     
   if (strcaselesscmp(bak, "ROW") == 0) {
     if (table_index != 0) {
-      sprintf(emsg, ".ROW cannot be used here. .DATA needs to be used again to give the remaining of the row.\n");
+      snprintf(emsg, sizeof(emsg), ".ROW cannot be used here. .DATA needs to be used again to give the remaining of the row.\n");
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -2438,7 +2438,7 @@ int directive_row_data(void) {
     if (inz == INPUT_NUMBER_STRING) {
       if (table_format[table_index] == 'b') {
 	if (strlen(label) != 1) {
-	  sprintf(emsg, ".%s was expecting a byte, got %d bytes instead.\n", bak, (int)strlen(label));
+	  snprintf(emsg, sizeof(emsg), ".%s was expecting a byte, got %d bytes instead.\n", bak, (int)strlen(label));
 	  print_error(emsg, ERROR_INP);
 	  return FAILED;
 	}
@@ -2447,7 +2447,7 @@ int directive_row_data(void) {
       }
       else if (table_format[table_index] == 'w') {
 	if (strlen(label) > 2 || strlen(label) <= 0) {
-	  sprintf(emsg, ".%s was expecting a word (2 bytes), got %d bytes instead.\n", bak, (int)strlen(label));
+	  snprintf(emsg, sizeof(emsg), ".%s was expecting a word (2 bytes), got %d bytes instead.\n", bak, (int)strlen(label));
 	  print_error(emsg, ERROR_INP);
 	  return FAILED;
 	}
@@ -2457,7 +2457,7 @@ int directive_row_data(void) {
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
 	if (strlen(label) > 3 || strlen(label) <= 0) {
-	  sprintf(emsg, ".%s was expecting a long (3 bytes), got %d bytes instead.\n", bak, (int)strlen(label));
+	  snprintf(emsg, sizeof(emsg), ".%s was expecting a long (3 bytes), got %d bytes instead.\n", bak, (int)strlen(label));
 	  print_error(emsg, ERROR_INP);
 	  return FAILED;
 	}
@@ -2466,7 +2466,7 @@ int directive_row_data(void) {
       }
 #endif
       else {
-	sprintf(emsg, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
+	snprintf(emsg, sizeof(emsg), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -2474,7 +2474,7 @@ int directive_row_data(void) {
     else if (inz == SUCCEEDED) {
       if (table_format[table_index] == 'b') {
 	if (d < -128 || d > 255) {
-	  sprintf(emsg, ".%s expects 8-bit data, %d is out of range!\n", bak, d);
+	  snprintf(emsg, sizeof(emsg), ".%s expects 8-bit data, %d is out of range!\n", bak, d);
 	  print_error(emsg, ERROR_DIR);
 	  return FAILED;
 	}
@@ -2483,7 +2483,7 @@ int directive_row_data(void) {
       }
       else if (table_format[table_index] == 'w') {
 	if (d < -32768 || d > 65535) {
-	  sprintf(emsg, ".%s expects 16-bit data, %d is out of range!\n", bak, d);
+	  snprintf(emsg, sizeof(emsg), ".%s expects 16-bit data, %d is out of range!\n", bak, d);
 	  print_error(emsg, ERROR_DIR);
 	  return FAILED;
 	}
@@ -2493,7 +2493,7 @@ int directive_row_data(void) {
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
 	if (d < -8388608 || d > 16777215) {
-	  sprintf(emsg, ".%s expects 24-bit data, %d is out of range!\n", bak, d);
+	  snprintf(emsg, sizeof(emsg), ".%s expects 24-bit data, %d is out of range!\n", bak, d);
 	  print_error(emsg, ERROR_DIR);
 	  return FAILED;
 	}
@@ -2502,7 +2502,7 @@ int directive_row_data(void) {
       }
 #endif
       else {
-	sprintf(emsg, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
+	snprintf(emsg, sizeof(emsg), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -2520,7 +2520,7 @@ int directive_row_data(void) {
       }
 #endif
       else {
-	sprintf(emsg, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
+	snprintf(emsg, sizeof(emsg), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -2538,7 +2538,7 @@ int directive_row_data(void) {
       }
 #endif
       else {
-	sprintf(emsg, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
+	snprintf(emsg, sizeof(emsg), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -2558,14 +2558,14 @@ int directive_row_data(void) {
     return FAILED;
 
   if (inz == INPUT_NUMBER_EOL && ind == 0) {
-    sprintf(emsg, ".%s needs data.\n", bak);
+    snprintf(emsg, sizeof(emsg), ".%s needs data.\n", bak);
     print_error(emsg, ERROR_INP);
     return FAILED;
   }
 
   if (strcaselesscmp(bak, "ROW") == 0) {
     if (table_index != 0 || rows != 1) {
-      sprintf(emsg, ".ROW needs exactly one row of data, no more, no less.\n");
+      snprintf(emsg, sizeof(emsg), ".ROW needs exactly one row of data, no more, no less.\n");
       print_error(emsg, ERROR_INP);
       return FAILED;
     }
@@ -2602,10 +2602,10 @@ int directive_db_byt_byte(void) {
 	  int tmp_c;
 	    
 	  o += 3;
-	  sprintf(tmp_a, "%c%c", label[o-1], label[o]);
+	  snprintf(tmp_a, sizeof(tmp_a), "%c%c", label[o-1], label[o]);
 	  tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
 	  if (*tmp_b) {
-	    sprintf(emsg, ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
+	    snprintf(emsg, sizeof(emsg), ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
 	    print_error(emsg, ERROR_INP);
 	    return FAILED;
 	  }
@@ -2615,7 +2615,7 @@ int directive_db_byt_byte(void) {
 	else if (label[o] == '\\' && label[o + 1] == '<') {
 	  o += 2;
 	  if (o == string_size) {
-	    sprintf(emsg, ".%s '\\<' needs character data.\n", bak);
+	    snprintf(emsg, sizeof(emsg), ".%s '\\<' needs character data.\n", bak);
 	    print_error(emsg, ERROR_INP);
 	    return FAILED;
 	  }
@@ -2623,7 +2623,7 @@ int directive_db_byt_byte(void) {
 	}
 	/* handle '\>' */
 	else if (label[o] == '\\' && label[o + 1] == '>' && o == 0) {
-	  sprintf(emsg, ".%s '\\>' needs character data.\n", bak);
+	  snprintf(emsg, sizeof(emsg), ".%s '\\>' needs character data.\n", bak);
 	  print_error(emsg, ERROR_INP);
 	  return FAILED;
 	}
@@ -2644,7 +2644,7 @@ int directive_db_byt_byte(void) {
     }
 
     if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-      sprintf(emsg, ".%s expects 8-bit data, %d is out of range!\n", bak, d);
+      snprintf(emsg, sizeof(emsg), ".%s expects 8-bit data, %d is out of range!\n", bak, d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -2663,7 +2663,7 @@ int directive_db_byt_byte(void) {
     return FAILED;
 
   if (inz == INPUT_NUMBER_EOL && ind == 0) {
-    sprintf(emsg, ".%s needs data.\n", bak);
+    snprintf(emsg, sizeof(emsg), ".%s needs data.\n", bak);
     print_error(emsg, ERROR_INP);
     return FAILED;
   }
@@ -2798,7 +2798,7 @@ int directive_asctable_asciitable(void) {
   }
 
   if (ind != SUCCEEDED) {
-    sprintf(emsg, "Error in .%s data structure.\n", bak);
+    snprintf(emsg, sizeof(emsg), "Error in .%s data structure.\n", bak);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -2845,10 +2845,10 @@ int directive_asc(void) {
 	  int tmp_c;
 	  
 	  o += 3;
-	  sprintf(tmp_a, "%c%c", label[o-1], label[o]);
+	  snprintf(tmp_a, sizeof(tmp_a), "%c%c", label[o-1], label[o]);
 	  tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
 	  if (*tmp_b) {
-	    sprintf(emsg, ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
+	    snprintf(emsg, sizeof(emsg), ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
 	    print_error(emsg, ERROR_INP);
 	    return FAILED;
 	  }
@@ -2862,7 +2862,7 @@ int directive_asc(void) {
 	  if (label[o] == '\\' && label[o + 1] == '<') {
 	    o += 2;
 	    if (o == string_size) {
-	      sprintf(emsg, ".%s '\\<' needs character data.\n", bak);
+	      snprintf(emsg, sizeof(emsg), ".%s '\\<' needs character data.\n", bak);
 	      print_error(emsg, ERROR_INP);
 	      return FAILED;
 	    }
@@ -2871,7 +2871,7 @@ int directive_asc(void) {
 	  }
 	  /* handle '\>' */
 	  else if (label[o] == '\\' && label[o + 1] == '>' && o == 0) {
-	    sprintf(emsg, ".%s '\\>' needs character data.\n", bak);
+	    snprintf(emsg, sizeof(emsg), ".%s '\\>' needs character data.\n", bak);
 	    print_error(emsg, ERROR_INP);
 	    return FAILED;
 	  }
@@ -2894,7 +2894,7 @@ int directive_asc(void) {
     else if (q == SUCCEEDED) {
       /* remap the byte */
       if (d < 0 || d > 255) {
-	sprintf(emsg, ".%s needs string / byte (0-255) data.\n", bak);
+	snprintf(emsg, sizeof(emsg), ".%s needs string / byte (0-255) data.\n", bak);
 	print_error(emsg, ERROR_INP);
 	return FAILED;
       }
@@ -2902,7 +2902,7 @@ int directive_asc(void) {
       fprintf(file_out_ptr, "d%d ", ind);
     }
     else {
-      sprintf(emsg, ".%s needs string / byte (0-255) data.\n", bak);
+      snprintf(emsg, sizeof(emsg), ".%s needs string / byte (0-255) data.\n", bak);
       print_error(emsg, ERROR_INP);
       return FAILED;
     }
@@ -2923,7 +2923,7 @@ int directive_dw_word_addr(void) {
   inz = input_number();
   for (ind = 0; inz == SUCCEEDED || inz == INPUT_NUMBER_ADDRESS_LABEL || inz == INPUT_NUMBER_STACK; ind++) {
     if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-      sprintf(emsg, ".%s expects 16-bit data, %d is out of range!\n", bak, d);
+      snprintf(emsg, sizeof(emsg), ".%s expects 16-bit data, %d is out of range!\n", bak, d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -2942,7 +2942,7 @@ int directive_dw_word_addr(void) {
     return FAILED;
 
   if ((inz == INPUT_NUMBER_EOL || inz == INPUT_NUMBER_STRING) && ind == 0) {
-    sprintf(emsg, ".%s needs data.\n", bak);
+    snprintf(emsg, sizeof(emsg), ".%s needs data.\n", bak);
     print_error(emsg, ERROR_INP);
     return FAILED;
   }
@@ -2967,7 +2967,7 @@ int directive_dl_long_faraddr(void) {
   inz = input_number();
   for (ind = 0; inz == SUCCEEDED || inz == INPUT_NUMBER_ADDRESS_LABEL || inz == INPUT_NUMBER_STACK; ind++) {
     if (inz == SUCCEEDED && (d < -8388608 || d > 16777215)) {
-      sprintf(emsg, ".%s expects 24-bit data, %d is out of range!\n", bak, d);
+      snprintf(emsg, sizeof(emsg), ".%s expects 24-bit data, %d is out of range!\n", bak, d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -2986,7 +2986,7 @@ int directive_dl_long_faraddr(void) {
     return FAILED;
 
   if ((inz == INPUT_NUMBER_EOL || inz == INPUT_NUMBER_STRING) && ind == 0) {
-    sprintf(emsg, ".%s needs data.\n", bak);
+    snprintf(emsg, sizeof(emsg), ".%s needs data.\n", bak);
     print_error(emsg, ERROR_INP);
     return FAILED;
   }
@@ -3011,7 +3011,7 @@ int directive_dsl(void) {
   }
 
   if (d < 1 || d > 65535) {
-    sprintf(emsg, ".DSL expects a 16-bit positive integer as size, %d is out of range!\n", d);
+    snprintf(emsg, sizeof(emsg), ".DSL expects a 16-bit positive integer as size, %d is out of range!\n", d);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -3027,7 +3027,7 @@ int directive_dsl(void) {
   }
 
   if (q == SUCCEEDED && (d < -8388608 || d > 16777215)) {
-    sprintf(emsg, ".DSL expects 24-bit data, %d is out of range!\n", d);
+    snprintf(emsg, sizeof(emsg), ".DSL expects 24-bit data, %d is out of range!\n", d);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -3107,7 +3107,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
   /* read the data */
   it = s->items;
   for (ind = 0; it != NULL; ind++) {
-    sprintf(tmpname, "%s.%s", iname, it->name);
+    snprintf(tmpname, sizeof(tmpname), "%s.%s", iname, it->name);
     if (verify_name_length(tmpname) == FAILED)
       return FAILED;
 
@@ -3128,7 +3128,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
         us = it->union_items;
         while (us != NULL) {
           if (us->name[0] != '\0') { /* check if the union is named */
-            sprintf(tmpname, "%s.%s", iname, us->name);
+            snprintf(tmpname, sizeof(tmpname), "%s.%s", iname, us->name);
             if (verify_name_length(tmpname) == FAILED)
               return FAILED;
 
@@ -3150,7 +3150,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
     else if (it->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
       /* handle .INSTANCEOF directive */
       /* update the naming prefix */
-      sprintf(tmpname, "%s.%s", iname, it->name);
+      snprintf(tmpname, sizeof(tmpname), "%s.%s", iname, it->name);
       if (verify_name_length(tmpname) == FAILED)
         return FAILED;
 
@@ -3161,7 +3161,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
       else {
         int labels_only_tmp = YES;
 
-        sprintf(tmpname, "%s.%s", iname, it->name);
+        snprintf(tmpname, sizeof(tmpname), "%s.%s", iname, it->name);
 
         /* we have "struct.instance" and "struct.1.instance" referencing the same data. */
         parse_dstruct_entry(tmpname, it->instance, &labels_only_tmp);
@@ -3170,7 +3170,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
         fprintf(file_out_ptr, "o%d 0 ", -it->instance->size);
 
         for (g = 1; g <= it->num_instances; g++) {
-          sprintf(tmpname, "%s.%s.%d", iname, it->name, g);
+          snprintf(tmpname, sizeof(tmpname), "%s.%s.%d", iname, it->name, g);
           if (verify_name_length(tmpname) == FAILED)
             return FAILED;
 
@@ -3196,7 +3196,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
         /* take care of the strings */
         if (inz == INPUT_NUMBER_STRING) {
           if (it->size < string_size) {
-            sprintf(emsg, "String \"%s\" doesn't fit into the %d bytes of \"%s.%s\". Discarding the overflow.\n", label, it->size, s->name, it->name);
+            snprintf(emsg, sizeof(emsg), "String \"%s\" doesn't fit into the %d bytes of \"%s.%s\". Discarding the overflow.\n", label, it->size, s->name, it->name);
             print_error(emsg, ERROR_WRN);
             c = it->size;
           }
@@ -3211,7 +3211,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
         else {
           if (it->size == 1) {
             if ((inz == SUCCEEDED) && (d < -128 || d > 255)) {
-              sprintf(emsg, "\"%s.%s\" expects 8-bit data, %d is out of range!\n", s->name, it->name, d);
+              snprintf(emsg, sizeof(emsg), "\"%s.%s\" expects 8-bit data, %d is out of range!\n", s->name, it->name, d);
               print_error(emsg, ERROR_DIR);
               return FAILED;
             }
@@ -3227,7 +3227,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
           }
           else {
             if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-              sprintf(emsg, "\"%s.%s\" expects 16-bit data, %d is out of range!\n", s->name, it->name, d);
+              snprintf(emsg, sizeof(emsg), "\"%s.%s\" expects 16-bit data, %d is out of range!\n", s->name, it->name, d);
               print_error(emsg, ERROR_DIR);
               return FAILED;
             }
@@ -3335,7 +3335,7 @@ int find_struct_field(struct structure *s, char *field_name, int *item_size, int
           for (g=1; g<=si->num_instances; g++) {
             char num_str[256];
 	    
-            sprintf(num_str, "%d", g);
+            snprintf(num_str, sizeof(num_str), "%d", g);
             if (strncmp(num_str, after_dot, strlen(num_str)) == 0) {
               /* entire string matched? */
               if (strcmp(num_str, after_dot) == 0) {
@@ -3404,7 +3404,7 @@ int directive_dstruct(void) {
   s = get_structure(label);
 
   if (s == NULL) {
-    sprintf(emsg, "Reference to an unidentified structure \"%s\".\n", label);
+    snprintf(emsg, sizeof(emsg), "Reference to an unidentified structure \"%s\".\n", label);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -3460,7 +3460,7 @@ int directive_dstruct(void) {
         strcpy(field_name, tmp);
 
         if (find_struct_field(s, field_name, &item_size, &field_offset) == FAILED) {
-          sprintf(emsg, ".DSTRUCT: Couldn't find field \"%s\" in structure \"%s\".\n", field_name, s->name);
+          snprintf(emsg, sizeof(emsg), ".DSTRUCT: Couldn't find field \"%s\" in structure \"%s\".\n", field_name, s->name);
           print_error(emsg, ERROR_DIR);
           return FAILED;
         }
@@ -3517,7 +3517,7 @@ int directive_dstruct(void) {
   if (inz == INPUT_NUMBER_EOL)
     next_line();
   else {
-    sprintf(emsg, "Too much data for structure \"%s\".\n", s->name);
+    snprintf(emsg, sizeof(emsg), "Too much data for structure \"%s\".\n", s->name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -3537,13 +3537,13 @@ int directive_dsb_ds(void) {
   if (q == FAILED)
     return FAILED;
   if (q != SUCCEEDED) {
-    sprintf(emsg, ".%s needs size.\n", bak);
+    snprintf(emsg, sizeof(emsg), ".%s needs size.\n", bak);
     print_error(emsg, ERROR_INP);
     return FAILED;
   }
 
   if (d < 1 || d > 65535) {
-    sprintf(emsg, ".%s expects a 16-bit positive integer as size, %d is out of range!\n", bak, d);
+    snprintf(emsg, sizeof(emsg), ".%s expects a 16-bit positive integer as size, %d is out of range!\n", bak, d);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -3554,13 +3554,13 @@ int directive_dsb_ds(void) {
   if (q == FAILED)
     return FAILED;
   if (!(q == SUCCEEDED || q == INPUT_NUMBER_ADDRESS_LABEL || q == INPUT_NUMBER_STACK)) {
-    sprintf(emsg, ".%s needs data.\n", bak);
+    snprintf(emsg, sizeof(emsg), ".%s needs data.\n", bak);
     print_error(emsg, ERROR_INP);
     return FAILED;
   }
 
   if (q == SUCCEEDED && (d > 255 || d < -128)) {
-    sprintf(emsg, ".%s expects 8-bit data, %d is out of range!\n", bak, d);
+    snprintf(emsg, sizeof(emsg), ".%s expects 8-bit data, %d is out of range!\n", bak, d);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -3594,7 +3594,7 @@ int directive_dsw(void) {
   }
 
   if (d < 1 || d > 65535) {
-    sprintf(emsg, ".DSW expects a 16-bit positive integer as size, %d is out of range!\n", d);
+    snprintf(emsg, sizeof(emsg), ".DSW expects a 16-bit positive integer as size, %d is out of range!\n", d);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -3610,7 +3610,7 @@ int directive_dsw(void) {
   }
 
   if (q == SUCCEEDED && (d < -32768 || d > 65535)) {
-    sprintf(emsg, ".DSW expects 16-bit data, %d is out of range!\n", d);
+    snprintf(emsg, sizeof(emsg), ".DSW expects 16-bit data, %d is out of range!\n", d);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -3813,7 +3813,7 @@ int directive_ramsection(void) {
   int q;
       
   if (section_status == ON) {
-    sprintf(emsg, "There is already an open section called \"%s\".\n", sections_last->name);
+    snprintf(emsg, sizeof(emsg), "There is already an open section called \"%s\".\n", sections_last->name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -3827,7 +3827,7 @@ int directive_ramsection(void) {
 
   sec_tmp = calloc(sizeof(struct section_def), 1);
   if (sec_tmp == NULL) {
-    sprintf(emsg, "Out of memory while allocating room for a new RAMSECTION \"%s\".\n", tmp);
+    snprintf(emsg, sizeof(emsg), "Out of memory while allocating room for a new RAMSECTION \"%s\".\n", tmp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -3854,7 +3854,7 @@ int directive_ramsection(void) {
   sec_next = sections_first;
   while (sec_next != NULL) {
     if (strcmp(sec_next->name, tmp) == 0) {
-      sprintf(emsg, "RAMSECTION \"%s\" was defined for the second time.\n", tmp);
+      snprintf(emsg, sizeof(emsg), "RAMSECTION \"%s\" was defined for the second time.\n", tmp);
       print_error(emsg, ERROR_DIR);
       free(sec_tmp);
       return FAILED;
@@ -3894,7 +3894,7 @@ int directive_ramsection(void) {
     }
 
     if (d > 255 && output_format != OUTPUT_LIBRARY) {
-      sprintf(emsg, "RAM banks == 256 (0-255), selected bank %d.\n", d);
+      snprintf(emsg, sizeof(emsg), "RAM banks == 256 (0-255), selected bank %d.\n", d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -3929,7 +3929,7 @@ int directive_ramsection(void) {
     }
 
     if (slots[d].size == 0) {
-      sprintf(emsg, "There is no SLOT number %d.\n", d);
+      snprintf(emsg, sizeof(emsg), "There is no SLOT number %d.\n", d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -3974,7 +3974,7 @@ int directive_ramsection(void) {
     
     append_tmp = calloc(sizeof(struct append_section), 1);
     if (append_tmp == NULL) {
-      sprintf(emsg, "Out of memory while allocating room for a new APPENDTO \"%s\".\n", tmp);
+      snprintf(emsg, sizeof(emsg), "Out of memory while allocating room for a new APPENDTO \"%s\".\n", tmp);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -4041,7 +4041,7 @@ int directive_section(void) {
     return FAILED;
   }
   else if (section_status == ON) {
-    sprintf(emsg, "There is already an open section called \"%s\".\n", sections_last->name);
+    snprintf(emsg, sizeof(emsg), "There is already an open section called \"%s\".\n", sections_last->name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -4063,7 +4063,7 @@ int directive_section(void) {
 
   sec_tmp = calloc(sizeof(struct section_def), 1);
   if (sec_tmp == NULL) {
-    sprintf(emsg, "Out of memory while allocating room for a new SECTION \"%s\".\n", tmp);
+    snprintf(emsg, sizeof(emsg), "Out of memory while allocating room for a new SECTION \"%s\".\n", tmp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -4084,7 +4084,7 @@ int directive_section(void) {
     sec_next = sections_first;
     while (sec_next != NULL) {
       if (strcmp(sec_next->name, tmp) == 0 && sec_next->bank == bank) {
-	sprintf(emsg, "BANKHEADER section was defined for the second time for bank %d.\n", bank);
+	snprintf(emsg, sizeof(emsg), "BANKHEADER section was defined for the second time for bank %d.\n", bank);
 	print_error(emsg, ERROR_DIR);
 	free(sec_tmp);
 	return FAILED;
@@ -4096,7 +4096,7 @@ int directive_section(void) {
     sec_next = sections_first;
     while (sec_next != NULL) {
       if (strcmp(sec_next->name, tmp) == 0) {
-	sprintf(emsg, "SECTION \"%s\" was defined for the second time.\n", tmp);
+	snprintf(emsg, sizeof(emsg), "SECTION \"%s\" was defined for the second time.\n", tmp);
 	print_error(emsg, ERROR_DIR);
 	free(sec_tmp);
 	return FAILED;
@@ -4255,7 +4255,7 @@ int directive_section(void) {
 
     append_tmp = calloc(sizeof(struct append_section), 1);
     if (append_tmp == NULL) {
-      sprintf(emsg, "Out of memory while allocating room for a new APPENDTO \"%s\".\n", tmp);
+      snprintf(emsg, sizeof(emsg), "Out of memory while allocating room for a new APPENDTO \"%s\".\n", tmp);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -4379,7 +4379,7 @@ int directive_fopen(void) {
   /* open the file */
   f->f = fopen(f->filename, "rb");
   if (f->f == NULL) {
-    sprintf(emsg, "Error opening file \"%s\" for reading.\n", f->filename);
+    snprintf(emsg, sizeof(emsg), "Error opening file \"%s\" for reading.\n", f->filename);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -4406,7 +4406,7 @@ int directive_fclose(void) {
   }
 
   if (f == NULL) {
-    sprintf(emsg, "Couldn't find filepointer \"%s\".\n", tmp);
+    snprintf(emsg, sizeof(emsg), "Couldn't find filepointer \"%s\".\n", tmp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -4443,7 +4443,7 @@ int directive_fsize(void) {
   }
 
   if (f == NULL) {
-    sprintf(emsg, "Couldn't find filepointer \"%s\".\n", tmp);
+    snprintf(emsg, sizeof(emsg), "Couldn't find filepointer \"%s\".\n", tmp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -4481,7 +4481,7 @@ int directive_fread(void) {
   }
 
   if (f == NULL) {
-    sprintf(emsg, "Couldn't find filepointer \"%s\".\n", tmp);
+    snprintf(emsg, sizeof(emsg), "Couldn't find filepointer \"%s\".\n", tmp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -4714,7 +4714,7 @@ int directive_rombanks(void) {
     if (d <= rombanks)
       return SUCCEEDED;
 
-    sprintf(emsg, "Upgrading from %d to %d ROM banks.\n", rombanks, d);
+    snprintf(emsg, sizeof(emsg), "Upgrading from %d to %d ROM banks.\n", rombanks, d);
     print_error(emsg, ERROR_WRN);
   }
 
@@ -5002,7 +5002,7 @@ int directive_rombankmap(void) {
 
   if (rombanks_defined != 0) {
     if (b > rombanks) {
-      sprintf(emsg, "Upgrading from %d to %d ROM banks.\n", rombanks, b);
+      snprintf(emsg, sizeof(emsg), "Upgrading from %d to %d ROM banks.\n", rombanks, b);
       print_error(emsg, ERROR_WRN);
     }
     else
@@ -5062,7 +5062,7 @@ int directive_memorymap(void) {
       }
 
       if (slots[defaultslot].size == 0) {
-	sprintf(emsg, "Unknown DEFAULTSLOT %d.\n", defaultslot);
+	snprintf(emsg, sizeof(emsg), "Unknown DEFAULTSLOT %d.\n", defaultslot);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -5245,12 +5245,12 @@ int directive_unbackground(void) {
     return FAILED;
   }
   if (start >= max_address) {
-    sprintf(emsg, "The block's starting address $%x is beyond the ROM's ending address $%x.\n", start, max_address-1);
+    snprintf(emsg, sizeof(emsg), "The block's starting address $%x is beyond the ROM's ending address $%x.\n", start, max_address-1);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
   if (end >= max_address) {
-    sprintf(emsg, "The block's ending address $%x is beyond the ROM's ending address $%x. Using the ROM's ending address instead.\n", end, max_address-1);
+    snprintf(emsg, sizeof(emsg), "The block's ending address $%x is beyond the ROM's ending address $%x. Using the ROM's ending address instead.\n", end, max_address-1);
     end = max_address;
     print_error(emsg, ERROR_WRN);
   }
@@ -5298,7 +5298,7 @@ int directive_background(void) {
   create_full_name(include_dir, label);
 
   if ((file_in_ptr = fopen(full_name, "rb")) == NULL) {
-    sprintf(emsg, "Error opening .BACKGROUND file \"%s\".\n", full_name);
+    snprintf(emsg, sizeof(emsg), "Error opening .BACKGROUND file \"%s\".\n", full_name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -5308,7 +5308,7 @@ int directive_background(void) {
   fseek(file_in_ptr, 0, SEEK_SET);
   
   if (background_size > max_address) {
-    sprintf(emsg, ".BACKGROUND file \"%s\" size (%d) is larger than ROM size (%d).\n", full_name, background_size, max_address);
+    snprintf(emsg, sizeof(emsg), ".BACKGROUND file \"%s\" size (%d) is larger than ROM size (%d).\n", full_name, background_size, max_address);
     print_error(emsg, ERROR_DIR);
     fclose(file_in_ptr);
     return FAILED;
@@ -5459,7 +5459,7 @@ int directive_gbheader(void) {
       if (q == FAILED)
 	return FAILED;
       if (q != SUCCEEDED || d < -128 || d > 255) {
-	sprintf(emsg, ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", d);
+	snprintf(emsg, sizeof(emsg), ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -5507,7 +5507,7 @@ int directive_gbheader(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-	sprintf(emsg, "CARTRIDGETYPE needs a 8-bit value, got %d.\n", d);
+	snprintf(emsg, sizeof(emsg), "CARTRIDGETYPE needs a 8-bit value, got %d.\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -5527,7 +5527,7 @@ int directive_gbheader(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-	sprintf(emsg, "RAMSIZE needs a 8-bit value, got %d.\n", d);
+	snprintf(emsg, sizeof(emsg), "RAMSIZE needs a 8-bit value, got %d.\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -5547,7 +5547,7 @@ int directive_gbheader(void) {
       inz = input_number();
       
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-	sprintf(emsg, "COUNTRYCODE needs a non-negative value, got %d.\n\n", d);
+	snprintf(emsg, sizeof(emsg), "COUNTRYCODE needs a non-negative value, got %d.\n\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -5567,7 +5567,7 @@ int directive_gbheader(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-	sprintf(emsg, "DESTINATIONCODE needs a non-negative value, got %d.\n\n", d);
+	snprintf(emsg, sizeof(emsg), "DESTINATIONCODE needs a non-negative value, got %d.\n\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -5587,7 +5587,7 @@ int directive_gbheader(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-	sprintf(emsg, "VERSION needs a non-negative value, got %d.\n\n", d);
+	snprintf(emsg, sizeof(emsg), "VERSION needs a non-negative value, got %d.\n\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -5633,7 +5633,7 @@ int directive_define_def_equ(void) {
 
   /* check the user doesn't try to define reserved labels */
   if (is_reserved_definition(tmp) == YES) {
-    sprintf(emsg, "\"%s\" is a reserved definition label and is not user definable.\n", tmp);
+    snprintf(emsg, sizeof(emsg), "\"%s\" is a reserved definition label and is not user definable.\n", tmp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -5693,7 +5693,7 @@ int directive_undef_undefine(void) {
 	next_line();
 	return SUCCEEDED;
       }
-      sprintf(emsg, ".%s requires definition name(s).\n", bak);
+      snprintf(emsg, sizeof(emsg), ".%s requires definition name(s).\n", bak);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -5701,7 +5701,7 @@ int directive_undef_undefine(void) {
     q++;
 
     if (undefine(tmp) == FAILED) {
-      sprintf(emsg, "Could not .%s \"%s\".\n", bak, tmp);
+      snprintf(emsg, sizeof(emsg), "Could not .%s \"%s\".\n", bak, tmp);
       print_error(emsg, ERROR_WRN);
     }
   }
@@ -5730,7 +5730,7 @@ int directive_enumid(void) {
     }
     
     if (is_reserved_definition(label) == YES) {
-      sprintf(emsg, "\"%s\" is a reserved definition label and is not user definable.\n", label);
+      snprintf(emsg, sizeof(emsg), "\"%s\" is a reserved definition label and is not user definable.\n", label);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -5892,7 +5892,7 @@ int directive_redefine_redef(void) {
 
   /* check the user doesn't try to define reserved labels */
   if (is_reserved_definition(tmp) == YES) {
-    sprintf(emsg, "\"%s\" is a reserved definition label and is not user definable.\n", tmp);
+    snprintf(emsg, sizeof(emsg), "\"%s\" is a reserved definition label and is not user definable.\n", tmp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -5971,7 +5971,7 @@ int directive_smsheader(void) {
       if (q == FAILED)
 	return FAILED;
       if (q != SUCCEEDED || d < 0 || d > 15) {
-	sprintf(emsg, "VERSION needs a value between 0 and 15, got %d.\n", d);
+	snprintf(emsg, sizeof(emsg), "VERSION needs a value between 0 and 15, got %d.\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -5992,7 +5992,7 @@ int directive_smsheader(void) {
       if (q == FAILED)
 	return FAILED;
       if (q != SUCCEEDED || d < 3|| d > 7) {
-	sprintf(emsg, "REGIONCODE needs a value between 3 and 7, got %d.\n", d);
+	snprintf(emsg, sizeof(emsg), "REGIONCODE needs a value between 3 and 7, got %d.\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -6245,7 +6245,7 @@ int directive_macro(void) {
 
   m = macro_get(tmp);
   if (m != NULL) {
-    sprintf(emsg, "MACRO \"%s\" was defined for the second time.\n", tmp);
+    snprintf(emsg, sizeof(emsg), "MACRO \"%s\" was defined for the second time.\n", tmp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -6285,7 +6285,7 @@ int directive_macro(void) {
 	  next_line();
 	  break;
 	}
-	sprintf(emsg, "MACRO \"%s\" is missing argument names?\n", m->name);
+	snprintf(emsg, sizeof(emsg), "MACRO \"%s\" is missing argument names?\n", m->name);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -6319,7 +6319,7 @@ int directive_macro(void) {
     }
     else if ((strncmp(&buffer[i], ".E", 2) == 0) && (buffer[i + 2] == 0x0A || buffer[i + 2] == ' ')) {
       active_file_info_last->line_current = macro_start_line;
-      sprintf(emsg, "MACRO \"%s\" wasn't terminated with .ENDM.\n", m->name);
+      snprintf(emsg, sizeof(emsg), "MACRO \"%s\" wasn't terminated with .ENDM.\n", m->name);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -6344,13 +6344,13 @@ int directive_rept_repeat(void) {
   if (q == FAILED)
     return FAILED;
   if (q != SUCCEEDED) {
-    sprintf(emsg, ".%s needs a count.\n", c);
+    snprintf(emsg, sizeof(emsg), ".%s needs a count.\n", c);
     print_error(emsg, ERROR_INP);
     return FAILED;
   }
 
   if (d < 0) {
-    sprintf(emsg, ".%s count value must be positive or zero.\n", c);
+    snprintf(emsg, sizeof(emsg), ".%s count value must be positive or zero.\n", c);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -6395,7 +6395,7 @@ int directive_rept_repeat(void) {
     
     /* return the condition's line number */
     active_file_info_last->line_current = l;
-    sprintf(emsg, ".%s must end to .ENDR.\n", c);
+    snprintf(emsg, sizeof(emsg), ".%s must end to .ENDR.\n", c);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -6513,7 +6513,7 @@ int directive_endm(void) {
     return SUCCEEDED;
   }
 
-  sprintf(emsg, "No .MACRO open.\n");
+  snprintf(emsg, sizeof(emsg), "No .MACRO open.\n");
   print_error(emsg, ERROR_DIR);
 
   return FAILED;
@@ -6682,7 +6682,7 @@ int directive_snesheader(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-	sprintf(emsg, "CARTRIDGETYPE expects 8-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "CARTRIDGETYPE expects 8-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -6707,7 +6707,7 @@ int directive_snesheader(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-	sprintf(emsg, "ROMSIZE expects 8-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "ROMSIZE expects 8-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -6725,7 +6725,7 @@ int directive_snesheader(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < 0 || d > 3)) {
-	sprintf(emsg, "SRAMSIZE expects 0-3, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "SRAMSIZE expects 0-3, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -6745,7 +6745,7 @@ int directive_snesheader(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-	sprintf(emsg, "COUNTRY expects 8-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "COUNTRY expects 8-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -6765,7 +6765,7 @@ int directive_snesheader(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-	sprintf(emsg, "LICENSEECODE expects 8-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "LICENSEECODE expects 8-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -6780,7 +6780,7 @@ int directive_snesheader(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-	sprintf(emsg, "VERSION expects 8-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "VERSION expects 8-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
@@ -6862,17 +6862,17 @@ int directive_snesnativevector(void) {
 
     if (strcaselesscmp(tmp, ".ENDNATIVEVECTOR") == 0) {
       if (cop_defined == 0)
-	sprintf(cop, "y%d ", 0x0000);
+	snprintf(cop, sizeof(cop), "y%d ", 0x0000);
       if (brk_defined == 0)
-	sprintf(brk, "y%d ", 0x0000);
+	snprintf(brk, sizeof(brk), "y%d ", 0x0000);
       if (abort_defined == 0)
-	sprintf(abort, "y%d ", 0x0000);
+	snprintf(abort, sizeof(abort), "y%d ", 0x0000);
       if (nmi_defined == 0)
-	sprintf(nmi, "y%d ", 0x0000);
+	snprintf(nmi, sizeof(nmi), "y%d ", 0x0000);
       if (unused_defined == 0) 
-	sprintf(unused, "y%d ", 0x0000);
+	snprintf(unused, sizeof(unused), "y%d ", 0x0000);
       if (irq_defined == 0)
-	sprintf(irq, "y%d ", 0x0000);
+	snprintf(irq, sizeof(irq), "y%d ", 0x0000);
       
       fprintf(file_out_ptr, "%s%s%s%s%s%s s p ", cop, brk, abort, nmi, unused, irq);
       
@@ -6887,17 +6887,17 @@ int directive_snesnativevector(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-	sprintf(emsg, "COP expects 16-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "COP expects 16-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
 
       if (inz == SUCCEEDED)
-	sprintf(cop, "y%d ", d);
+	snprintf(cop, sizeof(cop), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-	sprintf(cop, "k%d r%s ", active_file_info_last->line_current, label);
+	snprintf(cop, sizeof(cop), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-	sprintf(cop, "C%d ", latest_stack);
+	snprintf(cop, sizeof(cop), "C%d ", latest_stack);
 
       cop_defined++;
     }
@@ -6910,17 +6910,17 @@ int directive_snesnativevector(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-	sprintf(emsg, "BRK expects 16-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "BRK expects 16-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
 
       if (inz == SUCCEEDED)
-	sprintf(brk, "y%d ", d);
+	snprintf(brk, sizeof(brk), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-	sprintf(brk, "k%d r%s ", active_file_info_last->line_current, label);
+	snprintf(brk, sizeof(brk), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-	sprintf(brk, "C%d ", latest_stack);
+	snprintf(brk, sizeof(brk), "C%d ", latest_stack);
 
       brk_defined++;
     }
@@ -6933,17 +6933,17 @@ int directive_snesnativevector(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-	sprintf(emsg, "ABORT expects 16-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "ABORT expects 16-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
 
       if (inz == SUCCEEDED)
-	sprintf(abort, "y%d ", d);
+	snprintf(abort, sizeof(abort), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-	sprintf(abort, "k%d r%s ", active_file_info_last->line_current, label);
+	snprintf(abort, sizeof(abort), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-	sprintf(abort, "C%d ", latest_stack);
+	snprintf(abort, sizeof(abort), "C%d ", latest_stack);
 
       abort_defined++;
     }
@@ -6956,17 +6956,17 @@ int directive_snesnativevector(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-	sprintf(emsg, "NMI expects 16-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "NMI expects 16-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
 
       if (inz == SUCCEEDED)
-	sprintf(nmi, "y%d ", d);
+	snprintf(nmi, sizeof(nmi), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-	sprintf(nmi, "k%d r%s ", active_file_info_last->line_current, label);
+	snprintf(nmi, sizeof(nmi), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-	sprintf(nmi, "C%d ", latest_stack);
+	snprintf(nmi, sizeof(nmi), "C%d ", latest_stack);
 
       nmi_defined++;
     }
@@ -6979,17 +6979,17 @@ int directive_snesnativevector(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-	sprintf(emsg, "UNUSED expects 16-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "UNUSED expects 16-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
 
       if (inz == SUCCEEDED)
-	sprintf(unused, "y%d ", d);
+	snprintf(unused, sizeof(unused), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-	sprintf(unused, "k%d r%s ", active_file_info_last->line_current, label);
+	snprintf(unused, sizeof(unused), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-	sprintf(unused, "C%d ", latest_stack);
+	snprintf(unused, sizeof(unused), "C%d ", latest_stack);
 
       unused_defined++;
     }
@@ -7002,17 +7002,17 @@ int directive_snesnativevector(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-	sprintf(emsg, "IRQ expects 16-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "IRQ expects 16-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
 
       if (inz == SUCCEEDED)
-	sprintf(irq, "y%d ", d);
+	snprintf(irq, sizeof(irq), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-	sprintf(irq, "k%d r%s ", active_file_info_last->line_current, label);
+	snprintf(irq, sizeof(irq), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-	sprintf(irq, "C%d ", latest_stack);
+	snprintf(irq, sizeof(irq), "C%d ", latest_stack);
 
       irq_defined++;
     }
@@ -7082,17 +7082,17 @@ int directive_snesemuvector(void) {
 
     if (strcaselesscmp(tmp, ".ENDEMUVECTOR") == 0) {
       if (cop_defined == 0)
-	sprintf(cop, "y%d ", 0);
+	snprintf(cop, sizeof(cop), "y%d ", 0);
       if (reset_defined == 0)
-	sprintf(reset, "y%d ", 0);
+	snprintf(reset, sizeof(reset), "y%d ", 0);
       if (abort_defined == 0)
-	sprintf(abort, "y%d ", 0);
+	snprintf(abort, sizeof(abort), "y%d ", 0);
       if (nmi_defined == 0)
-	sprintf(nmi, "y%d ", 0);
+	snprintf(nmi, sizeof(nmi), "y%d ", 0);
       if (unused_defined == 0)
-	sprintf(unused, "y%d ", 0);
+	snprintf(unused, sizeof(unused), "y%d ", 0);
       if (irqbrk_defined == 0)
-	sprintf(irqbrk, "y%d ", 0);
+	snprintf(irqbrk, sizeof(irqbrk), "y%d ", 0);
 
       fprintf(file_out_ptr, "%s%s%s%s%s%s s p ", cop, unused, abort, nmi, reset, irqbrk);
       
@@ -7107,17 +7107,17 @@ int directive_snesemuvector(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-	sprintf(emsg, "COP expects 16-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "COP expects 16-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
 
       if (inz == SUCCEEDED)
-	sprintf(cop, "y%d ", d);
+	snprintf(cop, sizeof(cop), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-	sprintf(cop, "k%d r%s ", active_file_info_last->line_current, label);
+	snprintf(cop, sizeof(cop), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-	sprintf(cop, "C%d ", latest_stack);
+	snprintf(cop, sizeof(cop), "C%d ", latest_stack);
 
       cop_defined++;
     }
@@ -7130,17 +7130,17 @@ int directive_snesemuvector(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-	sprintf(emsg, "RESET expects 16-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "RESET expects 16-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
 
       if (inz == SUCCEEDED)
-	sprintf(reset, "y%d ", d);
+	snprintf(reset, sizeof(reset), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-	sprintf(reset, "k%d r%s ", active_file_info_last->line_current, label);
+	snprintf(reset, sizeof(reset), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-	sprintf(reset, "C%d ", latest_stack);
+	snprintf(reset, sizeof(reset), "C%d ", latest_stack);
 
       reset_defined++;
     }
@@ -7153,17 +7153,17 @@ int directive_snesemuvector(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-	sprintf(emsg, "ABORT expects 16-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "ABORT expects 16-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
 
       if (inz == SUCCEEDED)
-	sprintf(abort, "y%d ", d);
+	snprintf(abort, sizeof(abort), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-	sprintf(abort, "k%d r%s ", active_file_info_last->line_current, label);
+	snprintf(abort, sizeof(abort), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-	sprintf(abort, "C%d ", latest_stack);
+	snprintf(abort, sizeof(abort), "C%d ", latest_stack);
 
       abort_defined++;
     }
@@ -7176,17 +7176,17 @@ int directive_snesemuvector(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-	sprintf(emsg, "NMI expects 16-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "NMI expects 16-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
 
       if (inz == SUCCEEDED)
-	sprintf(nmi, "y%d ", d);
+	snprintf(nmi, sizeof(nmi), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-	sprintf(nmi, "k%d r%s ", active_file_info_last->line_current, label);
+	snprintf(nmi, sizeof(nmi), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-	sprintf(nmi, "C%d ", latest_stack);
+	snprintf(nmi, sizeof(nmi), "C%d ", latest_stack);
 
       nmi_defined++;
     }
@@ -7199,17 +7199,17 @@ int directive_snesemuvector(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-	sprintf(emsg, "UNUSED expects 16-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "UNUSED expects 16-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
 
       if (inz == SUCCEEDED)
-	sprintf(unused, "y%d ", d);
+	snprintf(unused, sizeof(unused), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-	sprintf(unused, "k%d r%s ", active_file_info_last->line_current, label);
+	snprintf(unused, sizeof(unused), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-	sprintf(unused, "C%d ", latest_stack);
+	snprintf(unused, sizeof(unused), "C%d ", latest_stack);
 
       unused_defined++;
     }
@@ -7222,17 +7222,17 @@ int directive_snesemuvector(void) {
       inz = input_number();
       
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-	sprintf(emsg, "IRQBRK expects 16-bit data, %d is out of range!\n", d);
+	snprintf(emsg, sizeof(emsg), "IRQBRK expects 16-bit data, %d is out of range!\n", d);
 	print_error(emsg, ERROR_DIR);
 	return FAILED;
       }
 
       if (inz == SUCCEEDED)
-	sprintf(irqbrk, "y%d ", d);
+	snprintf(irqbrk, sizeof(irqbrk), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-	sprintf(irqbrk, "k%d r%s ", active_file_info_last->line_current, label);
+	snprintf(irqbrk, sizeof(irqbrk), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-	sprintf(irqbrk, "C%d ", latest_stack);
+	snprintf(irqbrk, sizeof(irqbrk), "C%d ", latest_stack);
 
       irqbrk_defined++;
     }
@@ -7359,7 +7359,7 @@ int directive_printv(void) {
     return FAILED;
   if (q != SUCCEEDED) {
     if (q == INPUT_NUMBER_ADDRESS_LABEL) {
-      sprintf(emsg, "\"%s\" is not known.\n", label);
+      snprintf(emsg, sizeof(emsg), "\"%s\" is not known.\n", label);
       print_error(emsg, ERROR_DIR);
     }
     print_error(".PRINTV can only print currently known values.\n", ERROR_DIR);
@@ -7393,7 +7393,7 @@ int directive_dbrnd_dwrnd(void) {
   if (q == FAILED)
     return FAILED;
   if (q != SUCCEEDED) {
-    sprintf(emsg, ".%s needs the number of random numbers.\n", cp);
+    snprintf(emsg, sizeof(emsg), ".%s needs the number of random numbers.\n", cp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -7401,7 +7401,7 @@ int directive_dbrnd_dwrnd(void) {
   c = d;
 
   if (c <= 0) {
-    sprintf(emsg, ".%s needs that the number of random numbers is > 0.\n", cp);
+    snprintf(emsg, sizeof(emsg), ".%s needs that the number of random numbers is > 0.\n", cp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -7411,7 +7411,7 @@ int directive_dbrnd_dwrnd(void) {
   if (q == FAILED)
     return FAILED;
   if (q != SUCCEEDED) {
-    sprintf(emsg, ".%s needs the min value.\n", cp);
+    snprintf(emsg, sizeof(emsg), ".%s needs the min value.\n", cp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -7423,7 +7423,7 @@ int directive_dbrnd_dwrnd(void) {
   if (q == FAILED)
     return FAILED;
   if (q != SUCCEEDED) {
-    sprintf(emsg, ".%s needs the max value.\n", cp);
+    snprintf(emsg, sizeof(emsg), ".%s needs the max value.\n", cp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -7431,7 +7431,7 @@ int directive_dbrnd_dwrnd(void) {
   max = d;
 
   if (min >= max) {
-    sprintf(emsg, ".%s needs that min < max.\n", cp);
+    snprintf(emsg, sizeof(emsg), ".%s needs that min < max.\n", cp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -7442,7 +7442,7 @@ int directive_dbrnd_dwrnd(void) {
     
     if (o == 1) {
       if (d < -32768 || d > 65535) {
-	sprintf(emsg, ".%s: Expected a 16-bit value, computed %d.\n", cp, d);
+	snprintf(emsg, sizeof(emsg), ".%s: Expected a 16-bit value, computed %d.\n", cp, d);
 	print_error(emsg, ERROR_NONE);
 	return FAILED;
       }
@@ -7450,7 +7450,7 @@ int directive_dbrnd_dwrnd(void) {
     }
     else {
       if (d > 255 || d < -128) {
-	sprintf(emsg, ".%s: Expected a 8-bit value, computed %d.\n", cp, d);
+	snprintf(emsg, sizeof(emsg), ".%s: Expected a 8-bit value, computed %d.\n", cp, d);
 	print_error(emsg, ERROR_NONE);
 	return FAILED;
       }
@@ -7480,7 +7480,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
   p = input_number();
   input_float_mode = OFF;
   if (p != SUCCEEDED && p != INPUT_NUMBER_FLOAT) {
-    sprintf(emsg, ".%s needs a value for starting angle.\n", cp);
+    snprintf(emsg, sizeof(emsg), ".%s needs a value for starting angle.\n", cp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -7491,7 +7491,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
     a = parsed_double;
 
   if (input_number() != SUCCEEDED || d < 0) {
-    sprintf(emsg, ".%s needs an non-negative integer value for additional angles.\n", cp);
+    snprintf(emsg, sizeof(emsg), ".%s needs an non-negative integer value for additional angles.\n", cp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -7501,7 +7501,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
   input_float_mode = ON;
   p = input_number();
   if (p != SUCCEEDED && p != INPUT_NUMBER_FLOAT) {
-    sprintf(emsg, ".%s needs a value for angle step.\n", cp);
+    snprintf(emsg, sizeof(emsg), ".%s needs a value for angle step.\n", cp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -7513,7 +7513,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
 
   p = input_number();
   if (p != SUCCEEDED && p != INPUT_NUMBER_FLOAT) {
-    sprintf(emsg, ".%s needs a value to multiply the result with.\n", cp);
+    snprintf(emsg, sizeof(emsg), ".%s needs a value to multiply the result with.\n", cp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -7526,7 +7526,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
   p = input_number();
   input_float_mode = OFF;
   if (p != SUCCEEDED && p != INPUT_NUMBER_FLOAT) {
-    sprintf(emsg, ".%s needs a value to add to the result.\n", cp);
+    snprintf(emsg, sizeof(emsg), ".%s needs a value to add to the result.\n", cp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -7547,7 +7547,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
 
     if (o == 1) {
       if (d < -32768 || d > 65535) {
-	sprintf(emsg, ".%s: Expected a 16-bit value, computed %d.\n", cp, d);
+	snprintf(emsg, sizeof(emsg), ".%s: Expected a 16-bit value, computed %d.\n", cp, d);
 	print_error(emsg, ERROR_NONE);
 	return FAILED;
       }
@@ -7555,7 +7555,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
     }
     else {
       if (d > 255 || d < -128) {
-	sprintf(emsg, ".%s: Expected a 8-bit value, computed %d.\n", cp, d);
+	snprintf(emsg, sizeof(emsg), ".%s: Expected a 8-bit value, computed %d.\n", cp, d);
 	print_error(emsg, ERROR_NONE);
 	return FAILED;
       }
@@ -7988,7 +7988,7 @@ int parse_directive(void) {
     if (q == FAILED)
       return FAILED;
     if (q != SUCCEEDED || d < -128 || d > 255) {
-      sprintf(emsg, ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", d);
+      snprintf(emsg, sizeof(emsg), ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -8017,7 +8017,7 @@ int parse_directive(void) {
     if (q == FAILED)
       return FAILED;
     if (q != SUCCEEDED || d < -128 || d > 255) {
-      sprintf(emsg, ".VERSION needs a 8-bit value, got %d.\n", d);
+      snprintf(emsg, sizeof(emsg), ".VERSION needs a 8-bit value, got %d.\n", d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -8053,7 +8053,7 @@ int parse_directive(void) {
     if (q == FAILED)
       return FAILED;
     if (q != SUCCEEDED || d < -128 || d > 255) {
-      sprintf(emsg, ".EMPTYFILL needs a 8-bit value, got %d.\n", d);
+      snprintf(emsg, sizeof(emsg), ".EMPTYFILL needs a 8-bit value, got %d.\n", d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -8859,7 +8859,7 @@ int parse_if_directive(void) {
 
     q = input_number();
     if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
-      sprintf(emsg, ".IF needs immediate data.\n");
+      snprintf(emsg, sizeof(emsg), ".IF needs immediate data.\n");
       print_error(emsg, ERROR_INP);
       return FAILED;
     }
@@ -8891,7 +8891,7 @@ int parse_if_directive(void) {
 
     q = input_number();
     if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
-      sprintf(emsg, ".IF needs immediate data.\n");
+      snprintf(emsg, sizeof(emsg), ".IF needs immediate data.\n");
       print_error(emsg, ERROR_INP);
       return FAILED;
     }
@@ -8949,7 +8949,7 @@ int parse_if_directive(void) {
 
     q = input_number();
     if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
-      sprintf(emsg, ".%s needs immediate data.\n", bak);
+      snprintf(emsg, sizeof(emsg), ".%s needs immediate data.\n", bak);
       print_error(emsg, ERROR_INP);
       return FAILED;
     }
@@ -8961,7 +8961,7 @@ int parse_if_directive(void) {
 
     q = input_number();
     if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
-      sprintf(emsg, ".%s needs immediate data.\n", bak);
+      snprintf(emsg, sizeof(emsg), ".%s needs immediate data.\n", bak);
       print_error(emsg, ERROR_INP);
       return FAILED;
     }
@@ -9052,7 +9052,7 @@ int parse_if_directive(void) {
     strcpy(bak, cp);
 
     if (macro_active == 0) {
-      sprintf(emsg, ".%s can be only used inside a macro.\n", bak);
+      snprintf(emsg, sizeof(emsg), ".%s can be only used inside a macro.\n", bak);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -9093,7 +9093,7 @@ int parse_if_directive(void) {
       }
     }
 
-    sprintf(emsg, ".%s needs an argument.\n", bak);
+    snprintf(emsg, sizeof(emsg), ".%s needs an argument.\n", bak);
     print_error(emsg, ERROR_DIR);
 
     return FAILED;
@@ -9137,7 +9137,7 @@ int find_next_point(char *name) {
 
   /* return the condition's line number */
   active_file_info_last->line_current = line_current;
-  sprintf(emsg, ".%s must end to .ENDIF/.ELSE.\n", name);
+  snprintf(emsg, sizeof(emsg), ".%s must end to .ENDIF/.ELSE.\n", name);
   print_error(emsg, ERROR_DIR);
 
   return FAILED;
@@ -9149,7 +9149,7 @@ int find_next_point(char *name) {
 void delete_stack(struct stack *s) {
 
   if (s == NULL) {
-    sprintf(emsg, "Deleting a non-existing computation stack. This can lead to problems.\n");
+    snprintf(emsg, sizeof(emsg), "Deleting a non-existing computation stack. This can lead to problems.\n");
     print_error(emsg, ERROR_WRN);
     return;
   }
@@ -9335,7 +9335,7 @@ int export_a_definition(char *name) {
   export = export_first;
   while (export != NULL) {
     if (strcmp(export->name, name) == 0) {
-      sprintf(emsg, "\"%s\" was .EXPORTed for the second time.\n", name);
+      snprintf(emsg, sizeof(emsg), "\"%s\" was .EXPORTed for the second time.\n", name);
       print_error(emsg, ERROR_WRN);
       return SUCCEEDED;
     }
@@ -9344,7 +9344,7 @@ int export_a_definition(char *name) {
 
   export = calloc(sizeof(struct export_def), 1);
   if (export == NULL) {
-    sprintf(emsg, "Out of memory while allocating room for \".EXPORT %s\".\n", name);
+    snprintf(emsg, sizeof(emsg), "Out of memory while allocating room for \".EXPORT %s\".\n", name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }

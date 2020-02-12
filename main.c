@@ -29,6 +29,7 @@ DWORD __stdcall GetCurrentProcessId(void);
 #include "pass_4.h"
 #include "listfile.h"
 #include "hashmap.h"
+#include "printf.h"
 
 
 FILE *file_out_ptr = NULL;
@@ -39,7 +40,7 @@ FILE *file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char version_string[] = "$VER: wla-" WLA_NAME " 9.11a (8.2.2020)";
+char version_string[] = "$VER: wla-" WLA_NAME " 9.11a (12.2.2020)";
 char wla_version[] = "9.11a";
 
 char *tmp_name = NULL;
@@ -228,8 +229,9 @@ int parse_flags(char **flags, int flagc) {
       if (count + 1 < flagc) {
         if (count + 3 < flagc) {
           if (!strcmp(flags[count+2], "=")) {
-            str_build = calloc(strlen(flags[count+1])+strlen(flags[count+3])+2, 1);
-            sprintf(str_build, "%s=%s", flags[count+1], flags[count+3]);
+	    int length = strlen(flags[count+1])+strlen(flags[count+3])+2;
+            str_build = calloc(length, 1);
+            snprintf(str_build, length, "%s=%s", flags[count+1], flags[count+3]);
             parse_and_add_definition(str_build, NO);
             free(str_build);
             count += 2;
@@ -487,14 +489,14 @@ int generate_tmp_name(char **filename) {
   int pid;
 
 #if defined(UNIX)
-    pid = (int)getpid();
+  pid = (int)getpid();
 #elif defined(WIN32)
-    pid = GetCurrentProcessId();
+  pid = GetCurrentProcessId();
 #else
-    #error "Invalid configuration!"
+  #error "Invalid configuration!"
 #endif
 
-  status = sprintf(name, ".wla%da", pid) + 1;
+  status = snprintf(name, sizeof(name)-1, ".wla%da", pid) + 1;
   if (status >= (int)sizeof(name)) {
     fprintf(stderr, "MAIN: Temp filename exceeded limit: %d >= %d! "
 	    "Aborting...\n", status, (int)sizeof(name));
@@ -656,9 +658,9 @@ int parse_and_set_incdir(char *c, int contains_flag) {
 
   localize_path(n);
 #if defined(MSDOS)
-  sprintf(ext_incdir, "%s\\", n);
+  snprintf(ext_incdir, sizeof(ext_incdir), "%s\\", n);
 #else
-  sprintf(ext_incdir, "%s/", n);
+  snprintf(ext_incdir, sizeof(ext_incdir), "%s/", n);
 #endif
   use_incdir = YES;
 

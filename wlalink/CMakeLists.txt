@@ -12,6 +12,7 @@ set(WLALINK_SRCS
     listfile.c
     ../hashmap.c
     ../crc32.c
+    ../printf.c
     )
 
 add_executable(wlalink ${WLALINK_SRCS})

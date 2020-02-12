@@ -16,7 +16,7 @@ all: main
 
 
 main: $(ALLFILES) smakefile SCOPTIONS
-	$(LINKER) $(LFLAGS) FROM LIB:c.o $(OFILES) /crc32.o /hashmap.o TO wlalink $(LLIB)
+	$(LINKER) $(LFLAGS) FROM LIB:c.o $(OFILES) /crc32.o /hashmap.o /printf.o TO wlalink $(LLIB)
 
 clean:
 	delete \#?.o \#?.gb \#?.lnk \#?.info wlalink

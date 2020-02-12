@@ -12,6 +12,8 @@
 #include "pass_4.h"
 #include "parse.h"
 #include "stack.h"
+#include "printf.h"
+
 
 extern struct section_def *sections_first, *sections_last, *sec_tmp, *sec_next;
 extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
@@ -337,7 +339,7 @@ int pass_4(void) {
         fscanf(file_out_ptr, "%d %d", &ind, &x);
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Writing DSB data", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSB data", get_file_name(filename_id), line_number);
 
         if (ind < 0) { /* going backward */
           if (section_status == ON)
@@ -371,7 +373,7 @@ int pass_4(void) {
         inz = (inz >> 8) & 0xFF;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Writing DSW data", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSW data", get_file_name(filename_id), line_number);
 
 	while (ind > 0) {
 	  if (little_endian == YES) {
@@ -400,7 +402,7 @@ int pass_4(void) {
         inz = (inz >> 16) & 0xFF;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Writing DSL data", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSL data", get_file_name(filename_id), line_number);
 
 	while (ind > 0) {
 	  if (little_endian == YES) {
@@ -432,7 +434,7 @@ int pass_4(void) {
         fscanf(file_out_ptr, "%d", &x);
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Writing a byte", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a byte", get_file_name(filename_id), line_number);
 	
         if (mem_insert(x) == FAILED)
           return FAILED;
@@ -445,7 +447,7 @@ int pass_4(void) {
         inz = (inz >> 8) & 0xFF;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Writing two bytes", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing two bytes", get_file_name(filename_id), line_number);
 
 	if (little_endian == YES) {
 	  if (mem_insert(x) == FAILED)
@@ -475,7 +477,7 @@ int pass_4(void) {
         inz = (inz >> 16) & 0xFF;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Writing three bytes", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing three bytes", get_file_name(filename_id), line_number);
 
 	if (little_endian == YES) {
 	  if (mem_insert(x) == FAILED)
@@ -509,7 +511,7 @@ int pass_4(void) {
         t = ifd_tmp->data + z;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Writing .INCBIN data", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing .INCBIN data", get_file_name(filename_id), line_number);
 
 	/* swap? */
         if (inz == 1) {
@@ -637,7 +639,7 @@ int pass_4(void) {
         stacks_tmp->position = STACK_POSITION_CODE;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Inserting padding for an 8-bit computation", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for an 8-bit computation", get_file_name(filename_id), line_number);
 	
         if (mem_insert_padding() == FAILED)
           return FAILED;
@@ -686,7 +688,7 @@ int pass_4(void) {
         stacks_tmp->position = STACK_POSITION_CODE;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Inserting padding for a 16-bit computation", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 16-bit computation", get_file_name(filename_id), line_number);
 
 	if (mem_insert_padding() == FAILED)
           return FAILED;
@@ -738,7 +740,7 @@ int pass_4(void) {
         stacks_tmp->position = STACK_POSITION_CODE;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Inserting padding for a 13-bit computation", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 13-bit computation", get_file_name(filename_id), line_number);
 
 	if (mem_insert(0x00) == FAILED)
           return FAILED;
@@ -790,7 +792,7 @@ int pass_4(void) {
         stacks_tmp->position = STACK_POSITION_CODE;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Inserting padding for a 24-bit computation", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 24-bit computation", get_file_name(filename_id), line_number);
 
 	if (mem_insert_padding() == FAILED)
           return FAILED;
@@ -818,7 +820,7 @@ int pass_4(void) {
             x = 1;
 
 	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	    sprintf(mem_insert_action, "%s:%d: Writing a 24-bit reference", get_file_name(filename_id), line_number);
+	    snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 24-bit reference", get_file_name(filename_id), line_number);
 
 	    if (little_endian == YES) {
 	      if (mem_insert(o & 0xFF) == FAILED)
@@ -846,7 +848,7 @@ int pass_4(void) {
           return FAILED;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Inserting padding for a 24-bit reference", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 24-bit reference", get_file_name(filename_id), line_number);
 
 	if (mem_insert_padding() == FAILED)
           return FAILED;
@@ -874,7 +876,7 @@ int pass_4(void) {
             x = 1;
 
 	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	    sprintf(mem_insert_action, "%s:%d: Writing a 16-bit reference", get_file_name(filename_id), line_number);
+	    snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(filename_id), line_number);
 
 	    if (little_endian == YES) {
 	      if (mem_insert(o & 0xFF) == FAILED)
@@ -898,7 +900,7 @@ int pass_4(void) {
           return FAILED;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Inserting padding for a 16-bit reference", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 16-bit reference", get_file_name(filename_id), line_number);
 
 	if (mem_insert_padding() == FAILED)
           return FAILED;
@@ -924,7 +926,7 @@ int pass_4(void) {
             x = 1;
 
 	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	    sprintf(mem_insert_action, "%s:%d: Writing a 16-bit reference", get_file_name(filename_id), line_number);
+	    snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(filename_id), line_number);
 
 	    if (little_endian == YES) {
 	      if (mem_insert(o & 0xFF) == FAILED)
@@ -948,7 +950,7 @@ int pass_4(void) {
           return FAILED;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Inserting padding for a 16-bit reference", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 16-bit reference", get_file_name(filename_id), line_number);
 
 	if (mem_insert_padding() == FAILED)
           return FAILED;
@@ -979,7 +981,7 @@ int pass_4(void) {
             }
 
 	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	    sprintf(mem_insert_action, "%s:%d: Writing a 13-bit reference", get_file_name(filename_id), line_number);
+	    snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 13-bit reference", get_file_name(filename_id), line_number);
 
 	    if (mem_insert(o & 0xFF) == FAILED)
               return FAILED;
@@ -995,7 +997,7 @@ int pass_4(void) {
           return FAILED;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Inserting padding for a 13-bit reference", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 13-bit reference", get_file_name(filename_id), line_number);
 
 	if (mem_insert(0x00) == FAILED)
           return FAILED;
@@ -1022,7 +1024,7 @@ int pass_4(void) {
             x = 1;
 
 	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	    sprintf(mem_insert_action, "%s:%d: Writing an 8-bit reference", get_file_name(filename_id), line_number);
+	    snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(filename_id), line_number);
 
 	    if (mem_insert(o & 0xFF) == FAILED)
               return FAILED;
@@ -1036,7 +1038,7 @@ int pass_4(void) {
           return FAILED;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Inserting padding for an 8-bit reference", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for an 8-bit reference", get_file_name(filename_id), line_number);
 
 	if (mem_insert_padding() == FAILED)
           return FAILED;
@@ -1060,7 +1062,7 @@ int pass_4(void) {
             x = 1;
 
 	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	    sprintf(mem_insert_action, "%s:%d: Writing an 8-bit reference", get_file_name(filename_id), line_number);
+	    snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(filename_id), line_number);
 	    
 	    if (mem_insert(o & 0xFF) == FAILED)
               return FAILED;
@@ -1074,7 +1076,7 @@ int pass_4(void) {
           return FAILED;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s:%d: Inserting padding for an 8-bit reference", get_file_name(filename_id), line_number);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for an 8-bit reference", get_file_name(filename_id), line_number);
 
 	if (mem_insert_padding() == FAILED)
           return FAILED;

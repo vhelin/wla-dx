@@ -11,7 +11,7 @@ OFILES = main.o memory.o parse.o files.o check.o analyze.o write.o compute.o dis
 
 
 all: $(OFILES) makefile
-	$(LD) $(LDFLAGS) $(OFILES) ../crc32.o ../hashmap.o -o wlalink
+	$(LD) $(LDFLAGS) $(OFILES) ../crc32.o ../hashmap.o ../printf.o -o wlalink
 	strip wlalink
 
 main.o: main.c main.h defines.h

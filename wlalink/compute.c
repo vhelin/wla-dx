@@ -8,6 +8,12 @@
 #include "memory.h"
 #include "compute.h"
 
+#ifdef AMIGA
+#include "/printf.h"
+#else
+#include "../printf.h"
+#endif
+
 
 extern unsigned char *rom;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
@@ -29,7 +35,7 @@ int reserve_checksum_bytes(void) {
 
     if (romsize >= 0x2000) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "%s", "Reserving SMS ROM checksum bytes");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Reserving SMS ROM checksum bytes");
 
       /* checksum */
       mem_insert(tag_address + 0xA, 0x0);
@@ -37,7 +43,7 @@ int reserve_checksum_bytes(void) {
 
       if (sms_checksum != 0) {
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "%s", "Reserving SMS ROM region code byte");
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Reserving SMS ROM region code byte");
 
 	/* region code */
 	mem_insert(tag_address + 0xF, 0x0);
@@ -55,7 +61,7 @@ int reserve_checksum_bytes(void) {
     
     if (romsize >= 0x2000) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "%s", "Reserving SMS ROM TMR SEGA bytes");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Reserving SMS ROM TMR SEGA bytes");
 
       /* tmr sega */
       mem_insert(tag_address + 0x0, 0);
@@ -72,7 +78,7 @@ int reserve_checksum_bytes(void) {
   if (gb_complement_check != 0) {
     if (romsize >= 0x8000) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "%s", "Reserving GB ROM complement check byte");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Reserving GB ROM complement check byte");
 
       mem_insert(0x14D, 0);
     }
@@ -81,7 +87,7 @@ int reserve_checksum_bytes(void) {
   if (gb_checksum != 0) {
     if (romsize >= 0x8000) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "%s", "Reserving GB ROM checksum bytes");
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Reserving GB ROM checksum bytes");
 
       mem_insert(0x14E, 0);
       mem_insert(0x14F, 0);
@@ -90,7 +96,7 @@ int reserve_checksum_bytes(void) {
 
   if (snes_checksum != 0) {
     /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-    sprintf(mem_insert_action, "%s", "Reserving SNES ROM checksum bytes");
+    snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Reserving SNES ROM checksum bytes");
 
     if ((snes_rom_mode == SNES_ROM_MODE_LOROM || snes_rom_mode == SNES_ROM_MODE_EXLOROM) && romsize >= 0x8000) {
       mem_insert(0x7FDC, 0);
@@ -107,7 +113,7 @@ int reserve_checksum_bytes(void) {
   }
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "???");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "???");
     
   return SUCCEEDED;
 }
@@ -148,12 +154,12 @@ int compute_gb_complement_check(void) {
   res += 25;
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "%s", "Writing GB ROM checksum complement");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Writing GB ROM checksum complement");
 
   mem_insert_allow_overwrite(0x14D, 0 - (res & 0xFF), 1);
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "???");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "???");
   
   return SUCCEEDED;
 }
@@ -176,13 +182,13 @@ int compute_gb_checksum(void) {
     checksum += rom[j];
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "%s", "Writing GB ROM checksum bytes");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Writing GB ROM checksum bytes");
     
   mem_insert_allow_overwrite(0x14E, (checksum >> 8) & 0xFF, 1);
   mem_insert_allow_overwrite(0x14F, checksum & 0xFF, 1);
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "???");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "???");
   
   return SUCCEEDED;
 }
@@ -195,7 +201,7 @@ int finalize_snes_rom(void) {
   
   if (snes_rom_mode == SNES_ROM_MODE_EXHIROM && romsize >= 0x410000) {
     /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-    sprintf(mem_insert_action, "%s", "Mirroring SNES ROM header from $40ffb0-$40ffff -> $ffb0-$ffff");
+    snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Mirroring SNES ROM header from $40ffb0-$40ffff -> $ffb0-$ffff");
 
     /* mirror the cartridge rom header from $40ffb0-$40ffff -> $ffb0-$ffff */
     for (i = 0; i < 5*16; i++)
@@ -203,7 +209,7 @@ int finalize_snes_rom(void) {
   }
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "???");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "???");
   
   return SUCCEEDED;
 }
@@ -243,7 +249,7 @@ int compute_snes_exhirom_checksum(void) {
   inv = (checksum & 0xFFFF) ^ 0xFFFF;
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "%s", "Writing SNES ROM checksum bytes");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Writing SNES ROM checksum bytes");
   
   /* insert the checksum bytes */
   mem_insert_allow_overwrite(0x40FFDC, inv & 0xFF, 1);
@@ -258,7 +264,7 @@ int compute_snes_exhirom_checksum(void) {
   mem_insert_allow_overwrite(0xFFDF, (checksum >> 8) & 0xFF, 1);
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "???");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "???");
   
   return SUCCEEDED;  
 }
@@ -335,7 +341,7 @@ int compute_snes_checksum(void) {
   inv = (checksum & 0xFFFF) ^ 0xFFFF;
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "%s", "Writing SNES ROM checksum bytes");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Writing SNES ROM checksum bytes");
 
   /* insert the checksum bytes */
   if (snes_rom_mode == SNES_ROM_MODE_LOROM || snes_rom_mode == SNES_ROM_MODE_EXLOROM) {
@@ -352,7 +358,7 @@ int compute_snes_checksum(void) {
   }
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "???");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "???");
     
   return SUCCEEDED;
 }
@@ -374,7 +380,7 @@ int add_tmr_sega(void) {
   }
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "%s", "Writing TMR SEGA");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Writing TMR SEGA");
 
   /* TMR SEGA */
   mem_insert_allow_overwrite(tag_address + 0x0, 0x54, 1);
@@ -387,7 +393,7 @@ int add_tmr_sega(void) {
   mem_insert_allow_overwrite(tag_address + 0x7, 0x41, 1);
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "???");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "???");
   
   return SUCCEEDED;
 }
@@ -430,19 +436,19 @@ int compute_sms_checksum(int is_sms_header) {
     checksum += rom[j];
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "%s", "Writing SMS/GG ROM checksum bytes");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Writing SMS/GG ROM checksum bytes");
   
   mem_insert_allow_overwrite(tag_address + 0xA, checksum & 0xFF, 1);
   mem_insert_allow_overwrite(tag_address + 0xB, (checksum >> 8) & 0xFF, 1);
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "%s", "Writing SMS/GG region code + ROM size");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Writing SMS/GG region code + ROM size");
   
   /* region code + ROM size */
   mem_insert_allow_overwrite(tag_address + 0xF, final_byte, 1);
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  sprintf(mem_insert_action, "???");
+  snprintf(mem_insert_action, sizeof(mem_insert_action), "???");
   
   return SUCCEEDED;
 }

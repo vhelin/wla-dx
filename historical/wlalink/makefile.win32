@@ -10,7 +10,7 @@ OFILES = main.o memory.o parse.o files.o check.o analyze.o write.o compute.o dis
 
 
 all: $(OFILES) makefile.win32
-	$(LD) $(LDFLAGS) $(OFILES) ../crc32.o ../hashmap.o -o wlalink.exe
+	$(LD) $(LDFLAGS) $(OFILES) ../crc32.o ../hashmap.o ../printf.o -o wlalink.exe
 
 
 main.o: main.c main.h defines.h

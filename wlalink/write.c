@@ -12,9 +12,12 @@
 
 #ifdef AMIGA
 #include "/crc32.h"
+#include "/printf.h"
 #else
 #include "../crc32.h"
+#include "../printf.h"
 #endif
+
 
 extern struct section_fix *sec_fix_first, *sec_fix_tmp;
 extern struct reference *reference_first, *reference_last;
@@ -361,7 +364,7 @@ int insert_sections(void) {
       }
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
       if (d == i) {
 	for (i = 0; i < s->size; i++) {
@@ -388,7 +391,7 @@ int insert_sections(void) {
       section_overwrite = ON;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
       for (i = 0; i < s->size; i++) {
 	if (mem_insert(d + i, s->data[i]) == FAILED)
@@ -442,7 +445,7 @@ int insert_sections(void) {
       section_overwrite = OFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
       for (i = 0; i < s->size; i++) {
 	if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
@@ -496,7 +499,7 @@ int insert_sections(void) {
       section_overwrite = OFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
       for (i = 0; i < s->size; i++) {
 	if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
@@ -560,7 +563,7 @@ int insert_sections(void) {
 	section_overwrite = OFF;
 
 	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	sprintf(mem_insert_action, "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+	snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
 	for (i = 0; i < s->size; i++)
 	  if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
@@ -599,7 +602,7 @@ int insert_sections(void) {
       }
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
       for (i = 0; i < s->size; i++) {
 	if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
@@ -1048,7 +1051,7 @@ int fix_references(void) {
       memory_line_number = r->linenumber;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing reference %s: %s:%d: %s.", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing reference %s: %s:%d: %s.", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
 
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT || r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
@@ -1119,7 +1122,7 @@ int fix_references(void) {
       memory_line_number = r->linenumber;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      sprintf(mem_insert_action, "Writing reference %s: %s:%d: %s.", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing reference %s: %s:%d: %s.", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
 
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
@@ -1714,7 +1717,7 @@ int compute_pending_calculations(void) {
     memory_line_number = sta->linenumber;
 
     /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-    sprintf(mem_insert_action, "Writing pending calculation %s: %s:%d.", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+    snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing pending calculation %s: %s:%d.", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 
     if (sta->type == STACK_TYPE_8BIT) {
       if (k < -128 || k > 255) {
@@ -2871,7 +2874,7 @@ int generate_sizeof_label_definitions(void) {
       return FAILED;
     }
     else
-      sprintf(l->name, "_sizeof_%.*s", (int)(sizeof(l->name)-8-1), labels[j]->name);
+      snprintf(l->name, sizeof(l->name), "_sizeof_%.*s", (int)(sizeof(l->name)-8-1), labels[j]->name);
 
     l->status = LABEL_STATUS_DEFINE;
     l->alive = YES;
@@ -2917,7 +2920,7 @@ int fix_sectionstartend_labels(void) {
       while (l2 != NULL) {
 	if (strcmp(l1->name, l2->name) == 0) {
 	  /* l2 has the same name as l1! change l2's name... */
-	  sprintf(tmp, "%s_%d", l2->name, count);
+	  snprintf(tmp, sizeof(tmp), "%s_%d", l2->name, count);
 	  count++;
 	  if (strlen(tmp) < MAX_NAME_LENGTH)
 	    strcpy(l2->name, tmp);

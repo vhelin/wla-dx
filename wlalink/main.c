@@ -21,6 +21,12 @@
 #include "listfile.h"
 #include "parse.h"
 
+#ifdef AMIGA
+#include "/printf.h"
+#else
+#include "../printf.h"
+#endif
+
 /* define this if you want to display debug information when you run WLALINK */
 /*
 #define WLALINK_DEBUG
@@ -122,26 +128,26 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
   char *sid = stack_item_description;
 
   if (si == NULL)
-    sprintf(sid, "NULL");
+    snprintf(sid, sizeof(stack_item_description), "NULL");
   else {
     int type = si->type;
     
     if (type == STACK_ITEM_TYPE_VALUE)
-      sprintf(sid, "stack_item: value              : %f/$%x (RAM) %f/$%x (ROM)\n", si->value_ram, (int)si->value_ram, si->value_rom, (int)si->value_rom);
+      snprintf(sid, sizeof(stack_item_description), "stack_item: value              : %f/$%x (RAM) %f/$%x (ROM)\n", si->value_ram, (int)si->value_ram, si->value_rom, (int)si->value_rom);
     else if (type == STACK_ITEM_TYPE_OPERATOR)
-      sprintf(sid, "stack_item: operator           : %s\n", get_stack_item_operator_name((int)si->value_ram));
+      snprintf(sid, sizeof(stack_item_description), "stack_item: operator           : %s\n", get_stack_item_operator_name((int)si->value_ram));
     else if (type == STACK_ITEM_TYPE_STRING)
-      sprintf(sid, "stack_item: label              : %s\n", si->string);
+      snprintf(sid, sizeof(stack_item_description), "stack_item: label              : %s\n", si->string);
     else if (type == STACK_ITEM_TYPE_STACK) {
       struct stack *st = find_stack((int)si->value_ram, file_id);
 
       if (st->computed == YES)
-	sprintf(sid, "stack_item: (stack) calculation: %d (result = %d/$%x (RAM) %d/$%x (ROM))\n", (int)si->value_ram, st->result_ram, st->result_ram, st->result_rom, st->result_rom);
+	snprintf(sid, sizeof(stack_item_description), "stack_item: (stack) calculation: %d (result = %d/$%x (RAM) %d/$%x (ROM))\n", (int)si->value_ram, st->result_ram, st->result_ram, st->result_rom, st->result_rom);
       else
-	sprintf(sid, "stack_item: (stack) calculation: %d (result = ?)\n", (int)si->value_ram);
+	snprintf(sid, sizeof(stack_item_description), "stack_item: (stack) calculation: %d (result = ?)\n", (int)si->value_ram);
     }
     else
-      sprintf(sid, "stack_item: UNKNOWN!");
+      snprintf(sid, sizeof(stack_item_description), "stack_item: UNKNOWN!");
   }
   
   return sid;
@@ -896,9 +902,9 @@ int parse_and_set_libdir(char *c, int contains_flag) {
 
   localize_path(n);
 #if defined(MSDOS)
-  sprintf(ext_libdir, "%s\\", n);
+  snprintf(ext_libdir, sizeof(ext_libdir), "%s\\", n);
 #else
-  sprintf(ext_libdir, "%s/", n);
+  snprintf(ext_libdir, sizeof(ext_libdir), "%s/", n);
 #endif
   use_libdir = YES;
 

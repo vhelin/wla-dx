@@ -10,6 +10,7 @@
 #include "include_file.h"
 #include "pass_1.h"
 #include "parse.h"
+#include "printf.h"
 
 
 extern int ind, inz, i, unfolded_size, extra_definitions, d, use_incdir;
@@ -92,7 +93,7 @@ int include_file(char *name) {
   id = 0;
 
   if (f == NULL && (tmp_c == NULL || tmp_c[0] == 0)) {
-    sprintf(emsg, "Error opening file \"%s\".\n", name);
+    snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", name);
     if (first_load == 0)
       fprintf(stderr, "INCLUDE_FILE: %s", emsg);
     else
@@ -109,7 +110,7 @@ int include_file(char *name) {
     id = 0;
   
     if (f == NULL && (include_dir == NULL || include_dir[0] == 0)) {
-      sprintf(emsg, "Error opening file \"%s\".\n", name);
+      snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", name);
       if (first_load == 0)
         fprintf(stderr, "INCLUDE_FILE: %s", emsg);
       else
@@ -128,7 +129,7 @@ int include_file(char *name) {
 
   if (f == NULL) {
     fprintf(stderr, "not found.\n");
-    sprintf(emsg, "Error opening file \"%s\".\n", full_name);
+    snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", full_name);
     if (first_load == 0)
       fprintf(stderr, "INCLUDE_FILE: %s", emsg);
     else
@@ -154,7 +155,7 @@ int include_file(char *name) {
 
   active_file_info_tmp = calloc(sizeof(struct active_file_info), 1);
   if (active_file_info_tmp == NULL) {
-    sprintf(emsg, "Out of memory while trying allocate error tracking data structure for file \"%s\".\n", full_name);
+    snprintf(emsg, sizeof(emsg), "Out of memory while trying allocate error tracking data structure for file \"%s\".\n", full_name);
     print_error(emsg, ERROR_INC);
     fclose(f);
     return FAILED;
@@ -194,7 +195,7 @@ int include_file(char *name) {
 	free(file_name_info_tmp);
       if (n != NULL)
 	free(n);
-      sprintf(emsg, "Out of memory while trying allocate info structure for file \"%s\".\n", full_name);
+      snprintf(emsg, sizeof(emsg), "Out of memory while trying allocate info structure for file \"%s\".\n", full_name);
       print_error(emsg, ERROR_INC);
       return FAILED;
     }
@@ -223,7 +224,7 @@ int include_file(char *name) {
 
     include_in_tmp = calloc(sizeof(char) * file_size, 1);
     if (include_in_tmp == NULL) {
-      sprintf(emsg, "Out of memory while trying to allocate room for \"%s\".\n", full_name);
+      snprintf(emsg, sizeof(emsg), "Out of memory while trying to allocate room for \"%s\".\n", full_name);
       print_error(emsg, ERROR_INC);
       return FAILED;
     }
@@ -241,7 +242,7 @@ int include_file(char *name) {
   if (size == 0) {
     buffer = calloc(sizeof(char) * (file_size + 4), 1);
     if (buffer == NULL) {
-      sprintf(emsg, "Out of memory while trying to allocate room for \"%s\".\n", full_name);
+      snprintf(emsg, sizeof(emsg), "Out of memory while trying to allocate room for \"%s\".\n", full_name);
       print_error(emsg, ERROR_INC);
       return FAILED;
     }
@@ -261,7 +262,7 @@ int include_file(char *name) {
 
   tmp_b = calloc(sizeof(char) * (size + file_size + 4), 1);
   if (tmp_b == NULL) {
-    sprintf(emsg, "Out of memory while trying to expand the project to incorporate file \"%s\".\n", full_name);
+    snprintf(emsg, sizeof(emsg), "Out of memory while trying to expand the project to incorporate file \"%s\".\n", full_name);
     print_error(emsg, ERROR_INC);
     return FAILED;
   }
@@ -273,7 +274,7 @@ int include_file(char *name) {
 
     tmp_a = calloc(sizeof(char) * (file_size + 4), 1);
     if (tmp_a == NULL) {
-      sprintf(emsg, "Out of memory while allocating new room for \"%s\".\n", full_name);
+      snprintf(emsg, sizeof(emsg), "Out of memory while allocating new room for \"%s\".\n", full_name);
       print_error(emsg, ERROR_INC);
       free(tmp_b);
       return FAILED;
@@ -327,7 +328,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   q = 0;
 
   if (f == NULL && (tmp_c == NULL || tmp_c[0] == 0)) {
-    sprintf(emsg, "Error opening file \"%s\".\n", name);
+    snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", name);
     print_error(emsg, ERROR_INB);
     return FAILED;
   }
@@ -341,7 +342,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     q = 0;
   
     if (f == NULL && (include_dir == NULL || include_dir[0] == 0)) {
-      sprintf(emsg, "Error opening file \"%s\".\n", name);
+      snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", name);
       print_error(emsg, ERROR_INB);
       return FAILED;
     }
@@ -357,7 +358,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
   if (f == NULL) {
     fprintf(stderr, "not found.\n");
-    sprintf(emsg, "Error opening file \"%s\".\n", full_name);
+    snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", full_name);
     print_error(emsg, ERROR_INB);
     return FAILED;
   }
@@ -381,7 +382,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       free(n);
     if (in_tmp != NULL)
       free(in_tmp);
-    sprintf(emsg, "Out of memory while allocating data structure for \"%s\".\n", full_name);
+    snprintf(emsg, sizeof(emsg), "Out of memory while allocating data structure for \"%s\".\n", full_name);
     print_error(emsg, ERROR_INB);
     fclose(f);
     return FAILED;
@@ -430,7 +431,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     *skip = d;
 
     if (d >= file_size) {
-      sprintf(emsg, "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", d, file_size, full_name);
+      snprintf(emsg, sizeof(emsg), "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", d, file_size, full_name);
       print_error(emsg, ERROR_INB);
       return FAILED;
     }
@@ -450,7 +451,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     *read = d;
 
     if (*skip + *read > file_size) {
-      sprintf(emsg, "Overreading file \"%s\" by %d bytes.\n", full_name, *skip + *read - file_size);
+      snprintf(emsg, sizeof(emsg), "Overreading file \"%s\" by %d bytes.\n", full_name, *skip + *read - file_size);
       print_error(emsg, ERROR_INB);
       return FAILED;
     }
@@ -461,7 +462,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     *swap = 0;
   else {
     if ((*read & 1) == 1) {
-      sprintf(emsg, "The read size of file \"%s\" is odd (%d)! Cannot perform SWAP.\n", full_name, *read);
+      snprintf(emsg, sizeof(emsg), "The read size of file \"%s\" is odd (%d)! Cannot perform SWAP.\n", full_name, *read);
       print_error(emsg, ERROR_INB);
       return FAILED;
     }
@@ -491,7 +492,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     *macro = macro_get(tmp);
 
     if (*macro == NULL) {
-      sprintf(emsg, "No MACRO \"%s\" defined.\n", tmp);
+      snprintf(emsg, sizeof(emsg), "No MACRO \"%s\" defined.\n", tmp);
       print_error(emsg, ERROR_INB);
       return FAILED;
     }
@@ -622,7 +623,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 	  for ( ; input < input_end && *input != '/' && *input != 0x0A; input++)
 	    ;
 	  if (input >= input_end) {
-	    sprintf(emsg, "Comment wasn't terminated properly in file \"%s\".\n", file_name);
+	    snprintf(emsg, sizeof(emsg), "Comment wasn't terminated properly in file \"%s\".\n", file_name);
 	    print_error(emsg, ERROR_INC);
 	    return FAILED;
 	  }
