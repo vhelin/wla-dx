@@ -1025,11 +1025,48 @@ int stack_calculate(char *in, int *value) {
 }
 
 
+static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
+
+  if (macro_active != 0) {
+    /* expand e.g., \1 and \@ */
+    if (expand_macro_arguments(s->string) == FAILED)
+      return FAILED;
+  }
+
+  hashmap_get(defines_map, s->string, (void*)&tmp_def);
+  if (tmp_def != NULL) {
+    if (tmp_def->type == DEFINITION_TYPE_STRING) {
+      snprintf(xyz, sizeof(xyz), "Definition \"%s\" is a string definition.\n", tmp_def->alias);
+      print_error(xyz, ERROR_STC);
+      return FAILED;
+    }
+    else if (tmp_def->type == DEFINITION_TYPE_STACK) {
+      /* turn this reference to a stack calculation define into a direct reference to the stack calculation as */
+      /* this way we don't have to care if the define is exported or not as stack calculations are always exported */
+      s->type = STACK_ITEM_TYPE_STACK;
+      s->sign = SI_SIGN_POSITIVE;
+      s->value = tmp_def->value;
+    }
+    else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+      /* wla cannot resolve address labels (unless outside a section) -> only wlalink can do that */
+      *cannot_resolve = 1;
+      strcpy(s->string, tmp_def->string);
+    }
+    else {
+      s->type = STACK_ITEM_TYPE_VALUE;
+      s->value = tmp_def->value;
+    }
+  }
+
+  return SUCCEEDED;
+}
+
+
 int resolve_stack(struct stack_item s[], int x) {
 
   struct macro_argument *ma;
   struct stack_item *st;
-  int a, b, k, q = x, cannot_resolve = 0;
+  int a, b, k, q = x, cannot_resolve = 0, try_resolve_string = NO;
   char c;
 
 
@@ -1042,84 +1079,63 @@ int resolve_stack(struct stack_item s[], int x) {
 	  s->value = macro_runtime_current->macro->calls - 1;
 	}
 	else {
+	  try_resolve_string = NO;
 	  for (a = 0, b = 0; s->string[a + 1] != 0 && a < 10; a++) {
 	    c = s->string[a + 1];
-	    if (c < '0' && c > '9') {
-	      print_error("Error in MACRO argument number definition.\n", ERROR_DIR);
-	      return FAILED;
+	    if (c < '0' || c > '9') {
+	      try_resolve_string = YES;
+	      break;
 	    }
 	    b = (b * 10) + (c - '0');
 	  }
-	  
-	  if (b > macro_runtime_current->supplied_arguments) {
-	    snprintf(xyz, sizeof(xyz), "Reference to MACRO argument number %d (\"%s\") is out of range.\n", b, s->string);
-	    print_error(xyz, ERROR_STC);
-	    return FAILED;
+
+	  if (try_resolve_string == YES) {
+	    if (_resolve_string(s, &cannot_resolve) == FAILED)
+	      return FAILED;
 	  }
+	  else {
+	    if (b > macro_runtime_current->supplied_arguments) {
+	      snprintf(xyz, sizeof(xyz), "Reference to MACRO argument number %d (\"%s\") is out of range.\n", b, s->string);
+	      print_error(xyz, ERROR_STC);
+	      return FAILED;
+	    }
 	  
-	  /* return the macro argument */
-	  ma = macro_runtime_current->argument_data[b - 1];
-	  k = ma->type;
+	    /* return the macro argument */
+	    ma = macro_runtime_current->argument_data[b - 1];
+	    k = ma->type;
 	  
-	  if (k == INPUT_NUMBER_ADDRESS_LABEL)
-	    strcpy(label, ma->string);
-	  else if (k == INPUT_NUMBER_STRING) {
-	    strcpy(label, ma->string);
-	    string_size = (int)strlen(ma->string);
-	  }
-	  else if (k == INPUT_NUMBER_STACK)
-	    latest_stack = ma->value;
-	  else if (k == SUCCEEDED) {
-	    d = ma->value;
-	    parsed_double = ma->value;
-	  }
+	    if (k == INPUT_NUMBER_ADDRESS_LABEL)
+	      strcpy(label, ma->string);
+	    else if (k == INPUT_NUMBER_STRING) {
+	      strcpy(label, ma->string);
+	      string_size = (int)strlen(ma->string);
+	    }
+	    else if (k == INPUT_NUMBER_STACK)
+	      latest_stack = ma->value;
+	    else if (k == SUCCEEDED) {
+	      d = ma->value;
+	      parsed_double = ma->value;
+	    }
 	  
-	  if (!(k == SUCCEEDED || k == INPUT_NUMBER_ADDRESS_LABEL || k == INPUT_NUMBER_STACK))
-	    return FAILED;
+	    if (!(k == SUCCEEDED || k == INPUT_NUMBER_ADDRESS_LABEL || k == INPUT_NUMBER_STACK))
+	      return FAILED;
 	  
-	  if (k == SUCCEEDED) {
-	    s->type = STACK_ITEM_TYPE_VALUE;
-	    s->value = parsed_double;
+	    if (k == SUCCEEDED) {
+	      s->type = STACK_ITEM_TYPE_VALUE;
+	      s->value = parsed_double;
+	    }
+	    else if (k == INPUT_NUMBER_STACK) {
+	      s->type = STACK_ITEM_TYPE_STACK;
+	      s->value = latest_stack;
+	    }
+	    else
+	      strcpy(s->string, label);
 	  }
-	  else if (k == INPUT_NUMBER_STACK) {
-	    s->type = STACK_ITEM_TYPE_STACK;
-	    s->value = latest_stack;
-	  }
-	  else
-	    strcpy(s->string, label);
 	}
       }
       else {
-	if (macro_active != 0) {
-	  /* expand e.g., \1 and \@ */
-	  if (expand_macro_arguments(s->string) == FAILED)
-	    return FAILED;
-	}
-
-        hashmap_get(defines_map, s->string, (void*)&tmp_def);
-        if (tmp_def != NULL) {
-          if (tmp_def->type == DEFINITION_TYPE_STRING) {
-            snprintf(xyz, sizeof(xyz), "Definition \"%s\" is a string definition.\n", tmp_def->alias);
-            print_error(xyz, ERROR_STC);
-            return FAILED;
-          }
-          else if (tmp_def->type == DEFINITION_TYPE_STACK) {
-	    /* turn this reference to a stack calculation define into a direct reference to the stack calculation as */
-	    /* this way we don't have to care if the define is exported or not as stack calculations are always exported */
-	    s->type = STACK_ITEM_TYPE_STACK;
-	    s->sign = SI_SIGN_POSITIVE;
-	    s->value = tmp_def->value;
-          }
-	  else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
-	    /* wla cannot resolve address labels (unless outside a section) -> only wlalink can do that */
-	    cannot_resolve = 1;
-	    strcpy(s->string, tmp_def->string);
-	  }
-	  else {
-            s->type = STACK_ITEM_TYPE_VALUE;
-            s->value = tmp_def->value;
-          }
-        }
+	if (_resolve_string(s, &cannot_resolve) == FAILED)
+	  return FAILED;
       }
     }
     s++;

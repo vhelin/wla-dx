@@ -35,7 +35,7 @@ __\._\@+1:
 .ENDM
 	
 .bank 0 slot 1
-.section "Bank0" force returnorg
+.section "Bank0" force
 main:
 	.db "01>"
         .term "YES"
@@ -79,3 +79,22 @@ MIDDLE5=2+1+1
 	.db 1+MIDDLE6+1, 2+ MIDDLE7+ 2, 3 +MIDDLE8 +3
 	.db "<08"
 .ends
+
+.macro MACROX	
+	.dw Start\1
+	.dw Start\1End
+	.dw \1Start
+        .db :Start\1 + 1
+	.db :Start\1End + 1
+        .db :\1Start + 1
+.endm
+
+.section "TestingMACROX" force
+StartHello:
+StartHelloEnd:
+HelloStart:
+	.db "09>"
+	MACROX Hello
+	.db "<09"
+.ends
+	

@@ -225,76 +225,95 @@ int input_number(void) {
   /* MACRO */
   if (macro_active != 0 && e == '\\') {
     struct macro_argument *ma;
+    int exit_here = YES;
+    int start_i = i;
+    unsigned char start_e = e;
 
     if (buffer[i] == '@') {
       i++;
       d = macro_runtime_current->macro->calls - 1;
-      return SUCCEEDED;
-    }
 
-    for (d = 0, k = 0; k < 4; k++) {
-      e = buffer[i++];
-      if (e >= '0' && e <= '9')
-        d = (d * 10) + (e - '0');
-      else {
-        i--;
-        break;
+      if (buffer[i] != ' ' && buffer[i] != 0xA && buffer[i] != ',')
+	exit_here = NO;
+      else
+	return SUCCEEDED;
+    }
+    else if (buffer[i] >= '0' && buffer[i] <= '9') {
+      for (d = 0, k = 0; k < 4; k++) {
+	e = buffer[i++];
+	if (e >= '0' && e <= '9')
+	  d = (d * 10) + (e - '0');
+	else {
+	  i--;
+	  break;
+	}
       }
-    }
 
-    if (d > macro_runtime_current->supplied_arguments) {
-      snprintf(xyz, sizeof(xyz), "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", d, macro_runtime_current->macro->name, macro_runtime_current->supplied_arguments);
-      print_error(xyz, ERROR_NUM);
-      return FAILED;
+      if (buffer[i] != ' ' && buffer[i] != 0xA && buffer[i] != ',' && buffer[i] != '.')
+	exit_here = NO;
     }
-    if (d == 0) {
-      snprintf(xyz, sizeof(xyz), "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", d, macro_runtime_current->macro->name);
-      print_error(xyz, ERROR_NUM);
-      return FAILED;
-    }
+    else
+      exit_here = NO;
 
-    /* return the macro argument */
-    ma = macro_runtime_current->argument_data[d - 1];
-    k = ma->type;
+    if (exit_here == YES) {
+      if (d > macro_runtime_current->supplied_arguments) {
+	snprintf(xyz, sizeof(xyz), "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", d, macro_runtime_current->macro->name, macro_runtime_current->supplied_arguments);
+	print_error(xyz, ERROR_NUM);
+	return FAILED;
+      }
+      if (d == 0) {
+	snprintf(xyz, sizeof(xyz), "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", d, macro_runtime_current->macro->name);
+	print_error(xyz, ERROR_NUM);
+	return FAILED;
+      }
 
-    if (k == INPUT_NUMBER_ADDRESS_LABEL)
-      strcpy(label, ma->string);
-    else if (k == INPUT_NUMBER_STRING) {
-      strcpy(label, ma->string);
-      string_size = (int)strlen(ma->string);
-    }
-    else if (k == INPUT_NUMBER_STACK)
-      latest_stack = ma->value;
-    else if (k == SUCCEEDED) {
-      d = ma->value;
-      parsed_double = ma->value;
+      /* return the macro argument */
+      ma = macro_runtime_current->argument_data[d - 1];
+      k = ma->type;
+
+      if (k == INPUT_NUMBER_ADDRESS_LABEL)
+	strcpy(label, ma->string);
+      else if (k == INPUT_NUMBER_STRING) {
+	strcpy(label, ma->string);
+	string_size = (int)strlen(ma->string);
+      }
+      else if (k == INPUT_NUMBER_STACK)
+	latest_stack = ma->value;
+      else if (k == SUCCEEDED) {
+	d = ma->value;
+	parsed_double = ma->value;
+      }
+      else {
+	print_error("Macro argument list has been corrupted! Please send a bug report!\n", ERROR_ERR);
+	return FAILED;
+      }
+
+      /* does the MACRO argument number end with a .b/.w/.l? */
+      if (e == '.') {
+	e = buffer[i+1];
+	if (e == 'b' || e == 'B') {
+	  operand_hint = HINT_8BIT;
+	  operand_hint_type = HINT_TYPE_GIVEN;
+	  i += 2;
+	}
+	else if (e == 'w' || e == 'W') {
+	  operand_hint = HINT_16BIT;
+	  operand_hint_type = HINT_TYPE_GIVEN;
+	  i += 2;
+	}
+	else if (e == 'l' || e == 'L') {
+	  operand_hint = HINT_24BIT;
+	  operand_hint_type = HINT_TYPE_GIVEN;
+	  i += 2;
+	}
+      }
+
+      return k;
     }
     else {
-      print_error("Macro argument list has been corrupted! Please send a bug report!\n", ERROR_ERR);
-      return FAILED;
+      i = start_i;
+      e = start_e;
     }
-
-    /* does the MACRO argument number end with a .b/.w/.l? */
-    if (e == '.') {
-      e = buffer[i+1];
-      if (e == 'b' || e == 'B') {
-	operand_hint = HINT_8BIT;
-	operand_hint_type = HINT_TYPE_GIVEN;
-	i += 2;
-      }
-      else if (e == 'w' || e == 'W') {
-	operand_hint = HINT_16BIT;
-	operand_hint_type = HINT_TYPE_GIVEN;
-	i += 2;
-      }
-      else if (e == 'l' || e == 'L') {
-	operand_hint = HINT_24BIT;
-	operand_hint_type = HINT_TYPE_GIVEN;
-	i += 2;
-      }
-    }
-
-    return k;
   }
 
   /* is it a hexadecimal value? */
