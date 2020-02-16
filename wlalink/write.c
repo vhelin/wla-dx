@@ -1810,7 +1810,21 @@ static int _get_bank_of_address(int address, int slot) {
     return -1;
 
   if (slot < 0) {
-    fprintf(stderr, "_GET_BANK_OF_ADDRESS: SLOT %d < 0! Internal error. Please submit a bug report.\n", slot);
+    /* we don't know the SLOT so we'll use the .ROMBANKSIZE for the calculation */
+    start_address = 0;
+    j = 0;
+
+    while (1) {
+      if (address >= start_address && address < start_address + banksize)
+	return j;
+      start_address += banksize;
+      j++;
+      if (j > 1000000000) {
+	fprintf(stderr, "_GET_BANK_OF_ADDRESS: j > 1000000000! Internal error. Cannot find the BANK. Please submit a bug report.\n");
+	return -1;
+      }
+    }
+
     return -1;
   }
 
@@ -1818,7 +1832,7 @@ static int _get_bank_of_address(int address, int slot) {
   start_address = 0;
   j = 0;
   k = 0;
-
+  
   while (1) {
     if (address >= start_address && address < start_address + slot_size)
       return j;

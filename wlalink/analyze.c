@@ -46,7 +46,7 @@ extern struct label_sizeof *label_sizeofs;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern int rombanks, verbose_mode, section_overwrite, symbol_mode, discard_unreferenced_sections;
 extern int emptyfill;
-extern int *banksizes, *bankaddress;
+extern int *banksizes, *bankaddress, banksize;
 
 
 
@@ -261,7 +261,7 @@ int add_label(struct label *l) {
 
 int obtain_rombankmap(void) {
 
-  int map_found = OFF, i, x, banksize, a;
+  int map_found = OFF, i, x, a;
   struct object_file *o;
   unsigned char *t;
 
