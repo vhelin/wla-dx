@@ -178,7 +178,7 @@ int input_number(void) {
 
   char label_tmp[MAX_NAME_LENGTH + 1];
   unsigned char e, ee;
-  int k, p, q;
+  int k, p, q, spaces = 0;
   double decimal_mul;
 
 
@@ -205,8 +205,13 @@ int input_number(void) {
 	  buffer[p] == '\\' && buffer[p+1] == '@' && (buffer[p+2] == '-' || buffer[p+2] == '+') && (buffer[p+3] >= '0' && buffer[p+3] <= '9')) {
 	p += 4;
       }
+      else if (ee == ' ')
+	spaces++;
       else if (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' ||
 	       ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':') {
+	if (ee == ':' && spaces > 0)
+	  break;
+	
 	/* launch stack calculator */
 	p = stack_calculate(&buffer[i - 1], &d);
 

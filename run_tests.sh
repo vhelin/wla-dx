@@ -110,6 +110,7 @@ cd ..
 changePlatform gb-z80
 runTest appendto_test
 runTest background_test
+runTest bank_number
 runTest linker_test
 runTest namespace_test
 runTest sintest

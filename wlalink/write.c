@@ -1804,7 +1804,7 @@ int compute_pending_calculations(void) {
 
 static int _get_bank_of_address(int address, int slot) {
 
-  int start_address, slot_size, j, k;
+  int start_address, slot_size, j;
 
   if (address < 0)
     return -1;
@@ -1828,19 +1828,19 @@ static int _get_bank_of_address(int address, int slot) {
     return -1;
   }
 
+  /* TODO: check if we can just use the banksize in every case and ignore slots[slot].size completely */
+  
   slot_size = slots[slot].size;;
   start_address = 0;
   j = 0;
-  k = 0;
   
   while (1) {
     if (address >= start_address && address < start_address + slot_size)
       return j;
     start_address += slot_size;
     j++;
-    k++;
-    if (k > 1000000000) {
-      fprintf(stderr, "_GET_BANK_OF_ADDRESS: k > 1000000000! Internal error. Cannot find the BANK. Please submit a bug report.\n");
+    if (j > 1000000000) {
+      fprintf(stderr, "_GET_BANK_OF_ADDRESS: j > 1000000000! Internal error. Cannot find the BANK. Please submit a bug report.\n");
       return -1;
     }
   }
