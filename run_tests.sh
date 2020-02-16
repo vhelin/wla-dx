@@ -6,8 +6,6 @@
 # errors, we'll assume that WLA DX is in ok shape. Feel free to add more
 # test projects to the lot.
 #
-# these tests aren't really unit tests, but hopefully one day they will be. :)
-#
 
 set -e
 
