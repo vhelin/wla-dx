@@ -758,39 +758,15 @@ int stack_calculate(char *in, int *value) {
 	  b++;
 	}
 	else if (si[k].value == SI_OP_LOW_BYTE) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_LOW_BYTE;
+	  op[b] = SI_OP_LOW_BYTE; /* Unary operator */
 	  b++;
 	}
 	else if (si[k].value == SI_OP_HIGH_BYTE) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_HIGH_BYTE;
+	  op[b] = SI_OP_HIGH_BYTE; /* Unary operator */
 	  b++;
 	}
 	else if (si[k].value == SI_OP_BANK) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_BANK;
+	  op[b] = SI_OP_BANK; /* Unary operator */
 	  b++;
 	}
 	else if (si[k].value == SI_OP_XOR) {
