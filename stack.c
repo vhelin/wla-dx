@@ -734,7 +734,8 @@ int stack_calculate(char *in, int *value) {
 	b++;
       }
       else {
-	if (si[k].value == SI_OP_PLUS) {
+	if (si[k].value == SI_OP_PLUS ||
+	    si[k].value == SI_OP_MINUS) {
 	  b--;
 	  while (b != -1 && op[b] != SI_OP_LEFT) {
 	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
@@ -743,46 +744,26 @@ int stack_calculate(char *in, int *value) {
 	    d++;
 	  }
 	  b++;
-	  op[b] = SI_OP_PLUS;
+	  op[b] = si[k].value;
 	  b++;
 	}
-	else if (si[k].value == SI_OP_MINUS) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_MINUS;
+	else if (si[k].value == SI_OP_LOW_BYTE ||
+		 si[k].value == SI_OP_HIGH_BYTE ||
+		 si[k].value == SI_OP_BANK) {
+	  /* unary operator, priority over everything else */
+	  op[b] = si[k].value;
 	  b++;
 	}
-	else if (si[k].value == SI_OP_LOW_BYTE) {
-	  op[b] = SI_OP_LOW_BYTE; /* Unary operator */
-	  b++;
-	}
-	else if (si[k].value == SI_OP_HIGH_BYTE) {
-	  op[b] = SI_OP_HIGH_BYTE; /* Unary operator */
-	  b++;
-	}
-	else if (si[k].value == SI_OP_BANK) {
-	  op[b] = SI_OP_BANK; /* Unary operator */
-	  b++;
-	}
-	else if (si[k].value == SI_OP_XOR) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_XOR;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_MULTIPLY) {
+	else if (si[k].value == SI_OP_XOR ||
+		 si[k].value == SI_OP_AND ||
+		 si[k].value == SI_OP_OR ||
+		 si[k].value == SI_OP_MULTIPLY ||
+		 si[k].value == SI_OP_DIVIDE ||
+		 si[k].value == SI_OP_MODULO ||
+		 si[k].value == SI_OP_POWER ||
+		 si[k].value == SI_OP_SHIFT_LEFT ||
+		 si[k].value == SI_OP_SHIFT_RIGHT) {
+	  /* these operators have priority over + and - */
 	  b--;
 	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
 	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
@@ -791,91 +772,7 @@ int stack_calculate(char *in, int *value) {
 	    d++;
 	  }
 	  b++;
-	  op[b] = SI_OP_MULTIPLY;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_DIVIDE) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_DIVIDE;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_MODULO) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_MODULO;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_POWER) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_POWER;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_SHIFT_LEFT) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_SHIFT_LEFT;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_SHIFT_RIGHT) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_SHIFT_RIGHT;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_AND) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_AND;
-	  b++;
-	}
-	else if (si[k].value == SI_OP_OR) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT && op[b] != SI_OP_PLUS && op[b] != SI_OP_MINUS) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_OR;
+	  op[b] = si[k].value;
 	  b++;
 	}
 	else if (si[k].value == SI_OP_NOT) {

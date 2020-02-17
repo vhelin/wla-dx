@@ -22,5 +22,7 @@ Start:
 	.db $01 :Start $02 :Start+3
 	.db $01, :Start, $02, :Start+3
 	.db $01 | (:Start)
+	.db $01 | :Start
+	.db $00 + :(Start + $4000)
 	.db "<01"
 
