@@ -646,7 +646,8 @@ int stack_calculate(char *in, int *value) {
 
   /* fix the sign in every operand */
   for (b = 1, k = 0; k < q; k++) {
-    if ((q - k) != 1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].value != SI_OP_BANK) {
+    if ((q - k) != 1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].value != SI_OP_BANK
+        && si[k + 1].value != SI_OP_HIGH_BYTE && si[k + 1].value != SI_OP_LOW_BYTE) {
       if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
 	print_error("Error in computation syntax.\n", ERROR_STC);
 	return FAILED;
@@ -758,39 +759,15 @@ int stack_calculate(char *in, int *value) {
 	  b++;
 	}
 	else if (si[k].value == SI_OP_LOW_BYTE) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_LOW_BYTE;
+	  op[b] = SI_OP_LOW_BYTE; /* Unary operator */
 	  b++;
 	}
 	else if (si[k].value == SI_OP_HIGH_BYTE) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_HIGH_BYTE;
+	  op[b] = SI_OP_HIGH_BYTE; /* Unary operator */
 	  b++;
 	}
 	else if (si[k].value == SI_OP_BANK) {
-	  b--;
-	  while (b != -1 && op[b] != SI_OP_LEFT) {
-	    ta[d].type = STACK_ITEM_TYPE_OPERATOR;
-	    ta[d].value = op[b];
-	    b--;
-	    d++;
-	  }
-	  b++;
-	  op[b] = SI_OP_BANK;
+	  op[b] = SI_OP_BANK; /* Unary operator */
 	  b++;
 	}
 	else if (si[k].value == SI_OP_XOR) {
