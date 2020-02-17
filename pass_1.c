@@ -782,7 +782,7 @@ void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
   va_start(ap, format);
 
   vfprintf(file_out_ptr, format, ap);
-#if WLA_DEBUG
+#ifdef WLA_DEBUG
   {
     char ttt[256];
 

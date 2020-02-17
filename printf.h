@@ -38,11 +38,6 @@
 #include <stddef.h>
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 /**
  * Output a character to a custom device like UART, used by the printf() function
  * This function is declared here only. You have to write your custom implementation somewhere
@@ -88,8 +83,16 @@ int sprintf_(char* buffer, const char* format, ...);
  *         null character. A value equal or larger than count indicates truncation. Only when the returned value
  *         is non-negative and less than count, the string has been completely written.
  */
+#ifdef snprintf
+#undef snprintf
+#endif
 #define snprintf  snprintf_
+
+#ifdef vsnprintf
+#undef vsnprintf
+#endif
 #define vsnprintf vsnprintf_
+
 int  snprintf_(char* buffer, size_t count, const char* format, ...);
 int vsnprintf_(char* buffer, size_t count, const char* format, va_list va);
 
@@ -117,11 +120,6 @@ int vprintf_(const char* format, va_list va);
 /*
 int fctprintf(void (*out)(char character, void* arg), void* arg, const char* format, ...);
 */
-
-
-#ifdef __cplusplus
-}
-#endif
 
 
 #endif  /* _PRINTF_H_ */
