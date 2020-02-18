@@ -2617,6 +2617,18 @@ It is also possible to merge two or more sections using ``APPENDTO``::
     label2    DB
     .ENDS
 
+If you wist to skip some bytes without giving them labels, use ``.`` as
+a label::
+
+    .RAMSECTION "ZERO_PAGE" BANK 0 SLOT 0
+    UsingThisByte1: DB
+    .               DB ; RESERVED
+    .               DB ; RESERVED
+    UsingThisByte2: DB
+    .               DB ; RESERVED
+    UsingThisByte3: DB
+    .ENDS
+
 NOTE: When you have ``RAMSECTION`` s inside libraries, you must give
 them BANKs and SLOTs in the linkfile, under [ramsections].
 

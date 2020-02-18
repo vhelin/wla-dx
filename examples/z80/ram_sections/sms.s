@@ -65,7 +65,8 @@ rs3b0_e dsw 16
 
 .RAMSECTION "RamSection 4 bank $7f slot 5 YES REF" BANK $7f SLOT 5 ALIGN 16
 rs4b127_a	db
-rs4b127_b	dw
+.		db
+.		dw
 rs4b127_c	db
 rs4b127_d dsb 16-1-2-1
 .ENDS

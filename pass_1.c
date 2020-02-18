@@ -1195,9 +1195,8 @@ int redefine(char *name, double value, char *string, int type, int size) {
   hashmap_get(defines_map, name, (void*)&d);
   
   /* it wasn't defined previously */
-  if (d == NULL) {
+  if (d == NULL)
     return add_a_new_definition(name, value, string, type, size);
-  }
 
   d->type = type;
 
@@ -1236,6 +1235,10 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
   struct definition *d;
   int err;
 
+
+  /* we skip definitions for "." (because .ENUM and .RAMSECTION use it as an anonymous label) */
+  if (strcmp(".", name) == 0 || strcmp("_sizeof_.", name) == 0)
+    return SUCCEEDED;
 
   hashmap_get(defines_map, name, (void*)&d);
   if (d != NULL) {
@@ -1419,12 +1422,16 @@ int add_label_sizeof(char *label, int size) {
   struct label_sizeof *ls;
   char tmpname[MAX_NAME_LENGTH + 8];
 
+  /* we skip definitions for '_sizeof_.' (because .ENUM and .RAMSECTION use it as an anonymous label) */
+  if (strcmp(".", label) == 0)
+    return SUCCEEDED;
+
   ls = calloc(sizeof(struct label_sizeof), 1);
   if (ls == NULL) {
     print_error("Out of memory error while allocating a label sizeof structure.\n", ERROR_DIR);
     return FAILED;
   }
-
+  
   strcpy(ls->name, label);
   ls->size = size;
   ls->next = label_sizeofs;
@@ -1483,7 +1490,10 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
         /* this sometimes abuses the "dsb" implementation to move backwards in the ramsection. */
         fprintf(file_out_ptr, "x%d 0 ", enum_offset-last_enum_offset);
       }
-      fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, name);
+      fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+      /* we skip label emissions for "." (because .ENUM and .RAMSECTION use it as an anonymous label) */
+      if (strcmp(".", name) != 0)
+	fprintf(file_out_ptr, "L%s ", name);
     }
   }
   else { /* sizeof pass */
