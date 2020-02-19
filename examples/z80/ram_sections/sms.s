@@ -42,8 +42,8 @@ rs0b127_a	dw
 rs0b127_b	dw
 rs0b127_c	dw
 .ENDS
-	
-.RAMSECTION "RamSection 1 bank 0 slot 3 NO REF" BANK 0 SLOT 3 ALIGN 8
+
+.RAMSECTION "RamSection 1 bank 0 slot 3 NO REF" BANK 0 SLOT 3 ORGA $C002 FORCE
 rs1b0_a	dw
 rs1b0_b	db
 .ENDS
@@ -53,7 +53,7 @@ rs2b2_a	dw
 rs2b2_b	db
 .ENDS
 	
-.RAMSECTION "RamSection 3 bank 0 slot 3 YES REF" BANK 0 SLOT 3 ALIGN 8
+.RAMSECTION "RamSection 3 bank 0 slot 3 YES REF" BANK 0 SLOT 3 ORGA $C000 ALIGN 8
 rs3b0_all:	.dsb 1+2+1
 rs3b0_a	db
 rs3b0_b	dw

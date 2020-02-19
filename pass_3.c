@@ -311,12 +311,21 @@ int pass_3(void) {
 	  s = s->next;
 
 	/* a .RAMSECTION? */
-	if (s->status == SECTION_STATUS_RAM) {
+	if (s->status == SECTION_STATUS_RAM_FREE) {
 	  s->address = 0;
 	  s->listfile_items = 1;
 	  s->listfile_ints = NULL;
 	  s->listfile_cmds = NULL;
 	  add = 0;
+	  section_status = ON;
+	  continue;
+	}
+	else if (s->status == SECTION_STATUS_RAM_FORCE) {
+	  if (s->address < 0)
+	    s->address = add;
+	  s->listfile_items = 1;
+	  s->listfile_ints = NULL;
+	  s->listfile_cmds = NULL;
 	  section_status = ON;
 	  continue;
 	}
@@ -402,7 +411,15 @@ int pass_3(void) {
 	if (s->status == SECTION_STATUS_FREE)
 	  add = 0;
 
-	s->address = add;
+	if (s->status == SECTION_STATUS_RAM_FORCE) {
+	  if (s->address < 0)
+	    s->address = add;
+	  else
+	    add = s->address;
+	}
+	else
+	  s->address = add;
+
 	s->bank = bank;
 	s->base = base;
 	s->slot = slot;
@@ -471,15 +488,24 @@ int pass_3(void) {
       while (s->id != inz)
 	s = s->next;
 
-      if (s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_RAM)
+      if (s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_RAM_FREE)
 	add = 0;
 
-      if (s->status != SECTION_STATUS_RAM) {
+      if (s->status != SECTION_STATUS_RAM_FREE && s->status != SECTION_STATUS_RAM_FORCE) {
         s->bank = bank;
         s->base = base;
         s->slot = slot;
       }
-      s->address = add;
+
+      if (s->status == SECTION_STATUS_RAM_FORCE) {
+	if (s->address < 0)
+	  s->address = add;
+	else
+	  add = s->address;
+      }
+      else
+	s->address = add;
+      
       s->listfile_items = 1;
       s->listfile_ints = NULL;
       s->listfile_cmds = NULL;

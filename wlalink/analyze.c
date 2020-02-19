@@ -1112,7 +1112,7 @@ int parse_data_blocks(void) {
 
           /* name */
           i = 0;
-          while (*t != 0 && *t != 1 && *t != 2 && *t != 3 && *t != 4 && *t != 5 && *t != 6 && *t != 7 && *t != 8)
+          while (*t != 0 && *t != 1 && *t != 2 && *t != 3 && *t != 4 && *t != 5 && *t != 6 && *t != 7 && *t != 8 && *t != 9)
             s->name[i++] = *(t++);
           s->name[i] = 0;
           s->status = *(t++);
@@ -1183,7 +1183,7 @@ int parse_data_blocks(void) {
 
         /* name */
         i = 0;
-        while (*t != 0 && *t != 6 && *t != 7)
+	while (*t != 0 && *t != 1 && *t != 2 && *t != 3 && *t != 4 && *t != 5 && *t != 6 && *t != 7 && *t != 8 && *t != 9)
           s->name[i++] = *(t++);
         s->name[i] = 0;
         s->status = *(t++);
@@ -1231,7 +1231,7 @@ int parse_data_blocks(void) {
         t += s->size;
 
 	/* library RAM sections have no slots nor banks unless given in [rambanks] in linkfile */
-	if (s->status == SECTION_STATUS_RAM) {
+	if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE) {
 	  s->bank = -1;
 	  s->slot = -1;
 	}

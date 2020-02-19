@@ -3847,7 +3847,7 @@ int directive_ramsection(void) {
   sec_tmp->listfile_ints = NULL;
   sec_tmp->listfile_cmds = NULL;
   sec_tmp->maxsize_status = OFF;
-  sec_tmp->status = SECTION_STATUS_RAM;
+  sec_tmp->status = SECTION_STATUS_RAM_FREE;
   sec_tmp->alive = ON;
   sec_tmp->data = NULL;
   sec_tmp->filename_id = active_file_info_last->filename_id;
@@ -3947,6 +3947,51 @@ int directive_ramsection(void) {
     sec_tmp->slot = d;
   }
 
+  if (compare_next_token("ORGA") == SUCCEEDED) {
+    if (output_format == OUTPUT_LIBRARY) {
+      print_error(".RAMSECTION cannot take ORGA when inside a library.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    skip_next_token();
+
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      print_error("Cannot get the ORGA.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    ind = slots[sec_tmp->slot].address;
+    if (d < ind || d > (ind + slots[sec_tmp->slot].size)) {
+      print_error("ORGA is outside the current SLOT.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    sec_tmp->address = d - ind;
+  }
+  else if (compare_next_token("ORG") == SUCCEEDED) {
+    if (output_format == OUTPUT_LIBRARY) {
+      print_error(".RAMSECTION cannot take ORG when inside a library.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    skip_next_token();
+
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      print_error("Cannot get the ORG.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    sec_tmp->address = d;
+  }
+  else
+    sec_tmp->address = -1;
+  
   fprintf(file_out_ptr, "S%d ", sec_tmp->id);
 
   /* align the ramsection? */
@@ -3968,6 +4013,22 @@ int directive_ramsection(void) {
     sec_tmp->alignment = d;
   }
 
+  /* the type of the section */
+  if (compare_next_token("FORCE") == SUCCEEDED) {
+    if (output_format == OUTPUT_LIBRARY) {
+      print_error("Libraries don't take FORCE sections.\n", ERROR_DIR);
+      return FAILED;
+    }
+    sec_tmp->status = SECTION_STATUS_RAM_FORCE;
+    if (skip_next_token() == FAILED)
+      return FAILED;
+  }
+  else if (compare_next_token("FREE") == SUCCEEDED) {
+    sec_tmp->status = SECTION_STATUS_FREE;
+    if (skip_next_token() == FAILED)
+      return FAILED;
+  }
+  
   /* return the org after the section? */
   if (compare_next_token("RETURNORG") == SUCCEEDED) {
     if (skip_next_token() == FAILED)

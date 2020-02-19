@@ -2533,10 +2533,11 @@ structures (``.STRUCT``) into a ``RAMSECTION``. Here's an example::
     player_lives:  db
     .ENDS
 
-``RAMSECTION`` s behave like ``FREE`` sections, but instead of filling any banks
-RAM sections will occupy RAM banks inside slots. You can fill different slots
-with different variable labels. It's recommend that you create separate
-slots for holding variables (as ROM and RAM don't usually overlap).
+By default ``RAMSECTION`` s behave like ``FREE`` sections, but instead of
+filling any banks RAM sections will occupy RAM banks inside slots. You can
+fill different slots with different variable labels. It's recommend that
+you create separate slots for holding variables (as ROM and RAM don't
+usually overlap).
 
 If you want that WLA returns the ``ORG`` to what it was before issuing
 the ``RAMSECTION``, use the keyword ``RETURNORG``.
@@ -2628,6 +2629,19 @@ a label::
     .               DB ; RESERVED
     UsingThisByte3: DB
     .ENDS
+
+If you want to use ``FORCE`` RAMSECTIONs that are fixed to a specified
+address, do as follows::
+
+    .RAMSECTION "FixedRAMSection" BANK 0 SLOT 0 ORGA $0 FORCE
+    .               DB ; SYSTEM RESERVED
+    .               DB ; SYSTEM RESERVED
+    PlayerX         DB
+    PlayerY         DB
+    .ENDS
+
+NOTE: You can use ``ORGA`` to specify the fixed address for a ``FORCE``
+``RAMSECTION``. ``ORG`` is also supported.
 
 NOTE: When you have ``RAMSECTION`` s inside libraries, you must give
 them BANKs and SLOTs in the linkfile, under [ramsections].

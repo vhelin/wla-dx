@@ -66,7 +66,7 @@ int listfile_write_listfiles(struct section *e) {
   i = 0;
   s = e;
   while (s != NULL) {
-    if (s->listfile_items <= 0 || s->status == SECTION_STATUS_RAM) {
+    if (s->listfile_items <= 0 || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE) {
       s = s->next;
       continue;
     }
