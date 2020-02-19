@@ -323,6 +323,8 @@ int pass_3(void) {
 	else if (s->status == SECTION_STATUS_RAM_FORCE) {
 	  if (s->address < 0)
 	    s->address = add;
+	  else
+	    add = s->address;
 	  s->listfile_items = 1;
 	  s->listfile_ints = NULL;
 	  s->listfile_cmds = NULL;
