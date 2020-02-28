@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
 
   file_out_ptr = fopen(tmp_name, "wb");
   if (file_out_ptr == NULL) {
-    fprintf(stderr, "MAIN: Error opening file \"%s\".\n", tmp_name);
+    fprintf(stderr, "MAIN: Error opening file \"%s\" for writing.\n", tmp_name);
     return 1;
   }
 

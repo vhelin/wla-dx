@@ -1287,7 +1287,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 
   f = fopen(name, "wb");
   if (f == NULL) {
-    fprintf(stderr, "MAIN: Error opening file \"%s\".\n", name);
+    fprintf(stderr, "MAIN: Error opening file \"%s\" for writing.\n", name);
     return FAILED;
   }
 
@@ -1542,7 +1542,7 @@ int write_rom_file(char *outname) {
 
   f = fopen(outname, "wb");
   if (f == NULL) {
-    fprintf(stderr, "WRITE_ROM_FILE: Error opening file \"%s\".\n", outname);
+    fprintf(stderr, "WRITE_ROM_FILE: Error opening file \"%s\" for writing.\n", outname);
     return FAILED;
   }
 

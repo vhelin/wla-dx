@@ -1123,7 +1123,7 @@ int pass_4(void) {
   /* library file output */
   if (output_format == OUTPUT_LIBRARY && test_mode == OFF) {
     if ((final_ptr = fopen(final_name, "wb")) == NULL) {
-      fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\".\n", final_name);
+      fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\" for writing.\n", final_name);
       return FAILED;
     }
 
@@ -1323,7 +1323,7 @@ int pass_4(void) {
   /* object file output */
   else if (output_format == OUTPUT_OBJECT && test_mode == OFF) {
     if ((final_ptr = fopen(final_name, "wb")) == NULL) {
-      fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\".\n", final_name);
+      fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\" for writing.\n", final_name);
       return FAILED;
     }
 
