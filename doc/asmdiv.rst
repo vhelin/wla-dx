@@ -1155,7 +1155,7 @@ following fashion::
       .if \?1 == ARG_NUMBER
         .db 1
       .endif
-       .if \?1 == ARG_STRING
+      .if \?1 == ARG_STRING
         .db 2
       .endif
       .if \?1 == ARG_LABEL
