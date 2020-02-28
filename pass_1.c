@@ -576,7 +576,6 @@ int pass_1(void) {
   struct macro_runtime *mrt;
   struct macro_static *m = NULL;
   int o, p, q;
-
   
   if (verbose_mode == ON)
     printf("Pass 1...\n");
@@ -8929,8 +8928,8 @@ int parse_if_directive(void) {
     int y, o, s;
 
     q = input_number();
-    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
-      snprintf(emsg, sizeof(emsg), ".IF needs immediate data.\n");
+    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
+      snprintf(emsg, sizeof(emsg), ".IF needs immediate data, string or an address label.\n");
       print_error(emsg, ERROR_INP);
       return FAILED;
     }
@@ -8961,15 +8960,15 @@ int parse_if_directive(void) {
     }
 
     q = input_number();
-    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
-      snprintf(emsg, sizeof(emsg), ".IF needs immediate data.\n");
+    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
+      snprintf(emsg, sizeof(emsg), ".IF needs immediate data, string or an address label.\n");
       print_error(emsg, ERROR_INP);
       return FAILED;
     }
 
     /* different types? */
     if (s != q) {
-      print_error("Cannot compare strings with immediate values.\n", ERROR_INP);
+      print_error("The types of the compared things must be the same.\n", ERROR_INP);
       return FAILED;
     }
 
@@ -9019,7 +9018,7 @@ int parse_if_directive(void) {
       o = 5;
 
     q = input_number();
-    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
+    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
       snprintf(emsg, sizeof(emsg), ".%s needs immediate data.\n", bak);
       print_error(emsg, ERROR_INP);
       return FAILED;
@@ -9031,7 +9030,7 @@ int parse_if_directive(void) {
     s = q;
 
     q = input_number();
-    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING) {
+    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
       snprintf(emsg, sizeof(emsg), ".%s needs immediate data.\n", bak);
       print_error(emsg, ERROR_INP);
       return FAILED;
@@ -9039,7 +9038,7 @@ int parse_if_directive(void) {
 
     /* different types? */
     if (s != q) {
-      print_error("Cannot compare strings with immediate values.\n", ERROR_INP);
+      print_error("The types of the compared things must be the same.\n", ERROR_INP);
       return FAILED;
     }
 

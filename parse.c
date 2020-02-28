@@ -83,6 +83,10 @@ int compare_next_token(char *token) {
 	e = tmp_buffer[t];
       }
     }
+    else if (buffer[ii + 1] == '?') {
+      /* TODO: do we need to implement this? */
+      return FAILED;
+    }
     else {
       for (d = 0, k = 0; k < 16; k++) {
 	e = buffer[++ii];
@@ -988,6 +992,42 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 	}
 	
 	snprintf(t, sizeof(t), "%d", macro_runtime_current->macro->calls - 1 + adder);
+	for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
+	  expanded_macro_string[k] = t[j];
+	  if (t[j] == 0)
+	    break;
+	}
+      }
+      else if (in[i + 1] == '?') {
+	/* we found '?' -> expand! */
+	int d = 0, type;
+	
+	(*expands)++;
+	i++;
+
+	i++;
+	for (; i < MAX_NAME_LENGTH && in[i] != 0; i++) {
+	  if (in[i] >= '0' && in[i] <= '9')
+	    d = (d * 10) + in[i] - '0';
+	  else
+	    break;
+	}
+	i--;
+
+	type = macro_runtime_current->argument_data[d-1]->type;
+	if (type == SUCCEEDED)
+	  strcpy(t, "ARG_NUMBER");
+	else if (type == INPUT_NUMBER_FLOAT)
+	  strcpy(t, "ARG_NUMBER");
+	else if (type == INPUT_NUMBER_ADDRESS_LABEL)
+	  strcpy(t, "ARG_LABEL");
+	else if (type == INPUT_NUMBER_STRING)
+	  strcpy(t, "ARG_STRING");
+	else if (type == INPUT_NUMBER_STACK)
+	  strcpy(t, "ARG_PENDING_CALCULATION");
+	else
+	  strcpy(t, "???");
+	
 	for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
 	  expanded_macro_string[k] = t[j];
 	  if (t[j] == 0)

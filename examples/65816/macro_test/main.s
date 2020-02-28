@@ -97,4 +97,51 @@ HelloStart:
 	MACROX Hello
 	.db "<09"
 .ends
+
+.macro .differentThings1
+.if \?1 == ARG_NUMBER
+	.db 1
+.endif
+.if \?1 == ARG_STRING
+	.db 2
+.endif
+.if \?1 == ARG_LABEL
+	.db 3
+.endif
+.if \?1 == ARG_PENDING_CALCULATION
+	.db 4
+.endif
+.endm
+
+.section "TestingDifferentThings1"
+	.db "10>"
+TDT1:	.differentThings1 100
+	.differentThings1 "HELLO"
+	.differentThings1 TDT1
+	.differentThings1 TDT1+1
+	.db "<10"
+.ends
 	
+.macro .differentThings2
+.if \?2 == ARG_NUMBER
+	.db 1
+.endif
+.if \?2 == ARG_STRING
+	.db 2
+.endif
+.if \?2 == ARG_LABEL
+	.db 3
+.endif
+.if \?2 == ARG_PENDING_CALCULATION
+	.db 4
+.endif
+.endm
+
+.section "TestingDifferentThings2"
+	.db "11>"
+TDT2:	.differentThings2 TDT2+1, 100
+	.differentThings2 TDT2, "HELLO"
+	.differentThings2 "HELLO", TDT2
+	.differentThings2 100, TDT2+1
+	.db "<11"
+.ends
