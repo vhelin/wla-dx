@@ -1014,6 +1014,15 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 	}
 	i--;
 
+	if (d <= 0 || d > macro_runtime_current->supplied_arguments) {
+	  if (input_number_error_msg == YES) {
+	    snprintf(xyz, sizeof(xyz), "Macro \"%s\" wasn't called with enough arguments, \\?%d is out of range.\n", macro_runtime_current->macro->name, d);
+	    print_error(xyz, ERROR_NUM);
+	  }
+    
+	  return FAILED;
+	}
+
 	type = macro_runtime_current->argument_data[d-1]->type;
 	if (type == SUCCEEDED)
 	  strcpy(t, "ARG_NUMBER");
