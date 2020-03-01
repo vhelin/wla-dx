@@ -134,6 +134,9 @@ Opcodes that make relative label references::
     BRL
     PER
 
+Use ``.WDC`` to start parsing WDC standard assembly code. ``.NOWDC`` sets
+the parser to parse WLA syntax assembly code.
+
 
 HUC6280
 -------

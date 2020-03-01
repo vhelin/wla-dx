@@ -93,6 +93,7 @@ runTest name_test
 runTest nocashsns_symbol_file
 runTest opcode_test
 runTest operand_hint_test
+runTest wdc_test
 cd ..
 
 #####################################################################

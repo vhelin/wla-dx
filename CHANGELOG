@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 ------------------------------------------------------------------------------------------
 
-v9.11 (28-Feb-2020) [ALL] Stack calculator's string checker handled only
+v9.11 (01-Mar-2020) [ALL] Stack calculator's string checker handled only
                       63 characters long strings.
                     [ALL] A directive with the first argument being
                       negative wasn't parsed properly.
@@ -36,6 +36,8 @@ v9.11 (28-Feb-2020) [ALL] Stack calculator's string checker handled only
                     [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
                       "JP (IY)".
                     [650] Added support for W65C02S's "WAI" and "STP".
+                    [658] Added support for WDC standard mnemonics via .WDC
+                      and .NOWDC.
 
 v9.10 (22-Dec-2019) [808] Added support for I8080.
                     [658] Fixed SNES ROM checksum calculation.

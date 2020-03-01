@@ -79,6 +79,8 @@ Group 3:
 658  ``.24BIT``
 65x  ``.8BIT``
 658  ``.ACCU 8``
+658  ``.WDC``
+658  ``.NOWDC`` 
 ALL  ``.ASC "HELLO WORLD!"``
 ALL  ``.ASCTABLE``
 ALL  ``.ASCIITABLE``
@@ -436,6 +438,38 @@ will yield ``$E0 $00 $A0``.
 
 Note that ``SEP``/``REP`` again will in turn reset the accumulator/index
 register size.
+
+This is not a compulsory directive.
+
+
+``.WDC``
+--------
+
+Turns WLA-65816 into a mode where it accepts WDC standard assembly code, in
+addition to WLA's own syntax. In WDC standard mode ::
+
+    AND <x  ; 8-bit
+    AND |?  ; 16-bit
+    AND >&  ; 24-bit
+
+are the same as ::
+    
+    AND x.b ; 8-bit
+    AND ?.w ; 16-bit
+    AND &.l ; 24-bit
+
+in WLA's own syntax. Beware of the situations where you use '<' and '>' to
+get the low and high bytes!
+
+This is not a compulsory directive.
+
+
+``.NOWDC``
+----------
+
+Turns WLA-65816 into a mode where it accepts its default syntax assembly
+code, which doesn't support WDC standard. This is the default mode for
+WLA-65816.
 
 This is not a compulsory directive.
 

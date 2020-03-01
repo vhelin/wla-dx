@@ -78,7 +78,7 @@ int cartridgetype = 0, cartridgetype_defined = 0, licenseecode_defined = 0, lice
 int version_defined = 0, version = 0, snesnativevector_defined = 0, snesemuvector_defined = 0;
 int hirom_defined = 0, lorom_defined = 0, slowrom_defined = 0, fastrom_defined = 0, snes_mode = 0;
 int exlorom_defined = 0, exhirom_defined = 0;
-int computesneschecksum_defined = 0;
+int computesneschecksum_defined = 0, use_wdc_standard = 0;
 #endif
 
 #if defined(GB) || defined(W65816)
@@ -1060,6 +1060,27 @@ int evaluate_token(void) {
   opt_tmp = &opt_table[ind];
 
   for (f = opcode_n[(unsigned int)tmp[0]]; f > 0; f--) {
+#if W65816
+    if (use_wdc_standard == 0) {
+      /* skip all mnemonics that contain '<', '|' and '>' */
+      for (inz = 0, d = SUCCEEDED; inz < OP_SIZE_MAX; inz++) {
+	char c = opt_tmp->op[inz];
+	if (c == 0)
+	  break;
+	if (c == '<' || c == '|' || c == '>') {
+	  d = FAILED;
+	  break;
+	}
+      }
+
+      if (d == FAILED) {
+	/* try the next mnemonic in the array */
+	opt_tmp = &opt_table[++ind];
+	continue;
+      }
+    }
+#endif
+    
     /* try to match the first part of the mnemonic, already read into tmp */
     for (inz = 0, d = SUCCEEDED; inz < OP_SIZE_MAX; inz++) {
       if (tmp[inz] == 0)
@@ -7718,6 +7739,20 @@ int parse_directive(void) {
   if (strcaselesscmp(cp, "NAME") == 0)
     return directive_name_w65816();
 
+  /* WDC */
+
+  if (strcaselesscmp(cp, "WDC") == 0) {
+    use_wdc_standard = 1;
+    return SUCCEEDED;
+  }
+
+  /* NOWDC */
+
+  if (strcaselesscmp(cp, "NOWDC") == 0) {
+    use_wdc_standard = 0;
+    return SUCCEEDED;
+  }
+  
 #endif
 
   /* DSTRUCT */

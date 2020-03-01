@@ -26,7 +26,7 @@ The following operators are valid:
 ``<<`` shift left
 ``>>`` shift right
 ``+``  plus
-``-``  minux
+``-``  minus
 ``#``  modulo
 ``~``  xor
 ``*``  multiply
