@@ -306,7 +306,7 @@ int include_file(char *name) {
   return SUCCEEDED;
 }
 
-
+extern int makefile_rules;
 int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct macro_static **macro) {
 
   struct incbin_file_data *ifd;
@@ -327,7 +327,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   f = fopen(full_name, "rb");
   q = 0;
 
-  if (f == NULL && (tmp_c == NULL || tmp_c[0] == 0)) {
+  if (f == NULL && (tmp_c == NULL || tmp_c[0] == 0) && makefile_rules == NO) {
     snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", name);
     print_error(emsg, ERROR_INB);
     return FAILED;
@@ -341,7 +341,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     f = fopen(full_name, "rb");
     q = 0;
   
-    if (f == NULL && (include_dir == NULL || include_dir[0] == 0)) {
+    if (f == NULL && (include_dir == NULL || include_dir[0] == 0) && makefile_rules == NO) {
       snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", name);
       print_error(emsg, ERROR_INB);
       return FAILED;
@@ -350,17 +350,29 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
   /* if failed try to find the file in the current directory */
   if (f == NULL) {
-    fprintf(stderr, "%s:%d: ", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current);
-    fprintf(stderr, "INCBIN_FILE: Could not open \"%s\", trying \"%s\"... ", full_name, name);
+    if (makefile_rules == NO)
+    {
+      fprintf(stderr, "%s:%d: ", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current);
+      fprintf(stderr, "INCBIN_FILE: Could not open \"%s\", trying \"%s\"... ", full_name, name);
+    }
     f = fopen(name, "rb");
     q = 1;
   }
 
   if (f == NULL) {
-    fprintf(stderr, "not found.\n");
-    snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", full_name);
-    print_error(emsg, ERROR_INB);
-    return FAILED;
+    if (makefile_rules == NO)
+    {
+      fprintf(stderr, "not found.\n");
+      snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", full_name);
+      print_error(emsg, ERROR_INB);
+      return FAILED;
+    }
+    else
+    {
+      file_size = 0;
+      f = fopen("/dev/zero", "rb");
+      goto makefile_rules_keepgoing;
+    }
   }
 
   if (q == 1) {
@@ -372,6 +384,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   file_size = (int)ftell(f);
   fseek(f, 0, SEEK_SET);
 
+makefile_rules_keepgoing:
   ifd = (struct incbin_file_data *)calloc(sizeof(struct incbin_file_data), 1);
   n = calloc(sizeof(char) * (strlen(full_name)+1), 1);
   in_tmp = (char *)calloc(sizeof(char) * file_size, 1);
