@@ -177,7 +177,18 @@ int input_next_string(void) {
   return SUCCEEDED;
 }
 
+int is_opcode_spc700_1bit()
+{
+  char op[][5] = {
+    "or1", "bbc", "bbs", "clr1", "set1", "mov1", "and1", "eor1" };
+  int j;
 
+  for (j=0; j < (sizeof(op) / sizeof(*op)); j++)
+    if (!strcmp(op[j], tmp))
+      return 1;
+
+  return 0;
+}
 int input_number(void) {
 
   char label_tmp[MAX_NAME_LENGTH + 1];
@@ -664,7 +675,7 @@ int input_number(void) {
       i -= 2;
     }
   }
-  else if (dot)
+  else if (dot && is_opcode_spc700_1bit())
   {
     i -= k - dot;
     k -= k - dot;
