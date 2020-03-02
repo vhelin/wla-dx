@@ -1,7 +1,6 @@
 #define FILE void
 #include "defines.h"
 struct optcode opt_table[] = {
-  { "ADC #<x", 0x69, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "ADC #x", 0x69, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "ADC (<x)", 0x72, 0xA, 0 },
   { "ADC (x)", 0x72, 0xA, 0 },
@@ -48,7 +47,6 @@ struct optcode opt_table[] = {
   { "ADC.W ?,Y", 0x79, 2, 0 },
   { "ADC.B x,S", 0x63, 0xA, 0 },
 
-  { "AND #<x", 0x29, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "AND #x", 0x29, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "AND (<x)", 0x32, 0xA, 0 },
   { "AND (x)", 0x32, 0xA, 0 },
@@ -141,7 +139,6 @@ struct optcode opt_table[] = {
   { "BRA.B x", 0x80, 11, 0 },
   { "BRL.W ?", 0x82, 9, 0 },
 
-  { "BIT #<x", 0x89, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "BIT #x", 0x89, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "BIT <x", 0x24, 0xA, 0 },
   { "BIT |?", 0x2C, 2, 0 },
@@ -168,7 +165,6 @@ struct optcode opt_table[] = {
   { "CLI", 0x58, 0, 0 },
   { "CLV", 0xB8, 0, 0 },
 
-  { "CMP #<x", 0xC9, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "CMP #x", 0xC9, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "CMP (<x)", 0xD2, 0xA, 0 },
   { "CMP (x)", 0xD2, 0xA, 0 },
@@ -220,7 +216,6 @@ struct optcode opt_table[] = {
   { "COP.B x", 0x02, 0xA, 0 },
   { "COP", 0x0200, 8, 0 },
 
-  { "CPX #<x", 0xE0, 7, 0 },
   { "CPX #x", 0xE0, 7, 0 },
   { "CPX <x", 0xE4, 0xA, 0 },
   { "CPX |?", 0xEC, 2, 0 },
@@ -231,7 +226,6 @@ struct optcode opt_table[] = {
   { "CPX.B x", 0xE4, 0xA, 0 },
   { "CPX.W ?", 0xEC, 2, 0 },
 
-  { "CPY #<x", 0xC0, 7, 0 },
   { "CPY #x", 0xC0, 7, 0 },
   { "CPY <x", 0xC4, 0xA, 0 },
   { "CPY |?", 0xCC, 2, 0 },
@@ -259,7 +253,6 @@ struct optcode opt_table[] = {
   { "DEC.B x,X", 0xD6, 0xA, 0 },
   { "DEC.W ?,X", 0xDE, 2, 0 },
 
-  { "EOR #<x", 0x49, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "EOR #x", 0x49, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "EOR (<x)", 0x52, 0xA, 0 },
   { "EOR (x)", 0x52, 0xA, 0 },
@@ -356,7 +349,6 @@ struct optcode opt_table[] = {
   { "JSR.L &", 0x22, 3, 0 },
   { "JSL.L &", 0x22, 3, 0 },
 
-  { "LDA #<x", 0xA9, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "LDA #x", 0xA9, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "LDA (<x)", 0xB2, 0xA, 0 },
   { "LDA (x)", 0xB2, 0xA, 0 },
@@ -403,7 +395,6 @@ struct optcode opt_table[] = {
   { "LDA.W ?,Y", 0xB9, 2, 0 },
   { "LDA.B x,S", 0xA3, 0xA, 0 },
 
-  { "LDX #<x", 0xA2, 7, 0 },
   { "LDX #x", 0xA2, 7, 0 },
   { "LDX <x", 0xA6, 0xA, 0 },
   { "LDX |?", 0xAE, 2, 0 },
@@ -420,7 +411,6 @@ struct optcode opt_table[] = {
   { "LDX.B x,Y", 0xB6, 0xA, 0 },
   { "LDX.W ?,Y", 0xBE, 2, 0 },
 
-  { "LDY #<x", 0xA0, 7, 0 },
   { "LDY #x", 0xA0, 7, 0 },
   { "LDY <x", 0xA4, 0xA, 0 },
   { "LDY |?", 0xAC, 2, 0 },
@@ -461,7 +451,6 @@ struct optcode opt_table[] = {
 
   { "NOP", 0xEA, 0, 0 },
 
-  { "ORA #<x", 0x09, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "ORA #x", 0x09, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "ORA (<x)", 0x12, 0xA, 0 },
   { "ORA (x)", 0x12, 0xA, 0 },
@@ -533,7 +522,6 @@ struct optcode opt_table[] = {
   { "PLB", 0xAB, 0, 0 },
   { "PLD", 0x2B, 0, 0 },
 
-  { "REP #<x", 0xC2, 6, 0 },
   { "REP #x", 0xC2, 6, 0 },
   { "REP.B #x", 0xC2, 6, 0 },
 
@@ -575,7 +563,6 @@ struct optcode opt_table[] = {
   { "SED", 0xF8, 0, 0 },
   { "SEI", 0x78, 0, 0 },
 
-  { "SBC #<x", 0xE9, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "SBC #x", 0xE9, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */
   { "SBC (<x)", 0xF2, 0xA, 0 },
   { "SBC (x)", 0xF2, 0xA, 0 },
@@ -622,7 +609,6 @@ struct optcode opt_table[] = {
   { "SBC.W ?,Y", 0xF9, 2, 0 },
   { "SBC.B x,S", 0xE3, 0xA, 0 },
 
-  { "SEP #<x", 0xE2, 6, 1 },
   { "SEP #x", 0xE2, 6, 1 },
   { "SEP.B #x", 0xE2, 6, 1 },
 
