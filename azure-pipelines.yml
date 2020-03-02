@@ -13,5 +13,4 @@ steps:
 - script: |
     cmake -G "Unix Makefiles"
     make
-    run_tests.sh
   displayName: 'make'
