@@ -182,7 +182,7 @@ int input_number(void) {
 
   char label_tmp[MAX_NAME_LENGTH + 1];
   unsigned char e, ee;
-  int k, p, q, spaces = 0;
+  int k, dot, p, q, spaces = 0;
   double decimal_mul;
 
 
@@ -618,6 +618,7 @@ int input_number(void) {
   }
 
   /* the last choice is a label */
+  dot = 0;
   label[0] = e;
   for (k = 1; k < MAX_NAME_LENGTH; k++) {
     e = buffer[i++];
@@ -625,6 +626,8 @@ int input_number(void) {
       i--;
       break;
     }
+    else if (e == '.')
+      dot = k;
     else if (e == ' ')
       break;
     label[k] = e;
@@ -655,6 +658,16 @@ int input_number(void) {
       operand_hint_type = HINT_TYPE_GIVEN;
       k -= 2;
     }
+    else if (label[k-1] >= '0' && label[k-1] <= '7')
+    {
+      k -= 2;
+      i -= 2;
+    }
+  }
+  else if (dot)
+  {
+    i -= k - dot;
+    k -= k - dot;
   }
 
   label[k] = 0;
