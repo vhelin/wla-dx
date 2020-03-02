@@ -37,7 +37,7 @@ Installing
 Compiling
 ---------
 
-See `INSTALL.md` for more detailed instructions.
+See `INSTALL` for more detailed instructions.
 
 You need:
 
