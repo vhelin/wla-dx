@@ -287,9 +287,9 @@ int input_number(void) {
 	string_size = (int)strlen(ma->string);
       }
       else if (k == INPUT_NUMBER_STACK)
-	latest_stack = ma->value;
+	latest_stack = (int)ma->value;
       else if (k == SUCCEEDED) {
-	d = ma->value;
+	d = (int)ma->value;
 	parsed_double = ma->value;
       }
       else {

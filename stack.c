@@ -744,14 +744,14 @@ int stack_calculate(char *in, int *value) {
 	    d++;
 	  }
 	  b++;
-	  op[b] = si[k].value;
+	  op[b] = (int)si[k].value;
 	  b++;
 	}
 	else if (si[k].value == SI_OP_LOW_BYTE ||
 		 si[k].value == SI_OP_HIGH_BYTE ||
 		 si[k].value == SI_OP_BANK) {
 	  /* unary operator, priority over everything else */
-	  op[b] = si[k].value;
+	  op[b] = (int)si[k].value;
 	  b++;
 	}
 	else if (si[k].value == SI_OP_XOR ||
@@ -772,7 +772,7 @@ int stack_calculate(char *in, int *value) {
 	    d++;
 	  }
 	  b++;
-	  op[b] = si[k].value;
+	  op[b] = (int)si[k].value;
 	  b++;
 	}
 	else if (si[k].value == SI_OP_NOT) {
@@ -985,9 +985,9 @@ int resolve_stack(struct stack_item s[], int x) {
 	      string_size = (int)strlen(ma->string);
 	    }
 	    else if (k == INPUT_NUMBER_STACK)
-	      latest_stack = ma->value;
+	      latest_stack = (int)ma->value;
 	    else if (k == SUCCEEDED) {
-	      d = ma->value;
+	      d = (int)ma->value;
 	      parsed_double = ma->value;
 	    }
 	  

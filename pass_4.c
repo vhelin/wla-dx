@@ -872,7 +872,7 @@ int pass_4(void) {
             return FAILED;
           }
           else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-            o = tmp_def->value;
+            o = (int)tmp_def->value;
             x = 1;
 
 	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */

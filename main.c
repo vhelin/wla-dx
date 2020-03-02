@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
   atexit(procedures_at_exit);
 
   /* init the randon number generator */
-  init_genrand(time(NULL));
+  init_genrand((unsigned long)time(NULL));
 
   /* select little/big endianess */
 #if defined(MC6800) || defined(MC6801) || defined(MC6809)
