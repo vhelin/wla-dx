@@ -13,4 +13,6 @@ steps:
 - script: |
     cmake -G "Unix Makefiles"
     make
+	chmod a+x run_tests.sh
+	./run_tests.sh
   displayName: 'make'

@@ -6,8 +6,9 @@
 test_00:	NOP
 .ENDS
 
-.PRINTT "what's the name of this program? "
-.INPUT INFO
+// .PRINTT "what's the name of this program? "
+// .INPUT INFO
+.DEFINE INFO = "HelloMoto"	
 
 .SECTION "information"
 .DB INFO
