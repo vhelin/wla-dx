@@ -2930,7 +2930,7 @@ int generate_sizeof_label_definitions(void) {
     l->status = LABEL_STATUS_DEFINE;
     l->alive = YES;
     l->address = size;
-    l->rom_address = size;
+    l->rom_address = (int)size;
     l->base = 0;
     l->file_id = labels[j]->file_id;
 
