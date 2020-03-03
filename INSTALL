@@ -21,6 +21,9 @@ You will get all the executables in the "binaries" folder. Or with
 
 all the executables will be copied to /usr/local/bin
 
+PS. If you are running Windows, and want to create Windows executables,
+you can find "WLA DX.sln" Visual Studio solution under windows folder.
+
 
 -----------------------------------------------------------------------------
 2. INSTALL (LONG STORY)
