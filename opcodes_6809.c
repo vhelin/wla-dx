@@ -83,10 +83,10 @@ struct optcode opt_table[] = {
   { "ADCA (x,PCR)", 0xA9, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "ADCA (?,PCR)", 0xA9, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "ADCA (?)", 0xA9, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "ADCA x,X", 0xA9, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "ADCA x,Y", 0xA9, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "ADCA x,U", 0xA9, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "ADCA x,S", 0xA9, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "ADCA s,X", 0xA9, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "ADCA s,Y", 0xA9, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "ADCA s,U", 0xA9, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "ADCA s,S", 0xA9, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "ADCA x,X", 0xA9, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "ADCA x,Y", 0xA9, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "ADCA x,U", 0xA9, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -168,10 +168,10 @@ struct optcode opt_table[] = {
   { "ADCB (x,PCR)", 0xE9, 7, 1, B_(10011100) }, /* 8-bit offset */ /* 0x9C */
   { "ADCB (?,PCR)", 0xE9, 8, 0, B_(10011101) }, /* 16-bit offset */ /* 0x9D */
   { "ADCB (?)", 0xE9, 8, 0, B_(10011111) }, /* 16-bit offset */ /* 0x9F */
-  { "ADCB x,X", 0xE9, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "ADCB x,Y", 0xE9, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "ADCB x,U", 0xE9, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "ADCB x,S", 0xE9, 6, 1, B_(01100000) }, /* 5-bit offset */ /* 0x60 */
+  { "ADCB s,X", 0xE9, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "ADCB s,Y", 0xE9, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "ADCB s,U", 0xE9, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "ADCB s,S", 0xE9, 6, 1, B_(01100000) }, /* 5-bit offset */ /* 0x60 */
   { "ADCB x,X", 0xE9, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "ADCB x,Y", 0xE9, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "ADCB x,U", 0xE9, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -253,10 +253,10 @@ struct optcode opt_table[] = {
   { "ADDA (x,PCR)", 0xAB, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "ADDA (?,PCR)", 0xAB, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "ADDA (?)", 0xAB, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "ADDA x,X", 0xAB, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "ADDA x,Y", 0xAB, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "ADDA x,U", 0xAB, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "ADDA x,S", 0xAB, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "ADDA s,X", 0xAB, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "ADDA s,Y", 0xAB, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "ADDA s,U", 0xAB, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "ADDA s,S", 0xAB, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "ADDA x,X", 0xAB, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "ADDA x,Y", 0xAB, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "ADDA x,U", 0xAB, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -338,10 +338,10 @@ struct optcode opt_table[] = {
   { "ADDB (x,PCR)", 0xEB, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "ADDB (?,PCR)", 0xEB, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "ADDB (?)", 0xEB, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "ADDB x,X", 0xEB, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "ADDB x,Y", 0xEB, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "ADDB x,U", 0xEB, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "ADDB x,S", 0xEB, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "ADDB s,X", 0xEB, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "ADDB s,Y", 0xEB, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "ADDB s,U", 0xEB, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "ADDB s,S", 0xEB, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "ADDB x,X", 0xEB, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "ADDB x,Y", 0xEB, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "ADDB x,U", 0xEB, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -423,10 +423,10 @@ struct optcode opt_table[] = {
   { "ADDD (x,PCR)", 0xE3, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "ADDD (?,PCR)", 0xE3, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "ADDD (?)", 0xE3, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "ADDD x,X", 0xE3, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "ADDD x,Y", 0xE3, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "ADDD x,U", 0xE3, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "ADDD x,S", 0xE3, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "ADDD s,X", 0xE3, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "ADDD s,Y", 0xE3, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "ADDD s,U", 0xE3, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "ADDD s,S", 0xE3, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "ADDD x,X", 0xE3, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "ADDD x,Y", 0xE3, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "ADDD x,U", 0xE3, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -508,10 +508,10 @@ struct optcode opt_table[] = {
   { "ANDA (x,PCR)", 0xA4, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "ANDA (?,PCR)", 0xA4, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "ANDA (?)", 0xA4, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "ANDA x,X", 0xA4, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "ANDA x,Y", 0xA4, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "ANDA x,U", 0xA4, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "ANDA x,S", 0xA4, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "ANDA s,X", 0xA4, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "ANDA s,Y", 0xA4, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "ANDA s,U", 0xA4, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "ANDA s,S", 0xA4, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "ANDA x,X", 0xA4, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "ANDA x,Y", 0xA4, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "ANDA x,U", 0xA4, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -593,10 +593,10 @@ struct optcode opt_table[] = {
   { "ANDB (x,PCR)", 0xE4, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "ANDB (?,PCR)", 0xE4, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "ANDB (?)", 0xE4, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "ANDB x,X", 0xE4, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "ANDB x,Y", 0xE4, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "ANDB x,U", 0xE4, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "ANDB x,S", 0xE4, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "ANDB s,X", 0xE4, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "ANDB s,Y", 0xE4, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "ANDB s,U", 0xE4, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "ANDB s,S", 0xE4, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "ANDB x,X", 0xE4, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "ANDB x,Y", 0xE4, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "ANDB x,U", 0xE4, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -681,10 +681,10 @@ struct optcode opt_table[] = {
   { "ASL (x,PCR)", 0x68, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "ASL (?,PCR)", 0x68, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "ASL (?)", 0x68, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "ASL x,X", 0x68, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "ASL x,Y", 0x68, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "ASL x,U", 0x68, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "ASL x,S", 0x68, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "ASL s,X", 0x68, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "ASL s,Y", 0x68, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "ASL s,U", 0x68, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "ASL s,S", 0x68, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "ASL x,X", 0x68, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "ASL x,Y", 0x68, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "ASL x,U", 0x68, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -767,10 +767,10 @@ struct optcode opt_table[] = {
   { "ASR (x,PCR)", 0x67, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "ASR (?,PCR)", 0x67, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "ASR (?)", 0x67, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "ASR x,X", 0x67, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "ASR x,Y", 0x67, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "ASR x,U", 0x67, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "ASR x,S", 0x67, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "ASR s,X", 0x67, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "ASR s,Y", 0x67, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "ASR s,U", 0x67, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "ASR s,S", 0x67, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "ASR x,X", 0x67, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "ASR x,Y", 0x67, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "ASR x,U", 0x67, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -852,10 +852,10 @@ struct optcode opt_table[] = {
   { "BITA (x,PCR)", 0xA5, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "BITA (?,PCR)", 0xA5, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "BITA (?)", 0xA5, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "BITA x,X", 0xA5, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "BITA x,Y", 0xA5, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "BITA x,U", 0xA5, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "BITA x,S", 0xA5, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "BITA s,X", 0xA5, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "BITA s,Y", 0xA5, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "BITA s,U", 0xA5, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "BITA s,S", 0xA5, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "BITA x,X", 0xA5, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "BITA x,Y", 0xA5, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "BITA x,U", 0xA5, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -937,10 +937,10 @@ struct optcode opt_table[] = {
   { "BITB (x,PCR)", 0xE5, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "BITB (?,PCR)", 0xE5, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "BITB (?)", 0xE5, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "BITB x,X", 0xE5, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "BITB x,Y", 0xE5, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "BITB x,U", 0xE5, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "BITB x,S", 0xE5, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "BITB s,X", 0xE5, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "BITB s,Y", 0xE5, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "BITB s,U", 0xE5, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "BITB s,S", 0xE5, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "BITB x,X", 0xE5, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "BITB x,Y", 0xE5, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "BITB x,U", 0xE5, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -1043,10 +1043,10 @@ struct optcode opt_table[] = {
   { "CLR (x,PCR)", 0x6F, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "CLR (?,PCR)", 0x6F, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "CLR (?)", 0x6F, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "CLR x,X", 0x6F, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "CLR x,Y", 0x6F, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "CLR x,U", 0x6F, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "CLR x,S", 0x6F, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "CLR s,X", 0x6F, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "CLR s,Y", 0x6F, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "CLR s,U", 0x6F, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "CLR s,S", 0x6F, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "CLR x,X", 0x6F, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "CLR x,Y", 0x6F, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "CLR x,U", 0x6F, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -1128,10 +1128,10 @@ struct optcode opt_table[] = {
   { "CMPA (x,PCR)", 0xA1, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "CMPA (?,PCR)", 0xA1, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "CMPA (?)", 0xA1, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "CMPA x,X", 0xA1, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "CMPA x,Y", 0xA1, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "CMPA x,U", 0xA1, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "CMPA x,S", 0xA1, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "CMPA s,X", 0xA1, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "CMPA s,Y", 0xA1, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "CMPA s,U", 0xA1, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "CMPA s,S", 0xA1, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "CMPA x,X", 0xA1, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "CMPA x,Y", 0xA1, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "CMPA x,U", 0xA1, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -1213,10 +1213,10 @@ struct optcode opt_table[] = {
   { "CMPB (x,PCR)", 0xE1, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "CMPB (?,PCR)", 0xE1, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "CMPB (?)", 0xE1, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "CMPB x,X", 0xE1, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "CMPB x,Y", 0xE1, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "CMPB x,U", 0xE1, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "CMPB x,S", 0xE1, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "CMPB s,X", 0xE1, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "CMPB s,Y", 0xE1, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "CMPB s,U", 0xE1, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "CMPB s,S", 0xE1, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "CMPB x,X", 0xE1, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "CMPB x,Y", 0xE1, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "CMPB x,U", 0xE1, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -1298,10 +1298,10 @@ struct optcode opt_table[] = {
   { "CMPX (x,PCR)", 0xAC, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "CMPX (?,PCR)", 0xAC, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "CMPX (?)", 0xAC, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "CMPX x,X", 0xAC, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "CMPX x,Y", 0xAC, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "CMPX x,U", 0xAC, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "CMPX x,S", 0xAC, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "CMPX s,X", 0xAC, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "CMPX s,Y", 0xAC, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "CMPX s,U", 0xAC, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "CMPX s,S", 0xAC, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "CMPX x,X", 0xAC, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "CMPX x,Y", 0xAC, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "CMPX x,U", 0xAC, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -1383,10 +1383,10 @@ struct optcode opt_table[] = {
   { "CMPD (x,PCR)", 0x10A3, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "CMPD (?,PCR)", 0x10A3, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "CMPD (?)", 0x10A3, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "CMPD x,X", 0x10A3, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "CMPD x,Y", 0x10A3, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "CMPD x,U", 0x10A3, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "CMPD x,S", 0x10A3, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "CMPD s,X", 0x10A3, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "CMPD s,Y", 0x10A3, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "CMPD s,U", 0x10A3, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "CMPD s,S", 0x10A3, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "CMPD x,X", 0x10A3, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "CMPD x,Y", 0x10A3, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "CMPD x,U", 0x10A3, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -1468,10 +1468,10 @@ struct optcode opt_table[] = {
   { "CMPS (x,PCR)", 0x11AC, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "CMPS (?,PCR)", 0x11AC, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "CMPS (?)", 0x11AC, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "CMPS x,X", 0x11AC, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "CMPS x,Y", 0x11AC, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "CMPS x,U", 0x11AC, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "CMPS x,S", 0x11AC, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "CMPS s,X", 0x11AC, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "CMPS s,Y", 0x11AC, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "CMPS s,U", 0x11AC, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "CMPS s,S", 0x11AC, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "CMPS x,X", 0x11AC, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "CMPS x,Y", 0x11AC, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "CMPS x,U", 0x11AC, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -1553,10 +1553,10 @@ struct optcode opt_table[] = {
   { "CMPU (x,PCR)", 0x11A3, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "CMPU (?,PCR)", 0x11A3, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "CMPU (?)", 0x11A3, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "CMPU x,X", 0x11A3, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "CMPU x,Y", 0x11A3, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "CMPU x,U", 0x11A3, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "CMPU x,S", 0x11A3, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "CMPU s,X", 0x11A3, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "CMPU s,Y", 0x11A3, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "CMPU s,U", 0x11A3, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "CMPU s,S", 0x11A3, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "CMPU x,X", 0x11A3, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "CMPU x,Y", 0x11A3, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "CMPU x,U", 0x11A3, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -1638,10 +1638,10 @@ struct optcode opt_table[] = {
   { "CMPY (x,PCR)", 0x10AC, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "CMPY (?,PCR)", 0x10AC, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "CMPY (?)", 0x10AC, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "CMPY x,X", 0x10AC, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "CMPY x,Y", 0x10AC, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "CMPY x,U", 0x10AC, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "CMPY x,S", 0x10AC, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "CMPY s,X", 0x10AC, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "CMPY s,Y", 0x10AC, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "CMPY s,U", 0x10AC, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "CMPY s,S", 0x10AC, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "CMPY x,X", 0x10AC, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "CMPY x,Y", 0x10AC, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "CMPY x,U", 0x10AC, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -1724,10 +1724,10 @@ struct optcode opt_table[] = {
   { "COM (x,PCR)", 0x63, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "COM (?,PCR)", 0x63, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "COM (?)", 0x63, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "COM x,X", 0x63, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "COM x,Y", 0x63, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "COM x,U", 0x63, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "COM x,S", 0x63, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "COM s,X", 0x63, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "COM s,Y", 0x63, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "COM s,U", 0x63, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "COM s,S", 0x63, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "COM x,X", 0x63, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "COM x,Y", 0x63, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "COM x,U", 0x63, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -1814,10 +1814,10 @@ struct optcode opt_table[] = {
   { "DEC (x,PCR)", 0x6A, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "DEC (?,PCR)", 0x6A, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "DEC (?)", 0x6A, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "DEC x,X", 0x6A, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "DEC x,Y", 0x6A, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "DEC x,U", 0x6A, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "DEC x,S", 0x6A, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "DEC s,X", 0x6A, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "DEC s,Y", 0x6A, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "DEC s,U", 0x6A, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "DEC s,S", 0x6A, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "DEC x,X", 0x6A, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "DEC x,Y", 0x6A, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "DEC x,U", 0x6A, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -1899,10 +1899,10 @@ struct optcode opt_table[] = {
   { "EORA (x,PCR)", 0xA8, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "EORA (?,PCR)", 0xA8, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "EORA (?)", 0xA8, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "EORA x,X", 0xA8, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "EORA x,Y", 0xA8, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "EORA x,U", 0xA8, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "EORA x,S", 0xA8, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "EORA s,X", 0xA8, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "EORA s,Y", 0xA8, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "EORA s,U", 0xA8, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "EORA s,S", 0xA8, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "EORA x,X", 0xA8, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "EORA x,Y", 0xA8, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "EORA x,U", 0xA8, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -1984,10 +1984,10 @@ struct optcode opt_table[] = {
   { "EORB (x,PCR)", 0xE8, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "EORB (?,PCR)", 0xE8, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "EORB (?)", 0xE8, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "EORB x,X", 0xE8, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "EORB x,Y", 0xE8, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "EORB x,U", 0xE8, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "EORB x,S", 0xE8, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "EORB s,X", 0xE8, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "EORB s,Y", 0xE8, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "EORB s,U", 0xE8, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "EORB s,S", 0xE8, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "EORB x,X", 0xE8, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "EORB x,Y", 0xE8, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "EORB x,U", 0xE8, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -2072,10 +2072,10 @@ struct optcode opt_table[] = {
   { "INC (x,PCR)", 0x6C, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "INC (?,PCR)", 0x6C, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "INC (?)", 0x6C, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "INC x,X", 0x6C, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "INC x,Y", 0x6C, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "INC x,U", 0x6C, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "INC x,S", 0x6C, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "INC s,X", 0x6C, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "INC s,Y", 0x6C, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "INC s,U", 0x6C, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "INC s,S", 0x6C, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "INC x,X", 0x6C, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "INC x,Y", 0x6C, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "INC x,U", 0x6C, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -2156,10 +2156,10 @@ struct optcode opt_table[] = {
   { "JMP (x,PCR)", 0x6E, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "JMP (?,PCR)", 0x6E, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "JMP (?)", 0x6E, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "JMP x,X", 0x6E, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "JMP x,Y", 0x6E, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "JMP x,U", 0x6E, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "JMP x,S", 0x6E, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "JMP s,X", 0x6E, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "JMP s,Y", 0x6E, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "JMP s,U", 0x6E, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "JMP s,S", 0x6E, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "JMP x,X", 0x6E, 7, 1, B_(10001000) }, /* 8-bit offset */ /* 0x88 */
   { "JMP x,Y", 0x6E, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "JMP x,U", 0x6E, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -2240,10 +2240,10 @@ struct optcode opt_table[] = {
   { "JSR (x,PCR)", 0xAD, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "JSR (?,PCR)", 0xAD, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "JSR (?)", 0xAD, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "JSR x,X", 0xAD, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "JSR x,Y", 0xAD, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "JSR x,U", 0xAD, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "JSR x,S", 0xAD, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "JSR s,X", 0xAD, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "JSR s,Y", 0xAD, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "JSR s,U", 0xAD, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "JSR s,S", 0xAD, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "JSR x,X", 0xAD, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "JSR x,Y", 0xAD, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "JSR x,U", 0xAD, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -2345,10 +2345,10 @@ struct optcode opt_table[] = {
   { "LDA (x,PCR)", 0xA6, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "LDA (?,PCR)", 0xA6, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "LDA (?)", 0xA6, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "LDA x,X", 0xA6, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "LDA x,Y", 0xA6, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "LDA x,U", 0xA6, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "LDA x,S", 0xA6, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "LDA s,X", 0xA6, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "LDA s,Y", 0xA6, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "LDA s,U", 0xA6, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "LDA s,S", 0xA6, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "LDA x,X", 0xA6, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "LDA x,Y", 0xA6, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "LDA x,U", 0xA6, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -2430,10 +2430,10 @@ struct optcode opt_table[] = {
   { "LDB (x,PCR)", 0xE6, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "LDB (?,PCR)", 0xE6, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "LDB (?)", 0xE6, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "LDB x,X", 0xE6, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "LDB x,Y", 0xE6, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "LDB x,U", 0xE6, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "LDB x,S", 0xE6, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "LDB s,X", 0xE6, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "LDB s,Y", 0xE6, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "LDB s,U", 0xE6, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "LDB s,S", 0xE6, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "LDB x,X", 0xE6, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "LDB x,Y", 0xE6, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "LDB x,U", 0xE6, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -2515,10 +2515,10 @@ struct optcode opt_table[] = {
   { "LDD (x,PCR)", 0xEC, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "LDD (?,PCR)", 0xEC, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "LDD (?)", 0xEC, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "LDD x,X", 0xEC, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "LDD x,Y", 0xEC, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "LDD x,U", 0xEC, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "LDD x,S", 0xEC, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "LDD s,X", 0xEC, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "LDD s,Y", 0xEC, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "LDD s,U", 0xEC, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "LDD s,S", 0xEC, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "LDD x,X", 0xEC, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "LDD x,Y", 0xEC, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "LDD x,U", 0xEC, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -2600,10 +2600,10 @@ struct optcode opt_table[] = {
   { "LDS (x,PCR)", 0x10EE, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "LDS (?,PCR)", 0x10EE, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "LDS (?)", 0x10EE, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "LDS x,X", 0x10EE, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "LDS x,Y", 0x10EE, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "LDS x,U", 0x10EE, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "LDS x,S", 0x10EE, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "LDS s,X", 0x10EE, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "LDS s,Y", 0x10EE, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "LDS s,U", 0x10EE, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "LDS s,S", 0x10EE, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "LDS x,X", 0x10EE, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "LDS x,Y", 0x10EE, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "LDS x,U", 0x10EE, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -2685,10 +2685,10 @@ struct optcode opt_table[] = {
   { "LDU (x,PCR)", 0xEE, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "LDU (?,PCR)", 0xEE, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "LDU (?)", 0xEE, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "LDU x,X", 0xEE, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "LDU x,Y", 0xEE, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "LDU x,U", 0xEE, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "LDU x,S", 0xEE, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "LDU s,X", 0xEE, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "LDU s,Y", 0xEE, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "LDU s,U", 0xEE, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "LDU s,S", 0xEE, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "LDU x,X", 0xEE, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "LDU x,Y", 0xEE, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "LDU x,U", 0xEE, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -2770,10 +2770,10 @@ struct optcode opt_table[] = {
   { "LDX (x,PCR)", 0xAE, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "LDX (?,PCR)", 0xAE, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "LDX (?)", 0xAE, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "LDX x,X", 0xAE, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "LDX x,Y", 0xAE, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "LDX x,U", 0xAE, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "LDX x,S", 0xAE, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "LDX s,X", 0xAE, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "LDX s,Y", 0xAE, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "LDX s,U", 0xAE, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "LDX s,S", 0xAE, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "LDX x,X", 0xAE, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "LDX x,Y", 0xAE, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "LDX x,U", 0xAE, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -2855,10 +2855,10 @@ struct optcode opt_table[] = {
   { "LDY (x,PCR)", 0x10AE, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "LDY (?,PCR)", 0x10AE, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "LDY (?)", 0x10AE, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "LDY x,X", 0x10AE, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "LDY x,Y", 0x10AE, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "LDY x,U", 0x10AE, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "LDY x,S", 0x10AE, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "LDY s,X", 0x10AE, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "LDY s,Y", 0x10AE, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "LDY s,U", 0x10AE, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "LDY s,S", 0x10AE, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "LDY x,X", 0x10AE, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "LDY x,Y", 0x10AE, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "LDY x,U", 0x10AE, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -2939,10 +2939,10 @@ struct optcode opt_table[] = {
   { "LEAS (x,PCR)", 0x32, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "LEAS (?,PCR)", 0x32, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "LEAS (?)", 0x32, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "LEAS x,X", 0x32, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "LEAS x,Y", 0x32, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "LEAS x,U", 0x32, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "LEAS x,S", 0x32, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "LEAS s,X", 0x32, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "LEAS s,Y", 0x32, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "LEAS s,U", 0x32, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "LEAS s,S", 0x32, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "LEAS x,X", 0x32, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "LEAS x,Y", 0x32, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "LEAS x,U", 0x32, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -3021,10 +3021,10 @@ struct optcode opt_table[] = {
   { "LEAU (x,PCR)", 0x33, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "LEAU (?,PCR)", 0x33, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "LEAU (?)", 0x33, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "LEAU x,X", 0x33, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "LEAU x,Y", 0x33, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "LEAU x,U", 0x33, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "LEAU x,S", 0x33, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "LEAU s,X", 0x33, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "LEAU s,Y", 0x33, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "LEAU s,U", 0x33, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "LEAU s,S", 0x33, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "LEAU x,X", 0x33, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "LEAU x,Y", 0x33, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "LEAU x,U", 0x33, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -3103,10 +3103,10 @@ struct optcode opt_table[] = {
   { "LEAX (x,PCR)", 0x30, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "LEAX (?,PCR)", 0x30, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "LEAX (?)", 0x30, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "LEAX x,X", 0x30, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "LEAX x,Y", 0x30, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "LEAX x,U", 0x30, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "LEAX x,S", 0x30, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "LEAX s,X", 0x30, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "LEAX s,Y", 0x30, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "LEAX s,U", 0x30, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "LEAX s,S", 0x30, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "LEAX x,X", 0x30, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "LEAX x,Y", 0x30, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "LEAX x,U", 0x30, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -3185,10 +3185,10 @@ struct optcode opt_table[] = {
   { "LEAY (x,PCR)", 0x31, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "LEAY (?,PCR)", 0x31, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "LEAY (?)", 0x31, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "LEAY x,X", 0x31, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "LEAY x,Y", 0x31, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "LEAY x,U", 0x31, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "LEAY x,S", 0x31, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "LEAY s,X", 0x31, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "LEAY s,Y", 0x31, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "LEAY s,U", 0x31, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "LEAY s,S", 0x31, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "LEAY x,X", 0x31, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "LEAY x,Y", 0x31, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "LEAY x,U", 0x31, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -3269,10 +3269,10 @@ struct optcode opt_table[] = {
   { "LSL (x,PCR)", 0x68, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "LSL (?,PCR)", 0x68, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "LSL (?)", 0x68, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "LSL x,X", 0x68, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "LSL x,Y", 0x68, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "LSL x,U", 0x68, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "LSL x,S", 0x68, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "LSL s,X", 0x68, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "LSL s,Y", 0x68, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "LSL s,U", 0x68, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "LSL s,S", 0x68, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "LSL x,X", 0x68, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "LSL x,Y", 0x68, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "LSL x,U", 0x68, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -3355,10 +3355,10 @@ struct optcode opt_table[] = {
   { "LSR (x,PCR)", 0x64, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "LSR (?,PCR)", 0x64, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "LSR (?)", 0x64, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "LSR x,X", 0x64, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "LSR x,Y", 0x64, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "LSR x,U", 0x64, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "LSR x,S", 0x64, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "LSR s,X", 0x64, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "LSR s,Y", 0x64, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "LSR s,U", 0x64, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "LSR s,S", 0x64, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "LSR x,X", 0x64, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "LSR x,Y", 0x64, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "LSR x,U", 0x64, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -3443,10 +3443,10 @@ struct optcode opt_table[] = {
   { "NEG (x,PCR)", 0x60, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "NEG (?,PCR)", 0x60, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "NEG (?)", 0x60, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "NEG x,X", 0x60, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "NEG x,Y", 0x60, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "NEG x,U", 0x60, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "NEG x,S", 0x60, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "NEG s,X", 0x60, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "NEG s,Y", 0x60, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "NEG s,U", 0x60, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "NEG s,S", 0x60, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "NEG x,X", 0x60, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "NEG x,Y", 0x60, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "NEG x,U", 0x60, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -3530,10 +3530,10 @@ struct optcode opt_table[] = {
   { "ORA (x,PCR)", 0xAA, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "ORA (?,PCR)", 0xAA, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "ORA (?)", 0xAA, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "ORA x,X", 0xAA, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "ORA x,Y", 0xAA, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "ORA x,U", 0xAA, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "ORA x,S", 0xAA, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "ORA s,X", 0xAA, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "ORA s,Y", 0xAA, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "ORA s,U", 0xAA, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "ORA s,S", 0xAA, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "ORA x,X", 0xAA, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "ORA x,Y", 0xAA, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "ORA x,U", 0xAA, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -3615,10 +3615,10 @@ struct optcode opt_table[] = {
   { "ORB (x,PCR)", 0xEA, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "ORB (?,PCR)", 0xEA, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "ORB (?)", 0xEA, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "ORB x,X", 0xEA, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "ORB x,Y", 0xEA, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "ORB x,U", 0xEA, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "ORB x,S", 0xEA, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "ORB s,X", 0xEA, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "ORB s,Y", 0xEA, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "ORB s,U", 0xEA, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "ORB s,S", 0xEA, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "ORB x,X", 0xEA, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "ORB x,Y", 0xEA, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "ORB x,U", 0xEA, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -3708,10 +3708,10 @@ struct optcode opt_table[] = {
   { "ROL (x,PCR)", 0x69, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "ROL (?,PCR)", 0x69, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "ROL (?)", 0x69, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "ROL x,X", 0x69, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "ROL x,Y", 0x69, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "ROL x,U", 0x69, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "ROL x,S", 0x69, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "ROL s,X", 0x69, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "ROL s,Y", 0x69, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "ROL s,U", 0x69, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "ROL s,S", 0x69, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "ROL x,X", 0x69, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "ROL x,Y", 0x69, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "ROL x,U", 0x69, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -3794,10 +3794,10 @@ struct optcode opt_table[] = {
   { "ROR (x,PCR)", 0x66, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "ROR (?,PCR)", 0x66, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "ROR (?)", 0x66, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "ROR x,X", 0x66, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "ROR x,Y", 0x66, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "ROR x,U", 0x66, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "ROR x,S", 0x66, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "ROR s,X", 0x66, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "ROR s,Y", 0x66, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "ROR s,U", 0x66, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "ROR s,S", 0x66, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "ROR x,X", 0x66, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "ROR x,Y", 0x66, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "ROR x,U", 0x66, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -3882,10 +3882,10 @@ struct optcode opt_table[] = {
   { "SBCA (x,PCR)", 0xA2, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "SBCA (?,PCR)", 0xA2, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "SBCA (?)", 0xA2, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "SBCA x,X", 0xA2, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "SBCA x,Y", 0xA2, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "SBCA x,U", 0xA2, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "SBCA x,S", 0xA2, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "SBCA s,X", 0xA2, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "SBCA s,Y", 0xA2, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "SBCA s,U", 0xA2, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "SBCA s,S", 0xA2, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "SBCA x,X", 0xA2, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "SBCA x,Y", 0xA2, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "SBCA x,U", 0xA2, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -3967,10 +3967,10 @@ struct optcode opt_table[] = {
   { "SBCB (x,PCR)", 0xE2, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "SBCB (?,PCR)", 0xE2, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "SBCB (?)", 0xE2, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "SBCB x,X", 0xE2, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "SBCB x,Y", 0xE2, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "SBCB x,U", 0xE2, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "SBCB x,S", 0xE2, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "SBCB s,X", 0xE2, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "SBCB s,Y", 0xE2, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "SBCB s,U", 0xE2, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "SBCB s,S", 0xE2, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "SBCB x,X", 0xE2, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "SBCB x,Y", 0xE2, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "SBCB x,U", 0xE2, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -4053,10 +4053,10 @@ struct optcode opt_table[] = {
   { "STA (x,PCR)", 0xA7, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "STA (?,PCR)", 0xA7, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "STA (?)", 0xA7, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "STA x,X", 0xA7, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "STA x,Y", 0xA7, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "STA x,U", 0xA7, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "STA x,S", 0xA7, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "STA s,X", 0xA7, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "STA s,Y", 0xA7, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "STA s,U", 0xA7, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "STA s,S", 0xA7, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "STA x,X", 0xA7, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "STA x,Y", 0xA7, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "STA x,U", 0xA7, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -4137,10 +4137,10 @@ struct optcode opt_table[] = {
   { "STB (x,PCR)", 0xE7, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "STB (?,PCR)", 0xE7, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "STB (?)", 0xE7, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "STB x,X", 0xE7, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "STB x,Y", 0xE7, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "STB x,U", 0xE7, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "STB x,S", 0xE7, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "STB s,X", 0xE7, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "STB s,Y", 0xE7, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "STB s,U", 0xE7, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "STB s,S", 0xE7, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "STB x,X", 0xE7, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "STB x,Y", 0xE7, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "STB x,U", 0xE7, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -4221,10 +4221,10 @@ struct optcode opt_table[] = {
   { "STD (x,PCR)", 0xED, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "STD (?,PCR)", 0xED, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "STD (?)", 0xED, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "STD x,X", 0xED, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "STD x,Y", 0xED, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "STD x,U", 0xED, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "STD x,S", 0xED, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "STD s,X", 0xED, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "STD s,Y", 0xED, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "STD s,U", 0xED, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "STD s,S", 0xED, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "STD x,X", 0xED, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "STD x,Y", 0xED, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "STD x,U", 0xED, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -4305,10 +4305,10 @@ struct optcode opt_table[] = {
   { "STS (x,PCR)", 0x10EF, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "STS (?,PCR)", 0x10EF, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "STS (?)", 0x10EF, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "STS x,X", 0x10EF, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "STS x,Y", 0x10EF, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "STS x,U", 0x10EF, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "STS x,S", 0x10EF, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "STS s,X", 0x10EF, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "STS s,Y", 0x10EF, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "STS s,U", 0x10EF, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "STS s,S", 0x10EF, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "STS x,X", 0x10EF, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "STS x,Y", 0x10EF, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "STS x,U", 0x10EF, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -4389,10 +4389,10 @@ struct optcode opt_table[] = {
   { "STU (x,PCR)", 0xEF, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "STU (?,PCR)", 0xEF, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "STU (?)", 0xEF, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "STU x,X", 0xEF, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "STU x,Y", 0xEF, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "STU x,U", 0xEF, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "STU x,S", 0xEF, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "STU s,X", 0xEF, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "STU s,Y", 0xEF, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "STU s,U", 0xEF, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "STU s,S", 0xEF, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "STU x,X", 0xEF, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "STU x,Y", 0xEF, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "STU x,U", 0xEF, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -4473,10 +4473,10 @@ struct optcode opt_table[] = {
   { "STX (x,PCR)", 0xAF, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "STX (?,PCR)", 0xAF, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "STX (?)", 0xAF, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "STX x,X", 0xAF, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "STX x,Y", 0xAF, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "STX x,U", 0xAF, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "STX x,S", 0xAF, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "STX s,X", 0xAF, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "STX s,Y", 0xAF, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "STX s,U", 0xAF, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "STX s,S", 0xAF, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "STX x,X", 0xAF, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "STX x,Y", 0xAF, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "STX x,U", 0xAF, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -4557,10 +4557,10 @@ struct optcode opt_table[] = {
   { "STY (x,PCR)", 0x10AF, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "STY (?,PCR)", 0x10AF, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "STY (?)", 0x10AF, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "STY x,X", 0x10AF, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "STY x,Y", 0x10AF, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "STY x,U", 0x10AF, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "STY x,S", 0x10AF, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "STY s,X", 0x10AF, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "STY s,Y", 0x10AF, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "STY s,U", 0x10AF, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "STY s,S", 0x10AF, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "STY x,X", 0x10AF, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "STY x,Y", 0x10AF, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "STY x,U", 0x10AF, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -4642,10 +4642,10 @@ struct optcode opt_table[] = {
   { "SUBA (x,PCR)", 0xA0, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "SUBA (?,PCR)", 0xA0, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "SUBA (?)", 0xA0, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "SUBA x,X", 0xA0, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "SUBA x,Y", 0xA0, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "SUBA x,U", 0xA0, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "SUBA x,S", 0xA0, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "SUBA s,X", 0xA0, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "SUBA s,Y", 0xA0, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "SUBA s,U", 0xA0, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "SUBA s,S", 0xA0, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "SUBA x,X", 0xA0, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "SUBA x,Y", 0xA0, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "SUBA x,U", 0xA0, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -4727,10 +4727,10 @@ struct optcode opt_table[] = {
   { "SUBB (x,PCR)", 0xE0, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "SUBB (?,PCR)", 0xE0, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "SUBB (?)", 0xE0, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "SUBB x,X", 0xE0, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "SUBB x,Y", 0xE0, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "SUBB x,U", 0xE0, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "SUBB x,S", 0xE0, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "SUBB s,X", 0xE0, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "SUBB s,Y", 0xE0, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "SUBB s,U", 0xE0, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "SUBB s,S", 0xE0, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "SUBB x,X", 0xE0, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "SUBB x,Y", 0xE0, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "SUBB x,U", 0xE0, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -4812,10 +4812,10 @@ struct optcode opt_table[] = {
   { "SUBD (x,PCR)", 0xA3, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "SUBD (?,PCR)", 0xA3, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "SUBD (?)", 0xA3, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "SUBD x,X", 0xA3, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "SUBD x,Y", 0xA3, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "SUBD x,U", 0xA3, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "SUBD x,S", 0xA3, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "SUBD s,X", 0xA3, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "SUBD s,Y", 0xA3, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "SUBD s,U", 0xA3, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "SUBD s,S", 0xA3, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "SUBD x,X", 0xA3, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "SUBD x,Y", 0xA3, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "SUBD x,U", 0xA3, 7, 1, B_(11001000) }, /* 8-bit offset */
@@ -4907,10 +4907,10 @@ struct optcode opt_table[] = {
   { "TST (x,PCR)", 0x6D, 7, 1, B_(10011100) }, /* 8-bit offset */
   { "TST (?,PCR)", 0x6D, 8, 0, B_(10011101) }, /* 16-bit offset */
   { "TST (?)", 0x6D, 8, 0, B_(10011111) }, /* 16-bit offset */
-  { "TST x,X", 0x6D, 6, 1, B_(00000000) }, /* 5-bit offset */
-  { "TST x,Y", 0x6D, 6, 1, B_(00100000) }, /* 5-bit offset */
-  { "TST x,U", 0x6D, 6, 1, B_(01000000) }, /* 5-bit offset */
-  { "TST x,S", 0x6D, 6, 1, B_(01100000) }, /* 5-bit offset */
+  { "TST s,X", 0x6D, 6, 1, B_(00000000) }, /* 5-bit offset */
+  { "TST s,Y", 0x6D, 6, 1, B_(00100000) }, /* 5-bit offset */
+  { "TST s,U", 0x6D, 6, 1, B_(01000000) }, /* 5-bit offset */
+  { "TST s,S", 0x6D, 6, 1, B_(01100000) }, /* 5-bit offset */
   { "TST x,X", 0x6D, 7, 1, B_(10001000) }, /* 8-bit offset */
   { "TST x,Y", 0x6D, 7, 1, B_(10101000) }, /* 8-bit offset */
   { "TST x,U", 0x6D, 7, 1, B_(11001000) }, /* 8-bit offset */

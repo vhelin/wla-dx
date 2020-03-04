@@ -179,7 +179,7 @@ case 6:
 if (xbit_size >= 8 && opt_tmp->skip_8bit == 1)
   break;
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
-  if (opt_tmp->op[x] == 'x') {
+  if (opt_tmp->op[x] == 's') {
     y = i;
     i = inz;
     z = input_number();
