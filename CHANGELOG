@@ -32,7 +32,7 @@ v9.11 (01-Mar-2020) [ALL] Stack calculator's string checker handled only
                       "." as the label.
                     [ALL] Added support for FORCE to .RAMSECTION.
                     [ALL] The type of the argument for a .MACRO can now be
-                      asked in an .IF.
+                      asked in an .IF using e.g., '\?1'.
                     [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
                       "JP (IY)".
                     [650] Added support for W65C02S's "WAI" and "STP".
