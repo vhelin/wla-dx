@@ -13,7 +13,7 @@ OFILES = main.o
 
 
 all: $(OFILES) makefile
-	$(LD) $(LDFLAGS) $(OFILES) -o op ; strip op
+	$(LD) $(LDFLAGS) $(OFILES) -o op
 
 main.o: main.c makefile
 	$(CC) $(CFLAGS) main.c

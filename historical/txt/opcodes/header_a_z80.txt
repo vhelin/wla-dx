@@ -1,8 +1,8 @@
 
-z80 mnemonics listed in alphabetical order.
+WLA DX: Z80 mnemonics listed in alphabetical order.
 
-if you notice any errors or something is missing, please
-send me email to vhelin@cc.hut.fi.
+If you notice any errors or something is missing, please
+open an issue @ https://github.com/vhelin/wla-dx
 
 
 x = 8bit

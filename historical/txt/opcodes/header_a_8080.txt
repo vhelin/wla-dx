@@ -1,5 +1,5 @@
 
-WLA DX: HUC6280 mnemonics listed in opcode order.
+WLA DX: 8080 mnemonics listed in alphabetical order.
 
 If you notice any errors or something is missing, please
 open an issue @ https://github.com/vhelin/wla-dx
@@ -7,6 +7,7 @@ open an issue @ https://github.com/vhelin/wla-dx
 
 x = 8bit
 ? = 16bit
+s = 8bit 2's complement ([-128, +127])
 
 
 

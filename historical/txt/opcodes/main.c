@@ -4,33 +4,47 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../defines.h"
-
+#include "../../../defines.h"
 
 
 #ifdef GB
-#include "../../opcodes_gb.c"
+#include "../../../opcodes_gb.c"
 #endif
 #ifdef Z80
-#include "../../opcodes_z80.c"
+#include "../../../opcodes_z80.c"
 #endif
 #ifdef MCS6502
-#include "../../opcodes_6502.c"
+#include "../../../opcodes_6502.c"
 #endif
 #ifdef WDC65C02
-#include "../../opcodes_65c02.c"
+#include "../../../opcodes_65c02.c"
 #endif
 #ifdef MCS6510
-#include "../../opcodes_6510.c"
+#include "../../../opcodes_6510.c"
 #endif
 #ifdef W65816
-#include "../../opcodes_65816.c"
+#include "../../../opcodes_65816.c"
 #endif
 #ifdef SPC700
-#include "../../opcodes_spc700.c"
+#include "../../../opcodes_spc700.c"
 #endif
 #ifdef HUC6280
-#include "../../opcodes_huc6280.c"
+#include "../../../opcodes_huc6280.c"
+#endif
+#ifdef I8008
+#include "../../../opcodes_8008.c"
+#endif
+#ifdef I8080
+#include "../../../opcodes_8080.c"
+#endif
+#ifdef MC6800
+#include "../../../opcodes_6800.c"
+#endif
+#ifdef MC6801
+#include "../../../opcodes_6801.c"
+#endif
+#ifdef MC6809
+#include "../../../opcodes_6809.c"
 #endif
 
 
@@ -44,8 +58,7 @@ int main(int argc, char *argv[]) {
 
   i = 0;
   while (1) {
-
-    if (opt_table[i].type == -1)
+    if (strcmp(opt_table[i].op, "E") == 0)
       break;
 
     /* filter *.B, *.W and *.L away */
@@ -62,16 +75,10 @@ int main(int argc, char *argv[]) {
 
 #ifdef REARRANGE
 
-#ifdef GB
+#if defined(GB) || defined(I8008) || defined(I8080)
     printf("  { \"%s\", 0x%x, %d, %d },\n", opt_table[i].op, opt_table[i].hex, opt_table[i].type, opt_table[i].value);
 #endif
-#ifdef MCS6502
-    printf("  { \"%s\", 0x%x, %d, %d },\n", opt_table[i].op, opt_table[i].hex, opt_table[i].type, opt_table[i].skip_8bit);
-#endif
-#ifdef WDC65C02
-    printf("  { \"%s\", 0x%x, %d, %d },\n", opt_table[i].op, opt_table[i].hex, opt_table[i].type, opt_table[i].skip_8bit);
-#endif
-#ifdef MCS6510
+#if defined(MCS6502) || defined(WDC65C02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800) || defined(MC6801) || defined(MC6809)
     printf("  { \"%s\", 0x%x, %d, %d },\n", opt_table[i].op, opt_table[i].hex, opt_table[i].type, opt_table[i].skip_8bit);
 #endif
 #ifdef Z80
@@ -80,9 +87,6 @@ int main(int argc, char *argv[]) {
 #ifdef W65816
     printf("  { \"%s\", 0x%x, %d, %d },\n", opt_table[i].op, opt_table[i].hex, opt_table[i].type, opt_table[i].skip_xbit);
 #endif
-#ifdef HUC6280
-    printf("  { \"%s\", 0x%x, %d, %d },\n", opt_table[i].op, opt_table[i].hex, opt_table[i].type, opt_table[i].skip_8bit);
-#endif
 
 #endif
 
@@ -90,8 +94,8 @@ int main(int argc, char *argv[]) {
 
 #ifdef NICELIST1
 
-#ifdef GB
-    if (opt_table[i].type == 8 || opt_table[i].type == 9) {
+#if defined(GB) || defined(I8008) || defined(I8080)
+	if (opt_table[i].type == 8 || opt_table[i].type == 9) {
       int k;
 
       k = 0;
@@ -161,25 +165,7 @@ int main(int argc, char *argv[]) {
     printf("\n");
 #endif
 
-#ifdef MCS6502
-    printf("\"%s\" ", opt_table[i].op);
-
-    if (opt_table[i].hex & 0xFF00)
-      printf("$%.2x%.2x\n", opt_table[i].hex & 0xFF, (opt_table[i].hex >> 8) & 0xFF);
-    else
-      printf("$%.2x\n", opt_table[i].hex);
-#endif
-
-#ifdef WDC65C02
-    printf("\"%s\" ", opt_table[i].op);
-
-    if (opt_table[i].hex & 0xFF00)
-      printf("$%.2x%.2x\n", opt_table[i].hex & 0xFF, (opt_table[i].hex >> 8) & 0xFF);
-    else
-      printf("$%.2x\n", opt_table[i].hex);
-#endif
-
-#ifdef MCS6510
+#if defined(MCS6502) || defined(WDC65C02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800) || defined(MC6801) || defined(MC6809)
     printf("\"%s\" ", opt_table[i].op);
 
     if (opt_table[i].hex & 0xFF00)
@@ -199,15 +185,6 @@ int main(int argc, char *argv[]) {
       printf("$%.2x\n", opt_table[i].hex);
 #endif
 
-#ifdef HUC6280
-    printf("\"%s\" ", opt_table[i].op);
-
-    if (opt_table[i].hex & 0xFF00)
-      printf("$%.2x%.2x\n", opt_table[i].hex & 0xFF, (opt_table[i].hex >> 8) & 0xFF);
-    else
-      printf("$%.2x\n", opt_table[i].hex);
-#endif
-
 #ifdef SPC700
     printf("\"%s\" ", opt_table[i].op);
     printf("$%.2x\n", opt_table[i].hex);
@@ -219,8 +196,8 @@ int main(int argc, char *argv[]) {
 
 #ifdef NICELIST2
 
-#ifdef GB
-    if ((opt_table[i].hex & 0xFF) == 0xCB)
+#if defined(GB) || defined(I8008) || defined(I8080)
+	if ((opt_table[i].hex & 0xFF) == 0xCB)
       printf("$%.2x%.2x ", opt_table[i].hex & 0xFF, (opt_table[i].hex >> 8) & 0xFF);
     else
       printf("$%.2x ", opt_table[i].hex);
@@ -291,25 +268,7 @@ int main(int argc, char *argv[]) {
     printf("\"\n");
 #endif
 
-#ifdef MCS6502
-    if (opt_table[i].hex & 0xFF00)
-      printf("$%.2x%.2x ", opt_table[i].hex & 0xFF, (opt_table[i].hex >> 8) & 0xFF);
-    else
-      printf("$%.2x ", opt_table[i].hex);
-
-    printf("\"%s\"\n", opt_table[i].op);
-#endif
-
-#ifdef WDC65C02
-    if (opt_table[i].hex & 0xFF00)
-      printf("$%.2x%.2x ", opt_table[i].hex & 0xFF, (opt_table[i].hex >> 8) & 0xFF);
-    else
-      printf("$%.2x ", opt_table[i].hex);
-
-    printf("\"%s\"\n", opt_table[i].op);
-#endif
-
-#ifdef MCS6510
+#if defined(MCS6502) || defined(WDC65C02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800) || defined(MC6801) || defined(MC6809)
     if (opt_table[i].hex & 0xFF00)
       printf("$%.2x%.2x ", opt_table[i].hex & 0xFF, (opt_table[i].hex >> 8) & 0xFF);
     else
@@ -323,15 +282,6 @@ int main(int argc, char *argv[]) {
       printf("$%.2x%.2x ", opt_table[i].hex & 0xFF, (opt_table[i].hex >> 8) & 0xFF);
     else if (opt_table[i].type == 8)
       printf("$%.4x ", opt_table[i].hex);
-    else
-      printf("$%.2x ", opt_table[i].hex);
-
-    printf("\"%s\"\n", opt_table[i].op);
-#endif
-
-#ifdef HUC6280
-    if (opt_table[i].hex & 0xFF00)
-      printf("$%.2x%.2x ", opt_table[i].hex & 0xFF, (opt_table[i].hex >> 8) & 0xFF);
     else
       printf("$%.2x ", opt_table[i].hex);
 

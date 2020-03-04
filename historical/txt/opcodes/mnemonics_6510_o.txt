@@ -1,8 +1,8 @@
 
-6510 mnemonics listed in opcode order.
+WLA DX: 6510 mnemonics listed in opcode order.
 
-if you notice any errors or something is missing, please
-send me email to vhelin@cc.hut.fi.
+If you notice any errors or something is missing, please
+open an issue @ https://github.com/vhelin/wla-dx
 
 
 x = 8bit
@@ -10,8 +10,8 @@ x = 8bit
 
 
 
-$00 "BRK"
 $00 "BRK x"
+$00 "BRK"
 $01 "ORA (x,X)"
 $02 "HLT"
 $02 "JAM"
@@ -23,8 +23,8 @@ $06 "ASL x"
 $07 "SLO x"
 $08 "PHP"
 $09 "ORA #x"
-$0a "ASL"
 $0a "ASL A"
+$0a "ASL"
 $0b "ANC #x"
 $0c "NOP ?"
 $0d "ORA ?"
@@ -54,8 +54,8 @@ $26 "ROL x"
 $27 "RLA x"
 $28 "PLP"
 $29 "AND #x"
-$2a "ROL"
 $2a "ROL A"
+$2a "ROL"
 $2c "BIT ?"
 $2d "AND ?"
 $2e "ROL ?"
@@ -80,8 +80,8 @@ $46 "LSR x"
 $47 "SRE x"
 $48 "PHA"
 $49 "EOR #x"
-$4a "LSR"
 $4a "LSR A"
+$4a "LSR"
 $4b "ALR #x"
 $4c "JMP ?"
 $4d "EOR ?"
@@ -107,8 +107,8 @@ $66 "ROR x"
 $67 "RRA x"
 $68 "PLA"
 $69 "ADC #x"
-$6a "ROR"
 $6a "ROR A"
+$6a "ROR"
 $6b "ARR #x"
 $6c "JMP (?)"
 $6d "ADC ?"

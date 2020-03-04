@@ -1,5 +1,5 @@
 
-WLA DX: HUC6280 mnemonics listed in opcode order.
+WLA DX: 6800 mnemonics listed in alphabetical order.
 
 If you notice any errors or something is missing, please
 open an issue @ https://github.com/vhelin/wla-dx

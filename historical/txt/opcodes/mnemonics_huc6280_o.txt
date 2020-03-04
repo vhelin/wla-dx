@@ -1,8 +1,8 @@
 
-huc6280 mnemonics listed in opcode order.
+WLA DX: HUC6280 mnemonics listed in opcode order.
 
-if you notice any errors or something is missing, please
-send me email to vhelin@cc.hut.fi.
+If you notice any errors or something is missing, please
+open an issue @ https://github.com/vhelin/wla-dx
 
 
 x = 8bit
@@ -10,8 +10,8 @@ x = 8bit
 
 
 
-$00 "BRK"
 $00 "BRK x"
+$00 "BRK"
 $01 "ORA (x,X)"
 $02 "SXY"
 $03 "ST0 #x"
@@ -21,8 +21,8 @@ $06 "ASL x"
 $07 "RMB0 x"
 $08 "PHP"
 $09 "ORA #x"
-$0a "ASL"
 $0a "ASL A"
+$0a "ASL"
 $0c "TSB ?"
 $0d "ORA ?"
 $0e "ASL ?"
@@ -52,8 +52,8 @@ $26 "ROL x"
 $27 "RMB2 x"
 $28 "PLP"
 $29 "AND #x"
-$2a "ROL"
 $2a "ROL A"
+$2a "ROL"
 $2c "BIT ?"
 $2d "AND ?"
 $2e "ROL ?"
@@ -82,8 +82,8 @@ $46 "LSR x"
 $47 "RMB4 x"
 $48 "PHA"
 $49 "EOR #x"
-$4a "LSR"
 $4a "LSR A"
+$4a "LSR"
 $4c "JMP ?"
 $4d "EOR ?"
 $4e "LSR ?"
@@ -111,8 +111,8 @@ $66 "ROR x"
 $67 "RMB6 x"
 $68 "PLA"
 $69 "ADC #x"
-$6a "ROR"
 $6a "ROR A"
+$6a "ROR"
 $6c "JMP (?)"
 $6d "ADC ?"
 $6e "ROR ?"

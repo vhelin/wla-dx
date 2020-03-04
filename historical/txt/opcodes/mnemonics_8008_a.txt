@@ -1,0 +1,241 @@
+
+WLA DX: 8008 mnemonics listed in alphabetical order.
+
+If you notice any errors or something is missing, please
+open an issue @ https://github.com/vhelin/wla-dx
+
+
+x = 8bit
+? = 16bit
+s = 8bit 2's complement ([-128, +127])
+
+
+
+"ACA" $88
+"ACB" $89
+"ACC" $8a
+"ACD" $8b
+"ACE" $8c
+"ACH" $8d
+"ACI x" $0c
+"ACL" $8e
+"ACM" $8f
+"ADA" $80
+"ADB" $81
+"ADC" $82
+"ADD" $83
+"ADE" $84
+"ADH" $85
+"ADI x" $04
+"ADL" $86
+"ADM" $87
+"CAL ?" $46
+"CFC ?" $42
+"CFP ?" $5a
+"CFS ?" $52
+"CFZ ?" $4a
+"CPA" $b8
+"CPB" $b9
+"CPC" $ba
+"CPD" $bb
+"CPE" $bc
+"CPH" $bd
+"CPI x" $3c
+"CPL" $be
+"CPM" $bf
+"CTC ?" $62
+"CTP ?" $7a
+"CTS ?" $72
+"CTZ ?" $6a
+"DCB" $09
+"DCC" $11
+"DCD" $19
+"DCE" $21
+"DCH" $29
+"DCL" $31
+"HLT" $ff
+"INB" $08
+"INC" $10
+"IND" $18
+"INE" $20
+"INH" $28
+"INL" $30
+"INP 0" $41
+"INP 1" $43
+"INP 2" $45
+"INP 3" $47
+"INP 4" $49
+"INP 5" $4b
+"INP 6" $4d
+"INP 7" $4f
+"JFC ?" $40
+"JFP ?" $58
+"JFS ?" $50
+"JFZ ?" $48
+"JMP ?" $44
+"JTC ?" $60
+"JTP ?" $78
+"JTS ?" $70
+"JTZ ?" $68
+"LAB" $c1
+"LAC" $c2
+"LAD" $c3
+"LAE" $c4
+"LAH" $c5
+"LAI x" $06
+"LAL" $c6
+"LAM" $c7
+"LBA" $c8
+"LBB" $c9
+"LBC" $ca
+"LBD" $cb00
+"LBE" $cc
+"LBH" $cd
+"LBI x" $0e
+"LBL" $ce
+"LBM" $cf
+"LCA" $d0
+"LCB" $d1
+"LCC" $d2
+"LCD" $d3
+"LCE" $d4
+"LCH" $d5
+"LCI x" $16
+"LCL" $d6
+"LCM" $d7
+"LDA" $d8
+"LDB" $d9
+"LDC" $da
+"LDD" $db
+"LDE" $dc
+"LDH" $dd
+"LDI x" $1e
+"LDL" $de
+"LDM" $df
+"LEA" $e0
+"LEB" $e1
+"LEC" $e2
+"LED" $e3
+"LEE" $e4
+"LEH" $e5
+"LEI x" $26
+"LEL" $e6
+"LEM" $e7
+"LHA" $e8
+"LHB" $e9
+"LHC" $ea
+"LHD" $eb
+"LHE" $ec
+"LHH" $ed
+"LHI x" $2e
+"LHL" $ee
+"LHM" $ef
+"LLA" $f0
+"LLB" $f1
+"LLC" $f2
+"LLD" $f3
+"LLE" $f4
+"LLH" $f5
+"LLI x" $36
+"LLL" $f6
+"LLM" $f7
+"LMA" $f8
+"LMB" $f9
+"LMC" $fa
+"LMD" $fb
+"LME" $fc
+"LMH" $fd
+"LMI x" $2e
+"LML" $fe
+"NDA" $a0
+"NDB" $a1
+"NDC" $a2
+"NDD" $a3
+"NDE" $a4
+"NDH" $a5
+"NDI x" $24
+"NDL" $a6
+"NDM" $a7
+"NOP" $c0
+"ORA" $b0
+"ORB" $b1
+"ORC" $b2
+"ORD" $b3
+"ORE" $b4
+"ORH" $b5
+"ORI x" $34
+"ORL" $b6
+"ORM" $b7
+"OUT 10" $55
+"OUT 11" $57
+"OUT 12" $59
+"OUT 13" $5b
+"OUT 14" $5d
+"OUT 15" $5f
+"OUT 16" $61
+"OUT 17" $63
+"OUT 18" $65
+"OUT 19" $67
+"OUT 20" $69
+"OUT 21" $6b
+"OUT 22" $6d
+"OUT 23" $6f
+"OUT 24" $71
+"OUT 25" $73
+"OUT 26" $75
+"OUT 27" $77
+"OUT 28" $79
+"OUT 29" $7b
+"OUT 30" $7d
+"OUT 31" $7f
+"OUT 8" $51
+"OUT 9" $53
+"RAL" $12
+"RAR" $1a
+"RET" $07
+"RFC" $03
+"RFP" $1b
+"RFS" $13
+"RFZ" $0b
+"RLC" $02
+"RRC" $0a
+"RST *" $00
+"RST 0" $05
+"RST 1" $0d
+"RST 2" $15
+"RST 3" $1d
+"RST 4" $25
+"RST 5" $2d
+"RST 6" $35
+"RST 7" $3d
+"RTC" $23
+"RTP" $3b
+"RTS" $33
+"RTZ" $2b
+"SBA" $98
+"SBB" $99
+"SBC" $9a
+"SBD" $9b
+"SBE" $9c
+"SBH" $9d
+"SBI x" $1c
+"SBL" $9e
+"SBM" $9f
+"SUA" $90
+"SUB" $91
+"SUC" $92
+"SUD" $93
+"SUE" $94
+"SUH" $95
+"SUI x" $14
+"SUL" $96
+"SUM" $97
+"XRA" $a8
+"XRB" $a9
+"XRC" $aa
+"XRD" $ab
+"XRE" $ac
+"XRH" $ad
+"XRI x" $2c
+"XRL" $ae
+"XRM" $af

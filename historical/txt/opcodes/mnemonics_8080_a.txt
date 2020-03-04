@@ -1,0 +1,258 @@
+
+WLA DX: 8080 mnemonics listed in alphabetical order.
+
+If you notice any errors or something is missing, please
+open an issue @ https://github.com/vhelin/wla-dx
+
+
+x = 8bit
+? = 16bit
+s = 8bit 2's complement ([-128, +127])
+
+
+
+"ACI x" $ce
+"ADC A" $8f
+"ADC B" $88
+"ADC C" $89
+"ADC D" $8a
+"ADC E" $8b
+"ADC H" $8c
+"ADC L" $8d
+"ADC M" $8e
+"ADD A" $87
+"ADD B" $80
+"ADD C" $81
+"ADD D" $82
+"ADD E" $83
+"ADD H" $84
+"ADD L" $85
+"ADD M" $86
+"ADI x" $c6
+"ANA A" $a7
+"ANA B" $a0
+"ANA C" $a1
+"ANA D" $a2
+"ANA E" $a3
+"ANA H" $a4
+"ANA L" $a5
+"ANA M" $a6
+"ANI x" $e6
+"CALL ?" $cd
+"CC ?" $dc
+"CM ?" $fc
+"CMA" $2f
+"CMC" $3f
+"CMP A" $bf
+"CMP B" $b8
+"CMP C" $b9
+"CMP D" $ba
+"CMP E" $bb
+"CMP H" $bc
+"CMP L" $bd
+"CMP M" $be
+"CNC ?" $d4
+"CNZ ?" $c4
+"CP ?" $f4
+"CPE ?" $ec
+"CPI x" $fe
+"CPO ?" $e4
+"CZ ?" $cc
+"DAA" $27
+"DAD B" $09
+"DAD D" $19
+"DAD H" $29
+"DAD SP" $39
+"DCR A" $3d
+"DCR B" $05
+"DCR C" $0d
+"DCR D" $15
+"DCR E" $1d
+"DCR H" $25
+"DCR L" $2d
+"DCR M" $35
+"DCX B" $0b
+"DCX D" $1b
+"DCX H" $2b
+"DCX SP" $3b
+"DI" $f3
+"EI" $fb
+"HLT" $76
+"IN x" $db
+"INR A" $3c
+"INR B" $04
+"INR C" $0c
+"INR D" $14
+"INR E" $1c
+"INR H" $24
+"INR L" $2c
+"INR M" $34
+"INX B" $03
+"INX D" $13
+"INX H" $23
+"INX SP" $33
+"JC ?" $da
+"JM ?" $fa
+"JMP ?" $c3
+"JNC ?" $d2
+"JNZ ?" $c2
+"JP ?" $f2
+"JPE ?" $ea
+"JPO ?" $e2
+"JZ ?" $ca
+"LDA ?" $3a
+"LDAX B" $0a
+"LDAX D" $1a
+"LHLD ?" $2a
+"LXI B,?" $01
+"LXI D,?" $11
+"LXI H,?" $21
+"LXI SP,?" $31
+"MOV A,A" $7f
+"MOV A,B" $78
+"MOV A,C" $79
+"MOV A,D" $7a
+"MOV A,E" $7b
+"MOV A,H" $7c
+"MOV A,L" $7d
+"MOV A,M" $7e
+"MOV B,A" $47
+"MOV B,B" $40
+"MOV B,C" $41
+"MOV B,D" $42
+"MOV B,E" $43
+"MOV B,H" $44
+"MOV B,L" $45
+"MOV B,M" $46
+"MOV C,A" $4f
+"MOV C,B" $48
+"MOV C,C" $49
+"MOV C,D" $4a
+"MOV C,E" $4b
+"MOV C,H" $4c
+"MOV C,L" $4d
+"MOV C,M" $4e
+"MOV D,A" $57
+"MOV D,B" $50
+"MOV D,C" $51
+"MOV D,D" $52
+"MOV D,E" $53
+"MOV D,H" $54
+"MOV D,L" $55
+"MOV D,M" $56
+"MOV E,A" $5f
+"MOV E,B" $58
+"MOV E,C" $59
+"MOV E,D" $5a
+"MOV E,E" $5b
+"MOV E,H" $5c
+"MOV E,L" $5d
+"MOV E,M" $5e
+"MOV H,A" $67
+"MOV H,B" $60
+"MOV H,C" $61
+"MOV H,D" $62
+"MOV H,E" $63
+"MOV H,H" $64
+"MOV H,L" $65
+"MOV H,M" $66
+"MOV L,A" $6f
+"MOV L,B" $68
+"MOV L,C" $69
+"MOV L,D" $6a
+"MOV L,E" $6b
+"MOV L,H" $6c
+"MOV L,L" $6d
+"MOV L,M" $6e
+"MOV M,A" $77
+"MOV M,B" $70
+"MOV M,C" $71
+"MOV M,D" $72
+"MOV M,E" $73
+"MOV M,H" $74
+"MOV M,L" $75
+"MVI A,x" $3e
+"MVI B,x" $06
+"MVI C,x" $0e
+"MVI D,x" $16
+"MVI E,x" $1e
+"MVI H,x" $26
+"MVI L,x" $2e
+"MVI M,x" $36
+"NOP" $00
+"ORA A" $b7
+"ORA B" $b0
+"ORA C" $b1
+"ORA D" $b2
+"ORA E" $b3
+"ORA H" $b4
+"ORA L" $b5
+"ORA M" $b6
+"ORI x" $f6
+"OUT x" $d3
+"PCHL" $e9
+"POP B" $c1
+"POP D" $d1
+"POP H" $e1
+"POP PSW" $f1
+"PUSH B" $c5
+"PUSH D" $d5
+"PUSH H" $e5
+"PUSH PSW" $f5
+"RAL" $17
+"RAR" $1f
+"RC" $d8
+"RET" $c9
+"RLC" $07
+"RM" $f8
+"RNC" $d0
+"RNZ" $c0
+"RP" $f0
+"RPE" $e8
+"RPO" $e0
+"RRC" $0f
+"RST *" $00
+"RST 0" $c7
+"RST 1" $cf
+"RST 2" $d7
+"RST 3" $df
+"RST 4" $e7
+"RST 5" $ef
+"RST 6" $f7
+"RST 7" $ff
+"RZ" $c8
+"SBB A" $9f
+"SBB B" $98
+"SBB C" $99
+"SBB D" $9a
+"SBB E" $9b
+"SBB H" $9c
+"SBB L" $9d
+"SBB M" $9e
+"SBI x" $de
+"SHLD ?" $22
+"SPHL" $f9
+"STA ?" $32
+"STAX B" $02
+"STAX D" $12
+"STC" $37
+"SUB A" $97
+"SUB B" $90
+"SUB C" $91
+"SUB D" $92
+"SUB E" $93
+"SUB H" $94
+"SUB L" $95
+"SUB M" $96
+"SUI x" $d6
+"XCHG" $eb
+"XRA A" $af
+"XRA B" $a8
+"XRA C" $a9
+"XRA D" $aa
+"XRA E" $ab
+"XRA H" $ac
+"XRA L" $ad
+"XRA M" $ae
+"XRI x" $ee
+"XTHL" $e3
