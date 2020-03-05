@@ -1,6 +1,6 @@
 
 ;
-; Gameboy Memory Map (by Ville Helin)
+; Gameboy Memory Map
 ; 
 
 .MEMORYMAP
@@ -12,4 +12,3 @@ SLOT 3 START $A000 SIZE $2000 NAME "ERAM"      ;  8KB External RAM
 SLOT 4 START $C000 SIZE $1000 NAME "WRAM-00"   ;  4KB WRAM Bank 00
 SLOT 5 START $D000 SIZE $1000 NAME "WRAM-01+"  ;  4KB WRAM Bank 01-N
 .ENDME
-
