@@ -7,8 +7,6 @@ open an issue @ https://github.com/vhelin/wla-dx
 
 x = 8bit
 ? = 16bit
-s = 8bit 2's complement ([-128, +127])
-
 
 
 "ACA" $88
@@ -88,7 +86,7 @@ s = 8bit 2's complement ([-128, +127])
 "LBA" $c8
 "LBB" $c9
 "LBC" $ca
-"LBD" $cb00
+"LBD" $cb
 "LBE" $cc
 "LBH" $cd
 "LBI x" $0e
@@ -199,7 +197,6 @@ s = 8bit 2's complement ([-128, +127])
 "RFZ" $0b
 "RLC" $02
 "RRC" $0a
-"RST *" $00
 "RST 0" $05
 "RST 1" $0d
 "RST 2" $15

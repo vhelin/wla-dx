@@ -7,12 +7,9 @@ open an issue @ https://github.com/vhelin/wla-dx
 
 x = 8bit
 ? = 16bit
-s = 8bit 2's complement ([-128, +127])
-
 
 
 $00 "NOP"
-$00 "RST *"
 $01 "LXI B,?"
 $02 "STAX B"
 $03 "INX B"

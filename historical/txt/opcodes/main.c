@@ -73,6 +73,13 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
+#if defined(I8008) || defined(I8080)
+    if (opt_table[i].type == 100) {
+      i++;
+      continue;
+	}
+#endif
+
 #ifdef REARRANGE
 
 #if defined(GB) || defined(I8008) || defined(I8080)
@@ -94,7 +101,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef NICELIST1
 
-#if defined(GB) || defined(I8008) || defined(I8080)
+#if defined(GB)
 	if (opt_table[i].type == 8 || opt_table[i].type == 9) {
       int k;
 
@@ -125,6 +132,36 @@ int main(int argc, char *argv[]) {
       printf("$%.2x%.2x\n", opt_table[i].hex & 0xFF, (opt_table[i].hex >> 8) & 0xFF);
     else
       printf("$%.2x\n", opt_table[i].hex);
+#endif
+
+#if defined(I8008) || defined(I8080)
+	if (opt_table[i].type == 8 || opt_table[i].type == 9) {
+      int k;
+
+      k = 0;
+      printf("\"");
+      while (1) {
+	if (opt_table[i].op[k] == '*')
+	  break;
+	else
+	  printf("%c", opt_table[i].op[k]);
+	k++;
+      }
+      k++;
+      printf("%d", opt_table[i].value);
+      while (1) {
+	if (opt_table[i].op[k] == 0)
+	  break;
+	else
+	  printf("%c", opt_table[i].op[k]);
+	k++;
+      }
+      printf("\" ");
+    }
+    else
+      printf("\"%s\" ", opt_table[i].op);
+
+    printf("$%.2x\n", opt_table[i].hex);
 #endif
 
 #ifdef Z80
@@ -196,11 +233,41 @@ int main(int argc, char *argv[]) {
 
 #ifdef NICELIST2
 
-#if defined(GB) || defined(I8008) || defined(I8080)
+#if defined(GB)
 	if ((opt_table[i].hex & 0xFF) == 0xCB)
       printf("$%.2x%.2x ", opt_table[i].hex & 0xFF, (opt_table[i].hex >> 8) & 0xFF);
     else
       printf("$%.2x ", opt_table[i].hex);
+
+    if (opt_table[i].type == 8 || opt_table[i].type == 9) {
+      int k;
+
+      k = 0;
+      printf("\"");
+      while (1) {
+	if (opt_table[i].op[k] == '*')
+	  break;
+	else
+	  printf("%c", opt_table[i].op[k]);
+	k++;
+      }
+      k++;
+      printf("%d", opt_table[i].value);
+      while (1) {
+	if (opt_table[i].op[k] == 0)
+	  break;
+	else
+	  printf("%c", opt_table[i].op[k]);
+	k++;
+      }
+      printf("\"\n");
+    }
+    else
+      printf("\"%s\"\n", opt_table[i].op);
+#endif
+
+#if defined(I8008) || defined(I8080)
+    printf("$%.2x ", opt_table[i].hex);
 
     if (opt_table[i].type == 8 || opt_table[i].type == 9) {
       int k;

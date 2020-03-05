@@ -2355,8 +2355,6 @@ inserted anywhere. Check ``.BANK`` definition for more information.
 This is a compulsory directive, and make sure all the object files share
 the same ``.MEMORYMAP`` or you can't link them together.
 
-Note that both ``START`` and ``SIZE`` are optional!
-
 
 ``.ENDME``
 ----------
