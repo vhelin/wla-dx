@@ -150,6 +150,7 @@ runTest rept_test
 runTest sdsc_test
 runTest sms_test
 runTest smsheader_test
+runTest z81_test
 cd ..
 
 #####################################################################

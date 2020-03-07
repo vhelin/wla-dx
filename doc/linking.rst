@@ -8,7 +8,8 @@ file. WLALINK is the program you use for that. Here's how you use it::
     wlalink [OPTIONS] <LINK FILE> <OUTPUT FILE>
 
 Choose the option ``-b [OUT]`` for program file or ``-r [OUT]`` for
-ROM image linking.
+ROM image linking. ROM image is all the data in the ROM banks. Program file
+is the data between the first used byte and the last used byte.
 
 Link file is a text file that contains information about the files you want
 to link together. Here's the format:
