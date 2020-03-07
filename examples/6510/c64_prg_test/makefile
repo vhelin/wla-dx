@@ -2,7 +2,7 @@
 CC = wla-6510
 CFLAGS = -o
 LD = wlalink
-LDFLAGS = -v -b -s -t CBMPRG
+LDFLAGS = -v -b -s -t CBMPRG -a LoadAddress
 
 SFILES = main.s
 IFILES = 
