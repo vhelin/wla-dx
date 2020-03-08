@@ -56,7 +56,9 @@ struct optcode opt_table[] = {
   { "ASR", 0x43, 0, 0 },
 
   { "ASW ?", 0xCB, 2, 0 },
-  
+
+  { "AUG", 0x5C, 0, 0 }, /* same as MAP */
+
   { "BBR0 x,x", 0x0F, 5, 0 },
   { "BBR1 x,x", 0x1F, 5, 0 },
   { "BBR2 x,x", 0x2F, 5, 0 },
@@ -297,7 +299,7 @@ struct optcode opt_table[] = {
   { "LSR.W ?", 0x4E, 2, 0 },
   { "LSR", 0x4A, 0, 0 },
 
-  { "MAP", 0x5C, 0, 0 },
+  { "MAP", 0x5C, 0, 0 }, /* same as AUG */
 
   { "NEG", 0x42, 0, 0 },
   { "NOP", 0xEA, 0, 0 },
