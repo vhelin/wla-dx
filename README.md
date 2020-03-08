@@ -19,6 +19,7 @@ Supported architectures are:
 * gb (z80-gb)
 * 6502
 * 65c02
+* 65ce02
 * 6510
 * 65816
 * 6800
