@@ -205,7 +205,7 @@ Mnemonics
 ---------
 
 You can give the operand size with the operand itself (and this is
-highly recommended) in WLA 6502/65C02/6510/HUC6280/65816/6800/6801/6809::
+highly recommended) in WLA 6502/65C02/65CE02/6510/HUC6280/65816/6800/6801/6809::
 
     and #20.b
     and #20.w

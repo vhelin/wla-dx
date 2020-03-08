@@ -103,6 +103,17 @@ add_custom_command(
 	)
 ADD_CUSTOM_TARGET(WDC65C02_table ALL DEPENDS ${CMAKE_BINARY_DIR}/opcodes_65c02_tables.c)
 
+# --- WLA_TARGET=CSG65CE02
+add_executable (gen_CSG65CE02 ${CFILES})
+set_target_properties (gen_CSG65CE02 PROPERTIES COMPILE_DEFINITIONS "CSG65CE02")
+# Generate tables
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/opcodes_65ce02_tables.c
+	COMMAND gen_CSG65CE02
+	DEPENDS gen_CSG65CE02
+	)
+ADD_CUSTOM_TARGET(CSG65CE02_table ALL DEPENDS ${CMAKE_BINARY_DIR}/opcodes_65ce02_tables.c)
+
 # --- WLA_TARGET=MCS6510
 add_executable (gen_MCS6510 ${CFILES})
 set_target_properties (gen_MCS6510 PROPERTIES COMPILE_DEFINITIONS "MCS6510")

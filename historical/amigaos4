@@ -37,6 +37,10 @@ make -f makefiles/makefile.amiga.65c02
 move wla-65c02 TO binaries
 
 make -f makefiles/makefile.amiga.65c02 clean
+make -f makefiles/makefile.amiga.65ce02
+move wla-65ce02 TO binaries
+
+make -f makefiles/makefile.amiga.65ce02 clean
 make -f makefiles/makefile.amiga.6510
 move wla-6510 TO binaries
 

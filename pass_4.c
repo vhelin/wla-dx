@@ -1128,7 +1128,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLA6");
+    fprintf(final_ptr, "WLA7");
 
     /* misc bits */
     ind = 0;
@@ -1138,6 +1138,10 @@ int pass_4(void) {
 #ifdef W65816
     /* 65816 bit */
     ind |= 1 << 1;
+#endif
+#ifdef CSG65CE02
+    /* 65ce02 bit */
+    ind |= 1 << 2;
 #endif
     
     fprintf(final_ptr, "%c", ind);
@@ -1328,7 +1332,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAX%c", emptyfill);
+    fprintf(final_ptr, "WLAY%c", emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -1394,6 +1398,16 @@ int pass_4(void) {
     
     fprintf(final_ptr, "%c", ind);
 
+    /* extr bits */
+    ind = 0;
+
+#ifdef CSG65CE02
+    /* 65ce02 bit */
+    ind |= 1 << 0;
+#endif
+
+    fprintf(final_ptr, "%c", ind);
+    
     /* rom bank map */
     ov = rombanks;
     WRITEOUT_OV;                                   /* number of rom banks */

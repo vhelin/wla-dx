@@ -8,6 +8,7 @@ sc define AMIGA=1 define GB=1 opcodes_gb.c
 sc define AMIGA=1 define Z80=1 opcodes_z80.c
 sc define AMIGA=1 define MCS6502=1 opcodes_6502.c
 sc define AMIGA=1 define WDC65C02=1 opcodes_65c02.c
+sc define AMIGA=1 define CSG65CE02=1 opcodes_65ce02.c
 sc define AMIGA=1 define MC6800=1 opcodes_6800.c
 sc define AMIGA=1 define MC6801=1 opcodes_6801.c
 sc define AMIGA=1 define MC6809=1 opcodes_6809.c
@@ -40,6 +41,11 @@ sc define AMIGA=1 define WDC65C02=1 main.c
 slink FROM LIB:c.o main.o /opcodes_65c02.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
 opcode_table_generator /opcodes_65c02_tables.c
 delete opcode_table_generator main.o /opcodes_65c02.o
+
+sc define AMIGA=1 define CSG65CE02=1 main.c
+slink FROM LIB:c.o main.o /opcodes_65ce02.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+opcode_table_generator /opcodes_65ce02_tables.c
+delete opcode_table_generator main.o /opcodes_65ce02.o
 
 sc define AMIGA=1 define MC6800=1 main.c
 slink FROM LIB:c.o main.o /opcodes_6800.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
@@ -167,6 +173,22 @@ copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
 copy wla to binaries/wla-65c02.000
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WLA-65CE02
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+copy makefiles/smake.65ce02 to smakefile
+copy makefiles/scoptions.020 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-65ce02.020
+
+copy makefiles/smake.65ce02 to smakefile
+copy makefiles/scoptions.000 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-65ce02.000
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WLA-6800

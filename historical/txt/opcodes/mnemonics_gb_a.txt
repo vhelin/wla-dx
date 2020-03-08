@@ -197,15 +197,14 @@ s = 8bit 2's complement ([-128, +127])
 "JR C,s" $38
 "JR NC,s" $30
 "JR NZ,s" $20
-"JR s" $18
 "JR Z,s" $28
+"JR s" $18
 "LD ($FF00+C),A" $e2
 "LD ($FF00+x),A" $e0
 "LD (?),A" $ea
 "LD (?),SP" $08
 "LD (BC),A" $02
 "LD (DE),A" $12
-"LD (HL-),A" $32
 "LD (HL),A" $77
 "LD (HL),B" $70
 "LD (HL),C" $71
@@ -215,6 +214,7 @@ s = 8bit 2's complement ([-128, +127])
 "LD (HL),L" $75
 "LD (HL),x" $36
 "LD (HL+),A" $22
+"LD (HL-),A" $32
 "LD (HLD),A" $32
 "LD (HLI),A" $22
 "LD A,($FF00+C)" $f2
@@ -222,9 +222,9 @@ s = 8bit 2's complement ([-128, +127])
 "LD A,(?)" $fa
 "LD A,(BC)" $0a
 "LD A,(DE)" $1a
-"LD A,(HL-)" $3a
 "LD A,(HL)" $7e
 "LD A,(HL+)" $2a
+"LD A,(HL-)" $3a
 "LD A,(HLD)" $3a
 "LD A,(HLI)" $2a
 "LD A,A" $7f

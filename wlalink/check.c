@@ -26,9 +26,9 @@ int check_file_types(void) {
   
   o = obj_first;
   while (o != NULL) {
-    if (strncmp((char *)o->data, "WLAX", 4) == 0)
+    if (strncmp((char *)o->data, "WLAY", 4) == 0)
       o->format = WLA_VERSION_OBJ;
-    else if (strncmp((char *)o->data, "WLA6", 4) == 0)
+    else if (strncmp((char *)o->data, "WLA7", 4) == 0)
       o->format = WLA_VERSION_LIB;
     else {
       fprintf(stderr, "CHECK_FILE_TYPES: File \"%s\" is of unknown format (\"%c%c%c%c\").\n", o->name, o->data[0], o->data[1], o->data[2], o->data[3]);
@@ -67,7 +67,7 @@ static char *_get_snes_rom_mode(int mode) {
 
 int check_headers(void) {
 
-  int count = 0, misc_bits = 0, more_bits = 0, e;
+  int count = 0, misc_bits = 0, more_bits = 0, extr_bits = 0, e;
   struct object_file *o;
 
   
@@ -76,11 +76,17 @@ int check_headers(void) {
     if (o->format == WLA_VERSION_OBJ) {
       misc_bits = *(o->data + OBJ_MISC_BITS);
       more_bits = *(o->data + OBJ_MORE_BITS);
+      extr_bits = *(o->data + OBJ_EXTR_BITS);
 
       if ((misc_bits & 128) != 0)
 	o->cpu_65816 = YES;
       else
 	o->cpu_65816 = NO;
+
+      if ((extr_bits & 1) != 0)
+	o->cpu_65ce02 = YES;
+      else
+	o->cpu_65ce02 = NO;
       
       if (((more_bits >> 7) & 1) != 0)
 	o->little_endian = NO;
@@ -106,6 +112,7 @@ int check_headers(void) {
 	  snes_rom_mode = SNES_ROM_MODE_EXHIROM;
 	if (((more_bits >> 6) & 1) == 1)
 	  snes_rom_mode = SNES_ROM_MODE_EXLOROM;
+	/* extr bits */
       }
       else {
 	e = *(o->data + OBJ_EMPTY_FILL);
@@ -176,6 +183,11 @@ int check_headers(void) {
     }
     else {
       misc_bits = *(o->data + LIB_MISC_BITS);
+
+      if ((misc_bits & 4) != 0)
+	o->cpu_65ce02 = YES;
+      else
+	o->cpu_65ce02 = NO;
 
       if ((misc_bits & 2) != 0)
 	o->cpu_65816 = YES;

@@ -1214,7 +1214,7 @@ int fix_references(void) {
       else if (r->type == REFERENCE_TYPE_RELATIVE_8BIT) {
         i = (((int)l->address) & 0xFFFF) - r->address - 1;
         if (i < -128 || i > 127) {
-          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a 8-bit reference.\n",
+          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a relative 8-bit reference.\n",
 		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
           return FAILED;
         }
@@ -1223,8 +1223,13 @@ int fix_references(void) {
       /* relative 16-bit with a label */
       else if (r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
         i = (((int)l->address) & 0xFFFF) - r->address - 2;
-        if (i < -32768 || i > 65535) {
-          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a 16-bit reference.\n",
+	/* NOTE: on 65ce02 the 16-bit relative references don't use the next
+	   instruction as the starting point, but one byte before it */
+	if (get_file(r->file_id)->cpu_65ce02 == YES)
+	  i += 1;
+	
+	if (i < -32768 || i > 32767) {
+          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a relative 16-bit reference.\n",
 		  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
           return FAILED;
         }
@@ -2429,14 +2434,19 @@ int parse_stack(struct stack *sta) {
   }
 
   /* calculate extra displacement (ed) depending on relative operand size:
-     6809 and 65816 can have 16-bit relative operands so the start of
+     6809, 65816 and 65ce02 can have 16-bit relative operands so the start of
      next instruction is one byte farther away than "usual" */
   switch (sta->type) {
     case STACK_TYPE_8BIT:
       ed = 1;
       break;
     case STACK_TYPE_16BIT:
-      ed = 2;
+      /* NOTE: on 65ce02 the 16-bit relative references don't use the next
+	 instruction as the starting point, but one byte before it */
+      if (get_file(sta->file_id)->cpu_65ce02 == YES)
+	ed = 1;
+      else
+	ed = 2;
       break;
     case STACK_TYPE_24BIT: /* not presently used by any CPU arch supported */
       ed = 3;

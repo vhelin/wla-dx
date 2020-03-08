@@ -21,12 +21,12 @@
 .ROMBANKS               1
 
 ;
-; Our program will start from $1000. Load this .PRG into an emulator,
-; then type "SYS 4096" and it'll run.
+; Our program will start from $C000. Load this .PRG into an emulator,
+; then type "SYS 49152" and it'll run.
 ;
 
 .SLOT 2
-.ORGA $1000
+.ORGA $C000
 
 LoadAddress:
 

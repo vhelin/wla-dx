@@ -233,12 +233,12 @@ int main(int argc, char *argv[]) {
 
     /* execute the test */
     if (use_address == NO) {
-      for (i = 0; i < file_size - 3; i++) {
+      for (i = 0; i < file_size - 2; i++) {
 	if (binary_file[i] == tag_id[0] && binary_file[i+1] == tag_id[1] && binary_file[i+2] == '>')
 	  break;
       }
 
-      if (i == file_size - 3) {
+      if (i == file_size - 2) {
 	fprintf(stderr, "Test \"%s\" FAILED - Could not find tag \"%s>\".\n", test_id, tag_id);
 	failures = 1;
 	continue;
@@ -246,12 +246,12 @@ int main(int argc, char *argv[]) {
 
       tag_start = i+3;
 
-      for ( ; i < file_size - 3; i++) {
+      for ( ; i < file_size - 2; i++) {
 	if (binary_file[i] == '<' && binary_file[i+1] == tag_id[0] && binary_file[i+2] == tag_id[1])
 	  break;
       }
 
-      if (i == file_size - 3) {
+      if (i == file_size - 2) {
 	fprintf(stderr, "Test \"%s\" FAILED - Could not find tag \"<%s\".\n", test_id, tag_id);
 	failures = 1;
 	continue;

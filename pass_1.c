@@ -123,7 +123,7 @@ extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
 
 int macro_stack_size = 0, repeat_stack_size = 0;
 
-#if defined(MCS6502) || defined(WDC65C02) || defined(MCS6510) || defined(W65816) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
+#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(MCS6510) || defined(W65816) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
 int xbit_size = 0;
 int accu_size = 8, index_size = 8;
 #endif
@@ -981,7 +981,7 @@ static int parse_exg_tfr_registers() {
 int evaluate_token(void) {
 
   int f, z, x, y;
-#if defined(Z80) || defined(SPC700) || defined(W65816) || defined(WDC65C02) || defined(HUC6280)
+#if defined(Z80) || defined(SPC700) || defined(W65816) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280)
   int e = 0, v = 0, h = 0;
   char labelx[256];
 #endif
@@ -1119,6 +1119,9 @@ int evaluate_token(void) {
 #endif
 #ifdef WDC65C02
 #include "decode_65c02.c"
+#endif
+#ifdef CSG65CE02
+#include "decode_65ce02.c"
 #endif
 #ifdef MCS6510
 #include "decode_6510.c"
@@ -8603,7 +8606,7 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
-#if defined(MCS6502) || defined(MCS6510) || defined(W65816) || defined(WDC65C02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
+#if defined(MCS6502) || defined(MCS6510) || defined(W65816) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
 
   /* 8BIT */
 

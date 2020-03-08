@@ -1,9 +1,9 @@
 
-------------------------------------------------------------------------------------------
-1... WLA GB-Z80/Z80/6502/65C02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------
+1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
+-------------------------------------------------------------------------------------------------
 
-v9.11 (01-Mar-2020) [ALL] Stack calculator's string checker handled only
+v9.11 (08-Mar-2020) [ALL] Stack calculator's string checker handled only
                       63 characters long strings.
                     [ALL] A directive with the first argument being
                       negative wasn't parsed properly.
@@ -35,7 +35,8 @@ v9.11 (01-Mar-2020) [ALL] Stack calculator's string checker handled only
                       asked in an .IF using e.g., '\?1'.
                     [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
                       "JP (IY)".
-                    [650] Added support for W65C02S's "WAI" and "STP".
+                    [6CE] Added support for CSG65CE02.
+                    [65C] Added support for W65C02S's "WAI" and "STP".
                     [658] Added support for WDC standard mnemonics via .WDC
                       and .NOWDC.
 

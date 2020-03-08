@@ -1,0 +1,12 @@
+
+WLA DX: 65CE02 mnemonics listed in opcode order.
+
+If you notice any errors or something is missing, please
+open an issue @ https://github.com/vhelin/wla-dx
+
+
+x = 8bit
+? = 16bit
+
+
+

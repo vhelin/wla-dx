@@ -19,28 +19,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\crc32.c" />
-    <ClCompile Include="..\..\hashmap.c" />
-    <ClCompile Include="..\..\include_file.c" />
-    <ClCompile Include="..\..\listfile.c" />
-    <ClCompile Include="..\..\main.c" />
-    <ClCompile Include="..\..\opcodes_65c02.c" />
-    <ClCompile Include="..\..\parse.c" />
-    <ClCompile Include="..\..\pass_1.c" />
-    <ClCompile Include="..\..\pass_2.c" />
-    <ClCompile Include="..\..\pass_3.c" />
-    <ClCompile Include="..\..\pass_4.c" />
-    <ClCompile Include="..\..\printf.c" />
-    <ClCompile Include="..\..\stack.c" />
-    <ClCompile Include="..\GEN-TABLES-65C02\opcodes_65c02_tables.c" />
+    <ClCompile Include="..\..\opcodes_65ce02.c" />
+    <ClCompile Include="..\..\opcode_table_generator\main.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{2CC2DB1C-7198-4454-AB93-5AF4D7065552}</ProjectGuid>
+    <ProjectGuid>{08A33FB2-EBA7-4DC3-8711-E3ECFAF741EF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>WLA65C02</RootNamespace>
+    <RootNamespace>GENTABLES65CE02</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
-    <ProjectName>wla-65c02</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -107,9 +94,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WDC65C02;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CSG65CE02;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -118,6 +106,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.16.27023\lib\onecore\x86</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>$(OutDir)\GEN-TABLES-65CE02.exe opcodes_65ce02_tables.c</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

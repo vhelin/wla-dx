@@ -412,7 +412,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     i = y;
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
-    if (z == SUCCEEDED && (d < -32768 || d > 65535))
+    if (z == SUCCEEDED && (d < -32768 || d > 32767))
       break;
 
     for (x++; x < OP_SIZE_MAX; inz++, x++) {
@@ -423,6 +423,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 	  output_assembled_opcode(opt_tmp, "k%d d%d M%s ", active_file_info_last->line_current, opt_tmp->hex, label);
 	else {
 	  output_assembled_opcode(opt_tmp, "d%d C%d ", opt_tmp->hex, latest_stack);
+
 	  /* let's configure the stack so that all label references inside are relative */
 	  stacks_tmp->relative_references = 1;
 	}
