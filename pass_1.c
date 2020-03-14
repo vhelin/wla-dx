@@ -787,7 +787,7 @@ void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
 
     va_end(ap);
     va_start(ap, format);
-    vnsprintf(ttt, sizeof(ttt), format, ap);
+    vsnprintf(ttt, sizeof(ttt), format, ap);
     printf("LINE %5d: OPCODE: %16s ::: %s\n", active_file_info_last->line_current, oc->op, ttt);
   }
 #endif
