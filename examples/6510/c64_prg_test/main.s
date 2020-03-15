@@ -1,6 +1,6 @@
 
 ;
-; C64 memory map:
+; C64 memory map
 ;
 
 .MEMORYMAP
