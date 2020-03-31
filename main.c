@@ -40,7 +40,7 @@ FILE *file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char version_string[] = "$VER: wla-" WLA_NAME " 9.11a (8.3.2020)";
+char version_string[] = "$VER: wla-" WLA_NAME " 9.11a (31.3.2020)";
 char wla_version[] = "9.11a";
 
 char *tmp_name = NULL;
@@ -64,7 +64,7 @@ extern struct append_section *append_sections;
 extern struct label_sizeof *label_sizeofs;
 extern struct block_name *block_names;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
-extern char *unfolded_buffer;
+extern char *unfolded_buffer, *label_stack[256];
 extern char *include_in_tmp, *tmp_a;
 extern char *rom_banks, *rom_banks_usage_table;
 extern char *include_dir, *buffer, *full_name;
@@ -73,6 +73,7 @@ extern int include_in_tmp_size, tmp_a_size, *banks, *bankaddress;
 int output_format = OUTPUT_NONE, verbose_mode = OFF, test_mode = OFF;
 int extra_definitions = OFF, commandline_parsing = ON, makefile_rules = NO;
 int listfile_data = NO, quiet = NO, use_incdir = NO, little_endian = YES;
+int create_sizeof_definitions = YES;
 
 char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH + 2];
 
@@ -80,7 +81,7 @@ char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH + 2];
 int main(int argc, char *argv[]) {
 
   int parse_flags_result;
-  int n_ctr;
+  int n_ctr, q;
   
   if (sizeof(double) != 8) {
     fprintf(stderr, "MAIN: sizeof(double) == %d != 8. WLA will not work properly.\n", (int)sizeof(double));
@@ -107,6 +108,15 @@ int main(int argc, char *argv[]) {
   global_unique_label_map = hashmap_new();
   namespace_map = hashmap_new();
 
+  /* init label stack */
+  for (q = 0; q < 256; q++)
+    label_stack[q] = NULL;
+  for (q = 0; q < 256; q++) {
+    label_stack[q] = calloc(MAX_NAME_LENGTH + 1, 1);
+    if (label_stack[q] == NULL)
+      return 1;
+  }
+  
   parse_flags_result = FAILED;
   if (argc >= 2) {
     parse_flags_result = parse_flags(argv, argc);
@@ -137,6 +147,7 @@ int main(int argc, char *argv[]) {
     printf("-i  Add list file information\n");
     printf("-M  Output makefile rules\n");
     printf("-q  Quiet\n");
+    printf("-s  Don't create _sizeof_* definitions\n");
     printf("-t  Test compile\n");
     printf("-v  Verbose messages\n");
     printf("-x  Extra compile time labels & definitions\n");
@@ -267,6 +278,10 @@ int parse_flags(char **flags, int flagc) {
       verbose_mode = ON;
       continue;
     }
+    else if (!strcmp(flags[count], "-s")) {
+      create_sizeof_definitions = NO;
+      continue;
+    }
     else if (!strcmp(flags[count], "-t")) {
       test_mode = ON;
       continue;
@@ -341,6 +356,9 @@ void procedures_at_exit(void) {
   free(asm_name);
   free(include_dir);
   free(full_name);
+
+  for (i = 0; i < 256; i++)
+    free(label_stack[i]);
 
   if (defines_map != NULL) {
     hashmap_free_all_elements(defines_map);

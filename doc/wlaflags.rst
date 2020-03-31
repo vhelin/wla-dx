@@ -10,6 +10,7 @@ You can supply WLA with some (or all or none) of the following option flags.
 -M  WLA generates makefile rules describing the dependencies of the main
     source file. Use only with flags ``o`` and ``l``.
 -q  Quiet mode. ``.PRINT*`` -directives output nothing.
+-s  Don't create _sizeof_* definitions.
 -t  Test compile. Doesn't output any files.
 -v  Verbose mode. Shows a lot of information about the compiling process.
 -x  Extra compile time labels & definitions. WLA does extra work by creating

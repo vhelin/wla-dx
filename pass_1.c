@@ -14,6 +14,7 @@
 #include "parse.h"
 #include "pass_1.h"
 #include "pass_2.h"
+#include "pass_3.h"
 #include "stack.h"
 #include "hashmap.h"
 #include "printf.h"
@@ -87,7 +88,7 @@ int name_defined = 0;
 #endif
 
 char tmp[4096], emsg[sizeof(tmp) + MAX_NAME_LENGTH + 1 + 1024];
-char *tmp_bf;
+char *tmp_bf, *label_stack[256];
 char cp[256];
 
 unsigned char *rom_banks = NULL, *rom_banks_usage_table = NULL;
@@ -113,6 +114,7 @@ extern int size, unfolded_size, input_number_error_msg, verbose_mode, output_for
 extern int stack_id, latest_stack, ss, commandline_parsing, newline_beginning, expect_calculations;
 extern int extra_definitions, string_size, input_float_mode, operand_hint, operand_hint_type;
 extern int include_dir_size, parse_floats, listfile_data, quiet, parsed_double_decimal_numbers;
+extern int create_sizeof_definitions;
 extern FILE *file_out_ptr;
 extern double parsed_double;
 extern char *final_name;
@@ -666,6 +668,7 @@ int pass_1(void) {
 	      snprintf(&tmp[q - 2], sizeof(tmp) - (q - 2), "%d", macro_runtime_current->macro->calls - 1);
 	  }
 
+	  add_label_to_label_stack(tmp);
 	  fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
 
 	  /* move to the end of the label */
@@ -1040,6 +1043,7 @@ int evaluate_token(void) {
         snprintf(&tmp[ss - 3], sizeof(tmp) - (ss - 3), "%d", macro_runtime_current->macro->calls - 1);
     }
 
+    add_label_to_label_stack(tmp);
     fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
 
     return SUCCEEDED;
@@ -1445,6 +1449,9 @@ int add_label_sizeof(char *label, int size) {
   struct label_sizeof *ls;
   char tmpname[MAX_NAME_LENGTH + 8];
 
+  if (create_sizeof_definitions == NO)
+    return SUCCEEDED;
+  
   /* we skip definitions for '_sizeof_.' (because .ENUM and .RAMSECTION use it as an anonymous label) */
   if (strcmp(".", label) == 0)
     return SUCCEEDED;
@@ -1480,7 +1487,6 @@ void free_struct(struct structure *st) {
       free_struct(si->union_items);
     /* don't free si->instance for STRUCTURE_ITEM_TYPE_INSTANCE since that's a reusable
        structure */
-
     si = si->next;
     free(tmp);
   }
@@ -1516,7 +1522,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
       fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
       /* we skip label emissions for "." (because .ENUM and .RAMSECTION use it as an anonymous label) */
       if (strcmp(".", name) != 0)
-	fprintf(file_out_ptr, "L%s ", name);
+  	fprintf(file_out_ptr, "L%s ", name);
     }
   }
   else { /* sizeof pass */
@@ -1525,12 +1531,14 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
         return FAILED;
     }
     else {
-      snprintf(tmp, sizeof(tmp), "_sizeof_%s", name);
-      if (add_a_new_definition(tmp, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-        return FAILED;
-      if (in_enum == YES && enum_exp == YES) {
-        if (export_a_definition(tmp) == FAILED)
-          return FAILED;
+      if (create_sizeof_definitions == YES) {
+	snprintf(tmp, sizeof(tmp), "_sizeof_%s", name);
+	if (add_a_new_definition(tmp, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+	  return FAILED;
+	if (in_enum == YES && enum_exp == YES) {
+	  if (export_a_definition(tmp) == FAILED)
+	    return FAILED;
+	}
       }
     }
   }
@@ -1869,14 +1877,17 @@ int parse_enum_token(void) {
     
     /* create the SIZEOF-definition for the entire struct */
     active_struct->size = max_enum_offset;
-    if (strlen(active_struct->name) > MAX_NAME_LENGTH - 8) {
-      snprintf(emsg, sizeof(emsg), "STRUCT \"%s\"'s name is too long!\n", active_struct->name);
-      print_error(emsg, ERROR_DIR);      
-      return FAILED;
+
+    if (create_sizeof_definitions == YES) {
+      if (strlen(active_struct->name) > MAX_NAME_LENGTH - 8) {
+	snprintf(emsg, sizeof(emsg), "STRUCT \"%s\"'s name is too long!\n", active_struct->name);
+	print_error(emsg, ERROR_DIR);
+	return FAILED;
+      }
+      snprintf(tmpname, sizeof(tmpname), "_sizeof_%s", active_struct->name);
+      if (add_a_new_definition(tmpname, (double)active_struct->size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+	return FAILED;
     }
-    snprintf(tmpname, sizeof(tmpname), "_sizeof_%s", active_struct->name);
-    if (add_a_new_definition(tmpname, (double)active_struct->size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-      return FAILED;
     
     if (active_struct->items == NULL) {
       snprintf(emsg, sizeof(emsg), "STRUCT \"%s\" is empty!\n", active_struct->name);
@@ -3145,8 +3156,13 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
       return FAILED;
 
     if (it->type != STRUCTURE_ITEM_TYPE_UNION) { /* add field label */
+      char full_label[MAX_NAME_LENGTH + 1];
+
       fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
-      if (add_label_sizeof(tmpname, it->size) == FAILED)
+    
+      if (get_full_label(tmpname, full_label) == FAILED)
+	return FAILED;
+      if (add_label_sizeof(full_label, it->size) == FAILED)
         return FAILED;
     }
 
@@ -3166,6 +3182,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
               return FAILED;
 
             fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
+
             if (add_label_sizeof(tmpname, us->size) == FAILED)
               return FAILED;
           }
@@ -3208,9 +3225,9 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             return FAILED;
 
           fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
+
           if (add_label_sizeof(tmpname, it->instance->size) == FAILED)
             return FAILED;
-
           if (parse_dstruct_entry(tmpname, it->instance, labels_only) == FAILED)
             return FAILED;
         }
@@ -3455,8 +3472,13 @@ int directive_dstruct(void) {
   */
 
   if (iname[0] != '\0') {
+    char full_label[MAX_NAME_LENGTH + 1];
+    
     fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, iname);
-    if (add_label_sizeof(iname, s->size) == FAILED)
+
+    if (get_full_label(iname, full_label) == FAILED)
+      return FAILED;
+    if (add_label_sizeof(full_label, s->size) == FAILED)
       return FAILED;
   }
 
@@ -3513,7 +3535,7 @@ int directive_dstruct(void) {
           if (parse_directive() == FAILED)
             return FAILED;
         }
-        while(1);
+        while (1);
       }
     }
 
@@ -9473,6 +9495,89 @@ int export_a_definition(char *name) {
 }
 
 
+/* store the labels in a label stack in which label_stack[0] is the base level label,
+   label_stack[1] is the first child, label_stack[2] is the second child, and so on... */
+int add_label_to_label_stack(char *l) {
+
+  int level = 0, q;
+
+  /* skip anonymous labels */
+  if (is_label_anonymous(l) == SUCCEEDED)
+    return SUCCEEDED;
+
+  for (q = 0; q < MAX_NAME_LENGTH; q++) {
+    if (l[q] == '@')
+      level++;
+    else
+      break;
+  }
+
+  if (level >= 256) {
+    print_error("ADD_LABEL_TO_LABEL_STACK: Out of label stack depth. Can handle only 255 child labels...\n", ERROR_ERR);
+    return FAILED;
+  }
+
+  if (level == 0) {
+    /* resetting level 0 label clears all the other levels */
+    for (q = 0; q < 256; q++)
+      label_stack[q][0] = 0;
+    strcpy(label_stack[0], l);
+  }
+  else
+    strcpy(label_stack[level], &l[level-1]);
+
+  /*
+  fprintf(stderr, "*************************************\n");
+  fprintf(stderr, "LABEL STACK:\n");
+  for (q = 0; q < 256; q++) {
+    if (label_stack[q][0] != 0)
+      fprintf(stderr, "%s LEVEL %d\n", label_stack[q], q);
+  }
+  fprintf(stderr, "*************************************\n");
+  */
+
+  return SUCCEEDED;
+}
+
+
+/* get the full version of a (possibly child) label */
+int get_full_label(char *l, char *out) {
+
+  char *error_message = "GET_FULL_LABEL: Constructed label size will be >= MAX_NAME_LENGTH. Edit the define in shared.h, compile WLA and try again...\n";
+  int level = 0, q;
+
+  for (q = 0; q < MAX_NAME_LENGTH; q++) {
+    if (l[q] == '@')
+      level++;
+    else
+      break;
+  }
+
+  if (level <= 0)
+    strcpy(out, l);
+  else {
+    /* create the full label, e.g.: "BASE@CHILD1@CHILD2" */
+    strcpy(out, label_stack[0]);
+    for (q = 1; q < level; q++) {
+      if (strlen(out) + strlen(label_stack[q]) >= MAX_NAME_LENGTH) {
+	print_error(error_message, ERROR_ERR);
+	return FAILED;	
+      }
+      strncat(out, label_stack[q], MAX_NAME_LENGTH);
+    }
+
+    if (strlen(out) + strlen(l) >= MAX_NAME_LENGTH) {
+      print_error(error_message, ERROR_ERR);
+      return FAILED;	
+    }
+
+    strncat(out, l, MAX_NAME_LENGTH);
+  }
+
+  return SUCCEEDED;
+}
+
+
 void generate_label(char *header, char *footer) {
 
   char footer2[MAX_NAME_LENGTH + 1];
@@ -9487,6 +9592,6 @@ void generate_label(char *header, char *footer) {
       footer2[q] = footer[q];
   }
   footer2[q] = 0;
-  
+
   fprintf(file_out_ptr, "L%s%s ", header, footer2);
 }

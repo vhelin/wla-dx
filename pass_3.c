@@ -202,9 +202,8 @@ int pass_3(void) {
           /* if the label has '@' at the start, mangle the label name to make it unique */
           int n = 0, m;
 
-          while (n < 10 && l->label[n] == '@') {
+          while (n < 10 && l->label[n] == '@')
             n++;
-          }
           m = n;
           while (m < 10)
             parent_labels[m++] = NULL;

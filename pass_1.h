@@ -21,6 +21,8 @@ int verify_name_length(char *name);
 int is_reserved_definition(char *t);
 
 void generate_label(char *header, char *footer);
+int add_label_to_label_stack(char *l);
+int get_full_label(char *l, char *out);
 void print_error(char *error, int type);
 void next_line(void);
 void delete_stack(struct stack *s);

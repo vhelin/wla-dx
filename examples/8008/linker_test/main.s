@@ -53,3 +53,40 @@ ExtrasEnd:
 	jtp ExtrasStart
 .DB "<BB"
 .ENDS
+
+;
+; Here is a test for structs and child labels
+;
+
+.STRUCT MyStruct
+    ByteVal         DB
+.ENDST
+
+.ORG $1100
+.SECTION "STRUCTS" FORCE
+
+Label_A:
+@Child:     ; This label works (it is Label_A@Child)
+.DSTRUCT @Instance INSTANCEOF MyStruct VALUES
+    ByteVal         .DB $FF
+.ENDST
+
+Label_B:
+@Child:     ; This label works (it is Label_B@Child)
+.DSTRUCT @Instance INSTANCEOF MyStruct VALUES
+    ByteVal         .DB $A5
+.ENDST
+
+Label_C:
+@Child:     ; This label works (it is Label_B@Child)
+.DSTRUCT @@Instance INSTANCEOF MyStruct VALUES
+    ByteVal         .DB $A5
+.ENDST
+
+Label_D:
+@Child:     ; This label works (it is Label_B@Child)
+.DSTRUCT Instance INSTANCEOF MyStruct VALUES
+    ByteVal         .DB $A5
+.ENDST
+
+.ENDS
