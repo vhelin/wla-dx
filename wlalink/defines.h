@@ -53,6 +53,7 @@
 #define STATE_FOOTER      4
 #define STATE_DEFINITION  5
 #define STATE_RAMSECTIONS 6
+#define STATE_SECTIONS    7
 
 #define SYMBOL_MODE_NONE   0
 #define SYMBOL_MODE_NOCA5H 1
@@ -174,6 +175,9 @@ struct section_fix {
   int  line_number;
   int  bank;
   int  slot;
+  int  orga;
+  int  org;
+  int  is_ramsection;
   struct section_fix *next;
 };
 

@@ -4,6 +4,8 @@ main.o
 bank 0 slot "SlotZero" library.lib
 bank 0 slot $4000 extras.lib
 [ramsections]
-bank 0 slot "RAM 2" "RAM VARS"
-bank 0 slot 5 "OTHER VARS"
+bank 0 slot "RAM 2" orga $E100 "RAM VARS"
+bank 0 slot 5 org $200 "OTHER VARS"
 bank 0 slot $D000 VARS
+[sections]
+bank 0 slot $8000 orga $8200 "DUMMY"

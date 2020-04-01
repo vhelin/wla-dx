@@ -4,7 +4,7 @@
 
 int strcaselesscmp(char *s1, char *s2);
 int check_ramsections(void);
-int fix_ramsections(void);
+int fix_all_sections(void);
 int fix_references(void);
 int fix_label_sections(void);
 int insert_label_into_maps(struct label *l, int is_sizeof);

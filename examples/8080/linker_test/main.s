@@ -59,3 +59,11 @@ ExtrasEnd:
 	cpe ExtrasStart
 .DB "<BB"
 .ENDS
+
+.ORG $2000
+.SECTION "DUMMY" FORCE
+DummyMain:
+	nop
+	nop
+	nop
+.ENDS

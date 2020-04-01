@@ -31,7 +31,8 @@ char file_name_error[] = "???";
 int load_files(char *argv[], int argc) {
 
   int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n;
-  char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1];
+  int org_defined, org, orga_defined, orga;
+  char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32];
   struct label *l;
   FILE *fop, *f;
 
@@ -83,6 +84,12 @@ int load_files(char *argv[], int argc) {
       }
       else if (strcaselesscmp("[ramsections]", token) == 0) {
 	state = STATE_RAMSECTIONS;
+	strcpy(state_name, "RAM section");
+	continue;
+      }
+      else if (strcaselesscmp("[sections]", token) == 0) {
+	state = STATE_SECTIONS;
+	strcpy(state_name, "section");
 	continue;
       }
       else {
@@ -101,9 +108,13 @@ int load_files(char *argv[], int argc) {
     bank_defined = NO;
     slot_defined = NO;
     base_defined = NO;
+    orga_defined = NO;
+    org_defined = NO;
     bank = 0;
     slot = 0;
     base = 0;
+    orga = 0;
+    org = 0;
 
     /* definitions? */
     if (state == STATE_DEFINITION) {
@@ -169,13 +180,13 @@ int load_files(char *argv[], int argc) {
       fclose(fop);
       return FAILED;
     }
-    /* ramsection settings? */
-    else if (state == STATE_RAMSECTIONS) {
+    /* section / ramsection settings? */
+    else if (state == STATE_RAMSECTIONS || state == STATE_SECTIONS) {
       i = SUCCEEDED;
       while (i == SUCCEEDED) {
 	if (strcaselesscmp(token, "bank") == 0) {
 	  if (bank_defined == YES) {
-	    fprintf(stderr, "%s:%d: LOAD_FILES: BANK defined for the second time for a RAM section.\n", argv[argc - 2], line);
+	    fprintf(stderr, "%s:%d: LOAD_FILES: BANK defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
 	    fclose(fop);
 	    return FAILED;
 	  }
@@ -189,7 +200,7 @@ int load_files(char *argv[], int argc) {
 	}
 	else if (strcaselesscmp(token, "slot") == 0) {
 	  if (slot_defined == YES) {
-	    fprintf(stderr, "%s:%d: LOAD_FILES: SLOT defined for the second time for a RAM section.\n", argv[argc - 2], line);
+	    fprintf(stderr, "%s:%d: LOAD_FILES: SLOT defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
 	    fclose(fop);
 	    return FAILED;
 	  }
@@ -207,6 +218,46 @@ int load_files(char *argv[], int argc) {
 	    slot = -1;
 	  }
 	}
+	else if (strcaselesscmp(token, "orga") == 0) {
+	  if (orga_defined == YES) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: ORGA defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+	    fclose(fop);
+	    return FAILED;
+	  }
+	  if (org_defined == YES) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: ORG was already defined before, cannot define ORGA.\n", argv[argc - 2], line);
+	    fclose(fop);
+	    return FAILED;
+	  }
+	  
+	  orga_defined = YES;
+
+	  if (get_next_number(&tmp[x], &orga, &x) == FAILED) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: Error in ORGA number.\n", argv[argc - 2], line);
+	    fclose(fop);
+	    return FAILED;
+	  }
+	}
+	else if (strcaselesscmp(token, "org") == 0) {
+	  if (org_defined == YES) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: ORG defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+	    fclose(fop);
+	    return FAILED;
+	  }
+	  if (orga_defined == YES) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: ORGA was already defined before, cannot define ORG.\n", argv[argc - 2], line);
+	    fclose(fop);
+	    return FAILED;
+	  }
+
+	  org_defined = YES;
+
+	  if (get_next_number(&tmp[x], &org, &x) == FAILED) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: Error in ORG number.\n", argv[argc - 2], line);
+	    fclose(fop);
+	    return FAILED;
+	  }
+	}
 	else
 	  break;
 	
@@ -214,17 +265,17 @@ int load_files(char *argv[], int argc) {
       }
       
       if (i == FAILED) {
-	fprintf(stderr, "%s:%d: LOAD_FILES: There is something wrong in a RAM section's settings.\n", argv[argc - 2], line);
+	fprintf(stderr, "%s:%d: LOAD_FILES: There is something wrong in a %s's settings.\n", argv[argc - 2], line, state_name);
 	fclose(fop);
 	return FAILED;
       }
       if (slot_defined == NO) {
-	fprintf(stderr, "%s:%d: LOAD_FILES: RAM section requires a SLOT.\n", argv[argc - 2], line);
+	fprintf(stderr, "%s:%d: LOAD_FILES: %s requires a SLOT.\n", argv[argc - 2], line, state_name);
 	fclose(fop);
 	return FAILED;
       }
       if (bank_defined == NO) {
-	fprintf(stderr, "%s:%d: LOAD_FILES: RAM sections requires a BANK.\n", argv[argc - 2], line);
+	fprintf(stderr, "%s:%d: LOAD_FILES: %s requires a BANK.\n", argv[argc - 2], line, state_name);
 	fclose(fop);
 	return FAILED;
       }
@@ -243,6 +294,21 @@ int load_files(char *argv[], int argc) {
       sec_fix_tmp->bank = bank;
       sec_fix_tmp->slot = slot;
 
+      if (orga_defined == YES)
+	sec_fix_tmp->orga = orga;
+      else
+	sec_fix_tmp->orga = -1;
+
+      if (org_defined == YES)
+	sec_fix_tmp->org = org;
+      else
+	sec_fix_tmp->org = -1;
+
+      if (state == STATE_RAMSECTIONS)
+	sec_fix_tmp->is_ramsection = YES;
+      else
+	sec_fix_tmp->is_ramsection = NO;
+      
       sec_fix_tmp->next = sec_fix_first;
       sec_fix_first = sec_fix_tmp;
 

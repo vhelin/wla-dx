@@ -4009,7 +4009,7 @@ int directive_ramsection(void) {
     }
 
     ind = slots[sec_tmp->slot].address;
-    if (d < ind || d > (ind + slots[sec_tmp->slot].size)) {
+    if (d < ind || d >= (ind + slots[sec_tmp->slot].size)) {
       print_error("ORGA is outside the current SLOT.\n", ERROR_DIR);
       return FAILED;
     }

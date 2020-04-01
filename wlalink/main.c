@@ -32,7 +32,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.13a (8.3.2020)";
+char version_string[] = "$VER: wlalink 5.13a (1.4.2020)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -271,8 +271,8 @@ int main(int argc, char *argv[]) {
   if (parse_data_blocks() == FAILED)
     return 1;
 
-  /* fix the library bank and slot of RAM sections, if specified in linkfile */
-  if (fix_ramsections() == FAILED)
+  /* fix the library bank, slot and org/orga of sections, if specified in linkfile */
+  if (fix_all_sections() == FAILED)
     return 1;
 
   /* check that all library RAM sections are given a bank and a slot */

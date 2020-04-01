@@ -37,6 +37,8 @@ v9.11 (31-Mar-2020) [ALL] Stack calculator's string checker handled only
                       creation.
                     [ALL] .DSTRUCT can now create child labels (e.g.,
                       ".DSTRUCT @Instance INSTANCEOF MyStruct VALUES").
+                    [ALL] WLA assembles now "WLA7" library files and "WLAY"
+                      object files.
                     [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
                       "JP (IY)".
                     [6CE] Added support for CSG65CE02.
@@ -1144,7 +1146,9 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.13 (23-Jan-2020) Added CMB PRG header writing (with flags -t and -a).
+v5.13 (01-Apr-2020) Added CMB PRG header writing (with flags -t and -a).
+                    Added support for ORG/ORGA to [ramsections].
+                    Added support for [sections] in linkfile.
 
 v5.12 (22-Dec-2019) Relaxed the checks regarding misc bits (e.g., SNES ROM
                       mode, GB checksum...) when loading the object files.

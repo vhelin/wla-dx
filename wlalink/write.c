@@ -746,15 +746,15 @@ int check_ramsections(void) {
 }
 
 
-/* fix the slot and bank of RAM sections inside libraries, as given in the linkfile */
-int fix_ramsections(void) {
+/* fix the slot, bank and org/orga of sections inside libraries, as given in the linkfile */
+int fix_all_sections(void) {
 
   struct section *s;
 
   
   sec_fix_tmp = sec_fix_first;
   while (sec_fix_tmp != NULL) {
-    /* find the section, and fix bank and slot */
+    /* find the section, and fix bank, slot and org/orga */
     s = sec_first;
     while (s != NULL) {
       if (strcmp(s->name, sec_fix_tmp->name) == 0) {
@@ -768,6 +768,16 @@ int fix_ramsections(void) {
 	  if (get_slot_by_a_value(sec_fix_tmp->slot, &(s->slot)) == FAILED)
 	    return FAILED;
 	}
+
+	if (sec_fix_tmp->orga >= 0) {
+	  if (sec_fix_tmp->orga < slots[s->slot].address || sec_fix_tmp->orga >= slots[s->slot].address + slots[s->slot].size) {
+	    fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: ORGA $%.4x is outside of the SLOT %d.\n", sec_fix_tmp->file_name, sec_fix_tmp->line_number, sec_fix_tmp->orga, s->slot);
+	    return FAILED;
+	  }
+	  s->address = sec_fix_tmp->orga - slots[s->slot].address;
+	}
+	if (sec_fix_tmp->org >= 0)
+	  s->address = sec_fix_tmp->org;
 	
 	break;
       }
@@ -775,7 +785,12 @@ int fix_ramsections(void) {
     }
 
     if (s == NULL) {
-      fprintf(stderr, "%s:%d: LOAD_FILES: Could not find RAM section \"%s\".\n", sec_fix_tmp->file_name, sec_fix_tmp->line_number, sec_fix_tmp->name);
+      fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: Could not find ", sec_fix_tmp->file_name, sec_fix_tmp->line_number);
+      if (sec_fix_tmp->is_ramsection == YES)
+	fprintf(stderr, "RAM section");
+      else
+	fprintf(stderr, "section");
+      fprintf(stderr, " \"%s\".\n", sec_fix_tmp->name);
       return FAILED;
     }
 

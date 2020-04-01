@@ -23,6 +23,7 @@ to link together. Here's the format:
         [footer]
         [definitions]
 	[ramsections]
+	[sections]
 
 2. Start to list the file names. ::
     
@@ -58,13 +59,20 @@ to link together. Here's the format:
         footer.dat
 
 5. If you have RAMSECTIONs inside the libraries, you must place
-   the sections inside BANKs and SLOTs::
+   the sections inside BANKs and SLOTs (ORG and ORGA are optional)::
 
         [ramsections]
-	bank 0 slot 3 "library 1 vars 1"
-	bank 0 slot 3 "library 1 vars 2"
+        bank 0 slot 3 org $0 "library 1 vars 1"
+	bank 0 slot 3 orga $6100 "library 1 vars 2"
 
-6. If you want to make value definitions, here's your chance::
+6. If you want to relocate normal sections, do as follows (ORG and ORGA
+   are optional, but useful)::
+
+        [sections]
+	bank 0 slot 1 org $100 "MusicPlayer"
+	bank 0 slot 1 org $2200 "EnemyAI"
+     
+7. If you want to make value definitions, here's your chance::
    
         [definitions]
         debug 1
