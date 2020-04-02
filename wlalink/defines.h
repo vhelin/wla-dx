@@ -177,6 +177,9 @@ struct section_fix {
   int  slot;
   int  orga;
   int  org;
+  int  status;
+  int  priority;
+  int  priority_defined;
   int  is_ramsection;
   struct section_fix *next;
 };

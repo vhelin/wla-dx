@@ -769,6 +769,12 @@ int fix_all_sections(void) {
 	    return FAILED;
 	}
 
+	if (sec_fix_tmp->status >= 0)
+	  s->status = sec_fix_tmp->status;
+
+	if (sec_fix_tmp->priority_defined == YES)
+	  s->priority = sec_fix_tmp->priority;
+	
 	if (sec_fix_tmp->orga >= 0) {
 	  if (sec_fix_tmp->orga < slots[s->slot].address || sec_fix_tmp->orga >= slots[s->slot].address + slots[s->slot].size) {
 	    fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: ORGA $%.4x is outside of the SLOT %d.\n", sec_fix_tmp->file_name, sec_fix_tmp->line_number, sec_fix_tmp->orga, s->slot);
@@ -850,8 +856,8 @@ int insert_label_into_maps(struct label* l, int is_sizeof) {
   if (is_sizeof)
     base_name += 8;
 
-  if (l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT
-      || is_label_anonymous(base_name) == YES) {
+  if (l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT ||
+      is_label_anonymous(base_name) == YES) {
     /* don't put anonymous labels, breakpoints, or symbols into any maps */
     put_in_anything = 0;
   }

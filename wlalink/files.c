@@ -31,7 +31,7 @@ char file_name_error[] = "???";
 int load_files(char *argv[], int argc) {
 
   int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n;
-  int org_defined, org, orga_defined, orga;
+  int org_defined, org, orga_defined, orga, status_defined, status, priority_defined, priority;
   char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32];
   struct label *l;
   FILE *fop, *f;
@@ -110,11 +110,15 @@ int load_files(char *argv[], int argc) {
     base_defined = NO;
     orga_defined = NO;
     org_defined = NO;
+    status_defined = NO;
+    priority_defined = NO;
     bank = 0;
     slot = 0;
     base = 0;
     orga = 0;
     org = 0;
+    status = -1;
+    priority = 0;
 
     /* definitions? */
     if (state == STATE_DEFINITION) {
@@ -258,6 +262,63 @@ int load_files(char *argv[], int argc) {
 	    return FAILED;
 	  }
 	}
+	else if (strcaselesscmp(token, "priority") == 0) {
+	  if (priority_defined == YES) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: PRIORITY defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+	    fclose(fop);
+	    return FAILED;
+	  }
+
+	  priority_defined = YES;
+
+	  if (get_next_number(&tmp[x], &priority, &x) == FAILED) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: Error in PRIORITY number.\n", argv[argc - 2], line);
+	    fclose(fop);
+	    return FAILED;
+	  }
+	}
+	else if (state == STATE_SECTIONS && (strcaselesscmp(token, "free") == 0 ||
+					     strcaselesscmp(token, "force") == 0 ||
+					     strcaselesscmp(token, "semisubfree") == 0 ||
+					     strcaselesscmp(token, "semifree") == 0 ||
+					     strcaselesscmp(token, "superfree") == 0 ||
+					     strcaselesscmp(token, "overwrite") == 0)) {
+	  if (status_defined == YES) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: Section type was defined for the second time.\n", argv[argc - 2], line);
+	    fclose(fop);
+	    return FAILED;
+	  }
+
+	  status_defined = YES;
+	  
+	  if (strcaselesscmp(token, "free") == 0)
+	    status = SECTION_STATUS_FREE;
+	  else if (strcaselesscmp(token, "force") == 0)
+	    status = SECTION_STATUS_FORCE;
+	  else if (strcaselesscmp(token, "overwrite") == 0)
+	    status = SECTION_STATUS_OVERWRITE;
+	  else if (strcaselesscmp(token, "semifree") == 0)
+	    status = SECTION_STATUS_SEMIFREE;
+	  else if (strcaselesscmp(token, "superfree") == 0)
+	    status = SECTION_STATUS_SUPERFREE;
+	  else if (strcaselesscmp(token, "semisubfree") == 0)
+	    status = SECTION_STATUS_SEMISUBFREE;
+	}
+	else if (state == STATE_RAMSECTIONS && (strcaselesscmp(token, "free") == 0 ||
+						strcaselesscmp(token, "force") == 0)) {
+	  if (status_defined == YES) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: RAM section type was defined for the second time.\n", argv[argc - 2], line);
+	    fclose(fop);
+	    return FAILED;
+	  }
+
+	  status_defined = YES;
+	  
+	  if (strcaselesscmp(token, "free") == 0)
+	    status = SECTION_STATUS_RAM_FREE;
+	  else if (strcaselesscmp(token, "force") == 0)
+	    status = SECTION_STATUS_RAM_FORCE;
+	}
 	else
 	  break;
 	
@@ -303,6 +364,14 @@ int load_files(char *argv[], int argc) {
 	sec_fix_tmp->org = org;
       else
 	sec_fix_tmp->org = -1;
+
+      if (status_defined == YES)
+	sec_fix_tmp->status = status;
+      else
+	sec_fix_tmp->status = -1;
+
+      sec_fix_tmp->priority_defined = priority_defined;
+      sec_fix_tmp->priority = priority;
 
       if (state == STATE_RAMSECTIONS)
 	sec_fix_tmp->is_ramsection = YES;

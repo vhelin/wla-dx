@@ -41,6 +41,7 @@ BANKS 4
 Main:	nop
 	jmp Main
 .DB $10
+.DW DummyMain, DummyMain2
 .ENDS
 
 .ORG $1000
@@ -61,8 +62,16 @@ ExtrasEnd:
 .ENDS
 
 .ORG $2000
-.SECTION "DUMMY" FORCE
+.SECTION "DUMMY" FREE
 DummyMain:
+	nop
+	nop
+	nop
+.ENDS
+
+.ORG $2000
+.SECTION "DUMMY2" FREE
+DummyMain2:
 	nop
 	nop
 	nop

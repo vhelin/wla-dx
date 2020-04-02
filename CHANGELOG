@@ -1146,9 +1146,11 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.13 (01-Apr-2020) Added CMB PRG header writing (with flags -t and -a).
+v5.13 (02-Apr-2020) Added CMB PRG header writing (with flags -t and -a).
                     Added support for ORG/ORGA to [ramsections].
                     Added support for [sections] in linkfile.
+                    Added support for section type and priority changing
+                      to [ramsections] and [sections].
 
 v5.12 (22-Dec-2019) Relaxed the checks regarding misc bits (e.g., SNES ROM
                       mode, GB checksum...) when loading the object files.

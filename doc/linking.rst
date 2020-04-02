@@ -59,18 +59,19 @@ to link together. Here's the format:
         footer.dat
 
 5. If you have RAMSECTIONs inside the libraries, you must place
-   the sections inside BANKs and SLOTs (ORG and ORGA are optional)::
+   the sections inside BANKs and SLOTs (ORG and ORGA are optional).
+   Note that you can also change the type and priority of the section::
 
         [ramsections]
         bank 0 slot 3 org $0 "library 1 vars 1"
-	bank 0 slot 3 orga $6100 "library 1 vars 2"
+	bank 0 slot 3 orga $6100 priority 100 force "library 1 vars 2"
 
 6. If you want to relocate normal sections, do as follows (ORG and ORGA
    are optional, but useful)::
 
         [sections]
 	bank 0 slot 1 org $100 "MusicPlayer"
-	bank 0 slot 1 org $2200 "EnemyAI"
+	bank 0 slot 1 orga $2200 semisubfree "EnemyAI"
      
 7. If you want to make value definitions, here's your chance::
    
