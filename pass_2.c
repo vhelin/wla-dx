@@ -114,24 +114,12 @@ int pass_2(void) {
       rs = smsromsize;
     else {
       /* try to calculate the correct romsize value */
-      if (max_address == 8*1024)
-	rs = 0xA;
-      else if (max_address == 16*1024)
-	rs = 0xB;
-      else if (max_address == 32*1024)
-	rs = 0xC;
-      else if (max_address == 48*1024)
-	rs = 0xD;
-      else if (max_address == 64*1024)
-	rs = 0xE;
-      else if (max_address == 128*1024)
-	rs = 0xF;
-      else if (max_address == 256*1024)
-	rs = 0x0;
-      else if (max_address == 512*1024)
-	rs = 0x1;
-      else if (max_address == 1024*1024)
-	rs = 0x2;
+      if (max_address < 16*1024)
+	rs = 0xA; /* 8KB */
+      else if (max_address < 32*1024)
+	rs = 0xB; /* 16KB */
+      else
+	rs = 0xC; /* 32KB */
     }
 
     if (max_address < 0x4000) {
