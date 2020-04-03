@@ -37,13 +37,15 @@ char sdsctag_name_str[MAX_NAME_LENGTH + 1], sdsctag_notes_str[MAX_NAME_LENGTH + 
 int sdsctag_name_type, sdsctag_notes_type, sdsctag_author_type, sdsc_ma, sdsc_mi;
 int sdsctag_name_value, sdsctag_notes_value, sdsctag_author_value;
 int computesmschecksum_defined = 0, sdsctag_defined = 0, smstag_defined = 0;
-int smsheader_defined = 0, smsversion = 0, smsversion_defined = 0, smsregioncode = 0, smsregioncode_defined = 0, smsproductcode_defined = 0, smsproductcode1 = 0, smsproductcode2 = 0, smsproductcode3 = 0, smsreservedspace1 = 0, smsreservedspace2 = 0, smsreservedspace_defined = 0;
+int smsheader_defined = 0, smsversion = 0, smsversion_defined = 0, smsregioncode = 0, smsregioncode_defined = 0;
+int smsproductcode_defined = 0, smsproductcode1 = 0, smsproductcode2 = 0, smsproductcode3 = 0, smsreservedspace1 = 0;
+int smsreservedspace2 = 0, smsreservedspace_defined = 0, smsromsize = 0, smsromsize_defined = 0;
 #endif
 
 int org_defined = 1, background_defined = 0, background_size = 0;
 int enumid_defined = 0, enumid = 0, enumid_adder = 1, enumid_export = 0;
 int bank = 0, bank_defined = 1;
-int rombanks = 0, rombanks_defined = 0, romtype = 0, max_address;
+int rombanks = 0, rombanks_defined = 0, romtype = 0, max_address = 0;
 int rambanks = 0, rambanks_defined = 0;
 int emptyfill, emptyfill_defined = 0;
 int section_status = OFF, section_id = 1, line_count_status = ON;
@@ -6101,6 +6103,27 @@ int directive_smsheader(void) {
 
       smsversion = d;
       smsversion_defined = 1;
+    }
+    else if (strcaselesscmp(tmp, "ROMSIZE") == 0) {
+      q = input_number();
+
+      if (q == FAILED)
+	return FAILED;
+      if (q != SUCCEEDED || d < 0 || d > 15) {
+	snprintf(emsg, sizeof(emsg), "ROMSIZE needs a value between 0 and 15, got %d.\n", d);
+	print_error(emsg, ERROR_DIR);
+	return FAILED;
+      }
+
+      if (smsromsize_defined != 0) {
+	if (smsromsize != d) {
+	  print_error("ROMSIZE was defined for the second time.\n", ERROR_DIR);
+	  return FAILED;
+	}
+      }
+
+      smsromsize = d;
+      smsromsize_defined = 1;
     }
     else if (strcaselesscmp(tmp, "REGIONCODE") == 0) {
       q = input_number();

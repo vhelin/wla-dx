@@ -704,6 +704,7 @@ This is not a compulsory directive.
         VERSION 1             ; 0-15
         REGIONCODE 4          ; 3-7
         RESERVEDSPACE 0, 0    ; 2 bytes
+	ROMSIZE 0             ; 0-15
     .ENDSMS
 
 The ``REGIONCODE`` also defines the system:

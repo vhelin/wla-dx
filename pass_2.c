@@ -36,7 +36,9 @@ extern char sdsctag_name_str[MAX_NAME_LENGTH + 1], sdsctag_notes_str[MAX_NAME_LE
 extern int sdsctag_name_type, sdsctag_notes_type, sdsctag_author_type, sdsc_ma, sdsc_mi;
 extern int sdsctag_name_value, sdsctag_notes_value, sdsctag_author_value;
 extern int computesmschecksum_defined, sdsctag_defined, smstag_defined;
-extern int smsheader_defined, smsversion, smsversion_defined, smsregioncode, smsregioncode_defined, smsproductcode_defined, smsproductcode1, smsproductcode2, smsproductcode3, smsreservedspace1, smsreservedspace2;
+extern int smsheader_defined, smsversion, smsversion_defined, smsregioncode, smsregioncode_defined;
+extern int smsproductcode_defined, smsproductcode1, smsproductcode2, smsproductcode3, smsreservedspace1, smsreservedspace2;
+extern int smsromsize, smsromsize_defined;
 #endif
 
 #ifdef W65816
@@ -106,7 +108,32 @@ int pass_2(void) {
   /* SMSHEADER */
   if (smsheader_defined != 0) {
     int tag_address = 0x7FF0;
-  
+    int rs = 0;
+
+    if (smsromsize_defined != 0)
+      rs = smsromsize;
+    else {
+      /* try to calculate the correct romsize value */
+      if (max_address == 8*1024)
+	rs = 0xA;
+      else if (max_address == 16*1024)
+	rs = 0xB;
+      else if (max_address == 32*1024)
+	rs = 0xC;
+      else if (max_address == 48*1024)
+	rs = 0xD;
+      else if (max_address == 64*1024)
+	rs = 0xE;
+      else if (max_address == 128*1024)
+	rs = 0xF;
+      else if (max_address == 256*1024)
+	rs = 0x0;
+      else if (max_address == 512*1024)
+	rs = 0x1;
+      else if (max_address == 1024*1024)
+	rs = 0x2;
+    }
+
     if (max_address < 0x4000) {
       /* let's assume it's a 8KB ROM */
       tag_address = 0x1FF0;
@@ -124,7 +151,7 @@ int pass_2(void) {
     mem_insert_absolute(tag_address + 0xC, smsproductcode1);
     mem_insert_absolute(tag_address + 0xD, smsproductcode2);
     mem_insert_absolute(tag_address + 0xE, (smsproductcode3 << 4) | smsversion);
-    mem_insert_absolute(tag_address + 0xF, smsregioncode << 4);
+    mem_insert_absolute(tag_address + 0xF, (smsregioncode << 4) | rs);
   }
 
   /* SDSCTAG */

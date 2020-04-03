@@ -122,9 +122,9 @@ int reserve_checksum_bytes(void) {
 int compute_checksums(void) {
 
   if (sms_checksum != 0)
-    compute_sms_checksum(0);
+    compute_sms_checksum();
   if (sms_header != 0)
-    compute_sms_checksum(1);
+    compute_sms_checksum();
   if (smstag_defined != 0 || sms_header != 0)
     add_tmr_sega();
   if (gb_complement_check != 0)
@@ -399,35 +399,23 @@ int add_tmr_sega(void) {
 }
 
 
-int compute_sms_checksum(int is_sms_header) {
+int compute_sms_checksum(void) {
 
   int tag_address = 0x7FF0, j, checksum;
-  /* SMS Export + 32KB ROM */
-  int final_byte = 0x4C;
 
   
   if (romsize < 0x4000) {
     /* let's assume it's a 8KB ROM */
     tag_address = 0x1FF0;
-    /* SMS Export + 8KB ROM */
-    final_byte = 0x4A;
   }
   else if (romsize < 0x8000) {
     /* let's assume it's a 16KB ROM */
     tag_address = 0x3FF0;
-    /* SMS Export + 16KB ROM */
-    final_byte = 0x4B;
   }
 
   if (romsize < 0x2000) {
     fprintf(stderr, "COMPUTE_SMS_CHECKSUM: SMS/GG checksum computing requires a ROM of at least 8KBs.\n");
     return SUCCEEDED;
-  }
-
-  if (is_sms_header != 0) {
-    /* get the region code from ROM */
-    final_byte &= 0xF;
-    final_byte |= rom[tag_address + 0xF] & 0xF0;
   }
 
   /* add together 8-32KB minus SMS/GG header */
@@ -440,12 +428,6 @@ int compute_sms_checksum(int is_sms_header) {
   
   mem_insert_allow_overwrite(tag_address + 0xA, checksum & 0xFF, 1);
   mem_insert_allow_overwrite(tag_address + 0xB, (checksum >> 8) & 0xFF, 1);
-
-  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Writing SMS/GG region code + ROM size");
-  
-  /* region code + ROM size */
-  mem_insert_allow_overwrite(tag_address + 0xF, final_byte, 1);
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
   snprintf(mem_insert_action, sizeof(mem_insert_action), "???");
