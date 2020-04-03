@@ -697,7 +697,8 @@ This is not a compulsory directive.
 ``.SMSHEADER``
 --------------
 
-::
+All the fields in ``.SMSHEADER`` are optional and default to zero except ROMSIZE. If
+ROMSIZE is not specified it will be calculated automatically::
 
     .SMSHEADER
         PRODUCTCODE 26, 70, 2 ; 2.5 bytes
