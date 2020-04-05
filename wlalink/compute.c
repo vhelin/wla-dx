@@ -451,6 +451,9 @@ int compute_sms_checksum(void) {
     return SUCCEEDED;
   }
 
+  if (checksum_max > romsize)
+    checksum_max = romsize;
+
   /* add together ROM SIZE minus SMS/GG header */
   checksum = 0;
   for (j = 0; j < checksum_max; j++) {
