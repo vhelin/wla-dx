@@ -401,16 +401,49 @@ int add_tmr_sega(void) {
 
 int compute_sms_checksum(void) {
 
-  int tag_address = 0x7FF0, j, checksum;
+  int tag_address = 0x7FF0, j, checksum, checksum_max = 32*1024, rom_size = 0;
 
-  
-  if (romsize < 0x4000) {
-    /* let's assume it's a 8KB ROM */
+
+  rom_size = rom[tag_address + 0xF] & 0xF;
+  if (rom_size == 0x0A) {
     tag_address = 0x1FF0;
+    checksum_max = 8*1024;
   }
-  else if (romsize < 0x8000) {
-    /* let's assume it's a 16KB ROM */
+  else if (rom_size == 0x0B) {
     tag_address = 0x3FF0;
+    checksum_max = 16*1024;
+  }
+  else if (rom_size == 0x0C) {
+    tag_address = 0x7FF0;
+    checksum_max = 32*1024;
+  }
+  else if (rom_size == 0x0D) {
+    tag_address = 0x7FF0;
+    checksum_max = 48*1024;
+  }
+  else if (rom_size == 0x0E) {
+    tag_address = 0x7FF0;
+    checksum_max = 64*1024;
+  }
+  else if (rom_size == 0x0F) {
+    tag_address = 0x7FF0;
+    checksum_max = 128*1024;
+  }
+  else if (rom_size == 0x00) {
+    tag_address = 0x7FF0;
+    checksum_max = 256*1024;
+  }
+  else if (rom_size == 0x01) {
+    tag_address = 0x7FF0;
+    checksum_max = 512*1024;
+  }
+  else if (rom_size == 0x02) {
+    tag_address = 0x7FF0;
+    checksum_max = 1024*1024;
+  }
+  else {
+    fprintf(stderr, "COMPUTE_SMS_CHECKSUM: Unsupported ROMSIZE $%x - not calculating the checksum.\n", rom_size);
+    return SUCCEEDED;
   }
 
   if (romsize < 0x2000) {
@@ -418,10 +451,12 @@ int compute_sms_checksum(void) {
     return SUCCEEDED;
   }
 
-  /* add together 8-32KB minus SMS/GG header */
+  /* add together ROM SIZE minus SMS/GG header */
   checksum = 0;
-  for (j = 0; j < tag_address; j++)
-    checksum += rom[j];
+  for (j = 0; j < checksum_max; j++) {
+    if (j < tag_address || j >= tag_address + 0x10)
+      checksum += rom[j];
+  }
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
   snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Writing SMS/GG ROM checksum bytes");
