@@ -451,8 +451,10 @@ int compute_sms_checksum(void) {
     return SUCCEEDED;
   }
 
-  if (checksum_max > romsize)
-    checksum_max = romsize;
+  if (checksum_max > romsize) {
+    fprintf(stderr, "COMPUTE_SMS_CHECKSUM: Defined ROMSIZE $%x (%dKBs) is bigger than the ROM image (%dKBs) itself.\n", rom_size, checksum_max / 1024, romsize / 1024);
+    return FAILED;
+  }
 
   /* add together ROM SIZE minus SMS/GG header */
   checksum = 0;
