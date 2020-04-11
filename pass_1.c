@@ -3179,13 +3179,17 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
         us = it->union_items;
         while (us != NULL) {
           if (us->name[0] != '\0') { /* check if the union is named */
-            snprintf(tmpname, sizeof(tmpname), "%s.%s", iname, us->name);
+	    char full_label[MAX_NAME_LENGTH + 1];
+
+	    snprintf(tmpname, sizeof(tmpname), "%s.%s", iname, us->name);
             if (verify_name_length(tmpname) == FAILED)
               return FAILED;
 
             fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
 
-            if (add_label_sizeof(tmpname, us->size) == FAILED)
+	    if (get_full_label(tmpname, full_label) == FAILED)
+	      return FAILED;
+	    if (add_label_sizeof(full_label, us->size) == FAILED)
               return FAILED;
           }
           else
@@ -3228,7 +3232,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
 
           fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
 
-          if (add_label_sizeof(tmpname, it->instance->size) == FAILED)
+	  if (add_label_sizeof(tmpname, it->instance->size) == FAILED)
             return FAILED;
           if (parse_dstruct_entry(tmpname, it->instance, labels_only) == FAILED)
             return FAILED;
@@ -9589,12 +9593,12 @@ int get_full_label(char *l, char *out) {
       strncat(out, label_stack[q], MAX_NAME_LENGTH);
     }
 
-    if (strlen(out) + strlen(l) >= MAX_NAME_LENGTH) {
+    if (strlen(out) + strlen(&l[level-1]) >= MAX_NAME_LENGTH) {
       print_error(error_message, ERROR_ERR);
       return FAILED;	
     }
 
-    strncat(out, l, MAX_NAME_LENGTH);
+    strncat(out, &l[level-1], MAX_NAME_LENGTH);
   }
 
   return SUCCEEDED;
