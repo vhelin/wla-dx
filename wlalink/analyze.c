@@ -116,6 +116,9 @@ int add_section(struct section *s) {
     memcpy(data, s->data, s->size);
     s->data = data;
   }
+  else {
+    s->data = NULL;
+  }
 
   s->file_id = obj_tmp->id;
   s->next = NULL;
