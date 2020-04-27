@@ -3535,7 +3535,7 @@ int directive_dstruct(void) {
             return FAILED;
           }
 
-          if (tmp[0] != '.' || strcmp(tmp, ".ENDST") == 0)
+          if (tmp[0] != '.' || strcaselesscmp(tmp, ".ENDST") == 0)
             break;
 
           if (parse_directive() == FAILED)

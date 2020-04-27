@@ -81,7 +81,7 @@ Label_C:
 @Child:     ; This label works (it is Label_B@Child)
 .DSTRUCT @@Instance INSTANCEOF MyStruct VALUES
     ByteVal         .DB $A5
-.ENDST
+.endst
 
 Label_D:
 @Child:     ; This label works (it is Label_B@Child)
