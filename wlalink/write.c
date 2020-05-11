@@ -34,6 +34,7 @@ extern unsigned char *rom, *rom_usage;
 extern unsigned char *file_header, *file_footer;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern char load_address_label[MAX_NAME_LENGTH + 1];
+extern char program_address_start_label[MAX_NAME_LENGTH + 1], program_address_end_label[MAX_NAME_LENGTH + 1];
 extern int load_address, load_address_type;
 extern int romsize, rombanks, banksize, verbose_mode, section_overwrite, symbol_mode;
 extern int pc_bank, pc_full, pc_slot, pc_slot_max, snes_rom_mode;
@@ -41,7 +42,7 @@ extern int file_header_size, file_footer_size, *bankaddress, *banksizes;
 extern int memory_file_id, memory_file_id_source, memory_line_number, output_mode;
 extern int program_start, program_end, snes_mode, smc_status;
 extern int snes_sramsize, num_sorted_anonymous_labels;
-extern int output_type, program_address_start, program_address_end;
+extern int output_type, program_address_start, program_address_end, program_address_start_type, program_address_end_type;
 
 int current_stack_calculation_addr = 0;
 
@@ -1559,12 +1560,47 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 }
 
 
+static int _get_rom_address_of_label(char *label, int *address) {
+
+  struct label *l;
+    
+
+  find_label(label, NULL, &l);
+
+  if (l == NULL) {
+    fprintf(stderr, "_GET_ROM_ADDRESS_OF_LABEL: Cannot find label \"%s\".\n", label);
+    return FAILED;
+  }
+
+  if (l->status != LABEL_STATUS_LABEL || (l->section_struct != NULL && (l->section_struct->status == SECTION_STATUS_RAM_FREE ||
+									l->section_struct->status == SECTION_STATUS_RAM_FORCE ||
+									l->section_struct->alive == NO))) {
+    fprintf(stderr, "_GET_ROM_ADDRESS_OF_LABEL: \"%s\" cannot be used.\n", label);
+    return FAILED;
+  }
+
+  *address = (int)l->rom_address;
+
+  return SUCCEEDED;
+}
+
+
 int write_rom_file(char *outname) {
 
   struct section *s;
   FILE *f;
   int i, b, e;
 
+  
+  /* get the addresses of the program start and end */
+  if (program_address_start_type == LOAD_ADDRESS_TYPE_LABEL) {
+    if (_get_rom_address_of_label(program_address_start_label, &program_address_start) == FAILED)
+      return FAILED;
+  }
+  if (program_address_end_type == LOAD_ADDRESS_TYPE_LABEL) {
+    if (_get_rom_address_of_label(program_address_end_label, &program_address_end) == FAILED)
+      return FAILED;
+  }
 
   if (program_address_start > romsize) {
     fprintf(stderr, "WRITE_ROM_FILE: The supplied -bS ($%x) overflows from the ROM!\n", program_address_start);
@@ -1646,6 +1682,12 @@ int write_rom_file(char *outname) {
     fwrite(rom + b, 1, e - b + 1, f);
     program_start = b;
     program_end = e;
+
+    if (program_address_start >= 0 && program_address_end < 0 && b > e) {
+      fprintf(stderr, "WRITE_ROM_FILE: The supplied -bS ($%x) is larger than calculated end ($%x).\n", b, e);
+      return FAILED;
+    }
+
     fprintf(stderr, "Program start $%x, end $%x.\n", b, e);
   }
 

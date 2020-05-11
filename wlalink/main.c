@@ -52,7 +52,8 @@ struct label_sizeof *label_sizeofs = NULL;
 unsigned char *rom, *rom_usage, *file_header = NULL, *file_footer = NULL;
 char load_address_label[MAX_NAME_LENGTH + 1];
 int load_address = 0, load_address_type = LOAD_ADDRESS_TYPE_UNDEFINED;
-int program_address_start = -1, program_address_end = -1;
+char program_address_start_label[MAX_NAME_LENGTH + 1], program_address_end_label[MAX_NAME_LENGTH + 1];
+int program_address_start = -1, program_address_end = -1, program_address_start_type = LOAD_ADDRESS_TYPE_UNDEFINED, program_address_end_type = LOAD_ADDRESS_TYPE_UNDEFINED;
 int romsize, rombanks, banksize, verbose_mode = OFF, section_overwrite = OFF, symbol_mode = SYMBOL_MODE_NONE, output_addr_to_line = OFF;
 int pc_bank, pc_full, pc_slot, pc_slot_max;
 int file_header_size, file_footer_size, *banksizes = NULL, *bankaddress = NULL;
@@ -802,9 +803,12 @@ int parse_flags(char **flags, int flagc) {
       if (count + 1 < flagc) {
         /* get arg */
 	if (get_next_number(flags[count + 1], &program_address_start, NULL) == FAILED) {
-	  fprintf(stderr, "Error in -bS!");
-	  return FAILED;
+	  /* address must be an address label */
+	  strncpy(program_address_start_label, flags[count + 1], MAX_NAME_LENGTH);
+	  program_address_start_type = LOAD_ADDRESS_TYPE_LABEL;
 	}
+	else
+	  program_address_start_type = LOAD_ADDRESS_TYPE_VALUE;
       }
       else
         return FAILED;
@@ -815,9 +819,12 @@ int parse_flags(char **flags, int flagc) {
       if (count + 1 < flagc) {
         /* get arg */
 	if (get_next_number(flags[count + 1], &program_address_end, NULL) == FAILED) {
-	  fprintf(stderr, "Error in -bE!");
-	  return FAILED;
+	  /* address must be an address label */
+	  strncpy(program_address_end_label, flags[count + 1], MAX_NAME_LENGTH);
+	  program_address_end_type = LOAD_ADDRESS_TYPE_LABEL;
 	}
+	else
+	  program_address_end_type = LOAD_ADDRESS_TYPE_VALUE;
       }
       else
         return FAILED;
