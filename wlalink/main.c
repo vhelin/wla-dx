@@ -32,7 +32,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.13a (6.4.2020)";
+char version_string[] = "$VER: wlalink 5.13a (11.5.2020)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -52,6 +52,7 @@ struct label_sizeof *label_sizeofs = NULL;
 unsigned char *rom, *rom_usage, *file_header = NULL, *file_footer = NULL;
 char load_address_label[MAX_NAME_LENGTH + 1];
 int load_address = 0, load_address_type = LOAD_ADDRESS_TYPE_UNDEFINED;
+int program_address_start = -1, program_address_end = -1;
 int romsize, rombanks, banksize, verbose_mode = OFF, section_overwrite = OFF, symbol_mode = SYMBOL_MODE_NONE, output_addr_to_line = OFF;
 int pc_bank, pc_full, pc_slot, pc_slot_max;
 int file_header_size, file_footer_size, *banksizes = NULL, *bankaddress = NULL;
@@ -189,6 +190,8 @@ int main(int argc, char *argv[]) {
     printf("USAGE: %s [OPTIONS] <LINK FILE> <OUTPUT FILE>\n\n", argv[0]);
     printf("Options:\n");
     printf("-b  Program file output\n");
+    printf("-bS Starting address of the program (optional)\n");
+    printf("-bE Ending address of the program (optional)\n");
     printf("-d  Discard unreferenced sections\n");
     printf("-i  Write list files\n");
     printf("-r  ROM file output (default)\n");
@@ -793,6 +796,32 @@ int parse_flags(char **flags, int flagc) {
 	return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_PRG;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-bS")) {
+      if (count + 1 < flagc) {
+        /* get arg */
+	if (get_next_number(flags[count + 1], &program_address_start, NULL) == FAILED) {
+	  fprintf(stderr, "Error in -bS!");
+	  return FAILED;
+	}
+      }
+      else
+        return FAILED;
+      count++;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-bE")) {
+      if (count + 1 < flagc) {
+        /* get arg */
+	if (get_next_number(flags[count + 1], &program_address_end, NULL) == FAILED) {
+	  fprintf(stderr, "Error in -bE!");
+	  return FAILED;
+	}
+      }
+      else
+        return FAILED;
+      count++;
       continue;
     }
     else if (!strcmp(flags[count], "-r")) {

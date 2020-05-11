@@ -41,7 +41,7 @@ extern int file_header_size, file_footer_size, *bankaddress, *banksizes;
 extern int memory_file_id, memory_file_id_source, memory_line_number, output_mode;
 extern int program_start, program_end, snes_mode, smc_status;
 extern int snes_sramsize, num_sorted_anonymous_labels;
-extern int output_type;
+extern int output_type, program_address_start, program_address_end;
 
 int current_stack_calculation_addr = 0;
 
@@ -1566,6 +1566,19 @@ int write_rom_file(char *outname) {
   int i, b, e;
 
 
+  if (program_address_start > romsize) {
+    fprintf(stderr, "WRITE_ROM_FILE: The supplied -bS ($%x) overflows from the ROM!\n", program_address_start);
+    return FAILED;
+  }
+  if (program_address_end > romsize) {
+    fprintf(stderr, "WRITE_ROM_FILE: The supplied -bE ($%x) overflows from the ROM!\n", program_address_end);
+    return FAILED;
+  }
+  if (program_address_start >= 0 && program_address_end >= 0 && program_address_start > program_address_end) {
+    fprintf(stderr, "WRITE_ROM_FILE: The supplied -bS ($%x) is larger than -bE ($%x).\n", program_address_start, program_address_end);
+    return FAILED;
+  }
+
   f = fopen(outname, "wb");
   if (f == NULL) {
     fprintf(stderr, "WRITE_ROM_FILE: Error opening file \"%s\" for writing.\n", outname);
@@ -1615,6 +1628,12 @@ int write_rom_file(char *outname) {
 	e = i;
     }
 
+    /* overrides from the options to WLALINK */
+    if (program_address_start >= 0)
+      b = program_address_start;
+    if (program_address_end >= 0)
+      e = program_address_end;
+
     s = sec_bankhd_first;
     while (s != NULL) {
       if (s->bank == 0) {
@@ -1627,6 +1646,7 @@ int write_rom_file(char *outname) {
     fwrite(rom + b, 1, e - b + 1, f);
     program_start = b;
     program_end = e;
+    fprintf(stderr, "Program start $%x, end $%x.\n", b, e);
   }
 
   if (file_footer != NULL)
