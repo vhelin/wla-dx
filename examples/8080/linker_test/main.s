@@ -69,10 +69,32 @@ DummyMain:
 	nop
 .ENDS
 
+.MACRO JUMP_MACRO
+	.print "OUTMOST:::IN\n"
+        MACRO_INCLUDE
+	.print "OUTMOST:::OUT\n"
+.ENDM
+
+.MACRO MACRO_INCLUDE
+	.print "INSIDE:::IN\n"
+	.include include.s
+	.print "INSIDE:::OUT\n"
+.ENDM
+	
 .ORG $2000
 .SECTION "DUMMY2" FREE
 DummyMain2:
 	nop
 	nop
 	nop
+
+	.DB "CC>"
+	JUMP_MACRO
+	JUMP_MACRO
+	.DB "<CC"
+	
+LABEL:	.print "THE END\n"
+
 .ENDS
+
+

@@ -298,9 +298,9 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
   
   mrt->caller = caller;
   mrt->macro = m;
-  mrt->macro_end = i;
-  mrt->macro_end_line = active_file_info_last->line_current;
-  mrt->macro_end_filename_id = active_file_info_last->filename_id;
+  mrt->macro_return_i = i;
+  mrt->macro_return_line = active_file_info_last->line_current;
+  mrt->macro_return_filename_id = active_file_info_last->filename_id;
 
   if ((extra_definitions == ON) && (active_file_info_last->filename_id != m->filename_id)) {
     redefine("WLA_FILENAME", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(m->filename_id)));
@@ -596,9 +596,6 @@ int pass_1(void) {
 
   /* start from the very first character */
   i = 0;
-
-  /* output the file id */
-  fprintf(file_out_ptr, "f%d ", active_file_info_tmp->filename_id);
 
   /* BANK 0 SLOT 0 ORG 0 */
   if (output_format != OUTPUT_LIBRARY)
@@ -998,7 +995,7 @@ int evaluate_token(void) {
   char labely[256];
 #endif
 
-  
+
   /* are we in an enum, ramsection, or struct? */
   if (in_enum == YES || in_ramsection == YES || in_struct == YES)
     return parse_enum_token();
@@ -1434,6 +1431,9 @@ void next_line(void) {
   newline_beginning = ON;
 
   if (line_count_status == OFF)
+    return;
+
+  if (active_file_info_last == NULL)
     return;
 
   /* output the file number for list file structure building */
@@ -3748,9 +3748,24 @@ int directive_incdir(void) {
 }
 
 
-int directive_include(void) {
+int directive_include(int is_real) {
 
-  int o;
+  int o, include_size = 0;
+
+  if (is_real == YES) {
+    /* turn the .INCLUDE/.INC into .INDLUDE/.IND to mark it as used,
+       for repetitive macro calls that contain .INCLUDE/.INC... */
+    o = i;
+    while (o >= 0) {
+      if (toupper(buffer[o+0]) == 'I' &&
+	  toupper(buffer[o+1]) == 'N' &&
+	  toupper(buffer[o+2]) == 'C') {
+	buffer[o+2] = 'd';
+	break;
+      }
+      o--;
+    }
+  }
   
   expect_calculations = NO;
   o = input_number();
@@ -3761,18 +3776,25 @@ int directive_include(void) {
     return FAILED;
   }
 
-  if (macro_active != 0) {
-    print_error("You cannot include a file inside a MACRO.\n", ERROR_DIR);
-    return FAILED;
-  }
-
   /* convert the path to local enviroment */
   localize_path(label);
 
-  if (include_file(label) == FAILED)
-    return FAILED;
+  if (is_real == YES) {
+    if (include_file(label, &include_size) == FAILED)
+      return FAILED;
+  
+    /* WARNING: this is tricky: did we just include a file inside a macro? */
+    if (macro_active != 0) {
+      /* yes. note that the now we added new bytes after i, so if a macro_return_i is
+	 bigger than i, we'll need to add the bytes to it */
+      int q;
 
-  fprintf(file_out_ptr, "f%d ", active_file_info_tmp->filename_id);
+      for (q = 0; q < macro_active; q++) {
+	if (macro_stack[q].macro_return_i > i)
+	  macro_stack[q].macro_return_i += include_size;
+      }
+    }
+  }
   
   return SUCCEEDED;
 }
@@ -6592,17 +6614,17 @@ int directive_endm(void) {
     for (q = 0; q < macro_stack[macro_active].macro->nargument_names; q++)
       undefine(macro_stack[macro_active].macro->argument_names[q]);
 
-    i = macro_stack[macro_active].macro_end;
+    i = macro_stack[macro_active].macro_return_i;
 
-    if ((extra_definitions == ON) && (active_file_info_last->filename_id != macro_stack[macro_active].macro_end_filename_id)) {
-      redefine("WLA_FILENAME", 0.0, get_file_name(macro_stack[macro_active].macro_end_filename_id), DEFINITION_TYPE_STRING,
-	       (int)strlen(get_file_name(macro_stack[macro_active].macro_end_filename_id)));
-      redefine("wla_filename", 0.0, get_file_name(macro_stack[macro_active].macro_end_filename_id), DEFINITION_TYPE_STRING,
-	       (int)strlen(get_file_name(macro_stack[macro_active].macro_end_filename_id)));
+    if ((extra_definitions == ON) && (active_file_info_last->filename_id != macro_stack[macro_active].macro_return_filename_id)) {
+      redefine("WLA_FILENAME", 0.0, get_file_name(macro_stack[macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING,
+	       (int)strlen(get_file_name(macro_stack[macro_active].macro_return_filename_id)));
+      redefine("wla_filename", 0.0, get_file_name(macro_stack[macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING,
+	       (int)strlen(get_file_name(macro_stack[macro_active].macro_return_filename_id)));
     }
 
-    active_file_info_last->filename_id = macro_stack[macro_active].macro_end_filename_id;
-    active_file_info_last->line_current = macro_stack[macro_active].macro_end_line;
+    active_file_info_last->filename_id = macro_stack[macro_active].macro_return_filename_id;
+    active_file_info_last->line_current = macro_stack[macro_active].macro_return_line;
 
     /* was this the last macro called? */
     if (macro_active == 0) {
@@ -7830,7 +7852,12 @@ int parse_directive(void) {
   /* INCLUDE/INC */
 
   if (strcaselesscmp(cp, "INCLUDE") == 0 || strcaselesscmp(cp, "INC") == 0)
-    return directive_include();
+    return directive_include(YES);
+
+  /* INDLUDE/IND (INTERNAL) */
+
+  if (strcaselesscmp(cp, "INDLUDE") == 0 || strcaselesscmp(cp, "IND") == 0)
+    return directive_include(NO);
 
   /* INCBIN */
 
@@ -8489,7 +8516,67 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
-  /* E */
+  /* CHANGEFILE (INTERNAL) */
+  if (strcaselesscmp(cp, "CHANGEFILE") == 0) {
+    int include_line_offset;
+    
+    q = input_number();
+    if (q != SUCCEEDED) {
+      print_error("Internal error in (internal) .CHANGEFILE. Please submit a bug report...\n", ERROR_DIR);
+      return FAILED;
+    }
+    
+    active_file_info_tmp = calloc(sizeof(struct active_file_info), 1);
+    if (active_file_info_tmp == NULL) {
+      snprintf(emsg, sizeof(emsg), "Out of memory while trying allocate error tracking data structure.\n");
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
+    }
+    active_file_info_tmp->next = NULL;
+
+    if (active_file_info_first == NULL) {
+      active_file_info_first = active_file_info_tmp;
+      active_file_info_last = active_file_info_tmp;
+      active_file_info_tmp->prev = NULL;
+      include_line_offset = 1;
+    }
+    else {
+      active_file_info_tmp->prev = active_file_info_last;
+      active_file_info_last->next = active_file_info_tmp;
+      active_file_info_last = active_file_info_tmp;
+      include_line_offset = 1;
+    }
+
+    active_file_info_tmp->line_current = 1 - include_line_offset;
+    active_file_info_tmp->filename_id = d;
+
+    if (extra_definitions == ON) {
+      file_name_info_tmp = file_name_info_first;
+      while (file_name_info_tmp != NULL) {
+	if (file_name_info_tmp->id == d)
+	  break;
+	file_name_info_tmp = file_name_info_tmp->next;
+      }
+
+      if (file_name_info_tmp == NULL) {
+	snprintf(emsg, sizeof(emsg), "Internal error: Could not find the name of file %d.\n", d);
+	print_error(emsg, ERROR_DIR);
+	return FAILED;
+      }
+
+      redefine("WLA_FILENAME", 0.0, file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(file_name_info_tmp->name));
+      redefine("wla_filename", 0.0, file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(file_name_info_tmp->name));
+    }
+
+    /* output the file id */
+    fprintf(file_out_ptr, "f%d ", active_file_info_tmp->filename_id);
+
+    open_files++;
+
+    return SUCCEEDED;
+  }
+
+  /* E (INTERNAL) */
 
   if (strcaselesscmp(cp, "E") == 0) {
     if (active_file_info_last != NULL) {
@@ -8501,6 +8588,11 @@ int parse_directive(void) {
       else
         fprintf(file_out_ptr, "f%d ", active_file_info_last->filename_id);
     }
+
+    /* fix the line */
+    if (active_file_info_last != NULL)
+      active_file_info_last->line_current--;
+
     fprintf(file_out_ptr, "E ");
     open_files--;
     if (open_files == 0)

@@ -480,9 +480,9 @@ struct macro_incbin {
 
 struct macro_runtime {
   struct macro_static *macro;
-  int  macro_end;
-  int  macro_end_line;
-  int  macro_end_filename_id;
+  int  macro_return_i;
+  int  macro_return_line;
+  int  macro_return_filename_id;
   int  supplied_arguments;
   int  caller;
   char string[MAX_NAME_LENGTH + 1];
