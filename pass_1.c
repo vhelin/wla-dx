@@ -8518,8 +8518,6 @@ int parse_directive(void) {
 
   /* CHANGEFILE (INTERNAL) */
   if (strcaselesscmp(cp, "CHANGEFILE") == 0) {
-    int include_line_offset;
-    
     q = input_number();
     if (q != SUCCEEDED) {
       print_error("Internal error in (internal) .CHANGEFILE. Please submit a bug report...\n", ERROR_DIR);
@@ -8538,16 +8536,14 @@ int parse_directive(void) {
       active_file_info_first = active_file_info_tmp;
       active_file_info_last = active_file_info_tmp;
       active_file_info_tmp->prev = NULL;
-      include_line_offset = 1;
     }
     else {
       active_file_info_tmp->prev = active_file_info_last;
       active_file_info_last->next = active_file_info_tmp;
       active_file_info_last = active_file_info_tmp;
-      include_line_offset = 1;
     }
 
-    active_file_info_tmp->line_current = 1 - include_line_offset;
+    active_file_info_tmp->line_current = 0;
     active_file_info_tmp->filename_id = d;
 
     if (extra_definitions == ON) {
