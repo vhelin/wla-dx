@@ -41,7 +41,7 @@ extern int pc_bank, pc_full, pc_slot, pc_slot_max, snes_rom_mode;
 extern int file_header_size, file_footer_size, *bankaddress, *banksizes;
 extern int memory_file_id, memory_file_id_source, memory_line_number, output_mode;
 extern int program_start, program_end, snes_mode, smc_status;
-extern int snes_sramsize, num_sorted_anonymous_labels;
+extern int snes_sramsize, num_sorted_anonymous_labels, sort_sections;
 extern int output_type, program_address_start, program_address_end, program_address_start_type, program_address_end_type;
 
 int current_stack_calculation_addr = 0;
@@ -54,7 +54,7 @@ static int _sections_sort(const void *a, const void *b) {
     return 1;
   else if ((*((struct section **)a))->priority > (*((struct section **)b))->priority)
     return -1;
-  
+
   if ((*((struct section **)a))->size < (*((struct section **)b))->size)
     return 1;
 
@@ -266,8 +266,9 @@ int insert_sections(void) {
     s = s->next;
   }
 
-  /* sort the sections by size, biggest first */
-  qsort(sa, sn, sizeof(struct section *), _sections_sort);
+  /* sort the sections by priority first and then by size, biggest first */
+  if (sort_sections == YES)
+    qsort(sa, sn, sizeof(struct section *), _sections_sort);
 
   /* print the sizes (DEBUG) */
   /*

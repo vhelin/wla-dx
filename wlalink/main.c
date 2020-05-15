@@ -32,7 +32,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.13a (11.5.2020)";
+char version_string[] = "$VER: wlalink 5.13a (15.5.2020)";
 
 #ifdef AMIGA
 long __stack = 200000;
@@ -61,7 +61,7 @@ int output_mode = OUTPUT_ROM, discard_unreferenced_sections = OFF, use_libdir = 
 int program_start, program_end, sms_checksum, smstag_defined = 0, snes_rom_mode = SNES_ROM_MODE_LOROM, snes_rom_speed = SNES_ROM_SPEED_SLOWROM, sms_header = 0;
 int gb_checksum, gb_complement_check, snes_checksum, snes_mode = 0;
 int listfile_data = NO, smc_status = 0, snes_sramsize = 0;
-int output_type = OUTPUT_TYPE_UNDEFINED;
+int output_type = OUTPUT_TYPE_UNDEFINED, sort_sections = YES;
 int num_sorted_anonymous_labels = 0;
 
 
@@ -194,6 +194,7 @@ int main(int argc, char *argv[]) {
     printf("-bS Starting address of the program (optional)\n");
     printf("-bE Ending address of the program (optional)\n");
     printf("-d  Discard unreferenced sections\n");
+    printf("-nS Don't sort the sections\n");
     printf("-i  Write list files\n");
     printf("-r  ROM file output (default)\n");
     printf("-s  Write also a NO$GMB/NO$SNES symbol file\n");
@@ -879,6 +880,10 @@ int parse_flags(char **flags, int flagc) {
     }
     else if (!strcmp(flags[count], "-i")) {
       listfile_data = YES;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-nS")) {
+      sort_sections = NO;
       continue;
     }
     else if (!strcmp(flags[count], "-v")) {
