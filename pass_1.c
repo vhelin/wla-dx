@@ -626,7 +626,7 @@ int pass_1(void) {
         m = macro_get(tmp);
 
       /* it is a label after all? */
-      if (q != ss || newline_beginning == ON) {
+      if (q != ss || (newline_beginning == ON && m == NULL)) {
 	char old_tmp_q = tmp[q];
 	
         tmp[q] = 0;

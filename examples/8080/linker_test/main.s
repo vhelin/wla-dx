@@ -88,12 +88,12 @@ DummyMain2:
 	nop
 	nop
 
-	.DB "CC>"
-	JUMP_MACRO
-	JUMP_MACRO
-	.DB "<CC"
+.DB "CC>"
+JUMP_MACRO
+JUMP_MACRO
+.DB "<CC"
 	
-LABEL:	.print "THE END\n"
+LABEL	.print "THE END\n"
 
 .ENDS
 

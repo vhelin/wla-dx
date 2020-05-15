@@ -41,6 +41,8 @@ v9.11 (15-May-2020) [ALL] Stack calculator's string checker handled only
                       object files.
                     [ALL] .ENDST should be case insensitive in all cases.
                     [ALL] .INCLUDE can now be used inside .MACROs.
+                    [ALL] Macro calls can now be made from the very beginning
+                      of a new line (where labels are).
                     [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
                       "JP (IY)".
                     [Z80] Added ROMSIZE to .SMSHEADER. Fixed automatic
