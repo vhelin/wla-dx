@@ -40,7 +40,7 @@ FILE *file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char version_string[] = "$VER: wla-" WLA_NAME " 9.11a (15.5.2020)";
+char version_string[] = "$VER: wla-" WLA_NAME " 9.11a (16.5.2020)";
 char wla_version[] = "9.11a";
 
 char *tmp_name = NULL;
@@ -179,7 +179,7 @@ int main(int argc, char *argv[]) {
   commandline_parsing = OFF;
 
   /* start the process */
-  if (include_file(asm_name, &include_size) == FAILED)
+  if (include_file(asm_name, &include_size, NULL) == FAILED)
     return 1;
 
   if (pass_1() == FAILED)

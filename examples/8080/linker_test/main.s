@@ -97,4 +97,5 @@ LABEL	.print "THE END\n"
 
 .ENDS
 
-
+	.include "namespace.s" namespace "oops"
+	.dw hello.oops.NamespaceMain, oops.NamespaceBonus

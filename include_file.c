@@ -72,11 +72,11 @@ int create_full_name(char *dir, char *name) {
 }
 
 
-int include_file(char *name, int *include_size) {
+int include_file(char *name, int *include_size, char *namespace) {
 
   static int first_load = 0;
   int file_size, id, change_file_buffer_size;
-  char *tmp_b, *n, *tmp_c, change_file_buffer[64];
+  char *tmp_b, *n, *tmp_c, change_file_buffer[MAX_NAME_LENGTH * 2];
   FILE *f;
 
 
@@ -151,6 +151,7 @@ int include_file(char *name, int *include_size) {
   /* name */
   file_name_info_tmp = file_name_info_first;
   id = 0;
+  /* NOTE: every filename, even included multiple times, is unique
   while (file_name_info_tmp != NULL) {
     if (strcmp(file_name_info_tmp->name, full_name) == 0) {
       id = file_name_info_tmp->id;
@@ -158,6 +159,7 @@ int include_file(char *name, int *include_size) {
     }
     file_name_info_tmp = file_name_info_tmp->next;
   }
+  */
 
   if (id == 0) {
     file_name_info_tmp = calloc(sizeof(struct file_name_info), 1);
@@ -189,7 +191,10 @@ int include_file(char *name, int *include_size) {
     file_name_id++;
   }
 
-  snprintf(change_file_buffer, sizeof(change_file_buffer), "%c.CHANGEFILE %d%c", 0xA, id, 0xA);
+  if (namespace == NULL || namespace[0] == 0)
+    snprintf(change_file_buffer, sizeof(change_file_buffer), "%c.CHANGEFILE %d NONAMESPACE%c", 0xA, id, 0xA);
+  else
+    snprintf(change_file_buffer, sizeof(change_file_buffer), "%c.CHANGEFILE %d NAMESPACE %s%c", 0xA, id, namespace, 0xA);
   change_file_buffer_size = strlen(change_file_buffer);
 
   /* reallocate buffer */

@@ -881,6 +881,13 @@ directory. If the ``INCDIR`` is specified in the command line, WLA will first
 try to find the file specified in that directory. Then proceed as mentioned
 before if it is not found.
 
+If you want to prefix all labels inside the included file with something, use ::
+
+    .INCLUDE "music_player.s" NAMESPACE "musicplayer"  
+
+In the case of this example, all labels and references to those labels inside
+the included file are prefixed with "musicplayer.".
+
 This is not a compulsory directive.
 
 

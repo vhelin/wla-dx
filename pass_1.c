@@ -3751,6 +3751,7 @@ int directive_incdir(void) {
 int directive_include(int is_real) {
 
   int o, include_size = 0;
+  char namespace[MAX_NAME_LENGTH + 1], path[MAX_NAME_LENGTH + 1];
 
   if (is_real == YES) {
     /* turn the .INCLUDE/.INC into .INDLUDE/.IND to mark it as used,
@@ -3778,9 +3779,27 @@ int directive_include(int is_real) {
 
   /* convert the path to local enviroment */
   localize_path(label);
+  strcpy(path, label);
+
+  if (compare_next_token("NAMESPACE") != SUCCEEDED)
+    namespace[0] = 0;
+  else {
+    skip_next_token();
+
+    expect_calculations = NO;
+    o = input_number();
+    expect_calculations = YES;
+    
+    if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
+      print_error("Namespace string is missing.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    strcpy(namespace, label);
+  }
 
   if (is_real == YES) {
-    if (include_file(label, &include_size) == FAILED)
+    if (include_file(path, &include_size, namespace) == FAILED)
       return FAILED;
   
     /* WARNING: this is tricky: did we just include a file inside a macro? */
@@ -8566,9 +8585,37 @@ int parse_directive(void) {
 
     /* output the file id */
     fprintf(file_out_ptr, "f%d ", active_file_info_tmp->filename_id);
-
+    
     open_files++;
 
+    if (compare_next_token("NAMESPACE") == SUCCEEDED) {
+      skip_next_token();
+
+      expect_calculations = NO;
+      q = input_number();
+      expect_calculations = YES;
+    
+      if (q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
+	print_error("Internal error: Namespace string is missing.\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      strcpy(active_file_info_tmp->namespace, label);
+
+      fprintf(file_out_ptr, "t1 %s ", active_file_info_tmp->namespace);
+    }
+    else if (compare_next_token("NONAMESPACE") == SUCCEEDED) {
+      skip_next_token();
+      
+      active_file_info_tmp->namespace[0] = 0;
+
+      fprintf(file_out_ptr, "t0 ");
+    }
+    else {
+      print_error("Internal error: NAMESPACE/NONAMESPACE is missing.\n", ERROR_DIR);
+      return FAILED;
+    }
+    
     return SUCCEEDED;
   }
 
@@ -8579,10 +8626,17 @@ int parse_directive(void) {
       active_file_info_tmp = active_file_info_last;
       active_file_info_last = active_file_info_last->prev;
       free(active_file_info_tmp);
+
       if (active_file_info_last == NULL)
         active_file_info_first = NULL;
-      else
+      else {
         fprintf(file_out_ptr, "f%d ", active_file_info_last->filename_id);
+
+	if (active_file_info_last->namespace[0] == 0)
+	  fprintf(file_out_ptr, "t0 ");
+	else
+	  fprintf(file_out_ptr, "t1 %s ", active_file_info_last->namespace);	  
+      }
     }
 
     /* fix the line */

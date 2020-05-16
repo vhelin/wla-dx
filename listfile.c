@@ -169,6 +169,10 @@ int listfile_collect(void) {
     case 'Z':
       continue;
 
+    case 't':
+      fscanf(file_in, "%*s ");
+      continue;
+      
     case 'Y':
     case 'L':
       fscanf(file_in, "%*s ");

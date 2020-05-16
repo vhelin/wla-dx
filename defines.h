@@ -89,6 +89,7 @@
 /* j - rept start          */
 /* J - rept end            */
 /* v - special case ID     */
+/* t - namespace           */
 
 /**************************************************************/
 /* gb-z80                                                     */
@@ -552,6 +553,7 @@ struct export_def {
 struct active_file_info {
   int    filename_id;
   int    line_current;
+  char   namespace[MAX_NAME_LENGTH + 1];
   struct active_file_info *next;
   struct active_file_info *prev;
 };
