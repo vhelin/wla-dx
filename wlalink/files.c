@@ -22,6 +22,7 @@ extern struct label *labels_first, *labels_last;
 extern unsigned char *file_header, *file_footer;
 extern char ext_libdir[MAX_NAME_LENGTH + 1];
 extern int file_header_size, file_footer_size, use_libdir;
+extern struct append_section *append_sections, *append_tmp;
 
 struct section_fix *sec_fix_first = NULL, *sec_fix_tmp;
 char file_name_error[] = "???";
@@ -31,8 +32,8 @@ char file_name_error[] = "???";
 int load_files(char *argv[], int argc) {
 
   int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n;
-  int org_defined, org, orga_defined, orga, status_defined, status, priority_defined, priority;
-  char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32];
+  int org_defined, org, orga_defined, orga, status_defined, status, priority_defined, priority, appendto_defined;
+  char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32], appendto_name[MAX_NAME_LENGTH + 1];
   struct label *l;
   FILE *fop, *f;
 
@@ -112,6 +113,7 @@ int load_files(char *argv[], int argc) {
     org_defined = NO;
     status_defined = NO;
     priority_defined = NO;
+    appendto_defined = NO;
     bank = 0;
     slot = 0;
     base = 0;
@@ -277,6 +279,21 @@ int load_files(char *argv[], int argc) {
 	    return FAILED;
 	  }
 	}
+        else if (strcaselesscmp(token, "appendto") == 0) {
+          if (appendto_defined == YES) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: APPENDTO defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+	    fclose(fop);
+	    return FAILED;
+          }
+
+          appendto_defined = YES;
+
+	  if (get_next_token(&tmp[x], appendto_name, &x) == FAILED) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: Error in APPENDTO section name.\n", argv[argc - 2], line);
+            fclose(fop);
+            return FAILED;
+          }
+        }
 	else if (state == STATE_SECTIONS && (strcaselesscmp(token, "free") == 0 ||
 					     strcaselesscmp(token, "force") == 0 ||
 					     strcaselesscmp(token, "semisubfree") == 0 ||
@@ -340,6 +357,11 @@ int load_files(char *argv[], int argc) {
 	fclose(fop);
 	return FAILED;
       }
+      if (appendto_defined == YES && (org_defined == YES || orga_defined == YES)) {
+	fprintf(stderr, "%s:%d: LOAD_FILES: %s can't use APPENDTO with ORG or ORGA.\n", argv[argc - 2], line, state_name);
+	fclose(fop);
+	return FAILED;
+      }
 
       /* add a new entry */
       sec_fix_tmp = calloc(sizeof(struct section_fix), 1);
@@ -369,6 +391,14 @@ int load_files(char *argv[], int argc) {
 	sec_fix_tmp->status = status;
       else
 	sec_fix_tmp->status = -1;
+
+      if (appendto_defined == YES) {
+        append_tmp = calloc(1, sizeof(struct append_section));
+        strcpy(append_tmp->section, sec_fix_tmp->name);
+        strcpy(append_tmp->append_to, appendto_name);
+        append_tmp->next = append_sections;
+        append_sections = append_tmp;
+      }
 
       sec_fix_tmp->priority_defined = priority_defined;
       sec_fix_tmp->priority = priority;
