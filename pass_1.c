@@ -99,7 +99,7 @@ struct export_def *export_first = NULL, *export_last = NULL;
 struct optcode *opt_tmp;
 struct definition *tmp_def;
 struct map_t *defines_map = NULL;
-struct macro_static *macros_first = NULL, *macros_last;
+struct macro_static *macros_first = NULL, *macros_last = NULL;
 struct section_def *sections_first = NULL, *sections_last = NULL, *sec_tmp, *sec_next;
 struct macro_runtime *macro_stack = NULL, *macro_runtime_current = NULL;
 struct repeat_runtime *repeat_stack = NULL;
@@ -244,7 +244,6 @@ static int _get_slot_number_by_a_value(int value, int *slot) {
 struct macro_static *macro_get(char *name) {
 
   struct macro_static *macro;
-
   
   macro = macros_first;
   while (macro != NULL) {
@@ -264,7 +263,6 @@ int macro_stack_grow(void) {
     struct macro_runtime *macro;
     int old_size;
 
-    
     /* enlarge the macro stack */
     old_size = macro_stack_size;
     macro_stack_size = (macro_stack_size<<1)+2;
@@ -325,7 +323,6 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
 
   struct macro_runtime *mrt;
   int start;
-
   
   /* start running a macro... run until .ENDM */
   mrt = &macro_stack[macro_active];
@@ -419,7 +416,6 @@ int macro_start_incbin(struct macro_static *m, struct macro_incbin *incbin_data,
 
   struct macro_runtime *mrt;
 
-  
   /* start running a macro... run until .ENDM */
   if (macro_stack_grow() == FAILED)
     return FAILED;
@@ -480,7 +476,6 @@ int macro_start_incbin(struct macro_static *m, struct macro_incbin *incbin_data,
 int macro_insert_byte_db(char *name) {
 
   struct definition *d;
-
   
   if (hashmap_get(defines_map, "_out", (void*)&d) != MAP_OK)
       hashmap_get(defines_map, "_OUT", (void*)&d);
@@ -521,7 +516,6 @@ int macro_insert_byte_db(char *name) {
 int macro_insert_word_db(char *name) {
 
   struct definition *d;
-
   
   if (hashmap_get(defines_map, "_out", (void*)&d) != MAP_OK)
       hashmap_get(defines_map, "_OUT", (void*)&d);
@@ -562,6 +556,7 @@ int macro_insert_word_db(char *name) {
 struct structure* get_structure(char *name) {
 
   struct structure *s = structures_first;
+
   while (s != NULL) {
     if (strcmp(name, s->name) == 0)
       return s;
@@ -775,7 +770,6 @@ int pass_1(void) {
 void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
 
   va_list ap;
-
   
   if (oc == NULL)
     return;
@@ -994,7 +988,6 @@ int evaluate_token(void) {
   int r = 0, s, t = 0, u = 0;
   char labely[256];
 #endif
-
 
   /* are we in an enum, ramsection, or struct? */
   if (in_enum == YES || in_ramsection == YES || in_struct == YES)
@@ -1216,7 +1209,6 @@ int evaluate_token(void) {
 int redefine(char *name, double value, char *string, int type, int size) {
 
   struct definition *d;
-
   
   hashmap_get(defines_map, name, (void*)&d);
   
@@ -1243,7 +1235,6 @@ int redefine(char *name, double value, char *string, int type, int size) {
 int undefine(char *name) {
 
   struct definition *d;
-
   
   if (hashmap_get(defines_map, name, (void*)&d) != MAP_OK)
       return FAILED;
@@ -1260,7 +1251,6 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
 
   struct definition *d;
   int err;
-
 
   /* we skip definitions for "." (because .ENUM and .RAMSECTION use it as an anonymous label) */
   if (strcmp(".", name) == 0 || strcmp("_sizeof_.", name) == 0)
@@ -1357,7 +1347,6 @@ void print_error(char *error, int type) {
   char error_err[] = "ERROR:";
   char *t = NULL;
 
-  
   switch (type) {
     case ERROR_LOG:
       t = error_log;
@@ -1666,12 +1655,10 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 /* either "in_enum", "in_ramsection", or "in_struct" should be true when this is called. */
 int parse_enum_token(void) {
 
-  char tmpname[MAX_NAME_LENGTH + 8 + 1], bak[256];
-  int type, size, q;
-  
   struct structure *st = NULL;
   struct structure_item *si;
-
+  char tmpname[MAX_NAME_LENGTH + 8 + 1], bak[256];
+  int type, size, q;
   
   /* check for "if" directives (the only directives permitted in an enum/ramsection) */
   if (tmp[0] == '.') {
@@ -3806,11 +3793,21 @@ int directive_include(int is_real) {
     if (macro_active != 0) {
       /* yes. note that the now we added new bytes after i, so if a macro_return_i is
 	 bigger than i, we'll need to add the bytes to it */
+      struct macro_static *ms;
       int q;
 
       for (q = 0; q < macro_active; q++) {
 	if (macro_stack[q].macro_return_i > i)
 	  macro_stack[q].macro_return_i += include_size;
+      }
+
+      /* also macro starting points that are after this position need to move forward
+	 in memory... */
+      ms = macros_first;
+      while (ms != NULL) {
+	if (ms->start > i)
+	  ms->start += include_size;
+	ms = ms->next;
       }
     }
   }

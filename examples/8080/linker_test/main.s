@@ -71,16 +71,18 @@ DummyMain:
 
 .MACRO JUMP_MACRO
 	.print "OUTMOST:::IN\n"
-        MACRO_INCLUDE 11
+        MACRO_INCLUDE 11 \1
 	.print "OUTMOST:::OUT\n"
 .ENDM
 
 .MACRO MACRO_INCLUDE
 	.print "INSIDE:::IN\n"
 	.include include.s
+	.db \2
 	.print "INSIDE:::OUT\n"
 .ENDM
 	
+
 .ORG $2000
 .SECTION "DUMMY2" FREE
 DummyMain2:
@@ -88,17 +90,23 @@ DummyMain2:
 	nop
 	nop
 
+.include "include2.s"
+
 .DB "CC>"
-JUMP_MACRO
-JUMP_MACRO
+JUMP_MACRO $f
+JUMP_MACRO $f
 .DB "<CC"
-	
+
 LABEL	.print "THE END\n"
 
-.ENDS
+.ENDS	
 
 	.include "namespace.s" namespace "oops"
 	.dw hello.oops.NamespaceMain, oops.NamespaceBonus
+	
+.DB "DD>"
+ TEST 3
+.DB "<DD"
 
 .SECTION "DUMMY3" FREE
 DummyMain3:
