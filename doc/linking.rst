@@ -62,14 +62,16 @@ to link together. Here's the format:
 
 5. If you have RAMSECTIONs inside the libraries, you must place
    the sections inside BANKs and SLOTs (ORG and ORGA are optional).
-   Note that you can also change the type and priority of the section::
+   Note that you can also change the type and priority of the section,
+   and can use appendto::
 
         [ramsections]
         bank 0 slot 3 org $0 "library 1 vars 1"
 	bank 0 slot 3 orga $6100 priority 100 force "library 1 vars 2"
+	bank 0 slot 3 appendto "library 1 vars 2" "library 1 vars 3"
 
-6. If you want to relocate normal sections, do as follows (ORG and ORGA
-   are optional, but useful)::
+6. If you want to relocate normal sections, do as follows (ORG, ORGA,
+   and APPENDTO are optional, but useful)::
 
         [sections]
 	bank 0 slot 1 org $100 "MusicPlayer"

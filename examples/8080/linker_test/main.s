@@ -99,3 +99,10 @@ LABEL	.print "THE END\n"
 
 	.include "namespace.s" namespace "oops"
 	.dw hello.oops.NamespaceMain, oops.NamespaceBonus
+
+.SECTION "DUMMY3" FREE
+DummyMain3:
+	nop
+	nop
+	nop
+.ENDS
