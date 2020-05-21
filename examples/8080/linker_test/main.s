@@ -136,3 +136,18 @@ SHORT_STRING = "one"
 .section "!DUMMY4" FREE
 	DEFINE_BYTES "hello"
 .ends
+
+.org $20
+.ramsection "!ramsection1" bank 1 slot "RAM 2" SEMIFREE
+RAMVAR1	db
+.ends
+
+.org $20
+.ramsection "!ramsection2" bank 1 slot "RAM 2" FREE
+RAMVAR2 db
+.ends
+
+.org $20
+.ramsection "!ramsection3" bank 1 slot "RAM 2" SEMISUBFREE
+RAMVAR3 db
+.ends

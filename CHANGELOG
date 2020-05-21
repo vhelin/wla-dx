@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 -------------------------------------------------------------------------------------------------
 
-v9.11 (21-May-2020) [ALL] Stack calculator's string checker handled only
+v9.11 (22-May-2020) [ALL] Stack calculator's string checker handled only
                       63 characters long strings.
                     [ALL] A directive with the first argument being
                       negative wasn't parsed properly.
@@ -30,7 +30,8 @@ v9.11 (21-May-2020) [ALL] Stack calculator's string checker handled only
                       snprintf(), changed all sprintf() calls to snprintf().
                     [ALL] It's possible to skip bytes in .RAMSECTIONs using
                       "." as the label.
-                    [ALL] Added support for FORCE to .RAMSECTION.
+                    [ALL] Added support for FORCE, SEMIFREE and SEMISUBFREE
+                      to .RAMSECTION.
                     [ALL] The type of the argument for a .MACRO can now be
                       asked in an .IF using e.g., '\?1'.
                     [ALL] Added a flag "-s" to disable _sizeof_* definition

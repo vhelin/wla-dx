@@ -1115,7 +1115,10 @@ int parse_data_blocks(void) {
 
           /* name */
           i = 0;
-          while (*t != 0 && *t != 1 && *t != 2 && *t != 3 && *t != 4 && *t != 5 && *t != 6 && *t != 7 && *t != 8 && *t != 9)
+          while (*t != SECTION_STATUS_FREE && *t != SECTION_STATUS_FORCE && *t != SECTION_STATUS_OVERWRITE &&
+		 *t != SECTION_STATUS_HEADER && *t != SECTION_STATUS_SEMIFREE && *t != SECTION_STATUS_ABSOLUTE &&
+		 *t != SECTION_STATUS_RAM_FREE && *t != SECTION_STATUS_SUPERFREE && *t != SECTION_STATUS_SEMISUBFREE &&
+		 *t != SECTION_STATUS_RAM_FORCE && *t != SECTION_STATUS_RAM_SEMIFREE && *t != SECTION_STATUS_RAM_SEMISUBFREE)
             s->name[i++] = *(t++);
           s->name[i] = 0;
           s->status = *(t++);
@@ -1186,7 +1189,10 @@ int parse_data_blocks(void) {
 
         /* name */
         i = 0;
-	while (*t != 0 && *t != 1 && *t != 2 && *t != 3 && *t != 4 && *t != 5 && *t != 6 && *t != 7 && *t != 8 && *t != 9)
+	while (*t != SECTION_STATUS_FREE && *t != SECTION_STATUS_FORCE && *t != SECTION_STATUS_OVERWRITE &&
+	       *t != SECTION_STATUS_HEADER && *t != SECTION_STATUS_SEMIFREE && *t != SECTION_STATUS_ABSOLUTE &&
+	       *t != SECTION_STATUS_RAM_FREE && *t != SECTION_STATUS_SUPERFREE && *t != SECTION_STATUS_SEMISUBFREE &&
+	       *t != SECTION_STATUS_RAM_FORCE && *t != SECTION_STATUS_RAM_SEMIFREE && *t != SECTION_STATUS_RAM_SEMISUBFREE)
           s->name[i++] = *(t++);
         s->name[i] = 0;
         s->status = *(t++);
@@ -1234,7 +1240,8 @@ int parse_data_blocks(void) {
         t += s->size;
 
 	/* library RAM sections have no slots nor banks unless given in [rambanks] in linkfile */
-	if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE) {
+	if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE ||
+	    s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
 	  s->bank = -1;
 	  s->slot = -1;
 	}

@@ -322,6 +322,8 @@ int load_files(char *argv[], int argc) {
 	    status = SECTION_STATUS_SEMISUBFREE;
 	}
 	else if (state == STATE_RAMSECTIONS && (strcaselesscmp(token, "free") == 0 ||
+						strcaselesscmp(token, "semifree") == 0 ||
+						strcaselesscmp(token, "semisubfree") == 0 ||
 						strcaselesscmp(token, "force") == 0)) {
 	  if (status_defined == YES) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: RAM section type was defined for the second time.\n", argv[argc - 2], line);
@@ -335,6 +337,10 @@ int load_files(char *argv[], int argc) {
 	    status = SECTION_STATUS_RAM_FREE;
 	  else if (strcaselesscmp(token, "force") == 0)
 	    status = SECTION_STATUS_RAM_FORCE;
+	  else if (strcaselesscmp(token, "semifree") == 0)
+	    status = SECTION_STATUS_RAM_SEMIFREE;
+	  else if (strcaselesscmp(token, "semisubfree") == 0)
+	    status = SECTION_STATUS_RAM_SEMISUBFREE;
 	}
 	else
 	  break;

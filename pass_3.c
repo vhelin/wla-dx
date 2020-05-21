@@ -344,7 +344,15 @@ int pass_3(void) {
 	  section_status = ON;
 	  continue;
 	}
-
+	else if (s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
+	  s->address = add;
+	  s->listfile_items = 1;
+	  s->listfile_ints = NULL;
+	  s->listfile_cmds = NULL;
+	  section_status = ON;
+	  continue;
+	}
+	
 	fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
 	return FAILED;
 
@@ -514,7 +522,7 @@ int pass_3(void) {
       if (s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_RAM_FREE)
 	add = 0;
 
-      if (s->status != SECTION_STATUS_RAM_FREE && s->status != SECTION_STATUS_RAM_FORCE) {
+      if (s->status != SECTION_STATUS_RAM_FREE && s->status != SECTION_STATUS_RAM_FORCE && s->status != SECTION_STATUS_RAM_SEMIFREE && s->status != SECTION_STATUS_RAM_SEMISUBFREE) {
         s->bank = bank;
         s->base = base;
         s->slot = slot;

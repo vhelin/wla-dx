@@ -4113,7 +4113,17 @@ int directive_ramsection(void) {
       return FAILED;
   }
   else if (compare_next_token("FREE") == SUCCEEDED) {
-    sec_tmp->status = SECTION_STATUS_FREE;
+    sec_tmp->status = SECTION_STATUS_RAM_FREE;
+    if (skip_next_token() == FAILED)
+      return FAILED;
+  }
+  else if (compare_next_token("SEMIFREE") == SUCCEEDED) {
+    sec_tmp->status = SECTION_STATUS_RAM_SEMIFREE;
+    if (skip_next_token() == FAILED)
+      return FAILED;
+  }
+  else if (compare_next_token("SEMISUBFREE") == SUCCEEDED) {
+    sec_tmp->status = SECTION_STATUS_RAM_SEMISUBFREE;
     if (skip_next_token() == FAILED)
       return FAILED;
   }

@@ -2709,6 +2709,14 @@ address, do as follows::
     PlayerY         DB
     .ENDS
 
+Other types that are supported: ``SEMIFREE`` and ``SEMISUBFREE``.
+
+Here's the order in which WLA writes the RAM sections:
+
+1. ``FORCE``
+2. ``SEMISUBFREE``
+3. ``SEMIFREE`` & ``FREE``
+
 NOTE: You can use ``ORGA`` to specify the fixed address for a ``FORCE``
 ``RAMSECTION``. ``ORG`` is also supported.
 

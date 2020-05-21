@@ -432,9 +432,12 @@ int main(int argc, char *argv[]) {
      "HEADER",
      "SEMIFREE",
      "ABSOLUTE",
-     "RAM",
+     "RAM FREE",
      "SUPERFREE",
-     "SEMISUBFREE"
+     "SEMISUBFREE",
+     "RAM FORCE",
+     "RAM SEMIFREE",
+     "RAM SEMISUBFREE"
     };
 
     printf("\n");

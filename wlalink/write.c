@@ -106,6 +106,8 @@ int _cbm_write_prg_header(FILE *f) {
 
     if (l->status != LABEL_STATUS_LABEL || (l->section_struct != NULL && (l->section_struct->status == SECTION_STATUS_RAM_FREE ||
 									  l->section_struct->status == SECTION_STATUS_RAM_FORCE ||
+									  l->section_struct->status == SECTION_STATUS_RAM_SEMIFREE ||
+									  l->section_struct->status == SECTION_STATUS_RAM_SEMISUBFREE ||
 									  l->section_struct->alive == NO))) {
       fprintf(stderr, "_CBM_WRITE_PRG_HEADER: \"%s\" cannot be used as the load address.\n", load_address_label);
       return FAILED;
@@ -123,6 +125,8 @@ int _cbm_write_prg_header(FILE *f) {
     while (l != NULL) {
       if (l->status != LABEL_STATUS_LABEL || (l->section_struct != NULL && (l->section_struct->status == SECTION_STATUS_RAM_FREE ||
 									    l->section_struct->status == SECTION_STATUS_RAM_FORCE ||
+									    l->section_struct->status == SECTION_STATUS_RAM_SEMIFREE ||
+									    l->section_struct->status == SECTION_STATUS_RAM_SEMISUBFREE ||
 									    l->section_struct->alive == NO))) {
 	l = l->next;
 	continue;
@@ -215,7 +219,7 @@ int insert_sections(void) {
   /* find all touched slots */
   s = sec_first;
   while (s != NULL) {
-    if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE) {
+    if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE || s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
       if (ram_slots[s->bank] == NULL) {
 	ram_slots[s->bank] = calloc(sizeof(char *) * 256, 1);
 	if (ram_slots[s->bank] == NULL) {
@@ -277,8 +281,9 @@ int insert_sections(void) {
   */
 
   /* ram sections */
+
+  /* RAM FORCE sections */
   p = 0;
-  /* FORCE sections go first */
   while (p < sn) {
     s = sa[p++];
 
@@ -286,10 +291,9 @@ int insert_sections(void) {
       int slotAddress = slots[s->slot].address;
 
       /* align the starting address */
-      int address = slotAddress + s->address;
       int overflow = (slotAddress + s->address) % s->alignment;
+      int address = s->address;
 
-      address = s->address;
       address += overflow;
 
       c = ram_slots[s->bank][s->slot];
@@ -311,19 +315,63 @@ int insert_sections(void) {
     }
   }
 
-  /* FREE sections go next */
+  /* RAM SEMISUBFREE sections */
   p = 0;
   while (p < sn) {
     s = sa[p++];
     
-    if (s->status == SECTION_STATUS_RAM_FREE) {
+    if (s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
       int slotAddress = slots[s->slot].address;
 
       /* align the starting address */
-      int address = slotAddress + s->address;
-      int overflow = (slotAddress + s->address) % s->alignment;
+      int overflow = slotAddress % s->alignment;
+      int address = 0;
 
-      address = s->address;
+      address += overflow;
+
+      c = ram_slots[s->bank][s->slot];
+      i = s->address;
+      t = 0;
+      for (; address < i; address += s->alignment) {
+	if (c[address] == 0) {
+	  for (q = 0; address + q < i && q < s->size; q++) {
+	    if (c[address + q] != 0)
+	      break;
+	  }
+	  if (q == s->size) {
+	    t = 1;
+	    break;
+	  }
+	}
+      }
+
+      if (t == 0) {
+        fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in slot %d.\n", s->name, s->size, s->slot);
+        free(sa);
+        return FAILED;
+      }
+
+      s->address = address;
+      s->output_address = address;
+
+      /* mark as used */
+      for (i = 0; i < s->size; i++, address++)
+	c[address] = 1;
+    }
+  }
+  
+  /* RAM FREE & RAM SEMIFREE sections */
+  p = 0;
+  while (p < sn) {
+    s = sa[p++];
+    
+    if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_SEMIFREE) {
+      int slotAddress = slots[s->slot].address;
+
+      /* align the starting address */
+      int overflow = (slotAddress + s->address) % s->alignment;
+      int address = s->address;
+
       address += overflow;
 
       c = ram_slots[s->bank][s->slot];
@@ -371,7 +419,7 @@ int insert_sections(void) {
     }
   }
 
-  /* force sections */
+  /* FORCE sections */
   p = 0;
   while (p < sn) {
     s = sa[p++];
@@ -419,7 +467,7 @@ int insert_sections(void) {
     }
   }
 
-  /* absolute sections */
+  /* ABSOLUTE sections */
   p = 0;
   while (p < sn) {
     s = sa[p++];
@@ -438,7 +486,7 @@ int insert_sections(void) {
     }
   }
 
-  /* semisubfree sections */
+  /* SEMISUBFREE sections */
   p = 0;
   while (p < sn) {
     s = sa[p++];
@@ -492,7 +540,7 @@ int insert_sections(void) {
     }
   }
 
-  /* free & semifree sections */
+  /* FREE & SEMIFREE sections */
   p = 0;
   while (p < sn) {
     s = sa[p++];
@@ -546,7 +594,7 @@ int insert_sections(void) {
     }
   }
 
-  /* superfree sections */
+  /* SUPERFREE sections */
   p = 0;
   while (p < sn) {
     s = sa[p++];
@@ -615,7 +663,7 @@ int insert_sections(void) {
     }
   }
 
-  /* overwrite sections */
+  /* OVERWRITE sections */
   p = 0;
   while (p < sn) {
     s = sa[p++];
@@ -919,7 +967,7 @@ int fix_label_addresses(void) {
 	    l->address_in_section = (int)l->address;
 	    l->address += s->address;
 
-	    if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE)
+	    if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE || s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE)
 	      l->rom_address = (int)l->address + slots[l->slot].size * l->bank;
 	    else
 	      l->rom_address = (int)l->address + bankaddress[l->bank];
@@ -1575,6 +1623,8 @@ static int _get_rom_address_of_label(char *label, int *address) {
 
   if (l->status != LABEL_STATUS_LABEL || (l->section_struct != NULL && (l->section_struct->status == SECTION_STATUS_RAM_FREE ||
 									l->section_struct->status == SECTION_STATUS_RAM_FORCE ||
+									l->section_struct->status == SECTION_STATUS_RAM_SEMIFREE ||
+									l->section_struct->status == SECTION_STATUS_RAM_SEMISUBFREE ||
 									l->section_struct->alive == NO))) {
     fprintf(stderr, "_GET_ROM_ADDRESS_OF_LABEL: \"%s\" cannot be used.\n", label);
     return FAILED;
@@ -2682,6 +2732,8 @@ int get_snes_pc_bank(struct label *l) {
   /* do we override the user's banking scheme (.HIROM/.LOROM/.EXHIROM/.EXLOROM)? */
   if (snes_mode != 0) {
     if (l->section_status == ON && l->section_struct != NULL && (l->section_struct->status == SECTION_STATUS_RAM_FREE ||
+								 l->section_struct->status == SECTION_STATUS_RAM_SEMIFREE ||
+								 l->section_struct->status == SECTION_STATUS_RAM_SEMISUBFREE ||
 								 l->section_struct->status == SECTION_STATUS_RAM_FORCE)) {
       /* on SNES RAMSECTION labels are handled differently */
       x = l->bank;
