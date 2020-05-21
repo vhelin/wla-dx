@@ -114,3 +114,25 @@ DummyMain3:
 	nop
 	nop
 .ENDS
+
+SHORT_STRING = "one"
+
+.MACRO DEFINE_BYTES
+	.DB \1
+	.printt "This should be 3: "
+	.printv dec SHORT_STRING.length
+	.printt "\n"
+	.printt "This should be 4: "
+	.printv dec "moto".length
+	.printt "\n"
+	.printt "This should be 11: "
+	.printv dec 16-\1.length
+	.print "\n"
+.REPEAT 16-\1.length
+    .DB " "
+.ENDR
+.ENDM
+
+.section "!DUMMY4" FREE
+	DEFINE_BYTES "hello"
+.ends

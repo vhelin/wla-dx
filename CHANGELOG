@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 -------------------------------------------------------------------------------------------------
 
-v9.11 (16-May-2020) [ALL] Stack calculator's string checker handled only
+v9.11 (21-May-2020) [ALL] Stack calculator's string checker handled only
                       63 characters long strings.
                     [ALL] A directive with the first argument being
                       negative wasn't parsed properly.
@@ -44,6 +44,7 @@ v9.11 (16-May-2020) [ALL] Stack calculator's string checker handled only
                     [ALL] Macro calls can now be made from the very beginning
                       of a new line (where labels are).
                     [ALL] Added NAMESPACE to .INCLUDE/.INC.
+                    [ALL] Improved WLA's string.length parsing capabilities.
                     [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
                       "JP (IY)".
                     [Z80] Added ROMSIZE to .SMSHEADER. Fixed automatic

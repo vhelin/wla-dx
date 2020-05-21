@@ -578,7 +578,7 @@ int input_number(void) {
 	  /* yes, we've got it! calculate the length and return the integer */
 	  i += 7;
 	  label[k] = 0;
-	  d = (int)strlen(label);
+	  d = (int)get_label_length(label);
 	  parsed_double = (double)d;
 
 	  return SUCCEEDED;
