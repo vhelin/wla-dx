@@ -25,7 +25,7 @@ struct label_def *label_next, *label_last, *label_tmp, *labels = NULL;
 struct map_t *global_unique_label_map = NULL;
 struct block *blocks = NULL;
 
-static int dstruct_start, dstruct_item_offset, dstruct_item_size;
+static int dstruct_start, dstruct_item_offset, dstruct_item_size, mangled_label;
 
 #define XSTRINGIFY(x) #x
 #define STRINGIFY(x) XSTRINGIFY(x)
@@ -208,6 +208,8 @@ int pass_3(void) {
 	else
 	  fscanf(f_in, STRING_READ_FORMAT, l->label);
 
+	mangled_label = NO;
+
         if (c == 'L' && is_label_anonymous(l->label) == NO) {
           /* if the label has '@' at the start, mangle the label name to make it unique */
           int n = 0, m;
@@ -227,14 +229,15 @@ int pass_3(void) {
           if (n >= 0) {
             if (mangle_label(l->label, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
               return FAILED;
+	    mangled_label = YES;
           }
         }
 
-        if (c == 'L' && is_label_anonymous(l->label) == NO && namespace[0] != 0) {
+        if (c == 'L' && is_label_anonymous(l->label) == NO && namespace[0] != 0 && mangled_label == NO) {
 	  if (add_namespace(l->label, namespace, sizeof(l->label)) == FAILED)
 	    return FAILED;
 	}
-	
+
 	l->next = NULL;
 	l->section_status = ON;
 	l->filename_id = file_name_id;
@@ -717,6 +720,8 @@ int pass_3(void) {
       else
 	fscanf(f_in, STRING_READ_FORMAT, l->label);
 
+      mangled_label = NO;
+      
       if (c == 'L' && is_label_anonymous(l->label) == NO) {
         /* if the label has '@' at the start, mangle the label name to make it unique */
         int n = 0, m;
@@ -736,14 +741,15 @@ int pass_3(void) {
         if (n >= 0) {
           if (mangle_label(l->label, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
             return FAILED;
+	  mangled_label = YES;
         }
       }
 
-      if (c == 'L' && is_label_anonymous(l->label) == NO && namespace[0] != 0) {
+      if (c == 'L' && is_label_anonymous(l->label) == NO && namespace[0] != 0 && mangled_label == NO) {
 	if (add_namespace(l->label, namespace, sizeof(l->label)) == FAILED)
 	  return FAILED;
       }
-      
+
       l->next = NULL;
       l->section_status = section_status;
       l->filename_id = file_name_id;

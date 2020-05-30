@@ -635,7 +635,7 @@ int pass_4(void) {
       case 'L':
         {
           struct label_def *l;
-          int m, n = 0;
+          int m, n = 0, mangled_label = NO;
 
           fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
 
@@ -655,9 +655,16 @@ int pass_4(void) {
             if (n >= 0) {
               if (mangle_label(tmp, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
                 return FAILED;
+	      mangled_label = YES;
             }
+
+	    if (namespace[0] != 0 && mangled_label == NO) {
+	      if (add_namespace(tmp, namespace, sizeof(tmp)) == FAILED)
+		return FAILED;
+	    }
+	    
             if (m < 10 && find_label(tmp, sec_tmp, (void*)&l) == SUCCEEDED)
-              parent_labels[m] = l;
+	      parent_labels[m] = l;
           }
         }
         continue;

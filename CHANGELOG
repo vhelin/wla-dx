@@ -201,7 +201,7 @@ v9.7 (17-Apr-2018) [ALL] We now use CMake instead of plain Makefiles.
                    [ALL] WLALINK now reserves the bytes the checksummer uses
                      if WLA is used to calculate a checksum.
                    [ALL] Added ALIGN to .RAMSECTIONs.
-                   [ALL] .RANSECTIONs now use the BANK when placing sections.
+                   [ALL] .RAMSECTIONs now use the BANK when placing sections.
                    [ALL] .BLOCK needs to be now terminated with .ENDB.
                    [ALL] Fixed some typos in error messages.
                    [ALL] Added a directory called "bug_exhibition" for
