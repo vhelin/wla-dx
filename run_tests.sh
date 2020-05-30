@@ -103,6 +103,7 @@ runTest checksum_12mbit_lorom
 runTest checksum_24mbit_lorom
 runTest checksum_8mbit_hirom
 runTest checksum_8mbit_lorom
+runTest dlm_test
 runTest linker_test
 runTest macro_test
 runTest name_test

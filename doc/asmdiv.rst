@@ -101,6 +101,7 @@ ALL  ``.DBSIN 0.2, 10, 3.2, 120, 1.3``
 ALL  ``.DEFINE IF $FF0F``
 ALL  ``.DEF IF $FF0F``
 658  ``.DL $102030, $405060``
+658  ``.DLM filtermacro 1, 2, 3``
 ALL  ``.DS 256, $10``
 ALL  ``.DSB 256, $10``
 658  ``.DSL 16, $102030``
@@ -931,7 +932,7 @@ Want to circulate all the included bytes through a filter macro? Do this::
 
 The filter macro is executed for each byte of the included data, data
 byte being the first argument, and offset from the beginning being the
-second parameter, just like in the case of ``.DBM`` and ``.DWM``.
+second parameter, just like in the case of ``.DBM``, ``.DWM`` and ``.DLM``.
 
 And you can combine all these four commands::
 
@@ -1749,6 +1750,14 @@ This is not a compulsory directive.
 This is not a compulsory directive.
 
 
+``.DWM filtermacro 1, 2, 3``
+----------------------------
+
+Defines 16-bit words using a filter macro. Works just like ``.DBM`` and ``.DLM``.
+
+This is not a compulsory directive.
+
+
 ``.DL $102030, $405060``
 ------------------------
 
@@ -1774,20 +1783,11 @@ This is not a compulsory directive.
 This is not a compulsory directive.
 
 
-``.DWM filtermacro 1, 2, 3``
+``.DLM filtermacro 1, 2, 3``
 ----------------------------
 
-Defines 16-bit words using a filter macro. All the data is passed to
-``filtermacro`` in the first argument, one word at a time, and the word that
-actually gets defined is the value of definition ``_OUT`` (``_out`` works as
-well). The second macro argument holds the offset from the beginning (the
-first word) in bytes (the series being ``0``, ``2``, ``4``, ``6``, ...).
-
-Here's an example of a filter macro that increments all the words by one::
-
-    .macro increment
-    .redefine _out \1+1
-    .endm
+Defines 24-bit words using a filter macro. Works just like ``.DBM`` and ``.DWM``.
+Works only on wla-65816.
 
 This is not a compulsory directive.
 

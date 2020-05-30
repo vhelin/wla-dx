@@ -551,13 +551,13 @@ int macro_insert_word_db(char *name) {
     }
     fprintf(file_out_ptr, "y%d ", (int)d->value);
     /*
-      fprintf(stderr, ".DBM: VALUE: %d\n", (int)d->value);
+      fprintf(stderr, ".DWM: VALUE: %d\n", (int)d->value);
     */
   }
   else if (d->type == DEFINITION_TYPE_STACK) {
     fprintf(file_out_ptr, "C%d ", (int)d->value);
     /*
-      fprintf(stderr, ".DBM: STACK: %d\n", (int)d->value);
+      fprintf(stderr, ".DWM: STACK: %d\n", (int)d->value);
     */
   }
   else {
@@ -568,6 +568,50 @@ int macro_insert_word_db(char *name) {
 
   return SUCCEEDED;
 }
+
+
+#if W65816
+
+int macro_insert_long_db(char *name) {
+
+  struct definition *d;
+  
+  if (hashmap_get(defines_map, "_out", (void*)&d) != MAP_OK)
+      hashmap_get(defines_map, "_OUT", (void*)&d);
+
+  if (d == NULL) {
+    snprintf(emsg, sizeof(emsg), "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
+    print_error(emsg, ERROR_DIR);
+    return FAILED;
+  }
+
+  if (d->type == DEFINITION_TYPE_VALUE) {
+    if (d->value < -8388608 || d->value > 16777215) {
+      snprintf(emsg, sizeof(emsg), ".%s expects 24-bit data, %d is out of range!\n", name, (int)d->value);
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
+    }
+    fprintf(file_out_ptr, "z%d ", (int)d->value);
+    /*
+      fprintf(stderr, ".DLM: VALUE: %d\n", (int)d->value);
+    */
+  }
+  else if (d->type == DEFINITION_TYPE_STACK) {
+    fprintf(file_out_ptr, "T%d ", (int)d->value);
+    /*
+      fprintf(stderr, ".DLM: STACK: %d\n", (int)d->value);
+    */
+  }
+  else {
+    snprintf(emsg, sizeof(emsg), ".%s cannot handle strings in \"_OUT/_out\".\n", name);
+    print_error(emsg, ERROR_DIR);
+    return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+#endif
 
 
 struct structure* get_structure(char *name) {
@@ -2329,7 +2373,7 @@ int directive_bank(void) {
 }
 
 
-int directive_dbm_dwm(void) {
+int directive_dbm_dwm_dlm(void) {
   
   struct macro_static *m;
   char bak[256];
@@ -2354,6 +2398,10 @@ int directive_dbm_dwm(void) {
 
   if (strcaselesscmp(cp, "DBM") == 0) {
     if (macro_start_dxm(m, MACRO_CALLER_DBM, cp, YES) == FAILED)
+      return FAILED;
+  }
+  else if (strcaselesscmp(cp, "DLM") == 0) {
+    if (macro_start_dxm(m, MACRO_CALLER_DLM, cp, YES) == FAILED)
       return FAILED;
   }
   else {
@@ -6727,6 +6775,18 @@ int directive_endm(void) {
       if (macro_start_dxm(macro_stack[macro_active].macro, MACRO_CALLER_DWM, "DWM", NO) == FAILED)
 	return FAILED;
     }
+#if W65816
+    /* was this a DLM macro call? */
+    else if (macro_stack[macro_active].caller == MACRO_CALLER_DLM) {
+      /* yep, get the output */
+      if (macro_insert_long_db("DLM") == FAILED)
+	return FAILED;
+
+      /* continue defining longs */
+      if (macro_start_dxm(macro_stack[macro_active].macro, MACRO_CALLER_DLM, "DLM", NO) == FAILED)
+	return FAILED;
+    }
+#endif
     /* or was this an INCBIN with a filter macro call? */
     else if (macro_stack[macro_active].caller == MACRO_CALLER_INCBIN) {
       /* yep, get the output */
@@ -7827,7 +7887,7 @@ int parse_directive(void) {
   /* DBM/DWM? */
 
   if (strcaselesscmp(cp, "DBM") == 0 || strcaselesscmp(cp, "DWM") == 0)
-    return directive_dbm_dwm();
+    return directive_dbm_dwm_dlm();
 
   /* TABLE? */
 
@@ -7861,6 +7921,11 @@ int parse_directive(void) {
 
 #ifdef W65816
   
+  /* DLM? */
+
+  if (strcaselesscmp(cp, "DLM") == 0)
+    return directive_dbm_dwm_dlm();
+
   /* DL/LONG/FARADDR? */
 
   if (strcaselesscmp(cp, "DL") == 0 || strcaselesscmp(cp, "LONG") == 0 || strcaselesscmp(cp, "FARADDR") == 0)
