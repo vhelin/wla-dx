@@ -681,6 +681,10 @@ int pass_1(void) {
       if (q == ss) {
         if (macro_get(tmp, YES, &m) == FAILED)
 	  return FAILED;
+	if (m == NULL) {
+	  if (macro_get(tmp, NO, &m) == FAILED)
+	    return FAILED;
+	}
       }
 
       /* it is a label after all? */
@@ -2389,6 +2393,10 @@ int directive_dbm_dwm_dlm(void) {
   /* find the macro */
   if (macro_get(label, YES, &m) == FAILED)
     return FAILED;
+  if (m == NULL) {
+    if (macro_get(label, NO, &m) == FAILED)
+      return FAILED;
+  }
 
   if (m == NULL) {
     snprintf(emsg, sizeof(emsg), "No MACRO \"%s\" defined.\n", label);

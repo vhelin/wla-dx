@@ -534,13 +534,13 @@ The first argument is the starting angle. Angle value ranges from ``0`` to
 ``359.999``..., but you can supply WLA with values that are out of the range -
 WLA fixes them ok. The value can be integer or float.
 
-The second one descibes the amount of additional angles. The example
+The second argument descibes the amount of additional angles. The example
 will define 11 angles.
 
-The third one is the adder value which is added to the angle value when
+The third argument is the adder value which is added to the angle value when
 next angle is calculated. The value can be integer or float.
 
-The fourth and fifth ones can be seen from the pseudo code below, which
+The fourth and fifth arguments can be seen from the pseudo code below, which
 also describes how ``.DBCOS`` works. The values can be integer or float.
 
 Remember that ``cos`` (and ``sin``) here returns values ranging from
@@ -567,7 +567,7 @@ This is not a compulsory directive.
 ``.DWCOS 0.2, 10, 3.2, 1024, 1.3``
 ----------------------------------
 
-Analogous to ``.DBCOS`` (but defines words).
+Analogous to ``.DBCOS`` (but defines 16-bit words).
 
 This is not a compulsory directive.
 
@@ -575,7 +575,7 @@ This is not a compulsory directive.
 ``.DWSIN 0.2, 10, 3.2, 1024, 1.3``
 ----------------------------------
 
-Analogous to ``.DBCOS`` (but defines words and does ``sin()`` instead of
+Analogous to ``.DBCOS`` (but defines 16-bit words and does ``sin()`` instead of
 ``cos()``).
 
 This is not a compulsory directive.
