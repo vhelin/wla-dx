@@ -241,18 +241,35 @@ static int _get_slot_number_by_a_value(int value, int *slot) {
 }
 
 
-struct macro_static *macro_get(char *name) {
+int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
 
   struct macro_static *macro;
-  
+  char fullname[MAX_NAME_LENGTH + 1];
+
+  /* append the namespace, if this file uses if */
+  if (add_namespace == YES && active_file_info_last->namespace[0] != 0) {
+    snprintf(fullname, sizeof(fullname), "%s.%s", active_file_info_last->namespace, name);
+    fullname[sizeof(fullname)-1] = 0;
+    if (strlen(fullname) >= sizeof(fullname)-1) {
+      snprintf(emsg, sizeof(emsg), "The current file namespace \"%s\" cannot be added to MACRO's \"%s\" name - increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", active_file_info_last->namespace, name);
+      print_error(emsg, ERROR_DIR);
+      *macro_out = NULL;
+      return FAILED;
+    }
+  }
+  else
+    strcpy(fullname, name);
+
   macro = macros_first;
   while (macro != NULL) {
-    if (strcmp(macro->name, name) == 0)
+    if (strcmp(macro->name, fullname) == 0)
       break;
     macro = macro->next;
   }
 
-  return macro;
+  *macro_out = macro;
+  
+  return SUCCEEDED;
 }
 
 
@@ -617,8 +634,10 @@ int pass_1(void) {
       }
 
       /* is it a macro? */
-      if (q == ss)
-        m = macro_get(tmp);
+      if (q == ss) {
+        if (macro_get(tmp, YES, &m) == FAILED)
+	  return FAILED;
+      }
 
       /* it is a label after all? */
       if (q != ss || (newline_beginning == ON && m == NULL)) {
@@ -2324,7 +2343,8 @@ int directive_dbm_dwm(void) {
   }
 
   /* find the macro */
-  m = macro_get(label);
+  if (macro_get(label, YES, &m) == FAILED)
+    return FAILED;
 
   if (m == NULL) {
     snprintf(emsg, sizeof(emsg), "No MACRO \"%s\" defined.\n", label);
@@ -6434,7 +6454,24 @@ int directive_macro(void) {
 
   macro_start_line = active_file_info_last->line_current;
 
-  m = macro_get(tmp);
+  /* append the namespace, if this file uses if */
+  if (active_file_info_last->namespace[0] != 0) {
+    char buf[MAX_NAME_LENGTH + 1];
+    
+    snprintf(buf, sizeof(buf), "%s.%s", active_file_info_last->namespace, tmp);
+    buf[sizeof(buf)-1] = 0;
+    if (strlen(buf) >= sizeof(buf)-1) {
+      snprintf(emsg, sizeof(emsg), "The current file namespace \"%s\" cannot be added to MACRO's \"%s\" name - increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", active_file_info_last->namespace, tmp);
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
+    }
+
+    strcpy(tmp, buf);
+  }
+
+  if (macro_get(tmp, NO, &m) == FAILED)
+    return FAILED;
+  
   if (m != NULL) {
     snprintf(emsg, sizeof(emsg), "MACRO \"%s\" was defined for the second time.\n", tmp);
     print_error(emsg, ERROR_DIR);

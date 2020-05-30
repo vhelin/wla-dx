@@ -3,6 +3,10 @@
 	.db \1
 .endm
 
+.macro INCREMENTMACRO
+.redefine _out \1+1
+.endm
+
 .section "!NamespaceTest1" namespace "hello"
 NamespaceMain:
 	nop
@@ -19,5 +23,9 @@ NamespaceBonus:
 do:
 @loop:	call @loop
 
+	.db "NS>"
 	NAMESPACEMACRO $aa
+	.dbm INCREMENTMACRO 2
+	.incbin "binaryfile" FILTER INCREMENTMACRO
+	.db "<NS"
 .ends

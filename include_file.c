@@ -475,7 +475,8 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     if (get_next_token() == FAILED)
       return FAILED;
 
-    *macro = macro_get(tmp);
+    if (macro_get(tmp, YES, macro) == FAILED)
+      return FAILED;
 
     if (*macro == NULL) {
       snprintf(emsg, sizeof(emsg), "No MACRO \"%s\" defined.\n", tmp);
