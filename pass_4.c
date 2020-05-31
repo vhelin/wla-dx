@@ -202,7 +202,7 @@ int add_namespace_to_reference(char *label, char *name_space, unsigned int label
 
   char expanded[MAX_NAME_LENGTH*2+2];
   struct label_def *l;
-    
+  
   snprintf(expanded, sizeof(expanded), "%s.%s", name_space, label);
   if (strlen(expanded) >= label_size) {
     fprintf(stderr, "ADD_NAMESPACE_TO_REFERENCE: Label expands to \"%s\" which is %d characters too large.\n", expanded, (int)(strlen(expanded)-label_size+1));
@@ -659,8 +659,10 @@ int pass_4(void) {
             }
 
 	    if (namespace[0] != 0 && mangled_label == NO) {
-	      if (add_namespace(tmp, namespace, sizeof(tmp)) == FAILED)
-		return FAILED;
+	      if (section_status == OFF || sec_tmp->nspace == NULL) {
+		if (add_namespace(tmp, namespace, sizeof(tmp)) == FAILED)
+		  return FAILED;
+	      }
 	    }
 	    
             if (m < 10 && find_label(tmp, sec_tmp, (void*)&l) == SUCCEEDED)
@@ -709,8 +711,10 @@ int pass_4(void) {
           return FAILED;
 
 	if (namespace[0] != 0) {
-	  if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
-	    return FAILED;
+	  if (section_status == OFF || sec_tmp->nspace == NULL) {
+	    if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
+	      return FAILED;
+	  }
 	}
 
         /* this stack was referred from the code */
@@ -763,8 +767,10 @@ int pass_4(void) {
           return FAILED;
 
 	if (namespace[0] != 0) {
-	  if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
-	    return FAILED;
+	  if (section_status == OFF || sec_tmp->nspace == NULL) {
+	    if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
+	      return FAILED;
+	  }
 	}
 	
         /* this stack was referred from the code */
@@ -820,8 +826,10 @@ int pass_4(void) {
           return FAILED;
 
 	if (namespace[0] != 0) {
-	  if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
-	    return FAILED;
+	  if (section_status == OFF || sec_tmp->nspace == NULL) {
+	    if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
+	      return FAILED;
+	  }
 	}
 	
         /* this stack was referred from the code */
@@ -877,8 +885,10 @@ int pass_4(void) {
           return FAILED;
 
 	if (namespace[0] != 0) {
-	  if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
-	    return FAILED;
+	  if (section_status == OFF || sec_tmp->nspace == NULL) {
+	    if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
+	      return FAILED;
+	  }
 	}
 	
         /* this stack was referred from the code */
@@ -902,10 +912,12 @@ int pass_4(void) {
         fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
 
 	if (namespace[0] != 0) {
-	  if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
-	    return FAILED;
+	  if (section_status == OFF || sec_tmp->nspace == NULL) {
+	    if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+	      return FAILED;
+	  }
 	}
-
+	  
         x = 0;
         hashmap_get(defines_map, tmp, (void*)&tmp_def);
         if (tmp_def != NULL) {
@@ -963,8 +975,10 @@ int pass_4(void) {
         fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
 
 	if (namespace[0] != 0) {
-	  if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
-	    return FAILED;
+	  if (section_status == OFF || sec_tmp->nspace == NULL) {
+	    if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+	      return FAILED;
+	  }
 	}
 		
         x = 0;
@@ -1018,8 +1032,10 @@ int pass_4(void) {
         fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
 
 	if (namespace[0] != 0) {
-	  if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
-	    return FAILED;
+	  if (section_status == OFF || sec_tmp->nspace == NULL) {
+	    if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+	      return FAILED;
+	  }
 	}
 
 	x = 0;
@@ -1075,8 +1091,10 @@ int pass_4(void) {
 	fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
 
 	if (namespace[0] != 0) {
-	  if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
-	    return FAILED;
+	  if (section_status == OFF || sec_tmp->nspace == NULL) {
+	    if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+	      return FAILED;
+	  }
 	}
 
 	x = 0;
@@ -1127,8 +1145,10 @@ int pass_4(void) {
         fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
 
 	if (namespace[0] != 0) {
-	  if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
-	    return FAILED;
+	  if (section_status == OFF || sec_tmp->nspace == NULL) {
+	    if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+	      return FAILED;
+	  }
 	}
 
 	x = 0;
@@ -1170,8 +1190,10 @@ int pass_4(void) {
         fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
 
 	if (namespace[0] != 0) {
-	  if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
-	    return FAILED;
+	  if (section_status == OFF || sec_tmp->nspace == NULL) {
+	    if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+	      return FAILED;
+	  }
 	}
 
 	x = 0;
@@ -1255,7 +1277,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLA7");
+    fprintf(final_ptr, "WLA8");
 
     /* misc bits */
     ind = 0;
@@ -1420,7 +1442,7 @@ int pass_4(void) {
     sec_tmp = sections_first;
     while (sec_tmp != NULL) {
       if (sec_tmp->alive == ON) {
-        fprintf(final_ptr, "%s%c", sec_tmp->name, sec_tmp->status);
+        fprintf(final_ptr, "%s%c%c", sec_tmp->name, sec_tmp->status, sec_tmp->keep);
         if (sec_tmp->nspace == NULL)
           fprintf(final_ptr, "%c", 0);
         else
@@ -1459,7 +1481,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAY%c", emptyfill);
+    fprintf(final_ptr, "WLAZ%c", emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -1708,9 +1730,8 @@ int pass_4(void) {
       
       for (ind = 0; ind < stacks_tmp->stacksize; ind++) {
         fprintf(final_ptr, "%c%c", stacks_tmp->stack[ind].type, stacks_tmp->stack[ind].sign);
-        if (stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING) {
+        if (stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
           fprintf(final_ptr, "%s%c", stacks_tmp->stack[ind].string, 0);
-        }
         else {
           dou = stacks_tmp->stack[ind].value;
           WRITEOUT_DOU;
@@ -1825,7 +1846,7 @@ int pass_4(void) {
     while (sec_tmp != NULL) {
       if (sec_tmp->alive == ON) {
         /* section block id */
-        fprintf(final_ptr, "%c%s%c", 0x1, sec_tmp->name, sec_tmp->status);
+        fprintf(final_ptr, "%c%s%c%c", 0x1, sec_tmp->name, sec_tmp->status, sec_tmp->keep);
         if (sec_tmp->nspace == NULL)
           fprintf(final_ptr, "%c", 0);
         else

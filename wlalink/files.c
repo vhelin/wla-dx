@@ -32,7 +32,7 @@ char file_name_error[] = "???";
 int load_files(char *argv[], int argc) {
 
   int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n;
-  int org_defined, org, orga_defined, orga, status_defined, status, priority_defined, priority, appendto_defined;
+  int org_defined, org, orga_defined, orga, status_defined, status, priority_defined, priority, appendto_defined, keep_defined;
   char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32], appendto_name[MAX_NAME_LENGTH + 1];
   struct label *l;
   FILE *fop, *f;
@@ -114,6 +114,7 @@ int load_files(char *argv[], int argc) {
     status_defined = NO;
     priority_defined = NO;
     appendto_defined = NO;
+    keep_defined = NO;
     bank = 0;
     slot = 0;
     base = 0;
@@ -294,6 +295,15 @@ int load_files(char *argv[], int argc) {
             return FAILED;
           }
         }
+	else if (strcaselesscmp(token, "keep") == 0) {
+          if (keep_defined == YES) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: KEEP defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+	    fclose(fop);
+	    return FAILED;
+          }
+
+	  keep_defined = YES;
+	}
 	else if (state == STATE_SECTIONS && (strcaselesscmp(token, "free") == 0 ||
 					     strcaselesscmp(token, "force") == 0 ||
 					     strcaselesscmp(token, "semisubfree") == 0 ||
@@ -382,6 +392,7 @@ int load_files(char *argv[], int argc) {
       sec_fix_tmp->line_number = line;
       sec_fix_tmp->bank = bank;
       sec_fix_tmp->slot = slot;
+      sec_fix_tmp->keep = keep_defined;
 
       if (orga_defined == YES)
 	sec_fix_tmp->orga = orga;

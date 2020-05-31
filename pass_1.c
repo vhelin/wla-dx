@@ -91,7 +91,7 @@ int name_defined = 0;
 
 char tmp[4096], emsg[sizeof(tmp) + MAX_NAME_LENGTH + 1 + 1024];
 char *tmp_bf, *label_stack[256];
-char cp[256];
+char cp[MAX_NAME_LENGTH + 1];
 
 unsigned char *rom_banks = NULL, *rom_banks_usage_table = NULL;
 
@@ -246,19 +246,15 @@ int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
   struct macro_static *macro;
   char fullname[MAX_NAME_LENGTH + 1];
 
+  strcpy(fullname, name);
+
   /* append the namespace, if this file uses if */
   if (add_namespace == YES && active_file_info_last->namespace[0] != 0) {
-    snprintf(fullname, sizeof(fullname), "%s.%s", active_file_info_last->namespace, name);
-    fullname[sizeof(fullname)-1] = 0;
-    if (strlen(fullname) >= sizeof(fullname)-1) {
-      snprintf(emsg, sizeof(emsg), "The current file namespace \"%s\" cannot be added to MACRO's \"%s\" name - increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", active_file_info_last->namespace, name);
-      print_error(emsg, ERROR_DIR);
+    if (add_namespace_to_string(fullname, sizeof(fullname), "MACRO") == FAILED) {
       *macro_out = NULL;
       return FAILED;
     }
   }
-  else
-    strcpy(fullname, name);
 
   macro = macros_first;
   while (macro != NULL) {
@@ -1046,14 +1042,14 @@ int evaluate_token(void) {
   int f, z, x, y;
 #if defined(Z80) || defined(SPC700) || defined(W65816) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280)
   int e = 0, v = 0, h = 0;
-  char labelx[256];
+  char labelx[MAX_NAME_LENGTH + 1];
 #endif
 #ifdef SPC700
   int g;
 #endif
 #ifdef HUC6280
   int r = 0, s, t = 0, u = 0;
-  char labely[256];
+  char labely[MAX_NAME_LENGTH + 1];
 #endif
 
   /* are we in an enum, ramsection, or struct? */
@@ -1128,6 +1124,7 @@ int evaluate_token(void) {
       /* skip all mnemonics that contain '<', '|' and '>' */
       for (inz = 0, d = SUCCEEDED; inz < OP_SIZE_MAX; inz++) {
 	char c = opt_tmp->op[inz];
+
 	if (c == 0)
 	  break;
 	if (c == '<' || c == '|' || c == '>') {
@@ -2380,7 +2377,7 @@ int directive_bank(void) {
 int directive_dbm_dwm_dlm(void) {
   
   struct macro_static *m;
-  char bak[256];
+  char bak[MAX_NAME_LENGTH + 1];
   
   strcpy(bak, cp);
   inz = input_number();
@@ -4014,6 +4011,7 @@ int directive_ramsection(void) {
   sec_tmp->maxsize_status = OFF;
   sec_tmp->status = SECTION_STATUS_RAM_FREE;
   sec_tmp->alive = ON;
+  sec_tmp->keep = NO;
   sec_tmp->data = NULL;
   sec_tmp->filename_id = active_file_info_last->filename_id;
   sec_tmp->id = section_id;
@@ -4021,6 +4019,14 @@ int directive_ramsection(void) {
   sec_tmp->advance_org = YES;
   sec_tmp->nspace = NULL;
   section_id++;
+
+  /* add the namespace to the ramsection's name? */
+  if (active_file_info_last->namespace[0] != 0) {
+    if (add_namespace_to_string(tmp, sizeof(tmp), "RAMSECTION") == FAILED) {
+      free(sec_tmp);
+      return FAILED;
+    }
+  }
 
   strcpy(sec_tmp->name, tmp);
   sec_tmp->next = NULL;
@@ -4230,6 +4236,25 @@ int directive_ramsection(void) {
       free(append_tmp);
       return FAILED;
     }
+
+    /* add the namespace to the section's name? */
+    if (strlen(tmp) > 2 && tmp[0] == '*' && tmp[1] == ':') {
+      char buf[MAX_NAME_LENGTH + 1];
+      
+      /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
+      if (strlen(tmp) >= sizeof(buf)) {
+	snprintf(emsg, sizeof(emsg), "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", tmp);
+	print_error(emsg, ERROR_DIR);
+	return FAILED;
+      }
+
+      strcpy(buf, &tmp[2]);
+      strcpy(tmp, buf);
+    }
+    else if (active_file_info_last->namespace[0] != 0) {
+      if (add_namespace_to_string(tmp, sizeof(tmp), "APPENDTO") == FAILED)
+	return FAILED;
+    }
     
     strcpy(append_tmp->section, sec_tmp->name);
     strcpy(append_tmp->append_to, tmp);
@@ -4249,6 +4274,13 @@ int directive_ramsection(void) {
     }
 
     sec_tmp->priority = d;
+  }
+
+  if (compare_next_token("KEEP") == SUCCEEDED) {
+    if (skip_next_token() == FAILED)
+      return FAILED;
+
+    sec_tmp->keep = YES;
   }
 
   enum_offset = 0;
@@ -4323,6 +4355,7 @@ int directive_section(void) {
   sec_tmp->alignment = 1;
   sec_tmp->advance_org = YES;
   sec_tmp->nspace = NULL;
+  sec_tmp->keep = NO;
 
   if (strcmp(tmp, "BANKHEADER") == 0) {
     no_library_files("bank header sections");
@@ -4401,6 +4434,12 @@ int directive_section(void) {
     sec_tmp->nspace = nspace;
   }
 
+  /* add the namespace to the section's name? */
+  if (active_file_info_last->namespace[0] != 0 && sec_tmp->nspace == NULL) {
+    if (add_namespace_to_string(sec_tmp->name, sizeof(sec_tmp->name), "SECTION") == FAILED)
+      return FAILED;
+  }
+  
   /* the size of the section? */
   if (compare_next_token("SIZE") == SUCCEEDED) {
     if (skip_next_token() == FAILED)
@@ -4512,6 +4551,28 @@ int directive_section(void) {
       return FAILED;
     }
 
+    /* add the namespace to the section's name? */
+    if (strlen(tmp) > 2 && tmp[0] == '*' && tmp[1] == ':') {
+      char buf[MAX_NAME_LENGTH + 1];
+      
+      /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
+      if (strlen(tmp) >= sizeof(buf)) {
+	snprintf(emsg, sizeof(emsg), "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", tmp);
+	print_error(emsg, ERROR_DIR);
+	free(append_tmp);
+	return FAILED;
+      }
+
+      strcpy(buf, &tmp[2]);
+      strcpy(tmp, buf);
+    }
+    else if (active_file_info_last->namespace[0] != 0) {
+      if (add_namespace_to_string(tmp, sizeof(tmp), "APPENDTO") == FAILED) {
+	free(append_tmp);
+	return FAILED;
+      }
+    }
+    
     strcpy(append_tmp->section, sec_tmp->name);
     strcpy(append_tmp->append_to, tmp);
 
@@ -4532,6 +4593,13 @@ int directive_section(void) {
     sec_tmp->priority = d;
   }
 
+  if (compare_next_token("KEEP") == SUCCEEDED) {
+    if (skip_next_token() == FAILED)
+      return FAILED;
+
+    sec_tmp->keep = YES;
+  }
+  
   /* bankheader section? */
   if (strcmp(sec_tmp->name, "BANKHEADER") == 0) {
     sec_tmp->status = SECTION_STATUS_HEADER;
@@ -6512,17 +6580,8 @@ int directive_macro(void) {
 
   /* append the namespace, if this file uses if */
   if (active_file_info_last->namespace[0] != 0) {
-    char buf[MAX_NAME_LENGTH + 1];
-    
-    snprintf(buf, sizeof(buf), "%s.%s", active_file_info_last->namespace, tmp);
-    buf[sizeof(buf)-1] = 0;
-    if (strlen(buf) >= sizeof(buf)-1) {
-      snprintf(emsg, sizeof(emsg), "The current file namespace \"%s\" cannot be added to MACRO's \"%s\" name - increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", active_file_info_last->namespace, tmp);
-      print_error(emsg, ERROR_DIR);
+    if (add_namespace_to_string(tmp, sizeof(tmp), "MACRO") == FAILED)
       return FAILED;
-    }
-
-    strcpy(tmp, buf);
   }
 
   if (macro_get(tmp, NO, &m) == FAILED)
@@ -9829,7 +9888,7 @@ int add_label_to_label_stack(char *l) {
 /* get the full version of a (possibly child) label */
 int get_full_label(char *l, char *out) {
 
-  char *error_message = "GET_FULL_LABEL: Constructed label size will be >= MAX_NAME_LENGTH. Edit the define in shared.h, compile WLA and try again...\n";
+  char *error_message = "GET_FULL_LABEL: Constructed label size will be >= MAX_NAME_LENGTH. Edit the define in shared.h, recompile WLA and try again...\n";
   int level = 0, q;
 
   for (q = 0; q < MAX_NAME_LENGTH; q++) {
@@ -9859,6 +9918,24 @@ int get_full_label(char *l, char *out) {
 
     strncat(out, &l[level-1], MAX_NAME_LENGTH);
   }
+
+  return SUCCEEDED;
+}
+
+
+int add_namespace_to_string(char *s, int sizeof_s, char *type) {
+
+  char buf[MAX_NAME_LENGTH + 1];
+    
+  snprintf(buf, sizeof(buf), "%s.%s", active_file_info_last->namespace, s);
+  buf[sizeof(buf)-1] = 0;
+  if (strlen(buf) >= (size_t)sizeof_s) {
+    snprintf(emsg, sizeof(emsg), "The current file namespace \"%s\" cannot be added to %s's \"%s\" name - increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", active_file_info_last->namespace, type, tmp);
+    print_error(emsg, ERROR_ERR);
+    return FAILED;
+  }
+
+  strcpy(s, buf);
 
   return SUCCEEDED;
 }

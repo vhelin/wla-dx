@@ -824,6 +824,9 @@ int fix_all_sections(void) {
 
 	if (sec_fix_tmp->priority_defined == YES)
 	  s->priority = sec_fix_tmp->priority;
+
+	if (sec_fix_tmp->keep == YES)
+	  s->keep = YES;
 	
 	if (sec_fix_tmp->orga >= 0) {
 	  if (sec_fix_tmp->orga < slots[s->slot].address || sec_fix_tmp->orga >= slots[s->slot].address + slots[s->slot].size) {

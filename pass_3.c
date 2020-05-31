@@ -234,8 +234,10 @@ int pass_3(void) {
         }
 
         if (c == 'L' && is_label_anonymous(l->label) == NO && namespace[0] != 0 && mangled_label == NO) {
-	  if (add_namespace(l->label, namespace, sizeof(l->label)) == FAILED)
-	    return FAILED;
+	  if (s == NULL || s->nspace == NULL) {
+	    if (add_namespace(l->label, namespace, sizeof(l->label)) == FAILED)
+	      return FAILED;
+	  }
 	}
 
 	l->next = NULL;
@@ -746,10 +748,12 @@ int pass_3(void) {
       }
 
       if (c == 'L' && is_label_anonymous(l->label) == NO && namespace[0] != 0 && mangled_label == NO) {
-	if (add_namespace(l->label, namespace, sizeof(l->label)) == FAILED)
-	  return FAILED;
+	if (s == NULL || s->nspace == NULL) {
+	  if (add_namespace(l->label, namespace, sizeof(l->label)) == FAILED)
+	    return FAILED;
+	}
       }
-
+      
       l->next = NULL;
       l->section_status = section_status;
       l->filename_id = file_name_id;

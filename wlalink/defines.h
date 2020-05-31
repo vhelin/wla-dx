@@ -147,6 +147,7 @@ struct section {
   int  address;
   int  output_address;
   int  status;
+  int  keep;
   int  bank;
   int  slot;
   int  size;
@@ -173,6 +174,7 @@ struct section_fix {
   char file_name[MAX_NAME_LENGTH + 1];
   char slot_name[MAX_NAME_LENGTH + 1];
   int  line_number;
+  int  keep;
   int  bank;
   int  slot;
   int  orga;

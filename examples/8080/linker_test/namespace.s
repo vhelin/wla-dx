@@ -29,3 +29,20 @@ do:
 	.incbin "binaryfile" FILTER INCREMENTMACRO
 	.db "<NS"
 .ends
+
+.section "Main" FREE KEEP
+MainLoop:
+	.db "N1>"
+	.db 1, 0
+	.db "<N1"
+.ends
+
+.section "Bonus" APPENDTO "Main"
+	.db "Bonus", 0
+.ends
+
+.section "MoreNops" APPENDTO "*:DUMMY3"
+	nop
+	nop
+	nop
+.ends

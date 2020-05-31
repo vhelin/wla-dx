@@ -518,6 +518,7 @@ struct section_def {
   int  alignment;
   int  priority;
   int  address; /* in bank */
+  int  keep;
   int  bank;
   int  base;
   int  slot;

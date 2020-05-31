@@ -102,7 +102,7 @@ LABEL	.print "THE END\n"
 .ENDS	
 
 	.include "namespace.s" namespace "oops"
-	.dw hello.oops.NamespaceMain, oops.NamespaceBonus
+	.dw hello.NamespaceMain, oops.NamespaceBonus
 	
 .DB "DD>"
  TEST 3
@@ -133,21 +133,21 @@ SHORT_STRING = "one"
 .ENDR
 .ENDM
 
-.section "!DUMMY4" FREE
+.section "DUMMY4" FREE KEEP
 	DEFINE_BYTES "hello"
 .ends
 
 .org $20
-.ramsection "!ramsection1" bank 1 slot "RAM 2" SEMIFREE
+.ramsection "ramsection1" bank 1 slot "RAM 2" SEMIFREE KEEP
 RAMVAR1	db
 .ends
 
 .org $20
-.ramsection "!ramsection2" bank 1 slot "RAM 2" FREE
+.ramsection "ramsection2" bank 1 slot "RAM 2" FREE KEEP
 RAMVAR2 db
 .ends
 
 .org $20
-.ramsection "!ramsection3" bank 1 slot "RAM 2" SEMISUBFREE
+.ramsection "ramsection3" bank 1 slot "RAM 2" SEMISUBFREE KEEP
 RAMVAR3 db
 .ends

@@ -28,6 +28,7 @@ void next_line(void);
 void delete_stack(struct stack *s);
 void parse_print_string(char *input, char *output, int output_size);
 
+int add_namespace_to_string(char *s, int sizeof_s, char *type);
 int macro_get(char *name, int add_namespace, struct macro_static **macro_out);
 
 #endif

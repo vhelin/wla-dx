@@ -1122,6 +1122,7 @@ int parse_data_blocks(void) {
             s->name[i++] = *(t++);
           s->name[i] = 0;
           s->status = *(t++);
+	  s->keep = *(t++);
 
           /* namespace */
           i = 0;
@@ -1196,7 +1197,8 @@ int parse_data_blocks(void) {
           s->name[i++] = *(t++);
         s->name[i] = 0;
         s->status = *(t++);
-
+	s->keep = *(t++);
+	  
         /* namespace */
         i = 0;
         while (*t != 0)

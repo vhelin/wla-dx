@@ -886,8 +886,13 @@ If you want to prefix all labels inside the included file with something, use ::
 
     .INCLUDE "music_player.s" NAMESPACE "musicplayer"  
 
-In the case of this example, all labels and references to those labels inside
-the included file are prefixed with "musicplayer.".
+In the case of this example, all sections, macros, labels and references to
+those labels inside the included file are prefixed with "musicplayer.", though
+there are a couple of exceptions. If a ``.SECTION`` inside the included file has
+its own namespace, the ``.INCLUDE`` 's namespace doesn't affect it. If a ``.SECTION``
+inside the included file uses ``APPENDTO`` with a section name that starts with
+``"*:"``, that ``APPENDTO`` is considered to belong to the global namespace and we
+won't prefix it with the ``.INCLUDE`` 's namespace.
 
 This is not a compulsory directive.
 
@@ -2497,7 +2502,10 @@ and calculations.
 
 If a section name begins with an exclamation mark (``!``) it tells
 WLALINK to not to drop it, even if you use WLALINK's ability to discard
-all unreferenced sections and there are no references to the section.
+all unreferenced sections and there are no references to the section. You can
+achieve the same effect by adding ``KEEP`` to the end of the list::
+
+    .SECTION "Init" SIZE 100 ALIGN 4 FREE RETURNORG KEEP  
 
 ``FORCE`` after the name of the section tells WLA that the section *must* be
 inserted so it starts at ``.ORG``. ``FORCE`` can be replaced with ``FREE``
