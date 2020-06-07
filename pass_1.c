@@ -3810,8 +3810,8 @@ int directive_incdir(void) {
 
 int directive_include(int is_real) {
 
-  int o, include_size = 0;
-  char namespace[MAX_NAME_LENGTH + 1], path[MAX_NAME_LENGTH + 1];
+  int o, include_size = 0, accumulated_name_length = 0;
+  char namespace[MAX_NAME_LENGTH + 1], path[MAX_NAME_LENGTH + 1], accumulated_name[MAX_NAME_LENGTH + 1];
 
 #ifdef DISABLE_USED_INCLUDES
   if (is_real == YES) {
@@ -3830,19 +3830,39 @@ int directive_include(int is_real) {
   }
 #endif
 
-  expect_calculations = NO;
-  o = input_number();
-  expect_calculations = YES;
+  accumulated_name[0] = 0;
 
-  if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
-    print_error(".INCLUDE needs a file name string.\n", ERROR_DIR);
-    return FAILED;
+  while (1) {
+    if (compare_next_token("NAMESPACE") == SUCCEEDED)
+      break;
+
+    expect_calculations = NO;
+    o = input_number();
+    expect_calculations = YES;
+    
+    if (o == INPUT_NUMBER_EOL) {
+      next_line();
+      break;
+    }
+    else if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
+      print_error(".INCLUDE needs a file name string.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    if (accumulated_name_length + strlen(label) >= sizeof(accumulated_name)) {
+      print_error("The accumulated file name length >= MAX_NAME_LENGTH. Increase its size in shared.h and recompile WLA.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    strcpy(&accumulated_name[accumulated_name_length], label);
+    accumulated_name_length = strlen(accumulated_name);
   }
+
+  strcpy(path, accumulated_name);
 
   /* convert the path to local enviroment */
   localize_path(label);
-  strcpy(path, label);
-
+  
   if (compare_next_token("NAMESPACE") != SUCCEEDED)
     namespace[0] = 0;
   else {

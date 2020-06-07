@@ -894,6 +894,13 @@ inside the included file uses ``APPENDTO`` with a section name that starts with
 ``"*:"``, that ``APPENDTO`` is considered to belong to the global namespace and we
 won't prefix it with the ``.INCLUDE`` 's namespace.
 
+Note that you can create the file name from pieces ::
+
+    .INCLUDE ROOTDIR, SUBDIR, "cthulhu.s" NAMESPACE "cthulhu"
+
+This might end up looking for a file "root/subdir/cthulhu.s", depending on the
+definitions.
+    
 This is not a compulsory directive.
 
 
