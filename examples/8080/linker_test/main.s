@@ -71,17 +71,21 @@ DummyMain:
 
 .MACRO JUMP_MACRO
 	.print "OUTMOST:::IN\n"
-        MACRO_INCLUDE 11 \1
+        MACRO_INCLUDE_1 11 \1
 	.print "OUTMOST:::OUT\n"
 .ENDM
 
-.MACRO MACRO_INCLUDE
+.MACRO MACRO_INCLUDE_1
 	.print "INSIDE:::IN\n"
-	.include include.s
+	.include include1.s
 	.db \2
 	.print "INSIDE:::OUT\n"
 .ENDM
-	
+
+.MACRO MACRO_INCLUDE_2
+	.INCLUDE "include3.s"
+	.INCLUDE "include4.s"
+.ENDM
 
 .ORG $2000
 .SECTION "DUMMY2" FREE
@@ -107,6 +111,10 @@ LABEL	.print "THE END\n"
 .DB "DD>"
  TEST 3
 .DB "<DD"
+
+.DB "EE>"
+	MACRO_INCLUDE_2
+.DB "<EE"
 
 .SECTION "DUMMY3" FREE
 DummyMain3:

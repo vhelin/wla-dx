@@ -3867,11 +3867,15 @@ int directive_include(int is_real) {
       /* yes. note that the now we added new bytes after i, so if a macro_return_i is
 	 bigger than i, we'll need to add the bytes to it */
       struct macro_static *ms;
-      int q;
+      int q, w;
 
       for (q = 0; q < macro_active; q++) {
 	if (macro_stack[q].macro_return_i > i)
 	  macro_stack[q].macro_return_i += include_size;
+	for (w = 0; w < macro_stack[q].supplied_arguments; w++) {
+	  if (macro_stack[q].argument_data[w]->start > i)
+	    macro_stack[q].argument_data[w]->start += include_size;
+	}
       }
 
       /* also macro starting points that are after this position need to move forward
