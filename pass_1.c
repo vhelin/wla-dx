@@ -3813,6 +3813,7 @@ int directive_include(int is_real) {
   int o, include_size = 0;
   char namespace[MAX_NAME_LENGTH + 1], path[MAX_NAME_LENGTH + 1];
 
+#ifdef DISABLE_USED_INCLUDES
   if (is_real == YES) {
     /* turn the .INCLUDE/.INC into .INDLUDE/.IND to mark it as used,
        for repetitive macro calls that contain .INCLUDE/.INC... */
@@ -3827,7 +3828,8 @@ int directive_include(int is_real) {
       o--;
     }
   }
-  
+#endif
+
   expect_calculations = NO;
   o = input_number();
   expect_calculations = YES;
