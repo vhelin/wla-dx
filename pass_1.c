@@ -3810,30 +3810,28 @@ int directive_incdir(void) {
 
 int directive_include(int is_real) {
 
-  int o, include_size = 0, accumulated_name_length = 0;
+  int o, include_size = 0, accumulated_name_length = 0, character_c_position = 0, got_once = NO;
   char namespace[MAX_NAME_LENGTH + 1], path[MAX_NAME_LENGTH + 1], accumulated_name[MAX_NAME_LENGTH + 1];
 
-#ifdef DISABLE_USED_INCLUDES
   if (is_real == YES) {
-    /* turn the .INCLUDE/.INC into .INDLUDE/.IND to mark it as used,
+    /* turn the .INCLUDE/.INC into .INDLUDE/.IND to mark it as used, if ONCE is used,
        for repetitive macro calls that contain .INCLUDE/.INC... */
     o = i;
     while (o >= 0) {
       if (toupper(buffer[o+0]) == 'I' &&
 	  toupper(buffer[o+1]) == 'N' &&
 	  toupper(buffer[o+2]) == 'C') {
-	buffer[o+2] = 'd';
+	character_c_position = o+2;
 	break;
       }
       o--;
     }
   }
-#endif
 
   accumulated_name[0] = 0;
 
   while (1) {
-    if (compare_next_token("NAMESPACE") == SUCCEEDED)
+    if (compare_next_token("NAMESPACE") == SUCCEEDED || compare_next_token("ONCE") == SUCCEEDED)
       break;
 
     expect_calculations = NO;
@@ -3880,6 +3878,12 @@ int directive_include(int is_real) {
     strcpy(namespace, label);
   }
 
+  if (compare_next_token("ONCE") == SUCCEEDED) {
+    skip_next_token();
+
+    got_once = YES;
+  }
+  
   if (is_real == YES) {
     if (include_file(path, &include_size, namespace) == FAILED)
       return FAILED;
@@ -3908,6 +3912,12 @@ int directive_include(int is_real) {
 	  ms->start += include_size;
 	ms = ms->next;
       }
+    }
+
+    if (got_once == YES) {
+      /* turn the .INCLUDE/.INC into .INDLUDE/.IND to mark it as used, as we got ONCE,
+	 for repetitive macro calls that contain .INCLUDE/.INC... */
+      buffer[character_c_position] = 'd';
     }
   }
   

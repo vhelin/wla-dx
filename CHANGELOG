@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 -------------------------------------------------------------------------------------------------
 
-v9.11 (07-Jun-2020) [ALL] Stack calculator's string checker handled only
+v9.11 (09-Jun-2020) [ALL] Stack calculator's string checker handled only
                       63 characters long strings.
                     [ALL] A directive with the first argument being
                       negative wasn't parsed properly.
@@ -42,11 +42,12 @@ v9.11 (07-Jun-2020) [ALL] Stack calculator's string checker handled only
                       object files.
                     [ALL] .ENDST should be case insensitive in all cases.
                     [ALL] .INCLUDE can now be used inside .MACROs.
+                    [ALL] .INCLUDE/.INC can now be given the filename in
+                      pieces, e.g. ".INC ROOTDIR, SUBDIR, "filename.s"".
+                    [ALL] Added ONCE to .INCLUDE/.INC.
                     [ALL] Macro calls can now be made from the very beginning
                       of a new line (where labels are).
                     [ALL] Added NAMESPACE to .INCLUDE/.INC.
-                    [ALL] .INCLUDE/.INC can now be given the filename in
-                      pieces, e.g. ".INC ROOTDIR, SUBDIR, "filename.s"".
                     [ALL] Improved WLA's string.length parsing capabilities.
                     [ALL] Sections can avoid WLALINK's discard mechanism
                       with a keyword "KEEP" ('!' at the beginning of a

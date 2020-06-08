@@ -87,6 +87,10 @@ DummyMain:
 	.INCLUDE "include4.s"
 .ENDM
 
+.MACRO MACRO_INCLUDE_3
+	.INCLUDE "include5.s" ONCE
+.ENDM
+
 .ORG $2000
 .SECTION "DUMMY2" FREE
 DummyMain2:
@@ -116,6 +120,11 @@ LABEL	.print "THE END\n"
 	MACRO_INCLUDE_2
 .DB "<EE"
 
+.DB "FF>"
+	MACRO_INCLUDE_3
+	MACRO_INCLUDE_3
+.DB "<FF"
+	
 .SECTION "DUMMY3" FREE
 DummyMain3:
 	nop

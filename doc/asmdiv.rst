@@ -884,7 +884,7 @@ before if it is not found.
 
 If you want to prefix all labels inside the included file with something, use ::
 
-    .INCLUDE "music_player.s" NAMESPACE "musicplayer"  
+    .INCLUDE "music_player.s" NAMESPACE "musicplayer"
 
 In the case of this example, all sections, macros, labels and references to
 those labels inside the included file are prefixed with "musicplayer.", though
@@ -900,7 +900,12 @@ Note that you can create the file name from pieces ::
 
 This might end up looking for a file "root/subdir/cthulhu.s", depending on the
 definitions.
-    
+
+If you are using the ``.INCLUDE`` inside a ``.MACRO`` and want to have the file
+included only once, use the keyword ``ONCE`` ::
+
+    .INCLUDE "include_one.s" NAMESPACE "once" ONCE
+  
 This is not a compulsory directive.
 
 
