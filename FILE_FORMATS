@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 object file format "WLAZ"
+WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 object file format "WLAa"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAZ" - WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 object file version 25 (31-May-2020)
+        "WLAa" - WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 object file version 26 (17-Jun-2020)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -165,6 +165,7 @@ section:
   4     base (int)
   4     size (int)
   4     alignment (int)
+  4     offset (int)
   4     priority (int)
   n     data
   1     list file information (0 == no, 1 == yes)
@@ -172,7 +173,7 @@ section:
 
 
 
-WLA-GB/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 library file format "WLA8"
+WLA-GB/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 library file format "WLA9"
 
 
 bytes   description
@@ -180,7 +181,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLA8" - WLA-GB/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 library file version 19 (31-May-2020)
+        "WLA9" - WLA-GB/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700 library file version 20 (17-Jun-2020)
   1     misc bits (bit 0 - endianess (1 = big endian)
                    bit 1 - 65816 indicator (1 == 65816)
                    bit 2 - 65ce02 indicator (1 == 65ce02))
@@ -275,6 +276,7 @@ sections:
   1     file id
   4     number of bytes (int)
   4     alignment (int)
+  4     offset (int)
   4     priority (int)
   n     data
   1     list file information (0 == no, 1 == yes)

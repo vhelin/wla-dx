@@ -31,8 +31,9 @@ char file_name_error[] = "???";
 
 int load_files(char *argv[], int argc) {
 
-  int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n;
+  int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n, alignment, offset;
   int org_defined, org, orga_defined, orga, status_defined, status, priority_defined, priority, appendto_defined, keep_defined;
+  int alignment_defined, offset_defined;
   char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32], appendto_name[MAX_NAME_LENGTH + 1];
   struct label *l;
   FILE *fop, *f;
@@ -115,6 +116,8 @@ int load_files(char *argv[], int argc) {
     priority_defined = NO;
     appendto_defined = NO;
     keep_defined = NO;
+    alignment_defined = NO;
+    offset_defined = NO;
     bank = 0;
     slot = 0;
     base = 0;
@@ -122,6 +125,8 @@ int load_files(char *argv[], int argc) {
     org = 0;
     status = -1;
     priority = 0;
+    alignment = 0;
+    offset = 0;
 
     /* definitions? */
     if (state == STATE_DEFINITION) {
@@ -280,6 +285,36 @@ int load_files(char *argv[], int argc) {
 	    return FAILED;
 	  }
 	}
+	else if (strcaselesscmp(token, "alignment") == 0) {
+	  if (alignment_defined == YES) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: ALIGNMENT defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+	    fclose(fop);
+	    return FAILED;
+	  }
+
+	  alignment_defined = YES;
+
+	  if (get_next_number(&tmp[x], &alignment, &x) == FAILED) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: Error in ALIGNMENT number.\n", argv[argc - 2], line);
+	    fclose(fop);
+	    return FAILED;
+	  }
+	}
+	else if (strcaselesscmp(token, "offset") == 0) {
+	  if (offset_defined == YES) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: OFFSET defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+	    fclose(fop);
+	    return FAILED;
+	  }
+
+	  offset_defined = YES;
+
+	  if (get_next_number(&tmp[x], &offset, &x) == FAILED) {
+	    fprintf(stderr, "%s:%d: LOAD_FILES: Error in OFFSET number.\n", argv[argc - 2], line);
+	    fclose(fop);
+	    return FAILED;
+	  }
+	}
         else if (strcaselesscmp(token, "appendto") == 0) {
           if (appendto_defined == YES) {
 	    fprintf(stderr, "%s:%d: LOAD_FILES: APPENDTO defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
@@ -409,6 +444,16 @@ int load_files(char *argv[], int argc) {
       else
 	sec_fix_tmp->status = -1;
 
+      if (alignment_defined == YES)
+	sec_fix_tmp->alignment = alignment;
+      else
+	sec_fix_tmp->alignment = -1;
+
+      if (offset_defined == YES)
+	sec_fix_tmp->offset = offset;
+      else
+	sec_fix_tmp->offset = -1;
+      
       if (appendto_defined == YES) {
         append_tmp = calloc(1, sizeof(struct append_section));
         strcpy(append_tmp->section, sec_fix_tmp->name);

@@ -295,6 +295,7 @@ int insert_sections(void) {
       int address = s->address;
 
       address += overflow;
+      address += s->offset;
 
       c = ram_slots[s->bank][s->slot];
       i = slots[s->slot].size;
@@ -326,6 +327,7 @@ int insert_sections(void) {
       /* align the starting address */
       int overflow = slotAddress % s->alignment;
       int address = 0;
+      int offset = s->offset;
 
       address += overflow;
 
@@ -334,8 +336,8 @@ int insert_sections(void) {
       t = 0;
       for (; address < i; address += s->alignment) {
 	if (c[address] == 0) {
-	  for (q = 0; address + q < i && q < s->size; q++) {
-	    if (c[address + q] != 0)
+	  for (q = 0; address + offset + q < i && q < s->size; q++) {
+	    if (c[address + offset + q] != 0)
 	      break;
 	  }
 	  if (q == s->size) {
@@ -351,6 +353,7 @@ int insert_sections(void) {
         return FAILED;
       }
 
+      address += offset;
       s->address = address;
       s->output_address = address;
 
@@ -371,6 +374,7 @@ int insert_sections(void) {
       /* align the starting address */
       int overflow = (slotAddress + s->address) % s->alignment;
       int address = s->address;
+      int offset = s->offset;
 
       address += overflow;
 
@@ -379,8 +383,8 @@ int insert_sections(void) {
       t = 0;
       for (; address < i; address += s->alignment) {
 	if (c[address] == 0) {
-	  for (q = 0; address + q < i && q < s->size; q++) {
-	    if (c[address + q] != 0)
+	  for (q = 0; address + offset + q < i && q < s->size; q++) {
+	    if (c[address + offset + q] != 0)
 	      break;
 	  }
 	  if (q == s->size) {
@@ -396,6 +400,7 @@ int insert_sections(void) {
         return FAILED;
       }
 
+      address += offset;
       s->address = address;
       s->output_address = address;
 
@@ -502,7 +507,7 @@ int insert_sections(void) {
       i = FAILED;
       while (i == FAILED) {
 	f = pc_bank;
-	for (x = 0; pc_bank < s->address && rom_usage[pc_bank + d] == 0 && x < s->size; pc_bank++, x++)
+	for (x = 0; pc_bank + s->offset < s->address && rom_usage[pc_bank + s->offset + d] == 0 && x < s->size; pc_bank++, x++)
 	  ;
 	if (x == s->size)
 	  break;
@@ -516,13 +521,13 @@ int insert_sections(void) {
 	f = (pc_bank + d) % s->alignment;
 	if (f > 0)
 	  pc_bank += s->alignment - f;
-        for (; pc_bank < s->address && rom_usage[pc_bank + d] != 0; pc_bank += s->alignment)
+        for (; pc_bank + s->offset < s->address && rom_usage[pc_bank + s->offset + d] != 0; pc_bank += s->alignment)
 	  ;
       }
 
       memory_file_id = s->file_id;
       banksize = banksizes[s->bank];
-      pc_bank = f;
+      pc_bank = f + s->offset;
       pc_slot = slots[s->slot].address + pc_bank;
       pc_full = pc_bank + bankaddress[s->bank];
       pc_slot_max = slots[s->slot].address + slots[s->slot].size;
@@ -556,7 +561,7 @@ int insert_sections(void) {
       i = FAILED;
       while (i == FAILED) {
 	f = pc_bank;
-	for (x = 0; pc_bank < banksizes[s->bank] && rom_usage[pc_bank + d] == 0 && x < s->size; pc_bank++, x++)
+	for (x = 0; pc_bank + s->offset < banksizes[s->bank] && rom_usage[pc_bank + s->offset + d] == 0 && x < s->size; pc_bank++, x++)
 	  ;
 	if (x == s->size)
 	  break;
@@ -570,13 +575,13 @@ int insert_sections(void) {
 	f = (pc_bank + d) % s->alignment;
 	if (f > 0)
 	  pc_bank += s->alignment - f;
-        for (; pc_bank < banksizes[s->bank] && rom_usage[pc_bank + d] != 0; pc_bank += s->alignment)
+        for (; pc_bank + s->offset < banksizes[s->bank] && rom_usage[pc_bank + s->offset + d] != 0; pc_bank += s->alignment)
 	  ;
       }
 
       memory_file_id = s->file_id;
       banksize = banksizes[s->bank];
-      pc_bank = f;
+      pc_bank = f + s->offset;
       pc_slot = slots[s->slot].address + pc_bank;
       pc_full = pc_bank + bankaddress[s->bank];
       pc_slot_max = slots[s->slot].address + slots[s->slot].size;
@@ -618,7 +623,7 @@ int insert_sections(void) {
 
 	while (i == FAILED) {
 	  f = pc_bank;
-	  for (x = 0; pc_bank < banksizes[q] && rom_usage[pc_bank + d] == 0 && x < s->size; pc_bank++, x++)
+	  for (x = 0; pc_bank + s->offset < banksizes[q] && rom_usage[pc_bank + s->offset + d] == 0 && x < s->size; pc_bank++, x++)
 	    ;
 	  if (x == s->size) {
 	    i = SUCCEEDED;
@@ -631,7 +636,7 @@ int insert_sections(void) {
 	  f = (pc_bank + d) % s->alignment;
 	  if (f > 0)
 	    pc_bank += s->alignment - f;
-	  for (; pc_bank < banksizes[s->bank] && rom_usage[pc_bank + d] != 0; pc_bank += s->alignment)
+	  for (; pc_bank + s->offset < banksizes[s->bank] && rom_usage[pc_bank + s->offset + d] != 0; pc_bank += s->alignment)
 	    ;
 	}
       }
@@ -640,7 +645,7 @@ int insert_sections(void) {
 	s->bank = q-1;
 	memory_file_id = s->file_id;
 	banksize = banksizes[s->bank];
-	pc_bank = f;
+	pc_bank = f + s->offset;
 	pc_slot = pc_bank;
 	pc_full = pc_bank + bankaddress[s->bank];
 	pc_slot_max = slots[s->slot].size;
@@ -796,7 +801,7 @@ int check_ramsections(void) {
 }
 
 
-/* fix the slot, bank and org/orga of sections inside libraries, as given in the linkfile */
+/* fix the slot, bank, org/orga, etc. of sections inside libraries, as given in the linkfile */
 int fix_all_sections(void) {
 
   struct section *s;
@@ -827,6 +832,12 @@ int fix_all_sections(void) {
 
 	if (sec_fix_tmp->keep == YES)
 	  s->keep = YES;
+
+	if (sec_fix_tmp->alignment >= 0)
+	  s->alignment = sec_fix_tmp->alignment;
+
+	if (sec_fix_tmp->offset >= 0)
+	  s->offset = sec_fix_tmp->offset;
 	
 	if (sec_fix_tmp->orga >= 0) {
 	  if (sec_fix_tmp->orga < slots[s->slot].address || sec_fix_tmp->orga >= slots[s->slot].address + slots[s->slot].size) {

@@ -1159,6 +1159,7 @@ int parse_data_blocks(void) {
           s->base = READ_T;
           s->size = READ_T;
           s->alignment = READ_T;
+	  s->offset = READ_T;
 	  s->priority = READ_T;
           s->data = t;
           s->library_status = OFF;
@@ -1230,6 +1231,7 @@ int parse_data_blocks(void) {
         s->file_id_source = *(t++);
         s->size = READ_T;
         s->alignment = READ_T;
+	s->offset = READ_T;
 	s->priority = READ_T;
         s->data = t;
         s->address = 0;

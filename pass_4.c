@@ -1277,7 +1277,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLA8");
+    fprintf(final_ptr, "WLA9");
 
     /* misc bits */
     ind = 0;
@@ -1457,6 +1457,8 @@ int pass_4(void) {
         WRITEOUT_OV;
         ov = sec_tmp->alignment;
         WRITEOUT_OV;
+	ov = sec_tmp->offset;
+        WRITEOUT_OV;
 	ov = sec_tmp->priority;
 	WRITEOUT_OV;
 	
@@ -1481,7 +1483,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAZ%c", emptyfill);
+    fprintf(final_ptr, "WLAa%c", emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -1866,6 +1868,8 @@ int pass_4(void) {
         ov = sec_tmp->size;
         WRITEOUT_OV;
         ov = sec_tmp->alignment;
+        WRITEOUT_OV;
+	ov = sec_tmp->offset;
         WRITEOUT_OV;
 	ov = sec_tmp->priority;
 	WRITEOUT_OV;

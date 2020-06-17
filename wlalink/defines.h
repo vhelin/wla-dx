@@ -159,6 +159,7 @@ struct section {
   int  referenced;
   int  alive;
   int  alignment;
+  int  offset;
   int  listfile_items;
   int  *listfile_ints;
   char *listfile_cmds;
@@ -180,6 +181,8 @@ struct section_fix {
   int  orga;
   int  org;
   int  status;
+  int  alignment;
+  int  offset;
   int  priority;
   int  priority_defined;
   int  is_ramsection;

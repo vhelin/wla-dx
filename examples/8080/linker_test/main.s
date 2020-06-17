@@ -28,6 +28,10 @@ BANKS 4
 .BANK 0 SLOT 0
 .ORG 0
 
+.SECTION "FREEBIRD" ALIGN 256 OFFSET 32 FREE KEEP
+FreeBirdMain:	nop
+.ENDS
+
 .SLOT 1
 .SLOT $4000
 .SLOT "SlotOne"
@@ -168,3 +172,21 @@ RAMVAR2 db
 .ramsection "ramsection3" bank 1 slot "RAM 2" SEMISUBFREE KEEP
 RAMVAR3 db
 .ends
+
+	;; STRUCT & RAMSECTION TEST
+	
+.STRUCT enemy
+id      db
+y       db
+x       db
+.ENDST
+	
+.macro makeRAMSECTIONs
+.ramsection "enemy \@" align 256 offset 32 free priority 1000-\@ keep
+enemies.\@ INSTANCEOF enemy
+.ends
+.endm
+
+	.rept 10
+	makeRAMSECTIONs
+	.endr

@@ -4052,6 +4052,7 @@ int directive_ramsection(void) {
   sec_tmp->filename_id = active_file_info_last->filename_id;
   sec_tmp->id = section_id;
   sec_tmp->alignment = 1;
+  sec_tmp->offset = 0;
   sec_tmp->advance_org = YES;
   sec_tmp->nspace = NULL;
   section_id++;
@@ -4219,6 +4220,25 @@ int directive_ramsection(void) {
 
     sec_tmp->alignment = d;
   }
+
+  /* offset the ramsection? */
+  if (compare_next_token("OFFSET") == SUCCEEDED) {
+    if (output_format == OUTPUT_LIBRARY) {
+      print_error(".RAMSECTION cannot take OFFSET when inside a library.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    if (skip_next_token() == FAILED)
+      return FAILED;
+
+    inz = input_number();
+    if (inz != SUCCEEDED) {
+      print_error("Could not parse the .RAMSECTION offset.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    sec_tmp->offset = d;
+  }  
 
   /* the type of the section */
   if (compare_next_token("FORCE") == SUCCEEDED) {
@@ -4389,6 +4409,7 @@ int directive_section(void) {
   sec_tmp->maxsize_status = OFF;
   sec_tmp->data = NULL;
   sec_tmp->alignment = 1;
+  sec_tmp->offset = 0;
   sec_tmp->advance_org = YES;
   sec_tmp->nspace = NULL;
   sec_tmp->keep = NO;
@@ -4509,6 +4530,20 @@ int directive_section(void) {
 
     sec_tmp->alignment = d;
   }
+
+  /* offset the section? */
+  if (compare_next_token("OFFSET") == SUCCEEDED) {
+    if (skip_next_token() == FAILED)
+      return FAILED;
+
+    inz = input_number();
+    if (inz != SUCCEEDED) {
+      print_error("Could not parse the .SECTION offset.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    sec_tmp->offset = d;
+  }  
 
   /* the type of the section */
   if (compare_next_token("FORCE") == SUCCEEDED) {

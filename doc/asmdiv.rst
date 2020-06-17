@@ -161,7 +161,7 @@ ALL  ``.ORGA $150``
 ALL  ``.PRINT "Numbers 1 and 10: ", DEC 1, " $", HEX 10, "\n"``
 ALL  ``.PRINTT "Here we are...\n"``
 ALL  ``.PRINTV DEC DEBUG+1``
-ALL  ``.RAMSECTION "Vars" BANK 0 SLOT 1 ALIGN 4``
+ALL  ``.RAMSECTION "Vars" BANK 0 SLOT 1 ALIGN 256 OFFSET 32``
 ALL  ``.REDEFINE IF $F``
 ALL  ``.REDEF IF $F``
 ALL  ``.REPEAT 6``
@@ -2496,6 +2496,10 @@ It's possible to force WLALINK to align the ``FREE``, ``SEMIFREE`` and
 
     .SECTION "Init" SIZE 100 ALIGN 4 FREE
 
+If you need an offset from the alignment, use OFFSET::
+
+    .SECTION "Init" SIZE 10 ALIGN 256 OFFSET 32 FREE
+
 And if you want that WLA returns the ``ORG`` to what it was before issuing
 the section, put ``RETURNORG`` at the end of the parameter list::
 
@@ -2609,8 +2613,8 @@ It is also possible to merge two or more sections using ``APPENDTO``::
 This is not a compulsory directive.
 
 
-``.RAMSECTION "Vars" BANK 0 SLOT 1 ALIGN 4``
---------------------------------------------
+``.RAMSECTION "Vars" BANK 0 SLOT 1 ALIGN 256 OFFSET 32``
+--------------------------------------------------------
 
 ``RAMSECTION`` s accept only variable labels and variable sizes, and the
 syntax to define these is identical to ``.ENUM`` (all the syntax rules that

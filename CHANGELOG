@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 -------------------------------------------------------------------------------------------------
 
-v9.11 (09-Jun-2020) [ALL] Stack calculator's string checker handled only
+v9.11 (17-Jun-2020) [ALL] Stack calculator's string checker handled only
                       63 characters long strings.
                     [ALL] A directive with the first argument being
                       negative wasn't parsed properly.
@@ -32,13 +32,14 @@ v9.11 (09-Jun-2020) [ALL] Stack calculator's string checker handled only
                       "." as the label.
                     [ALL] Added support for FORCE, SEMIFREE and SEMISUBFREE
                       to .RAMSECTION.
+                    [ALL] Added OFFSET to .SECTION and .RAMSECTION.
                     [ALL] The type of the argument for a .MACRO can now be
                       asked in an .IF using e.g., '\?1'.
                     [ALL] Added a flag "-s" to disable _sizeof_* definition
                       creation.
                     [ALL] .DSTRUCT can now create child labels (e.g.,
                       ".DSTRUCT @Instance INSTANCEOF MyStruct VALUES").
-                    [ALL] WLA assembles now "WLA8" library files and "WLAZ"
+                    [ALL] WLA assembles now "WLA9" library files and "WLAa"
                       object files.
                     [ALL] .ENDST should be case insensitive in all cases.
                     [ALL] .INCLUDE can now be used inside .MACROs.
@@ -1162,7 +1163,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.13 (15-May-2020) Added CMB PRG header writing (with flags -t and -a).
+v5.13 (17-Jun-2020) Added CMB PRG header writing (with flags -t and -a).
                     Added support for ORG/ORGA to [ramsections].
                     Added support for [sections] in linkfile.
                     Added support for section type and priority changing

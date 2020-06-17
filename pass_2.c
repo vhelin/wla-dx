@@ -497,6 +497,7 @@ int create_a_new_section_structure(void) {
   section_id++;
   sec_tmp->filename_id = 0;
   sec_tmp->alignment = 1;
+  sec_tmp->offset = 0;
 
   if (sections_first == NULL) {
     sections_first = sec_tmp;
