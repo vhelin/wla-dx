@@ -71,6 +71,11 @@ ExtrasEnd:
 	jnz --
 	jnz ---
 .DB "<GG"
+.DB "HH>"
+	.dw _f
+ __	.db 0
+	.dw _b
+.DB "<HH"
 .ENDS
 
 .ORG $2000

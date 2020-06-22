@@ -53,8 +53,8 @@ v9.11 (22-Jun-2020) [ALL] Stack calculator's string checker handled only
                     [ALL] Sections can avoid WLALINK's discard mechanism
                       with a keyword "KEEP" ('!' at the beginning of a
                       .SECTION's name works still also).
-                    [ALL] Un-named labels (like "-" and "+") don't need to
-                      be defined at the very beginning of the line either.
+                    [ALL] Un-named labels (like "-", "+" and "__") don't need
+                      to be defined at the very beginning of the line either.
                     [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
                       "JP (IY)".
                     [Z80] Added ROMSIZE to .SMSHEADER. Fixed automatic
