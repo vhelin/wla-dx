@@ -666,6 +666,12 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       output++;
       for ( ; input < input_end && (*input == ' ' || *input == 0x09); input++)
 	;
+      if (got_chars_on_line == 0 && (*input == '-' || *input == '+')) {
+	/* special case - -/--/--- or +/++/+++, but not at the beginning of the line, but after some white space */
+	output--;
+	for ( ; input < input_end && (*input == '+' || *input == '-'); input++, output++)
+	  *output = *input;	
+      }
       got_chars_on_line = 1;
       if (z == 1)
 	z = 2;

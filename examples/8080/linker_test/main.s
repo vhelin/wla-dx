@@ -63,6 +63,14 @@ ExtrasEnd:
 	call ExtrasStart
 	cpe ExtrasStart
 .DB "<BB"
+.DB "GG>"
+---     nop
+ --     .db -1-1
+ -:	.db -1-1
+	jnz -
+	jnz --
+	jnz ---
+.DB "<GG"
 .ENDS
 
 .ORG $2000
@@ -165,12 +173,13 @@ RAMVAR1	db
 
 .org $20
 .ramsection "ramsection2" bank 1 slot "RAM 2" FREE KEEP
-RAMVAR2 db
+ RAMVAR2 db
 .ends
 
 .org $20
 .ramsection "ramsection3" bank 1 slot "RAM 2" SEMISUBFREE KEEP
-RAMVAR3 db
+ RAMVAR3: db
+
 .ends
 
 	;; STRUCT & RAMSECTION TEST
