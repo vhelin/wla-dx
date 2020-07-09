@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 -------------------------------------------------------------------------------------------------
 
-v9.11 (22-Jun-2020) [ALL] Stack calculator's string checker handled only
+v9.11 (09-Jul-2020) [ALL] Stack calculator's string checker handled only
                       63 characters long strings.
                     [ALL] A directive with the first argument being
                       negative wasn't parsed properly.
@@ -42,7 +42,7 @@ v9.11 (22-Jun-2020) [ALL] Stack calculator's string checker handled only
                     [ALL] WLA assembles now "WLA9" library files and "WLAa"
                       object files.
                     [ALL] .ENDST should be case insensitive in all cases.
-                    [ALL] .INCLUDE can now be used inside .MACROs.
+                    [ALL] .INCLUDE/.INC can now be used inside .MACROs.
                     [ALL] .INCLUDE/.INC can now be given the filename in
                       pieces, e.g. ".INC ROOTDIR, SUBDIR, "filename.s"".
                     [ALL] Added ONCE to .INCLUDE/.INC.
@@ -55,6 +55,10 @@ v9.11 (22-Jun-2020) [ALL] Stack calculator's string checker handled only
                       .SECTION's name works still also).
                     [ALL] Un-named labels (like "-", "+" and "__") don't need
                       to be defined at the very beginning of the line either.
+                    [ALL] Removed some redundant definitions from .RAMSECTION
+                      (.STRUCT) INSTANCEOF when the number of instances > 1.
+                    [ALL] Added support for optional STARTFROM to .RAMSECTION
+                      (.STRUCT) INSTANCEOF (starting index other than 1).
                     [Z80] Removed warnings for "JP (HL)", "JP (IX)" and
                       "JP (IY)".
                     [Z80] Added ROMSIZE to .SMSHEADER. Fixed automatic

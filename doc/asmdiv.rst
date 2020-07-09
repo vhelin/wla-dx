@@ -2677,6 +2677,10 @@ Anyway, here's another example::
     moomin3_c    DB
     .ENDS
 
+    .RAMSECTION "vars 4" BANK 1 SLOT $A000
+    enemies      INSTANCEOF game_object 2 STARTFROM 0 ; If you leave away "STARTFROM 0" the indexing will start from 1
+    .ENDS
+
 If no other RAM sections are used, then this is what you will get::
 
     .DEFINE moomin1     $A000
@@ -2690,6 +2694,13 @@ If no other RAM sections are used, then this is what you will get::
     .DEFINE moomin3_a   $A002
     .DEFINE moomin3_b   $A003
     .DEFINE moomin3_c   $A004
+    .DEFINE enemies     $A005
+    .DEFINE enemies.0   $A005
+    .DEFINE enemies.0.x $A005
+    .DEFINE enemies.0.y $A006
+    .DEFINE enemies.1   $A007
+    .DEFINE enemies.1.x $A007
+    .DEFINE enemies.1.y $A008
 
 ``BANK`` in ``.RAMSECTION`` is optional so you can leave it away if you
 don't switch RAM banks, or the target doesn't have them (defaults to 0).

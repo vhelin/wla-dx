@@ -204,3 +204,15 @@ enemies.\@ INSTANCEOF enemy
 	.rept 10
 	makeRAMSECTIONs
 	.endr
+
+	;; STRUCT TEST
+
+.struct enemy2
+    HP                      db
+    posx                    db
+    posy                    db
+.endst
+
+.ramsection "enemies" slot 3 keep
+  enemies2 instanceof enemy2 3 startfrom 0
+.ends

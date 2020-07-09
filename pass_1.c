@@ -1644,16 +1644,14 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 
     /* if this struct has an .instanceof in it, we need to recurse */
     if (si->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
-      /* add definition for first (possibly only) instance of struct */
-      if (enum_add_struct_fields(tmp, si->instance, 0) == FAILED)
-        return FAILED;
-
-      if (si->num_instances > 1) {
-        /* revert enum_offset back to start of struct data to define "numbered" structs */
-        enum_offset -= si->instance->size;
-
-        g = 1;
-        while (g <= si->num_instances) {
+      if (si->num_instances <= 1) {
+	/* add definition for first (possibly only) instance of struct */
+	if (enum_add_struct_fields(tmp, si->instance, 0) == FAILED)
+	  return FAILED;
+      }
+      else {
+        g = si->start_from;
+        while (g < si->start_from + si->num_instances) {
           if (basename[0] != '\0')
             snprintf(tmp, sizeof(tmp), "%s.%s.%d", basename, si->name, g);
           else
@@ -1673,7 +1671,6 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
     else if (si->type == STRUCTURE_ITEM_TYPE_UNION) {
       int orig_offset = enum_offset;
       char union_basename[MAX_NAME_LENGTH * 2 + 5];
-
       struct structure *un = si->union_items;
 
       while (un != NULL) {
@@ -1722,7 +1719,7 @@ int parse_enum_token(void) {
   struct structure *st = NULL;
   struct structure_item *si;
   char tmpname[MAX_NAME_LENGTH + 8 + 1], bak[256];
-  int type, size, q;
+  int type, size, q, start_from = 1;
   
   /* check for "if" directives (the only directives permitted in an enum/ramsection) */
   if (tmp[0] == '.') {
@@ -2054,6 +2051,28 @@ int parse_enum_token(void) {
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
+
+    if (compare_next_token("STARTFROM") == SUCCEEDED) {
+      skip_next_token();
+
+      q = input_number();
+
+      if (q == FAILED)
+	return FAILED;
+      else if (q == SUCCEEDED) {
+	if (d < 0) {
+	  snprintf(emsg, sizeof(emsg), "STARTFROM needs to be >= 0.\n");
+	  print_error(emsg, ERROR_DIR);
+	  return FAILED;
+	}
+	start_from = d;
+      }
+      else {
+	snprintf(emsg, sizeof(emsg), "STARTFROM needs a number >= 0.\n");
+	print_error(emsg, ERROR_DIR);
+	return FAILED;
+      }
+    }
   }
   else if (strcaselesscmp(tmp, ".db") == 0 || strcaselesscmp(tmp, ".byt") == 0 ||
            strcaselesscmp(tmp, ".byte") == 0) {
@@ -2129,6 +2148,7 @@ int parse_enum_token(void) {
   strcpy(si->name, tmpname);
   si->size = size;
   si->type = type;
+  si->start_from = start_from;
   if (type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
     si->instance = st;
     si->num_instances = si->size/st->size;

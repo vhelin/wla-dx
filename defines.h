@@ -628,6 +628,7 @@ struct structure_item {
   /* only for TYPE_INSTANCE */
   struct structure *instance;
   int num_instances;
+  int start_from;
 
   /* only for TYPE_UNION; each union entry is stored as a structure. */
   struct structure *union_items;
