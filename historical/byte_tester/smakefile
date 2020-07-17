@@ -1,0 +1,32 @@
+
+CMATH = MATH=STANDARD
+MATH = m		# math link library designation
+
+CC = sc
+CFLAGS = 
+LINKER = slink
+LLIB = LIB LIB:sc$(MATH).lib LIB:sc.lib LIB:amiga.lib
+LFLAGS = STRIPDEBUG NOICONS
+
+CFILES = main.c
+HFILES = 
+OFILES = LIB:c.o main.o
+ALLFILES = $(CFILES) $(HFILES) $(OFILES)
+
+
+all: main
+
+
+main: $(ALLFILES) smakefile SCOPTIONS
+	$(LINKER) $(LFLAGS) FROM $(OFILES) TO byte_tester $(LLIB)
+
+
+main.o: main.c
+	$(CC) $(CFLAGS) main.c
+
+
+$(OFILES): $(HFILES)
+
+
+clean:
+	delete \#?.o \#?.gb \#?.lnk \#?.info byte_tester

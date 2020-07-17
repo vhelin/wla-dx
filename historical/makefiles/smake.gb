@@ -3,7 +3,7 @@ CMATH = MATH=STANDARD
 MATH = m		# math link library designation
 
 CC = sc
-CFLAGS = define AMIGA=1 define GB=1
+CFLAGS = define AMIGA=1 define GB=1 define NDEBUG=1
 LINKER = slink
 LLIB = LIB LIB:sc$(MATH).lib LIB:sc.lib LIB:amiga.lib
 LFLAGS = STRIPDEBUG NOICONS
