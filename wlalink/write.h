@@ -2,7 +2,7 @@
 #ifndef _WRITE_H
 #define _WRITE_H
 
-int strcaselesscmp(char *s1, char *s2);
+int strcaselesscmp(char *s1, const char *s2);
 int check_ramsections(void);
 int fix_all_sections(void);
 int fix_references(void);

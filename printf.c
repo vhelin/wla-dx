@@ -32,7 +32,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 */
 
+#ifdef AMIGA
+typedef unsigned long uintptr_t;
+typedef long intmax_t;
+#define PRINTF_DISABLE_SUPPORT_LONG_LONG 1
+#define PRINTF_DISABLE_SUPPORT_EXPONENTIAL 1
+#else
 #include <stdint.h>
+#endif
 
 #include "printf.h"
 

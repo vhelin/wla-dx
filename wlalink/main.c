@@ -35,7 +35,7 @@
 char version_string[] = "$VER: wlalink 5.13 (17.7.2020)";
 
 #ifdef AMIGA
-long __stack = 200000;
+__near long __stack = 200000;
 #endif
 
 struct object_file *obj_first = NULL, *obj_last = NULL, *obj_tmp;

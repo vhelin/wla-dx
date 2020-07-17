@@ -64,32 +64,32 @@ int load_files(char *argv[], int argc) {
 
     /* first checks */
     if (token[0] == '[') {
-      if (strcaselesscmp("[objects]", token) == 0) {
+      if (strcaselesscmp(token, "[objects]") == 0) {
 	state = STATE_OBJECT;
 	continue;
       }
-      else if (strcaselesscmp("[libraries]", token) == 0) {
+      else if (strcaselesscmp(token, "[libraries]") == 0) {
 	state = STATE_LIBRARY;
 	continue;
       }
-      else if (strcaselesscmp("[header]", token) == 0) {
+      else if (strcaselesscmp(token, "[header]") == 0) {
 	state = STATE_HEADER;
 	continue;
       }
-      else if (strcaselesscmp("[footer]", token) == 0) {
+      else if (strcaselesscmp(token, "[footer]") == 0) {
 	state = STATE_FOOTER;
 	continue;
       }
-      else if (strcaselesscmp("[definitions]", token) == 0) {
+      else if (strcaselesscmp(token, "[definitions]") == 0) {
 	state = STATE_DEFINITION;
 	continue;
       }
-      else if (strcaselesscmp("[ramsections]", token) == 0) {
+      else if (strcaselesscmp(token, "[ramsections]") == 0) {
 	state = STATE_RAMSECTIONS;
 	strcpy(state_name, "RAM section");
 	continue;
       }
-      else if (strcaselesscmp("[sections]", token) == 0) {
+      else if (strcaselesscmp(token, "[sections]") == 0) {
 	state = STATE_SECTIONS;
 	strcpy(state_name, "section");
 	continue;
@@ -751,7 +751,7 @@ struct object_file *get_file(int file_id) {
 }
 
 
-int convert_slot_names_and_addresses() {
+int convert_slot_names_and_addresses(void) {
 
   struct object_file *o;
 

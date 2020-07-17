@@ -8,6 +8,6 @@ int load_file_data(char *fn, unsigned char **da, int *size);
 char *get_file_name(int id);
 char *get_source_file_name(int file_id, int source_id);
 struct object_file *get_file(int file_id);
-int convert_slot_names_and_addresses();
+int convert_slot_names_and_addresses(void);
 
 #endif

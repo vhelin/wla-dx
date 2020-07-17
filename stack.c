@@ -151,7 +151,7 @@ int get_label_length(char *l) {
 
   if (tmp_def != NULL) {
     if (tmp_def->type == DEFINITION_TYPE_STRING)
-      return strlen(tmp_def->string);
+      return (int)strlen(tmp_def->string);
     else {
       snprintf(xyz, sizeof(xyz), "Definition \"%s\" is not a string definition. .length returns 0 for that...\n", l);
       print_error(xyz, ERROR_NUM);
@@ -159,7 +159,7 @@ int get_label_length(char *l) {
     }
   }
 
-  length = strlen(l);
+  length = (int)strlen(l);
 
   if (l[0] == '"' && l[length-1] == '"')
     length -= 2;

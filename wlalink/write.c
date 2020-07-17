@@ -62,7 +62,7 @@ static int _sections_sort(const void *a, const void *b) {
 }
 
 
-int strcaselesscmp(char *s1, char *s2) {
+int strcaselesscmp(char *s1, const char *s2) {
 
   if (s1 == NULL || s2 == NULL)
     return 0;
