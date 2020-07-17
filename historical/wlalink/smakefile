@@ -1,6 +1,6 @@
 
 CC = sc
-CFLAGS = define AMIGA=1
+CFLAGS = define AMIGA=1 define NDEBUG=1
 LINKER = slink
 LLIB = LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
 LFLAGS = STRIPDEBUG NOICONS
