@@ -3,6 +3,8 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 -------------------------------------------------------------------------------------------------
 
+v9.12 (18-Jul-2020) 
+
 v9.11 (17-Jul-2020) [ALL] Stack calculator's string checker handled only
                       63 characters long strings.
                     [ALL] A directive with the first argument being
@@ -1168,6 +1170,8 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
+
+v5.14 (18-Jul-2020) 
 
 v5.13 (17-Jun-2020) Added CMB PRG header writing (with flags -t and -a).
                     Added support for ORG/ORGA to [ramsections].
