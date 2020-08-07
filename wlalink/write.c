@@ -1358,22 +1358,31 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
   struct object_file *obj_file;
   struct section *s;
   struct label *l;
-  char name[256], *p, list_cmd, *outfile_tmp;
+  char name[256], list_cmd, *outfile_tmp;
   FILE *f, *outfile;
-  int list_cmd_idx, list_source_file, list_address_offset, y, outfile_size;
+  int list_cmd_idx, list_source_file, list_address_offset, name_len, y, outfile_size;
   unsigned long outfile_crc;
 
   if (outname == NULL)
     return FAILED;
 
+  name_len = strlen(outname);
+  if (name_len > 251) {
+      fprintf(stderr, "write_symbol_file: File name too long.\n");
+      return FAILED;
+  }
+
   strcpy(name, outname);
-  p = name;
-  for (y = 0; y < 255 && *p != '.' && *p != 0; y++, p++);
-  *(p++) = '.';
-  *(p++) = 's';
-  *(p++) = 'y';
-  *(p++) = 'm';
-  *p = 0;
+  y = name_len-1;
+  while (y >= 0 && name[y] != '.' && name[y] != 0) y--;
+  if (y < 0)
+      y = name_len;
+
+  name[y++] = '.';
+  name[y++] = 's';
+  name[y++] = 'y';
+  name[y++] = 'm';
+  name[y++] = 0;
 
   f = fopen(name, "wb");
   if (f == NULL) {
