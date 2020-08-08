@@ -971,7 +971,7 @@ int fix_label_addresses(void) {
       if (l->status == LABEL_STATUS_LABEL || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
 	if (l->section_status == ON) {
 	  if (l->section_struct == NULL) {
-	    fprintf(stderr, "FIX_LABELS: Internal error: section_struct is NULL.\n");
+	    fprintf(stderr, "FIX_LABEL_ADDRESSES: Internal error: section_struct is NULL.\n");
 	    return FAILED;
 	  }
 	  s = l->section_struct;
@@ -1360,23 +1360,25 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
   struct label *l;
   char name[256], list_cmd, *outfile_tmp;
   FILE *f, *outfile;
-  int list_cmd_idx, list_source_file, list_address_offset, name_len, y, outfile_size;
+  int list_cmd_idx, list_source_file, list_address_offset, y, outfile_size;
   unsigned long outfile_crc;
+  unsigned int name_len;
 
   if (outname == NULL)
     return FAILED;
 
   name_len = strlen(outname);
-  if (name_len > 251) {
-      fprintf(stderr, "write_symbol_file: File name too long.\n");
-      return FAILED;
+  if (name_len > sizeof(name)-5) {
+    fprintf(stderr, "WRITE_SYMBOL_FILE: File name too long.\n");
+    return FAILED;
   }
 
   strcpy(name, outname);
   y = name_len-1;
-  while (y >= 0 && name[y] != '.' && name[y] != 0) y--;
+  while (y >= 0 && name[y] != '.' && name[y] != 0)
+    y--;
   if (y < 0)
-      y = name_len;
+    y = name_len;
 
   name[y++] = '.';
   name[y++] = 's';
@@ -1386,7 +1388,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 
   f = fopen(name, "wb");
   if (f == NULL) {
-    fprintf(stderr, "MAIN: Error opening file \"%s\" for writing.\n", name);
+    fprintf(stderr, "WRITE_SYMBOL_FILE: Error opening file \"%s\" for writing.\n", name);
     return FAILED;
   }
 
