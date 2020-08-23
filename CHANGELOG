@@ -1171,7 +1171,8 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.14 (08-Aug-2020) Fixed buggy symbol file name generation.
+v5.14 (23-Aug-2020) Fixed buggy symbol file name generation.
+                    Fixed SMS checksum calculation if .SMSHEADER is not used.
 
 v5.13 (17-Jun-2020) Added CMB PRG header writing (with flags -t and -a).
                     Added support for ORG/ORGA to [ramsections].

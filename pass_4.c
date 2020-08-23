@@ -2023,7 +2023,7 @@ int find_label(char *str, struct section_def *s, struct label_def **out) {
 
 
 int mem_insert(unsigned char x) {
-
+  
   if (section_status == ON) {
     if (sec_tmp->i >= sec_tmp->size || sec_tmp->i < 0) {
       fprintf(stderr, "MEM_INSERT: Overflowed from section \"%s\"; Please send a bug report!\n", sec_tmp->name);

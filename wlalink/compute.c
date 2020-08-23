@@ -15,7 +15,7 @@
 #endif
 
 
-extern unsigned char *rom;
+extern unsigned char *rom, *rom_usage;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern int romsize, sms_checksum, smstag_defined, gb_checksum, gb_complement_check, snes_checksum, sms_header;
 extern int snes_rom_mode;
@@ -46,7 +46,10 @@ int reserve_checksum_bytes(void) {
 	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Reserving SMS ROM region code byte");
 
 	/* region code */
-	mem_insert(tag_address + 0xF, 0x0);
+	if (rom_usage[tag_address + 0xF] == 0)
+	  mem_insert(tag_address + 0xF, 0x0);
+	else
+	  mem_insert(tag_address + 0xF, rom[tag_address + 0xF]);
       }
     }
   }
@@ -271,14 +274,18 @@ int compute_snes_exhirom_checksum(void) {
 
 
 static int round_up_to_next_power_of_2(int x) {
+
   int exponent;
+
   if (x < 0)
     return -1;
   for (exponent = 0; exponent < 31; exponent++) {
     int power_of_two = 1 << exponent;
+
     if (x <= power_of_two)
       return power_of_two;
   }
+  
   return -1;
 }
 
@@ -404,56 +411,72 @@ int compute_sms_checksum(void) {
   int tag_address = 0x7FF0, j, checksum, checksum_max = 32*1024, rom_size = 0;
 
 
-  rom_size = rom[tag_address + 0xF] & 0xF;
-  if (rom_size == 0x0A) {
-    tag_address = 0x1FF0;
-    checksum_max = 8*1024;
-  }
-  else if (rom_size == 0x0B) {
-    tag_address = 0x3FF0;
-    checksum_max = 16*1024;
-  }
-  else if (rom_size == 0x0C) {
-    tag_address = 0x7FF0;
-    checksum_max = 32*1024;
-  }
-  else if (rom_size == 0x0D) {
-    tag_address = 0x7FF0;
-    checksum_max = 48*1024;
-  }
-  else if (rom_size == 0x0E) {
-    tag_address = 0x7FF0;
-    checksum_max = 64*1024;
-  }
-  else if (rom_size == 0x0F) {
-    tag_address = 0x7FF0;
-    checksum_max = 128*1024;
-  }
-  else if (rom_size == 0x00) {
-    tag_address = 0x7FF0;
-    checksum_max = 256*1024;
-  }
-  else if (rom_size == 0x01) {
-    tag_address = 0x7FF0;
-    checksum_max = 512*1024;
-  }
-  else if (rom_size == 0x02) {
-    tag_address = 0x7FF0;
-    checksum_max = 1024*1024;
-  }
-  else {
-    fprintf(stderr, "COMPUTE_SMS_CHECKSUM: Unsupported ROMSIZE $%x - not calculating the checksum.\n", rom_size);
-    return SUCCEEDED;
-  }
-
   if (romsize < 0x2000) {
     fprintf(stderr, "COMPUTE_SMS_CHECKSUM: SMS/GG checksum computing requires a ROM of at least 8KBs.\n");
-    return SUCCEEDED;
+    return FAILED;
   }
 
-  if (checksum_max > romsize) {
-    fprintf(stderr, "COMPUTE_SMS_CHECKSUM: Defined ROMSIZE $%x (%dKBs) is bigger than the ROM image (%dKBs) itself.\n", rom_size, checksum_max / 1024, romsize / 1024);
-    return FAILED;
+  if (romsize < 16*1024)
+    tag_address = 0x1FF0; /* 8KB */
+  else if (romsize < 32*1024)
+    tag_address = 0x3FF0; /* 16KB */
+  else
+    tag_address = 0x7FF0; /* 32KB+ */
+
+  /* NOTE: this is one only if we have nothing written there as we've then reserved the byte (one write). if we had written to that
+     previously then it would be > 1 as reserving it would increase the counter by one... */
+  if (rom_usage[tag_address + 0xF] > 1) {
+    /* we have the ROM size written in the header so let's use it */
+    rom_size = rom[tag_address + 0xF] & 0xF;
+    if (rom_size == 0x0A) {
+      tag_address = 0x1FF0;
+      checksum_max = 8*1024;
+    }
+    else if (rom_size == 0x0B) {
+      tag_address = 0x3FF0;
+      checksum_max = 16*1024;
+    }
+    else if (rom_size == 0x0C) {
+      tag_address = 0x7FF0;
+      checksum_max = 32*1024;
+    }
+    else if (rom_size == 0x0D) {
+      tag_address = 0x7FF0;
+      checksum_max = 48*1024;
+    }
+    else if (rom_size == 0x0E) {
+      tag_address = 0x7FF0;
+      checksum_max = 64*1024;
+    }
+    else if (rom_size == 0x0F) {
+      tag_address = 0x7FF0;
+      checksum_max = 128*1024;
+    }
+    else if (rom_size == 0x00) {
+      tag_address = 0x7FF0;
+      checksum_max = 256*1024;
+    }
+    else if (rom_size == 0x01) {
+      tag_address = 0x7FF0;
+      checksum_max = 512*1024;
+    }
+    else if (rom_size == 0x02) {
+      tag_address = 0x7FF0;
+      checksum_max = 1024*1024;
+    }
+    else {
+      fprintf(stderr, "COMPUTE_SMS_CHECKSUM: Unsupported ROMSIZE $%x - not calculating the checksum.\n", rom_size);
+      return SUCCEEDED;
+    }
+
+    if (checksum_max > romsize) {
+      fprintf(stderr, "COMPUTE_SMS_CHECKSUM: Defined ROMSIZE $%x (%dKBs) is bigger than the ROM image (%dKBs) itself - not calculating the checksum.\n", rom_size, checksum_max / 1024, romsize / 1024);
+      return FAILED;
+    }
+  }
+  else {
+    /* no ROM size defined in the header, calculate until the header */
+    checksum_max = tag_address;
   }
 
   /* add together ROM SIZE minus SMS/GG header */
