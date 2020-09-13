@@ -2462,7 +2462,7 @@ int directive_table(void) {
       for (inz = 0; inz < d && table_size < (int)sizeof(table_format); inz++)
 	table_format[table_size++] = 'b';
     }
-    else if (strcaselesscmp(label, "dw") == 0 || strcaselesscmp(label, "word") == 0) {
+    else if (strcaselesscmp(label, "dw") == 0 || strcaselesscmp(label, "word") == 0 || strcaselesscmp(label, "addr") == 0) {
       table_format[table_size++] = 'w';
     }
     else if (strcaselesscmp(label, "dsw") == 0) {
@@ -2481,7 +2481,7 @@ int directive_table(void) {
 	table_format[table_size++] = 'w';
     }
 #ifdef W65816
-    else if (strcaselesscmp(label, "dl") == 0 || strcaselesscmp(label, "long") == 0) {
+    else if (strcaselesscmp(label, "dl") == 0 || strcaselesscmp(label, "long") == 0 || strcaselesscmp(label, "faraddr") == 0) {
       table_format[table_size++] = 'l';
     }
     else if (strcaselesscmp(label, "dsl") == 0) {
