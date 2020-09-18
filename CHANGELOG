@@ -3,7 +3,9 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 -------------------------------------------------------------------------------------------------
 
-v9.12 (13-Sep-2020) [ALL] Added support for ADDR and FARADDR to .TABLE.
+v9.12 (18-Sep-2020) [ALL] Added support for ADDR and FARADDR to .TABLE.
+                    [Z80] Fixed the broken (broke in v9.11) regioncode
+                      in .SMSHEADER.
 
 v9.11 (17-Jul-2020) [ALL] Stack calculator's string checker handled only
                       63 characters long strings.

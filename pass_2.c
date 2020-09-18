@@ -108,7 +108,7 @@ int pass_2(void) {
   /* SMSHEADER */
   if (smsheader_defined != 0) {
     int tag_address = 0x7FF0;
-    int rs = 0;
+    int rs = 0, rc = 4;
 
     if (smsromsize_defined != 0)
       rs = smsromsize;
@@ -119,7 +119,7 @@ int pass_2(void) {
       else if (max_address < 32*1024)
 	rs = 0xB; /* 16KB */
       else
-	rs = 0xC; /* 32KB */
+	rs = 0xC; /* 32KB+ */
     }
 
     if (max_address < 0x4000) {
@@ -131,6 +131,9 @@ int pass_2(void) {
       tag_address = 0x3FF0;
     }
 
+    if (smsregioncode_defined != 0)
+      rc = smsregioncode;
+    
     /* create a what-we-are-doing message for mem_insert*() warnings/errors */
     snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing SMS ROM header bytes");
 
@@ -139,7 +142,7 @@ int pass_2(void) {
     mem_insert_absolute(tag_address + 0xC, smsproductcode1);
     mem_insert_absolute(tag_address + 0xD, smsproductcode2);
     mem_insert_absolute(tag_address + 0xE, (smsproductcode3 << 4) | smsversion);
-    mem_insert_absolute(tag_address + 0xF, (smsregioncode << 4) | rs);
+    mem_insert_absolute(tag_address + 0xF, (rc << 4) | rs);
   }
 
   /* SDSCTAG */

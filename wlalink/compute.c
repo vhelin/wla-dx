@@ -47,7 +47,7 @@ int reserve_checksum_bytes(void) {
 
 	/* region code */
 	if (rom_usage[tag_address + 0xF] == 0)
-	  mem_insert(tag_address + 0xF, 0x0);
+	  mem_insert(tag_address + 0xF, 4 << 4);
 	else
 	  mem_insert(tag_address + 0xF, rom[tag_address + 0xF]);
       }
