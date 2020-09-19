@@ -46,8 +46,19 @@ int reserve_checksum_bytes(void) {
 	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Reserving SMS ROM region code byte");
 
 	/* region code */
-	if (rom_usage[tag_address + 0xF] == 0)
-	  mem_insert(tag_address + 0xF, 4 << 4);
+	if (rom_usage[tag_address + 0xF] == 0) {
+	  int rs = 0;
+
+	  /* try to calculate the correct romsize value */
+	  if (romsize < 16*1024)
+	    rs = 0xA; /* 8KB */
+	  else if (romsize < 32*1024)
+	    rs = 0xB; /* 16KB */
+	  else
+	    rs = 0xC; /* 32KB+ */
+	  
+	  mem_insert(tag_address + 0xF, 4 << 4 | rs);
+	}
 	else
 	  mem_insert(tag_address + 0xF, rom[tag_address + 0xF]);
       }
