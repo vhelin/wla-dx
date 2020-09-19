@@ -436,7 +436,7 @@ int compute_sms_checksum(void) {
 
   /* NOTE: this is one only if we have nothing written there as we've then reserved the byte (one write). if we had written to that
      previously then it would be > 1 as reserving it would increase the counter by one... */
-  if (rom_usage[tag_address + 0xF] > 1) {
+  if (rom_usage[tag_address + 0xF] > 0) {
     /* we have the ROM size written in the header so let's use it */
     rom_size = rom[tag_address + 0xF] & 0xF;
     if (rom_size == 0x0A) {
