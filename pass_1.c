@@ -1109,8 +1109,8 @@ int evaluate_token(void) {
     int op_id = tmp[0];
 
     if (op_id < 0) {
-        print_error("Invalid value\n", ERROR_LOG);
-        return FAILED;
+      print_error("Invalid value\n", ERROR_LOG);
+      return FAILED;
     }
 
     ind = opcode_p[op_id];

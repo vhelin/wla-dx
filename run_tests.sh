@@ -158,6 +158,8 @@ runTest ram_sections
 runTest rept_test
 runTest sdsc_test
 runTest sms_test
+runTest smschecksum_test_1
+runTest smschecksum_test_2
 runTest smsheader_test
 runTest z81_test
 cd ..
