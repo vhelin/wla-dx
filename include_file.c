@@ -45,9 +45,9 @@ int create_full_name(char *dir, char *name) {
   /* compute the length of the new string */
   i = 0;
   if (dir != NULL)
-    i += strlen(dir);
+    i += (int)strlen(dir);
   if (name != NULL)
-    i += strlen(name);
+    i += (int)strlen(name);
   i++;
 
   if (i > full_name_size) {
@@ -195,7 +195,7 @@ int include_file(char *name, int *include_size, char *namespace) {
     snprintf(change_file_buffer, sizeof(change_file_buffer), "%c.CHANGEFILE %d NONAMESPACE%c", 0xA, id, 0xA);
   else
     snprintf(change_file_buffer, sizeof(change_file_buffer), "%c.CHANGEFILE %d NAMESPACE %s%c", 0xA, id, namespace, 0xA);
-  change_file_buffer_size = strlen(change_file_buffer);
+  change_file_buffer_size = (int)strlen(change_file_buffer);
 
   /* reallocate buffer */
   if (include_in_tmp_size < file_size) {

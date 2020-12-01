@@ -239,7 +239,7 @@ int parse_flags(char **flags, int flagc) {
       if (count + 1 < flagc) {
         if (count + 3 < flagc) {
           if (!strcmp(flags[count+2], "=")) {
-	    int length = strlen(flags[count+1])+strlen(flags[count+3])+2;
+	    int length = (int)strlen(flags[count+1])+(int)strlen(flags[count+3])+2;
             str_build = calloc(length, 1);
             snprintf(str_build, length, "%s=%s", flags[count+1], flags[count+3]);
             parse_and_add_definition(str_build, NO);
@@ -639,7 +639,7 @@ int parse_and_add_definition(char *c, int contains_flag) {
       s[t] = 0;
       
       if (*c == 0)
-        result = add_a_new_definition(n, 0.0, s, DEFINITION_TYPE_STRING, strlen(s));
+        result = add_a_new_definition(n, 0.0, s, DEFINITION_TYPE_STRING, (int)strlen(s));
       else {
         fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Incorrectly terminated quoted string (%s).\n", value);
         result = FAILED;
@@ -650,7 +650,7 @@ int parse_and_add_definition(char *c, int contains_flag) {
     }
 
     /* unquoted string */
-    return add_a_new_definition(n, 0.0, c, DEFINITION_TYPE_STRING, strlen(c));
+    return add_a_new_definition(n, 0.0, c, DEFINITION_TYPE_STRING, (int)strlen(c));
   }
 
   return FAILED;
