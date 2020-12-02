@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
   opcode_p[(int)b] = 0;
   while (opt_table[n].type != 0xff) {
     if (strlen(opt_table[n].op) > max) {
-      max = strlen(opt_table[n].op);
+      max = (unsigned int)strlen(opt_table[n].op);
       strcpy(max_name, opt_table[n].op);
     }
     if (opt_tmp[n].op[0] != a) {

@@ -248,7 +248,7 @@ int parse_flags(char *f) {
     return FAILED;
   }
 
-  l = strlen(f);
+  l = (int)strlen(f);
   if (l == 1)
     return FAILED;
 

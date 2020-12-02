@@ -3786,7 +3786,7 @@ int directive_incdir(void) {
     return FAILED;
   }
 
-  q = strlen(label);
+  q = (int)strlen(label);
 
   /* use the default dir? */
   if (q == 0) {
@@ -3873,7 +3873,7 @@ int directive_include(int is_real) {
     }
 
     strcpy(&accumulated_name[accumulated_name_length], label);
-    accumulated_name_length = strlen(accumulated_name);
+    accumulated_name_length = (int)strlen(accumulated_name);
   }
 
   strcpy(path, accumulated_name);
@@ -9853,7 +9853,7 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
 
     if (x == INPUT_NUMBER_STRING) {
       strcpy(&c[s], label);
-      s += strlen(label);
+      s += (int)strlen(label);
     }
     else if (x == SUCCEEDED) {
       if (d > 255) {

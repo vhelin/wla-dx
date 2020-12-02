@@ -1367,7 +1367,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
   if (outname == NULL)
     return FAILED;
 
-  name_len = strlen(outname);
+  name_len = (unsigned int)strlen(outname);
   if (name_len > sizeof(name)-5) {
     fprintf(stderr, "WRITE_SYMBOL_FILE: File name too long.\n");
     return FAILED;
