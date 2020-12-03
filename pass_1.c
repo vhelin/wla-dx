@@ -8020,6 +8020,7 @@ int directive_stringmap_table(void) {
   int parse_result, line_number = 0;
   FILE* table_file;
   char line_buffer[256];
+  struct stringmaptable *map;
 
   expect_calculations = NO;
   parse_result = input_number();
@@ -8031,7 +8032,7 @@ int directive_stringmap_table(void) {
   }
 
   /* Allocate and insert at the front of the chain */
-  struct stringmaptable *map = calloc(sizeof(struct stringmaptable), 1);
+  map = calloc(sizeof(struct stringmaptable), 1);
   if (map == NULL) {
     print_error("STRINGMAPTABLE: Out of memory error.\n", ERROR_ERR);
     return FAILED;
@@ -8165,6 +8166,7 @@ int directive_stringmap_table(void) {
 int directive_stringmap() {
   int parse_result;
   struct stringmaptable *table;
+  char *p;
 
   /* First get the map name */
   expect_calculations = NO;
@@ -8202,8 +8204,10 @@ int directive_stringmap() {
   fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
 
   /* Parse it */
-  for (char *p = label; *p != 0; /* increment in loop */) {
+  for (p = label; *p != 0; /* increment in loop */) {
     struct stringmap_entry* entry = NULL;
+    int i;
+
     /* Find the longest match for the current string position */
     for (struct stringmap_entry* candidate = table->entries; candidate != NULL; candidate = candidate->next)
     {
@@ -8225,7 +8229,7 @@ int directive_stringmap() {
       return FAILED;    
     }
     /* else emit */
-    for (int i = 0; i < entry->bytes_length; ++i) {
+    for (i = 0; i < entry->bytes_length; ++i) {
       fprintf(file_out_ptr, "d%d ", entry->bytes[i]);
     }
     /* move pointer on by as much as was matched */
