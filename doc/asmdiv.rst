@@ -1774,9 +1774,12 @@ using this mapping. For example:
 
     .STRINGMAP script, "いうえA\n"
 
-This will map to the byte values ``FF 02 00 FE``. Note that all characters
-must be defined in the mapping - there is no fallback to ASCII encoding. You 
-also cannot mix in byte values like with ``.DB`` and ``.ASC``.
+This will map to the byte values ``FF 02 00 FE``, provided the source file and
+TBL file use the same string encoding - use of UTF-8 is advised. 
+
+Note that all characters must be defined in the mapping - there is no fallback 
+to ASCII encoding. You also cannot mix in byte values like with ``.DB`` and 
+``.ASC``.
 
 You can define multiple named string map tables.
 
