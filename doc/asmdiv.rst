@@ -175,6 +175,8 @@ ALL  ``.SECTION "Init" FORCE``
 ALL  ``.SHIFT``
 ALL  ``.SLOT 1``
 ALL  ``.STRUCT enemy_object``
+ALL  ``.STRINGMAPTABLE script "script.tbl"``
+ALL  ``.STRINGMAP script "Hello\n"``
 ALL  ``.SYM SAUSAGE``
 ALL  ``.SYMBOL SAUSAGE``
 ALL  ``.TABLE byte, word, byte``
@@ -1741,6 +1743,57 @@ This is not a compulsory directive.
 the characters using the mapping given via ``.ASCIITABLE``.
 
 This is not a compulsory directive.
+
+
+``.STRINGMAPTABLE script "script.tbl"``
+---------------------------------------
+
+``.STRINGMAPTABLE``'s only purpose is to provide string mapping for 
+``.STRINGMAP``. Take a look at the example::
+
+    .STRINGMAPTABLE script "script.tbl"
+
+This will load the file "script.tbl" and define a new string mapping called 
+"script". This file is in the "table file" format commonly used for game 
+translations; take a look at an example of one:
+
+    00=A
+    01=B
+    ; This is a comment
+    ff01=あ
+    ff02=いうえ
+    fe=\n
+
+The values to the left of the ``=`` are a variable number of bytes expressed
+in hex, which map to the text value on the right. Note that depending on the
+text encoding of the file, this may be a variable number of bytes too. Thus
+this is a more flexible version of ``.ASCIITABLE``.
+
+After you've given the ``.STRINGMAPTABLE``, use ``.STRINGMAP`` to define bytes 
+using this mapping. For example:
+
+    .STRINGMAP script, "いうえA\n"
+
+This will map to the byte values ``FF 02 00 FE``, provided the source file and
+TBL file use the same string encoding - use of UTF-8 is advised. 
+
+Note that all characters must be defined in the mapping - there is no fallback 
+to ASCII encoding. You also cannot mix in byte values like with ``.DB`` and 
+``.ASC``.
+
+You can define multiple named string map tables.
+
+This is not a compulsory directive.
+
+
+``.STRINGMAP script "Hello\n"``
+-------------------------------
+
+``.ASC`` is an alias for ``.DB``, but if you use ``.ASC`` it will remap
+the characters using the mapping given via ``.ASCIITABLE``.
+
+This is not a compulsory directive.
+
 
 ``.DW 16000, 10, 255``
 ----------------------

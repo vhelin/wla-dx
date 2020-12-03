@@ -63,6 +63,7 @@ extern struct map_t *namespace_map;
 extern struct append_section *append_sections;
 extern struct label_sizeof *label_sizeofs;
 extern struct block_name *block_names;
+extern struct stringmaptable *stringmaptables;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern char *unfolded_buffer, *label_stack[256];
 extern char *include_in_tmp, *tmp_a;
@@ -490,6 +491,21 @@ void procedures_at_exit(void) {
     free(f1->filename);
     free(f1);
     f1 = f2;
+  }
+
+  while (stringmaptables != NULL)
+  {
+    struct stringmaptable *sm = stringmaptables;
+    while (sm->entries != NULL)
+    {
+      struct stringmap_entry *e = sm->entries;
+      free(e->bytes);
+      free(e->text);
+      sm->entries = e->next;
+      free(e);
+    }
+    stringmaptables = sm->next;
+    free(sm);
   }
 
   /* remove the tmp files */

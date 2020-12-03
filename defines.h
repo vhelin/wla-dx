@@ -666,6 +666,22 @@ struct filepointer {
   struct filepointer *next;
 };
 
+struct stringmap_entry {
+  int bytes_length;
+  unsigned char *bytes;
+  int text_length;
+  char *text;
+
+  struct stringmap_entry *next;
+};
+
+struct stringmaptable {
+  char name[MAX_NAME_LENGTH + 1];
+  struct stringmap_entry *entries;
+
+  struct stringmaptable *next;
+};
+
 #define TYPE_STRING            0
 #define TYPE_VALUE             1
 #define TYPE_LABEL             2
