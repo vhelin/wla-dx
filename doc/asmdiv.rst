@@ -1755,7 +1755,7 @@ This is not a compulsory directive.
 
 This will load the file "script.tbl" and define a new string mapping called 
 "script". This file is in the "table file" format commonly used for game 
-translations; take a look at an example of one:
+translations; take a look at an example of one::
 
     00=A
     01=B
@@ -1764,13 +1764,13 @@ translations; take a look at an example of one:
     ff02=いうえ
     fe=\n
 
-The values to the left of the ``=`` are a variable number of bytes expressed
+The values to the left of the '=' are a variable number of bytes expressed
 in hex, which map to the text value on the right. Note that depending on the
 text encoding of the file, this may be a variable number of bytes too. Thus
 this is a more flexible version of ``.ASCIITABLE``.
 
 After you've given the ``.STRINGMAPTABLE``, use ``.STRINGMAP`` to define bytes 
-using this mapping. For example:
+using this mapping. For example::
 
     .STRINGMAP script, "いうえA\n"
 

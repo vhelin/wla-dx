@@ -8017,6 +8017,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
 
 
 int directive_stringmap_table(void) {
+
   int parse_result, line_number = 0;
   FILE* table_file;
   char line_buffer[256];
@@ -8065,27 +8066,24 @@ int directive_stringmap_table(void) {
     unsigned char* bytes_writer;
     int accumulator = 0;
 
-    /* Increment line counter */
     ++line_number;
 
     /* Skip comments */
     if (*p == ';' || *p == '#')
-    {
       continue;
-    }
+
     equals_pos = strchr(p, '=');
 
     /* Lines should be in the form <hex>=<text> with no whitespace. */
     if (equals_pos == NULL)
-    {
       continue;
-    }
 
     entry = calloc(sizeof(struct stringmap_entry), 1);
     if (entry == NULL) {
       print_error("STRINGMAPTABLE: Out of memory error.\n", ERROR_DIR);
       return FAILED;
     }
+
     /* Insert at front of entries list */
     entry->next = map->entries;
     map->entries = entry;
@@ -8104,36 +8102,26 @@ int directive_stringmap_table(void) {
       return FAILED;
     }
     bytes_writer = entry->bytes;
-    for (; p != equals_pos; ++p)
-    {
+    for (; p != equals_pos; ++p) {
       /* Parse character as hex */
       const char c = *p;
       if (c >= '0' && c <= '9')
-      {
         accumulator |= c - '0';
-      }
       else if (c >= 'a' && c <= 'f')
-      {
         accumulator |= c - 'a' + 10;
-      }
       else if (c >= 'A' && c <= 'F')
-      {
         accumulator |= c - 'A' + 10;
-      }
-      else
-      {
+      else {
         snprintf(emsg, sizeof(emsg), "STRINGMAPTABLE: Invalid hex character '%c' at line %d of file \"%s\".\n", c, line_number, label);
         print_error(emsg, ERROR_DIR);
         return FAILED;
       }
       /* Emit to buffer or shift depending on position */
-      if ((equals_pos - p) % 2 == 0)
-      {
+      if ((equals_pos - p) % 2 == 0) {
         /* Even count -> shift */
         accumulator <<= 4;
       }
-      else
-      {
+      else {
         /* Odd -> finished a byte */
         *bytes_writer++ = (unsigned char)accumulator;
         accumulator = 0;
@@ -8142,11 +8130,10 @@ int directive_stringmap_table(void) {
     /* Then the string. We want to remove any trailing CRLF. */
     p[strcspn(p, "\r\n")] = 0;
     entry->text_length = (int)strlen(++p);
-    if (entry->text_length == 0)
-    {
-        snprintf(emsg, sizeof(emsg), "STRINGMAPTABLE: no text after '=' at line %d of file \"%s\".\n", line_number, label);
-        print_error(emsg, ERROR_DIR);
-        return FAILED;
+    if (entry->text_length == 0) {
+      snprintf(emsg, sizeof(emsg), "STRINGMAPTABLE: no text after '=' at line %d of file \"%s\".\n", line_number, label);
+      print_error(emsg, ERROR_DIR);
+      return FAILED;
     }
     p = equals_pos + 1;
     entry->text = calloc(sizeof(char), strlen(p) + 1);
@@ -8163,7 +8150,8 @@ int directive_stringmap_table(void) {
 }
 
 
-int directive_stringmap() {
+int directive_stringmap(void) {
+
   int parse_result;
   struct stringmaptable *table;
   char *p;
@@ -8179,16 +8167,13 @@ int directive_stringmap() {
   }
 
   /* Find the table */
-  for (table = stringmaptables; table != NULL; table = table->next)
-  {
-    if (strcaselesscmp(table->name, label) == 0)
-    {
+  for (table = stringmaptables; table != NULL; table = table->next) {
+    if (strcaselesscmp(table->name, label) == 0) {
       /* Found it */
       break;
     }
   }
-  if (table == NULL)
-  {
+  if (table == NULL) {
     snprintf(emsg, sizeof(emsg), "STRINGMAP: could not find table called \"%s\".\n", label);
     print_error(emsg, ERROR_DIR);
     return FAILED;    
@@ -8209,18 +8194,14 @@ int directive_stringmap() {
     int i;
 
     /* Find the longest match for the current string position */
-    for (candidate = table->entries; candidate != NULL; candidate = candidate->next)
-    {
+    for (candidate = table->entries; candidate != NULL; candidate = candidate->next) {
       /* Skip candidates not longer than the current best */
       if (entry != NULL && entry->text_length >= candidate->text_length)
-      {
         continue;
-      }
+
       /* Check for a match */
       if (strncmp(p, candidate->text, candidate->text_length) == 0)
-      {
         entry = candidate;
-      }
     }
     /* If no match was found, it's an error */
     if (entry == NULL) {
@@ -8229,9 +8210,9 @@ int directive_stringmap() {
       return FAILED;    
     }
     /* else emit */
-    for (i = 0; i < entry->bytes_length; ++i) {
+    for (i = 0; i < entry->bytes_length; ++i)
       fprintf(file_out_ptr, "d%d ", entry->bytes[i]);
-    }
+
     /* move pointer on by as much as was matched */
     p += entry->text_length;
   }
@@ -9563,10 +9544,12 @@ int parse_directive(void) {
   }
 
   /* STRINGMAPTABLE */
+
   if (strcaselesscmp(cp, "STRINGMAPTABLE") == 0)
     return directive_stringmap_table();
 
   /* STRINGMAP */
+
   if (strcaselesscmp(cp, "STRINGMAP") == 0)
     return directive_stringmap();
 
