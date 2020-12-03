@@ -344,7 +344,6 @@ void procedures_at_exit(void) {
   struct append_section *as;
   struct label_sizeof *ls;
   struct block_name *bn;
-  struct stringmaptable *sm;
   int i;
   
   /* free all the dynamically allocated data structures and close open files */
@@ -497,14 +496,11 @@ void procedures_at_exit(void) {
   while (stringmaptables != NULL)
   {
     struct stringmaptable *sm = stringmaptables;
-
     while (sm->entries != NULL)
     {
       struct stringmap_entry *e = sm->entries;
-
       free(e->bytes);
       free(e->text);
-
       sm->entries = e->next;
       free(e);
     }
