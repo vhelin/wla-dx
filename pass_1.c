@@ -8205,11 +8205,11 @@ int directive_stringmap() {
 
   /* Parse it */
   for (p = label; *p != 0; /* increment in loop */) {
-    struct stringmap_entry* entry = NULL;
+    struct stringmap_entry *candidate, *entry = NULL;
     int i;
 
     /* Find the longest match for the current string position */
-    for (struct stringmap_entry* candidate = table->entries; candidate != NULL; candidate = candidate->next)
+    for (candidate = table->entries; candidate != NULL; candidate = candidate->next)
     {
       /* Skip candidates not longer than the current best */
       if (entry != NULL && entry->text_length >= candidate->text_length)
