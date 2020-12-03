@@ -1,0 +1,22 @@
+00=あ
+01=い
+02=う
+03=え
+04=お
+deadBEEF=か
+06=きくけ
+09=こ
+0a=が
+0b=ぎ
+0c=ぐ
+0d=げ
+0e=ご
+0f=さ
+
+# Line break
+ff=[LF]
+# Line break with 8px margin
+fd=[LF+]
+# End of text
+fe=[EOS]
+
