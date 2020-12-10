@@ -32,7 +32,7 @@
 #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.14a (19.9.2020)";
+char version_string[] = "$VER: wlalink 5.14a (10.12.2020)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -62,8 +62,7 @@ int program_start, program_end, sms_checksum, smstag_defined = 0, snes_rom_mode 
 int gb_checksum, gb_complement_check, snes_checksum, snes_mode = 0;
 int listfile_data = NO, smc_status = 0, snes_sramsize = 0;
 int output_type = OUTPUT_TYPE_UNDEFINED, sort_sections = YES;
-int num_sorted_anonymous_labels = 0;
-
+int num_sorted_anonymous_labels = 0, create_sizeof_definitions = YES;
 
 extern struct section_fix *sec_fix_first, *sec_fix_tmp;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
@@ -194,6 +193,7 @@ int main(int argc, char *argv[]) {
     printf("-bS Starting address of the program (optional)\n");
     printf("-bE Ending address of the program (optional)\n");
     printf("-d  Discard unreferenced sections\n");
+    printf("-D  Don't create _sizeof_* definitions\n");
     printf("-nS Don't sort the sections\n");
     printf("-i  Write list files\n");
     printf("-r  ROM file output (default)\n");
@@ -471,8 +471,10 @@ int main(int argc, char *argv[]) {
     return 1;
 
   /* generate _sizeof_[label] definitions */
-  if (generate_sizeof_label_definitions() == FAILED)
-    return 1;
+  if (create_sizeof_definitions == YES) {
+    if (generate_sizeof_label_definitions() == FAILED)
+      return 1;
+  }
 
   /* sort anonymous labels to speed up searching for them */
   if (sort_anonymous_labels() == FAILED)
@@ -907,6 +909,10 @@ int parse_flags(char **flags, int flagc) {
     }
     else if (!strcmp(flags[count], "-d")) {
       discard_unreferenced_sections = ON;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-D")) {
+      create_sizeof_definitions = NO;
       continue;
     }
     else {
