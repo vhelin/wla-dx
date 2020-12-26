@@ -339,6 +339,9 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
   int start;
   
   /* start running a macro... run until .ENDM */
+  if (macro_stack_grow() == FAILED)
+    return FAILED;
+
   mrt = &macro_stack[macro_active];
 
   start = i;
@@ -349,21 +352,20 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
   }
   else {
     inz = input_number();
-    if (mrt != NULL) {
-      mrt->string_current = 0;
-      mrt->string_last = 0;
-    }
+    mrt->string_current = 0;
+    mrt->string_last = 0;
   }
 
   if (first == YES) {
-    if (mrt != NULL)
-      mrt->offset = 0;
+    mrt->offset = 0;
   }
   else {
     if (caller == MACRO_CALLER_DBM)
       mrt->offset++;
-    else
+    else if (caller == MACRO_CALLER_DWM)
       mrt->offset += 2;
+    else
+      mrt->offset += 3;
   }
 
   if (inz == INPUT_NUMBER_EOL && first == NO) {
@@ -371,10 +373,6 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
     return SUCCEEDED;
   }
 
-  if (macro_stack_grow() == FAILED)
-    return FAILED;
-
-  mrt = &macro_stack[macro_active];
   mrt->argument_data = calloc(sizeof(struct macro_argument *) << 1, 1);
   mrt->argument_data[0] = calloc(sizeof(struct macro_argument), 1);
   mrt->argument_data[1] = calloc(sizeof(struct macro_argument), 1);
