@@ -1403,7 +1403,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 
     l = labels_first;
     while (l != NULL) {
-      if (l->alive == NO || is_label_anonymous(l->name) == YES || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
+      if (l->alive == NO || is_label_anonymous(l->name) == YES || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT || l->status == LABEL_STATUS_DEFINE) {
 	l = l->next;
 	continue;
       }
