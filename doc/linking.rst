@@ -96,8 +96,8 @@ useful when you work under MSDOS (NO$GMB is a very good Game Boy emulator for
 MSDOS/Windows) as it contains information about the labels in your project.
 
 If flag ``S`` is used, WLALINK will create a WLA symbol file, that is much
-like NO$GMB symbol file, but shows also symbols and breakpoints, not just labels
-and definitions.
+like NO$GMB symbol file, but shows also symbols, defines, and breakpoints, not
+just labels.
 
 If flag ``d`` is used, WLALINK discards all unreferenced ``FREE``, ``SEMIFREE``,
 ``SEMISUBFREE``, ``SUPERFREE`` and ``RAM`` sections. This way you can link big
