@@ -24,8 +24,5 @@ expect_line '00008000 _private_label_8000'
 expect_line '00008000 public_label_8001'
 expect_line '00108000 label_108001'
 
-# Only public defines are in the symbol file.
-expect_line '00005678 public_define_5678'
-
 # 24-bit defines are in the symbol file.
 expect_line '00abcdef long_define_abcdef'

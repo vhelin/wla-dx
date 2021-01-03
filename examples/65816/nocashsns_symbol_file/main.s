@@ -18,8 +18,6 @@ public_label_8001:
 label_108001:
 
 .define private_define_1234 $1234
-.define public_define_5678 $5678
-.export public_define_5678
 
 .define long_define_abcdef $abcdef
 .export long_define_abcdef
