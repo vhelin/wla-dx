@@ -23,6 +23,3 @@ dump_symbol_file() {
 expect_line '00008000 _private_label_8000'
 expect_line '00008000 public_label_8001'
 expect_line '00108000 label_108001'
-
-# 24-bit defines are in the symbol file.
-expect_line '00abcdef long_define_abcdef'
