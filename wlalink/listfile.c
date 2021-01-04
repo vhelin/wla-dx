@@ -257,7 +257,7 @@ int listfile_write_listfiles(struct section *e) {
       while (m < n) {
 	if (b[m] == 0xA) {
 	  m++;
-	  if (b[m] == 0xD)
+	  if (m < n && b[m] == 0xD)
 	    m++;
 	  fprintf(f, "\n");
 	  break;
