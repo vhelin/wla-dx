@@ -45,3 +45,8 @@ ImportGenerators.cmake
 *.log
 
 
+*.idb
+*.pdb
+*.ilk
+*.ipdb
+*.iobj
