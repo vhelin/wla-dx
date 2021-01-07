@@ -256,6 +256,13 @@ _loop:
 .printt "OLD .PRINTT "
 .printv 100
 .printt "\n"
+
+.ENUM $0000 DESC EXPORT
+ENUM_OK_123 dw
+.IFDEF DEBUG
+ENUM_NOT_OK_123 dw
+.ENDIF
+.ENDE
 	
 .ENUMID 0
 .ENUMID SONG_1
