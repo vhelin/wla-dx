@@ -1174,8 +1174,9 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.14 (04-Jan-2021) Fixed buggy symbol file name generation.
+v5.14 (07-Jan-2021) Fixed buggy symbol file name generation.
                     Fixed SMS checksum calculation if .SMSHEADER is not used.
+                    Fixed a couple of bugs in listfile generation.
                     Added -D (don't create _sizeof_* definitions).
                     Defines are no longer written into NO$CASH symbol files.
 
