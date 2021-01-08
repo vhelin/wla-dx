@@ -76,8 +76,10 @@ int extra_definitions = OFF, commandline_parsing = ON, makefile_rules = NO;
 int listfile_data = NO, quiet = NO, use_incdir = NO, little_endian = YES;
 int create_sizeof_definitions = YES;
 
-char *final_name = NULL, *asm_name = NULL, ext_incdir[MAX_NAME_LENGTH + 2];
+char *final_name = NULL, *asm_name = NULL;
 
+struct ext_include_collection ext_incdirs;
+int parse_and_add_incdir(char* c, int contains_flag);
 
 int main(int argc, char *argv[]) {
 
@@ -92,6 +94,11 @@ int main(int argc, char *argv[]) {
 
   /* init the randon number generator */
   init_genrand((unsigned long)time(NULL));
+
+  /* Initialize our external include dir collection */
+  ext_incdirs.count = 0;
+  ext_incdirs.names = NULL;
+  ext_incdirs.maxNameSizeBytes = MAX_NAME_LENGTH + 1;
 
   /* select little/big endianess */
 #if defined(MC6800) || defined(MC6801) || defined(MC6809)
@@ -262,7 +269,7 @@ int parse_flags(char **flags, int flagc) {
     else if (!strcmp(flags[count], "-I")) {
       if (count + 1 < flagc) {
         /* get arg */
-        parse_and_set_incdir(flags[count+1], NO);
+        parse_and_add_incdir(flags[count+1], NO);
       }
       else
         return FAILED;
@@ -317,7 +324,7 @@ int parse_flags(char **flags, int flagc) {
 	}
 	else if (strncmp(flags[count], "-I", 2) == 0) {
 	  /* old include directory */
-	  parse_and_set_incdir(flags[count], YES);
+        parse_and_add_incdir(flags[count], YES);
 	  continue;
 	}
 	else
@@ -511,6 +518,13 @@ void procedures_at_exit(void) {
   /* remove the tmp files */
   if (tmp_name != NULL)
     remove(tmp_name);
+
+  /* Cleanup any incdirs we added */
+  for (int index = 0; index < ext_incdirs.count; ++index)
+  {
+      free(ext_incdirs.names[index]);
+  }
+  free(ext_incdirs.names);
 }
 
 
@@ -672,33 +686,48 @@ int parse_and_add_definition(char *c, int contains_flag) {
   return FAILED;
 }
 
+int parse_and_add_incdir(char* c, int contains_flag) {
 
-int parse_and_set_incdir(char *c, int contains_flag) {
+    int const oldCount = ext_incdirs.count;
 
-  char n[MAX_NAME_LENGTH + 1];
-  int i;
+    /* Increment for the new entry, then re-allocate the array */
+    ++ext_incdirs.count;
+    char** newArray = malloc(ext_incdirs.count * sizeof(char*));
+    for (int index = 0; index < oldCount; ++index)
+    {
+        newArray[index] = ext_incdirs.names[index];
+    }
 
-  /* skip the flag? */
-  if (contains_flag == YES)
-    c += 2;
+    free(ext_incdirs.names);
+    ext_incdirs.names = newArray;
+    int const bufferSize = ext_incdirs.maxNameSizeBytes;
+    ext_incdirs.names[oldCount] = malloc(bufferSize);
 
-  for (i = 0; i < MAX_NAME_LENGTH && *c != 0; i++, c++)
-    n[i] = *c;
-  n[i] = 0;
+    char n[MAX_NAME_LENGTH + 1];
+    int i;
 
-  if (*c != 0)
-    return FAILED;
+    /* skip the flag? */
+    if (contains_flag == YES)
+        c += 2;
 
-  localize_path(n);
+    for (i = 0; i < MAX_NAME_LENGTH && *c != 0; i++, c++)
+        n[i] = *c;
+    n[i] = 0;
+
+    if (*c != 0)
+        return FAILED;
+
+    localize_path(n);
 #if defined(MSDOS)
-  snprintf(ext_incdir, sizeof(ext_incdir), "%s\\", n);
+    snprintf(ext_incdirs.names[oldCount], bufferSize, "%s\\", n);
 #else
-  snprintf(ext_incdir, sizeof(ext_incdir), "%s/", n);
+    snprintf(ext_incdirs.names[oldCount], bufferSize, "%s/", n);
 #endif
-  use_incdir = YES;
+    use_incdir = YES;
 
-  return FAILED;
+    return SUCCEEDED;
 }
+
 
 /*
  *
