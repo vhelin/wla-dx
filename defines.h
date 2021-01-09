@@ -542,9 +542,9 @@ struct section_def {
 };
 
 struct ext_include_collection {
-	int  count;
-	int  maxNameSizeBytes;
-	char** names;
+  int count;
+  int max_name_size_bytes;
+  char **names;
 };
 
 struct incbin_file_data {

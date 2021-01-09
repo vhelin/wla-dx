@@ -281,3 +281,8 @@ tests:	.db "ASCIITest\0\0\0\0ASCIITest", "\x0a\x10\xbb\x11ASCIITest"
 	CentrePaddedText "CONVERTED IN THE UK"
 
 .ends
+
+.section "include_dir_test" free
+.include "include_me_1.s"
+.include "include_me_2.s"
+.ends

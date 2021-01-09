@@ -1,6 +1,6 @@
 
 CC = wla-65816
-CFLAGS = -v -D NAME="kullervo" -o
+CFLAGS = -v -I include_dir_1 -I include_dir_2 -D NAME="kullervo" -o
 LD = wlalink
 LDFLAGS = -v -S
 

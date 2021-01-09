@@ -72,53 +72,53 @@ int create_full_name(char *dir, char *name) {
   return SUCCEEDED;
 }
 
-int try_openFile(char* directory, char* partialName, int printError, FILE** out_result ) {
-    int errorCode = create_full_name(directory, partialName);
-    if ( errorCode != FAILED )
-        *out_result = fopen(full_name, "rb");
 
-    if (*out_result == NULL && (directory == NULL || directory[0] == 0)) {
-        snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", partialName);
-        if (printError == 0)
-            fprintf(stderr, "INCLUDE_FILE: %s", emsg);
-        else
-            print_error(emsg, ERROR_INC);
-        errorCode = FAILED;
-    }
+int try_open_file(char* directory, char* partial_name, int print_errors, FILE** out_result) {
 
-    return errorCode;
+  int error_code = create_full_name(directory, partial_name);
+  if (error_code != FAILED)
+    *out_result = fopen(full_name, "rb");
+
+  if (*out_result == NULL && (directory == NULL || directory[0] == 0)) {
+    snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", partial_name);
+    if (print_errors == 0)
+      fprintf(stderr, "INCLUDE_FILE: %s", emsg);
+    else
+      print_error(emsg, ERROR_INC);
+    error_code = FAILED;
+  }
+
+  return error_code;
 }
+
 
 int include_file(char *name, int *include_size, char *namespace) {
 
   static int first_load = 0;
-  int file_size, id, change_file_buffer_size;
+  int file_size, id, change_file_buffer_size, index;
   char *tmp_b, *n, change_file_buffer[MAX_NAME_LENGTH * 2];
-  FILE *f;
+  FILE *f = NULL;
 
   if (use_incdir == YES) {
+    int error_code;
+      
+    /* check all external include directories first */
+    for (index = 0; index < ext_incdirs.count; index++) {
+      error_code = try_open_file(ext_incdirs.names[index], name, first_load, &f);
+      if (error_code != SUCCEEDED)
+	return error_code;
 
-      int errCode;
-      /* Check all external include directories first */
-      for (int index = 0; index < ext_incdirs.count; ++index)
-      {
-          errCode = try_openFile( ext_incdirs.names[index], name, first_load, &f);
-          if (errCode != SUCCEEDED)
-              return errCode;
-
-          /* We succeeded and found a valid file, so escape */
-          if (f != NULL)
-              break;
-      }
+      /* we succeeded and found a valid file, so escape */
+      if (f != NULL)
+	break;
+    }
   }
-  
 
-  /* Fall through to include_dir if we either didn't check, or failed to
-  find the file in ext_incdirs */
-  if ( f == NULL ) {
-      int errCode = try_openFile(include_dir, name, first_load, &f);
-      if (errCode != SUCCEEDED)
-          return errCode;
+  /* fall through to include_dir if we either didn't check, or failed to find the file in ext_incdirs */
+  if (f == NULL) {
+    int error_code = try_open_file(include_dir, name, first_load, &f);
+    if (error_code != SUCCEEDED)
+      return error_code;
   }
 
   if (f != NULL)
@@ -302,36 +302,33 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
   struct incbin_file_data *ifd;
   char *in_tmp, *n;
-  int file_size, q;
-  FILE *f;
+  int file_size, q, index;
+  FILE *f = NULL;
 
   if (use_incdir == YES) {
+    int error_code;
+    
+    /* check all external include directories first */
+    for (index = 0; index < ext_incdirs.count; ++index) {
+      error_code = try_open_file(ext_incdirs.names[index], name, 1, &f);
+      if (error_code != SUCCEEDED)
+	return error_code;
 
-      int errCode;
-      /* Check all external include directories first */
-      for (int index = 0; index < ext_incdirs.count; ++index)
-      {
-          errCode = try_openFile(ext_incdirs.names[index], name, 1, &f);
-          if (errCode != SUCCEEDED)
-              return errCode;
-
-          /* We succeeded and found a valid file, so escape */
-          if (f != NULL)
-              break;
-      }
+      /* we succeeded and found a valid file, so escape */
+      if (f != NULL)
+	break;
+    }
   }
 
-
-  /* Fall through to include_dir if we either didn't check, or failed to
-  find the file in ext_incdirs */
+  /* fall through to include_dir if we either didn't check, or failed to find the file in ext_incdirs */
   if (f == NULL) {
-      int errCode = try_openFile(include_dir, name, 1, &f);
-      if (errCode != SUCCEEDED)
-          return errCode;
+    int error_code = try_open_file(include_dir, name, 1, &f);
+    if (error_code != SUCCEEDED)
+      return error_code;
   }
 
   if (f != NULL)
-      q = 0;
+    q = 0;
 
   /* if failed try to find the file in the current directory */
   if (f == NULL) {
