@@ -541,6 +541,12 @@ struct section_def {
   struct section_def *next;
 };
 
+struct ext_include_collection {
+	int  count;
+	int  maxNameSizeBytes;
+	char** names;
+};
+
 struct incbin_file_data {
   struct incbin_file_data *next;
   char *data;

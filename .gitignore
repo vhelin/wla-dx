@@ -50,3 +50,4 @@ ImportGenerators.cmake
 *.ilk
 *.ipdb
 *.iobj
+*.recipe
