@@ -93,12 +93,56 @@ int _get_next_number(char *in, int *out) {
 }
 
 
+unsigned char *binary_file = NULL;
+
+
+int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_size) {
+
+  FILE *fb;
+  
+  fb = fopen(filename, "rb");
+
+  if (fb == NULL) {
+    if (binary_file != NULL) {
+      *did_we_read_data = NO;
+      return SUCCEEDED;
+    }
+    fprintf(stderr, "Error opening file \"%s\".\n", filename);
+    fclose(f);
+    return FAILED;
+  }
+
+  fseek(fb, 0, SEEK_END);
+  *file_size = (int)ftell(fb);
+  fseek(fb, 0, SEEK_SET);
+
+  if (binary_file != NULL)
+    free(binary_file);
+  
+  binary_file = calloc(*file_size, 1);
+  if (binary_file == NULL) {
+    fprintf(stderr, "Error allocating memory for file \"%s\".\n", filename);
+    fclose(f);
+    fclose(fb);
+    *did_we_read_data = NO;
+    return FAILED;
+  }
+
+  fread(binary_file, 1, *file_size, fb);
+  fclose(fb);
+
+  *did_we_read_data = YES;
+	
+  return SUCCEEDED;
+}
+
+
 int main(int argc, char *argv[]) {
 
   char tmp[256], test_id[256], tag_id[256];
-  unsigned char *binary_file, bytes[256];
-  int file_size, end, byte_count, i, tag_start, tag_end, wrong_bytes, failures, use_address = NO, address = 0;
-  FILE *f, *fb;
+  unsigned char bytes[256];
+  int file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, use_address = NO, address = 0, did_we_read_data = NO, got_it = NO;
+  FILE *f;
   
   if (argc != 2 || argv == NULL) {
     fprintf(stderr, "\n");
@@ -108,13 +152,15 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "\n");
     fprintf(stderr, "TESTS FILE FORMAT:\n");
     fprintf(stderr, "\n");
+    fprintf(stderr, "...\n");
     fprintf(stderr, "<BINARY FILE NAME>\n");
-    fprintf(stderr, "<TEST ID> <TAG ID> START <BYTE 1> <BYTE 2> ... <BYTE N> END\n");
-    fprintf(stderr, "<TEST ID> -a <INTEGER ADDRESS> START <BYTE 1> <BYTE 2> ... <BYTE N> END\n");
+    fprintf(stderr, "<TEST ID> <TAG ID> START <BYTE 1> <BYTE 2> ... <BYTE N> END /* Require the bytes to be between the tags */\n");
+    fprintf(stderr, "<TEST ID> -a <INTEGER ADDRESS> START <BYTE 1> <BYTE 2> ... <BYTE N> END /* Require the bytes to be at the address */\n");
+    fprintf(stderr, "<TEST ID> -y <STRING> /* Require that the string is found */\n");
+    fprintf(stderr, "<TEST ID> -n <STRING> /* Require that the string is not found */\n");
     fprintf(stderr, "...\n");
     fprintf(stderr, "\n");
-    fprintf(stderr, "If <TAG ID> is \"01\", then we test if the bytes between \"01>\" and \"<01\" match\n");
-    fprintf(stderr, "with bytes 1...n\n");
+    fprintf(stderr, "If <TAG ID> is \"01\", then we test if the bytes between \"01>\" and \"<01\" match with bytes 1...n\n");
     fprintf(stderr, "\n");
     return 1;
   }
@@ -129,35 +175,20 @@ int main(int argc, char *argv[]) {
   fscanf(f, "%255s", tmp);
 
   /* read the binary file */
-  fb = fopen(tmp, "rb");
-
-  if (fb == NULL) {
-    fprintf(stderr, "Error opening file \"%s\".\n", tmp);
-    fclose(f);
+  if (_read_binary_file(tmp, &did_we_read_data, f, &file_size) == FAILED)
     return 1;
-  }
-
-  fseek(fb, 0, SEEK_END);
-  file_size = (int)ftell(fb);
-  fseek(fb, 0, SEEK_SET);
-
-  binary_file = calloc(file_size, 1);
-  if (binary_file == NULL) {
-    fprintf(stderr, "Error allocating memory for file \"%s\".\n", tmp);
-    fclose(f);
-    fclose(fb);
-    return 1;
-  }
-
-  fread(binary_file, 1, file_size, fb);
-  fclose(fb);
-
+  
   /* execute the tests */
   failures = 0;
   end = 0;
   while (end == 0) {
     if (fscanf(f, "%255s", test_id) == EOF)
       break;
+    /* test_id could be filename */
+    if (_read_binary_file(test_id, &did_we_read_data, f, &file_size) == FAILED)
+      return 1;
+    if (did_we_read_data == YES)
+      continue;
     if (fscanf(f, "%255s", tag_id) == EOF)
       break;
 
@@ -188,12 +219,62 @@ int main(int argc, char *argv[]) {
 	break;
       }
     }
+    else if (strcmp(tag_id, "-y") == 0) {
+      if (fscanf(f, "%255s", tmp) == EOF)
+	break;
+
+      length = strlen(tmp);
+      got_it = NO;
+
+      for (i = 0; i < file_size; i++) {
+	for (j = 0; j < length; j++) {
+	  if (binary_file[i+j] != tmp[j])
+	      break;
+	}
+	if (j == length) {
+	  /* we found the string -> ok! */
+	  got_it = YES;
+	  break;
+	}
+      }
+
+      if (got_it == YES) {
+	fprintf(stderr, "Test \"%s\" SUCCEEDED!\n", test_id);
+	continue;
+      }
+    }
+    else if (strcmp(tag_id, "-n") == 0) {
+      if (fscanf(f, "%255s", tmp) == EOF)
+	break;
+
+      length = strlen(tmp);
+      got_it = NO;
+      
+      for (i = 0; i < file_size; i++) {
+	for (j = 0; j < length; j++) {
+	  if (binary_file[i+j] != tmp[j])
+	      break;
+	}
+	if (j == length) {
+	  /* we found the string -> not ok! */
+	  got_it = YES;
+	  break;
+	}
+      }
+
+      if (got_it == YES)
+	return 1;
+
+      fprintf(stderr, "Test \"%s\" SUCCEEDED!\n", test_id);
+
+      continue;
+    }
     else {
       if (fscanf(f, "%255s", tmp) == EOF)
 	break;
 
       if (strcmp(tmp, "START") != 0) {
-	fprintf(stderr, "Test \"%s\" FAILED - START/-a is missing in \"%s\".\n", test_id, argv[1]);
+	fprintf(stderr, "Test \"%s\" FAILED - START/-a/-y/-n is missing in \"%s\".\n", test_id, argv[1]);
 	failures = 1;
 	break;
       }
