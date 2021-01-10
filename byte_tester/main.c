@@ -223,7 +223,7 @@ int main(int argc, char *argv[]) {
       if (fscanf(f, "%255s", tmp) == EOF)
 	break;
 
-      length = strlen(tmp);
+      length = (int)strlen(tmp);
       got_it = NO;
 
       for (i = 0; i < file_size; i++) {
@@ -247,7 +247,7 @@ int main(int argc, char *argv[]) {
       if (fscanf(f, "%255s", tmp) == EOF)
 	break;
 
-      length = strlen(tmp);
+      length = (int)strlen(tmp);
       got_it = NO;
       
       for (i = 0; i < file_size; i++) {
