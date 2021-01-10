@@ -63,7 +63,10 @@ if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 
 if(MSVC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Za") # Disable extensions
+    # Disable extensions, enable W3 and force warnings as errors
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Za /W3 /WX") 
+    # Enable W4 + WX at your own peril, just shy of 1000 warnings there.
+    
     # Per http://www.cmake.org/pipermail/cmake/2011-October/046738.html,
     # replace flags directly instead of appending them.
     string(REPLACE "/O[0-4]" "/Ox" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
@@ -109,17 +112,29 @@ endif()
 # WLA-ARCH executables
 set(WLA_SRCS
     main.c
+    main.h
     crc32.c
+    crc32.h
     hashmap.c
+    hashmap.h
     parse.c
+    parse.h
     include_file.c
+    include_file.h
     pass_1.c
+    pass_1.h
     pass_2.c
+    pass_2.h
     pass_3.c
+    pass_3.h
     pass_4.c
+    pass_4.h
     stack.c
+    stack.h
     listfile.c
+    listfile.h
     printf.c
+    printf.h
     )
 
 foreach(ARCH IN LISTS ARCHS)
