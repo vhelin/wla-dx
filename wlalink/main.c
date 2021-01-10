@@ -29,7 +29,7 @@
 
 /* define this if you want to display debug information when you run WLALINK */
 /*
-#define WLALINK_DEBUG
+  #define WLALINK_DEBUG
 */
 
 char version_string[] = "$VER: wlalink 5.14a (7.1.2021)";
@@ -143,9 +143,9 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
       struct stack *st = find_stack((int)si->value_ram, file_id);
 
       if (st->computed == YES)
-	snprintf(sid, sizeof(stack_item_description), "stack_item: (stack) calculation: %d (result = %d/$%x (RAM) %d/$%x (ROM))\n", (int)si->value_ram, st->result_ram, st->result_ram, st->result_rom, st->result_rom);
+        snprintf(sid, sizeof(stack_item_description), "stack_item: (stack) calculation: %d (result = %d/$%x (RAM) %d/$%x (ROM))\n", (int)si->value_ram, st->result_ram, st->result_ram, st->result_rom, st->result_rom);
       else
-	snprintf(sid, sizeof(stack_item_description), "stack_item: (stack) calculation: %d (result = ?)\n", (int)si->value_ram);
+        snprintf(sid, sizeof(stack_item_description), "stack_item: (stack) calculation: %d (result = ?)\n", (int)si->value_ram);
     }
     else
       snprintf(sid, sizeof(stack_item_description), "stack_item: UNKNOWN!");
@@ -318,10 +318,10 @@ int main(int argc, char *argv[]) {
     
     while (s != NULL) {
       if (strcmp(s->name, "!__WLA_SDSCTAG_STRINGS") == 0 ||
-	  strcmp(s->name, "!__WLA_SDSCTAG_TIMEDATE") == 0) {
-	/* these sections would originally go to 0x7Fnm, but as we now
-	   assume that the ROM is smaller, we'll bring them down */
-	s->address -= sub;
+          strcmp(s->name, "!__WLA_SDSCTAG_TIMEDATE") == 0) {
+        /* these sections would originally go to 0x7Fnm, but as we now
+           assume that the ROM is smaller, we'll bring them down */
+        s->address -= sub;
       }
 
       s = s->next;
@@ -351,7 +351,7 @@ int main(int argc, char *argv[]) {
 
     while (l != NULL) {
       if (l->alive == YES)
-	debug_print_label(l);
+        debug_print_label(l);
       l = l->next;
     }
   }
@@ -390,12 +390,12 @@ int main(int argc, char *argv[]) {
     while (s != NULL) {
       printf("----------------------------------------------------------------------\n");
       {
-	int z;
-	
-	for (z = 0; z < s->stacksize; z++) {
-	  struct stack_item *si = &s->stack[z];
-	  printf(get_stack_item_description(si, s->file_id));
-	}
+        int z;
+        
+        for (z = 0; z < s->stacksize; z++) {
+          struct stack_item *si = &s->stack[z];
+          printf(get_stack_item_description(si, s->file_id));
+        }
       }
       printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section);
       s = s->next;
@@ -426,18 +426,18 @@ int main(int argc, char *argv[]) {
   if (sec_first != NULL) {
     struct section *s = sec_first;
     char *section_status[] = {
-     "FREE",
-     "FORCE",
-     "OVERWRITE",
-     "HEADER",
-     "SEMIFREE",
-     "ABSOLUTE",
-     "RAM FREE",
-     "SUPERFREE",
-     "SEMISUBFREE",
-     "RAM FORCE",
-     "RAM SEMIFREE",
-     "RAM SEMISUBFREE"
+      "FREE",
+      "FORCE",
+      "OVERWRITE",
+      "HEADER",
+      "SEMIFREE",
+      "ABSOLUTE",
+      "RAM FREE",
+      "SUPERFREE",
+      "SEMISUBFREE",
+      "RAM FORCE",
+      "RAM SEMIFREE",
+      "RAM SEMISUBFREE"
     };
 
     printf("\n");
@@ -492,7 +492,7 @@ int main(int argc, char *argv[]) {
 
     while (l != NULL) {
       if (l->alive == YES)
-	debug_print_label(l);
+        debug_print_label(l);
       l = l->next;
     }
   }
@@ -515,12 +515,12 @@ int main(int argc, char *argv[]) {
     while (s != NULL) {
       printf("----------------------------------------------------------------------\n");
       {
-	int z;
-	
-	for (z = 0; z < s->stacksize; z++) {
-	  struct stack_item *si = &s->stack[z];
-	  printf(get_stack_item_description(si, s->file_id));
-	}
+        int z;
+        
+        for (z = 0; z < s->stacksize; z++) {
+          struct stack_item *si = &s->stack[z];
+          printf(get_stack_item_description(si, s->file_id));
+        }
       }
       printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d result: %d/$%x (ROM) %d/$%x (RAM)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->result_rom, s->result_rom, s->result_ram, s->result_ram);
       s = s->next;
@@ -583,42 +583,42 @@ int main(int argc, char *argv[]) {
     x = 0;
     for (i = 0; i < romsize; i++) {
       if (rom_usage[i] == 0 && x == 0) {
-	x = 1;
-	y = i;
+        x = 1;
+        y = i;
       }
       else if (rom_usage[i] != 0 && x == 1) {
-	if (y == (i - 1))
-	  fprintf(stderr, "Free space at $%.4x.\n", y);
-	else
-	  fprintf(stderr, "Free space at $%.4x-$%.4x.\n", y, i - 1);
-	x = 0;
+        if (y == (i - 1))
+          fprintf(stderr, "Free space at $%.4x.\n", y);
+        else
+          fprintf(stderr, "Free space at $%.4x-$%.4x.\n", y, i - 1);
+        x = 0;
       }
     }
 
     if (x == 1) {
       if (y == (i - 1))
-	fprintf(stderr, "Free space at $%.4x.\n", y);
+        fprintf(stderr, "Free space at $%.4x.\n", y);
       else
-	fprintf(stderr, "Free space at $%.4x-$%.4x.\n", y, i - 1);
+        fprintf(stderr, "Free space at $%.4x-$%.4x.\n", y, i - 1);
     }
 
     for (y = 0, q = 0; y < romsize; q++) {
       for (x = 0, inz = 0; inz < banksizes[q]; inz++) {
-	if (rom_usage[y++] == 0)
-	  x++;
+        if (rom_usage[y++] == 0)
+          x++;
       }
       f = (((float)x)/banksizes[q]) * 100.0f;
       if (f == 100.0f)
-	fprintf(stderr, "Bank %.2d has %.5d bytes (%.1f%%) free.\n", q, x, f);
+        fprintf(stderr, "Bank %.2d has %.5d bytes (%.1f%%) free.\n", q, x, f);
       else
-	fprintf(stderr, "Bank %.2d has %.5d bytes (%.2f%%) free.\n", q, x, f);
+        fprintf(stderr, "Bank %.2d has %.5d bytes (%.2f%%) free.\n", q, x, f);
     }
 
     /* ROM data */
     if (output_mode == OUTPUT_ROM) {
       for (i = 0, y = 0; i < romsize; i++) {
-	if (rom_usage[i] == 0)
-	  y++;
+        if (rom_usage[i] == 0)
+          y++;
       }
 
       fprintf(stderr, "%d unused bytes of total %d.\n", y, romsize);
@@ -627,8 +627,8 @@ int main(int argc, char *argv[]) {
     /* program file data */
     else {
       for (i = program_start, y = 0; i < program_end; i++) {
-	if (rom_usage[i] == 0)
-	  y++;
+        if (rom_usage[i] == 0)
+          y++;
       }
 
       q = program_end - program_start + 1;
@@ -703,7 +703,7 @@ void procedures_at_exit(void) {
     f = obj_first->source_file_names_list;
     while (f != NULL) {
       if (f->name != NULL)
-	free(f->name);
+        free(f->name);
       fn = f->next;
       free(f);
       f = fn;
@@ -800,7 +800,7 @@ int parse_flags(char **flags, int flagc) {
   for (count = 1; count < flagc - 2; count++) {
     if (!strcmp(flags[count], "-b")) {
       if (output_mode_defined == 1)
-	return FAILED;
+        return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_PRG;
       continue;
@@ -808,13 +808,13 @@ int parse_flags(char **flags, int flagc) {
     else if (!strcmp(flags[count], "-bS")) {
       if (count + 1 < flagc) {
         /* get arg */
-	if (get_next_number(flags[count + 1], &program_address_start, NULL) == FAILED) {
-	  /* address must be an address label */
-	  strncpy(program_address_start_label, flags[count + 1], MAX_NAME_LENGTH);
-	  program_address_start_type = LOAD_ADDRESS_TYPE_LABEL;
-	}
-	else
-	  program_address_start_type = LOAD_ADDRESS_TYPE_VALUE;
+        if (get_next_number(flags[count + 1], &program_address_start, NULL) == FAILED) {
+          /* address must be an address label */
+          strncpy(program_address_start_label, flags[count + 1], MAX_NAME_LENGTH);
+          program_address_start_type = LOAD_ADDRESS_TYPE_LABEL;
+        }
+        else
+          program_address_start_type = LOAD_ADDRESS_TYPE_VALUE;
       }
       else
         return FAILED;
@@ -824,13 +824,13 @@ int parse_flags(char **flags, int flagc) {
     else if (!strcmp(flags[count], "-bE")) {
       if (count + 1 < flagc) {
         /* get arg */
-	if (get_next_number(flags[count + 1], &program_address_end, NULL) == FAILED) {
-	  /* address must be an address label */
-	  strncpy(program_address_end_label, flags[count + 1], MAX_NAME_LENGTH);
-	  program_address_end_type = LOAD_ADDRESS_TYPE_LABEL;
-	}
-	else
-	  program_address_end_type = LOAD_ADDRESS_TYPE_VALUE;
+        if (get_next_number(flags[count + 1], &program_address_end, NULL) == FAILED) {
+          /* address must be an address label */
+          strncpy(program_address_end_label, flags[count + 1], MAX_NAME_LENGTH);
+          program_address_end_type = LOAD_ADDRESS_TYPE_LABEL;
+        }
+        else
+          program_address_end_type = LOAD_ADDRESS_TYPE_VALUE;
       }
       else
         return FAILED;
@@ -839,7 +839,7 @@ int parse_flags(char **flags, int flagc) {
     }
     else if (!strcmp(flags[count], "-r")) {
       if (output_mode_defined == 1)
-	return FAILED;
+        return FAILED;
       output_mode_defined++;
       output_mode = OUTPUT_ROM;
       continue;
@@ -847,10 +847,10 @@ int parse_flags(char **flags, int flagc) {
     else if (!strcmp(flags[count], "-t")) {
       if (count + 1 < flagc) {
         /* get arg */
-	if (!strcmp(flags[count + 1], "CBMPRG"))
-	  output_type = OUTPUT_TYPE_CBM_PRG;
-	else
-	  return FAILED;
+        if (!strcmp(flags[count + 1], "CBMPRG"))
+          output_type = OUTPUT_TYPE_CBM_PRG;
+        else
+          return FAILED;
       }
       else
         return FAILED;
@@ -860,13 +860,13 @@ int parse_flags(char **flags, int flagc) {
     else if (!strcmp(flags[count], "-a")) {
       if (count + 1 < flagc) {
         /* get arg */
-	if (get_next_number(flags[count + 1], &load_address, NULL) == FAILED) {
-	  /* load address must be an address label */
-	  strncpy(load_address_label, flags[count + 1], MAX_NAME_LENGTH);
-	  load_address_type = LOAD_ADDRESS_TYPE_LABEL;
-	}
-	else
-	  load_address_type = LOAD_ADDRESS_TYPE_VALUE;
+        if (get_next_number(flags[count + 1], &load_address, NULL) == FAILED) {
+          /* load address must be an address label */
+          strncpy(load_address_label, flags[count + 1], MAX_NAME_LENGTH);
+          load_address_type = LOAD_ADDRESS_TYPE_LABEL;
+        }
+        else
+          load_address_type = LOAD_ADDRESS_TYPE_VALUE;
       }
       else
         return FAILED;

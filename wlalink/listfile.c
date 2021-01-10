@@ -67,7 +67,7 @@ int listfile_write_listfiles(struct section *e) {
   s = e;
   while (s != NULL) {
     if (s->listfile_items <= 0 || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE ||
-	s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
+        s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
       s = s->next;
       continue;
     }
@@ -84,24 +84,24 @@ int listfile_write_listfiles(struct section *e) {
     for (j = 0; j < s->listfile_items; j++) {
       c = s->listfile_cmds[j];
       if (c == 'k') {
-	/* new line */
-	if (s->listfile_ints[j*3 + 1] > 0) {
-	  d[i].sourcefilename = get_source_file_name(s->file_id, sid);
-	  d[i].linenumber = s->listfile_ints[j*3 + 0];
-	  d[i].length = s->listfile_ints[j*3 + 1];
-	  add += s->listfile_ints[j*3 + 2];
-	  d[i].address = s->output_address + add;
-	  add += s->listfile_ints[j*3 + 1];
-	  i++;
-	}
-	else {
-	  /* skip */
-	  add += s->listfile_ints[j*3 + 2];
-	}
+        /* new line */
+        if (s->listfile_ints[j*3 + 1] > 0) {
+          d[i].sourcefilename = get_source_file_name(s->file_id, sid);
+          d[i].linenumber = s->listfile_ints[j*3 + 0];
+          d[i].length = s->listfile_ints[j*3 + 1];
+          add += s->listfile_ints[j*3 + 2];
+          d[i].address = s->output_address + add;
+          add += s->listfile_ints[j*3 + 1];
+          i++;
+        }
+        else {
+          /* skip */
+          add += s->listfile_ints[j*3 + 2];
+        }
       }
       else if (c == 'f') {
-	/* another file */
-	sid = s->listfile_ints[j*3 + 0];
+        /* another file */
+        sid = s->listfile_ints[j*3 + 0];
       }
       else {
         fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", c);
@@ -150,7 +150,7 @@ int listfile_write_listfiles(struct section *e) {
     strcpy(tmp, na);
     for (k = (int)(strlen(tmp)-1); k >= 0; k--) {
       if (tmp[k] == '.')
-	break;
+        break;
     }
     strcpy(&tmp[k], ".lst");
 
@@ -168,84 +168,84 @@ int listfile_write_listfiles(struct section *e) {
     while (j < i && strcmp(l[j]->sourcefilename, na) == 0) {
       /* goto line x */
       while (k < l[j]->linenumber-1) {
-	for (o = 0; o < 40; o++)
-	  fprintf(f, " ");
-	while (1) {
-	  if (b[m] == 0xA) {
-	    m++;
-	    if (b[m] == 0xD)
-	      m++;
-	    k++;
-	    fprintf(f, "\n");
-	    break;
-	  }
-	  else
-	    fprintf(f, "%c", b[m++]);
-	}
+        for (o = 0; o < 40; o++)
+          fprintf(f, " ");
+        while (1) {
+          if (b[m] == 0xA) {
+            m++;
+            if (b[m] == 0xD)
+              m++;
+            k++;
+            fprintf(f, "\n");
+            break;
+          }
+          else
+            fprintf(f, "%c", b[m++]);
+        }
       }
 
       /* write the bytes */
       w = 0;
       for (p = 0, o = 0; o < l[j]->length; o++) {
-	fprintf(f, "$");
-	_listfile_write_hex(f, rom[l[j]->address + o] >> 4);
-	_listfile_write_hex(f, rom[l[j]->address + o] & 15);
-	fprintf(f, " ");
-	p += 4;
-	if ((o % 10) == 9 && o != 0 && o < l[j]->length-1) {
-	  if (w == 0) {
-	    /* write padding */
-	    w = 1;
-	    while (p < 40) {
-	      fprintf(f, " ");
-	      p++;
-	    }
+        fprintf(f, "$");
+        _listfile_write_hex(f, rom[l[j]->address + o] >> 4);
+        _listfile_write_hex(f, rom[l[j]->address + o] & 15);
+        fprintf(f, " ");
+        p += 4;
+        if ((o % 10) == 9 && o != 0 && o < l[j]->length-1) {
+          if (w == 0) {
+            /* write padding */
+            w = 1;
+            while (p < 40) {
+              fprintf(f, " ");
+              p++;
+            }
 
-	    /* write the rest of the line */
-	    while (m < n) {
-	      if (b[m] == 0xA) {
-		m++;
-		if (b[m] == 0xD)
-		  m++;
-		k++;
-		fprintf(f, "\n");
-		break;
-	      }
-	      else
-		fprintf(f, "%c", b[m++]);
-	    }
-	  }
-	  else
-	    fprintf(f, "\n");
+            /* write the rest of the line */
+            while (m < n) {
+              if (b[m] == 0xA) {
+                m++;
+                if (b[m] == 0xD)
+                  m++;
+                k++;
+                fprintf(f, "\n");
+                break;
+              }
+              else
+                fprintf(f, "%c", b[m++]);
+            }
+          }
+          else
+            fprintf(f, "\n");
 
-	  p = 0;
-	}
+          p = 0;
+        }
       }
 
       /* has the line been written already? */
       if (w == 0) {
-	/* write padding */
-	while (p < 40) {
-	  fprintf(f, " ");
-	  p++;
-	}
+        /* write padding */
+        while (p < 40) {
+          fprintf(f, " ");
+          p++;
+        }
 
-	/* write the rest of the line */
-	while (m < n) {
-	  if (b[m] == 0xA) {
-	    m++;
-	    if (b[m] == 0xD)
-	      m++;
-	    k++;
-	    fprintf(f, "\n");
-	    break;
-	  }
-	  else
-	    fprintf(f, "%c", b[m++]);
-	}
+        /* write the rest of the line */
+        while (m < n) {
+          if (b[m] == 0xA) {
+            m++;
+            if (b[m] == 0xD)
+              m++;
+            k++;
+            fprintf(f, "\n");
+            break;
+          }
+          else
+            fprintf(f, "%c", b[m++]);
+        }
       }
       else
-	fprintf(f, "\n");
+        fprintf(f, "\n");
 
       j++;
     }
@@ -253,17 +253,17 @@ int listfile_write_listfiles(struct section *e) {
     /* write the rest of the file */
     while (m < n) {
       for (o = 0; o < 40; o++)
-	fprintf(f, " ");
+        fprintf(f, " ");
       while (m < n) {
-	if (b[m] == 0xA) {
-	  m++;
-	  if (m < n && b[m] == 0xD)
-	    m++;
-	  fprintf(f, "\n");
-	  break;
-	}
-	else
-	  fprintf(f, "%c", b[m++]);
+        if (b[m] == 0xA) {
+          m++;
+          if (m < n && b[m] == 0xD)
+            m++;
+          fprintf(f, "\n");
+          break;
+        }
+        else
+          fprintf(f, "%c", b[m++]);
       }
     }
 

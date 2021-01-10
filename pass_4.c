@@ -76,10 +76,10 @@ static int dstruct_start = -1, special_id = 0;
 
 
 #define WRITEOUT_OV fprintf(final_ptr, "%c%c%c%c", (ov>>24)&0xFF, (ov>>16)&0xFF, (ov>>8)&0xFF, ov&0xFF);
-#define WRITEOUT_DOU { \
-  cp = (unsigned char *)&dou; \
-  fprintf(final_ptr, "%c%c%c%c%c%c%c%c", cp[0], cp[1], cp[2], cp[3], cp[4], cp[5], cp[6], cp[7]); \
-}
+#define WRITEOUT_DOU {                                                  \
+    cp = (unsigned char *)&dou;                                         \
+    fprintf(final_ptr, "%c%c%c%c%c%c%c%c", cp[0], cp[1], cp[2], cp[3], cp[4], cp[5], cp[6], cp[7]); \
+  }
 
 #define XSTRINGIFY(x) #x
 #define STRINGIFY(x) XSTRINGIFY(x)
@@ -151,7 +151,7 @@ int new_unknown_reference(int type) {
   else {
     if (label->label[0] == '_') {
       fprintf(stderr, "%s:%d: NEW_UNKNOWN_REFERENCE: Referring to a local label (\"%s\") from inside a bank header section is not allowed.\n",
-	      get_file_name(filename_id), line_number, label->label);
+              get_file_name(filename_id), line_number, label->label);
       return FAILED;
     }
     if (unknown_header_labels_last == NULL) {
@@ -215,8 +215,8 @@ int add_namespace_to_reference(char *label, char *name_space, unsigned int label
   if (section_status == ON && sec_tmp != NULL && sec_tmp->nspace != NULL) {
     if (hashmap_get(sec_tmp->nspace->label_map, expanded, (void*)&l) == MAP_OK) {
       if (filename_id == l->filename_id) {
-	strcpy(label, expanded);
-	return SUCCEEDED;
+        strcpy(label, expanded);
+        return SUCCEEDED;
       }
     }
   }
@@ -240,10 +240,10 @@ int add_namespace_to_stack_references(struct stack *st, char *name_space) {
   for (j = 0; j < st->stacksize; j++) {
     if (st->stack[j].type == STACK_ITEM_TYPE_STRING) {
       if (is_label_anonymous(st->stack[j].string) == YES)
-	continue;
+        continue;
       
       if (add_namespace_to_reference(st->stack[j].string, name_space, sizeof(st->stack[j].string)) == FAILED)
-	return FAILED;
+        return FAILED;
     }
   }
 
@@ -281,988 +281,988 @@ int pass_4(void) {
 
       /* SPECIAL CASE ID */
       
-      case 'v':
-        fscanf(file_out_ptr, "%d ", &special_id);	
-        continue;
+    case 'v':
+      fscanf(file_out_ptr, "%d ", &special_id);       
+      continue;
       
-      case 'E':
+    case 'E':
+      continue;
+
+    case 'j':
+      inside_repeat++;
+      continue;
+    case 'J':
+      inside_repeat--;
+      continue;
+
+    case 'i':
+      fscanf(file_out_ptr, "%*s ");
+      inside_macro++;
+      continue;
+    case 'I':
+      fscanf(file_out_ptr, "%*s ");
+      inside_macro--;
+      continue;
+        
+    case 'g':
+      fscanf(file_out_ptr, "%*s ");
+      continue;
+    case 'G':
+      continue;
+
+    case 'f':
+      fscanf(file_out_ptr, "%d ", &filename_id);
+      continue;
+
+    case 'k':
+      fscanf(file_out_ptr, "%d ", &line_number);
+      continue;
+
+    case 't':
+      fscanf(file_out_ptr, "%d ", &inz);
+      if (inz == 0)
+        namespace[0] = 0;
+      else
+        fscanf(file_out_ptr, STRING_READ_FORMAT, namespace);
+      continue;
+        
+      /* SECTION */
+
+    case 'A':
+    case 'S':
+      if (c == 'A')
+        fscanf(file_out_ptr, "%d %d ", &x, &ind);
+      else
+        fscanf(file_out_ptr, "%d ", &x);
+
+      add_old = pc_bank;
+
+      sec_tmp = sections_first;
+      while (sec_tmp != NULL) {
+        if (sec_tmp->id == x)
+          break;
+        sec_tmp = sec_tmp->next;
+      }
+
+      /* skip all dead sections */
+      if (sec_tmp->alive == OFF)
         continue;
 
-      case 'j':
-	inside_repeat++;
-	continue;
-      case 'J':
-	inside_repeat--;
-	continue;
+      if (c == 'A')
+        sec_tmp->address = ind;
 
-      case 'i':
-	fscanf(file_out_ptr, "%*s ");
-	inside_macro++;
-	continue;
-      case 'I':
-	fscanf(file_out_ptr, "%*s ");
-	inside_macro--;
-	continue;
-	
-      case 'g':
-        fscanf(file_out_ptr, "%*s ");
-        continue;
-      case 'G':
-        continue;
-
-      case 'f':
-        fscanf(file_out_ptr, "%d ", &filename_id);
-        continue;
-
-      case 'k':
-        fscanf(file_out_ptr, "%d ", &line_number);
-        continue;
-
-      case 't':
-	fscanf(file_out_ptr, "%d ", &inz);
-	if (inz == 0)
-	  namespace[0] = 0;
-	else
-	  fscanf(file_out_ptr, STRING_READ_FORMAT, namespace);
-	continue;
-	
-        /* SECTION */
-
-      case 'A':
-      case 'S':
-        if (c == 'A')
-          fscanf(file_out_ptr, "%d %d ", &x, &ind);
-        else
-          fscanf(file_out_ptr, "%d ", &x);
-
-        add_old = pc_bank;
-
-        sec_tmp = sections_first;
-        while (sec_tmp != NULL) {
-          if (sec_tmp->id == x)
-            break;
-          sec_tmp = sec_tmp->next;
+      ind = 0;
+      if (sec_tmp->maxsize_status == ON) {
+        if (sec_tmp->maxsize < sec_tmp->size) {
+          fprintf(stderr, "%s: INTERNAL_PASS_2: Section \"%s\" doesn't fit into the specified %d bytes. Enlarging to %d bytes.\n",
+                  get_file_name(filename_id), sec_tmp->name, sec_tmp->maxsize, sec_tmp->size);
         }
-
-        /* skip all dead sections */
-        if (sec_tmp->alive == OFF)
-          continue;
-
-        if (c == 'A')
-          sec_tmp->address = ind;
-
-        ind = 0;
-        if (sec_tmp->maxsize_status == ON) {
-          if (sec_tmp->maxsize < sec_tmp->size) {
-            fprintf(stderr, "%s: INTERNAL_PASS_2: Section \"%s\" doesn't fit into the specified %d bytes. Enlarging to %d bytes.\n",
-		    get_file_name(filename_id), sec_tmp->name, sec_tmp->maxsize, sec_tmp->size);
-          }
-          else if (sec_tmp->size < sec_tmp->maxsize) {
-            sec_tmp->size = sec_tmp->maxsize;
-            ind = 1;
-          }
+        else if (sec_tmp->size < sec_tmp->maxsize) {
+          sec_tmp->size = sec_tmp->maxsize;
+          ind = 1;
         }
+      }
 
-        sec_tmp->data = calloc(sizeof(unsigned char) * sec_tmp->size, 1);
-        if (sec_tmp->data == NULL) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Out of memory when trying to allocate room for section \"%s\".\n",
-		  get_file_name(filename_id), line_number, sec_tmp->name);
-          return FAILED;
-        }
+      sec_tmp->data = calloc(sizeof(unsigned char) * sec_tmp->size, 1);
+      if (sec_tmp->data == NULL) {
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Out of memory when trying to allocate room for section \"%s\".\n",
+                get_file_name(filename_id), line_number, sec_tmp->name);
+        return FAILED;
+      }
 
-        /* fill the padded area with _emptyfill_ */
-        if (ind == 1)
-          memset(sec_tmp->data, emptyfill, sec_tmp->size);
+      /* fill the padded area with _emptyfill_ */
+      if (ind == 1)
+        memset(sec_tmp->data, emptyfill, sec_tmp->size);
 
-        if (strcmp(sec_tmp->name, "BANKHEADER") == 0)
-          bankheader_status = ON;
+      if (strcmp(sec_tmp->name, "BANKHEADER") == 0)
+        bankheader_status = ON;
 
-        sec_tmp->i = 0;
-        section_status = ON;
+      sec_tmp->i = 0;
+      section_status = ON;
 
-        continue;
+      continue;
 
-        /* ENDS */
+      /* ENDS */
 
-      case 's':
-        section_status = OFF;
-        bankheader_status = OFF;
+    case 's':
+      section_status = OFF;
+      bankheader_status = OFF;
 
-        /* some sections don't affect the ORG outside of them */
-        if (sec_tmp->advance_org == NO) {
-          pc_bank = add_old;
-          pc_full = bankaddress[rom_bank] + pc_bank;
-          pc_slot = slots[slot].address + pc_bank;
-          pc_slot_max = slots[slot].address + slots[slot].size;
-        }
-
-        continue;
-
-        /* DSB & DSW & DSL */
-        /* ('o' skips over memory without claiming it) */
-
-      case 'x':
-      case 'o':
-        fscanf(file_out_ptr, "%d %d", &ind, &x);
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSB data", get_file_name(filename_id), line_number);
-
-        if (ind < 0) { /* going backward */
-          if (section_status == ON)
-            sec_tmp->i += ind;
-          pc_bank += ind;
-          pc_full += ind;
-          pc_slot += ind;
-          ind++;
-        }
-        else {
-          while (ind > 0) {
-            if (c == 'o') {
-              if (section_status == ON)
-                sec_tmp->i++;
-              pc_bank++;
-              pc_full++;
-              pc_slot++;
-            }
-            else {
-              if (mem_insert(x) == FAILED)
-                return FAILED;
-            }
-            ind--;
-          }
-        }
-        continue;
-
-      case 'X':
-        fscanf(file_out_ptr, "%d %d", &ind, &inz);
-        i = inz & 0xFF;
-        inz = (inz >> 8) & 0xFF;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSW data", get_file_name(filename_id), line_number);
-
-	while (ind > 0) {
-	  if (little_endian == YES) {
-	    if (mem_insert(i) == FAILED)
-	      return FAILED;
-	    if (mem_insert(inz) == FAILED)
-	      return FAILED;
-	  }
-	  else {
-	    if (mem_insert(inz) == FAILED)
-	      return FAILED;
-	    if (mem_insert(i) == FAILED)
-	      return FAILED;
-	  }
-          ind--;
-        }
-
-        continue;
-
-#ifdef W65816
-
-      case 'h':
-        fscanf(file_out_ptr, "%d %d", &ind, &inz);
-        x = inz & 0xFF;
-        i = (inz >> 8) & 0xFF;
-        inz = (inz >> 16) & 0xFF;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSL data", get_file_name(filename_id), line_number);
-
-	while (ind > 0) {
-	  if (little_endian == YES) {
-	    if (mem_insert(x) == FAILED)
-	      return FAILED;
-	    if (mem_insert(i) == FAILED)
-	      return FAILED;
-	    if (mem_insert(inz) == FAILED)
-	      return FAILED;
-	  }
-	  else {
-	    if (mem_insert(inz) == FAILED)
-	      return FAILED;
-	    if (mem_insert(i) == FAILED)
-	      return FAILED;
-	    if (mem_insert(x) == FAILED)
-	      return FAILED;
-	  }
-          ind--;
-        }
-
-        continue;
-
-#endif
-	
-        /* DATA & OPTCODE */
-
-      case 'd':
-        fscanf(file_out_ptr, "%d", &x);
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a byte", get_file_name(filename_id), line_number);
-	
-        if (mem_insert(x) == FAILED)
-          return FAILED;
-
-	continue;
-
-      case 'y':
-        fscanf(file_out_ptr, "%d", &inz);
-        x = inz & 0xFF;
-        inz = (inz >> 8) & 0xFF;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing two bytes", get_file_name(filename_id), line_number);
-
-	if (little_endian == YES) {
-	  if (mem_insert(x) == FAILED)
-	    return FAILED;
-	  if (mem_insert(inz) == FAILED)
-	    return FAILED;
-	}
-	else {
-	  if (mem_insert(inz) == FAILED)
-	    return FAILED;
-	  if (mem_insert(x) == FAILED)
-	    return FAILED;
-	}
-	
-        continue;
-
-      case 'b':
-        fscanf(file_out_ptr, "%d", &base);
-        continue;
-
-#ifdef W65816
-
-      case 'z':
-        fscanf(file_out_ptr, "%d", &inz);
-        x = inz & 0xFF;
-        ind = (inz >> 8) & 0xFF;
-        inz = (inz >> 16) & 0xFF;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing three bytes", get_file_name(filename_id), line_number);
-
-	if (little_endian == YES) {
-	  if (mem_insert(x) == FAILED)
-	    return FAILED;
-	  if (mem_insert(ind) == FAILED)
-	    return FAILED;
-	  if (mem_insert(inz) == FAILED)
-	    return FAILED;
-	}
-	else {
-	  if (mem_insert(inz) == FAILED)
-	    return FAILED;
-	  if (mem_insert(ind) == FAILED)
-	    return FAILED;
-	  if (mem_insert(x) == FAILED)
-	    return FAILED;
-	}
-
-        continue;
-
-#endif
-
-        /* DATA BLOCK from .INCBIN */
-
-      case 'D':
-        fscanf(file_out_ptr, "%d %d %d %d", &x, &inz, &z, &y);
-
-        ifd_tmp = incbin_file_data_first;
-        for (ind = 0; ind != x; ind++)
-          ifd_tmp = ifd_tmp->next;
-        t = ifd_tmp->data + z;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing .INCBIN data", get_file_name(filename_id), line_number);
-
-	/* swap? */
-        if (inz == 1) {
-          inz = y / 2;
-          for (ind = 0; ind < inz; ind++) {
-            if (mem_insert(*(t + 1)) == FAILED)
-              return FAILED;
-            if (mem_insert(*t) == FAILED)
-              return FAILED;
-            t += 2;
-          }
-        }
-        else {
-          inz = y;
-          for (ind = 0; ind < inz; ind++) {
-            if (mem_insert(*(t++)) == FAILED)
-              return FAILED;
-          }
-        }
-
-        continue;
-
-        /* ORIGIN & ROM BANK */
-
-      case 'O':
-      case 'B':
-        if (c == 'O')
-          fscanf(file_out_ptr, "%d", &pc_bank);
-        else {
-          fscanf(file_out_ptr, "%d %d", &rom_bank, &slot);
-          if (banksize_defined == 0)
-            banksize = banks[rom_bank];
-        }
-
+      /* some sections don't affect the ORG outside of them */
+      if (sec_tmp->advance_org == NO) {
+        pc_bank = add_old;
         pc_full = bankaddress[rom_bank] + pc_bank;
         pc_slot = slots[slot].address + pc_bank;
         pc_slot_max = slots[slot].address + slots[slot].size;
-
-        continue;
-
-        /* BREAKPOINT */
-
-      case 'Z':
-        continue;
-
-        /* SYMBOL */
-
-      case 'Y':
-	/* skip the symbol */
-        fscanf(file_out_ptr, "%*s");
-        continue;
-
-        /* LABEL */
-      case 'L':
-        {
-          struct label_def *l;
-          int m, n = 0, mangled_label = NO;
-
-          fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
-
-          if (is_label_anonymous(tmp) == NO) {
-            while (n < 10 && tmp[n] == '@')
-              n++;
-
-            m = n + 1;
-            while (m < 10)
-              parent_labels[m++] = NULL;
-
-            m = n;
-            n--;
-            while (n >= 0 && parent_labels[n] == NULL)
-              n--;
-
-            if (n >= 0) {
-              if (mangle_label(tmp, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
-                return FAILED;
-	      mangled_label = YES;
-            }
-
-	    if (namespace[0] != 0 && mangled_label == NO) {
-	      if (section_status == OFF || sec_tmp->nspace == NULL) {
-		if (add_namespace(tmp, namespace, sizeof(tmp)) == FAILED)
-		  return FAILED;
-	      }
-	    }
-	    
-            if (m < 10 && find_label(tmp, sec_tmp, (void*)&l) == SUCCEEDED)
-	      parent_labels[m] = l;
-          }
-        }
-        continue;
-
-        /* 8BIT COMPUTATION */
-
-      case 'c':
-        fscanf(file_out_ptr, "%d", &inz);
-
-        if (bankheader_status == OFF)
-          stacks_tmp = stacks_first;
-        else
-          stacks_tmp = stacks_header_first;
-
-        while (stacks_tmp != NULL) {
-          if (stacks_tmp->id == inz)
-            break;
-          stacks_tmp = stacks_tmp->next;
-        }
-
-        if (stacks_tmp == NULL) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(filename_id), line_number, inz);
-          return FAILED;
-        }
-
-        if (stacks_tmp->section_status == ON) {
-	  /* relative address, to the beginning of the section */
-          stacks_tmp->address = sec_tmp->i;
-        }
-        else {
-	  /* complete address, in ROM memory */
-          stacks_tmp->address = pc_bank;
-        }
-
-        stacks_tmp->bank = rom_bank;
-        stacks_tmp->slot = slot;
-        stacks_tmp->type = STACK_TYPE_8BIT;
-        stacks_tmp->base = base;
-	stacks_tmp->special_id = special_id;
-	
-        if (mangle_stack_references(stacks_tmp) == FAILED)
-          return FAILED;
-
-	if (namespace[0] != 0) {
-	  if (section_status == OFF || sec_tmp->nspace == NULL) {
-	    if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
-	      return FAILED;
-	  }
-	}
-
-        /* this stack was referred from the code */
-        stacks_tmp->position = STACK_POSITION_CODE;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for an 8-bit computation", get_file_name(filename_id), line_number);
-	
-        if (mem_insert_padding() == FAILED)
-          return FAILED;
-
-        continue;
-
-        /* 16BIT COMPUTATION */
-
-      case 'C':
-        fscanf(file_out_ptr, "%d", &inz);
-
-        if (bankheader_status == OFF)
-          stacks_tmp = stacks_first;
-        else
-          stacks_tmp = stacks_header_first;
-
-        while (stacks_tmp != NULL) {
-          if (stacks_tmp->id == inz)
-            break;
-          stacks_tmp = stacks_tmp->next;
-        }
-
-        if (stacks_tmp == NULL) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(filename_id), line_number, inz);
-          return FAILED;
-        }
-
-        if (stacks_tmp->section_status == ON) {
-	  /* relative address, to the beginning of the section */
-          stacks_tmp->address = sec_tmp->i;
-        }
-        else {
-	  /* complete address, in ROM memory */
-          stacks_tmp->address = pc_bank;
-        }
-
-        stacks_tmp->bank = rom_bank;
-        stacks_tmp->slot = slot;
-        stacks_tmp->type = STACK_TYPE_16BIT;
-        stacks_tmp->base = base;
-	
-        if (mangle_stack_references(stacks_tmp) == FAILED)
-          return FAILED;
-
-	if (namespace[0] != 0) {
-	  if (section_status == OFF || sec_tmp->nspace == NULL) {
-	    if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
-	      return FAILED;
-	  }
-	}
-	
-        /* this stack was referred from the code */
-        stacks_tmp->position = STACK_POSITION_CODE;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 16-bit computation", get_file_name(filename_id), line_number);
-
-	if (mem_insert_padding() == FAILED)
-          return FAILED;
-        if (mem_insert_padding() == FAILED)
-          return FAILED;
-
-        continue;
-
-#ifdef SPC700
-        /* 13BIT COMPUTATION */
-
-      case 'N':
-        fscanf(file_out_ptr, "%d %d", &x, &inz);
-
-        if (bankheader_status == OFF)
-          stacks_tmp = stacks_first;
-        else
-          stacks_tmp = stacks_header_first;
-
-        while (stacks_tmp != NULL) {
-          if (stacks_tmp->id == inz)
-            break;
-          stacks_tmp = stacks_tmp->next;
-        }
-
-        if (stacks_tmp == NULL) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(filename_id), line_number, inz);
-          return FAILED;
-        }
-
-        if (stacks_tmp->section_status == ON) {
-	  /* relative address, to the beginning of the section */
-          stacks_tmp->address = sec_tmp->i;
-        }
-        else {
-	  /* complete address, in ROM memory */
-          stacks_tmp->address = pc_bank;
-        }
-
-        stacks_tmp->bank = rom_bank;
-        stacks_tmp->slot = slot;
-        stacks_tmp->type = STACK_TYPE_13BIT;
-        stacks_tmp->base = base;
-	
-        if (mangle_stack_references(stacks_tmp) == FAILED)
-          return FAILED;
-
-	if (namespace[0] != 0) {
-	  if (section_status == OFF || sec_tmp->nspace == NULL) {
-	    if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
-	      return FAILED;
-	  }
-	}
-	
-        /* this stack was referred from the code */
-        stacks_tmp->position = STACK_POSITION_CODE;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 13-bit computation", get_file_name(filename_id), line_number);
-
-	if (mem_insert(0x00) == FAILED)
-          return FAILED;
-        if (mem_insert(x << (13 - 8)) == FAILED)
-          return FAILED;
-
-        continue;
-#endif
-
-        /* 24BIT COMPUTATION */
-
-      case 'T':
-        fscanf(file_out_ptr, "%d", &inz);
-
-        if (bankheader_status == OFF)
-          stacks_tmp = stacks_first;
-        else
-          stacks_tmp = stacks_header_first;
-
-        while (stacks_tmp != NULL) {
-          if (stacks_tmp->id == inz)
-            break;
-          stacks_tmp = stacks_tmp->next;
-        }
-
-        if (stacks_tmp == NULL) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(filename_id), line_number, inz);
-          return FAILED;
-        }
-
-        if (stacks_tmp->section_status == ON) {
-	  /* relative address, to the beginning of the section */
-          stacks_tmp->address = sec_tmp->i;
-        }
-        else {
-	  /* complete address, in ROM memory */
-          stacks_tmp->address = pc_bank;
-        }
-
-        stacks_tmp->bank = rom_bank;
-        stacks_tmp->slot = slot;
-        stacks_tmp->type = STACK_TYPE_24BIT;
-        stacks_tmp->base = base;
-
-        if (mangle_stack_references(stacks_tmp) == FAILED)
-          return FAILED;
-
-	if (namespace[0] != 0) {
-	  if (section_status == OFF || sec_tmp->nspace == NULL) {
-	    if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
-	      return FAILED;
-	  }
-	}
-	
-        /* this stack was referred from the code */
-        stacks_tmp->position = STACK_POSITION_CODE;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 24-bit computation", get_file_name(filename_id), line_number);
-
-	if (mem_insert_padding() == FAILED)
-          return FAILED;
-        if (mem_insert_padding() == FAILED)
-          return FAILED;
-        if (mem_insert_padding() == FAILED)
-          return FAILED;
-
-        continue;
-
-        /* 24BIT REFERENCE */
-
-      case 'q':
-        fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
-
-	if (namespace[0] != 0) {
-	  if (section_status == OFF || sec_tmp->nspace == NULL) {
-	    if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
-	      return FAILED;
-	  }
-	}
-	  
-        x = 0;
-        hashmap_get(defines_map, tmp, (void*)&tmp_def);
-        if (tmp_def != NULL) {
-          if (tmp_def->type == DEFINITION_TYPE_STRING) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
-            return FAILED;
-          }
-          else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-            o = (int)tmp_def->value;
-            x = 1;
-
-	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	    snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 24-bit reference", get_file_name(filename_id), line_number);
-
-	    if (little_endian == YES) {
-	      if (mem_insert(o & 0xFF) == FAILED)
-		return FAILED;
-	      if (mem_insert((o >> 8) & 0xFF) == FAILED)
-		return FAILED;
-	      if (mem_insert((o >> 16) & 0xFF) == FAILED)
-		return FAILED;
-	    }
-	    else {
-	      if (mem_insert((o >> 16) & 0xFF) == FAILED)
-		return FAILED;
-	      if (mem_insert((o >> 8) & 0xFF) == FAILED)
-		return FAILED;
-	      if (mem_insert(o & 0xFF) == FAILED)
-		return FAILED;
-	    }
-	  }
-        }
-
-        if (x == 1)
-          continue;
-
-        if (new_unknown_reference(REFERENCE_TYPE_DIRECT_24BIT) == FAILED)
-          return FAILED;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 24-bit reference", get_file_name(filename_id), line_number);
-
-	if (mem_insert_padding() == FAILED)
-          return FAILED;
-        if (mem_insert_padding() == FAILED)
-          return FAILED;
-        if (mem_insert_padding() == FAILED)
-          return FAILED;
-
-        continue;
-
-        /* 16BIT PC RELATIVE REFERENCE */
-
-      case 'M':
-        fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
-
-	if (namespace[0] != 0) {
-	  if (section_status == OFF || sec_tmp->nspace == NULL) {
-	    if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
-	      return FAILED;
-	  }
-	}
-		
-        x = 0;
-        hashmap_get(defines_map, tmp, (void*)&tmp_def);
-        if (tmp_def != NULL) {
-          if (tmp_def->type == DEFINITION_TYPE_STRING) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
-            return FAILED;
-          }
-          else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-            o = (int)tmp_def->value;
-            x = 1;
-
-	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	    snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(filename_id), line_number);
-
-	    if (little_endian == YES) {
-	      if (mem_insert(o & 0xFF) == FAILED)
-		return FAILED;
-	      if (mem_insert((o >> 8) & 0xFF) == FAILED)
-		return FAILED;
-	    }
-	    else {
-	      if (mem_insert((o >> 8) & 0xFF) == FAILED)
-		return FAILED;
-	      if (mem_insert(o & 0xFF) == FAILED)
-		return FAILED;
-	    }
-          }
-        }
-
-        if (x == 1)
-          continue;
-
-        if (new_unknown_reference(REFERENCE_TYPE_RELATIVE_16BIT) == FAILED)
-          return FAILED;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 16-bit reference", get_file_name(filename_id), line_number);
-
-	if (mem_insert_padding() == FAILED)
-          return FAILED;
-        if (mem_insert_padding() == FAILED)
-          return FAILED;
-
-        continue;
-
-        /* 16BIT REFERENCE */
-
-      case 'r':
-        fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
-
-	if (namespace[0] != 0) {
-	  if (section_status == OFF || sec_tmp->nspace == NULL) {
-	    if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
-	      return FAILED;
-	  }
-	}
-
-	x = 0;
-        hashmap_get(defines_map, tmp, (void*)&tmp_def);
-        if (tmp_def != NULL) {
-          if (tmp_def->type == DEFINITION_TYPE_STRING) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
-            return FAILED;
-          }
-          else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-            o = (int)tmp_def->value;
-            x = 1;
-
-	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	    snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(filename_id), line_number);
-
-	    if (little_endian == YES) {
-	      if (mem_insert(o & 0xFF) == FAILED)
-		return FAILED;
-	      if (mem_insert((o & 0xFF00) >> 8) == FAILED)
-		return FAILED;
-	    }
-	    else {
-	      if (mem_insert((o >> 8) & 0xFF) == FAILED)
-		return FAILED;
-	      if (mem_insert(o & 0xFF) == FAILED)
-		return FAILED;
-	    }
-          }
-        }
-
-        if (x == 1)
-          continue;
-
-        if (new_unknown_reference(REFERENCE_TYPE_DIRECT_16BIT) == FAILED)
-          return FAILED;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 16-bit reference", get_file_name(filename_id), line_number);
-
-	if (mem_insert_padding() == FAILED)
-          return FAILED;
-        if (mem_insert_padding() == FAILED)
-          return FAILED;
-
-        continue;
-
-#ifdef SPC700
-        /* 13BIT REFERENCE */
-
-      case 'n':
-        fscanf(file_out_ptr, "%d ", &inz);
-	fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
-
-	if (namespace[0] != 0) {
-	  if (section_status == OFF || sec_tmp->nspace == NULL) {
-	    if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
-	      return FAILED;
-	  }
-	}
-
-	x = 0;
-        hashmap_get(defines_map, tmp, (void*)&tmp_def);
-        if (tmp_def != NULL) {
-          if (tmp_def->type == DEFINITION_TYPE_STRING) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
-            return FAILED;
-          }
-          else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-            o = (int)tmp_def->value;
-            x = 1;
-            if (o > 8191 || o < 0) {
-              fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference value of \"%s\" is out of 13-bit range.\n", get_file_name(filename_id), line_number, tmp);
-              return FAILED;
-            }
-
-	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	    snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 13-bit reference", get_file_name(filename_id), line_number);
-
-	    if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert(((o | inz << 13) & 0xFF00) >> 8) == FAILED)
-              return FAILED;
-          }
-        }
-
-        if (x == 1)
-          continue;
-
-        if (new_unknown_reference(REFERENCE_TYPE_DIRECT_13BIT) == FAILED)
-          return FAILED;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 13-bit reference", get_file_name(filename_id), line_number);
-
-	if (mem_insert(0x00) == FAILED)
-          return FAILED;
-        if (mem_insert(inz << (13 - 8)) == FAILED)
-          return FAILED;
-
-        continue;
-#endif
-
-        /* 8BIT PC RELATIVE REFERENCE */
-
-      case 'R':
-        fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
-
-	if (namespace[0] != 0) {
-	  if (section_status == OFF || sec_tmp->nspace == NULL) {
-	    if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
-	      return FAILED;
-	  }
-	}
-
-	x = 0;
-        hashmap_get(defines_map, tmp, (void*)&tmp_def);
-        if (tmp_def != NULL) {
-          if (tmp_def->type == DEFINITION_TYPE_STRING) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
-            return FAILED;
-          }
-          else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-            o = (int)tmp_def->value;
-            x = 1;
-
-	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	    snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(filename_id), line_number);
-
-	    if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-          }
-        }
-
-        if (x == 1)
-          continue;
-
-        if (new_unknown_reference(REFERENCE_TYPE_RELATIVE_8BIT) == FAILED)
-          return FAILED;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for an 8-bit reference", get_file_name(filename_id), line_number);
-
-	if (mem_insert_padding() == FAILED)
-          return FAILED;
-
-        continue;
-
-        /* 8BIT REFERENCE */
-
-      case 'Q':
-        fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
-
-	if (namespace[0] != 0) {
-	  if (section_status == OFF || sec_tmp->nspace == NULL) {
-	    if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
-	      return FAILED;
-	  }
-	}
-
-	x = 0;
-        hashmap_get(defines_map, tmp, (void*)&tmp_def);
-        if (tmp_def != NULL) {
-          if (tmp_def->type == DEFINITION_TYPE_STRING) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
-            return FAILED;
-          }
-          else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-            o = (int)tmp_def->value;
-            x = 1;
-
-	    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	    snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(filename_id), line_number);
-	    
-	    if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-          }
-        }
-
-        if (x == 1)
-          continue;
-
-        if (new_unknown_reference(REFERENCE_TYPE_DIRECT_8BIT) == FAILED)
-          return FAILED;
-
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for an 8-bit reference", get_file_name(filename_id), line_number);
-
-	if (mem_insert_padding() == FAILED)
-          return FAILED;
-
-        continue;
-
-        /* .DSTRUCT stuff */
-
-      case 'e':
-        fscanf(file_out_ptr, "%d %d ", &x, &y);
-        if (y == -1) {
-	  /* mark start of .DSTRUCT */
-          dstruct_start = pc_full;
-          /* make sure all data in a section gets set to emptyfill */
-          if (section_status == ON)
-            memset(sec_tmp->data + sec_tmp->i, emptyfill, x);
-        }
-        else if (y == -2) {
-	  /* end of .DSTRUCT. make sure all memory is claimed. */
-          while (pc_full < dstruct_start + x) {
-            if (section_status == OFF && rom_banks_usage_table[pc_full] == 0) {
-              rom_banks_usage_table[pc_full] = 2;
-              rom_banks[pc_full] = emptyfill;
-            }
+      }
+
+      continue;
+
+      /* DSB & DSW & DSL */
+      /* ('o' skips over memory without claiming it) */
+
+    case 'x':
+    case 'o':
+      fscanf(file_out_ptr, "%d %d", &ind, &x);
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSB data", get_file_name(filename_id), line_number);
+
+      if (ind < 0) { /* going backward */
+        if (section_status == ON)
+          sec_tmp->i += ind;
+        pc_bank += ind;
+        pc_full += ind;
+        pc_slot += ind;
+        ind++;
+      }
+      else {
+        while (ind > 0) {
+          if (c == 'o') {
             if (section_status == ON)
               sec_tmp->i++;
             pc_bank++;
-            pc_slot++;
             pc_full++;
+            pc_slot++;
           }
+          else {
+            if (mem_insert(x) == FAILED)
+              return FAILED;
+          }
+          ind--;
+        }
+      }
+      continue;
+
+    case 'X':
+      fscanf(file_out_ptr, "%d %d", &ind, &inz);
+      i = inz & 0xFF;
+      inz = (inz >> 8) & 0xFF;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSW data", get_file_name(filename_id), line_number);
+
+      while (ind > 0) {
+        if (little_endian == YES) {
+          if (mem_insert(i) == FAILED)
+            return FAILED;
+          if (mem_insert(inz) == FAILED)
+            return FAILED;
         }
         else {
-	  /* seek offset relative to dstruct start */
-          if (section_status == ON)
-            sec_tmp->i = sec_tmp->i + (dstruct_start - pc_full) + x;
-          pc_bank = pc_bank + (dstruct_start - pc_full) + x;
-          pc_slot = pc_slot + (dstruct_start - pc_full) + x;
-          pc_full = dstruct_start + x;
+          if (mem_insert(inz) == FAILED)
+            return FAILED;
+          if (mem_insert(i) == FAILED)
+            return FAILED;
         }
+        ind--;
+      }
+
+      continue;
+
+#ifdef W65816
+
+    case 'h':
+      fscanf(file_out_ptr, "%d %d", &ind, &inz);
+      x = inz & 0xFF;
+      i = (inz >> 8) & 0xFF;
+      inz = (inz >> 16) & 0xFF;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSL data", get_file_name(filename_id), line_number);
+
+      while (ind > 0) {
+        if (little_endian == YES) {
+          if (mem_insert(x) == FAILED)
+            return FAILED;
+          if (mem_insert(i) == FAILED)
+            return FAILED;
+          if (mem_insert(inz) == FAILED)
+            return FAILED;
+        }
+        else {
+          if (mem_insert(inz) == FAILED)
+            return FAILED;
+          if (mem_insert(i) == FAILED)
+            return FAILED;
+          if (mem_insert(x) == FAILED)
+            return FAILED;
+        }
+        ind--;
+      }
+
+      continue;
+
+#endif
+        
+      /* DATA & OPTCODE */
+
+    case 'd':
+      fscanf(file_out_ptr, "%d", &x);
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a byte", get_file_name(filename_id), line_number);
+        
+      if (mem_insert(x) == FAILED)
+        return FAILED;
+
+      continue;
+
+    case 'y':
+      fscanf(file_out_ptr, "%d", &inz);
+      x = inz & 0xFF;
+      inz = (inz >> 8) & 0xFF;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing two bytes", get_file_name(filename_id), line_number);
+
+      if (little_endian == YES) {
+        if (mem_insert(x) == FAILED)
+          return FAILED;
+        if (mem_insert(inz) == FAILED)
+          return FAILED;
+      }
+      else {
+        if (mem_insert(inz) == FAILED)
+          return FAILED;
+        if (mem_insert(x) == FAILED)
+          return FAILED;
+      }
+        
+      continue;
+
+    case 'b':
+      fscanf(file_out_ptr, "%d", &base);
+      continue;
+
+#ifdef W65816
+
+    case 'z':
+      fscanf(file_out_ptr, "%d", &inz);
+      x = inz & 0xFF;
+      ind = (inz >> 8) & 0xFF;
+      inz = (inz >> 16) & 0xFF;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing three bytes", get_file_name(filename_id), line_number);
+
+      if (little_endian == YES) {
+        if (mem_insert(x) == FAILED)
+          return FAILED;
+        if (mem_insert(ind) == FAILED)
+          return FAILED;
+        if (mem_insert(inz) == FAILED)
+          return FAILED;
+      }
+      else {
+        if (mem_insert(inz) == FAILED)
+          return FAILED;
+        if (mem_insert(ind) == FAILED)
+          return FAILED;
+        if (mem_insert(x) == FAILED)
+          return FAILED;
+      }
+
+      continue;
+
+#endif
+
+      /* DATA BLOCK from .INCBIN */
+
+    case 'D':
+      fscanf(file_out_ptr, "%d %d %d %d", &x, &inz, &z, &y);
+
+      ifd_tmp = incbin_file_data_first;
+      for (ind = 0; ind != x; ind++)
+        ifd_tmp = ifd_tmp->next;
+      t = ifd_tmp->data + z;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing .INCBIN data", get_file_name(filename_id), line_number);
+
+      /* swap? */
+      if (inz == 1) {
+        inz = y / 2;
+        for (ind = 0; ind < inz; ind++) {
+          if (mem_insert(*(t + 1)) == FAILED)
+            return FAILED;
+          if (mem_insert(*t) == FAILED)
+            return FAILED;
+          t += 2;
+        }
+      }
+      else {
+        inz = y;
+        for (ind = 0; ind < inz; ind++) {
+          if (mem_insert(*(t++)) == FAILED)
+            return FAILED;
+        }
+      }
+
+      continue;
+
+      /* ORIGIN & ROM BANK */
+
+    case 'O':
+    case 'B':
+      if (c == 'O')
+        fscanf(file_out_ptr, "%d", &pc_bank);
+      else {
+        fscanf(file_out_ptr, "%d %d", &rom_bank, &slot);
+        if (banksize_defined == 0)
+          banksize = banks[rom_bank];
+      }
+
+      pc_full = bankaddress[rom_bank] + pc_bank;
+      pc_slot = slots[slot].address + pc_bank;
+      pc_slot_max = slots[slot].address + slots[slot].size;
+
+      continue;
+
+      /* BREAKPOINT */
+
+    case 'Z':
+      continue;
+
+      /* SYMBOL */
+
+    case 'Y':
+      /* skip the symbol */
+      fscanf(file_out_ptr, "%*s");
+      continue;
+
+      /* LABEL */
+    case 'L':
+      {
+        struct label_def *l;
+        int m, n = 0, mangled_label = NO;
+
+        fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
+
+        if (is_label_anonymous(tmp) == NO) {
+          while (n < 10 && tmp[n] == '@')
+            n++;
+
+          m = n + 1;
+          while (m < 10)
+            parent_labels[m++] = NULL;
+
+          m = n;
+          n--;
+          while (n >= 0 && parent_labels[n] == NULL)
+            n--;
+
+          if (n >= 0) {
+            if (mangle_label(tmp, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+              return FAILED;
+            mangled_label = YES;
+          }
+
+          if (namespace[0] != 0 && mangled_label == NO) {
+            if (section_status == OFF || sec_tmp->nspace == NULL) {
+              if (add_namespace(tmp, namespace, sizeof(tmp)) == FAILED)
+                return FAILED;
+            }
+          }
+            
+          if (m < 10 && find_label(tmp, sec_tmp, (void*)&l) == SUCCEEDED)
+            parent_labels[m] = l;
+        }
+      }
+      continue;
+
+      /* 8BIT COMPUTATION */
+
+    case 'c':
+      fscanf(file_out_ptr, "%d", &inz);
+
+      if (bankheader_status == OFF)
+        stacks_tmp = stacks_first;
+      else
+        stacks_tmp = stacks_header_first;
+
+      while (stacks_tmp != NULL) {
+        if (stacks_tmp->id == inz)
+          break;
+        stacks_tmp = stacks_tmp->next;
+      }
+
+      if (stacks_tmp == NULL) {
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(filename_id), line_number, inz);
+        return FAILED;
+      }
+
+      if (stacks_tmp->section_status == ON) {
+        /* relative address, to the beginning of the section */
+        stacks_tmp->address = sec_tmp->i;
+      }
+      else {
+        /* complete address, in ROM memory */
+        stacks_tmp->address = pc_bank;
+      }
+
+      stacks_tmp->bank = rom_bank;
+      stacks_tmp->slot = slot;
+      stacks_tmp->type = STACK_TYPE_8BIT;
+      stacks_tmp->base = base;
+      stacks_tmp->special_id = special_id;
+        
+      if (mangle_stack_references(stacks_tmp) == FAILED)
+        return FAILED;
+
+      if (namespace[0] != 0) {
+        if (section_status == OFF || sec_tmp->nspace == NULL) {
+          if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
+            return FAILED;
+        }
+      }
+
+      /* this stack was referred from the code */
+      stacks_tmp->position = STACK_POSITION_CODE;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for an 8-bit computation", get_file_name(filename_id), line_number);
+        
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+
+      continue;
+
+      /* 16BIT COMPUTATION */
+
+    case 'C':
+      fscanf(file_out_ptr, "%d", &inz);
+
+      if (bankheader_status == OFF)
+        stacks_tmp = stacks_first;
+      else
+        stacks_tmp = stacks_header_first;
+
+      while (stacks_tmp != NULL) {
+        if (stacks_tmp->id == inz)
+          break;
+        stacks_tmp = stacks_tmp->next;
+      }
+
+      if (stacks_tmp == NULL) {
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(filename_id), line_number, inz);
+        return FAILED;
+      }
+
+      if (stacks_tmp->section_status == ON) {
+        /* relative address, to the beginning of the section */
+        stacks_tmp->address = sec_tmp->i;
+      }
+      else {
+        /* complete address, in ROM memory */
+        stacks_tmp->address = pc_bank;
+      }
+
+      stacks_tmp->bank = rom_bank;
+      stacks_tmp->slot = slot;
+      stacks_tmp->type = STACK_TYPE_16BIT;
+      stacks_tmp->base = base;
+        
+      if (mangle_stack_references(stacks_tmp) == FAILED)
+        return FAILED;
+
+      if (namespace[0] != 0) {
+        if (section_status == OFF || sec_tmp->nspace == NULL) {
+          if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
+            return FAILED;
+        }
+      }
+        
+      /* this stack was referred from the code */
+      stacks_tmp->position = STACK_POSITION_CODE;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 16-bit computation", get_file_name(filename_id), line_number);
+
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+
+      continue;
+
+#ifdef SPC700
+      /* 13BIT COMPUTATION */
+
+    case 'N':
+      fscanf(file_out_ptr, "%d %d", &x, &inz);
+
+      if (bankheader_status == OFF)
+        stacks_tmp = stacks_first;
+      else
+        stacks_tmp = stacks_header_first;
+
+      while (stacks_tmp != NULL) {
+        if (stacks_tmp->id == inz)
+          break;
+        stacks_tmp = stacks_tmp->next;
+      }
+
+      if (stacks_tmp == NULL) {
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(filename_id), line_number, inz);
+        return FAILED;
+      }
+
+      if (stacks_tmp->section_status == ON) {
+        /* relative address, to the beginning of the section */
+        stacks_tmp->address = sec_tmp->i;
+      }
+      else {
+        /* complete address, in ROM memory */
+        stacks_tmp->address = pc_bank;
+      }
+
+      stacks_tmp->bank = rom_bank;
+      stacks_tmp->slot = slot;
+      stacks_tmp->type = STACK_TYPE_13BIT;
+      stacks_tmp->base = base;
+        
+      if (mangle_stack_references(stacks_tmp) == FAILED)
+        return FAILED;
+
+      if (namespace[0] != 0) {
+        if (section_status == OFF || sec_tmp->nspace == NULL) {
+          if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
+            return FAILED;
+        }
+      }
+        
+      /* this stack was referred from the code */
+      stacks_tmp->position = STACK_POSITION_CODE;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 13-bit computation", get_file_name(filename_id), line_number);
+
+      if (mem_insert(0x00) == FAILED)
+        return FAILED;
+      if (mem_insert(x << (13 - 8)) == FAILED)
+        return FAILED;
+
+      continue;
+#endif
+
+      /* 24BIT COMPUTATION */
+
+    case 'T':
+      fscanf(file_out_ptr, "%d", &inz);
+
+      if (bankheader_status == OFF)
+        stacks_tmp = stacks_first;
+      else
+        stacks_tmp = stacks_header_first;
+
+      while (stacks_tmp != NULL) {
+        if (stacks_tmp->id == inz)
+          break;
+        stacks_tmp = stacks_tmp->next;
+      }
+
+      if (stacks_tmp == NULL) {
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(filename_id), line_number, inz);
+        return FAILED;
+      }
+
+      if (stacks_tmp->section_status == ON) {
+        /* relative address, to the beginning of the section */
+        stacks_tmp->address = sec_tmp->i;
+      }
+      else {
+        /* complete address, in ROM memory */
+        stacks_tmp->address = pc_bank;
+      }
+
+      stacks_tmp->bank = rom_bank;
+      stacks_tmp->slot = slot;
+      stacks_tmp->type = STACK_TYPE_24BIT;
+      stacks_tmp->base = base;
+
+      if (mangle_stack_references(stacks_tmp) == FAILED)
+        return FAILED;
+
+      if (namespace[0] != 0) {
+        if (section_status == OFF || sec_tmp->nspace == NULL) {
+          if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
+            return FAILED;
+        }
+      }
+        
+      /* this stack was referred from the code */
+      stacks_tmp->position = STACK_POSITION_CODE;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 24-bit computation", get_file_name(filename_id), line_number);
+
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+
+      continue;
+
+      /* 24BIT REFERENCE */
+
+    case 'q':
+      fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
+
+      if (namespace[0] != 0) {
+        if (section_status == OFF || sec_tmp->nspace == NULL) {
+          if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+            return FAILED;
+        }
+      }
+          
+      x = 0;
+      hashmap_get(defines_map, tmp, (void*)&tmp_def);
+      if (tmp_def != NULL) {
+        if (tmp_def->type == DEFINITION_TYPE_STRING) {
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+          return FAILED;
+        }
+        else if (tmp_def->type != DEFINITION_TYPE_STACK) {
+          o = (int)tmp_def->value;
+          x = 1;
+
+          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+          snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 24-bit reference", get_file_name(filename_id), line_number);
+
+          if (little_endian == YES) {
+            if (mem_insert(o & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert((o >> 8) & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert((o >> 16) & 0xFF) == FAILED)
+              return FAILED;
+          }
+          else {
+            if (mem_insert((o >> 16) & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert((o >> 8) & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert(o & 0xFF) == FAILED)
+              return FAILED;
+          }
+        }
+      }
+
+      if (x == 1)
         continue;
+
+      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_24BIT) == FAILED)
+        return FAILED;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 24-bit reference", get_file_name(filename_id), line_number);
+
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+
+      continue;
+
+      /* 16BIT PC RELATIVE REFERENCE */
+
+    case 'M':
+      fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
+
+      if (namespace[0] != 0) {
+        if (section_status == OFF || sec_tmp->nspace == NULL) {
+          if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+            return FAILED;
+        }
+      }
+                
+      x = 0;
+      hashmap_get(defines_map, tmp, (void*)&tmp_def);
+      if (tmp_def != NULL) {
+        if (tmp_def->type == DEFINITION_TYPE_STRING) {
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+          return FAILED;
+        }
+        else if (tmp_def->type != DEFINITION_TYPE_STACK) {
+          o = (int)tmp_def->value;
+          x = 1;
+
+          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+          snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(filename_id), line_number);
+
+          if (little_endian == YES) {
+            if (mem_insert(o & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert((o >> 8) & 0xFF) == FAILED)
+              return FAILED;
+          }
+          else {
+            if (mem_insert((o >> 8) & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert(o & 0xFF) == FAILED)
+              return FAILED;
+          }
+        }
+      }
+
+      if (x == 1)
+        continue;
+
+      if (new_unknown_reference(REFERENCE_TYPE_RELATIVE_16BIT) == FAILED)
+        return FAILED;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 16-bit reference", get_file_name(filename_id), line_number);
+
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+
+      continue;
+
+      /* 16BIT REFERENCE */
+
+    case 'r':
+      fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
+
+      if (namespace[0] != 0) {
+        if (section_status == OFF || sec_tmp->nspace == NULL) {
+          if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+            return FAILED;
+        }
+      }
+
+      x = 0;
+      hashmap_get(defines_map, tmp, (void*)&tmp_def);
+      if (tmp_def != NULL) {
+        if (tmp_def->type == DEFINITION_TYPE_STRING) {
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+          return FAILED;
+        }
+        else if (tmp_def->type != DEFINITION_TYPE_STACK) {
+          o = (int)tmp_def->value;
+          x = 1;
+
+          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+          snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(filename_id), line_number);
+
+          if (little_endian == YES) {
+            if (mem_insert(o & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert((o & 0xFF00) >> 8) == FAILED)
+              return FAILED;
+          }
+          else {
+            if (mem_insert((o >> 8) & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert(o & 0xFF) == FAILED)
+              return FAILED;
+          }
+        }
+      }
+
+      if (x == 1)
+        continue;
+
+      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_16BIT) == FAILED)
+        return FAILED;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 16-bit reference", get_file_name(filename_id), line_number);
+
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+
+      continue;
+
+#ifdef SPC700
+      /* 13BIT REFERENCE */
+
+    case 'n':
+      fscanf(file_out_ptr, "%d ", &inz);
+      fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
+
+      if (namespace[0] != 0) {
+        if (section_status == OFF || sec_tmp->nspace == NULL) {
+          if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+            return FAILED;
+        }
+      }
+
+      x = 0;
+      hashmap_get(defines_map, tmp, (void*)&tmp_def);
+      if (tmp_def != NULL) {
+        if (tmp_def->type == DEFINITION_TYPE_STRING) {
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+          return FAILED;
+        }
+        else if (tmp_def->type != DEFINITION_TYPE_STACK) {
+          o = (int)tmp_def->value;
+          x = 1;
+          if (o > 8191 || o < 0) {
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference value of \"%s\" is out of 13-bit range.\n", get_file_name(filename_id), line_number, tmp);
+            return FAILED;
+          }
+
+          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+          snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 13-bit reference", get_file_name(filename_id), line_number);
+
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert(((o | inz << 13) & 0xFF00) >> 8) == FAILED)
+            return FAILED;
+        }
+      }
+
+      if (x == 1)
+        continue;
+
+      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_13BIT) == FAILED)
+        return FAILED;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 13-bit reference", get_file_name(filename_id), line_number);
+
+      if (mem_insert(0x00) == FAILED)
+        return FAILED;
+      if (mem_insert(inz << (13 - 8)) == FAILED)
+        return FAILED;
+
+      continue;
+#endif
+
+      /* 8BIT PC RELATIVE REFERENCE */
+
+    case 'R':
+      fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
+
+      if (namespace[0] != 0) {
+        if (section_status == OFF || sec_tmp->nspace == NULL) {
+          if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+            return FAILED;
+        }
+      }
+
+      x = 0;
+      hashmap_get(defines_map, tmp, (void*)&tmp_def);
+      if (tmp_def != NULL) {
+        if (tmp_def->type == DEFINITION_TYPE_STRING) {
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+          return FAILED;
+        }
+        else if (tmp_def->type != DEFINITION_TYPE_STACK) {
+          o = (int)tmp_def->value;
+          x = 1;
+
+          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+          snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(filename_id), line_number);
+
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
+        }
+      }
+
+      if (x == 1)
+        continue;
+
+      if (new_unknown_reference(REFERENCE_TYPE_RELATIVE_8BIT) == FAILED)
+        return FAILED;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for an 8-bit reference", get_file_name(filename_id), line_number);
+
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+
+      continue;
+
+      /* 8BIT REFERENCE */
+
+    case 'Q':
+      fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
+
+      if (namespace[0] != 0) {
+        if (section_status == OFF || sec_tmp->nspace == NULL) {
+          if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+            return FAILED;
+        }
+      }
+
+      x = 0;
+      hashmap_get(defines_map, tmp, (void*)&tmp_def);
+      if (tmp_def != NULL) {
+        if (tmp_def->type == DEFINITION_TYPE_STRING) {
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+          return FAILED;
+        }
+        else if (tmp_def->type != DEFINITION_TYPE_STACK) {
+          o = (int)tmp_def->value;
+          x = 1;
+
+          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+          snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(filename_id), line_number);
+            
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
+        }
+      }
+
+      if (x == 1)
+        continue;
+
+      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_8BIT) == FAILED)
+        return FAILED;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for an 8-bit reference", get_file_name(filename_id), line_number);
+
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+
+      continue;
+
+      /* .DSTRUCT stuff */
+
+    case 'e':
+      fscanf(file_out_ptr, "%d %d ", &x, &y);
+      if (y == -1) {
+        /* mark start of .DSTRUCT */
+        dstruct_start = pc_full;
+        /* make sure all data in a section gets set to emptyfill */
+        if (section_status == ON)
+          memset(sec_tmp->data + sec_tmp->i, emptyfill, x);
+      }
+      else if (y == -2) {
+        /* end of .DSTRUCT. make sure all memory is claimed. */
+        while (pc_full < dstruct_start + x) {
+          if (section_status == OFF && rom_banks_usage_table[pc_full] == 0) {
+            rom_banks_usage_table[pc_full] = 2;
+            rom_banks[pc_full] = emptyfill;
+          }
+          if (section_status == ON)
+            sec_tmp->i++;
+          pc_bank++;
+          pc_slot++;
+          pc_full++;
+        }
+      }
+      else {
+        /* seek offset relative to dstruct start */
+        if (section_status == ON)
+          sec_tmp->i = sec_tmp->i + (dstruct_start - pc_full) + x;
+        pc_bank = pc_bank + (dstruct_start - pc_full) + x;
+        pc_slot = pc_slot + (dstruct_start - pc_full) + x;
+        pc_full = dstruct_start + x;
+      }
+      continue;
     }
   }
 
@@ -1320,8 +1320,8 @@ int pass_4(void) {
           fprintf(final_ptr, "%s", label_tmp->label);
         fprintf(final_ptr, "%c", label_tmp->symbol);
 
-	ov = label_tmp->section_id;
-	WRITEOUT_OV;
+        ov = label_tmp->section_id;
+        WRITEOUT_OV;
 
         fprintf(final_ptr, "%c", label_tmp->filename_id);
 
@@ -1457,11 +1457,11 @@ int pass_4(void) {
         WRITEOUT_OV;
         ov = sec_tmp->alignment;
         WRITEOUT_OV;
-	ov = sec_tmp->offset;
+        ov = sec_tmp->offset;
         WRITEOUT_OV;
-	ov = sec_tmp->priority;
-	WRITEOUT_OV;
-	
+        ov = sec_tmp->priority;
+        WRITEOUT_OV;
+        
         fwrite(sec_tmp->data, 1, sec_tmp->size, final_ptr);
 
         if (listfile_data == YES && sec_tmp->listfile_items > 0)
@@ -1585,10 +1585,10 @@ int pass_4(void) {
         WRITEOUT_OV;                               /* slot address */
         ov = slots[i].size;
         WRITEOUT_OV;                               /* slot size */
-	if (slots[i].name[0] == 0x0)               /* slot name */
-	  fprintf(final_ptr, "%c", 0x0);
-	else
-	  fprintf(final_ptr, "%s%c", slots[i].name, 0x0);
+        if (slots[i].name[0] == 0x0)               /* slot name */
+          fprintf(final_ptr, "%c", 0x0);
+        else
+          fprintf(final_ptr, "%s%c", slots[i].name, 0x0);
       }
     }
 
@@ -1621,12 +1621,12 @@ int pass_4(void) {
 
         fprintf(final_ptr, "%c%c", label_tmp->slot, label_tmp->filename_id);
 
-	ov = label_tmp->section_id;
-	WRITEOUT_OV;
+        ov = label_tmp->section_id;
+        WRITEOUT_OV;
 
-	/* DEBUG
+        /* DEBUG
            fprintf(stderr, "LABEL: \"%s\" SLOT: %d LINE: %d\n", label_tmp->label, label_tmp->slot, label_tmp->linenumber);
-	*/
+        */
 
         ov = label_tmp->address;
         WRITEOUT_OV;
@@ -1637,7 +1637,7 @@ int pass_4(void) {
         ov = label_tmp->bank;
         WRITEOUT_OV;
 
-	ov = label_tmp->base;
+        ov = label_tmp->base;
         WRITEOUT_OV;
       }
       label_tmp = label_tmp->next;
@@ -1830,7 +1830,7 @@ int pass_4(void) {
             ind = 0;
             break;
           }
-	}
+        }
       }
     }
 
@@ -1869,10 +1869,10 @@ int pass_4(void) {
         WRITEOUT_OV;
         ov = sec_tmp->alignment;
         WRITEOUT_OV;
-	ov = sec_tmp->offset;
+        ov = sec_tmp->offset;
         WRITEOUT_OV;
-	ov = sec_tmp->priority;
-	WRITEOUT_OV;
+        ov = sec_tmp->priority;
+        WRITEOUT_OV;
 
         fwrite(sec_tmp->data, 1, sec_tmp->size, final_ptr);
 

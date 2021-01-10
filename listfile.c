@@ -68,13 +68,13 @@ int listfile_collect(void) {
     case 'A':
     case 'S':
       if (c == 'A')
-	fscanf(file_in, "%d %*d", &inz);
+        fscanf(file_in, "%d %*d", &inz);
       else
-	fscanf(file_in, "%d ", &inz);
+        fscanf(file_in, "%d ", &inz);
 
       section = sections_first;
       while (section->id != inz)
-	section = section->next;
+        section = section->next;
 
       add = 0;
       skip = 0;
@@ -84,8 +84,8 @@ int listfile_collect(void) {
       section->listfile_ints = calloc(sizeof(int) * section->listfile_items * 3, 1);
       section->listfile_cmds = calloc(section->listfile_items, 1);
       if (section->listfile_ints == NULL || section->listfile_cmds == NULL) {
-	fprintf(stderr, "LISTFILE_COLLECT: Out of memory error.\n");
-	return FAILED;
+        fprintf(stderr, "LISTFILE_COLLECT: Out of memory error.\n");
+        return FAILED;
       }
 
       /* add file name */
@@ -182,15 +182,15 @@ int listfile_collect(void) {
       fscanf(file_in, "%d ", &file_name_id);
 
       if (section != NULL) {
-	/* terminate the previous line */
-	section->listfile_ints[command*3 + 1] = add;
-	add = 0;
-	skip = 0;
+        /* terminate the previous line */
+        section->listfile_ints[command*3 + 1] = add;
+        add = 0;
+        skip = 0;
 
-	/* add file name */
-	section->listfile_cmds[command] = 'f';
-	section->listfile_ints[command*3 + 0] = file_name_id;
-	command++;
+        /* add file name */
+        section->listfile_cmds[command] = 'f';
+        section->listfile_ints[command*3 + 0] = file_name_id;
+        command++;
       }
       continue;
 
@@ -198,23 +198,23 @@ int listfile_collect(void) {
       fscanf(file_in, "%d ", &line_number);
 
       if (inside_macro > 0 || inside_repeat > 0) {
-	skip += add;
-	add = 0;
-	continue;
+        skip += add;
+        add = 0;
+        continue;
       }
 
       if (section != NULL) {
-	/* terminate the previous line */
-	section->listfile_ints[command*3 + 1] = add;
-	section->listfile_ints[command*3 + 2] = skip;
+        /* terminate the previous line */
+        section->listfile_ints[command*3 + 1] = add;
+        section->listfile_ints[command*3 + 2] = skip;
 
-	add = 0;
-	skip = 0;
+        add = 0;
+        skip = 0;
 
-	/* add line number */
-	section->listfile_cmds[command] = 'k';
-	section->listfile_ints[command*3 + 0] = line_number;
-	command++;
+        /* add line number */
+        section->listfile_cmds[command] = 'k';
+        section->listfile_ints[command*3 + 0] = line_number;
+        command++;
       }
       continue;
 

@@ -55,18 +55,18 @@ int get_next_number(char *in, int *out, int *pos) {
     n = 0;
     for (o = 0; 1; o++) {
       if (in[i+o] >= '0' && in[i+o] <= '9')
-	continue;
+        continue;
       if (in[i+o] >= 'a' && in[i+o] <= 'f') {
-	n = 1;
-	break;
+        n = 1;
+        break;
       }
       if (in[i+o] >= 'A' && in[i+o] <= 'F') {
-	n = 1;
-	break;
+        n = 1;
+        break;
       }
       if (in[i+o] == 'h' || in[i+o] == 'H') {
-	n = 1;
-	break;
+        n = 1;
+        break;
       }
       break;
     }
@@ -75,27 +75,27 @@ int get_next_number(char *in, int *out, int *pos) {
       /* hex */
       o = 0;
       while (TRUE) {
-	if (in[i] >= '0' && in[i] <= '9')
-	  o = (o * 16) + in[i] - '0';
-	else if (in[i] >= 'a' && in[i] <= 'f')
-	  o = (o * 16) + in[i] - 'a' + 0xA;
-	else if (in[i] >= 'A' && in[i] <= 'F')
-	  o = (o * 16) + in[i] - 'A' + 0xA;
-	else if (in[i] == 'h' || in[i] == 'H')
-	  break;
-	else if (in[i] == ' ' || in[i] == 0x09 || in[i] == 0)
-	  break;
-	else
-	  return FAILED;
-	i++;
+        if (in[i] >= '0' && in[i] <= '9')
+          o = (o * 16) + in[i] - '0';
+        else if (in[i] >= 'a' && in[i] <= 'f')
+          o = (o * 16) + in[i] - 'a' + 0xA;
+        else if (in[i] >= 'A' && in[i] <= 'F')
+          o = (o * 16) + in[i] - 'A' + 0xA;
+        else if (in[i] == 'h' || in[i] == 'H')
+          break;
+        else if (in[i] == ' ' || in[i] == 0x09 || in[i] == 0)
+          break;
+        else
+          return FAILED;
+        i++;
       }
     }
     else {
       /* decimal */
       for (o = 0; in[i] >= '0' && in[i] <= '9'; i++)
-	o = (o * 10) + in[i] - '0';
+        o = (o * 10) + in[i] - '0';
       if (!(in[i] == ' ' || in[i] == 0x09 || in[i] == 0))
-	return FAILED;
+        return FAILED;
     }
   }
   else if (in[i] == '$') {
@@ -103,15 +103,15 @@ int get_next_number(char *in, int *out, int *pos) {
     o = 0;
     while (TRUE) {
       if (in[i] >= '0' && in[i] <= '9')
-	o = (o * 16) + in[i] - '0';
+        o = (o * 16) + in[i] - '0';
       else if (in[i] >= 'a' && in[i] <= 'f')
-	o = (o * 16) + in[i] - 'a' + 0xA;
+        o = (o * 16) + in[i] - 'a' + 0xA;
       else if (in[i] >= 'A' && in[i] <= 'F')
-	o = (o * 16) + in[i] - 'A' + 0xA;
+        o = (o * 16) + in[i] - 'A' + 0xA;
       else if (in[i] == ' ' || in[i] == 0x09 || in[i] == 0)
-	break;
+        break;
       else
-	return FAILED;
+        return FAILED;
       i++;
     }
   }

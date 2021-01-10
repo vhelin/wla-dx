@@ -157,12 +157,12 @@ int table_defined = 0, table_size = 0, table_index = 0;
 extern int opcode_n[256], opcode_p[256];
 extern struct optcode opt_table[];
 
-#define no_library_files(name)                                         \
-  do {                                                                 \
-    if (output_format == OUTPUT_LIBRARY) {                             \
-      print_error("Library files don't take " name ".\n", ERROR_DIR);  \
-      return FAILED;                                                   \
-    }                                                                  \
+#define no_library_files(name)                                          \
+  do {                                                                  \
+    if (output_format == OUTPUT_LIBRARY) {                              \
+      print_error("Library files don't take " name ".\n", ERROR_DIR);   \
+      return FAILED;                                                    \
+    }                                                                   \
   } while (0)
 
 
@@ -216,9 +216,9 @@ static int _get_slot_number_by_a_value(int value, int *slot) {
     /* value can be the direct SLOT ID, but can it be a SLOT's address as well? */
     for (i = 0; i < slots_amount; i++) {
       if (slots[i].address == value && value != i) {
-    snprintf(emsg, sizeof(emsg), "There is a SLOT number %d, but there also is a SLOT (with ID %d) with starting address %d ($%x)... Using SLOT %d.\n", value, i, value, value, value);
-    print_error(emsg, ERROR_WRN);
-    break;
+        snprintf(emsg, sizeof(emsg), "There is a SLOT number %d, but there also is a SLOT (with ID %d) with starting address %d ($%x)... Using SLOT %d.\n", value, i, value, value, value);
+        print_error(emsg, ERROR_WRN);
+        break;
       }
     }
     
@@ -492,7 +492,7 @@ int macro_insert_byte_db(char *name) {
   struct definition *d;
   
   if (hashmap_get(defines_map, "_out", (void*)&d) != MAP_OK)
-      hashmap_get(defines_map, "_OUT", (void*)&d);
+    hashmap_get(defines_map, "_OUT", (void*)&d);
 
   if (d == NULL) {
     snprintf(emsg, sizeof(emsg), "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
@@ -532,7 +532,7 @@ int macro_insert_word_db(char *name) {
   struct definition *d;
   
   if (hashmap_get(defines_map, "_out", (void*)&d) != MAP_OK)
-      hashmap_get(defines_map, "_OUT", (void*)&d);
+    hashmap_get(defines_map, "_OUT", (void*)&d);
 
   if (d == NULL) {
     snprintf(emsg, sizeof(emsg), "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
@@ -574,7 +574,7 @@ int macro_insert_long_db(char *name) {
   struct definition *d;
   
   if (hashmap_get(defines_map, "_out", (void*)&d) != MAP_OK)
-      hashmap_get(defines_map, "_OUT", (void*)&d);
+    hashmap_get(defines_map, "_OUT", (void*)&d);
 
   if (d == NULL) {
     snprintf(emsg, sizeof(emsg), "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
@@ -670,80 +670,80 @@ int pass_1(void) {
       for (q = 0; q < ss; q++) {
         if (tmp[q] == ':')
           break;
-    if (tmp[q] == '=')
-      break;
+        if (tmp[q] == '=')
+          break;
       }
 
       /* is it a macro? */
       if (q == ss) {
         if (macro_get(tmp, YES, &m) == FAILED)
-      return FAILED;
-    if (m == NULL) {
-      if (macro_get(tmp, NO, &m) == FAILED)
-        return FAILED;
-    }
+          return FAILED;
+        if (m == NULL) {
+          if (macro_get(tmp, NO, &m) == FAILED)
+            return FAILED;
+        }
       }
 
       /* it is a label after all? */
       if (q != ss || (newline_beginning == ON && m == NULL)) {
-    char old_tmp_q = tmp[q];
+        char old_tmp_q = tmp[q];
     
         tmp[q] = 0;
 
-    /* reset the flag as there can be only one label / line */
+        /* reset the flag as there can be only one label / line */
         newline_beginning = OFF;
 
-    if (compare_next_token("=") == SUCCEEDED || old_tmp_q == '=') {
-      /* it's actually a definition! */
-      i -= ss;
+        if (compare_next_token("=") == SUCCEEDED || old_tmp_q == '=') {
+          /* it's actually a definition! */
+          i -= ss;
 
-      if (directive_define_def_equ() == FAILED)
-        return FAILED;
-    }
-    else {
-      if (output_format == OUTPUT_LIBRARY && section_status == OFF) {
-        print_error("All labels must be inside sections when compiling a library.\n", ERROR_LOG);
-        return FAILED;
-      }
-      if (org_defined == 0) {
-        snprintf(emsg, sizeof(emsg), "\"%s\" needs a position in memory.\n", tmp);
-        print_error(emsg, ERROR_LOG);
-        return FAILED;
-      }
-      if (ss >= MAX_NAME_LENGTH) {
-        snprintf(emsg, sizeof(emsg), "The label \"%s\" is too long. Max label length is %d characters.\n", tmp, MAX_NAME_LENGTH);
-        print_error(emsg, ERROR_NONE);
-        return FAILED;
-      }
-      if (bankheader_status == ON) {
-        print_error("BANKHEADER sections don't take labels.\n", ERROR_LOG);
-        return FAILED;
-      }
+          if (directive_define_def_equ() == FAILED)
+            return FAILED;
+        }
+        else {
+          if (output_format == OUTPUT_LIBRARY && section_status == OFF) {
+            print_error("All labels must be inside sections when compiling a library.\n", ERROR_LOG);
+            return FAILED;
+          }
+          if (org_defined == 0) {
+            snprintf(emsg, sizeof(emsg), "\"%s\" needs a position in memory.\n", tmp);
+            print_error(emsg, ERROR_LOG);
+            return FAILED;
+          }
+          if (ss >= MAX_NAME_LENGTH) {
+            snprintf(emsg, sizeof(emsg), "The label \"%s\" is too long. Max label length is %d characters.\n", tmp, MAX_NAME_LENGTH);
+            print_error(emsg, ERROR_NONE);
+            return FAILED;
+          }
+          if (bankheader_status == ON) {
+            print_error("BANKHEADER sections don't take labels.\n", ERROR_LOG);
+            return FAILED;
+          }
 
-      /* check out for \@-symbols */
-      if (macro_active != 0 && q >= 2) {
-        if (tmp[q - 2] == '\\' && tmp[q - 1] == '@')
-          snprintf(&tmp[q - 2], sizeof(tmp) - (q - 2), "%d", macro_runtime_current->macro->calls - 1);
-      }
+          /* check out for \@-symbols */
+          if (macro_active != 0 && q >= 2) {
+            if (tmp[q - 2] == '\\' && tmp[q - 1] == '@')
+              snprintf(&tmp[q - 2], sizeof(tmp) - (q - 2), "%d", macro_runtime_current->macro->calls - 1);
+          }
 
-      add_label_to_label_stack(tmp);
-      fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
+          add_label_to_label_stack(tmp);
+          fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
 
-      /* move to the end of the label */
-      if (q != ss)
-        i -= ss - q - 1;
-    }
+          /* move to the end of the label */
+          if (q != ss)
+            i -= ss - q - 1;
+        }
     
-    continue;
+        continue;
       }
       else if (compare_next_token("=") == SUCCEEDED) {
-    /* it's actually a definition! */
-    i -= ss;
+        /* it's actually a definition! */
+        i -= ss;
 
-    if (directive_define_def_equ() == FAILED)
-      return FAILED;
+        if (directive_define_def_equ() == FAILED)
+          return FAILED;
 
-    continue;
+        continue;
       }
       
       if (m == NULL) {
@@ -880,12 +880,12 @@ static int parse_push_pull_registers(int accept_u) {
     
     if (z != INPUT_NUMBER_ADDRESS_LABEL) {
       if (accept_u == 1) {
-    snprintf(emsg, sizeof(emsg), "%s, got something else instead.\n", error_no_s);
-    print_error(emsg, ERROR_ERR);
+        snprintf(emsg, sizeof(emsg), "%s, got something else instead.\n", error_no_s);
+        print_error(emsg, ERROR_ERR);
       }
       else {
-    snprintf(emsg, sizeof(emsg), "%s, got something else instead.\n", error_no_u);
-    print_error(emsg, ERROR_ERR);
+        snprintf(emsg, sizeof(emsg), "%s, got something else instead.\n", error_no_u);
+        print_error(emsg, ERROR_ERR);
       }
       return -1;
     }
@@ -896,17 +896,17 @@ static int parse_push_pull_registers(int accept_u) {
       reg = 1 << 5;
     else if (strcaselesscmp(label, "U") == 0) {
       if (accept_u == 0) {
-    snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_u, label);
-    print_error(emsg, ERROR_ERR);
-    return -1;
+        snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_u, label);
+        print_error(emsg, ERROR_ERR);
+        return -1;
       }
       reg = 1 << 6;
     }
     else if (strcaselesscmp(label, "S") == 0) {
       if (accept_u == 1) {
-    snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_s, label);
-    print_error(emsg, ERROR_ERR);
-    return -1;
+        snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_s, label);
+        print_error(emsg, ERROR_ERR);
+        return -1;
       }
       reg = 1 << 6;
     }
@@ -922,12 +922,12 @@ static int parse_push_pull_registers(int accept_u) {
       reg = 1 << 3;
     else {
       if (accept_u == 1) {
-    snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_s, label);
-    print_error(emsg, ERROR_ERR);
+        snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_s, label);
+        print_error(emsg, ERROR_ERR);
       }
       else {
-    snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_u, label);
-    print_error(emsg, ERROR_ERR);
+        snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_u, label);
+        print_error(emsg, ERROR_ERR);
       }
       return -1;
     }
@@ -1124,20 +1124,20 @@ int evaluate_token(void) {
     if (use_wdc_standard == 0) {
       /* skip all mnemonics that contain '<', '|' and '>' */
       for (inz = 0, d = SUCCEEDED; inz < OP_SIZE_MAX; inz++) {
-    char c = opt_tmp->op[inz];
+        char c = opt_tmp->op[inz];
 
-    if (c == 0)
-      break;
-    if (c == '<' || c == '|' || c == '>') {
-      d = FAILED;
-      break;
-    }
+        if (c == 0)
+          break;
+        if (c == '<' || c == '|' || c == '>') {
+          d = FAILED;
+          break;
+        }
       }
 
       if (d == FAILED) {
-    /* try the next mnemonic in the array */
-    opt_tmp = &opt_table[++ind];
-    continue;
+        /* try the next mnemonic in the array */
+        opt_tmp = &opt_table[++ind];
+        continue;
       }
     }
 #endif
@@ -1302,7 +1302,7 @@ int undefine(char *name) {
   struct definition *d;
   
   if (hashmap_get(defines_map, name, (void*)&d) != MAP_OK)
-      return FAILED;
+    return FAILED;
 
   hashmap_remove(defines_map, name);
 
@@ -1413,39 +1413,39 @@ void print_error(char *error, int type) {
   char *t = NULL;
 
   switch (type) {
-    case ERROR_LOG:
-      t = error_log;
-      break;
-    case ERROR_UNF:
-      t = error_unf;
-      break;
-    case ERROR_INC:
-      t = error_inc;
-      break;
-    case ERROR_INB:
-      t = error_inb;
-      break;
-    case ERROR_DIR:
-      t = error_dir;
-      break;
-    case ERROR_INP:
-      t = error_inp;
-      break;
-    case ERROR_NUM:
-      t = error_num;
-      break;
-    case ERROR_STC:
-      t = error_stc;
-      break;
-    case ERROR_WRN:
-      t = error_wrn;
-      break;
-    case ERROR_ERR:
-      t = error_err;
-      break;
-    case ERROR_NONE:
-      fprintf(stderr, "%s:%d: %s", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current, error);
-      return;
+  case ERROR_LOG:
+    t = error_log;
+    break;
+  case ERROR_UNF:
+    t = error_unf;
+    break;
+  case ERROR_INC:
+    t = error_inc;
+    break;
+  case ERROR_INB:
+    t = error_inb;
+    break;
+  case ERROR_DIR:
+    t = error_dir;
+    break;
+  case ERROR_INP:
+    t = error_inp;
+    break;
+  case ERROR_NUM:
+    t = error_num;
+    break;
+  case ERROR_STC:
+    t = error_stc;
+    break;
+  case ERROR_WRN:
+    t = error_wrn;
+    break;
+  case ERROR_ERR:
+    t = error_err;
+    break;
+  case ERROR_NONE:
+    fprintf(stderr, "%s:%d: %s", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current, error);
+    return;
   }
 
   fprintf(stderr, "%s:%d: %s %s", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current, t, error);
@@ -1578,7 +1578,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
       fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
       /* we skip label emissions for "." (because .ENUM and .RAMSECTION use it as an anonymous label) */
       if (strcmp(".", name) != 0)
-    fprintf(file_out_ptr, "L%s ", name);
+        fprintf(file_out_ptr, "L%s ", name);
     }
   }
   else { /* sizeof pass */
@@ -1588,13 +1588,13 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
     }
     else {
       if (create_sizeof_definitions == YES) {
-    snprintf(tmp, sizeof(tmp), "_sizeof_%s", name);
-    if (add_a_new_definition(tmp, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-      return FAILED;
-    if (in_enum == YES && enum_exp == YES) {
-      if (export_a_definition(tmp) == FAILED)
-        return FAILED;
-    }
+        snprintf(tmp, sizeof(tmp), "_sizeof_%s", name);
+        if (add_a_new_definition(tmp, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+          return FAILED;
+        if (in_enum == YES && enum_exp == YES) {
+          if (export_a_definition(tmp) == FAILED)
+            return FAILED;
+        }
       }
     }
   }
@@ -1646,9 +1646,9 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
     /* if this struct has an .instanceof in it, we need to recurse */
     if (si->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
       if (si->num_instances <= 1) {
-    /* add definition for first (possibly only) instance of struct */
-    if (enum_add_struct_fields(tmp, si->instance, 0) == FAILED)
-      return FAILED;
+        /* add definition for first (possibly only) instance of struct */
+        if (enum_add_struct_fields(tmp, si->instance, 0) == FAILED)
+          return FAILED;
       }
       else {
         g = si->start_from;
@@ -1931,13 +1931,13 @@ int parse_enum_token(void) {
 
     if (create_sizeof_definitions == YES) {
       if (strlen(active_struct->name) > MAX_NAME_LENGTH - 8) {
-    snprintf(emsg, sizeof(emsg), "STRUCT \"%s\"'s name is too long!\n", active_struct->name);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "STRUCT \"%s\"'s name is too long!\n", active_struct->name);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
       snprintf(tmpname, sizeof(tmpname), "_sizeof_%s", active_struct->name);
       if (add_a_new_definition(tmpname, (double)active_struct->size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-    return FAILED;
+        return FAILED;
     }
     
     if (active_struct->items == NULL) {
@@ -2059,19 +2059,19 @@ int parse_enum_token(void) {
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       else if (q == SUCCEEDED) {
-    if (d < 0) {
-      snprintf(emsg, sizeof(emsg), "STARTFROM needs to be >= 0.\n");
-      print_error(emsg, ERROR_DIR);
-      return FAILED;
-    }
-    start_from = d;
+        if (d < 0) {
+          snprintf(emsg, sizeof(emsg), "STARTFROM needs to be >= 0.\n");
+          print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
+        start_from = d;
       }
       else {
-    snprintf(emsg, sizeof(emsg), "STARTFROM needs a number >= 0.\n");
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "STARTFROM needs a number >= 0.\n");
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
     }
   }
@@ -2349,7 +2349,7 @@ int directive_bank(void) {
     if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
       /* turn the label into a number */
       if (_get_slot_number_by_its_name(label, &d) == FAILED)
-    return FAILED;
+        return FAILED;
       q = SUCCEEDED;
     }
     else if (q == SUCCEEDED) {
@@ -2453,15 +2453,15 @@ int directive_table(void) {
 
       inz = input_number();
       if (inz == FAILED)
-    return FAILED;
+        return FAILED;
       if (inz != SUCCEEDED) {
-    snprintf(emsg, sizeof(emsg), "%s needs size.\n", bak);
-    print_error(emsg, ERROR_INP);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "%s needs size.\n", bak);
+        print_error(emsg, ERROR_INP);
+        return FAILED;
       }
 
       for (inz = 0; inz < d && table_size < (int)sizeof(table_format); inz++)
-    table_format[table_size++] = 'b';
+        table_format[table_size++] = 'b';
     }
     else if (strcaselesscmp(label, "dw") == 0 || strcaselesscmp(label, "word") == 0 || strcaselesscmp(label, "addr") == 0) {
       table_format[table_size++] = 'w';
@@ -2471,15 +2471,15 @@ int directive_table(void) {
 
       inz = input_number();
       if (inz == FAILED)
-    return FAILED;
+        return FAILED;
       if (inz != SUCCEEDED) {
-    snprintf(emsg, sizeof(emsg), "%s needs size.\n", bak);
-    print_error(emsg, ERROR_INP);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "%s needs size.\n", bak);
+        print_error(emsg, ERROR_INP);
+        return FAILED;
       }
 
       for (inz = 0; inz < d && table_size < (int)sizeof(table_format); inz++)
-    table_format[table_size++] = 'w';
+        table_format[table_size++] = 'w';
     }
 #ifdef W65816
     else if (strcaselesscmp(label, "dl") == 0 || strcaselesscmp(label, "long") == 0 || strcaselesscmp(label, "faraddr") == 0) {
@@ -2490,15 +2490,15 @@ int directive_table(void) {
 
       inz = input_number();
       if (inz == FAILED)
-    return FAILED;
+        return FAILED;
       if (inz != SUCCEEDED) {
-    snprintf(emsg, sizeof(emsg), "%s needs size.\n", bak);
-    print_error(emsg, ERROR_INP);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "%s needs size.\n", bak);
+        print_error(emsg, ERROR_INP);
+        return FAILED;
       }
 
       for (inz = 0; inz < d && table_size < (int)sizeof(table_format); inz++)
-    table_format[table_size++] = 'l';
+        table_format[table_size++] = 'l';
     }
 #endif
     else {
@@ -2564,110 +2564,110 @@ int directive_row_data(void) {
   for ( ; inz == SUCCEEDED || inz == INPUT_NUMBER_STRING || inz == INPUT_NUMBER_ADDRESS_LABEL || inz == INPUT_NUMBER_STACK; ) {
     if (inz == INPUT_NUMBER_STRING) {
       if (table_format[table_index] == 'b') {
-    if (strlen(label) != 1) {
-      snprintf(emsg, sizeof(emsg), ".%s was expecting a byte, got %d bytes instead.\n", bak, (int)strlen(label));
-      print_error(emsg, ERROR_INP);
-      return FAILED;
-    }
+        if (strlen(label) != 1) {
+          snprintf(emsg, sizeof(emsg), ".%s was expecting a byte, got %d bytes instead.\n", bak, (int)strlen(label));
+          print_error(emsg, ERROR_INP);
+          return FAILED;
+        }
 
-    fprintf(file_out_ptr, "d%d ", label[0]);	  
+        fprintf(file_out_ptr, "d%d ", label[0]);          
       }
       else if (table_format[table_index] == 'w') {
-    if (strlen(label) > 2 || strlen(label) <= 0) {
-      snprintf(emsg, sizeof(emsg), ".%s was expecting a word (2 bytes), got %d bytes instead.\n", bak, (int)strlen(label));
-      print_error(emsg, ERROR_INP);
-      return FAILED;
-    }
+        if (strlen(label) > 2 || strlen(label) <= 0) {
+          snprintf(emsg, sizeof(emsg), ".%s was expecting a word (2 bytes), got %d bytes instead.\n", bak, (int)strlen(label));
+          print_error(emsg, ERROR_INP);
+          return FAILED;
+        }
 
-    fprintf(file_out_ptr, "y%d ", (label[0] << 8) | label[1]);
+        fprintf(file_out_ptr, "y%d ", (label[0] << 8) | label[1]);
       }
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
-    if (strlen(label) > 3 || strlen(label) <= 0) {
-      snprintf(emsg, sizeof(emsg), ".%s was expecting a long (3 bytes), got %d bytes instead.\n", bak, (int)strlen(label));
-      print_error(emsg, ERROR_INP);
-      return FAILED;
-    }
+        if (strlen(label) > 3 || strlen(label) <= 0) {
+          snprintf(emsg, sizeof(emsg), ".%s was expecting a long (3 bytes), got %d bytes instead.\n", bak, (int)strlen(label));
+          print_error(emsg, ERROR_INP);
+          return FAILED;
+        }
 
-    fprintf(file_out_ptr, "z%d ", (label[0] << 16) | (label[1] << 8) | label[2]);
+        fprintf(file_out_ptr, "z%d ", (label[0] << 16) | (label[1] << 8) | label[2]);
       }
 #endif
       else {
-    snprintf(emsg, sizeof(emsg), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
     }
     else if (inz == SUCCEEDED) {
       if (table_format[table_index] == 'b') {
-    if (d < -128 || d > 255) {
-      snprintf(emsg, sizeof(emsg), ".%s expects 8-bit data, %d is out of range!\n", bak, d);
-      print_error(emsg, ERROR_DIR);
-      return FAILED;
-    }
+        if (d < -128 || d > 255) {
+          snprintf(emsg, sizeof(emsg), ".%s expects 8-bit data, %d is out of range!\n", bak, d);
+          print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
     
-    fprintf(file_out_ptr, "d%d ", d);
+        fprintf(file_out_ptr, "d%d ", d);
       }
       else if (table_format[table_index] == 'w') {
-    if (d < -32768 || d > 65535) {
-      snprintf(emsg, sizeof(emsg), ".%s expects 16-bit data, %d is out of range!\n", bak, d);
-      print_error(emsg, ERROR_DIR);
-      return FAILED;
-    }
+        if (d < -32768 || d > 65535) {
+          snprintf(emsg, sizeof(emsg), ".%s expects 16-bit data, %d is out of range!\n", bak, d);
+          print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
 
-    fprintf(file_out_ptr, "y%d ", d);
+        fprintf(file_out_ptr, "y%d ", d);
       }
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
-    if (d < -8388608 || d > 16777215) {
-      snprintf(emsg, sizeof(emsg), ".%s expects 24-bit data, %d is out of range!\n", bak, d);
-      print_error(emsg, ERROR_DIR);
-      return FAILED;
-    }
+        if (d < -8388608 || d > 16777215) {
+          snprintf(emsg, sizeof(emsg), ".%s expects 24-bit data, %d is out of range!\n", bak, d);
+          print_error(emsg, ERROR_DIR);
+          return FAILED;
+        }
 
-    fprintf(file_out_ptr, "z%d ", d);
+        fprintf(file_out_ptr, "z%d ", d);
       }
 #endif
       else {
-    snprintf(emsg, sizeof(emsg), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
     }
     else if (inz == INPUT_NUMBER_ADDRESS_LABEL) {
       if (table_format[table_index] == 'b') {
-    fprintf(file_out_ptr, "k%d Q%s ", active_file_info_last->line_current, label);
+        fprintf(file_out_ptr, "k%d Q%s ", active_file_info_last->line_current, label);
       }
       else if (table_format[table_index] == 'w') {
-    fprintf(file_out_ptr, "k%d r%s ", active_file_info_last->line_current, label);
+        fprintf(file_out_ptr, "k%d r%s ", active_file_info_last->line_current, label);
       }
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
-    fprintf(file_out_ptr, "k%d q%s ", active_file_info_last->line_current, label);
+        fprintf(file_out_ptr, "k%d q%s ", active_file_info_last->line_current, label);
       }
 #endif
       else {
-    snprintf(emsg, sizeof(emsg), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
     }
     else if (inz == INPUT_NUMBER_STACK) {
       if (table_format[table_index] == 'b') {
-    fprintf(file_out_ptr, "c%d ", latest_stack);
+        fprintf(file_out_ptr, "c%d ", latest_stack);
       }
       else if (table_format[table_index] == 'w') {
-    fprintf(file_out_ptr, "C%d ", latest_stack);
+        fprintf(file_out_ptr, "C%d ", latest_stack);
       }
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
-    fprintf(file_out_ptr, "T%d ", latest_stack);
+        fprintf(file_out_ptr, "T%d ", latest_stack);
       }
 #endif
       else {
-    snprintf(emsg, sizeof(emsg), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, table_format[table_index]);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
     }
 
@@ -2718,53 +2718,53 @@ int directive_db_byt_byte(void) {
   for (ind = 0; inz == SUCCEEDED || inz == INPUT_NUMBER_STRING || inz == INPUT_NUMBER_ADDRESS_LABEL || inz == INPUT_NUMBER_STACK; ind++) {
     if (inz == INPUT_NUMBER_STRING) {
       for (o = 0; o < string_size; o++) {
-    /* handle '\0' */
-    if (label[o] == '\\' && label[o + 1] == '0') {
-      fprintf(file_out_ptr, "d%d ", '\0');
-      o++;
-    }
-    /* handle '\x' */
-    else if (label[o] == '\\' && label[o + 1] == 'x') {
-      char tmp_a[8], *tmp_b;
-      int tmp_c;
+        /* handle '\0' */
+        if (label[o] == '\\' && label[o + 1] == '0') {
+          fprintf(file_out_ptr, "d%d ", '\0');
+          o++;
+        }
+        /* handle '\x' */
+        else if (label[o] == '\\' && label[o + 1] == 'x') {
+          char tmp_a[8], *tmp_b;
+          int tmp_c;
         
-      o += 3;
-      snprintf(tmp_a, sizeof(tmp_a), "%c%c", label[o-1], label[o]);
-      tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
-      if (*tmp_b) {
-        snprintf(emsg, sizeof(emsg), ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
-        print_error(emsg, ERROR_INP);
-        return FAILED;
-      }
-      fprintf(file_out_ptr, "d%d ", tmp_c);
-    }
-    /* handle '\<' */
-    else if (label[o] == '\\' && label[o + 1] == '<') {
-      o += 2;
-      if (o == string_size) {
-        snprintf(emsg, sizeof(emsg), ".%s '\\<' needs character data.\n", bak);
-        print_error(emsg, ERROR_INP);
-        return FAILED;
-      }
-      fprintf(file_out_ptr, "d%d ", (int)label[o]|0x80);
-    }
-    /* handle '\>' */
-    else if (label[o] == '\\' && label[o + 1] == '>' && o == 0) {
-      snprintf(emsg, sizeof(emsg), ".%s '\\>' needs character data.\n", bak);
-      print_error(emsg, ERROR_INP);
-      return FAILED;
-    }
-    else if (label[o + 1] == '\\' && label[o + 2] == '>') {
-      fprintf(file_out_ptr, "d%d ", (int)label[o]|0x80);
-      o += 2;
-    }
-    /* handle '\\' */
-    else if (label[o] == '\\' && label[o + 1] == '\\') {
-      fprintf(file_out_ptr, "d%d ", '\\');
-      o++;
-    }
-    else
-      fprintf(file_out_ptr, "d%d ", (int)label[o]);
+          o += 3;
+          snprintf(tmp_a, sizeof(tmp_a), "%c%c", label[o-1], label[o]);
+          tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
+          if (*tmp_b) {
+            snprintf(emsg, sizeof(emsg), ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
+            print_error(emsg, ERROR_INP);
+            return FAILED;
+          }
+          fprintf(file_out_ptr, "d%d ", tmp_c);
+        }
+        /* handle '\<' */
+        else if (label[o] == '\\' && label[o + 1] == '<') {
+          o += 2;
+          if (o == string_size) {
+            snprintf(emsg, sizeof(emsg), ".%s '\\<' needs character data.\n", bak);
+            print_error(emsg, ERROR_INP);
+            return FAILED;
+          }
+          fprintf(file_out_ptr, "d%d ", (int)label[o]|0x80);
+        }
+        /* handle '\>' */
+        else if (label[o] == '\\' && label[o + 1] == '>' && o == 0) {
+          snprintf(emsg, sizeof(emsg), ".%s '\\>' needs character data.\n", bak);
+          print_error(emsg, ERROR_INP);
+          return FAILED;
+        }
+        else if (label[o + 1] == '\\' && label[o + 2] == '>') {
+          fprintf(file_out_ptr, "d%d ", (int)label[o]|0x80);
+          o += 2;
+        }
+        /* handle '\\' */
+        else if (label[o] == '\\' && label[o + 1] == '\\') {
+          fprintf(file_out_ptr, "d%d ", '\\');
+          o++;
+        }
+        else
+          fprintf(file_out_ptr, "d%d ", (int)label[o]);
       }
       inz = input_number();
       continue;
@@ -2819,9 +2819,9 @@ int directive_asctable_asciitable(void) {
     if (tmp[0] == '.') {
       q = parse_if_directive();
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       else if (q == SUCCEEDED)
-    continue;
+        continue;
       /* else q == -1, continue executing below */
     }
 
@@ -2831,26 +2831,26 @@ int directive_asctable_asciitable(void) {
       q = input_number();
 
       while (q == INPUT_NUMBER_EOL) {
-    next_line();
-    q = input_number();
+        next_line();
+        q = input_number();
       }
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q == SUCCEEDED && (d < 0 || d > 255)) {
-    print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
-    return FAILED;
+        print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
+        return FAILED;
       }
       if (q == INPUT_NUMBER_STRING) {
-    if (string_size != 1) {
-      print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
-      return FAILED;
-    }
-    else {
-      d = label[0];
-      if (d < 0)
-        d += 256;
-    }
+        if (string_size != 1) {
+          print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
+          return FAILED;
+        }
+        else {
+          d = label[0];
+          if (d < 0)
+            d += 256;
+        }
       }
 
       astart = d;
@@ -2858,40 +2858,40 @@ int directive_asctable_asciitable(void) {
 
       /* do we have a range? */
       if (compare_next_token("TO") == SUCCEEDED) {
-    skip_next_token();
+        skip_next_token();
 
-    q = input_number();
+        q = input_number();
 
-    if (q == FAILED)
-      return FAILED;
-    if (q == SUCCEEDED && (d < 0 || d > 255)) {
-      print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
-      return FAILED;
-    }
-    if (q == INPUT_NUMBER_STRING) {
-      if (string_size != 1) {
-        print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
-        return FAILED;
-      }
-      else {
-        d = label[0];
-        if (d < 0)
-          d += 256;
-      }
-    }
+        if (q == FAILED)
+          return FAILED;
+        if (q == SUCCEEDED && (d < 0 || d > 255)) {
+          print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
+          return FAILED;
+        }
+        if (q == INPUT_NUMBER_STRING) {
+          if (string_size != 1) {
+            print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
+            return FAILED;
+          }
+          else {
+            d = label[0];
+            if (d < 0)
+              d += 256;
+          }
+        }
 
-    aend = d+1;
+        aend = d+1;
       }
 
       if (aend <= astart) {
-    print_error("The end address of the mapping must be larger than the staring address.\n", ERROR_DIR);
-    return FAILED;
+        print_error("The end address of the mapping must be larger than the staring address.\n", ERROR_DIR);
+        return FAILED;
       }
 
       /* skip the "=" */
       if (compare_next_token("=") != SUCCEEDED) {
-    ind = FAILED;
-    break;
+        ind = FAILED;
+        break;
       }
       skip_next_token();
 
@@ -2899,23 +2899,23 @@ int directive_asctable_asciitable(void) {
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q == SUCCEEDED && (d < 0 || d > 255)) {
-    print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
-    return FAILED;
+        print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
+        return FAILED;
       }
       if (q != SUCCEEDED) {
-    print_error("The entry must be a positive 8-bit immediate value.\n", ERROR_DIR);
-    return FAILED;
+        print_error("The entry must be a positive 8-bit immediate value.\n", ERROR_DIR);
+        return FAILED;
       }
 
       /* build the mapping */
       for (o = astart; o < aend; o++) {
-    if (d >= 256) {
-      print_error("The mapping overflows from the ASCII table!\n", ERROR_DIR);
-      return FAILED;
-    }
-    asciitable[o] = d++;
+        if (d >= 256) {
+          print_error("The mapping overflows from the ASCII table!\n", ERROR_DIR);
+          return FAILED;
+        }
+        asciitable[o] = d++;
       }
     }
     else {
@@ -2959,71 +2959,71 @@ int directive_asc(void) {
     if (q == INPUT_NUMBER_STRING) {
       /* remap the ascii string */
       for (o = 0; o < string_size; o++) {
-    ind = label[o];
-    /* handle '\0' */
-    if (label[o] == '\\' && label[o + 1] == '0') {
-      ind = '\0';
-      fprintf(file_out_ptr, "d%d ", ind);
-      o++;
-    }
-    /* handle '\x' */
-    else if (label[o] == '\\' && label[o + 1] == 'x') {
-      char tmp_a[8], *tmp_b;
-      int tmp_c;
-      
-      o += 3;
-      snprintf(tmp_a, sizeof(tmp_a), "%c%c", label[o-1], label[o]);
-      tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
-      if (*tmp_b) {
-        snprintf(emsg, sizeof(emsg), ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
-        print_error(emsg, ERROR_INP);
-        return FAILED;
-      }
-      ind = tmp_c;
-      fprintf(file_out_ptr, "d%d ", ind);
-    }
-    else {
-      int tmp_a = 0;
-        
-      /* handle '\<' */
-      if (label[o] == '\\' && label[o + 1] == '<') {
-        o += 2;
-        if (o == string_size) {
-          snprintf(emsg, sizeof(emsg), ".%s '\\<' needs character data.\n", bak);
-          print_error(emsg, ERROR_INP);
-          return FAILED;
-        }
-        tmp_a = 0x80;
         ind = label[o];
-      }
-      /* handle '\>' */
-      else if (label[o] == '\\' && label[o + 1] == '>' && o == 0) {
-        snprintf(emsg, sizeof(emsg), ".%s '\\>' needs character data.\n", bak);
-        print_error(emsg, ERROR_INP);
-        return FAILED;
-      }
-      else if (label[o + 1] == '\\' && label[o + 2] == '>') {
-        tmp_a = 0x80;
-        o += 2;
-      }
-      /* handle '\\' */
-      else if (label[o] == '\\' && label[o + 1] == '\\') {
-        ind = '\\';
-        o++;
-      }
-      if (ind < 0)
-        ind += 256;
-      ind = (int)asciitable[ind];
-      fprintf(file_out_ptr, "d%d ", ind|tmp_a);
-    }
+        /* handle '\0' */
+        if (label[o] == '\\' && label[o + 1] == '0') {
+          ind = '\0';
+          fprintf(file_out_ptr, "d%d ", ind);
+          o++;
+        }
+        /* handle '\x' */
+        else if (label[o] == '\\' && label[o + 1] == 'x') {
+          char tmp_a[8], *tmp_b;
+          int tmp_c;
+      
+          o += 3;
+          snprintf(tmp_a, sizeof(tmp_a), "%c%c", label[o-1], label[o]);
+          tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
+          if (*tmp_b) {
+            snprintf(emsg, sizeof(emsg), ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
+            print_error(emsg, ERROR_INP);
+            return FAILED;
+          }
+          ind = tmp_c;
+          fprintf(file_out_ptr, "d%d ", ind);
+        }
+        else {
+          int tmp_a = 0;
+        
+          /* handle '\<' */
+          if (label[o] == '\\' && label[o + 1] == '<') {
+            o += 2;
+            if (o == string_size) {
+              snprintf(emsg, sizeof(emsg), ".%s '\\<' needs character data.\n", bak);
+              print_error(emsg, ERROR_INP);
+              return FAILED;
+            }
+            tmp_a = 0x80;
+            ind = label[o];
+          }
+          /* handle '\>' */
+          else if (label[o] == '\\' && label[o + 1] == '>' && o == 0) {
+            snprintf(emsg, sizeof(emsg), ".%s '\\>' needs character data.\n", bak);
+            print_error(emsg, ERROR_INP);
+            return FAILED;
+          }
+          else if (label[o + 1] == '\\' && label[o + 2] == '>') {
+            tmp_a = 0x80;
+            o += 2;
+          }
+          /* handle '\\' */
+          else if (label[o] == '\\' && label[o + 1] == '\\') {
+            ind = '\\';
+            o++;
+          }
+          if (ind < 0)
+            ind += 256;
+          ind = (int)asciitable[ind];
+          fprintf(file_out_ptr, "d%d ", ind|tmp_a);
+        }
       }
     }
     else if (q == SUCCEEDED) {
       /* remap the byte */
       if (d < 0 || d > 255) {
-    snprintf(emsg, sizeof(emsg), ".%s needs string / byte (0-255) data.\n", bak);
-    print_error(emsg, ERROR_INP);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), ".%s needs string / byte (0-255) data.\n", bak);
+        print_error(emsg, ERROR_INP);
+        return FAILED;
       }
       ind = (int)asciitable[d];
       fprintf(file_out_ptr, "d%d ", ind);
@@ -3197,7 +3197,8 @@ int directive_name_w65816(void) {
       return FAILED;
     }
 
-    for ( ; ind < 21; name[ind] = 0, ind++);
+    for ( ; ind < 21; name[ind] = 0, ind++)
+      ;
 
     name_defined = 1;
   }
@@ -3205,7 +3206,7 @@ int directive_name_w65816(void) {
     /* compare the names */
     for (ind = 0; tmp[ind] != 0 && name[ind] != 0 && ind < 21; ind++)
       if (name[ind] != tmp[ind])
-    break;
+        break;
 
     if (ind == 21 && tmp[ind] != 0) {
       print_error(".NAME requires a string of 1 to 21 letters.\n", ERROR_DIR);
@@ -3244,7 +3245,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
       fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
     
       if (get_full_label(tmpname, full_label) == FAILED)
-    return FAILED;
+        return FAILED;
       if (add_label_sizeof(full_label, it->size) == FAILED)
         return FAILED;
     }
@@ -3260,17 +3261,17 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
         us = it->union_items;
         while (us != NULL) {
           if (us->name[0] != '\0') { /* check if the union is named */
-        char full_label[MAX_NAME_LENGTH + 1];
+            char full_label[MAX_NAME_LENGTH + 1];
 
-        snprintf(tmpname, sizeof(tmpname), "%s.%s", iname, us->name);
+            snprintf(tmpname, sizeof(tmpname), "%s.%s", iname, us->name);
             if (verify_name_length(tmpname) == FAILED)
               return FAILED;
 
             fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
 
-        if (get_full_label(tmpname, full_label) == FAILED)
-          return FAILED;
-        if (add_label_sizeof(full_label, us->size) == FAILED)
+            if (get_full_label(tmpname, full_label) == FAILED)
+              return FAILED;
+            if (add_label_sizeof(full_label, us->size) == FAILED)
               return FAILED;
           }
           else
@@ -3313,7 +3314,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
 
           fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
 
-      if (add_label_sizeof(tmpname, it->instance->size) == FAILED)
+          if (add_label_sizeof(tmpname, it->instance->size) == FAILED)
             return FAILED;
           if (parse_dstruct_entry(tmpname, it->instance, labels_only) == FAILED)
             return FAILED;
@@ -3469,7 +3470,7 @@ int find_struct_field(struct structure *s, char *field_name, int *item_size, int
         /* look for ie. "struct.1.field" */
         else if (si->num_instances > 1) {
           int g;
-          for (g=1; g<=si->num_instances; g++) {
+          for (g = 1; g <= si->num_instances; g++) {
             char num_str[256];
         
             snprintf(num_str, sizeof(num_str), "%d", g);
@@ -3840,10 +3841,10 @@ int directive_include(int is_real) {
     o = i;
     while (o >= 0) {
       if (toupper(buffer[o+0]) == 'I' &&
-      toupper(buffer[o+1]) == 'N' &&
-      toupper(buffer[o+2]) == 'C') {
-    character_c_position = o+2;
-    break;
+          toupper(buffer[o+1]) == 'N' &&
+          toupper(buffer[o+2]) == 'C') {
+        character_c_position = o+2;
+        break;
       }
       o--;
     }
@@ -3912,32 +3913,32 @@ int directive_include(int is_real) {
     /* WARNING: this is tricky: did we just include a file inside a macro? */
     if (macro_active != 0) {
       /* yes. note that the now we added new bytes after i, so if a macro_return_i is
-     bigger than i, we'll need to add the bytes to it */
+         bigger than i, we'll need to add the bytes to it */
       struct macro_static *ms;
       int q, w;
 
       for (q = 0; q < macro_active; q++) {
-    if (macro_stack[q].macro_return_i > i)
-      macro_stack[q].macro_return_i += include_size;
-    for (w = 0; w < macro_stack[q].supplied_arguments; w++) {
-      if (macro_stack[q].argument_data[w]->start > i)
-        macro_stack[q].argument_data[w]->start += include_size;
-    }
+        if (macro_stack[q].macro_return_i > i)
+          macro_stack[q].macro_return_i += include_size;
+        for (w = 0; w < macro_stack[q].supplied_arguments; w++) {
+          if (macro_stack[q].argument_data[w]->start > i)
+            macro_stack[q].argument_data[w]->start += include_size;
+        }
       }
 
       /* also macro starting points that are after this position need to move forward
-     in memory... */
+         in memory... */
       ms = macros_first;
       while (ms != NULL) {
-    if (ms->start > i)
-      ms->start += include_size;
-    ms = ms->next;
+        if (ms->start > i)
+          ms->start += include_size;
+        ms = ms->next;
       }
     }
 
     if (got_once == YES) {
       /* turn the .INCLUDE/.INC into .INDLUDE/.IND to mark it as used, as we got ONCE,
-     for repetitive macro calls that contain .INCLUDE/.INC... */
+         for repetitive macro calls that contain .INCLUDE/.INC... */
       buffer[character_c_position] = 'd';
     }
   }
@@ -4155,7 +4156,7 @@ int directive_ramsection(void) {
     if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
       /* turn the label into a number */
       if (_get_slot_number_by_its_name(label, &d) == FAILED)
-    return FAILED;
+        return FAILED;
       q = SUCCEEDED;
     }
     else if (q == SUCCEEDED) {
@@ -4320,9 +4321,9 @@ int directive_ramsection(void) {
       
       /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
       if (strlen(tmp) >= sizeof(buf)) {
-    snprintf(emsg, sizeof(emsg), "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", tmp);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", tmp);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       strcpy(buf, &tmp[2]);
@@ -4330,7 +4331,7 @@ int directive_ramsection(void) {
     }
     else if (active_file_info_last->namespace[0] != 0) {
       if (add_namespace_to_string(tmp, sizeof(tmp), "APPENDTO") == FAILED)
-    return FAILED;
+        return FAILED;
     }
     
     strcpy(append_tmp->section, sec_tmp->name);
@@ -4441,10 +4442,10 @@ int directive_section(void) {
     sec_next = sections_first;
     while (sec_next != NULL) {
       if (strcmp(sec_next->name, tmp) == 0 && sec_next->bank == bank) {
-    snprintf(emsg, sizeof(emsg), "BANKHEADER section was defined for the second time for bank %d.\n", bank);
-    print_error(emsg, ERROR_DIR);
-    free(sec_tmp);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "BANKHEADER section was defined for the second time for bank %d.\n", bank);
+        print_error(emsg, ERROR_DIR);
+        free(sec_tmp);
+        return FAILED;
       }
       sec_next = sec_next->next;
     }
@@ -4453,10 +4454,10 @@ int directive_section(void) {
     sec_next = sections_first;
     while (sec_next != NULL) {
       if (strcmp(sec_next->name, tmp) == 0) {
-    snprintf(emsg, sizeof(emsg), "SECTION \"%s\" was defined for the second time.\n", tmp);
-    print_error(emsg, ERROR_DIR);
-    free(sec_tmp);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "SECTION \"%s\" was defined for the second time.\n", tmp);
+        print_error(emsg, ERROR_DIR);
+        free(sec_tmp);
+        return FAILED;
       }
       sec_next = sec_next->next;
     }
@@ -4488,8 +4489,8 @@ int directive_section(void) {
     if (tmp[0] == '\"' && tmp[strlen(tmp)-1] == '\"') {
       l = 0;
       while (tmp[l+1] != '\"') {
-    tmp[l] = tmp[l+1];
-    l++;
+        tmp[l] = tmp[l+1];
+        l++;
       }
       tmp[l] = 0;
     }
@@ -4498,13 +4499,13 @@ int directive_section(void) {
     if (nspace == NULL) {
       nspace = calloc(1, sizeof(struct namespace_def));
       if (nspace == NULL) {
-    print_error("Out of memory error.\n", ERROR_DIR);
-    return FAILED;
+        print_error("Out of memory error.\n", ERROR_DIR);
+        return FAILED;
       }
       strcpy(nspace->name, tmp);
       if (hashmap_put(namespace_map, nspace->name, nspace) != MAP_OK) {
-    print_error("Namespace hashmap error.\n", ERROR_DIR);
-    return FAILED;
+        print_error("Namespace hashmap error.\n", ERROR_DIR);
+        return FAILED;
       }
     }
 
@@ -4649,10 +4650,10 @@ int directive_section(void) {
       
       /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
       if (strlen(tmp) >= sizeof(buf)) {
-    snprintf(emsg, sizeof(emsg), "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", tmp);
-    print_error(emsg, ERROR_DIR);
-    free(append_tmp);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", tmp);
+        print_error(emsg, ERROR_DIR);
+        free(append_tmp);
+        return FAILED;
       }
 
       strcpy(buf, &tmp[2]);
@@ -4660,8 +4661,8 @@ int directive_section(void) {
     }
     else if (active_file_info_last->namespace[0] != 0) {
       if (add_namespace_to_string(tmp, sizeof(tmp), "APPENDTO") == FAILED) {
-    free(append_tmp);
-    return FAILED;
+        free(append_tmp);
+        return FAILED;
       }
     }
     
@@ -5024,7 +5025,8 @@ int directive_name_gb(void) {
       return FAILED;
     }
 
-    for ( ; ind < 16; name[ind] = 0, ind++);
+    for ( ; ind < 16; name[ind] = 0, ind++)
+      ;
 
     name_defined = 1;
   }
@@ -5032,7 +5034,7 @@ int directive_name_gb(void) {
   else {
     for (ind = 0; tmp[ind] != 0 && name[ind] != 0 && ind < 16; ind++)
       if (name[ind] != tmp[ind])
-    break;
+        break;
 
     if (ind == 16 && tmp[ind] != 0) {
       print_error(".NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
@@ -5112,8 +5114,8 @@ int directive_rombanks(void) {
 
     for (ind = 0; ind < inz; ind++) {
       if (banks[ind] != banksize) {
-    print_error("The old and the new .ROMBANKMAP's don't match.\n", ERROR_DIR);
-    return FAILED;
+        print_error("The old and the new .ROMBANKMAP's don't match.\n", ERROR_DIR);
+        return FAILED;
       }
     }
 
@@ -5176,97 +5178,97 @@ int directive_rombankmap(void) {
     while ((ind = get_next_token()) == SUCCEEDED) {
       /* .IF directive? */
       if (tmp[0] == '.') {
-    q = parse_if_directive();
-    if (q == FAILED)
-      return FAILED;
-    else if (q == SUCCEEDED)
-      continue;
-    /* else q == -1, continue executing below */
+        q = parse_if_directive();
+        if (q == FAILED)
+          return FAILED;
+        else if (q == SUCCEEDED)
+          continue;
+        /* else q == -1, continue executing below */
       }
 
       if (strcaselesscmp(tmp, ".ENDRO") == 0) {
-    break;
+        break;
       }
       else if (strcaselesscmp(tmp, "BANKSTOTAL") == 0) {
-    q = input_number();
+        q = input_number();
     
-    if (q == FAILED)
-      return FAILED;
-    if (q != SUCCEEDED || d <= 0) {
-      print_error("BANKSTOTAL needs a positive value.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED || d <= 0) {
+          print_error("BANKSTOTAL needs a positive value.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    if (rombanks < d) {
-      banks = realloc(banks, sizeof(int) * d);
-      bankaddress = realloc(bankaddress, sizeof(int) * d);
-      if (banks == NULL || bankaddress == NULL) {
-        print_error("Out of memory while allocating ROM banks.\n", ERROR_DIR);
-        return FAILED;
-      }
-    }
+        if (rombanks < d) {
+          banks = realloc(banks, sizeof(int) * d);
+          bankaddress = realloc(bankaddress, sizeof(int) * d);
+          if (banks == NULL || bankaddress == NULL) {
+            print_error("Out of memory while allocating ROM banks.\n", ERROR_DIR);
+            return FAILED;
+          }
+        }
 
-    bt = d;
-    bt_defined = 1;
+        bt = d;
+        bt_defined = 1;
       }
       else if (strcaselesscmp(tmp, "BANKSIZE") == 0) {
-    if (bt_defined == 0) {
-      print_error("BANKSTOTAL needs to be defined prior to BANKSIZE.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (bt_defined == 0) {
+          print_error("BANKSTOTAL needs to be defined prior to BANKSIZE.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    q = input_number();
+        q = input_number();
     
-    if (q == FAILED)
-      return FAILED;
-    if (q != SUCCEEDED || d <= 0) {
-      print_error("BANKSIZE needs a positive value.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED || d <= 0) {
+          print_error("BANKSIZE needs a positive value.\n", ERROR_DIR);
+          return FAILED;
+        }
     
-    bs = d;
-    bs_defined = 1;
+        bs = d;
+        bs_defined = 1;
       }
       else if (strcaselesscmp(tmp, "BANKS") == 0) {
-    if (bs_defined == 0) {
-      print_error("BANKSIZE needs to be defined prior to BANKS.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (bs_defined == 0) {
+          print_error("BANKSIZE needs to be defined prior to BANKS.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    q = input_number();
+        q = input_number();
 
-    if (q == FAILED)
-      return FAILED;
-    if (q != SUCCEEDED || d <= 0) {
-      print_error("BANKS needs a positive value.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED || d <= 0) {
+          print_error("BANKS needs a positive value.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    for (x = 0; x < d; x++) {
-      if (b > bt) {
-        print_error("More BANKS than BANKSTOTAL suggests.\n", ERROR_DIR);
-        return FAILED;
-      }
+        for (x = 0; x < d; x++) {
+          if (b > bt) {
+            print_error("More BANKS than BANKSTOTAL suggests.\n", ERROR_DIR);
+            return FAILED;
+          }
 
-      /* new banks? */
-      if (x >= rombanks) {
-        banks[o] = bs;
-        bankaddress[o] = a;
-      }
-      /* compare old banks */
-      else if (banks[o] != bs) {
-        print_error("The old and the new ROMBANKMAPs don't match.\n", ERROR_DIR);
-        return FAILED;
-      }
+          /* new banks? */
+          if (x >= rombanks) {
+            banks[o] = bs;
+            bankaddress[o] = a;
+          }
+          /* compare old banks */
+          else if (banks[o] != bs) {
+            print_error("The old and the new ROMBANKMAPs don't match.\n", ERROR_DIR);
+            return FAILED;
+          }
 
-      o++;
-      b++;
-      a += bs;
-    }
+          o++;
+          b++;
+          a += bs;
+        }
       }
       else {
-    ind = FAILED;
-    break;
+        ind = FAILED;
+        break;
       }
     }
   }
@@ -5276,84 +5278,84 @@ int directive_rombankmap(void) {
     while ((ind = get_next_token()) == SUCCEEDED) {
       /* .IF directive? */
       if (tmp[0] == '.') {
-    q = parse_if_directive();
-    if (q == FAILED)
-      return FAILED;
-    else if (q == SUCCEEDED)
-      continue;
-    /* else q == -1, continue executing below */
+        q = parse_if_directive();
+        if (q == FAILED)
+          return FAILED;
+        else if (q == SUCCEEDED)
+          continue;
+        /* else q == -1, continue executing below */
       }
       
       if (strcaselesscmp(tmp, ".ENDRO") == 0)
-    break;
+        break;
       else if (strcaselesscmp(tmp, "BANKSTOTAL") == 0) {
-    q = input_number();
+        q = input_number();
 
-    if (q == FAILED)
-      return FAILED;
-    if (q != SUCCEEDED || d <= 0) {
-      print_error("BANKSTOTAL needs a positive value.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED || d <= 0) {
+          print_error("BANKSTOTAL needs a positive value.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    banks = calloc(sizeof(int) * d, 1);
-    bankaddress = calloc(sizeof(int) * d, 1);
-    if (banks == NULL || bankaddress == NULL) {
-      print_error("Out of memory while allocating ROM banks.\n", ERROR_DIR);
-      return FAILED;
-    }
+        banks = calloc(sizeof(int) * d, 1);
+        bankaddress = calloc(sizeof(int) * d, 1);
+        if (banks == NULL || bankaddress == NULL) {
+          print_error("Out of memory while allocating ROM banks.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    bt = d;
-    bt_defined = 1;
+        bt = d;
+        bt_defined = 1;
       }
       else if (strcaselesscmp(tmp, "BANKSIZE") == 0) {
-    if (bt_defined == 0) {
-      print_error("BANKSTOTAL needs to be defined prior to BANKSIZE.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (bt_defined == 0) {
+          print_error("BANKSTOTAL needs to be defined prior to BANKSIZE.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    q = input_number();
+        q = input_number();
 
-    if (q == FAILED)
-      return FAILED;
-    if (q != SUCCEEDED || d <= 0) {
-      print_error("BANKSIZE needs a positive value.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED || d <= 0) {
+          print_error("BANKSIZE needs a positive value.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    bs = d;
-    bs_defined = 1;
+        bs = d;
+        bs_defined = 1;
       }
       else if (strcaselesscmp(tmp, "BANKS") == 0) {
-    if (bs_defined == 0) {
-      print_error("BANKSIZE needs to be defined prior to BANKS.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (bs_defined == 0) {
+          print_error("BANKSIZE needs to be defined prior to BANKS.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    q = input_number();
+        q = input_number();
 
-    if (q == FAILED)
-      return FAILED;
-    if (q != SUCCEEDED || d <= 0) {
-      print_error("BANKS needs a positive value.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED || d <= 0) {
+          print_error("BANKS needs a positive value.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    for (x = 0; x < d; x++) {
-      if (b >= bt) {
-        print_error("More BANKS than BANKSTOTAL suggests.\n", ERROR_DIR);
-        return FAILED;
-      }
-      banks[o] = bs;
-      bankaddress[o] = a;
-      o++;
-      b++;
-      a += bs;
-    }
+        for (x = 0; x < d; x++) {
+          if (b >= bt) {
+            print_error("More BANKS than BANKSTOTAL suggests.\n", ERROR_DIR);
+            return FAILED;
+          }
+          banks[o] = bs;
+          bankaddress[o] = a;
+          o++;
+          b++;
+          a += bs;
+        }
       }
       else {
-    ind = FAILED;
-    break;
+        ind = FAILED;
+        break;
       }
     }
   }
@@ -5366,11 +5368,11 @@ int directive_rombankmap(void) {
   /* no banks definded? */
   if (bt == 0) {
     print_error("No ROM banks were defined inside the .ROMBANKMAP.\n", ERROR_DIR);
-    return FAILED;	
+    return FAILED;      
   }
   if (bt != b) {
     print_error("Not all ROM banks were defined inside the .ROMBANKMAP.\n", ERROR_DIR);
-    return FAILED;	
+    return FAILED;      
   }
 
 #ifdef GB
@@ -5455,22 +5457,22 @@ int directive_memorymap(void) {
     if (tmp[0] == '.') {
       q = parse_if_directive();
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       else if (q == SUCCEEDED)
-    continue;
+        continue;
       /* else q == -1, continue executing below */
     }
 
     if (strcaselesscmp(tmp, ".ENDME") == 0) {
       if (defaultslot_defined == 0) {
-    print_error("No DEFAULTSLOT defined.\n", ERROR_DIR);
-    return FAILED;
+        print_error("No DEFAULTSLOT defined.\n", ERROR_DIR);
+        return FAILED;
       }
 
       if (slots[defaultslot].size == 0) {
-    snprintf(emsg, sizeof(emsg), "Unknown DEFAULTSLOT %d.\n", defaultslot);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "Unknown DEFAULTSLOT %d.\n", defaultslot);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       break;
@@ -5479,10 +5481,10 @@ int directive_memorymap(void) {
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q != SUCCEEDED) {
-    print_error("SLOTSIZE needs an immediate value.\n", ERROR_DIR);
-    return FAILED;
+        print_error("SLOTSIZE needs an immediate value.\n", ERROR_DIR);
+        return FAILED;
       }
 
       slotsize = d;
@@ -5490,17 +5492,17 @@ int directive_memorymap(void) {
     }
     else if (strcaselesscmp(tmp, "DEFAULTSLOT") == 0) {
       if (defaultslot_defined != 0) {
-    print_error("DEFAULTSLOT can be defined only once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("DEFAULTSLOT can be defined only once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q != SUCCEEDED || d > 255 || d < 0) {
-    print_error("DEFAULTSLOT needs an immediate value (0-255) as an ID.\n", ERROR_DIR);
-    return FAILED;
+        print_error("DEFAULTSLOT needs an immediate value (0-255) as an ID.\n", ERROR_DIR);
+        return FAILED;
       }
 
       defaultslot_defined = 1;
@@ -5510,83 +5512,83 @@ int directive_memorymap(void) {
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q != SUCCEEDED || d > 255 || d < 0) {
-    print_error("SLOT needs a positive value (0-255) as an ID.\n", ERROR_DIR);
-    return FAILED;
+        print_error("SLOT needs a positive value (0-255) as an ID.\n", ERROR_DIR);
+        return FAILED;
       }
 
       if (s != d) {
-    print_error("Error in SLOT's ID. ID's start from 0.\n", ERROR_DIR);
-    return FAILED;
+        print_error("Error in SLOT's ID. ID's start from 0.\n", ERROR_DIR);
+        return FAILED;
       }
 
       o = d;
 
       /* skip "START" if present */
       if (compare_next_token("START") == SUCCEEDED)
-    skip_next_token();
+        skip_next_token();
 
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q != SUCCEEDED || d < 0) {
-    print_error("The starting address has to be a non-negative value.\n", ERROR_DIR);
-    return FAILED;
+        print_error("The starting address has to be a non-negative value.\n", ERROR_DIR);
+        return FAILED;
       }
 
       slots[o].address = d;
 
       /* skip "SIZE" if present */
       if (compare_next_token("SIZE") == SUCCEEDED)
-    skip_next_token();
+        skip_next_token();
 
       q = input_number();
 
       if (q == INPUT_NUMBER_EOL) {
-    if (slotsize_defined == 0) {
-      print_error("SLOTSIZE must be defined if you don't explicitly give the size.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (slotsize_defined == 0) {
+          print_error("SLOTSIZE must be defined if you don't explicitly give the size.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    next_line();
+        next_line();
     
-    d = slotsize;
+        d = slotsize;
       }
       else {
-    if (q == FAILED)
-      return FAILED;
-    if (q == INPUT_NUMBER_ADDRESS_LABEL || q == INPUT_NUMBER_STRING) {
-      /* we got the name for the SLOT instead of its SIZE */
-      strcpy(slots[o].name, label);
-      d = slotsize;
-    }
-    else if (q != SUCCEEDED) {
-      print_error("The size of the slot needs to be an immediate value.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (q == FAILED)
+          return FAILED;
+        if (q == INPUT_NUMBER_ADDRESS_LABEL || q == INPUT_NUMBER_STRING) {
+          /* we got the name for the SLOT instead of its SIZE */
+          strcpy(slots[o].name, label);
+          d = slotsize;
+        }
+        else if (q != SUCCEEDED) {
+          print_error("The size of the slot needs to be an immediate value.\n", ERROR_DIR);
+          return FAILED;
+        }
       }
       
       slots[o].size = d;
 
       if (q != INPUT_NUMBER_EOL) {
-    /* skip "NAME" if present */
-    if (compare_next_token("NAME") == SUCCEEDED)
-      skip_next_token();
+        /* skip "NAME" if present */
+        if (compare_next_token("NAME") == SUCCEEDED)
+          skip_next_token();
 
-    q = input_number();
+        q = input_number();
 
-    if (q == INPUT_NUMBER_EOL)
-      next_line();
-    else {
-      if (q != INPUT_NUMBER_ADDRESS_LABEL && q != INPUT_NUMBER_STRING) {
-        print_error("NAME needs a label/string for name.\n", ERROR_DIR);
-        return FAILED;	
-      }
+        if (q == INPUT_NUMBER_EOL)
+          next_line();
+        else {
+          if (q != INPUT_NUMBER_ADDRESS_LABEL && q != INPUT_NUMBER_STRING) {
+            print_error("NAME needs a label/string for name.\n", ERROR_DIR);
+            return FAILED;      
+          }
 
-      strcpy(slots[o].name, label);
-    }
+          strcpy(slots[o].name, label);
+        }
       }
       
       slots_amount++;
@@ -5761,9 +5763,9 @@ int directive_gbheader(void) {
     if (tmp[0] == '.') {
       q = parse_if_directive();
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       else if (q == SUCCEEDED)
-    continue;
+        continue;
       /* else q == -1, continue executing below */
     }
 
@@ -5773,108 +5775,109 @@ int directive_gbheader(void) {
       nintendologo_defined++;
     else if (strcaselesscmp(tmp, "ROMDMG") == 0) {
       if (romgbc == 1) {
-    print_error(".ROMGBC was defined prior to .ROMDMG.\n", ERROR_DIR);
-    return FAILED;
+        print_error(".ROMGBC was defined prior to .ROMDMG.\n", ERROR_DIR);
+        return FAILED;
       }
       else if (romgbc == 2) {
-    print_error(".ROMGBCONLY was defined prior to .ROMDMG.\n", ERROR_DIR);
-    return FAILED;
+        print_error(".ROMGBCONLY was defined prior to .ROMDMG.\n", ERROR_DIR);
+        return FAILED;
       }
       else if (romsgb != 0) {
-    print_error(".ROMDMG and .ROMSGB cannot be mixed.\n", ERROR_DIR);
-          return FAILED;
+        print_error(".ROMDMG and .ROMSGB cannot be mixed.\n", ERROR_DIR);
+        return FAILED;
       }
       romdmg = 1;
     }
     else if (strcaselesscmp(tmp, "ROMGBC") == 0) {
       if (romdmg != 0) {
-    print_error(".ROMDMG was defined prior to .ROMGBC.\n", ERROR_DIR);
-    return FAILED;
+        print_error(".ROMDMG was defined prior to .ROMGBC.\n", ERROR_DIR);
+        return FAILED;
       }
       else if (romgbc == 2) {
-    print_error(".ROMGBCONLY was defined prior to .ROMGBC.\n", ERROR_DIR);
-    return FAILED;
+        print_error(".ROMGBCONLY was defined prior to .ROMGBC.\n", ERROR_DIR);
+        return FAILED;
       }
       romgbc = 1;
     }
     else if (strcaselesscmp(tmp, "ROMGBCONLY") == 0) {
       if (romdmg != 0) {
-    print_error(".ROMDMG was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
-    return FAILED;
+        print_error(".ROMDMG was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
+        return FAILED;
       }
       else if (romgbc == 1) {
-    print_error(".ROMGBC was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
-    return FAILED;
+        print_error(".ROMGBC was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
+        return FAILED;
       }
       romgbc = 2;
     }
     else if (strcaselesscmp(tmp, "ROMSGB") == 0) {
       if (romdmg != 0) {
-    print_error(".ROMDMG and .ROMSGB cannot be mixed.\n", ERROR_DIR);
-    return FAILED;
+        print_error(".ROMDMG and .ROMSGB cannot be mixed.\n", ERROR_DIR);
+        return FAILED;
       }
       romsgb++;
     }
     else if (strcaselesscmp(tmp, "NAME") == 0) {
       if ((ind = get_next_token()) == FAILED)
-    return FAILED;
+        return FAILED;
 
       if (ind != GET_NEXT_TOKEN_STRING) {
-    print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
-    return FAILED;
+        print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
+        return FAILED;
       }
 
       /* no name has been defined so far */
       if (name_defined == 0) {
-    for (ind = 0; tmp[ind] != 0 && ind < 16; ind++)
-      name[ind] = tmp[ind];
+        for (ind = 0; tmp[ind] != 0 && ind < 16; ind++)
+          name[ind] = tmp[ind];
     
-    if (ind == 16 && tmp[ind] != 0) {
-      print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (ind == 16 && tmp[ind] != 0) {
+          print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    for ( ; ind < 16; name[ind] = 0, ind++);
+        for ( ; ind < 16; name[ind] = 0, ind++)
+          ;
 
-    name_defined = 1;
+        name_defined = 1;
       }
       else {
-    /* compare the names */
-    for (ind = 0; tmp[ind] != 0 && name[ind] != 0 && ind < 16; ind++)
-      if (name[ind] != tmp[ind])
-        break;
+        /* compare the names */
+        for (ind = 0; tmp[ind] != 0 && name[ind] != 0 && ind < 16; ind++)
+          if (name[ind] != tmp[ind])
+            break;
     
-    if (ind == 16 && tmp[ind] != 0) {
-      print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
-      return FAILED;
-    }
-    if (ind != 16 && (name[ind] != 0 || tmp[ind] != 0)) {
-      print_error("NAME was already defined.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (ind == 16 && tmp[ind] != 0) {
+          print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
+          return FAILED;
+        }
+        if (ind != 16 && (name[ind] != 0 || tmp[ind] != 0)) {
+          print_error("NAME was already defined.\n", ERROR_DIR);
+          return FAILED;
+        }
       }
     }
     else if (strcaselesscmp(tmp, "LICENSEECODEOLD") == 0) {
       if (licenseecodenew_defined != 0) {
-    print_error(".LICENSEECODENEW and .LICENSEECODEOLD cannot both be defined.\n", ERROR_DIR);
-    return FAILED;
+        print_error(".LICENSEECODENEW and .LICENSEECODEOLD cannot both be defined.\n", ERROR_DIR);
+        return FAILED;
       }
 
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q != SUCCEEDED || d < -128 || d > 255) {
-    snprintf(emsg, sizeof(emsg), ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (licenseecodeold_defined != 0) {
-    if (licenseecodeold != d) {
-      print_error(".LICENSEECODEOLD was defined for the second time.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (licenseecodeold != d) {
+          print_error(".LICENSEECODEOLD was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
       }
 
       licenseecodeold = d;
@@ -5882,27 +5885,27 @@ int directive_gbheader(void) {
     }
     else if (strcaselesscmp(tmp, "LICENSEECODENEW") == 0) {
       if (licenseecodeold_defined != 0) {
-    print_error(".LICENSEECODENEW and .LICENSEECODEOLD cannot both be defined.\n", ERROR_DIR);
-    return FAILED;
+        print_error(".LICENSEECODENEW and .LICENSEECODEOLD cannot both be defined.\n", ERROR_DIR);
+        return FAILED;
       }
 
       if ((ind = get_next_token()) == FAILED)
-    return FAILED;
+        return FAILED;
 
       if (ind != GET_NEXT_TOKEN_STRING) {
-    print_error(".LICENSEECODENEW requires a string of two letters.\n", ERROR_DIR);
-    return FAILED;
+        print_error(".LICENSEECODENEW requires a string of two letters.\n", ERROR_DIR);
+        return FAILED;
       }
       if (!(tmp[0] != 0 && tmp[1] != 0 && tmp[2] == 0)) {
-    print_error(".LICENSEECODENEW requires a string of two letters.\n", ERROR_DIR);
-    return FAILED;
+        print_error(".LICENSEECODENEW requires a string of two letters.\n", ERROR_DIR);
+        return FAILED;
       }
 
       if (licenseecodenew_defined != 0) {
-    if (tmp[0] != licenseecodenew_c1 || tmp[1] != licenseecodenew_c2) {
-      print_error(".LICENSEECODENEW was defined for the second time.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (tmp[0] != licenseecodenew_c1 || tmp[1] != licenseecodenew_c2) {
+          print_error(".LICENSEECODENEW was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
       }
 
       licenseecodenew_c1 = tmp[0];
@@ -5913,101 +5916,101 @@ int directive_gbheader(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-    snprintf(emsg, sizeof(emsg), "CARTRIDGETYPE needs a 8-bit value, got %d.\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "CARTRIDGETYPE needs a 8-bit value, got %d.\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
       else if (inz == SUCCEEDED) {
-    if (cartridgetype_defined != 0 && cartridgetype != d) {
-      print_error("CARTRIDGETYPE was defined for the second time.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (cartridgetype_defined != 0 && cartridgetype != d) {
+          print_error("CARTRIDGETYPE was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    cartridgetype = d;
-    cartridgetype_defined = 1;
+        cartridgetype = d;
+        cartridgetype_defined = 1;
       }
       else
-    return FAILED;
+        return FAILED;
     }
     else if (strcaselesscmp(tmp, "RAMSIZE") == 0) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-    snprintf(emsg, sizeof(emsg), "RAMSIZE needs a 8-bit value, got %d.\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "RAMSIZE needs a 8-bit value, got %d.\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
       else if (inz == SUCCEEDED) {
-    if (rambanks_defined != 0 && rambanks != d) {
-      print_error("RAMSIZE was defined for the second time.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (rambanks_defined != 0 && rambanks != d) {
+          print_error("RAMSIZE was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    rambanks = d;
-    rambanks_defined = 1;
+        rambanks = d;
+        rambanks_defined = 1;
       }
       else
-    return FAILED;
+        return FAILED;
     }
     else if (strcaselesscmp(tmp, "COUNTRYCODE") == 0) {
       inz = input_number();
       
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-    snprintf(emsg, sizeof(emsg), "COUNTRYCODE needs a non-negative value, got %d.\n\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "COUNTRYCODE needs a non-negative value, got %d.\n\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
       else if (inz == SUCCEEDED) {
-    if (countrycode_defined != 0 && countrycode != d) {
-      print_error("COUNTRYCODE was defined for the second time.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (countrycode_defined != 0 && countrycode != d) {
+          print_error("COUNTRYCODE was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    countrycode = d;
-    countrycode_defined = 1;
+        countrycode = d;
+        countrycode_defined = 1;
       }
       else
-    return FAILED;
+        return FAILED;
     }
     else if (strcaselesscmp(tmp, "DESTINATIONCODE") == 0) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-    snprintf(emsg, sizeof(emsg), "DESTINATIONCODE needs a non-negative value, got %d.\n\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "DESTINATIONCODE needs a non-negative value, got %d.\n\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
       else if (inz == SUCCEEDED) {
-    if (countrycode_defined != 0 && countrycode != d) {
-      print_error("DESTINATIONCODE was defined for the second time.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (countrycode_defined != 0 && countrycode != d) {
+          print_error("DESTINATIONCODE was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    countrycode = d;
-    countrycode_defined = 1;
+        countrycode = d;
+        countrycode_defined = 1;
       }
       else
-    return FAILED;
+        return FAILED;
     }
     else if (strcaselesscmp(tmp, "VERSION") == 0) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-    snprintf(emsg, sizeof(emsg), "VERSION needs a non-negative value, got %d.\n\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "VERSION needs a non-negative value, got %d.\n\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
       else if (inz == SUCCEEDED) {
-    if (version_defined != 0 && version != d) {
-      print_error("VERSION was defined for the second time.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (version_defined != 0 && version != d) {
+          print_error("VERSION was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    version = d;
-    version_defined = 1;
+        version = d;
+        version_defined = 1;
       }
       else
-    return FAILED;
+        return FAILED;
     }
     else {
       ind = FAILED;
@@ -6096,8 +6099,8 @@ int directive_undef_undefine(void) {
       return FAILED;
     if (ind == INPUT_NUMBER_EOL) {
       if (q != 0) {
-    next_line();
-    return SUCCEEDED;
+        next_line();
+        return SUCCEEDED;
       }
       snprintf(emsg, sizeof(emsg), ".%s requires definition name(s).\n", bak);
       print_error(emsg, ERROR_DIR);
@@ -6146,7 +6149,7 @@ int directive_enumid(void) {
 
     if (enumid_export == 1) {
       if (export_a_definition(label) == FAILED)
-    return FAILED;
+        return FAILED;
     }
 
     enumid += enumid_adder;
@@ -6164,11 +6167,11 @@ int directive_enumid(void) {
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
 
       if (q != SUCCEEDED) {
-    print_error("STEP needs a value\n", ERROR_DIR);
-    return FAILED;
+        print_error("STEP needs a value\n", ERROR_DIR);
+        return FAILED;
       }
 
       enumid_adder = d;
@@ -6233,11 +6236,11 @@ int directive_input(void) {
     j++;
     for ( ; j < 254; j++) {
       if (k[j] == 0)
-    break;
+        break;
       if (k[j] == '0' || k[j] == '1')
-    v = (v << 1) + k[j] - '0';
+        v = (v << 1) + k[j] - '0';
       else
-    break;
+        break;
     }
     if (k[j] == 0) {
       redefine(tmp, (double)v, NULL, DEFINITION_TYPE_VALUE, 0);
@@ -6249,15 +6252,15 @@ int directive_input(void) {
     v = 0;
     for ( ; j < 254; j++) {
       if (k[j] == 0)
-    break;
+        break;
       if (k[j] >= '0' && k[j] <= '9')
-    v = (v << 4) + k[j] - '0';
+        v = (v << 4) + k[j] - '0';
       else if (k[j] >= 'a' && k[j] <= 'f')
-    v = (v << 4) + k[j] - 'a' + 10;
+        v = (v << 4) + k[j] - 'a' + 10;
       else if (k[j] >= 'A' && k[j] <= 'F')
-    v = (v << 4) + k[j] - 'A' + 10;
+        v = (v << 4) + k[j] - 'A' + 10;
       else
-    break;
+        break;
     }
     if (k[j] == 0) {
       redefine(tmp, (double)v, NULL, DEFINITION_TYPE_VALUE, 0);
@@ -6268,11 +6271,11 @@ int directive_input(void) {
     v = 0;
     for ( ; j < 254; j++) {
       if (k[j] == 0)
-    break;
+        break;
       if (k[j] >= '0' && k[j] <= '9')
-    v = (v * 10) + k[j] - '0';
+        v = (v * 10) + k[j] - '0';
       else
-    break;
+        break;
     }
     if (k[j] == 0) {
       redefine(tmp, (double)v, NULL, DEFINITION_TYPE_VALUE, 0);
@@ -6363,9 +6366,9 @@ int directive_smsheader(void) {
     if (tmp[0] == '.') {
       q = parse_if_directive();
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       else if (q == SUCCEEDED)
-    continue;
+        continue;
       /* else q == -1, continue executing below */
     }
 
@@ -6375,18 +6378,18 @@ int directive_smsheader(void) {
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q != SUCCEEDED || d < 0 || d > 15) {
-    snprintf(emsg, sizeof(emsg), "VERSION needs a value between 0 and 15, got %d.\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "VERSION needs a value between 0 and 15, got %d.\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (smsversion_defined != 0) {
-    if (smsversion != d) {
-      print_error("VERSION was defined for the second time.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (smsversion != d) {
+          print_error("VERSION was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
       }
 
       smsversion = d;
@@ -6396,18 +6399,18 @@ int directive_smsheader(void) {
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q != SUCCEEDED || d < 0 || d > 15) {
-    snprintf(emsg, sizeof(emsg), "ROMSIZE needs a value between 0 and 15, got %d.\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "ROMSIZE needs a value between 0 and 15, got %d.\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (smsromsize_defined != 0) {
-    if (smsromsize != d) {
-      print_error("ROMSIZE was defined for the second time.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (smsromsize != d) {
+          print_error("ROMSIZE was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
       }
 
       smsromsize = d;
@@ -6417,18 +6420,18 @@ int directive_smsheader(void) {
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q != SUCCEEDED || d < 3|| d > 7) {
-    snprintf(emsg, sizeof(emsg), "REGIONCODE needs a value between 3 and 7, got %d.\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "REGIONCODE needs a value between 3 and 7, got %d.\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (smsregioncode_defined != 0) {
-    if (smsregioncode != d) {
-      print_error("REGIONCODE was defined for the second time.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (smsregioncode != d) {
+          print_error("REGIONCODE was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
       }
 
       smsregioncode = d;
@@ -6438,10 +6441,10 @@ int directive_smsheader(void) {
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q != SUCCEEDED) {
-    print_error("PRODUCTCODE needs 2.5 bytes of data.\n", ERROR_DIR);
-    return FAILED;
+        print_error("PRODUCTCODE needs 2.5 bytes of data.\n", ERROR_DIR);
+        return FAILED;
       }
 
       smsproductcode1 = d & 255;
@@ -6450,10 +6453,10 @@ int directive_smsheader(void) {
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q != SUCCEEDED) {
-    print_error("PRODUCTCODE needs 2.5 bytes of data.\n", ERROR_DIR);
-    return FAILED;
+        print_error("PRODUCTCODE needs 2.5 bytes of data.\n", ERROR_DIR);
+        return FAILED;
       }
 
       smsproductcode2 = d & 255;
@@ -6461,10 +6464,10 @@ int directive_smsheader(void) {
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q != SUCCEEDED) {
-    print_error("PRODUCTCODE needs 2.5 bytes of data.\n", ERROR_DIR);
-    return FAILED;
+        print_error("PRODUCTCODE needs 2.5 bytes of data.\n", ERROR_DIR);
+        return FAILED;
       }
 
       smsproductcode3 = d & 15;
@@ -6473,10 +6476,10 @@ int directive_smsheader(void) {
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q != SUCCEEDED) {
-    print_error("RESERVEDSPACE needs 2 bytes of data.\n", ERROR_DIR);
-    return FAILED;
+        print_error("RESERVEDSPACE needs 2 bytes of data.\n", ERROR_DIR);
+        return FAILED;
       }
 
       smsreservedspace1 = d & 255;
@@ -6485,10 +6488,10 @@ int directive_smsheader(void) {
       q = input_number();
 
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       if (q != SUCCEEDED) {
-    print_error("RESERVEDSPACE needs 2 bytes of data.\n", ERROR_DIR);
-    return FAILED;
+        print_error("RESERVEDSPACE needs 2 bytes of data.\n", ERROR_DIR);
+        return FAILED;
       }
 
       smsreservedspace2 = d & 255;
@@ -6600,7 +6603,7 @@ int directive_sdsctag(void) {
   }
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
     sdsctag_notes_type = TYPE_LABEL;
-      strcpy(sdsctag_notes_str, label);
+    strcpy(sdsctag_notes_str, label);
   }
   else {
     sdsctag_notes_type = TYPE_STACK_CALCULATION;
@@ -6622,8 +6625,8 @@ int directive_sdsctag(void) {
   }
   else if (q == INPUT_NUMBER_STRING) {
     if (label[0] == 0) {
-        sdsctag_author_type = TYPE_VALUE;
-        sdsctag_author_value = 0xFFFF; /* null string */
+      sdsctag_author_type = TYPE_VALUE;
+      sdsctag_author_value = 0xFFFF; /* null string */
     }
     else {
       sdsctag_author_type = TYPE_STRING;
@@ -6714,28 +6717,28 @@ int directive_macro(void) {
     while (1) {
       ind = input_next_string();
       if (ind == FAILED)
-    return FAILED;
+        return FAILED;
       if (ind == INPUT_NUMBER_EOL) {
-    if (q != 0) {
-      next_line();
-      break;
-    }
-    snprintf(emsg, sizeof(emsg), "MACRO \"%s\" is missing argument names?\n", m->name);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        if (q != 0) {
+          next_line();
+          break;
+        }
+        snprintf(emsg, sizeof(emsg), "MACRO \"%s\" is missing argument names?\n", m->name);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
       q++;
 
       /* store the label */
       m->argument_names = realloc(m->argument_names, sizeof(char *)*q);
       if (m->argument_names == NULL) {
-    print_error("Out of memory error.\n", ERROR_NONE);
-    return FAILED;
+        print_error("Out of memory error.\n", ERROR_NONE);
+        return FAILED;
       }
       m->argument_names[q-1] = calloc(strlen(tmp)+1, 1);
       if (m->argument_names[q-1] == NULL) {
-    print_error("Out of memory error.\n", ERROR_NONE);
-    return FAILED;
+        print_error("Out of memory error.\n", ERROR_NONE);
+        return FAILED;
       }
 
       strcpy(m->argument_names[q-1], tmp);
@@ -6815,16 +6818,16 @@ int directive_rept_repeat(void) {
     macro_active = 0;
     while (get_next_token() != FAILED) {
       if (tmp[0] == '.') {
-    if (strcaselesscmp(cp, "ENDR") == 0)
-      r--;
-    if (strcaselesscmp(cp, "E") == 0)
-      break;
-    if (strcaselesscmp(cp, "REPT") == 0 || strcaselesscmp(cp, "REPEAT") == 0)
-      r++;
+        if (strcaselesscmp(cp, "ENDR") == 0)
+          r--;
+        if (strcaselesscmp(cp, "E") == 0)
+          break;
+        if (strcaselesscmp(cp, "REPT") == 0 || strcaselesscmp(cp, "REPEAT") == 0)
+          r++;
       }
       if (r == 0) {
-    macro_active = m;
-    return SUCCEEDED;
+        macro_active = m;
+        return SUCCEEDED;
       }
     }
     
@@ -6875,7 +6878,7 @@ int directive_endm(void) {
     /* free the arguments */
     if (macro_stack[macro_active].supplied_arguments > 0) {
       for (d = 0; d < macro_stack[macro_active].supplied_arguments; d++)
-    free(macro_stack[macro_active].argument_data[d]);
+        free(macro_stack[macro_active].argument_data[d]);
       free(macro_stack[macro_active].argument_data);
       macro_stack[macro_active].argument_data = NULL;
     }
@@ -6888,9 +6891,9 @@ int directive_endm(void) {
 
     if ((extra_definitions == ON) && (active_file_info_last->filename_id != macro_stack[macro_active].macro_return_filename_id)) {
       redefine("WLA_FILENAME", 0.0, get_file_name(macro_stack[macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING,
-           (int)strlen(get_file_name(macro_stack[macro_active].macro_return_filename_id)));
+               (int)strlen(get_file_name(macro_stack[macro_active].macro_return_filename_id)));
       redefine("wla_filename", 0.0, get_file_name(macro_stack[macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING,
-           (int)strlen(get_file_name(macro_stack[macro_active].macro_return_filename_id)));
+               (int)strlen(get_file_name(macro_stack[macro_active].macro_return_filename_id)));
     }
 
     active_file_info_last->filename_id = macro_stack[macro_active].macro_return_filename_id;
@@ -6907,9 +6910,9 @@ int directive_endm(void) {
     else {
       /* redefine NARGS */
       if (redefine("NARGS", (double)macro_stack[macro_active - 1].supplied_arguments, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-    return FAILED;
+        return FAILED;
       if (redefine("nargs", (double)macro_stack[macro_active - 1].supplied_arguments, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-    return FAILED;
+        return FAILED;
 
       macro_runtime_current = &macro_stack[macro_active - 1];
     }
@@ -6918,43 +6921,43 @@ int directive_endm(void) {
     if (macro_stack[macro_active].caller == MACRO_CALLER_DBM) {
       /* yep, get the output */
       if (macro_insert_byte_db("DBM") == FAILED)
-    return FAILED;
+        return FAILED;
 
       /* continue defining bytes */
       if (macro_start_dxm(macro_stack[macro_active].macro, MACRO_CALLER_DBM, "DBM", NO) == FAILED)
-    return FAILED;
+        return FAILED;
     }
     /* was this a DWM macro call? */
     else if (macro_stack[macro_active].caller == MACRO_CALLER_DWM) {
       /* yep, get the output */
       if (macro_insert_word_db("DWM") == FAILED)
-    return FAILED;
+        return FAILED;
 
       /* continue defining words */
       if (macro_start_dxm(macro_stack[macro_active].macro, MACRO_CALLER_DWM, "DWM", NO) == FAILED)
-    return FAILED;
+        return FAILED;
     }
 #if W65816
     /* was this a DLM macro call? */
     else if (macro_stack[macro_active].caller == MACRO_CALLER_DLM) {
       /* yep, get the output */
       if (macro_insert_long_db("DLM") == FAILED)
-    return FAILED;
+        return FAILED;
 
       /* continue defining longs */
       if (macro_start_dxm(macro_stack[macro_active].macro, MACRO_CALLER_DLM, "DLM", NO) == FAILED)
-    return FAILED;
+        return FAILED;
     }
 #endif
     /* or was this an INCBIN with a filter macro call? */
     else if (macro_stack[macro_active].caller == MACRO_CALLER_INCBIN) {
       /* yep, get the output */
       if (macro_insert_byte_db("INCBIN") == FAILED)
-    return FAILED;
+        return FAILED;
 
       /* continue filtering the binary file */
       if (macro_start_incbin(macro_stack[macro_active].macro, NULL, NO) == FAILED)
-    return FAILED;
+        return FAILED;
     }
 
     return SUCCEEDED;
@@ -6993,108 +6996,109 @@ int directive_snesheader(void) {
     if (tmp[0] == '.') {
       q = parse_if_directive();
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       else if (q == SUCCEEDED)
-    continue;
+        continue;
       /* else q == -1, continue executing below */
     }
 
     if (strcaselesscmp(tmp, ".ENDSNES") == 0)
       break;
-
     else if (strcaselesscmp(tmp, "ID") == 0) {
       if ((ind = get_next_token()) == FAILED)
-    return FAILED;
+        return FAILED;
 
       if (ind != GET_NEXT_TOKEN_STRING || tmp[4] != 0) {
-    print_error("ID requires a string of 1 to 4 letters.\n", ERROR_DIR);
-    return FAILED;
+        print_error("ID requires a string of 1 to 4 letters.\n", ERROR_DIR);
+        return FAILED;
       }
 
       /* no ID has been defined so far */
       if (snesid_defined == 0) {
-    for (ind = 0; tmp[ind] != 0 && ind < 4; ind++)
-      snesid[ind] = tmp[ind];
+        for (ind = 0; tmp[ind] != 0 && ind < 4; ind++)
+          snesid[ind] = tmp[ind];
 
-    for ( ; ind < 4; snesid[ind] = 0, ind++);
+        for ( ; ind < 4; snesid[ind] = 0, ind++)
+          ;
 
-    snesid_defined = 1;
+        snesid_defined = 1;
       }
       /* compare the IDs */
       else {
-    for (ind = 0; tmp[ind] != 0 && snesid[ind] != 0 && ind < 4; ind++)
-      if (snesid[ind] != tmp[ind])
-        break;
+        for (ind = 0; tmp[ind] != 0 && snesid[ind] != 0 && ind < 4; ind++)
+          if (snesid[ind] != tmp[ind])
+            break;
 
-    if (ind == 4 && tmp[ind] != 0) {
-      print_error("ID requires a string of 1 to 4 letters.\n", ERROR_DIR);
-      return FAILED;
-    }
-    if (ind != 4 && (snesid[ind] != 0 || tmp[ind] != 0)) {
-      print_error("ID was already defined.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (ind == 4 && tmp[ind] != 0) {
+          print_error("ID requires a string of 1 to 4 letters.\n", ERROR_DIR);
+          return FAILED;
+        }
+        if (ind != 4 && (snesid[ind] != 0 || tmp[ind] != 0)) {
+          print_error("ID was already defined.\n", ERROR_DIR);
+          return FAILED;
+        }
       }
-    }	 
+    }    
     else if (strcaselesscmp(tmp, "NAME") == 0) {
       if ((ind = get_next_token()) == FAILED)
-    return FAILED;
+        return FAILED;
 
       if (ind != GET_NEXT_TOKEN_STRING) {
-    print_error("NAME requires a string of 1 to 21 letters.\n", ERROR_DIR);
-    return FAILED;
+        print_error("NAME requires a string of 1 to 21 letters.\n", ERROR_DIR);
+        return FAILED;
       }
 
       /* no name has been defined so far */
       if (name_defined == 0) {
-    for (ind = 0; tmp[ind] != 0 && ind < 21; ind++)
-      name[ind] = tmp[ind];
+        for (ind = 0; tmp[ind] != 0 && ind < 21; ind++)
+          name[ind] = tmp[ind];
 
-    if (ind == 21 && tmp[ind] != 0) {
-      print_error("NAME requires a string of 1 to 21 letters.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (ind == 21 && tmp[ind] != 0) {
+          print_error("NAME requires a string of 1 to 21 letters.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    for ( ; ind < 21; name[ind] = 0, ind++);
+        for ( ; ind < 21; name[ind] = 0, ind++)
+          ;
 
-    name_defined = 1;
+        name_defined = 1;
       }
       /* compare the names */
       else {
-    for (ind = 0; tmp[ind] != 0 && name[ind] != 0 && ind < 21; ind++)
-      if (name[ind] != tmp[ind])
-        break;
+        for (ind = 0; tmp[ind] != 0 && name[ind] != 0 && ind < 21; ind++)
+          if (name[ind] != tmp[ind])
+            break;
 
-    if (ind == 21 && tmp[ind] != 0) {
-      print_error("NAME requires a string of 1 to 21 letters.\n", ERROR_DIR);
-      return FAILED;
-    }
-    if (ind != 21 && (name[ind] != 0 || tmp[ind] != 0)) {
-      print_error("NAME was already defined.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (ind == 21 && tmp[ind] != 0) {
+          print_error("NAME requires a string of 1 to 21 letters.\n", ERROR_DIR);
+          return FAILED;
+        }
+        if (ind != 21 && (name[ind] != 0 || tmp[ind] != 0)) {
+          print_error("NAME was already defined.\n", ERROR_DIR);
+          return FAILED;
+        }
       }
     }
     else if (strcaselesscmp(tmp, "HIROM") == 0) {
       if (lorom_defined != 0 || exlorom_defined != 0 || exhirom_defined != 0) {
-    give_snes_rom_mode_defined_error(".HIROM");
-    return FAILED;
+        give_snes_rom_mode_defined_error(".HIROM");
+        return FAILED;
       }
 
       hirom_defined++;
     }
     else if (strcaselesscmp(tmp, "EXHIROM") == 0) {
       if (lorom_defined != 0 || exlorom_defined != 0 || hirom_defined != 0) {
-    give_snes_rom_mode_defined_error(".EXHIROM");
-    return FAILED;
+        give_snes_rom_mode_defined_error(".EXHIROM");
+        return FAILED;
       }
 
       exhirom_defined++;
     }
     else if (strcaselesscmp(tmp, "LOROM") == 0) {
       if (hirom_defined != 0 || exlorom_defined != 0 || exhirom_defined != 0) {
-    give_snes_rom_mode_defined_error(".LOROM");
-    return FAILED;
+        give_snes_rom_mode_defined_error(".LOROM");
+        return FAILED;
       }
 
       lorom_defined++;
@@ -7111,16 +7115,16 @@ int directive_snesheader(void) {
     */
     else if (strcaselesscmp(tmp, "SLOWROM") == 0) {
       if (fastrom_defined != 0) {
-    print_error(".FASTROM was defined prior to .SLOWROM.\n", ERROR_DIR);
-    return FAILED;
+        print_error(".FASTROM was defined prior to .SLOWROM.\n", ERROR_DIR);
+        return FAILED;
       }
 
       slowrom_defined++;
     }
     else if (strcaselesscmp(tmp, "FASTROM") == 0) {
       if (slowrom_defined != 0) {
-    print_error(".SLOWROM was defined prior to .FASTROM.\n", ERROR_DIR);
-          return FAILED;
+        print_error(".SLOWROM was defined prior to .FASTROM.\n", ERROR_DIR);
+        return FAILED;
       }
 
       fastrom_defined++;
@@ -7129,119 +7133,119 @@ int directive_snesheader(void) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-    snprintf(emsg, sizeof(emsg), "CARTRIDGETYPE expects 8-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "CARTRIDGETYPE expects 8-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
       else if (inz == SUCCEEDED) {
-    if (cartridgetype_defined != 0 && d != cartridgetype) {
-      print_error("CARTRIDGETYPE was defined for the second time.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (cartridgetype_defined != 0 && d != cartridgetype) {
+          print_error("CARTRIDGETYPE was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    cartridgetype = d;
-    cartridgetype_defined = 1;
+        cartridgetype = d;
+        cartridgetype_defined = 1;
       }
       else
-    return FAILED;
+        return FAILED;
     }
     else if (strcaselesscmp(tmp, "ROMSIZE") == 0) {
       if (snesromsize != 0) {
-    print_error("ROMSIZE can be defined only once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("ROMSIZE can be defined only once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-    snprintf(emsg, sizeof(emsg), "ROMSIZE expects 8-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "ROMSIZE expects 8-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
       else if (inz == SUCCEEDED)
-    snesromsize = d;
+        snesromsize = d;
       else
-    return FAILED;
+        return FAILED;
     }
     else if (strcaselesscmp(tmp, "SRAMSIZE") == 0) {
       if (sramsize_defined != 0) {
-    print_error("SRAMSIZE can be defined only once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("SRAMSIZE can be defined only once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < 0 || d > 3)) {
-    snprintf(emsg, sizeof(emsg), "SRAMSIZE expects 0-3, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "SRAMSIZE expects 0-3, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
       else if (inz == SUCCEEDED) {
-    sramsize = d;
-    sramsize_defined++;
+        sramsize = d;
+        sramsize_defined++;
       }
       else
-    return FAILED;
+        return FAILED;
     }
     else if (strcaselesscmp(tmp, "COUNTRY") == 0) {
       if (country_defined != 0) {
-    print_error("COUNTRY can be defined only once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("COUNTRY can be defined only once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-    snprintf(emsg, sizeof(emsg), "COUNTRY expects 8-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "COUNTRY expects 8-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
       else if (inz == SUCCEEDED) {
-    country = d;
-    country_defined++;
+        country = d;
+        country_defined++;
       }
       else
-    return FAILED;
+        return FAILED;
     }
     else if (strcaselesscmp(tmp, "LICENSEECODE") == 0) {
       if (licenseecode_defined != 0) {
-    print_error("LICENSEECODE can be defined only once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("LICENSEECODE can be defined only once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-    snprintf(emsg, sizeof(emsg), "LICENSEECODE expects 8-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "LICENSEECODE expects 8-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
       else if (inz == SUCCEEDED) {
-    licenseecode = d;
-    licenseecode_defined++;
+        licenseecode = d;
+        licenseecode_defined++;
       }
       else
-    return FAILED;
+        return FAILED;
     }
     else if (strcaselesscmp(tmp, "VERSION") == 0) {
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -128 || d > 255)) {
-    snprintf(emsg, sizeof(emsg), "VERSION expects 8-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "VERSION expects 8-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
       else if (inz == SUCCEEDED) {
-    if (version_defined != 0 && version != d) {
-      print_error("VERSION was defined for the second time.\n", ERROR_DIR);
-      return FAILED;
-    }
+        if (version_defined != 0 && version != d) {
+          print_error("VERSION was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-    version = d;
-    version_defined++;
+        version = d;
+        version_defined++;
       }
       else
-    return FAILED;
+        return FAILED;
     }
     else {
       ind = FAILED;
@@ -7301,25 +7305,25 @@ int directive_snesnativevector(void) {
     if (tmp[0] == '.') {
       q = parse_if_directive();
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       else if (q == SUCCEEDED)
-    continue;
+        continue;
       /* else q == -1, continue executing below */
     }
 
     if (strcaselesscmp(tmp, ".ENDNATIVEVECTOR") == 0) {
       if (cop_defined == 0)
-    snprintf(cop, sizeof(cop), "y%d ", 0x0000);
+        snprintf(cop, sizeof(cop), "y%d ", 0x0000);
       if (brk_defined == 0)
-    snprintf(brk, sizeof(brk), "y%d ", 0x0000);
+        snprintf(brk, sizeof(brk), "y%d ", 0x0000);
       if (abort_defined == 0)
-    snprintf(abort, sizeof(abort), "y%d ", 0x0000);
+        snprintf(abort, sizeof(abort), "y%d ", 0x0000);
       if (nmi_defined == 0)
-    snprintf(nmi, sizeof(nmi), "y%d ", 0x0000);
+        snprintf(nmi, sizeof(nmi), "y%d ", 0x0000);
       if (unused_defined == 0) 
-    snprintf(unused, sizeof(unused), "y%d ", 0x0000);
+        snprintf(unused, sizeof(unused), "y%d ", 0x0000);
       if (irq_defined == 0)
-    snprintf(irq, sizeof(irq), "y%d ", 0x0000);
+        snprintf(irq, sizeof(irq), "y%d ", 0x0000);
       
       fprintf(file_out_ptr, "%s%s%s%s%s%s s p ", cop, brk, abort, nmi, unused, irq);
       
@@ -7327,139 +7331,139 @@ int directive_snesnativevector(void) {
     }
     else if (strcaselesscmp(tmp, "COP") == 0) {
       if (cop_defined != 0) {
-    print_error("COP can only be defined once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("COP can only be defined once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-    snprintf(emsg, sizeof(emsg), "COP expects 16-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "COP expects 16-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (inz == SUCCEEDED)
-    snprintf(cop, sizeof(cop), "y%d ", d);
+        snprintf(cop, sizeof(cop), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-    snprintf(cop, sizeof(cop), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(cop, sizeof(cop), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-    snprintf(cop, sizeof(cop), "C%d ", latest_stack);
+        snprintf(cop, sizeof(cop), "C%d ", latest_stack);
 
       cop_defined++;
     }
     else if (strcaselesscmp(tmp, "BRK") == 0) {
       if (brk_defined != 0) {
-    print_error("BRK can only be defined once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("BRK can only be defined once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-    snprintf(emsg, sizeof(emsg), "BRK expects 16-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "BRK expects 16-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (inz == SUCCEEDED)
-    snprintf(brk, sizeof(brk), "y%d ", d);
+        snprintf(brk, sizeof(brk), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-    snprintf(brk, sizeof(brk), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(brk, sizeof(brk), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-    snprintf(brk, sizeof(brk), "C%d ", latest_stack);
+        snprintf(brk, sizeof(brk), "C%d ", latest_stack);
 
       brk_defined++;
     }
     else if (strcaselesscmp(tmp, "ABORT") == 0) {
       if (abort_defined != 0) {
-    print_error("ABORT can only be defined once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("ABORT can only be defined once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-    snprintf(emsg, sizeof(emsg), "ABORT expects 16-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "ABORT expects 16-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (inz == SUCCEEDED)
-    snprintf(abort, sizeof(abort), "y%d ", d);
+        snprintf(abort, sizeof(abort), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-    snprintf(abort, sizeof(abort), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(abort, sizeof(abort), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-    snprintf(abort, sizeof(abort), "C%d ", latest_stack);
+        snprintf(abort, sizeof(abort), "C%d ", latest_stack);
 
       abort_defined++;
     }
     else if (strcaselesscmp(tmp, "NMI") == 0) {
       if (nmi_defined != 0) {
-    print_error("NMI can only be defined once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("NMI can only be defined once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-    snprintf(emsg, sizeof(emsg), "NMI expects 16-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "NMI expects 16-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (inz == SUCCEEDED)
-    snprintf(nmi, sizeof(nmi), "y%d ", d);
+        snprintf(nmi, sizeof(nmi), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-    snprintf(nmi, sizeof(nmi), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(nmi, sizeof(nmi), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-    snprintf(nmi, sizeof(nmi), "C%d ", latest_stack);
+        snprintf(nmi, sizeof(nmi), "C%d ", latest_stack);
 
       nmi_defined++;
     }
     else if (strcaselesscmp(tmp, "UNUSED") == 0) {
       if (unused_defined != 0) {
-    print_error("UNUSED can only be defined once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("UNUSED can only be defined once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-    snprintf(emsg, sizeof(emsg), "UNUSED expects 16-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "UNUSED expects 16-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (inz == SUCCEEDED)
-    snprintf(unused, sizeof(unused), "y%d ", d);
+        snprintf(unused, sizeof(unused), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-    snprintf(unused, sizeof(unused), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(unused, sizeof(unused), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-    snprintf(unused, sizeof(unused), "C%d ", latest_stack);
+        snprintf(unused, sizeof(unused), "C%d ", latest_stack);
 
       unused_defined++;
     }
     else if (strcaselesscmp(tmp, "IRQ") == 0) {
       if (irq_defined != 0) {
-    print_error("IRQ can only be defined once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("IRQ can only be defined once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-    snprintf(emsg, sizeof(emsg), "IRQ expects 16-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "IRQ expects 16-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (inz == SUCCEEDED)
-    snprintf(irq, sizeof(irq), "y%d ", d);
+        snprintf(irq, sizeof(irq), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-    snprintf(irq, sizeof(irq), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(irq, sizeof(irq), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-    snprintf(irq, sizeof(irq), "C%d ", latest_stack);
+        snprintf(irq, sizeof(irq), "C%d ", latest_stack);
 
       irq_defined++;
     }
@@ -7521,25 +7525,25 @@ int directive_snesemuvector(void) {
     if (tmp[0] == '.') {
       q = parse_if_directive();
       if (q == FAILED)
-    return FAILED;
+        return FAILED;
       else if (q == SUCCEEDED)
-    continue;
+        continue;
       /* else q == -1, continue executing below */
     }
 
     if (strcaselesscmp(tmp, ".ENDEMUVECTOR") == 0) {
       if (cop_defined == 0)
-    snprintf(cop, sizeof(cop), "y%d ", 0);
+        snprintf(cop, sizeof(cop), "y%d ", 0);
       if (reset_defined == 0)
-    snprintf(reset, sizeof(reset), "y%d ", 0);
+        snprintf(reset, sizeof(reset), "y%d ", 0);
       if (abort_defined == 0)
-    snprintf(abort, sizeof(abort), "y%d ", 0);
+        snprintf(abort, sizeof(abort), "y%d ", 0);
       if (nmi_defined == 0)
-    snprintf(nmi, sizeof(nmi), "y%d ", 0);
+        snprintf(nmi, sizeof(nmi), "y%d ", 0);
       if (unused_defined == 0)
-    snprintf(unused, sizeof(unused), "y%d ", 0);
+        snprintf(unused, sizeof(unused), "y%d ", 0);
       if (irqbrk_defined == 0)
-    snprintf(irqbrk, sizeof(irqbrk), "y%d ", 0);
+        snprintf(irqbrk, sizeof(irqbrk), "y%d ", 0);
 
       fprintf(file_out_ptr, "%s%s%s%s%s%s s p ", cop, unused, abort, nmi, reset, irqbrk);
       
@@ -7547,139 +7551,139 @@ int directive_snesemuvector(void) {
     }
     else if (strcaselesscmp(tmp, "COP") == 0) {
       if (cop_defined != 0) {
-    print_error("COP can only be defined once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("COP can only be defined once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-    snprintf(emsg, sizeof(emsg), "COP expects 16-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "COP expects 16-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (inz == SUCCEEDED)
-    snprintf(cop, sizeof(cop), "y%d ", d);
+        snprintf(cop, sizeof(cop), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-    snprintf(cop, sizeof(cop), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(cop, sizeof(cop), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-    snprintf(cop, sizeof(cop), "C%d ", latest_stack);
+        snprintf(cop, sizeof(cop), "C%d ", latest_stack);
 
       cop_defined++;
     }
     else if (strcaselesscmp(tmp, "RESET") == 0) {
       if (reset_defined != 0) {
-    print_error("RESET can only be defined once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("RESET can only be defined once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-    snprintf(emsg, sizeof(emsg), "RESET expects 16-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "RESET expects 16-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (inz == SUCCEEDED)
-    snprintf(reset, sizeof(reset), "y%d ", d);
+        snprintf(reset, sizeof(reset), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-    snprintf(reset, sizeof(reset), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(reset, sizeof(reset), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-    snprintf(reset, sizeof(reset), "C%d ", latest_stack);
+        snprintf(reset, sizeof(reset), "C%d ", latest_stack);
 
       reset_defined++;
     }
     else if (strcaselesscmp(tmp, "ABORT") == 0) {
       if (abort_defined != 0) {
-    print_error("ABORT can only be defined once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("ABORT can only be defined once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-    snprintf(emsg, sizeof(emsg), "ABORT expects 16-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "ABORT expects 16-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (inz == SUCCEEDED)
-    snprintf(abort, sizeof(abort), "y%d ", d);
+        snprintf(abort, sizeof(abort), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-    snprintf(abort, sizeof(abort), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(abort, sizeof(abort), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-    snprintf(abort, sizeof(abort), "C%d ", latest_stack);
+        snprintf(abort, sizeof(abort), "C%d ", latest_stack);
 
       abort_defined++;
     }
     else if (strcaselesscmp(tmp, "NMI") == 0) {
       if (nmi_defined != 0) {
-    print_error("NMI can only be defined once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("NMI can only be defined once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-    snprintf(emsg, sizeof(emsg), "NMI expects 16-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "NMI expects 16-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (inz == SUCCEEDED)
-    snprintf(nmi, sizeof(nmi), "y%d ", d);
+        snprintf(nmi, sizeof(nmi), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-    snprintf(nmi, sizeof(nmi), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(nmi, sizeof(nmi), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-    snprintf(nmi, sizeof(nmi), "C%d ", latest_stack);
+        snprintf(nmi, sizeof(nmi), "C%d ", latest_stack);
 
       nmi_defined++;
     }
     else if (strcaselesscmp(tmp, "UNUSED") == 0) {
       if (unused_defined != 0) {
-    print_error("UNUSED can only be defined once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("UNUSED can only be defined once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
 
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-    snprintf(emsg, sizeof(emsg), "UNUSED expects 16-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "UNUSED expects 16-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (inz == SUCCEEDED)
-    snprintf(unused, sizeof(unused), "y%d ", d);
+        snprintf(unused, sizeof(unused), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-    snprintf(unused, sizeof(unused), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(unused, sizeof(unused), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-    snprintf(unused, sizeof(unused), "C%d ", latest_stack);
+        snprintf(unused, sizeof(unused), "C%d ", latest_stack);
 
       unused_defined++;
     }
     else if (strcaselesscmp(tmp, "IRQBRK") == 0) {
       if (irqbrk_defined != 0) {
-    print_error("IRQBRK can only be defined once.\n", ERROR_DIR);
-    return FAILED;
+        print_error("IRQBRK can only be defined once.\n", ERROR_DIR);
+        return FAILED;
       }
 
       inz = input_number();
       
       if (inz == SUCCEEDED && (d < -32768 || d > 65535)) {
-    snprintf(emsg, sizeof(emsg), "IRQBRK expects 16-bit data, %d is out of range!\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "IRQBRK expects 16-bit data, %d is out of range!\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       if (inz == SUCCEEDED)
-    snprintf(irqbrk, sizeof(irqbrk), "y%d ", d);
+        snprintf(irqbrk, sizeof(irqbrk), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-    snprintf(irqbrk, sizeof(irqbrk), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(irqbrk, sizeof(irqbrk), "k%d r%s ", active_file_info_last->line_current, label);
       else if (inz == INPUT_NUMBER_STACK)
-    snprintf(irqbrk, sizeof(irqbrk), "C%d ", latest_stack);
+        snprintf(irqbrk, sizeof(irqbrk), "C%d ", latest_stack);
 
       irqbrk_defined++;
     }
@@ -7713,14 +7717,14 @@ int directive_print(void) {
       
     if (compare_next_token("HEX") == SUCCEEDED) {
       if (skip_next_token() == FAILED)
-    return FAILED;
+        return FAILED;
       
       value_type = 0;
       get_value = YES;
     }
     else if (compare_next_token("DEC") == SUCCEEDED) {
       if (skip_next_token() == FAILED)
-    return FAILED;
+        return FAILED;
 
       value_type = 1;
       get_value = YES;
@@ -7732,24 +7736,24 @@ int directive_print(void) {
       char t[256];
     
       if (get_value == YES) {
-    print_error(".PRINT was expecting a value, got a string/label instead.\n", ERROR_INP);
-    return FAILED;
+        print_error(".PRINT was expecting a value, got a string/label instead.\n", ERROR_INP);
+        return FAILED;
       }
 
       parse_print_string(label, t, 256);
 
       if (quiet == NO) {
-    printf("%s", t);
-    fflush(stdout);
+        printf("%s", t);
+        fflush(stdout);
       }
     }
     else if (inz == SUCCEEDED) {
       if (quiet == NO) {
-    if (value_type == 0)
-      printf("%x", d);
-    else
-      printf("%d", d);
-    fflush(stdout);
+        if (value_type == 0)
+          printf("%x", d);
+        else
+          printf("%d", d);
+        fflush(stdout);
       }
     }
     else if (inz == INPUT_NUMBER_EOL) {
@@ -7889,17 +7893,17 @@ int directive_dbrnd_dwrnd(void) {
     
     if (o == 1) {
       if (d < -32768 || d > 65535) {
-    snprintf(emsg, sizeof(emsg), ".%s: Expected a 16-bit value, computed %d.\n", cp, d);
-    print_error(emsg, ERROR_NONE);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), ".%s: Expected a 16-bit value, computed %d.\n", cp, d);
+        print_error(emsg, ERROR_NONE);
+        return FAILED;
       }
       fprintf(file_out_ptr, "y %d ", d);
     }
     else {
       if (d > 255 || d < -128) {
-    snprintf(emsg, sizeof(emsg), ".%s: Expected a 8-bit value, computed %d.\n", cp, d);
-    print_error(emsg, ERROR_NONE);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), ".%s: Expected a 8-bit value, computed %d.\n", cp, d);
+        print_error(emsg, ERROR_NONE);
+        return FAILED;
       }
       fprintf(file_out_ptr, "d%d ", d);
     }
@@ -7994,17 +7998,17 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
 
     if (o == 1) {
       if (d < -32768 || d > 65535) {
-    snprintf(emsg, sizeof(emsg), ".%s: Expected a 16-bit value, computed %d.\n", cp, d);
-    print_error(emsg, ERROR_NONE);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), ".%s: Expected a 16-bit value, computed %d.\n", cp, d);
+        print_error(emsg, ERROR_NONE);
+        return FAILED;
       }
       fprintf(file_out_ptr, "y %d ", d);
     }
     else {
       if (d > 255 || d < -128) {
-    snprintf(emsg, sizeof(emsg), ".%s: Expected a 8-bit value, computed %d.\n", cp, d);
-    print_error(emsg, ERROR_NONE);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), ".%s: Expected a 8-bit value, computed %d.\n", cp, d);
+        print_error(emsg, ERROR_NONE);
+        return FAILED;
       }
       fprintf(file_out_ptr, "d%d ", d);
     }
@@ -8066,15 +8070,15 @@ int directive_stringmap_table(void) {
     unsigned char* bytes_writer;
     int accumulator = 0;
 
-    ++line_number;
+    line_number++;
 
-    /* Skip comments */
+    /* skip comments */
     if (*p == ';' || *p == '#')
       continue;
 
     equals_pos = strchr(p, '=');
 
-    /* Lines should be in the form <hex>=<text> with no whitespace. */
+    /* lines should be in the form <hex>=<text> with no whitespace. */
     if (equals_pos == NULL)
       continue;
 
@@ -8084,11 +8088,11 @@ int directive_stringmap_table(void) {
       return FAILED;
     }
 
-    /* Insert at front of entries list */
+    /* insert at front of entries list */
     entry->next = map->entries;
     map->entries = entry;
 
-    /* Left of = should be a string of hex digits, for a variable whole number of bytes */
+    /* left of = should be a string of hex digits, for a variable whole number of bytes */
     char_count = (int)(equals_pos - p);
     if (char_count == 0) {
       snprintf(emsg, sizeof(emsg), "STRINGMAPTABLE: No text before '=' at line %d of file \"%s\".\n", line_number, label);
@@ -8103,7 +8107,7 @@ int directive_stringmap_table(void) {
     }
     bytes_writer = entry->bytes;
     for (; p != equals_pos; ++p) {
-      /* Parse character as hex */
+      /* parse character as hex */
       const char c = *p;
       if (c >= '0' && c <= '9')
         accumulator |= c - '0';
@@ -8116,18 +8120,18 @@ int directive_stringmap_table(void) {
         print_error(emsg, ERROR_DIR);
         return FAILED;
       }
-      /* Emit to buffer or shift depending on position */
+      /* emit to buffer or shift depending on position */
       if ((equals_pos - p) % 2 == 0) {
-        /* Even count -> shift */
+        /* even count -> shift */
         accumulator <<= 4;
       }
       else {
-        /* Odd -> finished a byte */
+        /* odd -> finished a byte */
         *bytes_writer++ = (unsigned char)accumulator;
         accumulator = 0;
       }
     }
-    /* Then the string. We want to remove any trailing CRLF. */
+    /* then the string. we want to remove any trailing CRLF. */
     p[strcspn(p, "\r\n")] = 0;
     entry->text_length = (int)strlen(++p);
     if (entry->text_length == 0) {
@@ -8156,7 +8160,7 @@ int directive_stringmap(void) {
   struct stringmaptable *table;
   char *p;
 
-  /* First get the map name */
+  /* first get the map name */
   expect_calculations = NO;
   parse_result = input_number();
   expect_calculations = YES;
@@ -8166,10 +8170,10 @@ int directive_stringmap(void) {
     return FAILED;
   }
 
-  /* Find the table */
+  /* find the table */
   for (table = stringmaptables; table != NULL; table = table->next) {
     if (strcaselesscmp(table->name, label) == 0) {
-      /* Found it */
+      /* found it */
       break;
     }
   }
@@ -8179,7 +8183,7 @@ int directive_stringmap(void) {
     return FAILED;    
   }
 
-  /* Parse the string */
+  /* parse the string */
   parse_result = input_number();
   if (parse_result != INPUT_NUMBER_STRING) {
     print_error("STRINGMAP: no string given", ERROR_DIR);
@@ -8188,22 +8192,22 @@ int directive_stringmap(void) {
 
   fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
 
-  /* Parse it */
+  /* parse it */
   for (p = label; *p != 0; /* increment in loop */) {
     struct stringmap_entry *candidate, *entry = NULL;
     int i;
 
-    /* Find the longest match for the current string position */
+    /* find the longest match for the current string position */
     for (candidate = table->entries; candidate != NULL; candidate = candidate->next) {
-      /* Skip candidates not longer than the current best */
+      /* skip candidates not longer than the current best */
       if (entry != NULL && entry->text_length >= candidate->text_length)
         continue;
 
-      /* Check for a match */
+      /* check for a match */
       if (strncmp(p, candidate->text, candidate->text_length) == 0)
         entry = candidate;
     }
-    /* If no match was found, it's an error */
+    /* if no match was found, it's an error */
     if (entry == NULL) {
       snprintf(emsg, sizeof(emsg), "STRINGMAP: could not find a match in the table at substring \"%s\".\n", p);
       print_error(emsg, ERROR_DIR);
@@ -8879,9 +8883,8 @@ int parse_directive(void) {
   if (strcaselesscmp(cp, "COMPUTECHECKSUM") == 0 || strcaselesscmp(cp, "COMPUTEGBCHECKSUM") == 0) {
     no_library_files(".COMPUTEGBCHECKSUM");
     
-    if (gbheader_defined != 0) {
+    if (gbheader_defined != 0)
       print_error(".COMPUTEGBCHECKSUM is unnecessary when GBHEADER is defined.\n", ERROR_WRN);
-    }
 
     computechecksum_defined = 1;
 
@@ -8893,9 +8896,8 @@ int parse_directive(void) {
   if (strcaselesscmp(cp, "COMPUTEGBCOMPLEMENTCHECK") == 0 || strcaselesscmp(cp, "COMPUTECOMPLEMENTCHECK") == 0) {
     no_library_files(".COMPUTEGBCOMPLEMENTCHECK");
     
-    if (gbheader_defined != 0) {
+    if (gbheader_defined != 0)
       print_error(".COMPUTEGBCOMPLEMENTCHECK is unnecessary when GBHEADER is defined.\n", ERROR_WRN);
-    }
 
     computecomplementcheck_defined = 1;
 
@@ -8990,8 +8992,8 @@ int parse_directive(void) {
       fprintf(file_out_ptr, "J ");
 
       if (strlen(rr->index_name) > 0) {
-          if (undefine(rr->index_name) == FAILED)
-              return FAILED;
+        if (undefine(rr->index_name) == FAILED)
+          return FAILED;
       }
       return SUCCEEDED;
     }
@@ -8999,7 +9001,7 @@ int parse_directive(void) {
     rr->repeats++;
     if (strlen(rr->index_name) > 0) {
       if (redefine(rr->index_name, (double)rr->repeats, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-    return FAILED;
+        return FAILED;
     }
     
     i = rr->start;
@@ -9041,15 +9043,15 @@ int parse_directive(void) {
     if (extra_definitions == ON) {
       file_name_info_tmp = file_name_info_first;
       while (file_name_info_tmp != NULL) {
-    if (file_name_info_tmp->id == d)
-      break;
-    file_name_info_tmp = file_name_info_tmp->next;
+        if (file_name_info_tmp->id == d)
+          break;
+        file_name_info_tmp = file_name_info_tmp->next;
       }
 
       if (file_name_info_tmp == NULL) {
-    snprintf(emsg, sizeof(emsg), "Internal error: Could not find the name of file %d.\n", d);
-    print_error(emsg, ERROR_DIR);
-    return FAILED;
+        snprintf(emsg, sizeof(emsg), "Internal error: Could not find the name of file %d.\n", d);
+        print_error(emsg, ERROR_DIR);
+        return FAILED;
       }
 
       redefine("WLA_FILENAME", 0.0, file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(file_name_info_tmp->name));
@@ -9069,8 +9071,8 @@ int parse_directive(void) {
       expect_calculations = YES;
     
       if (q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
-    print_error("Internal error: Namespace string is missing.\n", ERROR_DIR);
-    return FAILED;
+        print_error("Internal error: Namespace string is missing.\n", ERROR_DIR);
+        return FAILED;
       }
 
       strcpy(active_file_info_tmp->namespace, label);
@@ -9105,10 +9107,10 @@ int parse_directive(void) {
       else {
         fprintf(file_out_ptr, "f%d ", active_file_info_last->filename_id);
 
-    if (active_file_info_last->namespace[0] == 0)
-      fprintf(file_out_ptr, "t0 ");
-    else
-      fprintf(file_out_ptr, "t1 %s ", active_file_info_last->namespace);	  
+        if (active_file_info_last->namespace[0] == 0)
+          fprintf(file_out_ptr, "t0 ");
+        else
+          fprintf(file_out_ptr, "t1 %s ", active_file_info_last->namespace);      
       }
     }
 
@@ -9123,9 +9125,9 @@ int parse_directive(void) {
 
     if (extra_definitions == ON) {
       redefine("WLA_FILENAME", 0.0, get_file_name(active_file_info_last->filename_id), DEFINITION_TYPE_STRING,
-           (int)strlen(get_file_name(active_file_info_last->filename_id)));
+               (int)strlen(get_file_name(active_file_info_last->filename_id)));
       redefine("wla_filename", 0.0, get_file_name(active_file_info_last->filename_id), DEFINITION_TYPE_STRING,
-           (int)strlen(get_file_name(active_file_info_last->filename_id)));
+               (int)strlen(get_file_name(active_file_info_last->filename_id)));
     }
 
     return SUCCEEDED;
@@ -9392,19 +9394,19 @@ int parse_directive(void) {
 
   /* EXLOROM */
   /*
-  if (strcaselesscmp(cp, "EXLOROM") == 0) {
+    if (strcaselesscmp(cp, "EXLOROM") == 0) {
     no_library_files(".EXLOROM");
 
     if (hirom_defined != 0 || lorom_defined != 0 || exhirom_defined != 0) {
-      give_snes_rom_mode_defined_error(".EXLOROM");
-      return FAILED;
+    give_snes_rom_mode_defined_error(".EXLOROM");
+    return FAILED;
     }
 
     exlorom_defined++;
     snes_mode++;
 
     return SUCCEEDED;
-  }
+    }
   */
   /* SLOWROM */
 
@@ -10038,8 +10040,8 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
 
       /* export the definition? */
       if (compare_next_token("EXPORT") == SUCCEEDED) {
-    skip_next_token();
-    *export = YES;
+        skip_next_token();
+        *export = YES;
       }
 
       x = input_number();
@@ -10179,13 +10181,13 @@ int add_label_to_label_stack(char *l) {
     strcpy(label_stack[level], &l[level-1]);
 
   /*
-  fprintf(stderr, "*************************************\n");
-  fprintf(stderr, "LABEL STACK:\n");
-  for (q = 0; q < 256; q++) {
+    fprintf(stderr, "*************************************\n");
+    fprintf(stderr, "LABEL STACK:\n");
+    for (q = 0; q < 256; q++) {
     if (label_stack[q][0] != 0)
-      fprintf(stderr, "%s LEVEL %d\n", label_stack[q], q);
-  }
-  fprintf(stderr, "*************************************\n");
+    fprintf(stderr, "%s LEVEL %d\n", label_stack[q], q);
+    }
+    fprintf(stderr, "*************************************\n");
   */
 
   return SUCCEEDED;
@@ -10212,15 +10214,15 @@ int get_full_label(char *l, char *out) {
     strcpy(out, label_stack[0]);
     for (q = 1; q < level; q++) {
       if (strlen(out) + strlen(label_stack[q]) >= MAX_NAME_LENGTH) {
-    print_error(error_message, ERROR_ERR);
-    return FAILED;	
+        print_error(error_message, ERROR_ERR);
+        return FAILED;  
       }
       strncat(out, label_stack[q], MAX_NAME_LENGTH);
     }
 
     if (strlen(out) + strlen(&l[level-1]) >= MAX_NAME_LENGTH) {
       print_error(error_message, ERROR_ERR);
-      return FAILED;	
+      return FAILED;    
     }
 
     strncat(out, &l[level-1], MAX_NAME_LENGTH);

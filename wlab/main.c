@@ -1,8 +1,8 @@
 
 /*
- wlab - part of wla dx gb-z80/z80/6502/6510/65816 macro assembler package by
- ville helin <vhelin@cc.hut.fi>. this is gpl software.
- */
+  wlab - part of wla dx gb-z80/z80/6502/6510/65816 macro assembler package by
+  ville helin <vhelin@cc.hut.fi>. this is gpl software.
+*/
 
 #include <ctype.h>
 #include <stdio.h>
@@ -106,27 +106,27 @@ int main(int argc, char *argv[]) {
     for (i = 0; t > 0; t--, i += 8) {
       fprintf(stdout, ".DB $%.2x, $%.2x, $%.2x, $%.2x, $%.2x, $%.2x, $%.2x, $%.2x", in[i], in[i + 1], in[i + 2], in[i + 3], in[i + 4], in[i + 5], in[i + 6], in[i + 7]);
       if (address == ON) {
-	ae = a + 8-1;
-	print_address();
-	a += 8;
+        ae = a + 8-1;
+        print_address();
+        a += 8;
       }
       else
-	fprintf(stdout, "\n");
+        fprintf(stdout, "\n");
     }
 
     if (fs != 0) {
       fprintf(stdout, ".DB");
       for (; fs > 0; fs--) {
-	fprintf(stdout, " $%.2x", in[i++]);
-	if (fs > 1)
-	  fprintf(stdout, ",");
+        fprintf(stdout, " $%.2x", in[i++]);
+        if (fs > 1)
+          fprintf(stdout, ",");
       }
       if (address == ON) {
-	ae = i-1;
-	print_address();
+        ae = i-1;
+        print_address();
       }
       else
-	fprintf(stdout, "\n");
+        fprintf(stdout, "\n");
     }
 
   }
@@ -140,27 +140,27 @@ int main(int argc, char *argv[]) {
     for (i = 0; t > 0; t--, i += 8) {
       fprintf(stdout, ".DB %d, %d, %d, %d, %d, %d, %d, %d", in[i], in[i + 1], in[i + 2], in[i + 3], in[i + 4], in[i + 5], in[i + 6], in[i + 7]);
       if (address == ON) {
-	ae = a + 8-1;
-	print_address();
-	a += 8;
+        ae = a + 8-1;
+        print_address();
+        a += 8;
       }
       else
-	fprintf(stdout, "\n");
+        fprintf(stdout, "\n");
     }
 
     if (fs != 0) {
       fprintf(stdout, ".DB");
       for (; fs > 0; fs--) {
-	fprintf(stdout, " %d", in[i++]);
-	if (fs > 1)
-	  fprintf(stdout, ",");
+        fprintf(stdout, " %d", in[i++]);
+        if (fs > 1)
+          fprintf(stdout, ",");
       }
       if (address == ON) {
-	ae = i-1;
-	print_address();
+        ae = i-1;
+        print_address();
       }
       else
-	fprintf(stdout, "\n");
+        fprintf(stdout, "\n");
     }
 
   }
@@ -174,21 +174,21 @@ int main(int argc, char *argv[]) {
       fprintf(stdout, ".DB %%");
       d = 0;
       for (t = 7; t > -1; t--) {
-	b = 1 << t;
-	c = in[i] & b;
-	d = c >> t;
-	if (d == 0)
-	  fprintf(stdout, "0");
-	else
-	  fprintf(stdout, "1");
+        b = 1 << t;
+        c = in[i] & b;
+        d = c >> t;
+        if (d == 0)
+          fprintf(stdout, "0");
+        else
+          fprintf(stdout, "1");
       }
       if (address == ON) {
-	ae = a;
-	print_address();
-	a++;
+        ae = a;
+        print_address();
+        a++;
       }
       else
-	fprintf(stdout, "\n");
+        fprintf(stdout, "\n");
     }
 
   }
@@ -261,19 +261,19 @@ int parse_flags(char *f) {
 
     case 'd':
       if (mode != MOD_NONE)
-	return FAILED;
+        return FAILED;
       mode = MOD_DEC;
       continue;
 
     case 'h':
       if (mode != MOD_NONE)
-	return FAILED;
+        return FAILED;
       mode = MOD_HEX;
       continue;
 
     case 'b':
       if (mode != MOD_NONE)
-	return FAILED;
+        return FAILED;
       mode = MOD_BIN;
       continue;
 

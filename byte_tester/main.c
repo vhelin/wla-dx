@@ -132,7 +132,7 @@ int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_
   fclose(fb);
 
   *did_we_read_data = YES;
-	
+        
   return SUCCEEDED;
 }
 
@@ -202,68 +202,68 @@ int main(int argc, char *argv[]) {
       use_address = YES;
 
       if (fscanf(f, "%255s", tmp) == EOF)
-	break;
+        break;
 
       if (_get_next_number(tmp, &address) == FAILED) {
-	fprintf(stderr, "\"%s\" is not a number.\n", tmp);
-	failures = 1;
-	break;
+        fprintf(stderr, "\"%s\" is not a number.\n", tmp);
+        failures = 1;
+        break;
       }
 
       if (fscanf(f, "%255s", tmp) == EOF)
-	break;
+        break;
 
       if (strcmp(tmp, "START") != 0) {
-	fprintf(stderr, "Test \"%s\" FAILED - START is missing in \"%s\".\n", test_id, argv[1]);
-	failures = 1;
-	break;
+        fprintf(stderr, "Test \"%s\" FAILED - START is missing in \"%s\".\n", test_id, argv[1]);
+        failures = 1;
+        break;
       }
     }
     else if (strcmp(tag_id, "-y") == 0) {
       if (fscanf(f, "%255s", tmp) == EOF)
-	break;
+        break;
 
       length = (int)strlen(tmp);
       got_it = NO;
 
       for (i = 0; i < file_size; i++) {
-	for (j = 0; j < length; j++) {
-	  if (binary_file[i+j] != tmp[j])
-	      break;
-	}
-	if (j == length) {
-	  /* we found the string -> ok! */
-	  got_it = YES;
-	  break;
-	}
+        for (j = 0; j < length; j++) {
+          if (binary_file[i+j] != tmp[j])
+            break;
+        }
+        if (j == length) {
+          /* we found the string -> ok! */
+          got_it = YES;
+          break;
+        }
       }
 
       if (got_it == YES) {
-	fprintf(stderr, "Test \"%s\" SUCCEEDED!\n", test_id);
-	continue;
+        fprintf(stderr, "Test \"%s\" SUCCEEDED!\n", test_id);
+        continue;
       }
     }
     else if (strcmp(tag_id, "-n") == 0) {
       if (fscanf(f, "%255s", tmp) == EOF)
-	break;
+        break;
 
       length = (int)strlen(tmp);
       got_it = NO;
       
       for (i = 0; i < file_size; i++) {
-	for (j = 0; j < length; j++) {
-	  if (binary_file[i+j] != tmp[j])
-	      break;
-	}
-	if (j == length) {
-	  /* we found the string -> not ok! */
-	  got_it = YES;
-	  break;
-	}
+        for (j = 0; j < length; j++) {
+          if (binary_file[i+j] != tmp[j])
+            break;
+        }
+        if (j == length) {
+          /* we found the string -> not ok! */
+          got_it = YES;
+          break;
+        }
       }
 
       if (got_it == YES)
-	return 1;
+        return 1;
 
       fprintf(stderr, "Test \"%s\" SUCCEEDED!\n", test_id);
 
@@ -271,12 +271,12 @@ int main(int argc, char *argv[]) {
     }
     else {
       if (fscanf(f, "%255s", tmp) == EOF)
-	break;
+        break;
 
       if (strcmp(tmp, "START") != 0) {
-	fprintf(stderr, "Test \"%s\" FAILED - START/-a/-y/-n is missing in \"%s\".\n", test_id, argv[1]);
-	failures = 1;
-	break;
+        fprintf(stderr, "Test \"%s\" FAILED - START/-a/-y/-n is missing in \"%s\".\n", test_id, argv[1]);
+        failures = 1;
+        break;
       }
     }
     
@@ -284,29 +284,29 @@ int main(int argc, char *argv[]) {
 
     while (1) {
       if (byte_count == 256) {
-	fprintf(stderr, "Test \"%s\" FAILED - Each test can contain max 256 bytes.\n", test_id);
-	failures = 1;
-	end = 1;
-	break;
+        fprintf(stderr, "Test \"%s\" FAILED - Each test can contain max 256 bytes.\n", test_id);
+        failures = 1;
+        end = 1;
+        break;
       }
       
       if (fscanf(f, "%255s", tmp) == EOF) {
-	end = 1;
-	break;
+        end = 1;
+        break;
       }
       
       if (strcmp(tmp, "END") == 0)
-	break;
+        break;
 
       if (strlen(tmp) == 1)
-	bytes[byte_count] = tmp[0];
+        bytes[byte_count] = tmp[0];
       else if (strlen(tmp) == 2)
-	bytes[byte_count] = (unsigned char)strtol(tmp, NULL, 16);
+        bytes[byte_count] = (unsigned char)strtol(tmp, NULL, 16);
       else {
-	fprintf(stderr, "Test \"%s\" FAILED - Unknown data \"%s\" in test \"%s\"! Must either be a character, two character hexadecimal value or END.\n", test_id, tmp, test_id);
+        fprintf(stderr, "Test \"%s\" FAILED - Unknown data \"%s\" in test \"%s\"! Must either be a character, two character hexadecimal value or END.\n", test_id, tmp, test_id);
         failures = 1;
-	end = 1;
-	break;
+        end = 1;
+        break;
       }
 
       byte_count++;
@@ -315,35 +315,35 @@ int main(int argc, char *argv[]) {
     /* execute the test */
     if (use_address == NO) {
       for (i = 0; i < file_size - 2; i++) {
-	if (binary_file[i] == tag_id[0] && binary_file[i+1] == tag_id[1] && binary_file[i+2] == '>')
-	  break;
+        if (binary_file[i] == tag_id[0] && binary_file[i+1] == tag_id[1] && binary_file[i+2] == '>')
+          break;
       }
 
       if (i == file_size - 2) {
-	fprintf(stderr, "Test \"%s\" FAILED - Could not find tag \"%s>\".\n", test_id, tag_id);
-	failures = 1;
-	continue;
+        fprintf(stderr, "Test \"%s\" FAILED - Could not find tag \"%s>\".\n", test_id, tag_id);
+        failures = 1;
+        continue;
       }
 
       tag_start = i+3;
 
       for ( ; i < file_size - 2; i++) {
-	if (binary_file[i] == '<' && binary_file[i+1] == tag_id[0] && binary_file[i+2] == tag_id[1])
-	  break;
+        if (binary_file[i] == '<' && binary_file[i+1] == tag_id[0] && binary_file[i+2] == tag_id[1])
+          break;
       }
 
       if (i == file_size - 2) {
-	fprintf(stderr, "Test \"%s\" FAILED - Could not find tag \"<%s\".\n", test_id, tag_id);
-	failures = 1;
-	continue;
+        fprintf(stderr, "Test \"%s\" FAILED - Could not find tag \"<%s\".\n", test_id, tag_id);
+        failures = 1;
+        continue;
       }
 
       tag_end = i;
 
       if (tag_end - tag_start != byte_count) {
-	fprintf(stderr, "Test \"%s\" FAILED - There is %d bytes between the tags \"%s\", but the test \"%s\" defines only %d bytes.\n", test_id, tag_end - tag_start, tag_id, test_id, byte_count);
-	failures = 1;
-	continue;
+        fprintf(stderr, "Test \"%s\" FAILED - There is %d bytes between the tags \"%s\", but the test \"%s\" defines only %d bytes.\n", test_id, tag_end - tag_start, tag_id, test_id, byte_count);
+        failures = 1;
+        continue;
       }
     }
     else
@@ -353,12 +353,12 @@ int main(int argc, char *argv[]) {
     wrong_bytes = 0;
     for (i = 0; i < byte_count; i++) {
       if (bytes[i] != binary_file[tag_start + i]) {
-	if (wrong_bytes == 0)
-	  fprintf(stderr, "Test \"%s\" FAILED - Bytes that don't match: %d", test_id, (i+1));
-	else
-	  fprintf(stderr, ", %d", (i+1));
-	fprintf(stderr, " (GOT: $%.2x EXPECTED: $%.2x)", binary_file[tag_start + i], bytes[i]);
-	wrong_bytes++;
+        if (wrong_bytes == 0)
+          fprintf(stderr, "Test \"%s\" FAILED - Bytes that don't match: %d", test_id, (i+1));
+        else
+          fprintf(stderr, ", %d", (i+1));
+        fprintf(stderr, " (GOT: $%.2x EXPECTED: $%.2x)", binary_file[tag_start + i], bytes[i]);
+        wrong_bytes++;
       }
     }
 

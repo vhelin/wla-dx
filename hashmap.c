@@ -244,7 +244,7 @@ any_t hashmap_begin_iteration(map_t in) {
 
   /* On empty hashmap, return immediately */
   if (hashmap_length(m) <= 0)
-    return NULL;	
+    return NULL;        
 
   /* Linear probing */
   for (i = 0; i< m->table_size; i++) {

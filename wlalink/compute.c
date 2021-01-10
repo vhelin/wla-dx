@@ -42,25 +42,25 @@ int reserve_checksum_bytes(void) {
       mem_insert(tag_address + 0xB, 0x0);
 
       if (sms_checksum != 0) {
-	/* create a what-we-are-doing message for mem_insert*() warnings/errors */
-	snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Reserving SMS ROM region code byte");
+        /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+        snprintf(mem_insert_action, sizeof(mem_insert_action), "%s", "Reserving SMS ROM region code byte");
 
-	/* region code */
-	if (rom_usage[tag_address + 0xF] == 0) {
-	  int rs = 0;
+        /* region code */
+        if (rom_usage[tag_address + 0xF] == 0) {
+          int rs = 0;
 
-	  /* try to calculate the correct romsize value */
-	  if (romsize < 16*1024)
-	    rs = 0xA; /* 8KB */
-	  else if (romsize < 32*1024)
-	    rs = 0xB; /* 16KB */
-	  else
-	    rs = 0xC; /* 32KB+ */
-	  
-	  mem_insert(tag_address + 0xF, 4 << 4 | rs);
-	}
-	else
-	  mem_insert(tag_address + 0xF, rom[tag_address + 0xF]);
+          /* try to calculate the correct romsize value */
+          if (romsize < 16*1024)
+            rs = 0xA; /* 8KB */
+          else if (romsize < 32*1024)
+            rs = 0xB; /* 16KB */
+          else
+            rs = 0xC; /* 32KB+ */
+          
+          mem_insert(tag_address + 0xF, 4 << 4 | rs);
+        }
+        else
+          mem_insert(tag_address + 0xF, rom[tag_address + 0xF]);
       }
     }
   }
@@ -335,12 +335,12 @@ int compute_snes_checksum(void) {
     if (snes_rom_mode == SNES_ROM_MODE_LOROM || snes_rom_mode == SNES_ROM_MODE_EXLOROM) {
       /* skip the checksum bytes */
       if (!(i == 0x7FDC || i == 0x7FDD || i == 0x7FDE || i == 0x7FDF))
-	checksum += rom[i];
+        checksum += rom[i];
     }
     else {
       /* skip the checksum bytes */
       if (!(i == 0xFFDC || i == 0xFFDD || i == 0xFFDE || i == 0xFFDF))
-	checksum += rom[i];
+        checksum += rom[i];
     }
   }
   for (i = mirror_begin; i < mirror_end; i++) {
