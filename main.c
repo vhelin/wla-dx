@@ -520,7 +520,7 @@ void procedures_at_exit(void) {
 
   /* cleanup any incdirs we added */
   for (index = 0; index < ext_incdirs.count; index++)
-      free(ext_incdirs.names[index]);
+    free(ext_incdirs.names[index]);
   free(ext_incdirs.names);
 }
 

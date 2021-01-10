@@ -100,11 +100,9 @@ int include_file(char *name, int *include_size, char *namespace) {
   FILE *f = NULL;
 
   if (use_incdir == YES) {
-    int error_code;
-      
     /* check all external include directories first */
     for (index = 0; index < ext_incdirs.count; index++) {
-      error_code = try_open_file(ext_incdirs.names[index], name, first_load, &f);
+      int error_code = try_open_file(ext_incdirs.names[index], name, first_load, &f);
       if (error_code != SUCCEEDED)
 	return error_code;
 
@@ -122,7 +120,7 @@ int include_file(char *name, int *include_size, char *namespace) {
   }
 
   if (f != NULL)
-      id = 0;
+    id = 0;
 
   /* if failed try to find the file in the current directory */
   if (f == NULL) {
@@ -156,6 +154,7 @@ int include_file(char *name, int *include_size, char *namespace) {
   /* name */
   file_name_info_tmp = file_name_info_first;
   id = 0;
+
   /* NOTE: every filename, even included multiple times, is unique
   while (file_name_info_tmp != NULL) {
     if (strcmp(file_name_info_tmp->name, full_name) == 0) {
