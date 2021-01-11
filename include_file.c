@@ -108,8 +108,21 @@ int find_file(char *name, FILE** f) {
   }
 
   if (*f == NULL) {
-    fprintf(stderr, "not found.\n");
-    fprintf(stderr, "FIND_FILE: Error opening file \"%s\".\n", name);
+    fprintf(stderr, "%s:%d: ", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current);
+    fprintf(stderr, "FIND_FILE: Could not open \"%s\", searched in the following directories:\n", full_name);
+
+    if (use_incdir == YES) {
+      for (index = 0; index < ext_incdirs.count; index++) {
+        fprintf(stderr, "%s\n", ext_incdirs.names[index]);
+      }
+    }
+
+    if (include_dir != NULL) {
+      fprintf(stderr, "%s\n", include_dir);
+    }
+
+    fprintf(stderr, "Current directory.\n");
+
     return FAILED;
   }
   
