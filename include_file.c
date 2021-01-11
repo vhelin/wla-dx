@@ -86,6 +86,28 @@ int try_open_file(char* directory, char* partial_name, FILE** out_result) {
   return SUCCEEDED;
 }
 
+
+void print_include_search_error() {
+
+  int index;
+
+  fprintf(stderr, "%s:%d: ", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current);
+  fprintf(stderr, "FIND_FILE: Could not open \"%s\", searched in the following directories:\n", full_name);
+
+  if (use_incdir == YES) {
+    for (index = 0; index < ext_incdirs.count; index++) {
+      fprintf(stderr, "%s\n", ext_incdirs.names[index]);
+    }
+  }
+
+  if (include_dir != NULL) {
+    fprintf(stderr, "%s\n", include_dir);
+  }
+
+  fprintf(stderr, "Current directory.\n");
+}
+
+
 int find_file(char *name, FILE** f) {
 
   int index;
@@ -111,23 +133,11 @@ int find_file(char *name, FILE** f) {
   if (*f != NULL)
     return SUCCEEDED;
 
-  fprintf(stderr, "%s:%d: ", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current);
-  fprintf(stderr, "FIND_FILE: Could not open \"%s\", searched in the following directories:\n", full_name);
-
-  if (use_incdir == YES) {
-    for (index = 0; index < ext_incdirs.count; index++) {
-      fprintf(stderr, "%s\n", ext_incdirs.names[index]);
-    }
-  }
-
-  if (include_dir != NULL) {
-    fprintf(stderr, "%s\n", include_dir);
-  }
-
-  fprintf(stderr, "Current directory.\n");
+  print_include_search_error();
 
   return FAILED;
 }
+
 
 int include_file(char *name, int *include_size, char *namespace) {
 
