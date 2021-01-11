@@ -76,10 +76,14 @@ int create_full_name(char *dir, char *name) {
 int try_open_file(char* directory, char* partial_name, FILE** out_result) {
 
   int error_code = create_full_name(directory, partial_name);
-  if (error_code != FAILED)
-    *out_result = fopen(full_name, "rb");
+  if (error_code != SUCCEEDED)
+    return error_code;
+  
+  *out_result = fopen(full_name, "rb");
+  if (*out_result == NULL)
+    return FAILED;
 
-  return error_code;
+  return SUCCEEDED;
 }
 
 int find_file(char *name, FILE** f) {
@@ -93,42 +97,37 @@ int find_file(char *name, FILE** f) {
 
       /* we succeeded and found a valid file, so escape */
       if (*f != NULL)
-        break;
+        return SUCCEEDED;
     }
   }
 
   /* fall through to include_dir if we either didn't check, or failed to find the file in ext_incdirs */
-  if (*f == NULL) {
-    try_open_file(include_dir, name, f);
-  }
+  try_open_file(include_dir, name, f);
+  if (*f != NULL)
+    return SUCCEEDED;
 
   /* if failed try to find the file in the current directory */
-  if (*f == NULL) {
-    (*f) = fopen(name, "rb");
+  (*f) = fopen(name, "rb");
+  if (*f != NULL)
+    return SUCCEEDED;
+
+  fprintf(stderr, "%s:%d: ", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current);
+  fprintf(stderr, "FIND_FILE: Could not open \"%s\", searched in the following directories:\n", full_name);
+
+  if (use_incdir == YES) {
+    for (index = 0; index < ext_incdirs.count; index++) {
+      fprintf(stderr, "%s\n", ext_incdirs.names[index]);
+    }
   }
 
-  if (*f == NULL) {
-    fprintf(stderr, "%s:%d: ", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current);
-    fprintf(stderr, "FIND_FILE: Could not open \"%s\", searched in the following directories:\n", full_name);
-
-    if (use_incdir == YES) {
-      for (index = 0; index < ext_incdirs.count; index++) {
-        fprintf(stderr, "%s\n", ext_incdirs.names[index]);
-      }
-    }
-
-    if (include_dir != NULL) {
-      fprintf(stderr, "%s\n", include_dir);
-    }
-
-    fprintf(stderr, "Current directory.\n");
-
-    return FAILED;
+  if (include_dir != NULL) {
+    fprintf(stderr, "%s\n", include_dir);
   }
-  
-  return SUCCEEDED;
+
+  fprintf(stderr, "Current directory.\n");
+
+  return FAILED;
 }
-
 
 int include_file(char *name, int *include_size, char *namespace) {
 
