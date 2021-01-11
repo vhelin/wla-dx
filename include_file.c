@@ -87,12 +87,12 @@ int try_open_file(char* directory, char* partial_name, FILE** out_result) {
 }
 
 
-void print_include_search_error() {
+void print_include_search_error(char* name) {
 
   int index;
 
   fprintf(stderr, "%s:%d: ", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current);
-  fprintf(stderr, "FIND_FILE: Could not open \"%s\", searched in the following directories:\n", full_name);
+  fprintf(stderr, "FIND_FILE: Could not open \"%s\", searched in the following directories:\n", name);
 
   if (use_incdir == YES) {
     for (index = 0; index < ext_incdirs.count; index++) {
@@ -133,7 +133,7 @@ int find_file(char *name, FILE** f) {
   if (*f != NULL)
     return SUCCEEDED;
 
-  print_include_search_error();
+  print_include_search_error(name);
 
   return FAILED;
 }
