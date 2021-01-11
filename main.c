@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
         final_name = calloc(strlen(asm_name)+1, 1);
         for (n_ctr = 0; n_ctr < (int)strlen(asm_name) && *((asm_name) + n_ctr) != '.'; n_ctr++)
           final_name[n_ctr] = *((asm_name) + n_ctr);
-	final_name[n_ctr++] = '.';
+        final_name[n_ctr++] = '.';
         final_name[n_ctr++] = 'o';
         final_name[n_ctr] = 0;
       }
@@ -216,7 +216,7 @@ int parse_flags(char **flags, int flagc) {
   for (count = 1; count < flagc; count++) {
     if (!strcmp(flags[count], "-o")) {
       if (output_format != OUTPUT_NONE)
-	return FAILED;
+        return FAILED;
       output_format = OUTPUT_OBJECT;
       if (count + 1 < flagc) {
         /* set output */
@@ -231,7 +231,7 @@ int parse_flags(char **flags, int flagc) {
     }
     else if (!strcmp(flags[count], "-l")) {
       if (output_format != OUTPUT_NONE)
-	return FAILED;
+        return FAILED;
       output_format = OUTPUT_LIBRARY;
       if (count + 1 < flagc) {
         /* set output */
@@ -248,17 +248,17 @@ int parse_flags(char **flags, int flagc) {
       if (count + 1 < flagc) {
         if (count + 3 < flagc) {
           if (!strcmp(flags[count+2], "=")) {
-	    int length = (int)strlen(flags[count+1])+(int)strlen(flags[count+3])+2;
+            int length = (int)strlen(flags[count+1])+(int)strlen(flags[count+3])+2;
             str_build = calloc(length, 1);
             snprintf(str_build, length, "%s=%s", flags[count+1], flags[count+3]);
             parse_and_add_definition(str_build, NO);
             free(str_build);
             count += 2;
           }
-	  else
+          else
             parse_and_add_definition(flags[count+1], NO);
         }
-	else
+        else
           parse_and_add_definition(flags[count+1], NO);
       }
       else
@@ -311,25 +311,25 @@ int parse_flags(char **flags, int flagc) {
     }
     else {
       if (count == flagc - 1) {
-	asm_name = calloc(strlen(flags[count]) + 1, 1);
-	strcpy(asm_name, flags[count]);
-	count++;
-	asm_name_def++;
+        asm_name = calloc(strlen(flags[count]) + 1, 1);
+        strcpy(asm_name, flags[count]);
+        count++;
+        asm_name_def++;
       }
       else {
-	/* legacy support? */
-	if (strncmp(flags[count], "-D", 2) == 0) {
-	  /* old define */
-	  parse_and_add_definition(flags[count], YES);
-	  continue;
-	}
-	else if (strncmp(flags[count], "-I", 2) == 0) {
-	  /* old include directory */
-	  parse_and_add_incdir(flags[count], YES);
-	  continue;
-	}
-	else
-	  return FAILED;
+        /* legacy support? */
+        if (strncmp(flags[count], "-D", 2) == 0) {
+          /* old define */
+          parse_and_add_definition(flags[count], YES);
+          continue;
+        }
+        else if (strncmp(flags[count], "-I", 2) == 0) {
+          /* old include directory */
+          parse_and_add_incdir(flags[count], YES);
+          continue;
+        }
+        else
+          return FAILED;
       }
     }
   }
@@ -388,7 +388,7 @@ void procedures_at_exit(void) {
     /* free the argument labels */
     if (m->nargument_names > 0) {
       for (i = 0; i < m->nargument_names; i++)
-	free(m->argument_names[i]);
+        free(m->argument_names[i]);
       free(m->argument_names);
     }
     macros_first = m->next;
@@ -543,7 +543,7 @@ int generate_tmp_name(char **filename) {
   status = snprintf(name, sizeof(name)-1, ".wla%da", pid) + 1;
   if (status >= (int)sizeof(name)) {
     fprintf(stderr, "MAIN: Temp filename exceeded limit: %d >= %d! "
-	    "Aborting...\n", status, (int)sizeof(name));
+      "Aborting...\n", status, (int)sizeof(name));
     abort();
   }
 
@@ -613,20 +613,20 @@ int parse_and_add_definition(char *c, int contains_flag) {
     /* hexadecimal value? */
     if (*c == '$' || ((c[strlen(c)-1] == 'h' || c[strlen(c)-1] == 'H') && (*c >= '0' && *c <= '9'))) {
       if (*c == '$')
-	c++;
+        c++;
       for (i = 0; *c != 0; c++) {
-	if (*c >= '0' && *c <= '9')
-	  i = (i << 4) + *c - '0';
-	else if (*c >= 'a' && *c <= 'f')
-	  i = (i << 4) + *c - 'a' + 10;
-	else if (*c >= 'A' && *c <= 'F')
-	  i = (i << 4) + *c - 'A' + 10;
-	else if ((*c == 'h' || *c == 'H') && *(c+1) == 0)
-	  break;
-	else {
-	  fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value (%s).\n", value);
-	  return FAILED;
-	}
+        if (*c >= '0' && *c <= '9')
+          i = (i << 4) + *c - '0';
+        else if (*c >= 'a' && *c <= 'f')
+          i = (i << 4) + *c - 'a' + 10;
+        else if (*c >= 'A' && *c <= 'F')
+          i = (i << 4) + *c - 'A' + 10;
+        else if ((*c == 'h' || *c == 'H') && *(c+1) == 0)
+          break;
+        else {
+          fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value (%s).\n", value);
+          return FAILED;
+        }
       }
       return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
     }
@@ -634,12 +634,12 @@ int parse_and_add_definition(char *c, int contains_flag) {
     /* decimal value? */
     if (*c >= '0' && *c <= '9') {
       for (i = 0; *c != 0; c++) {
-	if (*c >= '0' && *c <= '9')
-	  i = (i * 10) + *c - '0';
-	else {
-	  fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value (%s).\n", value);
-	  return FAILED;
-	}
+        if (*c >= '0' && *c <= '9')
+          i = (i * 10) + *c - '0';
+        else {
+          fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value (%s).\n", value);
+          return FAILED;
+        }
       }
       return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
     }
@@ -656,11 +656,11 @@ int parse_and_add_definition(char *c, int contains_flag) {
           c++;
           s[t] = '"';
         }
-	else if (*c == '"') {
+        else if (*c == '"') {
           c++;
           break;
         }
-	else
+        else
           s[t] = *c;
       }
       s[t] = 0;
