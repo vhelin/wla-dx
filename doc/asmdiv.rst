@@ -2331,8 +2331,8 @@ Here's an example::
 This will create definitions like ``enemies``, ``enemies.1.id``, ``enemies.1.x``,
 ``enemies.1.y`` and so on. Definition ``enemies`` is followed by four ``enemy_object``
 instances. After those four come ``enemyman`` and ``enemyboss`` instances, but
-as they are single instances, their definitions lack the index:: ``enemyman.id``,
-``enemyman.x``, ``enemyman.y`` and so on.
+as they are single instances, their definitions lack the index: ``enemyman``,
+``enemyman.id``, ``enemyman.x``, ``enemyman.y`` and so on.
 
 Take a look at the documentation on ``.RAMSECTION`` & ``.ENUM``, they have more
 examples of how you can use ``.STRUCT`` s.
