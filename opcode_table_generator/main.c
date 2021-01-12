@@ -28,9 +28,9 @@ int print_table(FILE *f, int *d) {
     fprintf(f, "%d", d[x]);
     if ((x % 8) == 7) {
       if (x == 255)
-	fprintf(f, " };\n");
+        fprintf(f, " };\n");
       else
-	fprintf(f, ",\n");
+        fprintf(f, ",\n");
     }
     else
       fprintf(f, ", ");
@@ -80,8 +80,8 @@ int main(int argc, char *argv[]) {
       a = opt_tmp[n].op[0];
       b = tolower((int)a);
       if (ob > b) {
-	fprintf(stderr, "MAIN: Instruction are NOT in alphabetical order (first letter): '%c' -> '%c'.\n", ob, b);
-	return 1;
+        fprintf(stderr, "MAIN: Instruction are NOT in alphabetical order (first letter): '%c' -> '%c'.\n", ob, b);
+        return 1;
       }
       ob = b;
       opcode_p[(int)a] = n;
