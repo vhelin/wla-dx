@@ -87,7 +87,7 @@ int try_open_file(char* directory, char* partial_name, FILE** out_result) {
 }
 
 
-void print_include_search_error(char* name) {
+static void print_find_error(char* name) {
 
   int index;
 
@@ -108,7 +108,7 @@ void print_include_search_error(char* name) {
 }
 
 
-int find_file(char *name, FILE** f) {
+static int find_file(char *name, FILE** f) {
 
   int index;
 
@@ -133,7 +133,7 @@ int find_file(char *name, FILE** f) {
   if (*f != NULL)
     return SUCCEEDED;
 
-  print_include_search_error(name);
+  print_find_error(name);
 
   return FAILED;
 }
