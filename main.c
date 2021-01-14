@@ -207,131 +207,132 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-
 int parse_flags(char **flags, int flagc) {
-
   int asm_name_def = 0, count;
   char *str_build;
   
   for (count = 1; count < flagc; count++) {
-    if (!strcmp(flags[count], "-o")) {
-      if (output_format != OUTPUT_NONE)
-        return FAILED;
-      output_format = OUTPUT_OBJECT;
-      if (count + 1 < flagc) {
-        /* set output */
-        final_name = calloc(strlen(flags[count+1])+1, 1);
-        strcpy(final_name, flags[count+1]);
-      }
-      else
-        return FAILED;
-
-      count++;
+    if (flags[count][0] != '-') {
       continue;
     }
-    else if (!strcmp(flags[count], "-l")) {
-      if (output_format != OUTPUT_NONE)
-        return FAILED;
-      output_format = OUTPUT_LIBRARY;
-      if (count + 1 < flagc) {
-        /* set output */
-        final_name = calloc(strlen(flags[count+1])+1, 1);
-        strcpy(final_name, flags[count+1]);
-      }
-      else
-        return FAILED;
 
-      count++;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-D")) {
-      if (count + 1 < flagc) {
-        if (count + 3 < flagc) {
-          if (!strcmp(flags[count+2], "=")) {
-            int length = (int)strlen(flags[count+1])+(int)strlen(flags[count+3])+2;
-            str_build = calloc(length, 1);
-            snprintf(str_build, length, "%s=%s", flags[count+1], flags[count+3]);
-            parse_and_add_definition(str_build, NO);
-            free(str_build);
-            count += 2;
+    switch (flags[count][1]) {
+      case 'o':
+        if (output_format != OUTPUT_NONE)
+          return FAILED;
+        output_format = OUTPUT_OBJECT;
+        if (count + 1 < flagc) {
+          /* set output */
+          final_name = calloc(strlen(flags[count+1])+1, 1);
+          strcpy(final_name, flags[count+1]);
+        }
+        else
+          return FAILED;
+
+        count++;
+        break;
+
+      case 'l':
+        if (output_format != OUTPUT_NONE)
+          return FAILED;
+        output_format = OUTPUT_LIBRARY;
+        if (count + 1 < flagc) {
+          /* set output */
+          final_name = calloc(strlen(flags[count+1])+1, 1);
+          strcpy(final_name, flags[count+1]);
+        }
+        else
+          return FAILED;
+
+        count++;
+        break;
+
+      case 'D':
+        if (!flags[count][2] && count + 1 < flagc) {
+          if (count + 3 < flagc) {
+            if (!strcmp(flags[count+2], "=")) {
+              int length = (int)strlen(flags[count+1])+(int)strlen(flags[count+3])+2;
+              str_build = calloc(length, 1);
+              snprintf(str_build, length, "%s=%s", flags[count+1], flags[count+3]);
+              parse_and_add_definition(str_build, NO);
+              free(str_build);
+              count += 2;
+            }
+            else
+              parse_and_add_definition(flags[count+1], NO);
           }
           else
             parse_and_add_definition(flags[count+1], NO);
         }
-        else
-          parse_and_add_definition(flags[count+1], NO);
-      }
-      else
-        return FAILED;
-
-      count++;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-I")) {
-      if (count + 1 < flagc) {
-        /* get arg */
-        parse_and_add_incdir(flags[count+1], NO);
-      }
-      else
-        return FAILED;
-
-      count++;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-i")) {
-      listfile_data = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-v")) {
-      verbose_mode = ON;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-s")) {
-      create_sizeof_definitions = NO;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-t")) {
-      test_mode = ON;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-M")) {
-      makefile_rules = YES;
-      test_mode = ON;
-      verbose_mode = OFF;
-      quiet = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-q")) {
-      quiet = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-x")) {
-      extra_definitions = ON;
-      continue;
-    }
-    else {
-      if (count == flagc - 1) {
-        asm_name = calloc(strlen(flags[count]) + 1, 1);
-        strcpy(asm_name, flags[count]);
-        count++;
-        asm_name_def++;
-      }
-      else {
-        /* legacy support? */
-        if (strncmp(flags[count], "-D", 2) == 0) {
-          /* old define */
+        /* Legacy define */
+        else if (flags[count][2]) {
           parse_and_add_definition(flags[count], YES);
-          continue;
-        }
-        else if (strncmp(flags[count], "-I", 2) == 0) {
-          /* old include directory */
-          parse_and_add_incdir(flags[count], YES);
-          continue;
         }
         else
           return FAILED;
-      }
+
+        count++;
+        break;
+
+      case 'I':
+        if (!flags[count][2] && count + 1 < flagc) {
+          /* get arg */
+          parse_and_add_incdir(flags[count+1], NO);
+        }
+        /* Legacy include */
+        else if (flags[count][2]) {
+          parse_and_add_incdir(flags[count], YES);
+        }
+        else
+          return FAILED;
+
+        count++;
+        break;
+
+      case 'i':
+        listfile_data = YES;
+        break;
+
+      case 'v':
+        verbose_mode = ON;
+        break;
+
+      case 's':
+        create_sizeof_definitions = NO;
+        break;
+
+      case 't':
+        test_mode = ON;
+        break;
+
+      case 'M':
+        makefile_rules = YES;
+        test_mode = ON;
+        verbose_mode = OFF;
+        quiet = YES;
+        break;
+
+      case 'q':
+        quiet = YES;
+        break;
+
+      case 'x':
+        extra_definitions = ON;
+        break;
+
+      default:
+        return FAILED;
+        break;
     }
+  }
+
+  if (count == flagc) {
+    asm_name = calloc(strlen(flags[count - 1]) + 1, 1);
+    strcpy(asm_name, flags[count - 1]);
+    count++;
+    asm_name_def++;
+  } else {
+    return FAILED;
   }
   
   if (asm_name_def <= 0)
@@ -589,7 +590,6 @@ int generate_extra_definitions(void) {
 
 
 int parse_and_add_definition(char *c, int contains_flag) {
-
   char n[MAX_NAME_LENGTH + 1], *value;
   int i;
 
