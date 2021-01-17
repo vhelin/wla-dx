@@ -73,79 +73,81 @@ int create_full_name(char *dir, char *name) {
 }
 
 
-int try_open_file(char* directory, char* partial_name, int print_errors, FILE** out_result) {
+int try_open_file(char* directory, char* partial_name, FILE** out_result) {
 
   int error_code = create_full_name(directory, partial_name);
-  if (error_code != FAILED)
-    *out_result = fopen(full_name, "rb");
+  if (error_code != SUCCEEDED)
+    return error_code;
+  
+  *out_result = fopen(full_name, "rb");
+  if (*out_result == NULL)
+    return FAILED;
 
-  if (*out_result == NULL && (directory == NULL || directory[0] == 0)) {
-    snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", partial_name);
-    if (print_errors == 0)
-      fprintf(stderr, "INCLUDE_FILE: %s", emsg);
-    else
-      print_error(emsg, ERROR_INC);
-    error_code = FAILED;
+  return SUCCEEDED;
+}
+
+
+static void print_find_error(char* name) {
+
+  int index;
+
+  fprintf(stderr, "%s:%d: ", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current);
+  fprintf(stderr, "FIND_FILE: Could not open \"%s\", searched in the following directories:\n", name);
+
+  if (use_incdir == YES) {
+    for (index = 0; index < ext_incdirs.count; index++) {
+      fprintf(stderr, "%s\n", ext_incdirs.names[index]);
+    }
   }
 
-  return error_code;
+  if (include_dir != NULL) {
+    fprintf(stderr, "%s\n", include_dir);
+  }
+
+  fprintf(stderr, "Current directory.\n");
+}
+
+
+static int find_file(char *name, FILE** f) {
+
+  int index;
+
+  if (use_incdir == YES) {
+    /* check all external include directories first */
+    for (index = 0; index < ext_incdirs.count; index++) {
+      try_open_file(ext_incdirs.names[index], name, f);
+
+      /* we succeeded and found a valid file, so escape */
+      if (*f != NULL)
+        return SUCCEEDED;
+    }
+  }
+
+  /* fall through to include_dir if we either didn't check, or failed to find the file in ext_incdirs */
+  try_open_file(include_dir, name, f);
+  if (*f != NULL)
+    return SUCCEEDED;
+
+  /* if failed try to find the file in the current directory */
+  (*f) = fopen(name, "rb");
+  if (*f != NULL)
+    return SUCCEEDED;
+
+  print_find_error(name);
+
+  return FAILED;
 }
 
 
 int include_file(char *name, int *include_size, char *namespace) {
 
-  static int first_load = 0;
-  int file_size, id, change_file_buffer_size, index;
+  int file_size, id, change_file_buffer_size;
   char *tmp_b, *n, change_file_buffer[MAX_NAME_LENGTH * 2];
   FILE *f = NULL;
 
-  if (use_incdir == YES) {
-    /* check all external include directories first */
-    for (index = 0; index < ext_incdirs.count; index++) {
-      int error_code = try_open_file(ext_incdirs.names[index], name, first_load, &f);
-      if (error_code != SUCCEEDED)
-        return error_code;
-
-      /* we succeeded and found a valid file, so escape */
-      if (f != NULL)
-        break;
-    }
-  }
-
-  /* fall through to include_dir if we either didn't check, or failed to find the file in ext_incdirs */
-  if (f == NULL) {
-    int error_code = try_open_file(include_dir, name, first_load, &f);
-    if (error_code != SUCCEEDED)
+  int error_code = find_file(name, &f);
+  if (error_code != SUCCEEDED)
       return error_code;
-  }
-
-  if (f != NULL)
-    id = 0;
-
-  /* if failed try to find the file in the current directory */
-  if (f == NULL) {
-    fprintf(stderr, "%s:%d: ", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current);
-    fprintf(stderr, "INCLUDE_FILE: Could not open \"%s\", trying \"%s\"... ", full_name, name);
-    f = fopen(name, "rb");
-    id = 1;
-  }
-
-  if (f == NULL) {
-    fprintf(stderr, "not found.\n");
-    snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", full_name);
-    if (first_load == 0)
-      fprintf(stderr, "INCLUDE_FILE: %s", emsg);
-    else
-      print_error(emsg, ERROR_INC);
-    return FAILED;
-  }
-
-  if (id == 1) {
-    fprintf(stderr, "found.\n");
-    strcpy(full_name, name);
-  }
-
-  first_load = 1;
 
   fseek(f, 0, SEEK_END);
   file_size = (int)ftell(f);
@@ -301,53 +303,12 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
   struct incbin_file_data *ifd;
   char *in_tmp, *n;
-  int file_size, q, index;
+  int file_size, q;
   FILE *f = NULL;
 
-  if (use_incdir == YES) {
-    int error_code;
-    
-    /* check all external include directories first */
-    for (index = 0; index < ext_incdirs.count; ++index) {
-      error_code = try_open_file(ext_incdirs.names[index], name, 1, &f);
-      if (error_code != SUCCEEDED)
-        return error_code;
-
-      /* we succeeded and found a valid file, so escape */
-      if (f != NULL)
-        break;
-    }
-  }
-
-  /* fall through to include_dir if we either didn't check, or failed to find the file in ext_incdirs */
-  if (f == NULL) {
-    int error_code = try_open_file(include_dir, name, 1, &f);
-    if (error_code != SUCCEEDED)
+  int error_code = find_file(name, &f);
+  if (error_code != SUCCEEDED)
       return error_code;
-  }
-
-  if (f != NULL)
-    q = 0;
-
-  /* if failed try to find the file in the current directory */
-  if (f == NULL) {
-    fprintf(stderr, "%s:%d: ", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current);
-    fprintf(stderr, "INCBIN_FILE: Could not open \"%s\", trying \"%s\"... ", full_name, name);
-    f = fopen(name, "rb");
-    q = 1;
-  }
-
-  if (f == NULL) {
-    fprintf(stderr, "not found.\n");
-    snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", full_name);
-    print_error(emsg, ERROR_INB);
-    return FAILED;
-  }
-
-  if (q == 1) {
-    fprintf(stderr, "found.\n");
-    strcpy(full_name, name);
-  }
 
   fseek(f, 0, SEEK_END);
   file_size = (int)ftell(f);
