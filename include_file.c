@@ -91,6 +91,11 @@ static void print_find_error(char* name) {
 
   int index;
 
+  if (!active_file_info_last) {
+    fprintf(stderr, "FIND_FILE: Could not open \"%s\".", name);
+    return;
+  }
+
   fprintf(stderr, "%s:%d: ", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current);
   fprintf(stderr, "FIND_FILE: Could not open \"%s\", searched in the following directories:\n", name);
 
