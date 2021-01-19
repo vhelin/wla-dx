@@ -269,6 +269,22 @@ static int parse_define_flag(char **flags, int flagc, int *count) {
   return SUCCEEDED;
 }
 
+static int parse_include_flag(char **flags, int flagc, int *count) {
+  if (!flags[*count][2] && *count + 1 < flagc) {
+    /* get arg */
+    parse_and_add_incdir(flags[*count+1], NO);
+  }
+  /* Legacy include */
+  else if (flags[*count][2]) {
+    parse_and_add_incdir(flags[*count], YES);
+  }
+  else
+    return FAILED;
+
+  (*count)++;
+  return SUCCEEDED;
+}
+
 int parse_flags(char **flags, int flagc) {
   int count;
   
@@ -294,18 +310,8 @@ int parse_flags(char **flags, int flagc) {
         break;
 
       case 'I':
-        if (!flags[count][2] && count + 1 < flagc) {
-          /* get arg */
-          parse_and_add_incdir(flags[count+1], NO);
-        }
-        /* Legacy include */
-        else if (flags[count][2]) {
-          parse_and_add_incdir(flags[count], YES);
-        }
-        else
+        if (parse_include_flag(flags, flagc, &count) != SUCCEEDED)
           return FAILED;
-
-        count++;
         break;
 
       case 'i':
