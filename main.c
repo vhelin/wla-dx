@@ -253,6 +253,8 @@ static int parse_define_flag(char **flags, int flagc, int *count) {
     }
     else
       parse_and_add_definition(flags[*count+1], NO);
+    
+    (*count)++;
   }
   /* Legacy define */
   else if (flags[*count][2]) {
@@ -261,7 +263,6 @@ static int parse_define_flag(char **flags, int flagc, int *count) {
   else
     return FAILED;
 
-  (*count)++;
   return SUCCEEDED;
 }
 
@@ -269,6 +270,7 @@ static int parse_include_flag(char **flags, int flagc, int *count) {
   if (!flags[*count][2] && *count + 1 < flagc) {
     /* get arg */
     parse_and_add_incdir(flags[*count+1], NO);
+    (*count)++;
   }
   /* Legacy include */
   else if (flags[*count][2]) {
@@ -277,7 +279,6 @@ static int parse_include_flag(char **flags, int flagc, int *count) {
   else
     return FAILED;
 
-  (*count)++;
   return SUCCEEDED;
 }
 
