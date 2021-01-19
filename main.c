@@ -282,8 +282,7 @@ static int parse_include_flag(char **flags, int flagc, int *count) {
   return SUCCEEDED;
 }
 
-static int parse_flag(char **flags, int flagc, int *count)
-{
+static int parse_flag(char **flags, int flagc, int *count) {
   switch (flags[*count][1]) {
     case 'o':
       if (parse_output_object_flag(flags, flagc, count) != SUCCEEDED)
@@ -343,6 +342,7 @@ static int parse_flag(char **flags, int flagc, int *count)
 
   return SUCCEEDED;
 }
+
 
 int parse_flags(char **flags, int flagc) {
   int count = 1;
