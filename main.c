@@ -345,23 +345,20 @@ static int parse_flag(char **flags, int flagc, int *count)
 }
 
 int parse_flags(char **flags, int flagc) {
-  int count;
+  int count = 1;
   
-  for (count = 1; count < flagc; count++) {
-    if (flags[count][0] == '-') {
-      if (parse_flag(flags, flagc, &count) != SUCCEEDED)
-        return FAILED;
-    } else {
-      if (count != flagc - 1) {
-        return FAILED;
-      }
+  while (count < flagc && flags[count][0] == '-') {
+    if (parse_flag(flags, flagc, &count) != SUCCEEDED)
+      return FAILED;
 
-      asm_name = calloc(strlen(flags[count - 1]) + 1, 1);
-      strcpy(asm_name, flags[count]);
-
-      break;
-    }
+    count++;
   }
+
+  if (count != flagc - 1)
+    return FAILED;
+
+  asm_name = calloc(strlen(flags[count - 1]) + 1, 1);
+  strcpy(asm_name, flags[count]);
   
   return SUCCEEDED;
 }
