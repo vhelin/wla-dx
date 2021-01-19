@@ -282,77 +282,85 @@ static int parse_include_flag(char **flags, int flagc, int *count) {
   return SUCCEEDED;
 }
 
+static int parse_flag(char **flags, int flagc, int *count)
+{
+  switch (flags[*count][1]) {
+    case 'o':
+      if (parse_output_object_flag(flags, flagc, count) != SUCCEEDED)
+        return FAILED;
+      break;
+
+    case 'l':
+      if (parse_output_library_flag(flags, flagc, count) != SUCCEEDED)
+        return FAILED;
+      break;
+
+    case 'D':
+      if (parse_define_flag(flags, flagc, count) != SUCCEEDED)
+        return FAILED;
+      break;
+
+    case 'I':
+      if (parse_include_flag(flags, flagc, count) != SUCCEEDED)
+        return FAILED;
+      break;
+
+    case 'i':
+      listfile_data = YES;
+      break;
+
+    case 'v':
+      verbose_mode = ON;
+      break;
+
+    case 's':
+      create_sizeof_definitions = NO;
+      break;
+
+    case 't':
+      test_mode = ON;
+      break;
+
+    case 'M':
+      makefile_rules = YES;
+      test_mode = ON;
+      verbose_mode = OFF;
+      quiet = YES;
+      break;
+
+    case 'q':
+      quiet = YES;
+      break;
+
+    case 'x':
+      extra_definitions = ON;
+      break;
+
+    default:
+      return FAILED;
+      break;
+  }
+
+  return SUCCEEDED;
+}
+
 int parse_flags(char **flags, int flagc) {
   int count;
   
   for (count = 1; count < flagc; count++) {
-    if (flags[count][0] != '-') {
-      continue;
-    }
-
-    switch (flags[count][1]) {
-      case 'o':
-        if (parse_output_object_flag(flags, flagc, &count) != SUCCEEDED)
-          return FAILED;
-        break;
-
-      case 'l':
-        if (parse_output_library_flag(flags, flagc, &count) != SUCCEEDED)
-          return FAILED;
-        break;
-
-      case 'D':
-        if (parse_define_flag(flags, flagc, &count) != SUCCEEDED)
-          return FAILED;
-        break;
-
-      case 'I':
-        if (parse_include_flag(flags, flagc, &count) != SUCCEEDED)
-          return FAILED;
-        break;
-
-      case 'i':
-        listfile_data = YES;
-        break;
-
-      case 'v':
-        verbose_mode = ON;
-        break;
-
-      case 's':
-        create_sizeof_definitions = NO;
-        break;
-
-      case 't':
-        test_mode = ON;
-        break;
-
-      case 'M':
-        makefile_rules = YES;
-        test_mode = ON;
-        verbose_mode = OFF;
-        quiet = YES;
-        break;
-
-      case 'q':
-        quiet = YES;
-        break;
-
-      case 'x':
-        extra_definitions = ON;
-        break;
-
-      default:
+    if (flags[count][0] == '-') {
+      if (parse_flag(flags, flagc, &count) != SUCCEEDED)
         return FAILED;
-        break;
-    }
-  }
+    } else {
+      if (count != flagc - 1) {
+        return FAILED;
+      }
 
-  if (count == flagc) {
-    asm_name = calloc(strlen(flags[count - 1]) + 1, 1);
-    strcpy(asm_name, flags[count - 1]);
-  } else {
-    return FAILED;
+      asm_name = calloc(strlen(flags[count - 1]) + 1, 1);
+      strcpy(asm_name, flags[count]);
+
+      break;
+    }
   }
   
   return SUCCEEDED;
