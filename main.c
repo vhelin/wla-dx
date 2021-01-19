@@ -243,17 +243,13 @@ static int parse_define_flag(char **flags, int flagc, int *count) {
   char *str_build;
 
   if (!flags[*count][2] && *count + 1 < flagc) {
-    if (*count + 3 < flagc) {
-      if (!strcmp(flags[*count+2], "=")) {
-        int length = (int)strlen(flags[*count+1])+(int)strlen(flags[*count+3])+2;
-        str_build = calloc(length, 1);
-        snprintf(str_build, length, "%s=%s", flags[*count+1], flags[*count+3]);
-        parse_and_add_definition(str_build, NO);
-        free(str_build);
-        *count += 2;
-      }
-      else
-        parse_and_add_definition(flags[*count+1], NO);
+    if (*count + 3 < flagc && !strcmp(flags[*count+2], "=")) {
+      int length = (int)strlen(flags[*count+1])+(int)strlen(flags[*count+3])+2;
+      str_build = calloc(length, 1);
+      snprintf(str_build, length, "%s=%s", flags[*count+1], flags[*count+3]);
+      parse_and_add_definition(str_build, NO);
+      free(str_build);
+      *count += 2;
     }
     else
       parse_and_add_definition(flags[*count+1], NO);
