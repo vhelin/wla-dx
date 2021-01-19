@@ -270,7 +270,7 @@ static int parse_define_flag(char **flags, int flagc, int *count) {
 }
 
 int parse_flags(char **flags, int flagc) {
-  int asm_name_def = 0, count;
+  int count;
   
   for (count = 1; count < flagc; count++) {
     if (flags[count][0] != '-') {
@@ -348,14 +348,9 @@ int parse_flags(char **flags, int flagc) {
   if (count == flagc) {
     asm_name = calloc(strlen(flags[count - 1]) + 1, 1);
     strcpy(asm_name, flags[count - 1]);
-    count++;
-    asm_name_def++;
   } else {
     return FAILED;
   }
-  
-  if (asm_name_def <= 0)
-    return FAILED;
   
   return SUCCEEDED;
 }
