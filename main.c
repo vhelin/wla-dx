@@ -207,7 +207,7 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-static int parse_output_flag(char **flags, int flagc, int *count) {
+static int parse_output_object_flag(char **flags, int flagc, int *count) {
   if (output_format != OUTPUT_NONE)
     return FAILED;
   output_format = OUTPUT_OBJECT;
@@ -223,9 +223,54 @@ static int parse_output_flag(char **flags, int flagc, int *count) {
   return SUCCEEDED;
 }
 
+static int parse_output_library_flag(char **flags, int flagc, int *count) {
+  if (output_format != OUTPUT_NONE)
+    return FAILED;
+  output_format = OUTPUT_LIBRARY;
+  if (*count + 1 < flagc) {
+    /* set output */
+    final_name = calloc(strlen(flags[*count+1])+1, 1);
+    strcpy(final_name, flags[*count+1]);
+  }
+  else
+    return FAILED;
+
+  (*count)++;
+  return SUCCEEDED;
+}
+
+static int parse_define_flag(char **flags, int flagc, int *count) {
+  char *str_build;
+
+  if (!flags[*count][2] && *count + 1 < flagc) {
+    if (*count + 3 < flagc) {
+      if (!strcmp(flags[*count+2], "=")) {
+        int length = (int)strlen(flags[*count+1])+(int)strlen(flags[*count+3])+2;
+        str_build = calloc(length, 1);
+        snprintf(str_build, length, "%s=%s", flags[*count+1], flags[*count+3]);
+        parse_and_add_definition(str_build, NO);
+        free(str_build);
+        *count += 2;
+      }
+      else
+        parse_and_add_definition(flags[*count+1], NO);
+    }
+    else
+      parse_and_add_definition(flags[*count+1], NO);
+  }
+  /* Legacy define */
+  else if (flags[*count][2]) {
+    parse_and_add_definition(flags[*count], YES);
+  }
+  else
+    return FAILED;
+
+  (*count)++;
+  return SUCCEEDED;
+}
+
 int parse_flags(char **flags, int flagc) {
   int asm_name_def = 0, count;
-  char *str_build;
   
   for (count = 1; count < flagc; count++) {
     if (flags[count][0] != '-') {
@@ -234,50 +279,18 @@ int parse_flags(char **flags, int flagc) {
 
     switch (flags[count][1]) {
       case 'o':
-        if (parse_output_flag(flags, flagc, &count) != SUCCEEDED)
+        if (parse_output_object_flag(flags, flagc, &count) != SUCCEEDED)
           return FAILED;
         break;
 
       case 'l':
-        if (output_format != OUTPUT_NONE)
+        if (parse_output_library_flag(flags, flagc, &count) != SUCCEEDED)
           return FAILED;
-        output_format = OUTPUT_LIBRARY;
-        if (count + 1 < flagc) {
-          /* set output */
-          final_name = calloc(strlen(flags[count+1])+1, 1);
-          strcpy(final_name, flags[count+1]);
-        }
-        else
-          return FAILED;
-
-        count++;
         break;
 
       case 'D':
-        if (!flags[count][2] && count + 1 < flagc) {
-          if (count + 3 < flagc) {
-            if (!strcmp(flags[count+2], "=")) {
-              int length = (int)strlen(flags[count+1])+(int)strlen(flags[count+3])+2;
-              str_build = calloc(length, 1);
-              snprintf(str_build, length, "%s=%s", flags[count+1], flags[count+3]);
-              parse_and_add_definition(str_build, NO);
-              free(str_build);
-              count += 2;
-            }
-            else
-              parse_and_add_definition(flags[count+1], NO);
-          }
-          else
-            parse_and_add_definition(flags[count+1], NO);
-        }
-        /* Legacy define */
-        else if (flags[count][2]) {
-          parse_and_add_definition(flags[count], YES);
-        }
-        else
+        if (parse_define_flag(flags, flagc, &count) != SUCCEEDED)
           return FAILED;
-
-        count++;
         break;
 
       case 'I':
