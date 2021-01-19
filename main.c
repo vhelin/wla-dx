@@ -207,6 +207,22 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
+static int parse_output_flag(char **flags, int flagc, int *count) {
+  if (output_format != OUTPUT_NONE)
+    return FAILED;
+  output_format = OUTPUT_OBJECT;
+  if (*count + 1 < flagc) {
+    /* set output */
+    final_name = calloc(strlen(flags[*count+1])+1, 1);
+    strcpy(final_name, flags[*count+1]);
+  }
+  else
+    return FAILED;
+  
+  (*count)++;
+  return SUCCEEDED;
+}
+
 int parse_flags(char **flags, int flagc) {
   int asm_name_def = 0, count;
   char *str_build;
@@ -218,18 +234,8 @@ int parse_flags(char **flags, int flagc) {
 
     switch (flags[count][1]) {
       case 'o':
-        if (output_format != OUTPUT_NONE)
+        if (parse_output_flag(flags, flagc, &count) != SUCCEEDED)
           return FAILED;
-        output_format = OUTPUT_OBJECT;
-        if (count + 1 < flagc) {
-          /* set output */
-          final_name = calloc(strlen(flags[count+1])+1, 1);
-          strcpy(final_name, flags[count+1]);
-        }
-        else
-          return FAILED;
-
-        count++;
         break;
 
       case 'l':
