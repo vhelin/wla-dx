@@ -6,9 +6,9 @@ CFLAGS= -c -O3 -ansi -pedantic -Wall
 LDFLAGS = -lm
 WLAFLAGS = $(CFLAGS) -DUNIX -DHUC6280
 
-CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c printf.c opcodes_huc6280_tables.c opcodes_huc6280.c
-HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h crc32.h hashmap.h printf.h defines.h
-OFILES = main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o printf.o opcodes_huc6280_tables.o opcodes_huc6280.o
+CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c printf.c mersenne_twister.c opcodes_huc6280_tables.c opcodes_huc6280.c
+HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h crc32.h hashmap.h printf.h mersenne_twister.h defines.h
+OFILES = main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o printf.o mersenne_twister.o opcodes_huc6280_tables.o opcodes_huc6280.o
 
 
 all: $(OFILES) makefile
@@ -57,6 +57,8 @@ crc32.o: crc32.c defines.h crc32.h makefile
 hashmap.o: hashmap.c defines.h hashmap.h makefile
 	$(CC) $(WLAFLAGS) hashmap.c
 
+mersenne_twister.o: mersenne_twister.c defines.h mersenne_twister.h makefile
+	$(CC) $(WLAFLAGS) mersenne_twister.c
 
 $(OFILES): $(HFILES)
 
