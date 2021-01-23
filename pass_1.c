@@ -18,6 +18,7 @@
 #include "stack.h"
 #include "hashmap.h"
 #include "printf.h"
+#include "mersenne_twister.h"
 
 
 #ifdef GB
