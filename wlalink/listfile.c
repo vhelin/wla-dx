@@ -20,13 +20,13 @@ extern unsigned char *rom;
 static int _listfile_sort(const void *a, const void *b) {
 
   struct listfileitem *la, *lb;
-  int local_i;
+  int i;
 
 
   la = *((struct listfileitem **)a);
   lb = *((struct listfileitem **)b);
-  local_i = strcmp(la->sourcefilename, lb->sourcefilename);
-  if (local_i == 0) {
+  i = strcmp(la->sourcefilename, lb->sourcefilename);
+  if (i == 0) {
     /* both lines are from the same source */
     if (la->linenumber < lb->linenumber)
       return -1;
@@ -34,7 +34,7 @@ static int _listfile_sort(const void *a, const void *b) {
   }
 
   /* sort by source file name */
-  return local_i;
+  return i;
 }
 
 
@@ -53,7 +53,7 @@ int listfile_write_listfiles(struct section *e) {
 
   struct listfileitem **l, *d = NULL;
   struct section *s;
-  int n, local_i, j, k, m, o, p, sid = -1, add, w;
+  int n, i, j, k, m, o, p, sid = -1, add, w;
   char c, tmp[1024], *b, *na;
   FILE *f;
 
@@ -63,7 +63,7 @@ int listfile_write_listfiles(struct section *e) {
 
   /* collect the list file items from the data */
   n = 0;
-  local_i = 0;
+  i = 0;
   s = e;
   while (s != NULL) {
     if (s->listfile_items <= 0 || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE ||
@@ -86,13 +86,13 @@ int listfile_write_listfiles(struct section *e) {
       if (c == 'k') {
         /* new line */
         if (s->listfile_ints[j*3 + 1] > 0) {
-          d[local_i].sourcefilename = get_source_file_name(s->file_id, sid);
-          d[local_i].linenumber = s->listfile_ints[j*3 + 0];
-          d[local_i].length = s->listfile_ints[j*3 + 1];
+          d[i].sourcefilename = get_source_file_name(s->file_id, sid);
+          d[i].linenumber = s->listfile_ints[j*3 + 0];
+          d[i].length = s->listfile_ints[j*3 + 1];
           add += s->listfile_ints[j*3 + 2];
-          d[local_i].address = s->output_address + add;
+          d[i].address = s->output_address + add;
           add += s->listfile_ints[j*3 + 1];
-          local_i++;
+          i++;
         }
         else {
           /* skip */
@@ -114,22 +114,22 @@ int listfile_write_listfiles(struct section *e) {
   }
 
   /* create pointers for sorting */
-  l = calloc(sizeof(struct listfileitem *) * local_i, 1);
+  l = calloc(sizeof(struct listfileitem *) * i, 1);
   if (l == NULL) {
     fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
     free(d);
     return FAILED;
   }
 
-  for (j = 0; j < local_i; j++)
+  for (j = 0; j < i; j++)
     l[j] = &d[j];
 
   /* sort by source file name and line number */
-  qsort(l, local_i, sizeof(struct listfileitem *), _listfile_sort);
+  qsort(l, i, sizeof(struct listfileitem *), _listfile_sort);
 
   /* write the listfiles */
   j = 0;
-  while (j < local_i) {
+  while (j < i) {
     na = l[j]->sourcefilename;
     f = fopen(na, "rb");
     fseek(f, 0, SEEK_END);
@@ -165,7 +165,7 @@ int listfile_write_listfiles(struct section *e) {
     /* write the lines */
     k = 0;
     m = 0;
-    while (j < local_i && strcmp(l[j]->sourcefilename, na) == 0) {
+    while (j < i && strcmp(l[j]->sourcefilename, na) == 0) {
       /* goto line x */
       while (k < l[j]->linenumber-1) {
         for (o = 0; o < 40; o++)
@@ -285,7 +285,7 @@ int listfile_write_listfiles(struct section *e) {
 int listfile_block_read(unsigned char **d, struct section *s) {
 
   unsigned char *t;
-  int local_i;
+  int i;
 
 
   if (d == NULL || s == NULL)
@@ -314,21 +314,21 @@ int listfile_block_read(unsigned char **d, struct section *s) {
   }
 
   /* read the items */
-  for (local_i = 0; local_i < s->listfile_items; local_i++) {
-    s->listfile_cmds[local_i] = *(t++);
-    if (s->listfile_cmds[local_i] == 'k') {
+  for (i = 0; i < s->listfile_items; i++) {
+    s->listfile_cmds[i] = *(t++);
+    if (s->listfile_cmds[i] == 'k') {
       /* new line */
-      s->listfile_ints[local_i*3 + 0] = READ_T;
-      s->listfile_ints[local_i*3 + 1] = READ_T;
-      s->listfile_ints[local_i*3 + 2] = READ_T;
+      s->listfile_ints[i*3 + 0] = READ_T;
+      s->listfile_ints[i*3 + 1] = READ_T;
+      s->listfile_ints[i*3 + 2] = READ_T;
     }
-    else if (s->listfile_cmds[local_i] == 'f') {
+    else if (s->listfile_cmds[i] == 'f') {
       /* file name */
-      s->listfile_ints[local_i*3 + 0] = READ_T;
+      s->listfile_ints[i*3 + 0] = READ_T;
     }
     else {
       s->listfile_items = 0;
-      fprintf(stderr, "LISTFILE_BLOCK_READ: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", s->listfile_cmds[local_i]);
+      fprintf(stderr, "LISTFILE_BLOCK_READ: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", s->listfile_cmds[i]);
       return FAILED;
     }
   }

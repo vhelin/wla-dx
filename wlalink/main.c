@@ -164,7 +164,7 @@ static void debug_print_label(struct label *l) {
 
 int main(int argc, char *argv[]) {
 
-  int local_i, x, y, q, inz;
+  int i, x, y, q, inz;
   struct section *s;
   float f;
 
@@ -581,25 +581,25 @@ int main(int argc, char *argv[]) {
   y = 0;
   if (verbose_mode == ON) {
     x = 0;
-    for (local_i = 0; local_i < romsize; local_i++) {
-      if (rom_usage[local_i] == 0 && x == 0) {
+    for (i = 0; i < romsize; i++) {
+      if (rom_usage[i] == 0 && x == 0) {
         x = 1;
-        y = local_i;
+        y = i;
       }
-      else if (rom_usage[local_i] != 0 && x == 1) {
-        if (y == (local_i - 1))
+      else if (rom_usage[i] != 0 && x == 1) {
+        if (y == (i - 1))
           fprintf(stderr, "Free space at $%.4x.\n", y);
         else
-          fprintf(stderr, "Free space at $%.4x-$%.4x.\n", y, local_i - 1);
+          fprintf(stderr, "Free space at $%.4x-$%.4x.\n", y, i - 1);
         x = 0;
       }
     }
 
     if (x == 1) {
-      if (y == (local_i - 1))
+      if (y == (i - 1))
         fprintf(stderr, "Free space at $%.4x.\n", y);
       else
-        fprintf(stderr, "Free space at $%.4x-$%.4x.\n", y, local_i - 1);
+        fprintf(stderr, "Free space at $%.4x-$%.4x.\n", y, i - 1);
     }
 
     for (y = 0, q = 0; y < romsize; q++) {
@@ -616,8 +616,8 @@ int main(int argc, char *argv[]) {
 
     /* ROM data */
     if (output_mode == OUTPUT_ROM) {
-      for (local_i = 0, y = 0; local_i < romsize; local_i++) {
-        if (rom_usage[local_i] == 0)
+      for (i = 0, y = 0; i < romsize; i++) {
+        if (rom_usage[i] == 0)
           y++;
       }
 
@@ -626,8 +626,8 @@ int main(int argc, char *argv[]) {
     }
     /* program file data */
     else {
-      for (local_i = program_start, y = 0; local_i < program_end; local_i++) {
-        if (rom_usage[local_i] == 0)
+      for (i = program_start, y = 0; i < program_end; i++) {
+        if (rom_usage[i] == 0)
           y++;
       }
 
@@ -642,21 +642,21 @@ int main(int argc, char *argv[]) {
 
     if (smc_status != 0) {
       fprintf(stderr, "512 additional bytes from the SMC ROM header.\n");
-      local_i = file_header_size + file_footer_size + 512;
+      i = file_header_size + file_footer_size + 512;
     }
     else
-      local_i = file_header_size + file_footer_size;
+      i = file_header_size + file_footer_size;
 
     s = sec_bankhd_first;
     while (s != NULL) {
       fprintf(stderr, "Bank %d header section size %d.\n", s->bank, s->size);
-      local_i += s->size;
+      i += s->size;
       s = s->next;
     }
 
-    if (local_i != 0) {
-      fprintf(stderr, "Total %d additional bytes (from headers and footers).\n", local_i);
-      fprintf(stderr, "Total size %d bytes.\n", local_i + q);
+    if (i != 0) {
+      fprintf(stderr, "Total %d additional bytes (from headers and footers).\n", i);
+      fprintf(stderr, "Total size %d bytes.\n", i + q);
     }
   }
 
@@ -666,21 +666,21 @@ int main(int argc, char *argv[]) {
 
 int localize_path(char *path) {
 
-  int local_i;
+  int i;
 
   
   if (path == NULL)
     return FAILED;
 
-  for (local_i = 0; path[local_i] != 0; local_i++) {
+  for (i = 0; path[i] != 0; i++) {
 #if defined(MSDOS)
     /* '/' -> '\' */
-    if (path[local_i] == '/')
-      path[local_i] = '\\';
+    if (path[i] == '/')
+      path[i] = '\\';
 #else
     /* '\' -> '/' */
-    if (path[local_i] == '\\')
-      path[local_i] = '/';
+    if (path[i] == '\\')
+      path[i] = '/';
 #endif
   }
 
@@ -934,7 +934,7 @@ int parse_flags(char **flags, int flagc) {
 int parse_and_set_libdir(char *c, int contains_flag) {
 
   char n[MAX_NAME_LENGTH + 1];
-  int local_i;
+  int i;
 
   /* skip the flag? */
   if (contains_flag == YES)
@@ -943,9 +943,9 @@ int parse_and_set_libdir(char *c, int contains_flag) {
   if (strlen(c) < 2)
     return FAILED;
   
-  for (local_i = 0; local_i < MAX_NAME_LENGTH && *c != 0; local_i++, c++)
-    n[local_i] = *c;
-  n[local_i] = 0;
+  for (i = 0; i < MAX_NAME_LENGTH && *c != 0; i++, c++)
+    n[i] = *c;
+  n[i] = 0;
 
   if (*c != 0)
     return FAILED;

@@ -962,33 +962,33 @@ int skip_next_token(void) {
 int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
   char t[MAX_NAME_LENGTH + 1];
-  int local_i, j, k, adder;
+  int i, j, k, adder;
 
 
   memset(expanded_macro_string, 0, MAX_NAME_LENGTH + 1);
   
-  for (local_i = 0, k = 0; local_i < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; local_i++) {
-    if (in[local_i] == '\\') {
-      if (in[local_i + 1] == '"' || in[local_i + 1] == 'n' || in[local_i + 1] == '\\') {
-        expanded_macro_string[k++] = in[local_i];
-        local_i++;
-        expanded_macro_string[k++] = in[local_i];
+  for (i = 0, k = 0; i < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; i++) {
+    if (in[i] == '\\') {
+      if (in[i + 1] == '"' || in[i + 1] == 'n' || in[i + 1] == '\\') {
+        expanded_macro_string[k++] = in[i];
+        i++;
+        expanded_macro_string[k++] = in[i];
       }
-      else if (in[local_i + 1] == '@') {
+      else if (in[i + 1] == '@') {
         /* we found '@' -> expand! */
         (*expands)++;
-        local_i++;
+        i++;
 
         adder = 0;
-        if (in[local_i + 1] == '-' && in[local_i + 2] >= '0' && in[local_i + 2] <= '9') {
+        if (in[i + 1] == '-' && in[i + 2] >= '0' && in[i + 2] <= '9') {
           /* found "\@-1" and alike */
-          adder = -(in[local_i + 2] - '0');
-          local_i += 2;
+          adder = -(in[i + 2] - '0');
+          i += 2;
         }
-        else if (in[local_i + 1] == '+' && in[local_i + 2] >= '0' && in[local_i + 2] <= '9') {
+        else if (in[i + 1] == '+' && in[i + 2] >= '0' && in[i + 2] <= '9') {
           /* found "\@+1" and alike */
-          adder = in[local_i + 2] - '0';
-          local_i += 2;
+          adder = in[i + 2] - '0';
+          i += 2;
         }
         
         snprintf(t, sizeof(t), "%d", macro_runtime_current->macro->calls - 1 + adder);
@@ -998,21 +998,21 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
             break;
         }
       }
-      else if (in[local_i + 1] == '?') {
+      else if (in[i + 1] == '?') {
         /* we found '?' -> expand! */
         int d = 0, type;
         
         (*expands)++;
-        local_i++;
+        i++;
 
-        local_i++;
-        for (; local_i < MAX_NAME_LENGTH && in[local_i] != 0; local_i++) {
-          if (in[local_i] >= '0' && in[local_i] <= '9')
-            d = (d * 10) + in[local_i] - '0';
+        i++;
+        for (; i < MAX_NAME_LENGTH && in[i] != 0; i++) {
+          if (in[i] >= '0' && in[i] <= '9')
+            d = (d * 10) + in[i] - '0';
           else
             break;
         }
-        local_i--;
+        i--;
 
         if (d <= 0 || d > macro_runtime_current->supplied_arguments) {
           if (input_number_error_msg == YES) {
@@ -1043,10 +1043,10 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
             break;
         }
       }
-      else if (in[local_i + 1] == '.') {
+      else if (in[i + 1] == '.') {
         /* we found '.' -> expand! */
         (*expands)++;
-        local_i++;
+        i++;
 
         snprintf(t, sizeof(t), "%s", macro_runtime_current->macro->name);
         for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
@@ -1055,10 +1055,10 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
             break;
         }
       }
-      else if (in[local_i + 1] == '!') {
+      else if (in[i + 1] == '!') {
         /* we found '!' -> expand! */
         (*expands)++;
-        local_i++;
+        i++;
 
         snprintf(t, sizeof(t), "%s", get_file_name(active_file_info_last->filename_id));
         for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
@@ -1067,20 +1067,20 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
             break;
         }
       }
-      else if (in[local_i + 1] >= '0' && in[local_i + 1] <= '9') {
+      else if (in[i + 1] >= '0' && in[i + 1] <= '9') {
         /* handle numbers, e.g., \1 */
         int d = 0;
 
         (*expands)++;
         (*move_up)++;
-        local_i++;
-        for (; local_i < MAX_NAME_LENGTH && in[local_i] != 0; local_i++) {
-          if (in[local_i] >= '0' && in[local_i] <= '9')
-            d = (d * 10) + in[local_i] - '0';
+        i++;
+        for (; i < MAX_NAME_LENGTH && in[i] != 0; i++) {
+          if (in[i] >= '0' && in[i] <= '9')
+            d = (d * 10) + in[i] - '0';
           else
             break;
         }
-        local_i--;
+        i--;
 
         if (d > macro_runtime_current->supplied_arguments) {
           if (input_number_error_msg == YES) {
@@ -1101,7 +1101,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
       }
       else {
         if (input_number_error_msg == YES) {
-          snprintf(xyz, sizeof(xyz), "EXPAND_MACRO_ARGUMENTS: Unsupported special character '%c'.\n", in[local_i + 1]);
+          snprintf(xyz, sizeof(xyz), "EXPAND_MACRO_ARGUMENTS: Unsupported special character '%c'.\n", in[i + 1]);
           print_error(xyz, ERROR_NUM);
         }
     
@@ -1109,9 +1109,9 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
       }
     }
     else
-      expanded_macro_string[k++] = in[local_i];
+      expanded_macro_string[k++] = in[i];
 
-    if (in[local_i] == 0)
+    if (in[i] == 0)
       break;
   }
 

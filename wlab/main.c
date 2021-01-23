@@ -28,21 +28,21 @@ int main(int argc, char *argv[]) {
   FILE *fp = NULL;
   unsigned char *in;
   char *name;
-  int local_i, fs, t;
+  int i, fs, t;
 
 
-  local_i = SUCCEEDED;
+  i = SUCCEEDED;
 
   if (!(argc == 2 || argc == 3))
-    local_i = FAILED;
+    i = FAILED;
 
   if (argc == 3)
-    local_i = parse_flags(argv[1]);
+    i = parse_flags(argv[1]);
 
   if (mode == MOD_NONE)
-    local_i = FAILED;
+    i = FAILED;
 
-  if (local_i == FAILED) {
+  if (i == FAILED) {
     fprintf(stderr, "\nWLAB Binary to WLA DB Converter v1.2\n");
     fprintf(stderr, "Written by Ville Helin 2000-2003\n");
     fprintf(stderr, "USAGE: %s -[ap]{bdh} <BIN FILE>\n", argv[0]);
@@ -103,8 +103,8 @@ int main(int argc, char *argv[]) {
     t = fs >> 3;
     fs = fs - (t << 3);
 
-    for (local_i = 0; t > 0; t--, local_i += 8) {
-      fprintf(stdout, ".DB $%.2x, $%.2x, $%.2x, $%.2x, $%.2x, $%.2x, $%.2x, $%.2x", in[local_i], in[local_i + 1], in[local_i + 2], in[local_i + 3], in[local_i + 4], in[local_i + 5], in[local_i + 6], in[local_i + 7]);
+    for (i = 0; t > 0; t--, i += 8) {
+      fprintf(stdout, ".DB $%.2x, $%.2x, $%.2x, $%.2x, $%.2x, $%.2x, $%.2x, $%.2x", in[i], in[i + 1], in[i + 2], in[i + 3], in[i + 4], in[i + 5], in[i + 6], in[i + 7]);
       if (address == ON) {
         ae = a + 8-1;
         print_address();
@@ -117,12 +117,12 @@ int main(int argc, char *argv[]) {
     if (fs != 0) {
       fprintf(stdout, ".DB");
       for (; fs > 0; fs--) {
-        fprintf(stdout, " $%.2x", in[local_i++]);
+        fprintf(stdout, " $%.2x", in[i++]);
         if (fs > 1)
           fprintf(stdout, ",");
       }
       if (address == ON) {
-        ae = local_i-1;
+        ae = i-1;
         print_address();
       }
       else
@@ -137,8 +137,8 @@ int main(int argc, char *argv[]) {
     t = fs >> 3;
     fs = fs - (t << 3);
 
-    for (local_i = 0; t > 0; t--, local_i += 8) {
-      fprintf(stdout, ".DB %d, %d, %d, %d, %d, %d, %d, %d", in[local_i], in[local_i + 1], in[local_i + 2], in[local_i + 3], in[local_i + 4], in[local_i + 5], in[local_i + 6], in[local_i + 7]);
+    for (i = 0; t > 0; t--, i += 8) {
+      fprintf(stdout, ".DB %d, %d, %d, %d, %d, %d, %d, %d", in[i], in[i + 1], in[i + 2], in[i + 3], in[i + 4], in[i + 5], in[i + 6], in[i + 7]);
       if (address == ON) {
         ae = a + 8-1;
         print_address();
@@ -151,12 +151,12 @@ int main(int argc, char *argv[]) {
     if (fs != 0) {
       fprintf(stdout, ".DB");
       for (; fs > 0; fs--) {
-        fprintf(stdout, " %d", in[local_i++]);
+        fprintf(stdout, " %d", in[i++]);
         if (fs > 1)
           fprintf(stdout, ",");
       }
       if (address == ON) {
-        ae = local_i-1;
+        ae = i-1;
         print_address();
       }
       else
@@ -170,12 +170,12 @@ int main(int argc, char *argv[]) {
 
     /* output binary data */
 
-    for (local_i = 0; local_i < fs; local_i++) {
+    for (i = 0; i < fs; i++) {
       fprintf(stdout, ".DB %%");
       d = 0;
       for (t = 7; t > -1; t--) {
         b = 1 << t;
-        c = in[local_i] & b;
+        c = in[i] & b;
         d = c >> t;
         if (d == 0)
           fprintf(stdout, "0");

@@ -32,25 +32,25 @@ int arg_only_code = OFF, arg_strings = OFF, arg_address = ON, arg_labels = OFF, 
 int main(int argc, char *argv[]) {
 
   FILE *fp = NULL;
-  int local_i, r;
+  int i, r;
   char *name;
 
 
-  local_i = SUCCEEDED;
+  i = SUCCEEDED;
 
   if (argc != 4)
-    local_i = FAILED;
+    i = FAILED;
 
   if (argc == 4)
-    local_i = parse_flags(argv[1]);
+    i = parse_flags(argv[1]);
 
   if (arg_mode == ARG_MODE_NONE)
-    local_i = FAILED;
+    i = FAILED;
 
   if (get_value(argv[2], &arg_value) == FAILED)
-    local_i = FAILED;
+    i = FAILED;
 
-  if (local_i == FAILED) {
+  if (i == FAILED) {
 #ifdef GB
     fprintf(stderr, "\nWLAD GB-Z80 Disassembler v2.0\n");
 #endif
@@ -97,8 +97,8 @@ int main(int argc, char *argv[]) {
 
   /* compute ROM banks */
   r = fs / (16 * 1024);
-  local_i = fs - (r * 16 * 1024);
-  if (local_i != 0)
+  i = fs - (r * 16 * 1024);
+  if (i != 0)
     r++;
 
   /* output header */

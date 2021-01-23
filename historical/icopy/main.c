@@ -19,10 +19,10 @@ int main(int argc, char *argv[]) {
   FILE *fp = NULL;
   unsigned char *in;
   char *name;
-  int local_i, fs, s, e;
+  int i, fs, s, e;
 
 
-  local_i = SUCCEEDED;
+  i = SUCCEEDED;
 
   if (argc != 4) {
     fprintf(stderr, "\nICOPY Binary to GB-Z80 Code Converter v1.0\n");

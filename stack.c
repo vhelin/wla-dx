@@ -85,16 +85,16 @@ static int _stack_insert(void) {
 }
 
 
-static int _break_before_value_or_string(int local_i, struct stack_item *si) {
+static int _break_before_value_or_string(int i, struct stack_item *si) {
 
   /* we use this function to test if the previous item in the stack
      is something that cannot be followed by a value or a string.
      in such a case we'll stop adding items to this stack computation */
   
-  if (local_i <= 0)
+  if (i <= 0)
     return FAILED;
 
-  si = &si[local_i-1];
+  si = &si[i-1];
   if (si->type == STACK_ITEM_TYPE_VALUE)
     return SUCCEEDED;
   if (si->type == STACK_ITEM_TYPE_STRING)

@@ -188,19 +188,19 @@ int find_label(char *str, struct section *s, struct label **out) {
   char *str2, *stripped;
   char prefix[MAX_NAME_LENGTH*2+2];
   struct label *l = NULL;
-  int local_i;
+  int i;
 
   
   str2 = strchr(str, '.');
-  local_i = (int)(str2-str);
+  i = (int)(str2-str);
   if (str2 == NULL) {
     stripped = str;
     prefix[0] = '\0';
   }
   else {
     stripped = str2+1;
-    strncpy(prefix, str, local_i);
-    prefix[local_i] = '\0';
+    strncpy(prefix, str, i);
+    prefix[i] = '\0';
   }
 
   *out = NULL;
@@ -264,14 +264,14 @@ int add_label(struct label *l) {
 
 int obtain_rombankmap(void) {
 
-  int map_found = OFF, local_i, x, a;
+  int map_found = OFF, i, x, a;
   struct object_file *o;
   unsigned char *t;
 
   
   /* initialize values */
-  for (local_i = 0; local_i < rombanks; local_i++)
-    banksizes[local_i] = 0;
+  for (i = 0; i < rombanks; i++)
+    banksizes[i] = 0;
 
   o = obj_first;
   while (o != NULL) {
@@ -279,22 +279,22 @@ int obtain_rombankmap(void) {
       t = o->data + OBJ_ROMBANKMAP;
 
       /* obtain status */
-      local_i = *t;
+      i = *t;
       t++;
 
       /* general rombanksize? */
-      if (local_i == 0) {
+      if (i == 0) {
         /* obtain banksize */
         banksize = READ_T;
 
         o->memorymap = t;
         map_found = ON;
-        for (local_i = 0; local_i < o->rom_banks; local_i++) {
-          if (banksizes[local_i] == 0) {
-            banksizes[local_i] = banksize;
-            bankaddress[local_i] = local_i * banksize;
+        for (i = 0; i < o->rom_banks; i++) {
+          if (banksizes[i] == 0) {
+            banksizes[i] = banksize;
+            bankaddress[i] = i * banksize;
           }
-          else if (banksizes[local_i] != banksize) {
+          else if (banksizes[i] != banksize) {
             fprintf(stderr, "OBTAIN_ROMBANKMAP: ROMBANKMAPs don't match.\n");
             return FAILED;
           }
@@ -391,13 +391,13 @@ int obtain_source_file_names(void) {
 int obtain_memorymap(void) {
 
   struct object_file *o;
-  int map_found = OFF, local_i, x, y;
+  int map_found = OFF, i, x, y;
   unsigned char *t;
   struct slot s[256];
 
   
-  for (local_i = 0; local_i < 256; local_i++)
-    slots[local_i].usage = OFF;
+  for (i = 0; i < 256; i++)
+    slots[i].usage = OFF;
 
   o = obj_first;
   while (o != NULL) {
@@ -405,10 +405,10 @@ int obtain_memorymap(void) {
       t = o->memorymap;
 
       /* obtain slots */
-      local_i = *t;
+      i = *t;
       t++;
 
-      for (x = 0; local_i > 0; local_i--, x++) {
+      for (x = 0; i > 0; i--, x++) {
         slots[x].usage = ON;
         slots[x].address =  READ_T;
         slots[x].size =  READ_T;
@@ -435,15 +435,15 @@ int obtain_memorymap(void) {
   o = o->next;
   while (o != NULL) {
     if (o->format == WLA_VERSION_OBJ) {
-      for (local_i = 0; local_i < 256; local_i++)
-        s[local_i].usage = OFF;
+      for (i = 0; i < 256; i++)
+        s[i].usage = OFF;
       t = o->memorymap;
 
       /* obtain slots */
-      local_i = *t;
+      i = *t;
       t++;
 
-      for (x = 0; local_i > 0; local_i--, x++) {
+      for (x = 0; i > 0; i--, x++) {
         s[x].usage = ON;
         s[x].address =  READ_T;
         s[x].size =  READ_T;
@@ -455,22 +455,22 @@ int obtain_memorymap(void) {
 
       o->source_file_names = t;
 
-      for (x = 0, local_i = 0; local_i < 256; local_i++) {
-        if (s[local_i].usage == ON) {
-          if (slots[local_i].usage == OFF) {
+      for (x = 0, i = 0; i < 256; i++) {
+        if (s[i].usage == ON) {
+          if (slots[i].usage == OFF) {
             x = 1;
             break;
           }
-          if (slots[local_i].address == s[local_i].address && slots[local_i].size == s[local_i].size) {
-            if (slots[local_i].name[0] == 0 && s[local_i].name[0] != 0) {
+          if (slots[i].address == s[i].address && slots[i].size == s[i].size) {
+            if (slots[i].name[0] == 0 && s[i].name[0] != 0) {
               /* use the name given to the other slot */
-              strcpy(slots[local_i].name, s[local_i].name);
+              strcpy(slots[i].name, s[i].name);
             }
-            else if (slots[local_i].name[0] != 0 && s[local_i].name[0] != 0) {
+            else if (slots[i].name[0] != 0 && s[i].name[0] != 0) {
               /* check that the names match */
-              if (strcmp(slots[local_i].name, s[local_i].name) != 0)
+              if (strcmp(slots[i].name, s[i].name) != 0)
                 fprintf(stderr, "OBTAIN_MEMORYMAP: SLOT %d has two different names (\"%s\" and \"%s\"). Using \"%s\"...\n",
-                        local_i, slots[local_i].name, s[local_i].name, slots[local_i].name);
+                        i, slots[i].name, s[i].name, slots[i].name);
             }
             continue;
           }
@@ -478,7 +478,7 @@ int obtain_memorymap(void) {
           break;
         }
         else {
-          if (slots[local_i].usage == ON) {
+          if (slots[i].usage == ON) {
             x = 1;
             break;
           }
@@ -504,7 +504,7 @@ int collect_dlr(void) {
   struct stack *s;
   struct label *l;
   struct label_sizeof *ls;
-  int section, x, local_i, n, q;
+  int section, x, i, n, q;
   unsigned char *t, *dtmp;
   double dou;
 
@@ -515,10 +515,10 @@ int collect_dlr(void) {
     /* OBJECT FILE */
     if (obj_tmp->format == WLA_VERSION_OBJ) {
       t = obj_tmp->exported_defines;
-      local_i = READ_T;
+      i = READ_T;
 
       /* load defines */
-      for (; local_i > 0; local_i--) {
+      for (; i > 0; i--) {
         l = calloc(1, sizeof(struct label));
         if (l == NULL) {
           fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
@@ -551,9 +551,9 @@ int collect_dlr(void) {
       }
 
       /* load labels */
-      local_i = READ_T;
+      i = READ_T;
 
-      for (; local_i > 0; local_i--) {
+      for (; i > 0; i--) {
         l = calloc(1, sizeof(struct label));
         if (l == NULL) {
           fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
@@ -597,10 +597,10 @@ int collect_dlr(void) {
         add_label(l);
       }
 
-      local_i = READ_T;
+      i = READ_T;
 
       /* load references */
-      for (; local_i > 0; local_i--) {
+      for (; i > 0; i--) {
         r = calloc(sizeof(struct reference), 1);
         if (r == NULL) {
           fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
@@ -629,10 +629,10 @@ int collect_dlr(void) {
         add_reference(r);
       }
 
-      local_i = READ_T;
+      i = READ_T;
 
       /* load pending calculations */
-      for (; local_i > 0; local_i--) {
+      for (; i > 0; i--) {
         s = calloc(sizeof(struct stack), 1);
         if (s == NULL) {
           fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
@@ -688,10 +688,10 @@ int collect_dlr(void) {
       }
 
       /* label sizeofs */
-      local_i = READ_T;
+      i = READ_T;
 
-      while (local_i > 0) {
-        local_i--;
+      while (i > 0) {
+        i--;
 
         ls = calloc(sizeof(struct label_sizeof), 1);
         if (ls == NULL) {
@@ -713,10 +713,10 @@ int collect_dlr(void) {
       }
 
       /* append sections */
-      local_i = READ_T;
+      i = READ_T;
 
-      while (local_i > 0) {
-        local_i--;
+      while (i > 0) {
+        i--;
 
         append_tmp = calloc(1, sizeof(struct append_section));
         if (append_tmp == NULL) {
@@ -744,10 +744,10 @@ int collect_dlr(void) {
     /* LIBRARY FILE */
     else if (obj_tmp->format == WLA_VERSION_LIB) {
       t = obj_tmp->exported_defines;
-      local_i = READ_T;
+      i = READ_T;
 
       /* load definitions */
-      for (; local_i > 0; local_i--) {
+      for (; i > 0; i--) {
         l = calloc(1, sizeof(struct label));
         if (l == NULL) {
           fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
@@ -780,10 +780,10 @@ int collect_dlr(void) {
         add_label(l);
       }
 
-      local_i = READ_T;
+      i = READ_T;
 
       /* load labels and symbols */
-      for (; local_i > 0; local_i--) {
+      for (; i > 0; i--) {
         l = calloc(1, sizeof(struct label));
         if (l == NULL) {
           fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
@@ -821,10 +821,10 @@ int collect_dlr(void) {
         add_label(l);
       }
 
-      local_i = READ_T;
+      i = READ_T;
 
       /* load references */
-      for (; local_i > 0; local_i--) {
+      for (; i > 0; i--) {
         r = calloc(sizeof(struct reference), 1);
         if (r == NULL) {
           fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
@@ -850,10 +850,10 @@ int collect_dlr(void) {
         add_reference(r);
       }
 
-      local_i = READ_T;
+      i = READ_T;
 
       /* load pending calculations */
-      for (; local_i > 0; local_i--) {
+      for (; i > 0; i--) {
         s = calloc(sizeof(struct stack), 1);
         if (s == NULL) {
           fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
@@ -909,10 +909,10 @@ int collect_dlr(void) {
       }
 
       /* label sizeofs */
-      local_i = READ_T;
+      i = READ_T;
 
-      while (local_i > 0) {
-        local_i--;
+      while (i > 0) {
+        i--;
 
         ls = calloc(sizeof(struct label_sizeof), 1);
         if (ls == NULL) {
@@ -934,10 +934,10 @@ int collect_dlr(void) {
       }
       
       /* append sections */
-      local_i = READ_T;
+      i = READ_T;
 
-      while (local_i > 0) {
-        local_i--;
+      while (i > 0) {
+        i--;
 
         append_tmp = calloc(1, sizeof(struct append_section));
         if (append_tmp == NULL) {
@@ -1077,7 +1077,7 @@ int merge_sections(void) {
 int parse_data_blocks(void) {
 
   struct section *s;
-  int section, local_i, x;
+  int section, i, x;
   unsigned char *t, *p;
   char buf[256];
 
@@ -1095,15 +1095,15 @@ int parse_data_blocks(void) {
 
         if (x == DATA_TYPE_BLOCK) {
           /* address */
-          local_i = READ_T;
+          i = READ_T;
           /* amount of bytes */
           x = READ_T;
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
           snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing fixed data block from \"%s\".", obj_tmp->name);
 
-          for (; x > 0; x--, local_i++)
-            if (mem_insert(local_i, *(t++)) == FAILED)
+          for (; x > 0; x--, i++)
+            if (mem_insert(i, *(t++)) == FAILED)
               return FAILED;
         }
         else if (x == DATA_TYPE_SECTION) {
@@ -1114,21 +1114,21 @@ int parse_data_blocks(void) {
           }
 
           /* name */
-          local_i = 0;
+          i = 0;
           while (*t != SECTION_STATUS_FREE && *t != SECTION_STATUS_FORCE && *t != SECTION_STATUS_OVERWRITE &&
                  *t != SECTION_STATUS_HEADER && *t != SECTION_STATUS_SEMIFREE && *t != SECTION_STATUS_ABSOLUTE &&
                  *t != SECTION_STATUS_RAM_FREE && *t != SECTION_STATUS_SUPERFREE && *t != SECTION_STATUS_SEMISUBFREE &&
                  *t != SECTION_STATUS_RAM_FORCE && *t != SECTION_STATUS_RAM_SEMIFREE && *t != SECTION_STATUS_RAM_SEMISUBFREE)
-            s->name[local_i++] = *(t++);
-          s->name[local_i] = 0;
+            s->name[i++] = *(t++);
+          s->name[i] = 0;
           s->status = *(t++);
           s->keep = *(t++);
 
           /* namespace */
-          local_i = 0;
+          i = 0;
           while (*t != 0)
-            buf[local_i++] = *(t++);
-          buf[local_i] = 0;
+            buf[i++] = *(t++);
+          buf[i] = 0;
           t++;
           if (buf[0] == 0)
             s->nspace = NULL;
@@ -1190,21 +1190,21 @@ int parse_data_blocks(void) {
         }
 
         /* name */
-        local_i = 0;
+        i = 0;
         while (*t != SECTION_STATUS_FREE && *t != SECTION_STATUS_FORCE && *t != SECTION_STATUS_OVERWRITE &&
                *t != SECTION_STATUS_HEADER && *t != SECTION_STATUS_SEMIFREE && *t != SECTION_STATUS_ABSOLUTE &&
                *t != SECTION_STATUS_RAM_FREE && *t != SECTION_STATUS_SUPERFREE && *t != SECTION_STATUS_SEMISUBFREE &&
                *t != SECTION_STATUS_RAM_FORCE && *t != SECTION_STATUS_RAM_SEMIFREE && *t != SECTION_STATUS_RAM_SEMISUBFREE)
-          s->name[local_i++] = *(t++);
-        s->name[local_i] = 0;
+          s->name[i++] = *(t++);
+        s->name[i] = 0;
         s->status = *(t++);
         s->keep = *(t++);
           
         /* namespace */
-        local_i = 0;
+        i = 0;
         while (*t != 0)
-          buf[local_i++] = *(t++);
-        buf[local_i] = 0;
+          buf[i++] = *(t++);
+        buf[i] = 0;
         t++;
         if (buf[0] == 0)
           s->nspace = NULL;

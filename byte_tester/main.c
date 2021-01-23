@@ -17,23 +17,23 @@
 
 int _get_next_number(char *in, int *out) {
 
-  int local_i = 0, o, n;
+  int i = 0, o, n;
 
-  if (in[local_i] >= '0' && in[local_i] <= '9') {
+  if (in[i] >= '0' && in[i] <= '9') {
     /* is it hex after all? */
     n = 0;
     for (o = 0; 1; o++) {
-      if (in[local_i+o] >= '0' && in[local_i+o] <= '9')
+      if (in[i+o] >= '0' && in[i+o] <= '9')
         continue;
-      if (in[local_i+o] >= 'a' && in[local_i+o] <= 'f') {
+      if (in[i+o] >= 'a' && in[i+o] <= 'f') {
         n = 1;
         break;
       }
-      if (in[local_i+o] >= 'A' && in[local_i+o] <= 'F') {
+      if (in[i+o] >= 'A' && in[i+o] <= 'F') {
         n = 1;
         break;
       }
-      if (in[local_i+o] == 'h' || in[local_i+o] == 'H') {
+      if (in[i+o] == 'h' || in[i+o] == 'H') {
         n = 1;
         break;
       }
@@ -44,44 +44,44 @@ int _get_next_number(char *in, int *out) {
       /* hex */
       o = 0;
       while (TRUE) {
-        if (in[local_i] >= '0' && in[local_i] <= '9')
-          o = (o * 16) + in[local_i] - '0';
-        else if (in[local_i] >= 'a' && in[local_i] <= 'f')
-          o = (o * 16) + in[local_i] - 'a' + 0xA;
-        else if (in[local_i] >= 'A' && in[local_i] <= 'F')
-          o = (o * 16) + in[local_i] - 'A' + 0xA;
-        else if (in[local_i] == 'h' || in[local_i] == 'H')
+        if (in[i] >= '0' && in[i] <= '9')
+          o = (o * 16) + in[i] - '0';
+        else if (in[i] >= 'a' && in[i] <= 'f')
+          o = (o * 16) + in[i] - 'a' + 0xA;
+        else if (in[i] >= 'A' && in[i] <= 'F')
+          o = (o * 16) + in[i] - 'A' + 0xA;
+        else if (in[i] == 'h' || in[i] == 'H')
           break;
-        else if (in[local_i] == ' ' || in[local_i] == 0x09 || in[local_i] == 0)
+        else if (in[i] == ' ' || in[i] == 0x09 || in[i] == 0)
           break;
         else
           return FAILED;
-        local_i++;
+        i++;
       }
     }
     else {
       /* decimal */
-      for (o = 0; in[local_i] >= '0' && in[local_i] <= '9'; local_i++)
-        o = (o * 10) + in[local_i] - '0';
-      if (!(in[local_i] == ' ' || in[local_i] == 0x09 || in[local_i] == 0))
+      for (o = 0; in[i] >= '0' && in[i] <= '9'; i++)
+        o = (o * 10) + in[i] - '0';
+      if (!(in[i] == ' ' || in[i] == 0x09 || in[i] == 0))
         return FAILED;
     }
   }
-  else if (in[local_i] == '$') {
-    local_i++;
+  else if (in[i] == '$') {
+    i++;
     o = 0;
     while (TRUE) {
-      if (in[local_i] >= '0' && in[local_i] <= '9')
-        o = (o * 16) + in[local_i] - '0';
-      else if (in[local_i] >= 'a' && in[local_i] <= 'f')
-        o = (o * 16) + in[local_i] - 'a' + 0xA;
-      else if (in[local_i] >= 'A' && in[local_i] <= 'F')
-        o = (o * 16) + in[local_i] - 'A' + 0xA;
-      else if (in[local_i] == ' ' || in[local_i] == 0x09 || in[local_i] == 0)
+      if (in[i] >= '0' && in[i] <= '9')
+        o = (o * 16) + in[i] - '0';
+      else if (in[i] >= 'a' && in[i] <= 'f')
+        o = (o * 16) + in[i] - 'a' + 0xA;
+      else if (in[i] >= 'A' && in[i] <= 'F')
+        o = (o * 16) + in[i] - 'A' + 0xA;
+      else if (in[i] == ' ' || in[i] == 0x09 || in[i] == 0)
         break;
       else
         return FAILED;
-      local_i++;
+      i++;
     }
   }
   else
@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
 
   char tmp[256], test_id[256], tag_id[256];
   unsigned char bytes[256];
-  int file_size, end, byte_count, local_i, j, length, tag_start, tag_end, wrong_bytes, failures, use_address = NO, address = 0, did_we_read_data = NO, got_it = NO;
+  int file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, use_address = NO, address = 0, did_we_read_data = NO, got_it = NO;
   FILE *f;
   
   if (argc != 2 || argv == NULL) {
@@ -226,9 +226,9 @@ int main(int argc, char *argv[]) {
       length = (int)strlen(tmp);
       got_it = NO;
 
-      for (local_i = 0; local_i < file_size; local_i++) {
+      for (i = 0; i < file_size; i++) {
         for (j = 0; j < length; j++) {
-          if (binary_file[local_i+j] != tmp[j])
+          if (binary_file[i+j] != tmp[j])
             break;
         }
         if (j == length) {
@@ -250,9 +250,9 @@ int main(int argc, char *argv[]) {
       length = (int)strlen(tmp);
       got_it = NO;
       
-      for (local_i = 0; local_i < file_size; local_i++) {
+      for (i = 0; i < file_size; i++) {
         for (j = 0; j < length; j++) {
-          if (binary_file[local_i+j] != tmp[j])
+          if (binary_file[i+j] != tmp[j])
             break;
         }
         if (j == length) {
@@ -314,31 +314,31 @@ int main(int argc, char *argv[]) {
 
     /* execute the test */
     if (use_address == NO) {
-      for (local_i = 0; local_i < file_size - 2; local_i++) {
-        if (binary_file[local_i] == tag_id[0] && binary_file[local_i+1] == tag_id[1] && binary_file[local_i+2] == '>')
+      for (i = 0; i < file_size - 2; i++) {
+        if (binary_file[i] == tag_id[0] && binary_file[i+1] == tag_id[1] && binary_file[i+2] == '>')
           break;
       }
 
-      if (local_i == file_size - 2) {
+      if (i == file_size - 2) {
         fprintf(stderr, "Test \"%s\" FAILED - Could not find tag \"%s>\".\n", test_id, tag_id);
         failures = 1;
         continue;
       }
 
-      tag_start = local_i+3;
+      tag_start = i+3;
 
-      for ( ; local_i < file_size - 2; local_i++) {
-        if (binary_file[local_i] == '<' && binary_file[local_i+1] == tag_id[0] && binary_file[local_i+2] == tag_id[1])
+      for ( ; i < file_size - 2; i++) {
+        if (binary_file[i] == '<' && binary_file[i+1] == tag_id[0] && binary_file[i+2] == tag_id[1])
           break;
       }
 
-      if (local_i == file_size - 2) {
+      if (i == file_size - 2) {
         fprintf(stderr, "Test \"%s\" FAILED - Could not find tag \"<%s\".\n", test_id, tag_id);
         failures = 1;
         continue;
       }
 
-      tag_end = local_i;
+      tag_end = i;
 
       if (tag_end - tag_start != byte_count) {
         fprintf(stderr, "Test \"%s\" FAILED - There is %d bytes between the tags \"%s\", but the test \"%s\" defines only %d bytes.\n", test_id, tag_end - tag_start, tag_id, test_id, byte_count);
@@ -351,13 +351,13 @@ int main(int argc, char *argv[]) {
     
     /* compare bytes */
     wrong_bytes = 0;
-    for (local_i = 0; local_i < byte_count; local_i++) {
-      if (bytes[local_i] != binary_file[tag_start + local_i]) {
+    for (i = 0; i < byte_count; i++) {
+      if (bytes[i] != binary_file[tag_start + i]) {
         if (wrong_bytes == 0)
-          fprintf(stderr, "Test \"%s\" FAILED - Bytes that don't match: %d", test_id, (local_i+1));
+          fprintf(stderr, "Test \"%s\" FAILED - Bytes that don't match: %d", test_id, (i+1));
         else
-          fprintf(stderr, ", %d", (local_i+1));
-        fprintf(stderr, " (GOT: $%.2x EXPECTED: $%.2x)", binary_file[tag_start + local_i], bytes[local_i]);
+          fprintf(stderr, ", %d", (i+1));
+        fprintf(stderr, " (GOT: $%.2x EXPECTED: $%.2x)", binary_file[tag_start + i], bytes[i]);
         wrong_bytes++;
       }
     }

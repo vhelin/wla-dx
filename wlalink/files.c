@@ -31,7 +31,7 @@ char file_name_error[] = "???";
 
 int load_files(char *argv[], int argc) {
 
-  int state = STATE_NONE, local_i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n, alignment, offset;
+  int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n, alignment, offset;
   int org_defined, org, orga_defined, orga, status_defined, status, priority_defined, priority, appendto_defined, keep_defined;
   int alignment_defined, offset_defined;
   char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32], appendto_name[MAX_NAME_LENGTH + 1];
@@ -54,9 +54,9 @@ int load_files(char *argv[], int argc) {
       continue;
 
     /* remove garbage from the end */
-    for (local_i = 0; !(tmp[local_i] == 0x0D || tmp[local_i] == 0x0A || tmp[local_i] == 0x00); local_i++)
+    for (i = 0; !(tmp[i] == 0x0D || tmp[i] == 0x0A || tmp[i] == 0x00); i++)
       ;
-    tmp[local_i] = 0;
+    tmp[i] = 0;
 
     /* empty line check */
     if (get_next_token(tmp, token, &x) == FAILED)
@@ -194,8 +194,8 @@ int load_files(char *argv[], int argc) {
     }
     /* section / ramsection settings? */
     else if (state == STATE_RAMSECTIONS || state == STATE_SECTIONS) {
-      local_i = SUCCEEDED;
-      while (local_i == SUCCEEDED) {
+      i = SUCCEEDED;
+      while (i == SUCCEEDED) {
         if (strcaselesscmp(token, "bank") == 0) {
           if (bank_defined == YES) {
             fprintf(stderr, "%s:%d: LOAD_FILES: BANK defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
@@ -390,10 +390,10 @@ int load_files(char *argv[], int argc) {
         else
           break;
         
-        local_i = get_next_token(&tmp[x], token, &x);
+        i = get_next_token(&tmp[x], token, &x);
       }
       
-      if (local_i == FAILED) {
+      if (i == FAILED) {
         fprintf(stderr, "%s:%d: LOAD_FILES: There is something wrong in a %s's settings.\n", argv[argc - 2], line, state_name);
         fclose(fop);
         return FAILED;
@@ -477,8 +477,8 @@ int load_files(char *argv[], int argc) {
     }
     /* library loading? */
     else if (state == STATE_LIBRARY) {
-      local_i = SUCCEEDED;
-      while (local_i == SUCCEEDED) {
+      i = SUCCEEDED;
+      while (i == SUCCEEDED) {
         if (strcaselesscmp(token, "bank") == 0) {
           if (bank_defined == YES) {
             fprintf(stderr, "%s:%d: LOAD_FILES: BANK defined for the second time for a library file.\n", argv[argc - 2], line);
@@ -530,10 +530,10 @@ int load_files(char *argv[], int argc) {
         else
           break;
         
-        local_i = get_next_token(&tmp[x], token, &x);
+        i = get_next_token(&tmp[x], token, &x);
       }
       
-      if (local_i == FAILED) {
+      if (i == FAILED) {
         fprintf(stderr, "%s:%d: LOAD_FILES: No library to load.\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;

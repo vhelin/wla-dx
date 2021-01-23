@@ -1,2 +1,2 @@
 
-int get_mnemonic_status(int local_i);
+int get_mnemonic_status(int i);

@@ -72,7 +72,7 @@ int discard_iteration(void) {
   struct section *s, *ss;
   struct label *l;
   struct stack *st;
-  int local_i;
+  int i;
 
   
   /* check section names for special characters '!', and check if the section is of proper type */
@@ -142,8 +142,8 @@ int discard_iteration(void) {
     }
 
     si = st->stack;
-    local_i = 0;
-    while (local_i != st->stacksize) {
+    i = 0;
+    while (i != st->stacksize) {
       if (si->type == STACK_ITEM_TYPE_STRING && is_label_anonymous(si->string) == NO) {
         find_label(si->string, ss, &l);
 
@@ -158,7 +158,7 @@ int discard_iteration(void) {
         }
       }
       si++;
-      local_i++;
+      i++;
     }
     st = st->next;
   }

@@ -32,10 +32,10 @@
 int main(int argc, char *argv[]) {
 
   char *t;
-  int local_i;
+  int i;
 
 
-  local_i = 0;
+  i = 0;
   printf("struct optcode {\n");
   printf("  char *op;\n");
   printf("  int  type;\n");
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
   while (TRUE) {
     printf("  { \"\t");
 
-    t = opt_table[local_i].op;
+    t = opt_table[i].op;
 
     while (*t != 0 && *t != ' ') {
       printf("%c", *t);
@@ -59,10 +59,10 @@ int main(int argc, char *argv[]) {
 
       while (*t != 0) {
 	if (*t == '*') {
-	  if (opt_table[local_i].type == 8)
-	    printf("$%x", opt_table[local_i].value);
+	  if (opt_table[i].type == 8)
+	    printf("$%x", opt_table[i].value);
 	  else
-	    printf("%d", opt_table[local_i].value);
+	    printf("%d", opt_table[i].value);
 	}
 	else if (*t == ',') {
 	  printf(", ");
@@ -74,11 +74,11 @@ int main(int argc, char *argv[]) {
     }
 #endif
 
-    printf("\", %d, 0x%x, ", opt_table[local_i].type, opt_table[local_i].hex);
-    printf("%d },\n", get_mnemonic_status(local_i));
+    printf("\", %d, 0x%x, ", opt_table[i].type, opt_table[i].hex);
+    printf("%d },\n", get_mnemonic_status(i));
 
-    local_i++;
-    if (opt_table[local_i].type == -1)
+    i++;
+    if (opt_table[i].type == -1)
       break;
   }
 
@@ -93,12 +93,12 @@ int main(int argc, char *argv[]) {
    3 = return
    4 = conditional return */
 
-int get_mnemonic_status(int local_i) {
+int get_mnemonic_status(int i) {
 
   int k;
 
 
-  k = opt_table[local_i].hex;
+  k = opt_table[i].hex;
 
   /* rst */
   if (k == 0xff || k == 0xf7 || k == 0xef || k == 0xe7 || k == 0xdf || k == 0xd7 || k == 0xcf || k == 0xc7)
