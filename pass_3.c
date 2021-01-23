@@ -897,7 +897,7 @@ int pass_3(void) {
 /* is the label of form __, -, --, ---, +, ++, +++, ... ? */
 int is_label_anonymous(char *label) {
 
-  int length, i;
+  int length, local_i;
   char c;
 
   if (strcmp(label, "__") == 0)
@@ -907,8 +907,8 @@ int is_label_anonymous(char *label) {
   if (!(c == '-' || c == '+'))
     return NO;
   length = (int)strlen(label);
-  for (i = 0; i < length; i++) {
-    if (*(label + i) != c)
+  for (local_i = 0; local_i < length; local_i++) {
+    if (*(label + local_i) != c)
       return NO;
   }
 

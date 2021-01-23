@@ -159,7 +159,7 @@ int _cbm_write_prg_header(FILE *f) {
 
 int _smc_create_and_write(FILE *f) {
 
-  int i;
+  int local_i;
 
 
   if (f == NULL)
@@ -168,20 +168,20 @@ int _smc_create_and_write(FILE *f) {
   if (output_mode != OUTPUT_ROM)
     return FAILED;
 
-  i = romsize/(8*1024);
+  local_i = romsize/(8*1024);
 
   /* low byte of 8KB page count */
-  fprintf(f, "%c", i & 0xFF);
+  fprintf(f, "%c", local_i & 0xFF);
   /* high byte of 8KB page count */
-  fprintf(f, "%c", (i>>8) & 0xFF);
+  fprintf(f, "%c", (local_i>>8) & 0xFF);
 
   /* emulation mode select (?) */
-  i = 0;
+  local_i = 0;
   if (snes_rom_mode == SNES_ROM_MODE_HIROM || snes_rom_mode == SNES_ROM_MODE_EXHIROM)
-    i |= (1<<5) | (1<<4);
-  i |= (snes_sramsize ^ 3) << 2;
+    local_i |= (1<<5) | (1<<4);
+  local_i |= (snes_sramsize ^ 3) << 2;
 
-  fprintf(f, "%c", i);
+  fprintf(f, "%c", local_i);
 
   /* bytes 3 to 7 are reserved, should be zero */
   fprintf(f, "%c" ,0);
@@ -198,7 +198,7 @@ int _smc_create_and_write(FILE *f) {
   fprintf(f, "%c", 0x04);
 
   /* the rest of the header is zeroes */
-  for (i = 0; i < 512-11; i++)
+  for (local_i = 0; local_i < 512-11; local_i++)
     fprintf(f, "%c", 0);
 
   return SUCCEEDED;
@@ -208,13 +208,13 @@ int _smc_create_and_write(FILE *f) {
 int insert_sections(void) {
 
   struct section *s, **sa;
-  int d, f, i, x, t, q, sn, p;
+  int d, f, local_i, x, t, q, sn, p;
   char **ram_slots[256], *c;
 
 
   /* initialize ram slots */
-  for (i = 0; i < 256; i++)
-    ram_slots[i] = NULL;
+  for (local_i = 0; local_i < 256; local_i++)
+    ram_slots[local_i] = NULL;
 
   /* find all touched slots */
   s = sec_first;
@@ -226,8 +226,8 @@ int insert_sections(void) {
           fprintf(stderr, "INSERT_SECTIONS: Out of memory error.\n");
           return FAILED;
         }
-        for (i = 0; i < 256; i++)
-          ram_slots[s->bank][i] = NULL;
+        for (local_i = 0; local_i < 256; local_i++)
+          ram_slots[s->bank][local_i] = NULL;
       }
       if (ram_slots[s->bank][s->slot] == NULL) {
         ram_slots[s->bank][s->slot] = calloc(slots[s->slot].size, 1);
@@ -242,14 +242,14 @@ int insert_sections(void) {
   }
 
   /* count the sections */
-  i = 0;
+  local_i = 0;
   s = sec_first;
   while (s != NULL) {
     if (s->alive == YES)
-      i++;
+      local_i++;
     s = s->next;
   }
-  sn = i;
+  sn = local_i;
 
   if (sn == 0)
     return SUCCEEDED;
@@ -261,12 +261,12 @@ int insert_sections(void) {
   }
 
   /* insert the sections into an array for sorting */
-  i = 0;
+  local_i = 0;
   s = sec_first;
   while (s != NULL) {
     /* no references - skip it */
     if (s->alive == YES)
-      sa[i++] = s;
+      sa[local_i++] = s;
     s = s->next;
   }
 
@@ -298,8 +298,8 @@ int insert_sections(void) {
       address += s->offset;
 
       c = ram_slots[s->bank][s->slot];
-      i = slots[s->slot].size;
-      for (q = 0; address + q < i && q < s->size; q++) {
+      local_i = slots[s->slot].size;
+      for (q = 0; address + q < local_i && q < s->size; q++) {
         if (c[address + q] != 0) {
           fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in slot %d.\n", s->name, s->size, s->slot);
           free(sa);
@@ -311,7 +311,7 @@ int insert_sections(void) {
       s->output_address = address;
 
       /* mark as used */
-      for (i = 0; i < s->size; i++, address++)
+      for (local_i = 0; local_i < s->size; local_i++, address++)
         c[address] = 1;
     }
   }
@@ -332,11 +332,11 @@ int insert_sections(void) {
       address += overflow;
 
       c = ram_slots[s->bank][s->slot];
-      i = s->address;
+      local_i = s->address;
       t = 0;
-      for (; address < i; address += s->alignment) {
+      for (; address < local_i; address += s->alignment) {
         if (c[address] == 0) {
-          for (q = 0; address + offset + q < i && q < s->size; q++) {
+          for (q = 0; address + offset + q < local_i && q < s->size; q++) {
             if (c[address + offset + q] != 0)
               break;
           }
@@ -358,7 +358,7 @@ int insert_sections(void) {
       s->output_address = address;
 
       /* mark as used */
-      for (i = 0; i < s->size; i++, address++)
+      for (local_i = 0; local_i < s->size; local_i++, address++)
         c[address] = 1;
     }
   }
@@ -379,11 +379,11 @@ int insert_sections(void) {
       address += overflow;
 
       c = ram_slots[s->bank][s->slot];
-      i = slots[s->slot].size;
+      local_i = slots[s->slot].size;
       t = 0;
-      for (; address < i; address += s->alignment) {
+      for (; address < local_i; address += s->alignment) {
         if (c[address] == 0) {
-          for (q = 0; address + offset + q < i && q < s->size; q++) {
+          for (q = 0; address + offset + q < local_i && q < s->size; q++) {
             if (c[address + offset + q] != 0)
               break;
           }
@@ -405,22 +405,22 @@ int insert_sections(void) {
       s->output_address = address;
 
       /* mark as used */
-      for (i = 0; i < s->size; i++, address++)
+      for (local_i = 0; local_i < s->size; local_i++, address++)
         c[address] = 1;
     }
   }
 
   /* free tmp memory */
-  for (i = 0; i < 256; i++) {
-    if (ram_slots[i] != NULL) {
+  for (local_i = 0; local_i < 256; local_i++) {
+    if (ram_slots[local_i] != NULL) {
       for (p = 0; p < 256; p++) {
-        if (ram_slots[i][p] != NULL) {
-          free(ram_slots[i][p]);
-          ram_slots[i][p] = NULL;
+        if (ram_slots[local_i][p] != NULL) {
+          free(ram_slots[local_i][p]);
+          ram_slots[local_i][p] = NULL;
         }
       }
-      free(ram_slots[i]);
-      ram_slots[i] = NULL;
+      free(ram_slots[local_i]);
+      ram_slots[local_i] = NULL;
     }
   }
 
@@ -436,10 +436,10 @@ int insert_sections(void) {
       pc_full = pc_bank + bankaddress[s->bank];
       pc_slot_max = slots[s->slot].address + slots[s->slot].size;
       d = pc_full;
-      i = d + s->size;
+      local_i = d + s->size;
       s->output_address = d;
       section_overwrite = OFF;
-      if (i > romsize) {
+      if (local_i > romsize) {
         fprintf(stderr, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) goes beyond the ROM size.\n", get_file_name(s->file_id),
                 get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
         return FAILED;
@@ -449,7 +449,7 @@ int insert_sections(void) {
                 get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
         return FAILED;
       }
-      for (; d < i; d++) {
+      for (; d < local_i; d++) {
         if (rom_usage[d] != 0 && rom[d] != s->data[d - pc_full])
           break;
       }
@@ -457,9 +457,9 @@ int insert_sections(void) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
-      if (d == i) {
-        for (i = 0; i < s->size; i++) {
-          if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
+      if (d == local_i) {
+        for (local_i = 0; local_i < s->size; local_i++) {
+          if (mem_insert_pc(s->data[local_i], s->slot, s->bank) == FAILED)
             return FAILED;
         }
       }
@@ -484,8 +484,8 @@ int insert_sections(void) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
-      for (i = 0; i < s->size; i++) {
-        if (mem_insert(d + i, s->data[i]) == FAILED)
+      for (local_i = 0; local_i < s->size; local_i++) {
+        if (mem_insert(d + local_i, s->data[local_i]) == FAILED)
           return FAILED;
       }
     }
@@ -504,8 +504,8 @@ int insert_sections(void) {
       if (f > 0)
         pc_bank += s->alignment - f;
 
-      i = FAILED;
-      while (i == FAILED) {
+      local_i = FAILED;
+      while (local_i == FAILED) {
         f = pc_bank;
         for (x = 0; pc_bank + s->offset < s->address && rom_usage[pc_bank + s->offset + d] == 0 && x < s->size; pc_bank++, x++)
           ;
@@ -538,8 +538,8 @@ int insert_sections(void) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
-      for (i = 0; i < s->size; i++) {
-        if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
+      for (local_i = 0; local_i < s->size; local_i++) {
+        if (mem_insert_pc(s->data[local_i], s->slot, s->bank) == FAILED)
           return FAILED;
       }
     }
@@ -558,8 +558,8 @@ int insert_sections(void) {
       if (f > 0)
         pc_bank += s->alignment - f;
 
-      i = FAILED;
-      while (i == FAILED) {
+      local_i = FAILED;
+      while (local_i == FAILED) {
         f = pc_bank;
         for (x = 0; pc_bank + s->offset < banksizes[s->bank] && rom_usage[pc_bank + s->offset + d] == 0 && x < s->size; pc_bank++, x++)
           ;
@@ -592,8 +592,8 @@ int insert_sections(void) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
-      for (i = 0; i < s->size; i++) {
-        if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
+      for (local_i = 0; local_i < s->size; local_i++) {
+        if (mem_insert_pc(s->data[local_i], s->slot, s->bank) == FAILED)
           return FAILED;
       }
     }
@@ -605,10 +605,10 @@ int insert_sections(void) {
     s = sa[p++];
     if (s->status == SECTION_STATUS_SUPERFREE) {
       /* go through all the banks */
-      i = FAILED;
+      local_i = FAILED;
       f = 0;
 
-      for (q = 0; i == FAILED && q < rombanks; q++) {
+      for (q = 0; local_i == FAILED && q < rombanks; q++) {
         pc_bank = 0;
         d = bankaddress[q];
 
@@ -621,12 +621,12 @@ int insert_sections(void) {
         if (banksizes[q] != slots[s->slot].size)
           continue;
 
-        while (i == FAILED) {
+        while (local_i == FAILED) {
           f = pc_bank;
           for (x = 0; pc_bank + s->offset < banksizes[q] && rom_usage[pc_bank + s->offset + d] == 0 && x < s->size; pc_bank++, x++)
             ;
           if (x == s->size) {
-            i = SUCCEEDED;
+            local_i = SUCCEEDED;
             break;
           }
           if (pc_bank == banksizes[q])
@@ -641,7 +641,7 @@ int insert_sections(void) {
         }
       }
 
-      if (i == SUCCEEDED) {
+      if (local_i == SUCCEEDED) {
         s->bank = q-1;
         memory_file_id = s->file_id;
         banksize = banksizes[s->bank];
@@ -656,8 +656,8 @@ int insert_sections(void) {
         /* create a what-we-are-doing message for mem_insert*() warnings/errors */
         snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
-        for (i = 0; i < s->size; i++)
-          if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
+        for (local_i = 0; local_i < s->size; local_i++)
+          if (mem_insert_pc(s->data[local_i], s->slot, s->bank) == FAILED)
             return FAILED;
       }
       else {
@@ -695,8 +695,8 @@ int insert_sections(void) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
-      for (i = 0; i < s->size; i++) {
-        if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
+      for (local_i = 0; local_i < s->size; local_i++) {
+        if (mem_insert_pc(s->data[local_i], s->slot, s->bank) == FAILED)
           return FAILED;
       }
     }
@@ -1095,7 +1095,7 @@ int fix_references(void) {
   struct reference *r;
   struct section *s;
   struct label *l, lt;
-  int i, x;
+  int local_i, x;
 
 
   section_overwrite = OFF;
@@ -1163,9 +1163,9 @@ int fix_references(void) {
       }
 
       if (get_file(r->file_id)->cpu_65816 == YES)
-        i = get_snes_pc_bank(l) >> 16;
+        local_i = get_snes_pc_bank(l) >> 16;
       else
-        i = l->base + l->bank;
+        local_i = l->base + l->bank;
 
       memory_file_id = r->file_id;
       memory_file_id_source = r->file_id_source;
@@ -1177,19 +1177,19 @@ int fix_references(void) {
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT || r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
         if (get_file(r->file_id)->little_endian == YES) {
-          mem_insert_ref(x, i & 0xFF);
-          mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+          mem_insert_ref(x, local_i & 0xFF);
+          mem_insert_ref(x + 1, (local_i >> 8) & 0xFF);
         }
         else {
-          mem_insert_ref(x, (i >> 8) & 0xFF);
-          mem_insert_ref(x + 1, i & 0xFF);
+          mem_insert_ref(x, (local_i >> 8) & 0xFF);
+          mem_insert_ref(x + 1, local_i & 0xFF);
         }
       }
       /* direct 13-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_13BIT) {
         /* this is always little endian */
-        mem_insert(x, i & 0xFF);
-        mem_insert_ref_13bit_high(x + 1, (i >> 8) & 0xFF);
+        mem_insert(x, local_i & 0xFF);
+        mem_insert_ref_13bit_high(x + 1, (local_i >> 8) & 0xFF);
       }
       /* direct / relative 8-bit with a definition */
       else if (l->status == LABEL_STATUS_DEFINE) {
@@ -1200,19 +1200,19 @@ int fix_references(void) {
       /* direct 24-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
         if (get_file(r->file_id)->little_endian == YES) {
-          mem_insert_ref(x, i & 0xFF);
-          mem_insert_ref(x + 1, (i >> 8) & 0xFF);
-          mem_insert_ref(x + 2, (i >> 16) & 0xFF);
+          mem_insert_ref(x, local_i & 0xFF);
+          mem_insert_ref(x + 1, (local_i >> 8) & 0xFF);
+          mem_insert_ref(x + 2, (local_i >> 16) & 0xFF);
         }
         else {
-          mem_insert_ref(x, (i >> 16) & 0xFF);
-          mem_insert_ref(x + 1, (i >> 8) & 0xFF);
-          mem_insert_ref(x + 2, i & 0xFF);
+          mem_insert_ref(x, (local_i >> 16) & 0xFF);
+          mem_insert_ref(x + 1, (local_i >> 8) & 0xFF);
+          mem_insert_ref(x + 2, local_i & 0xFF);
         }
       }
       /* relative/direct 8-bit with a label */
       else {
-        mem_insert_ref(x, i & 0xFF);
+        mem_insert_ref(x, local_i & 0xFF);
       }
     }
     /* normal reference */
@@ -1247,101 +1247,101 @@ int fix_references(void) {
 
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
-        i = (int)l->address;
+        local_i = (int)l->address;
         if (get_file(r->file_id)->little_endian == YES) {
-          mem_insert_ref(x, i & 0xFF);
-          mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+          mem_insert_ref(x, local_i & 0xFF);
+          mem_insert_ref(x + 1, (local_i >> 8) & 0xFF);
         }
         else {
-          mem_insert_ref(x, (i >> 8) & 0xFF);
-          mem_insert_ref(x + 1, i & 0xFF);
+          mem_insert_ref(x, (local_i >> 8) & 0xFF);
+          mem_insert_ref(x + 1, local_i & 0xFF);
         }
       }
       /* direct 13-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_13BIT) {
-        i = (int)l->address;
-        if (i > 8191 || i < 0) {
+        local_i = (int)l->address;
+        if (local_i > 8191 || local_i < 0) {
           fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 13-bit value.\n",
-                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
+                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, local_i, l->name);
           return FAILED;
         }
         /* this is always little endian */
-        mem_insert_ref(x, i & 0xFF);
-        mem_insert_ref_13bit_high(x + 1, (i >> 8) & 0xFF);
+        mem_insert_ref(x, local_i & 0xFF);
+        mem_insert_ref_13bit_high(x + 1, (local_i >> 8) & 0xFF);
       }
       /* direct / relative 8-bit with a value definition */
       else if (l->status == LABEL_STATUS_DEFINE && (r->type == REFERENCE_TYPE_DIRECT_8BIT || r->type == REFERENCE_TYPE_RELATIVE_8BIT)) {
-        i = ((int)l->address) & 0xFFFF;
-        if (i > 255 || i < -128) {
+        local_i = ((int)l->address) & 0xFFFF;
+        if (local_i > 255 || local_i < -128) {
           fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8-bit value.\n",
-                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
+                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, local_i, l->name);
           return FAILED;
         }
-        mem_insert_ref(x, i & 0xFF);
+        mem_insert_ref(x, local_i & 0xFF);
       }
       /* direct 24-bit */
       else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
-        i = (int)l->address;
+        local_i = (int)l->address;
         if (l->status == LABEL_STATUS_LABEL)
-          i += get_snes_pc_bank(l);
+          local_i += get_snes_pc_bank(l);
         if (get_file(r->file_id)->little_endian == YES) {
-          mem_insert_ref(x, i & 0xFF);
-          mem_insert_ref(x + 1, (i >> 8) & 0xFF);
-          mem_insert_ref(x + 2, (i >> 16) & 0xFF);
+          mem_insert_ref(x, local_i & 0xFF);
+          mem_insert_ref(x + 1, (local_i >> 8) & 0xFF);
+          mem_insert_ref(x + 2, (local_i >> 16) & 0xFF);
         }
         else {
-          mem_insert_ref(x, (i >> 16) & 0xFF);
-          mem_insert_ref(x + 1, (i >> 8) & 0xFF);
-          mem_insert_ref(x + 2, i & 0xFF);
+          mem_insert_ref(x, (local_i >> 16) & 0xFF);
+          mem_insert_ref(x + 1, (local_i >> 8) & 0xFF);
+          mem_insert_ref(x + 2, local_i & 0xFF);
         }
       }
       /* relative 8-bit with a label */
       else if (r->type == REFERENCE_TYPE_RELATIVE_8BIT) {
-        i = (((int)l->address) & 0xFFFF) - r->address - 1;
-        if (i < -128 || i > 127) {
+        local_i = (((int)l->address) & 0xFFFF) - r->address - 1;
+        if (local_i < -128 || local_i > 127) {
           fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a relative 8-bit reference.\n",
-                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
+                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, local_i, r->address, (int)l->address, l->name);
           return FAILED;
         }
-        mem_insert_ref(x, i & 0xFF);
+        mem_insert_ref(x, local_i & 0xFF);
       }
       /* relative 16-bit with a label */
       else if (r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
-        i = (((int)l->address) & 0xFFFF) - r->address - 2;
+        local_i = (((int)l->address) & 0xFFFF) - r->address - 2;
         /* NOTE: on 65ce02 the 16-bit relative references don't use the next
            instruction as the starting point, but one byte before it */
         if (get_file(r->file_id)->cpu_65ce02 == YES)
-          i += 1;
+          local_i += 1;
         
-        if (i < -32768 || i > 32767) {
+        if (local_i < -32768 || local_i > 32767) {
           fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a relative 16-bit reference.\n",
-                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
+                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, local_i, r->address, (int)l->address, l->name);
           return FAILED;
         }
         if (get_file(r->file_id)->little_endian == YES) {
-          mem_insert_ref(x, i & 0xFF);
-          mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+          mem_insert_ref(x, local_i & 0xFF);
+          mem_insert_ref(x + 1, (local_i >> 8) & 0xFF);
         }
         else {
-          mem_insert_ref(x, (i >> 8) & 0xFF);
-          mem_insert_ref(x + 1, i & 0xFF);
+          mem_insert_ref(x, (local_i >> 8) & 0xFF);
+          mem_insert_ref(x + 1, local_i & 0xFF);
         }
       }
       else {
-        i = ((int)l->address) & 0xFFFF;
-        if (i > 255) {
+        local_i = ((int)l->address) & 0xFFFF;
+        if (local_i > 255) {
           fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8-bit value.\n",
-                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
+                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, local_i, l->name);
           return FAILED;
         }
 
         /* special case ID handling! */
         if (r->special_id > 0) {
-          if (_handle_special_case(r->special_id, r->file_id, r->file_id_source, r->linenumber, i, &i) == FAILED)
+          if (_handle_special_case(r->special_id, r->file_id, r->file_id_source, r->linenumber, local_i, &local_i) == FAILED)
             return FAILED;
         }
 
-        mem_insert_ref(x, i & 0xFF);
+        mem_insert_ref(x, local_i & 0xFF);
       }
     }
 
@@ -1665,7 +1665,7 @@ int write_rom_file(char *outname) {
 
   struct section *s;
   FILE *f;
-  int i, b, e;
+  int local_i, b, e;
 
   
   /* get the addresses of the program start and end */
@@ -1715,29 +1715,29 @@ int write_rom_file(char *outname) {
   /* ROM output mode */
   if (output_mode == OUTPUT_ROM) {
     /* write bank by bank and bank header sections */
-    for (i = 0; i < rombanks; i++) {
+    for (local_i = 0; local_i < rombanks; local_i++) {
       s = sec_bankhd_first;
       while (s != NULL) {
-        if (s->bank == i) {
+        if (s->bank == local_i) {
           fwrite(s->data, 1, s->size, f);
           break;
         }
         s = s->next;
       }
 
-      fwrite(rom + bankaddress[i], 1, banksizes[i], f);
+      fwrite(rom + bankaddress[local_i], 1, banksizes[local_i], f);
     }
   }
   /* program file output mode */
   else {
-    for (i = 0; i < romsize; i++) {
-      if (rom_usage[i] != 0)
+    for (local_i = 0; local_i < romsize; local_i++) {
+      if (rom_usage[local_i] != 0)
         break;
     }
-    b = i;
-    for (e = b; i < romsize; i++) {
-      if (rom_usage[i] != 0)
-        e = i;
+    b = local_i;
+    for (e = b; local_i < romsize; local_i++) {
+      if (rom_usage[local_i] != 0)
+        e = local_i;
     }
 
     /* overrides from the options to WLALINK */
@@ -2811,7 +2811,7 @@ int correct_65816_library_sections(void) {
 /* is the label of form -, --, ---, +, ++, +++, ... ? */
 int is_label_anonymous(char *label) {
 
-  int length, i;
+  int length, local_i;
   char c;
 
 
@@ -2822,8 +2822,8 @@ int is_label_anonymous(char *label) {
   if (!(c == '-' || c == '+'))
     return NO;
   length = (int)strlen(label);
-  for (i = 0; i < length; i++) {
-    if (*(label + i) != c)
+  for (local_i = 0; local_i < length; local_i++) {
+    if (*(label + local_i) != c)
       return NO;
   }
 
@@ -3162,15 +3162,15 @@ int fix_sectionstartend_labels(void) {
 
 int get_slot_by_its_name(char *name, int *slot) {
 
-  int i;
+  int local_i;
   
   if (name == NULL || slot == NULL)
     return FAILED;
 
-  for (i = 0; i < 256; i++) {
-    if (slots[i].usage == ON) {
-      if (strcmp(slots[i].name, name) == 0) {
-        *slot = i;
+  for (local_i = 0; local_i < 256; local_i++) {
+    if (slots[local_i].usage == ON) {
+      if (strcmp(slots[local_i].name, name) == 0) {
+        *slot = local_i;
         return SUCCEEDED;
       }
     }
@@ -3184,7 +3184,7 @@ int get_slot_by_its_name(char *name, int *slot) {
 
 int get_slot_by_a_value(int value, int *slot) {
 
-  int i;
+  int local_i;
 
   if (slot == NULL)
     return FAILED;
@@ -3197,9 +3197,9 @@ int get_slot_by_a_value(int value, int *slot) {
   
   /* value can be the direct SLOT ID, but can it be a SLOT's address as well? */
   if (value < 256) {
-    for (i = 0; i < 256; i++) {
-      if (slots[i].usage == ON && slots[i].address == value && value != i && slots[value].usage == ON) {
-        fprintf(stderr, "GET_SLOT_BY_A_VALUE: There is a SLOT number %d, but there also is a SLOT (with ID %d) with starting address %d ($%x)... Using SLOT %d.\n", value, i, value, value, value);
+    for (local_i = 0; local_i < 256; local_i++) {
+      if (slots[local_i].usage == ON && slots[local_i].address == value && value != local_i && slots[value].usage == ON) {
+        fprintf(stderr, "GET_SLOT_BY_A_VALUE: There is a SLOT number %d, but there also is a SLOT (with ID %d) with starting address %d ($%x)... Using SLOT %d.\n", value, local_i, value, value, value);
         *slot = value;
         return SUCCEEDED;
       }
@@ -3209,9 +3209,9 @@ int get_slot_by_a_value(int value, int *slot) {
     return SUCCEEDED;
   }
 
-  for (i = 0; i < 256; i++) {
-    if (slots[i].usage == ON && slots[i].address == value) {
-      *slot = i;
+  for (local_i = 0; local_i < 256; local_i++) {
+    if (slots[local_i].usage == ON && slots[local_i].address == value) {
+      *slot = local_i;
       return SUCCEEDED;
     }
   }

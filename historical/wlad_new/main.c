@@ -32,25 +32,25 @@ int arg_only_code = OFF, arg_strings = OFF, arg_address = ON, arg_labels = OFF, 
 int main(int argc, char *argv[]) {
 
   FILE *fp = NULL;
-  int i, r;
+  int local_i, r;
   char *name;
 
 
-  i = SUCCEEDED;
+  local_i = SUCCEEDED;
 
   if (argc != 4)
-    i = FAILED;
+    local_i = FAILED;
 
   if (argc == 4)
-    i = parse_flags(argv[1]);
+    local_i = parse_flags(argv[1]);
 
   if (arg_mode == ARG_MODE_NONE)
-    i = FAILED;
+    local_i = FAILED;
 
   if (get_value(argv[2], &arg_value) == FAILED)
-    i = FAILED;
+    local_i = FAILED;
 
-  if (i == FAILED) {
+  if (local_i == FAILED) {
 #ifdef GB
     fprintf(stderr, "\nWLAD GB-Z80 Disassembler v2.0\n");
 #endif
@@ -97,8 +97,8 @@ int main(int argc, char *argv[]) {
 
   /* compute ROM banks */
   r = fs / (16 * 1024);
-  i = fs - (r * 16 * 1024);
-  if (i != 0)
+  local_i = fs - (r * 16 * 1024);
+  if (local_i != 0)
     r++;
 
   /* output header */
@@ -123,7 +123,7 @@ int letter_check(char c) {
     return SUCCEEDED;
   else if (c >= '0' && c <= '9')
     return SUCCEEDED;
-  else if (c == ' ' || c == '!' || c == '?' || c == ',' || c == '.' || c == '-' || c == '*' || c == '|' || c == '&' || c == '/' || c == '\\' || c == '\'' || c == '"' || c == '@' || c == '#' || c == '£' || c == '$' || c == '%' || c == '(' || c == ')' || c == '[' || c == ']')
+  else if (c == ' ' || c == '!' || c == '?' || c == ',' || c == '.' || c == '-' || c == '*' || c == '|' || c == '&' || c == '/' || c == '\\' || c == '\'' || c == '"' || c == '@' || c == '#' || c == 'ï¿½' || c == '$' || c == '%' || c == '(' || c == ')' || c == '[' || c == ']')
     return SUCCEEDED;
 
   return FAILED;

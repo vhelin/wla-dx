@@ -16,7 +16,7 @@ extern int arg_only_code, arg_strings, arg_address, arg_labels, arg_mode, arg_va
 
 int dasm_brutal(void) {
 
-  int i, b, a, s;
+  int local_i, b, a, s;
 
 
   if (arg_labels == ON)
@@ -29,8 +29,8 @@ int dasm_brutal(void) {
     printf(".BANK %d SLOT %d\n\n", b, s);
     s = 1;
     b++;
-    i = 0;
-    while (a < arg_value && i < 0x4000) {
+    local_i = 0;
+    while (a < arg_value && local_i < 0x4000) {
 
 
       
@@ -43,16 +43,16 @@ int dasm_brutal(void) {
 
 int collect_labels_brutal(void) {
 
-  int i, b, a, s, t;
+  int local_i, b, a, s, t;
 
 
   b = 0;
   a = 0;
   s = 0;
-  i = 0;
+  local_i = 0;
   while (a < arg_value) {
-    if (i >= 0x4000) {
-      i -= 0x4000;
+    if (local_i >= 0x4000) {
+      local_i -= 0x4000;
       s = 1;
       b++;
     }
@@ -78,17 +78,17 @@ int collect_labels_brutal(void) {
     case 0:
     case 7:
       a++;
-      i++;
+      local_i++;
       break;
 
     case 1:
       a += 2;
-      i += 2;
+      local_i += 2;
       break;
 
     case 2:
       a += 3;
-      i += 3;
+      local_i += 3;
       break;
     }
 

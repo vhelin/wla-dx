@@ -36,15 +36,15 @@
 
 int main(int argc, char *argv[]) {
 
-  int i;
+  int local_i;
 
 
 
-  i = 0;
+  local_i = 0;
   while (TRUE) {
-    printf("%s\n", opt_table[i].op);
-    i++;
-    if (opt_table[i].type == -1)
+    printf("%s\n", opt_table[local_i].op);
+    local_i++;
+    if (opt_table[local_i].type == -1)
       break;
   }
 

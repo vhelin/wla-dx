@@ -257,7 +257,7 @@ int pass_4(void) {
   FILE *final_ptr;
   double dou;
   char *t, c;
-  int i, o, z, y, add_old = 0, x, q, ov, inside_macro = 0, inside_repeat = 0;
+  int local_i, o, z, y, add_old = 0, x, q, ov, inside_macro = 0, inside_repeat = 0;
   float f;
 
   memset(parent_labels, 0, sizeof(parent_labels));
@@ -436,7 +436,7 @@ int pass_4(void) {
 
     case 'X':
       fscanf(file_out_ptr, "%d %d", &ind, &inz);
-      i = inz & 0xFF;
+      local_i = inz & 0xFF;
       inz = (inz >> 8) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -444,7 +444,7 @@ int pass_4(void) {
 
       while (ind > 0) {
         if (little_endian == YES) {
-          if (mem_insert(i) == FAILED)
+          if (mem_insert(local_i) == FAILED)
             return FAILED;
           if (mem_insert(inz) == FAILED)
             return FAILED;
@@ -452,7 +452,7 @@ int pass_4(void) {
         else {
           if (mem_insert(inz) == FAILED)
             return FAILED;
-          if (mem_insert(i) == FAILED)
+          if (mem_insert(local_i) == FAILED)
             return FAILED;
         }
         ind--;
@@ -465,7 +465,7 @@ int pass_4(void) {
     case 'h':
       fscanf(file_out_ptr, "%d %d", &ind, &inz);
       x = inz & 0xFF;
-      i = (inz >> 8) & 0xFF;
+      local_i = (inz >> 8) & 0xFF;
       inz = (inz >> 16) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -475,7 +475,7 @@ int pass_4(void) {
         if (little_endian == YES) {
           if (mem_insert(x) == FAILED)
             return FAILED;
-          if (mem_insert(i) == FAILED)
+          if (mem_insert(local_i) == FAILED)
             return FAILED;
           if (mem_insert(inz) == FAILED)
             return FAILED;
@@ -483,7 +483,7 @@ int pass_4(void) {
         else {
           if (mem_insert(inz) == FAILED)
             return FAILED;
-          if (mem_insert(i) == FAILED)
+          if (mem_insert(local_i) == FAILED)
             return FAILED;
           if (mem_insert(x) == FAILED)
             return FAILED;
@@ -1565,8 +1565,8 @@ int pass_4(void) {
 
     if (rombankmap_defined != 0) {
       fprintf(final_ptr, "%c", 1);                 /* status */
-      for (i = 0; i < rombanks; i++) {
-        ov = banks[i];
+      for (local_i = 0; local_i < rombanks; local_i++) {
+        ov = banks[local_i];
         WRITEOUT_OV;                               /* banksize */
       }
     }
@@ -1579,16 +1579,16 @@ int pass_4(void) {
     /* memory map */
     fprintf(final_ptr, "%c", slots_amount);        /* number of slots */
 
-    for (i = 0; i < slots_amount; i++) {
-      if (slots[i].size != 0) {
-        ov = slots[i].address;
+    for (local_i = 0; local_i < slots_amount; local_i++) {
+      if (slots[local_i].size != 0) {
+        ov = slots[local_i].address;
         WRITEOUT_OV;                               /* slot address */
-        ov = slots[i].size;
+        ov = slots[local_i].size;
         WRITEOUT_OV;                               /* slot size */
-        if (slots[i].name[0] == 0x0)               /* slot name */
+        if (slots[local_i].name[0] == 0x0)               /* slot name */
           fprintf(final_ptr, "%c", 0x0);
         else
-          fprintf(final_ptr, "%s%c", slots[i].name, 0x0);
+          fprintf(final_ptr, "%s%c", slots[local_i].name, 0x0);
       }
     }
 
@@ -1816,16 +1816,16 @@ int pass_4(void) {
       if (rom_banks_usage_table[inz] != 0) {
         /* data block id */
         fprintf(final_ptr, "%c", 0x0);
-        for (i = inz, ind = 0; inz < max_address; inz++, ind++) {
+        for (local_i = inz, ind = 0; inz < max_address; inz++, ind++) {
           if (rom_banks_usage_table[inz] == 0) {
 
-            ov = i;
+            ov = local_i;
             WRITEOUT_OV;
 
             ov = ind;
             WRITEOUT_OV;
 
-            fwrite(&rom_banks[i], 1, ind, final_ptr);
+            fwrite(&rom_banks[local_i], 1, ind, final_ptr);
 
             ind = 0;
             break;
@@ -1835,13 +1835,13 @@ int pass_4(void) {
     }
 
     if (ind != 0) {
-      ov = i;
+      ov = local_i;
       WRITEOUT_OV;
 
       ov = ind;
       WRITEOUT_OV;
 
-      fwrite(&rom_banks[i], 1, ind, final_ptr);
+      fwrite(&rom_banks[local_i], 1, ind, final_ptr);
     }
 
     sec_tmp = sections_first;
@@ -1970,18 +1970,18 @@ int find_label(char *str, struct section_def *s, struct label_def **out) {
   char* stripped;
   char prefix[MAX_NAME_LENGTH*2+2];
   struct label_def *l = NULL;
-  int i;
+  int local_i;
 
   str2 = strchr(str, '.');
-  i = (int)(str2-str);
+  local_i = (int)(str2-str);
   if (str2 == NULL) {
     stripped = str;
     prefix[0] = '\0';
   }
   else {
     stripped = str2+1;
-    strncpy(prefix, str, i);
-    prefix[i] = '\0';
+    strncpy(prefix, str, local_i);
+    prefix[local_i] = '\0';
   }
 
   *out = NULL;

@@ -243,7 +243,7 @@ int listfile_collect(void) {
 
 int listfile_block_write(FILE *file_out, struct section_def *section) {
 
-  int i, d;
+  int local_i, d;
 
 
   if (file_out == NULL || section == NULL)
@@ -254,24 +254,24 @@ int listfile_block_write(FILE *file_out, struct section_def *section) {
   d = section->listfile_items;
   WRITEOUT_D;
 
-  for (i = 0; i < section->listfile_items; i++) {
-    fprintf(file_out, "%c", section->listfile_cmds[i]);
-    if (section->listfile_cmds[i] == 'k') {
+  for (local_i = 0; local_i < section->listfile_items; local_i++) {
+    fprintf(file_out, "%c", section->listfile_cmds[local_i]);
+    if (section->listfile_cmds[local_i] == 'k') {
       /* next line: line number, line length, skip bytes */
-      d = section->listfile_ints[i*3 + 0];
+      d = section->listfile_ints[local_i*3 + 0];
       WRITEOUT_D;
-      d = section->listfile_ints[i*3 + 1];
+      d = section->listfile_ints[local_i*3 + 1];
       WRITEOUT_D;
-      d = section->listfile_ints[i*3 + 2];
+      d = section->listfile_ints[local_i*3 + 2];
       WRITEOUT_D;
     }
-    else if (section->listfile_cmds[i] == 'f') {
+    else if (section->listfile_cmds[local_i] == 'f') {
       /* next file: file name id */
-      d = section->listfile_ints[i*3 + 0];
+      d = section->listfile_ints[local_i*3 + 0];
       WRITEOUT_D;
     }
     else {
-      fprintf(stderr, "LISTFILE_BLOCK_WRITE: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", section->listfile_cmds[i]);
+      fprintf(stderr, "LISTFILE_BLOCK_WRITE: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", section->listfile_cmds[local_i]);
       return FAILED;
     }
   }

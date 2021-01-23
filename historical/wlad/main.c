@@ -28,21 +28,21 @@ int main(int argc, char *argv[]) {
 
   FILE *fp = NULL;
   unsigned char *in;
-  int i, fs, a, b;
+  int local_i, fs, a, b;
   char *name;
 
 
-  i = SUCCEEDED;
+  local_i = SUCCEEDED;
 
   if (argc < 2)
-    i = FAILED;
+    local_i = FAILED;
   else
-    i = parse_flags(argc, argv);
+    local_i = parse_flags(argc, argv);
 
   if (databanks == ON && strings == ON)
-    i = FAILED;
+    local_i = FAILED;
 
-  if (i == FAILED) {
+  if (local_i == FAILED) {
     fprintf(stderr, "\nWLAD GB-Z80 Disassembler v1.3\n");
     fprintf(stderr, "Written by Ville Helin in 2000\n");
     fprintf(stderr, "Improved by Matthew Stewart in 2013\n");
@@ -148,11 +148,11 @@ int main(int argc, char *argv[]) {
 
   b = bank_start;
   if (bank_start == 0) {
-    i = 0;
+    local_i = 0;
     slot = 0;
   }
   else {
-    i = bank_first_size + (bank_start-1)*bank_rest_size;
+    local_i = bank_first_size + (bank_start-1)*bank_rest_size;
     slot = 1;
   }
 
@@ -160,21 +160,21 @@ int main(int argc, char *argv[]) {
 
   if (databanks == OFF && strings == OFF) {
     if (b == 0)
-      output_bank_opcodes(fs, &b, in, bank_first_size, &i);
+      output_bank_opcodes(fs, &b, in, bank_first_size, &local_i);
     while (b <= bank_end)
-      output_bank_opcodes(fs, &b, in, bank_rest_size, &i);
+      output_bank_opcodes(fs, &b, in, bank_rest_size, &local_i);
   }
   else if (databanks == ON && strings == OFF) {
     if (b == 0)
-      output_bank_opcodes(fs, &b, in, bank_first_size, &i);
+      output_bank_opcodes(fs, &b, in, bank_first_size, &local_i);
     while (b <= bank_end)
-      output_bank_data(fs, &b, in, bank_rest_size, &i);
+      output_bank_data(fs, &b, in, bank_rest_size, &local_i);
   }
   else if (databanks == OFF && strings == ON) {
     if (b == 0)
-      output_bank_opcodes(fs, &b, in, bank_first_size, &i);
+      output_bank_opcodes(fs, &b, in, bank_first_size, &local_i);
     while (b <= bank_end)
-      output_bank_data_detect_strings(fs, &b, in, bank_rest_size, &i);
+      output_bank_data_detect_strings(fs, &b, in, bank_rest_size, &local_i);
   }
 
   free(in);
@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i) {
+int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *local_i) {
 
   char bu[256], tm[256];
   int q, oa, p, t, x, a, ad, tabs, rom_pos, label_pos, num_labels=0;
@@ -196,9 +196,9 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
   memset(needs_label, 0, sizeof(needs_label));
 
   a = 0;
-  ad = *i + bank_size;
+  ad = *local_i + bank_size;
 
-  rom_pos = *i;
+  rom_pos = *local_i;
 
   /* Search for where labels are needed */
   while (rom_pos < ad) {
@@ -236,7 +236,7 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
     }
   }
 
-  rom_pos = *i;
+  rom_pos = *local_i;
   a = 0;
 
   /* Assign labels (when they align with the code) */
@@ -280,12 +280,12 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
   a = 0;
   fprintf(stdout, "\n.BANK $%.2x SLOT %d\n.ORG 0\n\n", *b, slot);
 
-  for ( ; *i < ad; ) {
+  for ( ; *local_i < ad; ) {
     oa = a;
-    if (in[*i] == 0xcb)
-      ot = &opt_table_ext[in[*i+1]];
+    if (in[*local_i] == 0xcb)
+      ot = &opt_table_ext[in[*local_i+1]];
     else
-      ot = &opt_table[in[*i]];
+      ot = &opt_table[in[*local_i]];
 
     if (labels[a] != -1) {
       fprintf(stdout, "label_%.2x_%.3d:\n", *b, labels[a]);
@@ -296,7 +296,7 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
       /* type 0 */
 
       if (ot->type == 0) {
-        (*i)++;
+        (*local_i)++;
         a++;
         if (address == ON) {
           fprintf(stdout, "\t%s", ot->op);
@@ -305,7 +305,7 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
             fprintf(stdout, "\t");
           fprintf(stdout, "; $%.4x", oa);
           if (code_hex)
-            fprintf(stdout, ": $%.2x", in[*i-1]);
+            fprintf(stdout, ": $%.2x", in[*local_i-1]);
           fprintf(stdout, "\n");
         }
         else
@@ -316,17 +316,17 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
       /* type 1: 8-bit parameter */
 
       else if (ot->type == 1) {
-        if (*i+1 >= ad) {
-          fprintf(stdout, "\t.db $%.2x\n", in[*i]);
-          (*i)++;
+        if (*local_i+1 >= ad) {
+          fprintf(stdout, "\t.db $%.2x\n", in[*local_i]);
+          (*local_i)++;
           break;
         }
-        (*i)++;
+        (*local_i)++;
         a++;
         for (t = strlen(ot->op), x = 0, p = 0; x < t; ) {
           if (ot->op[x] == '?') {
             bu[p] = 0;
-            sprintf(tm, "$%.2x", in[(*i)++]);
+            sprintf(tm, "$%.2x", in[(*local_i)++]);
             strcat(bu, tm);
             p += 3;
             x++;
@@ -344,7 +344,7 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
             fprintf(stdout, "\t");
           fprintf(stdout, "; $%.4x", oa);
           if (code_hex)
-            fprintf(stdout, ": $%.2x $%.2x", in[*i-2], in[*i-1]);
+            fprintf(stdout, ": $%.2x $%.2x", in[*local_i-2], in[*local_i-1]);
           fprintf(stdout, "\n");
         }
         else
@@ -355,23 +355,23 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
       /* type 2: 16-bit parameter */
 
       else if (ot->type == 2) {
-        if (*i+1 >= ad) {
-          fprintf(stdout, "\t.db $%.2x\n", in[*i]);
-          (*i)++;
+        if (*local_i+1 >= ad) {
+          fprintf(stdout, "\t.db $%.2x\n", in[*local_i]);
+          (*local_i)++;
           break;
         }
-        else if (*i+2 >= ad) {
-          fprintf(stdout, "\t.db $%.2x $%.2x\n", in[*i], in[(*i)+1]);
-          (*i)+=2;
+        else if (*local_i+2 >= ad) {
+          fprintf(stdout, "\t.db $%.2x $%.2x\n", in[*local_i], in[(*local_i)+1]);
+          (*local_i)+=2;
           break;
         }
-        (*i)++;
+        (*local_i)++;
         a++;
         for (t = strlen(ot->op), x = 0, p = 0; x < t; ) {
           if (ot->op[x] == '?') {
             bu[p] = 0;
-            q = in[(*i)++];
-            q += in[(*i)++] << 8;
+            q = in[(*local_i)++];
+            q += in[(*local_i)++] << 8;
             sprintf(tm, "$%.4x", q);
             strcat(bu, tm);
             p += 5;
@@ -390,7 +390,7 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
             fprintf(stdout, "\t");
           fprintf(stdout, "; $%.4x", oa);
           if (code_hex)
-            fprintf(stdout, ": $%.2x $%.2x $%.2x", in[*i-3], in[*i-2], in[*i-1]);
+            fprintf(stdout, ": $%.2x $%.2x $%.2x", in[*local_i-3], in[*local_i-2], in[*local_i-1]);
           fprintf(stdout, "\n");
         }
         else
@@ -401,17 +401,17 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
       /* type 3: extended (16-bit) opcode */
 
       else if (ot->type == 3) {
-        if (*i+1 >= ad) {
-          fprintf(stdout, "\t.db $%.2x\n", in[*i]);
-          (*i)++;
+        if (*local_i+1 >= ad) {
+          fprintf(stdout, "\t.db $%.2x\n", in[*local_i]);
+          (*local_i)++;
           break;
         }
-        else if (*i+2 >= ad) {
-          fprintf(stdout, "\t.db $%.2x $%.2x\n", in[*i], in[(*i)+1]);
-          (*i)+=2;
+        else if (*local_i+2 >= ad) {
+          fprintf(stdout, "\t.db $%.2x $%.2x\n", in[*local_i], in[(*local_i)+1]);
+          (*local_i)+=2;
           break;
         }
-        *i += 2;
+        *local_i += 2;
         a += 2;
         if (address == ON) {
           fprintf(stdout, "\t%s", ot->op);
@@ -420,7 +420,7 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
             fprintf(stdout, "\t");
           fprintf(stdout, "; $%.4x", oa);
           if (code_hex)
-            fprintf(stdout, ": $%.2x $%.2x", in[*i-2], in[*i-1]);
+            fprintf(stdout, ": $%.2x $%.2x", in[*local_i-2], in[*local_i-1]);
           fprintf(stdout, "\n");
         }
         else
@@ -431,31 +431,31 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
       /* type 4: relative branch */
 
       else if (ot->type == 4) {
-        if (*i+1 >= ad) {
-          fprintf(stdout, "\t.db $%.2x\n", in[*i]);
-          (*i)++;
+        if (*local_i+1 >= ad) {
+          fprintf(stdout, "\t.db $%.2x\n", in[*local_i]);
+          (*local_i)++;
           break;
         }
-        (*i)++;
+        (*local_i)++;
         a++;
         for (t = strlen(ot->op), x = 0, p = 0; x < t; ) {
           if (ot->op[x] == '?') {
             bu[p] = 0;
-            label_pos = oa+(signed char)in[*i]+2;
+            label_pos = oa+(signed char)in[*local_i]+2;
             if (label_pos >= 0 && label_pos < bank_size && labels[label_pos] != -1) {
               sprintf(tm, "label_%.2x_%.3d", *b, labels[label_pos]);
-              (*i)++;
+              (*local_i)++;
             }
             else {
-              if (in[(*i)] < 128)
-                sprintf(tm, "$%.2x", in[(*i)++]);
+              if (in[(*local_i)] < 128)
+                sprintf(tm, "$%.2x", in[(*local_i)++]);
               else {
                 if (p > 0 && bu[p-1] == '+') {
                   bu[p-1] = '-';
-                  sprintf(tm, "$%.2x", 0x100-in[(*i)++]);
+                  sprintf(tm, "$%.2x", 0x100-in[(*local_i)++]);
                 }
                 else
-                  sprintf(tm, "-$%.2x", 0x100-in[(*i)++]);
+                  sprintf(tm, "-$%.2x", 0x100-in[(*local_i)++]);
               }
             }
 
@@ -476,7 +476,7 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
             fprintf(stdout, "\t");
           fprintf(stdout, "; $%.4x", oa);
           if (code_hex)
-            fprintf(stdout, ": $%.2x $%.2x", in[*i-2], in[*i-1]);
+            fprintf(stdout, ": $%.2x $%.2x", in[*local_i-2], in[*local_i-1]);
           fprintf(stdout, "\n");
         }
         else
@@ -487,25 +487,25 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
       /* type 5: signed 8-bit parameter */
 
       else if (ot->type == 5) {
-        if (*i+1 >= ad) {
-          fprintf(stdout, "\t.db $%.2x\n", in[*i]);
-          (*i)++;
+        if (*local_i+1 >= ad) {
+          fprintf(stdout, "\t.db $%.2x\n", in[*local_i]);
+          (*local_i)++;
           break;
         }
-        (*i)++;
+        (*local_i)++;
         a++;
         for (t = strlen(ot->op), x = 0, p = 0; x < t; ) {
           if (ot->op[x] == '?') {
             bu[p] = 0;
-            if (in[(*i)] < 128)
-              sprintf(tm, "$%.2x", in[(*i)++]);
+            if (in[(*local_i)] < 128)
+              sprintf(tm, "$%.2x", in[(*local_i)++]);
             else {
               if (p > 0 && bu[p-1] == '+') {
                 bu[p-1] = '-';
-                sprintf(tm, "$%.2x", 0x100-in[(*i)++]);
+                sprintf(tm, "$%.2x", 0x100-in[(*local_i)++]);
               }
               else
-                sprintf(tm, "-$%.2x", 0x100-in[(*i)++]);
+                sprintf(tm, "-$%.2x", 0x100-in[(*local_i)++]);
             }
             strcat(bu, tm);
             p += strlen(tm);
@@ -524,7 +524,7 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
             fprintf(stdout, "\t");
           fprintf(stdout, "; $%.4x", oa);
           if (code_hex)
-            fprintf(stdout, ": $%.2x $%.2x", in[*i-2], in[*i-1]);
+            fprintf(stdout, ": $%.2x $%.2x", in[*local_i-2], in[*local_i-1]);
           fprintf(stdout, "\n");
         }
         else
@@ -534,18 +534,18 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
     }
     else {
       if (address == ON) {
-        sprintf(bu, ".DB $%.2x", in[(*i)++]);
+        sprintf(bu, ".DB $%.2x", in[(*local_i)++]);
         fprintf(stdout, "%s", bu);
         tabs=strlen(bu)/tab_width;
         while (tabs++ < 32/tab_width)
           fprintf(stdout, "\t");
         fprintf(stdout, "; $%.4x", oa);
         if (code_hex)
-          fprintf(stdout, ": $%.2x", in[*i-1]);
+          fprintf(stdout, ": $%.2x", in[*local_i-1]);
         fprintf(stdout, "\n");
       }
       else
-        fprintf(stdout, ".DB $%.2x\n", in[(*i)++]);
+        fprintf(stdout, ".DB $%.2x\n", in[(*local_i)++]);
       a++;
     }
   }
@@ -557,7 +557,7 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
 }
 
 
-int output_bank_data(int fs, int *b, unsigned char *in, int bank_size, int *i) {
+int output_bank_data(int fs, int *b, unsigned char *in, int bank_size, int *local_i) {
 
   int ad;
 
@@ -565,13 +565,13 @@ int output_bank_data(int fs, int *b, unsigned char *in, int bank_size, int *i) {
   fprintf(stdout, "\n.BANK $%.2x SLOT %d\n.ORG 0\n\n", *b, slot);
 
   if (address == ON) {
-    for (ad = *i + bank_size; *i < ad; *i += 8) {
-      fprintf(stdout, ".DB $%.2x $%.2x $%.2x $%.2x $%.2x $%.2x $%.2x $%.2x\t; $%.4x\n", in[*i], in[*i + 1], in[*i + 2], in[*i + 3], in[*i + 4], in[*i + 5], in[*i + 6], in[*i + 7], *i);
+    for (ad = *local_i + bank_size; *local_i < ad; *local_i += 8) {
+      fprintf(stdout, ".DB $%.2x $%.2x $%.2x $%.2x $%.2x $%.2x $%.2x $%.2x\t; $%.4x\n", in[*local_i], in[*local_i + 1], in[*local_i + 2], in[*local_i + 3], in[*local_i + 4], in[*local_i + 5], in[*local_i + 6], in[*local_i + 7], *local_i);
     }
   }
   else {
-    for (ad = *i + bank_size; *i < ad; *i += 8) {
-      fprintf(stdout, ".DB $%.2x $%.2x $%.2x $%.2x $%.2x $%.2x $%.2x $%.2x\n", in[*i], in[*i + 1], in[*i + 2], in[*i + 3], in[*i + 4], in[*i + 5], in[*i + 6], in[*i + 7]);
+    for (ad = *local_i + bank_size; *local_i < ad; *local_i += 8) {
+      fprintf(stdout, ".DB $%.2x $%.2x $%.2x $%.2x $%.2x $%.2x $%.2x $%.2x\n", in[*local_i], in[*local_i + 1], in[*local_i + 2], in[*local_i + 3], in[*local_i + 4], in[*local_i + 5], in[*local_i + 6], in[*local_i + 7]);
     }
   }
 
@@ -582,7 +582,7 @@ int output_bank_data(int fs, int *b, unsigned char *in, int bank_size, int *i) {
 }
 
 
-int output_bank_data_detect_strings(int fs, int *b, unsigned char *in, int bank_size, int *i) {
+int output_bank_data_detect_strings(int fs, int *b, unsigned char *in, int bank_size, int *local_i) {
 
   int ad, t, x;
   char c;
@@ -590,16 +590,16 @@ int output_bank_data_detect_strings(int fs, int *b, unsigned char *in, int bank_
 
   fprintf(stdout, "\n.BANK $%.2x SLOT %d\n.ORG 0\n\n", *b, slot);
 
-  for (ad = *i + bank_size; *i < ad; ) {
-    if (letter_check(in[*i]) == SUCCEEDED && letter_check(in[*i + 1]) == SUCCEEDED && letter_check(in[*i + 2]) == SUCCEEDED) {
-      t = *i;
+  for (ad = *local_i + bank_size; *local_i < ad; ) {
+    if (letter_check(in[*local_i]) == SUCCEEDED && letter_check(in[*local_i + 1]) == SUCCEEDED && letter_check(in[*local_i + 2]) == SUCCEEDED) {
+      t = *local_i;
       fprintf(stdout, ".DB \"");
-      c = in[(*i)++];
+      c = in[(*local_i)++];
       while (letter_check(c) == SUCCEEDED) {
         fprintf(stdout, "%c", c);
-        c = in[(*i)++];
+        c = in[(*local_i)++];
       }
-      (*i)--;
+      (*local_i)--;
 
       if (address == ON)
         fprintf(stdout, "\"\t; $%.4x\n", t);
@@ -608,9 +608,9 @@ int output_bank_data_detect_strings(int fs, int *b, unsigned char *in, int bank_
     }
     else {
       fprintf(stdout, ".DB");
-      t = *i;
-      for (x = 0; *i < ad && x < 8 && (x == 0 || letter_check(in[*i]) == FAILED); x++, (*i)++)
-        fprintf(stdout, " $%.2x", in[*i]);
+      t = *local_i;
+      for (x = 0; *local_i < ad && x < 8 && (x == 0 || letter_check(in[*local_i]) == FAILED); x++, (*local_i)++)
+        fprintf(stdout, " $%.2x", in[*local_i]);
 
       if (address == ON)
         fprintf(stdout, "\t; $%.4x\n", t);
@@ -634,7 +634,7 @@ int letter_check(char c) {
     return SUCCEEDED;
   else if (c >= '0' && c <= '9')
     return SUCCEEDED;
-  else if (c == ' ' || c == '!' || c == '?' || c == ',' || c == '.' || c == '-' || c == '*' || c == '|' || c == '&' || c == '/' || c == '\\' || c == '\'' || c == '"' || c == '@' || c == '#' || c == '£' || c == '$' || c == '%' || c == '(' || c == ')' || c == '[' || c == ']')
+  else if (c == ' ' || c == '!' || c == '?' || c == ',' || c == '.' || c == '-' || c == '*' || c == '|' || c == '&' || c == '/' || c == '\\' || c == '\'' || c == '"' || c == '@' || c == '#' || c == 'ï¿½' || c == '$' || c == '%' || c == '(' || c == ')' || c == '[' || c == ']')
     return SUCCEEDED;
 
   return FAILED;
@@ -643,7 +643,7 @@ int letter_check(char c) {
 
 int parse_int(char *s) {
 
-  int i;
+  int local_i;
   char *e;
 
   while (*s == ' ')
@@ -651,17 +651,17 @@ int parse_int(char *s) {
 
   if (*s == '0' && (*(s+1) == 'x' || *(s+1) == 'X')) {
     s+=2;
-    i = strtol(s, &e, 16);
+    local_i = strtol(s, &e, 16);
     if (*e != '\0')
       return -1;
   }
   else {
-    i = strtol(s, &e, 10);
+    local_i = strtol(s, &e, 10);
     if (*e != '\0')
       return -1;
   }
 
-  return i;
+  return local_i;
 }
 
 
