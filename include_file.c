@@ -13,7 +13,7 @@
 #include "printf.h"
 
 
-extern int ind, inz, i, unfolded_size, extra_definitions, d, use_incdir;
+extern int ind, inz, g_source_pointer, unfolded_size, extra_definitions, d, use_incdir;
 extern char *unfolded_buffer, tmp[4096], emsg[sizeof(tmp) + MAX_NAME_LENGTH + 1 + 1024];
 extern struct ext_include_collection ext_incdirs;
 extern FILE *file_out_ptr;
@@ -284,9 +284,9 @@ int include_file(char *name, int *include_size, char *namespace) {
   tmp_a[inz++] = 'E';
   tmp_a[inz++] = ' ';
 
-  memcpy(tmp_b, buffer, i);
-  memcpy(tmp_b + i, tmp_a, inz);
-  memcpy(tmp_b + i + inz, buffer + i, size - i);
+  memcpy(tmp_b, buffer, g_source_pointer);
+  memcpy(tmp_b + g_source_pointer, tmp_a, inz);
+  memcpy(tmp_b + g_source_pointer + inz, buffer + g_source_pointer, size - g_source_pointer);
 
   free(buffer);
 
