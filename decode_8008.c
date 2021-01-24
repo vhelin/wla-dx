@@ -3,7 +3,7 @@ case 0:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
     output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex);
-    i = inz;
+    g_source_pointer = inz;
     return SUCCEEDED;
   }
   if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -14,13 +14,13 @@ break;
 case 1:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == 'x' || opt_tmp->op[x] == 's') {
-    y = i;
-    i = inz;
+    y = g_source_pointer;
+    g_source_pointer = inz;
     if (x > 0 && (opt_tmp->op[x-1] == '+' || opt_tmp->op[x-1] == '-'))
-      i--;
+      g_source_pointer--;
     z = input_number();
-    inz = i;
-    i = y;
+    inz = g_source_pointer;
+    g_source_pointer = y;
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
     if (z == SUCCEEDED) {
@@ -46,7 +46,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
           }
         }
 
-        i = inz;
+        g_source_pointer = inz;
         return SUCCEEDED;
       }
       if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -61,11 +61,11 @@ break;
 case 2:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == '?') {
-    y = i;
-    i = inz;
+    y = g_source_pointer;
+    g_source_pointer = inz;
     z = input_number();
-    inz = i;
-    i = y;
+    inz = g_source_pointer;
+    g_source_pointer = y;
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
     if (z == SUCCEEDED && (d > 65535 || d < -32768)) {
@@ -82,7 +82,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         else
           output_assembled_opcode(opt_tmp, "d%d C%d ", opt_tmp->hex, latest_stack);
         
-        i = inz;
+        g_source_pointer = inz;
         return SUCCEEDED;
       }
       if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -97,18 +97,18 @@ break;
 case 8:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == '*') {
-    y = i;
-    i = inz;
+    y = g_source_pointer;
+    g_source_pointer = inz;
     z = input_number();
-    inz = i;
-    i = y;
+    inz = g_source_pointer;
+    g_source_pointer = y;
     if (z != SUCCEEDED || d != opt_tmp->value)
       break;
     
     for (x++ ; x < OP_SIZE_MAX; inz++, x++) {
       if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
         output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex);
-        i = inz;
+        g_source_pointer = inz;
         return SUCCEEDED;
       }
       if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -124,11 +124,11 @@ case 100:
 /* "RST *" that gets delayed to WLALINK */
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == '*') {
-    y = i;
-    i = inz;
+    y = g_source_pointer;
+    g_source_pointer = inz;
     z = input_number();
-    inz = i;
-    i = y;
+    inz = g_source_pointer;
+    g_source_pointer = y;
     if (!(z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       break;
 
@@ -143,7 +143,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         /* reset to "no special case" */
         output_assembled_opcode(opt_tmp, "v0 ");
         
-        i = inz;
+        g_source_pointer = inz;
         return SUCCEEDED;
       }
       if (opt_tmp->op[x] != toupper((int)buffer[inz]))

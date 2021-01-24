@@ -50,7 +50,7 @@ int rombanks = 0, rombanks_defined = 0, romtype = 0, max_address = 0;
 int rambanks = 0, rambanks_defined = 0;
 int emptyfill, emptyfill_defined = 0;
 int section_status = OFF, section_id = 1, line_count_status = ON;
-int d, i, ind, inz, ifdef = 0, t, slots_amount = 0;
+int d, g_source_pointer, ind, inz, ifdef = 0, t, slots_amount = 0;
 int memorymap_defined = 0;
 int defaultslot_defined = 0, defaultslot, current_slot = 0;
 int banksize_defined = 0, banksize;
@@ -311,7 +311,7 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
   
   mrt->caller = caller;
   mrt->macro = m;
-  mrt->macro_return_i = i;
+  mrt->macro_return_i = g_source_pointer;
   mrt->macro_return_line = active_file_info_last->line_current;
   mrt->macro_return_filename_id = active_file_info_last->filename_id;
 
@@ -322,7 +322,7 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
 
   active_file_info_last->line_current = m->start_line;
   active_file_info_last->filename_id = m->filename_id;
-  i = m->start;
+  g_source_pointer = m->start;
 
   /* redefine NARGS */
   if (redefine("NARGS", (double)nargs, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
@@ -342,7 +342,7 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
   /* start running a macro... run until .ENDM */
   mrt = &macro_stack[macro_active];
 
-  start = i;
+  start = g_source_pointer;
 
   if (first == NO && mrt->string_current < mrt->string_last) {
     inz = SUCCEEDED;
@@ -461,7 +461,7 @@ int macro_start_incbin(struct macro_static *m, struct macro_incbin *incbin_data,
   /* filter all the data through that macro */
   mrt->argument_data[1]->type = SUCCEEDED;
   mrt->argument_data[1]->value = mrt->offset;
-  mrt->argument_data[0]->start = i;
+  mrt->argument_data[0]->start = g_source_pointer;
   mrt->argument_data[0]->type = SUCCEEDED;
   mrt->supplied_arguments = 2;
 
@@ -644,12 +644,12 @@ int pass_1(void) {
     slots[q].name[0] = 0;
   }
 
-  /* WARNING: "i" is a global variable that we use as the char index to the source file. */
+  /* WARNING: "g_source_pointer" is a global variable that we use as the char index to the source file. */
   /* Ville: this must be one of the worst programming decicions I've ever done, sorry about it... */
   /* ... but the year was something like 1998 and I had just coded 6+ years 68k asm, and moved to C... */
 
   /* start from the very first character */
-  i = 0;
+  g_source_pointer = 0;
 
   /* BANK 0 SLOT 0 ORG 0 */
   if (output_format != OUTPUT_LIBRARY)
@@ -696,7 +696,7 @@ int pass_1(void) {
 
         if (compare_next_token("=") == SUCCEEDED || old_tmp_q == '=') {
           /* it's actually a definition! */
-          i -= ss;
+          g_source_pointer -= ss;
 
           if (directive_define_def_equ() == FAILED)
             return FAILED;
@@ -732,14 +732,14 @@ int pass_1(void) {
 
           /* move to the end of the label */
           if (q != ss)
-            i -= ss - q - 1;
+            g_source_pointer -= ss - q - 1;
         }
     
         continue;
       }
       else if (compare_next_token("=") == SUCCEEDED) {
         /* it's actually a definition! */
-        i -= ss;
+        g_source_pointer -= ss;
 
         if (directive_define_def_equ() == FAILED)
           return FAILED;
@@ -764,13 +764,13 @@ int pass_1(void) {
       for (p = 0; 1; p++) {
         /* take away the white space */
         while (1) {
-          if (buffer[i] == ' ' || buffer[i] == ',')
-            i++;
+          if (buffer[g_source_pointer] == ' ' || buffer[g_source_pointer] == ',')
+            g_source_pointer++;
           else
             break;
         }
 
-        o = i;
+        o = g_source_pointer;
         q = input_number();
         if (q == INPUT_NUMBER_EOL)
           break;
@@ -866,12 +866,12 @@ static int parse_push_pull_registers(int accept_u) {
   int register_byte = 0, reg, y, z, prev_i;
 
   while (1) {
-    y = i;
-    i = inz;
-    prev_i = i;
+    y = g_source_pointer;
+    g_source_pointer = inz;
+    prev_i = g_source_pointer;
     z = input_number();
-    inz = i;
-    i = y;
+    inz = g_source_pointer;
+    g_source_pointer = y;
 
     if (z == INPUT_NUMBER_EOL) {
       /* roll back to the index before EOL */
@@ -994,11 +994,11 @@ static int parse_exg_tfr_registers() {
   int register_byte = 0, data = 0, y, z;
 
   /* source register */
-  y = i;
-  i = inz;
+  y = g_source_pointer;
+  g_source_pointer = inz;
   z = input_number();
-  inz = i;
-  i = y;
+  inz = g_source_pointer;
+  g_source_pointer = y;
 
   if (z != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error("Was expecting register D/X/Y/U/S/PC/A/B/CC/DP, got something else instead.\n", ERROR_ERR);
@@ -1011,11 +1011,11 @@ static int parse_exg_tfr_registers() {
   register_byte = data;
 
   /* destination register */
-  y = i;
-  i = inz;
+  y = g_source_pointer;
+  g_source_pointer = inz;
   z = input_number();
-  inz = i;
-  i = y;
+  inz = g_source_pointer;
+  g_source_pointer = y;
 
   if (z != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error("Was expecting register D/X/Y/U/S/PC/A/B/CC/DP, got something else instead.\n", ERROR_ERR);
@@ -1161,7 +1161,7 @@ int evaluate_token(void) {
 
     /* beginning matches the input */
     x = inz;
-    inz = i;
+    inz = g_source_pointer;
 
 #ifndef GB
     /* no stack rollback */
@@ -1374,8 +1374,8 @@ int localize_path(char *path) {
   for (i = 0; path[i] != 0; i++) {
 #if defined(MSDOS)
     /* '/' -> '\' */
-    if (path[i] == '/')
-      path[i] = '\\';
+    if (path[g_source_pointer] == '/')
+      path[g_source_pointer] = '\\';
 #else
     /* '\' -> '/' */
     if (path[i] == '\\')
@@ -3839,7 +3839,7 @@ int directive_include(int is_real) {
   if (is_real == YES) {
     /* turn the .INCLUDE/.INC into .INDLUDE/.IND to mark it as used, if ONCE is used,
        for repetitive macro calls that contain .INCLUDE/.INC... */
-    o = i;
+    o = g_source_pointer;
     while (o >= 0) {
       if (toupper(buffer[o+0]) == 'I' &&
           toupper(buffer[o+1]) == 'N' &&
@@ -3913,16 +3913,16 @@ int directive_include(int is_real) {
   
     /* WARNING: this is tricky: did we just include a file inside a macro? */
     if (macro_active != 0) {
-      /* yes. note that the now we added new bytes after i, so if a macro_return_i is
-         bigger than i, we'll need to add the bytes to it */
+      /* yes. note that the now we added new bytes after g_source_pointer, so if a macro_return_i is
+         bigger than g_source_pointer, we'll need to add the bytes to it */
       struct macro_static *ms;
       int q, w;
 
       for (q = 0; q < macro_active; q++) {
-        if (macro_stack[q].macro_return_i > i)
+        if (macro_stack[q].macro_return_i > g_source_pointer)
           macro_stack[q].macro_return_i += include_size;
         for (w = 0; w < macro_stack[q].supplied_arguments; w++) {
-          if (macro_stack[q].argument_data[w]->start > i)
+          if (macro_stack[q].argument_data[w]->start > g_source_pointer)
             macro_stack[q].argument_data[w]->start += include_size;
         }
       }
@@ -3931,7 +3931,7 @@ int directive_include(int is_real) {
          in memory... */
       ms = macros_first;
       while (ms != NULL) {
-        if (ms->start > i)
+        if (ms->start > g_source_pointer)
           ms->start += include_size;
         ms = ms->next;
       }
@@ -6747,23 +6747,23 @@ int directive_macro(void) {
   }
 
   m->nargument_names = q;
-  m->start = i;
+  m->start = g_source_pointer;
   m->start_line = active_file_info_last->line_current;
 
   /* go to the end of the macro */
-  for (; i < size; i++) {
-    if (buffer[i] == 0x0A) {
+  for (; g_source_pointer < size; g_source_pointer++) {
+    if (buffer[g_source_pointer] == 0x0A) {
       next_line();
       continue;
     }
-    else if ((strncmp(&buffer[i], ".E", 2) == 0) && (buffer[i + 2] == 0x0A || buffer[i + 2] == ' ')) {
+    else if ((strncmp(&buffer[g_source_pointer], ".E", 2) == 0) && (buffer[g_source_pointer + 2] == 0x0A || buffer[g_source_pointer + 2] == ' ')) {
       active_file_info_last->line_current = macro_start_line;
       snprintf(emsg, sizeof(emsg), "MACRO \"%s\" wasn't terminated with .ENDM.\n", m->name);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
-    else if ((strncmp(&buffer[i], ".ENDM", 5) == 0 || strncmp(&buffer[i], ".endm", 5) == 0) && (buffer[i + 5] == 0x0A || buffer[i + 5] == ' ')) {
-      i += 5;
+    else if ((strncmp(&buffer[g_source_pointer], ".ENDM", 5) == 0 || strncmp(&buffer[g_source_pointer], ".endm", 5) == 0) && (buffer[g_source_pointer + 5] == 0x0A || buffer[g_source_pointer + 5] == ' ')) {
+      g_source_pointer += 5;
       break;
     }
   }
@@ -6851,7 +6851,7 @@ int directive_rept_repeat(void) {
     repeat_stack = rr;
   }
 
-  repeat_stack[repeat_active].start = i;
+  repeat_stack[repeat_active].start = g_source_pointer;
   repeat_stack[repeat_active].counter = d;
   repeat_stack[repeat_active].repeats = 0;
   repeat_stack[repeat_active].start_line = active_file_info_last->line_current;
@@ -6888,7 +6888,7 @@ int directive_endm(void) {
     for (q = 0; q < macro_stack[macro_active].macro->nargument_names; q++)
       undefine(macro_stack[macro_active].macro->argument_names[q]);
 
-    i = macro_stack[macro_active].macro_return_i;
+    g_source_pointer = macro_stack[macro_active].macro_return_i;
 
     if ((extra_definitions == ON) && (active_file_info_last->filename_id != macro_stack[macro_active].macro_return_filename_id)) {
       redefine("WLA_FILENAME", 0.0, get_file_name(macro_stack[macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING,
@@ -9005,7 +9005,7 @@ int parse_directive(void) {
         return FAILED;
     }
     
-    i = rr->start;
+    g_source_pointer = rr->start;
     active_file_info_last->line_current = rr->start_line;
 
     return SUCCEEDED;
@@ -9526,14 +9526,14 @@ int parse_directive(void) {
     int endasm = 1, x;
 
     while (1) {
-      x = i;
+      x = g_source_pointer;
       q = get_next_token();
       if (q == GET_NEXT_TOKEN_STRING)
         continue;
 
       /* end of file? */
       if (strcmp(tmp, ".E") == 0) {
-        i = x;
+        g_source_pointer = x;
         return SUCCEEDED;
       }
       if (strcaselesscmp(tmp, ".ASM") == 0) {
@@ -9847,16 +9847,16 @@ int parse_if_directive(void) {
     else
       o = 1;
 
-    for (; i < size; i++) {
+    for (; g_source_pointer < size; g_source_pointer++) {
 
-      if (buffer[i] == 0x0A)
+      if (buffer[g_source_pointer] == 0x0A)
         break;
-      else if (buffer[i] == '\\') {
-        e = buffer[++i];
+      else if (buffer[g_source_pointer] == '\\') {
+        e = buffer[++g_source_pointer];
         if (e >= '0' && e <= '9') {
           d = (e - '0') * 10;
           for (k = 2; k < 8; k++, d *= 10) {
-            e = buffer[++i];
+            e = buffer[++g_source_pointer];
             if (e >= '0' && e <= '9')
               d += e - '0';
             else

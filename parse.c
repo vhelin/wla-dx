@@ -22,7 +22,7 @@ char unevaluated_expression[256];
 char expanded_macro_string[MAX_NAME_LENGTH + 1];
 double parsed_double;
 
-extern int i, size, d, macro_active;
+extern int g_source_pointer, size, d, macro_active;
 extern char *buffer, tmp[4096], cp[256];
 extern struct active_file_info *active_file_info_first, *active_file_info_last, *active_file_info_tmp;
 extern struct definition *tmp_def;
@@ -64,7 +64,7 @@ int compare_next_token(char *token) {
   length = (int)strlen(token);
 
   /* skip white space */
-  ii = i;
+  ii = g_source_pointer;
   for (e = buffer[ii]; e == ' ' || e == ',' || e == 0x0A; e = buffer[++ii])
     ;
 
@@ -139,7 +139,7 @@ int input_next_string(void) {
 
   
   /* skip white space */
-  for (e = buffer[i++]; e == ' ' || e == ','; e = buffer[i++])
+  for (e = buffer[g_source_pointer++]; e == ' ' || e == ','; e = buffer[g_source_pointer++])
     ;
 
   if (e == 0x0A)
@@ -148,9 +148,9 @@ int input_next_string(void) {
   /* last choice is a label */
   tmp[0] = e;
   for (k = 1; k < MAX_NAME_LENGTH; k++) {
-    e = buffer[i++];
+    e = buffer[g_source_pointer++];
     if (e == 0x0A || e == ',') {
-      i--;
+      g_source_pointer--;
       break;
     }
     else if (e == ' ')
@@ -190,7 +190,7 @@ int input_number(void) {
   operand_hint_type = HINT_TYPE_NONE;
 
   /* skip white space */
-  for (e = buffer[i++]; e == ' ' || e == ','; e = buffer[i++])
+  for (e = buffer[g_source_pointer++]; e == ' ' || e == ','; e = buffer[g_source_pointer++])
     ;
 
   if (e == 0x0A)
@@ -198,7 +198,7 @@ int input_number(void) {
 
   if (expect_calculations == YES) {
     /* check the type of the expression */
-    p = i;
+    p = g_source_pointer;
     ee = e;
     while (ee != 0x0A) {
       /* string / symbol -> no calculating */
@@ -217,7 +217,7 @@ int input_number(void) {
           break;
         
         /* launch stack calculator */
-        p = stack_calculate(&buffer[i - 1], &d);
+        p = stack_calculate(&buffer[g_source_pointer - 1], &d);
 
         if (p == STACK_CALCULATE_DELAY)
           break;
@@ -235,30 +235,30 @@ int input_number(void) {
   if (macro_active != 0 && e == '\\') {
     struct macro_argument *ma;
     int exit_here = YES;
-    int start_i = i;
+    int start_i = g_source_pointer;
     unsigned char start_e = e;
 
-    if (buffer[i] == '@') {
-      i++;
+    if (buffer[g_source_pointer] == '@') {
+      g_source_pointer++;
       d = macro_runtime_current->macro->calls - 1;
 
-      if (buffer[i] != ' ' && buffer[i] != 0xA && buffer[i] != ',')
+      if (buffer[g_source_pointer] != ' ' && buffer[g_source_pointer] != 0xA && buffer[g_source_pointer] != ',')
         exit_here = NO;
       else
         return SUCCEEDED;
     }
-    else if (buffer[i] >= '0' && buffer[i] <= '9') {
+    else if (buffer[g_source_pointer] >= '0' && buffer[g_source_pointer] <= '9') {
       for (d = 0, k = 0; k < 4; k++) {
-        e = buffer[i++];
+        e = buffer[g_source_pointer++];
         if (e >= '0' && e <= '9')
           d = (d * 10) + (e - '0');
         else {
-          i--;
+          g_source_pointer--;
           break;
         }
       }
 
-      if (buffer[i] != ' ' && buffer[i] != 0xA && buffer[i] != ',' && buffer[i] != '.')
+      if (buffer[g_source_pointer] != ' ' && buffer[g_source_pointer] != 0xA && buffer[g_source_pointer] != ',' && buffer[g_source_pointer] != '.')
         exit_here = NO;
     }
     else
@@ -299,28 +299,28 @@ int input_number(void) {
 
       /* does the MACRO argument number end with a .b/.w/.l? */
       if (e == '.') {
-        e = buffer[i+1];
+        e = buffer[g_source_pointer+1];
         if (e == 'b' || e == 'B') {
           operand_hint = HINT_8BIT;
           operand_hint_type = HINT_TYPE_GIVEN;
-          i += 2;
+          g_source_pointer += 2;
         }
         else if (e == 'w' || e == 'W') {
           operand_hint = HINT_16BIT;
           operand_hint_type = HINT_TYPE_GIVEN;
-          i += 2;
+          g_source_pointer += 2;
         }
         else if (e == 'l' || e == 'L') {
           operand_hint = HINT_24BIT;
           operand_hint_type = HINT_TYPE_GIVEN;
-          i += 2;
+          g_source_pointer += 2;
         }
       }
 
       return k;
     }
     else {
-      i = start_i;
+      g_source_pointer = start_i;
       e = start_e;
     }
   }
@@ -329,13 +329,13 @@ int input_number(void) {
   d = 0;
   if (e >= '0' && e <= '9') {
     for (k = 0; 1; k++) {
-      if (buffer[i+k] >= '0' && buffer[i+k] <= '9')
+      if (buffer[g_source_pointer+k] >= '0' && buffer[g_source_pointer+k] <= '9')
         continue;
-      if (buffer[i+k] >= 'a' && buffer[i+k] <= 'f')
+      if (buffer[g_source_pointer+k] >= 'a' && buffer[g_source_pointer+k] <= 'f')
         continue;
-      if (buffer[i+k] >= 'A' && buffer[i+k] <= 'F')
+      if (buffer[g_source_pointer+k] >= 'A' && buffer[g_source_pointer+k] <= 'F')
         continue;
-      if (buffer[i+k] == 'h' || buffer[i+k] == 'H') {
+      if (buffer[g_source_pointer+k] == 'h' || buffer[g_source_pointer+k] == 'H') {
         d = 1;
         break;
       }
@@ -345,9 +345,9 @@ int input_number(void) {
 
   if (e == '$' || d == 1) {
     if (d == 1)
-      i--;
-    for (d = 0, k = 0; k < 8; k++, i++) {
-      e = buffer[i];
+      g_source_pointer--;
+    for (d = 0, k = 0; k < 8; k++, g_source_pointer++) {
+      e = buffer[g_source_pointer];
       if (e >= '0' && e <= '9')
         d = (d << 4) + e - '0';
       else if (e >= 'A' && e <= 'F')
@@ -355,8 +355,8 @@ int input_number(void) {
       else if (e >= 'a' && e <= 'f')
         d = (d << 4) + e - 'a' + 10;
       else if (e == 'h' || e == 'H') {
-        i++;
-        e = buffer[i];
+        g_source_pointer++;
+        e = buffer[g_source_pointer];
         break;
       }
       else
@@ -364,21 +364,21 @@ int input_number(void) {
     }
 
     if (e == '.') {
-      e = buffer[i+1];
+      e = buffer[g_source_pointer+1];
       if (e == 'b' || e == 'B') {
         operand_hint = HINT_8BIT;
         operand_hint_type = HINT_TYPE_GIVEN;
-        i += 2;
+        g_source_pointer += 2;
       }
       else if (e == 'w' || e == 'W') {
         operand_hint = HINT_16BIT;
         operand_hint_type = HINT_TYPE_GIVEN;
-        i += 2;
+        g_source_pointer += 2;
       }
       else if (e == 'l' || e == 'L') {
         operand_hint = HINT_24BIT;
         operand_hint_type = HINT_TYPE_GIVEN;
-        i += 2;
+        g_source_pointer += 2;
       }
     }
 
@@ -414,8 +414,8 @@ int input_number(void) {
     parsed_double = e-'0';
     parsed_double_decimal_numbers = 0;
     decimal_mul = 0.1;
-    for (k = 0; k < max_digits; k++, i++) {
-      e = buffer[i];
+    for (k = 0; k < max_digits; k++, g_source_pointer++) {
+      e = buffer[g_source_pointer];
       if (e >= '0' && e <= '9') {
         if (k == max_digits - 1) {
           if (q == 0)
@@ -442,7 +442,7 @@ int input_number(void) {
           print_error("Syntax error.\n", ERROR_NUM);
           return FAILED;
         }
-        e = buffer[i+1];
+        e = buffer[g_source_pointer+1];
         if (e >= '0' && e <= '9') {
           /* float mode, read decimals */
           if (parse_floats == NO)
@@ -453,19 +453,19 @@ int input_number(void) {
         else if (e == 'b' || e == 'B') {
           operand_hint = HINT_8BIT;
           operand_hint_type = HINT_TYPE_GIVEN;
-          i += 2;
+          g_source_pointer += 2;
           break;
         }
         else if (e == 'w' || e == 'W') {
           operand_hint = HINT_16BIT;
           operand_hint_type = HINT_TYPE_GIVEN;
-          i += 2;
+          g_source_pointer += 2;
           break;
         }
         else if (e == 'l' || e == 'L') {
           operand_hint = HINT_24BIT;
           operand_hint_type = HINT_TYPE_GIVEN;
-          i += 2;
+          g_source_pointer += 2;
           break;
         }
       }
@@ -507,8 +507,8 @@ int input_number(void) {
   }
 
   if (e == '%') {
-    for (d = 0, k = 0; k < 32; k++, i++) {
-      e = buffer[i];
+    for (d = 0, k = 0; k < 32; k++, g_source_pointer++) {
+      e = buffer[g_source_pointer];
       if (e == '0' || e == '1')
         d = (d << 1) + e - '0';
       else
@@ -516,21 +516,21 @@ int input_number(void) {
     }
 
     if (e == '.') {
-      e = buffer[i+1];
+      e = buffer[g_source_pointer+1];
       if (e == 'b' || e == 'B') {
         operand_hint = HINT_8BIT;
         operand_hint_type = HINT_TYPE_GIVEN;
-        i += 2;
+        g_source_pointer += 2;
       }
       else if (e == 'w' || e == 'W') {
         operand_hint = HINT_16BIT;
         operand_hint_type = HINT_TYPE_GIVEN;
-        i += 2;
+        g_source_pointer += 2;
       }
       else if (e == 'l' || e == 'L') {
         operand_hint = HINT_24BIT;
         operand_hint_type = HINT_TYPE_GIVEN;
-        i += 2;
+        g_source_pointer += 2;
       }
     }
 
@@ -540,8 +540,8 @@ int input_number(void) {
   }
 
   if (e == '\'') {
-    d = buffer[i++];
-    e = buffer[i];
+    d = buffer[g_source_pointer++];
+    e = buffer[g_source_pointer];
     if (e != '\'') {
       if (input_number_error_msg == YES) {
         snprintf(xyz, sizeof(xyz), "Got '%c' (%d) when expected \"'\".\n", e, e);
@@ -549,7 +549,7 @@ int input_number(void) {
       }
       return FAILED;
     }
-    i++;
+    g_source_pointer++;
 
     parsed_double = (double)d;
     
@@ -558,25 +558,25 @@ int input_number(void) {
 
   if (e == '"') {
     for (k = 0; k < MAX_NAME_LENGTH; ) {
-      e = buffer[i++];
+      e = buffer[g_source_pointer++];
 
-      if (e == '\\' && buffer[i] == '"') {
+      if (e == '\\' && buffer[g_source_pointer] == '"') {
         label[k++] = '"';
-        i++;
+        g_source_pointer++;
         continue;
       }
       
       if (e == '"') {
         /* check for "string".length */
-        if (buffer[i+0] == '.' &&
-            (buffer[i+1] == 'l' || buffer[i+1] == 'L') &&
-            (buffer[i+2] == 'e' || buffer[i+2] == 'E') &&
-            (buffer[i+3] == 'n' || buffer[i+3] == 'N') &&
-            (buffer[i+4] == 'g' || buffer[i+4] == 'G') &&
-            (buffer[i+5] == 't' || buffer[i+5] == 'T') &&
-            (buffer[i+6] == 'h' || buffer[i+6] == 'H')) {
+        if (buffer[g_source_pointer+0] == '.' &&
+            (buffer[g_source_pointer+1] == 'l' || buffer[g_source_pointer+1] == 'L') &&
+            (buffer[g_source_pointer+2] == 'e' || buffer[g_source_pointer+2] == 'E') &&
+            (buffer[g_source_pointer+3] == 'n' || buffer[g_source_pointer+3] == 'N') &&
+            (buffer[g_source_pointer+4] == 'g' || buffer[g_source_pointer+4] == 'G') &&
+            (buffer[g_source_pointer+5] == 't' || buffer[g_source_pointer+5] == 'T') &&
+            (buffer[g_source_pointer+6] == 'h' || buffer[g_source_pointer+6] == 'H')) {
           /* yes, we've got it! calculate the length and return the integer */
-          i += 7;
+          g_source_pointer += 7;
           label[k] = 0;
           d = (int)get_label_length(label);
           parsed_double = (double)d;
@@ -620,9 +620,9 @@ int input_number(void) {
   /* the last choice is a label */
   label[0] = e;
   for (k = 1; k < MAX_NAME_LENGTH; k++) {
-    e = buffer[i++];
+    e = buffer[g_source_pointer++];
     if (e == 0x0A || e == ')' || e == ',' || e == ']') {
-      i--;
+      g_source_pointer--;
       break;
     }
     else if (e == ' ')
@@ -797,15 +797,15 @@ int parse_string_length(char *end) {
 void skip_whitespace(void) {
 
   while (1) {
-    if (i == size)
+    if (g_source_pointer == size)
       break;
-    if (buffer[i] == ' ') {
-      i++;
+    if (buffer[g_source_pointer] == ' ') {
+      g_source_pointer++;
       newline_beginning = OFF;
       continue;
     }
-    if (buffer[i] == 0xA) {
-      i++;
+    if (buffer[g_source_pointer] == 0xA) {
+      g_source_pointer++;
       next_line();
       continue;
     }
@@ -827,11 +827,11 @@ int get_next_plain_string(void) {
       return FAILED;
     }
 
-    c = buffer[i];
+    c = buffer[g_source_pointer];
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '\\' || c == '@' || c == ':') {
       tmp[ss] = c;
       ss++;
-      i++;
+      g_source_pointer++;
     }
     else
       break;
@@ -855,26 +855,26 @@ int get_next_token(void) {
   skip_whitespace();
 
   /* skip leading commas */
-  while (buffer[i] == ',')
-    i++;
+  while (buffer[g_source_pointer] == ',')
+    g_source_pointer++;
   
   /* "string"? */
-  if (buffer[i] == '"') {
-    for (ss = 0, i++; buffer[i] != 0xA && buffer[i] != '"'; ) {
-      if (buffer[i] == '\\' && buffer[i + 1] == '"') {
+  if (buffer[g_source_pointer] == '"') {
+    for (ss = 0, g_source_pointer++; buffer[g_source_pointer] != 0xA && buffer[g_source_pointer] != '"'; ) {
+      if (buffer[g_source_pointer] == '\\' && buffer[g_source_pointer + 1] == '"') {
         tmp[ss++] = '"';
-        i += 2;
+        g_source_pointer += 2;
       }
       else
-        tmp[ss++] = buffer[i++];
+        tmp[ss++] = buffer[g_source_pointer++];
     }
 
-    if (buffer[i] == 0xA) {
+    if (buffer[g_source_pointer] == 0xA) {
       print_error("GET_NEXT_TOKEN: String wasn't terminated properly.\n", ERROR_NONE);
       return FAILED;
     }
     tmp[ss] = 0;
-    i++;
+    g_source_pointer++;
 
     /* expand e.g., \1 and \@ */
     if (macro_active != 0) {
@@ -886,26 +886,26 @@ int get_next_token(void) {
     return GET_NEXT_TOKEN_STRING;
   }
 
-  if (buffer[i] == '.') {
+  if (buffer[g_source_pointer] == '.') {
     tmp[0] = '.';
-    i++;
-    for (ss = 1; buffer[i] != 0x0A && buffer[i] != ' ' && buffer[i] != '-' && ss < MAX_NAME_LENGTH; ) {
-      tmp[ss] = buffer[i];
-      cp[ss - 1] = toupper((int)buffer[i]);
-      i++;
+    g_source_pointer++;
+    for (ss = 1; buffer[g_source_pointer] != 0x0A && buffer[g_source_pointer] != ' ' && buffer[g_source_pointer] != '-' && ss < MAX_NAME_LENGTH; ) {
+      tmp[ss] = buffer[g_source_pointer];
+      cp[ss - 1] = toupper((int)buffer[g_source_pointer]);
+      g_source_pointer++;
       ss++;
     }
     cp[ss - 1] = 0;
   }
-  else if (buffer[i] == '=' || buffer[i] == '>' || buffer[i] == '<' || buffer[i] == '!') {
-    for (ss = 0; buffer[i] != 0xA && (buffer[i] == '=' || buffer[i] == '!' || buffer[i] == '<' || buffer[i] == '>')
-           && ss < MAX_NAME_LENGTH; tmp[ss++] = buffer[i++]);
+  else if (buffer[g_source_pointer] == '=' || buffer[g_source_pointer] == '>' || buffer[g_source_pointer] == '<' || buffer[g_source_pointer] == '!') {
+    for (ss = 0; buffer[g_source_pointer] != 0xA && (buffer[g_source_pointer] == '=' || buffer[g_source_pointer] == '!' || buffer[g_source_pointer] == '<' || buffer[g_source_pointer] == '>')
+           && ss < MAX_NAME_LENGTH; tmp[ss++] = buffer[g_source_pointer++]);
   }
   else {
-    for (ss = 0; buffer[i] != 0xA && buffer[i] != ',' && buffer[i] != ' ' && ss < MAX_NAME_LENGTH; ) {
-      tmp[ss] = buffer[i];
+    for (ss = 0; buffer[g_source_pointer] != 0xA && buffer[g_source_pointer] != ',' && buffer[g_source_pointer] != ' ' && ss < MAX_NAME_LENGTH; ) {
+      tmp[ss] = buffer[g_source_pointer];
       ss++;
-      i++;
+      g_source_pointer++;
     }
   }
 
@@ -929,29 +929,29 @@ int get_next_token(void) {
 
 int skip_next_token(void) {
 
-  for (; buffer[i] == ' ' || buffer[i] == ','; i++)
+  for (; buffer[g_source_pointer] == ' ' || buffer[g_source_pointer] == ','; g_source_pointer++)
     ;
 
-  if (buffer[i] == 0x0A)
+  if (buffer[g_source_pointer] == 0x0A)
     return FAILED;
 
-  if (buffer[i] == '"') {
-    for (i++; buffer[i] != 0x0A && buffer[i] != '"'; i++)
+  if (buffer[g_source_pointer] == '"') {
+    for (g_source_pointer++; buffer[g_source_pointer] != 0x0A && buffer[g_source_pointer] != '"'; g_source_pointer++)
       ;
-    if (buffer[i] == 0x0A) {
+    if (buffer[g_source_pointer] == 0x0A) {
       print_error("SKIP_NEXT_TOKEN: String wasn't terminated properly.\n", ERROR_NONE);
       return FAILED;
     }
-    i++;
+    g_source_pointer++;
 
     return SUCCEEDED;
   }
-  else if (buffer[i] == '=' || buffer[i] == '>' || buffer[i] == '<' || buffer[i] == '!') {
-    for (; buffer[i] != 0xA && (buffer[i] == '=' || buffer[i] == '!' || buffer[i] == '<' || buffer[i] == '>'); i++)
+  else if (buffer[g_source_pointer] == '=' || buffer[g_source_pointer] == '>' || buffer[g_source_pointer] == '<' || buffer[g_source_pointer] == '!') {
+    for (; buffer[g_source_pointer] != 0xA && (buffer[g_source_pointer] == '=' || buffer[g_source_pointer] == '!' || buffer[g_source_pointer] == '<' || buffer[g_source_pointer] == '>'); g_source_pointer++)
       ;
   }
   else {
-    for (; buffer[i] != 0x0A && buffer[i] != ' ' && buffer[i] != ','; i++)
+    for (; buffer[g_source_pointer] != 0x0A && buffer[g_source_pointer] != ' ' && buffer[g_source_pointer] != ','; g_source_pointer++)
       ;
   }
   

@@ -7,7 +7,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
       output_assembled_opcode(opt_tmp, "d%d d%d ", (opt_tmp->hex >> 8) & 0xFF, opt_tmp->hex & 0xFF);
     else
       output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex);
-    i = inz;
+    g_source_pointer = inz;
     return SUCCEEDED;
   }
   if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -20,11 +20,11 @@ case 1:
 /* 8-bit signed operand, relative address */
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == 'x') {
-    y = i;
-    i = inz;
+    y = g_source_pointer;
+    g_source_pointer = inz;
     z = input_number();
-    inz = i;
-    i = y;
+    inz = g_source_pointer;
+    g_source_pointer = y;
 
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
@@ -54,7 +54,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
           }
         }
         
-        i = inz;
+        g_source_pointer = inz;
         return SUCCEEDED;
       }
       if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -70,11 +70,11 @@ case 2:
 /* 16-bit operand */
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == '?') {
-    y = i;
-    i = inz;
+    y = g_source_pointer;
+    g_source_pointer = inz;
     z = input_number();
-    inz = i;
-    i = y;
+    inz = g_source_pointer;
+    g_source_pointer = y;
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
     if (z == SUCCEEDED && (d > 65535 || d < -32768)) {
@@ -98,7 +98,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         else
           output_assembled_opcode(opt_tmp, "C%d ", latest_stack);
 
-        i = inz;
+        g_source_pointer = inz;
         return SUCCEEDED;
       }
       if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -115,7 +115,7 @@ case 3:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == 0 && buffer[inz] == 0x0A) {
     output_assembled_opcode(opt_tmp, "y%d ", opt_tmp->hex);
-    i = inz;
+    g_source_pointer = inz;
     return SUCCEEDED;
   }
   if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -129,11 +129,11 @@ if (xbit_size > 8 && opt_tmp->skip_8bit == 1)
   break;
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == 'x') {
-    y = i;
-    i = inz;
+    y = g_source_pointer;
+    g_source_pointer = inz;
     z = input_number();
-    inz = i;
-    i = y;
+    inz = g_source_pointer;
+    g_source_pointer = y;
     
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
@@ -162,7 +162,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         else
           output_assembled_opcode(opt_tmp, "c%d ", latest_stack);
         
-        i = inz;
+        g_source_pointer = inz;
         return SUCCEEDED;
       }
       if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -180,11 +180,11 @@ if (xbit_size >= 8 && opt_tmp->skip_8bit == 1)
   break;
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == 's') {
-    y = i;
-    i = inz;
+    y = g_source_pointer;
+    g_source_pointer = inz;
     z = input_number();
-    inz = i;
-    i = y;
+    inz = g_source_pointer;
+    g_source_pointer = y;
 
     /* TODO: add a mechanism so that we could use 5-bit address label references and calculations */
     /* currently we just fall back to 8-bit/16-bit ones */
@@ -207,7 +207,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
           output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex);
 
         output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->addressing_mode_bits | (d & 0x1F));
-        i = inz;
+        g_source_pointer = inz;
         return SUCCEEDED;
       }
       if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -225,11 +225,11 @@ if (xbit_size > 8 && opt_tmp->skip_8bit == 1)
   break;
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == 'x') {
-    y = i;
-    i = inz;
+    y = g_source_pointer;
+    g_source_pointer = inz;
     z = input_number();
-    inz = i;
-    i = y;
+    inz = g_source_pointer;
+    g_source_pointer = y;
 
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
@@ -262,7 +262,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
           stacks_tmp->relative_references = 1;
         }
         
-        i = inz;
+        g_source_pointer = inz;
         return SUCCEEDED;
       }
       if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -278,11 +278,11 @@ case 8:
 /* 16-bit operand + post op byte code */
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == '?') {
-    y = i;
-    i = inz;
+    y = g_source_pointer;
+    g_source_pointer = inz;
     z = input_number();
-    inz = i;
-    i = y;
+    inz = g_source_pointer;
+    g_source_pointer = y;
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
     if (z == SUCCEEDED && (d > 65535 || d < -32768)) {
@@ -306,7 +306,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         else
           output_assembled_opcode(opt_tmp, "d%d C%d ", opt_tmp->addressing_mode_bits, latest_stack);
 
-        i = inz;
+        g_source_pointer = inz;
         return SUCCEEDED;
       }
       if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -330,7 +330,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
       output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex);
 
     output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->addressing_mode_bits);
-    i = inz;
+    g_source_pointer = inz;
     return SUCCEEDED;
   }
   if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -350,7 +350,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex);
     output_assembled_opcode(opt_tmp, "d%d ", d);
         
-    i = inz;
+    g_source_pointer = inz;
     return SUCCEEDED;
   }
   if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -370,7 +370,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex);
     output_assembled_opcode(opt_tmp, "d%d ", d);
         
-    i = inz;
+    g_source_pointer = inz;
     return SUCCEEDED;
   }
   if (opt_tmp->op[x] != toupper((int)buffer[inz]))
@@ -382,11 +382,11 @@ case 12:
 /* 16-bit signed operand, relative address */
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
   if (opt_tmp->op[x] == '?') {
-    y = i;
-    i = inz;
+    y = g_source_pointer;
+    g_source_pointer = inz;
     z = input_number();
-    inz = i;
-    i = y;
+    inz = g_source_pointer;
+    g_source_pointer = y;
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
     if (z == SUCCEEDED && (d > 65535 || d < -32768)) {
@@ -413,7 +413,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
           stacks_tmp->relative_references = 1;
         }
 
-        i = inz;
+        g_source_pointer = inz;
         return SUCCEEDED;
       }
       if (opt_tmp->op[x] != toupper((int)buffer[inz]))
