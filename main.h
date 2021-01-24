@@ -9,8 +9,4 @@ int parse_and_add_incdir(char* c, int contains_flag);
 int generate_tmp_name(char **filename);
 int generate_extra_definitions(void);
 
-/* mersenne twister */
-void init_genrand(unsigned long s);
-unsigned long genrand_int32(void);
-
 #endif

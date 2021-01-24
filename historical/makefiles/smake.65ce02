@@ -8,9 +8,9 @@ LINKER = slink
 LLIB = LIB LIB:sc$(MATH).lib LIB:sc.lib LIB:amiga.lib
 LFLAGS = STRIPDEBUG NOICONS
 
-CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c printf.c opcodes_65ce02_tables.c opcodes_65ce02.c
-HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h crc32.h hashmap.h printf.h defines.h
-OFILES = LIB:c.o main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o printf.o opcodes_65ce02_tables.o opcodes_65ce02.o
+CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c printf.c mersenne_twister.c opcodes_65ce02_tables.c opcodes_65ce02.c
+HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h crc32.h hashmap.h printf.h mersenne_twister.h defines.h
+OFILES = LIB:c.o main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o printf.o mersenne_twister.o opcodes_65ce02_tables.o opcodes_65ce02.o
 ALLFILES = $(CFILES) $(HFILES) $(OFILES)
 
 
@@ -63,6 +63,8 @@ crc32.o: crc32.c defines.h crc32.h
 hashmap.o: hashmap.c defines.h hashmap.h
 	$(CC) $(CFLAGS) hashmap.c
 
+mersenne_twister.o: mersenne_twister.c defines.h mersenne_twister.h
+	$(CC) $(CFLAGS) mersenne_twister.c
 
 $(OFILES): $(HFILES)
 

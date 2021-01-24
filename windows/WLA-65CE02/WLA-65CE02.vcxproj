@@ -32,6 +32,7 @@
     <ClCompile Include="..\..\pass_4.c" />
     <ClCompile Include="..\..\printf.c" />
     <ClCompile Include="..\..\stack.c" />
+    <ClCompile Include="..\..\mersenne_twister.c" />
     <ClCompile Include="..\GEN-TABLES-65CE02\opcodes_65ce02_tables.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

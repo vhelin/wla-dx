@@ -135,6 +135,8 @@ set(WLA_SRCS
     listfile.h
     printf.c
     printf.h
+    mersenne_twister.c
+    mersenne_twister.h
     )
 
 foreach(ARCH IN LISTS ARCHS)

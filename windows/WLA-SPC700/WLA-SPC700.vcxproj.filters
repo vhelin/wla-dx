@@ -54,6 +54,9 @@
     <ClCompile Include="..\..\stack.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\mersenne_twister.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\GEN-TABLES-SPC700\opcodes_spc700_tables.c">
       <Filter>Source Files</Filter>
     </ClCompile>
