@@ -11,13 +11,13 @@
 #include "analyze.h"
 
 
-extern struct reference *reference_first, *reference_last;
-extern struct section *sec_first, *sec_last;
-extern struct section *sec_bankhd_first;
-extern struct label *labels_first, *labels_last;
-extern struct stack *stacks_first, *stacks_last;
+extern struct reference *g_reference_first, *g_reference_last;
+extern struct section *g_sec_first, *g_sec_last;
+extern struct section *g_sec_bankhd_first;
+extern struct label *g_labels_first, *g_labels_last;
+extern struct stack *g_stacks_first, *g_stacks_last;
 
-extern int verbose_mode;
+extern int g_verbose_mode;
 
 
 int discard_unused_sections(void) {
@@ -28,7 +28,7 @@ int discard_unused_sections(void) {
   
   /* iterate section discarding until there's no change in the amount of dropped sections */
   while (a != b) {
-    s = sec_first;
+    s = g_sec_first;
     while (s != NULL) {
       s->referenced = 0;
       s = s->next;
@@ -38,7 +38,7 @@ int discard_unused_sections(void) {
     discard_iteration();
 
     b = 0;
-    s = sec_first;
+    s = g_sec_first;
     while (s != NULL) {
       if (s->referenced == 0)
         s->alive = NO;
@@ -50,9 +50,9 @@ int discard_unused_sections(void) {
     }
   }
 
-  if (verbose_mode == ON) {
+  if (g_verbose_mode == ON) {
     /* announce all the unreferenced sections that will get dropped */
-    s = sec_first;
+    s = g_sec_first;
     while (s != NULL) {
       if (s->alive == NO)
         fprintf(stderr, "DISCARD: %s: %s: Section \"%s\" was discarded.\n",
@@ -76,7 +76,7 @@ int discard_iteration(void) {
 
   
   /* check section names for special characters '!', and check if the section is of proper type */
-  s = sec_first;
+  s = g_sec_first;
   while (s != NULL) {
     if (s->keep == YES || s->name[0] == '!' || !(s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_SEMIFREE || s->status == SECTION_STATUS_SEMISUBFREE || s->status == SECTION_STATUS_SUPERFREE || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE)) {
       s->referenced++;
@@ -86,7 +86,7 @@ int discard_iteration(void) {
   }
 
   /* loop through references */
-  r = reference_first;
+  r = g_reference_first;
   while (r != NULL) {
     /* references to local labels don't count */
     if (r->name[0] == '_' || is_label_anonymous(r->name) == YES) {
@@ -96,7 +96,7 @@ int discard_iteration(void) {
 
     s = NULL;
     if (r->section_status != 0) {
-      s = sec_first;
+      s = g_sec_first;
       while (s != NULL) {
         if (s->id == r->section)
           break;
@@ -112,12 +112,12 @@ int discard_iteration(void) {
       if (r->section_status == OFF)
         s->referenced++;
       else if (r->section != s->id) {
-        ss = sec_bankhd_first;
+        ss = g_sec_bankhd_first;
         /* find it in special sections first */
         while (ss != NULL && ss->id != r->section)
           ss = ss->next;
         if (ss == NULL) {
-          ss = sec_first;
+          ss = g_sec_first;
           while (ss->id != r->section)
             ss = ss->next;
         }
@@ -129,11 +129,11 @@ int discard_iteration(void) {
   }
 
   /* loop through computations */
-  st = stacks_first;
+  st = g_stacks_first;
   while (st != NULL) {
     ss = NULL;
     if (st->section_status != 0) {
-      ss = sec_first;
+      ss = g_sec_first;
       while (ss != NULL) {
         if (ss->id == st->section)
           break;
@@ -175,11 +175,11 @@ int discard_drop_labels(void) {
   struct label *l;
 
   
-  l = labels_first;
+  l = g_labels_first;
   while (l != NULL) {
     if (l->section_status == ON) {
       /* find the section */
-      s = sec_first;
+      s = g_sec_first;
       while (s->id != l->section)
         s = s->next;
       /* is it dead? */

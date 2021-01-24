@@ -19,32 +19,32 @@
 #endif
 
 
-extern struct section_fix *sec_fix_first, *sec_fix_tmp;
-extern struct reference *reference_first, *reference_last;
-extern struct label *labels_first, *labels_last;
-extern struct label **sorted_anonymous_labels;
-extern struct object_file *obj_first, *obj_last, *obj_tmp;
-extern struct section *sec_first, *sec_last, *sec_bankhd_first, sec_bankhd_last;
-extern struct stack *stacks_first, *stacks_last;
-extern struct map_t *global_unique_label_map;
-extern struct map_t *namespace_map;
-extern struct slot slots[256];
-extern struct label_sizeof *label_sizeofs;
-extern unsigned char *rom, *rom_usage;
-extern unsigned char *file_header, *file_footer;
-extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
-extern char load_address_label[MAX_NAME_LENGTH + 1];
-extern char program_address_start_label[MAX_NAME_LENGTH + 1], program_address_end_label[MAX_NAME_LENGTH + 1];
-extern int load_address, load_address_type;
-extern int romsize, rombanks, banksize, verbose_mode, section_overwrite, symbol_mode;
-extern int pc_bank, pc_full, pc_slot, pc_slot_max, snes_rom_mode;
-extern int file_header_size, file_footer_size, *bankaddress, *banksizes;
-extern int memory_file_id, memory_file_id_source, memory_line_number, output_mode;
-extern int program_start, program_end, snes_mode, smc_status;
-extern int snes_sramsize, num_sorted_anonymous_labels, sort_sections;
-extern int output_type, program_address_start, program_address_end, program_address_start_type, program_address_end_type;
+extern struct section_fix *g_sec_fix_first, *g_sec_fix_tmp;
+extern struct reference *g_reference_first, *g_reference_last;
+extern struct label *g_labels_first, *g_labels_last;
+extern struct label **g_sorted_anonymous_labels;
+extern struct object_file *g_obj_first, *g_obj_last, *g_obj_tmp;
+extern struct section *g_sec_first, *g_sec_last, *g_sec_bankhd_first, g_sec_bankhd_last;
+extern struct stack *g_stacks_first, *g_stacks_last;
+extern struct map_t *g_global_unique_label_map;
+extern struct map_t *g_namespace_map;
+extern struct slot g_slots[256];
+extern struct label_sizeof *g_label_sizeofs;
+extern unsigned char *g_rom, *g_rom_usage;
+extern unsigned char *g_file_header, *g_file_footer;
+extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
+extern char g_load_address_label[MAX_NAME_LENGTH + 1];
+extern char g_program_address_start_label[MAX_NAME_LENGTH + 1], g_program_address_end_label[MAX_NAME_LENGTH + 1];
+extern int g_load_address, g_load_address_type;
+extern int g_romsize, g_rombanks, g_banksize, g_verbose_mode, g_section_overwrite, g_symbol_mode;
+extern int g_pc_bank, g_pc_full, g_pc_slot, g_pc_slot_max, g_snes_rom_mode;
+extern int g_file_header_size, g_file_footer_size, *g_bankaddress, *g_banksizes;
+extern int g_memory_file_id, g_memory_file_id_source, g_memory_line_number, g_output_mode;
+extern int g_program_start, g_program_end, g_snes_mode, g_smc_status;
+extern int g_snes_sramsize, g_num_sorted_anonymous_labels, g_sort_sections;
+extern int g_output_type, g_program_address_start, g_program_address_end, g_program_address_start_type, g_program_address_end_type;
 
-int current_stack_calculation_addr = 0;
+int g_current_stack_calculation_addr = 0;
 
 
 
@@ -89,18 +89,18 @@ int _cbm_write_prg_header(FILE *f) {
   if (f == NULL)
     return FAILED;
 
-  if (load_address_type == LOAD_ADDRESS_TYPE_VALUE) {
-    address = load_address;
+  if (g_load_address_type == LOAD_ADDRESS_TYPE_VALUE) {
+    address = g_load_address;
     fprintf(stderr, "Using the address $%x as the load address for the PRG.\n", address & 0xFFFF);
   }
-  else if (load_address_type == LOAD_ADDRESS_TYPE_LABEL) {
+  else if (g_load_address_type == LOAD_ADDRESS_TYPE_LABEL) {
     /* find the address of the label */
     struct label *l;
     
-    find_label(load_address_label, NULL, &l);
+    find_label(g_load_address_label, NULL, &l);
 
     if (l == NULL) {
-      fprintf(stderr, "_CBM_WRITE_PRG_HEADER: Cannot find label \"%s\".\n", load_address_label);
+      fprintf(stderr, "_CBM_WRITE_PRG_HEADER: Cannot find label \"%s\".\n", g_load_address_label);
       return FAILED;
     }
 
@@ -109,7 +109,7 @@ int _cbm_write_prg_header(FILE *f) {
                                                                           l->section_struct->status == SECTION_STATUS_RAM_SEMIFREE ||
                                                                           l->section_struct->status == SECTION_STATUS_RAM_SEMISUBFREE ||
                                                                           l->section_struct->alive == NO))) {
-      fprintf(stderr, "_CBM_WRITE_PRG_HEADER: \"%s\" cannot be used as the load address.\n", load_address_label);
+      fprintf(stderr, "_CBM_WRITE_PRG_HEADER: \"%s\" cannot be used as the load address.\n", g_load_address_label);
       return FAILED;
     }
 
@@ -117,9 +117,9 @@ int _cbm_write_prg_header(FILE *f) {
 
     fprintf(stderr, "Using the address $%x (of label \"%s\") as the load address for the PRG.\n", address & 0xFFFF, l->name);
   }
-  else if (load_address_type == LOAD_ADDRESS_TYPE_UNDEFINED) {
+  else if (g_load_address_type == LOAD_ADDRESS_TYPE_UNDEFINED) {
     /* find a suitable load address, i.e., the label with the smallest address value */
-    struct label *l = labels_first, *label = NULL;
+    struct label *l = g_labels_first, *label = NULL;
     int address2 = 0xFFFFFF;
     
     while (l != NULL) {
@@ -165,10 +165,10 @@ int _smc_create_and_write(FILE *f) {
   if (f == NULL)
     return FAILED;
 
-  if (output_mode != OUTPUT_ROM)
+  if (g_output_mode != OUTPUT_ROM)
     return FAILED;
 
-  i = romsize/(8*1024);
+  i = g_romsize/(8*1024);
 
   /* low byte of 8KB page count */
   fprintf(f, "%c", i & 0xFF);
@@ -177,9 +177,9 @@ int _smc_create_and_write(FILE *f) {
 
   /* emulation mode select (?) */
   i = 0;
-  if (snes_rom_mode == SNES_ROM_MODE_HIROM || snes_rom_mode == SNES_ROM_MODE_EXHIROM)
+  if (g_snes_rom_mode == SNES_ROM_MODE_HIROM || g_snes_rom_mode == SNES_ROM_MODE_EXHIROM)
     i |= (1<<5) | (1<<4);
-  i |= (snes_sramsize ^ 3) << 2;
+  i |= (g_snes_sramsize ^ 3) << 2;
 
   fprintf(f, "%c", i);
 
@@ -217,7 +217,7 @@ int insert_sections(void) {
     ram_slots[i] = NULL;
 
   /* find all touched slots */
-  s = sec_first;
+  s = g_sec_first;
   while (s != NULL) {
     if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE || s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
       if (ram_slots[s->bank] == NULL) {
@@ -230,12 +230,12 @@ int insert_sections(void) {
           ram_slots[s->bank][i] = NULL;
       }
       if (ram_slots[s->bank][s->slot] == NULL) {
-        ram_slots[s->bank][s->slot] = calloc(slots[s->slot].size, 1);
+        ram_slots[s->bank][s->slot] = calloc(g_slots[s->slot].size, 1);
         if (ram_slots[s->bank][s->slot] == NULL) {
           fprintf(stderr, "INSERT_SECTIONS: Out of memory error.\n");
           return FAILED;
         }
-        memset(ram_slots[s->bank][s->slot], 0, slots[s->slot].size);
+        memset(ram_slots[s->bank][s->slot], 0, g_slots[s->slot].size);
       }
     }
     s = s->next;
@@ -243,7 +243,7 @@ int insert_sections(void) {
 
   /* count the sections */
   i = 0;
-  s = sec_first;
+  s = g_sec_first;
   while (s != NULL) {
     if (s->alive == YES)
       i++;
@@ -262,7 +262,7 @@ int insert_sections(void) {
 
   /* insert the sections into an array for sorting */
   i = 0;
-  s = sec_first;
+  s = g_sec_first;
   while (s != NULL) {
     /* no references - skip it */
     if (s->alive == YES)
@@ -271,7 +271,7 @@ int insert_sections(void) {
   }
 
   /* sort the sections by priority first and then by size, biggest first */
-  if (sort_sections == YES)
+  if (g_sort_sections == YES)
     qsort(sa, sn, sizeof(struct section *), _sections_sort);
 
   /* print the sizes (DEBUG) */
@@ -288,7 +288,7 @@ int insert_sections(void) {
     s = sa[p++];
 
     if (s->status == SECTION_STATUS_RAM_FORCE) {
-      int slotAddress = slots[s->slot].address;
+      int slotAddress = g_slots[s->slot].address;
 
       /* align the starting address */
       int overflow = (slotAddress + s->address) % s->alignment;
@@ -298,7 +298,7 @@ int insert_sections(void) {
       address += s->offset;
 
       c = ram_slots[s->bank][s->slot];
-      i = slots[s->slot].size;
+      i = g_slots[s->slot].size;
       for (q = 0; address + q < i && q < s->size; q++) {
         if (c[address + q] != 0) {
           fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in slot %d.\n", s->name, s->size, s->slot);
@@ -322,7 +322,7 @@ int insert_sections(void) {
     s = sa[p++];
     
     if (s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
-      int slotAddress = slots[s->slot].address;
+      int slotAddress = g_slots[s->slot].address;
 
       /* align the starting address */
       int overflow = slotAddress % s->alignment;
@@ -369,7 +369,7 @@ int insert_sections(void) {
     s = sa[p++];
     
     if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_SEMIFREE) {
-      int slotAddress = slots[s->slot].address;
+      int slotAddress = g_slots[s->slot].address;
 
       /* align the starting address */
       int overflow = (slotAddress + s->address) % s->alignment;
@@ -379,7 +379,7 @@ int insert_sections(void) {
       address += overflow;
 
       c = ram_slots[s->bank][s->slot];
-      i = slots[s->slot].size;
+      i = g_slots[s->slot].size;
       t = 0;
       for (; address < i; address += s->alignment) {
         if (c[address] == 0) {
@@ -429,33 +429,33 @@ int insert_sections(void) {
   while (p < sn) {
     s = sa[p++];
     if (s->status == SECTION_STATUS_FORCE) {
-      memory_file_id = s->file_id;
-      banksize = banksizes[s->bank];
-      pc_bank = s->address;
-      pc_slot = slots[s->slot].address + pc_bank;
-      pc_full = pc_bank + bankaddress[s->bank];
-      pc_slot_max = slots[s->slot].address + slots[s->slot].size;
-      d = pc_full;
+      g_memory_file_id = s->file_id;
+      g_banksize = g_banksizes[s->bank];
+      g_pc_bank = s->address;
+      g_pc_slot = g_slots[s->slot].address + g_pc_bank;
+      g_pc_full = g_pc_bank + g_bankaddress[s->bank];
+      g_pc_slot_max = g_slots[s->slot].address + g_slots[s->slot].size;
+      d = g_pc_full;
       i = d + s->size;
       s->output_address = d;
-      section_overwrite = OFF;
-      if (i > romsize) {
+      g_section_overwrite = OFF;
+      if (i > g_romsize) {
         fprintf(stderr, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) goes beyond the ROM size.\n", get_file_name(s->file_id),
                 get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
         return FAILED;
       }
-      if (s->address + s->size > banksize) {
+      if (s->address + s->size > g_banksize) {
         fprintf(stderr, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) overflows from ROM bank %d.\n", get_file_name(s->file_id),
                 get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
         return FAILED;
       }
       for (; d < i; d++) {
-        if (rom_usage[d] != 0 && rom[d] != s->data[d - pc_full])
+        if (g_rom_usage[d] != 0 && g_rom[d] != s->data[d - g_pc_full])
           break;
       }
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
       if (d == i) {
         for (i = 0; i < s->size; i++) {
@@ -479,10 +479,10 @@ int insert_sections(void) {
     if (s->status == SECTION_STATUS_ABSOLUTE) {
       d = s->address;
       s->output_address = d;
-      section_overwrite = ON;
+      g_section_overwrite = ON;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
       for (i = 0; i < s->size; i++) {
         if (mem_insert(d + i, s->data[i]) == FAILED)
@@ -496,47 +496,48 @@ int insert_sections(void) {
   while (p < sn) {
     s = sa[p++];
     if (s->status == SECTION_STATUS_SEMISUBFREE) {
-      pc_bank = 0;
-      d = bankaddress[s->bank];
+      g_pc_bank = 0;
+      d = g_bankaddress[s->bank];
 
       /* align the starting address */
-      f = (pc_bank + d) % s->alignment;
+      f = (g_pc_bank + d) % s->alignment;
       if (f > 0)
-        pc_bank += s->alignment - f;
+        g_pc_bank += s->alignment - f;
 
       i = FAILED;
       while (i == FAILED) {
-        f = pc_bank;
-        for (x = 0; pc_bank + s->offset < s->address && rom_usage[pc_bank + s->offset + d] == 0 && x < s->size; pc_bank++, x++)
+        f = g_pc_bank;
+        for (x = 0; g_pc_bank + s->offset < s->address && g_rom_usage[g_pc_bank + s->offset + d] == 0 && x < s->size; g_pc_bank++, x++)
           ;
         if (x == s->size)
           break;
-        if (pc_bank == s->address) {
+        if (g_pc_bank == s->address) {
           fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
                   get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
           return FAILED;
         }
 
         /* find the next starting address */
-        f = (pc_bank + d) % s->alignment;
+        f = (g_pc_bank + d) % s->alignment;
         if (f > 0)
-          pc_bank += s->alignment - f;
-        for (; pc_bank + s->offset < s->address && rom_usage[pc_bank + s->offset + d] != 0; pc_bank += s->alignment)
+          g_pc_bank += s->alignment - f;
+        for (; g_pc_bank + s->offset < s->address && g_rom_usage[g_pc_bank + s->offset + d] != 0; g_pc_bank += s->alignment)
           ;
       }
 
-      memory_file_id = s->file_id;
-      banksize = banksizes[s->bank];
-      pc_bank = f + s->offset;
-      pc_slot = slots[s->slot].address + pc_bank;
-      pc_full = pc_bank + bankaddress[s->bank];
-      pc_slot_max = slots[s->slot].address + slots[s->slot].size;
-      s->address = pc_bank;
-      s->output_address = pc_full;
-      section_overwrite = OFF;
+      g_memory_file_id = s->file_id;
+      g_banksize = g_banksizes[s->bank];
+      g_pc_bank = f + s->offset;
+      g_pc_slot = g_slots[s->slot].address + g_pc_bank;
+      g_pc_full = g_pc_bank + g_bankaddress[s->bank];
+      g_pc_slot_max = g_slots[s->slot].address + g_slots[s->slot].size;
+	  g_section_overwrite = OFF;
+	  
+	  s->address = g_pc_bank;
+      s->output_address = g_pc_full;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
       for (i = 0; i < s->size; i++) {
         if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
@@ -550,47 +551,48 @@ int insert_sections(void) {
   while (p < sn) {
     s = sa[p++];
     if (s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_SEMIFREE) {
-      pc_bank = s->address;
-      d = bankaddress[s->bank];
+      g_pc_bank = s->address;
+      d = g_bankaddress[s->bank];
 
       /* align the starting address */
-      f = (pc_bank + d) % s->alignment;
+      f = (g_pc_bank + d) % s->alignment;
       if (f > 0)
-        pc_bank += s->alignment - f;
+        g_pc_bank += s->alignment - f;
 
       i = FAILED;
       while (i == FAILED) {
-        f = pc_bank;
-        for (x = 0; pc_bank + s->offset < banksizes[s->bank] && rom_usage[pc_bank + s->offset + d] == 0 && x < s->size; pc_bank++, x++)
+        f = g_pc_bank;
+        for (x = 0; g_pc_bank + s->offset < g_banksizes[s->bank] && g_rom_usage[g_pc_bank + s->offset + d] == 0 && x < s->size; g_pc_bank++, x++)
           ;
         if (x == s->size)
           break;
-        if (pc_bank == banksizes[s->bank]) {
+        if (g_pc_bank == g_banksizes[s->bank]) {
           fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
                   get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
           return FAILED;
         }
 
         /* find the next starting address */
-        f = (pc_bank + d) % s->alignment;
+        f = (g_pc_bank + d) % s->alignment;
         if (f > 0)
-          pc_bank += s->alignment - f;
-        for (; pc_bank + s->offset < banksizes[s->bank] && rom_usage[pc_bank + s->offset + d] != 0; pc_bank += s->alignment)
+          g_pc_bank += s->alignment - f;
+        for (; g_pc_bank + s->offset < g_banksizes[s->bank] && g_rom_usage[g_pc_bank + s->offset + d] != 0; g_pc_bank += s->alignment)
           ;
       }
 
-      memory_file_id = s->file_id;
-      banksize = banksizes[s->bank];
-      pc_bank = f + s->offset;
-      pc_slot = slots[s->slot].address + pc_bank;
-      pc_full = pc_bank + bankaddress[s->bank];
-      pc_slot_max = slots[s->slot].address + slots[s->slot].size;
-      s->address = pc_bank;
-      s->output_address = pc_full;
-      section_overwrite = OFF;
+      g_memory_file_id = s->file_id;
+      g_banksize = g_banksizes[s->bank];
+      g_pc_bank = f + s->offset;
+      g_pc_slot = g_slots[s->slot].address + g_pc_bank;
+      g_pc_full = g_pc_bank + g_bankaddress[s->bank];
+      g_pc_slot_max = g_slots[s->slot].address + g_slots[s->slot].size;
+      g_section_overwrite = OFF;
+
+	  s->address = g_pc_bank;
+	  s->output_address = g_pc_full;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
       for (i = 0; i < s->size; i++) {
         if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
@@ -608,53 +610,54 @@ int insert_sections(void) {
       i = FAILED;
       f = 0;
 
-      for (q = 0; i == FAILED && q < rombanks; q++) {
-        pc_bank = 0;
-        d = bankaddress[q];
+      for (q = 0; i == FAILED && q < g_rombanks; q++) {
+        g_pc_bank = 0;
+        d = g_bankaddress[q];
 
         /* align the starting address */
-        f = (pc_bank + d) % s->alignment;
+        f = (g_pc_bank + d) % s->alignment;
         if (f > 0)
-          pc_bank += s->alignment - f;
+          g_pc_bank += s->alignment - f;
 
         /* if the slotsize and banksize differ -> try the next bank */
-        if (banksizes[q] != slots[s->slot].size)
+        if (g_banksizes[q] != g_slots[s->slot].size)
           continue;
 
         while (i == FAILED) {
-          f = pc_bank;
-          for (x = 0; pc_bank + s->offset < banksizes[q] && rom_usage[pc_bank + s->offset + d] == 0 && x < s->size; pc_bank++, x++)
+          f = g_pc_bank;
+          for (x = 0; g_pc_bank + s->offset < g_banksizes[q] && g_rom_usage[g_pc_bank + s->offset + d] == 0 && x < s->size; g_pc_bank++, x++)
             ;
           if (x == s->size) {
             i = SUCCEEDED;
             break;
           }
-          if (pc_bank == banksizes[q])
+          if (g_pc_bank == g_banksizes[q])
             break;
 
           /* find the next starting address */
-          f = (pc_bank + d) % s->alignment;
+          f = (g_pc_bank + d) % s->alignment;
           if (f > 0)
-            pc_bank += s->alignment - f;
-          for (; pc_bank + s->offset < banksizes[s->bank] && rom_usage[pc_bank + s->offset + d] != 0; pc_bank += s->alignment)
+            g_pc_bank += s->alignment - f;
+          for (; g_pc_bank + s->offset < g_banksizes[s->bank] && g_rom_usage[g_pc_bank + s->offset + d] != 0; g_pc_bank += s->alignment)
             ;
         }
       }
 
       if (i == SUCCEEDED) {
         s->bank = q-1;
-        memory_file_id = s->file_id;
-        banksize = banksizes[s->bank];
-        pc_bank = f + s->offset;
-        pc_slot = pc_bank;
-        pc_full = pc_bank + bankaddress[s->bank];
-        pc_slot_max = slots[s->slot].size;
-        s->address = pc_bank;
-        s->output_address = pc_full;
-        section_overwrite = OFF;
+        g_memory_file_id = s->file_id;
+        g_banksize = g_banksizes[s->bank];
+        g_pc_bank = f + s->offset;
+        g_pc_slot = g_pc_bank;
+        g_pc_full = g_pc_bank + g_bankaddress[s->bank];
+        g_pc_slot_max = g_slots[s->slot].size;
+        g_section_overwrite = OFF;
+
+		s->address = g_pc_bank;
+		s->output_address = g_pc_full;
 
         /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-        snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
         for (i = 0; i < s->size; i++)
           if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
@@ -673,27 +676,29 @@ int insert_sections(void) {
   while (p < sn) {
     s = sa[p++];
     if (s->status == SECTION_STATUS_OVERWRITE) {
-      memory_file_id = s->file_id;
-      banksize = banksizes[s->bank];
-      pc_bank = s->address;
-      pc_slot = slots[s->slot].address + pc_bank;
-      pc_full = pc_bank + bankaddress[s->bank];
-      pc_slot_max = slots[s->slot].address + slots[s->slot].size;
-      s->output_address = pc_full;
-      section_overwrite = ON;
-      if (pc_full + s->size > romsize) {
+      g_memory_file_id = s->file_id;
+      g_banksize = g_banksizes[s->bank];
+      g_pc_bank = s->address;
+      g_pc_slot = g_slots[s->slot].address + g_pc_bank;
+      g_pc_full = g_pc_bank + g_bankaddress[s->bank];
+      g_pc_slot_max = g_slots[s->slot].address + g_slots[s->slot].size;
+      g_section_overwrite = ON;
+
+	  s->output_address = g_pc_full;
+	  
+	  if (g_pc_full + s->size > g_romsize) {
         fprintf(stderr, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) goes beyond the ROM size.\n", get_file_name(s->file_id),
                 get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
         return FAILED;
       }
-      if (s->address + s->size > banksize) {
+      if (s->address + s->size > g_banksize) {
         fprintf(stderr, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) overflows from ROM bank %d.\n", get_file_name(s->file_id),
                 get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
         return FAILED;
       }
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
       for (i = 0; i < s->size; i++) {
         if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
@@ -715,7 +720,7 @@ int transform_stack_definitions(void) {
   struct stack *s;
 
 
-  l = labels_first;
+  l = g_labels_first;
   while (l != NULL) {
     if (l->status == LABEL_STATUS_STACK) {
       /* DEBUG
@@ -728,7 +733,7 @@ int transform_stack_definitions(void) {
          printf("value: \"%d\"\n", l->address);
       */
 
-      s = stacks_first;
+      s = g_stacks_first;
       /* find the stack associated with the definition */
       while (s != NULL) {
         if (s->file_id == l->file_id && s->id == l->address)
@@ -787,7 +792,7 @@ int check_ramsections(void) {
   struct section *s;
 
 
-  s = sec_first;
+  s = g_sec_first;
   while (s != NULL) {
     if (s->bank < 0 && s->slot < 0) {
       fprintf(stderr, "%s: %s: CHECK_RAMSECTIONS: RAM section \"%s\" has no BANK/SLOT. Give them in the linkfile under [ramsections].\n", get_file_name(s->file_id),
@@ -807,47 +812,47 @@ int fix_all_sections(void) {
   struct section *s;
 
   
-  sec_fix_tmp = sec_fix_first;
-  while (sec_fix_tmp != NULL) {
+  g_sec_fix_tmp = g_sec_fix_first;
+  while (g_sec_fix_tmp != NULL) {
     /* find the section, and fix bank, slot and org/orga */
-    s = sec_first;
+    s = g_sec_first;
     while (s != NULL) {
-      if (strcmp(s->name, sec_fix_tmp->name) == 0) {
-        s->bank = sec_fix_tmp->bank;
+      if (strcmp(s->name, g_sec_fix_tmp->name) == 0) {
+        s->bank = g_sec_fix_tmp->bank;
 
-        if (sec_fix_tmp->slot < 0) {
-          if (get_slot_by_its_name(sec_fix_tmp->slot_name, &(s->slot)) == FAILED)
+        if (g_sec_fix_tmp->slot < 0) {
+          if (get_slot_by_its_name(g_sec_fix_tmp->slot_name, &(s->slot)) == FAILED)
             return FAILED;
         }
         else {
-          if (get_slot_by_a_value(sec_fix_tmp->slot, &(s->slot)) == FAILED)
+          if (get_slot_by_a_value(g_sec_fix_tmp->slot, &(s->slot)) == FAILED)
             return FAILED;
         }
 
-        if (sec_fix_tmp->status >= 0)
-          s->status = sec_fix_tmp->status;
+        if (g_sec_fix_tmp->status >= 0)
+          s->status = g_sec_fix_tmp->status;
 
-        if (sec_fix_tmp->priority_defined == YES)
-          s->priority = sec_fix_tmp->priority;
+        if (g_sec_fix_tmp->priority_defined == YES)
+          s->priority = g_sec_fix_tmp->priority;
 
-        if (sec_fix_tmp->keep == YES)
+        if (g_sec_fix_tmp->keep == YES)
           s->keep = YES;
 
-        if (sec_fix_tmp->alignment >= 0)
-          s->alignment = sec_fix_tmp->alignment;
+        if (g_sec_fix_tmp->alignment >= 0)
+          s->alignment = g_sec_fix_tmp->alignment;
 
-        if (sec_fix_tmp->offset >= 0)
-          s->offset = sec_fix_tmp->offset;
+        if (g_sec_fix_tmp->offset >= 0)
+          s->offset = g_sec_fix_tmp->offset;
         
-        if (sec_fix_tmp->orga >= 0) {
-          if (sec_fix_tmp->orga < slots[s->slot].address || sec_fix_tmp->orga >= slots[s->slot].address + slots[s->slot].size) {
-            fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: ORGA $%.4x is outside of the SLOT %d.\n", sec_fix_tmp->file_name, sec_fix_tmp->line_number, sec_fix_tmp->orga, s->slot);
+        if (g_sec_fix_tmp->orga >= 0) {
+          if (g_sec_fix_tmp->orga < g_slots[s->slot].address || g_sec_fix_tmp->orga >= g_slots[s->slot].address + g_slots[s->slot].size) {
+            fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: ORGA $%.4x is outside of the SLOT %d.\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, g_sec_fix_tmp->orga, s->slot);
             return FAILED;
           }
-          s->address = sec_fix_tmp->orga - slots[s->slot].address;
+          s->address = g_sec_fix_tmp->orga - g_slots[s->slot].address;
         }
-        if (sec_fix_tmp->org >= 0)
-          s->address = sec_fix_tmp->org;
+        if (g_sec_fix_tmp->org >= 0)
+          s->address = g_sec_fix_tmp->org;
         
         break;
       }
@@ -855,16 +860,16 @@ int fix_all_sections(void) {
     }
 
     if (s == NULL) {
-      fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: Could not find ", sec_fix_tmp->file_name, sec_fix_tmp->line_number);
-      if (sec_fix_tmp->is_ramsection == YES)
+      fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: Could not find ", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number);
+      if (g_sec_fix_tmp->is_ramsection == YES)
         fprintf(stderr, "RAM section");
       else
         fprintf(stderr, "section");
-      fprintf(stderr, " \"%s\".\n", sec_fix_tmp->name);
+      fprintf(stderr, " \"%s\".\n", g_sec_fix_tmp->name);
       return FAILED;
     }
 
-    sec_fix_tmp = sec_fix_tmp->next;
+    g_sec_fix_tmp = g_sec_fix_tmp->next;
   }
 
   return SUCCEEDED;
@@ -877,11 +882,11 @@ int fix_label_sections(void) {
   struct section *s;
   struct label *l;
 
-  l = labels_first;
+  l = g_labels_first;
   while (l != NULL) {
     if (l->section_status == ON) {
       /* search for the label's section */
-      s = sec_first;
+      s = g_sec_first;
       while (s != NULL) {
         if (s->id == l->section) {
           l->section_struct = s;
@@ -950,7 +955,7 @@ int insert_label_into_maps(struct label* l, int is_sizeof) {
 
   /* put the label into the global namespace */
   if (put_in_anything && put_in_global) {
-    if (try_put_label(global_unique_label_map, l) == FAILED)
+    if (try_put_label(g_global_unique_label_map, l) == FAILED)
       return FAILED;
   }
 
@@ -965,7 +970,7 @@ int fix_label_addresses(void) {
 
 
   /* fix labels' addresses */
-  l = labels_first;
+  l = g_labels_first;
   while (l != NULL) {
     if (l->alive == YES) {
       if (l->status == LABEL_STATUS_LABEL || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
@@ -982,12 +987,12 @@ int fix_label_addresses(void) {
             l->address += s->address;
 
             if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE || s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE)
-              l->rom_address = (int)l->address + slots[l->slot].size * l->bank;
+              l->rom_address = (int)l->address + g_slots[l->slot].size * l->bank;
             else
-              l->rom_address = (int)l->address + bankaddress[l->bank];
+              l->rom_address = (int)l->address + g_bankaddress[l->bank];
 
             if (s->status != SECTION_STATUS_ABSOLUTE)
-              l->address += slots[l->slot].address;
+              l->address += g_slots[l->slot].address;
           }
           else {
             fprintf(stderr, "FIX_LABELS: Internal error: label's section ID and its sections section ID don't match!\n");
@@ -995,8 +1000,8 @@ int fix_label_addresses(void) {
         }
         else {
           l->address_in_section = (int)l->address;
-          l->rom_address = (int)l->address + bankaddress[l->bank];
-          l->address += slots[l->slot].address;
+          l->rom_address = (int)l->address + g_bankaddress[l->bank];
+          l->address += g_slots[l->slot].address;
         }
       }
     }
@@ -1098,17 +1103,17 @@ int fix_references(void) {
   int i, x;
 
 
-  section_overwrite = OFF;
+  g_section_overwrite = OFF;
 
   /* insert references */
-  r = reference_first;
+  r = g_reference_first;
   while (r != NULL) {
     s = NULL;
 
     x = r->address;
     /* search for the section of the reference and fix the address */
     if (r->section_status == ON) {
-      s = sec_first;
+      s = g_sec_first;
       while (s != NULL) {
         if (s->id == r->section) {
           r->bank = s->bank;
@@ -1132,8 +1137,8 @@ int fix_references(void) {
     }
 
     if (!(r->section_status == ON && s->status == SECTION_STATUS_ABSOLUTE)) {
-      x += bankaddress[r->bank];
-      r->address += slots[r->slot].address;
+      x += g_bankaddress[r->bank];
+      r->address += g_slots[r->slot].address;
     }
 
     /* find the destination */
@@ -1167,12 +1172,12 @@ int fix_references(void) {
       else
         i = l->base + l->bank;
 
-      memory_file_id = r->file_id;
-      memory_file_id_source = r->file_id_source;
-      memory_line_number = r->linenumber;
+      g_memory_file_id = r->file_id;
+      g_memory_file_id_source = r->file_id_source;
+      g_memory_line_number = r->linenumber;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing reference %s: %s:%d: %s.", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing reference %s: %s:%d: %s.", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
 
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT || r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
@@ -1238,12 +1243,12 @@ int fix_references(void) {
         return FAILED;
       }
 
-      memory_file_id = r->file_id;
-      memory_file_id_source = r->file_id_source;
-      memory_line_number = r->linenumber;
+      g_memory_file_id = r->file_id;
+      g_memory_file_id_source = r->file_id_source;
+      g_memory_line_number = r->linenumber;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing reference %s: %s:%d: %s.", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing reference %s: %s:%d: %s.", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
 
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
@@ -1396,12 +1401,12 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 
   if (mode == SYMBOL_MODE_NOCA5H) {
     /* NO$GMB SYMBOL FILE */
-    if (snes_mode == 0)
+    if (g_snes_mode == 0)
       fprintf(f, "; no$gmb symbolic information for \"%s\".\n", outname);
     else
       fprintf(f, "; no$snes symbolic information for \"%s\".\n", outname);
 
-    l = labels_first;
+    l = g_labels_first;
     while (l != NULL) {
       if (l->alive == NO || is_label_anonymous(l->name) == YES || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT || l->status == LABEL_STATUS_DEFINE || l->status == LABEL_STATUS_STACK) {
         l = l->next;
@@ -1409,7 +1414,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
       }
       /* skip all dropped section labels */
       if (l->section_status == ON) {
-        s = sec_first;
+        s = g_sec_first;
         while (l->section != s->id)
           s = s->next;
         if (s->alive == NO) {
@@ -1417,7 +1422,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
           continue;
         }
       }
-      if (snes_mode == 0) {
+      if (g_snes_mode == 0) {
         if (l->status == LABEL_STATUS_LABEL)
           fprintf(f, "%.2x:%.4x %s\n", l->base + l->bank, (int)l->address, l->name);
         else
@@ -1437,7 +1442,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
     fprintf(f, "; wla symbolic information for \"%s\".\n", outname);
 
     /* labels */
-    l = labels_first;
+    l = g_labels_first;
     while (l != NULL) {
       if (l->status != LABEL_STATUS_LABEL) {
         l = l->next;
@@ -1449,7 +1454,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
     if (l != NULL) {
       fprintf(f, "\n[labels]\n");
 
-      l = labels_first;
+      l = g_labels_first;
       while (l != NULL) {
         if (l->alive == NO || l->status != LABEL_STATUS_LABEL) {
           l = l->next;
@@ -1462,7 +1467,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
 
         /* skip all dropped section labels */
         if (l->section_status == ON) {
-          s = sec_first;
+          s = g_sec_first;
           while (l->section != s->id)
             s = s->next;
           if (s->alive == NO) {
@@ -1471,7 +1476,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
           }
         }
 
-        if (snes_mode == 0)
+        if (g_snes_mode == 0)
           fprintf(f, "%.2x:%.4x %s\n", l->base + l->bank, (int)l->address, l->name);
         else
           fprintf(f, "%.2x:%.4x %s\n", get_snes_pc_bank(l)>>16, (int)l->address, l->name);
@@ -1481,7 +1486,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
     }
 
     /* symbols */
-    l = labels_first;
+    l = g_labels_first;
     while (l != NULL) {
       if (l->status != LABEL_STATUS_SYMBOL) {
         l = l->next;
@@ -1493,14 +1498,14 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
     if (l != NULL) {
       fprintf(f, "\n[symbols]\n");
 
-      l = labels_first;
+      l = g_labels_first;
       while (l != NULL) {
         if (l->alive == NO || l->status != LABEL_STATUS_SYMBOL) {
           l = l->next;
           continue;
         }
 
-        if (snes_mode == 0)
+        if (g_snes_mode == 0)
           fprintf(f, "%.2x:%.4x %s\n", l->bank, (int)l->address, l->name);
         else
           fprintf(f, "%.2x:%.4x %s\n", get_snes_pc_bank(l)>>16, (int)l->address, l->name);
@@ -1510,7 +1515,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
     }
 
     /* breakpoints */
-    l = labels_first;
+    l = g_labels_first;
     while (l != NULL) {
       if (l->status != LABEL_STATUS_BREAKPOINT) {
         l = l->next;
@@ -1522,14 +1527,14 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
     if (l != NULL) {
       fprintf(f, "\n[breakpoints]\n");
 
-      l = labels_first;
+      l = g_labels_first;
       while (l != NULL) {
         if (l->alive == NO || l->status != LABEL_STATUS_BREAKPOINT) {
           l = l->next;
           continue;
         }
 
-        if (snes_mode == 0)
+        if (g_snes_mode == 0)
           fprintf(f, "%.2x:%.4x\n", l->bank, (int)l->address);
         else
           fprintf(f, "%.2x:%.4x\n", get_snes_pc_bank(l)>>16, (int)l->address);
@@ -1539,7 +1544,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
     }
 
     /* definitions */
-    l = labels_first;
+    l = g_labels_first;
     while (l != NULL) {
       if (l->status != LABEL_STATUS_DEFINE) {
         l = l->next;
@@ -1551,7 +1556,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
     if (l != NULL) {
       fprintf(f, "\n[definitions]\n");
 
-      l = labels_first;
+      l = g_labels_first;
       while (l != NULL) {
         if (l->alive == NO || l->status != LABEL_STATUS_DEFINE) {
           l = l->next;
@@ -1571,7 +1576,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
     if (outputAddrToLine == ON) {
       /* file_id_source to source files */
       fprintf(f, "\n[source files]\n");
-      obj_file = obj_first;
+      obj_file = g_obj_first;
       while (obj_file != NULL) {
         src_file = obj_file->source_file_names_list;
         while (src_file != NULL) {
@@ -1594,7 +1599,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
       fprintf(f, "\n[rom checksum]\n%.8lx\n", outfile_crc);
 
       /* addr -> file/line mappings */
-      s = sec_first;
+      s = g_sec_first;
       while (s != NULL) {
         if (s->listfile_items > 0) {
           fprintf(f, "\n[addr-to-line mapping]\n");
@@ -1603,7 +1608,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
         s = s->next;
       }
 
-      s = sec_first;
+      s = g_sec_first;
       while (s != NULL) {
         /* parse the list file information */
         list_address_offset = 0;
@@ -1669,25 +1674,25 @@ int write_rom_file(char *outname) {
 
   
   /* get the addresses of the program start and end */
-  if (program_address_start_type == LOAD_ADDRESS_TYPE_LABEL) {
-    if (_get_rom_address_of_label(program_address_start_label, &program_address_start) == FAILED)
+  if (g_program_address_start_type == LOAD_ADDRESS_TYPE_LABEL) {
+    if (_get_rom_address_of_label(g_program_address_start_label, &g_program_address_start) == FAILED)
       return FAILED;
   }
-  if (program_address_end_type == LOAD_ADDRESS_TYPE_LABEL) {
-    if (_get_rom_address_of_label(program_address_end_label, &program_address_end) == FAILED)
+  if (g_program_address_end_type == LOAD_ADDRESS_TYPE_LABEL) {
+    if (_get_rom_address_of_label(g_program_address_end_label, &g_program_address_end) == FAILED)
       return FAILED;
   }
 
-  if (program_address_start > romsize) {
-    fprintf(stderr, "WRITE_ROM_FILE: The supplied -bS ($%x) overflows from the ROM!\n", program_address_start);
+  if (g_program_address_start > g_romsize) {
+    fprintf(stderr, "WRITE_ROM_FILE: The supplied -bS ($%x) overflows from the ROM!\n", g_program_address_start);
     return FAILED;
   }
-  if (program_address_end > romsize) {
-    fprintf(stderr, "WRITE_ROM_FILE: The supplied -bE ($%x) overflows from the ROM!\n", program_address_end);
+  if (g_program_address_end > g_romsize) {
+    fprintf(stderr, "WRITE_ROM_FILE: The supplied -bE ($%x) overflows from the ROM!\n", g_program_address_end);
     return FAILED;
   }
-  if (program_address_start >= 0 && program_address_end >= 0 && program_address_start > program_address_end) {
-    fprintf(stderr, "WRITE_ROM_FILE: The supplied -bS ($%x) is larger than -bE ($%x).\n", program_address_start, program_address_end);
+  if (g_program_address_start >= 0 && g_program_address_end >= 0 && g_program_address_start > g_program_address_end) {
+    fprintf(stderr, "WRITE_ROM_FILE: The supplied -bS ($%x) is larger than -bE ($%x).\n", g_program_address_start, g_program_address_end);
     return FAILED;
   }
 
@@ -1697,15 +1702,15 @@ int write_rom_file(char *outname) {
     return FAILED;
   }
 
-  if (file_header != NULL)
-    fwrite(file_header, 1, file_header_size, f);
+  if (g_file_header != NULL)
+    fwrite(g_file_header, 1, g_file_header_size, f);
 
   /* SMC header */
-  if (smc_status != 0)
+  if (g_smc_status != 0)
     _smc_create_and_write(f);
 
   /* CBM PRG */
-  if (output_type == OUTPUT_TYPE_CBM_PRG) {
+  if (g_output_type == OUTPUT_TYPE_CBM_PRG) {
     if (_cbm_write_prg_header(f) == FAILED) {
       fclose(f);
       return FAILED;
@@ -1713,10 +1718,10 @@ int write_rom_file(char *outname) {
   }
   
   /* ROM output mode */
-  if (output_mode == OUTPUT_ROM) {
+  if (g_output_mode == OUTPUT_ROM) {
     /* write bank by bank and bank header sections */
-    for (i = 0; i < rombanks; i++) {
-      s = sec_bankhd_first;
+    for (i = 0; i < g_rombanks; i++) {
+      s = g_sec_bankhd_first;
       while (s != NULL) {
         if (s->bank == i) {
           fwrite(s->data, 1, s->size, f);
@@ -1725,28 +1730,28 @@ int write_rom_file(char *outname) {
         s = s->next;
       }
 
-      fwrite(rom + bankaddress[i], 1, banksizes[i], f);
+      fwrite(g_rom + g_bankaddress[i], 1, g_banksizes[i], f);
     }
   }
   /* program file output mode */
   else {
-    for (i = 0; i < romsize; i++) {
-      if (rom_usage[i] != 0)
+    for (i = 0; i < g_romsize; i++) {
+      if (g_rom_usage[i] != 0)
         break;
     }
     b = i;
-    for (e = b; i < romsize; i++) {
-      if (rom_usage[i] != 0)
+    for (e = b; i < g_romsize; i++) {
+      if (g_rom_usage[i] != 0)
         e = i;
     }
 
     /* overrides from the options to WLALINK */
-    if (program_address_start >= 0)
-      b = program_address_start;
-    if (program_address_end >= 0)
-      e = program_address_end;
+    if (g_program_address_start >= 0)
+      b = g_program_address_start;
+    if (g_program_address_end >= 0)
+      e = g_program_address_end;
 
-    s = sec_bankhd_first;
+    s = g_sec_bankhd_first;
     while (s != NULL) {
       if (s->bank == 0) {
         fwrite(s->data, 1, s->size, f);
@@ -1755,11 +1760,11 @@ int write_rom_file(char *outname) {
       s = s->next;
     }
 
-    fwrite(rom + b, 1, e - b + 1, f);
-    program_start = b;
-    program_end = e;
+    fwrite(g_rom + b, 1, e - b + 1, f);
+    g_program_start = b;
+    g_program_end = e;
 
-    if (program_address_start >= 0 && program_address_end < 0 && b > e) {
+    if (g_program_address_start >= 0 && g_program_address_end < 0 && b > e) {
       fprintf(stderr, "WRITE_ROM_FILE: The supplied -bS ($%x) is larger than calculated end ($%x).\n", b, e);
       return FAILED;
     }
@@ -1767,8 +1772,8 @@ int write_rom_file(char *outname) {
     fprintf(stderr, "Program start $%x, end $%x.\n", b, e);
   }
 
-  if (file_footer != NULL)
-    fwrite(file_footer, 1, file_footer_size, f);
+  if (g_file_footer != NULL)
+    fwrite(g_file_footer, 1, g_file_footer_size, f);
 
   fclose(f);
 
@@ -1783,10 +1788,10 @@ int compute_pending_calculations(void) {
   int k, a;
 
 
-  section_overwrite = ON;
+  g_section_overwrite = ON;
 
   /* first place the calculation stacks into the output */
-  sta = stacks_first;
+  sta = g_stacks_first;
   while (sta != NULL) {
     if (sta->position == STACK_POSITION_DEFINITION) {
       /* skip definition stacks */
@@ -1796,7 +1801,7 @@ int compute_pending_calculations(void) {
 
     if (sta->section_status == ON) {
       /* get section address */
-      s = sec_first;
+      s = g_sec_first;
       while (s != NULL) {
         if (sta->section == s->id) {
           sta->bank = s->bank;
@@ -1816,25 +1821,25 @@ int compute_pending_calculations(void) {
       }
 
       /* remember the memory address (for CADDR) */
-      sta->memory_address = s->address + sta->address + slots[sta->slot].address;
+      sta->memory_address = s->address + sta->address + g_slots[sta->slot].address;
 
       if (s->status != SECTION_STATUS_ABSOLUTE)
-        sta->address += s->address + bankaddress[s->bank];
+        sta->address += s->address + g_bankaddress[s->bank];
       else
         sta->address += s->address;
     }
     else {
       /* remember the memory address (for CADDR) */
-      sta->memory_address = sta->address + slots[sta->slot].address;
+      sta->memory_address = sta->address + g_slots[sta->slot].address;
 
-      sta->address += bankaddress[sta->bank];
+      sta->address += g_bankaddress[sta->bank];
     }
 
     sta = sta->next;
   }
 
   /* next parse the stack items */
-  sta = stacks_first;
+  sta = g_stacks_first;
   while (sta != NULL) {
     if (sta->position == STACK_POSITION_DEFINITION)
       k = 1;
@@ -1842,7 +1847,7 @@ int compute_pending_calculations(void) {
       /* skip the calculations inside discarded sections */
       if (sta->section_status == ON) {
         /* get the section */
-        s = sec_first;
+        s = g_sec_first;
         while (s != NULL) {
           if (sta->section == s->id) {
             break;
@@ -1865,7 +1870,7 @@ int compute_pending_calculations(void) {
   }
 
   /* then compute and place the results */
-  sta = stacks_first;
+  sta = g_stacks_first;
   while (sta != NULL) {
     /* is the stack inside a definition? */
     if (sta->position == STACK_POSITION_DEFINITION) {
@@ -1880,7 +1885,7 @@ int compute_pending_calculations(void) {
     /* find source address */
     if (sta->section_status == ON) {
       /* get section address */
-      s = sec_first;
+      s = g_sec_first;
       while (s != NULL) {
         if (sta->section == s->id) {
           sta->bank = s->bank;
@@ -1906,18 +1911,18 @@ int compute_pending_calculations(void) {
 
     /* we save the address for all those CADDRs inside definition stacks that are
        encountered during the next compute_stack() */
-    current_stack_calculation_addr = sta->memory_address;
+    g_current_stack_calculation_addr = sta->memory_address;
 
     /* all the references have been decoded, now compute */
     if (compute_stack(sta, &k, NULL, NULL, NULL) == FAILED)
       return FAILED;
 
-    memory_file_id = sta->file_id;
-    memory_file_id_source = sta->file_id_source;
-    memory_line_number = sta->linenumber;
+    g_memory_file_id = sta->file_id;
+    g_memory_file_id_source = sta->file_id_source;
+    g_memory_line_number = sta->linenumber;
 
     /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-    snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing pending calculation %s: %s:%d.", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+    snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing pending calculation %s: %s:%d.", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
 
     if (sta->type == STACK_TYPE_8BIT) {
       if (k < -128 || k > 255) {
@@ -2015,9 +2020,9 @@ static int _get_bank_of_address(int address, int slot) {
     j = 0;
 
     while (1) {
-      if (address >= start_address && address < start_address + banksize)
+      if (address >= start_address && address < start_address + g_banksize)
         return j;
-      start_address += banksize;
+      start_address += g_banksize;
       j++;
       if (j > 1000000000) {
         fprintf(stderr, "_GET_BANK_OF_ADDRESS: j > 1000000000! Internal error. Cannot find the BANK. Please submit a bug report.\n");
@@ -2030,7 +2035,7 @@ static int _get_bank_of_address(int address, int slot) {
 
   /* TODO: check if we can just use the banksize in every case and ignore slots[slot].size completely */
   
-  slot_size = slots[slot].size;;
+  slot_size = g_slots[slot].size;;
   start_address = 0;
   j = 0;
   
@@ -2049,7 +2054,7 @@ static int _get_bank_of_address(int address, int slot) {
 
 struct stack *find_stack(int id, int file_id) {
 
-  struct stack *st = stacks_first;
+  struct stack *st = g_stacks_first;
 
   while (st != NULL) {
     if (st->id == id && st->file_id == file_id)
@@ -2412,7 +2417,7 @@ int write_bank_header_calculations(struct stack *sta) {
   if (compute_stack(sta, &k, NULL, NULL, NULL) == FAILED)
     return FAILED;
 
-  s = sec_bankhd_first;
+  s = g_sec_bankhd_first;
   while (s != NULL && sta->section != s->id)
     s = s->next;
 
@@ -2494,7 +2499,7 @@ int write_bank_header_references(struct reference *r) {
   int a;
 
 
-  s = sec_bankhd_first;
+  s = g_sec_bankhd_first;
   while (r->section != s->id)
     s = s->next;
 
@@ -2584,7 +2589,7 @@ int parse_stack(struct stack *sta) {
 
   s = NULL;
   if (sta->section_status != 0) {
-    s = sec_first;
+    s = g_sec_first;
     while (s != NULL) {
       if (s->id == sta->section)
         break;
@@ -2672,8 +2677,8 @@ int parse_stack(struct stack *sta) {
         }
         else if (strcaselesscmp(si->string, "CADDR") == 0) {
           if (sta->position == STACK_POSITION_DEFINITION) {
-            k_rom = current_stack_calculation_addr;
-            k_ram = current_stack_calculation_addr;
+            k_rom = g_current_stack_calculation_addr;
+            k_ram = g_current_stack_calculation_addr;
             fprintf(stderr, "%s: %s:%d: PARSE_STACK: We have a CADDR inside a calculation inside a definition. Please check that the result is correct...\n", get_file_name(sta->file_id),
                     get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           }
@@ -2755,7 +2760,7 @@ int get_snes_pc_bank(struct label *l) {
   /* TODO: clean up this mess */
 
   /* do we override the user's banking scheme (.HIROM/.LOROM/.EXHIROM/.EXLOROM)? */
-  if (snes_mode != 0) {
+  if (g_snes_mode != 0) {
     if (l->section_status == ON && l->section_struct != NULL && (l->section_struct->status == SECTION_STATUS_RAM_FREE ||
                                                                  l->section_struct->status == SECTION_STATUS_RAM_SEMIFREE ||
                                                                  l->section_struct->status == SECTION_STATUS_RAM_SEMISUBFREE ||
@@ -2768,7 +2773,7 @@ int get_snes_pc_bank(struct label *l) {
          the position in destination machine's memory, not in rom */
       k = l->rom_address;
 
-      if (snes_rom_mode == SNES_ROM_MODE_HIROM || snes_rom_mode == SNES_ROM_MODE_EXHIROM)
+      if (g_snes_rom_mode == SNES_ROM_MODE_HIROM || g_snes_rom_mode == SNES_ROM_MODE_EXHIROM)
         x = k / 0x10000;
       else
         x = k / 0x8000;
@@ -2791,10 +2796,10 @@ int correct_65816_library_sections(void) {
   struct label *l;
 
 
-  s = sec_first;
+  s = g_sec_first;
   while (s != NULL) {
     if (s->library_status == ON && s->base_defined == YES) {
-      l = labels_first;
+      l = g_labels_first;
       while (l != NULL) {
         if (l->section_status == ON && l->section == s->id)
           l->base = s->base;
@@ -2878,34 +2883,34 @@ int sort_anonymous_labels() {
   struct label *l;
 
 
-  num_sorted_anonymous_labels = 0;
+  g_num_sorted_anonymous_labels = 0;
 
   /* count # of anonymous labels */
-  l = labels_first;
+  l = g_labels_first;
   while (l != NULL) {
     if (l->alive == YES && is_label_anonymous(l->name) == YES)
-      num_sorted_anonymous_labels++;
+      g_num_sorted_anonymous_labels++;
     l = l->next;
   }
 
-  if (num_sorted_anonymous_labels == 0)
+  if (g_num_sorted_anonymous_labels == 0)
     return SUCCEEDED;
 
-  sorted_anonymous_labels = calloc(sizeof(struct label *) * num_sorted_anonymous_labels, 1);
-  if (sorted_anonymous_labels == NULL) {
+  g_sorted_anonymous_labels = calloc(sizeof(struct label *) * g_num_sorted_anonymous_labels, 1);
+  if (g_sorted_anonymous_labels == NULL) {
     fprintf(stderr, "SORT_ANONYMOUS_LABELS: Out of memory error.\n");
     return FAILED;
   }
 
   /* load anonymous labels */
-  l = labels_first;
+  l = g_labels_first;
   while (l != NULL) {
     if (l->alive == YES && is_label_anonymous(l->name) == YES)
-      sorted_anonymous_labels[j++] = l;
+      g_sorted_anonymous_labels[j++] = l;
     l = l->next;
   }
 
-  qsort(sorted_anonymous_labels, num_sorted_anonymous_labels, sizeof(struct label *), _labels_sort);
+  qsort(g_sorted_anonymous_labels, g_num_sorted_anonymous_labels, sizeof(struct label *), _labels_sort);
 
   return SUCCEEDED;
 }
@@ -2924,8 +2929,8 @@ struct label *get_closest_anonymous_label(char *name, int rom_address, int file_
   j = 0;
 
   if (strcmp(name, "_b") == 0 || strcmp(name, "_B") == 0) {
-    while (j < num_sorted_anonymous_labels) {
-      l = sorted_anonymous_labels[j];
+    while (j < g_num_sorted_anonymous_labels) {
+      l = g_sorted_anonymous_labels[j];
       if (strcmp("__", l->name) == 0 && file_id == l->file_id && section_status == l->section_status) {
         if (section_status == OFF || (section_status == ON && section == l->section)) {
           e = rom_address - l->rom_address;
@@ -2941,8 +2946,8 @@ struct label *get_closest_anonymous_label(char *name, int rom_address, int file_
   }
 
   if (strcmp(name, "_f") == 0 || strcmp(name, "_F") == 0) {
-    while (j < num_sorted_anonymous_labels) {
-      l = sorted_anonymous_labels[j];
+    while (j < g_num_sorted_anonymous_labels) {
+      l = g_sorted_anonymous_labels[j];
       if (strcmp("__", l->name) == 0 && file_id == l->file_id && section_status == l->section_status) {
         if (section_status == OFF || (section_status == ON && section == l->section)) {
           e = l->rom_address - rom_address;
@@ -2959,8 +2964,8 @@ struct label *get_closest_anonymous_label(char *name, int rom_address, int file_
 
   j = 0;
   /* -, --, +, ++, ... */
-  while (j < num_sorted_anonymous_labels) {
-    l = sorted_anonymous_labels[j];
+  while (j < g_num_sorted_anonymous_labels) {
+    l = g_sorted_anonymous_labels[j];
     if (strcmp(name, l->name) == 0 && file_id == l->file_id && section_status == l->section_status) {
       if (section_status == OFF || (section_status == ON && section == l->section)) {
         if (name[0] == '-') {
@@ -3007,11 +3012,11 @@ int generate_sizeof_label_definitions(void) {
   double size = 0.0;
 
 
-  if (labels_first == NULL)
+  if (g_labels_first == NULL)
     return SUCCEEDED;
 
   /* generate _sizeof_[label] definitions */
-  l = labels_first;
+  l = g_labels_first;
   lastL = NULL;
   while (l != NULL) {
     /* skip anonymous labels & child labels */
@@ -3034,7 +3039,7 @@ int generate_sizeof_label_definitions(void) {
   }
 
   j = 0;
-  l = labels_first;
+  l = g_labels_first;
   lastL = NULL;
   while (l != NULL) {
     /* skip anonymous labels & child labels */
@@ -3058,7 +3063,7 @@ int generate_sizeof_label_definitions(void) {
 
   /* process the labels */
   for (j = 0; j < labelsN; j++) {
-    struct label_sizeof *ls = label_sizeofs;
+    struct label_sizeof *ls = g_label_sizeofs;
 
     /* try to find the size in "label sizeofs"... */
     while (ls != NULL) {
@@ -3130,11 +3135,11 @@ int fix_sectionstartend_labels(void) {
   char tmp[MAX_NAME_LENGTH * 2];
 
 
-  if (labels_first == NULL)
+  if (g_labels_first == NULL)
     return SUCCEEDED;
 
   /* generate _sizeof_[label] definitions */
-  l1 = labels_first;
+  l1 = g_labels_first;
   while (l1 != NULL) {
     if (strncmp("SECTIONSTART", l1->name, 12) == 0 || strncmp("SECTIONEND", l1->name, 10) == 0) {
       l2 = l1->next;
@@ -3168,8 +3173,8 @@ int get_slot_by_its_name(char *name, int *slot) {
     return FAILED;
 
   for (i = 0; i < 256; i++) {
-    if (slots[i].usage == ON) {
-      if (strcmp(slots[i].name, name) == 0) {
+    if (g_slots[i].usage == ON) {
+      if (strcmp(g_slots[i].name, name) == 0) {
         *slot = i;
         return SUCCEEDED;
       }
@@ -3198,7 +3203,7 @@ int get_slot_by_a_value(int value, int *slot) {
   /* value can be the direct SLOT ID, but can it be a SLOT's address as well? */
   if (value < 256) {
     for (i = 0; i < 256; i++) {
-      if (slots[i].usage == ON && slots[i].address == value && value != i && slots[value].usage == ON) {
+      if (g_slots[i].usage == ON && g_slots[i].address == value && value != i && g_slots[value].usage == ON) {
         fprintf(stderr, "GET_SLOT_BY_A_VALUE: There is a SLOT number %d, but there also is a SLOT (with ID %d) with starting address %d ($%x)... Using SLOT %d.\n", value, i, value, value, value);
         *slot = value;
         return SUCCEEDED;
@@ -3210,7 +3215,7 @@ int get_slot_by_a_value(int value, int *slot) {
   }
 
   for (i = 0; i < 256; i++) {
-    if (slots[i].usage == ON && slots[i].address == value) {
+    if (g_slots[i].usage == ON && g_slots[i].address == value) {
       *slot = i;
       return SUCCEEDED;
     }

@@ -10,7 +10,7 @@
 
 
 /* output */
-extern unsigned char *rom;
+extern unsigned char *g_rom;
 
 
 /* read an integer from t */
@@ -188,8 +188,8 @@ int listfile_write_listfiles(struct section *e) {
       w = 0;
       for (p = 0, o = 0; o < l[j]->length; o++) {
         fprintf(f, "$");
-        _listfile_write_hex(f, rom[l[j]->address + o] >> 4);
-        _listfile_write_hex(f, rom[l[j]->address + o] & 15);
+        _listfile_write_hex(f, g_rom[l[j]->address + o] >> 4);
+        _listfile_write_hex(f, g_rom[l[j]->address + o] & 15);
         fprintf(f, " ");
         p += 4;
         if ((o % 10) == 9 && o != 0 && o < l[j]->length-1) {

@@ -17,15 +17,15 @@
 #endif
 
 
-extern struct object_file *obj_first, *obj_last, *obj_tmp;
-extern struct label *labels_first, *labels_last;
-extern unsigned char *file_header, *file_footer;
-extern char ext_libdir[MAX_NAME_LENGTH + 1];
-extern int file_header_size, file_footer_size, use_libdir;
-extern struct append_section *append_sections, *append_tmp;
+extern struct object_file *g_obj_first, *g_obj_last, *g_obj_tmp;
+extern struct label *g_labels_first, *g_labels_last;
+extern unsigned char *g_file_header, *g_file_footer;
+extern char g_ext_libdir[MAX_NAME_LENGTH + 1];
+extern int g_file_header_size, g_file_footer_size, g_use_libdir;
+extern struct append_section *g_append_sections, *g_append_tmp;
+extern struct section_fix *g_sec_fix_first, *g_sec_fix_tmp;
 
-struct section_fix *sec_fix_first = NULL, *sec_fix_tmp;
-char file_name_error[] = "???";
+char g_file_name_error[] = "???";
 
 
 
@@ -156,13 +156,13 @@ int load_files(char *argv[], int argc) {
     }
     /* header loading? */
     else if (state == STATE_HEADER) {
-      if (file_header != NULL) {
+      if (g_file_header != NULL) {
         fprintf(stderr, "%s:%d: LOAD_FILES: There can be only one header file.\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
 
-      if (load_file_data(token, &file_header, &file_header_size) == FAILED) {
+      if (load_file_data(token, &g_file_header, &g_file_header_size) == FAILED) {
         fclose(fop);
         return FAILED;
       }
@@ -175,13 +175,13 @@ int load_files(char *argv[], int argc) {
     }
     /* footer loading? */
     else if (state == STATE_FOOTER) {
-      if (file_footer != NULL) {
+      if (g_file_footer != NULL) {
         fprintf(stderr, "%s:%d: LOAD_FILES: There can be only one footer file.\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
 
-      if (load_file_data(token, &file_footer, &file_footer_size) == FAILED) {
+      if (load_file_data(token, &g_file_footer, &g_file_footer_size) == FAILED) {
         fclose(fop);
         return FAILED;
       }
@@ -415,63 +415,63 @@ int load_files(char *argv[], int argc) {
       }
 
       /* add a new entry */
-      sec_fix_tmp = calloc(sizeof(struct section_fix), 1);
-      if (sec_fix_tmp == NULL) {
+      g_sec_fix_tmp = calloc(sizeof(struct section_fix), 1);
+      if (g_sec_fix_tmp == NULL) {
         fprintf(stderr, "%s:%d: LOAD_FILES: Out of memory error.\n", argv[argc - 2], line);
         return FAILED;  
       }
 
-      strcpy(sec_fix_tmp->name, token);
-      strcpy(sec_fix_tmp->file_name, argv[argc - 2]);
-      strcpy(sec_fix_tmp->slot_name, slot_name);
-      sec_fix_tmp->line_number = line;
-      sec_fix_tmp->bank = bank;
-      sec_fix_tmp->slot = slot;
-      sec_fix_tmp->keep = keep_defined;
+      strcpy(g_sec_fix_tmp->name, token);
+      strcpy(g_sec_fix_tmp->file_name, argv[argc - 2]);
+      strcpy(g_sec_fix_tmp->slot_name, slot_name);
+      g_sec_fix_tmp->line_number = line;
+      g_sec_fix_tmp->bank = bank;
+      g_sec_fix_tmp->slot = slot;
+      g_sec_fix_tmp->keep = keep_defined;
 
       if (orga_defined == YES)
-        sec_fix_tmp->orga = orga;
+        g_sec_fix_tmp->orga = orga;
       else
-        sec_fix_tmp->orga = -1;
+        g_sec_fix_tmp->orga = -1;
 
       if (org_defined == YES)
-        sec_fix_tmp->org = org;
+        g_sec_fix_tmp->org = org;
       else
-        sec_fix_tmp->org = -1;
+        g_sec_fix_tmp->org = -1;
 
       if (status_defined == YES)
-        sec_fix_tmp->status = status;
+        g_sec_fix_tmp->status = status;
       else
-        sec_fix_tmp->status = -1;
+        g_sec_fix_tmp->status = -1;
 
       if (alignment_defined == YES)
-        sec_fix_tmp->alignment = alignment;
+        g_sec_fix_tmp->alignment = alignment;
       else
-        sec_fix_tmp->alignment = -1;
+        g_sec_fix_tmp->alignment = -1;
 
       if (offset_defined == YES)
-        sec_fix_tmp->offset = offset;
+        g_sec_fix_tmp->offset = offset;
       else
-        sec_fix_tmp->offset = -1;
+        g_sec_fix_tmp->offset = -1;
       
       if (appendto_defined == YES) {
-        append_tmp = calloc(1, sizeof(struct append_section));
-        strcpy(append_tmp->section, sec_fix_tmp->name);
-        strcpy(append_tmp->append_to, appendto_name);
-        append_tmp->next = append_sections;
-        append_sections = append_tmp;
+        g_append_tmp = calloc(1, sizeof(struct append_section));
+        strcpy(g_append_tmp->section, g_sec_fix_tmp->name);
+        strcpy(g_append_tmp->append_to, appendto_name);
+        g_append_tmp->next = g_append_sections;
+        g_append_sections = g_append_tmp;
       }
 
-      sec_fix_tmp->priority_defined = priority_defined;
-      sec_fix_tmp->priority = priority;
+      g_sec_fix_tmp->priority_defined = priority_defined;
+      g_sec_fix_tmp->priority = priority;
 
       if (state == STATE_RAMSECTIONS)
-        sec_fix_tmp->is_ramsection = YES;
+        g_sec_fix_tmp->is_ramsection = YES;
       else
-        sec_fix_tmp->is_ramsection = NO;
+        g_sec_fix_tmp->is_ramsection = NO;
       
-      sec_fix_tmp->next = sec_fix_first;
-      sec_fix_first = sec_fix_tmp;
+      g_sec_fix_tmp->next = g_sec_fix_first;
+      g_sec_fix_first = g_sec_fix_tmp;
 
       continue;
     }
@@ -549,12 +549,12 @@ int load_files(char *argv[], int argc) {
         return FAILED;
       }
       
-      if (use_libdir == YES) {
+      if (g_use_libdir == YES) {
         f = fopen(token, "rb");
       
         /* use the current working directory if the library isn't found in the ext_libdir directory */
         if (f == NULL)
-          snprintf(tmp_token, sizeof(tmp_token), "%s%s", ext_libdir, token);
+          snprintf(tmp_token, sizeof(tmp_token), "%s%s", g_ext_libdir, token);
         else {
           snprintf(tmp_token, sizeof(tmp_token), "%s", token);
           fclose(f);
@@ -636,13 +636,13 @@ int load_file(char *file_name, int bank, int slot, char *slot_name, int fix_slot
   if (slot_name != NULL)
     strcpy(o->slot_name, slot_name);
 
-  if (obj_first == NULL) {
-    obj_first = o;
-    obj_last = o;
+  if (g_obj_first == NULL) {
+    g_obj_first = o;
+    g_obj_last = o;
   }
   else {
-    obj_last->next = o;
-    obj_last = o;
+    g_obj_last->next = o;
+    g_obj_last = o;
   }
 
   o->next = NULL;
@@ -692,7 +692,7 @@ char *get_file_name(int id) {
   struct object_file *o;
 
   
-  o = obj_first;
+  o = g_obj_first;
   while (o != NULL) {
     if (o->id == id)
       return o->name;
@@ -709,7 +709,7 @@ char *get_source_file_name(int file_id, int source_id) {
   struct object_file *o;
 
   
-  o = obj_first;
+  o = g_obj_first;
   while (o != NULL) {
     if (o->id == file_id)
       break;
@@ -717,7 +717,7 @@ char *get_source_file_name(int file_id, int source_id) {
   }
 
   if (o == NULL)
-    return file_name_error;
+    return g_file_name_error;
 
   s = o->source_file_names_list;
   while (s != NULL) {
@@ -727,7 +727,7 @@ char *get_source_file_name(int file_id, int source_id) {
   }
 
   if (s == NULL)
-    return file_name_error;
+    return g_file_name_error;
 
   return s->name;
 }
@@ -738,7 +738,7 @@ struct object_file *get_file(int file_id) {
   struct object_file *o;
 
   
-  o = obj_first;
+  o = g_obj_first;
   while (o != NULL) {
     if (o->id == file_id)
       return o;
@@ -756,7 +756,7 @@ int convert_slot_names_and_addresses(void) {
   struct object_file *o;
 
   
-  o = obj_first;
+  o = g_obj_first;
   while (o != NULL) {
     if (o->fix_slot) {
       if (o->slot < 0) {

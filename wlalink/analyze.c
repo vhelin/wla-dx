@@ -33,37 +33,37 @@
   }
 
 
-extern struct object_file *obj_first, *obj_last, *obj_tmp;
-extern struct reference *reference_first, *reference_last;
-extern struct section *sec_first, *sec_last, *sec_bankhd_first, *sec_bankhd_last;
-extern struct stack *stacks_first, *stacks_last;
-extern struct label *labels_first, *labels_last;
-extern struct map_t *global_unique_label_map;
-extern struct map_t *namespace_map;
-extern struct slot slots[256];
-extern struct append_section *append_sections, *append_tmp;
-extern struct label_sizeof *label_sizeofs;
-extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
-extern int rombanks, verbose_mode, section_overwrite, symbol_mode, discard_unreferenced_sections;
-extern int emptyfill;
-extern int *banksizes, *bankaddress, banksize;
+extern struct object_file *g_obj_first, *g_obj_last, *g_obj_tmp;
+extern struct reference *g_reference_first, *g_reference_last;
+extern struct section *g_sec_first, *g_sec_last, *g_sec_bankhd_first, *g_sec_bankhd_last;
+extern struct stack *g_stacks_first, *g_stacks_last;
+extern struct label *g_labels_first, *g_labels_last;
+extern struct map_t *g_global_unique_label_map;
+extern struct map_t *g_namespace_map;
+extern struct slot g_slots[256];
+extern struct append_section *g_append_sections, *g_append_tmp;
+extern struct label_sizeof *g_label_sizeofs;
+extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
+extern int g_rombanks, g_verbose_mode, g_section_overwrite, g_symbol_mode, g_discard_unreferenced_sections;
+extern int g_emptyfill;
+extern int *g_banksizes, *g_bankaddress, g_banksize;
 
 
 
 int add_reference(struct reference *r) {
 
-  r->file_id = obj_tmp->id;
+  r->file_id = g_obj_tmp->id;
   r->next = NULL;
 
-  if (reference_first == NULL) {
-    reference_first = r;
-    reference_last = r;
+  if (g_reference_first == NULL) {
+    g_reference_first = r;
+    g_reference_last = r;
     r->prev = NULL;
   }
   else {
-    r->prev = reference_last;
-    reference_last->next = r;
-    reference_last = r;
+    r->prev = g_reference_last;
+    g_reference_last->next = r;
+    g_reference_last = r;
   }
 
   return SUCCEEDED;
@@ -79,20 +79,20 @@ int add_stack(struct stack *sta) {
     sta->relative_references = NO;
   sta->type &= ~(1 << 7);
 
-  sta->file_id = obj_tmp->id;
+  sta->file_id = g_obj_tmp->id;
   sta->next = NULL;
   sta->computed = NO;
   sta->under_work = NO;
 
-  if (stacks_first == NULL) {
-    stacks_first = sta;
-    stacks_last = sta;
+  if (g_stacks_first == NULL) {
+    g_stacks_first = sta;
+    g_stacks_last = sta;
     sta->prev = NULL;
   }
   else {
-    sta->prev = stacks_last;
-    stacks_last->next = sta;
-    stacks_last = sta;
+    sta->prev = g_stacks_last;
+    g_stacks_last->next = sta;
+    g_stacks_last = sta;
   }
 
   return SUCCEEDED;
@@ -109,7 +109,7 @@ int add_section(struct section *s) {
   if (s->size > 0) {
     data = calloc(s->size, 1);
     if (data == NULL) {
-      fprintf(stderr, "%s: ADD_SECTION: Out of memory.\n", obj_tmp->name);
+      fprintf(stderr, "%s: ADD_SECTION: Out of memory.\n", g_obj_tmp->name);
       return FAILED;
     }
 
@@ -120,39 +120,39 @@ int add_section(struct section *s) {
     s->data = NULL;
   }
 
-  s->file_id = obj_tmp->id;
+  s->file_id = g_obj_tmp->id;
   s->next = NULL;
   s->alive = YES;
 
   if (strcmp(s->name, "BANKHEADER") == 0) {
-    ss = sec_bankhd_first;
+    ss = g_sec_bankhd_first;
     while (ss != NULL) {
       if (ss->bank == s->bank) {
-        fprintf(stderr, "%s: ADD_SECTION: BANKHEADER section for bank %d was defined for the second time.\n", obj_tmp->name, s->bank);
+        fprintf(stderr, "%s: ADD_SECTION: BANKHEADER section for bank %d was defined for the second time.\n", g_obj_tmp->name, s->bank);
         return FAILED;
       }
       ss = ss->next;
     }
 
-    if (sec_bankhd_first == NULL) {
-      sec_bankhd_first = s;
-      sec_bankhd_last = s;
+    if (g_sec_bankhd_first == NULL) {
+      g_sec_bankhd_first = s;
+      g_sec_bankhd_last = s;
     }
     else {
-      sec_bankhd_last->next = s;
-      sec_bankhd_last = s;
+      g_sec_bankhd_last->next = s;
+      g_sec_bankhd_last = s;
     }
   }
   else {
-    if (sec_first == NULL) {
-      sec_first = s;
-      sec_last = s;
+    if (g_sec_first == NULL) {
+      g_sec_first = s;
+      g_sec_last = s;
       s->prev = NULL;
     }
     else {
-      s->prev = sec_last;
-      sec_last->next = s;
-      sec_last = s;
+      s->prev = g_sec_last;
+      g_sec_last->next = s;
+      g_sec_last = s;
     }
   }
 
@@ -170,7 +170,7 @@ int free_section(struct section *s) {
   if (s->next != NULL)
     s->next->prev = s->prev;
   else
-    sec_last = s->prev;
+    g_sec_last = s->prev;
 
   /* free label map */
   hashmap_free(s->label_map);
@@ -209,7 +209,7 @@ int find_label(char *str, struct section *s, struct label **out) {
     /* a namespace is specified (or at least there's a dot in the label) */
     struct namespace_def *nspace;
 
-    if (hashmap_get(namespace_map, prefix, (void*)&nspace) == MAP_OK) {
+    if (hashmap_get(g_namespace_map, prefix, (void*)&nspace) == MAP_OK) {
       if (hashmap_get(nspace->label_map, stripped, (void*)&l) == MAP_OK) {
         *out = l;
         return SUCCEEDED;
@@ -233,7 +233,7 @@ int find_label(char *str, struct section *s, struct label **out) {
     }
   }
   /* check the global namespace */
-  if (hashmap_get(global_unique_label_map, str, (void*)&l) == MAP_OK) {
+  if (hashmap_get(g_global_unique_label_map, str, (void*)&l) == MAP_OK) {
     *out = l;
     return SUCCEEDED;
   }
@@ -247,15 +247,15 @@ int add_label(struct label *l) {
   l->next = NULL;
   l->alive = YES;
 
-  if (labels_first == NULL) {
-    labels_first = l;
-    labels_last = l;
+  if (g_labels_first == NULL) {
+    g_labels_first = l;
+    g_labels_last = l;
     l->prev = NULL;
   }
   else {
-    l->prev = labels_last;
-    labels_last->next = l;
-    labels_last = l;
+    l->prev = g_labels_last;
+    g_labels_last->next = l;
+    g_labels_last = l;
   }
 
   return SUCCEEDED;
@@ -270,10 +270,10 @@ int obtain_rombankmap(void) {
 
   
   /* initialize values */
-  for (i = 0; i < rombanks; i++)
-    banksizes[i] = 0;
+  for (i = 0; i < g_rombanks; i++)
+    g_banksizes[i] = 0;
 
-  o = obj_first;
+  o = g_obj_first;
   while (o != NULL) {
     if (o->format == WLA_VERSION_OBJ) {
       t = o->data + OBJ_ROMBANKMAP;
@@ -285,16 +285,16 @@ int obtain_rombankmap(void) {
       /* general rombanksize? */
       if (i == 0) {
         /* obtain banksize */
-        banksize = READ_T;
+        g_banksize = READ_T;
 
         o->memorymap = t;
         map_found = ON;
         for (i = 0; i < o->rom_banks; i++) {
-          if (banksizes[i] == 0) {
-            banksizes[i] = banksize;
-            bankaddress[i] = i * banksize;
+          if (g_banksizes[i] == 0) {
+            g_banksizes[i] = g_banksize;
+            g_bankaddress[i] = i * g_banksize;
           }
-          else if (banksizes[i] != banksize) {
+          else if (g_banksizes[i] != g_banksize) {
             fprintf(stderr, "OBTAIN_ROMBANKMAP: ROMBANKMAPs don't match.\n");
             return FAILED;
           }
@@ -302,16 +302,16 @@ int obtain_rombankmap(void) {
       }
       else {
         for (a = 0, x = 0; x < o->rom_banks; x++) {
-          banksize = READ_T;
-          if (banksizes[x] == 0) {
-            banksizes[x] = banksize;
-            bankaddress[x] = a;
+          g_banksize = READ_T;
+          if (g_banksizes[x] == 0) {
+            g_banksizes[x] = g_banksize;
+            g_bankaddress[x] = a;
           }
-          else if (banksizes[x] != banksize) {
+          else if (g_banksizes[x] != g_banksize) {
             fprintf(stderr, "OBTAIN_ROMBANKMAP: ROMBANKMAPs don't match.\n");
             return FAILED;
           }
-          a += banksize;
+          a += g_banksize;
         }
         
         o->memorymap = t;
@@ -339,7 +339,7 @@ int obtain_source_file_names(void) {
   int x, z;
 
   
-  o = obj_first;
+  o = g_obj_first;
   while (o != NULL) {
     if (o->format == WLA_VERSION_OBJ)
       t = o->source_file_names;
@@ -397,9 +397,9 @@ int obtain_memorymap(void) {
 
   
   for (i = 0; i < 256; i++)
-    slots[i].usage = OFF;
+    g_slots[i].usage = OFF;
 
-  o = obj_first;
+  o = g_obj_first;
   while (o != NULL) {
     if (o->format == WLA_VERSION_OBJ) {
       t = o->memorymap;
@@ -409,12 +409,12 @@ int obtain_memorymap(void) {
       t++;
 
       for (x = 0; i > 0; i--, x++) {
-        slots[x].usage = ON;
-        slots[x].address =  READ_T;
-        slots[x].size =  READ_T;
+        g_slots[x].usage = ON;
+        g_slots[x].address =  READ_T;
+        g_slots[x].size =  READ_T;
         for (y = 0; *t != 0; t++, y++)
-          slots[x].name[y] = *t;
-        slots[x].name[y] = 0;
+          g_slots[x].name[y] = *t;
+        g_slots[x].name[y] = 0;
         t++;
       }
 
@@ -457,20 +457,20 @@ int obtain_memorymap(void) {
 
       for (x = 0, i = 0; i < 256; i++) {
         if (s[i].usage == ON) {
-          if (slots[i].usage == OFF) {
+          if (g_slots[i].usage == OFF) {
             x = 1;
             break;
           }
-          if (slots[i].address == s[i].address && slots[i].size == s[i].size) {
-            if (slots[i].name[0] == 0 && s[i].name[0] != 0) {
+          if (g_slots[i].address == s[i].address && g_slots[i].size == s[i].size) {
+            if (g_slots[i].name[0] == 0 && s[i].name[0] != 0) {
               /* use the name given to the other slot */
-              strcpy(slots[i].name, s[i].name);
+              strcpy(g_slots[i].name, s[i].name);
             }
-            else if (slots[i].name[0] != 0 && s[i].name[0] != 0) {
+            else if (g_slots[i].name[0] != 0 && s[i].name[0] != 0) {
               /* check that the names match */
-              if (strcmp(slots[i].name, s[i].name) != 0)
+              if (strcmp(g_slots[i].name, s[i].name) != 0)
                 fprintf(stderr, "OBTAIN_MEMORYMAP: SLOT %d has two different names (\"%s\" and \"%s\"). Using \"%s\"...\n",
-                        i, slots[i].name, s[i].name, slots[i].name);
+                        i, g_slots[i].name, s[i].name, g_slots[i].name);
             }
             continue;
           }
@@ -478,7 +478,7 @@ int obtain_memorymap(void) {
           break;
         }
         else {
-          if (slots[i].usage == ON) {
+          if (g_slots[i].usage == ON) {
             x = 1;
             break;
           }
@@ -510,11 +510,11 @@ int collect_dlr(void) {
 
   
   section = 0;
-  obj_tmp = obj_first;
-  while (obj_tmp != NULL) {
+  g_obj_tmp = g_obj_first;
+  while (g_obj_tmp != NULL) {
     /* OBJECT FILE */
-    if (obj_tmp->format == WLA_VERSION_OBJ) {
-      t = obj_tmp->exported_defines;
+    if (g_obj_tmp->format == WLA_VERSION_OBJ) {
+      t = g_obj_tmp->exported_defines;
       i = READ_T;
 
       /* load defines */
@@ -543,7 +543,7 @@ int collect_dlr(void) {
         READ_DOU;
         l->address = dou;
         l->base = 0;
-        l->file_id = obj_tmp->id;
+        l->file_id = g_obj_tmp->id;
         l->section_status = OFF;
         l->section_struct = NULL;
 
@@ -591,7 +591,7 @@ int collect_dlr(void) {
         l->linenumber = READ_T;
         l->bank = READ_T;
         l->base = READ_T;
-        l->file_id = obj_tmp->id;
+        l->file_id = g_obj_tmp->id;
         l->section_struct = NULL;
 
         add_label(l);
@@ -706,10 +706,10 @@ int collect_dlr(void) {
         t++;
 
         ls->size = READ_T;
-        ls->file_id = obj_tmp->id;
+        ls->file_id = g_obj_tmp->id;
         
-        ls->next = label_sizeofs;
-        label_sizeofs = ls;
+        ls->next = g_label_sizeofs;
+        g_label_sizeofs = ls;
       }
 
       /* append sections */
@@ -718,32 +718,32 @@ int collect_dlr(void) {
       while (i > 0) {
         i--;
 
-        append_tmp = calloc(1, sizeof(struct append_section));
-        if (append_tmp == NULL) {
+        g_append_tmp = calloc(1, sizeof(struct append_section));
+        if (g_append_tmp == NULL) {
           fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
 
         /* copy the names */
         for (x = 0; *t != 0; t++, x++)
-          append_tmp->section[x] = *t;
-        append_tmp->section[x] = 0;
+          g_append_tmp->section[x] = *t;
+        g_append_tmp->section[x] = 0;
         t++;
         for (x = 0; *t != 0; t++, x++)
-          append_tmp->append_to[x] = *t;
-        append_tmp->append_to[x] = 0;
+          g_append_tmp->append_to[x] = *t;
+        g_append_tmp->append_to[x] = 0;
         t++;
         
-        append_tmp->next = append_sections;
-        append_sections = append_tmp;
+        g_append_tmp->next = g_append_sections;
+        g_append_sections = g_append_tmp;
       }
 
       /* save pointer to data block area */
-      obj_tmp->data_blocks = t;
+      g_obj_tmp->data_blocks = t;
     }
     /* LIBRARY FILE */
-    else if (obj_tmp->format == WLA_VERSION_LIB) {
-      t = obj_tmp->exported_defines;
+    else if (g_obj_tmp->format == WLA_VERSION_LIB) {
+      t = g_obj_tmp->exported_defines;
       i = READ_T;
 
       /* load definitions */
@@ -771,10 +771,10 @@ int collect_dlr(void) {
 
         READ_DOU;
         l->address = dou;
-        l->bank = obj_tmp->bank;
-        l->slot = obj_tmp->slot;
-        l->base = obj_tmp->base;
-        l->file_id = obj_tmp->id;
+        l->bank = g_obj_tmp->bank;
+        l->slot = g_obj_tmp->slot;
+        l->base = g_obj_tmp->base;
+        l->file_id = g_obj_tmp->id;
         l->section_status = OFF;
 
         add_label(l);
@@ -813,10 +813,10 @@ int collect_dlr(void) {
         l->linenumber = READ_T;
         l->section_status = ON;
         l->address = READ_T;
-        l->base = obj_tmp->base; /* (((int)l->address) >> 16) & 0xFF; */
-        l->bank = obj_tmp->bank;
-        l->slot = obj_tmp->slot;
-        l->file_id = obj_tmp->id;
+        l->base = g_obj_tmp->base; /* (((int)l->address) >> 16) & 0xFF; */
+        l->bank = g_obj_tmp->bank;
+        l->slot = g_obj_tmp->slot;
+        l->file_id = g_obj_tmp->id;
 
         add_label(l);
       }
@@ -843,9 +843,9 @@ int collect_dlr(void) {
         r->section_status = ON;
         r->address = READ_T;
 
-        r->bank = obj_tmp->bank;
-        r->slot = obj_tmp->slot;
-        r->base = obj_tmp->base;
+        r->bank = g_obj_tmp->bank;
+        r->slot = g_obj_tmp->slot;
+        r->base = g_obj_tmp->base;
 
         add_reference(r);
       }
@@ -876,9 +876,9 @@ int collect_dlr(void) {
         s->address = READ_T;
         s->linenumber = READ_T;
         s->stacksize = x;
-        s->bank = obj_tmp->bank;
-        s->slot = obj_tmp->slot;
-        s->base = obj_tmp->base;
+        s->bank = g_obj_tmp->bank;
+        s->slot = g_obj_tmp->slot;
+        s->base = g_obj_tmp->base;
         
         s->stack = calloc(sizeof(struct stack_item) * x, 1);
         if (s->stack == NULL) {
@@ -927,10 +927,10 @@ int collect_dlr(void) {
         t++;
 
         ls->size = READ_T;
-        ls->file_id = obj_tmp->id;
+        ls->file_id = g_obj_tmp->id;
         
-        ls->next = label_sizeofs;
-        label_sizeofs = ls;
+        ls->next = g_label_sizeofs;
+        g_label_sizeofs = ls;
       }
       
       /* append sections */
@@ -939,31 +939,31 @@ int collect_dlr(void) {
       while (i > 0) {
         i--;
 
-        append_tmp = calloc(1, sizeof(struct append_section));
-        if (append_tmp == NULL) {
+        g_append_tmp = calloc(1, sizeof(struct append_section));
+        if (g_append_tmp == NULL) {
           fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
 
         /* copy the names */
         for (x = 0; *t != 0; t++, x++)
-          append_tmp->section[x] = *t;
-        append_tmp->section[x] = 0;
+          g_append_tmp->section[x] = *t;
+        g_append_tmp->section[x] = 0;
         t++;
         for (x = 0; *t != 0; t++, x++)
-          append_tmp->append_to[x] = *t;
-        append_tmp->append_to[x] = 0;
+          g_append_tmp->append_to[x] = *t;
+        g_append_tmp->append_to[x] = 0;
         t++;
         
-        append_tmp->next = append_sections;
-        append_sections = append_tmp;
+        g_append_tmp->next = g_append_sections;
+        g_append_sections = g_append_tmp;
       }
 
       /* save pointer to data block area */
-      obj_tmp->data_blocks = t;
+      g_obj_tmp->data_blocks = t;
     }
 
-    obj_tmp = obj_tmp->next;
+    g_obj_tmp = g_obj_tmp->next;
     section += 1000000;
   }
 
@@ -982,12 +982,12 @@ int merge_sections(void) {
   struct label *l;
 
 
-  as = append_sections;
+  as = g_append_sections;
   while (as != NULL) {
     s_source = NULL;
     s_target = NULL;
     
-    s = sec_first;
+    s = g_sec_first;
     while (s != NULL) {
       if (strcmp(as->section, s->name) == 0) {
         if (s_source != NULL && warning_given_s == NO) {
@@ -1025,7 +1025,7 @@ int merge_sections(void) {
       s_target->data = data;
       
       /* move labels */
-      l = labels_first;
+      l = g_labels_first;
       while (l != NULL) {
         if (l->section == s_source->id) {
           l->address += s_target->size;
@@ -1037,7 +1037,7 @@ int merge_sections(void) {
       }
 
       /* move references */
-      r = reference_first;
+      r = g_reference_first;
       while (r != NULL) {
         if (r->section == s_source->id) {
           r->address += s_target->size;
@@ -1049,7 +1049,7 @@ int merge_sections(void) {
       }
 
       /* move pending calculations */
-      st = stacks_first;
+      st = g_stacks_first;
       while (st != NULL) {
         if (st->section == s_source->id) {
           st->address += s_target->size;
@@ -1082,14 +1082,14 @@ int parse_data_blocks(void) {
   char buf[256];
 
 
-  obj_tmp = obj_first;
+  g_obj_tmp = g_obj_first;
   section = 0;
 
-  while (obj_tmp != NULL) {
+  while (g_obj_tmp != NULL) {
     /* OBJECT FILE */
-    if (obj_tmp->format == WLA_VERSION_OBJ) {
-      t = obj_tmp->data_blocks;
-      p = obj_tmp->data + obj_tmp->size;
+    if (g_obj_tmp->format == WLA_VERSION_OBJ) {
+      t = g_obj_tmp->data_blocks;
+      p = g_obj_tmp->data + g_obj_tmp->size;
       for ( ; t < p; ) {
         x = *(t++);
 
@@ -1100,7 +1100,7 @@ int parse_data_blocks(void) {
           x = READ_T;
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-          snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing fixed data block from \"%s\".", obj_tmp->name);
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing fixed data block from \"%s\".", g_obj_tmp->name);
 
           for (; x > 0; x--, i++)
             if (mem_insert(i, *(t++)) == FAILED)
@@ -1135,7 +1135,7 @@ int parse_data_blocks(void) {
           else {
             struct namespace_def *nspace;
 
-            hashmap_get(namespace_map, buf, (void*)&nspace);
+            hashmap_get(g_namespace_map, buf, (void*)&nspace);
             if (nspace == NULL) {
               nspace = calloc(sizeof(struct namespace_def), 1);
               if (nspace == NULL) {
@@ -1144,7 +1144,7 @@ int parse_data_blocks(void) {
               }
               nspace->label_map = hashmap_new();
               strcpy(nspace->name, buf);
-              hashmap_put(namespace_map, nspace->name, nspace);
+              hashmap_put(g_namespace_map, nspace->name, nspace);
             }
 
             s->nspace = nspace;
@@ -1174,14 +1174,14 @@ int parse_data_blocks(void) {
             return FAILED;
         }
       }
-      obj_tmp = obj_tmp->next;
+      g_obj_tmp = g_obj_tmp->next;
       section += 1000000;
       continue;
     }
     /* LIBRARY FILE */
-    else if (obj_tmp->format == WLA_VERSION_LIB) {
-      t = obj_tmp->data_blocks;
-      p = obj_tmp->data + obj_tmp->size;
+    else if (g_obj_tmp->format == WLA_VERSION_LIB) {
+      t = g_obj_tmp->data_blocks;
+      p = g_obj_tmp->data + g_obj_tmp->size;
       for ( ; t < p; ) {
         s = calloc(sizeof(struct section), 1);
         if (s == NULL) {
@@ -1211,7 +1211,7 @@ int parse_data_blocks(void) {
         else {
           struct namespace_def *nspace;
 
-          hashmap_get(namespace_map, buf, (void*)&nspace);
+          hashmap_get(g_namespace_map, buf, (void*)&nspace);
           if (nspace == NULL) {
             nspace = calloc(sizeof(struct namespace_def), 1);
             if (nspace == NULL) {
@@ -1220,7 +1220,7 @@ int parse_data_blocks(void) {
             }
             nspace->label_map = hashmap_new();
             strcpy(nspace->name, buf);
-            hashmap_put(namespace_map, nspace->name, nspace);
+            hashmap_put(g_namespace_map, nspace->name, nspace);
           }
 
           s->nspace = nspace;
@@ -1235,11 +1235,11 @@ int parse_data_blocks(void) {
         s->priority = READ_T;
         s->data = t;
         s->address = 0;
-        s->bank = obj_tmp->bank;
-        s->slot = obj_tmp->slot;
-        s->base = obj_tmp->base;
+        s->bank = g_obj_tmp->bank;
+        s->slot = g_obj_tmp->slot;
+        s->base = g_obj_tmp->base;
         s->library_status = ON;
-        s->base_defined = obj_tmp->base_defined;
+        s->base_defined = g_obj_tmp->base_defined;
         s->label_map = hashmap_new();
         t += s->size;
 
@@ -1256,7 +1256,7 @@ int parse_data_blocks(void) {
 
         add_section(s);
       }
-      obj_tmp = obj_tmp->next;
+      g_obj_tmp = g_obj_tmp->next;
       section += 1000000;
       continue;
     }
@@ -1274,29 +1274,29 @@ int obtain_rombanks(void) {
 
   /* obtain the biggest rom size */
   s = 0;
-  obj_tmp = obj_first;
+  g_obj_tmp = g_obj_first;
 
-  while (obj_tmp != NULL) {
-    if (obj_tmp->format == WLA_VERSION_OBJ) {
+  while (g_obj_tmp != NULL) {
+    if (g_obj_tmp->format == WLA_VERSION_OBJ) {
 
-      t = obj_tmp->data + OBJ_ROMBANKS;
+      t = g_obj_tmp->data + OBJ_ROMBANKS;
       k = t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24);
 
-      obj_tmp->rom_banks = k;
+      g_obj_tmp->rom_banks = k;
 
       if (k != rb)
         s++;
       if (k > rb)
         rb = k;
     }
-    obj_tmp = obj_tmp->next;
+    g_obj_tmp = g_obj_tmp->next;
   }
 
   /* emptyfill has been obtained in the header checks */
-  rombanks = rb;
+  g_rombanks = rb;
 
   if (s > 1)
-    fprintf(stderr, "OBTAIN_ROMBANKS: Using the biggest selected amount of ROM banks (%d).\n", rombanks);
+    fprintf(stderr, "OBTAIN_ROMBANKS: Using the biggest selected amount of ROM banks (%d).\n", g_rombanks);
 
   return SUCCEEDED;
 }
@@ -1310,7 +1310,7 @@ int clean_up_dlr(void) {
   struct section *se, *sec, *sect;
 
 
-  se = sec_first;
+  se = g_sec_first;
 
   while (se != NULL) {
     /* remove duplicates of unique sections and all the related data */
@@ -1319,16 +1319,16 @@ int clean_up_dlr(void) {
       while (sec != NULL) {
         if (strcmp(se->name, sec->name) == 0) {
           /* free references */
-          r = reference_first;
+          r = g_reference_first;
           while (r != NULL) {
             if (r->section_status == ON && r->section == sec->id) {
               re = r;
               if (re->prev == NULL)
-                reference_first = re->next;
+                g_reference_first = re->next;
               else
                 re->prev->next = re->next;
               if (re->next == NULL)
-                reference_last = re->prev;
+                g_reference_last = re->prev;
               else
                 re->next->prev = re->prev;
               
@@ -1340,7 +1340,7 @@ int clean_up_dlr(void) {
           }
           
           /* free pending calculations */
-          s = stacks_first;
+          s = g_stacks_first;
           while (s != NULL) {
             if (s->section_status == ON && s->section == sec->id) {
               st = s;
@@ -1349,11 +1349,11 @@ int clean_up_dlr(void) {
                 st->stack = NULL;
               }
               if (st->prev == NULL)
-                stacks_first = st->next;
+                g_stacks_first = st->next;
               else
                 st->prev->next = st->next;
               if (st->next == NULL)
-                stacks_last = st->prev;
+                g_stacks_last = st->prev;
               else
                 st->next->prev = st->prev;
               
@@ -1365,16 +1365,16 @@ int clean_up_dlr(void) {
           }
           
           /* free labels */
-          l = labels_first;
+          l = g_labels_first;
           while (l != NULL) {
             if (l->section_status == ON && l->section == sec->id) {
               la = l;
               if (la->prev == NULL)
-                labels_first = la->next;
+                g_labels_first = la->next;
               else
                 la->prev->next = la->next;
               if (la->next == NULL)
-                labels_last = la->prev;
+                g_labels_last = la->prev;
               else
                 la->next->prev = la->prev;
               
