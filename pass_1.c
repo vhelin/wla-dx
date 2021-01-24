@@ -644,11 +644,7 @@ int pass_1(void) {
     slots[q].name[0] = 0;
   }
 
-  /* WARNING: "g_source_pointer" is a global variable that we use as the char index to the source file. */
-  /* Ville: this must be one of the worst programming decicions I've ever done, sorry about it... */
-  /* ... but the year was something like 1998 and I had just coded 6+ years 68k asm, and moved to C... */
-
-  /* start from the very first character */
+  /* start from the very first character, this is the index to the source file we are about to parse... */
   g_source_pointer = 0;
 
   /* BANK 0 SLOT 0 ORG 0 */

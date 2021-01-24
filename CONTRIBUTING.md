@@ -105,7 +105,7 @@ AmigaOS need this.
 ### Be aware of global variables
 The following global variable names are used by the parser (an old and a bad
 decision, there might be more):
-  - `i` (the current character index to source file being parsed)
+  - `ind` and `inz` (could be replaced with local vars)
   - `d` (input_number() returns the parsed integer in this)
 
 ### Keep comments in lower case
