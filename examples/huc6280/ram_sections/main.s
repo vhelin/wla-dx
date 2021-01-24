@@ -1,7 +1,7 @@
 
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 ; a small example showing the wla huc6280 syntax
-; written by ville helin <vhelin@iki.fi> in 2015
+; written by ville helin <ville.helin@iki.fi> in 2015
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 .INCLUDE "defines.i"

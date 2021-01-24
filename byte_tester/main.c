@@ -93,7 +93,7 @@ int _get_next_number(char *in, int *out) {
 }
 
 
-unsigned char *binary_file = NULL;
+unsigned char *g_binary_file = NULL;
 
 
 int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_size) {
@@ -103,7 +103,7 @@ int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_
   fb = fopen(filename, "rb");
 
   if (fb == NULL) {
-    if (binary_file != NULL) {
+    if (g_binary_file != NULL) {
       *did_we_read_data = NO;
       return SUCCEEDED;
     }
@@ -116,11 +116,11 @@ int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_
   *file_size = (int)ftell(fb);
   fseek(fb, 0, SEEK_SET);
 
-  if (binary_file != NULL)
-    free(binary_file);
+  if (g_binary_file != NULL)
+    free(g_binary_file);
   
-  binary_file = calloc(*file_size, 1);
-  if (binary_file == NULL) {
+  g_binary_file = calloc(*file_size, 1);
+  if (g_binary_file == NULL) {
     fprintf(stderr, "Error allocating memory for file \"%s\".\n", filename);
     fclose(f);
     fclose(fb);
@@ -128,7 +128,7 @@ int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_
     return FAILED;
   }
 
-  fread(binary_file, 1, *file_size, fb);
+  fread(g_binary_file, 1, *file_size, fb);
   fclose(fb);
 
   *did_we_read_data = YES;
@@ -228,7 +228,7 @@ int main(int argc, char *argv[]) {
 
       for (i = 0; i < file_size; i++) {
         for (j = 0; j < length; j++) {
-          if (binary_file[i+j] != tmp[j])
+          if (g_binary_file[i+j] != tmp[j])
             break;
         }
         if (j == length) {
@@ -252,7 +252,7 @@ int main(int argc, char *argv[]) {
       
       for (i = 0; i < file_size; i++) {
         for (j = 0; j < length; j++) {
-          if (binary_file[i+j] != tmp[j])
+          if (g_binary_file[i+j] != tmp[j])
             break;
         }
         if (j == length) {
@@ -315,7 +315,7 @@ int main(int argc, char *argv[]) {
     /* execute the test */
     if (use_address == NO) {
       for (i = 0; i < file_size - 2; i++) {
-        if (binary_file[i] == tag_id[0] && binary_file[i+1] == tag_id[1] && binary_file[i+2] == '>')
+        if (g_binary_file[i] == tag_id[0] && g_binary_file[i+1] == tag_id[1] && g_binary_file[i+2] == '>')
           break;
       }
 
@@ -328,7 +328,7 @@ int main(int argc, char *argv[]) {
       tag_start = i+3;
 
       for ( ; i < file_size - 2; i++) {
-        if (binary_file[i] == '<' && binary_file[i+1] == tag_id[0] && binary_file[i+2] == tag_id[1])
+        if (g_binary_file[i] == '<' && g_binary_file[i+1] == tag_id[0] && g_binary_file[i+2] == tag_id[1])
           break;
       }
 
@@ -352,12 +352,12 @@ int main(int argc, char *argv[]) {
     /* compare bytes */
     wrong_bytes = 0;
     for (i = 0; i < byte_count; i++) {
-      if (bytes[i] != binary_file[tag_start + i]) {
+      if (bytes[i] != g_binary_file[tag_start + i]) {
         if (wrong_bytes == 0)
           fprintf(stderr, "Test \"%s\" FAILED - Bytes that don't match: %d", test_id, (i+1));
         else
           fprintf(stderr, ", %d", (i+1));
-        fprintf(stderr, " (GOT: $%.2x EXPECTED: $%.2x)", binary_file[tag_start + i], bytes[i]);
+        fprintf(stderr, " (GOT: $%.2x EXPECTED: $%.2x)", g_binary_file[tag_start + i], bytes[i]);
         wrong_bytes++;
       }
     }
@@ -372,7 +372,7 @@ int main(int argc, char *argv[]) {
   
   fclose(f);
   
-  free(binary_file);
+  free(g_binary_file);
   
   return failures;
 }

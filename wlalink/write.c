@@ -1392,7 +1392,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
     return FAILED;
   }
 
-  fprintf(f, "; this file was created with wlalink by ville helin <vhelin@iki.fi>.\n");
+  fprintf(f, "; this file was created with wlalink by ville helin <ville.helin@iki.fi>.\n");
 
   if (mode == SYMBOL_MODE_NOCA5H) {
     /* NO$GMB SYMBOL FILE */

@@ -1,7 +1,7 @@
 
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 ; a small example showing the wla 65816 syntax
-; written by ville helin <vhelin@iki.fi> in 1998-2004
+; written by ville helin <ville.helin@iki.fi> in 1998-2004
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 .INCLUDE "defines.i"
