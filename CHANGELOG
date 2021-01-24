@@ -7,7 +7,7 @@ v9.12 (25-Jan-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                     [ALL] Added .STRINGMAP and .STRINGMAPTABLE.
                     [ALL] Multiple include directories (via multiple -I)
                       are now supported.
-                    [ALL] Use "{LABEL_\@+1}" instead of "LABEL_\@+1"
+                    [ALL] Use LABEL_{\@+1} instead of LABEL_\@+1
                       inside a macro, if you want to reference the next
                       label instead of the label's address + 1.
                     [Z80] Fixed the broken (broke in v9.11) regioncode
