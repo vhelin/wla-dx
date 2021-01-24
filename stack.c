@@ -170,7 +170,7 @@ int get_label_length(char *l) {
 
 int stack_calculate(char *in, int *value) {
 
-  int q = 0, b = 0, d, k, op[256], n, o, l;
+  int q = 0, b = 0, d, k, op[256], n, o, l, curly_braces = 0;
   struct stack_item si[256], ta[256];
   struct stack s;
   unsigned char e;
@@ -578,15 +578,26 @@ int stack_calculate(char *in, int *value) {
       si[q].sign = SI_SIGN_POSITIVE;
       for (k = 0; k < MAX_NAME_LENGTH; k++) {
         e = *in;
-        if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
-            e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == ']' ||
-            e == '~' || e == 0xA)
+
+        if (e == '{')
+          curly_braces++;
+        else if (e == '}')
+          curly_braces--;
+
+        if (curly_braces <= 0) {
+          if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
+              e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == ']' ||
+              e == '~' || e == 0xA)
+            break;
+          if (e == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L') &&
+              (*(in+2) == ' ' || *(in+2) == ')' || *(in+2) == '|' || *(in+2) == '&' || *(in+2) == '+' || *(in+2) == '-' || *(in+2) == '*' ||
+               *(in+2) == '/' || *(in+2) == ',' || *(in+2) == '^' || *(in+2) == '<' || *(in+2) == '>' || *(in+2) == '#' || *(in+2) == ']' ||
+               *(in+2) == '~' || *(in+2) == 0xA))
+            break;
+        }
+        else if (e == 0xA)
           break;
-        if (e == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L') &&
-            (*(in+2) == ' ' || *(in+2) == ')' || *(in+2) == '|' || *(in+2) == '&' || *(in+2) == '+' || *(in+2) == '-' || *(in+2) == '*' ||
-             *(in+2) == '/' || *(in+2) == ',' || *(in+2) == '^' || *(in+2) == '<' || *(in+2) == '>' || *(in+2) == '#' || *(in+2) == ']' ||
-             *(in+2) == '~' || *(in+2) == 0xA))
-          break;
+        
         si[q].string[k] = e;
         in++;
       }

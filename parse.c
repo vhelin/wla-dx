@@ -182,7 +182,7 @@ int input_number(void) {
 
   char label_tmp[MAX_NAME_LENGTH + 1];
   unsigned char e, ee;
-  int k, p, q, spaces = 0;
+  int k, p, q, spaces = 0, curly_braces = 0;
   double decimal_mul;
 
 
@@ -201,18 +201,17 @@ int input_number(void) {
     p = g_source_pointer;
     ee = e;
     while (ee != 0x0A) {
+      if (ee == '{')
+        curly_braces++;
+      else if (ee == '}')
+        curly_braces--;
       /* string / symbol -> no calculating */
-      if (ee == '"' || ee == ',' || (ee == '=' && buffer[p] == '=') || (ee == '!' && buffer[p] == '='))
+      else if (ee == '"' || ee == ',' || (ee == '=' && buffer[p] == '=') || (ee == '!' && buffer[p] == '='))
         break;
-      /* HACK: special case, skip "_\@-1" and alike as we'll parse them later as strings */
-      if (((ee >= 'a' && ee <= 'z') || (ee >= 'A' && ee <= 'Z') || (ee >= '0' && ee <= '9') || (ee == '_' || ee == '.')) &&
-          buffer[p] == '\\' && buffer[p+1] == '@' && (buffer[p+2] == '-' || buffer[p+2] == '+') && (buffer[p+3] >= '0' && buffer[p+3] <= '9')) {
-        p += 4;
-      }
       else if (ee == ' ')
         spaces++;
-      else if (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' ||
-               ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':') {
+      else if (curly_braces <= 0 && (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' ||
+                                     ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':')) {
         if (ee == ':' && spaces > 0)
           break;
         
@@ -556,7 +555,12 @@ int input_number(void) {
     return SUCCEEDED;
   }
 
-  if (e == '"') {
+  if (e == '"' || e == '{') {
+    int curly_braces = 0;
+
+    if (e == '{')
+      curly_braces++;
+    
     for (k = 0; k < MAX_NAME_LENGTH; ) {
       e = buffer[g_source_pointer++];
 
@@ -565,8 +569,16 @@ int input_number(void) {
         g_source_pointer++;
         continue;
       }
+
+      if (e == '{') {
+        curly_braces++;
+        continue;
+      }
       
-      if (e == '"') {
+      if (e == '"' || e == '}') {
+        if (e == '}')
+          curly_braces--;
+
         /* check for "string".length */
         if (buffer[g_source_pointer+0] == '.' &&
             (buffer[g_source_pointer+1] == 'l' || buffer[g_source_pointer+1] == 'L') &&
@@ -583,7 +595,11 @@ int input_number(void) {
 
           return SUCCEEDED;
         }
-        break;
+
+        if (e == '"')
+          break;
+        if (e == '}' && curly_braces <= 0)
+          break;
       }
       
       if (e == 0 || e == 0x0A) {
@@ -966,7 +982,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
 
   memset(expanded_macro_string, 0, MAX_NAME_LENGTH + 1);
-  
+
   for (i = 0, k = 0; i < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; i++) {
     if (in[i] == '\\') {
       if (in[i + 1] == '"' || in[i + 1] == 'n' || in[i + 1] == '\\') {
@@ -980,15 +996,17 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
         i++;
 
         adder = 0;
-        if (in[i + 1] == '-' && in[i + 2] >= '0' && in[i + 2] <= '9') {
-          /* found "\@-1" and alike */
+        if (i > 1 && in[i - 2] == '{' && in[i + 1] == '-' && in[i + 2] >= '0' && in[i + 2] <= '9' && in[i + 3] == '}') {
+          /* found "{\@-1}" and alike */
           adder = -(in[i + 2] - '0');
-          i += 2;
+          i += 3;
+          k--;
         }
-        else if (in[i + 1] == '+' && in[i + 2] >= '0' && in[i + 2] <= '9') {
-          /* found "\@+1" and alike */
+        else if (i > 1 && in[i - 2] == '{' && in[i + 1] == '+' && in[i + 2] >= '0' && in[i + 2] <= '9' && in[i + 3] == '}') {
+          /* found "{\@+1}" and alike */
           adder = in[i + 2] - '0';
-          i += 2;
+          i += 3;
+          k--;
         }
         
         snprintf(t, sizeof(t), "%d", macro_runtime_current->macro->calls - 1 + adder);
@@ -1159,7 +1177,7 @@ int expand_macro_arguments(char *in) {
   /* save the current macro_runtime pointers */
   struct macro_runtime* mr = macro_runtime_current;
   int ma = macro_active, expands = 0, ret;
-   
+
   ret = _expand_macro_arguments(in, &expands);
 
   /* return the current macro_runtime as recursive _expand_macro_arguments() might have modified it */

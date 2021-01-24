@@ -1184,16 +1184,16 @@ Here is a special case::
     .DEF prev_test $0000
 
     .MACRO .test ARGS str
-    __\._\@+1:                     ; this will become __.test_1 during
-        .PRINT __\._\@+1, "\n"     ; the first call, __.test_2 during the
-        .WORD  prev_test           ; second call...
-        .REDEF prev_test __\._\@+1
+    __\._{\@+1}:                     ; this will become __.test_1 during
+        .PRINT __\._{\@+1}, "\n"     ; the first call, __.test_2 during the
+        .WORD  prev_test             ; second call...
+        .REDEF prev_test __\._{\@+1}
         .BYTE  str.length, str, 0
     .ENDM
 
 When creating a label inside a macro, you can add a super simple
 addition or subtraction after ``\@`` to adjust the value. Only one
-digit number is supported.
+digit number is supported, and the curly braces are needed.
 
 If you want to give names to the macro's arguments you can do that
 by listing them in order after supplying ARGS after the macro's name.

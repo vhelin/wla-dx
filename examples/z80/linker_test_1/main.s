@@ -3,7 +3,7 @@
 	*/
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 ; a small example showing the wla z80 syntax
-; written by ville helin <vhelin@cc.hut.fi> in 1998-2002
+; written by ville helin <ville.helin@iki.fi> in 1998-2002
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
 .INCLUDE defines.i
@@ -23,6 +23,20 @@
 .MACRO JESUS
 \._\@:
 .DB \1, " ", \2, 0
+.ENDM
+
+.MACRO exampleMacro
+  jp macroJump1_\@+1
+  jp macroJump2_{\@+1}
+  nop
+macroJump1_\@:
+  nop
+macroJump2_{\@+1}:
+  nop
+
+__\._{\@+1}:                   ; this will become __.test_1 during
+  .PRINT __\._{\@+1}, "\n"     ; the first call, __.test_2 during the
+
 .ENDM
 
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
@@ -47,6 +61,8 @@
 
 .BANK 0 SLOT 0
 .ORG 0
+
+  exampleMacro
 
 .section "kukkuu" force
 lab1:

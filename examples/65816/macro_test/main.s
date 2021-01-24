@@ -23,11 +23,13 @@ __\._\@:
 .DEF prev_test $0000
 	
 .MACRO .test ARGS str
-__\._\@+1:
-	.PRINT __\._\@+1, "\n"
+__\._{\@+1}:
+	.PRINT __\._{\@+1}, "\n"
         .WORD  prev_test
-        .REDEF prev_test __\._\@+1
+        .REDEF prev_test __\._{\@+1}
         .BYTE  str.length, str, 0
+        .DW __\._{\@+1}
+        .DW __\._{\@+1}+1
 .ENDM
 
 .MACRO .storager
@@ -137,6 +139,14 @@ TDT1:	.differentThings1 100
 .endif
 .endm
 
+.macro REFERENCE_LABELS
+  .dw LABEL_{\@+1}
+  .dw LABEL_{\@+2}
+  .dw LABEL_{\@+3}
+  .dw LABEL_\@+1
+  .dw LABEL_{\@+1}+1
+.endm
+
 .section "TestingDifferentThings2"
 	.db "11>"
 TDT2:	.differentThings2 TDT2+1, 100
@@ -144,4 +154,13 @@ TDT2:	.differentThings2 TDT2+1, 100
 	.differentThings2 "HELLO", TDT2
 	.differentThings2 100, TDT2+1
 	.db "<11"
+
+LABEL_0 nop
+LABEL_1 nop
+LABEL_2 nop
+LABEL_3 nop
+
+        .db "12>"
+        REFERENCE_LABELS
+        .db "<12"
 .ends
