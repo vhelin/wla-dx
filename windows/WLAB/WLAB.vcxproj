@@ -21,6 +21,10 @@
   <ItemGroup>
     <ClCompile Include="..\..\wlab\main.c" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\wlab\defines.h" />
+    <ClInclude Include="..\..\wlab\main.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{2FE3321D-8779-42E4-B28B-2F84F35CE845}</ProjectGuid>
