@@ -32,7 +32,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         if (z == SUCCEEDED)
           output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "k%d d%d R%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+          output_assembled_opcode(opt_tmp, "k%d d%d R%s ", active_file_info_last->line_current, opt_tmp->hex, g_label);
         else {
           output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
           if (opt_tmp->type == 11) {
@@ -65,7 +65,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     g_source_pointer = y;
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
-    if (operand_hint == HINT_24BIT && opt_tmp->skip_xbit == 1)
+    if (g_operand_hint == HINT_24BIT && opt_tmp->skip_xbit == 1)
       break;
     if (z == SUCCEEDED && (d < -32768 || d > 65535)) {
       if (opt_tmp->skip_xbit == 1)
@@ -79,7 +79,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         if (z == SUCCEEDED)
           output_assembled_opcode(opt_tmp, "d%d y%d ", opt_tmp->hex, d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "k%d d%d r%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+          output_assembled_opcode(opt_tmp, "k%d d%d r%s ", active_file_info_last->line_current, opt_tmp->hex, g_label);
         else
           output_assembled_opcode(opt_tmp, "d%d C%d ", opt_tmp->hex, latest_stack);
         
@@ -111,7 +111,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         if (z == SUCCEEDED)
           output_assembled_opcode(opt_tmp, "d%d z%d ", opt_tmp->hex, d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "k%d d%d q%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+          output_assembled_opcode(opt_tmp, "k%d d%d q%s ", active_file_info_last->line_current, opt_tmp->hex, g_label);
         else
           output_assembled_opcode(opt_tmp, "d%d T%d ", opt_tmp->hex, latest_stack);
         g_source_pointer = inz;
@@ -140,8 +140,8 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
       return FAILED;
 
     /* select the mode */
-    if (operand_hint_type == HINT_TYPE_GIVEN) {
-      if (operand_hint == HINT_8BIT)
+    if (g_operand_hint_type == HINT_TYPE_GIVEN) {
+      if (g_operand_hint == HINT_8BIT)
         y = 0;
       else
         y = 1;
@@ -173,7 +173,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
           if (z == SUCCEEDED)
             output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
           else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-            output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+            output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", active_file_info_last->line_current, opt_tmp->hex, g_label);
           else
             output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
         }
@@ -182,7 +182,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
           if (z == SUCCEEDED)
             output_assembled_opcode(opt_tmp, "d%d y%d ", opt_tmp->hex, d);
           else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-            output_assembled_opcode(opt_tmp, "k%d d%d r%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+            output_assembled_opcode(opt_tmp, "k%d d%d r%s ", active_file_info_last->line_current, opt_tmp->hex, g_label);
           else
             output_assembled_opcode(opt_tmp, "d%d C%d ", opt_tmp->hex, latest_stack);
         }
@@ -218,7 +218,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     v = z;
     h = latest_stack;
     if (z == INPUT_NUMBER_ADDRESS_LABEL)
-      strcpy(labelx, label);
+      strcpy(labelx, g_label);
 
     for (x++; x < OP_SIZE_MAX; inz++, x++) {
       if (opt_tmp->op[x] == 'x') {
@@ -238,7 +238,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
             if (z == SUCCEEDED)
               output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
             else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-              output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+              output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", active_file_info_last->line_current, opt_tmp->hex, g_label);
             else
               output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
 
@@ -331,8 +331,8 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
       return FAILED;
 
     /* select the mode */
-    if (operand_hint_type == HINT_TYPE_GIVEN) {
-      if (operand_hint == HINT_8BIT)
+    if (g_operand_hint_type == HINT_TYPE_GIVEN) {
+      if (g_operand_hint == HINT_8BIT)
         y = 0;
       else
         y = 1;
@@ -364,7 +364,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
           if (z == SUCCEEDED)
             output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
           else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-            output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+            output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", active_file_info_last->line_current, opt_tmp->hex, g_label);
           else
             output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
         }
@@ -373,7 +373,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
           if (z == SUCCEEDED)
             output_assembled_opcode(opt_tmp, "d%d y%d ", opt_tmp->hex, d);
           else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-            output_assembled_opcode(opt_tmp, "k%d d%d r%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+            output_assembled_opcode(opt_tmp, "k%d d%d r%s ", active_file_info_last->line_current, opt_tmp->hex, g_label);
           else
             output_assembled_opcode(opt_tmp, "d%d C%d ", opt_tmp->hex, latest_stack);
         }
@@ -420,7 +420,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         if (z == SUCCEEDED)
           output_assembled_opcode(opt_tmp, "d%d y%d ", opt_tmp->hex, d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "k%d d%d M%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+          output_assembled_opcode(opt_tmp, "k%d d%d M%s ", active_file_info_last->line_current, opt_tmp->hex, g_label);
         else {
           output_assembled_opcode(opt_tmp, "d%d C%d ", opt_tmp->hex, latest_stack);
 
@@ -452,7 +452,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     g_source_pointer = y;
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
-    if ((operand_hint == HINT_16BIT || operand_hint == HINT_24BIT) && opt_tmp->skip_xbit == 2)
+    if ((g_operand_hint == HINT_16BIT || g_operand_hint == HINT_24BIT) && opt_tmp->skip_xbit == 2)
       break;
     if (z == SUCCEEDED && (d > 255 || d < -128)) {
       if (opt_tmp->skip_xbit == 2)
@@ -466,7 +466,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         if (z == SUCCEEDED)
           output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", active_file_info_last->line_current, opt_tmp->hex, label);
+          output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", active_file_info_last->line_current, opt_tmp->hex, g_label);
         else
           output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
 
