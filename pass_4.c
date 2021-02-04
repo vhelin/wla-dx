@@ -30,8 +30,8 @@ extern struct append_section *append_sections;
 extern struct label_sizeof *label_sizeofs;
 extern FILE *file_out_ptr;
 extern unsigned char *rom_banks, *rom_banks_usage_table;
-extern char *tmp_name, tmp[4096], name[32], *final_name;
-extern int rombanks, ind, inz, output_format, test_mode, listfile_data, little_endian;
+extern char *g_tmp_name, tmp[4096], name[32], *g_final_name;
+extern int rombanks, ind, inz, g_output_format, g_test_mode, g_listfile_data, g_little_endian;
 
 #ifdef GB
 extern char licenseecodenew_c1, licenseecodenew_c2;
@@ -43,14 +43,14 @@ extern int licenseecodeold, romgbc;
 #endif
 
 extern int romtype, rambanks, emptyfill, max_address;
-extern int rambanks_defined, verbose_mode;
+extern int rambanks_defined, g_verbose_mode;
 extern int section_status;
 extern int banksize, banksize_defined;
 extern int slots_amount;
 extern int *banks, *bankaddress, rombankmap_defined;
 extern int latest_stack, stacks_outside, stacks_inside;
 extern int bankheader_status;
-extern int smc_defined, makefile_rules;
+extern int smc_defined, g_makefile_rules;
 
 #ifdef W65816
 extern int lorom_defined, hirom_defined, slowrom_defined, fastrom_defined, snes_mode, exhirom_defined;
@@ -268,11 +268,11 @@ int pass_4(void) {
   bankheader_status = OFF;
   mem_insert_overwrite = OFF;
 
-  if (verbose_mode == ON)
+  if (g_verbose_mode == ON)
     printf("Internal pass 2...\n");
 
-  if ((file_out_ptr = fopen(tmp_name, "rb")) == NULL) {
-    fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\".\n", tmp_name);
+  if ((file_out_ptr = fopen(g_tmp_name, "rb")) == NULL) {
+    fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\".\n", g_tmp_name);
     return FAILED;
   }
 
@@ -443,7 +443,7 @@ int pass_4(void) {
       snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSW data", get_file_name(filename_id), line_number);
 
       while (ind > 0) {
-        if (little_endian == YES) {
+        if (g_little_endian == YES) {
           if (mem_insert(i) == FAILED)
             return FAILED;
           if (mem_insert(inz) == FAILED)
@@ -472,7 +472,7 @@ int pass_4(void) {
       snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSL data", get_file_name(filename_id), line_number);
 
       while (ind > 0) {
-        if (little_endian == YES) {
+        if (g_little_endian == YES) {
           if (mem_insert(x) == FAILED)
             return FAILED;
           if (mem_insert(i) == FAILED)
@@ -516,7 +516,7 @@ int pass_4(void) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing two bytes", get_file_name(filename_id), line_number);
 
-      if (little_endian == YES) {
+      if (g_little_endian == YES) {
         if (mem_insert(x) == FAILED)
           return FAILED;
         if (mem_insert(inz) == FAILED)
@@ -546,7 +546,7 @@ int pass_4(void) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing three bytes", get_file_name(filename_id), line_number);
 
-      if (little_endian == YES) {
+      if (g_little_endian == YES) {
         if (mem_insert(x) == FAILED)
           return FAILED;
         if (mem_insert(ind) == FAILED)
@@ -932,7 +932,7 @@ int pass_4(void) {
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
           snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 24-bit reference", get_file_name(filename_id), line_number);
 
-          if (little_endian == YES) {
+          if (g_little_endian == YES) {
             if (mem_insert(o & 0xFF) == FAILED)
               return FAILED;
             if (mem_insert((o >> 8) & 0xFF) == FAILED)
@@ -995,7 +995,7 @@ int pass_4(void) {
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
           snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(filename_id), line_number);
 
-          if (little_endian == YES) {
+          if (g_little_endian == YES) {
             if (mem_insert(o & 0xFF) == FAILED)
               return FAILED;
             if (mem_insert((o >> 8) & 0xFF) == FAILED)
@@ -1052,7 +1052,7 @@ int pass_4(void) {
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
           snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(filename_id), line_number);
 
-          if (little_endian == YES) {
+          if (g_little_endian == YES) {
             if (mem_insert(o & 0xFF) == FAILED)
               return FAILED;
             if (mem_insert((o & 0xFF00) >> 8) == FAILED)
@@ -1270,9 +1270,9 @@ int pass_4(void) {
   file_out_ptr = NULL;
 
   /* library file output */
-  if (output_format == OUTPUT_LIBRARY && test_mode == OFF) {
-    if ((final_ptr = fopen(final_name, "wb")) == NULL) {
-      fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\" for writing.\n", final_name);
+  if (g_output_format == OUTPUT_LIBRARY && g_test_mode == OFF) {
+    if ((final_ptr = fopen(g_final_name, "wb")) == NULL) {
+      fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\" for writing.\n", g_final_name);
       return FAILED;
     }
 
@@ -1282,7 +1282,7 @@ int pass_4(void) {
     /* misc bits */
     ind = 0;
 
-    if (little_endian == NO)
+    if (g_little_endian == NO)
       ind |= 1 << 0;
 #ifdef W65816
     /* 65816 bit */
@@ -1464,7 +1464,7 @@ int pass_4(void) {
         
         fwrite(sec_tmp->data, 1, sec_tmp->size, final_ptr);
 
-        if (listfile_data == YES && sec_tmp->listfile_items > 0)
+        if (g_listfile_data == YES && sec_tmp->listfile_items > 0)
           listfile_block_write(final_ptr, sec_tmp);
         else
           fprintf(final_ptr, "%c", 0);
@@ -1476,9 +1476,9 @@ int pass_4(void) {
   }
 
   /* object file output */
-  else if (output_format == OUTPUT_OBJECT && test_mode == OFF) {
-    if ((final_ptr = fopen(final_name, "wb")) == NULL) {
-      fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\" for writing.\n", final_name);
+  else if (g_output_format == OUTPUT_OBJECT && g_test_mode == OFF) {
+    if ((final_ptr = fopen(g_final_name, "wb")) == NULL) {
+      fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\" for writing.\n", g_final_name);
       return FAILED;
     }
 
@@ -1544,7 +1544,7 @@ int pass_4(void) {
     }
 #endif
 
-    if (little_endian == NO)
+    if (g_little_endian == NO)
       ind |= 1 << 7;
     
     fprintf(final_ptr, "%c", ind);
@@ -1876,7 +1876,7 @@ int pass_4(void) {
 
         fwrite(sec_tmp->data, 1, sec_tmp->size, final_ptr);
 
-        if (listfile_data == YES && sec_tmp->listfile_items > 0)
+        if (g_listfile_data == YES && sec_tmp->listfile_items > 0)
           listfile_block_write(final_ptr, sec_tmp);
         else
           fprintf(final_ptr, "%c", 0);
@@ -1888,13 +1888,13 @@ int pass_4(void) {
   }
 
   /* output makefile rules */
-  if (makefile_rules == YES) {
-    fprintf(stdout, "%s: ", final_name);
+  if (g_makefile_rules == YES) {
+    fprintf(stdout, "%s: ", g_final_name);
     print_file_names();
   }
 
   /* show project information */
-  if (verbose_mode == ON && output_format != OUTPUT_LIBRARY) {
+  if (g_verbose_mode == ON && g_output_format != OUTPUT_LIBRARY) {
     x = 0;
     for (ind = 0; ind < max_address; ind++) {
       if (rom_banks_usage_table[ind] == 0 && x == 0) {
@@ -1952,7 +1952,7 @@ int pass_4(void) {
 #endif
 
   }
-  else if (verbose_mode == ON && output_format == OUTPUT_LIBRARY) {
+  else if (g_verbose_mode == ON && g_output_format == OUTPUT_LIBRARY) {
     sec_tmp = sections_first;
     while (sec_tmp != NULL) {
       printf("Section \"%s\" size %d.\n", sec_tmp->name, sec_tmp->size);

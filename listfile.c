@@ -15,8 +15,8 @@ extern struct section_def *sections_first, *sections_last, *sec_tmp, *sec_next;
 extern struct file_name_info *file_name_info_first, *file_name_info_last, *file_name_info_tmp;
 extern unsigned char *rom_banks, *rom_banks_usage_table;
 extern FILE *file_out_ptr;
-extern char *tmp_name, tmp[4096];
-extern int verbose_mode, section_status, cartridgetype, output_format;
+extern char *g_tmp_name, tmp[4096];
+extern int g_verbose_mode, section_status, cartridgetype, g_output_format;
 
 
 int listfile_collect(void) {
@@ -29,8 +29,8 @@ int listfile_collect(void) {
   char c;
 
 
-  if ((file_in = fopen(tmp_name, "rb")) == NULL) {
-    fprintf(stderr, "LISTFILE_COLLECT: Error opening file \"%s\".\n", tmp_name);
+  if ((file_in = fopen(g_tmp_name, "rb")) == NULL) {
+    fprintf(stderr, "LISTFILE_COLLECT: Error opening file \"%s\".\n", g_tmp_name);
     return FAILED;
   }
 

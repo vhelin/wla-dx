@@ -55,8 +55,8 @@ extern int computesneschecksum_defined, exhirom_defined, exlorom_defined;
 extern FILE *file_out_ptr;
 extern int ind, inz, rambanks, rambanks_defined, ifdef;
 extern int rombanks_defined, rombanks, cartridgetype, cartridgetype_defined;
-extern int output_format, romgbc, romsgb, romdmg, max_address;
-extern int romtype, verbose_mode, section_status, background_defined, memorymap_defined;
+extern int g_output_format, romgbc, romsgb, romdmg, max_address;
+extern int romtype, g_verbose_mode, section_status, background_defined, memorymap_defined;
 extern int emptyfill_defined, emptyfill, rombankmap_defined, section_id;
 extern unsigned char *rom_banks, *rom_banks_usage_table;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
@@ -77,7 +77,7 @@ int pass_2(void) {
     return FAILED;
   }
 
-  if (verbose_mode == ON)
+  if (g_verbose_mode == ON)
     printf("Directive checks...\n");
 
   if (section_status == ON) {
@@ -85,7 +85,7 @@ int pass_2(void) {
     return FAILED;
   }
 
-  if (output_format != OUTPUT_LIBRARY && rombanks_defined == 0 && rombankmap_defined == 0) {
+  if (g_output_format != OUTPUT_LIBRARY && rombanks_defined == 0 && rombankmap_defined == 0) {
     fprintf(stderr, "%s ROMBANKS/ROMBANKMAP wasn't defined.\n", include_directives_name);
     return FAILED;
   }
@@ -295,7 +295,7 @@ int pass_2(void) {
 #endif
 
 #ifdef W65816
-  if (output_format != OUTPUT_LIBRARY) {
+  if (g_output_format != OUTPUT_LIBRARY) {
     /* snes cartridge information */
     if (snes_mode != 0) {
       if (hirom_defined != 0)
@@ -313,7 +313,7 @@ int pass_2(void) {
 
 #ifdef GB
   /* insert the descriptive data (not in library files) */
-  if (output_format == OUTPUT_OBJECT) {
+  if (g_output_format == OUTPUT_OBJECT) {
     if (nintendologo_defined != 0) {
       int nl1 = 0x104;
       unsigned int nl2 = 0;

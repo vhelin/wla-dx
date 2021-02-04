@@ -13,7 +13,7 @@
 #include "printf.h"
 
 
-extern int ind, inz, g_source_pointer, unfolded_size, extra_definitions, d, use_incdir;
+extern int ind, inz, g_source_pointer, unfolded_size, g_extra_definitions, d, g_use_incdir;
 extern char *unfolded_buffer, tmp[4096], emsg[sizeof(tmp) + MAX_NAME_LENGTH + 1 + 1024];
 extern struct ext_include_collection ext_incdirs;
 extern FILE *file_out_ptr;
@@ -96,7 +96,7 @@ static void print_find_error(char* name) {
 
   fprintf(stderr, "FIND_FILE: Could not open \"%s\", searched in the following directories:\n", name);
 
-  if (use_incdir == YES) {
+  if (g_use_incdir == YES) {
     for (index = 0; index < ext_incdirs.count; index++) {
       fprintf(stderr, "%s\n", ext_incdirs.names[index]);
     }
@@ -114,7 +114,7 @@ static int find_file(char *name, FILE** f) {
 
   int index;
 
-  if (use_incdir == YES) {
+  if (g_use_incdir == YES) {
     /* check all external include directories first */
     for (index = 0; index < ext_incdirs.count; index++) {
       try_open_file(ext_incdirs.names[index], name, f);
