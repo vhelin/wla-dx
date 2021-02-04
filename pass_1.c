@@ -114,14 +114,15 @@ struct block_name *block_names = NULL;
 struct stringmaptable *stringmaptables = NULL;
 
 extern char *buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *include_dir, *full_name;
-extern int size, unfolded_size, g_input_number_error_msg, verbose_mode, output_format, open_files;
-extern int stack_id, latest_stack, g_ss, commandline_parsing, g_newline_beginning, g_expect_calculations;
-extern int extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
-extern int include_dir_size, g_parse_floats, listfile_data, quiet, g_parsed_double_decimal_numbers;
-extern int create_sizeof_definitions;
+extern int size, unfolded_size, g_input_number_error_msg, g_verbose_mode, g_output_format, open_files;
+extern int stack_id, latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations;
+extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
+extern int include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
+extern int g_create_sizeof_definitions;
 extern FILE *file_out_ptr;
 extern double g_parsed_double;
-extern char *final_name;
+extern char *g_final_name;
+
 extern struct active_file_info *active_file_info_first, *active_file_info_last, *active_file_info_tmp;
 extern struct file_name_info *file_name_info_first, *file_name_info_last, *file_name_info_tmp;
 extern struct stack *stacks_first, *stacks_tmp, *stacks_last;
@@ -160,7 +161,7 @@ extern struct optcode opt_table[];
 
 #define no_library_files(name)                                          \
   do {                                                                  \
-    if (output_format == OUTPUT_LIBRARY) {                              \
+    if (g_output_format == OUTPUT_LIBRARY) {                              \
       print_error("Library files don't take " name ".\n", ERROR_DIR);   \
       return FAILED;                                                    \
     }                                                                   \
@@ -315,7 +316,7 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
   mrt->macro_return_line = active_file_info_last->line_current;
   mrt->macro_return_filename_id = active_file_info_last->filename_id;
 
-  if ((extra_definitions == ON) && (active_file_info_last->filename_id != m->filename_id)) {
+  if ((g_extra_definitions == ON) && (active_file_info_last->filename_id != m->filename_id)) {
     redefine("WLA_FILENAME", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(m->filename_id)));
     redefine("wla_filename", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(m->filename_id)));
   }
@@ -635,7 +636,7 @@ int pass_1(void) {
   struct macro_static *m = NULL;
   int o, p, q;
   
-  if (verbose_mode == ON)
+  if (g_verbose_mode == ON)
     printf("Pass 1...\n");
 
   /* mark all slots as empty */
@@ -648,7 +649,7 @@ int pass_1(void) {
   g_source_pointer = 0;
 
   /* BANK 0 SLOT 0 ORG 0 */
-  if (output_format != OUTPUT_LIBRARY)
+  if (g_output_format != OUTPUT_LIBRARY)
     fprintf(file_out_ptr, "B%d %d O%d", 0, 0, 0);
 
   while (1) {
@@ -698,7 +699,7 @@ int pass_1(void) {
             return FAILED;
         }
         else {
-          if (output_format == OUTPUT_LIBRARY && section_status == OFF) {
+          if (g_output_format == OUTPUT_LIBRARY && section_status == OFF) {
             print_error("All labels must be inside sections when compiling a library.\n", ERROR_LOG);
             return FAILED;
           }
@@ -1071,7 +1072,7 @@ int evaluate_token(void) {
     tmp[g_ss - 1] = 0;
     g_newline_beginning = OFF;
 
-    if (output_format == OUTPUT_LIBRARY && section_status == OFF) {
+    if (g_output_format == OUTPUT_LIBRARY && section_status == OFF) {
       print_error("All labels must be inside sections when compiling a library.\n", ERROR_LOG);
       return FAILED;
     }
@@ -1321,7 +1322,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
   hashmap_get(defines_map, name, (void*)&d);
   if (d != NULL) {
     snprintf(emsg, sizeof(emsg), "\"%s\" was defined for the second time.\n", name);
-    if (commandline_parsing == OFF)
+    if (g_commandline_parsing == OFF)
       print_error(emsg, ERROR_DIR);
     else
       fprintf(stderr, "ADD_A_NEW_DEFINITION: %s", emsg);
@@ -1331,7 +1332,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
   d = calloc(sizeof(struct definition), 1);
   if (d == NULL) {
     snprintf(emsg, sizeof(emsg), "Out of memory while trying to add a new definition (\"%s\").\n", name);
-    if (commandline_parsing == OFF)
+    if (g_commandline_parsing == OFF)
       print_error(emsg, ERROR_DIR);
     else
       fprintf(stderr, "ADD_A_NEW_DEFINITION: %s", emsg);
@@ -1488,7 +1489,7 @@ void next_line(void) {
     return;
 
   /* output the file number for list file structure building */
-  if (listfile_data == YES)
+  if (g_listfile_data == YES)
     fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
 
   if (active_file_info_last != NULL)
@@ -1502,7 +1503,7 @@ int add_label_sizeof(char *label, int size) {
   struct label_sizeof *ls;
   char tmpname[MAX_NAME_LENGTH + 8];
 
-  if (create_sizeof_definitions == NO)
+  if (g_create_sizeof_definitions == NO)
     return SUCCEEDED;
   
   /* we skip definitions for '_sizeof_.' (because .ENUM and .RAMSECTION use it as an anonymous label) */
@@ -1584,7 +1585,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
         return FAILED;
     }
     else {
-      if (create_sizeof_definitions == YES) {
+      if (g_create_sizeof_definitions == YES) {
         snprintf(tmp, sizeof(tmp), "_sizeof_%s", name);
         if (add_a_new_definition(tmp, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
           return FAILED;
@@ -1898,7 +1899,7 @@ int parse_enum_token(void) {
       fprintf(file_out_ptr, "o%d 0 ", max_enum_offset-last_enum_offset);
 
     /* generate a section end label? */
-    if (extra_definitions == ON)
+    if (g_extra_definitions == ON)
       generate_label("SECTIONEND_", sections_last->name);
     
     free_struct(active_struct);
@@ -1926,7 +1927,7 @@ int parse_enum_token(void) {
     /* create the SIZEOF-definition for the entire struct */
     active_struct->size = max_enum_offset;
 
-    if (create_sizeof_definitions == YES) {
+    if (g_create_sizeof_definitions == YES) {
       if (strlen(active_struct->name) > MAX_NAME_LENGTH - 8) {
         snprintf(emsg, sizeof(emsg), "STRUCT \"%s\"'s name is too long!\n", active_struct->name);
         print_error(emsg, ERROR_DIR);
@@ -2313,7 +2314,7 @@ int directive_bank(void) {
     print_error("You can't use .BANK inside .DSTRUCT.\n", ERROR_DIR);
     return FAILED;
   }
-  if (rombanks_defined == 0 && output_format != OUTPUT_LIBRARY) {
+  if (rombanks_defined == 0 && g_output_format != OUTPUT_LIBRARY) {
     print_error(".ROMBANKS is not yet defined.\n", ERROR_DIR);
     return FAILED;
   }
@@ -2327,7 +2328,7 @@ int directive_bank(void) {
     return FAILED;
   }
 
-  if (rombanks <= d && output_format != OUTPUT_LIBRARY) {
+  if (rombanks <= d && g_output_format != OUTPUT_LIBRARY) {
     snprintf(emsg, sizeof(emsg), "ROM banks == %d, selected bank %d.\n", rombanks, d);
     print_error(emsg, ERROR_DIR);
     return FAILED;
@@ -2364,14 +2365,14 @@ int directive_bank(void) {
       return FAILED;
     }
 
-    if (output_format != OUTPUT_LIBRARY)
+    if (g_output_format != OUTPUT_LIBRARY)
       fprintf(file_out_ptr, "B%d %d ", bank, d);
 
     ind = bank;
     inz = d;
     current_slot = d;
   }
-  else if (output_format != OUTPUT_LIBRARY) {
+  else if (g_output_format != OUTPUT_LIBRARY) {
     fprintf(file_out_ptr, "B%d %d ", d, defaultslot);
     ind = d;
     inz = defaultslot;
@@ -3949,7 +3950,7 @@ int directive_incbin(void) {
   struct macro_static *m;
   int s, r, j, o;
 
-  if (org_defined == 0 && output_format != OUTPUT_LIBRARY) {
+  if (org_defined == 0 && g_output_format != OUTPUT_LIBRARY) {
     print_error("Before you can .INCBIN data you'll need to use ORG.\n", ERROR_LOG);
     return FAILED;
   }
@@ -4114,7 +4115,7 @@ int directive_ramsection(void) {
   if (compare_next_token("BANK") != SUCCEEDED)
     sec_tmp->bank = 0;
   else {
-    if (output_format == OUTPUT_LIBRARY) {
+    if (g_output_format == OUTPUT_LIBRARY) {
       print_error(".RAMSECTION cannot take BANK when inside a library.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4130,7 +4131,7 @@ int directive_ramsection(void) {
       return FAILED;
     }
 
-    if (d > 255 && output_format != OUTPUT_LIBRARY) {
+    if (d > 255 && g_output_format != OUTPUT_LIBRARY) {
       snprintf(emsg, sizeof(emsg), "RAM banks == 256 (0-255), selected bank %d.\n", d);
       print_error(emsg, ERROR_DIR);
       return FAILED;
@@ -4140,7 +4141,7 @@ int directive_ramsection(void) {
   }
 
   if (compare_next_token("SLOT") == SUCCEEDED) {
-    if (output_format == OUTPUT_LIBRARY) {
+    if (g_output_format == OUTPUT_LIBRARY) {
       print_error(".RAMSECTION cannot take SLOT when inside a library.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4175,7 +4176,7 @@ int directive_ramsection(void) {
   }
 
   if (compare_next_token("ORGA") == SUCCEEDED) {
-    if (output_format == OUTPUT_LIBRARY) {
+    if (g_output_format == OUTPUT_LIBRARY) {
       print_error(".RAMSECTION cannot take ORGA when inside a library.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4199,7 +4200,7 @@ int directive_ramsection(void) {
     sec_tmp->address = d - ind;
   }
   else if (compare_next_token("ORG") == SUCCEEDED) {
-    if (output_format == OUTPUT_LIBRARY) {
+    if (g_output_format == OUTPUT_LIBRARY) {
       print_error(".RAMSECTION cannot take ORG when inside a library.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4223,7 +4224,7 @@ int directive_ramsection(void) {
 
   /* align the ramsection? */
   if (compare_next_token("ALIGN") == SUCCEEDED) {
-    if (output_format == OUTPUT_LIBRARY) {
+    if (g_output_format == OUTPUT_LIBRARY) {
       print_error(".RAMSECTION cannot take ALIGN when inside a library.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4242,7 +4243,7 @@ int directive_ramsection(void) {
 
   /* offset the ramsection? */
   if (compare_next_token("OFFSET") == SUCCEEDED) {
-    if (output_format == OUTPUT_LIBRARY) {
+    if (g_output_format == OUTPUT_LIBRARY) {
       print_error(".RAMSECTION cannot take OFFSET when inside a library.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4261,7 +4262,7 @@ int directive_ramsection(void) {
 
   /* the type of the section */
   if (compare_next_token("FORCE") == SUCCEEDED) {
-    if (output_format == OUTPUT_LIBRARY) {
+    if (g_output_format == OUTPUT_LIBRARY) {
       print_error("Libraries don't take FORCE sections.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4378,7 +4379,7 @@ int directive_ramsection(void) {
   in_ramsection = YES;
 
   /* generate a section start label? */
-  if (extra_definitions == ON)
+  if (g_extra_definitions == ON)
     generate_label("SECTIONSTART_", sec_tmp->name);
 
   return SUCCEEDED;
@@ -4398,11 +4399,11 @@ int directive_section(void) {
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
-  else if (output_format != OUTPUT_LIBRARY && bank_defined == 0) {
+  else if (g_output_format != OUTPUT_LIBRARY && bank_defined == 0) {
     print_error(".SECTION requires a predefined bank.\n", ERROR_DIR);
     return FAILED;
   }
-  else if (output_format != OUTPUT_LIBRARY && org_defined == 0) {
+  else if (g_output_format != OUTPUT_LIBRARY && org_defined == 0) {
     print_error(".SECTION requires a starting address for positioning.\n", ERROR_DIR);
     return FAILED;
   }
@@ -4411,7 +4412,7 @@ int directive_section(void) {
     return FAILED;
 
   /* every library section starts @ the beginning of the bank */
-  if (output_format == OUTPUT_LIBRARY)
+  if (g_output_format == OUTPUT_LIBRARY)
     org_defined = 1;
 
   sec_tmp = calloc(sizeof(struct section_def), 1);
@@ -4566,7 +4567,7 @@ int directive_section(void) {
 
   /* the type of the section */
   if (compare_next_token("FORCE") == SUCCEEDED) {
-    if (output_format == OUTPUT_LIBRARY) {
+    if (g_output_format == OUTPUT_LIBRARY) {
       print_error("Libraries don't take FORCE sections.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4585,7 +4586,7 @@ int directive_section(void) {
       return FAILED;
   }
   else if (compare_next_token("SEMIFREE") == SUCCEEDED) {
-    if (output_format == OUTPUT_LIBRARY) {
+    if (g_output_format == OUTPUT_LIBRARY) {
       print_error("Libraries don't take SEMIFREE sections.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4594,7 +4595,7 @@ int directive_section(void) {
       return FAILED;
   }
   else if (compare_next_token("SEMISUBFREE") == SUCCEEDED) {
-    if (output_format == OUTPUT_LIBRARY) {
+    if (g_output_format == OUTPUT_LIBRARY) {
       print_error("Libraries don't take SEMISUBFREE sections.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4603,7 +4604,7 @@ int directive_section(void) {
       return FAILED;
   }
   else if (compare_next_token("OVERWRITE") == SUCCEEDED) {
-    if (output_format == OUTPUT_LIBRARY) {
+    if (g_output_format == OUTPUT_LIBRARY) {
       print_error("Libraries don't take OVERWRITE sections.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4705,7 +4706,7 @@ int directive_section(void) {
   fprintf(file_out_ptr, "S%d ", sec_tmp->id);
 
   /* generate a section start label? */
-  if (extra_definitions == ON)
+  if (g_extra_definitions == ON)
     generate_label("SECTIONSTART_", sec_tmp->name);
   
   return SUCCEEDED;
@@ -5446,7 +5447,7 @@ int directive_memorymap(void) {
     print_error(".MEMORYMAP can be defined only once.\n", ERROR_DIR);
     return FAILED;
   }
-  if (output_format == OUTPUT_LIBRARY)
+  if (g_output_format == OUTPUT_LIBRARY)
     print_error("Libraries don't need .MEMORYMAP.\n", ERROR_WRN);
 
   while ((ind = get_next_token()) == SUCCEEDED) {
@@ -5612,7 +5613,7 @@ int directive_unbackground(void) {
   
   int start, end, q;
 
-  if (output_format != OUTPUT_OBJECT) {
+  if (g_output_format != OUTPUT_OBJECT) {
     print_error(".UNBACKGROUND can only be used in OBJECT output mode.\n", ERROR_DIR);
     return FAILED;
   }
@@ -5673,7 +5674,7 @@ int directive_background(void) {
   FILE *file_in_ptr;
   int q;
 
-  if (output_format != OUTPUT_OBJECT) {
+  if (g_output_format != OUTPUT_OBJECT) {
     print_error(".BACKGROUND can only be used in OBJECT output mode.\n", ERROR_DIR);
     return FAILED;
   }
@@ -5750,7 +5751,7 @@ int directive_gbheader(void) {
   else
     computecomplementcheck_defined++;
 
-  if (output_format == OUTPUT_LIBRARY) {
+  if (g_output_format == OUTPUT_LIBRARY) {
     print_error("Libraries don't take .GBHEADER.\n", ERROR_DIR);
     return FAILED;
   }
@@ -6353,7 +6354,7 @@ int directive_smsheader(void) {
   if (smstag_defined != 0)
     print_error(".SMSTAG is unnecessary when .SMSHEADER is defined.\n", ERROR_WRN);
 
-  if (output_format == OUTPUT_LIBRARY) {
+  if (g_output_format == OUTPUT_LIBRARY) {
     print_error("Libraries don't take .SMSHEADER.\n", ERROR_DIR);
     return FAILED;
   }
@@ -6886,7 +6887,7 @@ int directive_endm(void) {
 
     g_source_pointer = macro_stack[macro_active].macro_return_i;
 
-    if ((extra_definitions == ON) && (active_file_info_last->filename_id != macro_stack[macro_active].macro_return_filename_id)) {
+    if ((g_extra_definitions == ON) && (active_file_info_last->filename_id != macro_stack[macro_active].macro_return_filename_id)) {
       redefine("WLA_FILENAME", 0.0, get_file_name(macro_stack[macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING,
                (int)strlen(get_file_name(macro_stack[macro_active].macro_return_filename_id)));
       redefine("wla_filename", 0.0, get_file_name(macro_stack[macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING,
@@ -6983,7 +6984,7 @@ int directive_snesheader(void) {
   else
     computesneschecksum_defined++;
 
-  if (output_format == OUTPUT_LIBRARY) {
+  if (g_output_format == OUTPUT_LIBRARY) {
     print_error("Libraries don't take .SNESHEADER.\n", ERROR_DIR);
     return FAILED;
   }
@@ -7276,7 +7277,7 @@ int directive_snesnativevector(void) {
     print_error(".SNESNATIVEVECTOR needs .LOROM, .HIROM or .EXHIROM defined earlier.\n", ERROR_DIR);
     return FAILED;
   }
-  if (output_format == OUTPUT_LIBRARY) {
+  if (g_output_format == OUTPUT_LIBRARY) {
     print_error("Libraries don't take .SNESNATIVEVECTOR.\n", ERROR_DIR);
     return FAILED;
   }
@@ -7496,7 +7497,7 @@ int directive_snesemuvector(void) {
     print_error(".SNESEMUVECTOR needs .LOROM, .HIROM or .EXHIROM defined earlier.\n", ERROR_DIR);
     return FAILED;
   }
-  if (output_format == OUTPUT_LIBRARY) {
+  if (g_output_format == OUTPUT_LIBRARY) {
     print_error("Libraries don't take .SNESEMUVECTOR.\n", ERROR_DIR);
     return FAILED;
   }
@@ -7739,13 +7740,13 @@ int directive_print(void) {
 
       parse_print_string(g_label, t, 256);
 
-      if (quiet == NO) {
+      if (g_quiet == NO) {
         printf("%s", t);
         fflush(stdout);
       }
     }
     else if (inz == SUCCEEDED) {
-      if (quiet == NO) {
+      if (g_quiet == NO) {
         if (value_type == 0)
           printf("%x", d);
         else
@@ -7780,7 +7781,7 @@ int directive_printt(void) {
 
   parse_print_string(g_label, t, 256);
     
-  if (quiet == NO) {
+  if (g_quiet == NO) {
     printf("%s", t);
     fflush(stdout);
   }
@@ -7814,7 +7815,7 @@ int directive_printv(void) {
     return FAILED;
   }
 
-  if (quiet == NO) {
+  if (g_quiet == NO) {
     if (m == 0)
       printf("%x", d);
     else
@@ -8369,7 +8370,7 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    strcpy(final_name, g_label);
+    strcpy(g_final_name, g_label);
 
     return SUCCEEDED;
   }
@@ -8446,7 +8447,7 @@ int parse_directive(void) {
     }
 
     /* generate a section end label? */
-    if (extra_definitions == ON)
+    if (g_extra_definitions == ON)
       generate_label("SECTIONEND_", sections_last->name);
   
     section_status = OFF;
@@ -9037,7 +9038,7 @@ int parse_directive(void) {
     active_file_info_tmp->line_current = 0;
     active_file_info_tmp->filename_id = d;
 
-    if (extra_definitions == ON) {
+    if (g_extra_definitions == ON) {
       file_name_info_tmp = file_name_info_first;
       while (file_name_info_tmp != NULL) {
         if (file_name_info_tmp->id == d)
@@ -9120,7 +9121,7 @@ int parse_directive(void) {
     if (open_files == 0)
       return EVALUATE_TOKEN_EOP;
 
-    if (extra_definitions == ON) {
+    if (g_extra_definitions == ON) {
       redefine("WLA_FILENAME", 0.0, get_file_name(active_file_info_last->filename_id), DEFINITION_TYPE_STRING,
                (int)strlen(get_file_name(active_file_info_last->filename_id)));
       redefine("wla_filename", 0.0, get_file_name(active_file_info_last->filename_id), DEFINITION_TYPE_STRING,

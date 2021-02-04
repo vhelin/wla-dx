@@ -17,8 +17,8 @@ extern struct file_name_info *file_name_info_first, *file_name_info_last, *file_
 extern struct block_name *block_names;
 extern unsigned char *rom_banks, *rom_banks_usage_table;
 extern FILE *file_out_ptr;
-extern char *tmp_name, tmp[4096], emsg[1024], namespace[MAX_NAME_LENGTH + 1];
-extern int verbose_mode, section_status, cartridgetype, output_format;
+extern char *g_tmp_name, tmp[4096], emsg[1024], namespace[MAX_NAME_LENGTH + 1];
+extern int g_verbose_mode, section_status, cartridgetype, g_output_format;
 
 
 struct label_def *label_next, *label_last, *label_tmp, *labels = NULL;
@@ -53,17 +53,17 @@ int pass_3(void) {
 
   namespace[0] = 0;
   
-  if (verbose_mode == ON)
+  if (g_verbose_mode == ON)
     printf("Internal pass 1...\n");
 
-  if ((f_in = fopen(tmp_name, "rb")) == NULL) {
-    fprintf(stderr, "INTERNAL_PASS_1: Error opening file \"%s\".\n", tmp_name);
+  if ((f_in = fopen(g_tmp_name, "rb")) == NULL) {
+    fprintf(stderr, "INTERNAL_PASS_1: Error opening file \"%s\".\n", g_tmp_name);
     return FAILED;
   }
 
   /* first loop */
   o = 0;
-  if (output_format == OUTPUT_OBJECT) {
+  if (g_output_format == OUTPUT_OBJECT) {
     while (o == 0 && fread(&c, 1, 1, f_in) != 0) {
       switch (c) {
 
@@ -878,7 +878,7 @@ int pass_3(void) {
       continue;
 
     default:
-      fprintf(stderr, "%s: INTERNAL_PASS_1: Unknown internal symbol \"%c\" in \"%s\" at offset %ld.\n", get_file_name(file_name_id), c, tmp_name, ftell(f_in)-1);
+      fprintf(stderr, "%s: INTERNAL_PASS_1: Unknown internal symbol \"%c\" in \"%s\" at offset %ld.\n", get_file_name(file_name_id), c, g_tmp_name, ftell(f_in)-1);
       return FAILED;
     }
   }

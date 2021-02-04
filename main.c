@@ -41,10 +41,10 @@ FILE *file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char version_string[] = "$VER: wla-" WLA_NAME " 9.12a (25.1.2021)";
-char wla_version[] = "9.12";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 9.12a (25.1.2021)";
+char g_wla_version[] = "9.12";
 
-char *tmp_name = NULL;
+char *g_tmp_name = NULL;
 
 extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
 extern struct file_name_info *file_name_info_first;
@@ -72,12 +72,12 @@ extern char *rom_banks, *rom_banks_usage_table;
 extern char *include_dir, *buffer, *full_name;
 extern int include_in_tmp_size, tmp_a_size, *banks, *bankaddress;
 
-int output_format = OUTPUT_NONE, verbose_mode = OFF, test_mode = OFF;
-int extra_definitions = OFF, commandline_parsing = ON, makefile_rules = NO;
-int listfile_data = NO, quiet = NO, use_incdir = NO, little_endian = YES;
-int create_sizeof_definitions = YES;
+int g_output_format = OUTPUT_NONE, g_verbose_mode = OFF, g_test_mode = OFF;
+int g_extra_definitions = OFF, g_commandline_parsing = ON, g_makefile_rules = NO;
+int g_listfile_data = NO, g_quiet = NO, g_use_incdir = NO, g_little_endian = YES;
+int g_create_sizeof_definitions = YES;
 
-char *final_name = NULL, *asm_name = NULL;
+char *g_final_name = NULL, *g_asm_name = NULL;
 
 struct ext_include_collection ext_incdirs;
 
@@ -104,9 +104,9 @@ int main(int argc, char *argv[]) {
 
   /* select little/big endianess */
 #if defined(MC6800) || defined(MC6801) || defined(MC6809)
-  little_endian = NO;
+  g_little_endian = NO;
 #else
-  little_endian = YES;
+  g_little_endian = YES;
 #endif
   
   /* init mem_insert() buffer */
@@ -130,27 +130,27 @@ int main(int argc, char *argv[]) {
   if (argc >= 2) {
     parse_flags_result = parse_flags(argv, argc);
     
-    if (output_format == OUTPUT_NONE) {
+    if (g_output_format == OUTPUT_NONE) {
       if (parse_flags_result == SUCCEEDED) {
         /* assume object file output name */
-        output_format = OUTPUT_OBJECT;
-        final_name = calloc(strlen(asm_name)+1, 1);
-        for (n_ctr = 0; n_ctr < (int)strlen(asm_name) && *((asm_name) + n_ctr) != '.'; n_ctr++)
-          final_name[n_ctr] = *((asm_name) + n_ctr);
-        final_name[n_ctr++] = '.';
-        final_name[n_ctr++] = 'o';
-        final_name[n_ctr] = 0;
+        g_output_format = OUTPUT_OBJECT;
+        g_final_name = calloc(strlen(g_asm_name)+1, 1);
+        for (n_ctr = 0; n_ctr < (int)strlen(g_asm_name) && *((g_asm_name) + n_ctr) != '.'; n_ctr++)
+          g_final_name[n_ctr] = *((g_asm_name) + n_ctr);
+        g_final_name[n_ctr++] = '.';
+        g_final_name[n_ctr++] = 'o';
+        g_final_name[n_ctr] = 0;
       }
     }
   }
   
-  if (output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
+  if (g_output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
     printf("\nWLA " ARCH_STR " Macro Assembler v9.12a\n");
     printf("Written by Ville Helin in 1998-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
 #ifdef WLA_DEBUG
     printf("*** WLA_DEBUG defined - this executable is running in DEBUG mode ***\n");
 #endif
-    printf("%s\n\n", version_string);
+    printf("%s\n\n", g_version_string);
     printf("USAGE: %s [OPTIONS] <OUTPUT> <ASM FILE>\n\n", argv[0]);
     printf("Options:\n");
     printf("-i  Add list file information\n");
@@ -169,27 +169,27 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  if (strcmp(asm_name, final_name) == 0) {
+  if (strcmp(g_asm_name, g_final_name) == 0) {
     fprintf(stderr, "MAIN: Input and output files share the same name!\n");
     return 1;
   }
 
-  generate_tmp_name(&tmp_name);
+  generate_tmp_name(&g_tmp_name);
 
-  file_out_ptr = fopen(tmp_name, "wb");
+  file_out_ptr = fopen(g_tmp_name, "wb");
   if (file_out_ptr == NULL) {
-    fprintf(stderr, "MAIN: Error opening file \"%s\" for writing.\n", tmp_name);
+    fprintf(stderr, "MAIN: Error opening file \"%s\" for writing.\n", g_tmp_name);
     return 1;
   }
 
   /* small inits */
-  if (extra_definitions == ON)
+  if (g_extra_definitions == ON)
     generate_extra_definitions();
 
-  commandline_parsing = OFF;
+  g_commandline_parsing = OFF;
 
   /* start the process */
-  if (include_file(asm_name, &include_size, NULL) == FAILED)
+  if (include_file(g_asm_name, &include_size, NULL) == FAILED)
     return 1;
 
   if (pass_1() == FAILED)
@@ -198,7 +198,7 @@ int main(int argc, char *argv[]) {
     return 1;
   if (pass_3() == FAILED)
     return 1;
-  if (listfile_data == YES) {
+  if (g_listfile_data == YES) {
     if (listfile_collect() == FAILED)
       return 1;
   }
@@ -216,13 +216,13 @@ int parse_flags(char **flags, int flagc) {
   
   for (count = 1; count < flagc; count++) {
     if (!strcmp(flags[count], "-o")) {
-      if (output_format != OUTPUT_NONE)
+      if (g_output_format != OUTPUT_NONE)
         return FAILED;
-      output_format = OUTPUT_OBJECT;
+      g_output_format = OUTPUT_OBJECT;
       if (count + 1 < flagc) {
         /* set output */
-        final_name = calloc(strlen(flags[count+1])+1, 1);
-        strcpy(final_name, flags[count+1]);
+        g_final_name = calloc(strlen(flags[count+1])+1, 1);
+        strcpy(g_final_name, flags[count+1]);
       }
       else
         return FAILED;
@@ -231,13 +231,13 @@ int parse_flags(char **flags, int flagc) {
       continue;
     }
     else if (!strcmp(flags[count], "-l")) {
-      if (output_format != OUTPUT_NONE)
+      if (g_output_format != OUTPUT_NONE)
         return FAILED;
-      output_format = OUTPUT_LIBRARY;
+      g_output_format = OUTPUT_LIBRARY;
       if (count + 1 < flagc) {
         /* set output */
-        final_name = calloc(strlen(flags[count+1])+1, 1);
-        strcpy(final_name, flags[count+1]);
+        g_final_name = calloc(strlen(flags[count+1])+1, 1);
+        strcpy(g_final_name, flags[count+1]);
       }
       else
         return FAILED;
@@ -280,40 +280,40 @@ int parse_flags(char **flags, int flagc) {
       continue;
     }
     else if (!strcmp(flags[count], "-i")) {
-      listfile_data = YES;
+      g_listfile_data = YES;
       continue;
     }
     else if (!strcmp(flags[count], "-v")) {
-      verbose_mode = ON;
+      g_verbose_mode = ON;
       continue;
     }
     else if (!strcmp(flags[count], "-s")) {
-      create_sizeof_definitions = NO;
+      g_create_sizeof_definitions = NO;
       continue;
     }
     else if (!strcmp(flags[count], "-t")) {
-      test_mode = ON;
+      g_test_mode = ON;
       continue;
     }
     else if (!strcmp(flags[count], "-M")) {
-      makefile_rules = YES;
-      test_mode = ON;
-      verbose_mode = OFF;
-      quiet = YES;
+      g_makefile_rules = YES;
+      g_test_mode = ON;
+      g_verbose_mode = OFF;
+      g_quiet = YES;
       continue;
     }
     else if (!strcmp(flags[count], "-q")) {
-      quiet = YES;
+      g_quiet = YES;
       continue;
     }
     else if (!strcmp(flags[count], "-x")) {
-      extra_definitions = ON;
+      g_extra_definitions = ON;
       continue;
     }
     else {
       if (count == flagc - 1) {
-        asm_name = calloc(strlen(flags[count]) + 1, 1);
-        strcpy(asm_name, flags[count]);
+        g_asm_name = calloc(strlen(flags[count]) + 1, 1);
+        strcpy(g_asm_name, flags[count]);
         count++;
         asm_name_def++;
       }
@@ -361,8 +361,8 @@ void procedures_at_exit(void) {
 
   free(macro_stack);
   free(repeat_stack);
-  free(final_name);
-  free(asm_name);
+  free(g_final_name);
+  free(g_asm_name);
   free(include_dir);
   free(full_name);
 
@@ -516,8 +516,8 @@ void procedures_at_exit(void) {
   }
 
   /* remove the tmp files */
-  if (tmp_name != NULL)
-    remove(tmp_name);
+  if (g_tmp_name != NULL)
+    remove(g_tmp_name);
 
   /* cleanup any incdirs we added */
   for (index = 0; index < ext_incdirs.count; index++)
@@ -580,9 +580,9 @@ int generate_extra_definitions(void) {
     return FAILED;
   if (add_a_new_definition("wla_time", 0.0, tmp, DEFINITION_TYPE_STRING, (int)strlen(tmp)) == FAILED)
     return FAILED;
-  if (add_a_new_definition("WLA_VERSION", 0.0, wla_version, DEFINITION_TYPE_STRING, (int)strlen(wla_version)) == FAILED)
+  if (add_a_new_definition("WLA_VERSION", 0.0, g_wla_version, DEFINITION_TYPE_STRING, (int)strlen(g_wla_version)) == FAILED)
     return FAILED;
-  if (add_a_new_definition("wla_version", 0.0, wla_version, DEFINITION_TYPE_STRING, (int)strlen(wla_version)) == FAILED)
+  if (add_a_new_definition("wla_version", 0.0, g_wla_version, DEFINITION_TYPE_STRING, (int)strlen(g_wla_version)) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
@@ -721,7 +721,7 @@ int parse_and_add_incdir(char* c, int contains_flag) {
   snprintf(ext_incdirs.names[old_count], buffer_size, "%s/", n);
 #endif
 
-  use_incdir = YES;
+  g_use_incdir = YES;
 
   return SUCCEEDED;
 }
