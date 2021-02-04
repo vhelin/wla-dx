@@ -15,12 +15,12 @@
 
 int parse_string_length(char *end);
 
-int input_number_error_msg = YES, ss, string_size, input_float_mode = OFF, parse_floats = YES, expect_calculations = YES;
-int newline_beginning = ON, parsed_double_decimal_numbers = 0, operand_hint, operand_hint_type;
-char label[MAX_NAME_LENGTH + 1], xyz[512];
-char unevaluated_expression[256];
-char expanded_macro_string[MAX_NAME_LENGTH + 1];
-double parsed_double;
+int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OFF, g_parse_floats = YES, g_expect_calculations = YES;
+int g_newline_beginning = ON, g_parsed_double_decimal_numbers = 0, g_operand_hint, g_operand_hint_type;
+char g_label[MAX_NAME_LENGTH + 1], g_xyz[512];
+char g_unevaluated_expression[256];
+char g_expanded_macro_string[MAX_NAME_LENGTH + 1];
+double g_parsed_double;
 
 extern int g_source_pointer, size, d, macro_active;
 extern char *buffer, tmp[4096], cp[256];
@@ -97,9 +97,9 @@ int compare_next_token(char *token) {
       }
 
       if (d > macro_runtime_current->supplied_arguments) {
-        if (input_number_error_msg == YES) {
-          snprintf(xyz, sizeof(xyz), "COMPARE_NEXT_SYMBOL: Macro \"%s\" wasn't called with enough arguments.\n", macro_runtime_current->macro->name);
-          print_error(xyz, ERROR_NONE);
+        if (g_input_number_error_msg == YES) {
+          snprintf(g_xyz, sizeof(g_xyz), "COMPARE_NEXT_SYMBOL: Macro \"%s\" wasn't called with enough arguments.\n", macro_runtime_current->macro->name);
+          print_error(g_xyz, ERROR_NONE);
         }
         return FAILED;
       }
@@ -159,9 +159,9 @@ int input_next_string(void) {
   }
 
   if (k == MAX_NAME_LENGTH) {
-    if (input_number_error_msg == YES) {
-      snprintf(xyz, sizeof(xyz), "The string is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
-      print_error(xyz, ERROR_NUM);
+    if (g_input_number_error_msg == YES) {
+      snprintf(g_xyz, sizeof(g_xyz), "The string is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
+      print_error(g_xyz, ERROR_NUM);
     }
     return FAILED;
   }
@@ -186,8 +186,8 @@ int input_number(void) {
   double decimal_mul;
 
 
-  operand_hint = HINT_NONE;
-  operand_hint_type = HINT_TYPE_NONE;
+  g_operand_hint = HINT_NONE;
+  g_operand_hint_type = HINT_TYPE_NONE;
 
   /* skip white space */
   for (e = buffer[g_source_pointer++]; e == ' ' || e == ','; e = buffer[g_source_pointer++])
@@ -196,7 +196,7 @@ int input_number(void) {
   if (e == 0x0A)
     return INPUT_NUMBER_EOL;
 
-  if (expect_calculations == YES) {
+  if (g_expect_calculations == YES) {
     /* check the type of the expression */
     p = g_source_pointer;
     ee = e;
@@ -265,13 +265,13 @@ int input_number(void) {
 
     if (exit_here == YES) {
       if (d > macro_runtime_current->supplied_arguments) {
-        snprintf(xyz, sizeof(xyz), "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", d, macro_runtime_current->macro->name, macro_runtime_current->supplied_arguments);
-        print_error(xyz, ERROR_NUM);
+        snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", d, macro_runtime_current->macro->name, macro_runtime_current->supplied_arguments);
+        print_error(g_xyz, ERROR_NUM);
         return FAILED;
       }
       if (d == 0) {
-        snprintf(xyz, sizeof(xyz), "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", d, macro_runtime_current->macro->name);
-        print_error(xyz, ERROR_NUM);
+        snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", d, macro_runtime_current->macro->name);
+        print_error(g_xyz, ERROR_NUM);
         return FAILED;
       }
 
@@ -280,16 +280,16 @@ int input_number(void) {
       k = ma->type;
 
       if (k == INPUT_NUMBER_ADDRESS_LABEL)
-        strcpy(label, ma->string);
+        strcpy(g_label, ma->string);
       else if (k == INPUT_NUMBER_STRING) {
-        strcpy(label, ma->string);
-        string_size = (int)strlen(ma->string);
+        strcpy(g_label, ma->string);
+        g_string_size = (int)strlen(ma->string);
       }
       else if (k == INPUT_NUMBER_STACK)
         latest_stack = (int)ma->value;
       else if (k == SUCCEEDED) {
         d = (int)ma->value;
-        parsed_double = ma->value;
+        g_parsed_double = ma->value;
       }
       else {
         print_error("Macro argument list has been corrupted! Please send a bug report!\n", ERROR_ERR);
@@ -300,18 +300,18 @@ int input_number(void) {
       if (e == '.') {
         e = buffer[g_source_pointer+1];
         if (e == 'b' || e == 'B') {
-          operand_hint = HINT_8BIT;
-          operand_hint_type = HINT_TYPE_GIVEN;
+          g_operand_hint = HINT_8BIT;
+          g_operand_hint_type = HINT_TYPE_GIVEN;
           g_source_pointer += 2;
         }
         else if (e == 'w' || e == 'W') {
-          operand_hint = HINT_16BIT;
-          operand_hint_type = HINT_TYPE_GIVEN;
+          g_operand_hint = HINT_16BIT;
+          g_operand_hint_type = HINT_TYPE_GIVEN;
           g_source_pointer += 2;
         }
         else if (e == 'l' || e == 'L') {
-          operand_hint = HINT_24BIT;
-          operand_hint_type = HINT_TYPE_GIVEN;
+          g_operand_hint = HINT_24BIT;
+          g_operand_hint_type = HINT_TYPE_GIVEN;
           g_source_pointer += 2;
         }
       }
@@ -365,42 +365,42 @@ int input_number(void) {
     if (e == '.') {
       e = buffer[g_source_pointer+1];
       if (e == 'b' || e == 'B') {
-        operand_hint = HINT_8BIT;
-        operand_hint_type = HINT_TYPE_GIVEN;
+        g_operand_hint = HINT_8BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
         g_source_pointer += 2;
       }
       else if (e == 'w' || e == 'W') {
-        operand_hint = HINT_16BIT;
-        operand_hint_type = HINT_TYPE_GIVEN;
+        g_operand_hint = HINT_16BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
         g_source_pointer += 2;
       }
       else if (e == 'l' || e == 'L') {
-        operand_hint = HINT_24BIT;
-        operand_hint_type = HINT_TYPE_GIVEN;
+        g_operand_hint = HINT_24BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
         g_source_pointer += 2;
       }
     }
 
-    if (operand_hint == HINT_NONE) {
+    if (g_operand_hint == HINT_NONE) {
       if (d > 0xFFFF && d <= 0xFFFFFF)
-        operand_hint = HINT_24BIT;
+        g_operand_hint = HINT_24BIT;
       else if (d > 0xFF)
-        operand_hint = HINT_16BIT;
+        g_operand_hint = HINT_16BIT;
       else
-        operand_hint = HINT_8BIT;
+        g_operand_hint = HINT_8BIT;
 
-      operand_hint_type = HINT_TYPE_DEDUCED;
+      g_operand_hint_type = HINT_TYPE_DEDUCED;
 
 #if defined(MC6809)
       /* 5-bit values need this */
       if (d >= -16 && d <= 15) {
-        operand_hint = HINT_NONE;
-        operand_hint_type = HINT_TYPE_NONE;
+        g_operand_hint = HINT_NONE;
+        g_operand_hint_type = HINT_TYPE_NONE;
       }
 #endif
     }
     
-    parsed_double = (double)d;
+    g_parsed_double = (double)d;
     
     return SUCCEEDED;
   }
@@ -410,8 +410,8 @@ int input_number(void) {
     
     /* we are parsing decimals when q == 1 */
     q = 0;
-    parsed_double = e-'0';
-    parsed_double_decimal_numbers = 0;
+    g_parsed_double = e-'0';
+    g_parsed_double_decimal_numbers = 0;
     decimal_mul = 0.1;
     for (k = 0; k < max_digits; k++, g_source_pointer++) {
       e = buffer[g_source_pointer];
@@ -420,20 +420,20 @@ int input_number(void) {
           if (q == 0)
             print_error("Too many digits in the integer value. Max 10 is supported.\n", ERROR_NUM);
           else {
-            snprintf(xyz, sizeof(xyz), "Too many digits in the floating point value. Max %d is supported.\n", MAX_FLOAT_DIGITS);
-            print_error(xyz, ERROR_NUM);
+            snprintf(g_xyz, sizeof(g_xyz), "Too many digits in the floating point value. Max %d is supported.\n", MAX_FLOAT_DIGITS);
+            print_error(g_xyz, ERROR_NUM);
           }
           return FAILED;
         }
         
         if (q == 0) {
           /* still parsing an integer */
-          parsed_double = parsed_double*10 + e-'0';
+          g_parsed_double = g_parsed_double*10 + e-'0';
         }
         else {
-          parsed_double = parsed_double + decimal_mul*(e-'0');
+          g_parsed_double = g_parsed_double + decimal_mul*(e-'0');
           decimal_mul /= 10.0;
-          parsed_double_decimal_numbers = parsed_double_decimal_numbers*10 + (e-'0');
+          g_parsed_double_decimal_numbers = g_parsed_double_decimal_numbers*10 + (e-'0');
         }
       }
       else if (e == '.') {
@@ -444,26 +444,26 @@ int input_number(void) {
         e = buffer[g_source_pointer+1];
         if (e >= '0' && e <= '9') {
           /* float mode, read decimals */
-          if (parse_floats == NO)
+          if (g_parse_floats == NO)
             break;
           q = 1;
           max_digits = MAX_FLOAT_DIGITS+1;
         }
         else if (e == 'b' || e == 'B') {
-          operand_hint = HINT_8BIT;
-          operand_hint_type = HINT_TYPE_GIVEN;
+          g_operand_hint = HINT_8BIT;
+          g_operand_hint_type = HINT_TYPE_GIVEN;
           g_source_pointer += 2;
           break;
         }
         else if (e == 'w' || e == 'W') {
-          operand_hint = HINT_16BIT;
-          operand_hint_type = HINT_TYPE_GIVEN;
+          g_operand_hint = HINT_16BIT;
+          g_operand_hint_type = HINT_TYPE_GIVEN;
           g_source_pointer += 2;
           break;
         }
         else if (e == 'l' || e == 'L') {
-          operand_hint = HINT_24BIT;
-          operand_hint_type = HINT_TYPE_GIVEN;
+          g_operand_hint = HINT_24BIT;
+          g_operand_hint_type = HINT_TYPE_GIVEN;
           g_source_pointer += 2;
           break;
         }
@@ -478,28 +478,28 @@ int input_number(void) {
     }
 
     /* drop the decimals */
-    d = (int)parsed_double;
+    d = (int)g_parsed_double;
 
-    if (operand_hint == HINT_NONE) {
+    if (g_operand_hint == HINT_NONE) {
       if (d > 0xFFFF && d <= 0xFFFFFF)
-        operand_hint = HINT_24BIT;
+        g_operand_hint = HINT_24BIT;
       else if (d > 0xFF)
-        operand_hint = HINT_16BIT;
+        g_operand_hint = HINT_16BIT;
       else
-        operand_hint = HINT_8BIT;
+        g_operand_hint = HINT_8BIT;
 
-      operand_hint_type = HINT_TYPE_DEDUCED;
+      g_operand_hint_type = HINT_TYPE_DEDUCED;
 
 #if defined(MC6809)
       /* 5-bit values need this */
       if (d >= -16 && d <= 15) {
-        operand_hint = HINT_NONE;
-        operand_hint_type = HINT_TYPE_NONE;
+        g_operand_hint = HINT_NONE;
+        g_operand_hint_type = HINT_TYPE_NONE;
       }
 #endif
     }
     
-    if (q == 1 && input_float_mode == ON)
+    if (q == 1 && g_input_float_mode == ON)
       return INPUT_NUMBER_FLOAT;
 
     return SUCCEEDED;
@@ -517,23 +517,23 @@ int input_number(void) {
     if (e == '.') {
       e = buffer[g_source_pointer+1];
       if (e == 'b' || e == 'B') {
-        operand_hint = HINT_8BIT;
-        operand_hint_type = HINT_TYPE_GIVEN;
+        g_operand_hint = HINT_8BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
         g_source_pointer += 2;
       }
       else if (e == 'w' || e == 'W') {
-        operand_hint = HINT_16BIT;
-        operand_hint_type = HINT_TYPE_GIVEN;
+        g_operand_hint = HINT_16BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
         g_source_pointer += 2;
       }
       else if (e == 'l' || e == 'L') {
-        operand_hint = HINT_24BIT;
-        operand_hint_type = HINT_TYPE_GIVEN;
+        g_operand_hint = HINT_24BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
         g_source_pointer += 2;
       }
     }
 
-    parsed_double = (double)d;
+    g_parsed_double = (double)d;
 
     return SUCCEEDED;
   }
@@ -542,15 +542,15 @@ int input_number(void) {
     d = buffer[g_source_pointer++];
     e = buffer[g_source_pointer];
     if (e != '\'') {
-      if (input_number_error_msg == YES) {
-        snprintf(xyz, sizeof(xyz), "Got '%c' (%d) when expected \"'\".\n", e, e);
-        print_error(xyz, ERROR_NUM);
+      if (g_input_number_error_msg == YES) {
+        snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected \"'\".\n", e, e);
+        print_error(g_xyz, ERROR_NUM);
       }
       return FAILED;
     }
     g_source_pointer++;
 
-    parsed_double = (double)d;
+    g_parsed_double = (double)d;
     
     return SUCCEEDED;
   }
@@ -565,7 +565,7 @@ int input_number(void) {
       e = buffer[g_source_pointer++];
 
       if (e == '\\' && buffer[g_source_pointer] == '"') {
-        label[k++] = '"';
+        g_label[k++] = '"';
         g_source_pointer++;
         continue;
       }
@@ -589,9 +589,9 @@ int input_number(void) {
             (buffer[g_source_pointer+6] == 'h' || buffer[g_source_pointer+6] == 'H')) {
           /* yes, we've got it! calculate the length and return the integer */
           g_source_pointer += 7;
-          label[k] = 0;
-          d = (int)get_label_length(label);
-          parsed_double = (double)d;
+          g_label[k] = 0;
+          d = (int)get_label_length(g_label);
+          g_parsed_double = (double)d;
 
           return SUCCEEDED;
         }
@@ -607,34 +607,34 @@ int input_number(void) {
         return FAILED;
       }
 
-      label[k++] = e;
+      g_label[k++] = e;
     }
 
-    label[k] = 0;
+    g_label[k] = 0;
 
     /* expand e.g., \1 and \@ */
     if (macro_active != 0) {
-      if (expand_macro_arguments(label) == FAILED)
+      if (expand_macro_arguments(g_label) == FAILED)
         return FAILED;
-      k = (int)strlen(label);
+      k = (int)strlen(g_label);
     }
 
     if (k == MAX_NAME_LENGTH) {
-      if (input_number_error_msg == YES) {
-        snprintf(xyz, sizeof(xyz), "The string is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
-        print_error(xyz, ERROR_NUM);
+      if (g_input_number_error_msg == YES) {
+        snprintf(g_xyz, sizeof(g_xyz), "The string is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
+        print_error(g_xyz, ERROR_NUM);
       }
       return FAILED;
     }
 
-    label[k] = 0;
-    string_size = k;
+    g_label[k] = 0;
+    g_string_size = k;
     
     return INPUT_NUMBER_STRING;
   }
 
   /* the last choice is a label */
-  label[0] = e;
+  g_label[0] = e;
   for (k = 1; k < MAX_NAME_LENGTH; k++) {
     e = buffer[g_source_pointer++];
     if (e == 0x0A || e == ')' || e == ',' || e == ']') {
@@ -643,87 +643,87 @@ int input_number(void) {
     }
     else if (e == ' ')
       break;
-    label[k] = e;
+    g_label[k] = e;
   }
 
   if (k == MAX_NAME_LENGTH) {
-    if (input_number_error_msg == YES) {
-      snprintf(xyz, sizeof(xyz), "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
-      print_error(xyz, ERROR_NUM);
+    if (g_input_number_error_msg == YES) {
+      snprintf(g_xyz, sizeof(g_xyz), "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
+      print_error(g_xyz, ERROR_NUM);
     }
     return FAILED;
   }
 
   /* size hint? */
-  if (label[k-2] == '.') {
-    if (label[k-1] == 'b' || label[k-1] == 'B') {
-      operand_hint = HINT_8BIT;
-      operand_hint_type = HINT_TYPE_GIVEN;
+  if (g_label[k-2] == '.') {
+    if (g_label[k-1] == 'b' || g_label[k-1] == 'B') {
+      g_operand_hint = HINT_8BIT;
+      g_operand_hint_type = HINT_TYPE_GIVEN;
       k -= 2;
     }
-    else if (label[k-1] == 'w' || label[k-1] == 'W') {
-      operand_hint = HINT_16BIT;
-      operand_hint_type = HINT_TYPE_GIVEN;
+    else if (g_label[k-1] == 'w' || g_label[k-1] == 'W') {
+      g_operand_hint = HINT_16BIT;
+      g_operand_hint_type = HINT_TYPE_GIVEN;
       k -= 2;
     }
-    else if (label[k-1] == 'l' || label[k-1] == 'L') {
-      operand_hint = HINT_24BIT;
-      operand_hint_type = HINT_TYPE_GIVEN;
+    else if (g_label[k-1] == 'l' || g_label[k-1] == 'L') {
+      g_operand_hint = HINT_24BIT;
+      g_operand_hint_type = HINT_TYPE_GIVEN;
       k -= 2;
     }
   }
 
-  label[k] = 0;
+  g_label[k] = 0;
 
   /* expand e.g., \1 and \@ */
   if (macro_active != 0) {
-    if (expand_macro_arguments(label) == FAILED)
+    if (expand_macro_arguments(g_label) == FAILED)
       return FAILED;
   }
 
   /* label_tmp contains the label without possible prefix ':' */
-  if (strlen(label) > 1 && label[0] == ':')
-    strcpy(label_tmp, &label[1]);
+  if (strlen(g_label) > 1 && g_label[0] == ':')
+    strcpy(label_tmp, &g_label[1]);
   else
-    strcpy(label_tmp, label);
+    strcpy(label_tmp, g_label);
 
   /* check for "string".length */
-  if (strstr(label, ".length") != NULL) {
-    parse_string_length(strstr(label, ".length"));
+  if (strstr(g_label, ".length") != NULL) {
+    parse_string_length(strstr(g_label, ".length"));
     return SUCCEEDED;
   }
-  else if (strstr(label, ".LENGTH") != NULL) {
-    parse_string_length(strstr(label, ".LENGTH"));
+  else if (strstr(g_label, ".LENGTH") != NULL) {
+    parse_string_length(strstr(g_label, ".LENGTH"));
     return SUCCEEDED;
   }
 
   /* check if the label is actually a definition */
-  if (hashmap_get(defines_map, label, (void*)&tmp_def) != MAP_OK)
+  if (hashmap_get(defines_map, g_label, (void*)&tmp_def) != MAP_OK)
     hashmap_get(defines_map, label_tmp, (void*)&tmp_def);
   if (tmp_def != NULL) {
     if (tmp_def->type == DEFINITION_TYPE_VALUE) {
       d = (int)tmp_def->value;
 
-      if (operand_hint == HINT_NONE) {
+      if (g_operand_hint == HINT_NONE) {
         if (d > 0xFFFF && d <= 0xFFFFFF)
-          operand_hint = HINT_24BIT;
+          g_operand_hint = HINT_24BIT;
         else if (d > 0xFF)
-          operand_hint = HINT_16BIT;
+          g_operand_hint = HINT_16BIT;
         else
-          operand_hint = HINT_8BIT;
+          g_operand_hint = HINT_8BIT;
 
-        operand_hint_type = HINT_TYPE_DEDUCED;
+        g_operand_hint_type = HINT_TYPE_DEDUCED;
 
 #if defined(MC6809)
         /* 5-bit values need this */
         if (d >= -16 && d <= 15) {
-          operand_hint = HINT_NONE;
-          operand_hint_type = HINT_TYPE_NONE;
+          g_operand_hint = HINT_NONE;
+          g_operand_hint_type = HINT_TYPE_NONE;
         }
 #endif
       }
       
-      parsed_double = (double)d;
+      g_parsed_double = (double)d;
 
       return SUCCEEDED;
     }
@@ -735,29 +735,29 @@ int input_number(void) {
       return INPUT_NUMBER_STACK;
     }
     else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
-      if (label[0] == ':') {
+      if (g_label[0] == ':') {
         /* we need to keep the ':' prefix */
         if (strlen(tmp_def->string) >= MAX_NAME_LENGTH-1) {
-          if (input_number_error_msg == YES) {
-            snprintf(xyz, sizeof(xyz), "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
-            print_error(xyz, ERROR_NUM);
+          if (g_input_number_error_msg == YES) {
+            snprintf(g_xyz, sizeof(g_xyz), "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
+            print_error(g_xyz, ERROR_NUM);
           }
           return FAILED;          
         }
-        snprintf(label, sizeof(label), ":%.254s", tmp_def->string);
-        string_size = tmp_def->size + 1;
+        snprintf(g_label, sizeof(g_label), ":%.254s", tmp_def->string);
+        g_string_size = tmp_def->size + 1;
       }
       else {
-        string_size = tmp_def->size;
-        memcpy(label, tmp_def->string, string_size);
-        label[string_size] = 0;
+        g_string_size = tmp_def->size;
+        memcpy(g_label, tmp_def->string, g_string_size);
+        g_label[g_string_size] = 0;
       }
       return INPUT_NUMBER_ADDRESS_LABEL;
     }
     else {
-      string_size = tmp_def->size;
-      memcpy(label, tmp_def->string, string_size);
-      label[string_size] = 0;
+      g_string_size = tmp_def->size;
+      memcpy(g_label, tmp_def->string, g_string_size);
+      g_label[g_string_size] = 0;
       
       return INPUT_NUMBER_STRING;
     }
@@ -773,34 +773,34 @@ int parse_string_length(char *end) {
   end[0] = 0;
 
   /* check if the label is actually a definition - it should be or else we'll give an error */
-  hashmap_get(defines_map, label, (void*)&tmp_def);
+  hashmap_get(defines_map, g_label, (void*)&tmp_def);
   
   if (tmp_def != NULL) {
     if (tmp_def->type == DEFINITION_TYPE_VALUE) {
-      if (input_number_error_msg == YES) {
+      if (g_input_number_error_msg == YES) {
         print_error(".length of a value does not make any sense.\n", ERROR_NUM);
       }
       return FAILED;
     }
     else if (tmp_def->type == DEFINITION_TYPE_STACK) {
-      if (input_number_error_msg == YES) {
+      if (g_input_number_error_msg == YES) {
         print_error(".length of a pending computation does not make any sense.\n", ERROR_NUM);
       }
       return FAILED;
     }
     else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
-      if (input_number_error_msg == YES) {
+      if (g_input_number_error_msg == YES) {
         print_error(".length of an address label does not make any sense.\n", ERROR_NUM);
       }
       return FAILED;
     }
     else {
-      string_size = tmp_def->size;
-      memcpy(label, tmp_def->string, string_size);
-      label[string_size] = 0;
+      g_string_size = tmp_def->size;
+      memcpy(g_label, tmp_def->string, g_string_size);
+      g_label[g_string_size] = 0;
 
-      d = (int)strlen(label);
-      parsed_double = (double)d;
+      d = (int)strlen(g_label);
+      g_parsed_double = (double)d;
           
       return SUCCEEDED;
     }
@@ -817,7 +817,7 @@ void skip_whitespace(void) {
       break;
     if (buffer[g_source_pointer] == ' ') {
       g_source_pointer++;
-      newline_beginning = OFF;
+      g_newline_beginning = OFF;
       continue;
     }
     if (buffer[g_source_pointer] == 0xA) {
@@ -836,30 +836,30 @@ int get_next_plain_string(void) {
   
   skip_whitespace();
 
-  ss = 0;
+  g_ss = 0;
   while (1) {
-    if (ss >= MAX_NAME_LENGTH) {
+    if (g_ss >= MAX_NAME_LENGTH) {
       print_error("GET_NEXT_PLAIN_STRING: Too long for a string.\n", ERROR_NONE);
       return FAILED;
     }
 
     c = buffer[g_source_pointer];
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '\\' || c == '@' || c == ':') {
-      tmp[ss] = c;
-      ss++;
+      tmp[g_ss] = c;
+      g_ss++;
       g_source_pointer++;
     }
     else
       break;
   }
 
-  tmp[ss] = 0;
+  tmp[g_ss] = 0;
 
   /* expand e.g., \1 and \@ */
   if (macro_active != 0) {
     if (expand_macro_arguments(tmp) == FAILED)
       return FAILED;
-    ss = (int)strlen(tmp);
+    g_ss = (int)strlen(tmp);
   }
 
   return SUCCEEDED;
@@ -876,27 +876,27 @@ int get_next_token(void) {
   
   /* "string"? */
   if (buffer[g_source_pointer] == '"') {
-    for (ss = 0, g_source_pointer++; buffer[g_source_pointer] != 0xA && buffer[g_source_pointer] != '"'; ) {
+    for (g_ss = 0, g_source_pointer++; buffer[g_source_pointer] != 0xA && buffer[g_source_pointer] != '"'; ) {
       if (buffer[g_source_pointer] == '\\' && buffer[g_source_pointer + 1] == '"') {
-        tmp[ss++] = '"';
+        tmp[g_ss++] = '"';
         g_source_pointer += 2;
       }
       else
-        tmp[ss++] = buffer[g_source_pointer++];
+        tmp[g_ss++] = buffer[g_source_pointer++];
     }
 
     if (buffer[g_source_pointer] == 0xA) {
       print_error("GET_NEXT_TOKEN: String wasn't terminated properly.\n", ERROR_NONE);
       return FAILED;
     }
-    tmp[ss] = 0;
+    tmp[g_ss] = 0;
     g_source_pointer++;
 
     /* expand e.g., \1 and \@ */
     if (macro_active != 0) {
       if (expand_macro_arguments(tmp) == FAILED)
         return FAILED;
-      ss = (int)strlen(tmp);
+      g_ss = (int)strlen(tmp);
     }
 
     return GET_NEXT_TOKEN_STRING;
@@ -905,38 +905,38 @@ int get_next_token(void) {
   if (buffer[g_source_pointer] == '.') {
     tmp[0] = '.';
     g_source_pointer++;
-    for (ss = 1; buffer[g_source_pointer] != 0x0A && buffer[g_source_pointer] != ' ' && buffer[g_source_pointer] != '-' && ss < MAX_NAME_LENGTH; ) {
-      tmp[ss] = buffer[g_source_pointer];
-      cp[ss - 1] = toupper((int)buffer[g_source_pointer]);
+    for (g_ss = 1; buffer[g_source_pointer] != 0x0A && buffer[g_source_pointer] != ' ' && buffer[g_source_pointer] != '-' && g_ss < MAX_NAME_LENGTH; ) {
+      tmp[g_ss] = buffer[g_source_pointer];
+      cp[g_ss - 1] = toupper((int)buffer[g_source_pointer]);
       g_source_pointer++;
-      ss++;
+      g_ss++;
     }
-    cp[ss - 1] = 0;
+    cp[g_ss - 1] = 0;
   }
   else if (buffer[g_source_pointer] == '=' || buffer[g_source_pointer] == '>' || buffer[g_source_pointer] == '<' || buffer[g_source_pointer] == '!') {
-    for (ss = 0; buffer[g_source_pointer] != 0xA && (buffer[g_source_pointer] == '=' || buffer[g_source_pointer] == '!' || buffer[g_source_pointer] == '<' || buffer[g_source_pointer] == '>')
-           && ss < MAX_NAME_LENGTH; tmp[ss++] = buffer[g_source_pointer++]);
+    for (g_ss = 0; buffer[g_source_pointer] != 0xA && (buffer[g_source_pointer] == '=' || buffer[g_source_pointer] == '!' || buffer[g_source_pointer] == '<' || buffer[g_source_pointer] == '>')
+           && g_ss < MAX_NAME_LENGTH; tmp[g_ss++] = buffer[g_source_pointer++]);
   }
   else {
-    for (ss = 0; buffer[g_source_pointer] != 0xA && buffer[g_source_pointer] != ',' && buffer[g_source_pointer] != ' ' && ss < MAX_NAME_LENGTH; ) {
-      tmp[ss] = buffer[g_source_pointer];
-      ss++;
+    for (g_ss = 0; buffer[g_source_pointer] != 0xA && buffer[g_source_pointer] != ',' && buffer[g_source_pointer] != ' ' && g_ss < MAX_NAME_LENGTH; ) {
+      tmp[g_ss] = buffer[g_source_pointer];
+      g_ss++;
       g_source_pointer++;
     }
   }
 
-  if (ss >= MAX_NAME_LENGTH) {
+  if (g_ss >= MAX_NAME_LENGTH) {
     print_error("GET_NEXT_TOKEN: Too long for a token.\n", ERROR_NONE);
     return FAILED;
   }
 
-  tmp[ss] = 0;
+  tmp[g_ss] = 0;
 
   /* expand e.g., \1 and \@ */
   if (macro_active != 0) {
     if (expand_macro_arguments(tmp) == FAILED)
       return FAILED;
-    ss = (int)strlen(tmp);
+    g_ss = (int)strlen(tmp);
   }
 
   return SUCCEEDED;
@@ -981,14 +981,14 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
   int i, j, k, adder;
 
 
-  memset(expanded_macro_string, 0, MAX_NAME_LENGTH + 1);
+  memset(g_expanded_macro_string, 0, MAX_NAME_LENGTH + 1);
 
   for (i = 0, k = 0; i < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; i++) {
     if (in[i] == '\\') {
       if (in[i + 1] == '"' || in[i + 1] == 'n' || in[i + 1] == '\\') {
-        expanded_macro_string[k++] = in[i];
+        g_expanded_macro_string[k++] = in[i];
         i++;
-        expanded_macro_string[k++] = in[i];
+        g_expanded_macro_string[k++] = in[i];
       }
       else if (in[i + 1] == '@') {
         /* we found '@' -> expand! */
@@ -1011,7 +1011,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
         
         snprintf(t, sizeof(t), "%d", macro_runtime_current->macro->calls - 1 + adder);
         for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
-          expanded_macro_string[k] = t[j];
+          g_expanded_macro_string[k] = t[j];
           if (t[j] == 0)
             break;
         }
@@ -1033,9 +1033,9 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
         i--;
 
         if (d <= 0 || d > macro_runtime_current->supplied_arguments) {
-          if (input_number_error_msg == YES) {
-            snprintf(xyz, sizeof(xyz), "Macro \"%s\" wasn't called with enough arguments, \\?%d is out of range.\n", macro_runtime_current->macro->name, d);
-            print_error(xyz, ERROR_NUM);
+          if (g_input_number_error_msg == YES) {
+            snprintf(g_xyz, sizeof(g_xyz), "Macro \"%s\" wasn't called with enough arguments, \\?%d is out of range.\n", macro_runtime_current->macro->name, d);
+            print_error(g_xyz, ERROR_NUM);
           }
     
           return FAILED;
@@ -1056,7 +1056,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
           strcpy(t, "???");
         
         for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
-          expanded_macro_string[k] = t[j];
+          g_expanded_macro_string[k] = t[j];
           if (t[j] == 0)
             break;
         }
@@ -1068,7 +1068,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
         snprintf(t, sizeof(t), "%s", macro_runtime_current->macro->name);
         for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
-          expanded_macro_string[k] = t[j];
+          g_expanded_macro_string[k] = t[j];
           if (t[j] == 0)
             break;
         }
@@ -1080,7 +1080,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
         snprintf(t, sizeof(t), "%s", get_file_name(active_file_info_last->filename_id));
         for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
-          expanded_macro_string[k] = t[j];
+          g_expanded_macro_string[k] = t[j];
           if (t[j] == 0)
             break;
         }
@@ -1101,9 +1101,9 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
         i--;
 
         if (d > macro_runtime_current->supplied_arguments) {
-          if (input_number_error_msg == YES) {
-            snprintf(xyz, sizeof(xyz), "Macro \"%s\" wasn't called with enough arguments, \\%d is out of range.\n", macro_runtime_current->macro->name, d);
-            print_error(xyz, ERROR_NUM);
+          if (g_input_number_error_msg == YES) {
+            snprintf(g_xyz, sizeof(g_xyz), "Macro \"%s\" wasn't called with enough arguments, \\%d is out of range.\n", macro_runtime_current->macro->name, d);
+            print_error(g_xyz, ERROR_NUM);
           }
     
           return FAILED;
@@ -1114,35 +1114,35 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
         for (; k < MAX_NAME_LENGTH; d++, k++) {
           if (buffer[d] == 0 || buffer[d] == ' ' || buffer[d] == 0x0A || buffer[d] == ',')
             break;
-          expanded_macro_string[k] = buffer[d];
+          g_expanded_macro_string[k] = buffer[d];
         }
       }
       else {
-        if (input_number_error_msg == YES) {
-          snprintf(xyz, sizeof(xyz), "EXPAND_MACRO_ARGUMENTS: Unsupported special character '%c'.\n", in[i + 1]);
-          print_error(xyz, ERROR_NUM);
+        if (g_input_number_error_msg == YES) {
+          snprintf(g_xyz, sizeof(g_xyz), "EXPAND_MACRO_ARGUMENTS: Unsupported special character '%c'.\n", in[i + 1]);
+          print_error(g_xyz, ERROR_NUM);
         }
     
         return FAILED;
       }
     }
     else
-      expanded_macro_string[k++] = in[i];
+      g_expanded_macro_string[k++] = in[i];
 
     if (in[i] == 0)
       break;
   }
 
   if (k >= MAX_NAME_LENGTH) {
-    if (input_number_error_msg == YES) {
-      snprintf(xyz, sizeof(xyz), "EXPAND_MACRO_ARGUMENTS: The result string is too large, increase MAX_NAME_LENGTH and compile WLA DX again.\n");
-      print_error(xyz, ERROR_NUM);
+    if (g_input_number_error_msg == YES) {
+      snprintf(g_xyz, sizeof(g_xyz), "EXPAND_MACRO_ARGUMENTS: The result string is too large, increase MAX_NAME_LENGTH and compile WLA DX again.\n");
+      print_error(g_xyz, ERROR_NUM);
     }
     
     return FAILED;
   }
 
-  memcpy(in, expanded_macro_string, MAX_NAME_LENGTH);
+  memcpy(in, g_expanded_macro_string, MAX_NAME_LENGTH);
   in[MAX_NAME_LENGTH] = '\0';
 
   return SUCCEEDED;

@@ -15,15 +15,15 @@
 #include "printf.h"
 
 
-extern int input_number_error_msg, bankheader_status, input_float_mode;
-extern int g_source_pointer, size, d, macro_active, string_size, section_status, parse_floats;
-extern char xyz[512], *buffer, tmp[4096], expanded_macro_string[256], label[MAX_NAME_LENGTH + 1];
+extern int g_input_number_error_msg, bankheader_status, g_input_float_mode;
+extern int g_source_pointer, size, d, macro_active, g_string_size, section_status, g_parse_floats;
+extern char g_xyz[512], *buffer, tmp[4096], g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
 extern struct definition *tmp_def;
 extern struct map_t *defines_map;
 extern struct active_file_info *active_file_info_first, *active_file_info_last, *active_file_info_tmp;
 extern struct macro_runtime *macro_runtime_current;
 extern struct section_def *sec_tmp;
-extern double parsed_double;
+extern double g_parsed_double;
 
 int latest_stack = 0, stacks_inside = 0, stacks_outside = 0, stack_id = 0;
 struct stack *stacks_first = NULL, *stacks_tmp = NULL, *stacks_last = NULL;
@@ -33,7 +33,7 @@ struct stack *stacks_header_first = NULL, *stacks_header_last = NULL;
 extern int stack_inserted;
 #endif
 
-extern int operand_hint, operand_hint_type;
+extern int g_operand_hint, g_operand_hint_type;
 
 
 static int _stack_insert(void) {
@@ -153,8 +153,8 @@ int get_label_length(char *l) {
     if (tmp_def->type == DEFINITION_TYPE_STRING)
       return (int)strlen(tmp_def->string);
     else {
-      snprintf(xyz, sizeof(xyz), "Definition \"%s\" is not a string definition. .length returns 0 for that...\n", l);
-      print_error(xyz, ERROR_NUM);
+      snprintf(g_xyz, sizeof(g_xyz), "Definition \"%s\" is not a string definition. .length returns 0 for that...\n", l);
+      print_error(g_xyz, ERROR_NUM);
       return 0;
     }
   }
@@ -260,7 +260,7 @@ int stack_calculate(char *in, int *value) {
     }
     else if (*in == '#') {
       if (q == 0) {
-        if (input_number_error_msg == YES)
+        if (g_input_number_error_msg == YES)
           print_error("Syntax error. Invalid use of modulo.\n", ERROR_STC);
         return FAILED;
       }
@@ -332,26 +332,26 @@ int stack_calculate(char *in, int *value) {
     }
     else if (*in == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L')) {
       in++;
-      d = operand_hint;
+      d = g_operand_hint;
       if (*in == 'b' || *in == 'B') {
-        operand_hint = HINT_8BIT;
-        operand_hint_type = HINT_TYPE_GIVEN;
+        g_operand_hint = HINT_8BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
         in++;
       }
       else if (*in == 'w' || *in == 'W') {
-        operand_hint = HINT_16BIT;
-        operand_hint_type = HINT_TYPE_GIVEN;
+        g_operand_hint = HINT_16BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
         in++;
       }
       else if (*in == 'l' || *in == 'L') {
-        operand_hint = HINT_24BIT;
-        operand_hint_type = HINT_TYPE_GIVEN;
+        g_operand_hint = HINT_24BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
         in++;
       }
       else
         break;
 
-      if (d != HINT_NONE && d != operand_hint) {
+      if (d != HINT_NONE && d != g_operand_hint) {
         print_error("Confusing operand hint!\n", ERROR_STC);
         in++;
       }
@@ -382,9 +382,9 @@ int stack_calculate(char *in, int *value) {
                  e == ']' || e == '.' || e == 0xA)
           break;
         else {
-          if (input_number_error_msg == YES) {
-            snprintf(xyz, sizeof(xyz), "Got '%c' (%d) when expected a 0 or 1.\n", e, e);
-            print_error(xyz, ERROR_NUM);
+          if (g_input_number_error_msg == YES) {
+            snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected a 0 or 1.\n", e, e);
+            print_error(g_xyz, ERROR_NUM);
           }
           return FAILED;
         }
@@ -402,8 +402,8 @@ int stack_calculate(char *in, int *value) {
       d = *in;
       in++;
       if (*in != '\'') {
-        snprintf(xyz, sizeof(xyz), "Got '%c' (%d) when expected \"'\".\n", *in, *in);
-        print_error(xyz, ERROR_NUM);
+        snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected \"'\".\n", *in, *in);
+        print_error(g_xyz, ERROR_NUM);
         return FAILED;
       }
       in++;
@@ -433,9 +433,9 @@ int stack_calculate(char *in, int *value) {
                  e == '#' || e == '~' || e == ']' || e == '.' || e == 0xA)
           break;
         else {
-          if (input_number_error_msg == YES) {
-            snprintf(xyz, sizeof(xyz), "Got '%c' (%d) when expected [0-F].\n", e, e);
-            print_error(xyz, ERROR_NUM);
+          if (g_input_number_error_msg == YES) {
+            snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected [0-F].\n", e, e);
+            print_error(g_xyz, ERROR_NUM);
           }
           return FAILED;
         }
@@ -489,9 +489,9 @@ int stack_calculate(char *in, int *value) {
                    e == '#' || e == '~' || e == ']' || e == '.' || e == 'h' || e == 'H' || e == 0xA)
             break;
           else {
-            if (input_number_error_msg == YES) {
-              snprintf(xyz, sizeof(xyz), "Got '%c' (%d) when expected [0-F].\n", e, e);
-              print_error(xyz, ERROR_NUM);
+            if (g_input_number_error_msg == YES) {
+              snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected [0-F].\n", e, e);
+              print_error(g_xyz, ERROR_NUM);
             }
             return FAILED;
           }
@@ -519,8 +519,8 @@ int stack_calculate(char *in, int *value) {
               if (n == 0)
                 print_error("Too many digits in the integer value. Max 10 is supported.\n", ERROR_NUM);
               else {
-                snprintf(xyz, sizeof(xyz), "Too many digits in the floating point value. Max %d is supported.\n", MAX_FLOAT_DIGITS);
-                print_error(xyz, ERROR_NUM);
+                snprintf(g_xyz, sizeof(g_xyz), "Too many digits in the floating point value. Max %d is supported.\n", MAX_FLOAT_DIGITS);
+                print_error(g_xyz, ERROR_NUM);
               }
               return FAILED;
             }
@@ -541,10 +541,10 @@ int stack_calculate(char *in, int *value) {
           else if (e == '.') {
             if (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L')
               break;
-            if (parse_floats == NO)
+            if (g_parse_floats == NO)
               break;
             if (n == 1) {
-              if (input_number_error_msg == YES)
+              if (g_input_number_error_msg == YES)
                 print_error("Syntax error.\n", ERROR_NUM);
               return FAILED;
             }
@@ -552,9 +552,9 @@ int stack_calculate(char *in, int *value) {
             max_digits = MAX_FLOAT_DIGITS+1;
           }
           else {
-            if (input_number_error_msg == YES) {
-              snprintf(xyz, sizeof(xyz), "Got '%c' (%d) when expected [0-9].\n", e, e);
-              print_error(xyz, ERROR_NUM);
+            if (g_input_number_error_msg == YES) {
+              snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected [0-9].\n", e, e);
+              print_error(g_xyz, ERROR_NUM);
             }
             return FAILED;
           }
@@ -833,9 +833,9 @@ int stack_calculate(char *in, int *value) {
     if (compute_stack(&s, d, &dou) == FAILED)
       return FAILED;
     
-    parsed_double = dou;
+    g_parsed_double = dou;
 
-    if (input_float_mode == ON)
+    if (g_input_float_mode == ON)
       return INPUT_NUMBER_FLOAT;
 
     *value = (int)dou;
@@ -845,7 +845,7 @@ int stack_calculate(char *in, int *value) {
 
   /* only one string? */
   if (d == 1 && ta[0].type == STACK_ITEM_TYPE_STRING) {
-    strcpy(label, ta[0].string);
+    strcpy(g_label, ta[0].string);
     return STACK_RETURN_LABEL;
   }
 
@@ -922,8 +922,8 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
   hashmap_get(defines_map, s->string, (void*)&tmp_def);
   if (tmp_def != NULL) {
     if (tmp_def->type == DEFINITION_TYPE_STRING) {
-      snprintf(xyz, sizeof(xyz), "Definition \"%s\" is a string definition.\n", tmp_def->alias);
-      print_error(xyz, ERROR_STC);
+      snprintf(g_xyz, sizeof(g_xyz), "Definition \"%s\" is a string definition.\n", tmp_def->alias);
+      print_error(g_xyz, ERROR_STC);
       return FAILED;
     }
     else if (tmp_def->type == DEFINITION_TYPE_STACK) {
@@ -990,8 +990,8 @@ int resolve_stack(struct stack_item s[], int x) {
           }
           else {
             if (b > macro_runtime_current->supplied_arguments) {
-              snprintf(xyz, sizeof(xyz), "Reference to MACRO argument number %d (\"%s\") is out of range.\n", b, s->string);
-              print_error(xyz, ERROR_STC);
+              snprintf(g_xyz, sizeof(g_xyz), "Reference to MACRO argument number %d (\"%s\") is out of range.\n", b, s->string);
+              print_error(g_xyz, ERROR_STC);
               return FAILED;
             }
           
@@ -1000,16 +1000,16 @@ int resolve_stack(struct stack_item s[], int x) {
             k = ma->type;
           
             if (k == INPUT_NUMBER_ADDRESS_LABEL)
-              strcpy(label, ma->string);
+              strcpy(g_label, ma->string);
             else if (k == INPUT_NUMBER_STRING) {
-              strcpy(label, ma->string);
-              string_size = (int)strlen(ma->string);
+              strcpy(g_label, ma->string);
+              g_string_size = (int)strlen(ma->string);
             }
             else if (k == INPUT_NUMBER_STACK)
               latest_stack = (int)ma->value;
             else if (k == SUCCEEDED) {
               d = (int)ma->value;
-              parsed_double = ma->value;
+              g_parsed_double = ma->value;
             }
           
             if (!(k == SUCCEEDED || k == INPUT_NUMBER_ADDRESS_LABEL || k == INPUT_NUMBER_STACK))
@@ -1017,14 +1017,14 @@ int resolve_stack(struct stack_item s[], int x) {
           
             if (k == SUCCEEDED) {
               s->type = STACK_ITEM_TYPE_VALUE;
-              s->value = parsed_double;
+              s->value = g_parsed_double;
             }
             else if (k == INPUT_NUMBER_STACK) {
               s->type = STACK_ITEM_TYPE_STACK;
               s->value = latest_stack;
             }
             else
-              strcpy(s->string, label);
+              strcpy(s->string, g_label);
           }
         }
       }

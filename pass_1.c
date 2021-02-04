@@ -113,15 +113,16 @@ struct label_sizeof *label_sizeofs = NULL;
 struct block_name *block_names = NULL;
 struct stringmaptable *stringmaptables = NULL;
 
-extern char *buffer, *unfolded_buffer, label[MAX_NAME_LENGTH + 1], *include_dir, *full_name;
-extern int size, unfolded_size, input_number_error_msg, g_verbose_mode, g_output_format, open_files;
-extern int stack_id, latest_stack, ss, g_commandline_parsing, newline_beginning, expect_calculations;
-extern int g_extra_definitions, string_size, input_float_mode, operand_hint, operand_hint_type;
-extern int include_dir_size, parse_floats, g_listfile_data, g_quiet, parsed_double_decimal_numbers;
+extern char *buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *include_dir, *full_name;
+extern int size, unfolded_size, g_input_number_error_msg, g_verbose_mode, g_output_format, open_files;
+extern int stack_id, latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations;
+extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
+extern int include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
 extern int g_create_sizeof_definitions;
 extern FILE *file_out_ptr;
-extern double parsed_double;
+extern double g_parsed_double;
 extern char *g_final_name;
+
 extern struct active_file_info *active_file_info_first, *active_file_info_last, *active_file_info_tmp;
 extern struct file_name_info *file_name_info_first, *file_name_info_last, *file_name_info_tmp;
 extern struct stack *stacks_first, *stacks_tmp, *stacks_last;
@@ -402,13 +403,13 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
   mrt->supplied_arguments = 2;
 
   if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-    strcpy(mrt->argument_data[0]->string, label);
+    strcpy(mrt->argument_data[0]->string, g_label);
   else if (inz == INPUT_NUMBER_STRING) {
     mrt->argument_data[0]->type = SUCCEEDED;
-    mrt->argument_data[0]->value = label[0];
-    strcpy(mrt->string, label);
+    mrt->argument_data[0]->value = g_label[0];
+    strcpy(mrt->string, g_label);
     mrt->string_current = 1;
-    mrt->string_last = (int)strlen(label);
+    mrt->string_last = (int)strlen(g_label);
     /*
       fprintf(stderr, "got string %s!\n", label);
     */
@@ -664,7 +665,7 @@ int pass_1(void) {
       return SUCCEEDED;
     else if (q == EVALUATE_TOKEN_NOT_IDENTIFIED) {
       /* check if it is of the form "LABEL:XYZ" */
-      for (q = 0; q < ss; q++) {
+      for (q = 0; q < g_ss; q++) {
         if (tmp[q] == ':')
           break;
         if (tmp[q] == '=')
@@ -672,7 +673,7 @@ int pass_1(void) {
       }
 
       /* is it a macro? */
-      if (q == ss) {
+      if (q == g_ss) {
         if (macro_get(tmp, YES, &m) == FAILED)
           return FAILED;
         if (m == NULL) {
@@ -682,17 +683,17 @@ int pass_1(void) {
       }
 
       /* it is a label after all? */
-      if (q != ss || (newline_beginning == ON && m == NULL)) {
+      if (q != g_ss || (g_newline_beginning == ON && m == NULL)) {
         char old_tmp_q = tmp[q];
     
         tmp[q] = 0;
 
         /* reset the flag as there can be only one label / line */
-        newline_beginning = OFF;
+        g_newline_beginning = OFF;
 
         if (compare_next_token("=") == SUCCEEDED || old_tmp_q == '=') {
           /* it's actually a definition! */
-          g_source_pointer -= ss;
+          g_source_pointer -= g_ss;
 
           if (directive_define_def_equ() == FAILED)
             return FAILED;
@@ -707,7 +708,7 @@ int pass_1(void) {
             print_error(emsg, ERROR_LOG);
             return FAILED;
           }
-          if (ss >= MAX_NAME_LENGTH) {
+          if (g_ss >= MAX_NAME_LENGTH) {
             snprintf(emsg, sizeof(emsg), "The label \"%s\" is too long. Max label length is %d characters.\n", tmp, MAX_NAME_LENGTH);
             print_error(emsg, ERROR_NONE);
             return FAILED;
@@ -727,15 +728,15 @@ int pass_1(void) {
           fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
 
           /* move to the end of the label */
-          if (q != ss)
-            g_source_pointer -= ss - q - 1;
+          if (q != g_ss)
+            g_source_pointer -= g_ss - q - 1;
         }
     
         continue;
       }
       else if (compare_next_token("=") == SUCCEEDED) {
         /* it's actually a definition! */
-        g_source_pointer -= ss;
+        g_source_pointer -= g_ss;
 
         if (directive_define_def_equ() == FAILED)
           return FAILED;
@@ -782,26 +783,26 @@ int pass_1(void) {
         mrt->argument_data[p]->type = q;
 
         if (q == INPUT_NUMBER_ADDRESS_LABEL)
-          strcpy(mrt->argument_data[p]->string, label);
+          strcpy(mrt->argument_data[p]->string, g_label);
         else if (q == INPUT_NUMBER_STRING)
-          strcpy(mrt->argument_data[p]->string, label);
+          strcpy(mrt->argument_data[p]->string, g_label);
         else if (q == INPUT_NUMBER_STACK)
           mrt->argument_data[p]->value = (double)latest_stack;
         else if (q == SUCCEEDED)
-          mrt->argument_data[p]->value = parsed_double;
+          mrt->argument_data[p]->value = g_parsed_double;
         else
           return FAILED;
 
         /* do we have a name for this argument? */
         if (p < m->nargument_names) {
           if (q == INPUT_NUMBER_ADDRESS_LABEL)
-            redefine(m->argument_names[p], 0.0, label, DEFINITION_TYPE_ADDRESS_LABEL, (int)strlen(label));
+            redefine(m->argument_names[p], 0.0, g_label, DEFINITION_TYPE_ADDRESS_LABEL, (int)strlen(g_label));
           else if (q == INPUT_NUMBER_STRING)
-            redefine(m->argument_names[p], 0.0, label, DEFINITION_TYPE_STRING, (int)strlen(label));
+            redefine(m->argument_names[p], 0.0, g_label, DEFINITION_TYPE_STRING, (int)strlen(g_label));
           else if (q == INPUT_NUMBER_STACK)
             redefine(m->argument_names[p], (double)latest_stack, NULL, DEFINITION_TYPE_STACK, 0);
           else if (q == SUCCEEDED)
-            redefine(m->argument_names[p], parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
+            redefine(m->argument_names[p], g_parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
         }
       }
 
@@ -887,50 +888,50 @@ static int parse_push_pull_registers(int accept_u) {
       return -1;
     }
 
-    if (strcaselesscmp(label, "X") == 0)
+    if (strcaselesscmp(g_label, "X") == 0)
       reg = 1 << 4;
-    else if (strcaselesscmp(label, "Y") == 0)
+    else if (strcaselesscmp(g_label, "Y") == 0)
       reg = 1 << 5;
-    else if (strcaselesscmp(label, "U") == 0) {
+    else if (strcaselesscmp(g_label, "U") == 0) {
       if (accept_u == 0) {
-        snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_u, label);
+        snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_u, g_label);
         print_error(emsg, ERROR_ERR);
         return -1;
       }
       reg = 1 << 6;
     }
-    else if (strcaselesscmp(label, "S") == 0) {
+    else if (strcaselesscmp(g_label, "S") == 0) {
       if (accept_u == 1) {
-        snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_s, label);
+        snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_s, g_label);
         print_error(emsg, ERROR_ERR);
         return -1;
       }
       reg = 1 << 6;
     }
-    else if (strcaselesscmp(label, "PC") == 0)
+    else if (strcaselesscmp(g_label, "PC") == 0)
       reg = 1 << 7;
-    else if (strcaselesscmp(label, "A") == 0)
+    else if (strcaselesscmp(g_label, "A") == 0)
       reg = 1 << 1;
-    else if (strcaselesscmp(label, "B") == 0)
+    else if (strcaselesscmp(g_label, "B") == 0)
       reg = 1 << 2;
-    else if (strcaselesscmp(label, "CC") == 0)
+    else if (strcaselesscmp(g_label, "CC") == 0)
       reg = 1 << 0;
-    else if (strcaselesscmp(label, "DP") == 0)
+    else if (strcaselesscmp(g_label, "DP") == 0)
       reg = 1 << 3;
     else {
       if (accept_u == 1) {
-        snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_s, label);
+        snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_s, g_label);
         print_error(emsg, ERROR_ERR);
       }
       else {
-        snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_u, label);
+        snprintf(emsg, sizeof(emsg), "%s, got \"%s\" instead.\n", error_no_u, g_label);
         print_error(emsg, ERROR_ERR);
       }
       return -1;
     }
 
     if ((register_byte & reg) != 0) {
-      snprintf(emsg, sizeof(emsg), "Register \"%s\" was already defined.\n", label);
+      snprintf(emsg, sizeof(emsg), "Register \"%s\" was already defined.\n", g_label);
       print_error(emsg, ERROR_ERR);
       return -1;
     }
@@ -955,30 +956,30 @@ static int parse_push_pull_registers(int accept_u) {
 static int get_register_byte_from_label_exg_tfr() {
 
   /* 16-bit */
-  if (strcaselesscmp(label, "D") == 0)
+  if (strcaselesscmp(g_label, "D") == 0)
     return 0;
-  if (strcaselesscmp(label, "X") == 0)
+  if (strcaselesscmp(g_label, "X") == 0)
     return 1;
-  if (strcaselesscmp(label, "Y") == 0)
+  if (strcaselesscmp(g_label, "Y") == 0)
     return 2;
-  if (strcaselesscmp(label, "U") == 0)
+  if (strcaselesscmp(g_label, "U") == 0)
     return 3;
-  if (strcaselesscmp(label, "S") == 0)
+  if (strcaselesscmp(g_label, "S") == 0)
     return 4;
-  if (strcaselesscmp(label, "PC") == 0)
+  if (strcaselesscmp(g_label, "PC") == 0)
     return 5;
 
   /* 8-bit */
-  if (strcaselesscmp(label, "A") == 0)
+  if (strcaselesscmp(g_label, "A") == 0)
     return 8;
-  if (strcaselesscmp(label, "B") == 0)
+  if (strcaselesscmp(g_label, "B") == 0)
     return 9;
-  if (strcaselesscmp(label, "CC") == 0)
+  if (strcaselesscmp(g_label, "CC") == 0)
     return 0xA;
-  if (strcaselesscmp(label, "DP") == 0)
+  if (strcaselesscmp(g_label, "DP") == 0)
     return 0xB;
 
-  snprintf(emsg, sizeof(emsg), "Was expecting register D/X/Y/U/S/PC/A/B/CC/DP, got \"%s\" instead.\n", label);
+  snprintf(emsg, sizeof(emsg), "Was expecting register D/X/Y/U/S/PC/A/B/CC/DP, got \"%s\" instead.\n", g_label);
   print_error(emsg, ERROR_ERR);
 
   return -1;
@@ -1061,15 +1062,15 @@ int evaluate_token(void) {
       return x;
 
     /* allow error messages from input_numbers() */
-    input_number_error_msg = YES;
+    g_input_number_error_msg = YES;
 
     return EVALUATE_TOKEN_NOT_IDENTIFIED;
   }
 
   /* is it a label? */
-  if (tmp[ss - 1] == ':' && newline_beginning == ON) {
-    tmp[ss - 1] = 0;
-    newline_beginning = OFF;
+  if (tmp[g_ss - 1] == ':' && g_newline_beginning == ON) {
+    tmp[g_ss - 1] = 0;
+    g_newline_beginning = OFF;
 
     if (g_output_format == OUTPUT_LIBRARY && section_status == OFF) {
       print_error("All labels must be inside sections when compiling a library.\n", ERROR_LOG);
@@ -1080,7 +1081,7 @@ int evaluate_token(void) {
       print_error(emsg, ERROR_LOG);
       return FAILED;
     }
-    if (ss >= MAX_NAME_LENGTH) {
+    if (g_ss >= MAX_NAME_LENGTH) {
       snprintf(emsg, sizeof(emsg), "The label \"%s\" is too long. Max label length is %d characters.\n", tmp, MAX_NAME_LENGTH);
       print_error(emsg, ERROR_NONE);
       return FAILED;
@@ -1092,8 +1093,8 @@ int evaluate_token(void) {
 
     /* check for \@-symbols */
     if (macro_active != 0) {
-      if (tmp[ss - 3] == '\\' && tmp[ss - 2] == '@')
-        snprintf(&tmp[ss - 3], sizeof(tmp) - (ss - 3), "%d", macro_runtime_current->macro->calls - 1);
+      if (tmp[g_ss - 3] == '\\' && tmp[g_ss - 2] == '@')
+        snprintf(&tmp[g_ss - 3], sizeof(tmp) - (g_ss - 3), "%d", macro_runtime_current->macro->calls - 1);
     }
 
     add_label_to_label_stack(tmp);
@@ -1262,7 +1263,7 @@ int evaluate_token(void) {
   }
 
   /* allow error messages from input_numbers() */
-  input_number_error_msg = YES;
+  g_input_number_error_msg = YES;
 
   return EVALUATE_TOKEN_NOT_IDENTIFIED;
 }
@@ -1479,7 +1480,7 @@ void give_snes_rom_mode_defined_error(char *prior) {
 
 void next_line(void) {
 
-  newline_beginning = ON;
+  g_newline_beginning = ON;
 
   if (line_count_status == OFF)
     return;
@@ -2043,7 +2044,7 @@ int parse_enum_token(void) {
     }
     else {
       if (inz == INPUT_NUMBER_STRING)
-        snprintf(emsg, sizeof(emsg), "Expected the number of structures, got \"%s\" instead.\n", label);
+        snprintf(emsg, sizeof(emsg), "Expected the number of structures, got \"%s\" instead.\n", g_label);
       else
         snprintf(emsg, sizeof(emsg), "Expected the number of structures.\n");
       print_error(emsg, ERROR_DIR);
@@ -2268,7 +2269,7 @@ int directive_slot(void) {
 
   if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
     /* turn the label into a number */
-    if (_get_slot_number_by_its_name(label, &d) == FAILED)
+    if (_get_slot_number_by_its_name(g_label, &d) == FAILED)
       return FAILED;
     q = SUCCEEDED;
   }
@@ -2345,7 +2346,7 @@ int directive_bank(void) {
       return FAILED;
     if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
       /* turn the label into a number */
-      if (_get_slot_number_by_its_name(label, &d) == FAILED)
+      if (_get_slot_number_by_its_name(g_label, &d) == FAILED)
         return FAILED;
       q = SUCCEEDED;
     }
@@ -2406,15 +2407,15 @@ int directive_dbm_dwm_dlm(void) {
   }
 
   /* find the macro */
-  if (macro_get(label, YES, &m) == FAILED)
+  if (macro_get(g_label, YES, &m) == FAILED)
     return FAILED;
   if (m == NULL) {
-    if (macro_get(label, NO, &m) == FAILED)
+    if (macro_get(g_label, NO, &m) == FAILED)
       return FAILED;
   }
 
   if (m == NULL) {
-    snprintf(emsg, sizeof(emsg), "No MACRO \"%s\" defined.\n", label);
+    snprintf(emsg, sizeof(emsg), "No MACRO \"%s\" defined.\n", g_label);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -2442,11 +2443,11 @@ int directive_table(void) {
 
   inz = input_number();
   for (table_size = 0; table_size < (int)sizeof(table_format) && (inz == INPUT_NUMBER_STRING || inz == INPUT_NUMBER_ADDRESS_LABEL); ) {
-    if (strcaselesscmp(label, "db") == 0 || strcaselesscmp(label, "byte") == 0 || strcaselesscmp(label, "byt") == 0) {
+    if (strcaselesscmp(g_label, "db") == 0 || strcaselesscmp(g_label, "byte") == 0 || strcaselesscmp(g_label, "byt") == 0) {
       table_format[table_size++] = 'b';
     }
-    else if (strcaselesscmp(label, "ds") == 0 || strcaselesscmp(label, "dsb") == 0) {
-      strcpy(bak, label);
+    else if (strcaselesscmp(g_label, "ds") == 0 || strcaselesscmp(g_label, "dsb") == 0) {
+      strcpy(bak, g_label);
 
       inz = input_number();
       if (inz == FAILED)
@@ -2460,11 +2461,11 @@ int directive_table(void) {
       for (inz = 0; inz < d && table_size < (int)sizeof(table_format); inz++)
         table_format[table_size++] = 'b';
     }
-    else if (strcaselesscmp(label, "dw") == 0 || strcaselesscmp(label, "word") == 0 || strcaselesscmp(label, "addr") == 0) {
+    else if (strcaselesscmp(g_label, "dw") == 0 || strcaselesscmp(g_label, "word") == 0 || strcaselesscmp(g_label, "addr") == 0) {
       table_format[table_size++] = 'w';
     }
-    else if (strcaselesscmp(label, "dsw") == 0) {
-      strcpy(bak, label);
+    else if (strcaselesscmp(g_label, "dsw") == 0) {
+      strcpy(bak, g_label);
 
       inz = input_number();
       if (inz == FAILED)
@@ -2479,11 +2480,11 @@ int directive_table(void) {
         table_format[table_size++] = 'w';
     }
 #ifdef W65816
-    else if (strcaselesscmp(label, "dl") == 0 || strcaselesscmp(label, "long") == 0 || strcaselesscmp(label, "faraddr") == 0) {
+    else if (strcaselesscmp(g_label, "dl") == 0 || strcaselesscmp(g_label, "long") == 0 || strcaselesscmp(g_label, "faraddr") == 0) {
       table_format[table_size++] = 'l';
     }
-    else if (strcaselesscmp(label, "dsl") == 0) {
-      strcpy(bak, label);
+    else if (strcaselesscmp(g_label, "dsl") == 0) {
+      strcpy(bak, g_label);
 
       inz = input_number();
       if (inz == FAILED)
@@ -2499,7 +2500,7 @@ int directive_table(void) {
     }
 #endif
     else {
-      snprintf(emsg, sizeof(emsg), "Unknown symbol \"%s\".\n", label);
+      snprintf(emsg, sizeof(emsg), "Unknown symbol \"%s\".\n", g_label);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -2561,32 +2562,32 @@ int directive_row_data(void) {
   for ( ; inz == SUCCEEDED || inz == INPUT_NUMBER_STRING || inz == INPUT_NUMBER_ADDRESS_LABEL || inz == INPUT_NUMBER_STACK; ) {
     if (inz == INPUT_NUMBER_STRING) {
       if (table_format[table_index] == 'b') {
-        if (strlen(label) != 1) {
-          snprintf(emsg, sizeof(emsg), ".%s was expecting a byte, got %d bytes instead.\n", bak, (int)strlen(label));
+        if (strlen(g_label) != 1) {
+          snprintf(emsg, sizeof(emsg), ".%s was expecting a byte, got %d bytes instead.\n", bak, (int)strlen(g_label));
           print_error(emsg, ERROR_INP);
           return FAILED;
         }
 
-        fprintf(file_out_ptr, "d%d ", label[0]);          
+        fprintf(file_out_ptr, "d%d ", g_label[0]);          
       }
       else if (table_format[table_index] == 'w') {
-        if (strlen(label) > 2 || strlen(label) <= 0) {
-          snprintf(emsg, sizeof(emsg), ".%s was expecting a word (2 bytes), got %d bytes instead.\n", bak, (int)strlen(label));
+        if (strlen(g_label) > 2 || strlen(g_label) <= 0) {
+          snprintf(emsg, sizeof(emsg), ".%s was expecting a word (2 bytes), got %d bytes instead.\n", bak, (int)strlen(g_label));
           print_error(emsg, ERROR_INP);
           return FAILED;
         }
 
-        fprintf(file_out_ptr, "y%d ", (label[0] << 8) | label[1]);
+        fprintf(file_out_ptr, "y%d ", (g_label[0] << 8) | g_label[1]);
       }
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
-        if (strlen(label) > 3 || strlen(label) <= 0) {
-          snprintf(emsg, sizeof(emsg), ".%s was expecting a long (3 bytes), got %d bytes instead.\n", bak, (int)strlen(label));
+        if (strlen(g_label) > 3 || strlen(g_label) <= 0) {
+          snprintf(emsg, sizeof(emsg), ".%s was expecting a long (3 bytes), got %d bytes instead.\n", bak, (int)strlen(g_label));
           print_error(emsg, ERROR_INP);
           return FAILED;
         }
 
-        fprintf(file_out_ptr, "z%d ", (label[0] << 16) | (label[1] << 8) | label[2]);
+        fprintf(file_out_ptr, "z%d ", (g_label[0] << 16) | (g_label[1] << 8) | g_label[2]);
       }
 #endif
       else {
@@ -2633,14 +2634,14 @@ int directive_row_data(void) {
     }
     else if (inz == INPUT_NUMBER_ADDRESS_LABEL) {
       if (table_format[table_index] == 'b') {
-        fprintf(file_out_ptr, "k%d Q%s ", active_file_info_last->line_current, label);
+        fprintf(file_out_ptr, "k%d Q%s ", active_file_info_last->line_current, g_label);
       }
       else if (table_format[table_index] == 'w') {
-        fprintf(file_out_ptr, "k%d r%s ", active_file_info_last->line_current, label);
+        fprintf(file_out_ptr, "k%d r%s ", active_file_info_last->line_current, g_label);
       }
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
-        fprintf(file_out_ptr, "k%d q%s ", active_file_info_last->line_current, label);
+        fprintf(file_out_ptr, "k%d q%s ", active_file_info_last->line_current, g_label);
       }
 #endif
       else {
@@ -2714,19 +2715,19 @@ int directive_db_byt_byte(void) {
   inz = input_number();
   for (ind = 0; inz == SUCCEEDED || inz == INPUT_NUMBER_STRING || inz == INPUT_NUMBER_ADDRESS_LABEL || inz == INPUT_NUMBER_STACK; ind++) {
     if (inz == INPUT_NUMBER_STRING) {
-      for (o = 0; o < string_size; o++) {
+      for (o = 0; o < g_string_size; o++) {
         /* handle '\0' */
-        if (label[o] == '\\' && label[o + 1] == '0') {
+        if (g_label[o] == '\\' && g_label[o + 1] == '0') {
           fprintf(file_out_ptr, "d%d ", '\0');
           o++;
         }
         /* handle '\x' */
-        else if (label[o] == '\\' && label[o + 1] == 'x') {
+        else if (g_label[o] == '\\' && g_label[o + 1] == 'x') {
           char tmp_a[8], *tmp_b;
           int tmp_c;
         
           o += 3;
-          snprintf(tmp_a, sizeof(tmp_a), "%c%c", label[o-1], label[o]);
+          snprintf(tmp_a, sizeof(tmp_a), "%c%c", g_label[o-1], g_label[o]);
           tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
           if (*tmp_b) {
             snprintf(emsg, sizeof(emsg), ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
@@ -2736,32 +2737,32 @@ int directive_db_byt_byte(void) {
           fprintf(file_out_ptr, "d%d ", tmp_c);
         }
         /* handle '\<' */
-        else if (label[o] == '\\' && label[o + 1] == '<') {
+        else if (g_label[o] == '\\' && g_label[o + 1] == '<') {
           o += 2;
-          if (o == string_size) {
+          if (o == g_string_size) {
             snprintf(emsg, sizeof(emsg), ".%s '\\<' needs character data.\n", bak);
             print_error(emsg, ERROR_INP);
             return FAILED;
           }
-          fprintf(file_out_ptr, "d%d ", (int)label[o]|0x80);
+          fprintf(file_out_ptr, "d%d ", (int)g_label[o]|0x80);
         }
         /* handle '\>' */
-        else if (label[o] == '\\' && label[o + 1] == '>' && o == 0) {
+        else if (g_label[o] == '\\' && g_label[o + 1] == '>' && o == 0) {
           snprintf(emsg, sizeof(emsg), ".%s '\\>' needs character data.\n", bak);
           print_error(emsg, ERROR_INP);
           return FAILED;
         }
-        else if (label[o + 1] == '\\' && label[o + 2] == '>') {
-          fprintf(file_out_ptr, "d%d ", (int)label[o]|0x80);
+        else if (g_label[o + 1] == '\\' && g_label[o + 2] == '>') {
+          fprintf(file_out_ptr, "d%d ", (int)g_label[o]|0x80);
           o += 2;
         }
         /* handle '\\' */
-        else if (label[o] == '\\' && label[o + 1] == '\\') {
+        else if (g_label[o] == '\\' && g_label[o + 1] == '\\') {
           fprintf(file_out_ptr, "d%d ", '\\');
           o++;
         }
         else
-          fprintf(file_out_ptr, "d%d ", (int)label[o]);
+          fprintf(file_out_ptr, "d%d ", (int)g_label[o]);
       }
       inz = input_number();
       continue;
@@ -2776,7 +2777,7 @@ int directive_db_byt_byte(void) {
     if (inz == SUCCEEDED)
       fprintf(file_out_ptr, "d%d ", d);
     else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-      fprintf(file_out_ptr, "Q%s ", label);
+      fprintf(file_out_ptr, "Q%s ", g_label);
     else if (inz == INPUT_NUMBER_STACK)
       fprintf(file_out_ptr, "c%d ", latest_stack);
 
@@ -2839,12 +2840,12 @@ int directive_asctable_asciitable(void) {
         return FAILED;
       }
       if (q == INPUT_NUMBER_STRING) {
-        if (string_size != 1) {
+        if (g_string_size != 1) {
           print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
           return FAILED;
         }
         else {
-          d = label[0];
+          d = g_label[0];
           if (d < 0)
             d += 256;
         }
@@ -2866,12 +2867,12 @@ int directive_asctable_asciitable(void) {
           return FAILED;
         }
         if (q == INPUT_NUMBER_STRING) {
-          if (string_size != 1) {
+          if (g_string_size != 1) {
             print_error("The entry must be a positive 8-bit immediate value or one letter string.\n", ERROR_DIR);
             return FAILED;
           }
           else {
-            d = label[0];
+            d = g_label[0];
             if (d < 0)
               d += 256;
           }
@@ -2955,21 +2956,21 @@ int directive_asc(void) {
 
     if (q == INPUT_NUMBER_STRING) {
       /* remap the ascii string */
-      for (o = 0; o < string_size; o++) {
-        ind = label[o];
+      for (o = 0; o < g_string_size; o++) {
+        ind = g_label[o];
         /* handle '\0' */
-        if (label[o] == '\\' && label[o + 1] == '0') {
+        if (g_label[o] == '\\' && g_label[o + 1] == '0') {
           ind = '\0';
           fprintf(file_out_ptr, "d%d ", ind);
           o++;
         }
         /* handle '\x' */
-        else if (label[o] == '\\' && label[o + 1] == 'x') {
+        else if (g_label[o] == '\\' && g_label[o + 1] == 'x') {
           char tmp_a[8], *tmp_b;
           int tmp_c;
       
           o += 3;
-          snprintf(tmp_a, sizeof(tmp_a), "%c%c", label[o-1], label[o]);
+          snprintf(tmp_a, sizeof(tmp_a), "%c%c", g_label[o-1], g_label[o]);
           tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
           if (*tmp_b) {
             snprintf(emsg, sizeof(emsg), ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
@@ -2983,28 +2984,28 @@ int directive_asc(void) {
           int tmp_a = 0;
         
           /* handle '\<' */
-          if (label[o] == '\\' && label[o + 1] == '<') {
+          if (g_label[o] == '\\' && g_label[o + 1] == '<') {
             o += 2;
-            if (o == string_size) {
+            if (o == g_string_size) {
               snprintf(emsg, sizeof(emsg), ".%s '\\<' needs character data.\n", bak);
               print_error(emsg, ERROR_INP);
               return FAILED;
             }
             tmp_a = 0x80;
-            ind = label[o];
+            ind = g_label[o];
           }
           /* handle '\>' */
-          else if (label[o] == '\\' && label[o + 1] == '>' && o == 0) {
+          else if (g_label[o] == '\\' && g_label[o + 1] == '>' && o == 0) {
             snprintf(emsg, sizeof(emsg), ".%s '\\>' needs character data.\n", bak);
             print_error(emsg, ERROR_INP);
             return FAILED;
           }
-          else if (label[o + 1] == '\\' && label[o + 2] == '>') {
+          else if (g_label[o + 1] == '\\' && g_label[o + 2] == '>') {
             tmp_a = 0x80;
             o += 2;
           }
           /* handle '\\' */
-          else if (label[o] == '\\' && label[o + 1] == '\\') {
+          else if (g_label[o] == '\\' && g_label[o + 1] == '\\') {
             ind = '\\';
             o++;
           }
@@ -3055,7 +3056,7 @@ int directive_dw_word_addr(void) {
     if (inz == SUCCEEDED)
       fprintf(file_out_ptr, "y%d", d);
     else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-      fprintf(file_out_ptr, "r%s ", label);
+      fprintf(file_out_ptr, "r%s ", g_label);
     else if (inz == INPUT_NUMBER_STACK)
       fprintf(file_out_ptr, "C%d ", latest_stack);
 
@@ -3099,7 +3100,7 @@ int directive_dl_long_faraddr(void) {
     if (inz == SUCCEEDED)
       fprintf(file_out_ptr, "z%d ", d);
     else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-      fprintf(file_out_ptr, "q%s ", label);
+      fprintf(file_out_ptr, "q%s ", g_label);
     else if (inz == INPUT_NUMBER_STACK)
       fprintf(file_out_ptr, "T%d ", latest_stack);
 
@@ -3161,7 +3162,7 @@ int directive_dsl(void) {
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
     fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
     for (q = 0; q < inz; q++)
-      fprintf(file_out_ptr, "q%s ", label);
+      fprintf(file_out_ptr, "q%s ", g_label);
   }
   else if (q == INPUT_NUMBER_STACK) {
     for (q = 0; q < inz; q++)
@@ -3330,17 +3331,17 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
       if (*labels_only == NO) {
         /* take care of the strings */
         if (inz == INPUT_NUMBER_STRING) {
-          if (it->size < string_size) {
-            snprintf(emsg, sizeof(emsg), "String \"%s\" doesn't fit into the %d bytes of \"%s.%s\". Discarding the overflow.\n", label, it->size, s->name, it->name);
+          if (it->size < g_string_size) {
+            snprintf(emsg, sizeof(emsg), "String \"%s\" doesn't fit into the %d bytes of \"%s.%s\". Discarding the overflow.\n", g_label, it->size, s->name, it->name);
             print_error(emsg, ERROR_WRN);
             c = it->size;
           }
           else
-            c = string_size;
+            c = g_string_size;
 
           /* copy the string */
           for (o = 0; o < c; o++)
-            fprintf(file_out_ptr, "d%d ", (int)label[o]);
+            fprintf(file_out_ptr, "d%d ", (int)g_label[o]);
         }
         /* take care of the rest */
         else {
@@ -3354,7 +3355,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             if (inz == SUCCEEDED)
               fprintf(file_out_ptr, "d%d ", d);
             else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-              fprintf(file_out_ptr, "k%d Q%s ", active_file_info_last->line_current, label);
+              fprintf(file_out_ptr, "k%d Q%s ", active_file_info_last->line_current, g_label);
             else if (inz == INPUT_NUMBER_STACK)
               fprintf(file_out_ptr, "c%d ", latest_stack);
 
@@ -3370,7 +3371,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             if (inz == SUCCEEDED)
               fprintf(file_out_ptr, "y%d", d);
             else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-              fprintf(file_out_ptr, "k%d r%s ", active_file_info_last->line_current, label);
+              fprintf(file_out_ptr, "k%d r%s ", active_file_info_last->line_current, g_label);
             else if (inz == INPUT_NUMBER_STACK)
               fprintf(file_out_ptr, "C%d ", latest_stack);
 
@@ -3520,7 +3521,7 @@ int directive_dstruct(void) {
       print_error(".DSTRUCT needs a name for the instance.\n", ERROR_INP);
       return FAILED;
     }
-    strcpy(iname, label);
+    strcpy(iname, g_label);
 
     if (compare_next_token("INSTANCEOF") == SUCCEEDED)
       skip_next_token();
@@ -3536,10 +3537,10 @@ int directive_dstruct(void) {
   }
 
   /* find the structure */
-  s = get_structure(label);
+  s = get_structure(g_label);
 
   if (s == NULL) {
-    snprintf(emsg, sizeof(emsg), "Reference to an unidentified structure \"%s\".\n", label);
+    snprintf(emsg, sizeof(emsg), "Reference to an unidentified structure \"%s\".\n", g_label);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -3710,7 +3711,7 @@ int directive_dsb_ds(void) {
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
     fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
     for (q = 0; q < inz; q++)
-      fprintf(file_out_ptr, "R%s ", label);
+      fprintf(file_out_ptr, "R%s ", g_label);
   }
   else if (q == INPUT_NUMBER_STACK) {
     for (q = 0; q < inz; q++)
@@ -3760,7 +3761,7 @@ int directive_dsw(void) {
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
     fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
     for (q = 0; q < inz; q++)
-      fprintf(file_out_ptr, "r%s ", label);
+      fprintf(file_out_ptr, "r%s ", g_label);
   }
   else if (q == INPUT_NUMBER_STACK) {
     for (q = 0; q < inz; q++)
@@ -3776,16 +3777,16 @@ int directive_incdir(void) {
   int q, o;
   char *c;
 
-  expect_calculations = NO;
+  g_expect_calculations = NO;
   o = input_number();
-  expect_calculations = YES;
+  g_expect_calculations = YES;
 
   if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error(".INCDIR needs a directory string.\n", ERROR_DIR);
     return FAILED;
   }
 
-  q = (int)strlen(label);
+  q = (int)strlen(g_label);
 
   /* use the default dir? */
   if (q == 0) {
@@ -3795,7 +3796,7 @@ int directive_incdir(void) {
   }
 
   /* use the given dir */
-  o = (int)(strlen(label) + 2);
+  o = (int)(strlen(g_label) + 2);
   if (o > include_dir_size) {
     c = realloc(include_dir, o);
     if (c == NULL) {
@@ -3807,7 +3808,7 @@ int directive_incdir(void) {
   }
 
   /* convert the path string to local enviroment */
-  strcpy(include_dir, label);
+  strcpy(include_dir, g_label);
   localize_path(include_dir);
 
   /* terminate the string with '/' */
@@ -3853,9 +3854,9 @@ int directive_include(int is_real) {
     if (compare_next_token("NAMESPACE") == SUCCEEDED || compare_next_token("ONCE") == SUCCEEDED)
       break;
 
-    expect_calculations = NO;
+    g_expect_calculations = NO;
     o = input_number();
-    expect_calculations = YES;
+    g_expect_calculations = YES;
     
     if (o == INPUT_NUMBER_EOL) {
       next_line();
@@ -3866,35 +3867,35 @@ int directive_include(int is_real) {
       return FAILED;
     }
 
-    if (accumulated_name_length + strlen(label) >= sizeof(accumulated_name)) {
+    if (accumulated_name_length + strlen(g_label) >= sizeof(accumulated_name)) {
       print_error("The accumulated file name length >= MAX_NAME_LENGTH. Increase its size in shared.h and recompile WLA.\n", ERROR_DIR);
       return FAILED;
     }
 
-    strcpy(&accumulated_name[accumulated_name_length], label);
+    strcpy(&accumulated_name[accumulated_name_length], g_label);
     accumulated_name_length = (int)strlen(accumulated_name);
   }
 
   strcpy(path, accumulated_name);
 
   /* convert the path to local enviroment */
-  localize_path(label);
+  localize_path(g_label);
   
   if (compare_next_token("NAMESPACE") != SUCCEEDED)
     namespace[0] = 0;
   else {
     skip_next_token();
 
-    expect_calculations = NO;
+    g_expect_calculations = NO;
     o = input_number();
-    expect_calculations = YES;
+    g_expect_calculations = YES;
     
     if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
       print_error("Namespace string is missing.\n", ERROR_DIR);
       return FAILED;
     }
 
-    strcpy(namespace, label);
+    strcpy(namespace, g_label);
   }
 
   if (compare_next_token("ONCE") == SUCCEEDED) {
@@ -3954,9 +3955,9 @@ int directive_incbin(void) {
     return FAILED;
   }
   
-  expect_calculations = NO;
+  g_expect_calculations = NO;
   o = input_number();
-  expect_calculations = YES;
+  g_expect_calculations = YES;
 
   if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error(".INCBIN needs a file name string.\n", ERROR_DIR);
@@ -3964,9 +3965,9 @@ int directive_incbin(void) {
   }
 
   /* convert the path string to local enviroment */
-  localize_path(label);
+  localize_path(g_label);
 
-  if (incbin_file(label, &ind, &inz, &s, &r, &m) == FAILED)
+  if (incbin_file(g_label, &ind, &inz, &s, &r, &m) == FAILED)
     return FAILED;
   
   if (m == NULL) {
@@ -4152,7 +4153,7 @@ int directive_ramsection(void) {
       return FAILED;
     if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
       /* turn the label into a number */
-      if (_get_slot_number_by_its_name(label, &d) == FAILED)
+      if (_get_slot_number_by_its_name(g_label, &d) == FAILED)
         return FAILED;
       q = SUCCEEDED;
     }
@@ -4718,9 +4719,9 @@ int directive_fopen(void) {
   char *c;
   int o;
 
-  expect_calculations = NO;
+  g_expect_calculations = NO;
   o = input_number();
-  expect_calculations = YES;
+  g_expect_calculations = YES;
 
   if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error(".FOPEN needs a file name string.\n", ERROR_DIR);
@@ -4728,14 +4729,14 @@ int directive_fopen(void) {
   }
 
   /* convert the path to local enviroment */
-  localize_path(label);
+  localize_path(g_label);
 
-  c = calloc(strlen(label) + 1, 1);
+  c = calloc(strlen(g_label) + 1, 1);
   if (c == NULL) {
     print_error("Out of memory error.\n", ERROR_DIR);
     return FAILED;
   }
-  strcpy(c, label);
+  strcpy(c, g_label);
 
   /* get the file pointer name */
   if (get_next_token() == FAILED) {
@@ -5558,7 +5559,7 @@ int directive_memorymap(void) {
           return FAILED;
         if (q == INPUT_NUMBER_ADDRESS_LABEL || q == INPUT_NUMBER_STRING) {
           /* we got the name for the SLOT instead of its SIZE */
-          strcpy(slots[o].name, label);
+          strcpy(slots[o].name, g_label);
           d = slotsize;
         }
         else if (q != SUCCEEDED) {
@@ -5584,7 +5585,7 @@ int directive_memorymap(void) {
             return FAILED;      
           }
 
-          strcpy(slots[o].name, label);
+          strcpy(slots[o].name, g_label);
         }
       }
       
@@ -5682,9 +5683,9 @@ int directive_background(void) {
     return FAILED;
   }
 
-  expect_calculations = NO;
+  g_expect_calculations = NO;
   q = input_number();
-  expect_calculations = YES;
+  g_expect_calculations = YES;
 
   if (q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error(".BACKGROUND needs a file name string.\n", ERROR_DIR);
@@ -5700,7 +5701,7 @@ int directive_background(void) {
     return FAILED;
   }
 
-  create_full_name(include_dir, label);
+  create_full_name(include_dir, g_label);
 
   if ((file_in_ptr = fopen(full_name, "rb")) == NULL) {
     snprintf(emsg, sizeof(emsg), "Error opening .BACKGROUND file \"%s\".\n", full_name);
@@ -6048,9 +6049,9 @@ int directive_define_def_equ(void) {
   if (compare_next_token("=") == SUCCEEDED)
     skip_next_token();
 
-  input_float_mode = ON;
+  g_input_float_mode = ON;
   q = get_new_definition_data(&j, k, &size, &dou, &export);
-  input_float_mode = OFF;
+  g_input_float_mode = OFF;
   if (q == FAILED)
     return FAILED;
 
@@ -6135,17 +6136,17 @@ int directive_enumid(void) {
       return FAILED;
     }
     
-    if (is_reserved_definition(label) == YES) {
-      snprintf(emsg, sizeof(emsg), "\"%s\" is a reserved definition label and is not user definable.\n", label);
+    if (is_reserved_definition(g_label) == YES) {
+      snprintf(emsg, sizeof(emsg), "\"%s\" is a reserved definition label and is not user definable.\n", g_label);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
 
-    if (add_a_new_definition(label, (double)enumid, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+    if (add_a_new_definition(g_label, (double)enumid, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
 
     if (enumid_export == 1) {
-      if (export_a_definition(label) == FAILED)
+      if (export_a_definition(g_label) == FAILED)
         return FAILED;
     }
 
@@ -6307,9 +6308,9 @@ int directive_redefine_redef(void) {
   if (compare_next_token("=") == SUCCEEDED)
     skip_next_token();
 
-  input_float_mode = ON;
+  g_input_float_mode = ON;
   q = get_new_definition_data(&j, k, &size, &dou, &export);
-  input_float_mode = OFF;
+  g_input_float_mode = OFF;
   if (q == FAILED)
     return FAILED;
 
@@ -6521,9 +6522,9 @@ int directive_sdsctag(void) {
     
   no_library_files(".SDSCTAG");
 
-  input_float_mode = ON;
+  g_input_float_mode = ON;
   q = input_number();
-  input_float_mode = OFF;
+  g_input_float_mode = OFF;
   if (q != SUCCEEDED && q != INPUT_NUMBER_FLOAT) {
     print_error(".SDSCTAG needs the version number.\n" , ERROR_DIR);
     return FAILED;
@@ -6534,8 +6535,8 @@ int directive_sdsctag(void) {
     sdsc_mi = 0;
   }
   else {
-    sdsc_ma = (int)parsed_double;
-    sdsc_mi = parsed_double_decimal_numbers;
+    sdsc_ma = (int)g_parsed_double;
+    sdsc_mi = g_parsed_double_decimal_numbers;
   }
   
   if (sdsc_ma >= 100 || sdsc_mi >= 100) {
@@ -6557,18 +6558,18 @@ int directive_sdsctag(void) {
     sdsctag_name_value = d;
   }
   else if (q == INPUT_NUMBER_STRING) {
-    if (label[0] == 0) {
+    if (g_label[0] == 0) {
       sdsctag_name_type = TYPE_VALUE;
       sdsctag_name_value = 0xFFFF; /* null string */
     }
     else {
       sdsctag_name_type = TYPE_STRING;
-      strcpy(sdsctag_name_str, label);
+      strcpy(sdsctag_name_str, g_label);
     }
   }
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
     sdsctag_name_type = TYPE_LABEL;
-    strcpy(sdsctag_name_str, label);
+    strcpy(sdsctag_name_str, g_label);
   }
   else {
     sdsctag_name_type = TYPE_STACK_CALCULATION;
@@ -6589,18 +6590,18 @@ int directive_sdsctag(void) {
     sdsctag_notes_value = d;
   }
   else if (q == INPUT_NUMBER_STRING) {
-    if (label[0] == 0) {
+    if (g_label[0] == 0) {
       sdsctag_notes_type = TYPE_VALUE;
       sdsctag_notes_value = 0xFFFF; /* null string */
     }
     else {
       sdsctag_notes_type = TYPE_STRING;
-      strcpy(sdsctag_notes_str, label);
+      strcpy(sdsctag_notes_str, g_label);
     }
   }
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
     sdsctag_notes_type = TYPE_LABEL;
-    strcpy(sdsctag_notes_str, label);
+    strcpy(sdsctag_notes_str, g_label);
   }
   else {
     sdsctag_notes_type = TYPE_STACK_CALCULATION;
@@ -6621,18 +6622,18 @@ int directive_sdsctag(void) {
     sdsctag_author_value = d;
   }
   else if (q == INPUT_NUMBER_STRING) {
-    if (label[0] == 0) {
+    if (g_label[0] == 0) {
       sdsctag_author_type = TYPE_VALUE;
       sdsctag_author_value = 0xFFFF; /* null string */
     }
     else {
       sdsctag_author_type = TYPE_STRING;
-      strcpy(sdsctag_author_str, label);
+      strcpy(sdsctag_author_str, g_label);
     }
   }
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
     sdsctag_author_type = TYPE_LABEL;
-    strcpy(sdsctag_author_str, label);
+    strcpy(sdsctag_author_str, g_label);
   }
   else {
     sdsctag_author_type = TYPE_STACK_CALCULATION;
@@ -7343,7 +7344,7 @@ int directive_snesnativevector(void) {
       if (inz == SUCCEEDED)
         snprintf(cop, sizeof(cop), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(cop, sizeof(cop), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(cop, sizeof(cop), "k%d r%s ", active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(cop, sizeof(cop), "C%d ", latest_stack);
 
@@ -7366,7 +7367,7 @@ int directive_snesnativevector(void) {
       if (inz == SUCCEEDED)
         snprintf(brk, sizeof(brk), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(brk, sizeof(brk), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(brk, sizeof(brk), "k%d r%s ", active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(brk, sizeof(brk), "C%d ", latest_stack);
 
@@ -7389,7 +7390,7 @@ int directive_snesnativevector(void) {
       if (inz == SUCCEEDED)
         snprintf(abort, sizeof(abort), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(abort, sizeof(abort), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(abort, sizeof(abort), "k%d r%s ", active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(abort, sizeof(abort), "C%d ", latest_stack);
 
@@ -7412,7 +7413,7 @@ int directive_snesnativevector(void) {
       if (inz == SUCCEEDED)
         snprintf(nmi, sizeof(nmi), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(nmi, sizeof(nmi), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(nmi, sizeof(nmi), "k%d r%s ", active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(nmi, sizeof(nmi), "C%d ", latest_stack);
 
@@ -7435,7 +7436,7 @@ int directive_snesnativevector(void) {
       if (inz == SUCCEEDED)
         snprintf(unused, sizeof(unused), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(unused, sizeof(unused), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(unused, sizeof(unused), "k%d r%s ", active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(unused, sizeof(unused), "C%d ", latest_stack);
 
@@ -7458,7 +7459,7 @@ int directive_snesnativevector(void) {
       if (inz == SUCCEEDED)
         snprintf(irq, sizeof(irq), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(irq, sizeof(irq), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(irq, sizeof(irq), "k%d r%s ", active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(irq, sizeof(irq), "C%d ", latest_stack);
 
@@ -7563,7 +7564,7 @@ int directive_snesemuvector(void) {
       if (inz == SUCCEEDED)
         snprintf(cop, sizeof(cop), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(cop, sizeof(cop), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(cop, sizeof(cop), "k%d r%s ", active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(cop, sizeof(cop), "C%d ", latest_stack);
 
@@ -7586,7 +7587,7 @@ int directive_snesemuvector(void) {
       if (inz == SUCCEEDED)
         snprintf(reset, sizeof(reset), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(reset, sizeof(reset), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(reset, sizeof(reset), "k%d r%s ", active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(reset, sizeof(reset), "C%d ", latest_stack);
 
@@ -7609,7 +7610,7 @@ int directive_snesemuvector(void) {
       if (inz == SUCCEEDED)
         snprintf(abort, sizeof(abort), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(abort, sizeof(abort), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(abort, sizeof(abort), "k%d r%s ", active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(abort, sizeof(abort), "C%d ", latest_stack);
 
@@ -7632,7 +7633,7 @@ int directive_snesemuvector(void) {
       if (inz == SUCCEEDED)
         snprintf(nmi, sizeof(nmi), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(nmi, sizeof(nmi), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(nmi, sizeof(nmi), "k%d r%s ", active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(nmi, sizeof(nmi), "C%d ", latest_stack);
 
@@ -7655,7 +7656,7 @@ int directive_snesemuvector(void) {
       if (inz == SUCCEEDED)
         snprintf(unused, sizeof(unused), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(unused, sizeof(unused), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(unused, sizeof(unused), "k%d r%s ", active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(unused, sizeof(unused), "C%d ", latest_stack);
 
@@ -7678,7 +7679,7 @@ int directive_snesemuvector(void) {
       if (inz == SUCCEEDED)
         snprintf(irqbrk, sizeof(irqbrk), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(irqbrk, sizeof(irqbrk), "k%d r%s ", active_file_info_last->line_current, label);
+        snprintf(irqbrk, sizeof(irqbrk), "k%d r%s ", active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(irqbrk, sizeof(irqbrk), "C%d ", latest_stack);
 
@@ -7737,7 +7738,7 @@ int directive_print(void) {
         return FAILED;
       }
 
-      parse_print_string(label, t, 256);
+      parse_print_string(g_label, t, 256);
 
       if (g_quiet == NO) {
         printf("%s", t);
@@ -7778,7 +7779,7 @@ int directive_printt(void) {
     return FAILED;
   }
 
-  parse_print_string(label, t, 256);
+  parse_print_string(g_label, t, 256);
     
   if (g_quiet == NO) {
     printf("%s", t);
@@ -7807,7 +7808,7 @@ int directive_printv(void) {
     return FAILED;
   if (q != SUCCEEDED) {
     if (q == INPUT_NUMBER_ADDRESS_LABEL) {
-      snprintf(emsg, sizeof(emsg), "\"%s\" is not known.\n", label);
+      snprintf(emsg, sizeof(emsg), "\"%s\" is not known.\n", g_label);
       print_error(emsg, ERROR_DIR);
     }
     print_error(".PRINTV can only print currently known values.\n", ERROR_DIR);
@@ -7924,9 +7925,9 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
   else
     f = 2;
 
-  input_float_mode = ON;
+  g_input_float_mode = ON;
   p = input_number();
-  input_float_mode = OFF;
+  g_input_float_mode = OFF;
   if (p != SUCCEEDED && p != INPUT_NUMBER_FLOAT) {
     snprintf(emsg, sizeof(emsg), ".%s needs a value for starting angle.\n", cp);
     print_error(emsg, ERROR_DIR);
@@ -7936,7 +7937,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
   if (p == SUCCEEDED)
     a = d;
   else
-    a = parsed_double;
+    a = g_parsed_double;
 
   if (input_number() != SUCCEEDED || d < 0) {
     snprintf(emsg, sizeof(emsg), ".%s needs an non-negative integer value for additional angles.\n", cp);
@@ -7946,7 +7947,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
 
   c = d;
 
-  input_float_mode = ON;
+  g_input_float_mode = ON;
   p = input_number();
   if (p != SUCCEEDED && p != INPUT_NUMBER_FLOAT) {
     snprintf(emsg, sizeof(emsg), ".%s needs a value for angle step.\n", cp);
@@ -7957,7 +7958,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
   if (p == SUCCEEDED)
     s = d;
   else
-    s = parsed_double;
+    s = g_parsed_double;
 
   p = input_number();
   if (p != SUCCEEDED && p != INPUT_NUMBER_FLOAT) {
@@ -7969,10 +7970,10 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
   if (p == SUCCEEDED)
     m = d;
   else
-    m = parsed_double;
+    m = g_parsed_double;
 
   p = input_number();
-  input_float_mode = OFF;
+  g_input_float_mode = OFF;
   if (p != SUCCEEDED && p != INPUT_NUMBER_FLOAT) {
     snprintf(emsg, sizeof(emsg), ".%s needs a value to add to the result.\n", cp);
     print_error(emsg, ERROR_DIR);
@@ -7982,7 +7983,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
   if (p == SUCCEEDED)
     n = d;
   else
-    n = parsed_double;
+    n = g_parsed_double;
 
   for (c++; c > 0; c--) {
     while (a >= 360)
@@ -8024,9 +8025,9 @@ int directive_stringmap_table(void) {
   char line_buffer[256];
   struct stringmaptable *map;
 
-  expect_calculations = NO;
+  g_expect_calculations = NO;
   parse_result = input_number();
-  expect_calculations = YES;
+  g_expect_calculations = YES;
 
   if (parse_result != INPUT_NUMBER_STRING && parse_result != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error(".STRINGMAPTABLE needs a file name string.\n", ERROR_DIR);
@@ -8042,20 +8043,20 @@ int directive_stringmap_table(void) {
   map->next = stringmaptables;
   stringmaptables = map;
 
-  strcpy(map->name, label);
+  strcpy(map->name, g_label);
 
-  expect_calculations = NO;
+  g_expect_calculations = NO;
   parse_result = input_number();
-  expect_calculations = YES;
+  g_expect_calculations = YES;
 
   if (parse_result != INPUT_NUMBER_STRING && parse_result != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error(".STRINGMAPTABLE needs a file name string.\n", ERROR_DIR);
     return FAILED;
   }
 
-  table_file = fopen(label, "r");
+  table_file = fopen(g_label, "r");
   if (table_file == NULL) {
-    snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", label);
+    snprintf(emsg, sizeof(emsg), "Error opening file \"%s\".\n", g_label);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -8092,7 +8093,7 @@ int directive_stringmap_table(void) {
     /* left of = should be a string of hex digits, for a variable whole number of bytes */
     char_count = (int)(equals_pos - p);
     if (char_count == 0) {
-      snprintf(emsg, sizeof(emsg), "STRINGMAPTABLE: No text before '=' at line %d of file \"%s\".\n", line_number, label);
+      snprintf(emsg, sizeof(emsg), "STRINGMAPTABLE: No text before '=' at line %d of file \"%s\".\n", line_number, g_label);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -8113,7 +8114,7 @@ int directive_stringmap_table(void) {
       else if (c >= 'A' && c <= 'F')
         accumulator |= c - 'A' + 10;
       else {
-        snprintf(emsg, sizeof(emsg), "STRINGMAPTABLE: Invalid hex character '%c' at line %d of file \"%s\".\n", c, line_number, label);
+        snprintf(emsg, sizeof(emsg), "STRINGMAPTABLE: Invalid hex character '%c' at line %d of file \"%s\".\n", c, line_number, g_label);
         print_error(emsg, ERROR_DIR);
         return FAILED;
       }
@@ -8132,7 +8133,7 @@ int directive_stringmap_table(void) {
     p[strcspn(p, "\r\n")] = 0;
     entry->text_length = (int)strlen(++p);
     if (entry->text_length == 0) {
-      snprintf(emsg, sizeof(emsg), "STRINGMAPTABLE: no text after '=' at line %d of file \"%s\".\n", line_number, label);
+      snprintf(emsg, sizeof(emsg), "STRINGMAPTABLE: no text after '=' at line %d of file \"%s\".\n", line_number, g_label);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
@@ -8158,9 +8159,9 @@ int directive_stringmap(void) {
   char *p;
 
   /* first get the map name */
-  expect_calculations = NO;
+  g_expect_calculations = NO;
   parse_result = input_number();
-  expect_calculations = YES;
+  g_expect_calculations = YES;
 
   if (parse_result != INPUT_NUMBER_STRING && parse_result != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error(".STRINGMAP needs a table name.\n", ERROR_DIR);
@@ -8169,13 +8170,13 @@ int directive_stringmap(void) {
 
   /* find the table */
   for (table = stringmaptables; table != NULL; table = table->next) {
-    if (strcaselesscmp(table->name, label) == 0) {
+    if (strcaselesscmp(table->name, g_label) == 0) {
       /* found it */
       break;
     }
   }
   if (table == NULL) {
-    snprintf(emsg, sizeof(emsg), "STRINGMAP: could not find table called \"%s\".\n", label);
+    snprintf(emsg, sizeof(emsg), "STRINGMAP: could not find table called \"%s\".\n", g_label);
     print_error(emsg, ERROR_DIR);
     return FAILED;    
   }
@@ -8190,7 +8191,7 @@ int directive_stringmap(void) {
   fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
 
   /* parse it */
-  for (p = label; *p != 0; /* increment in loop */) {
+  for (p = g_label; *p != 0; /* increment in loop */) {
     struct stringmap_entry *candidate, *entry = NULL;
     int i;
 
@@ -8360,16 +8361,16 @@ int parse_directive(void) {
   /* OUTNAME */
 
   if (strcaselesscmp(cp, "OUTNAME") == 0) {
-    expect_calculations = NO;
+    g_expect_calculations = NO;
     inz = input_number();
-    expect_calculations = YES;
+    g_expect_calculations = YES;
 
     if (inz != INPUT_NUMBER_STRING && inz != INPUT_NUMBER_ADDRESS_LABEL) {
       print_error(".OUTNAME needs a file name string.\n", ERROR_DIR);
       return FAILED;
     }
 
-    strcpy(g_final_name, label);
+    strcpy(g_final_name, g_label);
 
     return SUCCEEDED;
   }
@@ -9063,16 +9064,16 @@ int parse_directive(void) {
     if (compare_next_token("NAMESPACE") == SUCCEEDED) {
       skip_next_token();
 
-      expect_calculations = NO;
+      g_expect_calculations = NO;
       q = input_number();
-      expect_calculations = YES;
+      g_expect_calculations = YES;
     
       if (q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
         print_error("Internal error: Namespace string is missing.\n", ERROR_DIR);
         return FAILED;
       }
 
-      strcpy(active_file_info_tmp->namespace, label);
+      strcpy(active_file_info_tmp->namespace, g_label);
 
       fprintf(file_out_ptr, "t1 %s ", active_file_info_tmp->namespace);
     }
@@ -9645,7 +9646,7 @@ int parse_if_directive(void) {
       return FAILED;
     }
 
-    strncpy(k, label, 255);
+    strncpy(k, g_label, 255);
     k[255] = 0;
     y = d;
     s = q;
@@ -9692,7 +9693,7 @@ int parse_if_directive(void) {
     }
     /* strings? */
     else {
-      if ((o == 0 && strcmp(k, label) < 0) || (o == 1 && strcmp(k, label) > 0) || (o == 2 && strcmp(k, label) == 0) || (o == 3 && strcmp(k, label) != 0) || (o == 4 && strcmp(k, label) >= 0) || (o == 5 && strcmp(k, label) <= 0))
+      if ((o == 0 && strcmp(k, g_label) < 0) || (o == 1 && strcmp(k, g_label) > 0) || (o == 2 && strcmp(k, g_label) == 0) || (o == 3 && strcmp(k, g_label) != 0) || (o == 4 && strcmp(k, g_label) >= 0) || (o == 5 && strcmp(k, g_label) <= 0))
         q = SUCCEEDED;
       else
         q = FAILED;
@@ -9735,7 +9736,7 @@ int parse_if_directive(void) {
       return FAILED;
     }
 
-    strncpy(k, label, 255);
+    strncpy(k, g_label, 255);
     k[255] = 0;
     y = d;
     s = q;
@@ -9762,7 +9763,7 @@ int parse_if_directive(void) {
     }
     /* strings? */
     else {
-      if ((o == 0 && strcmp(k, label) < 0) || (o == 1 && strcmp(k, label) > 0) || (o == 2 && strcmp(k, label) == 0) || (o == 3 && strcmp(k, label) != 0) || (o == 4 && strcmp(k, label) >= 0) || (o == 5 && strcmp(k, label) <= 0))
+      if ((o == 0 && strcmp(k, g_label) < 0) || (o == 1 && strcmp(k, g_label) > 0) || (o == 2 && strcmp(k, g_label) == 0) || (o == 3 && strcmp(k, g_label) != 0) || (o == 4 && strcmp(k, g_label) >= 0) || (o == 5 && strcmp(k, g_label) <= 0))
         q = SUCCEEDED;
       else
         q = FAILED;
@@ -9784,16 +9785,16 @@ int parse_if_directive(void) {
 
     FILE *f;
 
-    expect_calculations = NO;
+    g_expect_calculations = NO;
     inz = input_number();
-    expect_calculations = YES;
+    g_expect_calculations = YES;
 
     if (inz != INPUT_NUMBER_STRING && inz != INPUT_NUMBER_ADDRESS_LABEL) {
       print_error(".IFEXISTS needs a file name string.\n", ERROR_DIR);
       return FAILED;
     }
 
-    f = fopen(label, "r");
+    f = fopen(g_label, "r");
     if (f == NULL)
       return find_next_point("IFEXISTS");
 
@@ -9994,7 +9995,7 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
 
   if (x == INPUT_NUMBER_ADDRESS_LABEL) {
     /* address label -> stack */
-    stack_create_label_stack(label);
+    stack_create_label_stack(g_label);
     x = INPUT_NUMBER_STACK;
   }
 
@@ -10023,12 +10024,12 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
       if (x == SUCCEEDED)
         *b = d;
       else if (x == INPUT_NUMBER_STRING) {
-        strcpy(c, label);
-        s = (int)strlen(label);
+        strcpy(c, g_label);
+        s = (int)strlen(g_label);
       }
       else if (x == INPUT_NUMBER_FLOAT) {
-        *data = parsed_double;
-        *b = (int)parsed_double;
+        *data = g_parsed_double;
+        *b = (int)g_parsed_double;
       }
       else
         return x;
@@ -10062,13 +10063,13 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
 
     /* transform floats to integers */
     if (x == INPUT_NUMBER_FLOAT) {
-      d = (int)parsed_double;
+      d = (int)g_parsed_double;
       x = SUCCEEDED;
     }
 
     if (x == INPUT_NUMBER_STRING) {
-      strcpy(&c[s], label);
-      s += (int)strlen(label);
+      strcpy(&c[s], g_label);
+      s += (int)strlen(g_label);
     }
     else if (x == SUCCEEDED) {
       if (d > 255) {
