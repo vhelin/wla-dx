@@ -106,7 +106,7 @@ static void print_find_error(char* name) {
     fprintf(stderr, "%s\n", include_dir);
   }
 
-  fprintf(stderr, "Current directory.\n");
+  fprintf(stderr, "./ (current directory)\n");
 }
 
 
