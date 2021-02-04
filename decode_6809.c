@@ -45,7 +45,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         if (z == SUCCEEDED)
           output_assembled_opcode(opt_tmp, "d%d ", d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "R%s ", label);
+          output_assembled_opcode(opt_tmp, "R%s ", g_label);
         else {
           output_assembled_opcode(opt_tmp, "c%d ", latest_stack);
           if (opt_tmp->type == 5) {
@@ -94,7 +94,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         if (z == SUCCEEDED)
           output_assembled_opcode(opt_tmp, "y%d ", d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "r%s ", label);
+          output_assembled_opcode(opt_tmp, "r%s ", g_label);
         else
           output_assembled_opcode(opt_tmp, "C%d ", latest_stack);
 
@@ -137,7 +137,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
-    if (operand_hint == HINT_16BIT)
+    if (g_operand_hint == HINT_16BIT)
       break;
     if (z == SUCCEEDED && (d > 255 || d < 0)) {
       if (opt_tmp->skip_8bit == 1)
@@ -158,7 +158,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         if (z == SUCCEEDED)
           output_assembled_opcode(opt_tmp, "d%d ", d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "Q%s ", label);
+          output_assembled_opcode(opt_tmp, "Q%s ", g_label);
         else
           output_assembled_opcode(opt_tmp, "c%d ", latest_stack);
         
@@ -186,13 +186,13 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     inz = g_source_pointer;
     g_source_pointer = y;
 
-    /* TODO: add a mechanism so that we could use 5-bit address label references and calculations */
+    /* TODO: add a mechanism so that we could use 5-bit addreslabel references and calculations */
     /* currently we just fall back to 8-bit/16-bit ones */
     if (z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK)
       break;
     if (z != SUCCEEDED)
       return FAILED;
-    if (operand_hint == HINT_8BIT || operand_hint == HINT_16BIT)
+    if (g_operand_hint == HINT_8BIT || g_operand_hint == HINT_16BIT)
       break;
     if (d > 15 || d < -16)
       break;
@@ -233,7 +233,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
-    if (operand_hint == HINT_16BIT)
+    if (g_operand_hint == HINT_16BIT)
       break;
     if (z == SUCCEEDED && (d > 127 || d < -128)) {
       if (opt_tmp->skip_8bit == 1)
@@ -254,7 +254,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         if (z == SUCCEEDED)
           output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->addressing_mode_bits, d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "d%d R%s ", opt_tmp->addressing_mode_bits, label);
+          output_assembled_opcode(opt_tmp, "d%d R%s ", opt_tmp->addressing_mode_bits, g_label);
         else {
           output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->addressing_mode_bits, latest_stack);
 
@@ -302,7 +302,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         if (z == SUCCEEDED)
           output_assembled_opcode(opt_tmp, "d%d y%d ", opt_tmp->addressing_mode_bits, d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "d%d r%s ", opt_tmp->addressing_mode_bits, label);
+          output_assembled_opcode(opt_tmp, "d%d r%s ", opt_tmp->addressing_mode_bits, g_label);
         else
           output_assembled_opcode(opt_tmp, "d%d C%d ", opt_tmp->addressing_mode_bits, latest_stack);
 
@@ -406,7 +406,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         if (z == SUCCEEDED)
           output_assembled_opcode(opt_tmp, "y%d ", d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "M%s ", label);
+          output_assembled_opcode(opt_tmp, "M%s ", g_label);
         else {
           output_assembled_opcode(opt_tmp, "C%d ", latest_stack);
           /* let's configure the stack so that all label references inside are relative */
