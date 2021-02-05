@@ -40,25 +40,23 @@ Group 2:
 
 === ===============================
 GB   ``.CARTRIDGETYPE 1``
-GB   ``.COUNTRYCODE 1``
-GB   ``.VERSION 1``
-GB   ``.DESTINATIONCODE 1``
-GB   ``.NINTENDOLOGO``
-GB   ``.GBHEADER``
-Z80  ``.SMSHEADER``
 GB   ``.COMPUTEGBCOMPLEMENTCHECK``
+GB   ``.COUNTRYCODE 1``
+GB   ``.DESTINATIONCODE 1``
 ALL  ``.EMPTYFILL $C9``
 658  ``.ENDEMUVECTOR``
 658  ``.ENDNATIVEVECTOR``
 658  ``.ENDSNES``
+658  ``.EXHIROM``
 ALL  ``.EXPORT work_x``
 658  ``.FASTROM``
+GB   ``.GBHEADER``
 658  ``.HIROM``
-658  ``.EXHIROM``
 GB   ``.LICENSEECODENEW "1A"``
 GB   ``.LICENSEECODEOLD $1A``
 658  ``.LOROM``
 GB8  ``.NAME "NAME OF THE ROM"``
+GB   ``.NINTENDOLOGO``
 ALL  ``.OUTNAME "other.o"``
 GB   ``.RAMSIZE 0``
 GB   ``.ROMDMG``
@@ -67,9 +65,11 @@ GB   ``.ROMGBCONLY``
 GB   ``.ROMSGB``
 658  ``.SLOWROM``
 658  ``.SMC``
+Z80  ``.SMSHEADER``
 658  ``.SNESEMUVECTOR``
 658  ``.SNESHEADER``
 658  ``.SNESNATIVEVECTOR``
+GB   ``.VERSION 1``
 === ===============================
 
 Group 3:
@@ -79,11 +79,10 @@ Group 3:
 658  ``.24BIT``
 65x  ``.8BIT``
 658  ``.ACCU 8``
-658  ``.WDC``
-658  ``.NOWDC`` 
+ALL  ``.ADDR 16000, main, 255``
 ALL  ``.ASC "HELLO WORLD!"``
-ALL  ``.ASCTABLE``
 ALL  ``.ASCIITABLE``
+ALL  ``.ASCTABLE``
 ALL  ``.ASM``
 ALL  ``.BACKGROUND "parallax.gb"``
 ALL  ``.BANK 0 SLOT 1``
@@ -94,12 +93,12 @@ ALL  ``.BREAKPOINT``
 ALL  ``.BYT 100, $30, %1000, "HELLO WORLD!"``
 ALL  ``.DATA $ff00, 2``
 ALL  ``.DB 100, $30, %1000, "HELLO WORLD!"``
-ALL  ``.DBM filtermacro 1, 2, "encrypt me"``
 ALL  ``.DBCOS 0.2, 10, 3.2, 120, 1.3``
+ALL  ``.DBM filtermacro 1, 2, "encrypt me"``
 ALL  ``.DBRND 20, 0, 10``
 ALL  ``.DBSIN 0.2, 10, 3.2, 120, 1.3``
-ALL  ``.DEFINE IF $FF0F``
 ALL  ``.DEF IF $FF0F``
+ALL  ``.DEFINE IF $FF0F``
 658  ``.DL $102030, $405060``
 658  ``.DLM filtermacro 1, 2, 3``
 ALL  ``.DS 256, $10``
@@ -108,8 +107,8 @@ ALL  ``.DSB 256, $10``
 ALL  ``.DSTRUCT waterdrop INSTANCEOF water DATA "tingle", 40, 120``
 ALL  ``.DSW 128, 20``
 ALL  ``.DW 16000, 10, 255``
-ALL  ``.DWM filtermacro 1, 2, 3``
 ALL  ``.DWCOS 0.2, 10, 3.2, 1024, 1.3``
+ALL  ``.DWM filtermacro 1, 2, 3``
 ALL  ``.DWRND 20, 0, 10``
 ALL  ``.DWSIN 0.2, 10, 3.2, 1024, 1.3``
 ALL  ``.ELSE``
@@ -129,6 +128,7 @@ ALL  ``.ENUM $C000``
 ALL  ``.ENUMID ID_1 0``
 ALL  ``.EQU IF $FF0F``
 ALL  ``.FAIL``
+658  ``.FARADDR main, irq_1``
 ALL  ``.FCLOSE FP_DATABIN``
 ALL  ``.FOPEN "data.bin" FP_DATABIN``
 ALL  ``.FREAD FP_DATABIN DATA``
@@ -145,47 +145,47 @@ ALL  ``.IFLEEQ DEBUG 1``
 ALL  ``.IFNDEF IF``
 ALL  ``.IFNDEFM \2``
 ALL  ``.IFNEQ DEBUG 2``
+ALL  ``.INC "cgb_hardware.i"``
 ALL  ``.INCBIN "sorority.bin"``
 ALL  ``.INCDIR "/usr/programming/gb/include/"``
-ALL  ``.INC "cgb_hardware.i"``
 ALL  ``.INCLUDE "cgb_hardware.i"``
 658  ``.INDEX 8``
 ALL  ``.INPUT NAME``
 658  ``.LONG $102030, $405060``
-658  ``.FARADDR main, irq_1``
 ALL  ``.MACRO TEST``
 ALL  ``.MEMORYMAP``
 ALL  ``.NEXTU name``
+658  ``.NOWDC`` 
 ALL  ``.ORG $150``
 ALL  ``.ORGA $150``
 ALL  ``.PRINT "Numbers 1 and 10: ", DEC 1, " $", HEX 10, "\n"``
 ALL  ``.PRINTT "Here we are...\n"``
 ALL  ``.PRINTV DEC DEBUG+1``
 ALL  ``.RAMSECTION "Vars" BANK 0 SLOT 1 ALIGN 256 OFFSET 32``
-ALL  ``.REDEFINE IF $F``
 ALL  ``.REDEF IF $F``
+ALL  ``.REDEFINE IF $F``
 ALL  ``.REPEAT 6``
 ALL  ``.REPT 6``
 ALL  ``.ROMBANKMAP``
 ALL  ``.ROMBANKS 2``
 ALL  ``.ROMBANKSIZE $4000``
 ALL  ``.ROW $ff00, 1, "3"``
-ALL  ``.SEED 123``
 ALL  ``.SECTION "Init" FORCE``
+ALL  ``.SEED 123``
 ALL  ``.SHIFT``
 ALL  ``.SLOT 1``
-ALL  ``.STRUCT enemy_object``
-ALL  ``.STRINGMAPTABLE script "script.tbl"``
 ALL  ``.STRINGMAP script "Hello\n"``
+ALL  ``.STRINGMAPTABLE script "script.tbl"``
+ALL  ``.STRUCT enemy_object``
 ALL  ``.SYM SAUSAGE``
 ALL  ``.SYMBOL SAUSAGE``
 ALL  ``.TABLE byte, word, byte``
 ALL  ``.UNBACKGROUND $1000 $1FFF``
-ALL  ``.UNDEFINE DEBUG``
 ALL  ``.UNDEF DEBUG``
+ALL  ``.UNDEFINE DEBUG``
 ALL  ``.UNION name``
+658  ``.WDC``
 ALL  ``.WORD 16000, 10, 255``
-ALL  ``.ADDR 16000, main, 255``
 === ================================================================
 
 Descriptions:
@@ -194,11 +194,11 @@ Descriptions:
 ----------
 
 Analogous to ``.8BIT``. ``.16BIT`` forces all addresses and immediate values to
-be expanded into 16-bit range, when possible, that is. ::
+be expanded into 16-bit range, when possible, that is::
 
     LSR 11       ; $46 $0B
 
-that would be the case, normally, but after ``.16BIT`` it becomes ::
+That would be the case, normally, but after ``.16BIT`` it becomes::
 
     LSR 11       ; $4E $0B $00
 
@@ -209,11 +209,11 @@ This is not a compulsory directive.
 ----------
 
 Analogous to ``.8BIT`` and ``.16BIT``. ``.24BIT`` forces all addresses to
-be expanded into 24-bit range, when possible, that is. ::
+be expanded into 24-bit range, when possible, that is::
 
     AND $11       ; $25 $11
 
-that would be the case, normally, but after ``.24BIT`` it becomes ::
+That would be the case, normally, but after ``.24BIT`` it becomes::
 
     AND $11       ; $2F $11 $00 $00
 
@@ -237,7 +237,7 @@ For example::
     LSR 11       ; $46 $0B
     LSR $A000    ; $4E $00 $A0
 
-The first one could also be ::
+The first one could also be::
 
     LSR 11       ; $4E $0B $00
 
@@ -272,11 +272,11 @@ Forces WLA to override the accumulator size given with ``SEP``/``REP``.
 immediate values (8 for 8 bit operands, 16 for 16 bit operands) for opcodes
 dealing with the accumulator.
 
-So after giving ``.ACCU 8`` ::
+So after giving ``.ACCU 8``::
 
     AND #6
 
-will produce ``$29 $06``, and after giving ``.ACCU 16`` ::
+will produce ``$29 $06``, and after giving ``.ACCU 16``::
 
     AND #6
 
@@ -439,7 +439,6 @@ This is not a compulsory directive.
 This is not a compulsory directive.
 
 
-
 ``.BR``
 -------
 
@@ -584,7 +583,7 @@ The fourth and fifth arguments can be seen from the pseudo code below, which
 also describes how ``.DBCOS`` works. The values can be integer or float.
 
 Remember that ``cos`` (and ``sin``) here returns values ranging from
-``-1`` to ``1``. ::
+``-1`` to ``1``::
 
     .DBCOS A, B, C, D, E
 
@@ -677,12 +676,12 @@ Here are some examples::
     .DEFINE DEFAULTV
 
 All definitions with multiple values are marked as data strings,
-and ``.DB`` is about the only place where you can later on use them. ::
+and ``.DB`` is about the only place where you can later on use them::
 
     .DEFINE BYTES 1, 2, 3, 4, 5
     .DB 0, BYTES, 6
 
-is the same as ::
+is the same as::
 
     .DB 0, 1, 2, 3, 4, 5, 6
 
@@ -697,7 +696,7 @@ of this::
     .DB AAA            ; will be 10.
     .REDEFINE AAA 11
 
-but ::
+but::
 
     .DB AAA            ; will be 11.
     .DEFINE AAA 10
@@ -712,11 +711,11 @@ example of this::
 ``john``, ``PRICE``'s value will be ``100``, and ``ADDRESS``'s value will be
 ``$100``.
 
-Note that ::
+Note that::
 
     .DEFINE AAA = 10   ; the same as ".DEFINE AAA 10".
 
-works as well. And this works also ::
+works as well. And this works also::
 
     AAA = 10
 
@@ -1010,6 +1009,7 @@ Ends a ``.MACRO``.
 This is not a compulsory directive, but when ``.MACRO`` is used this one is
 required to terminate it.
 
+
 ``.ENDNATIVEVECTOR``
 --------------------
 
@@ -1068,6 +1068,7 @@ is used this one is required to terminate it.
 ---------
 
 Ends the current union.
+
 
 ``.ENUM $C000``
 ---------------
@@ -1220,6 +1221,7 @@ banking defined in ``.ROMBANKMAP``.
 ``$FFD5``).
 
 This is not a compulsory directive.
+
 
 ``.EXPORT work_x``
 ------------------
@@ -1410,7 +1412,7 @@ acknowledged until ``.ENDIF``/``.LESE`` occurs in the text, otherwise it is
 skipped.
 
 By writing the following few lines you can include a file if it exists
-without breaking the compiling loop if it doesn't exist. ::
+without breaking the compiling loop if it doesn't exist::
 
     .IFEXISTS FILE
     .INCLUDE FILE
@@ -1570,7 +1572,7 @@ This is not a compulsory directive.
 Changes the current include root directory. Use this to specify main
 directory for the following ``.INCLUDE`` and ``.INCBIN`` directives.
 If you want to change to the current working directory (WLA also defaults
-to this), use ::
+to this), use::
 
     .INCDIR ""
 
@@ -1590,7 +1592,7 @@ directory. If the ``INCDIR`` is specified in the command line, WLA will first
 try to find the file specified in that directory. Then proceed as mentioned
 before if it is not found.
 
-If you want to prefix all labels inside the included file with something, use ::
+If you want to prefix all labels inside the included file with something, use::
 
     .INCLUDE "music_player.s" NAMESPACE "musicplayer"
 
@@ -1602,7 +1604,7 @@ inside the included file uses ``APPENDTO`` with a section name that starts with
 ``"*:"``, that ``APPENDTO`` is considered to belong to the global namespace and we
 won't prefix it with the ``.INCLUDE`` 's namespace.
 
-Note that you can create the file name from pieces ::
+Note that you can create the file name from pieces::
 
     .INCLUDE ROOTDIR, SUBDIR, "cthulhu.s" NAMESPACE "cthulhu"
 
@@ -1610,7 +1612,7 @@ This might end up looking for a file "root/subdir/cthulhu.s", depending on the
 definitions.
 
 If you are using the ``.INCLUDE`` inside a ``.MACRO`` and want to have the file
-included only once, use the keyword ``ONCE`` ::
+included only once, use the keyword ``ONCE``::
 
     .INCLUDE "include_one.s" NAMESPACE "once" ONCE
   
@@ -1625,11 +1627,11 @@ Forces WLA to override the index (``X``/``Y``) register size given with
 WLA interprets the immediate values (``8`` for 8 bit operands, ``16`` for 16
 bit operands) for opcodes dealing with the index registers.
 
-So after giving ``.INDEX 8`` ::
+So after giving ``.INDEX 8``
 
     CPX #10
 
-will produce ``$E0 $A0``, and after giving ``.INDEX 16`` ::
+will produce ``$E0 $A0``, and after giving ``.INDEX 16``
 
     CPX #10
 
@@ -2033,11 +2035,11 @@ just an offset to the ``SLOT``.
 ``.OUTNAME "other.o"``
 ----------------------
 
-Changes the name of the output file. Here's and example::
+Changes the name of the output file. Here's an example::
 
     wla-gb -o test.o test.s
 
-would normally output ``test.o``, but if you had written ::
+would normally output ``test.o``, but if you had written::
 
     .OUTNAME "new.o"
 
@@ -2441,7 +2443,7 @@ Here's an explanation of the arguments::
 
 Note that program name, release notes and program author can also be pointers
 to strings instead of being only strings (which WLA terminates with zero, and
-places them into suitable locations inside the ROM file). So ::
+places them into suitable locations inside the ROM file). So::
 
     .SDSCTAG 0.8, PRGNAME, PRGNOTES, PRGAUTHOR
     ...
@@ -2450,7 +2452,7 @@ places them into suitable locations inside the ROM file). So ::
     PRGAUTHOR:.DB "Ville Helin", 0
 
 works also. All strings supplied explicitly to ``.SDSCTAG`` are placed
-somewhere in ``.BANK 0 SLOT 0``. ::
+somewhere in ``.BANK 0 SLOT 0``.::
 
     .SDSCTAG 1.0, "", "", ""
     .SDSCTAG 1.0, 0, 0, 0
@@ -2481,7 +2483,7 @@ tells the offset for the relocation from the beginning of ``.BANK``.
 You can put sections inside a namespace. For instance, if you put a section
 into a namespace called ``bank0``, then labels in that section can be
 accessed with ``bank0.label``. This is not necessary inside the section
-itself. The namespace directive should immediately follow the name. ::
+itself. The namespace directive should immediately follow the name::
 
     .SECTION "Init" NAMESPACE "bank0"
 
@@ -2739,7 +2741,7 @@ This is not a compulsory directive.
 ``.SNESEMUVECTOR``
 ------------------
 
-Begins definition of the emulation mode interrupt vector table. ::
+Begins definition of the emulation mode interrupt vector table::
 
     .SNESEMUVECTOR
     COP    COPHandler
@@ -2823,7 +2825,7 @@ This is not a compulsory directive.
 ``.SNESNATIVEVECTOR``
 ---------------------
 
-Begins definition of the native mode interrupt vector table. ::
+Begins definition of the native mode interrupt vector table::
 
     .SNESNATIVEVECTOR
     COP    COPHandler
@@ -2920,7 +2922,7 @@ You'll get the following definitions as well::
     enemy_object.stats (== 30)
 
 After defining a ``.STRUCT`` you can create an instance of it in a
-``.RAMSECTION`` / ``.ENUM`` by typing ::
+``.RAMSECTION`` / ``.ENUM`` by typing::
 
     <instance name> INSTANCEOF <struct name> [optional, the number of structures]
 
@@ -2943,7 +2945,7 @@ examples of how you can use ``.STRUCT`` s.
 
 **A WORD OF WARNING**: Don't use labels ``b``, ``B``, ``w`` and ``W`` inside a
 structure as e.g., WLA sees ``enemy.b`` as a byte sized reference to enemy. All
-other labels should be safe. ::
+other labels should be safe::
 
     lda enemy1.b  ; load a byte from zeropage address enemy1 or from the address
                   ; of enemy1.b??? i can't tell you, and WLA can't tell you...
@@ -3047,7 +3049,7 @@ Begins a "union". This can only be used in enums, ramsections, and structs.
 When entering a union, the current address in the enum is saved, and the
 following data is processed as normal. When the ``.NEXTU`` directive is
 encountered, the address is reverted back to the start of the union. This allows
-one to assign an area of memory to multiple labels. ::
+one to assign an area of memory to multiple labels::
 
     .ENUM $C000
         .UNION
@@ -3069,7 +3071,7 @@ This example is equivalent to::
     .DEFINE after        $c004
 
 The ``.UNION`` and ``.NEXTU`` commands can be given an argument to assign
-a prefix to the labels that follow. ::
+a prefix to the labels that follow::
 
     .ENUM $C000
         .UNION union1
@@ -3090,7 +3092,7 @@ Unions can be nested.
 
 
 ``.VERSION 1``
-------------------
+--------------
 
 Indicates the Mask ROM version number located at ``$14C`` of a Gameboy ROM.
 
@@ -3101,13 +3103,13 @@ This is not a compulsory directive.
 --------
 
 Turns WLA-65816 into a mode where it accepts WDC standard assembly code, in
-addition to WLA's own syntax. In WDC standard mode ::
+addition to WLA's own syntax. In WDC standard mode::
 
     AND <x  ; 8-bit
     AND |?  ; 16-bit
     AND >&  ; 24-bit
 
-are the same as ::
+are the same as::
     
     AND x.b ; 8-bit
     AND ?.w ; 16-bit
