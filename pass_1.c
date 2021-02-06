@@ -113,20 +113,20 @@ struct label_sizeof *label_sizeofs = NULL;
 struct block_name *block_names = NULL;
 struct stringmaptable *stringmaptables = NULL;
 
-extern char *buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *include_dir, *full_name;
-extern int size, unfolded_size, g_input_number_error_msg, g_verbose_mode, g_output_format, open_files;
+extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name;
+extern int g_size, unfolded_size, g_input_number_error_msg, g_verbose_mode, g_output_format, g_open_files;
 extern int stack_id, latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations;
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
-extern int include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
+extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
 extern int g_create_sizeof_definitions;
 extern FILE *file_out_ptr;
 extern double g_parsed_double;
 extern char *g_final_name;
 
-extern struct active_file_info *active_file_info_first, *active_file_info_last, *active_file_info_tmp;
-extern struct file_name_info *file_name_info_first, *file_name_info_last, *file_name_info_tmp;
+extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
+extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern struct stack *stacks_first, *stacks_tmp, *stacks_last;
-extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
+extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 
 int macro_stack_size = 0, repeat_stack_size = 0;
 
@@ -252,7 +252,7 @@ int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
   strcpy(fullname, name);
 
   /* append the namespace, if this file uses if */
-  if (add_namespace == YES && active_file_info_last->namespace[0] != 0) {
+  if (add_namespace == YES && g_active_file_info_last->namespace[0] != 0) {
     if (add_namespace_to_string(fullname, sizeof(fullname), "MACRO") == FAILED) {
       *macro_out = NULL;
       return FAILED;
@@ -313,16 +313,16 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
   mrt->caller = caller;
   mrt->macro = m;
   mrt->macro_return_i = g_source_pointer;
-  mrt->macro_return_line = active_file_info_last->line_current;
-  mrt->macro_return_filename_id = active_file_info_last->filename_id;
+  mrt->macro_return_line = g_active_file_info_last->line_current;
+  mrt->macro_return_filename_id = g_active_file_info_last->filename_id;
 
-  if ((g_extra_definitions == ON) && (active_file_info_last->filename_id != m->filename_id)) {
+  if ((g_extra_definitions == ON) && (g_active_file_info_last->filename_id != m->filename_id)) {
     redefine("WLA_FILENAME", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(m->filename_id)));
     redefine("wla_filename", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(m->filename_id)));
   }
 
-  active_file_info_last->line_current = m->start_line;
-  active_file_info_last->filename_id = m->filename_id;
+  g_active_file_info_last->line_current = m->start_line;
+  g_active_file_info_last->filename_id = m->filename_id;
   g_source_pointer = m->start;
 
   /* redefine NARGS */
@@ -725,7 +725,7 @@ int pass_1(void) {
           }
 
           add_label_to_label_stack(tmp);
-          fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
+          fprintf(file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmp);
 
           /* move to the end of the label */
           if (q != g_ss)
@@ -761,7 +761,7 @@ int pass_1(void) {
       for (p = 0; 1; p++) {
         /* take away the white space */
         while (1) {
-          if (buffer[g_source_pointer] == ' ' || buffer[g_source_pointer] == ',')
+          if (g_buffer[g_source_pointer] == ' ' || g_buffer[g_source_pointer] == ',')
             g_source_pointer++;
           else
             break;
@@ -846,7 +846,7 @@ void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
     va_end(ap);
     va_start(ap, format);
     vsnprintf(ttt, sizeof(ttt), format, ap);
-    printf("LINE %5d: OPCODE: %16s ::: %s\n", active_file_info_last->line_current, oc->op, ttt);
+    printf("LINE %5d: OPCODE: %16s ::: %s\n", g_active_file_info_last->line_current, oc->op, ttt);
   }
 #endif
 
@@ -1098,7 +1098,7 @@ int evaluate_token(void) {
     }
 
     add_label_to_label_stack(tmp);
-    fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmp);
+    fprintf(file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmp);
 
     return SUCCEEDED;
   }
@@ -1442,11 +1442,11 @@ void print_error(char *error, int type) {
     t = error_err;
     break;
   case ERROR_NONE:
-    fprintf(stderr, "%s:%d: %s", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current, error);
+    fprintf(stderr, "%s:%d: %s", get_file_name(g_active_file_info_last->filename_id), g_active_file_info_last->line_current, error);
     return;
   }
 
-  fprintf(stderr, "%s:%d: %s %s", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current, t, error);
+  fprintf(stderr, "%s:%d: %s %s", get_file_name(g_active_file_info_last->filename_id), g_active_file_info_last->line_current, t, error);
   fflush(stderr);
 
   return;
@@ -1485,20 +1485,20 @@ void next_line(void) {
   if (line_count_status == OFF)
     return;
 
-  if (active_file_info_last == NULL)
+  if (g_active_file_info_last == NULL)
     return;
 
   /* output the file number for list file structure building */
   if (g_listfile_data == YES)
-    fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+    fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
-  if (active_file_info_last != NULL)
-    active_file_info_last->line_current++;
+  if (g_active_file_info_last != NULL)
+    g_active_file_info_last->line_current++;
 }
 
 
 /* used by .RAMSECTIONs only */
-int add_label_sizeof(char *label, int size) {
+int add_label_sizeof(char *label, int g_size) {
 
   struct label_sizeof *ls;
   char tmpname[MAX_NAME_LENGTH + 8];
@@ -1517,13 +1517,13 @@ int add_label_sizeof(char *label, int size) {
   }
   
   strcpy(ls->name, label);
-  ls->size = size;
+  ls->size = g_size;
   ls->next = label_sizeofs;
   label_sizeofs = ls;
 
   /* define locally also, since we can */
   snprintf(tmpname, sizeof(tmpname), "_sizeof_%s", label);
-  if (add_a_new_definition(tmpname, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+  if (add_a_new_definition(tmpname, (double)g_size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
@@ -1573,7 +1573,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
         /* this sometimes abuses the "dsb" implementation to move backwards in the ramsection. */
         fprintf(file_out_ptr, "x%d 0 ", enum_offset-last_enum_offset);
       }
-      fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+      fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
       /* we skip label emissions for "." (because .ENUM and .RAMSECTION use it as an anonymous label) */
       if (strcmp(".", name) != 0)
         fprintf(file_out_ptr, "L%s ", name);
@@ -1718,7 +1718,7 @@ int parse_enum_token(void) {
   struct structure *st = NULL;
   struct structure_item *si;
   char tmpname[MAX_NAME_LENGTH + 8 + 1], bak[256];
-  int type, size, q, start_from = 1;
+  int type, g_size, q, start_from = 1;
   
   /* check for "if" directives (the only directives permitted in an enum/ramsection) */
   if (tmp[0] == '.') {
@@ -1961,19 +1961,19 @@ int parse_enum_token(void) {
     return FAILED;
     
   type = 0;
-  size = 0;
+  g_size = 0;
 
   if (strcaselesscmp(tmp, "DB") == 0 || strcaselesscmp(tmp, "BYT") == 0 || strcaselesscmp(tmp, "BYTE") == 0) {
-    size = 1;
+    g_size = 1;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
   else if (strcaselesscmp(tmp, "DW") == 0 || strcaselesscmp(tmp, "WORD") == 0 || strcaselesscmp(tmp, "ADDR") == 0) {
-    size = 2;
+    g_size = 2;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
 #ifdef W65816
   else if (strcaselesscmp(tmp, "DL") == 0 || strcaselesscmp(tmp, "LONG") == 0 || strcaselesscmp(tmp, "FARADDR") == 0) {
-    size = 3;
+    g_size = 3;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
 #endif
@@ -1985,7 +1985,7 @@ int parse_enum_token(void) {
       print_error("DS/DSB needs size.\n", ERROR_DIR);
       return FAILED;
     }
-    size = d;
+    g_size = d;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
   else if (strcaselesscmp(tmp, "DSW") == 0) {
@@ -1996,7 +1996,7 @@ int parse_enum_token(void) {
       print_error("DSW needs size.\n", ERROR_DIR);
       return FAILED;
     }
-    size = 2*d;
+    g_size = 2*d;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
 #ifdef W65816
@@ -2008,7 +2008,7 @@ int parse_enum_token(void) {
       print_error("DSL needs size.\n", ERROR_DIR);
       return FAILED;
     }
-    size = 3*d;
+    g_size = 3*d;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
 #endif
@@ -2031,7 +2031,7 @@ int parse_enum_token(void) {
     inz = input_number();
     if (inz == INPUT_NUMBER_EOL) {
       next_line();
-      size = st->size;
+      g_size = st->size;
       d = 1;
     }
     else if (inz == SUCCEEDED) {
@@ -2040,7 +2040,7 @@ int parse_enum_token(void) {
         return FAILED;
       }
 
-      size = st->size * d;
+      g_size = st->size * d;
     }
     else {
       if (inz == INPUT_NUMBER_STRING)
@@ -2076,13 +2076,13 @@ int parse_enum_token(void) {
   else if (strcaselesscmp(tmp, ".db") == 0 || strcaselesscmp(tmp, ".byt") == 0 ||
            strcaselesscmp(tmp, ".byte") == 0) {
     /* don't do anything for "dotted" versions */
-    size = 1;
+    g_size = 1;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
   else if (strcaselesscmp(tmp, ".dw") == 0 || strcaselesscmp(tmp, ".word") == 0 ||
            strcaselesscmp(tmp, ".addr") == 0) {
     /* don't do anything for "dotted" versions */
-    size = 2;
+    g_size = 2;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
   else if (strcaselesscmp(tmp, ".ds") == 0 || strcaselesscmp(tmp, ".dsb") == 0 || strcaselesscmp(tmp, ".dsw") == 0) {
@@ -2101,13 +2101,13 @@ int parse_enum_token(void) {
     if (strcaselesscmp(bak, ".dsw") == 0)
       d *= 2;
 
-    size = d;
+    g_size = d;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
 #ifdef W65816
   else if (strcaselesscmp(tmp, ".dl") == 0 || strcaselesscmp(tmp, ".long") == 0 || strcaselesscmp(tmp, ".faraddr") == 0) {
     /* don't do anything for "dotted" versions */
-    size = 3;
+    g_size = 3;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
   else if (strcaselesscmp(tmp, ".dsl") == 0) {
@@ -2122,7 +2122,7 @@ int parse_enum_token(void) {
       return FAILED;
     }
 
-    size = d * 3;
+    g_size = d * 3;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
 #endif
@@ -2145,7 +2145,7 @@ int parse_enum_token(void) {
   }
   si->next = NULL;
   strcpy(si->name, tmpname);
-  si->size = size;
+  si->size = g_size;
   si->type = type;
   si->start_from = start_from;
   if (type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
@@ -2162,7 +2162,7 @@ int parse_enum_token(void) {
   active_struct->last_item = si;
 
   if (type != STRUCTURE_ITEM_TYPE_DOTTED)
-    enum_offset += size;
+    enum_offset += g_size;
 
   if (enum_offset > max_enum_offset)
     max_enum_offset = enum_offset;
@@ -2634,14 +2634,14 @@ int directive_row_data(void) {
     }
     else if (inz == INPUT_NUMBER_ADDRESS_LABEL) {
       if (table_format[table_index] == 'b') {
-        fprintf(file_out_ptr, "k%d Q%s ", active_file_info_last->line_current, g_label);
+        fprintf(file_out_ptr, "k%d Q%s ", g_active_file_info_last->line_current, g_label);
       }
       else if (table_format[table_index] == 'w') {
-        fprintf(file_out_ptr, "k%d r%s ", active_file_info_last->line_current, g_label);
+        fprintf(file_out_ptr, "k%d r%s ", g_active_file_info_last->line_current, g_label);
       }
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
-        fprintf(file_out_ptr, "k%d q%s ", active_file_info_last->line_current, g_label);
+        fprintf(file_out_ptr, "k%d q%s ", g_active_file_info_last->line_current, g_label);
       }
 #endif
       else {
@@ -2708,7 +2708,7 @@ int directive_db_byt_byte(void) {
   char bak[256];
   int o;
 
-  fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+  fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   strcpy(bak, cp);
 
@@ -3041,7 +3041,7 @@ int directive_dw_word_addr(void) {
 
   char bak[256];
 
-  fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+  fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   strcpy(bak, cp);
 
@@ -3085,7 +3085,7 @@ int directive_dl_long_faraddr(void) {
 
   char bak[256];
 
-  fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+  fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   strcpy(bak, cp);
 
@@ -3160,7 +3160,7 @@ int directive_dsl(void) {
   if (q == SUCCEEDED)
     fprintf(file_out_ptr, "h%d %d ", inz, d);
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
-    fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+    fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
     for (q = 0; q < inz; q++)
       fprintf(file_out_ptr, "q%s ", g_label);
   }
@@ -3240,7 +3240,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
     if (it->type != STRUCTURE_ITEM_TYPE_UNION) { /* add field label */
       char full_label[MAX_NAME_LENGTH + 1];
 
-      fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
+      fprintf(file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
     
       if (get_full_label(tmpname, full_label) == FAILED)
         return FAILED;
@@ -3265,7 +3265,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             if (verify_name_length(tmpname) == FAILED)
               return FAILED;
 
-            fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
+            fprintf(file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
 
             if (get_full_label(tmpname, full_label) == FAILED)
               return FAILED;
@@ -3310,7 +3310,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
           if (verify_name_length(tmpname) == FAILED)
             return FAILED;
 
-          fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, tmpname);
+          fprintf(file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
 
           if (add_label_sizeof(tmpname, it->instance->size) == FAILED)
             return FAILED;
@@ -3355,7 +3355,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             if (inz == SUCCEEDED)
               fprintf(file_out_ptr, "d%d ", d);
             else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-              fprintf(file_out_ptr, "k%d Q%s ", active_file_info_last->line_current, g_label);
+              fprintf(file_out_ptr, "k%d Q%s ", g_active_file_info_last->line_current, g_label);
             else if (inz == INPUT_NUMBER_STACK)
               fprintf(file_out_ptr, "c%d ", latest_stack);
 
@@ -3371,7 +3371,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             if (inz == SUCCEEDED)
               fprintf(file_out_ptr, "y%d", d);
             else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-              fprintf(file_out_ptr, "k%d r%s ", active_file_info_last->line_current, g_label);
+              fprintf(file_out_ptr, "k%d r%s ", g_active_file_info_last->line_current, g_label);
             else if (inz == INPUT_NUMBER_STACK)
               fprintf(file_out_ptr, "C%d ", latest_stack);
 
@@ -3560,7 +3560,7 @@ int directive_dstruct(void) {
   if (iname[0] != '\0') {
     char full_label[MAX_NAME_LENGTH + 1];
     
-    fprintf(file_out_ptr, "k%d L%s ", active_file_info_last->line_current, iname);
+    fprintf(file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, iname);
 
     if (get_full_label(iname, full_label) == FAILED)
       return FAILED;
@@ -3606,7 +3606,7 @@ int directive_dstruct(void) {
           return FAILED;
         }
 
-        fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+        fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
         fprintf(file_out_ptr, "e%d %d ", field_offset, item_size);
 
         do {
@@ -3709,7 +3709,7 @@ int directive_dsb_ds(void) {
   if (q == SUCCEEDED)
     fprintf(file_out_ptr, "x%d %d ", inz, d);
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
-    fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+    fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
     for (q = 0; q < inz; q++)
       fprintf(file_out_ptr, "R%s ", g_label);
   }
@@ -3759,7 +3759,7 @@ int directive_dsw(void) {
   if (q == SUCCEEDED)
     fprintf(file_out_ptr, "X%d %d ", inz, d);
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
-    fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+    fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
     for (q = 0; q < inz; q++)
       fprintf(file_out_ptr, "r%s ", g_label);
   }
@@ -3790,37 +3790,37 @@ int directive_incdir(void) {
 
   /* use the default dir? */
   if (q == 0) {
-    if (include_dir != NULL)
-      include_dir[0] = 0;
+    if (g_include_dir != NULL)
+      g_include_dir[0] = 0;
     return SUCCEEDED;
   }
 
   /* use the given dir */
   o = (int)(strlen(g_label) + 2);
-  if (o > include_dir_size) {
-    c = realloc(include_dir, o);
+  if (o > g_include_dir_size) {
+    c = realloc(g_include_dir, o);
     if (c == NULL) {
       print_error("Out of memory error.\n", ERROR_DIR);
       return FAILED;
     }
-    include_dir = c;
-    include_dir_size = o;
+    g_include_dir = c;
+    g_include_dir_size = o;
   }
 
   /* convert the path string to local enviroment */
-  strcpy(include_dir, g_label);
-  localize_path(include_dir);
+  strcpy(g_include_dir, g_label);
+  localize_path(g_include_dir);
 
   /* terminate the string with '/' */
 #ifdef MSDOS
-  if (include_dir[q - 1] != '\\') {
-    include_dir[q] = '\\';
-    include_dir[q + 1] = 0;
+  if (g_include_dir[q - 1] != '\\') {
+    g_include_dir[q] = '\\';
+    g_include_dir[q + 1] = 0;
   }
 #else
-  if (include_dir[q - 1] != '/') {
-    include_dir[q] = '/';
-    include_dir[q + 1] = 0;
+  if (g_include_dir[q - 1] != '/') {
+    g_include_dir[q] = '/';
+    g_include_dir[q + 1] = 0;
   }
 #endif
 
@@ -3838,9 +3838,9 @@ int directive_include(int is_real) {
        for repetitive macro calls that contain .INCLUDE/.INC... */
     o = g_source_pointer;
     while (o >= 0) {
-      if (toupper(buffer[o+0]) == 'I' &&
-          toupper(buffer[o+1]) == 'N' &&
-          toupper(buffer[o+2]) == 'C') {
+      if (toupper(g_buffer[o+0]) == 'I' &&
+          toupper(g_buffer[o+1]) == 'N' &&
+          toupper(g_buffer[o+2]) == 'C') {
         character_c_position = o+2;
         break;
       }
@@ -3937,7 +3937,7 @@ int directive_include(int is_real) {
     if (got_once == YES) {
       /* turn the .INCLUDE/.INC into .INDLUDE/.IND to mark it as used, as we got ONCE,
          for repetitive macro calls that contain .INCLUDE/.INC... */
-      buffer[character_c_position] = 'd';
+      g_buffer[character_c_position] = 'd';
     }
   }
   
@@ -3985,7 +3985,7 @@ int directive_incbin(void) {
       return FAILED;
     }
 
-    ifd = incbin_file_data_first;
+    ifd = g_incbin_file_data_first;
     for (j = 0; j != ind; j++)
       ifd = ifd->next;
 
@@ -4069,7 +4069,7 @@ int directive_ramsection(void) {
   sec_tmp->alive = ON;
   sec_tmp->keep = NO;
   sec_tmp->data = NULL;
-  sec_tmp->filename_id = active_file_info_last->filename_id;
+  sec_tmp->filename_id = g_active_file_info_last->filename_id;
   sec_tmp->id = section_id;
   sec_tmp->alignment = 1;
   sec_tmp->offset = 0;
@@ -4078,7 +4078,7 @@ int directive_ramsection(void) {
   section_id++;
 
   /* add the namespace to the ramsection's name? */
-  if (active_file_info_last->namespace[0] != 0) {
+  if (g_active_file_info_last->namespace[0] != 0) {
     if (add_namespace_to_string(tmp, sizeof(tmp), "RAMSECTION") == FAILED) {
       free(sec_tmp);
       return FAILED;
@@ -4327,7 +4327,7 @@ int directive_ramsection(void) {
       strcpy(buf, &tmp[2]);
       strcpy(tmp, buf);
     }
-    else if (active_file_info_last->namespace[0] != 0) {
+    else if (g_active_file_info_last->namespace[0] != 0) {
       if (add_namespace_to_string(tmp, sizeof(tmp), "APPENDTO") == FAILED)
         return FAILED;
     }
@@ -4512,7 +4512,7 @@ int directive_section(void) {
   }
 
   /* add the namespace to the section's name? */
-  if (active_file_info_last->namespace[0] != 0 && sec_tmp->nspace == NULL) {
+  if (g_active_file_info_last->namespace[0] != 0 && sec_tmp->nspace == NULL) {
     if (add_namespace_to_string(sec_tmp->name, sizeof(sec_tmp->name), "SECTION") == FAILED)
       return FAILED;
   }
@@ -4657,7 +4657,7 @@ int directive_section(void) {
       strcpy(buf, &tmp[2]);
       strcpy(tmp, buf);
     }
-    else if (active_file_info_last->namespace[0] != 0) {
+    else if (g_active_file_info_last->namespace[0] != 0) {
       if (add_namespace_to_string(tmp, sizeof(tmp), "APPENDTO") == FAILED) {
         free(append_tmp);
         return FAILED;
@@ -4699,7 +4699,7 @@ int directive_section(void) {
 
   sec_tmp->id = section_id;
   sec_tmp->alive = ON;
-  sec_tmp->filename_id = active_file_info_last->filename_id;
+  sec_tmp->filename_id = g_active_file_info_last->filename_id;
   sec_tmp->bank = bank;
   section_id++;
   section_status = ON;
@@ -4929,7 +4929,7 @@ int directive_block(void) {
   
   block_status++;
 
-  fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+  fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
   fprintf(file_out_ptr, "g%d ", b->id);
 
   return SUCCEEDED;
@@ -5701,10 +5701,10 @@ int directive_background(void) {
     return FAILED;
   }
 
-  create_full_name(include_dir, g_label);
+  create_full_name(g_include_dir, g_label);
 
-  if ((file_in_ptr = fopen(full_name, "rb")) == NULL) {
-    snprintf(emsg, sizeof(emsg), "Error opening .BACKGROUND file \"%s\".\n", full_name);
+  if ((file_in_ptr = fopen(g_full_name, "rb")) == NULL) {
+    snprintf(emsg, sizeof(emsg), "Error opening .BACKGROUND file \"%s\".\n", g_full_name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -5714,7 +5714,7 @@ int directive_background(void) {
   fseek(file_in_ptr, 0, SEEK_SET);
   
   if (background_size > max_address) {
-    snprintf(emsg, sizeof(emsg), ".BACKGROUND file \"%s\" size (%d) is larger than ROM size (%d).\n", full_name, background_size, max_address);
+    snprintf(emsg, sizeof(emsg), ".BACKGROUND file \"%s\" size (%d) is larger than ROM size (%d).\n", g_full_name, background_size, max_address);
     print_error(emsg, ERROR_DIR);
     fclose(file_in_ptr);
     return FAILED;
@@ -6031,7 +6031,7 @@ int directive_gbheader(void) {
 
 int directive_define_def_equ(void) {
   
-  int j, size, export, q;
+  int j, g_size, export, q;
   double dou;
   char k[256];
 
@@ -6050,7 +6050,7 @@ int directive_define_def_equ(void) {
     skip_next_token();
 
   g_input_float_mode = ON;
-  q = get_new_definition_data(&j, k, &size, &dou, &export);
+  q = get_new_definition_data(&j, k, &g_size, &dou, &export);
   g_input_float_mode = OFF;
   if (q == FAILED)
     return FAILED;
@@ -6065,7 +6065,7 @@ int directive_define_def_equ(void) {
   else if (q == INPUT_NUMBER_FLOAT)
     q = add_a_new_definition(tmp, dou, NULL, DEFINITION_TYPE_VALUE, 0);
   else if (q == INPUT_NUMBER_STRING)
-    q = add_a_new_definition(tmp, 0.0, k, DEFINITION_TYPE_STRING, size);
+    q = add_a_new_definition(tmp, 0.0, k, DEFINITION_TYPE_STRING, g_size);
   else if (q == INPUT_NUMBER_STACK)
     q = add_a_new_definition(tmp, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
   else if (q == INPUT_NUMBER_EOL)
@@ -6290,7 +6290,7 @@ int directive_input(void) {
 
 int directive_redefine_redef(void) {
   
-  int j, size, export, q;
+  int j, g_size, export, q;
   double dou;
   char k[256];
 
@@ -6309,7 +6309,7 @@ int directive_redefine_redef(void) {
     skip_next_token();
 
   g_input_float_mode = ON;
-  q = get_new_definition_data(&j, k, &size, &dou, &export);
+  q = get_new_definition_data(&j, k, &g_size, &dou, &export);
   g_input_float_mode = OFF;
   if (q == FAILED)
     return FAILED;
@@ -6324,7 +6324,7 @@ int directive_redefine_redef(void) {
   else if (q == INPUT_NUMBER_FLOAT)
     redefine(tmp, dou, NULL, DEFINITION_TYPE_VALUE, 0);
   else if (q == INPUT_NUMBER_STRING)
-    redefine(tmp, 0.0, k, DEFINITION_TYPE_STRING, size);
+    redefine(tmp, 0.0, k, DEFINITION_TYPE_STRING, g_size);
   else if (q == INPUT_NUMBER_STACK)
     redefine(tmp, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
 
@@ -6669,10 +6669,10 @@ int directive_macro(void) {
     return FAILED;
   }
 
-  macro_start_line = active_file_info_last->line_current;
+  macro_start_line = g_active_file_info_last->line_current;
 
   /* append the namespace, if this file uses if */
-  if (active_file_info_last->namespace[0] != 0) {
+  if (g_active_file_info_last->namespace[0] != 0) {
     if (add_namespace_to_string(tmp, sizeof(tmp), "MACRO") == FAILED)
       return FAILED;
   }
@@ -6704,7 +6704,7 @@ int directive_macro(void) {
   strcpy(m->name, tmp);
   m->next = NULL;
   m->calls = 0;
-  m->filename_id = active_file_info_last->filename_id;
+  m->filename_id = g_active_file_info_last->filename_id;
   m->argument_names = NULL;
 
   /* is ARGS defined? */
@@ -6745,21 +6745,21 @@ int directive_macro(void) {
 
   m->nargument_names = q;
   m->start = g_source_pointer;
-  m->start_line = active_file_info_last->line_current;
+  m->start_line = g_active_file_info_last->line_current;
 
   /* go to the end of the macro */
-  for (; g_source_pointer < size; g_source_pointer++) {
-    if (buffer[g_source_pointer] == 0x0A) {
+  for (; g_source_pointer < g_size; g_source_pointer++) {
+    if (g_buffer[g_source_pointer] == 0x0A) {
       next_line();
       continue;
     }
-    else if ((strncmp(&buffer[g_source_pointer], ".E", 2) == 0) && (buffer[g_source_pointer + 2] == 0x0A || buffer[g_source_pointer + 2] == ' ')) {
-      active_file_info_last->line_current = macro_start_line;
+    else if ((strncmp(&g_buffer[g_source_pointer], ".E", 2) == 0) && (g_buffer[g_source_pointer + 2] == 0x0A || g_buffer[g_source_pointer + 2] == ' ')) {
+      g_active_file_info_last->line_current = macro_start_line;
       snprintf(emsg, sizeof(emsg), "MACRO \"%s\" wasn't terminated with .ENDM.\n", m->name);
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
-    else if ((strncmp(&buffer[g_source_pointer], ".ENDM", 5) == 0 || strncmp(&buffer[g_source_pointer], ".endm", 5) == 0) && (buffer[g_source_pointer + 5] == 0x0A || buffer[g_source_pointer + 5] == ' ')) {
+    else if ((strncmp(&g_buffer[g_source_pointer], ".ENDM", 5) == 0 || strncmp(&g_buffer[g_source_pointer], ".endm", 5) == 0) && (g_buffer[g_source_pointer + 5] == 0x0A || g_buffer[g_source_pointer + 5] == ' ')) {
       g_source_pointer += 5;
       break;
     }
@@ -6808,7 +6808,7 @@ int directive_rept_repeat(void) {
   if (d == 0) {
     int l, r, m;
 
-    l = active_file_info_last->line_current;
+    l = g_active_file_info_last->line_current;
     /* find the next compiling point */
     r = 1;
     m = macro_active;
@@ -6830,7 +6830,7 @@ int directive_rept_repeat(void) {
     }
     
     /* return the condition's line number */
-    active_file_info_last->line_current = l;
+    g_active_file_info_last->line_current = l;
     snprintf(emsg, sizeof(emsg), ".%s must end to .ENDR.\n", c);
     print_error(emsg, ERROR_DIR);
     return FAILED;
@@ -6851,7 +6851,7 @@ int directive_rept_repeat(void) {
   repeat_stack[repeat_active].start = g_source_pointer;
   repeat_stack[repeat_active].counter = d;
   repeat_stack[repeat_active].repeats = 0;
-  repeat_stack[repeat_active].start_line = active_file_info_last->line_current;
+  repeat_stack[repeat_active].start_line = g_active_file_info_last->line_current;
   strcpy(repeat_stack[repeat_active].index_name, index_name);
 
   repeat_active++;
@@ -6887,15 +6887,15 @@ int directive_endm(void) {
 
     g_source_pointer = macro_stack[macro_active].macro_return_i;
 
-    if ((g_extra_definitions == ON) && (active_file_info_last->filename_id != macro_stack[macro_active].macro_return_filename_id)) {
+    if ((g_extra_definitions == ON) && (g_active_file_info_last->filename_id != macro_stack[macro_active].macro_return_filename_id)) {
       redefine("WLA_FILENAME", 0.0, get_file_name(macro_stack[macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING,
                (int)strlen(get_file_name(macro_stack[macro_active].macro_return_filename_id)));
       redefine("wla_filename", 0.0, get_file_name(macro_stack[macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING,
                (int)strlen(get_file_name(macro_stack[macro_active].macro_return_filename_id)));
     }
 
-    active_file_info_last->filename_id = macro_stack[macro_active].macro_return_filename_id;
-    active_file_info_last->line_current = macro_stack[macro_active].macro_return_line;
+    g_active_file_info_last->filename_id = macro_stack[macro_active].macro_return_filename_id;
+    g_active_file_info_last->line_current = macro_stack[macro_active].macro_return_line;
 
     /* was this the last macro called? */
     if (macro_active == 0) {
@@ -7296,7 +7296,7 @@ int directive_snesnativevector(void) {
     base_address = 0x40FFE4;
     
   fprintf(file_out_ptr, "P O0 A%d %d ", sec_tmp->id, base_address);
-  fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+  fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   while ((ind = get_next_token()) == SUCCEEDED) {
     /* .IF directive? */
@@ -7344,7 +7344,7 @@ int directive_snesnativevector(void) {
       if (inz == SUCCEEDED)
         snprintf(cop, sizeof(cop), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(cop, sizeof(cop), "k%d r%s ", active_file_info_last->line_current, g_label);
+        snprintf(cop, sizeof(cop), "k%d r%s ", g_active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(cop, sizeof(cop), "C%d ", latest_stack);
 
@@ -7367,7 +7367,7 @@ int directive_snesnativevector(void) {
       if (inz == SUCCEEDED)
         snprintf(brk, sizeof(brk), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(brk, sizeof(brk), "k%d r%s ", active_file_info_last->line_current, g_label);
+        snprintf(brk, sizeof(brk), "k%d r%s ", g_active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(brk, sizeof(brk), "C%d ", latest_stack);
 
@@ -7390,7 +7390,7 @@ int directive_snesnativevector(void) {
       if (inz == SUCCEEDED)
         snprintf(abort, sizeof(abort), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(abort, sizeof(abort), "k%d r%s ", active_file_info_last->line_current, g_label);
+        snprintf(abort, sizeof(abort), "k%d r%s ", g_active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(abort, sizeof(abort), "C%d ", latest_stack);
 
@@ -7413,7 +7413,7 @@ int directive_snesnativevector(void) {
       if (inz == SUCCEEDED)
         snprintf(nmi, sizeof(nmi), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(nmi, sizeof(nmi), "k%d r%s ", active_file_info_last->line_current, g_label);
+        snprintf(nmi, sizeof(nmi), "k%d r%s ", g_active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(nmi, sizeof(nmi), "C%d ", latest_stack);
 
@@ -7436,7 +7436,7 @@ int directive_snesnativevector(void) {
       if (inz == SUCCEEDED)
         snprintf(unused, sizeof(unused), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(unused, sizeof(unused), "k%d r%s ", active_file_info_last->line_current, g_label);
+        snprintf(unused, sizeof(unused), "k%d r%s ", g_active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(unused, sizeof(unused), "C%d ", latest_stack);
 
@@ -7459,7 +7459,7 @@ int directive_snesnativevector(void) {
       if (inz == SUCCEEDED)
         snprintf(irq, sizeof(irq), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(irq, sizeof(irq), "k%d r%s ", active_file_info_last->line_current, g_label);
+        snprintf(irq, sizeof(irq), "k%d r%s ", g_active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(irq, sizeof(irq), "C%d ", latest_stack);
 
@@ -7516,7 +7516,7 @@ int directive_snesemuvector(void) {
     base_address = 0x40FFF4;
 
   fprintf(file_out_ptr, "P O0 A%d %d ", sec_tmp->id, base_address);
-  fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+  fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   while ((ind = get_next_token()) == SUCCEEDED) {
     /* .IF directive? */
@@ -7564,7 +7564,7 @@ int directive_snesemuvector(void) {
       if (inz == SUCCEEDED)
         snprintf(cop, sizeof(cop), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(cop, sizeof(cop), "k%d r%s ", active_file_info_last->line_current, g_label);
+        snprintf(cop, sizeof(cop), "k%d r%s ", g_active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(cop, sizeof(cop), "C%d ", latest_stack);
 
@@ -7587,7 +7587,7 @@ int directive_snesemuvector(void) {
       if (inz == SUCCEEDED)
         snprintf(reset, sizeof(reset), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(reset, sizeof(reset), "k%d r%s ", active_file_info_last->line_current, g_label);
+        snprintf(reset, sizeof(reset), "k%d r%s ", g_active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(reset, sizeof(reset), "C%d ", latest_stack);
 
@@ -7610,7 +7610,7 @@ int directive_snesemuvector(void) {
       if (inz == SUCCEEDED)
         snprintf(abort, sizeof(abort), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(abort, sizeof(abort), "k%d r%s ", active_file_info_last->line_current, g_label);
+        snprintf(abort, sizeof(abort), "k%d r%s ", g_active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(abort, sizeof(abort), "C%d ", latest_stack);
 
@@ -7633,7 +7633,7 @@ int directive_snesemuvector(void) {
       if (inz == SUCCEEDED)
         snprintf(nmi, sizeof(nmi), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(nmi, sizeof(nmi), "k%d r%s ", active_file_info_last->line_current, g_label);
+        snprintf(nmi, sizeof(nmi), "k%d r%s ", g_active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(nmi, sizeof(nmi), "C%d ", latest_stack);
 
@@ -7656,7 +7656,7 @@ int directive_snesemuvector(void) {
       if (inz == SUCCEEDED)
         snprintf(unused, sizeof(unused), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(unused, sizeof(unused), "k%d r%s ", active_file_info_last->line_current, g_label);
+        snprintf(unused, sizeof(unused), "k%d r%s ", g_active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(unused, sizeof(unused), "C%d ", latest_stack);
 
@@ -7679,7 +7679,7 @@ int directive_snesemuvector(void) {
       if (inz == SUCCEEDED)
         snprintf(irqbrk, sizeof(irqbrk), "y%d ", d);
       else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-        snprintf(irqbrk, sizeof(irqbrk), "k%d r%s ", active_file_info_last->line_current, g_label);
+        snprintf(irqbrk, sizeof(irqbrk), "k%d r%s ", g_active_file_info_last->line_current, g_label);
       else if (inz == INPUT_NUMBER_STACK)
         snprintf(irqbrk, sizeof(irqbrk), "C%d ", latest_stack);
 
@@ -8188,7 +8188,7 @@ int directive_stringmap(void) {
     return FAILED;    
   }
 
-  fprintf(file_out_ptr, "k%d ", active_file_info_last->line_current);
+  fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   /* parse it */
   for (p = g_label; *p != 0; /* increment in loop */) {
@@ -9003,7 +9003,7 @@ int parse_directive(void) {
     }
     
     g_source_pointer = rr->start;
-    active_file_info_last->line_current = rr->start_line;
+    g_active_file_info_last->line_current = rr->start_line;
 
     return SUCCEEDED;
   }
@@ -9016,50 +9016,50 @@ int parse_directive(void) {
       return FAILED;
     }
     
-    active_file_info_tmp = calloc(sizeof(struct active_file_info), 1);
-    if (active_file_info_tmp == NULL) {
+    g_active_file_info_tmp = calloc(sizeof(struct active_file_info), 1);
+    if (g_active_file_info_tmp == NULL) {
       snprintf(emsg, sizeof(emsg), "Out of memory while trying allocate error tracking data structure.\n");
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
-    active_file_info_tmp->next = NULL;
+    g_active_file_info_tmp->next = NULL;
 
-    if (active_file_info_first == NULL) {
-      active_file_info_first = active_file_info_tmp;
-      active_file_info_last = active_file_info_tmp;
-      active_file_info_tmp->prev = NULL;
+    if (g_active_file_info_first == NULL) {
+      g_active_file_info_first = g_active_file_info_tmp;
+      g_active_file_info_last = g_active_file_info_tmp;
+      g_active_file_info_tmp->prev = NULL;
     }
     else {
-      active_file_info_tmp->prev = active_file_info_last;
-      active_file_info_last->next = active_file_info_tmp;
-      active_file_info_last = active_file_info_tmp;
+      g_active_file_info_tmp->prev = g_active_file_info_last;
+      g_active_file_info_last->next = g_active_file_info_tmp;
+      g_active_file_info_last = g_active_file_info_tmp;
     }
 
-    active_file_info_tmp->line_current = 0;
-    active_file_info_tmp->filename_id = d;
+    g_active_file_info_tmp->line_current = 0;
+    g_active_file_info_tmp->filename_id = d;
 
     if (g_extra_definitions == ON) {
-      file_name_info_tmp = file_name_info_first;
-      while (file_name_info_tmp != NULL) {
-        if (file_name_info_tmp->id == d)
+      g_file_name_info_tmp = g_file_name_info_first;
+      while (g_file_name_info_tmp != NULL) {
+        if (g_file_name_info_tmp->id == d)
           break;
-        file_name_info_tmp = file_name_info_tmp->next;
+        g_file_name_info_tmp = g_file_name_info_tmp->next;
       }
 
-      if (file_name_info_tmp == NULL) {
+      if (g_file_name_info_tmp == NULL) {
         snprintf(emsg, sizeof(emsg), "Internal error: Could not find the name of file %d.\n", d);
         print_error(emsg, ERROR_DIR);
         return FAILED;
       }
 
-      redefine("WLA_FILENAME", 0.0, file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(file_name_info_tmp->name));
-      redefine("wla_filename", 0.0, file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(file_name_info_tmp->name));
+      redefine("WLA_FILENAME", 0.0, g_file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(g_file_name_info_tmp->name));
+      redefine("wla_filename", 0.0, g_file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(g_file_name_info_tmp->name));
     }
 
     /* output the file id */
-    fprintf(file_out_ptr, "f%d ", active_file_info_tmp->filename_id);
+    fprintf(file_out_ptr, "f%d ", g_active_file_info_tmp->filename_id);
     
-    open_files++;
+    g_open_files++;
 
     if (compare_next_token("NAMESPACE") == SUCCEEDED) {
       skip_next_token();
@@ -9073,14 +9073,14 @@ int parse_directive(void) {
         return FAILED;
       }
 
-      strcpy(active_file_info_tmp->namespace, g_label);
+      strcpy(g_active_file_info_tmp->namespace, g_label);
 
-      fprintf(file_out_ptr, "t1 %s ", active_file_info_tmp->namespace);
+      fprintf(file_out_ptr, "t1 %s ", g_active_file_info_tmp->namespace);
     }
     else if (compare_next_token("NONAMESPACE") == SUCCEEDED) {
       skip_next_token();
       
-      active_file_info_tmp->namespace[0] = 0;
+      g_active_file_info_tmp->namespace[0] = 0;
 
       fprintf(file_out_ptr, "t0 ");
     }
@@ -9095,37 +9095,37 @@ int parse_directive(void) {
   /* E (INTERNAL) */
 
   if (strcaselesscmp(cp, "E") == 0) {
-    if (active_file_info_last != NULL) {
-      active_file_info_tmp = active_file_info_last;
-      active_file_info_last = active_file_info_last->prev;
-      free(active_file_info_tmp);
+    if (g_active_file_info_last != NULL) {
+      g_active_file_info_tmp = g_active_file_info_last;
+      g_active_file_info_last = g_active_file_info_last->prev;
+      free(g_active_file_info_tmp);
 
-      if (active_file_info_last == NULL)
-        active_file_info_first = NULL;
+      if (g_active_file_info_last == NULL)
+        g_active_file_info_first = NULL;
       else {
-        fprintf(file_out_ptr, "f%d ", active_file_info_last->filename_id);
+        fprintf(file_out_ptr, "f%d ", g_active_file_info_last->filename_id);
 
-        if (active_file_info_last->namespace[0] == 0)
+        if (g_active_file_info_last->namespace[0] == 0)
           fprintf(file_out_ptr, "t0 ");
         else
-          fprintf(file_out_ptr, "t1 %s ", active_file_info_last->namespace);      
+          fprintf(file_out_ptr, "t1 %s ", g_active_file_info_last->namespace);      
       }
     }
 
     /* fix the line */
-    if (active_file_info_last != NULL)
-      active_file_info_last->line_current--;
+    if (g_active_file_info_last != NULL)
+      g_active_file_info_last->line_current--;
 
     fprintf(file_out_ptr, "E ");
-    open_files--;
-    if (open_files == 0)
+    g_open_files--;
+    if (g_open_files == 0)
       return EVALUATE_TOKEN_EOP;
 
     if (g_extra_definitions == ON) {
-      redefine("WLA_FILENAME", 0.0, get_file_name(active_file_info_last->filename_id), DEFINITION_TYPE_STRING,
-               (int)strlen(get_file_name(active_file_info_last->filename_id)));
-      redefine("wla_filename", 0.0, get_file_name(active_file_info_last->filename_id), DEFINITION_TYPE_STRING,
-               (int)strlen(get_file_name(active_file_info_last->filename_id)));
+      redefine("WLA_FILENAME", 0.0, get_file_name(g_active_file_info_last->filename_id), DEFINITION_TYPE_STRING,
+               (int)strlen(get_file_name(g_active_file_info_last->filename_id)));
+      redefine("wla_filename", 0.0, get_file_name(g_active_file_info_last->filename_id), DEFINITION_TYPE_STRING,
+               (int)strlen(get_file_name(g_active_file_info_last->filename_id)));
     }
 
     return SUCCEEDED;
@@ -9844,16 +9844,16 @@ int parse_if_directive(void) {
     else
       o = 1;
 
-    for (; g_source_pointer < size; g_source_pointer++) {
+    for (; g_source_pointer < g_size; g_source_pointer++) {
 
-      if (buffer[g_source_pointer] == 0x0A)
+      if (g_buffer[g_source_pointer] == 0x0A)
         break;
-      else if (buffer[g_source_pointer] == '\\') {
-        e = buffer[++g_source_pointer];
+      else if (g_buffer[g_source_pointer] == '\\') {
+        e = g_buffer[++g_source_pointer];
         if (e >= '0' && e <= '9') {
           d = (e - '0') * 10;
           for (k = 2; k < 8; k++, d *= 10) {
-            e = buffer[++g_source_pointer];
+            e = g_buffer[++g_source_pointer];
             if (e >= '0' && e <= '9')
               d += e - '0';
             else
@@ -9890,7 +9890,7 @@ int find_next_point(char *name) {
 
   int depth, m, line_current;
 
-  line_current = active_file_info_last->line_current;
+  line_current = g_active_file_info_last->line_current;
   /* find the next compiling point */
   depth = 1;
   m = macro_active;
@@ -9918,7 +9918,7 @@ int find_next_point(char *name) {
   }
 
   /* return the condition's line number */
-  active_file_info_last->line_current = line_current;
+  g_active_file_info_last->line_current = line_current;
   snprintf(emsg, sizeof(emsg), ".%s must end to .ENDIF/.ELSE.\n", name);
   print_error(emsg, ERROR_DIR);
 
@@ -10234,10 +10234,10 @@ int add_namespace_to_string(char *s, int sizeof_s, char *type) {
 
   char buf[MAX_NAME_LENGTH + 1];
     
-  snprintf(buf, sizeof(buf), "%s.%s", active_file_info_last->namespace, s);
+  snprintf(buf, sizeof(buf), "%s.%s", g_active_file_info_last->namespace, s);
   buf[sizeof(buf)-1] = 0;
   if (strlen(buf) >= (size_t)sizeof_s) {
-    snprintf(emsg, sizeof(emsg), "The current file namespace \"%s\" cannot be added to %s's \"%s\" name - increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", active_file_info_last->namespace, type, tmp);
+    snprintf(emsg, sizeof(emsg), "The current file namespace \"%s\" cannot be added to %s's \"%s\" name - increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_active_file_info_last->namespace, type, tmp);
     print_error(emsg, ERROR_ERR);
     return FAILED;
   }

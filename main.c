@@ -46,8 +46,8 @@ char g_wla_version[] = "9.12";
 
 char *g_tmp_name = NULL;
 
-extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
-extern struct file_name_info *file_name_info_first;
+extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
+extern struct file_name_info *g_file_name_info_first;
 extern struct label_def *label_tmp, *labels;
 extern struct map_t *global_unique_label_map;
 extern struct macro_static *macros_first;
@@ -67,10 +67,10 @@ extern struct block_name *block_names;
 extern struct stringmaptable *stringmaptables;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern char *unfolded_buffer, *label_stack[256];
-extern char *include_in_tmp, *tmp_a;
+extern char *g_include_in_tmp, *g_tmp_a;
 extern char *rom_banks, *rom_banks_usage_table;
-extern char *include_dir, *buffer, *full_name;
-extern int include_in_tmp_size, tmp_a_size, *banks, *bankaddress;
+extern char *g_include_dir, *g_buffer, *g_full_name;
+extern int g_include_in_tmp_size, g_tmp_a_size, *banks, *bankaddress;
 
 int g_output_format = OUTPUT_NONE, g_verbose_mode = OFF, g_test_mode = OFF;
 int g_extra_definitions = OFF, g_commandline_parsing = ON, g_makefile_rules = NO;
@@ -363,8 +363,8 @@ void procedures_at_exit(void) {
   free(repeat_stack);
   free(g_final_name);
   free(g_asm_name);
-  free(include_dir);
-  free(full_name);
+  free(g_include_dir);
+  free(g_full_name);
 
   for (i = 0; i < 256; i++)
     free(label_stack[i]);
@@ -432,13 +432,13 @@ void procedures_at_exit(void) {
     export_tmp = export_last;
   }
 
-  ifd_tmp = incbin_file_data_first;
-  while(ifd_tmp != NULL) {
-    incbin_file_data_first = ifd_tmp->next;
-    free(ifd_tmp->data);
-    free(ifd_tmp->name);
-    free(ifd_tmp);
-    ifd_tmp = incbin_file_data_first;
+  g_ifd_tmp = g_incbin_file_data_first;
+  while(g_ifd_tmp != NULL) {
+    g_incbin_file_data_first = g_ifd_tmp->next;
+    free(g_ifd_tmp->data);
+    free(g_ifd_tmp->name);
+    free(g_ifd_tmp);
+    g_ifd_tmp = g_incbin_file_data_first;
   }
 
   stacks_tmp = stacks_first;
@@ -465,15 +465,15 @@ void procedures_at_exit(void) {
   }
 
   free(unfolded_buffer);
-  free(buffer);
-  free(include_in_tmp);
-  free(tmp_a);
+  free(g_buffer);
+  free(g_include_in_tmp);
+  free(g_tmp_a);
   free(rom_banks);
   free(rom_banks_usage_table);
   free(banks);
   free(bankaddress);
 
-  f = file_name_info_first;
+  f = g_file_name_info_first;
   while (f != NULL) {
     free(f->name);
     ft = f->next;

@@ -11,9 +11,9 @@
 #include "printf.h"
 
 
-extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
+extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern struct section_def *sections_first, *sections_last, *sec_tmp, *sec_next;
-extern struct file_name_info *file_name_info_first, *file_name_info_last, *file_name_info_tmp;
+extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern struct block_name *block_names;
 extern unsigned char *rom_banks, *rom_banks_usage_table;
 extern FILE *file_out_ptr;
@@ -41,7 +41,7 @@ int pass_3(void) {
   struct label_def *parent_labels[10];
   struct block *b;
   FILE *f_in;
-  int bank = 0, slot = 0, add = 0, file_name_id = 0, inz, line_number = 0, o, add_old = 0, inside_macro = 0, inside_repeat = 0;
+  int bank = 0, slot = 0, add = 0, g_file_name_id = 0, inz, line_number = 0, o, add_old = 0, inside_macro = 0, inside_repeat = 0;
   int base = 0x00;
   int x, y;
   char c;
@@ -134,7 +134,7 @@ int pass_3(void) {
         continue;
 
       case 'f':
-        fscanf(f_in, "%d ", &file_name_id);
+        fscanf(f_in, "%d ", &g_file_name_id);
         continue;
 
       case 'B':
@@ -158,11 +158,11 @@ int pass_3(void) {
         b = calloc(sizeof(struct block), 1);
         if (b == NULL) {
           fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for block \"%s\".\n",
-                  get_file_name(file_name_id), line_number, bn->name);
+                  get_file_name(g_file_name_id), line_number, bn->name);
           return FAILED;
         }
 
-        b->filename_id = file_name_id;
+        b->filename_id = g_file_name_id;
         b->line_number = line_number;
         b->next = blocks;
         blocks = b;
@@ -192,7 +192,7 @@ int pass_3(void) {
         if (l == NULL) {
           fscanf(f_in, STRING_READ_FORMAT, tmp);
           fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for label \"%s\".\n",
-                  get_file_name(file_name_id), line_number, tmp);
+                  get_file_name(g_file_name_id), line_number, tmp);
           return FAILED;
         }
 
@@ -242,7 +242,7 @@ int pass_3(void) {
 
         l->next = NULL;
         l->section_status = ON;
-        l->filename_id = file_name_id;
+        l->filename_id = g_file_name_id;
         l->linenumber = line_number;
         l->alive = ON;
         l->section_id = s->id;
@@ -268,7 +268,7 @@ int pass_3(void) {
         /* check the label is not already defined */
 
         snprintf(emsg, sizeof(emsg), "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
-                 get_file_name(file_name_id), line_number, l->label);
+                 get_file_name(g_file_name_id), line_number, l->label);
 
         if (s != NULL) {
           /* always put the label into the section's label_map */
@@ -366,7 +366,7 @@ int pass_3(void) {
 
         /* discard an empty section? */
         if (s->size == 0) {
-          fprintf(stderr, "INTERNAL_PASS_1: %s: Discarding an empty section \"%s\".\n", get_file_name(file_name_id), s->name);
+          fprintf(stderr, "INTERNAL_PASS_1: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
           s->alive = OFF;
 
           /* discard all labels which belong to this section */
@@ -424,7 +424,7 @@ int pass_3(void) {
         continue;
 
       case 'f':
-        fscanf(f_in, "%d ", &file_name_id);
+        fscanf(f_in, "%d ", &g_file_name_id);
         continue;
 
       case 't':
@@ -553,7 +553,7 @@ int pass_3(void) {
 
       /* discard an empty section? */
       if (s->size == 0) {
-        fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(file_name_id), s->name);
+        fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
         s->alive = OFF;
 
         /* discard all labels which belong to this section */
@@ -673,10 +673,10 @@ int pass_3(void) {
       b = calloc(sizeof(struct block), 1);
       if (b == NULL) {
         fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for block \"%s\".\n",
-                get_file_name(file_name_id), line_number, bn->name);
+                get_file_name(g_file_name_id), line_number, bn->name);
         return FAILED;
       }
-      b->filename_id = file_name_id;
+      b->filename_id = g_file_name_id;
       b->line_number = line_number;
       b->next = blocks;
       blocks = b;
@@ -706,7 +706,7 @@ int pass_3(void) {
       if (l == NULL) {
         fscanf(f_in, STRING_READ_FORMAT, tmp);
         fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for label \"%s\".\n",
-                get_file_name(file_name_id), line_number, tmp);
+                get_file_name(g_file_name_id), line_number, tmp);
         return FAILED;
       }
 
@@ -756,7 +756,7 @@ int pass_3(void) {
       
       l->next = NULL;
       l->section_status = section_status;
-      l->filename_id = file_name_id;
+      l->filename_id = g_file_name_id;
       l->linenumber = line_number;
       l->alive = ON;
       if (section_status == ON) {
@@ -792,7 +792,7 @@ int pass_3(void) {
       /* check the label is not already defined */
 
       snprintf(emsg, sizeof(emsg), "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
-               get_file_name(file_name_id), line_number, l->label);
+               get_file_name(g_file_name_id), line_number, l->label);
 
       if (s != NULL) {
         /* always put the label into the section's label_map */
@@ -844,7 +844,7 @@ int pass_3(void) {
       continue;
 
     case 'f':
-      fscanf(f_in, "%d ", &file_name_id);
+      fscanf(f_in, "%d ", &g_file_name_id);
       if (s != NULL)
         s->listfile_items++;
       continue;
@@ -863,7 +863,7 @@ int pass_3(void) {
       }
       else {
         if (dstruct_item_offset != -1 && add - dstruct_item_offset > dstruct_item_size) {
-          fprintf(stderr, "%s:%d INTERNAL_PASS_1: %d too many bytes in struct field.\n", get_file_name(file_name_id), line_number, (add - dstruct_item_offset) - dstruct_item_size);
+          fprintf(stderr, "%s:%d INTERNAL_PASS_1: %d too many bytes in struct field.\n", get_file_name(g_file_name_id), line_number, (add - dstruct_item_offset) - dstruct_item_size);
           return FAILED;
         }
 
@@ -878,7 +878,7 @@ int pass_3(void) {
       continue;
 
     default:
-      fprintf(stderr, "%s: INTERNAL_PASS_1: Unknown internal symbol \"%c\" in \"%s\" at offset %ld.\n", get_file_name(file_name_id), c, g_tmp_name, ftell(f_in)-1);
+      fprintf(stderr, "%s: INTERNAL_PASS_1: Unknown internal symbol \"%c\" in \"%s\" at offset %ld.\n", get_file_name(g_file_name_id), c, g_tmp_name, ftell(f_in)-1);
       return FAILED;
     }
   }

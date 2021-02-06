@@ -18,20 +18,20 @@ extern char *unfolded_buffer, tmp[4096], emsg[sizeof(tmp) + MAX_NAME_LENGTH + 1 
 extern struct ext_include_collection ext_incdirs;
 extern FILE *file_out_ptr;
 
-struct incbin_file_data *incbin_file_data_first = NULL, *ifd_tmp;
-struct active_file_info *active_file_info_first = NULL, *active_file_info_last = NULL, *active_file_info_tmp = NULL;
-struct file_name_info *file_name_info_first = NULL, *file_name_info_last = NULL, *file_name_info_tmp;
-char *include_in_tmp = NULL, *tmp_a = NULL;
-int include_in_tmp_size = 0, tmp_a_size = 0, file_name_id = 1, open_files = 0;
+struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
+struct active_file_info *g_active_file_info_first = NULL, *g_active_file_info_last = NULL, *g_active_file_info_tmp = NULL;
+struct file_name_info *g_file_name_info_first = NULL, *g_file_name_info_last = NULL, *g_file_name_info_tmp;
+char *g_include_in_tmp = NULL, *g_tmp_a = NULL;
+int g_include_in_tmp_size = 0, g_tmp_a_size = 0, g_file_name_id = 1, g_open_files = 0;
 
-char *full_name = NULL;
-int full_name_size = 0;
+char *g_full_name = NULL;
+int g_full_name_size = 0;
 
-char *include_dir = NULL;
-int include_dir_size = 0;
+char *g_include_dir = NULL;
+int g_include_dir_size = 0;
 
-char *buffer = NULL;
-int size = 0;
+char *g_buffer = NULL;
+int g_size = 0;
 
 
 int create_full_name(char *dir, char *name) {
@@ -51,23 +51,23 @@ int create_full_name(char *dir, char *name) {
     i += (int)strlen(name);
   i++;
 
-  if (i > full_name_size) {
-    tmp = realloc(full_name, i);
+  if (i > g_full_name_size) {
+    tmp = realloc(g_full_name, i);
     if (tmp == NULL) {
       fprintf(stderr, "CREATE_FULL_NAME: Out of memory error.\n");
       return FAILED;
     }
-    full_name = tmp;
-    full_name_size = i;
+    g_full_name = tmp;
+    g_full_name_size = i;
   }
 
   if (dir != NULL) {
-    strcpy(full_name, dir);
+    strcpy(g_full_name, dir);
     if (name != NULL)
-      strcat(full_name, name);
+      strcat(g_full_name, name);
   }
   else
-    strcpy(full_name, name);
+    strcpy(g_full_name, name);
 
   return SUCCEEDED;
 }
@@ -79,7 +79,7 @@ int try_open_file(char* directory, char* partial_name, FILE** out_result) {
   if (error_code != SUCCEEDED)
     return error_code;
   
-  *out_result = fopen(full_name, "rb");
+  *out_result = fopen(g_full_name, "rb");
   if (*out_result == NULL)
     return FAILED;
 
@@ -91,8 +91,8 @@ static void print_find_error(char* name) {
 
   int index;
 
-  if (active_file_info_last)
-    fprintf(stderr, "%s:%d: ", get_file_name(active_file_info_last->filename_id), active_file_info_last->line_current);
+  if (g_active_file_info_last)
+    fprintf(stderr, "%s:%d: ", get_file_name(g_active_file_info_last->filename_id), g_active_file_info_last->line_current);
 
   fprintf(stderr, "FIND_FILE: Could not open \"%s\", searched in the following directories:\n", name);
 
@@ -102,8 +102,8 @@ static void print_find_error(char* name) {
     }
   }
 
-  if (include_dir != NULL) {
-    fprintf(stderr, "%s\n", include_dir);
+  if (g_include_dir != NULL) {
+    fprintf(stderr, "%s\n", g_include_dir);
   }
 
   fprintf(stderr, "./ (current directory)\n");
@@ -125,8 +125,8 @@ static int find_file(char *name, FILE** f) {
     }
   }
 
-  /* fall through to include_dir if we either didn't check, or failed to find the file in ext_incdirs */
-  try_open_file(include_dir, name, f);
+  /* fall through to g_include_dir if we either didn't check, or failed to find the file in ext_incdirs */
+  try_open_file(g_include_dir, name, f);
   if (*f != NULL)
     return SUCCEEDED;
 
@@ -156,47 +156,47 @@ int include_file(char *name, int *include_size, char *namespace) {
   fseek(f, 0, SEEK_SET);
 
   /* name */
-  file_name_info_tmp = file_name_info_first;
+  g_file_name_info_tmp = g_file_name_info_first;
   id = 0;
 
   /* NOTE: every filename, even included multiple times, is unique
-     while (file_name_info_tmp != NULL) {
-     if (strcmp(file_name_info_tmp->name, full_name) == 0) {
-     id = file_name_info_tmp->id;
+     while (g_file_name_info_tmp != NULL) {
+     if (strcmp(g_file_name_info_tmp->name, g_full_name) == 0) {
+     id = g_file_name_info_tmp->id;
      break;
      }
-     file_name_info_tmp = file_name_info_tmp->next;
+     g_file_name_info_tmp = g_file_name_info_tmp->next;
      }
   */
 
   if (id == 0) {
-    file_name_info_tmp = calloc(sizeof(struct file_name_info), 1);
-    n = calloc(strlen(full_name)+1, 1);
-    if (file_name_info_tmp == NULL || n == NULL) {
-      if (file_name_info_tmp != NULL)
-        free(file_name_info_tmp);
+    g_file_name_info_tmp = calloc(sizeof(struct file_name_info), 1);
+    n = calloc(strlen(g_full_name)+1, 1);
+    if (g_file_name_info_tmp == NULL || n == NULL) {
+      if (g_file_name_info_tmp != NULL)
+        free(g_file_name_info_tmp);
       if (n != NULL)
         free(n);
-      snprintf(emsg, sizeof(emsg), "Out of memory while trying allocate info structure for file \"%s\".\n", full_name);
+      snprintf(emsg, sizeof(emsg), "Out of memory while trying allocate info structure for file \"%s\".\n", g_full_name);
       print_error(emsg, ERROR_INC);
       return FAILED;
     }
-    file_name_info_tmp->next = NULL;
+    g_file_name_info_tmp->next = NULL;
 
-    if (file_name_info_first == NULL) {
-      file_name_info_first = file_name_info_tmp;
-      file_name_info_last = file_name_info_tmp;
+    if (g_file_name_info_first == NULL) {
+      g_file_name_info_first = g_file_name_info_tmp;
+      g_file_name_info_last = g_file_name_info_tmp;
     }
     else {
-      file_name_info_last->next = file_name_info_tmp;
-      file_name_info_last = file_name_info_tmp;
+      g_file_name_info_last->next = g_file_name_info_tmp;
+      g_file_name_info_last = g_file_name_info_tmp;
     }
 
-    strcpy(n, full_name);
-    file_name_info_tmp->name = n;
-    file_name_info_tmp->id = file_name_id;
-    id = file_name_id;
-    file_name_id++;
+    strcpy(n, g_full_name);
+    g_file_name_info_tmp->name = n;
+    g_file_name_info_tmp->id = g_file_name_id;
+    id = g_file_name_id;
+    g_file_name_id++;
   }
 
   if (namespace == NULL || namespace[0] == 0)
@@ -206,94 +206,94 @@ int include_file(char *name, int *include_size, char *namespace) {
   change_file_buffer_size = (int)strlen(change_file_buffer);
 
   /* reallocate buffer */
-  if (include_in_tmp_size < file_size) {
-    if (include_in_tmp != NULL)
-      free(include_in_tmp);
+  if (g_include_in_tmp_size < file_size) {
+    if (g_include_in_tmp != NULL)
+      free(g_include_in_tmp);
 
-    include_in_tmp = calloc(sizeof(char) * file_size, 1);
-    if (include_in_tmp == NULL) {
-      snprintf(emsg, sizeof(emsg), "Out of memory while trying to allocate room for \"%s\".\n", full_name);
+    g_include_in_tmp = calloc(sizeof(char) * file_size, 1);
+    if (g_include_in_tmp == NULL) {
+      snprintf(emsg, sizeof(emsg), "Out of memory while trying to allocate room for \"%s\".\n", g_full_name);
       print_error(emsg, ERROR_INC);
       return FAILED;
     }
 
-    include_in_tmp_size = file_size;
+    g_include_in_tmp_size = file_size;
   }
 
   /* read the whole file into a buffer */
-  fread(include_in_tmp, 1, file_size, f);
+  fread(g_include_in_tmp, 1, file_size, f);
   fclose(f);
 
   /* calculate checksum for post-compilation file verification */
-  file_name_info_tmp->checksum = crc32((unsigned char*)include_in_tmp, file_size);
+  g_file_name_info_tmp->checksum = crc32((unsigned char*)g_include_in_tmp, file_size);
 
-  if (size == 0) {
-    buffer = calloc(sizeof(char) * (change_file_buffer_size + (file_size + 4)), 1);
-    if (buffer == NULL) {
-      snprintf(emsg, sizeof(emsg), "Out of memory while trying to allocate room for \"%s\".\n", full_name);
+  if (g_size == 0) {
+    g_buffer = calloc(sizeof(char) * (change_file_buffer_size + (file_size + 4)), 1);
+    if (g_buffer == NULL) {
+      snprintf(emsg, sizeof(emsg), "Out of memory while trying to allocate room for \"%s\".\n", g_full_name);
       print_error(emsg, ERROR_INC);
       return FAILED;
     }
 
-    memcpy(buffer, change_file_buffer, change_file_buffer_size);
+    memcpy(g_buffer, change_file_buffer, change_file_buffer_size);
     
     /* preprocess */
-    preprocess_file(include_in_tmp, include_in_tmp + file_size, &buffer[change_file_buffer_size], &size, full_name);
-    size += change_file_buffer_size;
+    preprocess_file(g_include_in_tmp, g_include_in_tmp + file_size, &g_buffer[change_file_buffer_size], &g_size, g_full_name);
+    g_size += change_file_buffer_size;
 
-    buffer[size++] = 0xA;
-    buffer[size++] = '.';
-    buffer[size++] = 'E';
-    buffer[size++] = ' ';
+    g_buffer[g_size++] = 0xA;
+    g_buffer[g_size++] = '.';
+    g_buffer[g_size++] = 'E';
+    g_buffer[g_size++] = ' ';
 
-    *include_size = size;
+    *include_size = g_size;
 
     return SUCCEEDED;
   }
 
-  tmp_b = calloc(sizeof(char) * (size + change_file_buffer_size + file_size + 4), 1);
+  tmp_b = calloc(sizeof(char) * (g_size + change_file_buffer_size + file_size + 4), 1);
   if (tmp_b == NULL) {
-    snprintf(emsg, sizeof(emsg), "Out of memory while trying to expand the project to incorporate file \"%s\".\n", full_name);
+    snprintf(emsg, sizeof(emsg), "Out of memory while trying to expand the project to incorporate file \"%s\".\n", g_full_name);
     print_error(emsg, ERROR_INC);
     return FAILED;
   }
 
-  /* reallocate tmp_a */
-  if (tmp_a_size < change_file_buffer_size + file_size + 4) {
-    if (tmp_a != NULL)
-      free(tmp_a);
+  /* reallocate g_tmp_a */
+  if (g_tmp_a_size < change_file_buffer_size + file_size + 4) {
+    if (g_tmp_a != NULL)
+      free(g_tmp_a);
 
-    tmp_a = calloc(sizeof(char) * (change_file_buffer_size + file_size + 4), 1);
-    if (tmp_a == NULL) {
-      snprintf(emsg, sizeof(emsg), "Out of memory while allocating new room for \"%s\".\n", full_name);
+    g_tmp_a = calloc(sizeof(char) * (change_file_buffer_size + file_size + 4), 1);
+    if (g_tmp_a == NULL) {
+      snprintf(emsg, sizeof(emsg), "Out of memory while allocating new room for \"%s\".\n", g_full_name);
       print_error(emsg, ERROR_INC);
       free(tmp_b);
       return FAILED;
     }
 
-    tmp_a_size = change_file_buffer_size + file_size + 4;
+    g_tmp_a_size = change_file_buffer_size + file_size + 4;
   }
 
-  memcpy(tmp_a, change_file_buffer, change_file_buffer_size);
+  memcpy(g_tmp_a, change_file_buffer, change_file_buffer_size);
       
   /* preprocess */
   inz = 0;
-  preprocess_file(include_in_tmp, include_in_tmp + file_size, &tmp_a[change_file_buffer_size], &inz, full_name);
+  preprocess_file(g_include_in_tmp, g_include_in_tmp + file_size, &g_tmp_a[change_file_buffer_size], &inz, g_full_name);
   inz += change_file_buffer_size;
 
-  tmp_a[inz++] = 0xA;
-  tmp_a[inz++] = '.';
-  tmp_a[inz++] = 'E';
-  tmp_a[inz++] = ' ';
+  g_tmp_a[inz++] = 0xA;
+  g_tmp_a[inz++] = '.';
+  g_tmp_a[inz++] = 'E';
+  g_tmp_a[inz++] = ' ';
 
-  memcpy(tmp_b, buffer, g_source_pointer);
-  memcpy(tmp_b + g_source_pointer, tmp_a, inz);
-  memcpy(tmp_b + g_source_pointer + inz, buffer + g_source_pointer, size - g_source_pointer);
+  memcpy(tmp_b, g_buffer, g_source_pointer);
+  memcpy(tmp_b + g_source_pointer, g_tmp_a, inz);
+  memcpy(tmp_b + g_source_pointer + inz, g_buffer + g_source_pointer, g_size - g_source_pointer);
 
-  free(buffer);
+  free(g_buffer);
 
-  size += inz;
-  buffer = tmp_b;
+  g_size += inz;
+  g_buffer = tmp_b;
 
   *include_size = inz;
   
@@ -317,7 +317,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   fseek(f, 0, SEEK_SET);
 
   ifd = (struct incbin_file_data *)calloc(sizeof(struct incbin_file_data), 1);
-  n = calloc(sizeof(char) * (strlen(full_name)+1), 1);
+  n = calloc(sizeof(char) * (strlen(g_full_name)+1), 1);
   in_tmp = (char *)calloc(sizeof(char) * file_size, 1);
   if (ifd == NULL || n == NULL || in_tmp == NULL) {
     if (ifd != NULL)
@@ -326,7 +326,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       free(n);
     if (in_tmp != NULL)
       free(in_tmp);
-    snprintf(emsg, sizeof(emsg), "Out of memory while allocating data structure for \"%s\".\n", full_name);
+    snprintf(emsg, sizeof(emsg), "Out of memory while allocating data structure for \"%s\".\n", g_full_name);
     print_error(emsg, ERROR_INB);
     fclose(f);
     return FAILED;
@@ -339,25 +339,25 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   /* complete the structure */
   ifd->next = NULL;
   ifd->size = file_size;
-  strcpy(n, full_name);
+  strcpy(n, g_full_name);
   ifd->name = n;
   ifd->data = in_tmp;
 
   /* find the index */
   q = 0;
-  if (incbin_file_data_first != NULL) {
-    ifd_tmp = incbin_file_data_first;
-    while (ifd_tmp->next != NULL && strcmp(ifd_tmp->name, full_name) != 0) {
-      ifd_tmp = ifd_tmp->next;
+  if (g_incbin_file_data_first != NULL) {
+    g_ifd_tmp = g_incbin_file_data_first;
+    while (g_ifd_tmp->next != NULL && strcmp(g_ifd_tmp->name, g_full_name) != 0) {
+      g_ifd_tmp = g_ifd_tmp->next;
       q++;
     }
-    if (ifd_tmp->next == NULL && strcmp(ifd_tmp->name, full_name) != 0) {
-      ifd_tmp->next = ifd;
+    if (g_ifd_tmp->next == NULL && strcmp(g_ifd_tmp->name, g_full_name) != 0) {
+      g_ifd_tmp->next = ifd;
       q++;
     }
   }
   else
-    incbin_file_data_first = ifd;
+    g_incbin_file_data_first = ifd;
 
   *id = q;
 
@@ -375,7 +375,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     *skip = d;
 
     if (d >= file_size) {
-      snprintf(emsg, sizeof(emsg), "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", d, file_size, full_name);
+      snprintf(emsg, sizeof(emsg), "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", d, file_size, g_full_name);
       print_error(emsg, ERROR_INB);
       return FAILED;
     }
@@ -395,7 +395,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     *read = d;
 
     if (*skip + *read > file_size) {
-      snprintf(emsg, sizeof(emsg), "Overreading file \"%s\" by %d bytes.\n", full_name, *skip + *read - file_size);
+      snprintf(emsg, sizeof(emsg), "Overreading file \"%s\" by %d bytes.\n", g_full_name, *skip + *read - file_size);
       print_error(emsg, ERROR_INB);
       return FAILED;
     }
@@ -406,7 +406,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     *swap = 0;
   else {
     if ((*read & 1) == 1) {
-      snprintf(emsg, sizeof(emsg), "The read size of file \"%s\" is odd (%d)! Cannot perform SWAP.\n", full_name, *read);
+      snprintf(emsg, sizeof(emsg), "The read size of file \"%s\" is odd (%d)! Cannot perform SWAP.\n", g_full_name, *read);
       print_error(emsg, ERROR_INB);
       return FAILED;
     }
@@ -457,7 +457,7 @@ char *get_file_name(int id) {
   struct file_name_info *fni;
 
   
-  fni = file_name_info_first;
+  fni = g_file_name_info_first;
   while (fni != NULL) {
     if (id == fni->id)
       return fni->name;
@@ -474,8 +474,8 @@ int print_file_names(void) {
   struct file_name_info *fni;
 
   
-  fni = file_name_info_first;
-  ifd = incbin_file_data_first;
+  fni = g_file_name_info_first;
+  ifd = g_incbin_file_data_first;
 
   /* handle the main file name differently */
   if (fni != NULL) {

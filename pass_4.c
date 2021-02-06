@@ -16,7 +16,7 @@
 
 
 extern struct section_def *sections_first, *sections_last, *sec_tmp, *sec_next;
-extern struct incbin_file_data *incbin_file_data_first, *ifd_tmp;
+extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern struct export_def *export_first, *export_last;
 extern struct stack *stacks_first, *stacks_tmp, *stacks_last, *stacks_header_first, *stacks_header_last;
 extern struct label_def *label_tmp, *label_last, *labels;
@@ -24,7 +24,7 @@ extern struct definition *tmp_def;
 extern struct map_t *defines_map;
 extern struct map_t *namespace_map;
 extern struct map_t *global_unique_label_map;
-extern struct file_name_info *file_name_info_first;
+extern struct file_name_info *g_file_name_info_first;
 extern struct slot slots[256];
 extern struct append_section *append_sections;
 extern struct label_sizeof *label_sizeofs;
@@ -572,10 +572,10 @@ int pass_4(void) {
     case 'D':
       fscanf(file_out_ptr, "%d %d %d %d", &x, &inz, &z, &y);
 
-      ifd_tmp = incbin_file_data_first;
+      g_ifd_tmp = g_incbin_file_data_first;
       for (ind = 0; ind != x; ind++)
-        ifd_tmp = ifd_tmp->next;
-      t = ifd_tmp->data + z;
+        g_ifd_tmp = g_ifd_tmp->next;
+      t = g_ifd_tmp->data + z;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing .INCBIN data", get_file_name(filename_id), line_number);
@@ -2197,7 +2197,7 @@ int export_source_file_names(FILE *final_ptr) {
   struct file_name_info *f;
   int ov;
 
-  f = file_name_info_first;
+  f = g_file_name_info_first;
   ov = 0;
   while (f != NULL) {
     ov++;
@@ -2206,7 +2206,7 @@ int export_source_file_names(FILE *final_ptr) {
 
   WRITEOUT_OV;
 
-  f = file_name_info_first;
+  f = g_file_name_info_first;
   while (f != NULL) {
     fprintf(final_ptr, "%s%c%c", f->name, 0x00, f->id);
 
