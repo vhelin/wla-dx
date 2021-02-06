@@ -16,11 +16,11 @@
 
 
 extern int g_input_number_error_msg, bankheader_status, g_input_float_mode;
-extern int g_source_pointer, size, d, macro_active, g_string_size, section_status, g_parse_floats;
-extern char g_xyz[512], *buffer, tmp[4096], g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
+extern int g_source_pointer, g_size, d, macro_active, g_string_size, section_status, g_parse_floats;
+extern char g_xyz[512], *g_buffer, tmp[4096], g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
 extern struct definition *tmp_def;
 extern struct map_t *defines_map;
-extern struct active_file_info *active_file_info_first, *active_file_info_last, *active_file_info_tmp;
+extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct macro_runtime *macro_runtime_current;
 extern struct section_def *sec_tmp;
 extern double g_parsed_double;
@@ -654,7 +654,7 @@ int stack_calculate(char *in, int *value) {
   }
 
   /* update the source pointer */
-  g_source_pointer = (int)(in - buffer);
+  g_source_pointer = (int)(in - g_buffer);
 
   /* fix the sign in every operand */
   for (b = 1, k = 0; k < q; k++) {
@@ -827,8 +827,8 @@ int stack_calculate(char *in, int *value) {
   /* are all the symbols known? */
   if (resolve_stack(ta, d) == SUCCEEDED) {
     s.stack = ta;
-    s.linenumber = active_file_info_last->line_current;
-    s.filename_id = active_file_info_last->filename_id;
+    s.linenumber = g_active_file_info_last->line_current;
+    s.filename_id = g_active_file_info_last->filename_id;
 
     if (compute_stack(&s, d, &dou) == FAILED)
       return FAILED;
@@ -871,8 +871,8 @@ int stack_calculate(char *in, int *value) {
     return FAILED;
   }
 
-  stacks_tmp->linenumber = active_file_info_last->line_current;
-  stacks_tmp->filename_id = active_file_info_last->filename_id;
+  stacks_tmp->linenumber = g_active_file_info_last->line_current;
+  stacks_tmp->filename_id = g_active_file_info_last->filename_id;
   stacks_tmp->special_id = 0;
 
   /* all stacks will be definition stacks by default. pass_4 will mark
@@ -1219,8 +1219,8 @@ int stack_create_label_stack(char *label) {
     return FAILED;
   }
 
-  stacks_tmp->linenumber = active_file_info_last->line_current;
-  stacks_tmp->filename_id = active_file_info_last->filename_id;
+  stacks_tmp->linenumber = g_active_file_info_last->line_current;
+  stacks_tmp->filename_id = g_active_file_info_last->filename_id;
   stacks_tmp->special_id = 0;
   
   /* all stacks will be definition stacks by default. pass_4 will mark
@@ -1261,8 +1261,8 @@ int stack_create_stack_stack(int stack_id) {
     return FAILED;
   }
 
-  stacks_tmp->linenumber = active_file_info_last->line_current;
-  stacks_tmp->filename_id = active_file_info_last->filename_id;
+  stacks_tmp->linenumber = g_active_file_info_last->line_current;
+  stacks_tmp->filename_id = g_active_file_info_last->filename_id;
   stacks_tmp->special_id = 0;
   
   /* all stacks will be definition stacks by default. pass_4 will mark
