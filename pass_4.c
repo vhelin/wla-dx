@@ -15,12 +15,12 @@
 #include "printf.h"
 
 
-extern struct section_def *sections_first, *sections_last, *sec_tmp, *sec_next;
+extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern struct export_def *export_first, *export_last;
 extern struct stack *stacks_first, *stacks_tmp, *stacks_last, *stacks_header_first, *stacks_header_last;
 extern struct label_def *label_tmp, *label_last, *labels;
-extern struct definition *tmp_def;
+extern struct definition *g_tmp_def;
 extern struct map_t *defines_map;
 extern struct map_t *namespace_map;
 extern struct map_t *global_unique_label_map;
@@ -28,8 +28,8 @@ extern struct file_name_info *g_file_name_info_first;
 extern struct slot slots[256];
 extern struct append_section *append_sections;
 extern struct label_sizeof *label_sizeofs;
-extern FILE *file_out_ptr;
-extern unsigned char *rom_banks, *rom_banks_usage_table;
+extern FILE *g_file_out_ptr;
+extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern char *g_tmp_name, tmp[4096], name[32], *g_final_name;
 extern int rombanks, ind, inz, g_output_format, g_test_mode, g_listfile_data, g_little_endian;
 
@@ -44,7 +44,7 @@ extern int licenseecodeold, romgbc;
 
 extern int romtype, rambanks, emptyfill, max_address;
 extern int rambanks_defined, g_verbose_mode;
-extern int section_status;
+extern int g_section_status;
 extern int banksize, banksize_defined;
 extern int slots_amount;
 extern int *banks, *bankaddress, rombankmap_defined;
@@ -117,12 +117,12 @@ int new_unknown_reference(int type) {
   label->type = type;
   label->filename_id = filename_id;
   label->linenumber = line_number;
-  label->section_status = section_status;
-  if (section_status == ON) {
-    label->section_id = sec_tmp->id;
-    label->section_struct = sec_tmp;
+  label->section_status = g_section_status;
+  if (g_section_status == ON) {
+    label->section_id = g_sec_tmp->id;
+    label->section_struct = g_sec_tmp;
     /* relative address, to the beginning of the section */
-    label->address = sec_tmp->i;
+    label->address = g_sec_tmp->i;
   }
   else {
     label->section_id = 0;
@@ -212,8 +212,8 @@ int add_namespace_to_reference(char *label, char *name_space, unsigned int label
   /* use the expanded version only if we can find it */
   
   /* label in a namespace? */
-  if (section_status == ON && sec_tmp != NULL && sec_tmp->nspace != NULL) {
-    if (hashmap_get(sec_tmp->nspace->label_map, expanded, (void*)&l) == MAP_OK) {
+  if (g_section_status == ON && g_sec_tmp != NULL && g_sec_tmp->nspace != NULL) {
+    if (hashmap_get(g_sec_tmp->nspace->label_map, expanded, (void*)&l) == MAP_OK) {
       if (filename_id == l->filename_id) {
         strcpy(label, expanded);
         return SUCCEEDED;
@@ -264,25 +264,25 @@ int pass_4(void) {
 
   namespace[0] = 0;
   
-  section_status = OFF;
+  g_section_status = OFF;
   bankheader_status = OFF;
   mem_insert_overwrite = OFF;
 
   if (g_verbose_mode == ON)
     printf("Internal pass 2...\n");
 
-  if ((file_out_ptr = fopen(g_tmp_name, "rb")) == NULL) {
+  if ((g_file_out_ptr = fopen(g_tmp_name, "rb")) == NULL) {
     fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\".\n", g_tmp_name);
     return FAILED;
   }
 
-  while (fread(&c, 1, 1, file_out_ptr) != 0) {
+  while (fread(&c, 1, 1, g_file_out_ptr) != 0) {
     switch (c) {
 
       /* SPECIAL CASE ID */
       
     case 'v':
-      fscanf(file_out_ptr, "%d ", &special_id);       
+      fscanf(g_file_out_ptr, "%d ", &special_id);       
       continue;
       
     case 'E':
@@ -296,34 +296,34 @@ int pass_4(void) {
       continue;
 
     case 'i':
-      fscanf(file_out_ptr, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       inside_macro++;
       continue;
     case 'I':
-      fscanf(file_out_ptr, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       inside_macro--;
       continue;
         
     case 'g':
-      fscanf(file_out_ptr, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       continue;
     case 'G':
       continue;
 
     case 'f':
-      fscanf(file_out_ptr, "%d ", &filename_id);
+      fscanf(g_file_out_ptr, "%d ", &filename_id);
       continue;
 
     case 'k':
-      fscanf(file_out_ptr, "%d ", &line_number);
+      fscanf(g_file_out_ptr, "%d ", &line_number);
       continue;
 
     case 't':
-      fscanf(file_out_ptr, "%d ", &inz);
+      fscanf(g_file_out_ptr, "%d ", &inz);
       if (inz == 0)
         namespace[0] = 0;
       else
-        fscanf(file_out_ptr, STRING_READ_FORMAT, namespace);
+        fscanf(g_file_out_ptr, STRING_READ_FORMAT, namespace);
       continue;
         
       /* SECTION */
@@ -331,65 +331,65 @@ int pass_4(void) {
     case 'A':
     case 'S':
       if (c == 'A')
-        fscanf(file_out_ptr, "%d %d ", &x, &ind);
+        fscanf(g_file_out_ptr, "%d %d ", &x, &ind);
       else
-        fscanf(file_out_ptr, "%d ", &x);
+        fscanf(g_file_out_ptr, "%d ", &x);
 
       add_old = pc_bank;
 
-      sec_tmp = sections_first;
-      while (sec_tmp != NULL) {
-        if (sec_tmp->id == x)
+      g_sec_tmp = g_sections_first;
+      while (g_sec_tmp != NULL) {
+        if (g_sec_tmp->id == x)
           break;
-        sec_tmp = sec_tmp->next;
+        g_sec_tmp = g_sec_tmp->next;
       }
 
       /* skip all dead sections */
-      if (sec_tmp->alive == OFF)
+      if (g_sec_tmp->alive == OFF)
         continue;
 
       if (c == 'A')
-        sec_tmp->address = ind;
+        g_sec_tmp->address = ind;
 
       ind = 0;
-      if (sec_tmp->maxsize_status == ON) {
-        if (sec_tmp->maxsize < sec_tmp->size) {
+      if (g_sec_tmp->maxsize_status == ON) {
+        if (g_sec_tmp->maxsize < g_sec_tmp->size) {
           fprintf(stderr, "%s: INTERNAL_PASS_2: Section \"%s\" doesn't fit into the specified %d bytes. Enlarging to %d bytes.\n",
-                  get_file_name(filename_id), sec_tmp->name, sec_tmp->maxsize, sec_tmp->size);
+                  get_file_name(filename_id), g_sec_tmp->name, g_sec_tmp->maxsize, g_sec_tmp->size);
         }
-        else if (sec_tmp->size < sec_tmp->maxsize) {
-          sec_tmp->size = sec_tmp->maxsize;
+        else if (g_sec_tmp->size < g_sec_tmp->maxsize) {
+          g_sec_tmp->size = g_sec_tmp->maxsize;
           ind = 1;
         }
       }
 
-      sec_tmp->data = calloc(sizeof(unsigned char) * sec_tmp->size, 1);
-      if (sec_tmp->data == NULL) {
+      g_sec_tmp->data = calloc(sizeof(unsigned char) * g_sec_tmp->size, 1);
+      if (g_sec_tmp->data == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Out of memory when trying to allocate room for section \"%s\".\n",
-                get_file_name(filename_id), line_number, sec_tmp->name);
+                get_file_name(filename_id), line_number, g_sec_tmp->name);
         return FAILED;
       }
 
       /* fill the padded area with _emptyfill_ */
       if (ind == 1)
-        memset(sec_tmp->data, emptyfill, sec_tmp->size);
+        memset(g_sec_tmp->data, emptyfill, g_sec_tmp->size);
 
-      if (strcmp(sec_tmp->name, "BANKHEADER") == 0)
+      if (strcmp(g_sec_tmp->name, "BANKHEADER") == 0)
         bankheader_status = ON;
 
-      sec_tmp->i = 0;
-      section_status = ON;
+      g_sec_tmp->i = 0;
+      g_section_status = ON;
 
       continue;
 
       /* ENDS */
 
     case 's':
-      section_status = OFF;
+      g_section_status = OFF;
       bankheader_status = OFF;
 
       /* some sections don't affect the ORG outside of them */
-      if (sec_tmp->advance_org == NO) {
+      if (g_sec_tmp->advance_org == NO) {
         pc_bank = add_old;
         pc_full = bankaddress[rom_bank] + pc_bank;
         pc_slot = slots[slot].address + pc_bank;
@@ -403,14 +403,14 @@ int pass_4(void) {
 
     case 'x':
     case 'o':
-      fscanf(file_out_ptr, "%d %d", &ind, &x);
+      fscanf(g_file_out_ptr, "%d %d", &ind, &x);
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSB data", get_file_name(filename_id), line_number);
 
       if (ind < 0) { /* going backward */
-        if (section_status == ON)
-          sec_tmp->i += ind;
+        if (g_section_status == ON)
+          g_sec_tmp->i += ind;
         pc_bank += ind;
         pc_full += ind;
         pc_slot += ind;
@@ -419,8 +419,8 @@ int pass_4(void) {
       else {
         while (ind > 0) {
           if (c == 'o') {
-            if (section_status == ON)
-              sec_tmp->i++;
+            if (g_section_status == ON)
+              g_sec_tmp->i++;
             pc_bank++;
             pc_full++;
             pc_slot++;
@@ -435,7 +435,7 @@ int pass_4(void) {
       continue;
 
     case 'X':
-      fscanf(file_out_ptr, "%d %d", &ind, &inz);
+      fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
       i = inz & 0xFF;
       inz = (inz >> 8) & 0xFF;
 
@@ -463,7 +463,7 @@ int pass_4(void) {
 #ifdef W65816
 
     case 'h':
-      fscanf(file_out_ptr, "%d %d", &ind, &inz);
+      fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
       x = inz & 0xFF;
       i = (inz >> 8) & 0xFF;
       inz = (inz >> 16) & 0xFF;
@@ -498,7 +498,7 @@ int pass_4(void) {
       /* DATA & OPTCODE */
 
     case 'd':
-      fscanf(file_out_ptr, "%d", &x);
+      fscanf(g_file_out_ptr, "%d", &x);
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a byte", get_file_name(filename_id), line_number);
@@ -509,7 +509,7 @@ int pass_4(void) {
       continue;
 
     case 'y':
-      fscanf(file_out_ptr, "%d", &inz);
+      fscanf(g_file_out_ptr, "%d", &inz);
       x = inz & 0xFF;
       inz = (inz >> 8) & 0xFF;
 
@@ -532,13 +532,13 @@ int pass_4(void) {
       continue;
 
     case 'b':
-      fscanf(file_out_ptr, "%d", &base);
+      fscanf(g_file_out_ptr, "%d", &base);
       continue;
 
 #ifdef W65816
 
     case 'z':
-      fscanf(file_out_ptr, "%d", &inz);
+      fscanf(g_file_out_ptr, "%d", &inz);
       x = inz & 0xFF;
       ind = (inz >> 8) & 0xFF;
       inz = (inz >> 16) & 0xFF;
@@ -570,7 +570,7 @@ int pass_4(void) {
       /* DATA BLOCK from .INCBIN */
 
     case 'D':
-      fscanf(file_out_ptr, "%d %d %d %d", &x, &inz, &z, &y);
+      fscanf(g_file_out_ptr, "%d %d %d %d", &x, &inz, &z, &y);
 
       g_ifd_tmp = g_incbin_file_data_first;
       for (ind = 0; ind != x; ind++)
@@ -606,9 +606,9 @@ int pass_4(void) {
     case 'O':
     case 'B':
       if (c == 'O')
-        fscanf(file_out_ptr, "%d", &pc_bank);
+        fscanf(g_file_out_ptr, "%d", &pc_bank);
       else {
-        fscanf(file_out_ptr, "%d %d", &rom_bank, &slot);
+        fscanf(g_file_out_ptr, "%d %d", &rom_bank, &slot);
         if (banksize_defined == 0)
           banksize = banks[rom_bank];
       }
@@ -628,7 +628,7 @@ int pass_4(void) {
 
     case 'Y':
       /* skip the symbol */
-      fscanf(file_out_ptr, "%*s");
+      fscanf(g_file_out_ptr, "%*s");
       continue;
 
       /* LABEL */
@@ -637,7 +637,7 @@ int pass_4(void) {
         struct label_def *l;
         int m, n = 0, mangled_label = NO;
 
-        fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
+        fscanf(g_file_out_ptr, STRING_READ_FORMAT, tmp);
 
         if (is_label_anonymous(tmp) == NO) {
           while (n < 10 && tmp[n] == '@')
@@ -659,13 +659,13 @@ int pass_4(void) {
           }
 
           if (namespace[0] != 0 && mangled_label == NO) {
-            if (section_status == OFF || sec_tmp->nspace == NULL) {
+            if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
               if (add_namespace(tmp, namespace, sizeof(tmp)) == FAILED)
                 return FAILED;
             }
           }
             
-          if (m < 10 && find_label(tmp, sec_tmp, (void*)&l) == SUCCEEDED)
+          if (m < 10 && find_label(tmp, g_sec_tmp, (void*)&l) == SUCCEEDED)
             parent_labels[m] = l;
         }
       }
@@ -674,7 +674,7 @@ int pass_4(void) {
       /* 8BIT COMPUTATION */
 
     case 'c':
-      fscanf(file_out_ptr, "%d", &inz);
+      fscanf(g_file_out_ptr, "%d", &inz);
 
       if (bankheader_status == OFF)
         stacks_tmp = stacks_first;
@@ -694,7 +694,7 @@ int pass_4(void) {
 
       if (stacks_tmp->section_status == ON) {
         /* relative address, to the beginning of the section */
-        stacks_tmp->address = sec_tmp->i;
+        stacks_tmp->address = g_sec_tmp->i;
       }
       else {
         /* complete address, in ROM memory */
@@ -711,7 +711,7 @@ int pass_4(void) {
         return FAILED;
 
       if (namespace[0] != 0) {
-        if (section_status == OFF || sec_tmp->nspace == NULL) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
             return FAILED;
         }
@@ -731,7 +731,7 @@ int pass_4(void) {
       /* 16BIT COMPUTATION */
 
     case 'C':
-      fscanf(file_out_ptr, "%d", &inz);
+      fscanf(g_file_out_ptr, "%d", &inz);
 
       if (bankheader_status == OFF)
         stacks_tmp = stacks_first;
@@ -751,7 +751,7 @@ int pass_4(void) {
 
       if (stacks_tmp->section_status == ON) {
         /* relative address, to the beginning of the section */
-        stacks_tmp->address = sec_tmp->i;
+        stacks_tmp->address = g_sec_tmp->i;
       }
       else {
         /* complete address, in ROM memory */
@@ -767,7 +767,7 @@ int pass_4(void) {
         return FAILED;
 
       if (namespace[0] != 0) {
-        if (section_status == OFF || sec_tmp->nspace == NULL) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
             return FAILED;
         }
@@ -790,7 +790,7 @@ int pass_4(void) {
       /* 13BIT COMPUTATION */
 
     case 'N':
-      fscanf(file_out_ptr, "%d %d", &x, &inz);
+      fscanf(g_file_out_ptr, "%d %d", &x, &inz);
 
       if (bankheader_status == OFF)
         stacks_tmp = stacks_first;
@@ -810,7 +810,7 @@ int pass_4(void) {
 
       if (stacks_tmp->section_status == ON) {
         /* relative address, to the beginning of the section */
-        stacks_tmp->address = sec_tmp->i;
+        stacks_tmp->address = g_sec_tmp->i;
       }
       else {
         /* complete address, in ROM memory */
@@ -826,7 +826,7 @@ int pass_4(void) {
         return FAILED;
 
       if (namespace[0] != 0) {
-        if (section_status == OFF || sec_tmp->nspace == NULL) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
             return FAILED;
         }
@@ -849,7 +849,7 @@ int pass_4(void) {
       /* 24BIT COMPUTATION */
 
     case 'T':
-      fscanf(file_out_ptr, "%d", &inz);
+      fscanf(g_file_out_ptr, "%d", &inz);
 
       if (bankheader_status == OFF)
         stacks_tmp = stacks_first;
@@ -869,7 +869,7 @@ int pass_4(void) {
 
       if (stacks_tmp->section_status == ON) {
         /* relative address, to the beginning of the section */
-        stacks_tmp->address = sec_tmp->i;
+        stacks_tmp->address = g_sec_tmp->i;
       }
       else {
         /* complete address, in ROM memory */
@@ -885,7 +885,7 @@ int pass_4(void) {
         return FAILED;
 
       if (namespace[0] != 0) {
-        if (section_status == OFF || sec_tmp->nspace == NULL) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
             return FAILED;
         }
@@ -909,24 +909,24 @@ int pass_4(void) {
       /* 24BIT REFERENCE */
 
     case 'q':
-      fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
+      fscanf(g_file_out_ptr, STRING_READ_FORMAT, tmp);
 
       if (namespace[0] != 0) {
-        if (section_status == OFF || sec_tmp->nspace == NULL) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
             return FAILED;
         }
       }
           
       x = 0;
-      hashmap_get(defines_map, tmp, (void*)&tmp_def);
-      if (tmp_def != NULL) {
-        if (tmp_def->type == DEFINITION_TYPE_STRING) {
+      hashmap_get(defines_map, tmp, (void*)&g_tmp_def);
+      if (g_tmp_def != NULL) {
+        if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
           return FAILED;
         }
-        else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-          o = (int)tmp_def->value;
+        else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
+          o = (int)g_tmp_def->value;
           x = 1;
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -972,24 +972,24 @@ int pass_4(void) {
       /* 16BIT PC RELATIVE REFERENCE */
 
     case 'M':
-      fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
+      fscanf(g_file_out_ptr, STRING_READ_FORMAT, tmp);
 
       if (namespace[0] != 0) {
-        if (section_status == OFF || sec_tmp->nspace == NULL) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
             return FAILED;
         }
       }
                 
       x = 0;
-      hashmap_get(defines_map, tmp, (void*)&tmp_def);
-      if (tmp_def != NULL) {
-        if (tmp_def->type == DEFINITION_TYPE_STRING) {
+      hashmap_get(defines_map, tmp, (void*)&g_tmp_def);
+      if (g_tmp_def != NULL) {
+        if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
           return FAILED;
         }
-        else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-          o = (int)tmp_def->value;
+        else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
+          o = (int)g_tmp_def->value;
           x = 1;
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1029,24 +1029,24 @@ int pass_4(void) {
       /* 16BIT REFERENCE */
 
     case 'r':
-      fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
+      fscanf(g_file_out_ptr, STRING_READ_FORMAT, tmp);
 
       if (namespace[0] != 0) {
-        if (section_status == OFF || sec_tmp->nspace == NULL) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
             return FAILED;
         }
       }
 
       x = 0;
-      hashmap_get(defines_map, tmp, (void*)&tmp_def);
-      if (tmp_def != NULL) {
-        if (tmp_def->type == DEFINITION_TYPE_STRING) {
+      hashmap_get(defines_map, tmp, (void*)&g_tmp_def);
+      if (g_tmp_def != NULL) {
+        if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
           return FAILED;
         }
-        else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-          o = (int)tmp_def->value;
+        else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
+          o = (int)g_tmp_def->value;
           x = 1;
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1087,25 +1087,25 @@ int pass_4(void) {
       /* 13BIT REFERENCE */
 
     case 'n':
-      fscanf(file_out_ptr, "%d ", &inz);
-      fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
+      fscanf(g_file_out_ptr, "%d ", &inz);
+      fscanf(g_file_out_ptr, STRING_READ_FORMAT, tmp);
 
       if (namespace[0] != 0) {
-        if (section_status == OFF || sec_tmp->nspace == NULL) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
             return FAILED;
         }
       }
 
       x = 0;
-      hashmap_get(defines_map, tmp, (void*)&tmp_def);
-      if (tmp_def != NULL) {
-        if (tmp_def->type == DEFINITION_TYPE_STRING) {
+      hashmap_get(defines_map, tmp, (void*)&g_tmp_def);
+      if (g_tmp_def != NULL) {
+        if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
           return FAILED;
         }
-        else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-          o = (int)tmp_def->value;
+        else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
+          o = (int)g_tmp_def->value;
           x = 1;
           if (o > 8191 || o < 0) {
             fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference value of \"%s\" is out of 13-bit range.\n", get_file_name(filename_id), line_number, tmp);
@@ -1142,24 +1142,24 @@ int pass_4(void) {
       /* 8BIT PC RELATIVE REFERENCE */
 
     case 'R':
-      fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
+      fscanf(g_file_out_ptr, STRING_READ_FORMAT, tmp);
 
       if (namespace[0] != 0) {
-        if (section_status == OFF || sec_tmp->nspace == NULL) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
             return FAILED;
         }
       }
 
       x = 0;
-      hashmap_get(defines_map, tmp, (void*)&tmp_def);
-      if (tmp_def != NULL) {
-        if (tmp_def->type == DEFINITION_TYPE_STRING) {
+      hashmap_get(defines_map, tmp, (void*)&g_tmp_def);
+      if (g_tmp_def != NULL) {
+        if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
           return FAILED;
         }
-        else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-          o = (int)tmp_def->value;
+        else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
+          o = (int)g_tmp_def->value;
           x = 1;
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1187,24 +1187,24 @@ int pass_4(void) {
       /* 8BIT REFERENCE */
 
     case 'Q':
-      fscanf(file_out_ptr, STRING_READ_FORMAT, tmp);
+      fscanf(g_file_out_ptr, STRING_READ_FORMAT, tmp);
 
       if (namespace[0] != 0) {
-        if (section_status == OFF || sec_tmp->nspace == NULL) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
             return FAILED;
         }
       }
 
       x = 0;
-      hashmap_get(defines_map, tmp, (void*)&tmp_def);
-      if (tmp_def != NULL) {
-        if (tmp_def->type == DEFINITION_TYPE_STRING) {
+      hashmap_get(defines_map, tmp, (void*)&g_tmp_def);
+      if (g_tmp_def != NULL) {
+        if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
           return FAILED;
         }
-        else if (tmp_def->type != DEFINITION_TYPE_STACK) {
-          o = (int)tmp_def->value;
+        else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
+          o = (int)g_tmp_def->value;
           x = 1;
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1232,23 +1232,23 @@ int pass_4(void) {
       /* .DSTRUCT stuff */
 
     case 'e':
-      fscanf(file_out_ptr, "%d %d ", &x, &y);
+      fscanf(g_file_out_ptr, "%d %d ", &x, &y);
       if (y == -1) {
         /* mark start of .DSTRUCT */
         dstruct_start = pc_full;
         /* make sure all data in a section gets set to emptyfill */
-        if (section_status == ON)
-          memset(sec_tmp->data + sec_tmp->i, emptyfill, x);
+        if (g_section_status == ON)
+          memset(g_sec_tmp->data + g_sec_tmp->i, emptyfill, x);
       }
       else if (y == -2) {
         /* end of .DSTRUCT. make sure all memory is claimed. */
         while (pc_full < dstruct_start + x) {
-          if (section_status == OFF && rom_banks_usage_table[pc_full] == 0) {
-            rom_banks_usage_table[pc_full] = 2;
-            rom_banks[pc_full] = emptyfill;
+          if (g_section_status == OFF && g_rom_banks_usage_table[pc_full] == 0) {
+            g_rom_banks_usage_table[pc_full] = 2;
+            g_rom_banks[pc_full] = emptyfill;
           }
-          if (section_status == ON)
-            sec_tmp->i++;
+          if (g_section_status == ON)
+            g_sec_tmp->i++;
           pc_bank++;
           pc_slot++;
           pc_full++;
@@ -1256,8 +1256,8 @@ int pass_4(void) {
       }
       else {
         /* seek offset relative to dstruct start */
-        if (section_status == ON)
-          sec_tmp->i = sec_tmp->i + (dstruct_start - pc_full) + x;
+        if (g_section_status == ON)
+          g_sec_tmp->i = g_sec_tmp->i + (dstruct_start - pc_full) + x;
         pc_bank = pc_bank + (dstruct_start - pc_full) + x;
         pc_slot = pc_slot + (dstruct_start - pc_full) + x;
         pc_full = dstruct_start + x;
@@ -1266,8 +1266,8 @@ int pass_4(void) {
     }
   }
 
-  fclose(file_out_ptr);
-  file_out_ptr = NULL;
+  fclose(g_file_out_ptr);
+  g_file_out_ptr = NULL;
 
   /* library file output */
   if (g_output_format == OUTPUT_LIBRARY && g_test_mode == OFF) {
@@ -1439,37 +1439,37 @@ int pass_4(void) {
     }
 
     /* sections */
-    sec_tmp = sections_first;
-    while (sec_tmp != NULL) {
-      if (sec_tmp->alive == ON) {
-        fprintf(final_ptr, "%s%c%c", sec_tmp->name, sec_tmp->status, sec_tmp->keep);
-        if (sec_tmp->nspace == NULL)
+    g_sec_tmp = g_sections_first;
+    while (g_sec_tmp != NULL) {
+      if (g_sec_tmp->alive == ON) {
+        fprintf(final_ptr, "%s%c%c", g_sec_tmp->name, g_sec_tmp->status, g_sec_tmp->keep);
+        if (g_sec_tmp->nspace == NULL)
           fprintf(final_ptr, "%c", 0);
         else
-          fprintf(final_ptr, "%s%c", sec_tmp->nspace->name, 0);
+          fprintf(final_ptr, "%s%c", g_sec_tmp->nspace->name, 0);
 
-        ov = sec_tmp->id;
+        ov = g_sec_tmp->id;
         WRITEOUT_OV;
 
-        fprintf(final_ptr, "%c", sec_tmp->filename_id);
+        fprintf(final_ptr, "%c", g_sec_tmp->filename_id);
 
-        ov = sec_tmp->size;
+        ov = g_sec_tmp->size;
         WRITEOUT_OV;
-        ov = sec_tmp->alignment;
+        ov = g_sec_tmp->alignment;
         WRITEOUT_OV;
-        ov = sec_tmp->offset;
+        ov = g_sec_tmp->offset;
         WRITEOUT_OV;
-        ov = sec_tmp->priority;
+        ov = g_sec_tmp->priority;
         WRITEOUT_OV;
         
-        fwrite(sec_tmp->data, 1, sec_tmp->size, final_ptr);
+        fwrite(g_sec_tmp->data, 1, g_sec_tmp->size, final_ptr);
 
-        if (g_listfile_data == YES && sec_tmp->listfile_items > 0)
-          listfile_block_write(final_ptr, sec_tmp);
+        if (g_listfile_data == YES && g_sec_tmp->listfile_items > 0)
+          listfile_block_write(final_ptr, g_sec_tmp);
         else
           fprintf(final_ptr, "%c", 0);
       }
-      sec_tmp = sec_tmp->next;
+      g_sec_tmp = g_sec_tmp->next;
     }
 
     fclose(final_ptr);
@@ -1813,11 +1813,11 @@ int pass_4(void) {
     /* data area */
     ind = 0;
     for (inz = 0; inz < max_address; inz++) {
-      if (rom_banks_usage_table[inz] != 0) {
+      if (g_rom_banks_usage_table[inz] != 0) {
         /* data block id */
         fprintf(final_ptr, "%c", 0x0);
         for (i = inz, ind = 0; inz < max_address; inz++, ind++) {
-          if (rom_banks_usage_table[inz] == 0) {
+          if (g_rom_banks_usage_table[inz] == 0) {
 
             ov = i;
             WRITEOUT_OV;
@@ -1825,7 +1825,7 @@ int pass_4(void) {
             ov = ind;
             WRITEOUT_OV;
 
-            fwrite(&rom_banks[i], 1, ind, final_ptr);
+            fwrite(&g_rom_banks[i], 1, ind, final_ptr);
 
             ind = 0;
             break;
@@ -1841,47 +1841,47 @@ int pass_4(void) {
       ov = ind;
       WRITEOUT_OV;
 
-      fwrite(&rom_banks[i], 1, ind, final_ptr);
+      fwrite(&g_rom_banks[i], 1, ind, final_ptr);
     }
 
-    sec_tmp = sections_first;
-    while (sec_tmp != NULL) {
-      if (sec_tmp->alive == ON) {
+    g_sec_tmp = g_sections_first;
+    while (g_sec_tmp != NULL) {
+      if (g_sec_tmp->alive == ON) {
         /* section block id */
-        fprintf(final_ptr, "%c%s%c%c", 0x1, sec_tmp->name, sec_tmp->status, sec_tmp->keep);
-        if (sec_tmp->nspace == NULL)
+        fprintf(final_ptr, "%c%s%c%c", 0x1, g_sec_tmp->name, g_sec_tmp->status, g_sec_tmp->keep);
+        if (g_sec_tmp->nspace == NULL)
           fprintf(final_ptr, "%c", 0);
         else
-          fprintf(final_ptr, "%s%c", sec_tmp->nspace->name, 0);
+          fprintf(final_ptr, "%s%c", g_sec_tmp->nspace->name, 0);
 
-        ov = sec_tmp->id;
-        WRITEOUT_OV;
-
-        fprintf(final_ptr, "%c%c", sec_tmp->slot, sec_tmp->filename_id);
-
-        ov = sec_tmp->address;
-        WRITEOUT_OV;
-        ov = sec_tmp->bank;
-        WRITEOUT_OV;
-        ov = sec_tmp->base;
-        WRITEOUT_OV;
-        ov = sec_tmp->size;
-        WRITEOUT_OV;
-        ov = sec_tmp->alignment;
-        WRITEOUT_OV;
-        ov = sec_tmp->offset;
-        WRITEOUT_OV;
-        ov = sec_tmp->priority;
+        ov = g_sec_tmp->id;
         WRITEOUT_OV;
 
-        fwrite(sec_tmp->data, 1, sec_tmp->size, final_ptr);
+        fprintf(final_ptr, "%c%c", g_sec_tmp->slot, g_sec_tmp->filename_id);
 
-        if (g_listfile_data == YES && sec_tmp->listfile_items > 0)
-          listfile_block_write(final_ptr, sec_tmp);
+        ov = g_sec_tmp->address;
+        WRITEOUT_OV;
+        ov = g_sec_tmp->bank;
+        WRITEOUT_OV;
+        ov = g_sec_tmp->base;
+        WRITEOUT_OV;
+        ov = g_sec_tmp->size;
+        WRITEOUT_OV;
+        ov = g_sec_tmp->alignment;
+        WRITEOUT_OV;
+        ov = g_sec_tmp->offset;
+        WRITEOUT_OV;
+        ov = g_sec_tmp->priority;
+        WRITEOUT_OV;
+
+        fwrite(g_sec_tmp->data, 1, g_sec_tmp->size, final_ptr);
+
+        if (g_listfile_data == YES && g_sec_tmp->listfile_items > 0)
+          listfile_block_write(final_ptr, g_sec_tmp);
         else
           fprintf(final_ptr, "%c", 0);
       }
-      sec_tmp = sec_tmp->next;
+      g_sec_tmp = g_sec_tmp->next;
     }
 
     fclose(final_ptr);
@@ -1897,11 +1897,11 @@ int pass_4(void) {
   if (g_verbose_mode == ON && g_output_format != OUTPUT_LIBRARY) {
     x = 0;
     for (ind = 0; ind < max_address; ind++) {
-      if (rom_banks_usage_table[ind] == 0 && x == 0) {
+      if (g_rom_banks_usage_table[ind] == 0 && x == 0) {
         x = 1;
         inz = ind;
       }
-      else if (rom_banks_usage_table[ind] != 0 && x == 1) {
+      else if (g_rom_banks_usage_table[ind] != 0 && x == 1) {
         if (inz == (ind - 1))
           fprintf(stderr, "Free space at $%.4x.\n", inz);
         else
@@ -1919,7 +1919,7 @@ int pass_4(void) {
 
     for (ind = 0, q = 0; ind < max_address; q++) {
       for (x = 0, inz = 0; inz < banks[q]; inz++) {
-        if (rom_banks_usage_table[ind++] == 0)
+        if (g_rom_banks_usage_table[ind++] == 0)
           x++;
       }
       f = (((float)x)/banks[q]) * 100.0f;
@@ -1930,19 +1930,19 @@ int pass_4(void) {
     }
 
     for (ind = 0, inz = 0; ind < max_address; ind++) {
-      if (rom_banks_usage_table[ind] == 0)
+      if (g_rom_banks_usage_table[ind] == 0)
         inz++;
     }
     fprintf(stderr, "%d unused bytes of total %d.\n", inz, max_address);
 
 #ifndef GB
-    sec_tmp = sections_first;
-    while (sec_tmp != NULL) {
-      if (sec_tmp->status == SECTION_STATUS_HEADER) {
-        fprintf(stderr, "Bank %d header section size %d.\n", sec_tmp->bank, sec_tmp->size);
-        ind += sec_tmp->size;
+    g_sec_tmp = g_sections_first;
+    while (g_sec_tmp != NULL) {
+      if (g_sec_tmp->status == SECTION_STATUS_HEADER) {
+        fprintf(stderr, "Bank %d header section size %d.\n", g_sec_tmp->bank, g_sec_tmp->size);
+        ind += g_sec_tmp->size;
       }
-      sec_tmp = sec_tmp->next;
+      g_sec_tmp = g_sec_tmp->next;
     }
 
     if (ind != 0) {
@@ -1953,10 +1953,10 @@ int pass_4(void) {
 
   }
   else if (g_verbose_mode == ON && g_output_format == OUTPUT_LIBRARY) {
-    sec_tmp = sections_first;
-    while (sec_tmp != NULL) {
-      printf("Section \"%s\" size %d.\n", sec_tmp->name, sec_tmp->size);
-      sec_tmp = sec_tmp->next;
+    g_sec_tmp = g_sections_first;
+    while (g_sec_tmp != NULL) {
+      printf("Section \"%s\" size %d.\n", g_sec_tmp->name, g_sec_tmp->size);
+      g_sec_tmp = g_sec_tmp->next;
     }
   }
 
@@ -2024,13 +2024,13 @@ int find_label(char *str, struct section_def *s, struct label_def **out) {
 
 int mem_insert(unsigned char x) {
   
-  if (section_status == ON) {
-    if (sec_tmp->i >= sec_tmp->size || sec_tmp->i < 0) {
-      fprintf(stderr, "MEM_INSERT: Overflowed from section \"%s\"; Please send a bug report!\n", sec_tmp->name);
+  if (g_section_status == ON) {
+    if (g_sec_tmp->i >= g_sec_tmp->size || g_sec_tmp->i < 0) {
+      fprintf(stderr, "MEM_INSERT: Overflowed from section \"%s\"; Please send a bug report!\n", g_sec_tmp->name);
       return FAILED;
     }
-    sec_tmp->data[sec_tmp->i] = x;
-    sec_tmp->i++;
+    g_sec_tmp->data[g_sec_tmp->i] = x;
+    g_sec_tmp->i++;
     pc_bank++;
     pc_full++;
     pc_slot++;
@@ -2056,14 +2056,14 @@ int mem_insert(unsigned char x) {
     return FAILED;
   }
 
-  if (rom_banks_usage_table[pc_full] != 0 && rom_banks[pc_full] != x && mem_insert_overwrite == OFF) {
-    fprintf(stderr, "MEM_INSERT: %d. write into $%.4x (old: $%.2x, new: $%.2x).\n", rom_banks_usage_table[pc_full], pc_full, rom_banks[pc_full], x & 0xFF);
+  if (g_rom_banks_usage_table[pc_full] != 0 && g_rom_banks[pc_full] != x && mem_insert_overwrite == OFF) {
+    fprintf(stderr, "MEM_INSERT: %d. write into $%.4x (old: $%.2x, new: $%.2x).\n", g_rom_banks_usage_table[pc_full], pc_full, g_rom_banks[pc_full], x & 0xFF);
     if (mem_insert_action[0] != 0)
       fprintf(stderr, "   ^ %s\n", mem_insert_action);
   }
 
-  rom_banks_usage_table[pc_full] = 2;
-  rom_banks[pc_full] = x;
+  g_rom_banks_usage_table[pc_full] = 2;
+  g_rom_banks[pc_full] = x;
   pc_bank++;
   pc_full++;
   pc_slot++;
@@ -2078,9 +2078,9 @@ int mem_insert_padding(void) {
      written an 8-bit value, but we don't know the numeric value itself yet, but we'll need to reserve the
      space for the upcoming write or otherwise something else might get written here */
 
-  if (section_status == ON) {
-    sec_tmp->data[sec_tmp->i] = 0xCD;
-    sec_tmp->i++;
+  if (g_section_status == ON) {
+    g_sec_tmp->data[g_sec_tmp->i] = 0xCD;
+    g_sec_tmp->i++;
     pc_bank++;
     pc_full++;
     pc_slot++;
@@ -2107,8 +2107,8 @@ int mem_insert_padding(void) {
   }
 
   /* announce the overwrite later */
-  if (!(rom_banks_usage_table[pc_full] != 0 && mem_insert_overwrite == OFF))
-    rom_banks_usage_table[pc_full] = 1;
+  if (!(g_rom_banks_usage_table[pc_full] != 0 && mem_insert_overwrite == OFF))
+    g_rom_banks_usage_table[pc_full] = 1;
 
   pc_bank++;
   pc_full++;
@@ -2127,14 +2127,14 @@ int mem_insert_absolute(int add, unsigned char x) {
     return FAILED;
   }
 
-  if (rom_banks_usage_table[add] > 1 && rom_banks[add] != x && mem_insert_overwrite == OFF) {
-    fprintf(stderr, "MEM_INSERT_ABSOLUTE: %d. write into $%.4x (old: $%.2x, new: $%.2x).\n", rom_banks_usage_table[add], add, rom_banks[add], x & 0xFF);
+  if (g_rom_banks_usage_table[add] > 1 && g_rom_banks[add] != x && mem_insert_overwrite == OFF) {
+    fprintf(stderr, "MEM_INSERT_ABSOLUTE: %d. write into $%.4x (old: $%.2x, new: $%.2x).\n", g_rom_banks_usage_table[add], add, g_rom_banks[add], x & 0xFF);
     if (mem_insert_action[0] != 0)
       fprintf(stderr, "   ^ %s\n", mem_insert_action);
   }
   
-  rom_banks_usage_table[add]++;
-  rom_banks[add] = x;
+  g_rom_banks_usage_table[add]++;
+  g_rom_banks[add] = x;
 
   return SUCCEEDED;
 }
@@ -2150,11 +2150,11 @@ int export_definitions(FILE *final_ptr) {
   ov = 0;
   export_tmp = export_first;
   while (export_tmp != NULL) {
-    hashmap_get(defines_map, export_tmp->name, (void*)&tmp_def);
-    if (tmp_def != NULL) {
-      if (tmp_def->type == DEFINITION_TYPE_VALUE)
+    hashmap_get(defines_map, export_tmp->name, (void*)&g_tmp_def);
+    if (g_tmp_def != NULL) {
+      if (g_tmp_def->type == DEFINITION_TYPE_VALUE)
         ov++;
-      if (tmp_def->type == DEFINITION_TYPE_STACK)
+      if (g_tmp_def->type == DEFINITION_TYPE_STACK)
         ov++;
     }
 
@@ -2165,22 +2165,22 @@ int export_definitions(FILE *final_ptr) {
 
   export_tmp = export_first;
   while (export_tmp != NULL) {
-    hashmap_get(defines_map, export_tmp->name, (void*)&tmp_def);
+    hashmap_get(defines_map, export_tmp->name, (void*)&g_tmp_def);
 
-    if (tmp_def == NULL)
+    if (g_tmp_def == NULL)
       fprintf(stderr, "WARNING: Trying to export an unkonwn definition \"%s\".\n", export_tmp->name);
     else {
-      if (tmp_def->type == DEFINITION_TYPE_VALUE) {
-        fprintf(final_ptr, "%s%c", tmp_def->alias, 0x0);
-        dou = tmp_def->value;
+      if (g_tmp_def->type == DEFINITION_TYPE_VALUE) {
+        fprintf(final_ptr, "%s%c", g_tmp_def->alias, 0x0);
+        dou = g_tmp_def->value;
         WRITEOUT_DOU;
       }
-      else if (tmp_def->type == DEFINITION_TYPE_STRING) {
+      else if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
         fprintf(stderr, "INTERNAL_PASS_2: Definition \"%s\" is a string definition, and it cannot be exported.\n", export_tmp->name);
       }
-      else if (tmp_def->type == DEFINITION_TYPE_STACK) {
-        fprintf(final_ptr, "%s%c", tmp_def->alias, 0x1);
-        dou = tmp_def->value;
+      else if (g_tmp_def->type == DEFINITION_TYPE_STACK) {
+        fprintf(final_ptr, "%s%c", g_tmp_def->alias, 0x1);
+        dou = g_tmp_def->value;
         WRITEOUT_DOU;
       }
     }
@@ -2229,7 +2229,7 @@ int get_snes_cpu_bank(struct label_def *l) {
   if (l->section_status == OFF)
     k = bankaddress[l->bank] + l->address;
   else {
-    s = sections_first;
+    s = g_sections_first;
     while (s != NULL) {
       if (l->section_id == s->id)
         break;

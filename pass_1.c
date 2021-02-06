@@ -49,14 +49,14 @@ int bank = 0, bank_defined = 1;
 int rombanks = 0, rombanks_defined = 0, romtype = 0, max_address = 0;
 int rambanks = 0, rambanks_defined = 0;
 int emptyfill, emptyfill_defined = 0;
-int section_status = OFF, section_id = 1, line_count_status = ON;
+int g_section_status = OFF, section_id = 1, line_count_status = ON;
 int d, g_source_pointer, ind, inz, ifdef = 0, t, slots_amount = 0;
 int memorymap_defined = 0;
 int defaultslot_defined = 0, defaultslot, current_slot = 0;
 int banksize_defined = 0, banksize;
 int rombankmap_defined = 0, *banks = NULL, *bankaddress = NULL;
 int bankheader_status = OFF;
-int macro_active = 0;
+int g_macro_active = 0;
 int repeat_active = 0;
 int smc_defined = 0;
 int asciitable_defined = 0;
@@ -94,14 +94,14 @@ char tmp[4096], emsg[sizeof(tmp) + MAX_NAME_LENGTH + 1 + 1024];
 char *tmp_bf, *label_stack[256];
 char cp[MAX_NAME_LENGTH + 1];
 
-unsigned char *rom_banks = NULL, *rom_banks_usage_table = NULL;
+unsigned char *g_rom_banks = NULL, *g_rom_banks_usage_table = NULL;
 
 struct export_def *export_first = NULL, *export_last = NULL;
 struct optcode *opt_tmp;
-struct definition *tmp_def;
+struct definition *g_tmp_def;
 struct map_t *defines_map = NULL;
 struct macro_static *macros_first = NULL, *macros_last = NULL;
-struct section_def *sections_first = NULL, *sections_last = NULL, *sec_tmp, *sec_next;
+struct section_def *g_sections_first = NULL, *g_sections_last = NULL, *g_sec_tmp, *g_sec_next;
 struct macro_runtime *macro_stack = NULL, *macro_runtime_current = NULL;
 struct repeat_runtime *repeat_stack = NULL;
 struct slot slots[256];
@@ -119,7 +119,7 @@ extern int stack_id, latest_stack, g_ss, g_commandline_parsing, g_newline_beginn
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
 extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
 extern int g_create_sizeof_definitions;
-extern FILE *file_out_ptr;
+extern FILE *g_file_out_ptr;
 extern double g_parsed_double;
 extern char *g_final_name;
 
@@ -274,7 +274,7 @@ int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
 
 int macro_stack_grow(void) {
 
-  if (macro_active == macro_stack_size) {
+  if (g_macro_active == macro_stack_size) {
 
     struct macro_runtime *macro;
     int old_size;
@@ -294,7 +294,7 @@ int macro_stack_grow(void) {
       free(macro_stack);
     }
     macro_stack = macro;
-    macro_runtime_current = &macro_stack[macro_active - 1];
+    macro_runtime_current = &macro_stack[g_macro_active - 1];
   }
 
   return SUCCEEDED;
@@ -304,11 +304,11 @@ int macro_stack_grow(void) {
 int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, int nargs) {
 
   macro_runtime_current = mrt;
-  macro_active++;
+  g_macro_active++;
   m->calls++;
 
   /* macro call start */
-  fprintf(file_out_ptr, "i%s ", m->name);
+  fprintf(g_file_out_ptr, "i%s ", m->name);
   
   mrt->caller = caller;
   mrt->macro = m;
@@ -341,7 +341,7 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
   int start;
   
   /* start running a macro... run until .ENDM */
-  mrt = &macro_stack[macro_active];
+  mrt = &macro_stack[g_macro_active];
 
   start = g_source_pointer;
 
@@ -376,7 +376,7 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
   if (macro_stack_grow() == FAILED)
     return FAILED;
 
-  mrt = &macro_stack[macro_active];
+  mrt = &macro_stack[g_macro_active];
   mrt->argument_data = calloc(sizeof(struct macro_argument *) << 1, 1);
   mrt->argument_data[0] = calloc(sizeof(struct macro_argument), 1);
   mrt->argument_data[1] = calloc(sizeof(struct macro_argument), 1);
@@ -436,7 +436,7 @@ int macro_start_incbin(struct macro_static *m, struct macro_incbin *incbin_data,
   if (macro_stack_grow() == FAILED)
     return FAILED;
 
-  mrt = &macro_stack[macro_active];
+  mrt = &macro_stack[g_macro_active];
 
   if (first == YES)
     mrt->incbin_data = incbin_data;
@@ -508,13 +508,13 @@ int macro_insert_byte_db(char *name) {
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
-    fprintf(file_out_ptr, "d%d ", (int)d->value);
+    fprintf(g_file_out_ptr, "d%d ", (int)d->value);
     /*
       fprintf(stderr, ".DBM: VALUE: %d\n", (int)d->value);
     */
   }
   else if (d->type == DEFINITION_TYPE_STACK) {
-    fprintf(file_out_ptr, "c%d ", (int)d->value);
+    fprintf(g_file_out_ptr, "c%d ", (int)d->value);
     /*
       fprintf(stderr, ".DBM: STACK: %d\n", (int)d->value);
     */
@@ -548,13 +548,13 @@ int macro_insert_word_db(char *name) {
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
-    fprintf(file_out_ptr, "y%d ", (int)d->value);
+    fprintf(g_file_out_ptr, "y%d ", (int)d->value);
     /*
       fprintf(stderr, ".DWM: VALUE: %d\n", (int)d->value);
     */
   }
   else if (d->type == DEFINITION_TYPE_STACK) {
-    fprintf(file_out_ptr, "C%d ", (int)d->value);
+    fprintf(g_file_out_ptr, "C%d ", (int)d->value);
     /*
       fprintf(stderr, ".DWM: STACK: %d\n", (int)d->value);
     */
@@ -590,13 +590,13 @@ int macro_insert_long_db(char *name) {
       print_error(emsg, ERROR_DIR);
       return FAILED;
     }
-    fprintf(file_out_ptr, "z%d ", (int)d->value);
+    fprintf(g_file_out_ptr, "z%d ", (int)d->value);
     /*
       fprintf(stderr, ".DLM: VALUE: %d\n", (int)d->value);
     */
   }
   else if (d->type == DEFINITION_TYPE_STACK) {
-    fprintf(file_out_ptr, "T%d ", (int)d->value);
+    fprintf(g_file_out_ptr, "T%d ", (int)d->value);
     /*
       fprintf(stderr, ".DLM: STACK: %d\n", (int)d->value);
     */
@@ -650,7 +650,7 @@ int pass_1(void) {
 
   /* BANK 0 SLOT 0 ORG 0 */
   if (g_output_format != OUTPUT_LIBRARY)
-    fprintf(file_out_ptr, "B%d %d O%d", 0, 0, 0);
+    fprintf(g_file_out_ptr, "B%d %d O%d", 0, 0, 0);
 
   while (1) {
     t = get_next_token();
@@ -699,7 +699,7 @@ int pass_1(void) {
             return FAILED;
         }
         else {
-          if (g_output_format == OUTPUT_LIBRARY && section_status == OFF) {
+          if (g_output_format == OUTPUT_LIBRARY && g_section_status == OFF) {
             print_error("All labels must be inside sections when compiling a library.\n", ERROR_LOG);
             return FAILED;
           }
@@ -719,13 +719,13 @@ int pass_1(void) {
           }
 
           /* check out for \@-symbols */
-          if (macro_active != 0 && q >= 2) {
+          if (g_macro_active != 0 && q >= 2) {
             if (tmp[q - 2] == '\\' && tmp[q - 1] == '@')
               snprintf(&tmp[q - 2], sizeof(tmp) - (q - 2), "%d", macro_runtime_current->macro->calls - 1);
           }
 
           add_label_to_label_stack(tmp);
-          fprintf(file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmp);
+          fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmp);
 
           /* move to the end of the label */
           if (q != g_ss)
@@ -754,7 +754,7 @@ int pass_1(void) {
       if (macro_stack_grow() == FAILED)
         return FAILED;
 
-      mrt = &macro_stack[macro_active];
+      mrt = &macro_stack[g_macro_active];
       mrt->argument_data = NULL;
 
       /* collect macro arguments */
@@ -838,7 +838,7 @@ void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
   
   va_start(ap, format);
 
-  vfprintf(file_out_ptr, format, ap);
+  vfprintf(g_file_out_ptr, format, ap);
 #ifdef WLA_DEBUG
   {
     char ttt[256];
@@ -1072,7 +1072,7 @@ int evaluate_token(void) {
     tmp[g_ss - 1] = 0;
     g_newline_beginning = OFF;
 
-    if (g_output_format == OUTPUT_LIBRARY && section_status == OFF) {
+    if (g_output_format == OUTPUT_LIBRARY && g_section_status == OFF) {
       print_error("All labels must be inside sections when compiling a library.\n", ERROR_LOG);
       return FAILED;
     }
@@ -1092,13 +1092,13 @@ int evaluate_token(void) {
     }
 
     /* check for \@-symbols */
-    if (macro_active != 0) {
+    if (g_macro_active != 0) {
       if (tmp[g_ss - 3] == '\\' && tmp[g_ss - 2] == '@')
         snprintf(&tmp[g_ss - 3], sizeof(tmp) - (g_ss - 3), "%d", macro_runtime_current->macro->calls - 1);
     }
 
     add_label_to_label_stack(tmp);
-    fprintf(file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmp);
+    fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmp);
 
     return SUCCEEDED;
   }
@@ -1490,7 +1490,7 @@ void next_line(void) {
 
   /* output the file number for list file structure building */
   if (g_listfile_data == YES)
-    fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+    fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   if (g_active_file_info_last != NULL)
     g_active_file_info_last->line_current++;
@@ -1571,12 +1571,12 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
     else if (in_ramsection) {
       if (last_enum_offset != enum_offset) {
         /* this sometimes abuses the "dsb" implementation to move backwards in the ramsection. */
-        fprintf(file_out_ptr, "x%d 0 ", enum_offset-last_enum_offset);
+        fprintf(g_file_out_ptr, "x%d 0 ", enum_offset-last_enum_offset);
       }
-      fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+      fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
       /* we skip label emissions for "." (because .ENUM and .RAMSECTION use it as an anonymous label) */
       if (strcmp(".", name) != 0)
-        fprintf(file_out_ptr, "L%s ", name);
+        fprintf(g_file_out_ptr, "L%s ", name);
     }
   }
   else { /* sizeof pass */
@@ -1896,17 +1896,17 @@ int parse_enum_token(void) {
       return FAILED;
 
     if (max_enum_offset > last_enum_offset)
-      fprintf(file_out_ptr, "o%d 0 ", max_enum_offset-last_enum_offset);
+      fprintf(g_file_out_ptr, "o%d 0 ", max_enum_offset-last_enum_offset);
 
     /* generate a section end label? */
     if (g_extra_definitions == ON)
-      generate_label("SECTIONEND_", sections_last->name);
+      generate_label("SECTIONEND_", g_sections_last->name);
     
     free_struct(active_struct);
     active_struct = NULL;
 
-    fprintf(file_out_ptr, "s ");
-    section_status = OFF;
+    fprintf(g_file_out_ptr, "s ");
+    g_section_status = OFF;
     in_ramsection = NO;
 
     return SUCCEEDED;
@@ -2181,7 +2181,7 @@ int directive_org(void) {
     print_error("No .BANK is defined.\n", ERROR_LOG);
     return FAILED;
   }
-  if (section_status == ON) {
+  if (g_section_status == ON) {
     print_error("You can't issue .ORG inside a .SECTION.\n", ERROR_DIR);
     return FAILED;
   }
@@ -2201,7 +2201,7 @@ int directive_org(void) {
   }
 
   org_defined = 1;
-  fprintf(file_out_ptr, "O%d ", d);
+  fprintf(g_file_out_ptr, "O%d ", d);
 
   return SUCCEEDED;
 }
@@ -2217,7 +2217,7 @@ int directive_orga(void) {
     print_error("No .BANK is defined.\n", ERROR_LOG);
     return FAILED;
   }
-  if (section_status == ON) {
+  if (g_section_status == ON) {
     print_error("You can't issue .ORGA inside a .SECTION.\n", ERROR_DIR);
     return FAILED;
   }
@@ -2244,7 +2244,7 @@ int directive_orga(void) {
     return FAILED;
   }
 
-  fprintf(file_out_ptr, "O%d ", d - ind);
+  fprintf(g_file_out_ptr, "O%d ", d - ind);
 
   return SUCCEEDED;
 }
@@ -2256,7 +2256,7 @@ int directive_slot(void) {
   
   no_library_files(".SLOT definitions");
     
-  if (section_status == ON) {
+  if (g_section_status == ON) {
     print_error("You can't issue .SLOT inside a .SECTION.\n", ERROR_DIR);
     return FAILED;
   }
@@ -2291,7 +2291,7 @@ int directive_slot(void) {
     return FAILED;
   }
 
-  fprintf(file_out_ptr, "B%d %d ", bank, d);
+  fprintf(g_file_out_ptr, "B%d %d ", bank, d);
 
   current_slot = d;
 
@@ -2305,8 +2305,8 @@ int directive_bank(void) {
   
   no_library_files(".BANK definitions");
     
-  if (section_status == ON) {
-    snprintf(emsg, sizeof(emsg), "Section \"%s\" is open. Do not try to change the bank.\n", sections_last->name);
+  if (g_section_status == ON) {
+    snprintf(emsg, sizeof(emsg), "Section \"%s\" is open. Do not try to change the bank.\n", g_sections_last->name);
     print_error(emsg, ERROR_LOG);
     return FAILED;
   }
@@ -2366,14 +2366,14 @@ int directive_bank(void) {
     }
 
     if (g_output_format != OUTPUT_LIBRARY)
-      fprintf(file_out_ptr, "B%d %d ", bank, d);
+      fprintf(g_file_out_ptr, "B%d %d ", bank, d);
 
     ind = bank;
     inz = d;
     current_slot = d;
   }
   else if (g_output_format != OUTPUT_LIBRARY) {
-    fprintf(file_out_ptr, "B%d %d ", d, defaultslot);
+    fprintf(g_file_out_ptr, "B%d %d ", d, defaultslot);
     ind = d;
     inz = defaultslot;
     current_slot = defaultslot;
@@ -2568,7 +2568,7 @@ int directive_row_data(void) {
           return FAILED;
         }
 
-        fprintf(file_out_ptr, "d%d ", g_label[0]);          
+        fprintf(g_file_out_ptr, "d%d ", g_label[0]);          
       }
       else if (table_format[table_index] == 'w') {
         if (strlen(g_label) > 2 || strlen(g_label) <= 0) {
@@ -2577,7 +2577,7 @@ int directive_row_data(void) {
           return FAILED;
         }
 
-        fprintf(file_out_ptr, "y%d ", (g_label[0] << 8) | g_label[1]);
+        fprintf(g_file_out_ptr, "y%d ", (g_label[0] << 8) | g_label[1]);
       }
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
@@ -2587,7 +2587,7 @@ int directive_row_data(void) {
           return FAILED;
         }
 
-        fprintf(file_out_ptr, "z%d ", (g_label[0] << 16) | (g_label[1] << 8) | g_label[2]);
+        fprintf(g_file_out_ptr, "z%d ", (g_label[0] << 16) | (g_label[1] << 8) | g_label[2]);
       }
 #endif
       else {
@@ -2604,7 +2604,7 @@ int directive_row_data(void) {
           return FAILED;
         }
     
-        fprintf(file_out_ptr, "d%d ", d);
+        fprintf(g_file_out_ptr, "d%d ", d);
       }
       else if (table_format[table_index] == 'w') {
         if (d < -32768 || d > 65535) {
@@ -2613,7 +2613,7 @@ int directive_row_data(void) {
           return FAILED;
         }
 
-        fprintf(file_out_ptr, "y%d ", d);
+        fprintf(g_file_out_ptr, "y%d ", d);
       }
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
@@ -2623,7 +2623,7 @@ int directive_row_data(void) {
           return FAILED;
         }
 
-        fprintf(file_out_ptr, "z%d ", d);
+        fprintf(g_file_out_ptr, "z%d ", d);
       }
 #endif
       else {
@@ -2634,14 +2634,14 @@ int directive_row_data(void) {
     }
     else if (inz == INPUT_NUMBER_ADDRESS_LABEL) {
       if (table_format[table_index] == 'b') {
-        fprintf(file_out_ptr, "k%d Q%s ", g_active_file_info_last->line_current, g_label);
+        fprintf(g_file_out_ptr, "k%d Q%s ", g_active_file_info_last->line_current, g_label);
       }
       else if (table_format[table_index] == 'w') {
-        fprintf(file_out_ptr, "k%d r%s ", g_active_file_info_last->line_current, g_label);
+        fprintf(g_file_out_ptr, "k%d r%s ", g_active_file_info_last->line_current, g_label);
       }
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
-        fprintf(file_out_ptr, "k%d q%s ", g_active_file_info_last->line_current, g_label);
+        fprintf(g_file_out_ptr, "k%d q%s ", g_active_file_info_last->line_current, g_label);
       }
 #endif
       else {
@@ -2652,14 +2652,14 @@ int directive_row_data(void) {
     }
     else if (inz == INPUT_NUMBER_STACK) {
       if (table_format[table_index] == 'b') {
-        fprintf(file_out_ptr, "c%d ", latest_stack);
+        fprintf(g_file_out_ptr, "c%d ", latest_stack);
       }
       else if (table_format[table_index] == 'w') {
-        fprintf(file_out_ptr, "C%d ", latest_stack);
+        fprintf(g_file_out_ptr, "C%d ", latest_stack);
       }
 #ifdef W65816
       else if (table_format[table_index] == 'l') {
-        fprintf(file_out_ptr, "T%d ", latest_stack);
+        fprintf(g_file_out_ptr, "T%d ", latest_stack);
       }
 #endif
       else {
@@ -2708,7 +2708,7 @@ int directive_db_byt_byte(void) {
   char bak[256];
   int o;
 
-  fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   strcpy(bak, cp);
 
@@ -2718,7 +2718,7 @@ int directive_db_byt_byte(void) {
       for (o = 0; o < g_string_size; o++) {
         /* handle '\0' */
         if (g_label[o] == '\\' && g_label[o + 1] == '0') {
-          fprintf(file_out_ptr, "d%d ", '\0');
+          fprintf(g_file_out_ptr, "d%d ", '\0');
           o++;
         }
         /* handle '\x' */
@@ -2734,7 +2734,7 @@ int directive_db_byt_byte(void) {
             print_error(emsg, ERROR_INP);
             return FAILED;
           }
-          fprintf(file_out_ptr, "d%d ", tmp_c);
+          fprintf(g_file_out_ptr, "d%d ", tmp_c);
         }
         /* handle '\<' */
         else if (g_label[o] == '\\' && g_label[o + 1] == '<') {
@@ -2744,7 +2744,7 @@ int directive_db_byt_byte(void) {
             print_error(emsg, ERROR_INP);
             return FAILED;
           }
-          fprintf(file_out_ptr, "d%d ", (int)g_label[o]|0x80);
+          fprintf(g_file_out_ptr, "d%d ", (int)g_label[o]|0x80);
         }
         /* handle '\>' */
         else if (g_label[o] == '\\' && g_label[o + 1] == '>' && o == 0) {
@@ -2753,16 +2753,16 @@ int directive_db_byt_byte(void) {
           return FAILED;
         }
         else if (g_label[o + 1] == '\\' && g_label[o + 2] == '>') {
-          fprintf(file_out_ptr, "d%d ", (int)g_label[o]|0x80);
+          fprintf(g_file_out_ptr, "d%d ", (int)g_label[o]|0x80);
           o += 2;
         }
         /* handle '\\' */
         else if (g_label[o] == '\\' && g_label[o + 1] == '\\') {
-          fprintf(file_out_ptr, "d%d ", '\\');
+          fprintf(g_file_out_ptr, "d%d ", '\\');
           o++;
         }
         else
-          fprintf(file_out_ptr, "d%d ", (int)g_label[o]);
+          fprintf(g_file_out_ptr, "d%d ", (int)g_label[o]);
       }
       inz = input_number();
       continue;
@@ -2775,11 +2775,11 @@ int directive_db_byt_byte(void) {
     }
 
     if (inz == SUCCEEDED)
-      fprintf(file_out_ptr, "d%d ", d);
+      fprintf(g_file_out_ptr, "d%d ", d);
     else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-      fprintf(file_out_ptr, "Q%s ", g_label);
+      fprintf(g_file_out_ptr, "Q%s ", g_label);
     else if (inz == INPUT_NUMBER_STACK)
-      fprintf(file_out_ptr, "c%d ", latest_stack);
+      fprintf(g_file_out_ptr, "c%d ", latest_stack);
 
     inz = input_number();
   }
@@ -2961,7 +2961,7 @@ int directive_asc(void) {
         /* handle '\0' */
         if (g_label[o] == '\\' && g_label[o + 1] == '0') {
           ind = '\0';
-          fprintf(file_out_ptr, "d%d ", ind);
+          fprintf(g_file_out_ptr, "d%d ", ind);
           o++;
         }
         /* handle '\x' */
@@ -2978,7 +2978,7 @@ int directive_asc(void) {
             return FAILED;
           }
           ind = tmp_c;
-          fprintf(file_out_ptr, "d%d ", ind);
+          fprintf(g_file_out_ptr, "d%d ", ind);
         }
         else {
           int tmp_a = 0;
@@ -3012,7 +3012,7 @@ int directive_asc(void) {
           if (ind < 0)
             ind += 256;
           ind = (int)asciitable[ind];
-          fprintf(file_out_ptr, "d%d ", ind|tmp_a);
+          fprintf(g_file_out_ptr, "d%d ", ind|tmp_a);
         }
       }
     }
@@ -3024,7 +3024,7 @@ int directive_asc(void) {
         return FAILED;
       }
       ind = (int)asciitable[d];
-      fprintf(file_out_ptr, "d%d ", ind);
+      fprintf(g_file_out_ptr, "d%d ", ind);
     }
     else {
       snprintf(emsg, sizeof(emsg), ".%s needs string / byte (0-255) data.\n", bak);
@@ -3041,7 +3041,7 @@ int directive_dw_word_addr(void) {
 
   char bak[256];
 
-  fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   strcpy(bak, cp);
 
@@ -3054,11 +3054,11 @@ int directive_dw_word_addr(void) {
     }
 
     if (inz == SUCCEEDED)
-      fprintf(file_out_ptr, "y%d", d);
+      fprintf(g_file_out_ptr, "y%d", d);
     else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-      fprintf(file_out_ptr, "r%s ", g_label);
+      fprintf(g_file_out_ptr, "r%s ", g_label);
     else if (inz == INPUT_NUMBER_STACK)
-      fprintf(file_out_ptr, "C%d ", latest_stack);
+      fprintf(g_file_out_ptr, "C%d ", latest_stack);
 
     inz = input_number();
   }
@@ -3085,7 +3085,7 @@ int directive_dl_long_faraddr(void) {
 
   char bak[256];
 
-  fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   strcpy(bak, cp);
 
@@ -3098,11 +3098,11 @@ int directive_dl_long_faraddr(void) {
     }
 
     if (inz == SUCCEEDED)
-      fprintf(file_out_ptr, "z%d ", d);
+      fprintf(g_file_out_ptr, "z%d ", d);
     else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-      fprintf(file_out_ptr, "q%s ", g_label);
+      fprintf(g_file_out_ptr, "q%s ", g_label);
     else if (inz == INPUT_NUMBER_STACK)
-      fprintf(file_out_ptr, "T%d ", latest_stack);
+      fprintf(g_file_out_ptr, "T%d ", latest_stack);
 
     inz = input_number();
   }
@@ -3158,15 +3158,15 @@ int directive_dsl(void) {
   }
 
   if (q == SUCCEEDED)
-    fprintf(file_out_ptr, "h%d %d ", inz, d);
+    fprintf(g_file_out_ptr, "h%d %d ", inz, d);
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
-    fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+    fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
     for (q = 0; q < inz; q++)
-      fprintf(file_out_ptr, "q%s ", g_label);
+      fprintf(g_file_out_ptr, "q%s ", g_label);
   }
   else if (q == INPUT_NUMBER_STACK) {
     for (q = 0; q < inz; q++)
-      fprintf(file_out_ptr, "T%d ", latest_stack);
+      fprintf(g_file_out_ptr, "T%d ", latest_stack);
   }
 
   return SUCCEEDED;
@@ -3240,7 +3240,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
     if (it->type != STRUCTURE_ITEM_TYPE_UNION) { /* add field label */
       char full_label[MAX_NAME_LENGTH + 1];
 
-      fprintf(file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
+      fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
     
       if (get_full_label(tmpname, full_label) == FAILED)
         return FAILED;
@@ -3265,7 +3265,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             if (verify_name_length(tmpname) == FAILED)
               return FAILED;
 
-            fprintf(file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
+            fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
 
             if (get_full_label(tmpname, full_label) == FAILED)
               return FAILED;
@@ -3276,11 +3276,11 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             strcpy(tmpname, iname);
 
           parse_dstruct_entry(tmpname, us, labels_only);
-          fprintf(file_out_ptr, "o%d 0 ", -us->size); /* rewind */
+          fprintf(g_file_out_ptr, "o%d 0 ", -us->size); /* rewind */
           us = us->next;
         }
 
-        fprintf(file_out_ptr, "o%d 0 ", it->size); /* jump to union end */
+        fprintf(g_file_out_ptr, "o%d 0 ", it->size); /* jump to union end */
       }
     }
     else if (it->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
@@ -3303,14 +3303,14 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
         parse_dstruct_entry(tmpname, it->instance, &labels_only_tmp);
 
         /* return to start of struct */
-        fprintf(file_out_ptr, "o%d 0 ", -it->instance->size);
+        fprintf(g_file_out_ptr, "o%d 0 ", -it->instance->size);
 
         for (g = 1; g <= it->num_instances; g++) {
           snprintf(tmpname, sizeof(tmpname), "%s.%s.%d", iname, it->name, g);
           if (verify_name_length(tmpname) == FAILED)
             return FAILED;
 
-          fprintf(file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
+          fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
 
           if (add_label_sizeof(tmpname, it->instance->size) == FAILED)
             return FAILED;
@@ -3341,7 +3341,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
 
           /* copy the string */
           for (o = 0; o < c; o++)
-            fprintf(file_out_ptr, "d%d ", (int)g_label[o]);
+            fprintf(g_file_out_ptr, "d%d ", (int)g_label[o]);
         }
         /* take care of the rest */
         else {
@@ -3353,11 +3353,11 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             }
 
             if (inz == SUCCEEDED)
-              fprintf(file_out_ptr, "d%d ", d);
+              fprintf(g_file_out_ptr, "d%d ", d);
             else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-              fprintf(file_out_ptr, "k%d Q%s ", g_active_file_info_last->line_current, g_label);
+              fprintf(g_file_out_ptr, "k%d Q%s ", g_active_file_info_last->line_current, g_label);
             else if (inz == INPUT_NUMBER_STACK)
-              fprintf(file_out_ptr, "c%d ", latest_stack);
+              fprintf(g_file_out_ptr, "c%d ", latest_stack);
 
             o = 1;
           }
@@ -3369,11 +3369,11 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             }
 
             if (inz == SUCCEEDED)
-              fprintf(file_out_ptr, "y%d", d);
+              fprintf(g_file_out_ptr, "y%d", d);
             else if (inz == INPUT_NUMBER_ADDRESS_LABEL)
-              fprintf(file_out_ptr, "k%d r%s ", g_active_file_info_last->line_current, g_label);
+              fprintf(g_file_out_ptr, "k%d r%s ", g_active_file_info_last->line_current, g_label);
             else if (inz == INPUT_NUMBER_STACK)
-              fprintf(file_out_ptr, "C%d ", latest_stack);
+              fprintf(g_file_out_ptr, "C%d ", latest_stack);
 
             o = 2;
           }
@@ -3386,10 +3386,10 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
           f = 0;
 
         for (; o < it->size; o++)
-          fprintf(file_out_ptr, "d%d ", f);
+          fprintf(g_file_out_ptr, "d%d ", f);
       }
       else { /* labels_only == YES */
-        fprintf(file_out_ptr, "o%d 0 ", it->size);
+        fprintf(g_file_out_ptr, "o%d 0 ", it->size);
       }
     }
 
@@ -3560,7 +3560,7 @@ int directive_dstruct(void) {
   if (iname[0] != '\0') {
     char full_label[MAX_NAME_LENGTH + 1];
     
-    fprintf(file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, iname);
+    fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, iname);
 
     if (get_full_label(iname, full_label) == FAILED)
       return FAILED;
@@ -3584,7 +3584,7 @@ int directive_dstruct(void) {
 
     skip_next_token();
 
-    fprintf(file_out_ptr, "e%d -1 ", s->size); /* mark start address of dstruct */
+    fprintf(g_file_out_ptr, "e%d -1 ", s->size); /* mark start address of dstruct */
 
     q = get_next_token();
 
@@ -3606,8 +3606,8 @@ int directive_dstruct(void) {
           return FAILED;
         }
 
-        fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
-        fprintf(file_out_ptr, "e%d %d ", field_offset, item_size);
+        fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+        fprintf(g_file_out_ptr, "e%d %d ", field_offset, item_size);
 
         do {
           if ((q = get_next_token()) == FAILED) {
@@ -3633,13 +3633,13 @@ int directive_dstruct(void) {
     /* now generate labels */
     if (iname[0] != '\0') {
       labels_only = YES;
-      fprintf(file_out_ptr, "e%d -3 ", 0); /* back to start of struct */
+      fprintf(g_file_out_ptr, "e%d -3 ", 0); /* back to start of struct */
       if (parse_dstruct_entry(iname, s, &labels_only) == FAILED)
         return FAILED;
     }
 
-    fprintf(file_out_ptr, "e%d -3 ", 0); /* back to start of struct */
-    fprintf(file_out_ptr, "e%d -2 ", s->size); /* mark end of .DSTRUCT */
+    fprintf(g_file_out_ptr, "e%d -3 ", 0); /* back to start of struct */
+    fprintf(g_file_out_ptr, "e%d -2 ", s->size); /* mark end of .DSTRUCT */
 
     dstruct_status = OFF;
 
@@ -3707,15 +3707,15 @@ int directive_dsb_ds(void) {
   }
 
   if (q == SUCCEEDED)
-    fprintf(file_out_ptr, "x%d %d ", inz, d);
+    fprintf(g_file_out_ptr, "x%d %d ", inz, d);
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
-    fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+    fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
     for (q = 0; q < inz; q++)
-      fprintf(file_out_ptr, "R%s ", g_label);
+      fprintf(g_file_out_ptr, "R%s ", g_label);
   }
   else if (q == INPUT_NUMBER_STACK) {
     for (q = 0; q < inz; q++)
-      fprintf(file_out_ptr, "c%d ", latest_stack);
+      fprintf(g_file_out_ptr, "c%d ", latest_stack);
   }
 
   return SUCCEEDED;
@@ -3757,15 +3757,15 @@ int directive_dsw(void) {
   }
 
   if (q == SUCCEEDED)
-    fprintf(file_out_ptr, "X%d %d ", inz, d);
+    fprintf(g_file_out_ptr, "X%d %d ", inz, d);
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
-    fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+    fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
     for (q = 0; q < inz; q++)
-      fprintf(file_out_ptr, "r%s ", g_label);
+      fprintf(g_file_out_ptr, "r%s ", g_label);
   }
   else if (q == INPUT_NUMBER_STACK) {
     for (q = 0; q < inz; q++)
-      fprintf(file_out_ptr, "C%d ", latest_stack);
+      fprintf(g_file_out_ptr, "C%d ", latest_stack);
   }
 
   return SUCCEEDED;
@@ -3909,13 +3909,13 @@ int directive_include(int is_real) {
       return FAILED;
   
     /* WARNING: this is tricky: did we just include a file inside a macro? */
-    if (macro_active != 0) {
+    if (g_macro_active != 0) {
       /* yes. note that the now we added new bytes after g_source_pointer, so if a macro_return_i is
          bigger than g_source_pointer, we'll need to add the bytes to it */
       struct macro_static *ms;
       int q, w;
 
-      for (q = 0; q < macro_active; q++) {
+      for (q = 0; q < g_macro_active; q++) {
         if (macro_stack[q].macro_return_i > g_source_pointer)
           macro_stack[q].macro_return_i += include_size;
         for (w = 0; w < macro_stack[q].supplied_arguments; w++) {
@@ -3972,7 +3972,7 @@ int directive_incbin(void) {
   
   if (m == NULL) {
     /* D [id] [swap] [skip] [size] */
-    fprintf(file_out_ptr, "D%d %d %d %d ", ind, inz, s, r);
+    fprintf(g_file_out_ptr, "D%d %d %d %d ", ind, inz, s, r);
   }
   else {
     /* we want to filter the data */
@@ -4040,8 +4040,8 @@ int directive_ramsection(void) {
 
   int q;
       
-  if (section_status == ON) {
-    snprintf(emsg, sizeof(emsg), "There is already an open section called \"%s\".\n", sections_last->name);
+  if (g_section_status == ON) {
+    snprintf(emsg, sizeof(emsg), "There is already an open section called \"%s\".\n", g_sections_last->name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -4053,67 +4053,67 @@ int directive_ramsection(void) {
   if (get_next_token() == FAILED)
     return FAILED;
 
-  sec_tmp = calloc(sizeof(struct section_def), 1);
-  if (sec_tmp == NULL) {
+  g_sec_tmp = calloc(sizeof(struct section_def), 1);
+  if (g_sec_tmp == NULL) {
     snprintf(emsg, sizeof(emsg), "Out of memory while allocating room for a new RAMSECTION \"%s\".\n", tmp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
 
-  sec_tmp->priority = 0;
-  sec_tmp->listfile_items = 0;
-  sec_tmp->listfile_ints = NULL;
-  sec_tmp->listfile_cmds = NULL;
-  sec_tmp->maxsize_status = OFF;
-  sec_tmp->status = SECTION_STATUS_RAM_FREE;
-  sec_tmp->alive = ON;
-  sec_tmp->keep = NO;
-  sec_tmp->data = NULL;
-  sec_tmp->filename_id = g_active_file_info_last->filename_id;
-  sec_tmp->id = section_id;
-  sec_tmp->alignment = 1;
-  sec_tmp->offset = 0;
-  sec_tmp->advance_org = YES;
-  sec_tmp->nspace = NULL;
+  g_sec_tmp->priority = 0;
+  g_sec_tmp->listfile_items = 0;
+  g_sec_tmp->listfile_ints = NULL;
+  g_sec_tmp->listfile_cmds = NULL;
+  g_sec_tmp->maxsize_status = OFF;
+  g_sec_tmp->status = SECTION_STATUS_RAM_FREE;
+  g_sec_tmp->alive = ON;
+  g_sec_tmp->keep = NO;
+  g_sec_tmp->data = NULL;
+  g_sec_tmp->filename_id = g_active_file_info_last->filename_id;
+  g_sec_tmp->id = section_id;
+  g_sec_tmp->alignment = 1;
+  g_sec_tmp->offset = 0;
+  g_sec_tmp->advance_org = YES;
+  g_sec_tmp->nspace = NULL;
   section_id++;
 
   /* add the namespace to the ramsection's name? */
   if (g_active_file_info_last->namespace[0] != 0) {
     if (add_namespace_to_string(tmp, sizeof(tmp), "RAMSECTION") == FAILED) {
-      free(sec_tmp);
+      free(g_sec_tmp);
       return FAILED;
     }
   }
 
-  strcpy(sec_tmp->name, tmp);
-  sec_tmp->next = NULL;
+  strcpy(g_sec_tmp->name, tmp);
+  g_sec_tmp->next = NULL;
 
   /* look for duplicate sections */
-  sec_next = sections_first;
-  while (sec_next != NULL) {
-    if (strcmp(sec_next->name, tmp) == 0) {
+  g_sec_next = g_sections_first;
+  while (g_sec_next != NULL) {
+    if (strcmp(g_sec_next->name, tmp) == 0) {
       snprintf(emsg, sizeof(emsg), "RAMSECTION \"%s\" was defined for the second time.\n", tmp);
       print_error(emsg, ERROR_DIR);
-      free(sec_tmp);
+      free(g_sec_tmp);
       return FAILED;
     }
-    sec_next = sec_next->next;
+    g_sec_next = g_sec_next->next;
   }
 
-  sec_tmp->label_map = hashmap_new();
+  g_sec_tmp->label_map = hashmap_new();
 
-  if (sections_first == NULL) {
-    sections_first = sec_tmp;
-    sections_last = sec_tmp;
+  if (g_sections_first == NULL) {
+    g_sections_first = g_sec_tmp;
+    g_sections_last = g_sec_tmp;
   }
   else {
-    sections_last->next = sec_tmp;
-    sections_last = sec_tmp;
+    g_sections_last->next = g_sec_tmp;
+    g_sections_last = g_sec_tmp;
   }
 
   /* check for optional BANK */
   if (compare_next_token("BANK") != SUCCEEDED)
-    sec_tmp->bank = 0;
+    g_sec_tmp->bank = 0;
   else {
     if (g_output_format == OUTPUT_LIBRARY) {
       print_error(".RAMSECTION cannot take BANK when inside a library.\n", ERROR_DIR);
@@ -4137,7 +4137,7 @@ int directive_ramsection(void) {
       return FAILED;
     }
 
-    sec_tmp->bank = d;
+    g_sec_tmp->bank = d;
   }
 
   if (compare_next_token("SLOT") == SUCCEEDED) {
@@ -4172,7 +4172,7 @@ int directive_ramsection(void) {
       return FAILED;
     }
 
-    sec_tmp->slot = d;
+    g_sec_tmp->slot = d;
   }
 
   if (compare_next_token("ORGA") == SUCCEEDED) {
@@ -4191,13 +4191,13 @@ int directive_ramsection(void) {
       return FAILED;
     }
 
-    ind = slots[sec_tmp->slot].address;
-    if (d < ind || d >= (ind + slots[sec_tmp->slot].size)) {
+    ind = slots[g_sec_tmp->slot].address;
+    if (d < ind || d >= (ind + slots[g_sec_tmp->slot].size)) {
       print_error("ORGA is outside the current SLOT.\n", ERROR_DIR);
       return FAILED;
     }
 
-    sec_tmp->address = d - ind;
+    g_sec_tmp->address = d - ind;
   }
   else if (compare_next_token("ORG") == SUCCEEDED) {
     if (g_output_format == OUTPUT_LIBRARY) {
@@ -4215,12 +4215,12 @@ int directive_ramsection(void) {
       return FAILED;
     }
 
-    sec_tmp->address = d;
+    g_sec_tmp->address = d;
   }
   else
-    sec_tmp->address = -1;
+    g_sec_tmp->address = -1;
   
-  fprintf(file_out_ptr, "S%d ", sec_tmp->id);
+  fprintf(g_file_out_ptr, "S%d ", g_sec_tmp->id);
 
   /* align the ramsection? */
   if (compare_next_token("ALIGN") == SUCCEEDED) {
@@ -4238,7 +4238,7 @@ int directive_ramsection(void) {
       return FAILED;
     }
 
-    sec_tmp->alignment = d;
+    g_sec_tmp->alignment = d;
   }
 
   /* offset the ramsection? */
@@ -4257,7 +4257,7 @@ int directive_ramsection(void) {
       return FAILED;
     }
 
-    sec_tmp->offset = d;
+    g_sec_tmp->offset = d;
   }  
 
   /* the type of the section */
@@ -4266,22 +4266,22 @@ int directive_ramsection(void) {
       print_error("Libraries don't take FORCE sections.\n", ERROR_DIR);
       return FAILED;
     }
-    sec_tmp->status = SECTION_STATUS_RAM_FORCE;
+    g_sec_tmp->status = SECTION_STATUS_RAM_FORCE;
     if (skip_next_token() == FAILED)
       return FAILED;
   }
   else if (compare_next_token("FREE") == SUCCEEDED) {
-    sec_tmp->status = SECTION_STATUS_RAM_FREE;
+    g_sec_tmp->status = SECTION_STATUS_RAM_FREE;
     if (skip_next_token() == FAILED)
       return FAILED;
   }
   else if (compare_next_token("SEMIFREE") == SUCCEEDED) {
-    sec_tmp->status = SECTION_STATUS_RAM_SEMIFREE;
+    g_sec_tmp->status = SECTION_STATUS_RAM_SEMIFREE;
     if (skip_next_token() == FAILED)
       return FAILED;
   }
   else if (compare_next_token("SEMISUBFREE") == SUCCEEDED) {
-    sec_tmp->status = SECTION_STATUS_RAM_SEMISUBFREE;
+    g_sec_tmp->status = SECTION_STATUS_RAM_SEMISUBFREE;
     if (skip_next_token() == FAILED)
       return FAILED;
   }
@@ -4291,7 +4291,7 @@ int directive_ramsection(void) {
     if (skip_next_token() == FAILED)
       return FAILED;
 
-    sec_tmp->advance_org = NO;
+    g_sec_tmp->advance_org = NO;
   }
 
   if (compare_next_token("APPENDTO") == SUCCEEDED) {
@@ -4332,7 +4332,7 @@ int directive_ramsection(void) {
         return FAILED;
     }
     
-    strcpy(append_tmp->section, sec_tmp->name);
+    strcpy(append_tmp->section, g_sec_tmp->name);
     strcpy(append_tmp->append_to, tmp);
 
     append_tmp->next = append_sections;
@@ -4349,14 +4349,14 @@ int directive_ramsection(void) {
       return FAILED;
     }
 
-    sec_tmp->priority = d;
+    g_sec_tmp->priority = d;
   }
 
   if (compare_next_token("KEEP") == SUCCEEDED) {
     if (skip_next_token() == FAILED)
       return FAILED;
 
-    sec_tmp->keep = YES;
+    g_sec_tmp->keep = YES;
   }
 
   enum_offset = 0;
@@ -4380,7 +4380,7 @@ int directive_ramsection(void) {
 
   /* generate a section start label? */
   if (g_extra_definitions == ON)
-    generate_label("SECTIONSTART_", sec_tmp->name);
+    generate_label("SECTIONSTART_", g_sec_tmp->name);
 
   return SUCCEEDED;
 }
@@ -4394,8 +4394,8 @@ int directive_section(void) {
     print_error("You can't set the section inside .DSTRUCT.\n", ERROR_DIR);
     return FAILED;
   }
-  else if (section_status == ON) {
-    snprintf(emsg, sizeof(emsg), "There is already an open section called \"%s\".\n", sections_last->name);
+  else if (g_section_status == ON) {
+    snprintf(emsg, sizeof(emsg), "There is already an open section called \"%s\".\n", g_sections_last->name);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
@@ -4415,64 +4415,64 @@ int directive_section(void) {
   if (g_output_format == OUTPUT_LIBRARY)
     org_defined = 1;
 
-  sec_tmp = calloc(sizeof(struct section_def), 1);
-  if (sec_tmp == NULL) {
+  g_sec_tmp = calloc(sizeof(struct section_def), 1);
+  if (g_sec_tmp == NULL) {
     snprintf(emsg, sizeof(emsg), "Out of memory while allocating room for a new SECTION \"%s\".\n", tmp);
     print_error(emsg, ERROR_DIR);
     return FAILED;
   }
   
-  sec_tmp->priority = 0;
-  sec_tmp->listfile_items = 0;
-  sec_tmp->listfile_ints = NULL;
-  sec_tmp->listfile_cmds = NULL;
-  sec_tmp->maxsize_status = OFF;
-  sec_tmp->data = NULL;
-  sec_tmp->alignment = 1;
-  sec_tmp->offset = 0;
-  sec_tmp->advance_org = YES;
-  sec_tmp->nspace = NULL;
-  sec_tmp->keep = NO;
+  g_sec_tmp->priority = 0;
+  g_sec_tmp->listfile_items = 0;
+  g_sec_tmp->listfile_ints = NULL;
+  g_sec_tmp->listfile_cmds = NULL;
+  g_sec_tmp->maxsize_status = OFF;
+  g_sec_tmp->data = NULL;
+  g_sec_tmp->alignment = 1;
+  g_sec_tmp->offset = 0;
+  g_sec_tmp->advance_org = YES;
+  g_sec_tmp->nspace = NULL;
+  g_sec_tmp->keep = NO;
 
   if (strcmp(tmp, "BANKHEADER") == 0) {
     no_library_files("bank header sections");
       
-    sec_next = sections_first;
-    while (sec_next != NULL) {
-      if (strcmp(sec_next->name, tmp) == 0 && sec_next->bank == bank) {
+    g_sec_next = g_sections_first;
+    while (g_sec_next != NULL) {
+      if (strcmp(g_sec_next->name, tmp) == 0 && g_sec_next->bank == bank) {
         snprintf(emsg, sizeof(emsg), "BANKHEADER section was defined for the second time for bank %d.\n", bank);
         print_error(emsg, ERROR_DIR);
-        free(sec_tmp);
+        free(g_sec_tmp);
         return FAILED;
       }
-      sec_next = sec_next->next;
+      g_sec_next = g_sec_next->next;
     }
   }
   else {
-    sec_next = sections_first;
-    while (sec_next != NULL) {
-      if (strcmp(sec_next->name, tmp) == 0) {
+    g_sec_next = g_sections_first;
+    while (g_sec_next != NULL) {
+      if (strcmp(g_sec_next->name, tmp) == 0) {
         snprintf(emsg, sizeof(emsg), "SECTION \"%s\" was defined for the second time.\n", tmp);
         print_error(emsg, ERROR_DIR);
-        free(sec_tmp);
+        free(g_sec_tmp);
         return FAILED;
       }
-      sec_next = sec_next->next;
+      g_sec_next = g_sec_next->next;
     }
   }
 
-  strcpy(sec_tmp->name, tmp);
-  sec_tmp->next = NULL;
+  strcpy(g_sec_tmp->name, tmp);
+  g_sec_tmp->next = NULL;
 
-  sec_tmp->label_map = hashmap_new();
+  g_sec_tmp->label_map = hashmap_new();
 
-  if (sections_first == NULL) {
-    sections_first = sec_tmp;
-    sections_last = sec_tmp;
+  if (g_sections_first == NULL) {
+    g_sections_first = g_sec_tmp;
+    g_sections_last = g_sec_tmp;
   }
   else {
-    sections_last->next = sec_tmp;
-    sections_last = sec_tmp;
+    g_sections_last->next = g_sec_tmp;
+    g_sections_last = g_sec_tmp;
   }
 
   if (compare_next_token("NAMESPACE") == SUCCEEDED) {
@@ -4508,12 +4508,12 @@ int directive_section(void) {
     }
 
     nspace->label_map = hashmap_new();
-    sec_tmp->nspace = nspace;
+    g_sec_tmp->nspace = nspace;
   }
 
   /* add the namespace to the section's name? */
-  if (g_active_file_info_last->namespace[0] != 0 && sec_tmp->nspace == NULL) {
-    if (add_namespace_to_string(sec_tmp->name, sizeof(sec_tmp->name), "SECTION") == FAILED)
+  if (g_active_file_info_last->namespace[0] != 0 && g_sec_tmp->nspace == NULL) {
+    if (add_namespace_to_string(g_sec_tmp->name, sizeof(g_sec_tmp->name), "SECTION") == FAILED)
       return FAILED;
   }
   
@@ -4528,13 +4528,13 @@ int directive_section(void) {
       return FAILED;
     }
 
-    if (sec_tmp->maxsize_status == ON && sec_tmp->maxsize != d) {
+    if (g_sec_tmp->maxsize_status == ON && g_sec_tmp->maxsize != d) {
       print_error("The SIZE of the section has already been defined.\n", ERROR_DIR);
       return FAILED;
     }
 
-    sec_tmp->maxsize_status = ON;
-    sec_tmp->maxsize = d;
+    g_sec_tmp->maxsize_status = ON;
+    g_sec_tmp->maxsize = d;
   }
 
   /* align the section? */
@@ -4548,7 +4548,7 @@ int directive_section(void) {
       return FAILED;
     }
 
-    sec_tmp->alignment = d;
+    g_sec_tmp->alignment = d;
   }
 
   /* offset the section? */
@@ -4562,7 +4562,7 @@ int directive_section(void) {
       return FAILED;
     }
 
-    sec_tmp->offset = d;
+    g_sec_tmp->offset = d;
   }  
 
   /* the type of the section */
@@ -4571,17 +4571,17 @@ int directive_section(void) {
       print_error("Libraries don't take FORCE sections.\n", ERROR_DIR);
       return FAILED;
     }
-    sec_tmp->status = SECTION_STATUS_FORCE;
+    g_sec_tmp->status = SECTION_STATUS_FORCE;
     if (skip_next_token() == FAILED)
       return FAILED;
   }
   else if (compare_next_token("FREE") == SUCCEEDED) {
-    sec_tmp->status = SECTION_STATUS_FREE;
+    g_sec_tmp->status = SECTION_STATUS_FREE;
     if (skip_next_token() == FAILED)
       return FAILED;
   }
   else if (compare_next_token("SUPERFREE") == SUCCEEDED) {
-    sec_tmp->status = SECTION_STATUS_SUPERFREE;
+    g_sec_tmp->status = SECTION_STATUS_SUPERFREE;
     if (skip_next_token() == FAILED)
       return FAILED;
   }
@@ -4590,7 +4590,7 @@ int directive_section(void) {
       print_error("Libraries don't take SEMIFREE sections.\n", ERROR_DIR);
       return FAILED;
     }
-    sec_tmp->status = SECTION_STATUS_SEMIFREE;
+    g_sec_tmp->status = SECTION_STATUS_SEMIFREE;
     if (skip_next_token() == FAILED)
       return FAILED;
   }
@@ -4599,7 +4599,7 @@ int directive_section(void) {
       print_error("Libraries don't take SEMISUBFREE sections.\n", ERROR_DIR);
       return FAILED;
     }
-    sec_tmp->status = SECTION_STATUS_SEMISUBFREE;
+    g_sec_tmp->status = SECTION_STATUS_SEMISUBFREE;
     if (skip_next_token() == FAILED)
       return FAILED;
   }
@@ -4608,19 +4608,19 @@ int directive_section(void) {
       print_error("Libraries don't take OVERWRITE sections.\n", ERROR_DIR);
       return FAILED;
     }
-    sec_tmp->status = SECTION_STATUS_OVERWRITE;
+    g_sec_tmp->status = SECTION_STATUS_OVERWRITE;
     if (skip_next_token() == FAILED)
       return FAILED;
   }
   else
-    sec_tmp->status = SECTION_STATUS_FREE;
+    g_sec_tmp->status = SECTION_STATUS_FREE;
 
   /* return the org after the section? */
   if (compare_next_token("RETURNORG") == SUCCEEDED) {
     if (skip_next_token() == FAILED)
       return FAILED;
 
-    sec_tmp->advance_org = NO;
+    g_sec_tmp->advance_org = NO;
   }
 
   if (compare_next_token("APPENDTO") == SUCCEEDED) {
@@ -4664,7 +4664,7 @@ int directive_section(void) {
       }
     }
     
-    strcpy(append_tmp->section, sec_tmp->name);
+    strcpy(append_tmp->section, g_sec_tmp->name);
     strcpy(append_tmp->append_to, tmp);
 
     append_tmp->next = append_sections;
@@ -4681,33 +4681,33 @@ int directive_section(void) {
       return FAILED;
     }
 
-    sec_tmp->priority = d;
+    g_sec_tmp->priority = d;
   }
 
   if (compare_next_token("KEEP") == SUCCEEDED) {
     if (skip_next_token() == FAILED)
       return FAILED;
 
-    sec_tmp->keep = YES;
+    g_sec_tmp->keep = YES;
   }
   
   /* bankheader section? */
-  if (strcmp(sec_tmp->name, "BANKHEADER") == 0) {
-    sec_tmp->status = SECTION_STATUS_HEADER;
+  if (strcmp(g_sec_tmp->name, "BANKHEADER") == 0) {
+    g_sec_tmp->status = SECTION_STATUS_HEADER;
     bankheader_status = ON;
   }
 
-  sec_tmp->id = section_id;
-  sec_tmp->alive = ON;
-  sec_tmp->filename_id = g_active_file_info_last->filename_id;
-  sec_tmp->bank = bank;
+  g_sec_tmp->id = section_id;
+  g_sec_tmp->alive = ON;
+  g_sec_tmp->filename_id = g_active_file_info_last->filename_id;
+  g_sec_tmp->bank = bank;
   section_id++;
-  section_status = ON;
-  fprintf(file_out_ptr, "S%d ", sec_tmp->id);
+  g_section_status = ON;
+  fprintf(g_file_out_ptr, "S%d ", g_sec_tmp->id);
 
   /* generate a section start label? */
   if (g_extra_definitions == ON)
-    generate_label("SECTIONSTART_", sec_tmp->name);
+    generate_label("SECTIONSTART_", g_sec_tmp->name);
   
   return SUCCEEDED;
 }
@@ -4929,8 +4929,8 @@ int directive_block(void) {
   
   block_status++;
 
-  fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
-  fprintf(file_out_ptr, "g%d ", b->id);
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+  fprintf(g_file_out_ptr, "g%d ", b->id);
 
   return SUCCEEDED;
 }
@@ -4943,12 +4943,12 @@ int directive_shift(void) {
   struct macro_static *st;
   int q, o;
 
-  if (macro_active == 0) {
+  if (g_macro_active == 0) {
     print_error(".SHIFT can only be used inside a MACRO.\n", ERROR_DIR);
     return FAILED;
   }
 
-  rt = &macro_stack[macro_active - 1];
+  rt = &macro_stack[g_macro_active - 1];
   st = rt->macro;
 
   if (st->nargument_names <= rt->supplied_arguments)
@@ -5128,19 +5128,19 @@ int directive_rombanks(void) {
   rombanks_defined = 1;
   max_address = d * banksize;
 
-  if (rom_banks != NULL)
-    free(rom_banks);
-  if (rom_banks_usage_table != NULL)
-    free(rom_banks_usage_table);
+  if (g_rom_banks != NULL)
+    free(g_rom_banks);
+  if (g_rom_banks_usage_table != NULL)
+    free(g_rom_banks_usage_table);
 
-  rom_banks = calloc(sizeof(unsigned char) * max_address, 1);
-  rom_banks_usage_table = calloc(sizeof(unsigned char) * max_address, 1);
-  if (rom_banks == NULL || rom_banks_usage_table == NULL) {
+  g_rom_banks = calloc(sizeof(unsigned char) * max_address, 1);
+  g_rom_banks_usage_table = calloc(sizeof(unsigned char) * max_address, 1);
+  if (g_rom_banks == NULL || g_rom_banks_usage_table == NULL) {
     print_error("Out of memory while allocating ROM banks.\n", ERROR_DIR);
     return FAILED;
   }
 
-  memset(rom_banks_usage_table, 0, sizeof(unsigned char) * max_address);
+  memset(g_rom_banks_usage_table, 0, sizeof(unsigned char) * max_address);
 
   if (banks != NULL)
     free(banks);
@@ -5420,19 +5420,19 @@ int directive_rombankmap(void) {
   for (max_address = 0, q = 0; q < rombanks; q++)
     max_address += banks[q];
 
-  if (rom_banks != NULL)
-    free(rom_banks);
-  if (rom_banks_usage_table != NULL)
-    free(rom_banks_usage_table);
+  if (g_rom_banks != NULL)
+    free(g_rom_banks);
+  if (g_rom_banks_usage_table != NULL)
+    free(g_rom_banks_usage_table);
 
-  rom_banks = calloc(sizeof(unsigned char) * max_address, 1);
-  rom_banks_usage_table = calloc(sizeof(unsigned char) * max_address, 1);
-  if (rom_banks == NULL || rom_banks_usage_table == NULL) {
+  g_rom_banks = calloc(sizeof(unsigned char) * max_address, 1);
+  g_rom_banks_usage_table = calloc(sizeof(unsigned char) * max_address, 1);
+  if (g_rom_banks == NULL || g_rom_banks_usage_table == NULL) {
     print_error("Out of memory while allocating ROM banks.\n", ERROR_DIR);
     return FAILED;
   }
 
-  memset(rom_banks_usage_table, 0, sizeof(unsigned char) * max_address);
+  memset(g_rom_banks_usage_table, 0, sizeof(unsigned char) * max_address);
   rombankmap_defined = 1;
 
   return SUCCEEDED;
@@ -5662,8 +5662,8 @@ int directive_unbackground(void) {
   }
   
   /* clear the memory [start, end] */
-  memset(rom_banks + start, 0, end - start + 1);
-  memset(rom_banks_usage_table + start, 0, end - start + 1);
+  memset(g_rom_banks + start, 0, end - start + 1);
+  memset(g_rom_banks_usage_table + start, 0, end - start + 1);
 
   return SUCCEEDED;
 }
@@ -5720,8 +5720,8 @@ int directive_background(void) {
     return FAILED;
   }
 
-  memset(rom_banks_usage_table, 2, background_size);
-  fread(rom_banks, 1, max_address, file_in_ptr);
+  memset(g_rom_banks_usage_table, 2, background_size);
+  fread(g_rom_banks, 1, max_address, file_in_ptr);
 
   background_defined = 1;
   fclose(file_in_ptr);
@@ -6811,9 +6811,9 @@ int directive_rept_repeat(void) {
     l = g_active_file_info_last->line_current;
     /* find the next compiling point */
     r = 1;
-    m = macro_active;
+    m = g_macro_active;
     /* disable macro decoding */
-    macro_active = 0;
+    g_macro_active = 0;
     while (get_next_token() != FAILED) {
       if (tmp[0] == '.') {
         if (strcaselesscmp(cp, "ENDR") == 0)
@@ -6824,7 +6824,7 @@ int directive_rept_repeat(void) {
           r++;
       }
       if (r == 0) {
-        macro_active = m;
+        g_macro_active = m;
         return SUCCEEDED;
       }
     }
@@ -6857,7 +6857,7 @@ int directive_rept_repeat(void) {
   repeat_active++;
 
   /* repeat start */
-  fprintf(file_out_ptr, "j ");
+  fprintf(g_file_out_ptr, "j ");
       
   return SUCCEEDED;
 }
@@ -6867,38 +6867,38 @@ int directive_endm(void) {
 
   int q;
   
-  if (macro_active != 0) {
-    macro_active--;
+  if (g_macro_active != 0) {
+    g_macro_active--;
 
     /* macro call end */
-    fprintf(file_out_ptr, "I%s ", macro_stack[macro_active].macro->name);
+    fprintf(g_file_out_ptr, "I%s ", macro_stack[g_macro_active].macro->name);
     
     /* free the arguments */
-    if (macro_stack[macro_active].supplied_arguments > 0) {
-      for (d = 0; d < macro_stack[macro_active].supplied_arguments; d++)
-        free(macro_stack[macro_active].argument_data[d]);
-      free(macro_stack[macro_active].argument_data);
-      macro_stack[macro_active].argument_data = NULL;
+    if (macro_stack[g_macro_active].supplied_arguments > 0) {
+      for (d = 0; d < macro_stack[g_macro_active].supplied_arguments; d++)
+        free(macro_stack[g_macro_active].argument_data[d]);
+      free(macro_stack[g_macro_active].argument_data);
+      macro_stack[g_macro_active].argument_data = NULL;
     }
 
     /* free the argument definitions */
-    for (q = 0; q < macro_stack[macro_active].macro->nargument_names; q++)
-      undefine(macro_stack[macro_active].macro->argument_names[q]);
+    for (q = 0; q < macro_stack[g_macro_active].macro->nargument_names; q++)
+      undefine(macro_stack[g_macro_active].macro->argument_names[q]);
 
-    g_source_pointer = macro_stack[macro_active].macro_return_i;
+    g_source_pointer = macro_stack[g_macro_active].macro_return_i;
 
-    if ((g_extra_definitions == ON) && (g_active_file_info_last->filename_id != macro_stack[macro_active].macro_return_filename_id)) {
-      redefine("WLA_FILENAME", 0.0, get_file_name(macro_stack[macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING,
-               (int)strlen(get_file_name(macro_stack[macro_active].macro_return_filename_id)));
-      redefine("wla_filename", 0.0, get_file_name(macro_stack[macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING,
-               (int)strlen(get_file_name(macro_stack[macro_active].macro_return_filename_id)));
+    if ((g_extra_definitions == ON) && (g_active_file_info_last->filename_id != macro_stack[g_macro_active].macro_return_filename_id)) {
+      redefine("WLA_FILENAME", 0.0, get_file_name(macro_stack[g_macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING,
+               (int)strlen(get_file_name(macro_stack[g_macro_active].macro_return_filename_id)));
+      redefine("wla_filename", 0.0, get_file_name(macro_stack[g_macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING,
+               (int)strlen(get_file_name(macro_stack[g_macro_active].macro_return_filename_id)));
     }
 
-    g_active_file_info_last->filename_id = macro_stack[macro_active].macro_return_filename_id;
-    g_active_file_info_last->line_current = macro_stack[macro_active].macro_return_line;
+    g_active_file_info_last->filename_id = macro_stack[g_macro_active].macro_return_filename_id;
+    g_active_file_info_last->line_current = macro_stack[g_macro_active].macro_return_line;
 
     /* was this the last macro called? */
-    if (macro_active == 0) {
+    if (g_macro_active == 0) {
       /* delete NARGS */
       undefine("NARGS");
       undefine("nargs");
@@ -6907,54 +6907,54 @@ int directive_endm(void) {
     }
     else {
       /* redefine NARGS */
-      if (redefine("NARGS", (double)macro_stack[macro_active - 1].supplied_arguments, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+      if (redefine("NARGS", (double)macro_stack[g_macro_active - 1].supplied_arguments, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
         return FAILED;
-      if (redefine("nargs", (double)macro_stack[macro_active - 1].supplied_arguments, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+      if (redefine("nargs", (double)macro_stack[g_macro_active - 1].supplied_arguments, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
         return FAILED;
 
-      macro_runtime_current = &macro_stack[macro_active - 1];
+      macro_runtime_current = &macro_stack[g_macro_active - 1];
     }
 
     /* was this a DBM macro call? */
-    if (macro_stack[macro_active].caller == MACRO_CALLER_DBM) {
+    if (macro_stack[g_macro_active].caller == MACRO_CALLER_DBM) {
       /* yep, get the output */
       if (macro_insert_byte_db("DBM") == FAILED)
         return FAILED;
 
       /* continue defining bytes */
-      if (macro_start_dxm(macro_stack[macro_active].macro, MACRO_CALLER_DBM, "DBM", NO) == FAILED)
+      if (macro_start_dxm(macro_stack[g_macro_active].macro, MACRO_CALLER_DBM, "DBM", NO) == FAILED)
         return FAILED;
     }
     /* was this a DWM macro call? */
-    else if (macro_stack[macro_active].caller == MACRO_CALLER_DWM) {
+    else if (macro_stack[g_macro_active].caller == MACRO_CALLER_DWM) {
       /* yep, get the output */
       if (macro_insert_word_db("DWM") == FAILED)
         return FAILED;
 
       /* continue defining words */
-      if (macro_start_dxm(macro_stack[macro_active].macro, MACRO_CALLER_DWM, "DWM", NO) == FAILED)
+      if (macro_start_dxm(macro_stack[g_macro_active].macro, MACRO_CALLER_DWM, "DWM", NO) == FAILED)
         return FAILED;
     }
 #if W65816
     /* was this a DLM macro call? */
-    else if (macro_stack[macro_active].caller == MACRO_CALLER_DLM) {
+    else if (macro_stack[g_macro_active].caller == MACRO_CALLER_DLM) {
       /* yep, get the output */
       if (macro_insert_long_db("DLM") == FAILED)
         return FAILED;
 
       /* continue defining longs */
-      if (macro_start_dxm(macro_stack[macro_active].macro, MACRO_CALLER_DLM, "DLM", NO) == FAILED)
+      if (macro_start_dxm(macro_stack[g_macro_active].macro, MACRO_CALLER_DLM, "DLM", NO) == FAILED)
         return FAILED;
     }
 #endif
     /* or was this an INCBIN with a filter macro call? */
-    else if (macro_stack[macro_active].caller == MACRO_CALLER_INCBIN) {
+    else if (macro_stack[g_macro_active].caller == MACRO_CALLER_INCBIN) {
       /* yep, get the output */
       if (macro_insert_byte_db("INCBIN") == FAILED)
         return FAILED;
 
       /* continue filtering the binary file */
-      if (macro_start_incbin(macro_stack[macro_active].macro, NULL, NO) == FAILED)
+      if (macro_start_incbin(macro_stack[g_macro_active].macro, NULL, NO) == FAILED)
         return FAILED;
     }
 
@@ -7285,8 +7285,8 @@ int directive_snesnativevector(void) {
   /* create a section for the data */
   if (create_a_new_section_structure() == FAILED)
     return FAILED;
-  strcpy(sec_tmp->name, "!__WLA_SNESNATIVEVECTOR");
-  sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+  strcpy(g_sec_tmp->name, "!__WLA_SNESNATIVEVECTOR");
+  g_sec_tmp->status = SECTION_STATUS_ABSOLUTE;
   
   if (lorom_defined || exlorom_defined)
     base_address = 0x7FE4;
@@ -7295,8 +7295,8 @@ int directive_snesnativevector(void) {
   else if (exhirom_defined)
     base_address = 0x40FFE4;
     
-  fprintf(file_out_ptr, "P O0 A%d %d ", sec_tmp->id, base_address);
-  fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+  fprintf(g_file_out_ptr, "P O0 A%d %d ", g_sec_tmp->id, base_address);
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   while ((ind = get_next_token()) == SUCCEEDED) {
     /* .IF directive? */
@@ -7323,7 +7323,7 @@ int directive_snesnativevector(void) {
       if (irq_defined == 0)
         snprintf(irq, sizeof(irq), "y%d ", 0x0000);
       
-      fprintf(file_out_ptr, "%s%s%s%s%s%s s p ", cop, brk, abort, nmi, unused, irq);
+      fprintf(g_file_out_ptr, "%s%s%s%s%s%s s p ", cop, brk, abort, nmi, unused, irq);
       
       break;
     }
@@ -7505,8 +7505,8 @@ int directive_snesemuvector(void) {
   /* create a section for the data */
   if (create_a_new_section_structure() == FAILED)
     return FAILED;
-  strcpy(sec_tmp->name, "!__WLA_SNESEMUVECTOR");
-  sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+  strcpy(g_sec_tmp->name, "!__WLA_SNESEMUVECTOR");
+  g_sec_tmp->status = SECTION_STATUS_ABSOLUTE;
 
   if (lorom_defined || exlorom_defined)
     base_address = 0x7FF4;
@@ -7515,8 +7515,8 @@ int directive_snesemuvector(void) {
   else if (exhirom_defined)
     base_address = 0x40FFF4;
 
-  fprintf(file_out_ptr, "P O0 A%d %d ", sec_tmp->id, base_address);
-  fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+  fprintf(g_file_out_ptr, "P O0 A%d %d ", g_sec_tmp->id, base_address);
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   while ((ind = get_next_token()) == SUCCEEDED) {
     /* .IF directive? */
@@ -7543,7 +7543,7 @@ int directive_snesemuvector(void) {
       if (irqbrk_defined == 0)
         snprintf(irqbrk, sizeof(irqbrk), "y%d ", 0);
 
-      fprintf(file_out_ptr, "%s%s%s%s%s%s s p ", cop, unused, abort, nmi, reset, irqbrk);
+      fprintf(g_file_out_ptr, "%s%s%s%s%s%s s p ", cop, unused, abort, nmi, reset, irqbrk);
       
       break;
     }
@@ -7895,7 +7895,7 @@ int directive_dbrnd_dwrnd(void) {
         print_error(emsg, ERROR_NONE);
         return FAILED;
       }
-      fprintf(file_out_ptr, "y %d ", d);
+      fprintf(g_file_out_ptr, "y %d ", d);
     }
     else {
       if (d > 255 || d < -128) {
@@ -7903,7 +7903,7 @@ int directive_dbrnd_dwrnd(void) {
         print_error(emsg, ERROR_NONE);
         return FAILED;
       }
-      fprintf(file_out_ptr, "d%d ", d);
+      fprintf(g_file_out_ptr, "d%d ", d);
     }
   }
 
@@ -8000,7 +8000,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
         print_error(emsg, ERROR_NONE);
         return FAILED;
       }
-      fprintf(file_out_ptr, "y %d ", d);
+      fprintf(g_file_out_ptr, "y %d ", d);
     }
     else {
       if (d > 255 || d < -128) {
@@ -8008,7 +8008,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
         print_error(emsg, ERROR_NONE);
         return FAILED;
       }
-      fprintf(file_out_ptr, "d%d ", d);
+      fprintf(g_file_out_ptr, "d%d ", d);
     }
 
     a += s;
@@ -8188,7 +8188,7 @@ int directive_stringmap(void) {
     return FAILED;    
   }
 
-  fprintf(file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   /* parse it */
   for (p = g_label; *p != 0; /* increment in loop */) {
@@ -8213,7 +8213,7 @@ int directive_stringmap(void) {
     }
     /* else emit */
     for (i = 0; i < entry->bytes_length; ++i)
-      fprintf(file_out_ptr, "d%d ", entry->bytes[i]);
+      fprintf(g_file_out_ptr, "d%d ", entry->bytes[i]);
 
     /* move pointer on by as much as was matched */
     p += entry->text_length;
@@ -8424,7 +8424,7 @@ int parse_directive(void) {
     }
 
     block_status--;
-    fprintf(file_out_ptr, "G ");
+    fprintf(g_file_out_ptr, "G ");
 
     return SUCCEEDED;
   }
@@ -8437,7 +8437,7 @@ int parse_directive(void) {
   /* ENDS */
 
   if (strcaselesscmp(cp, "ENDS") == 0) {
-    if (section_status == OFF) {
+    if (g_section_status == OFF) {
       print_error("There is no open section.\n", ERROR_DIR);
       return FAILED;
     }
@@ -8448,13 +8448,13 @@ int parse_directive(void) {
 
     /* generate a section end label? */
     if (g_extra_definitions == ON)
-      generate_label("SECTIONEND_", sections_last->name);
+      generate_label("SECTIONEND_", g_sections_last->name);
   
-    section_status = OFF;
+    g_section_status = OFF;
     bankheader_status = OFF;
     in_ramsection = NO;
     
-    fprintf(file_out_ptr, "s ");
+    fprintf(g_file_out_ptr, "s ");
 
     return SUCCEEDED;
   }
@@ -8805,7 +8805,7 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    fprintf(file_out_ptr, "Y%s ", tmp);
+    fprintf(g_file_out_ptr, "Y%s ", tmp);
 
     return SUCCEEDED;
   }
@@ -8813,7 +8813,7 @@ int parse_directive(void) {
   /* BR/BREAKPOINT */
 
   if (strcaselesscmp(cp, "BR") == 0 || strcaselesscmp(cp, "BREAKPOINT") == 0) {
-    fprintf(file_out_ptr, "Z ");
+    fprintf(g_file_out_ptr, "Z ");
     return SUCCEEDED;
   }
 
@@ -8987,7 +8987,7 @@ int parse_directive(void) {
       repeat_active--;
       
       /* repeat end */
-      fprintf(file_out_ptr, "J ");
+      fprintf(g_file_out_ptr, "J ");
 
       if (strlen(rr->index_name) > 0) {
         if (undefine(rr->index_name) == FAILED)
@@ -9057,7 +9057,7 @@ int parse_directive(void) {
     }
 
     /* output the file id */
-    fprintf(file_out_ptr, "f%d ", g_active_file_info_tmp->filename_id);
+    fprintf(g_file_out_ptr, "f%d ", g_active_file_info_tmp->filename_id);
     
     g_open_files++;
 
@@ -9075,14 +9075,14 @@ int parse_directive(void) {
 
       strcpy(g_active_file_info_tmp->namespace, g_label);
 
-      fprintf(file_out_ptr, "t1 %s ", g_active_file_info_tmp->namespace);
+      fprintf(g_file_out_ptr, "t1 %s ", g_active_file_info_tmp->namespace);
     }
     else if (compare_next_token("NONAMESPACE") == SUCCEEDED) {
       skip_next_token();
       
       g_active_file_info_tmp->namespace[0] = 0;
 
-      fprintf(file_out_ptr, "t0 ");
+      fprintf(g_file_out_ptr, "t0 ");
     }
     else {
       print_error("Internal error: NAMESPACE/NONAMESPACE is missing.\n", ERROR_DIR);
@@ -9103,12 +9103,12 @@ int parse_directive(void) {
       if (g_active_file_info_last == NULL)
         g_active_file_info_first = NULL;
       else {
-        fprintf(file_out_ptr, "f%d ", g_active_file_info_last->filename_id);
+        fprintf(g_file_out_ptr, "f%d ", g_active_file_info_last->filename_id);
 
         if (g_active_file_info_last->namespace[0] == 0)
-          fprintf(file_out_ptr, "t0 ");
+          fprintf(g_file_out_ptr, "t0 ");
         else
-          fprintf(file_out_ptr, "t1 %s ", g_active_file_info_last->namespace);      
+          fprintf(g_file_out_ptr, "t1 %s ", g_active_file_info_last->namespace);      
       }
     }
 
@@ -9116,7 +9116,7 @@ int parse_directive(void) {
     if (g_active_file_info_last != NULL)
       g_active_file_info_last->line_current--;
 
-    fprintf(file_out_ptr, "E ");
+    fprintf(g_file_out_ptr, "E ");
     g_open_files--;
     if (g_open_files == 0)
       return EVALUATE_TOKEN_EOP;
@@ -9265,7 +9265,7 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    fprintf(file_out_ptr, "b%d ", d);
+    fprintf(g_file_out_ptr, "b%d ", d);
 
     return SUCCEEDED;
   }
@@ -9577,9 +9577,9 @@ int parse_if_directive(void) {
 
     /* find the next compiling point */
     r = 1;
-    m = macro_active;
+    m = g_macro_active;
     /* disable macro decoding */
-    macro_active = 0;
+    g_macro_active = 0;
     while (get_next_token() != FAILED) {
       if (tmp[0] == '.') {
         if (strcaselesscmp(cp, "ENDIF") == 0)
@@ -9593,7 +9593,7 @@ int parse_if_directive(void) {
       }
       if (r == 0) {
         ifdef--;
-        macro_active = m;
+        g_macro_active = m;
         return SUCCEEDED;
       }
     }
@@ -9833,7 +9833,7 @@ int parse_if_directive(void) {
 
     strcpy(bak, cp);
 
-    if (macro_active == 0) {
+    if (g_macro_active == 0) {
       snprintf(emsg, sizeof(emsg), ".%s can be only used inside a macro.\n", bak);
       print_error(emsg, ERROR_DIR);
       return FAILED;
@@ -9893,9 +9893,9 @@ int find_next_point(char *name) {
   line_current = g_active_file_info_last->line_current;
   /* find the next compiling point */
   depth = 1;
-  m = macro_active;
+  m = g_macro_active;
   /* disable macro decoding */
-  macro_active = 0;
+  g_macro_active = 0;
   while (get_next_token() != FAILED) {
     if (tmp[0] == '.') {
       if (strcaselesscmp(cp, "ENDIF") == 0)
@@ -9912,7 +9912,7 @@ int find_next_point(char *name) {
     if (depth == 0) {
       if (strcaselesscmp(cp, "ELSE") == 0)
         ifdef++;
-      macro_active = m;
+      g_macro_active = m;
       return SUCCEEDED;
     }
   }
@@ -10263,5 +10263,5 @@ void generate_label(char *header, char *footer) {
   }
   footer2[q] = 0;
 
-  fprintf(file_out_ptr, "L%s%s ", header, footer2);
+  fprintf(g_file_out_ptr, "L%s%s ", header, footer2);
 }

@@ -22,10 +22,10 @@ char g_unevaluated_expression[256];
 char g_expanded_macro_string[MAX_NAME_LENGTH + 1];
 double g_parsed_double;
 
-extern int g_source_pointer, g_size, d, macro_active;
+extern int g_source_pointer, g_size, d, g_macro_active;
 extern char *g_buffer, tmp[4096], cp[256];
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
-extern struct definition *tmp_def;
+extern struct definition *g_tmp_def;
 extern struct map_t *defines_map;
 extern struct macro_runtime *macro_stack, *macro_runtime_current;
 extern int latest_stack;
@@ -69,7 +69,7 @@ int compare_next_token(char *token) {
     ;
 
   /* MACRO mode? */
-  if (macro_active != 0 && e == '\\') {
+  if (g_macro_active != 0 && e == '\\') {
     if (g_buffer[ii + 1] == '@') {
       char tmp_buffer[64];
 
@@ -169,7 +169,7 @@ int input_next_string(void) {
   tmp[k] = 0;
 
   /* expand e.g., \1 and \@ */
-  if (macro_active != 0) {
+  if (g_macro_active != 0) {
     if (expand_macro_arguments(tmp) == FAILED)
       return FAILED;
   }
@@ -231,7 +231,7 @@ int input_number(void) {
   }
 
   /* MACRO */
-  if (macro_active != 0 && e == '\\') {
+  if (g_macro_active != 0 && e == '\\') {
     struct macro_argument *ma;
     int exit_here = YES;
     int start_i = g_source_pointer;
@@ -613,7 +613,7 @@ int input_number(void) {
     g_label[k] = 0;
 
     /* expand e.g., \1 and \@ */
-    if (macro_active != 0) {
+    if (g_macro_active != 0) {
       if (expand_macro_arguments(g_label) == FAILED)
         return FAILED;
       k = (int)strlen(g_label);
@@ -676,7 +676,7 @@ int input_number(void) {
   g_label[k] = 0;
 
   /* expand e.g., \1 and \@ */
-  if (macro_active != 0) {
+  if (g_macro_active != 0) {
     if (expand_macro_arguments(g_label) == FAILED)
       return FAILED;
   }
@@ -698,11 +698,11 @@ int input_number(void) {
   }
 
   /* check if the label is actually a definition */
-  if (hashmap_get(defines_map, g_label, (void*)&tmp_def) != MAP_OK)
-    hashmap_get(defines_map, label_tmp, (void*)&tmp_def);
-  if (tmp_def != NULL) {
-    if (tmp_def->type == DEFINITION_TYPE_VALUE) {
-      d = (int)tmp_def->value;
+  if (hashmap_get(defines_map, g_label, (void*)&g_tmp_def) != MAP_OK)
+    hashmap_get(defines_map, label_tmp, (void*)&g_tmp_def);
+  if (g_tmp_def != NULL) {
+    if (g_tmp_def->type == DEFINITION_TYPE_VALUE) {
+      d = (int)g_tmp_def->value;
 
       if (g_operand_hint == HINT_NONE) {
         if (d > 0xFFFF && d <= 0xFFFFFF)
@@ -727,36 +727,36 @@ int input_number(void) {
 
       return SUCCEEDED;
     }
-    else if (tmp_def->type == DEFINITION_TYPE_STACK) {
+    else if (g_tmp_def->type == DEFINITION_TYPE_STACK) {
       /* wrap the referenced, existing stack calculation inside a new stack calculation as stack
          calculation contains a write. the 2nd, 3rd etc. reference don't do anything by themselves.
          but wrapping creates a new stack calculation that also makes a write */
-      stack_create_stack_stack((int)tmp_def->value);
+      stack_create_stack_stack((int)g_tmp_def->value);
       return INPUT_NUMBER_STACK;
     }
-    else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+    else if (g_tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
       if (g_label[0] == ':') {
         /* we need to keep the ':' prefix */
-        if (strlen(tmp_def->string) >= MAX_NAME_LENGTH-1) {
+        if (strlen(g_tmp_def->string) >= MAX_NAME_LENGTH-1) {
           if (g_input_number_error_msg == YES) {
             snprintf(g_xyz, sizeof(g_xyz), "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
             print_error(g_xyz, ERROR_NUM);
           }
           return FAILED;          
         }
-        snprintf(g_label, sizeof(g_label), ":%.254s", tmp_def->string);
-        g_string_size = tmp_def->size + 1;
+        snprintf(g_label, sizeof(g_label), ":%.254s", g_tmp_def->string);
+        g_string_size = g_tmp_def->size + 1;
       }
       else {
-        g_string_size = tmp_def->size;
-        memcpy(g_label, tmp_def->string, g_string_size);
+        g_string_size = g_tmp_def->size;
+        memcpy(g_label, g_tmp_def->string, g_string_size);
         g_label[g_string_size] = 0;
       }
       return INPUT_NUMBER_ADDRESS_LABEL;
     }
     else {
-      g_string_size = tmp_def->size;
-      memcpy(g_label, tmp_def->string, g_string_size);
+      g_string_size = g_tmp_def->size;
+      memcpy(g_label, g_tmp_def->string, g_string_size);
       g_label[g_string_size] = 0;
       
       return INPUT_NUMBER_STRING;
@@ -773,30 +773,30 @@ int parse_string_length(char *end) {
   end[0] = 0;
 
   /* check if the label is actually a definition - it should be or else we'll give an error */
-  hashmap_get(defines_map, g_label, (void*)&tmp_def);
+  hashmap_get(defines_map, g_label, (void*)&g_tmp_def);
   
-  if (tmp_def != NULL) {
-    if (tmp_def->type == DEFINITION_TYPE_VALUE) {
+  if (g_tmp_def != NULL) {
+    if (g_tmp_def->type == DEFINITION_TYPE_VALUE) {
       if (g_input_number_error_msg == YES) {
         print_error(".length of a value does not make any sense.\n", ERROR_NUM);
       }
       return FAILED;
     }
-    else if (tmp_def->type == DEFINITION_TYPE_STACK) {
+    else if (g_tmp_def->type == DEFINITION_TYPE_STACK) {
       if (g_input_number_error_msg == YES) {
         print_error(".length of a pending computation does not make any sense.\n", ERROR_NUM);
       }
       return FAILED;
     }
-    else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+    else if (g_tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
       if (g_input_number_error_msg == YES) {
         print_error(".length of an address label does not make any sense.\n", ERROR_NUM);
       }
       return FAILED;
     }
     else {
-      g_string_size = tmp_def->size;
-      memcpy(g_label, tmp_def->string, g_string_size);
+      g_string_size = g_tmp_def->size;
+      memcpy(g_label, g_tmp_def->string, g_string_size);
       g_label[g_string_size] = 0;
 
       d = (int)strlen(g_label);
@@ -856,7 +856,7 @@ int get_next_plain_string(void) {
   tmp[g_ss] = 0;
 
   /* expand e.g., \1 and \@ */
-  if (macro_active != 0) {
+  if (g_macro_active != 0) {
     if (expand_macro_arguments(tmp) == FAILED)
       return FAILED;
     g_ss = (int)strlen(tmp);
@@ -893,7 +893,7 @@ int get_next_token(void) {
     g_source_pointer++;
 
     /* expand e.g., \1 and \@ */
-    if (macro_active != 0) {
+    if (g_macro_active != 0) {
       if (expand_macro_arguments(tmp) == FAILED)
         return FAILED;
       g_ss = (int)strlen(tmp);
@@ -933,7 +933,7 @@ int get_next_token(void) {
   tmp[g_ss] = 0;
 
   /* expand e.g., \1 and \@ */
-  if (macro_active != 0) {
+  if (g_macro_active != 0) {
     if (expand_macro_arguments(tmp) == FAILED)
       return FAILED;
     g_ss = (int)strlen(tmp);
@@ -1160,9 +1160,9 @@ int _expand_macro_arguments(char *in, int *expands) {
   /* macro argument numbers? if we find and expand some, we'll need to recursively call this function */
   if (move_up > 0) {
     /* move up one macro call in the hierarchy */
-    macro_active--;
-    if (macro_active > 0) {
-      macro_runtime_current = &macro_stack[macro_active - 1];
+    g_macro_active--;
+    if (g_macro_active > 0) {
+      macro_runtime_current = &macro_stack[g_macro_active - 1];
       /* recursive call to self */
       return _expand_macro_arguments(in, expands);
     }
@@ -1176,13 +1176,13 @@ int expand_macro_arguments(char *in) {
 
   /* save the current macro_runtime pointers */
   struct macro_runtime* mr = macro_runtime_current;
-  int ma = macro_active, expands = 0, ret;
+  int ma = g_macro_active, expands = 0, ret;
 
   ret = _expand_macro_arguments(in, &expands);
 
   /* return the current macro_runtime as recursive _expand_macro_arguments() might have modified it */
   macro_runtime_current = mr;
-  macro_active = ma;
+  g_macro_active = ma;
 
   return ret;
 }

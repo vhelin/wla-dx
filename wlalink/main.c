@@ -339,8 +339,8 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef WLALINK_DEBUG
-  if (labels_first != NULL) {
-    struct label *l = labels_first;
+  if (g_labels_first != NULL) {
+    struct label *l = g_labels_first;
 
     printf("\n");
     printf("----------------------------------------------------------------------\n");
@@ -357,8 +357,8 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef WLALINK_DEBUG
-  if (label_sizeofs != NULL) {
-    struct label_sizeof *ls = label_sizeofs;
+  if (g_label_sizeofs != NULL) {
+    struct label_sizeof *ls = g_label_sizeofs;
 
     printf("\n");
     printf("----------------------------------------------------------------------\n");
@@ -377,8 +377,8 @@ int main(int argc, char *argv[]) {
 #endif
       
 #ifdef WLALINK_DEBUG
-  if (stacks_first != NULL) {
-    struct stack *s = stacks_first;
+  if (g_stacks_first != NULL) {
+    struct stack *s = g_stacks_first;
 
     printf("\n");
     printf("----------------------------------------------------------------------\n");
@@ -422,8 +422,8 @@ int main(int argc, char *argv[]) {
     return 1;
 
 #ifdef WLALINK_DEBUG
-  if (sec_first != NULL) {
-    struct section *s = sec_first;
+  if (g_sec_first != NULL) {
+    struct section *s = g_sec_first;
     char *section_status[] = {
       "FREE",
       "FORCE",
@@ -480,8 +480,8 @@ int main(int argc, char *argv[]) {
     return 1;
 
 #ifdef WLALINK_DEBUG
-  if (labels_first != NULL) {
-    struct label *l = labels_first;
+  if (g_labels_first != NULL) {
+    struct label *l = g_labels_first;
 
     printf("\n");
     printf("----------------------------------------------------------------------\n");
@@ -502,8 +502,8 @@ int main(int argc, char *argv[]) {
     return 1;
 
 #ifdef WLALINK_DEBUG
-  if (stacks_first != NULL) {
-    struct stack *s = stacks_first;
+  if (g_stacks_first != NULL) {
+    struct stack *s = g_stacks_first;
 
     printf("\n");
     printf("----------------------------------------------------------------------\n");
@@ -537,8 +537,8 @@ int main(int argc, char *argv[]) {
     return 1;
 
 #ifdef WLALINK_DEBUG
-  if (reference_first != NULL) {
-    struct reference *r = reference_first;
+  if (g_reference_first != NULL) {
+    struct reference *r = g_reference_first;
 
     printf("\n");
     printf("----------------------------------------------------------------------\n");

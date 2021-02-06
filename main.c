@@ -33,7 +33,7 @@ DWORD __stdcall GetCurrentProcessId(void);
 #include "mersenne_twister.h"
 
 
-FILE *file_out_ptr = NULL;
+FILE *g_file_out_ptr = NULL;
 
 /* amiga specific definitions */
 
@@ -51,12 +51,12 @@ extern struct file_name_info *g_file_name_info_first;
 extern struct label_def *label_tmp, *labels;
 extern struct map_t *global_unique_label_map;
 extern struct macro_static *macros_first;
-extern struct definition *tmp_def;
+extern struct definition *g_tmp_def;
 extern struct map_t *defines_map;
 extern struct export_def *export_first, *export_last;
 extern struct stack *stacks_first, *stacks_tmp, *stacks_last, *stacks_header_first, *stacks_header_last;
 extern struct repeat_runtime *repeat_stack;
-extern struct section_def *sections_first;
+extern struct section_def *g_sections_first;
 extern struct macro_runtime *macro_stack;
 extern struct label_def *unknown_labels;
 extern struct filepointer *filepointers;
@@ -68,7 +68,7 @@ extern struct stringmaptable *stringmaptables;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern char *unfolded_buffer, *label_stack[256];
 extern char *g_include_in_tmp, *g_tmp_a;
-extern char *rom_banks, *rom_banks_usage_table;
+extern char *g_rom_banks, *g_rom_banks_usage_table;
 extern char *g_include_dir, *g_buffer, *g_full_name;
 extern int g_include_in_tmp_size, g_tmp_a_size, *banks, *bankaddress;
 
@@ -176,8 +176,8 @@ int main(int argc, char *argv[]) {
 
   generate_tmp_name(&g_tmp_name);
 
-  file_out_ptr = fopen(g_tmp_name, "wb");
-  if (file_out_ptr == NULL) {
+  g_file_out_ptr = fopen(g_tmp_name, "wb");
+  if (g_file_out_ptr == NULL) {
     fprintf(stderr, "MAIN: Error opening file \"%s\" for writing.\n", g_tmp_name);
     return 1;
   }
@@ -356,8 +356,8 @@ void procedures_at_exit(void) {
   int i, index;
   
   /* free all the dynamically allocated data structures and close open files */
-  if (file_out_ptr != NULL)
-    fclose(file_out_ptr);
+  if (g_file_out_ptr != NULL)
+    fclose(g_file_out_ptr);
 
   free(macro_stack);
   free(repeat_stack);
@@ -468,8 +468,8 @@ void procedures_at_exit(void) {
   free(g_buffer);
   free(g_include_in_tmp);
   free(g_tmp_a);
-  free(rom_banks);
-  free(rom_banks_usage_table);
+  free(g_rom_banks);
+  free(g_rom_banks_usage_table);
   free(banks);
   free(bankaddress);
 
@@ -481,7 +481,7 @@ void procedures_at_exit(void) {
     f = ft;
   }
 
-  s1 = sections_first;
+  s1 = g_sections_first;
   while (s1 != NULL) {
     free(s1->data);
     free(s1->listfile_cmds);

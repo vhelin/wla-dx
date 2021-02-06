@@ -16,7 +16,7 @@
 extern int ind, inz, g_source_pointer, unfolded_size, g_extra_definitions, d, g_use_incdir;
 extern char *unfolded_buffer, tmp[4096], emsg[sizeof(tmp) + MAX_NAME_LENGTH + 1 + 1024];
 extern struct ext_include_collection ext_incdirs;
-extern FILE *file_out_ptr;
+extern FILE *g_file_out_ptr;
 
 struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
 struct active_file_info *g_active_file_info_first = NULL, *g_active_file_info_last = NULL, *g_active_file_info_tmp = NULL;

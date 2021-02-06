@@ -16,13 +16,13 @@
 
 
 extern int g_input_number_error_msg, bankheader_status, g_input_float_mode;
-extern int g_source_pointer, g_size, d, macro_active, g_string_size, section_status, g_parse_floats;
+extern int g_source_pointer, g_size, d, g_macro_active, g_string_size, g_section_status, g_parse_floats;
 extern char g_xyz[512], *g_buffer, tmp[4096], g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
-extern struct definition *tmp_def;
+extern struct definition *g_tmp_def;
 extern struct map_t *defines_map;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct macro_runtime *macro_runtime_current;
-extern struct section_def *sec_tmp;
+extern struct section_def *g_sec_tmp;
 extern double g_parsed_double;
 
 int latest_stack = 0, stacks_inside = 0, stacks_outside = 0, stack_id = 0;
@@ -72,9 +72,9 @@ static int _stack_insert(void) {
   }
 
   stacks_tmp->id = stack_id;
-  stacks_tmp->section_status = section_status;
-  if (section_status == ON)
-    stacks_tmp->section_id = sec_tmp->id;
+  stacks_tmp->section_status = g_section_status;
+  if (g_section_status == ON)
+    stacks_tmp->section_id = g_sec_tmp->id;
   else
     stacks_tmp->section_id = 0;
 
@@ -147,11 +147,11 @@ int get_label_length(char *l) {
 
   int length;
   
-  hashmap_get(defines_map, l, (void*)&tmp_def);
+  hashmap_get(defines_map, l, (void*)&g_tmp_def);
 
-  if (tmp_def != NULL) {
-    if (tmp_def->type == DEFINITION_TYPE_STRING)
-      return (int)strlen(tmp_def->string);
+  if (g_tmp_def != NULL) {
+    if (g_tmp_def->type == DEFINITION_TYPE_STRING)
+      return (int)strlen(g_tmp_def->string);
     else {
       snprintf(g_xyz, sizeof(g_xyz), "Definition \"%s\" is not a string definition. .length returns 0 for that...\n", l);
       print_error(g_xyz, ERROR_NUM);
@@ -913,34 +913,34 @@ int stack_calculate(char *in, int *value) {
 
 static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
 
-  if (macro_active != 0) {
+  if (g_macro_active != 0) {
     /* expand e.g., \1 and \@ */
     if (expand_macro_arguments(s->string) == FAILED)
       return FAILED;
   }
 
-  hashmap_get(defines_map, s->string, (void*)&tmp_def);
-  if (tmp_def != NULL) {
-    if (tmp_def->type == DEFINITION_TYPE_STRING) {
-      snprintf(g_xyz, sizeof(g_xyz), "Definition \"%s\" is a string definition.\n", tmp_def->alias);
+  hashmap_get(defines_map, s->string, (void*)&g_tmp_def);
+  if (g_tmp_def != NULL) {
+    if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
+      snprintf(g_xyz, sizeof(g_xyz), "Definition \"%s\" is a string definition.\n", g_tmp_def->alias);
       print_error(g_xyz, ERROR_STC);
       return FAILED;
     }
-    else if (tmp_def->type == DEFINITION_TYPE_STACK) {
+    else if (g_tmp_def->type == DEFINITION_TYPE_STACK) {
       /* turn this reference to a stack calculation define into a direct reference to the stack calculation as */
       /* this way we don't have to care if the define is exported or not as stack calculations are always exported */
       s->type = STACK_ITEM_TYPE_STACK;
       s->sign = SI_SIGN_POSITIVE;
-      s->value = tmp_def->value;
+      s->value = g_tmp_def->value;
     }
-    else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+    else if (g_tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
       /* wla cannot resolve address labels (unless outside a section) -> only wlalink can do that */
       *cannot_resolve = 1;
-      strcpy(s->string, tmp_def->string);
+      strcpy(s->string, g_tmp_def->string);
     }
     else {
       s->type = STACK_ITEM_TYPE_VALUE;
-      s->value = tmp_def->value;
+      s->value = g_tmp_def->value;
     }
   }
 
@@ -968,7 +968,7 @@ int resolve_stack(struct stack_item s[], int x) {
   st = s;
   while (x > 0) {
     if (s->type == STACK_ITEM_TYPE_STRING) {
-      if (macro_active != 0 && s->string[0] == '\\') {
+      if (g_macro_active != 0 && s->string[0] == '\\') {
         if (s->string[1] == '@' && s->string[2] == 0) {
           s->type = STACK_ITEM_TYPE_VALUE;
           s->value = macro_runtime_current->macro->calls - 1;

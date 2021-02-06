@@ -11,12 +11,12 @@
 
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
-extern struct section_def *sections_first, *sections_last, *sec_tmp, *sec_next;
+extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
-extern unsigned char *rom_banks, *rom_banks_usage_table;
-extern FILE *file_out_ptr;
+extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
+extern FILE *g_file_out_ptr;
 extern char *g_tmp_name, tmp[4096];
-extern int g_verbose_mode, section_status, cartridgetype, g_output_format;
+extern int g_verbose_mode, g_section_status, cartridgetype, g_output_format;
 
 
 int listfile_collect(void) {
@@ -72,7 +72,7 @@ int listfile_collect(void) {
       else
         fscanf(file_in, "%d ", &inz);
 
-      section = sections_first;
+      section = g_sections_first;
       while (section->id != inz)
         section = section->next;
 

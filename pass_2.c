@@ -52,18 +52,18 @@ extern int hirom_defined, lorom_defined, slowrom_defined, fastrom_defined, snes_
 extern int computesneschecksum_defined, exhirom_defined, exlorom_defined;
 #endif
 
-extern FILE *file_out_ptr;
+extern FILE *g_file_out_ptr;
 extern int ind, inz, rambanks, rambanks_defined, ifdef;
 extern int rombanks_defined, rombanks, cartridgetype, cartridgetype_defined;
 extern int g_output_format, romgbc, romsgb, romdmg, max_address;
-extern int romtype, g_verbose_mode, section_status, background_defined, memorymap_defined;
+extern int romtype, g_verbose_mode, g_section_status, background_defined, memorymap_defined;
 extern int emptyfill_defined, emptyfill, rombankmap_defined, section_id;
-extern unsigned char *rom_banks, *rom_banks_usage_table;
+extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 
 char include_directives_name[] = "INCLUDE_DIRECTIVES:";
 
-extern struct section_def *sections_first, *sections_last, *sec_tmp, *sec_next;
+extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 
 #ifdef W65816
 void write_snes_cartridge_information(int start);
@@ -80,8 +80,8 @@ int pass_2(void) {
   if (g_verbose_mode == ON)
     printf("Directive checks...\n");
 
-  if (section_status == ON) {
-    fprintf(stderr, "%s The section \"%s\" was not closed.\n", include_directives_name, sections_last->name);
+  if (g_section_status == ON) {
+    fprintf(stderr, "%s The section \"%s\" was not closed.\n", include_directives_name, g_sections_last->name);
     return FAILED;
   }
 
@@ -154,76 +154,76 @@ int pass_2(void) {
     /* insert string pointers */
     if (create_a_new_section_structure() == FAILED)
       return FAILED;
-    strcpy(sec_tmp->name, "!__WLA_SDSCTAG_STRINGS");
-    sec_tmp->status = SECTION_STATUS_ABSOLUTE;
-    fprintf(file_out_ptr, "A%d %d ", sec_tmp->id, 0x7FEA);
+    strcpy(g_sec_tmp->name, "!__WLA_SDSCTAG_STRINGS");
+    g_sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+    fprintf(g_file_out_ptr, "A%d %d ", g_sec_tmp->id, 0x7FEA);
 
     /* insert the system line (0) */
-    fprintf(file_out_ptr, "k0 ");
+    fprintf(g_file_out_ptr, "k0 ");
 
     /* the data */
     if (sdsctag_author_type == TYPE_VALUE)
-      fprintf(file_out_ptr, "y%d ", sdsctag_author_value);
+      fprintf(g_file_out_ptr, "y%d ", sdsctag_author_value);
     else if (sdsctag_author_type == TYPE_LABEL)
-      fprintf(file_out_ptr, "r%s ", sdsctag_author_str);
+      fprintf(g_file_out_ptr, "r%s ", sdsctag_author_str);
     else if (sdsctag_author_type == TYPE_STACK_CALCULATION)
-      fprintf(file_out_ptr, "C%d ", sdsctag_author_value);
+      fprintf(g_file_out_ptr, "C%d ", sdsctag_author_value);
     else
-      fprintf(file_out_ptr, "r *WLA_SDSC_PRG_AUTHOR_PTR ");
+      fprintf(g_file_out_ptr, "r *WLA_SDSC_PRG_AUTHOR_PTR ");
 
     if (sdsctag_name_type == TYPE_VALUE)
-      fprintf(file_out_ptr, "y%d ", sdsctag_name_value);
+      fprintf(g_file_out_ptr, "y%d ", sdsctag_name_value);
     else if (sdsctag_name_type == TYPE_LABEL)
-      fprintf(file_out_ptr, "r%s ", sdsctag_name_str);
+      fprintf(g_file_out_ptr, "r%s ", sdsctag_name_str);
     else if (sdsctag_name_type == TYPE_STACK_CALCULATION)
-      fprintf(file_out_ptr, "C%d ", sdsctag_name_value);
+      fprintf(g_file_out_ptr, "C%d ", sdsctag_name_value);
     else
-      fprintf(file_out_ptr, "r *WLA_SDSC_PRG_NAME_PTR ");
+      fprintf(g_file_out_ptr, "r *WLA_SDSC_PRG_NAME_PTR ");
 
     if (sdsctag_notes_type == TYPE_VALUE)
-      fprintf(file_out_ptr, "y%d ", sdsctag_notes_value);
+      fprintf(g_file_out_ptr, "y%d ", sdsctag_notes_value);
     else if (sdsctag_notes_type == TYPE_LABEL)
-      fprintf(file_out_ptr, "r%s ", sdsctag_notes_str);
+      fprintf(g_file_out_ptr, "r%s ", sdsctag_notes_str);
     else if (sdsctag_notes_type == TYPE_STACK_CALCULATION)
-      fprintf(file_out_ptr, "C%d ", sdsctag_notes_value);
+      fprintf(g_file_out_ptr, "C%d ", sdsctag_notes_value);
     else
-      fprintf(file_out_ptr, "r *WLA_SDSC_PRG_NOTES_PTR ");
+      fprintf(g_file_out_ptr, "r *WLA_SDSC_PRG_NOTES_PTR ");
 
-    fprintf(file_out_ptr, "s ");
+    fprintf(g_file_out_ptr, "s ");
 
     /* create string sections */
     if (sdsctag_author_type == TYPE_STRING) {
       if (create_a_new_section_structure() == FAILED)
         return FAILED;
-      strcpy(sec_tmp->name, "!__WLA_SDSCTAG_STRING_AUTHOR");
-      sec_tmp->status = SECTION_STATUS_SEMIFREE;
+      strcpy(g_sec_tmp->name, "!__WLA_SDSCTAG_STRING_AUTHOR");
+      g_sec_tmp->status = SECTION_STATUS_SEMIFREE;
 
-      fprintf(file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_AUTHOR_PTR ", sec_tmp->id);
+      fprintf(g_file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_AUTHOR_PTR ", g_sec_tmp->id);
       for (q = 0; q < (int)strlen(sdsctag_author_str); q++)
-        fprintf(file_out_ptr, "d%d ", sdsctag_author_str[q]);
-      fprintf(file_out_ptr, "d0 s ");
+        fprintf(g_file_out_ptr, "d%d ", sdsctag_author_str[q]);
+      fprintf(g_file_out_ptr, "d0 s ");
     }
     if (sdsctag_name_type == TYPE_STRING) {
       if (create_a_new_section_structure() == FAILED)
         return FAILED;
-      strcpy(sec_tmp->name, "!__WLA_SDSCTAG_STRING_NAME");
-      sec_tmp->status = SECTION_STATUS_SEMIFREE;
+      strcpy(g_sec_tmp->name, "!__WLA_SDSCTAG_STRING_NAME");
+      g_sec_tmp->status = SECTION_STATUS_SEMIFREE;
       
-      fprintf(file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_NAME_PTR ", sec_tmp->id);
+      fprintf(g_file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_NAME_PTR ", g_sec_tmp->id);
       for (q = 0; q < (int)strlen(sdsctag_name_str); q++)
-        fprintf(file_out_ptr, "d%d ", sdsctag_name_str[q]);
-      fprintf(file_out_ptr, "d0 s ");
+        fprintf(g_file_out_ptr, "d%d ", sdsctag_name_str[q]);
+      fprintf(g_file_out_ptr, "d0 s ");
     }
     if (sdsctag_notes_type == TYPE_STRING) {
       if (create_a_new_section_structure() == FAILED)
         return FAILED;
-      strcpy(sec_tmp->name, "!__WLA_SDSCTAG_STRING_NOTES");
-      sec_tmp->status = SECTION_STATUS_SEMIFREE;
+      strcpy(g_sec_tmp->name, "!__WLA_SDSCTAG_STRING_NOTES");
+      g_sec_tmp->status = SECTION_STATUS_SEMIFREE;
 
-      fprintf(file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_NOTES_PTR ", sec_tmp->id);
+      fprintf(g_file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_NOTES_PTR ", g_sec_tmp->id);
       for (q = 0; q < (int)strlen(sdsctag_notes_str); q++)
-        fprintf(file_out_ptr, "d%d ", sdsctag_notes_str[q]);
-      fprintf(file_out_ptr, "d0 s ");
+        fprintf(g_file_out_ptr, "d%d ", sdsctag_notes_str[q]);
+      fprintf(g_file_out_ptr, "d0 s ");
     }
 
     /* create the time and date data */
@@ -255,29 +255,29 @@ int pass_2(void) {
 
     if (create_a_new_section_structure() == FAILED)
       return FAILED;
-    strcpy(sec_tmp->name, "!__WLA_SDSCTAG_TIMEDATE");
-    sec_tmp->status = SECTION_STATUS_ABSOLUTE;
-    fprintf(file_out_ptr, "A%d %d ", sec_tmp->id, 0x7FE0);
+    strcpy(g_sec_tmp->name, "!__WLA_SDSCTAG_TIMEDATE");
+    g_sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+    fprintf(g_file_out_ptr, "A%d %d ", g_sec_tmp->id, 0x7FE0);
 
     /* insert the system line (0) */
-    fprintf(file_out_ptr, "k0 ");
+    fprintf(g_file_out_ptr, "k0 ");
 
     /* SDSC header data */
     /* SDSC */
-    fprintf(file_out_ptr, "d%d ", 0x53);
-    fprintf(file_out_ptr, "d%d ", 0x44);
-    fprintf(file_out_ptr, "d%d ", 0x53);
-    fprintf(file_out_ptr, "d%d ", 0x43);
+    fprintf(g_file_out_ptr, "d%d ", 0x53);
+    fprintf(g_file_out_ptr, "d%d ", 0x44);
+    fprintf(g_file_out_ptr, "d%d ", 0x53);
+    fprintf(g_file_out_ptr, "d%d ", 0x43);
     /* version */
-    fprintf(file_out_ptr, "d%d ", sdsc_ma);
-    fprintf(file_out_ptr, "d%d ", sdsc_mi);
+    fprintf(g_file_out_ptr, "d%d ", sdsc_ma);
+    fprintf(g_file_out_ptr, "d%d ", sdsc_mi);
     /* date */
-    fprintf(file_out_ptr, "d%d ", da);
-    fprintf(file_out_ptr, "d%d ", mo);
-    fprintf(file_out_ptr, "d%d ", ye_l);
-    fprintf(file_out_ptr, "d%d ", ye_h);
+    fprintf(g_file_out_ptr, "d%d ", da);
+    fprintf(g_file_out_ptr, "d%d ", mo);
+    fprintf(g_file_out_ptr, "d%d ", ye_l);
+    fprintf(g_file_out_ptr, "d%d ", ye_h);
     
-    fprintf(file_out_ptr, "s ");
+    fprintf(g_file_out_ptr, "s ");
 
     /*
       mem_insert_absolute(0x7FE0, 0x53);
@@ -414,8 +414,8 @@ int pass_2(void) {
   }
 #endif
 
-  fclose(file_out_ptr);
-  file_out_ptr = NULL;
+  fclose(g_file_out_ptr);
+  g_file_out_ptr = NULL;
 
   /* clear the mem_insert*() warnings/errors buffer */
   mem_insert_action[0] = 0;
@@ -480,35 +480,35 @@ void write_snes_cartridge_information(int start) {
 
 int create_a_new_section_structure(void) {
 
-  sec_tmp = calloc(sizeof(struct section_def), 1);
-  if (sec_tmp == NULL) {
+  g_sec_tmp = calloc(sizeof(struct section_def), 1);
+  if (g_sec_tmp == NULL) {
     print_error("Out of memory while allocating room for a new SECTION.\n", ERROR_DIR);
     return FAILED;
   }
 
-  sec_tmp->listfile_items = 0;
-  sec_tmp->listfile_ints = NULL;
-  sec_tmp->listfile_cmds = NULL;
-  sec_tmp->maxsize_status = OFF;
-  sec_tmp->data = NULL;
-  sec_tmp->next = NULL;
-  sec_tmp->id = section_id;
-  sec_tmp->alive = ON;
-  sec_tmp->advance_org = NO;
-  sec_tmp->nspace = NULL;
-  sec_tmp->label_map = hashmap_new();
+  g_sec_tmp->listfile_items = 0;
+  g_sec_tmp->listfile_ints = NULL;
+  g_sec_tmp->listfile_cmds = NULL;
+  g_sec_tmp->maxsize_status = OFF;
+  g_sec_tmp->data = NULL;
+  g_sec_tmp->next = NULL;
+  g_sec_tmp->id = section_id;
+  g_sec_tmp->alive = ON;
+  g_sec_tmp->advance_org = NO;
+  g_sec_tmp->nspace = NULL;
+  g_sec_tmp->label_map = hashmap_new();
   section_id++;
-  sec_tmp->filename_id = 0;
-  sec_tmp->alignment = 1;
-  sec_tmp->offset = 0;
+  g_sec_tmp->filename_id = 0;
+  g_sec_tmp->alignment = 1;
+  g_sec_tmp->offset = 0;
 
-  if (sections_first == NULL) {
-    sections_first = sec_tmp;
-    sections_last = sec_tmp;
+  if (g_sections_first == NULL) {
+    g_sections_first = g_sec_tmp;
+    g_sections_last = g_sec_tmp;
   }
   else {
-    sections_last->next = sec_tmp;
-    sections_last = sec_tmp;
+    g_sections_last->next = g_sec_tmp;
+    g_sections_last = g_sec_tmp;
   }
 
   return SUCCEEDED;

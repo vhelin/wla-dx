@@ -12,13 +12,13 @@
 
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
-extern struct section_def *sections_first, *sections_last, *sec_tmp, *sec_next;
+extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern struct block_name *block_names;
-extern unsigned char *rom_banks, *rom_banks_usage_table;
-extern FILE *file_out_ptr;
+extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
+extern FILE *g_file_out_ptr;
 extern char *g_tmp_name, tmp[4096], emsg[1024], namespace[MAX_NAME_LENGTH + 1];
-extern int g_verbose_mode, section_status, cartridgetype, g_output_format;
+extern int g_verbose_mode, g_section_status, cartridgetype, g_output_format;
 
 
 struct label_def *label_next, *label_last, *label_tmp, *labels = NULL;
@@ -97,7 +97,7 @@ int pass_3(void) {
       case 'x':
       case 'o':
         fscanf(f_in, "%d %*d ", &inz);
-        if (section_status == ON) {
+        if (g_section_status == ON) {
           add += inz;
           continue;
         }
@@ -106,7 +106,7 @@ int pass_3(void) {
         return FAILED;
 
       case 'd':
-        if (section_status == ON) {
+        if (g_section_status == ON) {
           fscanf(f_in, "%*s ");
           add++;
           continue;
@@ -116,7 +116,7 @@ int pass_3(void) {
         return FAILED;
 
       case 'y':
-        if (section_status == ON) {
+        if (g_section_status == ON) {
           fscanf(f_in, "%*d ");
           add += 2;
           continue;
@@ -324,7 +324,7 @@ int pass_3(void) {
 
         add_old = add;
 
-        s = sections_first;
+        s = g_sections_first;
         while (s->id != inz)
           s = s->next;
 
@@ -335,7 +335,7 @@ int pass_3(void) {
           s->listfile_ints = NULL;
           s->listfile_cmds = NULL;
           add = 0;
-          section_status = ON;
+          g_section_status = ON;
           continue;
         }
         else if (s->status == SECTION_STATUS_RAM_FORCE) {
@@ -346,7 +346,7 @@ int pass_3(void) {
           s->listfile_items = 1;
           s->listfile_ints = NULL;
           s->listfile_cmds = NULL;
-          section_status = ON;
+          g_section_status = ON;
           continue;
         }
         else if (s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
@@ -354,7 +354,7 @@ int pass_3(void) {
           s->listfile_items = 1;
           s->listfile_ints = NULL;
           s->listfile_cmds = NULL;
-          section_status = ON;
+          g_section_status = ON;
           continue;
         }
         
@@ -384,7 +384,7 @@ int pass_3(void) {
         else
           add = add_old + s->size;
 
-        section_status = OFF;
+        g_section_status = OFF;
         s = NULL;
         continue;
 
@@ -440,7 +440,7 @@ int pass_3(void) {
 
         add_old = add;
 
-        s = sections_first;
+        s = g_sections_first;
         while (s->id != inz)
           s = s->next;
 
@@ -462,7 +462,7 @@ int pass_3(void) {
         s->listfile_items = 1;
         s->listfile_ints = NULL;
         s->listfile_cmds = NULL;
-        section_status = ON;
+        g_section_status = ON;
         o++;
         continue;
 
@@ -520,7 +520,7 @@ int pass_3(void) {
 
       add_old = add;
 
-      s = sections_first;
+      s = g_sections_first;
       while (s->id != inz)
         s = s->next;
 
@@ -545,7 +545,7 @@ int pass_3(void) {
       s->listfile_items = 1;
       s->listfile_ints = NULL;
       s->listfile_cmds = NULL;
-      section_status = ON;
+      g_section_status = ON;
       continue;
 
     case 's':
@@ -572,7 +572,7 @@ int pass_3(void) {
       else
         add = add_old + s->size;
       
-      section_status = OFF;
+      g_section_status = OFF;
       s = NULL;
       continue;
 
@@ -755,11 +755,11 @@ int pass_3(void) {
       }
       
       l->next = NULL;
-      l->section_status = section_status;
+      l->section_status = g_section_status;
       l->filename_id = g_file_name_id;
       l->linenumber = line_number;
       l->alive = ON;
-      if (section_status == ON) {
+      if (g_section_status == ON) {
         l->section_id = s->id;
         l->section_struct = s;
         /* section labels get a relative address */
