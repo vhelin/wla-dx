@@ -26,9 +26,9 @@ extern int g_source_pointer, g_size, d, g_macro_active;
 extern char *g_buffer, tmp[4096], cp[256];
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct definition *g_tmp_def;
-extern struct map_t *defines_map;
-extern struct macro_runtime *macro_stack, *macro_runtime_current;
-extern int latest_stack;
+extern struct map_t *g_defines_map;
+extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
+extern int g_latest_stack;
 
 
 
@@ -73,7 +73,7 @@ int compare_next_token(char *token) {
     if (g_buffer[ii + 1] == '@') {
       char tmp_buffer[64];
 
-      snprintf(tmp_buffer, sizeof(tmp_buffer), "%d", macro_runtime_current->macro->calls - 1);
+      snprintf(tmp_buffer, sizeof(tmp_buffer), "%d", g_macro_runtime_current->macro->calls - 1);
 
       e = tmp_buffer[0];
       for (t = 0; t < length && e != 0; ) {
@@ -96,15 +96,15 @@ int compare_next_token(char *token) {
           break;
       }
 
-      if (d > macro_runtime_current->supplied_arguments) {
+      if (d > g_macro_runtime_current->supplied_arguments) {
         if (g_input_number_error_msg == YES) {
-          snprintf(g_xyz, sizeof(g_xyz), "COMPARE_NEXT_SYMBOL: Macro \"%s\" wasn't called with enough arguments.\n", macro_runtime_current->macro->name);
+          snprintf(g_xyz, sizeof(g_xyz), "COMPARE_NEXT_SYMBOL: Macro \"%s\" wasn't called with enough arguments.\n", g_macro_runtime_current->macro->name);
           print_error(g_xyz, ERROR_NONE);
         }
         return FAILED;
       }
 
-      ii = macro_runtime_current->argument_data[d - 1]->start;
+      ii = g_macro_runtime_current->argument_data[d - 1]->start;
 
       e = g_buffer[ii];
       for (t = 0; t < length && e != ' ' && e != ',' && e != 0x0A; ) {
@@ -239,7 +239,7 @@ int input_number(void) {
 
     if (g_buffer[g_source_pointer] == '@') {
       g_source_pointer++;
-      d = macro_runtime_current->macro->calls - 1;
+      d = g_macro_runtime_current->macro->calls - 1;
 
       if (g_buffer[g_source_pointer] != ' ' && g_buffer[g_source_pointer] != 0xA && g_buffer[g_source_pointer] != ',')
         exit_here = NO;
@@ -264,19 +264,19 @@ int input_number(void) {
       exit_here = NO;
 
     if (exit_here == YES) {
-      if (d > macro_runtime_current->supplied_arguments) {
-        snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", d, macro_runtime_current->macro->name, macro_runtime_current->supplied_arguments);
+      if (d > g_macro_runtime_current->supplied_arguments) {
+        snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", d, g_macro_runtime_current->macro->name, g_macro_runtime_current->supplied_arguments);
         print_error(g_xyz, ERROR_NUM);
         return FAILED;
       }
       if (d == 0) {
-        snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", d, macro_runtime_current->macro->name);
+        snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", d, g_macro_runtime_current->macro->name);
         print_error(g_xyz, ERROR_NUM);
         return FAILED;
       }
 
       /* return the macro argument */
-      ma = macro_runtime_current->argument_data[d - 1];
+      ma = g_macro_runtime_current->argument_data[d - 1];
       k = ma->type;
 
       if (k == INPUT_NUMBER_ADDRESS_LABEL)
@@ -286,7 +286,7 @@ int input_number(void) {
         g_string_size = (int)strlen(ma->string);
       }
       else if (k == INPUT_NUMBER_STACK)
-        latest_stack = (int)ma->value;
+        g_latest_stack = (int)ma->value;
       else if (k == SUCCEEDED) {
         d = (int)ma->value;
         g_parsed_double = ma->value;
@@ -698,8 +698,8 @@ int input_number(void) {
   }
 
   /* check if the label is actually a definition */
-  if (hashmap_get(defines_map, g_label, (void*)&g_tmp_def) != MAP_OK)
-    hashmap_get(defines_map, label_tmp, (void*)&g_tmp_def);
+  if (hashmap_get(g_defines_map, g_label, (void*)&g_tmp_def) != MAP_OK)
+    hashmap_get(g_defines_map, label_tmp, (void*)&g_tmp_def);
   if (g_tmp_def != NULL) {
     if (g_tmp_def->type == DEFINITION_TYPE_VALUE) {
       d = (int)g_tmp_def->value;
@@ -773,7 +773,7 @@ int parse_string_length(char *end) {
   end[0] = 0;
 
   /* check if the label is actually a definition - it should be or else we'll give an error */
-  hashmap_get(defines_map, g_label, (void*)&g_tmp_def);
+  hashmap_get(g_defines_map, g_label, (void*)&g_tmp_def);
   
   if (g_tmp_def != NULL) {
     if (g_tmp_def->type == DEFINITION_TYPE_VALUE) {
@@ -1009,7 +1009,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
           k--;
         }
         
-        snprintf(t, sizeof(t), "%d", macro_runtime_current->macro->calls - 1 + adder);
+        snprintf(t, sizeof(t), "%d", g_macro_runtime_current->macro->calls - 1 + adder);
         for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
           g_expanded_macro_string[k] = t[j];
           if (t[j] == 0)
@@ -1032,16 +1032,16 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
         }
         i--;
 
-        if (d <= 0 || d > macro_runtime_current->supplied_arguments) {
+        if (d <= 0 || d > g_macro_runtime_current->supplied_arguments) {
           if (g_input_number_error_msg == YES) {
-            snprintf(g_xyz, sizeof(g_xyz), "Macro \"%s\" wasn't called with enough arguments, \\?%d is out of range.\n", macro_runtime_current->macro->name, d);
+            snprintf(g_xyz, sizeof(g_xyz), "Macro \"%s\" wasn't called with enough arguments, \\?%d is out of range.\n", g_macro_runtime_current->macro->name, d);
             print_error(g_xyz, ERROR_NUM);
           }
     
           return FAILED;
         }
 
-        type = macro_runtime_current->argument_data[d-1]->type;
+        type = g_macro_runtime_current->argument_data[d-1]->type;
         if (type == SUCCEEDED)
           strcpy(t, "ARG_NUMBER");
         else if (type == INPUT_NUMBER_FLOAT)
@@ -1066,7 +1066,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
         (*expands)++;
         i++;
 
-        snprintf(t, sizeof(t), "%s", macro_runtime_current->macro->name);
+        snprintf(t, sizeof(t), "%s", g_macro_runtime_current->macro->name);
         for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
           g_expanded_macro_string[k] = t[j];
           if (t[j] == 0)
@@ -1100,16 +1100,16 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
         }
         i--;
 
-        if (d > macro_runtime_current->supplied_arguments) {
+        if (d > g_macro_runtime_current->supplied_arguments) {
           if (g_input_number_error_msg == YES) {
-            snprintf(g_xyz, sizeof(g_xyz), "Macro \"%s\" wasn't called with enough arguments, \\%d is out of range.\n", macro_runtime_current->macro->name, d);
+            snprintf(g_xyz, sizeof(g_xyz), "Macro \"%s\" wasn't called with enough arguments, \\%d is out of range.\n", g_macro_runtime_current->macro->name, d);
             print_error(g_xyz, ERROR_NUM);
           }
     
           return FAILED;
         }
 
-        d = macro_runtime_current->argument_data[d - 1]->start;
+        d = g_macro_runtime_current->argument_data[d - 1]->start;
 
         for (; k < MAX_NAME_LENGTH; d++, k++) {
           if (g_buffer[d] == 0 || g_buffer[d] == ' ' || g_buffer[d] == 0x0A || g_buffer[d] == ',')
@@ -1162,7 +1162,7 @@ int _expand_macro_arguments(char *in, int *expands) {
     /* move up one macro call in the hierarchy */
     g_macro_active--;
     if (g_macro_active > 0) {
-      macro_runtime_current = &macro_stack[g_macro_active - 1];
+      g_macro_runtime_current = &g_macro_stack[g_macro_active - 1];
       /* recursive call to self */
       return _expand_macro_arguments(in, expands);
     }
@@ -1175,13 +1175,13 @@ int _expand_macro_arguments(char *in, int *expands) {
 int expand_macro_arguments(char *in) {
 
   /* save the current macro_runtime pointers */
-  struct macro_runtime* mr = macro_runtime_current;
+  struct macro_runtime* mr = g_macro_runtime_current;
   int ma = g_macro_active, expands = 0, ret;
 
   ret = _expand_macro_arguments(in, &expands);
 
   /* return the current macro_runtime as recursive _expand_macro_arguments() might have modified it */
-  macro_runtime_current = mr;
+  g_macro_runtime_current = mr;
   g_macro_active = ma;
 
   return ret;

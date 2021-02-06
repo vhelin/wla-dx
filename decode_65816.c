@@ -1,12 +1,12 @@
 
 case 0:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
-  if (opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
-    output_assembled_opcode(opt_tmp, "d%d ", opt_tmp->hex);
+  if (g_opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
+    output_assembled_opcode(g_opt_tmp, "d%d ", g_opt_tmp->hex);
     g_source_pointer = inz;
     return SUCCEEDED;
   }
-  if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+  if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
     break;
  }
 break;
@@ -14,7 +14,7 @@ break;
 case 11:
 case 1:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
-  if (opt_tmp->op[x] == 'x') {
+  if (g_opt_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = inz;
     z = input_number();
@@ -28,36 +28,36 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     }
 
     for (x++; x < OP_SIZE_MAX; inz++, x++) {
-      if (opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
+      if (g_opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
         if (z == SUCCEEDED)
-          output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
+          output_assembled_opcode(g_opt_tmp, "d%d d%d ", g_opt_tmp->hex, d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "k%d d%d R%s ", g_active_file_info_last->line_current, opt_tmp->hex, g_label);
+          output_assembled_opcode(g_opt_tmp, "k%d d%d R%s ", g_active_file_info_last->line_current, g_opt_tmp->hex, g_label);
         else {
-          output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
-          if (opt_tmp->type == 11) {
+          output_assembled_opcode(g_opt_tmp, "d%d c%d ", g_opt_tmp->hex, g_latest_stack);
+          if (g_opt_tmp->type == 11) {
             /* 11 -> let's configure the stack so that all label references inside are relative */
-            stacks_tmp->relative_references = 1;
+            g_stacks_tmp->relative_references = 1;
           }
         }
 
         g_source_pointer = inz;
         return SUCCEEDED;
       }
-      if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+      if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
         break;
     }
   }
-  if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+  if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
     break;
  }
 break;
 
 case 2:
-if (xbit_size > 16 && opt_tmp->skip_xbit == 1)
+if (g_xbit_size > 16 && g_opt_tmp->skip_xbit == 1)
   break;
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
-  if (opt_tmp->op[x] == '?') {
+  if (g_opt_tmp->op[x] == '?') {
     y = g_source_pointer;
     g_source_pointer = inz;
     z = input_number();
@@ -65,39 +65,39 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     g_source_pointer = y;
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
-    if (g_operand_hint == HINT_24BIT && opt_tmp->skip_xbit == 1)
+    if (g_operand_hint == HINT_24BIT && g_opt_tmp->skip_xbit == 1)
       break;
     if (z == SUCCEEDED && (d < -32768 || d > 65535)) {
-      if (opt_tmp->skip_xbit == 1)
+      if (g_opt_tmp->skip_xbit == 1)
         break;
       print_error("Out of 16-bit range.\n", ERROR_NUM);
       return FAILED;
     }
 
     for (x++; x < OP_SIZE_MAX; inz++, x++) {
-      if (opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
+      if (g_opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
         if (z == SUCCEEDED)
-          output_assembled_opcode(opt_tmp, "d%d y%d ", opt_tmp->hex, d);
+          output_assembled_opcode(g_opt_tmp, "d%d y%d ", g_opt_tmp->hex, d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "k%d d%d r%s ", g_active_file_info_last->line_current, opt_tmp->hex, g_label);
+          output_assembled_opcode(g_opt_tmp, "k%d d%d r%s ", g_active_file_info_last->line_current, g_opt_tmp->hex, g_label);
         else
-          output_assembled_opcode(opt_tmp, "d%d C%d ", opt_tmp->hex, latest_stack);
+          output_assembled_opcode(g_opt_tmp, "d%d C%d ", g_opt_tmp->hex, g_latest_stack);
         
         g_source_pointer = inz;
         return SUCCEEDED;
       }
-      if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+      if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
         break;
     }
   }
-  if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+  if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
     break;
  }
 break;
 
 case 3:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
-  if (opt_tmp->op[x] == '&') {
+  if (g_opt_tmp->op[x] == '&') {
     y = g_source_pointer;
     g_source_pointer = inz;
     z = input_number();
@@ -107,21 +107,21 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
       return FAILED;
     
     for (x++; x < OP_SIZE_MAX; inz++, x++) {
-      if (opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
+      if (g_opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
         if (z == SUCCEEDED)
-          output_assembled_opcode(opt_tmp, "d%d z%d ", opt_tmp->hex, d);
+          output_assembled_opcode(g_opt_tmp, "d%d z%d ", g_opt_tmp->hex, d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "k%d d%d q%s ", g_active_file_info_last->line_current, opt_tmp->hex, g_label);
+          output_assembled_opcode(g_opt_tmp, "k%d d%d q%s ", g_active_file_info_last->line_current, g_opt_tmp->hex, g_label);
         else
-          output_assembled_opcode(opt_tmp, "d%d T%d ", opt_tmp->hex, latest_stack);
+          output_assembled_opcode(g_opt_tmp, "d%d T%d ", g_opt_tmp->hex, g_latest_stack);
         g_source_pointer = inz;
         return SUCCEEDED;
       }
-      if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+      if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
         break;
     }
   }
-  if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+  if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
     break;
  }
 break;
@@ -130,7 +130,7 @@ break;
 
 case 4:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
-  if (opt_tmp->op[x] == 'x') {
+  if (g_opt_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = inz;
     z = input_number();
@@ -147,7 +147,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         y = 1;
     }
     else {
-      if (accu_size == 8)
+      if (g_accu_size == 8)
         y = 0;
       else
         y = 1;
@@ -167,34 +167,34 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     }
     
     for (x++ ; x < OP_SIZE_MAX; inz++, x++) {
-      if (opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
+      if (g_opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
         /* 8BIT */
         if (y == 0) {
           if (z == SUCCEEDED)
-            output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
+            output_assembled_opcode(g_opt_tmp, "d%d d%d ", g_opt_tmp->hex, d);
           else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-            output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", g_active_file_info_last->line_current, opt_tmp->hex, g_label);
+            output_assembled_opcode(g_opt_tmp, "k%d d%d Q%s ", g_active_file_info_last->line_current, g_opt_tmp->hex, g_label);
           else
-            output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
+            output_assembled_opcode(g_opt_tmp, "d%d c%d ", g_opt_tmp->hex, g_latest_stack);
         }
         /* 16BIT */
         else {
           if (z == SUCCEEDED)
-            output_assembled_opcode(opt_tmp, "d%d y%d ", opt_tmp->hex, d);
+            output_assembled_opcode(g_opt_tmp, "d%d y%d ", g_opt_tmp->hex, d);
           else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-            output_assembled_opcode(opt_tmp, "k%d d%d r%s ", g_active_file_info_last->line_current, opt_tmp->hex, g_label);
+            output_assembled_opcode(g_opt_tmp, "k%d d%d r%s ", g_active_file_info_last->line_current, g_opt_tmp->hex, g_label);
           else
-            output_assembled_opcode(opt_tmp, "d%d C%d ", opt_tmp->hex, latest_stack);
+            output_assembled_opcode(g_opt_tmp, "d%d C%d ", g_opt_tmp->hex, g_latest_stack);
         }
         
         g_source_pointer = inz;
         return SUCCEEDED;
       }
-      if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+      if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
         break;
     }
   }
-  if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+  if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
     break;
  }
 break;
@@ -203,7 +203,7 @@ break;
 
 case 5:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
-  if (opt_tmp->op[x] == 'x') {
+  if (g_opt_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = inz;
     z = input_number();
@@ -216,12 +216,12 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
 
     e = d;
     v = z;
-    h = latest_stack;
+    h = g_latest_stack;
     if (z == INPUT_NUMBER_ADDRESS_LABEL)
       strcpy(labelx, g_label);
 
     for (x++; x < OP_SIZE_MAX; inz++, x++) {
-      if (opt_tmp->op[x] == 'x') {
+      if (g_opt_tmp->op[x] == 'x') {
         y = g_source_pointer;
         g_source_pointer = inz;
         z = input_number();
@@ -233,34 +233,34 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
           break;
 
         for (x++; x < OP_SIZE_MAX; inz++, x++) {
-          if (opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
+          if (g_opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
             /* NOTE: in the source code it's "MVP/MVN x1, x2", but we output "MVP/MVN x2, x1" */
             if (z == SUCCEEDED)
-              output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
+              output_assembled_opcode(g_opt_tmp, "d%d d%d ", g_opt_tmp->hex, d);
             else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-              output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", g_active_file_info_last->line_current, opt_tmp->hex, g_label);
+              output_assembled_opcode(g_opt_tmp, "k%d d%d Q%s ", g_active_file_info_last->line_current, g_opt_tmp->hex, g_label);
             else
-              output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
+              output_assembled_opcode(g_opt_tmp, "d%d c%d ", g_opt_tmp->hex, g_latest_stack);
 
             if (v == SUCCEEDED)
-              output_assembled_opcode(opt_tmp, "d%d ", e);
+              output_assembled_opcode(g_opt_tmp, "d%d ", e);
             else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-              output_assembled_opcode(opt_tmp, "k%d Q%s ", g_active_file_info_last->line_current, labelx);
+              output_assembled_opcode(g_opt_tmp, "k%d Q%s ", g_active_file_info_last->line_current, labelx);
             else
-              output_assembled_opcode(opt_tmp, "c%d ", h);
+              output_assembled_opcode(g_opt_tmp, "c%d ", h);
 
             g_source_pointer = inz;
             return SUCCEEDED;
           }
-          if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+          if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
             break;
         }
       }
-      if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+      if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
         break;
     }
   }
-  if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+  if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
     break;
  }
 break;
@@ -269,14 +269,14 @@ break;
 
 case 6:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
-  if (opt_tmp->op[x] == 'x') {
+  if (g_opt_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = inz;
     z = input_number();
     inz = g_source_pointer;
     g_source_pointer = y;
     if (z != SUCCEEDED) {
-      if (opt_tmp->skip_xbit == 0)
+      if (g_opt_tmp->skip_xbit == 0)
         print_error("REP needs immediate data.\n", ERROR_LOG);
       else
         print_error("SEP needs immediate data.\n", ERROR_LOG);
@@ -286,33 +286,33 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
       break;
     
     for (x++; x < OP_SIZE_MAX; inz++, x++) {
-      if (opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
+      if (g_opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
         
-        output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
+        output_assembled_opcode(g_opt_tmp, "d%d d%d ", g_opt_tmp->hex, d);
         
         /* REP */
-        if (opt_tmp->skip_xbit == 0) {
+        if (g_opt_tmp->skip_xbit == 0) {
           if (d & 16)
-            index_size = 16;
+            g_index_size = 16;
           if (d & 32)
-            accu_size = 16;
+            g_accu_size = 16;
         }
         /* SEP */
         else {
           if (d & 16)
-            index_size = 8;
+            g_index_size = 8;
           if (d & 32)
-            accu_size = 8;
+            g_accu_size = 8;
         }
         
         g_source_pointer = inz;
         return SUCCEEDED;
       }
-      if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+      if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
         break;
     }
   }
-  if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+  if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
     break;
  }
 break;
@@ -321,7 +321,7 @@ break;
 
 case 7:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
-  if (opt_tmp->op[x] == 'x') {
+  if (g_opt_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = inz;
     z = input_number();
@@ -338,7 +338,7 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
         y = 1;
     }
     else {
-      if (index_size == 8)
+      if (g_index_size == 8)
         y = 0;
       else
         y = 1;
@@ -358,53 +358,53 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     }
     
     for (x++; x < OP_SIZE_MAX; inz++, x++) {
-      if (opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
+      if (g_opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
         /* 8BIT */
         if (y == 0) {
           if (z == SUCCEEDED)
-            output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
+            output_assembled_opcode(g_opt_tmp, "d%d d%d ", g_opt_tmp->hex, d);
           else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-            output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", g_active_file_info_last->line_current, opt_tmp->hex, g_label);
+            output_assembled_opcode(g_opt_tmp, "k%d d%d Q%s ", g_active_file_info_last->line_current, g_opt_tmp->hex, g_label);
           else
-            output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
+            output_assembled_opcode(g_opt_tmp, "d%d c%d ", g_opt_tmp->hex, g_latest_stack);
         }
         /* 16BIT */
         else {
           if (z == SUCCEEDED)
-            output_assembled_opcode(opt_tmp, "d%d y%d ", opt_tmp->hex, d);
+            output_assembled_opcode(g_opt_tmp, "d%d y%d ", g_opt_tmp->hex, d);
           else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-            output_assembled_opcode(opt_tmp, "k%d d%d r%s ", g_active_file_info_last->line_current, opt_tmp->hex, g_label);
+            output_assembled_opcode(g_opt_tmp, "k%d d%d r%s ", g_active_file_info_last->line_current, g_opt_tmp->hex, g_label);
           else
-            output_assembled_opcode(opt_tmp, "d%d C%d ", opt_tmp->hex, latest_stack);
+            output_assembled_opcode(g_opt_tmp, "d%d C%d ", g_opt_tmp->hex, g_latest_stack);
         }
         
         g_source_pointer = inz;
         return SUCCEEDED;
       }
-      if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+      if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
         break;
     }
   }
-  if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+  if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
     break;
  }
 break;
 
 case 8:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
-  if (opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
-    output_assembled_opcode(opt_tmp, "y%d ", opt_tmp->hex);
+  if (g_opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
+    output_assembled_opcode(g_opt_tmp, "y%d ", g_opt_tmp->hex);
     g_source_pointer = inz;
     return SUCCEEDED;
   }
-  if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+  if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
     break;
  }
 break;
 
 case 9:
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
-  if (opt_tmp->op[x] == '?') {
+  if (g_opt_tmp->op[x] == '?') {
     y = g_source_pointer;
     g_source_pointer = inz;
     z = input_number();
@@ -416,35 +416,35 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
       break;
 
     for (x++; x < OP_SIZE_MAX; inz++, x++) {
-      if (opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
+      if (g_opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
         if (z == SUCCEEDED)
-          output_assembled_opcode(opt_tmp, "d%d y%d ", opt_tmp->hex, d);
+          output_assembled_opcode(g_opt_tmp, "d%d y%d ", g_opt_tmp->hex, d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "k%d d%d M%s ", g_active_file_info_last->line_current, opt_tmp->hex, g_label);
+          output_assembled_opcode(g_opt_tmp, "k%d d%d M%s ", g_active_file_info_last->line_current, g_opt_tmp->hex, g_label);
         else {
-          output_assembled_opcode(opt_tmp, "d%d C%d ", opt_tmp->hex, latest_stack);
+          output_assembled_opcode(g_opt_tmp, "d%d C%d ", g_opt_tmp->hex, g_latest_stack);
 
           /* let's configure the stack so that all label references inside are relative */
-          stacks_tmp->relative_references = 1;
+          g_stacks_tmp->relative_references = 1;
         }
         
         g_source_pointer = inz;
         return SUCCEEDED;
       }
-      if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+      if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
         break;
     }
   }
-  if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+  if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
     break;
  }
 break;
 
 case 0xA:
-if (xbit_size > 8 && opt_tmp->skip_xbit == 2)
+if (g_xbit_size > 8 && g_opt_tmp->skip_xbit == 2)
   break;
 for ( ; x < OP_SIZE_MAX; inz++, x++) {
-  if (opt_tmp->op[x] == 'x') {
+  if (g_opt_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = inz;
     z = input_number();
@@ -452,32 +452,32 @@ for ( ; x < OP_SIZE_MAX; inz++, x++) {
     g_source_pointer = y;
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
-    if ((g_operand_hint == HINT_16BIT || g_operand_hint == HINT_24BIT) && opt_tmp->skip_xbit == 2)
+    if ((g_operand_hint == HINT_16BIT || g_operand_hint == HINT_24BIT) && g_opt_tmp->skip_xbit == 2)
       break;
     if (z == SUCCEEDED && (d > 255 || d < -128)) {
-      if (opt_tmp->skip_xbit == 2)
+      if (g_opt_tmp->skip_xbit == 2)
         break;
       print_error("Out of 8-bit range.\n", ERROR_NUM);
       return FAILED;
     }
     
     for (x++; x < OP_SIZE_MAX; inz++, x++) {
-      if (opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
+      if (g_opt_tmp->op[x] == 0 && g_buffer[inz] == 0x0A) {
         if (z == SUCCEEDED)
-          output_assembled_opcode(opt_tmp, "d%d d%d ", opt_tmp->hex, d);
+          output_assembled_opcode(g_opt_tmp, "d%d d%d ", g_opt_tmp->hex, d);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-          output_assembled_opcode(opt_tmp, "k%d d%d Q%s ", g_active_file_info_last->line_current, opt_tmp->hex, g_label);
+          output_assembled_opcode(g_opt_tmp, "k%d d%d Q%s ", g_active_file_info_last->line_current, g_opt_tmp->hex, g_label);
         else
-          output_assembled_opcode(opt_tmp, "d%d c%d ", opt_tmp->hex, latest_stack);
+          output_assembled_opcode(g_opt_tmp, "d%d c%d ", g_opt_tmp->hex, g_latest_stack);
 
         g_source_pointer = inz;
         return SUCCEEDED;
       }
-      if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+      if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
         break;
     }
   }
-  if (opt_tmp->op[x] != toupper((int)g_buffer[inz]))
+  if (g_opt_tmp->op[x] != toupper((int)g_buffer[inz]))
     break;
  }
 break;

@@ -16,7 +16,7 @@ extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
 extern char *g_tmp_name, tmp[4096];
-extern int g_verbose_mode, g_section_status, cartridgetype, g_output_format;
+extern int g_verbose_mode, g_section_status, g_cartridgetype, g_output_format;
 
 
 int listfile_collect(void) {

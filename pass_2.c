@@ -14,14 +14,14 @@
 
 
 #ifdef GB
-extern int licenseecodeold;
-extern int nintendologo_defined;
-extern int name_defined, licenseecodeold_defined, licenseecodenew_defined;
-extern int countrycode, countrycode_defined;
-extern int version, version_defined;
-extern char name[32], licenseecodenew_c1, licenseecodenew_c2;
+extern int g_licenseecodeold;
+extern int g_nintendologo_defined;
+extern int g_name_defined, g_licenseecodeold_defined, g_licenseecodenew_defined;
+extern int g_countrycode, g_countrycode_defined;
+extern int g_version, g_version_defined, g_cartridgetype, g_cartridgetype_defined;
+extern char g_name[32], g_licenseecodenew_c1, g_licenseecodenew_c2;
 
-unsigned char nintendo_logo_dat[] = {
+unsigned char g_nintendo_logo_dat[] = {
   0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B,
   0x03, 0x73, 0x00, 0x83, 0x00, 0x0C, 0x00, 0x0D,
   0x00, 0x08, 0x11, 0x1F, 0x88, 0x89, 0x00, 0x0E,
@@ -32,36 +32,36 @@ unsigned char nintendo_logo_dat[] = {
 #endif
 
 #ifdef Z80
-extern char sdsctag_name_str[MAX_NAME_LENGTH + 1], sdsctag_notes_str[MAX_NAME_LENGTH + 1], sdsctag_author_str[MAX_NAME_LENGTH + 1];
-extern int sdsctag_name_type, sdsctag_notes_type, sdsctag_author_type, sdsc_ma, sdsc_mi;
-extern int sdsctag_name_value, sdsctag_notes_value, sdsctag_author_value;
-extern int computesmschecksum_defined, sdsctag_defined, smstag_defined;
-extern int smsheader_defined, smsversion, smsversion_defined, smsregioncode, smsregioncode_defined;
-extern int smsproductcode_defined, smsproductcode1, smsproductcode2, smsproductcode3, smsreservedspace1, smsreservedspace2;
-extern int smsromsize, smsromsize_defined;
+extern char g_sdsctag_name_str[MAX_NAME_LENGTH + 1], g_sdsctag_notes_str[MAX_NAME_LENGTH + 1], g_sdsctag_author_str[MAX_NAME_LENGTH + 1];
+extern int g_sdsctag_name_type, g_sdsctag_notes_type, g_sdsctag_author_type, g_sdsc_ma, g_sdsc_mi;
+extern int g_sdsctag_name_value, g_sdsctag_notes_value, g_sdsctag_author_value;
+extern int g_computesmschecksum_defined, g_sdsctag_defined, g_smstag_defined;
+extern int g_smsheader_defined, g_smsversion, g_smsversion_defined, g_smsregioncode, g_smsregioncode_defined;
+extern int g_smsproductcode_defined, g_smsproductcode1, g_smsproductcode2, g_smsproductcode3, g_smsreservedspace1, g_smsreservedspace2;
+extern int g_smsromsize, g_smsromsize_defined;
 #endif
 
 #ifdef W65816
-extern char name[32];
-extern char snesid[4];
-extern int snesid_defined, snesromsize;
-extern int sramsize_defined, sramsize, country_defined, country;
-extern int cartridgetype, cartridgetype_defined, licenseecode_defined, licenseecode;
-extern int version_defined, version;
-extern int hirom_defined, lorom_defined, slowrom_defined, fastrom_defined, snes_mode, name_defined;
-extern int computesneschecksum_defined, exhirom_defined, exlorom_defined;
+extern char g_name[32];
+extern char g_snesid[4];
+extern int g_snesid_defined, g_snesromsize;
+extern int g_sramsize_defined, g_sramsize, g_country_defined, g_country;
+extern int g_licenseecode_defined, g_licenseecode;
+extern int g_version_defined, g_version, g_cartridgetype, g_cartridgetype_defined;
+extern int g_hirom_defined, g_lorom_defined, g_slowrom_defined, g_fastrom_defined, g_snes_mode, g_name_defined;
+extern int g_computesneschecksum_defined, g_exhirom_defined, g_exlorom_defined;
 #endif
 
 extern FILE *g_file_out_ptr;
-extern int ind, inz, rambanks, rambanks_defined, ifdef;
-extern int rombanks_defined, rombanks, cartridgetype, cartridgetype_defined;
-extern int g_output_format, romgbc, romsgb, romdmg, max_address;
-extern int romtype, g_verbose_mode, g_section_status, background_defined, memorymap_defined;
-extern int emptyfill_defined, emptyfill, rombankmap_defined, section_id;
+extern int ind, inz, g_rambanks, g_rambanks_defined, g_ifdef;
+extern int g_rombanks_defined, g_rombanks;
+extern int g_output_format, g_romgbc, g_romsgb, g_romdmg, g_max_address;
+extern int g_romtype, g_verbose_mode, g_section_status, g_background_defined, g_memorymap_defined;
+extern int g_emptyfill_defined, g_emptyfill, g_rombankmap_defined, g_section_id;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
-extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
+extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 
-char include_directives_name[] = "INCLUDE_DIRECTIVES:";
+char g_include_directives_name[] = "INCLUDE_DIRECTIVES:";
 
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 
@@ -72,8 +72,8 @@ void write_snes_cartridge_information(int start);
 
 int pass_2(void) {
 
-  if (ifdef > 0) {
-    fprintf(stderr, "%x x .ENDIFs are missing.\n", ifdef);
+  if (g_ifdef > 0) {
+    fprintf(stderr, "%x x .ENDIFs are missing.\n", g_ifdef);
     return FAILED;
   }
 
@@ -81,18 +81,18 @@ int pass_2(void) {
     printf("Directive checks...\n");
 
   if (g_section_status == ON) {
-    fprintf(stderr, "%s The section \"%s\" was not closed.\n", include_directives_name, g_sections_last->name);
+    fprintf(stderr, "%s The section \"%s\" was not closed.\n", g_include_directives_name, g_sections_last->name);
     return FAILED;
   }
 
-  if (g_output_format != OUTPUT_LIBRARY && rombanks_defined == 0 && rombankmap_defined == 0) {
-    fprintf(stderr, "%s ROMBANKS/ROMBANKMAP wasn't defined.\n", include_directives_name);
+  if (g_output_format != OUTPUT_LIBRARY && g_rombanks_defined == 0 && g_rombankmap_defined == 0) {
+    fprintf(stderr, "%s ROMBANKS/ROMBANKMAP wasn't defined.\n", g_include_directives_name);
     return FAILED;
   }
 
 #ifdef Z80
   /* SMSTAG */
-  if (smstag_defined != 0) {
+  if (g_smstag_defined != 0) {
     /* OBSOLETE: MOVED TO wlalink/compute.c/compute_sms_checksum()
        mem_insert_absolute(0x7FF0, 0x54);
        mem_insert_absolute(0x7FF1, 0x4D);
@@ -106,47 +106,47 @@ int pass_2(void) {
   }
 
   /* SMSHEADER */
-  if (smsheader_defined != 0) {
+  if (g_smsheader_defined != 0) {
     int tag_address = 0x7FF0;
     int rs = 0, rc = 4;
 
-    if (smsromsize_defined != 0)
-      rs = smsromsize;
+    if (g_smsromsize_defined != 0)
+      rs = g_smsromsize;
     else {
       /* try to calculate the correct romsize value */
-      if (max_address < 16*1024)
+      if (g_max_address < 16*1024)
         rs = 0xA; /* 8KB */
-      else if (max_address < 32*1024)
+      else if (g_max_address < 32*1024)
         rs = 0xB; /* 16KB */
       else
         rs = 0xC; /* 32KB+ */
     }
 
-    if (max_address < 0x4000) {
+    if (g_max_address < 0x4000) {
       /* let's assume it's a 8KB ROM */
       tag_address = 0x1FF0;
     }
-    else if (max_address < 0x8000) {
+    else if (g_max_address < 0x8000) {
       /* let's assume it's a 16KB ROM */
       tag_address = 0x3FF0;
     }
 
-    if (smsregioncode_defined != 0)
-      rc = smsregioncode;
+    if (g_smsregioncode_defined != 0)
+      rc = g_smsregioncode;
     
     /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-    snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing SMS ROM header bytes");
+    snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing SMS ROM header bytes");
 
-    mem_insert_absolute(tag_address + 0x8, smsreservedspace1);
-    mem_insert_absolute(tag_address + 0x9, smsreservedspace2);
-    mem_insert_absolute(tag_address + 0xC, smsproductcode1);
-    mem_insert_absolute(tag_address + 0xD, smsproductcode2);
-    mem_insert_absolute(tag_address + 0xE, (smsproductcode3 << 4) | smsversion);
+    mem_insert_absolute(tag_address + 0x8, g_smsreservedspace1);
+    mem_insert_absolute(tag_address + 0x9, g_smsreservedspace2);
+    mem_insert_absolute(tag_address + 0xC, g_smsproductcode1);
+    mem_insert_absolute(tag_address + 0xD, g_smsproductcode2);
+    mem_insert_absolute(tag_address + 0xE, (g_smsproductcode3 << 4) | g_smsversion);
     mem_insert_absolute(tag_address + 0xF, (rc << 4) | rs);
   }
 
   /* SDSCTAG */
-  if (sdsctag_defined != 0) {
+  if (g_sdsctag_defined != 0) {
     struct tm *ti;
     time_t t;
     int da, mo, ye_l, ye_h, ye, x, q;
@@ -162,67 +162,67 @@ int pass_2(void) {
     fprintf(g_file_out_ptr, "k0 ");
 
     /* the data */
-    if (sdsctag_author_type == TYPE_VALUE)
-      fprintf(g_file_out_ptr, "y%d ", sdsctag_author_value);
-    else if (sdsctag_author_type == TYPE_LABEL)
-      fprintf(g_file_out_ptr, "r%s ", sdsctag_author_str);
-    else if (sdsctag_author_type == TYPE_STACK_CALCULATION)
-      fprintf(g_file_out_ptr, "C%d ", sdsctag_author_value);
+    if (g_sdsctag_author_type == TYPE_VALUE)
+      fprintf(g_file_out_ptr, "y%d ", g_sdsctag_author_value);
+    else if (g_sdsctag_author_type == TYPE_LABEL)
+      fprintf(g_file_out_ptr, "r%s ", g_sdsctag_author_str);
+    else if (g_sdsctag_author_type == TYPE_STACK_CALCULATION)
+      fprintf(g_file_out_ptr, "C%d ", g_sdsctag_author_value);
     else
       fprintf(g_file_out_ptr, "r *WLA_SDSC_PRG_AUTHOR_PTR ");
 
-    if (sdsctag_name_type == TYPE_VALUE)
-      fprintf(g_file_out_ptr, "y%d ", sdsctag_name_value);
-    else if (sdsctag_name_type == TYPE_LABEL)
-      fprintf(g_file_out_ptr, "r%s ", sdsctag_name_str);
-    else if (sdsctag_name_type == TYPE_STACK_CALCULATION)
-      fprintf(g_file_out_ptr, "C%d ", sdsctag_name_value);
+    if (g_sdsctag_name_type == TYPE_VALUE)
+      fprintf(g_file_out_ptr, "y%d ", g_sdsctag_name_value);
+    else if (g_sdsctag_name_type == TYPE_LABEL)
+      fprintf(g_file_out_ptr, "r%s ", g_sdsctag_name_str);
+    else if (g_sdsctag_name_type == TYPE_STACK_CALCULATION)
+      fprintf(g_file_out_ptr, "C%d ", g_sdsctag_name_value);
     else
       fprintf(g_file_out_ptr, "r *WLA_SDSC_PRG_NAME_PTR ");
 
-    if (sdsctag_notes_type == TYPE_VALUE)
-      fprintf(g_file_out_ptr, "y%d ", sdsctag_notes_value);
-    else if (sdsctag_notes_type == TYPE_LABEL)
-      fprintf(g_file_out_ptr, "r%s ", sdsctag_notes_str);
-    else if (sdsctag_notes_type == TYPE_STACK_CALCULATION)
-      fprintf(g_file_out_ptr, "C%d ", sdsctag_notes_value);
+    if (g_sdsctag_notes_type == TYPE_VALUE)
+      fprintf(g_file_out_ptr, "y%d ", g_sdsctag_notes_value);
+    else if (g_sdsctag_notes_type == TYPE_LABEL)
+      fprintf(g_file_out_ptr, "r%s ", g_sdsctag_notes_str);
+    else if (g_sdsctag_notes_type == TYPE_STACK_CALCULATION)
+      fprintf(g_file_out_ptr, "C%d ", g_sdsctag_notes_value);
     else
       fprintf(g_file_out_ptr, "r *WLA_SDSC_PRG_NOTES_PTR ");
 
     fprintf(g_file_out_ptr, "s ");
 
     /* create string sections */
-    if (sdsctag_author_type == TYPE_STRING) {
+    if (g_sdsctag_author_type == TYPE_STRING) {
       if (create_a_new_section_structure() == FAILED)
         return FAILED;
       strcpy(g_sec_tmp->name, "!__WLA_SDSCTAG_STRING_AUTHOR");
       g_sec_tmp->status = SECTION_STATUS_SEMIFREE;
 
       fprintf(g_file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_AUTHOR_PTR ", g_sec_tmp->id);
-      for (q = 0; q < (int)strlen(sdsctag_author_str); q++)
-        fprintf(g_file_out_ptr, "d%d ", sdsctag_author_str[q]);
+      for (q = 0; q < (int)strlen(g_sdsctag_author_str); q++)
+        fprintf(g_file_out_ptr, "d%d ", g_sdsctag_author_str[q]);
       fprintf(g_file_out_ptr, "d0 s ");
     }
-    if (sdsctag_name_type == TYPE_STRING) {
+    if (g_sdsctag_name_type == TYPE_STRING) {
       if (create_a_new_section_structure() == FAILED)
         return FAILED;
       strcpy(g_sec_tmp->name, "!__WLA_SDSCTAG_STRING_NAME");
       g_sec_tmp->status = SECTION_STATUS_SEMIFREE;
       
       fprintf(g_file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_NAME_PTR ", g_sec_tmp->id);
-      for (q = 0; q < (int)strlen(sdsctag_name_str); q++)
-        fprintf(g_file_out_ptr, "d%d ", sdsctag_name_str[q]);
+      for (q = 0; q < (int)strlen(g_sdsctag_name_str); q++)
+        fprintf(g_file_out_ptr, "d%d ", g_sdsctag_name_str[q]);
       fprintf(g_file_out_ptr, "d0 s ");
     }
-    if (sdsctag_notes_type == TYPE_STRING) {
+    if (g_sdsctag_notes_type == TYPE_STRING) {
       if (create_a_new_section_structure() == FAILED)
         return FAILED;
       strcpy(g_sec_tmp->name, "!__WLA_SDSCTAG_STRING_NOTES");
       g_sec_tmp->status = SECTION_STATUS_SEMIFREE;
 
       fprintf(g_file_out_ptr, "B0 0 O1 S%d L *WLA_SDSC_PRG_NOTES_PTR ", g_sec_tmp->id);
-      for (q = 0; q < (int)strlen(sdsctag_notes_str); q++)
-        fprintf(g_file_out_ptr, "d%d ", sdsctag_notes_str[q]);
+      for (q = 0; q < (int)strlen(g_sdsctag_notes_str); q++)
+        fprintf(g_file_out_ptr, "d%d ", g_sdsctag_notes_str[q]);
       fprintf(g_file_out_ptr, "d0 s ");
     }
 
@@ -234,10 +234,10 @@ int pass_2(void) {
     ye = ti->tm_year + 1900;
 
     /* BCD the values */
-    q = (sdsc_ma / 10);
-    sdsc_ma = (q << 4) | (sdsc_ma - (q * 10));
-    q = (sdsc_mi / 10);
-    sdsc_mi = (q << 4) | (sdsc_mi - (q * 10));
+    q = (g_sdsc_ma / 10);
+    g_sdsc_ma = (q << 4) | (g_sdsc_ma - (q * 10));
+    q = (g_sdsc_mi / 10);
+    g_sdsc_mi = (q << 4) | (g_sdsc_mi - (q * 10));
     q = (da / 10);
     da = (q << 4) | (da - (q * 10));
     q = (mo / 10);
@@ -269,8 +269,8 @@ int pass_2(void) {
     fprintf(g_file_out_ptr, "d%d ", 0x53);
     fprintf(g_file_out_ptr, "d%d ", 0x43);
     /* version */
-    fprintf(g_file_out_ptr, "d%d ", sdsc_ma);
-    fprintf(g_file_out_ptr, "d%d ", sdsc_mi);
+    fprintf(g_file_out_ptr, "d%d ", g_sdsc_ma);
+    fprintf(g_file_out_ptr, "d%d ", g_sdsc_mi);
     /* date */
     fprintf(g_file_out_ptr, "d%d ", da);
     fprintf(g_file_out_ptr, "d%d ", mo);
@@ -284,8 +284,8 @@ int pass_2(void) {
       mem_insert_absolute(0x7FE1, 0x44);
       mem_insert_absolute(0x7FE2, 0x53);
       mem_insert_absolute(0x7FE3, 0x43);
-      mem_insert_absolute(0x7FE4, sdsc_ma);
-      mem_insert_absolute(0x7FE5, sdsc_mi);
+      mem_insert_absolute(0x7FE4, g_sdsc_ma);
+      mem_insert_absolute(0x7FE5, g_sdsc_mi);
       mem_insert_absolute(0x7FE6, da);
       mem_insert_absolute(0x7FE7, mo);
       mem_insert_absolute(0x7FE8, ye_l);
@@ -297,10 +297,10 @@ int pass_2(void) {
 #ifdef W65816
   if (g_output_format != OUTPUT_LIBRARY) {
     /* snes cartridge information */
-    if (snes_mode != 0) {
-      if (hirom_defined != 0)
+    if (g_snes_mode != 0) {
+      if (g_hirom_defined != 0)
         write_snes_cartridge_information(0xFFD5);
-      else if (exhirom_defined != 0) {
+      else if (g_exhirom_defined != 0) {
         write_snes_cartridge_information(0x40FFD5);
         /* mirror the info */
         write_snes_cartridge_information(0xFFD5);
@@ -314,102 +314,102 @@ int pass_2(void) {
 #ifdef GB
   /* insert the descriptive data (not in library files) */
   if (g_output_format == OUTPUT_OBJECT) {
-    if (nintendologo_defined != 0) {
+    if (g_nintendologo_defined != 0) {
       int nl1 = 0x104;
       unsigned int nl2 = 0;
       
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM Nintendo logo bytes");
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM Nintendo logo bytes");
 
-      while (nl2 < sizeof(nintendo_logo_dat)) {
-        mem_insert_absolute(nl1, nintendo_logo_dat[nl2]);
+      while (nl2 < sizeof(g_nintendo_logo_dat)) {
+        mem_insert_absolute(nl1, g_nintendo_logo_dat[nl2]);
         nl1++;
         nl2++;
       }
     }
     
-    if (romgbc == 1) {
+    if (g_romgbc == 1) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM type: GB Color compatible");
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM type: GB Color compatible");
 
       mem_insert_absolute(323, 0x80);
     }
-    else if (romgbc == 2) {
+    else if (g_romgbc == 2) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM type: GB Color only");
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM type: GB Color only");
 
       mem_insert_absolute(323, 0xc0);
     }
-    if (romdmg != 0) {
+    if (g_romdmg != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM type: GB original");
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM type: GB original");
 
       mem_insert_absolute(326, 0);
     }
-    if (romsgb != 0) {
+    if (g_romsgb != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM type: Super GB");
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM type: Super GB");
 
       mem_insert_absolute(326, 3);
     }
     
-    if (rambanks_defined != 0) {
+    if (g_rambanks_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB RAM banks");
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB RAM banks");
 
-      mem_insert_absolute(329, rambanks);
+      mem_insert_absolute(329, g_rambanks);
     }
-    if (rombanks_defined != 0) {
+    if (g_rombanks_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM banks");
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM banks");
 
-      mem_insert_absolute(328, romtype);
+      mem_insert_absolute(328, g_romtype);
     }
-    if (cartridgetype_defined != 0) {
+    if (g_cartridgetype_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB cartridge type");
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB cartridge type");
 
-      mem_insert_absolute(327, cartridgetype);
+      mem_insert_absolute(327, g_cartridgetype);
     }
-    if (licenseecodeold_defined != 0) {
+    if (g_licenseecodeold_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM licensee code (old)");
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM licensee code (old)");
 
-      mem_insert_absolute(331, licenseecodeold);
+      mem_insert_absolute(331, g_licenseecodeold);
       mem_insert_absolute(324, 0);
       mem_insert_absolute(325, 0);
     }
-    if (licenseecodenew_defined != 0) {
+    if (g_licenseecodenew_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM licensee code (new)");
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM licensee code (new)");
 
       mem_insert_absolute(331, 51);
-      mem_insert_absolute(324, licenseecodenew_c1);
-      mem_insert_absolute(325, licenseecodenew_c2);
+      mem_insert_absolute(324, g_licenseecodenew_c1);
+      mem_insert_absolute(325, g_licenseecodenew_c2);
     }
-    if (countrycode_defined != 0) {
+    if (g_countrycode_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM country code");
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM country code");
 
-      mem_insert_absolute(330, countrycode);
+      mem_insert_absolute(330, g_countrycode);
     }
-    if (name_defined != 0) {
-      if (romgbc != 0)
+    if (g_name_defined != 0) {
+      if (g_romgbc != 0)
         inz = 15;
       else
         inz = 16;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM name");
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM name");
 
       for (ind = 0; ind < inz; ind++)
-        mem_insert_absolute(308 + ind, name[ind]);
+        mem_insert_absolute(308 + ind, g_name[ind]);
     }
-    if (version_defined != 0) {
+    if (g_version_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing GB ROM version");
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM version");
 
-      mem_insert_absolute(332, version);
+      mem_insert_absolute(332, g_version);
     }
   }
 #endif
@@ -418,7 +418,7 @@ int pass_2(void) {
   g_file_out_ptr = NULL;
 
   /* clear the mem_insert*() warnings/errors buffer */
-  mem_insert_action[0] = 0;
+  g_mem_insert_action[0] = 0;
 
   return SUCCEEDED;
 }
@@ -429,49 +429,49 @@ int pass_2(void) {
 void write_snes_cartridge_information(int start) {
 
   inz = 32;
-  if (hirom_defined != 0)
+  if (g_hirom_defined != 0)
     inz |= 1;
-  else if (exhirom_defined != 0)
+  else if (g_exhirom_defined != 0)
     inz |= (1 << 2) | 1;
-  else if (exlorom_defined != 0)
+  else if (g_exlorom_defined != 0)
     inz |= (1 << 1);
 
-  if (fastrom_defined != 0)
+  if (g_fastrom_defined != 0)
     inz += 16;
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  snprintf(mem_insert_action, sizeof(mem_insert_action), "Writing SNES ROM information");
+  snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing SNES ROM information");
 
   mem_insert_absolute(start, inz);
   
-  if (cartridgetype_defined != 0) 
-    mem_insert_absolute(start + 1, cartridgetype);
+  if (g_cartridgetype_defined != 0) 
+    mem_insert_absolute(start + 1, g_cartridgetype);
 
-  if (snesromsize != 0) 
-    mem_insert_absolute(start + 2, snesromsize);
+  if (g_snesromsize != 0) 
+    mem_insert_absolute(start + 2, g_snesromsize);
 
-  if (sramsize_defined != 0) 
-    mem_insert_absolute(start + 3, sramsize);
+  if (g_sramsize_defined != 0) 
+    mem_insert_absolute(start + 3, g_sramsize);
 
-  if (country_defined != 0)
-    mem_insert_absolute(start + 4, country);
+  if (g_country_defined != 0)
+    mem_insert_absolute(start + 4, g_country);
 
-  if (licenseecode_defined != 0)
-    mem_insert_absolute(start + 5, licenseecode);
+  if (g_licenseecode_defined != 0)
+    mem_insert_absolute(start + 5, g_licenseecode);
 
-  if (version_defined != 0)
-    mem_insert_absolute(start + 6, version);
+  if (g_version_defined != 0)
+    mem_insert_absolute(start + 6, g_version);
   
   /* snes cartridge ID */
-  if (snesid_defined != 0) {
+  if (g_snesid_defined != 0) {
     for (ind = 0; ind < 4; ind++) 
-      mem_insert_absolute(start - (0xD5 - 0xB2) + ind, snesid[ind]);
+      mem_insert_absolute(start - (0xD5 - 0xB2) + ind, g_snesid[ind]);
   }
       
   /* snes cartridge name */
-  if (name_defined != 0) {
+  if (g_name_defined != 0) {
     for (ind = 0; ind < 21; ind++)
-      mem_insert_absolute(start - (0xD5 - 0xC0) + ind, name[ind]);
+      mem_insert_absolute(start - (0xD5 - 0xC0) + ind, g_name[ind]);
   }
 }
 
@@ -492,12 +492,12 @@ int create_a_new_section_structure(void) {
   g_sec_tmp->maxsize_status = OFF;
   g_sec_tmp->data = NULL;
   g_sec_tmp->next = NULL;
-  g_sec_tmp->id = section_id;
+  g_sec_tmp->id = g_section_id;
   g_sec_tmp->alive = ON;
   g_sec_tmp->advance_org = NO;
   g_sec_tmp->nspace = NULL;
   g_sec_tmp->label_map = hashmap_new();
-  section_id++;
+  g_section_id++;
   g_sec_tmp->filename_id = 0;
   g_sec_tmp->alignment = 1;
   g_sec_tmp->offset = 0;

@@ -17,48 +17,46 @@
 
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
-extern struct export_def *export_first, *export_last;
-extern struct stack *stacks_first, *stacks_tmp, *stacks_last, *stacks_header_first, *stacks_header_last;
-extern struct label_def *label_tmp, *label_last, *labels;
+extern struct export_def *g_export_first, *g_export_last;
+extern struct stack *g_stacks_first, *g_stacks_tmp, *g_stacks_last, *g_stacks_header_first, *g_stacks_header_last;
+extern struct label_def *g_label_tmp, *g_label_last, *g_labels;
 extern struct definition *g_tmp_def;
-extern struct map_t *defines_map;
-extern struct map_t *namespace_map;
-extern struct map_t *global_unique_label_map;
+extern struct map_t *g_defines_map, *g_namespace_map, *g_global_unique_label_map;
 extern struct file_name_info *g_file_name_info_first;
-extern struct slot slots[256];
-extern struct append_section *append_sections;
-extern struct label_sizeof *label_sizeofs;
+extern struct slot g_slots[256];
+extern struct append_section *g_append_sections;
+extern struct label_sizeof *g_label_sizeofs;
 extern FILE *g_file_out_ptr;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
-extern char *g_tmp_name, tmp[4096], name[32], *g_final_name;
-extern int rombanks, ind, inz, g_output_format, g_test_mode, g_listfile_data, g_little_endian;
+extern char *g_tmp_name, tmp[4096], *g_final_name;
+extern int g_rombanks, ind, inz, g_output_format, g_test_mode, g_listfile_data, g_little_endian;
 
 #ifdef GB
-extern char licenseecodenew_c1, licenseecodenew_c2;
-extern int computechecksum_defined, computecomplementcheck_defined;
-extern int cartridgetype;
-extern int name_defined, computechecksum_defined, computecomplementcheck_defined;
-extern int licenseecodeold_defined, licenseecodenew_defined;
-extern int licenseecodeold, romgbc;
+extern char g_licenseecodenew_c1, g_licenseecodenew_c2;
+extern int g_computechecksum_defined, g_computecomplementcheck_defined;
+extern int g_cartridgetype;
+extern int g_name_defined, g_computechecksum_defined, g_computecomplementcheck_defined;
+extern int g_licenseecodeold_defined, g_licenseecodenew_defined;
+extern int g_licenseecodeold, g_romgbc;
 #endif
 
-extern int romtype, rambanks, emptyfill, max_address;
-extern int rambanks_defined, g_verbose_mode;
+extern int g_romtype, g_rambanks, g_emptyfill, g_max_address;
+extern int g_rambanks_defined, g_verbose_mode;
 extern int g_section_status;
-extern int banksize, banksize_defined;
-extern int slots_amount;
-extern int *banks, *bankaddress, rombankmap_defined;
-extern int latest_stack, stacks_outside, stacks_inside;
-extern int bankheader_status;
-extern int smc_defined, g_makefile_rules;
+extern int g_banksize, g_banksize_defined;
+extern int g_slots_amount;
+extern int *g_banks, *g_bankaddress, g_rombankmap_defined;
+extern int g_latest_stack, g_stacks_outside, g_stacks_inside;
+extern int g_bankheader_status;
+extern int g_smc_defined, g_makefile_rules;
 
 #ifdef W65816
-extern int lorom_defined, hirom_defined, slowrom_defined, fastrom_defined, snes_mode, exhirom_defined;
-extern int computesneschecksum_defined, sramsize, sramsize_defined, exlorom_defined;
+extern int g_lorom_defined, g_hirom_defined, g_slowrom_defined, g_fastrom_defined, g_snes_mode, g_exhirom_defined;
+extern int g_computesneschecksum_defined, g_sramsize, g_sramsize_defined, g_exlorom_defined;
 #endif
 
 #ifdef Z80
-extern int computesmschecksum_defined, smstag_defined, smsheader_defined;
+extern int g_computesmschecksum_defined, g_smstag_defined, g_smsheader_defined;
 #endif
 
 struct label_def *unknown_labels = NULL, *unknown_labels_last = NULL, *tul, *ltmp;
@@ -67,12 +65,11 @@ struct label_def *parent_labels[10];
 struct append_section *append_tmp;
 struct label_sizeof *label_sizeof_tmp;
 
-char mem_insert_action[MAX_NAME_LENGTH*3 + 1024], namespace[MAX_NAME_LENGTH + 1];
+char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024], namespace[MAX_NAME_LENGTH + 1];
 
-int pc_bank = 0, pc_full = 0, rom_bank, mem_insert_overwrite, slot = 0, base = 0, pc_slot, pc_slot_max;
-int filename_id, line_number;
-
-static int dstruct_start = -1, special_id = 0;
+static int g_pc_bank = 0, g_pc_full = 0, g_rom_bank, g_mem_insert_overwrite, g_slot = 0, g_base = 0, g_pc_slot, g_pc_slot_max;
+static int g_filename_id, g_line_number;
+static int g_dstruct_start = -1, g_special_id = 0;
 
 
 #define WRITEOUT_OV fprintf(final_ptr, "%c%c%c%c", (ov>>24)&0xFF, (ov>>16)&0xFF, (ov>>8)&0xFF, ov&0xFF);
@@ -106,7 +103,7 @@ int new_unknown_reference(int type) {
 
   label = calloc(sizeof(struct label_def), 1);
   if (label == NULL) {
-    fprintf(stderr, "%s:%d: NEW_UNKNOWN_REFERENCE: Out of memory.\n", get_file_name(filename_id), line_number);
+    fprintf(stderr, "%s:%d: NEW_UNKNOWN_REFERENCE: Out of memory.\n", get_file_name(g_filename_id), g_line_number);
     return FAILED;
   }
 
@@ -115,8 +112,8 @@ int new_unknown_reference(int type) {
   strcpy(label->label, tmp);
   label->next = NULL;
   label->type = type;
-  label->filename_id = filename_id;
-  label->linenumber = line_number;
+  label->filename_id = g_filename_id;
+  label->linenumber = g_line_number;
   label->section_status = g_section_status;
   if (g_section_status == ON) {
     label->section_id = g_sec_tmp->id;
@@ -128,16 +125,16 @@ int new_unknown_reference(int type) {
     label->section_id = 0;
     label->section_struct = NULL;
     /* bank address, in ROM memory */
-    label->address = pc_bank;
+    label->address = g_pc_bank;
   }
 
-  label->bank = rom_bank;
-  label->slot = slot;
-  label->base = base;
-  label->special_id = special_id;
+  label->bank = g_rom_bank;
+  label->slot = g_slot;
+  label->base = g_base;
+  label->special_id = g_special_id;
 
   /* outside bank header section */
-  if (bankheader_status == OFF) {
+  if (g_bankheader_status == OFF) {
     if (unknown_labels_last == NULL) {
       unknown_labels = label;
       unknown_labels_last = label;
@@ -151,7 +148,7 @@ int new_unknown_reference(int type) {
   else {
     if (label->label[0] == '_') {
       fprintf(stderr, "%s:%d: NEW_UNKNOWN_REFERENCE: Referring to a local label (\"%s\") from inside a bank header section is not allowed.\n",
-              get_file_name(filename_id), line_number, label->label);
+              get_file_name(g_filename_id), g_line_number, label->label);
       return FAILED;
     }
     if (unknown_header_labels_last == NULL) {
@@ -214,7 +211,7 @@ int add_namespace_to_reference(char *label, char *name_space, unsigned int label
   /* label in a namespace? */
   if (g_section_status == ON && g_sec_tmp != NULL && g_sec_tmp->nspace != NULL) {
     if (hashmap_get(g_sec_tmp->nspace->label_map, expanded, (void*)&l) == MAP_OK) {
-      if (filename_id == l->filename_id) {
+      if (g_filename_id == l->filename_id) {
         strcpy(label, expanded);
         return SUCCEEDED;
       }
@@ -222,8 +219,8 @@ int add_namespace_to_reference(char *label, char *name_space, unsigned int label
   }
 
   /* global label? */
-  if (hashmap_get(global_unique_label_map, expanded, (void*)&l) == MAP_OK) {
-    if (filename_id == l->filename_id) {
+  if (hashmap_get(g_global_unique_label_map, expanded, (void*)&l) == MAP_OK) {
+    if (g_filename_id == l->filename_id) {
       strcpy(label, expanded);
       return SUCCEEDED;
     }
@@ -265,8 +262,8 @@ int pass_4(void) {
   namespace[0] = 0;
   
   g_section_status = OFF;
-  bankheader_status = OFF;
-  mem_insert_overwrite = OFF;
+  g_bankheader_status = OFF;
+  g_mem_insert_overwrite = OFF;
 
   if (g_verbose_mode == ON)
     printf("Internal pass 2...\n");
@@ -282,7 +279,7 @@ int pass_4(void) {
       /* SPECIAL CASE ID */
       
     case 'v':
-      fscanf(g_file_out_ptr, "%d ", &special_id);       
+      fscanf(g_file_out_ptr, "%d ", &g_special_id);       
       continue;
       
     case 'E':
@@ -311,11 +308,11 @@ int pass_4(void) {
       continue;
 
     case 'f':
-      fscanf(g_file_out_ptr, "%d ", &filename_id);
+      fscanf(g_file_out_ptr, "%d ", &g_filename_id);
       continue;
 
     case 'k':
-      fscanf(g_file_out_ptr, "%d ", &line_number);
+      fscanf(g_file_out_ptr, "%d ", &g_line_number);
       continue;
 
     case 't':
@@ -335,7 +332,7 @@ int pass_4(void) {
       else
         fscanf(g_file_out_ptr, "%d ", &x);
 
-      add_old = pc_bank;
+      add_old = g_pc_bank;
 
       g_sec_tmp = g_sections_first;
       while (g_sec_tmp != NULL) {
@@ -355,7 +352,7 @@ int pass_4(void) {
       if (g_sec_tmp->maxsize_status == ON) {
         if (g_sec_tmp->maxsize < g_sec_tmp->size) {
           fprintf(stderr, "%s: INTERNAL_PASS_2: Section \"%s\" doesn't fit into the specified %d bytes. Enlarging to %d bytes.\n",
-                  get_file_name(filename_id), g_sec_tmp->name, g_sec_tmp->maxsize, g_sec_tmp->size);
+                  get_file_name(g_filename_id), g_sec_tmp->name, g_sec_tmp->maxsize, g_sec_tmp->size);
         }
         else if (g_sec_tmp->size < g_sec_tmp->maxsize) {
           g_sec_tmp->size = g_sec_tmp->maxsize;
@@ -366,16 +363,16 @@ int pass_4(void) {
       g_sec_tmp->data = calloc(sizeof(unsigned char) * g_sec_tmp->size, 1);
       if (g_sec_tmp->data == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Out of memory when trying to allocate room for section \"%s\".\n",
-                get_file_name(filename_id), line_number, g_sec_tmp->name);
+                get_file_name(g_filename_id), g_line_number, g_sec_tmp->name);
         return FAILED;
       }
 
       /* fill the padded area with _emptyfill_ */
       if (ind == 1)
-        memset(g_sec_tmp->data, emptyfill, g_sec_tmp->size);
+        memset(g_sec_tmp->data, g_emptyfill, g_sec_tmp->size);
 
       if (strcmp(g_sec_tmp->name, "BANKHEADER") == 0)
-        bankheader_status = ON;
+        g_bankheader_status = ON;
 
       g_sec_tmp->i = 0;
       g_section_status = ON;
@@ -386,14 +383,14 @@ int pass_4(void) {
 
     case 's':
       g_section_status = OFF;
-      bankheader_status = OFF;
+      g_bankheader_status = OFF;
 
       /* some sections don't affect the ORG outside of them */
       if (g_sec_tmp->advance_org == NO) {
-        pc_bank = add_old;
-        pc_full = bankaddress[rom_bank] + pc_bank;
-        pc_slot = slots[slot].address + pc_bank;
-        pc_slot_max = slots[slot].address + slots[slot].size;
+        g_pc_bank = add_old;
+        g_pc_full = g_bankaddress[g_rom_bank] + g_pc_bank;
+        g_pc_slot = g_slots[g_slot].address + g_pc_bank;
+        g_pc_slot_max = g_slots[g_slot].address + g_slots[g_slot].size;
       }
 
       continue;
@@ -406,14 +403,14 @@ int pass_4(void) {
       fscanf(g_file_out_ptr, "%d %d", &ind, &x);
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSB data", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing DSB data", get_file_name(g_filename_id), g_line_number);
 
       if (ind < 0) { /* going backward */
         if (g_section_status == ON)
           g_sec_tmp->i += ind;
-        pc_bank += ind;
-        pc_full += ind;
-        pc_slot += ind;
+        g_pc_bank += ind;
+        g_pc_full += ind;
+        g_pc_slot += ind;
         ind++;
       }
       else {
@@ -421,9 +418,9 @@ int pass_4(void) {
           if (c == 'o') {
             if (g_section_status == ON)
               g_sec_tmp->i++;
-            pc_bank++;
-            pc_full++;
-            pc_slot++;
+            g_pc_bank++;
+            g_pc_full++;
+            g_pc_slot++;
           }
           else {
             if (mem_insert(x) == FAILED)
@@ -440,7 +437,7 @@ int pass_4(void) {
       inz = (inz >> 8) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSW data", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing DSW data", get_file_name(g_filename_id), g_line_number);
 
       while (ind > 0) {
         if (g_little_endian == YES) {
@@ -469,7 +466,7 @@ int pass_4(void) {
       inz = (inz >> 16) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing DSL data", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing DSL data", get_file_name(g_filename_id), g_line_number);
 
       while (ind > 0) {
         if (g_little_endian == YES) {
@@ -501,7 +498,7 @@ int pass_4(void) {
       fscanf(g_file_out_ptr, "%d", &x);
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a byte", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a byte", get_file_name(g_filename_id), g_line_number);
         
       if (mem_insert(x) == FAILED)
         return FAILED;
@@ -514,7 +511,7 @@ int pass_4(void) {
       inz = (inz >> 8) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing two bytes", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing two bytes", get_file_name(g_filename_id), g_line_number);
 
       if (g_little_endian == YES) {
         if (mem_insert(x) == FAILED)
@@ -532,7 +529,7 @@ int pass_4(void) {
       continue;
 
     case 'b':
-      fscanf(g_file_out_ptr, "%d", &base);
+      fscanf(g_file_out_ptr, "%d", &g_base);
       continue;
 
 #ifdef W65816
@@ -544,7 +541,7 @@ int pass_4(void) {
       inz = (inz >> 16) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing three bytes", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing three bytes", get_file_name(g_filename_id), g_line_number);
 
       if (g_little_endian == YES) {
         if (mem_insert(x) == FAILED)
@@ -578,7 +575,7 @@ int pass_4(void) {
       t = g_ifd_tmp->data + z;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing .INCBIN data", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .INCBIN data", get_file_name(g_filename_id), g_line_number);
 
       /* swap? */
       if (inz == 1) {
@@ -606,16 +603,16 @@ int pass_4(void) {
     case 'O':
     case 'B':
       if (c == 'O')
-        fscanf(g_file_out_ptr, "%d", &pc_bank);
+        fscanf(g_file_out_ptr, "%d", &g_pc_bank);
       else {
-        fscanf(g_file_out_ptr, "%d %d", &rom_bank, &slot);
-        if (banksize_defined == 0)
-          banksize = banks[rom_bank];
+        fscanf(g_file_out_ptr, "%d %d", &g_rom_bank, &g_slot);
+        if (g_banksize_defined == 0)
+          g_banksize = g_banks[g_rom_bank];
       }
 
-      pc_full = bankaddress[rom_bank] + pc_bank;
-      pc_slot = slots[slot].address + pc_bank;
-      pc_slot_max = slots[slot].address + slots[slot].size;
+      g_pc_full = g_bankaddress[g_rom_bank] + g_pc_bank;
+      g_pc_slot = g_slots[g_slot].address + g_pc_bank;
+      g_pc_slot_max = g_slots[g_slot].address + g_slots[g_slot].size;
 
       continue;
 
@@ -676,52 +673,52 @@ int pass_4(void) {
     case 'c':
       fscanf(g_file_out_ptr, "%d", &inz);
 
-      if (bankheader_status == OFF)
-        stacks_tmp = stacks_first;
+      if (g_bankheader_status == OFF)
+        g_stacks_tmp = g_stacks_first;
       else
-        stacks_tmp = stacks_header_first;
+        g_stacks_tmp = g_stacks_header_first;
 
-      while (stacks_tmp != NULL) {
-        if (stacks_tmp->id == inz)
+      while (g_stacks_tmp != NULL) {
+        if (g_stacks_tmp->id == inz)
           break;
-        stacks_tmp = stacks_tmp->next;
+        g_stacks_tmp = g_stacks_tmp->next;
       }
 
-      if (stacks_tmp == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(filename_id), line_number, inz);
+      if (g_stacks_tmp == NULL) {
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
-      if (stacks_tmp->section_status == ON) {
+      if (g_stacks_tmp->section_status == ON) {
         /* relative address, to the beginning of the section */
-        stacks_tmp->address = g_sec_tmp->i;
+        g_stacks_tmp->address = g_sec_tmp->i;
       }
       else {
         /* complete address, in ROM memory */
-        stacks_tmp->address = pc_bank;
+        g_stacks_tmp->address = g_pc_bank;
       }
 
-      stacks_tmp->bank = rom_bank;
-      stacks_tmp->slot = slot;
-      stacks_tmp->type = STACK_TYPE_8BIT;
-      stacks_tmp->base = base;
-      stacks_tmp->special_id = special_id;
+      g_stacks_tmp->bank = g_rom_bank;
+      g_stacks_tmp->slot = g_slot;
+      g_stacks_tmp->type = STACK_TYPE_8BIT;
+      g_stacks_tmp->base = g_base;
+      g_stacks_tmp->special_id = g_special_id;
         
-      if (mangle_stack_references(stacks_tmp) == FAILED)
+      if (mangle_stack_references(g_stacks_tmp) == FAILED)
         return FAILED;
 
       if (namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
+          if (add_namespace_to_stack_references(g_stacks_tmp, namespace) == FAILED)
             return FAILED;
         }
       }
 
       /* this stack was referred from the code */
-      stacks_tmp->position = STACK_POSITION_CODE;
+      g_stacks_tmp->position = STACK_POSITION_CODE;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for an 8-bit computation", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for an 8-bit computation", get_file_name(g_filename_id), g_line_number);
         
       if (mem_insert_padding() == FAILED)
         return FAILED;
@@ -733,51 +730,51 @@ int pass_4(void) {
     case 'C':
       fscanf(g_file_out_ptr, "%d", &inz);
 
-      if (bankheader_status == OFF)
-        stacks_tmp = stacks_first;
+      if (g_bankheader_status == OFF)
+        g_stacks_tmp = g_stacks_first;
       else
-        stacks_tmp = stacks_header_first;
+        g_stacks_tmp = g_stacks_header_first;
 
-      while (stacks_tmp != NULL) {
-        if (stacks_tmp->id == inz)
+      while (g_stacks_tmp != NULL) {
+        if (g_stacks_tmp->id == inz)
           break;
-        stacks_tmp = stacks_tmp->next;
+        g_stacks_tmp = g_stacks_tmp->next;
       }
 
-      if (stacks_tmp == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(filename_id), line_number, inz);
+      if (g_stacks_tmp == NULL) {
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
-      if (stacks_tmp->section_status == ON) {
+      if (g_stacks_tmp->section_status == ON) {
         /* relative address, to the beginning of the section */
-        stacks_tmp->address = g_sec_tmp->i;
+        g_stacks_tmp->address = g_sec_tmp->i;
       }
       else {
         /* complete address, in ROM memory */
-        stacks_tmp->address = pc_bank;
+        g_stacks_tmp->address = g_pc_bank;
       }
 
-      stacks_tmp->bank = rom_bank;
-      stacks_tmp->slot = slot;
-      stacks_tmp->type = STACK_TYPE_16BIT;
-      stacks_tmp->base = base;
+      g_stacks_tmp->bank = g_rom_bank;
+      g_stacks_tmp->slot = g_slot;
+      g_stacks_tmp->type = STACK_TYPE_16BIT;
+      g_stacks_tmp->base = g_base;
         
-      if (mangle_stack_references(stacks_tmp) == FAILED)
+      if (mangle_stack_references(g_stacks_tmp) == FAILED)
         return FAILED;
 
       if (namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
+          if (add_namespace_to_stack_references(g_stacks_tmp, namespace) == FAILED)
             return FAILED;
         }
       }
         
       /* this stack was referred from the code */
-      stacks_tmp->position = STACK_POSITION_CODE;
+      g_stacks_tmp->position = STACK_POSITION_CODE;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 16-bit computation", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 16-bit computation", get_file_name(g_filename_id), g_line_number);
 
       if (mem_insert_padding() == FAILED)
         return FAILED;
@@ -792,51 +789,51 @@ int pass_4(void) {
     case 'N':
       fscanf(g_file_out_ptr, "%d %d", &x, &inz);
 
-      if (bankheader_status == OFF)
-        stacks_tmp = stacks_first;
+      if (g_bankheader_status == OFF)
+        g_stacks_tmp = g_stacks_first;
       else
-        stacks_tmp = stacks_header_first;
+        g_stacks_tmp = g_stacks_header_first;
 
-      while (stacks_tmp != NULL) {
-        if (stacks_tmp->id == inz)
+      while (g_stacks_tmp != NULL) {
+        if (g_stacks_tmp->id == inz)
           break;
-        stacks_tmp = stacks_tmp->next;
+        g_stacks_tmp = g_stacks_tmp->next;
       }
 
-      if (stacks_tmp == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(filename_id), line_number, inz);
+      if (g_stacks_tmp == NULL) {
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
-      if (stacks_tmp->section_status == ON) {
+      if (g_stacks_tmp->section_status == ON) {
         /* relative address, to the beginning of the section */
-        stacks_tmp->address = g_sec_tmp->i;
+        g_stacks_tmp->address = g_sec_tmp->i;
       }
       else {
         /* complete address, in ROM memory */
-        stacks_tmp->address = pc_bank;
+        g_stacks_tmp->address = g_pc_bank;
       }
 
-      stacks_tmp->bank = rom_bank;
-      stacks_tmp->slot = slot;
-      stacks_tmp->type = STACK_TYPE_13BIT;
-      stacks_tmp->base = base;
+      g_stacks_tmp->bank = g_rom_bank;
+      g_stacks_tmp->slot = g_slot;
+      g_stacks_tmp->type = STACK_TYPE_13BIT;
+      g_stacks_tmp->base = g_base;
         
-      if (mangle_stack_references(stacks_tmp) == FAILED)
+      if (mangle_stack_references(g_stacks_tmp) == FAILED)
         return FAILED;
 
       if (namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
+          if (add_namespace_to_stack_references(g_stacks_tmp, namespace) == FAILED)
             return FAILED;
         }
       }
         
       /* this stack was referred from the code */
-      stacks_tmp->position = STACK_POSITION_CODE;
+      g_stacks_tmp->position = STACK_POSITION_CODE;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 13-bit computation", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 13-bit computation", get_file_name(g_filename_id), g_line_number);
 
       if (mem_insert(0x00) == FAILED)
         return FAILED;
@@ -851,51 +848,51 @@ int pass_4(void) {
     case 'T':
       fscanf(g_file_out_ptr, "%d", &inz);
 
-      if (bankheader_status == OFF)
-        stacks_tmp = stacks_first;
+      if (g_bankheader_status == OFF)
+        g_stacks_tmp = g_stacks_first;
       else
-        stacks_tmp = stacks_header_first;
+        g_stacks_tmp = g_stacks_header_first;
 
-      while (stacks_tmp != NULL) {
-        if (stacks_tmp->id == inz)
+      while (g_stacks_tmp != NULL) {
+        if (g_stacks_tmp->id == inz)
           break;
-        stacks_tmp = stacks_tmp->next;
+        g_stacks_tmp = g_stacks_tmp->next;
       }
 
-      if (stacks_tmp == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(filename_id), line_number, inz);
+      if (g_stacks_tmp == NULL) {
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
-      if (stacks_tmp->section_status == ON) {
+      if (g_stacks_tmp->section_status == ON) {
         /* relative address, to the beginning of the section */
-        stacks_tmp->address = g_sec_tmp->i;
+        g_stacks_tmp->address = g_sec_tmp->i;
       }
       else {
         /* complete address, in ROM memory */
-        stacks_tmp->address = pc_bank;
+        g_stacks_tmp->address = g_pc_bank;
       }
 
-      stacks_tmp->bank = rom_bank;
-      stacks_tmp->slot = slot;
-      stacks_tmp->type = STACK_TYPE_24BIT;
-      stacks_tmp->base = base;
+      g_stacks_tmp->bank = g_rom_bank;
+      g_stacks_tmp->slot = g_slot;
+      g_stacks_tmp->type = STACK_TYPE_24BIT;
+      g_stacks_tmp->base = g_base;
 
-      if (mangle_stack_references(stacks_tmp) == FAILED)
+      if (mangle_stack_references(g_stacks_tmp) == FAILED)
         return FAILED;
 
       if (namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_stack_references(stacks_tmp, namespace) == FAILED)
+          if (add_namespace_to_stack_references(g_stacks_tmp, namespace) == FAILED)
             return FAILED;
         }
       }
         
       /* this stack was referred from the code */
-      stacks_tmp->position = STACK_POSITION_CODE;
+      g_stacks_tmp->position = STACK_POSITION_CODE;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 24-bit computation", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 24-bit computation", get_file_name(g_filename_id), g_line_number);
 
       if (mem_insert_padding() == FAILED)
         return FAILED;
@@ -919,10 +916,10 @@ int pass_4(void) {
       }
           
       x = 0;
-      hashmap_get(defines_map, tmp, (void*)&g_tmp_def);
+      hashmap_get(g_defines_map, tmp, (void*)&g_tmp_def);
       if (g_tmp_def != NULL) {
         if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, tmp);
           return FAILED;
         }
         else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
@@ -930,7 +927,7 @@ int pass_4(void) {
           x = 1;
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-          snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 24-bit reference", get_file_name(filename_id), line_number);
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 24-bit reference", get_file_name(g_filename_id), g_line_number);
 
           if (g_little_endian == YES) {
             if (mem_insert(o & 0xFF) == FAILED)
@@ -958,7 +955,7 @@ int pass_4(void) {
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 24-bit reference", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 24-bit reference", get_file_name(g_filename_id), g_line_number);
 
       if (mem_insert_padding() == FAILED)
         return FAILED;
@@ -982,10 +979,10 @@ int pass_4(void) {
       }
                 
       x = 0;
-      hashmap_get(defines_map, tmp, (void*)&g_tmp_def);
+      hashmap_get(g_defines_map, tmp, (void*)&g_tmp_def);
       if (g_tmp_def != NULL) {
         if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, tmp);
           return FAILED;
         }
         else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
@@ -993,7 +990,7 @@ int pass_4(void) {
           x = 1;
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-          snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(filename_id), line_number);
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(g_filename_id), g_line_number);
 
           if (g_little_endian == YES) {
             if (mem_insert(o & 0xFF) == FAILED)
@@ -1017,7 +1014,7 @@ int pass_4(void) {
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 16-bit reference", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 16-bit reference", get_file_name(g_filename_id), g_line_number);
 
       if (mem_insert_padding() == FAILED)
         return FAILED;
@@ -1039,10 +1036,10 @@ int pass_4(void) {
       }
 
       x = 0;
-      hashmap_get(defines_map, tmp, (void*)&g_tmp_def);
+      hashmap_get(g_defines_map, tmp, (void*)&g_tmp_def);
       if (g_tmp_def != NULL) {
         if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, tmp);
           return FAILED;
         }
         else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
@@ -1050,7 +1047,7 @@ int pass_4(void) {
           x = 1;
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-          snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(filename_id), line_number);
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(g_filename_id), g_line_number);
 
           if (g_little_endian == YES) {
             if (mem_insert(o & 0xFF) == FAILED)
@@ -1074,7 +1071,7 @@ int pass_4(void) {
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 16-bit reference", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 16-bit reference", get_file_name(g_filename_id), g_line_number);
 
       if (mem_insert_padding() == FAILED)
         return FAILED;
@@ -1098,22 +1095,22 @@ int pass_4(void) {
       }
 
       x = 0;
-      hashmap_get(defines_map, tmp, (void*)&g_tmp_def);
+      hashmap_get(g_defines_map, tmp, (void*)&g_tmp_def);
       if (g_tmp_def != NULL) {
         if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, tmp);
           return FAILED;
         }
         else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
           o = (int)g_tmp_def->value;
           x = 1;
           if (o > 8191 || o < 0) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference value of \"%s\" is out of 13-bit range.\n", get_file_name(filename_id), line_number, tmp);
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference value of \"%s\" is out of 13-bit range.\n", get_file_name(g_filename_id), g_line_number, tmp);
             return FAILED;
           }
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-          snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing a 13-bit reference", get_file_name(filename_id), line_number);
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 13-bit reference", get_file_name(g_filename_id), g_line_number);
 
           if (mem_insert(o & 0xFF) == FAILED)
             return FAILED;
@@ -1129,7 +1126,7 @@ int pass_4(void) {
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for a 13-bit reference", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 13-bit reference", get_file_name(g_filename_id), g_line_number);
 
       if (mem_insert(0x00) == FAILED)
         return FAILED;
@@ -1152,10 +1149,10 @@ int pass_4(void) {
       }
 
       x = 0;
-      hashmap_get(defines_map, tmp, (void*)&g_tmp_def);
+      hashmap_get(g_defines_map, tmp, (void*)&g_tmp_def);
       if (g_tmp_def != NULL) {
         if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, tmp);
           return FAILED;
         }
         else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
@@ -1163,7 +1160,7 @@ int pass_4(void) {
           x = 1;
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-          snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(filename_id), line_number);
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(g_filename_id), g_line_number);
 
           if (mem_insert(o & 0xFF) == FAILED)
             return FAILED;
@@ -1177,7 +1174,7 @@ int pass_4(void) {
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for an 8-bit reference", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for an 8-bit reference", get_file_name(g_filename_id), g_line_number);
 
       if (mem_insert_padding() == FAILED)
         return FAILED;
@@ -1197,10 +1194,10 @@ int pass_4(void) {
       }
 
       x = 0;
-      hashmap_get(defines_map, tmp, (void*)&g_tmp_def);
+      hashmap_get(g_defines_map, tmp, (void*)&g_tmp_def);
       if (g_tmp_def != NULL) {
         if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(filename_id), line_number, tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, tmp);
           return FAILED;
         }
         else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
@@ -1208,7 +1205,7 @@ int pass_4(void) {
           x = 1;
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-          snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(filename_id), line_number);
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(g_filename_id), g_line_number);
             
           if (mem_insert(o & 0xFF) == FAILED)
             return FAILED;
@@ -1222,7 +1219,7 @@ int pass_4(void) {
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(mem_insert_action, sizeof(mem_insert_action), "%s:%d: Inserting padding for an 8-bit reference", get_file_name(filename_id), line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for an 8-bit reference", get_file_name(g_filename_id), g_line_number);
 
       if (mem_insert_padding() == FAILED)
         return FAILED;
@@ -1235,32 +1232,32 @@ int pass_4(void) {
       fscanf(g_file_out_ptr, "%d %d ", &x, &y);
       if (y == -1) {
         /* mark start of .DSTRUCT */
-        dstruct_start = pc_full;
+        g_dstruct_start = g_pc_full;
         /* make sure all data in a section gets set to emptyfill */
         if (g_section_status == ON)
-          memset(g_sec_tmp->data + g_sec_tmp->i, emptyfill, x);
+          memset(g_sec_tmp->data + g_sec_tmp->i, g_emptyfill, x);
       }
       else if (y == -2) {
         /* end of .DSTRUCT. make sure all memory is claimed. */
-        while (pc_full < dstruct_start + x) {
-          if (g_section_status == OFF && g_rom_banks_usage_table[pc_full] == 0) {
-            g_rom_banks_usage_table[pc_full] = 2;
-            g_rom_banks[pc_full] = emptyfill;
+        while (g_pc_full < g_dstruct_start + x) {
+          if (g_section_status == OFF && g_rom_banks_usage_table[g_pc_full] == 0) {
+            g_rom_banks_usage_table[g_pc_full] = 2;
+            g_rom_banks[g_pc_full] = g_emptyfill;
           }
           if (g_section_status == ON)
             g_sec_tmp->i++;
-          pc_bank++;
-          pc_slot++;
-          pc_full++;
+          g_pc_bank++;
+          g_pc_slot++;
+          g_pc_full++;
         }
       }
       else {
         /* seek offset relative to dstruct start */
         if (g_section_status == ON)
-          g_sec_tmp->i = g_sec_tmp->i + (dstruct_start - pc_full) + x;
-        pc_bank = pc_bank + (dstruct_start - pc_full) + x;
-        pc_slot = pc_slot + (dstruct_start - pc_full) + x;
-        pc_full = dstruct_start + x;
+          g_sec_tmp->i = g_sec_tmp->i + (g_dstruct_start - g_pc_full) + x;
+        g_pc_bank = g_pc_bank + (g_dstruct_start - g_pc_full) + x;
+        g_pc_slot = g_pc_slot + (g_dstruct_start - g_pc_full) + x;
+        g_pc_full = g_dstruct_start + x;
       }
       continue;
     }
@@ -1304,107 +1301,107 @@ int pass_4(void) {
 
     /* labels, symbols and breakpoints */
     ov = 0;
-    label_tmp = labels;
-    while (label_tmp != NULL) {
-      if (label_tmp->alive == ON)
+    g_label_tmp = g_labels;
+    while (g_label_tmp != NULL) {
+      if (g_label_tmp->alive == ON)
         ov++;
-      label_tmp = label_tmp->next;
+      g_label_tmp = g_label_tmp->next;
     }
 
     WRITEOUT_OV;
 
-    label_tmp = labels;
-    while (label_tmp != NULL) {
-      if (label_tmp->alive == ON) {
-        if (label_tmp->symbol != 2)
-          fprintf(final_ptr, "%s", label_tmp->label);
-        fprintf(final_ptr, "%c", label_tmp->symbol);
+    g_label_tmp = g_labels;
+    while (g_label_tmp != NULL) {
+      if (g_label_tmp->alive == ON) {
+        if (g_label_tmp->symbol != 2)
+          fprintf(final_ptr, "%s", g_label_tmp->label);
+        fprintf(final_ptr, "%c", g_label_tmp->symbol);
 
-        ov = label_tmp->section_id;
+        ov = g_label_tmp->section_id;
         WRITEOUT_OV;
 
-        fprintf(final_ptr, "%c", label_tmp->filename_id);
+        fprintf(final_ptr, "%c", g_label_tmp->filename_id);
 
-        ov = label_tmp->linenumber;
+        ov = g_label_tmp->linenumber;
         WRITEOUT_OV;
 
-        ov = label_tmp->address;
+        ov = g_label_tmp->address;
         WRITEOUT_OV;
       }
-      label_tmp = label_tmp->next;
+      g_label_tmp = g_label_tmp->next;
     }
 
     /* unknown labels (outside references) */
     ov = 0;
-    label_tmp = unknown_labels;
-    while (label_tmp != NULL) {
+    g_label_tmp = unknown_labels;
+    while (g_label_tmp != NULL) {
       ov++;
-      label_tmp = label_tmp->next;
+      g_label_tmp = g_label_tmp->next;
     }
 
     WRITEOUT_OV;
 
-    label_tmp = unknown_labels;
-    while (label_tmp != NULL) {
-      fprintf(final_ptr, "%s%c%c%c", label_tmp->label, 0x0, label_tmp->type, label_tmp->special_id);
+    g_label_tmp = unknown_labels;
+    while (g_label_tmp != NULL) {
+      fprintf(final_ptr, "%s%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, g_label_tmp->special_id);
 
-      ov = label_tmp->section_id;
+      ov = g_label_tmp->section_id;
       WRITEOUT_OV;
 
-      fprintf(final_ptr, "%c", label_tmp->filename_id);
+      fprintf(final_ptr, "%c", g_label_tmp->filename_id);
 
-      if (label_tmp->section_status == OFF) {
-        fprintf(stderr, "INTERNAL_PASS_2: Label \"%s\" is outside all sections.\n", label_tmp->label);
+      if (g_label_tmp->section_status == OFF) {
+        fprintf(stderr, "INTERNAL_PASS_2: Label \"%s\" is outside all sections.\n", g_label_tmp->label);
         return FAILED;
       }
 
-      ov = label_tmp->linenumber;
+      ov = g_label_tmp->linenumber;
       WRITEOUT_OV;
 
-      ov = label_tmp->address; /* + (label_tmp->base << 16); */
+      ov = g_label_tmp->address; /* + (g_label_tmp->base << 16); */
       WRITEOUT_OV;
 
-      label_tmp = label_tmp->next;
+      g_label_tmp = g_label_tmp->next;
     }
 
     /* pending calculations */
-    ov = stacks_outside;
+    ov = g_stacks_outside;
     WRITEOUT_OV;
 
-    stacks_tmp = stacks_first;
-    while (stacks_tmp != NULL) {
-      ov = stacks_tmp->id;
+    g_stacks_tmp = g_stacks_first;
+    while (g_stacks_tmp != NULL) {
+      ov = g_stacks_tmp->id;
       WRITEOUT_OV;
 
-      fprintf(final_ptr, "%c%c", stacks_tmp->type | (stacks_tmp->relative_references << 7), stacks_tmp->special_id);
+      fprintf(final_ptr, "%c%c", g_stacks_tmp->type | (g_stacks_tmp->relative_references << 7), g_stacks_tmp->special_id);
 
-      ov = stacks_tmp->section_id;
+      ov = g_stacks_tmp->section_id;
       WRITEOUT_OV;
 
-      fprintf(final_ptr, "%c%c%c", stacks_tmp->filename_id, stacks_tmp->stacksize, stacks_tmp->position);
+      fprintf(final_ptr, "%c%c%c", g_stacks_tmp->filename_id, g_stacks_tmp->stacksize, g_stacks_tmp->position);
 
-      ov = stacks_tmp->address;
+      ov = g_stacks_tmp->address;
       WRITEOUT_OV;
 
-      ov = stacks_tmp->linenumber;
+      ov = g_stacks_tmp->linenumber;
       WRITEOUT_OV;
 
-      for (ind = 0; ind < stacks_tmp->stacksize; ind++) {
-        fprintf(final_ptr, "%c%c", stacks_tmp->stack[ind].type, stacks_tmp->stack[ind].sign);
-        if (stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
-          fprintf(final_ptr, "%s%c", stacks_tmp->stack[ind].string, 0);
+      for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
+        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
+        if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
+          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
         else {
-          dou = stacks_tmp->stack[ind].value;
+          dou = g_stacks_tmp->stack[ind].value;
           WRITEOUT_DOU;
         }
       }
 
-      stacks_tmp = stacks_tmp->next;
+      g_stacks_tmp = g_stacks_tmp->next;
     }
 
     /* label sizeofs */
     ov = 0;
-    label_sizeof_tmp = label_sizeofs;
+    label_sizeof_tmp = g_label_sizeofs;
     while (label_sizeof_tmp != NULL) {
       ov++;
       label_sizeof_tmp = label_sizeof_tmp->next;
@@ -1412,7 +1409,7 @@ int pass_4(void) {
 
     WRITEOUT_OV;
 
-    label_sizeof_tmp = label_sizeofs;
+    label_sizeof_tmp = g_label_sizeofs;
     while (label_sizeof_tmp != NULL) {
       fprintf(final_ptr, "%s%c", label_sizeof_tmp->name, 0);
 
@@ -1424,14 +1421,14 @@ int pass_4(void) {
     
     /* append sections */
     ov = 0;
-    append_tmp = append_sections;
+    append_tmp = g_append_sections;
     while (append_tmp != NULL) {
       ov++;
       append_tmp = append_tmp->next;
     }
     WRITEOUT_OV;
 
-    append_tmp = append_sections;
+    append_tmp = g_append_sections;
     while (append_tmp != NULL) {
       fprintf(final_ptr, "%s%c", append_tmp->section, 0);
       fprintf(final_ptr, "%s%c", append_tmp->append_to, 0);
@@ -1483,26 +1480,26 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAa%c", emptyfill);
+    fprintf(final_ptr, "WLAa%c", g_emptyfill);
 
     /* misc bits */
     ind = 0;
 
 #ifdef Z80
-    if (computesmschecksum_defined != 0)
+    if (g_computesmschecksum_defined != 0)
       ind |= 1 << 0;
 #endif
 
 #ifdef W65816
-    if (snes_mode != 0) {
-      if (hirom_defined != 0)
+    if (g_snes_mode != 0) {
+      if (g_hirom_defined != 0)
         ind += 2;
-      if (fastrom_defined != 0)
+      if (g_fastrom_defined != 0)
         ind += 8;
-      if (computesneschecksum_defined != 0)
+      if (g_computesneschecksum_defined != 0)
         ind += 64;
       /* use snes banking scheme */
-      if (hirom_defined != 0 || lorom_defined != 0 || exhirom_defined != 0 || exlorom_defined != 0)
+      if (g_hirom_defined != 0 || g_lorom_defined != 0 || g_exhirom_defined != 0 || g_exlorom_defined != 0)
         ind += 4;
     }
     /* 65816 bit */
@@ -1510,9 +1507,9 @@ int pass_4(void) {
 #endif
 
 #ifdef GB
-    if (computechecksum_defined != 0)
+    if (g_computechecksum_defined != 0)
       ind += 16;
-    if (computecomplementcheck_defined != 0)
+    if (g_computecomplementcheck_defined != 0)
       ind += 32;
 #endif
 
@@ -1521,25 +1518,25 @@ int pass_4(void) {
     /* more bits */
     ind = 0;
 
-    if (smc_defined != 0)
+    if (g_smc_defined != 0)
       ind |= 1 << 0;
 #ifdef W65816
-    if (sramsize_defined != 0)
-      ind |= (sramsize & 3) << 1;
+    if (g_sramsize_defined != 0)
+      ind |= (g_sramsize & 3) << 1;
 #endif
 
 #ifdef Z80
-    if (smstag_defined != 0)
+    if (g_smstag_defined != 0)
       ind |= 1 << 3;
-    if (smsheader_defined != 0)
+    if (g_smsheader_defined != 0)
       ind |= 1 << 4;
 #endif
 
 #ifdef W65816
-    if (snes_mode != 0) {
-      if (exhirom_defined != 0)
+    if (g_snes_mode != 0) {
+      if (g_exhirom_defined != 0)
         ind |= 1 << 5;
-      if (exlorom_defined != 0)
+      if (g_exlorom_defined != 0)
         ind |= 1 << 6;
     }
 #endif
@@ -1560,35 +1557,35 @@ int pass_4(void) {
     fprintf(final_ptr, "%c", ind);
     
     /* rom bank map */
-    ov = rombanks;
+    ov = g_rombanks;
     WRITEOUT_OV;                                   /* number of rom banks */
 
-    if (rombankmap_defined != 0) {
+    if (g_rombankmap_defined != 0) {
       fprintf(final_ptr, "%c", 1);                 /* status */
-      for (i = 0; i < rombanks; i++) {
-        ov = banks[i];
+      for (i = 0; i < g_rombanks; i++) {
+        ov = g_banks[i];
         WRITEOUT_OV;                               /* banksize */
       }
     }
     else {
       fprintf(final_ptr, "%c", 0);                 /* status */
-      ov = banksize;
+      ov = g_banksize;
       WRITEOUT_OV;                                 /* banksize */
     }
 
     /* memory map */
-    fprintf(final_ptr, "%c", slots_amount);        /* number of slots */
+    fprintf(final_ptr, "%c", g_slots_amount);        /* number of slots */
 
-    for (i = 0; i < slots_amount; i++) {
-      if (slots[i].size != 0) {
-        ov = slots[i].address;
+    for (i = 0; i < g_slots_amount; i++) {
+      if (g_slots[i].size != 0) {
+        ov = g_slots[i].address;
         WRITEOUT_OV;                               /* slot address */
-        ov = slots[i].size;
+        ov = g_slots[i].size;
         WRITEOUT_OV;                               /* slot size */
-        if (slots[i].name[0] == 0x0)               /* slot name */
+        if (g_slots[i].name[0] == 0x0)               /* slot name */
           fprintf(final_ptr, "%c", 0x0);
         else
-          fprintf(final_ptr, "%s%c", slots[i].name, 0x0);
+          fprintf(final_ptr, "%s%c", g_slots[i].name, 0x0);
       }
     }
 
@@ -1602,181 +1599,181 @@ int pass_4(void) {
 
     /* labels */
     ov = 0;
-    label_tmp = labels;
-    while (label_tmp != NULL) {
-      if (label_tmp->alive == ON)
+    g_label_tmp = g_labels;
+    while (g_label_tmp != NULL) {
+      if (g_label_tmp->alive == ON)
         ov++;
-      label_tmp = label_tmp->next;
+      g_label_tmp = g_label_tmp->next;
     }
 
     /* number of labels */
     WRITEOUT_OV;
 
-    label_tmp = labels;
-    while (label_tmp != NULL) {
-      if (label_tmp->alive == ON) {
-        if (label_tmp->symbol != 2)
-          fprintf(final_ptr, "%s", label_tmp->label);
-        fprintf(final_ptr, "%c", label_tmp->symbol);
+    g_label_tmp = g_labels;
+    while (g_label_tmp != NULL) {
+      if (g_label_tmp->alive == ON) {
+        if (g_label_tmp->symbol != 2)
+          fprintf(final_ptr, "%s", g_label_tmp->label);
+        fprintf(final_ptr, "%c", g_label_tmp->symbol);
 
-        fprintf(final_ptr, "%c%c", label_tmp->slot, label_tmp->filename_id);
+        fprintf(final_ptr, "%c%c", g_label_tmp->slot, g_label_tmp->filename_id);
 
-        ov = label_tmp->section_id;
+        ov = g_label_tmp->section_id;
         WRITEOUT_OV;
 
         /* DEBUG
-           fprintf(stderr, "LABEL: \"%s\" SLOT: %d LINE: %d\n", label_tmp->label, label_tmp->slot, label_tmp->linenumber);
+           fprintf(stderr, "LABEL: \"%s\" SLOT: %d LINE: %d\n", g_label_tmp->label, g_label_tmp->slot, g_label_tmp->linenumber);
         */
 
-        ov = label_tmp->address;
+        ov = g_label_tmp->address;
         WRITEOUT_OV;
 
-        ov = label_tmp->linenumber;
+        ov = g_label_tmp->linenumber;
         WRITEOUT_OV;
 
-        ov = label_tmp->bank;
+        ov = g_label_tmp->bank;
         WRITEOUT_OV;
 
-        ov = label_tmp->base;
+        ov = g_label_tmp->base;
         WRITEOUT_OV;
       }
-      label_tmp = label_tmp->next;
+      g_label_tmp = g_label_tmp->next;
     }
 
     /* outside references */
     ov = 0;
-    label_tmp = unknown_labels;
-    while (label_tmp != NULL) {
+    g_label_tmp = unknown_labels;
+    while (g_label_tmp != NULL) {
       ov++;
-      label_tmp = label_tmp->next;
+      g_label_tmp = g_label_tmp->next;
     }
-    label_tmp = unknown_header_labels;
-    while (label_tmp != NULL) {
+    g_label_tmp = unknown_header_labels;
+    while (g_label_tmp != NULL) {
       ov++;
-      label_tmp = label_tmp->next;
+      g_label_tmp = g_label_tmp->next;
     }
 
     WRITEOUT_OV;
 
-    label_tmp = unknown_labels;
-    while (label_tmp != NULL) {
-      fprintf(final_ptr, "%s%c%c%c%c%c", label_tmp->label, 0x0, label_tmp->type, label_tmp->special_id, label_tmp->filename_id, label_tmp->slot);
+    g_label_tmp = unknown_labels;
+    while (g_label_tmp != NULL) {
+      fprintf(final_ptr, "%s%c%c%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, g_label_tmp->special_id, g_label_tmp->filename_id, g_label_tmp->slot);
 
-      ov = label_tmp->section_id;
+      ov = g_label_tmp->section_id;
       WRITEOUT_OV;
 
-      ov = label_tmp->linenumber;
+      ov = g_label_tmp->linenumber;
       WRITEOUT_OV;
 
-      ov = label_tmp->address;
+      ov = g_label_tmp->address;
       WRITEOUT_OV;
 
-      ov = label_tmp->bank;
+      ov = g_label_tmp->bank;
       WRITEOUT_OV;
 
-      ov = label_tmp->base;
+      ov = g_label_tmp->base;
       WRITEOUT_OV;
 
-      label_tmp = label_tmp->next;
+      g_label_tmp = g_label_tmp->next;
     }
 
-    label_tmp = unknown_header_labels;
-    while (label_tmp != NULL) {
-      fprintf(final_ptr, "%s%c%c%c%c%c", label_tmp->label, 0x0, label_tmp->type, 0, label_tmp->filename_id, label_tmp->slot);
+    g_label_tmp = unknown_header_labels;
+    while (g_label_tmp != NULL) {
+      fprintf(final_ptr, "%s%c%c%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, 0, g_label_tmp->filename_id, g_label_tmp->slot);
 
-      ov = label_tmp->section_id;
+      ov = g_label_tmp->section_id;
       WRITEOUT_OV;
 
-      ov = label_tmp->linenumber;
+      ov = g_label_tmp->linenumber;
       WRITEOUT_OV;
 
-      ov = label_tmp->address;
+      ov = g_label_tmp->address;
       WRITEOUT_OV;
 
-      ov = label_tmp->bank;
+      ov = g_label_tmp->bank;
       WRITEOUT_OV;
 
-      ov = label_tmp->base;
+      ov = g_label_tmp->base;
       WRITEOUT_OV;
       
-      label_tmp = label_tmp->next;
+      g_label_tmp = g_label_tmp->next;
     }
 
     /* pending calculations */
-    ov = stacks_outside + stacks_inside;
+    ov = g_stacks_outside + g_stacks_inside;
     WRITEOUT_OV;
 
-    stacks_tmp = stacks_first;
-    while (stacks_tmp != NULL) {
-      ov = stacks_tmp->id;
+    g_stacks_tmp = g_stacks_first;
+    while (g_stacks_tmp != NULL) {
+      ov = g_stacks_tmp->id;
       WRITEOUT_OV;
 
-      fprintf(final_ptr, "%c%c", stacks_tmp->type | (stacks_tmp->relative_references << 7), stacks_tmp->special_id);
+      fprintf(final_ptr, "%c%c", g_stacks_tmp->type | (g_stacks_tmp->relative_references << 7), g_stacks_tmp->special_id);
 
-      ov = stacks_tmp->section_id;
+      ov = g_stacks_tmp->section_id;
       WRITEOUT_OV;
 
-      fprintf(final_ptr, "%c%c%c%c", stacks_tmp->filename_id, stacks_tmp->stacksize, stacks_tmp->position, stacks_tmp->slot);
+      fprintf(final_ptr, "%c%c%c%c", g_stacks_tmp->filename_id, g_stacks_tmp->stacksize, g_stacks_tmp->position, g_stacks_tmp->slot);
 
-      ov = stacks_tmp->address;
+      ov = g_stacks_tmp->address;
       WRITEOUT_OV;
 
-      ov = stacks_tmp->linenumber;
+      ov = g_stacks_tmp->linenumber;
       WRITEOUT_OV;
 
-      ov = stacks_tmp->bank;
+      ov = g_stacks_tmp->bank;
       WRITEOUT_OV;
 
-      ov = stacks_tmp->base;
+      ov = g_stacks_tmp->base;
       WRITEOUT_OV;
       
-      for (ind = 0; ind < stacks_tmp->stacksize; ind++) {
-        fprintf(final_ptr, "%c%c", stacks_tmp->stack[ind].type, stacks_tmp->stack[ind].sign);
-        if (stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
-          fprintf(final_ptr, "%s%c", stacks_tmp->stack[ind].string, 0);
+      for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
+        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
+        if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
+          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
         else {
-          dou = stacks_tmp->stack[ind].value;
+          dou = g_stacks_tmp->stack[ind].value;
           WRITEOUT_DOU;
         }
       }
 
-      stacks_tmp = stacks_tmp->next;
+      g_stacks_tmp = g_stacks_tmp->next;
     }
 
-    stacks_tmp = stacks_header_first;
-    while (stacks_tmp != NULL) {
-      fprintf(final_ptr, "%c", stacks_tmp->type);
+    g_stacks_tmp = g_stacks_header_first;
+    while (g_stacks_tmp != NULL) {
+      fprintf(final_ptr, "%c", g_stacks_tmp->type);
 
-      ov = stacks_tmp->section_id;
+      ov = g_stacks_tmp->section_id;
       WRITEOUT_OV;
 
-      fprintf(final_ptr, "%c%c%c%c", stacks_tmp->filename_id, stacks_tmp->stacksize, stacks_tmp->position, stacks_tmp->slot);
+      fprintf(final_ptr, "%c%c%c%c", g_stacks_tmp->filename_id, g_stacks_tmp->stacksize, g_stacks_tmp->position, g_stacks_tmp->slot);
 
-      ov = stacks_tmp->address;
+      ov = g_stacks_tmp->address;
       WRITEOUT_OV;
 
-      ov = stacks_tmp->linenumber;
+      ov = g_stacks_tmp->linenumber;
       WRITEOUT_OV;
 
-      ov = stacks_tmp->bank;
+      ov = g_stacks_tmp->bank;
       WRITEOUT_OV;
 
-      for (ind = 0; ind < stacks_tmp->stacksize; ind++) {
-        fprintf(final_ptr, "%c%c", stacks_tmp->stack[ind].type, stacks_tmp->stack[ind].sign);
-        if (stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
-          fprintf(final_ptr, "%s%c", stacks_tmp->stack[ind].string, 0);
+      for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
+        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
+        if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
+          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
         else {
-          dou = stacks_tmp->stack[ind].value;
+          dou = g_stacks_tmp->stack[ind].value;
           WRITEOUT_DOU;
         }
       }
 
-      stacks_tmp = stacks_tmp->next;
+      g_stacks_tmp = g_stacks_tmp->next;
     }
 
     /* label sizeofs */
     ov = 0;
-    label_sizeof_tmp = label_sizeofs;
+    label_sizeof_tmp = g_label_sizeofs;
     while (label_sizeof_tmp != NULL) {
       ov++;
       label_sizeof_tmp = label_sizeof_tmp->next;
@@ -1784,7 +1781,7 @@ int pass_4(void) {
 
     WRITEOUT_OV;
 
-    label_sizeof_tmp = label_sizeofs;
+    label_sizeof_tmp = g_label_sizeofs;
     while (label_sizeof_tmp != NULL) {
       fprintf(final_ptr, "%s%c", label_sizeof_tmp->name, 0);
 
@@ -1796,14 +1793,14 @@ int pass_4(void) {
     
     /* append sections */
     ov = 0;
-    append_tmp = append_sections;
+    append_tmp = g_append_sections;
     while (append_tmp != NULL) {
       ov++;
       append_tmp = append_tmp->next;
     }
     WRITEOUT_OV;
 
-    append_tmp = append_sections;
+    append_tmp = g_append_sections;
     while (append_tmp != NULL) {
       fprintf(final_ptr, "%s%c", append_tmp->section, 0);
       fprintf(final_ptr, "%s%c", append_tmp->append_to, 0);
@@ -1812,11 +1809,11 @@ int pass_4(void) {
 
     /* data area */
     ind = 0;
-    for (inz = 0; inz < max_address; inz++) {
+    for (inz = 0; inz < g_max_address; inz++) {
       if (g_rom_banks_usage_table[inz] != 0) {
         /* data block id */
         fprintf(final_ptr, "%c", 0x0);
-        for (i = inz, ind = 0; inz < max_address; inz++, ind++) {
+        for (i = inz, ind = 0; inz < g_max_address; inz++, ind++) {
           if (g_rom_banks_usage_table[inz] == 0) {
 
             ov = i;
@@ -1896,7 +1893,7 @@ int pass_4(void) {
   /* show project information */
   if (g_verbose_mode == ON && g_output_format != OUTPUT_LIBRARY) {
     x = 0;
-    for (ind = 0; ind < max_address; ind++) {
+    for (ind = 0; ind < g_max_address; ind++) {
       if (g_rom_banks_usage_table[ind] == 0 && x == 0) {
         x = 1;
         inz = ind;
@@ -1917,23 +1914,23 @@ int pass_4(void) {
         fprintf(stderr, "Free space at $%.4x-$%.4x.\n", inz, ind - 1);
     }
 
-    for (ind = 0, q = 0; ind < max_address; q++) {
-      for (x = 0, inz = 0; inz < banks[q]; inz++) {
+    for (ind = 0, q = 0; ind < g_max_address; q++) {
+      for (x = 0, inz = 0; inz < g_banks[q]; inz++) {
         if (g_rom_banks_usage_table[ind++] == 0)
           x++;
       }
-      f = (((float)x)/banks[q]) * 100.0f;
+      f = (((float)x)/g_banks[q]) * 100.0f;
       if (f == 100.0f)
         printf("Bank %.2d has %.5d bytes (%.1f%%) free.\n", q, x, f);
       else
         printf("Bank %.2d has %.5d bytes (%.2f%%) free.\n", q, x, f);
     }
 
-    for (ind = 0, inz = 0; ind < max_address; ind++) {
+    for (ind = 0, inz = 0; ind < g_max_address; ind++) {
       if (g_rom_banks_usage_table[ind] == 0)
         inz++;
     }
-    fprintf(stderr, "%d unused bytes of total %d.\n", inz, max_address);
+    fprintf(stderr, "%d unused bytes of total %d.\n", inz, g_max_address);
 
 #ifndef GB
     g_sec_tmp = g_sections_first;
@@ -1947,7 +1944,7 @@ int pass_4(void) {
 
     if (ind != 0) {
       fprintf(stderr, "Total %d additional bytes (from headers and footers).\n", ind);
-      fprintf(stderr, "Total size %d bytes.\n", ind + max_address);
+      fprintf(stderr, "Total size %d bytes.\n", ind + g_max_address);
     }
 #endif
 
@@ -1990,7 +1987,7 @@ int find_label(char *str, struct section_def *s, struct label_def **out) {
     /* a namespace is specified (or at least there's a dot in the label) */
     struct namespace_def *nspace;
 
-    if (hashmap_get(namespace_map, prefix, (void*)&nspace) == MAP_OK) {
+    if (hashmap_get(g_namespace_map, prefix, (void*)&nspace) == MAP_OK) {
       if (hashmap_get(nspace->label_map, stripped, (void*)&l) == MAP_OK) {
         *out = l;
         return SUCCEEDED;
@@ -2013,7 +2010,7 @@ int find_label(char *str, struct section_def *s, struct label_def **out) {
     }
   }
   /* check the global namespace */
-  if (hashmap_get(global_unique_label_map, str, (void*)&l) == MAP_OK) {
+  if (hashmap_get(g_global_unique_label_map, str, (void*)&l) == MAP_OK) {
     *out = l;
     return SUCCEEDED;
   }
@@ -2031,42 +2028,42 @@ int mem_insert(unsigned char x) {
     }
     g_sec_tmp->data[g_sec_tmp->i] = x;
     g_sec_tmp->i++;
-    pc_bank++;
-    pc_full++;
-    pc_slot++;
+    g_pc_bank++;
+    g_pc_full++;
+    g_pc_slot++;
     return SUCCEEDED;
   }
 
-  if (pc_bank >= banksize) {
-    fprintf(stderr, "MEM_INSERT: Origin ($%x) overflows from bank (%d).\n", pc_bank, rom_bank);
-    if (mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", mem_insert_action);
+  if (g_pc_bank >= g_banksize) {
+    fprintf(stderr, "MEM_INSERT: Origin ($%x) overflows from bank (%d).\n", g_pc_bank, g_rom_bank);
+    if (g_mem_insert_action[0] != 0)
+      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
-  else if (pc_full >= max_address) {
-    fprintf(stderr, "MEM_INSERT: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", pc_full, max_address);
-    if (mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", mem_insert_action);
+  else if (g_pc_full >= g_max_address) {
+    fprintf(stderr, "MEM_INSERT: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", g_pc_full, g_max_address);
+    if (g_mem_insert_action[0] != 0)
+      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
-  else if (pc_slot >= pc_slot_max) {
-    fprintf(stderr, "MEM_INSERT: The current address ($%.4x) overflows from SLOT %d.\n", pc_slot, slot);
-    if (mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", mem_insert_action);
+  else if (g_pc_slot >= g_pc_slot_max) {
+    fprintf(stderr, "MEM_INSERT: The current address ($%.4x) overflows from SLOT %d.\n", g_pc_slot, g_slot);
+    if (g_mem_insert_action[0] != 0)
+      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
 
-  if (g_rom_banks_usage_table[pc_full] != 0 && g_rom_banks[pc_full] != x && mem_insert_overwrite == OFF) {
-    fprintf(stderr, "MEM_INSERT: %d. write into $%.4x (old: $%.2x, new: $%.2x).\n", g_rom_banks_usage_table[pc_full], pc_full, g_rom_banks[pc_full], x & 0xFF);
-    if (mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", mem_insert_action);
+  if (g_rom_banks_usage_table[g_pc_full] != 0 && g_rom_banks[g_pc_full] != x && g_mem_insert_overwrite == OFF) {
+    fprintf(stderr, "MEM_INSERT: %d. write into $%.4x (old: $%.2x, new: $%.2x).\n", g_rom_banks_usage_table[g_pc_full], g_pc_full, g_rom_banks[g_pc_full], x & 0xFF);
+    if (g_mem_insert_action[0] != 0)
+      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
   }
 
-  g_rom_banks_usage_table[pc_full] = 2;
-  g_rom_banks[pc_full] = x;
-  pc_bank++;
-  pc_full++;
-  pc_slot++;
+  g_rom_banks_usage_table[g_pc_full] = 2;
+  g_rom_banks[g_pc_full] = x;
+  g_pc_bank++;
+  g_pc_full++;
+  g_pc_slot++;
 
   return SUCCEEDED;
 }
@@ -2081,38 +2078,38 @@ int mem_insert_padding(void) {
   if (g_section_status == ON) {
     g_sec_tmp->data[g_sec_tmp->i] = 0xCD;
     g_sec_tmp->i++;
-    pc_bank++;
-    pc_full++;
-    pc_slot++;
+    g_pc_bank++;
+    g_pc_full++;
+    g_pc_slot++;
     return SUCCEEDED;
   }
 
-  if (pc_bank >= banksize) {
-    fprintf(stderr, "MEM_INSERT_PADDING: Origin ($%x) overflows from bank (%d).\n", pc_bank, rom_bank);
-    if (mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", mem_insert_action);
+  if (g_pc_bank >= g_banksize) {
+    fprintf(stderr, "MEM_INSERT_PADDING: Origin ($%x) overflows from bank (%d).\n", g_pc_bank, g_rom_bank);
+    if (g_mem_insert_action[0] != 0)
+      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
-  else if (pc_full >= max_address) {
-    fprintf(stderr, "MEM_INSERT_PADDING: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", pc_full, max_address);
-    if (mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", mem_insert_action);
+  else if (g_pc_full >= g_max_address) {
+    fprintf(stderr, "MEM_INSERT_PADDING: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", g_pc_full, g_max_address);
+    if (g_mem_insert_action[0] != 0)
+      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
-  else if (pc_slot >= pc_slot_max) {
-    fprintf(stderr, "MEM_INSERT_PADDING: The current address ($%.4x) overflows from SLOT %d.\n", pc_slot, slot);
-    if (mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", mem_insert_action);
+  else if (g_pc_slot >= g_pc_slot_max) {
+    fprintf(stderr, "MEM_INSERT_PADDING: The current address ($%.4x) overflows from SLOT %d.\n", g_pc_slot, g_slot);
+    if (g_mem_insert_action[0] != 0)
+      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
 
   /* announce the overwrite later */
-  if (!(g_rom_banks_usage_table[pc_full] != 0 && mem_insert_overwrite == OFF))
-    g_rom_banks_usage_table[pc_full] = 1;
+  if (!(g_rom_banks_usage_table[g_pc_full] != 0 && g_mem_insert_overwrite == OFF))
+    g_rom_banks_usage_table[g_pc_full] = 1;
 
-  pc_bank++;
-  pc_full++;
-  pc_slot++;
+  g_pc_bank++;
+  g_pc_full++;
+  g_pc_slot++;
 
   return SUCCEEDED;
 }
@@ -2120,17 +2117,17 @@ int mem_insert_padding(void) {
 
 int mem_insert_absolute(int add, unsigned char x) {
 
-  if (add >= max_address) {
-    fprintf(stderr, "MEM_INSERT_ABSOLUTE: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", add, max_address);
-    if (mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", mem_insert_action);
+  if (add >= g_max_address) {
+    fprintf(stderr, "MEM_INSERT_ABSOLUTE: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", add, g_max_address);
+    if (g_mem_insert_action[0] != 0)
+      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
 
-  if (g_rom_banks_usage_table[add] > 1 && g_rom_banks[add] != x && mem_insert_overwrite == OFF) {
+  if (g_rom_banks_usage_table[add] > 1 && g_rom_banks[add] != x && g_mem_insert_overwrite == OFF) {
     fprintf(stderr, "MEM_INSERT_ABSOLUTE: %d. write into $%.4x (old: $%.2x, new: $%.2x).\n", g_rom_banks_usage_table[add], add, g_rom_banks[add], x & 0xFF);
-    if (mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", mem_insert_action);
+    if (g_mem_insert_action[0] != 0)
+      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
   }
   
   g_rom_banks_usage_table[add]++;
@@ -2148,9 +2145,9 @@ int export_definitions(FILE *final_ptr) {
   int ov;
 
   ov = 0;
-  export_tmp = export_first;
+  export_tmp = g_export_first;
   while (export_tmp != NULL) {
-    hashmap_get(defines_map, export_tmp->name, (void*)&g_tmp_def);
+    hashmap_get(g_defines_map, export_tmp->name, (void*)&g_tmp_def);
     if (g_tmp_def != NULL) {
       if (g_tmp_def->type == DEFINITION_TYPE_VALUE)
         ov++;
@@ -2163,9 +2160,9 @@ int export_definitions(FILE *final_ptr) {
 
   WRITEOUT_OV;
 
-  export_tmp = export_first;
+  export_tmp = g_export_first;
   while (export_tmp != NULL) {
-    hashmap_get(defines_map, export_tmp->name, (void*)&g_tmp_def);
+    hashmap_get(g_defines_map, export_tmp->name, (void*)&g_tmp_def);
 
     if (g_tmp_def == NULL)
       fprintf(stderr, "WARNING: Trying to export an unkonwn definition \"%s\".\n", export_tmp->name);
@@ -2227,7 +2224,7 @@ int get_snes_cpu_bank(struct label_def *l) {
   int x, k;
 
   if (l->section_status == OFF)
-    k = bankaddress[l->bank] + l->address;
+    k = g_bankaddress[l->bank] + l->address;
   else {
     s = g_sections_first;
     while (s != NULL) {
@@ -2236,10 +2233,10 @@ int get_snes_cpu_bank(struct label_def *l) {
       else
         s = s->next;
     }
-    k = s->address + l->address + bankaddress[s->bank];
+    k = s->address + l->address + g_bankaddress[s->bank];
   }
 
-  if (lorom_defined == 1)
+  if (g_lorom_defined == 1)
     x = (k / 0x8000) + l->base;
   else
     x = (k / 0x10000) + l->base;

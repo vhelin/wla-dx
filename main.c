@@ -48,29 +48,29 @@ char *g_tmp_name = NULL;
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern struct file_name_info *g_file_name_info_first;
-extern struct label_def *label_tmp, *labels;
-extern struct map_t *global_unique_label_map;
-extern struct macro_static *macros_first;
+extern struct label_def *g_label_tmp, *g_labels;
+extern struct map_t *g_global_unique_label_map;
+extern struct macro_static *g_macros_first;
 extern struct definition *g_tmp_def;
-extern struct map_t *defines_map;
-extern struct export_def *export_first, *export_last;
-extern struct stack *stacks_first, *stacks_tmp, *stacks_last, *stacks_header_first, *stacks_header_last;
-extern struct repeat_runtime *repeat_stack;
+extern struct map_t *g_defines_map;
+extern struct export_def *g_export_first, *g_export_last;
+extern struct stack *g_stacks_first, *g_stacks_tmp, *g_stacks_last, *g_stacks_header_first, *g_stacks_header_last;
+extern struct repeat_runtime *g_repeat_stack;
 extern struct section_def *g_sections_first;
-extern struct macro_runtime *macro_stack;
+extern struct macro_runtime *g_macro_stack;
 extern struct label_def *unknown_labels;
-extern struct filepointer *filepointers;
-extern struct map_t *namespace_map;
-extern struct append_section *append_sections;
-extern struct label_sizeof *label_sizeofs;
-extern struct block_name *block_names;
-extern struct stringmaptable *stringmaptables;
-extern char mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
-extern char *unfolded_buffer, *label_stack[256];
+extern struct filepointer *g_filepointers;
+extern struct map_t *g_namespace_map;
+extern struct append_section *g_append_sections;
+extern struct label_sizeof *g_label_sizeofs;
+extern struct block_name *g_block_names;
+extern struct stringmaptable *g_stringmaptables;
+extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
+extern char *g_label_stack[256];
 extern char *g_include_in_tmp, *g_tmp_a;
 extern char *g_rom_banks, *g_rom_banks_usage_table;
 extern char *g_include_dir, *g_buffer, *g_full_name;
-extern int g_include_in_tmp_size, g_tmp_a_size, *banks, *bankaddress;
+extern int g_include_in_tmp_size, g_tmp_a_size, *g_banks, *g_bankaddress;
 
 int g_output_format = OUTPUT_NONE, g_verbose_mode = OFF, g_test_mode = OFF;
 int g_extra_definitions = OFF, g_commandline_parsing = ON, g_makefile_rules = NO;
@@ -110,19 +110,19 @@ int main(int argc, char *argv[]) {
 #endif
   
   /* init mem_insert() buffer */
-  mem_insert_action[0] = 0;
+  g_mem_insert_action[0] = 0;
   
   /* init hashmaps */
-  defines_map = hashmap_new();
-  global_unique_label_map = hashmap_new();
-  namespace_map = hashmap_new();
+  g_defines_map = hashmap_new();
+  g_global_unique_label_map = hashmap_new();
+  g_namespace_map = hashmap_new();
 
   /* init label stack */
   for (q = 0; q < 256; q++)
-    label_stack[q] = NULL;
+    g_label_stack[q] = NULL;
   for (q = 0; q < 256; q++) {
-    label_stack[q] = calloc(MAX_NAME_LENGTH + 1, 1);
-    if (label_stack[q] == NULL)
+    g_label_stack[q] = calloc(MAX_NAME_LENGTH + 1, 1);
+    if (g_label_stack[q] == NULL)
       return 1;
   }
   
@@ -359,32 +359,32 @@ void procedures_at_exit(void) {
   if (g_file_out_ptr != NULL)
     fclose(g_file_out_ptr);
 
-  free(macro_stack);
-  free(repeat_stack);
+  free(g_macro_stack);
+  free(g_repeat_stack);
   free(g_final_name);
   free(g_asm_name);
   free(g_include_dir);
   free(g_full_name);
 
   for (i = 0; i < 256; i++)
-    free(label_stack[i]);
+    free(g_label_stack[i]);
 
-  if (defines_map != NULL) {
-    hashmap_free_all_elements(defines_map);
-    hashmap_free(defines_map);
+  if (g_defines_map != NULL) {
+    hashmap_free_all_elements(g_defines_map);
+    hashmap_free(g_defines_map);
   }
 
-  if (global_unique_label_map != NULL) {
+  if (g_global_unique_label_map != NULL) {
     /* don't free_all_elements, since labels contains _all_ labels. */
-    hashmap_free(global_unique_label_map);
+    hashmap_free(g_global_unique_label_map);
   }
 
-  if (namespace_map != NULL) {
-    hashmap_free_all_elements(namespace_map);
-    hashmap_free(namespace_map);
+  if (g_namespace_map != NULL) {
+    hashmap_free_all_elements(g_namespace_map);
+    hashmap_free(g_namespace_map);
   }
 
-  m = macros_first;
+  m = g_macros_first;
   while (m != NULL) {
     /* free the argument labels */
     if (m->nargument_names > 0) {
@@ -392,16 +392,16 @@ void procedures_at_exit(void) {
         free(m->argument_names[i]);
       free(m->argument_names);
     }
-    macros_first = m->next;
+    g_macros_first = m->next;
     free(m);
-    m = macros_first;
+    m = g_macros_first;
   }
 
-  label_tmp = labels;
-  while (label_tmp != NULL) {
-    labels = label_tmp->next;
-    free(label_tmp);
-    label_tmp = labels;
+  g_label_tmp = g_labels;
+  while (g_label_tmp != NULL) {
+    g_labels = g_label_tmp->next;
+    free(g_label_tmp);
+    g_label_tmp = g_labels;
   }
 
   l1 = unknown_labels;
@@ -411,25 +411,25 @@ void procedures_at_exit(void) {
     l1 = l2;
   }
 
-  ls = label_sizeofs;
+  ls = g_label_sizeofs;
   while (ls != NULL) {
-    label_sizeofs = ls->next;
+    g_label_sizeofs = ls->next;
     free(ls);
-    ls = label_sizeofs;
+    ls = g_label_sizeofs;
   }
 
-  bn = block_names;
+  bn = g_block_names;
   while (bn != NULL) {
-    block_names = bn->next;
+    g_block_names = bn->next;
     free(bn);
-    bn = block_names;
+    bn = g_block_names;
   }
   
-  export_tmp = export_first;
+  export_tmp = g_export_first;
   while (export_tmp != NULL) {
-    export_last = export_tmp->next;
+    g_export_last = export_tmp->next;
     free(export_tmp);
-    export_tmp = export_last;
+    export_tmp = g_export_last;
   }
 
   g_ifd_tmp = g_incbin_file_data_first;
@@ -441,37 +441,36 @@ void procedures_at_exit(void) {
     g_ifd_tmp = g_incbin_file_data_first;
   }
 
-  stacks_tmp = stacks_first;
-  while (stacks_tmp != NULL) {
-    free(stacks_tmp->stack);
-    stacks_first = stacks_tmp->next;
-    free(stacks_tmp);
-    stacks_tmp = stacks_first;
+  g_stacks_tmp = g_stacks_first;
+  while (g_stacks_tmp != NULL) {
+    free(g_stacks_tmp->stack);
+    g_stacks_first = g_stacks_tmp->next;
+    free(g_stacks_tmp);
+    g_stacks_tmp = g_stacks_first;
   }
 
-  stacks_tmp = stacks_header_first;
-  while (stacks_tmp != NULL) {
-    free(stacks_tmp->stack);
-    stacks_first = stacks_tmp->next;
-    free(stacks_tmp);
-    stacks_tmp = stacks_first;
+  g_stacks_tmp = g_stacks_header_first;
+  while (g_stacks_tmp != NULL) {
+    free(g_stacks_tmp->stack);
+    g_stacks_first = g_stacks_tmp->next;
+    free(g_stacks_tmp);
+    g_stacks_tmp = g_stacks_first;
   }
 
-  as = append_sections;
+  as = g_append_sections;
   while (as != NULL) {
-    append_sections = as->next;
+    g_append_sections = as->next;
     free(as);
-    as = append_sections;
+    as = g_append_sections;
   }
 
-  free(unfolded_buffer);
   free(g_buffer);
   free(g_include_in_tmp);
   free(g_tmp_a);
   free(g_rom_banks);
   free(g_rom_banks_usage_table);
-  free(banks);
-  free(bankaddress);
+  free(g_banks);
+  free(g_bankaddress);
 
   f = g_file_name_info_first;
   while (f != NULL) {
@@ -492,7 +491,7 @@ void procedures_at_exit(void) {
     s1 = s2;
   }
 
-  f1 = filepointers;
+  f1 = g_filepointers;
   while (f1 != NULL) {
     f2 = f1->next;
     if (f1->f != NULL)
@@ -502,8 +501,8 @@ void procedures_at_exit(void) {
     f1 = f2;
   }
 
-  while (stringmaptables != NULL) {
-    struct stringmaptable *sm = stringmaptables;
+  while (g_stringmaptables != NULL) {
+    struct stringmaptable *sm = g_stringmaptables;
     while (sm->entries != NULL) {
       struct stringmap_entry *e = sm->entries;
       free(e->bytes);
@@ -511,7 +510,7 @@ void procedures_at_exit(void) {
       sm->entries = e->next;
       free(e);
     }
-    stringmaptables = sm->next;
+    g_stringmaptables = sm->next;
     free(sm);
   }
 

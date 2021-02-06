@@ -14,18 +14,18 @@
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
-extern struct block_name *block_names;
+extern struct block_name *g_block_names;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
-extern char *g_tmp_name, tmp[4096], emsg[1024], namespace[MAX_NAME_LENGTH + 1];
-extern int g_verbose_mode, g_section_status, cartridgetype, g_output_format;
+extern char *g_tmp_name, tmp[4096], g_error_message[sizeof(tmp) + MAX_NAME_LENGTH + 1 + 1024], namespace[MAX_NAME_LENGTH + 1];
+extern int g_verbose_mode, g_section_status, g_output_format;
 
 
-struct label_def *label_next, *label_last, *label_tmp, *labels = NULL;
-struct map_t *global_unique_label_map = NULL;
-struct block *blocks = NULL;
+struct label_def *g_label_last, *g_label_tmp, *g_labels = NULL;
+struct map_t *g_global_unique_label_map = NULL;
+struct block *g_blocks = NULL;
 
-static int dstruct_start, dstruct_item_offset, dstruct_item_size, mangled_label;
+static int g_dstruct_start, g_dstruct_item_offset, g_dstruct_item_size, g_mangled_label;
 
 #define XSTRINGIFY(x) #x
 #define STRINGIFY(x) XSTRINGIFY(x)
@@ -148,7 +148,7 @@ int pass_3(void) {
       case 'g':
         fscanf(f_in, "%d ", &x);
 
-        bn = block_names;
+        bn = g_block_names;
         while (bn != NULL) {
           if (bn->id == x)
             break;
@@ -164,15 +164,15 @@ int pass_3(void) {
 
         b->filename_id = g_file_name_id;
         b->line_number = line_number;
-        b->next = blocks;
-        blocks = b;
+        b->next = g_blocks;
+        g_blocks = b;
         strcpy(b->name, bn->name);
         b->address = add;
         continue;
 
       case 'G':
-        b = blocks;
-        blocks = blocks->next;
+        b = g_blocks;
+        g_blocks = g_blocks->next;
         printf("INTERNAL_PASS_1: Block \"%s\" is %d bytes in size.\n", b->name, add - b->address);
         free(b);
         continue;
@@ -208,7 +208,7 @@ int pass_3(void) {
         else
           fscanf(f_in, STRING_READ_FORMAT, l->label);
 
-        mangled_label = NO;
+        g_mangled_label = NO;
 
         if (c == 'L' && is_label_anonymous(l->label) == NO) {
           /* if the label has '@' at the start, mangle the label name to make it unique */
@@ -229,11 +229,11 @@ int pass_3(void) {
           if (n >= 0) {
             if (mangle_label(l->label, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
               return FAILED;
-            mangled_label = YES;
+            g_mangled_label = YES;
           }
         }
 
-        if (c == 'L' && is_label_anonymous(l->label) == NO && namespace[0] != 0 && mangled_label == NO) {
+        if (c == 'L' && is_label_anonymous(l->label) == NO && namespace[0] != 0 && g_mangled_label == NO) {
           if (s == NULL || s->nspace == NULL) {
             if (add_namespace(l->label, namespace, sizeof(l->label)) == FAILED)
               return FAILED;
@@ -254,26 +254,26 @@ int pass_3(void) {
         l->base = base;
 
         if (c == 'Z' || is_label_anonymous(l->label) == YES) {
-          if (labels != NULL) {
-            label_last->next = l;
-            label_last = l;
+          if (g_labels != NULL) {
+            g_label_last->next = l;
+            g_label_last = l;
           }
           else {
-            labels = l;
-            label_last = l;
+            g_labels = l;
+            g_label_last = l;
           }
           continue;
         }
 
         /* check the label is not already defined */
 
-        snprintf(emsg, sizeof(emsg), "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
+        snprintf(g_error_message, sizeof(g_error_message), "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
                  get_file_name(g_file_name_id), line_number, l->label);
 
         if (s != NULL) {
           /* always put the label into the section's label_map */
           if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, "%s", emsg);
+            fprintf(stderr, "%s", g_error_message);
             return FAILED;
           }
           if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
@@ -287,7 +287,7 @@ int pass_3(void) {
           if (s != NULL && s->nspace != NULL) {
             /* label in a namespace */
             if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
-              fprintf(stderr, "%s", emsg);
+              fprintf(stderr, "%s", g_error_message);
               return FAILED;
             }
             if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
@@ -297,24 +297,24 @@ int pass_3(void) {
           }
           else {
             /* global label */
-            if (hashmap_get(global_unique_label_map, l->label, NULL) == MAP_OK) {
-              fprintf(stderr, "%s", emsg);
+            if (hashmap_get(g_global_unique_label_map, l->label, NULL) == MAP_OK) {
+              fprintf(stderr, "%s", g_error_message);
               return FAILED;
             }
-            if ((err = hashmap_put(global_unique_label_map, l->label, l)) != MAP_OK) {
+            if ((err = hashmap_put(g_global_unique_label_map, l->label, l)) != MAP_OK) {
               fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
               return FAILED;
             }
           }
         }
 
-        if (labels != NULL) {
-          label_last->next = l;
-          label_last = l;
+        if (g_labels != NULL) {
+          g_label_last->next = l;
+          g_label_last = l;
         }
         else {
-          labels = l;
-          label_last = l;
+          g_labels = l;
+          g_label_last = l;
         }
 
         continue;
@@ -370,7 +370,7 @@ int pass_3(void) {
           s->alive = OFF;
 
           /* discard all labels which belong to this section */
-          l = labels;
+          l = g_labels;
           while (l != NULL) {
             if (l->section_status == ON && l->section_id == s->id) {
               l->alive = OFF;
@@ -557,7 +557,7 @@ int pass_3(void) {
         s->alive = OFF;
 
         /* discard all labels which belong to this section */
-        l = labels;
+        l = g_labels;
         while (l != NULL) {
           if (l->section_status == ON && l->section_id == s->id) {
             l->alive = OFF;
@@ -663,7 +663,7 @@ int pass_3(void) {
     case 'g':
       fscanf(f_in, "%d ", &x);
 
-      bn = block_names;
+      bn = g_block_names;
       while (bn != NULL) {
         if (bn->id == x)
           break;
@@ -678,15 +678,15 @@ int pass_3(void) {
       }
       b->filename_id = g_file_name_id;
       b->line_number = line_number;
-      b->next = blocks;
-      blocks = b;
+      b->next = g_blocks;
+      g_blocks = b;
       strcpy(b->name, bn->name);
       b->address = add;
       continue;
 
     case 'G':
-      b = blocks;
-      blocks = blocks->next;
+      b = g_blocks;
+      g_blocks = g_blocks->next;
       printf("INTERNAL_PASS_1: Block \"%s\" is %d bytes in size.\n", b->name, add - b->address);
       free(b);
       continue;
@@ -722,7 +722,7 @@ int pass_3(void) {
       else
         fscanf(f_in, STRING_READ_FORMAT, l->label);
 
-      mangled_label = NO;
+      g_mangled_label = NO;
       
       if (c == 'L' && is_label_anonymous(l->label) == NO) {
         /* if the label has '@' at the start, mangle the label name to make it unique */
@@ -743,11 +743,11 @@ int pass_3(void) {
         if (n >= 0) {
           if (mangle_label(l->label, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
             return FAILED;
-          mangled_label = YES;
+          g_mangled_label = YES;
         }
       }
 
-      if (c == 'L' && is_label_anonymous(l->label) == NO && namespace[0] != 0 && mangled_label == NO) {
+      if (c == 'L' && is_label_anonymous(l->label) == NO && namespace[0] != 0 && g_mangled_label == NO) {
         if (s == NULL || s->nspace == NULL) {
           if (add_namespace(l->label, namespace, sizeof(l->label)) == FAILED)
             return FAILED;
@@ -778,26 +778,26 @@ int pass_3(void) {
       l->base = base;
 
       if (c == 'Z' || is_label_anonymous(l->label) == YES) {
-        if (labels != NULL) {
-          label_last->next = l;
-          label_last = l;
+        if (g_labels != NULL) {
+          g_label_last->next = l;
+          g_label_last = l;
         }
         else {
-          labels = l;
-          label_last = l;
+          g_labels = l;
+          g_label_last = l;
         }
         continue;
       }
 
       /* check the label is not already defined */
 
-      snprintf(emsg, sizeof(emsg), "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
+      snprintf(g_error_message, sizeof(g_error_message), "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
                get_file_name(g_file_name_id), line_number, l->label);
 
       if (s != NULL) {
         /* always put the label into the section's label_map */
         if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
-          fprintf(stderr, "%s", emsg);
+          fprintf(stderr, "%s", g_error_message);
           return FAILED;
         }
         if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
@@ -811,7 +811,7 @@ int pass_3(void) {
         if (s != NULL && s->nspace != NULL) {
           /* label in a namespace */
           if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, "%s", emsg);
+            fprintf(stderr, "%s", g_error_message);
             return FAILED;
           }
           if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
@@ -821,24 +821,24 @@ int pass_3(void) {
         }
         else {
           /* global label */
-          if (hashmap_get(global_unique_label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, "%s", emsg);
+          if (hashmap_get(g_global_unique_label_map, l->label, NULL) == MAP_OK) {
+            fprintf(stderr, "%s", g_error_message);
             return FAILED;
           }
-          if ((err = hashmap_put(global_unique_label_map, l->label, l)) != MAP_OK) {
+          if ((err = hashmap_put(g_global_unique_label_map, l->label, l)) != MAP_OK) {
             fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
             return FAILED;
           }
         }
       }
 
-      if (labels != NULL) {
-        label_last->next = l;
-        label_last = l;
+      if (g_labels != NULL) {
+        g_label_last->next = l;
+        g_label_last = l;
       }
       else {
-        labels = l;
-        label_last = l;
+        g_labels = l;
+        g_label_last = l;
       }
 
       continue;
@@ -858,21 +858,21 @@ int pass_3(void) {
     case 'e':
       fscanf(f_in, "%d %d ", &x, &y);
       if (y == -1) { /* mark start of .DSTRUCT */
-        dstruct_start = add;
-        dstruct_item_offset = -1;
+        g_dstruct_start = add;
+        g_dstruct_item_offset = -1;
       }
       else {
-        if (dstruct_item_offset != -1 && add - dstruct_item_offset > dstruct_item_size) {
-          fprintf(stderr, "%s:%d INTERNAL_PASS_1: %d too many bytes in struct field.\n", get_file_name(g_file_name_id), line_number, (add - dstruct_item_offset) - dstruct_item_size);
+        if (g_dstruct_item_offset != -1 && add - g_dstruct_item_offset > g_dstruct_item_size) {
+          fprintf(stderr, "%s:%d INTERNAL_PASS_1: %d too many bytes in struct field.\n", get_file_name(g_file_name_id), line_number, (add - g_dstruct_item_offset) - g_dstruct_item_size);
           return FAILED;
         }
 
-        add = dstruct_start + x;
+        add = g_dstruct_start + x;
         if (y < 0)
-          dstruct_item_offset = -1;
+          g_dstruct_item_offset = -1;
         else {
-          dstruct_item_offset = add;
-          dstruct_item_size = y;
+          g_dstruct_item_offset = add;
+          g_dstruct_item_size = y;
         }
       }
       continue;
@@ -885,8 +885,8 @@ int pass_3(void) {
 
   fclose(f_in);
 
-  if (blocks != NULL) {
-    fprintf(stderr, "%s:%d INTERNAL_PASS_1: .BLOCK \"%s\" was left open.\n", get_file_name(blocks->filename_id), blocks->line_number, blocks->name);
+  if (g_blocks != NULL) {
+    fprintf(stderr, "%s:%d INTERNAL_PASS_1: .BLOCK \"%s\" was left open.\n", get_file_name(g_blocks->filename_id), g_blocks->line_number, g_blocks->name);
     return FAILED;
   }
 
