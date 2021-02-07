@@ -724,13 +724,3 @@ int parse_and_add_incdir(char* c, int contains_flag) {
 
   return SUCCEEDED;
 }
-
-
-/*
- *
- *
- * MERSENNE TWISTER
- *
- *
- */
-
