@@ -29,7 +29,7 @@ extern struct label_sizeof *g_label_sizeofs;
 extern FILE *g_file_out_ptr;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern char *g_tmp_name, g_tmp[4096], *g_final_name;
-extern int g_rombanks, g_ind, g_inz, g_output_format, g_test_mode, g_listfile_data, g_little_endian;
+extern int g_rombanks, g_output_format, g_test_mode, g_listfile_data, g_little_endian;
 
 #ifdef GB
 extern char g_licenseecodenew_c1, g_licenseecodenew_c2;
@@ -253,7 +253,7 @@ int pass_4(void) {
   FILE *final_ptr;
   double dou;
   char *t, c;
-  int i, o, z, y, add_old = 0, x, q, ov, inside_macro = 0, inside_repeat = 0;
+  int i, o, z, y, add_old = 0, x, q, ov, inside_macro = 0, inside_repeat = 0, inz, ind;
   float f;
 
   memset(g_parent_labels, 0, sizeof(g_parent_labels));
@@ -315,8 +315,8 @@ int pass_4(void) {
       continue;
 
     case 't':
-      fscanf(g_file_out_ptr, "%d ", &g_inz);
-      if (g_inz == 0)
+      fscanf(g_file_out_ptr, "%d ", &inz);
+      if (inz == 0)
         g_namespace[0] = 0;
       else
         fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
@@ -327,7 +327,7 @@ int pass_4(void) {
     case 'A':
     case 'S':
       if (c == 'A')
-        fscanf(g_file_out_ptr, "%d %d ", &x, &g_ind);
+        fscanf(g_file_out_ptr, "%d %d ", &x, &ind);
       else
         fscanf(g_file_out_ptr, "%d ", &x);
 
@@ -345,9 +345,9 @@ int pass_4(void) {
         continue;
 
       if (c == 'A')
-        g_sec_tmp->address = g_ind;
+        g_sec_tmp->address = ind;
 
-      g_ind = 0;
+      ind = 0;
       if (g_sec_tmp->maxsize_status == ON) {
         if (g_sec_tmp->maxsize < g_sec_tmp->size) {
           fprintf(stderr, "%s: INTERNAL_PASS_2: Section \"%s\" doesn't fit into the specified %d bytes. Enlarging to %d bytes.\n",
@@ -355,7 +355,7 @@ int pass_4(void) {
         }
         else if (g_sec_tmp->size < g_sec_tmp->maxsize) {
           g_sec_tmp->size = g_sec_tmp->maxsize;
-          g_ind = 1;
+          ind = 1;
         }
       }
 
@@ -367,7 +367,7 @@ int pass_4(void) {
       }
 
       /* fill the padded area with _emptyfill_ */
-      if (g_ind == 1)
+      if (ind == 1)
         memset(g_sec_tmp->data, g_emptyfill, g_sec_tmp->size);
 
       if (strcmp(g_sec_tmp->name, "BANKHEADER") == 0)
@@ -399,21 +399,21 @@ int pass_4(void) {
 
     case 'x':
     case 'o':
-      fscanf(g_file_out_ptr, "%d %d", &g_ind, &x);
+      fscanf(g_file_out_ptr, "%d %d", &ind, &x);
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing DSB data", get_file_name(g_filename_id), g_line_number);
 
-      if (g_ind < 0) { /* going backward */
+      if (ind < 0) { /* going backward */
         if (g_section_status == ON)
-          g_sec_tmp->i += g_ind;
-        g_pc_bank += g_ind;
-        g_pc_full += g_ind;
-        g_pc_slot += g_ind;
-        g_ind++;
+          g_sec_tmp->i += ind;
+        g_pc_bank += ind;
+        g_pc_full += ind;
+        g_pc_slot += ind;
+        ind++;
       }
       else {
-        while (g_ind > 0) {
+        while (ind > 0) {
           if (c == 'o') {
             if (g_section_status == ON)
               g_sec_tmp->i++;
@@ -425,33 +425,33 @@ int pass_4(void) {
             if (mem_insert(x) == FAILED)
               return FAILED;
           }
-          g_ind--;
+          ind--;
         }
       }
       continue;
 
     case 'X':
-      fscanf(g_file_out_ptr, "%d %d", &g_ind, &g_inz);
-      i = g_inz & 0xFF;
-      g_inz = (g_inz >> 8) & 0xFF;
+      fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
+      i = inz & 0xFF;
+      inz = (inz >> 8) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing DSW data", get_file_name(g_filename_id), g_line_number);
 
-      while (g_ind > 0) {
+      while (ind > 0) {
         if (g_little_endian == YES) {
           if (mem_insert(i) == FAILED)
             return FAILED;
-          if (mem_insert(g_inz) == FAILED)
+          if (mem_insert(inz) == FAILED)
             return FAILED;
         }
         else {
-          if (mem_insert(g_inz) == FAILED)
+          if (mem_insert(inz) == FAILED)
             return FAILED;
           if (mem_insert(i) == FAILED)
             return FAILED;
         }
-        g_ind--;
+        ind--;
       }
 
       continue;
@@ -459,32 +459,32 @@ int pass_4(void) {
 #ifdef W65816
 
     case 'h':
-      fscanf(g_file_out_ptr, "%d %d", &g_ind, &g_inz);
-      x = g_inz & 0xFF;
-      i = (g_inz >> 8) & 0xFF;
-      g_inz = (g_inz >> 16) & 0xFF;
+      fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
+      x = inz & 0xFF;
+      i = (inz >> 8) & 0xFF;
+      inz = (inz >> 16) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing DSL data", get_file_name(g_filename_id), g_line_number);
 
-      while (g_ind > 0) {
+      while (ind > 0) {
         if (g_little_endian == YES) {
           if (mem_insert(x) == FAILED)
             return FAILED;
           if (mem_insert(i) == FAILED)
             return FAILED;
-          if (mem_insert(g_inz) == FAILED)
+          if (mem_insert(inz) == FAILED)
             return FAILED;
         }
         else {
-          if (mem_insert(g_inz) == FAILED)
+          if (mem_insert(inz) == FAILED)
             return FAILED;
           if (mem_insert(i) == FAILED)
             return FAILED;
           if (mem_insert(x) == FAILED)
             return FAILED;
         }
-        g_ind--;
+        ind--;
       }
 
       continue;
@@ -505,9 +505,9 @@ int pass_4(void) {
       continue;
 
     case 'y':
-      fscanf(g_file_out_ptr, "%d", &g_inz);
-      x = g_inz & 0xFF;
-      g_inz = (g_inz >> 8) & 0xFF;
+      fscanf(g_file_out_ptr, "%d", &inz);
+      x = inz & 0xFF;
+      inz = (inz >> 8) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing two bytes", get_file_name(g_filename_id), g_line_number);
@@ -515,11 +515,11 @@ int pass_4(void) {
       if (g_little_endian == YES) {
         if (mem_insert(x) == FAILED)
           return FAILED;
-        if (mem_insert(g_inz) == FAILED)
+        if (mem_insert(inz) == FAILED)
           return FAILED;
       }
       else {
-        if (mem_insert(g_inz) == FAILED)
+        if (mem_insert(inz) == FAILED)
           return FAILED;
         if (mem_insert(x) == FAILED)
           return FAILED;
@@ -534,10 +534,10 @@ int pass_4(void) {
 #ifdef W65816
 
     case 'z':
-      fscanf(g_file_out_ptr, "%d", &g_inz);
-      x = g_inz & 0xFF;
-      g_ind = (g_inz >> 8) & 0xFF;
-      g_inz = (g_inz >> 16) & 0xFF;
+      fscanf(g_file_out_ptr, "%d", &inz);
+      x = inz & 0xFF;
+      ind = (inz >> 8) & 0xFF;
+      inz = (inz >> 16) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing three bytes", get_file_name(g_filename_id), g_line_number);
@@ -545,15 +545,15 @@ int pass_4(void) {
       if (g_little_endian == YES) {
         if (mem_insert(x) == FAILED)
           return FAILED;
-        if (mem_insert(g_ind) == FAILED)
+        if (mem_insert(ind) == FAILED)
           return FAILED;
-        if (mem_insert(g_inz) == FAILED)
+        if (mem_insert(inz) == FAILED)
           return FAILED;
       }
       else {
-        if (mem_insert(g_inz) == FAILED)
+        if (mem_insert(inz) == FAILED)
           return FAILED;
-        if (mem_insert(g_ind) == FAILED)
+        if (mem_insert(ind) == FAILED)
           return FAILED;
         if (mem_insert(x) == FAILED)
           return FAILED;
@@ -566,10 +566,10 @@ int pass_4(void) {
       /* DATA BLOCK from .INCBIN */
 
     case 'D':
-      fscanf(g_file_out_ptr, "%d %d %d %d", &x, &g_inz, &z, &y);
+      fscanf(g_file_out_ptr, "%d %d %d %d", &x, &inz, &z, &y);
 
       g_ifd_tmp = g_incbin_file_data_first;
-      for (g_ind = 0; g_ind != x; g_ind++)
+      for (ind = 0; ind != x; ind++)
         g_ifd_tmp = g_ifd_tmp->next;
       t = g_ifd_tmp->data + z;
 
@@ -577,9 +577,9 @@ int pass_4(void) {
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .INCBIN data", get_file_name(g_filename_id), g_line_number);
 
       /* swap? */
-      if (g_inz == 1) {
-        g_inz = y / 2;
-        for (g_ind = 0; g_ind < g_inz; g_ind++) {
+      if (inz == 1) {
+        inz = y / 2;
+        for (ind = 0; ind < inz; ind++) {
           if (mem_insert(*(t + 1)) == FAILED)
             return FAILED;
           if (mem_insert(*t) == FAILED)
@@ -588,8 +588,8 @@ int pass_4(void) {
         }
       }
       else {
-        g_inz = y;
-        for (g_ind = 0; g_ind < g_inz; g_ind++) {
+        inz = y;
+        for (ind = 0; ind < inz; ind++) {
           if (mem_insert(*(t++)) == FAILED)
             return FAILED;
         }
@@ -670,7 +670,7 @@ int pass_4(void) {
       /* 8BIT COMPUTATION */
 
     case 'c':
-      fscanf(g_file_out_ptr, "%d", &g_inz);
+      fscanf(g_file_out_ptr, "%d", &inz);
 
       if (g_bankheader_status == OFF)
         g_stacks_tmp = g_stacks_first;
@@ -678,13 +678,13 @@ int pass_4(void) {
         g_stacks_tmp = g_stacks_header_first;
 
       while (g_stacks_tmp != NULL) {
-        if (g_stacks_tmp->id == g_inz)
+        if (g_stacks_tmp->id == inz)
           break;
         g_stacks_tmp = g_stacks_tmp->next;
       }
 
       if (g_stacks_tmp == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, g_inz);
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
@@ -727,7 +727,7 @@ int pass_4(void) {
       /* 16BIT COMPUTATION */
 
     case 'C':
-      fscanf(g_file_out_ptr, "%d", &g_inz);
+      fscanf(g_file_out_ptr, "%d", &inz);
 
       if (g_bankheader_status == OFF)
         g_stacks_tmp = g_stacks_first;
@@ -735,13 +735,13 @@ int pass_4(void) {
         g_stacks_tmp = g_stacks_header_first;
 
       while (g_stacks_tmp != NULL) {
-        if (g_stacks_tmp->id == g_inz)
+        if (g_stacks_tmp->id == inz)
           break;
         g_stacks_tmp = g_stacks_tmp->next;
       }
 
       if (g_stacks_tmp == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, g_inz);
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
@@ -786,7 +786,7 @@ int pass_4(void) {
       /* 13BIT COMPUTATION */
 
     case 'N':
-      fscanf(g_file_out_ptr, "%d %d", &x, &g_inz);
+      fscanf(g_file_out_ptr, "%d %d", &x, &inz);
 
       if (g_bankheader_status == OFF)
         g_stacks_tmp = g_stacks_first;
@@ -794,13 +794,13 @@ int pass_4(void) {
         g_stacks_tmp = g_stacks_header_first;
 
       while (g_stacks_tmp != NULL) {
-        if (g_stacks_tmp->id == g_inz)
+        if (g_stacks_tmp->id == inz)
           break;
         g_stacks_tmp = g_stacks_tmp->next;
       }
 
       if (g_stacks_tmp == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, g_inz);
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
@@ -845,7 +845,7 @@ int pass_4(void) {
       /* 24BIT COMPUTATION */
 
     case 'T':
-      fscanf(g_file_out_ptr, "%d", &g_inz);
+      fscanf(g_file_out_ptr, "%d", &inz);
 
       if (g_bankheader_status == OFF)
         g_stacks_tmp = g_stacks_first;
@@ -853,13 +853,13 @@ int pass_4(void) {
         g_stacks_tmp = g_stacks_header_first;
 
       while (g_stacks_tmp != NULL) {
-        if (g_stacks_tmp->id == g_inz)
+        if (g_stacks_tmp->id == inz)
           break;
         g_stacks_tmp = g_stacks_tmp->next;
       }
 
       if (g_stacks_tmp == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, g_inz);
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
@@ -1083,7 +1083,7 @@ int pass_4(void) {
       /* 13BIT REFERENCE */
 
     case 'n':
-      fscanf(g_file_out_ptr, "%d ", &g_inz);
+      fscanf(g_file_out_ptr, "%d ", &inz);
       fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
 
       if (g_namespace[0] != 0) {
@@ -1113,7 +1113,7 @@ int pass_4(void) {
 
           if (mem_insert(o & 0xFF) == FAILED)
             return FAILED;
-          if (mem_insert(((o | g_inz << 13) & 0xFF00) >> 8) == FAILED)
+          if (mem_insert(((o | inz << 13) & 0xFF00) >> 8) == FAILED)
             return FAILED;
         }
       }
@@ -1129,7 +1129,7 @@ int pass_4(void) {
 
       if (mem_insert(0x00) == FAILED)
         return FAILED;
-      if (mem_insert(g_inz << (13 - 8)) == FAILED)
+      if (mem_insert(inz << (13 - 8)) == FAILED)
         return FAILED;
 
       continue;
@@ -1276,20 +1276,20 @@ int pass_4(void) {
     fprintf(final_ptr, "WLA9");
 
     /* misc bits */
-    g_ind = 0;
+    ind = 0;
 
     if (g_little_endian == NO)
-      g_ind |= 1 << 0;
+      ind |= 1 << 0;
 #ifdef W65816
     /* 65816 bit */
-    g_ind |= 1 << 1;
+    ind |= 1 << 1;
 #endif
 #ifdef CSG65CE02
     /* 65ce02 bit */
-    g_ind |= 1 << 2;
+    ind |= 1 << 2;
 #endif
     
-    fprintf(final_ptr, "%c", g_ind);
+    fprintf(final_ptr, "%c", ind);
     
     if (export_source_file_names(final_ptr) == FAILED)
       return FAILED;
@@ -1385,12 +1385,12 @@ int pass_4(void) {
       ov = g_stacks_tmp->linenumber;
       WRITEOUT_OV;
 
-      for (g_ind = 0; g_ind < g_stacks_tmp->stacksize; g_ind++) {
-        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[g_ind].type, g_stacks_tmp->stack[g_ind].sign);
-        if (g_stacks_tmp->stack[g_ind].type == STACK_ITEM_TYPE_STRING)
-          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[g_ind].string, 0);
+      for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
+        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
+        if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
+          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
         else {
-          dou = g_stacks_tmp->stack[g_ind].value;
+          dou = g_stacks_tmp->stack[ind].value;
           WRITEOUT_DOU;
         }
       }
@@ -1482,78 +1482,78 @@ int pass_4(void) {
     fprintf(final_ptr, "WLAa%c", g_emptyfill);
 
     /* misc bits */
-    g_ind = 0;
+    ind = 0;
 
 #ifdef Z80
     if (g_computesmschecksum_defined != 0)
-      g_ind |= 1 << 0;
+      ind |= 1 << 0;
 #endif
 
 #ifdef W65816
     if (g_snes_mode != 0) {
       if (g_hirom_defined != 0)
-        g_ind += 2;
+        ind += 2;
       if (g_fastrom_defined != 0)
-        g_ind += 8;
+        ind += 8;
       if (g_computesneschecksum_defined != 0)
-        g_ind += 64;
+        ind += 64;
       /* use snes banking scheme */
       if (g_hirom_defined != 0 || g_lorom_defined != 0 || g_exhirom_defined != 0 || g_exlorom_defined != 0)
-        g_ind += 4;
+        ind += 4;
     }
     /* 65816 bit */
-    g_ind += 128;
+    ind += 128;
 #endif
 
 #ifdef GB
     if (g_computechecksum_defined != 0)
-      g_ind += 16;
+      ind += 16;
     if (g_computecomplementcheck_defined != 0)
-      g_ind += 32;
+      ind += 32;
 #endif
 
-    fprintf(final_ptr, "%c", g_ind);
+    fprintf(final_ptr, "%c", ind);
 
     /* more bits */
-    g_ind = 0;
+    ind = 0;
 
     if (g_smc_defined != 0)
-      g_ind |= 1 << 0;
+      ind |= 1 << 0;
 #ifdef W65816
     if (g_sramsize_defined != 0)
-      g_ind |= (g_sramsize & 3) << 1;
+      ind |= (g_sramsize & 3) << 1;
 #endif
 
 #ifdef Z80
     if (g_smstag_defined != 0)
-      g_ind |= 1 << 3;
+      ind |= 1 << 3;
     if (g_smsheader_defined != 0)
-      g_ind |= 1 << 4;
+      ind |= 1 << 4;
 #endif
 
 #ifdef W65816
     if (g_snes_mode != 0) {
       if (g_exhirom_defined != 0)
-        g_ind |= 1 << 5;
+        ind |= 1 << 5;
       if (g_exlorom_defined != 0)
-        g_ind |= 1 << 6;
+        ind |= 1 << 6;
     }
 #endif
 
     if (g_little_endian == NO)
-      g_ind |= 1 << 7;
+      ind |= 1 << 7;
     
-    fprintf(final_ptr, "%c", g_ind);
+    fprintf(final_ptr, "%c", ind);
 
     /* extr bits */
-    g_ind = 0;
+    ind = 0;
 
 #ifdef CSG65CE02
     /* 65ce02 bit */
-    g_ind |= 1 << 0;
+    ind |= 1 << 0;
 #endif
 
-    fprintf(final_ptr, "%c", g_ind);
+    fprintf(final_ptr, "%c", ind);
     
     /* rom bank map */
     ov = g_rombanks;
@@ -1726,12 +1726,12 @@ int pass_4(void) {
       ov = g_stacks_tmp->base;
       WRITEOUT_OV;
       
-      for (g_ind = 0; g_ind < g_stacks_tmp->stacksize; g_ind++) {
-        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[g_ind].type, g_stacks_tmp->stack[g_ind].sign);
-        if (g_stacks_tmp->stack[g_ind].type == STACK_ITEM_TYPE_STRING)
-          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[g_ind].string, 0);
+      for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
+        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
+        if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
+          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
         else {
-          dou = g_stacks_tmp->stack[g_ind].value;
+          dou = g_stacks_tmp->stack[ind].value;
           WRITEOUT_DOU;
         }
       }
@@ -1757,12 +1757,12 @@ int pass_4(void) {
       ov = g_stacks_tmp->bank;
       WRITEOUT_OV;
 
-      for (g_ind = 0; g_ind < g_stacks_tmp->stacksize; g_ind++) {
-        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[g_ind].type, g_stacks_tmp->stack[g_ind].sign);
-        if (g_stacks_tmp->stack[g_ind].type == STACK_ITEM_TYPE_STRING)
-          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[g_ind].string, 0);
+      for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
+        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
+        if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
+          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
         else {
-          dou = g_stacks_tmp->stack[g_ind].value;
+          dou = g_stacks_tmp->stack[ind].value;
           WRITEOUT_DOU;
         }
       }
@@ -1807,37 +1807,37 @@ int pass_4(void) {
     }
 
     /* data area */
-    g_ind = 0;
-    for (g_inz = 0; g_inz < g_max_address; g_inz++) {
-      if (g_rom_banks_usage_table[g_inz] != 0) {
+    ind = 0;
+    for (inz = 0; inz < g_max_address; inz++) {
+      if (g_rom_banks_usage_table[inz] != 0) {
         /* data block id */
         fprintf(final_ptr, "%c", 0x0);
-        for (i = g_inz, g_ind = 0; g_inz < g_max_address; g_inz++, g_ind++) {
-          if (g_rom_banks_usage_table[g_inz] == 0) {
+        for (i = inz, ind = 0; inz < g_max_address; inz++, ind++) {
+          if (g_rom_banks_usage_table[inz] == 0) {
 
             ov = i;
             WRITEOUT_OV;
 
-            ov = g_ind;
+            ov = ind;
             WRITEOUT_OV;
 
-            fwrite(&g_rom_banks[i], 1, g_ind, final_ptr);
+            fwrite(&g_rom_banks[i], 1, ind, final_ptr);
 
-            g_ind = 0;
+            ind = 0;
             break;
           }
         }
       }
     }
 
-    if (g_ind != 0) {
+    if (ind != 0) {
       ov = i;
       WRITEOUT_OV;
 
-      ov = g_ind;
+      ov = ind;
       WRITEOUT_OV;
 
-      fwrite(&g_rom_banks[i], 1, g_ind, final_ptr);
+      fwrite(&g_rom_banks[i], 1, ind, final_ptr);
     }
 
     g_sec_tmp = g_sections_first;
@@ -1892,30 +1892,30 @@ int pass_4(void) {
   /* show project information */
   if (g_verbose_mode == ON && g_output_format != OUTPUT_LIBRARY) {
     x = 0;
-    for (g_ind = 0; g_ind < g_max_address; g_ind++) {
-      if (g_rom_banks_usage_table[g_ind] == 0 && x == 0) {
+    for (ind = 0; ind < g_max_address; ind++) {
+      if (g_rom_banks_usage_table[ind] == 0 && x == 0) {
         x = 1;
-        g_inz = g_ind;
+        inz = ind;
       }
-      else if (g_rom_banks_usage_table[g_ind] != 0 && x == 1) {
-        if (g_inz == (g_ind - 1))
-          fprintf(stderr, "Free space at $%.4x.\n", g_inz);
+      else if (g_rom_banks_usage_table[ind] != 0 && x == 1) {
+        if (inz == (ind - 1))
+          fprintf(stderr, "Free space at $%.4x.\n", inz);
         else
-          fprintf(stderr, "Free space at $%.4x-$%.4x.\n", g_inz, g_ind - 1);
+          fprintf(stderr, "Free space at $%.4x-$%.4x.\n", inz, ind - 1);
         x = 0;
       }
     }
 
     if (x == 1) {
-      if (g_inz == (g_ind - 1))
-        fprintf(stderr, "Free space at $%.4x.\n", g_inz);
+      if (inz == (ind - 1))
+        fprintf(stderr, "Free space at $%.4x.\n", inz);
       else
-        fprintf(stderr, "Free space at $%.4x-$%.4x.\n", g_inz, g_ind - 1);
+        fprintf(stderr, "Free space at $%.4x-$%.4x.\n", inz, ind - 1);
     }
 
-    for (g_ind = 0, q = 0; g_ind < g_max_address; q++) {
-      for (x = 0, g_inz = 0; g_inz < g_banks[q]; g_inz++) {
-        if (g_rom_banks_usage_table[g_ind++] == 0)
+    for (ind = 0, q = 0; ind < g_max_address; q++) {
+      for (x = 0, inz = 0; inz < g_banks[q]; inz++) {
+        if (g_rom_banks_usage_table[ind++] == 0)
           x++;
       }
       f = (((float)x)/g_banks[q]) * 100.0f;
@@ -1925,25 +1925,25 @@ int pass_4(void) {
         printf("Bank %.2d has %.5d bytes (%.2f%%) free.\n", q, x, f);
     }
 
-    for (g_ind = 0, g_inz = 0; g_ind < g_max_address; g_ind++) {
-      if (g_rom_banks_usage_table[g_ind] == 0)
-        g_inz++;
+    for (ind = 0, inz = 0; ind < g_max_address; ind++) {
+      if (g_rom_banks_usage_table[ind] == 0)
+        inz++;
     }
-    fprintf(stderr, "%d unused bytes of total %d.\n", g_inz, g_max_address);
+    fprintf(stderr, "%d unused bytes of total %d.\n", inz, g_max_address);
 
 #ifndef GB
     g_sec_tmp = g_sections_first;
     while (g_sec_tmp != NULL) {
       if (g_sec_tmp->status == SECTION_STATUS_HEADER) {
         fprintf(stderr, "Bank %d header section size %d.\n", g_sec_tmp->bank, g_sec_tmp->size);
-        g_ind += g_sec_tmp->size;
+        ind += g_sec_tmp->size;
       }
       g_sec_tmp = g_sec_tmp->next;
     }
 
-    if (g_ind != 0) {
-      fprintf(stderr, "Total %d additional bytes (from headers and footers).\n", g_ind);
-      fprintf(stderr, "Total size %d bytes.\n", g_ind + g_max_address);
+    if (ind != 0) {
+      fprintf(stderr, "Total %d additional bytes (from headers and footers).\n", ind);
+      fprintf(stderr, "Total size %d bytes.\n", ind + g_max_address);
     }
 #endif
 
