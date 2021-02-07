@@ -17,7 +17,7 @@ extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g
 extern struct block_name *g_block_names;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
-extern char *g_tmp_name, tmp[4096], g_error_message[sizeof(tmp) + MAX_NAME_LENGTH + 1 + 1024], namespace[MAX_NAME_LENGTH + 1];
+extern char *g_tmp_name, g_tmp[4096], g_error_message[sizeof(g_tmp) + MAX_NAME_LENGTH + 1 + 1024], g_namespace[MAX_NAME_LENGTH + 1];
 extern int g_verbose_mode, g_section_status, g_output_format;
 
 
@@ -51,7 +51,7 @@ int pass_3(void) {
   memset(parent_labels, 0, sizeof(parent_labels));
   s = NULL;
 
-  namespace[0] = 0;
+  g_namespace[0] = 0;
   
   if (g_verbose_mode == ON)
     printf("Internal pass 1...\n");
@@ -180,9 +180,9 @@ int pass_3(void) {
       case 't':
         fscanf(f_in, "%d ", &inz);
         if (inz == 0)
-          namespace[0] = 0;
+          g_namespace[0] = 0;
         else
-          fscanf(f_in, STRING_READ_FORMAT, namespace);
+          fscanf(f_in, STRING_READ_FORMAT, g_namespace);
         continue;
 
       case 'Z': /* breakpoint */
@@ -190,9 +190,9 @@ int pass_3(void) {
       case 'L': /* label */
         l = calloc(sizeof(struct label_def), 1);
         if (l == NULL) {
-          fscanf(f_in, STRING_READ_FORMAT, tmp);
+          fscanf(f_in, STRING_READ_FORMAT, g_tmp);
           fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for label \"%s\".\n",
-                  get_file_name(g_file_name_id), line_number, tmp);
+                  get_file_name(g_file_name_id), line_number, g_tmp);
           return FAILED;
         }
 
@@ -233,9 +233,9 @@ int pass_3(void) {
           }
         }
 
-        if (c == 'L' && is_label_anonymous(l->label) == NO && namespace[0] != 0 && g_mangled_label == NO) {
+        if (c == 'L' && is_label_anonymous(l->label) == NO && g_namespace[0] != 0 && g_mangled_label == NO) {
           if (s == NULL || s->nspace == NULL) {
-            if (add_namespace(l->label, namespace, sizeof(l->label)) == FAILED)
+            if (add_namespace(l->label, g_namespace, sizeof(l->label)) == FAILED)
               return FAILED;
           }
         }
@@ -430,9 +430,9 @@ int pass_3(void) {
       case 't':
         fscanf(f_in, "%d ", &inz);
         if (inz == 0)
-          namespace[0] = 0;
+          g_namespace[0] = 0;
         else
-          fscanf(f_in, STRING_READ_FORMAT, namespace);
+          fscanf(f_in, STRING_READ_FORMAT, g_namespace);
         continue;       
 
       case 'S':
@@ -694,9 +694,9 @@ int pass_3(void) {
     case 't':
       fscanf(f_in, "%d ", &inz);
       if (inz == 0)
-        namespace[0] = 0;
+        g_namespace[0] = 0;
       else
-        fscanf(f_in, STRING_READ_FORMAT, namespace);
+        fscanf(f_in, STRING_READ_FORMAT, g_namespace);
       continue;
 
     case 'Z': /* breakpoint */
@@ -704,9 +704,9 @@ int pass_3(void) {
     case 'L': /* label */
       l = calloc(sizeof(struct label_def), 1);
       if (l == NULL) {
-        fscanf(f_in, STRING_READ_FORMAT, tmp);
+        fscanf(f_in, STRING_READ_FORMAT, g_tmp);
         fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for label \"%s\".\n",
-                get_file_name(g_file_name_id), line_number, tmp);
+                get_file_name(g_file_name_id), line_number, g_tmp);
         return FAILED;
       }
 
@@ -747,9 +747,9 @@ int pass_3(void) {
         }
       }
 
-      if (c == 'L' && is_label_anonymous(l->label) == NO && namespace[0] != 0 && g_mangled_label == NO) {
+      if (c == 'L' && is_label_anonymous(l->label) == NO && g_namespace[0] != 0 && g_mangled_label == NO) {
         if (s == NULL || s->nspace == NULL) {
-          if (add_namespace(l->label, namespace, sizeof(l->label)) == FAILED)
+          if (add_namespace(l->label, g_namespace, sizeof(l->label)) == FAILED)
             return FAILED;
         }
       }

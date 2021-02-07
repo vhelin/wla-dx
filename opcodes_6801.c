@@ -1,7 +1,7 @@
 #define FILE void
 #include "defines.h"
 
-struct optcode opt_table[] = {
+struct optcode g_opcodes_table[] = {
   { "ABA", 0x1B, 0, 0 },
   { "ABX", 0x3A, 0, 0 },
   

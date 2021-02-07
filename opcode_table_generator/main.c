@@ -13,7 +13,7 @@
 
 #include "defines.h"
 
-extern struct optcode opt_table[];
+extern struct optcode g_opcodes_table[];
 
 /* this program is used to generate the opcode decoding speedup tables */
 
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     opcode_p[x] = 0;
   }
 
-  opt_tmp = opt_table;
+  opt_tmp = g_opcodes_table;
   a = 'A';
   b = 'a';
   ob = 'a';
@@ -69,10 +69,10 @@ int main(int argc, char *argv[]) {
   x = 0;
   opcode_p[(int)a] = 0;
   opcode_p[(int)b] = 0;
-  while (opt_table[n].type != 0xff) {
-    if (strlen(opt_table[n].op) > max) {
-      max = (unsigned int)strlen(opt_table[n].op);
-      strcpy(max_name, opt_table[n].op);
+  while (g_opcodes_table[n].type != 0xff) {
+    if (strlen(g_opcodes_table[n].op) > max) {
+      max = (unsigned int)strlen(g_opcodes_table[n].op);
+      strcpy(max_name, g_opcodes_table[n].op);
     }
     if (opt_tmp[n].op[0] != a) {
       opcode_n[(int)a] = x;
@@ -107,11 +107,11 @@ int main(int argc, char *argv[]) {
   }
 
   /* opcode_n[256] */
-  fprintf(out, "int opcode_n[256] = {\n");
+  fprintf(out, "int g_opcode_n[256] = {\n");
   print_table(out, opcode_n);
 
   /* opcode_p[256] */
-  fprintf(out, "int opcode_p[256] = {\n");
+  fprintf(out, "int g_opcode_p[256] = {\n");
   print_table(out, opcode_p);
 
   if (outname)

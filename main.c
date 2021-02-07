@@ -58,7 +58,7 @@ extern struct stack *g_stacks_first, *g_stacks_tmp, *g_stacks_last, *g_stacks_he
 extern struct repeat_runtime *g_repeat_stack;
 extern struct section_def *g_sections_first;
 extern struct macro_runtime *g_macro_stack;
-extern struct label_def *unknown_labels;
+extern struct label_def *g_unknown_labels;
 extern struct filepointer *g_filepointers;
 extern struct map_t *g_namespace_map;
 extern struct append_section *g_append_sections;
@@ -79,7 +79,7 @@ int g_create_sizeof_definitions = YES;
 
 char *g_final_name = NULL, *g_asm_name = NULL;
 
-struct ext_include_collection ext_incdirs;
+struct ext_include_collection g_ext_incdirs;
 
 
 
@@ -98,9 +98,9 @@ int main(int argc, char *argv[]) {
   init_genrand((unsigned long)time(NULL));
 
   /* initialize our external include dir collection */
-  ext_incdirs.count = 0;
-  ext_incdirs.names = NULL;
-  ext_incdirs.max_name_size_bytes = MAX_NAME_LENGTH + 1;
+  g_ext_incdirs.count = 0;
+  g_ext_incdirs.names = NULL;
+  g_ext_incdirs.max_name_size_bytes = MAX_NAME_LENGTH + 1;
 
   /* select little/big endianess */
 #if defined(MC6800) || defined(MC6801) || defined(MC6809)
@@ -404,7 +404,7 @@ void procedures_at_exit(void) {
     g_label_tmp = g_labels;
   }
 
-  l1 = unknown_labels;
+  l1 = g_unknown_labels;
   while (l1 != NULL) {
     l2 = l1->next;
     free(l1);
@@ -519,9 +519,9 @@ void procedures_at_exit(void) {
     remove(g_tmp_name);
 
   /* cleanup any incdirs we added */
-  for (index = 0; index < ext_incdirs.count; index++)
-    free(ext_incdirs.names[index]);
-  free(ext_incdirs.names);
+  for (index = 0; index < g_ext_incdirs.count; index++)
+    free(g_ext_incdirs.names[index]);
+  free(g_ext_incdirs.names);
 }
 
 
@@ -537,13 +537,13 @@ int generate_tmp_name(char **filename) {
 #elif defined(WIN32)
   pid = GetCurrentProcessId();
 #else
-  #error "Invalid configuration!"
+#error "Invalid configuration!"
 #endif
 
   status = snprintf(name, sizeof(name)-1, ".wla%da", pid) + 1;
   if (status >= (int)sizeof(name)) {
     fprintf(stderr, "MAIN: Temp filename exceeded limit: %d >= %d! "
-      "Aborting...\n", status, (int)sizeof(name));
+            "Aborting...\n", status, (int)sizeof(name));
     abort();
   }
 
@@ -686,20 +686,20 @@ int parse_and_add_definition(char *c, int contains_flag) {
 
 int parse_and_add_incdir(char* c, int contains_flag) {
 
-  int old_count = ext_incdirs.count, index, buffer_size, j;
+  int old_count = g_ext_incdirs.count, index, buffer_size, j;
   char **new_array;
   char n[MAX_NAME_LENGTH + 1];
 
   /* increment for the new entry, then re-allocate the array */
-  ext_incdirs.count++;
-  new_array = calloc(ext_incdirs.count * sizeof(char*), 1);
+  g_ext_incdirs.count++;
+  new_array = calloc(g_ext_incdirs.count * sizeof(char*), 1);
   for (index = 0; index < old_count; index++)
-    new_array[index] = ext_incdirs.names[index];
+    new_array[index] = g_ext_incdirs.names[index];
  
-  free(ext_incdirs.names);
-  ext_incdirs.names = new_array;
-  buffer_size = ext_incdirs.max_name_size_bytes;
-  ext_incdirs.names[old_count] = calloc(buffer_size, 1);
+  free(g_ext_incdirs.names);
+  g_ext_incdirs.names = new_array;
+  buffer_size = g_ext_incdirs.max_name_size_bytes;
+  g_ext_incdirs.names[old_count] = calloc(buffer_size, 1);
 
   /* skip the flag? */
   if (contains_flag == YES)
@@ -715,9 +715,9 @@ int parse_and_add_incdir(char* c, int contains_flag) {
   localize_path(n);
 
 #if defined(MSDOS)
-  snprintf(ext_incdirs.names[old_count], buffer_size, "%s\\", n);
+  snprintf(g_ext_incdirs.names[old_count], buffer_size, "%s\\", n);
 #else
-  snprintf(ext_incdirs.names[old_count], buffer_size, "%s/", n);
+  snprintf(g_ext_incdirs.names[old_count], buffer_size, "%s/", n);
 #endif
 
   g_use_incdir = YES;

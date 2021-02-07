@@ -9,7 +9,7 @@
    BC, DE, HL & BC', DE', HL', but BC, DE, HL cannot be mixed
    with BC',DE',HL'
 */
-struct optcode opt_table[] = {
+struct optcode g_opcodes_table[] = {
   { "ADC A',A'", 0x8f, 0, 0, 0 },
   { "ADC A,A", 0x8f, 0, 0, 0 },
   { "ADC A',B'", 0x88, 0, 0, 0 },

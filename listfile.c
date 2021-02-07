@@ -15,13 +15,13 @@ extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_se
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
-extern char *g_tmp_name, tmp[4096];
+extern char *g_tmp_name, g_tmp[4096];
 extern int g_verbose_mode, g_section_status, g_cartridgetype, g_output_format;
 
 
 int listfile_collect(void) {
 
-  int add = 0, skip = 0, g_file_name_id = 0, inz, line_number = 0, command = 0, inside_macro = 0, inside_repeat = 0;
+  int add = 0, skip = 0, file_name_id = 0, inz, line_number = 0, command = 0, inside_macro = 0, inside_repeat = 0;
   int x, y;
   int dstruct_start = -1;
   struct section_def *section = NULL;
@@ -90,7 +90,7 @@ int listfile_collect(void) {
 
       /* add file name */
       section->listfile_cmds[command] = 'f';
-      section->listfile_ints[command*3 + 0] = g_file_name_id;
+      section->listfile_ints[command*3 + 0] = file_name_id;
       command++;
 
       continue;
@@ -179,7 +179,7 @@ int listfile_collect(void) {
       continue;
 
     case 'f':
-      fscanf(file_in, "%d ", &g_file_name_id);
+      fscanf(file_in, "%d ", &file_name_id);
 
       if (section != NULL) {
         /* terminate the previous line */
@@ -189,7 +189,7 @@ int listfile_collect(void) {
 
         /* add file name */
         section->listfile_cmds[command] = 'f';
-        section->listfile_ints[command*3 + 0] = g_file_name_id;
+        section->listfile_ints[command*3 + 0] = file_name_id;
         command++;
       }
       continue;
@@ -227,7 +227,7 @@ int listfile_collect(void) {
       continue;
 
     default:
-      fprintf(stderr, "%s: LISTFILE_COLLECT: Unknown internal symbol \"%c\".\n", get_file_name(g_file_name_id), c);
+      fprintf(stderr, "%s: LISTFILE_COLLECT: Unknown internal symbol \"%c\".\n", get_file_name(file_name_id), c);
       return FAILED;
     }
   }

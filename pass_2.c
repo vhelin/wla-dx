@@ -53,7 +53,7 @@ extern int g_computesneschecksum_defined, g_exhirom_defined, g_exlorom_defined;
 #endif
 
 extern FILE *g_file_out_ptr;
-extern int ind, inz, g_rambanks, g_rambanks_defined, g_ifdef;
+extern int g_rambanks, g_rambanks_defined, g_ifdef;
 extern int g_rombanks_defined, g_rombanks;
 extern int g_output_format, g_romgbc, g_romsgb, g_romdmg, g_max_address;
 extern int g_romtype, g_verbose_mode, g_section_status, g_background_defined, g_memorymap_defined;
@@ -394,6 +394,8 @@ int pass_2(void) {
       mem_insert_absolute(330, g_countrycode);
     }
     if (g_name_defined != 0) {
+      int ind, inz;
+      
       if (g_romgbc != 0)
         inz = 15;
       else
@@ -427,6 +429,8 @@ int pass_2(void) {
 #ifdef W65816
 
 void write_snes_cartridge_information(int start) {
+
+  int inz, ind;
 
   inz = 32;
   if (g_hirom_defined != 0)

@@ -22,8 +22,8 @@ char g_unevaluated_expression[256];
 char g_expanded_macro_string[MAX_NAME_LENGTH + 1];
 double g_parsed_double;
 
-extern int g_source_pointer, g_size, d, g_macro_active;
-extern char *g_buffer, tmp[4096], cp[256];
+extern int g_source_pointer, g_size, g_parsed_int, g_macro_active;
+extern char *g_buffer, g_tmp[4096], g_current_directive[256];
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map;
@@ -146,7 +146,7 @@ int input_next_string(void) {
     return INPUT_NUMBER_EOL;
 
   /* last choice is a label */
-  tmp[0] = e;
+  g_tmp[0] = e;
   for (k = 1; k < MAX_NAME_LENGTH; k++) {
     e = g_buffer[g_source_pointer++];
     if (e == 0x0A || e == ',') {
@@ -155,7 +155,7 @@ int input_next_string(void) {
     }
     else if (e == ' ')
       break;
-    tmp[k] = e;
+    g_tmp[k] = e;
   }
 
   if (k == MAX_NAME_LENGTH) {
@@ -166,11 +166,11 @@ int input_next_string(void) {
     return FAILED;
   }
 
-  tmp[k] = 0;
+  g_tmp[k] = 0;
 
   /* expand e.g., \1 and \@ */
   if (g_macro_active != 0) {
-    if (expand_macro_arguments(tmp) == FAILED)
+    if (expand_macro_arguments(g_tmp) == FAILED)
       return FAILED;
   }
 
@@ -216,7 +216,7 @@ int input_number(void) {
           break;
         
         /* launch stack calculator */
-        p = stack_calculate(&g_buffer[g_source_pointer - 1], &d);
+        p = stack_calculate(&g_buffer[g_source_pointer - 1], &g_parsed_int);
 
         if (p == STACK_CALCULATE_DELAY)
           break;
@@ -239,7 +239,7 @@ int input_number(void) {
 
     if (g_buffer[g_source_pointer] == '@') {
       g_source_pointer++;
-      d = g_macro_runtime_current->macro->calls - 1;
+      g_parsed_int = g_macro_runtime_current->macro->calls - 1;
 
       if (g_buffer[g_source_pointer] != ' ' && g_buffer[g_source_pointer] != 0xA && g_buffer[g_source_pointer] != ',')
         exit_here = NO;
@@ -247,10 +247,10 @@ int input_number(void) {
         return SUCCEEDED;
     }
     else if (g_buffer[g_source_pointer] >= '0' && g_buffer[g_source_pointer] <= '9') {
-      for (d = 0, k = 0; k < 4; k++) {
+      for (g_parsed_int = 0, k = 0; k < 4; k++) {
         e = g_buffer[g_source_pointer++];
         if (e >= '0' && e <= '9')
-          d = (d * 10) + (e - '0');
+          g_parsed_int = (g_parsed_int * 10) + (e - '0');
         else {
           g_source_pointer--;
           break;
@@ -264,19 +264,19 @@ int input_number(void) {
       exit_here = NO;
 
     if (exit_here == YES) {
-      if (d > g_macro_runtime_current->supplied_arguments) {
-        snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", d, g_macro_runtime_current->macro->name, g_macro_runtime_current->supplied_arguments);
+      if (g_parsed_int > g_macro_runtime_current->supplied_arguments) {
+        snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", g_parsed_int, g_macro_runtime_current->macro->name, g_macro_runtime_current->supplied_arguments);
         print_error(g_xyz, ERROR_NUM);
         return FAILED;
       }
-      if (d == 0) {
-        snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", d, g_macro_runtime_current->macro->name);
+      if (g_parsed_int == 0) {
+        snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", g_parsed_int, g_macro_runtime_current->macro->name);
         print_error(g_xyz, ERROR_NUM);
         return FAILED;
       }
 
       /* return the macro argument */
-      ma = g_macro_runtime_current->argument_data[d - 1];
+      ma = g_macro_runtime_current->argument_data[g_parsed_int - 1];
       k = ma->type;
 
       if (k == INPUT_NUMBER_ADDRESS_LABEL)
@@ -288,7 +288,7 @@ int input_number(void) {
       else if (k == INPUT_NUMBER_STACK)
         g_latest_stack = (int)ma->value;
       else if (k == SUCCEEDED) {
-        d = (int)ma->value;
+        g_parsed_int = (int)ma->value;
         g_parsed_double = ma->value;
       }
       else {
@@ -325,7 +325,7 @@ int input_number(void) {
   }
 
   /* is it a hexadecimal value? */
-  d = 0;
+  g_parsed_int = 0;
   if (e >= '0' && e <= '9') {
     for (k = 0; 1; k++) {
       if (g_buffer[g_source_pointer+k] >= '0' && g_buffer[g_source_pointer+k] <= '9')
@@ -335,24 +335,24 @@ int input_number(void) {
       if (g_buffer[g_source_pointer+k] >= 'A' && g_buffer[g_source_pointer+k] <= 'F')
         continue;
       if (g_buffer[g_source_pointer+k] == 'h' || g_buffer[g_source_pointer+k] == 'H') {
-        d = 1;
+        g_parsed_int = 1;
         break;
       }
       break;
     }
   }
 
-  if (e == '$' || d == 1) {
-    if (d == 1)
+  if (e == '$' || g_parsed_int == 1) {
+    if (g_parsed_int == 1)
       g_source_pointer--;
-    for (d = 0, k = 0; k < 8; k++, g_source_pointer++) {
+    for (g_parsed_int = 0, k = 0; k < 8; k++, g_source_pointer++) {
       e = g_buffer[g_source_pointer];
       if (e >= '0' && e <= '9')
-        d = (d << 4) + e - '0';
+        g_parsed_int = (g_parsed_int << 4) + e - '0';
       else if (e >= 'A' && e <= 'F')
-        d = (d << 4) + e - 'A' + 10;
+        g_parsed_int = (g_parsed_int << 4) + e - 'A' + 10;
       else if (e >= 'a' && e <= 'f')
-        d = (d << 4) + e - 'a' + 10;
+        g_parsed_int = (g_parsed_int << 4) + e - 'a' + 10;
       else if (e == 'h' || e == 'H') {
         g_source_pointer++;
         e = g_buffer[g_source_pointer];
@@ -382,9 +382,9 @@ int input_number(void) {
     }
 
     if (g_operand_hint == HINT_NONE) {
-      if (d > 0xFFFF && d <= 0xFFFFFF)
+      if (g_parsed_int > 0xFFFF && g_parsed_int <= 0xFFFFFF)
         g_operand_hint = HINT_24BIT;
-      else if (d > 0xFF)
+      else if (g_parsed_int > 0xFF)
         g_operand_hint = HINT_16BIT;
       else
         g_operand_hint = HINT_8BIT;
@@ -393,14 +393,14 @@ int input_number(void) {
 
 #if defined(MC6809)
       /* 5-bit values need this */
-      if (d >= -16 && d <= 15) {
+      if (g_parsed_int >= -16 && g_parsed_int <= 15) {
         g_operand_hint = HINT_NONE;
         g_operand_hint_type = HINT_TYPE_NONE;
       }
 #endif
     }
     
-    g_parsed_double = (double)d;
+    g_parsed_double = (double)g_parsed_int;
     
     return SUCCEEDED;
   }
@@ -478,12 +478,12 @@ int input_number(void) {
     }
 
     /* drop the decimals */
-    d = (int)g_parsed_double;
+    g_parsed_int = (int)g_parsed_double;
 
     if (g_operand_hint == HINT_NONE) {
-      if (d > 0xFFFF && d <= 0xFFFFFF)
+      if (g_parsed_int > 0xFFFF && g_parsed_int <= 0xFFFFFF)
         g_operand_hint = HINT_24BIT;
-      else if (d > 0xFF)
+      else if (g_parsed_int > 0xFF)
         g_operand_hint = HINT_16BIT;
       else
         g_operand_hint = HINT_8BIT;
@@ -492,7 +492,7 @@ int input_number(void) {
 
 #if defined(MC6809)
       /* 5-bit values need this */
-      if (d >= -16 && d <= 15) {
+      if (g_parsed_int >= -16 && g_parsed_int <= 15) {
         g_operand_hint = HINT_NONE;
         g_operand_hint_type = HINT_TYPE_NONE;
       }
@@ -506,10 +506,10 @@ int input_number(void) {
   }
 
   if (e == '%') {
-    for (d = 0, k = 0; k < 32; k++, g_source_pointer++) {
+    for (g_parsed_int = 0, k = 0; k < 32; k++, g_source_pointer++) {
       e = g_buffer[g_source_pointer];
       if (e == '0' || e == '1')
-        d = (d << 1) + e - '0';
+        g_parsed_int = (g_parsed_int << 1) + e - '0';
       else
         break;
     }
@@ -533,13 +533,13 @@ int input_number(void) {
       }
     }
 
-    g_parsed_double = (double)d;
+    g_parsed_double = (double)g_parsed_int;
 
     return SUCCEEDED;
   }
 
   if (e == '\'') {
-    d = g_buffer[g_source_pointer++];
+    g_parsed_int = g_buffer[g_source_pointer++];
     e = g_buffer[g_source_pointer];
     if (e != '\'') {
       if (g_input_number_error_msg == YES) {
@@ -550,7 +550,7 @@ int input_number(void) {
     }
     g_source_pointer++;
 
-    g_parsed_double = (double)d;
+    g_parsed_double = (double)g_parsed_int;
     
     return SUCCEEDED;
   }
@@ -590,8 +590,8 @@ int input_number(void) {
           /* yes, we've got it! calculate the length and return the integer */
           g_source_pointer += 7;
           g_label[k] = 0;
-          d = (int)get_label_length(g_label);
-          g_parsed_double = (double)d;
+          g_parsed_int = (int)get_label_length(g_label);
+          g_parsed_double = (double)g_parsed_int;
 
           return SUCCEEDED;
         }
@@ -702,12 +702,12 @@ int input_number(void) {
     hashmap_get(g_defines_map, label_tmp, (void*)&g_tmp_def);
   if (g_tmp_def != NULL) {
     if (g_tmp_def->type == DEFINITION_TYPE_VALUE) {
-      d = (int)g_tmp_def->value;
+      g_parsed_int = (int)g_tmp_def->value;
 
       if (g_operand_hint == HINT_NONE) {
-        if (d > 0xFFFF && d <= 0xFFFFFF)
+        if (g_parsed_int > 0xFFFF && g_parsed_int <= 0xFFFFFF)
           g_operand_hint = HINT_24BIT;
-        else if (d > 0xFF)
+        else if (g_parsed_int > 0xFF)
           g_operand_hint = HINT_16BIT;
         else
           g_operand_hint = HINT_8BIT;
@@ -716,14 +716,14 @@ int input_number(void) {
 
 #if defined(MC6809)
         /* 5-bit values need this */
-        if (d >= -16 && d <= 15) {
+        if (g_parsed_int >= -16 && g_parsed_int <= 15) {
           g_operand_hint = HINT_NONE;
           g_operand_hint_type = HINT_TYPE_NONE;
         }
 #endif
       }
       
-      g_parsed_double = (double)d;
+      g_parsed_double = (double)g_parsed_int;
 
       return SUCCEEDED;
     }
@@ -799,8 +799,8 @@ int parse_string_length(char *end) {
       memcpy(g_label, g_tmp_def->string, g_string_size);
       g_label[g_string_size] = 0;
 
-      d = (int)strlen(g_label);
-      g_parsed_double = (double)d;
+      g_parsed_int = (int)strlen(g_label);
+      g_parsed_double = (double)g_parsed_int;
           
       return SUCCEEDED;
     }
@@ -845,7 +845,7 @@ int get_next_plain_string(void) {
 
     c = g_buffer[g_source_pointer];
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '\\' || c == '@' || c == ':') {
-      tmp[g_ss] = c;
+      g_tmp[g_ss] = c;
       g_ss++;
       g_source_pointer++;
     }
@@ -853,13 +853,13 @@ int get_next_plain_string(void) {
       break;
   }
 
-  tmp[g_ss] = 0;
+  g_tmp[g_ss] = 0;
 
   /* expand e.g., \1 and \@ */
   if (g_macro_active != 0) {
-    if (expand_macro_arguments(tmp) == FAILED)
+    if (expand_macro_arguments(g_tmp) == FAILED)
       return FAILED;
-    g_ss = (int)strlen(tmp);
+    g_ss = (int)strlen(g_tmp);
   }
 
   return SUCCEEDED;
@@ -878,48 +878,48 @@ int get_next_token(void) {
   if (g_buffer[g_source_pointer] == '"') {
     for (g_ss = 0, g_source_pointer++; g_buffer[g_source_pointer] != 0xA && g_buffer[g_source_pointer] != '"'; ) {
       if (g_buffer[g_source_pointer] == '\\' && g_buffer[g_source_pointer + 1] == '"') {
-        tmp[g_ss++] = '"';
+        g_tmp[g_ss++] = '"';
         g_source_pointer += 2;
       }
       else
-        tmp[g_ss++] = g_buffer[g_source_pointer++];
+        g_tmp[g_ss++] = g_buffer[g_source_pointer++];
     }
 
     if (g_buffer[g_source_pointer] == 0xA) {
       print_error("GET_NEXT_TOKEN: String wasn't terminated properly.\n", ERROR_NONE);
       return FAILED;
     }
-    tmp[g_ss] = 0;
+    g_tmp[g_ss] = 0;
     g_source_pointer++;
 
     /* expand e.g., \1 and \@ */
     if (g_macro_active != 0) {
-      if (expand_macro_arguments(tmp) == FAILED)
+      if (expand_macro_arguments(g_tmp) == FAILED)
         return FAILED;
-      g_ss = (int)strlen(tmp);
+      g_ss = (int)strlen(g_tmp);
     }
 
     return GET_NEXT_TOKEN_STRING;
   }
 
   if (g_buffer[g_source_pointer] == '.') {
-    tmp[0] = '.';
+    g_tmp[0] = '.';
     g_source_pointer++;
     for (g_ss = 1; g_buffer[g_source_pointer] != 0x0A && g_buffer[g_source_pointer] != ' ' && g_buffer[g_source_pointer] != '-' && g_ss < MAX_NAME_LENGTH; ) {
-      tmp[g_ss] = g_buffer[g_source_pointer];
-      cp[g_ss - 1] = toupper((int)g_buffer[g_source_pointer]);
+      g_tmp[g_ss] = g_buffer[g_source_pointer];
+      g_current_directive[g_ss - 1] = toupper((int)g_buffer[g_source_pointer]);
       g_source_pointer++;
       g_ss++;
     }
-    cp[g_ss - 1] = 0;
+    g_current_directive[g_ss - 1] = 0;
   }
   else if (g_buffer[g_source_pointer] == '=' || g_buffer[g_source_pointer] == '>' || g_buffer[g_source_pointer] == '<' || g_buffer[g_source_pointer] == '!') {
     for (g_ss = 0; g_buffer[g_source_pointer] != 0xA && (g_buffer[g_source_pointer] == '=' || g_buffer[g_source_pointer] == '!' || g_buffer[g_source_pointer] == '<' || g_buffer[g_source_pointer] == '>')
-           && g_ss < MAX_NAME_LENGTH; tmp[g_ss++] = g_buffer[g_source_pointer++]);
+           && g_ss < MAX_NAME_LENGTH; g_tmp[g_ss++] = g_buffer[g_source_pointer++]);
   }
   else {
     for (g_ss = 0; g_buffer[g_source_pointer] != 0xA && g_buffer[g_source_pointer] != ',' && g_buffer[g_source_pointer] != ' ' && g_ss < MAX_NAME_LENGTH; ) {
-      tmp[g_ss] = g_buffer[g_source_pointer];
+      g_tmp[g_ss] = g_buffer[g_source_pointer];
       g_ss++;
       g_source_pointer++;
     }
@@ -930,13 +930,13 @@ int get_next_token(void) {
     return FAILED;
   }
 
-  tmp[g_ss] = 0;
+  g_tmp[g_ss] = 0;
 
   /* expand e.g., \1 and \@ */
   if (g_macro_active != 0) {
-    if (expand_macro_arguments(tmp) == FAILED)
+    if (expand_macro_arguments(g_tmp) == FAILED)
       return FAILED;
-    g_ss = (int)strlen(tmp);
+    g_ss = (int)strlen(g_tmp);
   }
 
   return SUCCEEDED;

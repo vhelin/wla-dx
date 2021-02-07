@@ -28,8 +28,8 @@ extern struct append_section *g_append_sections;
 extern struct label_sizeof *g_label_sizeofs;
 extern FILE *g_file_out_ptr;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
-extern char *g_tmp_name, tmp[4096], *g_final_name;
-extern int g_rombanks, ind, inz, g_output_format, g_test_mode, g_listfile_data, g_little_endian;
+extern char *g_tmp_name, g_tmp[4096], *g_final_name;
+extern int g_rombanks, g_ind, g_inz, g_output_format, g_test_mode, g_listfile_data, g_little_endian;
 
 #ifdef GB
 extern char g_licenseecodenew_c1, g_licenseecodenew_c2;
@@ -59,14 +59,13 @@ extern int g_computesneschecksum_defined, g_sramsize, g_sramsize_defined, g_exlo
 extern int g_computesmschecksum_defined, g_smstag_defined, g_smsheader_defined;
 #endif
 
-struct label_def *unknown_labels = NULL, *unknown_labels_last = NULL, *tul, *ltmp;
-struct label_def *unknown_header_labels = NULL, *unknown_header_labels_last = NULL;
-struct label_def *parent_labels[10];
-struct append_section *append_tmp;
-struct label_sizeof *label_sizeof_tmp;
+struct label_def *g_unknown_labels = NULL, *g_unknown_labels_last = NULL;
+struct label_def *g_unknown_header_labels = NULL, *g_unknown_header_labels_last = NULL;
+struct label_def *g_parent_labels[10];
+struct append_section *g_append_tmp;
+struct label_sizeof *g_label_sizeof_tmp;
 
-char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024], namespace[MAX_NAME_LENGTH + 1];
-
+char g_mem_insert_action[MAX_NAME_LENGTH * 3 + 1024], g_namespace[MAX_NAME_LENGTH + 1];
 static int g_pc_bank = 0, g_pc_full = 0, g_rom_bank, g_mem_insert_overwrite, g_slot = 0, g_base = 0, g_pc_slot, g_pc_slot_max;
 static int g_filename_id, g_line_number;
 static int g_dstruct_start = -1, g_special_id = 0;
@@ -89,15 +88,15 @@ int new_unknown_reference(int type) {
   struct label_def *label;
   int n = 0, j = 0;
 
-  if (tmp[0] == ':')
+  if (g_tmp[0] == ':')
     j = 1;
-  while (n < 10 && tmp[n+j] == '@')
+  while (n < 10 && g_tmp[n+j] == '@')
     n++;
   n--;
-  while (n >= 0 && parent_labels[n] == NULL)
+  while (n >= 0 && g_parent_labels[n] == NULL)
     n--;
   if (n >= 0) {
-    if (mangle_label(&tmp[j], parent_labels[n]->label, n, MAX_NAME_LENGTH-j) == FAILED)
+    if (mangle_label(&g_tmp[j], g_parent_labels[n]->label, n, MAX_NAME_LENGTH-j) == FAILED)
       return FAILED;
   }
 
@@ -109,7 +108,7 @@ int new_unknown_reference(int type) {
 
   label->symbol = NO;
 
-  strcpy(label->label, tmp);
+  strcpy(label->label, g_tmp);
   label->next = NULL;
   label->type = type;
   label->filename_id = g_filename_id;
@@ -135,13 +134,13 @@ int new_unknown_reference(int type) {
 
   /* outside bank header section */
   if (g_bankheader_status == OFF) {
-    if (unknown_labels_last == NULL) {
-      unknown_labels = label;
-      unknown_labels_last = label;
+    if (g_unknown_labels_last == NULL) {
+      g_unknown_labels = label;
+      g_unknown_labels_last = label;
     }
     else {
-      unknown_labels_last->next = label;
-      unknown_labels_last = label;
+      g_unknown_labels_last->next = label;
+      g_unknown_labels_last = label;
     }
   }
   /* bank header section */
@@ -151,13 +150,13 @@ int new_unknown_reference(int type) {
               get_file_name(g_filename_id), g_line_number, label->label);
       return FAILED;
     }
-    if (unknown_header_labels_last == NULL) {
-      unknown_header_labels = label;
-      unknown_header_labels_last = label;
+    if (g_unknown_header_labels_last == NULL) {
+      g_unknown_header_labels = label;
+      g_unknown_header_labels_last = label;
     }
     else {
-      unknown_header_labels_last->next = label;
-      unknown_header_labels_last = label;
+      g_unknown_header_labels_last->next = label;
+      g_unknown_header_labels_last = label;
     }
   }
 
@@ -181,11 +180,11 @@ int mangle_stack_references(struct stack *stack) {
         n++;
 
       n--;
-      while (n >= 0 && parent_labels[n] == NULL)
+      while (n >= 0 && g_parent_labels[n] == NULL)
         n--;
 
       if (n >= 0) {
-        if (mangle_label(&stack->stack[ind].string[j], parent_labels[n]->label, n, MAX_NAME_LENGTH-j) == FAILED)
+        if (mangle_label(&stack->stack[ind].string[j], g_parent_labels[n]->label, n, MAX_NAME_LENGTH-j) == FAILED)
           return FAILED;
       }
     }
@@ -257,9 +256,9 @@ int pass_4(void) {
   int i, o, z, y, add_old = 0, x, q, ov, inside_macro = 0, inside_repeat = 0;
   float f;
 
-  memset(parent_labels, 0, sizeof(parent_labels));
+  memset(g_parent_labels, 0, sizeof(g_parent_labels));
 
-  namespace[0] = 0;
+  g_namespace[0] = 0;
   
   g_section_status = OFF;
   g_bankheader_status = OFF;
@@ -316,11 +315,11 @@ int pass_4(void) {
       continue;
 
     case 't':
-      fscanf(g_file_out_ptr, "%d ", &inz);
-      if (inz == 0)
-        namespace[0] = 0;
+      fscanf(g_file_out_ptr, "%d ", &g_inz);
+      if (g_inz == 0)
+        g_namespace[0] = 0;
       else
-        fscanf(g_file_out_ptr, STRING_READ_FORMAT, namespace);
+        fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
       continue;
         
       /* SECTION */
@@ -328,7 +327,7 @@ int pass_4(void) {
     case 'A':
     case 'S':
       if (c == 'A')
-        fscanf(g_file_out_ptr, "%d %d ", &x, &ind);
+        fscanf(g_file_out_ptr, "%d %d ", &x, &g_ind);
       else
         fscanf(g_file_out_ptr, "%d ", &x);
 
@@ -346,9 +345,9 @@ int pass_4(void) {
         continue;
 
       if (c == 'A')
-        g_sec_tmp->address = ind;
+        g_sec_tmp->address = g_ind;
 
-      ind = 0;
+      g_ind = 0;
       if (g_sec_tmp->maxsize_status == ON) {
         if (g_sec_tmp->maxsize < g_sec_tmp->size) {
           fprintf(stderr, "%s: INTERNAL_PASS_2: Section \"%s\" doesn't fit into the specified %d bytes. Enlarging to %d bytes.\n",
@@ -356,7 +355,7 @@ int pass_4(void) {
         }
         else if (g_sec_tmp->size < g_sec_tmp->maxsize) {
           g_sec_tmp->size = g_sec_tmp->maxsize;
-          ind = 1;
+          g_ind = 1;
         }
       }
 
@@ -368,7 +367,7 @@ int pass_4(void) {
       }
 
       /* fill the padded area with _emptyfill_ */
-      if (ind == 1)
+      if (g_ind == 1)
         memset(g_sec_tmp->data, g_emptyfill, g_sec_tmp->size);
 
       if (strcmp(g_sec_tmp->name, "BANKHEADER") == 0)
@@ -400,21 +399,21 @@ int pass_4(void) {
 
     case 'x':
     case 'o':
-      fscanf(g_file_out_ptr, "%d %d", &ind, &x);
+      fscanf(g_file_out_ptr, "%d %d", &g_ind, &x);
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing DSB data", get_file_name(g_filename_id), g_line_number);
 
-      if (ind < 0) { /* going backward */
+      if (g_ind < 0) { /* going backward */
         if (g_section_status == ON)
-          g_sec_tmp->i += ind;
-        g_pc_bank += ind;
-        g_pc_full += ind;
-        g_pc_slot += ind;
-        ind++;
+          g_sec_tmp->i += g_ind;
+        g_pc_bank += g_ind;
+        g_pc_full += g_ind;
+        g_pc_slot += g_ind;
+        g_ind++;
       }
       else {
-        while (ind > 0) {
+        while (g_ind > 0) {
           if (c == 'o') {
             if (g_section_status == ON)
               g_sec_tmp->i++;
@@ -426,33 +425,33 @@ int pass_4(void) {
             if (mem_insert(x) == FAILED)
               return FAILED;
           }
-          ind--;
+          g_ind--;
         }
       }
       continue;
 
     case 'X':
-      fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
-      i = inz & 0xFF;
-      inz = (inz >> 8) & 0xFF;
+      fscanf(g_file_out_ptr, "%d %d", &g_ind, &g_inz);
+      i = g_inz & 0xFF;
+      g_inz = (g_inz >> 8) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing DSW data", get_file_name(g_filename_id), g_line_number);
 
-      while (ind > 0) {
+      while (g_ind > 0) {
         if (g_little_endian == YES) {
           if (mem_insert(i) == FAILED)
             return FAILED;
-          if (mem_insert(inz) == FAILED)
+          if (mem_insert(g_inz) == FAILED)
             return FAILED;
         }
         else {
-          if (mem_insert(inz) == FAILED)
+          if (mem_insert(g_inz) == FAILED)
             return FAILED;
           if (mem_insert(i) == FAILED)
             return FAILED;
         }
-        ind--;
+        g_ind--;
       }
 
       continue;
@@ -460,32 +459,32 @@ int pass_4(void) {
 #ifdef W65816
 
     case 'h':
-      fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
-      x = inz & 0xFF;
-      i = (inz >> 8) & 0xFF;
-      inz = (inz >> 16) & 0xFF;
+      fscanf(g_file_out_ptr, "%d %d", &g_ind, &g_inz);
+      x = g_inz & 0xFF;
+      i = (g_inz >> 8) & 0xFF;
+      g_inz = (g_inz >> 16) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing DSL data", get_file_name(g_filename_id), g_line_number);
 
-      while (ind > 0) {
+      while (g_ind > 0) {
         if (g_little_endian == YES) {
           if (mem_insert(x) == FAILED)
             return FAILED;
           if (mem_insert(i) == FAILED)
             return FAILED;
-          if (mem_insert(inz) == FAILED)
+          if (mem_insert(g_inz) == FAILED)
             return FAILED;
         }
         else {
-          if (mem_insert(inz) == FAILED)
+          if (mem_insert(g_inz) == FAILED)
             return FAILED;
           if (mem_insert(i) == FAILED)
             return FAILED;
           if (mem_insert(x) == FAILED)
             return FAILED;
         }
-        ind--;
+        g_ind--;
       }
 
       continue;
@@ -506,9 +505,9 @@ int pass_4(void) {
       continue;
 
     case 'y':
-      fscanf(g_file_out_ptr, "%d", &inz);
-      x = inz & 0xFF;
-      inz = (inz >> 8) & 0xFF;
+      fscanf(g_file_out_ptr, "%d", &g_inz);
+      x = g_inz & 0xFF;
+      g_inz = (g_inz >> 8) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing two bytes", get_file_name(g_filename_id), g_line_number);
@@ -516,11 +515,11 @@ int pass_4(void) {
       if (g_little_endian == YES) {
         if (mem_insert(x) == FAILED)
           return FAILED;
-        if (mem_insert(inz) == FAILED)
+        if (mem_insert(g_inz) == FAILED)
           return FAILED;
       }
       else {
-        if (mem_insert(inz) == FAILED)
+        if (mem_insert(g_inz) == FAILED)
           return FAILED;
         if (mem_insert(x) == FAILED)
           return FAILED;
@@ -535,10 +534,10 @@ int pass_4(void) {
 #ifdef W65816
 
     case 'z':
-      fscanf(g_file_out_ptr, "%d", &inz);
-      x = inz & 0xFF;
-      ind = (inz >> 8) & 0xFF;
-      inz = (inz >> 16) & 0xFF;
+      fscanf(g_file_out_ptr, "%d", &g_inz);
+      x = g_inz & 0xFF;
+      g_ind = (g_inz >> 8) & 0xFF;
+      g_inz = (g_inz >> 16) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing three bytes", get_file_name(g_filename_id), g_line_number);
@@ -546,15 +545,15 @@ int pass_4(void) {
       if (g_little_endian == YES) {
         if (mem_insert(x) == FAILED)
           return FAILED;
-        if (mem_insert(ind) == FAILED)
+        if (mem_insert(g_ind) == FAILED)
           return FAILED;
-        if (mem_insert(inz) == FAILED)
+        if (mem_insert(g_inz) == FAILED)
           return FAILED;
       }
       else {
-        if (mem_insert(inz) == FAILED)
+        if (mem_insert(g_inz) == FAILED)
           return FAILED;
-        if (mem_insert(ind) == FAILED)
+        if (mem_insert(g_ind) == FAILED)
           return FAILED;
         if (mem_insert(x) == FAILED)
           return FAILED;
@@ -567,10 +566,10 @@ int pass_4(void) {
       /* DATA BLOCK from .INCBIN */
 
     case 'D':
-      fscanf(g_file_out_ptr, "%d %d %d %d", &x, &inz, &z, &y);
+      fscanf(g_file_out_ptr, "%d %d %d %d", &x, &g_inz, &z, &y);
 
       g_ifd_tmp = g_incbin_file_data_first;
-      for (ind = 0; ind != x; ind++)
+      for (g_ind = 0; g_ind != x; g_ind++)
         g_ifd_tmp = g_ifd_tmp->next;
       t = g_ifd_tmp->data + z;
 
@@ -578,9 +577,9 @@ int pass_4(void) {
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .INCBIN data", get_file_name(g_filename_id), g_line_number);
 
       /* swap? */
-      if (inz == 1) {
-        inz = y / 2;
-        for (ind = 0; ind < inz; ind++) {
+      if (g_inz == 1) {
+        g_inz = y / 2;
+        for (g_ind = 0; g_ind < g_inz; g_ind++) {
           if (mem_insert(*(t + 1)) == FAILED)
             return FAILED;
           if (mem_insert(*t) == FAILED)
@@ -589,8 +588,8 @@ int pass_4(void) {
         }
       }
       else {
-        inz = y;
-        for (ind = 0; ind < inz; ind++) {
+        g_inz = y;
+        for (g_ind = 0; g_ind < g_inz; g_ind++) {
           if (mem_insert(*(t++)) == FAILED)
             return FAILED;
         }
@@ -634,36 +633,36 @@ int pass_4(void) {
         struct label_def *l;
         int m, n = 0, mangled_label = NO;
 
-        fscanf(g_file_out_ptr, STRING_READ_FORMAT, tmp);
+        fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
 
-        if (is_label_anonymous(tmp) == NO) {
-          while (n < 10 && tmp[n] == '@')
+        if (is_label_anonymous(g_tmp) == NO) {
+          while (n < 10 && g_tmp[n] == '@')
             n++;
 
           m = n + 1;
           while (m < 10)
-            parent_labels[m++] = NULL;
+            g_parent_labels[m++] = NULL;
 
           m = n;
           n--;
-          while (n >= 0 && parent_labels[n] == NULL)
+          while (n >= 0 && g_parent_labels[n] == NULL)
             n--;
 
           if (n >= 0) {
-            if (mangle_label(tmp, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+            if (mangle_label(g_tmp, g_parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
               return FAILED;
             mangled_label = YES;
           }
 
-          if (namespace[0] != 0 && mangled_label == NO) {
+          if (g_namespace[0] != 0 && mangled_label == NO) {
             if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-              if (add_namespace(tmp, namespace, sizeof(tmp)) == FAILED)
+              if (add_namespace(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
                 return FAILED;
             }
           }
             
-          if (m < 10 && find_label(tmp, g_sec_tmp, (void*)&l) == SUCCEEDED)
-            parent_labels[m] = l;
+          if (m < 10 && find_label(g_tmp, g_sec_tmp, (void*)&l) == SUCCEEDED)
+            g_parent_labels[m] = l;
         }
       }
       continue;
@@ -671,7 +670,7 @@ int pass_4(void) {
       /* 8BIT COMPUTATION */
 
     case 'c':
-      fscanf(g_file_out_ptr, "%d", &inz);
+      fscanf(g_file_out_ptr, "%d", &g_inz);
 
       if (g_bankheader_status == OFF)
         g_stacks_tmp = g_stacks_first;
@@ -679,13 +678,13 @@ int pass_4(void) {
         g_stacks_tmp = g_stacks_header_first;
 
       while (g_stacks_tmp != NULL) {
-        if (g_stacks_tmp->id == inz)
+        if (g_stacks_tmp->id == g_inz)
           break;
         g_stacks_tmp = g_stacks_tmp->next;
       }
 
       if (g_stacks_tmp == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, g_inz);
         return FAILED;
       }
 
@@ -707,9 +706,9 @@ int pass_4(void) {
       if (mangle_stack_references(g_stacks_tmp) == FAILED)
         return FAILED;
 
-      if (namespace[0] != 0) {
+      if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_stack_references(g_stacks_tmp, namespace) == FAILED)
+          if (add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
             return FAILED;
         }
       }
@@ -728,7 +727,7 @@ int pass_4(void) {
       /* 16BIT COMPUTATION */
 
     case 'C':
-      fscanf(g_file_out_ptr, "%d", &inz);
+      fscanf(g_file_out_ptr, "%d", &g_inz);
 
       if (g_bankheader_status == OFF)
         g_stacks_tmp = g_stacks_first;
@@ -736,13 +735,13 @@ int pass_4(void) {
         g_stacks_tmp = g_stacks_header_first;
 
       while (g_stacks_tmp != NULL) {
-        if (g_stacks_tmp->id == inz)
+        if (g_stacks_tmp->id == g_inz)
           break;
         g_stacks_tmp = g_stacks_tmp->next;
       }
 
       if (g_stacks_tmp == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, g_inz);
         return FAILED;
       }
 
@@ -763,9 +762,9 @@ int pass_4(void) {
       if (mangle_stack_references(g_stacks_tmp) == FAILED)
         return FAILED;
 
-      if (namespace[0] != 0) {
+      if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_stack_references(g_stacks_tmp, namespace) == FAILED)
+          if (add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
             return FAILED;
         }
       }
@@ -787,7 +786,7 @@ int pass_4(void) {
       /* 13BIT COMPUTATION */
 
     case 'N':
-      fscanf(g_file_out_ptr, "%d %d", &x, &inz);
+      fscanf(g_file_out_ptr, "%d %d", &x, &g_inz);
 
       if (g_bankheader_status == OFF)
         g_stacks_tmp = g_stacks_first;
@@ -795,13 +794,13 @@ int pass_4(void) {
         g_stacks_tmp = g_stacks_header_first;
 
       while (g_stacks_tmp != NULL) {
-        if (g_stacks_tmp->id == inz)
+        if (g_stacks_tmp->id == g_inz)
           break;
         g_stacks_tmp = g_stacks_tmp->next;
       }
 
       if (g_stacks_tmp == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, g_inz);
         return FAILED;
       }
 
@@ -822,9 +821,9 @@ int pass_4(void) {
       if (mangle_stack_references(g_stacks_tmp) == FAILED)
         return FAILED;
 
-      if (namespace[0] != 0) {
+      if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_stack_references(g_stacks_tmp, namespace) == FAILED)
+          if (add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
             return FAILED;
         }
       }
@@ -846,7 +845,7 @@ int pass_4(void) {
       /* 24BIT COMPUTATION */
 
     case 'T':
-      fscanf(g_file_out_ptr, "%d", &inz);
+      fscanf(g_file_out_ptr, "%d", &g_inz);
 
       if (g_bankheader_status == OFF)
         g_stacks_tmp = g_stacks_first;
@@ -854,13 +853,13 @@ int pass_4(void) {
         g_stacks_tmp = g_stacks_header_first;
 
       while (g_stacks_tmp != NULL) {
-        if (g_stacks_tmp->id == inz)
+        if (g_stacks_tmp->id == g_inz)
           break;
         g_stacks_tmp = g_stacks_tmp->next;
       }
 
       if (g_stacks_tmp == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, g_inz);
         return FAILED;
       }
 
@@ -881,9 +880,9 @@ int pass_4(void) {
       if (mangle_stack_references(g_stacks_tmp) == FAILED)
         return FAILED;
 
-      if (namespace[0] != 0) {
+      if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_stack_references(g_stacks_tmp, namespace) == FAILED)
+          if (add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
             return FAILED;
         }
       }
@@ -906,20 +905,20 @@ int pass_4(void) {
       /* 24BIT REFERENCE */
 
     case 'q':
-      fscanf(g_file_out_ptr, STRING_READ_FORMAT, tmp);
+      fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
 
-      if (namespace[0] != 0) {
+      if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+          if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
             return FAILED;
         }
       }
           
       x = 0;
-      hashmap_get(g_defines_map, tmp, (void*)&g_tmp_def);
+      hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
       if (g_tmp_def != NULL) {
         if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
         else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
@@ -969,20 +968,20 @@ int pass_4(void) {
       /* 16BIT PC RELATIVE REFERENCE */
 
     case 'M':
-      fscanf(g_file_out_ptr, STRING_READ_FORMAT, tmp);
+      fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
 
-      if (namespace[0] != 0) {
+      if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+          if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
             return FAILED;
         }
       }
                 
       x = 0;
-      hashmap_get(g_defines_map, tmp, (void*)&g_tmp_def);
+      hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
       if (g_tmp_def != NULL) {
         if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
         else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
@@ -1026,20 +1025,20 @@ int pass_4(void) {
       /* 16BIT REFERENCE */
 
     case 'r':
-      fscanf(g_file_out_ptr, STRING_READ_FORMAT, tmp);
+      fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
 
-      if (namespace[0] != 0) {
+      if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+          if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
             return FAILED;
         }
       }
 
       x = 0;
-      hashmap_get(g_defines_map, tmp, (void*)&g_tmp_def);
+      hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
       if (g_tmp_def != NULL) {
         if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
         else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
@@ -1084,28 +1083,28 @@ int pass_4(void) {
       /* 13BIT REFERENCE */
 
     case 'n':
-      fscanf(g_file_out_ptr, "%d ", &inz);
-      fscanf(g_file_out_ptr, STRING_READ_FORMAT, tmp);
+      fscanf(g_file_out_ptr, "%d ", &g_inz);
+      fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
 
-      if (namespace[0] != 0) {
+      if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+          if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
             return FAILED;
         }
       }
 
       x = 0;
-      hashmap_get(g_defines_map, tmp, (void*)&g_tmp_def);
+      hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
       if (g_tmp_def != NULL) {
         if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
         else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
           o = (int)g_tmp_def->value;
           x = 1;
           if (o > 8191 || o < 0) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference value of \"%s\" is out of 13-bit range.\n", get_file_name(g_filename_id), g_line_number, tmp);
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference value of \"%s\" is out of 13-bit range.\n", get_file_name(g_filename_id), g_line_number, g_tmp);
             return FAILED;
           }
 
@@ -1114,7 +1113,7 @@ int pass_4(void) {
 
           if (mem_insert(o & 0xFF) == FAILED)
             return FAILED;
-          if (mem_insert(((o | inz << 13) & 0xFF00) >> 8) == FAILED)
+          if (mem_insert(((o | g_inz << 13) & 0xFF00) >> 8) == FAILED)
             return FAILED;
         }
       }
@@ -1130,7 +1129,7 @@ int pass_4(void) {
 
       if (mem_insert(0x00) == FAILED)
         return FAILED;
-      if (mem_insert(inz << (13 - 8)) == FAILED)
+      if (mem_insert(g_inz << (13 - 8)) == FAILED)
         return FAILED;
 
       continue;
@@ -1139,20 +1138,20 @@ int pass_4(void) {
       /* 8BIT PC RELATIVE REFERENCE */
 
     case 'R':
-      fscanf(g_file_out_ptr, STRING_READ_FORMAT, tmp);
+      fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
 
-      if (namespace[0] != 0) {
+      if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+          if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
             return FAILED;
         }
       }
 
       x = 0;
-      hashmap_get(g_defines_map, tmp, (void*)&g_tmp_def);
+      hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
       if (g_tmp_def != NULL) {
         if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
         else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
@@ -1184,20 +1183,20 @@ int pass_4(void) {
       /* 8BIT REFERENCE */
 
     case 'Q':
-      fscanf(g_file_out_ptr, STRING_READ_FORMAT, tmp);
+      fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
 
-      if (namespace[0] != 0) {
+      if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_reference(tmp, namespace, sizeof(tmp)) == FAILED)
+          if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
             return FAILED;
         }
       }
 
       x = 0;
-      hashmap_get(g_defines_map, tmp, (void*)&g_tmp_def);
+      hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
       if (g_tmp_def != NULL) {
         if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
         else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
@@ -1277,20 +1276,20 @@ int pass_4(void) {
     fprintf(final_ptr, "WLA9");
 
     /* misc bits */
-    ind = 0;
+    g_ind = 0;
 
     if (g_little_endian == NO)
-      ind |= 1 << 0;
+      g_ind |= 1 << 0;
 #ifdef W65816
     /* 65816 bit */
-    ind |= 1 << 1;
+    g_ind |= 1 << 1;
 #endif
 #ifdef CSG65CE02
     /* 65ce02 bit */
-    ind |= 1 << 2;
+    g_ind |= 1 << 2;
 #endif
     
-    fprintf(final_ptr, "%c", ind);
+    fprintf(final_ptr, "%c", g_ind);
     
     if (export_source_file_names(final_ptr) == FAILED)
       return FAILED;
@@ -1333,7 +1332,7 @@ int pass_4(void) {
 
     /* unknown labels (outside references) */
     ov = 0;
-    g_label_tmp = unknown_labels;
+    g_label_tmp = g_unknown_labels;
     while (g_label_tmp != NULL) {
       ov++;
       g_label_tmp = g_label_tmp->next;
@@ -1341,7 +1340,7 @@ int pass_4(void) {
 
     WRITEOUT_OV;
 
-    g_label_tmp = unknown_labels;
+    g_label_tmp = g_unknown_labels;
     while (g_label_tmp != NULL) {
       fprintf(final_ptr, "%s%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, g_label_tmp->special_id);
 
@@ -1386,12 +1385,12 @@ int pass_4(void) {
       ov = g_stacks_tmp->linenumber;
       WRITEOUT_OV;
 
-      for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
-        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
-        if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
-          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
+      for (g_ind = 0; g_ind < g_stacks_tmp->stacksize; g_ind++) {
+        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[g_ind].type, g_stacks_tmp->stack[g_ind].sign);
+        if (g_stacks_tmp->stack[g_ind].type == STACK_ITEM_TYPE_STRING)
+          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[g_ind].string, 0);
         else {
-          dou = g_stacks_tmp->stack[ind].value;
+          dou = g_stacks_tmp->stack[g_ind].value;
           WRITEOUT_DOU;
         }
       }
@@ -1401,38 +1400,38 @@ int pass_4(void) {
 
     /* label sizeofs */
     ov = 0;
-    label_sizeof_tmp = g_label_sizeofs;
-    while (label_sizeof_tmp != NULL) {
+    g_label_sizeof_tmp = g_label_sizeofs;
+    while (g_label_sizeof_tmp != NULL) {
       ov++;
-      label_sizeof_tmp = label_sizeof_tmp->next;
+      g_label_sizeof_tmp = g_label_sizeof_tmp->next;
     }
 
     WRITEOUT_OV;
 
-    label_sizeof_tmp = g_label_sizeofs;
-    while (label_sizeof_tmp != NULL) {
-      fprintf(final_ptr, "%s%c", label_sizeof_tmp->name, 0);
+    g_label_sizeof_tmp = g_label_sizeofs;
+    while (g_label_sizeof_tmp != NULL) {
+      fprintf(final_ptr, "%s%c", g_label_sizeof_tmp->name, 0);
 
-      ov = label_sizeof_tmp->size;
+      ov = g_label_sizeof_tmp->size;
       WRITEOUT_OV;
 
-      label_sizeof_tmp = label_sizeof_tmp->next;
+      g_label_sizeof_tmp = g_label_sizeof_tmp->next;
     }
     
     /* append sections */
     ov = 0;
-    append_tmp = g_append_sections;
-    while (append_tmp != NULL) {
+    g_append_tmp = g_append_sections;
+    while (g_append_tmp != NULL) {
       ov++;
-      append_tmp = append_tmp->next;
+      g_append_tmp = g_append_tmp->next;
     }
     WRITEOUT_OV;
 
-    append_tmp = g_append_sections;
-    while (append_tmp != NULL) {
-      fprintf(final_ptr, "%s%c", append_tmp->section, 0);
-      fprintf(final_ptr, "%s%c", append_tmp->append_to, 0);
-      append_tmp = append_tmp->next;
+    g_append_tmp = g_append_sections;
+    while (g_append_tmp != NULL) {
+      fprintf(final_ptr, "%s%c", g_append_tmp->section, 0);
+      fprintf(final_ptr, "%s%c", g_append_tmp->append_to, 0);
+      g_append_tmp = g_append_tmp->next;
     }
 
     /* sections */
@@ -1483,78 +1482,78 @@ int pass_4(void) {
     fprintf(final_ptr, "WLAa%c", g_emptyfill);
 
     /* misc bits */
-    ind = 0;
+    g_ind = 0;
 
 #ifdef Z80
     if (g_computesmschecksum_defined != 0)
-      ind |= 1 << 0;
+      g_ind |= 1 << 0;
 #endif
 
 #ifdef W65816
     if (g_snes_mode != 0) {
       if (g_hirom_defined != 0)
-        ind += 2;
+        g_ind += 2;
       if (g_fastrom_defined != 0)
-        ind += 8;
+        g_ind += 8;
       if (g_computesneschecksum_defined != 0)
-        ind += 64;
+        g_ind += 64;
       /* use snes banking scheme */
       if (g_hirom_defined != 0 || g_lorom_defined != 0 || g_exhirom_defined != 0 || g_exlorom_defined != 0)
-        ind += 4;
+        g_ind += 4;
     }
     /* 65816 bit */
-    ind += 128;
+    g_ind += 128;
 #endif
 
 #ifdef GB
     if (g_computechecksum_defined != 0)
-      ind += 16;
+      g_ind += 16;
     if (g_computecomplementcheck_defined != 0)
-      ind += 32;
+      g_ind += 32;
 #endif
 
-    fprintf(final_ptr, "%c", ind);
+    fprintf(final_ptr, "%c", g_ind);
 
     /* more bits */
-    ind = 0;
+    g_ind = 0;
 
     if (g_smc_defined != 0)
-      ind |= 1 << 0;
+      g_ind |= 1 << 0;
 #ifdef W65816
     if (g_sramsize_defined != 0)
-      ind |= (g_sramsize & 3) << 1;
+      g_ind |= (g_sramsize & 3) << 1;
 #endif
 
 #ifdef Z80
     if (g_smstag_defined != 0)
-      ind |= 1 << 3;
+      g_ind |= 1 << 3;
     if (g_smsheader_defined != 0)
-      ind |= 1 << 4;
+      g_ind |= 1 << 4;
 #endif
 
 #ifdef W65816
     if (g_snes_mode != 0) {
       if (g_exhirom_defined != 0)
-        ind |= 1 << 5;
+        g_ind |= 1 << 5;
       if (g_exlorom_defined != 0)
-        ind |= 1 << 6;
+        g_ind |= 1 << 6;
     }
 #endif
 
     if (g_little_endian == NO)
-      ind |= 1 << 7;
+      g_ind |= 1 << 7;
     
-    fprintf(final_ptr, "%c", ind);
+    fprintf(final_ptr, "%c", g_ind);
 
     /* extr bits */
-    ind = 0;
+    g_ind = 0;
 
 #ifdef CSG65CE02
     /* 65ce02 bit */
-    ind |= 1 << 0;
+    g_ind |= 1 << 0;
 #endif
 
-    fprintf(final_ptr, "%c", ind);
+    fprintf(final_ptr, "%c", g_ind);
     
     /* rom bank map */
     ov = g_rombanks;
@@ -1642,12 +1641,12 @@ int pass_4(void) {
 
     /* outside references */
     ov = 0;
-    g_label_tmp = unknown_labels;
+    g_label_tmp = g_unknown_labels;
     while (g_label_tmp != NULL) {
       ov++;
       g_label_tmp = g_label_tmp->next;
     }
-    g_label_tmp = unknown_header_labels;
+    g_label_tmp = g_unknown_header_labels;
     while (g_label_tmp != NULL) {
       ov++;
       g_label_tmp = g_label_tmp->next;
@@ -1655,7 +1654,7 @@ int pass_4(void) {
 
     WRITEOUT_OV;
 
-    g_label_tmp = unknown_labels;
+    g_label_tmp = g_unknown_labels;
     while (g_label_tmp != NULL) {
       fprintf(final_ptr, "%s%c%c%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, g_label_tmp->special_id, g_label_tmp->filename_id, g_label_tmp->slot);
 
@@ -1677,7 +1676,7 @@ int pass_4(void) {
       g_label_tmp = g_label_tmp->next;
     }
 
-    g_label_tmp = unknown_header_labels;
+    g_label_tmp = g_unknown_header_labels;
     while (g_label_tmp != NULL) {
       fprintf(final_ptr, "%s%c%c%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, 0, g_label_tmp->filename_id, g_label_tmp->slot);
 
@@ -1727,12 +1726,12 @@ int pass_4(void) {
       ov = g_stacks_tmp->base;
       WRITEOUT_OV;
       
-      for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
-        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
-        if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
-          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
+      for (g_ind = 0; g_ind < g_stacks_tmp->stacksize; g_ind++) {
+        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[g_ind].type, g_stacks_tmp->stack[g_ind].sign);
+        if (g_stacks_tmp->stack[g_ind].type == STACK_ITEM_TYPE_STRING)
+          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[g_ind].string, 0);
         else {
-          dou = g_stacks_tmp->stack[ind].value;
+          dou = g_stacks_tmp->stack[g_ind].value;
           WRITEOUT_DOU;
         }
       }
@@ -1758,12 +1757,12 @@ int pass_4(void) {
       ov = g_stacks_tmp->bank;
       WRITEOUT_OV;
 
-      for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
-        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
-        if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
-          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
+      for (g_ind = 0; g_ind < g_stacks_tmp->stacksize; g_ind++) {
+        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[g_ind].type, g_stacks_tmp->stack[g_ind].sign);
+        if (g_stacks_tmp->stack[g_ind].type == STACK_ITEM_TYPE_STRING)
+          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[g_ind].string, 0);
         else {
-          dou = g_stacks_tmp->stack[ind].value;
+          dou = g_stacks_tmp->stack[g_ind].value;
           WRITEOUT_DOU;
         }
       }
@@ -1773,72 +1772,72 @@ int pass_4(void) {
 
     /* label sizeofs */
     ov = 0;
-    label_sizeof_tmp = g_label_sizeofs;
-    while (label_sizeof_tmp != NULL) {
+    g_label_sizeof_tmp = g_label_sizeofs;
+    while (g_label_sizeof_tmp != NULL) {
       ov++;
-      label_sizeof_tmp = label_sizeof_tmp->next;
+      g_label_sizeof_tmp = g_label_sizeof_tmp->next;
     }
 
     WRITEOUT_OV;
 
-    label_sizeof_tmp = g_label_sizeofs;
-    while (label_sizeof_tmp != NULL) {
-      fprintf(final_ptr, "%s%c", label_sizeof_tmp->name, 0);
+    g_label_sizeof_tmp = g_label_sizeofs;
+    while (g_label_sizeof_tmp != NULL) {
+      fprintf(final_ptr, "%s%c", g_label_sizeof_tmp->name, 0);
 
-      ov = label_sizeof_tmp->size;
+      ov = g_label_sizeof_tmp->size;
       WRITEOUT_OV;
 
-      label_sizeof_tmp = label_sizeof_tmp->next;
+      g_label_sizeof_tmp = g_label_sizeof_tmp->next;
     }    
     
     /* append sections */
     ov = 0;
-    append_tmp = g_append_sections;
-    while (append_tmp != NULL) {
+    g_append_tmp = g_append_sections;
+    while (g_append_tmp != NULL) {
       ov++;
-      append_tmp = append_tmp->next;
+      g_append_tmp = g_append_tmp->next;
     }
     WRITEOUT_OV;
 
-    append_tmp = g_append_sections;
-    while (append_tmp != NULL) {
-      fprintf(final_ptr, "%s%c", append_tmp->section, 0);
-      fprintf(final_ptr, "%s%c", append_tmp->append_to, 0);
-      append_tmp = append_tmp->next;
+    g_append_tmp = g_append_sections;
+    while (g_append_tmp != NULL) {
+      fprintf(final_ptr, "%s%c", g_append_tmp->section, 0);
+      fprintf(final_ptr, "%s%c", g_append_tmp->append_to, 0);
+      g_append_tmp = g_append_tmp->next;
     }
 
     /* data area */
-    ind = 0;
-    for (inz = 0; inz < g_max_address; inz++) {
-      if (g_rom_banks_usage_table[inz] != 0) {
+    g_ind = 0;
+    for (g_inz = 0; g_inz < g_max_address; g_inz++) {
+      if (g_rom_banks_usage_table[g_inz] != 0) {
         /* data block id */
         fprintf(final_ptr, "%c", 0x0);
-        for (i = inz, ind = 0; inz < g_max_address; inz++, ind++) {
-          if (g_rom_banks_usage_table[inz] == 0) {
+        for (i = g_inz, g_ind = 0; g_inz < g_max_address; g_inz++, g_ind++) {
+          if (g_rom_banks_usage_table[g_inz] == 0) {
 
             ov = i;
             WRITEOUT_OV;
 
-            ov = ind;
+            ov = g_ind;
             WRITEOUT_OV;
 
-            fwrite(&g_rom_banks[i], 1, ind, final_ptr);
+            fwrite(&g_rom_banks[i], 1, g_ind, final_ptr);
 
-            ind = 0;
+            g_ind = 0;
             break;
           }
         }
       }
     }
 
-    if (ind != 0) {
+    if (g_ind != 0) {
       ov = i;
       WRITEOUT_OV;
 
-      ov = ind;
+      ov = g_ind;
       WRITEOUT_OV;
 
-      fwrite(&g_rom_banks[i], 1, ind, final_ptr);
+      fwrite(&g_rom_banks[i], 1, g_ind, final_ptr);
     }
 
     g_sec_tmp = g_sections_first;
@@ -1893,30 +1892,30 @@ int pass_4(void) {
   /* show project information */
   if (g_verbose_mode == ON && g_output_format != OUTPUT_LIBRARY) {
     x = 0;
-    for (ind = 0; ind < g_max_address; ind++) {
-      if (g_rom_banks_usage_table[ind] == 0 && x == 0) {
+    for (g_ind = 0; g_ind < g_max_address; g_ind++) {
+      if (g_rom_banks_usage_table[g_ind] == 0 && x == 0) {
         x = 1;
-        inz = ind;
+        g_inz = g_ind;
       }
-      else if (g_rom_banks_usage_table[ind] != 0 && x == 1) {
-        if (inz == (ind - 1))
-          fprintf(stderr, "Free space at $%.4x.\n", inz);
+      else if (g_rom_banks_usage_table[g_ind] != 0 && x == 1) {
+        if (g_inz == (g_ind - 1))
+          fprintf(stderr, "Free space at $%.4x.\n", g_inz);
         else
-          fprintf(stderr, "Free space at $%.4x-$%.4x.\n", inz, ind - 1);
+          fprintf(stderr, "Free space at $%.4x-$%.4x.\n", g_inz, g_ind - 1);
         x = 0;
       }
     }
 
     if (x == 1) {
-      if (inz == (ind - 1))
-        fprintf(stderr, "Free space at $%.4x.\n", inz);
+      if (g_inz == (g_ind - 1))
+        fprintf(stderr, "Free space at $%.4x.\n", g_inz);
       else
-        fprintf(stderr, "Free space at $%.4x-$%.4x.\n", inz, ind - 1);
+        fprintf(stderr, "Free space at $%.4x-$%.4x.\n", g_inz, g_ind - 1);
     }
 
-    for (ind = 0, q = 0; ind < g_max_address; q++) {
-      for (x = 0, inz = 0; inz < g_banks[q]; inz++) {
-        if (g_rom_banks_usage_table[ind++] == 0)
+    for (g_ind = 0, q = 0; g_ind < g_max_address; q++) {
+      for (x = 0, g_inz = 0; g_inz < g_banks[q]; g_inz++) {
+        if (g_rom_banks_usage_table[g_ind++] == 0)
           x++;
       }
       f = (((float)x)/g_banks[q]) * 100.0f;
@@ -1926,25 +1925,25 @@ int pass_4(void) {
         printf("Bank %.2d has %.5d bytes (%.2f%%) free.\n", q, x, f);
     }
 
-    for (ind = 0, inz = 0; ind < g_max_address; ind++) {
-      if (g_rom_banks_usage_table[ind] == 0)
-        inz++;
+    for (g_ind = 0, g_inz = 0; g_ind < g_max_address; g_ind++) {
+      if (g_rom_banks_usage_table[g_ind] == 0)
+        g_inz++;
     }
-    fprintf(stderr, "%d unused bytes of total %d.\n", inz, g_max_address);
+    fprintf(stderr, "%d unused bytes of total %d.\n", g_inz, g_max_address);
 
 #ifndef GB
     g_sec_tmp = g_sections_first;
     while (g_sec_tmp != NULL) {
       if (g_sec_tmp->status == SECTION_STATUS_HEADER) {
         fprintf(stderr, "Bank %d header section size %d.\n", g_sec_tmp->bank, g_sec_tmp->size);
-        ind += g_sec_tmp->size;
+        g_ind += g_sec_tmp->size;
       }
       g_sec_tmp = g_sec_tmp->next;
     }
 
-    if (ind != 0) {
-      fprintf(stderr, "Total %d additional bytes (from headers and footers).\n", ind);
-      fprintf(stderr, "Total size %d bytes.\n", ind + g_max_address);
+    if (g_ind != 0) {
+      fprintf(stderr, "Total %d additional bytes (from headers and footers).\n", g_ind);
+      fprintf(stderr, "Total size %d bytes.\n", g_ind + g_max_address);
     }
 #endif
 

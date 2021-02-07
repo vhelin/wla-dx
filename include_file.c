@@ -13,9 +13,9 @@
 #include "printf.h"
 
 
-extern int ind, inz, g_source_pointer, g_extra_definitions, d, g_use_incdir;
-extern char tmp[4096], g_error_message[sizeof(tmp) + MAX_NAME_LENGTH + 1 + 1024];
-extern struct ext_include_collection ext_incdirs;
+extern int g_ind, g_source_pointer, g_extra_definitions, g_parsed_int, g_use_incdir;
+extern char g_tmp[4096], g_error_message[sizeof(g_tmp) + MAX_NAME_LENGTH + 1 + 1024];
+extern struct ext_include_collection g_ext_incdirs;
 extern FILE *g_file_out_ptr;
 
 struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
@@ -97,8 +97,8 @@ static void print_find_error(char* name) {
   fprintf(stderr, "FIND_FILE: Could not open \"%s\", searched in the following directories:\n", name);
 
   if (g_use_incdir == YES) {
-    for (index = 0; index < ext_incdirs.count; index++) {
-      fprintf(stderr, "%s\n", ext_incdirs.names[index]);
+    for (index = 0; index < g_ext_incdirs.count; index++) {
+      fprintf(stderr, "%s\n", g_ext_incdirs.names[index]);
     }
   }
 
@@ -116,8 +116,8 @@ static int find_file(char *name, FILE** f) {
 
   if (g_use_incdir == YES) {
     /* check all external include directories first */
-    for (index = 0; index < ext_incdirs.count; index++) {
-      try_open_file(ext_incdirs.names[index], name, f);
+    for (index = 0; index < g_ext_incdirs.count; index++) {
+      try_open_file(g_ext_incdirs.names[index], name, f);
 
       /* we succeeded and found a valid file, so escape */
       if (*f != NULL)
@@ -125,7 +125,7 @@ static int find_file(char *name, FILE** f) {
     }
   }
 
-  /* fall through to g_include_dir if we either didn't check, or failed to find the file in ext_incdirs */
+  /* fall through to g_include_dir if we either didn't check, or failed to find the file in g_ext_incdirs */
   try_open_file(g_include_dir, name, f);
   if (*f != NULL)
     return SUCCEEDED;
@@ -143,13 +143,13 @@ static int find_file(char *name, FILE** f) {
 
 int include_file(char *name, int *include_size, char *namespace) {
 
-  int file_size, id, change_file_buffer_size;
+  int file_size, id, change_file_buffer_size, inz;
   char *tmp_b, *n, change_file_buffer[MAX_NAME_LENGTH * 2];
   FILE *f = NULL;
 
   int error_code = find_file(name, &f);
   if (error_code != SUCCEEDED)
-      return error_code;
+    return error_code;
 
   fseek(f, 0, SEEK_END);
   file_size = (int)ftell(f);
@@ -305,12 +305,12 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
   struct incbin_file_data *ifd;
   char *in_tmp, *n;
-  int file_size, q;
+  int file_size, q, inz;
   FILE *f = NULL;
 
   int error_code = find_file(name, &f);
   if (error_code != SUCCEEDED)
-      return error_code;
+    return error_code;
 
   fseek(f, 0, SEEK_END);
   file_size = (int)ftell(f);
@@ -372,10 +372,10 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       return FAILED;
     }
 
-    *skip = d;
+    *skip = g_parsed_int;
 
-    if (d >= file_size) {
-      snprintf(g_error_message, sizeof(g_error_message), "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", d, file_size, g_full_name);
+    if (g_parsed_int >= file_size) {
+      snprintf(g_error_message, sizeof(g_error_message), "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", g_parsed_int, file_size, g_full_name);
       print_error(g_error_message, ERROR_INB);
       return FAILED;
     }
@@ -392,7 +392,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       return FAILED;
     }
 
-    *read = d;
+    *read = g_parsed_int;
 
     if (*skip + *read > file_size) {
       snprintf(g_error_message, sizeof(g_error_message), "Overreading file \"%s\" by %d bytes.\n", g_full_name, *skip + *read - file_size);
@@ -422,7 +422,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     if (get_next_token() == FAILED)
       return FAILED;
 
-    add_a_new_definition(tmp, (double)file_size, NULL, DEFINITION_TYPE_VALUE, 0);
+    add_a_new_definition(g_tmp, (double)file_size, NULL, DEFINITION_TYPE_VALUE, 0);
   }
 
   /* FILTER? */
@@ -433,11 +433,11 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     if (get_next_token() == FAILED)
       return FAILED;
 
-    if (macro_get(tmp, YES, macro) == FAILED)
+    if (macro_get(g_tmp, YES, macro) == FAILED)
       return FAILED;
 
     if (*macro == NULL) {
-      snprintf(g_error_message, sizeof(g_error_message), "No MACRO \"%s\" defined.\n", tmp);
+      snprintf(g_error_message, sizeof(g_error_message), "No MACRO \"%s\" defined.\n", g_tmp);
       print_error(g_error_message, ERROR_INB);
       return FAILED;
     }

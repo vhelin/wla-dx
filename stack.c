@@ -16,8 +16,8 @@
 
 
 extern int g_input_number_error_msg, g_bankheader_status, g_input_float_mode;
-extern int g_source_pointer, g_size, d, g_macro_active, g_string_size, g_section_status, g_parse_floats;
-extern char g_xyz[512], *g_buffer, tmp[4096], g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
+extern int g_source_pointer, g_size, g_parsed_int, g_macro_active, g_string_size, g_section_status, g_parse_floats;
+extern char g_xyz[512], *g_buffer, g_tmp[4096], g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
 extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
@@ -135,7 +135,7 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
     else
       printf("S(%s)", ta[k].string);
 
-    if (k < d-1)
+    if (k < count-1)
       printf(", ");
   }
   printf("\n");
@@ -1008,7 +1008,7 @@ int resolve_stack(struct stack_item s[], int x) {
             else if (k == INPUT_NUMBER_STACK)
               g_latest_stack = (int)ma->value;
             else if (k == SUCCEEDED) {
-              d = (int)ma->value;
+              g_parsed_int = (int)ma->value;
               g_parsed_double = ma->value;
             }
           
