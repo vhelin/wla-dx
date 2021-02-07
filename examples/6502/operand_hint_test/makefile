@@ -2,7 +2,7 @@
 CC = wla-6502
 CFLAGS = -D abba = 123h -D man=0ah -D name1=George -D name2="John" -D name3 = Peter -D name4 = "Susan" -o
 LD = wlalink
-LDFLAGS = -v -i
+LDFLAGS = -v -i -s
 
 SFILES = main.s
 IFILES = 
@@ -19,4 +19,4 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	rm -f $(OFILES) core *~ result.rom
+	rm -f $(OFILES) core *~ result.rom result.sym
