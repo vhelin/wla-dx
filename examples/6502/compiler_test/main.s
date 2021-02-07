@@ -17,6 +17,7 @@
 .define none    $00
 
 
+.db "02>"
 .if 0 == 1
 	jp pohoih, pojp, egr eg,erg, ege,rg,egr,egr,eg,erg,th,rt,ru,uy,eur,j,yjet,ye,ye,iye,ie,eu,e,i
 	.db 1,2,3,4,5,6,9,23,43,5,5,3,3,4,45,6,4,3,2, none, none, none
@@ -24,6 +25,7 @@
 .else
    .DB   7
 .endif
+.db "<02"
 
 .STRUCT water
 name   ds 8
@@ -31,8 +33,9 @@ age    db
 weight dw
 .ENDST
 
+.db "01>"
 .DSTRUCT waterdrop1 INSTANCEOF water DATA "tingle", 40, 120
 .DSTRUCT waterdrop2, water, "tingle", 40, 120
 .DSTRUCT waterdrop3, water, "somedrop"
 .db $ff, $ff
-
+.db "<01"
