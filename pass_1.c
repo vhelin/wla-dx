@@ -2204,7 +2204,7 @@ int directive_org(void) {
 
 int directive_orga(void) {
 
-  int q;
+  int q, current_slot_address;
   
   no_library_files(".ORGA definitions");
     
@@ -2233,13 +2233,13 @@ int directive_orga(void) {
 
   g_org_defined = 1;
 
-  g_ind = g_slots[g_current_slot].address;
-  if (g_parsed_int < g_ind || g_parsed_int > (g_ind + g_slots[g_current_slot].size)) {
+  current_slot_address = g_slots[g_current_slot].address;
+  if (g_parsed_int < current_slot_address || g_parsed_int > (current_slot_address + g_slots[g_current_slot].size)) {
     print_error(".ORGA is outside the current SLOT.\n", ERROR_DIR);
     return FAILED;
   }
 
-  fprintf(g_file_out_ptr, "O%d ", g_parsed_int - g_ind);
+  fprintf(g_file_out_ptr, "O%d ", g_parsed_int - current_slot_address);
 
   return SUCCEEDED;
 }
