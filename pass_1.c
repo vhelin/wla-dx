@@ -4033,7 +4033,7 @@ int directive_struct(void) {
 
 int directive_ramsection(void) {
 
-  int q;
+  int q, current_slot_address;
       
   if (g_section_status == ON) {
     snprintf(g_error_message, sizeof(g_error_message), "There is already an open section called \"%s\".\n", g_sections_last->name);
@@ -4186,13 +4186,13 @@ int directive_ramsection(void) {
       return FAILED;
     }
 
-    g_ind = g_slots[g_sec_tmp->slot].address;
-    if (g_parsed_int < g_ind || g_parsed_int >= (g_ind + g_slots[g_sec_tmp->slot].size)) {
+    current_slot_address = g_slots[g_sec_tmp->slot].address;
+    if (g_parsed_int < current_slot_address || g_parsed_int >= (current_slot_address + g_slots[g_sec_tmp->slot].size)) {
       print_error("ORGA is outside the current SLOT.\n", ERROR_DIR);
       return FAILED;
     }
 
-    g_sec_tmp->address = g_parsed_int - g_ind;
+    g_sec_tmp->address = g_parsed_int - current_slot_address;
   }
   else if (compare_next_token("ORG") == SUCCEEDED) {
     if (g_output_format == OUTPUT_LIBRARY) {
@@ -4227,8 +4227,7 @@ int directive_ramsection(void) {
     if (skip_next_token() == FAILED)
       return FAILED;
 
-    g_inz = input_number();
-    if (g_inz != SUCCEEDED) {
+    if (input_number() != SUCCEEDED) {
       print_error("Could not parse the .RAMSECTION alignment.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4246,8 +4245,7 @@ int directive_ramsection(void) {
     if (skip_next_token() == FAILED)
       return FAILED;
 
-    g_inz = input_number();
-    if (g_inz != SUCCEEDED) {
+    if (input_number() != SUCCEEDED) {
       print_error("Could not parse the .RAMSECTION offset.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4338,8 +4336,7 @@ int directive_ramsection(void) {
     if (skip_next_token() == FAILED)
       return FAILED;
 
-    g_inz = input_number();
-    if (g_inz != SUCCEEDED) {
+    if (input_number() != SUCCEEDED) {
       print_error("Could not parse the .RAMSECTION priority.\n", ERROR_DIR);
       return FAILED;
     }
