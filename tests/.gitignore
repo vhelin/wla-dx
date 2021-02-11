@@ -1,2 +1,4 @@
 # system/test/Makefile
 !*/*/[mM]akefile
+!linkfile
+!*.bin
