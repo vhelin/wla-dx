@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-# NOTE! All the small and ugly projects inside the "examples" directory
+# NOTE! All the small and ugly projects inside the "tests" directory
 # are here used as unit tests / if the projects assemble and link without
 # errors, we'll assume that WLA DX is in ok shape. Feel free to add more
 # test projects to the lot.
@@ -48,7 +48,7 @@ fi
 
 cd ..
 
-cd examples
+cd tests
 
 #####################################################################
 # 6502
