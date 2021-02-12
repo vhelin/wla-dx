@@ -25,7 +25,7 @@ extern int g_file_header_size, g_file_footer_size, g_use_libdir;
 extern struct append_section *g_append_sections, *g_append_tmp;
 extern struct section_fix *g_sec_fix_first, *g_sec_fix_tmp;
 
-char g_file_name_error[] = "???";
+static char g_file_name_error[] = "???";
 
 
 

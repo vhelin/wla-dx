@@ -44,7 +44,7 @@ extern int g_program_start, g_program_end, g_snes_mode, g_smc_status;
 extern int g_snes_sramsize, g_num_sorted_anonymous_labels, g_sort_sections;
 extern int g_output_type, g_program_address_start, g_program_address_end, g_program_address_start_type, g_program_address_end_type;
 
-int g_current_stack_calculation_addr = 0;
+static int g_current_stack_calculation_addr = 0;
 
 
 
