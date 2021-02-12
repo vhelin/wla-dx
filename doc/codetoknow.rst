@@ -1,8 +1,12 @@
 Things you should know about coding for...
 ==========================================
 
-Please check out the source code examples (in ``examples`` directory) for
+Please check out the source code examples (in ``tests`` directory) for
 quick target system specific information.
+
+Please be aware that the source code files in there are mainly used to test that
+the compiler and linker work, they are not possibly good examples of how you should
+write code using WLA DX. 
 
 Z80
 ---
@@ -219,7 +223,7 @@ Note that WLA assumes that ROM offset is all the time 0. If you use
 something else as the offset, make sure to compute the jumps by hand as WLA
 cannot do that.
 
-Check out ``examples/gb-z80/include/pocket_voice.i`` for more information.
+Check out ``tests/gb-z80/include/pocket_voice.i`` for more information.
 
 
 GB-Z80
