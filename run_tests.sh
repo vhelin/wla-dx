@@ -36,11 +36,22 @@ if test -f "byte_tester.exe"; then
     BYTE_TESTER="byte_tester.exe"
 fi
 
+SHOW_ALL_OUTPUT="no"
+if [ $# -eq 1 ]; then
+    if [ "$1" == "-v" ]; then
+        SHOW_ALL_OUTPUT="yes"
+    fi
+fi
+
 cd ..
 
 echo
 echo Running tests...
 cd tests
+
+if [ "$SHOW_ALL_OUTPUT" == "yes" ]; then
+    echo
+fi
 
 set +e
 TEST_COUNT=0
@@ -63,8 +74,14 @@ for PLATFORM in */; do
                     echo "********"
                     echo Test \"$TEST\" of platform \"$PLATFORM\" failed.
                     exit 1
+                elif [ "$SHOW_ALL_OUTPUT" == "yes" ]; then
+                    echo "*********************************************************************"
+                    echo Test \"$TEST\" of platform \"$PLATFORM\" succeeded:
+                    echo "*********************************************************************"
+                    printf "\n%s\n\n" "$OUT"
+                else
+                    printf .
                 fi
-                printf .
                 # printf "%s" "$OUT"
                 TEST_COUNT=$((TEST_COUNT+1))
             fi
