@@ -1,0 +1,7 @@
+linked.rom
+TEST-01 01 START
+    46 2A
+    65 2A
+    4E 2A 00
+    6D 2A 00
+END

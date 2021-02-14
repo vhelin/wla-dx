@@ -1,0 +1,21 @@
+.MEMORYMAP
+    DEFAULTSLOT 0
+    SLOTSIZE $100
+    SLOT 0 $100
+.ENDME
+
+.ROMBANKSIZE 100
+.ROMBANKS 1
+
+.BANK 0
+.ORG 0
+
+.db "01>"
+LSR $2A     ; 46 2A
+ADC $2A     ; 65 2A
+
+.16BIT
+
+LSR $2A     ; 4E 2A 00
+ADC $2A     ; 6D 2A 00
+.db "<01"
