@@ -2296,7 +2296,7 @@ int directive_slot(void) {
 
 int directive_bank(void) {
 
-  int q;
+  int q, bank, slot;
   
   no_library_files(".BANK definitions");
     
@@ -2363,24 +2363,24 @@ int directive_bank(void) {
     if (g_output_format != OUTPUT_LIBRARY)
       fprintf(g_file_out_ptr, "B%d %d ", g_bank, g_parsed_int);
 
-    g_ind = g_bank;
-    g_inz = g_parsed_int;
+    bank = g_bank;
+    slot = g_parsed_int;
     g_current_slot = g_parsed_int;
   }
   else if (g_output_format != OUTPUT_LIBRARY) {
     fprintf(g_file_out_ptr, "B%d %d ", g_parsed_int, g_defaultslot);
-    g_ind = g_parsed_int;
-    g_inz = g_defaultslot;
+    bank = g_parsed_int;
+    slot = g_defaultslot;
     g_current_slot = g_defaultslot;
   }
 
-  if (g_slots[g_inz].size < g_banks[g_ind]) {
-    snprintf(g_error_message, sizeof(g_error_message), "SLOT %d's size %d < BANK %d's size %d.\n", g_inz, g_slots[g_inz].size, g_ind, g_banks[g_ind]);
+  if (g_slots[slot].size < g_banks[bank]) {
+    snprintf(g_error_message, sizeof(g_error_message), "SLOT %d's size %d < BANK %d's size %d.\n", slot, g_slots[slot].size, bank, g_banks[bank]);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
-  if (g_slots[g_inz].size > g_banks[g_ind]) {
-    snprintf(g_error_message, sizeof(g_error_message), "SLOT %d's size %d > BANK %d's size %d, but the bank fits inside.\n", g_inz, g_slots[g_inz].size, g_ind, g_banks[g_ind]);
+  if (g_slots[slot].size > g_banks[bank]) {
+    snprintf(g_error_message, sizeof(g_error_message), "SLOT %d's size %d > BANK %d's size %d, but the bank fits inside.\n", slot, g_slots[slot].size, bank, g_banks[bank]);
     print_error(g_error_message, ERROR_WRN);
   }
 
