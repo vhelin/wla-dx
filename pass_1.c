@@ -2391,10 +2391,8 @@ int directive_bank(void) {
 int directive_dbm_dwm_dlm(void) {
   
   struct macro_static *macro;
-  int result;
 
-  result = input_number();
-  if (result != INPUT_NUMBER_ADDRESS_LABEL) {
+  if (input_number() != INPUT_NUMBER_ADDRESS_LABEL) {
     snprintf(g_error_message, sizeof(g_error_message), ".%s requires macro name.\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
