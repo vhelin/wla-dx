@@ -2392,10 +2392,11 @@ int directive_dbm_dwm_dlm(void) {
   
   struct macro_static *m;
   char bak[MAX_NAME_LENGTH + 1];
+  int result;
   
   strcpy(bak, g_current_directive);
-  g_inz = input_number();
-  if (g_inz != INPUT_NUMBER_ADDRESS_LABEL) {
+  result = input_number();
+  if (result != INPUT_NUMBER_ADDRESS_LABEL) {
     snprintf(g_error_message, sizeof(g_error_message), ".%s requires macro name.\n", bak);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
