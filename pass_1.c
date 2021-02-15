@@ -2432,25 +2432,26 @@ int directive_dbm_dwm_dlm(void) {
 int directive_table(void) {
 
   char bak[256];
+  int result, i;
 
-  g_inz = input_number();
-  for (g_table_size = 0; g_table_size < (int)sizeof(g_table_format) && (g_inz == INPUT_NUMBER_STRING || g_inz == INPUT_NUMBER_ADDRESS_LABEL); ) {
+  result = input_number();
+  for (g_table_size = 0; g_table_size < (int)sizeof(g_table_format) && (result == INPUT_NUMBER_STRING || result == INPUT_NUMBER_ADDRESS_LABEL); ) {
     if (strcaselesscmp(g_label, "db") == 0 || strcaselesscmp(g_label, "byte") == 0 || strcaselesscmp(g_label, "byt") == 0) {
       g_table_format[g_table_size++] = 'b';
     }
     else if (strcaselesscmp(g_label, "ds") == 0 || strcaselesscmp(g_label, "dsb") == 0) {
       strcpy(bak, g_label);
 
-      g_inz = input_number();
-      if (g_inz == FAILED)
+      result = input_number();
+      if (result == FAILED)
         return FAILED;
-      if (g_inz != SUCCEEDED) {
+      if (result != SUCCEEDED) {
         snprintf(g_error_message, sizeof(g_error_message), "%s needs size.\n", bak);
         print_error(g_error_message, ERROR_INP);
         return FAILED;
       }
 
-      for (g_inz = 0; g_inz < g_parsed_int && g_table_size < (int)sizeof(g_table_format); g_inz++)
+      for (i = 0; i < g_parsed_int && g_table_size < (int)sizeof(g_table_format); i++)
         g_table_format[g_table_size++] = 'b';
     }
     else if (strcaselesscmp(g_label, "dw") == 0 || strcaselesscmp(g_label, "word") == 0 || strcaselesscmp(g_label, "addr") == 0) {
@@ -2459,16 +2460,16 @@ int directive_table(void) {
     else if (strcaselesscmp(g_label, "dsw") == 0) {
       strcpy(bak, g_label);
 
-      g_inz = input_number();
-      if (g_inz == FAILED)
+      result = input_number();
+      if (result == FAILED)
         return FAILED;
-      if (g_inz != SUCCEEDED) {
+      if (result != SUCCEEDED) {
         snprintf(g_error_message, sizeof(g_error_message), "%s needs size.\n", bak);
         print_error(g_error_message, ERROR_INP);
         return FAILED;
       }
 
-      for (g_inz = 0; g_inz < g_parsed_int && g_table_size < (int)sizeof(g_table_format); g_inz++)
+      for (i = 0; i < g_parsed_int && g_table_size < (int)sizeof(g_table_format); i++)
         g_table_format[g_table_size++] = 'w';
     }
 #ifdef W65816
@@ -2478,16 +2479,16 @@ int directive_table(void) {
     else if (strcaselesscmp(g_label, "dsl") == 0) {
       strcpy(bak, g_label);
 
-      g_inz = input_number();
-      if (g_inz == FAILED)
+      result = input_number();
+      if (result == FAILED)
         return FAILED;
-      if (g_inz != SUCCEEDED) {
+      if (result != SUCCEEDED) {
         snprintf(g_error_message, sizeof(g_error_message), "%s needs size.\n", bak);
         print_error(g_error_message, ERROR_INP);
         return FAILED;
       }
 
-      for (g_inz = 0; g_inz < g_parsed_int && g_table_size < (int)sizeof(g_table_format); g_inz++)
+      for (i = 0; i < g_parsed_int && g_table_size < (int)sizeof(g_table_format); i++)
         g_table_format[g_table_size++] = 'l';
     }
 #endif
@@ -2497,7 +2498,7 @@ int directive_table(void) {
       return FAILED;
     }
       
-    g_inz = input_number();
+    result = input_number();
   }
 
   if (g_table_size >= (int)sizeof(g_table_format)) {
@@ -2506,14 +2507,14 @@ int directive_table(void) {
     return FAILED;
   }
 
-  if (g_inz == FAILED)
+  if (result == FAILED)
     return FAILED;
-  else if (g_inz == INPUT_NUMBER_EOL && g_table_size == 0) {
+  else if (result == INPUT_NUMBER_EOL && g_table_size == 0) {
     snprintf(g_error_message, sizeof(g_error_message), ".TABLE needs data.\n");
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
-  else if (g_inz == INPUT_NUMBER_EOL)
+  else if (result == INPUT_NUMBER_EOL)
     next_line();
   else {
     snprintf(g_error_message, sizeof(g_error_message), "Unknown symbol.\n");
