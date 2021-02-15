@@ -2532,7 +2532,7 @@ int directive_table(void) {
 int directive_row_data(void) {
 
   char bak[256];
-  int rows = 0;
+  int rows = 0, result, i;
   
   strcpy(bak, g_current_directive);
 
@@ -2550,10 +2550,10 @@ int directive_row_data(void) {
     }
   }
 
-  g_inz = input_number();
-  g_ind = 0;
-  for ( ; g_inz == SUCCEEDED || g_inz == INPUT_NUMBER_STRING || g_inz == INPUT_NUMBER_ADDRESS_LABEL || g_inz == INPUT_NUMBER_STACK; ) {
-    if (g_inz == INPUT_NUMBER_STRING) {
+  result = input_number();
+  i = 0;
+  for ( ; result == SUCCEEDED || result == INPUT_NUMBER_STRING || result == INPUT_NUMBER_ADDRESS_LABEL || result == INPUT_NUMBER_STACK; ) {
+    if (result == INPUT_NUMBER_STRING) {
       if (g_table_format[g_table_index] == 'b') {
         if (strlen(g_label) != 1) {
           snprintf(g_error_message, sizeof(g_error_message), ".%s was expecting a byte, got %d bytes instead.\n", bak, (int)strlen(g_label));
@@ -2589,7 +2589,7 @@ int directive_row_data(void) {
         return FAILED;
       }
     }
-    else if (g_inz == SUCCEEDED) {
+    else if (result == SUCCEEDED) {
       if (g_table_format[g_table_index] == 'b') {
         if (g_parsed_int < -128 || g_parsed_int > 255) {
           snprintf(g_error_message, sizeof(g_error_message), ".%s expects 8-bit data, %d is out of range!\n", bak, g_parsed_int);
@@ -2625,7 +2625,7 @@ int directive_row_data(void) {
         return FAILED;
       }
     }
-    else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL) {
+    else if (result == INPUT_NUMBER_ADDRESS_LABEL) {
       if (g_table_format[g_table_index] == 'b') {
         fprintf(g_file_out_ptr, "k%d Q%s ", g_active_file_info_last->line_current, g_label);
       }
@@ -2643,7 +2643,7 @@ int directive_row_data(void) {
         return FAILED;
       }
     }
-    else if (g_inz == INPUT_NUMBER_STACK) {
+    else if (result == INPUT_NUMBER_STACK) {
       if (g_table_format[g_table_index] == 'b') {
         fprintf(g_file_out_ptr, "c%d ", g_latest_stack);
       }
@@ -2662,20 +2662,20 @@ int directive_row_data(void) {
       }
     }
 
-    g_ind++;
+    i++;
     g_table_index++;
     if (g_table_index >= g_table_size) {
       rows++;
       g_table_index = 0;
     }
 
-    g_inz = input_number();
+    result = input_number();
   }
 
-  if (g_inz == FAILED)
+  if (result == FAILED)
     return FAILED;
 
-  if (g_inz == INPUT_NUMBER_EOL && g_ind == 0) {
+  if (result == INPUT_NUMBER_EOL && i == 0) {
     snprintf(g_error_message, sizeof(g_error_message), ".%s needs data.\n", bak);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
@@ -2689,7 +2689,7 @@ int directive_row_data(void) {
     }
   }
 
-  if (g_inz == INPUT_NUMBER_EOL)
+  if (result == INPUT_NUMBER_EOL)
     next_line();
 
   return SUCCEEDED;
