@@ -2390,7 +2390,7 @@ int directive_bank(void) {
 
 int directive_dbm_dwm_dlm(void) {
   
-  struct macro_static *m;
+  struct macro_static *macro;
   char bak[MAX_NAME_LENGTH + 1];
   int result;
   
@@ -2403,29 +2403,29 @@ int directive_dbm_dwm_dlm(void) {
   }
 
   /* find the macro */
-  if (macro_get(g_label, YES, &m) == FAILED)
+  if (macro_get(g_label, YES, &macro) == FAILED)
     return FAILED;
-  if (m == NULL) {
-    if (macro_get(g_label, NO, &m) == FAILED)
+  if (macro == NULL) {
+    if (macro_get(g_label, NO, &macro) == FAILED)
       return FAILED;
   }
 
-  if (m == NULL) {
+  if (macro == NULL) {
     snprintf(g_error_message, sizeof(g_error_message), "No MACRO \"%s\" defined.\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
 
   if (strcaselesscmp(g_current_directive, "DBM") == 0) {
-    if (macro_start_dxm(m, MACRO_CALLER_DBM, g_current_directive, YES) == FAILED)
+    if (macro_start_dxm(macro, MACRO_CALLER_DBM, g_current_directive, YES) == FAILED)
       return FAILED;
   }
   else if (strcaselesscmp(g_current_directive, "DLM") == 0) {
-    if (macro_start_dxm(m, MACRO_CALLER_DLM, g_current_directive, YES) == FAILED)
+    if (macro_start_dxm(macro, MACRO_CALLER_DLM, g_current_directive, YES) == FAILED)
       return FAILED;
   }
   else {
-    if (macro_start_dxm(m, MACRO_CALLER_DWM, g_current_directive, YES) == FAILED)
+    if (macro_start_dxm(macro, MACRO_CALLER_DWM, g_current_directive, YES) == FAILED)
       return FAILED;
   }
 
