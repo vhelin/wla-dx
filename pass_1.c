@@ -2367,7 +2367,7 @@ int directive_bank(void) {
     slot = g_parsed_int;
     g_current_slot = g_parsed_int;
   }
-  else if (g_output_format != OUTPUT_LIBRARY) {
+  else {
     fprintf(g_file_out_ptr, "B%d %d ", g_parsed_int, g_defaultslot);
     bank = g_parsed_int;
     slot = g_defaultslot;
