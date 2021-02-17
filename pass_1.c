@@ -2296,7 +2296,7 @@ int directive_slot(void) {
 
 int directive_bank(void) {
 
-  int q;
+  int q, bank, slot;
   
   no_library_files(".BANK definitions");
     
@@ -2363,24 +2363,24 @@ int directive_bank(void) {
     if (g_output_format != OUTPUT_LIBRARY)
       fprintf(g_file_out_ptr, "B%d %d ", g_bank, g_parsed_int);
 
-    g_ind = g_bank;
-    g_inz = g_parsed_int;
+    bank = g_bank;
+    slot = g_parsed_int;
     g_current_slot = g_parsed_int;
   }
   else if (g_output_format != OUTPUT_LIBRARY) {
     fprintf(g_file_out_ptr, "B%d %d ", g_parsed_int, g_defaultslot);
-    g_ind = g_parsed_int;
-    g_inz = g_defaultslot;
+    bank = g_parsed_int;
+    slot = g_defaultslot;
     g_current_slot = g_defaultslot;
   }
 
-  if (g_slots[g_inz].size < g_banks[g_ind]) {
-    snprintf(g_error_message, sizeof(g_error_message), "SLOT %d's size %d < BANK %d's size %d.\n", g_inz, g_slots[g_inz].size, g_ind, g_banks[g_ind]);
+  if (g_slots[slot].size < g_banks[bank]) {
+    snprintf(g_error_message, sizeof(g_error_message), "SLOT %d's size %d < BANK %d's size %d.\n", slot, g_slots[slot].size, bank, g_banks[bank]);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
-  if (g_slots[g_inz].size > g_banks[g_ind]) {
-    snprintf(g_error_message, sizeof(g_error_message), "SLOT %d's size %d > BANK %d's size %d, but the bank fits inside.\n", g_inz, g_slots[g_inz].size, g_ind, g_banks[g_ind]);
+  if (g_slots[slot].size > g_banks[bank]) {
+    snprintf(g_error_message, sizeof(g_error_message), "SLOT %d's size %d > BANK %d's size %d, but the bank fits inside.\n", slot, g_slots[slot].size, bank, g_banks[bank]);
     print_error(g_error_message, ERROR_WRN);
   }
 
@@ -2390,41 +2390,38 @@ int directive_bank(void) {
 
 int directive_dbm_dwm_dlm(void) {
   
-  struct macro_static *m;
-  char bak[MAX_NAME_LENGTH + 1];
-  
-  strcpy(bak, g_current_directive);
-  g_inz = input_number();
-  if (g_inz != INPUT_NUMBER_ADDRESS_LABEL) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s requires macro name.\n", bak);
+  struct macro_static *macro;
+
+  if (input_number() != INPUT_NUMBER_ADDRESS_LABEL) {
+    snprintf(g_error_message, sizeof(g_error_message), ".%s requires macro name.\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
 
   /* find the macro */
-  if (macro_get(g_label, YES, &m) == FAILED)
+  if (macro_get(g_label, YES, &macro) == FAILED)
     return FAILED;
-  if (m == NULL) {
-    if (macro_get(g_label, NO, &m) == FAILED)
+  if (macro == NULL) {
+    if (macro_get(g_label, NO, &macro) == FAILED)
       return FAILED;
   }
 
-  if (m == NULL) {
+  if (macro == NULL) {
     snprintf(g_error_message, sizeof(g_error_message), "No MACRO \"%s\" defined.\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
 
   if (strcaselesscmp(g_current_directive, "DBM") == 0) {
-    if (macro_start_dxm(m, MACRO_CALLER_DBM, g_current_directive, YES) == FAILED)
+    if (macro_start_dxm(macro, MACRO_CALLER_DBM, g_current_directive, YES) == FAILED)
       return FAILED;
   }
   else if (strcaselesscmp(g_current_directive, "DLM") == 0) {
-    if (macro_start_dxm(m, MACRO_CALLER_DLM, g_current_directive, YES) == FAILED)
+    if (macro_start_dxm(macro, MACRO_CALLER_DLM, g_current_directive, YES) == FAILED)
       return FAILED;
   }
   else {
-    if (macro_start_dxm(m, MACRO_CALLER_DWM, g_current_directive, YES) == FAILED)
+    if (macro_start_dxm(macro, MACRO_CALLER_DWM, g_current_directive, YES) == FAILED)
       return FAILED;
   }
 
@@ -2435,25 +2432,26 @@ int directive_dbm_dwm_dlm(void) {
 int directive_table(void) {
 
   char bak[256];
+  int result, i;
 
-  g_inz = input_number();
-  for (g_table_size = 0; g_table_size < (int)sizeof(g_table_format) && (g_inz == INPUT_NUMBER_STRING || g_inz == INPUT_NUMBER_ADDRESS_LABEL); ) {
+  result = input_number();
+  for (g_table_size = 0; g_table_size < (int)sizeof(g_table_format) && (result == INPUT_NUMBER_STRING || result == INPUT_NUMBER_ADDRESS_LABEL); ) {
     if (strcaselesscmp(g_label, "db") == 0 || strcaselesscmp(g_label, "byte") == 0 || strcaselesscmp(g_label, "byt") == 0) {
       g_table_format[g_table_size++] = 'b';
     }
     else if (strcaselesscmp(g_label, "ds") == 0 || strcaselesscmp(g_label, "dsb") == 0) {
       strcpy(bak, g_label);
 
-      g_inz = input_number();
-      if (g_inz == FAILED)
+      result = input_number();
+      if (result == FAILED)
         return FAILED;
-      if (g_inz != SUCCEEDED) {
+      if (result != SUCCEEDED) {
         snprintf(g_error_message, sizeof(g_error_message), "%s needs size.\n", bak);
         print_error(g_error_message, ERROR_INP);
         return FAILED;
       }
 
-      for (g_inz = 0; g_inz < g_parsed_int && g_table_size < (int)sizeof(g_table_format); g_inz++)
+      for (i = 0; i < g_parsed_int && g_table_size < (int)sizeof(g_table_format); i++)
         g_table_format[g_table_size++] = 'b';
     }
     else if (strcaselesscmp(g_label, "dw") == 0 || strcaselesscmp(g_label, "word") == 0 || strcaselesscmp(g_label, "addr") == 0) {
@@ -2462,16 +2460,16 @@ int directive_table(void) {
     else if (strcaselesscmp(g_label, "dsw") == 0) {
       strcpy(bak, g_label);
 
-      g_inz = input_number();
-      if (g_inz == FAILED)
+      result = input_number();
+      if (result == FAILED)
         return FAILED;
-      if (g_inz != SUCCEEDED) {
+      if (result != SUCCEEDED) {
         snprintf(g_error_message, sizeof(g_error_message), "%s needs size.\n", bak);
         print_error(g_error_message, ERROR_INP);
         return FAILED;
       }
 
-      for (g_inz = 0; g_inz < g_parsed_int && g_table_size < (int)sizeof(g_table_format); g_inz++)
+      for (i = 0; i < g_parsed_int && g_table_size < (int)sizeof(g_table_format); i++)
         g_table_format[g_table_size++] = 'w';
     }
 #ifdef W65816
@@ -2481,16 +2479,16 @@ int directive_table(void) {
     else if (strcaselesscmp(g_label, "dsl") == 0) {
       strcpy(bak, g_label);
 
-      g_inz = input_number();
-      if (g_inz == FAILED)
+      result = input_number();
+      if (result == FAILED)
         return FAILED;
-      if (g_inz != SUCCEEDED) {
+      if (result != SUCCEEDED) {
         snprintf(g_error_message, sizeof(g_error_message), "%s needs size.\n", bak);
         print_error(g_error_message, ERROR_INP);
         return FAILED;
       }
 
-      for (g_inz = 0; g_inz < g_parsed_int && g_table_size < (int)sizeof(g_table_format); g_inz++)
+      for (i = 0; i < g_parsed_int && g_table_size < (int)sizeof(g_table_format); i++)
         g_table_format[g_table_size++] = 'l';
     }
 #endif
@@ -2500,7 +2498,7 @@ int directive_table(void) {
       return FAILED;
     }
       
-    g_inz = input_number();
+    result = input_number();
   }
 
   if (g_table_size >= (int)sizeof(g_table_format)) {
@@ -2509,14 +2507,14 @@ int directive_table(void) {
     return FAILED;
   }
 
-  if (g_inz == FAILED)
+  if (result == FAILED)
     return FAILED;
-  else if (g_inz == INPUT_NUMBER_EOL && g_table_size == 0) {
+  else if (result == INPUT_NUMBER_EOL && g_table_size == 0) {
     snprintf(g_error_message, sizeof(g_error_message), ".TABLE needs data.\n");
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
-  else if (g_inz == INPUT_NUMBER_EOL)
+  else if (result == INPUT_NUMBER_EOL)
     next_line();
   else {
     snprintf(g_error_message, sizeof(g_error_message), "Unknown symbol.\n");
@@ -2534,7 +2532,7 @@ int directive_table(void) {
 int directive_row_data(void) {
 
   char bak[256];
-  int rows = 0;
+  int rows = 0, result, i;
   
   strcpy(bak, g_current_directive);
 
@@ -2552,10 +2550,10 @@ int directive_row_data(void) {
     }
   }
 
-  g_inz = input_number();
-  g_ind = 0;
-  for ( ; g_inz == SUCCEEDED || g_inz == INPUT_NUMBER_STRING || g_inz == INPUT_NUMBER_ADDRESS_LABEL || g_inz == INPUT_NUMBER_STACK; ) {
-    if (g_inz == INPUT_NUMBER_STRING) {
+  result = input_number();
+  i = 0;
+  for ( ; result == SUCCEEDED || result == INPUT_NUMBER_STRING || result == INPUT_NUMBER_ADDRESS_LABEL || result == INPUT_NUMBER_STACK; ) {
+    if (result == INPUT_NUMBER_STRING) {
       if (g_table_format[g_table_index] == 'b') {
         if (strlen(g_label) != 1) {
           snprintf(g_error_message, sizeof(g_error_message), ".%s was expecting a byte, got %d bytes instead.\n", bak, (int)strlen(g_label));
@@ -2591,7 +2589,7 @@ int directive_row_data(void) {
         return FAILED;
       }
     }
-    else if (g_inz == SUCCEEDED) {
+    else if (result == SUCCEEDED) {
       if (g_table_format[g_table_index] == 'b') {
         if (g_parsed_int < -128 || g_parsed_int > 255) {
           snprintf(g_error_message, sizeof(g_error_message), ".%s expects 8-bit data, %d is out of range!\n", bak, g_parsed_int);
@@ -2627,7 +2625,7 @@ int directive_row_data(void) {
         return FAILED;
       }
     }
-    else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL) {
+    else if (result == INPUT_NUMBER_ADDRESS_LABEL) {
       if (g_table_format[g_table_index] == 'b') {
         fprintf(g_file_out_ptr, "k%d Q%s ", g_active_file_info_last->line_current, g_label);
       }
@@ -2645,7 +2643,7 @@ int directive_row_data(void) {
         return FAILED;
       }
     }
-    else if (g_inz == INPUT_NUMBER_STACK) {
+    else if (result == INPUT_NUMBER_STACK) {
       if (g_table_format[g_table_index] == 'b') {
         fprintf(g_file_out_ptr, "c%d ", g_latest_stack);
       }
@@ -2664,20 +2662,20 @@ int directive_row_data(void) {
       }
     }
 
-    g_ind++;
+    i++;
     g_table_index++;
     if (g_table_index >= g_table_size) {
       rows++;
       g_table_index = 0;
     }
 
-    g_inz = input_number();
+    result = input_number();
   }
 
-  if (g_inz == FAILED)
+  if (result == FAILED)
     return FAILED;
 
-  if (g_inz == INPUT_NUMBER_EOL && g_ind == 0) {
+  if (result == INPUT_NUMBER_EOL && i == 0) {
     snprintf(g_error_message, sizeof(g_error_message), ".%s needs data.\n", bak);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
@@ -2691,7 +2689,7 @@ int directive_row_data(void) {
     }
   }
 
-  if (g_inz == INPUT_NUMBER_EOL)
+  if (result == INPUT_NUMBER_EOL)
     next_line();
 
   return SUCCEEDED;
