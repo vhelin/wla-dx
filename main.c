@@ -41,10 +41,10 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 9.12a (25.1.2021)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 9.12a (18.2.2021)";
 char g_wla_version[] = "9.12";
 
-char g_tmp_name[MAX_NAME_LENGTH + 1];
+char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern struct file_name_info *g_file_name_info_first;
@@ -97,8 +97,9 @@ int main(int argc, char *argv[]) {
   /* init the randon number generator */
   init_genrand((unsigned long)time(NULL));
 
-  /* zero the tmp name for internal symbol stream */
+  /* zero the tmp name for internal symbol stream and makefile generation */
   g_tmp_name[0] = 0;
+  g_makefile_tmp_name[0] = 0;
   
   /* initialize our external include dir collection */
   g_ext_incdirs.count = 0;
@@ -303,6 +304,8 @@ int parse_flags(char **flags, int flagc) {
       g_test_mode = ON;
       g_verbose_mode = OFF;
       g_quiet = YES;
+      /* if file loading requires a tmp file, this will be its name */
+      generate_tmp_name(g_makefile_tmp_name);
       continue;
     }
     else if (!strcmp(flags[count], "-q")) {
@@ -520,6 +523,8 @@ void procedures_at_exit(void) {
   /* remove the tmp files */
   if (g_tmp_name[0] != 0)
     remove(g_tmp_name);
+  if (g_makefile_tmp_name[0] != 0)
+    remove(g_makefile_tmp_name);
 
   /* cleanup any incdirs we added */
   for (index = 0; index < g_ext_incdirs.count; index++)

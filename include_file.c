@@ -14,10 +14,9 @@
 
 
 extern int g_ind, g_source_pointer, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules;
-extern char g_tmp[4096], g_error_message[sizeof(g_tmp) + MAX_NAME_LENGTH + 1 + 1024];
+extern char g_tmp[4096], g_error_message[sizeof(g_tmp) + MAX_NAME_LENGTH + 1 + 1024], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
 extern struct ext_include_collection g_ext_incdirs;
 extern FILE *g_file_out_ptr;
-extern int generate_tmp_name(char **filename);
 
 struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
 struct active_file_info *g_active_file_info_first = NULL, *g_active_file_info_last = NULL, *g_active_file_info_tmp = NULL;
@@ -139,12 +138,10 @@ static int find_file(char *name, FILE** f) {
   /* if we can't find the file, but are only printing makefile rules, silently use an empty file */
   /* a warning might be nice */
   if (g_makefile_rules == YES) {
-    if (generate_tmp_name(&name) == SUCCEEDED) {
-      fclose(fopen(name, "wb"));
-      (*f) = fopen(name, "rb");
-      if (*f != NULL)
-        return SUCCEEDED;
-    }
+    fclose(fopen(g_makefile_tmp_name, "wb"));
+    (*f) = fopen(g_makefile_tmp_name, "rb");
+    if (*f != NULL)
+      return SUCCEEDED;
   }
   
   print_find_error(name);
