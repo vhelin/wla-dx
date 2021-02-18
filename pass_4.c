@@ -28,7 +28,7 @@ extern struct append_section *g_append_sections;
 extern struct label_sizeof *g_label_sizeofs;
 extern FILE *g_file_out_ptr;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
-extern char *g_tmp_name, g_tmp[4096], *g_final_name;
+extern char g_tmp_name[MAX_NAME_LENGTH + 1], g_tmp[4096], *g_final_name;
 extern int g_rombanks, g_output_format, g_test_mode, g_listfile_data, g_little_endian;
 
 #ifdef GB

@@ -44,7 +44,7 @@ __near long __stack = 200000;
 char g_version_string[] = "$VER: wla-" WLA_NAME " 9.12a (25.1.2021)";
 char g_wla_version[] = "9.12";
 
-char *g_tmp_name = NULL;
+char g_tmp_name[MAX_NAME_LENGTH + 1];
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern struct file_name_info *g_file_name_info_first;
@@ -97,6 +97,9 @@ int main(int argc, char *argv[]) {
   /* init the randon number generator */
   init_genrand((unsigned long)time(NULL));
 
+  /* zero the tmp name for internal symbol stream */
+  g_tmp_name[0] = 0;
+  
   /* initialize our external include dir collection */
   g_ext_incdirs.count = 0;
   g_ext_incdirs.names = NULL;
@@ -174,7 +177,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  generate_tmp_name(&g_tmp_name);
+  generate_tmp_name(g_tmp_name);
 
   g_file_out_ptr = fopen(g_tmp_name, "wb");
   if (g_file_out_ptr == NULL) {
@@ -515,7 +518,7 @@ void procedures_at_exit(void) {
   }
 
   /* remove the tmp files */
-  if (g_tmp_name != NULL)
+  if (g_tmp_name[0] != 0)
     remove(g_tmp_name);
 
   /* cleanup any incdirs we added */
@@ -525,32 +528,38 @@ void procedures_at_exit(void) {
 }
 
 
-int generate_tmp_name(char **filename) {
+/* NOTE: filename must contain at least 32 bytes */
+int generate_tmp_name(char *filename) {
 
-#if defined(UNIX) || defined(WIN32)
-  static char name[32]; /* should be enough */
+  static int running_id = 0;
+  char name[32]; /* should be enough */
   int status;
   int pid;
 
 #if defined(UNIX)
+  char header[] = ".wla";
+  
   pid = (int)getpid();
 #elif defined(WIN32)
+  char header[] = ".wla";
+
   pid = GetCurrentProcessId();
-#else
-#error "Invalid configuration!"
+#else /* for Amiga, MSDOS... */
+  char header[] = "wla";
+
+  pid = 0;
 #endif
 
-  status = snprintf(name, sizeof(name)-1, ".wla%da", pid) + 1;
+  status = snprintf(name, sizeof(name)-1, "%s%da%d", header, pid, running_id) + 1;
+  running_id++;
   if (status >= (int)sizeof(name)) {
     fprintf(stderr, "MAIN: Temp filename exceeded limit: %d >= %d! "
             "Aborting...\n", status, (int)sizeof(name));
     abort();
   }
 
-  *filename = name;
-#else /* AMIGA, WIN32, MSDOS and others */
-  *filename = "wla_a.tmp";
-#endif
+  /* copy the filename out */
+  strcpy(filename, name);
 
   return SUCCEEDED;
 }

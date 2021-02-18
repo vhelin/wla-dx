@@ -17,7 +17,7 @@ extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g
 extern struct block_name *g_block_names;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
-extern char *g_tmp_name, g_tmp[4096], g_error_message[sizeof(g_tmp) + MAX_NAME_LENGTH + 1 + 1024], g_namespace[MAX_NAME_LENGTH + 1];
+extern char g_tmp_name[MAX_NAME_LENGTH + 1], g_tmp[4096], g_error_message[sizeof(g_tmp) + MAX_NAME_LENGTH + 1 + 1024], g_namespace[MAX_NAME_LENGTH + 1];
 extern int g_verbose_mode, g_section_status, g_output_format;
 
 
