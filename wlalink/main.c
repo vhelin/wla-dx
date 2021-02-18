@@ -953,7 +953,7 @@ int parse_and_set_libdir(char *c, int contains_flag) {
 
   localize_path(n);
 #if defined(MSDOS)
-  snprintf(ext_libdir, sizeof(ext_libdir), "%s\\", n);
+  snprintf(g_ext_libdir, sizeof(g_ext_libdir), "%s\\", n);
 #else
   snprintf(g_ext_libdir, sizeof(g_ext_libdir), "%s/", n);
 #endif
