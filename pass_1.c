@@ -339,7 +339,7 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
   if (macro_stack_grow() == FAILED)
     return FAILED;
 
-  mrt = &macro_stack[macro_active];
+  mrt = &g_macro_stack[g_macro_active];
 
   start = g_source_pointer;
 
@@ -353,17 +353,10 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
     mrt->string_last = 0;
   }
 
-  if (first == YES) {
+  if (first == YES)
     mrt->offset = 0;
-  }
-  else {
-    if (caller == MACRO_CALLER_DBM)
-      mrt->offset++;
-    else if (caller == MACRO_CALLER_DWM)
-      mrt->offset += 2;
-    else
-      mrt->offset += 3;
-  }
+  else
+    mrt->offset++;
 
   if (g_inz == INPUT_NUMBER_EOL && first == NO) {
     next_line();

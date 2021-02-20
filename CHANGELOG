@@ -12,11 +12,12 @@ v9.12 (20-Feb-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                       label instead of the label's address + 1.
                     [ALL] Missing .INCBIN/.INCLUDE files don't break makefile
                       rules generation (-M) any more.
+                    [ALL] Fixed .DBM, .DWM and .DLM, and \2 in .DWM and .DWL.
                     [Z80] Fixed the broken (broke in v9.11) regioncode
                       in .SMSHEADER.
                     [SPC] It's now possible to used e.g., defines with
                       mnemonics like bbc and set1, not just raw numbers.
-                    [SPC] In many mnemonics where a dot was requires you can
+                    [SPC] In many mnemonics where a dot was required you can
                       now also use commas instead (e.g., bbc and set1).
 
 v9.11 (17-Jul-2020) [ALL] Stack calculator's string checker handled only
