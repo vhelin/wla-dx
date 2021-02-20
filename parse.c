@@ -184,6 +184,9 @@ int input_number(void) {
   unsigned char e, ee;
   int k, p, q, spaces = 0, curly_braces = 0;
   double decimal_mul;
+#ifdef SPC700
+  int dot = 0;
+#endif
 
 
   g_operand_hint = HINT_NONE;
@@ -641,6 +644,10 @@ int input_number(void) {
       g_source_pointer--;
       break;
     }
+#ifdef SPC700
+    else if (e == '.')
+      dot = k;
+#endif
     else if (e == ' ')
       break;
     g_label[k] = e;
@@ -671,8 +678,20 @@ int input_number(void) {
       g_operand_hint_type = HINT_TYPE_GIVEN;
       k -= 2;
     }
+#ifdef SPC700
+    else if (g_label[k-1] >= '0' && g_label[k-1] <= '7') {
+      k -= 2;
+      g_source_pointer -= 2;
+    }
+#endif
   }
-
+#ifdef SPC700
+  else if (dot > 0) {
+    g_source_pointer -= k - dot;
+    k -= k - dot;
+  }
+#endif
+  
   g_label[k] = 0;
 
   /* expand e.g., \1 and \@ */
