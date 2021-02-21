@@ -270,7 +270,6 @@ int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
 int macro_stack_grow(void) {
 
   if (g_macro_active == g_macro_stack_size) {
-
     struct macro_runtime *macro;
     int old_size;
 
@@ -288,6 +287,7 @@ int macro_stack_grow(void) {
       memcpy(macro, g_macro_stack, sizeof(struct macro_runtime) * old_size);
       free(g_macro_stack);
     }
+
     g_macro_stack = macro;
     g_macro_runtime_current = &g_macro_stack[g_macro_active - 1];
   }

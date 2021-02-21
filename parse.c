@@ -1053,7 +1053,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
         if (d <= 0 || d > g_macro_runtime_current->supplied_arguments) {
           if (g_input_number_error_msg == YES) {
-            snprintf(g_xyz, sizeof(g_xyz), "Macro \"%s\" wasn't called with enough arguments, \\?%d is out of range.\n", g_macro_runtime_current->macro->name, d);
+            snprintf(g_xyz, sizeof(g_xyz), "EXPAND_MACRO_ARGUMENTS: Macro \"%s\" wasn't called with enough arguments, \\?%d is out of range.\n", g_macro_runtime_current->macro->name, d);
             print_error(g_xyz, ERROR_NUM);
           }
     
@@ -1106,7 +1106,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
       }
       else if (in[i + 1] >= '0' && in[i + 1] <= '9') {
         /* handle numbers, e.g., \1 */
-        int d = 0;
+        int d = 0, type;
 
         (*expands)++;
         (*move_up)++;
@@ -1121,19 +1121,52 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
         if (d > g_macro_runtime_current->supplied_arguments) {
           if (g_input_number_error_msg == YES) {
-            snprintf(g_xyz, sizeof(g_xyz), "Macro \"%s\" wasn't called with enough arguments, \\%d is out of range.\n", g_macro_runtime_current->macro->name, d);
+            snprintf(g_xyz, sizeof(g_xyz), "EXPAND_MACRO_ARGUMENTS: Macro \"%s\" wasn't called with enough arguments, \\%d is out of range.\n", g_macro_runtime_current->macro->name, d);
             print_error(g_xyz, ERROR_NUM);
           }
     
           return FAILED;
         }
 
-        d = g_macro_runtime_current->argument_data[d - 1]->start;
+        type = g_macro_runtime_current->argument_data[d - 1]->type;
 
-        for (; k < MAX_NAME_LENGTH; d++, k++) {
-          if (g_buffer[d] == 0 || g_buffer[d] == ' ' || g_buffer[d] == 0x0A || g_buffer[d] == ',')
-            break;
-          g_expanded_macro_string[k] = g_buffer[d];
+        /* replace e.g., \1 in the string with processed macro argument */
+        if (type == SUCCEEDED) {
+          char tmp_string[32];
+          int i;
+
+          snprintf(tmp_string, sizeof(tmp_string), "%d", (int)g_macro_runtime_current->argument_data[d - 1]->value);
+          for (i = 0; k < MAX_NAME_LENGTH && i < (int)sizeof(tmp_string); i++, k++) {
+            if (tmp_string[i] == 0)
+              break;
+            g_expanded_macro_string[k] = tmp_string[i];
+          }
+        }
+        else if (type == INPUT_NUMBER_ADDRESS_LABEL || type == INPUT_NUMBER_STRING) {
+          int i;
+
+          for (i = 0; k < MAX_NAME_LENGTH; i++, k++) {
+            char c = g_macro_runtime_current->argument_data[d - 1]->string[i];
+            if (c == 0)
+              break;
+            g_expanded_macro_string[k] = c;
+          }
+        }
+        else if (type == INPUT_NUMBER_STACK) {
+          if (g_input_number_error_msg == YES) {
+            snprintf(g_xyz, sizeof(g_xyz), "EXPAND_MACRO_ARGUMENTS: Macro argument \\%d is a pending stack calculation and cannot be expanded into a string.\n", d);
+            print_error(g_xyz, ERROR_NUM);
+          }
+    
+          return FAILED;
+        }
+        else {
+          if (g_input_number_error_msg == YES) {
+            snprintf(g_xyz, sizeof(g_xyz), "EXPAND_MACRO_ARGUMENTS: Macro argument \\%d is of unknown type, please submit a bug report.\n", d);
+            print_error(g_xyz, ERROR_NUM);
+          }
+    
+          return FAILED;
         }
       }
       else {

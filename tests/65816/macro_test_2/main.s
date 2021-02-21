@@ -1,4 +1,8 @@
 
+//////////////////////////////////////////////////////////////////////
+// macro parser test
+//////////////////////////////////////////////////////////////////////
+        
 .memorymap
 	slotsize $8000
 	defaultslot 1
@@ -10,6 +14,10 @@
 
 .rombanksize $8000
 .rombanks 3
+
+//////////////////////////////////////////////////////////////////////
+// test 1
+//////////////////////////////////////////////////////////////////////
 
 .macro FILTER_MACRO_B
 .redefine _out \1 & $FF
@@ -29,7 +37,7 @@
 
 .bank 0 slot 1
 
-.section "Bank0" force
+.section "SectionA" force
 main:
 	.db "01>"
         .dbm FILTER_MACRO_B, $123456, $ABCDEF, "0123456789"
@@ -54,5 +62,61 @@ main:
         .db "06>"
         .dlm FILTER_MACRO_2, $123456, $ABCDEF, "01234"
 	.db "<06"
-
 .ends
+
+//////////////////////////////////////////////////////////////////////
+// test 2
+//////////////////////////////////////////////////////////////////////
+
+.bank 1 slot 0
+
+.MACRO make_rst
+  // these tests start from 07
+  .DEFINE CHAR = \1+7
+  .IF CHAR < 10
+    .DEFINE CHAR_1 = '0'
+    .DEFINE CHAR_2 = '0'+CHAR
+  .ELSE
+    .DEFINE CHAR_1 = '1'
+    .DEFINE CHAR_2 = '0'+CHAR-10
+  .ENDIF
+        
+  .ORGA (\1 * 8)
+  .SECTION "SectionB_\1" SIZE 8 FORCE KEEP
+        .db CHAR_1, CHAR_2, '>'
+rts_\1: .db \1, "\2"
+        .db '<', CHAR_1, CHAR_2
+  .ENDS
+
+  .UNDEFINE CHAR, CHAR_1, CHAR_2
+.ENDM
+
+.REPEAT 8 INDEX IDX
+  make_rst IDX IDX+1
+.ENDR
+
+//////////////////////////////////////////////////////////////////////
+// test 3
+//////////////////////////////////////////////////////////////////////
+
+.bank 1 slot 0
+
+.macro string_macro_deep
+  .db "16>"
+  .db "\1"
+  .db "\2"
+  .db "<16"
+.endm
+
+.macro string_macro
+  .db "15>"
+label_\1:
+  .db "\1"
+label_\2:
+  .db "\2"
+  .db "<15"
+  string_macro_deep \1 \2
+.endm
+        
+ string_macro HI "YO"
+        
