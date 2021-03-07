@@ -235,17 +235,19 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
         for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
           if (g_opt_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             /* NOTE: in the source code it's "MVP/MVN x1, x2", but we output "MVP/MVN x2, x1" */
+            output_assembled_opcode(g_opt_tmp, "k%d ", g_active_file_info_last->line_current);
+            
             if (z == SUCCEEDED)
               output_assembled_opcode(g_opt_tmp, "d%d d%d ", g_opt_tmp->hex, g_parsed_int);
             else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-              output_assembled_opcode(g_opt_tmp, "k%d d%d Q%s ", g_active_file_info_last->line_current, g_opt_tmp->hex, g_label);
+              output_assembled_opcode(g_opt_tmp, "d%d Q%s ", g_opt_tmp->hex, g_label);
             else
               output_assembled_opcode(g_opt_tmp, "d%d c%d ", g_opt_tmp->hex, g_latest_stack);
 
             if (v == SUCCEEDED)
               output_assembled_opcode(g_opt_tmp, "d%d ", e);
             else if (v == INPUT_NUMBER_ADDRESS_LABEL)
-              output_assembled_opcode(g_opt_tmp, "k%d Q%s ", g_active_file_info_last->line_current, labelx);
+              output_assembled_opcode(g_opt_tmp, "Q%s ", labelx);
             else
               output_assembled_opcode(g_opt_tmp, "c%d ", h);
 

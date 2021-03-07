@@ -153,6 +153,18 @@ int listfile_collect(void) {
       add += 2;
       continue;
 
+#ifdef SPC700
+    case 'n':
+      fscanf(file_in, "%*d %*s ");
+      add += 2;
+      continue;
+
+    case 'N':
+      fscanf(file_in, "%*d %*d ");
+      add += 2;
+      continue;
+#endif
+
     case 'D':
       fscanf(file_in, "%*d %*d %*d %d ", &inz);
       add += inz;

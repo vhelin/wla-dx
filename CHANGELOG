@@ -20,6 +20,9 @@ v9.12 (07-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                       source file IDs.
                     [ALL] WLA assembles now "WLAA" library files and "WLAb"
                       object files.
+                    [ALL] Fixed listfile writer, now opcode data stays better
+                      on the lines without spillovers. Affects 65816, Z80,
+                      SPC-700, 65C02, 65CE02 and HuC6280.
                     [Z80] Fixed the broken (broke in v9.11) regioncode
                       in .SMSHEADER.
                     [SPC] It's now possible to used e.g., defines with

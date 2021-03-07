@@ -1,8 +1,8 @@
 
 CC = wla-spc700
-CFLAGS = -o
+CFLAGS = -i -o
 LD = wlalink
-LDFLAGS = -v -S
+LDFLAGS = -i -v -S
 
 SFILES = main.s
 IFILES = 
@@ -19,4 +19,4 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	rm -f $(OFILES) core *~ result.rom result.sym
+	rm -f $(OFILES) core *~ *.lst result.rom result.sym

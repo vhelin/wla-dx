@@ -52,44 +52,46 @@
 /* wla internal datatypes                                     */
 /**************************************************************/
 
-/* A - absolute section    */
-/* c - stack (1 byte)      */
-/* C - stack (2 bytes)     */
-/* T - stack (3 bytes)     */
-/* d - data (1 byte)       */
-/* y - data (2 bytes)      */
-/* z - data (3 bytes)      */
-/* D - data block (incbin) */
-/* O - origin              */
-/* o - absolute origin     */
-/* B - ROM bank            */
-/* b - BASE                */
-/* L - label               */
-/* r - 16-bit reference    */
-/* R - 8-bit pc ref        */
-/* M - 16-bit pc ref       */
-/* Q - 8-bit reference     */
-/* q - 24-bit reference    */
-/* S - section             */
-/* s - end of section      */
-/* x - dsb                 */
-/* X - dsw                 */
-/* h - dsl                 */
-/* E - end of file         */
-/* f - file name id        */
-/* k - line number         */
-/* P - add_old = add       */
-/* p - add = add_old       */
-/* g - block (start)       */
-/* G - block (end)         */
-/* Y - symbol              */
-/* Z - breakpoint          */
-/* i - macro call start    */
-/* I - macro call end      */
-/* j - rept start          */
-/* J - rept end            */
-/* v - special case ID     */
-/* t - namespace           */
+/* A - absolute section      */
+/* c - stack (1 byte)        */
+/* C - stack (2 bytes)       */
+/* T - stack (3 bytes)       */
+/* d - data (1 byte)         */
+/* y - data (2 bytes)        */
+/* z - data (3 bytes)        */
+/* D - data block (incbin)   */
+/* O - origin                */
+/* o - absolute origin       */
+/* B - ROM bank              */
+/* b - BASE                  */
+/* L - label                 */
+/* r - 16-bit reference      */
+/* R - 8-bit pc ref          */
+/* M - 16-bit pc ref         */
+/* Q - 8-bit reference       */
+/* q - 24-bit reference      */
+/* S - section               */
+/* s - end of section        */
+/* x - dsb                   */
+/* X - dsw                   */
+/* h - dsl                   */
+/* E - end of file           */
+/* f - file name id          */
+/* k - line number           */
+/* P - add_old = add         */
+/* p - add = add_old         */
+/* g - block (start)         */
+/* G - block (end)           */
+/* Y - symbol                */
+/* Z - breakpoint            */
+/* i - macro call start      */
+/* I - macro call end        */
+/* j - rept start            */
+/* J - rept end              */
+/* v - special case ID       */
+/* t - namespace             */
+/* n - 0-7 + label (2 bytes) */
+/* N - 0-7 + stack (2 bytes) */
 
 /**************************************************************/
 /* gb-z80                                                     */
