@@ -373,7 +373,7 @@ int obtain_source_file_names(void) {
       s->name[z] = 0;
 
       t++;
-      s->id = *(t++);
+      s->id = READ_T;
       s->checksum = (unsigned) READ_T;
       s->next = NULL;
       *p = s;

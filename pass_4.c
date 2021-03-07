@@ -2204,8 +2204,10 @@ int export_source_file_names(FILE *final_ptr) {
 
   f = g_file_name_info_first;
   while (f != NULL) {
-    fprintf(final_ptr, "%s%c%c", f->name, 0x00, f->id);
+    fprintf(final_ptr, "%s%c", f->name, 0x00);
 
+    ov = f->id;
+    WRITEOUT_OV;
     ov = (int)f->checksum;
     WRITEOUT_OV;
 
