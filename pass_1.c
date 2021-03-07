@@ -1357,8 +1357,8 @@ int localize_path(char *path) {
   for (i = 0; path[i] != 0; i++) {
 #if defined(MSDOS)
     /* '/' -> '\' */
-    if (path[g_source_pointer] == '/')
-      path[g_source_pointer] = '\\';
+    if (path[i] == '/')
+      path[i] = '\\';
 #else
     /* '\' -> '/' */
     if (path[i] == '\\')
