@@ -1273,7 +1273,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLA9");
+    fprintf(final_ptr, "WLAA");
 
     /* misc bits */
     ind = 0;
@@ -1479,7 +1479,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAa%c", g_emptyfill);
+    fprintf(final_ptr, "WLAb%c", g_emptyfill);
 
     /* misc bits */
     ind = 0;

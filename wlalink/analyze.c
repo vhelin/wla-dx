@@ -374,7 +374,7 @@ int obtain_source_file_names(void) {
 
       t++;
       s->id = READ_T;
-      s->checksum = (unsigned) READ_T;
+      s->checksum = (unsigned long) READ_T;
       s->next = NULL;
       *p = s;
       p = &(s->next);
