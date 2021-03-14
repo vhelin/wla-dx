@@ -13,7 +13,5 @@ steps:
 - script: |
     cmake -G "Unix Makefiles"
     make
-    chmod a+x run_tests.sh
-    chmod a+x tests/65816/nocashsns_symbol_file/check_symbols.sh
     ./run_tests.sh
   displayName: 'make'
