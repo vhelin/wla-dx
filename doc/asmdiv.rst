@@ -302,14 +302,22 @@ This is not a compulsory directive.
 ``.ASC`` is an alias for ``.DB``, but if you use ``.ASC`` it will remap
 the characters using the mapping given via ``.ASCIITABLE``.
 
+You can also use ASC('?') to map individual characters in the code ::
+
+    .DB ASC('A'), ASC('B')
+
+and
+
+    LD A, ASC('A')
+
 This is not a compulsory directive.
 
 
 ``.ASCIITABLE``
 ---------------
 
-``.ASCIITABLE``'s only purpose is to provide character mapping for ``.ASC``.
-Take a look at the example::
+``.ASCIITABLE``'s only purpose is to provide character mapping for ``.ASC``
+and ``ASC('?')``. Take a look at the example::
 
     .ASCIITABLE
     MAP "A" TO "Z" = 0

@@ -187,6 +187,11 @@ int stack_calculate(char *in, int *value) {
   
   /* slice the data into infix format */
   while (*in != 0xA) {
+    if (q >= 255) {
+      print_error("Out of stack space.\n", ERROR_STC);
+      return FAILED;
+    }
+
     /* init the stack item */
     si[q].type = 0x123456;
     si[q].sign = 0x123456;
@@ -570,6 +575,7 @@ int stack_calculate(char *in, int *value) {
     }
     else {
       /* it must be a string! */
+      int is_string = YES;
 
       /* we'll break if the previous item in the stack was a value or a string */
       if (_break_before_value_or_string(q, &si[0]) == SUCCEEDED)
@@ -600,16 +606,26 @@ int stack_calculate(char *in, int *value) {
         
         si[q].string[k] = e;
         in++;
+
+        if (k == 4 && strcaselesscmpn(si[q].string, "asc('", 5) == 0) {
+          if (parse_function_asc(in, &d) == FAILED)
+            return FAILED;
+          in += 3;
+          is_string = NO;
+          break;
+        }
       }
-      si[q].string[k] = 0;
 
-      si[q].type = STACK_ITEM_TYPE_STRING;
+      if (is_string == YES) {
+        si[q].string[k] = 0;
+        si[q].type = STACK_ITEM_TYPE_STRING;
+      }
+      else {
+        si[q].type = STACK_ITEM_TYPE_VALUE;
+        si[q].value = d;
+        si[q].sign = SI_SIGN_POSITIVE;
+      }
       q++;
-    }
-
-    if (q == 255) {
-      print_error("Out of stack space.\n", ERROR_STC);
-      return FAILED;
     }
   }
 

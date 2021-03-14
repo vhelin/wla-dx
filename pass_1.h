@@ -19,6 +19,7 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
 int localize_path(char *path);
 int verify_name_length(char *name);
 int is_reserved_definition(char *t);
+int strcaselesscmp(char *s1, char *s2);
 
 void generate_label(char *header, char *footer);
 int add_label_to_label_stack(char *l);

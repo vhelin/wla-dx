@@ -10,5 +10,7 @@ int skip_next_token(void);
 int compare_next_token(char *token);
 int expand_macro_arguments(char *in);
 int is_string_ending_with(char *s, char *e);
+int strcaselesscmpn(char *s1, char *s2, int length);
+int parse_function_asc(char *in, int *result);
 
 #endif

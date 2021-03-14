@@ -24,12 +24,12 @@ double g_parsed_double;
 
 extern int g_source_pointer, g_size, g_parsed_int, g_macro_active;
 extern char *g_buffer, g_tmp[4096], g_current_directive[256];
+extern unsigned char g_asciitable[256];
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map;
 extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
-extern int g_latest_stack;
-
+extern int g_latest_stack, g_asciitable_defined;
 
 
 int is_string_ending_with(char *s, char *e) {
@@ -52,6 +52,31 @@ int is_string_ending_with(char *s, char *e) {
   }
 
   return 1;
+}
+
+
+int strcaselesscmpn(char *s1, char *s2, int length) {
+
+  int n = 0;
+  
+  if (s1 == NULL || s2 == NULL)
+    return 0;
+
+  while (*s1 != 0) {
+    if (toupper((int)*s1) != toupper((int)*s2))
+      return 1;
+    s1++;
+    s2++;
+
+    n++;
+    if (n >= length)
+      return 0;
+  }
+
+  if (*s2 != 0)
+    return 1;
+
+  return 0;
 }
 
 
@@ -651,6 +676,17 @@ int input_number(void) {
     else if (e == ' ')
       break;
     g_label[k] = e;
+
+    /* is it actually a function? */
+    if (k == 4 && strcaselesscmpn(g_label, "asc('", 5) == 0) {
+      if (parse_function_asc(&g_buffer[g_source_pointer], &g_parsed_int) == FAILED)
+        return FAILED;
+      
+      g_source_pointer += 3;
+      g_parsed_double = (double)g_parsed_int;
+
+      return SUCCEEDED;
+    }
   }
 
   if (k == MAX_NAME_LENGTH) {
@@ -1237,4 +1273,24 @@ int expand_macro_arguments(char *in) {
   g_macro_active = ma;
 
   return ret;
+}
+
+
+int parse_function_asc(char *in, int *result) {
+
+  int ascii_table_index = *in++;
+
+  if (*in != '\'' || *(in+1) != ')') {
+    print_error("Malformed \"asc('?')\" detected!\n", ERROR_NUM);
+    return FAILED;
+  }
+      
+  if (g_asciitable_defined == 0) {
+    print_error("No .ASCIITABLE defined. Using the default n->n -mapping.\n", ERROR_WRN);
+    *result = ascii_table_index;
+  }
+  else
+    *result = (int)g_asciitable[ascii_table_index];
+
+  return SUCCEEDED;
 }

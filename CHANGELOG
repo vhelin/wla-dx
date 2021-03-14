@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 -------------------------------------------------------------------------------------------------
 
-v9.12 (07-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
+v9.12 (14-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                     [ALL] Added .STRINGMAP and .STRINGMAPTABLE.
                     [ALL] Multiple include directories (via multiple -I)
                       are now supported.
@@ -23,6 +23,8 @@ v9.12 (07-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                     [ALL] Fixed listfile writer, now opcode data stays better
                       on the lines without spillovers. Affects 65816, Z80,
                       SPC-700, 65C02, 65CE02 and HuC6280.
+                    [ALL] Added support for ASC('?') (.ASC for individual
+                      characters), e.g., "LD A, ASC('A')".
                     [Z80] Fixed the broken (broke in v9.11) regioncode
                       in .SMSHEADER.
                     [SPC] It's now possible to used e.g., defines with
@@ -1202,7 +1204,7 @@ v5.14 (07-Jan-2021) Fixed buggy symbol file name generation.
                     Added -D (don't create _sizeof_* definitions).
                     Defines are no longer written into NO$CASH symbol files.
 
-v5.13 (17-Jun-2020) Added CMB PRG header writing (with flags -t and -a).
+v5.13 (17-Jun-2020) Added CBM PRG header writing (with flags -t and -a).
                     Added support for ORG/ORGA to [ramsections].
                     Added support for [sections] in linkfile.
                     Added support for section type and priority changing

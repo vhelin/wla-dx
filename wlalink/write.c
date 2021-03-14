@@ -1400,7 +1400,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
   fprintf(f, "; this file was created with wlalink by ville helin <ville.helin@iki.fi>.\n");
 
   if (mode == SYMBOL_MODE_NOCA5H) {
-    /* NO$GMB SYMBOL FILE */
+    /* NOCA$H SYMBOL FILE */
     if (g_snes_mode == 0)
       fprintf(f, "; no$gmb symbolic information for \"%s\".\n", outname);
     else
