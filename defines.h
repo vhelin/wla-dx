@@ -47,6 +47,7 @@
 #define ERROR_STC  8
 #define ERROR_WRN  9
 #define ERROR_ERR 10
+#define ERROR_FAI 11
 
 /**************************************************************/
 /* wla internal datatypes                                     */

@@ -27,6 +27,7 @@ v9.12 (15-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                       characters), e.g., "LD A, ASC('A')".
                     [ALL] Source code line can be split to multiple lines
                       using '\' between elements, in many places.
+                    [ALL] .FAIL takes now an optional string.
                     [Z80] Fixed the broken (broke in v9.11) regioncode
                       in .SMSHEADER.
                     [SPC] It's now possible to used e.g., defines with

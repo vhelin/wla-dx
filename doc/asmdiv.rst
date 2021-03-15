@@ -127,7 +127,7 @@ ALL  ``.ENDU``
 ALL  ``.ENUM $C000``
 ALL  ``.ENUMID ID_1 0``
 ALL  ``.EQU IF $FF0F``
-ALL  ``.FAIL``
+ALL  ``.FAIL "THE EYE OF MORDOR HAS SEEN US!"``
 658  ``.FARADDR main, irq_1``
 ALL  ``.FCLOSE FP_DATABIN``
 ALL  ``.FOPEN "data.bin" FP_DATABIN``
@@ -1246,10 +1246,10 @@ You can export as many definitions as you wish with one ``.EXPORT``::
 This is not a compulsory directive.
 
 
-``.FAIL``
----------
+``.FAIL "THE EYE OF MORDOR HAS SEEN US!"``
+------------------------------------------
 
-Terminates the compiling process.
+Terminates the compiling process. The string after ``.FAIL`` is optional.
 
 This is not a compulsory directive.
 

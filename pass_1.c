@@ -1394,9 +1394,13 @@ void print_error(char *error, int type) {
   char error_stc[] = "STACK_CALCULATE:";
   char error_wrn[] = "WARNING:";
   char error_err[] = "ERROR:";
+  char error_fai[] = "FAIL:";
   char *t = NULL;
 
   switch (type) {
+  case ERROR_FAI:
+    t = error_fai;
+    break;
   case ERROR_LOG:
     t = error_log;
     break;
@@ -9481,7 +9485,17 @@ int parse_directive(void) {
   /* FAIL */
 
   if (strcaselesscmp(g_current_directive, "FAIL") == 0) {
-    print_error("HALT: .FAIL found.\n", ERROR_NONE);
+    q = input_number();
+    if (q == INPUT_NUMBER_EOL)
+      print_error("HALT: .FAIL found.\n", ERROR_NONE);
+    else if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
+      snprintf(g_error_message, sizeof(g_error_message), "\"%s\"\n", g_label);
+      print_error(g_error_message, ERROR_FAI);
+    }
+    else {
+      print_error(".FAIL takes an optional string, but we got something else here...\n", ERROR_DIR);
+      return FAILED;
+    }
 
     /* make a silent exit */
     exit(0);

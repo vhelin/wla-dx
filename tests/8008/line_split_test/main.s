@@ -79,4 +79,9 @@ BANKS \
         lhi \
           $30
         .db "<03"
+
+        .db "04>"
+        .db "Long " \
+          "string..."
+        .db "<04"
 .ENDS
