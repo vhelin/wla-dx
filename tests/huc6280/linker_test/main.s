@@ -120,6 +120,17 @@ id   dw
 	boola
 .db wla_filename, WLA_FILENAME, wla_time, WLA_TIME, wla_version, WLA_VERSION
 
+        .db "01>"
+        .enum $0000
+        derp DW
+        .ende
+
+        lda derp.w     ; WAS-A-BUG: this will load as from zero-page! BUG!
+        lda derp.w + 0 ; this will load as absolute.
+        lda derp.b + 0 ; this will load as zero page.
+        lda derp.b     ; this will load as zero page.
+        .db "<01"
+        
 .SECTION "Beginning" FORCE
 
 .seed 1
