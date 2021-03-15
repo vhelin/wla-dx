@@ -24,6 +24,22 @@ function much like ANSI C comments, but unlike the ANSI C comments these can be
 nested.
 
 
+Line splitting
+--------------
+
+Lines can be split using a ``\`` between elements. So instead of writing
+
+    .db 1, 2, 3, 4, 5, 6, 7, 8
+
+it's possible to write
+
+    .db 1, 2, 3, 4 \
+        5, 6, 7, 8
+
+Note that line splitting works only in places where WLA expects a new label,
+number, calculation, etc. String splitting isn't currently supported.
+
+
 Labels
 ------
 

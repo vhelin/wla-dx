@@ -90,8 +90,10 @@ int compare_next_token(char *token) {
 
   /* skip white space */
   ii = g_source_pointer;
-  for (e = g_buffer[ii]; e == ' ' || e == ',' || e == 0x0A; e = g_buffer[++ii])
-    ;
+  for (e = g_buffer[ii]; e == ' ' || e == ',' || e == '\\' || e == 0x0A; e = g_buffer[++ii]) {
+    if (e == '\\' && g_buffer[ii + 1] != 0x0A)
+      break;
+  }
 
   /* MACRO mode? */
   if (g_macro_active != 0 && e == '\\') {
@@ -218,8 +220,14 @@ int input_number(void) {
   g_operand_hint_type = HINT_TYPE_NONE;
 
   /* skip white space */
-  for (e = g_buffer[g_source_pointer++]; e == ' ' || e == ','; e = g_buffer[g_source_pointer++])
-    ;
+  for (e = g_buffer[g_source_pointer++]; e == ' ' || e == ',' || e == '\\'; e = g_buffer[g_source_pointer++]) {
+    if (e == '\\' && g_buffer[g_source_pointer] == 0xA) {
+      g_source_pointer++;
+      next_line();
+    }
+    else if (e == '\\' && g_buffer[g_source_pointer] != 0xA)
+      break;
+  }
 
   if (e == 0x0A)
     return INPUT_NUMBER_EOL;
@@ -868,9 +876,9 @@ int parse_string_length(char *end) {
 void skip_whitespace(void) {
 
   while (1) {
-    if (g_source_pointer == g_size)
+    if (g_source_pointer >= g_size)
       break;
-    if (g_buffer[g_source_pointer] == ' ') {
+    if (g_buffer[g_source_pointer] == ' ' || (g_buffer[g_source_pointer] == '\\' && g_buffer[g_source_pointer+1] == 0xA)) {
       g_source_pointer++;
       g_newline_beginning = OFF;
       continue;
@@ -1000,11 +1008,12 @@ int get_next_token(void) {
 
 int skip_next_token(void) {
 
-  for (; g_buffer[g_source_pointer] == ' ' || g_buffer[g_source_pointer] == ','; g_source_pointer++)
-    ;
-
-  if (g_buffer[g_source_pointer] == 0x0A)
-    return FAILED;
+  int c;
+  
+  for (c = g_buffer[g_source_pointer]; c == ' ' || c == ',' || (c == '\\' && g_buffer[g_source_pointer+1] == 0xA) || c == 0xA; c = g_buffer[++g_source_pointer]) {
+    if (c == 0xA)
+      next_line();
+  }
 
   if (g_buffer[g_source_pointer] == '"') {
     for (g_source_pointer++; g_buffer[g_source_pointer] != 0x0A && g_buffer[g_source_pointer] != '"'; g_source_pointer++)

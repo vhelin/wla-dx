@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 -------------------------------------------------------------------------------------------------
 
-v9.12 (14-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
+v9.12 (15-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                     [ALL] Added .STRINGMAP and .STRINGMAPTABLE.
                     [ALL] Multiple include directories (via multiple -I)
                       are now supported.
@@ -25,6 +25,8 @@ v9.12 (14-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                       SPC-700, 65C02, 65CE02 and HuC6280.
                     [ALL] Added support for ASC('?') (.ASC for individual
                       characters), e.g., "LD A, ASC('A')".
+                    [ALL] Source code line can be split to multiple lines
+                      using '\' between elements, in many places.
                     [Z80] Fixed the broken (broke in v9.11) regioncode
                       in .SMSHEADER.
                     [SPC] It's now possible to used e.g., defines with
