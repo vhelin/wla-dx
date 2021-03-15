@@ -1357,6 +1357,26 @@ int fix_references(void) {
 }
 
 
+static void _fprintf_snes_label(FILE *f, struct label *l, int noca5h) {
+
+  int bank = get_snes_pc_bank(l) >> 16;
+  int address = (int)l->address;
+
+  /* SECTION_END fix */
+  if (address == 0x10000) {
+    bank++;
+    address = 0;
+  }
+  else if (address > 0xffff)
+    fprintf(stderr, "_fprintf_snes_label(): Label's address inside a bank is %.4x > $FFFF! Please submit a bug report!\n", address);
+  
+  if (noca5h == YES)
+    fprintf(f, "%.4x%.4x %s\n", bank, address, l->name);
+  else
+    fprintf(f, "%.2x:%.4x %s\n", bank, address, l->name);
+}
+
+
 int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAddrToLine) {
 
   struct source_file_name *src_file;
@@ -1430,7 +1450,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
       }
       else {
         if (l->status == LABEL_STATUS_LABEL)
-          fprintf(f, "%.4x%.4x %s\n", get_snes_pc_bank(l) >> 16, (int)l->address, l->name);
+          _fprintf_snes_label(f, l, YES);
         else
           fprintf(f, "%.8x %s\n", (int)l->address, l->name);
       }
@@ -1479,7 +1499,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
         if (g_snes_mode == 0)
           fprintf(f, "%.2x:%.4x %s\n", l->base + l->bank, (int)l->address, l->name);
         else
-          fprintf(f, "%.2x:%.4x %s\n", get_snes_pc_bank(l)>>16, (int)l->address, l->name);
+          _fprintf_snes_label(f, l, NO);
 
         l = l->next;
       }
