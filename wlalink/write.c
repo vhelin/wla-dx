@@ -1363,10 +1363,8 @@ static void _fprintf_snes_label(FILE *f, struct label *l, int noca5h) {
   int address = (int)l->address;
 
   /* SECTION_END fix */
-  if (address == 0x10000) {
-    bank++;
+  if (address == 0x10000)
     address = 0;
-  }
   else if (address > 0xffff)
     fprintf(stderr, "_fprintf_snes_label(): Label's address inside a bank is %.4x > $FFFF! Please submit a bug report!\n", address);
   
