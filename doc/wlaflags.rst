@@ -5,6 +5,9 @@ Here are short descriptions for the flags you can give to WLA:
 
 You can supply WLA with some (or all or none) of the following option flags.
 
+-h  Assume that all label references are 16-bit by default (size hints
+    still work). Without this flag it's assumed that label references are
+    8-bit unless otherwise specified.
 -i  Add list file information. Adds extra information to the output so
     WLALINK can produce list files.
 -M  WLA generates makefile rules describing the dependencies of the main

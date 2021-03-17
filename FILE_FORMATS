@@ -86,7 +86,7 @@ outside references:
   ...
   n     label (0 terminated)
   1     type (0 = direct 16-bit, 1 = relative 8-bit, 2 = direct 8-bit, 3 = direct 24-bit,
-              4 = relative 16-bit)
+              4 = relative 16-bit, 5 = direct 13-bit, 6 = direct 32-bit)
   1     special case ID (0 == not a special case, 1 == Z80/GB-Z80 RST, 2 == 8008 RST, 3 == 8080 RST)
   1     file id
   1     slot number (0-255)
@@ -102,7 +102,7 @@ pending calculations:
   4     number of pending calculations (int)
   ...
   4     id (int)
-  1     result type (0 = 8-bit, 1 = 16-bit, 2 = 24-bit)
+  1     result type (0 = 8-bit, 1 = 16-bit, 2 = 24-bit, 3 = unknown, 4 = 13-bit, 5 = 32-bit)
         if bit 7 == 1, then the label references are relative, else absolute
   1     special case ID (0 == not a special case, 1 == Z80/GB-Z80 RST, 2 == 8008 RST, 3 == 8080 RST)
   4     section (0 = no section, 1+ = section id) (int)
@@ -220,7 +220,7 @@ outside references:
   ...
   n     label (0 terminated)
   1     type (0 = direct 16-bit, 1 = relative 8-bit, 2 = direct 8-bit, 3 = direct 24-bit,
-              4 = relative 16-bit)
+              4 = relative 16-bit, 5 = direct 13-bit, 6 = direct 32-bit)
   1     special case ID (0 == not a special case, 1 == Z80/GB-Z80 RST, 2 == 8008 RST, 3 == 8080 RST)
   4     section (1+ = section id) (int)
   1     file id
@@ -233,7 +233,7 @@ pending calculations:
   4     number of pending calculations (int)
   ...
   4     id (int)
-  1     result type (0 = 8-bit, 1 = 16-bit, 2 = 24-bit)
+  1     result type (0 = 8-bit, 1 = 16-bit, 2 = 24-bit, 3 = unknown, 4 = 13-bit, 5 = 32-bit)
         if bit 7 == 1, then the label references are relative, else absolute
   1     special case ID (0 == not a special case, 1 == Z80/GB-Z80 RST, 2 == 8008 RST, 3 == 8080 RST)
   4     section (1+ = section id) (int)

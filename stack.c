@@ -15,7 +15,7 @@
 #include "printf.h"
 
 
-extern int g_input_number_error_msg, g_bankheader_status, g_input_float_mode;
+extern int g_input_number_error_msg, g_bankheader_status, g_input_float_mode, g_global_label_hint;
 extern int g_source_pointer, g_size, g_parsed_int, g_macro_active, g_string_size, g_section_status, g_parse_floats;
 extern char g_xyz[512], *g_buffer, g_tmp[4096], g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
 extern struct definition *g_tmp_def;
@@ -170,7 +170,7 @@ int get_label_length(char *l) {
 
 int stack_calculate(char *in, int *value) {
 
-  int q = 0, b = 0, d, k, op[256], n, o, l, curly_braces = 0;
+  int q = 0, b = 0, d, k, op[256], n, o, l, curly_braces = 0, got_label = NO;
   struct stack_item si[256], ta[256];
   struct stack s;
   unsigned char e;
@@ -645,6 +645,7 @@ int stack_calculate(char *in, int *value) {
       if (is_string == YES) {
         si[q].string[k] = 0;
         si[q].type = STACK_ITEM_TYPE_STRING;
+        got_label = YES;
       }
       else {
         si[q].type = STACK_ITEM_TYPE_VALUE;
@@ -660,6 +661,12 @@ int stack_calculate(char *in, int *value) {
     return FAILED;
   }
 
+  /* are labels 16-bit by default? */
+  if (got_label == YES && g_operand_hint_type != HINT_TYPE_GIVEN && g_global_label_hint == HINT_16BIT) {
+    g_operand_hint = HINT_16BIT;
+    g_operand_hint_type = HINT_TYPE_GIVEN;
+  }
+  
   /* only one item found -> let the item parser handle it */
   if (q == 1)
     return STACK_CALCULATE_DELAY;

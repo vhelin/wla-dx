@@ -29,7 +29,7 @@ extern struct active_file_info *g_active_file_info_first, *g_active_file_info_la
 extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map;
 extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
-extern int g_latest_stack, g_asciitable_defined;
+extern int g_latest_stack, g_asciitable_defined, g_global_label_hint;
 
 
 int is_string_ending_with(char *s, char *e) {
@@ -847,7 +847,6 @@ int input_number(void) {
         memcpy(g_label, g_tmp_def->string, g_string_size);
         g_label[g_string_size] = 0;
       }
-      return INPUT_NUMBER_ADDRESS_LABEL;
     }
     else {
       g_string_size = g_tmp_def->size;
@@ -856,6 +855,12 @@ int input_number(void) {
       
       return INPUT_NUMBER_STRING;
     }
+  }
+
+  /* are labels 16-bit by default? */
+  if (g_operand_hint_type != HINT_TYPE_GIVEN && g_global_label_hint == HINT_16BIT) {
+    g_operand_hint = HINT_16BIT;
+    g_operand_hint_type = HINT_TYPE_GIVEN;
   }
 
   return INPUT_NUMBER_ADDRESS_LABEL;

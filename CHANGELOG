@@ -32,6 +32,8 @@ v9.12 (17-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                       than 65816.
                     [ALL] Added support for .DD, .DSD, .DDM, the same as
                       .DB etc., but double word (32-bit).
+                    [ALL] Added a flag "-h" to make all label references 16-bit
+                      by default (size hints still work).
                     [658] SECTIONEND labels that overflowed from a bank
                       had wrong address in symbol files.
                     [Z80] Fixed the broken (broke in v9.11) regioncode

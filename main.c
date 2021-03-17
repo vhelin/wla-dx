@@ -75,7 +75,7 @@ extern int g_include_in_tmp_size, g_tmp_a_size, *g_banks, *g_bankaddress;
 int g_output_format = OUTPUT_NONE, g_verbose_mode = OFF, g_test_mode = OFF;
 int g_extra_definitions = OFF, g_commandline_parsing = ON, g_makefile_rules = NO;
 int g_listfile_data = NO, g_quiet = NO, g_use_incdir = NO, g_little_endian = YES;
-int g_create_sizeof_definitions = YES;
+int g_create_sizeof_definitions = YES, g_global_label_hint = HINT_NONE;
 
 char *g_final_name = NULL, *g_asm_name = NULL;
 
@@ -157,6 +157,7 @@ int main(int argc, char *argv[]) {
     printf("%s\n\n", g_version_string);
     printf("USAGE: %s [OPTIONS] <OUTPUT> <ASM FILE>\n\n", argv[0]);
     printf("Options:\n");
+    printf("-h  Assume that all label references are 16-bit by default (size hints still work)\n");
     printf("-i  Add list file information\n");
     printf("-M  Output makefile rules\n");
     printf("-q  Quiet\n");
@@ -289,6 +290,10 @@ int parse_flags(char **flags, int flagc) {
     }
     else if (!strcmp(flags[count], "-v")) {
       g_verbose_mode = ON;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-h")) {
+      g_global_label_hint = HINT_16BIT;
       continue;
     }
     else if (!strcmp(flags[count], "-s")) {
