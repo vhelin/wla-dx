@@ -332,7 +332,7 @@ int input_number(void) {
         return FAILED;
       }
 
-      /* does the MACRO argument number end with a .b/.w/.l? */
+      /* does the MACRO argument number end with a .b/.w/.l/.d? */
       if (e == '.') {
         e = g_buffer[g_source_pointer+1];
         if (e == 'b' || e == 'B') {
@@ -347,6 +347,11 @@ int input_number(void) {
         }
         else if (e == 'l' || e == 'L') {
           g_operand_hint = HINT_24BIT;
+          g_operand_hint_type = HINT_TYPE_GIVEN;
+          g_source_pointer += 2;
+        }
+        else if (e == 'd' || e == 'D') {
+          g_operand_hint = HINT_32BIT;
           g_operand_hint_type = HINT_TYPE_GIVEN;
           g_source_pointer += 2;
         }
@@ -415,10 +420,17 @@ int input_number(void) {
         g_operand_hint_type = HINT_TYPE_GIVEN;
         g_source_pointer += 2;
       }
+      else if (e == 'd' || e == 'D') {
+        g_operand_hint = HINT_32BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
+        g_source_pointer += 2;
+      }
     }
 
     if (g_operand_hint == HINT_NONE) {
-      if (g_parsed_int > 0xFFFF && g_parsed_int <= 0xFFFFFF)
+      if (g_parsed_int > 0xFFFFFF)
+        g_operand_hint = HINT_32BIT;
+      else if (g_parsed_int > 0xFFFF && g_parsed_int <= 0xFFFFFF)
         g_operand_hint = HINT_24BIT;
       else if (g_parsed_int > 0xFF)
         g_operand_hint = HINT_16BIT;
@@ -503,6 +515,12 @@ int input_number(void) {
           g_source_pointer += 2;
           break;
         }
+        else if (e == 'd' || e == 'D') {
+          g_operand_hint = HINT_32BIT;
+          g_operand_hint_type = HINT_TYPE_GIVEN;
+          g_source_pointer += 2;
+          break;
+        }
       }
       else if ((e >= 'a' && e <= 'z') || (e >= 'A' && e <= 'Z')) {
         /* a number directly followed by a letter when parsing a integer/float -> syntax error */
@@ -517,7 +535,9 @@ int input_number(void) {
     g_parsed_int = (int)g_parsed_double;
 
     if (g_operand_hint == HINT_NONE) {
-      if (g_parsed_int > 0xFFFF && g_parsed_int <= 0xFFFFFF)
+      if (g_parsed_int > 0xFFFFFF)
+        g_operand_hint = HINT_32BIT;
+      else if (g_parsed_int > 0xFFFF && g_parsed_int <= 0xFFFFFF)
         g_operand_hint = HINT_24BIT;
       else if (g_parsed_int > 0xFF)
         g_operand_hint = HINT_16BIT;
@@ -564,6 +584,11 @@ int input_number(void) {
       }
       else if (e == 'l' || e == 'L') {
         g_operand_hint = HINT_24BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
+        g_source_pointer += 2;
+      }
+      else if (e == 'd' || e == 'D') {
+        g_operand_hint = HINT_32BIT;
         g_operand_hint_type = HINT_TYPE_GIVEN;
         g_source_pointer += 2;
       }
@@ -722,6 +747,11 @@ int input_number(void) {
       g_operand_hint_type = HINT_TYPE_GIVEN;
       k -= 2;
     }
+    else if (g_label[k-1] == 'd' || g_label[k-1] == 'D') {
+      g_operand_hint = HINT_32BIT;
+      g_operand_hint_type = HINT_TYPE_GIVEN;
+      k -= 2;
+    }
 #ifdef SPC700
     else if (g_label[k-1] >= '0' && g_label[k-1] <= '7') {
       k -= 2;
@@ -768,7 +798,9 @@ int input_number(void) {
       g_parsed_int = (int)g_tmp_def->value;
 
       if (g_operand_hint == HINT_NONE) {
-        if (g_parsed_int > 0xFFFF && g_parsed_int <= 0xFFFFFF)
+        if (g_parsed_int > 0xFFFFFF)
+          g_operand_hint = HINT_32BIT;
+        else if (g_parsed_int > 0xFFFF && g_parsed_int <= 0xFFFFFF)
           g_operand_hint = HINT_24BIT;
         else if (g_parsed_int > 0xFF)
           g_operand_hint = HINT_16BIT;

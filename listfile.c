@@ -107,10 +107,19 @@ int listfile_collect(void) {
 
     case 'X':
       fscanf(file_in, "%d %*d ", &inz);
-      add += inz << 1;
+      add += inz * 2;
       continue;
 
-#ifdef W65816
+    case 'h':
+      fscanf(file_in, "%d %*d ", &inz);
+      add += inz * 3;
+      continue;
+
+    case 'w':
+      fscanf(file_in, "%d %*d ", &inz);
+      add += inz * 4;
+      continue;
+
     case 'z':
     case 'q':
       fscanf(file_in, "%*s ");
@@ -121,7 +130,17 @@ int listfile_collect(void) {
       fscanf(file_in, "%*d ");
       add += 3;
       continue;
-#endif
+
+    case 'u':
+    case 'V':
+      fscanf(file_in, "%*s ");
+      add += 4;
+      continue;
+
+    case 'U':
+      fscanf(file_in, "%*d ");
+      add += 4;
+      continue;
 
     case 'b':
       fscanf(file_in, "%*d ");

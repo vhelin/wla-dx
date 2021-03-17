@@ -9,6 +9,7 @@
 #define HINT_8BIT  1
 #define HINT_16BIT 2
 #define HINT_24BIT 3
+#define HINT_32BIT 4
 
 #define HINT_TYPE_NONE    0
 #define HINT_TYPE_GIVEN   1
@@ -57,9 +58,11 @@
 /* c - stack (1 byte)        */
 /* C - stack (2 bytes)       */
 /* T - stack (3 bytes)       */
+/* U - stack (4 bytes)       */
 /* d - data (1 byte)         */
 /* y - data (2 bytes)        */
 /* z - data (3 bytes)        */
+/* u - data (4 bytes)        */
 /* D - data block (incbin)   */
 /* O - origin                */
 /* o - absolute origin       */
@@ -71,11 +74,13 @@
 /* M - 16-bit pc ref         */
 /* Q - 8-bit reference       */
 /* q - 24-bit reference      */
+/* V - 32-bit reference      */
 /* S - section               */
 /* s - end of section        */
 /* x - dsb                   */
 /* X - dsw                   */
 /* h - dsl                   */
+/* w - dsd                   */
 /* E - end of file           */
 /* f - file name id          */
 /* k - line number           */
@@ -481,7 +486,8 @@ struct macro_incbin {
 #define MACRO_CALLER_DBM    1
 #define MACRO_CALLER_DWM    2
 #define MACRO_CALLER_DLM    3
-#define MACRO_CALLER_INCBIN 4
+#define MACRO_CALLER_DDM    4
+#define MACRO_CALLER_INCBIN 5
 
 struct macro_runtime {
   struct macro_static *macro;

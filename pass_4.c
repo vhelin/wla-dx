@@ -456,8 +456,6 @@ int pass_4(void) {
 
       continue;
 
-#ifdef W65816
-
     case 'h':
       fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
       x = inz & 0xFF;
@@ -489,8 +487,42 @@ int pass_4(void) {
 
       continue;
 
-#endif
-        
+    case 'w':
+      fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
+      x = inz & 0xFF;
+      i = (inz >> 8) & 0xFF;
+      q = (inz >> 16) & 0xFF;
+      inz = (inz >> 24) & 0xFF;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing DSD data", get_file_name(g_filename_id), g_line_number);
+
+      while (ind > 0) {
+        if (g_little_endian == YES) {
+          if (mem_insert(x) == FAILED)
+            return FAILED;
+          if (mem_insert(i) == FAILED)
+            return FAILED;
+          if (mem_insert(q) == FAILED)
+            return FAILED;
+          if (mem_insert(inz) == FAILED)
+            return FAILED;
+        }
+        else {
+          if (mem_insert(inz) == FAILED)
+            return FAILED;
+          if (mem_insert(q) == FAILED)
+            return FAILED;
+          if (mem_insert(i) == FAILED)
+            return FAILED;
+          if (mem_insert(x) == FAILED)
+            return FAILED;
+        }
+        ind--;
+      }
+
+      continue;
+
       /* DATA & OPTCODE */
 
     case 'd':
@@ -531,8 +563,6 @@ int pass_4(void) {
       fscanf(g_file_out_ptr, "%d", &g_base);
       continue;
 
-#ifdef W65816
-
     case 'z':
       fscanf(g_file_out_ptr, "%d", &inz);
       x = inz & 0xFF;
@@ -561,7 +591,38 @@ int pass_4(void) {
 
       continue;
 
-#endif
+    case 'u':
+      fscanf(g_file_out_ptr, "%d", &inz);
+      x = inz & 0xFF;
+      q = (inz >> 8) & 0xFF;
+      ind = (inz >> 16) & 0xFF;
+      inz = (inz >> 24) & 0xFF;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing four bytes", get_file_name(g_filename_id), g_line_number);
+
+      if (g_little_endian == YES) {
+        if (mem_insert(x) == FAILED)
+          return FAILED;
+        if (mem_insert(q) == FAILED)
+          return FAILED;
+        if (mem_insert(ind) == FAILED)
+          return FAILED;
+        if (mem_insert(inz) == FAILED)
+          return FAILED;
+      }
+      else {
+        if (mem_insert(inz) == FAILED)
+          return FAILED;
+        if (mem_insert(ind) == FAILED)
+          return FAILED;
+        if (mem_insert(q) == FAILED)
+          return FAILED;
+        if (mem_insert(x) == FAILED)
+          return FAILED;
+      }
+
+      continue;
 
       /* DATA BLOCK from .INCBIN */
 
@@ -902,6 +963,68 @@ int pass_4(void) {
 
       continue;
 
+      /* 32BIT COMPUTATION */
+
+    case 'U':
+      fscanf(g_file_out_ptr, "%d", &inz);
+
+      if (g_bankheader_status == OFF)
+        g_stacks_tmp = g_stacks_first;
+      else
+        g_stacks_tmp = g_stacks_header_first;
+
+      while (g_stacks_tmp != NULL) {
+        if (g_stacks_tmp->id == inz)
+          break;
+        g_stacks_tmp = g_stacks_tmp->next;
+      }
+
+      if (g_stacks_tmp == NULL) {
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
+        return FAILED;
+      }
+
+      if (g_stacks_tmp->section_status == ON) {
+        /* relative address, to the beginning of the section */
+        g_stacks_tmp->address = g_sec_tmp->i;
+      }
+      else {
+        /* complete address, in ROM memory */
+        g_stacks_tmp->address = g_pc_bank;
+      }
+
+      g_stacks_tmp->bank = g_rom_bank;
+      g_stacks_tmp->slot = g_slot;
+      g_stacks_tmp->type = STACK_TYPE_32BIT;
+      g_stacks_tmp->base = g_base;
+
+      if (mangle_stack_references(g_stacks_tmp) == FAILED)
+        return FAILED;
+
+      if (g_namespace[0] != 0) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+          if (add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
+            return FAILED;
+        }
+      }
+        
+      /* this stack was referred from the code */
+      g_stacks_tmp->position = STACK_POSITION_CODE;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 32-bit computation", get_file_name(g_filename_id), g_line_number);
+
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+
+      continue;
+
       /* 24BIT REFERENCE */
 
     case 'q':
@@ -963,6 +1086,75 @@ int pass_4(void) {
       if (mem_insert_padding() == FAILED)
         return FAILED;
 
+      continue;
+
+      /* 32BIT REFERENCE */
+
+    case 'V':
+      fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+
+      if (g_namespace[0] != 0) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+          if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+            return FAILED;
+        }
+      }
+          
+      x = 0;
+      hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
+      if (g_tmp_def != NULL) {
+        if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
+          return FAILED;
+        }
+        else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
+          o = (int)g_tmp_def->value;
+          x = 1;
+
+          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 32-bit reference", get_file_name(g_filename_id), g_line_number);
+
+          if (g_little_endian == YES) {
+            if (mem_insert(o & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert((o >> 8) & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert((o >> 16) & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert((o >> 24) & 0xFF) == FAILED)
+              return FAILED;
+          }
+          else {
+            if (mem_insert((o >> 24) & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert((o >> 16) & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert((o >> 8) & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert(o & 0xFF) == FAILED)
+              return FAILED;
+          }
+        }
+      }
+
+      if (x == 1)
+        continue;
+
+      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_32BIT) == FAILED)
+        return FAILED;
+
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 32-bit reference", get_file_name(g_filename_id), g_line_number);
+
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      
       continue;
 
       /* 16BIT PC RELATIVE REFERENCE */

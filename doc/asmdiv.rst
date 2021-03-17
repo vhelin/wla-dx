@@ -97,13 +97,16 @@ ALL  ``.DBCOS 0.2, 10, 3.2, 120, 1.3``
 ALL  ``.DBM filtermacro 1, 2, "encrypt me"``
 ALL  ``.DBRND 20, 0, 10``
 ALL  ``.DBSIN 0.2, 10, 3.2, 120, 1.3``
+ALL  ``.DD $1ffffff, $2000000``
+ALL  ``.DDM filtermacro 1, 2, 3``
 ALL  ``.DEF IF $FF0F``
 ALL  ``.DEFINE IF $FF0F``
-658  ``.DL $102030, $405060``
-658  ``.DLM filtermacro 1, 2, 3``
+ALL  ``.DL $102030, $405060``
+ALL  ``.DLM filtermacro 1, 2, 3``
 ALL  ``.DS 256, $10``
 ALL  ``.DSB 256, $10``
-658  ``.DSL 16, $102030``
+ALL  ``.DSD 256, $1ffffff``
+ALL  ``.DSL 16, $102030``
 ALL  ``.DSTRUCT waterdrop INSTANCEOF water DATA "tingle", 40, 120``
 ALL  ``.DSW 128, 20``
 ALL  ``.DW 16000, 10, 255``
@@ -651,6 +654,23 @@ Analogous to ``.DBCOS``, but does ``sin()`` instead of ``cos()``.
 This is not a compulsory directive.
 
 
+``.DD $1ffffff, $2000000``
+--------------------------
+
+Defines double words (four bytes each). ``.DD`` takes only numbers, labels and
+characters as input, not strings.
+
+This is not a compulsory directive.
+
+
+``.DDM filtermacro 1, 2, 3``
+----------------------------
+
+Defines 32-bit words using a filter macro. Works just like ``.DBM``, ``.DWM`` and ``.DLM``.
+
+This is not a compulsory directive.
+
+
 ``.DEF IF $FF0F``
 -----------------
 
@@ -742,7 +762,7 @@ This is not a compulsory directive.
 ------------------------
 
 Defines long words (three bytes each). ``.DL`` takes only numbers, labels and
-characters as input, not strings. Works only on wla-65816.
+characters as input, not strings.
 
 This is not a compulsory directive.
 
@@ -750,8 +770,7 @@ This is not a compulsory directive.
 ``.DLM filtermacro 1, 2, 3``
 ----------------------------
 
-Defines 24-bit words using a filter macro. Works just like ``.DBM`` and ``.DWM``.
-Works only on wla-65816.
+Defines 24-bit words using a filter macro. Works just like ``.DBM``, ``.DWM`` and ``.DDM``.
 
 This is not a compulsory directive.
 
@@ -772,11 +791,18 @@ Defines ``256`` bytes of ``$10``.
 This is not a compulsory directive.
 
 
+``.DSD 256, $1ffffff``
+--------------------
+
+Defines ``256`` double words (four bytes) of ``$1ffffff``.
+
+This is not a compulsory directive.
+
+
 ``.DSL 16, $102030``
 --------------------
 
-Defines ``16`` long words (three bytes) of ``$102030``. Works only
-on wla-65816.
+Defines ``16`` long words (three bytes) of ``$102030``.
 
 This is not a compulsory directive.
 
@@ -907,7 +933,7 @@ This is not a compulsory directive.
 ``.DWM filtermacro 1, 2, 3``
 ----------------------------
 
-Defines 16-bit words using a filter macro. Works just like ``.DBM`` and ``.DLM``.
+Defines 16-bit words using a filter macro. Works just like ``.DBM``, ``.DLM`` and  ``.DDM``.
 
 This is not a compulsory directive.
 
@@ -1257,7 +1283,7 @@ This is not a compulsory directive.
 ``.FARADDR main, irq_1``
 ------------------------
 
-``.FARADDR`` is an alias for ``.DL``. Works only on wla-65816.
+``.FARADDR`` is an alias for ``.DL``.
 
 This is not a compulsory directive.
 
@@ -1547,7 +1573,7 @@ Want to circulate all the included bytes through a filter macro? Do this::
 
 The filter macro is executed for each byte of the included data, data
 byte being the first argument, and offset from the beginning being the
-second parameter, just like in the case of ``.DBM``, ``.DWM`` and ``.DLM``.
+second parameter, just like in the case of ``.DBM``, ``.DWM``, ``.DLM`` and ``.DDM``.
 
 And you can combine all these four commands::
 
@@ -1704,7 +1730,7 @@ This is not a compulsory directive.
 ``.LONG $102030, $405060``
 --------------------------
 
-``.LONG`` is an alias for ``.DL``. Works only on wla-65816.
+``.LONG`` is an alias for ``.DL``.
 
 This is not a compulsory directive.
 

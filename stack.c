@@ -335,7 +335,7 @@ int stack_calculate(char *in, int *value) {
       b++;
       in++;
     }
-    else if (*in == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L')) {
+    else if (*in == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D')) {
       in++;
       d = g_operand_hint;
       if (*in == 'b' || *in == 'B') {
@@ -350,6 +350,11 @@ int stack_calculate(char *in, int *value) {
       }
       else if (*in == 'l' || *in == 'L') {
         g_operand_hint = HINT_24BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
+        in++;
+      }
+      else if (*in == 'd' || *in == 'D') {
+        g_operand_hint = HINT_32BIT;
         g_operand_hint_type = HINT_TYPE_GIVEN;
         in++;
       }
@@ -419,13 +424,14 @@ int stack_calculate(char *in, int *value) {
       q++;
     }
     else if (*in == '$') {
+      int needs_shifting = NO;
+      
       /* we'll break if the previous item in the stack was a value or a string */
       if (_break_before_value_or_string(q, &si[0]) == SUCCEEDED)
         break;
       
       d = 0;
-      for (k = 0; k < 8; k++, d = d << 4) {
-        in++;
+      for (k = 0, in++; k < 8; k++, in++) {
         e = *in;
         if (e >= '0' && e <= '9')
           d += e - '0';
@@ -435,8 +441,10 @@ int stack_calculate(char *in, int *value) {
           d += e - 'a' + 10;
         else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' ||
                  e == '*' || e == '/' || e == ',' || e == '^' || e == '<' || e == '>' ||
-                 e == '#' || e == '~' || e == ']' || e == '.' || e == 0xA)
+                 e == '#' || e == '~' || e == ']' || e == '.' || e == 0xA) {
+          needs_shifting = YES;
           break;
+        }
         else {
           if (g_input_number_error_msg == YES) {
             snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected [0-F].\n", e, e);
@@ -444,10 +452,17 @@ int stack_calculate(char *in, int *value) {
           }
           return FAILED;
         }
+
+        if (k < 7)
+          d = d << 4;
       }
 
-      d = d >> 4;
+      if (needs_shifting == YES)
+        d = d >> 4;
 
+      if (*in == 'h' || *in == 'H')
+        in++;
+      
       si[q].type = STACK_ITEM_TYPE_VALUE;
       si[q].value = d;
       si[q].sign = SI_SIGN_POSITIVE;
@@ -480,9 +495,11 @@ int stack_calculate(char *in, int *value) {
 
       if (n == 1) {
         /* it's hex */
+        int needs_shifting = NO;
+
         d = 0;
-        for (k = 0; k < 8; k++, d = d << 4) {
-          e = *(in++);
+        for (k = 0; k < 8; k++, in++) {
+          e = *in;
           if (e >= '0' && e <= '9')
             d += e - '0';
           else if (e >= 'A' && e <= 'F')
@@ -491,8 +508,10 @@ int stack_calculate(char *in, int *value) {
             d += e - 'a' + 10;
           else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' ||
                    e == '*' || e == '/' || e == ',' || e == '^' || e == '<' || e == '>' ||
-                   e == '#' || e == '~' || e == ']' || e == '.' || e == 'h' || e == 'H' || e == 0xA)
+                   e == '#' || e == '~' || e == ']' || e == '.' || e == 'h' || e == 'H' || e == 0xA) {
+            needs_shifting = YES;
             break;
+          }
           else {
             if (g_input_number_error_msg == YES) {
               snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected [0-F].\n", e, e);
@@ -500,9 +519,16 @@ int stack_calculate(char *in, int *value) {
             }
             return FAILED;
           }
+
+          if (k < 7)
+            d = d << 4;
         }
 
-        d = d >> 4;
+        if (needs_shifting == YES)
+          d = d >> 4;
+
+        if (*in == 'h' || *in == 'H')
+          in++;
 
         si[q].type = STACK_ITEM_TYPE_VALUE;
         si[q].value = d;
@@ -544,7 +570,7 @@ int stack_calculate(char *in, int *value) {
                    e == ']' || e == 0xA)
             break;
           else if (e == '.') {
-            if (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L')
+            if (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D')
               break;
             if (g_parse_floats == NO)
               break;
@@ -595,7 +621,7 @@ int stack_calculate(char *in, int *value) {
               e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == ']' ||
               e == '~' || e == 0xA)
             break;
-          if (e == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L') &&
+          if (e == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D') &&
               (*(in+2) == ' ' || *(in+2) == ')' || *(in+2) == '|' || *(in+2) == '&' || *(in+2) == '+' || *(in+2) == '-' || *(in+2) == '*' ||
                *(in+2) == '/' || *(in+2) == ',' || *(in+2) == '^' || *(in+2) == '<' || *(in+2) == '>' || *(in+2) == '#' || *(in+2) == ']' ||
                *(in+2) == '~' || *(in+2) == 0xA))

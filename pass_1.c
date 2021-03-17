@@ -555,8 +555,6 @@ int macro_insert_word_db(char *name) {
 }
 
 
-#if W65816
-
 int macro_insert_long_db(char *name) {
 
   struct definition *d;
@@ -596,7 +594,45 @@ int macro_insert_long_db(char *name) {
   return SUCCEEDED;
 }
 
-#endif
+
+int macro_insert_double_dw(char *name) {
+
+  struct definition *d;
+  
+  if (hashmap_get(g_defines_map, "_out", (void*)&d) != MAP_OK)
+    hashmap_get(g_defines_map, "_OUT", (void*)&d);
+
+  if (d == NULL) {
+    snprintf(g_error_message, sizeof(g_error_message), "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+
+  if (d->type == DEFINITION_TYPE_VALUE) {
+    if (d->value < -2147483648 || d->value > 2147483647) {
+      snprintf(g_error_message, sizeof(g_error_message), ".%s expects 32-bit data, %d is out of range!\n", name, (int)d->value);
+      print_error(g_error_message, ERROR_DIR);
+      return FAILED;
+    }
+    fprintf(g_file_out_ptr, "u%d ", (int)d->value);
+    /*
+      fprintf(stderr, ".DLM: VALUE: %d\n", (int)d->value);
+    */
+  }
+  else if (d->type == DEFINITION_TYPE_STACK) {
+    fprintf(g_file_out_ptr, "U%d ", (int)d->value);
+    /*
+      fprintf(stderr, ".DLM: STACK: %d\n", (int)d->value);
+    */
+  }
+  else {
+    snprintf(g_error_message, sizeof(g_error_message), ".%s cannot handle strings in \"_OUT/_out\".\n", name);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+
+  return SUCCEEDED;
+}
 
 
 struct structure* get_structure(char *name) {
@@ -1961,12 +1997,14 @@ int parse_enum_token(void) {
     g_size = 2;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
-#ifdef W65816
   else if (strcaselesscmp(g_tmp, "DL") == 0 || strcaselesscmp(g_tmp, "LONG") == 0 || strcaselesscmp(g_tmp, "FARADDR") == 0) {
     g_size = 3;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
-#endif
+  else if (strcaselesscmp(g_tmp, "DD") == 0) {
+    g_size = 4;
+    type = STRUCTURE_ITEM_TYPE_DATA;
+  }
   else if (strcaselesscmp(g_tmp, "DS") == 0 || strcaselesscmp(g_tmp, "DSB") == 0) {
     q = input_number();
     if (q == FAILED)
@@ -1989,7 +2027,6 @@ int parse_enum_token(void) {
     g_size = 2*g_parsed_int;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
-#ifdef W65816
   else if (strcaselesscmp(g_tmp, "DSL") == 0) {
     q = input_number();
     if (q == FAILED)
@@ -2001,7 +2038,17 @@ int parse_enum_token(void) {
     g_size = 3*g_parsed_int;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
-#endif
+  else if (strcaselesscmp(g_tmp, "DSD") == 0) {
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      print_error("DSD needs size.\n", ERROR_DIR);
+      return FAILED;
+    }
+    g_size = 4*g_parsed_int;
+    type = STRUCTURE_ITEM_TYPE_DATA;
+  }
   /* it's an instance of a structure! */
   else if (strcaselesscmp(g_tmp, "INSTANCEOF") == 0) {
     type = STRUCTURE_ITEM_TYPE_INSTANCEOF;
@@ -2094,7 +2141,6 @@ int parse_enum_token(void) {
     g_size = g_parsed_int;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
-#ifdef W65816
   else if (strcaselesscmp(g_tmp, ".dl") == 0 || strcaselesscmp(g_tmp, ".long") == 0 || strcaselesscmp(g_tmp, ".faraddr") == 0) {
     /* don't do anything for "dotted" versions */
     g_size = 3;
@@ -2115,7 +2161,26 @@ int parse_enum_token(void) {
     g_size = g_parsed_int * 3;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
-#endif
+  else if (strcaselesscmp(g_tmp, ".dd") == 0) {
+    /* don't do anything for "dotted" versions */
+    g_size = 4;
+    type = STRUCTURE_ITEM_TYPE_DOTTED;
+  }
+  else if (strcaselesscmp(g_tmp, ".dsd") == 0) {
+    /* don't do anything for "dotted" versions */
+    strcpy(bak, g_tmp);
+    
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      print_error(".DSD needs size.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    g_size = g_parsed_int * 4;
+    type = STRUCTURE_ITEM_TYPE_DOTTED;
+  }
   else {
     if (g_in_enum == YES)
       snprintf(g_error_message, sizeof(g_error_message), "Unexpected symbol \"%s\" in .ENUM.\n", g_tmp);
@@ -2383,8 +2448,8 @@ int directive_bank(void) {
 }
 
 
-int directive_dbm_dwm_dlm(void) {
-  
+int directive_dbm_dwm_dlm_ddm(void) {
+
   struct macro_static *macro;
 
   if (input_number() != INPUT_NUMBER_ADDRESS_LABEL) {
@@ -2413,6 +2478,10 @@ int directive_dbm_dwm_dlm(void) {
   }
   else if (strcaselesscmp(g_current_directive, "DLM") == 0) {
     if (macro_start_dxm(macro, MACRO_CALLER_DLM, g_current_directive, YES) == FAILED)
+      return FAILED;
+  }
+  else if (strcaselesscmp(g_current_directive, "DDM") == 0) {
+    if (macro_start_dxm(macro, MACRO_CALLER_DDM, g_current_directive, YES) == FAILED)
       return FAILED;
   }
   else {
@@ -2467,7 +2536,6 @@ int directive_table(void) {
       for (i = 0; i < g_parsed_int && g_table_size < (int)sizeof(g_table_format); i++)
         g_table_format[g_table_size++] = 'w';
     }
-#ifdef W65816
     else if (strcaselesscmp(g_label, "dl") == 0 || strcaselesscmp(g_label, "long") == 0 || strcaselesscmp(g_label, "faraddr") == 0) {
       g_table_format[g_table_size++] = 'l';
     }
@@ -2486,7 +2554,24 @@ int directive_table(void) {
       for (i = 0; i < g_parsed_int && g_table_size < (int)sizeof(g_table_format); i++)
         g_table_format[g_table_size++] = 'l';
     }
-#endif
+    else if (strcaselesscmp(g_label, "dd") == 0) {
+      g_table_format[g_table_size++] = 'd';
+    }
+    else if (strcaselesscmp(g_label, "dsd") == 0) {
+      strcpy(bak, g_label);
+
+      result = input_number();
+      if (result == FAILED)
+        return FAILED;
+      if (result != SUCCEEDED) {
+        snprintf(g_error_message, sizeof(g_error_message), "%s needs size.\n", bak);
+        print_error(g_error_message, ERROR_INP);
+        return FAILED;
+      }
+
+      for (i = 0; i < g_parsed_int && g_table_size < (int)sizeof(g_table_format); i++)
+        g_table_format[g_table_size++] = 'd';
+    }
     else {
       snprintf(g_error_message, sizeof(g_error_message), "Unknown symbol \"%s\".\n", g_label);
       print_error(g_error_message, ERROR_DIR);
@@ -2567,7 +2652,6 @@ int directive_row_data(void) {
 
         fprintf(g_file_out_ptr, "y%d ", (g_label[0] << 8) | g_label[1]);
       }
-#ifdef W65816
       else if (g_table_format[g_table_index] == 'l') {
         if (strlen(g_label) > 3 || strlen(g_label) <= 0) {
           snprintf(g_error_message, sizeof(g_error_message), ".%s was expecting a long (3 bytes), got %d bytes instead.\n", bak, (int)strlen(g_label));
@@ -2577,7 +2661,15 @@ int directive_row_data(void) {
 
         fprintf(g_file_out_ptr, "z%d ", (g_label[0] << 16) | (g_label[1] << 8) | g_label[2]);
       }
-#endif
+      else if (g_table_format[g_table_index] == 'd') {
+        if (strlen(g_label) > 4 || strlen(g_label) <= 0) {
+          snprintf(g_error_message, sizeof(g_error_message), ".%s was expecting a double word (4 bytes), got %d bytes instead.\n", bak, (int)strlen(g_label));
+          print_error(g_error_message, ERROR_INP);
+          return FAILED;
+        }
+
+        fprintf(g_file_out_ptr, "u%d ", (g_label[0] << 24) | (g_label[1] << 16) | (g_label[2] << 8) | g_label[3]);
+      }
       else {
         snprintf(g_error_message, sizeof(g_error_message), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
         print_error(g_error_message, ERROR_DIR);
@@ -2603,7 +2695,6 @@ int directive_row_data(void) {
 
         fprintf(g_file_out_ptr, "y%d ", g_parsed_int);
       }
-#ifdef W65816
       else if (g_table_format[g_table_index] == 'l') {
         if (g_parsed_int < -8388608 || g_parsed_int > 16777215) {
           snprintf(g_error_message, sizeof(g_error_message), ".%s expects 24-bit data, %d is out of range!\n", bak, g_parsed_int);
@@ -2613,7 +2704,17 @@ int directive_row_data(void) {
 
         fprintf(g_file_out_ptr, "z%d ", g_parsed_int);
       }
-#endif
+      else if (g_table_format[g_table_index] == 'd') {
+        /*
+        if (g_parsed_int < -2147483648 || g_parsed_int > 2147483647) {
+          snprintf(g_error_message, sizeof(g_error_message), ".%s expects 32-bit data, %d is out of range!\n", bak, g_parsed_int);
+          print_error(g_error_message, ERROR_DIR);
+          return FAILED;
+        }
+        */
+
+        fprintf(g_file_out_ptr, "u%d ", g_parsed_int);
+      }
       else {
         snprintf(g_error_message, sizeof(g_error_message), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
         print_error(g_error_message, ERROR_DIR);
@@ -2627,11 +2728,12 @@ int directive_row_data(void) {
       else if (g_table_format[g_table_index] == 'w') {
         fprintf(g_file_out_ptr, "k%d r%s ", g_active_file_info_last->line_current, g_label);
       }
-#ifdef W65816
       else if (g_table_format[g_table_index] == 'l') {
         fprintf(g_file_out_ptr, "k%d q%s ", g_active_file_info_last->line_current, g_label);
       }
-#endif
+      else if (g_table_format[g_table_index] == 'd') {
+        fprintf(g_file_out_ptr, "k%d V%s ", g_active_file_info_last->line_current, g_label);
+      }
       else {
         snprintf(g_error_message, sizeof(g_error_message), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
         print_error(g_error_message, ERROR_DIR);
@@ -2645,11 +2747,12 @@ int directive_row_data(void) {
       else if (g_table_format[g_table_index] == 'w') {
         fprintf(g_file_out_ptr, "C%d ", g_latest_stack);
       }
-#ifdef W65816
       else if (g_table_format[g_table_index] == 'l') {
         fprintf(g_file_out_ptr, "T%d ", g_latest_stack);
       }
-#endif
+      else if (g_table_format[g_table_index] == 'd') {
+        fprintf(g_file_out_ptr, "U%d ", g_latest_stack);
+      }
       else {
         snprintf(g_error_message, sizeof(g_error_message), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
         print_error(g_error_message, ERROR_DIR);
@@ -3067,8 +3170,6 @@ int directive_dw_word_addr(void) {
 }
 
 
-#ifdef W65816
-
 int directive_dl_long_faraddr(void) {
 
   char bak[256];
@@ -3160,6 +3261,104 @@ int directive_dsl(void) {
   return SUCCEEDED;
 }
 
+
+int directive_dd(void) {
+
+  char bak[256];
+
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+
+  strcpy(bak, g_current_directive);
+
+  g_inz = input_number();
+  for (g_ind = 0; g_inz == SUCCEEDED || g_inz == INPUT_NUMBER_ADDRESS_LABEL || g_inz == INPUT_NUMBER_STACK; g_ind++) {
+    /*
+    if (g_inz == SUCCEEDED && (g_parsed_int < -2147483648 || g_parsed_int > 2147483647)) {
+      snprintf(g_error_message, sizeof(g_error_message), ".%s expects 32-bit data, %d is out of range!\n", bak, g_parsed_int);
+      print_error(g_error_message, ERROR_DIR);
+      return FAILED;
+    }
+    */
+
+    if (g_inz == SUCCEEDED)
+      fprintf(g_file_out_ptr, "u%d ", g_parsed_int);
+    else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+      fprintf(g_file_out_ptr, "V%s ", g_label);
+    else if (g_inz == INPUT_NUMBER_STACK)
+      fprintf(g_file_out_ptr, "U%d ", g_latest_stack);
+    
+    g_inz = input_number();
+  }
+
+  if (g_inz == FAILED)
+    return FAILED;
+
+  if ((g_inz == INPUT_NUMBER_EOL || g_inz == INPUT_NUMBER_STRING) && g_ind == 0) {
+    snprintf(g_error_message, sizeof(g_error_message), ".%s needs data.\n", bak);
+    print_error(g_error_message, ERROR_INP);
+    return FAILED;
+  }
+
+  if (g_inz == INPUT_NUMBER_EOL)
+    next_line();
+
+  return SUCCEEDED;
+}
+
+
+int directive_dsd(void) {
+
+  int q;
+  
+  q = input_number();
+  if (q == FAILED)
+    return FAILED;
+  if (q != SUCCEEDED) {
+    print_error(".DSD needs size.\n", ERROR_INP);
+    return FAILED;
+  }
+
+  if (g_parsed_int < 1 || g_parsed_int > 65535) {
+    snprintf(g_error_message, sizeof(g_error_message), ".DSD expects a 16-bit positive integer as size, %d is out of range!\n", g_parsed_int);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+
+  g_inz = g_parsed_int;
+
+  q = input_number();
+  if (q == FAILED)
+    return FAILED;
+  if (!(q == SUCCEEDED || q == INPUT_NUMBER_ADDRESS_LABEL || q == INPUT_NUMBER_STACK)) {
+    print_error(".DSD needs data.\n", ERROR_INP);
+    return FAILED;
+  }
+
+  /*
+  if (q == SUCCEEDED && (g_parsed_int < -2147483648 || g_parsed_int > 2147483647)) {
+    snprintf(g_error_message, sizeof(g_error_message), ".DSD expects 32-bit data, %d is out of range!\n", g_parsed_int);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+  */
+
+  if (q == SUCCEEDED)
+    fprintf(g_file_out_ptr, "w%d %d ", g_inz, g_parsed_int);
+  else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
+    fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+    for (q = 0; q < g_inz; q++)
+      fprintf(g_file_out_ptr, "V%s ", g_label);
+  }
+  else if (q == INPUT_NUMBER_STACK) {
+    for (q = 0; q < g_inz; q++)
+      fprintf(g_file_out_ptr, "U%d ", g_latest_stack);
+  }
+
+  return SUCCEEDED;
+}
+
+
+#ifdef W65816
 
 int directive_name_w65816(void) {
     
@@ -6920,7 +7119,6 @@ int directive_endm(void) {
       if (macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_DWM, "DWM", NO) == FAILED)
         return FAILED;
     }
-#if W65816
     /* was this a DLM macro call? */
     else if (g_macro_stack[g_macro_active].caller == MACRO_CALLER_DLM) {
       /* yep, get the output */
@@ -6931,7 +7129,16 @@ int directive_endm(void) {
       if (macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_DLM, "DLM", NO) == FAILED)
         return FAILED;
     }
-#endif
+    /* was this a DDM macro call? */
+    else if (g_macro_stack[g_macro_active].caller == MACRO_CALLER_DDM) {
+      /* yep, get the output */
+      if (macro_insert_double_dw("DDM") == FAILED)
+        return FAILED;
+
+      /* continue defining double words */
+      if (macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_DDM, "DDM", NO) == FAILED)
+        return FAILED;
+    }
     /* or was this an INCBIN with a filter macro call? */
     else if (g_macro_stack[g_macro_active].caller == MACRO_CALLER_INCBIN) {
       /* yep, get the output */
@@ -8238,7 +8445,7 @@ int parse_directive(void) {
   /* DBM/DWM? */
 
   if (strcaselesscmp(g_current_directive, "DBM") == 0 || strcaselesscmp(g_current_directive, "DWM") == 0)
-    return directive_dbm_dwm_dlm();
+    return directive_dbm_dwm_dlm_ddm();
 
   /* TABLE? */
 
@@ -8269,13 +8476,11 @@ int parse_directive(void) {
 
   if (strcaselesscmp(g_current_directive, "DW") == 0 || strcaselesscmp(g_current_directive, "WORD") == 0 || strcaselesscmp(g_current_directive, "ADDR") == 0)
     return directive_dw_word_addr();
-
-#ifdef W65816
   
   /* DLM? */
 
   if (strcaselesscmp(g_current_directive, "DLM") == 0)
-    return directive_dbm_dwm_dlm();
+    return directive_dbm_dwm_dlm_ddm();
 
   /* DL/LONG/FARADDR? */
 
@@ -8286,6 +8491,23 @@ int parse_directive(void) {
 
   if (strcaselesscmp(g_current_directive, "DSL") == 0)
     return directive_dsl();
+
+  /* DDM? */
+
+  if (strcaselesscmp(g_current_directive, "DDM") == 0)
+    return directive_dbm_dwm_dlm_ddm();
+
+  /* DD? */
+
+  if (strcaselesscmp(g_current_directive, "DD") == 0)
+    return directive_dd();
+
+  /* DSD? */
+
+  if (strcaselesscmp(g_current_directive, "DSD") == 0)
+    return directive_dsd();
+
+#ifdef W65816
 
   /* NAME */
 

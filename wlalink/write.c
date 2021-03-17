@@ -1215,6 +1215,21 @@ int fix_references(void) {
           mem_insert_ref(x + 2, i & 0xFF);
         }
       }
+      /* direct 32-bit */
+      else if (r->type == REFERENCE_TYPE_DIRECT_32BIT) {
+        if (get_file(r->file_id)->little_endian == YES) {
+          mem_insert_ref(x, i & 0xFF);
+          mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+          mem_insert_ref(x + 2, (i >> 16) & 0xFF);
+          mem_insert_ref(x + 3, (i >> 24) & 0xFF);
+        }
+        else {
+          mem_insert_ref(x, (i >> 24) & 0xFF);
+          mem_insert_ref(x + 1, (i >> 16) & 0xFF);
+          mem_insert_ref(x + 2, (i >> 8) & 0xFF);
+          mem_insert_ref(x + 3, i & 0xFF);
+        }
+      }
       /* relative/direct 8-bit with a label */
       else {
         mem_insert_ref(x, i & 0xFF);
@@ -1298,6 +1313,22 @@ int fix_references(void) {
           mem_insert_ref(x, (i >> 16) & 0xFF);
           mem_insert_ref(x + 1, (i >> 8) & 0xFF);
           mem_insert_ref(x + 2, i & 0xFF);
+        }
+      }
+      /* direct 32-bit */
+      else if (r->type == REFERENCE_TYPE_DIRECT_32BIT) {
+        i = (int)l->address;
+        if (get_file(r->file_id)->little_endian == YES) {
+          mem_insert_ref(x, i & 0xFF);
+          mem_insert_ref(x + 1, (i >> 8) & 0xFF);
+          mem_insert_ref(x + 2, (i >> 16) & 0xFF);
+          mem_insert_ref(x + 3, (i >> 24) & 0xFF);
+        }
+        else {
+          mem_insert_ref(x, (i >> 24) & 0xFF);
+          mem_insert_ref(x + 1, (i >> 16) & 0xFF);
+          mem_insert_ref(x + 2, (i >> 8) & 0xFF);
+          mem_insert_ref(x + 3, i & 0xFF);
         }
       }
       /* relative 8-bit with a label */
@@ -2012,6 +2043,28 @@ int compute_pending_calculations(void) {
           return FAILED;
       }
     }
+    else if (sta->type == STACK_TYPE_32BIT) {
+      if (get_file(sta->file_id)->little_endian == YES) {
+        if (mem_insert_ref(a, k & 0xFF) == FAILED)
+          return FAILED;
+        if (mem_insert_ref(a + 1, (k >> 8) & 0xFF) == FAILED)
+          return FAILED;
+        if (mem_insert_ref(a + 2, (k >> 16) & 0xFF) == FAILED)
+          return FAILED;
+        if (mem_insert_ref(a + 3, (k >> 24) & 0xFF) == FAILED)
+          return FAILED;
+      }
+      else {
+        if (mem_insert_ref(a, (k >> 24) & 0xFF) == FAILED)
+          return FAILED;
+        if (mem_insert_ref(a + 1, (k >> 16) & 0xFF) == FAILED)
+          return FAILED;
+        if (mem_insert_ref(a + 2, (k >> 8) & 0xFF) == FAILED)
+          return FAILED;
+        if (mem_insert_ref(a + 3, k & 0xFF) == FAILED)
+          return FAILED;
+      }
+    }
     else {
       fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Unsupported pending calculation type. Please send an error report!\n",
               get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
@@ -2241,6 +2294,8 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
           y = 0xFFFF;
         else if (sta->type == STACK_TYPE_24BIT)
           y = 0xFFFFFF;
+        else if (sta->type == STACK_TYPE_32BIT)
+          y = 0xFFFFFFFF;
         else {
           fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: NOT cannot determine the output size.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
@@ -2579,6 +2634,27 @@ int write_bank_header_references(struct reference *r) {
         *t = a & 0xFF;
       }
     }
+    /* direct 32-bit */
+    else if (r->type == REFERENCE_TYPE_DIRECT_32BIT) {
+      if (get_file(r->file_id)->little_endian == YES) {
+        *t = a & 0xFF;
+        t++;
+        *t = (a >> 8) & 0xFF;
+        t++;
+        *t = (a >> 16) & 0xFF;
+        t++;
+        *t = (a >> 24) & 0xFF;
+      }
+      else {
+        *t = (a >> 24) & 0xFF;
+        t++;
+        *t = (a >> 16) & 0xFF;
+        t++;
+        *t = (a >> 8) & 0xFF;
+        t++;
+        *t = a & 0xFF;
+      }
+    }
     else {
       fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: A relative reference (type %d) to label \"%s\".\n",
               get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->type, l->name);
@@ -2632,6 +2708,9 @@ int parse_stack(struct stack *sta) {
     break;
   case STACK_TYPE_24BIT: /* not presently used by any CPU arch supported */
     ed = 3;
+    break;
+  case STACK_TYPE_32BIT: /* not presently used by any CPU arch supported */
+    ed = 4;
     break;
   default:
     ed = 1;

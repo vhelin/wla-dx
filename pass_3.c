@@ -587,16 +587,17 @@ int pass_3(void) {
       add += inz * 2;
       continue;
 
-#ifdef W65816
     case 'h':
       fscanf(f_in, "%d %*d ", &inz);
       add += inz * 3;
       continue;
-#endif
 
-#ifdef W65816
+    case 'w':
+      fscanf(f_in, "%d %*d ", &inz);
+      add += inz * 4;
+      continue;
+
     case 'z':
-#endif
     case 'q':
       fscanf(f_in, "%*s ");
       add += 3;
@@ -605,6 +606,17 @@ int pass_3(void) {
     case 'T':
       fscanf(f_in, "%*d ");
       add += 3;
+      continue;
+
+    case 'u':
+    case 'V':
+      fscanf(f_in, "%*s ");
+      add += 4;
+      continue;
+
+    case 'U':
+      fscanf(f_in, "%*d ");
+      add += 4;
       continue;
 
     case 'v':
