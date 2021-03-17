@@ -609,7 +609,7 @@ int macro_insert_double_dw(char *name) {
   }
 
   if (d->type == DEFINITION_TYPE_VALUE) {
-    if (d->value < -2147483648 || d->value > 2147483647) {
+    if (d->value < -2147483648.0 || d->value > 2147483647.0) {
       snprintf(g_error_message, sizeof(g_error_message), ".%s expects 32-bit data, %d is out of range!\n", name, (int)d->value);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
