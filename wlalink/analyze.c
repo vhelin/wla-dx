@@ -1064,6 +1064,9 @@ int merge_sections(void) {
       s_target->size = size;
 
       /* kill the appended section */
+      if (g_sec_first == s_source)
+        g_sec_first = s_source->next;
+      
       free_section(s_source);
     }
     
