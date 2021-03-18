@@ -93,6 +93,8 @@ struct object_file {
 struct append_section {
   char section[MAX_NAME_LENGTH + 1];
   char append_to[MAX_NAME_LENGTH + 1];
+  struct section *section_s;
+  struct section *append_to_s;
   struct append_section *next;
 };
 

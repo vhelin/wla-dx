@@ -733,6 +733,9 @@ int collect_dlr(void) {
           g_append_tmp->append_to[x] = *t;
         g_append_tmp->append_to[x] = 0;
         t++;
+
+        g_append_tmp->section_s = NULL;
+        g_append_tmp->append_to_s = NULL;
         
         g_append_tmp->next = g_append_sections;
         g_append_sections = g_append_tmp;
@@ -954,6 +957,9 @@ int collect_dlr(void) {
           g_append_tmp->append_to[x] = *t;
         g_append_tmp->append_to[x] = 0;
         t++;
+
+        g_append_tmp->section_s = NULL;
+        g_append_tmp->append_to_s = NULL;
         
         g_append_tmp->next = g_append_sections;
         g_append_sections = g_append_tmp;
@@ -971,16 +977,85 @@ int collect_dlr(void) {
 }
 
 
+static int _append_sections_sort(const void *a, const void *b) {
+
+  if ((*((struct append_section **)a))->section_s->priority < (*((struct append_section **)b))->section_s->priority)
+    return 1;
+  else if ((*((struct append_section **)a))->section_s->priority > (*((struct append_section **)b))->section_s->priority)
+    return -1;
+
+  if ((*((struct append_section **)a))->section_s->size < (*((struct append_section **)b))->section_s->size)
+    return 1;
+
+  return -1;
+}
+
+
+static struct section *_find_section(char *section_name) {
+
+  struct section *s = g_sec_first;
+
+  while (s != NULL) {
+    if (strcmp(s->name, section_name) == 0)
+      return s;
+    s = s->next;
+  }
+
+  return NULL;
+}
+
+
 int merge_sections(void) {
 
-  int warning_given_s = NO, warning_given_t = NO, size;
+  int warning_given_s = NO, warning_given_t = NO, size, asn, i;
   struct section *s, *s_source, *s_target;
-  struct append_section *as;
+  struct append_section *as, **ass;
   unsigned char *data;
   struct reference *r;
   struct stack *st;
   struct label *l;
 
+  
+  /* count append sections */
+  asn = 0;
+  as = g_append_sections;
+  while (as != NULL) {
+    asn++;
+    as = as->next;
+  }
+
+  if (asn == 0)
+    return SUCCEEDED;
+
+  ass = calloc(sizeof(struct append_section *) * asn, 1);
+  if (ass == NULL) {
+    fprintf(stderr, "MERGE_SECTIONS: Out of memory error.\n");
+    return FAILED;
+  }
+
+  /* insert the append sections into an array for sorting */
+  i = 0;
+  as = g_append_sections;
+  while (as != NULL) {
+    as->section_s = _find_section(as->section);
+    as->append_to_s = _find_section(as->append_to);    
+    ass[i++] = as;
+    as = as->next;
+  }
+
+  /* sort the append sections by priority first and then by size, biggest first */
+  qsort(ass, asn, sizeof(struct append_section *), _append_sections_sort);
+
+  /* rebuild the append section linked list */
+  g_append_sections = ass[0];
+  for (i = 0; i < asn; i++) {
+    if (i == asn-1)
+      ass[i]->next = NULL;
+    else
+      ass[i]->next = ass[i+1];
+  }
+
+  free(ass);
 
   as = g_append_sections;
   while (as != NULL) {
@@ -991,14 +1066,14 @@ int merge_sections(void) {
     while (s != NULL) {
       if (strcmp(as->section, s->name) == 0) {
         if (s_source != NULL && warning_given_s == NO) {
-          fprintf(stderr, "MERGE_SECTIONS: Multiple source sections called \"%s\" found, using the last one for append.\n", s->name);
+          fprintf(stderr, "MERGE_SECTIONS: Multiple source sections called \"%s\" found, using the last one for append. Please rename one of the sections for a more predictable outcome.\n", s->name);
           warning_given_s = YES;
         }
         s_source = s;
       }
       else if (strcmp(as->append_to, s->name) == 0) {
         if (s_target != NULL && warning_given_t == NO) {
-          fprintf(stderr, "MERGE_SECTIONS: Multiple target sections called \"%s\" found, using the last one for append.\n", s->name);
+          fprintf(stderr, "MERGE_SECTIONS: Multiple target sections called \"%s\" found, using the last one for append. Please rename one of the sections for a more predictable outcome.\n", s->name);
           warning_given_t = YES;
         }
         s_target = s;
@@ -1066,6 +1141,8 @@ int merge_sections(void) {
       /* kill the appended section */
       if (g_sec_first == s_source)
         g_sec_first = s_source->next;
+      if (g_sec_last == s_source)
+        g_sec_last = s_source->prev;
       
       free_section(s_source);
     }

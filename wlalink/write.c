@@ -205,6 +205,64 @@ int _smc_create_and_write(FILE *f) {
 }
 
 
+int sort_sections(void) {
+
+  struct section *s, **sa;
+  int i, sn;
+  
+  /* sort the sections by priority first and then by size, biggest first */
+  if (g_sort_sections == NO)
+    return SUCCEEDED;
+
+  /* count the sections */
+  sn = 0;
+  s = g_sec_first;
+  while (s != NULL) {
+    sn++;
+    s = s->next;
+  }
+
+  if (sn == 0)
+    return SUCCEEDED;
+
+  sa = calloc(sizeof(struct section *) * sn, 1);
+  if (sa == NULL) {
+    fprintf(stderr, "SORT_SECTIONS: Out of memory error.\n");
+    return FAILED;
+  }
+
+  /* insert the sections into an array for sorting */
+  i = 0;
+  s = g_sec_first;
+  while (s != NULL) {
+    sa[i++] = s;
+    s = s->next;
+  }
+
+  /* sort the sections by priority first and then by size, biggest first */
+  qsort(sa, sn, sizeof(struct section *), _sections_sort);
+
+  /* rebuild the section linked list */
+  g_sec_first = sa[0];
+  for (i = 0; i < sn; i++) {
+    if (i == sn-1)
+      sa[i]->next = NULL;
+    else
+      sa[i]->next = sa[i+1];
+
+    if (i-1 >= 0)
+      sa[i]->prev = sa[i-1];
+    else
+      sa[i]->prev = NULL;
+  }
+  g_sec_last = sa[sn-1];
+
+  free(sa);
+
+  return SUCCEEDED;
+}
+
+
 int insert_sections(void) {
 
   struct section *s, **sa;
@@ -260,7 +318,8 @@ int insert_sections(void) {
     return FAILED;
   }
 
-  /* insert the sections into an array for sorting */
+  /* insert the sections into an array (TODO: eliminate this, this is a relic from the time
+     when we sorted sections here */
   i = 0;
   s = g_sec_first;
   while (s != NULL) {
@@ -269,10 +328,6 @@ int insert_sections(void) {
       sa[i++] = s;
     s = s->next;
   }
-
-  /* sort the sections by priority first and then by size, biggest first */
-  if (g_sort_sections == YES)
-    qsort(sa, sn, sizeof(struct section *), _sections_sort);
 
   /* print the sizes (DEBUG) */
   /*

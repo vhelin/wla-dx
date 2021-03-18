@@ -285,6 +285,10 @@ int main(int argc, char *argv[]) {
   if (check_ramsections() == FAILED)
     return 1;
 
+  /* sort the sections by priority first and then by size, biggest first */
+  if (sort_sections() == FAILED)
+    return 1;
+  
   /* append sections */
   if (merge_sections() == FAILED)
     return 1;

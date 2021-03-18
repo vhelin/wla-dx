@@ -10,6 +10,7 @@ int fix_label_sections(void);
 int insert_label_into_maps(struct label *l, int is_sizeof);
 int fix_label_addresses(void);
 int transform_stack_definitions(void);
+int sort_sections(void);
 int insert_sections(void);
 int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAddrToLine);
 int write_gb_header(int name_status);
