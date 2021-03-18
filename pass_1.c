@@ -2891,6 +2891,78 @@ int directive_db_byt_byte(void) {
 }
 
 
+static int _char_to_hex(char e) {
+
+  if (e >= '0' && e <= '9')
+    return e - '0';
+  else if (e >= 'A' && e <= 'F')
+    return e - 'A' + 10;
+  else if (e >= 'a' && e <= 'f')
+    return e - 'a' + 10;
+  else
+    return 0xff;
+}
+
+
+int directive_hex(void) {
+
+  int o, nybble_1, nybble_2, error;
+
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+
+  g_inz = input_number();
+  for (g_ind = 0; g_inz == INPUT_NUMBER_STRING; g_ind++) {
+    if ((g_string_size & 1) == 1) {
+      print_error("The string length for .HEX must be a multiple of 2.\n", ERROR_INP);
+      return FAILED;
+    }
+      
+    for (o = 0; o < g_string_size; ) {
+      error = NO;
+
+      nybble_1 = _char_to_hex(g_label[o]);
+      if (nybble_1 == 0xff)
+        error = YES;
+      else {
+        o++;
+        nybble_2 = _char_to_hex(g_label[o]);
+        if (nybble_2 == 0xff)
+          error = YES;
+        else
+          o++;
+      }
+        
+      if (error == YES) {
+        snprintf(g_error_message, sizeof(g_error_message), "'%c' does not belong to a hexadecimal value!\n", g_label[o]);
+        print_error(g_error_message, ERROR_DIR);
+        return FAILED;
+      }
+        
+      fprintf(g_file_out_ptr, "d%d ", (nybble_1 << 4) | nybble_2);
+    }
+
+    g_inz = input_number();
+  }
+
+  if (g_inz == FAILED)
+    return FAILED;
+
+  if (g_inz == INPUT_NUMBER_EOL && g_ind == 0) {
+    print_error(".HEX needs data.\n", ERROR_INP);
+    return FAILED;
+  }
+
+  if (g_inz == INPUT_NUMBER_EOL)
+    next_line();
+  else {
+    print_error(".HEX takes only strings.\n", ERROR_INP);
+    return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
 int directive_asctable_asciitable(void) {
   
   int astart, aend, q, o;
@@ -8462,6 +8534,11 @@ int parse_directive(void) {
   if (strcaselesscmp(g_current_directive, "DB") == 0 || strcaselesscmp(g_current_directive, "BYT") == 0 || strcaselesscmp(g_current_directive, "BYTE") == 0)
     return directive_db_byt_byte();
 
+  /* HEX? */
+
+  if (strcaselesscmp(g_current_directive, "HEX") == 0)
+    return directive_hex();
+    
   /* ASCTABLE/ASCIITABLE? */
 
   if (strcaselesscmp(g_current_directive, "ASCTABLE") == 0 || strcaselesscmp(g_current_directive, "ASCIITABLE") == 0)

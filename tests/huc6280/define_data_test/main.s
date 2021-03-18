@@ -70,6 +70,10 @@
         .dlm increment, $fffffd
         .ddm increment, $fffffffd
         .db "<07"
+
+        .db "08>"
+        .hex "010203aaBBcc", "DDee", "FF"
+        .db "<08"
         
         .ends
 

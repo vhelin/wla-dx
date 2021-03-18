@@ -136,6 +136,7 @@ ALL  ``.FCLOSE FP_DATABIN``
 ALL  ``.FOPEN "data.bin" FP_DATABIN``
 ALL  ``.FREAD FP_DATABIN DATA``
 ALL  ``.FSIZE FP_DATABIN SIZE``
+ALL  ``.HEX "a0A0ffDE"``
 ALL  ``.IF DEBUG == 2``
 ALL  ``.IFDEF IF``
 ALL  ``.IFDEFM \2``
@@ -1365,6 +1366,18 @@ Here's an example::
         ROMDMG                ; identical to a freestanding .ROMDMG.
                               ; Alternatively, ROMGBC or ROMGBCONLY can be used
     .ENDGB
+
+This is not a compulsory directive.
+
+
+``.HEX "a0A0ffDE"``
+-------------------
+
+Defines bytes using the supplied string that contains the bytes in
+hexadecimal format. For example, the same result can be obtained
+using ``.DB`` ::
+
+    .DB $a0, $A0, $ff, $DE
 
 This is not a compulsory directive.
 

@@ -163,4 +163,15 @@ LABEL_3 nop
         .db "12>"
         REFERENCE_LABELS
         .db "<12"
+
+.MACRO  _set
+        lda #\1
+        sta main.w, x
+.ENDM
+
+.DEF SOME_CONST 1
+        
+        .db "13>"
+        _set SOME_CONST        
+        .db "<13"
 .ends
