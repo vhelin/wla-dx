@@ -1641,7 +1641,11 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
       outfile_size = (int)ftell(outfile);
       fseek(outfile, 0, SEEK_SET);
       outfile_tmp = calloc(sizeof(char) * outfile_size, 1);
-      fread(outfile_tmp, 1, outfile_size, outfile);
+
+      if (fread(outfile_tmp, 1, outfile_size, outfile) != (size_t) outfile_size) {
+        return FAILED;
+      }
+
       fclose(outfile);
       outfile_crc = crc32((unsigned char*)outfile_tmp, outfile_size);
       free(outfile_tmp);

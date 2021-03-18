@@ -43,7 +43,7 @@ int g_smsproductcode_defined = 0, g_smsproductcode1 = 0, g_smsproductcode2 = 0, 
 int g_smsreservedspace2 = 0, smsreservedspace_defined = 0, g_smsromsize = 0, g_smsromsize_defined = 0;
 #endif
 
-int g_org_defined = 1, g_background_defined = 0, g_background_size = 0;
+int g_org_defined = 1, g_background_defined = 0;
 int g_enumid_defined = 0, g_enumid = 0, g_enumid_adder = 1, g_enumid_export = 0;
 int g_bank = 0, g_bank_defined = 1;
 int g_rombanks = 0, g_rombanks_defined = 0, g_romtype = 0, g_max_address = 0;
@@ -5856,7 +5856,7 @@ int directive_unbackground(void) {
 int directive_background(void) {
   
   FILE *file_in_ptr;
-  int q;
+  int q, background_size;
 
   if (g_output_format != OUTPUT_OBJECT) {
     print_error(".BACKGROUND can only be used in OBJECT output mode.\n", ERROR_DIR);
@@ -5894,18 +5894,20 @@ int directive_background(void) {
   }
 
   fseek(file_in_ptr, 0, SEEK_END);
-  g_background_size = (int)ftell(file_in_ptr);
+  background_size = (int)ftell(file_in_ptr);
   fseek(file_in_ptr, 0, SEEK_SET);
   
-  if (g_background_size > g_max_address) {
-    snprintf(g_error_message, sizeof(g_error_message), ".BACKGROUND file \"%s\" size (%d) is larger than ROM size (%d).\n", g_full_name, g_background_size, g_max_address);
+  if (background_size > g_max_address) {
+    snprintf(g_error_message, sizeof(g_error_message), ".BACKGROUND file \"%s\" size (%d) is larger than ROM size (%d).\n", g_full_name, background_size, g_max_address);
     print_error(g_error_message, ERROR_DIR);
     fclose(file_in_ptr);
     return FAILED;
   }
 
-  memset(g_rom_banks_usage_table, 2, g_background_size);
-  fread(g_rom_banks, 1, g_max_address, file_in_ptr);
+  memset(g_rom_banks_usage_table, 2, background_size);
+  if (fread(g_rom_banks, 1, background_size, file_in_ptr) != (size_t) background_size) {
+    return FAILED;
+  }
 
   g_background_defined = 1;
   fclose(file_in_ptr);

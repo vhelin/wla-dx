@@ -72,7 +72,10 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  fread(in, 1, file_size, fp);
+  if (fread(in, 1, file_size, fp) != (size_t) file_size) {
+    return FAILED;
+  }
+
   fclose(fp);
 
   if (file_size < 0x10)

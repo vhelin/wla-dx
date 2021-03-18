@@ -230,7 +230,10 @@ int include_file(char *name, int *include_size, char *namespace) {
   }
 
   /* read the whole file into a buffer */
-  fread(g_include_in_tmp, 1, file_size, f);
+  if (fread(g_include_in_tmp, 1, file_size, f) != (size_t) file_size) {
+    return FAILED;
+  }
+
   fclose(f);
 
   /* calculate checksum for post-compilation file verification */
@@ -342,7 +345,10 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   }
 
   /* read the whole file into a buffer */
-  fread(in_tmp, 1, file_size, f);
+  if (fread(in_tmp, 1, file_size, f) != (size_t) file_size) {
+    return FAILED;
+  }
+
   fclose(f);
 
   /* complete the structure */

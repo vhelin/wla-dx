@@ -144,7 +144,10 @@ int listfile_write_listfiles(struct section *e) {
       return FAILED;
     }
 
-    fread(b, 1, n, f);
+    if (fread(b, 1, n, f) != (size_t) n) {
+      return FAILED;
+    }
+  
     fclose(f);
 
     strcpy(tmp, na);
