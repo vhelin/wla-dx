@@ -82,6 +82,7 @@ Group 3:
 ALL  ``.ADDR 16000, main, 255``
 ALL  ``.ASC "HELLO WORLD!"``
 ALL  ``.ASCIITABLE``
+ALL  ``.ASCSTR "HELLO WORLD!", $A``
 ALL  ``.ASCTABLE``
 ALL  ``.ASM``
 ALL  ``.BACKGROUND "parallax.gb"``
@@ -347,6 +348,20 @@ Note that the following works as well::
 Also note that the characters that are not given any mapping in
 ``.ASCIITABLE`` map to themselves (i.e., ``2`` maps to ``2`` in our previous
 example, etc.).
+
+This is not a compulsory directive.
+
+
+``.ASCSTR "HELLO WORLD!", $A``
+------------------------------
+
+``.ASCSTR`` is the same as ``.ASC``, but it maps only supplied strings. All given
+bytes are not touched.::
+
+    .ASCSTR "HELLO WORLD!", $A
+
+In this example the string "HELLO WORLD!" is mapped using the mapping given via
+``.ASCIITABLE``, but the last byte $A is left as it is.
 
 This is not a compulsory directive.
 

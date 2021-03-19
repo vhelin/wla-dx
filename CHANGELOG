@@ -38,6 +38,8 @@ v9.12 (19-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                       defining bytes.
                     [ALL] Added support for __label__ (last defined parent
                       label).
+                    [ALL] Added .ASCSTR that maps (like .ASC) only supplied
+                      strings, not loose bytes.
                     [658] SECTIONEND labels that overflowed from a bank
                       had wrong address in symbol files.
                     [Z80] Fixed the broken (broke in v9.11) regioncode

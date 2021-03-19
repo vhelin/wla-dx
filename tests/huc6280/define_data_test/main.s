@@ -74,6 +74,16 @@
         .db "08>"
         .hex "010203aaBBcc", "DDee", "FF"
         .db "<08"
+
+        .ASCIITABLE
+          MAP "A" TO "Z" = 0
+          MAP "!" = $90
+        .ENDA
+
+        .db "09>"
+        .ASC $43, "ABC!", $41, $42, 'A'
+        .ASCSTR $43, "ABC!", $41, $42, 'A'
+        .db "<09"
         
         .ends
 

@@ -3101,11 +3101,14 @@ int directive_asctable_asciitable(void) {
 
 int directive_asc(void) {
 
+  int o, q, map_only_strings = NO;
   char bak[256];
-  int o, q;
 
   strcpy(bak, g_current_directive);
 
+  if (strcaselesscmp(bak, "ASCSTR") == 0)
+    map_only_strings = YES;
+  
   if (g_asciitable_defined == 0) {
     print_error("No .ASCIITABLE defined. Using the default n->n -mapping.\n", ERROR_WRN);
     for (o = 0; o < 256; o++)
@@ -3182,14 +3185,25 @@ int directive_asc(void) {
       }
     }
     else if (q == SUCCEEDED) {
-      /* remap the byte */
-      if (g_parsed_int < 0 || g_parsed_int > 255) {
-        snprintf(g_error_message, sizeof(g_error_message), ".%s needs string / byte (0-255) data.\n", bak);
-        print_error(g_error_message, ERROR_INP);
-        return FAILED;
+      if (map_only_strings == YES) {
+        /* pass through the byte */
+        if (g_parsed_int < -128 || g_parsed_int > 255) {
+          snprintf(g_error_message, sizeof(g_error_message), "Expected a byte value between -128 and 255, got %d.\n", g_parsed_int);
+          print_error(g_error_message, ERROR_INP);
+          return FAILED;
+        }
+        fprintf(g_file_out_ptr, "d%d ", g_parsed_int);
       }
-      g_ind = (int)g_asciitable[g_parsed_int];
-      fprintf(g_file_out_ptr, "d%d ", g_ind);
+      else {
+        /* remap the byte */
+        if (g_parsed_int < 0 || g_parsed_int > 255) {
+          snprintf(g_error_message, sizeof(g_error_message), ".%s needs string / byte (0-255) data.\n", bak);
+          print_error(g_error_message, ERROR_INP);
+          return FAILED;
+        }
+        g_ind = (int)g_asciitable[g_parsed_int];
+        fprintf(g_file_out_ptr, "d%d ", g_ind);
+      }
     }
     else {
       snprintf(g_error_message, sizeof(g_error_message), ".%s needs string / byte (0-255) data.\n", bak);
@@ -8546,9 +8560,9 @@ int parse_directive(void) {
   if (strcaselesscmp(g_current_directive, "ASCTABLE") == 0 || strcaselesscmp(g_current_directive, "ASCIITABLE") == 0)
     return directive_asctable_asciitable();
 
-  /* ASC? */
+  /* ASC/ASCSTR? */
 
-  if (strcaselesscmp(g_current_directive, "ASC") == 0)
+  if (strcaselesscmp(g_current_directive, "ASC") == 0 || strcaselesscmp(g_current_directive, "ASCSTR") == 0)
     return directive_asc();
 
   /* DW/WORD/ADDR? */
