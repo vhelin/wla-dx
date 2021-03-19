@@ -4,7 +4,7 @@ Assembler Syntax
 Case Sensitivity
 ----------------
 
-WLA is case sensitive, so be careful.
+WLA is case sensitive, except with directives, so be careful.
 
 
 Comments
@@ -73,6 +73,22 @@ This is legal, since each of the ``@CHILD`` labels has a different parent.
 You can specify a parent to be explicit, like so::
 
     jr PARENT1@CHILD@SUBCHILD
+
+You can also use ``__label__`` to refer to the last defined parent label::
+
+    main:                 ; #
+            nop
+            nop
+    @child:
+            nop
+            nop
+    @@grandchild:
+            nop
+            nop
+            jmp __label__ ; jump -> #
+    loop:   nop           ; %
+            nop
+            jmp __label__ ; jump -> %
 
 Note that when you place ``:`` in front of the label string when referring to
 it, you'll get the bank number of the label, instead of the label's address.

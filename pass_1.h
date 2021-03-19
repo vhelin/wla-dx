@@ -22,6 +22,7 @@ int is_reserved_definition(char *t);
 int strcaselesscmp(char *s1, char *s2);
 
 void generate_label(char *header, char *footer);
+void reset_label_stack(void);
 int add_label_to_label_stack(char *l);
 int get_full_label(char *l, char *out);
 void print_error(char *error, int type);

@@ -23,7 +23,7 @@ char g_expanded_macro_string[MAX_NAME_LENGTH + 1];
 double g_parsed_double;
 
 extern int g_source_pointer, g_size, g_parsed_int, g_macro_active;
-extern char *g_buffer, g_tmp[4096], g_current_directive[256];
+extern char *g_buffer, g_tmp[4096], g_current_directive[256], *g_label_stack[256];
 extern unsigned char g_asciitable[256];
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct definition *g_tmp_def;
@@ -315,8 +315,10 @@ int input_number(void) {
       ma = g_macro_runtime_current->argument_data[g_parsed_int - 1];
       k = ma->type;
 
-      if (k == INPUT_NUMBER_ADDRESS_LABEL)
+      if (k == INPUT_NUMBER_ADDRESS_LABEL) {
         strcpy(g_label, ma->string);
+        process_special_labels(g_label);
+      }
       else if (k == INPUT_NUMBER_STRING) {
         strcpy(g_label, ma->string);
         g_string_size = (int)strlen(ma->string);
@@ -863,7 +865,24 @@ int input_number(void) {
     g_operand_hint_type = HINT_TYPE_GIVEN;
   }
 
+  process_special_labels(g_label);
+  
   return INPUT_NUMBER_ADDRESS_LABEL;
+}
+
+
+int process_special_labels(char *label) {
+
+  if (strcaselesscmp(label, "__label__") == 0) {
+    /* we have a reference to g_label_stack[0]! */
+    strcpy(label, g_label_stack[0]);
+
+    /* if we are processing g_label, update g_string_size as well */
+    if (label == g_label)
+      g_string_size = (int)strlen(label);
+  }
+
+  return SUCCEEDED;
 }
 
 

@@ -643,6 +643,7 @@ int stack_calculate(char *in, int *value) {
       }
 
       if (is_string == YES) {
+        process_special_labels(si[q].string);
         si[q].string[k] = 0;
         si[q].type = STACK_ITEM_TYPE_STRING;
         got_label = YES;
@@ -895,6 +896,7 @@ int stack_calculate(char *in, int *value) {
   /* only one string? */
   if (d == 1 && ta[0].type == STACK_ITEM_TYPE_STRING) {
     strcpy(g_label, ta[0].string);
+    process_special_labels(g_label);
     return STACK_RETURN_LABEL;
   }
 
@@ -993,6 +995,8 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
     }
   }
 
+  process_special_labels(s->string);
+  
   /* is this form "string".length? */
   if (is_string_ending_with(s->string, ".length") > 0 ||
       is_string_ending_with(s->string, ".LENGTH") > 0) {

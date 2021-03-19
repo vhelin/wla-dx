@@ -661,6 +661,8 @@ int pass_1(void) {
   if (g_verbose_mode == ON)
     printf("Pass 1...\n");
 
+  reset_label_stack();
+
   /* mark all slots as empty */
   for (q = 0; q < 256; q++) {
     g_slots[q].size = 0;
@@ -10465,8 +10467,7 @@ int add_label_to_label_stack(char *l) {
 
   if (level == 0) {
     /* resetting level 0 label clears all the other levels */
-    for (q = 0; q < 256; q++)
-      g_label_stack[q][0] = 0;
+    reset_label_stack();
     strcpy(g_label_stack[0], l);
   }
   else
@@ -10483,6 +10484,15 @@ int add_label_to_label_stack(char *l) {
   */
 
   return SUCCEEDED;
+}
+
+
+void reset_label_stack(void) {
+
+  int q;
+  
+  for (q = 0; q < 256; q++)
+    g_label_stack[q][0] = 0;
 }
 
 
