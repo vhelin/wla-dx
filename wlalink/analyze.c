@@ -1139,10 +1139,14 @@ int merge_sections(void) {
       s_target->size = size;
 
       /* kill the appended section */
-      if (g_sec_first == s_source)
+      if (g_sec_first == s_source) {
         g_sec_first = s_source->next;
-      if (g_sec_last == s_source)
+        g_sec_first->prev = NULL;
+      }
+      if (g_sec_last == s_source) {
         g_sec_last = s_source->prev;
+        g_sec_last->next = NULL;
+      }
       
       free_section(s_source);
     }
