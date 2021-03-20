@@ -3,6 +3,8 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 -------------------------------------------------------------------------------------------------
 
+v9.13 (20-Mar-2021) 
+
 v9.12 (20-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                     [ALL] Added .STRINGMAP and .STRINGMAPTABLE.
                     [ALL] Multiple include directories (via multiple -I)
@@ -1214,6 +1216,8 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
+
+v5.15 (20-Mar-2021) 
 
 v5.14 (20-Mar-2021) Fixed buggy symbol file name generation.
                     Fixed SMS checksum calculation if .SMSHEADER is not used.
