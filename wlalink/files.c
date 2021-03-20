@@ -682,7 +682,7 @@ int load_file_data(char *file_name, unsigned char **data, int *size) {
   }
 
   if (fread(*data, 1, *size, fop) != (size_t) *size) {
-    fprintf(stderr, "Could not read all %d bytes of \"%s\"!", *size, file_name);
+    fprintf(stderr, "LOAD_FILE_DATA: Could not read all %d bytes of \"%s\"!", *size, file_name);
     return FAILED;
   }
 

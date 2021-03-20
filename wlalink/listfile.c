@@ -150,7 +150,7 @@ int listfile_write_listfiles(struct section *e) {
     }
 
     if (fread(b, 1, n, f) != (size_t) n) {
-      fprintf(stderr, "Could not read all %d bytes of \"%s\"!", n, na);
+      fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Could not read all %d bytes of \"%s\"!", n, na);
       return FAILED;
     }
   
