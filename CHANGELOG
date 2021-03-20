@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 -------------------------------------------------------------------------------------------------
 
-v9.12 (19-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
+v9.12 (20-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                     [ALL] Added .STRINGMAP and .STRINGMAPTABLE.
                     [ALL] Multiple include directories (via multiple -I)
                       are now supported.
@@ -1215,7 +1215,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.14 (07-Jan-2021) Fixed buggy symbol file name generation.
+v5.14 (20-Mar-2021) Fixed buggy symbol file name generation.
                     Fixed SMS checksum calculation if .SMSHEADER is not used.
                     Fixed a couple of bugs in listfile generation.
                     Added -D (don't create _sizeof_* definitions).
