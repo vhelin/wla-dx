@@ -5906,6 +5906,8 @@ int directive_background(void) {
 
   memset(g_rom_banks_usage_table, 2, background_size);
   if (fread(g_rom_banks, 1, background_size, file_in_ptr) != (size_t) background_size) {
+    snprintf(g_error_message, sizeof(g_error_message), "Could not read all %d bytes of \"%s\"!", background_size, g_full_name);
+    print_error(g_error_message, ERROR_INC);
     return FAILED;
   }
 

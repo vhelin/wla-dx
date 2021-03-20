@@ -1643,6 +1643,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
       outfile_tmp = calloc(sizeof(char) * outfile_size, 1);
 
       if (fread(outfile_tmp, 1, outfile_size, outfile) != (size_t) outfile_size) {
+        fprintf(stderr, "Could not read all %d bytes of \"%s\"!", outfile_size, outname);
         return FAILED;
       }
 

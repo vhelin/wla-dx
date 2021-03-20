@@ -73,6 +73,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (fread(in, 1, file_size, fp) != (size_t) file_size) {
+    fprintf(stderr, "Could not read all %d bytes of \"%s\"!", file_size, name);
     return FAILED;
   }
 
