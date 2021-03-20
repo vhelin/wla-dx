@@ -1,6 +1,6 @@
 
 #
-# This is the bsh version of run_tests.sh for Amiga
+# This is the bsh version of run_tests.sh (can be run e.g., on an Amiga with bsh installed)
 #
 
 echo
@@ -26,7 +26,7 @@ while arch < archcount
 
     # Run test
 	rm *.o *.sym *.rom *.prg
-	smake -f makefile
+	make -f makefile
 	rm *.o *.sym *.rom *.prg
 
 	if -f testsfile
