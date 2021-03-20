@@ -14,7 +14,7 @@ v9.12 (20-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                       rules generation (-M) any more.
                     [ALL] Fixed .DBM, .DWM and .DLM, and \2 in .DWM and .DWL.
                     [ALL] .MACRO string expansion (e.g., "\1") now uses parsed
-	              arguments instead of just copying the plain text of
+                      arguments instead of just copying the plain text of
                       the argument.
                     [ALL] Object and library files support more than 256
                       source file IDs.
