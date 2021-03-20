@@ -113,6 +113,11 @@ int listfile_write_listfiles(struct section *e) {
     s = s->next;
   }
 
+  if (i <= 0) {
+    /* no listfile data, so we cannot write listfiles... */
+    return SUCCEEDED;
+  }
+  
   /* create pointers for sorting */
   l = calloc(sizeof(struct listfileitem *) * i, 1);
   if (l == NULL) {

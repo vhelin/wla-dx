@@ -1217,7 +1217,8 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.15 (20-Mar-2021) 
+v5.15 (20-Mar-2021) Fixed listfile writing when there is no listfile data
+                      in object files.
 
 v5.14 (20-Mar-2021) Fixed buggy symbol file name generation.
                     Fixed SMS checksum calculation if .SMSHEADER is not used.
