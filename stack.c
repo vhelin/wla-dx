@@ -1143,11 +1143,19 @@ int compute_stack(struct stack *sta, int x, double *result) {
         break;
       case SI_OP_LOW_BYTE:
         z = (int)v[t - 1];
+#ifdef AMIGA
+        /* on Amiga this needs to be done twice - a bug in SAS/C? */
+        z = z & 0xFF;
+#endif
         v[t - 1] = z & 0xFF;
         break;
       case SI_OP_HIGH_BYTE:
-        z = (int)v[t - 1];
-        v[t - 1] = (z>>8) & 0xFF;
+        z = ((int)v[t - 1]) >> 8;
+#ifdef AMIGA
+        /* on Amiga this needs to be done twice - a bug in SAS/C? */
+        z = z & 0xFF;
+#endif
+        v[t - 1] = z & 0xFF;
         break;
       case SI_OP_NOT:
         fprintf(stderr, "%s:%d: COMPUTE_STACK: NOT cannot determine the output size.\n", get_file_name(sta->filename_id), sta->linenumber);

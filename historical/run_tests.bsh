@@ -1,0 +1,44 @@
+
+#
+# This is the bsh version of run_tests.sh for Amiga
+#
+
+echo
+echo Running tests...
+cd tests
+
+set archs *
+archcount = $#archs
+arch = 0
+
+while arch < archcount
+  cd $archs[$arch]
+  
+  set tests *
+  testscount = $#tests
+  t = 0
+  
+  while t < testscount
+    echo ###############################################################
+    echo $archs[$arch] ---> $tests[$t]
+    echo ###############################################################
+    cd $tests[$t]
+
+    # Run test
+	rm *.o *.sym *.rom *.prg
+	smake -f makefile
+	rm *.o *.sym *.rom *.prg
+
+	if -f testsfile
+	  byte_tester testsfile
+	endif
+	
+	t++
+	cd ..
+  endwhile
+  
+  arch++
+  cd ..
+endwhile
+
+cd ..

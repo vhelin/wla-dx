@@ -2421,12 +2421,26 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         v_rom[t - 1] = y & 0xFF;
         break;
       case SI_OP_LOW_BYTE:
-        v_ram[t - 1] = ((int)v_ram[t - 1]) & 0xFF;
-        v_rom[t - 1] = ((int)v_rom[t - 1]) & 0xFF;
+        z = (int)v_ram[t - 1];
+        y = (int)v_rom[t - 1];
+#ifdef AMIGA
+        /* on Amiga this needs to be done twice - a bug in SAS/C? */
+        z = z & 0xFF;
+        y = y & 0xFF;
+#endif
+        v_ram[t - 1] = z & 0xFF;
+        v_rom[t - 1] = y & 0xFF;
         break;
       case SI_OP_HIGH_BYTE:
-        v_ram[t - 1] = (((int)v_ram[t - 1]) >> 8) & 0xFF;
-        v_rom[t - 1] = (((int)v_rom[t - 1]) >> 8) & 0xFF;
+        z = ((int)v_ram[t - 1]) >> 8;
+        y = ((int)v_rom[t - 1]) >> 8;
+#ifdef AMIGA
+        /* on Amiga this needs to be done twice - a bug in SAS/C? */
+        z = z & 0xFF;
+        y = y & 0xFF;
+#endif
+        v_ram[t - 1] = z & 0xFF;
+        v_rom[t - 1] = y & 0xFF;
         break;
       case SI_OP_MODULO:
         if (((int)v_ram[t - 1]) == 0 || ((int)v_rom[t - 1]) == 0) {

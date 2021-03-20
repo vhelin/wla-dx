@@ -57,36 +57,36 @@ irqbrk hotto
 
 
 .MACRO LoadBlockToVRAM
-	.db :\1
+        .db :\1
 .ENDM
 
 .MACRO LoadBlockToXRAM
-	.db \1
+        .db \1
 .ENDM
-	
+        
 
 .base $20
 .BANK 0 SLOT 0
 .ORG $0000
 
-	.EQU Intro_greyText2nd = Intro_greyText+$8c00
-	.db "01>"
-	LoadBlockToVRAM Intro_greyText+$8c00,$4e00,$1c00
-	.db "<01"
-	.db "02>"
-	LoadBlockToVRAM Intro_greyText2nd,$100,$200,$300
-	.db "<02"
-	.db "03>"
-	LoadBlockToXRAM :(Intro_greyText2nd)+1
-	.db "<03"
-	.db "04>"
-	LoadBlockToXRAM (Intro_greyText2nd >> 16)
-	.db "<04"
-Intro_greyText:	
-	lda.b	#($80 | (>40))
+        .EQU Intro_greyText2nd = Intro_greyText+$8c00
+        .db "01>"
+        LoadBlockToVRAM Intro_greyText+$8c00,$4e00,$1c00
+        .db "<01"
+        .db "02>"
+        LoadBlockToVRAM Intro_greyText2nd,$100,$200,$300
+        .db "<02"
+        .db "03>"
+        LoadBlockToXRAM :(Intro_greyText2nd)+1
+        .db "<03"
+        .db "04>"
+        LoadBlockToXRAM (Intro_greyText2nd >> 16)
+        .db "<04"
+Intro_greyText: 
+        lda.b   #($80 | (>40))
 
-	lda	(instrument.SampleLength+1).w,X
-	lda	instrument.SampleVolume.w,X
+        lda     (instrument.SampleLength+1).w,X
+        lda     instrument.SampleVolume.w,X
 
         lda.b   #<isrSplitScreen
         sta     isrAddr
@@ -121,18 +121,18 @@ isrSplitScreen
 
 .SECTION "Test" FORCE
 
-	mvn 1, 2
-	mvp 3, 4
-	
-hotto	lda HDMA2122,x
- 	lda HDMA2122.w,x
+        mvn 1, 2
+        mvp 3, 4
+        
+hotto   lda HDMA2122,x
+        lda HDMA2122.w,x
 
-	and 10.b
-	and 10.w
-	and ADDR.B
-	and ADDR.W
-	and ADDR           - 4.b
-	and ADDR  +  4.w
+        and 10.b
+        and 10.w
+        and ADDR.B
+        and ADDR.W
+        and ADDR           - 4.b
+        and ADDR  +  4.w
 .ENDS
 
 .dbsin 0.2, 10, 3.2, 120, 1.3
@@ -140,18 +140,18 @@ hotto	lda HDMA2122,x
 
 .org $200
 .section "test 1" force
-_tst1:	.db $de, $ad
+_tst1:  .db $de, $ad
 .ends
 
 .org $202
 .section "test 2" force
-_tst1:	.db $be, $ef
+_tst1:  .db $be, $ef
 .ends
 
 
 .org $200
 .section "test 3" overwrite
-_tst1:	.db $de, $ad
+_tst1:  .db $de, $ad
 .ends
 
 .define mase 2+1
@@ -160,7 +160,7 @@ _tst1:	.db $de, $ad
 .export moon, koso, mase
 
 .orga $85d2
-kose:	lda kose.w,x
+kose:   lda kose.w,x
 
 .struct monsta
 x     db
@@ -173,13 +173,13 @@ trio3 dl
 .endst
 
 .db "DATA START >>> "
-	mvn $1, $2
-	mvp $3, $4
+        mvn $1, $2
+        mvp $3, $4
 .db " <<< DATA END"
 
 .section "table" force
 table:
-.db "<TABLE>" 			                                                       ;  7 bytes
+.db "<TABLE>"                                                                          ;  7 bytes
 .table byte, word, BYTE, dw, dsb 2, long, byt
 .data $01, $0302, $04, $0605, $07, $08, $0b0a09, $0c                                   ; 12 bytes
 .row "a", "bc", "d", "ef", "g", "h", "ijk", "l"                                        ; 12 bytes
