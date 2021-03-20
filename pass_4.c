@@ -2084,6 +2084,7 @@ int pass_4(void) {
   /* show project information */
   if (g_verbose_mode == ON && g_output_format != OUTPUT_LIBRARY) {
     x = 0;
+    inz = 1;
     for (ind = 0; ind < g_max_address; ind++) {
       if (g_rom_banks_usage_table[ind] == 0 && x == 0) {
         x = 1;

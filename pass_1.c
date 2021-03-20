@@ -977,7 +977,7 @@ static int parse_push_pull_registers(int accept_u) {
 }
 
 
-static int get_register_byte_from_label_exg_tfr() {
+static int get_register_byte_from_label_exg_tfr(void) {
 
   /* 16-bit */
   if (strcaselesscmp(g_label, "D") == 0)
@@ -1010,7 +1010,7 @@ static int get_register_byte_from_label_exg_tfr() {
 }
 
 
-static int parse_exg_tfr_registers() {
+static int parse_exg_tfr_registers(void) {
 
   int register_byte = 0, data = 0, y, z;
 
@@ -2908,7 +2908,7 @@ static int _char_to_hex(char e) {
 
 int directive_hex(void) {
 
-  int o, nybble_1, nybble_2, error;
+  int o, nybble_1 = 0, nybble_2 = 0, error;
 
   fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
