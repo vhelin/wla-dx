@@ -808,7 +808,7 @@ This is not a compulsory directive.
 
 
 ``.DSD 256, $1ffffff``
---------------------
+----------------------
 
 Defines ``256`` double words (four bytes) of ``$1ffffff``.
 
