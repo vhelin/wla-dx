@@ -681,7 +681,11 @@ int load_file_data(char *file_name, unsigned char **data, int *size) {
     return FAILED;
   }
 
-  fread(*data, 1, *size, fop);
+  if (fread(*data, 1, *size, fop) != (size_t) *size) {
+    fprintf(stderr, "Could not read all %d bytes of \"%s\"!", *size, file_name);
+    return FAILED;
+  }
+
   fclose(fop);
 
   return SUCCEEDED;

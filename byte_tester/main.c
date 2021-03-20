@@ -128,7 +128,11 @@ int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_
     return FAILED;
   }
 
-  fread(g_binary_file, 1, *file_size, fb);
+  if (fread(g_binary_file, 1, *file_size, fb) != (size_t) *file_size) {
+    fprintf(stderr, "Could not read all %d bytes of \"%s\"!", file_size, filename);
+    return FAILED;
+  };
+
   fclose(fb);
 
   *did_we_read_data = YES;

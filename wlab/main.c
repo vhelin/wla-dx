@@ -72,7 +72,11 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  fread(in, 1, file_size, fp);
+  if (fread(in, 1, file_size, fp) != (size_t) file_size) {
+    fprintf(stderr, "Could not read all %d bytes of \"%s\"!", file_size, name);
+    return FAILED;
+  }
+
   fclose(fp);
 
   if (file_size < 0x10)

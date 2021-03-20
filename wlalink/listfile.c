@@ -149,7 +149,11 @@ int listfile_write_listfiles(struct section *e) {
       return FAILED;
     }
 
-    fread(b, 1, n, f);
+    if (fread(b, 1, n, f) != (size_t) n) {
+      fprintf(stderr, "Could not read all %d bytes of \"%s\"!", n, na);
+      return FAILED;
+    }
+  
     fclose(f);
 
     strcpy(tmp, na);
