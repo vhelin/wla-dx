@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
   FILE *out;
   char max_name[256];
   unsigned int max = 0;
-  int x, opcode_n[256], opcode_p[256], a, b, n, ob;
+  int x, opcode_n[256], opcode_p[256], upper_char, lower_char, n, last_lower_char;
 
 
   char *outname = NULL;
@@ -62,30 +62,30 @@ int main(int argc, char *argv[]) {
   }
 
   opt_tmp = g_opcodes_table;
-  a = 'A';
-  b = 'a';
-  ob = 'a';
+  upper_char = 'A';
+  lower_char = 'a';
+  last_lower_char = 'a';
   n = 0;
   x = 0;
-  opcode_p[(int)a] = 0;
-  opcode_p[(int)b] = 0;
+  opcode_p[(int)upper_char] = 0;
+  opcode_p[(int)lower_char] = 0;
   while (g_opcodes_table[n].type != 0xff) {
     if (strlen(g_opcodes_table[n].op) > max) {
       max = (unsigned int)strlen(g_opcodes_table[n].op);
       strcpy(max_name, g_opcodes_table[n].op);
     }
-    if (opt_tmp[n].op[0] != a) {
-      opcode_n[(int)a] = x;
-      opcode_n[(int)b] = x;
-      a = opt_tmp[n].op[0];
-      b = tolower((int)a);
-      if (ob > b) {
-        fprintf(stderr, "MAIN: Instruction are NOT in alphabetical order (first letter): '%c' -> '%c'.\n", ob, b);
+    if (opt_tmp[n].op[0] != upper_char) {
+      opcode_n[(int)upper_char] /= x;
+      opcode_n[(int)lower_char] = x;
+      upper_char = opt_tmp[n].op[0];
+      lower_char = tolower((int)upper_char);
+      if (last_lower_char > lower_char) {
+        fprintf(stderr, "MAIN: Instruction are NOT in alphabetical order (first letter): '%c' -> '%c'.\n", last_lower_char, lower_char);
         return 1;
       }
-      ob = b;
-      opcode_p[(int)a] = n;
-      opcode_p[(int)b] = n;
+      last_lower_char = lower_char;
+      opcode_p[(int)upper_char] = n;
+      opcode_p[(int)lower_char] = n;
       x = 1;
       n++;
     }
@@ -94,8 +94,8 @@ int main(int argc, char *argv[]) {
       n++;
     }
   }
-  opcode_n[(int)a] = x;
-  opcode_n[(int)b] = x;
+  opcode_n[(int)upper_char] = x;
+  opcode_n[(int)lower_char] = x;
 
   out = stdout;
   if (outname) {
