@@ -9833,8 +9833,6 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    fprintf(stderr, "EXIT WITH %d\n", exit_value);
-    
     /* make a silent exit */
     exit(exit_value);
   }

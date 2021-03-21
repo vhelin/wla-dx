@@ -11,6 +11,8 @@ v9.13 (21-Mar-2021) [ALL] Added support for nameless INSTANCEOFs in
                       definitions (e.g., -D VALUE1=%10101010).
                     [ALL] Hexadecimal values can now also be given as 0xABCD,
                       binary values as 0b11110000.
+                    [ALL] .FAIL defaults now to exit code 1, and takes an
+                      optional exit code (e.g., ".FAIL 2").
 
 v9.12 (20-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                     [ALL] Added .STRINGMAP and .STRINGMAPTABLE.
