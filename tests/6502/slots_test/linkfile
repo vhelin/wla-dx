@@ -2,5 +2,5 @@
 main.o
 
 [definitions]
-MyAddressÍs0Bh 0bh
+MyAddressÍs0Bh  bh
 MyAddressIs22h 22h

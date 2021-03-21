@@ -610,7 +610,7 @@ int generate_extra_definitions(void) {
 int parse_and_add_definition(char *c, int contains_flag) {
 
   char n[MAX_NAME_LENGTH + 1], *value;
-  int i;
+  int i, k;
 
   /* skip the flag? */
   if (contains_flag == YES)
@@ -628,11 +628,13 @@ int parse_and_add_definition(char *c, int contains_flag) {
       return FAILED;
 
     value = c;
-    
+
     /* hexadecimal value? */
-    if (*c == '$' || ((c[strlen(c)-1] == 'h' || c[strlen(c)-1] == 'H') && (*c >= '0' && *c <= '9'))) {
+    if (*c == '$' || (*c == '0' && (*(c+1) == 'x' || *(c+1) == 'X')) || ((c[strlen(c)-1] == 'h' || c[strlen(c)-1] == 'H') && ((*c >= '0' && *c <= '9') || (*c >= 'a' && *c <= 'f') || (*c >= 'A' && *c <= 'F')))) {
       if (*c == '$')
         c++;
+      else if (*c == '0' && (*(c+1) == 'x' || *(c+1) == 'X'))
+        c += 2;
       for (i = 0; *c != 0; c++) {
         if (*c >= '0' && *c <= '9')
           i = (i << 4) + *c - '0';
@@ -650,6 +652,23 @@ int parse_and_add_definition(char *c, int contains_flag) {
       return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
     }
 
+    /* binary value? */
+    if (*c == '%' || (*c == '0' && (*(c+1) == 'b' || *(c+1) == 'B'))) {
+      if (*c == '%')
+        c++;
+      else
+        c += 2;
+      for (i = 0, k = 0; *c != 0 && k < 32; k++, c++) {
+        if (*c == '0' || *c == '1')
+          i = (i << 1) + *c - '0';
+        else {
+          fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Error in value (%s).\n", value);
+          return FAILED;
+        }
+      }
+      return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
+    }
+    
     /* decimal value? */
     if (*c >= '0' && *c <= '9') {
       for (i = 0; *c != 0; c++) {
@@ -665,9 +684,8 @@ int parse_and_add_definition(char *c, int contains_flag) {
 
     /* quoted string? */
     if (*c == '"' && c[strlen(c) - 1] == '"') {
-      int t;
       char *s = calloc(strlen(c) + 1, 1);
-      int result;
+      int result, t;
 
       c++;
       for (t = 0; *c != 0; c++, t++) {

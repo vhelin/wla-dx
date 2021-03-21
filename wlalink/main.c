@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.15a (20.3.2021)";
+char version_string[] = "$VER: wlalink 5.15a (21.3.2021)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
