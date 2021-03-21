@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
       strcpy(max_name, g_opcodes_table[n].op);
     }
     if (opt_tmp[n].op[0] != upper_char) {
-      opcode_n[(int)upper_char] /= x;
+      opcode_n[(int)upper_char] = x;
       opcode_n[(int)lower_char] = x;
       upper_char = opt_tmp[n].op[0];
       lower_char = tolower((int)upper_char);
