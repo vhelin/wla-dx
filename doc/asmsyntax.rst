@@ -210,7 +210,9 @@ Number Types
 ``1000`` decimal
 ``$100`` hexadecimal
 ``100h`` hexadecimal
+``0x10`` hexadecimal
 ``%100`` binary
+``0b10`` binary
 ``'x'``  character
 ======== ===========
 

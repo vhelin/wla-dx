@@ -380,7 +380,9 @@ int stack_calculate(char *in, int *value) {
       break;
     else if (*in == ']')
       break;
-    else if (*in == '%') {
+    else if (*in == '%' || (*in == '0' && (*(in+1) == 'b' || *(in+1) == 'B'))) {
+      if (*in == '0')
+        in++;
       d = 0;
       for (k = 0; k < 32; k++) {
         in++;
@@ -424,12 +426,15 @@ int stack_calculate(char *in, int *value) {
       si[q].sign = SI_SIGN_POSITIVE;
       q++;
     }
-    else if (*in == '$') {
+    else if (*in == '$' || (*in == '0' && (*(in+1) == 'x' || *(in+1) == 'X'))) {
       int needs_shifting = NO;
       
       /* we'll break if the previous item in the stack was a value or a string */
       if (_break_before_value_or_string(q, &si[0]) == SUCCEEDED)
         break;
+
+      if (*in == '0')
+        in++;
       
       d = 0;
       for (k = 0, in++; k < 8; k++, in++) {

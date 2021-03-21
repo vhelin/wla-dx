@@ -7,6 +7,10 @@ v9.13 (21-Mar-2021) [ALL] Added support for nameless INSTANCEOFs in
                       .ENUMs, .STRUCTs and .RAMSECTIONs.
                     [ALL] Computations with 32-bit binary values with all 32
                       bits defined work now.
+                    [ALL] It's possible to use binary values in command line
+                      definitions (e.g., -D VALUE1=%10101010).
+                    [ALL] Hexadecimal values can now also be given as 0xABCD,
+                      binary values as 0b11110000.
 
 v9.12 (20-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                     [ALL] Added .STRINGMAP and .STRINGMAPTABLE.
@@ -1220,8 +1224,9 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.15 (20-Mar-2021) Fixed listfile writing when there is no listfile data
+v5.15 (21-Mar-2021) Fixed listfile writing when there is no listfile data
                       in object files.
+                    It's possible to give binary values in [definitions].
 
 v5.14 (20-Mar-2021) Fixed buggy symbol file name generation.
                     Fixed SMS checksum calculation if .SMSHEADER is not used.

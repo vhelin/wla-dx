@@ -385,9 +385,11 @@ int input_number(void) {
     }
   }
 
-  if (e == '$' || g_parsed_int == 1) {
+  if (e == '$' || g_parsed_int == 1 || (e == '0' && (g_buffer[g_source_pointer] == 'x' || g_buffer[g_source_pointer] == 'X'))) {
     if (g_parsed_int == 1)
       g_source_pointer--;
+    else if (e == '0')
+      g_source_pointer++;
     for (g_parsed_int = 0, k = 0; k < 8; k++, g_source_pointer++) {
       e = g_buffer[g_source_pointer];
       if (e >= '0' && e <= '9')
@@ -455,6 +457,46 @@ int input_number(void) {
     return SUCCEEDED;
   }
 
+  if (e == '%' || (e == '0' && (g_buffer[g_source_pointer] == 'b' || g_buffer[g_source_pointer] == 'B'))) {
+    if (e == '0')
+      g_source_pointer++;
+    for (g_parsed_int = 0, k = 0; k < 32; k++, g_source_pointer++) {
+      e = g_buffer[g_source_pointer];
+      if (e == '0' || e == '1')
+        g_parsed_int = (g_parsed_int << 1) + e - '0';
+      else
+        break;
+    }
+
+    if (e == '.') {
+      e = g_buffer[g_source_pointer+1];
+      if (e == 'b' || e == 'B') {
+        g_operand_hint = HINT_8BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
+        g_source_pointer += 2;
+      }
+      else if (e == 'w' || e == 'W') {
+        g_operand_hint = HINT_16BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
+        g_source_pointer += 2;
+      }
+      else if (e == 'l' || e == 'L') {
+        g_operand_hint = HINT_24BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
+        g_source_pointer += 2;
+      }
+      else if (e == 'd' || e == 'D') {
+        g_operand_hint = HINT_32BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
+        g_source_pointer += 2;
+      }
+    }
+
+    g_parsed_double = (double)g_parsed_int;
+
+    return SUCCEEDED;
+  }
+  
   if (e >= '0' && e <= '9') {
     int max_digits = 10;
     
@@ -559,44 +601,6 @@ int input_number(void) {
     
     if (q == 1 && g_input_float_mode == ON)
       return INPUT_NUMBER_FLOAT;
-
-    return SUCCEEDED;
-  }
-
-  if (e == '%') {
-    for (g_parsed_int = 0, k = 0; k < 32; k++, g_source_pointer++) {
-      e = g_buffer[g_source_pointer];
-      if (e == '0' || e == '1')
-        g_parsed_int = (g_parsed_int << 1) + e - '0';
-      else
-        break;
-    }
-
-    if (e == '.') {
-      e = g_buffer[g_source_pointer+1];
-      if (e == 'b' || e == 'B') {
-        g_operand_hint = HINT_8BIT;
-        g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_pointer += 2;
-      }
-      else if (e == 'w' || e == 'W') {
-        g_operand_hint = HINT_16BIT;
-        g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_pointer += 2;
-      }
-      else if (e == 'l' || e == 'L') {
-        g_operand_hint = HINT_24BIT;
-        g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_pointer += 2;
-      }
-      else if (e == 'd' || e == 'D') {
-        g_operand_hint = HINT_32BIT;
-        g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_pointer += 2;
-      }
-    }
-
-    g_parsed_double = (double)g_parsed_int;
 
     return SUCCEEDED;
   }

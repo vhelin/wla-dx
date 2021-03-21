@@ -6,11 +6,11 @@
 
         .memorymap
         defaultslot 0
-        slotsize $2000
+        slotsize 2000h
         slot 0 $0000
-        slot 1 $2000
-        slot 2 $4000
-        slot 3 $6000
+        slot 1 0x2000
+        slot 2 0x4000
+        slot 3 6000h
         slot 4 $A000
         .endme
 
@@ -207,3 +207,9 @@ label_19b:
         .db "16>"
         .dd W1, W2, W3, W4
         .db "<16"
+
+        .db "17>"
+        .dd 0x12345678, 0b11110000111100001111000011110001
+        .dd 0x01020304 | 0x10203040, 0b11111111111111111111111111111111 & 0x0a0b0c0d
+        .db "<17"
+        
