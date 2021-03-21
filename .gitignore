@@ -20,6 +20,7 @@ wla_[ab].tmp
 *.so
 *.a
 *.exe
+*.d
 
 # Generated files
 opcodes_*_tables.c
