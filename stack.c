@@ -184,7 +184,7 @@ int stack_calculate(char *in, int *value) {
     si[k].value = 0.0;
     si[k].string[0] = 0;
   }
-  
+
   /* slice the data into infix format */
   while (*in != 0xA) {
     if (q >= 255) {
@@ -382,11 +382,11 @@ int stack_calculate(char *in, int *value) {
       break;
     else if (*in == '%') {
       d = 0;
-      for (k = 0; k < 31; k++, d = d<<1) {
+      for (k = 0; k < 32; k++) {
         in++;
         e = *in;
         if (e == '0' || e == '1')
-          d += e - '0';
+          d = (d << 1) + (e - '0');
         else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
                  e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == '~' ||
                  e == ']' || e == '.' || e == 0xA)
@@ -400,7 +400,8 @@ int stack_calculate(char *in, int *value) {
         }
       }
 
-      d = d>>1;
+      if (k == 32)
+        in++;
 
       si[q].type = STACK_ITEM_TYPE_VALUE;
       si[q].value = d;
