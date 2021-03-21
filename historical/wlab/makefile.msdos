@@ -1,6 +1,6 @@
 
 CC = gcc
-CFLAGS = -m486 -c -ansi -O3 -pedantic -Wall
+CFLAGS = -mtune=i486 -c -ansi -O3 -pedantic -Wall -DNDEBUG=1
 LD = gcc
 LDFLAGS = 
 
