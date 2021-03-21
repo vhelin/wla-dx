@@ -1668,7 +1668,9 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
       if (add_label_to_enum_or_ramsection(tmp, si->size) == FAILED)
         return FAILED;
     }
-
+    else
+      snprintf(tmp, sizeof(tmp), "%s", basename);
+    
     /* if this struct has an .instanceof in it, we need to recurse */
     if (si->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
       if (si->num_instances <= 1) {
@@ -1980,14 +1982,20 @@ int parse_enum_token(void) {
     return SUCCEEDED;
   }
 
-  if (g_tmp[strlen(g_tmp) - 1] == ':')
-    g_tmp[strlen(g_tmp) - 1] = 0;
-  strcpy(tmpname, g_tmp);
+  if (strcaselesscmp(g_tmp, "INSTANCEOF") == 0) {
+    /* anonymous instance! */
+    tmpname[0] = 0;
+  }
+  else {
+    if (g_tmp[strlen(g_tmp) - 1] == ':')
+      g_tmp[strlen(g_tmp) - 1] = 0;
+    strcpy(tmpname, g_tmp);
 
-  /* get the size/type */
-  if (get_next_token() == FAILED)
-    return FAILED;
-    
+    /* get the size/type */
+    if (get_next_token() == FAILED)
+      return FAILED;
+  }
+  
   type = 0;
   g_size = 0;
 
@@ -3573,7 +3581,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
         int labels_only_tmp = YES;
 
         snprintf(tmpname, sizeof(tmpname), "%s.%s", iname, it->name);
-
+      
         /* we have "struct.instance" and "struct.1.instance" referencing the same data. */
         parse_dstruct_entry(tmpname, it->instance, &labels_only_tmp);
 
@@ -3743,6 +3751,7 @@ int find_struct_field(struct structure *s, char *field_name, int *item_size, int
         /* look for ie. "struct.1.field" */
         else if (si->num_instances > 1) {
           int g;
+          
           for (g = 1; g <= si->num_instances; g++) {
             char num_str[256];
         
@@ -4294,7 +4303,7 @@ int directive_struct(void) {
     return FAILED;
 
   strcpy(g_active_struct->name, g_tmp);
-
+  
   g_active_struct->items = NULL;
   g_active_struct->last_item = NULL;
   g_union_stack = NULL;

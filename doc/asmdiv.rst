@@ -1195,9 +1195,31 @@ And this is what is generated::
 This way you can generate a 16-bit variable address along with pointers
 to its parts.
 
-Note that you can also use ``DL`` (define long word, a 24-bit value) and
-``DSL`` (define size, long words) when running wla-65816.
+Here's another example with a nameless INSTANCEOF::
 
+    .STRUCT position_t
+    pos_x  DW
+    pos_y  DW
+    .ENDST
+
+    .STRUCT enemy_t
+    id     DW
+           INSTANCEOF position_t ; here we import fields from position_t
+    health DW
+    .ENDST
+
+    .ENUM $A000
+    nemesis INSTANCEOF enemy_t
+    .ENDE
+
+Regarding nemesis, you'll get these definitions::
+
+    .DEFINE nemesis        $A000
+    .DEFINE nemesis.id     $A000
+    .DEFINE nemesis.pos_x  $A002
+    .DEFINE nemesis.pos_y  $A004
+    .DEFINE nemesis.health $A006
+    
 If you want more flexible variable positioning, take a look at
 ``.RAMSECTION`` s.
 
