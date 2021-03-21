@@ -1313,8 +1313,18 @@ This is not a compulsory directive.
 ``.FAIL "THE EYE OF MORDOR HAS SEEN US!"``
 ------------------------------------------
 
-Terminates the compiling process. The string after ``.FAIL`` is optional.
+Terminates the compiling process. You can also specify the error code::
 
+    .FAIL 2
+
+These work as well::
+
+    .FAIL
+    .FAIL "EXIT CODE IS 1"
+    .FAIL "UH OH..." 3
+
+By default, if you don't specify the error code, it'll be 1.
+    
 This is not a compulsory directive.
 
 

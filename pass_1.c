@@ -9813,20 +9813,30 @@ int parse_directive(void) {
   /* FAIL */
 
   if (strcaselesscmp(g_current_directive, "FAIL") == 0) {
+    int exit_value = 1;
+    
     q = input_number();
     if (q == INPUT_NUMBER_EOL)
       print_error("HALT: .FAIL found.\n", ERROR_NONE);
     else if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
       snprintf(g_error_message, sizeof(g_error_message), "\"%s\"\n", g_label);
       print_error(g_error_message, ERROR_FAI);
+
+      q = input_number();
+      if (q == SUCCEEDED)
+        exit_value = g_parsed_int;
     }
+    else if (q == SUCCEEDED)
+      exit_value = g_parsed_int;
     else {
       print_error(".FAIL takes an optional string, but we got something else here...\n", ERROR_DIR);
       return FAILED;
     }
 
+    fprintf(stderr, "EXIT WITH %d\n", exit_value);
+    
     /* make a silent exit */
-    exit(0);
+    exit(exit_value);
   }
 
   /* UNDEF/UNDEFINE */
