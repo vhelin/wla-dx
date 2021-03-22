@@ -70,20 +70,24 @@ int main(int argc, char *argv[]) {
   count = 0;
   indexes[(int)upper_char] = 0;
   indexes[(int)lower_char] = 0;
+
   while (g_opcodes_table[index].type != 0xff) {
     if (strlen(g_opcodes_table[index].op) > max) {
       max = (unsigned int)strlen(g_opcodes_table[index].op);
       strcpy(max_name, g_opcodes_table[index].op);
     }
+
     if (opt_tmp[index].op[0] != upper_char) {
       counts[(int)upper_char] = count;
       counts[(int)lower_char] = count;
       upper_char = opt_tmp[index].op[0];
       lower_char = tolower((int)upper_char);
+
       if (last_lower_char > lower_char) {
         fprintf(stderr, "MAIN: Instruction are NOT in alphabetical order (first letter): '%c' -> '%c'.\n", last_lower_char, lower_char);
         return 1;
       }
+
       last_lower_char = lower_char;
       indexes[(int)upper_char] = index;
       indexes[(int)lower_char] = index;
@@ -95,6 +99,7 @@ int main(int argc, char *argv[]) {
       index++;
     }
   }
+
   counts[(int)upper_char] = count;
   counts[(int)lower_char] = count;
 
