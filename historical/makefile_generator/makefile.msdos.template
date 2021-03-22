@@ -1,0 +1,18 @@
+###################################################
+# WARNING: This file was automatically generated. # 
+###################################################
+
+CC = gcc
+CFLAGS = -mtune=i486 -c -O3 -ansi -pedantic -Wall -DMSDOS -D@CPU_DEFINE -DNDEBUG=1
+LD = gcc
+LDFLAGS = -lm
+
+OFILES = @OFILES
+
+all: $(OFILES)
+	$(LD) $(LDFLAGS) $(OFILES) -o wla-@CPU.exe
+
+@RULES
+
+clean:
+	DEL /F /Q *.o; DEL /F /Q *.d; del wla-@CPU.exe

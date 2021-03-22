@@ -6,6 +6,7 @@
 *.md    text
 *.sh    text eol=lf
 *.bat   text eol=crlf
+makefile.msdos.*    text eol=crlf
 
 # bat-files usually works with LF, but Windows users might have a better
 # editing time with notepad and CRLF, because nodepad is dumb with LF
