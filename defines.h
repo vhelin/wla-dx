@@ -686,14 +686,12 @@ struct stringmap_entry {
   unsigned char *bytes;
   int text_length;
   char *text;
-
   struct stringmap_entry *next;
 };
 
 struct stringmaptable {
   char name[MAX_NAME_LENGTH + 1];
   struct stringmap_entry *entries;
-
   struct stringmaptable *next;
 };
 
@@ -701,6 +699,13 @@ struct stringmaptable {
 #define TYPE_VALUE             1
 #define TYPE_LABEL             2
 #define TYPE_STACK_CALCULATION 3
+
+struct array {
+  char name[MAX_NAME_LENGTH + 1];
+  int size;
+  int *data;
+  struct array *next;
+};
 
 #endif /* _DEFINES_H */
 

@@ -108,6 +108,7 @@ struct append_section *g_append_sections = NULL;
 struct label_sizeof *g_label_sizeofs = NULL;
 struct block_name *g_block_names = NULL;
 struct stringmaptable *g_stringmaptables = NULL;
+struct array *g_arrays_first = NULL;
 
 extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name;
 extern int g_size, g_input_number_error_msg, g_verbose_mode, g_output_format, g_open_files;
@@ -6314,6 +6315,241 @@ int directive_gbheader(void) {
 #endif
 
 
+static struct array *_get_array(char *name) {
+
+  struct array *arr = g_arrays_first;
+
+  while (arr != NULL) {
+    if (strcmp(name, arr->name) == 0)
+      return arr;
+    arr = arr->next;
+  }
+
+  return NULL;
+}
+
+
+static struct array *_create_array(char *name, int size) {
+
+  struct array *arr = NULL;
+  int i, *data;
+  
+  arr = calloc(sizeof(struct array), 1);
+  if (arr == NULL) {
+    print_error("Out of memory while allocating a new array.\n", ERROR_DIR);
+    return NULL;
+  }
+
+  if (size < 256)
+    size = 256;
+
+  strcpy(arr->name, name);
+  arr->size = size;
+
+  arr->data = (int *)calloc(sizeof(int) * size, 1);
+  if (arr->data == NULL) {
+    print_error("Out of memory while allocating a new array.\n", ERROR_DIR);
+    free(arr);
+    return NULL;
+  }
+
+  /* initialize the array */
+  data = arr->data;
+  for (i = 0; i < size; i++)
+    data[i] = 0;
+
+  arr->next = g_arrays_first;
+  g_arrays_first = arr;
+  
+  return arr;
+}
+
+
+int directive_arraydef_arraydefine(void) {
+
+  char name[MAX_NAME_LENGTH + 1], bak[256];
+  struct array *arr;
+  int q;
+
+  strcpy(bak, g_current_directive);
+
+  /* skip NAME if present */
+  if (compare_next_token("NAME") == SUCCEEDED)
+    skip_next_token();
+
+  if (get_next_plain_string() == FAILED)
+    return FAILED;
+
+  /* check that the array doesn't exist */
+  if (_get_array(g_tmp) != NULL) {
+    snprintf(g_error_message, sizeof(g_error_message), "\"%s\" is already defined.\n", g_tmp);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+
+  strcpy(name, g_tmp);
+  
+  /* skip SIZE if present */
+  if (compare_next_token("SIZE") == SUCCEEDED)
+    skip_next_token();
+  
+  q = input_number();
+
+  if (q == FAILED)
+    return FAILED;
+  else if (q == SUCCEEDED) {
+  }
+  else {
+    snprintf(g_error_message, sizeof(g_error_message), ".%s needs an immediate value for the size.\n", bak);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+
+  arr = _create_array(name, g_parsed_int);
+  if (arr == NULL)
+    return FAILED;
+
+  return SUCCEEDED;
+}
+
+
+int directive_arrayin(void) {
+
+  struct array *arr;
+  int index, value, q;
+  
+  /* skip NAME if present */
+  if (compare_next_token("NAME") == SUCCEEDED)
+    skip_next_token();
+
+  if (get_next_plain_string() == FAILED)
+    return FAILED;
+
+  /* check that the array exists */
+  arr = _get_array(g_tmp);
+  if (arr == NULL) {
+    snprintf(g_error_message, sizeof(g_error_message), "Array \"%s\" doesn't exist.\n", g_tmp);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+
+  /* skip INDEX if present */
+  if (compare_next_token("INDEX") == SUCCEEDED)
+    skip_next_token();
+
+  q = input_number();
+
+  if (q == FAILED)
+    return FAILED;
+  else if (q == SUCCEEDED) {
+  }
+  else {
+    print_error(".ARRAYIN needs an immediate value for the index.\n", ERROR_DIR);
+    return FAILED;
+  }
+
+  index = g_parsed_int;
+
+  if (index < 0) {
+    print_error(".ARRAYIN needs a positive or zero value for the index.\n", ERROR_DIR);
+    return FAILED;
+  }
+
+  /* skip VALUE if present */
+  if (compare_next_token("VALUE") == SUCCEEDED)
+    skip_next_token();
+
+  q = input_number();
+
+  if (q == FAILED)
+    return FAILED;
+  else if (q == SUCCEEDED) {
+  }
+  else {
+    print_error(".ARRAYIN needs an immediate value for the value.\n", ERROR_DIR);
+    return FAILED;
+  }
+
+  value = g_parsed_int;
+
+  if (index < arr->size)
+    arr->data[index] = value;
+  else {
+    /* index is out of bounds, resize the array, and then insert the value */
+    arr->data = realloc(arr->data, sizeof(int) * (index + 1));
+    if (arr->data == NULL) {
+      print_error("Out of memory resizing the array.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    arr->size = index + 1;
+    arr->data[index] = value;
+  }
+  
+  return SUCCEEDED;
+}
+
+
+int directive_arrayout(void) {
+
+  struct array *arr;
+  int index, q;
+  
+  /* skip NAME if present */
+  if (compare_next_token("NAME") == SUCCEEDED)
+    skip_next_token();
+
+  if (get_next_plain_string() == FAILED)
+    return FAILED;
+
+  /* check that the array exists */
+  arr = _get_array(g_tmp);
+  if (arr == NULL) {
+    snprintf(g_error_message, sizeof(g_error_message), "Array \"%s\" doesn't exist.\n", g_tmp);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+
+  /* skip INDEX if present */
+  if (compare_next_token("INDEX") == SUCCEEDED)
+    skip_next_token();
+
+  q = input_number();
+
+  if (q == FAILED)
+    return FAILED;
+  else if (q == SUCCEEDED) {
+  }
+  else {
+    print_error(".ARRAYOUT needs an immediate value for the index.\n", ERROR_DIR);
+    return FAILED;
+  }
+
+  index = g_parsed_int;
+
+  if (index < 0) {
+    print_error(".ARRAYOUT needs a positive or zero value for the index.\n", ERROR_DIR);
+    return FAILED;
+  }
+  if (index >= arr->size) {
+    snprintf(g_error_message, sizeof(g_error_message), "Index %d is out of array \"%s\"'s size of %d items.\n", index, arr->name, arr->size);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+  
+  /* skip DEFINITION if present */
+  if (compare_next_token("DEFINITION") == SUCCEEDED)
+    skip_next_token();
+
+  if (get_next_plain_string() == FAILED)
+    return FAILED;
+
+  redefine(g_tmp, (double)arr->data[index], NULL, DEFINITION_TYPE_VALUE, 0);
+
+  return SUCCEEDED;
+}
+
+
 int directive_define_def_equ(void) {
   
   int j, g_size, export, q;
@@ -8597,6 +8833,21 @@ int parse_directive(void) {
 
   if (strcaselesscmp(g_current_directive, "DSL") == 0)
     return directive_dsl();
+
+  /* ARRAYDEF/ARRAYDEFINE? */
+
+  if (strcaselesscmp(g_current_directive, "ARRAYDEF") == 0 || strcaselesscmp(g_current_directive, "ARRAYDEFINE") == 0)
+    return directive_arraydef_arraydefine();
+
+  /* ARRAYIN? */
+
+  if (strcaselesscmp(g_current_directive, "ARRAYIN") == 0)
+    return directive_arrayin();
+
+  /* ARRAYOUT? */
+
+  if (strcaselesscmp(g_current_directive, "ARRAYOUT") == 0)
+    return directive_arrayout();
 
   /* DDM? */
 

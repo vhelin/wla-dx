@@ -80,6 +80,10 @@ Group 3:
 65x  ``.8BIT``
 658  ``.ACCU 8``
 ALL  ``.ADDR 16000, main, 255``
+ALL  ``.ARRAYDEF NAME MyArray SIZE 256``
+ALL  ``.ARRAYDEFINE NAME MyArray SIZE 256``
+ALL  ``.ARRAYIN NAME MyArray INDEX 0 VALUE 10``
+ALL  ``.ARRAYOUT NAME MyArray INDEX 0 DEFINITION ArrayOut``
 ALL  ``.ASC "HELLO WORLD!"``
 ALL  ``.ASCIITABLE``
 ALL  ``.ASCSTR "HELLO WORLD!", $A``
@@ -297,6 +301,89 @@ This is not a compulsory directive.
 --------------------------
 
 ``.ADDR`` is an alias for ``.DW``.
+
+This is not a compulsory directive.
+
+
+``.ARRAYDEF NAME MyArray SIZE 256``
+-----------------------------------
+
+``.ARRAYDEF`` is an alias for ``.ARRAYDEFINE``.
+
+This is not a compulsory directive.
+
+
+``.ARRAYDEFINE NAME MyArray SIZE 256``
+--------------------------------------
+
+Defines an array called MyArray, and its initial size is 256 items. Each
+item is an ANSI C89 int (32-bit). The array can be written into using
+directive ``.ARRAYIN`` and it can be read from using directive
+``.ARRAYOUT``. This array exists only in WLA's memory and during
+assembling, but it can be used for e.g., mapping parts of ASCII table
+into e.g., 4 bits::
+
+    // define a too small array for mapping "0123456789" -> 4-bits
+    // it gets enlarged by out-of-bounds .ARRAYINs later...
+    .ARRAYDEFINE NAME MyArray SIZE 4
+
+    // define the mapping
+    .ARRAYIN NAME MyArray INDEX '0' VALUE %0000
+    .ARRAYIN NAME MyArray INDEX '1' VALUE %0001
+    .ARRAYIN NAME MyArray INDEX '2' VALUE %0010
+    .ARRAYIN NAME MyArray INDEX '3' VALUE %0011
+    .ARRAYIN NAME MyArray INDEX '4' VALUE %0100
+    .ARRAYIN NAME MyArray INDEX '5' VALUE %0101
+    .ARRAYIN NAME MyArray INDEX '6' VALUE %0110
+    .ARRAYIN NAME MyArray INDEX '7' VALUE %0111
+    .ARRAYIN NAME MyArray INDEX '8' VALUE %1000
+    .ARRAYIN NAME MyArray INDEX '9' VALUE %1001
+
+    // map!
+    .ARRAYOUT NAME MyArray INDEX '6' DEFINITION Mapping
+    .DB Mapping
+    .ARRAYOUT NAME MyArray INDEX '6' DEFINITION Mapping
+    .DB Mapping
+    .ARRAYOUT NAME MyArray INDEX '8' DEFINITION Mapping
+    .DB Mapping
+    .ARRAYOUT NAME MyArray INDEX '2' DEFINITION Mapping
+    .DB Mapping
+    .ARRAYOUT NAME MyArray INDEX '7' DEFINITION Mapping
+    .DB Mapping
+    .ARRAYOUT NAME MyArray INDEX '5' DEFINITION Mapping
+    .DB Mapping
+
+Note that keywords NAME and SIZE are optional, so this works also::
+
+    .ARRAYDEFINE MyArray 4  
+
+This is not a compulsory directive.
+
+
+``.ARRAYIN NAME MyArray INDEX 0 VALUE 10``
+------------------------------------------
+
+Writes a value into an array defined using ``.ARRAYDEFINE``. Check out
+``.ARRAYDEFINE`` for a nice example. The value needs to be known at the
+time the assembler is parsing through the code.
+
+Keywords NAME, INDEX and VALUE are optional so this works also::
+
+    .ARRAYIN MyArray 0 10
+
+This is not a compulsory directive.
+
+
+``.ARRAYOUT NAME MyArray INDEX 0 DEFINITION ArrayOut``
+------------------------------------------------------
+
+Reads a value from an array defined using ``.ARRAYDEFINE``. Check out
+``.ARRAYDEFINE`` for a nice example. The value is stored in definition
+``ArrayOut`` in the example.
+
+Keywords NAME, INDEX and DEFINITION are optional so this works also::
+
+    .ARRAYOUT MyArray 0 ArrayOut
 
 This is not a compulsory directive.
 

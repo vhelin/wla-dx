@@ -41,7 +41,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 9.13a (21.3.2021)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 9.13a (23.3.2021)";
 char g_wla_version[] = "9.13";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -65,6 +65,7 @@ extern struct append_section *g_append_sections;
 extern struct label_sizeof *g_label_sizeofs;
 extern struct block_name *g_block_names;
 extern struct stringmaptable *g_stringmaptables;
+extern struct array *g_arrays_first;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern char *g_label_stack[256];
 extern char *g_include_in_tmp, *g_tmp_a;
@@ -364,6 +365,7 @@ void procedures_at_exit(void) {
   struct append_section *as;
   struct label_sizeof *ls;
   struct block_name *bn;
+  struct array *ar1, *ar2;
   int i, index;
   
   /* free all the dynamically allocated data structures and close open files */
@@ -512,6 +514,14 @@ void procedures_at_exit(void) {
     f1 = f2;
   }
 
+  ar1 = g_arrays_first;
+  while (ar1 != NULL) {
+    ar2 = ar1->next;
+    free(ar1->data);
+    free(ar1);
+    ar1 = ar2;
+  }
+  
   while (g_stringmaptables != NULL) {
     struct stringmaptable *sm = g_stringmaptables;
     while (sm->entries != NULL) {
