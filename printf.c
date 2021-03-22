@@ -32,7 +32,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 */
 
-#ifdef AMIGA
+#if defined(AMIGA) || defined(MSDOS)
 typedef unsigned long uintptr_t;
 typedef long intmax_t;
 #define PRINTF_DISABLE_SUPPORT_LONG_LONG 1
