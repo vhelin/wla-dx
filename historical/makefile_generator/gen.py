@@ -27,7 +27,7 @@ cpus = [
 
 # First we instantiate a new Template for each platform.
 # For now, only MS-DOS is being generated.
-msdos_stub = open('msdos.template')
+msdos_stub = open('makefile.msdos.template')
 msdos_stub_contents = msdos_stub.read()
 msdos_stub.close()
 msdos_template = MyTemplate(msdos_stub_contents)
