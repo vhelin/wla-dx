@@ -15,19 +15,18 @@
 
 extern struct optcode g_opcodes_table[];
 
-/* this program is used to generate the opcode decoding speedup tables */
+/* This program is used to generate the opcode decoding speedup tables */
 
-int print_table(FILE *f, int *d) {
+int print_table(FILE *f, int *table) {
 
-  int x;
+  int i;
 
-
-  for (x = 0; x < 256; x++) {
-    if ((x % 8) == 0)
+  for (i = 0; i < 256; i++) {
+    if ((i % 8) == 0)
       fprintf(f, "  ");
-    fprintf(f, "%d", d[x]);
-    if ((x % 8) == 7) {
-      if (x == 255)
+    fprintf(f, "%d", table[i]);
+    if ((i % 8) == 7) {
+      if (i == 255)
         fprintf(f, " };\n");
       else
         fprintf(f, ",\n");
@@ -46,8 +45,15 @@ int main(int argc, char *argv[]) {
   FILE *out;
   char max_name[256];
   unsigned int max = 0;
-  int i, count, counts[256], indexes[256], upper_char, lower_char;
-  int index, last_lower_char;
+  int i, upper_char, lower_char, last_lower_char;
+
+  /* Table containing the the number of entries we have in
+     g_opcodes_table starting with each ASCII characher. */
+  int counts[256], count;
+
+  /* Table containing the index in g_opcodes_table where
+     the entries with each starting character start. */
+  int indexes[256], index;
 
 
   char *outname = NULL;
