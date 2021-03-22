@@ -15,19 +15,18 @@
 
 extern struct optcode g_opcodes_table[];
 
-/* this program is used to generate the opcode decoding speedup tables */
+/* This program is used to generate the opcode decoding speedup tables */
 
-int print_table(FILE *f, int *d) {
+int print_table(FILE *f, int *table) {
 
-  int x;
+  int i;
 
-
-  for (x = 0; x < 256; x++) {
-    if ((x % 8) == 0)
+  for (i = 0; i < 256; i++) {
+    if ((i % 8) == 0)
       fprintf(f, "  ");
-    fprintf(f, "%d", d[x]);
-    if ((x % 8) == 7) {
-      if (x == 255)
+    fprintf(f, "%d", table[i]);
+    if ((i % 8) == 7) {
+      if (i == 255)
         fprintf(f, " };\n");
       else
         fprintf(f, ",\n");
@@ -46,7 +45,15 @@ int main(int argc, char *argv[]) {
   FILE *out;
   char max_name[256];
   unsigned int max = 0;
-  int x, opcode_n[256], opcode_p[256], a, b, n, ob;
+  int i, upper_char, lower_char, last_lower_char;
+
+  /* Table containing the the number of entries we have in
+     g_opcodes_table starting with each ASCII characher. */
+  int counts[256], count;
+
+  /* Table containing the index in g_opcodes_table where
+     the entries with each starting character start. */
+  int indexes[256], index;
 
 
   char *outname = NULL;
@@ -56,46 +63,51 @@ int main(int argc, char *argv[]) {
     outname = argv[1];
 
   /* generate opcode decoding jump tables */
-  for (x = 0; x < 256; x++) {
-    opcode_n[x] = 0;
-    opcode_p[x] = 0;
+  for (i = 0; i < 256; i++) {
+    counts[i] = 0;
+    indexes[i] = 0;
   }
 
   opt_tmp = g_opcodes_table;
-  a = 'A';
-  b = 'a';
-  ob = 'a';
-  n = 0;
-  x = 0;
-  opcode_p[(int)a] = 0;
-  opcode_p[(int)b] = 0;
-  while (g_opcodes_table[n].type != 0xff) {
-    if (strlen(g_opcodes_table[n].op) > max) {
-      max = (unsigned int)strlen(g_opcodes_table[n].op);
-      strcpy(max_name, g_opcodes_table[n].op);
+  upper_char = 'A';
+  lower_char = 'a';
+  last_lower_char = 'a';
+  index = 0;
+  count = 0;
+  indexes[(int)upper_char] = 0;
+  indexes[(int)lower_char] = 0;
+
+  while (g_opcodes_table[index].type != 0xff) {
+    if (strlen(g_opcodes_table[index].op) > max) {
+      max = (unsigned int)strlen(g_opcodes_table[index].op);
+      strcpy(max_name, g_opcodes_table[index].op);
     }
-    if (opt_tmp[n].op[0] != a) {
-      opcode_n[(int)a] = x;
-      opcode_n[(int)b] = x;
-      a = opt_tmp[n].op[0];
-      b = tolower((int)a);
-      if (ob > b) {
-        fprintf(stderr, "MAIN: Instruction are NOT in alphabetical order (first letter): '%c' -> '%c'.\n", ob, b);
+
+    if (opt_tmp[index].op[0] != upper_char) {
+      counts[(int)upper_char] = count;
+      counts[(int)lower_char] = count;
+      upper_char = opt_tmp[index].op[0];
+      lower_char = tolower((int)upper_char);
+
+      if (last_lower_char > lower_char) {
+        fprintf(stderr, "MAIN: Instruction are NOT in alphabetical order (first letter): '%c' -> '%c'.\n", last_lower_char, lower_char);
         return 1;
       }
-      ob = b;
-      opcode_p[(int)a] = n;
-      opcode_p[(int)b] = n;
-      x = 1;
-      n++;
+
+      last_lower_char = lower_char;
+      indexes[(int)upper_char] = index;
+      indexes[(int)lower_char] = index;
+      count = 1;
+      index++;
     }
     else {
-      x++;
-      n++;
+      count++;
+      index++;
     }
   }
-  opcode_n[(int)a] = x;
-  opcode_n[(int)b] = x;
+
+  counts[(int)upper_char] = count;
+  counts[(int)lower_char] = count;
 
   out = stdout;
   if (outname) {
@@ -108,11 +120,11 @@ int main(int argc, char *argv[]) {
 
   /* opcode_n[256] */
   fprintf(out, "int g_opcode_n[256] = {\n");
-  print_table(out, opcode_n);
+  print_table(out, counts);
 
   /* opcode_p[256] */
   fprintf(out, "int g_opcode_p[256] = {\n");
-  print_table(out, opcode_p);
+  print_table(out, indexes);
 
   if (outname)
     fclose(out);
