@@ -80,8 +80,12 @@ Group 3:
 65x  ``.8BIT``
 658  ``.ACCU 8``
 ALL  ``.ADDR 16000, main, 255``
+ALL  ``.ARRAYDB NAME MyArray INDICES '0', 0, 1``
+ALL  ``.ARRAYDD NAME MyArray INDICES '0', 0, 1``
 ALL  ``.ARRAYDEF NAME MyArray SIZE 256``
 ALL  ``.ARRAYDEFINE NAME MyArray SIZE 256``
+ALL  ``.ARRAYDL NAME MyArray INDICES '0', 0, 1``
+ALL  ``.ARRAYDW NAME MyArray INDICES '0', 0, 1``
 ALL  ``.ARRAYIN NAME MyArray INDEX 0 VALUE 10``
 ALL  ``.ARRAYOUT NAME MyArray INDEX 0 DEFINITION ArrayOut``
 ALL  ``.ASC "HELLO WORLD!"``
@@ -305,6 +309,31 @@ This is not a compulsory directive.
 This is not a compulsory directive.
 
 
+``.ARRAYDB NAME MyArray INDICES '0', 0, 1``
+-------------------------------------------
+
+This is the same as ``.DB``, but defines bytes by reading indexed values from
+the given array. In the example the indices are '0' (48), 0 and 1.
+
+``NAME`` and ``INDICES`` are optional so this works also::
+
+    .ARRAYDB MyArray '0', 0, 1
+
+If you supply ``.ARRAYDB`` a string as indices, each character is used as an index::
+
+    .ARRAYDB NAME MyArray INDICES "MAP THIS!"
+    
+This is not a compulsory directive.
+
+
+``.ARRAYDD NAME MyArray INDICES '0', 0, 1``
+-------------------------------------------
+
+``.ARRAYDD`` works the same way as ``.ARRAYDB``, but defines 32-bit double words.
+
+This is not a compulsory directive.
+
+
 ``.ARRAYDEF NAME MyArray SIZE 256``
 -----------------------------------
 
@@ -353,9 +382,30 @@ into e.g., 4 bits::
     .ARRAYOUT NAME MyArray INDEX '5' DEFINITION Mapping
     .DB Mapping
 
+You can also do the mapping using e.g., ``.ARRAYDB``::
+
+    .ARRAYDB NAME MyArray INDICES '6', '6', '8', '2', '7', '5'
+    .ARRAYDB NAME MyArray INDICES "668275"
+
 Note that keywords NAME and SIZE are optional, so this works also::
 
     .ARRAYDEFINE MyArray 4  
+
+This is not a compulsory directive.
+
+
+``.ARRAYDL NAME MyArray INDICES '0', 0, 1``
+-------------------------------------------
+
+``.ARRAYDL`` works the same way as ``.ARRAYDB``, but defines 24-bit long words.
+
+This is not a compulsory directive.
+
+
+``.ARRAYDW NAME MyArray INDICES '0', 0, 1``
+-------------------------------------------
+
+``.ARRAYDW`` works the same way as ``.ARRAYDB``, but defines 16-bit words.
 
 This is not a compulsory directive.
 

@@ -6550,6 +6550,231 @@ int directive_arrayout(void) {
 }
 
 
+int directive_arraydb_arraydw_arraydl_arraydd(void) {
+
+  struct array *arr;
+  int index = 0, q, i = 0, data_size;
+  char bak[256];
+
+  strcpy(bak, g_current_directive);
+
+  if (strcaselesscmp(g_current_directive, "ARRAYDB") == 0)
+    data_size = 1;
+  else if (strcaselesscmp(g_current_directive, "ARRAYDW") == 0)
+    data_size = 2;
+  else if (strcaselesscmp(g_current_directive, "ARRAYDL") == 0)
+    data_size = 3;
+  else if (strcaselesscmp(g_current_directive, "ARRAYDD") == 0)
+    data_size = 4;
+  else {
+    snprintf(g_error_message, sizeof(g_error_message), "Unsupported directive \".%s\"! Please submit a bug report!\n", g_current_directive);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+  
+  /* skip NAME if present */
+  if (compare_next_token("NAME") == SUCCEEDED)
+    skip_next_token();
+
+  if (get_next_plain_string() == FAILED)
+    return FAILED;
+
+  /* check that the array exists */
+  arr = _get_array(g_tmp);
+  if (arr == NULL) {
+    snprintf(g_error_message, sizeof(g_error_message), "Array \"%s\" doesn't exist.\n", g_tmp);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+
+  /* skip INDICES if present */
+  if (compare_next_token("INDICES") == SUCCEEDED)
+    skip_next_token();
+
+  while (1) {
+    q = input_number();
+
+    if (q == FAILED)
+      return FAILED;
+    else if (q == SUCCEEDED) {
+      /* immediate values are accepted */
+    }
+    else if (q == INPUT_NUMBER_STRING) {
+      /* .ARRAYDB takes also strings */
+    }
+    else if (q == INPUT_NUMBER_EOL) {
+      next_line();
+      break;
+    }
+    else {
+      snprintf(g_error_message, sizeof(g_error_message), ".%s needs an immediate value or a string for the index.\n", bak);
+      print_error(g_error_message, ERROR_DIR);
+      return FAILED;
+    }
+
+    if (q == SUCCEEDED) {
+      index = g_parsed_int;
+
+      if (index < 0) {
+        snprintf(g_error_message, sizeof(g_error_message), ".%s needs a positive or zero value for the index.\n", bak);
+        print_error(g_error_message, ERROR_DIR);
+        return FAILED;
+      }
+      if (index >= arr->size) {
+        snprintf(g_error_message, sizeof(g_error_message), "Index %d is out of array \"%s\"'s size of %d items.\n", index, arr->name, arr->size);
+        print_error(g_error_message, ERROR_DIR);
+        return FAILED;
+      }
+
+      i = arr->data[index];
+    }
+    
+    if (data_size == 1) {
+      if (q == SUCCEEDED) {
+        if (i < -128 || i > 255) {
+          snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array (index %d) is out of 8-bit range!\n", i, index);
+          print_error(g_error_message, ERROR_DIR);
+          return FAILED;
+        }
+
+        fprintf(g_file_out_ptr, "d%d ", i);
+      }
+      else if (q == INPUT_NUMBER_STRING) {
+        int k;
+
+        for (k = 0; k < g_string_size; k++) {
+          index = (int)g_label[k];
+
+          if (index >= arr->size) {
+            snprintf(g_error_message, sizeof(g_error_message), "Index %d ('%c') is out of array \"%s\"'s size of %d items.\n", index, (char)index, arr->name, arr->size);
+            print_error(g_error_message, ERROR_DIR);
+            return FAILED;
+          }
+
+          i = arr->data[index];
+
+          if (i < -128 || i > 255) {
+            snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array (index %d, '%c') is out of 8-bit range!\n", i, index, (char)index);
+            print_error(g_error_message, ERROR_DIR);
+            return FAILED;
+          }
+
+          fprintf(g_file_out_ptr, "d%d ", i);
+        }
+      }
+    }
+    else if (data_size == 2) {
+      if (q == SUCCEEDED) {
+        if (i < -32768 || i > 65535) {
+          snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array (index %d) is out of 16-bit range!\n", i, index);
+          print_error(g_error_message, ERROR_DIR);
+          return FAILED;
+        }
+
+        fprintf(g_file_out_ptr, "y%d ", i);
+      }
+      else if (q == INPUT_NUMBER_STRING) {
+        int k;
+
+        for (k = 0; k < g_string_size; k++) {
+          index = (int)g_label[k];
+
+          if (index >= arr->size) {
+            snprintf(g_error_message, sizeof(g_error_message), "Index %d ('%c') is out of array \"%s\"'s size of %d items.\n", index, (char)index, arr->name, arr->size);
+            print_error(g_error_message, ERROR_DIR);
+            return FAILED;
+          }
+
+          i = arr->data[index];
+
+          if (i < -32768 || i > 65535) {
+            snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array (index %d, '%c') is out of 16-bit range!\n", i, index, (char)index);
+            print_error(g_error_message, ERROR_DIR);
+            return FAILED;
+          }
+
+          fprintf(g_file_out_ptr, "y%d ", i);
+        }
+      }
+    }
+    else if (data_size == 3) {
+      if (q == SUCCEEDED) {
+        if (i < -8388608 || i > 16777215) {
+          snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array (index %d) is out of 24-bit range!\n", i, index);
+          print_error(g_error_message, ERROR_DIR);
+          return FAILED;
+        }
+
+        fprintf(g_file_out_ptr, "z%d ", i);
+      }
+      else if (q == INPUT_NUMBER_STRING) {
+        int k;
+
+        for (k = 0; k < g_string_size; k++) {
+          index = (int)g_label[k];
+
+          if (index >= arr->size) {
+            snprintf(g_error_message, sizeof(g_error_message), "Index %d ('%c') is out of array \"%s\"'s size of %d items.\n", index, (char)index, arr->name, arr->size);
+            print_error(g_error_message, ERROR_DIR);
+            return FAILED;
+          }
+
+          i = arr->data[index];
+
+          if (i < -8388608 || i > 16777215) {
+            snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array (index %d, '%c') is out of 24-bit range!\n", i, index, (char)index);
+            print_error(g_error_message, ERROR_DIR);
+            return FAILED;
+          }
+
+          fprintf(g_file_out_ptr, "z%d ", i);
+        }
+      }
+    }
+    else if (data_size == 4) {
+      if (q == SUCCEEDED) {
+        /*
+          if (i < -2147483648 || i > 2147483647) {
+          snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array is out of 32-bit range!\n", i);
+          print_error(g_error_message, ERROR_DIR);
+          return FAILED;
+          }
+        */
+
+        fprintf(g_file_out_ptr, "u%d ", i);
+      }
+      else if (q == INPUT_NUMBER_STRING) {
+        int k;
+
+        for (k = 0; k < g_string_size; k++) {
+          index = (int)g_label[k];
+
+          if (index >= arr->size) {
+            snprintf(g_error_message, sizeof(g_error_message), "Index %d ('%c') is out of array \"%s\"'s size of %d items.\n", index, (char)index, arr->name, arr->size);
+            print_error(g_error_message, ERROR_DIR);
+            return FAILED;
+          }
+
+          i = arr->data[index];
+
+          /*
+          if (i < -2147483648 || i > 2147483647) {
+            snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array (index %d, '%c') is out of 32-bit range!\n", i, index, (char)index);
+            print_error(g_error_message, ERROR_DIR);
+            return FAILED;
+          }
+          */
+
+          fprintf(g_file_out_ptr, "u%d ", i);
+        }
+      }
+    }
+  }
+  
+  return SUCCEEDED;
+}
+
+
 int directive_define_def_equ(void) {
   
   int j, g_size, export, q;
@@ -8848,6 +9073,11 @@ int parse_directive(void) {
 
   if (strcaselesscmp(g_current_directive, "ARRAYOUT") == 0)
     return directive_arrayout();
+
+  /* ARRAYDB/ARRAYDW/ARRAYDL/ARRAYDD? */
+
+  if (strcaselesscmp(g_current_directive, "ARRAYDB") == 0 || strcaselesscmp(g_current_directive, "ARRAYDW") == 0 || strcaselesscmp(g_current_directive, "ARRAYDL") == 0 || strcaselesscmp(g_current_directive, "ARRAYDD") == 0)
+    return directive_arraydb_arraydw_arraydl_arraydd();
 
   /* DDM? */
 
