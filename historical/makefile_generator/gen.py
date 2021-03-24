@@ -25,6 +25,13 @@ cpus = [
     {'name': 'z80', 'define': 'Z80'}
 ]
 
+warning = [
+    '###################################################',
+    '# WARNING: This file was automatically generated. #',
+    '###################################################',
+    '',
+]
+
 # First we instantiate a new Template for each platform.
 # For now, only MS-DOS is being generated.
 msdos_stub = open('makefile.msdos.template')
@@ -182,5 +189,5 @@ for cpu in cpus:
         os.mkdir(output_folder)
 
     f = open(output_folder + '/makefile.msdos.' + cpu['name'], "w")
-    f.write(msdos_out)
+    f.write('\r\n'.join(warning) + msdos_out)
     f.close()

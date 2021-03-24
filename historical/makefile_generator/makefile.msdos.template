@@ -1,6 +1,3 @@
-###################################################
-# WARNING: This file was automatically generated. # 
-###################################################
 
 CC = gcc
 CFLAGS = -mtune=i486 -c -O3 -ansi -pedantic -Wall -DMSDOS -D@CPU_DEFINE -DNDEBUG=1
