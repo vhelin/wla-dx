@@ -1,12 +1,16 @@
 from string import Template
 import os
-import re
 
+# Config
 output_folder = '../makefiles'
+compile_command = '$(CC) $(CFLAGS)'
+template_delimiter = '@'
 
-# Our templates use "@" as delimiter
-class MyTemplate(Template):
-    delimiter = "@"
+warning_message = [
+    '###################################################',
+    '# WARNING: This file was automatically generated. #',
+    '###################################################',
+]
 
 cpus = [
     {'name': '6502', 'define': 'MCS6502'},
@@ -25,26 +29,47 @@ cpus = [
     {'name': 'z80', 'define': 'Z80'}
 ]
 
-warning = [
-    '###################################################',
-    '# WARNING: This file was automatically generated. #',
-    '###################################################',
-    '',
-]
+def main():
+    class MyTemplate(Template):
+        delimiter = template_delimiter
 
-# First we instantiate a new Template for each platform.
-# For now, only MS-DOS is being generated.
-msdos_stub = open('makefile.msdos.template')
-msdos_stub_contents = msdos_stub.read()
-msdos_stub.close()
-msdos_template = MyTemplate(msdos_stub_contents)
+    # Here we instantiate a new Template for each platform.
+    # For now, only MS-DOS and Amiga are generated.
+    msdos_stub = open('makefile.msdos.template')
+    msdos_stub_contents = msdos_stub.read()
+    msdos_stub.close()
+    msdos_template = MyTemplate(msdos_stub_contents)
 
-# Then, we start generating makefiles for each CPU that WLA can assemble.
-for cpu in cpus:
-    # Here we have a dictionary where each item represents a C source file.
+    amiga_stub = open('makefile.amiga.template')
+    amiga_stub_contents = amiga_stub.read()
+    amiga_stub.close()
+    amiga_template = MyTemplate(amiga_stub_contents)
+
+    # Create output directory if necessary
+    if not os.path.exists(output_folder):
+        print('Created output directory: ' + output_folder)
+        os.mkdir(output_folder)
+
+    for cpu in cpus:
+        msdos = generate(cpu, '\r\n', msdos_template)
+        amiga = generate(cpu, '\n', amiga_template)
+
+        f = open(output_folder + '/makefile.msdos.' + cpu['name'], "w")
+        f.write(msdos)
+        f.close()
+
+        f = open(output_folder + '/makefile.amiga.' + cpu['name'], "w")
+        f.write(amiga)
+        f.close()
+    
+    print('Makefiles successfully generated!')
+
+
+def generate(cpu, new_line, template):
+    # First we define a dictionary where each item represents a C source file.
     # The item key is the file name and the value is an array containing its
     # includes. Note that only direct includes are added. Indirect includes
-    # are handled below.
+    # are handled next.
     sources = {
         'main.c': [
             'main.h',
@@ -154,11 +179,10 @@ for cpu in cpus:
         ]
     }
 
-
-    rules = []
-
     # Now build the rules list by iterating the source files
     # and adding their direct and indirect dependencies. 
+    rules = []
+
     for source, deps in sources.items():
         obj = source[:-2] + '.o'
         rule = obj + ': ' + source + ' '
@@ -168,26 +192,32 @@ for cpu in cpus:
             if dep in headers:
                 rule_deps += headers[dep]
 
-        rule += ' '.join(rule_deps) + '\r\n\t$(CC) $(CFLAGS) ' + source
+        rule += '{}{}\t{} {}'.format(
+            ' '.join(rule_deps),
+            new_line,
+            compile_command,
+            source
+        )
 
         rules.append(rule)
     
     rules.sort()
     
     # After all rules for this CPU are created, we prepare the variables to
-    # substitute in the templates, apply them and save the files
+    # substitute in the templates, apply them and return the results
     substitutions = {
         'CPU': cpu['name'],
         'CPU_DEFINE': cpu['define'],
         'OFILES': ' '.join([s[:-2] + '.o' for s in sources]),
-        'RULES': '\r\n\r\n'.join(rules),
+        'RULES': (new_line*2).join(rules),
     }
 
-    msdos_out = msdos_template.safe_substitute(substitutions)
+    result = template.safe_substitute(substitutions)
     
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
 
-    f = open(output_folder + '/makefile.msdos.' + cpu['name'], "w")
-    f.write('\r\n'.join(warning) + msdos_out)
-    f.close()
+    return new_line.join(warning_message) + new_line*2 + result
+
+
+main()
