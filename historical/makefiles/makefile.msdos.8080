@@ -1,5 +1,5 @@
 ###################################################
-# WARNING: This file was automatically generated. # 
+# WARNING: This file was automatically generated. #
 ###################################################
 
 CC = gcc
@@ -11,6 +11,7 @@ OFILES = mersenne_twister.o crc32.o hashmap.o stack.o parse.o main.o pass_1.o pa
 
 all: $(OFILES)
 	$(LD) $(LDFLAGS) $(OFILES) -o wla-8080.exe
+
 
 crc32.o: crc32.c crc32.h
 	$(CC) $(CFLAGS) crc32.c
@@ -56,6 +57,7 @@ printf.o: printf.c printf.h
 
 stack.o: stack.c stack.h defines.h hashmap.h shared.h hashmap.h parse.h pass_1.h include_file.h printf.h
 	$(CC) $(CFLAGS) stack.c
+
 
 clean:
 	DEL /F /Q *.o; DEL /F /Q *.d; del wla-8080.exe
