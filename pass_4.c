@@ -83,7 +83,7 @@ static int g_dstruct_start = -1, g_special_id = 0;
 
 
 
-int new_unknown_reference(int type) {
+struct label_def *new_unknown_reference(int type) {
 
   struct label_def *label;
   int n = 0, j = 0;
@@ -97,13 +97,13 @@ int new_unknown_reference(int type) {
     n--;
   if (n >= 0) {
     if (mangle_label(&g_tmp[j], g_parent_labels[n]->label, n, MAX_NAME_LENGTH-j) == FAILED)
-      return FAILED;
+      return NULL;
   }
 
   label = calloc(sizeof(struct label_def), 1);
   if (label == NULL) {
     fprintf(stderr, "%s:%d: NEW_UNKNOWN_REFERENCE: Out of memory.\n", get_file_name(g_filename_id), g_line_number);
-    return FAILED;
+    return NULL;
   }
 
   label->symbol = NO;
@@ -131,6 +131,8 @@ int new_unknown_reference(int type) {
   label->slot = g_slot;
   label->base = g_base;
   label->special_id = g_special_id;
+  label->bits_position = 0;
+  label->bits_to_define = 0;
 
   /* outside bank header section */
   if (g_bankheader_status == OFF) {
@@ -148,7 +150,7 @@ int new_unknown_reference(int type) {
     if (label->label[0] == '_') {
       fprintf(stderr, "%s:%d: NEW_UNKNOWN_REFERENCE: Referring to a local label (\"%s\") from inside a bank header section is not allowed.\n",
               get_file_name(g_filename_id), g_line_number, label->label);
-      return FAILED;
+      return NULL;
     }
     if (g_unknown_header_labels_last == NULL) {
       g_unknown_header_labels = label;
@@ -160,7 +162,7 @@ int new_unknown_reference(int type) {
     }
   }
 
-  return SUCCEEDED;
+  return label;
 }
 
 
@@ -247,13 +249,25 @@ int add_namespace_to_stack_references(struct stack *st, char *name_space) {
 }
 
 
+static void _bits_add_bit(int *bits_byte, int *bits_position, int *bits_to_define, int data) {
+
+  int bit = (data >> (*bits_to_define - 1)) & 1;
+
+  *bits_to_define = *bits_to_define - 1;
+
+  *bits_byte = *bits_byte | (bit << (7 - *bits_position));
+
+  *bits_position = *bits_position + 1;
+}
+
+
 int pass_4(void) {
 
   unsigned char *cp;
   FILE *final_ptr;
   double dou;
   char *t, c;
-  int i, o, z, y, add_old = 0, x, q, ov, inside_macro = 0, inside_repeat = 0, inz, ind;
+  int i, o, z, y, add_old = 0, x, q, ov, inside_macro = 0, inside_repeat = 0, inz, ind, bits_position = 0, bits_byte = 0;
   float f;
 
   memset(g_parent_labels, 0, sizeof(g_parent_labels));
@@ -624,6 +638,214 @@ int pass_4(void) {
 
       continue;
 
+      /* BITS */
+
+    case '+':
+      {
+        int bits_to_define;
+        char type;
+        
+        fscanf(g_file_out_ptr, "%d ", &bits_to_define);
+
+        if (bits_to_define == 999) {
+          /* add the last byte if there is any data in it */
+
+          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .BITS' bits", get_file_name(g_filename_id), g_line_number);
+
+          if (bits_position > 0) {
+            if (mem_insert(bits_byte) == FAILED)
+              return FAILED;
+          }
+
+          bits_byte = 0;
+          bits_position = 0;
+
+          continue;
+        }
+
+        fscanf(g_file_out_ptr, "%c", &type);
+
+        if (type == 'a') {
+          int data;
+          
+          fscanf(g_file_out_ptr, "%d", &data);
+
+          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .BITS' bits", get_file_name(g_filename_id), g_line_number);
+
+          while (bits_to_define > 0) {
+            int bits_to_define_this_byte = 8 - bits_position;
+            int bits = 0;
+            
+            if (bits_to_define_this_byte > bits_to_define)
+              bits_to_define_this_byte = bits_to_define;
+
+            for (bits = 0; bits < bits_to_define_this_byte; bits++)
+              _bits_add_bit(&bits_byte, &bits_position, &bits_to_define, data);
+
+            if (bits_position == 8) {
+              bits_position = 0;
+              if (mem_insert(bits_byte) == FAILED)
+                return FAILED;
+              bits_byte = 0;
+            }
+          }
+        }
+        else if (type == 'b') {
+          struct label_def *label;
+          
+          fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+
+          if (g_namespace[0] != 0) {
+            if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+              if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+                return FAILED;
+            }
+          }
+
+          x = 0;
+          hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
+          if (g_tmp_def != NULL) {
+            if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
+              fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
+              return FAILED;
+            }
+            else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
+              o = (int)g_tmp_def->value;
+              x = 1;
+
+              /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+              snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .BITS' bits", get_file_name(g_filename_id), g_line_number);
+
+              while (bits_to_define > 0) {
+                int bits_to_define_this_byte = 8 - bits_position;
+                int bits = 0;
+            
+                if (bits_to_define_this_byte > bits_to_define)
+                  bits_to_define_this_byte = bits_to_define;
+
+                for (bits = 0; bits < bits_to_define_this_byte; bits++)
+                  _bits_add_bit(&bits_byte, &bits_position, &bits_to_define, o);
+
+                if (bits_position == 8) {
+                  bits_position = 0;
+                  if (mem_insert(bits_byte) == FAILED)
+                    return FAILED;
+                  bits_byte = 0;
+                }
+              }
+            }
+          }
+
+          if (x == 1)
+            continue;
+
+          label = new_unknown_reference(REFERENCE_TYPE_BITS);
+          if (label == NULL)
+            return FAILED;
+
+          label->bits_position = bits_position;
+          label->bits_to_define = bits_to_define;
+          
+          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a .BITS reference", get_file_name(g_filename_id), g_line_number);
+
+          /* add zeroes */
+          while (bits_to_define > 0) {
+            int bits_to_define_this_byte = 8 - bits_position;
+            int bits = 0;
+            
+            if (bits_to_define_this_byte > bits_to_define)
+              bits_to_define_this_byte = bits_to_define;
+
+            for (bits = 0; bits < bits_to_define_this_byte; bits++)
+              _bits_add_bit(&bits_byte, &bits_position, &bits_to_define, 0);
+
+            if (bits_position == 8) {
+              bits_position = 0;
+              if (mem_insert(bits_byte) == FAILED)
+                return FAILED;
+              bits_byte = 0;
+            }
+          }
+
+          continue;
+        }
+        else if (type == 'c') {
+          fscanf(g_file_out_ptr, "%d", &inz);
+
+          if (g_bankheader_status == OFF)
+            g_stacks_tmp = g_stacks_first;
+          else
+            g_stacks_tmp = g_stacks_header_first;
+
+          while (g_stacks_tmp != NULL) {
+            if (g_stacks_tmp->id == inz)
+              break;
+            g_stacks_tmp = g_stacks_tmp->next;
+          }
+
+          if (g_stacks_tmp == NULL) {
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
+            return FAILED;
+          }
+
+          if (g_stacks_tmp->section_status == ON) {
+            /* relative address, to the beginning of the section */
+            g_stacks_tmp->address = g_sec_tmp->i;
+          }
+          else {
+            /* complete address, in ROM memory */
+            g_stacks_tmp->address = g_pc_bank;
+          }
+
+          g_stacks_tmp->bank = g_rom_bank;
+          g_stacks_tmp->slot = g_slot;
+          g_stacks_tmp->type = STACK_TYPE_BITS;
+          g_stacks_tmp->base = g_base;
+          g_stacks_tmp->bits_position = bits_position;
+          g_stacks_tmp->bits_to_define = bits_to_define;
+
+          if (mangle_stack_references(g_stacks_tmp) == FAILED)
+            return FAILED;
+
+          if (g_namespace[0] != 0) {
+            if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+              if (add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
+                return FAILED;
+            }
+          }
+        
+          /* this stack was referred from the code */
+          g_stacks_tmp->position = STACK_POSITION_CODE;
+
+          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for .BITS' bits", get_file_name(g_filename_id), g_line_number);
+
+          /* add zeroes */
+          while (bits_to_define > 0) {
+            int bits_to_define_this_byte = 8 - bits_position;
+            int bits = 0;
+            
+            if (bits_to_define_this_byte > bits_to_define)
+              bits_to_define_this_byte = bits_to_define;
+
+            for (bits = 0; bits < bits_to_define_this_byte; bits++)
+              _bits_add_bit(&bits_byte, &bits_position, &bits_to_define, 0);
+
+            if (bits_position == 8) {
+              bits_position = 0;
+              if (mem_insert(bits_byte) == FAILED)
+                return FAILED;
+              bits_byte = 0;
+            }
+          }
+        }
+
+        continue;
+      }
+      
       /* DATA BLOCK from .INCBIN */
 
     case 'D':
@@ -1073,7 +1295,7 @@ int pass_4(void) {
       if (x == 1)
         continue;
 
-      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_24BIT) == FAILED)
+      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_24BIT) == NULL)
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1140,7 +1362,7 @@ int pass_4(void) {
       if (x == 1)
         continue;
 
-      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_32BIT) == FAILED)
+      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_32BIT) == NULL)
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1201,7 +1423,7 @@ int pass_4(void) {
       if (x == 1)
         continue;
 
-      if (new_unknown_reference(REFERENCE_TYPE_RELATIVE_16BIT) == FAILED)
+      if (new_unknown_reference(REFERENCE_TYPE_RELATIVE_16BIT) == NULL)
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1258,7 +1480,7 @@ int pass_4(void) {
       if (x == 1)
         continue;
 
-      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_16BIT) == FAILED)
+      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_16BIT) == NULL)
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1313,7 +1535,7 @@ int pass_4(void) {
       if (x == 1)
         continue;
 
-      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_13BIT) == FAILED)
+      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_13BIT) == NULL)
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1361,7 +1583,7 @@ int pass_4(void) {
       if (x == 1)
         continue;
 
-      if (new_unknown_reference(REFERENCE_TYPE_RELATIVE_8BIT) == FAILED)
+      if (new_unknown_reference(REFERENCE_TYPE_RELATIVE_8BIT) == NULL)
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1406,7 +1628,7 @@ int pass_4(void) {
       if (x == 1)
         continue;
 
-      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_8BIT) == FAILED)
+      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_8BIT) == NULL)
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1465,7 +1687,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAA");
+    fprintf(final_ptr, "WLAB");
 
     /* misc bits */
     ind = 0;
@@ -1546,6 +1768,9 @@ int pass_4(void) {
         return FAILED;
       }
 
+      if (g_label_tmp->type == REFERENCE_TYPE_BITS)
+        fprintf(final_ptr, "%c%c", g_label_tmp->bits_position, g_label_tmp->bits_to_define);
+      
       ov = g_label_tmp->linenumber;
       WRITEOUT_OV;
 
@@ -1570,6 +1795,9 @@ int pass_4(void) {
       WRITEOUT_OV;
 
       fprintf(final_ptr, "%c%c%c", g_stacks_tmp->filename_id, g_stacks_tmp->stacksize, g_stacks_tmp->position);
+
+      if (g_stacks_tmp->type == STACK_TYPE_BITS)
+        fprintf(final_ptr, "%c%c", g_stacks_tmp->bits_position, g_stacks_tmp->bits_to_define);
 
       ov = g_stacks_tmp->address;
       WRITEOUT_OV;
@@ -1671,7 +1899,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAb%c", g_emptyfill);
+    fprintf(final_ptr, "WLAc%c", g_emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -1848,8 +2076,13 @@ int pass_4(void) {
 
     g_label_tmp = g_unknown_labels;
     while (g_label_tmp != NULL) {
-      fprintf(final_ptr, "%s%c%c%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, g_label_tmp->special_id, g_label_tmp->filename_id, g_label_tmp->slot);
+      fprintf(final_ptr, "%s%c%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, g_label_tmp->special_id, g_label_tmp->filename_id);
 
+      if (g_label_tmp->type == REFERENCE_TYPE_BITS)
+        fprintf(final_ptr, "%c%c", g_label_tmp->bits_position, g_label_tmp->bits_to_define);
+
+      fprintf(final_ptr, "%c", g_label_tmp->slot);
+      
       ov = g_label_tmp->section_id;
       WRITEOUT_OV;
 
@@ -1904,8 +2137,13 @@ int pass_4(void) {
       ov = g_stacks_tmp->section_id;
       WRITEOUT_OV;
 
-      fprintf(final_ptr, "%c%c%c%c", g_stacks_tmp->filename_id, g_stacks_tmp->stacksize, g_stacks_tmp->position, g_stacks_tmp->slot);
+      fprintf(final_ptr, "%c%c%c", g_stacks_tmp->filename_id, g_stacks_tmp->stacksize, g_stacks_tmp->position);
 
+      if (g_stacks_tmp->type == STACK_TYPE_BITS)
+        fprintf(final_ptr, "%c%c", g_stacks_tmp->bits_position, g_stacks_tmp->bits_to_define);
+
+      fprintf(final_ptr, "%c", g_stacks_tmp->slot);
+      
       ov = g_stacks_tmp->address;
       WRITEOUT_OV;
 

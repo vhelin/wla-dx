@@ -96,6 +96,7 @@ ALL  ``.ASM``
 ALL  ``.BACKGROUND "parallax.gb"``
 ALL  ``.BANK 0 SLOT 1``
 ALL  ``.BASE $80``
+ALL  ``.BITS 4 DATA %1011, %0100, %1010, %0101``
 ALL  ``.BLOCK "Block1"``
 ALL  ``.BR``
 ALL  ``.BREAKPOINT``
@@ -127,6 +128,7 @@ ALL  ``.ELSE``
 ALL  ``.ENDA``
 ALL  ``.ENDASM``
 ALL  ``.ENDB``
+ALL  ``.ENDBITS``
 ALL  ``.ENDE``
 ALL  ``.ENDIF``
 ALL  ``.ENDM``
@@ -578,6 +580,36 @@ contribute to the bank number (bank number == ``.BASE`` + ROM bank of the
 label).
 
 On 65816, use ``.LOROM``, ``.HIROM`` or ``.EXHIROM`` to define the ROM mode. 
+
+This is not a compulsory directive.
+
+
+``.BITS 4 DATA %1011, %0100, %1010, %0101``
+-------------------------------------------
+
+This is the same as ``.DB``, but defines bits (1-32). Consecutive ``.BITS``
+will supply bits to the same bitstream, so don't do any stream breaking
+``.DB`` calls or anything that defines data. ``DATA`` is optional. Give
+
+    .BITS START
+
+to start a new bitstream.
+
+Here's an example of how to define two bytes worth of bits::
+
+    .BITS 6 CABBAGE, %011110    ; CABBAGE == %110011
+    .BITS 4 8+2                 ; 8 + 2 == %1010
+    .BITS 4 %1011
+    .ENDBITS                    ; writes the final byte in the bitstream
+                                ; and resets the counters
+
+If your ``.BITS`` bitstream doesn't define exactly a multiple of 8 bits,
+the remaining bits are set to zero. Remember to issue ``.ENDBITS`` after
+the last ``.BITS``.
+
+Currently the bits are written from most significant bit to the least
+significant bit, so our previous example would give us (consecutive) bytes
+%11001101, %11101010 and %10110000 ($CD, $EA and $B0).
 
 This is not a compulsory directive.
 
@@ -1149,6 +1181,15 @@ are used this one is required to terminate them.
 Terminates ``.BLOCK``.
 
 This is not a compulsory directive, but when ``.BLOCK`` is used this one is
+required to terminate it.
+
+
+``.ENDBITS``
+------------
+
+Terminates ``.BITS``.
+
+This is not a compulsory directive, but when ``.BITS`` is used this one is
 required to terminate it.
 
 

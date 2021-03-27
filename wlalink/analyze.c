@@ -613,6 +613,16 @@ int collect_dlr(void) {
         r->type = *(t++);
         r->special_id = *(t++);
         r->file_id_source = *(t++);
+
+        if (r->type == REFERENCE_TYPE_BITS) {
+          r->bits_position = *(t++);
+          r->bits_to_define = *(t++);
+        }
+        else {
+          r->bits_position = 0;
+          r->bits_to_define = 0;
+        }
+
         r->slot = *(t++);
         r->section = READ_T;
         if (r->section == 0)
@@ -652,6 +662,16 @@ int collect_dlr(void) {
         s->file_id_source = *(t++);
         x = *(t++);
         s->position = *(t++);
+
+        if (s->type == STACK_TYPE_BITS) {
+          s->bits_position = *(t++);
+          s->bits_to_define = *(t++);
+        }
+        else {
+          s->bits_position = 0;
+          s->bits_to_define = 0;
+        }
+        
         s->slot = *(t++);
         s->address = READ_T;
         s->linenumber = READ_T;
@@ -842,6 +862,16 @@ int collect_dlr(void) {
         r->section = READ_T;
         r->section += section;
         r->file_id_source = *(t++);
+
+        if (r->type == REFERENCE_TYPE_BITS) {
+          r->bits_position = *(t++);
+          r->bits_to_define = *(t++);
+        }
+        else {
+          r->bits_position = 0;
+          r->bits_to_define = 0;
+        }
+
         r->linenumber = READ_T;
         r->section_status = ON;
         r->address = READ_T;
@@ -876,6 +906,16 @@ int collect_dlr(void) {
         s->file_id_source = *(t++);
         x = *(t++);
         s->position = *(t++);
+
+        if (s->type == STACK_TYPE_BITS) {
+          s->bits_position = *(t++);
+          s->bits_to_define = *(t++);
+        }
+        else {
+          s->bits_position = 0;
+          s->bits_to_define = 0;
+        }
+
         s->address = READ_T;
         s->linenumber = READ_T;
         s->stacksize = x;

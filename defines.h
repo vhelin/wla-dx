@@ -98,6 +98,7 @@
 /* t - namespace             */
 /* n - 0-7 + label (2 bytes) */
 /* N - 0-7 + stack (2 bytes) */
+/* + - .bits [bits]: a [value] / b [label] / c [stack] */
 
 /**************************************************************/
 /* gb-z80                                                     */
@@ -518,6 +519,8 @@ struct label_def {
   int  base;
   int  filename_id;
   int  linenumber;
+  int  bits_position;
+  int  bits_to_define;
   struct section_def *section_struct;
   struct label_def *next;
 };
@@ -621,6 +624,8 @@ struct stack {
   int section_id;
   int address;
   int special_id;
+  int bits_position;
+  int bits_to_define;
 };
 
 struct stack_item {

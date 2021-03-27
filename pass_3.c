@@ -42,7 +42,7 @@ int pass_3(void) {
   struct block *b;
   FILE *f_in;
   int bank = 0, slot = 0, add = 0, g_file_name_id = 0, inz, line_number = 0, o, add_old = 0, inside_macro = 0, inside_repeat = 0;
-  int base = 0x00;
+  int base = 0x00, bits_current = 0;
   int x, y;
   char c;
   int err;
@@ -125,6 +125,47 @@ int pass_3(void) {
         fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
         return FAILED;
 
+      case '+':
+        if (g_section_status == ON) {
+          int bits_to_add;
+          char type;
+          
+          fscanf(f_in, "%d ", &bits_to_add);
+
+          if (bits_to_add == 0) {
+            bits_current = 0;
+          }
+          else {
+            if (bits_current == 0)
+              add++;
+            bits_current += bits_to_add;
+            while (bits_current > 8) {
+              bits_current -= 8;
+              add++;
+            }
+            if (bits_to_add == 8)
+              bits_current = 0;
+          }
+
+          fscanf(f_in, "%c", &type);
+
+          if (type == 'a')
+            fscanf(f_in, "%*d");
+          else if (type == 'b')
+            fscanf(f_in, "%*s");
+          else if (type == 'c')
+            fscanf(f_in, "%*d");
+          else {
+            fprintf(stderr, "INTERNAL_PASS_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", type);
+            return FAILED;
+          }
+
+          continue;
+        }
+
+        fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
+        return FAILED;
+        
       case 'v':
         fscanf(f_in, "%*d ");
         continue;
@@ -646,6 +687,46 @@ int pass_3(void) {
       fscanf(f_in, "%*d ");
       add += 2;
       continue;
+
+    case '+':
+      {
+        int bits_to_add;
+        char type;
+          
+        fscanf(f_in, "%d ", &bits_to_add);
+
+        if (bits_to_add == 999) {
+          bits_current = 0;
+
+          continue;
+        }
+        else {
+          if (bits_current == 0)
+            add++;
+          bits_current += bits_to_add;
+          while (bits_current > 8) {
+            bits_current -= 8;
+            add++;
+          }
+          if (bits_to_add == 8)
+            bits_current = 0;
+        }
+
+        fscanf(f_in, "%c", &type);
+
+        if (type == 'a')
+          fscanf(f_in, "%*d");
+        else if (type == 'b')
+          fscanf(f_in, "%*s");
+        else if (type == 'c')
+          fscanf(f_in, "%*d");
+        else {
+          fprintf(stderr, "INTERNAL_PASS_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", type);
+          return FAILED;
+        }
+
+        continue;
+      }
 
 #ifdef SPC700
     case 'n':

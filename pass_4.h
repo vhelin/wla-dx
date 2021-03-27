@@ -3,7 +3,7 @@
 #define _PASS_4_H
 
 int pass_4(void);
-int new_unknown_reference(int type);
+struct label_def *new_unknown_reference(int type);
 int mem_insert(unsigned char x);
 int mem_insert_padding(void);
 int mem_insert_absolute(int add, unsigned char x);

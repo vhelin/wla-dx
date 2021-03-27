@@ -1285,6 +1285,21 @@ int fix_references(void) {
           mem_insert_ref(x + 3, i & 0xFF);
         }
       }
+      /* bits */
+      else if (r->type == REFERENCE_TYPE_BITS) {
+        int mask = 0;
+
+        if (r->bits_to_define < 32)
+          mask = ~((1 << r->bits_to_define) - 1);
+
+        if ((i & mask) != 0) {
+          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->bits_to_define, i, i);
+          return FAILED;
+        }
+
+        if (mem_insert_bits(x, i, r->bits_position, r->bits_to_define) == FAILED)
+          return FAILED;
+      }
       /* relative/direct 8-bit with a label */
       else {
         mem_insert_ref(x, i & 0xFF);
@@ -1417,6 +1432,23 @@ int fix_references(void) {
           mem_insert_ref(x, (i >> 8) & 0xFF);
           mem_insert_ref(x + 1, i & 0xFF);
         }
+      }
+      /* bits */
+      else if (r->type == REFERENCE_TYPE_BITS) {
+        int mask = 0;
+
+        i = (int)l->address;
+
+        if (r->bits_to_define < 32)
+          mask = ~((1 << r->bits_to_define) - 1);
+
+        if ((i & mask) != 0) {
+          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->bits_to_define, i, i);
+          return FAILED;
+        }
+
+        if (mem_insert_bits(x, i, r->bits_position, r->bits_to_define) == FAILED)
+          return FAILED;
       }
       else {
         i = ((int)l->address) & 0xFFFF;
@@ -2125,6 +2157,20 @@ int compute_pending_calculations(void) {
           return FAILED;
       }
     }
+    else if (sta->type == STACK_TYPE_BITS) {
+      int mask = 0;
+
+      if (sta->bits_to_define < 32)
+        mask = ~((1 << sta->bits_to_define) - 1);
+
+      if ((k & mask) != 0) {
+        fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, sta->bits_to_define, k, k);
+        return FAILED;
+      }
+
+      if (mem_insert_bits(a, k, sta->bits_position, sta->bits_to_define) == FAILED)
+        return FAILED;
+    }
     else {
       fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Unsupported pending calculation type. Please send an error report!\n",
               get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
@@ -2612,7 +2658,44 @@ int write_bank_header_calculations(struct stack *sta) {
     t++;
     *t = (*t & 0xE0) | ((k >> 8) & 0x1F);
   }
-  else {
+  else if (sta->type == STACK_TYPE_BITS) {
+    int mask = 0, bits_position, bits_to_define, bits_byte;
+
+    if (sta->bits_to_define < 32)
+      mask = ~((1 << sta->bits_to_define) - 1);
+
+    if ((k & mask) != 0) {
+      fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, sta->bits_to_define, k, k);
+      return FAILED;
+    }
+
+    bits_position = sta->bits_position;
+    bits_to_define = sta->bits_to_define;
+    
+    bits_byte = *t;
+  
+    while (bits_to_define > 0) {
+      int bits_to_define_this_byte = 8 - bits_position;
+      int bits = 0;
+
+      if (bits_to_define_this_byte > bits_to_define)
+        bits_to_define_this_byte = bits_to_define;
+
+      for (bits = 0; bits < bits_to_define_this_byte; bits++)
+        bits_add_bit(&bits_byte, &bits_position, &bits_to_define, k);
+
+      if (bits_position == 8) {
+        bits_position = 0;
+        *t = (unsigned char)bits_byte;
+        t++;
+        bits_byte = *t;
+      }
+    }
+
+    if (bits_position > 0)
+      *t = (unsigned char)bits_byte;
+  }
+  else if (sta->type == STACK_TYPE_24BIT) {
     if (k < -8388608 || k > 16777215) {
       fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 24-bit range.\n",
               get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
@@ -2633,7 +2716,31 @@ int write_bank_header_calculations(struct stack *sta) {
       *t = k & 0xFF;
     }
   }
-
+  else if (sta->type == STACK_TYPE_32BIT) {
+    if (get_file(sta->file_id)->little_endian == YES) {
+      *t = k & 0xFF;
+      t++;
+      *t = (k >> 8) & 0xFF;
+      t++;
+      *t = (k >> 16) & 0xFF;
+      t++;
+      *t = (k >> 24) & 0xFF;
+    }
+    else {
+      *t = (k >> 24) & 0xFF;
+      t++;
+      *t = (k >> 16) & 0xFF;
+      t++;
+      *t = (k >> 8) & 0xFF;
+      t++;
+      *t = k & 0xFF;
+    }
+  }
+  else {
+    fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Unsupported pending calculation type. Please send an error report!\n",
+            get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+  }
+  
   return SUCCEEDED;
 }
 
@@ -2728,6 +2835,44 @@ int write_bank_header_references(struct reference *r) {
         t++;
         *t = a & 0xFF;
       }
+    }
+    /* bits */
+    else if (r->type == REFERENCE_TYPE_BITS) {
+      int mask = 0, bits_position, bits_to_define, bits_byte;
+
+      if (r->bits_to_define < 32)
+        mask = ~((1 << r->bits_to_define) - 1);
+
+      if ((a & mask) != 0) {
+        fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->bits_to_define, a, a);
+        return FAILED;
+      }
+
+      bits_position = r->bits_position;
+      bits_to_define = r->bits_to_define;
+    
+      bits_byte = *t;
+  
+      while (bits_to_define > 0) {
+        int bits_to_define_this_byte = 8 - bits_position;
+        int bits = 0;
+
+        if (bits_to_define_this_byte > bits_to_define)
+          bits_to_define_this_byte = bits_to_define;
+
+        for (bits = 0; bits < bits_to_define_this_byte; bits++)
+          bits_add_bit(&bits_byte, &bits_position, &bits_to_define, a);
+
+        if (bits_position == 8) {
+          bits_position = 0;
+          *t = (unsigned char)bits_byte;
+          t++;
+          bits_byte = *t;
+        }
+      }
+
+      if (bits_position > 0)
+        *t = (unsigned char)bits_byte;
     }
     else {
       fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: A relative reference (type %d) to label \"%s\".\n",

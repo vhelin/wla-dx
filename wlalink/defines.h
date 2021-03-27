@@ -137,6 +137,8 @@ struct reference {
   int  file_id_source;
   int  linenumber;
   int  special_id;
+  int  bits_position;
+  int  bits_to_define;
   struct reference *next;
   struct reference *prev;
 };
@@ -224,6 +226,8 @@ struct stack {
   int address;
   int memory_address;
   int special_id;
+  int bits_position;
+  int bits_to_define;
 };
 
 struct stack_item {

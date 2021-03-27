@@ -1932,7 +1932,7 @@ int parse_enum_token(void) {
     /* generate a section end label? */
     if (g_extra_definitions == ON)
       generate_label("SECTIONEND_", g_sections_last->name);
-    
+      
     free_struct(g_active_struct);
     g_active_struct = NULL;
 
@@ -2968,6 +2968,76 @@ int directive_hex(void) {
   else {
     print_error(".HEX takes only strings.\n", ERROR_INP);
     return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
+int directive_bits(void) {
+
+  int bits, q;
+
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+
+  q = input_number();
+
+  if (q == FAILED)
+    return FAILED;
+  else if (q == SUCCEEDED) {
+    /* immediate values are accepted */
+  }
+  else {
+    print_error(".BITS needs an immediate value for the number of bits.\n", ERROR_DIR);
+    return FAILED;
+  }  
+
+  bits = g_parsed_int;
+
+  if (bits < 1 || bits > 32) {
+    print_error("The number of bits needs to be between 1 and 32.\n", ERROR_DIR);
+    return FAILED;    
+  }
+    
+  /* skip DATA if present */
+  if (compare_next_token("DATA") == SUCCEEDED)
+    skip_next_token();
+
+  while (1) {
+    q = input_number();
+
+    if (q == SUCCEEDED) {
+      int mask = 0;
+
+      if (bits < 32)
+        mask = ~((1 << bits) - 1);
+        
+      fprintf(g_file_out_ptr, "+%d ", bits);
+
+      if ((g_parsed_int & mask) != 0) {
+        snprintf(g_error_message, sizeof(g_error_message), "We are defining %d bits, but the given value $%x (%d) uses more bits!\n", bits, g_parsed_int, g_parsed_int);
+        print_error(g_error_message, ERROR_DIR);
+        return FAILED;
+      }
+      
+      fprintf(g_file_out_ptr, "a%d ", g_parsed_int);
+    }
+    else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
+      fprintf(g_file_out_ptr, "+%d ", bits);
+      fprintf(g_file_out_ptr, "b%s ", g_label);
+    }
+    else if (q == INPUT_NUMBER_STACK) {
+      fprintf(g_file_out_ptr, "+%d ", bits);
+      fprintf(g_file_out_ptr, "c%d ", g_latest_stack);
+    }
+    else if (q == INPUT_NUMBER_EOL) {
+      next_line();
+      break;
+    }
+    else {
+      print_error(".BITS data must be immediate values, address labels or calculation stacks.\n", ERROR_DIR);
+      return FAILED;
+    }
   }
 
   return SUCCEEDED;
@@ -4990,7 +5060,7 @@ int directive_section(void) {
   /* generate a section start label? */
   if (g_extra_definitions == ON)
     generate_label("SECTIONSTART_", g_sec_tmp->name);
-  
+
   return SUCCEEDED;
 }
 
@@ -6371,6 +6441,8 @@ int directive_arraydef_arraydefine(void) {
   struct array *arr;
   int q;
 
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+
   strcpy(bak, g_current_directive);
 
   /* skip NAME if present */
@@ -6418,6 +6490,8 @@ int directive_arrayin(void) {
   struct array *arr;
   int index, value, q;
   
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+
   /* skip NAME if present */
   if (compare_next_token("NAME") == SUCCEEDED)
     skip_next_token();
@@ -6495,6 +6569,8 @@ int directive_arrayout(void) {
   struct array *arr;
   int index, q;
   
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+
   /* skip NAME if present */
   if (compare_next_token("NAME") == SUCCEEDED)
     skip_next_token();
@@ -6555,6 +6631,8 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
   struct array *arr;
   int index = 0, q, i = 0, data_size;
   char bak[256];
+
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   strcpy(bak, g_current_directive);
 
@@ -9028,7 +9106,20 @@ int parse_directive(void) {
 
   if (strcaselesscmp(g_current_directive, "HEX") == 0)
     return directive_hex();
-    
+
+  /* BITS? */
+
+  if (strcaselesscmp(g_current_directive, "BITS") == 0)
+    return directive_bits();
+
+  /* ENDBITS? */
+
+  if (strcaselesscmp(g_current_directive, "ENDBITS") == 0) {
+    fprintf(g_file_out_ptr, "+999 ");
+
+    return SUCCEEDED;
+  }
+  
   /* ASCTABLE/ASCIITABLE? */
 
   if (strcaselesscmp(g_current_directive, "ASCTABLE") == 0 || strcaselesscmp(g_current_directive, "ASCIITABLE") == 0)

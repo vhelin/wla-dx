@@ -22,8 +22,7 @@ extern int g_verbose_mode, g_section_status, g_cartridgetype, g_output_format;
 int listfile_collect(void) {
 
   int add = 0, skip = 0, file_name_id = 0, inz, line_number = 0, command = 0, inside_macro = 0, inside_repeat = 0;
-  int x, y;
-  int dstruct_start = -1;
+  int x, y, dstruct_start = -1, bits_current = 0;
   struct section_def *section = NULL;
   FILE *file_in;
   char c;
@@ -172,6 +171,46 @@ int listfile_collect(void) {
       add += 2;
       continue;
 
+    case '+':
+      {
+        int bits_to_add;
+        char type;
+          
+        fscanf(file_in, "%d ", &bits_to_add);
+
+        if (bits_to_add == 999) {
+          bits_current = 0;
+
+          continue;
+        }
+        else {
+          if (bits_current == 0)
+            add++;
+          bits_current += bits_to_add;
+          while (bits_current > 8) {
+            bits_current -= 8;
+            add++;
+          }
+          if (bits_to_add == 8)
+            bits_current = 0;
+        }
+
+        fscanf(file_in, "%c", &type);
+
+        if (type == 'a')
+          fscanf(file_in, "%*d");
+        else if (type == 'b')
+          fscanf(file_in, "%*s");
+        else if (type == 'c')
+          fscanf(file_in, "%*d");
+        else {
+          fprintf(stderr, "%s: LISTFILE_COLLECT: Unknown internal .BITS data type \"%c\". Please submit a bug report!\n", get_file_name(file_name_id), type);
+          return FAILED;
+        }
+
+        continue;
+      }
+      
 #ifdef SPC700
     case 'n':
       fscanf(file_in, "%*d %*s ");

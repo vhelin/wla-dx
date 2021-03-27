@@ -133,3 +133,53 @@ int mem_insert_pc(unsigned char d, int slot_current, int bank_current) {
 
   return SUCCEEDED;
 }
+
+
+void bits_add_bit(int *bits_byte, int *bits_position, int *bits_to_define, int data) {
+
+  int bit = (data >> (*bits_to_define - 1)) & 1;
+
+  *bits_to_define = *bits_to_define - 1;
+
+  *bits_byte = *bits_byte | (bit << (7 - *bits_position));
+
+  *bits_position = *bits_position + 1;
+}
+
+
+int mem_insert_bits(int address, int data, int bits_position, int bits_to_define) {
+
+  int bits_byte;
+  
+  if (address > g_romsize || address < 0) {
+    fprintf(stderr, "%s: %s:%d: MEM_INSERT: Address $%x is out of the output range $0-$%x.\n",
+            get_file_name(g_memory_file_id), get_source_file_name(g_memory_file_id, g_memory_file_id_source), g_memory_line_number, address, g_romsize);
+    if (g_mem_insert_action[0] != 0)
+      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
+    return FAILED;
+  }
+
+  bits_byte = g_rom[address];
+  
+  while (bits_to_define > 0) {
+    int bits_to_define_this_byte = 8 - bits_position;
+    int bits = 0;
+
+    if (bits_to_define_this_byte > bits_to_define)
+      bits_to_define_this_byte = bits_to_define;
+
+    for (bits = 0; bits < bits_to_define_this_byte; bits++)
+      bits_add_bit(&bits_byte, &bits_position, &bits_to_define, data);
+
+    if (bits_position == 8) {
+      bits_position = 0;
+      g_rom[address++] = (unsigned char)bits_byte;
+      bits_byte = g_rom[address];
+    }
+  }
+
+  if (bits_position > 0)
+    g_rom[address] = (unsigned char)bits_byte;
+  
+  return SUCCEEDED;
+}
