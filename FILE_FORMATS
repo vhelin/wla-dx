@@ -163,7 +163,7 @@ section:
   n     namespace (terminated with 0)
   4     section id (int)
   1     slot number (0-255)
-  1     file id
+  4     file id (int)
   4     relative address (int)
   4     bank number (int)
   4     base (int)
@@ -281,7 +281,7 @@ sections:
   1     keep the section (0 = no, 1 = yes)
   n     namespace (terminated with 0)
   4     section id (int)
-  1     file id
+  4     file id (int)
   4     number of bytes (int)
   4     alignment (int)
   4     offset (int)
