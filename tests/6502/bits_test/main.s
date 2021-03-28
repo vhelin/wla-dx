@@ -6,9 +6,9 @@
         .ENDME
 
         .ROMBANKMAP
-           BANKSTOTAL 1
+           BANKSTOTAL 2
            BANKSIZE $2000
-           BANKS 1
+           BANKS 2
         .ENDRO
 
         .BANK 0 SLOT 0
@@ -109,3 +109,36 @@ label_0xff:
         .ORG $1FFF
 label_0x1fff:
         
+        .BANK 1 SLOT 0
+        .ORG 0
+
+        .SECTION "BANKHEADER"
+
+        .DB "12>"
+        .DW label_0x7f
+        .BITS 6 CABBAGE, %011110    ; CABBAGE == %110011
+        .BITS 4 8+2                 ; 8 + 2 == %1010
+        .BITS 4 %1011
+        .BITS 1 1
+        .BITS 3 DEFINE_7
+        .BITS 3 DEFINE_4
+        .BITS 1 1
+        .ENDBITS
+        .DB "<12"
+
+        .DB "13>"
+        .BITS 4 DEFINE_4
+        .BITS 32 DEFINE_AF0960FA
+        .BITS 4 DEFINE_7
+        .ENDBITS        
+        .DB "<13"
+
+        .DB "14>"
+        .BITS 6 DEFINE_110010 | 1, DEFINE_010010 | %001100
+        .BITS 4 DEFINE_8 + DEFINE_2
+        .BITS 4 DEFINE_8 + DEFINE_2 + DEFINE_1
+        .BITS 4 HERE_DEFINE_2 | %1000, %1110 & %0110
+        .ENDBITS
+        .DB "<14"
+        
+        .ENDS

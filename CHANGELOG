@@ -21,6 +21,8 @@ v9.13 (28-Mar-2021) [ALL] Added support for nameless INSTANCEOFs in
                       object files.
                     [ALL] Added .FILTER (same as .DBM, but doesn't define
                       any bytes).
+                    [ALL] Pending calculations inside bankheader sections
+                      should work again.
 
 v9.12 (20-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                     [ALL] Added .STRINGMAP and .STRINGMAPTABLE.

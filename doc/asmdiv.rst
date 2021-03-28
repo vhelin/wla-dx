@@ -1553,6 +1553,25 @@ Here's an example of a filter macro that defines bits (four per byte)::
     .bits 4 \1
     .endm
 
+Here's a bigger example where we map some ASCII characters into 4 bits per char::
+
+    // define an array for mapping ASCII values into less bits
+    .ARRAYDEFINE NAME MapArray SIZE 4
+
+    .ARRAYIN NAME MapArray INDEX 'A' VALUES %0000, %0001, %0010, \
+        %0011, %0100, %0101, %0110 // defines mappings for A-G
+    .ARRAYIN NAME MapArray INDEX  0  VALUE %1111
+
+    .MACRO MapInto4Bits
+    .ARRAYOUT NAME MapArray INDEX \1 DEFINITION MAPPING
+    .BITS 4 MAPPING
+    .IF \1 == 0
+        .ENDBITS
+    .ENDIF
+    .ENDM
+
+    .FILTER MapInto4Bits "BAGED", 0
+    
 This is not a compulsory directive.
 
 

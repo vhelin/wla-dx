@@ -2103,7 +2103,12 @@ int pass_4(void) {
 
     g_label_tmp = g_unknown_header_labels;
     while (g_label_tmp != NULL) {
-      fprintf(final_ptr, "%s%c%c%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, 0, g_label_tmp->filename_id, g_label_tmp->slot);
+      fprintf(final_ptr, "%s%c%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, 0, g_label_tmp->filename_id);
+
+      if (g_label_tmp->type == REFERENCE_TYPE_BITS)
+        fprintf(final_ptr, "%c%c", g_label_tmp->bits_position, g_label_tmp->bits_to_define);
+
+      fprintf(final_ptr, "%c", g_label_tmp->slot);
 
       ov = g_label_tmp->section_id;
       WRITEOUT_OV;
@@ -2171,13 +2176,21 @@ int pass_4(void) {
 
     g_stacks_tmp = g_stacks_header_first;
     while (g_stacks_tmp != NULL) {
-      fprintf(final_ptr, "%c", g_stacks_tmp->type);
+      ov = g_stacks_tmp->id;
+      WRITEOUT_OV;
+
+      fprintf(final_ptr, "%c%c", g_stacks_tmp->type, g_stacks_tmp->special_id);
 
       ov = g_stacks_tmp->section_id;
       WRITEOUT_OV;
 
-      fprintf(final_ptr, "%c%c%c%c", g_stacks_tmp->filename_id, g_stacks_tmp->stacksize, g_stacks_tmp->position, g_stacks_tmp->slot);
+      fprintf(final_ptr, "%c%c%c", g_stacks_tmp->filename_id, g_stacks_tmp->stacksize, g_stacks_tmp->position);
 
+      if (g_stacks_tmp->type == STACK_TYPE_BITS)
+        fprintf(final_ptr, "%c%c", g_stacks_tmp->bits_position, g_stacks_tmp->bits_to_define);
+
+      fprintf(final_ptr, "%c", g_stacks_tmp->slot);
+      
       ov = g_stacks_tmp->address;
       WRITEOUT_OV;
 
@@ -2185,6 +2198,9 @@ int pass_4(void) {
       WRITEOUT_OV;
 
       ov = g_stacks_tmp->bank;
+      WRITEOUT_OV;
+
+      ov = g_stacks_tmp->base;
       WRITEOUT_OV;
 
       for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
