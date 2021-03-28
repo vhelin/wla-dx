@@ -45,6 +45,11 @@ def main():
     amiga_stub.close()
     amiga_template = MyTemplate(amiga_stub_contents)
 
+    smake_stub = open('makefile.smake.template')
+    smake_stub_contents = smake_stub.read()
+    smake_stub.close()
+    smake_template = MyTemplate(smake_stub_contents)
+
     # Create output directory if necessary
     if not os.path.exists(output_folder):
         print('Created output directory: ' + output_folder)
@@ -53,6 +58,7 @@ def main():
     for cpu in cpus:
         msdos = generate(cpu, '\r\n', msdos_template)
         amiga = generate(cpu, '\n', amiga_template)
+        smake = generate(cpu, '\n', smake_template)
 
         f = open(output_folder + '/makefile.msdos.' + cpu['name'], "w")
         f.write(msdos)
@@ -60,6 +66,10 @@ def main():
 
         f = open(output_folder + '/makefile.amiga.' + cpu['name'], "w")
         f.write(amiga)
+        f.close()
+
+        f = open(output_folder + '/smake.' + cpu['name'], "w")
+        f.write(smake)
         f.close()
     
     print('Makefiles successfully generated!')
