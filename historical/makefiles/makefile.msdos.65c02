@@ -10,7 +10,7 @@ LDFLAGS = -lm
 OFILES = opcodes_65c02.o mersenne_twister.o crc32.o hashmap.o stack.o parse.o main.o pass_1.o pass_4.o pass_2.o listfile.o pass_3.o include_file.o printf.o opcodes_65c02_tables.o
 
 all: $(OFILES)
-	$(LD) $(LDFLAGS) $(OFILES) -o wla-65c02.exe
+	$(LD) $(LDFLAGS) $(OFILES) -o w-65c02.exe
 
 
 crc32.o: crc32.c crc32.h
@@ -60,4 +60,4 @@ stack.o: stack.c stack.h defines.h hashmap.h shared.h hashmap.h parse.h pass_1.h
 
 
 clean:
-	DEL /F /Q *.o; DEL /F /Q *.d; del wla-65c02.exe
+	DEL /F /Q *.o; DEL /F /Q *.d; del w-65c02.exe

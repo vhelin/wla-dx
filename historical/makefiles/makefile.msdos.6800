@@ -10,7 +10,7 @@ LDFLAGS = -lm
 OFILES = mersenne_twister.o crc32.o hashmap.o stack.o parse.o main.o pass_1.o pass_4.o pass_2.o opcodes_6800_tables.o listfile.o pass_3.o opcodes_6800.o include_file.o printf.o
 
 all: $(OFILES)
-	$(LD) $(LDFLAGS) $(OFILES) -o wla-6800.exe
+	$(LD) $(LDFLAGS) $(OFILES) -o w-6800.exe
 
 
 crc32.o: crc32.c crc32.h
@@ -60,4 +60,4 @@ stack.o: stack.c stack.h defines.h hashmap.h shared.h hashmap.h parse.h pass_1.h
 
 
 clean:
-	DEL /F /Q *.o; DEL /F /Q *.d; del wla-6800.exe
+	DEL /F /Q *.o; DEL /F /Q *.d; del w-6800.exe
