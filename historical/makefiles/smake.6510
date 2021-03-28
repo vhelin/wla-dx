@@ -1,3 +1,7 @@
+###################################################
+# WARNING: This file was automatically generated. #
+###################################################
+
 
 CMATH = MATH=STANDARD
 MATH = m		# math link library designation
@@ -8,65 +12,59 @@ LINKER = slink
 LLIB = LIB LIB:sc$(MATH).lib LIB:sc.lib LIB:amiga.lib
 LFLAGS = STRIPDEBUG NOICONS
 
-CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c printf.c mersenne_twister.c opcodes_6510_tables.c opcodes_6510.c
-HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h crc32.h hashmap.h printf.h mersenne_twister.h defines.h
-OFILES = LIB:c.o main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o printf.o mersenne_twister.o opcodes_6510_tables.o opcodes_6510.o
-ALLFILES = $(CFILES) $(HFILES) $(OFILES)
+OFILES = opcodes_6510.o mersenne_twister.o crc32.o hashmap.o opcodes_6510_tables.o stack.o parse.o main.o pass_1.o pass_4.o pass_2.o listfile.o pass_3.o include_file.o printf.o
 
 
 all: main
 
-
-main: $(ALLFILES) smakefile SCOPTIONS
+main: $(OFILES) smakefile SCOPTIONS
 	$(LINKER) $(LFLAGS) FROM $(OFILES) TO wla $(LLIB)
 
 
-main.o: main.c defines.h main.h
+crc32.o: crc32.c crc32.h
+	$(CC) $(CFLAGS) crc32.c
+
+hashmap.o: hashmap.c hashmap.h crc32.h
+	$(CC) $(CFLAGS) hashmap.c
+
+include_file.o: include_file.c include_file.h crc32.h defines.h hashmap.h shared.h parse.h pass_1.h printf.h
+	$(CC) $(CFLAGS) include_file.c
+
+listfile.o: listfile.c listfile.h defines.h hashmap.h shared.h include_file.h
+	$(CC) $(CFLAGS) listfile.c
+
+main.o: main.c main.h defines.h hashmap.h shared.h hashmap.h include_file.h listfile.h mersenne_twister.h parse.h pass_1.h pass_2.h pass_3.h pass_4.h printf.h
 	$(CC) $(CFLAGS) main.c
+
+mersenne_twister.o: mersenne_twister.c mersenne_twister.h
+	$(CC) $(CFLAGS) mersenne_twister.c
+
+opcodes_6510.o: opcodes_6510.c 
+	$(CC) $(CFLAGS) opcodes_6510.c
+
+opcodes_6510_tables.o: opcodes_6510_tables.c 
+	$(CC) $(CFLAGS) opcodes_6510_tables.c
+
+parse.o: parse.c parse.h defines.h hashmap.h shared.h pass_1.h stack.h include_file.h printf.h
+	$(CC) $(CFLAGS) parse.c
+
+pass_1.o: pass_1.c pass_1.h defines.h hashmap.h shared.h main.h include_file.h parse.h pass_2.h pass_3.h stack.h hashmap.h printf.h mersenne_twister.h decode_6510.c
+	$(CC) $(CFLAGS) pass_1.c
+
+pass_2.o: pass_2.c pass_2.h defines.h hashmap.h shared.h pass_1.h pass_4.h hashmap.h printf.h
+	$(CC) $(CFLAGS) pass_2.c
+
+pass_3.o: pass_3.c pass_3.h defines.h hashmap.h shared.h include_file.h printf.h
+	$(CC) $(CFLAGS) pass_3.c
+
+pass_4.o: pass_4.c defines.h hashmap.h shared.h include_file.h listfile.h pass_3.h pass_4.h parse.h stack.h printf.h
+	$(CC) $(CFLAGS) pass_4.c
 
 printf.o: printf.c printf.h
 	$(CC) $(CFLAGS) printf.c
 
-parse.o: parse.c defines.h parse.h
-	$(CC) $(CFLAGS) parse.c
-
-include_file.o: include_file.c defines.h include_file.h
-	$(CC) $(CFLAGS) include_file.c
-
-opcodes_6510_tables.o: opcodes_6510_tables.c
-	$(CC) $(CFLAGS) opcodes_6510_tables.c
-
-opcodes_6510.o: opcodes_6510.c
-	$(CC) $(CFLAGS) opcodes_6510.c
-
-pass_1.o: pass_1.c defines.h pass_1.h parse.h
-	$(CC) $(CFLAGS) pass_1.c
-
-pass_2.o: pass_2.c defines.h pass_2.h
-	$(CC) $(CFLAGS) pass_2.c
-
-pass_3.o: pass_3.c defines.h pass_3.h
-	$(CC) $(CFLAGS) pass_3.c
-
-pass_4.o: pass_4.c defines.h pass_4.h
-	$(CC) $(CFLAGS) pass_4.c $(CMATH)
-
-stack.o: stack.c defines.h stack.h
+stack.o: stack.c stack.h defines.h hashmap.h shared.h hashmap.h parse.h pass_1.h include_file.h printf.h
 	$(CC) $(CFLAGS) stack.c
-
-listfile.o: listfile.c defines.h listfile.h
-	$(CC) $(CFLAGS) listfile.c
-
-crc32.o: crc32.c defines.h crc32.h
-	$(CC) $(CFLAGS) crc32.c
-
-hashmap.o: hashmap.c defines.h hashmap.h
-	$(CC) $(CFLAGS) hashmap.c
-
-mersenne_twister.o: mersenne_twister.c defines.h mersenne_twister.h
-	$(CC) $(CFLAGS) mersenne_twister.c
-
-$(OFILES): $(HFILES)
 
 
 clean:
