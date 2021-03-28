@@ -578,7 +578,7 @@ int collect_dlr(void) {
 
         t++;
         l->slot = *(t++);
-        l->file_id_source = *(t++);
+        l->file_id_source = READ_T;
 
         l->section = READ_T;
         if (l->section == 0)
@@ -612,7 +612,7 @@ int collect_dlr(void) {
         t++;
         r->type = *(t++);
         r->special_id = *(t++);
-        r->file_id_source = *(t++);
+        r->file_id_source = READ_T;
 
         if (r->type == REFERENCE_TYPE_BITS) {
           r->bits_position = *(t++);
@@ -659,7 +659,7 @@ int collect_dlr(void) {
           s->section_status = ON;
           s->section += section;
         }
-        s->file_id_source = *(t++);
+        s->file_id_source = READ_T;
         x = *(t++);
         s->position = *(t++);
 
@@ -832,7 +832,7 @@ int collect_dlr(void) {
         t++;
         l->section = READ_T;
         l->section += section;
-        l->file_id_source = *(t++);
+        l->file_id_source = READ_T;
         l->linenumber = READ_T;
         l->section_status = ON;
         l->address = READ_T;
@@ -861,7 +861,7 @@ int collect_dlr(void) {
         r->special_id = *(t++);
         r->section = READ_T;
         r->section += section;
-        r->file_id_source = *(t++);
+        r->file_id_source = READ_T;
 
         if (r->type == REFERENCE_TYPE_BITS) {
           r->bits_position = *(t++);
@@ -903,7 +903,7 @@ int collect_dlr(void) {
           s->section_status = ON;
           s->section += section;
         }
-        s->file_id_source = *(t++);
+        s->file_id_source = READ_T;
         x = *(t++);
         s->position = *(t++);
 
@@ -1277,7 +1277,7 @@ int parse_data_blocks(void) {
           s->id = READ_T;
           s->id += section;
           s->slot = *(t++);
-          s->file_id_source = *(t++);
+          s->file_id_source = READ_T;
           s->address = READ_T;
           s->bank = READ_T;
           s->base = READ_T;
@@ -1352,7 +1352,7 @@ int parse_data_blocks(void) {
 
         s->id = READ_T;
         s->id += section;
-        s->file_id_source = *(t++);
+        s->file_id_source = READ_T;
         s->size = READ_T;
         s->alignment = READ_T;
         s->offset = READ_T;

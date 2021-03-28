@@ -17,7 +17,7 @@ v9.13 (28-Mar-2021) [ALL] Added support for nameless INSTANCEOFs in
                       arrays using .ARRAYDEFINE/.ARRAYDEF/.ARRAYIN/.ARRAYOUT.
                     [ALL] Added .ARRAYDB, .ARRAYDW, .ARRAYDL and .ARRAYDD.
                     [ALL] Added .BITS (like .DB but for bits) and .ENDBITS.
-                    [ALL] WLA assembles now "WLAB" library files and "WLAc"
+                    [ALL] WLA assembles now "WLAC" library files and "WLAd"
                       object files.
                     [ALL] Added .FILTER (same as .DBM, but doesn't define
                       any bytes).
@@ -1236,11 +1236,13 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.15 (27-Mar-2021) Fixed listfile writing when there is no listfile data
+v5.15 (28-Mar-2021) Fixed listfile writing when there is no listfile data
                       in object files.
                     It's possible to give binary values in [definitions].
                     Pending 32-bit calculations work now in bankheader
                       sections.
+                    Errors should print now properly if it happened in a
+                      source file with file ID > 255.
 
 v5.14 (20-Mar-2021) Fixed buggy symbol file name generation.
                     Fixed SMS checksum calculation if .SMSHEADER is not used.
