@@ -390,6 +390,12 @@ You can also do the mapping using e.g., ``.ARRAYDB``::
     .ARRAYDB NAME MyArray INDICES '6', '6', '8', '2', '7', '5'
     .ARRAYDB NAME MyArray INDICES "668275"
 
+And create the mapping using only one ``.ARRAYIN``::
+
+    .ARRAYIN NAME MyArray INDEX '0' VALUES %0000, %0001, \
+        %0010, %0011, %0100, %0101, %0110, %0111, %1000, \
+        %1001
+    
 Note that keywords NAME and SIZE are optional, so this works also::
 
     .ARRAYDEFINE MyArray 4  

@@ -98,13 +98,8 @@
         // less bits
         .ARRAYDEFINE NAME MapArray SIZE 4
         
-        .ARRAYIN NAME MapArray INDEX 'A' VALUE %0000
-        .ARRAYIN NAME MapArray INDEX 'B' VALUE %0001
-        .ARRAYIN NAME MapArray INDEX 'C' VALUE %0010
-        .ARRAYIN NAME MapArray INDEX 'D' VALUE %0011
-        .ARRAYIN NAME MapArray INDEX 'E' VALUE %0100
-        .ARRAYIN NAME MapArray INDEX 'F' VALUE %0101
-        .ARRAYIN NAME MapArray INDEX 'G' VALUE %0110
+        .ARRAYIN NAME MapArray INDEX 'A' VALUES %0000, %0001, %0010, \
+            %0011, %0100, %0101, %0110
         .ARRAYIN NAME MapArray INDEX  0  VALUE %1111
 
         .MACRO MapInto4Bits

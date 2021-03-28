@@ -6532,35 +6532,43 @@ int directive_arrayin(void) {
     return FAILED;
   }
 
-  /* skip VALUE if present */
-  if (compare_next_token("VALUE") == SUCCEEDED)
+  /* skip VALUE/VALUES if present */
+  if (compare_next_token("VALUE") == SUCCEEDED || compare_next_token("VALUES") == SUCCEEDED)
     skip_next_token();
 
-  q = input_number();
+  while (1) {
+    q = input_number();
 
-  if (q == FAILED)
-    return FAILED;
-  else if (q == SUCCEEDED) {
-  }
-  else {
-    print_error(".ARRAYIN needs an immediate value for the value.\n", ERROR_DIR);
-    return FAILED;
-  }
-
-  value = g_parsed_int;
-
-  if (index < arr->size)
-    arr->data[index] = value;
-  else {
-    /* index is out of bounds, resize the array, and then insert the value */
-    arr->data = realloc(arr->data, sizeof(int) * (index + 1));
-    if (arr->data == NULL) {
-      print_error("Out of memory resizing the array.\n", ERROR_DIR);
+    if (q == FAILED)
+      return FAILED;
+    else if (q == SUCCEEDED) {
+    }
+    else if (q == INPUT_NUMBER_EOL) {
+      next_line();
+      break;
+    }
+    else {
+      print_error(".ARRAYIN needs an immediate value for the value.\n", ERROR_DIR);
       return FAILED;
     }
 
-    arr->size = index + 1;
-    arr->data[index] = value;
+    value = g_parsed_int;
+
+    if (index < arr->size)
+      arr->data[index] = value;
+    else {
+      /* index is out of bounds, resize the array, and then insert the value */
+      arr->data = realloc(arr->data, sizeof(int) * (index + 1));
+      if (arr->data == NULL) {
+        print_error("Out of memory resizing the array.\n", ERROR_DIR);
+        return FAILED;
+      }
+
+      arr->size = index + 1;
+      arr->data[index] = value;
+    }
+
+    index++;
   }
   
   return SUCCEEDED;
