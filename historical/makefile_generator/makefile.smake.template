@@ -1,0 +1,24 @@
+
+CMATH = MATH=STANDARD
+MATH = m		# math link library designation
+
+CC = sc
+CFLAGS = define AMIGA=1 define @CPU_DEFINE=1 define NDEBUG=1
+LINKER = slink
+LLIB = LIB LIB:sc$(MATH).lib LIB:sc.lib LIB:amiga.lib
+LFLAGS = STRIPDEBUG NOICONS
+
+OFILES = @OFILES
+
+
+all: main
+
+main: $(OFILES) smakefile SCOPTIONS
+	$(LINKER) $(LFLAGS) FROM $(OFILES) TO wla $(LLIB)
+
+
+@RULES
+
+
+clean:
+	delete \#?.o \#?.gb \#?.lnk \#?.info wla

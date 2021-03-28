@@ -1,0 +1,23 @@
+CC=gcc
+LD=gcc
+
+CFLAGS= -c -O3 -ansi -pedantic -Wall -DUNIX -D@CPU_DEFINE
+LDFLAGS = -lm
+
+OFILES = @OFILES
+
+
+all: $(OFILES) makefile
+	$(LD) $(OFILES) -o wla-@CPU $(LDFLAGS)
+	strip wla-@CPU
+
+
+@RULES
+
+
+clean:
+	delete $(OFILES) >nil:
+
+install:
+	make
+	move wla-@CPU TO binaries

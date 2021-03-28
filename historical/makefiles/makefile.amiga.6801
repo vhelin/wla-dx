@@ -1,66 +1,65 @@
+###################################################
+# WARNING: This file was automatically generated. #
+###################################################
 
 CC=gcc
 LD=gcc
 
-CFLAGS= -c -O3 -ansi -pedantic -Wall
+CFLAGS= -c -O3 -ansi -pedantic -Wall -DUNIX -DMC6801
 LDFLAGS = -lm
-WLAFLAGS = $(CFLAGS) -DUNIX -DMC6801
 
-CFILES = main.c parse.c include_file.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c printf.c mersenne_twister.c opcodes_6801_tables.c opcodes_6801.c
-HFILES = main.h parse.h include_file.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h crc32.h hashmap.h printf.h mersenne_twister.h defines.h
-OFILES = main.o parse.o include_file.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o printf.o mersenne_twister.o opcodes_6801_tables.o opcodes_6801.o
+OFILES = mersenne_twister.o crc32.o hashmap.o stack.o parse.o main.o opcodes_6801_tables.o pass_1.o pass_4.o pass_2.o listfile.o pass_3.o opcodes_6801.o include_file.o printf.o
 
 
 all: $(OFILES) makefile
 	$(LD) $(OFILES) -o wla-6801 $(LDFLAGS)
 	strip wla-6801
 
-main.o: main.c defines.h main.h makefile
-	$(CC) $(WLAFLAGS) main.c
 
-printf.o: printf.c printf.h makefile
-	$(CC) $(WLAFLAGS) printf.c
+crc32.o: crc32.c crc32.h
+	$(CC) $(CFLAGS) crc32.c
 
-parse.o: parse.c defines.h parse.h makefile
-	$(CC) $(WLAFLAGS) parse.c
+hashmap.o: hashmap.c hashmap.h crc32.h
+	$(CC) $(CFLAGS) hashmap.c
 
-include_file.o: include_file.c defines.h include_file.h makefile
-	$(CC) $(WLAFLAGS) include_file.c
+include_file.o: include_file.c include_file.h crc32.h defines.h hashmap.h shared.h parse.h pass_1.h printf.h
+	$(CC) $(CFLAGS) include_file.c
 
-opcodes_6801_tables.o: opcodes_6801_tables.c
-	$(CC) $(WLAFLAGS) opcodes_6801_tables.c
+listfile.o: listfile.c listfile.h defines.h hashmap.h shared.h include_file.h
+	$(CC) $(CFLAGS) listfile.c
 
-opcodes_6801.o: opcodes_6801.c
-	$(CC) $(WLAFLAGS) opcodes_6801.c
+main.o: main.c main.h defines.h hashmap.h shared.h hashmap.h include_file.h listfile.h mersenne_twister.h parse.h pass_1.h pass_2.h pass_3.h pass_4.h printf.h
+	$(CC) $(CFLAGS) main.c
 
-pass_1.o: pass_1.c defines.h pass_1.h parse.h makefile
-	$(CC) $(WLAFLAGS) pass_1.c
+mersenne_twister.o: mersenne_twister.c mersenne_twister.h
+	$(CC) $(CFLAGS) mersenne_twister.c
 
-pass_2.o: pass_2.c defines.h pass_2.h makefile
-	$(CC) $(WLAFLAGS) pass_2.c
+opcodes_6801.o: opcodes_6801.c 
+	$(CC) $(CFLAGS) opcodes_6801.c
 
-pass_3.o: pass_3.c defines.h pass_3.h makefile
-	$(CC) $(WLAFLAGS) pass_3.c
+opcodes_6801_tables.o: opcodes_6801_tables.c 
+	$(CC) $(CFLAGS) opcodes_6801_tables.c
 
-pass_4.o: pass_4.c defines.h pass_4.h makefile
-	$(CC) $(WLAFLAGS) pass_4.c
+parse.o: parse.c parse.h defines.h hashmap.h shared.h pass_1.h stack.h include_file.h printf.h
+	$(CC) $(CFLAGS) parse.c
 
-stack.o: stack.c defines.h stack.h makefile
-	$(CC) $(WLAFLAGS) stack.c
+pass_1.o: pass_1.c pass_1.h defines.h hashmap.h shared.h main.h include_file.h parse.h pass_2.h pass_3.h stack.h hashmap.h printf.h mersenne_twister.h decode_6801.c
+	$(CC) $(CFLAGS) pass_1.c
 
-listfile.o: listfile.c defines.h listfile.h makefile
-	$(CC) $(WLAFLAGS) listfile.c
+pass_2.o: pass_2.c pass_2.h defines.h hashmap.h shared.h pass_1.h pass_4.h hashmap.h printf.h
+	$(CC) $(CFLAGS) pass_2.c
 
-crc32.o: crc32.c defines.h crc32.h makefile
-	$(CC) $(WLAFLAGS) crc32.c
+pass_3.o: pass_3.c pass_3.h defines.h hashmap.h shared.h include_file.h printf.h
+	$(CC) $(CFLAGS) pass_3.c
 
-hashmap.o: hashmap.c defines.h hashmap.h makefile
-	$(CC) $(WLAFLAGS) hashmap.c
+pass_4.o: pass_4.c defines.h hashmap.h shared.h include_file.h listfile.h pass_3.h pass_4.h parse.h stack.h printf.h
+	$(CC) $(CFLAGS) pass_4.c
 
-mersenne_twister.o: mersenne_twister.c defines.h mersenne_twister.h makefile
-	$(CC) $(WLAFLAGS) mersenne_twister.c
+printf.o: printf.c printf.h
+	$(CC) $(CFLAGS) printf.c
 
-$(OFILES): $(HFILES)
+stack.o: stack.c stack.h defines.h hashmap.h shared.h hashmap.h parse.h pass_1.h include_file.h printf.h
+	$(CC) $(CFLAGS) stack.c
 
 
 clean:
