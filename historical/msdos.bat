@@ -18,72 +18,72 @@ cd ..
 copy makefiles\makefile.msdos.gb MAKEFILE
 make clean
 make
-move wla-gb.exe binaries\
+move w-gb.exe binaries\
 make clean
 
 copy makefiles\makefile.msdos.z80 MAKEFILE
 make
-move wla-z80.exe binaries\
+move w-z80.exe binaries\
 make clean
 
 copy makefiles\makefile.msdos.6502 MAKEFILE
 make
-move wla-6502.exe binaries\
+move w-6502.exe binaries\
 make clean
 
 copy makefiles\makefile.msdos.65c02 MAKEFILE
 make
-move wla-65c02.exe binaries\
+move w-65c02.exe binaries\
 make clean
 
 copy makefiles\makefile.msdos.65ce02 MAKEFILE
 make
-move wla-65ce02.exe binaries\
+move w-65ce02.exe binaries\
 make clean
 
 copy makefiles\makefile.msdos.6800 MAKEFILE
 make
-move wla-6800.exe binaries\
+move w-6800.exe binaries\
 make clean
 
 copy makefiles\makefile.msdos.6801 MAKEFILE
 make
-move wla-6801.exe binaries\
+move w-6801.exe binaries\
 make clean
 
 copy makefiles\makefile.msdos.6809 MAKEFILE
 make
-move wla-6809.exe binaries\
+move w-6809.exe binaries\
 make clean
 
 copy makefiles\makefile.msdos.8008 MAKEFILE
 make
-move wla-8008.exe binaries\
+move w-8008.exe binaries\
 make clean
 
 copy makefiles\makefile.msdos.8080 MAKEFILE
 make
-move wla-8080.exe binaries\
+move w-8080.exe binaries\
 make clean
 
 copy makefiles\makefile.msdos.6510 MAKEFILE
 make
-move wla-6510.exe binaries\
+move w-6510.exe binaries\
 make clean
 
 copy makefiles\makefile.msdos.65816 MAKEFILE
 make
-move wla-65816.exe binaries\
+move w-65816.exe binaries\
 make clean
 
 copy makefiles\makefile.msdos.spc700 MAKEFILE
 make
-move wla-spc700.exe binaries\
+move w-spc700.exe binaries\
 make clean
 
 copy makefiles\makefile.msdos.huc6280 MAKEFILE
 make
-move wla-huc6280.exe binaries\
+move w-huc6280.exe binaries\
 make clean
 
 cd wlalink

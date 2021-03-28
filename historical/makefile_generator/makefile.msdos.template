@@ -6,11 +6,11 @@ LDFLAGS = -lm
 OFILES = @OFILES
 
 all: $(OFILES)
-	$(LD) $(LDFLAGS) $(OFILES) -o wla-@CPU.exe
+	$(LD) $(LDFLAGS) $(OFILES) -o w-@CPU.exe
 
 
 @RULES
 
 
 clean:
-	DEL /F /Q *.o; DEL /F /Q *.d; del wla-@CPU.exe
+	DEL /F /Q *.o; DEL /F /Q *.d; del w-@CPU.exe
