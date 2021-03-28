@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 -------------------------------------------------------------------------------------------------
 
-v9.13 (27-Mar-2021) [ALL] Added support for nameless INSTANCEOFs in
+v9.13 (28-Mar-2021) [ALL] Added support for nameless INSTANCEOFs in
                       .ENUMs, .STRUCTs and .RAMSECTIONs.
                     [ALL] Computations with 32-bit binary values with all 32
                       bits defined work now.
@@ -19,6 +19,8 @@ v9.13 (27-Mar-2021) [ALL] Added support for nameless INSTANCEOFs in
                     [ALL] Added .BITS (like .DB but for bits) and .ENDBITS.
                     [ALL] WLA assembles now "WLAB" library files and "WLAc"
                       object files.
+                    [ALL] Added .FILTER (same as .DBM, but doesn't define
+                      any bytes).
 
 v9.12 (20-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                     [ALL] Added .STRINGMAP and .STRINGMAPTABLE.

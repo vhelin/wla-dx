@@ -489,6 +489,7 @@ struct macro_incbin {
 #define MACRO_CALLER_DLM    3
 #define MACRO_CALLER_DDM    4
 #define MACRO_CALLER_INCBIN 5
+#define MACRO_CALLER_FILTER 6
 
 struct macro_runtime {
   struct macro_static *macro;

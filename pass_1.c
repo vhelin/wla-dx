@@ -496,15 +496,9 @@ int macro_insert_byte_db(char *name) {
       return FAILED;
     }
     fprintf(g_file_out_ptr, "d%d ", (int)d->value);
-    /*
-      fprintf(stderr, ".DBM: VALUE: %d\n", (int)d->value);
-    */
   }
   else if (d->type == DEFINITION_TYPE_STACK) {
     fprintf(g_file_out_ptr, "c%d ", (int)d->value);
-    /*
-      fprintf(stderr, ".DBM: STACK: %d\n", (int)d->value);
-    */
   }
   else {
     snprintf(g_error_message, sizeof(g_error_message), ".%s cannot handle strings in \"_OUT/_out\".\n", name);
@@ -2459,7 +2453,7 @@ int directive_bank(void) {
 }
 
 
-int directive_dbm_dwm_dlm_ddm(void) {
+int directive_dbm_dwm_dlm_ddm_filter(void) {
 
   struct macro_static *macro;
 
@@ -2495,9 +2489,18 @@ int directive_dbm_dwm_dlm_ddm(void) {
     if (macro_start_dxm(macro, MACRO_CALLER_DDM, g_current_directive, YES) == FAILED)
       return FAILED;
   }
-  else {
+  else if (strcaselesscmp(g_current_directive, "DWM") == 0) {
     if (macro_start_dxm(macro, MACRO_CALLER_DWM, g_current_directive, YES) == FAILED)
       return FAILED;
+  }
+  else if (strcaselesscmp(g_current_directive, "FILTER") == 0) {
+    if (macro_start_dxm(macro, MACRO_CALLER_FILTER, g_current_directive, YES) == FAILED)
+      return FAILED;
+  }
+  else {
+    snprintf(g_error_message, sizeof(g_error_message), "Unsupported filter macro directive \"%s\". Please submit a bug report!\n", g_current_directive);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
   }
 
   return SUCCEEDED;
@@ -7779,6 +7782,12 @@ int directive_endm(void) {
       if (macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_DDM, "DDM", NO) == FAILED)
         return FAILED;
     }
+    /* was this a FILTER macro call? */
+    else if (g_macro_stack[g_macro_active].caller == MACRO_CALLER_FILTER) {
+      /* continue running FILTER */
+      if (macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_FILTER, "FILTER", NO) == FAILED)
+        return FAILED;
+    }
     /* or was this an INCBIN with a filter macro call? */
     else if (g_macro_stack[g_macro_active].caller == MACRO_CALLER_INCBIN) {
       /* yep, get the output */
@@ -9085,12 +9094,17 @@ int parse_directive(void) {
   /* DBM/DWM? */
 
   if (strcaselesscmp(g_current_directive, "DBM") == 0 || strcaselesscmp(g_current_directive, "DWM") == 0)
-    return directive_dbm_dwm_dlm_ddm();
+    return directive_dbm_dwm_dlm_ddm_filter();
 
   /* TABLE? */
 
   if (strcaselesscmp(g_current_directive, "TABLE") == 0)
     return directive_table();
+
+  /* FILTER? */
+
+  if (strcaselesscmp(g_current_directive, "FILTER") == 0)
+    return directive_dbm_dwm_dlm_ddm_filter();
     
   /* ROW/DATA? */
 
@@ -9138,7 +9152,7 @@ int parse_directive(void) {
   /* DLM? */
 
   if (strcaselesscmp(g_current_directive, "DLM") == 0)
-    return directive_dbm_dwm_dlm_ddm();
+    return directive_dbm_dwm_dlm_ddm_filter();
 
   /* DL/LONG/FARADDR? */
 
@@ -9173,7 +9187,7 @@ int parse_directive(void) {
   /* DDM? */
 
   if (strcaselesscmp(g_current_directive, "DDM") == 0)
-    return directive_dbm_dwm_dlm_ddm();
+    return directive_dbm_dwm_dlm_ddm_filter();
 
   /* DD? */
 

@@ -144,6 +144,7 @@ ALL  ``.EQU IF $FF0F``
 ALL  ``.FAIL "THE EYE OF MORDOR HAS SEEN US!"``
 658  ``.FARADDR main, irq_1``
 ALL  ``.FCLOSE FP_DATABIN``
+ALL  ``.FILTER filtermacro 1, 2, "encrypt me"``
 ALL  ``.FOPEN "data.bin" FP_DATABIN``
 ALL  ``.FREAD FP_DATABIN DATA``
 ALL  ``.FSIZE FP_DATABIN SIZE``
@@ -1528,6 +1529,23 @@ This is not a compulsory directive.
 ----------------------
 
 Closes the filehandle ``FP_DATABIN``.
+
+This is not a compulsory directive.
+
+
+``.FILTER filtermacro 1, 2, "encrypt me"``
+------------------------------------------
+
+Runs the supplied data, in bytes, through a filter macro. All the data is
+passed to ``filtermacro`` in the first argument, one byte at a time. The
+second macro argument holds the offset from the beginning (the first byte) in
+bytes (the series being ``0``, ``1``, ``2``, ``3``, ...).
+
+Here's an example of a filter macro that defines bits (four per byte)::
+
+    .macro increment
+    .bits 4 \1
+    .endm
 
 This is not a compulsory directive.
 
