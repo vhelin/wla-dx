@@ -1,4 +1,4 @@
-wla-dx
+WLA DX
 ======
 
 WLA DX - Yet Another

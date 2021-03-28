@@ -14,7 +14,7 @@ OFILES = @OFILES
 all: main
 
 main: $(OFILES) smakefile SCOPTIONS
-	$(LINKER) $(LFLAGS) FROM $(OFILES) TO wla $(LLIB)
+	$(LINKER) $(LFLAGS) FROM LIB:c.o $(OFILES) TO wla $(LLIB)
 
 
 @RULES

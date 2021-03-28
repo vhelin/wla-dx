@@ -12,13 +12,13 @@ LINKER = slink
 LLIB = LIB LIB:sc$(MATH).lib LIB:sc.lib LIB:amiga.lib
 LFLAGS = STRIPDEBUG NOICONS
 
-OFILES = opcodes_65c02.o mersenne_twister.o crc32.o hashmap.o stack.o parse.o main.o pass_1.o pass_4.o pass_2.o listfile.o pass_3.o include_file.o printf.o opcodes_65c02_tables.o
+OFILES = main.o crc32.o hashmap.o include_file.o listfile.o mersenne_twister.o parse.o pass_1.o pass_2.o pass_3.o pass_4.o printf.o stack.o opcodes_65c02_tables.o opcodes_65c02.o
 
 
 all: main
 
 main: $(OFILES) smakefile SCOPTIONS
-	$(LINKER) $(LFLAGS) FROM $(OFILES) TO wla $(LLIB)
+	$(LINKER) $(LFLAGS) FROM LIB:c.o $(OFILES) TO wla $(LLIB)
 
 
 crc32.o: crc32.c crc32.h
