@@ -41,7 +41,7 @@ extern int g_smsproductcode_defined, g_smsproductcode1, g_smsproductcode2, g_sms
 extern int g_smsromsize, g_smsromsize_defined;
 #endif
 
-#ifdef W65816
+#if defined(W65816)
 extern char g_name[32];
 extern char g_snesid[4];
 extern int g_snesid_defined, g_snesromsize;
@@ -65,7 +65,7 @@ char g_include_directives_name[] = "INCLUDE_DIRECTIVES:";
 
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 
-#ifdef W65816
+#if defined(W65816)
 void write_snes_cartridge_information(int start);
 #endif
 
@@ -294,7 +294,7 @@ int pass_2(void) {
   }
 #endif
 
-#ifdef W65816
+#if defined(W65816)
   if (g_output_format != OUTPUT_LIBRARY) {
     /* snes cartridge information */
     if (g_snes_mode != 0) {
@@ -426,7 +426,7 @@ int pass_2(void) {
 }
 
 
-#ifdef W65816
+#if defined(W65816)
 
 void write_snes_cartridge_information(int start) {
 

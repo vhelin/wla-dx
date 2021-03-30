@@ -157,6 +157,18 @@ int listfile_collect(void) {
       add++;
       continue;
 
+#ifdef SUPERFX
+    case '*':
+      fscanf(file_in, "%*s ");
+      add++;
+      continue;
+
+    case '-':
+      fscanf(file_in, "%*d ");
+      add++;
+      continue;
+#endif
+      
 #ifdef W65816
     case 'M':
 #endif

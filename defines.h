@@ -59,6 +59,7 @@
 /* C - stack (2 bytes)       */
 /* T - stack (3 bytes)       */
 /* U - stack (4 bytes)       */
+/* - - stack (9-bit short)   */
 /* d - data (1 byte)         */
 /* y - data (2 bytes)        */
 /* z - data (3 bytes)        */
@@ -75,6 +76,7 @@
 /* Q - 8-bit reference       */
 /* q - 24-bit reference      */
 /* V - 32-bit reference      */
+/* * - 9-bit short reference */
 /* S - section               */
 /* s - end of section        */
 /* x - dsb                   */
@@ -118,6 +120,37 @@
 #define OP_SIZE_MAX 16
 #define ARCH_STR "GB-Z80"
 #define WLA_NAME "gb"
+
+#endif
+
+/**************************************************************/
+/* superfx                                                    */
+/**************************************************************/
+
+#ifdef SUPERFX
+
+/* opcode types */
+
+/* 0  - plain text */
+/* 1  - * (0-15)   */
+/* 2  - e          */
+/* 3  - * (0-15) x */
+/* 4  - * (0-15) ? */
+/* 5  - * (0-15) y */
+/* 6  - * (0-15) * */
+/* 7  - MOVE R*,#? - MACRO INSTRUCTION */
+/* 8  - MOVE R*,(?) - MACRO INSTRUCTION */
+/* 9  - MOVE (?),R* - MACRO INSTRUCTION */
+/* 10 - MOVEB R*,(R*) - MACRO INSTURCTION */
+/* 11 - MOVEB (R*),R* - MACRO INSTRUCTION */
+/* 12 - MOVEW R*,(R*) - MACRO INSTURCTION */
+/* 13 - MOVEW (R*),R* - MACRO INSTRUCTION */
+/* 14 - ? * (0-15) */
+/* 15 - y * (0-15) */
+
+#define OP_SIZE_MAX 16
+#define ARCH_STR "SuperFX"
+#define WLA_NAME "superfx"
 
 #endif
 
@@ -411,6 +444,19 @@
 #endif
 
 
+#if defined(SUPERFX)
+
+struct optcode {
+  char *op;
+  unsigned char type;
+  unsigned char hex;
+  unsigned char prefix;
+  unsigned char min;
+  unsigned char max;
+};
+
+#else
+
 struct optcode {
   char *op;
   unsigned short hex;
@@ -431,6 +477,9 @@ struct optcode {
   unsigned char addressing_mode_bits;
 #endif
 };
+
+#endif
+
 
 #ifndef WLA_NAME
   #error "Unknown WLA_NAME!"

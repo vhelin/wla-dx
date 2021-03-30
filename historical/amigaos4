@@ -25,6 +25,10 @@ make -f makefiles/makefile.amiga.gb
 move wla-gb TO binaries
 
 make -f makefiles/makefile.amiga.gb clean
+make -f makefiles/makefile.amiga.superfx
+move wla-superfx TO binaries
+
+make -f makefiles/makefile.amiga.superfx clean
 make -f makefiles/makefile.amiga.z80
 move wla-z80 TO binaries
 

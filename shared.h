@@ -66,6 +66,7 @@
 #define STACK_TYPE_13BIT   4
 #define STACK_TYPE_32BIT   5
 #define STACK_TYPE_BITS    6
+#define STACK_TYPE_9BIT_SHORT 7
 
 #define STACK_POSITION_DEFINITION 0
 #define STACK_POSITION_CODE       1
@@ -103,5 +104,6 @@ struct label_sizeof {
 #define REFERENCE_TYPE_DIRECT_13BIT   5
 #define REFERENCE_TYPE_DIRECT_32BIT   6
 #define REFERENCE_TYPE_BITS           7
+#define REFERENCE_TYPE_DIRECT_9BIT_SHORT 8
 
 #endif /* _SHARED_H */

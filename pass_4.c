@@ -50,7 +50,7 @@ extern int g_latest_stack, g_stacks_outside, g_stacks_inside;
 extern int g_bankheader_status;
 extern int g_smc_defined, g_makefile_rules;
 
-#ifdef W65816
+#if defined(W65816)
 extern int g_lorom_defined, g_hirom_defined, g_slowrom_defined, g_fastrom_defined, g_snes_mode, g_exhirom_defined;
 extern int g_computesneschecksum_defined, g_sramsize, g_sramsize_defined, g_exlorom_defined;
 #endif
@@ -950,8 +950,9 @@ int pass_4(void) {
       }
       continue;
 
-      /* 8BIT COMPUTATION */
+      /* 8BIT (ALSO 9BIT SHORT) COMPUTATION */
 
+    case '-':
     case 'c':
       fscanf(g_file_out_ptr, "%d", &inz);
 
@@ -982,7 +983,10 @@ int pass_4(void) {
 
       g_stacks_tmp->bank = g_rom_bank;
       g_stacks_tmp->slot = g_slot;
-      g_stacks_tmp->type = STACK_TYPE_8BIT;
+      if (c == '-')
+        g_stacks_tmp->type = STACK_TYPE_9BIT_SHORT;
+      else
+        g_stacks_tmp->type = STACK_TYPE_8BIT;
       g_stacks_tmp->base = g_base;
       g_stacks_tmp->special_id = g_special_id;
         
@@ -1594,8 +1598,9 @@ int pass_4(void) {
 
       continue;
 
-      /* 8BIT REFERENCE */
+      /* 8BIT (9BIT SHORT ALSO) REFERENCE */
 
+    case '*':
     case 'Q':
       fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
 
@@ -1617,6 +1622,15 @@ int pass_4(void) {
           o = (int)g_tmp_def->value;
           x = 1;
 
+          /* 9-bit short? */
+          if (c == '*') {
+            if ((c & 1) == 1) {
+              fprintf(stderr, "%s:%d: INTERNAL_PASS_2: The RAM address must be even.\n", get_file_name(g_filename_id), g_line_number);
+              return FAILED;
+            }
+            o = o >> 1;
+          }
+
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
           snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(g_filename_id), g_line_number);
             
@@ -1628,8 +1642,14 @@ int pass_4(void) {
       if (x == 1)
         continue;
 
-      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_8BIT) == NULL)
-        return FAILED;
+      if (c == '*') {
+        if (new_unknown_reference(REFERENCE_TYPE_DIRECT_9BIT_SHORT) == NULL)
+          return FAILED;
+      }
+      else {
+        if (new_unknown_reference(REFERENCE_TYPE_DIRECT_8BIT) == NULL)
+          return FAILED;
+      }
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for an 8-bit reference", get_file_name(g_filename_id), g_line_number);
@@ -1694,7 +1714,7 @@ int pass_4(void) {
 
     if (g_little_endian == NO)
       ind |= 1 << 0;
-#ifdef W65816
+#if defined(W65816)
     /* 65816 bit */
     ind |= 1 << 1;
 #endif
@@ -1915,7 +1935,7 @@ int pass_4(void) {
       ind |= 1 << 0;
 #endif
 
-#ifdef W65816
+#if defined(W65816)
     if (g_snes_mode != 0) {
       if (g_hirom_defined != 0)
         ind += 2;
@@ -1927,6 +1947,9 @@ int pass_4(void) {
       if (g_hirom_defined != 0 || g_lorom_defined != 0 || g_exhirom_defined != 0 || g_exlorom_defined != 0)
         ind += 4;
     }
+#endif
+
+#if defined(W65816)
     /* 65816 bit */
     ind += 128;
 #endif
@@ -1945,7 +1968,7 @@ int pass_4(void) {
 
     if (g_smc_defined != 0)
       ind |= 1 << 0;
-#ifdef W65816
+#if defined(W65816)
     if (g_sramsize_defined != 0)
       ind |= (g_sramsize & 3) << 1;
 #endif
@@ -1957,7 +1980,7 @@ int pass_4(void) {
       ind |= 1 << 4;
 #endif
 
-#ifdef W65816
+#if defined(W65816)
     if (g_snes_mode != 0) {
       if (g_exhirom_defined != 0)
         ind |= 1 << 5;
@@ -1999,15 +2022,15 @@ int pass_4(void) {
     }
 
     /* memory map */
-    fprintf(final_ptr, "%c", g_slots_amount);        /* number of slots */
+    fprintf(final_ptr, "%c", g_slots_amount);
 
     for (i = 0; i < g_slots_amount; i++) {
       if (g_slots[i].size != 0) {
         ov = g_slots[i].address;
-        WRITEOUT_OV;                               /* slot address */
+        WRITEOUT_OV;
         ov = g_slots[i].size;
-        WRITEOUT_OV;                               /* slot size */
-        if (g_slots[i].name[0] == 0x0)               /* slot name */
+        WRITEOUT_OV;
+        if (g_slots[i].name[0] == 0x0)
           fprintf(final_ptr, "%c", 0x0);
         else
           fprintf(final_ptr, "%s%c", g_slots[i].name, 0x0);
@@ -2688,7 +2711,8 @@ int export_source_file_names(FILE *final_ptr) {
 }
 
 
-#ifdef W65816
+#if defined(W65816)
+
 int get_snes_cpu_bank(struct label_def *l) {
 
   struct section_def *s;
@@ -2714,4 +2738,5 @@ int get_snes_cpu_bank(struct label_def *l) {
 
   return x;
 }
+
 #endif

@@ -21,6 +21,12 @@ make
 move w-gb.exe binaries\
 make clean
 
+copy makefiles\makefile.msdos.superfx MAKEFILE
+make clean
+make
+move w-superfx.exe binaries\
+make clean
+
 copy makefiles\makefile.msdos.z80 MAKEFILE
 make
 move w-z80.exe binaries\

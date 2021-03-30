@@ -22,13 +22,13 @@ Good to know about WLA DX:
 
 Almost all rules that apply to Z80 source code processing with WLA DX
 apply also to 6502, 65C02, 65CE02, 6510, 65816, 6800, 6801, 6809, 8008, 8080,
-HUC6280 and SPC-700.
+HUC6280, SPC-700 and SuperFX.
 
 About the names: WLA DX means all the tools covered in this documentation.
 So WLA DX includes WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/
-8008/8080/HUC6280/SPC-700 macro assembler (what a horribly long name), WLAB,
+8008/8080/HUC6280/SPC-700/SuperFX macro assembler (what a horribly long name), WLAB,
 and WLALINK GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/
-HUC6280/SPC-700 linker. We use plain WLA to refer to the macro assembler
+HUC6280/SPC-700/SuperFX linker. We use plain WLA to refer to the macro assembler
 in this document.
 
 There was WLAD, an GB-Z80 dissassembler, but it has been discontinued and

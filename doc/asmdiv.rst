@@ -10,7 +10,7 @@ Here's the order in which the data is placed into the output:
 
 === ================================================================
 ALL All, GB-Z80, Z80, 6502, 65C02, 65CE02, 6510, 65816, HUC6280,
-    SPC-700, 6800, 6801, 6809, 8008 and 8080 versions apply.
+    SPC-700, 6800, 6801, 6809, 8008, 8080 and SuperFX versions apply.
 GB  Only the GB-Z80 version applies.
 GB8 Only the GB-Z80 and 65816 versions apply.
 Z80 Only the Z80 version applies.
@@ -19,9 +19,9 @@ Z80 Only the Z80 version applies.
 800 Only the 8008 version applies.
 808 Only the 8080 version applies.
 SPC Only the SPC-700 version applies.
+SFX Only the SuperFX version applies.
 65x Only the 6502, 65C02, 65CE02, 6510, 65816 and HUC6280 versions apply.
-!GB Only the Z80, 6502, 65C02, 65CE02, 6510, 65816, HUC6280 and SPC-700
-    versions apply.
+!GB All but the GB-Z80 versions apply.
 === ================================================================
 
 
@@ -2187,9 +2187,7 @@ This is not a compulsory directive.
 Begins the memory map definition. Using ``.MEMORYMAP`` you must first
 describe the target system's memory architecture to WLA before it
 can start to compile the code. ``.MEMORYMAP`` gives you the freedom to
-use WLA to compile data for numerous different real
-Z80/6502/65C02/65CE02/6510/6800/6801/6809/8008/8080/65816/HUC6280/SPC-700
-based systems.
+use WLA to compile data for numerous different real systems.
 
 Examples::
 
@@ -2617,12 +2615,10 @@ This is not a compulsory directive.
 ---------------
 
 Begins the ROM bank map definition. You can use this directive to
-describe the project's ROM banks. Use ``.ROMBANKMAP`` when not all the
+define the project's ROM banks. Use ``.ROMBANKMAP`` when not all the
 ROM banks are of equal size. Note that you can use ``.ROMBANKSIZE`` and
 ``.ROMBANKS`` instead of ``.ROMBANKMAP``, but that's only when the ROM banks
-are equal in size. Some systems based on a real Z80 chip,
-6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 CPUs and
-Pocket Voice cartridges for Game Boy require the usage of this directive.
+are equal in size.
 
 Examples::
 
@@ -3313,10 +3309,12 @@ give the data in pieces.
 All supported column formats:
     - DB, BYT, BYTE
     - DW, WORD, ADDR
-    - DL, LONG, FARADDR ; wla-65816 only
+    - DL, LONG, FARADDR
+    - DD
     - DS, DSB
     - DSW
-    - DSL               ; wla-65816 only
+    - DSL
+    - DSD
 
 This is not a compulsory directive.
 

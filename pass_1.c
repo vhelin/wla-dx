@@ -70,7 +70,7 @@ extern int g_stacks_inside, g_stacks_outside;
 int g_stack_inserted;
 #endif
 
-#ifdef W65816
+#if defined(W65816)
 char g_snesid[4];
 int g_snesheader_defined = 0, g_snesid_defined = 0, g_snesromsize = 0;
 int g_sramsize_defined = 0, g_sramsize = 0, g_country_defined = 0, g_country = 0;
@@ -874,6 +874,7 @@ void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
 
 
 #if MC6809
+
 static char error_no_u[] = "Was expecting register X/Y/S/PC/A/B/CC/DP";
 static char error_no_s[] = "Was expecting register X/Y/U/PC/A/B/CC/DP";
 
@@ -1052,6 +1053,34 @@ static int parse_exg_tfr_registers(void) {
   
   return register_byte;
 }
+
+#endif
+
+
+#ifdef SUPERFX
+
+/* parse a number [min, max] */
+int parse_tiny_int(int min, int max) {
+
+  int old_s, value, res;
+  
+  old_s = g_source_pointer;
+  g_source_pointer = g_inz;
+  res = input_number();
+  g_inz = g_source_pointer;
+  g_source_pointer = old_s;
+
+  if (res != SUCCEEDED)
+    return -1;
+
+  value = g_parsed_int;
+
+  if (value < min || value > max)
+    return -1;
+  
+  return value;
+}
+
 #endif
 
 
@@ -1069,7 +1098,10 @@ int evaluate_token(void) {
   int r = 0, s, t = 0, u = 0;
   char labely[MAX_NAME_LENGTH + 1];
 #endif
-
+#ifdef SUPERFX
+  int tiny;
+#endif
+  
   /* are we in an enum, ramsection, or struct? */
   if (g_in_enum == YES || g_in_ramsection == YES || g_in_struct == YES)
     return parse_enum_token();
@@ -1228,7 +1260,10 @@ int evaluate_token(void) {
 #ifdef HUC6280
 #include "decode_huc6280.c"
 #endif
-
+#ifdef SUPERFX
+#include "decode_superfx.c"
+#endif
+      
     }
 
 #ifndef GB
@@ -1476,7 +1511,7 @@ void print_error(char *error, int type) {
 }
 
 
-#ifdef W65816
+#if defined(W65816)
 
 void give_snes_rom_mode_defined_error(char *prior) {
 
@@ -3528,7 +3563,7 @@ int directive_dsd(void) {
 }
 
 
-#ifdef W65816
+#if defined(W65816)
 
 int directive_name_w65816(void) {
     
@@ -7817,7 +7852,7 @@ int directive_endm(void) {
 }
 
 
-#ifdef W65816
+#if defined(W65816)
 
 int directive_snesheader(void) {
 
@@ -9207,7 +9242,7 @@ int parse_directive(void) {
   if (strcaselesscmp(g_current_directive, "DSD") == 0)
     return directive_dsd();
 
-#ifdef W65816
+#if defined(W65816)
 
   /* NAME */
 
@@ -9811,7 +9846,7 @@ int parse_directive(void) {
   
 #endif
 
-#ifdef W65816
+#if defined(W65816)
 
   /* COMPUTESNESCHECKSUM */
 
@@ -10238,6 +10273,10 @@ int parse_directive(void) {
     return SUCCEEDED;
   }
 
+#endif
+
+#if defined(W65816)
+  
   /* SMC */
 
   if (strcaselesscmp(g_current_directive, "SMC") == 0) {

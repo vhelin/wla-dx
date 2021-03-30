@@ -1359,6 +1359,21 @@ int fix_references(void) {
         mem_insert_ref(x, i & 0xFF);
         mem_insert_ref_13bit_high(x + 1, (i >> 8) & 0xFF);
       }
+      /* direct 9-bit short */
+      else if (r->type == REFERENCE_TYPE_DIRECT_9BIT_SHORT) {
+        i = (int)l->address;
+        if (i > 510 || i < 0) {
+          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 9-bit value.\n",
+                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
+          return FAILED;
+        }
+        if ((i & 1) == 1) {
+          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: The RAM address needs to be even.\n",
+                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber);
+          return FAILED;
+        }
+        mem_insert_ref(x, (i >> 1) & 0xFF);
+      }
       /* direct / relative 8-bit with a value definition */
       else if (l->status == LABEL_STATUS_DEFINE && (r->type == REFERENCE_TYPE_DIRECT_8BIT || r->type == REFERENCE_TYPE_RELATIVE_8BIT)) {
         i = ((int)l->address) & 0xFFFF;
@@ -2081,6 +2096,21 @@ int compute_pending_calculations(void) {
       if (mem_insert_ref(a, k) == FAILED)
         return FAILED;
     }
+    else if (sta->type == STACK_TYPE_9BIT_SHORT) {
+      if (k < 0 || k > 510) {
+        fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 9-bit range.\n",
+                get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
+        return FAILED;
+      }
+      if ((k & 1) == 1) {
+        fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: The RAM address needs to be even.\n",
+                get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+        return FAILED;
+      }
+
+      if (mem_insert_ref(a, k >> 1) == FAILED)
+        return FAILED;
+    }
     else if (sta->type == STACK_TYPE_16BIT) {
       if (k < -32768 || k > 65535) {
         fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range.\n",
@@ -2394,6 +2424,8 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
       case SI_OP_NOT:
         if (sta->type == STACK_TYPE_8BIT)
           y = 0xFF;
+        else if (sta->type == STACK_TYPE_9BIT_SHORT)
+          y = 0x1FF;
         else if (sta->type == STACK_TYPE_13BIT)
           y = 8191;
         else if (sta->type == STACK_TYPE_16BIT)
@@ -2631,6 +2663,19 @@ int write_bank_header_calculations(struct stack *sta) {
     }
     *t = k & 0xFF;
   }
+  else if (sta->type == STACK_TYPE_9BIT_SHORT) {
+    if (k < 0 || k > 510) {
+      fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 9-bit range.\n",
+              get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
+      return FAILED;
+    }
+    if ((k & 1) == 1) {
+      fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: The RAM address needs to be even.\n",
+              get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+      return FAILED;
+    }
+    *t = (k >> 1) & 0xFF;
+  }
   else if (sta->type == STACK_TYPE_16BIT) {
     if (k < -32768 || k > 65535) {
       fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range.\n",
@@ -2796,6 +2841,20 @@ int write_bank_header_references(struct reference *r) {
       }
       *t = a & 0xFF;
     }
+    /* direct 9-bit short */
+    else if (r->type == REFERENCE_TYPE_DIRECT_9BIT_SHORT) {
+      if (a > 510 || a < 0) {
+        fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: Value (%d/$%x) of \"%s\" is too much to be a 9-bit value.\n",
+                get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, a, a, l->name);
+        return FAILED;
+      }
+      if ((a & 1) == 1) {
+        fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: The RAM address needs to be even.\n",
+                get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber);
+        return FAILED;
+      }
+      *t = (a >> 1) & 0xFF;
+    }
     /* direct 24-bit */
     else if (r->type == REFERENCE_TYPE_DIRECT_24BIT) {
       if (l->status == LABEL_STATUS_LABEL)
@@ -2915,6 +2974,7 @@ int parse_stack(struct stack *sta) {
      next instruction is one byte farther away than "usual" */
   switch (sta->type) {
   case STACK_TYPE_8BIT:
+  case STACK_TYPE_9BIT_SHORT:
     ed = 1;
     break;
   case STACK_TYPE_16BIT:

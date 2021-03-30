@@ -18,6 +18,7 @@ sc define AMIGA=1 define MCS6510=1 opcodes_6510.c
 sc define AMIGA=1 define W65816=1 opcodes_65816.c
 sc define AMIGA=1 define SPC700=1 opcodes_spc700.c
 sc define AMIGA=1 define HUC6280=1 opcodes_huc6280.c
+sc define AMIGA=1 define SUPERFX=1 opcodes_superfx.c
 
 copy makefiles/scoptions.000 to opcode_table_generator/scoptions
 cd opcode_table_generator
@@ -92,6 +93,11 @@ slink FROM LIB:c.o main.o /opcodes_huc6280.o TO opcode_table_generator LIB LIB:s
 opcode_table_generator /opcodes_huc6280_tables.c
 delete opcode_table_generator main.o /opcodes_huc6280.o
 
+sc define AMIGA=1 define SUPERFX=1 main.c
+slink FROM LIB:c.o main.o /opcodes_superfx.o TO opcode_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+opcode_table_generator /opcodes_superfx_tables.c
+delete opcode_table_generator main.o /opcodes_superfx.o
+
 cd /
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -109,6 +115,22 @@ copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
 copy wla to binaries/wla-gb.000
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WLA-SUPERFX
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+copy makefiles/smake.superfx to smakefile
+copy makefiles/scoptions.020 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-superfx.020
+
+copy makefiles/smake.superfx to smakefile
+copy makefiles/scoptions.000 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-superfx.000
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WLA-Z80

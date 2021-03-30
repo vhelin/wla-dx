@@ -125,6 +125,30 @@ int pass_3(void) {
         fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
         return FAILED;
 
+#ifdef SUPERFX
+
+      case '*':
+        if (g_section_status == ON) {
+          fscanf(f_in, "%*s ");
+          add++;
+          continue;
+        }
+
+        fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
+        return FAILED;
+      
+      case '-':
+        if (g_section_status == ON) {
+          fscanf(f_in, "%*d ");
+          add++;
+          continue;
+        }
+
+        fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
+        return FAILED;
+
+#endif
+
       case '+':
         if (g_section_status == ON) {
           int bits_to_add;
@@ -687,6 +711,20 @@ int pass_3(void) {
       fscanf(f_in, "%*d ");
       add += 2;
       continue;
+
+#ifdef SUPERFX
+
+    case '*':
+      fscanf(f_in, "%*s ");
+      add++;
+      continue;
+      
+    case '-':
+      fscanf(f_in, "%*d ");
+      add++;
+      continue;
+
+#endif
 
     case '+':
       {

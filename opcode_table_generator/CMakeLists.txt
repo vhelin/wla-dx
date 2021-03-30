@@ -15,6 +15,17 @@ add_custom_command(
 	)
 ADD_CUSTOM_TARGET(GB_table ALL DEPENDS ${CMAKE_BINARY_DIR}/opcodes_gb_tables.c)
 
+# --- WLA_TARGET=SUPERFX
+add_executable (gen_SUPERFX ${CFILES})
+set_target_properties (gen_SUPERFX PROPERTIES COMPILE_DEFINITIONS "SUPERFX")
+# Generate tables
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/opcodes_superfx_tables.c
+	COMMAND gen_SUPERFX
+	DEPENDS gen_SUPERFX
+	)
+ADD_CUSTOM_TARGET(SUPERFX_table ALL DEPENDS ${CMAKE_BINARY_DIR}/opcodes_superfx_tables.c)
+
 # --- WLA_TARGET=Z80
 add_executable (gen_Z80 ${CFILES})
 set_target_properties (gen_Z80 PROPERTIES COMPILE_DEFINITIONS "Z80")

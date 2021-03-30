@@ -24,6 +24,7 @@ cpus = [
     {'name': '8008', 'define': 'I8008'},
     {'name': '8080', 'define': 'I8080'},
     {'name': 'gb', 'define': 'GB'},
+    {'name': 'superfx', 'define': 'SUPERFX'},
     {'name': 'huc6280', 'define': 'HUC6280'},
     {'name': 'spc700', 'define': 'SPC700'},
     {'name': 'z80', 'define': 'Z80'}

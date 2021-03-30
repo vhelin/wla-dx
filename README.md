@@ -2,7 +2,7 @@ WLA DX
 ======
 
 WLA DX - Yet Another
-GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 
+GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX
 Multi Platform Cross Assembler Package
 
 Linux: [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status/vhelin.wla-dx%20Linux?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=1&branchName=master)
@@ -15,8 +15,8 @@ memory map (that should be shared across all object and library files).
 
 Supported architectures are:
 
-* z80
-* gb (z80-gb)
+* Z80
+* GB (Z80-GB)
 * 6502
 * 65c02
 * 65ce02
@@ -27,8 +27,9 @@ Supported architectures are:
 * 6809
 * 8008
 * 8080
-* huc6280
-* spc700
+* HuC6280
+* SPC700
+* SuperFX
 
 
 

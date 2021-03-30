@@ -9,6 +9,11 @@ make
 start gen
 
 if exist main.o del main.o
+set WLA_TARGET=SUPERFX
+make 
+start gen
+
+if exist main.o del main.o
 set WLA_TARGET=Z80
 make 
 start gen
