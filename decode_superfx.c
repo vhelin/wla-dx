@@ -273,8 +273,16 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
         for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
           if (g_opt_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_opcode(g_opt_tmp, "k%d ", g_active_file_info_last->line_current);
-            output_assembled_opcode(g_opt_tmp, "d%d ", g_opt_tmp->prefix | tiny);
-            output_assembled_opcode(g_opt_tmp, "d%d ", g_opt_tmp->hex | z);
+            if (g_opt_tmp->hex == 0xB0) {
+              /* MOVES */
+              output_assembled_opcode(g_opt_tmp, "d%d ", g_opt_tmp->prefix | tiny);
+              output_assembled_opcode(g_opt_tmp, "d%d ", g_opt_tmp->hex | z);
+            }
+            else {
+              /* OTHERWISE */
+              output_assembled_opcode(g_opt_tmp, "d%d ", g_opt_tmp->prefix | z);
+              output_assembled_opcode(g_opt_tmp, "d%d ", g_opt_tmp->hex | tiny);
+            }
             g_source_pointer = g_inz;
             return SUCCEEDED;
           }

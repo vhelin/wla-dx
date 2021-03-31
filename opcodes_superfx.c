@@ -105,6 +105,12 @@ struct optcode g_opcodes_table[] = {
   { "TO R*", 1, 0x10, 0x00, 0, 15 },
 
   { "UMULT R*", 1, 0x80, 0x3D, 0, 15 },
+  { "UMULT #*", 1, 0x80, 0x3F, 0, 15 },
+
+  { "WITH R*", 1, 0x20, 0x00, 0, 15 },
+
+  { "XOR R*", 1, 0xC0, 0x3D, 1, 15 },
+  { "XOR #*", 1, 0xC0, 0x3F, 1, 15 },
   
   { "E", 0xFF, 0, 0, 0, 0 }
 };
