@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
 -------------------------------------------------------------------------------------------------
 
-v9.13 (01-Apr-2021) [ALL] Added support for nameless INSTANCEOFs in
+v9.13 (02-Apr-2021) [ALL] Added support for nameless INSTANCEOFs in
                       .ENUMs, .STRUCTs and .RAMSECTIONs.
                     [ALL] Computations with 32-bit binary values with all 32
                       bits defined work now.
@@ -25,6 +25,10 @@ v9.13 (01-Apr-2021) [ALL] Added support for nameless INSTANCEOFs in
                       should work again.
                     [SFX] Added Super FX support.
                     [Z80] Added SL1 (alias for SLL).
+                    [Z80] Added "RES 0,(IX+d),A", "RES 0,(IY+d),A",
+                      "RL (IX+d),A", "RL (IY+d),A", "RLC (IX+d),A",
+                      "RLC (IY+d),A", "RR (IX+d),A", "RR (IY+d),A",
+                      "RRC (IX+d),A", "RRC (IY+d),A" and variants.
 
 v9.12 (20-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                     [ALL] Added .STRINGMAP and .STRINGMAPTABLE.
