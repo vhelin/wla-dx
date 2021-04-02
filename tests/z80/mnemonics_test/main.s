@@ -33,4 +33,19 @@
         rr (iy+56h),a      // $FD $CB $56 $1F
         rrc (ix+$67), l    // $DD $CB $67 $0D
         .db "<04"
+
+        .db "05>"
+        set 2, (ix+$01), d // $DD $CB $01 $D2
+        set 4,(iy+$23),b   // $FD $CB $23 $E0
+        .db "<05"
+
+        .db "06>"
+        sla (ix+$70), l    // $DD $CB $70 $25
+        sl1 (ix+$21),a     // $DD $CB $21 $37
+        .db "<06"
+
+        .db "07>"
+        sra (iy+$51), b    // $FD $CB $51 $28
+        srl (ix+$32),h     // $DD $CB $32 $3C
+        .db "<07"
         

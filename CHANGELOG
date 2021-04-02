@@ -28,7 +28,11 @@ v9.13 (02-Apr-2021) [ALL] Added support for nameless INSTANCEOFs in
                     [Z80] Added "RES 0,(IX+d),A", "RES 0,(IY+d),A",
                       "RL (IX+d),A", "RL (IY+d),A", "RLC (IX+d),A",
                       "RLC (IY+d),A", "RR (IX+d),A", "RR (IY+d),A",
-                      "RRC (IX+d),A", "RRC (IY+d),A" and variants.
+                      "RRC (IX+d),A", "RRC (IY+d),A", "SET 0,(IX+d),A",
+                      "SET 0,(IY+d),A", "SLA (IX+d),A", "SLA (IY+d)",A",
+                      "SLL (IX+d),A", "SLL (IY+d),A", "SRA (IX+d),A",
+                      "SRA (IY+d),A", "SRL (IX+d),A", "SRL (IY+d),A" and
+                      variants.
 
 v9.12 (20-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                     [ALL] Added .STRINGMAP and .STRINGMAPTABLE.
