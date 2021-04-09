@@ -1,6 +1,6 @@
 
 /*
-  wlalink - part of wla dx gb-z80/z80/6502/65c02/6510/6800/6801/6809/65816/huc6280/spc-700/8008/8080
+  wlalink - part of wla dx gb-z80/z80/6502/65c02/6510/6800/6801/6809/65816/huc6280/spc-700/8008/8080/superfx
   macro assembler package by ville helin <ville.helin@iki.fi>. this is gpl software.
 */
 
@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.15a (30.3.2021)";
+char version_string[] = "$VER: wlalink 5.15a (9.4.2021)";
 
 #ifdef AMIGA
 __near long __stack = 200000;

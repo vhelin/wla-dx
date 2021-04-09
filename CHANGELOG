@@ -1248,13 +1248,17 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.15 (28-Mar-2021) Fixed listfile writing when there is no listfile data
+v5.15 (09-Apr-2021) Fixed listfile writing when there is no listfile data
                       in object files.
                     It's possible to give binary values in [definitions].
                     Pending 32-bit calculations work now in bankheader
                       sections.
                     Errors should print now properly if it happened in a
                       source file with file ID > 255.
+                    If a .SECTION/.RAMSECTION "B" is merged with section "A"
+                      using APPENDTO keyword, "SECTIONEND_A" label is moved
+                      to the end of the new, bigger section "A" and labels
+                      "SECTIONEND_B" and "SECTIONSTART_B" are deleted.
 
 v5.14 (20-Mar-2021) Fixed buggy symbol file name generation.
                     Fixed SMS checksum calculation if .SMSHEADER is not used.

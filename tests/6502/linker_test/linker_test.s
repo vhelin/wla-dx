@@ -106,3 +106,12 @@ LABELI:	NOP
 
 BANKLABEL:
 	
+        .RAMSECTION "vars4" bank 1 slot 4 keep
+thing   db
+        .ends
+
+        .RAMSECTION "vars3" bank 1 slot 4 appendto "vars1" keep
+new:    db
+        .ends
+
+        

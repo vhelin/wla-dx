@@ -1045,6 +1045,20 @@ static struct section *_find_section(char *section_name) {
 }
 
 
+static void _kill_label(char *name) {
+
+  struct label *l = g_labels_first;
+  
+  while (l != NULL) {
+    if (strcmp(name, l->name) == 0) {
+      l->alive = NO;
+      break;
+    }
+    l = l->next;
+  }
+}
+
+
 int merge_sections(void) {
 
   int warning_given_s = NO, warning_given_t = NO, size, asn, i;
@@ -1054,6 +1068,7 @@ int merge_sections(void) {
   struct reference *r;
   struct stack *st;
   struct label *l;
+  char label_tmp[MAX_NAME_LENGTH + 1];
 
   
   /* count append sections */
@@ -1138,7 +1153,7 @@ int merge_sections(void) {
 
       free(s_target->data);
       s_target->data = data;
-      
+
       /* move labels */
       l = g_labels_first;
       while (l != NULL) {
@@ -1151,6 +1166,24 @@ int merge_sections(void) {
         l = l->next;
       }
 
+      /* try to adjust SECTIONEND_%s of the target as the target section has grown */
+      snprintf(label_tmp, sizeof(label_tmp), "SECTIONEND_%s", as->append_to);
+
+      l = g_labels_first;
+      while (l != NULL) {
+        if (strcmp(label_tmp, l->name) == 0) {
+          l->address += s_source->size;
+          break;
+        }
+        l = l->next;
+      }
+
+      /* remove both SECTIONEND_%s and SECTIONSTART_%s of source */
+      snprintf(label_tmp, sizeof(label_tmp), "SECTIONEND_%s", as->section);
+      _kill_label(label_tmp);
+      snprintf(label_tmp, sizeof(label_tmp), "SECTIONSTART_%s", as->section);
+      _kill_label(label_tmp);
+      
       /* move references */
       r = g_reference_first;
       while (r != NULL) {
