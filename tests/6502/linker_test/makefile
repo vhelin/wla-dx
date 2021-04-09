@@ -1,8 +1,8 @@
 
 CC = wla-6502
-CFLAGS = -i -o
+CFLAGS = -i -x -o
 LD = wlalink
-LDFLAGS = -v -i
+LDFLAGS = -v -s -i
 
 SFILES = setup.s linker_test.s
 IFILES = defines.i

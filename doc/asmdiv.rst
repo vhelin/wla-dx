@@ -142,7 +142,7 @@ ALL  ``.ENUM $C000``
 ALL  ``.ENUMID ID_1 0``
 ALL  ``.EQU IF $FF0F``
 ALL  ``.FAIL "THE EYE OF MORDOR HAS SEEN US!"``
-658  ``.FARADDR main, irq_1``
+ALL  ``.FARADDR main, irq_1``
 ALL  ``.FCLOSE FP_DATABIN``
 ALL  ``.FILTER filtermacro 1, 2, "encrypt me"``
 ALL  ``.FOPEN "data.bin" FP_DATABIN``
@@ -167,7 +167,7 @@ ALL  ``.INCDIR "/usr/programming/gb/include/"``
 ALL  ``.INCLUDE "cgb_hardware.i"``
 658  ``.INDEX 8``
 ALL  ``.INPUT NAME``
-658  ``.LONG $102030, $405060``
+ALL  ``.LONG $102030, $405060``
 ALL  ``.MACRO TEST``
 ALL  ``.MEMORYMAP``
 ALL  ``.NEXTU name``

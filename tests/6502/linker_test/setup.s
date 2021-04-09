@@ -37,3 +37,12 @@ energy_h DB
 	lda	:slots+$fe
 .include "nop.s"
 .ends
+
+        .section "empty1" keep
+empty1_start:
+        .ends
+
+        .ramsection "empty2" bank 1 slot 4 keep
+
+        .ends
+        

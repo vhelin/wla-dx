@@ -1,9 +1,9 @@
 
--------------------------------------------------------------------------------------------------
-1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 History
--------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
+---------------------------------------------------------------------------------------------------------
 
-v9.13 (02-Apr-2021) [ALL] Added support for nameless INSTANCEOFs in
+v9.13 (09-Apr-2021) [ALL] Added support for nameless INSTANCEOFs in
                       .ENUMs, .STRUCTs and .RAMSECTIONs.
                     [ALL] Computations with 32-bit binary values with all 32
                       bits defined work now.
@@ -23,6 +23,8 @@ v9.13 (02-Apr-2021) [ALL] Added support for nameless INSTANCEOFs in
                       any bytes).
                     [ALL] Pending calculations inside bankheader sections
                       should work again.
+                    [ALL] If an empty .SECTION/.RAMSECTION uses keyword KEEP
+                      it is no longer discarded.
                     [SFX] Added Super FX support.
                     [Z80] Added SL1 (alias for SLL).
                     [Z80] Added "RES 0,(IX+d),A", "RES 0,(IY+d),A",

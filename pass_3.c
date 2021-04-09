@@ -430,7 +430,7 @@ int pass_3(void) {
         s->size = add - s->address;
 
         /* discard an empty section? */
-        if (s->size == 0) {
+        if (s->size == 0 && s->keep == NO) {
           fprintf(stderr, "INTERNAL_PASS_1: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
           s->alive = OFF;
 
@@ -617,7 +617,7 @@ int pass_3(void) {
       s->size = add - s->address;
 
       /* discard an empty section? */
-      if (s->size == 0) {
+      if (s->size == 0 && s->keep == NO) {
         fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
         s->alive = OFF;
 

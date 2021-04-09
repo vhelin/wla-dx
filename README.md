@@ -18,8 +18,8 @@ Supported architectures are:
 * Z80
 * GB (Z80-GB)
 * 6502
-* 65c02
-* 65ce02
+* 65C02
+* 65CE02
 * 6510
 * 65816
 * 6800
