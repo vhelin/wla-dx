@@ -418,7 +418,8 @@ int load_files(char *argv[], int argc) {
       g_sec_fix_tmp = calloc(sizeof(struct section_fix), 1);
       if (g_sec_fix_tmp == NULL) {
         fprintf(stderr, "%s:%d: LOAD_FILES: Out of memory error.\n", argv[argc - 2], line);
-        return FAILED;  
+        fclose(fop);
+        return FAILED;
       }
 
       strcpy(g_sec_fix_tmp->name, token);
@@ -456,6 +457,11 @@ int load_files(char *argv[], int argc) {
       
       if (appendto_defined == YES) {
         g_append_tmp = calloc(1, sizeof(struct append_section));
+        if (g_append_tmp == NULL) {
+          fprintf(stderr, "%s:%d: LOAD_FILES: Out of memory error.\n", argv[argc - 2], line);
+          fclose(fop);
+          return FAILED;
+        }
         g_append_tmp->section_s = NULL;
         g_append_tmp->append_to_s = NULL;
         g_append_tmp->section_id = -1;

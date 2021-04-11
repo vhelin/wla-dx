@@ -1,5 +1,9 @@
 [objects]
 linker_test.o
 setup.o
+
 [definitions]
 ONE 1
+
+[ramsections]
+bank 1 slot 4 appendto "vars1" "varsX"

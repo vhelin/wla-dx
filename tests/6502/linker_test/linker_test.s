@@ -114,4 +114,7 @@ thing   db
 new:    db
         .ends
 
+        .RAMSECTION "varsX" bank 1 slot 4 keep
+super:  db
+        .ends
         
