@@ -830,8 +830,11 @@ int try_put_label(map_t map, struct label *l) {
     else
       fprintf(stderr, "%s: %s:%d: TRY_PUT_LABEL: Label \"%s\" was defined more than once.\n", get_file_name(l->file_id),
               get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name);
+    /*
     return FAILED;
+    */
   }
+  
   if ((err = hashmap_put(map, l->name, l)) != MAP_OK) {
     fprintf(stderr, "TRY_PUT_LABEL: Hashmap error %d. Please send a bug report!\n", err);
     return FAILED;
@@ -939,26 +942,28 @@ int fix_label_sections(void) {
 
   l = g_labels_first;
   while (l != NULL) {
-    if (l->section_status == ON) {
-      /* search for the label's section */
-      s = g_sec_first;
-      while (s != NULL) {
-        if (s->id == l->section) {
-          l->section_struct = s;
-          break;
+    if (l->alive == YES) {
+      if (l->section_status == ON) {
+        /* search for the label's section */
+        s = g_sec_first;
+        while (s != NULL) {
+          if (s->id == l->section) {
+            l->section_struct = s;
+            break;
+          }
+          s = s->next;
         }
-        s = s->next;
+
+        if (s == NULL) {
+          fprintf(stderr, "FIX_LABEL_SECTIONS: Internal error: couldn't find section %d for label \"%s\".\n",
+                  l->section, l->name);
+          return FAILED;
+        }
       }
 
-      if (s == NULL) {
-        fprintf(stderr, "FIX_LABEL_SECTIONS: Internal error: couldn't find section %d for label \"%s\".\n",
-                l->section, l->name);
-        return FAILED;
-      }
+      insert_label_into_maps(l, 0);
     }
-
-    insert_label_into_maps(l, 0);
-
+    
     l = l->next;
   }
 
@@ -1499,7 +1504,7 @@ static void _fprintf_snes_label(FILE *f, struct label *l, int noca5h) {
   if (address == 0x10000)
     address = 0;
   else if (address > 0xffff)
-    fprintf(stderr, "_fprintf_snes_label(): Label's address inside a bank is %.4x > $FFFF! Please submit a bug report!\n", address);
+    fprintf(stderr, "_fprintf_snes_label(): The address of label \"%s\" inside a bank is $%.4x > $FFFF! Please submit a bug report!\n", l->name, address);
   
   if (noca5h == YES)
     fprintf(f, "%.4x%.4x %s\n", bank, address, l->name);

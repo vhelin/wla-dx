@@ -1064,12 +1064,12 @@ static struct section *_find_append_source_section(struct append_section *as) {
 }
 
 
-static void _kill_label(char *name) {
+static void _kill_label(char *name, struct section *s) {
 
   struct label *l = g_labels_first;
-  
+
   while (l != NULL) {
-    if (strcmp(name, l->name) == 0)
+    if (strcmp(name, l->name) == 0 && s->id == l->section)
       l->alive = NO;
     l = l->next;
   }
@@ -1199,9 +1199,9 @@ int merge_sections(void) {
 
       /* remove both SECTIONEND_%s and SECTIONSTART_%s of source */
       snprintf(label_tmp, sizeof(label_tmp), "SECTIONEND_%s", s_source->name);
-      _kill_label(label_tmp);
+      _kill_label(label_tmp, s_target);
       snprintf(label_tmp, sizeof(label_tmp), "SECTIONSTART_%s", s_source->name);
-      _kill_label(label_tmp);
+      _kill_label(label_tmp, s_target);
       
       /* move references */
       r = g_reference_first;

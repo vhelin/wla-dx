@@ -4483,6 +4483,8 @@ int directive_ramsection(void) {
   strcpy(g_sec_tmp->name, g_tmp);
   g_sec_tmp->next = NULL;
 
+  fprintf(g_file_out_ptr, "S%d ", g_sec_tmp->id);
+
   /* generate a section start label? */
   if (g_extra_definitions == ON)
     generate_label("SECTIONSTART_", g_sec_tmp->name);
@@ -4619,8 +4621,6 @@ int directive_ramsection(void) {
   else
     g_sec_tmp->address = -1;
   
-  fprintf(g_file_out_ptr, "S%d ", g_sec_tmp->id);
-
   /* align the ramsection? */
   if (compare_next_token("ALIGN") == SUCCEEDED) {
     if (g_output_format == OUTPUT_LIBRARY) {
@@ -4827,6 +4827,10 @@ int directive_section(void) {
   g_sec_tmp->advance_org = YES;
   g_sec_tmp->nspace = NULL;
   g_sec_tmp->keep = NO;
+  g_sec_tmp->id = g_section_id;
+  g_section_id++;
+
+  fprintf(g_file_out_ptr, "S%d ", g_sec_tmp->id);
 
   if (strcmp(g_tmp, "BANKHEADER") == 0) {
     no_library_files("bank header sections");
@@ -5095,13 +5099,10 @@ int directive_section(void) {
     g_bankheader_status = ON;
   }
 
-  g_sec_tmp->id = g_section_id;
   g_sec_tmp->alive = ON;
   g_sec_tmp->filename_id = g_active_file_info_last->filename_id;
   g_sec_tmp->bank = g_bank;
-  g_section_id++;
   g_section_status = ON;
-  fprintf(g_file_out_ptr, "S%d ", g_sec_tmp->id);
 
   return SUCCEEDED;
 }
