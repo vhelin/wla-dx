@@ -1504,7 +1504,7 @@ static void _fprintf_snes_label(FILE *f, struct label *l, int noca5h) {
   if (address == 0x10000)
     address = 0;
   else if (address > 0xffff)
-    fprintf(stderr, "_fprintf_snes_label(): The address of label \"%s\" inside a bank is $%.4x > $FFFF! Please submit a bug report!\n", l->name, address);
+    fprintf(stderr, "%s: %s:%d: _fprintf_snes_label(): The address of label \"%s\" inside a bank is $%.4x > $FFFF! Please submit a bug report!\n", get_file_name(l->file_id), get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name, address);
   
   if (noca5h == YES)
     fprintf(f, "%.4x%.4x %s\n", bank, address, l->name);
