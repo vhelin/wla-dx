@@ -91,6 +91,8 @@ struct object_file {
 };
 
 struct append_section {
+  int section_id;
+  int file_id;
   char section[MAX_NAME_LENGTH + 1];
   char append_to[MAX_NAME_LENGTH + 1];
   struct section *section_s;

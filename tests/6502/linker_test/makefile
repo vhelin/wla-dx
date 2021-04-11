@@ -22,4 +22,4 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	rm -f $(OFILES) core *~ linked.rom *.lst
+	rm -f $(OFILES) core *~ linked.rom linked.sym *.lst

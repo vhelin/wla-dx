@@ -744,11 +744,11 @@ int collect_dlr(void) {
           return FAILED;
         }
 
-        /* copy the names */
-        for (x = 0; *t != 0; t++, x++)
-          g_append_tmp->section[x] = *t;
-        g_append_tmp->section[x] = 0;
-        t++;
+        g_append_tmp->section_id = READ_T;
+        g_append_tmp->file_id = g_obj_tmp->id;
+        
+        /* copy the name */
+        g_append_tmp->section[0] = 0;
         for (x = 0; *t != 0; t++, x++)
           g_append_tmp->append_to[x] = *t;
         g_append_tmp->append_to[x] = 0;
@@ -988,11 +988,11 @@ int collect_dlr(void) {
           return FAILED;
         }
 
-        /* copy the names */
-        for (x = 0; *t != 0; t++, x++)
-          g_append_tmp->section[x] = *t;
-        g_append_tmp->section[x] = 0;
-        t++;
+        g_append_tmp->section_id = READ_T;
+        g_append_tmp->file_id = g_obj_tmp->id;
+
+        /* copy the name */
+        g_append_tmp->section[0] = 0;
         for (x = 0; *t != 0; t++, x++)
           g_append_tmp->append_to[x] = *t;
         g_append_tmp->append_to[x] = 0;
@@ -1010,7 +1010,7 @@ int collect_dlr(void) {
     }
 
     g_obj_tmp = g_obj_tmp->next;
-    section += 1000000;
+    section += 0x100000;
   }
 
   return SUCCEEDED;
@@ -1045,15 +1045,32 @@ static struct section *_find_section(char *section_name) {
 }
 
 
+static struct section *_find_append_source_section(struct append_section *as) {
+
+  struct section *s = g_sec_first;
+
+  /* use the name? */
+  if (as->section_id < 0 && as->file_id < 0)
+    return _find_section(as->section);
+
+  /* use the IDs */
+  while (s != NULL) {
+    if (as->file_id == s->file_id && as->section_id == (s->id & 0xfffff))
+      return s;
+    s = s->next;
+  }
+
+  return NULL;
+}
+
+
 static void _kill_label(char *name) {
 
   struct label *l = g_labels_first;
   
   while (l != NULL) {
-    if (strcmp(name, l->name) == 0) {
+    if (strcmp(name, l->name) == 0)
       l->alive = NO;
-      break;
-    }
     l = l->next;
   }
 }
@@ -1092,7 +1109,7 @@ int merge_sections(void) {
   i = 0;
   as = g_append_sections;
   while (as != NULL) {
-    as->section_s = _find_section(as->section);
+    as->section_s = _find_append_source_section(as);
     as->append_to_s = _find_section(as->append_to);    
     ass[i++] = as;
     as = as->next;
@@ -1119,14 +1136,16 @@ int merge_sections(void) {
     
     s = g_sec_first;
     while (s != NULL) {
-      if (strcmp(as->section, s->name) == 0) {
+      if ((as->file_id >= 0 && as->section_id >= 0 && as->file_id == s->file_id && as->section_id == (s->id & 0xfffff)) ||
+          (strcmp(as->section, s->name) == 0)) {
         if (s_source != NULL && warning_given_s == NO) {
-          fprintf(stderr, "MERGE_SECTIONS: Multiple source sections called \"%s\" found, using the last one for append. Please rename one of the sections for a more predictable outcome.\n", s->name);
+          fprintf(stderr, "MERGE_SECTIONS: Multiple source sections called \"%s\" found with the same ID, using the last one for append. This shouldn't actually happen so please submit a bug report!\n", s->name);
           warning_given_s = YES;
         }
         s_source = s;
       }
-      else if (strcmp(as->append_to, s->name) == 0) {
+
+      if (strcmp(as->append_to, s->name) == 0) {
         if (s_target != NULL && warning_given_t == NO) {
           fprintf(stderr, "MERGE_SECTIONS: Multiple target sections called \"%s\" found, using the last one for append. Please rename one of the sections for a more predictable outcome.\n", s->name);
           warning_given_t = YES;
@@ -1137,15 +1156,15 @@ int merge_sections(void) {
     }
 
     if (s_source == NULL)
-      fprintf(stderr, "MERGE_SECTIONS: Source section \"%s\" was not found, ignoring the \"%s\" -> \"%s\" append.\n", as->section, as->section, as->append_to);
+      fprintf(stderr, "MERGE_SECTIONS: Source section %d of file %d was not found, ignoring the -> \"%s\" append. This shouldn't actually happen so please submit a bug report!\n", as->section_id, as->file_id, as->append_to);
     else if (s_target == NULL)
-      fprintf(stderr, "MERGE_SECTIONS: Target section \"%s\" was not found, ignoring the \"%s\" -> \"%s\" append.\n", as->append_to, as->section, as->append_to);
+      fprintf(stderr, "MERGE_SECTIONS: Target section \"%s\" was not found, ignoring the \"%s\" -> \"%s\" append.\n", as->append_to, s_source->name, as->append_to);
     else {
       /* merge data */
       size = s_source->size + s_target->size;
       data = calloc(size, 1);
       if (data == NULL) {
-        fprintf(stderr, "MERGE_SECTIONS: Out of memory while merging \"%s\" -> \"%s\" append.\n", as->section, as->append_to);
+        fprintf(stderr, "MERGE_SECTIONS: Out of memory while merging \"%s\" -> \"%s\" append.\n", s_source->name, as->append_to);
         return FAILED;
       }
       memcpy(data, s_target->data, s_target->size);
@@ -1179,9 +1198,9 @@ int merge_sections(void) {
       }
 
       /* remove both SECTIONEND_%s and SECTIONSTART_%s of source */
-      snprintf(label_tmp, sizeof(label_tmp), "SECTIONEND_%s", as->section);
+      snprintf(label_tmp, sizeof(label_tmp), "SECTIONEND_%s", s_source->name);
       _kill_label(label_tmp);
-      snprintf(label_tmp, sizeof(label_tmp), "SECTIONSTART_%s", as->section);
+      snprintf(label_tmp, sizeof(label_tmp), "SECTIONSTART_%s", s_source->name);
       _kill_label(label_tmp);
       
       /* move references */
@@ -1332,7 +1351,7 @@ int parse_data_blocks(void) {
         }
       }
       g_obj_tmp = g_obj_tmp->next;
-      section += 1000000;
+      section += 0x100000;
       continue;
     }
     /* LIBRARY FILE */
@@ -1414,7 +1433,7 @@ int parse_data_blocks(void) {
         add_section(s);
       }
       g_obj_tmp = g_obj_tmp->next;
-      section += 1000000;
+      section += 0x100000;
       continue;
     }
   }

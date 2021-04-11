@@ -4433,6 +4433,8 @@ int directive_ramsection(void) {
 
   int q, current_slot_address;
       
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+
   if (g_section_status == ON) {
     snprintf(g_error_message, sizeof(g_error_message), "There is already an open section called \"%s\".\n", g_sections_last->name);
     print_error(g_error_message, ERROR_DIR);
@@ -4481,6 +4483,10 @@ int directive_ramsection(void) {
   strcpy(g_sec_tmp->name, g_tmp);
   g_sec_tmp->next = NULL;
 
+  /* generate a section start label? */
+  if (g_extra_definitions == ON)
+    generate_label("SECTIONSTART_", g_sec_tmp->name);
+  
   /* look for duplicate sections */
   g_sec_next = g_sections_first;
   while (g_sec_next != NULL) {
@@ -4723,7 +4729,7 @@ int directive_ramsection(void) {
         return FAILED;
     }
     
-    strcpy(append_tmp->section, g_sec_tmp->name);
+    append_tmp->section = g_sec_tmp;
     strcpy(append_tmp->append_to, g_tmp);
 
     append_tmp->next = g_append_sections;
@@ -4768,10 +4774,6 @@ int directive_ramsection(void) {
   
   g_in_ramsection = YES;
 
-  /* generate a section start label? */
-  if (g_extra_definitions == ON)
-    generate_label("SECTIONSTART_", g_sec_tmp->name);
-
   return SUCCEEDED;
 }
 
@@ -4779,6 +4781,8 @@ int directive_ramsection(void) {
 int directive_section(void) {
   
   int l;
+
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   if (g_dstruct_status == ON) {
     print_error("You can't set the section inside .DSTRUCT.\n", ERROR_DIR);
@@ -4854,6 +4858,10 @@ int directive_section(void) {
   strcpy(g_sec_tmp->name, g_tmp);
   g_sec_tmp->next = NULL;
 
+  /* generate a section start label? */
+  if (g_extra_definitions == ON)
+    generate_label("SECTIONSTART_", g_sec_tmp->name);
+  
   g_sec_tmp->label_map = hashmap_new();
 
   if (g_sections_first == NULL) {
@@ -5054,7 +5062,7 @@ int directive_section(void) {
       }
     }
     
-    strcpy(append_tmp->section, g_sec_tmp->name);
+    append_tmp->section = g_sec_tmp;
     strcpy(append_tmp->append_to, g_tmp);
 
     append_tmp->next = g_append_sections;
@@ -5094,10 +5102,6 @@ int directive_section(void) {
   g_section_id++;
   g_section_status = ON;
   fprintf(g_file_out_ptr, "S%d ", g_sec_tmp->id);
-
-  /* generate a section start label? */
-  if (g_extra_definitions == ON)
-    generate_label("SECTIONSTART_", g_sec_tmp->name);
 
   return SUCCEEDED;
 }

@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------
 
-v9.13 (09-Apr-2021) [ALL] Added support for nameless INSTANCEOFs in
+v9.13 (11-Apr-2021) [ALL] Added support for nameless INSTANCEOFs in
                       .ENUMs, .STRUCTs and .RAMSECTIONs.
                     [ALL] Computations with 32-bit binary values with all 32
                       bits defined work now.
@@ -17,7 +17,7 @@ v9.13 (09-Apr-2021) [ALL] Added support for nameless INSTANCEOFs in
                       arrays using .ARRAYDEFINE/.ARRAYDEF/.ARRAYIN/.ARRAYOUT.
                     [ALL] Added .ARRAYDB, .ARRAYDW, .ARRAYDL and .ARRAYDD.
                     [ALL] Added .BITS (like .DB but for bits) and .ENDBITS.
-                    [ALL] WLA assembles now "WLAC" library files and "WLAd"
+                    [ALL] WLA assembles now "WLAD" library files and "WLAe"
                       object files.
                     [ALL] Added .FILTER (same as .DBM, but doesn't define
                       any bytes).
@@ -25,6 +25,9 @@ v9.13 (09-Apr-2021) [ALL] Added support for nameless INSTANCEOFs in
                       should work again.
                     [ALL] If an empty .SECTION/.RAMSECTION uses keyword KEEP
                       it is no longer discarded.
+                    [ALL] The source section of APPENDTO operation is now
+                      linked with its ID, not name, so multiple sources
+                      with the same name work now.
                     [SFX] Added Super FX support.
                     [Z80] Added SL1 (alias for SLL).
                     [Z80] Added "RES 0,(IX+d),A", "RES 0,(IY+d),A",
@@ -1248,7 +1251,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.15 (09-Apr-2021) Fixed listfile writing when there is no listfile data
+v5.15 (11-Apr-2021) Fixed listfile writing when there is no listfile data
                       in object files.
                     It's possible to give binary values in [definitions].
                     Pending 32-bit calculations work now in bankheader
@@ -1259,6 +1262,8 @@ v5.15 (09-Apr-2021) Fixed listfile writing when there is no listfile data
                       using APPENDTO keyword, "SECTIONEND_A" label is moved
                       to the end of the new, bigger section "A" and labels
                       "SECTIONEND_B" and "SECTIONSTART_B" are deleted.
+                    Duplicate SECTIONEND_* and SECTIONSTART_* labels (for
+                      sections with same names) are no longer renamed.
 
 v5.14 (20-Mar-2021) Fixed buggy symbol file name generation.
                     Fixed SMS checksum calculation if .SMSHEADER is not used.

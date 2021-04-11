@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.15a (9.4.2021)";
+char version_string[] = "$VER: wlalink 5.15a (11.4.2021)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -266,8 +266,10 @@ int main(int argc, char *argv[]) {
     return 1;
 
   /* make sure all SECTIONSTART_* and SECTIONEND_* labels have no duplicates */
+  /*
   if (fix_sectionstartend_labels() == FAILED)
     return 1;
+  */
 
   /* take rom size and allocate memory */
   if (allocate_rom() == FAILED)

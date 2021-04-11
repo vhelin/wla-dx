@@ -502,7 +502,7 @@ struct definition {
 };
 
 struct append_section {
-  char section[MAX_NAME_LENGTH + 1];
+  struct section_def *section;
   char append_to[MAX_NAME_LENGTH + 1];
   struct append_section *next;
 };

@@ -46,3 +46,7 @@ empty1_start:
 
         .ends
         
+
+        .RAMSECTION "vars3" bank 1 slot 4 appendto "vars1" keep
+test:    db
+        .ends

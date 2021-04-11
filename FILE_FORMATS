@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file format "WLAd"
+WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file format "WLAe"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAd" - WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file version 29 (28-Mar-2021)
+        "WLAe" - WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file version 30 (11-Apr-2021)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -139,7 +139,7 @@ section appends
 
   4     number of appends (int)
   ...
-  n     section name (0 terminated)
+  4     section id (int)
   n     append to (0 terminated)
   ...
 
@@ -178,7 +178,7 @@ section:
 
 
 
-WLA-GB/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX library file format "WLAC"
+WLA-GB/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX library file format "WLAD"
 
 
 bytes   description
@@ -186,7 +186,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAC" - WLA-GB/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX library file version 23 (28-Mac-2021)
+        "WLAD" - WLA-GB/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX library file version 24 (11-Apr-2021)
   1     misc bits (bit 0 - endianess (1 = big endian)
                    bit 1 - 65816 indicator (1 == 65816)
                    bit 2 - 65ce02 indicator (1 == 65ce02))
@@ -272,7 +272,7 @@ section appends
 
   4     number of appends (int)
   ...
-  n     section name (0 terminated)
+  4     section id (int)
   n     append to (0 terminated)
   ...
 

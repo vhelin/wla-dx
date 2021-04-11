@@ -458,6 +458,8 @@ int load_files(char *argv[], int argc) {
         g_append_tmp = calloc(1, sizeof(struct append_section));
         g_append_tmp->section_s = NULL;
         g_append_tmp->append_to_s = NULL;
+        g_append_tmp->section_id = -1;
+        g_append_tmp->file_id = -1;
         strcpy(g_append_tmp->section, g_sec_fix_tmp->name);
         strcpy(g_append_tmp->append_to, appendto_name);
         g_append_tmp->next = g_append_sections;
