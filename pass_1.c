@@ -2091,6 +2091,7 @@ int parse_enum_token(void) {
   }
   /* it's an instance of a structure! */
   else if (strcaselesscmp(g_tmp, "INSTANCEOF") == 0) {
+    int number_result;
     type = STRUCTURE_ITEM_TYPE_INSTANCEOF;
 
     if (get_next_token() == FAILED)
@@ -2105,13 +2106,13 @@ int parse_enum_token(void) {
     }
 
     /* get the number of structures to be made */
-    g_inz = input_number();
-    if (g_inz == INPUT_NUMBER_EOL) {
+    number_result = input_number();
+    if (number_result == INPUT_NUMBER_EOL) {
       next_line();
       g_size = st->size;
       g_parsed_int = 1;
     }
-    else if (g_inz == SUCCEEDED) {
+    else if (number_result == SUCCEEDED) {
       if (g_parsed_int < 1) {
         print_error("The number of structures must be greater than 0.\n", ERROR_DIR);
         return FAILED;
@@ -2120,7 +2121,7 @@ int parse_enum_token(void) {
       g_size = st->size * g_parsed_int;
     }
     else {
-      if (g_inz == INPUT_NUMBER_STRING)
+      if (number_result == INPUT_NUMBER_STRING)
         snprintf(g_error_message, sizeof(g_error_message), "Expected the number of structures, got \"%s\" instead.\n", g_label);
       else
         snprintf(g_error_message, sizeof(g_error_message), "Expected the number of structures.\n");
