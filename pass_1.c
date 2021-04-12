@@ -334,7 +334,7 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
 int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
 
   struct macro_runtime *mrt;
-  int start;
+  int start, number_result;
   
   /* start running a macro... run until .ENDM */
   if (macro_stack_grow() == FAILED)
@@ -345,11 +345,11 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
   start = g_source_pointer;
 
   if (first == NO && mrt->string_current < mrt->string_last) {
-    g_inz = SUCCEEDED;
+    number_result = SUCCEEDED;
     g_parsed_int = mrt->string[mrt->string_current++];
   }
   else {
-    g_inz = input_number();
+    number_result = input_number();
     mrt->string_current = 0;
     mrt->string_last = 0;
   }
@@ -359,7 +359,7 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
   else
     mrt->offset++;
 
-  if (g_inz == INPUT_NUMBER_EOL && first == NO) {
+  if (number_result == INPUT_NUMBER_EOL && first == NO) {
     next_line();
     return SUCCEEDED;
   }
@@ -377,11 +377,11 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
 
   /* filter all the data through that macro */
   mrt->argument_data[0]->start = start;
-  mrt->argument_data[0]->type = g_inz;
+  mrt->argument_data[0]->type = number_result;
 
-  if (g_inz == FAILED)
+  if (number_result == FAILED)
     return FAILED;
-  else if (g_inz == INPUT_NUMBER_EOL) {
+  else if (number_result == INPUT_NUMBER_EOL) {
     snprintf(g_error_message, sizeof(g_error_message), ".%s needs data.\n", name);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
@@ -389,9 +389,9 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
 
   mrt->supplied_arguments = 2;
 
-  if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+  if (number_result == INPUT_NUMBER_ADDRESS_LABEL)
     strcpy(mrt->argument_data[0]->string, g_label);
-  else if (g_inz == INPUT_NUMBER_STRING) {
+  else if (number_result == INPUT_NUMBER_STRING) {
     mrt->argument_data[0]->type = SUCCEEDED;
     mrt->argument_data[0]->value = g_label[0];
     strcpy(mrt->string, g_label);
@@ -401,9 +401,9 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
       fprintf(stderr, "got string %s!\n", label);
     */
   }
-  else if (g_inz == INPUT_NUMBER_STACK)
+  else if (number_result == INPUT_NUMBER_STACK)
     mrt->argument_data[0]->value = (double)g_latest_stack;
-  else if (g_inz == SUCCEEDED)
+  else if (number_result == SUCCEEDED)
     mrt->argument_data[0]->value = g_parsed_int;
   else
     return FAILED;
