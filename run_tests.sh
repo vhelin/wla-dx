@@ -38,7 +38,7 @@ fi
 
 SHOW_ALL_OUTPUT="no"
 if [ $# -eq 1 ]; then
-    if [ "$1" == "-v" ]; then
+    if [ "$1" = "-v" ]; then
         SHOW_ALL_OUTPUT="yes"
     fi
 fi
@@ -49,7 +49,7 @@ echo
 echo Running tests...
 cd tests
 
-if [ "$SHOW_ALL_OUTPUT" == "yes" ]; then
+if [ "$SHOW_ALL_OUTPUT" = "yes" ]; then
     echo
 fi
 
@@ -74,7 +74,7 @@ for PLATFORM in */; do
                     echo "********"
                     echo Test \"$TEST\" of platform \"$PLATFORM\" failed.
                     exit 1
-                elif [ "$SHOW_ALL_OUTPUT" == "yes" ]; then
+                elif [ "$SHOW_ALL_OUTPUT" = "yes" ]; then
                     echo "*********************************************************************"
                     echo Test \"$TEST\" of platform \"$PLATFORM\" succeeded:
                     echo "*********************************************************************"
