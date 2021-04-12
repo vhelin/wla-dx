@@ -2846,28 +2846,28 @@ int directive_row_data(void) {
 int directive_db_byt_byte(void) {
 
   char bak[256];
-  int o;
+  int char_index, input_number_result;
 
   fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   strcpy(bak, g_current_directive);
 
-  g_inz = input_number();
-  for (g_ind = 0; g_inz == SUCCEEDED || g_inz == INPUT_NUMBER_STRING || g_inz == INPUT_NUMBER_ADDRESS_LABEL || g_inz == INPUT_NUMBER_STACK; g_ind++) {
-    if (g_inz == INPUT_NUMBER_STRING) {
-      for (o = 0; o < g_string_size; o++) {
+  input_number_result = input_number();
+  for (g_ind = 0; input_number_result == SUCCEEDED || input_number_result == INPUT_NUMBER_STRING || input_number_result == INPUT_NUMBER_ADDRESS_LABEL || input_number_result == INPUT_NUMBER_STACK; g_ind++) {
+    if (input_number_result == INPUT_NUMBER_STRING) {
+      for (char_index = 0; char_index < g_string_size; char_index++) {
         /* handle '\0' */
-        if (g_label[o] == '\\' && g_label[o + 1] == '0') {
+        if (g_label[char_index] == '\\' && g_label[char_index + 1] == '0') {
           fprintf(g_file_out_ptr, "d%d ", '\0');
-          o++;
+          char_index++;
         }
         /* handle '\x' */
-        else if (g_label[o] == '\\' && g_label[o + 1] == 'x') {
+        else if (g_label[char_index] == '\\' && g_label[char_index + 1] == 'x') {
           char tmp_a[8], *tmp_b;
           int tmp_c;
         
-          o += 3;
-          snprintf(tmp_a, sizeof(tmp_a), "%c%c", g_label[o-1], g_label[o]);
+          char_index += 3;
+          snprintf(tmp_a, sizeof(tmp_a), "%c%c", g_label[char_index-1], g_label[char_index]);
           tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
           if (*tmp_b) {
             snprintf(g_error_message, sizeof(g_error_message), ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
@@ -2877,63 +2877,63 @@ int directive_db_byt_byte(void) {
           fprintf(g_file_out_ptr, "d%d ", tmp_c);
         }
         /* handle '\<' */
-        else if (g_label[o] == '\\' && g_label[o + 1] == '<') {
-          o += 2;
-          if (o == g_string_size) {
+        else if (g_label[char_index] == '\\' && g_label[char_index + 1] == '<') {
+          char_index += 2;
+          if (char_index == g_string_size) {
             snprintf(g_error_message, sizeof(g_error_message), ".%s '\\<' needs character data.\n", bak);
             print_error(g_error_message, ERROR_INP);
             return FAILED;
           }
-          fprintf(g_file_out_ptr, "d%d ", (int)g_label[o]|0x80);
+          fprintf(g_file_out_ptr, "d%d ", (int)g_label[char_index]|0x80);
         }
         /* handle '\>' */
-        else if (g_label[o] == '\\' && g_label[o + 1] == '>' && o == 0) {
+        else if (g_label[char_index] == '\\' && g_label[char_index + 1] == '>' && char_index == 0) {
           snprintf(g_error_message, sizeof(g_error_message), ".%s '\\>' needs character data.\n", bak);
           print_error(g_error_message, ERROR_INP);
           return FAILED;
         }
-        else if (g_label[o + 1] == '\\' && g_label[o + 2] == '>') {
-          fprintf(g_file_out_ptr, "d%d ", (int)g_label[o]|0x80);
-          o += 2;
+        else if (g_label[char_index + 1] == '\\' && g_label[char_index + 2] == '>') {
+          fprintf(g_file_out_ptr, "d%d ", (int)g_label[char_index]|0x80);
+          char_index += 2;
         }
         /* handle '\\' */
-        else if (g_label[o] == '\\' && g_label[o + 1] == '\\') {
+        else if (g_label[char_index] == '\\' && g_label[char_index + 1] == '\\') {
           fprintf(g_file_out_ptr, "d%d ", '\\');
-          o++;
+          char_index++;
         }
         else
-          fprintf(g_file_out_ptr, "d%d ", (int)g_label[o]);
+          fprintf(g_file_out_ptr, "d%d ", (int)g_label[char_index]);
       }
-      g_inz = input_number();
+      input_number_result = input_number();
       continue;
     }
 
-    if (g_inz == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
+    if (input_number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
       snprintf(g_error_message, sizeof(g_error_message), ".%s expects 8-bit data, %d is out of range!\n", bak, g_parsed_int);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
 
-    if (g_inz == SUCCEEDED)
+    if (input_number_result == SUCCEEDED)
       fprintf(g_file_out_ptr, "d%d ", g_parsed_int);
-    else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+    else if (input_number_result == INPUT_NUMBER_ADDRESS_LABEL)
       fprintf(g_file_out_ptr, "Q%s ", g_label);
-    else if (g_inz == INPUT_NUMBER_STACK)
+    else if (input_number_result == INPUT_NUMBER_STACK)
       fprintf(g_file_out_ptr, "c%d ", g_latest_stack);
 
-    g_inz = input_number();
+    input_number_result = input_number();
   }
 
-  if (g_inz == FAILED)
+  if (input_number_result == FAILED)
     return FAILED;
 
-  if (g_inz == INPUT_NUMBER_EOL && g_ind == 0) {
+  if (input_number_result == INPUT_NUMBER_EOL && g_ind == 0) {
     snprintf(g_error_message, sizeof(g_error_message), ".%s needs data.\n", bak);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
 
-  if (g_inz == INPUT_NUMBER_EOL)
+  if (input_number_result == INPUT_NUMBER_EOL)
     next_line();
 
   return SUCCEEDED;
