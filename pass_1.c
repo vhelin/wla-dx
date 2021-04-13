@@ -3220,7 +3220,7 @@ int directive_asctable_asciitable(void) {
 
 int directive_asc(void) {
 
-  int o, q, map_only_strings = NO;
+  int o, map_only_strings = NO;
   char bak[256];
 
   strcpy(bak, g_current_directive);
@@ -3235,6 +3235,8 @@ int directive_asc(void) {
   }
 
   while (1) {
+    int character, q;
+
     q = input_number();
     if (q == INPUT_NUMBER_EOL) {
       next_line();
@@ -3244,11 +3246,11 @@ int directive_asc(void) {
     if (q == INPUT_NUMBER_STRING) {
       /* remap the ascii string */
       for (o = 0; o < g_string_size; o++) {
-        g_ind = g_label[o];
+        character = g_label[o];
         /* handle '\0' */
         if (g_label[o] == '\\' && g_label[o + 1] == '0') {
-          g_ind = '\0';
-          fprintf(g_file_out_ptr, "d%d ", g_ind);
+          character = '\0';
+          fprintf(g_file_out_ptr, "d%d ", character);
           o++;
         }
         /* handle '\x' */
@@ -3264,8 +3266,8 @@ int directive_asc(void) {
             print_error(g_error_message, ERROR_INP);
             return FAILED;
           }
-          g_ind = tmp_c;
-          fprintf(g_file_out_ptr, "d%d ", g_ind);
+          character = tmp_c;
+          fprintf(g_file_out_ptr, "d%d ", character);
         }
         else {
           int tmp_a = 0;
@@ -3279,7 +3281,7 @@ int directive_asc(void) {
               return FAILED;
             }
             tmp_a = 0x80;
-            g_ind = g_label[o];
+            character = g_label[o];
           }
           /* handle '\>' */
           else if (g_label[o] == '\\' && g_label[o + 1] == '>' && o == 0) {
@@ -3293,13 +3295,13 @@ int directive_asc(void) {
           }
           /* handle '\\' */
           else if (g_label[o] == '\\' && g_label[o + 1] == '\\') {
-            g_ind = '\\';
+            character = '\\';
             o++;
           }
-          if (g_ind < 0)
-            g_ind += 256;
-          g_ind = (int)g_asciitable[g_ind];
-          fprintf(g_file_out_ptr, "d%d ", g_ind|tmp_a);
+          if (character < 0)
+            character += 256;
+          character = (int)g_asciitable[character];
+          fprintf(g_file_out_ptr, "d%d ", character|tmp_a);
         }
       }
     }
@@ -3320,8 +3322,8 @@ int directive_asc(void) {
           print_error(g_error_message, ERROR_INP);
           return FAILED;
         }
-        g_ind = (int)g_asciitable[g_parsed_int];
-        fprintf(g_file_out_ptr, "d%d ", g_ind);
+        character = (int)g_asciitable[g_parsed_int];
+        fprintf(g_file_out_ptr, "d%d ", character);
       }
     }
     else {
