@@ -5407,43 +5407,49 @@ int directive_shift(void) {
 #ifdef GB
 
 int directive_name_gb(void) {
-      
+
+  int token_result;
+
   no_library_files(".NAME");
   
-  if ((g_ind = get_next_token()) == FAILED)
+  if ((token_result = get_next_token()) == FAILED)
     return FAILED;
 
-  if (g_ind != GET_NEXT_TOKEN_STRING) {
+  if (token_result != GET_NEXT_TOKEN_STRING) {
     print_error(".NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
     return FAILED;
   }
 
   /* no name has been defined so far */
   if (g_name_defined == 0) {
-    for (g_ind = 0; g_tmp[g_ind] != 0 && g_ind < 16; g_ind++)
-      g_name[g_ind] = g_tmp[g_ind];
+    int i;
 
-    if (g_ind == 16 && g_tmp[g_ind] != 0) {
+    for (i = 0; g_tmp[i] != 0 && i < 16; i++)
+      g_name[i] = g_tmp[i];
+
+    if (i == 16 && g_tmp[i] != 0) {
       print_error(".NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
       return FAILED;
     }
 
-    for ( ; g_ind < 16; g_name[g_ind] = 0, g_ind++)
+    for ( ; i < 16; g_name[i] = 0, i++)
       ;
 
     g_name_defined = 1;
   }
   /* compare the names */
   else {
-    for (g_ind = 0; g_tmp[g_ind] != 0 && g_name[g_ind] != 0 && g_ind < 16; g_ind++)
-      if (g_name[g_ind] != g_tmp[g_ind])
+    int i;
+
+    for (i = 0; g_tmp[i] != 0 && g_name[i] != 0 && i < 16; i++)
+      if (g_name[i] != g_tmp[i])
         break;
 
-    if (g_ind == 16 && g_tmp[g_ind] != 0) {
+    if (i == 16 && g_tmp[i] != 0) {
       print_error(".NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
       return FAILED;
     }
-    if (g_ind != 16 && (g_name[g_ind] != 0 || g_tmp[g_ind] != 0)) {
+    if (i != 16 && (g_name[i] != 0 || g_tmp[i] != 0)) {
       print_error(".NAME was already defined.\n", ERROR_DIR);
       return FAILED;
     }
