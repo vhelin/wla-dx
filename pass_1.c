@@ -3382,40 +3382,41 @@ int directive_dw_word_addr(void) {
 
 int directive_dl_long_faraddr(void) {
 
+  int i, number_result;
   char bak[256];
 
   fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   strcpy(bak, g_current_directive);
 
-  g_inz = input_number();
-  for (g_ind = 0; g_inz == SUCCEEDED || g_inz == INPUT_NUMBER_ADDRESS_LABEL || g_inz == INPUT_NUMBER_STACK; g_ind++) {
-    if (g_inz == SUCCEEDED && (g_parsed_int < -8388608 || g_parsed_int > 16777215)) {
+  number_result = input_number();
+  for (i = 0; number_result == SUCCEEDED || number_result == INPUT_NUMBER_ADDRESS_LABEL || number_result == INPUT_NUMBER_STACK; i++) {
+    if (number_result == SUCCEEDED && (g_parsed_int < -8388608 || g_parsed_int > 16777215)) {
       snprintf(g_error_message, sizeof(g_error_message), ".%s expects 24-bit data, %d is out of range!\n", bak, g_parsed_int);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
 
-    if (g_inz == SUCCEEDED)
+    if (number_result == SUCCEEDED)
       fprintf(g_file_out_ptr, "z%d ", g_parsed_int);
-    else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+    else if (number_result == INPUT_NUMBER_ADDRESS_LABEL)
       fprintf(g_file_out_ptr, "q%s ", g_label);
-    else if (g_inz == INPUT_NUMBER_STACK)
+    else if (number_result == INPUT_NUMBER_STACK)
       fprintf(g_file_out_ptr, "T%d ", g_latest_stack);
 
-    g_inz = input_number();
+    number_result = input_number();
   }
 
-  if (g_inz == FAILED)
+  if (number_result == FAILED)
     return FAILED;
 
-  if ((g_inz == INPUT_NUMBER_EOL || g_inz == INPUT_NUMBER_STRING) && g_ind == 0) {
+  if ((number_result == INPUT_NUMBER_EOL || number_result == INPUT_NUMBER_STRING) && i == 0) {
     snprintf(g_error_message, sizeof(g_error_message), ".%s needs data.\n", bak);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
 
-  if (g_inz == INPUT_NUMBER_EOL)
+  if (number_result == INPUT_NUMBER_EOL)
     next_line();
 
   return SUCCEEDED;
