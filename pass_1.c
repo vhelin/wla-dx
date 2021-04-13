@@ -7688,8 +7688,7 @@ int directive_rept_repeat(void) {
   if (compare_next_token("INDEX") == SUCCEEDED) {
     skip_next_token();
 
-    g_ind = input_next_string();
-    if (g_ind != SUCCEEDED)
+    if (input_next_string() != SUCCEEDED)
       return FAILED;
 
     if (redefine(g_tmp, 0.0, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
