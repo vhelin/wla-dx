@@ -5311,11 +5311,12 @@ int directive_fread(void) {
 int directive_block(void) {
 
   struct block_name *b;
+  int token_result;
   
-  if ((g_ind = get_next_token()) == FAILED)
+  if ((token_result = get_next_token()) == FAILED)
     return FAILED;
 
-  if (g_ind != GET_NEXT_TOKEN_STRING) {
+  if (token_result != GET_NEXT_TOKEN_STRING) {
     print_error(".BLOCK requires a name string.\n", ERROR_DIR);
     return FAILED;
   }
