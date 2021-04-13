@@ -7606,10 +7606,11 @@ int directive_macro(void) {
     skip_next_token();
 
     while (1) {
-      g_ind = input_next_string();
-      if (g_ind == FAILED)
+      int string_result = input_next_string();
+
+      if (string_result == FAILED)
         return FAILED;
-      if (g_ind == INPUT_NUMBER_EOL) {
+      if (string_result == INPUT_NUMBER_EOL) {
         if (q != 0) {
           next_line();
           break;
