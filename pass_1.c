@@ -7879,7 +7879,7 @@ int directive_endm(void) {
 
 int directive_snesheader(void) {
 
-  int q;
+  int token_result;
   
   if (g_snesheader_defined != 0) {
     print_error(".SNESHEADER can be defined only once.\n", ERROR_DIR);
@@ -7896,10 +7896,10 @@ int directive_snesheader(void) {
     return FAILED;
   }
 
-  while ((g_ind = get_next_token()) == SUCCEEDED) {
+  while ((token_result = get_next_token()) == SUCCEEDED) {
     /* .IF directive? */
     if (g_tmp[0] == '.') {
-      q = parse_if_directive();
+      int q = parse_if_directive();
       if (q == FAILED)
         return FAILED;
       else if (q == SUCCEEDED)
@@ -7910,75 +7910,83 @@ int directive_snesheader(void) {
     if (strcaselesscmp(g_tmp, ".ENDSNES") == 0)
       break;
     else if (strcaselesscmp(g_tmp, "ID") == 0) {
-      if ((g_ind = get_next_token()) == FAILED)
+      if ((token_result = get_next_token()) == FAILED)
         return FAILED;
 
-      if (g_ind != GET_NEXT_TOKEN_STRING || g_tmp[4] != 0) {
+      if (token_result != GET_NEXT_TOKEN_STRING || g_tmp[4] != 0) {
         print_error("ID requires a string of 1 to 4 letters.\n", ERROR_DIR);
         return FAILED;
       }
 
       /* no ID has been defined so far */
       if (g_snesid_defined == 0) {
-        for (g_ind = 0; g_tmp[g_ind] != 0 && g_ind < 4; g_ind++)
-          g_snesid[g_ind] = g_tmp[g_ind];
+        int i;
 
-        for ( ; g_ind < 4; g_snesid[g_ind] = 0, g_ind++)
+        for (i = 0; g_tmp[i] != 0 && i < 4; i++)
+          g_snesid[i] = g_tmp[i];
+
+        for ( ; i < 4; g_snesid[i] = 0, i++)
           ;
 
         g_snesid_defined = 1;
       }
       /* compare the IDs */
       else {
-        for (g_ind = 0; g_tmp[g_ind] != 0 && g_snesid[g_ind] != 0 && g_ind < 4; g_ind++)
-          if (g_snesid[g_ind] != g_tmp[g_ind])
+        int i;
+
+        for (i = 0; g_tmp[i] != 0 && g_snesid[i] != 0 && i < 4; i++)
+          if (g_snesid[i] != g_tmp[i])
             break;
 
-        if (g_ind == 4 && g_tmp[g_ind] != 0) {
+        if (i == 4 && g_tmp[i] != 0) {
           print_error("ID requires a string of 1 to 4 letters.\n", ERROR_DIR);
           return FAILED;
         }
-        if (g_ind != 4 && (g_snesid[g_ind] != 0 || g_tmp[g_ind] != 0)) {
+        if (i != 4 && (g_snesid[i] != 0 || g_tmp[i] != 0)) {
           print_error("ID was already defined.\n", ERROR_DIR);
           return FAILED;
         }
       }
     }    
     else if (strcaselesscmp(g_tmp, "NAME") == 0) {
-      if ((g_ind = get_next_token()) == FAILED)
+      if ((token_result = get_next_token()) == FAILED)
         return FAILED;
 
-      if (g_ind != GET_NEXT_TOKEN_STRING) {
+      if (token_result != GET_NEXT_TOKEN_STRING) {
         print_error("NAME requires a string of 1 to 21 letters.\n", ERROR_DIR);
         return FAILED;
       }
 
       /* no name has been defined so far */
       if (g_name_defined == 0) {
-        for (g_ind = 0; g_tmp[g_ind] != 0 && g_ind < 21; g_ind++)
-          g_name[g_ind] = g_tmp[g_ind];
+        int i;
 
-        if (g_ind == 21 && g_tmp[g_ind] != 0) {
+        for (i = 0; g_tmp[i] != 0 && i < 21; i++)
+          g_name[i] = g_tmp[i];
+
+        if (i == 21 && g_tmp[i] != 0) {
           print_error("NAME requires a string of 1 to 21 letters.\n", ERROR_DIR);
           return FAILED;
         }
 
-        for ( ; g_ind < 21; g_name[g_ind] = 0, g_ind++)
+        for ( ; i < 21; g_name[i] = 0, i++)
           ;
 
         g_name_defined = 1;
       }
       /* compare the names */
       else {
-        for (g_ind = 0; g_tmp[g_ind] != 0 && g_name[g_ind] != 0 && g_ind < 21; g_ind++)
-          if (g_name[g_ind] != g_tmp[g_ind])
+        int i;
+
+        for (i = 0; g_tmp[i] != 0 && g_name[i] != 0 && i < 21; i++)
+          if (g_name[i] != g_tmp[i])
             break;
 
-        if (g_ind == 21 && g_tmp[g_ind] != 0) {
+        if (i == 21 && g_tmp[i] != 0) {
           print_error("NAME requires a string of 1 to 21 letters.\n", ERROR_DIR);
           return FAILED;
         }
-        if (g_ind != 21 && (g_name[g_ind] != 0 || g_tmp[g_ind] != 0)) {
+        if (i != 21 && (g_name[i] != 0 || g_tmp[i] != 0)) {
           print_error("NAME was already defined.\n", ERROR_DIR);
           return FAILED;
         }
@@ -8035,14 +8043,14 @@ int directive_snesheader(void) {
       g_fastrom_defined++;
     }
     else if (strcaselesscmp(g_tmp, "CARTRIDGETYPE") == 0) {
-      g_inz = input_number();
+      int number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
         snprintf(g_error_message, sizeof(g_error_message), "CARTRIDGETYPE expects 8-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
-      else if (g_inz == SUCCEEDED) {
+      else if (number_result == SUCCEEDED) {
         if (g_cartridgetype_defined != 0 && g_parsed_int != g_cartridgetype) {
           print_error("CARTRIDGETYPE was defined for the second time.\n", ERROR_DIR);
           return FAILED;
@@ -8055,37 +8063,41 @@ int directive_snesheader(void) {
         return FAILED;
     }
     else if (strcaselesscmp(g_tmp, "ROMSIZE") == 0) {
+      int number_result;
+
       if (g_snesromsize != 0) {
         print_error("ROMSIZE can be defined only once.\n", ERROR_DIR);
         return FAILED;
       }
 
-      g_inz = input_number();
+      number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
         snprintf(g_error_message, sizeof(g_error_message), "ROMSIZE expects 8-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
-      else if (g_inz == SUCCEEDED)
+      else if (number_result == SUCCEEDED)
         g_snesromsize = g_parsed_int;
       else
         return FAILED;
     }
     else if (strcaselesscmp(g_tmp, "SRAMSIZE") == 0) {
+      int number_result;
+
       if (g_sramsize_defined != 0) {
         print_error("SRAMSIZE can be defined only once.\n", ERROR_DIR);
         return FAILED;
       }
 
-      g_inz = input_number();
+      number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < 0 || g_parsed_int > 3)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < 0 || g_parsed_int > 3)) {
         snprintf(g_error_message, sizeof(g_error_message), "SRAMSIZE expects 0-3, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
-      else if (g_inz == SUCCEEDED) {
+      else if (number_result == SUCCEEDED) {
         g_sramsize = g_parsed_int;
         g_sramsize_defined++;
       }
@@ -8093,19 +8105,21 @@ int directive_snesheader(void) {
         return FAILED;
     }
     else if (strcaselesscmp(g_tmp, "COUNTRY") == 0) {
+      int number_result;
+
       if (g_country_defined != 0) {
         print_error("COUNTRY can be defined only once.\n", ERROR_DIR);
         return FAILED;
       }
 
-      g_inz = input_number();
+      number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
         snprintf(g_error_message, sizeof(g_error_message), "COUNTRY expects 8-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
-      else if (g_inz == SUCCEEDED) {
+      else if (number_result == SUCCEEDED) {
         g_country = g_parsed_int;
         g_country_defined++;
       }
@@ -8113,19 +8127,21 @@ int directive_snesheader(void) {
         return FAILED;
     }
     else if (strcaselesscmp(g_tmp, "LICENSEECODE") == 0) {
+      int number_result;
+
       if (g_licenseecode_defined != 0) {
         print_error("LICENSEECODE can be defined only once.\n", ERROR_DIR);
         return FAILED;
       }
 
-      g_inz = input_number();
+      number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
         snprintf(g_error_message, sizeof(g_error_message), "LICENSEECODE expects 8-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
-      else if (g_inz == SUCCEEDED) {
+      else if (number_result == SUCCEEDED) {
         g_licenseecode = g_parsed_int;
         g_licenseecode_defined++;
       }
@@ -8133,14 +8149,14 @@ int directive_snesheader(void) {
         return FAILED;
     }
     else if (strcaselesscmp(g_tmp, "VERSION") == 0) {
-      g_inz = input_number();
+      int number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
         snprintf(g_error_message, sizeof(g_error_message), "VERSION expects 8-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
-      else if (g_inz == SUCCEEDED) {
+      else if (number_result == SUCCEEDED) {
         if (g_version_defined != 0 && g_version != g_parsed_int) {
           print_error("VERSION was defined for the second time.\n", ERROR_DIR);
           return FAILED;
@@ -8153,12 +8169,12 @@ int directive_snesheader(void) {
         return FAILED;
     }
     else {
-      g_ind = FAILED;
+      token_result = FAILED;
       break; 
     } 
   }
 
-  if (g_ind != SUCCEEDED) {
+  if (token_result != SUCCEEDED) {
     print_error("Error in .SNESHEADER data structure.\n", ERROR_DIR);
     return FAILED;
   }
