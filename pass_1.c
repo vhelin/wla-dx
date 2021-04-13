@@ -5463,7 +5463,7 @@ int directive_name_gb(void) {
 
 int directive_rombanks(void) {
 
-  int q;
+  int i, q, bank_address;
 
   no_library_files(".ROMBANKS");
     
@@ -5516,13 +5516,15 @@ int directive_rombanks(void) {
 
   /* check that the old bank map (smaller) and the new one equal as much as they can */
   if (g_rombanks_defined != 0) {
-    if (g_rombanks < g_parsed_int)
-      g_inz = g_rombanks;
-    else
-      g_inz = g_parsed_int;
+    int bank;
 
-    for (g_ind = 0; g_ind < g_inz; g_ind++) {
-      if (g_banks[g_ind] != g_banksize) {
+    if (g_rombanks < g_parsed_int)
+      bank = g_rombanks;
+    else
+      bank = g_parsed_int;
+
+    for (i = 0; i < bank; i++) {
+      if (g_banks[i] != g_banksize) {
         print_error("The old and the new .ROMBANKMAP's don't match.\n", ERROR_DIR);
         return FAILED;
       }
@@ -5565,10 +5567,10 @@ int directive_rombanks(void) {
     return FAILED;
   }
 
-  for (g_inz = 0, g_ind = 0; g_ind < g_parsed_int; g_ind++) {
-    g_banks[g_ind] = g_banksize;
-    g_bankaddress[g_ind] = g_inz;
-    g_inz += g_banksize;
+  for (bank_address = 0, i = 0; i < g_parsed_int; i++) {
+    g_banks[i] = g_banksize;
+    g_bankaddress[i] = bank_address;
+    bank_address += g_banksize;
   }
 
   return SUCCEEDED;
