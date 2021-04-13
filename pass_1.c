@@ -10770,13 +10770,14 @@ int parse_if_directive(void) {
 
   if (strcaselesscmp(g_current_directive, "IFEXISTS") == 0) {
 
+    int number_result;
     FILE *f;
 
     g_expect_calculations = NO;
-    g_inz = input_number();
+    number_result = input_number();
     g_expect_calculations = YES;
 
-    if (g_inz != INPUT_NUMBER_STRING && g_inz != INPUT_NUMBER_ADDRESS_LABEL) {
+    if (number_result != INPUT_NUMBER_STRING && number_result != INPUT_NUMBER_ADDRESS_LABEL) {
       print_error(".IFEXISTS needs a file name string.\n", ERROR_DIR);
       return FAILED;
     }
