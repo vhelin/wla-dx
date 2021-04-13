@@ -2848,15 +2848,15 @@ int directive_row_data(void) {
 int directive_db_byt_byte(void) {
 
   char bak[256];
-  int char_index, input_number_result;
+  int i, char_index, number_result;
 
   fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   strcpy(bak, g_current_directive);
 
-  input_number_result = input_number();
-  for (g_ind = 0; input_number_result == SUCCEEDED || input_number_result == INPUT_NUMBER_STRING || input_number_result == INPUT_NUMBER_ADDRESS_LABEL || input_number_result == INPUT_NUMBER_STACK; g_ind++) {
-    if (input_number_result == INPUT_NUMBER_STRING) {
+  number_result = input_number();
+  for (i = 0; number_result == SUCCEEDED || number_result == INPUT_NUMBER_STRING || number_result == INPUT_NUMBER_ADDRESS_LABEL || number_result == INPUT_NUMBER_STACK; i++) {
+    if (number_result == INPUT_NUMBER_STRING) {
       for (char_index = 0; char_index < g_string_size; char_index++) {
         /* handle '\0' */
         if (g_label[char_index] == '\\' && g_label[char_index + 1] == '0') {
@@ -2906,36 +2906,36 @@ int directive_db_byt_byte(void) {
         else
           fprintf(g_file_out_ptr, "d%d ", (int)g_label[char_index]);
       }
-      input_number_result = input_number();
+      number_result = input_number();
       continue;
     }
 
-    if (input_number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
+    if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
       snprintf(g_error_message, sizeof(g_error_message), ".%s expects 8-bit data, %d is out of range!\n", bak, g_parsed_int);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
 
-    if (input_number_result == SUCCEEDED)
+    if (number_result == SUCCEEDED)
       fprintf(g_file_out_ptr, "d%d ", g_parsed_int);
-    else if (input_number_result == INPUT_NUMBER_ADDRESS_LABEL)
+    else if (number_result == INPUT_NUMBER_ADDRESS_LABEL)
       fprintf(g_file_out_ptr, "Q%s ", g_label);
-    else if (input_number_result == INPUT_NUMBER_STACK)
+    else if (number_result == INPUT_NUMBER_STACK)
       fprintf(g_file_out_ptr, "c%d ", g_latest_stack);
 
-    input_number_result = input_number();
+    number_result = input_number();
   }
 
-  if (input_number_result == FAILED)
+  if (number_result == FAILED)
     return FAILED;
 
-  if (input_number_result == INPUT_NUMBER_EOL && g_ind == 0) {
+  if (number_result == INPUT_NUMBER_EOL && i == 0) {
     snprintf(g_error_message, sizeof(g_error_message), ".%s needs data.\n", bak);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
 
-  if (input_number_result == INPUT_NUMBER_EOL)
+  if (number_result == INPUT_NUMBER_EOL)
     next_line();
 
   return SUCCEEDED;
