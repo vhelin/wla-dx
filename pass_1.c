@@ -6151,7 +6151,7 @@ int directive_background(void) {
 
 int directive_gbheader(void) {
 
-  int q;
+  int q, token_result;
     
   if (g_gbheader_defined != 0) {
     print_error(".GBHEADER can be defined only once.\n", ERROR_DIR);
@@ -6173,7 +6173,7 @@ int directive_gbheader(void) {
     return FAILED;
   }
 
-  while ((g_ind = get_next_token()) == SUCCEEDED) {
+  while ((token_result = get_next_token()) == SUCCEEDED) {
     /* .IF directive? */
     if (g_tmp[0] == '.') {
       q = parse_if_directive();
@@ -6233,40 +6233,44 @@ int directive_gbheader(void) {
       g_romsgb++;
     }
     else if (strcaselesscmp(g_tmp, "NAME") == 0) {
-      if ((g_ind = get_next_token()) == FAILED)
+      if ((token_result = get_next_token()) == FAILED)
         return FAILED;
 
-      if (g_ind != GET_NEXT_TOKEN_STRING) {
+      if (token_result != GET_NEXT_TOKEN_STRING) {
         print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
         return FAILED;
       }
 
       /* no name has been defined so far */
       if (g_name_defined == 0) {
-        for (g_ind = 0; g_tmp[g_ind] != 0 && g_ind < 16; g_ind++)
-          g_name[g_ind] = g_tmp[g_ind];
+        int i;
+
+        for (i = 0; g_tmp[i] != 0 && i < 16; i++)
+          g_name[i] = g_tmp[i];
     
-        if (g_ind == 16 && g_tmp[g_ind] != 0) {
+        if (i == 16 && g_tmp[i] != 0) {
           print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
           return FAILED;
         }
 
-        for ( ; g_ind < 16; g_name[g_ind] = 0, g_ind++)
+        for ( ; i < 16; g_name[i] = 0, i++)
           ;
 
         g_name_defined = 1;
       }
       else {
+        int i;
+
         /* compare the names */
-        for (g_ind = 0; g_tmp[g_ind] != 0 && g_name[g_ind] != 0 && g_ind < 16; g_ind++)
-          if (g_name[g_ind] != g_tmp[g_ind])
+        for (i = 0; g_tmp[i] != 0 && g_name[i] != 0 && i < 16; i++)
+          if (g_name[i] != g_tmp[i])
             break;
     
-        if (g_ind == 16 && g_tmp[g_ind] != 0) {
+        if (i == 16 && g_tmp[i] != 0) {
           print_error("NAME requires a string of 1 to 16 letters.\n", ERROR_DIR);
           return FAILED;
         }
-        if (g_ind != 16 && (g_name[g_ind] != 0 || g_tmp[g_ind] != 0)) {
+        if (i != 16 && (g_name[i] != 0 || g_tmp[i] != 0)) {
           print_error("NAME was already defined.\n", ERROR_DIR);
           return FAILED;
         }
@@ -6304,10 +6308,10 @@ int directive_gbheader(void) {
         return FAILED;
       }
 
-      if ((g_ind = get_next_token()) == FAILED)
+      if ((token_result = get_next_token()) == FAILED)
         return FAILED;
 
-      if (g_ind != GET_NEXT_TOKEN_STRING) {
+      if (token_result != GET_NEXT_TOKEN_STRING) {
         print_error(".LICENSEECODENEW requires a string of two letters.\n", ERROR_DIR);
         return FAILED;
       }
@@ -6328,14 +6332,14 @@ int directive_gbheader(void) {
       g_licenseecodenew_defined = 1;
     }
     else if (strcaselesscmp(g_tmp, "CARTRIDGETYPE") == 0) {
-      g_inz = input_number();
+      int number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
         snprintf(g_error_message, sizeof(g_error_message), "CARTRIDGETYPE needs a 8-bit value, got %d.\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
-      else if (g_inz == SUCCEEDED) {
+      else if (number_result == SUCCEEDED) {
         if (g_cartridgetype_defined != 0 && g_cartridgetype != g_parsed_int) {
           print_error("CARTRIDGETYPE was defined for the second time.\n", ERROR_DIR);
           return FAILED;
@@ -6348,14 +6352,14 @@ int directive_gbheader(void) {
         return FAILED;
     }
     else if (strcaselesscmp(g_tmp, "RAMSIZE") == 0) {
-      g_inz = input_number();
+      int number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
         snprintf(g_error_message, sizeof(g_error_message), "RAMSIZE needs a 8-bit value, got %d.\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
-      else if (g_inz == SUCCEEDED) {
+      else if (number_result == SUCCEEDED) {
         if (g_rambanks_defined != 0 && g_rambanks != g_parsed_int) {
           print_error("RAMSIZE was defined for the second time.\n", ERROR_DIR);
           return FAILED;
@@ -6368,14 +6372,14 @@ int directive_gbheader(void) {
         return FAILED;
     }
     else if (strcaselesscmp(g_tmp, "COUNTRYCODE") == 0) {
-      g_inz = input_number();
+      int number_result = input_number();
       
-      if (g_inz == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
         snprintf(g_error_message, sizeof(g_error_message), "COUNTRYCODE needs a non-negative value, got %d.\n\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
-      else if (g_inz == SUCCEEDED) {
+      else if (number_result == SUCCEEDED) {
         if (g_countrycode_defined != 0 && g_countrycode != g_parsed_int) {
           print_error("COUNTRYCODE was defined for the second time.\n", ERROR_DIR);
           return FAILED;
@@ -6388,14 +6392,14 @@ int directive_gbheader(void) {
         return FAILED;
     }
     else if (strcaselesscmp(g_tmp, "DESTINATIONCODE") == 0) {
-      g_inz = input_number();
+      int number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
         snprintf(g_error_message, sizeof(g_error_message), "DESTINATIONCODE needs a non-negative value, got %d.\n\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
-      else if (g_inz == SUCCEEDED) {
+      else if (number_result == SUCCEEDED) {
         if (g_countrycode_defined != 0 && g_countrycode != g_parsed_int) {
           print_error("DESTINATIONCODE was defined for the second time.\n", ERROR_DIR);
           return FAILED;
@@ -6408,14 +6412,14 @@ int directive_gbheader(void) {
         return FAILED;
     }
     else if (strcaselesscmp(g_tmp, "VERSION") == 0) {
-      g_inz = input_number();
+      int number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
         snprintf(g_error_message, sizeof(g_error_message), "VERSION needs a non-negative value, got %d.\n\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
-      else if (g_inz == SUCCEEDED) {
+      else if (number_result == SUCCEEDED) {
         if (g_version_defined != 0 && g_version != g_parsed_int) {
           print_error("VERSION was defined for the second time.\n", ERROR_DIR);
           return FAILED;
@@ -6428,12 +6432,12 @@ int directive_gbheader(void) {
         return FAILED;
     }
     else {
-      g_ind = FAILED;
+      token_result = FAILED;
       break;
     }
   }
 
-  if (g_ind != SUCCEEDED) {
+  if (token_result != SUCCEEDED) {
     print_error("Error in .GBHEADER data structure.\n", ERROR_DIR);
     return FAILED;
   }
