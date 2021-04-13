@@ -4354,7 +4354,7 @@ int directive_include(int is_real) {
 int directive_incbin(void) {
 
   struct macro_static *m;
-  int s, r, j, o;
+  int s, r, j, o, id, swap;
 
   if (g_org_defined == 0 && g_output_format != OUTPUT_LIBRARY) {
     print_error("Before you can .INCBIN data you'll need to use ORG.\n", ERROR_LOG);
@@ -4373,12 +4373,12 @@ int directive_incbin(void) {
   /* convert the path string to local enviroment */
   localize_path(g_label);
 
-  if (incbin_file(g_label, &g_ind, &g_inz, &s, &r, &m) == FAILED)
+  if (incbin_file(g_label, &id, &swap, &s, &r, &m) == FAILED)
     return FAILED;
   
   if (m == NULL) {
     /* D [id] [swap] [skip] [size] */
-    fprintf(g_file_out_ptr, "D%d %d %d %d ", g_ind, g_inz, s, r);
+    fprintf(g_file_out_ptr, "D%d %d %d %d ", id, swap, s, r);
   }
   else {
     /* we want to filter the data */
@@ -4392,11 +4392,11 @@ int directive_incbin(void) {
     }
 
     ifd = g_incbin_file_data_first;
-    for (j = 0; j != g_ind; j++)
+    for (j = 0; j != id; j++)
       ifd = ifd->next;
 
     min->data = (unsigned char *)ifd->data;
-    min->swap = g_inz;
+    min->swap = swap;
     min->position = s;
     min->left = r;
 
