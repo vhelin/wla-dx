@@ -1668,7 +1668,6 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 
   char tmp[MAX_NAME_LENGTH * 2 + 5];
   struct structure_item *si;
-  int real_si_size, g;
 
   if (strlen(basename) > MAX_NAME_LENGTH) {
     snprintf(g_error_message, sizeof(g_error_message), "Name \"%s\" is too long!\n", basename);
@@ -1678,7 +1677,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 
   si = st->items;
   while (si != NULL) {
-    real_si_size = si->size;
+    int real_si_size = si->size;
     if (si->type == STRUCTURE_ITEM_TYPE_DOTTED)
       real_si_size = 0;
 
@@ -1703,6 +1702,8 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
     
     /* if this struct has an .instanceof in it, we need to recurse */
     if (si->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
+      int g;
+
       if (si->num_instances <= 1) {
         /* add definition for first (possibly only) instance of struct */
         if (enum_add_struct_fields(tmp, si->instance, 0) == FAILED)
