@@ -2957,12 +2957,12 @@ static int _char_to_hex(char e) {
 
 int directive_hex(void) {
 
-  int o, nybble_1 = 0, nybble_2 = 0, error;
+  int i, o, nybble_1 = 0, nybble_2 = 0, error, number_result;
 
   fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
-  g_inz = input_number();
-  for (g_ind = 0; g_inz == INPUT_NUMBER_STRING; g_ind++) {
+  number_result = input_number();
+  for (i = 0; number_result == INPUT_NUMBER_STRING; i++) {
     if ((g_string_size & 1) == 1) {
       print_error("The string length for .HEX must be a multiple of 2.\n", ERROR_INP);
       return FAILED;
@@ -2992,18 +2992,18 @@ int directive_hex(void) {
       fprintf(g_file_out_ptr, "d%d ", (nybble_1 << 4) | nybble_2);
     }
 
-    g_inz = input_number();
+    number_result = input_number();
   }
 
-  if (g_inz == FAILED)
+  if (number_result == FAILED)
     return FAILED;
 
-  if (g_inz == INPUT_NUMBER_EOL && g_ind == 0) {
+  if (number_result == INPUT_NUMBER_EOL && i == 0) {
     print_error(".HEX needs data.\n", ERROR_INP);
     return FAILED;
   }
 
-  if (g_inz == INPUT_NUMBER_EOL)
+  if (number_result == INPUT_NUMBER_EOL)
     next_line();
   else {
     print_error(".HEX takes only strings.\n", ERROR_INP);
