@@ -8677,11 +8677,12 @@ int directive_print(void) {
 
 int directive_printt(void) {
   
+  int number_result;
   char t[256];
     
-  g_inz = input_number();
+  number_result = input_number();
 
-  if (g_inz != INPUT_NUMBER_STRING && g_inz != INPUT_NUMBER_ADDRESS_LABEL) {
+  if (number_result != INPUT_NUMBER_STRING && number_result != INPUT_NUMBER_ADDRESS_LABEL) {
     print_error(".PRINTT needs a string/label.\n", ERROR_DIR);
     return FAILED;
   }
