@@ -3086,7 +3086,7 @@ int directive_bits(void) {
 
 int directive_asctable_asciitable(void) {
   
-  int astart, aend, q, o;
+  int astart, aend, q, o, token_result;
   char bak[256];
   
   strcpy(bak, g_current_directive);
@@ -3096,7 +3096,7 @@ int directive_asctable_asciitable(void) {
     g_asciitable[o] = o;
 
   /* read the entries */
-  while ((g_ind = get_next_token()) == SUCCEEDED) {
+  while ((token_result = get_next_token()) == SUCCEEDED) {
     /* .IF directive? */
     if (g_tmp[0] == '.') {
       q = parse_if_directive();
@@ -3172,7 +3172,7 @@ int directive_asctable_asciitable(void) {
 
       /* skip the "=" */
       if (compare_next_token("=") != SUCCEEDED) {
-        g_ind = FAILED;
+        token_result = FAILED;
         break;
       }
       skip_next_token();
@@ -3201,12 +3201,12 @@ int directive_asctable_asciitable(void) {
       }
     }
     else {
-      g_ind = FAILED;
+      token_result = FAILED;
       break;
     }
   }
 
-  if (g_ind != SUCCEEDED) {
+  if (token_result != SUCCEEDED) {
     snprintf(g_error_message, sizeof(g_error_message), "Error in .%s data structure.\n", bak);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
