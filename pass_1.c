@@ -3637,7 +3637,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
 
   /* read the data */
   it = s->items;
-  for (g_ind = 0; it != NULL; g_ind++) {
+  while (it != NULL) {
     snprintf(tmpname, sizeof(tmpname), "%s.%s", iname, it->name);
     if (verify_name_length(tmpname) == FAILED)
       return FAILED;
