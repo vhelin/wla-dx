@@ -4130,7 +4130,7 @@ int directive_dsb_ds(void) {
 
 int directive_dsw(void) {
 
-  int q;
+  int q, parsed_int;
 
   q = input_number();
   if (q == FAILED)
@@ -4146,7 +4146,7 @@ int directive_dsw(void) {
     return FAILED;
   }
 
-  g_inz = g_parsed_int;
+  parsed_int = g_parsed_int;
 
   q = input_number();
   if (q == FAILED)
@@ -4163,14 +4163,14 @@ int directive_dsw(void) {
   }
 
   if (q == SUCCEEDED)
-    fprintf(g_file_out_ptr, "X%d %d ", g_inz, g_parsed_int);
+    fprintf(g_file_out_ptr, "X%d %d ", parsed_int, g_parsed_int);
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
     fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
-    for (q = 0; q < g_inz; q++)
+    for (q = 0; q < parsed_int; q++)
       fprintf(g_file_out_ptr, "r%s ", g_label);
   }
   else if (q == INPUT_NUMBER_STACK) {
-    for (q = 0; q < g_inz; q++)
+    for (q = 0; q < parsed_int; q++)
       fprintf(g_file_out_ptr, "C%d ", g_latest_stack);
   }
 
