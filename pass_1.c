@@ -9326,11 +9326,13 @@ int parse_directive(void) {
   /* OUTNAME */
 
   if (strcaselesscmp(g_current_directive, "OUTNAME") == 0) {
+    int number_result;
+
     g_expect_calculations = NO;
-    g_inz = input_number();
+    number_result = input_number();
     g_expect_calculations = YES;
 
-    if (g_inz != INPUT_NUMBER_STRING && g_inz != INPUT_NUMBER_ADDRESS_LABEL) {
+    if (number_result != INPUT_NUMBER_STRING && number_result != INPUT_NUMBER_ADDRESS_LABEL) {
       print_error(".OUTNAME needs a file name string.\n", ERROR_DIR);
       return FAILED;
     }
@@ -9582,6 +9584,8 @@ int parse_directive(void) {
   /* LICENSEECODENEW */
 
   if (strcaselesscmp(g_current_directive, "LICENSEECODENEW") == 0) {
+    int token_result;
+
     no_library_files(".LICENSEECODENEW");
     
     if (g_licenseecodeold_defined != 0) {
@@ -9589,10 +9593,10 @@ int parse_directive(void) {
       return FAILED;
     }
 
-    if ((g_ind = get_next_token()) == FAILED)
+    if ((token_result = get_next_token()) == FAILED)
       return FAILED;
 
-    if (g_ind != GET_NEXT_TOKEN_STRING) {
+    if (token_result != GET_NEXT_TOKEN_STRING) {
       print_error(".LICENSEECODENEW requires a string of two letters.\n", ERROR_DIR);
       return FAILED;
     }
@@ -9740,10 +9744,12 @@ int parse_directive(void) {
   if (strcaselesscmp(g_current_directive, "EXPORT") == 0) {
     q = 0;
     while (1) {
-      g_ind = input_next_string();
-      if (g_ind == FAILED)
+      int string_result;
+
+      string_result = input_next_string();
+      if (string_result == FAILED)
         return FAILED;
-      if (g_ind == INPUT_NUMBER_EOL) {
+      if (string_result == INPUT_NUMBER_EOL) {
         if (q != 0) {
           next_line();
           return SUCCEEDED;
@@ -9764,8 +9770,7 @@ int parse_directive(void) {
   /* SYM/SYMBOL */
 
   if (strcaselesscmp(g_current_directive, "SYM") == 0 || strcaselesscmp(g_current_directive, "SYMBOL") == 0) {
-    g_ind = input_next_string();
-    if (g_ind != SUCCEEDED) {
+    if (input_next_string() != SUCCEEDED) {
       print_error(".SYM requires a symbol name.\n", ERROR_DIR);
       return FAILED;
     }
