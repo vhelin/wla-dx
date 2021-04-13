@@ -7234,7 +7234,7 @@ int directive_redefine_redef(void) {
 
 int directive_smsheader(void) {
   
-  int q;
+  int q, token_result;
     
   if (g_smsheader_defined != 0) {
     print_error(".SMSHEADER can be defined only once.\n", ERROR_DIR);
@@ -7252,7 +7252,7 @@ int directive_smsheader(void) {
     return FAILED;
   }
 
-  while ((g_ind = get_next_token()) == SUCCEEDED) {
+  while ((token_result = get_next_token()) == SUCCEEDED) {
     /* .IF directive? */
     if (g_tmp[0] == '.') {
       q = parse_if_directive();
@@ -7388,12 +7388,12 @@ int directive_smsheader(void) {
       g_smsreservedspace2 = g_parsed_int & 255;
     }
     else {
-      g_ind = FAILED;
+      token_result = FAILED;
       break;
     }
   }
 
-  if (g_ind != SUCCEEDED) {
+  if (token_result != SUCCEEDED) {
     print_error("Error in .SMSHEADER data structure.\n", ERROR_DIR);
     return FAILED;
   }
