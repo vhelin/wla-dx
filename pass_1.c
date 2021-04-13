@@ -8173,7 +8173,7 @@ int directive_snesheader(void) {
 int directive_snesnativevector(void) {
   
   int cop_defined = 0, brk_defined = 0, abort_defined = 0, base_address = 0;
-  int nmi_defined = 0, unused_defined = 0, irq_defined = 0, q;
+  int nmi_defined = 0, unused_defined = 0, irq_defined = 0, q, token_result;
   char cop[512], brk[512], abort[512], nmi[512], unused[512], irq[512];
 
   if (g_snesnativevector_defined != 0) {
@@ -8205,7 +8205,7 @@ int directive_snesnativevector(void) {
   fprintf(g_file_out_ptr, "P O0 A%d %d ", g_sec_tmp->id, base_address);
   fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
-  while ((g_ind = get_next_token()) == SUCCEEDED) {
+  while ((token_result = get_next_token()) == SUCCEEDED) {
     /* .IF directive? */
     if (g_tmp[0] == '.') {
       q = parse_if_directive();
@@ -8235,150 +8235,162 @@ int directive_snesnativevector(void) {
       break;
     }
     else if (strcaselesscmp(g_tmp, "COP") == 0) {
+      int number_result;
+
       if (cop_defined != 0) {
         print_error("COP can only be defined once.\n", ERROR_DIR);
         return FAILED;
       }
 
-      g_inz = input_number();
+      number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
         snprintf(g_error_message, sizeof(g_error_message), "COP expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
 
-      if (g_inz == SUCCEEDED)
+      if (number_result == SUCCEEDED)
         snprintf(cop, sizeof(cop), "y%d ", g_parsed_int);
-      else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+      else if (number_result == INPUT_NUMBER_ADDRESS_LABEL)
         snprintf(cop, sizeof(cop), "k%d r%s ", g_active_file_info_last->line_current, g_label);
-      else if (g_inz == INPUT_NUMBER_STACK)
+      else if (number_result == INPUT_NUMBER_STACK)
         snprintf(cop, sizeof(cop), "C%d ", g_latest_stack);
 
       cop_defined++;
     }
     else if (strcaselesscmp(g_tmp, "BRK") == 0) {
+      int number_result;
+
       if (brk_defined != 0) {
         print_error("BRK can only be defined once.\n", ERROR_DIR);
         return FAILED;
       }
 
-      g_inz = input_number();
+      number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
         snprintf(g_error_message, sizeof(g_error_message), "BRK expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
 
-      if (g_inz == SUCCEEDED)
+      if (number_result == SUCCEEDED)
         snprintf(brk, sizeof(brk), "y%d ", g_parsed_int);
-      else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+      else if (number_result == INPUT_NUMBER_ADDRESS_LABEL)
         snprintf(brk, sizeof(brk), "k%d r%s ", g_active_file_info_last->line_current, g_label);
-      else if (g_inz == INPUT_NUMBER_STACK)
+      else if (number_result == INPUT_NUMBER_STACK)
         snprintf(brk, sizeof(brk), "C%d ", g_latest_stack);
 
       brk_defined++;
     }
     else if (strcaselesscmp(g_tmp, "ABORT") == 0) {
+      int number_result;
+
       if (abort_defined != 0) {
         print_error("ABORT can only be defined once.\n", ERROR_DIR);
         return FAILED;
       }
 
-      g_inz = input_number();
+      number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
         snprintf(g_error_message, sizeof(g_error_message), "ABORT expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
 
-      if (g_inz == SUCCEEDED)
+      if (number_result == SUCCEEDED)
         snprintf(abort, sizeof(abort), "y%d ", g_parsed_int);
-      else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+      else if (number_result == INPUT_NUMBER_ADDRESS_LABEL)
         snprintf(abort, sizeof(abort), "k%d r%s ", g_active_file_info_last->line_current, g_label);
-      else if (g_inz == INPUT_NUMBER_STACK)
+      else if (number_result == INPUT_NUMBER_STACK)
         snprintf(abort, sizeof(abort), "C%d ", g_latest_stack);
 
       abort_defined++;
     }
     else if (strcaselesscmp(g_tmp, "NMI") == 0) {
+      int number_result;
+
       if (nmi_defined != 0) {
         print_error("NMI can only be defined once.\n", ERROR_DIR);
         return FAILED;
       }
 
-      g_inz = input_number();
+      number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
         snprintf(g_error_message, sizeof(g_error_message), "NMI expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
 
-      if (g_inz == SUCCEEDED)
+      if (number_result == SUCCEEDED)
         snprintf(nmi, sizeof(nmi), "y%d ", g_parsed_int);
-      else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+      else if (number_result == INPUT_NUMBER_ADDRESS_LABEL)
         snprintf(nmi, sizeof(nmi), "k%d r%s ", g_active_file_info_last->line_current, g_label);
-      else if (g_inz == INPUT_NUMBER_STACK)
+      else if (number_result == INPUT_NUMBER_STACK)
         snprintf(nmi, sizeof(nmi), "C%d ", g_latest_stack);
 
       nmi_defined++;
     }
     else if (strcaselesscmp(g_tmp, "UNUSED") == 0) {
+      int number_result;
+
       if (unused_defined != 0) {
         print_error("UNUSED can only be defined once.\n", ERROR_DIR);
         return FAILED;
       }
 
-      g_inz = input_number();
+      number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
         snprintf(g_error_message, sizeof(g_error_message), "UNUSED expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
 
-      if (g_inz == SUCCEEDED)
+      if (number_result == SUCCEEDED)
         snprintf(unused, sizeof(unused), "y%d ", g_parsed_int);
-      else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+      else if (number_result == INPUT_NUMBER_ADDRESS_LABEL)
         snprintf(unused, sizeof(unused), "k%d r%s ", g_active_file_info_last->line_current, g_label);
-      else if (g_inz == INPUT_NUMBER_STACK)
+      else if (number_result == INPUT_NUMBER_STACK)
         snprintf(unused, sizeof(unused), "C%d ", g_latest_stack);
 
       unused_defined++;
     }
     else if (strcaselesscmp(g_tmp, "IRQ") == 0) {
+      int number_result;
+
       if (irq_defined != 0) {
         print_error("IRQ can only be defined once.\n", ERROR_DIR);
         return FAILED;
       }
 
-      g_inz = input_number();
+      number_result = input_number();
 
-      if (g_inz == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
+      if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
         snprintf(g_error_message, sizeof(g_error_message), "IRQ expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
 
-      if (g_inz == SUCCEEDED)
+      if (number_result == SUCCEEDED)
         snprintf(irq, sizeof(irq), "y%d ", g_parsed_int);
-      else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+      else if (number_result == INPUT_NUMBER_ADDRESS_LABEL)
         snprintf(irq, sizeof(irq), "k%d r%s ", g_active_file_info_last->line_current, g_label);
-      else if (g_inz == INPUT_NUMBER_STACK)
+      else if (number_result == INPUT_NUMBER_STACK)
         snprintf(irq, sizeof(irq), "C%d ", g_latest_stack);
 
       irq_defined++;
     }
     else {
-      g_ind = FAILED;
+      token_result = FAILED;
       break;
     }
   }
 
-  if (g_ind != SUCCEEDED) {
+  if (token_result != SUCCEEDED) {
     print_error("Error in .SNESNATIVEVECTOR data structure.\n", ERROR_DIR);
     return FAILED;
   }
