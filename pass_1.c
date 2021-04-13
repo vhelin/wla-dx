@@ -5854,7 +5854,7 @@ int directive_rombankmap(void) {
 
 int directive_memorymap(void) {
   
-  int slotsize = 0, slotsize_defined = 0, s = 0, q, o;
+  int slotsize = 0, slotsize_defined = 0, s = 0, q, o, token_result;
 
   if (g_memorymap_defined == 1) {
     print_error(".MEMORYMAP can be defined only once.\n", ERROR_DIR);
@@ -5863,7 +5863,7 @@ int directive_memorymap(void) {
   if (g_output_format == OUTPUT_LIBRARY)
     print_error("Libraries don't need .MEMORYMAP.\n", ERROR_WRN);
 
-  while ((g_ind = get_next_token()) == SUCCEEDED) {
+  while ((token_result = get_next_token()) == SUCCEEDED) {
     /* .IF directive? */
     if (g_tmp[0] == '.') {
       q = parse_if_directive();
@@ -6006,12 +6006,12 @@ int directive_memorymap(void) {
       s++;
     }
     else {
-      g_ind = FAILED;
+      token_result = FAILED;
       break;
     }
   }
 
-  if (g_ind != SUCCEEDED) {
+  if (token_result != SUCCEEDED) {
     print_error("Error in .MEMORYMAP data structure.\n", ERROR_DIR);
     return FAILED;
   }
