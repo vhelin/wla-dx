@@ -5579,14 +5579,14 @@ int directive_rombanks(void) {
 
 int directive_rombankmap(void) {
   
-  int b = 0, a = 0, bt = 0, bt_defined = 0, x, bs = 0, bs_defined = 0, o, q;
+  int b = 0, a = 0, bt = 0, bt_defined = 0, x, bs = 0, bs_defined = 0, o, q, token_result;
 
   no_library_files(".ROMBANKMAP");
 
   /* ROMBANKMAP has been defined previously */
   if (g_rombankmap_defined != 0 || g_rombanks_defined != 0) {
     o = 0;
-    while ((g_ind = get_next_token()) == SUCCEEDED) {
+    while ((token_result = get_next_token()) == SUCCEEDED) {
       /* .IF directive? */
       if (g_tmp[0] == '.') {
         q = parse_if_directive();
@@ -5678,7 +5678,7 @@ int directive_rombankmap(void) {
         }
       }
       else {
-        g_ind = FAILED;
+        token_result = FAILED;
         break;
       }
     }
@@ -5686,7 +5686,7 @@ int directive_rombankmap(void) {
   /* no ROMBANKMAP has been defined */
   else {
     o = 0;
-    while ((g_ind = get_next_token()) == SUCCEEDED) {
+    while ((token_result = get_next_token()) == SUCCEEDED) {
       /* .IF directive? */
       if (g_tmp[0] == '.') {
         q = parse_if_directive();
@@ -5765,13 +5765,13 @@ int directive_rombankmap(void) {
         }
       }
       else {
-        g_ind = FAILED;
+        token_result = FAILED;
         break;
       }
     }
   }
 
-  if (g_ind != SUCCEEDED) {
+  if (token_result != SUCCEEDED) {
     print_error("Error in .ROMBANKMAP data structure.\n", ERROR_DIR);
     return FAILED;
   }
