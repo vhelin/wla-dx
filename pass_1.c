@@ -4937,8 +4937,7 @@ int directive_section(void) {
     if (skip_next_token() == FAILED)
       return FAILED;
 
-    g_inz = input_number();
-    if (g_inz != SUCCEEDED) {
+    if (input_number() != SUCCEEDED) {
       print_error("Could not parse the SIZE.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4957,8 +4956,7 @@ int directive_section(void) {
     if (skip_next_token() == FAILED)
       return FAILED;
 
-    g_inz = input_number();
-    if (g_inz != SUCCEEDED) {
+    if (input_number() != SUCCEEDED) {
       print_error("Could not parse the .SECTION alignment.\n", ERROR_DIR);
       return FAILED;
     }
@@ -4971,8 +4969,7 @@ int directive_section(void) {
     if (skip_next_token() == FAILED)
       return FAILED;
 
-    g_inz = input_number();
-    if (g_inz != SUCCEEDED) {
+    if (input_number() != SUCCEEDED) {
       print_error("Could not parse the .SECTION offset.\n", ERROR_DIR);
       return FAILED;
     }
@@ -5090,8 +5087,7 @@ int directive_section(void) {
     if (skip_next_token() == FAILED)
       return FAILED;
 
-    g_inz = input_number();
-    if (g_inz != SUCCEEDED) {
+    if (input_number() != SUCCEEDED) {
       print_error("Could not parse the .SECTION priority.\n", ERROR_DIR);
       return FAILED;
     }
