@@ -8614,7 +8614,7 @@ int directive_snesemuvector(void) {
 
 int directive_print(void) {
 
-  int get_value, value_type;
+  int get_value, value_type, number_result;
 
   while (1) {
     get_value = NO;
@@ -8635,9 +8635,9 @@ int directive_print(void) {
       get_value = YES;
     }
 
-    g_inz = input_number();
+    number_result = input_number();
 
-    if (g_inz == INPUT_NUMBER_STRING || g_inz == INPUT_NUMBER_ADDRESS_LABEL) {
+    if (number_result == INPUT_NUMBER_STRING || number_result == INPUT_NUMBER_ADDRESS_LABEL) {
       char t[256];
     
       if (get_value == YES) {
@@ -8652,7 +8652,7 @@ int directive_print(void) {
         fflush(stdout);
       }
     }
-    else if (g_inz == SUCCEEDED) {
+    else if (number_result == SUCCEEDED) {
       if (g_quiet == NO) {
         if (value_type == 0)
           printf("%x", g_parsed_int);
@@ -8661,7 +8661,7 @@ int directive_print(void) {
         fflush(stdout);
       }
     }
-    else if (g_inz == INPUT_NUMBER_EOL) {
+    else if (number_result == INPUT_NUMBER_EOL) {
       next_line();
       break;
     }
