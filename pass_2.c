@@ -394,18 +394,18 @@ int pass_2(void) {
       mem_insert_absolute(330, g_countrycode);
     }
     if (g_name_defined != 0) {
-      int ind, inz;
+      int i, length;
       
       if (g_romgbc != 0)
-        inz = 15;
+        length = 15;
       else
-        inz = 16;
+        length = 16;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM name");
 
-      for (ind = 0; ind < inz; ind++)
-        mem_insert_absolute(308 + ind, g_name[ind]);
+      for (i = 0; i < length; i++)
+        mem_insert_absolute(308 + i, g_name[i]);
     }
     if (g_version_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -430,23 +430,23 @@ int pass_2(void) {
 
 void write_snes_cartridge_information(int start) {
 
-  int inz, ind;
+  int info_bits;
 
-  inz = 32;
+  info_bits = 32;
   if (g_hirom_defined != 0)
-    inz |= 1;
+    info_bits |= 1;
   else if (g_exhirom_defined != 0)
-    inz |= (1 << 2) | 1;
+    info_bits |= (1 << 2) | 1;
   else if (g_exlorom_defined != 0)
-    inz |= (1 << 1);
+    info_bits |= (1 << 1);
 
   if (g_fastrom_defined != 0)
-    inz += 16;
+    info_bits += 16;
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
   snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing SNES ROM information");
 
-  mem_insert_absolute(start, inz);
+  mem_insert_absolute(start, info_bits);
   
   if (g_cartridgetype_defined != 0) 
     mem_insert_absolute(start + 1, g_cartridgetype);
@@ -468,14 +468,18 @@ void write_snes_cartridge_information(int start) {
   
   /* snes cartridge ID */
   if (g_snesid_defined != 0) {
-    for (ind = 0; ind < 4; ind++) 
-      mem_insert_absolute(start - (0xD5 - 0xB2) + ind, g_snesid[ind]);
+    int i;
+    
+    for (i = 0; i < 4; i++) 
+      mem_insert_absolute(start - (0xD5 - 0xB2) + i, g_snesid[i]);
   }
       
   /* snes cartridge name */
   if (g_name_defined != 0) {
-    for (ind = 0; ind < 21; ind++)
-      mem_insert_absolute(start - (0xD5 - 0xC0) + ind, g_name[ind]);
+    int i;
+    
+    for (i = 0; i < 21; i++)
+      mem_insert_absolute(start - (0xD5 - 0xC0) + i, g_name[i]);
   }
 }
 

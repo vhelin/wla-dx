@@ -152,7 +152,7 @@ static int find_file(char *name, FILE** f) {
 
 int include_file(char *name, int *include_size, char *namespace) {
 
-  int file_size, id, change_file_buffer_size, inz;
+  int file_size, id, change_file_buffer_size, size;
   char *tmp_b, *n, change_file_buffer[MAX_NAME_LENGTH * 2];
   FILE *f = NULL;
 
@@ -291,25 +291,25 @@ int include_file(char *name, int *include_size, char *namespace) {
   memcpy(g_tmp_a, change_file_buffer, change_file_buffer_size);
       
   /* preprocess */
-  inz = 0;
-  preprocess_file(g_include_in_tmp, g_include_in_tmp + file_size, &g_tmp_a[change_file_buffer_size], &inz, g_full_name);
-  inz += change_file_buffer_size;
+  size = 0;
+  preprocess_file(g_include_in_tmp, g_include_in_tmp + file_size, &g_tmp_a[change_file_buffer_size], &size, g_full_name);
+  size += change_file_buffer_size;
 
-  g_tmp_a[inz++] = 0xA;
-  g_tmp_a[inz++] = '.';
-  g_tmp_a[inz++] = 'E';
-  g_tmp_a[inz++] = ' ';
+  g_tmp_a[size++] = 0xA;
+  g_tmp_a[size++] = '.';
+  g_tmp_a[size++] = 'E';
+  g_tmp_a[size++] = ' ';
 
   memcpy(tmp_b, g_buffer, g_source_pointer);
-  memcpy(tmp_b + g_source_pointer, g_tmp_a, inz);
-  memcpy(tmp_b + g_source_pointer + inz, g_buffer + g_source_pointer, g_size - g_source_pointer);
+  memcpy(tmp_b + g_source_pointer, g_tmp_a, size);
+  memcpy(tmp_b + g_source_pointer + size, g_buffer + g_source_pointer, g_size - g_source_pointer);
 
   free(g_buffer);
 
-  g_size += inz;
+  g_size += size;
   g_buffer = tmp_b;
 
-  *include_size = inz;
+  *include_size = size;
   
   return SUCCEEDED;
 }
@@ -319,7 +319,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
   struct incbin_file_data *ifd;
   char *in_tmp, *n;
-  int file_size, q, inz;
+  int file_size, q;
   FILE *f = NULL;
 
   int error_code = find_file(name, &f);
@@ -385,8 +385,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     *skip = 0;
   else {
     skip_next_token();
-    inz = input_number();
-    if (inz != SUCCEEDED) {
+    if (input_number() != SUCCEEDED) {
       print_error(".INCBIN needs the amount of skipped bytes.\n", ERROR_DIR);
       return FAILED;
     }
@@ -405,8 +404,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     *read = file_size - *skip;
   else {
     skip_next_token();
-    inz = input_number();
-    if (inz != SUCCEEDED) {
+    if (input_number() != SUCCEEDED) {
       print_error(".INCBIN needs the amount of bytes for reading.\n", ERROR_DIR);
       return FAILED;
     }
