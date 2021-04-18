@@ -124,6 +124,7 @@ ALL  ``.DWCOS 0.2, 10, 3.2, 1024, 1.3``
 ALL  ``.DWM filtermacro 1, 2, 3``
 ALL  ``.DWRND 20, 0, 10``
 ALL  ``.DWSIN 0.2, 10, 3.2, 1024, 1.3``
+ALL  ``.ELIF defined(DEBUG) && VERSION > 110``
 ALL  ``.ELSE``
 ALL  ``.ENDA``
 ALL  ``.ENDASM``
@@ -1147,6 +1148,25 @@ Analogous to ``.DBCOS`` (but defines 16-bit words and does ``sin()`` instead of
 This is not a compulsory directive.
 
 
+``.ELIF defined(DEBUG) && VERSION > 110``
+-----------------------------------------
+
+``.ELIF`` means ``ELSE IF``. Can be used after an ``.IF`` and the likes in
+following fashion ::
+
+    .IF VERSION == 101
+      .db 1
+    .ELIF VERSION == 102
+      .db 2
+    .ELIF VERSION == 103
+      .db 3
+    .ELSE
+      .db $ff
+    .ENDIF
+
+This is not a compulsory directive.
+
+
 ``.ELSE``
 ---------
 
@@ -1667,8 +1687,8 @@ This is not a compulsory directive.
 ------------------
 
 If the condition is fulfilled the following piece of code is
-acknowledged until ``.ENDIF``/``.ELSE`` occurs in the text, otherwise
-it is skipped. Operands must be immediate values or strings.
+acknowledged until ``.ENDIF``/``.ELSE``/``.ELIF`` occurs in the text,
+otherwise it is skipped. Operands must be immediate values or strings.
 
 The following operators are supported:
 

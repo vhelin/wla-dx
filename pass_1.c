@@ -50,7 +50,7 @@ int g_rombanks = 0, g_rombanks_defined = 0, g_romtype = 0, g_max_address = 0;
 int g_rambanks = 0, g_rambanks_defined = 0;
 int g_emptyfill, g_emptyfill_defined = 0;
 int g_section_status = OFF, g_section_id = 1, g_line_count_status = ON;
-int g_parsed_int, g_source_pointer, g_ind, g_inz, g_ifdef = 0, g_slots_amount = 0;
+int g_parsed_int, g_source_pointer, g_ind, g_inz, g_ifdef = 0, g_slots_amount = 0, g_skip_elifs[256];
 int g_memorymap_defined = 0;
 int g_defaultslot_defined = 0, g_defaultslot, g_current_slot = 0;
 int g_banksize_defined = 0, g_banksize;
@@ -10595,6 +10595,19 @@ int parse_directive(void) {
 }
 
 
+static int _increase_ifdef(void) {
+
+  if (g_ifdef == 255) {
+    print_error("Out of .IF stack!\n", ERROR_DIR);
+    return FAILED;
+  }
+
+  g_ifdef++;
+
+  return SUCCEEDED;
+}
+
+
 /* parses only "if" directives. */
 /* this is separate from parse_directive so that enums and ramsections can reuse this */
 int parse_if_directive(void) {
@@ -10605,7 +10618,6 @@ int parse_if_directive(void) {
   /* ELSE */
 
   if (strcaselesscmp(g_current_directive, "ELSE") == 0) {
-
     int m, r;
 
     if (g_ifdef == 0) {
@@ -10616,8 +10628,10 @@ int parse_if_directive(void) {
     /* find the next compiling point */
     r = 1;
     m = g_macro_active;
+
     /* disable macro decoding */
     g_macro_active = 0;
+
     while (get_next_token() != FAILED) {
       if (g_tmp[0] == '.') {
         if (strcaselesscmp(g_current_directive, "ENDIF") == 0)
@@ -10648,25 +10662,31 @@ int parse_if_directive(void) {
       return FAILED;
     }
 
+    g_skip_elifs[g_ifdef] = NO;
     g_ifdef--;
+    
     return SUCCEEDED;
   }
 
   /* IFDEF */
 
   if (strcaselesscmp(g_current_directive, "IFDEF") == 0) {
-
     struct definition *d;
 
     if (get_next_token() == FAILED)
       return FAILED;
 
-    hashmap_get(g_defines_map, g_tmp, (void*)&d);
+    if (_increase_ifdef() == FAILED)
+      return FAILED;
+
+    hashmap_get(g_defines_map, g_tmp, (void *)&d);
     if (d != NULL) {
-      g_ifdef++;
+      g_skip_elifs[g_ifdef] = YES;
       return SUCCEEDED;
     }
 
+    g_skip_elifs[g_ifdef] = NO;
+    
     return find_next_point("IFDEF");
   }
 
@@ -10685,13 +10705,53 @@ int parse_if_directive(void) {
       return FAILED;
     }
 
+    if (_increase_ifdef() == FAILED)
+      return FAILED;
+
     /* 0 = false, otherwise it's true */
     if (g_parsed_int != 0) {
-      g_ifdef++;
+      g_skip_elifs[g_ifdef] = YES;
       return SUCCEEDED;
     }
-    else
+    else {
+      g_skip_elifs[g_ifdef] = NO;
       return find_next_point("IF");
+    }
+  }
+
+  /* ELIF */
+
+  if (strcaselesscmp(g_current_directive, "ELIF") == 0) {
+    if (g_ifdef == 0) {
+      print_error("There must be .IFxxx before .ELIF.\n", ERROR_DIR);
+      return FAILED;
+    }
+
+    /* had an .if already succeeded previously? */
+    if (g_skip_elifs[g_ifdef] == YES)
+      return find_next_point("ELIF");
+
+    g_input_parse_if = YES;
+    q = input_number();
+    g_input_parse_if = NO;
+
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      snprintf(g_error_message, sizeof(g_error_message), ".ELIF needs immediate data.\n");
+      print_error(g_error_message, ERROR_INP);
+      return FAILED;
+    }
+
+    /* 0 = false, otherwise it's true */
+    if (g_parsed_int != 0) {
+      g_skip_elifs[g_ifdef] = YES;
+      return SUCCEEDED;
+    }
+    else {
+      g_skip_elifs[g_ifdef] = NO;
+      return find_next_point("ELIF");
+    }
   }
 
   /* IFGR/IFLE/IFEQ/IFNEQ/IFGREQ/IFLEEQ */
@@ -10756,11 +10816,15 @@ int parse_if_directive(void) {
         q = FAILED;
     }
 
+    if (_increase_ifdef() == FAILED)
+      return FAILED;
+
     if (q == SUCCEEDED) {
-      g_ifdef++;
+      g_skip_elifs[g_ifdef] = YES;
       return SUCCEEDED;
     }
     else {
+      g_skip_elifs[g_ifdef] = NO;
       strcpy(k, g_current_directive);
       return find_next_point(k);
     }
@@ -10769,7 +10833,6 @@ int parse_if_directive(void) {
   /* IFEXISTS */
 
   if (strcaselesscmp(g_current_directive, "IFEXISTS") == 0) {
-
     int number_result;
     FILE *f;
 
@@ -10782,40 +10845,48 @@ int parse_if_directive(void) {
       return FAILED;
     }
 
+    if (_increase_ifdef() == FAILED)
+      return FAILED;
+
     f = fopen(g_label, "r");
-    if (f == NULL)
+    if (f == NULL) {
+      g_skip_elifs[g_ifdef] = NO;
       return find_next_point("IFEXISTS");
+    }
 
     fclose(f);
-    g_ifdef++;
 
+    g_skip_elifs[g_ifdef] = YES;
+      
     return SUCCEEDED;
   }
 
   /* IFNDEF */
 
   if (strcaselesscmp(g_current_directive, "IFNDEF") == 0) {
-
     struct definition *d;
 
     if (get_next_token() == FAILED)
       return FAILED;
 
+    if (_increase_ifdef() == FAILED)
+      return FAILED;
+
     hashmap_get(g_defines_map, g_tmp, (void*)&d);
     if (d != NULL) {
+      g_skip_elifs[g_ifdef] = NO;
       strcpy(g_error_message, g_current_directive);
       return find_next_point(g_error_message);
     }
 
-    g_ifdef++;
-
+    g_skip_elifs[g_ifdef] = YES;
+    
     return SUCCEEDED;
   }
 
   /* IFDEFM/IFNDEFM */
 
   if (strcaselesscmp(g_current_directive, "IFDEFM") == 0 || strcaselesscmp(g_current_directive, "IFNDEFM") == 0) {
-
     int k, o;
     char e;
 
@@ -10832,8 +10903,10 @@ int parse_if_directive(void) {
     else
       o = 1;
 
-    for (; g_source_pointer < g_size; g_source_pointer++) {
+    if (_increase_ifdef() == FAILED)
+      return FAILED;
 
+    for (; g_source_pointer < g_size; g_source_pointer++) {
       if (g_buffer[g_source_pointer] == 0x0A)
         break;
       else if (g_buffer[g_source_pointer] == '\\') {
@@ -10851,10 +10924,11 @@ int parse_if_directive(void) {
           g_parsed_int /= 10;
           if ((o == 0 && g_macro_runtime_current->supplied_arguments < g_parsed_int) ||
               (o == 1 && g_macro_runtime_current->supplied_arguments >= g_parsed_int)) {
-            g_ifdef++;
+            g_skip_elifs[g_ifdef] = YES;
             return SUCCEEDED;
           }
           else {
+            g_skip_elifs[g_ifdef] = NO;
             strcpy(g_error_message, g_current_directive);
             return find_next_point(g_error_message);
           }
@@ -10876,20 +10950,34 @@ int parse_if_directive(void) {
 
 int find_next_point(char *name) {
 
-  int depth, m, line_current;
+  int depth = 1, m, line_current = g_active_file_info_last->line_current, source_pointer_old = g_source_pointer;
 
-  line_current = g_active_file_info_last->line_current;
   /* find the next compiling point */
-  depth = 1;
   m = g_macro_active;
+
   /* disable macro decoding */
   g_macro_active = 0;
+
   while (get_next_token() != FAILED) {
     if (g_tmp[0] == '.') {
-      if (strcaselesscmp(g_current_directive, "ENDIF") == 0)
+      if (strcaselesscmp(g_current_directive, "ENDIF") == 0) {
         depth--;
-      if (strcaselesscmp(g_current_directive, "ELSE") == 0 && depth == 1)
+        if (depth == 0)
+          g_skip_elifs[g_ifdef] = NO;
+        g_ifdef--;
+      }
+      if (strcaselesscmp(g_current_directive, "ELSE") == 0 && depth == 1) {
         depth--;
+        if (g_skip_elifs[g_ifdef] == YES)
+          g_source_pointer = source_pointer_old;
+      }
+      if (strcaselesscmp(g_current_directive, "ELIF") == 0 && depth == 1) {
+        /* go backwards so we'll actually parse .ELIF later */
+        g_source_pointer = source_pointer_old;
+
+        if (g_skip_elifs[g_ifdef] == NO)
+          depth--;
+      }
       if (strcaselesscmp(g_current_directive, "E") == 0)
         break;
       if (strcaselesscmp(g_current_directive, "IFDEF") == 0 || strcaselesscmp(g_current_directive, "IFNDEF") == 0 || strcaselesscmp(g_current_directive, "IFGR") == 0 || strcaselesscmp(g_current_directive, "IFLE") == 0 ||
@@ -10897,12 +10985,13 @@ int find_next_point(char *name) {
           strcaselesscmp(g_current_directive, "IF") == 0 || strcaselesscmp(g_current_directive, "IFGREQ") == 0 || strcaselesscmp(g_current_directive, "IFLEEQ") == 0 || strcaselesscmp(g_current_directive, "IFEXISTS") == 0)
         depth++;
     }
+
     if (depth == 0) {
-      if (strcaselesscmp(g_current_directive, "ELSE") == 0)
-        g_ifdef++;
       g_macro_active = m;
       return SUCCEEDED;
     }
+    else
+      source_pointer_old = g_source_pointer;
   }
 
   /* return the condition's line number */

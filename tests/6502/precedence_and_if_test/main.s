@@ -313,3 +313,66 @@
         .db 1 + >$1122 & 3      ; $02
         .db "<08"
         
+        ////////////////////////////////////////////////////////////////////////
+
+        .db "09>"
+
+        .if 1 > 0 && exists("main.s")
+          .db $00               ; $00
+          .if 1 < 0 || "hello" == "moto"
+          .db $01
+          .else
+          .db $02               ; $02
+          .endif
+        .else
+          .db $03
+        .endif
+
+        .if 1 > 0
+          .db $04               ; $04
+        .elif 2 > 1 && 3 != 2
+          .db $05
+        .endif
+
+        .if 1 < 0
+          .db $06
+        .elif 2 > 1
+          .db $07               ; $07
+        .endif
+
+        .if 1 < 0
+          .db $08
+        .elif 2 > 3
+          .db $09
+        .else
+          .db $0A               ; $0A
+        .endif
+
+        .if 1 < 0
+          .db $0B
+        .elif 2 > 3
+          .db $0C
+        .elif 4 > 2
+          .db $0D               ; $0D
+        .elif 5 > 1
+          .db $0E
+        .else
+          .db $0F
+        .endif
+
+        .if 1 > 2
+          .db $10
+        .elif 2 > 1
+          .db $11               ; $11
+          .if 1 < 0
+          .db $12
+          .else
+          .db $13               ; $13
+          .endif
+        .elif 3 > 2
+          .db $14
+        .else
+          .db $15
+        .endif
+        
+        .db "<09"
