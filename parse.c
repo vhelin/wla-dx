@@ -15,7 +15,7 @@
 
 int parse_string_length(char *end);
 
-int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OFF, g_parse_floats = YES, g_expect_calculations = YES;
+int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OFF, g_parse_floats = YES, g_expect_calculations = YES, g_input_parse_if = NO;
 int g_newline_beginning = ON, g_parsed_double_decimal_numbers = 0, g_operand_hint, g_operand_hint_type;
 char g_label[MAX_NAME_LENGTH + 1], g_xyz[512];
 char g_unevaluated_expression[256];
@@ -242,12 +242,16 @@ int input_number(void) {
       else if (ee == '}')
         curly_braces--;
       /* string / symbol -> no calculating */
-      else if (ee == '"' || ee == ',' || (ee == '=' && g_buffer[p] == '=') || (ee == '!' && g_buffer[p] == '='))
+      else if (g_input_parse_if == NO && ee == '"')
+        break;
+      else if (ee == ',')
+        break;
+      else if (g_input_parse_if == NO && ((ee == '=' && g_buffer[p] == '=') || (ee == '!' && g_buffer[p] == '=')))
         break;
       else if (ee == ' ')
         spaces++;
-      else if (curly_braces <= 0 && (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' ||
-                                     ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':')) {
+      else if (curly_braces <= 0 && (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' || ee == '(' ||
+                                     ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':' || ee == '!' || (g_input_parse_if == YES && ee == '='))) {
         if (ee == ':' && spaces > 0)
           break;
         
@@ -722,6 +726,28 @@ int input_number(void) {
         return FAILED;
       
       g_source_pointer += 3;
+      g_parsed_double = (double)g_parsed_int;
+
+      return SUCCEEDED;
+    }
+    if (k == 7 && strcaselesscmpn(g_label, "defined(", 8) == 0) {
+      int parsed_chars = 0;
+          
+      if (parse_function_defined(&g_buffer[g_source_pointer], &g_parsed_int, &parsed_chars) == FAILED)
+        return FAILED;
+      
+      g_source_pointer += parsed_chars;
+      g_parsed_double = (double)g_parsed_int;
+
+      return SUCCEEDED;
+    }
+    if (k == 6 && strcaselesscmpn(g_label, "exists(", 7) == 0) {
+      int parsed_chars = 0;
+          
+      if (parse_function_exists(&g_buffer[g_source_pointer], &g_parsed_int, &parsed_chars) == FAILED)
+        return FAILED;
+      
+      g_source_pointer += parsed_chars;
       g_parsed_double = (double)g_parsed_int;
 
       return SUCCEEDED;
@@ -1361,5 +1387,83 @@ int parse_function_asc(char *in, int *result) {
   else
     *result = (int)g_asciitable[ascii_table_index];
 
+  return SUCCEEDED;
+}
+
+
+int parse_function_defined(char *in, int *result, int *parsed_chars) {
+
+  char name[MAX_NAME_LENGTH+1];
+  struct definition *d;
+  int i;
+
+  for (i = 0; i < MAX_NAME_LENGTH && *in != ')' && *in != 0xA && *in != 0; i++, in++) {
+    name[i] = *in;
+    (*parsed_chars)++;
+  }
+  name[i] = 0;
+
+  if (*in != ')') {
+    print_error("Malformed \"defined(?)\" detected!\n", ERROR_NUM);
+    return FAILED;
+  }
+
+  /* skip ')' */
+  (*parsed_chars)++;
+
+  /* try to find the definition */
+  hashmap_get(g_defines_map, name, (void*)&d);
+
+  if (d != NULL)
+    *result = 1;
+  else
+    *result = 0;
+  
+  return SUCCEEDED;
+}
+
+
+int parse_function_exists(char *in, int *result, int *parsed_chars) {
+
+  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
+  FILE *f;
+  
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_pointer for input_number() */
+
+  g_source_pointer = (int)(in - g_buffer);
+  source_pointer_backup = g_source_pointer;
+
+  g_expect_calculations = NO;
+  res = input_number();
+  g_expect_calculations = old_expect;
+
+  if (res != INPUT_NUMBER_ADDRESS_LABEL && res != INPUT_NUMBER_STRING) {
+    print_error("exists() requires a file name string.\n", ERROR_NUM);
+    return FAILED;
+  }
+  
+  if (g_buffer[g_source_pointer] != ')') {
+    print_error("Malformed \"exists(?)\" detected!\n", ERROR_NUM);
+    return FAILED;
+  }
+
+  /* skip ')' */
+  g_source_pointer++;
+
+  /* count the parsed chars */
+  *parsed_chars = g_source_pointer - source_pointer_backup;
+
+  /* return g_source_pointer */
+  g_source_pointer = source_pointer_original;
+  
+  f = fopen(g_label, "rb");
+  if (f == NULL)
+    *result = 0;
+  else
+    *result = 1;
+
+  fclose(f);
+  
   return SUCCEEDED;
 }

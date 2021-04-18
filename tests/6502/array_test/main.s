@@ -71,8 +71,10 @@
         .ARRAYDB NAME MyArray INDICES "668275"
         .DB "<05"
         
+        .print "HELLO 01\n"
         .ARRAYIN MyArray 1 $123456
         .ARRAYIN MyArray 2 ($111111 | $222222)
+        .print "HELLO 02\n"
 
         .DB "06>"
         .ARRAYDL NAME MyArray INDICES 0+1+2+3-5, 1+1+1+1-1-1

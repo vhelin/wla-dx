@@ -1673,12 +1673,15 @@ it is skipped. Operands must be immediate values or strings.
 The following operators are supported:
 
 ======= =====================
+ ``!``   not
  ``<``   less than
  ``<=``  less or equal to
  ``>``   greater than
  ``>=``  greater or equal to
  ``==``  equals to
  ``!=``  doesn't equal to
+ ``||``  logical or
+ ``&&``  logical and
 ======= =====================
 
 All ``IF`` directives (yes, including ``.IFDEF``, ``.IFNDEF``, etc) can be
@@ -1686,7 +1689,13 @@ nested. They can also be used within ``ENUM`` s, ``RAMSECTION`` s,
 ``STRUCT`` s, ``ROMBANKMAP`` s, and most other directives that occupy multiple
 lines.
 
+Note that complex conditions are also possible ::
 
+    .IF DEBUG == 2 && defined(HELLO) && exists("main.s")
+
+Here defined() and exists() both return 1 of they are true, and 0 if false. In
+fact in conditions 0 is false and anything else is considered to be true.
+    
 This is not a compulsory directive.
 
 

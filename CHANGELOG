@@ -3,7 +3,9 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------
 
-v9.13 (11-Apr-2021) [ALL] Added support for nameless INSTANCEOFs in
+v9.13 (18-Apr-2021) [ALL] WARNING: Precedence of operators in calculations
+                      that WLA calculates is now more fine grained and C like.
+                    [ALL] Added support for nameless INSTANCEOFs in
                       .ENUMs, .STRUCTs and .RAMSECTIONs.
                     [ALL] Computations with 32-bit binary values with all 32
                       bits defined work now.
@@ -28,6 +30,12 @@ v9.13 (11-Apr-2021) [ALL] Added support for nameless INSTANCEOFs in
                     [ALL] The source section of APPENDTO operation is now
                       linked with its ID, not name, so multiple sources
                       with the same name work now.
+                    [ALL] defined(DEF_A) can be used in calculations to ask
+                      if DEF_A is defined.
+                    [ALL] exists("file.bin") can be used in calculations to
+                      ask if "file.bin" exists.
+                    [ALL] .IF takes now complex conditions, e.g.,
+                      ".IF !defined(ZERO) && defined(ONE) && (ONE > 0)" works.
                     [SFX] Added Super FX support.
                     [Z80] Added SL1 (alias for SLL).
                     [Z80] Added "RES 0,(IX+d),A", "RES 0,(IY+d),A",

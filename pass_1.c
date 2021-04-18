@@ -111,7 +111,7 @@ struct stringmaptable *g_stringmaptables = NULL;
 struct array *g_arrays_first = NULL;
 
 extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name;
-extern int g_size, g_input_number_error_msg, g_verbose_mode, g_output_format, g_open_files;
+extern int g_size, g_input_number_error_msg, g_verbose_mode, g_output_format, g_open_files, g_input_parse_if;
 extern int g_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations;
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
 extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
@@ -10673,71 +10673,20 @@ int parse_if_directive(void) {
   /* IF */
 
   if (strcaselesscmp(g_current_directive, "IF") == 0) {
-
-    char k[256];
-    int y, o, s;
-
+    g_input_parse_if = YES;
     q = input_number();
-    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
-      snprintf(g_error_message, sizeof(g_error_message), ".IF needs immediate data, string or an address label.\n");
+    g_input_parse_if = NO;
+
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      snprintf(g_error_message, sizeof(g_error_message), ".IF needs immediate data.\n");
       print_error(g_error_message, ERROR_INP);
       return FAILED;
     }
 
-    strncpy(k, g_label, 255);
-    k[255] = 0;
-    y = g_parsed_int;
-    s = q;
-
-    if (get_next_token() == FAILED)
-      return FAILED;
-
-    if (strcmp(g_tmp, "<") == 0)
-      o = 0;
-    else if (strcmp(g_tmp, ">") == 0)
-      o = 1;
-    else if (strcmp(g_tmp, "==") == 0)
-      o = 2;
-    else if (strcmp(g_tmp, "!=") == 0)
-      o = 3;
-    else if (strcmp(g_tmp, ">=") == 0)
-      o = 4;
-    else if (strcmp(g_tmp, "<=") == 0)
-      o = 5;
-    else {
-      print_error(".IF needs an operator. Supported operators are '<', '>', '>=', '<=', '!=' and '=='.\n", ERROR_INP);
-      return FAILED;
-    }
-
-    q = input_number();
-    if (q != SUCCEEDED && q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
-      snprintf(g_error_message, sizeof(g_error_message), ".IF needs immediate data, string or an address label.\n");
-      print_error(g_error_message, ERROR_INP);
-      return FAILED;
-    }
-
-    /* different types? */
-    if (s != q) {
-      print_error("The types of the compared things must be the same.\n", ERROR_INP);
-      return FAILED;
-    }
-
-    /* values? */
-    if (s == SUCCEEDED) {
-      if ((o == 0 && y < g_parsed_int) || (o == 1 && y > g_parsed_int) || (o == 2 && y == g_parsed_int) || (o == 3 && y != g_parsed_int) || (o == 4 && y >= g_parsed_int) || (o == 5 && y <= g_parsed_int))
-        q = SUCCEEDED;
-      else
-        q = FAILED;
-    }
-    /* strings? */
-    else {
-      if ((o == 0 && strcmp(k, g_label) < 0) || (o == 1 && strcmp(k, g_label) > 0) || (o == 2 && strcmp(k, g_label) == 0) || (o == 3 && strcmp(k, g_label) != 0) || (o == 4 && strcmp(k, g_label) >= 0) || (o == 5 && strcmp(k, g_label) <= 0))
-        q = SUCCEEDED;
-      else
-        q = FAILED;
-    }
-
-    if (q == SUCCEEDED) {
+    /* 0 = false, otherwise it's true */
+    if (g_parsed_int != 0) {
       g_ifdef++;
       return SUCCEEDED;
     }

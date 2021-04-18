@@ -76,7 +76,7 @@ nollasivu:
 .endif
 
 .if monster >= dummy
-.fail
+.fail 1
 .endif
 
 .printv dec <(>($0402+1*$100))+1-1

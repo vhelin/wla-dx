@@ -18,29 +18,61 @@ WLA wasn't able to solve.
 
 The following operators are valid:
 
-====== ==================
-``,``  comma
-``|``  or
-``&``  and
+====== ===================
+``|``  bitwise or
+``&``  bitwise and
 ``^``  power
-``<<`` shift left
-``>>`` shift right
+``<<`` bitwise shift left
+``>>`` bitwise shift right
 ``+``  plus
 ``-``  minus
 ``#``  modulo
-``~``  xor
+``~``  bitwise xor
 ``*``  multiply
 ``/``  divide
 ``<``  get the low byte
 ``>``  get the high byte
-====== ==================
+====== ===================
 
-Note that you can do NOT using XOR:
+Note that you can do NOT using XOR ::
 
 - ``VALUE_A ~ $FF``   is  8-bit NOT
 - ``VALUE_B ~ $FFFF`` is 16-bit NOT
 
 Unary XOR (e.g., ``~$FF``) is the same as NOT.
   
+``.IF`` conditions have the following additional operators:
+
+====== ===============================================================
+``!``  not
+``<``  smaller than (note that outside ``.IF`` this is something else)
+``>``  larger than (note that outside ``.IF`` this is something else)
+``<=`` smaller or equal
+``>=`` larger or equal
+``==`` equal
+``!=`` unequal
+``||`` logical or
+``&&`` logical and
+====== ===============================================================
+
+Here's a table of the precedence of the operators in calculations and conditions
+(higher priority operators come first):
+
+========================= =============================================
+``(`` ``)``               expression
+``~`` ``!``               unary
+``<`` ``>`` ``:``         low byte / high byte / bank (outside ``.IF``)
+``/`` ``*`` ``#`` ``^``   multiplicative
+``+`` ``-``               additive
+``<<`` ``>>``             bitwise shift
+``<`` ``>`` ``<=`` ``>=`` relational (only inside ``.IF``)
+``==`` ``!=``             equality (only inside ``.IF``)
+``&``                     bitwise and
+``~``                     bitwise xor
+``|``                     bitwise or
+``&&``                    logical and
+``||``                    logical or
+========================= =============================================
+
 WLA computes internally with real numbers so ``(5/2)*2`` produces ``5``,
 not ``4``.

@@ -55,6 +55,14 @@
 #define SI_OP_HIGH_BYTE   14
 #define SI_OP_NOT         15
 #define SI_OP_BANK        16
+#define SI_OP_COMPARE_LT  17
+#define SI_OP_COMPARE_GT  18
+#define SI_OP_COMPARE_EQ  19
+#define SI_OP_COMPARE_NEQ 20
+#define SI_OP_COMPARE_LTE 21
+#define SI_OP_COMPARE_GTE 22
+#define SI_OP_LOGICAL_OR  23
+#define SI_OP_LOGICAL_AND 24
 
 #define SI_SIGN_POSITIVE 0
 #define SI_SIGN_NEGATIVE 1

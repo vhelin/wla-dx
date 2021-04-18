@@ -70,7 +70,7 @@ joopa:
 *lda	hk_sininen,x
 
 .db $aa~$ff
-.db $ff~(%0+$ff-1)<<1
+.db $fe~(%10+$ff&1)<<0
 .dw TESB~$ffff
 PER.W joopa
 
