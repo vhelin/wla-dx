@@ -1460,10 +1460,11 @@ int parse_function_exists(char *in, int *result, int *parsed_chars) {
   f = fopen(g_label, "rb");
   if (f == NULL)
     *result = 0;
-  else
+  else {
     *result = 1;
 
-  fclose(f);
+    fclose(f);
+  }
   
   return SUCCEEDED;
 }
