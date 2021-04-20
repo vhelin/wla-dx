@@ -10972,18 +10972,22 @@ int find_next_point(char *name) {
           g_source_pointer = source_pointer_old;
       }
       if (strcaselesscmp(g_current_directive, "ELIF") == 0 && depth == 1) {
-        /* go backwards so we'll actually parse .ELIF later */
-        g_source_pointer = source_pointer_old;
-
-        if (g_skip_elifs[g_ifdef] == NO)
+        if (g_skip_elifs[g_ifdef] == NO) {
+          /* go backwards so we'll actually parse .ELIF later */
+          g_source_pointer = source_pointer_old;
           depth--;
+        }
       }
       if (strcaselesscmp(g_current_directive, "E") == 0)
         break;
       if (strcaselesscmp(g_current_directive, "IFDEF") == 0 || strcaselesscmp(g_current_directive, "IFNDEF") == 0 || strcaselesscmp(g_current_directive, "IFGR") == 0 || strcaselesscmp(g_current_directive, "IFLE") == 0 ||
           strcaselesscmp(g_current_directive, "IFEQ") == 0 || strcaselesscmp(g_current_directive, "IFNEQ") == 0 || strcaselesscmp(g_current_directive, "IFDEFM") == 0 || strcaselesscmp(g_current_directive, "IFNDEFM") == 0 ||
-          strcaselesscmp(g_current_directive, "IF") == 0 || strcaselesscmp(g_current_directive, "IFGREQ") == 0 || strcaselesscmp(g_current_directive, "IFLEEQ") == 0 || strcaselesscmp(g_current_directive, "IFEXISTS") == 0)
+          strcaselesscmp(g_current_directive, "IF") == 0 || strcaselesscmp(g_current_directive, "IFGREQ") == 0 || strcaselesscmp(g_current_directive, "IFLEEQ") == 0 || strcaselesscmp(g_current_directive, "IFEXISTS") == 0) {
         depth++;
+        if (_increase_ifdef() == FAILED)
+          return FAILED;
+        g_skip_elifs[g_ifdef] = YES;        
+      }
     }
 
     if (depth == 0) {

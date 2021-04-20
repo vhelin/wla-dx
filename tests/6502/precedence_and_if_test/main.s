@@ -376,3 +376,85 @@
         .endif
         
         .db "<09"
+
+        ////////////////////////////////////////////////////////////////////////
+
+        .db "10>"
+
+        .if 2 > 1
+        .db $00                 ; $00
+        .elif 4 > 1
+        .db $01
+        .elif 3 > 1
+        .db $02
+        .elif 5 > 2
+          .db $03
+          .if 1 > 0
+          .db $04
+          .elif 2 > 1
+          .db $05
+          .elif 4 > 3
+          .db $06
+          .else
+            .if 3 > 0
+            .db $07
+            .elif 1 < 2
+            .db $08
+            .else
+            .db $09
+            .endif
+          .endif
+        .elif 8 > 0
+        .db $0A
+        .elif 222 < 111
+        .db $0B
+        .else
+        .db $0C
+        .endif
+
+        .if 1 > 1
+          .db $10
+          .if 3 > 0
+          .db $40
+          .endif
+        .elif 4 < 1
+        .db $11
+        .elif 3 < 1
+        .db $12
+        .elif 5 > 2
+          .db $13               ; $13
+          .if 1 < 0
+          .db $14
+          .elif 2 > 1
+            .db $15             ; $15
+            .if 0 != 0
+            .db $20
+            .elif 100 > 0
+            .db $21             ; $21
+            .elif 1 == 1
+            .db $22
+            .endif
+          .elif 4 > 3
+          .db $16
+          .else
+            .if 3 > 0
+              .db $17
+              .if 3 > 0
+              .db $30
+              .endif
+            .elif 1 < 2
+            .db $18
+            .else
+            .db $19
+            .endif
+          .endif
+        .elif 8 > 0
+        .db $1A
+        .elif 222 < 111
+        .db $1B
+        .else
+        .db $1C
+        .endif
+        
+        .db "<10"
+        
