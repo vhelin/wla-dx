@@ -144,11 +144,12 @@ int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_
 int main(int argc, char *argv[]) {
 
   char tmp[256], test_id[256], tag_id[256];
+  char *input_name = NULL;
   unsigned char bytes[256];
-  int file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, use_address = NO, address = 0, did_we_read_data = NO, got_it = NO;
+  int file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, should_extract_comments = NO, use_address = NO, address = 0, did_we_read_data = NO, got_it = NO;
   FILE *f;
   
-  if (argc != 2 || argv == NULL) {
+  if (argc < 2 || argc > 3 || argv == NULL) {
     fprintf(stderr, "\n");
     fprintf(stderr, "Byte tester 1.0\n");
     fprintf(stderr, "\n");
@@ -169,7 +170,18 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  f = fopen(argv[1], "rb");
+  /* Parse flags */
+  for (i = 1; i < argc; i++) {
+    if (strcmp(argv[i], "-s") == 0) {
+      should_extract_comments = YES;
+    }
+    else {
+      input_name = calloc(strlen(argv[i]), 1);
+      strcpy(input_name, argv[i]);
+    }
+  }
+
+  f = fopen(input_name, "rb");
 
   if (f == NULL) {
     fprintf(stderr, "Error opening file \"%s\".\n", argv[1]);
