@@ -8,8 +8,13 @@ SFILES = main.s
 IFILES = 
 OFILES = main.o
 
-all: $(OFILES) makefile
+all: result.rom check
+
+result.rom: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile result.rom
+
+check:
+	byte_tester -s main.s
 
 main.o: main.s
 	$(CC) $(CFLAGS) main.o main.s
