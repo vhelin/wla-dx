@@ -140,6 +140,21 @@ int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_
   return SUCCEEDED;
 }
 
+/* Get the next token from the input string and write the results on
+   the result argument.  */
+int get_token(char **input, char *result) {
+  int n = 0;
+
+  sscanf(*input, "%255s%n", result, &n);
+
+  if (!n) {
+    return FAILED;
+  }
+
+  *input += n;
+  return SUCCEEDED;
+}
+
 /* Extracts contents of byte tester comments in-place. The result is
    placed on the input string itself, overwriting its contents.  */
 int extract_comments(char *input, size_t size) {
@@ -262,7 +277,7 @@ int main(int argc, char *argv[]) {
     extract_comments(input, input_size);
   }
 
-  fscanf(f, "%255s", tmp);
+  get_token(&current, tmp);
 
   /* read the binary file */
   if (_read_binary_file(tmp, &did_we_read_data, f, &file_size) == FAILED)
@@ -272,14 +287,14 @@ int main(int argc, char *argv[]) {
   failures = 0;
   end = 0;
   while (end == 0) {
-    if (fscanf(f, "%255s", test_id) == EOF)
+    if (!get_token(&current, test_id))
       break;
     /* test_id could be filename */
     if (_read_binary_file(test_id, &did_we_read_data, f, &file_size) == FAILED)
       return 1;
     if (did_we_read_data == YES)
       continue;
-    if (fscanf(f, "%255s", tag_id) == EOF)
+    if (!get_token(&current, tag_id))
       break;
 
     if (strlen(tag_id) != 2) {
@@ -291,7 +306,7 @@ int main(int argc, char *argv[]) {
     if (strcmp(tag_id, "-a") == 0) {
       use_address = YES;
 
-      if (fscanf(f, "%255s", tmp) == EOF)
+      if (!get_token(&current, tmp))
         break;
 
       if (_get_next_number(tmp, &address) == FAILED) {
@@ -300,7 +315,7 @@ int main(int argc, char *argv[]) {
         break;
       }
 
-      if (fscanf(f, "%255s", tmp) == EOF)
+      if (!get_token(&current, tmp))
         break;
 
       if (strcmp(tmp, "START") != 0) {
@@ -310,7 +325,7 @@ int main(int argc, char *argv[]) {
       }
     }
     else if (strcmp(tag_id, "-y") == 0) {
-      if (fscanf(f, "%255s", tmp) == EOF)
+      if (!get_token(&current, tmp))
         break;
 
       length = (int)strlen(tmp);
@@ -334,7 +349,7 @@ int main(int argc, char *argv[]) {
       }
     }
     else if (strcmp(tag_id, "-n") == 0) {
-      if (fscanf(f, "%255s", tmp) == EOF)
+      if (!get_token(&current, tmp))
         break;
 
       length = (int)strlen(tmp);
@@ -360,7 +375,7 @@ int main(int argc, char *argv[]) {
       continue;
     }
     else {
-      if (fscanf(f, "%255s", tmp) == EOF)
+      if (!get_token(&current, tmp))
         break;
 
       if (strcmp(tmp, "START") != 0) {
@@ -380,7 +395,7 @@ int main(int argc, char *argv[]) {
         break;
       }
       
-      if (fscanf(f, "%255s", tmp) == EOF) {
+      if (!get_token(&current, tmp)) {
         end = 1;
         break;
       }
@@ -462,6 +477,7 @@ int main(int argc, char *argv[]) {
   
   fclose(f);
   
+  free(input);
   free(g_binary_file);
   
   return failures;
