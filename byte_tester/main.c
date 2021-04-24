@@ -202,7 +202,7 @@ int extract_comments(char *input, size_t size) {
 
     /* Overwrite input string with comment contents */
     current = comment;
-    comment_length = end - current;
+    comment_length = (int)(end - current);
 
     memmove(output, current, comment_length);
     output += comment_length;
