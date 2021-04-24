@@ -140,15 +140,89 @@ int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_
   return SUCCEEDED;
 }
 
+/* Get the next token from the input string and write the results on
+   the result argument.  */
+int get_token(char **input, char *result) {
+  int n = 0;
+
+  sscanf(*input, "%255s%n", result, &n);
+
+  if (!n) {
+    return FAILED;
+  }
+
+  *input += n;
+  return SUCCEEDED;
+}
+
+/* Extracts contents of byte tester comments in-place. The result is
+   placed on the input string itself, overwriting its contents.  */
+int extract_comments(char *input, size_t size) {
+  char *current = input, *output = input, *end = NULL;
+
+  while (*current) {
+    int comment_length;
+    char *comment = NULL, *result = NULL;
+
+    /* Search for the next comment of
+       each type, picking the nearest.  */
+
+    /* Semicolon comment */
+    result = strstr(current, "; @BT");
+    if (result) {
+      comment = result + 5;
+      end = strchr(comment, '\n');
+    }
+
+    /* Double slash comment */
+    result = strstr(current, "// @BT");
+    if (result && (!comment || result < comment)) {
+      comment = result + 6;
+      end = strchr(comment, '\n');
+    }
+
+    /* Block comment */
+    result = strstr(current, "/* @BT");
+    if (result && (!comment || result < comment)) {
+      comment = result + 6;
+      end = strstr(comment, "*/");
+    }
+
+    /* Stop parsing if there is no more comments */
+    if (!comment) {
+      break;
+    }
+
+    /* Extend unclosed comments to the end of the input string.
+       This handles the cases where a semicolon or double slash
+       comment is on the last line, or a unclosed block comment. */
+    if (!end) {
+      end = input + size;
+    }
+
+    /* Overwrite input string with comment contents */
+    current = comment;
+    comment_length = end - current;
+
+    memmove(output, current, comment_length);
+    output += comment_length;
+    current += comment_length;
+  }
+
+  *output = '\0';
+
+  return SUCCEEDED;
+}
 
 int main(int argc, char *argv[]) {
 
   char tmp[256], test_id[256], tag_id[256];
+  char *input_name = NULL, *input = NULL, *current = NULL;
   unsigned char bytes[256];
-  int file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, use_address = NO, address = 0, did_we_read_data = NO, got_it = NO;
+  int input_size, file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, should_extract_comments = NO, use_address = NO, address = 0, did_we_read_data = NO, got_it = NO;
   FILE *f;
   
-  if (argc != 2 || argv == NULL) {
+  if (argc < 2 || argc > 3 || argv == NULL) {
     fprintf(stderr, "\n");
     fprintf(stderr, "Byte tester 1.0\n");
     fprintf(stderr, "\n");
@@ -169,14 +243,41 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  f = fopen(argv[1], "rb");
+  /* Parse flags */
+  for (i = 1; i < argc; i++) {
+    if (strcmp(argv[i], "-s") == 0) {
+      should_extract_comments = YES;
+    }
+    else {
+      input_name = calloc(strlen(argv[i]), 1);
+      strcpy(input_name, argv[i]);
+    }
+  }
+
+  f = fopen(input_name, "rb");
 
   if (f == NULL) {
     fprintf(stderr, "Error opening file \"%s\".\n", argv[1]);
     return 1;
   }
 
-  fscanf(f, "%255s", tmp);
+  fseek(f, 0, SEEK_END);
+  input_size = (int)ftell(f);
+  fseek(f, 0, SEEK_SET);
+  input = calloc(input_size, 1);
+  current = input;
+
+  if (fread(input, 1, input_size, f) != (size_t) input_size) {
+    fprintf(stderr, "Could not read all %d bytes of \"%s\"!", input_size, input_name);
+    return FAILED;
+  };
+
+  /* Extract input from comments in file */
+  if (should_extract_comments) {
+    extract_comments(input, input_size);
+  }
+
+  get_token(&current, tmp);
 
   /* read the binary file */
   if (_read_binary_file(tmp, &did_we_read_data, f, &file_size) == FAILED)
@@ -186,14 +287,14 @@ int main(int argc, char *argv[]) {
   failures = 0;
   end = 0;
   while (end == 0) {
-    if (fscanf(f, "%255s", test_id) == EOF)
+    if (!get_token(&current, test_id))
       break;
     /* test_id could be filename */
     if (_read_binary_file(test_id, &did_we_read_data, f, &file_size) == FAILED)
       return 1;
     if (did_we_read_data == YES)
       continue;
-    if (fscanf(f, "%255s", tag_id) == EOF)
+    if (!get_token(&current, tag_id))
       break;
 
     if (strlen(tag_id) != 2) {
@@ -205,7 +306,7 @@ int main(int argc, char *argv[]) {
     if (strcmp(tag_id, "-a") == 0) {
       use_address = YES;
 
-      if (fscanf(f, "%255s", tmp) == EOF)
+      if (!get_token(&current, tmp))
         break;
 
       if (_get_next_number(tmp, &address) == FAILED) {
@@ -214,7 +315,7 @@ int main(int argc, char *argv[]) {
         break;
       }
 
-      if (fscanf(f, "%255s", tmp) == EOF)
+      if (!get_token(&current, tmp))
         break;
 
       if (strcmp(tmp, "START") != 0) {
@@ -224,7 +325,7 @@ int main(int argc, char *argv[]) {
       }
     }
     else if (strcmp(tag_id, "-y") == 0) {
-      if (fscanf(f, "%255s", tmp) == EOF)
+      if (!get_token(&current, tmp))
         break;
 
       length = (int)strlen(tmp);
@@ -248,7 +349,7 @@ int main(int argc, char *argv[]) {
       }
     }
     else if (strcmp(tag_id, "-n") == 0) {
-      if (fscanf(f, "%255s", tmp) == EOF)
+      if (!get_token(&current, tmp))
         break;
 
       length = (int)strlen(tmp);
@@ -274,7 +375,7 @@ int main(int argc, char *argv[]) {
       continue;
     }
     else {
-      if (fscanf(f, "%255s", tmp) == EOF)
+      if (!get_token(&current, tmp))
         break;
 
       if (strcmp(tmp, "START") != 0) {
@@ -294,7 +395,7 @@ int main(int argc, char *argv[]) {
         break;
       }
       
-      if (fscanf(f, "%255s", tmp) == EOF) {
+      if (!get_token(&current, tmp)) {
         end = 1;
         break;
       }
@@ -376,6 +477,7 @@ int main(int argc, char *argv[]) {
   
   fclose(f);
   
+  free(input);
   free(g_binary_file);
   
   return failures;
