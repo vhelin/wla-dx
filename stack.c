@@ -1002,7 +1002,7 @@ int stack_calculate(char *in, int *value) {
           }
         }
         else {
-          int priority = _get_op_priority(si[k].value);
+          int priority = _get_op_priority((int)(si[k].value));
 
           b--;
           while (b != -1 && op[b] != SI_OP_LEFT && _get_op_priority(op[b]) >= priority) {
