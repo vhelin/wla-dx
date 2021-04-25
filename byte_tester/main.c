@@ -140,9 +140,11 @@ int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_
   return SUCCEEDED;
 }
 
+
 /* Get the next token from the input string and write the results on
    the result argument.  */
 int get_token(char **input, char *result) {
+
   int n = 0;
 
   sscanf(*input, "%255s%n", result, &n);
@@ -152,12 +154,15 @@ int get_token(char **input, char *result) {
   }
 
   *input += n;
+
   return SUCCEEDED;
 }
+
 
 /* Extracts contents of byte tester comments in-place. The result is
    placed on the input string itself, overwriting its contents.  */
 int extract_comments(char *input, size_t size) {
+
   char *current = input, *output = input, *end = NULL;
 
   while (*current) {
@@ -214,6 +219,7 @@ int extract_comments(char *input, size_t size) {
   return SUCCEEDED;
 }
 
+
 int main(int argc, char *argv[]) {
 
   char tmp[256], test_id[256], tag_id[256];
@@ -224,9 +230,11 @@ int main(int argc, char *argv[]) {
   
   if (argc < 2 || argc > 3 || argv == NULL) {
     fprintf(stderr, "\n");
-    fprintf(stderr, "Byte tester 1.0\n");
+    fprintf(stderr, "Byte tester 2.0\n");
     fprintf(stderr, "\n");
-    fprintf(stderr, "USAGE: %s <TESTS FILE>\n", argv[0]);
+    fprintf(stderr, "USAGE: %s [-s] <TESTS FILE / SOURCE FILE>\n", argv[0]);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "If -s is given then we read tests file data from the comments of a source code file.\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "TESTS FILE FORMAT:\n");
     fprintf(stderr, "\n");
@@ -249,7 +257,7 @@ int main(int argc, char *argv[]) {
       should_extract_comments = YES;
     }
     else {
-      input_name = calloc(strlen(argv[i]), 1);
+      input_name = calloc(strlen(argv[i]) + 1, 1);
       strcpy(input_name, argv[i]);
     }
   }
