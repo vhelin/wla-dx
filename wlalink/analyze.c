@@ -1049,7 +1049,7 @@ static int _append_sections_sort(const void *a, const void *b) {
     return 0;
   }
   if (sb->section_s == NULL) {
-    _print_append_sections_sort_error(sa);
+    _print_append_sections_sort_error(sb);
     return 0;
   }
   
