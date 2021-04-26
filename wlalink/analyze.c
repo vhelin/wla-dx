@@ -8,6 +8,7 @@
 #include "analyze.h"
 #include "memory.h"
 #include "listfile.h"
+#include "files.h"
 
 #ifdef AMIGA
 #include "/printf.h"
@@ -1019,12 +1020,32 @@ int collect_dlr(void) {
 
 static int _append_sections_sort(const void *a, const void *b) {
 
-  if ((*((struct append_section **)a))->section_s->priority < (*((struct append_section **)b))->section_s->priority)
+  struct append_section *sa = *((struct append_section **)a);
+  struct append_section *sb = *((struct append_section **)b);
+
+  if (sa == NULL) {
+    fprintf(stderr, "_appends_sections_sort(): Section A is NULL -> Cannot sort it... Please submit a bug report!\n");
+    return 0;
+  }
+  if (sb == NULL) {
+    fprintf(stderr, "_appends_sections_sort(): Section B is NULL -> Cannot sort it... Please submit a bug report!\n");
+    return 0;
+  }
+  if (sa->section_s == NULL) {
+    fprintf(stderr, "_appends_sections_sort(): Section A is missing its definition -> Cannot sort it... Please submit a bug report!\n");
+    return 0;
+  }
+  if (sb->section_s == NULL) {
+    fprintf(stderr, "_appends_sections_sort(): Section B is missing its definition -> Cannot sort it... Please submit a bug report!\n");
+    return 0;
+  }
+  
+  if (sa->section_s->priority < sb->section_s->priority)
     return 1;
-  else if ((*((struct append_section **)a))->section_s->priority > (*((struct append_section **)b))->section_s->priority)
+  else if (sa->section_s->priority > sb->section_s->priority)
     return -1;
 
-  if ((*((struct append_section **)a))->section_s->size < (*((struct append_section **)b))->section_s->size)
+  if (sa->section_s->size < sb->section_s->size)
     return 1;
 
   return -1;
@@ -1050,8 +1071,12 @@ static struct section *_find_append_source_section(struct append_section *as) {
   struct section *s = g_sec_first;
 
   /* use the name? */
-  if (as->section_id < 0 && as->file_id < 0)
-    return _find_section(as->section);
+  if (as->section_id < 0 && as->file_id < 0) {
+    s = _find_section(as->section);
+    if (s == NULL)
+      fprintf(stderr, "_find_append_source_section(): Cannot find section \"%s\" for appending! Is it defined in the source code? If it is, please submit a bug report!\n", as->section);
+    return s;
+  }
 
   /* use the IDs */
   while (s != NULL) {
@@ -1060,6 +1085,8 @@ static struct section *_find_append_source_section(struct append_section *as) {
     s = s->next;
   }
 
+  fprintf(stderr, "_find_append_source_section(): Section %d from file \"%s\" has gone missing. Please submit a bug report!\n", s->id & 0xfffff, get_file_name(s->file_id));
+  
   return NULL;
 }
 
