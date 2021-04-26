@@ -214,6 +214,12 @@ symbol_check_test:
         CPL
         .db "<02"
 
+        .db "03>"
+        STOP $01
+        STOP
+        STOP 1+2+3
+        .db "<03"
+        
 .DEFINE MOUSEMAN 10
 .DEFINE MUDMAN 11
 .DEFINE APPOC 1111

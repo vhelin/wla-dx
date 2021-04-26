@@ -580,6 +580,7 @@ struct optcode g_opcodes_table[] = {
   { "SRL (HL)", 0x3ecb, 3, 0 },
   { "SRL L", 0x3dcb, 3, 0 },
 
+  { "STOP x", 0x10, 1, 0 },
   { "STOP", 0x10, 0, 0 },
 
   { "SUB A,A", 0x97, 0, 0 },

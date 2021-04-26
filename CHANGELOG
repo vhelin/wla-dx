@@ -39,6 +39,8 @@ v9.13 (27-Apr-2021) [ALL] WARNING: Precedence of operators in calculations
                     [ALL] Added .ELIF.
                     [SFX] Added Super FX support.
                     [GB ] Added alias "CPL A" (of "CPL").
+                    [GB ] Added support for "STOP $01" - "STOP" with extra
+                      byte.
                     [Z80] Added SL1 (alias for SLL).
                     [Z80] Added "RES 0,(IX+d),A", "RES 0,(IY+d),A",
                       "RL (IX+d),A", "RL (IY+d),A", "RLC (IX+d),A",
