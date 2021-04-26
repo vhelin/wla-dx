@@ -1018,25 +1018,38 @@ int collect_dlr(void) {
 }
 
 
+static void _print_append_sections_sort_error(struct append_section *as) {
+  
+  fprintf(stderr, "_appends_sections_sort(): Section ");
+
+  if (as->section_id < 0 && as->file_id < 0)
+    fprintf(stderr, "\"%s\"", as->section);
+  else
+    fprintf(stderr, "%d from file \"%s\"", as->section_id, get_file_name(as->file_id));
+
+  fprintf(stderr, " is missing its definition. We are trying to append it to section \"%s\"... -> Cannot sort it! Please submit a bug report!\n", as->append_to);
+}
+
+
 static int _append_sections_sort(const void *a, const void *b) {
 
   struct append_section *sa = *((struct append_section **)a);
   struct append_section *sb = *((struct append_section **)b);
 
   if (sa == NULL) {
-    fprintf(stderr, "_appends_sections_sort(): Section A is NULL -> Cannot sort it... Please submit a bug report!\n");
+    fprintf(stderr, "_appends_sections_sort(): Append section A is NULL -> Cannot sort it... Please submit a bug report!\n");
     return 0;
   }
   if (sb == NULL) {
-    fprintf(stderr, "_appends_sections_sort(): Section B is NULL -> Cannot sort it... Please submit a bug report!\n");
+    fprintf(stderr, "_appends_sections_sort(): Append section B is NULL -> Cannot sort it... Please submit a bug report!\n");
     return 0;
   }
   if (sa->section_s == NULL) {
-    fprintf(stderr, "_appends_sections_sort(): Section A is missing its definition -> Cannot sort it... Please submit a bug report!\n");
+    _print_append_sections_sort_error(sa);
     return 0;
   }
   if (sb->section_s == NULL) {
-    fprintf(stderr, "_appends_sections_sort(): Section B is missing its definition -> Cannot sort it... Please submit a bug report!\n");
+    _print_append_sections_sort_error(sa);
     return 0;
   }
   
@@ -1085,7 +1098,7 @@ static struct section *_find_append_source_section(struct append_section *as) {
     s = s->next;
   }
 
-  fprintf(stderr, "_find_append_source_section(): Section %d from file \"%s\" has gone missing. Please submit a bug report!\n", s->id & 0xfffff, get_file_name(s->file_id));
+  fprintf(stderr, "_find_append_source_section(): Section %d from file \"%s\" has gone missing. Please submit a bug report!\n", as->section_id, get_file_name(as->file_id));
   
   return NULL;
 }
