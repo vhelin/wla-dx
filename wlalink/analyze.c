@@ -1109,7 +1109,7 @@ static void _kill_label(char *name, struct section *s) {
   struct label *l = g_labels_first;
 
   while (l != NULL) {
-    if (strcmp(name, l->name) == 0 && s->id == l->section)
+    if (s->id == l->section && strcmp(name, l->name) == 0)
       l->alive = NO;
     l = l->next;
   }

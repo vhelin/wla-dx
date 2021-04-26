@@ -155,6 +155,7 @@ struct optcode g_opcodes_table[] = {
   { "CP L", 0xbd, 0, 0 },
   { "CP x", 0xfe, 1, 0 },
 
+  { "CPL A", 0x2f, 0, 0 },
   { "CPL", 0x2f, 0, 0 },
 
   { "DAA", 0x27, 0, 0 },

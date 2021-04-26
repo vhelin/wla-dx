@@ -209,6 +209,11 @@ symbol_check_test:
 	.db 0+(~1)
 	.db "<01"
 
+        .db "02>"
+        CPL A
+        CPL
+        .db "<02"
+
 .DEFINE MOUSEMAN 10
 .DEFINE MUDMAN 11
 .DEFINE APPOC 1111
