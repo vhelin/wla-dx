@@ -1017,7 +1017,7 @@ int collect_dlr(void) {
     }
 
     g_obj_tmp = g_obj_tmp->next;
-    section += 0x100000;
+    section += 0x10000;
   }
 
   return SUCCEEDED;
@@ -1097,7 +1097,7 @@ static struct section *_find_append_source_section(struct append_section *as) {
 
   /* use the IDs */
   while (s != NULL) {
-    if (as->file_id == s->file_id && as->section_id == (s->id & 0xfffff))
+    if (as->file_id == s->file_id && as->section_id == (s->id & 0xffff))
       return s;
     s = s->next;
   }
@@ -1363,6 +1363,9 @@ int parse_data_blocks(void) {
           }
 
           s->id = READ_T;
+          if (s->id >= 0x10000) {
+            fprintf(stderr, "PARSE_DATA_BLOCKS: Section \"%s\"'s ID %d is too much! Currently we allow only 65535 sections inside an object file. Please open an issue about this in GitHub!\n", s->name, s->id);
+          }
           s->id += section;
           s->slot = *(t++);
           s->file_id_source = READ_T;
@@ -1387,7 +1390,7 @@ int parse_data_blocks(void) {
         }
       }
       g_obj_tmp = g_obj_tmp->next;
-      section += 0x100000;
+      section += 0x10000;
       continue;
     }
     /* LIBRARY FILE */
@@ -1439,6 +1442,9 @@ int parse_data_blocks(void) {
         }
 
         s->id = READ_T;
+        if (s->id >= 0x10000) {
+          fprintf(stderr, "PARSE_DATA_BLOCKS: Section \"%s\"'s ID %d is too much! Currently we allow only 65535 sections inside a library file. Please open an issue about this in GitHub!\n", s->name, s->id);
+        }
         s->id += section;
         s->file_id_source = READ_T;
         s->size = READ_T;
@@ -1469,7 +1475,7 @@ int parse_data_blocks(void) {
         add_section(s);
       }
       g_obj_tmp = g_obj_tmp->next;
-      section += 0x100000;
+      section += 0x10000;
       continue;
     }
   }

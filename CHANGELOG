@@ -19,7 +19,7 @@ v9.13 (27-Apr-2021) [ALL] WARNING: Precedence of operators in calculations
                       arrays using .ARRAYDEFINE/.ARRAYDEF/.ARRAYIN/.ARRAYOUT.
                     [ALL] Added .ARRAYDB, .ARRAYDW, .ARRAYDL and .ARRAYDD.
                     [ALL] Added .BITS (like .DB but for bits) and .ENDBITS.
-                    [ALL] WLA assembles now "WLAD" library files and "WLAe"
+                    [ALL] WLA assembles now "WLAE" library files and "WLAf"
                       object files.
                     [ALL] Added .FILTER (same as .DBM, but doesn't define
                       any bytes).
