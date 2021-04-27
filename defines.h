@@ -511,6 +511,7 @@ struct macro_argument {
   int type;
   double value;
   int start;
+  char has_leading_hashtag;
   char string[MAX_NAME_LENGTH + 1];
 };
 

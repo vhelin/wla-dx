@@ -37,6 +37,8 @@ v9.13 (27-Apr-2021) [ALL] WARNING: Precedence of operators in calculations
                     [ALL] .IF takes now complex conditions, e.g.,
                       ".IF !defined(ZERO) && defined(ONE) && (ONE > 0)" works.
                     [ALL] Added .ELIF.
+                    [ALL] Added ARG_IMMEDIATE to the types of an argument
+                      of a .MACRO (asked using e.g., '\?1').
                     [SFX] Added Super FX support.
                     [GB ] Added alias "CPL A" (of "CPL").
                     [GB ] Added support for "STOP $01" - "STOP" with extra

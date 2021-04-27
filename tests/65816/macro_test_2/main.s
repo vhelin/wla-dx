@@ -120,3 +120,31 @@ label_\2:
         
  string_macro HI "YO"
         
+//////////////////////////////////////////////////////////////////////
+// test 4
+//////////////////////////////////////////////////////////////////////
+
+        .macro is_immediate_2
+        .if \?1 != ARG_IMMEDIATE
+        adc \1-2
+        .else
+        adc #\1+2
+        .endif
+        .endm
+        
+        .macro is_immediate_1
+        .if \?1 == ARG_IMMEDIATE
+        adc #\1+1
+        .else
+        adc \1-1
+        .endif
+        is_immediate_2 \1
+        .endm
+
+        .db "17>"
+        is_immediate_1 #5
+        .db "<17"
+
+        .db "18>"
+        is_immediate_1 4
+        .db "<18"

@@ -15,7 +15,7 @@
 
 int parse_string_length(char *end);
 
-int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OFF, g_parse_floats = YES, g_expect_calculations = YES, g_input_parse_if = NO;
+int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OFF, g_parse_floats = YES, g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO;
 int g_newline_beginning = ON, g_parsed_double_decimal_numbers = 0, g_operand_hint, g_operand_hint_type;
 char g_label[MAX_NAME_LENGTH + 1], g_xyz[512];
 char g_unevaluated_expression[256];
@@ -218,7 +218,8 @@ int input_number(void) {
 
   g_operand_hint = HINT_NONE;
   g_operand_hint_type = HINT_TYPE_NONE;
-
+  g_input_has_leading_hashtag = NO;
+      
   /* skip white space */
   for (e = g_buffer[g_source_pointer++]; e == ' ' || e == ',' || e == '\\'; e = g_buffer[g_source_pointer++]) {
     if (e == '\\' && g_buffer[g_source_pointer] == 0xA) {
@@ -232,6 +233,13 @@ int input_number(void) {
   if (e == 0x0A)
     return INPUT_NUMBER_EOL;
 
+  if (g_input_allow_leading_hashtag == YES) {
+    if (e == '#') {
+      g_input_has_leading_hashtag = YES;
+      e = g_buffer[g_source_pointer++];
+    }
+  }
+  
   if (g_expect_calculations == YES) {
     /* check the type of the expression */
     p = g_source_pointer;
@@ -318,7 +326,8 @@ int input_number(void) {
       /* return the macro argument */
       ma = g_macro_runtime_current->argument_data[g_parsed_int - 1];
       k = ma->type;
-
+      g_input_has_leading_hashtag = ma->has_leading_hashtag;
+      
       if (k == INPUT_NUMBER_ADDRESS_LABEL) {
         strcpy(g_label, ma->string);
         process_special_labels(g_label);
@@ -1192,10 +1201,18 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
         }
 
         type = g_macro_runtime_current->argument_data[d-1]->type;
-        if (type == SUCCEEDED)
-          strcpy(t, "ARG_NUMBER");
-        else if (type == INPUT_NUMBER_FLOAT)
-          strcpy(t, "ARG_NUMBER");
+        if (type == SUCCEEDED) {
+          if (g_macro_runtime_current->argument_data[d-1]->has_leading_hashtag == YES)
+            strcpy(t, "ARG_IMMEDIATE");
+          else
+            strcpy(t, "ARG_NUMBER");
+        }
+        else if (type == INPUT_NUMBER_FLOAT) {
+          if (g_macro_runtime_current->argument_data[d-1]->has_leading_hashtag == YES)
+            strcpy(t, "ARG_IMMEDIATE");
+          else
+            strcpy(t, "ARG_NUMBER");
+        }
         else if (type == INPUT_NUMBER_ADDRESS_LABEL)
           strcpy(t, "ARG_LABEL");
         else if (type == INPUT_NUMBER_STRING)

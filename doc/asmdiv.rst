@@ -2183,16 +2183,15 @@ You can also use ``\?`` to ask for the type of the argument in the
 following fashion::
     
     .macro .differentThings
-      .if \?1 == ARG_NUMBER
+      .if \?1 == ARG_IMMEDIATE
+        .db \1
+      .elif \?1 == ARG_NUMBER
         .db 1
-      .endif
-      .if \?1 == ARG_STRING
+      .elif \?1 == ARG_STRING
         .db 2
-      .endif
-      .if \?1 == ARG_LABEL
+      .elif \?1 == ARG_LABEL
         .db 3
-      .endif
-      .if \?1 == ARG_PENDING_CALCULATION
+      .elif \?1 == ARG_PENDING_CALCULATION
         .db 4
       .endif
     .endm
@@ -2203,10 +2202,11 @@ following fashion::
         .differentThings "HELLO"
         .differentThings TDT1
         .differentThings TDT1+1
+        .differentThings #0
     .ends
 
-The previous example will result in .db 1, 2, 3, 4
-    
+The previous example will result in .db 1, 2, 3, 4, 0
+
 This is not a compulsory directive.
 
 
