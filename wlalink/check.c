@@ -24,9 +24,9 @@ int check_file_types(void) {
   
   o = g_obj_first;
   while (o != NULL) {
-    if (strncmp((char *)o->data, "WLAe", 4) == 0)
+    if (strncmp((char *)o->data, "WLAf", 4) == 0)
       o->format = WLA_VERSION_OBJ;
-    else if (strncmp((char *)o->data, "WLAD", 4) == 0)
+    else if (strncmp((char *)o->data, "WLAE", 4) == 0)
       o->format = WLA_VERSION_LIB;
     else {
       fprintf(stderr, "CHECK_FILE_TYPES: File \"%s\" is of unknown format (\"%c%c%c%c\").\n", o->name, o->data[0], o->data[1], o->data[2], o->data[3]);

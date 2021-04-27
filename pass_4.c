@@ -1707,7 +1707,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAD");
+    fprintf(final_ptr, "WLAE");
 
     /* misc bits */
     ind = 0;
@@ -1877,7 +1877,9 @@ int pass_4(void) {
       ov = g_append_tmp->section->id;
       WRITEOUT_OV;
 
+      fprintf(final_ptr, "%s%c", g_append_tmp->section->name, 0);
       fprintf(final_ptr, "%s%c", g_append_tmp->append_to, 0);
+      
       g_append_tmp = g_append_tmp->next;
     }
 
@@ -1927,7 +1929,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAe%c", g_emptyfill);
+    fprintf(final_ptr, "WLAf%c", g_emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -2295,7 +2297,9 @@ int pass_4(void) {
       ov = g_append_tmp->section->id;
       WRITEOUT_OV;
 
+      fprintf(final_ptr, "%s%c", g_append_tmp->section->name, 0);
       fprintf(final_ptr, "%s%c", g_append_tmp->append_to, 0);
+
       g_append_tmp = g_append_tmp->next;
     }
 

@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.15a (11.4.2021)";
+char version_string[] = "$VER: wlalink 5.15a (27.4.2021)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -157,7 +157,7 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
 
 static void debug_print_label(struct label *l) {
 
-  printf("label: \"%s\" file: %s status: %d section: %d bank: %d slot: %d base: %d address: %d/$%x alive: %d\n", l->name, get_file_name(l->file_id), l->status, l->section, l->bank, l->slot, l->base, (int)l->address, (int)l->address, l->alive);
+  printf("label: \"%s\" file: %s status: %d section: %d (%d) bank: %d slot: %d base: %d address: %d/$%x alive: %d\n", l->name, get_file_name(l->file_id), l->status, l->section, l->section & 0xfffff, l->bank, l->slot, l->base, (int)l->address, (int)l->address, l->alive);
 }
 
 #endif
@@ -404,7 +404,7 @@ int main(int argc, char *argv[]) {
           printf(get_stack_item_description(si, s->file_id));
         }
       }
-      printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section);
+      printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d (%d)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->section & 0xfffff);
       s = s->next;
     }
     printf("----------------------------------------------------------------------\n");
@@ -457,7 +457,7 @@ int main(int argc, char *argv[]) {
       printf("----------------------------------------------------------------------\n");
       printf("name  : \"%s\"\n", s->name);
       printf("file  : \"%s\"\n", get_file_name(s->file_id));
-      printf("id    : %d\n", s->id);
+      printf("id    : %d (%d)\n", s->id, s->id & 0xfffff);
       printf("addr  : %d\n", s->address);
       printf("stat  : %d\n", s->status);
       printf("bank  : %d\n", s->bank);
@@ -529,7 +529,7 @@ int main(int argc, char *argv[]) {
           printf(get_stack_item_description(si, s->file_id));
         }
       }
-      printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d result: %d/$%x (ROM) %d/$%x (RAM)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->result_rom, s->result_rom, s->result_ram, s->result_ram);
+      printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d (%d) result: %d/$%x (ROM) %d/$%x (RAM)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->section & 0xfffff, s->result_rom, s->result_rom, s->result_ram, s->result_ram);
       s = s->next;
     }
     printf("----------------------------------------------------------------------\n");

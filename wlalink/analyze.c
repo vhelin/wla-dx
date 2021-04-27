@@ -748,8 +748,11 @@ int collect_dlr(void) {
         g_append_tmp->section_id = READ_T;
         g_append_tmp->file_id = g_obj_tmp->id;
         
-        /* copy the name */
-        g_append_tmp->section[0] = 0;
+        /* copy the names */
+        for (x = 0; *t != 0; t++, x++)
+          g_append_tmp->section[x] = *t;
+        g_append_tmp->section[x] = 0;
+        t++;
         for (x = 0; *t != 0; t++, x++)
           g_append_tmp->append_to[x] = *t;
         g_append_tmp->append_to[x] = 0;
@@ -993,7 +996,10 @@ int collect_dlr(void) {
         g_append_tmp->file_id = g_obj_tmp->id;
 
         /* copy the name */
-        g_append_tmp->section[0] = 0;
+        for (x = 0; *t != 0; t++, x++)
+          g_append_tmp->section[x] = *t;
+        g_append_tmp->section[x] = 0;
+        t++;
         for (x = 0; *t != 0; t++, x++)
           g_append_tmp->append_to[x] = *t;
         g_append_tmp->append_to[x] = 0;
@@ -1020,13 +1026,8 @@ int collect_dlr(void) {
 
 static void _print_append_sections_sort_error(struct append_section *as) {
   
-  fprintf(stderr, "_appends_sections_sort(): Section ");
-
-  if (as->section_id < 0 && as->file_id < 0)
-    fprintf(stderr, "\"%s\"", as->section);
-  else
-    fprintf(stderr, "%d from file \"%s\"", as->section_id, get_file_name(as->file_id));
-
+  fprintf(stderr, "_append_sections_sort(): Section ");
+  fprintf(stderr, "\"%s\" from file \"%s\"", as->section, get_file_name(as->file_id));
   fprintf(stderr, " is missing its definition. We are trying to append it to section \"%s\"... -> Cannot sort it! Please submit a bug report!\n", as->append_to);
 }
 
@@ -1037,11 +1038,11 @@ static int _append_sections_sort(const void *a, const void *b) {
   struct append_section *sb = *((struct append_section **)b);
 
   if (sa == NULL) {
-    fprintf(stderr, "_appends_sections_sort(): Append section A is NULL -> Cannot sort it... Please submit a bug report!\n");
+    fprintf(stderr, "_append_sections_sort(): Append section A is NULL -> Cannot sort it... Please submit a bug report!\n");
     return 0;
   }
   if (sb == NULL) {
-    fprintf(stderr, "_appends_sections_sort(): Append section B is NULL -> Cannot sort it... Please submit a bug report!\n");
+    fprintf(stderr, "_append_sections_sort(): Append section B is NULL -> Cannot sort it... Please submit a bug report!\n");
     return 0;
   }
   if (sa->section_s == NULL) {
@@ -1067,22 +1068,25 @@ static int _append_sections_sort(const void *a, const void *b) {
 
 static struct section *_find_section(char *section_name) {
 
-  struct section *s = g_sec_first;
+  struct section *s = g_sec_first, *ss = NULL;
 
   while (s != NULL) {
-    if (strcmp(s->name, section_name) == 0)
-      return s;
+    if (strcmp(s->name, section_name) == 0) {
+      if (ss != NULL)
+        fprintf(stderr, "_find_section(): Multiple sections called \"%s\" found for APPENDTO operation. Please have only one section called \"%s\" in the source files. Using the last found section...\n", section_name, section_name);
+      ss = s;
+    }
     s = s->next;
   }
 
-  return NULL;
+  return ss;
 }
 
 
 static struct section *_find_append_source_section(struct append_section *as) {
 
   struct section *s = g_sec_first;
-
+  
   /* use the name? */
   if (as->section_id < 0 && as->file_id < 0) {
     s = _find_section(as->section);
@@ -1097,8 +1101,21 @@ static struct section *_find_append_source_section(struct append_section *as) {
       return s;
     s = s->next;
   }
+  
+  fprintf(stderr, "_find_append_source_section(): Section \"%s\" from file \"%s\" has gone missing. Please submit a bug report! Retrying using its name...\n", as->section, get_file_name(as->file_id));
 
-  fprintf(stderr, "_find_append_source_section(): Section %d from file \"%s\" has gone missing. Please submit a bug report!\n", as->section_id, get_file_name(as->file_id));
+  s = g_sec_first;
+
+  /* use the name... */
+  while (s != NULL) {
+    if (as->file_id == s->file_id && strcmp(s->name, as->section) == 0) {
+      fprintf(stderr, "... Found it!\n");
+      return s;
+    }
+    s = s->next;
+  }
+
+  fprintf(stderr, "_find_append_source_section(): Section \"%s\" from file \"%s\" cannot be found no matter what!\n", as->section, get_file_name(as->file_id));
   
   return NULL;
 }
@@ -1118,14 +1135,14 @@ static void _kill_label(char *name, struct section *s) {
 
 int merge_sections(void) {
 
-  int warning_given_s = NO, warning_given_t = NO, size, asn, i;
-  struct section *s, *s_source, *s_target;
+  struct section *s_source, *s_target;
   struct append_section *as, **ass;
   unsigned char *data;
   struct reference *r;
   struct stack *st;
   struct label *l;
   char label_tmp[MAX_NAME_LENGTH + 1];
+  int size, asn, i;
 
   
   /* count append sections */
@@ -1171,35 +1188,14 @@ int merge_sections(void) {
 
   as = g_append_sections;
   while (as != NULL) {
-    s_source = NULL;
-    s_target = NULL;
-    
-    s = g_sec_first;
-    while (s != NULL) {
-      if ((as->file_id >= 0 && as->section_id >= 0 && as->file_id == s->file_id && as->section_id == (s->id & 0xfffff)) ||
-          (strcmp(as->section, s->name) == 0)) {
-        if (s_source != NULL && warning_given_s == NO) {
-          fprintf(stderr, "MERGE_SECTIONS: Multiple source sections called \"%s\" found with the same ID, using the last one for append. This shouldn't actually happen so please submit a bug report!\n", s->name);
-          warning_given_s = YES;
-        }
-        s_source = s;
-      }
-
-      if (strcmp(as->append_to, s->name) == 0) {
-        if (s_target != NULL && warning_given_t == NO) {
-          fprintf(stderr, "MERGE_SECTIONS: Multiple target sections called \"%s\" found, using the last one for append. Please rename one of the sections for a more predictable outcome.\n", s->name);
-          warning_given_t = YES;
-        }
-        s_target = s;
-      }
-      s = s->next;
-    }
+    s_source = as->section_s;
+    s_target = as->append_to_s;
 
     if (s_source == NULL)
-      fprintf(stderr, "MERGE_SECTIONS: Source section %d of file %d was not found, ignoring the -> \"%s\" append. This shouldn't actually happen so please submit a bug report!\n", as->section_id, as->file_id, as->append_to);
+      fprintf(stderr, "MERGE_SECTIONS: Source section \"%s\" was not found, ignoring the -> \"%s\" append. This shouldn't actually happen so please submit a bug report!\n", as->section, as->append_to);
     else if (s_target == NULL)
-      fprintf(stderr, "MERGE_SECTIONS: Target section \"%s\" was not found, ignoring the \"%s\" -> \"%s\" append.\n", as->append_to, s_source->name, as->append_to);
-    else {
+      fprintf(stderr, "MERGE_SECTIONS: Target section \"%s\" was not found, ignoring the \"%s\" -> \"%s\" append.\n", as->append_to, as->section, as->append_to);
+    else {      
       /* merge data */
       size = s_source->size + s_target->size;
       data = calloc(size, 1);
