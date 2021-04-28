@@ -310,7 +310,7 @@ int pass_3(void) {
         l->section_status = ON;
         l->filename_id = g_file_name_id;
         l->linenumber = line_number;
-        l->alive = ON;
+        l->alive = YES;
         l->section_id = s->id;
         l->section_struct = s;
         /* section labels get a relative address */
@@ -435,13 +435,13 @@ int pass_3(void) {
           struct append_section *as;
  
           fprintf(stderr, "INTERNAL_PASS_1: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
-          s->alive = OFF;
+          s->alive = NO;
 
           /* discard all labels which belong to this section */
           l = g_labels;
           while (l != NULL) {
             if (l->section_status == ON && l->section_id == s->id)
-              l->alive = OFF;
+              l->alive = NO;
             l = l->next;
           }
 
@@ -631,13 +631,13 @@ int pass_3(void) {
         struct append_section *as;
         
         fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
-        s->alive = OFF;
+        s->alive = NO;
 
         /* discard all labels which belong to this section */
         l = g_labels;
         while (l != NULL) {
           if (l->section_status == ON && l->section_id == s->id)
-            l->alive = OFF;
+            l->alive = NO;
           l = l->next;
         }
 
@@ -908,7 +908,7 @@ int pass_3(void) {
       l->section_status = g_section_status;
       l->filename_id = g_file_name_id;
       l->linenumber = line_number;
-      l->alive = ON;
+      l->alive = YES;
       if (g_section_status == ON) {
         l->section_id = s->id;
         l->section_struct = s;

@@ -355,7 +355,7 @@ int pass_4(void) {
       }
 
       /* skip all dead sections */
-      if (g_sec_tmp->alive == OFF)
+      if (g_sec_tmp->alive == NO)
         continue;
 
       if (c == 'A')
@@ -1736,7 +1736,7 @@ int pass_4(void) {
     ov = 0;
     g_label_tmp = g_labels;
     while (g_label_tmp != NULL) {
-      if (g_label_tmp->alive == ON)
+      if (g_label_tmp->alive == YES)
         ov++;
       g_label_tmp = g_label_tmp->next;
     }
@@ -1745,7 +1745,7 @@ int pass_4(void) {
 
     g_label_tmp = g_labels;
     while (g_label_tmp != NULL) {
-      if (g_label_tmp->alive == ON) {
+      if (g_label_tmp->alive == YES) {
         if (g_label_tmp->symbol != 2)
           fprintf(final_ptr, "%s", g_label_tmp->label);
         fprintf(final_ptr, "%c", g_label_tmp->symbol);
@@ -1889,7 +1889,7 @@ int pass_4(void) {
     /* sections */
     g_sec_tmp = g_sections_first;
     while (g_sec_tmp != NULL) {
-      if (g_sec_tmp->alive == ON) {
+      if (g_sec_tmp->alive == YES) {
         fprintf(final_ptr, "%s%c%c", g_sec_tmp->name, g_sec_tmp->status, g_sec_tmp->keep);
         if (g_sec_tmp->nspace == NULL)
           fprintf(final_ptr, "%c", 0);
@@ -2056,7 +2056,7 @@ int pass_4(void) {
     ov = 0;
     g_label_tmp = g_labels;
     while (g_label_tmp != NULL) {
-      if (g_label_tmp->alive == ON)
+      if (g_label_tmp->alive == YES)
         ov++;
       g_label_tmp = g_label_tmp->next;
     }
@@ -2065,7 +2065,7 @@ int pass_4(void) {
 
     g_label_tmp = g_labels;
     while (g_label_tmp != NULL) {
-      if (g_label_tmp->alive == ON) {
+      if (g_label_tmp->alive == YES) {
         if (g_label_tmp->symbol != 2)
           fprintf(final_ptr, "%s", g_label_tmp->label);
         fprintf(final_ptr, "%c", g_label_tmp->symbol);
@@ -2345,7 +2345,7 @@ int pass_4(void) {
 
     g_sec_tmp = g_sections_first;
     while (g_sec_tmp != NULL) {
-      if (g_sec_tmp->alive == ON) {
+      if (g_sec_tmp->alive == YES) {
         /* section block id */
         fprintf(final_ptr, "%c%s%c%c", 0x1, g_sec_tmp->name, g_sec_tmp->status, g_sec_tmp->keep);
         if (g_sec_tmp->nspace == NULL)

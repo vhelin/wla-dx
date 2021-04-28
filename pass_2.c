@@ -501,7 +501,7 @@ int create_a_new_section_structure(void) {
   g_sec_tmp->data = NULL;
   g_sec_tmp->next = NULL;
   g_sec_tmp->id = g_section_id;
-  g_sec_tmp->alive = ON;
+  g_sec_tmp->alive = YES;
   g_sec_tmp->advance_org = NO;
   g_sec_tmp->nspace = NULL;
   g_sec_tmp->label_map = hashmap_new();

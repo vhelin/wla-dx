@@ -4478,7 +4478,7 @@ int directive_ramsection(void) {
   g_sec_tmp->listfile_cmds = NULL;
   g_sec_tmp->maxsize_status = OFF;
   g_sec_tmp->status = SECTION_STATUS_RAM_FREE;
-  g_sec_tmp->alive = ON;
+  g_sec_tmp->alive = YES;
   g_sec_tmp->keep = NO;
   g_sec_tmp->data = NULL;
   g_sec_tmp->filename_id = g_active_file_info_last->filename_id;
@@ -5116,7 +5116,7 @@ int directive_section(void) {
     g_bankheader_status = ON;
   }
 
-  g_sec_tmp->alive = ON;
+  g_sec_tmp->alive = YES;
   g_sec_tmp->filename_id = g_active_file_info_last->filename_id;
   g_sec_tmp->bank = g_bank;
   g_section_status = ON;
