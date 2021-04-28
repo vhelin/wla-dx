@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.15a (27.4.2021)";
+char version_string[] = "$VER: wlalink 5.15a (28.4.2021)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -155,9 +155,54 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
   return sid;
 }
 
-static void debug_print_label(struct label *l) {
+static void _debug_print_label(struct label *l) {
 
   printf("label: \"%s\" file: %s status: %d section: %d (%d) bank: %d slot: %d base: %d address: %d/$%x alive: %d\n", l->name, get_file_name(l->file_id), l->status, l->section, l->section & 0xffff, l->bank, l->slot, l->base, (int)l->address, (int)l->address, l->alive);
+}
+
+static void _debug_print_sections(void) {
+    
+  if (g_sec_first != NULL) {
+    struct section *s = g_sec_first;
+    char *section_status[] = {
+      "FREE",
+      "FORCE",
+      "OVERWRITE",
+      "HEADER",
+      "SEMIFREE",
+      "ABSOLUTE",
+      "RAM FREE",
+      "SUPERFREE",
+      "SEMISUBFREE",
+      "RAM FORCE",
+      "RAM SEMIFREE",
+      "RAM SEMISUBFREE"
+    };
+
+    printf("\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("---                         SECTIONS                               ---\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("\n");
+
+    while (s != NULL) {
+      printf("----------------------------------------------------------------------\n");
+      printf("name  : \"%s\"\n", s->name);
+      printf("file  : \"%s\"\n", get_file_name(s->file_id));
+      printf("id    : %d (%d)\n", s->id, s->id & 0xffff);
+      printf("addr  : %d\n", s->address);
+      printf("stat  : %d\n", s->status);
+      printf("bank  : %d\n", s->bank);
+      printf("base  : %d\n", s->base);
+      printf("slot  : %d\n", s->slot);
+      printf("size  : %d\n", s->size);
+      printf("align : %d\n", s->alignment);
+      printf("alive : %d\n", s->alive);
+      printf("status: %s\n", section_status[s->status]);
+      s = s->next;
+    }
+    printf("----------------------------------------------------------------------\n");
+  }
 }
 
 #endif
@@ -287,6 +332,21 @@ int main(int argc, char *argv[]) {
   if (check_ramsections() == FAILED)
     return 1;
 
+#ifdef WLALINK_DEBUG
+  printf("\n");
+  printf("**********************************************************************\n");
+  printf("**********************************************************************\n");
+  printf("**********************************************************************\n");
+  printf("*** LOADED LOADED LOADED LOADED LOADED LOADED LOADED LOADED LOADED ***\n");
+  printf("**********************************************************************\n");
+  printf("**********************************************************************\n");
+  printf("**********************************************************************\n");
+#endif
+
+#ifdef WLALINK_DEBUG
+  _debug_print_sections();
+#endif
+
   /* sort the sections by priority first and then by size, biggest first */
   if (sort_sections() == FAILED)
     return 1;
@@ -336,17 +396,6 @@ int main(int argc, char *argv[]) {
   }
 
 #ifdef WLALINK_DEBUG
-  printf("\n");
-  printf("**********************************************************************\n");
-  printf("**********************************************************************\n");
-  printf("**********************************************************************\n");
-  printf("*** LOADED LOADED LOADED LOADED LOADED LOADED LOADED LOADED LOADED ***\n");
-  printf("**********************************************************************\n");
-  printf("**********************************************************************\n");
-  printf("**********************************************************************\n");
-#endif
-
-#ifdef WLALINK_DEBUG
   if (g_labels_first != NULL) {
     struct label *l = g_labels_first;
 
@@ -358,7 +407,7 @@ int main(int argc, char *argv[]) {
 
     while (l != NULL) {
       if (l->alive == YES)
-        debug_print_label(l);
+        _debug_print_label(l);
       l = l->next;
     }
   }
@@ -430,49 +479,9 @@ int main(int argc, char *argv[]) {
     return 1;
 
 #ifdef WLALINK_DEBUG
-  if (g_sec_first != NULL) {
-    struct section *s = g_sec_first;
-    char *section_status[] = {
-      "FREE",
-      "FORCE",
-      "OVERWRITE",
-      "HEADER",
-      "SEMIFREE",
-      "ABSOLUTE",
-      "RAM FREE",
-      "SUPERFREE",
-      "SEMISUBFREE",
-      "RAM FORCE",
-      "RAM SEMIFREE",
-      "RAM SEMISUBFREE"
-    };
-
-    printf("\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("---                         SECTIONS                               ---\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("\n");
-
-    while (s != NULL) {
-      printf("----------------------------------------------------------------------\n");
-      printf("name  : \"%s\"\n", s->name);
-      printf("file  : \"%s\"\n", get_file_name(s->file_id));
-      printf("id    : %d (%d)\n", s->id, s->id & 0xffff);
-      printf("addr  : %d\n", s->address);
-      printf("stat  : %d\n", s->status);
-      printf("bank  : %d\n", s->bank);
-      printf("base  : %d\n", s->base);
-      printf("slot  : %d\n", s->slot);
-      printf("size  : %d\n", s->size);
-      printf("align : %d\n", s->alignment);
-      printf("alive : %d\n", s->alive);
-      printf("status: %s\n", section_status[s->status]);
-      s = s->next;
-    }
-    printf("----------------------------------------------------------------------\n");
-  }
+  _debug_print_sections();
 #endif
-
+  
   /* compute the labels' addresses */
   if (fix_label_addresses() == FAILED)
     return 1;
@@ -499,7 +508,7 @@ int main(int argc, char *argv[]) {
 
     while (l != NULL) {
       if (l->alive == YES)
-        debug_print_label(l);
+        _debug_print_label(l);
       l = l->next;
     }
   }
