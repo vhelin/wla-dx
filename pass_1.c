@@ -4720,6 +4720,8 @@ int directive_ramsection(void) {
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
+
+    append_tmp->alive = YES;
       
     /* get the target section name */
     if (get_next_token() == FAILED) {
@@ -5051,7 +5053,9 @@ int directive_section(void) {
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
-      
+
+    append_tmp->alive = YES;
+        
     /* get the target section name */
     if (get_next_token() == FAILED) {
       free(append_tmp);

@@ -1867,18 +1867,21 @@ int pass_4(void) {
     ov = 0;
     g_append_tmp = g_append_sections;
     while (g_append_tmp != NULL) {
-      ov++;
+      if (g_append_tmp->alive == YES)
+        ov++;
       g_append_tmp = g_append_tmp->next;
     }
     WRITEOUT_OV;
 
     g_append_tmp = g_append_sections;
     while (g_append_tmp != NULL) {
-      ov = g_append_tmp->section->id;
-      WRITEOUT_OV;
+      if (g_append_tmp->alive == YES) {
+        ov = g_append_tmp->section->id;
+        WRITEOUT_OV;
 
-      fprintf(final_ptr, "%s%c", g_append_tmp->section->name, 0);
-      fprintf(final_ptr, "%s%c", g_append_tmp->append_to, 0);
+        fprintf(final_ptr, "%s%c", g_append_tmp->section->name, 0);
+        fprintf(final_ptr, "%s%c", g_append_tmp->append_to, 0);
+      }
       
       g_append_tmp = g_append_tmp->next;
     }
@@ -2287,19 +2290,22 @@ int pass_4(void) {
     ov = 0;
     g_append_tmp = g_append_sections;
     while (g_append_tmp != NULL) {
-      ov++;
+      if (g_append_tmp->alive == YES)
+        ov++;
       g_append_tmp = g_append_tmp->next;
     }
     WRITEOUT_OV;
 
     g_append_tmp = g_append_sections;
     while (g_append_tmp != NULL) {
-      ov = g_append_tmp->section->id;
-      WRITEOUT_OV;
+      if (g_append_tmp->alive == YES) {
+        ov = g_append_tmp->section->id;
+        WRITEOUT_OV;
 
-      fprintf(final_ptr, "%s%c", g_append_tmp->section->name, 0);
-      fprintf(final_ptr, "%s%c", g_append_tmp->append_to, 0);
-
+        fprintf(final_ptr, "%s%c", g_append_tmp->section->name, 0);
+        fprintf(final_ptr, "%s%c", g_append_tmp->append_to, 0);
+      }
+      
       g_append_tmp = g_append_tmp->next;
     }
 
