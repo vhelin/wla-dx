@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------
 
-v9.13 (27-Apr-2021) [ALL] WARNING: Precedence of operators in calculations
+v9.13 (28-Apr-2021) [ALL] WARNING: Precedence of operators in calculations
                       that WLA calculates is now more fine grained and C like.
                     [ALL] Added support for nameless INSTANCEOFs in
                       .ENUMs, .STRUCTs and .RAMSECTIONs.
@@ -39,6 +39,8 @@ v9.13 (27-Apr-2021) [ALL] WARNING: Precedence of operators in calculations
                     [ALL] Added .ELIF.
                     [ALL] Added ARG_IMMEDIATE to the types of an argument
                       of a .MACRO (asked using e.g., '\?1').
+                    [ALL] Added a flag "-k" that forces WLA to keep all
+                      empty sections.
                     [SFX] Added Super FX support.
                     [GB ] Added alias "CPL A" (of "CPL").
                     [GB ] Added support for "STOP $01" - "STOP" with extra

@@ -10,6 +10,7 @@ You can supply WLA with some (or all or none) of the following option flags.
     8-bit unless otherwise specified.
 -i  Add list file information. Adds extra information to the output so
     WLALINK can produce list files.
+-k  Keep all empty sections. By default they are discarded.
 -M  WLA generates makefile rules describing the dependencies of the main
     source file. Use only with flags ``o`` and ``l``.
 -q  Quiet mode. ``.PRINT*`` -directives output nothing.

@@ -19,7 +19,7 @@ extern struct append_section *g_append_sections;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
 extern char g_tmp_name[MAX_NAME_LENGTH + 1], g_tmp[4096], g_error_message[sizeof(g_tmp) + MAX_NAME_LENGTH + 1 + 1024], g_namespace[MAX_NAME_LENGTH + 1];
-extern int g_verbose_mode, g_section_status, g_output_format;
+extern int g_verbose_mode, g_section_status, g_output_format, g_keep_empty_sections;
 
 
 struct label_def *g_label_last, *g_label_tmp, *g_labels = NULL;
@@ -431,7 +431,7 @@ int pass_3(void) {
         s->size = add - s->address;
 
         /* discard an empty section? */
-        if (s->size == 0 && s->keep == NO) {
+        if (s->size == 0 && s->keep == NO && g_keep_empty_sections == NO) {
           struct append_section *as;
  
           fprintf(stderr, "INTERNAL_PASS_1: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
@@ -627,7 +627,7 @@ int pass_3(void) {
       s->size = add - s->address;
 
       /* discard an empty section? */
-      if (s->size == 0 && s->keep == NO) {
+      if (s->size == 0 && s->keep == NO && g_keep_empty_sections == NO) {
         struct append_section *as;
         
         fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
