@@ -2861,55 +2861,8 @@ int directive_db_byt_byte(void) {
   number_result = input_number();
   for (i = 0; number_result == SUCCEEDED || number_result == INPUT_NUMBER_STRING || number_result == INPUT_NUMBER_ADDRESS_LABEL || number_result == INPUT_NUMBER_STACK; i++) {
     if (number_result == INPUT_NUMBER_STRING) {
-      for (char_index = 0; char_index < g_string_size; char_index++) {
-        /* handle '\0' */
-        if (g_label[char_index] == '\\' && g_label[char_index + 1] == '0') {
-          fprintf(g_file_out_ptr, "d%d ", '\0');
-          char_index++;
-        }
-        /* handle '\x' */
-        else if (g_label[char_index] == '\\' && g_label[char_index + 1] == 'x') {
-          char tmp_a[8], *tmp_b;
-          int tmp_c;
-        
-          char_index += 3;
-          snprintf(tmp_a, sizeof(tmp_a), "%c%c", g_label[char_index-1], g_label[char_index]);
-          tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
-          if (*tmp_b) {
-            snprintf(g_error_message, sizeof(g_error_message), ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
-            print_error(g_error_message, ERROR_INP);
-            return FAILED;
-          }
-          fprintf(g_file_out_ptr, "d%d ", tmp_c);
-        }
-        /* handle '\<' */
-        else if (g_label[char_index] == '\\' && g_label[char_index + 1] == '<') {
-          char_index += 2;
-          if (char_index == g_string_size) {
-            snprintf(g_error_message, sizeof(g_error_message), ".%s '\\<' needs character data.\n", bak);
-            print_error(g_error_message, ERROR_INP);
-            return FAILED;
-          }
-          fprintf(g_file_out_ptr, "d%d ", (int)g_label[char_index]|0x80);
-        }
-        /* handle '\>' */
-        else if (g_label[char_index] == '\\' && g_label[char_index + 1] == '>' && char_index == 0) {
-          snprintf(g_error_message, sizeof(g_error_message), ".%s '\\>' needs character data.\n", bak);
-          print_error(g_error_message, ERROR_INP);
-          return FAILED;
-        }
-        else if (g_label[char_index + 1] == '\\' && g_label[char_index + 2] == '>') {
-          fprintf(g_file_out_ptr, "d%d ", (int)g_label[char_index]|0x80);
-          char_index += 2;
-        }
-        /* handle '\\' */
-        else if (g_label[char_index] == '\\' && g_label[char_index + 1] == '\\') {
-          fprintf(g_file_out_ptr, "d%d ", '\\');
-          char_index++;
-        }
-        else
-          fprintf(g_file_out_ptr, "d%d ", (int)g_label[char_index]);
-      }
+      for (char_index = 0; char_index < g_string_size; char_index++)
+        fprintf(g_file_out_ptr, "d%d ", (int)g_label[char_index]);
       number_result = input_number();
       continue;
     }
@@ -3251,62 +3204,10 @@ int directive_asc(void) {
       /* remap the ascii string */
       for (o = 0; o < g_string_size; o++) {
         character = g_label[o];
-        /* handle '\0' */
-        if (g_label[o] == '\\' && g_label[o + 1] == '0') {
-          character = '\0';
-          fprintf(g_file_out_ptr, "d%d ", character);
-          o++;
-        }
-        /* handle '\x' */
-        else if (g_label[o] == '\\' && g_label[o + 1] == 'x') {
-          char tmp_a[8], *tmp_b;
-          int tmp_c;
-      
-          o += 3;
-          snprintf(tmp_a, sizeof(tmp_a), "%c%c", g_label[o-1], g_label[o]);
-          tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
-          if (*tmp_b) {
-            snprintf(g_error_message, sizeof(g_error_message), ".%s '\\x' needs hexadecimal byte (00-FF) data.\n", bak);
-            print_error(g_error_message, ERROR_INP);
-            return FAILED;
-          }
-          character = tmp_c;
-          fprintf(g_file_out_ptr, "d%d ", character);
-        }
-        else {
-          int tmp_a = 0;
-        
-          /* handle '\<' */
-          if (g_label[o] == '\\' && g_label[o + 1] == '<') {
-            o += 2;
-            if (o == g_string_size) {
-              snprintf(g_error_message, sizeof(g_error_message), ".%s '\\<' needs character data.\n", bak);
-              print_error(g_error_message, ERROR_INP);
-              return FAILED;
-            }
-            tmp_a = 0x80;
-            character = g_label[o];
-          }
-          /* handle '\>' */
-          else if (g_label[o] == '\\' && g_label[o + 1] == '>' && o == 0) {
-            snprintf(g_error_message, sizeof(g_error_message), ".%s '\\>' needs character data.\n", bak);
-            print_error(g_error_message, ERROR_INP);
-            return FAILED;
-          }
-          else if (g_label[o + 1] == '\\' && g_label[o + 2] == '>') {
-            tmp_a = 0x80;
-            o += 2;
-          }
-          /* handle '\\' */
-          else if (g_label[o] == '\\' && g_label[o + 1] == '\\') {
-            character = '\\';
-            o++;
-          }
-          if (character < 0)
-            character += 256;
-          character = (int)g_asciitable[character];
-          fprintf(g_file_out_ptr, "d%d ", character|tmp_a);
-        }
+        if (character < 0)
+          character += 256;
+        character = (int)g_asciitable[character];
+        fprintf(g_file_out_ptr, "d%d ", character);
       }
     }
     else if (q == SUCCEEDED) {
@@ -8691,17 +8592,13 @@ int directive_print(void) {
     number_result = input_number();
 
     if (number_result == INPUT_NUMBER_STRING || number_result == INPUT_NUMBER_ADDRESS_LABEL) {
-      char t[256];
-    
       if (get_value == YES) {
         print_error(".PRINT was expecting a value, got a string/label instead.\n", ERROR_INP);
         return FAILED;
       }
 
-      parse_print_string(g_label, t, 256);
-
       if (g_quiet == NO) {
-        printf("%s", t);
+        printf("%s", g_label);
         fflush(stdout);
       }
     }
@@ -8731,7 +8628,6 @@ int directive_print(void) {
 int directive_printt(void) {
   
   int number_result;
-  char t[256];
     
   number_result = input_number();
 
@@ -8740,10 +8636,8 @@ int directive_printt(void) {
     return FAILED;
   }
 
-  parse_print_string(g_label, t, 256);
-    
   if (g_quiet == NO) {
-    printf("%s", t);
+    printf("%s", g_label);
     fflush(stdout);
   }
 
@@ -11030,32 +10924,6 @@ void delete_stack(struct stack *s) {
 }
 
 #endif
-
-
-void parse_print_string(char *input, char *output, int output_size) {
-
-  int s, u;
-
-  for (s = 0, u = 0; input[s] != 0 && u < output_size-1; ) {
-    if (input[s] == '\\' && input[s + 1] == 'n') {
-#ifdef MSDOS
-      output[u++] = '\r';
-      output[u++] = '\n';
-#else
-      output[u++] = '\n';
-#endif
-      s += 2;
-    }
-    else if (input[s] == '\\' && input[s + 1] == '\\') {
-      output[u++] = '\\';
-      s += 2;
-    }
-    else
-      output[u++] = input[s++];
-  }
-
-  output[u] = 0;
-}
 
 
 int is_reserved_definition(char *t) {

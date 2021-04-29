@@ -2671,7 +2671,7 @@ int export_definitions(FILE *final_ptr) {
     hashmap_get(g_defines_map, export_tmp->name, (void*)&g_tmp_def);
 
     if (g_tmp_def == NULL)
-      fprintf(stderr, "WARNING: Trying to export an unkonwn definition \"%s\".\n", export_tmp->name);
+      fprintf(stderr, "WARNING: Trying to export an unknown definition \"%s\".\n", export_tmp->name);
     else {
       if (g_tmp_def->type == DEFINITION_TYPE_VALUE) {
         fprintf(final_ptr, "%s%c", g_tmp_def->alias, 0x0);

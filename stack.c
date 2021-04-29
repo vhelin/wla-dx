@@ -766,10 +766,13 @@ int stack_calculate(char *in, int *value) {
         print_error("Malformed string.\n", ERROR_NUM);
         return FAILED;
       }
-
+      
       si[q].string[k] = 0;
       si[q].type = STACK_ITEM_TYPE_STRING;
       q++;
+
+      if (process_string_for_special_characters(si[q].string, NULL) == FAILED)
+        return FAILED;
     }
     else {
       /* it must be a string! */

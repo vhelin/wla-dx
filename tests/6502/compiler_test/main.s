@@ -39,3 +39,31 @@ weight dw
 .DSTRUCT waterdrop3, water, "somedrop"
 .db $ff, $ff
 .db "<01"
+
+        .db "03>"
+        .db "TEST\r\n\0\t"      ; @BT 54 45 53 54 0D 0A 00 09
+        .db "<03"
+
+        .define STRING_A = "HI \"TIM\""
+        
+        .db "04>"
+        .db STRING_A            ; @BT 48 49 20 22 54 49 4D 22
+        .db "<04"
+
+        .db "05>"
+        .db "\x01\x02\x03\x04HI\0" ; @BT 01 02 03 04 48 49 00
+        .db "<05"
+
+        .db "06>"
+        .db "\x12"              ; @BT 12
+        .db "<06"
+
+        .macro db_string
+label_\1:
+        .db "\x01B\1\0\2"
+        .endm
+        
+        .db "07>"
+        db_string "HI", 1       ; @BT 01 42 48 49 00 31
+        .db "<07"
+        

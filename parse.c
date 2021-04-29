@@ -172,7 +172,7 @@ int input_next_string(void) {
   if (e == 0x0A)
     return INPUT_NUMBER_EOL;
 
-  /* last choice is a label */
+  /* we assume it is a label */
   g_tmp[0] = e;
   for (k = 1; k < MAX_NAME_LENGTH; k++) {
     e = g_buffer[g_source_pointer++];
@@ -699,7 +699,10 @@ int input_number(void) {
       k = (int)strlen(g_label);
     }
 
-    if (k == MAX_NAME_LENGTH) {
+    if (process_string_for_special_characters(g_label, &k) == FAILED)
+      return FAILED;
+
+    if (k >= MAX_NAME_LENGTH) {
       if (g_input_number_error_msg == YES) {
         snprintf(g_xyz, sizeof(g_xyz), "The string is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
         print_error(g_xyz, ERROR_NUM);
@@ -709,7 +712,7 @@ int input_number(void) {
 
     g_label[k] = 0;
     g_string_size = k;
-    
+
     return INPUT_NUMBER_STRING;
   }
 
@@ -808,11 +811,12 @@ int input_number(void) {
 #endif
   
   g_label[k] = 0;
-
+  
   /* expand e.g., \1 and \@ */
   if (g_macro_active != 0) {
     if (expand_macro_arguments(g_label) == FAILED)
       return FAILED;
+    k = (int)strlen(g_label);
   }
 
   /* label_tmp contains the label without possible prefix ':' */
@@ -1057,6 +1061,9 @@ int get_next_token(void) {
       g_ss = (int)strlen(g_tmp);
     }
 
+    if (process_string_for_special_characters(g_tmp, &g_ss) == FAILED)
+      return FAILED;
+
     return GET_NEXT_TOKEN_STRING;
   }
 
@@ -1144,7 +1151,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
   for (i = 0, k = 0; i < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; i++) {
     if (in[i] == '\\') {
-      if (in[i + 1] == '"' || in[i + 1] == 'n' || in[i + 1] == '\\') {
+      if (in[i + 1] == '"' || in[i + 1] == 'n' || in[i + 1] == '\\' || in[i + 1] == 'r' || in[i + 1] == 't' || in[i + 1] == 'x' || in[i + 1] == '0') {
         g_expanded_macro_string[k++] = in[i];
         i++;
         g_expanded_macro_string[k++] = in[i];
@@ -1353,7 +1360,6 @@ int _expand_macro_arguments(char *in, int *expands) {
 
   int move_up = 0;
 
-
   if (_expand_macro_arguments_one_pass(in, expands, &move_up) == FAILED)
     return FAILED;
 
@@ -1385,6 +1391,96 @@ int expand_macro_arguments(char *in) {
   g_macro_active = ma;
 
   return ret;
+}
+
+
+int process_string_for_special_characters(char *label, int *string_size) {
+
+  int size, read, write;
+
+  if (string_size == NULL)
+    size = strlen(label);
+  else
+    size = *string_size;
+  
+  for (read = 0, write = 0; read < size; ) {
+    /* handle '\0' */
+    if (label[read] == '\\' && label[read + 1] == '0') {
+      label[write++] = 0;
+      read += 2;
+    }
+    /* handle '\t' */
+    else if (label[read] == '\\' && label[read + 1] == 't') {
+      label[write++] = '\t';
+      read += 2;
+    }
+    /* handle '\r' */
+    else if (label[read] == '\\' && label[read + 1] == 'r') {
+      label[write++] = '\r';
+      read += 2;
+    }
+    /* handle '\n' */
+    else if (label[read] == '\\' && label[read + 1] == 'n') {
+      label[write++] = '\n';
+      read += 2;
+    }
+    /* handle '\"' */
+    else if (label[read] == '\\' && label[read + 1] == '\"') {
+      label[write++] = '\"';
+      read += 2;
+    }
+    /* handle '\\' */
+    else if (label[read] == '\\' && label[read + 1] == '\\') {
+      label[write++] = '\\';
+      read += 2;
+    }
+    /* handle '\x' */
+    else if (label[read] == '\\' && label[read + 1] == 'x') {
+      char tmp_a[8], *tmp_b;
+      int tmp_c;
+
+      read += 2;
+      snprintf(tmp_a, sizeof(tmp_a), "%c%c", label[read], label[read + 1]);
+      
+      tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
+      if (*tmp_b) {
+        print_error("'\\x' needs hexadecimal byte (00-FF) data.\n", ERROR_INP);
+        return FAILED;
+      }
+
+      label[write++] = tmp_c;
+      read += 2;
+    }
+    /* handle '\<' */
+    else if (label[read] == '\\' && label[read + 1] == '<') {
+      read += 2;
+      if (read >= size) {
+        print_error("'\\<' needs character data.\n", ERROR_INP);
+        return FAILED;
+      }
+      label[write++] = label[read] | 0x80;
+      read++;
+    }
+    /* handle '\>' */
+    else if (read == 0 && label[read] == '\\' && label[read + 1] == '>') {
+      print_error("'\\>' needs character data (previous byte).\n", ERROR_INP);
+      return FAILED;
+    }
+    else if (read < size - 2 && label[read + 1] == '\\' && label[read + 2] == '>') {
+      label[write++] = label[read] | 0x80;
+      read += 3;
+    }
+    else
+      label[write++] = label[read++];
+  }
+
+  /* terminate the string */
+  label[write] = 0;
+
+  if (string_size != NULL)
+    *string_size = write;
+
+  return SUCCEEDED;
 }
 
 
