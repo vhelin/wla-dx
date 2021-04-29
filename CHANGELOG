@@ -7,12 +7,13 @@ v9.13 (29-Apr-2021) [ALL] WARNING: Precedence of operators in calculations
                       that WLA calculates is now more fine grained and C like.
                     [ALL] WARNING: .ASC didn't map \0 and \x inside a string,
                       but now all bytes given to .ASC are mapped. Consider
-                      using .ASCSTR if you don't want to map special chars.
+                      using .ASCSTR if you don't want to map special
+                      characters.
                     [ALL] All strings (inside "") now support \n, \r, \t, \0,
                       \x, \< and \>.
                     [ALL] It's possible to feed a definition's name to a
                       .MACRO by prefixing it with '@', e.g. @definition.
-                    [ALL] Use e.g. ?1 inside a .MACRO to get the value of the
+                    [ALL] Use ?1 inside a .MACRO to get the value of the
                       definition given as argument 1.
                     [ALL] Added support for nameless INSTANCEOFs in
                       .ENUMs, .STRUCTs and .RAMSECTIONs.

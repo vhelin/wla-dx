@@ -148,3 +148,55 @@ label_\2:
         .db "18>"
         is_immediate_1 4
         .db "<18"
+
+//////////////////////////////////////////////////////////////////////
+// test 5
+//////////////////////////////////////////////////////////////////////
+
+        .DEFINE DEFINITION_A 1
+
+        .MACRO REDEFINER_1
+        .REDEFINE \1 = ?1 + 1        ; \1 here is the definition's name,
+        .ENDM                        ; and ?1 is its value.
+
+        REDEFINER_1 @DEFINITION_A    ; here we feed the definition's name
+        REDEFINER_1 @DEFINITION_A    ; as first argument, not it's value
+
+        .DEFINE DEFINITION_B 1
+
+        .MACRO REDEFINER_2
+        .REDEFINE DEFINITION_B \1 + 1
+        .ENDM
+
+        REDEFINER_2 DEFINITION_B
+        REDEFINER_2 DEFINITION_B
+
+        .db "19>"
+        .db DEFINITION_A
+        .db DEFINITION_B
+        .db "<19"
+
+//////////////////////////////////////////////////////////////////////
+// test 6
+//////////////////////////////////////////////////////////////////////
+
+        .define FIVE = 5
+        
+        .macro floor_2
+        .db ?1
+        .db 1+?1+1
+        .db \2-4
+        .endm
+
+        .macro floor_1
+        floor_2 \1 ?1
+        .db ?1-1
+        .endm
+
+        .macro floor_0
+        floor_1 \1
+        .endm
+
+        .db "20>"
+        floor_0 @FIVE
+        .db "<20"
