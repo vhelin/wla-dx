@@ -2152,10 +2152,10 @@ Here is a special case::
     .DEF prev_test $0000
 
     .MACRO .test ARGS str
-    __\._\@+1:                     ; this will become __.test_1 during
-        .PRINT __\._\@+1, "\n"     ; the first call, __.test_2 during the
+    __\._{\@+1}:                   ; this will become __.test_1 during
+        .PRINT __\._{\@+1}, "\n"   ; the first call, __.test_2 during the
         .WORD  prev_test           ; second call...
-        .REDEF prev_test __\._\@+1
+        .REDEF prev_test __\._{\@+1}
         .BYTE  str.length, str, 0
     .ENDM
 
@@ -2206,6 +2206,17 @@ following fashion::
     .ends
 
 The previous example will result in .db 1, 2, 3, 4, 0
+
+Here's another useful example::
+
+    .DEFINE DEFINITION_A 1
+
+    .MACRO REDEFINER
+    .REDEFINE \1 = ?1 + 1      ; \1 here is the definition's name,
+    .ENDM                      ; and ?1 is its value.
+
+    REDEFINER @DEFINITION_A    ; here we feed the definition's name
+                               ; as first argument, not it's value
 
 This is not a compulsory directive.
 

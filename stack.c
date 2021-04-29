@@ -1180,8 +1180,41 @@ static int _process_string(struct stack_item *s, int *cannot_resolve) {
   struct macro_argument *ma;
   int a, b, k;
   char c;
-  
-  if (g_macro_active != 0 && s->string[0] == '\\') {
+
+  if (g_macro_active != 0 && strlen(s->string) > 1 && s->string[0] == '?' && s->string[1] >= '1' && s->string[1] <= '9') {
+    for (a = 0, b = 0; s->string[a + 1] != 0 && a < 10; a++) {
+      c = s->string[a + 1];
+      if (c < '0' || c > '9')
+        return FAILED;
+      b = (b * 10) + (c - '0');
+    }
+
+    if (b > g_macro_runtime_current->supplied_arguments) {
+      snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside .MACRO \"%s\". The .MACRO has only %d arguments.\n", b, g_macro_runtime_current->macro->name, g_macro_runtime_current->supplied_arguments);
+      print_error(g_xyz, ERROR_NUM);
+      return FAILED;
+    }
+    if (b == 0) {
+      print_error(".MACRO arguments are counted from 1.\n", ERROR_NUM);
+      return FAILED;
+    }
+
+    /* use the macro argument to find its definition */
+    ma = g_macro_runtime_current->argument_data[b - 1];
+    k = ma->type;
+
+    if (k == INPUT_NUMBER_ADDRESS_LABEL) {
+      strcpy(s->string, ma->string);
+
+      if (_resolve_string(s, cannot_resolve) == FAILED)
+        return FAILED;
+    }
+    else {
+      print_error("? can be only used to evaluate definitions.\n", ERROR_ERR);
+      return FAILED;
+    }
+  }
+  else if (g_macro_active != 0 && s->string[0] == '\\') {
     if (s->string[1] == '@' && s->string[2] == 0) {
       s->type = STACK_ITEM_TYPE_VALUE;
       s->value = g_macro_runtime_current->macro->calls - 1;
@@ -1203,8 +1236,12 @@ static int _process_string(struct stack_item *s, int *cannot_resolve) {
       }
       else {
         if (b > g_macro_runtime_current->supplied_arguments) {
-          snprintf(g_xyz, sizeof(g_xyz), "Reference to MACRO argument number %d (\"%s\") is out of range.\n", b, s->string);
+          snprintf(g_xyz, sizeof(g_xyz), "Reference to .MACRO argument number %d (\"%s\") is out of range. The .MACRO has %d arguments.\n", b, s->string, g_macro_runtime_current->supplied_arguments);
           print_error(g_xyz, ERROR_STC);
+          return FAILED;
+        }
+        if (b == 0) {
+          print_error(".MACRO arguments are counted from 1.\n", ERROR_STC);
           return FAILED;
         }
           

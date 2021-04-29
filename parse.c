@@ -15,7 +15,7 @@
 
 int parse_string_length(char *end);
 
-int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OFF, g_parse_floats = YES, g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO;
+int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OFF, g_parse_floats = YES, g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO, g_input_allow_leading_at = NO;
 int g_newline_beginning = ON, g_parsed_double_decimal_numbers = 0, g_operand_hint, g_operand_hint_type;
 char g_label[MAX_NAME_LENGTH + 1], g_xyz[512];
 char g_unevaluated_expression[256];
@@ -35,7 +35,6 @@ extern int g_latest_stack, g_asciitable_defined, g_global_label_hint;
 int is_string_ending_with(char *s, char *e) {
 
   int length_s, length_e, k;
-
   
   if (s == NULL || e == NULL)
     return -1;
@@ -84,7 +83,6 @@ int compare_next_token(char *token) {
 
   int ii, t, d, k, length;
   char e;
-
   
   length = (int)strlen(token);
 
@@ -163,7 +161,6 @@ int input_next_string(void) {
 
   char e;
   int k;
-
   
   /* skip white space */
   for (e = g_buffer[g_source_pointer++]; e == ' ' || e == ','; e = g_buffer[g_source_pointer++])
@@ -205,11 +202,87 @@ int input_next_string(void) {
 }
 
 
+static int _input_number_return_definition(struct definition *def) {
+
+  if (def->type == DEFINITION_TYPE_VALUE) {
+    g_parsed_int = (int)def->value;
+
+    if (g_operand_hint == HINT_NONE) {
+      if (g_parsed_int > 0xFFFFFF)
+        g_operand_hint = HINT_32BIT;
+      else if (g_parsed_int > 0xFFFF && g_parsed_int <= 0xFFFFFF)
+        g_operand_hint = HINT_24BIT;
+      else if (g_parsed_int > 0xFF)
+        g_operand_hint = HINT_16BIT;
+      else
+        g_operand_hint = HINT_8BIT;
+      
+      g_operand_hint_type = HINT_TYPE_DEDUCED;
+
+#if defined(MC6809)
+      /* 5-bit values need this */
+      if (g_parsed_int >= -16 && g_parsed_int <= 15) {
+        g_operand_hint = HINT_NONE;
+        g_operand_hint_type = HINT_TYPE_NONE;
+      }
+#endif
+    }
+      
+    g_parsed_double = (double)g_parsed_int;
+    
+    return SUCCEEDED;
+  }
+  else if (def->type == DEFINITION_TYPE_STACK) {
+    /* wrap the referenced, existing stack calculation inside a new stack calculation as stack
+       calculation contains a write. the 2nd, 3rd etc. reference don't do anything by themselves.
+       but wrapping creates a new stack calculation that also makes a write */
+    stack_create_stack_stack((int)def->value);
+    return INPUT_NUMBER_STACK;
+  }
+  else if (def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+    if (g_label[0] == ':') {
+      /* we need to keep the ':' prefix */
+      if (strlen(def->string) >= MAX_NAME_LENGTH-1) {
+        if (g_input_number_error_msg == YES) {
+          snprintf(g_xyz, sizeof(g_xyz), "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
+          print_error(g_xyz, ERROR_NUM);
+        }
+        return FAILED;          
+      }
+      snprintf(g_label, sizeof(g_label), ":%.254s", def->string);
+      g_string_size = def->size + 1;
+    }
+    else {
+      g_string_size = def->size;
+      memcpy(g_label, def->string, g_string_size);
+      g_label[g_string_size] = 0;
+    }
+  }
+  else {
+    g_string_size = def->size;
+    memcpy(g_label, def->string, g_string_size);
+    g_label[g_string_size] = 0;
+    
+    return INPUT_NUMBER_STRING;
+  }
+
+  /* are labels 16-bit by default? */
+  if (g_operand_hint_type != HINT_TYPE_GIVEN && g_global_label_hint == HINT_16BIT) {
+    g_operand_hint = HINT_16BIT;
+    g_operand_hint_type = HINT_TYPE_GIVEN;
+  }
+
+  process_special_labels(g_label);
+  
+  return INPUT_NUMBER_ADDRESS_LABEL;      
+}
+
+
 int input_number(void) {
 
   char label_tmp[MAX_NAME_LENGTH + 1];
   unsigned char e, ee;
-  int k, p, q, spaces = 0, curly_braces = 0;
+  int k, p, q, spaces = 0, curly_braces = 0, check_if_a_definition = YES;
   double decimal_mul;
 #ifdef SPC700
   int dot = 0;
@@ -233,13 +306,23 @@ int input_number(void) {
   if (e == 0x0A)
     return INPUT_NUMBER_EOL;
 
+  /* are we parsing a macro argument, and could it begin with a '#' (ARG_IMMEDIATE)? */
   if (g_input_allow_leading_hashtag == YES) {
     if (e == '#') {
       g_input_has_leading_hashtag = YES;
       e = g_buffer[g_source_pointer++];
     }
   }
-  
+
+  /* are we parsing a macro argument, and could it begin with a '@' (return
+     label as it is, don't check if it's a definition) */
+  if (g_input_allow_leading_at == YES) {
+    if (e == '@') {
+      check_if_a_definition = NO;
+      e = g_buffer[g_source_pointer++];
+    }
+  }
+
   if (g_expect_calculations == YES) {
     /* check the type of the expression */
     p = g_source_pointer;
@@ -279,6 +362,51 @@ int input_number(void) {
   }
 
   /* MACRO */
+  if (g_macro_active != 0 && e == '?' && g_buffer[g_source_pointer] >= '1' && g_buffer[g_source_pointer] <= '9') {
+    struct macro_argument *ma;
+    
+    for (g_parsed_int = 0, k = 0; k < 4; k++) {
+      e = g_buffer[g_source_pointer++];
+      if (e >= '0' && e <= '9')
+        g_parsed_int = (g_parsed_int * 10) + (e - '0');
+      else {
+        g_source_pointer--;
+        break;
+      }
+    }
+
+    if (g_parsed_int > g_macro_runtime_current->supplied_arguments) {
+      snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", g_parsed_int, g_macro_runtime_current->macro->name, g_macro_runtime_current->supplied_arguments);
+      print_error(g_xyz, ERROR_NUM);
+      return FAILED;
+    }
+    if (g_parsed_int == 0) {
+      snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", g_parsed_int, g_macro_runtime_current->macro->name);
+      print_error(g_xyz, ERROR_NUM);
+      return FAILED;
+    }
+
+    /* use the macro argument to find its definition */
+    ma = g_macro_runtime_current->argument_data[g_parsed_int - 1];
+    k = ma->type;
+
+    if (k == INPUT_NUMBER_ADDRESS_LABEL) {
+      strcpy(g_label, ma->string);
+
+      hashmap_get(g_defines_map, g_label, (void*)&g_tmp_def);
+      if (g_tmp_def != NULL)
+        return _input_number_return_definition(g_tmp_def);
+      else {
+        snprintf(g_xyz, sizeof(g_xyz), "Cannot find definition for \"%s\".\n", g_label);
+        print_error(g_xyz, ERROR_NUM);
+        return FAILED;
+      }
+    }
+    else {
+      print_error("? can be only used to evaluate definitions.\n", ERROR_ERR);
+      return FAILED;
+    }
+  }
   if (g_macro_active != 0 && e == '\\') {
     struct macro_argument *ma;
     int exit_here = YES;
@@ -835,71 +963,12 @@ int input_number(void) {
     return SUCCEEDED;
   }
 
-  /* check if the label is actually a definition */
-  if (hashmap_get(g_defines_map, g_label, (void*)&g_tmp_def) != MAP_OK)
-    hashmap_get(g_defines_map, label_tmp, (void*)&g_tmp_def);
-  if (g_tmp_def != NULL) {
-    if (g_tmp_def->type == DEFINITION_TYPE_VALUE) {
-      g_parsed_int = (int)g_tmp_def->value;
-
-      if (g_operand_hint == HINT_NONE) {
-        if (g_parsed_int > 0xFFFFFF)
-          g_operand_hint = HINT_32BIT;
-        else if (g_parsed_int > 0xFFFF && g_parsed_int <= 0xFFFFFF)
-          g_operand_hint = HINT_24BIT;
-        else if (g_parsed_int > 0xFF)
-          g_operand_hint = HINT_16BIT;
-        else
-          g_operand_hint = HINT_8BIT;
-
-        g_operand_hint_type = HINT_TYPE_DEDUCED;
-
-#if defined(MC6809)
-        /* 5-bit values need this */
-        if (g_parsed_int >= -16 && g_parsed_int <= 15) {
-          g_operand_hint = HINT_NONE;
-          g_operand_hint_type = HINT_TYPE_NONE;
-        }
-#endif
-      }
-      
-      g_parsed_double = (double)g_parsed_int;
-
-      return SUCCEEDED;
-    }
-    else if (g_tmp_def->type == DEFINITION_TYPE_STACK) {
-      /* wrap the referenced, existing stack calculation inside a new stack calculation as stack
-         calculation contains a write. the 2nd, 3rd etc. reference don't do anything by themselves.
-         but wrapping creates a new stack calculation that also makes a write */
-      stack_create_stack_stack((int)g_tmp_def->value);
-      return INPUT_NUMBER_STACK;
-    }
-    else if (g_tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
-      if (g_label[0] == ':') {
-        /* we need to keep the ':' prefix */
-        if (strlen(g_tmp_def->string) >= MAX_NAME_LENGTH-1) {
-          if (g_input_number_error_msg == YES) {
-            snprintf(g_xyz, sizeof(g_xyz), "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
-            print_error(g_xyz, ERROR_NUM);
-          }
-          return FAILED;          
-        }
-        snprintf(g_label, sizeof(g_label), ":%.254s", g_tmp_def->string);
-        g_string_size = g_tmp_def->size + 1;
-      }
-      else {
-        g_string_size = g_tmp_def->size;
-        memcpy(g_label, g_tmp_def->string, g_string_size);
-        g_label[g_string_size] = 0;
-      }
-    }
-    else {
-      g_string_size = g_tmp_def->size;
-      memcpy(g_label, g_tmp_def->string, g_string_size);
-      g_label[g_string_size] = 0;
-      
-      return INPUT_NUMBER_STRING;
-    }
+  if (check_if_a_definition == YES) {
+    /* check if the label is actually a definition */
+    if (hashmap_get(g_defines_map, g_label, (void*)&g_tmp_def) != MAP_OK)
+      hashmap_get(g_defines_map, label_tmp, (void*)&g_tmp_def);
+    if (g_tmp_def != NULL)
+      return _input_number_return_definition(g_tmp_def);
   }
 
   /* are labels 16-bit by default? */
