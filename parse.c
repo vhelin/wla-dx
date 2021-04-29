@@ -745,18 +745,34 @@ int input_number(void) {
 
     return SUCCEEDED;
   }
-
+  
   if (e == '\'') {
-    g_parsed_int = g_buffer[g_source_pointer++];
-    e = g_buffer[g_source_pointer];
-    if (e != '\'') {
-      if (g_input_number_error_msg == YES) {
-        snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected \"'\".\n", e, e);
-        print_error(g_xyz, ERROR_NUM);
-      }
+    if (g_buffer[g_source_pointer + 1] == '\'') {
+      /* '?' */
+      g_parsed_int = g_buffer[g_source_pointer];
+      g_source_pointer += 2;
+    }
+    else if (g_buffer[g_source_pointer] == '\\' && (g_buffer[g_source_pointer+1] == 't' ||
+                                                    g_buffer[g_source_pointer+1] == 'r' ||
+                                                    g_buffer[g_source_pointer+1] == 'n' ||
+                                                    g_buffer[g_source_pointer+1] == '0') && g_buffer[g_source_pointer+2] == '\'') {
+      /* '\?' */
+      g_source_pointer++;
+      if (g_buffer[g_source_pointer] == 't')
+        g_parsed_int = '\t';
+      else if (g_buffer[g_source_pointer] == 'r')
+        g_parsed_int = '\r';
+      else if (g_buffer[g_source_pointer] == 'n')
+        g_parsed_int = '\n';
+      else if (g_buffer[g_source_pointer] == '0')
+        g_parsed_int = '\0';
+      g_source_pointer += 2;
+    }
+    else {
+      if (g_input_number_error_msg == YES)
+        print_error("Malformed '?' detected!\n", ERROR_NUM);
       return FAILED;
     }
-    g_source_pointer++;
 
     g_parsed_double = (double)g_parsed_int;
     
@@ -861,11 +877,13 @@ int input_number(void) {
     g_label[k] = e;
 
     /* is it actually a function? */
-    if (k == 4 && strcaselesscmpn(g_label, "asc('", 5) == 0) {
-      if (parse_function_asc(&g_buffer[g_source_pointer], &g_parsed_int) == FAILED)
+    if (k == 3 && strcaselesscmpn(g_label, "asc('", 4) == 0) {
+      int parsed_chars = 0;
+      
+      if (parse_function_asc(&g_buffer[g_source_pointer], &g_parsed_int, &parsed_chars) == FAILED)
         return FAILED;
       
-      g_source_pointer += 3;
+      g_source_pointer += parsed_chars;
       g_parsed_double = (double)g_parsed_int;
 
       return SUCCEEDED;
@@ -1553,21 +1571,45 @@ int process_string_for_special_characters(char *label, int *string_size) {
 }
 
 
-int parse_function_asc(char *in, int *result) {
+int parse_function_asc(char *in, int *result, int *parsed_chars) {
 
-  int ascii_table_index = *in++;
+  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
+  
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_pointer for input_number() */
 
-  if (*in != '\'' || *(in+1) != ')') {
-    print_error("Malformed \"asc('?')\" detected!\n", ERROR_NUM);
+  g_source_pointer = (int)(in - g_buffer);
+  source_pointer_backup = g_source_pointer;
+
+  g_expect_calculations = NO;
+  res = input_number();
+  g_expect_calculations = old_expect;
+
+  if (res != SUCCEEDED || g_parsed_int < 0 || g_parsed_int > 255) {
+    print_error("asc() requires an immediate value between 0 and 255.\n", ERROR_NUM);
     return FAILED;
   }
-      
+  
+  if (g_buffer[g_source_pointer] != ')') {
+    print_error("Malformed \"asc(?)\" detected!\n", ERROR_NUM);
+    return FAILED;
+  }
+
+  /* skip ')' */
+  g_source_pointer++;
+
+  /* count the parsed chars */
+  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+
+  /* return g_source_pointer */
+  g_source_pointer = source_pointer_original;
+  
   if (g_asciitable_defined == 0) {
     print_error("No .ASCIITABLE defined. Using the default n->n -mapping.\n", ERROR_WRN);
-    *result = ascii_table_index;
+    *result = g_parsed_int;
   }
   else
-    *result = (int)g_asciitable[ascii_table_index];
+    *result = (int)g_asciitable[g_parsed_int];
 
   return SUCCEEDED;
 }
@@ -1634,7 +1676,7 @@ int parse_function_exists(char *in, int *result, int *parsed_chars) {
   g_source_pointer++;
 
   /* count the parsed chars */
-  *parsed_chars = g_source_pointer - source_pointer_backup;
+  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
 
   /* return g_source_pointer */
   g_source_pointer = source_pointer_original;

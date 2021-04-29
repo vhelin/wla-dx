@@ -29,6 +29,7 @@ MAP "A" TO "Z" = 0
 MAP "I" = $70
 MAP "Z" = $80
 MAP "!" = $90
+MAP '\n' = $50
 .ENDA
 
         .db "01>"
@@ -58,4 +59,8 @@ MAP "!" = $90
         .db "08>"
         .db CALCULATION_1, CALCULATION_2-1
         .db "<08"
+
+        .db "09>"
+        .db asc('\n'), asc($a), asc(10), asc('\n')+asc(10), asc(0b1010)+'\n', '\n'
+        .db "<09"
         

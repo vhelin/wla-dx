@@ -456,7 +456,7 @@ the characters using the mapping given via ``.ASCIITABLE``.
 
 You can also use ASC('?') to map individual characters in the code ::
 
-    .DB ASC('A'), ASC('B')
+    .DB ASC('A'), ASC('B'), ASC(10), ASC('\r')
 
 and
 

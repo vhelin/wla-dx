@@ -544,7 +544,19 @@ int stack_calculate(char *in, int *value) {
     }
     else if (*in == '\'') {
       in++;
-      d = *in;
+      if (*in == '\\' && (*(in+1) == 't' || *(in+1) == 'r' || *(in+1) == 'n' || *(in+1) == '0')) {
+        in++;
+        if (*in == 't')
+          d = '\t';
+        else if (*in == 'r')
+          d = '\r';
+        else if (*in == 'n')
+          d = '\n';
+        else if (*in == '0')
+          d = '\0';
+      }
+      else
+        d = *in;
       in++;
       if (*in != '\'') {
         snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected \"'\".\n", *in, *in);
@@ -808,10 +820,12 @@ int stack_calculate(char *in, int *value) {
         si[q].string[k] = e;
         in++;
 
-        if (k == 4 && strcaselesscmpn(si[q].string, "asc('", 5) == 0) {
-          if (parse_function_asc(in, &d) == FAILED)
+        if (k == 3 && strcaselesscmpn(si[q].string, "asc(", 4) == 0) {
+          int parsed_chars = 0;
+          
+          if (parse_function_asc(in, &d, &parsed_chars) == FAILED)
             return FAILED;
-          in += 3;
+          in += parsed_chars;
           is_string = NO;
           break;
         }

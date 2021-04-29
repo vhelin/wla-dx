@@ -11,6 +11,9 @@ v9.13 (29-Apr-2021) [ALL] WARNING: Precedence of operators in calculations
                       characters.
                     [ALL] All strings (inside "") now support \n, \r, \t, \0,
                       \x, \< and \>.
+                    [ALL] '\n', '\r', '\t' and '\0' are now supported.
+                    [ALL] ASC() has now wider input support: e.g., ASC('\n')
+                      and ASC($D) work.
                     [ALL] It's possible to feed a definition's name to a
                       .MACRO by prefixing it with '@', e.g. @definition.
                     [ALL] Use ?1 inside a .MACRO to get the value of the
