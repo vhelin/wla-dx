@@ -42,7 +42,7 @@ extern struct label *g_labels_first, *g_labels_last;
 extern struct map_t *g_global_unique_label_map;
 extern struct map_t *g_namespace_map;
 extern struct slot g_slots[256];
-extern struct append_section *g_append_sections, *g_append_tmp;
+extern struct after_section *g_after_sections, *g_after_tmp;
 extern struct label_sizeof *g_label_sizeofs;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern int g_rombanks, g_verbose_mode, g_section_overwrite, g_symbol_mode, g_discard_unreferenced_sections;
@@ -123,7 +123,10 @@ int add_section(struct section *s) {
 
   s->file_id = g_obj_tmp->id;
   s->next = NULL;
+  s->prev = NULL;
+  s->after = NULL;
   s->alive = YES;
+  s->placed = NO;
 
   if (strcmp(s->name, "BANKHEADER") == 0) {
     ss = g_sec_bankhd_first;
@@ -140,6 +143,7 @@ int add_section(struct section *s) {
       g_sec_bankhd_last = s;
     }
     else {
+      s->prev = g_sec_bankhd_last;
       g_sec_bankhd_last->next = s;
       g_sec_bankhd_last = s;
     }
@@ -148,7 +152,6 @@ int add_section(struct section *s) {
     if (g_sec_first == NULL) {
       g_sec_first = s;
       g_sec_last = s;
-      s->prev = NULL;
     }
     else {
       s->prev = g_sec_last;
@@ -170,8 +173,19 @@ int free_section(struct section *s) {
     s->prev->next = s->next;
   if (s->next != NULL)
     s->next->prev = s->prev;
-  else
-    g_sec_last = s->prev;
+
+  if (strcmp(s->name, "BANKHEADER") == 0) {
+    if (g_sec_bankhd_first == s)
+      g_sec_bankhd_first = s->next;
+    if (g_sec_bankhd_last == s)
+      g_sec_bankhd_last = s->prev;
+  }
+  else {
+    if (g_sec_first == s)
+      g_sec_first = s->next;
+    if (g_sec_last == s)
+      g_sec_last = s->prev;
+  }
 
   /* free label map */
   hashmap_free(s->label_map);
@@ -733,36 +747,39 @@ int collect_dlr(void) {
         g_label_sizeofs = ls;
       }
 
-      /* append sections */
+      /* appendto/after sections */
       i = READ_T;
 
       while (i > 0) {
         i--;
 
-        g_append_tmp = calloc(1, sizeof(struct append_section));
-        if (g_append_tmp == NULL) {
+        g_after_tmp = calloc(1, sizeof(struct after_section));
+        if (g_after_tmp == NULL) {
           fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
+        g_after_tmp->alive = YES;
+        g_after_tmp->inserted = NO;
 
-        g_append_tmp->section_id = READ_T;
-        g_append_tmp->file_id = g_obj_tmp->id;
+        g_after_tmp->section_id = READ_T;
+        g_after_tmp->file_id = g_obj_tmp->id;
+        g_after_tmp->is_appendto = *(t++);
         
         /* copy the names */
         for (x = 0; *t != 0; t++, x++)
-          g_append_tmp->section[x] = *t;
-        g_append_tmp->section[x] = 0;
+          g_after_tmp->section[x] = *t;
+        g_after_tmp->section[x] = 0;
         t++;
         for (x = 0; *t != 0; t++, x++)
-          g_append_tmp->append_to[x] = *t;
-        g_append_tmp->append_to[x] = 0;
+          g_after_tmp->after[x] = *t;
+        g_after_tmp->after[x] = 0;
         t++;
 
-        g_append_tmp->section_s = NULL;
-        g_append_tmp->append_to_s = NULL;
+        g_after_tmp->section_s = NULL;
+        g_after_tmp->after_s = NULL;
         
-        g_append_tmp->next = g_append_sections;
-        g_append_sections = g_append_tmp;
+        g_after_tmp->next = g_after_sections;
+        g_after_sections = g_after_tmp;
       }
 
       /* save pointer to data block area */
@@ -980,36 +997,39 @@ int collect_dlr(void) {
         g_label_sizeofs = ls;
       }
       
-      /* append sections */
+      /* appendto/after sections */
       i = READ_T;
 
       while (i > 0) {
         i--;
 
-        g_append_tmp = calloc(1, sizeof(struct append_section));
-        if (g_append_tmp == NULL) {
+        g_after_tmp = calloc(1, sizeof(struct after_section));
+        if (g_after_tmp == NULL) {
           fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
+        g_after_tmp->alive = YES;
+        g_after_tmp->inserted = NO;
 
-        g_append_tmp->section_id = READ_T;
-        g_append_tmp->file_id = g_obj_tmp->id;
-
-        /* copy the name */
-        for (x = 0; *t != 0; t++, x++)
-          g_append_tmp->section[x] = *t;
-        g_append_tmp->section[x] = 0;
-        t++;
-        for (x = 0; *t != 0; t++, x++)
-          g_append_tmp->append_to[x] = *t;
-        g_append_tmp->append_to[x] = 0;
-        t++;
-
-        g_append_tmp->section_s = NULL;
-        g_append_tmp->append_to_s = NULL;
+        g_after_tmp->section_id = READ_T;
+        g_after_tmp->file_id = g_obj_tmp->id;
+        g_after_tmp->is_appendto = *(t++);
         
-        g_append_tmp->next = g_append_sections;
-        g_append_sections = g_append_tmp;
+        /* copy the names */
+        for (x = 0; *t != 0; t++, x++)
+          g_after_tmp->section[x] = *t;
+        g_after_tmp->section[x] = 0;
+        t++;
+        for (x = 0; *t != 0; t++, x++)
+          g_after_tmp->after[x] = *t;
+        g_after_tmp->after[x] = 0;
+        t++;
+
+        g_after_tmp->section_s = NULL;
+        g_after_tmp->after_s = NULL;
+        
+        g_after_tmp->next = g_after_sections;
+        g_after_sections = g_after_tmp;
       }
 
       /* save pointer to data block area */
@@ -1024,45 +1044,19 @@ int collect_dlr(void) {
 }
 
 
-static void _print_append_sections_sort_error(struct append_section *as) {
+static int _compare_sections(struct section *a, struct section *b) {
   
-  fprintf(stderr, "_append_sections_sort(): Section ");
-  fprintf(stderr, "\"%s\" from file \"%s\"", as->section, get_file_name(as->file_id));
-  fprintf(stderr, " is missing its definition. We are trying to append it to section \"%s\"... -> Cannot sort it! Please submit a bug report!\n", as->append_to);
-}
-
-
-static int _append_sections_sort(const void *a, const void *b) {
-
-  struct append_section *sa = *((struct append_section **)a);
-  struct append_section *sb = *((struct append_section **)b);
-
-  if (sa == NULL) {
-    fprintf(stderr, "_append_sections_sort(): Append section A is NULL -> Cannot sort it... Please submit a bug report!\n");
-    return 0;
-  }
-  if (sb == NULL) {
-    fprintf(stderr, "_append_sections_sort(): Append section B is NULL -> Cannot sort it... Please submit a bug report!\n");
-    return 0;
-  }
-  if (sa->section_s == NULL) {
-    _print_append_sections_sort_error(sa);
-    return 0;
-  }
-  if (sb->section_s == NULL) {
-    _print_append_sections_sort_error(sb);
-    return 0;
-  }
-  
-  if (sa->section_s->priority < sb->section_s->priority)
+  if (a->priority < b->priority)
     return 1;
-  else if (sa->section_s->priority > sb->section_s->priority)
+  else if (a->priority > b->priority)
     return -1;
 
-  if (sa->section_s->size < sb->section_s->size)
+  if (a->size < b->size)
     return 1;
+  else if (a->size > b->size)
+    return -1;
 
-  return -1;
+  return 0;
 }
 
 
@@ -1073,7 +1067,7 @@ static struct section *_find_section(char *section_name) {
   while (s != NULL) {
     if (strcmp(s->name, section_name) == 0) {
       if (ss != NULL)
-        fprintf(stderr, "_find_section(): Multiple sections called \"%s\" found for APPENDTO operation. Please have only one section called \"%s\" in the source files. Using the last found section...\n", section_name, section_name);
+        fprintf(stderr, "_find_section(): Multiple sections called \"%s\" found for APPENDTO/AFTER operation. Please have only one section called \"%s\" in the source files. Using the last found section...\n", section_name, section_name);
       ss = s;
     }
     s = s->next;
@@ -1083,7 +1077,7 @@ static struct section *_find_section(char *section_name) {
 }
 
 
-static struct section *_find_append_source_section(struct append_section *as) {
+static struct section *_find_after_source_section(struct after_section *as) {
 
   struct section *s = g_sec_first;
   
@@ -1091,7 +1085,7 @@ static struct section *_find_append_source_section(struct append_section *as) {
   if (as->section_id < 0 && as->file_id < 0) {
     s = _find_section(as->section);
     if (s == NULL)
-      fprintf(stderr, "_find_append_source_section(): Cannot find section \"%s\" for appending! Is it defined in the source code? If it is, please submit a bug report!\n", as->section);
+      fprintf(stderr, "_find_after_source_section(): Cannot find section \"%s\" for appending! Is it defined in the source code? If it is, please submit a bug report!\n", as->section);
     return s;
   }
 
@@ -1102,7 +1096,7 @@ static struct section *_find_append_source_section(struct append_section *as) {
     s = s->next;
   }
   
-  fprintf(stderr, "_find_append_source_section(): Section \"%s\" from file \"%s\" has gone missing. Please submit a bug report! Retrying using its name...\n", as->section, get_file_name(as->file_id));
+  fprintf(stderr, "_find_after_source_section(): Section \"%s\" from file \"%s\" has gone missing. Please submit a bug report! Retrying using its name...\n", as->section, get_file_name(as->file_id));
 
   s = g_sec_first;
 
@@ -1115,7 +1109,7 @@ static struct section *_find_append_source_section(struct append_section *as) {
     s = s->next;
   }
 
-  fprintf(stderr, "_find_append_source_section(): Section \"%s\" from file \"%s\" cannot be found no matter what!\n", as->section, get_file_name(as->file_id));
+  fprintf(stderr, "_find_after_source_section(): Section \"%s\" from file \"%s\" cannot be found no matter what!\n", as->section, get_file_name(as->file_id));
   
   return NULL;
 }
@@ -1133,154 +1127,556 @@ static void _kill_label(char *name, struct section *s) {
 }
 
 
-int merge_sections(void) {
+static struct sort_capsule *_create_sort_capsule(void) {
 
-  struct section *s_source, *s_target;
-  struct append_section *as, **ass;
-  unsigned char *data;
+  struct sort_capsule *sc = calloc(sizeof(struct sort_capsule), 1);
+
+  if (sc == NULL) {
+    fprintf(stderr, "_create_sort_capsule(): Out of memory error.\n");
+    return NULL;
+  }
+
+  sc->alive = YES;
+  sc->section = NULL;
+  sc->after_section = NULL;
+  sc->next = NULL;
+  sc->prev = NULL;
+  sc->children = NULL;
+  
+  return sc;
+}
+
+
+static int _try_to_insert_after_section(struct sort_capsule *sort_capsules, struct after_section *as) {
+
+  struct sort_capsule *sc = sort_capsules;
+  
+  while (sc != NULL) {
+    if (sc->section == as->after_s) {
+      /* we found the parent! now insert! */
+      struct sort_capsule *scn = _create_sort_capsule();
+
+      if (scn == NULL)
+        return FAILED;
+
+      scn->after_section = as;
+      scn->section = as->section_s;
+
+      if (sc->children == NULL)
+        sc->children = scn;
+      else if (_compare_sections(scn->section, sc->children->section) <= 0) {
+        scn->next = sc->children;
+        sc->children->prev = scn;
+        sc->children = scn;
+      }
+      else {
+        /* find a suitable spot among the children */
+        struct sort_capsule *child = sc->children;
+
+        while (child != NULL) {
+          if (child->next == NULL) {
+            child->next = scn;
+            scn->prev = child;
+            break;
+          }
+          else if (_compare_sections(scn->section, child->next->section) <= 0) {
+            scn->next = child->next;
+            child->next->prev = scn;
+            child->next = scn;
+            scn->prev = child;
+            break;
+          }
+
+          child = child->next;
+        }
+      }
+
+      return SUCCEEDED;
+    }
+    else if (sc->children != NULL) {
+      if (_try_to_insert_after_section(sc->children, as) == SUCCEEDED)
+        return SUCCEEDED;
+    }
+    
+    sc = sc->next;
+  }
+  
+  return FAILED;
+}
+
+
+static int _append_sections(struct section *s_source, struct section *s_target) {
+    
+  char label_tmp[MAX_NAME_LENGTH + 1];
   struct reference *r;
   struct stack *st;
   struct label *l;
-  char label_tmp[MAX_NAME_LENGTH + 1];
-  int size, asn, i;
+  unsigned char *data;
+  int size;
 
+  size = s_source->size + s_target->size;
+  data = calloc(size, 1);
+  if (data == NULL) {
+    fprintf(stderr, "_APPEND_SECTIONS: Out of memory while merging \"%s\" -> \"%s\" append.\n", s_source->name, s_target->name);
+    return FAILED;
+  }
+  memcpy(data, s_target->data, s_target->size);
+  memcpy(data + s_target->size, s_source->data, s_source->size);
+    
+  free(s_target->data);
+  s_target->data = data;
+
+  /* move labels */
+  l = g_labels_first;
+  while (l != NULL) {
+    if (l->section == s_source->id) {
+      l->address += s_target->size;
+      l->section = s_target->id;
+      l->bank = s_target->bank;
+      l->slot = s_target->slot;
+    }
+    l = l->next;
+  }
+
+  /* try to adjust SECTIONEND_%s of the target as the target section has grown */
+  snprintf(label_tmp, sizeof(label_tmp), "SECTIONEND_%s", s_target->name);
+
+  l = g_labels_first;
+  while (l != NULL) {
+    if (strcmp(label_tmp, l->name) == 0) {
+      l->address += s_source->size;
+      break;
+    }
+    l = l->next;
+  }
+
+  /* remove both SECTIONEND_%s and SECTIONSTART_%s of source */
+  snprintf(label_tmp, sizeof(label_tmp), "SECTIONEND_%s", s_source->name);
+  _kill_label(label_tmp, s_target);
+  snprintf(label_tmp, sizeof(label_tmp), "SECTIONSTART_%s", s_source->name);
+  _kill_label(label_tmp, s_target);
+      
+  /* move references */
+  r = g_reference_first;
+  while (r != NULL) {
+    if (r->section == s_source->id) {
+      r->address += s_target->size;
+      r->section = s_target->id;
+      r->bank = s_target->bank;
+      r->slot = s_target->slot;
+    }
+    r = r->next;
+  }
+    
+  /* move pending calculations */
+  st = g_stacks_first;
+  while (st != NULL) {
+    if (st->section == s_source->id) {
+      st->address += s_target->size;
+      st->section = s_target->id;
+      st->bank = s_target->bank;
+      st->slot = s_target->slot;
+    }
+    st = st->next;
+  }
+      
+  /* finalize */
+  s_target->size = size;
+
+  /* kill the appended section */
+  if (g_sec_first == s_source) {
+    g_sec_first = s_source->next;
+    g_sec_first->prev = NULL;
+  }
+  if (g_sec_last == s_source) {
+    g_sec_last = s_source->prev;
+    g_sec_last->next = NULL;
+  }
+      
+  free_section(s_source);
+
+  return SUCCEEDED;
+}  
+
+
+static int _find_alive_appends(struct sort_capsule *sc) {
+
+  struct sort_capsule *child;
   
-  /* count append sections */
-  asn = 0;
-  as = g_append_sections;
+  if (sc->children == NULL)
+    return FAILED;
+
+  child = sc->children;
+
+  while (child != NULL) {
+    if (child->alive == YES && child->after_section != NULL && child->after_section->is_appendto == YES)
+      return SUCCEEDED;
+    else if (child->children != NULL) {
+      if (_find_alive_appends(child) == SUCCEEDED)
+        return SUCCEEDED;
+    }
+
+    child = child->next;
+  }
+  
+  return FAILED;
+}
+
+
+static int _has_appendto_children(struct sort_capsule *sc) {
+
+  struct sort_capsule *child;
+  
+  if (sc == NULL || sc->children == NULL)
+    return NO;
+
+  child = sc->children;
+
+  while (child != NULL) {
+    if (child->alive == YES && child->after_section != NULL && child->after_section->is_appendto == YES)
+      return YES;
+
+    child = child->next;
+  }
+
+  return NO;
+}
+
+
+static int _find_and_execute_append(struct sort_capsule *sc) {
+
+  struct sort_capsule *child;
+  
+  if (sc->children == NULL)
+    return FAILED;
+
+  child = sc->children;
+
+  while (child != NULL) {
+    if (child->alive == YES && child->after_section != NULL && child->after_section->is_appendto == YES &&
+        _has_appendto_children(child) == NO) {
+      /* sanity check */
+      if (sc->section != child->after_section->after_s) {
+        fprintf(stderr, "_find_and_execute_append(): The section dependency tree is corrupted! Please submit a bug report!\n");
+        return FAILED;
+      }
+      
+      /* we can do this APPENDTO! */
+      if (_append_sections(child->after_section->section_s, child->after_section->after_s) == FAILED)
+        return FAILED;
+      else {
+        /* this node has been taken care of */
+        child->after_section->alive = NO;
+        child->alive = NO;
+        
+        return SUCCEEDED;
+      }
+    }
+    else if (child->children != NULL) {
+      if (_find_and_execute_append(child) == SUCCEEDED)
+        return SUCCEEDED;
+    }
+
+    child = child->next;
+  }
+  
+  return FAILED;
+}
+
+
+static void _free_sort_capsules(struct sort_capsule *sc) {
+
+  struct sort_capsule *next;
+
+  while (sc != NULL) {
+    next = sc->next;
+    if (sc->children != NULL)
+      _free_sort_capsules(sc->children);
+    free(sc);
+    sc = next;
+  }
+}
+
+
+#ifdef WLALINK_DEBUG
+
+static void _print_sort_capsules(struct sort_capsule *sc, int indentation) {
+
+  int i;
+  
+  while (sc != NULL) {
+    for (i = 0; i < indentation; i++)
+      printf(" ");
+    printf("%s (%d", sc->section->name, sc->section->status);
+    if (sc->after_section != NULL && sc->after_section->is_appendto == YES)
+      printf(", AP");
+    else if (sc->after_section != NULL && sc->after_section->is_appendto == NO)
+      printf(", AF");
+    printf(")\n");
+    if (sc->children != NULL)
+      _print_sort_capsules(sc->children, indentation + 2);
+    sc = sc->next;
+  }
+}
+
+#endif
+
+
+static void _collect_sections(struct sort_capsule *sc) {
+
+  while (sc != NULL) {
+    if (sc->alive == YES) {
+      if (g_sec_first == NULL) {
+        g_sec_first = sc->section;
+        g_sec_last = sc->section;
+        g_sec_last->next = NULL;
+        g_sec_last->prev = NULL;
+      }
+      else {
+        g_sec_last->next = sc->section;
+        sc->section->prev = g_sec_last;
+        g_sec_last = sc->section;
+        g_sec_last->next = NULL;
+      }
+    }
+
+    if (sc->children != NULL)
+      _collect_sections(sc->children);
+    
+    sc = sc->next;
+  }
+}
+
+
+static void _propagate_after_target_sections(struct sort_capsule *sc, struct sort_capsule *parent) {
+
+  while (sc != NULL) {
+    /* a living AFTER section? */
+    if (sc->alive == YES && sc->after_section != NULL && sc->after_section->is_appendto == NO) {
+      sc->section->after = parent->section;
+      /* make the AFTER section to have the same type as the source section so that we can process
+         both one after another in insert_sections() */
+      sc->section->status = parent->section->status;
+      /* also make sure the AFTER section inherits its source section's bank and slot... */
+      sc->section->bank = parent->section->bank;
+      sc->section->slot = parent->section->slot;
+    }
+    if (sc->children != NULL) {
+      /* here if the node is a dead (processed) APPENDTO section then we'll pass its parent to its children */
+      if (sc->alive == NO && sc->after_section != NULL && sc->after_section->is_appendto == YES)
+        _propagate_after_target_sections(sc->children, parent);
+      else
+        _propagate_after_target_sections(sc->children, sc);
+    }
+
+    sc = sc->next;
+  }
+}
+
+
+int merge_sections(void) {
+
+  struct after_section *as;
+  struct section *s;
+  struct sort_capsule *sort_capsules_first = NULL, *sort_capsules_last = NULL, *sc;
+  int iterations, failures = 0;
+
+  /* when we come here all the sections have been sorted using sort_sections() */
+  
+  /* clear all section markings */
+  s = g_sec_first;
+  while (s != NULL) {
+    s->marked = NO;
+    s = s->next;
+  }
+
+  if (g_after_sections == NULL)
+    return SUCCEEDED;
+
+  /* mark sections that are in appendto/after operations */
+  as = g_after_sections;
   while (as != NULL) {
-    asn++;
+    as->section_s = _find_after_source_section(as);
+    as->after_s = _find_section(as->after);
+
+    if (as->section_s == NULL) {
+      fprintf(stderr, "MERGE_SECTIONS: Source section \"%s\" was not found, ignoring the -> \"%s\" APPENDTO/AFTER. This shouldn't actually happen so please submit a bug report!\n", as->section, as->after);
+      as->alive = NO;
+    }
+    else if (as->after_s == NULL) {
+      fprintf(stderr, "MERGE_SECTIONS: Target section \"%s\" was not found, ignoring the \"%s\" -> \"%s\" APPENDTO/AFTER.\n", as->after, as->section, as->after);
+      as->alive = NO;
+    }
+    else {
+      if (as->section_s->marked == YES) {
+        /* another operation for this section! only one is allowed! */
+        as->alive = NO;
+        fprintf(stderr, "MERGE_SECTIONS: More than one APPENDTO/AFTER operation marked for section \"%s\" (in file \"%s\")! Only one is allowed thus disabling the following operations. Please make sure there is only one such operation.\n", as->section, get_file_name(as->file_id));
+      }
+      else
+        as->section_s->marked = YES;
+    }
+
     as = as->next;
   }
 
-  if (asn == 0)
-    return SUCCEEDED;
+  /* put unmarked sections into capsules */
+  s = g_sec_first;
+  while (s != NULL) {
+    if (s->marked == NO) {
+      struct sort_capsule *sc = _create_sort_capsule();
 
-  ass = calloc(sizeof(struct append_section *) * asn, 1);
-  if (ass == NULL) {
-    fprintf(stderr, "MERGE_SECTIONS: Out of memory error.\n");
+      if (sc == NULL) {
+        _free_sort_capsules(sort_capsules_first);
+        return FAILED;
+      }
+
+      sc->section = s;
+      sc->prev = sort_capsules_last;
+
+      if (sort_capsules_first == NULL)
+        sort_capsules_first = sc;
+      else
+        sort_capsules_last->next = sc;
+
+      sort_capsules_last = sc;
+    }
+    
+    s = s->next;
+  }
+
+  /* next make the appendto/after sections children of other sections */
+  iterations = 1;
+  while (iterations > 0) {
+    /* this iteration will be the last, unless we succeeded in inserting a sections */
+    iterations--;
+
+    as = g_after_sections;
+    while (as != NULL) {
+      if (as->alive == YES && as->inserted == NO) {
+        if (_try_to_insert_after_section(sort_capsules_first, as) == SUCCEEDED) {
+          as->inserted = YES;
+          /* we still need to try at least one another round */
+          iterations = 1;
+        }
+      }
+
+      as = as->next;
+    }
+  }
+
+  /* check if we have appendto/after sections that we were unable to insert */
+  as = g_after_sections;
+  while (as != NULL) {
+    if (as->alive == YES && as->inserted == NO) {
+      if (as->is_appendto)
+        fprintf(stderr, "MERGE_SECTIONS: Unable to inset operation \"%s\" APPENDTO \"%s\" into our sorting tree. Internal error. Please submit a bug resport!\n", as->section, as->after);
+      else
+        fprintf(stderr, "MERGE_SECTIONS: Unable to inset operation \"%s\" AFTER \"%s\" into our sorting tree. Internal error. Please submit a bug resport!\n", as->section, as->after);
+      failures++;
+    }
+
+    as = as->next;
+  }
+
+  if (failures > 0) {
+    _free_sort_capsules(sort_capsules_first);
     return FAILED;
   }
 
-  /* insert the append sections into an array for sorting */
-  i = 0;
-  as = g_append_sections;
-  while (as != NULL) {
-    as->section_s = _find_append_source_section(as);
-    as->append_to_s = _find_section(as->append_to);    
-    ass[i++] = as;
-    as = as->next;
-  }
+#ifdef WLALINK_DEBUG
+  
+  fflush(stderr);
+  fflush(stdout);
 
-  /* sort the append sections by priority first and then by size, biggest first */
-  qsort(ass, asn, sizeof(struct append_section *), _append_sections_sort);
+  printf("\n");
+  printf("----------------------------------------------------------------------\n");
+  printf("---                 SECTIONS (BEFORE MERGES)                       ---\n");
+  printf("----------------------------------------------------------------------\n");
+  printf("\n");
 
-  /* rebuild the append section linked list */
-  g_append_sections = ass[0];
-  for (i = 0; i < asn; i++) {
-    if (i == asn-1)
-      ass[i]->next = NULL;
-    else
-      ass[i]->next = ass[i+1];
-  }
+  _print_sort_capsules(sort_capsules_first, 0);
 
-  free(ass);
+  fflush(stderr);
+  fflush(stdout);
 
-  as = g_append_sections;
-  while (as != NULL) {
-    s_source = as->section_s;
-    s_target = as->append_to_s;
+#endif
+  
+  /* execute APPENDTO operations */
+  iterations = 1;
+  while (iterations > 0) {
+    /* this iteration will be the last, unless we succeeded in executing APPENDTO */
+    iterations--;
 
-    if (s_source == NULL)
-      fprintf(stderr, "MERGE_SECTIONS: Source section \"%s\" was not found, ignoring the -> \"%s\" append. This shouldn't actually happen so please submit a bug report!\n", as->section, as->append_to);
-    else if (s_target == NULL)
-      fprintf(stderr, "MERGE_SECTIONS: Target section \"%s\" was not found, ignoring the \"%s\" -> \"%s\" append.\n", as->append_to, as->section, as->append_to);
-    else {      
-      /* merge data */
-      size = s_source->size + s_target->size;
-      data = calloc(size, 1);
-      if (data == NULL) {
-        fprintf(stderr, "MERGE_SECTIONS: Out of memory while merging \"%s\" -> \"%s\" append.\n", s_source->name, as->append_to);
-        return FAILED;
-      }
-      memcpy(data, s_target->data, s_target->size);
-      memcpy(data + s_target->size, s_source->data, s_source->size);
-
-      free(s_target->data);
-      s_target->data = data;
-
-      /* move labels */
-      l = g_labels_first;
-      while (l != NULL) {
-        if (l->section == s_source->id) {
-          l->address += s_target->size;
-          l->section = s_target->id;
-          l->bank = s_target->bank;
-          l->slot = s_target->slot;
-        }
-        l = l->next;
-      }
-
-      /* try to adjust SECTIONEND_%s of the target as the target section has grown */
-      snprintf(label_tmp, sizeof(label_tmp), "SECTIONEND_%s", as->append_to);
-
-      l = g_labels_first;
-      while (l != NULL) {
-        if (strcmp(label_tmp, l->name) == 0) {
-          l->address += s_source->size;
-          break;
-        }
-        l = l->next;
-      }
-
-      /* remove both SECTIONEND_%s and SECTIONSTART_%s of source */
-      snprintf(label_tmp, sizeof(label_tmp), "SECTIONEND_%s", s_source->name);
-      _kill_label(label_tmp, s_target);
-      snprintf(label_tmp, sizeof(label_tmp), "SECTIONSTART_%s", s_source->name);
-      _kill_label(label_tmp, s_target);
-      
-      /* move references */
-      r = g_reference_first;
-      while (r != NULL) {
-        if (r->section == s_source->id) {
-          r->address += s_target->size;
-          r->section = s_target->id;
-          r->bank = s_target->bank;
-          r->slot = s_target->slot;
-        }
-        r = r->next;
-      }
-
-      /* move pending calculations */
-      st = g_stacks_first;
-      while (st != NULL) {
-        if (st->section == s_source->id) {
-          st->address += s_target->size;
-          st->section = s_target->id;
-          st->bank = s_target->bank;
-          st->slot = s_target->slot;
-        }
-        st = st->next;
+    sc = sort_capsules_first;
+    while (sc != NULL) {
+      if (sc->children != NULL) {
+        if (_find_and_execute_append(sc) == SUCCEEDED)
+          iterations++;
       }
       
-      /* finalize */
-      s_target->size = size;
-
-      /* kill the appended section */
-      if (g_sec_first == s_source) {
-        g_sec_first = s_source->next;
-        g_sec_first->prev = NULL;
-      }
-      if (g_sec_last == s_source) {
-        g_sec_last = s_source->prev;
-        g_sec_last->next = NULL;
-      }
-      
-      free_section(s_source);
+      sc = sc->next;
     }
-    
-    as = as->next;
   }
+
+  /* make sure we don't have any living APPENDTO operations as all should have been executed in the previous step */
+  sc = sort_capsules_first;
+  while (sc != NULL) {
+    if (sc->children != NULL) {
+      if (_find_alive_appends(sc) == SUCCEEDED)
+        failures++;
+    }
+      
+    sc = sc->next;
+  }
+
+  if (failures > 0) {
+    _free_sort_capsules(sort_capsules_first);
+    return FAILED;
+  }
+
+  /* propagate AFTER target sections (an AFTER section might depend on an APPENDTO section
+     that's already merged with its target section, we'll need to update such AFTER sections.
+     also copy target section types to source sections as they need to be handled right away
+     the source sections in insert_sections() */
+  _propagate_after_target_sections(sort_capsules_first, NULL);
+  
+  /* collect back sections, and make sections to be able to do AFTER operation themselves in insert_sections() */
+  g_sec_first = NULL;
+  g_sec_last = NULL;
+  _collect_sections(sort_capsules_first);
+
+#ifdef WLALINK_DEBUG
+  
+  /* print all sections */
+  fflush(stderr);
+  fflush(stdout);
+  
+  printf("\n");
+  printf("----------------------------------------------------------------------\n");
+  printf("---              SECTIONS (ORDERED, AFTER MERGES)                  ---\n");
+  printf("----------------------------------------------------------------------\n");
+  printf("\n");
+  
+  s = g_sec_first;
+  while (s != NULL) {
+    if (s->alive == YES) {
+      printf("\"%s\" (%d", s->name, s->status);
+      if (s->after != NULL)
+        printf(", AF");
+      printf(")\n");
+    }
+    s = s->next;
+  }
+
+  printf("\n");
+
+  fflush(stderr);
+  fflush(stdout);
+
+#endif
+  
+  _free_sort_capsules(sort_capsules_first);
   
   return SUCCEEDED;
 }
@@ -1292,7 +1688,6 @@ int parse_data_blocks(void) {
   int section, i, x;
   unsigned char *t, *p;
   char buf[256];
-
 
   g_obj_tmp = g_obj_first;
   section = 0;

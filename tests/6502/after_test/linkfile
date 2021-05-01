@@ -1,0 +1,6 @@
+[objects]
+main.o
+more.o
+
+[sections]
+bank 0 slot 0 appendto "Section1" "Section2" priority 28

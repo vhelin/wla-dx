@@ -454,7 +454,7 @@ int main(int argc, char *argv[]) {
       tag_end = i;
 
       if (tag_end - tag_start != byte_count) {
-        fprintf(stderr, "Test \"%s\" FAILED - There is %d bytes between the tags \"%s\", but the test \"%s\" defines only %d bytes.\n", test_id, tag_end - tag_start, tag_id, test_id, byte_count);
+        fprintf(stderr, "Test \"%s\" FAILED - There is %d bytes between the tags \"%s\", but the test \"%s\" defines %d bytes.\n", test_id, tag_end - tag_start, tag_id, test_id, byte_count);
         failures = 1;
         continue;
       }

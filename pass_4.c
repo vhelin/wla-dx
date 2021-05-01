@@ -24,7 +24,7 @@ extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map, *g_namespace_map, *g_global_unique_label_map;
 extern struct file_name_info *g_file_name_info_first;
 extern struct slot g_slots[256];
-extern struct append_section *g_append_sections;
+extern struct after_section *g_after_sections;
 extern struct label_sizeof *g_label_sizeofs;
 extern FILE *g_file_out_ptr;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
@@ -62,7 +62,7 @@ extern int g_computesmschecksum_defined, g_smstag_defined, g_smsheader_defined;
 struct label_def *g_unknown_labels = NULL, *g_unknown_labels_last = NULL;
 struct label_def *g_unknown_header_labels = NULL, *g_unknown_header_labels_last = NULL;
 struct label_def *g_parent_labels[10];
-struct append_section *g_append_tmp;
+struct after_section *g_after_tmp;
 struct label_sizeof *g_label_sizeof_tmp;
 
 char g_mem_insert_action[MAX_NAME_LENGTH * 3 + 1024], g_namespace[MAX_NAME_LENGTH + 1];
@@ -1707,7 +1707,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAE");
+    fprintf(final_ptr, "WLAF");
 
     /* misc bits */
     ind = 0;
@@ -1863,27 +1863,27 @@ int pass_4(void) {
       g_label_sizeof_tmp = g_label_sizeof_tmp->next;
     }
     
-    /* append sections */
+    /* appendto/after sections */
     ov = 0;
-    g_append_tmp = g_append_sections;
-    while (g_append_tmp != NULL) {
-      if (g_append_tmp->alive == YES)
+    g_after_tmp = g_after_sections;
+    while (g_after_tmp != NULL) {
+      if (g_after_tmp->alive == YES)
         ov++;
-      g_append_tmp = g_append_tmp->next;
+      g_after_tmp = g_after_tmp->next;
     }
     WRITEOUT_OV;
 
-    g_append_tmp = g_append_sections;
-    while (g_append_tmp != NULL) {
-      if (g_append_tmp->alive == YES) {
-        ov = g_append_tmp->section->id;
+    g_after_tmp = g_after_sections;
+    while (g_after_tmp != NULL) {
+      if (g_after_tmp->alive == YES) {
+        ov = g_after_tmp->section->id;
         WRITEOUT_OV;
-
-        fprintf(final_ptr, "%s%c", g_append_tmp->section->name, 0);
-        fprintf(final_ptr, "%s%c", g_append_tmp->append_to, 0);
+        fprintf(final_ptr, "%c", g_after_tmp->is_appendto);
+        fprintf(final_ptr, "%s%c", g_after_tmp->section->name, 0);
+        fprintf(final_ptr, "%s%c", g_after_tmp->after, 0);
       }
       
-      g_append_tmp = g_append_tmp->next;
+      g_after_tmp = g_after_tmp->next;
     }
 
     /* sections */
@@ -1932,7 +1932,7 @@ int pass_4(void) {
     }
 
     /* header */
-    fprintf(final_ptr, "WLAf%c", g_emptyfill);
+    fprintf(final_ptr, "WLAg%c", g_emptyfill);
 
     /* misc bits */
     ind = 0;
@@ -2286,27 +2286,27 @@ int pass_4(void) {
       g_label_sizeof_tmp = g_label_sizeof_tmp->next;
     }    
     
-    /* append sections */
+    /* appendto/after sections */
     ov = 0;
-    g_append_tmp = g_append_sections;
-    while (g_append_tmp != NULL) {
-      if (g_append_tmp->alive == YES)
+    g_after_tmp = g_after_sections;
+    while (g_after_tmp != NULL) {
+      if (g_after_tmp->alive == YES)
         ov++;
-      g_append_tmp = g_append_tmp->next;
+      g_after_tmp = g_after_tmp->next;
     }
     WRITEOUT_OV;
 
-    g_append_tmp = g_append_sections;
-    while (g_append_tmp != NULL) {
-      if (g_append_tmp->alive == YES) {
-        ov = g_append_tmp->section->id;
+    g_after_tmp = g_after_sections;
+    while (g_after_tmp != NULL) {
+      if (g_after_tmp->alive == YES) {
+        ov = g_after_tmp->section->id;
         WRITEOUT_OV;
-
-        fprintf(final_ptr, "%s%c", g_append_tmp->section->name, 0);
-        fprintf(final_ptr, "%s%c", g_append_tmp->append_to, 0);
+        fprintf(final_ptr, "%c", g_after_tmp->is_appendto);
+        fprintf(final_ptr, "%s%c", g_after_tmp->section->name, 0);
+        fprintf(final_ptr, "%s%c", g_after_tmp->after, 0);
       }
       
-      g_append_tmp = g_append_tmp->next;
+      g_after_tmp = g_after_tmp->next;
     }
 
     /* data area */

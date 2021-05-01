@@ -41,7 +41,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 9.13a (28.4.2021)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 9.13a (2.5.2021)";
 char g_wla_version[] = "9.13";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -61,7 +61,7 @@ extern struct macro_runtime *g_macro_stack;
 extern struct label_def *g_unknown_labels;
 extern struct filepointer *g_filepointers;
 extern struct map_t *g_namespace_map;
-extern struct append_section *g_append_sections;
+extern struct after_section *g_after_sections;
 extern struct label_sizeof *g_label_sizeofs;
 extern struct block_name *g_block_names;
 extern struct stringmaptable *g_stringmaptables;
@@ -367,7 +367,7 @@ void procedures_at_exit(void) {
   struct label_def *l1, *l2;
   struct macro_static *m;
   struct filepointer *f1, *f2;
-  struct append_section *as;
+  struct after_section *as;
   struct label_sizeof *ls;
   struct block_name *bn;
   struct array *ar1, *ar2;
@@ -475,11 +475,11 @@ void procedures_at_exit(void) {
     g_stacks_tmp = g_stacks_first;
   }
 
-  as = g_append_sections;
+  as = g_after_sections;
   while (as != NULL) {
-    g_append_sections = as->next;
+    g_after_sections = as->next;
     free(as);
-    as = g_append_sections;
+    as = g_after_sections;
   }
 
   free(g_buffer);

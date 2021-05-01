@@ -15,7 +15,7 @@ extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern struct block_name *g_block_names;
-extern struct append_section *g_append_sections;
+extern struct after_section *g_after_sections;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
 extern char g_tmp_name[MAX_NAME_LENGTH + 1], g_tmp[4096], g_error_message[sizeof(g_tmp) + MAX_NAME_LENGTH + 1 + 1024], g_namespace[MAX_NAME_LENGTH + 1];
@@ -432,7 +432,7 @@ int pass_3(void) {
 
         /* discard an empty section? */
         if (s->size == 0 && s->keep == NO && g_keep_empty_sections == NO) {
-          struct append_section *as;
+          struct after_section *as;
  
           fprintf(stderr, "INTERNAL_PASS_1: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
           s->alive = NO;
@@ -445,8 +445,8 @@ int pass_3(void) {
             l = l->next;
           }
 
-          /* discard appendto if one exists */
-          as = g_append_sections;
+          /* discard appendto/after if one exists */
+          as = g_after_sections;
           while (as != NULL) {
             if (as->section == s)
               as->alive = NO;
@@ -628,7 +628,7 @@ int pass_3(void) {
 
       /* discard an empty section? */
       if (s->size == 0 && s->keep == NO && g_keep_empty_sections == NO) {
-        struct append_section *as;
+        struct after_section *as;
         
         fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
         s->alive = NO;
@@ -641,8 +641,8 @@ int pass_3(void) {
           l = l->next;
         }
 
-        /* discard appendto if one exists */
-        as = g_append_sections;
+        /* discard appendto/after if one exists */
+        as = g_after_sections;
         while (as != NULL) {
           if (as->section == s)
             as->alive = NO;

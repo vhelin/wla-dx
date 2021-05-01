@@ -22,7 +22,7 @@ extern struct label *g_labels_first, *g_labels_last;
 extern unsigned char *g_file_header, *g_file_footer;
 extern char g_ext_libdir[MAX_NAME_LENGTH + 1];
 extern int g_file_header_size, g_file_footer_size, g_use_libdir;
-extern struct append_section *g_append_sections, *g_append_tmp;
+extern struct after_section *g_after_sections, *g_after_tmp;
 extern struct section_fix *g_sec_fix_first, *g_sec_fix_tmp;
 
 static char g_file_name_error[] = "???";
@@ -33,8 +33,8 @@ int load_files(char *argv[], int argc) {
 
   int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n, alignment, offset;
   int org_defined, org, orga_defined, orga, status_defined, status, priority_defined, priority, appendto_defined, keep_defined;
-  int alignment_defined, offset_defined;
-  char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32], appendto_name[MAX_NAME_LENGTH + 1];
+  int alignment_defined, offset_defined, after_defined;
+  char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32], appendto_name[MAX_NAME_LENGTH + 1], after_name[MAX_NAME_LENGTH + 1];
   struct label *l;
   FILE *fop, *f;
 
@@ -115,6 +115,7 @@ int load_files(char *argv[], int argc) {
     status_defined = NO;
     priority_defined = NO;
     appendto_defined = NO;
+    after_defined = NO;
     keep_defined = NO;
     alignment_defined = NO;
     offset_defined = NO;
@@ -330,6 +331,21 @@ int load_files(char *argv[], int argc) {
             return FAILED;
           }
         }
+        else if (strcaselesscmp(token, "after") == 0) {
+          if (after_defined == YES) {
+            fprintf(stderr, "%s:%d: LOAD_FILES: AFTER defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            fclose(fop);
+            return FAILED;
+          }
+
+          after_defined = YES;
+
+          if (get_next_token(&tmp[x], after_name, &x) == FAILED) {
+            fprintf(stderr, "%s:%d: LOAD_FILES: Error in AFTER section name.\n", argv[argc - 2], line);
+            fclose(fop);
+            return FAILED;
+          }
+        }
         else if (strcaselesscmp(token, "keep") == 0) {
           if (keep_defined == YES) {
             fprintf(stderr, "%s:%d: LOAD_FILES: KEEP defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
@@ -408,8 +424,8 @@ int load_files(char *argv[], int argc) {
         fclose(fop);
         return FAILED;
       }
-      if (appendto_defined == YES && (org_defined == YES || orga_defined == YES)) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: %s can't use APPENDTO with ORG or ORGA.\n", argv[argc - 2], line, state_name);
+      if (appendto_defined == YES && (org_defined == YES || orga_defined == YES || after_defined == YES)) {
+        fprintf(stderr, "%s:%d: LOAD_FILES: %s can't use APPENDTO with ORG, ORGA or AFTER.\n", argv[argc - 2], line, state_name);
         fclose(fop);
         return FAILED;
       }
@@ -455,21 +471,30 @@ int load_files(char *argv[], int argc) {
       else
         g_sec_fix_tmp->offset = -1;
       
-      if (appendto_defined == YES) {
-        g_append_tmp = calloc(1, sizeof(struct append_section));
-        if (g_append_tmp == NULL) {
+      if (appendto_defined == YES || after_defined == YES) {
+        g_after_tmp = calloc(1, sizeof(struct after_section));
+        if (g_after_tmp == NULL) {
           fprintf(stderr, "%s:%d: LOAD_FILES: Out of memory error.\n", argv[argc - 2], line);
           fclose(fop);
           return FAILED;
         }
-        g_append_tmp->section_s = NULL;
-        g_append_tmp->append_to_s = NULL;
-        g_append_tmp->section_id = -1;
-        g_append_tmp->file_id = -1;
-        strcpy(g_append_tmp->section, g_sec_fix_tmp->name);
-        strcpy(g_append_tmp->append_to, appendto_name);
-        g_append_tmp->next = g_append_sections;
-        g_append_sections = g_append_tmp;
+        g_after_tmp->alive = YES;
+        g_after_tmp->inserted = NO;
+        g_after_tmp->section_s = NULL;
+        g_after_tmp->after_s = NULL;
+        g_after_tmp->section_id = -1;
+        g_after_tmp->file_id = -1;
+        if (appendto_defined == YES) {
+          g_after_tmp->is_appendto = YES;
+          strcpy(g_after_tmp->after, appendto_name);
+        }
+        else {
+          g_after_tmp->is_appendto = NO;
+          strcpy(g_after_tmp->after, after_name);
+        }
+        strcpy(g_after_tmp->section, g_sec_fix_tmp->name);
+        g_after_tmp->next = g_after_sections;
+        g_after_sections = g_after_tmp;
       }
 
       g_sec_fix_tmp->priority_defined = priority_defined;

@@ -501,11 +501,12 @@ struct definition {
   int    size;
 };
 
-struct append_section {
+struct after_section {
   char  alive;
+  char  is_appendto;
   struct section_def *section;
-  char append_to[MAX_NAME_LENGTH + 1];
-  struct append_section *next;
+  char  after[MAX_NAME_LENGTH + 1];
+  struct after_section *next;
 };
 
 struct macro_argument {

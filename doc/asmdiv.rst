@@ -2962,6 +2962,13 @@ It is also possible to merge two or more sections using ``APPENDTO``::
     .DB 1
     .ENDS
 
+And you can force a section to be placed after another section, with an
+offset::
+
+    .SECTION "Follower" OFFSET 32 AFTER "Base"
+    .DB 111
+    .ENDS
+    
 This is not a compulsory directive.
 
 

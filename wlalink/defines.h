@@ -90,14 +90,25 @@ struct object_file {
   struct object_file *next;
 };
 
-struct append_section {
+struct after_section {
   int section_id;
   int file_id;
   char section[MAX_NAME_LENGTH + 1];
-  char append_to[MAX_NAME_LENGTH + 1];
+  char after[MAX_NAME_LENGTH + 1];
+  char is_appendto;
+  char alive;
+  char inserted;
   struct section *section_s;
-  struct section *append_to_s;
-  struct append_section *next;
+  struct section *after_s;
+  struct after_section *next;
+};
+
+struct sort_capsule {
+  char alive;
+  struct section *section;
+  struct after_section *after_section;
+  struct sort_capsule *next, *prev;
+  struct sort_capsule *children;
 };
 
 #define LABEL_STATUS_LABEL      0
@@ -168,10 +179,13 @@ struct section {
   int  offset;
   int  listfile_items;
   int  *listfile_ints;
+  char marked;
+  char placed;
   char *listfile_cmds;
   unsigned char *data;
   struct namespace_def *nspace;
   struct map_t *label_map;
+  struct section *after;
   struct section *next;
   struct section *prev;
 };

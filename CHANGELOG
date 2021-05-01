@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------
 
-v9.13 (29-Apr-2021) [ALL] WARNING: Precedence of operators in calculations
+v9.13 (02-May-2021) [ALL] WARNING: Precedence of operators in calculations
                       that WLA calculates is now more fine grained and C like.
                     [ALL] WARNING: .ASC didn't map \0 and \x inside a string,
                       but now all bytes given to .ASC are mapped. Consider
@@ -17,7 +17,7 @@ v9.13 (29-Apr-2021) [ALL] WARNING: Precedence of operators in calculations
                     [ALL] It's possible to feed a definition's name to a
                       .MACRO by prefixing it with '@', e.g. @definition.
                     [ALL] Use ?1 inside a .MACRO to get the value of the
-                      definition given as argument 1.
+                      definition given as argument 1 (and prefixed with '@').
                     [ALL] Added support for nameless INSTANCEOFs in
                       .ENUMs, .STRUCTs and .RAMSECTIONs.
                     [ALL] Computations with 32-bit binary values with all 32
@@ -32,7 +32,7 @@ v9.13 (29-Apr-2021) [ALL] WARNING: Precedence of operators in calculations
                       arrays using .ARRAYDEFINE/.ARRAYDEF/.ARRAYIN/.ARRAYOUT.
                     [ALL] Added .ARRAYDB, .ARRAYDW, .ARRAYDL and .ARRAYDD.
                     [ALL] Added .BITS (like .DB but for bits) and .ENDBITS.
-                    [ALL] WLA assembles now "WLAE" library files and "WLAf"
+                    [ALL] WLA assembles now "WLAF" library files and "WLAg"
                       object files.
                     [ALL] Added .FILTER (same as .DBM, but doesn't define
                       any bytes).
@@ -54,6 +54,8 @@ v9.13 (29-Apr-2021) [ALL] WARNING: Precedence of operators in calculations
                       of a .MACRO (asked using e.g., '\?1').
                     [ALL] Added a flag "-k" that forces WLA to keep all
                       empty sections.
+                    [ALL] Added AFTER keyword to .SECTION and .RAMSECTION,
+                      which makes sections to be placed OFFSET bytes apart.
                     [SFX] Added Super FX support.
                     [GB ] Added alias "CPL A" (of "CPL").
                     [GB ] Added support for "STOP $01" - "STOP" with extra
@@ -1280,7 +1282,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.15 (11-Apr-2021) Fixed listfile writing when there is no listfile data
+v5.15 (02-May-2021) Fixed listfile writing when there is no listfile data
                       in object files.
                     It's possible to give binary values in [definitions].
                     Pending 32-bit calculations work now in bankheader
@@ -1293,6 +1295,8 @@ v5.15 (11-Apr-2021) Fixed listfile writing when there is no listfile data
                       "SECTIONEND_B" and "SECTIONSTART_B" are deleted.
                     Duplicate SECTIONEND_* and SECTIONSTART_* labels (for
                       sections with same names) are no longer renamed.
+                    Chaining APPENDTO sections works now, rewrote the
+                      APPENDTO/AFTER section sorter.
 
 v5.14 (20-Mar-2021) Fixed buggy symbol file name generation.
                     Fixed SMS checksum calculation if .SMSHEADER is not used.

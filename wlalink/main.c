@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.15a (28.4.2021)";
+char version_string[] = "$VER: wlalink 5.15a (2.5.2021)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -47,7 +47,7 @@ struct label **g_sorted_anonymous_labels = NULL;
 struct map_t *g_global_unique_label_map = NULL;
 struct map_t *g_namespace_map = NULL;
 struct slot g_slots[256];
-struct append_section *g_append_sections = NULL, *g_append_tmp;
+struct after_section *g_after_sections = NULL, *g_after_tmp;
 struct label_sizeof *g_label_sizeofs = NULL;
 struct section_fix *g_sec_fix_first = NULL, *g_sec_fix_tmp = NULL;
 unsigned char *g_rom, *g_rom_usage, *g_file_header = NULL, *g_file_footer = NULL;
@@ -791,11 +791,11 @@ void procedures_at_exit(void) {
     free(g_sec_fix_tmp);
   }
 
-  g_append_tmp = g_append_sections;
-  while (g_append_tmp != NULL) {
-    g_append_sections = g_append_tmp->next;
-    free(g_append_tmp);
-    g_append_tmp = g_append_sections;
+  g_after_tmp = g_after_sections;
+  while (g_after_tmp != NULL) {
+    g_after_sections = g_after_tmp->next;
+    free(g_after_tmp);
+    g_after_tmp = g_after_sections;
   }
 
   if (g_banksizes != NULL)

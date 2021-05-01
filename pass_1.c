@@ -104,7 +104,7 @@ struct slot g_slots[256];
 struct structure *g_structures_first = NULL;
 struct filepointer *g_filepointers = NULL;
 struct map_t *g_namespace_map = NULL;
-struct append_section *g_append_sections = NULL;
+struct after_section *g_after_sections = NULL;
 struct label_sizeof *g_label_sizeofs = NULL;
 struct block_name *g_block_names = NULL;
 struct stringmaptable *g_stringmaptables = NULL;
@@ -4612,23 +4612,24 @@ int directive_ramsection(void) {
   }
 
   if (compare_next_token("APPENDTO") == SUCCEEDED) {
-    struct append_section *append_tmp;
+    struct after_section *after_tmp;
     
     if (skip_next_token() == FAILED)
       return FAILED;
     
-    append_tmp = calloc(sizeof(struct append_section), 1);
-    if (append_tmp == NULL) {
+    after_tmp = calloc(sizeof(struct after_section), 1);
+    if (after_tmp == NULL) {
       snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new APPENDTO \"%s\".\n", g_tmp);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
 
-    append_tmp->alive = YES;
-      
+    after_tmp->alive = YES;
+    after_tmp->is_appendto = YES;
+    
     /* get the target section name */
     if (get_next_token() == FAILED) {
-      free(append_tmp);
+      free(after_tmp);
       return FAILED;
     }
 
@@ -4651,11 +4652,59 @@ int directive_ramsection(void) {
         return FAILED;
     }
     
-    append_tmp->section = g_sec_tmp;
-    strcpy(append_tmp->append_to, g_tmp);
+    after_tmp->section = g_sec_tmp;
+    strcpy(after_tmp->after, g_tmp);
 
-    append_tmp->next = g_append_sections;
-    g_append_sections = append_tmp;
+    after_tmp->next = g_after_sections;
+    g_after_sections = after_tmp;
+  }
+
+  if (compare_next_token("AFTER") == SUCCEEDED) {
+    struct after_section *after_tmp;
+    
+    if (skip_next_token() == FAILED)
+      return FAILED;
+    
+    after_tmp = calloc(sizeof(struct after_section), 1);
+    if (after_tmp == NULL) {
+      snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new AFTER \"%s\".\n", g_tmp);
+      print_error(g_error_message, ERROR_DIR);
+      return FAILED;
+    }
+
+    after_tmp->alive = YES;
+    after_tmp->is_appendto = NO;
+    
+    /* get the target section name */
+    if (get_next_token() == FAILED) {
+      free(after_tmp);
+      return FAILED;
+    }
+
+    /* add the namespace to the section's name? */
+    if (strlen(g_tmp) > 2 && g_tmp[0] == '*' && g_tmp[1] == ':') {
+      char buf[MAX_NAME_LENGTH + 1];
+      
+      /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
+      if (strlen(g_tmp) >= sizeof(buf)) {
+        snprintf(g_error_message, sizeof(g_error_message), "The AFTER string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
+        print_error(g_error_message, ERROR_DIR);
+        return FAILED;
+      }
+
+      strcpy(buf, &g_tmp[2]);
+      strcpy(g_tmp, buf);
+    }
+    else if (g_active_file_info_last->namespace[0] != 0) {
+      if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "AFTER") == FAILED)
+        return FAILED;
+    }
+    
+    after_tmp->section = g_sec_tmp;
+    strcpy(after_tmp->after, g_tmp);
+
+    after_tmp->next = g_after_sections;
+    g_after_sections = after_tmp;
   }
 
   if (compare_next_token("PRIORITY") == SUCCEEDED) {
@@ -4945,23 +4994,24 @@ int directive_section(void) {
   }
 
   if (compare_next_token("APPENDTO") == SUCCEEDED) {
-    struct append_section *append_tmp;
+    struct after_section *after_tmp;
 
     if (skip_next_token() == FAILED)
       return FAILED;
 
-    append_tmp = calloc(sizeof(struct append_section), 1);
-    if (append_tmp == NULL) {
+    after_tmp = calloc(sizeof(struct after_section), 1);
+    if (after_tmp == NULL) {
       snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new APPENDTO \"%s\".\n", g_tmp);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
 
-    append_tmp->alive = YES;
-        
+    after_tmp->alive = YES;
+    after_tmp->is_appendto = YES;
+    
     /* get the target section name */
     if (get_next_token() == FAILED) {
-      free(append_tmp);
+      free(after_tmp);
       return FAILED;
     }
 
@@ -4973,7 +5023,7 @@ int directive_section(void) {
       if (strlen(g_tmp) >= sizeof(buf)) {
         snprintf(g_error_message, sizeof(g_error_message), "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
         print_error(g_error_message, ERROR_DIR);
-        free(append_tmp);
+        free(after_tmp);
         return FAILED;
       }
 
@@ -4982,18 +5032,66 @@ int directive_section(void) {
     }
     else if (g_active_file_info_last->namespace[0] != 0) {
       if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "APPENDTO") == FAILED) {
-        free(append_tmp);
+        free(after_tmp);
         return FAILED;
       }
     }
     
-    append_tmp->section = g_sec_tmp;
-    strcpy(append_tmp->append_to, g_tmp);
+    after_tmp->section = g_sec_tmp;
+    strcpy(after_tmp->after, g_tmp);
 
-    append_tmp->next = g_append_sections;
-    g_append_sections = append_tmp;
+    after_tmp->next = g_after_sections;
+    g_after_sections = after_tmp;
   }
 
+  if (compare_next_token("AFTER") == SUCCEEDED) {
+    struct after_section *after_tmp;
+    
+    if (skip_next_token() == FAILED)
+      return FAILED;
+    
+    after_tmp = calloc(sizeof(struct after_section), 1);
+    if (after_tmp == NULL) {
+      snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new AFTER \"%s\".\n", g_tmp);
+      print_error(g_error_message, ERROR_DIR);
+      return FAILED;
+    }
+
+    after_tmp->alive = YES;
+    after_tmp->is_appendto = NO;
+    
+    /* get the target section name */
+    if (get_next_token() == FAILED) {
+      free(after_tmp);
+      return FAILED;
+    }
+
+    /* add the namespace to the section's name? */
+    if (strlen(g_tmp) > 2 && g_tmp[0] == '*' && g_tmp[1] == ':') {
+      char buf[MAX_NAME_LENGTH + 1];
+      
+      /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
+      if (strlen(g_tmp) >= sizeof(buf)) {
+        snprintf(g_error_message, sizeof(g_error_message), "The AFTER string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
+        print_error(g_error_message, ERROR_DIR);
+        return FAILED;
+      }
+
+      strcpy(buf, &g_tmp[2]);
+      strcpy(g_tmp, buf);
+    }
+    else if (g_active_file_info_last->namespace[0] != 0) {
+      if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "AFTER") == FAILED)
+        return FAILED;
+    }
+    
+    after_tmp->section = g_sec_tmp;
+    strcpy(after_tmp->after, g_tmp);
+
+    after_tmp->next = g_after_sections;
+    g_after_sections = after_tmp;
+  }
+  
   if (compare_next_token("PRIORITY") == SUCCEEDED) {
     if (skip_next_token() == FAILED)
       return FAILED;
