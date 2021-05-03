@@ -1237,9 +1237,76 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
   memset(g_expanded_macro_string, 0, MAX_NAME_LENGTH + 1);
 
   for (i = 0, k = 0; i < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; i++) {
-    if (in[i] == '\\') {
+    if (in[i] == '?' && in[i + 1] >= '1' && in[i + 1] <= '9') {
+      struct macro_argument *ma;
+      int d = 0;
+
+      (*expands)++;
+      i++;
+
+      for (; i < MAX_NAME_LENGTH && in[i] != 0; i++) {
+        if (in[i] >= '0' && in[i] <= '9')
+          d = (d * 10) + in[i] - '0';
+        else
+          break;
+      }
+      i--;
+
+      if (d <= 0 || d > g_macro_runtime_current->supplied_arguments) {
+        if (g_input_number_error_msg == YES) {
+          snprintf(g_xyz, sizeof(g_xyz), "EXPAND_MACRO_ARGUMENTS: Macro \"%s\" wasn't called with enough arguments, ?%d is out of range.\n", g_macro_runtime_current->macro->name, d);
+          print_error(g_xyz, ERROR_NUM);
+        }
+    
+        return FAILED;
+      }
+
+      /* use the macro argument to find its definition */
+      ma = g_macro_runtime_current->argument_data[d - 1];
+
+      if (ma->type == INPUT_NUMBER_ADDRESS_LABEL) {
+        strcpy(g_label, ma->string);
+
+        hashmap_get(g_defines_map, g_label, (void*)&g_tmp_def);
+        if (g_tmp_def != NULL) {
+          int type = _input_number_return_definition(g_tmp_def);
+
+          if (type == SUCCEEDED)
+            snprintf(t, sizeof(t), "%d", g_parsed_int);
+          else if (type == INPUT_NUMBER_ADDRESS_LABEL)
+            strcpy(t, g_label);
+          else if (type == INPUT_NUMBER_STRING)
+            strcpy(t, g_label);
+          else {
+            print_error("The definition cannot be converted to a string.\n", ERROR_ERR);
+            return FAILED;
+          }
+        
+          for (j = 0; j < MAX_NAME_LENGTH && k < MAX_NAME_LENGTH; j++, k++) {
+            g_expanded_macro_string[k] = t[j];
+            if (t[j] == 0)
+              break;
+          }
+        }
+        else {
+          snprintf(g_xyz, sizeof(g_xyz), "Cannot find definition for \"%s\".\n", g_label);
+          print_error(g_xyz, ERROR_NUM);
+          return FAILED;
+        }
+      }
+      else {
+        print_error("? can be only used to evaluate definitions.\n", ERROR_ERR);
+        return FAILED;
+      }
+    }
+    else if (in[i] == '\\') {
       if (in[i + 1] == '"' || in[i + 1] == 'n' || in[i + 1] == '\\' || in[i + 1] == 'r' || in[i + 1] == 't' || in[i + 1] == 'x' || in[i + 1] == '0') {
         g_expanded_macro_string[k++] = in[i];
+        i++;
+        g_expanded_macro_string[k++] = in[i];
+      }
+      /* HACK: "\?1" question works only at the beginning of a string, elsewhere "\?" -> "?" */
+      else if (i > 0 && in[i + 1] == '?') {
         i++;
         g_expanded_macro_string[k++] = in[i];
       }

@@ -67,3 +67,31 @@ label_\1:
         db_string "HI", 1       ; @BT 01 42 48 49 00 31
         .db "<07"
         
+
+        
+.MACRO make_rst
+  .ORG (?1 * $0003 + $203)
+  .SECTION "BOOT_RESET_\1_?1" SIZE $0003 FORCE KEEP
+boot_rst_\1_?1:
+      .db "\1_?1"
+  .ENDS
+.ENDM
+
+        .org $200
+        .db "08>"
+
+        .REPEAT 8 INDEX I
+        make_rst @I
+        .ENDR
+
+        .db "<08"
+        
+
+        .macro string_macro
+        .db "\\1\?1"
+        .endm
+        
+        .db "09>"
+        string_macro @I
+        .db "<09"
+        

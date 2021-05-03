@@ -103,15 +103,14 @@ HelloStart:
 .macro .differentThings1
         .if \?1 == ARG_NUMBER
 	        .db 1
-        .endif
-        .if \?1 == ARG_STRING
+        .elif \?1 == ARG_STRING
 	        .db 2
-        .endif
-        .if \?1 == ARG_LABEL
+        .elif \?1 == ARG_LABEL
 	        .db 3
-        .endif
-        .if \?1 == ARG_PENDING_CALCULATION
+        .elif \?1 == ARG_PENDING_CALCULATION
 	        .db 4
+        .else
+                .fail "WLA IS BROKEN!"
         .endif
 .endm
         
