@@ -1553,7 +1553,7 @@ int process_string_for_special_characters(char *label, int *string_size) {
   int size, read, write;
 
   if (string_size == NULL)
-    size = strlen(label);
+    size = (int)strlen(label);
   else
     size = *string_size;
   
