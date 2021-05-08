@@ -116,6 +116,7 @@ extern int g_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_be
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
 extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
 extern int g_create_sizeof_definitions, g_input_allow_leading_hashtag, g_input_has_leading_hashtag, g_input_allow_leading_at;
+extern int g_plus_and_minus_ends_label;
 extern FILE *g_file_out_ptr;
 extern double g_parsed_double;
 extern char *g_final_name;
@@ -5317,8 +5318,66 @@ int directive_ftell(void) {
   if (get_next_token() == FAILED)
     return FAILED;
 
-  if (add_a_new_definition(g_tmp, (double)b, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+  if (redefine(g_tmp, (double)b, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
+
+  return SUCCEEDED;
+}
+
+
+int directive_fseek(void) {
+  
+  struct filepointer *f;
+  long position;
+  int mode;
+
+  /* get the file pointer name */
+  g_expect_calculations = NO;
+  g_plus_and_minus_ends_label = YES;
+  if (input_number() != INPUT_NUMBER_ADDRESS_LABEL) {
+    print_error(".FSEEK needs file pointer name.\n", ERROR_DIR);
+    return FAILED;
+  }
+  g_expect_calculations = YES;
+  g_plus_and_minus_ends_label = NO;
+  
+  /* fetch the file pointer */
+  f = g_filepointers;
+  while (f != NULL) {
+    if (strcmp(g_label, f->name) == 0)
+      break;
+    f = f->next;
+  }
+
+  if (f == NULL) {
+    snprintf(g_error_message, sizeof(g_error_message), "Couldn't find filepointer \"%s\".\n", g_label);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+
+  /* get the seek size */
+  if (input_number() != SUCCEEDED) {
+    print_error(".FSEEK needs immediate value for offset.\n", ERROR_DIR);
+    return FAILED;
+  }
+
+  position = g_parsed_int;
+
+  /* get mode (START/END/CURRENT) */
+  if (compare_next_token("START") == SUCCEEDED)
+    mode = SEEK_SET;
+  else if (compare_next_token("END") == SUCCEEDED)
+    mode = SEEK_END;
+  else if (compare_next_token("CURRENT") == SUCCEEDED)
+    mode = SEEK_CUR;
+  else {
+    print_error(".FSEEK needs mode (START/CURRENT/END).\n", ERROR_DIR);
+    return FAILED;
+  }
+  
+  skip_next_token();
+  
+  fseek(f->f, position, mode);
 
   return SUCCEEDED;
 }
@@ -9478,6 +9537,11 @@ int parse_directive(void) {
   
   if (strcaselesscmp(g_current_directive, "FTELL") == 0)
     return directive_ftell();
+
+  /* FSEEK */
+
+  if (strcaselesscmp(g_current_directive, "FSEEK") == 0)
+    return directive_fseek();
   
   /* BLOCK */
 

@@ -95,20 +95,52 @@ boot_rst_\1_?1:
         string_macro @I
         .db "<09"
 
-
-    .db "10>"
-    .fopen "data.bin" fp
-    .fsize fp t
-    .repeat t
-    .fread fp d
-    .db d
-    .endr
-    .undefine t, d
-    .db "<10"
+        .db "10>"
+        .fopen "data.bin" fp
+        .fsize fp t
+        .repeat t
+        .fread fp d
+        .db d
+        .endr
+        .undefine t, d
+        .db "<10"
 
         .ftell fp fp_position
         .if fp_position != 3
         .fail "fp_position should be 3!"
         .endif
         .fclose fp
+
+        .macro read_data
+        .fread \1 d
+        .db d
+        .fread \1 d
+        .db d
+        .fread \1 d
+        .db d
+        .fseek \1 1 start
+        .fread \1 d
+        .db d
+        .ftell \1 fp_position
+        .if fp_position != 2
+        .fail "fp_position should be 2!"
+        .endif
+        .fseek \1 -3 end
+        .fread \1 d
+        .db d
+        .fseek \1 1 current
+        .fread \1 d
+        .db d
+        .ftell \1 fp_position
+        .if fp_position != 3
+        .fail "fp_position should be 3!"
+        .endif
+        .endm
+        
+        .db "11>"
+        .fopen "data.bin" fp
+        read_data fp
+        .fclose fp
+        .undefine d
+        .db "<11"
         

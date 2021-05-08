@@ -148,6 +148,7 @@ ALL  ``.FCLOSE FP_DATABIN``
 ALL  ``.FILTER filtermacro 1, 2, "encrypt me"``
 ALL  ``.FOPEN "data.bin" FP_DATABIN``
 ALL  ``.FREAD FP_DATABIN DATA``
+ALL  ``.FSEEK FP_DATABIN 10 START``
 ALL  ``.FSIZE FP_DATABIN SIZE``
 ALL  ``.FTELL FP_DATABIN POSITION``
 ALL  ``.HEX "a0A0ffDE"``
@@ -1621,6 +1622,19 @@ Here's an example on how to use ``.FREAD``::
     .db d+26
     .endr
     .undefine t, d
+
+This is not a compulsory directive.
+
+
+``.FSEEK FP_DATABIN 10 START``
+------------------------------
+
+Sets the file position of the given file pointer. There are three modes::
+
+    .FSEEK FP_DATABIN 10 START   ; 10 bytes from the beginning of the file
+    .FSEEK FP_DATABIN -10 END    ; 10 bytes before the end of the file
+    .FSEEK FP_DATABIN 10 CURRENT ; 10 bytes forward from the current
+                                 ; position
 
 This is not a compulsory directive.
 

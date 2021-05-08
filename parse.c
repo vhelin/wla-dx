@@ -15,7 +15,9 @@
 
 int parse_string_length(char *end);
 
-int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OFF, g_parse_floats = YES, g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO, g_input_allow_leading_at = NO;
+int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OFF, g_parse_floats = YES;
+int g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO;
+int g_input_allow_leading_at = NO, g_plus_and_minus_ends_label = NO;
 int g_newline_beginning = ON, g_parsed_double_decimal_numbers = 0, g_operand_hint, g_operand_hint_type;
 char g_label[MAX_NAME_LENGTH + 1], g_xyz[512];
 char g_unevaluated_expression[256];
@@ -865,6 +867,10 @@ int input_number(void) {
   for (k = 1; k < MAX_NAME_LENGTH; k++) {
     e = g_buffer[g_source_pointer++];
     if (e == 0x0A || e == ')' || e == ',' || e == ']') {
+      g_source_pointer--;
+      break;
+    }
+    if (g_plus_and_minus_ends_label == YES && (e == '-' || e == '+')) {
       g_source_pointer--;
       break;
     }

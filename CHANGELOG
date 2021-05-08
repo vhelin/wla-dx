@@ -57,6 +57,7 @@ v9.13 (08-May-2021) [ALL] WARNING: Precedence of operators in calculations
                     [ALL] Added AFTER keyword to .SECTION and .RAMSECTION,
                       which makes sections to be placed OFFSET bytes apart.
                     [ALL] Added .FTELL (get the file position).
+                    [ALL] Added .FSEEK (set the file position).
                     [SFX] Added Super FX support.
                     [GB ] Added alias "CPL A" (of "CPL").
                     [GB ] Added support for "STOP $01" - "STOP" with extra
