@@ -105,3 +105,10 @@ boot_rst_\1_?1:
     .endr
     .undefine t, d
     .db "<10"
+
+        .ftell fp fp_position
+        .if fp_position != 3
+        .fail "fp_position should be 3!"
+        .endif
+        .fclose fp
+        

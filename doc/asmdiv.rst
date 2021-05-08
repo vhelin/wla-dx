@@ -149,6 +149,7 @@ ALL  ``.FILTER filtermacro 1, 2, "encrypt me"``
 ALL  ``.FOPEN "data.bin" FP_DATABIN``
 ALL  ``.FREAD FP_DATABIN DATA``
 ALL  ``.FSIZE FP_DATABIN SIZE``
+ALL  ``.FTELL FP_DATABIN POSITION``
 ALL  ``.HEX "a0A0ffDE"``
 ALL  ``.IF DEBUG == 2``
 ALL  ``.IFDEF IF``
@@ -1630,6 +1631,16 @@ This is not a compulsory directive.
 Creates a definition called ``SIZE``, which holds the size of the file
 associated with the filehandle ``FP_DATABIN``. ``SIZE`` is an ordinary
 definition label, so you can ``.UNDEFINE`` it.
+
+This is not a compulsory directive.
+
+
+``.FTELL FP_DATABIN POSITION``
+------------------------------
+
+Creates a definition called ``POSITION``, which holds the file position
+of the file associated with the filehandle ``FP_DATABIN``. ``POSITION``
+is an ordinary definition label, so you can ``.UNDEFINE`` it.
 
 This is not a compulsory directive.
 

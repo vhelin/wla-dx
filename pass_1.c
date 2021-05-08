@@ -5282,6 +5282,48 @@ int directive_fsize(void) {
 }
 
 
+int directive_ftell(void) {
+  
+  struct filepointer *f;
+  long b;
+
+  /* get the file pointer name */
+  if (get_next_token() == FAILED)
+    return FAILED;
+
+  /* fetch the file pointer */
+  f = g_filepointers;
+  while (f != NULL) {
+    if (strcmp(g_tmp, f->name) == 0)
+      break;
+    f = f->next;
+  }
+
+  if (f == NULL) {
+    snprintf(g_error_message, sizeof(g_error_message), "Couldn't find filepointer \"%s\".\n", g_tmp);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+
+  b = ftell(f->f);
+
+  if (b < 0) {
+    snprintf(g_error_message, sizeof(g_error_message), "Error getting ftell(%s).\n", g_tmp);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+
+  /* get the definition label */
+  if (get_next_token() == FAILED)
+    return FAILED;
+
+  if (add_a_new_definition(g_tmp, (double)b, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+    return FAILED;
+
+  return SUCCEEDED;
+}
+
+
 int directive_fread(void) {
   
   struct filepointer *f;
@@ -9432,6 +9474,11 @@ int parse_directive(void) {
   if (strcaselesscmp(g_current_directive, "FREAD") == 0)
     return directive_fread();
 
+  /* FTELL */
+  
+  if (strcaselesscmp(g_current_directive, "FTELL") == 0)
+    return directive_ftell();
+  
   /* BLOCK */
 
   if (strcaselesscmp(g_current_directive, "BLOCK") == 0)

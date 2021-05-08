@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------
 
-v9.13 (02-May-2021) [ALL] WARNING: Precedence of operators in calculations
+v9.13 (08-May-2021) [ALL] WARNING: Precedence of operators in calculations
                       that WLA calculates is now more fine grained and C like.
                     [ALL] WARNING: .ASC didn't map \0 and \x inside a string,
                       but now all bytes given to .ASC are mapped. Consider
@@ -56,6 +56,7 @@ v9.13 (02-May-2021) [ALL] WARNING: Precedence of operators in calculations
                       empty sections.
                     [ALL] Added AFTER keyword to .SECTION and .RAMSECTION,
                       which makes sections to be placed OFFSET bytes apart.
+                    [ALL] Added .FTELL (get the file position).
                     [SFX] Added Super FX support.
                     [GB ] Added alias "CPL A" (of "CPL").
                     [GB ] Added support for "STOP $01" - "STOP" with extra
