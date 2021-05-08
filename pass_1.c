@@ -5304,7 +5304,11 @@ int directive_fread(void) {
     return FAILED;
   }
 
-  fscanf(f->f, "%c", &c);
+  if (fscanf(f->f, "%c", &c) <= 0) {
+    snprintf(g_error_message, sizeof(g_error_message), ".FREAD couldn't read a byte from file \"%s\" (%s).\n", f->filename, g_tmp);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
 
   /* get the definition label */
   if (get_next_token() == FAILED)
@@ -7107,7 +7111,10 @@ int directive_input(void) {
   if (get_next_token() == FAILED)
     return FAILED;
 
-  fgets(k, 254, stdin);
+  if (fgets(k, 254, stdin) == NULL) {
+    print_error(".INPUT needs some data.\n", ERROR_DIR);
+    return FAILED;
+  }
 
   for (j = 0; j < 254; j++) {
     if (k[j] == 0)

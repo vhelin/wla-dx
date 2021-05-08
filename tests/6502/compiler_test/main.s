@@ -94,4 +94,14 @@ boot_rst_\1_?1:
         .db "09>"
         string_macro @I
         .db "<09"
-        
+
+
+    .db "10>"
+    .fopen "data.bin" fp
+    .fsize fp t
+    .repeat t
+    .fread fp d
+    .db d
+    .endr
+    .undefine t, d
+    .db "<10"
