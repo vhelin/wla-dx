@@ -169,7 +169,7 @@ int discard_iteration(void) {
 
 
 /* drop labels that are inside discarded sections */
-int discard_drop_labels(void) {
+int discard_dropped_labels(void) {
 
   struct section *s;
   struct label *l;

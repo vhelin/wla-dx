@@ -4,6 +4,6 @@
 
 int discard_unused_sections(void);
 int discard_iteration(void);
-int discard_drop_labels(void);
+int discard_dropped_labels(void);
 
 #endif

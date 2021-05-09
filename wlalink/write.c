@@ -32,7 +32,7 @@ extern struct slot g_slots[256];
 extern struct label_sizeof *g_label_sizeofs;
 extern unsigned char *g_rom, *g_rom_usage;
 extern unsigned char *g_file_header, *g_file_footer;
-extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
+extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024], **g_ram_slots[256];
 extern char g_load_address_label[MAX_NAME_LENGTH + 1];
 extern char g_program_address_start_label[MAX_NAME_LENGTH + 1], g_program_address_end_label[MAX_NAME_LENGTH + 1];
 extern int g_load_address, g_load_address_type;
@@ -375,34 +375,30 @@ static int _insert_rom_after_section(struct section *s) {
 
 int insert_sections(void) {
 
-  int d, f, i, x, t, q, p;
-  char **ram_slots[256], *c;
+  int d, f, i, x, t, q;
   struct section *s;
-
-  /* initialize ram slots */
-  for (i = 0; i < 256; i++)
-    ram_slots[i] = NULL;
+  char *c;
 
   /* find all touched slots */
   s = g_sec_first;
   while (s != NULL) {
     if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE || s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
-      if (ram_slots[s->bank] == NULL) {
-        ram_slots[s->bank] = calloc(sizeof(char *) * 256, 1);
-        if (ram_slots[s->bank] == NULL) {
+      if (g_ram_slots[s->bank] == NULL) {
+        g_ram_slots[s->bank] = calloc(sizeof(char *) * 256, 1);
+        if (g_ram_slots[s->bank] == NULL) {
           fprintf(stderr, "INSERT_SECTIONS: Out of memory error.\n");
           return FAILED;
         }
         for (i = 0; i < 256; i++)
-          ram_slots[s->bank][i] = NULL;
+          g_ram_slots[s->bank][i] = NULL;
       }
-      if (ram_slots[s->bank][s->slot] == NULL) {
-        ram_slots[s->bank][s->slot] = calloc(g_slots[s->slot].size, 1);
-        if (ram_slots[s->bank][s->slot] == NULL) {
+      if (g_ram_slots[s->bank][s->slot] == NULL) {
+        g_ram_slots[s->bank][s->slot] = calloc(g_slots[s->slot].size, 1);
+        if (g_ram_slots[s->bank][s->slot] == NULL) {
           fprintf(stderr, "INSERT_SECTIONS: Out of memory error.\n");
           return FAILED;
         }
-        memset(ram_slots[s->bank][s->slot], 0, g_slots[s->slot].size);
+        memset(g_ram_slots[s->bank][s->slot], 0, g_slots[s->slot].size);
       }
     }
 
@@ -426,11 +422,11 @@ int insert_sections(void) {
       address += overflow;
       address += s->offset;
 
-      c = ram_slots[s->bank][s->slot];
+      c = g_ram_slots[s->bank][s->slot];
       slot_size = g_slots[s->slot].size;
       if (s->after != NULL) {
         /* AFTER section override! */
-        if (_after_section_override_ram(s, ram_slots, &address) == FAILED)
+        if (_after_section_override_ram(s, g_ram_slots, &address) == FAILED)
           return FAILED;
       }
       else {
@@ -465,11 +461,11 @@ int insert_sections(void) {
 
       address += overflow;
 
-      c = ram_slots[s->bank][s->slot];
+      c = g_ram_slots[s->bank][s->slot];
       max_address = s->address;
       if (s->after != NULL) {
         /* AFTER section override! */
-        if (_after_section_override_ram(s, ram_slots, &address) == FAILED)
+        if (_after_section_override_ram(s, g_ram_slots, &address) == FAILED)
           return FAILED;
       }
       else {
@@ -517,11 +513,11 @@ int insert_sections(void) {
 
       address += overflow;
 
-      c = ram_slots[s->bank][s->slot];
+      c = g_ram_slots[s->bank][s->slot];
       slot_size = g_slots[s->slot].size;
       if (s->after != NULL) {
         /* AFTER section override! */
-        if (_after_section_override_ram(s, ram_slots, &address) == FAILED)
+        if (_after_section_override_ram(s, g_ram_slots, &address) == FAILED)
           return FAILED;
       }
       else {
@@ -554,20 +550,6 @@ int insert_sections(void) {
     }
 
     s = s->next;
-  }
-
-  /* free tmp memory */
-  for (i = 0; i < 256; i++) {
-    if (ram_slots[i] != NULL) {
-      for (p = 0; p < 256; p++) {
-        if (ram_slots[i][p] != NULL) {
-          free(ram_slots[i][p]);
-          ram_slots[i][p] = NULL;
-        }
-      }
-      free(ram_slots[i]);
-      ram_slots[i] = NULL;
-    }
   }
 
   /*******************************************************************************************/
@@ -3541,6 +3523,89 @@ int is_label_ok_for_sizeof(char *label) {
     return NO;
   
   return YES;
+}
+
+
+static int _create_ram_bank_usage_label(int bank, int slot, char *slot_name, char *start_or_end, int address) {
+
+  struct label *l;
+
+  /* create symbols */
+  l = calloc(1, sizeof(struct label));
+  if (l == NULL) {
+    fprintf(stderr, "CREATE_RAM_BANK_USAGE_SYMBOL: Out of memory error.\n");
+    return FAILED;
+  }
+  
+  snprintf(l->name, sizeof(l->name), "RAM_USAGE_SLOT_%s_BANK_%d_%s", slot_name, bank, start_or_end);
+
+  l->status = LABEL_STATUS_LABEL;
+  l->alive = YES;
+  l->address = address;
+  l->rom_address = (int)address;
+  l->base = 0;
+  l->bank = bank;
+  l->slot = slot;
+  l->file_id = -1;
+
+  l->section_status = OFF;
+  l->section_struct = NULL;
+  l->section = -1;
+
+  if (insert_label_into_maps(l, 1) == FAILED)
+    return FAILED;
+
+  add_label(l);
+
+  return SUCCEEDED;
+}
+
+
+/* generate RAM bank usage labels (RAM_USAGE_SLOT_x_BANK_y_START + RAM_USAGE_SLOT_x_BANK_y_END) */
+int generate_ram_bank_usage_labels(void) {
+
+  int bank, slot, min, max, i;
+  char *slot_usage_data, slot_name[MAX_NAME_LENGTH+1];
+
+  for (bank = 0; bank < 256; bank++) {
+    if (g_ram_slots[bank] == NULL)
+      continue;
+
+    for (slot = 0; slot < 256; slot++) {
+      slot_usage_data = g_ram_slots[bank][slot];
+      if (slot_usage_data == NULL)
+        continue;
+
+      min = -1;
+      max = -1;
+
+      /* find min and max used addresses of the bank/slot */
+      for (i = 0; i < g_slots[slot].size; i++) {
+        if (slot_usage_data[i] > 0) {
+          if (min < 0)
+            min = i;
+          max = i;
+        }
+      }
+
+      /* not used? */
+      if (min < 0)
+        continue;
+
+      /* get slot name */
+      if (g_slots[slot].name[0] != 0)
+        snprintf(slot_name, sizeof(slot_name), "%s", g_slots[slot].name);
+      else
+        snprintf(slot_name, sizeof(slot_name), "%d", slot);
+
+      if (_create_ram_bank_usage_label(bank, slot, slot_name, "START", min + g_slots[slot].address) == FAILED)
+        return FAILED;
+      if (_create_ram_bank_usage_label(bank, slot, slot_name, "END", max + g_slots[slot].address) == FAILED)
+        return FAILED;
+    }
+  }
+  
+  return SUCCEEDED;
 }
 
 

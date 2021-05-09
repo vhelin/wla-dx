@@ -38,8 +38,8 @@ contains the current 16-bit memory address. So
 will load the address of the operand data into registers ``H`` and ``L``.
 
 **CAVEAT**:
-Remember when using defines that ``CADDR`` gets the address of the place where
-the definition is used, not the address of the definition, which contains
+Remember when using defines that contain ``CADDR`` gets the address of the place
+where the definition is used, not the address of the definition, which contains
 the ``CADDR``.
 
 Note that you'll also get all these definitions in lower case

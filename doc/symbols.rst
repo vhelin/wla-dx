@@ -27,7 +27,7 @@ The following are the list of currently supported sections, what they mean, and 
 [labels]
 ********
 
-This is a list of all Labels to sections of the ROM, such as subroutine locations, or data locations. Each line lists an address in hexadecimal (bank and offset) and a string associated with that address. This data could be used, for example, to identify what section a given target address is in, by searching for the label with the closest address less than the target address.
+This is a list of all labels to sections of the ROM, such as subroutine locations, or data locations. Each line lists an address in hexadecimal (bank and offset) and a string associated with that address. This data could be used, for example, to identify what section a given target address is in, by searching for the label with the closest address less than the target address.
 
 - Regex match: ``[0-9a-fA-F]{2}:[0-9a-fA-F]{4} .*``
 - Format specifier: ``%2x:%4x %s``

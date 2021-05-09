@@ -1284,7 +1284,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.15 (02-May-2021) Fixed listfile writing when there is no listfile data
+v5.15 (09-May-2021) Fixed listfile writing when there is no listfile data
                       in object files.
                     It's possible to give binary values in [definitions].
                     Pending 32-bit calculations work now in bankheader
@@ -1299,6 +1299,11 @@ v5.15 (02-May-2021) Fixed listfile writing when there is no listfile data
                       sections with same names) are no longer renamed.
                     Chaining APPENDTO sections works now, rewrote the
                       APPENDTO/AFTER section sorter.
+                    WLALINK now creates symbols RAM_USAGE_SLOT_x_BANK_y_START
+                      and RAM_USAGE_SLOT_x_BANK_y_END that contain the
+                      addresses of the first and last used bytes in RAM
+                      slots/banks. Information is calculated using
+                      .RAMSECTIONs.
 
 v5.14 (20-Mar-2021) Fixed buggy symbol file name generation.
                     Fixed SMS checksum calculation if .SMSHEADER is not used.

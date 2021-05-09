@@ -169,6 +169,13 @@ following example::
 Here duplicate ``INIT_LEVEL`` labels are accepted as they both point to the
 same memory address (in the program's point of view).
 
+Note that when you use .RAMSECTIONs, WLALINK will generate labels
+RAM_USAGE_SLOT_[slot name/id]_BANK_[bank number]_START and
+RAM_USAGE_SLOT_[slot name/id]_BANK_[bank number]_END that contain the
+addresses of the first and last used byte in the RAM bank/slot. Note that
+this only uses .RAMSECTION information to calculate the addresses, not
+.ENUMs or anything else.
+
 Examples::
 
     [seravy@localhost tbp]# wlalink -r linkfile testa.sfc

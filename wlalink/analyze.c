@@ -411,8 +411,12 @@ int obtain_memorymap(void) {
   struct slot s[256];
 
   
-  for (i = 0; i < 256; i++)
+  for (i = 0; i < 256; i++) {
     g_slots[i].usage = OFF;
+    g_slots[i].name[0] = 0;
+    g_slots[i].address = 0;
+    g_slots[i].size = 0;
+  }
 
   o = g_obj_first;
   while (o != NULL) {

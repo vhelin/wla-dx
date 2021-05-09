@@ -172,3 +172,15 @@ scroll_y  DB
 player_x: DW
 player_y: DW
 .ENDE
+
+        // not a real test, but good for checking that these labels exist
+        .db "XX>"
+        .dw RAM_USAGE_SLOT_0_BANK_0_START
+        .dw RAM_USAGE_SLOT_0_BANK_0_END
+        .dw RAM_USAGE_SLOT_3_BANK_0_START
+        .dw RAM_USAGE_SLOT_3_BANK_0_END
+        .dw RAM_USAGE_SLOT_4_BANK_1_START
+        .dw RAM_USAGE_SLOT_4_BANK_1_END
+        .dw RAM_USAGE_SLOT_5_BANK_127_START
+        .dw RAM_USAGE_SLOT_5_BANK_127_END
+        .db "<XX"

@@ -2,7 +2,7 @@
 CC = wla-z80
 CFLAGS = -x -o
 LD = wlalink
-LDFLAGS = -v -d -s
+LDFLAGS = -v -d -S
 
 SFILES = sms.s
 IFILES = 

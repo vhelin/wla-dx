@@ -6,9 +6,9 @@
         .ENDME
 
         .ROMBANKMAP
-           BANKSTOTAL 1
+           BANKSTOTAL 2
            BANKSIZE $2000
-           BANKS 1
+           BANKS 2
         .ENDRO
 
         .BANK 00  SLOT 0
