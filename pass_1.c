@@ -115,7 +115,7 @@ extern int g_size, g_input_number_error_msg, g_verbose_mode, g_output_format, g_
 extern int g_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations;
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
 extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
-extern int g_create_sizeof_definitions, g_input_allow_leading_hashtag, g_input_has_leading_hashtag, g_input_allow_leading_at;
+extern int g_create_sizeof_definitions, g_input_allow_leading_hashtag, g_input_has_leading_hashtag, g_input_allow_leading_ampersand;
 extern int g_plus_and_minus_ends_label;
 extern FILE *g_file_out_ptr;
 extern double g_parsed_double;
@@ -789,10 +789,10 @@ int pass_1(void) {
 
         o = g_source_pointer;
         g_input_allow_leading_hashtag = YES;
-        g_input_allow_leading_at = YES;
+        g_input_allow_leading_ampersand = YES;
         q = input_number();
         g_input_allow_leading_hashtag = NO;
-        g_input_allow_leading_at = NO;
+        g_input_allow_leading_ampersand = NO;
         if (q == INPUT_NUMBER_EOL)
           break;
 

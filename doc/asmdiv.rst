@@ -2240,7 +2240,7 @@ Here's another useful example::
     .REDEFINE \1 = ?1 + 1      ; \1 here is the definition's name,
     .ENDM                      ; and ?1 is its value.
 
-    REDEFINER @DEFINITION_A    ; here we feed the definition's name
+    REDEFINER &DEFINITION_A    ; here we feed the definition's name
                                ; as first argument, not it's value
 
 This is not a compulsory directive.

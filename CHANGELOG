@@ -15,7 +15,7 @@ v9.13 (08-May-2021) [ALL] WARNING: Precedence of operators in calculations
                     [ALL] ASC() has now wider input support: e.g., ASC('\n')
                       and ASC($D) work.
                     [ALL] It's possible to feed a definition's name to a
-                      .MACRO by prefixing it with '@', e.g. @definition.
+                      .MACRO by prefixing it with '&', e.g. &definition.
                     [ALL] Use ?1 inside a .MACRO to get the value of the
                       definition given as argument 1 (and prefixed with '@').
                     [ALL] Added support for nameless INSTANCEOFs in

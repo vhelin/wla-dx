@@ -81,7 +81,7 @@ boot_rst_\1_?1:
         .db "08>"
 
         .REPEAT 8 INDEX I
-        make_rst @I
+        make_rst &I
         .ENDR
 
         .db "<08"
@@ -92,7 +92,7 @@ boot_rst_\1_?1:
         .endm
         
         .db "09>"
-        string_macro @I
+        string_macro &I
         .db "<09"
 
         .db "10>"

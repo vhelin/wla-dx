@@ -17,7 +17,7 @@ int parse_string_length(char *end);
 
 int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OFF, g_parse_floats = YES;
 int g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO;
-int g_input_allow_leading_at = NO, g_plus_and_minus_ends_label = NO;
+int g_input_allow_leading_ampersand = NO, g_plus_and_minus_ends_label = NO;
 int g_newline_beginning = ON, g_parsed_double_decimal_numbers = 0, g_operand_hint, g_operand_hint_type;
 char g_label[MAX_NAME_LENGTH + 1], g_xyz[512];
 char g_unevaluated_expression[256];
@@ -284,7 +284,7 @@ int input_number(void) {
 
   char label_tmp[MAX_NAME_LENGTH + 1];
   unsigned char e, ee;
-  int k, p, q, spaces = 0, curly_braces = 0, check_if_a_definition = YES;
+  int k, p, q, spaces = 0, curly_braces = 0, check_if_a_definition = YES, can_have_calculations = YES;
   double decimal_mul;
 #ifdef SPC700
   int dot = 0;
@@ -316,16 +316,17 @@ int input_number(void) {
     }
   }
 
-  /* are we parsing a macro argument, and could it begin with a '@' (return
+  /* are we parsing a macro argument, and could it begin with a '&' (return
      label as it is, don't check if it's a definition) */
-  if (g_input_allow_leading_at == YES) {
-    if (e == '@') {
+  if (g_input_allow_leading_ampersand == YES) {
+    if (e == '&') {
       check_if_a_definition = NO;
+      can_have_calculations = NO;
       e = g_buffer[g_source_pointer++];
     }
   }
 
-  if (g_expect_calculations == YES) {
+  if (g_expect_calculations == YES && can_have_calculations == YES) {
     /* check the type of the expression */
     p = g_source_pointer;
     ee = e;

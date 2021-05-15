@@ -159,8 +159,8 @@ label_\2:
         .REDEFINE \1 = ?1 + 1        ; \1 here is the definition's name,
         .ENDM                        ; and ?1 is its value.
 
-        REDEFINER_1 @DEFINITION_A    ; here we feed the definition's name
-        REDEFINER_1 @DEFINITION_A    ; as first argument, not it's value
+        REDEFINER_1 &DEFINITION_A    ; here we feed the definition's name
+        REDEFINER_1 &DEFINITION_A    ; as first argument, not it's value
 
         .DEFINE DEFINITION_B 1
 
@@ -198,5 +198,5 @@ label_\2:
         .endm
 
         .db "20>"
-        floor_0 @FIVE
+        floor_0 &FIVE
         .db "<20"
