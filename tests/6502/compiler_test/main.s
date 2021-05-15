@@ -143,4 +143,8 @@ boot_rst_\1_?1:
         .fclose fp
         .undefine d
         .db "<11"
-        
+
+        .db "12>"
+        .db "{}", "{", "}"                ; once we had a bug in WLA that '}' didn't work with .db
+        .db "hello".length
+        .db "<12"

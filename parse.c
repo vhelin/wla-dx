@@ -781,12 +781,7 @@ int input_number(void) {
     return SUCCEEDED;
   }
 
-  if (e == '"' || e == '{') {
-    int curly_braces = 0;
-
-    if (e == '{')
-      curly_braces++;
-    
+  if (e == '"') {
     for (k = 0; k < MAX_NAME_LENGTH; ) {
       e = g_buffer[g_source_pointer++];
 
@@ -796,15 +791,7 @@ int input_number(void) {
         continue;
       }
 
-      if (e == '{') {
-        curly_braces++;
-        continue;
-      }
-      
-      if (e == '"' || e == '}') {
-        if (e == '}')
-          curly_braces--;
-
+      if (e == '"') {
         /* check for "string".length */
         if (g_buffer[g_source_pointer+0] == '.' &&
             (g_buffer[g_source_pointer+1] == 'l' || g_buffer[g_source_pointer+1] == 'L') &&
@@ -823,8 +810,6 @@ int input_number(void) {
         }
 
         if (e == '"')
-          break;
-        if (e == '}' && curly_braces <= 0)
           break;
       }
       
