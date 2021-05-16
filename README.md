@@ -43,7 +43,7 @@ See `INSTALL` for more detailed instructions.
 
 You need:
 
-* CMake (at least v2.8.9)
+* CMake (at least v2.8.12)
 * C compiler
 * Sphinx (optional, min. v1.2.0, v1.6.0 recommended) (to generate docs)
 
