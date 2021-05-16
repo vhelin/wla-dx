@@ -83,7 +83,7 @@ static int g_dstruct_start = -1, g_special_id = 0;
 
 
 
-struct label_def *new_unknown_reference(int type) {
+static struct label_def *_new_unknown_reference(int type) {
 
   struct label_def *label;
   int n = 0, j = 0;
@@ -102,7 +102,7 @@ struct label_def *new_unknown_reference(int type) {
 
   label = calloc(sizeof(struct label_def), 1);
   if (label == NULL) {
-    fprintf(stderr, "%s:%d: NEW_UNKNOWN_REFERENCE: Out of memory.\n", get_file_name(g_filename_id), g_line_number);
+    fprintf(stderr, "%s:%d: _NEW_UNKNOWN_REFERENCE: Out of memory.\n", get_file_name(g_filename_id), g_line_number);
     return NULL;
   }
 
@@ -148,7 +148,7 @@ struct label_def *new_unknown_reference(int type) {
   /* bank header section */
   else {
     if (label->label[0] == '_') {
-      fprintf(stderr, "%s:%d: NEW_UNKNOWN_REFERENCE: Referring to a local label (\"%s\") from inside a bank header section is not allowed.\n",
+      fprintf(stderr, "%s:%d: _NEW_UNKNOWN_REFERENCE: Referring to a local label (\"%s\") from inside a bank header section is not allowed.\n",
               get_file_name(g_filename_id), g_line_number, label->label);
       return NULL;
     }
@@ -166,7 +166,7 @@ struct label_def *new_unknown_reference(int type) {
 }
 
 
-int mangle_stack_references(struct stack *stack) {
+static int _mangle_stack_references(struct stack *stack) {
 
   int ind, n, j;
 
@@ -196,14 +196,14 @@ int mangle_stack_references(struct stack *stack) {
 }
 
 
-int add_namespace_to_reference(char *label, char *name_space, unsigned int label_size) {
+static int _add_namespace_to_reference(char *label, char *name_space, unsigned int label_size) {
 
   char expanded[MAX_NAME_LENGTH*2+2];
   struct label_def *l;
   
   snprintf(expanded, sizeof(expanded), "%s.%s", name_space, label);
   if (strlen(expanded) >= label_size) {
-    fprintf(stderr, "ADD_NAMESPACE_TO_REFERENCE: Label expands to \"%s\" which is %d characters too large.\n", expanded, (int)(strlen(expanded)-label_size+1));
+    fprintf(stderr, "_ADD_NAMESPACE_TO_REFERENCE: Label expands to \"%s\" which is %d characters too large.\n", expanded, (int)(strlen(expanded)-label_size+1));
     return FAILED;
   }
 
@@ -231,7 +231,7 @@ int add_namespace_to_reference(char *label, char *name_space, unsigned int label
 }
 
 
-int add_namespace_to_stack_references(struct stack *st, char *name_space) {
+static int _add_namespace_to_stack_references(struct stack *st, char *name_space) {
 
   int j;
 
@@ -240,7 +240,7 @@ int add_namespace_to_stack_references(struct stack *st, char *name_space) {
       if (is_label_anonymous(st->stack[j].string) == YES)
         continue;
       
-      if (add_namespace_to_reference(st->stack[j].string, name_space, sizeof(st->stack[j].string)) == FAILED)
+      if (_add_namespace_to_reference(st->stack[j].string, name_space, sizeof(st->stack[j].string)) == FAILED)
         return FAILED;
     }
   }
@@ -263,12 +263,8 @@ static void _bits_add_bit(int *bits_byte, int *bits_position, int *bits_to_defin
 
 int pass_4(void) {
 
-  unsigned char *cp;
-  FILE *final_ptr;
-  double dou;
   char *t, c;
-  int i, o, z, y, add_old = 0, x, q, ov, inside_macro = 0, inside_repeat = 0, inz, ind, bits_position = 0, bits_byte = 0;
-  float f;
+  int i, o, z, y, add_old = 0, x, q, inside_macro = 0, inside_repeat = 0, inz, ind, bits_position = 0, bits_byte = 0;
 
   memset(g_parent_labels, 0, sizeof(g_parent_labels));
 
@@ -699,7 +695,7 @@ int pass_4(void) {
 
           if (g_namespace[0] != 0) {
             if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-              if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+              if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
                 return FAILED;
             }
           }
@@ -741,7 +737,7 @@ int pass_4(void) {
           if (x == 1)
             continue;
 
-          label = new_unknown_reference(REFERENCE_TYPE_BITS);
+          label = _new_unknown_reference(REFERENCE_TYPE_BITS);
           if (label == NULL)
             return FAILED;
 
@@ -807,12 +803,12 @@ int pass_4(void) {
           g_stacks_tmp->bits_position = bits_position;
           g_stacks_tmp->bits_to_define = bits_to_define;
 
-          if (mangle_stack_references(g_stacks_tmp) == FAILED)
+          if (_mangle_stack_references(g_stacks_tmp) == FAILED)
             return FAILED;
 
           if (g_namespace[0] != 0) {
             if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-              if (add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
+              if (_add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
                 return FAILED;
             }
           }
@@ -990,12 +986,12 @@ int pass_4(void) {
       g_stacks_tmp->base = g_base;
       g_stacks_tmp->special_id = g_special_id;
         
-      if (mangle_stack_references(g_stacks_tmp) == FAILED)
+      if (_mangle_stack_references(g_stacks_tmp) == FAILED)
         return FAILED;
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
+          if (_add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
             return FAILED;
         }
       }
@@ -1046,12 +1042,12 @@ int pass_4(void) {
       g_stacks_tmp->type = STACK_TYPE_16BIT;
       g_stacks_tmp->base = g_base;
         
-      if (mangle_stack_references(g_stacks_tmp) == FAILED)
+      if (_mangle_stack_references(g_stacks_tmp) == FAILED)
         return FAILED;
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
+          if (_add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
             return FAILED;
         }
       }
@@ -1105,12 +1101,12 @@ int pass_4(void) {
       g_stacks_tmp->type = STACK_TYPE_13BIT;
       g_stacks_tmp->base = g_base;
         
-      if (mangle_stack_references(g_stacks_tmp) == FAILED)
+      if (_mangle_stack_references(g_stacks_tmp) == FAILED)
         return FAILED;
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
+          if (_add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
             return FAILED;
         }
       }
@@ -1164,12 +1160,12 @@ int pass_4(void) {
       g_stacks_tmp->type = STACK_TYPE_24BIT;
       g_stacks_tmp->base = g_base;
 
-      if (mangle_stack_references(g_stacks_tmp) == FAILED)
+      if (_mangle_stack_references(g_stacks_tmp) == FAILED)
         return FAILED;
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
+          if (_add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
             return FAILED;
         }
       }
@@ -1224,12 +1220,12 @@ int pass_4(void) {
       g_stacks_tmp->type = STACK_TYPE_32BIT;
       g_stacks_tmp->base = g_base;
 
-      if (mangle_stack_references(g_stacks_tmp) == FAILED)
+      if (_mangle_stack_references(g_stacks_tmp) == FAILED)
         return FAILED;
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
+          if (_add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
             return FAILED;
         }
       }
@@ -1258,7 +1254,7 @@ int pass_4(void) {
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+          if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
             return FAILED;
         }
       }
@@ -1299,7 +1295,7 @@ int pass_4(void) {
       if (x == 1)
         continue;
 
-      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_24BIT) == NULL)
+      if (_new_unknown_reference(REFERENCE_TYPE_DIRECT_24BIT) == NULL)
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1321,7 +1317,7 @@ int pass_4(void) {
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+          if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
             return FAILED;
         }
       }
@@ -1366,7 +1362,7 @@ int pass_4(void) {
       if (x == 1)
         continue;
 
-      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_32BIT) == NULL)
+      if (_new_unknown_reference(REFERENCE_TYPE_DIRECT_32BIT) == NULL)
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1390,7 +1386,7 @@ int pass_4(void) {
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+          if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
             return FAILED;
         }
       }
@@ -1427,7 +1423,7 @@ int pass_4(void) {
       if (x == 1)
         continue;
 
-      if (new_unknown_reference(REFERENCE_TYPE_RELATIVE_16BIT) == NULL)
+      if (_new_unknown_reference(REFERENCE_TYPE_RELATIVE_16BIT) == NULL)
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1447,7 +1443,7 @@ int pass_4(void) {
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+          if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
             return FAILED;
         }
       }
@@ -1484,7 +1480,7 @@ int pass_4(void) {
       if (x == 1)
         continue;
 
-      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_16BIT) == NULL)
+      if (_new_unknown_reference(REFERENCE_TYPE_DIRECT_16BIT) == NULL)
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1506,7 +1502,7 @@ int pass_4(void) {
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+          if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
             return FAILED;
         }
       }
@@ -1539,7 +1535,7 @@ int pass_4(void) {
       if (x == 1)
         continue;
 
-      if (new_unknown_reference(REFERENCE_TYPE_DIRECT_13BIT) == NULL)
+      if (_new_unknown_reference(REFERENCE_TYPE_DIRECT_13BIT) == NULL)
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1560,7 +1556,7 @@ int pass_4(void) {
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+          if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
             return FAILED;
         }
       }
@@ -1587,7 +1583,7 @@ int pass_4(void) {
       if (x == 1)
         continue;
 
-      if (new_unknown_reference(REFERENCE_TYPE_RELATIVE_8BIT) == NULL)
+      if (_new_unknown_reference(REFERENCE_TYPE_RELATIVE_8BIT) == NULL)
         return FAILED;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -1606,7 +1602,7 @@ int pass_4(void) {
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+          if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
             return FAILED;
         }
       }
@@ -1643,11 +1639,11 @@ int pass_4(void) {
         continue;
 
       if (c == '*') {
-        if (new_unknown_reference(REFERENCE_TYPE_DIRECT_9BIT_SHORT) == NULL)
+        if (_new_unknown_reference(REFERENCE_TYPE_DIRECT_9BIT_SHORT) == NULL)
           return FAILED;
       }
       else {
-        if (new_unknown_reference(REFERENCE_TYPE_DIRECT_8BIT) == NULL)
+        if (_new_unknown_reference(REFERENCE_TYPE_DIRECT_8BIT) == NULL)
           return FAILED;
       }
 
@@ -1699,694 +1695,15 @@ int pass_4(void) {
   fclose(g_file_out_ptr);
   g_file_out_ptr = NULL;
 
-  /* library file output */
   if (g_output_format == OUTPUT_LIBRARY && g_test_mode == OFF) {
-    if ((final_ptr = fopen(g_final_name, "wb")) == NULL) {
-      fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\" for writing.\n", g_final_name);
+    /* library file output */
+    if (write_library_file() == FAILED)
       return FAILED;
-    }
-
-    /* header */
-    fprintf(final_ptr, "WLAF");
-
-    /* misc bits */
-    ind = 0;
-
-    if (g_little_endian == NO)
-      ind |= 1 << 0;
-#if defined(W65816)
-    /* 65816 bit */
-    ind |= 1 << 1;
-#endif
-#ifdef CSG65CE02
-    /* 65ce02 bit */
-    ind |= 1 << 2;
-#endif
-    
-    fprintf(final_ptr, "%c", ind);
-    
-    if (export_source_file_names(final_ptr) == FAILED)
-      return FAILED;
-
-    /* export definitions */
-    if (export_definitions(final_ptr) == FAILED)
-      return FAILED;
-
-    /* labels, symbols and breakpoints */
-    ov = 0;
-    g_label_tmp = g_labels;
-    while (g_label_tmp != NULL) {
-      if (g_label_tmp->alive == YES)
-        ov++;
-      g_label_tmp = g_label_tmp->next;
-    }
-
-    WRITEOUT_OV;
-
-    g_label_tmp = g_labels;
-    while (g_label_tmp != NULL) {
-      if (g_label_tmp->alive == YES) {
-        if (g_label_tmp->symbol != 2)
-          fprintf(final_ptr, "%s", g_label_tmp->label);
-        fprintf(final_ptr, "%c", g_label_tmp->symbol);
-
-        ov = g_label_tmp->section_id;
-        WRITEOUT_OV;
-
-        ov = g_label_tmp->filename_id;
-        WRITEOUT_OV;
-
-        ov = g_label_tmp->linenumber;
-        WRITEOUT_OV;
-
-        ov = g_label_tmp->address;
-        WRITEOUT_OV;
-      }
-      g_label_tmp = g_label_tmp->next;
-    }
-
-    /* unknown labels (outside references) */
-    ov = 0;
-    g_label_tmp = g_unknown_labels;
-    while (g_label_tmp != NULL) {
-      ov++;
-      g_label_tmp = g_label_tmp->next;
-    }
-
-    WRITEOUT_OV;
-
-    g_label_tmp = g_unknown_labels;
-    while (g_label_tmp != NULL) {
-      fprintf(final_ptr, "%s%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, g_label_tmp->special_id);
-
-      ov = g_label_tmp->section_id;
-      WRITEOUT_OV;
-
-      ov = g_label_tmp->filename_id;
-      WRITEOUT_OV;
-
-      if (g_label_tmp->section_status == OFF) {
-        fprintf(stderr, "INTERNAL_PASS_2: Label \"%s\" is outside all sections.\n", g_label_tmp->label);
-        return FAILED;
-      }
-
-      if (g_label_tmp->type == REFERENCE_TYPE_BITS)
-        fprintf(final_ptr, "%c%c", g_label_tmp->bits_position, g_label_tmp->bits_to_define);
-      
-      ov = g_label_tmp->linenumber;
-      WRITEOUT_OV;
-
-      ov = g_label_tmp->address; /* + (g_label_tmp->base << 16); */
-      WRITEOUT_OV;
-
-      g_label_tmp = g_label_tmp->next;
-    }
-
-    /* pending calculations */
-    ov = g_stacks_outside;
-    WRITEOUT_OV;
-
-    g_stacks_tmp = g_stacks_first;
-    while (g_stacks_tmp != NULL) {
-      ov = g_stacks_tmp->id;
-      WRITEOUT_OV;
-
-      fprintf(final_ptr, "%c%c", g_stacks_tmp->type | (g_stacks_tmp->relative_references << 7), g_stacks_tmp->special_id);
-
-      ov = g_stacks_tmp->section_id;
-      WRITEOUT_OV;
-
-      ov = g_stacks_tmp->filename_id;
-      WRITEOUT_OV;
-      
-      fprintf(final_ptr, "%c%c", g_stacks_tmp->stacksize, g_stacks_tmp->position);
-
-      if (g_stacks_tmp->type == STACK_TYPE_BITS)
-        fprintf(final_ptr, "%c%c", g_stacks_tmp->bits_position, g_stacks_tmp->bits_to_define);
-
-      ov = g_stacks_tmp->address;
-      WRITEOUT_OV;
-
-      ov = g_stacks_tmp->linenumber;
-      WRITEOUT_OV;
-
-      for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
-        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
-        if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
-          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
-        else {
-          dou = g_stacks_tmp->stack[ind].value;
-          WRITEOUT_DOU;
-        }
-      }
-
-      g_stacks_tmp = g_stacks_tmp->next;
-    }
-
-    /* label sizeofs */
-    ov = 0;
-    g_label_sizeof_tmp = g_label_sizeofs;
-    while (g_label_sizeof_tmp != NULL) {
-      ov++;
-      g_label_sizeof_tmp = g_label_sizeof_tmp->next;
-    }
-
-    WRITEOUT_OV;
-
-    g_label_sizeof_tmp = g_label_sizeofs;
-    while (g_label_sizeof_tmp != NULL) {
-      fprintf(final_ptr, "%s%c", g_label_sizeof_tmp->name, 0);
-
-      ov = g_label_sizeof_tmp->size;
-      WRITEOUT_OV;
-
-      g_label_sizeof_tmp = g_label_sizeof_tmp->next;
-    }
-    
-    /* appendto/after sections */
-    ov = 0;
-    g_after_tmp = g_after_sections;
-    while (g_after_tmp != NULL) {
-      if (g_after_tmp->alive == YES)
-        ov++;
-      g_after_tmp = g_after_tmp->next;
-    }
-    WRITEOUT_OV;
-
-    g_after_tmp = g_after_sections;
-    while (g_after_tmp != NULL) {
-      if (g_after_tmp->alive == YES) {
-        ov = g_after_tmp->section->id;
-        WRITEOUT_OV;
-        fprintf(final_ptr, "%c", g_after_tmp->is_appendto);
-        fprintf(final_ptr, "%s%c", g_after_tmp->section->name, 0);
-        fprintf(final_ptr, "%s%c", g_after_tmp->after, 0);
-      }
-      
-      g_after_tmp = g_after_tmp->next;
-    }
-
-    /* sections */
-    g_sec_tmp = g_sections_first;
-    while (g_sec_tmp != NULL) {
-      if (g_sec_tmp->alive == YES) {
-        fprintf(final_ptr, "%s%c%c", g_sec_tmp->name, g_sec_tmp->status, g_sec_tmp->keep);
-        if (g_sec_tmp->nspace == NULL)
-          fprintf(final_ptr, "%c", 0);
-        else
-          fprintf(final_ptr, "%s%c", g_sec_tmp->nspace->name, 0);
-
-        ov = g_sec_tmp->id;
-        WRITEOUT_OV;
-
-        ov = g_sec_tmp->filename_id;
-        WRITEOUT_OV;
-
-        ov = g_sec_tmp->size;
-        WRITEOUT_OV;
-        ov = g_sec_tmp->alignment;
-        WRITEOUT_OV;
-        ov = g_sec_tmp->offset;
-        WRITEOUT_OV;
-        ov = g_sec_tmp->priority;
-        WRITEOUT_OV;
-        
-        fwrite(g_sec_tmp->data, 1, g_sec_tmp->size, final_ptr);
-
-        if (g_listfile_data == YES && g_sec_tmp->listfile_items > 0)
-          listfile_block_write(final_ptr, g_sec_tmp);
-        else
-          fprintf(final_ptr, "%c", 0);
-      }
-      g_sec_tmp = g_sec_tmp->next;
-    }
-
-    fclose(final_ptr);
   }
-
-  /* object file output */
   else if (g_output_format == OUTPUT_OBJECT && g_test_mode == OFF) {
-    if ((final_ptr = fopen(g_final_name, "wb")) == NULL) {
-      fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\" for writing.\n", g_final_name);
+    /* object file output */
+    if (write_object_file() == FAILED)
       return FAILED;
-    }
-
-    /* header */
-    fprintf(final_ptr, "WLAg%c", g_emptyfill);
-
-    /* misc bits */
-    ind = 0;
-
-#ifdef Z80
-    if (g_computesmschecksum_defined != 0)
-      ind |= 1 << 0;
-#endif
-
-#if defined(W65816)
-    if (g_snes_mode != 0) {
-      if (g_hirom_defined != 0)
-        ind += 2;
-      if (g_fastrom_defined != 0)
-        ind += 8;
-      if (g_computesneschecksum_defined != 0)
-        ind += 64;
-      /* use snes banking scheme */
-      if (g_hirom_defined != 0 || g_lorom_defined != 0 || g_exhirom_defined != 0 || g_exlorom_defined != 0)
-        ind += 4;
-    }
-#endif
-
-#if defined(W65816)
-    /* 65816 bit */
-    ind += 128;
-#endif
-
-#ifdef GB
-    if (g_computechecksum_defined != 0)
-      ind += 16;
-    if (g_computecomplementcheck_defined != 0)
-      ind += 32;
-#endif
-
-    fprintf(final_ptr, "%c", ind);
-
-    /* more bits */
-    ind = 0;
-
-    if (g_smc_defined != 0)
-      ind |= 1 << 0;
-#if defined(W65816)
-    if (g_sramsize_defined != 0)
-      ind |= (g_sramsize & 3) << 1;
-#endif
-
-#ifdef Z80
-    if (g_smstag_defined != 0)
-      ind |= 1 << 3;
-    if (g_smsheader_defined != 0)
-      ind |= 1 << 4;
-#endif
-
-#if defined(W65816)
-    if (g_snes_mode != 0) {
-      if (g_exhirom_defined != 0)
-        ind |= 1 << 5;
-      if (g_exlorom_defined != 0)
-        ind |= 1 << 6;
-    }
-#endif
-
-    if (g_little_endian == NO)
-      ind |= 1 << 7;
-    
-    fprintf(final_ptr, "%c", ind);
-
-    /* extr bits */
-    ind = 0;
-
-#ifdef CSG65CE02
-    /* 65ce02 bit */
-    ind |= 1 << 0;
-#endif
-
-    fprintf(final_ptr, "%c", ind);
-    
-    /* rom bank map */
-    ov = g_rombanks;
-    WRITEOUT_OV;                                   /* number of rom banks */
-
-    if (g_rombankmap_defined != 0) {
-      fprintf(final_ptr, "%c", 1);                 /* status */
-      for (i = 0; i < g_rombanks; i++) {
-        ov = g_banks[i];
-        WRITEOUT_OV;                               /* banksize */
-      }
-    }
-    else {
-      fprintf(final_ptr, "%c", 0);                 /* status */
-      ov = g_banksize;
-      WRITEOUT_OV;                                 /* banksize */
-    }
-
-    /* memory map */
-    fprintf(final_ptr, "%c", g_slots_amount);
-
-    for (i = 0; i < g_slots_amount; i++) {
-      if (g_slots[i].size != 0) {
-        ov = g_slots[i].address;
-        WRITEOUT_OV;
-        ov = g_slots[i].size;
-        WRITEOUT_OV;
-        if (g_slots[i].name[0] == 0x0)
-          fprintf(final_ptr, "%c", 0x0);
-        else
-          fprintf(final_ptr, "%s%c", g_slots[i].name, 0x0);
-      }
-    }
-
-    /* source file names */
-    if (export_source_file_names(final_ptr) == FAILED)
-      return FAILED;
-
-    /* export definitions */
-    if (export_definitions(final_ptr) == FAILED)
-      return FAILED;
-
-    /* labels, symbols and breakpoints */
-    ov = 0;
-    g_label_tmp = g_labels;
-    while (g_label_tmp != NULL) {
-      if (g_label_tmp->alive == YES)
-        ov++;
-      g_label_tmp = g_label_tmp->next;
-    }
-
-    WRITEOUT_OV;
-
-    g_label_tmp = g_labels;
-    while (g_label_tmp != NULL) {
-      if (g_label_tmp->alive == YES) {
-        if (g_label_tmp->symbol != 2)
-          fprintf(final_ptr, "%s", g_label_tmp->label);
-        fprintf(final_ptr, "%c", g_label_tmp->symbol);
-
-        fprintf(final_ptr, "%c", g_label_tmp->slot);
-
-        ov = g_label_tmp->filename_id;
-        WRITEOUT_OV;
-        
-        ov = g_label_tmp->section_id;
-        WRITEOUT_OV;
-
-        /* DEBUG
-           fprintf(stderr, "LABEL: \"%s\" SLOT: %d LINE: %d\n", g_label_tmp->label, g_label_tmp->slot, g_label_tmp->linenumber);
-        */
-
-        ov = g_label_tmp->address;
-        WRITEOUT_OV;
-
-        ov = g_label_tmp->linenumber;
-        WRITEOUT_OV;
-
-        ov = g_label_tmp->bank;
-        WRITEOUT_OV;
-
-        ov = g_label_tmp->base;
-        WRITEOUT_OV;
-      }
-      g_label_tmp = g_label_tmp->next;
-    }
-
-    /* outside references */
-    ov = 0;
-    g_label_tmp = g_unknown_labels;
-    while (g_label_tmp != NULL) {
-      ov++;
-      g_label_tmp = g_label_tmp->next;
-    }
-    g_label_tmp = g_unknown_header_labels;
-    while (g_label_tmp != NULL) {
-      ov++;
-      g_label_tmp = g_label_tmp->next;
-    }
-
-    WRITEOUT_OV;
-
-    g_label_tmp = g_unknown_labels;
-    while (g_label_tmp != NULL) {
-      fprintf(final_ptr, "%s%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, g_label_tmp->special_id);
-
-      ov = g_label_tmp->filename_id;
-      WRITEOUT_OV;
-
-      if (g_label_tmp->type == REFERENCE_TYPE_BITS)
-        fprintf(final_ptr, "%c%c", g_label_tmp->bits_position, g_label_tmp->bits_to_define);
-
-      fprintf(final_ptr, "%c", g_label_tmp->slot);
-      
-      ov = g_label_tmp->section_id;
-      WRITEOUT_OV;
-
-      ov = g_label_tmp->linenumber;
-      WRITEOUT_OV;
-
-      ov = g_label_tmp->address;
-      WRITEOUT_OV;
-
-      ov = g_label_tmp->bank;
-      WRITEOUT_OV;
-
-      ov = g_label_tmp->base;
-      WRITEOUT_OV;
-
-      g_label_tmp = g_label_tmp->next;
-    }
-
-    g_label_tmp = g_unknown_header_labels;
-    while (g_label_tmp != NULL) {
-      fprintf(final_ptr, "%s%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, 0);
-
-      ov = g_label_tmp->filename_id;
-      WRITEOUT_OV;
-
-      if (g_label_tmp->type == REFERENCE_TYPE_BITS)
-        fprintf(final_ptr, "%c%c", g_label_tmp->bits_position, g_label_tmp->bits_to_define);
-
-      fprintf(final_ptr, "%c", g_label_tmp->slot);
-
-      ov = g_label_tmp->section_id;
-      WRITEOUT_OV;
-
-      ov = g_label_tmp->linenumber;
-      WRITEOUT_OV;
-
-      ov = g_label_tmp->address;
-      WRITEOUT_OV;
-
-      ov = g_label_tmp->bank;
-      WRITEOUT_OV;
-
-      ov = g_label_tmp->base;
-      WRITEOUT_OV;
-      
-      g_label_tmp = g_label_tmp->next;
-    }
-
-    /* pending calculations */
-    ov = g_stacks_outside + g_stacks_inside;
-    WRITEOUT_OV;
-
-    g_stacks_tmp = g_stacks_first;
-    while (g_stacks_tmp != NULL) {
-      ov = g_stacks_tmp->id;
-      WRITEOUT_OV;
-
-      fprintf(final_ptr, "%c%c", g_stacks_tmp->type | (g_stacks_tmp->relative_references << 7), g_stacks_tmp->special_id);
-
-      ov = g_stacks_tmp->section_id;
-      WRITEOUT_OV;
-
-      ov = g_stacks_tmp->filename_id;
-      WRITEOUT_OV;
-
-      fprintf(final_ptr, "%c%c", g_stacks_tmp->stacksize, g_stacks_tmp->position);
-
-      if (g_stacks_tmp->type == STACK_TYPE_BITS)
-        fprintf(final_ptr, "%c%c", g_stacks_tmp->bits_position, g_stacks_tmp->bits_to_define);
-
-      fprintf(final_ptr, "%c", g_stacks_tmp->slot);
-      
-      ov = g_stacks_tmp->address;
-      WRITEOUT_OV;
-
-      ov = g_stacks_tmp->linenumber;
-      WRITEOUT_OV;
-
-      ov = g_stacks_tmp->bank;
-      WRITEOUT_OV;
-
-      ov = g_stacks_tmp->base;
-      WRITEOUT_OV;
-      
-      for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
-        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
-        if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
-          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
-        else {
-          dou = g_stacks_tmp->stack[ind].value;
-          WRITEOUT_DOU;
-        }
-      }
-
-      g_stacks_tmp = g_stacks_tmp->next;
-    }
-
-    g_stacks_tmp = g_stacks_header_first;
-    while (g_stacks_tmp != NULL) {
-      ov = g_stacks_tmp->id;
-      WRITEOUT_OV;
-
-      fprintf(final_ptr, "%c%c", g_stacks_tmp->type, g_stacks_tmp->special_id);
-
-      ov = g_stacks_tmp->section_id;
-      WRITEOUT_OV;
-
-      ov = g_stacks_tmp->filename_id;
-      WRITEOUT_OV;
-
-      fprintf(final_ptr, "%c%c", g_stacks_tmp->stacksize, g_stacks_tmp->position);
-
-      if (g_stacks_tmp->type == STACK_TYPE_BITS)
-        fprintf(final_ptr, "%c%c", g_stacks_tmp->bits_position, g_stacks_tmp->bits_to_define);
-
-      fprintf(final_ptr, "%c", g_stacks_tmp->slot);
-      
-      ov = g_stacks_tmp->address;
-      WRITEOUT_OV;
-
-      ov = g_stacks_tmp->linenumber;
-      WRITEOUT_OV;
-
-      ov = g_stacks_tmp->bank;
-      WRITEOUT_OV;
-
-      ov = g_stacks_tmp->base;
-      WRITEOUT_OV;
-
-      for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
-        fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
-        if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
-          fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
-        else {
-          dou = g_stacks_tmp->stack[ind].value;
-          WRITEOUT_DOU;
-        }
-      }
-
-      g_stacks_tmp = g_stacks_tmp->next;
-    }
-
-    /* label sizeofs */
-    ov = 0;
-    g_label_sizeof_tmp = g_label_sizeofs;
-    while (g_label_sizeof_tmp != NULL) {
-      ov++;
-      g_label_sizeof_tmp = g_label_sizeof_tmp->next;
-    }
-
-    WRITEOUT_OV;
-
-    g_label_sizeof_tmp = g_label_sizeofs;
-    while (g_label_sizeof_tmp != NULL) {
-      fprintf(final_ptr, "%s%c", g_label_sizeof_tmp->name, 0);
-
-      ov = g_label_sizeof_tmp->size;
-      WRITEOUT_OV;
-
-      g_label_sizeof_tmp = g_label_sizeof_tmp->next;
-    }    
-    
-    /* appendto/after sections */
-    ov = 0;
-    g_after_tmp = g_after_sections;
-    while (g_after_tmp != NULL) {
-      if (g_after_tmp->alive == YES)
-        ov++;
-      g_after_tmp = g_after_tmp->next;
-    }
-    WRITEOUT_OV;
-
-    g_after_tmp = g_after_sections;
-    while (g_after_tmp != NULL) {
-      if (g_after_tmp->alive == YES) {
-        ov = g_after_tmp->section->id;
-        WRITEOUT_OV;
-        fprintf(final_ptr, "%c", g_after_tmp->is_appendto);
-        fprintf(final_ptr, "%s%c", g_after_tmp->section->name, 0);
-        fprintf(final_ptr, "%s%c", g_after_tmp->after, 0);
-      }
-      
-      g_after_tmp = g_after_tmp->next;
-    }
-
-    /* data area */
-    ind = 0;
-    for (inz = 0; inz < g_max_address; inz++) {
-      if (g_rom_banks_usage_table[inz] != 0) {
-        /* data block id */
-        fprintf(final_ptr, "%c", 0x0);
-        for (i = inz, ind = 0; inz < g_max_address; inz++, ind++) {
-          if (g_rom_banks_usage_table[inz] == 0) {
-
-            ov = i;
-            WRITEOUT_OV;
-
-            ov = ind;
-            WRITEOUT_OV;
-
-            fwrite(&g_rom_banks[i], 1, ind, final_ptr);
-
-            ind = 0;
-            break;
-          }
-        }
-      }
-    }
-
-    if (ind != 0) {
-      ov = i;
-      WRITEOUT_OV;
-
-      ov = ind;
-      WRITEOUT_OV;
-
-      fwrite(&g_rom_banks[i], 1, ind, final_ptr);
-    }
-
-    g_sec_tmp = g_sections_first;
-    while (g_sec_tmp != NULL) {
-      if (g_sec_tmp->alive == YES) {
-        /* section block id */
-        fprintf(final_ptr, "%c%s%c%c", 0x1, g_sec_tmp->name, g_sec_tmp->status, g_sec_tmp->keep);
-        if (g_sec_tmp->nspace == NULL)
-          fprintf(final_ptr, "%c", 0);
-        else
-          fprintf(final_ptr, "%s%c", g_sec_tmp->nspace->name, 0);
-
-        ov = g_sec_tmp->id;
-        WRITEOUT_OV;
-
-        fprintf(final_ptr, "%c", g_sec_tmp->slot);
-
-        ov = g_sec_tmp->filename_id;
-        WRITEOUT_OV;
-
-        ov = g_sec_tmp->address;
-        WRITEOUT_OV;
-        ov = g_sec_tmp->bank;
-        WRITEOUT_OV;
-        ov = g_sec_tmp->base;
-        WRITEOUT_OV;
-        ov = g_sec_tmp->size;
-        WRITEOUT_OV;
-        ov = g_sec_tmp->alignment;
-        WRITEOUT_OV;
-        ov = g_sec_tmp->offset;
-        WRITEOUT_OV;
-        ov = g_sec_tmp->priority;
-        WRITEOUT_OV;
-
-        fwrite(g_sec_tmp->data, 1, g_sec_tmp->size, final_ptr);
-
-        if (g_listfile_data == YES && g_sec_tmp->listfile_items > 0)
-          listfile_block_write(final_ptr, g_sec_tmp);
-        else
-          fprintf(final_ptr, "%c", 0);
-      }
-      g_sec_tmp = g_sec_tmp->next;
-    }
-
-    fclose(final_ptr);
   }
 
   /* output makefile rules */
@@ -2396,73 +1713,994 @@ int pass_4(void) {
   }
 
   /* show project information */
-  if (g_verbose_mode == ON && g_output_format != OUTPUT_LIBRARY) {
-    x = 0;
-    inz = 1;
-    for (ind = 0; ind < g_max_address; ind++) {
-      if (g_rom_banks_usage_table[ind] == 0 && x == 0) {
-        x = 1;
-        inz = ind;
-      }
-      else if (g_rom_banks_usage_table[ind] != 0 && x == 1) {
-        if (inz == (ind - 1))
-          fprintf(stderr, "Free space at $%.4x.\n", inz);
-        else
-          fprintf(stderr, "Free space at $%.4x-$%.4x.\n", inz, ind - 1);
-        x = 0;
-      }
-    }
+  if (g_verbose_mode == ON && g_output_format != OUTPUT_LIBRARY)
+    show_project_information_object();
+  else if (g_verbose_mode == ON && g_output_format == OUTPUT_LIBRARY)
+    show_project_information_library();
 
-    if (x == 1) {
-      if (inz == (ind - 1))
-        fprintf(stderr, "Free space at $%.4x.\n", inz);
-      else
-        fprintf(stderr, "Free space at $%.4x-$%.4x.\n", inz, ind - 1);
-    }
+  return SUCCEEDED;
+}
 
-    for (ind = 0, q = 0; ind < g_max_address; q++) {
-      for (x = 0, inz = 0; inz < g_banks[q]; inz++) {
-        if (g_rom_banks_usage_table[ind++] == 0)
-          x++;
-      }
-      f = (((float)x)/g_banks[q]) * 100.0f;
-      if (f == 100.0f)
-        printf("Bank %.2d has %.5d bytes (%.1f%%) free.\n", q, x, f);
-      else
-        printf("Bank %.2d has %.5d bytes (%.2f%%) free.\n", q, x, f);
-    }
 
-    for (ind = 0, inz = 0; ind < g_max_address; ind++) {
-      if (g_rom_banks_usage_table[ind] == 0)
-        inz++;
-    }
-    fprintf(stderr, "%d unused bytes of total %d.\n", inz, g_max_address);
+int write_object_file(void) {
 
-#ifndef GB
-    g_sec_tmp = g_sections_first;
-    while (g_sec_tmp != NULL) {
-      if (g_sec_tmp->status == SECTION_STATUS_HEADER) {
-        fprintf(stderr, "Bank %d header section size %d.\n", g_sec_tmp->bank, g_sec_tmp->size);
-        ind += g_sec_tmp->size;
-      }
-      g_sec_tmp = g_sec_tmp->next;
-    }
+  int ind, ov, inz, i;
+  FILE *final_ptr;
+  unsigned char *cp;
+  double dou;
 
-    if (ind != 0) {
-      fprintf(stderr, "Total %d additional bytes (from headers and footers).\n", ind);
-      fprintf(stderr, "Total size %d bytes.\n", ind + g_max_address);
-    }
+  if ((final_ptr = fopen(g_final_name, "wb")) == NULL) {
+    fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\" for writing.\n", g_final_name);
+    return FAILED;
+  }
+
+  /* header */
+  fprintf(final_ptr, "WLAg%c", g_emptyfill);
+
+  /* misc bits */
+  ind = 0;
+
+#ifdef Z80
+  if (g_computesmschecksum_defined != 0)
+    ind |= 1 << 0;
 #endif
 
+#if defined(W65816)
+  if (g_snes_mode != 0) {
+    if (g_hirom_defined != 0)
+      ind += 2;
+    if (g_fastrom_defined != 0)
+      ind += 8;
+    if (g_computesneschecksum_defined != 0)
+      ind += 64;
+    /* use snes banking scheme */
+    if (g_hirom_defined != 0 || g_lorom_defined != 0 || g_exhirom_defined != 0 || g_exlorom_defined != 0)
+      ind += 4;
   }
-  else if (g_verbose_mode == ON && g_output_format == OUTPUT_LIBRARY) {
-    g_sec_tmp = g_sections_first;
-    while (g_sec_tmp != NULL) {
-      printf("Section \"%s\" size %d.\n", g_sec_tmp->name, g_sec_tmp->size);
-      g_sec_tmp = g_sec_tmp->next;
+#endif
+
+#if defined(W65816)
+  /* 65816 bit */
+  ind += 128;
+#endif
+
+#ifdef GB
+  if (g_computechecksum_defined != 0)
+    ind += 16;
+  if (g_computecomplementcheck_defined != 0)
+    ind += 32;
+#endif
+
+  fprintf(final_ptr, "%c", ind);
+
+  /* more bits */
+  ind = 0;
+
+  if (g_smc_defined != 0)
+    ind |= 1 << 0;
+#if defined(W65816)
+  if (g_sramsize_defined != 0)
+    ind |= (g_sramsize & 3) << 1;
+#endif
+
+#ifdef Z80
+  if (g_smstag_defined != 0)
+    ind |= 1 << 3;
+  if (g_smsheader_defined != 0)
+    ind |= 1 << 4;
+#endif
+
+#if defined(W65816)
+  if (g_snes_mode != 0) {
+    if (g_exhirom_defined != 0)
+      ind |= 1 << 5;
+    if (g_exlorom_defined != 0)
+      ind |= 1 << 6;
+  }
+#endif
+
+  if (g_little_endian == NO)
+    ind |= 1 << 7;
+    
+  fprintf(final_ptr, "%c", ind);
+
+  /* extr bits */
+  ind = 0;
+
+#ifdef CSG65CE02
+  /* 65ce02 bit */
+  ind |= 1 << 0;
+#endif
+
+  fprintf(final_ptr, "%c", ind);
+    
+  /* rom bank map */
+  ov = g_rombanks;
+  WRITEOUT_OV;                                   /* number of rom banks */
+
+  if (g_rombankmap_defined != 0) {
+    fprintf(final_ptr, "%c", 1);                 /* status */
+    for (i = 0; i < g_rombanks; i++) {
+      ov = g_banks[i];
+      WRITEOUT_OV;                               /* banksize */
+    }
+  }
+  else {
+    fprintf(final_ptr, "%c", 0);                 /* status */
+    ov = g_banksize;
+    WRITEOUT_OV;                                 /* banksize */
+  }
+
+  /* memory map */
+  fprintf(final_ptr, "%c", g_slots_amount);
+
+  for (i = 0; i < g_slots_amount; i++) {
+    if (g_slots[i].size != 0) {
+      ov = g_slots[i].address;
+      WRITEOUT_OV;
+      ov = g_slots[i].size;
+      WRITEOUT_OV;
+      if (g_slots[i].name[0] == 0x0)
+        fprintf(final_ptr, "%c", 0x0);
+      else
+        fprintf(final_ptr, "%s%c", g_slots[i].name, 0x0);
     }
   }
 
+  /* source file names */
+  if (export_source_file_names(final_ptr) == FAILED)
+    return FAILED;
+
+  /* export definitions */
+  if (export_definitions(final_ptr) == FAILED)
+    return FAILED;
+
+  /* labels, symbols and breakpoints */
+  ov = 0;
+  g_label_tmp = g_labels;
+  while (g_label_tmp != NULL) {
+    if (g_label_tmp->alive == YES)
+      ov++;
+    g_label_tmp = g_label_tmp->next;
+  }
+
+  WRITEOUT_OV;
+
+  g_label_tmp = g_labels;
+  while (g_label_tmp != NULL) {
+    if (g_label_tmp->alive == YES) {
+      if (g_label_tmp->symbol != 2)
+        fprintf(final_ptr, "%s", g_label_tmp->label);
+      fprintf(final_ptr, "%c", g_label_tmp->symbol);
+
+      fprintf(final_ptr, "%c", g_label_tmp->slot);
+
+      ov = g_label_tmp->filename_id;
+      WRITEOUT_OV;
+        
+      ov = g_label_tmp->section_id;
+      WRITEOUT_OV;
+
+      /* DEBUG
+         fprintf(stderr, "LABEL: \"%s\" SLOT: %d LINE: %d\n", g_label_tmp->label, g_label_tmp->slot, g_label_tmp->linenumber);
+      */
+
+      ov = g_label_tmp->address;
+      WRITEOUT_OV;
+
+      ov = g_label_tmp->linenumber;
+      WRITEOUT_OV;
+
+      ov = g_label_tmp->bank;
+      WRITEOUT_OV;
+
+      ov = g_label_tmp->base;
+      WRITEOUT_OV;
+    }
+    g_label_tmp = g_label_tmp->next;
+  }
+
+  /* outside references */
+  ov = 0;
+  g_label_tmp = g_unknown_labels;
+  while (g_label_tmp != NULL) {
+    ov++;
+    g_label_tmp = g_label_tmp->next;
+  }
+  g_label_tmp = g_unknown_header_labels;
+  while (g_label_tmp != NULL) {
+    ov++;
+    g_label_tmp = g_label_tmp->next;
+  }
+
+  WRITEOUT_OV;
+
+  g_label_tmp = g_unknown_labels;
+  while (g_label_tmp != NULL) {
+    fprintf(final_ptr, "%s%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, g_label_tmp->special_id);
+
+    ov = g_label_tmp->filename_id;
+    WRITEOUT_OV;
+
+    if (g_label_tmp->type == REFERENCE_TYPE_BITS)
+      fprintf(final_ptr, "%c%c", g_label_tmp->bits_position, g_label_tmp->bits_to_define);
+
+    fprintf(final_ptr, "%c", g_label_tmp->slot);
+      
+    ov = g_label_tmp->section_id;
+    WRITEOUT_OV;
+
+    ov = g_label_tmp->linenumber;
+    WRITEOUT_OV;
+
+    ov = g_label_tmp->address;
+    WRITEOUT_OV;
+
+    ov = g_label_tmp->bank;
+    WRITEOUT_OV;
+
+    ov = g_label_tmp->base;
+    WRITEOUT_OV;
+
+    g_label_tmp = g_label_tmp->next;
+  }
+
+  g_label_tmp = g_unknown_header_labels;
+  while (g_label_tmp != NULL) {
+    fprintf(final_ptr, "%s%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, 0);
+
+    ov = g_label_tmp->filename_id;
+    WRITEOUT_OV;
+
+    if (g_label_tmp->type == REFERENCE_TYPE_BITS)
+      fprintf(final_ptr, "%c%c", g_label_tmp->bits_position, g_label_tmp->bits_to_define);
+
+    fprintf(final_ptr, "%c", g_label_tmp->slot);
+
+    ov = g_label_tmp->section_id;
+    WRITEOUT_OV;
+
+    ov = g_label_tmp->linenumber;
+    WRITEOUT_OV;
+
+    ov = g_label_tmp->address;
+    WRITEOUT_OV;
+
+    ov = g_label_tmp->bank;
+    WRITEOUT_OV;
+
+    ov = g_label_tmp->base;
+    WRITEOUT_OV;
+      
+    g_label_tmp = g_label_tmp->next;
+  }
+
+  /* pending calculations */
+  ov = g_stacks_outside + g_stacks_inside;
+  WRITEOUT_OV;
+
+  g_stacks_tmp = g_stacks_first;
+  while (g_stacks_tmp != NULL) {
+    ov = g_stacks_tmp->id;
+    WRITEOUT_OV;
+
+    fprintf(final_ptr, "%c%c", g_stacks_tmp->type | (g_stacks_tmp->relative_references << 7), g_stacks_tmp->special_id);
+
+    ov = g_stacks_tmp->section_id;
+    WRITEOUT_OV;
+
+    ov = g_stacks_tmp->filename_id;
+    WRITEOUT_OV;
+
+    fprintf(final_ptr, "%c%c", g_stacks_tmp->stacksize, g_stacks_tmp->position);
+
+    if (g_stacks_tmp->type == STACK_TYPE_BITS)
+      fprintf(final_ptr, "%c%c", g_stacks_tmp->bits_position, g_stacks_tmp->bits_to_define);
+
+    fprintf(final_ptr, "%c", g_stacks_tmp->slot);
+      
+    ov = g_stacks_tmp->address;
+    WRITEOUT_OV;
+
+    ov = g_stacks_tmp->linenumber;
+    WRITEOUT_OV;
+
+    ov = g_stacks_tmp->bank;
+    WRITEOUT_OV;
+
+    ov = g_stacks_tmp->base;
+    WRITEOUT_OV;
+      
+    for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
+      fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
+      if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
+        fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
+      else {
+        dou = g_stacks_tmp->stack[ind].value;
+        WRITEOUT_DOU;
+      }
+    }
+
+    g_stacks_tmp = g_stacks_tmp->next;
+  }
+
+  g_stacks_tmp = g_stacks_header_first;
+  while (g_stacks_tmp != NULL) {
+    ov = g_stacks_tmp->id;
+    WRITEOUT_OV;
+
+    fprintf(final_ptr, "%c%c", g_stacks_tmp->type, g_stacks_tmp->special_id);
+
+    ov = g_stacks_tmp->section_id;
+    WRITEOUT_OV;
+
+    ov = g_stacks_tmp->filename_id;
+    WRITEOUT_OV;
+
+    fprintf(final_ptr, "%c%c", g_stacks_tmp->stacksize, g_stacks_tmp->position);
+
+    if (g_stacks_tmp->type == STACK_TYPE_BITS)
+      fprintf(final_ptr, "%c%c", g_stacks_tmp->bits_position, g_stacks_tmp->bits_to_define);
+
+    fprintf(final_ptr, "%c", g_stacks_tmp->slot);
+      
+    ov = g_stacks_tmp->address;
+    WRITEOUT_OV;
+
+    ov = g_stacks_tmp->linenumber;
+    WRITEOUT_OV;
+
+    ov = g_stacks_tmp->bank;
+    WRITEOUT_OV;
+
+    ov = g_stacks_tmp->base;
+    WRITEOUT_OV;
+
+    for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
+      fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
+      if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
+        fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
+      else {
+        dou = g_stacks_tmp->stack[ind].value;
+        WRITEOUT_DOU;
+      }
+    }
+
+    g_stacks_tmp = g_stacks_tmp->next;
+  }
+
+  /* label sizeofs */
+  ov = 0;
+  g_label_sizeof_tmp = g_label_sizeofs;
+  while (g_label_sizeof_tmp != NULL) {
+    ov++;
+    g_label_sizeof_tmp = g_label_sizeof_tmp->next;
+  }
+
+  WRITEOUT_OV;
+
+  g_label_sizeof_tmp = g_label_sizeofs;
+  while (g_label_sizeof_tmp != NULL) {
+    fprintf(final_ptr, "%s%c", g_label_sizeof_tmp->name, 0);
+
+    ov = g_label_sizeof_tmp->size;
+    WRITEOUT_OV;
+
+    g_label_sizeof_tmp = g_label_sizeof_tmp->next;
+  }    
+    
+  /* appendto/after sections */
+  ov = 0;
+  g_after_tmp = g_after_sections;
+  while (g_after_tmp != NULL) {
+    if (g_after_tmp->alive == YES)
+      ov++;
+    g_after_tmp = g_after_tmp->next;
+  }
+  WRITEOUT_OV;
+
+  g_after_tmp = g_after_sections;
+  while (g_after_tmp != NULL) {
+    if (g_after_tmp->alive == YES) {
+      ov = g_after_tmp->section->id;
+      WRITEOUT_OV;
+      fprintf(final_ptr, "%c", g_after_tmp->is_appendto);
+      fprintf(final_ptr, "%s%c", g_after_tmp->section->name, 0);
+      fprintf(final_ptr, "%s%c", g_after_tmp->after, 0);
+    }
+      
+    g_after_tmp = g_after_tmp->next;
+  }
+
+  /* data area */
+  ind = 0;
+  for (inz = 0; inz < g_max_address; inz++) {
+    if (g_rom_banks_usage_table[inz] != 0) {
+      /* data block id */
+      fprintf(final_ptr, "%c", 0x0);
+      for (i = inz, ind = 0; inz < g_max_address; inz++, ind++) {
+        if (g_rom_banks_usage_table[inz] == 0) {
+
+          ov = i;
+          WRITEOUT_OV;
+
+          ov = ind;
+          WRITEOUT_OV;
+
+          fwrite(&g_rom_banks[i], 1, ind, final_ptr);
+
+          ind = 0;
+          break;
+        }
+      }
+    }
+  }
+
+  if (ind != 0) {
+    ov = i;
+    WRITEOUT_OV;
+
+    ov = ind;
+    WRITEOUT_OV;
+
+    fwrite(&g_rom_banks[i], 1, ind, final_ptr);
+  }
+
+  g_sec_tmp = g_sections_first;
+  while (g_sec_tmp != NULL) {
+    if (g_sec_tmp->alive == YES) {
+      /* section block id */
+      fprintf(final_ptr, "%c%s%c%c", 0x1, g_sec_tmp->name, g_sec_tmp->status, g_sec_tmp->keep);
+      if (g_sec_tmp->nspace == NULL)
+        fprintf(final_ptr, "%c", 0);
+      else
+        fprintf(final_ptr, "%s%c", g_sec_tmp->nspace->name, 0);
+
+      ov = g_sec_tmp->id;
+      WRITEOUT_OV;
+
+      fprintf(final_ptr, "%c", g_sec_tmp->slot);
+
+      ov = g_sec_tmp->filename_id;
+      WRITEOUT_OV;
+
+      ov = g_sec_tmp->address;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->bank;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->base;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->size;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->alignment;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->offset;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->priority;
+      WRITEOUT_OV;
+
+      fwrite(g_sec_tmp->data, 1, g_sec_tmp->size, final_ptr);
+
+      if (g_listfile_data == YES && g_sec_tmp->listfile_items > 0)
+        listfile_block_write(final_ptr, g_sec_tmp);
+      else
+        fprintf(final_ptr, "%c", 0);
+    }
+    g_sec_tmp = g_sec_tmp->next;
+  }
+
+  fclose(final_ptr);
+
+  return SUCCEEDED;
+}
+
+
+int write_library_file(void) {
+
+  int ind, ov;
+  FILE *final_ptr;
+  unsigned char *cp;
+  double dou;
+  
+  if ((final_ptr = fopen(g_final_name, "wb")) == NULL) {
+    fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\" for writing.\n", g_final_name);
+    return FAILED;
+  }
+
+  /* header */
+  fprintf(final_ptr, "WLAF");
+
+  /* misc bits */
+  ind = 0;
+
+  if (g_little_endian == NO)
+    ind |= 1 << 0;
+#if defined(W65816)
+  /* 65816 bit */
+  ind |= 1 << 1;
+#endif
+#ifdef CSG65CE02
+  /* 65ce02 bit */
+  ind |= 1 << 2;
+#endif
+    
+  fprintf(final_ptr, "%c", ind);
+    
+  if (export_source_file_names(final_ptr) == FAILED)
+    return FAILED;
+
+  /* export definitions */
+  if (export_definitions(final_ptr) == FAILED)
+    return FAILED;
+
+  /* labels, symbols and breakpoints */
+  ov = 0;
+  g_label_tmp = g_labels;
+  while (g_label_tmp != NULL) {
+    if (g_label_tmp->alive == YES)
+      ov++;
+    g_label_tmp = g_label_tmp->next;
+  }
+
+  WRITEOUT_OV;
+
+  g_label_tmp = g_labels;
+  while (g_label_tmp != NULL) {
+    if (g_label_tmp->alive == YES) {
+      if (g_label_tmp->symbol != 2)
+        fprintf(final_ptr, "%s", g_label_tmp->label);
+      fprintf(final_ptr, "%c", g_label_tmp->symbol);
+
+      ov = g_label_tmp->section_id;
+      WRITEOUT_OV;
+
+      ov = g_label_tmp->filename_id;
+      WRITEOUT_OV;
+
+      ov = g_label_tmp->linenumber;
+      WRITEOUT_OV;
+
+      ov = g_label_tmp->address;
+      WRITEOUT_OV;
+    }
+    g_label_tmp = g_label_tmp->next;
+  }
+
+  /* unknown labels (outside references) */
+  ov = 0;
+  g_label_tmp = g_unknown_labels;
+  while (g_label_tmp != NULL) {
+    ov++;
+    g_label_tmp = g_label_tmp->next;
+  }
+
+  WRITEOUT_OV;
+
+  g_label_tmp = g_unknown_labels;
+  while (g_label_tmp != NULL) {
+    fprintf(final_ptr, "%s%c%c%c", g_label_tmp->label, 0x0, g_label_tmp->type, g_label_tmp->special_id);
+
+    ov = g_label_tmp->section_id;
+    WRITEOUT_OV;
+
+    ov = g_label_tmp->filename_id;
+    WRITEOUT_OV;
+
+    if (g_label_tmp->section_status == OFF) {
+      fprintf(stderr, "INTERNAL_PASS_2: Label \"%s\" is outside all sections.\n", g_label_tmp->label);
+      return FAILED;
+    }
+
+    if (g_label_tmp->type == REFERENCE_TYPE_BITS)
+      fprintf(final_ptr, "%c%c", g_label_tmp->bits_position, g_label_tmp->bits_to_define);
+      
+    ov = g_label_tmp->linenumber;
+    WRITEOUT_OV;
+
+    ov = g_label_tmp->address; /* + (g_label_tmp->base << 16); */
+    WRITEOUT_OV;
+
+    g_label_tmp = g_label_tmp->next;
+  }
+
+  /* pending calculations */
+  ov = g_stacks_outside;
+  WRITEOUT_OV;
+
+  g_stacks_tmp = g_stacks_first;
+  while (g_stacks_tmp != NULL) {
+    ov = g_stacks_tmp->id;
+    WRITEOUT_OV;
+
+    fprintf(final_ptr, "%c%c", g_stacks_tmp->type | (g_stacks_tmp->relative_references << 7), g_stacks_tmp->special_id);
+
+    ov = g_stacks_tmp->section_id;
+    WRITEOUT_OV;
+
+    ov = g_stacks_tmp->filename_id;
+    WRITEOUT_OV;
+      
+    fprintf(final_ptr, "%c%c", g_stacks_tmp->stacksize, g_stacks_tmp->position);
+
+    if (g_stacks_tmp->type == STACK_TYPE_BITS)
+      fprintf(final_ptr, "%c%c", g_stacks_tmp->bits_position, g_stacks_tmp->bits_to_define);
+
+    ov = g_stacks_tmp->address;
+    WRITEOUT_OV;
+
+    ov = g_stacks_tmp->linenumber;
+    WRITEOUT_OV;
+
+    for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
+      fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
+      if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
+        fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
+      else {
+        dou = g_stacks_tmp->stack[ind].value;
+        WRITEOUT_DOU;
+      }
+    }
+
+    g_stacks_tmp = g_stacks_tmp->next;
+  }
+
+  /* label sizeofs */
+  ov = 0;
+  g_label_sizeof_tmp = g_label_sizeofs;
+  while (g_label_sizeof_tmp != NULL) {
+    ov++;
+    g_label_sizeof_tmp = g_label_sizeof_tmp->next;
+  }
+
+  WRITEOUT_OV;
+
+  g_label_sizeof_tmp = g_label_sizeofs;
+  while (g_label_sizeof_tmp != NULL) {
+    fprintf(final_ptr, "%s%c", g_label_sizeof_tmp->name, 0);
+
+    ov = g_label_sizeof_tmp->size;
+    WRITEOUT_OV;
+
+    g_label_sizeof_tmp = g_label_sizeof_tmp->next;
+  }
+    
+  /* appendto/after sections */
+  ov = 0;
+  g_after_tmp = g_after_sections;
+  while (g_after_tmp != NULL) {
+    if (g_after_tmp->alive == YES)
+      ov++;
+    g_after_tmp = g_after_tmp->next;
+  }
+  WRITEOUT_OV;
+
+  g_after_tmp = g_after_sections;
+  while (g_after_tmp != NULL) {
+    if (g_after_tmp->alive == YES) {
+      ov = g_after_tmp->section->id;
+      WRITEOUT_OV;
+      fprintf(final_ptr, "%c", g_after_tmp->is_appendto);
+      fprintf(final_ptr, "%s%c", g_after_tmp->section->name, 0);
+      fprintf(final_ptr, "%s%c", g_after_tmp->after, 0);
+    }
+      
+    g_after_tmp = g_after_tmp->next;
+  }
+
+  /* sections */
+  g_sec_tmp = g_sections_first;
+  while (g_sec_tmp != NULL) {
+    if (g_sec_tmp->alive == YES) {
+      fprintf(final_ptr, "%s%c%c", g_sec_tmp->name, g_sec_tmp->status, g_sec_tmp->keep);
+      if (g_sec_tmp->nspace == NULL)
+        fprintf(final_ptr, "%c", 0);
+      else
+        fprintf(final_ptr, "%s%c", g_sec_tmp->nspace->name, 0);
+
+      ov = g_sec_tmp->id;
+      WRITEOUT_OV;
+
+      ov = g_sec_tmp->filename_id;
+      WRITEOUT_OV;
+
+      ov = g_sec_tmp->size;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->alignment;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->offset;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->priority;
+      WRITEOUT_OV;
+        
+      fwrite(g_sec_tmp->data, 1, g_sec_tmp->size, final_ptr);
+
+      if (g_listfile_data == YES && g_sec_tmp->listfile_items > 0)
+        listfile_block_write(final_ptr, g_sec_tmp);
+      else
+        fprintf(final_ptr, "%c", 0);
+    }
+    g_sec_tmp = g_sec_tmp->next;
+  }
+
+  fclose(final_ptr);
+
+  return SUCCEEDED;
+}
+
+
+int show_project_information_object(void) {
+
+  int total_used_ram = 0, total_used_rom = 0, i, printed_something;
+  struct section_def *s;
+  float f;
+    
+  fflush(stderr);
+  fflush(stdout);
+
+  s = g_sections_first;
+  while (s != NULL) {
+    int status = s->status;
+      
+    if (status == SECTION_STATUS_RAM_FREE || status == SECTION_STATUS_RAM_FORCE ||
+        status == SECTION_STATUS_RAM_SEMIFREE || status == SECTION_STATUS_RAM_SEMISUBFREE)
+      total_used_ram += s->size;
+    else if (status == SECTION_STATUS_HEADER) {
+    }
+    else
+      total_used_rom += s->size;
+      
+    s = s->next;
+  }
+
+  fprintf(stderr, "-------------------------------------------------\n");
+  fprintf(stderr, "---                   ROM                     ---\n");
+  fprintf(stderr, "-------------------------------------------------\n");
+
+  for (i = 0; i < g_rombanks; i++) {  
+    int bank_address = g_banksize * i, j, used_rom = 0, found_block, block_start, used_sections = 0;
+
+    /* calculate ROM usage (this bank) */
+    for (j = 0; j < g_banksize; j++) {
+      if (g_rom_banks_usage_table[bank_address + j] > 0) {
+        used_rom++;
+        total_used_rom++;
+      }
+    }
+
+    s = g_sections_first;
+    while (s != NULL) {
+      int status = s->status;
+
+      if (s->bank == i) {
+        if (status == SECTION_STATUS_FREE || status == SECTION_STATUS_FORCE || status == SECTION_STATUS_OVERWRITE ||
+            status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE || status == SECTION_STATUS_SUPERFREE ||
+            status == SECTION_STATUS_SEMISUBFREE) {
+          used_rom += s->size;
+          used_sections += s->size;
+        }
+      }
+      
+      s = s->next;
+    }
+
+    if (used_rom == 0)
+      continue;
+
+    f = ((float)used_rom)/g_banksize * 100.0f;
+    fprintf(stderr, "ROM bank %d (%d bytes (%.2f%%) used)\n", i, used_rom, f);
+    fprintf(stderr, "  - Outside .SECTIONs (%d bytes)\n", used_rom - used_sections);
+
+    found_block = NO;
+    block_start = 0;
+    printed_something = NO;
+    
+    for (j = 0; j < g_banksize; j++) {
+      if (g_rom_banks_usage_table[bank_address + j] != 0 && found_block == NO) {
+        found_block = YES;
+        block_start = j;
+      }
+      else if (g_rom_banks_usage_table[bank_address + j] == 0 && found_block == YES) {
+        fprintf(stderr, "    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j - 1, j - block_start);
+        printed_something = YES;
+        found_block = NO;
+      }
+      else if (found_block == YES && j == g_banksize - 1) {
+        fprintf(stderr, "    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j - 1, j - block_start);
+        printed_something = YES;
+      }
+    }
+
+    if (printed_something == NO)
+      fprintf(stderr, "    - No data outside .SECTIONs.\n");
+    
+    fprintf(stderr, "  - Sections (%d bytes)\n", used_sections);
+
+    printed_something = NO;
+    
+    s = g_sections_first;
+    while (s != NULL) {
+      int status = s->status;
+
+      if (s->bank == i) {
+        if (status == SECTION_STATUS_FREE || status == SECTION_STATUS_FORCE || status == SECTION_STATUS_OVERWRITE ||
+            status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE || status == SECTION_STATUS_SUPERFREE ||
+            status == SECTION_STATUS_SEMISUBFREE) {
+          fprintf(stderr, "    - .SECTION \"%s\" (%d bytes).\n", s->name, s->size);
+          printed_something = YES;
+        }
+      }
+      
+      s = s->next;
+    }
+
+    if (printed_something == NO)
+      fprintf(stderr, "    - No .SECTIONs found.\n");
+  }
+
+  fprintf(stderr, "-------------------------------------------------\n");
+  fprintf(stderr, "---                   RAM                     ---\n");
+  fprintf(stderr, "-------------------------------------------------\n");
+
+  if (total_used_ram == 0)
+    fprintf(stderr, "No .RAMSECTIONs were found, no information about RAM.\n");
+  else {
+    char slot_name[MAX_NAME_LENGTH + 1];
+    int slot, bank;
+    
+    for (slot = 0; slot < g_slots_amount; slot++) {
+      for (bank = 0; bank < 256; bank++) {
+        int ram_used = 0;
+
+        s = g_sections_first;
+        while (s != NULL) {
+          if (s->slot == slot && s->bank == bank) {
+            int status = s->status;
+
+            if (status == SECTION_STATUS_RAM_FREE || status == SECTION_STATUS_RAM_FORCE ||
+                status == SECTION_STATUS_RAM_SEMIFREE || status == SECTION_STATUS_RAM_SEMISUBFREE)
+              ram_used += s->size;
+          }
+          
+          s = s->next;
+        }
+
+        if (ram_used == 0)
+          continue;
+
+        /* get slot name */
+        if (g_slots[slot].name[0] != 0)
+          snprintf(slot_name, sizeof(slot_name), "%d (%s)", slot, g_slots[slot].name);
+        else
+          snprintf(slot_name, sizeof(slot_name), "%d", slot);      
+
+        f = ((float)ram_used)/g_slots[slot].size * 100.0f;
+        fprintf(stderr, "RAM slot %s bank %d (%d bytes (%.2f%%) used)\n", slot_name, bank, ram_used, f);
+
+        s = g_sections_first;
+        while (s != NULL) {
+          if (s->slot == slot && s->bank == bank) {
+            int status = s->status;
+
+            if (status == SECTION_STATUS_RAM_FREE || status == SECTION_STATUS_RAM_FORCE ||
+                status == SECTION_STATUS_RAM_SEMIFREE || status == SECTION_STATUS_RAM_SEMISUBFREE)
+              fprintf(stderr, "  - .RAMSECTION \"%s\" (%d bytes).\n", s->name, s->size);
+          }
+          
+          s = s->next;
+        }
+      }
+    }
+  }
+
+  fprintf(stderr, "-------------------------------------------------\n");
+  fprintf(stderr, "---                 SUMMARY                   ---\n");
+  fprintf(stderr, "-------------------------------------------------\n");
+
+  f = ((float)total_used_rom)/(g_rombanks * g_banksize) * 100.0f;
+  fprintf(stderr, "ROM: %d bytes (%.2f%%) used.\n", total_used_rom, f);
+  
+  if (total_used_ram == 0)
+    fprintf(stderr, "RAM: No .RAMSECTIONs were found, no information about RAM.\n");
+  else
+    fprintf(stderr, "RAM: %d bytes used.\n", total_used_ram);
+
+  fflush(stderr);
+  fflush(stdout);
+  
+  /*
+  g_sec_tmp = g_sections_first;
+  while (g_sec_tmp != NULL) {
+    if (g_sec_tmp->status == SECTION_STATUS_HEADER) {
+      fprintf(stderr, "Bank %d header section size %d.\n", g_sec_tmp->bank, g_sec_tmp->size);
+      ind += g_sec_tmp->size;
+    }
+    g_sec_tmp = g_sec_tmp->next;
+  }
+
+  if (ind != 0) {
+    fprintf(stderr, "Total %d additional bytes (from headers and footers).\n", ind);
+    fprintf(stderr, "Total size %d bytes.\n", ind + g_max_address);
+  }
+  */
+  
+  return SUCCEEDED;
+}
+
+
+int show_project_information_library(void) {
+
+  int total_used_ram = 0, total_used_rom = 0;
+  struct section_def *s;
+  float f;
+
+  fflush(stderr);
+  fflush(stdout);
+
+  s = g_sections_first;
+  while (s != NULL) {
+    int status = s->status;
+      
+    if (status == SECTION_STATUS_RAM_FREE || status == SECTION_STATUS_RAM_FORCE ||
+        status == SECTION_STATUS_RAM_SEMIFREE || status == SECTION_STATUS_RAM_SEMISUBFREE)
+      total_used_ram += s->size;
+    else if (status == SECTION_STATUS_HEADER) {
+    }
+    else
+      total_used_rom += s->size;
+      
+    s = s->next;
+  }
+
+  fprintf(stderr, "-------------------------------------------------\n");
+  fprintf(stderr, "---                   ROM                     ---\n");
+  fprintf(stderr, "-------------------------------------------------\n");
+
+  s = g_sections_first;
+  while (s != NULL) {
+    int status = s->status;
+
+    if (status == SECTION_STATUS_FREE || status == SECTION_STATUS_FORCE || status == SECTION_STATUS_OVERWRITE ||
+        status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE || status == SECTION_STATUS_SUPERFREE ||
+        status == SECTION_STATUS_SEMISUBFREE)
+      fprintf(stderr, ".SECTION \"%s\" (%d bytes).\n", s->name, s->size);
+
+    s = s->next;
+  }
+
+  fprintf(stderr, "-------------------------------------------------\n");
+  fprintf(stderr, "---                   RAM                     ---\n");
+  fprintf(stderr, "-------------------------------------------------\n");
+
+  if (total_used_ram == 0)
+    fprintf(stderr, "No .RAMSECTIONs were found, no information about RAM.\n");
+  else {
+    s = g_sections_first;
+    while (s != NULL) {
+      int status = s->status;
+
+      if (status == SECTION_STATUS_RAM_FREE || status == SECTION_STATUS_RAM_FORCE ||
+          status == SECTION_STATUS_RAM_SEMIFREE || status == SECTION_STATUS_RAM_SEMISUBFREE)
+        fprintf(stderr, ".RAMSECTION \"%s\" (%d bytes).\n", s->name, s->size);
+
+      s = s->next;
+    }
+  }
+
+  fprintf(stderr, "-------------------------------------------------\n");
+  fprintf(stderr, "---                 SUMMARY                   ---\n");
+  fprintf(stderr, "-------------------------------------------------\n");
+
+  f = ((float)total_used_rom)/(g_rombanks * g_banksize) * 100.0f;
+  fprintf(stderr, "ROM: %d bytes (%.2f%%) used of total %d.\n", total_used_rom, f, g_rombanks * g_banksize);
+
+  if (total_used_ram == 0)
+    fprintf(stderr, "RAM: No .RAMSECTIONs were found, no information about RAM.\n");
+  else
+    fprintf(stderr, "RAM: %d bytes used.\n", total_used_ram);
+
+  fflush(stderr);
+  fflush(stdout);
+  
   return SUCCEEDED;
 }
 

@@ -4454,7 +4454,7 @@ int directive_ramsection(void) {
     }
 
     if (g_parsed_int > 255 && g_output_format != OUTPUT_LIBRARY) {
-      snprintf(g_error_message, sizeof(g_error_message), "RAM banks == 256 (0-255), selected bank %d.\n", g_parsed_int);
+      snprintf(g_error_message, sizeof(g_error_message), "We can have 256 RAM banks (0-255) per slot, selected bank %d.\n", g_parsed_int);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -5653,7 +5653,7 @@ int directive_rombanks(void) {
 
   g_rombanks = g_parsed_int;
   g_rombanks_defined = 1;
-  g_max_address = g_parsed_int * g_banksize;
+  g_max_address = g_rombanks * g_banksize;
 
   if (g_rom_banks != NULL)
     free(g_rom_banks);

@@ -69,15 +69,15 @@ for PLATFORM in */; do
                 OUT=$(runTest $TEST 2>&1)
                 if [ $? -ne 0 ]; then
                     printf "\n\n%s\n\n" "$OUT"
-                    echo "********"
+                    echo "########"
                     echo FAILURE!
-                    echo "********"
+                    echo "########"
                     echo Test \"$TEST\" of platform \"$PLATFORM\" failed.
                     exit 1
                 elif $SHOW_ALL_OUTPUT; then
-                    echo "*********************************************************************"
+                    echo "#####################################################################"
                     echo Test \"$TEST\" of platform \"$PLATFORM\" succeeded:
-                    echo "*********************************************************************"
+                    echo "#####################################################################"
                     printf "\n%s\n\n" "$OUT"
                 else
                     printf .

@@ -40,3 +40,7 @@ loop: inc $d020    ; Let's change the border color
 var1: .db 0
 var2: .db 0
 var3: .db 0
+
+.ORGA $C020
+
+        .db 1, 2, 3, 4, 5, 6, 7, 8

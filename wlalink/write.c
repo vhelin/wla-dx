@@ -149,7 +149,7 @@ int _cbm_write_prg_header(FILE *f) {
 
     fprintf(stderr, "Using the address $%x (of label \"%s\") as the load address for the PRG.\n", address & 0xFFFF, label->name);
   }
-      
+
   fprintf(f, "%c", address & 0xFF);
   fprintf(f, "%c", (address >> 8) & 0xFF);
 
@@ -2069,8 +2069,6 @@ int write_rom_file(char *outname) {
       fprintf(stderr, "WRITE_ROM_FILE: The supplied -bS ($%x) is larger than calculated end ($%x).\n", b, e);
       return FAILED;
     }
-
-    fprintf(stderr, "Program start $%x, end $%x.\n", b, e);
   }
 
   if (g_file_footer != NULL)

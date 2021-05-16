@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.15a (9.5.2021)";
+char version_string[] = "$VER: wlalink 5.15a (16.5.2021)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -210,9 +210,7 @@ static void _debug_print_sections(void) {
 
 int main(int argc, char *argv[]) {
 
-  int i, x, y, q, inz;
-  struct section *s;
-  float f;
+  int i;
 
   if (sizeof(double) != 8) {
     fprintf(stderr, "MAIN: sizeof(double) == %d != 8. WLALINK will not work properly.\n", (int)(sizeof(double)));
@@ -226,11 +224,11 @@ int main(int argc, char *argv[]) {
   atexit(procedures_at_exit);
 
   if (argc > 2)
-    x = parse_flags(argv, argc);
+    i = parse_flags(argv, argc);
   else
-    x = FAILED;
+    i = FAILED;
 
-  if (x == FAILED) {
+  if (i == FAILED) {
     printf("\nWLALINK GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 WLA Macro Assembler Linker v5.15a\n");
     printf("Written by Ville Helin in 2000-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
 #ifdef WLALINK_DEBUG
@@ -303,8 +301,8 @@ int main(int argc, char *argv[]) {
     return 1;
   
   /* calculate romsize */
-  for (g_romsize = 0, x = 0; x < g_rombanks; x++)
-    g_romsize += g_banksizes[x];
+  for (g_romsize = 0, i = 0; i < g_rombanks; i++)
+    g_romsize += g_banksizes[i];
 
   /* obtain source file names used in compiling */
   if (obtain_source_file_names() == FAILED)
@@ -601,90 +599,278 @@ int main(int argc, char *argv[]) {
       return FAILED;
   }
 
-  /* show rom information */
-  y = 0;
-  if (g_verbose_mode == ON) {
-    x = 0;
-    for (i = 0; i < g_romsize; i++) {
-      if (g_rom_usage[i] == 0 && x == 0) {
-        x = 1;
-        y = i;
-      }
-      else if (g_rom_usage[i] != 0 && x == 1) {
-        if (y == (i - 1))
-          fprintf(stderr, "Free space at $%.4x.\n", y);
+  /* show rom & ram information */
+  show_rom_ram_information();
+
+  return 0;
+}
+
+
+int _show_ram_information(int *free, int *total) {
+
+  int printed_something = NO, bank_used, bank_free, slot, bank, i, area_start, area_end;
+  char *slot_usage_data, slot_name[MAX_NAME_LENGTH+1];
+  float f;
+  
+  fprintf(stderr, "-------------------------------------------------\n");
+  fprintf(stderr, "---                   RAM                     ---\n");
+  fprintf(stderr, "-------------------------------------------------\n");
+
+  *free = 0;
+  *total = 0;
+
+  for (slot = 0; slot < 256; slot++) {
+    for (bank = 0; bank < 256; bank++) {
+      if (g_ram_slots[bank] == NULL)
+        continue;
+
+      slot_usage_data = g_ram_slots[bank][slot];
+      if (slot_usage_data == NULL)
+        continue;
+
+      bank_used = 0;
+      bank_free = 0;
+
+      for (i = 0; i < g_slots[slot].size; i++) {
+        if (slot_usage_data[i] <= 0) {
+          (*free)++;
+          bank_free++;
+        }
         else
-          fprintf(stderr, "Free space at $%.4x-$%.4x.\n", y, i - 1);
-        x = 0;
+          bank_used++;
+        (*total)++;
       }
-    }
 
-    if (x == 1) {
-      if (y == (i - 1))
-        fprintf(stderr, "Free space at $%.4x.\n", y);
+      /* get slot name */
+      if (g_slots[slot].name[0] != 0)
+        snprintf(slot_name, sizeof(slot_name), "%d (%s)", slot, g_slots[slot].name);
       else
-        fprintf(stderr, "Free space at $%.4x-$%.4x.\n", y, i - 1);
-    }
+        snprintf(slot_name, sizeof(slot_name), "%d", slot);
 
-    for (y = 0, q = 0; y < g_romsize; q++) {
-      for (x = 0, inz = 0; inz < g_banksizes[q]; inz++) {
-        if (g_rom_usage[y++] == 0)
-          x++;
+      f = ((float)bank_free)/(bank_free + bank_used) * 100.0f;
+      fprintf(stderr, "RAM slot %s bank %d (%d bytes (%.2f%%) free)\n", slot_name, bank, bank_free, f);
+
+      area_start = -1;
+      area_end = -1;
+      
+      for (i = 0; i < g_slots[slot].size; i++) {
+        int print_area = NO;
+        
+        if (slot_usage_data[i] == 0) {
+          if (area_start < 0)
+            area_start = i;
+          area_end = i;
+          
+          if (i == g_slots[slot].size-1)
+            print_area = YES;
+        }
+        else {
+          if (area_start >= 0)
+            print_area = YES;
+        }
+        
+        if (print_area == YES) {
+          fprintf(stderr, "  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+          area_start = -1;
+          area_end = -1;
+        }
       }
-      f = (((float)x)/g_banksizes[q]) * 100.0f;
-      if (f == 100.0f)
-        fprintf(stderr, "Bank %.2d has %.5d bytes (%.1f%%) free.\n", q, x, f);
-      else
-        fprintf(stderr, "Bank %.2d has %.5d bytes (%.2f%%) free.\n", q, x, f);
-    }
-
-    /* ROM data */
-    if (g_output_mode == OUTPUT_ROM) {
-      for (i = 0, y = 0; i < g_romsize; i++) {
-        if (g_rom_usage[i] == 0)
-          y++;
-      }
-
-      fprintf(stderr, "%d unused bytes of total %d.\n", y, g_romsize);
-      q = g_romsize;
-    }
-    /* program file data */
-    else {
-      for (i = g_program_start, y = 0; i < g_program_end; i++) {
-        if (g_rom_usage[i] == 0)
-          y++;
-      }
-
-      q = g_program_end - g_program_start + 1;
-      fprintf(stderr, "%d unused bytes (%.2f%%) of total %d.\n", y, (((double)y) / q) * 100, q);
-    }
-
-    if (g_file_header_size != 0)
-      fprintf(stderr, "File header size %d.\n", g_file_header_size);
-    if (g_file_footer_size != 0)
-      fprintf(stderr, "File footer size %d.\n", g_file_footer_size);
-
-    if (g_smc_status != 0) {
-      fprintf(stderr, "512 additional bytes from the SMC ROM header.\n");
-      i = g_file_header_size + g_file_footer_size + 512;
-    }
-    else
-      i = g_file_header_size + g_file_footer_size;
-
-    s = g_sec_bankhd_first;
-    while (s != NULL) {
-      fprintf(stderr, "Bank %d header section size %d.\n", s->bank, s->size);
-      i += s->size;
-      s = s->next;
-    }
-
-    if (i != 0) {
-      fprintf(stderr, "Total %d additional bytes (from headers and footers).\n", i);
-      fprintf(stderr, "Total size %d bytes.\n", i + q);
+      
+      printed_something = YES;
     }
   }
 
-  return 0;
+  if (printed_something == NO)
+    fprintf(stderr, "No .RAMSECTIONs were found, no information about RAM.\n");
+  
+  return SUCCEEDED;
+}
+
+
+int _show_headers_and_footers_information(void) {
+
+  struct section *s;
+  int i = 0, prints = 0;
+  
+  fprintf(stderr, "-------------------------------------------------\n");
+  fprintf(stderr, "---           HEADERS AND FOOTERS             ---\n");
+  fprintf(stderr, "-------------------------------------------------\n");
+
+  if (g_file_header_size != 0) {
+    fprintf(stderr, "File header size %d.\n", g_file_header_size);
+    prints++;
+  }
+  if (g_file_footer_size != 0) {
+    fprintf(stderr, "File footer size %d.\n", g_file_footer_size);
+    prints++;
+  }
+  
+  i = g_file_header_size + g_file_footer_size;
+  
+  if (g_output_type == OUTPUT_TYPE_CBM_PRG) {
+    fprintf(stderr, "2 additional bytes from the CBM PRG header.\n");
+    i += 2;
+    prints++;
+  }
+  
+  if (g_smc_status != 0) {
+    fprintf(stderr, "512 additional bytes from the SMC ROM header.\n");
+    i += 512;
+    prints++;
+  }
+
+  s = g_sec_bankhd_first;
+  while (s != NULL) {
+    fprintf(stderr, "ROM bank %d header section size %d.\n", s->bank, s->size);
+    i += s->size;
+    s = s->next;
+  }
+
+  if (i != 0) {
+    if (prints > 1)
+      fprintf(stderr, "Total %d additional bytes (from headers and footers).\n", i);
+  }
+  else
+    fprintf(stderr, "No headers or footers found.\n");
+
+  return SUCCEEDED;
+}
+
+
+int show_rom_ram_information(void) {
+
+  int a, address, r, rom_used_bytes = 0, rom_bank_used_bytes, area_start, area_end, ram_free, ram_total;
+  float f;
+
+  if (g_verbose_mode == OFF)
+    return SUCCEEDED;
+
+  if (g_output_mode == OUTPUT_ROM) {
+    /* ROM information */
+
+    fprintf(stderr, "-------------------------------------------------\n");
+    fprintf(stderr, "---                   ROM                     ---\n");
+    fprintf(stderr, "-------------------------------------------------\n");
+  
+    for (r = 0, address = 0; r < g_rombanks; r++) {
+      int address_old = address;
+    
+      for (a = 0, rom_bank_used_bytes = 0; a < g_banksizes[r]; a++, address++) {
+        if (g_rom_usage[address] != 0) {
+          rom_used_bytes++;
+          rom_bank_used_bytes++;
+        }
+      }
+
+      f = (((float)(g_banksizes[r] - rom_bank_used_bytes))/g_banksizes[r]) * 100.0f;
+      fprintf(stderr, "ROM bank %d (%d bytes (%.2f%%) free)\n", r, g_banksizes[r] - rom_bank_used_bytes, f);
+
+      address = address_old;
+      area_start = -1;
+      area_end = -1;
+      
+      for (a = 0; a < g_banksizes[r]; a++, address++) {
+        int print_area = NO;
+        
+        if (g_rom_usage[address] == 0) {
+          if (area_start < 0)
+            area_start = a;
+          area_end = a;
+          
+          if (a == g_banksizes[r]-1)
+            print_area = YES;
+        }
+        else {
+          if (area_start >= 0)
+            print_area = YES;
+        }
+        
+        if (print_area == YES) {
+          fprintf(stderr, "  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+          area_start = -1;
+          area_end = -1;
+        }      
+      }
+    }
+
+    _show_ram_information(&ram_free, &ram_total);
+    _show_headers_and_footers_information();
+    
+    fprintf(stderr, "-------------------------------------------------\n");
+    fprintf(stderr, "---                 SUMMARY                   ---\n");
+    fprintf(stderr, "-------------------------------------------------\n");
+
+    f = (((float)(g_romsize - rom_used_bytes))/g_romsize) * 100.0f;
+    fprintf(stderr, "ROM: %d bytes (%.2f%%) free of total %d.\n", g_romsize - rom_used_bytes, f, g_romsize);
+
+    if (ram_free <= 0)
+      fprintf(stderr, "RAM: No .RAMSECTIONs were found, no information about RAM.\n");
+    else {
+      f = (((float)ram_free)/ram_total) * 100.0f;
+      fprintf(stderr, "RAM: %d bytes (%.2f%%) free of total %d.\n", ram_free, f, ram_total);
+    }
+  }
+  else {
+    /* PRG information */
+    int prg_size = g_program_end - g_program_start + 1, used_bytes;
+
+    fprintf(stderr, "-------------------------------------------------\n");
+    fprintf(stderr, "---                   PRG                     ---\n");
+    fprintf(stderr, "-------------------------------------------------\n");
+
+    for (a = g_program_start, used_bytes = 0; a <= g_program_end; a++) {
+      if (g_rom_usage[a] != 0)
+        used_bytes++;
+    }
+
+    f = (((float)(prg_size - used_bytes))/prg_size) * 100.0f;
+    fprintf(stderr, "PRG $%.4x-$%.4x (%d bytes (%.2f%%) free)\n", g_program_start, g_program_end, prg_size - used_bytes, f);
+
+    area_start = -1;
+    area_end = -1;
+      
+    for (a = g_program_start; a < g_program_end; a++) {
+      int print_area = NO;
+        
+      if (g_rom_usage[a] == 0) {
+        if (area_start < 0)
+          area_start = a;
+        area_end = a;
+          
+        if (a == g_program_end-1)
+          print_area = YES;
+      }
+      else {
+        if (area_start >= 0)
+          print_area = YES;
+      }
+        
+      if (print_area == YES) {
+        fprintf(stderr, "  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+        area_start = -1;
+        area_end = -1;
+      }      
+    }
+    
+    _show_ram_information(&ram_free, &ram_total);
+    _show_headers_and_footers_information();
+
+    fprintf(stderr, "-------------------------------------------------\n");
+    fprintf(stderr, "---                 SUMMARY                   ---\n");
+    fprintf(stderr, "-------------------------------------------------\n");
+
+    f = (((float)(prg_size - used_bytes))/prg_size) * 100.0f;
+    fprintf(stderr, "PRG: %d bytes (%.2f%%) free of total %d.\n", prg_size - used_bytes, f, prg_size);
+
+    if (ram_free <= 0)
+      fprintf(stderr, "RAM: No .RAMSECTIONs were found, no information about RAM.\n");
+    else {
+      f = (((float)ram_free)/ram_total) * 100.0f;
+      fprintf(stderr, "RAM: %d bytes (%.2f%%) free of total %d.\n", ram_free, f, ram_total);
+    }
+  }
+  
+  return SUCCEEDED;
 }
 
 
