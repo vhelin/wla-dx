@@ -41,8 +41,8 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 9.13a (16.5.2021)";
-char g_wla_version[] = "9.13";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.0a (16.5.2021)";
+char g_wla_version[] = "10.0";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
 
@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
   }
   
   if (g_output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
-    printf("\nWLA " ARCH_STR " Macro Assembler v9.13a\n");
+    printf("\nWLA " ARCH_STR " Macro Assembler v10.0a\n");
     printf("Written by Ville Helin in 1998-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
 #ifdef WLA_DEBUG
     printf("*** WLA_DEBUG defined - this executable is running in DEBUG mode ***\n");

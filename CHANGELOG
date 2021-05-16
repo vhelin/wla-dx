@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------
 
-v9.13 (16-May-2021) [ALL] WARNING: Precedence of operators in calculations
+v10.0 (16-May-2021) [ALL] WARNING: Precedence of operators in calculations
                       that WLA calculates is now more fine grained and C like.
                     [ALL] WARNING: .ASC didn't map \0 and \x inside a string,
                       but now all bytes given to .ASC are mapped. Consider
