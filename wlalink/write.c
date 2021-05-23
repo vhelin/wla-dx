@@ -1653,7 +1653,7 @@ static void _fprintf_snes_label(FILE *f, struct label *l, int noca5h) {
 }
 
 
-int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAddrToLine) {
+int write_symbol_file(char *outname, unsigned char mode, unsigned char output_addr_to_line) {
 
   struct source_file_name *src_file;
   struct object_file *obj_file;
@@ -1869,14 +1869,14 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
       }
     }
 
-    if (outputAddrToLine == ON) {
+    if (output_addr_to_line == ON) {
       /* file_id_source to source files */
       fprintf(f, "\n[source files]\n");
       obj_file = g_obj_first;
       while (obj_file != NULL) {
         src_file = obj_file->source_file_names_list;
         while (src_file != NULL) {
-          fprintf(f, "%.4x %.8lx %s \n", src_file->id, src_file->checksum & 0xffffffffUL, src_file->name);
+          fprintf(f, "%.4x:%.4x %.8lx %s \n", obj_file->id + 1, src_file->id, src_file->checksum & 0xffffffffUL, src_file->name);
           src_file = src_file->next;
         }
         obj_file = obj_file->next;
@@ -1919,7 +1919,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char outputAdd
           if (list_cmd == 'k') {
             /* new line */
             if (s->listfile_ints[list_cmd_idx * 3 + 1] > 0) {
-              fprintf(f, "%.2x:%.4x %.4x:%.8lx\n", s->bank + s->base, (s->output_address + list_address_offset) & 0xFFFF, list_source_file, (long unsigned int)s->listfile_ints[list_cmd_idx * 3 + 0]);
+              fprintf(f, "%.2x:%.4x %.4x:%.4x:%.8lx\n", s->bank + s->base, (s->output_address + list_address_offset) & 0xFFFF, s->file_id + 1, list_source_file, (long unsigned int)s->listfile_ints[list_cmd_idx * 3 + 0]);
               list_address_offset += s->listfile_ints[list_cmd_idx * 3 + 1];
             }
           }

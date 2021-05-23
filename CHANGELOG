@@ -1286,7 +1286,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.15 (16-May-2021) Fixed listfile writing when there is no listfile data
+v5.15 (23-May-2021) Fixed listfile writing when there is no listfile data
                       in object files.
                     It's possible to give binary values in [definitions].
                     Pending 32-bit calculations work now in bankheader
@@ -1307,6 +1307,9 @@ v5.15 (16-May-2021) Fixed listfile writing when there is no listfile data
                       slots/banks. Information is calculated using
                       .RAMSECTIONs.
                     -v prints now more information about the RAM/ROM usage.
+                    Symbol files created with -S (and -A) contain now object
+                      file IDs for entries in [source files] and
+                      [addr-to-line mapping].
 
 v5.14 (20-Mar-2021) Fixed buggy symbol file name generation.
                     Fixed SMS checksum calculation if .SMSHEADER is not used.
