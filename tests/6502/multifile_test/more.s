@@ -5,12 +5,14 @@
            DEFAULTSLOT 0
            SLOTSIZE $2000
            SLOT 0 $0000
+           SLOT 1 $A000
+           SLOT 2 $E000
         .ENDME
 
         .ROMBANKMAP
-           BANKSTOTAL 1
+           BANKSTOTAL 16
            BANKSIZE $2000
-           BANKS 1
+           BANKS 16
         .ENDRO
 
         .BANK 0 SLOT 0

@@ -1919,7 +1919,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char output_ad
           if (list_cmd == 'k') {
             /* new line */
             if (s->listfile_ints[list_cmd_idx * 3 + 1] > 0) {
-              fprintf(f, "%.2x:%.4x %.4x:%.4x:%.8lx\n", s->bank + s->base, (s->output_address + list_address_offset) & 0xFFFF, s->file_id + 1, list_source_file, (long unsigned int)s->listfile_ints[list_cmd_idx * 3 + 0]);
+              fprintf(f, "%.8x %.2x:%.4x:%.4x %.4x:%.4x:%.8lx\n", s->output_address + list_address_offset, s->bank + s->base, s->address + list_address_offset, g_slots[s->slot].address + s->address + list_address_offset, s->file_id + 1, list_source_file, (long unsigned int)s->listfile_ints[list_cmd_idx * 3 + 0]);
               list_address_offset += s->listfile_ints[list_cmd_idx * 3 + 1];
             }
           }
