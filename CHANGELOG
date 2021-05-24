@@ -1307,6 +1307,7 @@ v5.15 (24-May-2021) Fixed listfile writing when there is no listfile data
                       slots/banks. Information is calculated using
                       .RAMSECTIONs.
                     -v prints now more information about the RAM/ROM usage.
+                    WLALINK writes now version 2 WLA symbol files.
                     Symbol files created with -S (and -A) contain now object
                       file IDs for entries in [source files] and
                       [addr-to-line mapping].

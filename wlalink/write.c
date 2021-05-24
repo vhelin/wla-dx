@@ -1737,6 +1737,10 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char output_ad
     /* WLA SYMBOL FILE */
     fprintf(f, "; wla symbolic information for \"%s\".\n", outname);
 
+    /* info section */
+    fprintf(f, "\n[information]\n");
+    fprintf(f, "version 2\n");
+    
     /* labels */
     l = g_labels_first;
     while (l != NULL) {
