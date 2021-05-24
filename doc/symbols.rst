@@ -32,7 +32,7 @@ The following are the list of currently supported sections, what they mean, and 
 [information]
 *************
 
-The only fields this section has currently are "version" and then the version number.
+The only fields this section has currently are "version" and then the version number. [information], if present, will always the be present before any other section or data, and its first line will always be the format version.
 
 [labels]
 ********
