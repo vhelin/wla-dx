@@ -75,7 +75,7 @@ This is just a single line identifying what the hexadecimal CRC32 checksum of th
 [addr-to-line mapping]
 **********************
 
-This is a listing of hexadecimal ROM address, bank, ROM bank offset, RAM address, each mapped to a hexadecimal object file index, a source file index and hexadecimal line index. The file indices refer back to the file indices specified in the ``source files`` section, so that the source file name can be discovered. This information can be used to, for example, display source file information in line with disassembled code, or to communicate with an external text editor the location of the current Program Counter by specifying a source file and line instead of some address in the binary ROM file. 
+This is a listing of hexadecimal ROM address, bank, ROM bank offset, memory address, each mapped to a hexadecimal object file index, a source file index and hexadecimal line index. The file indices refer back to the file indices specified in the ``source files`` section, so that the source file name can be discovered. This information can be used to, for example, display source file information in line with disassembled code, or to communicate with an external text editor the location of the current Program Counter by specifying a source file and line instead of some address in the binary ROM file. 
 
 - Regex match: ``[0-9a-fA-F]{8} [0-9a-fA-F]{2}:[0-9a-fA-F]{4}:[0-9a-fA-F]{4} [0-9a-fA-F]{4}:[0-9a-fA-F]{4}:[0-9a-fA-F]{8}``
 - Format specifier: ``%8x %2x:%4x:%4x %4x:%4x:%8x``
