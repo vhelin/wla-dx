@@ -66,8 +66,8 @@ This is a list of hexadecimal ROM addresses where the ``.SYMBOL`` directive was 
 - Regex match: ``[0-9a-fA-F]{2}:[0-9a-fA-F]{4} .*``
 - Format specifier: ``%2x:%4x %s``
 
-[source files]
-**************
+[source files v2]
+*****************
 
 These are used to identify what files were used during the assembly process, especially to map generated assembly back to source file contents. Each line lists a hexadecimal object file index, a hexadecimal source file index, a hexadecimal CRC32 checksum of the file, and a file path relative to the generated ROM's root. This could be used to load in the contents of one of the input files when running the ROM and verifying the file is up-to-date by checking its CRC32 checksum against the one generated during assembly.
 
@@ -82,8 +82,8 @@ This is just a single line identifying what the hexadecimal CRC32 checksum of th
 - Regex match:  ``[0-9a-fA-F]{8}``
 - Format specifier: ``%8x``
 
-[addr-to-line mapping]
-**********************
+[addr-to-line mapping v2]
+*************************
 
 This is a listing of hexadecimal ROM address, bank, ROM bank offset, memory address, each mapped to a hexadecimal object file index, a source file index and hexadecimal line index. The file indices refer back to the file indices specified in the ``source files`` section, so that the source file name can be discovered. This information can be used to, for example, display source file information in line with disassembled code, or to communicate with an external text editor the location of the current Program Counter by specifying a source file and line instead of some address in the binary ROM file. 
 

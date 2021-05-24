@@ -1309,9 +1309,8 @@ v5.15 (24-May-2021) Fixed listfile writing when there is no listfile data
                     -v prints now more information about the RAM/ROM usage.
                     WLALINK writes now version 2 WLA symbol files.
                     Symbol files created with -S (and -A) contain now object
-                      file IDs for entries in [source files] and
-                      [addr-to-line mapping].
-                    Changed [addr-to-line mapping] format and data.
+                      file IDs for entries in [source files v2] and
+                      [addr-to-line mapping v2].
 
 v5.14 (20-Mar-2021) Fixed buggy symbol file name generation.
                     Fixed SMS checksum calculation if .SMSHEADER is not used.

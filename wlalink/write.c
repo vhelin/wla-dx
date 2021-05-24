@@ -1875,7 +1875,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char output_ad
 
     if (output_addr_to_line == ON) {
       /* file_id_source to source files */
-      fprintf(f, "\n[source files]\n");
+      fprintf(f, "\n[source files v2]\n");
       obj_file = g_obj_first;
       while (obj_file != NULL) {
         src_file = obj_file->source_file_names_list;
@@ -1907,7 +1907,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char output_ad
       s = g_sec_first;
       while (s != NULL) {
         if (s->listfile_items > 0) {
-          fprintf(f, "\n[addr-to-line mapping]\n");
+          fprintf(f, "\n[addr-to-line mapping v2]\n");
           break;
         }
         s = s->next;
