@@ -11,6 +11,11 @@ Extra information for address-to-line mapping can be provided by adding the foll
 
 Address-to-line mappings includes information to relate lines in the source files to individual instructions in the generated ROM. This can be used to provide richer disassembly in the emulator, or allow for rich debugging in an external IDE. 
 
+WLA Symbol File Versions
+------------------------
+
+WLA DX v10.0 came with a new WLA symbol file format with changes to [source files] and [addr-to-line mapping], and added [information]. If you are maintaining a WLA symbol file parser, please check out this page every time a new version of WLA DX comes out as the format might have changed though it rarely does.
+
 Information For Emulator Developers
 -----------------------------------
 
@@ -23,6 +28,11 @@ In order to properly support loading of WLA symbol files, it is recommended to f
 - Unless otherwise specified, none of the data in any section should be assumed to be sorted in any particular way.
 
 The following are the list of currently supported sections, what they mean, and how their data should be interpreted.
+
+[information]
+*************
+
+The only fields this section has currently are "version" and then the version number.
 
 [labels]
 ********

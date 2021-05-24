@@ -1311,7 +1311,7 @@ v5.15 (24-May-2021) Fixed listfile writing when there is no listfile data
                     Symbol files created with -S (and -A) contain now object
                       file IDs for entries in [source files] and
                       [addr-to-line mapping].
-                    Changed [addr-to-line mapping] format, fixed RAM address.
+                    Changed [addr-to-line mapping] format and data.
 
 v5.14 (20-Mar-2021) Fixed buggy symbol file name generation.
                     Fixed SMS checksum calculation if .SMSHEADER is not used.
