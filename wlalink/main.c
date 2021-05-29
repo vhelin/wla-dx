@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char version_string[] = "$VER: wlalink 5.15a (24.5.2021)";
+char g_version_string[] = "$VER: wlalink 5.15a (29.5.2021)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -229,14 +229,40 @@ int main(int argc, char *argv[]) {
     i = FAILED;
 
   if (i == FAILED) {
-    printf("\nWLALINK GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700 WLA Macro Assembler Linker v5.15a\n");
-    printf("Written by Ville Helin in 2000-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
+    char title[] = "WLALINK - WLA DX Macro Assembler Linker v5.15a";
+    int length, left, right;
+
+    length = strlen(title);
+    left = (70 - 3 - 3 - length) / 2;
+    right = 70 - 3 - 3 - left - length;
+
+    printf("----------------------------------------------------------------------\n");
+    printf("---");
+    for (i = 0; i < left; i++)
+      printf(" ");
+    printf(title);
+    for (i = 0; i < right; i++)
+      printf(" ");
+    printf("---\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("                Programmed by Ville Helin in 1998-2008\n");
+    printf("        In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
+
+    length = strlen(g_version_string);
+    left = (70 - length) / 2;
+
+    for (i = 0; i < left; i++)
+      printf(" ");
+    printf(g_version_string);
+    
+    printf("\n\n");
+
 #ifdef WLALINK_DEBUG
-    printf("*** WLALINK_DEBUG defined - this executable is running in DEBUG mode ***\n");
+    printf("** WLALINK_DEBUG defined - this executable is running in DEBUG mode **\n");
+    printf("\n");
 #endif
-    printf("%s\n\n", version_string);
     printf("USAGE: %s [OPTIONS] <LINK FILE> <OUTPUT FILE>\n\n", argv[0]);
-    printf("Options:\n");
+    printf("OPTIONS:\n");
     printf("-b  Program file output\n");
     printf("-bS Starting address of the program (optional)\n");
     printf("-bE Ending address of the program (optional)\n");

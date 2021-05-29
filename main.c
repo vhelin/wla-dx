@@ -41,7 +41,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.0a (16.5.2021)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.0a (29.5.2021)";
 char g_wla_version[] = "10.0";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -150,15 +150,43 @@ int main(int argc, char *argv[]) {
   }
   
   if (g_output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
-    printf("\nWLA " ARCH_STR " Macro Assembler v10.0a\n");
-    printf("Written by Ville Helin in 1998-2008 - In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
+    char title[] = "WLA " ARCH_STR " Macro Assembler v10.0a";
+    int length, left, right;
+
+    length = strlen(title);
+    left = (70 - 3 - 3 - length) / 2;
+    right = 70 - 3 - 3 - left - length;
+
+    printf("----------------------------------------------------------------------\n");
+    printf("---");
+    for (q = 0; q < left; q++)
+      printf(" ");
+    printf(title);
+    for (q = 0; q < right; q++)
+      printf(" ");
+    printf("---\n");
+    printf("----------------------------------------------------------------------\n");
+    printf("                Programmed by Ville Helin in 1998-2008\n");
+    printf("        In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
+
+    length = strlen(g_version_string);
+    left = (70 - length) / 2;
+
+    for (q = 0; q < left; q++)
+      printf(" ");
+    printf(g_version_string);
+    
+    printf("\n\n");
+
 #ifdef WLA_DEBUG
-    printf("*** WLA_DEBUG defined - this executable is running in DEBUG mode ***\n");
+    printf("***  WLA_DEBUG defined - this executable is running in DEBUG mode  ***\n");
+    printf("\n");
 #endif
-    printf("%s\n\n", g_version_string);
+
     printf("USAGE: %s [OPTIONS] <OUTPUT> <ASM FILE>\n\n", argv[0]);
-    printf("Options:\n");
-    printf("-h  Assume that all label references are 16-bit by default (size hints still work)\n");
+    printf("OPTIONS:\n");
+    printf("-h  Assume all label references are 16-bit by default (size hints\n");
+    printf("    still work)\n");
     printf("-i  Add list file information\n");
     printf("-k  Keep empty sections\n");
     printf("-M  Output makefile rules\n");
@@ -169,10 +197,10 @@ int main(int argc, char *argv[]) {
     printf("-x  Extra compile time labels & definitions\n");
     printf("-I <DIR>  Include directory\n");
     printf("-D <DEF>  Declare definition\n\n");
-    printf("Output:\n");
+    printf("OUTPUT:\n");
     printf("-o <FILE>  Output object file\n");
     printf("-l <FILE>  Output library file\n\n");
-    printf("EXAMPLE: %s -D VERSION=1 -D TWO=2 -v -o main.obj main.asm\n\n", argv[0]);
+    printf("EXAMPLE: %s -D VER=1 -D TWO=2 -v -o main.o main.asm\n\n", argv[0]);
     return 0;
   }
 
