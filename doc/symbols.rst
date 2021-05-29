@@ -11,10 +11,20 @@ Extra information for address-to-line mapping can be provided by adding the foll
 
 Address-to-line mappings includes information to relate lines in the source files to individual instructions in the generated ROM. This can be used to provide richer disassembly in the emulator, or allow for rich debugging in an external IDE. 
 
-WLA Symbol File Versions
-------------------------
+WLA Symbol Version History
+--------------------------
 
-WLA DX v10.0 came with a new WLA symbol file format with changes to [source files] and [addr-to-line mapping], and added [information]. If you are maintaining a WLA symbol file parser, please check out this page every time a new version of WLA DX comes out as the format might have changed though it rarely does.
+If you are maintaining a WLA symbol file parser, please review this page when new versions of WLA DX are released, as the format might have changed.
+
+Version 1: https://github.com/vhelin/wla-dx/blob/v9.12/doc/symbols.rst
+
+* Base version, including sections [labels], [definitions], [breakpoints], [symbols], [source files], [rom checksum], [addr-to-line mapping]
+
+Version 2: https://github.com/vhelin/wla-dx/blob/master/doc/symbols.rst
+
+* Added [information] section
+* Deprecated [source files] section, and replaced with [source files v2]
+* Deprecated [addr-to-line mapping] section definition, and replaced with [addr-to-line mapping v2]
 
 Information For Emulator Developers
 -----------------------------------
@@ -32,7 +42,7 @@ The following are the list of currently supported sections, what they mean, and 
 [information]
 *************
 
-The only fields this section has currently are "version" and then the version number. [information], if present, will always the be present before any other section or data, and its first line will always be the format version.
+The only fields this section has currently are "version" and then the version number. [information], if present, must always occur before any other section or data, and its first line will always be the format version.
 
 [labels]
 ********
