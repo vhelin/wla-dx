@@ -17,27 +17,6 @@ extern unsigned char *g_rom;
 #define READ_T t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24); t += 4;
 
 
-static int _listfile_sort(const void *a, const void *b) {
-
-  struct listfileitem *la, *lb;
-  int i;
-
-
-  la = *((struct listfileitem **)a);
-  lb = *((struct listfileitem **)b);
-  i = strcmp(la->sourcefilename, lb->sourcefilename);
-  if (i == 0) {
-    /* both lines are from the same source */
-    if (la->linenumber < lb->linenumber)
-      return -1;
-    return 1;
-  }
-
-  /* sort by source file name */
-  return i;
-}
-
-
 static int _listfile_write_hex(FILE *f, int data) {
 
   if (data >= 10)
@@ -49,179 +28,237 @@ static int _listfile_write_hex(FILE *f, int data) {
 }
 
 
-int listfile_write_listfiles(struct section *e) {
+static int _listfile_sort(const void *a, const void *b) {
 
-  struct listfileitem **l, *d = NULL;
-  struct section *s;
-  int n, i, j, k, m, o, p, sid = -1, add, w;
-  char c, tmp[1024], *b, *na;
-  FILE *f;
+  struct section *sa, *sb;
+
+  sa = *((struct section **)a);
+  sb = *((struct section **)b);
+
+  if (sa->file_id > sb->file_id)
+    return 1;
+  else if (sa->file_id < sb->file_id)
+    return -1;
+
+  if (sa->file_id_source > sb->file_id_source)
+    return 1;
+  else if (sa->file_id_source < sb->file_id_source)
+    return -1;
+
+  /* sort all .SECTIONs into their lexical order inside a source file */
+
+  if (sa->id > sb->id)
+    return 1;
+  else if (sa->id < sb->id)
+    return -1;
+
+  return 0;
+}
 
 
-  if (e == NULL)
+int listfile_write_listfiles(struct section *sections) {
+
+  struct listfileitem *listfileitems = NULL;
+  struct section *s, **selected_sections;
+  int count, i, j, current_linenumber, m, o, p, source_file_id = -1, add, wrote_line, listfile_item_count = 0, section_count = 0;
+  char command, tmp[1024], *source_file, *source_file_name;
+
+  if (sections == NULL)
     return FAILED;
 
-  /* collect the list file items from the data */
-  n = 0;
-  i = 0;
-  s = e;
+  /* count the listfile items */
+  s = sections;
   while (s != NULL) {
     if (s->listfile_items <= 0 || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE ||
         s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
-      s = s->next;
-      continue;
+    }
+    else {
+      listfile_item_count += s->listfile_items;
+      section_count++;
     }
 
-    n += s->listfile_items;
-    d = realloc(d, sizeof(struct listfileitem) * n);
-    if (d == NULL) {
-      fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
-      return FAILED;
-    }
+    s = s->next;
+  }
 
+  if (listfile_item_count <= 0) {
+    /* no listfile data, so we cannot write listfiles... */
+    return SUCCEEDED;
+  }
+
+  listfileitems = calloc(sizeof(struct listfileitem) * listfile_item_count, 1);
+  if (listfileitems == NULL) {
+    fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
+    return FAILED;
+  }
+
+  selected_sections = calloc(sizeof(struct section *) * section_count, 1);
+  if (listfileitems == NULL) {
+    fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
+    free(listfileitems);
+    return FAILED;
+  }
+
+  /* collect the valid sections */
+  j = 0;
+  s = sections;
+  while (s != NULL) {
+    if (s->listfile_items <= 0 || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE ||
+        s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
+    }
+    else
+      selected_sections[j++] = s;
+
+    s = s->next;
+  }  
+
+  /* sort them (lexical order) */
+  qsort(selected_sections, section_count, sizeof(struct section *), _listfile_sort);  
+  
+  /* collect the list file items from the data */
+  count = 0;
+  for (i = 0; i < section_count; i++) {
+    s = selected_sections[i];
+    
     /* parse the list file information */
     add = 0;
     for (j = 0; j < s->listfile_items; j++) {
-      c = s->listfile_cmds[j];
-      if (c == 'k') {
+      command = s->listfile_cmds[j];
+      if (command == 'k') {
         /* new line */
         if (s->listfile_ints[j*3 + 1] > 0) {
-          d[i].sourcefilename = get_source_file_name(s->file_id, sid);
-          d[i].linenumber = s->listfile_ints[j*3 + 0];
-          d[i].length = s->listfile_ints[j*3 + 1];
+          listfileitems[count].sourcefilename = get_source_file_name(s->file_id, source_file_id);
+          listfileitems[count].linenumber = s->listfile_ints[j*3 + 0];
+          listfileitems[count].length = s->listfile_ints[j*3 + 1];
           add += s->listfile_ints[j*3 + 2];
-          d[i].address = s->output_address + add;
+          listfileitems[count].address = s->output_address + add;
           add += s->listfile_ints[j*3 + 1];
-          i++;
+          count++;
         }
         else {
           /* skip */
           add += s->listfile_ints[j*3 + 2];
         }
       }
-      else if (c == 'f') {
+      else if (command == 'f') {
         /* another file */
-        sid = s->listfile_ints[j*3 + 0];
+        source_file_id = s->listfile_ints[j*3 + 0];
       }
       else {
-        fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", c);
-        free(d);
+        fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", command);
+        free(listfileitems);
+        free(selected_sections);
         return FAILED;
       }
     }
-
-    s = s->next;
   }
 
-  if (i <= 0) {
-    /* no listfile data, so we cannot write listfiles... */
-    return SUCCEEDED;
-  }
+  free(selected_sections);
   
-  /* create pointers for sorting */
-  l = calloc(sizeof(struct listfileitem *) * i, 1);
-  if (l == NULL) {
-    fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
-    free(d);
-    return FAILED;
-  }
-
-  for (j = 0; j < i; j++)
-    l[j] = &d[j];
-
-  /* sort by source file name and line number */
-  qsort(l, i, sizeof(struct listfileitem *), _listfile_sort);
-
   /* write the listfiles */
   j = 0;
-  while (j < i) {
-    na = l[j]->sourcefilename;
-    f = fopen(na, "rb");
+  while (j < count) {
+    int file_size;
+    FILE *f;
+
+    source_file_name = listfileitems[j].sourcefilename;
+    f = fopen(source_file_name, "rb");
     fseek(f, 0, SEEK_END);
-    n = (int)ftell(f);
+    file_size = (int)ftell(f);
     fseek(f, 0, SEEK_SET);
 
-    b = calloc(n, 1);
-    if (b == NULL) {
+    source_file = calloc(file_size, 1);
+    if (source_file == NULL) {
       fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
       fclose(f);
-      free(l);
+      free(listfileitems);
       return FAILED;
     }
 
-    if (fread(b, 1, n, f) != (size_t) n) {
-      fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Could not read all %d bytes of \"%s\"!", n, na);
+    if (fread(source_file, 1, file_size, f) != (size_t)file_size) {
+      fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Could not read all %d bytes of \"%s\"!", file_size, source_file_name);
+      fclose(f);
+      free(listfileitems);
+      free(source_file);
       return FAILED;
     }
   
     fclose(f);
 
-    strcpy(tmp, na);
-    for (k = (int)(strlen(tmp)-1); k >= 0; k--) {
-      if (tmp[k] == '.')
+    strcpy(tmp, source_file_name);
+    for (i = (int)(strlen(tmp)-1); i >= 0; i--) {
+      if (tmp[i] == '.')
         break;
     }
-    strcpy(&tmp[k], ".lst");
+    strcpy(&tmp[i], ".lst");
 
     f = fopen(tmp, "wb");
     if (f == NULL) {
       fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Could not open file \"%s\" for writing.\n", tmp);
-      free(l);
-      free(b);
+      free(listfileitems);
+      free(source_file);
       return FAILED;
     }
 
     /* write the lines */
-    k = 0;
+    current_linenumber = 0;
     m = 0;
-    while (j < i && strcmp(l[j]->sourcefilename, na) == 0) {
+    while (j < count && strcmp(listfileitems[j].sourcefilename, source_file_name) == 0) {
+      int is_behind = NO;
+
       /* goto line x */
-      while (k < l[j]->linenumber-1) {
+      while (current_linenumber < listfileitems[j].linenumber-1) {
         for (o = 0; o < 40; o++)
           fprintf(f, " ");
         while (1) {
-          if (b[m] == 0xA) {
+          if (source_file[m] == 0xA) {
             m++;
-            if (b[m] == 0xD)
+            if (source_file[m] == 0xD)
               m++;
-            k++;
+            current_linenumber++;
             fprintf(f, "\n");
             break;
           }
           else
-            fprintf(f, "%c", b[m++]);
+            fprintf(f, "%c", source_file[m++]);
         }
       }
 
+      if (current_linenumber > listfileitems[j].linenumber-1)
+        is_behind = YES;
+      
       /* write the bytes */
-      w = 0;
-      for (p = 0, o = 0; o < l[j]->length; o++) {
+      wrote_line = NO;
+      for (p = 0, o = 0; o < listfileitems[j].length; o++) {
         fprintf(f, "$");
-        _listfile_write_hex(f, g_rom[l[j]->address + o] >> 4);
-        _listfile_write_hex(f, g_rom[l[j]->address + o] & 15);
+        _listfile_write_hex(f, g_rom[listfileitems[j].address + o] >> 4);
+        _listfile_write_hex(f, g_rom[listfileitems[j].address + o] & 15);
         fprintf(f, " ");
         p += 4;
-        if ((o % 10) == 9 && o != 0 && o < l[j]->length-1) {
-          if (w == 0) {
+        if ((o % 10) == 9 && o != 0 && o < listfileitems[j].length-1) {
+          if (wrote_line == NO) {
             /* write padding */
-            w = 1;
+            wrote_line = YES;
             while (p < 40) {
               fprintf(f, " ");
               p++;
             }
 
-            /* write the rest of the line */
-            while (m < n) {
-              if (b[m] == 0xA) {
-                m++;
-                if (b[m] == 0xD)
+            if (is_behind == YES)
+              fprintf(f, "\n");
+            else {
+              /* write the rest of the line */
+              while (m < file_size) {
+                if (source_file[m] == 0xA) {
                   m++;
-                k++;
-                fprintf(f, "\n");
-                break;
+                  if (source_file[m] == 0xD)
+                    m++;
+                  current_linenumber++;
+                  fprintf(f, "\n");
+                  break;
+                }
+                else
+                  fprintf(f, "%c", source_file[m++]);
               }
-              else
-                fprintf(f, "%c", b[m++]);
             }
           }
           else
@@ -231,61 +268,63 @@ int listfile_write_listfiles(struct section *e) {
         }
       }
 
-      /* has the line been written already? */
-      if (w == 0) {
-        /* write padding */
-        while (p < 40) {
-          fprintf(f, " ");
-          p++;
-        }
-
-        /* write the rest of the line */
-        while (m < n) {
-          if (b[m] == 0xA) {
-            m++;
-            if (b[m] == 0xD)
-              m++;
-            k++;
-            fprintf(f, "\n");
-            break;
-          }
-          else
-            fprintf(f, "%c", b[m++]);
-        }
-      }
-      else
+      if (is_behind == YES)
         fprintf(f, "\n");
+      else {
+        /* has the line been written already? */
+        if (wrote_line == NO) {
+          /* write padding */
+          while (p < 40) {
+            fprintf(f, " ");
+            p++;
+          }
 
+          /* write the rest of the line */
+          while (m < file_size) {
+            if (source_file[m] == 0xA) {
+              m++;
+              if (source_file[m] == 0xD)
+                m++;
+              current_linenumber++;
+              fprintf(f, "\n");
+              break;
+            }
+            else
+              fprintf(f, "%c", source_file[m++]);
+          }
+        }
+        else
+          fprintf(f, "\n");
+      }
+      
       j++;
     }
 
     /* write the rest of the file */
-    while (m < n) {
+    while (m < file_size) {
       for (o = 0; o < 40; o++)
         fprintf(f, " ");
-      while (m < n) {
-        if (b[m] == 0xA) {
+      while (m < file_size) {
+        if (source_file[m] == 0xA) {
           m++;
-          if (m < n && b[m] == 0xD)
+          if (m < file_size && source_file[m] == 0xD)
             m++;
           fprintf(f, "\n");
           break;
         }
         else
-          fprintf(f, "%c", b[m++]);
+          fprintf(f, "%c", source_file[m++]);
       }
     }
 
     fclose(f);
 
-    if (b != NULL)
-      free(b);
+    if (source_file != NULL)
+      free(source_file);
   }
 
-  if (l != NULL)
-    free(l);
-  if (d != NULL)
-    free(d);
+  if (listfileitems != NULL)
+    free(listfileitems);
 
   return SUCCEEDED;
 }

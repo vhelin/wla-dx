@@ -2,7 +2,7 @@
 CC = wla-6502
 CFLAGS = -i -o
 LD = wlalink
-LDFLAGS = -v -S -A
+LDFLAGS = -v -i -S -A
 
 SFILES = main.s more.s rest.s
 IFILES = 
@@ -25,4 +25,4 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	rm -f $(OFILES) core *~ linked.rom linked.sym
+	rm -f $(OFILES) core *~ *.lst linked.rom linked.sym

@@ -1001,7 +1001,7 @@ int pass_3(void) {
 
     case 'k':
       fscanf(f_in, "%d ", &line_number);
-      if (s != NULL && inside_macro == 0 && inside_repeat == 0)
+      if (s != NULL)
         s->listfile_items++;
       continue;
 

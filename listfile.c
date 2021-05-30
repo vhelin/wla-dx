@@ -277,14 +277,12 @@ int listfile_collect(void) {
       continue;
 
     case 'k':
-      fscanf(file_in, "%d ", &line_number);
-
-      if (inside_macro > 0 || inside_repeat > 0) {
-        skip += add;
-        add = 0;
-        continue;
-      }
-
+      /* all listfile data produced by .MACROs are put where they are called from */
+      if (inside_macro > 0)
+        fscanf(file_in, "%*d ");
+      else
+        fscanf(file_in, "%d ", &line_number);
+      
       if (section != NULL) {
         /* terminate the previous line */
         section->listfile_ints[command*3 + 1] = add;

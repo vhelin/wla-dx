@@ -9,7 +9,7 @@ struct listfileitem {
   int length;
 };
 
-int listfile_write_listfiles(struct section *e);
+int listfile_write_listfiles(struct section *sections);
 int listfile_block_read(unsigned char **d, struct section *s);
 
 #endif
