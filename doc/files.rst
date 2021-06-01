@@ -2,7 +2,7 @@ Files
 =====
 
 ``tests``
-------------
+---------
 
 The main purpose of the files in the ``tests`` directory is to test that WLA
 and WLALINK can assemble and link the tiny project correctly. You can also
@@ -15,7 +15,7 @@ definitions you could ever need and more.
 
 
 ``tests/gb-z80/lib``
------------------------
+--------------------
 
 This folder holds few very useful libraries for you to use in your Game Boy
 projects. Instead of reinventing the wheel, use the stuff found in here.

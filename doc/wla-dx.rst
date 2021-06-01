@@ -11,6 +11,7 @@
     gb-support
     bugs
     files
+    functions
     tempfiles
     compiling
     linking

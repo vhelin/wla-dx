@@ -63,6 +63,8 @@
 #define SI_OP_COMPARE_GTE 22
 #define SI_OP_LOGICAL_OR  23
 #define SI_OP_LOGICAL_AND 24
+#define SI_OP_LOW_WORD    25
+#define SI_OP_HIGH_WORD   26
 
 #define SI_SIGN_POSITIVE 0
 #define SI_SIGN_NEGATIVE 1

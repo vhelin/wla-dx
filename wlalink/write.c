@@ -2667,6 +2667,28 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         v_ram[t - 1] = z & 0xFF;
         v_rom[t - 1] = y & 0xFF;
         break;
+      case SI_OP_LOW_WORD:
+        z = (int)v_ram[t - 1];
+        y = (int)v_rom[t - 1];
+#ifdef AMIGA
+        /* on Amiga this needs to be done twice - a bug in SAS/C? */
+        z = z & 0xFFFF;
+        y = y & 0xFFFF;
+#endif
+        v_ram[t - 1] = z & 0xFFFF;
+        v_rom[t - 1] = y & 0xFFFF;
+        break;
+      case SI_OP_HIGH_WORD:
+        z = ((int)v_ram[t - 1]) >> 16;
+        y = ((int)v_rom[t - 1]) >> 16;
+#ifdef AMIGA
+        /* on Amiga this needs to be done twice - a bug in SAS/C? */
+        z = z & 0xFFFF;
+        y = y & 0xFFFF;
+#endif
+        v_ram[t - 1] = z & 0xFFFF;
+        v_rom[t - 1] = y & 0xFFFF;
+        break;
       case SI_OP_MODULO:
         if (((int)v_ram[t - 1]) == 0 || ((int)v_rom[t - 1]) == 0) {
           fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Modulo by zero.\n", get_file_name(sta->file_id),

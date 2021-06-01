@@ -59,3 +59,8 @@ label_A:.DB 2, 3
         .DB $0a, $0b
         .ENDS
 
+        .SECTION "SectionZ" FREE
+        MAIN_1
+        .ENDS
+
+

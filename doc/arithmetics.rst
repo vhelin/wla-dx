@@ -18,7 +18,7 @@ WLA wasn't able to solve.
 
 The following operators are valid:
 
-====== ===================
+====== ===============================
 ``|``  bitwise or
 ``&``  bitwise and
 ``^``  power
@@ -32,7 +32,8 @@ The following operators are valid:
 ``/``  divide
 ``<``  get the low byte
 ``>``  get the high byte
-====== ===================
+``:``  get the bank byte of an address
+====== ===============================
 
 Note that you can do NOT using XOR ::
 

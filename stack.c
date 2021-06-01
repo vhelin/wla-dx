@@ -200,6 +200,8 @@ static struct stack_item_priority_item g_stack_item_priority_items[] = {
   { SI_OP_POWER, 100 },
   { SI_OP_LOW_BYTE, 110 },
   { SI_OP_HIGH_BYTE, 110 },
+  { SI_OP_LOW_WORD, 110 },
+  { SI_OP_HIGH_WORD, 110 },
   { SI_OP_BANK, 110 },
   { SI_OP_NOT, 120 },
   { 999, 999 }
@@ -788,7 +790,7 @@ int stack_calculate(char *in, int *value) {
     }
     else {
       /* it must be a string! */
-      int is_string = YES;
+      int is_string = YES, is_already_processed_function = NO;
 
       /* we'll break if the previous item in the stack was a value or a string / label */
       if (_break_before_value_or_string(q, &si[0]) == SUCCEEDED)
@@ -847,9 +849,46 @@ int stack_calculate(char *in, int *value) {
           is_string = NO;          
           break;
         }
+        if (k == 6 && strcaselesscmpn(si[q].string, "lobyte(", 7) == 0) {
+          si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].value = SI_OP_LOW_BYTE;
+          in--;
+          is_already_processed_function = YES;
+          break;
+        }
+        if (k == 6 && strcaselesscmpn(si[q].string, "hibyte(", 7) == 0) {
+          si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].value = SI_OP_HIGH_BYTE;
+          in--;
+          is_already_processed_function = YES;
+          break;
+        }
+        if (k == 6 && strcaselesscmpn(si[q].string, "loword(", 7) == 0) {
+          si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].value = SI_OP_LOW_WORD;
+          in--;
+          is_already_processed_function = YES;
+          break;
+        }
+        if (k == 6 && strcaselesscmpn(si[q].string, "hiword(", 7) == 0) {
+          si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].value = SI_OP_HIGH_WORD;
+          in--;
+          is_already_processed_function = YES;
+          break;
+        }
+        if (k == 8 && strcaselesscmpn(si[q].string, "bankbyte(", 9) == 0) {
+          si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].value = SI_OP_BANK;
+          in--;
+          is_already_processed_function = YES;
+          break;
+        }
       }
 
-      if (is_string == YES) {
+      if (is_already_processed_function == YES) {
+      }
+      else if (is_string == YES) {
         process_special_labels(si[q].string);
         si[q].string[k] = 0;
         si[q].type = STACK_ITEM_TYPE_STRING;
@@ -860,6 +899,7 @@ int stack_calculate(char *in, int *value) {
         si[q].value = d;
         si[q].sign = SI_SIGN_POSITIVE;
       }
+      
       q++;
     }
   }
@@ -917,7 +957,7 @@ int stack_calculate(char *in, int *value) {
   for (b = 1, k = 0; k < q; k++) {
     if (g_input_parse_if == NO) {
       if ((q - k) != 1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].value != SI_OP_BANK
-          && si[k + 1].value != SI_OP_HIGH_BYTE && si[k + 1].value != SI_OP_LOW_BYTE) {
+          && si[k + 1].value != SI_OP_HIGH_BYTE && si[k + 1].value != SI_OP_LOW_BYTE && si[k + 1].value != SI_OP_HIGH_WORD && si[k + 1].value != SI_OP_LOW_WORD) {
         if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
           print_error("Error in computation syntax.\n", ERROR_STC);
           return FAILED;
@@ -1481,6 +1521,24 @@ int compute_stack(struct stack *sta, int x, double *result) {
         z = z & 0xFF;
 #endif
         v[t - 1] = z & 0xFF;
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_LOW_WORD:
+        z = (int)v[t - 1];
+#ifdef AMIGA
+        /* on Amiga this needs to be done twice - a bug in SAS/C? */
+        z = z & 0xFFFF;
+#endif
+        v[t - 1] = z & 0xFFFF;
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_HIGH_WORD:
+        z = ((int)v[t - 1]) >> 16;
+#ifdef AMIGA
+        /* on Amiga this needs to be done twice - a bug in SAS/C? */
+        z = z & 0xFFFF;
+#endif
+        v[t - 1] = z & 0xFFFF;
         sp[t - 1] = NULL;
         break;
       case SI_OP_LOGICAL_OR:

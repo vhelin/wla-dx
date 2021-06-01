@@ -55,6 +55,7 @@ set(DOC_SRCS
     "errormsg.rst"
     "extraflags.rst"
     "files.rst"
+    "functions.rst"
     "gb-support.rst"
     "goodtoknow.rst"
     "introduction.rst"
