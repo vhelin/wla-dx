@@ -32,7 +32,7 @@ addr_02:.DB lobyte($1234), lobyte($FF00+$EE), lobyte(BIG_VALUE), lobyte(BIG_VALU
 
         .DB "03>"
 addr_03:LDX loword(addr_03).w
-        LDA #bankbyte(addr_03).b
+        LDA #bank(addr_03).b
         .DB "<03"
         
         .BANK 0 SLOT 0
@@ -53,9 +53,18 @@ addr_05:.DW loword($12345678), loword($FF000201+$EE1111), loword(BIGGEST_VALUE),
         .DB "<05"
         
         .DB "06>"
-addr_06:LDA #bankbyte(addr_03) + 1 - 1
-        LDA #bankbyte(addr_06) + 1
-        .DB 1 + BANKBYTE(addr_03) + 1
-        .DB bankbyte(addr_03) + (bankbyte(addr_03) * 2) + BANKBYTE(addr_02)
+addr_06:LDA #bank(addr_03) + 1 - 1
+        LDA #bank(addr_06) + 1
+        .DB 1 + BANK(addr_03) + 1
+        .DB bank(addr_03) + (bank(addr_03) * 2) + BANK(addr_02)
         .DB "<06"
 
+        .DB "07>"
+        .DB BANK($2001), bank($2000-1), bank($1FFF + 1)
+        .DB "<07"
+
+        .DB "08>"
+        .DB bankbyte($12345678), 1 + bankbyte($12345678 + 1)
+        .DB "<08"
+        
+        

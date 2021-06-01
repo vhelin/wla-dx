@@ -65,6 +65,7 @@
 #define SI_OP_LOGICAL_AND 24
 #define SI_OP_LOW_WORD    25
 #define SI_OP_HIGH_WORD   26
+#define SI_OP_BANK_BYTE   27
 
 #define SI_SIGN_POSITIVE 0
 #define SI_SIGN_NEGATIVE 1

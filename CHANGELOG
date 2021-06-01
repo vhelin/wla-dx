@@ -65,8 +65,8 @@ v10.0 (01-Jun-2021) [ALL] WARNING: Precedence of operators in calculations
                     [ALL] Added support for LOBYTE() (get the low byte, bits
                       0-7), HIBYTE() (get the high byte, bits 8-15), LOWORD()
                       (get the low word, bits 0-15), HIWORD() (get the high
-                      word, bits 16-31) and BANKBYTE() (get the bank byte,
-                      bits 16-23).
+                      word, bits 16-31), BANKBYTE() (get the bank byte,
+                      bits 16-23) and BANK() (get the bank).
                     [SFX] Added Super FX support.
                     [GB ] Added alias "CPL A" (of "CPL").
                     [GB ] Added support for "STOP $01" - "STOP" with extra
