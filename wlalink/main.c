@@ -240,7 +240,7 @@ int main(int argc, char *argv[]) {
     printf("---");
     for (i = 0; i < left; i++)
       printf(" ");
-    printf(title);
+    printf("%s", title);
     for (i = 0; i < right; i++)
       printf(" ");
     printf("---\n");
@@ -253,7 +253,7 @@ int main(int argc, char *argv[]) {
 
     for (i = 0; i < left; i++)
       printf(" ");
-    printf(g_version_string);
+    printf("%s", g_version_string);
     
     printf("\n\n");
 

@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
     printf("---");
     for (q = 0; q < left; q++)
       printf(" ");
-    printf(title);
+    printf("%s", title);
     for (q = 0; q < right; q++)
       printf(" ");
     printf("---\n");
@@ -174,7 +174,7 @@ int main(int argc, char *argv[]) {
 
     for (q = 0; q < left; q++)
       printf(" ");
-    printf(g_version_string);
+    printf("%s", g_version_string);
     
     printf("\n\n");
 
