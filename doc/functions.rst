@@ -22,11 +22,8 @@ bankbyte() Returns the bank byte, bits 16-23
 bank()     Returns the bank (the same as preceding ``:``)
 ========== =======================================================================
 
-Note! If you use bank() with labels, it'll return the ROM bank in which the label
-was defined in. If you give it a number (ROM address) it calculates in which ROM
-bank the number (ROM address) is. WLA-65816 adds the .BASE to this value.
-
-bankbyte() instead just gives you bits 16-23 (one byte) of a number.
+Note! Use bankbyte() with WLA-65816 as on that platform the bank (+ base) bits
+are 16-23. On other platforms bank() works better.
 
 
 Examples of functions

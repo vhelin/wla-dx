@@ -6,9 +6,9 @@
         .ENDME
 
         .ROMBANKMAP
-           BANKSTOTAL 2
+           BANKSTOTAL 16
            BANKSIZE $2000
-           BANKS 2
+           BANKS 16
         .ENDRO
 
 
@@ -70,4 +70,12 @@ addr_06:LDA #bank(addr_03) + 1 - 1
         .DB "09>"
         .DB bank(addr_03), bankbyte(addr_03 + 100)
         .DB "<09"
+        
+        .BANK 15 SLOT 0
+        .ORG 0
+
+        .DB "10>"
+addr_10:.DB bank(addr_10), bankbyte(addr_10)
+        .DB "<10"
+
         
