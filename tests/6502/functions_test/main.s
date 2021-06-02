@@ -67,4 +67,7 @@ addr_06:LDA #bank(addr_03) + 1 - 1
         .DB bankbyte($12345678), 1 + bankbyte($12345678 + 1)
         .DB "<08"
         
+        .DB "09>"
+        .DB bank(addr_03), bankbyte(addr_03 + 100)
+        .DB "<09"
         

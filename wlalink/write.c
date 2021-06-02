@@ -2178,7 +2178,7 @@ int compute_pending_calculations(void) {
     /* is the stack inside a definition? */
     if (sta->position == STACK_POSITION_DEFINITION) {
       /* all the references have been decoded, now compute */
-      if (compute_stack(sta, NULL, NULL, NULL, NULL) == FAILED)
+      if (compute_stack(sta, NULL, NULL, NULL, NULL, NULL) == FAILED)
         return FAILED;
       /* next stack computation */
       sta = sta->next;
@@ -2217,7 +2217,7 @@ int compute_pending_calculations(void) {
     g_current_stack_calculation_addr = sta->memory_address;
 
     /* all the references have been decoded, now compute */
-    if (compute_stack(sta, &k, NULL, NULL, NULL) == FAILED)
+    if (compute_stack(sta, &k, NULL, NULL, NULL, NULL) == FAILED)
       return FAILED;
 
     g_memory_file_id = sta->file_id;
@@ -2448,13 +2448,26 @@ static void _pass_on_base(int *base, int t, struct stack *sta) {
 }
 
 
-int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *result_slot, int *result_base) {
+static void _pass_on_bank(int *bank, int t, struct stack *sta) {
+
+  if (bank[t - 2] < 0 && bank[t - 1] >= 0)
+    bank[t - 2] = bank[t - 1];
+  else if (bank[t - 2] >= 0 && bank[t - 1] >= 0) {
+    /* sanity check */
+    if (bank[t - 2] != bank[t - 1]) {
+      fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: The passed on BANK changed from $%x to $%x. This might have no effect, but just to let you know. Please check that the result of this calculation is correct.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, bank[t - 2], bank[t - 1]);
+    }
+    bank[t - 2] = bank[t - 1];
+  }
+}
+
+
+int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *result_slot, int *result_base, int *result_bank) {
 
   struct stack_item *s;
   struct stack *st;
-  int r, t, z, y, x, res_ram, res_rom, res_base, res_slot, slot[256], base[256];
+  int r, t, z, y, x, res_ram, res_rom, res_base, res_bank, res_slot, slot[256], base[256], bank[256];
   double v_ram[256], v_rom[256], q;
-
 
   if (sta->under_work == YES) {
     fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: A loop found in computation.\n", get_file_name(sta->file_id),
@@ -2481,6 +2494,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
   for (x = 0; x < 256; x++) {
     slot[x] = -1;
     base[x] = -1;
+    bank[x] = -1;
   }
 
   sta->under_work = YES;
@@ -2519,6 +2533,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         v_rom[t] = s->value_rom;
       slot[t] = s->slot;
       base[t] = s->base;
+      bank[t] = s->bank;
       t++;
     }
     else if (s->type == STACK_ITEM_TYPE_STRING) {
@@ -2527,6 +2542,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
       v_rom[t] = s->value_rom;
       slot[t] = s->slot;
       base[t] = s->base;
+      bank[t] = s->bank;
       t++;
     }
     else if (s->type == STACK_ITEM_TYPE_STACK) {
@@ -2543,13 +2559,14 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         if (parse_stack(st) == FAILED)
           return FAILED;
       }
-      if (compute_stack(st, &res_ram, &res_rom, &res_slot, &res_base) == FAILED)
+      if (compute_stack(st, &res_ram, &res_rom, &res_slot, &res_base, &res_bank) == FAILED)
         return FAILED;
 
       v_ram[t] = res_ram;
       v_rom[t] = res_rom;
       slot[t] = res_slot;
       base[t] = res_base;
+      bank[t] = res_bank;
       t++;
     }
     else {
@@ -2559,6 +2576,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         v_rom[t - 2] += v_rom[t - 1];
         _pass_on_slot(slot, t, sta);
         _pass_on_base(base, t, sta);
+        _pass_on_bank(bank, t, sta);
         t--;
         break;
       case SI_OP_MINUS:
@@ -2566,6 +2584,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         v_rom[t - 2] -= v_rom[t - 1];
         _pass_on_slot(slot, t, sta);
         _pass_on_base(base, t, sta);
+        _pass_on_bank(bank, t, sta);
         t--;
         break;
       case SI_OP_NOT:
@@ -2594,6 +2613,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         v_rom[t - 2] = (int)v_rom[t - 1] ^ (int)v_rom[t - 2];
         _pass_on_slot(slot, t, sta);
         _pass_on_base(base, t, sta);
+        _pass_on_bank(bank, t, sta);
         t--;
         break;
       case SI_OP_MULTIPLY:
@@ -2606,6 +2626,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         v_rom[t - 2] *= v_rom[t - 1];
         _pass_on_slot(slot, t, sta);
         _pass_on_base(base, t, sta);
+        _pass_on_bank(bank, t, sta);
         t--;
         break;
       case SI_OP_OR:
@@ -2630,6 +2651,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         v_rom[t - 2] = (int)v_rom[t - 1] & (int)v_rom[t - 2];
         _pass_on_slot(slot, t, sta);
         _pass_on_base(base, t, sta);
+        _pass_on_bank(bank, t, sta);
         t--;
         break;
       case SI_OP_BANK:
@@ -2640,7 +2662,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, z, z);
           return FAILED;
         }
-        if (base[t - 1] >= 0)
+        if (base[t - 1] > 0)
           y += base[t - 1];
         v_ram[t - 1] = y & 0xFF;
         v_rom[t - 1] = y & 0xFF;
@@ -2648,6 +2670,20 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
       case SI_OP_BANK_BYTE:
         z = ((int)v_ram[t - 1]) >> 16;
         y = ((int)v_rom[t - 1]) >> 16;
+
+        if (z == 0) {
+          if (bank[t - 1] > 0)
+            z += bank[t - 1];
+          if (base[t - 1] > 0)
+            z += base[t - 1];
+        }
+        if (y == 0) {
+          if (bank[t - 1] > 0)
+            y += bank[t - 1];
+          if (base[t - 1] > 0)
+            y += base[t - 1];
+        }
+                
 #ifdef AMIGA
         /* on Amiga this needs to be done twice - a bug in SAS/C? */
         z = z & 0xFF;
@@ -2715,6 +2751,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         v_rom[t - 2] = (int)v_rom[t - 2] % (int)v_rom[t - 1];
         _pass_on_slot(slot, t, sta);
         _pass_on_base(base, t, sta);
+        _pass_on_bank(bank, t, sta);
         t--;
         break;
       case SI_OP_DIVIDE:
@@ -2732,6 +2769,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         v_rom[t - 2] /= v_rom[t - 1];
         _pass_on_slot(slot, t, sta);
         _pass_on_base(base, t, sta);
+        _pass_on_bank(bank, t, sta);
         t--;
         break;
       case SI_OP_POWER:
@@ -2752,6 +2790,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         v_rom[t - 2] = q;
         _pass_on_slot(slot, t, sta);
         _pass_on_base(base, t, sta);
+        _pass_on_bank(bank, t, sta);
         t--;
         break;
       case SI_OP_SHIFT_LEFT:
@@ -2764,6 +2803,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         v_rom[t - 2] = (int)v_rom[t - 2] << (int)v_rom[t - 1];
         _pass_on_slot(slot, t, sta);
         _pass_on_base(base, t, sta);
+        _pass_on_bank(bank, t, sta);
         t--;
         break;
       case SI_OP_SHIFT_RIGHT:
@@ -2776,6 +2816,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         v_rom[t - 2] = (int)v_rom[t - 2] >> (int)v_rom[t - 1];
         _pass_on_slot(slot, t, sta);
         _pass_on_base(base, t, sta);
+        _pass_on_bank(bank, t, sta);
         t--;
         break;
       }
@@ -2790,11 +2831,14 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
     *result_slot = sta->result_slot;
   if (result_base != NULL)
     *result_base = sta->result_base;
+  if (result_bank != NULL)
+    *result_bank = sta->result_bank;
 
   sta->result_ram = (int)v_ram[0];
   sta->result_rom = (int)v_rom[0];
   sta->result_slot = (int)slot[0];
   sta->result_base = (int)base[0];
+  sta->result_bank = (int)bank[0];
   
   sta->computed = YES;
   sta->under_work = NO;
@@ -2819,7 +2863,7 @@ int write_bank_header_calculations(struct stack *sta) {
     return FAILED;
 
   /* all the references have been decoded, now compute */
-  if (compute_stack(sta, &k, NULL, NULL, NULL) == FAILED)
+  if (compute_stack(sta, &k, NULL, NULL, NULL, NULL) == FAILED)
     return FAILED;
 
   s = g_sec_bankhd_first;
@@ -3281,6 +3325,7 @@ int parse_stack(struct stack *sta) {
 
       si->slot = l->slot;
       si->base = l->base;
+      si->bank = l->bank;
 
       /*
         fprintf(stdout, "%s: %s:%d: %s %x %d\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber,

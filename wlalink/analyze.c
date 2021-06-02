@@ -710,6 +710,7 @@ int collect_dlr(void) {
         for (n = 0; n != x; n++) {
           s->stack[n].slot = -1;
           s->stack[n].base = -1;
+          s->stack[n].bank = -1;
           s->stack[n].type = *(t++);
           s->stack[n].sign = *(t++);
           if (s->stack[n].type == STACK_ITEM_TYPE_STRING) {
@@ -960,6 +961,7 @@ int collect_dlr(void) {
         for (n = 0; n != x; n++) {
           s->stack[n].slot = -1;
           s->stack[n].base = -1;
+          s->stack[n].bank = -1;
           s->stack[n].type = *(t++);
           s->stack[n].sign = *(t++);
           if (s->stack[n].type == STACK_ITEM_TYPE_STRING) {

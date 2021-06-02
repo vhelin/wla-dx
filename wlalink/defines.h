@@ -228,6 +228,7 @@ struct stack {
   int result_rom;
   int result_slot;
   int result_base;
+  int result_bank;
   int position;
   int file_id;
   int file_id_source;
@@ -251,6 +252,7 @@ struct stack_item {
   int sign;
   int slot;
   int base;
+  int bank;
   double value_ram;
   double value_rom;
   char string[MAX_NAME_LENGTH + 1];

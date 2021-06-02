@@ -26,7 +26,7 @@ Note! If you use bank() with labels, it'll return the ROM bank in which the labe
 was defined in. If you give it a number (ROM address) it calculates in which ROM
 bank the number (ROM address) is. WLA-65816 adds the .BASE to this value.
 
-bankbyte() instead just gives you one byte (bits 16-23) of a number.
+bankbyte() instead just gives you bits 16-23 (one byte) of a number.
 
 
 Examples of functions
