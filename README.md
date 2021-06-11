@@ -54,7 +54,7 @@ You need:
 5. `cmake --build . --config Release # Build it`
 6. `cmake -P cmake_install.cmake # Install it (optional)`
 
-If you didn't installed it, you can still access the binaries in the `binaries`
+If you didn't install it, you can still access the binaries in the `binaries`
 folder. It also contains the compiled documentation in the subfolder `doc`.
 
 You can add `-DCMAKE_INSTALL_PREFIX=prefix` to Steps 4 and/or 6 (before the `-P`)

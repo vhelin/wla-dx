@@ -113,7 +113,7 @@ v9.12 (20-Mar-2021) [ALL] Added support for ADDR and FARADDR to .TABLE.
                     [ALL] Added a flag "-h" to make all label references 16-bit
                       by default (size hints still work).
                     [ALL] Added support for .HEX (yet another way of
-                      defining bytes.
+                      defining bytes).
                     [ALL] Added support for __label__ (last defined parent
                       label).
                     [ALL] Added .ASCSTR that maps (like .ASC) only supplied
