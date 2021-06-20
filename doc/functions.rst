@@ -8,7 +8,7 @@ WLA supports functions in addition to ``.MACRO`` s. Functions are different from
 Built-in functions
 ------------------
 
-The following built-in functions can be used where ever a number is expected ::
+The following built-in functions can be used where ever a number is expected:
 
 ========== =======================================================================
 asc()      Uses ``.ASCIITABLE`` to map the supplied value
