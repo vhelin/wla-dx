@@ -369,17 +369,21 @@ int pass_4(void) {
         }
       }
 
-      g_sec_tmp->data = calloc(sizeof(unsigned char) * g_sec_tmp->size, 1);
-      if (g_sec_tmp->data == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Out of memory when trying to allocate room for section \"%s\".\n",
-                get_file_name(g_filename_id), g_line_number, g_sec_tmp->name);
-        return FAILED;
+      if (g_sec_tmp->size > 0) {
+        g_sec_tmp->data = calloc(sizeof(unsigned char) * g_sec_tmp->size, 1);
+        if (g_sec_tmp->data == NULL) {
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Out of memory when trying to allocate room for section \"%s\".\n",
+                  get_file_name(g_filename_id), g_line_number, g_sec_tmp->name);
+          return FAILED;
+        }
+
+        /* fill the padded area with _emptyfill_ */
+        if (ind == 1)
+          memset(g_sec_tmp->data, g_emptyfill, g_sec_tmp->size);
       }
-
-      /* fill the padded area with _emptyfill_ */
-      if (ind == 1)
-        memset(g_sec_tmp->data, g_emptyfill, g_sec_tmp->size);
-
+      else
+        g_sec_tmp->data = NULL;
+      
       if (strcmp(g_sec_tmp->name, "BANKHEADER") == 0)
         g_bankheader_status = ON;
 
@@ -2179,7 +2183,8 @@ int write_object_file(void) {
       ov = g_sec_tmp->priority;
       WRITEOUT_OV;
 
-      fwrite(g_sec_tmp->data, 1, g_sec_tmp->size, final_ptr);
+      if (g_sec_tmp->size > 0)
+        fwrite(g_sec_tmp->data, 1, g_sec_tmp->size, final_ptr);
 
       if (g_listfile_data == YES && g_sec_tmp->listfile_items > 0)
         listfile_block_write(final_ptr, g_sec_tmp);
@@ -2411,8 +2416,9 @@ int write_library_file(void) {
       WRITEOUT_OV;
       ov = g_sec_tmp->priority;
       WRITEOUT_OV;
-        
-      fwrite(g_sec_tmp->data, 1, g_sec_tmp->size, final_ptr);
+
+      if (g_sec_tmp->size > 0)
+        fwrite(g_sec_tmp->data, 1, g_sec_tmp->size, final_ptr);
 
       if (g_listfile_data == YES && g_sec_tmp->listfile_items > 0)
         listfile_block_write(final_ptr, g_sec_tmp);
