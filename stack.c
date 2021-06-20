@@ -192,8 +192,8 @@ static struct stack_item_priority_item g_stack_item_priority_items[] = {
   { SI_OP_COMPARE_GTE, 70 },
   { SI_OP_SHIFT_LEFT, 80 },
   { SI_OP_SHIFT_RIGHT, 80 },
-  { SI_OP_PLUS, 90 },
-  { SI_OP_MINUS, 90 },
+  { SI_OP_ADD, 90 },
+  { SI_OP_SUB, 90 },
   { SI_OP_MULTIPLY, 100 },
   { SI_OP_DIVIDE, 100 },
   { SI_OP_MODULO, 100 },
@@ -270,7 +270,7 @@ int stack_calculate(char *in, int *value) {
       }
       else {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
-        si[q].value = SI_OP_MINUS;
+        si[q].value = SI_OP_SUB;
         in++;
       }
       q++;
@@ -285,7 +285,7 @@ int stack_calculate(char *in, int *value) {
       }
       else {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
-        si[q].value = SI_OP_PLUS;
+        si[q].value = SI_OP_ADD;
         in++;
       }
       q++;
@@ -939,7 +939,7 @@ int stack_calculate(char *in, int *value) {
 
 #ifdef SPC700
   /* check if the computation is of the form "y+X" or "y+Y" and remove that "+X" or "+Y" */
-  if (q > 2 && si[q - 2].type == STACK_ITEM_TYPE_OPERATOR && si[q - 2].value == SI_OP_PLUS) {
+  if (q > 2 && si[q - 2].type == STACK_ITEM_TYPE_OPERATOR && si[q - 2].value == SI_OP_ADD) {
     if (si[q - 1].type == STACK_ITEM_TYPE_STRING && si[q - 1].string[1] == 0) {
       char w = si[q - 1].string[0];
 
@@ -953,8 +953,8 @@ int stack_calculate(char *in, int *value) {
 #endif
 
   /* check if the computation is of the form "+-..." and remove that leading "+" */
-  if (q > 2 && si[0].type == STACK_ITEM_TYPE_OPERATOR && si[0].value == SI_OP_PLUS &&
-      si[1].type == STACK_ITEM_TYPE_OPERATOR && si[1].value == SI_OP_MINUS) {
+  if (q > 2 && si[0].type == STACK_ITEM_TYPE_OPERATOR && si[0].value == SI_OP_ADD &&
+      si[1].type == STACK_ITEM_TYPE_OPERATOR && si[1].value == SI_OP_SUB) {
     si[0].type = STACK_ITEM_TYPE_DELETED;
   }
 
@@ -973,7 +973,7 @@ int stack_calculate(char *in, int *value) {
         }
       }
     }
-    if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_MINUS && b == 1) {
+    if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_SUB && b == 1) {
       if (si[k + 1].type == STACK_ITEM_TYPE_VALUE || si[k + 1].type == STACK_ITEM_TYPE_STRING) {
         if (si[k + 1].sign == SI_SIGN_POSITIVE)
           si[k + 1].sign = SI_SIGN_NEGATIVE;
@@ -1010,7 +1010,7 @@ int stack_calculate(char *in, int *value) {
       }
     }
     /* remove unnecessary + */
-    if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_PLUS && b == 1) {
+    if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_ADD && b == 1) {
       if (si[k + 1].type == STACK_ITEM_TYPE_VALUE || si[k + 1].type == STACK_ITEM_TYPE_STRING)
         si[k].type = STACK_ITEM_TYPE_DELETED;
       else if (si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].value == SI_OP_LEFT)
@@ -1495,12 +1495,12 @@ int compute_stack(struct stack *sta, int x, double *result) {
     }
     else {
       switch ((int)s->value) {
-      case SI_OP_PLUS:
+      case SI_OP_ADD:
         v[t - 2] += v[t - 1];
         sp[t - 2] = NULL;
         t--;
         break;
-      case SI_OP_MINUS:
+      case SI_OP_SUB:
         v[t - 2] -= v[t - 1];
         sp[t - 2] = NULL;
         t--;

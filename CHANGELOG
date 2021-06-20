@@ -627,7 +627,7 @@ v8.8 (25-Feb-2003) [65c] "DEA" assembled to $3a, $00. Removed the extra $00.
                      when a dot was encountered.
                    [ALL] Added support for longer filenames (> 63 characters).
                    [ALL] A correctly, but partially written mnemonic would
-                     cause WLA to break the compiling, but without giving
+                     cause WLA to break the assembling, but without giving
                      an error message.
                    [ALL] Fixed a rare bug which caused WLA and WLALINK to
                      disagree on section id numbers.
@@ -745,7 +745,7 @@ v8.1 (03-Jul-2001) [ALL] EXPORT'ing more than once the same definition
                      as labels.
 
 v8.0 (19-May-2001) [ALL] Simplified WLA engine a lot by leaving away ROM and
-                     program file compiling, and the old, crippled error
+                     program file assembling, and the old, crippled error
                      reporting engine.
                    [ALL] Removed .FOOTER and .HEADER (no longer required).
                    [ALL] WLA assembles now "WLAQ" library files and "WLAD"
@@ -782,7 +782,7 @@ v7.4 (02-May-2001) [ALL] Added many new error messages.
                    [ALL] Result placing in stack calculator could fail if the
                      result's position wasn't inside a section.
                    [ALL] Modulo/division by zero doesn't crash WLA anymore.
-                   [ALL] Now also in ROM compiling mode it's possible to refer
+                   [ALL] Now also in ROM assembling mode it's possible to refer
                      to future value definitions with .DB and .DW.
                    [ALL] Win32 port uses now PID in the temp file name.
                    [ALL] Fixed few places which could generate incorrect
@@ -868,7 +868,7 @@ v7.0 (03-Mar-2001) [ALL] WLA couldn't handle files starting with ";".
                    [ALL] Definitions take also strings as values.
                    [ALL] Code cleanups.
                    [ALL] Exporting an undefined definition doesn't break
-                     the compiling loop (only a warning is issued).
+                     the assembling loop (only a warning is issued).
                    [ALL] Quotation marks are accepted inside strings.
                    [ALL] Temporary files are placed into the current working
                      directory and under Unix the names incorporate PID.
@@ -908,7 +908,7 @@ v6.9 (23-Oct-2000) [ALL] Enhanced .MACRO error messages.
 v6.8 (09-Oct-2000) [Z80] Fixed "LD C, RL*" -mnemonics.
                    [651] Added support for 6510 systems (wla-6510).
                    [ALL] Enhanced documentation.
-                   [ALL] Library file compiling was broken in the previous
+                   [ALL] Library file assembling was broken in the previous
                      release.
 
 v6.7 (07-Oct-2000) [ALL] Added NARGS to .MACRO.
@@ -932,10 +932,10 @@ v6.6 (25-Sep-2000) [ALL] .EMPTYFILL didn't function properly when .ROMBANKMAP
 
 v6.5 (20-Sep-2000) [ALL] Optimized number decoding.
                    [ALL] Enhanced documentation.
-                   [ALL] Binary file compiling is now called program file
-                     compiling (still doesn't suit it 100%).
+                   [ALL] Binary file assembling is now called program file
+                     assembling (still doesn't suit it 100%).
                    [ALL] Macros couldn't be used before setting an ORG.
-                   [Z80] Program file compiling accepts now BANKHEADER
+                   [Z80] Program file assembling accepts now BANKHEADER
                      section for bank 0.
                    [Z80] The default program file suffix is now '.prg'.
                    [Z80] NO$GMB symbol files can also be written.
@@ -1007,7 +1007,7 @@ v6.2 (31-Aug-2000) [ALL] Enhanced error messages.
                      using the old error message engine.
                    [ALL] Negative values in the 16bit range are now
                      handled with better care.
-                   [ALL] When compiling a ROM image and using a section
+                   [ALL] When assembling a ROM image and using a section
                      inside direct mapped code WLA would screw up the data.
 
 v6.1 (26-Aug-2000) [ALL] Directives accept now definitions as arguments.
@@ -1108,7 +1108,7 @@ v4.1 (29-Mar-2000) Enhanced documentation.
 
 v4.0 (19-Mar-2000) Optimized data parsing.
                    Added a much better error messaging system as default.
-                   Added "-f" -option for fast compiling (uses old error
+                   Added "-f" -option for fast assembling (uses old error
                      messaging system with few enhancements).
                    "LDH (x), A" and "LDH A, (x)" support was broken due to a
                      typo.

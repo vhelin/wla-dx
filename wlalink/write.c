@@ -2571,7 +2571,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
     }
     else {
       switch ((int)s->value_ram) {
-      case SI_OP_PLUS:
+      case SI_OP_ADD:
         v_ram[t - 2] += v_ram[t - 1];
         v_rom[t - 2] += v_rom[t - 1];
         _pass_on_slot(slot, t, sta);
@@ -2579,7 +2579,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         _pass_on_bank(bank, t, sta);
         t--;
         break;
-      case SI_OP_MINUS:
+      case SI_OP_SUB:
         v_ram[t - 2] -= v_ram[t - 1];
         v_rom[t - 2] -= v_rom[t - 1];
         _pass_on_slot(slot, t, sta);

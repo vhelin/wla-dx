@@ -31,7 +31,7 @@ Examples of functions
 
 Here's an example about how these functions can be used ::
 
-    .IF DEFINED(USE_DEBUG) && DEFINED(DEBUG_SHOW)
+    .IF defined(USE_DEBUG) && defined(DEBUG_SHOW)
   
     LDX #loword(CPU_ADDR)           ; instead of (CPU_ADDR & $00FFFF)
     LDA #bankbyte(CPU_ADDR)         ; instead of :CPU_ADDR

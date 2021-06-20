@@ -38,8 +38,8 @@
 #define STACK_ITEM_TYPE_DELETED  3
 #define STACK_ITEM_TYPE_STACK    4
 
-#define SI_OP_PLUS         0
-#define SI_OP_MINUS        1
+#define SI_OP_ADD          0
+#define SI_OP_SUB          1
 #define SI_OP_MULTIPLY     2
 #define SI_OP_LEFT         3
 #define SI_OP_RIGHT        4
