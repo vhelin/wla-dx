@@ -12,8 +12,8 @@ x = 8bit
 
 
 "ADC #x" $69
-"ADC &" $6f
-"ADC &,X" $7f
+"ADC &" $6F
+"ADC &,X" $7F
 "ADC (<x)" $72
 "ADC (<x),Y" $71
 "ADC (<x,S),Y" $73
@@ -25,10 +25,10 @@ x = 8bit
 "ADC <x" $65
 "ADC <x,S" $63
 "ADC <x,X" $75
-"ADC >&" $6f
-"ADC >&,X" $7f
-"ADC ?" $6d
-"ADC ?,X" $7d
+"ADC >&" $6F
+"ADC >&,X" $7F
+"ADC ?" $6D
+"ADC ?,X" $7D
 "ADC ?,Y" $79
 "ADC [<x]" $67
 "ADC [<x],Y" $77
@@ -37,12 +37,12 @@ x = 8bit
 "ADC x" $65
 "ADC x,S" $63
 "ADC x,X" $75
-"ADC |?" $6d
-"ADC |?,X" $7d
+"ADC |?" $6D
+"ADC |?,X" $7D
 "ADC |?,Y" $79
 "AND #x" $29
-"AND &" $2f
-"AND &,X" $3f
+"AND &" $2F
+"AND &,X" $3F
 "AND (<x)" $32
 "AND (<x),Y" $31
 "AND (<x,S),Y" $33
@@ -54,10 +54,10 @@ x = 8bit
 "AND <x" $25
 "AND <x,S" $23
 "AND <x,X" $35
-"AND >&" $2f
-"AND >&,X" $3f
-"AND ?" $2d
-"AND ?,X" $3d
+"AND >&" $2F
+"AND >&,X" $3F
+"AND ?" $2D
+"AND ?,X" $3D
 "AND ?,Y" $39
 "AND [<x]" $27
 "AND [<x],Y" $37
@@ -66,38 +66,38 @@ x = 8bit
 "AND x" $25
 "AND x,S" $23
 "AND x,X" $35
-"AND |?" $2d
-"AND |?,X" $3d
+"AND |?" $2D
+"AND |?,X" $3D
 "AND |?,Y" $39
 "ASL <x" $06
 "ASL <x,X" $16
-"ASL ?" $0e
-"ASL ?,X" $1e
-"ASL A" $0a
+"ASL ?" $0E
+"ASL ?,X" $1E
+"ASL A" $0A
 "ASL x" $06
 "ASL x,X" $16
-"ASL |?" $0e
-"ASL |?,X" $1e
-"ASL" $0a
+"ASL |?" $0E
+"ASL |?,X" $1E
+"ASL" $0A
 "BCC <x" $90
 "BCC x" $90
-"BCS <x" $b0
-"BCS x" $b0
-"BEQ <x" $f0
-"BEQ x" $f0
+"BCS <x" $B0
+"BCS x" $B0
+"BEQ <x" $F0
+"BEQ x" $F0
 "BIT #x" $89
 "BIT <x" $24
 "BIT <x,X" $34
-"BIT ?" $2c
-"BIT ?,X" $3c
+"BIT ?" $2C
+"BIT ?,X" $3C
 "BIT x" $24
 "BIT x,X" $34
-"BIT |?" $2c
-"BIT |?,X" $3c
+"BIT |?" $2C
+"BIT |?,X" $3C
 "BMI <x" $30
 "BMI x" $30
-"BNE <x" $d0
-"BNE x" $d0
+"BNE <x" $D0
+"BNE x" $D0
 "BPL <x" $10
 "BPL x" $10
 "BRA <x" $80
@@ -112,66 +112,66 @@ x = 8bit
 "BVS <x" $70
 "BVS x" $70
 "CLC" $18
-"CLD" $d8
+"CLD" $D8
 "CLI" $58
-"CLV" $b8
-"CMP #x" $c9
-"CMP &" $cf
-"CMP &,X" $df
-"CMP (<x)" $d2
-"CMP (<x),Y" $d1
-"CMP (<x,S),Y" $d3
-"CMP (<x,X)" $c1
-"CMP (x)" $d2
-"CMP (x),Y" $d1
-"CMP (x,S),Y" $d3
-"CMP (x,X)" $c1
-"CMP <x" $c5
-"CMP <x,S" $c3
-"CMP <x,X" $d5
-"CMP >&" $cf
-"CMP >&,X" $df
-"CMP ?" $cd
-"CMP ?,X" $dd
-"CMP ?,Y" $d9
-"CMP [<x]" $c7
-"CMP [<x],Y" $d7
-"CMP [x]" $c7
-"CMP [x],Y" $d7
-"CMP x" $c5
-"CMP x,S" $c3
-"CMP x,X" $d5
-"CMP |?" $cd
-"CMP |?,X" $dd
-"CMP |?,Y" $d9
+"CLV" $B8
+"CMP #x" $C9
+"CMP &" $CF
+"CMP &,X" $DF
+"CMP (<x)" $D2
+"CMP (<x),Y" $D1
+"CMP (<x,S),Y" $D3
+"CMP (<x,X)" $C1
+"CMP (x)" $D2
+"CMP (x),Y" $D1
+"CMP (x,S),Y" $D3
+"CMP (x,X)" $C1
+"CMP <x" $C5
+"CMP <x,S" $C3
+"CMP <x,X" $D5
+"CMP >&" $CF
+"CMP >&,X" $DF
+"CMP ?" $CD
+"CMP ?,X" $DD
+"CMP ?,Y" $D9
+"CMP [<x]" $C7
+"CMP [<x],Y" $D7
+"CMP [x]" $C7
+"CMP [x],Y" $D7
+"CMP x" $C5
+"CMP x,S" $C3
+"CMP x,X" $D5
+"CMP |?" $CD
+"CMP |?,X" $DD
+"CMP |?,Y" $D9
 "COP <x" $02
 "COP x" $02
 "COP" $0200
-"CPX #x" $e0
-"CPX <x" $e4
-"CPX ?" $ec
-"CPX x" $e4
-"CPX |?" $ec
-"CPY #x" $c0
-"CPY <x" $c4
-"CPY ?" $cc
-"CPY x" $c4
-"CPY |?" $cc
-"DEA" $3a
-"DEC <x" $c6
-"DEC <x,X" $d6
-"DEC ?" $ce
-"DEC ?,X" $de
-"DEC A" $3a
-"DEC x" $c6
-"DEC x,X" $d6
-"DEC |?" $ce
-"DEC |?,X" $de
-"DEX" $ca
+"CPX #x" $E0
+"CPX <x" $E4
+"CPX ?" $EC
+"CPX x" $E4
+"CPX |?" $EC
+"CPY #x" $C0
+"CPY <x" $C4
+"CPY ?" $CC
+"CPY x" $C4
+"CPY |?" $CC
+"DEA" $3A
+"DEC <x" $C6
+"DEC <x,X" $D6
+"DEC ?" $CE
+"DEC ?,X" $DE
+"DEC A" $3A
+"DEC x" $C6
+"DEC x,X" $D6
+"DEC |?" $CE
+"DEC |?,X" $DE
+"DEX" $CA
 "DEY" $88
 "EOR #x" $49
-"EOR &" $4f
-"EOR &,X" $5f
+"EOR &" $4F
+"EOR &,X" $5F
 "EOR (<x)" $52
 "EOR (<x),Y" $51
 "EOR (<x,S),Y" $53
@@ -183,10 +183,10 @@ x = 8bit
 "EOR <x" $45
 "EOR <x,S" $43
 "EOR <x,X" $55
-"EOR >&" $4f
-"EOR >&,X" $5f
-"EOR ?" $4d
-"EOR ?,X" $5d
+"EOR >&" $4F
+"EOR >&,X" $5F
+"EOR ?" $4D
+"EOR ?,X" $5D
 "EOR ?,Y" $59
 "EOR [<x]" $47
 "EOR [<x],Y" $57
@@ -195,106 +195,106 @@ x = 8bit
 "EOR x" $45
 "EOR x,S" $43
 "EOR x,X" $55
-"EOR |?" $4d
-"EOR |?,X" $5d
+"EOR |?" $4D
+"EOR |?,X" $5D
 "EOR |?,Y" $59
-"INA" $1a
-"INC <x" $e6
-"INC <x,X" $f6
-"INC ?" $ee
-"INC ?,X" $fe
-"INC A" $1a
-"INC x" $e6
-"INC x,X" $f6
-"INC |?" $ee
-"INC |?,X" $fe
-"INX" $e8
-"INY" $c8
-"JML &" $5c
-"JML >&" $5c
-"JML [?]" $dc
-"JMP &" $5c
-"JMP (?)" $6c
-"JMP (?,X)" $7c
-"JMP (|?)" $6c
-"JMP (|?,X)" $7c
-"JMP >&" $5c
-"JMP ?" $4c
-"JMP [|?]" $dc
-"JMP |?" $4c
+"INA" $1A
+"INC <x" $E6
+"INC <x,X" $F6
+"INC ?" $EE
+"INC ?,X" $FE
+"INC A" $1A
+"INC x" $E6
+"INC x,X" $F6
+"INC |?" $EE
+"INC |?,X" $FE
+"INX" $E8
+"INY" $C8
+"JML &" $5C
+"JML >&" $5C
+"JML [?]" $DC
+"JMP &" $5C
+"JMP (?)" $6C
+"JMP (?,X)" $7C
+"JMP (|?)" $6C
+"JMP (|?,X)" $7C
+"JMP >&" $5C
+"JMP ?" $4C
+"JMP [|?]" $DC
+"JMP |?" $4C
 "JSL &" $22
 "JSL >&" $22
 "JSR &" $22
-"JSR (?,X)" $fc
-"JSR (|?,X)" $fc
+"JSR (?,X)" $FC
+"JSR (|?,X)" $FC
 "JSR >&" $22
 "JSR ?" $20
 "JSR |?" $20
-"LDA #x" $a9
-"LDA &" $af
-"LDA &,X" $bf
-"LDA (<x)" $b2
-"LDA (<x),Y" $b1
-"LDA (<x,S),Y" $b3
-"LDA (<x,X)" $a1
-"LDA (x)" $b2
-"LDA (x),Y" $b1
-"LDA (x,S),Y" $b3
-"LDA (x,X)" $a1
-"LDA <x" $a5
-"LDA <x,S" $a3
-"LDA <x,X" $b5
-"LDA >&" $af
-"LDA >&,X" $bf
-"LDA ?" $ad
-"LDA ?,X" $bd
-"LDA ?,Y" $b9
-"LDA [<x]" $a7
-"LDA [<x],Y" $b7
-"LDA [x]" $a7
-"LDA [x],Y" $b7
-"LDA x" $a5
-"LDA x,S" $a3
-"LDA x,X" $b5
-"LDA |?" $ad
-"LDA |?,X" $bd
-"LDA |?,Y" $b9
-"LDX #x" $a2
-"LDX <x" $a6
-"LDX <x,Y" $b6
-"LDX ?" $ae
-"LDX ?,Y" $be
-"LDX x" $a6
-"LDX x,Y" $b6
-"LDX |?" $ae
-"LDX |?,Y" $be
-"LDY #x" $a0
-"LDY <x" $a4
-"LDY <x,X" $b4
-"LDY ?" $ac
-"LDY ?,X" $bc
-"LDY x" $a4
-"LDY x,X" $b4
-"LDY |?" $ac
-"LDY |?,X" $bc
+"LDA #x" $A9
+"LDA &" $AF
+"LDA &,X" $BF
+"LDA (<x)" $B2
+"LDA (<x),Y" $B1
+"LDA (<x,S),Y" $B3
+"LDA (<x,X)" $A1
+"LDA (x)" $B2
+"LDA (x),Y" $B1
+"LDA (x,S),Y" $B3
+"LDA (x,X)" $A1
+"LDA <x" $A5
+"LDA <x,S" $A3
+"LDA <x,X" $B5
+"LDA >&" $AF
+"LDA >&,X" $BF
+"LDA ?" $AD
+"LDA ?,X" $BD
+"LDA ?,Y" $B9
+"LDA [<x]" $A7
+"LDA [<x],Y" $B7
+"LDA [x]" $A7
+"LDA [x],Y" $B7
+"LDA x" $A5
+"LDA x,S" $A3
+"LDA x,X" $B5
+"LDA |?" $AD
+"LDA |?,X" $BD
+"LDA |?,Y" $B9
+"LDX #x" $A2
+"LDX <x" $A6
+"LDX <x,Y" $B6
+"LDX ?" $AE
+"LDX ?,Y" $BE
+"LDX x" $A6
+"LDX x,Y" $B6
+"LDX |?" $AE
+"LDX |?,Y" $BE
+"LDY #x" $A0
+"LDY <x" $A4
+"LDY <x,X" $B4
+"LDY ?" $AC
+"LDY ?,X" $BC
+"LDY x" $A4
+"LDY x,X" $B4
+"LDY |?" $AC
+"LDY |?,X" $BC
 "LSR <x" $46
 "LSR <x,X" $56
-"LSR ?" $4e
-"LSR ?,X" $5e
-"LSR A" $4a
+"LSR ?" $4E
+"LSR ?,X" $5E
+"LSR A" $4A
 "LSR x" $46
 "LSR x,X" $56
-"LSR |?" $4e
-"LSR |?,X" $5e
-"LSR" $4a
+"LSR |?" $4E
+"LSR |?,X" $5E
+"LSR" $4A
 "MVN <x,<x" $54
 "MVN x,x" $54
 "MVP <x,<x" $44
 "MVP x,x" $44
-"NOP" $ea
+"NOP" $EA
 "ORA #x" $09
-"ORA &" $0f
-"ORA &,X" $1f
+"ORA &" $0F
+"ORA &,X" $1F
 "ORA (<x)" $12
 "ORA (<x),Y" $11
 "ORA (<x,S),Y" $13
@@ -306,10 +306,10 @@ x = 8bit
 "ORA <x" $05
 "ORA <x,S" $03
 "ORA <x,X" $15
-"ORA >&" $0f
-"ORA >&,X" $1f
-"ORA ?" $0d
-"ORA ?,X" $1d
+"ORA >&" $0F
+"ORA >&,X" $1F
+"ORA ?" $0D
+"ORA ?,X" $1D
 "ORA ?,Y" $19
 "ORA [<x]" $07
 "ORA [<x],Y" $17
@@ -318,87 +318,87 @@ x = 8bit
 "ORA x" $05
 "ORA x,S" $03
 "ORA x,X" $15
-"ORA |?" $0d
-"ORA |?,X" $1d
+"ORA |?" $0D
+"ORA |?,X" $1D
 "ORA |?,Y" $19
-"PEA ?" $f4
-"PEA |?" $f4
-"PEI (<x)" $d4
-"PEI (x)" $d4
+"PEA ?" $F4
+"PEA |?" $F4
+"PEI (<x)" $D4
+"PEI (x)" $D4
 "PER ?" $62
 "PER |?" $62
 "PHA" $48
-"PHB" $8b
-"PHD" $0b
-"PHK" $4b
+"PHB" $8B
+"PHD" $0B
+"PHK" $4B
 "PHP" $08
-"PHX" $da
-"PHY" $5a
+"PHX" $DA
+"PHY" $5A
 "PLA" $68
-"PLB" $ab
-"PLD" $2b
+"PLB" $AB
+"PLD" $2B
 "PLP" $28
-"PLX" $fa
-"PLY" $7a
-"REP #x" $c2
+"PLX" $FA
+"PLY" $7A
+"REP #x" $C2
 "ROL <x" $26
 "ROL <x,X" $36
-"ROL ?" $2e
-"ROL ?,X" $3e
-"ROL A" $2a
+"ROL ?" $2E
+"ROL ?,X" $3E
+"ROL A" $2A
 "ROL x" $26
 "ROL x,X" $36
-"ROL |?" $2e
-"ROL |?,X" $3e
-"ROL" $2a
+"ROL |?" $2E
+"ROL |?,X" $3E
+"ROL" $2A
 "ROR <x" $66
 "ROR <x,X" $76
-"ROR ?" $6e
-"ROR ?,X" $7e
-"ROR A" $6a
+"ROR ?" $6E
+"ROR ?,X" $7E
+"ROR A" $6A
 "ROR x" $66
 "ROR x,X" $76
-"ROR |?" $6e
-"ROR |?,X" $7e
-"ROR" $6a
+"ROR |?" $6E
+"ROR |?,X" $7E
+"ROR" $6A
 "RTI" $40
-"RTL" $6b
+"RTL" $6B
 "RTS" $60
-"SBC #x" $e9
-"SBC &" $ef
-"SBC &,X" $ff
-"SBC (<x)" $f2
-"SBC (<x),Y" $f1
-"SBC (<x,S),Y" $f3
-"SBC (<x,X)" $e1
-"SBC (x)" $f2
-"SBC (x),Y" $f1
-"SBC (x,S),Y" $f3
-"SBC (x,X)" $e1
-"SBC <x" $e5
-"SBC <x,S" $e3
-"SBC <x,X" $f5
-"SBC >&" $ef
-"SBC >&,X" $ff
-"SBC ?" $ed
-"SBC ?,X" $fd
-"SBC ?,Y" $f9
-"SBC [<x]" $e7
-"SBC [<x],Y" $f7
-"SBC [x]" $e7
-"SBC [x],Y" $f7
-"SBC x" $e5
-"SBC x,S" $e3
-"SBC x,X" $f5
-"SBC |?" $ed
-"SBC |?,X" $fd
-"SBC |?,Y" $f9
+"SBC #x" $E9
+"SBC &" $EF
+"SBC &,X" $FF
+"SBC (<x)" $F2
+"SBC (<x),Y" $F1
+"SBC (<x,S),Y" $F3
+"SBC (<x,X)" $E1
+"SBC (x)" $F2
+"SBC (x),Y" $F1
+"SBC (x,S),Y" $F3
+"SBC (x,X)" $E1
+"SBC <x" $E5
+"SBC <x,S" $E3
+"SBC <x,X" $F5
+"SBC >&" $EF
+"SBC >&,X" $FF
+"SBC ?" $ED
+"SBC ?,X" $FD
+"SBC ?,Y" $F9
+"SBC [<x]" $E7
+"SBC [<x],Y" $F7
+"SBC [x]" $E7
+"SBC [x],Y" $F7
+"SBC x" $E5
+"SBC x,S" $E3
+"SBC x,X" $F5
+"SBC |?" $ED
+"SBC |?,X" $FD
+"SBC |?,Y" $F9
 "SEC" $38
-"SED" $f8
+"SED" $F8
 "SEI" $78
-"SEP #x" $e2
-"STA &" $8f
-"STA &,X" $9f
+"SEP #x" $E2
+"STA &" $8F
+"STA &,X" $9F
 "STA (<x)" $92
 "STA (<x),Y" $91
 "STA (<x,S),Y" $93
@@ -410,10 +410,10 @@ x = 8bit
 "STA <x" $85
 "STA <x,S" $83
 "STA <x,X" $95
-"STA >&" $8f
-"STA >&,X" $9f
-"STA ?" $8d
-"STA ?,X" $9d
+"STA >&" $8F
+"STA >&,X" $9F
+"STA ?" $8D
+"STA ?,X" $9D
 "STA ?,Y" $99
 "STA [<x]" $87
 "STA [<x],Y" $97
@@ -422,54 +422,54 @@ x = 8bit
 "STA x" $85
 "STA x,S" $83
 "STA x,X" $95
-"STA |?" $8d
-"STA |?,X" $9d
+"STA |?" $8D
+"STA |?,X" $9D
 "STA |?,Y" $99
-"STP" $db
+"STP" $DB
 "STX <x" $86
-"STX ?" $8e
+"STX ?" $8E
 "STX x" $86
 "STX x,Y" $96
-"STX |?" $8e
+"STX |?" $8E
 "STY <x" $84
-"STY ?" $8c
+"STY ?" $8C
 "STY x" $84
 "STY x,X" $94
-"STY |?" $8c
+"STY |?" $8C
 "STZ <x" $64
 "STZ <x,X" $74
-"STZ ?" $9c
-"STZ ?,X" $9e
+"STZ ?" $9C
+"STZ ?,X" $9E
 "STZ x" $64
 "STZ x,X" $74
-"STZ |?" $9c
-"STZ |?,X" $9e
-"SWA" $eb
-"TAD" $5b
-"TAS" $1b
-"TAX" $aa
-"TAY" $a8
-"TCD" $5b
-"TCS" $1b
-"TDA" $7b
-"TDC" $7b
+"STZ |?" $9C
+"STZ |?,X" $9E
+"SWA" $EB
+"TAD" $5B
+"TAS" $1B
+"TAX" $AA
+"TAY" $A8
+"TCD" $5B
+"TCS" $1B
+"TDA" $7B
+"TDC" $7B
 "TRB <x" $14
-"TRB ?" $1c
+"TRB ?" $1C
 "TRB x" $14
-"TRB |?" $1c
-"TSA" $3b
+"TRB |?" $1C
+"TSA" $3B
 "TSB <x" $04
-"TSB ?" $0c
+"TSB ?" $0C
 "TSB x" $04
-"TSB |?" $0c
-"TSC" $3b
-"TSX" $ba
-"TXA" $8a
-"TXS" $9a
-"TXY" $9b
+"TSB |?" $0C
+"TSC" $3B
+"TSX" $BA
+"TXA" $8A
+"TXS" $9A
+"TXY" $9B
 "TYA" $98
-"TYX" $bb
-"WAI" $cb
+"TYX" $BB
+"WAI" $CB
 "WDM" $42
-"XBA" $eb
-"XCE" $fb
+"XBA" $EB
+"XCE" $FB

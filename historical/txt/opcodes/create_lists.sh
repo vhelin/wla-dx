@@ -198,6 +198,20 @@ export WLA_NICELIST=NICELIST2
 make
 ./op | sort > _6809_o
 
+# SuperFX
+
+make clean
+export WLA_TARGET=SUPERFX
+export WLA_NICELIST=NICELIST1
+make
+./op | sort > _superfx_a
+
+make clean
+export WLA_TARGET=SUPERFX
+export WLA_NICELIST=NICELIST2
+make
+./op | sort > _superfx_o
+
 make clean
 
 # create the final files
@@ -271,6 +285,11 @@ cat header_o_6801.txt _6801_o > mnemonics_6801_o.txt
 
 cat header_a_6809.txt _6809_a > mnemonics_6809_a.txt
 cat header_o_6809.txt _6809_o > mnemonics_6809_o.txt
+
+# SuperFX
+
+cat header_a_superfx.txt _superfx_a > mnemonics_superfx_a.txt
+cat header_o_superfx.txt _superfx_o > mnemonics_superfx_o.txt
 
 # cleanup
 

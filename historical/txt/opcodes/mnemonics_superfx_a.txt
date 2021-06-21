@@ -1,0 +1,105 @@
+
+WLA DX: SuperFX mnemonics listed in alphabetical order
+
+If you notice any errors or something is missing, please
+open an issue @ https://github.com/vhelin/wla-dx
+
+
+* = [min, max]
+e = signed 8bit
+x = 8bit
+y = 9bit
+? = 16bit
+
+
+"ADC #*" $3F $50|* [0, 15]
+"ADC R*" $3D $50|* [0, 15]
+"ADD #*" $3E $50|* [0, 15]
+"ADD R*" $50|* [0, 15]
+"ALT1" $3D
+"ALT2" $3E
+"ALT3" $3F
+"AND #*" $3E $70|* [1, 15]
+"AND R*" $70|* [1, 15]
+"ASR" $96
+"BCC e" $0C
+"BCS e" $0D
+"BEQ e" $09
+"BGE e" $06
+"BIC #*" $3F $70|* [1, 15]
+"BIC R*" $3D $70|* [1, 15]
+"BLT e" $07
+"BMI e" $0B
+"BNE e" $08
+"BPL e" $0A
+"BRA e" $05
+"BVC e" $0E
+"BVS e" $0F
+"CACHE" $02
+"CMODE" $3D $4E
+"CMP R*" $3F $60|* [0, 15]
+"COLOR" $4E
+"DEC R*" $E0|* [0, 14]
+"DIV2" $3D $96
+"FMULT" $9F
+"FROM R*" $B0|* [0, 15]
+"GETB" $EF
+"GETBH" $3D $EF
+"GETBL" $3E $EF
+"GETBS" $3F $EF
+"GETC" $DF
+"HIB" $C0
+"IBT R*,#x" $A0|* [0, 15]
+"INC R*" $D0|* [0, 14]
+"IWT R*,#?" $F0|* [0, 15]
+"JMP R*" $90|* [8, 13]
+"LDB (R*)" $3D $40|* [0, 11]
+"LDW (R*)" $40|* [0, 11]
+"LEA R*,?" $F0|* [0, 15]
+"LINK #*" $90|* [1, 4]
+"LJMP R*" $3D $90|* [8, 13]
+"LM R*,(?)" $3D $F0|* [0, 15]
+"LMS R*,(y)" $3D $A0|* [0, 15]
+"LMULT" $3D $9F
+"LOB" $9E
+"LOOP" $3C
+"LSR" $03
+"MERGE" $70
+"MOVE (?),R*" $3E $F0|* or $3D $F0|* [0, 15]
+"MOVE R*,#?" $A0|* or $F0|* [0, 15]
+"MOVE R*,(?)" $3D $A0|* or $3D $F0|* [0, 15]
+"MOVE R*,R*" $20|* $10|* [0, 15]
+"MOVEB (R*),R*" $3D $30|* or $B0|* $3D $30|* [0, 11] [0, 15]
+"MOVEB R*,(R*)" $3D $40|* or $10|* $3D $40|* [0, 15] [0, 11]
+"MOVES R*,R*" $20|* $B0|* [0, 15]
+"MOVEW (R*),R*" $30|* or $B0|* $30|* [0, 11] [0, 15]
+"MOVEW R*,(R*)" $40|* or $10|* $40|* [0, 15] [0, 11]
+"MULT #*" $3E $80|* [0, 15]
+"MULT R*" $80|* [0, 15]
+"NOP" $01
+"NOT" $4F
+"OR #*" $3E $C0|* [1, 15]
+"OR R*" $C0|* [1, 15]
+"PLOT" $4C
+"RAMB" $3E $DF
+"ROL" $04
+"ROMB" $3F $DF
+"ROR" $97
+"RPIX" $3D $4C
+"SBC R*" $3D $60|* [0, 15]
+"SBK" $90
+"SEX" $95
+"SM (?),R*" $3E $F0|* [0, 15]
+"SMS (y),R*" $3E $A0|* [0, 15]
+"STB (R*)" $3D $30|* [0, 11]
+"STOP" $00
+"STW (R*)" $30|* [0, 11]
+"SUB #*" $3E $60|* [0, 15]
+"SUB R*" $60|* [0, 15]
+"SWAP" $4D
+"TO R*" $10|* [0, 15]
+"UMULT #*" $3F $80|* [0, 15]
+"UMULT R*" $3D $80|* [0, 15]
+"WITH R*" $20|* [0, 15]
+"XOR #*" $3F $C0|* [1, 15]
+"XOR R*" $3D $C0|* [1, 15]

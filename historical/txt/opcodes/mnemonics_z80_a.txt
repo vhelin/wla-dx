@@ -11,103 +11,103 @@ s = 8bit 2's complement ([-128, +127])
 
 
 
-"ADC (HL')" $8e
-"ADC (HL)" $8e
-"ADC (IXs)" $dd8e
-"ADC (IYs)" $fd8e
-"ADC A" $8f
-"ADC A'" $8f
-"ADC A',(HL')" $8e
-"ADC A',(HL)" $8e
-"ADC A',(IXs)" $dd8e
-"ADC A',(IYs)" $fd8e
-"ADC A',A'" $8f
+"ADC (HL')" $8E
+"ADC (HL)" $8E
+"ADC (IXs)" $DD8E
+"ADC (IYs)" $FD8E
+"ADC A" $8F
+"ADC A'" $8F
+"ADC A',(HL')" $8E
+"ADC A',(HL)" $8E
+"ADC A',(IXs)" $DD8E
+"ADC A',(IYs)" $FD8E
+"ADC A',A'" $8F
 "ADC A',B" $88
 "ADC A',B'" $88
 "ADC A',C" $89
 "ADC A',C'" $89
-"ADC A',D" $8a
-"ADC A',D'" $8a
-"ADC A',E" $8b
-"ADC A',E'" $8b
-"ADC A',H" $8c
-"ADC A',H'" $8c
-"ADC A',HX" $dd8c
-"ADC A',HY" $fd8c
-"ADC A',IXH" $dd8c
-"ADC A',IXL" $dd8d
-"ADC A',IYH" $fd8c
-"ADC A',IYL" $fd8d
-"ADC A',L" $8d
-"ADC A',L'" $8d
-"ADC A',LX" $dd8d
-"ADC A',LY" $fd8d
-"ADC A',x" $ce
-"ADC A,(HL')" $8e
-"ADC A,(HL)" $8e
-"ADC A,(IXs)" $dd8e
-"ADC A,(IYs)" $fd8e
-"ADC A,A" $8f
+"ADC A',D" $8A
+"ADC A',D'" $8A
+"ADC A',E" $8B
+"ADC A',E'" $8B
+"ADC A',H" $8C
+"ADC A',H'" $8C
+"ADC A',HX" $DD8C
+"ADC A',HY" $FD8C
+"ADC A',IXH" $DD8C
+"ADC A',IXL" $DD8D
+"ADC A',IYH" $FD8C
+"ADC A',IYL" $FD8D
+"ADC A',L" $8D
+"ADC A',L'" $8D
+"ADC A',LX" $DD8D
+"ADC A',LY" $FD8D
+"ADC A',x" $CE
+"ADC A,(HL')" $8E
+"ADC A,(HL)" $8E
+"ADC A,(IXs)" $DD8E
+"ADC A,(IYs)" $FD8E
+"ADC A,A" $8F
 "ADC A,B" $88
 "ADC A,B'" $88
 "ADC A,C" $89
 "ADC A,C'" $89
-"ADC A,D" $8a
-"ADC A,D'" $8a
-"ADC A,E" $8b
-"ADC A,E'" $8b
-"ADC A,H" $8c
-"ADC A,H'" $8c
-"ADC A,HX" $dd8c
-"ADC A,HY" $fd8c
-"ADC A,IXH" $dd8c
-"ADC A,IXL" $dd8d
-"ADC A,IYH" $fd8c
-"ADC A,IYL" $fd8d
-"ADC A,L" $8d
-"ADC A,L'" $8d
-"ADC A,LX" $dd8d
-"ADC A,LY" $fd8d
-"ADC A,x" $ce
+"ADC A,D" $8A
+"ADC A,D'" $8A
+"ADC A,E" $8B
+"ADC A,E'" $8B
+"ADC A,H" $8C
+"ADC A,H'" $8C
+"ADC A,HX" $DD8C
+"ADC A,HY" $FD8C
+"ADC A,IXH" $DD8C
+"ADC A,IXL" $DD8D
+"ADC A,IYH" $FD8C
+"ADC A,IYL" $FD8D
+"ADC A,L" $8D
+"ADC A,L'" $8D
+"ADC A,LX" $DD8D
+"ADC A,LY" $FD8D
+"ADC A,x" $CE
 "ADC B" $88
 "ADC B'" $88
 "ADC C" $89
 "ADC C'" $89
-"ADC D" $8a
-"ADC D'" $8a
-"ADC E" $8b
-"ADC E'" $8b
-"ADC H" $8c
-"ADC H'" $8c
-"ADC HL',BC'" $ed4a
-"ADC HL',DE'" $ed5a
-"ADC HL',HL'" $ed6a
-"ADC HL',SP" $ed7a
-"ADC HL,BC" $ed4a
-"ADC HL,DE" $ed5a
-"ADC HL,HL" $ed6a
-"ADC HL,SP" $ed7a
-"ADC HX" $dd8c
-"ADC HY" $fd8c
-"ADC IXH" $dd8c
-"ADC IXL" $dd8d
-"ADC IYH" $fd8c
-"ADC IYL" $fd8d
-"ADC L" $8d
-"ADC L'" $8d
-"ADC LX" $dd8d
-"ADC LY" $fd8d
-"ADC x" $ce
+"ADC D" $8A
+"ADC D'" $8A
+"ADC E" $8B
+"ADC E'" $8B
+"ADC H" $8C
+"ADC H'" $8C
+"ADC HL',BC'" $ED4A
+"ADC HL',DE'" $ED5A
+"ADC HL',HL'" $ED6A
+"ADC HL',SP" $ED7A
+"ADC HL,BC" $ED4A
+"ADC HL,DE" $ED5A
+"ADC HL,HL" $ED6A
+"ADC HL,SP" $ED7A
+"ADC HX" $DD8C
+"ADC HY" $FD8C
+"ADC IXH" $DD8C
+"ADC IXL" $DD8D
+"ADC IYH" $FD8C
+"ADC IYL" $FD8D
+"ADC L" $8D
+"ADC L'" $8D
+"ADC LX" $DD8D
+"ADC LY" $FD8D
+"ADC x" $CE
 "ADD (HL')" $86
 "ADD (HL)" $86
-"ADD (IXs)" $dd86
-"ADD (IYs)" $fd86
+"ADD (IXs)" $DD86
+"ADD (IYs)" $FD86
 "ADD A" $87
 "ADD A'" $87
 "ADD A',(HL')" $86
 "ADD A',(HL)" $86
-"ADD A',(IXs)" $dd86
-"ADD A',(IYs)" $fd86
+"ADD A',(IXs)" $DD86
+"ADD A',(IYs)" $FD86
 "ADD A',A'" $87
 "ADD A',B" $80
 "ADD A',B'" $80
@@ -119,21 +119,21 @@ s = 8bit 2's complement ([-128, +127])
 "ADD A',E'" $83
 "ADD A',H" $84
 "ADD A',H'" $84
-"ADD A',HX" $dd84
-"ADD A',HY" $fd84
-"ADD A',IXH" $dd84
-"ADD A',IXL" $dd85
-"ADD A',IYH" $fd84
-"ADD A',IYL" $fd85
+"ADD A',HX" $DD84
+"ADD A',HY" $FD84
+"ADD A',IXH" $DD84
+"ADD A',IXL" $DD85
+"ADD A',IYH" $FD84
+"ADD A',IYL" $FD85
 "ADD A',L" $85
 "ADD A',L'" $85
-"ADD A',LX" $dd85
-"ADD A',LY" $fd85
-"ADD A',x" $c6
+"ADD A',LX" $DD85
+"ADD A',LY" $FD85
+"ADD A',x" $C6
 "ADD A,(HL')" $86
 "ADD A,(HL)" $86
-"ADD A,(IXs)" $dd86
-"ADD A,(IYs)" $fd86
+"ADD A,(IXs)" $DD86
+"ADD A,(IYs)" $FD86
 "ADD A,A" $87
 "ADD A,B" $80
 "ADD A,B'" $80
@@ -145,17 +145,17 @@ s = 8bit 2's complement ([-128, +127])
 "ADD A,E'" $83
 "ADD A,H" $84
 "ADD A,H'" $84
-"ADD A,HX" $dd84
-"ADD A,HY" $fd84
-"ADD A,IXH" $dd84
-"ADD A,IXL" $dd85
-"ADD A,IYH" $fd84
-"ADD A,IYL" $fd85
+"ADD A,HX" $DD84
+"ADD A,HY" $FD84
+"ADD A,IXH" $DD84
+"ADD A,IXL" $DD85
+"ADD A,IYH" $FD84
+"ADD A,IYL" $FD85
 "ADD A,L" $85
 "ADD A,L'" $85
-"ADD A,LX" $dd85
-"ADD A,LY" $fd85
-"ADD A,x" $c6
+"ADD A,LX" $DD85
+"ADD A,LY" $FD85
+"ADD A,x" $C6
 "ADD B" $80
 "ADD B'" $80
 "ADD C" $81
@@ -174,478 +174,478 @@ s = 8bit 2's complement ([-128, +127])
 "ADD HL,DE" $19
 "ADD HL,HL" $29
 "ADD HL,SP" $39
-"ADD HX" $dd84
-"ADD HY" $fd84
-"ADD IX,BC" $dd09
-"ADD IX,BC'" $dd09
-"ADD IX,DE" $dd19
-"ADD IX,DE'" $dd19
-"ADD IX,IX" $dd29
-"ADD IX,SP" $dd39
-"ADD IXH" $dd84
-"ADD IXL" $dd85
-"ADD IY,BC" $fd09
-"ADD IY,BC'" $fd09
-"ADD IY,DE" $fd19
-"ADD IY,DE'" $fd19
-"ADD IY,IY" $fd29
-"ADD IY,SP" $fd39
-"ADD IYH" $fd84
-"ADD IYL" $fd85
+"ADD HX" $DD84
+"ADD HY" $FD84
+"ADD IX,BC" $DD09
+"ADD IX,BC'" $DD09
+"ADD IX,DE" $DD19
+"ADD IX,DE'" $DD19
+"ADD IX,IX" $DD29
+"ADD IX,SP" $DD39
+"ADD IXH" $DD84
+"ADD IXL" $DD85
+"ADD IY,BC" $FD09
+"ADD IY,BC'" $FD09
+"ADD IY,DE" $FD19
+"ADD IY,DE'" $FD19
+"ADD IY,IY" $FD29
+"ADD IY,SP" $FD39
+"ADD IYH" $FD84
+"ADD IYL" $FD85
 "ADD L" $85
 "ADD L'" $85
-"ADD LX" $dd85
-"ADD LY" $fd85
-"ADD x" $c6
-"AND (HL')" $a6
-"AND (HL)" $a6
-"AND (IXs)" $dda6
-"AND (IYs)" $fda6
-"AND A" $a7
-"AND A'" $a7
-"AND A',(HL')" $a6
-"AND A',(HL)" $a6
-"AND A',(IXs)" $dda6
-"AND A',(IYs)" $fda6
-"AND A',A'" $a7
-"AND A',B" $a0
-"AND A',B'" $a0
-"AND A',C" $a1
-"AND A',C'" $a1
-"AND A',D" $a2
-"AND A',D'" $a2
-"AND A',E" $a3
-"AND A',E'" $a3
-"AND A',H" $a4
-"AND A',H'" $a4
-"AND A',HX" $dda4
-"AND A',HY" $fda4
-"AND A',IXH" $dda4
-"AND A',IXL" $dda5
-"AND A',IYH" $fda4
-"AND A',IYL" $fda5
-"AND A',L" $a5
-"AND A',L'" $a5
-"AND A',LX" $dda5
-"AND A',LY" $fda5
-"AND A',x" $e6
-"AND A,(HL')" $a6
-"AND A,(HL)" $a6
-"AND A,(IXs)" $dda6
-"AND A,(IYs)" $fda6
-"AND A,A" $a7
-"AND A,B" $a0
-"AND A,B'" $a0
-"AND A,C" $a1
-"AND A,C'" $a1
-"AND A,D" $a2
-"AND A,D'" $a2
-"AND A,E" $a3
-"AND A,E'" $a3
-"AND A,H" $a4
-"AND A,H'" $a4
-"AND A,HX" $dda4
-"AND A,HY" $fda4
-"AND A,IXH" $dda4
-"AND A,IXL" $dda5
-"AND A,IYH" $fda4
-"AND A,IYL" $fda5
-"AND A,L" $a5
-"AND A,L'" $a5
-"AND A,LX" $dda5
-"AND A,LY" $fda5
-"AND A,x" $e6
-"AND B" $a0
-"AND B'" $a0
-"AND C" $a1
-"AND C'" $a1
-"AND D" $a2
-"AND D'" $a2
-"AND E" $a3
-"AND E'" $a3
-"AND H" $a4
-"AND H'" $a4
-"AND HX" $dda4
-"AND HY" $fda4
-"AND IXH" $dda4
-"AND IXL" $dda5
-"AND IYH" $fda4
-"AND IYL" $fda5
-"AND L" $a5
-"AND L'" $a5
-"AND LX" $dda5
-"AND LY" $fda5
-"AND x" $e6
-"BIT 0,(HL')" $cb46
-"BIT 0,(HL)" $cb46
-"BIT 0,(IXs)" $ddcb x $46
-"BIT 0,(IYs)" $fdcb x $46
-"BIT 0,A" $cb47
-"BIT 0,A'" $cb47
-"BIT 0,B" $cb40
-"BIT 0,B'" $cb40
-"BIT 0,C" $cb41
-"BIT 0,C'" $cb41
-"BIT 0,D" $cb42
-"BIT 0,D'" $cb42
-"BIT 0,E" $cb43
-"BIT 0,E'" $cb43
-"BIT 0,H" $cb44
-"BIT 0,H'" $cb44
-"BIT 0,L" $cb45
-"BIT 0,L'" $cb45
-"BIT 1,(HL')" $cb4e
-"BIT 1,(HL)" $cb4e
-"BIT 1,(IXs)" $ddcb x $4e
-"BIT 1,(IYs)" $fdcb x $4e
-"BIT 1,A" $cb4f
-"BIT 1,A'" $cb4f
-"BIT 1,B" $cb48
-"BIT 1,B'" $cb48
-"BIT 1,C" $cb49
-"BIT 1,C'" $cb49
-"BIT 1,D" $cb4a
-"BIT 1,D'" $cb4a
-"BIT 1,E" $cb4b
-"BIT 1,E'" $cb4b
-"BIT 1,H" $cb4c
-"BIT 1,H'" $cb4c
-"BIT 1,L" $cb4d
-"BIT 1,L'" $cb4d
-"BIT 2,(HL')" $cb56
-"BIT 2,(HL)" $cb56
-"BIT 2,(IXs)" $ddcb x $56
-"BIT 2,(IYs)" $fdcb x $56
-"BIT 2,A" $cb57
-"BIT 2,A'" $cb57
-"BIT 2,B" $cb50
-"BIT 2,B'" $cb50
-"BIT 2,C" $cb51
-"BIT 2,C'" $cb51
-"BIT 2,D" $cb52
-"BIT 2,D'" $cb52
-"BIT 2,E" $cb53
-"BIT 2,E'" $cb53
-"BIT 2,H" $cb54
-"BIT 2,H'" $cb54
-"BIT 2,L" $cb55
-"BIT 2,L'" $cb55
-"BIT 3,(HL')" $cb5e
-"BIT 3,(HL)" $cb5e
-"BIT 3,(IXs)" $ddcb x $5e
-"BIT 3,(IYs)" $fdcb x $5e
-"BIT 3,A" $cb5f
-"BIT 3,A'" $cb5f
-"BIT 3,B" $cb58
-"BIT 3,B'" $cb58
-"BIT 3,C" $cb59
-"BIT 3,C'" $cb59
-"BIT 3,D" $cb5a
-"BIT 3,D'" $cb5a
-"BIT 3,E" $cb5b
-"BIT 3,E'" $cb5b
-"BIT 3,H" $cb5c
-"BIT 3,H'" $cb5c
-"BIT 3,L" $cb5d
-"BIT 3,L'" $cb5d
-"BIT 4,(HL')" $cb66
-"BIT 4,(HL)" $cb66
-"BIT 4,(IXs)" $ddcb x $66
-"BIT 4,(IYs)" $fdcb x $66
-"BIT 4,A" $cb67
-"BIT 4,A'" $cb67
-"BIT 4,B" $cb60
-"BIT 4,B'" $cb60
-"BIT 4,C" $cb61
-"BIT 4,C'" $cb61
-"BIT 4,D" $cb62
-"BIT 4,D'" $cb62
-"BIT 4,E" $cb63
-"BIT 4,E'" $cb63
-"BIT 4,H" $cb64
-"BIT 4,H'" $cb64
-"BIT 4,L" $cb65
-"BIT 4,L'" $cb65
-"BIT 5,(HL')" $cb6e
-"BIT 5,(HL)" $cb6e
-"BIT 5,(IXs)" $ddcb x $6e
-"BIT 5,(IYs)" $fdcb x $6e
-"BIT 5,A" $cb6f
-"BIT 5,A'" $cb6f
-"BIT 5,B" $cb68
-"BIT 5,B'" $cb68
-"BIT 5,C" $cb69
-"BIT 5,C'" $cb69
-"BIT 5,D" $cb6a
-"BIT 5,D'" $cb6a
-"BIT 5,E" $cb6b
-"BIT 5,E'" $cb6b
-"BIT 5,H" $cb6c
-"BIT 5,H'" $cb6c
-"BIT 5,L" $cb6d
-"BIT 5,L'" $cb6d
-"BIT 6,(HL')" $cb76
-"BIT 6,(HL)" $cb76
-"BIT 6,(IXs)" $ddcb x $76
-"BIT 6,(IYs)" $fdcb x $76
-"BIT 6,A" $cb77
-"BIT 6,A'" $cb77
-"BIT 6,B" $cb70
-"BIT 6,B'" $cb70
-"BIT 6,C" $cb71
-"BIT 6,C'" $cb71
-"BIT 6,D" $cb72
-"BIT 6,D'" $cb72
-"BIT 6,E" $cb73
-"BIT 6,E'" $cb73
-"BIT 6,H" $cb74
-"BIT 6,H'" $cb74
-"BIT 6,L" $cb75
-"BIT 6,L'" $cb75
-"BIT 7,(HL')" $cb7e
-"BIT 7,(HL)" $cb7e
-"BIT 7,(IXs)" $ddcb x $7e
-"BIT 7,(IYs)" $fdcb x $7e
-"BIT 7,A" $cb7f
-"BIT 7,A'" $cb7f
-"BIT 7,B" $cb78
-"BIT 7,B'" $cb78
-"BIT 7,C" $cb79
-"BIT 7,C'" $cb79
-"BIT 7,D" $cb7a
-"BIT 7,D'" $cb7a
-"BIT 7,E" $cb7b
-"BIT 7,E'" $cb7b
-"BIT 7,H" $cb7c
-"BIT 7,H'" $cb7c
-"BIT 7,L" $cb7d
-"BIT 7,L'" $cb7d
-"CALL ?" $cd
-"CALL C,?" $dc
-"CALL M,?" $fc
-"CALL NC,?" $d4
-"CALL NZ,?" $c4
-"CALL P,?" $f4
-"CALL PE,?" $ec
-"CALL PO,?" $e4
-"CALL Z,?" $cc
-"CCF" $3f
-"CP (HL')" $be
-"CP (HL)" $be
-"CP (IXs)" $ddbe
-"CP (IYs)" $fdbe
-"CP A" $bf
-"CP A'" $bf
-"CP A',(HL')" $be
-"CP A',(HL)" $be
-"CP A',(IXs)" $ddbe
-"CP A',(IYs)" $fdbe
-"CP A',A'" $bf
-"CP A',B" $b8
-"CP A',B'" $b8
-"CP A',C" $b9
-"CP A',C'" $b9
-"CP A',D" $ba
-"CP A',D'" $ba
-"CP A',E" $bb
-"CP A',E'" $bb
-"CP A',H" $bc
-"CP A',H'" $bc
-"CP A',HX" $ddbc
-"CP A',HY" $fdbc
-"CP A',IXH" $ddbc
-"CP A',IXL" $ddbd
-"CP A',IYH" $fdbc
-"CP A',IYL" $fdbd
-"CP A',L" $bd
-"CP A',L'" $bd
-"CP A',LX" $ddbd
-"CP A',LY" $fdbd
-"CP A',x" $fe
-"CP A,(HL')" $be
-"CP A,(HL)" $be
-"CP A,(IXs)" $ddbe
-"CP A,(IYs)" $fdbe
-"CP A,A" $bf
-"CP A,B" $b8
-"CP A,B'" $b8
-"CP A,C" $b9
-"CP A,C'" $b9
-"CP A,D" $ba
-"CP A,D'" $ba
-"CP A,E" $bb
-"CP A,E'" $bb
-"CP A,H" $bc
-"CP A,H'" $bc
-"CP A,HX" $ddbc
-"CP A,HY" $fdbc
-"CP A,IXH" $ddbc
-"CP A,IXL" $ddbd
-"CP A,IYH" $fdbc
-"CP A,IYL" $fdbd
-"CP A,L" $bd
-"CP A,L'" $bd
-"CP A,LX" $ddbd
-"CP A,LY" $fdbd
-"CP A,x" $fe
-"CP B" $b8
-"CP B'" $b8
-"CP C" $b9
-"CP C'" $b9
-"CP D" $ba
-"CP D'" $ba
-"CP E" $bb
-"CP E'" $bb
-"CP H" $bc
-"CP H'" $bc
-"CP HX" $ddbc
-"CP HY" $fdbc
-"CP IXH" $ddbc
-"CP IXL" $ddbd
-"CP IYH" $fdbc
-"CP IYL" $fdbd
-"CP L" $bd
-"CP L'" $bd
-"CP LX" $ddbd
-"CP LY" $fdbd
-"CP x" $fe
-"CPD" $eda9
-"CPDR" $edb9
-"CPI" $eda1
-"CPIR" $edb1
-"CPL" $2f
+"ADD LX" $DD85
+"ADD LY" $FD85
+"ADD x" $C6
+"AND (HL')" $A6
+"AND (HL)" $A6
+"AND (IXs)" $DDA6
+"AND (IYs)" $FDA6
+"AND A" $A7
+"AND A'" $A7
+"AND A',(HL')" $A6
+"AND A',(HL)" $A6
+"AND A',(IXs)" $DDA6
+"AND A',(IYs)" $FDA6
+"AND A',A'" $A7
+"AND A',B" $A0
+"AND A',B'" $A0
+"AND A',C" $A1
+"AND A',C'" $A1
+"AND A',D" $A2
+"AND A',D'" $A2
+"AND A',E" $A3
+"AND A',E'" $A3
+"AND A',H" $A4
+"AND A',H'" $A4
+"AND A',HX" $DDA4
+"AND A',HY" $FDA4
+"AND A',IXH" $DDA4
+"AND A',IXL" $DDA5
+"AND A',IYH" $FDA4
+"AND A',IYL" $FDA5
+"AND A',L" $A5
+"AND A',L'" $A5
+"AND A',LX" $DDA5
+"AND A',LY" $FDA5
+"AND A',x" $E6
+"AND A,(HL')" $A6
+"AND A,(HL)" $A6
+"AND A,(IXs)" $DDA6
+"AND A,(IYs)" $FDA6
+"AND A,A" $A7
+"AND A,B" $A0
+"AND A,B'" $A0
+"AND A,C" $A1
+"AND A,C'" $A1
+"AND A,D" $A2
+"AND A,D'" $A2
+"AND A,E" $A3
+"AND A,E'" $A3
+"AND A,H" $A4
+"AND A,H'" $A4
+"AND A,HX" $DDA4
+"AND A,HY" $FDA4
+"AND A,IXH" $DDA4
+"AND A,IXL" $DDA5
+"AND A,IYH" $FDA4
+"AND A,IYL" $FDA5
+"AND A,L" $A5
+"AND A,L'" $A5
+"AND A,LX" $DDA5
+"AND A,LY" $FDA5
+"AND A,x" $E6
+"AND B" $A0
+"AND B'" $A0
+"AND C" $A1
+"AND C'" $A1
+"AND D" $A2
+"AND D'" $A2
+"AND E" $A3
+"AND E'" $A3
+"AND H" $A4
+"AND H'" $A4
+"AND HX" $DDA4
+"AND HY" $FDA4
+"AND IXH" $DDA4
+"AND IXL" $DDA5
+"AND IYH" $FDA4
+"AND IYL" $FDA5
+"AND L" $A5
+"AND L'" $A5
+"AND LX" $DDA5
+"AND LY" $FDA5
+"AND x" $E6
+"BIT 0,(HL')" $CB46
+"BIT 0,(HL)" $CB46
+"BIT 0,(IXs)" $DDCB x $46
+"BIT 0,(IYs)" $FDCB x $46
+"BIT 0,A" $CB47
+"BIT 0,A'" $CB47
+"BIT 0,B" $CB40
+"BIT 0,B'" $CB40
+"BIT 0,C" $CB41
+"BIT 0,C'" $CB41
+"BIT 0,D" $CB42
+"BIT 0,D'" $CB42
+"BIT 0,E" $CB43
+"BIT 0,E'" $CB43
+"BIT 0,H" $CB44
+"BIT 0,H'" $CB44
+"BIT 0,L" $CB45
+"BIT 0,L'" $CB45
+"BIT 1,(HL')" $CB4E
+"BIT 1,(HL)" $CB4E
+"BIT 1,(IXs)" $DDCB x $4E
+"BIT 1,(IYs)" $FDCB x $4E
+"BIT 1,A" $CB4F
+"BIT 1,A'" $CB4F
+"BIT 1,B" $CB48
+"BIT 1,B'" $CB48
+"BIT 1,C" $CB49
+"BIT 1,C'" $CB49
+"BIT 1,D" $CB4A
+"BIT 1,D'" $CB4A
+"BIT 1,E" $CB4B
+"BIT 1,E'" $CB4B
+"BIT 1,H" $CB4C
+"BIT 1,H'" $CB4C
+"BIT 1,L" $CB4D
+"BIT 1,L'" $CB4D
+"BIT 2,(HL')" $CB56
+"BIT 2,(HL)" $CB56
+"BIT 2,(IXs)" $DDCB x $56
+"BIT 2,(IYs)" $FDCB x $56
+"BIT 2,A" $CB57
+"BIT 2,A'" $CB57
+"BIT 2,B" $CB50
+"BIT 2,B'" $CB50
+"BIT 2,C" $CB51
+"BIT 2,C'" $CB51
+"BIT 2,D" $CB52
+"BIT 2,D'" $CB52
+"BIT 2,E" $CB53
+"BIT 2,E'" $CB53
+"BIT 2,H" $CB54
+"BIT 2,H'" $CB54
+"BIT 2,L" $CB55
+"BIT 2,L'" $CB55
+"BIT 3,(HL')" $CB5E
+"BIT 3,(HL)" $CB5E
+"BIT 3,(IXs)" $DDCB x $5E
+"BIT 3,(IYs)" $FDCB x $5E
+"BIT 3,A" $CB5F
+"BIT 3,A'" $CB5F
+"BIT 3,B" $CB58
+"BIT 3,B'" $CB58
+"BIT 3,C" $CB59
+"BIT 3,C'" $CB59
+"BIT 3,D" $CB5A
+"BIT 3,D'" $CB5A
+"BIT 3,E" $CB5B
+"BIT 3,E'" $CB5B
+"BIT 3,H" $CB5C
+"BIT 3,H'" $CB5C
+"BIT 3,L" $CB5D
+"BIT 3,L'" $CB5D
+"BIT 4,(HL')" $CB66
+"BIT 4,(HL)" $CB66
+"BIT 4,(IXs)" $DDCB x $66
+"BIT 4,(IYs)" $FDCB x $66
+"BIT 4,A" $CB67
+"BIT 4,A'" $CB67
+"BIT 4,B" $CB60
+"BIT 4,B'" $CB60
+"BIT 4,C" $CB61
+"BIT 4,C'" $CB61
+"BIT 4,D" $CB62
+"BIT 4,D'" $CB62
+"BIT 4,E" $CB63
+"BIT 4,E'" $CB63
+"BIT 4,H" $CB64
+"BIT 4,H'" $CB64
+"BIT 4,L" $CB65
+"BIT 4,L'" $CB65
+"BIT 5,(HL')" $CB6E
+"BIT 5,(HL)" $CB6E
+"BIT 5,(IXs)" $DDCB x $6E
+"BIT 5,(IYs)" $FDCB x $6E
+"BIT 5,A" $CB6F
+"BIT 5,A'" $CB6F
+"BIT 5,B" $CB68
+"BIT 5,B'" $CB68
+"BIT 5,C" $CB69
+"BIT 5,C'" $CB69
+"BIT 5,D" $CB6A
+"BIT 5,D'" $CB6A
+"BIT 5,E" $CB6B
+"BIT 5,E'" $CB6B
+"BIT 5,H" $CB6C
+"BIT 5,H'" $CB6C
+"BIT 5,L" $CB6D
+"BIT 5,L'" $CB6D
+"BIT 6,(HL')" $CB76
+"BIT 6,(HL)" $CB76
+"BIT 6,(IXs)" $DDCB x $76
+"BIT 6,(IYs)" $FDCB x $76
+"BIT 6,A" $CB77
+"BIT 6,A'" $CB77
+"BIT 6,B" $CB70
+"BIT 6,B'" $CB70
+"BIT 6,C" $CB71
+"BIT 6,C'" $CB71
+"BIT 6,D" $CB72
+"BIT 6,D'" $CB72
+"BIT 6,E" $CB73
+"BIT 6,E'" $CB73
+"BIT 6,H" $CB74
+"BIT 6,H'" $CB74
+"BIT 6,L" $CB75
+"BIT 6,L'" $CB75
+"BIT 7,(HL')" $CB7E
+"BIT 7,(HL)" $CB7E
+"BIT 7,(IXs)" $DDCB x $7E
+"BIT 7,(IYs)" $FDCB x $7E
+"BIT 7,A" $CB7F
+"BIT 7,A'" $CB7F
+"BIT 7,B" $CB78
+"BIT 7,B'" $CB78
+"BIT 7,C" $CB79
+"BIT 7,C'" $CB79
+"BIT 7,D" $CB7A
+"BIT 7,D'" $CB7A
+"BIT 7,E" $CB7B
+"BIT 7,E'" $CB7B
+"BIT 7,H" $CB7C
+"BIT 7,H'" $CB7C
+"BIT 7,L" $CB7D
+"BIT 7,L'" $CB7D
+"CALL ?" $CD
+"CALL C,?" $DC
+"CALL M,?" $FC
+"CALL NC,?" $D4
+"CALL NZ,?" $C4
+"CALL P,?" $F4
+"CALL PE,?" $EC
+"CALL PO,?" $E4
+"CALL Z,?" $CC
+"CCF" $3F
+"CP (HL')" $BE
+"CP (HL)" $BE
+"CP (IXs)" $DDBE
+"CP (IYs)" $FDBE
+"CP A" $BF
+"CP A'" $BF
+"CP A',(HL')" $BE
+"CP A',(HL)" $BE
+"CP A',(IXs)" $DDBE
+"CP A',(IYs)" $FDBE
+"CP A',A'" $BF
+"CP A',B" $B8
+"CP A',B'" $B8
+"CP A',C" $B9
+"CP A',C'" $B9
+"CP A',D" $BA
+"CP A',D'" $BA
+"CP A',E" $BB
+"CP A',E'" $BB
+"CP A',H" $BC
+"CP A',H'" $BC
+"CP A',HX" $DDBC
+"CP A',HY" $FDBC
+"CP A',IXH" $DDBC
+"CP A',IXL" $DDBD
+"CP A',IYH" $FDBC
+"CP A',IYL" $FDBD
+"CP A',L" $BD
+"CP A',L'" $BD
+"CP A',LX" $DDBD
+"CP A',LY" $FDBD
+"CP A',x" $FE
+"CP A,(HL')" $BE
+"CP A,(HL)" $BE
+"CP A,(IXs)" $DDBE
+"CP A,(IYs)" $FDBE
+"CP A,A" $BF
+"CP A,B" $B8
+"CP A,B'" $B8
+"CP A,C" $B9
+"CP A,C'" $B9
+"CP A,D" $BA
+"CP A,D'" $BA
+"CP A,E" $BB
+"CP A,E'" $BB
+"CP A,H" $BC
+"CP A,H'" $BC
+"CP A,HX" $DDBC
+"CP A,HY" $FDBC
+"CP A,IXH" $DDBC
+"CP A,IXL" $DDBD
+"CP A,IYH" $FDBC
+"CP A,IYL" $FDBD
+"CP A,L" $BD
+"CP A,L'" $BD
+"CP A,LX" $DDBD
+"CP A,LY" $FDBD
+"CP A,x" $FE
+"CP B" $B8
+"CP B'" $B8
+"CP C" $B9
+"CP C'" $B9
+"CP D" $BA
+"CP D'" $BA
+"CP E" $BB
+"CP E'" $BB
+"CP H" $BC
+"CP H'" $BC
+"CP HX" $DDBC
+"CP HY" $FDBC
+"CP IXH" $DDBC
+"CP IXL" $DDBD
+"CP IYH" $FDBC
+"CP IYL" $FDBD
+"CP L" $BD
+"CP L'" $BD
+"CP LX" $DDBD
+"CP LY" $FDBD
+"CP x" $FE
+"CPD" $EDA9
+"CPDR" $EDB9
+"CPI" $EDA1
+"CPIR" $EDB1
+"CPL" $2F
 "DAA" $27
 "DEC (HL')" $35
 "DEC (HL)" $35
-"DEC (IXs)" $dd35
-"DEC (IYs)" $fd35
-"DEC A" $3d
-"DEC A'" $3d
+"DEC (IXs)" $DD35
+"DEC (IYs)" $FD35
+"DEC A" $3D
+"DEC A'" $3D
 "DEC B" $05
 "DEC B'" $05
-"DEC BC" $0b
-"DEC BC'" $0b
-"DEC C" $0d
-"DEC C'" $0d
+"DEC BC" $0B
+"DEC BC'" $0B
+"DEC C" $0D
+"DEC C'" $0D
 "DEC D" $15
 "DEC D'" $15
-"DEC DE" $1b
-"DEC DE'" $1b
-"DEC E" $1d
-"DEC E'" $1d
+"DEC DE" $1B
+"DEC DE'" $1B
+"DEC E" $1D
+"DEC E'" $1D
 "DEC H" $25
 "DEC H'" $25
-"DEC HL" $2b
-"DEC HL'" $2b
-"DEC HX" $dd25
-"DEC HY" $fd25
-"DEC IX" $dd2b
-"DEC IXH" $dd25
-"DEC IXL" $dd2d
-"DEC IY" $fd2b
-"DEC IYH" $fd25
-"DEC IYL" $fd2d
-"DEC L" $2d
-"DEC L'" $2d
-"DEC LX" $dd2d
-"DEC LY" $fd2d
-"DEC SP" $3b
-"DI" $f3
+"DEC HL" $2B
+"DEC HL'" $2B
+"DEC HX" $DD25
+"DEC HY" $FD25
+"DEC IX" $DD2B
+"DEC IXH" $DD25
+"DEC IXL" $DD2D
+"DEC IY" $FD2B
+"DEC IYH" $FD25
+"DEC IYL" $FD2D
+"DEC L" $2D
+"DEC L'" $2D
+"DEC LX" $DD2D
+"DEC LY" $FD2D
+"DEC SP" $3B
+"DI" $F3
 "DJNZ x" $10
-"EI" $fb
-"EX (SP),HL" $e3
-"EX (SP),HL'" $e3
-"EX (SP),IX" $dde3
-"EX (SP),IY" $fde3
+"EI" $FB
+"EX (SP),HL" $E3
+"EX (SP),HL'" $E3
+"EX (SP),IX" $DDE3
+"EX (SP),IY" $FDE3
 "EX AF',AF" $08
 "EX AF,AF'" $08
-"EX DE',HL'" $eb
-"EX DE,HL" $eb
-"EXX" $d9
+"EX DE',HL'" $EB
+"EX DE,HL" $EB
+"EXX" $D9
 "HALT" $76
-"IM 0" $ed46
-"IM 1" $ed56
-"IM 2" $ed5e
-"IN (C')" $ed70
-"IN (C)" $ed70
-"IN A',(C')" $ed78
-"IN A',(C)" $ed78
-"IN A',(x)" $db
-"IN A',x" $db
-"IN A,(C')" $ed78
-"IN A,(C)" $ed78
-"IN A,(x)" $db
-"IN A,x" $db
-"IN B',(C')" $ed40
-"IN B,(C)" $ed40
-"IN C',(C')" $ed48
-"IN C,(C)" $ed48
-"IN D',(C')" $ed50
-"IN D,(C)" $ed50
-"IN E',(C')" $ed58
-"IN E,(C)" $ed58
-"IN F',(C')" $ed70
-"IN F,(C)" $ed70
-"IN H',(C')" $ed60
-"IN H,(C)" $ed60
-"IN L',(C')" $ed68
-"IN L,(C)" $ed68
+"IM 0" $ED46
+"IM 1" $ED56
+"IM 2" $ED5E
+"IN (C')" $ED70
+"IN (C)" $ED70
+"IN A',(C')" $ED78
+"IN A',(C)" $ED78
+"IN A',(x)" $DB
+"IN A',x" $DB
+"IN A,(C')" $ED78
+"IN A,(C)" $ED78
+"IN A,(x)" $DB
+"IN A,x" $DB
+"IN B',(C')" $ED40
+"IN B,(C)" $ED40
+"IN C',(C')" $ED48
+"IN C,(C)" $ED48
+"IN D',(C')" $ED50
+"IN D,(C)" $ED50
+"IN E',(C')" $ED58
+"IN E,(C)" $ED58
+"IN F',(C')" $ED70
+"IN F,(C)" $ED70
+"IN H',(C')" $ED60
+"IN H,(C)" $ED60
+"IN L',(C')" $ED68
+"IN L,(C)" $ED68
 "INC (HL')" $34
 "INC (HL)" $34
-"INC (IXs)" $dd34
-"INC (IYs)" $fd34
-"INC A" $3c
-"INC A'" $3c
+"INC (IXs)" $DD34
+"INC (IYs)" $FD34
+"INC A" $3C
+"INC A'" $3C
 "INC B" $04
 "INC B'" $04
 "INC BC" $03
 "INC BC'" $03
-"INC C" $0c
-"INC C'" $0c
+"INC C" $0C
+"INC C'" $0C
 "INC D" $14
 "INC D'" $14
 "INC DE" $13
 "INC DE'" $13
-"INC E" $1c
-"INC E'" $1c
+"INC E" $1C
+"INC E'" $1C
 "INC H" $24
 "INC H'" $24
 "INC HL" $23
 "INC HL'" $23
-"INC HX" $dd24
-"INC HY" $fd24
-"INC IX" $dd23
-"INC IXH" $dd24
-"INC IXL" $dd2c
-"INC IY" $fd23
-"INC IYH" $fd24
-"INC IYL" $fd2c
-"INC L" $2c
-"INC L'" $2c
-"INC LX" $dd2c
-"INC LY" $fd2c
+"INC HX" $DD24
+"INC HY" $FD24
+"INC IX" $DD23
+"INC IXH" $DD24
+"INC IXL" $DD2C
+"INC IY" $FD23
+"INC IYH" $FD24
+"INC IYL" $FD2C
+"INC L" $2C
+"INC L'" $2C
+"INC LX" $DD2C
+"INC LY" $FD2C
 "INC SP" $33
-"IND" $edaa
-"INDR" $edba
-"INI" $eda2
-"INIR" $edb2
-"JP (HL')" $e9
-"JP (HL)" $e9
-"JP (IX)" $dde9
-"JP (IY)" $fde9
-"JP ?" $c3
-"JP C,?" $da
-"JP HL" $e9
-"JP HL'" $e9
-"JP IX" $dde9
-"JP IY" $fde9
-"JP M,?" $fa
-"JP NC,?" $d2
-"JP NZ,?" $c2
-"JP P,?" $f2
-"JP PE,?" $ea
-"JP PO,?" $e2
-"JP Z,?" $ca
+"IND" $EDAA
+"INDR" $EDBA
+"INI" $EDA2
+"INIR" $EDB2
+"JP (HL')" $E9
+"JP (HL)" $E9
+"JP (IX)" $DDE9
+"JP (IY)" $FDE9
+"JP ?" $C3
+"JP C,?" $DA
+"JP HL" $E9
+"JP HL'" $E9
+"JP IX" $DDE9
+"JP IY" $FDE9
+"JP M,?" $FA
+"JP NC,?" $D2
+"JP NZ,?" $C2
+"JP P,?" $F2
+"JP PE,?" $EA
+"JP PO,?" $E2
+"JP Z,?" $CA
 "JR C,x" $38
 "JR NC,x" $30
 "JR NZ,x" $20
@@ -653,15 +653,15 @@ s = 8bit 2's complement ([-128, +127])
 "JR x" $18
 "LD (?),A" $32
 "LD (?),A'" $32
-"LD (?),BC" $ed43
-"LD (?),BC'" $ed43
-"LD (?),DE" $ed53
-"LD (?),DE'" $ed53
+"LD (?),BC" $ED43
+"LD (?),BC'" $ED43
+"LD (?),DE" $ED53
+"LD (?),DE'" $ED53
 "LD (?),HL" $22
 "LD (?),HL'" $22
-"LD (?),IX" $dd22
-"LD (?),IY" $fd22
-"LD (?),SP" $ed73
+"LD (?),IX" $DD22
+"LD (?),IY" $FD22
+"LD (?),SP" $ED73
 "LD (BC'),A" $02
 "LD (BC'),A'" $02
 "LD (BC),A" $02
@@ -688,201 +688,201 @@ s = 8bit 2's complement ([-128, +127])
 "LD (HL),H" $74
 "LD (HL),L" $75
 "LD (HL),x" $36
-"LD (IXs),A" $dd77
-"LD (IXs),A'" $dd77
-"LD (IXs),B" $dd70
-"LD (IXs),B'" $dd70
-"LD (IXs),C" $dd71
-"LD (IXs),C'" $dd71
-"LD (IXs),D" $dd72
-"LD (IXs),D'" $dd72
-"LD (IXs),E" $dd73
-"LD (IXs),E'" $dd73
-"LD (IXs),H" $dd74
-"LD (IXs),H'" $dd74
-"LD (IXs),L" $dd75
-"LD (IXs),L'" $dd75
-"LD (IXs),x" $dd36
-"LD (IYs),A" $fd77
-"LD (IYs),A'" $fd77
-"LD (IYs),B" $fd70
-"LD (IYs),B'" $fd70
-"LD (IYs),C" $fd71
-"LD (IYs),C'" $fd71
-"LD (IYs),D" $fd72
-"LD (IYs),D'" $fd72
-"LD (IYs),E" $fd73
-"LD (IYs),E'" $fd73
-"LD (IYs),H" $fd74
-"LD (IYs),H'" $fd74
-"LD (IYs),L" $fd75
-"LD (IYs),L'" $fd75
-"LD (IYs),x" $fd36
-"LD A',(?)" $3a
-"LD A',(BC')" $0a
-"LD A',(BC)" $0a
-"LD A',(DE')" $1a
-"LD A',(DE)" $1a
-"LD A',(HL')" $7e
-"LD A',(HL)" $7e
-"LD A',(IXs)" $dd7e
-"LD A',(IYs)" $fd7e
-"LD A',A'" $7f
+"LD (IXs),A" $DD77
+"LD (IXs),A'" $DD77
+"LD (IXs),B" $DD70
+"LD (IXs),B'" $DD70
+"LD (IXs),C" $DD71
+"LD (IXs),C'" $DD71
+"LD (IXs),D" $DD72
+"LD (IXs),D'" $DD72
+"LD (IXs),E" $DD73
+"LD (IXs),E'" $DD73
+"LD (IXs),H" $DD74
+"LD (IXs),H'" $DD74
+"LD (IXs),L" $DD75
+"LD (IXs),L'" $DD75
+"LD (IXs),x" $DD36
+"LD (IYs),A" $FD77
+"LD (IYs),A'" $FD77
+"LD (IYs),B" $FD70
+"LD (IYs),B'" $FD70
+"LD (IYs),C" $FD71
+"LD (IYs),C'" $FD71
+"LD (IYs),D" $FD72
+"LD (IYs),D'" $FD72
+"LD (IYs),E" $FD73
+"LD (IYs),E'" $FD73
+"LD (IYs),H" $FD74
+"LD (IYs),H'" $FD74
+"LD (IYs),L" $FD75
+"LD (IYs),L'" $FD75
+"LD (IYs),x" $FD36
+"LD A',(?)" $3A
+"LD A',(BC')" $0A
+"LD A',(BC)" $0A
+"LD A',(DE')" $1A
+"LD A',(DE)" $1A
+"LD A',(HL')" $7E
+"LD A',(HL)" $7E
+"LD A',(IXs)" $DD7E
+"LD A',(IYs)" $FD7E
+"LD A',A'" $7F
 "LD A',B" $78
 "LD A',B'" $78
 "LD A',C" $79
 "LD A',C'" $79
-"LD A',D" $7a
-"LD A',D'" $7a
-"LD A',E" $7b
-"LD A',E'" $7b
-"LD A',H" $7c
-"LD A',H'" $7c
-"LD A',HX" $dd7c
-"LD A',HY" $fd7c
-"LD A',I" $ed57
-"LD A',IXH" $dd7c
-"LD A',IXL" $dd7d
-"LD A',IYH" $fd7c
-"LD A',IYL" $fd7d
-"LD A',L" $7d
-"LD A',L'" $7d
-"LD A',LX" $dd7d
-"LD A',LY" $fd7d
-"LD A',R" $ed5f
-"LD A',RES 0,(IXs)" $ddcb x $87
-"LD A',RES 0,(IYs)" $fdcb x $87
-"LD A',RES 1,(IXs)" $ddcb x $8f
-"LD A',RES 1,(IYs)" $fdcb x $8f
-"LD A',RES 2,(IXs)" $ddcb x $97
-"LD A',RES 2,(IYs)" $fdcb x $97
-"LD A',RES 3,(IXs)" $ddcb x $9f
-"LD A',RES 3,(IYs)" $fdcb x $9f
-"LD A',RES 4,(IXs)" $ddcb x $a7
-"LD A',RES 4,(IYs)" $fdcb x $a7
-"LD A',RES 5,(IXs)" $ddcb x $af
-"LD A',RES 5,(IYs)" $fdcb x $af
-"LD A',RES 6,(IXs)" $ddcb x $b7
-"LD A',RES 6,(IYs)" $fdcb x $b7
-"LD A',RES 7,(IXs)" $ddcb x $bf
-"LD A',RES 7,(IYs)" $fdcb x $bf
-"LD A',RL (IXs)" $ddcb x $17
-"LD A',RL (IYs)" $fdcb x $17
-"LD A',RLC (IXs)" $ddcb x $07
-"LD A',RLC (IYs)" $fdcb x $07
-"LD A',RR (IXs)" $ddcb x $1f
-"LD A',RR (IYs)" $fdcb x $1f
-"LD A',RRC (IXs)" $ddcb x $0f
-"LD A',RRC (IYs)" $fdcb x $0f
-"LD A',SET 0,(IXs)" $ddcb x $c7
-"LD A',SET 0,(IYs)" $fdcb x $c7
-"LD A',SET 1,(IXs)" $ddcb x $cf
-"LD A',SET 1,(IYs)" $fdcb x $cf
-"LD A',SET 2,(IXs)" $ddcb x $d7
-"LD A',SET 2,(IYs)" $fdcb x $d7
-"LD A',SET 3,(IXs)" $ddcb x $df
-"LD A',SET 3,(IYs)" $fdcb x $df
-"LD A',SET 4,(IXs)" $ddcb x $e7
-"LD A',SET 4,(IYs)" $fdcb x $e7
-"LD A',SET 5,(IXs)" $ddcb x $ef
-"LD A',SET 5,(IYs)" $fdcb x $ef
-"LD A',SET 6,(IXs)" $ddcb x $f7
-"LD A',SET 6,(IYs)" $fdcb x $f7
-"LD A',SET 7,(IXs)" $ddcb x $ff
-"LD A',SET 7,(IYs)" $fdcb x $ff
-"LD A',SLA (IXs)" $ddcb x $27
-"LD A',SLA (IYs)" $fdcb x $27
-"LD A',SLL (IXs)" $ddcb x $37
-"LD A',SLL (IYs)" $fdcb x $37
-"LD A',SRA (IXs)" $ddcb x $2f
-"LD A',SRA (IYs)" $fdcb x $2f
-"LD A',SRL (IXs)" $ddcb x $3f
-"LD A',SRL (IYs)" $fdcb x $3f
-"LD A',x" $3e
-"LD A,(?)" $3a
-"LD A,(BC')" $0a
-"LD A,(BC)" $0a
-"LD A,(DE')" $1a
-"LD A,(DE)" $1a
-"LD A,(HL')" $7e
-"LD A,(HL)" $7e
-"LD A,(IXs)" $dd7e
-"LD A,(IYs)" $fd7e
-"LD A,A" $7f
+"LD A',D" $7A
+"LD A',D'" $7A
+"LD A',E" $7B
+"LD A',E'" $7B
+"LD A',H" $7C
+"LD A',H'" $7C
+"LD A',HX" $DD7C
+"LD A',HY" $FD7C
+"LD A',I" $ED57
+"LD A',IXH" $DD7C
+"LD A',IXL" $DD7D
+"LD A',IYH" $FD7C
+"LD A',IYL" $FD7D
+"LD A',L" $7D
+"LD A',L'" $7D
+"LD A',LX" $DD7D
+"LD A',LY" $FD7D
+"LD A',R" $ED5F
+"LD A',RES 0,(IXs)" $DDCB x $87
+"LD A',RES 0,(IYs)" $FDCB x $87
+"LD A',RES 1,(IXs)" $DDCB x $8F
+"LD A',RES 1,(IYs)" $FDCB x $8F
+"LD A',RES 2,(IXs)" $DDCB x $97
+"LD A',RES 2,(IYs)" $FDCB x $97
+"LD A',RES 3,(IXs)" $DDCB x $9F
+"LD A',RES 3,(IYs)" $FDCB x $9F
+"LD A',RES 4,(IXs)" $DDCB x $A7
+"LD A',RES 4,(IYs)" $FDCB x $A7
+"LD A',RES 5,(IXs)" $DDCB x $AF
+"LD A',RES 5,(IYs)" $FDCB x $AF
+"LD A',RES 6,(IXs)" $DDCB x $B7
+"LD A',RES 6,(IYs)" $FDCB x $B7
+"LD A',RES 7,(IXs)" $DDCB x $BF
+"LD A',RES 7,(IYs)" $FDCB x $BF
+"LD A',RL (IXs)" $DDCB x $17
+"LD A',RL (IYs)" $FDCB x $17
+"LD A',RLC (IXs)" $DDCB x $07
+"LD A',RLC (IYs)" $FDCB x $07
+"LD A',RR (IXs)" $DDCB x $1F
+"LD A',RR (IYs)" $FDCB x $1F
+"LD A',RRC (IXs)" $DDCB x $0F
+"LD A',RRC (IYs)" $FDCB x $0F
+"LD A',SET 0,(IXs)" $DDCB x $C7
+"LD A',SET 0,(IYs)" $FDCB x $C7
+"LD A',SET 1,(IXs)" $DDCB x $CF
+"LD A',SET 1,(IYs)" $FDCB x $CF
+"LD A',SET 2,(IXs)" $DDCB x $D7
+"LD A',SET 2,(IYs)" $FDCB x $D7
+"LD A',SET 3,(IXs)" $DDCB x $DF
+"LD A',SET 3,(IYs)" $FDCB x $DF
+"LD A',SET 4,(IXs)" $DDCB x $E7
+"LD A',SET 4,(IYs)" $FDCB x $E7
+"LD A',SET 5,(IXs)" $DDCB x $EF
+"LD A',SET 5,(IYs)" $FDCB x $EF
+"LD A',SET 6,(IXs)" $DDCB x $F7
+"LD A',SET 6,(IYs)" $FDCB x $F7
+"LD A',SET 7,(IXs)" $DDCB x $FF
+"LD A',SET 7,(IYs)" $FDCB x $FF
+"LD A',SLA (IXs)" $DDCB x $27
+"LD A',SLA (IYs)" $FDCB x $27
+"LD A',SLL (IXs)" $DDCB x $37
+"LD A',SLL (IYs)" $FDCB x $37
+"LD A',SRA (IXs)" $DDCB x $2F
+"LD A',SRA (IYs)" $FDCB x $2F
+"LD A',SRL (IXs)" $DDCB x $3F
+"LD A',SRL (IYs)" $FDCB x $3F
+"LD A',x" $3E
+"LD A,(?)" $3A
+"LD A,(BC')" $0A
+"LD A,(BC)" $0A
+"LD A,(DE')" $1A
+"LD A,(DE)" $1A
+"LD A,(HL')" $7E
+"LD A,(HL)" $7E
+"LD A,(IXs)" $DD7E
+"LD A,(IYs)" $FD7E
+"LD A,A" $7F
 "LD A,B" $78
 "LD A,B'" $78
 "LD A,C" $79
 "LD A,C'" $79
-"LD A,D" $7a
-"LD A,D'" $7a
-"LD A,E" $7b
-"LD A,E'" $7b
-"LD A,H" $7c
-"LD A,H'" $7c
-"LD A,HX" $dd7c
-"LD A,HY" $fd7c
-"LD A,I" $ed57
-"LD A,IXH" $dd7c
-"LD A,IXL" $dd7d
-"LD A,IYH" $fd7c
-"LD A,IYL" $fd7d
-"LD A,L" $7d
-"LD A,L'" $7d
-"LD A,LX" $dd7d
-"LD A,LY" $fd7d
-"LD A,R" $ed5f
-"LD A,RES 0,(IXs)" $ddcb x $87
-"LD A,RES 0,(IYs)" $fdcb x $87
-"LD A,RES 1,(IXs)" $ddcb x $8f
-"LD A,RES 1,(IYs)" $fdcb x $8f
-"LD A,RES 2,(IXs)" $ddcb x $97
-"LD A,RES 2,(IYs)" $fdcb x $97
-"LD A,RES 3,(IXs)" $ddcb x $9f
-"LD A,RES 3,(IYs)" $fdcb x $9f
-"LD A,RES 4,(IXs)" $ddcb x $a7
-"LD A,RES 4,(IYs)" $fdcb x $a7
-"LD A,RES 5,(IXs)" $ddcb x $af
-"LD A,RES 5,(IYs)" $fdcb x $af
-"LD A,RES 6,(IXs)" $ddcb x $b7
-"LD A,RES 6,(IYs)" $fdcb x $b7
-"LD A,RES 7,(IXs)" $ddcb x $bf
-"LD A,RES 7,(IYs)" $fdcb x $bf
-"LD A,RL (IXs)" $ddcb x $17
-"LD A,RL (IYs)" $fdcb x $17
-"LD A,RLC (IXs)" $ddcb x $07
-"LD A,RLC (IYs)" $fdcb x $07
-"LD A,RR (IXs)" $ddcb x $1f
-"LD A,RR (IYs)" $fdcb x $1f
-"LD A,RRC (IXs)" $ddcb x $0f
-"LD A,RRC (IYs)" $fdcb x $0f
-"LD A,SET 0,(IXs)" $ddcb x $c7
-"LD A,SET 0,(IYs)" $fdcb x $c7
-"LD A,SET 1,(IXs)" $ddcb x $cf
-"LD A,SET 1,(IYs)" $fdcb x $cf
-"LD A,SET 2,(IXs)" $ddcb x $d7
-"LD A,SET 2,(IYs)" $fdcb x $d7
-"LD A,SET 3,(IXs)" $ddcb x $df
-"LD A,SET 3,(IYs)" $fdcb x $df
-"LD A,SET 4,(IXs)" $ddcb x $e7
-"LD A,SET 4,(IYs)" $fdcb x $e7
-"LD A,SET 5,(IXs)" $ddcb x $ef
-"LD A,SET 5,(IYs)" $fdcb x $ef
-"LD A,SET 6,(IXs)" $ddcb x $f7
-"LD A,SET 6,(IYs)" $fdcb x $f7
-"LD A,SET 7,(IXs)" $ddcb x $ff
-"LD A,SET 7,(IYs)" $fdcb x $ff
-"LD A,SLA (IXs)" $ddcb x $27
-"LD A,SLA (IYs)" $fdcb x $27
-"LD A,SLL (IXs)" $ddcb x $37
-"LD A,SLL (IYs)" $fdcb x $37
-"LD A,SRA (IXs)" $ddcb x $2f
-"LD A,SRA (IYs)" $fdcb x $2f
-"LD A,SRL (IXs)" $ddcb x $3f
-"LD A,SRL (IYs)" $fdcb x $3f
-"LD A,x" $3e
+"LD A,D" $7A
+"LD A,D'" $7A
+"LD A,E" $7B
+"LD A,E'" $7B
+"LD A,H" $7C
+"LD A,H'" $7C
+"LD A,HX" $DD7C
+"LD A,HY" $FD7C
+"LD A,I" $ED57
+"LD A,IXH" $DD7C
+"LD A,IXL" $DD7D
+"LD A,IYH" $FD7C
+"LD A,IYL" $FD7D
+"LD A,L" $7D
+"LD A,L'" $7D
+"LD A,LX" $DD7D
+"LD A,LY" $FD7D
+"LD A,R" $ED5F
+"LD A,RES 0,(IXs)" $DDCB x $87
+"LD A,RES 0,(IYs)" $FDCB x $87
+"LD A,RES 1,(IXs)" $DDCB x $8F
+"LD A,RES 1,(IYs)" $FDCB x $8F
+"LD A,RES 2,(IXs)" $DDCB x $97
+"LD A,RES 2,(IYs)" $FDCB x $97
+"LD A,RES 3,(IXs)" $DDCB x $9F
+"LD A,RES 3,(IYs)" $FDCB x $9F
+"LD A,RES 4,(IXs)" $DDCB x $A7
+"LD A,RES 4,(IYs)" $FDCB x $A7
+"LD A,RES 5,(IXs)" $DDCB x $AF
+"LD A,RES 5,(IYs)" $FDCB x $AF
+"LD A,RES 6,(IXs)" $DDCB x $B7
+"LD A,RES 6,(IYs)" $FDCB x $B7
+"LD A,RES 7,(IXs)" $DDCB x $BF
+"LD A,RES 7,(IYs)" $FDCB x $BF
+"LD A,RL (IXs)" $DDCB x $17
+"LD A,RL (IYs)" $FDCB x $17
+"LD A,RLC (IXs)" $DDCB x $07
+"LD A,RLC (IYs)" $FDCB x $07
+"LD A,RR (IXs)" $DDCB x $1F
+"LD A,RR (IYs)" $FDCB x $1F
+"LD A,RRC (IXs)" $DDCB x $0F
+"LD A,RRC (IYs)" $FDCB x $0F
+"LD A,SET 0,(IXs)" $DDCB x $C7
+"LD A,SET 0,(IYs)" $FDCB x $C7
+"LD A,SET 1,(IXs)" $DDCB x $CF
+"LD A,SET 1,(IYs)" $FDCB x $CF
+"LD A,SET 2,(IXs)" $DDCB x $D7
+"LD A,SET 2,(IYs)" $FDCB x $D7
+"LD A,SET 3,(IXs)" $DDCB x $DF
+"LD A,SET 3,(IYs)" $FDCB x $DF
+"LD A,SET 4,(IXs)" $DDCB x $E7
+"LD A,SET 4,(IYs)" $FDCB x $E7
+"LD A,SET 5,(IXs)" $DDCB x $EF
+"LD A,SET 5,(IYs)" $FDCB x $EF
+"LD A,SET 6,(IXs)" $DDCB x $F7
+"LD A,SET 6,(IYs)" $FDCB x $F7
+"LD A,SET 7,(IXs)" $DDCB x $FF
+"LD A,SET 7,(IYs)" $FDCB x $FF
+"LD A,SLA (IXs)" $DDCB x $27
+"LD A,SLA (IYs)" $FDCB x $27
+"LD A,SLL (IXs)" $DDCB x $37
+"LD A,SLL (IYs)" $FDCB x $37
+"LD A,SRA (IXs)" $DDCB x $2F
+"LD A,SRA (IYs)" $FDCB x $2F
+"LD A,SRL (IXs)" $DDCB x $3F
+"LD A,SRL (IYs)" $FDCB x $3F
+"LD A,x" $3E
 "LD B',(HL')" $46
-"LD B',(IXs)" $dd46
-"LD B',(IYs)" $fd46
+"LD B',(IXs)" $DD46
+"LD B',(IYs)" $FD46
 "LD B',A" $47
 "LD B',A'" $47
 "LD B',B'" $40
@@ -890,67 +890,67 @@ s = 8bit 2's complement ([-128, +127])
 "LD B',D'" $42
 "LD B',E'" $43
 "LD B',H'" $44
-"LD B',HX" $dd44
-"LD B',HY" $fd44
-"LD B',IXH" $dd44
-"LD B',IXL" $dd45
-"LD B',IYH" $fd44
-"LD B',IYL" $fd45
+"LD B',HX" $DD44
+"LD B',HY" $FD44
+"LD B',IXH" $DD44
+"LD B',IXL" $DD45
+"LD B',IYH" $FD44
+"LD B',IYL" $FD45
 "LD B',L'" $45
-"LD B',LX" $dd45
-"LD B',LY" $fd45
-"LD B',RES 0,(IXs)" $ddcb x $80
-"LD B',RES 0,(IYs)" $fdcb x $80
-"LD B',RES 1,(IXs)" $ddcb x $88
-"LD B',RES 1,(IYs)" $fdcb x $88
-"LD B',RES 2,(IXs)" $ddcb x $90
-"LD B',RES 2,(IYs)" $fdcb x $90
-"LD B',RES 3,(IXs)" $ddcb x $98
-"LD B',RES 3,(IYs)" $fdcb x $98
-"LD B',RES 4,(IXs)" $ddcb x $a0
-"LD B',RES 4,(IYs)" $fdcb x $a0
-"LD B',RES 5,(IXs)" $ddcb x $a8
-"LD B',RES 5,(IYs)" $fdcb x $a8
-"LD B',RES 6,(IXs)" $ddcb x $b0
-"LD B',RES 6,(IYs)" $fdcb x $b0
-"LD B',RES 7,(IXs)" $ddcb x $b8
-"LD B',RES 7,(IYs)" $fdcb x $b8
-"LD B',RL (IXs)" $ddcb x $10
-"LD B',RL (IYs)" $fdcb x $10
-"LD B',RLC (IXs)" $ddcb x $00
-"LD B',RLC (IYs)" $fdcb x $00
-"LD B',RR (IXs)" $ddcb x $18
-"LD B',RR (IYs)" $fdcb x $18
-"LD B',RRC (IXs)" $ddcb x $08
-"LD B',RRC (IYs)" $fdcb x $08
-"LD B',SET 0,(IXs)" $ddcb x $c0
-"LD B',SET 0,(IYs)" $fdcb x $c0
-"LD B',SET 1,(IXs)" $ddcb x $c8
-"LD B',SET 1,(IYs)" $fdcb x $c8
-"LD B',SET 2,(IXs)" $ddcb x $d0
-"LD B',SET 2,(IYs)" $fdcb x $d0
-"LD B',SET 3,(IXs)" $ddcb x $d8
-"LD B',SET 3,(IYs)" $fdcb x $d8
-"LD B',SET 4,(IXs)" $ddcb x $e0
-"LD B',SET 4,(IYs)" $fdcb x $e0
-"LD B',SET 5,(IXs)" $ddcb x $e8
-"LD B',SET 5,(IYs)" $fdcb x $e8
-"LD B',SET 6,(IXs)" $ddcb x $f0
-"LD B',SET 6,(IYs)" $fdcb x $f0
-"LD B',SET 7,(IXs)" $ddcb x $f8
-"LD B',SET 7,(IYs)" $fdcb x $f8
-"LD B',SLA (IXs)" $ddcb x $20
-"LD B',SLA (IYs)" $fdcb x $20
-"LD B',SLL (IXs)" $ddcb x $30
-"LD B',SLL (IYs)" $fdcb x $30
-"LD B',SRA (IXs)" $ddcb x $28
-"LD B',SRA (IYs)" $fdcb x $28
-"LD B',SRL (IXs)" $ddcb x $38
-"LD B',SRL (IYs)" $fdcb x $38
+"LD B',LX" $DD45
+"LD B',LY" $FD45
+"LD B',RES 0,(IXs)" $DDCB x $80
+"LD B',RES 0,(IYs)" $FDCB x $80
+"LD B',RES 1,(IXs)" $DDCB x $88
+"LD B',RES 1,(IYs)" $FDCB x $88
+"LD B',RES 2,(IXs)" $DDCB x $90
+"LD B',RES 2,(IYs)" $FDCB x $90
+"LD B',RES 3,(IXs)" $DDCB x $98
+"LD B',RES 3,(IYs)" $FDCB x $98
+"LD B',RES 4,(IXs)" $DDCB x $A0
+"LD B',RES 4,(IYs)" $FDCB x $A0
+"LD B',RES 5,(IXs)" $DDCB x $A8
+"LD B',RES 5,(IYs)" $FDCB x $A8
+"LD B',RES 6,(IXs)" $DDCB x $B0
+"LD B',RES 6,(IYs)" $FDCB x $B0
+"LD B',RES 7,(IXs)" $DDCB x $B8
+"LD B',RES 7,(IYs)" $FDCB x $B8
+"LD B',RL (IXs)" $DDCB x $10
+"LD B',RL (IYs)" $FDCB x $10
+"LD B',RLC (IXs)" $DDCB x $00
+"LD B',RLC (IYs)" $FDCB x $00
+"LD B',RR (IXs)" $DDCB x $18
+"LD B',RR (IYs)" $FDCB x $18
+"LD B',RRC (IXs)" $DDCB x $08
+"LD B',RRC (IYs)" $FDCB x $08
+"LD B',SET 0,(IXs)" $DDCB x $C0
+"LD B',SET 0,(IYs)" $FDCB x $C0
+"LD B',SET 1,(IXs)" $DDCB x $C8
+"LD B',SET 1,(IYs)" $FDCB x $C8
+"LD B',SET 2,(IXs)" $DDCB x $D0
+"LD B',SET 2,(IYs)" $FDCB x $D0
+"LD B',SET 3,(IXs)" $DDCB x $D8
+"LD B',SET 3,(IYs)" $FDCB x $D8
+"LD B',SET 4,(IXs)" $DDCB x $E0
+"LD B',SET 4,(IYs)" $FDCB x $E0
+"LD B',SET 5,(IXs)" $DDCB x $E8
+"LD B',SET 5,(IYs)" $FDCB x $E8
+"LD B',SET 6,(IXs)" $DDCB x $F0
+"LD B',SET 6,(IYs)" $FDCB x $F0
+"LD B',SET 7,(IXs)" $DDCB x $F8
+"LD B',SET 7,(IYs)" $FDCB x $F8
+"LD B',SLA (IXs)" $DDCB x $20
+"LD B',SLA (IYs)" $FDCB x $20
+"LD B',SLL (IXs)" $DDCB x $30
+"LD B',SLL (IYs)" $FDCB x $30
+"LD B',SRA (IXs)" $DDCB x $28
+"LD B',SRA (IYs)" $FDCB x $28
+"LD B',SRL (IXs)" $DDCB x $38
+"LD B',SRL (IYs)" $FDCB x $38
 "LD B',x" $06
 "LD B,(HL)" $46
-"LD B,(IXs)" $dd46
-"LD B,(IYs)" $fd46
+"LD B,(IXs)" $DD46
+"LD B,(IYs)" $FD46
 "LD B,A" $47
 "LD B,A'" $47
 "LD B,B" $40
@@ -958,208 +958,208 @@ s = 8bit 2's complement ([-128, +127])
 "LD B,D" $42
 "LD B,E" $43
 "LD B,H" $44
-"LD B,HX" $dd44
-"LD B,HY" $fd44
-"LD B,IXH" $dd44
-"LD B,IXL" $dd45
-"LD B,IYH" $fd44
-"LD B,IYL" $fd45
+"LD B,HX" $DD44
+"LD B,HY" $FD44
+"LD B,IXH" $DD44
+"LD B,IXL" $DD45
+"LD B,IYH" $FD44
+"LD B,IYL" $FD45
 "LD B,L" $45
-"LD B,LX" $dd45
-"LD B,LY" $fd45
-"LD B,RES 0,(IXs)" $ddcb x $80
-"LD B,RES 0,(IYs)" $fdcb x $80
-"LD B,RES 1,(IXs)" $ddcb x $88
-"LD B,RES 1,(IYs)" $fdcb x $88
-"LD B,RES 2,(IXs)" $ddcb x $90
-"LD B,RES 2,(IYs)" $fdcb x $90
-"LD B,RES 3,(IXs)" $ddcb x $98
-"LD B,RES 3,(IYs)" $fdcb x $98
-"LD B,RES 4,(IXs)" $ddcb x $a0
-"LD B,RES 4,(IYs)" $fdcb x $a0
-"LD B,RES 5,(IXs)" $ddcb x $a8
-"LD B,RES 5,(IYs)" $fdcb x $a8
-"LD B,RES 6,(IXs)" $ddcb x $b0
-"LD B,RES 6,(IYs)" $fdcb x $b0
-"LD B,RES 7,(IXs)" $ddcb x $b8
-"LD B,RES 7,(IYs)" $fdcb x $b8
-"LD B,RL (IXs)" $ddcb x $10
-"LD B,RL (IYs)" $fdcb x $10
-"LD B,RLC (IXs)" $ddcb x $00
-"LD B,RLC (IYs)" $fdcb x $00
-"LD B,RR (IXs)" $ddcb x $18
-"LD B,RR (IYs)" $fdcb x $18
-"LD B,RRC (IXs)" $ddcb x $08
-"LD B,RRC (IYs)" $fdcb x $08
-"LD B,SET 0,(IXs)" $ddcb x $c0
-"LD B,SET 0,(IYs)" $fdcb x $c0
-"LD B,SET 1,(IXs)" $ddcb x $c8
-"LD B,SET 1,(IYs)" $fdcb x $c8
-"LD B,SET 2,(IXs)" $ddcb x $d0
-"LD B,SET 2,(IYs)" $fdcb x $d0
-"LD B,SET 3,(IXs)" $ddcb x $d8
-"LD B,SET 3,(IYs)" $fdcb x $d8
-"LD B,SET 4,(IXs)" $ddcb x $e0
-"LD B,SET 4,(IYs)" $fdcb x $e0
-"LD B,SET 5,(IXs)" $ddcb x $e8
-"LD B,SET 5,(IYs)" $fdcb x $e8
-"LD B,SET 6,(IXs)" $ddcb x $f0
-"LD B,SET 6,(IYs)" $fdcb x $f0
-"LD B,SET 7,(IXs)" $ddcb x $f8
-"LD B,SET 7,(IYs)" $fdcb x $f8
-"LD B,SLA (IXs)" $ddcb x $20
-"LD B,SLA (IYs)" $fdcb x $20
-"LD B,SLL (IXs)" $ddcb x $30
-"LD B,SLL (IYs)" $fdcb x $30
-"LD B,SRA (IXs)" $ddcb x $28
-"LD B,SRA (IYs)" $fdcb x $28
-"LD B,SRL (IXs)" $ddcb x $38
-"LD B,SRL (IYs)" $fdcb x $38
+"LD B,LX" $DD45
+"LD B,LY" $FD45
+"LD B,RES 0,(IXs)" $DDCB x $80
+"LD B,RES 0,(IYs)" $FDCB x $80
+"LD B,RES 1,(IXs)" $DDCB x $88
+"LD B,RES 1,(IYs)" $FDCB x $88
+"LD B,RES 2,(IXs)" $DDCB x $90
+"LD B,RES 2,(IYs)" $FDCB x $90
+"LD B,RES 3,(IXs)" $DDCB x $98
+"LD B,RES 3,(IYs)" $FDCB x $98
+"LD B,RES 4,(IXs)" $DDCB x $A0
+"LD B,RES 4,(IYs)" $FDCB x $A0
+"LD B,RES 5,(IXs)" $DDCB x $A8
+"LD B,RES 5,(IYs)" $FDCB x $A8
+"LD B,RES 6,(IXs)" $DDCB x $B0
+"LD B,RES 6,(IYs)" $FDCB x $B0
+"LD B,RES 7,(IXs)" $DDCB x $B8
+"LD B,RES 7,(IYs)" $FDCB x $B8
+"LD B,RL (IXs)" $DDCB x $10
+"LD B,RL (IYs)" $FDCB x $10
+"LD B,RLC (IXs)" $DDCB x $00
+"LD B,RLC (IYs)" $FDCB x $00
+"LD B,RR (IXs)" $DDCB x $18
+"LD B,RR (IYs)" $FDCB x $18
+"LD B,RRC (IXs)" $DDCB x $08
+"LD B,RRC (IYs)" $FDCB x $08
+"LD B,SET 0,(IXs)" $DDCB x $C0
+"LD B,SET 0,(IYs)" $FDCB x $C0
+"LD B,SET 1,(IXs)" $DDCB x $C8
+"LD B,SET 1,(IYs)" $FDCB x $C8
+"LD B,SET 2,(IXs)" $DDCB x $D0
+"LD B,SET 2,(IYs)" $FDCB x $D0
+"LD B,SET 3,(IXs)" $DDCB x $D8
+"LD B,SET 3,(IYs)" $FDCB x $D8
+"LD B,SET 4,(IXs)" $DDCB x $E0
+"LD B,SET 4,(IYs)" $FDCB x $E0
+"LD B,SET 5,(IXs)" $DDCB x $E8
+"LD B,SET 5,(IYs)" $FDCB x $E8
+"LD B,SET 6,(IXs)" $DDCB x $F0
+"LD B,SET 6,(IYs)" $FDCB x $F0
+"LD B,SET 7,(IXs)" $DDCB x $F8
+"LD B,SET 7,(IYs)" $FDCB x $F8
+"LD B,SLA (IXs)" $DDCB x $20
+"LD B,SLA (IYs)" $FDCB x $20
+"LD B,SLL (IXs)" $DDCB x $30
+"LD B,SLL (IYs)" $FDCB x $30
+"LD B,SRA (IXs)" $DDCB x $28
+"LD B,SRA (IYs)" $FDCB x $28
+"LD B,SRL (IXs)" $DDCB x $38
+"LD B,SRL (IYs)" $FDCB x $38
 "LD B,x" $06
-"LD BC',(?)" $ed4b
+"LD BC',(?)" $ED4B
 "LD BC',?" $01
-"LD BC,(?)" $ed4b
+"LD BC,(?)" $ED4B
 "LD BC,?" $01
-"LD C',(HL')" $4e
-"LD C',(IXs)" $dd4e
-"LD C',(IYs)" $fd4e
-"LD C',A" $4f
-"LD C',A'" $4f
+"LD C',(HL')" $4E
+"LD C',(IXs)" $DD4E
+"LD C',(IYs)" $FD4E
+"LD C',A" $4F
+"LD C',A'" $4F
 "LD C',B'" $48
 "LD C',C'" $49
-"LD C',D'" $4a
-"LD C',E'" $4b
-"LD C',H'" $4c
-"LD C',HX" $dd4c
-"LD C',HY" $fd4c
-"LD C',IXH" $dd4c
-"LD C',IXL" $dd4d
-"LD C',IYH" $fd4c
-"LD C',IYL" $fd4d
-"LD C',L'" $4d
-"LD C',LX" $dd4d
-"LD C',LY" $fd4d
-"LD C',RES 0,(IXs)" $ddcb x $81
-"LD C',RES 0,(IYs)" $fdcb x $81
-"LD C',RES 1,(IXs)" $ddcb x $89
-"LD C',RES 1,(IYs)" $fdcb x $89
-"LD C',RES 2,(IXs)" $ddcb x $91
-"LD C',RES 2,(IYs)" $fdcb x $91
-"LD C',RES 3,(IXs)" $ddcb x $99
-"LD C',RES 3,(IYs)" $fdcb x $99
-"LD C',RES 4,(IXs)" $ddcb x $a1
-"LD C',RES 4,(IYs)" $fdcb x $a1
-"LD C',RES 5,(IXs)" $ddcb x $a9
-"LD C',RES 5,(IYs)" $fdcb x $a9
-"LD C',RES 6,(IXs)" $ddcb x $b1
-"LD C',RES 6,(IYs)" $fdcb x $b1
-"LD C',RES 7,(IXs)" $ddcb x $b9
-"LD C',RES 7,(IYs)" $fdcb x $b9
-"LD C',RL (IXs)" $ddcb x $11
-"LD C',RL (IYs)" $fdcb x $11
-"LD C',RLC (IXs)" $ddcb x $01
-"LD C',RLC (IYs)" $fdcb x $01
-"LD C',RR (IXs)" $ddcb x $19
-"LD C',RR (IYs)" $fdcb x $19
-"LD C',RRC (IXs)" $ddcb x $09
-"LD C',RRC (IYs)" $fdcb x $09
-"LD C',SET 0,(IXs)" $ddcb x $c1
-"LD C',SET 0,(IYs)" $fdcb x $c1
-"LD C',SET 1,(IXs)" $ddcb x $c9
-"LD C',SET 1,(IYs)" $fdcb x $c9
-"LD C',SET 2,(IXs)" $ddcb x $d1
-"LD C',SET 2,(IYs)" $fdcb x $d1
-"LD C',SET 3,(IXs)" $ddcb x $d9
-"LD C',SET 3,(IYs)" $fdcb x $d9
-"LD C',SET 4,(IXs)" $ddcb x $e1
-"LD C',SET 4,(IYs)" $fdcb x $e1
-"LD C',SET 5,(IXs)" $ddcb x $e9
-"LD C',SET 5,(IYs)" $fdcb x $e9
-"LD C',SET 6,(IXs)" $ddcb x $f1
-"LD C',SET 6,(IYs)" $fdcb x $f1
-"LD C',SET 7,(IXs)" $ddcb x $f9
-"LD C',SET 7,(IYs)" $fdcb x $f9
-"LD C',SLA (IXs)" $ddcb x $21
-"LD C',SLA (IYs)" $fdcb x $21
-"LD C',SLL (IXs)" $ddcb x $31
-"LD C',SLL (IYs)" $fdcb x $31
-"LD C',SRA (IXs)" $ddcb x $29
-"LD C',SRA (IXs)" $ddcb x $29
-"LD C',SRA (IYs)" $fdcb x $29
-"LD C',SRL (IXs)" $ddcb x $39
-"LD C',SRL (IYs)" $fdcb x $39
-"LD C',x" $0e
-"LD C,(HL)" $4e
-"LD C,(IXs)" $dd4e
-"LD C,(IYs)" $fd4e
-"LD C,A" $4f
-"LD C,A'" $4f
+"LD C',D'" $4A
+"LD C',E'" $4B
+"LD C',H'" $4C
+"LD C',HX" $DD4C
+"LD C',HY" $FD4C
+"LD C',IXH" $DD4C
+"LD C',IXL" $DD4D
+"LD C',IYH" $FD4C
+"LD C',IYL" $FD4D
+"LD C',L'" $4D
+"LD C',LX" $DD4D
+"LD C',LY" $FD4D
+"LD C',RES 0,(IXs)" $DDCB x $81
+"LD C',RES 0,(IYs)" $FDCB x $81
+"LD C',RES 1,(IXs)" $DDCB x $89
+"LD C',RES 1,(IYs)" $FDCB x $89
+"LD C',RES 2,(IXs)" $DDCB x $91
+"LD C',RES 2,(IYs)" $FDCB x $91
+"LD C',RES 3,(IXs)" $DDCB x $99
+"LD C',RES 3,(IYs)" $FDCB x $99
+"LD C',RES 4,(IXs)" $DDCB x $A1
+"LD C',RES 4,(IYs)" $FDCB x $A1
+"LD C',RES 5,(IXs)" $DDCB x $A9
+"LD C',RES 5,(IYs)" $FDCB x $A9
+"LD C',RES 6,(IXs)" $DDCB x $B1
+"LD C',RES 6,(IYs)" $FDCB x $B1
+"LD C',RES 7,(IXs)" $DDCB x $B9
+"LD C',RES 7,(IYs)" $FDCB x $B9
+"LD C',RL (IXs)" $DDCB x $11
+"LD C',RL (IYs)" $FDCB x $11
+"LD C',RLC (IXs)" $DDCB x $01
+"LD C',RLC (IYs)" $FDCB x $01
+"LD C',RR (IXs)" $DDCB x $19
+"LD C',RR (IYs)" $FDCB x $19
+"LD C',RRC (IXs)" $DDCB x $09
+"LD C',RRC (IYs)" $FDCB x $09
+"LD C',SET 0,(IXs)" $DDCB x $C1
+"LD C',SET 0,(IYs)" $FDCB x $C1
+"LD C',SET 1,(IXs)" $DDCB x $C9
+"LD C',SET 1,(IYs)" $FDCB x $C9
+"LD C',SET 2,(IXs)" $DDCB x $D1
+"LD C',SET 2,(IYs)" $FDCB x $D1
+"LD C',SET 3,(IXs)" $DDCB x $D9
+"LD C',SET 3,(IYs)" $FDCB x $D9
+"LD C',SET 4,(IXs)" $DDCB x $E1
+"LD C',SET 4,(IYs)" $FDCB x $E1
+"LD C',SET 5,(IXs)" $DDCB x $E9
+"LD C',SET 5,(IYs)" $FDCB x $E9
+"LD C',SET 6,(IXs)" $DDCB x $F1
+"LD C',SET 6,(IYs)" $FDCB x $F1
+"LD C',SET 7,(IXs)" $DDCB x $F9
+"LD C',SET 7,(IYs)" $FDCB x $F9
+"LD C',SLA (IXs)" $DDCB x $21
+"LD C',SLA (IYs)" $FDCB x $21
+"LD C',SLL (IXs)" $DDCB x $31
+"LD C',SLL (IYs)" $FDCB x $31
+"LD C',SRA (IXs)" $DDCB x $29
+"LD C',SRA (IXs)" $DDCB x $29
+"LD C',SRA (IYs)" $FDCB x $29
+"LD C',SRL (IXs)" $DDCB x $39
+"LD C',SRL (IYs)" $FDCB x $39
+"LD C',x" $0E
+"LD C,(HL)" $4E
+"LD C,(IXs)" $DD4E
+"LD C,(IYs)" $FD4E
+"LD C,A" $4F
+"LD C,A'" $4F
 "LD C,B" $48
 "LD C,C" $49
-"LD C,D" $4a
-"LD C,E" $4b
-"LD C,H" $4c
-"LD C,HX" $dd4c
-"LD C,HY" $fd4c
-"LD C,IXH" $dd4c
-"LD C,IXL" $dd4d
-"LD C,IYH" $fd4c
-"LD C,IYL" $fd4d
-"LD C,L" $4d
-"LD C,LX" $dd4d
-"LD C,LY" $fd4d
-"LD C,RES 0,(IXs)" $ddcb x $81
-"LD C,RES 0,(IYs)" $fdcb x $81
-"LD C,RES 1,(IXs)" $ddcb x $89
-"LD C,RES 1,(IYs)" $fdcb x $89
-"LD C,RES 2,(IXs)" $ddcb x $91
-"LD C,RES 2,(IYs)" $fdcb x $91
-"LD C,RES 3,(IXs)" $ddcb x $99
-"LD C,RES 3,(IYs)" $fdcb x $99
-"LD C,RES 4,(IXs)" $ddcb x $a1
-"LD C,RES 4,(IYs)" $fdcb x $a1
-"LD C,RES 5,(IXs)" $ddcb x $a9
-"LD C,RES 5,(IYs)" $fdcb x $a9
-"LD C,RES 6,(IXs)" $ddcb x $b1
-"LD C,RES 6,(IYs)" $fdcb x $b1
-"LD C,RES 7,(IXs)" $ddcb x $b9
-"LD C,RES 7,(IYs)" $fdcb x $b9
-"LD C,RL (IXs)" $ddcb x $11
-"LD C,RL (IYs)" $fdcb x $11
-"LD C,RLC (IXs)" $ddcb x $01
-"LD C,RLC (IYs)" $fdcb x $01
-"LD C,RR (IXs)" $ddcb x $19
-"LD C,RR (IYs)" $fdcb x $19
-"LD C,RRC (IXs)" $ddcb x $09
-"LD C,RRC (IYs)" $fdcb x $09
-"LD C,SET 0,(IXs)" $ddcb x $c1
-"LD C,SET 0,(IYs)" $fdcb x $c1
-"LD C,SET 1,(IXs)" $ddcb x $c9
-"LD C,SET 1,(IYs)" $fdcb x $c9
-"LD C,SET 2,(IXs)" $ddcb x $d1
-"LD C,SET 2,(IYs)" $fdcb x $d1
-"LD C,SET 3,(IXs)" $ddcb x $d9
-"LD C,SET 3,(IYs)" $fdcb x $d9
-"LD C,SET 4,(IXs)" $ddcb x $e1
-"LD C,SET 4,(IYs)" $fdcb x $e1
-"LD C,SET 5,(IXs)" $ddcb x $e9
-"LD C,SET 5,(IYs)" $fdcb x $e9
-"LD C,SET 6,(IXs)" $ddcb x $f1
-"LD C,SET 6,(IYs)" $fdcb x $f1
-"LD C,SET 7,(IXs)" $ddcb x $f9
-"LD C,SET 7,(IYs)" $fdcb x $f9
-"LD C,SLA (IXs)" $ddcb x $21
-"LD C,SLA (IYs)" $fdcb x $21
-"LD C,SLL (IXs)" $ddcb x $31
-"LD C,SLL (IYs)" $fdcb x $31
-"LD C,SRA (IXs)" $ddcb x $29
-"LD C,SRA (IYs)" $fdcb x $29
-"LD C,SRL (IXs)" $ddcb x $39
-"LD C,SRL (IYs)" $fdcb x $39
-"LD C,x" $0e
+"LD C,D" $4A
+"LD C,E" $4B
+"LD C,H" $4C
+"LD C,HX" $DD4C
+"LD C,HY" $FD4C
+"LD C,IXH" $DD4C
+"LD C,IXL" $DD4D
+"LD C,IYH" $FD4C
+"LD C,IYL" $FD4D
+"LD C,L" $4D
+"LD C,LX" $DD4D
+"LD C,LY" $FD4D
+"LD C,RES 0,(IXs)" $DDCB x $81
+"LD C,RES 0,(IYs)" $FDCB x $81
+"LD C,RES 1,(IXs)" $DDCB x $89
+"LD C,RES 1,(IYs)" $FDCB x $89
+"LD C,RES 2,(IXs)" $DDCB x $91
+"LD C,RES 2,(IYs)" $FDCB x $91
+"LD C,RES 3,(IXs)" $DDCB x $99
+"LD C,RES 3,(IYs)" $FDCB x $99
+"LD C,RES 4,(IXs)" $DDCB x $A1
+"LD C,RES 4,(IYs)" $FDCB x $A1
+"LD C,RES 5,(IXs)" $DDCB x $A9
+"LD C,RES 5,(IYs)" $FDCB x $A9
+"LD C,RES 6,(IXs)" $DDCB x $B1
+"LD C,RES 6,(IYs)" $FDCB x $B1
+"LD C,RES 7,(IXs)" $DDCB x $B9
+"LD C,RES 7,(IYs)" $FDCB x $B9
+"LD C,RL (IXs)" $DDCB x $11
+"LD C,RL (IYs)" $FDCB x $11
+"LD C,RLC (IXs)" $DDCB x $01
+"LD C,RLC (IYs)" $FDCB x $01
+"LD C,RR (IXs)" $DDCB x $19
+"LD C,RR (IYs)" $FDCB x $19
+"LD C,RRC (IXs)" $DDCB x $09
+"LD C,RRC (IYs)" $FDCB x $09
+"LD C,SET 0,(IXs)" $DDCB x $C1
+"LD C,SET 0,(IYs)" $FDCB x $C1
+"LD C,SET 1,(IXs)" $DDCB x $C9
+"LD C,SET 1,(IYs)" $FDCB x $C9
+"LD C,SET 2,(IXs)" $DDCB x $D1
+"LD C,SET 2,(IYs)" $FDCB x $D1
+"LD C,SET 3,(IXs)" $DDCB x $D9
+"LD C,SET 3,(IYs)" $FDCB x $D9
+"LD C,SET 4,(IXs)" $DDCB x $E1
+"LD C,SET 4,(IYs)" $FDCB x $E1
+"LD C,SET 5,(IXs)" $DDCB x $E9
+"LD C,SET 5,(IYs)" $FDCB x $E9
+"LD C,SET 6,(IXs)" $DDCB x $F1
+"LD C,SET 6,(IYs)" $FDCB x $F1
+"LD C,SET 7,(IXs)" $DDCB x $F9
+"LD C,SET 7,(IYs)" $FDCB x $F9
+"LD C,SLA (IXs)" $DDCB x $21
+"LD C,SLA (IYs)" $FDCB x $21
+"LD C,SLL (IXs)" $DDCB x $31
+"LD C,SLL (IYs)" $FDCB x $31
+"LD C,SRA (IXs)" $DDCB x $29
+"LD C,SRA (IYs)" $FDCB x $29
+"LD C,SRL (IXs)" $DDCB x $39
+"LD C,SRL (IYs)" $FDCB x $39
+"LD C,x" $0E
 "LD D',(HL')" $56
-"LD D',(IXs)" $dd56
-"LD D',(IYs)" $fd56
+"LD D',(IXs)" $DD56
+"LD D',(IYs)" $FD56
 "LD D',A" $57
 "LD D',A'" $57
 "LD D',B'" $50
@@ -1167,67 +1167,67 @@ s = 8bit 2's complement ([-128, +127])
 "LD D',D'" $52
 "LD D',E'" $53
 "LD D',H'" $54
-"LD D',HX" $dd54
-"LD D',HY" $fd54
-"LD D',IXH" $dd54
-"LD D',IXL" $dd55
-"LD D',IYH" $fd54
-"LD D',IYL" $fd55
+"LD D',HX" $DD54
+"LD D',HY" $FD54
+"LD D',IXH" $DD54
+"LD D',IXL" $DD55
+"LD D',IYH" $FD54
+"LD D',IYL" $FD55
 "LD D',L'" $55
-"LD D',LX" $dd55
-"LD D',LY" $fd55
-"LD D',RES 0,(IXs)" $ddcb x $82
-"LD D',RES 0,(IYs)" $fdcb x $82
-"LD D',RES 1,(IXs)" $ddcb x $8a
-"LD D',RES 1,(IYs)" $fdcb x $8a
-"LD D',RES 2,(IXs)" $ddcb x $92
-"LD D',RES 2,(IYs)" $fdcb x $92
-"LD D',RES 3,(IXs)" $ddcb x $9a
-"LD D',RES 3,(IYs)" $fdcb x $9a
-"LD D',RES 4,(IXs)" $ddcb x $a2
-"LD D',RES 4,(IYs)" $fdcb x $a2
-"LD D',RES 5,(IXs)" $ddcb x $aa
-"LD D',RES 5,(IYs)" $fdcb x $aa
-"LD D',RES 6,(IXs)" $ddcb x $b2
-"LD D',RES 6,(IYs)" $fdcb x $b2
-"LD D',RES 7,(IXs)" $ddcb x $ba
-"LD D',RES 7,(IYs)" $fdcb x $ba
-"LD D',RL (IXs)" $ddcb x $12
-"LD D',RL (IYs)" $fdcb x $12
-"LD D',RLC (IXs)" $ddcb x $02
-"LD D',RLC (IYs)" $fdcb x $02
-"LD D',RR (IXs)" $ddcb x $1a
-"LD D',RR (IYs)" $fdcb x $1a
-"LD D',RRC (IXs)" $ddcb x $0a
-"LD D',RRC (IYs)" $fdcb x $0a
-"LD D',SET 0,(IXs)" $ddcb x $c2
-"LD D',SET 0,(IYs)" $fdcb x $c2
-"LD D',SET 1,(IXs)" $ddcb x $ca
-"LD D',SET 1,(IYs)" $fdcb x $ca
-"LD D',SET 2,(IXs)" $ddcb x $d2
-"LD D',SET 2,(IYs)" $fdcb x $d2
-"LD D',SET 3,(IXs)" $ddcb x $da
-"LD D',SET 3,(IYs)" $fdcb x $da
-"LD D',SET 4,(IXs)" $ddcb x $e2
-"LD D',SET 4,(IYs)" $fdcb x $e2
-"LD D',SET 5,(IXs)" $ddcb x $ea
-"LD D',SET 5,(IYs)" $fdcb x $ea
-"LD D',SET 6,(IXs)" $ddcb x $f2
-"LD D',SET 6,(IYs)" $fdcb x $f2
-"LD D',SET 7,(IXs)" $ddcb x $fa
-"LD D',SET 7,(IYs)" $fdcb x $fa
-"LD D',SLA (IXs)" $ddcb x $22
-"LD D',SLA (IYs)" $fdcb x $22
-"LD D',SLL (IXs)" $ddcb x $32
-"LD D',SLL (IYs)" $fdcb x $32
-"LD D',SRA (IXs)" $ddcb x $2a
-"LD D',SRA (IYs)" $fdcb x $2a
-"LD D',SRL (IXs)" $ddcb x $3a
-"LD D',SRL (IYs)" $fdcb x $3a
+"LD D',LX" $DD55
+"LD D',LY" $FD55
+"LD D',RES 0,(IXs)" $DDCB x $82
+"LD D',RES 0,(IYs)" $FDCB x $82
+"LD D',RES 1,(IXs)" $DDCB x $8A
+"LD D',RES 1,(IYs)" $FDCB x $8A
+"LD D',RES 2,(IXs)" $DDCB x $92
+"LD D',RES 2,(IYs)" $FDCB x $92
+"LD D',RES 3,(IXs)" $DDCB x $9A
+"LD D',RES 3,(IYs)" $FDCB x $9A
+"LD D',RES 4,(IXs)" $DDCB x $A2
+"LD D',RES 4,(IYs)" $FDCB x $A2
+"LD D',RES 5,(IXs)" $DDCB x $AA
+"LD D',RES 5,(IYs)" $FDCB x $AA
+"LD D',RES 6,(IXs)" $DDCB x $B2
+"LD D',RES 6,(IYs)" $FDCB x $B2
+"LD D',RES 7,(IXs)" $DDCB x $BA
+"LD D',RES 7,(IYs)" $FDCB x $BA
+"LD D',RL (IXs)" $DDCB x $12
+"LD D',RL (IYs)" $FDCB x $12
+"LD D',RLC (IXs)" $DDCB x $02
+"LD D',RLC (IYs)" $FDCB x $02
+"LD D',RR (IXs)" $DDCB x $1A
+"LD D',RR (IYs)" $FDCB x $1A
+"LD D',RRC (IXs)" $DDCB x $0A
+"LD D',RRC (IYs)" $FDCB x $0A
+"LD D',SET 0,(IXs)" $DDCB x $C2
+"LD D',SET 0,(IYs)" $FDCB x $C2
+"LD D',SET 1,(IXs)" $DDCB x $CA
+"LD D',SET 1,(IYs)" $FDCB x $CA
+"LD D',SET 2,(IXs)" $DDCB x $D2
+"LD D',SET 2,(IYs)" $FDCB x $D2
+"LD D',SET 3,(IXs)" $DDCB x $DA
+"LD D',SET 3,(IYs)" $FDCB x $DA
+"LD D',SET 4,(IXs)" $DDCB x $E2
+"LD D',SET 4,(IYs)" $FDCB x $E2
+"LD D',SET 5,(IXs)" $DDCB x $EA
+"LD D',SET 5,(IYs)" $FDCB x $EA
+"LD D',SET 6,(IXs)" $DDCB x $F2
+"LD D',SET 6,(IYs)" $FDCB x $F2
+"LD D',SET 7,(IXs)" $DDCB x $FA
+"LD D',SET 7,(IYs)" $FDCB x $FA
+"LD D',SLA (IXs)" $DDCB x $22
+"LD D',SLA (IYs)" $FDCB x $22
+"LD D',SLL (IXs)" $DDCB x $32
+"LD D',SLL (IYs)" $FDCB x $32
+"LD D',SRA (IXs)" $DDCB x $2A
+"LD D',SRA (IYs)" $FDCB x $2A
+"LD D',SRL (IXs)" $DDCB x $3A
+"LD D',SRL (IYs)" $FDCB x $3A
 "LD D',x" $16
 "LD D,(HL)" $56
-"LD D,(IXs)" $dd56
-"LD D,(IYs)" $fd56
+"LD D,(IXs)" $DD56
+"LD D,(IYs)" $FD56
 "LD D,A" $57
 "LD D,A'" $57
 "LD D,B" $50
@@ -1235,207 +1235,207 @@ s = 8bit 2's complement ([-128, +127])
 "LD D,D" $52
 "LD D,E" $53
 "LD D,H" $54
-"LD D,HX" $dd54
-"LD D,HY" $fd54
-"LD D,IXH" $dd54
-"LD D,IXL" $dd55
-"LD D,IYH" $fd54
-"LD D,IYL" $fd55
+"LD D,HX" $DD54
+"LD D,HY" $FD54
+"LD D,IXH" $DD54
+"LD D,IXL" $DD55
+"LD D,IYH" $FD54
+"LD D,IYL" $FD55
 "LD D,L" $55
-"LD D,LX" $dd55
-"LD D,LY" $fd55
-"LD D,RES 0,(IXs)" $ddcb x $82
-"LD D,RES 0,(IYs)" $fdcb x $82
-"LD D,RES 1,(IXs)" $ddcb x $8a
-"LD D,RES 1,(IYs)" $fdcb x $8a
-"LD D,RES 2,(IXs)" $ddcb x $92
-"LD D,RES 2,(IYs)" $fdcb x $92
-"LD D,RES 3,(IXs)" $ddcb x $9a
-"LD D,RES 3,(IYs)" $fdcb x $9a
-"LD D,RES 4,(IXs)" $ddcb x $a2
-"LD D,RES 4,(IYs)" $fdcb x $a2
-"LD D,RES 5,(IXs)" $ddcb x $aa
-"LD D,RES 5,(IYs)" $fdcb x $aa
-"LD D,RES 6,(IXs)" $ddcb x $b2
-"LD D,RES 6,(IYs)" $fdcb x $b2
-"LD D,RES 7,(IXs)" $ddcb x $ba
-"LD D,RES 7,(IYs)" $fdcb x $ba
-"LD D,RL (IXs)" $ddcb x $12
-"LD D,RL (IYs)" $fdcb x $12
-"LD D,RLC (IXs)" $ddcb x $02
-"LD D,RLC (IYs)" $fdcb x $02
-"LD D,RR (IXs)" $ddcb x $1a
-"LD D,RR (IYs)" $fdcb x $1a
-"LD D,RRC (IXs)" $ddcb x $0a
-"LD D,RRC (IYs)" $fdcb x $0a
-"LD D,SET 0,(IXs)" $ddcb x $c2
-"LD D,SET 0,(IYs)" $fdcb x $c2
-"LD D,SET 1,(IXs)" $ddcb x $ca
-"LD D,SET 1,(IYs)" $fdcb x $ca
-"LD D,SET 2,(IXs)" $ddcb x $d2
-"LD D,SET 2,(IYs)" $fdcb x $d2
-"LD D,SET 3,(IXs)" $ddcb x $da
-"LD D,SET 3,(IYs)" $fdcb x $da
-"LD D,SET 4,(IXs)" $ddcb x $e2
-"LD D,SET 4,(IYs)" $fdcb x $e2
-"LD D,SET 5,(IXs)" $ddcb x $ea
-"LD D,SET 5,(IYs)" $fdcb x $ea
-"LD D,SET 6,(IXs)" $ddcb x $f2
-"LD D,SET 6,(IYs)" $fdcb x $f2
-"LD D,SET 7,(IXs)" $ddcb x $fa
-"LD D,SET 7,(IYs)" $fdcb x $fa
-"LD D,SLA (IXs)" $ddcb x $22
-"LD D,SLA (IYs)" $fdcb x $22
-"LD D,SLL (IXs)" $ddcb x $32
-"LD D,SLL (IYs)" $fdcb x $32
-"LD D,SRA (IXs)" $ddcb x $2a
-"LD D,SRA (IYs)" $fdcb x $2a
-"LD D,SRL (IXs)" $ddcb x $3a
-"LD D,SRL (IYs)" $fdcb x $3a
+"LD D,LX" $DD55
+"LD D,LY" $FD55
+"LD D,RES 0,(IXs)" $DDCB x $82
+"LD D,RES 0,(IYs)" $FDCB x $82
+"LD D,RES 1,(IXs)" $DDCB x $8A
+"LD D,RES 1,(IYs)" $FDCB x $8A
+"LD D,RES 2,(IXs)" $DDCB x $92
+"LD D,RES 2,(IYs)" $FDCB x $92
+"LD D,RES 3,(IXs)" $DDCB x $9A
+"LD D,RES 3,(IYs)" $FDCB x $9A
+"LD D,RES 4,(IXs)" $DDCB x $A2
+"LD D,RES 4,(IYs)" $FDCB x $A2
+"LD D,RES 5,(IXs)" $DDCB x $AA
+"LD D,RES 5,(IYs)" $FDCB x $AA
+"LD D,RES 6,(IXs)" $DDCB x $B2
+"LD D,RES 6,(IYs)" $FDCB x $B2
+"LD D,RES 7,(IXs)" $DDCB x $BA
+"LD D,RES 7,(IYs)" $FDCB x $BA
+"LD D,RL (IXs)" $DDCB x $12
+"LD D,RL (IYs)" $FDCB x $12
+"LD D,RLC (IXs)" $DDCB x $02
+"LD D,RLC (IYs)" $FDCB x $02
+"LD D,RR (IXs)" $DDCB x $1A
+"LD D,RR (IYs)" $FDCB x $1A
+"LD D,RRC (IXs)" $DDCB x $0A
+"LD D,RRC (IYs)" $FDCB x $0A
+"LD D,SET 0,(IXs)" $DDCB x $C2
+"LD D,SET 0,(IYs)" $FDCB x $C2
+"LD D,SET 1,(IXs)" $DDCB x $CA
+"LD D,SET 1,(IYs)" $FDCB x $CA
+"LD D,SET 2,(IXs)" $DDCB x $D2
+"LD D,SET 2,(IYs)" $FDCB x $D2
+"LD D,SET 3,(IXs)" $DDCB x $DA
+"LD D,SET 3,(IYs)" $FDCB x $DA
+"LD D,SET 4,(IXs)" $DDCB x $E2
+"LD D,SET 4,(IYs)" $FDCB x $E2
+"LD D,SET 5,(IXs)" $DDCB x $EA
+"LD D,SET 5,(IYs)" $FDCB x $EA
+"LD D,SET 6,(IXs)" $DDCB x $F2
+"LD D,SET 6,(IYs)" $FDCB x $F2
+"LD D,SET 7,(IXs)" $DDCB x $FA
+"LD D,SET 7,(IYs)" $FDCB x $FA
+"LD D,SLA (IXs)" $DDCB x $22
+"LD D,SLA (IYs)" $FDCB x $22
+"LD D,SLL (IXs)" $DDCB x $32
+"LD D,SLL (IYs)" $FDCB x $32
+"LD D,SRA (IXs)" $DDCB x $2A
+"LD D,SRA (IYs)" $FDCB x $2A
+"LD D,SRL (IXs)" $DDCB x $3A
+"LD D,SRL (IYs)" $FDCB x $3A
 "LD D,x" $16
-"LD DE',(?)" $ed5b
+"LD DE',(?)" $ED5B
 "LD DE',?" $11
-"LD DE,(?)" $ed5b
+"LD DE,(?)" $ED5B
 "LD DE,?" $11
-"LD E',(HL')" $5e
-"LD E',(IXs)" $dd5e
-"LD E',(IYs)" $fd5e
-"LD E',A" $5f
-"LD E',A'" $5f
+"LD E',(HL')" $5E
+"LD E',(IXs)" $DD5E
+"LD E',(IYs)" $FD5E
+"LD E',A" $5F
+"LD E',A'" $5F
 "LD E',B'" $58
 "LD E',C'" $59
-"LD E',D'" $5a
-"LD E',E'" $5b
-"LD E',H'" $5c
-"LD E',HX" $dd5c
-"LD E',HY" $fd5c
-"LD E',IXH" $dd5c
-"LD E',IXL" $dd5d
-"LD E',IYH" $fd5c
-"LD E',IYL" $fd5d
-"LD E',L'" $5d
-"LD E',LX" $dd5d
-"LD E',LY" $fd5d
-"LD E',RES 0,(IXs)" $ddcb x $83
-"LD E',RES 0,(IYs)" $fdcb x $83
-"LD E',RES 1,(IXs)" $ddcb x $8b
-"LD E',RES 1,(IYs)" $fdcb x $8b
-"LD E',RES 2,(IXs)" $ddcb x $93
-"LD E',RES 2,(IYs)" $fdcb x $93
-"LD E',RES 3,(IXs)" $ddcb x $9b
-"LD E',RES 3,(IYs)" $fdcb x $9b
-"LD E',RES 4,(IXs)" $ddcb x $a3
-"LD E',RES 4,(IYs)" $fdcb x $a3
-"LD E',RES 5,(IXs)" $ddcb x $ab
-"LD E',RES 5,(IYs)" $fdcb x $ab
-"LD E',RES 6,(IXs)" $ddcb x $b3
-"LD E',RES 6,(IYs)" $fdcb x $b3
-"LD E',RES 7,(IXs)" $ddcb x $bb
-"LD E',RES 7,(IYs)" $fdcb x $bb
-"LD E',RL (IXs)" $ddcb x $13
-"LD E',RL (IYs)" $fdcb x $13
-"LD E',RLC (IXs)" $ddcb x $03
-"LD E',RLC (IYs)" $fdcb x $03
-"LD E',RR (IXs)" $ddcb x $1b
-"LD E',RR (IYs)" $fdcb x $1b
-"LD E',RRC (IXs)" $ddcb x $0b
-"LD E',RRC (IYs)" $fdcb x $0b
-"LD E',SET 0,(IXs)" $ddcb x $c3
-"LD E',SET 0,(IYs)" $fdcb x $c3
-"LD E',SET 1,(IXs)" $ddcb x $cb
-"LD E',SET 1,(IYs)" $fdcb x $cb
-"LD E',SET 2,(IXs)" $ddcb x $d3
-"LD E',SET 2,(IYs)" $fdcb x $d3
-"LD E',SET 3,(IXs)" $ddcb x $db
-"LD E',SET 3,(IYs)" $fdcb x $db
-"LD E',SET 4,(IXs)" $ddcb x $e3
-"LD E',SET 4,(IYs)" $fdcb x $e3
-"LD E',SET 5,(IXs)" $ddcb x $eb
-"LD E',SET 5,(IYs)" $fdcb x $eb
-"LD E',SET 6,(IXs)" $ddcb x $f3
-"LD E',SET 6,(IYs)" $fdcb x $f3
-"LD E',SET 7,(IXs)" $ddcb x $fb
-"LD E',SET 7,(IYs)" $fdcb x $fb
-"LD E',SLA (IXs)" $ddcb x $23
-"LD E',SLA (IYs)" $fdcb x $23
-"LD E',SLL (IXs)" $ddcb x $33
-"LD E',SLL (IYs)" $fdcb x $33
-"LD E',SRA (IXs)" $ddcb x $2b
-"LD E',SRA (IYs)" $fdcb x $2b
-"LD E',SRL (IXs)" $ddcb x $3b
-"LD E',SRL (IYs)" $fdcb x $3b
-"LD E',x" $1e
-"LD E,(HL)" $5e
-"LD E,(IXs)" $dd5e
-"LD E,(IYs)" $fd5e
-"LD E,A" $5f
-"LD E,A'" $5f
+"LD E',D'" $5A
+"LD E',E'" $5B
+"LD E',H'" $5C
+"LD E',HX" $DD5C
+"LD E',HY" $FD5C
+"LD E',IXH" $DD5C
+"LD E',IXL" $DD5D
+"LD E',IYH" $FD5C
+"LD E',IYL" $FD5D
+"LD E',L'" $5D
+"LD E',LX" $DD5D
+"LD E',LY" $FD5D
+"LD E',RES 0,(IXs)" $DDCB x $83
+"LD E',RES 0,(IYs)" $FDCB x $83
+"LD E',RES 1,(IXs)" $DDCB x $8B
+"LD E',RES 1,(IYs)" $FDCB x $8B
+"LD E',RES 2,(IXs)" $DDCB x $93
+"LD E',RES 2,(IYs)" $FDCB x $93
+"LD E',RES 3,(IXs)" $DDCB x $9B
+"LD E',RES 3,(IYs)" $FDCB x $9B
+"LD E',RES 4,(IXs)" $DDCB x $A3
+"LD E',RES 4,(IYs)" $FDCB x $A3
+"LD E',RES 5,(IXs)" $DDCB x $AB
+"LD E',RES 5,(IYs)" $FDCB x $AB
+"LD E',RES 6,(IXs)" $DDCB x $B3
+"LD E',RES 6,(IYs)" $FDCB x $B3
+"LD E',RES 7,(IXs)" $DDCB x $BB
+"LD E',RES 7,(IYs)" $FDCB x $BB
+"LD E',RL (IXs)" $DDCB x $13
+"LD E',RL (IYs)" $FDCB x $13
+"LD E',RLC (IXs)" $DDCB x $03
+"LD E',RLC (IYs)" $FDCB x $03
+"LD E',RR (IXs)" $DDCB x $1B
+"LD E',RR (IYs)" $FDCB x $1B
+"LD E',RRC (IXs)" $DDCB x $0B
+"LD E',RRC (IYs)" $FDCB x $0B
+"LD E',SET 0,(IXs)" $DDCB x $C3
+"LD E',SET 0,(IYs)" $FDCB x $C3
+"LD E',SET 1,(IXs)" $DDCB x $CB
+"LD E',SET 1,(IYs)" $FDCB x $CB
+"LD E',SET 2,(IXs)" $DDCB x $D3
+"LD E',SET 2,(IYs)" $FDCB x $D3
+"LD E',SET 3,(IXs)" $DDCB x $DB
+"LD E',SET 3,(IYs)" $FDCB x $DB
+"LD E',SET 4,(IXs)" $DDCB x $E3
+"LD E',SET 4,(IYs)" $FDCB x $E3
+"LD E',SET 5,(IXs)" $DDCB x $EB
+"LD E',SET 5,(IYs)" $FDCB x $EB
+"LD E',SET 6,(IXs)" $DDCB x $F3
+"LD E',SET 6,(IYs)" $FDCB x $F3
+"LD E',SET 7,(IXs)" $DDCB x $FB
+"LD E',SET 7,(IYs)" $FDCB x $FB
+"LD E',SLA (IXs)" $DDCB x $23
+"LD E',SLA (IYs)" $FDCB x $23
+"LD E',SLL (IXs)" $DDCB x $33
+"LD E',SLL (IYs)" $FDCB x $33
+"LD E',SRA (IXs)" $DDCB x $2B
+"LD E',SRA (IYs)" $FDCB x $2B
+"LD E',SRL (IXs)" $DDCB x $3B
+"LD E',SRL (IYs)" $FDCB x $3B
+"LD E',x" $1E
+"LD E,(HL)" $5E
+"LD E,(IXs)" $DD5E
+"LD E,(IYs)" $FD5E
+"LD E,A" $5F
+"LD E,A'" $5F
 "LD E,B" $58
 "LD E,C" $59
-"LD E,D" $5a
-"LD E,E" $5b
-"LD E,H" $5c
-"LD E,HX" $dd5c
-"LD E,HY" $fd5c
-"LD E,IXH" $dd5c
-"LD E,IXL" $dd5d
-"LD E,IYH" $fd5c
-"LD E,IYL" $fd5d
-"LD E,L" $5d
-"LD E,LX" $dd5d
-"LD E,LY" $fd5d
-"LD E,RES 0,(IXs)" $ddcb x $83
-"LD E,RES 0,(IYs)" $fdcb x $83
-"LD E,RES 1,(IXs)" $ddcb x $8b
-"LD E,RES 1,(IYs)" $fdcb x $8b
-"LD E,RES 2,(IXs)" $ddcb x $93
-"LD E,RES 2,(IYs)" $fdcb x $93
-"LD E,RES 3,(IXs)" $ddcb x $9b
-"LD E,RES 3,(IYs)" $fdcb x $9b
-"LD E,RES 4,(IXs)" $ddcb x $a3
-"LD E,RES 4,(IYs)" $fdcb x $a3
-"LD E,RES 5,(IXs)" $ddcb x $ab
-"LD E,RES 5,(IYs)" $fdcb x $ab
-"LD E,RES 6,(IXs)" $ddcb x $b3
-"LD E,RES 6,(IYs)" $fdcb x $b3
-"LD E,RES 7,(IXs)" $ddcb x $bb
-"LD E,RES 7,(IYs)" $fdcb x $bb
-"LD E,RL (IXs)" $ddcb x $13
-"LD E,RL (IYs)" $fdcb x $13
-"LD E,RLC (IXs)" $ddcb x $03
-"LD E,RLC (IYs)" $fdcb x $03
-"LD E,RR (IXs)" $ddcb x $1b
-"LD E,RR (IYs)" $fdcb x $1b
-"LD E,RRC (IXs)" $ddcb x $0b
-"LD E,RRC (IYs)" $fdcb x $0b
-"LD E,SET 0,(IXs)" $ddcb x $c3
-"LD E,SET 0,(IYs)" $fdcb x $c3
-"LD E,SET 1,(IXs)" $ddcb x $cb
-"LD E,SET 1,(IYs)" $fdcb x $cb
-"LD E,SET 2,(IXs)" $ddcb x $d3
-"LD E,SET 2,(IYs)" $fdcb x $d3
-"LD E,SET 3,(IXs)" $ddcb x $db
-"LD E,SET 3,(IYs)" $fdcb x $db
-"LD E,SET 4,(IXs)" $ddcb x $e3
-"LD E,SET 4,(IYs)" $fdcb x $e3
-"LD E,SET 5,(IXs)" $ddcb x $eb
-"LD E,SET 5,(IYs)" $fdcb x $eb
-"LD E,SET 6,(IXs)" $ddcb x $f3
-"LD E,SET 6,(IYs)" $fdcb x $f3
-"LD E,SET 7,(IXs)" $ddcb x $fb
-"LD E,SET 7,(IYs)" $fdcb x $fb
-"LD E,SLA (IXs)" $ddcb x $23
-"LD E,SLA (IYs)" $fdcb x $23
-"LD E,SLL (IXs)" $ddcb x $33
-"LD E,SLL (IYs)" $fdcb x $33
-"LD E,SRA (IXs)" $ddcb x $2b
-"LD E,SRA (IYs)" $fdcb x $2b
-"LD E,SRL (IXs)" $ddcb x $3b
-"LD E,SRL (IYs)" $fdcb x $3b
-"LD E,x" $1e
+"LD E,D" $5A
+"LD E,E" $5B
+"LD E,H" $5C
+"LD E,HX" $DD5C
+"LD E,HY" $FD5C
+"LD E,IXH" $DD5C
+"LD E,IXL" $DD5D
+"LD E,IYH" $FD5C
+"LD E,IYL" $FD5D
+"LD E,L" $5D
+"LD E,LX" $DD5D
+"LD E,LY" $FD5D
+"LD E,RES 0,(IXs)" $DDCB x $83
+"LD E,RES 0,(IYs)" $FDCB x $83
+"LD E,RES 1,(IXs)" $DDCB x $8B
+"LD E,RES 1,(IYs)" $FDCB x $8B
+"LD E,RES 2,(IXs)" $DDCB x $93
+"LD E,RES 2,(IYs)" $FDCB x $93
+"LD E,RES 3,(IXs)" $DDCB x $9B
+"LD E,RES 3,(IYs)" $FDCB x $9B
+"LD E,RES 4,(IXs)" $DDCB x $A3
+"LD E,RES 4,(IYs)" $FDCB x $A3
+"LD E,RES 5,(IXs)" $DDCB x $AB
+"LD E,RES 5,(IYs)" $FDCB x $AB
+"LD E,RES 6,(IXs)" $DDCB x $B3
+"LD E,RES 6,(IYs)" $FDCB x $B3
+"LD E,RES 7,(IXs)" $DDCB x $BB
+"LD E,RES 7,(IYs)" $FDCB x $BB
+"LD E,RL (IXs)" $DDCB x $13
+"LD E,RL (IYs)" $FDCB x $13
+"LD E,RLC (IXs)" $DDCB x $03
+"LD E,RLC (IYs)" $FDCB x $03
+"LD E,RR (IXs)" $DDCB x $1B
+"LD E,RR (IYs)" $FDCB x $1B
+"LD E,RRC (IXs)" $DDCB x $0B
+"LD E,RRC (IYs)" $FDCB x $0B
+"LD E,SET 0,(IXs)" $DDCB x $C3
+"LD E,SET 0,(IYs)" $FDCB x $C3
+"LD E,SET 1,(IXs)" $DDCB x $CB
+"LD E,SET 1,(IYs)" $FDCB x $CB
+"LD E,SET 2,(IXs)" $DDCB x $D3
+"LD E,SET 2,(IYs)" $FDCB x $D3
+"LD E,SET 3,(IXs)" $DDCB x $DB
+"LD E,SET 3,(IYs)" $FDCB x $DB
+"LD E,SET 4,(IXs)" $DDCB x $E3
+"LD E,SET 4,(IYs)" $FDCB x $E3
+"LD E,SET 5,(IXs)" $DDCB x $EB
+"LD E,SET 5,(IYs)" $FDCB x $EB
+"LD E,SET 6,(IXs)" $DDCB x $F3
+"LD E,SET 6,(IYs)" $FDCB x $F3
+"LD E,SET 7,(IXs)" $DDCB x $FB
+"LD E,SET 7,(IYs)" $FDCB x $FB
+"LD E,SLA (IXs)" $DDCB x $23
+"LD E,SLA (IYs)" $FDCB x $23
+"LD E,SLL (IXs)" $DDCB x $33
+"LD E,SLL (IYs)" $FDCB x $33
+"LD E,SRA (IXs)" $DDCB x $2B
+"LD E,SRA (IYs)" $FDCB x $2B
+"LD E,SRL (IXs)" $DDCB x $3B
+"LD E,SRL (IYs)" $FDCB x $3B
+"LD E,x" $1E
 "LD H',(HL')" $66
-"LD H',(IXs)" $dd66
-"LD H',(IYs)" $fd66
+"LD H',(IXs)" $DD66
+"LD H',(IYs)" $FD66
 "LD H',A" $67
 "LD H',A'" $67
 "LD H',B'" $60
@@ -1444,58 +1444,58 @@ s = 8bit 2's complement ([-128, +127])
 "LD H',E'" $63
 "LD H',H'" $64
 "LD H',L'" $65
-"LD H',RES 0,(IXs)" $ddcb x $84
-"LD H',RES 0,(IYs)" $fdcb x $84
-"LD H',RES 1,(IXs)" $ddcb x $8c
-"LD H',RES 1,(IYs)" $fdcb x $8c
-"LD H',RES 2,(IXs)" $ddcb x $94
-"LD H',RES 2,(IYs)" $fdcb x $94
-"LD H',RES 3,(IXs)" $ddcb x $9c
-"LD H',RES 3,(IYs)" $fdcb x $9c
-"LD H',RES 4,(IXs)" $ddcb x $a4
-"LD H',RES 4,(IYs)" $fdcb x $a4
-"LD H',RES 5,(IXs)" $ddcb x $ac
-"LD H',RES 5,(IYs)" $fdcb x $ac
-"LD H',RES 6,(IXs)" $ddcb x $b4
-"LD H',RES 6,(IYs)" $fdcb x $b4
-"LD H',RES 7,(IXs)" $ddcb x $bc
-"LD H',RES 7,(IYs)" $fdcb x $bc
-"LD H',RL (IXs)" $ddcb x $14
-"LD H',RL (IYs)" $fdcb x $14
-"LD H',RLC (IXs)" $ddcb x $04
-"LD H',RLC (IYs)" $fdcb x $04
-"LD H',RR (IXs)" $ddcb x $1c
-"LD H',RR (IYs)" $fdcb x $1c
-"LD H',RRC (IXs)" $ddcb x $0c
-"LD H',RRC (IYs)" $fdcb x $0c
-"LD H',SET 0,(IXs)" $ddcb x $c4
-"LD H',SET 0,(IYs)" $fdcb x $c4
-"LD H',SET 1,(IXs)" $ddcb x $cc
-"LD H',SET 1,(IYs)" $fdcb x $cc
-"LD H',SET 2,(IXs)" $ddcb x $d4
-"LD H',SET 2,(IYs)" $fdcb x $d4
-"LD H',SET 3,(IXs)" $ddcb x $dc
-"LD H',SET 3,(IYs)" $fdcb x $dc
-"LD H',SET 4,(IXs)" $ddcb x $e4
-"LD H',SET 4,(IYs)" $fdcb x $e4
-"LD H',SET 5,(IXs)" $ddcb x $ec
-"LD H',SET 5,(IYs)" $fdcb x $ec
-"LD H',SET 6,(IXs)" $ddcb x $f4
-"LD H',SET 6,(IYs)" $fdcb x $f4
-"LD H',SET 7,(IXs)" $ddcb x $fc
-"LD H',SET 7,(IYs)" $fdcb x $fc
-"LD H',SLA (IXs)" $ddcb x $24
-"LD H',SLA (IYs)" $fdcb x $24
-"LD H',SLL (IXs)" $ddcb x $34
-"LD H',SLL (IYs)" $fdcb x $34
-"LD H',SRA (IXs)" $ddcb x $2c
-"LD H',SRA (IYs)" $fdcb x $2c
-"LD H',SRL (IXs)" $ddcb x $3c
-"LD H',SRL (IYs)" $fdcb x $3c
+"LD H',RES 0,(IXs)" $DDCB x $84
+"LD H',RES 0,(IYs)" $FDCB x $84
+"LD H',RES 1,(IXs)" $DDCB x $8C
+"LD H',RES 1,(IYs)" $FDCB x $8C
+"LD H',RES 2,(IXs)" $DDCB x $94
+"LD H',RES 2,(IYs)" $FDCB x $94
+"LD H',RES 3,(IXs)" $DDCB x $9C
+"LD H',RES 3,(IYs)" $FDCB x $9C
+"LD H',RES 4,(IXs)" $DDCB x $A4
+"LD H',RES 4,(IYs)" $FDCB x $A4
+"LD H',RES 5,(IXs)" $DDCB x $AC
+"LD H',RES 5,(IYs)" $FDCB x $AC
+"LD H',RES 6,(IXs)" $DDCB x $B4
+"LD H',RES 6,(IYs)" $FDCB x $B4
+"LD H',RES 7,(IXs)" $DDCB x $BC
+"LD H',RES 7,(IYs)" $FDCB x $BC
+"LD H',RL (IXs)" $DDCB x $14
+"LD H',RL (IYs)" $FDCB x $14
+"LD H',RLC (IXs)" $DDCB x $04
+"LD H',RLC (IYs)" $FDCB x $04
+"LD H',RR (IXs)" $DDCB x $1C
+"LD H',RR (IYs)" $FDCB x $1C
+"LD H',RRC (IXs)" $DDCB x $0C
+"LD H',RRC (IYs)" $FDCB x $0C
+"LD H',SET 0,(IXs)" $DDCB x $C4
+"LD H',SET 0,(IYs)" $FDCB x $C4
+"LD H',SET 1,(IXs)" $DDCB x $CC
+"LD H',SET 1,(IYs)" $FDCB x $CC
+"LD H',SET 2,(IXs)" $DDCB x $D4
+"LD H',SET 2,(IYs)" $FDCB x $D4
+"LD H',SET 3,(IXs)" $DDCB x $DC
+"LD H',SET 3,(IYs)" $FDCB x $DC
+"LD H',SET 4,(IXs)" $DDCB x $E4
+"LD H',SET 4,(IYs)" $FDCB x $E4
+"LD H',SET 5,(IXs)" $DDCB x $EC
+"LD H',SET 5,(IYs)" $FDCB x $EC
+"LD H',SET 6,(IXs)" $DDCB x $F4
+"LD H',SET 6,(IYs)" $FDCB x $F4
+"LD H',SET 7,(IXs)" $DDCB x $FC
+"LD H',SET 7,(IYs)" $FDCB x $FC
+"LD H',SLA (IXs)" $DDCB x $24
+"LD H',SLA (IYs)" $FDCB x $24
+"LD H',SLL (IXs)" $DDCB x $34
+"LD H',SLL (IYs)" $FDCB x $34
+"LD H',SRA (IXs)" $DDCB x $2C
+"LD H',SRA (IYs)" $FDCB x $2C
+"LD H',SRL (IXs)" $DDCB x $3C
+"LD H',SRL (IYs)" $FDCB x $3C
 "LD H',x" $26
 "LD H,(HL)" $66
-"LD H,(IXs)" $dd66
-"LD H,(IYs)" $fd66
+"LD H,(IXs)" $DD66
+"LD H,(IYs)" $FD66
 "LD H,A" $67
 "LD H,A'" $67
 "LD H,B" $60
@@ -1504,987 +1504,1705 @@ s = 8bit 2's complement ([-128, +127])
 "LD H,E" $63
 "LD H,H" $64
 "LD H,L" $65
-"LD H,RES 0,(IXs)" $ddcb x $84
-"LD H,RES 0,(IYs)" $fdcb x $84
-"LD H,RES 1,(IXs)" $ddcb x $8c
-"LD H,RES 1,(IYs)" $fdcb x $8c
-"LD H,RES 2,(IXs)" $ddcb x $94
-"LD H,RES 2,(IYs)" $fdcb x $94
-"LD H,RES 3,(IXs)" $ddcb x $9c
-"LD H,RES 3,(IYs)" $fdcb x $9c
-"LD H,RES 4,(IXs)" $ddcb x $a4
-"LD H,RES 4,(IYs)" $fdcb x $a4
-"LD H,RES 5,(IXs)" $ddcb x $ac
-"LD H,RES 5,(IYs)" $fdcb x $ac
-"LD H,RES 6,(IXs)" $ddcb x $b4
-"LD H,RES 6,(IYs)" $fdcb x $b4
-"LD H,RES 7,(IXs)" $ddcb x $bc
-"LD H,RES 7,(IYs)" $fdcb x $bc
-"LD H,RL (IXs)" $ddcb x $14
-"LD H,RL (IYs)" $fdcb x $14
-"LD H,RLC (IXs)" $ddcb x $04
-"LD H,RLC (IYs)" $fdcb x $04
-"LD H,RR (IXs)" $ddcb x $1c
-"LD H,RR (IYs)" $fdcb x $1c
-"LD H,RRC (IXs)" $ddcb x $0c
-"LD H,RRC (IYs)" $fdcb x $0c
-"LD H,SET 0,(IXs)" $ddcb x $c4
-"LD H,SET 0,(IYs)" $fdcb x $c4
-"LD H,SET 1,(IXs)" $ddcb x $cc
-"LD H,SET 1,(IYs)" $fdcb x $cc
-"LD H,SET 2,(IXs)" $ddcb x $d4
-"LD H,SET 2,(IYs)" $fdcb x $d4
-"LD H,SET 3,(IXs)" $ddcb x $dc
-"LD H,SET 3,(IYs)" $fdcb x $dc
-"LD H,SET 4,(IXs)" $ddcb x $e4
-"LD H,SET 4,(IYs)" $fdcb x $e4
-"LD H,SET 5,(IXs)" $ddcb x $ec
-"LD H,SET 5,(IYs)" $fdcb x $ec
-"LD H,SET 6,(IXs)" $ddcb x $f4
-"LD H,SET 6,(IYs)" $fdcb x $f4
-"LD H,SET 7,(IXs)" $ddcb x $fc
-"LD H,SET 7,(IYs)" $fdcb x $fc
-"LD H,SLA (IXs)" $ddcb x $24
-"LD H,SLA (IYs)" $fdcb x $24
-"LD H,SLL (IXs)" $ddcb x $34
-"LD H,SLL (IYs)" $fdcb x $34
-"LD H,SRA (IXs)" $ddcb x $2c
-"LD H,SRA (IYs)" $fdcb x $2c
-"LD H,SRL (IXs)" $ddcb x $3c
-"LD H,SRL (IYs)" $fdcb x $3c
+"LD H,RES 0,(IXs)" $DDCB x $84
+"LD H,RES 0,(IYs)" $FDCB x $84
+"LD H,RES 1,(IXs)" $DDCB x $8C
+"LD H,RES 1,(IYs)" $FDCB x $8C
+"LD H,RES 2,(IXs)" $DDCB x $94
+"LD H,RES 2,(IYs)" $FDCB x $94
+"LD H,RES 3,(IXs)" $DDCB x $9C
+"LD H,RES 3,(IYs)" $FDCB x $9C
+"LD H,RES 4,(IXs)" $DDCB x $A4
+"LD H,RES 4,(IYs)" $FDCB x $A4
+"LD H,RES 5,(IXs)" $DDCB x $AC
+"LD H,RES 5,(IYs)" $FDCB x $AC
+"LD H,RES 6,(IXs)" $DDCB x $B4
+"LD H,RES 6,(IYs)" $FDCB x $B4
+"LD H,RES 7,(IXs)" $DDCB x $BC
+"LD H,RES 7,(IYs)" $FDCB x $BC
+"LD H,RL (IXs)" $DDCB x $14
+"LD H,RL (IYs)" $FDCB x $14
+"LD H,RLC (IXs)" $DDCB x $04
+"LD H,RLC (IYs)" $FDCB x $04
+"LD H,RR (IXs)" $DDCB x $1C
+"LD H,RR (IYs)" $FDCB x $1C
+"LD H,RRC (IXs)" $DDCB x $0C
+"LD H,RRC (IYs)" $FDCB x $0C
+"LD H,SET 0,(IXs)" $DDCB x $C4
+"LD H,SET 0,(IYs)" $FDCB x $C4
+"LD H,SET 1,(IXs)" $DDCB x $CC
+"LD H,SET 1,(IYs)" $FDCB x $CC
+"LD H,SET 2,(IXs)" $DDCB x $D4
+"LD H,SET 2,(IYs)" $FDCB x $D4
+"LD H,SET 3,(IXs)" $DDCB x $DC
+"LD H,SET 3,(IYs)" $FDCB x $DC
+"LD H,SET 4,(IXs)" $DDCB x $E4
+"LD H,SET 4,(IYs)" $FDCB x $E4
+"LD H,SET 5,(IXs)" $DDCB x $EC
+"LD H,SET 5,(IYs)" $FDCB x $EC
+"LD H,SET 6,(IXs)" $DDCB x $F4
+"LD H,SET 6,(IYs)" $FDCB x $F4
+"LD H,SET 7,(IXs)" $DDCB x $FC
+"LD H,SET 7,(IYs)" $FDCB x $FC
+"LD H,SLA (IXs)" $DDCB x $24
+"LD H,SLA (IYs)" $FDCB x $24
+"LD H,SLL (IXs)" $DDCB x $34
+"LD H,SLL (IYs)" $FDCB x $34
+"LD H,SRA (IXs)" $DDCB x $2C
+"LD H,SRA (IYs)" $FDCB x $2C
+"LD H,SRL (IXs)" $DDCB x $3C
+"LD H,SRL (IYs)" $FDCB x $3C
 "LD H,x" $26
-"LD HL',(?)" $2a
+"LD HL',(?)" $2A
 "LD HL',?" $21
-"LD HL,(?)" $2a
+"LD HL,(?)" $2A
 "LD HL,?" $21
-"LD HX,A" $dd67
-"LD HX,A'" $dd67
-"LD HX,B" $dd60
-"LD HX,B'" $dd60
-"LD HX,C" $dd61
-"LD HX,C'" $dd61
-"LD HX,D" $dd62
-"LD HX,D'" $dd62
-"LD HX,E" $dd63
-"LD HX,E'" $dd63
-"LD HX,HX" $dd64
-"LD HX,LX" $dd65
-"LD HX,x" $dd26
-"LD HY,A" $fd67
-"LD HY,A'" $fd67
-"LD HY,B" $fd60
-"LD HY,B'" $fd60
-"LD HY,C" $fd61
-"LD HY,C'" $fd61
-"LD HY,D" $fd62
-"LD HY,D'" $fd62
-"LD HY,E" $fd63
-"LD HY,E'" $fd63
-"LD HY,HY" $fd64
-"LD HY,LY" $fd65
-"LD HY,x" $fd26
-"LD I,A" $ed47
-"LD I,A'" $ed47
-"LD IX,(?)" $dd2a
-"LD IX,?" $dd21
-"LD IXH,A" $dd67
-"LD IXH,A'" $dd67
-"LD IXH,B" $dd60
-"LD IXH,B'" $dd60
-"LD IXH,C" $dd61
-"LD IXH,C'" $dd61
-"LD IXH,D" $dd62
-"LD IXH,D'" $dd62
-"LD IXH,E" $dd63
-"LD IXH,E'" $dd63
-"LD IXH,IXH" $dd64
-"LD IXH,IXL" $dd65
-"LD IXH,x" $dd26
-"LD IXL,A" $dd6f
-"LD IXL,A'" $dd6f
-"LD IXL,B" $dd68
-"LD IXL,B'" $dd68
-"LD IXL,C" $dd69
-"LD IXL,C'" $dd69
-"LD IXL,D" $dd6a
-"LD IXL,D'" $dd6a
-"LD IXL,E" $dd6b
-"LD IXL,E'" $dd6b
-"LD IXL,IXH" $dd6c
-"LD IXL,IXL" $dd6d
-"LD IXL,x" $dd2e
-"LD IY,(?)" $fd2a
-"LD IY,?" $fd21
-"LD IYH,A" $fd67
-"LD IYH,A'" $fd67
-"LD IYH,B" $fd60
-"LD IYH,B'" $fd60
-"LD IYH,C" $fd61
-"LD IYH,C'" $fd61
-"LD IYH,D" $fd62
-"LD IYH,D'" $fd62
-"LD IYH,E" $fd63
-"LD IYH,E'" $fd63
-"LD IYH,IYH" $fd64
-"LD IYH,IYL" $fd65
-"LD IYH,x" $fd26
-"LD IYL,A" $fd6f
-"LD IYL,A'" $fd6f
-"LD IYL,B" $fd68
-"LD IYL,B'" $fd68
-"LD IYL,C" $fd69
-"LD IYL,C'" $fd69
-"LD IYL,D" $fd6a
-"LD IYL,D'" $fd6a
-"LD IYL,E" $fd6b
-"LD IYL,E'" $fd6b
-"LD IYL,IYH" $fd6c
-"LD IYL,IYL" $fd6d
-"LD IYL,x" $fd2e
-"LD L',(HL')" $6e
-"LD L',(IXs)" $dd6e
-"LD L',(IYs)" $fd6e
-"LD L',A" $6f
-"LD L',A'" $6f
+"LD HX,A" $DD67
+"LD HX,A'" $DD67
+"LD HX,B" $DD60
+"LD HX,B'" $DD60
+"LD HX,C" $DD61
+"LD HX,C'" $DD61
+"LD HX,D" $DD62
+"LD HX,D'" $DD62
+"LD HX,E" $DD63
+"LD HX,E'" $DD63
+"LD HX,HX" $DD64
+"LD HX,LX" $DD65
+"LD HX,x" $DD26
+"LD HY,A" $FD67
+"LD HY,A'" $FD67
+"LD HY,B" $FD60
+"LD HY,B'" $FD60
+"LD HY,C" $FD61
+"LD HY,C'" $FD61
+"LD HY,D" $FD62
+"LD HY,D'" $FD62
+"LD HY,E" $FD63
+"LD HY,E'" $FD63
+"LD HY,HY" $FD64
+"LD HY,LY" $FD65
+"LD HY,x" $FD26
+"LD I,A" $ED47
+"LD I,A'" $ED47
+"LD IX,(?)" $DD2A
+"LD IX,?" $DD21
+"LD IXH,A" $DD67
+"LD IXH,A'" $DD67
+"LD IXH,B" $DD60
+"LD IXH,B'" $DD60
+"LD IXH,C" $DD61
+"LD IXH,C'" $DD61
+"LD IXH,D" $DD62
+"LD IXH,D'" $DD62
+"LD IXH,E" $DD63
+"LD IXH,E'" $DD63
+"LD IXH,IXH" $DD64
+"LD IXH,IXL" $DD65
+"LD IXH,x" $DD26
+"LD IXL,A" $DD6F
+"LD IXL,A'" $DD6F
+"LD IXL,B" $DD68
+"LD IXL,B'" $DD68
+"LD IXL,C" $DD69
+"LD IXL,C'" $DD69
+"LD IXL,D" $DD6A
+"LD IXL,D'" $DD6A
+"LD IXL,E" $DD6B
+"LD IXL,E'" $DD6B
+"LD IXL,IXH" $DD6C
+"LD IXL,IXL" $DD6D
+"LD IXL,x" $DD2E
+"LD IY,(?)" $FD2A
+"LD IY,?" $FD21
+"LD IYH,A" $FD67
+"LD IYH,A'" $FD67
+"LD IYH,B" $FD60
+"LD IYH,B'" $FD60
+"LD IYH,C" $FD61
+"LD IYH,C'" $FD61
+"LD IYH,D" $FD62
+"LD IYH,D'" $FD62
+"LD IYH,E" $FD63
+"LD IYH,E'" $FD63
+"LD IYH,IYH" $FD64
+"LD IYH,IYL" $FD65
+"LD IYH,x" $FD26
+"LD IYL,A" $FD6F
+"LD IYL,A'" $FD6F
+"LD IYL,B" $FD68
+"LD IYL,B'" $FD68
+"LD IYL,C" $FD69
+"LD IYL,C'" $FD69
+"LD IYL,D" $FD6A
+"LD IYL,D'" $FD6A
+"LD IYL,E" $FD6B
+"LD IYL,E'" $FD6B
+"LD IYL,IYH" $FD6C
+"LD IYL,IYL" $FD6D
+"LD IYL,x" $FD2E
+"LD L',(HL')" $6E
+"LD L',(IXs)" $DD6E
+"LD L',(IYs)" $FD6E
+"LD L',A" $6F
+"LD L',A'" $6F
 "LD L',B'" $68
 "LD L',C'" $69
-"LD L',D'" $6a
-"LD L',E'" $6b
-"LD L',H'" $6c
-"LD L',L'" $6d
-"LD L',RES 0,(IXs)" $ddcb x $85
-"LD L',RES 0,(IYs)" $fdcb x $85
-"LD L',RES 1,(IXs)" $ddcb x $8d
-"LD L',RES 1,(IYs)" $fdcb x $8d
-"LD L',RES 2,(IXs)" $ddcb x $95
-"LD L',RES 2,(IYs)" $fdcb x $95
-"LD L',RES 3,(IXs)" $ddcb x $9d
-"LD L',RES 3,(IYs)" $fdcb x $9d
-"LD L',RES 4,(IXs)" $ddcb x $a5
-"LD L',RES 4,(IYs)" $fdcb x $a5
-"LD L',RES 5,(IXs)" $ddcb x $ad
-"LD L',RES 5,(IYs)" $fdcb x $ad
-"LD L',RES 6,(IXs)" $ddcb x $b5
-"LD L',RES 6,(IYs)" $fdcb x $b5
-"LD L',RES 7,(IXs)" $ddcb x $bd
-"LD L',RES 7,(IYs)" $fdcb x $bd
-"LD L',RL (IXs)" $ddcb x $15
-"LD L',RL (IYs)" $fdcb x $15
-"LD L',RLC (IXs)" $ddcb x $05
-"LD L',RLC (IYs)" $fdcb x $05
-"LD L',RR (IXs)" $ddcb x $1d
-"LD L',RR (IYs)" $fdcb x $1d
-"LD L',RRC (IXs)" $ddcb x $0d
-"LD L',RRC (IYs)" $fdcb x $0d
-"LD L',SET 0,(IXs)" $ddcb x $c5
-"LD L',SET 0,(IYs)" $fdcb x $c5
-"LD L',SET 1,(IXs)" $ddcb x $cd
-"LD L',SET 1,(IYs)" $fdcb x $cd
-"LD L',SET 2,(IXs)" $ddcb x $d5
-"LD L',SET 2,(IYs)" $fdcb x $d5
-"LD L',SET 3,(IXs)" $ddcb x $dd
-"LD L',SET 3,(IYs)" $fdcb x $dd
-"LD L',SET 4,(IXs)" $ddcb x $e5
-"LD L',SET 4,(IYs)" $fdcb x $e5
-"LD L',SET 5,(IXs)" $ddcb x $ed
-"LD L',SET 5,(IYs)" $fdcb x $ed
-"LD L',SET 6,(IXs)" $ddcb x $f5
-"LD L',SET 6,(IYs)" $fdcb x $f5
-"LD L',SET 7,(IXs)" $ddcb x $fd
-"LD L',SET 7,(IYs)" $fdcb x $fd
-"LD L',SLA (IXs)" $ddcb x $25
-"LD L',SLA (IYs)" $fdcb x $25
-"LD L',SLL (IXs)" $ddcb x $35
-"LD L',SLL (IYs)" $fdcb x $35
-"LD L',SRA (IXs)" $ddcb x $2d
-"LD L',SRA (IYs)" $fdcb x $2d
-"LD L',SRL (IXs)" $ddcb x $3d
-"LD L',SRL (IYs)" $fdcb x $3d
-"LD L',x" $2e
-"LD L,(HL)" $6e
-"LD L,(IXs)" $dd6e
-"LD L,(IYs)" $fd6e
-"LD L,A" $6f
-"LD L,A'" $6f
+"LD L',D'" $6A
+"LD L',E'" $6B
+"LD L',H'" $6C
+"LD L',L'" $6D
+"LD L',RES 0,(IXs)" $DDCB x $85
+"LD L',RES 0,(IYs)" $FDCB x $85
+"LD L',RES 1,(IXs)" $DDCB x $8D
+"LD L',RES 1,(IYs)" $FDCB x $8D
+"LD L',RES 2,(IXs)" $DDCB x $95
+"LD L',RES 2,(IYs)" $FDCB x $95
+"LD L',RES 3,(IXs)" $DDCB x $9D
+"LD L',RES 3,(IYs)" $FDCB x $9D
+"LD L',RES 4,(IXs)" $DDCB x $A5
+"LD L',RES 4,(IYs)" $FDCB x $A5
+"LD L',RES 5,(IXs)" $DDCB x $AD
+"LD L',RES 5,(IYs)" $FDCB x $AD
+"LD L',RES 6,(IXs)" $DDCB x $B5
+"LD L',RES 6,(IYs)" $FDCB x $B5
+"LD L',RES 7,(IXs)" $DDCB x $BD
+"LD L',RES 7,(IYs)" $FDCB x $BD
+"LD L',RL (IXs)" $DDCB x $15
+"LD L',RL (IYs)" $FDCB x $15
+"LD L',RLC (IXs)" $DDCB x $05
+"LD L',RLC (IYs)" $FDCB x $05
+"LD L',RR (IXs)" $DDCB x $1D
+"LD L',RR (IYs)" $FDCB x $1D
+"LD L',RRC (IXs)" $DDCB x $0D
+"LD L',RRC (IYs)" $FDCB x $0D
+"LD L',SET 0,(IXs)" $DDCB x $C5
+"LD L',SET 0,(IYs)" $FDCB x $C5
+"LD L',SET 1,(IXs)" $DDCB x $CD
+"LD L',SET 1,(IYs)" $FDCB x $CD
+"LD L',SET 2,(IXs)" $DDCB x $D5
+"LD L',SET 2,(IYs)" $FDCB x $D5
+"LD L',SET 3,(IXs)" $DDCB x $DD
+"LD L',SET 3,(IYs)" $FDCB x $DD
+"LD L',SET 4,(IXs)" $DDCB x $E5
+"LD L',SET 4,(IYs)" $FDCB x $E5
+"LD L',SET 5,(IXs)" $DDCB x $ED
+"LD L',SET 5,(IYs)" $FDCB x $ED
+"LD L',SET 6,(IXs)" $DDCB x $F5
+"LD L',SET 6,(IYs)" $FDCB x $F5
+"LD L',SET 7,(IXs)" $DDCB x $FD
+"LD L',SET 7,(IYs)" $FDCB x $FD
+"LD L',SLA (IXs)" $DDCB x $25
+"LD L',SLA (IYs)" $FDCB x $25
+"LD L',SLL (IXs)" $DDCB x $35
+"LD L',SLL (IYs)" $FDCB x $35
+"LD L',SRA (IXs)" $DDCB x $2D
+"LD L',SRA (IYs)" $FDCB x $2D
+"LD L',SRL (IXs)" $DDCB x $3D
+"LD L',SRL (IYs)" $FDCB x $3D
+"LD L',x" $2E
+"LD L,(HL)" $6E
+"LD L,(IXs)" $DD6E
+"LD L,(IYs)" $FD6E
+"LD L,A" $6F
+"LD L,A'" $6F
 "LD L,B" $68
 "LD L,C" $69
-"LD L,D" $6a
-"LD L,E" $6b
-"LD L,H" $6c
-"LD L,L" $6d
-"LD L,RES 0,(IXs)" $ddcb x $85
-"LD L,RES 0,(IYs)" $fdcb x $85
-"LD L,RES 1,(IXs)" $ddcb x $8d
-"LD L,RES 1,(IYs)" $fdcb x $8d
-"LD L,RES 2,(IXs)" $ddcb x $95
-"LD L,RES 2,(IYs)" $fdcb x $95
-"LD L,RES 3,(IXs)" $ddcb x $9d
-"LD L,RES 3,(IYs)" $fdcb x $9d
-"LD L,RES 4,(IXs)" $ddcb x $a5
-"LD L,RES 4,(IYs)" $fdcb x $a5
-"LD L,RES 5,(IXs)" $ddcb x $ad
-"LD L,RES 5,(IYs)" $fdcb x $ad
-"LD L,RES 6,(IXs)" $ddcb x $b5
-"LD L,RES 6,(IYs)" $fdcb x $b5
-"LD L,RES 7,(IXs)" $ddcb x $bd
-"LD L,RES 7,(IYs)" $fdcb x $bd
-"LD L,RL (IXs)" $ddcb x $15
-"LD L,RL (IYs)" $fdcb x $15
-"LD L,RLC (IXs)" $ddcb x $05
-"LD L,RLC (IYs)" $fdcb x $05
-"LD L,RR (IXs)" $ddcb x $1d
-"LD L,RR (IYs)" $fdcb x $1d
-"LD L,RRC (IXs)" $ddcb x $0d
-"LD L,RRC (IYs)" $fdcb x $0d
-"LD L,SET 0,(IXs)" $ddcb x $c5
-"LD L,SET 0,(IYs)" $fdcb x $c5
-"LD L,SET 1,(IXs)" $ddcb x $cd
-"LD L,SET 1,(IYs)" $fdcb x $cd
-"LD L,SET 2,(IXs)" $ddcb x $d5
-"LD L,SET 2,(IYs)" $fdcb x $d5
-"LD L,SET 3,(IXs)" $ddcb x $dd
-"LD L,SET 3,(IYs)" $fdcb x $dd
-"LD L,SET 4,(IXs)" $ddcb x $e5
-"LD L,SET 4,(IYs)" $fdcb x $e5
-"LD L,SET 5,(IXs)" $ddcb x $ed
-"LD L,SET 5,(IYs)" $fdcb x $ed
-"LD L,SET 6,(IXs)" $ddcb x $f5
-"LD L,SET 6,(IYs)" $fdcb x $f5
-"LD L,SET 7,(IXs)" $ddcb x $fd
-"LD L,SET 7,(IYs)" $fdcb x $fd
-"LD L,SLA (IXs)" $ddcb x $25
-"LD L,SLA (IYs)" $fdcb x $25
-"LD L,SLL (IXs)" $ddcb x $35
-"LD L,SLL (IYs)" $fdcb x $35
-"LD L,SRA (IXs)" $ddcb x $2d
-"LD L,SRA (IYs)" $fdcb x $2d
-"LD L,SRL (IXs)" $ddcb x $3d
-"LD L,SRL (IYs)" $fdcb x $3d
-"LD L,x" $2e
-"LD LX,A" $dd6f
-"LD LX,A'" $dd6f
-"LD LX,B" $dd68
-"LD LX,B'" $dd68
-"LD LX,C" $dd69
-"LD LX,C'" $dd69
-"LD LX,D" $dd6a
-"LD LX,D'" $dd6a
-"LD LX,E" $dd6b
-"LD LX,E'" $dd6b
-"LD LX,HX" $dd6c
-"LD LX,LX" $dd6d
-"LD LX,x" $dd2e
-"LD LY,A" $fd6f
-"LD LY,A'" $fd6f
-"LD LY,B" $fd68
-"LD LY,B'" $fd68
-"LD LY,C" $fd69
-"LD LY,C'" $fd69
-"LD LY,D" $fd6a
-"LD LY,D'" $fd6a
-"LD LY,E" $fd6b
-"LD LY,E'" $fd6b
-"LD LY,HY" $fd6c
-"LD LY,LY" $fd6d
-"LD LY,x" $fd2e
-"LD PC,HL" $e9
-"LD PC,HL'" $e9
-"LD PC,IX" $dde9
-"LD PC,IY" $fde9
-"LD R,A" $ed4f
-"LD R,A'" $ed4f
-"LD SP,(?)" $ed7b
+"LD L,D" $6A
+"LD L,E" $6B
+"LD L,H" $6C
+"LD L,L" $6D
+"LD L,RES 0,(IXs)" $DDCB x $85
+"LD L,RES 0,(IYs)" $FDCB x $85
+"LD L,RES 1,(IXs)" $DDCB x $8D
+"LD L,RES 1,(IYs)" $FDCB x $8D
+"LD L,RES 2,(IXs)" $DDCB x $95
+"LD L,RES 2,(IYs)" $FDCB x $95
+"LD L,RES 3,(IXs)" $DDCB x $9D
+"LD L,RES 3,(IYs)" $FDCB x $9D
+"LD L,RES 4,(IXs)" $DDCB x $A5
+"LD L,RES 4,(IYs)" $FDCB x $A5
+"LD L,RES 5,(IXs)" $DDCB x $AD
+"LD L,RES 5,(IYs)" $FDCB x $AD
+"LD L,RES 6,(IXs)" $DDCB x $B5
+"LD L,RES 6,(IYs)" $FDCB x $B5
+"LD L,RES 7,(IXs)" $DDCB x $BD
+"LD L,RES 7,(IYs)" $FDCB x $BD
+"LD L,RL (IXs)" $DDCB x $15
+"LD L,RL (IYs)" $FDCB x $15
+"LD L,RLC (IXs)" $DDCB x $05
+"LD L,RLC (IYs)" $FDCB x $05
+"LD L,RR (IXs)" $DDCB x $1D
+"LD L,RR (IYs)" $FDCB x $1D
+"LD L,RRC (IXs)" $DDCB x $0D
+"LD L,RRC (IYs)" $FDCB x $0D
+"LD L,SET 0,(IXs)" $DDCB x $C5
+"LD L,SET 0,(IYs)" $FDCB x $C5
+"LD L,SET 1,(IXs)" $DDCB x $CD
+"LD L,SET 1,(IYs)" $FDCB x $CD
+"LD L,SET 2,(IXs)" $DDCB x $D5
+"LD L,SET 2,(IYs)" $FDCB x $D5
+"LD L,SET 3,(IXs)" $DDCB x $DD
+"LD L,SET 3,(IYs)" $FDCB x $DD
+"LD L,SET 4,(IXs)" $DDCB x $E5
+"LD L,SET 4,(IYs)" $FDCB x $E5
+"LD L,SET 5,(IXs)" $DDCB x $ED
+"LD L,SET 5,(IYs)" $FDCB x $ED
+"LD L,SET 6,(IXs)" $DDCB x $F5
+"LD L,SET 6,(IYs)" $FDCB x $F5
+"LD L,SET 7,(IXs)" $DDCB x $FD
+"LD L,SET 7,(IYs)" $FDCB x $FD
+"LD L,SLA (IXs)" $DDCB x $25
+"LD L,SLA (IYs)" $FDCB x $25
+"LD L,SLL (IXs)" $DDCB x $35
+"LD L,SLL (IYs)" $FDCB x $35
+"LD L,SRA (IXs)" $DDCB x $2D
+"LD L,SRA (IYs)" $FDCB x $2D
+"LD L,SRL (IXs)" $DDCB x $3D
+"LD L,SRL (IYs)" $FDCB x $3D
+"LD L,x" $2E
+"LD LX,A" $DD6F
+"LD LX,A'" $DD6F
+"LD LX,B" $DD68
+"LD LX,B'" $DD68
+"LD LX,C" $DD69
+"LD LX,C'" $DD69
+"LD LX,D" $DD6A
+"LD LX,D'" $DD6A
+"LD LX,E" $DD6B
+"LD LX,E'" $DD6B
+"LD LX,HX" $DD6C
+"LD LX,LX" $DD6D
+"LD LX,x" $DD2E
+"LD LY,A" $FD6F
+"LD LY,A'" $FD6F
+"LD LY,B" $FD68
+"LD LY,B'" $FD68
+"LD LY,C" $FD69
+"LD LY,C'" $FD69
+"LD LY,D" $FD6A
+"LD LY,D'" $FD6A
+"LD LY,E" $FD6B
+"LD LY,E'" $FD6B
+"LD LY,HY" $FD6C
+"LD LY,LY" $FD6D
+"LD LY,x" $FD2E
+"LD PC,HL" $E9
+"LD PC,HL'" $E9
+"LD PC,IX" $DDE9
+"LD PC,IY" $FDE9
+"LD R,A" $ED4F
+"LD R,A'" $ED4F
+"LD SP,(?)" $ED7B
 "LD SP,?" $31
-"LD SP,HL" $f9
-"LD SP,HL'" $f9
-"LD SP,IX" $ddf9
-"LD SP,IY" $fdf9
-"LDD" $eda8
-"LDDR" $edb8
-"LDI" $eda0
-"LDIR" $edb0
-"NEG" $ed44
+"LD SP,HL" $F9
+"LD SP,HL'" $F9
+"LD SP,IX" $DDF9
+"LD SP,IY" $FDF9
+"LDD" $EDA8
+"LDDR" $EDB8
+"LDI" $EDA0
+"LDIR" $EDB0
+"NEG" $ED44
 "NOP" $00
-"OR (HL')" $b6
-"OR (HL)" $b6
-"OR (IXs)" $ddb6
-"OR (IYs)" $fdb6
-"OR A" $b7
-"OR A'" $b7
-"OR A',(HL')" $b6
-"OR A',(HL)" $b6
-"OR A',(IXs)" $ddb6
-"OR A',(IYs)" $fdb6
-"OR A',A'" $b7
-"OR A',B" $b0
-"OR A',B'" $b0
-"OR A',C" $b1
-"OR A',C'" $b1
-"OR A',D" $b2
-"OR A',D'" $b2
-"OR A',E" $b3
-"OR A',E'" $b3
-"OR A',H" $b4
-"OR A',H'" $b4
-"OR A',HX" $ddb4
-"OR A',HY" $fdb4
-"OR A',IXH" $ddb4
-"OR A',IXL" $ddb5
-"OR A',IYH" $fdb4
-"OR A',IYL" $fdb5
-"OR A',L" $b5
-"OR A',L'" $b5
-"OR A',LX" $ddb5
-"OR A',LY" $fdb5
-"OR A',x" $f6
-"OR A,(HL')" $b6
-"OR A,(HL)" $b6
-"OR A,(IXs)" $ddb6
-"OR A,(IYs)" $fdb6
-"OR A,A" $b7
-"OR A,B" $b0
-"OR A,B'" $b0
-"OR A,C" $b1
-"OR A,C'" $b1
-"OR A,D" $b2
-"OR A,D'" $b2
-"OR A,E" $b3
-"OR A,E'" $b3
-"OR A,H" $b4
-"OR A,H'" $b4
-"OR A,HX" $ddb4
-"OR A,HY" $fdb4
-"OR A,IXH" $ddb4
-"OR A,IXL" $ddb5
-"OR A,IYH" $fdb4
-"OR A,IYL" $fdb5
-"OR A,L" $b5
-"OR A,L'" $b5
-"OR A,LX" $ddb5
-"OR A,LY" $fdb5
-"OR A,x" $f6
-"OR B" $b0
-"OR B'" $b0
-"OR C" $b1
-"OR C'" $b1
-"OR D" $b2
-"OR D'" $b2
-"OR E" $b3
-"OR E'" $b3
-"OR H" $b4
-"OR H'" $b4
-"OR HX" $ddb4
-"OR HY" $fdb4
-"OR IXH" $ddb4
-"OR IXL" $ddb5
-"OR IYH" $fdb4
-"OR IYL" $fdb5
-"OR L" $b5
-"OR L'" $b5
-"OR LX" $ddb5
-"OR LY" $fdb5
-"OR x" $f6
-"OTDR" $edbb
-"OTIR" $edb3
-"OUT (C'),0" $ed71
-"OUT (C'),A" $ed79
-"OUT (C'),A'" $ed79
-"OUT (C'),B'" $ed41
-"OUT (C'),C'" $ed49
-"OUT (C'),D'" $ed51
-"OUT (C'),E'" $ed59
-"OUT (C'),H'" $ed61
-"OUT (C'),L'" $ed69
-"OUT (C),0" $ed71
-"OUT (C),A" $ed79
-"OUT (C),A'" $ed79
-"OUT (C),B" $ed41
-"OUT (C),C" $ed49
-"OUT (C),D" $ed51
-"OUT (C),E" $ed59
-"OUT (C),H" $ed61
-"OUT (C),L" $ed69
-"OUT (x),A" $d3
-"OUT (x),A'" $d3
-"OUTD" $edab
-"OUTI" $eda3
-"POP AF" $f1
-"POP AF'" $f1
-"POP BC" $c1
-"POP BC'" $c1
-"POP DE" $d1
-"POP DE'" $d1
-"POP HL" $e1
-"POP HL'" $e1
-"POP IX" $dde1
-"POP IY" $fde1
-"PUSH AF" $f5
-"PUSH AF'" $f5
-"PUSH BC" $c5
-"PUSH BC'" $c5
-"PUSH DE" $d5
-"PUSH DE'" $d5
-"PUSH HL" $e5
-"PUSH HL'" $e5
-"PUSH IX" $dde5
-"PUSH IY" $fde5
-"RES 0,(HL')" $cb86
-"RES 0,(HL)" $cb86
-"RES 0,(IXs)" $ddcb x $86
-"RES 0,(IYs)" $fdcb x $86
-"RES 0,A" $cb87
-"RES 0,A'" $cb87
-"RES 0,B" $cb80
-"RES 0,B'" $cb80
-"RES 0,C" $cb81
-"RES 0,C'" $cb81
-"RES 0,D" $cb82
-"RES 0,D'" $cb82
-"RES 0,E" $cb83
-"RES 0,E'" $cb83
-"RES 0,H" $cb84
-"RES 0,H'" $cb84
-"RES 0,L" $cb85
-"RES 0,L'" $cb85
-"RES 1,(HL')" $cb8e
-"RES 1,(HL)" $cb8e
-"RES 1,(IXs)" $ddcb x $8e
-"RES 1,(IYs)" $fdcb x $8e
-"RES 1,A" $cb8f
-"RES 1,A'" $cb8f
-"RES 1,B" $cb88
-"RES 1,B'" $cb88
-"RES 1,C" $cb89
-"RES 1,C'" $cb89
-"RES 1,D" $cb8a
-"RES 1,D'" $cb8a
-"RES 1,E" $cb8b
-"RES 1,E'" $cb8b
-"RES 1,H" $cb8c
-"RES 1,H'" $cb8c
-"RES 1,L" $cb8d
-"RES 1,L'" $cb8d
-"RES 2,(HL')" $cb96
-"RES 2,(HL)" $cb96
-"RES 2,(IXs)" $ddcb x $96
-"RES 2,(IYs)" $fdcb x $96
-"RES 2,A" $cb97
-"RES 2,A'" $cb97
-"RES 2,B" $cb90
-"RES 2,B'" $cb90
-"RES 2,C" $cb91
-"RES 2,C'" $cb91
-"RES 2,D" $cb92
-"RES 2,D'" $cb92
-"RES 2,E" $cb93
-"RES 2,E'" $cb93
-"RES 2,H" $cb94
-"RES 2,H'" $cb94
-"RES 2,L" $cb95
-"RES 2,L'" $cb95
-"RES 3,(HL')" $cb9e
-"RES 3,(HL)" $cb9e
-"RES 3,(IXs)" $ddcb x $9e
-"RES 3,(IYs)" $fdcb x $9e
-"RES 3,A" $cb9f
-"RES 3,A'" $cb9f
-"RES 3,B" $cb98
-"RES 3,B'" $cb98
-"RES 3,C" $cb99
-"RES 3,C'" $cb99
-"RES 3,D" $cb9a
-"RES 3,D'" $cb9a
-"RES 3,E" $cb9b
-"RES 3,E'" $cb9b
-"RES 3,H" $cb9c
-"RES 3,H'" $cb9c
-"RES 3,L" $cb9d
-"RES 3,L'" $cb9d
-"RES 4,(HL')" $cba6
-"RES 4,(HL)" $cba6
-"RES 4,(IXs)" $ddcb x $a6
-"RES 4,(IYs)" $fdcb x $a6
-"RES 4,A" $cba7
-"RES 4,A'" $cba7
-"RES 4,B" $cba0
-"RES 4,B'" $cba0
-"RES 4,C" $cba1
-"RES 4,C'" $cba1
-"RES 4,D" $cba2
-"RES 4,D'" $cba2
-"RES 4,E" $cba3
-"RES 4,E'" $cba3
-"RES 4,H" $cba4
-"RES 4,H'" $cba4
-"RES 4,L" $cba5
-"RES 4,L'" $cba5
-"RES 5,(HL')" $cbae
-"RES 5,(HL)" $cbae
-"RES 5,(IXs)" $ddcb x $ae
-"RES 5,(IYs)" $fdcb x $ae
-"RES 5,A" $cbaf
-"RES 5,A'" $cbaf
-"RES 5,B" $cba8
-"RES 5,B'" $cba8
-"RES 5,C" $cba9
-"RES 5,C'" $cba9
-"RES 5,D" $cbaa
-"RES 5,D'" $cbaa
-"RES 5,E" $cbab
-"RES 5,E'" $cbab
-"RES 5,H" $cbac
-"RES 5,H'" $cbac
-"RES 5,L" $cbad
-"RES 5,L'" $cbad
-"RES 6,(HL')" $cbb6
-"RES 6,(HL)" $cbb6
-"RES 6,(IXs)" $ddcb x $b6
-"RES 6,(IYs)" $fdcb x $b6
-"RES 6,A" $cbb7
-"RES 6,A'" $cbb7
-"RES 6,B" $cbb0
-"RES 6,B'" $cbb0
-"RES 6,C" $cbb1
-"RES 6,C'" $cbb1
-"RES 6,D" $cbb2
-"RES 6,D'" $cbb2
-"RES 6,E" $cbb3
-"RES 6,E'" $cbb3
-"RES 6,H" $cbb4
-"RES 6,H'" $cbb4
-"RES 6,L" $cbb5
-"RES 6,L'" $cbb5
-"RES 7,(HL')" $cbbe
-"RES 7,(HL)" $cbbe
-"RES 7,(IXs)" $ddcb x $be
-"RES 7,(IYs)" $fdcb x $be
-"RES 7,A" $cbbf
-"RES 7,A'" $cbbf
-"RES 7,B" $cbb8
-"RES 7,B'" $cbb8
-"RES 7,C" $cbb9
-"RES 7,C'" $cbb9
-"RES 7,D" $cbba
-"RES 7,D'" $cbba
-"RES 7,E" $cbbb
-"RES 7,E'" $cbbb
-"RES 7,H" $cbbc
-"RES 7,H'" $cbbc
-"RES 7,L" $cbbd
-"RES 7,L'" $cbbd
-"RET C" $d8
-"RET M" $f8
-"RET NC" $d0
-"RET NZ" $c0
-"RET P" $f0
-"RET PE" $e8
-"RET PO" $e0
-"RET Z" $c8
-"RET" $c9
-"RETI" $ed4d
-"RETN" $ed45
-"RL (HL')" $cb16
-"RL (HL)" $cb16
-"RL (IXs)" $ddcb x $16
-"RL (IYs)" $fdcb x $16
-"RL A" $cb17
-"RL A'" $cb17
-"RL B" $cb10
-"RL B'" $cb10
-"RL C" $cb11
-"RL C'" $cb11
-"RL D" $cb12
-"RL D'" $cb12
-"RL E" $cb13
-"RL E'" $cb13
-"RL H" $cb14
-"RL H'" $cb14
-"RL L" $cb15
-"RL L'" $cb15
+"OR (HL')" $B6
+"OR (HL)" $B6
+"OR (IXs)" $DDB6
+"OR (IYs)" $FDB6
+"OR A" $B7
+"OR A'" $B7
+"OR A',(HL')" $B6
+"OR A',(HL)" $B6
+"OR A',(IXs)" $DDB6
+"OR A',(IYs)" $FDB6
+"OR A',A'" $B7
+"OR A',B" $B0
+"OR A',B'" $B0
+"OR A',C" $B1
+"OR A',C'" $B1
+"OR A',D" $B2
+"OR A',D'" $B2
+"OR A',E" $B3
+"OR A',E'" $B3
+"OR A',H" $B4
+"OR A',H'" $B4
+"OR A',HX" $DDB4
+"OR A',HY" $FDB4
+"OR A',IXH" $DDB4
+"OR A',IXL" $DDB5
+"OR A',IYH" $FDB4
+"OR A',IYL" $FDB5
+"OR A',L" $B5
+"OR A',L'" $B5
+"OR A',LX" $DDB5
+"OR A',LY" $FDB5
+"OR A',x" $F6
+"OR A,(HL')" $B6
+"OR A,(HL)" $B6
+"OR A,(IXs)" $DDB6
+"OR A,(IYs)" $FDB6
+"OR A,A" $B7
+"OR A,B" $B0
+"OR A,B'" $B0
+"OR A,C" $B1
+"OR A,C'" $B1
+"OR A,D" $B2
+"OR A,D'" $B2
+"OR A,E" $B3
+"OR A,E'" $B3
+"OR A,H" $B4
+"OR A,H'" $B4
+"OR A,HX" $DDB4
+"OR A,HY" $FDB4
+"OR A,IXH" $DDB4
+"OR A,IXL" $DDB5
+"OR A,IYH" $FDB4
+"OR A,IYL" $FDB5
+"OR A,L" $B5
+"OR A,L'" $B5
+"OR A,LX" $DDB5
+"OR A,LY" $FDB5
+"OR A,x" $F6
+"OR B" $B0
+"OR B'" $B0
+"OR C" $B1
+"OR C'" $B1
+"OR D" $B2
+"OR D'" $B2
+"OR E" $B3
+"OR E'" $B3
+"OR H" $B4
+"OR H'" $B4
+"OR HX" $DDB4
+"OR HY" $FDB4
+"OR IXH" $DDB4
+"OR IXL" $DDB5
+"OR IYH" $FDB4
+"OR IYL" $FDB5
+"OR L" $B5
+"OR L'" $B5
+"OR LX" $DDB5
+"OR LY" $FDB5
+"OR x" $F6
+"OTDR" $EDBB
+"OTIR" $EDB3
+"OUT (C'),0" $ED71
+"OUT (C'),A" $ED79
+"OUT (C'),A'" $ED79
+"OUT (C'),B'" $ED41
+"OUT (C'),C'" $ED49
+"OUT (C'),D'" $ED51
+"OUT (C'),E'" $ED59
+"OUT (C'),H'" $ED61
+"OUT (C'),L'" $ED69
+"OUT (C),0" $ED71
+"OUT (C),A" $ED79
+"OUT (C),A'" $ED79
+"OUT (C),B" $ED41
+"OUT (C),C" $ED49
+"OUT (C),D" $ED51
+"OUT (C),E" $ED59
+"OUT (C),H" $ED61
+"OUT (C),L" $ED69
+"OUT (x),A" $D3
+"OUT (x),A'" $D3
+"OUTD" $EDAB
+"OUTI" $EDA3
+"POP AF" $F1
+"POP AF'" $F1
+"POP BC" $C1
+"POP BC'" $C1
+"POP DE" $D1
+"POP DE'" $D1
+"POP HL" $E1
+"POP HL'" $E1
+"POP IX" $DDE1
+"POP IY" $FDE1
+"PUSH AF" $F5
+"PUSH AF'" $F5
+"PUSH BC" $C5
+"PUSH BC'" $C5
+"PUSH DE" $D5
+"PUSH DE'" $D5
+"PUSH HL" $E5
+"PUSH HL'" $E5
+"PUSH IX" $DDE5
+"PUSH IY" $FDE5
+"RES 0,(HL')" $CB86
+"RES 0,(HL)" $CB86
+"RES 0,(IXs)" $DDCB x $86
+"RES 0,(IXs),A" $DDCB x $87
+"RES 0,(IXs),A'" $DDCB x $87
+"RES 0,(IXs),B" $DDCB x $80
+"RES 0,(IXs),B'" $DDCB x $80
+"RES 0,(IXs),C" $DDCB x $81
+"RES 0,(IXs),C'" $DDCB x $81
+"RES 0,(IXs),D" $DDCB x $82
+"RES 0,(IXs),D'" $DDCB x $82
+"RES 0,(IXs),E" $DDCB x $83
+"RES 0,(IXs),E'" $DDCB x $83
+"RES 0,(IXs),H" $DDCB x $84
+"RES 0,(IXs),H'" $DDCB x $84
+"RES 0,(IXs),L" $DDCB x $85
+"RES 0,(IXs),L'" $DDCB x $85
+"RES 0,(IYs)" $FDCB x $86
+"RES 0,(IYs),A" $FDCB x $87
+"RES 0,(IYs),A'" $FDCB x $87
+"RES 0,(IYs),B" $FDCB x $80
+"RES 0,(IYs),B'" $FDCB x $80
+"RES 0,(IYs),C" $FDCB x $81
+"RES 0,(IYs),C'" $FDCB x $81
+"RES 0,(IYs),D" $FDCB x $82
+"RES 0,(IYs),D'" $FDCB x $82
+"RES 0,(IYs),E" $FDCB x $83
+"RES 0,(IYs),E'" $FDCB x $83
+"RES 0,(IYs),H" $FDCB x $84
+"RES 0,(IYs),H'" $FDCB x $84
+"RES 0,(IYs),L" $FDCB x $85
+"RES 0,(IYs),L'" $FDCB x $85
+"RES 0,A" $CB87
+"RES 0,A'" $CB87
+"RES 0,B" $CB80
+"RES 0,B'" $CB80
+"RES 0,C" $CB81
+"RES 0,C'" $CB81
+"RES 0,D" $CB82
+"RES 0,D'" $CB82
+"RES 0,E" $CB83
+"RES 0,E'" $CB83
+"RES 0,H" $CB84
+"RES 0,H'" $CB84
+"RES 0,L" $CB85
+"RES 0,L'" $CB85
+"RES 1,(HL')" $CB8E
+"RES 1,(HL)" $CB8E
+"RES 1,(IXs)" $DDCB x $8E
+"RES 1,(IXs),A" $DDCB x $8F
+"RES 1,(IXs),A'" $DDCB x $8F
+"RES 1,(IXs),B" $DDCB x $88
+"RES 1,(IXs),B'" $DDCB x $88
+"RES 1,(IXs),C" $DDCB x $89
+"RES 1,(IXs),C'" $DDCB x $89
+"RES 1,(IXs),D" $DDCB x $8A
+"RES 1,(IXs),D'" $DDCB x $8A
+"RES 1,(IXs),E" $DDCB x $8B
+"RES 1,(IXs),E'" $DDCB x $8B
+"RES 1,(IXs),H" $DDCB x $8C
+"RES 1,(IXs),H'" $DDCB x $8C
+"RES 1,(IXs),L" $DDCB x $8D
+"RES 1,(IXs),L'" $DDCB x $8D
+"RES 1,(IYs)" $FDCB x $8E
+"RES 1,(IYs),A" $FDCB x $8F
+"RES 1,(IYs),A'" $FDCB x $8F
+"RES 1,(IYs),B" $FDCB x $88
+"RES 1,(IYs),B'" $FDCB x $88
+"RES 1,(IYs),C" $FDCB x $89
+"RES 1,(IYs),C'" $FDCB x $89
+"RES 1,(IYs),D" $FDCB x $8A
+"RES 1,(IYs),D'" $FDCB x $8A
+"RES 1,(IYs),E" $FDCB x $8B
+"RES 1,(IYs),E'" $FDCB x $8B
+"RES 1,(IYs),H" $FDCB x $8C
+"RES 1,(IYs),H'" $FDCB x $8C
+"RES 1,(IYs),L" $FDCB x $8D
+"RES 1,(IYs),L'" $FDCB x $8D
+"RES 1,A" $CB8F
+"RES 1,A'" $CB8F
+"RES 1,B" $CB88
+"RES 1,B'" $CB88
+"RES 1,C" $CB89
+"RES 1,C'" $CB89
+"RES 1,D" $CB8A
+"RES 1,D'" $CB8A
+"RES 1,E" $CB8B
+"RES 1,E'" $CB8B
+"RES 1,H" $CB8C
+"RES 1,H'" $CB8C
+"RES 1,L" $CB8D
+"RES 1,L'" $CB8D
+"RES 2,(HL')" $CB96
+"RES 2,(HL)" $CB96
+"RES 2,(IXs)" $DDCB x $96
+"RES 2,(IXs),A" $DDCB x $97
+"RES 2,(IXs),A'" $DDCB x $97
+"RES 2,(IXs),B" $DDCB x $90
+"RES 2,(IXs),B'" $DDCB x $90
+"RES 2,(IXs),C" $DDCB x $91
+"RES 2,(IXs),C'" $DDCB x $91
+"RES 2,(IXs),D" $DDCB x $92
+"RES 2,(IXs),D'" $DDCB x $92
+"RES 2,(IXs),E" $DDCB x $93
+"RES 2,(IXs),E'" $DDCB x $93
+"RES 2,(IXs),H" $DDCB x $94
+"RES 2,(IXs),H'" $DDCB x $94
+"RES 2,(IXs),L" $DDCB x $95
+"RES 2,(IXs),L'" $DDCB x $95
+"RES 2,(IYs)" $FDCB x $96
+"RES 2,(IYs),A" $FDCB x $97
+"RES 2,(IYs),A'" $FDCB x $97
+"RES 2,(IYs),B" $FDCB x $90
+"RES 2,(IYs),B'" $FDCB x $90
+"RES 2,(IYs),C" $FDCB x $91
+"RES 2,(IYs),C'" $FDCB x $91
+"RES 2,(IYs),D" $FDCB x $92
+"RES 2,(IYs),D'" $FDCB x $92
+"RES 2,(IYs),E" $FDCB x $93
+"RES 2,(IYs),E'" $FDCB x $93
+"RES 2,(IYs),H" $FDCB x $94
+"RES 2,(IYs),H'" $FDCB x $94
+"RES 2,(IYs),L" $FDCB x $95
+"RES 2,(IYs),L'" $FDCB x $95
+"RES 2,A" $CB97
+"RES 2,A'" $CB97
+"RES 2,B" $CB90
+"RES 2,B'" $CB90
+"RES 2,C" $CB91
+"RES 2,C'" $CB91
+"RES 2,D" $CB92
+"RES 2,D'" $CB92
+"RES 2,E" $CB93
+"RES 2,E'" $CB93
+"RES 2,H" $CB94
+"RES 2,H'" $CB94
+"RES 2,L" $CB95
+"RES 2,L'" $CB95
+"RES 3,(HL')" $CB9E
+"RES 3,(HL)" $CB9E
+"RES 3,(IXs)" $DDCB x $9E
+"RES 3,(IXs),A" $DDCB x $9F
+"RES 3,(IXs),A'" $DDCB x $9F
+"RES 3,(IXs),B" $DDCB x $98
+"RES 3,(IXs),B'" $DDCB x $98
+"RES 3,(IXs),C" $DDCB x $99
+"RES 3,(IXs),C'" $DDCB x $99
+"RES 3,(IXs),D" $DDCB x $9A
+"RES 3,(IXs),D'" $DDCB x $9A
+"RES 3,(IXs),E" $DDCB x $9B
+"RES 3,(IXs),E'" $DDCB x $9B
+"RES 3,(IXs),H" $DDCB x $9C
+"RES 3,(IXs),H'" $DDCB x $9C
+"RES 3,(IXs),L" $DDCB x $9D
+"RES 3,(IXs),L'" $DDCB x $9D
+"RES 3,(IYs)" $FDCB x $9E
+"RES 3,(IYs),A" $FDCB x $9F
+"RES 3,(IYs),A'" $FDCB x $9F
+"RES 3,(IYs),B" $FDCB x $98
+"RES 3,(IYs),B'" $FDCB x $98
+"RES 3,(IYs),C" $FDCB x $99
+"RES 3,(IYs),C'" $FDCB x $99
+"RES 3,(IYs),D" $FDCB x $9A
+"RES 3,(IYs),D'" $FDCB x $9A
+"RES 3,(IYs),E" $FDCB x $9B
+"RES 3,(IYs),E'" $FDCB x $9B
+"RES 3,(IYs),H" $FDCB x $9C
+"RES 3,(IYs),H'" $FDCB x $9C
+"RES 3,(IYs),L" $FDCB x $9D
+"RES 3,(IYs),L'" $FDCB x $9D
+"RES 3,A" $CB9F
+"RES 3,A'" $CB9F
+"RES 3,B" $CB98
+"RES 3,B'" $CB98
+"RES 3,C" $CB99
+"RES 3,C'" $CB99
+"RES 3,D" $CB9A
+"RES 3,D'" $CB9A
+"RES 3,E" $CB9B
+"RES 3,E'" $CB9B
+"RES 3,H" $CB9C
+"RES 3,H'" $CB9C
+"RES 3,L" $CB9D
+"RES 3,L'" $CB9D
+"RES 4,(HL')" $CBA6
+"RES 4,(HL)" $CBA6
+"RES 4,(IXs)" $DDCB x $A6
+"RES 4,(IXs),A" $DDCB x $A7
+"RES 4,(IXs),A'" $DDCB x $A7
+"RES 4,(IXs),B" $DDCB x $A0
+"RES 4,(IXs),B'" $DDCB x $A0
+"RES 4,(IXs),C" $DDCB x $A1
+"RES 4,(IXs),C'" $DDCB x $A1
+"RES 4,(IXs),D" $DDCB x $A2
+"RES 4,(IXs),D'" $DDCB x $A2
+"RES 4,(IXs),E" $DDCB x $A3
+"RES 4,(IXs),E'" $DDCB x $A3
+"RES 4,(IXs),H" $DDCB x $A4
+"RES 4,(IXs),H'" $DDCB x $A4
+"RES 4,(IXs),L" $DDCB x $A5
+"RES 4,(IXs),L'" $DDCB x $A5
+"RES 4,(IYs)" $FDCB x $A6
+"RES 4,(IYs),A" $FDCB x $A7
+"RES 4,(IYs),A'" $FDCB x $A7
+"RES 4,(IYs),B" $FDCB x $A0
+"RES 4,(IYs),B'" $FDCB x $A0
+"RES 4,(IYs),C" $FDCB x $A1
+"RES 4,(IYs),C'" $FDCB x $A1
+"RES 4,(IYs),D" $FDCB x $A2
+"RES 4,(IYs),D'" $FDCB x $A2
+"RES 4,(IYs),E" $FDCB x $A3
+"RES 4,(IYs),E'" $FDCB x $A3
+"RES 4,(IYs),H" $FDCB x $A4
+"RES 4,(IYs),H'" $FDCB x $A4
+"RES 4,(IYs),L" $FDCB x $A5
+"RES 4,(IYs),L'" $FDCB x $A5
+"RES 4,A" $CBA7
+"RES 4,A'" $CBA7
+"RES 4,B" $CBA0
+"RES 4,B'" $CBA0
+"RES 4,C" $CBA1
+"RES 4,C'" $CBA1
+"RES 4,D" $CBA2
+"RES 4,D'" $CBA2
+"RES 4,E" $CBA3
+"RES 4,E'" $CBA3
+"RES 4,H" $CBA4
+"RES 4,H'" $CBA4
+"RES 4,L" $CBA5
+"RES 4,L'" $CBA5
+"RES 5,(HL')" $CBAE
+"RES 5,(HL)" $CBAE
+"RES 5,(IXs)" $DDCB x $AE
+"RES 5,(IXs),A" $DDCB x $AF
+"RES 5,(IXs),A'" $DDCB x $AF
+"RES 5,(IXs),B" $DDCB x $A8
+"RES 5,(IXs),B'" $DDCB x $A8
+"RES 5,(IXs),C" $DDCB x $A9
+"RES 5,(IXs),C'" $DDCB x $A9
+"RES 5,(IXs),D" $DDCB x $AA
+"RES 5,(IXs),D'" $DDCB x $AA
+"RES 5,(IXs),E" $DDCB x $AB
+"RES 5,(IXs),E'" $DDCB x $AB
+"RES 5,(IXs),H" $DDCB x $AC
+"RES 5,(IXs),H'" $DDCB x $AC
+"RES 5,(IXs),L" $DDCB x $AD
+"RES 5,(IXs),L'" $DDCB x $AD
+"RES 5,(IYs)" $FDCB x $AE
+"RES 5,(IYs),A" $FDCB x $AF
+"RES 5,(IYs),A'" $FDCB x $AF
+"RES 5,(IYs),B" $FDCB x $A8
+"RES 5,(IYs),B'" $FDCB x $A8
+"RES 5,(IYs),C" $FDCB x $A9
+"RES 5,(IYs),C'" $FDCB x $A9
+"RES 5,(IYs),D" $FDCB x $AA
+"RES 5,(IYs),D'" $FDCB x $AA
+"RES 5,(IYs),E" $FDCB x $AB
+"RES 5,(IYs),E'" $FDCB x $AB
+"RES 5,(IYs),H" $FDCB x $AC
+"RES 5,(IYs),H'" $FDCB x $AC
+"RES 5,(IYs),L" $FDCB x $AD
+"RES 5,(IYs),L'" $FDCB x $AD
+"RES 5,A" $CBAF
+"RES 5,A'" $CBAF
+"RES 5,B" $CBA8
+"RES 5,B'" $CBA8
+"RES 5,C" $CBA9
+"RES 5,C'" $CBA9
+"RES 5,D" $CBAA
+"RES 5,D'" $CBAA
+"RES 5,E" $CBAB
+"RES 5,E'" $CBAB
+"RES 5,H" $CBAC
+"RES 5,H'" $CBAC
+"RES 5,L" $CBAD
+"RES 5,L'" $CBAD
+"RES 6,(HL')" $CBB6
+"RES 6,(HL)" $CBB6
+"RES 6,(IXs)" $DDCB x $B6
+"RES 6,(IXs),A" $DDCB x $B7
+"RES 6,(IXs),A'" $DDCB x $B7
+"RES 6,(IXs),B" $DDCB x $B0
+"RES 6,(IXs),B'" $DDCB x $B0
+"RES 6,(IXs),C" $DDCB x $B1
+"RES 6,(IXs),C'" $DDCB x $B1
+"RES 6,(IXs),D" $DDCB x $B2
+"RES 6,(IXs),D'" $DDCB x $B2
+"RES 6,(IXs),E" $DDCB x $B3
+"RES 6,(IXs),E'" $DDCB x $B3
+"RES 6,(IXs),H" $DDCB x $B4
+"RES 6,(IXs),H'" $DDCB x $B4
+"RES 6,(IXs),L" $DDCB x $B5
+"RES 6,(IXs),L'" $DDCB x $B5
+"RES 6,(IYs)" $FDCB x $B6
+"RES 6,(IYs),A" $FDCB x $B7
+"RES 6,(IYs),A'" $FDCB x $B7
+"RES 6,(IYs),B" $FDCB x $B0
+"RES 6,(IYs),B'" $FDCB x $B0
+"RES 6,(IYs),C" $FDCB x $B1
+"RES 6,(IYs),C'" $FDCB x $B1
+"RES 6,(IYs),D" $FDCB x $B2
+"RES 6,(IYs),D'" $FDCB x $B2
+"RES 6,(IYs),E" $FDCB x $B3
+"RES 6,(IYs),E'" $FDCB x $B3
+"RES 6,(IYs),H" $FDCB x $B4
+"RES 6,(IYs),H'" $FDCB x $B4
+"RES 6,(IYs),L" $FDCB x $B5
+"RES 6,(IYs),L'" $FDCB x $B5
+"RES 6,A" $CBB7
+"RES 6,A'" $CBB7
+"RES 6,B" $CBB0
+"RES 6,B'" $CBB0
+"RES 6,C" $CBB1
+"RES 6,C'" $CBB1
+"RES 6,D" $CBB2
+"RES 6,D'" $CBB2
+"RES 6,E" $CBB3
+"RES 6,E'" $CBB3
+"RES 6,H" $CBB4
+"RES 6,H'" $CBB4
+"RES 6,L" $CBB5
+"RES 6,L'" $CBB5
+"RES 7,(HL')" $CBBE
+"RES 7,(HL)" $CBBE
+"RES 7,(IXs)" $DDCB x $BE
+"RES 7,(IXs),A" $DDCB x $BF
+"RES 7,(IXs),A'" $DDCB x $BF
+"RES 7,(IXs),B" $DDCB x $B8
+"RES 7,(IXs),B'" $DDCB x $B8
+"RES 7,(IXs),C" $DDCB x $B9
+"RES 7,(IXs),C'" $DDCB x $B9
+"RES 7,(IXs),D" $DDCB x $BA
+"RES 7,(IXs),D'" $DDCB x $BA
+"RES 7,(IXs),E" $DDCB x $BB
+"RES 7,(IXs),E'" $DDCB x $BB
+"RES 7,(IXs),H" $DDCB x $BC
+"RES 7,(IXs),H'" $DDCB x $BC
+"RES 7,(IXs),L" $DDCB x $BD
+"RES 7,(IXs),L'" $DDCB x $BD
+"RES 7,(IYs)" $FDCB x $BE
+"RES 7,(IYs),A" $FDCB x $BF
+"RES 7,(IYs),A'" $FDCB x $BF
+"RES 7,(IYs),B" $FDCB x $B8
+"RES 7,(IYs),B'" $FDCB x $B8
+"RES 7,(IYs),C" $FDCB x $B9
+"RES 7,(IYs),C'" $FDCB x $B9
+"RES 7,(IYs),D" $FDCB x $BA
+"RES 7,(IYs),D'" $FDCB x $BA
+"RES 7,(IYs),E" $FDCB x $BB
+"RES 7,(IYs),E'" $FDCB x $BB
+"RES 7,(IYs),H" $FDCB x $BC
+"RES 7,(IYs),H'" $FDCB x $BC
+"RES 7,(IYs),L" $FDCB x $BD
+"RES 7,(IYs),L'" $FDCB x $BD
+"RES 7,A" $CBBF
+"RES 7,A'" $CBBF
+"RES 7,B" $CBB8
+"RES 7,B'" $CBB8
+"RES 7,C" $CBB9
+"RES 7,C'" $CBB9
+"RES 7,D" $CBBA
+"RES 7,D'" $CBBA
+"RES 7,E" $CBBB
+"RES 7,E'" $CBBB
+"RES 7,H" $CBBC
+"RES 7,H'" $CBBC
+"RES 7,L" $CBBD
+"RES 7,L'" $CBBD
+"RET C" $D8
+"RET M" $F8
+"RET NC" $D0
+"RET NZ" $C0
+"RET P" $F0
+"RET PE" $E8
+"RET PO" $E0
+"RET Z" $C8
+"RET" $C9
+"RETI" $ED4D
+"RETN" $ED45
+"RL (HL')" $CB16
+"RL (HL)" $CB16
+"RL (IXs)" $DDCB x $16
+"RL (IXs),A" $DDCB x $17
+"RL (IXs),A'" $DDCB x $17
+"RL (IXs),B" $DDCB x $10
+"RL (IXs),B'" $DDCB x $10
+"RL (IXs),C" $DDCB x $11
+"RL (IXs),C'" $DDCB x $11
+"RL (IXs),D" $DDCB x $12
+"RL (IXs),D'" $DDCB x $12
+"RL (IXs),E" $DDCB x $13
+"RL (IXs),E'" $DDCB x $13
+"RL (IXs),H" $DDCB x $14
+"RL (IXs),H'" $DDCB x $14
+"RL (IXs),L" $DDCB x $15
+"RL (IXs),L'" $DDCB x $15
+"RL (IYs)" $FDCB x $16
+"RL (IYs),A" $FDCB x $17
+"RL (IYs),A'" $FDCB x $17
+"RL (IYs),B" $FDCB x $10
+"RL (IYs),B'" $FDCB x $10
+"RL (IYs),C" $FDCB x $11
+"RL (IYs),C'" $FDCB x $11
+"RL (IYs),D" $FDCB x $12
+"RL (IYs),D'" $FDCB x $12
+"RL (IYs),E" $FDCB x $13
+"RL (IYs),E'" $FDCB x $13
+"RL (IYs),H" $FDCB x $14
+"RL (IYs),H'" $FDCB x $14
+"RL (IYs),L" $FDCB x $15
+"RL (IYs),L'" $FDCB x $15
+"RL A" $CB17
+"RL A'" $CB17
+"RL B" $CB10
+"RL B'" $CB10
+"RL C" $CB11
+"RL C'" $CB11
+"RL D" $CB12
+"RL D'" $CB12
+"RL E" $CB13
+"RL E'" $CB13
+"RL H" $CB14
+"RL H'" $CB14
+"RL L" $CB15
+"RL L'" $CB15
 "RLA" $17
-"RLC (HL')" $cb06
-"RLC (HL)" $cb06
-"RLC (IXs)" $ddcb x $06
-"RLC (IYs)" $fdcb x $06
-"RLC A" $cb07
-"RLC A'" $cb07
-"RLC B" $cb
-"RLC B'" $cb
-"RLC C" $cb01
-"RLC C'" $cb01
-"RLC D" $cb02
-"RLC D'" $cb02
-"RLC E" $cb03
-"RLC E'" $cb03
-"RLC H" $cb04
-"RLC H'" $cb04
-"RLC L" $cb05
-"RLC L'" $cb05
+"RLC (HL')" $CB06
+"RLC (HL)" $CB06
+"RLC (IXs)" $DDCB x $06
+"RLC (IXs),A" $DDCB x $07
+"RLC (IXs),A'" $DDCB x $07
+"RLC (IXs),B" $DDCB x $00
+"RLC (IXs),B'" $DDCB x $00
+"RLC (IXs),C" $DDCB x $01
+"RLC (IXs),C'" $DDCB x $01
+"RLC (IXs),D" $DDCB x $02
+"RLC (IXs),D'" $DDCB x $02
+"RLC (IXs),E" $DDCB x $03
+"RLC (IXs),E'" $DDCB x $03
+"RLC (IXs),H" $DDCB x $04
+"RLC (IXs),H'" $DDCB x $04
+"RLC (IXs),L" $DDCB x $05
+"RLC (IXs),L'" $DDCB x $05
+"RLC (IYs)" $FDCB x $06
+"RLC (IYs),A" $FDCB x $07
+"RLC (IYs),A'" $FDCB x $07
+"RLC (IYs),B" $FDCB x $00
+"RLC (IYs),B'" $FDCB x $00
+"RLC (IYs),C" $FDCB x $01
+"RLC (IYs),C'" $FDCB x $01
+"RLC (IYs),D" $FDCB x $02
+"RLC (IYs),D'" $FDCB x $02
+"RLC (IYs),E" $FDCB x $03
+"RLC (IYs),E'" $FDCB x $03
+"RLC (IYs),H" $FDCB x $04
+"RLC (IYs),H'" $FDCB x $04
+"RLC (IYs),L" $FDCB x $05
+"RLC (IYs),L'" $FDCB x $05
+"RLC A" $CB07
+"RLC A'" $CB07
+"RLC B" $CB
+"RLC B'" $CB
+"RLC C" $CB01
+"RLC C'" $CB01
+"RLC D" $CB02
+"RLC D'" $CB02
+"RLC E" $CB03
+"RLC E'" $CB03
+"RLC H" $CB04
+"RLC H'" $CB04
+"RLC L" $CB05
+"RLC L'" $CB05
 "RLCA" $07
-"RLD" $ed6f
-"RR (HL')" $cb1e
-"RR (HL)" $cb1e
-"RR (IXs)" $ddcb x $1e
-"RR (IYs)" $fdcb x $1e
-"RR A" $cb1f
-"RR A'" $cb1f
-"RR B" $cb18
-"RR B'" $cb18
-"RR C" $cb19
-"RR C'" $cb19
-"RR D" $cb1a
-"RR D'" $cb1a
-"RR E" $cb1b
-"RR E'" $cb1b
-"RR H" $cb1c
-"RR H'" $cb1c
-"RR L" $cb1d
-"RR L'" $cb1d
-"RRA" $1f
-"RRC (HL')" $cb0e
-"RRC (HL)" $cb0e
-"RRC (IXs)" $ddcb x $0e
-"RRC (IYs)" $fdcb x $0e
-"RRC A" $cb0f
-"RRC A'" $cb0f
-"RRC B" $cb08
-"RRC B'" $cb08
-"RRC C" $cb09
-"RRC C'" $cb09
-"RRC D" $cb0a
-"RRC D'" $cb0a
-"RRC E" $cb0b
-"RRC E'" $cb0b
-"RRC H" $cb0c
-"RRC H'" $cb0c
-"RRC L" $cb0d
-"RRC L'" $cb0d
-"RRCA" $0f
-"RRD" $ed67
+"RLD" $ED6F
+"RR (HL')" $CB1E
+"RR (HL)" $CB1E
+"RR (IXs)" $DDCB x $1E
+"RR (IXs),A" $DDCB x $1F
+"RR (IXs),A'" $DDCB x $1F
+"RR (IXs),B" $DDCB x $18
+"RR (IXs),B'" $DDCB x $18
+"RR (IXs),C" $DDCB x $19
+"RR (IXs),C'" $DDCB x $19
+"RR (IXs),D" $DDCB x $1A
+"RR (IXs),D'" $DDCB x $1A
+"RR (IXs),E" $DDCB x $1B
+"RR (IXs),E'" $DDCB x $1B
+"RR (IXs),H" $DDCB x $1C
+"RR (IXs),H'" $DDCB x $1C
+"RR (IXs),L" $DDCB x $1D
+"RR (IXs),L'" $DDCB x $1D
+"RR (IYs)" $FDCB x $1E
+"RR (IYs),A" $FDCB x $1F
+"RR (IYs),A'" $FDCB x $1F
+"RR (IYs),B" $FDCB x $18
+"RR (IYs),B'" $FDCB x $18
+"RR (IYs),C" $FDCB x $19
+"RR (IYs),C'" $FDCB x $19
+"RR (IYs),D" $FDCB x $1A
+"RR (IYs),D'" $FDCB x $1A
+"RR (IYs),E" $FDCB x $1B
+"RR (IYs),E'" $FDCB x $1B
+"RR (IYs),H" $FDCB x $1C
+"RR (IYs),H'" $FDCB x $1C
+"RR (IYs),L" $FDCB x $1D
+"RR (IYs),L'" $FDCB x $1D
+"RR A" $CB1F
+"RR A'" $CB1F
+"RR B" $CB18
+"RR B'" $CB18
+"RR C" $CB19
+"RR C'" $CB19
+"RR D" $CB1A
+"RR D'" $CB1A
+"RR E" $CB1B
+"RR E'" $CB1B
+"RR H" $CB1C
+"RR H'" $CB1C
+"RR L" $CB1D
+"RR L'" $CB1D
+"RRA" $1F
+"RRC (HL')" $CB0E
+"RRC (HL)" $CB0E
+"RRC (IXs)" $DDCB x $0E
+"RRC (IXs),A" $DDCB x $0F
+"RRC (IXs),A'" $DDCB x $0F
+"RRC (IXs),B" $DDCB x $08
+"RRC (IXs),B'" $DDCB x $08
+"RRC (IXs),C" $DDCB x $09
+"RRC (IXs),C'" $DDCB x $09
+"RRC (IXs),D" $DDCB x $0A
+"RRC (IXs),D'" $DDCB x $0A
+"RRC (IXs),E" $DDCB x $0B
+"RRC (IXs),E'" $DDCB x $0B
+"RRC (IXs),H" $DDCB x $0C
+"RRC (IXs),H'" $DDCB x $0C
+"RRC (IXs),L" $DDCB x $0D
+"RRC (IXs),L'" $DDCB x $0D
+"RRC (IYs)" $FDCB x $0E
+"RRC (IYs),A" $FDCB x $0F
+"RRC (IYs),A'" $FDCB x $0F
+"RRC (IYs),B" $FDCB x $08
+"RRC (IYs),B'" $FDCB x $08
+"RRC (IYs),C" $FDCB x $09
+"RRC (IYs),C'" $FDCB x $09
+"RRC (IYs),D" $FDCB x $0A
+"RRC (IYs),D'" $FDCB x $0A
+"RRC (IYs),E" $FDCB x $0B
+"RRC (IYs),E'" $FDCB x $0B
+"RRC (IYs),H" $FDCB x $0C
+"RRC (IYs),H'" $FDCB x $0C
+"RRC (IYs),L" $FDCB x $0D
+"RRC (IYs),L'" $FDCB x $0D
+"RRC A" $CB0F
+"RRC A'" $CB0F
+"RRC B" $CB08
+"RRC B'" $CB08
+"RRC C" $CB09
+"RRC C'" $CB09
+"RRC D" $CB0A
+"RRC D'" $CB0A
+"RRC E" $CB0B
+"RRC E'" $CB0B
+"RRC H" $CB0C
+"RRC H'" $CB0C
+"RRC L" $CB0D
+"RRC L'" $CB0D
+"RRCA" $0F
+"RRD" $ED67
 "RST *" $00
-"RST 0" $c7
-"RST 16" $d7
-"RST 24" $df
-"RST 32" $e7
-"RST 40" $ef
-"RST 48" $f7
-"RST 56" $ff
-"RST 8" $cf
-"RST" $c7
-"SBC (HL')" $9e
-"SBC (HL)" $9e
-"SBC (IXs)" $dd9e
-"SBC (IYs)" $fd9e
-"SBC A" $9f
-"SBC A'" $9f
-"SBC A',(HL')" $9e
-"SBC A',(HL)" $9e
-"SBC A',(IXs)" $dd9e
-"SBC A',(IYs)" $fd9e
-"SBC A',A'" $9f
+"RST 0" $C7
+"RST 16" $D7
+"RST 24" $DF
+"RST 32" $E7
+"RST 40" $EF
+"RST 48" $F7
+"RST 56" $FF
+"RST 8" $CF
+"RST" $C7
+"SBC (HL')" $9E
+"SBC (HL)" $9E
+"SBC (IXs)" $DD9E
+"SBC (IYs)" $FD9E
+"SBC A" $9F
+"SBC A'" $9F
+"SBC A',(HL')" $9E
+"SBC A',(HL)" $9E
+"SBC A',(IXs)" $DD9E
+"SBC A',(IYs)" $FD9E
+"SBC A',A'" $9F
 "SBC A',B" $98
 "SBC A',B'" $98
 "SBC A',C" $99
 "SBC A',C'" $99
-"SBC A',D" $9a
-"SBC A',D'" $9a
-"SBC A',E" $9b
-"SBC A',E'" $9b
-"SBC A',H" $9c
-"SBC A',H'" $9c
-"SBC A',HX" $dd9c
-"SBC A',HY" $fd9c
-"SBC A',IXH" $dd9c
-"SBC A',IXL" $dd9d
-"SBC A',IYH" $fd9c
-"SBC A',IYL" $fd9d
-"SBC A',L" $9d
-"SBC A',L'" $9d
-"SBC A',LX" $dd9d
-"SBC A',LY" $fd9d
-"SBC A',x" $de
-"SBC A,(HL')" $9e
-"SBC A,(HL)" $9e
-"SBC A,(IXs)" $dd9e
-"SBC A,(IYs)" $fd9e
-"SBC A,A" $9f
+"SBC A',D" $9A
+"SBC A',D'" $9A
+"SBC A',E" $9B
+"SBC A',E'" $9B
+"SBC A',H" $9C
+"SBC A',H'" $9C
+"SBC A',HX" $DD9C
+"SBC A',HY" $FD9C
+"SBC A',IXH" $DD9C
+"SBC A',IXL" $DD9D
+"SBC A',IYH" $FD9C
+"SBC A',IYL" $FD9D
+"SBC A',L" $9D
+"SBC A',L'" $9D
+"SBC A',LX" $DD9D
+"SBC A',LY" $FD9D
+"SBC A',x" $DE
+"SBC A,(HL')" $9E
+"SBC A,(HL)" $9E
+"SBC A,(IXs)" $DD9E
+"SBC A,(IYs)" $FD9E
+"SBC A,A" $9F
 "SBC A,B" $98
 "SBC A,B'" $98
 "SBC A,C" $99
 "SBC A,C'" $99
-"SBC A,D" $9a
-"SBC A,D'" $9a
-"SBC A,E" $9b
-"SBC A,E'" $9b
-"SBC A,H" $9c
-"SBC A,H'" $9c
-"SBC A,HX" $dd9c
-"SBC A,HY" $fd9c
-"SBC A,IXH" $dd9c
-"SBC A,IXL" $dd9d
-"SBC A,IYH" $fd9c
-"SBC A,IYL" $fd9d
-"SBC A,L" $9d
-"SBC A,L'" $9d
-"SBC A,LX" $dd9d
-"SBC A,LY" $fd9d
-"SBC A,x" $de
+"SBC A,D" $9A
+"SBC A,D'" $9A
+"SBC A,E" $9B
+"SBC A,E'" $9B
+"SBC A,H" $9C
+"SBC A,H'" $9C
+"SBC A,HX" $DD9C
+"SBC A,HY" $FD9C
+"SBC A,IXH" $DD9C
+"SBC A,IXL" $DD9D
+"SBC A,IYH" $FD9C
+"SBC A,IYL" $FD9D
+"SBC A,L" $9D
+"SBC A,L'" $9D
+"SBC A,LX" $DD9D
+"SBC A,LY" $FD9D
+"SBC A,x" $DE
 "SBC B" $98
 "SBC B'" $98
 "SBC C" $99
 "SBC C'" $99
-"SBC D" $9a
-"SBC D'" $9a
-"SBC E" $9b
-"SBC E'" $9b
-"SBC H" $9c
-"SBC H'" $9c
-"SBC HL',BC'" $ed42
-"SBC HL',DE'" $ed52
-"SBC HL',HL'" $ed62
-"SBC HL',SP" $ed72
-"SBC HL,BC" $ed42
-"SBC HL,DE" $ed52
-"SBC HL,HL" $ed62
-"SBC HL,SP" $ed72
-"SBC HX" $dd9c
-"SBC HY" $fd9c
-"SBC IXH" $dd9c
-"SBC IXL" $dd9d
-"SBC IYH" $fd9c
-"SBC IYL" $fd9d
-"SBC L" $9d
-"SBC L'" $9d
-"SBC LX" $dd9d
-"SBC LY" $fd9d
-"SBC x" $de
+"SBC D" $9A
+"SBC D'" $9A
+"SBC E" $9B
+"SBC E'" $9B
+"SBC H" $9C
+"SBC H'" $9C
+"SBC HL',BC'" $ED42
+"SBC HL',DE'" $ED52
+"SBC HL',HL'" $ED62
+"SBC HL',SP" $ED72
+"SBC HL,BC" $ED42
+"SBC HL,DE" $ED52
+"SBC HL,HL" $ED62
+"SBC HL,SP" $ED72
+"SBC HX" $DD9C
+"SBC HY" $FD9C
+"SBC IXH" $DD9C
+"SBC IXL" $DD9D
+"SBC IYH" $FD9C
+"SBC IYL" $FD9D
+"SBC L" $9D
+"SBC L'" $9D
+"SBC LX" $DD9D
+"SBC LY" $FD9D
+"SBC x" $DE
 "SCF" $37
-"SET 0,(HL')" $cbc6
-"SET 0,(HL)" $cbc6
-"SET 0,(IXs)" $ddcb x $c6
-"SET 0,(IYs)" $fdcb x $c6
-"SET 0,A" $cbc7
-"SET 0,A'" $cbc7
-"SET 0,B" $cbc0
-"SET 0,B'" $cbc0
-"SET 0,C" $cbc1
-"SET 0,C'" $cbc1
-"SET 0,D" $cbc2
-"SET 0,D'" $cbc2
-"SET 0,E" $cbc3
-"SET 0,E'" $cbc3
-"SET 0,H" $cbc4
-"SET 0,H'" $cbc4
-"SET 0,L" $cbc5
-"SET 0,L'" $cbc5
-"SET 1,(HL')" $cbce
-"SET 1,(HL)" $cbce
-"SET 1,(IXs)" $ddcb x $ce
-"SET 1,(IYs)" $fdcb x $ce
-"SET 1,A" $cbcf
-"SET 1,A'" $cbcf
-"SET 1,B" $cbc8
-"SET 1,B'" $cbc8
-"SET 1,C" $cbc9
-"SET 1,C'" $cbc9
-"SET 1,D" $cbca
-"SET 1,D'" $cbca
-"SET 1,E" $cbcb
-"SET 1,E'" $cbcb
-"SET 1,H" $cbcc
-"SET 1,H'" $cbcc
-"SET 1,L" $cbcd
-"SET 1,L'" $cbcd
-"SET 2,(HL')" $cbd6
-"SET 2,(HL)" $cbd6
-"SET 2,(IXs)" $ddcb x $d6
-"SET 2,(IYs)" $fdcb x $d6
-"SET 2,A" $cbd7
-"SET 2,A'" $cbd7
-"SET 2,B" $cbd0
-"SET 2,B'" $cbd0
-"SET 2,C" $cbd1
-"SET 2,C'" $cbd1
-"SET 2,D" $cbd2
-"SET 2,D'" $cbd2
-"SET 2,E" $cbd3
-"SET 2,E'" $cbd3
-"SET 2,H" $cbd4
-"SET 2,H'" $cbd4
-"SET 2,L" $cbd5
-"SET 2,L'" $cbd5
-"SET 3,(HL')" $cbde
-"SET 3,(HL)" $cbde
-"SET 3,(IXs)" $ddcb x $de
-"SET 3,(IYs)" $fdcb x $de
-"SET 3,A" $cbdf
-"SET 3,A'" $cbdf
-"SET 3,B" $cbd8
-"SET 3,B'" $cbd8
-"SET 3,C" $cbd9
-"SET 3,C'" $cbd9
-"SET 3,D" $cbda
-"SET 3,D'" $cbda
-"SET 3,E" $cbdb
-"SET 3,E'" $cbdb
-"SET 3,H" $cbdc
-"SET 3,H'" $cbdc
-"SET 3,L" $cbdd
-"SET 3,L'" $cbdd
-"SET 4,(HL')" $cbe6
-"SET 4,(HL)" $cbe6
-"SET 4,(IXs)" $ddcb x $e6
-"SET 4,(IYs)" $fdcb x $e6
-"SET 4,A" $cbe7
-"SET 4,A'" $cbe7
-"SET 4,B" $cbe0
-"SET 4,B'" $cbe0
-"SET 4,C" $cbe1
-"SET 4,C'" $cbe1
-"SET 4,D" $cbe2
-"SET 4,D'" $cbe2
-"SET 4,E" $cbe3
-"SET 4,E'" $cbe3
-"SET 4,H" $cbe4
-"SET 4,H'" $cbe4
-"SET 4,L" $cbe5
-"SET 4,L'" $cbe5
-"SET 5,(HL')" $cbee
-"SET 5,(HL)" $cbee
-"SET 5,(IXs)" $ddcb x $ee
-"SET 5,(IYs)" $fdcb x $ee
-"SET 5,A" $cbef
-"SET 5,A'" $cbef
-"SET 5,B" $cbe8
-"SET 5,B'" $cbe8
-"SET 5,C" $cbe9
-"SET 5,C'" $cbe9
-"SET 5,D" $cbea
-"SET 5,D'" $cbea
-"SET 5,E" $cbeb
-"SET 5,E'" $cbeb
-"SET 5,H" $cbec
-"SET 5,H'" $cbec
-"SET 5,L" $cbed
-"SET 5,L'" $cbed
-"SET 6,(HL')" $cbf6
-"SET 6,(HL)" $cbf6
-"SET 6,(IXs)" $ddcb x $f6
-"SET 6,(IYs)" $fdcb x $f6
-"SET 6,A" $cbf7
-"SET 6,A'" $cbf7
-"SET 6,B" $cbf0
-"SET 6,B'" $cbf0
-"SET 6,C" $cbf1
-"SET 6,C'" $cbf1
-"SET 6,D" $cbf2
-"SET 6,D'" $cbf2
-"SET 6,E" $cbf3
-"SET 6,E'" $cbf3
-"SET 6,H" $cbf4
-"SET 6,H'" $cbf4
-"SET 6,L" $cbf5
-"SET 6,L'" $cbf5
-"SET 7,(HL')" $cbfe
-"SET 7,(HL)" $cbfe
-"SET 7,(IXs)" $ddcb x $fe
-"SET 7,(IYs)" $fdcb x $fe
-"SET 7,A" $cbff
-"SET 7,A'" $cbff
-"SET 7,B" $cbf8
-"SET 7,B'" $cbf8
-"SET 7,C" $cbf9
-"SET 7,C'" $cbf9
-"SET 7,D" $cbfa
-"SET 7,D'" $cbfa
-"SET 7,E" $cbfb
-"SET 7,E'" $cbfb
-"SET 7,H" $cbfc
-"SET 7,H'" $cbfc
-"SET 7,L" $cbfd
-"SET 7,L'" $cbfd
-"SLA (HL')" $cb26
-"SLA (HL)" $cb26
-"SLA (IXs)" $ddcb x $26
-"SLA (IYs)" $fdcb x $26
-"SLA A" $cb27
-"SLA A'" $cb27
-"SLA B" $cb20
-"SLA B'" $cb20
-"SLA C" $cb21
-"SLA C'" $cb21
-"SLA D" $cb22
-"SLA D'" $cb22
-"SLA E" $cb23
-"SLA E'" $cb23
-"SLA H" $cb24
-"SLA H'" $cb24
-"SLA L" $cb25
-"SLA L'" $cb25
-"SLL (HL')" $cb36
-"SLL (HL)" $cb36
-"SLL (IXs)" $ddcb x $36
-"SLL (IYs)" $fdcb x $36
-"SLL A" $cb37
-"SLL A'" $cb37
-"SLL B" $cb30
-"SLL B'" $cb30
-"SLL C" $cb31
-"SLL C'" $cb31
-"SLL D" $cb32
-"SLL D'" $cb32
-"SLL E" $cb33
-"SLL E'" $cb33
-"SLL H" $cb34
-"SLL H'" $cb34
-"SLL L" $cb35
-"SLL L'" $cb35
-"SRA (HL')" $cb2e
-"SRA (HL)" $cb2e
-"SRA (IXs)" $ddcb x $2e
-"SRA (IYs)" $fdcb x $2e
-"SRA A" $cb2f
-"SRA A'" $cb2f
-"SRA B" $cb28
-"SRA B'" $cb28
-"SRA C" $cb29
-"SRA C'" $cb29
-"SRA D" $cb2a
-"SRA D'" $cb2a
-"SRA E" $cb2b
-"SRA E'" $cb2b
-"SRA H" $cb2c
-"SRA H'" $cb2c
-"SRA L" $cb2d
-"SRA L'" $cb2d
-"SRL (HL')" $cb3e
-"SRL (HL)" $cb3e
-"SRL (IXs)" $ddcb x $3e
-"SRL (IYs)" $fdcb x $3e
-"SRL A" $cb3f
-"SRL A'" $cb3f
-"SRL B" $cb38
-"SRL B'" $cb38
-"SRL C" $cb39
-"SRL C'" $cb39
-"SRL D" $cb3a
-"SRL D'" $cb3a
-"SRL E" $cb3b
-"SRL E'" $cb3b
-"SRL H" $cb3c
-"SRL H'" $cb3c
-"SRL L" $cb3d
-"SRL L'" $cb3d
+"SET 0,(HL')" $CBC6
+"SET 0,(HL)" $CBC6
+"SET 0,(IXs)" $DDCB x $C6
+"SET 0,(IXs),A" $DDCB x $C7
+"SET 0,(IXs),A'" $DDCB x $C7
+"SET 0,(IXs),B" $DDCB x $C0
+"SET 0,(IXs),B'" $DDCB x $C0
+"SET 0,(IXs),C" $DDCB x $C1
+"SET 0,(IXs),C'" $DDCB x $C1
+"SET 0,(IXs),D" $DDCB x $C2
+"SET 0,(IXs),D'" $DDCB x $C2
+"SET 0,(IXs),E" $DDCB x $C3
+"SET 0,(IXs),E'" $DDCB x $C3
+"SET 0,(IXs),H" $DDCB x $C4
+"SET 0,(IXs),H'" $DDCB x $C4
+"SET 0,(IXs),L" $DDCB x $C5
+"SET 0,(IXs),L'" $DDCB x $C5
+"SET 0,(IYs)" $FDCB x $C6
+"SET 0,(IYs),A" $FDCB x $C7
+"SET 0,(IYs),A'" $FDCB x $C7
+"SET 0,(IYs),B" $FDCB x $C0
+"SET 0,(IYs),B'" $FDCB x $C0
+"SET 0,(IYs),C" $FDCB x $C1
+"SET 0,(IYs),C'" $FDCB x $C1
+"SET 0,(IYs),D" $FDCB x $C2
+"SET 0,(IYs),D'" $FDCB x $C2
+"SET 0,(IYs),E" $FDCB x $C3
+"SET 0,(IYs),E'" $FDCB x $C3
+"SET 0,(IYs),H" $FDCB x $C4
+"SET 0,(IYs),H'" $FDCB x $C4
+"SET 0,(IYs),L" $FDCB x $C5
+"SET 0,(IYs),L'" $FDCB x $C5
+"SET 0,A" $CBC7
+"SET 0,A'" $CBC7
+"SET 0,B" $CBC0
+"SET 0,B'" $CBC0
+"SET 0,C" $CBC1
+"SET 0,C'" $CBC1
+"SET 0,D" $CBC2
+"SET 0,D'" $CBC2
+"SET 0,E" $CBC3
+"SET 0,E'" $CBC3
+"SET 0,H" $CBC4
+"SET 0,H'" $CBC4
+"SET 0,L" $CBC5
+"SET 0,L'" $CBC5
+"SET 1,(HL')" $CBCE
+"SET 1,(HL)" $CBCE
+"SET 1,(IXs)" $DDCB x $CE
+"SET 1,(IXs),A" $DDCB x $CF
+"SET 1,(IXs),A'" $DDCB x $CF
+"SET 1,(IXs),B" $DDCB x $C8
+"SET 1,(IXs),B'" $DDCB x $C8
+"SET 1,(IXs),C" $DDCB x $C9
+"SET 1,(IXs),C'" $DDCB x $C9
+"SET 1,(IXs),D" $DDCB x $CA
+"SET 1,(IXs),D'" $DDCB x $CA
+"SET 1,(IXs),E" $DDCB x $CB
+"SET 1,(IXs),E'" $DDCB x $CB
+"SET 1,(IXs),H" $DDCB x $CC
+"SET 1,(IXs),H'" $DDCB x $CC
+"SET 1,(IXs),L" $DDCB x $CD
+"SET 1,(IXs),L'" $DDCB x $CD
+"SET 1,(IYs)" $FDCB x $CE
+"SET 1,(IYs),A" $FDCB x $CF
+"SET 1,(IYs),A'" $FDCB x $CF
+"SET 1,(IYs),B" $FDCB x $C8
+"SET 1,(IYs),B'" $FDCB x $C8
+"SET 1,(IYs),C" $FDCB x $C9
+"SET 1,(IYs),C'" $FDCB x $C9
+"SET 1,(IYs),D" $FDCB x $CA
+"SET 1,(IYs),D'" $FDCB x $CA
+"SET 1,(IYs),E" $FDCB x $CB
+"SET 1,(IYs),E'" $FDCB x $CB
+"SET 1,(IYs),H" $FDCB x $CC
+"SET 1,(IYs),H'" $FDCB x $CC
+"SET 1,(IYs),L" $FDCB x $CD
+"SET 1,(IYs),L'" $FDCB x $CD
+"SET 1,A" $CBCF
+"SET 1,A'" $CBCF
+"SET 1,B" $CBC8
+"SET 1,B'" $CBC8
+"SET 1,C" $CBC9
+"SET 1,C'" $CBC9
+"SET 1,D" $CBCA
+"SET 1,D'" $CBCA
+"SET 1,E" $CBCB
+"SET 1,E'" $CBCB
+"SET 1,H" $CBCC
+"SET 1,H'" $CBCC
+"SET 1,L" $CBCD
+"SET 1,L'" $CBCD
+"SET 2,(HL')" $CBD6
+"SET 2,(HL)" $CBD6
+"SET 2,(IXs)" $DDCB x $D6
+"SET 2,(IXs),A" $DDCB x $D7
+"SET 2,(IXs),A'" $DDCB x $D7
+"SET 2,(IXs),B" $DDCB x $D0
+"SET 2,(IXs),B'" $DDCB x $D0
+"SET 2,(IXs),C" $DDCB x $D1
+"SET 2,(IXs),C'" $DDCB x $D1
+"SET 2,(IXs),D" $DDCB x $D2
+"SET 2,(IXs),D'" $DDCB x $D2
+"SET 2,(IXs),E" $DDCB x $D3
+"SET 2,(IXs),E'" $DDCB x $D3
+"SET 2,(IXs),H" $DDCB x $D4
+"SET 2,(IXs),H'" $DDCB x $D4
+"SET 2,(IXs),L" $DDCB x $D5
+"SET 2,(IXs),L'" $DDCB x $D5
+"SET 2,(IYs)" $FDCB x $D6
+"SET 2,(IYs),A" $FDCB x $D7
+"SET 2,(IYs),A'" $FDCB x $D7
+"SET 2,(IYs),B" $FDCB x $D0
+"SET 2,(IYs),B'" $FDCB x $D0
+"SET 2,(IYs),C" $FDCB x $D1
+"SET 2,(IYs),C'" $FDCB x $D1
+"SET 2,(IYs),D" $FDCB x $D2
+"SET 2,(IYs),D'" $FDCB x $D2
+"SET 2,(IYs),E" $FDCB x $D3
+"SET 2,(IYs),E'" $FDCB x $D3
+"SET 2,(IYs),H" $FDCB x $D4
+"SET 2,(IYs),H'" $FDCB x $D4
+"SET 2,(IYs),L" $FDCB x $D5
+"SET 2,(IYs),L'" $FDCB x $D5
+"SET 2,A" $CBD7
+"SET 2,A'" $CBD7
+"SET 2,B" $CBD0
+"SET 2,B'" $CBD0
+"SET 2,C" $CBD1
+"SET 2,C'" $CBD1
+"SET 2,D" $CBD2
+"SET 2,D'" $CBD2
+"SET 2,E" $CBD3
+"SET 2,E'" $CBD3
+"SET 2,H" $CBD4
+"SET 2,H'" $CBD4
+"SET 2,L" $CBD5
+"SET 2,L'" $CBD5
+"SET 3,(HL')" $CBDE
+"SET 3,(HL)" $CBDE
+"SET 3,(IXs)" $DDCB x $DE
+"SET 3,(IXs),A" $DDCB x $DF
+"SET 3,(IXs),A'" $DDCB x $DF
+"SET 3,(IXs),B" $DDCB x $D8
+"SET 3,(IXs),B'" $DDCB x $D8
+"SET 3,(IXs),C" $DDCB x $D9
+"SET 3,(IXs),C'" $DDCB x $D9
+"SET 3,(IXs),D" $DDCB x $DA
+"SET 3,(IXs),D'" $DDCB x $DA
+"SET 3,(IXs),E" $DDCB x $DB
+"SET 3,(IXs),E'" $DDCB x $DB
+"SET 3,(IXs),H" $DDCB x $DC
+"SET 3,(IXs),H'" $DDCB x $DC
+"SET 3,(IXs),L" $DDCB x $DD
+"SET 3,(IXs),L'" $DDCB x $DD
+"SET 3,(IYs)" $FDCB x $DE
+"SET 3,(IYs),A" $FDCB x $DF
+"SET 3,(IYs),A'" $FDCB x $DF
+"SET 3,(IYs),B" $FDCB x $D8
+"SET 3,(IYs),B'" $FDCB x $D8
+"SET 3,(IYs),C" $FDCB x $D9
+"SET 3,(IYs),C'" $FDCB x $D9
+"SET 3,(IYs),D" $FDCB x $DA
+"SET 3,(IYs),D'" $FDCB x $DA
+"SET 3,(IYs),E" $FDCB x $DB
+"SET 3,(IYs),E'" $FDCB x $DB
+"SET 3,(IYs),H" $FDCB x $DC
+"SET 3,(IYs),H'" $FDCB x $DC
+"SET 3,(IYs),L" $FDCB x $DD
+"SET 3,(IYs),L'" $FDCB x $DD
+"SET 3,A" $CBDF
+"SET 3,A'" $CBDF
+"SET 3,B" $CBD8
+"SET 3,B'" $CBD8
+"SET 3,C" $CBD9
+"SET 3,C'" $CBD9
+"SET 3,D" $CBDA
+"SET 3,D'" $CBDA
+"SET 3,E" $CBDB
+"SET 3,E'" $CBDB
+"SET 3,H" $CBDC
+"SET 3,H'" $CBDC
+"SET 3,L" $CBDD
+"SET 3,L'" $CBDD
+"SET 4,(HL')" $CBE6
+"SET 4,(HL)" $CBE6
+"SET 4,(IXs)" $DDCB x $E6
+"SET 4,(IXs),A" $DDCB x $E7
+"SET 4,(IXs),A'" $DDCB x $E7
+"SET 4,(IXs),B" $DDCB x $E0
+"SET 4,(IXs),B'" $DDCB x $E0
+"SET 4,(IXs),C" $DDCB x $E1
+"SET 4,(IXs),C'" $DDCB x $E1
+"SET 4,(IXs),D" $DDCB x $E2
+"SET 4,(IXs),D'" $DDCB x $E2
+"SET 4,(IXs),E" $DDCB x $E3
+"SET 4,(IXs),E'" $DDCB x $E3
+"SET 4,(IXs),H" $DDCB x $E4
+"SET 4,(IXs),H'" $DDCB x $E4
+"SET 4,(IXs),L" $DDCB x $E5
+"SET 4,(IXs),L'" $DDCB x $E5
+"SET 4,(IYs)" $FDCB x $E6
+"SET 4,(IYs),A" $FDCB x $E7
+"SET 4,(IYs),A'" $FDCB x $E7
+"SET 4,(IYs),B" $FDCB x $E0
+"SET 4,(IYs),B'" $FDCB x $E0
+"SET 4,(IYs),C" $FDCB x $E1
+"SET 4,(IYs),C'" $FDCB x $E1
+"SET 4,(IYs),D" $FDCB x $E2
+"SET 4,(IYs),D'" $FDCB x $E2
+"SET 4,(IYs),E" $FDCB x $E3
+"SET 4,(IYs),E'" $FDCB x $E3
+"SET 4,(IYs),H" $FDCB x $E4
+"SET 4,(IYs),H'" $FDCB x $E4
+"SET 4,(IYs),L" $FDCB x $E5
+"SET 4,(IYs),L'" $FDCB x $E5
+"SET 4,A" $CBE7
+"SET 4,A'" $CBE7
+"SET 4,B" $CBE0
+"SET 4,B'" $CBE0
+"SET 4,C" $CBE1
+"SET 4,C'" $CBE1
+"SET 4,D" $CBE2
+"SET 4,D'" $CBE2
+"SET 4,E" $CBE3
+"SET 4,E'" $CBE3
+"SET 4,H" $CBE4
+"SET 4,H'" $CBE4
+"SET 4,L" $CBE5
+"SET 4,L'" $CBE5
+"SET 5,(HL')" $CBEE
+"SET 5,(HL)" $CBEE
+"SET 5,(IXs)" $DDCB x $EE
+"SET 5,(IXs),A" $DDCB x $EF
+"SET 5,(IXs),A'" $DDCB x $EF
+"SET 5,(IXs),B" $DDCB x $E8
+"SET 5,(IXs),B'" $DDCB x $E8
+"SET 5,(IXs),C" $DDCB x $E9
+"SET 5,(IXs),C'" $DDCB x $E9
+"SET 5,(IXs),D" $DDCB x $EA
+"SET 5,(IXs),D'" $DDCB x $EA
+"SET 5,(IXs),E" $DDCB x $EB
+"SET 5,(IXs),E'" $DDCB x $EB
+"SET 5,(IXs),H" $DDCB x $EC
+"SET 5,(IXs),H'" $DDCB x $EC
+"SET 5,(IXs),L" $DDCB x $ED
+"SET 5,(IXs),L'" $DDCB x $ED
+"SET 5,(IYs)" $FDCB x $EE
+"SET 5,(IYs),A" $FDCB x $EF
+"SET 5,(IYs),A'" $FDCB x $EF
+"SET 5,(IYs),B" $FDCB x $E8
+"SET 5,(IYs),B'" $FDCB x $E8
+"SET 5,(IYs),C" $FDCB x $E9
+"SET 5,(IYs),C'" $FDCB x $E9
+"SET 5,(IYs),D" $FDCB x $EA
+"SET 5,(IYs),D'" $FDCB x $EA
+"SET 5,(IYs),E" $FDCB x $EB
+"SET 5,(IYs),E'" $FDCB x $EB
+"SET 5,(IYs),H" $FDCB x $EC
+"SET 5,(IYs),H'" $FDCB x $EC
+"SET 5,(IYs),L" $FDCB x $ED
+"SET 5,(IYs),L'" $FDCB x $ED
+"SET 5,A" $CBEF
+"SET 5,A'" $CBEF
+"SET 5,B" $CBE8
+"SET 5,B'" $CBE8
+"SET 5,C" $CBE9
+"SET 5,C'" $CBE9
+"SET 5,D" $CBEA
+"SET 5,D'" $CBEA
+"SET 5,E" $CBEB
+"SET 5,E'" $CBEB
+"SET 5,H" $CBEC
+"SET 5,H'" $CBEC
+"SET 5,L" $CBED
+"SET 5,L'" $CBED
+"SET 6,(HL')" $CBF6
+"SET 6,(HL)" $CBF6
+"SET 6,(IXs)" $DDCB x $F6
+"SET 6,(IXs),A" $DDCB x $F7
+"SET 6,(IXs),A'" $DDCB x $F7
+"SET 6,(IXs),B" $DDCB x $F0
+"SET 6,(IXs),B'" $DDCB x $F0
+"SET 6,(IXs),C" $DDCB x $F1
+"SET 6,(IXs),C'" $DDCB x $F1
+"SET 6,(IXs),D" $DDCB x $F2
+"SET 6,(IXs),D'" $DDCB x $F2
+"SET 6,(IXs),E" $DDCB x $F3
+"SET 6,(IXs),E'" $DDCB x $F3
+"SET 6,(IXs),H" $DDCB x $F4
+"SET 6,(IXs),H'" $DDCB x $F4
+"SET 6,(IXs),L" $DDCB x $F5
+"SET 6,(IXs),L'" $DDCB x $F5
+"SET 6,(IYs)" $FDCB x $F6
+"SET 6,(IYs),A" $FDCB x $F7
+"SET 6,(IYs),A'" $FDCB x $F7
+"SET 6,(IYs),B" $FDCB x $F0
+"SET 6,(IYs),B'" $FDCB x $F0
+"SET 6,(IYs),C" $FDCB x $F1
+"SET 6,(IYs),C'" $FDCB x $F1
+"SET 6,(IYs),D" $FDCB x $F2
+"SET 6,(IYs),D'" $FDCB x $F2
+"SET 6,(IYs),E" $FDCB x $F3
+"SET 6,(IYs),E'" $FDCB x $F3
+"SET 6,(IYs),H" $FDCB x $F4
+"SET 6,(IYs),H'" $FDCB x $F4
+"SET 6,(IYs),L" $FDCB x $F5
+"SET 6,(IYs),L'" $FDCB x $F5
+"SET 6,A" $CBF7
+"SET 6,A'" $CBF7
+"SET 6,B" $CBF0
+"SET 6,B'" $CBF0
+"SET 6,C" $CBF1
+"SET 6,C'" $CBF1
+"SET 6,D" $CBF2
+"SET 6,D'" $CBF2
+"SET 6,E" $CBF3
+"SET 6,E'" $CBF3
+"SET 6,H" $CBF4
+"SET 6,H'" $CBF4
+"SET 6,L" $CBF5
+"SET 6,L'" $CBF5
+"SET 7,(HL')" $CBFE
+"SET 7,(HL)" $CBFE
+"SET 7,(IXs)" $DDCB x $FE
+"SET 7,(IXs),A" $DDCB x $FF
+"SET 7,(IXs),A'" $DDCB x $FF
+"SET 7,(IXs),B" $DDCB x $F8
+"SET 7,(IXs),B'" $DDCB x $F8
+"SET 7,(IXs),C" $DDCB x $F9
+"SET 7,(IXs),C'" $DDCB x $F9
+"SET 7,(IXs),D" $DDCB x $FA
+"SET 7,(IXs),D'" $DDCB x $FA
+"SET 7,(IXs),E" $DDCB x $FB
+"SET 7,(IXs),E'" $DDCB x $FB
+"SET 7,(IXs),H" $DDCB x $FC
+"SET 7,(IXs),H'" $DDCB x $FC
+"SET 7,(IXs),L" $DDCB x $FD
+"SET 7,(IXs),L'" $DDCB x $FD
+"SET 7,(IYs)" $FDCB x $FE
+"SET 7,(IYs),A" $FDCB x $FF
+"SET 7,(IYs),A'" $FDCB x $FF
+"SET 7,(IYs),B" $FDCB x $F8
+"SET 7,(IYs),B'" $FDCB x $F8
+"SET 7,(IYs),C" $FDCB x $F9
+"SET 7,(IYs),C'" $FDCB x $F9
+"SET 7,(IYs),D" $FDCB x $FA
+"SET 7,(IYs),D'" $FDCB x $FA
+"SET 7,(IYs),E" $FDCB x $FB
+"SET 7,(IYs),E'" $FDCB x $FB
+"SET 7,(IYs),H" $FDCB x $FC
+"SET 7,(IYs),H'" $FDCB x $FC
+"SET 7,(IYs),L" $FDCB x $FD
+"SET 7,(IYs),L'" $FDCB x $FD
+"SET 7,A" $CBFF
+"SET 7,A'" $CBFF
+"SET 7,B" $CBF8
+"SET 7,B'" $CBF8
+"SET 7,C" $CBF9
+"SET 7,C'" $CBF9
+"SET 7,D" $CBFA
+"SET 7,D'" $CBFA
+"SET 7,E" $CBFB
+"SET 7,E'" $CBFB
+"SET 7,H" $CBFC
+"SET 7,H'" $CBFC
+"SET 7,L" $CBFD
+"SET 7,L'" $CBFD
+"SL1 (HL')" $CB36
+"SL1 (HL)" $CB36
+"SL1 (IXs)" $DDCB x $36
+"SL1 (IXs),A" $DDCB x $37
+"SL1 (IXs),A'" $DDCB x $37
+"SL1 (IXs),B" $DDCB x $30
+"SL1 (IXs),B'" $DDCB x $30
+"SL1 (IXs),C" $DDCB x $31
+"SL1 (IXs),C'" $DDCB x $31
+"SL1 (IXs),D" $DDCB x $32
+"SL1 (IXs),D'" $DDCB x $32
+"SL1 (IXs),E" $DDCB x $33
+"SL1 (IXs),E'" $DDCB x $33
+"SL1 (IXs),H" $DDCB x $34
+"SL1 (IXs),H'" $DDCB x $34
+"SL1 (IXs),L" $DDCB x $35
+"SL1 (IXs),L'" $DDCB x $35
+"SL1 (IYs)" $FDCB x $36
+"SL1 (IYs),A" $FDCB x $37
+"SL1 (IYs),A'" $FDCB x $37
+"SL1 (IYs),B" $FDCB x $30
+"SL1 (IYs),B'" $FDCB x $30
+"SL1 (IYs),C" $FDCB x $31
+"SL1 (IYs),C'" $FDCB x $31
+"SL1 (IYs),D" $FDCB x $32
+"SL1 (IYs),D'" $FDCB x $32
+"SL1 (IYs),E" $FDCB x $33
+"SL1 (IYs),E'" $FDCB x $33
+"SL1 (IYs),H" $FDCB x $34
+"SL1 (IYs),H'" $FDCB x $34
+"SL1 (IYs),L" $FDCB x $35
+"SL1 (IYs),L'" $FDCB x $35
+"SL1 A" $CB37
+"SL1 A'" $CB37
+"SL1 B" $CB30
+"SL1 B'" $CB30
+"SL1 C" $CB31
+"SL1 C'" $CB31
+"SL1 D" $CB32
+"SL1 D'" $CB32
+"SL1 E" $CB33
+"SL1 E'" $CB33
+"SL1 H" $CB34
+"SL1 H'" $CB34
+"SL1 L" $CB35
+"SL1 L'" $CB35
+"SLA (HL')" $CB26
+"SLA (HL)" $CB26
+"SLA (IXs)" $DDCB x $26
+"SLA (IXs),A" $DDCB x $27
+"SLA (IXs),A'" $DDCB x $27
+"SLA (IXs),B" $DDCB x $20
+"SLA (IXs),B'" $DDCB x $20
+"SLA (IXs),C" $DDCB x $21
+"SLA (IXs),C'" $DDCB x $21
+"SLA (IXs),D" $DDCB x $22
+"SLA (IXs),D'" $DDCB x $22
+"SLA (IXs),E" $DDCB x $23
+"SLA (IXs),E'" $DDCB x $23
+"SLA (IXs),H" $DDCB x $24
+"SLA (IXs),H'" $DDCB x $24
+"SLA (IXs),L" $DDCB x $25
+"SLA (IXs),L'" $DDCB x $25
+"SLA (IYs)" $FDCB x $26
+"SLA (IYs),A" $FDCB x $27
+"SLA (IYs),A'" $FDCB x $27
+"SLA (IYs),B" $FDCB x $20
+"SLA (IYs),B'" $FDCB x $20
+"SLA (IYs),C" $FDCB x $21
+"SLA (IYs),C'" $FDCB x $21
+"SLA (IYs),D" $FDCB x $22
+"SLA (IYs),D'" $FDCB x $22
+"SLA (IYs),E" $FDCB x $23
+"SLA (IYs),E'" $FDCB x $23
+"SLA (IYs),H" $FDCB x $24
+"SLA (IYs),H'" $FDCB x $24
+"SLA (IYs),L" $FDCB x $25
+"SLA (IYs),L'" $FDCB x $25
+"SLA A" $CB27
+"SLA A'" $CB27
+"SLA B" $CB20
+"SLA B'" $CB20
+"SLA C" $CB21
+"SLA C'" $CB21
+"SLA D" $CB22
+"SLA D'" $CB22
+"SLA E" $CB23
+"SLA E'" $CB23
+"SLA H" $CB24
+"SLA H'" $CB24
+"SLA L" $CB25
+"SLA L'" $CB25
+"SLL (HL')" $CB36
+"SLL (HL)" $CB36
+"SLL (IXs)" $DDCB x $36
+"SLL (IXs),A" $DDCB x $37
+"SLL (IXs),A'" $DDCB x $37
+"SLL (IXs),B" $DDCB x $30
+"SLL (IXs),B'" $DDCB x $30
+"SLL (IXs),C" $DDCB x $31
+"SLL (IXs),C'" $DDCB x $31
+"SLL (IXs),D" $DDCB x $32
+"SLL (IXs),D'" $DDCB x $32
+"SLL (IXs),E" $DDCB x $33
+"SLL (IXs),E'" $DDCB x $33
+"SLL (IXs),H" $DDCB x $34
+"SLL (IXs),H'" $DDCB x $34
+"SLL (IXs),L" $DDCB x $35
+"SLL (IXs),L'" $DDCB x $35
+"SLL (IYs)" $FDCB x $36
+"SLL (IYs),A" $FDCB x $37
+"SLL (IYs),A'" $FDCB x $37
+"SLL (IYs),B" $FDCB x $30
+"SLL (IYs),B'" $FDCB x $30
+"SLL (IYs),C" $FDCB x $31
+"SLL (IYs),C'" $FDCB x $31
+"SLL (IYs),D" $FDCB x $32
+"SLL (IYs),D'" $FDCB x $32
+"SLL (IYs),E" $FDCB x $33
+"SLL (IYs),E'" $FDCB x $33
+"SLL (IYs),H" $FDCB x $34
+"SLL (IYs),H'" $FDCB x $34
+"SLL (IYs),L" $FDCB x $35
+"SLL (IYs),L'" $FDCB x $35
+"SLL A" $CB37
+"SLL A'" $CB37
+"SLL B" $CB30
+"SLL B'" $CB30
+"SLL C" $CB31
+"SLL C'" $CB31
+"SLL D" $CB32
+"SLL D'" $CB32
+"SLL E" $CB33
+"SLL E'" $CB33
+"SLL H" $CB34
+"SLL H'" $CB34
+"SLL L" $CB35
+"SLL L'" $CB35
+"SRA (HL')" $CB2E
+"SRA (HL)" $CB2E
+"SRA (IXs)" $DDCB x $2E
+"SRA (IXs),A" $DDCB x $2F
+"SRA (IXs),A'" $DDCB x $2F
+"SRA (IXs),B" $DDCB x $28
+"SRA (IXs),B'" $DDCB x $28
+"SRA (IXs),C" $DDCB x $29
+"SRA (IXs),C'" $DDCB x $29
+"SRA (IXs),D" $DDCB x $2A
+"SRA (IXs),D'" $DDCB x $2A
+"SRA (IXs),E" $DDCB x $2B
+"SRA (IXs),E'" $DDCB x $2B
+"SRA (IXs),H" $DDCB x $2C
+"SRA (IXs),H'" $DDCB x $2C
+"SRA (IXs),L" $DDCB x $2D
+"SRA (IXs),L'" $DDCB x $2D
+"SRA (IYs)" $FDCB x $2E
+"SRA (IYs),A" $FDCB x $2F
+"SRA (IYs),A'" $FDCB x $2F
+"SRA (IYs),B" $FDCB x $28
+"SRA (IYs),B'" $FDCB x $28
+"SRA (IYs),C" $FDCB x $29
+"SRA (IYs),C'" $FDCB x $29
+"SRA (IYs),D" $FDCB x $2A
+"SRA (IYs),D'" $FDCB x $2A
+"SRA (IYs),E" $FDCB x $2B
+"SRA (IYs),E'" $FDCB x $2B
+"SRA (IYs),H" $FDCB x $2C
+"SRA (IYs),H'" $FDCB x $2C
+"SRA (IYs),L" $FDCB x $2D
+"SRA (IYs),L'" $FDCB x $2D
+"SRA A" $CB2F
+"SRA A'" $CB2F
+"SRA B" $CB28
+"SRA B'" $CB28
+"SRA C" $CB29
+"SRA C'" $CB29
+"SRA D" $CB2A
+"SRA D'" $CB2A
+"SRA E" $CB2B
+"SRA E'" $CB2B
+"SRA H" $CB2C
+"SRA H'" $CB2C
+"SRA L" $CB2D
+"SRA L'" $CB2D
+"SRL (HL')" $CB3E
+"SRL (HL)" $CB3E
+"SRL (IXs)" $DDCB x $3E
+"SRL (IXs),A" $DDCB x $3F
+"SRL (IXs),A'" $DDCB x $3F
+"SRL (IXs),B" $DDCB x $38
+"SRL (IXs),B'" $DDCB x $38
+"SRL (IXs),C" $DDCB x $39
+"SRL (IXs),C'" $DDCB x $39
+"SRL (IXs),D" $DDCB x $3A
+"SRL (IXs),D'" $DDCB x $3A
+"SRL (IXs),E" $DDCB x $3B
+"SRL (IXs),E'" $DDCB x $3B
+"SRL (IXs),H" $DDCB x $3C
+"SRL (IXs),H'" $DDCB x $3C
+"SRL (IXs),L" $DDCB x $3D
+"SRL (IXs),L'" $DDCB x $3D
+"SRL (IYs)" $FDCB x $3E
+"SRL (IYs),A" $FDCB x $3F
+"SRL (IYs),A'" $FDCB x $3F
+"SRL (IYs),B" $FDCB x $38
+"SRL (IYs),B'" $FDCB x $38
+"SRL (IYs),C" $FDCB x $39
+"SRL (IYs),C'" $FDCB x $39
+"SRL (IYs),D" $FDCB x $3A
+"SRL (IYs),D'" $FDCB x $3A
+"SRL (IYs),E" $FDCB x $3B
+"SRL (IYs),E'" $FDCB x $3B
+"SRL (IYs),H" $FDCB x $3C
+"SRL (IYs),H'" $FDCB x $3C
+"SRL (IYs),L" $FDCB x $3D
+"SRL (IYs),L'" $FDCB x $3D
+"SRL A" $CB3F
+"SRL A'" $CB3F
+"SRL B" $CB38
+"SRL B'" $CB38
+"SRL C" $CB39
+"SRL C'" $CB39
+"SRL D" $CB3A
+"SRL D'" $CB3A
+"SRL E" $CB3B
+"SRL E'" $CB3B
+"SRL H" $CB3C
+"SRL H'" $CB3C
+"SRL L" $CB3D
+"SRL L'" $CB3D
 "SUB (HL')" $96
 "SUB (HL)" $96
-"SUB (IXs)" $dd96
-"SUB (IYs)" $fd96
+"SUB (IXs)" $DD96
+"SUB (IYs)" $FD96
 "SUB A" $97
 "SUB A'" $97
 "SUB A',(HL')" $96
 "SUB A',(HL)" $96
-"SUB A',(IXs)" $dd96
-"SUB A',(IYs)" $fd96
+"SUB A',(IXs)" $DD96
+"SUB A',(IYs)" $FD96
 "SUB A',A'" $97
 "SUB A',B" $90
 "SUB A',B'" $90
@@ -2496,21 +3214,21 @@ s = 8bit 2's complement ([-128, +127])
 "SUB A',E'" $93
 "SUB A',H" $94
 "SUB A',H'" $94
-"SUB A',HX" $dd94
-"SUB A',HY" $fd94
-"SUB A',IXH" $dd94
-"SUB A',IXL" $dd95
-"SUB A',IYH" $fd94
-"SUB A',IYL" $fd95
+"SUB A',HX" $DD94
+"SUB A',HY" $FD94
+"SUB A',IXH" $DD94
+"SUB A',IXL" $DD95
+"SUB A',IYH" $FD94
+"SUB A',IYL" $FD95
 "SUB A',L" $95
 "SUB A',L'" $95
-"SUB A',LX" $dd95
-"SUB A',LY" $fd95
-"SUB A',x" $d6
+"SUB A',LX" $DD95
+"SUB A',LY" $FD95
+"SUB A',x" $D6
 "SUB A,(HL')" $96
 "SUB A,(HL)" $96
-"SUB A,(IXs)" $dd96
-"SUB A,(IYs)" $fd96
+"SUB A,(IXs)" $DD96
+"SUB A,(IYs)" $FD96
 "SUB A,A" $97
 "SUB A,B" $90
 "SUB A,B'" $90
@@ -2522,17 +3240,17 @@ s = 8bit 2's complement ([-128, +127])
 "SUB A,E'" $93
 "SUB A,H" $94
 "SUB A,H'" $94
-"SUB A,HX" $dd94
-"SUB A,HY" $fd94
-"SUB A,IXH" $dd94
-"SUB A,IXL" $dd95
-"SUB A,IYH" $fd94
-"SUB A,IYL" $fd95
+"SUB A,HX" $DD94
+"SUB A,HY" $FD94
+"SUB A,IXH" $DD94
+"SUB A,IXL" $DD95
+"SUB A,IYH" $FD94
+"SUB A,IYL" $FD95
 "SUB A,L" $95
 "SUB A,L'" $95
-"SUB A,LX" $dd95
-"SUB A,LY" $fd95
-"SUB A,x" $d6
+"SUB A,LX" $DD95
+"SUB A,LY" $FD95
+"SUB A,x" $D6
 "SUB B" $90
 "SUB B'" $90
 "SUB C" $91
@@ -2543,93 +3261,93 @@ s = 8bit 2's complement ([-128, +127])
 "SUB E'" $93
 "SUB H" $94
 "SUB H'" $94
-"SUB HX" $dd94
-"SUB HY" $fd94
-"SUB IXH" $dd94
-"SUB IXL" $dd95
-"SUB IYH" $fd94
-"SUB IYL" $fd95
+"SUB HX" $DD94
+"SUB HY" $FD94
+"SUB IXH" $DD94
+"SUB IXL" $DD95
+"SUB IYH" $FD94
+"SUB IYL" $FD95
 "SUB L" $95
 "SUB L'" $95
-"SUB LX" $dd95
-"SUB LY" $fd95
-"SUB x" $d6
-"XOR (HL')" $ae
-"XOR (HL)" $ae
-"XOR (IXs)" $ddae
-"XOR (IYs)" $fdae
-"XOR A" $af
-"XOR A'" $af
-"XOR A',(HL')" $ae
-"XOR A',(HL)" $ae
-"XOR A',(IXs)" $ddae
-"XOR A',(IYs)" $fdae
-"XOR A',A'" $af
-"XOR A',B" $a8
-"XOR A',B'" $a8
-"XOR A',C" $a9
-"XOR A',C'" $a9
-"XOR A',D" $aa
-"XOR A',D'" $aa
-"XOR A',E" $ab
-"XOR A',E'" $ab
-"XOR A',H" $ac
-"XOR A',H'" $ac
-"XOR A',HX" $ddac
-"XOR A',HY" $fdac
-"XOR A',IXH" $ddac
-"XOR A',IXL" $ddad
-"XOR A',IYH" $fdac
-"XOR A',IYL" $fdad
-"XOR A',L" $ad
-"XOR A',L'" $ad
-"XOR A',LX" $ddad
-"XOR A',LY" $fdad
-"XOR A',x" $ee
-"XOR A,(HL')" $ae
-"XOR A,(HL)" $ae
-"XOR A,(IXs)" $ddae
-"XOR A,(IYs)" $fdae
-"XOR A,A" $af
-"XOR A,B" $a8
-"XOR A,B'" $a8
-"XOR A,C" $a9
-"XOR A,C'" $a9
-"XOR A,D" $aa
-"XOR A,D'" $aa
-"XOR A,E" $ab
-"XOR A,E'" $ab
-"XOR A,H" $ac
-"XOR A,H'" $ac
-"XOR A,HX" $ddac
-"XOR A,HY" $fdac
-"XOR A,IXH" $ddac
-"XOR A,IXL" $ddad
-"XOR A,IYH" $fdac
-"XOR A,IYL" $fdad
-"XOR A,L" $ad
-"XOR A,L'" $ad
-"XOR A,LX" $ddad
-"XOR A,LY" $fdad
-"XOR A,x" $ee
-"XOR B" $a8
-"XOR B'" $a8
-"XOR C" $a9
-"XOR C'" $a9
-"XOR D" $aa
-"XOR D'" $aa
-"XOR E" $ab
-"XOR E'" $ab
-"XOR H" $ac
-"XOR H'" $ac
-"XOR HX" $ddac
-"XOR HY" $fdac
-"XOR IXH" $ddac
-"XOR IXL" $ddad
-"XOR IYH" $fdac
-"XOR IYL" $fdad
-"XOR L" $ad
-"XOR L'" $ad
-"XOR LX" $ddad
-"XOR LY" $fdad
-"XOR x" $ee
+"SUB LX" $DD95
+"SUB LY" $FD95
+"SUB x" $D6
+"XOR (HL')" $AE
+"XOR (HL)" $AE
+"XOR (IXs)" $DDAE
+"XOR (IYs)" $FDAE
+"XOR A" $AF
+"XOR A'" $AF
+"XOR A',(HL')" $AE
+"XOR A',(HL)" $AE
+"XOR A',(IXs)" $DDAE
+"XOR A',(IYs)" $FDAE
+"XOR A',A'" $AF
+"XOR A',B" $A8
+"XOR A',B'" $A8
+"XOR A',C" $A9
+"XOR A',C'" $A9
+"XOR A',D" $AA
+"XOR A',D'" $AA
+"XOR A',E" $AB
+"XOR A',E'" $AB
+"XOR A',H" $AC
+"XOR A',H'" $AC
+"XOR A',HX" $DDAC
+"XOR A',HY" $FDAC
+"XOR A',IXH" $DDAC
+"XOR A',IXL" $DDAD
+"XOR A',IYH" $FDAC
+"XOR A',IYL" $FDAD
+"XOR A',L" $AD
+"XOR A',L'" $AD
+"XOR A',LX" $DDAD
+"XOR A',LY" $FDAD
+"XOR A',x" $EE
+"XOR A,(HL')" $AE
+"XOR A,(HL)" $AE
+"XOR A,(IXs)" $DDAE
+"XOR A,(IYs)" $FDAE
+"XOR A,A" $AF
+"XOR A,B" $A8
+"XOR A,B'" $A8
+"XOR A,C" $A9
+"XOR A,C'" $A9
+"XOR A,D" $AA
+"XOR A,D'" $AA
+"XOR A,E" $AB
+"XOR A,E'" $AB
+"XOR A,H" $AC
+"XOR A,H'" $AC
+"XOR A,HX" $DDAC
+"XOR A,HY" $FDAC
+"XOR A,IXH" $DDAC
+"XOR A,IXL" $DDAD
+"XOR A,IYH" $FDAC
+"XOR A,IYL" $FDAD
+"XOR A,L" $AD
+"XOR A,L'" $AD
+"XOR A,LX" $DDAD
+"XOR A,LY" $FDAD
+"XOR A,x" $EE
+"XOR B" $A8
+"XOR B'" $A8
+"XOR C" $A9
+"XOR C'" $A9
+"XOR D" $AA
+"XOR D'" $AA
+"XOR E" $AB
+"XOR E'" $AB
+"XOR H" $AC
+"XOR H'" $AC
+"XOR HX" $DDAC
+"XOR HY" $FDAC
+"XOR IXH" $DDAC
+"XOR IXL" $DDAD
+"XOR IYH" $FDAC
+"XOR IYL" $FDAD
+"XOR L" $AD
+"XOR L'" $AD
+"XOR LX" $DDAD
+"XOR LY" $FDAD
+"XOR x" $EE

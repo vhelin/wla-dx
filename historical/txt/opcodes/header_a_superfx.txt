@@ -1,0 +1,14 @@
+
+WLA DX: SuperFX mnemonics listed in alphabetical order
+
+If you notice any errors or something is missing, please
+open an issue @ https://github.com/vhelin/wla-dx
+
+
+* = [min, max]
+e = signed 8bit
+x = 8bit
+y = 9bit
+? = 16bit
+
+
