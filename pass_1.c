@@ -1440,6 +1440,24 @@ int localize_path(char *path) {
       path[i] = '/';
 #endif
   }
+  
+#if defined(AMIGA)
+  {
+    int j;
+    
+    /* on Amiga we need to remove all instances of ".." (back one dir) as they are not needed */
+    for (i = 0, j = 0; path[i] != 0; i++, j++) {
+      if (path[i] == '.' && path[i+1] == '.') {
+        i++;
+        j--;
+      }
+      else
+        path[j] = path[i];
+    }
+
+    path[j] = 0;
+  }
+#endif
 
   return SUCCEEDED;
 }

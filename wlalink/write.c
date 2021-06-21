@@ -3606,7 +3606,7 @@ int is_label_ok_for_sizeof(char *label) {
 }
 
 
-static int _create_ram_bank_usage_label(int bank, int slot, char *slot_name, char *start_or_end, int address) {
+static int _create_ram_bank_usage_label(int bank, int slot, char *slot_name, const char *start_or_end, int address) {
 
   struct label *l;
 

@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------
 
-v10.0 (01-Jun-2021) [ALL] WARNING: Precedence of operators in calculations
+v10.0 (21-Jun-2021) [ALL] WARNING: Precedence of operators in calculations
                       that WLA calculates is now more fine grained and C like.
                     [ALL] WARNING: .ASC didn't map \0 and \x inside a string,
                       but now all bytes given to .ASC are mapped. Consider
@@ -67,6 +67,8 @@ v10.0 (01-Jun-2021) [ALL] WARNING: Precedence of operators in calculations
                       (get the low word, bits 0-15), HIWORD() (get the high
                       word, bits 16-31), BANKBYTE() (get the bank byte,
                       bits 16-23) and BANK() (get the bank).
+                    [ALL] Unix file paths in assembly files (.INCDIR...)
+                      should now work Amiga.
                     [SFX] Added Super FX support.
                     [GB ] Added alias "CPL A" (of "CPL").
                     [GB ] Added support for "STOP $01" - "STOP" with extra
@@ -1293,7 +1295,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.15 (30-May-2021) Fixed listfile writing when there is no listfile data
+v5.15 (21-Jun-2021) Fixed listfile writing when there is no listfile data
                       in object files.
                     It's possible to give binary values in [definitions].
                     Pending 32-bit calculations work now in bankheader
