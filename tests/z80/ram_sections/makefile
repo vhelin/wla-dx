@@ -8,7 +8,9 @@ SFILES = sms.s
 IFILES = 
 OFILES = sms.o library.lib
 
-all: $(OFILES) makefile
+all: linked.rom check
+
+linked.rom: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.rom
 
 sms.o: sms.s
@@ -17,6 +19,8 @@ sms.o: sms.s
 library.lib: library.s
 	$(CC) -l library.lib library.s
 
+check:
+	byte_tester -s sms.s
 
 $(OFILES): $(HFILES)
 

@@ -157,9 +157,13 @@ vertices3 instanceof point 2
 
 
 .BLOCK "Hello"
-.db "01>"
-.db 1, 2, MINUS_THREE * MINUS_ONE, 4, 5, MINUS_ONE, MINUS_THREE
-.db "<01"
+
+; @BT linked.rom
+.db "01>"                               ; @BT TEST-01 01 START
+.db 1, 2, MINUS_THREE * MINUS_ONE,      ; @BT 01 02 03
+.db 4, 5, MINUS_ONE, MINUS_THREE        ; @BT 04 05 FF FD
+.db "<01"                               ; @BT END
+
 .BLOCK "Hi!"
 .db 6, 7, 8
 .dw otherVar1, points2, otherVar3, library_hook, rs3b0_a, rs4b127_c, rs7b127_b, rs0b127_c, TEST_RESULT_2

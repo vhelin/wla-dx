@@ -92,15 +92,16 @@ _camilla
     ByteVal DB
     WordVal DW	
 .ENDST
-	
-	.db "01>"
+
+; @BT linked.prg
+	.db "01>"           ; @BT TEST-01 01 START
 	
 .DSTRUCT defStruct INSTANCEOF MyStruct VALUES
-    ByteVal .DB -1
-    WordVal .DW -1	
+    ByteVal .DB -1      ; @BT FF
+    WordVal .DW -1      ; @BT FF FF
 .ENDST
 
-	.db "<01"
+	.db "<01"           ; @BT END
 	
 .ends
 
@@ -272,6 +273,10 @@ _loop:
 .printt "OLD .PRINTT "
 .printv 100
 .printt "\n"
+
+; @BT main.o
+; @BT TEST-02 -y ENUM_OK_123
+; @BT TEST-03 -n ENUM_NOT_OK_123
 
 .ENUM $0000 DESC EXPORT
 ENUM_OK_123 dw

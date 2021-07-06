@@ -1,5 +1,0 @@
-linked.prg
-TEST-01 01 START FF FF FF END
-main.o
-TEST-02 -y ENUM_OK_123
-TEST-03 -n ENUM_NOT_OK_123

@@ -86,13 +86,14 @@ _start:
 	ld (ix+1), 0
 	ld (iy-1), 0
 
-  .db "01>"
-- .dw caddr, CADDR
-  .db $ff, $ff, :caddr, :CADDR+1, $ff, $ff
-  .db "<01"
-  .db "02>"
-  .db :LabelInBank03, (:LabelInBank03)+1
-  .db "<02"
+; @BT linked.rom
+  .db "01>"                                     ; @BT TEST-01 01 START
+- .dw caddr, CADDR                              ; @BT 26 00 28 00
+  .db $ff, $ff, :caddr, :CADDR+1, $ff, $ff      ; @BT FF FF 00 01 FF FF
+  .db "<01"                                     ; @BT END
+  .db "02>"                                     ; @BT TEST-02 02 START
+  .db :LabelInBank03, (:LabelInBank03)+1        ; @BT 03 04
+  .db "<02"                                     ; @BT END
   .dw $aaaa, $bbbb, :CADDR, $cccc
   ldbc _dataend-_data,$be
   .dw $ffff
@@ -108,9 +109,9 @@ _dataend:
 
 .section "Bank3" overwrite
 LabelInBank03:
-  .db "03>"
-  .db :Caddr, :(CADDR+$4000)
-  .db "<03"
+  .db "03>"                     ; @BT TEST-03 03 START
+  .db :Caddr, :(CADDR+$4000)    ; @BT 03 04
+  .db "<03"                     ; @BT END
 .ends
 
   TileAddress 1
