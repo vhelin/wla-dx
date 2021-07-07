@@ -24,7 +24,10 @@ BANKS 8
 .ENDRO
 
 .EMPTYFILL $00
-	
+
+; @BT linked.rom
+; @BT TEST-01 -a 32762 START 10 a1 END
+; @BT TEST-02 -a 32767 START 4c END
 .COMPUTESMSCHECKSUM
 
 ; fill the banks with random data, but skip the SMSHEADER areas

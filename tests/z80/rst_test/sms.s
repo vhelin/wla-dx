@@ -51,11 +51,13 @@ label_38:
 .ends
 
 .section "Section-RSTs" FORCE
-.db "01>"
-	RST 0
-	RST label_00
-	RST label_08+8
-	RST 8+label_10
-	RST label_28+$10
-.db "<01"
+
+; @BT linked.rom
+.db "01>"               ; @BT TEST-01 01 START 
+    RST 0               ; @BT C7
+    RST label_00        ; @BT C7
+    RST label_08+8      ; @BT D7
+    RST 8+label_10      ; @BT DF
+    RST label_28+$10    ; @BT FF
+.db "<01"               ; @BT END
 .ends

@@ -24,7 +24,9 @@ BANKS 8
 .ENDRO
 
 .EMPTYFILL $C9
-	
+
+; @BT linked.rom
+; @BT TEST-01 -a 32762 START b1 6a END
 .COMPUTESMSCHECKSUM
 
 .BACKGROUND "randomData.rom"

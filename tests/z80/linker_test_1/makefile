@@ -8,7 +8,9 @@ SFILES = setup.s main.s
 IFILES = defines.i
 OFILES = main.o setup.o
 
-all: $(OFILES) makefile
+all: linked.prg check
+
+linked.prg: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.prg
 
 main.o: main.s defines.i
@@ -17,6 +19,8 @@ main.o: main.s defines.i
 setup.o: setup.s defines.i
 	$(CC) $(CFLAGS) setup.o setup.s
 
+check:
+	byte_tester -s main.s
 
 $(OFILES): $(HFILES)
 
