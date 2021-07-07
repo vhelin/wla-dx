@@ -1675,7 +1675,7 @@ Here's an example::
         COUNTRYCODE $01       ; identical to a freestanding .COUNTRYCODE/DESTINATIONCODE.
         DESTINATIONCODE $01   ; identical to a freestanding .DESTINATIONCODE/COUNTRYCODE.
         NINTENDOLOGO          ; identical to a freestanding .NINTENDOLOGO.
-	VERSION $01           ; identical to a freestanding .VERSION.
+        VERSION $01           ; identical to a freestanding .VERSION.
         ROMDMG                ; identical to a freestanding .ROMDMG.
                               ; Alternatively, ROMGBC or ROMGBCONLY can be used
     .ENDGB
@@ -2136,10 +2136,10 @@ Here are some examples::
     
     QUEEN\@:
         LD   A, \1
-    	LD   B, \1
-    	CALL QUEEN\@
+        LD   B, \1
+        CALL QUEEN\@
 
-    	.DB  "\@", 0     ; will translate into a zero terminated string
+        .DB  "\@", 0     ; will translate into a zero terminated string
                          ; holding the amount of macro QUEEN calls.
         .DB  "\\@", 0    ; will translate into a string containing
                          ; \@.
@@ -2402,7 +2402,7 @@ Here's an example::
     .BANK 0 SLOT 1
     .ORGA $4000
     
-    MAIN:	JP	MAIN
+    MAIN:       JP      MAIN
 
 Here ``MAIN`` is at ``$0000`` in the ROM file, but the address for label
 ``MAIN`` is ``$4000``. By using ``.ORGA`` instead of ``.ORG``, you can directly
@@ -2931,15 +2931,15 @@ Here's an example of a ``BANKHEADER`` section::
     .BANK 0
     .ORG 0
     .SECTION "BANKHEADER"
-    	.DW MAIN
-    	.DW VBI
+        .DW MAIN
+        .DW VBI
     .ENDS
     
     .SECTION "Program"
     MAIN: CALL MONTY_ON_THE_RUN
     VBI:  PUSH HL
-    	  ...
-    	  POP HL
+          ...
+          POP HL
           RETI
     .ENDS
 
@@ -3088,7 +3088,7 @@ ROMSIZE is not specified it will be calculated automatically::
         VERSION 1             ; 0-15
         REGIONCODE 4          ; 3-7
         RESERVEDSPACE 0, 0    ; 2 bytes
-	ROMSIZE 0             ; 0-15
+        ROMSIZE 0             ; 0-15
     .ENDSMS
 
 The ``REGIONCODE`` also defines the system:

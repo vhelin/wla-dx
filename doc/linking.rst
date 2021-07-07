@@ -24,8 +24,8 @@ to link together. Here's the format:
         [header]
         [footer]
         [definitions]
-	[ramsections]
-	[sections]
+        [ramsections]
+        [sections]
 
 2. Start to list the file names. ::
     
@@ -67,16 +67,17 @@ to link together. Here's the format:
 
         [ramsections]
         bank 0 slot 3 org $0 "library 1 vars 1"
-	bank 0 slot 3 orga $6100 priority 100 force "library 1 vars 2"
-	bank 0 slot 3 appendto "library 1 vars 2" "library 1 vars 3"
+        bank 0 slot 3 orga $6100 priority 100 force "library 1 vars 2"
+        bank 0 slot 3 appendto "library 1 vars 2" "library 1 vars 3"
 
 6. If you want to relocate normal sections, do as follows (ORG, ORGA,
-   KEEP, PRIORITY and APPENDTO are optional, but useful)::
+   KEEP, AFTER, OFFSET, PRIORITY and APPENDTO are optional, but useful)::
 
         [sections]
-	bank 0 slot 1 org $100 appendto "MusicPlayers" "MusicPlayer1"
-	bank 0 slot 1 orga $2200 semisubfree priority 100 keep "EnemyAI"
-     
+        bank 0 slot 1 org $100 appendto "MusicPlayers" "MusicPlayer1"
+        bank 0 slot 1 orga $2200 semisubfree priority 100 keep "EnemyAI"
+        bank 0 slot 2 after "Enemies" offset 256 "Dragon"
+   
 7. If you want to make value definitions, here's your chance::
    
         [definitions]
@@ -139,30 +140,30 @@ following example::
     .BANK 0
     .ORG $150
     
-    	...
-    	LD	A, 1
-    	CALL	LOAD_LEVEL
-    	...
+        ...
+        LD      A, 1
+        CALL    LOAD_LEVEL
+        ...
     
     LOAD_LEVEL:
-    	LD	HL, $2000
-    	LD	(HL), A
-    	CALL	INIT_LEVEL
-    	RET
+        LD      HL, $2000
+        LD      (HL), A
+        CALL    INIT_LEVEL
+        RET
     
     .BANK 1
     .ORG 0
     
     INIT_LEVEL:
-    	...
-    	RET
+        ...
+        RET
     
     .BANK 2
     .ORG $0
     
     INIT_LEVEL:
-    	...
-    	RET
+        ...
+        RET
     ...
 
 
