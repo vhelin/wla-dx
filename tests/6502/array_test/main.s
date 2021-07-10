@@ -30,55 +30,58 @@
         .ARRAYIN MyArray '8' %1000
         .ARRAYIN MyArray '9' %1001
 
+        ; @BT linked.rom
+
         // map!
-        .DB "01>"
+        .DB "01>"                                               ; @BT TEST-01 01 START
         .ARRAYOUT NAME MyArray INDEX '6' DEFINITION MAPPING
-        .DB MAPPING
+        .DB MAPPING                                             ; @BT 06
         .ARRAYOUT NAME MyArray INDEX '6' DEFINITION MAPPING
-        .DB MAPPING
+        .DB MAPPING                                             ; @BT 06
         .ARRAYOUT NAME MyArray INDEX '8' DEFINITION MAPPING
-        .DB MAPPING
+        .DB MAPPING                                             ; @BT 08
         .ARRAYOUT MyArray '2' MAPPING
-        .DB MAPPING
+        .DB MAPPING                                             ; @BT 02
         .ARRAYOUT MyArray '7' MAPPING
-        .DB MAPPING
+        .DB MAPPING                                             ; @BT 07
         .ARRAYOUT MyArray '5' MAPPING
-        .DB MAPPING
-        .DB "<01"
+        .DB MAPPING                                             ; @BT 05
+        .DB "<01"                                               ; @BT END
 
         .ARRAYIN MyArray 'A' $ccddeeff
         .ARRAYIN MyArray 'B' ($00110011 | $ff00ff00)
 
-        .DB "02>"
+        .DB "02>"                       ; @BT TEST-02 02 START
         .ARRAYOUT MyArray 'A' VALUE_A
         .ARRAYOUT MyArray 'B' VALUE_B
-        .DD VALUE_A, VALUE_B
-        .DB "<02"
+        .DD VALUE_A                     ; @BT FF EE DD CC 
+        .DD VALUE_B                     ; @BT 11 FF 11 FF
+        .DB "<02"                       ; @BT END
 
-        .DB "03>"
-        .ARRAYDB NAME MyArray INDICES '6', '6', '8', '2', '7', '5'
-        .DB "<03"
+        .DB "03>"                                                   ; @BT TEST-03 03 START
+        .ARRAYDB NAME MyArray INDICES '6', '6', '8', '2', '7', '5'  ; @BT 06 06 08 02 07 05
+        .DB "<03"                                                   ; @BT END
 
         .ARRAYIN MyArray 'C' $1234
         .ARRAYIN MyArray 'D' $abcd
         .ARRAYIN MyArray 0 $5678
         
-        .DB "04>"
-        .ARRAYDW NAME MyArray INDICES 'C', 'D', 0
-        .DB "<04"
+        .DB "04>"                                   ; @BT TEST-04 04 START
+        .ARRAYDW NAME MyArray INDICES 'C', 'D', 0   ; @BT 34 12 CD AB 78 56
+        .DB "<04"                                   ; @BT END
 
-        .DB "05>"
-        .ARRAYDB NAME MyArray INDICES "668275"
-        .DB "<05"
+        .DB "05>"                                   ; @BT TEST-05 05 START
+        .ARRAYDB NAME MyArray INDICES "668275"      ; @BT 06 06 08 02 07 05
+        .DB "<05"                                   ; @BT END
         
         .print "HELLO 01\n"
         .ARRAYIN MyArray 1 $123456
         .ARRAYIN MyArray 2 ($111111 | $222222)
         .print "HELLO 02\n"
 
-        .DB "06>"
-        .ARRAYDL NAME MyArray INDICES 0+1+2+3-5, 1+1+1+1-1-1
-        .DB "<06"
+        .DB "06>"                                               ; @BT TEST-06 06 START
+        .ARRAYDL NAME MyArray INDICES 0+1+2+3-5, 1+1+1+1-1-1    ; @BT 56 34 12 33 33 33
+        .DB "<06"                                               ; @BT END
         
         // redefine some of the mapping
         .ARRAYIN NAME MyArray INDEX '0' VALUE $00000000
@@ -92,9 +95,9 @@
         .ARRAYIN NAME MyArray INDEX '8' VALUE $88888888
         .ARRAYIN NAME MyArray INDEX '9' VALUE $99999999
 
-        .DB "07>"
-        .ARRAYDD NAME MyArray INDICES "C128", 0
-        .DB "<07"
+        .DB "07>"                                   ; @BT TEST-07 07 START
+        .ARRAYDD NAME MyArray INDICES "C128", 0     ; @BT 34 12 00 00 11 11 11 11 22 22 22 22 88 88 88 88 78 56 00 00
+        .DB "<07"                                   ; @BT END
 
         // define an array for mapping ASCII values into
         // less bits
@@ -113,7 +116,7 @@
         .ENDIF
         .ENDM
         
-        .DB "08>"
-        .FILTER MapInto4Bits "BAGED", 0
-        .DB "<08"
+        .DB "08>"                           ; @BT TEST-08 08 START
+        .FILTER MapInto4Bits "BAGED", 0     ; @BT 10 64 3F
+        .DB "<08"                           ; @BT END
         
