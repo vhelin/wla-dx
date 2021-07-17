@@ -41,7 +41,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.1a (21.6.2021)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.1a (17.7.2021)";
 char g_wla_version[] = "10.1";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -86,7 +86,7 @@ struct ext_include_collection g_ext_incdirs;
 
 int main(int argc, char *argv[]) {
 
-  int parse_flags_result, n_ctr, q, include_size = 0;
+  int parse_flags_result, print_usage = YES, n_ctr, q, include_size = 0;
 
   if (sizeof(double) != 8) {
     fprintf(stderr, "MAIN: sizeof(double) == %d != 8. WLA will not work properly.\n", (int)sizeof(double));
@@ -133,7 +133,10 @@ int main(int argc, char *argv[]) {
   
   parse_flags_result = FAILED;
   if (argc >= 2) {
-    parse_flags_result = parse_flags(argv, argc);
+    parse_flags_result = parse_flags(argv, argc, &print_usage);
+
+    if (parse_flags_result == FAILED && print_usage == NO)
+      return 1;
     
     if (g_output_format == OUTPUT_NONE) {
       if (parse_flags_result == SUCCEEDED) {
@@ -244,7 +247,7 @@ int main(int argc, char *argv[]) {
 }
 
 
-int parse_flags(char **flags, int flagc) {
+int parse_flags(char **flags, int flagc, int *print_usage) {
 
   int asm_name_def = 0, count;
   char *str_build;
@@ -287,15 +290,27 @@ int parse_flags(char **flags, int flagc) {
             int length = (int)strlen(flags[count+1])+(int)strlen(flags[count+3])+2;
             str_build = calloc(length, 1);
             snprintf(str_build, length, "%s=%s", flags[count+1], flags[count+3]);
-            parse_and_add_definition(str_build, NO);
+            if (parse_and_add_definition(str_build, NO) == FAILED) {
+              *print_usage = NO;
+              free(str_build);
+              return FAILED;
+            }
             free(str_build);
             count += 2;
           }
-          else
-            parse_and_add_definition(flags[count+1], NO);
+          else {
+            if (parse_and_add_definition(flags[count+1], NO) == FAILED) {
+              *print_usage = NO;
+              return FAILED;
+            }
+          }
         }
-        else
-          parse_and_add_definition(flags[count+1], NO);
+        else {
+          if (parse_and_add_definition(flags[count+1], NO) == FAILED) {
+            *print_usage = NO;
+            return FAILED;
+          }
+        }
       }
       else
         return FAILED;
@@ -366,7 +381,10 @@ int parse_flags(char **flags, int flagc) {
         /* legacy support? */
         if (strncmp(flags[count], "-D", 2) == 0) {
           /* old define */
-          parse_and_add_definition(flags[count], YES);
+          if (parse_and_add_definition(flags[count], YES) == FAILED) {
+            *print_usage = NO;
+            return FAILED;
+          }
           continue;
         }
         else if (strncmp(flags[count], "-I", 2) == 0) {
