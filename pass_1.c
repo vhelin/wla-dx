@@ -4853,6 +4853,7 @@ int directive_section(void) {
 
   strcpy(g_sec_tmp->name, g_tmp);
   g_sec_tmp->next = NULL;
+  g_sec_tmp->status = SECTION_STATUS_FREE;
 
   /* generate a section start label? */
   if (g_extra_definitions == ON)
@@ -4868,270 +4869,263 @@ int directive_section(void) {
     g_sections_last->next = g_sec_tmp;
     g_sections_last = g_sec_tmp;
   }
+  
+  while (1) {  
+    if (compare_next_token("NAMESPACE") == SUCCEEDED) {
+      struct namespace_def *nspace = NULL;
 
-  if (compare_next_token("NAMESPACE") == SUCCEEDED) {
-    struct namespace_def *nspace;
+      if (skip_next_token() == FAILED)
+        return FAILED;
 
-    if (skip_next_token() == FAILED)
-      return FAILED;
-
-    /* get the name */
-    if (input_next_string() == FAILED)
-      return FAILED;
-    if (g_tmp[0] == '\"' && g_tmp[strlen(g_tmp)-1] == '\"') {
-      l = 0;
-      while (g_tmp[l+1] != '\"') {
-        g_tmp[l] = g_tmp[l+1];
-        l++;
+      /* get the name */
+      if (input_next_string() == FAILED)
+        return FAILED;
+      if (g_tmp[0] == '\"' && g_tmp[strlen(g_tmp)-1] == '\"') {
+        l = 0;
+        while (g_tmp[l+1] != '\"') {
+          g_tmp[l] = g_tmp[l+1];
+          l++;
+        }
+        g_tmp[l] = 0;
       }
-      g_tmp[l] = 0;
-    }
 
-    hashmap_get(g_namespace_map, g_tmp, (void*)&nspace);
-    if (nspace == NULL) {
-      nspace = calloc(1, sizeof(struct namespace_def));
+      hashmap_get(g_namespace_map, g_tmp, (void*)&nspace);
       if (nspace == NULL) {
-        print_error("Out of memory error.\n", ERROR_DIR);
-        return FAILED;
+        nspace = calloc(1, sizeof(struct namespace_def));
+        if (nspace == NULL) {
+          print_error("Out of memory error.\n", ERROR_DIR);
+          return FAILED;
+        }
+        strcpy(nspace->name, g_tmp);
+        if (hashmap_put(g_namespace_map, nspace->name, nspace) != MAP_OK) {
+          print_error("Namespace hashmap error.\n", ERROR_DIR);
+          return FAILED;
+        }
       }
-      strcpy(nspace->name, g_tmp);
-      if (hashmap_put(g_namespace_map, nspace->name, nspace) != MAP_OK) {
-        print_error("Namespace hashmap error.\n", ERROR_DIR);
-        return FAILED;
-      }
+
+      nspace->label_map = hashmap_new();
+      g_sec_tmp->nspace = nspace;
     }
+    /* the size of the section? */
+    else if (compare_next_token("SIZE") == SUCCEEDED) {
+      if (skip_next_token() == FAILED)
+        return FAILED;
 
-    nspace->label_map = hashmap_new();
-    g_sec_tmp->nspace = nspace;
+      if (input_number() != SUCCEEDED) {
+        print_error("Could not parse the SIZE.\n", ERROR_DIR);
+        return FAILED;
+      }
+
+      if (g_sec_tmp->maxsize_status == ON && g_sec_tmp->maxsize != g_parsed_int) {
+        print_error("The SIZE of the section has already been defined.\n", ERROR_DIR);
+        return FAILED;
+      }
+
+      g_sec_tmp->maxsize_status = ON;
+      g_sec_tmp->maxsize = g_parsed_int;
+    }
+    /* align the section? */
+    else if (compare_next_token("ALIGN") == SUCCEEDED) {
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      if (input_number() != SUCCEEDED) {
+        print_error("Could not parse the .SECTION alignment.\n", ERROR_DIR);
+        return FAILED;
+      }
+
+      g_sec_tmp->alignment = g_parsed_int;
+    }
+    /* offset the section? */
+    else if (compare_next_token("OFFSET") == SUCCEEDED) {
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      if (input_number() != SUCCEEDED) {
+        print_error("Could not parse the .SECTION offset.\n", ERROR_DIR);
+        return FAILED;
+      }
+
+      g_sec_tmp->offset = g_parsed_int;
+    }
+    /* the type of the section */
+    else if (compare_next_token("FORCE") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+        print_error("Libraries don't take FORCE sections.\n", ERROR_DIR);
+        return FAILED;
+      }
+      g_sec_tmp->status = SECTION_STATUS_FORCE;
+      if (skip_next_token() == FAILED)
+        return FAILED;
+    }
+    else if (compare_next_token("FREE") == SUCCEEDED) {
+      g_sec_tmp->status = SECTION_STATUS_FREE;
+      if (skip_next_token() == FAILED)
+        return FAILED;
+    }
+    else if (compare_next_token("SUPERFREE") == SUCCEEDED) {
+      g_sec_tmp->status = SECTION_STATUS_SUPERFREE;
+      if (skip_next_token() == FAILED)
+        return FAILED;
+    }
+    else if (compare_next_token("SEMIFREE") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+        print_error("Libraries don't take SEMIFREE sections.\n", ERROR_DIR);
+        return FAILED;
+      }
+      g_sec_tmp->status = SECTION_STATUS_SEMIFREE;
+      if (skip_next_token() == FAILED)
+        return FAILED;
+    }
+    else if (compare_next_token("SEMISUBFREE") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+        print_error("Libraries don't take SEMISUBFREE sections.\n", ERROR_DIR);
+        return FAILED;
+      }
+      g_sec_tmp->status = SECTION_STATUS_SEMISUBFREE;
+      if (skip_next_token() == FAILED)
+        return FAILED;
+    }
+    else if (compare_next_token("OVERWRITE") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+        print_error("Libraries don't take OVERWRITE sections.\n", ERROR_DIR);
+        return FAILED;
+      }
+      g_sec_tmp->status = SECTION_STATUS_OVERWRITE;
+      if (skip_next_token() == FAILED)
+        return FAILED;
+    }
+    /* return the org after the section? */
+    else if (compare_next_token("RETURNORG") == SUCCEEDED) {
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      g_sec_tmp->advance_org = NO;
+    }
+    else if (compare_next_token("APPENDTO") == SUCCEEDED) {
+      struct after_section *after_tmp;
+
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      after_tmp = calloc(sizeof(struct after_section), 1);
+      if (after_tmp == NULL) {
+        snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new APPENDTO \"%s\".\n", g_tmp);
+        print_error(g_error_message, ERROR_DIR);
+        return FAILED;
+      }
+
+      after_tmp->alive = YES;
+      after_tmp->is_appendto = YES;
+    
+      /* get the target section name */
+      if (get_next_token() == FAILED) {
+        free(after_tmp);
+        return FAILED;
+      }
+
+      /* add the namespace to the section's name? */
+      if (strlen(g_tmp) > 2 && g_tmp[0] == '*' && g_tmp[1] == ':') {
+        char buf[MAX_NAME_LENGTH + 1];
+      
+        /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
+        if (strlen(g_tmp) >= sizeof(buf)) {
+          snprintf(g_error_message, sizeof(g_error_message), "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
+          print_error(g_error_message, ERROR_DIR);
+          free(after_tmp);
+          return FAILED;
+        }
+
+        strcpy(buf, &g_tmp[2]);
+        strcpy(g_tmp, buf);
+      }
+      else if (g_active_file_info_last->namespace[0] != 0) {
+        if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "APPENDTO") == FAILED) {
+          free(after_tmp);
+          return FAILED;
+        }
+      }
+    
+      after_tmp->section = g_sec_tmp;
+      strcpy(after_tmp->after, g_tmp);
+
+      after_tmp->next = g_after_sections;
+      g_after_sections = after_tmp;
+    }
+    else if (compare_next_token("AFTER") == SUCCEEDED) {
+      struct after_section *after_tmp;
+    
+      if (skip_next_token() == FAILED)
+        return FAILED;
+    
+      after_tmp = calloc(sizeof(struct after_section), 1);
+      if (after_tmp == NULL) {
+        snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new AFTER \"%s\".\n", g_tmp);
+        print_error(g_error_message, ERROR_DIR);
+        return FAILED;
+      }
+
+      after_tmp->alive = YES;
+      after_tmp->is_appendto = NO;
+    
+      /* get the target section name */
+      if (get_next_token() == FAILED) {
+        free(after_tmp);
+        return FAILED;
+      }
+
+      /* add the namespace to the section's name? */
+      if (strlen(g_tmp) > 2 && g_tmp[0] == '*' && g_tmp[1] == ':') {
+        char buf[MAX_NAME_LENGTH + 1];
+      
+        /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
+        if (strlen(g_tmp) >= sizeof(buf)) {
+          snprintf(g_error_message, sizeof(g_error_message), "The AFTER string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
+          print_error(g_error_message, ERROR_DIR);
+          return FAILED;
+        }
+
+        strcpy(buf, &g_tmp[2]);
+        strcpy(g_tmp, buf);
+      }
+      else if (g_active_file_info_last->namespace[0] != 0) {
+        if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "AFTER") == FAILED)
+          return FAILED;
+      }
+    
+      after_tmp->section = g_sec_tmp;
+      strcpy(after_tmp->after, g_tmp);
+
+      after_tmp->next = g_after_sections;
+      g_after_sections = after_tmp;
+    }
+    else if (compare_next_token("PRIORITY") == SUCCEEDED) {
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      if (input_number() != SUCCEEDED) {
+        print_error("Could not parse the .SECTION priority.\n", ERROR_DIR);
+        return FAILED;
+      }
+
+      g_sec_tmp->priority = g_parsed_int;
+    }
+    else if (compare_next_token("KEEP") == SUCCEEDED) {
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      g_sec_tmp->keep = YES;
+    }
+    else
+      break;
   }
-
+  
   /* add the namespace to the section's name? */
   if (g_active_file_info_last->namespace[0] != 0 && g_sec_tmp->nspace == NULL) {
     if (add_namespace_to_string(g_sec_tmp->name, sizeof(g_sec_tmp->name), "SECTION") == FAILED)
       return FAILED;
   }
-  
-  /* the size of the section? */
-  if (compare_next_token("SIZE") == SUCCEEDED) {
-    if (skip_next_token() == FAILED)
-      return FAILED;
 
-    if (input_number() != SUCCEEDED) {
-      print_error("Could not parse the SIZE.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    if (g_sec_tmp->maxsize_status == ON && g_sec_tmp->maxsize != g_parsed_int) {
-      print_error("The SIZE of the section has already been defined.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    g_sec_tmp->maxsize_status = ON;
-    g_sec_tmp->maxsize = g_parsed_int;
-  }
-
-  /* align the section? */
-  if (compare_next_token("ALIGN") == SUCCEEDED) {
-    if (skip_next_token() == FAILED)
-      return FAILED;
-
-    if (input_number() != SUCCEEDED) {
-      print_error("Could not parse the .SECTION alignment.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    g_sec_tmp->alignment = g_parsed_int;
-  }
-
-  /* offset the section? */
-  if (compare_next_token("OFFSET") == SUCCEEDED) {
-    if (skip_next_token() == FAILED)
-      return FAILED;
-
-    if (input_number() != SUCCEEDED) {
-      print_error("Could not parse the .SECTION offset.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    g_sec_tmp->offset = g_parsed_int;
-  }  
-
-  /* the type of the section */
-  if (compare_next_token("FORCE") == SUCCEEDED) {
-    if (g_output_format == OUTPUT_LIBRARY) {
-      print_error("Libraries don't take FORCE sections.\n", ERROR_DIR);
-      return FAILED;
-    }
-    g_sec_tmp->status = SECTION_STATUS_FORCE;
-    if (skip_next_token() == FAILED)
-      return FAILED;
-  }
-  else if (compare_next_token("FREE") == SUCCEEDED) {
-    g_sec_tmp->status = SECTION_STATUS_FREE;
-    if (skip_next_token() == FAILED)
-      return FAILED;
-  }
-  else if (compare_next_token("SUPERFREE") == SUCCEEDED) {
-    g_sec_tmp->status = SECTION_STATUS_SUPERFREE;
-    if (skip_next_token() == FAILED)
-      return FAILED;
-  }
-  else if (compare_next_token("SEMIFREE") == SUCCEEDED) {
-    if (g_output_format == OUTPUT_LIBRARY) {
-      print_error("Libraries don't take SEMIFREE sections.\n", ERROR_DIR);
-      return FAILED;
-    }
-    g_sec_tmp->status = SECTION_STATUS_SEMIFREE;
-    if (skip_next_token() == FAILED)
-      return FAILED;
-  }
-  else if (compare_next_token("SEMISUBFREE") == SUCCEEDED) {
-    if (g_output_format == OUTPUT_LIBRARY) {
-      print_error("Libraries don't take SEMISUBFREE sections.\n", ERROR_DIR);
-      return FAILED;
-    }
-    g_sec_tmp->status = SECTION_STATUS_SEMISUBFREE;
-    if (skip_next_token() == FAILED)
-      return FAILED;
-  }
-  else if (compare_next_token("OVERWRITE") == SUCCEEDED) {
-    if (g_output_format == OUTPUT_LIBRARY) {
-      print_error("Libraries don't take OVERWRITE sections.\n", ERROR_DIR);
-      return FAILED;
-    }
-    g_sec_tmp->status = SECTION_STATUS_OVERWRITE;
-    if (skip_next_token() == FAILED)
-      return FAILED;
-  }
-  else
-    g_sec_tmp->status = SECTION_STATUS_FREE;
-
-  /* return the org after the section? */
-  if (compare_next_token("RETURNORG") == SUCCEEDED) {
-    if (skip_next_token() == FAILED)
-      return FAILED;
-
-    g_sec_tmp->advance_org = NO;
-  }
-
-  if (compare_next_token("APPENDTO") == SUCCEEDED) {
-    struct after_section *after_tmp;
-
-    if (skip_next_token() == FAILED)
-      return FAILED;
-
-    after_tmp = calloc(sizeof(struct after_section), 1);
-    if (after_tmp == NULL) {
-      snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new APPENDTO \"%s\".\n", g_tmp);
-      print_error(g_error_message, ERROR_DIR);
-      return FAILED;
-    }
-
-    after_tmp->alive = YES;
-    after_tmp->is_appendto = YES;
-    
-    /* get the target section name */
-    if (get_next_token() == FAILED) {
-      free(after_tmp);
-      return FAILED;
-    }
-
-    /* add the namespace to the section's name? */
-    if (strlen(g_tmp) > 2 && g_tmp[0] == '*' && g_tmp[1] == ':') {
-      char buf[MAX_NAME_LENGTH + 1];
-      
-      /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
-      if (strlen(g_tmp) >= sizeof(buf)) {
-        snprintf(g_error_message, sizeof(g_error_message), "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
-        print_error(g_error_message, ERROR_DIR);
-        free(after_tmp);
-        return FAILED;
-      }
-
-      strcpy(buf, &g_tmp[2]);
-      strcpy(g_tmp, buf);
-    }
-    else if (g_active_file_info_last->namespace[0] != 0) {
-      if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "APPENDTO") == FAILED) {
-        free(after_tmp);
-        return FAILED;
-      }
-    }
-    
-    after_tmp->section = g_sec_tmp;
-    strcpy(after_tmp->after, g_tmp);
-
-    after_tmp->next = g_after_sections;
-    g_after_sections = after_tmp;
-  }
-
-  if (compare_next_token("AFTER") == SUCCEEDED) {
-    struct after_section *after_tmp;
-    
-    if (skip_next_token() == FAILED)
-      return FAILED;
-    
-    after_tmp = calloc(sizeof(struct after_section), 1);
-    if (after_tmp == NULL) {
-      snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new AFTER \"%s\".\n", g_tmp);
-      print_error(g_error_message, ERROR_DIR);
-      return FAILED;
-    }
-
-    after_tmp->alive = YES;
-    after_tmp->is_appendto = NO;
-    
-    /* get the target section name */
-    if (get_next_token() == FAILED) {
-      free(after_tmp);
-      return FAILED;
-    }
-
-    /* add the namespace to the section's name? */
-    if (strlen(g_tmp) > 2 && g_tmp[0] == '*' && g_tmp[1] == ':') {
-      char buf[MAX_NAME_LENGTH + 1];
-      
-      /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
-      if (strlen(g_tmp) >= sizeof(buf)) {
-        snprintf(g_error_message, sizeof(g_error_message), "The AFTER string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
-        print_error(g_error_message, ERROR_DIR);
-        return FAILED;
-      }
-
-      strcpy(buf, &g_tmp[2]);
-      strcpy(g_tmp, buf);
-    }
-    else if (g_active_file_info_last->namespace[0] != 0) {
-      if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "AFTER") == FAILED)
-        return FAILED;
-    }
-    
-    after_tmp->section = g_sec_tmp;
-    strcpy(after_tmp->after, g_tmp);
-
-    after_tmp->next = g_after_sections;
-    g_after_sections = after_tmp;
-  }
-  
-  if (compare_next_token("PRIORITY") == SUCCEEDED) {
-    if (skip_next_token() == FAILED)
-      return FAILED;
-
-    if (input_number() != SUCCEEDED) {
-      print_error("Could not parse the .SECTION priority.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    g_sec_tmp->priority = g_parsed_int;
-  }
-
-  if (compare_next_token("KEEP") == SUCCEEDED) {
-    if (skip_next_token() == FAILED)
-      return FAILED;
-
-    g_sec_tmp->keep = YES;
-  }
-  
   /* bankheader section? */
   if (strcmp(g_sec_tmp->name, "BANKHEADER") == 0) {
     g_sec_tmp->status = SECTION_STATUS_HEADER;
@@ -11440,7 +11434,7 @@ int add_namespace_to_string(char *s, int sizeof_s, char *type) {
   snprintf(buf, sizeof(buf), "%s.%s", g_active_file_info_last->namespace, s);
   buf[sizeof(buf)-1] = 0;
   if (strlen(buf) >= (size_t)sizeof_s) {
-    snprintf(g_error_message, sizeof(g_error_message), "The current file namespace \"%s\" cannot be added to %s's \"%s\" name - increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_active_file_info_last->namespace, type, g_tmp);
+    snprintf(g_error_message, sizeof(g_error_message), "The current file namespace \"%s\" cannot be added to %s's \"%s\" name - increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_active_file_info_last->namespace, type, s);
     print_error(g_error_message, ERROR_ERR);
     return FAILED;
   }

@@ -97,6 +97,13 @@ int compare_next_token(char *token) {
       break;
   }
 
+  /* HACK: if token == '=', then we'll take this route. in general compare_next_token() should be
+     called with an alphabetical string... */
+  if (length == 1 && token[0] == '=') {
+    if (e == '=')
+      return SUCCEEDED;
+  }
+  
   /* MACRO mode? */
   if (g_macro_active != 0 && e == '\\') {
     if (g_buffer[ii + 1] == '@') {
@@ -152,6 +159,10 @@ int compare_next_token(char *token) {
       t++;
       e = g_buffer[++ii];
     }
+
+    /* token has been terminated, but the other string has not? */
+    if (t == length && e != ' ' && e != ',' && e != 0x0A)
+      return FAILED;
   }
 
   if (t == length)
