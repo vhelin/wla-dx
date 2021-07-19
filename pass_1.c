@@ -4411,6 +4411,9 @@ int directive_ramsection(void) {
   g_sec_tmp->offset = 0;
   g_sec_tmp->advance_org = YES;
   g_sec_tmp->nspace = NULL;
+  g_sec_tmp->bank = 0;
+  g_sec_tmp->address = -1;
+
   g_section_id++;
 
   /* add the namespace to the ramsection's name? */
@@ -4453,298 +4456,287 @@ int directive_ramsection(void) {
     g_sections_last = g_sec_tmp;
   }
 
-  /* check for optional BANK */
-  if (compare_next_token("BANK") != SUCCEEDED)
-    g_sec_tmp->bank = 0;
-  else {
-    if (g_output_format == OUTPUT_LIBRARY) {
-      print_error(".RAMSECTION cannot take BANK when inside a library.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    skip_next_token();
-
-    q = input_number();
-
-    if (q == FAILED)
-      return FAILED;
-    if (q != SUCCEEDED || g_parsed_int < 0) {
-      print_error("BANK number must be zero or positive.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    if (g_parsed_int > 255 && g_output_format != OUTPUT_LIBRARY) {
-      snprintf(g_error_message, sizeof(g_error_message), "We can have 256 RAM banks (0-255) per slot, selected bank %d.\n", g_parsed_int);
-      print_error(g_error_message, ERROR_DIR);
-      return FAILED;
-    }
-
-    g_sec_tmp->bank = g_parsed_int;
-  }
-
-  if (compare_next_token("SLOT") == SUCCEEDED) {
-    if (g_output_format == OUTPUT_LIBRARY) {
-      print_error(".RAMSECTION cannot take SLOT when inside a library.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    skip_next_token();
-
-    q = input_number();
-    if (q == FAILED)
-      return FAILED;
-    if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
-      /* turn the label into a number */
-      if (_get_slot_number_by_its_name(g_label, &g_parsed_int) == FAILED)
-        return FAILED;
-      q = SUCCEEDED;
-    }
-    else if (q == SUCCEEDED) {
-      /* is the number a direct SLOT number, or is it an address? */
-      q = _get_slot_number_by_a_value(g_parsed_int, &g_parsed_int);
-    }
-    if (q != SUCCEEDED) {
-      print_error("Cannot find the SLOT.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    if (g_slots[g_parsed_int].size == 0) {
-      snprintf(g_error_message, sizeof(g_error_message), "There is no SLOT number %d.\n", g_parsed_int);
-      print_error(g_error_message, ERROR_DIR);
-      return FAILED;
-    }
-
-    g_sec_tmp->slot = g_parsed_int;
-  }
-
-  if (compare_next_token("ORGA") == SUCCEEDED) {
-    if (g_output_format == OUTPUT_LIBRARY) {
-      print_error(".RAMSECTION cannot take ORGA when inside a library.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    skip_next_token();
-
-    q = input_number();
-    if (q == FAILED)
-      return FAILED;
-    if (q != SUCCEEDED) {
-      print_error("Cannot get the ORGA.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    current_slot_address = g_slots[g_sec_tmp->slot].address;
-    if (g_parsed_int < current_slot_address || g_parsed_int >= (current_slot_address + g_slots[g_sec_tmp->slot].size)) {
-      print_error("ORGA is outside the current SLOT.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    g_sec_tmp->address = g_parsed_int - current_slot_address;
-  }
-  else if (compare_next_token("ORG") == SUCCEEDED) {
-    if (g_output_format == OUTPUT_LIBRARY) {
-      print_error(".RAMSECTION cannot take ORG when inside a library.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    skip_next_token();
-
-    q = input_number();
-    if (q == FAILED)
-      return FAILED;
-    if (q != SUCCEEDED) {
-      print_error("Cannot get the ORG.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    g_sec_tmp->address = g_parsed_int;
-  }
-  else
-    g_sec_tmp->address = -1;
-  
-  /* align the ramsection? */
-  if (compare_next_token("ALIGN") == SUCCEEDED) {
-    if (g_output_format == OUTPUT_LIBRARY) {
-      print_error(".RAMSECTION cannot take ALIGN when inside a library.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    if (skip_next_token() == FAILED)
-      return FAILED;
-
-    if (input_number() != SUCCEEDED) {
-      print_error("Could not parse the .RAMSECTION alignment.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    g_sec_tmp->alignment = g_parsed_int;
-  }
-
-  /* offset the ramsection? */
-  if (compare_next_token("OFFSET") == SUCCEEDED) {
-    if (g_output_format == OUTPUT_LIBRARY) {
-      print_error(".RAMSECTION cannot take OFFSET when inside a library.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    if (skip_next_token() == FAILED)
-      return FAILED;
-
-    if (input_number() != SUCCEEDED) {
-      print_error("Could not parse the .RAMSECTION offset.\n", ERROR_DIR);
-      return FAILED;
-    }
-
-    g_sec_tmp->offset = g_parsed_int;
-  }  
-
-  /* the type of the section */
-  if (compare_next_token("FORCE") == SUCCEEDED) {
-    if (g_output_format == OUTPUT_LIBRARY) {
-      print_error("Libraries don't take FORCE sections.\n", ERROR_DIR);
-      return FAILED;
-    }
-    g_sec_tmp->status = SECTION_STATUS_RAM_FORCE;
-    if (skip_next_token() == FAILED)
-      return FAILED;
-  }
-  else if (compare_next_token("FREE") == SUCCEEDED) {
-    g_sec_tmp->status = SECTION_STATUS_RAM_FREE;
-    if (skip_next_token() == FAILED)
-      return FAILED;
-  }
-  else if (compare_next_token("SEMIFREE") == SUCCEEDED) {
-    g_sec_tmp->status = SECTION_STATUS_RAM_SEMIFREE;
-    if (skip_next_token() == FAILED)
-      return FAILED;
-  }
-  else if (compare_next_token("SEMISUBFREE") == SUCCEEDED) {
-    g_sec_tmp->status = SECTION_STATUS_RAM_SEMISUBFREE;
-    if (skip_next_token() == FAILED)
-      return FAILED;
-  }
-  
-  /* return the org after the section? */
-  if (compare_next_token("RETURNORG") == SUCCEEDED) {
-    if (skip_next_token() == FAILED)
-      return FAILED;
-
-    g_sec_tmp->advance_org = NO;
-  }
-
-  if (compare_next_token("APPENDTO") == SUCCEEDED) {
-    struct after_section *after_tmp;
-    
-    if (skip_next_token() == FAILED)
-      return FAILED;
-    
-    after_tmp = calloc(sizeof(struct after_section), 1);
-    if (after_tmp == NULL) {
-      snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new APPENDTO \"%s\".\n", g_tmp);
-      print_error(g_error_message, ERROR_DIR);
-      return FAILED;
-    }
-
-    after_tmp->alive = YES;
-    after_tmp->is_appendto = YES;
-    
-    /* get the target section name */
-    if (get_next_token() == FAILED) {
-      free(after_tmp);
-      return FAILED;
-    }
-
-    /* add the namespace to the section's name? */
-    if (strlen(g_tmp) > 2 && g_tmp[0] == '*' && g_tmp[1] == ':') {
-      char buf[MAX_NAME_LENGTH + 1];
-      
-      /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
-      if (strlen(g_tmp) >= sizeof(buf)) {
-        snprintf(g_error_message, sizeof(g_error_message), "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
-        print_error(g_error_message, ERROR_DIR);
-        return FAILED;
+  while (1) {
+    if (compare_next_token("BANK") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+	print_error(".RAMSECTION cannot take BANK when inside a library.\n", ERROR_DIR);
+	return FAILED;
       }
 
-      strcpy(buf, &g_tmp[2]);
-      strcpy(g_tmp, buf);
-    }
-    else if (g_active_file_info_last->namespace[0] != 0) {
-      if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "APPENDTO") == FAILED)
-        return FAILED;
-    }
-    
-    after_tmp->section = g_sec_tmp;
-    strcpy(after_tmp->after, g_tmp);
+      skip_next_token();
 
-    after_tmp->next = g_after_sections;
-    g_after_sections = after_tmp;
-  }
+      q = input_number();
 
-  if (compare_next_token("AFTER") == SUCCEEDED) {
-    struct after_section *after_tmp;
-    
-    if (skip_next_token() == FAILED)
-      return FAILED;
-    
-    after_tmp = calloc(sizeof(struct after_section), 1);
-    if (after_tmp == NULL) {
-      snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new AFTER \"%s\".\n", g_tmp);
-      print_error(g_error_message, ERROR_DIR);
-      return FAILED;
-    }
-
-    after_tmp->alive = YES;
-    after_tmp->is_appendto = NO;
-    
-    /* get the target section name */
-    if (get_next_token() == FAILED) {
-      free(after_tmp);
-      return FAILED;
-    }
-
-    /* add the namespace to the section's name? */
-    if (strlen(g_tmp) > 2 && g_tmp[0] == '*' && g_tmp[1] == ':') {
-      char buf[MAX_NAME_LENGTH + 1];
-      
-      /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
-      if (strlen(g_tmp) >= sizeof(buf)) {
-        snprintf(g_error_message, sizeof(g_error_message), "The AFTER string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
-        print_error(g_error_message, ERROR_DIR);
-        return FAILED;
+      if (q == FAILED)
+	return FAILED;
+      if (q != SUCCEEDED || g_parsed_int < 0) {
+	print_error("BANK number must be zero or positive.\n", ERROR_DIR);
+	return FAILED;
       }
 
-      strcpy(buf, &g_tmp[2]);
-      strcpy(g_tmp, buf);
+      if (g_parsed_int > 255 && g_output_format != OUTPUT_LIBRARY) {
+	snprintf(g_error_message, sizeof(g_error_message), "We can have 256 RAM banks (0-255) per slot, selected bank %d.\n", g_parsed_int);
+	print_error(g_error_message, ERROR_DIR);
+	return FAILED;
+      }
+
+      g_sec_tmp->bank = g_parsed_int;
     }
-    else if (g_active_file_info_last->namespace[0] != 0) {
-      if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "AFTER") == FAILED)
-        return FAILED;
+    else if (compare_next_token("SLOT") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+	print_error(".RAMSECTION cannot take SLOT when inside a library.\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      skip_next_token();
+
+      q = input_number();
+      if (q == FAILED)
+	return FAILED;
+      if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
+	/* turn the label into a number */
+	if (_get_slot_number_by_its_name(g_label, &g_parsed_int) == FAILED)
+	  return FAILED;
+	q = SUCCEEDED;
+      }
+      else if (q == SUCCEEDED) {
+	/* is the number a direct SLOT number, or is it an address? */
+	q = _get_slot_number_by_a_value(g_parsed_int, &g_parsed_int);
+      }
+      if (q != SUCCEEDED) {
+	print_error("Cannot find the SLOT.\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      if (g_slots[g_parsed_int].size == 0) {
+	snprintf(g_error_message, sizeof(g_error_message), "There is no SLOT number %d.\n", g_parsed_int);
+	print_error(g_error_message, ERROR_DIR);
+	return FAILED;
+      }
+
+      g_sec_tmp->slot = g_parsed_int;
     }
+    else if (compare_next_token("ORGA") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+	print_error(".RAMSECTION cannot take ORGA when inside a library.\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      skip_next_token();
+
+      q = input_number();
+      if (q == FAILED)
+	return FAILED;
+      if (q != SUCCEEDED) {
+	print_error("Cannot get the ORGA.\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      current_slot_address = g_slots[g_sec_tmp->slot].address;
+      if (g_parsed_int < current_slot_address || g_parsed_int >= (current_slot_address + g_slots[g_sec_tmp->slot].size)) {
+	print_error("ORGA is outside the current SLOT.\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      g_sec_tmp->address = g_parsed_int - current_slot_address;
+    }
+    else if (compare_next_token("ORG") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+	print_error(".RAMSECTION cannot take ORG when inside a library.\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      skip_next_token();
+
+      q = input_number();
+      if (q == FAILED)
+	return FAILED;
+      if (q != SUCCEEDED) {
+	print_error("Cannot get the ORG.\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      g_sec_tmp->address = g_parsed_int;
+    }
+    /* align the ramsection? */
+    else if (compare_next_token("ALIGN") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+	print_error(".RAMSECTION cannot take ALIGN when inside a library.\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      if (skip_next_token() == FAILED)
+	return FAILED;
+
+      if (input_number() != SUCCEEDED) {
+	print_error("Could not parse the .RAMSECTION alignment.\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      g_sec_tmp->alignment = g_parsed_int;
+    }
+    /* offset the ramsection? */
+    else if (compare_next_token("OFFSET") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+	print_error(".RAMSECTION cannot take OFFSET when inside a library.\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      if (skip_next_token() == FAILED)
+	return FAILED;
+
+      if (input_number() != SUCCEEDED) {
+	print_error("Could not parse the .RAMSECTION offset.\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      g_sec_tmp->offset = g_parsed_int;
+    }  
+    /* the type of the section */
+    else if (compare_next_token("FORCE") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+	print_error("Libraries don't take FORCE sections.\n", ERROR_DIR);
+	return FAILED;
+      }
+      g_sec_tmp->status = SECTION_STATUS_RAM_FORCE;
+      if (skip_next_token() == FAILED)
+	return FAILED;
+    }
+    else if (compare_next_token("FREE") == SUCCEEDED) {
+      g_sec_tmp->status = SECTION_STATUS_RAM_FREE;
+      if (skip_next_token() == FAILED)
+	return FAILED;
+    }
+    else if (compare_next_token("SEMIFREE") == SUCCEEDED) {
+      g_sec_tmp->status = SECTION_STATUS_RAM_SEMIFREE;
+      if (skip_next_token() == FAILED)
+	return FAILED;
+    }
+    else if (compare_next_token("SEMISUBFREE") == SUCCEEDED) {
+      g_sec_tmp->status = SECTION_STATUS_RAM_SEMISUBFREE;
+      if (skip_next_token() == FAILED)
+	return FAILED;
+    }
+    /* return the org after the section? */
+    else if (compare_next_token("RETURNORG") == SUCCEEDED) {
+      if (skip_next_token() == FAILED)
+	return FAILED;
+
+      g_sec_tmp->advance_org = NO;
+    }
+    else if (compare_next_token("APPENDTO") == SUCCEEDED) {
+      struct after_section *after_tmp;
     
-    after_tmp->section = g_sec_tmp;
-    strcpy(after_tmp->after, g_tmp);
+      if (skip_next_token() == FAILED)
+	return FAILED;
+    
+      after_tmp = calloc(sizeof(struct after_section), 1);
+      if (after_tmp == NULL) {
+	snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new APPENDTO \"%s\".\n", g_tmp);
+	print_error(g_error_message, ERROR_DIR);
+	return FAILED;
+      }
 
-    after_tmp->next = g_after_sections;
-    g_after_sections = after_tmp;
-  }
+      after_tmp->alive = YES;
+      after_tmp->is_appendto = YES;
+    
+      /* get the target section name */
+      if (get_next_token() == FAILED) {
+	free(after_tmp);
+	return FAILED;
+      }
 
-  if (compare_next_token("PRIORITY") == SUCCEEDED) {
-    if (skip_next_token() == FAILED)
-      return FAILED;
+      /* add the namespace to the section's name? */
+      if (strlen(g_tmp) > 2 && g_tmp[0] == '*' && g_tmp[1] == ':') {
+	char buf[MAX_NAME_LENGTH + 1];
+      
+	/* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
+	if (strlen(g_tmp) >= sizeof(buf)) {
+	  snprintf(g_error_message, sizeof(g_error_message), "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
+	  print_error(g_error_message, ERROR_DIR);
+	  return FAILED;
+	}
 
-    if (input_number() != SUCCEEDED) {
-      print_error("Could not parse the .RAMSECTION priority.\n", ERROR_DIR);
-      return FAILED;
+	strcpy(buf, &g_tmp[2]);
+	strcpy(g_tmp, buf);
+      }
+      else if (g_active_file_info_last->namespace[0] != 0) {
+	if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "APPENDTO") == FAILED)
+	  return FAILED;
+      }
+    
+      after_tmp->section = g_sec_tmp;
+      strcpy(after_tmp->after, g_tmp);
+
+      after_tmp->next = g_after_sections;
+      g_after_sections = after_tmp;
     }
+    else if (compare_next_token("AFTER") == SUCCEEDED) {
+      struct after_section *after_tmp;
+    
+      if (skip_next_token() == FAILED)
+	return FAILED;
+    
+      after_tmp = calloc(sizeof(struct after_section), 1);
+      if (after_tmp == NULL) {
+	snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new AFTER \"%s\".\n", g_tmp);
+	print_error(g_error_message, ERROR_DIR);
+	return FAILED;
+      }
 
-    g_sec_tmp->priority = g_parsed_int;
-  }
+      after_tmp->alive = YES;
+      after_tmp->is_appendto = NO;
+    
+      /* get the target section name */
+      if (get_next_token() == FAILED) {
+	free(after_tmp);
+	return FAILED;
+      }
 
-  if (compare_next_token("KEEP") == SUCCEEDED) {
-    if (skip_next_token() == FAILED)
-      return FAILED;
+      /* add the namespace to the section's name? */
+      if (strlen(g_tmp) > 2 && g_tmp[0] == '*' && g_tmp[1] == ':') {
+	char buf[MAX_NAME_LENGTH + 1];
+      
+	/* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
+	if (strlen(g_tmp) >= sizeof(buf)) {
+	  snprintf(g_error_message, sizeof(g_error_message), "The AFTER string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
+	  print_error(g_error_message, ERROR_DIR);
+	  return FAILED;
+	}
 
-    g_sec_tmp->keep = YES;
+	strcpy(buf, &g_tmp[2]);
+	strcpy(g_tmp, buf);
+      }
+      else if (g_active_file_info_last->namespace[0] != 0) {
+	if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "AFTER") == FAILED)
+	  return FAILED;
+      }
+    
+      after_tmp->section = g_sec_tmp;
+      strcpy(after_tmp->after, g_tmp);
+
+      after_tmp->next = g_after_sections;
+      g_after_sections = after_tmp;
+    }
+    else if (compare_next_token("PRIORITY") == SUCCEEDED) {
+      if (skip_next_token() == FAILED)
+	return FAILED;
+
+      if (input_number() != SUCCEEDED) {
+	print_error("Could not parse the .RAMSECTION priority.\n", ERROR_DIR);
+	return FAILED;
+      }
+
+      g_sec_tmp->priority = g_parsed_int;
+    }
+    else if (compare_next_token("KEEP") == SUCCEEDED) {
+      if (skip_next_token() == FAILED)
+	return FAILED;
+
+      g_sec_tmp->keep = YES;
+    }
+    else
+      break;
   }
 
   g_enum_offset = 0;

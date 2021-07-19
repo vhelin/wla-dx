@@ -41,7 +41,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.1a (19.7.2021)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.1a (20.7.2021)";
 char g_wla_version[] = "10.1";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
