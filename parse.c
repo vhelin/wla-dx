@@ -840,6 +840,9 @@ int input_number(void) {
 	  if (g_buffer[g_source_pointer+skip] == '"') {
 	    g_source_pointer += skip + 1;
 	    e = g_buffer[g_source_pointer++];
+
+	    /* as we skipped a 0x0A before we need to advance the line counter as well */
+	    next_line();
 	  }
 	}
 
