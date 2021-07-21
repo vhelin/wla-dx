@@ -806,6 +806,8 @@ int input_number(void) {
       }
 
       if (e == '"') {
+	int is_string_split = -1;
+	
         /* check for "string".length */
         if (g_buffer[g_source_pointer+0] == '.' &&
             (g_buffer[g_source_pointer+1] == 'l' || g_buffer[g_source_pointer+1] == 'L') &&
@@ -823,6 +825,24 @@ int input_number(void) {
           return SUCCEEDED;
         }
 
+	/* does the string continue on the next line? */
+	if (g_buffer[g_source_pointer] == ' ' && g_buffer[g_source_pointer+1] == '\\' && g_buffer[g_source_pointer+2] == 0x0A)
+	  is_string_split = 3;
+	if (g_buffer[g_source_pointer] == '\\' && g_buffer[g_source_pointer+1] == 0x0A)
+	  is_string_split = 2;
+
+	if (is_string_split > 0) {
+	  int skip = is_string_split;
+
+	  while (g_buffer[g_source_pointer+skip] == ' ')
+	    skip++;
+
+	  if (g_buffer[g_source_pointer+skip] == '"') {
+	    g_source_pointer += skip + 1;
+	    e = g_buffer[g_source_pointer++];
+	  }
+	}
+
         if (e == '"')
           break;
       }
@@ -835,6 +855,9 @@ int input_number(void) {
       g_label[k++] = e;
     }
 
+    if (k >= MAX_NAME_LENGTH)
+      print_error("String parsing was interrupted due to buffer getting full.\n", ERROR_WRN);
+    
     g_label[k] = 0;
 
     /* expand e.g., \1 and \@ */

@@ -16,7 +16,10 @@ BANKS 1
 .ENDRO
 
 .macro Times100 args guuggeli bayonetta
-.printt "*** BEGIN *** "
+.printt " ***"  \
+        " BEGIN " \
+        "***"\
+        " "
 .printv dec guuggeli*100
 .printt " "
 .printv dec \1*100
