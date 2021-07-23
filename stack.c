@@ -24,6 +24,7 @@ extern struct active_file_info *g_active_file_info_first, *g_active_file_info_la
 extern struct macro_runtime *g_macro_runtime_current;
 extern struct section_def *g_sec_tmp;
 extern double g_parsed_double;
+extern int g_operand_hint, g_operand_hint_type;
 
 int g_latest_stack = 0, g_stacks_inside = 0, g_stacks_outside = 0, g_stack_id = 0;
 struct stack *g_stacks_first = NULL, *g_stacks_tmp = NULL, *g_stacks_last = NULL;
@@ -33,7 +34,8 @@ struct stack *g_stacks_header_first = NULL, *g_stacks_header_last = NULL;
 extern int g_stack_inserted;
 #endif
 
-extern int g_operand_hint, g_operand_hint_type;
+static int g_is_calculating_deltas = NO, g_delta_counter = 0, g_delta_section = -1, g_delta_address = -1, g_delta_old_type = 0;
+static struct stack_item *g_delta_old_pointer;
 
 
 static int _stack_insert(void) {
@@ -1032,6 +1034,25 @@ int stack_calculate(char *in, int *value) {
       b = 1;
   }
 
+  /* are we calculating deltas between two labels? */
+  g_is_calculating_deltas = NO;
+  g_delta_counter = 0;
+  
+  for (k = 0; k < q; k++) {
+    if (si[k].type == STACK_ITEM_TYPE_STRING) {
+      if (k+2 < q && si[k+1].type == STACK_ITEM_TYPE_OPERATOR && si[k+1].value == SI_OP_SUB && si[k+2].type == STACK_ITEM_TYPE_STRING) {
+	k += 2;
+	g_is_calculating_deltas = YES;
+      }
+      else {
+	g_is_calculating_deltas = NO;
+	break;
+      }
+    }
+  }
+
+  data_stream_parser_free();
+
   /* convert infix stack into postfix stack */
   for (b = 0, k = 0, d = 0; k < q; k++) {
     /* operands pass through */
@@ -1219,6 +1240,51 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
     else {
       s->type = STACK_ITEM_TYPE_VALUE;
       s->value = g_tmp_def->value;
+    }
+  }
+  else {
+    if (g_is_calculating_deltas == YES) {
+      /* the current calculation we are trying to solve contains at least one label pair A-B, and no other
+	 uses of labels. if we come here then a label wasn't a definition, but we can try to find the label's
+	 (possibly) non-final address, and use that as that should work when calculating deltas... */
+      struct data_stream_item *dSI;
+      
+      /* read the labels and their addresses from the internal data stream */
+      data_stream_parser_parse();
+
+      dSI = data_stream_parser_find_label(s->string);
+      if (dSI != NULL) {
+	if (g_delta_counter == 0) {
+	  g_delta_section = dSI->section_id;
+	  g_delta_address = dSI->address;
+
+	  /* store the pointer and type if we need to reverse this change */
+	  g_delta_old_pointer = s;
+	  g_delta_old_type = s->type;
+
+	  s->type = STACK_ITEM_TYPE_VALUE;
+	  s->value = dSI->address;
+
+	  g_delta_counter = 1;
+	}
+	else if (g_delta_counter == 1) {
+	  if (g_delta_section != dSI->section_id) {
+	    /* ABORT! labels A-B are from different sections, we cannot calculate the delta here... */
+
+	    /* reverse the previous change */
+	    g_delta_old_pointer->type = g_delta_old_type;
+
+	    *cannot_resolve = 1;
+	  }
+	  else {
+	    /* success! A-B makes sense! */
+	    s->type = STACK_ITEM_TYPE_VALUE;
+	    s->value = dSI->address;
+	  }
+
+	  g_delta_counter = 0;
+	}
+      }
     }
   }
 
@@ -1889,3 +1955,325 @@ int stack_create_stack_stack(int stack_id) {
     
   return SUCCEEDED;
 }
+
+
+struct data_stream_item *g_data_stream_items_first = NULL, *g_data_stream_items_last = NULL;
+int g_is_data_stream_processed = NO;
+
+extern FILE *g_file_out_ptr;
+
+
+int data_stream_parser_free(void) {
+
+  while (g_data_stream_items_first != NULL) {
+    struct data_stream_item *next = g_data_stream_items_first->next;
+    free(g_data_stream_items_first);
+    g_data_stream_items_first = next;
+  }
+
+  g_data_stream_items_first = NULL;
+  g_data_stream_items_last = NULL;
+
+  g_is_data_stream_processed = NO;
+
+  return SUCCEEDED;
+}
+
+
+int data_stream_parser_parse(void) {
+
+  int add = 0, add_old = 0, section_id = -1, bits_current = 0, inz, line_number = 0;
+  FILE *f_in;
+  char c;
+  
+  if (g_is_data_stream_processed == YES)
+    return SUCCEEDED;
+
+  if (g_file_out_ptr == NULL) {
+    print_error("The internal data stream is closed! It should be open. Please submit a bug report!\n", ERROR_STC);
+    return FAILED;
+  }
+
+  /* seek to the beginning of the file for parsing */
+  fseek(g_file_out_ptr, 0, SEEK_SET);
+
+  f_in = g_file_out_ptr;
+
+  /* parse the internal data stream to find labels and their possibly non-final addresses */
+  
+  while (fread(&c, 1, 1, f_in) != 0) {
+    switch (c) {
+
+    case ' ':
+    case 'E':
+      continue;
+
+    case 'j':
+      continue;
+    case 'J':
+      continue;
+
+    case 'i':
+      fscanf(f_in, "%*s ");
+      continue;
+    case 'I':
+      fscanf(f_in, "%*s ");
+      continue;
+
+    case 'P':
+      add_old = add;
+      continue;
+    case 'p':
+      add = add_old;
+      continue;
+
+    case 'A':
+    case 'S':
+      if (c == 'A')
+        fscanf(f_in, "%d %*d", &section_id);
+      else
+        fscanf(f_in, "%d ", &section_id);
+
+      add_old = add;
+
+      continue;
+
+    case 's':
+      section_id = -1;
+      continue;
+
+    case 'x':
+    case 'o':
+      fscanf(f_in, "%d %*d ", &inz);
+      add += inz;
+      continue;
+
+    case 'X':
+      fscanf(f_in, "%d %*d ", &inz);
+      add += inz * 2;
+      continue;
+
+    case 'h':
+      fscanf(f_in, "%d %*d ", &inz);
+      add += inz * 3;
+      continue;
+
+    case 'w':
+      fscanf(f_in, "%d %*d ", &inz);
+      add += inz * 4;
+      continue;
+
+    case 'z':
+    case 'q':
+      fscanf(f_in, "%*s ");
+      add += 3;
+      continue;
+
+    case 'T':
+      fscanf(f_in, "%*d ");
+      add += 3;
+      continue;
+
+    case 'u':
+    case 'V':
+      fscanf(f_in, "%*s ");
+      add += 4;
+      continue;
+
+    case 'U':
+      fscanf(f_in, "%*d ");
+      add += 4;
+      continue;
+
+    case 'v':
+      fscanf(f_in, "%*d ");
+      continue;
+        
+    case 'b':
+      fscanf(f_in, "%*d ");
+      continue;
+
+    case 'R':
+    case 'Q':
+    case 'd':
+    case 'c':
+      fscanf(f_in, "%*s ");
+      add++;
+      continue;
+
+    case 'M':
+    case 'r':
+      fscanf(f_in, "%*s ");
+      add += 2;
+      continue;
+
+    case 'y':
+    case 'C':
+      fscanf(f_in, "%*d ");
+      add += 2;
+      continue;
+
+#ifdef SUPERFX
+
+    case '*':
+      fscanf(f_in, "%*s ");
+      add++;
+      continue;
+      
+    case '-':
+      fscanf(f_in, "%*d ");
+      add++;
+      continue;
+
+#endif
+
+    case '+':
+      {
+        int bits_to_add;
+        char type;
+          
+        fscanf(f_in, "%d ", &bits_to_add);
+
+        if (bits_to_add == 999) {
+          bits_current = 0;
+
+          continue;
+        }
+        else {
+          if (bits_current == 0)
+            add++;
+          bits_current += bits_to_add;
+          while (bits_current > 8) {
+            bits_current -= 8;
+            add++;
+          }
+          if (bits_to_add == 8)
+            bits_current = 0;
+        }
+
+        fscanf(f_in, "%c", &type);
+
+        if (type == 'a')
+          fscanf(f_in, "%*d");
+        else if (type == 'b')
+          fscanf(f_in, "%*s");
+        else if (type == 'c')
+          fscanf(f_in, "%*d");
+
+        continue;
+      }
+
+#ifdef SPC700
+    case 'n':
+      fscanf(f_in, "%*d %*s ");
+      add += 2;
+      continue;
+
+    case 'N':
+      fscanf(f_in, "%*d %*d ");
+      add += 2;
+      continue;
+#endif
+
+    case 'D':
+      fscanf(f_in, "%*d %*d %*d %d ", &inz);
+      add += inz;
+      continue;
+
+    case 'O':
+      fscanf(f_in, "%d ", &add);
+      continue;
+
+    case 'B':
+      fscanf(f_in, "%*d %*d ");
+      continue;
+
+    case 'g':
+      fscanf(f_in, "%*d ");
+      continue;
+
+    case 'G':
+      continue;
+
+    case 't':
+      fscanf(f_in, "%d ", &inz);
+      if (inz != 0)
+        fscanf(f_in, "%*s ");
+      continue;
+
+    case 'Z': /* breakpoint */
+    case 'Y': /* symbol */
+    case 'L': /* label */
+      if (c == 'Z') {
+      }
+      else if (c == 'Y') {
+        fscanf(f_in, "%*s ");
+      }
+      else {
+	struct data_stream_item *dSI;
+
+	dSI = calloc(sizeof(struct data_stream_item), 1);
+	if (dSI == NULL) {
+	  print_error("Out of memory error while allocating a data_stream_item.\n", ERROR_STC);
+	  return FAILED;
+	}
+
+        fscanf(f_in, "%s ", dSI->label);
+
+	dSI->next = NULL;
+	dSI->address = add;
+	dSI->section_id = section_id;
+
+	if (g_data_stream_items_first == NULL) {
+	  g_data_stream_items_first = dSI;
+	  g_data_stream_items_last = dSI;
+	}
+	else {
+	  g_data_stream_items_last->next = dSI;
+	  g_data_stream_items_last = dSI;
+	}
+      }
+
+      continue;
+
+    case 'f':
+      fscanf(f_in, "%*d ");
+      continue;
+
+    case 'k':
+      fscanf(f_in, "%d ", &line_number);
+      continue;
+
+    case 'e':
+      fscanf(f_in, "%*d %*d ");
+      continue;
+
+    default:
+      fprintf(stderr, "data_stream_parser_parse(): Unknown internal symbol \"%c\". Please submit a bug report!\n", c);
+      return FAILED;
+    }
+  }
+
+  /* seek to the very end of the file so we can continue writing to it */
+  fseek(g_file_out_ptr, 0, SEEK_END);
+  
+  g_is_data_stream_processed = YES;
+
+  return SUCCEEDED;
+}
+
+
+struct data_stream_item *data_stream_parser_find_label(char *label) {
+
+  struct data_stream_item *dSI;
+
+  dSI = g_data_stream_items_first;
+  while (dSI != NULL) {
+    if (strcmp(label, dSI->label) == 0)
+      return dSI;
+    dSI = dSI->next;
+  }
+
+  return NULL;
+}
+

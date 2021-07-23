@@ -3,10 +3,13 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------
 
-v10.1 (22-Jul-2021) [ALL] Arguments to .SECTION and .RAMSECTION can be now
+v10.1 (23-Jul-2021) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                       given in any order, only the first argument must be the
-                      name.
+                      section's name.
                     [ALL] Strings can be split to multiple lines using '\'.
+                    [ALL] The assembler is now able to calculate A-B where
+                      A and B are labels in the same section. Only the linker
+                      used to be able to do this.
 
 v10.0 (21-Jun-2021) [ALL] WARNING: Precedence of operators in calculations
                       that WLA calculates is now more fine grained and C like.

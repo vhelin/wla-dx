@@ -42,6 +42,7 @@ BANKS 1
 	.db 0, 1, 2, 3
 test1:
 	.db test1 & $ff, 5, 6
+test1end:
 .ends
 
 .section "EXTRA"
@@ -65,6 +66,6 @@ test2end:
 	
 .section "SIZEOFs"
 label:	.dw test1, test2, test3
-label_END:	
+label_END:
 .ends
 	

@@ -770,5 +770,12 @@ struct stack_item_priority_item {
   int priority;
 };
 
+struct data_stream_item {
+  char label[MAX_NAME_LENGTH + 1];
+  int  section_id;
+  int  address;
+  struct data_stream_item *next;
+};
+
 #endif /* _DEFINES_H */
 

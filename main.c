@@ -31,6 +31,7 @@ DWORD __stdcall GetCurrentProcessId(void);
 #include "hashmap.h"
 #include "printf.h"
 #include "mersenne_twister.h"
+#include "stack.h"
 
 
 FILE *g_file_out_ptr = NULL;
@@ -41,7 +42,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.1a (22.7.2021)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.1a (23.7.2021)";
 char g_wla_version[] = "10.1";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -214,9 +215,9 @@ int main(int argc, char *argv[]) {
 
   generate_tmp_name(g_tmp_name);
 
-  g_file_out_ptr = fopen(g_tmp_name, "wb");
+  g_file_out_ptr = fopen(g_tmp_name, "wb+");
   if (g_file_out_ptr == NULL) {
-    fprintf(stderr, "MAIN: Error opening file \"%s\" for writing.\n", g_tmp_name);
+    fprintf(stderr, "MAIN: Error opening file \"%s\" for reading and writing.\n", g_tmp_name);
     return 1;
   }
 
@@ -586,6 +587,8 @@ void procedures_at_exit(void) {
     free(sm);
   }
 
+  data_stream_parser_free();
+  
   /* remove the tmp files */
   if (g_tmp_name[0] != 0)
     remove(g_tmp_name);
