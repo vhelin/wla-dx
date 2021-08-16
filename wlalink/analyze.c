@@ -1781,6 +1781,7 @@ int parse_data_blocks(void) {
           s->window_start = READ_T;
           s->window_end = READ_T;
           s->data = t;
+
           s->library_status = OFF;
           s->label_map = hashmap_new();
           t += s->size;
@@ -1855,7 +1856,11 @@ int parse_data_blocks(void) {
         s->alignment = READ_T;
         s->offset = READ_T;
         s->priority = READ_T;
+        s->bitwindow = READ_T;
+        s->window_start = READ_T;
+        s->window_end = READ_T;
         s->data = t;
+
         s->address = 0;
         s->bank = g_obj_tmp->bank;
         s->slot = g_obj_tmp->slot;
@@ -1863,9 +1868,6 @@ int parse_data_blocks(void) {
         s->library_status = ON;
         s->base_defined = g_obj_tmp->base_defined;
         s->label_map = hashmap_new();
-        s->bitwindow = 0;
-        s->window_start = -1;
-        s->window_end = -1;
         t += s->size;
 
         /* library RAM sections have no slots nor banks unless given in [rambanks] in linkfile */

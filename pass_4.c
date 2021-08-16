@@ -2219,7 +2219,7 @@ int write_library_file(void) {
   }
 
   /* header */
-  fprintf(final_ptr, "WLAF");
+  fprintf(final_ptr, "WLAG");
 
   /* misc bits */
   ind = 0;
@@ -2422,7 +2422,13 @@ int write_library_file(void) {
       WRITEOUT_OV;
       ov = g_sec_tmp->priority;
       WRITEOUT_OV;
-
+      ov = g_sec_tmp->bitwindow;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->window_start;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->window_end;
+      WRITEOUT_OV;
+      
       if (g_sec_tmp->size > 0)
         fwrite(g_sec_tmp->data, 1, g_sec_tmp->size, final_ptr);
 
