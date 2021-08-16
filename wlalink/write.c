@@ -373,6 +373,35 @@ static int _insert_rom_after_section(struct section *s) {
 }
 
 
+static int _does_window_allow_section_placement(struct section *s, int address) {
+  
+  if (s->window_start >= 0 && s->window_end >= 0) {
+    int end = address + s->size;
+
+    if (address < s->window_start || address > s->window_end)
+      return NO;
+    if (end < s->window_start || end > s->window_end)
+      return NO;
+  }
+
+  if (s->bitwindow != 0) {
+    int i, mask_bottom, mask_top, upper_bits;
+
+    mask_bottom = (1 << s->bitwindow) - 1;
+    mask_top = ~mask_bottom;
+
+    upper_bits = address & mask_top;
+    
+    for (i = 0; i < s->size; i++) {
+      if (((address + i) & mask_top) != upper_bits)
+        return NO;
+    }
+  }
+
+  return YES;
+}
+
+
 int insert_sections(void) {
 
   int d, f, i, x, t, q;
@@ -471,12 +500,12 @@ int insert_sections(void) {
       else {
         t = 0;
         for (; address < max_address; address += s->alignment) {
-          if (c[address] == 0) {
-            for (q = 0; address + offset + q < max_address && q < s->size; q++) {
-              if (c[address + offset + q] != 0)
-                break;
-            }
-            if (q == s->size) {
+          for (q = 0; address + offset + q < max_address && q < s->size; q++) {
+            if (c[address + offset + q] != 0)
+              break;
+          }
+          if (q == s->size) {
+            if (_does_window_allow_section_placement(s, slot_address + address + offset) == YES) {
               t = 1;
               break;
             }
@@ -523,12 +552,12 @@ int insert_sections(void) {
       else {
         t = 0;
         for (; address < slot_size; address += s->alignment) {
-          if (c[address] == 0) {
-            for (q = 0; address + offset + q < slot_size && q < s->size; q++) {
-              if (c[address + offset + q] != 0)
-                break;
-            }
-            if (q == s->size) {
+          for (q = 0; address + offset + q < slot_size && q < s->size; q++) {
+            if (c[address + offset + q] != 0)
+              break;
+          }
+          if (q == s->size) {
+            if (_does_window_allow_section_placement(s, slot_address + address + offset) == YES) {
               t = 1;
               break;
             }
@@ -663,7 +692,7 @@ int insert_sections(void) {
       else {
         g_pc_bank = 0;
         d = g_bankaddress[s->bank];
-
+        
         /* align the starting address */
         f = (g_pc_bank + d) % s->alignment;
         if (f > 0)
@@ -674,9 +703,13 @@ int insert_sections(void) {
           f = g_pc_bank;
           for (x = 0; g_pc_bank + s->offset < s->address && g_rom_usage[g_pc_bank + s->offset + d] == 0 && x < s->size; g_pc_bank++, x++)
             ;
-          if (x == s->size)
-            break;
-          if (g_pc_bank == s->address) {
+          if (x == s->size) {
+            if (_does_window_allow_section_placement(s, g_slots[s->slot].address + f + s->offset) == YES)
+              break;
+            else
+              g_pc_bank = f + 1;
+          }
+          if (g_pc_bank + s->offset >= s->address) {
             fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
                     get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
             return FAILED;
@@ -697,7 +730,7 @@ int insert_sections(void) {
         g_pc_full = g_pc_bank + g_bankaddress[s->bank];
         g_pc_slot_max = g_slots[s->slot].address + g_slots[s->slot].size;
         g_section_overwrite = OFF;
-	  
+          
         s->address = g_pc_bank;
         s->output_address = g_pc_full;
         s->placed = YES;
@@ -737,9 +770,13 @@ int insert_sections(void) {
           f = g_pc_bank;
           for (x = 0; g_pc_bank + s->offset < g_banksizes[s->bank] && g_rom_usage[g_pc_bank + s->offset + d] == 0 && x < s->size; g_pc_bank++, x++)
             ;
-          if (x == s->size)
-            break;
-          if (g_pc_bank == g_banksizes[s->bank]) {
+          if (x == s->size) {
+            if (_does_window_allow_section_placement(s, g_slots[s->slot].address + f + s->offset) == YES)
+              break;
+            else
+              g_pc_bank = f + 1;
+          }
+          if (g_pc_bank + s->offset >= g_banksizes[s->bank]) {
             fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
                     get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
             return FAILED;
@@ -809,10 +846,14 @@ int insert_sections(void) {
             for (x = 0; g_pc_bank + s->offset < g_banksizes[q] && g_rom_usage[g_pc_bank + s->offset + d] == 0 && x < s->size; g_pc_bank++, x++)
               ;
             if (x == s->size) {
-              i = SUCCEEDED;
-              break;
+              if (_does_window_allow_section_placement(s, g_slots[s->slot].address + f + s->offset) == YES) {
+                i = SUCCEEDED;
+                break;
+              }
+              else
+                g_pc_bank = f + 1;
             }
-            if (g_pc_bank == g_banksizes[q])
+            if (g_pc_bank + s->offset >= g_banksizes[q])
               break;
 
             /* find the next starting address */
@@ -1012,7 +1053,7 @@ int fix_all_sections(void) {
   
   g_sec_fix_tmp = g_sec_fix_first;
   while (g_sec_fix_tmp != NULL) {
-    /* find the section, and fix bank, slot and org/orga */
+    /* find the section, and fix bank, slot, org/orga, etc... */
     s = g_sec_first;
     while (s != NULL) {
       if (strcmp(s->name, g_sec_fix_tmp->name) == 0) {
@@ -1041,6 +1082,15 @@ int fix_all_sections(void) {
 
         if (g_sec_fix_tmp->offset >= 0)
           s->offset = g_sec_fix_tmp->offset;
+
+        if (g_sec_fix_tmp->bitwindow != 0)
+          s->bitwindow = g_sec_fix_tmp->bitwindow;
+
+        if (g_sec_fix_tmp->window_start != -1)
+          s->window_start = g_sec_fix_tmp->window_start;
+
+        if (g_sec_fix_tmp->window_end != -1)
+          s->window_end = g_sec_fix_tmp->window_end;
         
         if (g_sec_fix_tmp->orga >= 0) {
           if (g_sec_fix_tmp->orga < g_slots[s->slot].address || g_sec_fix_tmp->orga >= g_slots[s->slot].address + g_slots[s->slot].size) {

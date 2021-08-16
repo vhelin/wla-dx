@@ -33,12 +33,12 @@ int load_files(char *argv[], int argc) {
 
   int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n, alignment, offset;
   int org_defined, org, orga_defined, orga, status_defined, status, priority_defined, priority, appendto_defined, keep_defined;
-  int alignment_defined, offset_defined, after_defined;
+  int alignment_defined, offset_defined, after_defined, bitwindow_defined, window_defined;
+  int bitwindow, window_start, window_end;
   char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32], appendto_name[MAX_NAME_LENGTH + 1], after_name[MAX_NAME_LENGTH + 1];
   struct label *l;
   FILE *fop, *f;
 
-  
   fop = fopen(argv[argc - 2], "rb");
   if (fop == NULL) {
     fprintf(stderr, "LOAD_FILES: Could not open file \"%s\".\n", argv[argc - 2]);
@@ -119,6 +119,8 @@ int load_files(char *argv[], int argc) {
     keep_defined = NO;
     alignment_defined = NO;
     offset_defined = NO;
+    bitwindow_defined = NO;
+    window_defined = NO;
     bank = 0;
     slot = 0;
     base = 0;
@@ -128,6 +130,9 @@ int load_files(char *argv[], int argc) {
     priority = 0;
     alignment = 0;
     offset = 0;
+    bitwindow = 0;
+    window_start = -1;
+    window_end = -1;
 
     /* definitions? */
     if (state == STATE_DEFINITION) {
@@ -267,6 +272,54 @@ int load_files(char *argv[], int argc) {
 
           if (get_next_number(&tmp[x], &org, &x) == FAILED) {
             fprintf(stderr, "%s:%d: LOAD_FILES: Error in ORG number.\n", argv[argc - 2], line);
+            fclose(fop);
+            return FAILED;
+          }
+        }
+        else if (strcaselesscmp(token, "bitwindow") == 0) {
+          if (bitwindow_defined == YES) {
+            fprintf(stderr, "%s:%d: LOAD_FILES: BITWINDOW defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            fclose(fop);
+            return FAILED;
+          }
+          
+          bitwindow_defined = YES;
+
+          if (get_next_number(&tmp[x], &bitwindow, &x) == FAILED) {
+            fprintf(stderr, "%s:%d: LOAD_FILES: Error in BITWINDOW number.\n", argv[argc - 2], line);
+            fclose(fop);
+            return FAILED;
+          }
+
+          if (bitwindow == 0) {
+            fprintf(stderr, "%s:%d: LOAD_FILES: BITWINDOW 0 means that the section cannot be placed anywhere.\n", argv[argc - 2], line);
+            fclose(fop);
+            return FAILED;
+          }
+        }
+        else if (strcaselesscmp(token, "window") == 0) {
+          if (window_defined == YES) {
+            fprintf(stderr, "%s:%d: LOAD_FILES: WINDOW defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            fclose(fop);
+            return FAILED;
+          }
+          
+          window_defined = YES;
+
+          if (get_next_number(&tmp[x], &window_start, &x) == FAILED) {
+            fprintf(stderr, "%s:%d: LOAD_FILES: Error in WINDOW (start) number.\n", argv[argc - 2], line);
+            fclose(fop);
+            return FAILED;
+          }
+          
+          if (get_next_number(&tmp[x], &window_end, &x) == FAILED) {
+            fprintf(stderr, "%s:%d: LOAD_FILES: Error in WINDOW (end) number.\n", argv[argc - 2], line);
+            fclose(fop);
+            return FAILED;
+          }
+
+          if (window_start > window_end) {
+            fprintf(stderr, "%s:%d: LOAD_FILES: WINDOW start ($%.4x) is bigger than WINDOW end ($%.4x) number.\n", argv[argc - 2], line, window_start, window_end);
             fclose(fop);
             return FAILED;
           }
@@ -445,6 +498,9 @@ int load_files(char *argv[], int argc) {
       g_sec_fix_tmp->bank = bank;
       g_sec_fix_tmp->slot = slot;
       g_sec_fix_tmp->keep = keep_defined;
+      g_sec_fix_tmp->bitwindow = bitwindow;
+      g_sec_fix_tmp->window_start = window_start;
+      g_sec_fix_tmp->window_end = window_end;
 
       if (orga_defined == YES)
         g_sec_fix_tmp->orga = orga;
@@ -638,7 +694,6 @@ int load_file(char *file_name, int bank, int slot, char *slot_name, int fix_slot
   char *name;
   int size;
 
-  
   o = calloc(sizeof(struct object_file), 1);
   name = calloc(strlen(file_name)+1, 1);
   if (o == NULL || name == NULL) {
@@ -697,7 +752,6 @@ int load_file_data(char *file_name, unsigned char **data, int *size) {
 
   FILE *fop;
 
-
   fop = fopen(file_name, "rb");
   if (fop == NULL) {
     fprintf(stderr, "LOAD_FILE_DATA: Could not open file \"%s\".\n", file_name);
@@ -730,7 +784,6 @@ char *get_file_name(int id) {
   static char error[] = "GET_FILE_NAME: Internal data corruption.";
   struct object_file *o;
 
-  
   o = g_obj_first;
   while (o != NULL) {
     if (o->id == id)
@@ -746,7 +799,6 @@ char *get_source_file_name(int file_id, int source_id) {
 
   struct source_file_name *s;
   struct object_file *o;
-
   
   o = g_obj_first;
   while (o != NULL) {
@@ -775,7 +827,6 @@ char *get_source_file_name(int file_id, int source_id) {
 struct object_file *get_file(int file_id) {
 
   struct object_file *o;
-
   
   o = g_obj_first;
   while (o != NULL) {
@@ -793,7 +844,6 @@ struct object_file *get_file(int file_id) {
 int convert_slot_names_and_addresses(void) {
 
   struct object_file *o;
-
   
   o = g_obj_first;
   while (o != NULL) {

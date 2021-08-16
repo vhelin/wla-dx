@@ -1739,7 +1739,7 @@ int write_object_file(void) {
   }
 
   /* header */
-  fprintf(final_ptr, "WLAg%c", g_emptyfill);
+  fprintf(final_ptr, "WLAh%c", g_emptyfill);
 
   /* misc bits */
   ind = 0;
@@ -2181,6 +2181,12 @@ int write_object_file(void) {
       ov = g_sec_tmp->offset;
       WRITEOUT_OV;
       ov = g_sec_tmp->priority;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->bitwindow;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->window_start;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->window_end;
       WRITEOUT_OV;
 
       if (g_sec_tmp->size > 0)

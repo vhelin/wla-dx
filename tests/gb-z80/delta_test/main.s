@@ -69,3 +69,10 @@ test4end:
 	.db "05>"		; @BT TEST-05 05 START
 	.dsb startend-start, 3	; @BT 03 03 03 03 03 03
 	.db "<05"		; @BT END
+
+TESTSTRINGSTART:
+    .DB "test"
+TESTSTRINGEND:
+.REPEAT 16+TESTSTRINGSTART-TESTSTRINGEND
+    .DB " "
+.ENDR

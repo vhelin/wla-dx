@@ -590,6 +590,9 @@ struct section_def {
   int  slot;
   int  size;
   int  status; /* see SECTION_STATUS_* */
+  int  bitwindow;
+  int  window_start;
+  int  window_end;
   int  alive;
   int  id;
   int  i;

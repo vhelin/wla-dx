@@ -494,21 +494,34 @@ int create_a_new_section_structure(void) {
     return FAILED;
   }
 
+  g_sec_tmp->name[0] = 0;
+  g_sec_tmp->alignment = 1;
+  g_sec_tmp->offset = 0;
+  g_sec_tmp->priority = 0;
+  g_sec_tmp->address = 0;
+  g_sec_tmp->keep = NO;
+  g_sec_tmp->bank = 0;
+  g_sec_tmp->base = 0;
+  g_sec_tmp->slot = 0;
+  g_sec_tmp->size = 0;
+  g_sec_tmp->status = 0;
+  g_sec_tmp->bitwindow = 0;
+  g_sec_tmp->window_start = -1;
+  g_sec_tmp->window_end = -1;
+  g_sec_tmp->alive = YES;
+  g_sec_tmp->id = g_section_id++;
+  g_sec_tmp->i = 0;
+  g_sec_tmp->filename_id = 0;
+  g_sec_tmp->advance_org = NO;
+  g_sec_tmp->maxsize_status = OFF;
+  g_sec_tmp->maxsize = 0;
   g_sec_tmp->listfile_items = 0;
   g_sec_tmp->listfile_ints = NULL;
   g_sec_tmp->listfile_cmds = NULL;
-  g_sec_tmp->maxsize_status = OFF;
   g_sec_tmp->data = NULL;
-  g_sec_tmp->next = NULL;
-  g_sec_tmp->id = g_section_id;
-  g_sec_tmp->alive = YES;
-  g_sec_tmp->advance_org = NO;
   g_sec_tmp->nspace = NULL;
   g_sec_tmp->label_map = hashmap_new();
-  g_section_id++;
-  g_sec_tmp->filename_id = 0;
-  g_sec_tmp->alignment = 1;
-  g_sec_tmp->offset = 0;
+  g_sec_tmp->next = NULL;
 
   if (g_sections_first == NULL) {
     g_sections_first = g_sec_tmp;

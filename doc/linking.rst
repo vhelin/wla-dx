@@ -71,11 +71,12 @@ to link together. Here's the format:
         bank 0 slot 3 appendto "library 1 vars 2" "library 1 vars 3"
 
 6. If you want to relocate normal sections, do as follows (ORG, ORGA,
-   KEEP, AFTER, OFFSET, PRIORITY and APPENDTO are optional, but useful)::
+   KEEP, AFTER, OFFSET, PRIORITY, WINDOW, BITWINDOW and APPENDTO are
+   optional, but useful)::
 
         [sections]
         bank 0 slot 1 org $100 appendto "MusicPlayers" "MusicPlayer1"
-        bank 0 slot 1 orga $2200 semisubfree priority 100 keep "EnemyAI"
+        bank 0 slot 1 orga $2200 semisubfree priority 100 keep bitwindow 8 "EnemyAI"
         bank 0 slot 2 after "Enemies" offset 256 "Dragon"
    
 7. If you want to make value definitions, here's your chance::

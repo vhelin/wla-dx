@@ -2612,6 +2612,8 @@ NOTE: You can use ``ORGA`` to specify the fixed address for a ``FORCE``
 NOTE: When you have ``RAMSECTION`` s inside libraries, you must give
 them BANKs and SLOTs in the linkfile, under [ramsections].
 
+NOTE: ``WINDOW`` and ``BITWINDOW`` work also with ``.RAMSECTION`` s.
+
 This is not a compulsory directive.
 
 
@@ -2994,6 +2996,22 @@ offset::
     .DB 111
     .ENDS
     
+If you want to force WLALINK to place a section say between $0100 and $0200
+in the address space, use ``WINDOW`` (note that ``.SLOT`` must be used to make
+this placement possible, have the ``.SECTION`` in the correct slot)::
+
+    .SECTION "SpecialStuff" FREE WINDOW $0100 $0200
+    NOP
+    .ENDS
+
+If you want to position a ``.SECTION`` so that it is placed in memory in a
+spot where e.g., only the least 8 bits of the address change (the ``.SECTION``
+must thus be less than 256 bytes in size), use ``BITWINDOW``::
+
+    .SECTION "PageX" FREE BITWINDOW 8
+    NOP
+    .ENDS
+
 This is not a compulsory directive.
 
 
@@ -3002,22 +3020,23 @@ This is not a compulsory directive.
 
 Seeds the random number generator.
 
-This is not a compulsory directive. The random number generator is
-initially seeded with the output of ``time()``, which is, according to
-the manual, *the time since the Epoch (00:00:00 UTC, January 1, 1970),
-measured in seconds*. So if you don't ``.SEED`` the random number generator
-yourself with a constant value, ``.DBRND`` and ``.DWRND`` give you different
-values every time you run WLA.
+The random number generator is initially seeded with the output of ``time()``,
+which is, according to the manual, *the time since the Epoch (00:00:00 UTC,
+January 1, 1970), measured in seconds*. So if you don't ``.SEED`` the random
+number generator yourself with a constant value, ``.DBRND`` and ``.DWRND`` give
+you different values every time you run WLA.
 
 In WLA DX 9.4a and before we used the stdlib's ``srand()`` and ``rand()``
 functions making the output differ on different platforms. Since v9.4 WLA DX
 contains its own Mersenne Twister pseudo random number generator.
 
+This is not a compulsory directive.
+
 
 ``.SHIFT``
 ----------
 
-Shifts the macro arguments one down (``\2`` becomes ``\1``, ``\3`` -> ``\2``,
+Shifts the macro arguments one down (``\2`` becomes ``\1``, ``\3`` becomes ``\2``,
 etc.). ``.SHIFT`` can thus only be used inside a ``.MACRO``.
 
 This is not a compulsory directive.

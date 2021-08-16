@@ -164,6 +164,9 @@ struct section {
   int  address;
   int  output_address;
   int  status;
+  int  bitwindow;
+  int  window_start;
+  int  window_end;
   int  keep;
   int  bank;
   int  slot;
@@ -206,6 +209,9 @@ struct section_fix {
   int  priority;
   int  priority_defined;
   int  is_ramsection;
+  int  bitwindow;
+  int  window_start;
+  int  window_end;
   struct section_fix *next;
 };
 
