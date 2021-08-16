@@ -4560,11 +4560,6 @@ int directive_ramsection(void) {
       g_sec_tmp->address = g_parsed_int;
     }
     else if (compare_next_token("WINDOW") == SUCCEEDED) {
-      if (g_output_format == OUTPUT_LIBRARY) {
-        print_error(".RAMSECTION cannot take WINDOW when inside a library.\n", ERROR_DIR);
-        return FAILED;
-      }
-
       if (skip_next_token() == FAILED)
         return FAILED;
 
@@ -4589,11 +4584,6 @@ int directive_ramsection(void) {
       }
     }
     else if (compare_next_token("BITWINDOW") == SUCCEEDED) {
-      if (g_output_format == OUTPUT_LIBRARY) {
-        print_error(".RAMSECTION cannot take BITWINDOW when inside a library.\n", ERROR_DIR);
-        return FAILED;
-      }
-
       if (skip_next_token() == FAILED)
         return FAILED;
 
@@ -4994,11 +4984,6 @@ int directive_section(void) {
       g_sec_tmp->offset = g_parsed_int;
     }
     else if (compare_next_token("WINDOW") == SUCCEEDED) {
-      if (g_output_format == OUTPUT_LIBRARY) {
-        print_error(".SECTION cannot take WINDOW when inside a library.\n", ERROR_DIR);
-        return FAILED;
-      }
-
       if (skip_next_token() == FAILED)
         return FAILED;
 
@@ -5023,11 +5008,6 @@ int directive_section(void) {
       }
     }
     else if (compare_next_token("BITWINDOW") == SUCCEEDED) {
-      if (g_output_format == OUTPUT_LIBRARY) {
-        print_error(".SECTION cannot take BITWINDOW when inside a library.\n", ERROR_DIR);
-        return FAILED;
-      }
-
       if (skip_next_token() == FAILED)
         return FAILED;
 
