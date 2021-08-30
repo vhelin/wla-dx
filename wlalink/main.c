@@ -91,9 +91,9 @@ static const char *g_si_operator_unknown = "UNKNOWN!";
 
 static const char *get_stack_item_operator_name(int operator) {
 
-  if (operator == SI_OP_PLUS)
+  if (operator == SI_OP_ADD)
     return g_si_operator_plus;
-  else if (operator == SI_OP_MINUS)
+  else if (operator == SI_OP_SUB)
     return g_si_operator_minus;
   else if (operator == SI_OP_MULTIPLY)
     return g_si_operator_multiply;
