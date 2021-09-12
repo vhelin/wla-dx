@@ -17,4 +17,5 @@ steps:
     make clean
     cmake -DGDB_DEBUGGING=ON -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles"
     make
+    ./run_tests.sh
   displayName: 'make'
