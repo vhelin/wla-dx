@@ -8303,8 +8303,8 @@ int directive_snesheader(void) {
 
       number_result = input_number();
 
-      if (number_result == SUCCEEDED && (g_parsed_int < 0 || g_parsed_int > 3)) {
-        snprintf(g_error_message, sizeof(g_error_message), "SRAMSIZE expects 0-3, %d is out of range!\n", g_parsed_int);
+      if (number_result == SUCCEEDED && (g_parsed_int < 0 || g_parsed_int > 7)) {
+        snprintf(g_error_message, sizeof(g_error_message), "SRAMSIZE expects 0-7, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
