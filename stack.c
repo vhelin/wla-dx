@@ -137,8 +137,20 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
         printf("||");
       else if (value == SI_OP_LOGICAL_AND)
         printf("&&");
-      else
+      else if (value == SI_OP_LOW_WORD)
+        printf("loword()");
+      else if (value == SI_OP_HIGH_WORD)
+        printf("hiword()");
+      else if (value == SI_OP_BANK_BYTE)
+        printf("bankbyte()");
+      else {
+        if (value >= (int)strlen(ar)) {
+          printf("ERROR!\n");
+          printf("_debug_print_stack(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", value);
+          exit(1);
+        }
         printf("%c", ar[value]);
+      }
     }
     else if (ta[k].type == STACK_ITEM_TYPE_VALUE)
       printf("V(%f)", ta[k].value);

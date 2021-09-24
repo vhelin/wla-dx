@@ -86,8 +86,20 @@ static const char *g_si_operator_modulo = "#";
 static const char *g_si_operator_xor = "~";
 static const char *g_si_operator_low_byte = "<";
 static const char *g_si_operator_high_byte = ">";
+static const char *g_si_operator_not = "!";
 static const char *g_si_operator_bank = ":";
 static const char *g_si_operator_unknown = "UNKNOWN!";
+static const char *g_si_operator_compare_lt = "<";
+static const char *g_si_operator_compare_gt = ">";
+static const char *g_si_operator_compare_eq = "==";
+static const char *g_si_operator_compare_neq = "!=";
+static const char *g_si_operator_compare_lte = "<=";
+static const char *g_si_operator_compare_gte = ">=";
+static const char *g_si_operator_logical_or = "||";
+static const char *g_si_operator_logical_and = "&&";
+static const char *g_si_operator_low_word = "loword()";
+static const char *g_si_operator_high_word = "hiword()";
+static const char *g_si_operator_bank_byte = "bankbyte()";
 
 static const char *get_stack_item_operator_name(int operator) {
 
@@ -117,8 +129,36 @@ static const char *get_stack_item_operator_name(int operator) {
     return g_si_operator_low_byte;
   else if (operator == SI_OP_HIGH_BYTE)
     return g_si_operator_high_byte;
+  else if (operator == SI_OP_NOT)
+    return g_si_operator_not;
   else if (operator == SI_OP_BANK)
     return g_si_operator_bank;
+  else if (operator == SI_OP_COMPARE_LT)
+    return g_si_operator_compare_lt;
+  else if (operator == SI_OP_COMPARE_GT)
+    return g_si_operator_compare_gt;
+  else if (operator == SI_OP_COMPARE_EQ)
+    return g_si_operator_compare_eq;
+  else if (operator == SI_OP_COMPARE_NEQ)
+    return g_si_operator_compare_neq;
+  else if (operator == SI_OP_COMPARE_LTE)
+    return g_si_operator_compare_lte;
+  else if (operator == SI_OP_COMPARE_GTE)
+    return g_si_operator_compare_gte;
+  else if (operator == SI_OP_LOGICAL_OR)
+    return g_si_operator_logical_or;
+  else if (operator == SI_OP_LOGICAL_AND)
+    return g_si_operator_logical_and;
+  else if (operator == SI_OP_LOW_WORD)
+    return g_si_operator_low_word;
+  else if (operator == SI_OP_HIGH_WORD)
+    return g_si_operator_high_word;
+  else if (operator == SI_OP_BANK_BYTE)
+    return g_si_operator_bank_byte;
+  
+  fprintf(stderr, "\n");
+  fprintf(stderr, "get_stack_item_operator_name(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", operator);
+  exit(1);
 
   return g_si_operator_unknown;
 }
