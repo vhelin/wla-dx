@@ -10,12 +10,14 @@
 .BANK 0
 .ORG 0
 
-.db "01>"
-LDX $2A     ; DE 2A
-LDX $2A     ; DE 2A
+; @BT linked.rom
+
+.db "01>"   ; @BT TEST-01 01 START
+LDX $2A     ; @BT DE 2A
+LDX $2A     ; @BT DE 2A
 
 .16BIT
 
-LDX $2A     ; CE 2A 00
-LDX $2A     ; CE 2A 00
-.db "<01"
+LDX $2A     ; @BT FE 00 2A
+LDX $2A     ; @BT FE 00 2A
+.db "<01"   ; @BT END
