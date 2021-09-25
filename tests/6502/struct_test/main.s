@@ -39,6 +39,10 @@ at_last dw
 .DSTRUCT waterPool1 INSTANCEOF waterPool DATA "myPool", 9, 120, 1, 2, 3, 4, 5,6
 .db $ff, $fe
 
+
+; @BT linked.rom
+; @BT TEST-01 01 START 34 12 78 56 END
+
 .db "01>"
 .DSTRUCT testStruct1 INSTANCEOF testStruct DATA $1234, $5678
 .db "<01"
