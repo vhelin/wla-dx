@@ -21,7 +21,7 @@ runTest() {
     cd ..
 }
 
-export PATH=$PATH:$PWD/binaries
+export PATH=$PATH:$PWD/binaries:$PWD/build/binaries
 # echo $PATH
 
 # byte_tester
