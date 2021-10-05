@@ -43,24 +43,26 @@ cheat_codes:
 
 .org $200
 
+; @BT result.rom
+
 .section "TEST01" force
-    .db "01>"
-    bbc settings.SETTINGS_BIT_KEYBOARD,label_1
+    .db "01>"                                       ; @BT TEST-01 01 START
+    bbc settings.SETTINGS_BIT_KEYBOARD,label_1      ; @BT 53 00 00
 label_1:
-    set1 settings.SETTINGS_BIT_AUDIO
-    and1 C,/cheat_codes.CHEAT_CODES_BIT_1
-    and1 C,cheat_codes.CHEAT_CODES_BIT_1
-    .db "<01"
+    set1 settings.SETTINGS_BIT_AUDIO                ; @BT 02 00
+    and1 C,/cheat_codes.CHEAT_CODES_BIT_1           ; @BT 6A 01 00
+    and1 C,cheat_codes.CHEAT_CODES_BIT_1            ; @BT 4A 01 00
+    .db "<01"                                       ; @BT END
 .ends
 
 .section "TEST02" force
-    .db "02>"
-    bbc settings,SETTINGS_BIT_KEYBOARD,label_2
+    .db "02>"                                       ; @BT TEST-02 02 START
+    bbc settings,SETTINGS_BIT_KEYBOARD,label_2      ; @BT 53 00 00
 label_2:
-    set1 settings,SETTINGS_BIT_AUDIO
-    and1 C,/cheat_codes,CHEAT_CODES_BIT_1
-    and1 C,cheat_codes,CHEAT_CODES_BIT_1
-    .db "<02"
+    set1 settings,SETTINGS_BIT_AUDIO                ; @BT 02 00
+    and1 C,/cheat_codes,CHEAT_CODES_BIT_1           ; @BT 6A 01 00
+    and1 C,cheat_codes,CHEAT_CODES_BIT_1            ; @BT 4A 01 00
+    .db "<02"                                       ; @BT END
 .ends
 
 .define TCALL_0  0
@@ -68,13 +70,13 @@ label_2:
 .define TCALL_15 15
         
 .section "TEST03" force
-    .db "03>"
-    adc a, [SETTINGS_BIT_JOYSTICK+X]
-    adc a, [SETTINGS_BIT_JOYSTICK]+Y
-    tcall 0
-    tcall TCALL_1 + 0
-    tcall TCALL_1 * 10 - 10 + TCALL_15
-    tclr1 !cheat_codes
-    tset1 !cheat_codes
-    .db "<03"
+    .db "03>"                                       ; @BT TEST-03 03 START
+    adc a, [SETTINGS_BIT_JOYSTICK+X]                ; @BT 87 01
+    adc a, [SETTINGS_BIT_JOYSTICK]+Y                ; @BT 97 01
+    tcall 0                                         ; @BT 01
+    tcall TCALL_1 + 0                               ; @BT 11
+    tcall TCALL_1 * 10 - 10 + TCALL_15              ; @BT F1
+    tclr1 !cheat_codes                              ; @BT 4E 01 00
+    tset1 !cheat_codes                              ; @BT 0E 01 00
+    .db "<03"                                       ; @BT END
 .ends
