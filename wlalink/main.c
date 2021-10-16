@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
     char title[] = "WLALINK - WLA DX Macro Assembler Linker v5.16a";
     int length, left, right;
 
-    length = strlen(title);
+    length = (int)strlen(title);
     left = (70 - 3 - 3 - length) / 2;
     right = 70 - 3 - 3 - left - length;
 
@@ -288,7 +288,7 @@ int main(int argc, char *argv[]) {
     printf("                Programmed by Ville Helin in 1998-2008\n");
     printf("        In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
 
-    length = strlen(g_version_string);
+    length = (int)strlen(g_version_string);
     left = (70 - length) / 2;
 
     for (i = 0; i < left; i++)
