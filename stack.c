@@ -1053,12 +1053,12 @@ int stack_calculate(char *in, int *value) {
   for (k = 0; k < q; k++) {
     if (si[k].type == STACK_ITEM_TYPE_STRING) {
       if (k+2 < q && si[k+1].type == STACK_ITEM_TYPE_OPERATOR && si[k+1].value == SI_OP_SUB && si[k+2].type == STACK_ITEM_TYPE_STRING) {
-	k += 2;
-	g_is_calculating_deltas = YES;
+        k += 2;
+        g_is_calculating_deltas = YES;
       }
       else {
-	g_is_calculating_deltas = NO;
-	break;
+        g_is_calculating_deltas = NO;
+        break;
       }
     }
   }
@@ -1257,8 +1257,8 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
   else {
     if (g_is_calculating_deltas == YES) {
       /* the current calculation we are trying to solve contains at least one label pair A-B, and no other
-	 uses of labels. if we come here then a label wasn't a definition, but we can try to find the label's
-	 (possibly) non-final address, and use that as that should work when calculating deltas... */
+         uses of labels. if we come here then a label wasn't a definition, but we can try to find the label's
+         (possibly) non-final address, and use that as that should work when calculating deltas... */
       struct data_stream_item *dSI;
       
       /* read the labels and their addresses from the internal data stream */
@@ -1266,36 +1266,36 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
 
       dSI = data_stream_parser_find_label(s->string);
       if (dSI != NULL) {
-	if (g_delta_counter == 0) {
-	  g_delta_section = dSI->section_id;
-	  g_delta_address = dSI->address;
+        if (g_delta_counter == 0) {
+          g_delta_section = dSI->section_id;
+          g_delta_address = dSI->address;
 
-	  /* store the pointer and type if we need to reverse this change */
-	  g_delta_old_pointer = s;
-	  g_delta_old_type = s->type;
+          /* store the pointer and type if we need to reverse this change */
+          g_delta_old_pointer = s;
+          g_delta_old_type = s->type;
 
-	  s->type = STACK_ITEM_TYPE_VALUE;
-	  s->value = dSI->address;
+          s->type = STACK_ITEM_TYPE_VALUE;
+          s->value = dSI->address;
 
-	  g_delta_counter = 1;
-	}
-	else if (g_delta_counter == 1) {
-	  if (g_delta_section != dSI->section_id) {
-	    /* ABORT! labels A-B are from different sections, we cannot calculate the delta here... */
+          g_delta_counter = 1;
+        }
+        else if (g_delta_counter == 1) {
+          if (g_delta_section != dSI->section_id) {
+            /* ABORT! labels A-B are from different sections, we cannot calculate the delta here... */
 
-	    /* reverse the previous change */
-	    g_delta_old_pointer->type = g_delta_old_type;
+            /* reverse the previous change */
+            g_delta_old_pointer->type = g_delta_old_type;
 
-	    *cannot_resolve = 1;
-	  }
-	  else {
-	    /* success! A-B makes sense! */
-	    s->type = STACK_ITEM_TYPE_VALUE;
-	    s->value = dSI->address;
-	  }
+            *cannot_resolve = 1;
+          }
+          else {
+            /* success! A-B makes sense! */
+            s->type = STACK_ITEM_TYPE_VALUE;
+            s->value = dSI->address;
+          }
 
-	  g_delta_counter = 0;
-	}
+          g_delta_counter = 0;
+        }
       }
     }
   }
@@ -1969,9 +1969,19 @@ int stack_create_stack_stack(int stack_id) {
 }
 
 
+/* TODO: move the following code to its own file... */
+
+#include "pass_3.h"
+
+#define XSTRINGIFY(x) #x
+#define STRINGIFY(x) XSTRINGIFY(x)
+#define STRING_READ_FORMAT ("%" STRINGIFY(MAX_NAME_LENGTH) "s ")
+
 struct data_stream_item *g_data_stream_items_first = NULL, *g_data_stream_items_last = NULL;
 int g_is_data_stream_processed = NO;
 
+extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
+extern char g_namespace[MAX_NAME_LENGTH + 1];
 extern FILE *g_file_out_ptr;
 
 
@@ -1995,8 +2005,15 @@ int data_stream_parser_free(void) {
 int data_stream_parser_parse(void) {
 
   int add = 0, add_old = 0, section_id = -1, bits_current = 0, inz, line_number = 0;
+  struct data_stream_item *parent_labels[10];
+  struct section_def *s;
   FILE *f_in;
   char c;
+  
+  memset(parent_labels, 0, sizeof(parent_labels));
+  s = NULL;
+
+  g_namespace[0] = 0;
   
   if (g_is_data_stream_processed == YES)
     return SUCCEEDED;
@@ -2048,10 +2065,15 @@ int data_stream_parser_parse(void) {
 
       add_old = add;
 
+      s = g_sections_first;
+      while (s != NULL && s->id != inz)
+        s = s->next;
+      
       continue;
 
     case 's':
       section_id = -1;
+      s = NULL;
       continue;
 
     case 'x':
@@ -2209,8 +2231,10 @@ int data_stream_parser_parse(void) {
 
     case 't':
       fscanf(f_in, "%d ", &inz);
-      if (inz != 0)
-        fscanf(f_in, "%*s ");
+      if (inz == 0)
+        g_namespace[0] = 0;
+      else
+        fscanf(f_in, STRING_READ_FORMAT, g_namespace);
       continue;
 
     case 'Z': /* breakpoint */
@@ -2222,28 +2246,59 @@ int data_stream_parser_parse(void) {
         fscanf(f_in, "%*s ");
       }
       else {
-	struct data_stream_item *dSI;
+        struct data_stream_item *dSI;
+        int mangled_label = NO;
 
-	dSI = calloc(sizeof(struct data_stream_item), 1);
-	if (dSI == NULL) {
-	  print_error("Out of memory error while allocating a data_stream_item.\n", ERROR_STC);
-	  return FAILED;
-	}
+        dSI = calloc(sizeof(struct data_stream_item), 1);
+        if (dSI == NULL) {
+          print_error("Out of memory error while allocating a data_stream_item.\n", ERROR_STC);
+          return FAILED;
+        }
 
         fscanf(f_in, "%s ", dSI->label);
 
-	dSI->next = NULL;
-	dSI->address = add;
-	dSI->section_id = section_id;
+        if (is_label_anonymous(dSI->label) == NO) {
+          /* if the label has '@' at the start, mangle the label name to make it unique */
+          int n = 0, m;
 
-	if (g_data_stream_items_first == NULL) {
-	  g_data_stream_items_first = dSI;
-	  g_data_stream_items_last = dSI;
-	}
-	else {
-	  g_data_stream_items_last->next = dSI;
-	  g_data_stream_items_last = dSI;
-	}
+          while (n < 10 && dSI->label[n] == '@')
+            n++;
+          m = n;
+          while (m < 10)
+            parent_labels[m++] = NULL;
+
+          if (n < 10)
+            parent_labels[n] = dSI;
+          n--;
+          while (n >= 0 && parent_labels[n] == 0)
+            n--;
+
+          if (n >= 0) {
+            if (mangle_label(dSI->label, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+              return FAILED;
+            mangled_label = YES;
+          }
+        }
+
+        if (is_label_anonymous(dSI->label) == NO && g_namespace[0] != 0 && mangled_label == NO) {
+          if (section_id < 0 || s->nspace == NULL) {
+            if (add_namespace(dSI->label, g_namespace, sizeof(dSI->label)) == FAILED)
+              return FAILED;
+          }
+        }
+        
+        dSI->next = NULL;
+        dSI->address = add;
+        dSI->section_id = section_id;
+
+        if (g_data_stream_items_first == NULL) {
+          g_data_stream_items_first = dSI;
+          g_data_stream_items_last = dSI;
+        }
+        else {
+          g_data_stream_items_last->next = dSI;
+          g_data_stream_items_last = dSI;
+        }
       }
 
       continue;

@@ -391,7 +391,7 @@ int pass_3(void) {
         add_old = add;
 
         s = g_sections_first;
-        while (s->id != inz)
+        while (s != NULL && s->id != inz)
           s = s->next;
 
         /* a .RAMSECTION? */
@@ -516,7 +516,7 @@ int pass_3(void) {
         add_old = add;
 
         s = g_sections_first;
-        while (s->id != inz)
+        while (s != NULL && s->id != inz)
           s = s->next;
 
         if (s->status == SECTION_STATUS_FREE)
@@ -596,7 +596,7 @@ int pass_3(void) {
       add_old = add;
 
       s = g_sections_first;
-      while (s->id != inz)
+      while (s != NULL && s->id != inz)
         s = s->next;
 
       if (s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_RAM_FREE)

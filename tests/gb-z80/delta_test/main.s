@@ -5,6 +5,7 @@
 DEFAULTSLOT 1
 SLOT 0 $0000 $2000
 SLOT 1 STArT $2000 sIzE $6000
+SLOT 2 START $8000 SIZE $2000
 .ENDME
 
 .ROMBANKMAP
@@ -76,3 +77,29 @@ TESTSTRINGEND:
 .REPEAT 16+TESTSTRINGSTART-TESTSTRINGEND
     .DB " "
 .ENDR
+
+
+        .section "TEST-06" free
+TestCode:
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+@InstructionUnderTest:
+        .dsb 4, 0
+        nop
+        nop
+        nop
+End:    nop
+        
+        .define OffsetOfInstructionUnderTest TestCode@InstructionUnderTest - TestCode
+        .export OffsetOfInstructionUnderTest
+
+        .db "06>"                        ; @BT TEST-06 06 START
+        .db OffsetOfInstructionUnderTest ; @BT 06
+        .db End - TestCode               ; @BT 0D
+        .db End - TestCode + 1           ; @BT 0E
+        .db "<06"                        ; @BT END
+        .ends
