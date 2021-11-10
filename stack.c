@@ -1146,7 +1146,7 @@ int stack_calculate(char *in, int *value) {
   }
 
   /* only one string? */
-  if (d == 1 && ta[0].type == STACK_ITEM_TYPE_STRING) {
+  if (d == 1 && ta[0].type == STACK_ITEM_TYPE_STRING && ta[0].sign == SI_SIGN_POSITIVE) {
     strcpy(g_label, ta[0].string);
     process_special_labels(g_label);
     return STACK_RETURN_LABEL;
@@ -2002,6 +2002,70 @@ int data_stream_parser_free(void) {
 }
 
 
+static int _add_unmangled_label(char *label, int address, int section_id) {
+
+  struct data_stream_item *dSI;
+
+  dSI = calloc(sizeof(struct data_stream_item), 1);
+  if (dSI == NULL) {
+    print_error("Out of memory error while allocating a data_stream_item.\n", ERROR_STC);
+    return FAILED;
+  }
+
+  strcpy(dSI->label, label);
+
+  dSI->next = NULL;
+  dSI->address = address;
+  dSI->section_id = section_id;
+
+  if (g_data_stream_items_first == NULL) {
+    g_data_stream_items_first = dSI;
+    g_data_stream_items_last = dSI;
+  }
+  else {
+    g_data_stream_items_last->next = dSI;
+    g_data_stream_items_last = dSI;
+  }
+  
+  return SUCCEEDED;
+}
+
+
+static void _free_local_and_child_labels_of_a_section(int section_id) {
+
+  struct data_stream_item *dSI = g_data_stream_items_first;
+  struct data_stream_item *dSI_prev = NULL;
+  struct data_stream_item *dSI_next = NULL;
+
+  while (dSI != NULL) {
+    if (dSI->section_id == section_id) {
+      if (dSI->label[0] == '@' || is_label_anonymous(dSI->label)) {
+        if (dSI_prev == NULL) {
+          dSI_next = dSI->next;
+          g_data_stream_items_first = dSI_next;
+          if (g_data_stream_items_last == dSI)
+            g_data_stream_items_last = dSI_next;
+          free(dSI);
+          dSI = dSI_next;
+          continue;
+        }
+        else {
+          dSI_next = dSI->next;
+          dSI_prev->next = dSI_next;
+          if (g_data_stream_items_last == dSI)
+            g_data_stream_items_last = dSI_prev;
+          free(dSI);
+          dSI = dSI_next;
+          continue;
+        }
+      }
+    }
+    dSI_prev = dSI;
+    dSI = dSI->next;
+  }
+}
+
+
 int data_stream_parser_parse(void) {
 
   int add = 0, add_old = 0, section_id = -1, bits_current = 0, inz, line_number = 0;
@@ -2072,6 +2136,7 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 's':
+      _free_local_and_child_labels_of_a_section(section_id);
       section_id = -1;
       s = NULL;
       continue;
@@ -2274,8 +2339,15 @@ int data_stream_parser_parse(void) {
             n--;
 
           if (n >= 0) {
+            /* add also the original label, unmangled */
+            if (_add_unmangled_label(dSI->label, add, section_id) == FAILED) {
+              free(dSI);
+              return FAILED;
+            }
+            
             if (mangle_label(dSI->label, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
               return FAILED;
+
             mangled_label = YES;
           }
         }

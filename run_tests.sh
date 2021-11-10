@@ -2,7 +2,7 @@
 
 #
 # NOTE! All the small and ugly projects inside the "tests" directory
-# are here used as unit tests / if the projects assemble and link without
+# are here used as regression tests / if the projects assemble and link without
 # errors, we'll assume that WLA DX is in ok shape. Feel free to add more
 # test projects to the lot.
 #

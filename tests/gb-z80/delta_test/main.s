@@ -94,12 +94,67 @@ TestCode:
         nop
 End:    nop
         
-        .define OffsetOfInstructionUnderTest TestCode@InstructionUnderTest - TestCode
-        .export OffsetOfInstructionUnderTest
+        .define OffsetOfInstructionUnderTest1 @InstructionUnderTest - TestCode
+        .export OffsetOfInstructionUnderTest1
+        .define OffsetOfInstructionUnderTest2 TestCode@InstructionUnderTest - TestCode
+        .export OffsetOfInstructionUnderTest2
 
-        .db "06>"                        ; @BT TEST-06 06 START
-        .db OffsetOfInstructionUnderTest ; @BT 06
-        .db End - TestCode               ; @BT 0D
-        .db End - TestCode + 1           ; @BT 0E
-        .db "<06"                        ; @BT END
+        .db "06>"                         ; @BT TEST-06 06 START
+        .db OffsetOfInstructionUnderTest1 ; @BT 06
+        .db End - TestCode                ; @BT 0D
+        .db End - TestCode + 1            ; @BT 0E
+        .db "<06"                         ; @BT END
         .ends
+
+        .section "TEST-07" free
+        .db "07>"                         ; @BT TEST-07 07 START
+        .db OffsetOfInstructionUnderTest2 ; @BT 06
+        .db End - TestCode                ; @BT 0D
+        .db End - TestCode + 1            ; @BT 0E
+        .db "<07"                         ; @BT END
+        .ends
+        
+        .section "TEST-08"
+MoreTestCode:
+        nop
+        nop
+@InstructionUnderTest:
+        .dsb 4, 0
+        nop
+MoreEnd:nop
+
+        .define OffsetOfInstructionUnderTest3 @InstructionUnderTest - MoreTestCode
+        .export OffsetOfInstructionUnderTest3
+        .define OffsetOfInstructionUnderTest4 MoreTestCode@InstructionUnderTest - MoreTestCode
+        .export OffsetOfInstructionUnderTest4
+        
+        .db "08>"                          ; @BT TEST-08 08 START
+        .db OffsetOfInstructionUnderTest3  ; @BT 02
+        .db MoreEnd - MoreTestCode         ; @BT 07
+        .db MoreEnd - MoreTestCode + 1     ; @BT 08
+        .db "<08"                          ; @BT END
+        .ends
+        
+        .section "TEST-09" free
+        .db "09>"                         ; @BT TEST-09 09 START
+        .db OffsetOfInstructionUnderTest4 ; @BT 02
+        .db MoreEnd - MoreTestCode        ; @BT 07
+        .db MoreEnd - MoreTestCode + 1    ; @BT 08
+        .db "<09"                         ; @BT END
+        .ends
+
+        .section "TEST-10"
+YUMTestCode:
+        nop
+        nop
+        nop
+@InstructionUnderTest:
+        .dsb 2, 0
+        nop
+        .db "10>"                         ; @BT TEST-10 10 START
+        .db @InstructionUnderTest - YUMTestCode ; @BT 03
+        .db YUMTestCode@InstructionUnderTest - YUMTestCode ; @BT 03
+        .db "<10"                         ; @BT END
+YUMEnd: nop
+        .ends
+        
