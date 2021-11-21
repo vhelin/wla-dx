@@ -62,6 +62,7 @@ int g_smc_defined = 0;
 int g_asciitable_defined = 0;
 int g_block_status = 0, g_block_name_id = 0;
 int g_dstruct_status = OFF;
+int g_saved_structures_count = 0, g_saved_structures_max = 0;
 unsigned char g_asciitable[256];
 
 #ifndef GB
@@ -92,6 +93,7 @@ char g_current_directive[MAX_NAME_LENGTH + 1];
 
 unsigned char *g_rom_banks = NULL, *g_rom_banks_usage_table = NULL;
 
+struct structure **g_saved_structures = NULL;
 struct export_def *g_export_first = NULL, *g_export_last = NULL;
 struct optcode *g_opt_tmp;
 struct definition *g_tmp_def;
@@ -142,12 +144,12 @@ static int g_base_enum_offset; /* start address of enum */
 static int g_enum_sizeof_pass; /* set on second pass through enum/ramsection, generating _sizeof labels */
 /* temporary struct used to build up enums/ramsections (and, of course, structs)
    this gets temporarily replaced when inside a union (each union is considered a separate struct). */
-static struct structure *g_active_struct;
+static struct structure *g_active_struct = NULL;
 
 static int g_union_base_offset; /* start address of current union */
 static int g_max_enum_offset; /* highest position seen within current union group */
-static struct structure *g_union_first_struct; /* first struct in current union */
-static struct union_stack *g_union_stack; /* stores variables for nested unions */
+static struct structure *g_union_first_struct = NULL; /* first struct in current union */
+static struct union_stack *g_union_stack = NULL; /* stores variables for nested unions */
 
 /* for .TABLE, .DATA and .ROW */
 static char g_table_format[256];
@@ -1615,25 +1617,6 @@ int add_label_sizeof(char *label, int g_size) {
 }
 
 
-void free_struct(struct structure *st) {
-
-  struct structure_item *si = st->items;
-
-  while (si != NULL) {
-    struct structure_item *tmp = si;
-
-    if (si->type == STRUCTURE_ITEM_TYPE_UNION)
-      free_struct(si->union_items);
-    /* don't free si->instance for STRUCTURE_ITEM_TYPE_INSTANCE since that's a reusable
-       structure */
-    si = si->next;
-    free(tmp);
-  }
-
-  free(st);
-}
-
-
 /* g_enum_offset and g_last_enum_offset should be set when calling this. */
 int add_label_to_enum_or_ramsection(char *name, int size) {
 
@@ -1800,6 +1783,33 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 }
 
 
+static void _remember_new_structure(struct structure *st) {
+
+  int i;
+
+  /* do we already remember the structure? */
+  for (i = 0; i < g_saved_structures_count; i++) {
+    if (g_saved_structures[i] == st)
+      return;
+  }
+
+  if (g_saved_structures_count >= g_saved_structures_max) {
+    g_saved_structures_max += 256;
+    if (g_saved_structures == NULL)
+      g_saved_structures = calloc(sizeof(struct structure *) * g_saved_structures_max, 1);
+    else
+      g_saved_structures = realloc(g_saved_structures, sizeof(struct structure *) * g_saved_structures_max);
+    if (g_saved_structures == NULL) {
+      fprintf(stderr, "_remember_new_structure(): Out of memory error.\n");
+      return;
+    }
+  }
+  
+  g_saved_structures[g_saved_structures_count++] = st;
+}
+
+
+
 /* either "g_in_enum", "g_in_ramsection", or "g_in_struct" should be true when this is called. */
 int parse_enum_token(void) {
 
@@ -1826,7 +1836,9 @@ int parse_enum_token(void) {
     }
     st->items = NULL;
     st->last_item = NULL;
-
+    st->alive = YES;
+    _remember_new_structure(st);
+  
     inz = input_next_string();
     if (inz == FAILED) {
       free(st);
@@ -1861,7 +1873,7 @@ int parse_enum_token(void) {
     int inz;
 
     if (g_union_stack == NULL) {
-      print_error("There is no open union.\n", ERROR_DIR);
+      print_error("There is no open .UNION.\n", ERROR_DIR);
       return FAILED;
     }
 
@@ -1875,6 +1887,8 @@ int parse_enum_token(void) {
     }
     st->items = NULL;
     st->last_item = NULL;
+    st->alive = YES;
+    _remember_new_structure(st);
     
     inz = input_next_string();
     if (inz == FAILED) {
@@ -1896,7 +1910,7 @@ int parse_enum_token(void) {
     int total_size;
 
     if (g_union_stack == NULL) {
-      print_error("There is no open union.\n", ERROR_DIR);
+      print_error("There is no open .UNION.\n", ERROR_DIR);
       return FAILED;
     }
 
@@ -1945,7 +1959,7 @@ int parse_enum_token(void) {
   }
   else if (g_in_enum == YES && strcaselesscmp(g_tmp, ".ENDE") == 0) {
     if (g_union_stack != NULL) {
-      print_error("Union not closed.\n", ERROR_DIR);
+      print_error(".UNION not closed.\n", ERROR_DIR);
       return FAILED;
     }
     
@@ -1959,7 +1973,6 @@ int parse_enum_token(void) {
     if (enum_add_struct_fields("", g_active_struct, (g_enum_ord == -1 ? 1 : 0)) == FAILED)
       return FAILED;
 
-    free_struct(g_active_struct);
     g_active_struct = NULL;
 
     g_in_enum = NO;
@@ -1967,7 +1980,7 @@ int parse_enum_token(void) {
   }
   else if (g_in_ramsection == YES && strcaselesscmp(g_tmp, ".ENDS") == 0) {
     if (g_union_stack != NULL) {
-      print_error("Union not closed.\n", ERROR_DIR);
+      print_error(".UNION not closed.\n", ERROR_DIR);
       return FAILED;
     }
 
@@ -1990,7 +2003,6 @@ int parse_enum_token(void) {
     if (g_extra_definitions == ON)
       generate_label("SECTIONEND_", g_sections_last->name);
       
-    free_struct(g_active_struct);
     g_active_struct = NULL;
 
     fprintf(g_file_out_ptr, "s ");
@@ -2017,7 +2029,7 @@ int parse_enum_token(void) {
 
     if (g_create_sizeof_definitions == YES) {
       if (strlen(g_active_struct->name) > MAX_NAME_LENGTH - 8) {
-        snprintf(g_error_message, sizeof(g_error_message), "STRUCT \"%s\"'s name is too long!\n", g_active_struct->name);
+        snprintf(g_error_message, sizeof(g_error_message), ".STRUCT \"%s\"'s name is too long!\n", g_active_struct->name);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -2027,7 +2039,7 @@ int parse_enum_token(void) {
     }
     
     if (g_active_struct->items == NULL) {
-      snprintf(g_error_message, sizeof(g_error_message), "STRUCT \"%s\" is empty!\n", g_active_struct->name);
+      snprintf(g_error_message, sizeof(g_error_message), ".STRUCT \"%s\" is empty!\n", g_active_struct->name);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -2037,6 +2049,7 @@ int parse_enum_token(void) {
 
     g_in_struct = NO;
     g_active_struct = NULL;
+
     return SUCCEEDED;
   }
 
@@ -4345,17 +4358,19 @@ int directive_struct(void) {
 
   g_active_struct = calloc(sizeof(struct structure), 1);
   if (g_active_struct == NULL) {
-    print_error("Out of memory while allocating a new STRUCT.\n", ERROR_DIR);
+    print_error("Out of memory while allocating a new .STRUCT.\n", ERROR_DIR);
     return FAILED;
   }
+  g_active_struct->items = NULL;
+  g_active_struct->last_item = NULL;
+  g_active_struct->alive = YES;
+  _remember_new_structure(g_active_struct);
 
   if (get_next_token() == FAILED)
     return FAILED;
 
   strcpy(g_active_struct->name, g_tmp);
   
-  g_active_struct->items = NULL;
-  g_active_struct->last_item = NULL;
   g_union_stack = NULL;
 
   g_enum_offset = 0;
@@ -4792,6 +4807,8 @@ int directive_ramsection(void) {
     print_error("Out of memory while parsing .RAMSECTION.\n", ERROR_DIR);
     return FAILED;
   }
+  g_active_struct->alive = YES;
+  _remember_new_structure(g_active_struct);
   g_active_struct->name[0] = '\0';
   g_active_struct->items = NULL;
   g_active_struct->last_item = NULL;
@@ -10089,6 +10106,8 @@ int parse_directive(void) {
       print_error("Out of memory while parsing .ENUM.\n", ERROR_DIR);
       return FAILED;
     }
+    g_active_struct->alive = YES;
+    _remember_new_structure(g_active_struct);
     g_active_struct->name[0] = '\0';
     g_active_struct->items = NULL;
     g_active_struct->last_item = NULL;

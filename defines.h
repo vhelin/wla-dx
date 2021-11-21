@@ -718,6 +718,7 @@ struct structure {
   struct structure_item *last_item;
   int size;
   struct structure *next;
+  int alive;
 };
 
 struct union_stack {

@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char g_version_string[] = "$VER: wlalink 5.16a (17.8.2021)";
+char g_version_string[] = "$VER: wlalink 5.16a (22.11.2021)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -50,7 +50,7 @@ struct slot g_slots[256];
 struct after_section *g_after_sections = NULL, *g_after_tmp;
 struct label_sizeof *g_label_sizeofs = NULL;
 struct section_fix *g_sec_fix_first = NULL, *g_sec_fix_tmp = NULL;
-unsigned char *g_rom, *g_rom_usage, *g_file_header = NULL, *g_file_footer = NULL;
+unsigned char *g_rom = NULL, *g_rom_usage = NULL, *g_file_header = NULL, *g_file_footer = NULL;
 char g_load_address_label[MAX_NAME_LENGTH + 1], **g_ram_slots[256];
 int g_load_address = 0, g_load_address_type = LOAD_ADDRESS_TYPE_UNDEFINED;
 char g_program_address_start_label[MAX_NAME_LENGTH + 1], g_program_address_end_label[MAX_NAME_LENGTH + 1];
@@ -1080,6 +1080,10 @@ void procedures_at_exit(void) {
   
   if (g_sorted_anonymous_labels != NULL)
     free(g_sorted_anonymous_labels);
+
+  /* free ROM */
+  free(g_rom);
+  free(g_rom_usage);
 }
 
 
