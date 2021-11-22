@@ -42,7 +42,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.1a (22.11.2021)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.1a (23.11.2021)";
 char g_wla_version[] = "10.1";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -424,10 +424,7 @@ static void _remember_deletable_structure(struct structure *st) {
 
   if (g_saved_structures_count2 >= g_saved_structures_max2) {
     g_saved_structures_max2 += 256;
-    if (g_saved_structures2 == NULL)
-      g_saved_structures2 = calloc(sizeof(struct structure *) * g_saved_structures_max2, 1);
-    else
-      g_saved_structures2 = realloc(g_saved_structures2, sizeof(struct structure *) * g_saved_structures_max2);
+    g_saved_structures2 = realloc(g_saved_structures2, sizeof(struct structure *) * g_saved_structures_max2);
     if (g_saved_structures2 == NULL) {
       fprintf(stderr, "_remember_deletable_structure(): Out of memory error.\n");
       return;

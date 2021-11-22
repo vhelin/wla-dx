@@ -435,8 +435,13 @@ int macro_start_incbin(struct macro_static *m, struct macro_incbin *incbin_data,
   else
     incbin_data = mrt->incbin_data;
 
-  if (incbin_data->left == 0)
+  if (incbin_data->left == 0) {
+    /* free the incbin_data structure! it seems we came here from .ENDM and just ran out of data...
+       NOTE: don't free mrt->incbin_data->data as it's a copied pointer */
+    free(mrt->incbin_data);
+    mrt->incbin_data = NULL;
     return SUCCEEDED;
+  }
 
   if (first == YES)
     mrt->offset = 0;
@@ -780,6 +785,7 @@ int pass_1(void) {
 
       mrt = &g_macro_stack[g_macro_active];
       mrt->argument_data = NULL;
+      mrt->incbin_data = NULL;
 
       /* collect macro arguments */
       for (p = 0; 1; p++) {
@@ -1795,10 +1801,7 @@ static void _remember_new_structure(struct structure *st) {
 
   if (g_saved_structures_count >= g_saved_structures_max) {
     g_saved_structures_max += 256;
-    if (g_saved_structures == NULL)
-      g_saved_structures = calloc(sizeof(struct structure *) * g_saved_structures_max, 1);
-    else
-      g_saved_structures = realloc(g_saved_structures, sizeof(struct structure *) * g_saved_structures_max);
+    g_saved_structures = realloc(g_saved_structures, sizeof(struct structure *) * g_saved_structures_max);
     if (g_saved_structures == NULL) {
       fprintf(stderr, "_remember_new_structure(): Out of memory error.\n");
       return;
