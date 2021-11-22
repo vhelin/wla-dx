@@ -317,7 +317,7 @@ int include_file(char *name, int *include_size, char *namespace) {
 
 int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct macro_static **macro) {
 
-  struct incbin_file_data *ifd;
+  struct incbin_file_data *ifd = NULL;
   char *in_tmp, *n;
   int file_size, q;
   FILE *f = NULL;
@@ -326,57 +326,77 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   if (error_code != SUCCEEDED)
     return error_code;
 
-  fseek(f, 0, SEEK_END);
-  file_size = (int)ftell(f);
-  fseek(f, 0, SEEK_SET);
-
-  ifd = (struct incbin_file_data *)calloc(sizeof(struct incbin_file_data), 1);
-  n = calloc(sizeof(char) * (strlen(g_full_name)+1), 1);
-  in_tmp = (char *)calloc(sizeof(char) * file_size, 1);
-  if (ifd == NULL || n == NULL || in_tmp == NULL) {
-    if (ifd != NULL)
-      free(ifd);
-    if (n != NULL)
-      free(n);
-    if (in_tmp != NULL)
-      free(in_tmp);
-    snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating data structure for \"%s\".\n", g_full_name);
-    print_error(g_error_message, ERROR_INB);
-    fclose(f);
-    return FAILED;
-  }
-
-  /* read the whole file into a buffer */
-  if (fread(in_tmp, 1, file_size, f) != (size_t) file_size) {
-    snprintf(g_error_message, sizeof(g_error_message), "Could not read all %d bytes of \"%s\"!", file_size, g_full_name);
-    print_error(g_error_message, ERROR_INC);
-    return FAILED;
-  }
-
-  fclose(f);
-
-  /* complete the structure */
-  ifd->next = NULL;
-  ifd->size = file_size;
-  strcpy(n, g_full_name);
-  ifd->name = n;
-  ifd->data = in_tmp;
-
-  /* find the index */
+  /* try to find the file in our cache */
+  ifd = g_incbin_file_data_first;
   q = 0;
-  if (g_incbin_file_data_first != NULL) {
-    g_ifd_tmp = g_incbin_file_data_first;
-    while (g_ifd_tmp->next != NULL && strcmp(g_ifd_tmp->name, g_full_name) != 0) {
-      g_ifd_tmp = g_ifd_tmp->next;
-      q++;
+  while (ifd != NULL) {
+    if (strcmp(g_full_name, ifd->name) == 0) {
+      /* found it! */
+      file_size = ifd->size;
+      fclose(f);
+      break;
     }
-    if (g_ifd_tmp->next == NULL && strcmp(g_ifd_tmp->name, g_full_name) != 0) {
-      g_ifd_tmp->next = ifd;
+    else {
       q++;
+      ifd = ifd->next;
     }
   }
-  else
-    g_incbin_file_data_first = ifd;
+
+  if (ifd == NULL) {
+    struct incbin_file_data *ifd2;
+    
+    fseek(f, 0, SEEK_END);
+    file_size = (int)ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    ifd = (struct incbin_file_data *)calloc(sizeof(struct incbin_file_data), 1);
+    n = calloc(sizeof(char) * (strlen(g_full_name)+1), 1);
+    in_tmp = (char *)calloc(sizeof(char) * file_size, 1);
+    if (ifd == NULL || n == NULL || in_tmp == NULL) {
+      free(ifd);
+      free(n);
+      free(in_tmp);
+      snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating data structure for \"%s\".\n", g_full_name);
+      print_error(g_error_message, ERROR_INB);
+      fclose(f);
+      return FAILED;
+    }
+
+    /* read the whole file into a buffer */
+    if (fread(in_tmp, 1, file_size, f) != (size_t) file_size) {
+      free(ifd);
+      free(n);
+      free(in_tmp);
+      snprintf(g_error_message, sizeof(g_error_message), "Could not read all %d bytes of \"%s\"!", file_size, g_full_name);
+      print_error(g_error_message, ERROR_INC);
+      return FAILED;
+    }
+
+    fclose(f);
+
+    /* complete the structure */
+    ifd->next = NULL;
+    ifd->size = file_size;
+    strcpy(n, g_full_name);
+    ifd->name = n;
+    ifd->data = in_tmp;
+
+    /* calculate the index, remember the entry */
+    q = 0;
+    ifd2 = g_incbin_file_data_first;
+    while (ifd2 != NULL) {
+      q++;
+      if (ifd2->next == NULL) {
+	ifd2->next = ifd;
+	break;
+      }
+      else
+	ifd2 = ifd2->next;
+    }
+    
+    if (g_incbin_file_data_first == NULL)
+      g_incbin_file_data_first = ifd;
+  }
 
   *id = q;
 

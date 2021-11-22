@@ -272,6 +272,10 @@ data1b:	.incbin "data.txt" skip 1 filter macroOne
 	.incbin "data3/data.txt"
 	.incdir "data2"
 data2b:	.incbin "data.txt" skip 1 filter macroOne
+	.incbin "data.txt"
+        .db "04>"              ; @BT TEST-04 04 START	
+	.incbin "data.txt"     ; @BT 44 41 54 41 32 0A
+	.db "<04"	       ; @BT END
 
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 ; .stringmap test
