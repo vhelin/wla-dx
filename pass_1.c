@@ -9238,7 +9238,7 @@ int directive_stringmap_table(void) {
   table_file = fopen(g_label, "r");
   if (table_file == NULL) {
     if (g_makefile_rules == YES) {
-      // If in makefile mode, this is not an error. We just make an empty map.
+      /* If in makefile mode, this is not an error. We just make an empty map. */
       return SUCCEEDED;
     }
     snprintf(g_error_message, sizeof(g_error_message), "Error opening file \"%s\".\n", g_label);
