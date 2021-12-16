@@ -114,7 +114,7 @@ struct array *g_arrays_first = NULL;
 
 extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name;
 extern int g_size, g_input_number_error_msg, g_verbose_mode, g_output_format, g_open_files, g_input_parse_if;
-extern int g_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations;
+extern int g_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations, g_input_parse_special_chars;
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
 extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
 extern int g_create_sizeof_definitions, g_input_allow_leading_hashtag, g_input_has_leading_hashtag, g_input_allow_leading_ampersand;
@@ -4128,7 +4128,9 @@ int directive_incdir(void) {
   char *c;
 
   g_expect_calculations = NO;
+  g_input_parse_special_chars = NO;
   o = input_number();
+  g_input_parse_special_chars = YES;
   g_expect_calculations = YES;
 
   if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
@@ -4205,7 +4207,9 @@ int directive_include(int is_real) {
       break;
 
     g_expect_calculations = NO;
+    g_input_parse_special_chars = NO;
     o = input_number();
+    g_input_parse_special_chars = YES;
     g_expect_calculations = YES;
     
     if (o == INPUT_NUMBER_EOL) {
@@ -4229,7 +4233,7 @@ int directive_include(int is_real) {
   strcpy(path, accumulated_name);
 
   /* convert the path to local enviroment */
-  localize_path(g_label);
+  localize_path(path);
   
   if (compare_next_token("NAMESPACE") != SUCCEEDED)
     namespace[0] = 0;
@@ -4306,7 +4310,9 @@ int directive_incbin(void) {
   }
   
   g_expect_calculations = NO;
+  g_input_parse_special_chars = NO;
   o = input_number();
+  g_input_parse_special_chars = YES;
   g_expect_calculations = YES;
 
   if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
@@ -5243,7 +5249,9 @@ int directive_fopen(void) {
   int o;
 
   g_expect_calculations = NO;
+  g_input_parse_special_chars = NO;
   o = input_number();
+  g_input_parse_special_chars = YES;
   g_expect_calculations = YES;
 
   if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
@@ -6320,7 +6328,9 @@ int directive_background(void) {
   }
 
   g_expect_calculations = NO;
+  g_input_parse_special_chars = NO;
   q = input_number();
+  g_input_parse_special_chars = YES;
   g_expect_calculations = YES;
 
   if (q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
@@ -6338,6 +6348,9 @@ int directive_background(void) {
   }
 
   create_full_name(g_include_dir, g_label);
+
+  /* convert the path to local enviroment */
+  localize_path(g_full_name);
 
   if ((file_in_ptr = fopen(g_full_name, "rb")) == NULL) {
     snprintf(g_error_message, sizeof(g_error_message), "Error opening .BACKGROUND file \"%s\".\n", g_full_name);
@@ -9198,7 +9211,9 @@ int directive_stringmap_table(void) {
   struct stringmaptable *map;
 
   g_expect_calculations = NO;
+  g_input_parse_special_chars = NO;
   parse_result = input_number();
+  g_input_parse_special_chars = YES;
   g_expect_calculations = YES;
 
   if (parse_result != INPUT_NUMBER_STRING && parse_result != INPUT_NUMBER_ADDRESS_LABEL) {
@@ -9225,6 +9240,10 @@ int directive_stringmap_table(void) {
     print_error(".STRINGMAPTABLE needs a file name string.\n", ERROR_DIR);
     return FAILED;
   }
+
+  /* apply any include dir and convert the path to local enviroment */
+  create_full_name(g_include_dir, g_label);
+  localize_path(g_label);
 
   table_file = fopen(g_label, "r");
   if (table_file == NULL) {

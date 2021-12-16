@@ -16,7 +16,7 @@
 int parse_string_length(char *end);
 
 int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OFF, g_parse_floats = YES;
-int g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO;
+int g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO, g_input_parse_special_chars = YES;
 int g_input_allow_leading_ampersand = NO, g_plus_and_minus_ends_label = NO;
 int g_newline_beginning = ON, g_parsed_double_decimal_numbers = 0, g_operand_hint, g_operand_hint_type;
 char g_label[MAX_NAME_LENGTH + 1], g_xyz[512];
@@ -870,7 +870,7 @@ int input_number(void) {
       k = (int)strlen(g_label);
     }
 
-    if (process_string_for_special_characters(g_label, &k) == FAILED)
+    if (g_input_parse_special_chars == YES && process_string_for_special_characters(g_label, &k) == FAILED)
       return FAILED;
 
     if (k >= MAX_NAME_LENGTH) {
