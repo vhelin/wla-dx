@@ -127,6 +127,7 @@ extern struct active_file_info *g_active_file_info_first, *g_active_file_info_la
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern struct stack *g_stacks_first, *g_stacks_tmp, *g_stacks_last;
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
+extern int g_makefile_rules;
 
 static int g_macro_stack_size = 0, g_repeat_stack_size = 0;
 
@@ -9226,8 +9227,20 @@ int directive_stringmap_table(void) {
     return FAILED;
   }
 
+  map->filename = calloc(strlen(g_label) + 1, 1);
+  if (map->filename == NULL) {
+    snprintf(g_error_message, sizeof(g_error_message), "Out of memory while trying allocate info structure for file \"%s\".\n", g_full_name);
+    print_error(g_error_message, ERROR_DIR);
+    return FAILED;
+  }
+  strcpy(map->filename, g_label);
+
   table_file = fopen(g_label, "r");
   if (table_file == NULL) {
+    if (g_makefile_rules == YES) {
+      // If in makefile mode, this is not an error. We just make an empty map.
+      return SUCCEEDED;
+    }
     snprintf(g_error_message, sizeof(g_error_message), "Error opening file \"%s\".\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
@@ -9379,6 +9392,11 @@ int directive_stringmap(void) {
     }
     /* if no match was found, it's an error */
     if (entry == NULL) {
+      if (g_makefile_rules == YES)
+      {
+	    /* In makefile mode, it's ignored */
+        return SUCCEEDED;
+      }
       snprintf(g_error_message, sizeof(g_error_message), "STRINGMAP: could not find a match in the table at substring \"%s\".\n", p);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;    
