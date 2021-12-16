@@ -19,7 +19,7 @@ extern struct after_section *g_after_sections;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
 extern char g_tmp_name[MAX_NAME_LENGTH + 1], g_tmp[4096], g_error_message[sizeof(g_tmp) + MAX_NAME_LENGTH + 1 + 1024], g_namespace[MAX_NAME_LENGTH + 1];
-extern int g_verbose_mode, g_section_status, g_output_format, g_keep_empty_sections;
+extern int g_verbose_mode, g_section_status, g_output_format, g_keep_empty_sections, g_quiet;
 
 
 struct label_def *g_label_last, *g_label_tmp, *g_labels = NULL;
@@ -239,7 +239,9 @@ int pass_3(void) {
       case 'G':
         b = g_blocks;
         g_blocks = g_blocks->next;
-        printf("INTERNAL_PASS_1: Block \"%s\" is %d bytes in size.\n", b->name, add - b->address);
+        if (g_quiet == NO) {
+          printf("INTERNAL_PASS_1: Block \"%s\" is %d bytes in size.\n", b->name, add - b->address);
+        }
         free(b);
         continue;
 
@@ -837,7 +839,9 @@ int pass_3(void) {
     case 'G':
       b = g_blocks;
       g_blocks = g_blocks->next;
-      printf("INTERNAL_PASS_1: Block \"%s\" is %d bytes in size.\n", b->name, add - b->address);
+      if (g_quiet == NO) {
+        printf("INTERNAL_PASS_1: Block \"%s\" is %d bytes in size.\n", b->name, add - b->address);
+      }
       free(b);
       continue;
 
