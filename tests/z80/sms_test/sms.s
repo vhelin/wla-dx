@@ -273,16 +273,16 @@ data1b:	.incbin "data.txt" skip 1 filter macroOne
 	.incdir "data2"
 data2b:	.incbin "data.txt" skip 1 filter macroOne
 	.db "06>"              ; @BT TEST-06 06 START
-	.incbin "data.txt"     ; @BT 44 41 54 41 32 0A
+	.incbin "data.txt"     ; @BT 44 41 54 41 32
 	.db "<06"	       ; @BT END
-        .db "04>"              ; @BT TEST-04 04 START	
-	.incbin "data.txt"     ; @BT 44 41 54 41 32 0A
+        .db "04>"              ; @BT TEST-04 04 START
+	.incbin "data.txt"     ; @BT 44 41 54 41 32
 	.db "<04"	       ; @BT END
-        .db "05>"              ; @BT TEST-05 05 START	
-	.incbin "data.txt" filter macroOne ; @BT 45 42 55 42 33 0B
+        .db "05>"              ; @BT TEST-05 05 START
+	.incbin "data.txt" filter macroOne ; @BT 45 42 55 42 33
 	.db "<05"	       ; @BT END
-        .db "07>"              ; @BT TEST-07 07 START	
-	.incbin "data.txt" skip 2 filter macroOne ; @BT 55 42 33 0B
+        .db "07>"              ; @BT TEST-07 07 START
+	.incbin "data.txt" skip 2 filter macroOne ; @BT 55 42 33
 	.db "<07"	       ; @BT END
 
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
