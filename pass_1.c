@@ -9243,7 +9243,7 @@ int directive_stringmap_table(void) {
 
   /* apply any include dir and convert the path to local enviroment */
   create_full_name(g_include_dir, g_label);
-  localize_path(g_full_name);
+  localize_path(g_label);
 
   table_file = fopen(g_label, "r");
   if (table_file == NULL) {
