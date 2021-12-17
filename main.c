@@ -668,6 +668,7 @@ void procedures_at_exit(void) {
       sm->entries = e->next;
       free(e);
     }
+    free(sm->filename);
     g_stringmaptables = sm->next;
     free(sm);
   }

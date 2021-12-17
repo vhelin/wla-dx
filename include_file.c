@@ -17,6 +17,7 @@ extern int g_ind, g_source_pointer, g_extra_definitions, g_parsed_int, g_use_inc
 extern char g_tmp[4096], g_error_message[sizeof(g_tmp) + MAX_NAME_LENGTH + 1 + 1024], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
 extern struct ext_include_collection g_ext_incdirs;
 extern FILE *g_file_out_ptr;
+extern struct stringmaptable *g_stringmaptables;
 
 struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
 struct active_file_info *g_active_file_info_first = NULL, *g_active_file_info_last = NULL, *g_active_file_info_tmp = NULL;
@@ -509,36 +510,35 @@ int print_file_names(void) {
 
   struct incbin_file_data *ifd;
   struct file_name_info *fni;
-
+  struct stringmaptable *smt;
+  int is_first_line = YES;
   
   fni = g_file_name_info_first;
   ifd = g_incbin_file_data_first;
-
-  /* handle the main file name differently */
-  if (fni != NULL) {
-    if (fni->next != NULL || ifd != NULL)
-      fprintf(stdout, "%s \\\n", fni->name);
-    else
-      fprintf(stdout, "%s\n", fni->name);
-    fni = fni->next;
-  }
+  smt = g_stringmaptables;
 
   /* included files */
+  /* handle the main file name differently */
   while (fni != NULL) {
-    if (fni->next != NULL || ifd != NULL)
-      fprintf(stdout, "\t%s \\\n", fni->name);
+    if (is_first_line == YES) {
+      fprintf(stdout, "%s", fni->name);
+      is_first_line = NO;
+    }
     else
-      fprintf(stdout, "\t%s\n", fni->name);
+      fprintf(stdout, " \\\n\t%s", fni->name);
     fni = fni->next;
   }
 
   /* incbin files */
   while (ifd != NULL) {
-    if (ifd->next != NULL)
-      fprintf(stdout, "\t%s \\\n", ifd->name);
-    else
-      fprintf(stdout, "\t%s\n", ifd->name);
+    fprintf(stdout, " \\\n\t%s", ifd->name);
     ifd = ifd->next;
+  }
+
+  /* stringmaptable files */
+  while (smt != NULL) {
+    fprintf(stdout, " \\\n\t%s", smt->filename);
+    smt = smt->next;
   }
 
   return SUCCEEDED;
