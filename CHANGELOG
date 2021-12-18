@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------
 
-v10.1 (23-Nov-2021) [ALL] Arguments to .SECTION and .RAMSECTION can be now
+v10.1 (18-Dec-2021) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                       given in any order, only the first argument must be the
                       section's name.
                     [ALL] Strings can be split to multiple lines using '\'.
@@ -17,6 +17,10 @@ v10.1 (23-Nov-2021) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                       object files.
                     [ALL] Fixed multiple memory leaks. Should now work better
                       on an Amiga.
+                    [ALL] .STRINGMAPTABLE works now with makefile generation.
+                    [ALL] We don't try to process special characters in
+                      filenames in .INCDIR, .INCLUDE, .INCBIN, .FOPEN,
+                      .BACKGROUND and .STRINGMAPTABLE.
                     [658] The maximum SRAMSIZE in SNES ROM header is now 7
                       instead of 3.
 
