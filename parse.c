@@ -24,7 +24,7 @@ char g_unevaluated_expression[256];
 char g_expanded_macro_string[MAX_NAME_LENGTH + 1];
 double g_parsed_double;
 
-extern int g_source_pointer, g_size, g_parsed_int, g_macro_active;
+extern int g_source_pointer, g_source_file_size, g_parsed_int, g_macro_active;
 extern char *g_buffer, g_tmp[4096], g_current_directive[256], *g_label_stack[256];
 extern unsigned char g_asciitable[256];
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
@@ -1093,7 +1093,7 @@ int parse_string_length(char *end) {
 void skip_whitespace(void) {
 
   while (1) {
-    if (g_source_pointer >= g_size)
+    if (g_source_pointer >= g_source_file_size)
       break;
     if (g_buffer[g_source_pointer] == ' ' || (g_buffer[g_source_pointer] == '\\' && g_buffer[g_source_pointer+1] == 0xA)) {
       g_source_pointer++;

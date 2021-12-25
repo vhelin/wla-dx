@@ -16,7 +16,7 @@
 
 
 extern int g_input_number_error_msg, g_bankheader_status, g_input_float_mode, g_global_label_hint, g_input_parse_if;
-extern int g_source_pointer, g_size, g_parsed_int, g_macro_active, g_string_size, g_section_status, g_parse_floats;
+extern int g_source_pointer, g_source_file_size, g_parsed_int, g_macro_active, g_string_size, g_section_status, g_parse_floats;
 extern char g_xyz[512], *g_buffer, g_tmp[4096], g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
 extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map;

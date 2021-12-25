@@ -113,7 +113,7 @@ struct stringmaptable *g_stringmaptables = NULL;
 struct array *g_arrays_first = NULL;
 
 extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name;
-extern int g_size, g_input_number_error_msg, g_verbose_mode, g_output_format, g_open_files, g_input_parse_if;
+extern int g_source_file_size, g_input_number_error_msg, g_verbose_mode, g_output_format, g_open_files, g_input_parse_if;
 extern int g_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations, g_input_parse_special_chars;
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
 extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
@@ -1592,7 +1592,7 @@ void next_line(void) {
 
 
 /* used by .RAMSECTIONs only */
-int add_label_sizeof(char *label, int g_size) {
+int add_label_sizeof(char *label, int size) {
 
   struct label_sizeof *ls;
   char tmpname[MAX_NAME_LENGTH + 8];
@@ -1611,13 +1611,13 @@ int add_label_sizeof(char *label, int g_size) {
   }
   
   strcpy(ls->name, label);
-  ls->size = g_size;
+  ls->size = size;
   ls->next = g_label_sizeofs;
   g_label_sizeofs = ls;
 
   /* define locally also, since we can */
   snprintf(tmpname, sizeof(tmpname), "_sizeof_%s", label);
-  if (add_a_new_definition(tmpname, (double)g_size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+  if (add_a_new_definition(tmpname, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
@@ -1820,7 +1820,7 @@ int parse_enum_token(void) {
   struct structure *st = NULL;
   struct structure_item *si;
   char tmpname[MAX_NAME_LENGTH + 8 + 1], bak[256];
-  int type, g_size, q, start_from = 1;
+  int type, size, q, start_from = 1;
   
   /* check for "if" directives (the only directives permitted in an enum/ramsection) */
   if (g_tmp[0] == '.') {
@@ -2074,22 +2074,22 @@ int parse_enum_token(void) {
   }
   
   type = 0;
-  g_size = 0;
+  size = 0;
 
   if (strcaselesscmp(g_tmp, "DB") == 0 || strcaselesscmp(g_tmp, "BYT") == 0 || strcaselesscmp(g_tmp, "BYTE") == 0) {
-    g_size = 1;
+    size = 1;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
   else if (strcaselesscmp(g_tmp, "DW") == 0 || strcaselesscmp(g_tmp, "WORD") == 0 || strcaselesscmp(g_tmp, "ADDR") == 0) {
-    g_size = 2;
+    size = 2;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
   else if (strcaselesscmp(g_tmp, "DL") == 0 || strcaselesscmp(g_tmp, "LONG") == 0 || strcaselesscmp(g_tmp, "FARADDR") == 0) {
-    g_size = 3;
+    size = 3;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
   else if (strcaselesscmp(g_tmp, "DD") == 0) {
-    g_size = 4;
+    size = 4;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
   else if (strcaselesscmp(g_tmp, "DS") == 0 || strcaselesscmp(g_tmp, "DSB") == 0) {
@@ -2100,7 +2100,7 @@ int parse_enum_token(void) {
       print_error("DS/DSB needs size.\n", ERROR_DIR);
       return FAILED;
     }
-    g_size = g_parsed_int;
+    size = g_parsed_int;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
   else if (strcaselesscmp(g_tmp, "DSW") == 0) {
@@ -2111,7 +2111,7 @@ int parse_enum_token(void) {
       print_error("DSW needs size.\n", ERROR_DIR);
       return FAILED;
     }
-    g_size = 2*g_parsed_int;
+    size = 2*g_parsed_int;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
   else if (strcaselesscmp(g_tmp, "DSL") == 0) {
@@ -2122,7 +2122,7 @@ int parse_enum_token(void) {
       print_error("DSL needs size.\n", ERROR_DIR);
       return FAILED;
     }
-    g_size = 3*g_parsed_int;
+    size = 3*g_parsed_int;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
   else if (strcaselesscmp(g_tmp, "DSD") == 0) {
@@ -2133,7 +2133,7 @@ int parse_enum_token(void) {
       print_error("DSD needs size.\n", ERROR_DIR);
       return FAILED;
     }
-    g_size = 4*g_parsed_int;
+    size = 4*g_parsed_int;
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
   /* it's an instance of a structure! */
@@ -2156,7 +2156,7 @@ int parse_enum_token(void) {
     number_result = input_number();
     if (number_result == INPUT_NUMBER_EOL) {
       next_line();
-      g_size = st->size;
+      size = st->size;
       g_parsed_int = 1;
     }
     else if (number_result == SUCCEEDED) {
@@ -2165,7 +2165,7 @@ int parse_enum_token(void) {
         return FAILED;
       }
 
-      g_size = st->size * g_parsed_int;
+      size = st->size * g_parsed_int;
     }
     else {
       if (number_result == INPUT_NUMBER_STRING)
@@ -2201,13 +2201,13 @@ int parse_enum_token(void) {
   else if (strcaselesscmp(g_tmp, ".db") == 0 || strcaselesscmp(g_tmp, ".byt") == 0 ||
            strcaselesscmp(g_tmp, ".byte") == 0) {
     /* don't do anything for "dotted" versions */
-    g_size = 1;
+    size = 1;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
   else if (strcaselesscmp(g_tmp, ".dw") == 0 || strcaselesscmp(g_tmp, ".word") == 0 ||
            strcaselesscmp(g_tmp, ".addr") == 0) {
     /* don't do anything for "dotted" versions */
-    g_size = 2;
+    size = 2;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
   else if (strcaselesscmp(g_tmp, ".ds") == 0 || strcaselesscmp(g_tmp, ".dsb") == 0 || strcaselesscmp(g_tmp, ".dsw") == 0) {
@@ -2226,12 +2226,12 @@ int parse_enum_token(void) {
     if (strcaselesscmp(bak, ".dsw") == 0)
       g_parsed_int *= 2;
 
-    g_size = g_parsed_int;
+    size = g_parsed_int;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
   else if (strcaselesscmp(g_tmp, ".dl") == 0 || strcaselesscmp(g_tmp, ".long") == 0 || strcaselesscmp(g_tmp, ".faraddr") == 0) {
     /* don't do anything for "dotted" versions */
-    g_size = 3;
+    size = 3;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
   else if (strcaselesscmp(g_tmp, ".dsl") == 0) {
@@ -2246,12 +2246,12 @@ int parse_enum_token(void) {
       return FAILED;
     }
 
-    g_size = g_parsed_int * 3;
+    size = g_parsed_int * 3;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
   else if (strcaselesscmp(g_tmp, ".dd") == 0) {
     /* don't do anything for "dotted" versions */
-    g_size = 4;
+    size = 4;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
   else if (strcaselesscmp(g_tmp, ".dsd") == 0) {
@@ -2266,7 +2266,7 @@ int parse_enum_token(void) {
       return FAILED;
     }
 
-    g_size = g_parsed_int * 4;
+    size = g_parsed_int * 4;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
   else {
@@ -2288,7 +2288,7 @@ int parse_enum_token(void) {
   }
   si->next = NULL;
   strcpy(si->name, tmpname);
-  si->size = g_size;
+  si->size = size;
   si->type = type;
   si->start_from = start_from;
   if (type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
@@ -2305,7 +2305,7 @@ int parse_enum_token(void) {
   g_active_struct->last_item = si;
 
   if (type != STRUCTURE_ITEM_TYPE_DOTTED)
-    g_enum_offset += g_size;
+    g_enum_offset += size;
 
   if (g_enum_offset > g_max_enum_offset)
     g_max_enum_offset = g_enum_offset;
@@ -7205,7 +7205,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
 
 int directive_define_def_equ(void) {
   
-  int j, g_size, export, q;
+  int j, size, export, q;
   double dou;
   char k[256];
 
@@ -7224,7 +7224,7 @@ int directive_define_def_equ(void) {
     skip_next_token();
 
   g_input_float_mode = ON;
-  q = get_new_definition_data(&j, k, &g_size, &dou, &export);
+  q = get_new_definition_data(&j, k, &size, &dou, &export);
   g_input_float_mode = OFF;
   if (q == FAILED)
     return FAILED;
@@ -7239,7 +7239,7 @@ int directive_define_def_equ(void) {
   else if (q == INPUT_NUMBER_FLOAT)
     q = add_a_new_definition(g_tmp, dou, NULL, DEFINITION_TYPE_VALUE, 0);
   else if (q == INPUT_NUMBER_STRING)
-    q = add_a_new_definition(g_tmp, 0.0, k, DEFINITION_TYPE_STRING, g_size);
+    q = add_a_new_definition(g_tmp, 0.0, k, DEFINITION_TYPE_STRING, size);
   else if (q == INPUT_NUMBER_STACK)
     q = add_a_new_definition(g_tmp, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
   else if (q == INPUT_NUMBER_EOL)
@@ -7468,7 +7468,7 @@ int directive_input(void) {
 
 int directive_redefine_redef(void) {
   
-  int j, g_size, export, q;
+  int j, size, export, q;
   double dou;
   char k[256];
 
@@ -7487,7 +7487,7 @@ int directive_redefine_redef(void) {
     skip_next_token();
 
   g_input_float_mode = ON;
-  q = get_new_definition_data(&j, k, &g_size, &dou, &export);
+  q = get_new_definition_data(&j, k, &size, &dou, &export);
   g_input_float_mode = OFF;
   if (q == FAILED)
     return FAILED;
@@ -7502,7 +7502,7 @@ int directive_redefine_redef(void) {
   else if (q == INPUT_NUMBER_FLOAT)
     redefine(g_tmp, dou, NULL, DEFINITION_TYPE_VALUE, 0);
   else if (q == INPUT_NUMBER_STRING)
-    redefine(g_tmp, 0.0, k, DEFINITION_TYPE_STRING, g_size);
+    redefine(g_tmp, 0.0, k, DEFINITION_TYPE_STRING, size);
   else if (q == INPUT_NUMBER_STACK)
     redefine(g_tmp, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
 
@@ -7927,7 +7927,7 @@ int directive_macro(void) {
   m->start_line = g_active_file_info_last->line_current;
 
   /* go to the end of the macro */
-  for (; g_source_pointer < g_size; g_source_pointer++) {
+  for (; g_source_pointer < g_source_file_size; g_source_pointer++) {
     if (g_buffer[g_source_pointer] == 0x0A) {
       next_line();
       continue;
@@ -8210,8 +8210,8 @@ int directive_snesheader(void) {
         for (i = 0; g_tmp[i] != 0 && i < 4; i++)
           g_snesid[i] = g_tmp[i];
 
-        for ( ; i < 4; g_snesid[i] = 0, i++)
-          ;
+        for (; i < 4; i++)
+          g_snesid[i] = 0;
 
         g_snesid_defined = 1;
       }
@@ -8254,8 +8254,8 @@ int directive_snesheader(void) {
           return FAILED;
         }
 
-        for ( ; i < 21; g_name[i] = 0, i++)
-          ;
+        for (; i < 21; i++)
+          g_name[i] = 0;
 
         g_name_defined = 1;
       }
@@ -9451,9 +9451,8 @@ int directive_stringmap(void) {
     }
     /* if no match was found, it's an error */
     if (entry == NULL) {
-      if (g_makefile_rules == YES)
-      {
-	    /* In makefile mode, it's ignored */
+      if (g_makefile_rules == YES) {
+	    /* in makefile mode, it's ignored */
         return SUCCEEDED;
       }
       snprintf(g_error_message, sizeof(g_error_message), "STRINGMAP: could not find a match in the table at substring \"%s\".\n", p);
@@ -10296,7 +10295,6 @@ int parse_directive(void) {
   /* ENDR */
 
   if (strcaselesscmp(g_current_directive, "ENDR") == 0) {
-
     struct repeat_runtime *rr;
     
     if (g_repeat_active == 0) {
@@ -10865,7 +10863,6 @@ int parse_directive(void) {
   /* ENDASM */
 
   if (strcaselesscmp(g_current_directive, "ENDASM") == 0) {
-
     int endasm = 1, x;
 
     while (1) {
@@ -11065,7 +11062,6 @@ int parse_if_directive(void) {
   /* IFGR/IFLE/IFEQ/IFNEQ/IFGREQ/IFLEEQ */
 
   if (strcaselesscmp(g_current_directive, "IFGR") == 0 || strcaselesscmp(g_current_directive, "IFLE") == 0 || strcaselesscmp(g_current_directive, "IFEQ") == 0 || strcaselesscmp(g_current_directive, "IFNEQ") == 0 || strcaselesscmp(g_current_directive, "IFGREQ") == 0 || strcaselesscmp(g_current_directive, "IFLEEQ") == 0) {
-
     char k[256];
     int y, o, s;
 
@@ -11214,7 +11210,7 @@ int parse_if_directive(void) {
     if (_increase_ifdef() == FAILED)
       return FAILED;
 
-    for (; g_source_pointer < g_size; g_source_pointer++) {
+    for (; g_source_pointer < g_source_file_size; g_source_pointer++) {
       if (g_buffer[g_source_pointer] == 0x0A)
         break;
       else if (g_buffer[g_source_pointer] == '\\') {
