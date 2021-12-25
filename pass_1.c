@@ -1839,6 +1839,7 @@ int parse_enum_token(void) {
       return FAILED;
     }
     st->items = NULL;
+    st->name[0] = '\0';
     st->last_item = NULL;
     st->alive = YES;
     _remember_new_structure(st);
@@ -1850,8 +1851,8 @@ int parse_enum_token(void) {
     }
     else if (inz == SUCCEEDED)
       strcpy(st->name, g_tmp);
-    else
-      st->name[0] = '\0';
+    else if (inz == INPUT_NUMBER_EOL)
+      next_line();
 
     /* put previous union onto the "stack" */
     ust = calloc(sizeof(struct union_stack), 1);
@@ -1889,6 +1890,7 @@ int parse_enum_token(void) {
       print_error("PARSE_ENUM_TOKEN: Out of memory error.\n", ERROR_DIR);
       return FAILED;
     }
+    st->name[0] = '\0';
     st->items = NULL;
     st->last_item = NULL;
     st->alive = YES;
@@ -1901,8 +1903,8 @@ int parse_enum_token(void) {
     }
     else if (inz == SUCCEEDED)
       strcpy(st->name, g_tmp);
-    else
-      st->name[0] = '\0';
+    else if (inz == INPUT_NUMBER_EOL)
+      next_line();
 
     g_active_struct->next = st;
     g_active_struct = st;
