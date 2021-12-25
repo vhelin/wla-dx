@@ -3711,7 +3711,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
 
             o = 1;
           }
-          else {
+          else if (it->size == 2) {
             if (g_inz == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
               snprintf(g_error_message, sizeof(g_error_message), "\"%s.%s\" expects 16-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
               print_error(g_error_message, ERROR_DIR);
@@ -3727,7 +3727,37 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
 
             o = 2;
           }
-          /* TODO: longs */
+	  else if (it->size == 3) {
+            if (g_inz == SUCCEEDED && (g_parsed_int < -8388608 || g_parsed_int > 16777215)) {
+              snprintf(g_error_message, sizeof(g_error_message), "\"%s.%s\" expects 24-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
+              print_error(g_error_message, ERROR_DIR);
+              return FAILED;
+            }
+
+            if (g_inz == SUCCEEDED)
+              fprintf(g_file_out_ptr, "z%d", g_parsed_int);
+            else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+              fprintf(g_file_out_ptr, "k%d q%s ", g_active_file_info_last->line_current, g_label);
+            else if (g_inz == INPUT_NUMBER_STACK)
+              fprintf(g_file_out_ptr, "T%d ", g_latest_stack);
+
+            o = 3;
+          }
+          else if (it->size == 4) {
+            if (g_inz == SUCCEEDED)
+              fprintf(g_file_out_ptr, "u%d", g_parsed_int);
+            else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+              fprintf(g_file_out_ptr, "k%d V%s ", g_active_file_info_last->line_current, g_label);
+            else if (g_inz == INPUT_NUMBER_STACK)
+              fprintf(g_file_out_ptr, "U%d ", g_latest_stack);
+
+            o = 4;
+          }
+	  else {
+	    snprintf(g_error_message, sizeof(g_error_message), "Internal error, unhandled it->size %d. Please submit a bug report!\n", it->size);
+	    print_error(g_error_message, ERROR_DIR);
+	    return FAILED;
+	  }
         }
         /* fill the rest of the item with emptyfill or zero */
         if (g_emptyfill_defined != 0)
@@ -4002,6 +4032,14 @@ int directive_dstruct(void) {
   /* legacy syntax */
 
   g_inz = input_number();
+
+  if (g_inz == INPUT_NUMBER_ADDRESS_LABEL) {
+    if (g_label[strlen(g_label)-1] == ':') {
+      print_error("Label in a wrong place?\n", ERROR_ERR);
+      return FAILED;
+    }
+  }
+  
   labels_only = NO;
   if (parse_dstruct_entry(iname, s, &labels_only) == FAILED)
     return FAILED;
