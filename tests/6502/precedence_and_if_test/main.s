@@ -507,3 +507,23 @@
           .endif
         .endif
         .db "<11"               ; @BT END
+        
+        ////////////////////////////////////////////////////////////////////////
+
+        .define MINUS_ONE -1
+        .if MINUS_ONE != -1
+          .fail "MINUS_ONE != -1 ---> FAILS!"
+        .endif
+
+        .if -1 == -2
+          .fail "-1 == -2 ---> FAILS!"
+        .endif
+        
+        .if -(1-2) < -2
+          .fail "-(1-2) < -2 ---> FAILS!"
+        .endif
+        
+        .if -(-(2-4)) != -(4-2)
+          .fail "-(-(2-4)) != -(4-2) ---> FAILS"
+        .endif
+        

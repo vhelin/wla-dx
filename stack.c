@@ -107,7 +107,6 @@ static int _break_before_value_or_string(int i, struct stack_item *si) {
   return FAILED;
 }
 
-
 #if WLA_DEBUG
 static void _debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int count, int id) {
 
@@ -1034,6 +1033,13 @@ int stack_calculate(char *in, int *value) {
       b = 0;
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_LEFT)
       b = 1;
+    else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && (si[k].value == SI_OP_COMPARE_EQ ||
+							si[k].value == SI_OP_COMPARE_NEQ ||
+							si[k].value == SI_OP_COMPARE_LTE ||
+							si[k].value == SI_OP_COMPARE_LT ||
+							si[k].value == SI_OP_COMPARE_GT ||
+							si[k].value == SI_OP_COMPARE_GTE))
+      b = 1;
   }
 
   /* turn unary XORs into NOTs */
@@ -1428,24 +1434,24 @@ static int _process_string(struct stack_item *s, int *cannot_resolve) {
 }
 
 
-int resolve_stack(struct stack_item s[], int x) {
+int resolve_stack(struct stack_item s[], int stack_item_count) {
 
   struct stack_item *st;
-  int q = x, cannot_resolve = 0;
+  int backup = stack_item_count, cannot_resolve = 0;
 
   st = s;
-  while (x > 0) {
+  while (stack_item_count > 0) {
     int process_single = YES;
     
-    if (x >= 3 && g_input_parse_if == YES) {
+    if (stack_item_count >= 3 && g_input_parse_if == YES) {
       /* [string] [string] ==/!= ? */
       s += 2;
-      x -= 2;
+      stack_item_count -= 2;
       
       if (s->type == STACK_ITEM_TYPE_OPERATOR && (s->value == SI_OP_COMPARE_EQ || s->value == SI_OP_COMPARE_NEQ || s->value == SI_OP_COMPARE_LT ||
                                                   s->value == SI_OP_COMPARE_GT || s->value == SI_OP_COMPARE_LTE || s->value == SI_OP_COMPARE_GTE)) {
         s -= 2;
-        x += 2;
+        stack_item_count += 2;
 
         if (s->type == STACK_ITEM_TYPE_STRING) {
           int cannot;
@@ -1455,7 +1461,7 @@ int resolve_stack(struct stack_item s[], int x) {
         }
         
         s++;
-        x--;
+        stack_item_count--;
 
         if (s->type == STACK_ITEM_TYPE_STRING) {
           int cannot;
@@ -1465,13 +1471,13 @@ int resolve_stack(struct stack_item s[], int x) {
         }
 
         s += 2;
-        x -= 2;
+        stack_item_count -= 2;
 
         process_single = NO;
       }
       else {
         s -= 2;
-        x += 2;
+        stack_item_count += 2;
       }
     }
 
@@ -1481,7 +1487,7 @@ int resolve_stack(struct stack_item s[], int x) {
           return FAILED;
       }
       s++;
-      x--;
+      stack_item_count--;
     }
   }
 
@@ -1489,36 +1495,37 @@ int resolve_stack(struct stack_item s[], int x) {
     return FAILED;
 
   /* find a string, a stack, bank, or a NOT and fail */
-  while (q > 0) {
+  stack_item_count = backup;
+  while (stack_item_count > 0) {
     int process_single = YES;
     
-    if (q >= 3 && g_input_parse_if == YES) {
+    if (stack_item_count >= 3 && g_input_parse_if == YES) {
       /* [string] [string] ==/!= ? */
       st += 2;
-      q -= 2;
+      stack_item_count -= 2;
 
       if (st->type == STACK_ITEM_TYPE_OPERATOR && (st->value == SI_OP_COMPARE_EQ || st->value == SI_OP_COMPARE_NEQ || st->value == SI_OP_COMPARE_LT ||
                                                    st->value == SI_OP_COMPARE_GT || st->value == SI_OP_COMPARE_LTE || st->value == SI_OP_COMPARE_GTE)) {
         st -= 2;
-        q += 2;
+        stack_item_count += 2;
 
         if (st->type == STACK_ITEM_TYPE_STACK || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
           return FAILED;
 
         st++;
-        q--;
+        stack_item_count--;
 
         if (st->type == STACK_ITEM_TYPE_STACK || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
           return FAILED;
         
         st += 2;
-        q -= 2;
+        stack_item_count -= 2;
 
         process_single = NO;
       }
       else {
         st -= 2;
-        q += 2;
+        stack_item_count += 2;
       }
     }
 
@@ -1527,7 +1534,7 @@ int resolve_stack(struct stack_item s[], int x) {
         return FAILED;
       if (g_input_parse_if == NO && st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_NOT)
         return FAILED;
-      q--;
+      stack_item_count--;
       st++;
     }
   }
@@ -1547,7 +1554,7 @@ static int _comparing_a_string_with_a_number(char *sp1, char *sp2, struct stack 
 }
 
 
-int compute_stack(struct stack *sta, int x, double *result) {
+int compute_stack(struct stack *sta, int stack_item_count, double *result) {
 
   struct stack_item *s;
   double v[256];
@@ -1557,7 +1564,10 @@ int compute_stack(struct stack *sta, int x, double *result) {
   v[0] = 0.0;
 
   s = sta->stack;
-  for (r = 0, t = 0; r < x; r++, s++) {
+  /*
+  _debug_print_stack(0, 0, s, stack_item_count, 0);
+  */
+  for (r = 0, t = 0; r < stack_item_count; r++, s++) {
     if (s->type == STACK_ITEM_TYPE_VALUE) {
       if (s->sign == SI_SIGN_NEGATIVE)
         v[t] = -s->value;
