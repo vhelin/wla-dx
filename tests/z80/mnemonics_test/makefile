@@ -13,7 +13,7 @@ all: result.rom check
 result.rom: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile result.rom
 
-check:
+check: result.rom
 	byte_tester -s main.s
 
 main.o: main.s

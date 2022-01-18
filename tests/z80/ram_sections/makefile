@@ -19,7 +19,7 @@ sms.o: sms.s
 library.lib: library.s
 	$(CC) -l library.lib library.s
 
-check:
+check: linked.rom
 	byte_tester -s sms.s
 
 $(OFILES): $(HFILES)
