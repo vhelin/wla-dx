@@ -25,62 +25,142 @@ BANKS 2
 
 .EMPTYFILL $69
 
+; @BT linked.rom
+        
 ;------------------------------------------------------------------------------
 ; FORCE section tests
 ;------------------------------------------------------------------------------
 
-.bank 0 slot 0
-.org 0
-.section "Section1" force
-.dw caddr, CADDR, caddr+1, CADDR-1
-.db caddr & $ff, (CADDR >> 8) & $FF
-.ends
+        .bank 0 slot 0
+        .org 0
+        .section "Section1" force
+        .db "03>"               ; @BT TEST-03 03 START
+        .dw caddr, CADDR, caddr+1, CADDR-1  ; @BT 03 00 05 00 08 00 08 00
+        .db caddr & $ff, (CADDR >> 1) & $FF ; @BT 0B 06
+        .db "<03"               ; @BT END
+        .ends
 
-.bank 0 slot 0
-.org $500
-.section "Section2" force
-.dw caddr, CADDR, caddr+1, CADDR-1
-.db caddr & $ff, (CADDR >> 8) & $FF
-.ends
+        .bank 0 slot 0
+        .org $500
+        .section "Section2" force
+        .db "04>"               ; @BT TEST-04 04 START
+        .dw caddr, CADDR, caddr+1, CADDR-1  ; @BT 03 05 05 05 08 05 08 05
+        .db caddr & $ff, (CADDR >> 1) & $FF ; @BT 0B 86
+        .db "<04"               ; @BT END
+        .ends
 
-.bank 1 slot 1
-.org 0
-.section "Section3" force
-.dw caddr, CADDR, caddr+1, CADDR-1
-.db caddr & $ff, (CADDR >> 8) & $FF
-.ends
+        .bank 1 slot 1
+        .org 0
+        .section "Section3" force
+        .db "05>"               ; @BT TEST-05 05 START
+        .dw caddr, CADDR, caddr+1, CADDR-1  ; @BT 03 40 05 40 08 40 08 40
+        .db caddr & $ff, (CADDR >> 8) & $FF ; @BT 0B 40
+        .db "<05"               ; @BT END
+        .ends
 
-.bank 1 slot 1
-.org $500
-.section "Section4" force
-.dw caddr, CADDR, caddr+1, CADDR-1
-.db caddr & $ff, (CADDR >> 8) & $FF
-.ends
+        .bank 1 slot 1
+        .org $500
+        .section "Section4" force
+        .db "06>"               ; @BT TEST-06 06 START
+        .dw caddr, CADDR, caddr+1, CADDR-1  ; @BT 03 45 05 45 08 45 08 45
+        .db caddr & $ff, (CADDR >> 8) & $FF ; @BT 0B 45
+        .db "<06"               ; @BT END
+        .ends
 
 ;------------------------------------------------------------------------------
 ; .BASE tests
 ;------------------------------------------------------------------------------
 
-.bank 0 slot 0
-.base $00
-.org $100
-.section "Section5" force
-.dw caddr, CADDR, caddr+1, CADDR-1
-.db caddr & $ff, (CADDR >> 8) & $FF, (CADDR >> 16) & $ff
-.ends
+        .bank 0 slot 0
+        .base $00
+        .org $100
+        .section "Section5" force
+        .db "07>"               ; @BT TEST-07 07 START
+        .dw caddr, CADDR, caddr+1, CADDR-1                       ; @BT 03 01 05 01 08 01 08 01
+        .db caddr & $ff, (CADDR >> 8) & $FF, (CADDR >> 16) & $ff ; @BT 0B 01 00
+        .db "<07"               ; @BT END
+        .ends
 
-.bank 0 slot 0
-.base $80
-.org $200
-.section "Section6" force
-.dw caddr, CADDR, caddr+1, CADDR-1
-.db caddr & $ff, (CADDR >> 8) & $FF, (CADDR >> 16) & $ff
-.ends
+        .bank 0 slot 0
+        .base $80
+        .org $200
+        .section "Section6" force
+        .db "08>"               ; @BT TEST-08 08 START
+        .dw caddr, CADDR, caddr+1, CADDR-1                   ; @BT 03 02 05 02 08 02 08 02
+        .db caddr & $ff, (CADDR >> 8) & $FF, bankbyte(CADDR) ; @BT 0B 02 80
+        .db "<08"               ; @BT END
+        .ends
 
-.bank 0 slot 0
-.base $f0
-.org $300
-.section "Section7" force
-.dw caddr, CADDR, caddr+1, CADDR-1
-.db caddr & $ff, (CADDR >> 8) & $FF, (CADDR >> 16) & $ff
-.ends
+        .bank 0 slot 0
+        .base $f0
+        .org $300
+        .section "Section7" force
+        .db "09>"               ; @BT TEST-09 09 START
+        .dw caddr, CADDR, caddr+1, CADDR-1                   ; @BT 03 03 05 03 08 03 08 03
+        .db caddr & $ff, (CADDR >> 8) & $FF, bankbyte(CADDR) ; @BT 0B 03 F0
+        .db "<09"               ; @BT END
+        .ends
+
+;------------------------------------------------------------------------------
+; More CADDR tests
+;------------------------------------------------------------------------------
+
+        .bank 0 slot 0
+        .base 0
+        .org $400
+
+@spritesTable:
+        .db "01>"               ; @BT TEST-01 01 START
+	.db @sprites0-CADDR     ; @BT 06
+	.db @sprites1-CADDR     ; @BT 12
+	.db @sprites2-CADDR     ; @BT 1A
+        .db "<01"               ; @BT END
+        
+@sprites0:
+	.db $10
+	.db $10 $10 $10 $10
+	.db $10 $10 $10 $10
+	.db $10 $10 $10 $10
+        
+@sprites1:
+	.db $20
+	.db $20 $20 $20 $20
+	.db $20 $20 $20 $20
+
+@sprites2:
+	.db $30
+	.db $30 $30 $30 $30
+	.db $30 $30 $30 $30
+       	.db $30 $30 $30 $30
+	.db $30 $30 $30 $30
+
+;------------------------------------------------------------------------------
+; More CADDR tests
+;------------------------------------------------------------------------------
+
+        .section "TEST-02" free keep
+@spritesTableX:
+        .db "02>"               ; @BT TEST-02 02 START
+	.db @sprites0X-CADDR    ; @BT 06
+	.db @sprites1X-CADDR    ; @BT 12
+	.db @sprites2X-CADDR    ; @BT 1A
+        .db "<02"               ; @BT END
+        
+@sprites0X:
+	.db $10
+	.db $10 $10 $10 $10
+	.db $10 $10 $10 $10
+	.db $10 $10 $10 $10
+        
+@sprites1X:
+	.db $20
+	.db $20 $20 $20 $20
+	.db $20 $20 $20 $20
+
+@sprites2X:
+	.db $30
+	.db $30 $30 $30 $30
+	.db $30 $30 $30 $30
+       	.db $30 $30 $30 $30
+	.db $30 $30 $30 $30
+        .ends
