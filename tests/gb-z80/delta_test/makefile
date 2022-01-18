@@ -16,7 +16,7 @@ linked.gb: $(OFILES) makefile
 main.o: main.s
 	$(CC) $(CFLAGS) main.o main.s
 
-check:
+check: linked.gb
 	byte_tester -s main.s
 
 $(OFILES): $(HFILES)

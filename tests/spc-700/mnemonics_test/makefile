@@ -16,7 +16,7 @@ result.rom: $(OFILES) makefile
 main.o: main.s
 	$(CC) $(CFLAGS) main.o main.s
 
-check:
+check: result.rom
 	byte_tester -s main.s
 
 $(OFILES): $(HFILES)

@@ -19,7 +19,7 @@ main.o: main.s defines.i
 setup.o: setup.s defines.i
 	$(CC) $(CFLAGS) setup.o setup.s
 
-check:
+check: linked.prg
 	byte_tester -s main.s
 
 $(OFILES): $(HFILES)
