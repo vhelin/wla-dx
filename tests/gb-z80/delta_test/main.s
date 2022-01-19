@@ -92,13 +92,14 @@ TestCode:
         nop
         nop
         nop
-End:    nop
-        
+
         .define OffsetOfInstructionUnderTest1 @InstructionUnderTest - TestCode
         .export OffsetOfInstructionUnderTest1
         .define OffsetOfInstructionUnderTest2 TestCode@InstructionUnderTest - TestCode
         .export OffsetOfInstructionUnderTest2
 
+End:    nop
+        
         .db "06>"                         ; @BT TEST-06 06 START
         .db OffsetOfInstructionUnderTest1 ; @BT 06
         .db End - TestCode                ; @BT 0D
@@ -121,13 +122,14 @@ MoreTestCode:
 @InstructionUnderTest:
         .dsb 4, 0
         nop
-MoreEnd:nop
 
         .define OffsetOfInstructionUnderTest3 @InstructionUnderTest - MoreTestCode
         .export OffsetOfInstructionUnderTest3
         .define OffsetOfInstructionUnderTest4 MoreTestCode@InstructionUnderTest - MoreTestCode
         .export OffsetOfInstructionUnderTest4
         
+MoreEnd:nop
+
         .db "08>"                          ; @BT TEST-08 08 START
         .db OffsetOfInstructionUnderTest3  ; @BT 02
         .db MoreEnd - MoreTestCode         ; @BT 07
