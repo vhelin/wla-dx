@@ -1075,6 +1075,11 @@ int mangle_label(char *label, char *parent, int n, unsigned int label_size) {
   char buf[MAX_NAME_LENGTH*2+2];
   int len;
 
+  if (parent == NULL) {
+    fprintf(stderr, "MANGLE_LABEL: Parent label of label \"%s\" is NULL! Please submit a bug report!\n", label);
+    return FAILED;
+  }
+
   len = (int)strlen(parent);
 
   strcpy(buf, parent);

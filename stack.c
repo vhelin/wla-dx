@@ -1034,11 +1034,11 @@ int stack_calculate(char *in, int *value) {
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_LEFT)
       b = 1;
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && (si[k].value == SI_OP_COMPARE_EQ ||
-							si[k].value == SI_OP_COMPARE_NEQ ||
-							si[k].value == SI_OP_COMPARE_LTE ||
-							si[k].value == SI_OP_COMPARE_LT ||
-							si[k].value == SI_OP_COMPARE_GT ||
-							si[k].value == SI_OP_COMPARE_GTE))
+                                                        si[k].value == SI_OP_COMPARE_NEQ ||
+                                                        si[k].value == SI_OP_COMPARE_LTE ||
+                                                        si[k].value == SI_OP_COMPARE_LT ||
+                                                        si[k].value == SI_OP_COMPARE_GT ||
+                                                        si[k].value == SI_OP_COMPARE_GTE))
       b = 1;
   }
 
@@ -1302,6 +1302,15 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
 
           g_delta_counter = 0;
         }
+        else {
+          /* ABORT! could not find the first label thus we fail here at calculating the delta... */
+          *cannot_resolve = 1;
+        }
+      }
+      else {
+        /* ABORT! cannot find the label thus we fail here at calculating the delta... */
+        *cannot_resolve = 1;
+        g_delta_counter = -1;
       }
     }
   }
@@ -1444,7 +1453,7 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
     int process_single = YES;
     
     if (stack_item_count >= 3 && g_input_parse_if == YES) {
-      /* [string] [string] ==/!= ? */
+      /* [string] [string] ==/!=/</>/<=/>= ? */
       s += 2;
       stack_item_count -= 2;
       
@@ -1485,14 +1494,13 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
       if (s->type == STACK_ITEM_TYPE_STRING) {
         if (_process_string(s, &cannot_resolve) == FAILED)
           return FAILED;
+        if (cannot_resolve != 0)
+          return FAILED;
       }
       s++;
       stack_item_count--;
     }
   }
-
-  if (cannot_resolve != 0)
-    return FAILED;
 
   /* find a string, a stack, bank, or a NOT and fail */
   stack_item_count = backup;
@@ -2012,35 +2020,6 @@ int data_stream_parser_free(void) {
 }
 
 
-static int _add_unmangled_label(char *label, int address, int section_id) {
-
-  struct data_stream_item *dSI;
-
-  dSI = calloc(sizeof(struct data_stream_item), 1);
-  if (dSI == NULL) {
-    print_error("Out of memory error while allocating a data_stream_item.\n", ERROR_STC);
-    return FAILED;
-  }
-
-  strcpy(dSI->label, label);
-
-  dSI->next = NULL;
-  dSI->address = address;
-  dSI->section_id = section_id;
-
-  if (g_data_stream_items_first == NULL) {
-    g_data_stream_items_first = dSI;
-    g_data_stream_items_last = dSI;
-  }
-  else {
-    g_data_stream_items_last->next = dSI;
-    g_data_stream_items_last = dSI;
-  }
-  
-  return SUCCEEDED;
-}
-
-
 static void _free_local_and_child_labels_of_a_section(int section_id) {
 
   struct data_stream_item *dSI = g_data_stream_items_first;
@@ -2076,22 +2055,24 @@ static void _free_local_and_child_labels_of_a_section(int section_id) {
 }
 
 
+static struct data_stream_item *s_parent_labels[10];
+
+
 int data_stream_parser_parse(void) {
 
   int add = 0, add_old = 0, section_id = -1, bits_current = 0, inz, line_number = 0;
-  struct data_stream_item *parent_labels[10];
   struct section_def *s;
   FILE *f_in;
   char c;
   
-  memset(parent_labels, 0, sizeof(parent_labels));
+  if (g_is_data_stream_processed == YES)
+    return SUCCEEDED;
+
+  memset(s_parent_labels, 0, sizeof(s_parent_labels));
   s = NULL;
 
   g_namespace[0] = 0;
   
-  if (g_is_data_stream_processed == YES)
-    return SUCCEEDED;
-
   if (g_file_out_ptr == NULL) {
     print_error("The internal data stream is closed! It should be open. Please submit a bug report!\n", ERROR_STC);
     return FAILED;
@@ -2340,22 +2321,17 @@ int data_stream_parser_parse(void) {
             n++;
           m = n;
           while (m < 10)
-            parent_labels[m++] = NULL;
+            s_parent_labels[m++] = NULL;
 
           if (n < 10)
-            parent_labels[n] = dSI;
+            s_parent_labels[n] = dSI;
           n--;
-          while (n >= 0 && parent_labels[n] == 0)
+          while (n >= 0 && s_parent_labels[n] == 0)
             n--;
 
           if (n >= 0) {
-            /* add also the original label, unmangled */
-            if (_add_unmangled_label(dSI->label, add, section_id) == FAILED) {
-              free(dSI);
-              return FAILED;
-            }
-            
-            if (mangle_label(dSI->label, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+            /* mangle the label so that we'll save only full forms of labels */
+            if (mangle_label(dSI->label, s_parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
               return FAILED;
 
             mangled_label = YES;
@@ -2407,18 +2383,39 @@ int data_stream_parser_parse(void) {
   fseek(g_file_out_ptr, 0, SEEK_END);
   
   g_is_data_stream_processed = YES;
-
+  
   return SUCCEEDED;
 }
 
 
 struct data_stream_item *data_stream_parser_find_label(char *label) {
 
+  char mangled_label[MAX_NAME_LENGTH+1];
   struct data_stream_item *dSI;
 
+  strcpy(mangled_label, label);
+  
+  if (is_label_anonymous(label) == NO) {
+    /* if the label has '@' at the start, mangle the label name to get its full form */
+    int n = 0;
+
+    while (n < 10 && label[n] == '@')
+      n++;
+    n--;
+
+    if (n >= 0) {
+      if (s_parent_labels[n] == NULL) {
+        fprintf(stderr, "DATA_STREAM_PARSER_FIND_LABEL: Parent of label \"%s\" is missing! Please submit a bug report!\n", label);
+        return NULL;
+      }
+      if (mangle_label(mangled_label, s_parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+        return NULL;
+    }
+  }
+  
   dSI = g_data_stream_items_first;
   while (dSI != NULL) {
-    if (strcmp(label, dSI->label) == 0)
+    if (strcmp(mangled_label, dSI->label) == 0)
       return dSI;
     dSI = dSI->next;
   }
