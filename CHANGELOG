@@ -1318,10 +1318,13 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.16 (23-Nov-2021) Added support for WINDOW and BITWINDOW in .SECTION and
+v5.16 (21-Jan-2021) Added support for WINDOW and BITWINDOW in .SECTION and
                       .RAMSECTION.
                     Fixed multiple memory leaks. Should now work better
                       on an Amiga.
+                    Removed warnings that begin with "COMPUTE_STACK: The
+                      passed on SLOT/BANK/BASE changed..." as they were kind
+                      of pointless.
 
 v5.15 (21-Jun-2021) Fixed listfile writing when there is no listfile data
                       in object files.

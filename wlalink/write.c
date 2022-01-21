@@ -2470,43 +2470,49 @@ struct stack *find_stack(int id, int file_id) {
 }
 
 
-static void _pass_on_slot(int *slot, int t, struct stack *sta) {
+static void _pass_on_slot(int *slot, int t) {
 
   if (slot[t - 2] < 0 && slot[t - 1] >= 0)
     slot[t - 2] = slot[t - 1];
   else if (slot[t - 2] >= 0 && slot[t - 1] >= 0) {
     /* sanity check */
+    /*
     if (slot[t - 2] != slot[t - 1]) {
       fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: The passed on SLOT changed from $%x to $%x. This might have no effect, but just to let you know. Please check that the result of this calculation is correct.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, slot[t - 2], slot[t - 1]);
     }
+    */
     slot[t - 2] = slot[t - 1];
   }
 }
 
 
-static void _pass_on_base(int *base, int t, struct stack *sta) {
+static void _pass_on_base(int *base, int t) {
 
   if (base[t - 2] < 0 && base[t - 1] >= 0)
     base[t - 2] = base[t - 1];
   else if (base[t - 2] >= 0 && base[t - 1] >= 0) {
     /* sanity check */
+    /*
     if (base[t - 2] != base[t - 1]) {
       fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: The passed on BASE changed from $%x to $%x. This might have no effect, but just to let you know. Please check that the result of this calculation is correct.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, base[t - 2], base[t - 1]);
     }
+    */
     base[t - 2] = base[t - 1];
   }
 }
 
 
-static void _pass_on_bank(int *bank, int t, struct stack *sta) {
+static void _pass_on_bank(int *bank, int t) {
 
   if (bank[t - 2] < 0 && bank[t - 1] >= 0)
     bank[t - 2] = bank[t - 1];
   else if (bank[t - 2] >= 0 && bank[t - 1] >= 0) {
     /* sanity check */
+    /*
     if (bank[t - 2] != bank[t - 1]) {
       fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: The passed on BANK changed from $%x to $%x. This might have no effect, but just to let you know. Please check that the result of this calculation is correct.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, bank[t - 2], bank[t - 1]);
     }
+    */
     bank[t - 2] = bank[t - 1];
   }
 }
@@ -2624,17 +2630,17 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
       case SI_OP_ADD:
         v_ram[t - 2] += v_ram[t - 1];
         v_rom[t - 2] += v_rom[t - 1];
-        _pass_on_slot(slot, t, sta);
-        _pass_on_base(base, t, sta);
-        _pass_on_bank(bank, t, sta);
+        _pass_on_slot(slot, t);
+        _pass_on_base(base, t);
+        _pass_on_bank(bank, t);
         t--;
         break;
       case SI_OP_SUB:
         v_ram[t - 2] -= v_ram[t - 1];
         v_rom[t - 2] -= v_rom[t - 1];
-        _pass_on_slot(slot, t, sta);
-        _pass_on_base(base, t, sta);
-        _pass_on_bank(bank, t, sta);
+        _pass_on_slot(slot, t);
+        _pass_on_base(base, t);
+        _pass_on_bank(bank, t);
         t--;
         break;
       case SI_OP_NOT:
@@ -2661,9 +2667,9 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
       case SI_OP_XOR:
         v_ram[t - 2] = (int)v_ram[t - 1] ^ (int)v_ram[t - 2];
         v_rom[t - 2] = (int)v_rom[t - 1] ^ (int)v_rom[t - 2];
-        _pass_on_slot(slot, t, sta);
-        _pass_on_base(base, t, sta);
-        _pass_on_bank(bank, t, sta);
+        _pass_on_slot(slot, t);
+        _pass_on_base(base, t);
+        _pass_on_bank(bank, t);
         t--;
         break;
       case SI_OP_MULTIPLY:
@@ -2674,9 +2680,9 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         }
         v_ram[t - 2] *= v_ram[t - 1];
         v_rom[t - 2] *= v_rom[t - 1];
-        _pass_on_slot(slot, t, sta);
-        _pass_on_base(base, t, sta);
-        _pass_on_bank(bank, t, sta);
+        _pass_on_slot(slot, t);
+        _pass_on_base(base, t);
+        _pass_on_bank(bank, t);
         t--;
         break;
       case SI_OP_OR:
@@ -2699,9 +2705,9 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         }
         v_ram[t - 2] = (int)v_ram[t - 1] & (int)v_ram[t - 2];
         v_rom[t - 2] = (int)v_rom[t - 1] & (int)v_rom[t - 2];
-        _pass_on_slot(slot, t, sta);
-        _pass_on_base(base, t, sta);
-        _pass_on_bank(bank, t, sta);
+        _pass_on_slot(slot, t);
+        _pass_on_base(base, t);
+        _pass_on_bank(bank, t);
         t--;
         break;
       case SI_OP_BANK:
@@ -2799,9 +2805,9 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         }
         v_ram[t - 2] = (int)v_ram[t - 2] % (int)v_ram[t - 1];
         v_rom[t - 2] = (int)v_rom[t - 2] % (int)v_rom[t - 1];
-        _pass_on_slot(slot, t, sta);
-        _pass_on_base(base, t, sta);
-        _pass_on_bank(bank, t, sta);
+        _pass_on_slot(slot, t);
+        _pass_on_base(base, t);
+        _pass_on_bank(bank, t);
         t--;
         break;
       case SI_OP_DIVIDE:
@@ -2817,9 +2823,9 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         }
         v_ram[t - 2] /= v_ram[t - 1];
         v_rom[t - 2] /= v_rom[t - 1];
-        _pass_on_slot(slot, t, sta);
-        _pass_on_base(base, t, sta);
-        _pass_on_bank(bank, t, sta);
+        _pass_on_slot(slot, t);
+        _pass_on_base(base, t);
+        _pass_on_bank(bank, t);
         t--;
         break;
       case SI_OP_POWER:
@@ -2838,9 +2844,9 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         for (z = 0; z < v_rom[t - 1]; z++)
           q *= v_rom[t - 2];
         v_rom[t - 2] = q;
-        _pass_on_slot(slot, t, sta);
-        _pass_on_base(base, t, sta);
-        _pass_on_bank(bank, t, sta);
+        _pass_on_slot(slot, t);
+        _pass_on_base(base, t);
+        _pass_on_bank(bank, t);
         t--;
         break;
       case SI_OP_SHIFT_LEFT:
@@ -2851,9 +2857,9 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         }
         v_ram[t - 2] = (int)v_ram[t - 2] << (int)v_ram[t - 1];
         v_rom[t - 2] = (int)v_rom[t - 2] << (int)v_rom[t - 1];
-        _pass_on_slot(slot, t, sta);
-        _pass_on_base(base, t, sta);
-        _pass_on_bank(bank, t, sta);
+        _pass_on_slot(slot, t);
+        _pass_on_base(base, t);
+        _pass_on_bank(bank, t);
         t--;
         break;
       case SI_OP_SHIFT_RIGHT:
@@ -2864,9 +2870,9 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         }
         v_ram[t - 2] = (int)v_ram[t - 2] >> (int)v_ram[t - 1];
         v_rom[t - 2] = (int)v_rom[t - 2] >> (int)v_rom[t - 1];
-        _pass_on_slot(slot, t, sta);
-        _pass_on_base(base, t, sta);
-        _pass_on_bank(bank, t, sta);
+        _pass_on_slot(slot, t);
+        _pass_on_base(base, t);
+        _pass_on_bank(bank, t);
         t--;
         break;
       }
