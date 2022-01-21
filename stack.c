@@ -1069,8 +1069,6 @@ int stack_calculate(char *in, int *value) {
     }
   }
 
-  data_stream_parser_free();
-
   /* convert infix stack into postfix stack */
   for (b = 0, k = 0, d = 0; k < q; k++) {
     /* operands pass through */
@@ -1996,7 +1994,6 @@ int stack_create_stack_stack(int stack_id) {
 #define STRING_READ_FORMAT ("%" STRINGIFY(MAX_NAME_LENGTH) "s ")
 
 struct data_stream_item *g_data_stream_items_first = NULL, *g_data_stream_items_last = NULL;
-int g_is_data_stream_processed = NO;
 
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 extern char g_namespace[MAX_NAME_LENGTH + 1];
@@ -2013,8 +2010,6 @@ int data_stream_parser_free(void) {
 
   g_data_stream_items_first = NULL;
   g_data_stream_items_last = NULL;
-
-  g_is_data_stream_processed = NO;
 
   return SUCCEEDED;
 }
@@ -2055,31 +2050,36 @@ static void _free_local_and_child_labels_of_a_section(int section_id) {
 }
 
 
-static struct data_stream_item *s_parent_labels[10];
+/* internal variables for data_stream_parser_parse(), saved here so that the function can continue next time it's called from
+   where it left off previous call */
+static struct data_stream_item *s_dsp_parent_labels[10];
+static int s_dsp_last_data_stream_position = 0, s_dsp_has_data_stream_parser_been_initialized = NO;
+static int s_dsp_add = 0, s_dsp_add_old = 0, s_dsp_section_id = -1, s_dsp_bits_current = 0, s_dsp_inz, s_dsp_line_number = 0;
+static struct section_def *s_dsp_s = NULL;
 
 
 int data_stream_parser_parse(void) {
 
-  int add = 0, add_old = 0, section_id = -1, bits_current = 0, inz, line_number = 0;
-  struct section_def *s;
   FILE *f_in;
   char c;
-  
-  if (g_is_data_stream_processed == YES)
-    return SUCCEEDED;
-
-  memset(s_parent_labels, 0, sizeof(s_parent_labels));
-  s = NULL;
-
-  g_namespace[0] = 0;
   
   if (g_file_out_ptr == NULL) {
     print_error("The internal data stream is closed! It should be open. Please submit a bug report!\n", ERROR_STC);
     return FAILED;
   }
 
-  /* seek to the beginning of the file for parsing */
-  fseek(g_file_out_ptr, 0, SEEK_SET);
+  if (s_dsp_has_data_stream_parser_been_initialized == NO) {
+    /* do the init when we first time come here */
+    s_dsp_has_data_stream_parser_been_initialized = YES;
+    
+    memset(s_dsp_parent_labels, 0, sizeof(s_dsp_parent_labels));
+    g_namespace[0] = 0;
+  
+    /* seek to the beginning of the file for parsing */
+    fseek(g_file_out_ptr, 0, SEEK_SET);
+  }
+  else
+    fseek(g_file_out_ptr, s_dsp_last_data_stream_position, SEEK_SET);
 
   f_in = g_file_out_ptr;
 
@@ -2105,74 +2105,74 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 'P':
-      add_old = add;
+      s_dsp_add_old = s_dsp_add;
       continue;
     case 'p':
-      add = add_old;
+      s_dsp_add = s_dsp_add_old;
       continue;
 
     case 'A':
     case 'S':
       if (c == 'A')
-        fscanf(f_in, "%d %*d", &section_id);
+        fscanf(f_in, "%d %*d", &s_dsp_section_id);
       else
-        fscanf(f_in, "%d ", &section_id);
+        fscanf(f_in, "%d ", &s_dsp_section_id);
 
-      add_old = add;
+      s_dsp_add_old = s_dsp_add;
 
-      s = g_sections_first;
-      while (s != NULL && s->id != inz)
-        s = s->next;
+      s_dsp_s = g_sections_first;
+      while (s_dsp_s != NULL && s_dsp_s->id != s_dsp_inz)
+        s_dsp_s = s_dsp_s->next;
       
       continue;
 
     case 's':
-      _free_local_and_child_labels_of_a_section(section_id);
-      section_id = -1;
-      s = NULL;
+      _free_local_and_child_labels_of_a_section(s_dsp_section_id);
+      s_dsp_section_id = -1;
+      s_dsp_s = NULL;
       continue;
 
     case 'x':
     case 'o':
-      fscanf(f_in, "%d %*d ", &inz);
-      add += inz;
+      fscanf(f_in, "%d %*d ", &s_dsp_inz);
+      s_dsp_add += s_dsp_inz;
       continue;
 
     case 'X':
-      fscanf(f_in, "%d %*d ", &inz);
-      add += inz * 2;
+      fscanf(f_in, "%d %*d ", &s_dsp_inz);
+      s_dsp_add += s_dsp_inz * 2;
       continue;
 
     case 'h':
-      fscanf(f_in, "%d %*d ", &inz);
-      add += inz * 3;
+      fscanf(f_in, "%d %*d ", &s_dsp_inz);
+      s_dsp_add += s_dsp_inz * 3;
       continue;
 
     case 'w':
-      fscanf(f_in, "%d %*d ", &inz);
-      add += inz * 4;
+      fscanf(f_in, "%d %*d ", &s_dsp_inz);
+      s_dsp_add += s_dsp_inz * 4;
       continue;
 
     case 'z':
     case 'q':
       fscanf(f_in, "%*s ");
-      add += 3;
+      s_dsp_add += 3;
       continue;
 
     case 'T':
       fscanf(f_in, "%*d ");
-      add += 3;
+      s_dsp_add += 3;
       continue;
 
     case 'u':
     case 'V':
       fscanf(f_in, "%*s ");
-      add += 4;
+      s_dsp_add += 4;
       continue;
 
     case 'U':
       fscanf(f_in, "%*d ");
-      add += 4;
+      s_dsp_add += 4;
       continue;
 
     case 'v':
@@ -2188,31 +2188,31 @@ int data_stream_parser_parse(void) {
     case 'd':
     case 'c':
       fscanf(f_in, "%*s ");
-      add++;
+      s_dsp_add++;
       continue;
 
     case 'M':
     case 'r':
       fscanf(f_in, "%*s ");
-      add += 2;
+      s_dsp_add += 2;
       continue;
 
     case 'y':
     case 'C':
       fscanf(f_in, "%*d ");
-      add += 2;
+      s_dsp_add += 2;
       continue;
 
 #ifdef SUPERFX
 
     case '*':
       fscanf(f_in, "%*s ");
-      add++;
+      s_dsp_add++;
       continue;
       
     case '-':
       fscanf(f_in, "%*d ");
-      add++;
+      s_dsp_add++;
       continue;
 
 #endif
@@ -2225,20 +2225,20 @@ int data_stream_parser_parse(void) {
         fscanf(f_in, "%d ", &bits_to_add);
 
         if (bits_to_add == 999) {
-          bits_current = 0;
+          s_dsp_bits_current = 0;
 
           continue;
         }
         else {
-          if (bits_current == 0)
-            add++;
-          bits_current += bits_to_add;
-          while (bits_current > 8) {
-            bits_current -= 8;
-            add++;
+          if (s_dsp_bits_current == 0)
+            s_dsp_add++;
+          s_dsp_bits_current += bits_to_add;
+          while (s_dsp_bits_current > 8) {
+            s_dsp_bits_current -= 8;
+            s_dsp_add++;
           }
           if (bits_to_add == 8)
-            bits_current = 0;
+            s_dsp_bits_current = 0;
         }
 
         fscanf(f_in, "%c", &type);
@@ -2256,22 +2256,22 @@ int data_stream_parser_parse(void) {
 #ifdef SPC700
     case 'n':
       fscanf(f_in, "%*d %*s ");
-      add += 2;
+      s_dsp_add += 2;
       continue;
 
     case 'N':
       fscanf(f_in, "%*d %*d ");
-      add += 2;
+      s_dsp_add += 2;
       continue;
 #endif
 
     case 'D':
-      fscanf(f_in, "%*d %*d %*d %d ", &inz);
-      add += inz;
+      fscanf(f_in, "%*d %*d %*d %d ", &s_dsp_inz);
+      s_dsp_add += s_dsp_inz;
       continue;
 
     case 'O':
-      fscanf(f_in, "%d ", &add);
+      fscanf(f_in, "%d ", &s_dsp_add);
       continue;
 
     case 'B':
@@ -2286,8 +2286,8 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 't':
-      fscanf(f_in, "%d ", &inz);
-      if (inz == 0)
+      fscanf(f_in, "%d ", &s_dsp_inz);
+      if (s_dsp_inz == 0)
         g_namespace[0] = 0;
       else
         fscanf(f_in, STRING_READ_FORMAT, g_namespace);
@@ -2321,17 +2321,17 @@ int data_stream_parser_parse(void) {
             n++;
           m = n;
           while (m < 10)
-            s_parent_labels[m++] = NULL;
+            s_dsp_parent_labels[m++] = NULL;
 
           if (n < 10)
-            s_parent_labels[n] = dSI;
+            s_dsp_parent_labels[n] = dSI;
           n--;
-          while (n >= 0 && s_parent_labels[n] == 0)
+          while (n >= 0 && s_dsp_parent_labels[n] == 0)
             n--;
 
           if (n >= 0) {
             /* mangle the label so that we'll save only full forms of labels */
-            if (mangle_label(dSI->label, s_parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+            if (mangle_label(dSI->label, s_dsp_parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
               return FAILED;
 
             mangled_label = YES;
@@ -2339,15 +2339,15 @@ int data_stream_parser_parse(void) {
         }
 
         if (is_label_anonymous(dSI->label) == NO && g_namespace[0] != 0 && mangled_label == NO) {
-          if (section_id < 0 || s->nspace == NULL) {
+          if (s_dsp_section_id < 0 || s_dsp_s->nspace == NULL) {
             if (add_namespace(dSI->label, g_namespace, sizeof(dSI->label)) == FAILED)
               return FAILED;
           }
         }
         
         dSI->next = NULL;
-        dSI->address = add;
-        dSI->section_id = section_id;
+        dSI->address = s_dsp_add;
+        dSI->section_id = s_dsp_section_id;
 
         if (g_data_stream_items_first == NULL) {
           g_data_stream_items_first = dSI;
@@ -2366,7 +2366,7 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 'k':
-      fscanf(f_in, "%d ", &line_number);
+      fscanf(f_in, "%d ", &s_dsp_line_number);
       continue;
 
     case 'e':
@@ -2379,10 +2379,11 @@ int data_stream_parser_parse(void) {
     }
   }
 
+  /* remember the data stream position for the next time this function is called */
+  s_dsp_last_data_stream_position = (int)ftell(f_in);
+  
   /* seek to the very end of the file so we can continue writing to it */
   fseek(g_file_out_ptr, 0, SEEK_END);
-  
-  g_is_data_stream_processed = YES;
   
   return SUCCEEDED;
 }
@@ -2404,11 +2405,11 @@ struct data_stream_item *data_stream_parser_find_label(char *label) {
     n--;
 
     if (n >= 0) {
-      if (s_parent_labels[n] == NULL) {
+      if (s_dsp_parent_labels[n] == NULL) {
         fprintf(stderr, "DATA_STREAM_PARSER_FIND_LABEL: Parent of label \"%s\" is missing! Please submit a bug report!\n", label);
         return NULL;
       }
-      if (mangle_label(mangled_label, s_parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+      if (mangle_label(mangled_label, s_dsp_parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
         return NULL;
     }
   }
