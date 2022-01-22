@@ -9580,50 +9580,65 @@ int parse_directive(void) {
 
   case 'B':
 
-    /* BASE */
-    if (strcmp(directive_upper, "BASE") == 0) {
-      no_library_files(".BASE definitions");
+    if (length == 2) {
+      /* BR? */
+      if (strcmp(directive_upper, "BR") == 0) {
+        fprintf(g_file_out_ptr, "Z ");
+        return SUCCEEDED;
+      }
+    }
+    else if (length == 3) {
+      /* BYT? */
+      if (strcmp(directive_upper, "BYT") == 0)
+        return directive_db_byt_byte();
+    }
+    else if (length == 4) {
+      /* BASE? */
+      if (strcmp(directive_upper, "BASE") == 0) {
+        no_library_files(".BASE definitions");
 
-      q = input_number();
+        q = input_number();
 
-      if (q == FAILED)
-	return FAILED;
-      if (q != SUCCEEDED || g_parsed_int < 0) {
-	print_error(".BASE number must be zero or positive.\n", ERROR_DIR);
-	return FAILED;
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED || g_parsed_int < 0) {
+          print_error(".BASE number must be zero or positive.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        fprintf(g_file_out_ptr, "b%d ", g_parsed_int);
+
+        return SUCCEEDED;
       }
 
-      fprintf(g_file_out_ptr, "b%d ", g_parsed_int);
+      /* BYTE? */
+      if (strcmp(directive_upper, "BYTE") == 0)
+        return directive_db_byt_byte();
 
-      return SUCCEEDED;
+      /* BANK */
+      if (strcmp(directive_upper, "BANK") == 0)
+        return directive_bank();
     }
+    else {
+      /* BREAKPOINT? */
+      if (strcmp(directive_upper, "BREAKPOINT") == 0) {
+        fprintf(g_file_out_ptr, "Z ");
+        return SUCCEEDED;
+      }
 
-    /* BYT/BYTE? */
-    if (strcmp(directive_upper, "BYT") == 0 || strcmp(directive_upper, "BYTE") == 0)
-      return directive_db_byt_byte();
+      /* BITS? */
+      if (strcmp(directive_upper, "BITS") == 0)
+        return directive_bits();
 
-    /* BR/BREAKPOINT */
-    if (strcmp(directive_upper, "BR") == 0 || strcmp(directive_upper, "BREAKPOINT") == 0) {
-      fprintf(g_file_out_ptr, "Z ");
-      return SUCCEEDED;
+      /* BLOCK */
+      if (strcmp(directive_upper, "BLOCK") == 0)
+        return directive_block();
+      
+      /* BACKGROUND */
+      if (strcmp(directive_upper, "BACKGROUND") == 0)
+        return directive_background();
     }
-
-    /* BANK */
-    if (strcmp(directive_upper, "BANK") == 0)
-      return directive_bank();
-
-    /* BITS? */
-    if (strcmp(directive_upper, "BITS") == 0)
-      return directive_bits();
-
-    /* BLOCK */
-    if (strcmp(directive_upper, "BLOCK") == 0)
-      return directive_block();
     
-    /* BACKGROUND */
-    if (strcmp(directive_upper, "BACKGROUND") == 0)
-      return directive_background();
-
     break;
 
   case 'C':
@@ -9823,403 +9838,420 @@ int parse_directive(void) {
     
   case 'D':
 
-    /* DB? */
-    if (strcmp(directive_upper, "DB") == 0)
-      return directive_db_byt_byte();
+    if (length == 2) {
+      /* DB? */
+      if (strcmp(directive_upper, "DB") == 0)
+        return directive_db_byt_byte();
 
-    /* DW? */
-    if (strcmp(directive_upper, "DW") == 0)
-      return directive_dw_word_addr();
+      /* DW? */
+      if (strcmp(directive_upper, "DW") == 0)
+        return directive_dw_word_addr();
 
-    /* DEFINE/DEF */
-    if (strcmp(directive_upper, "DEFINE") == 0 || strcmp(directive_upper, "DEF") == 0)
-      return directive_define_def_equ();
+      /* DD? */
+      if (strcmp(directive_upper, "DD") == 0)
+        return directive_dd();
 
-    /* DATA? */
-    if (strcmp(directive_upper, "DATA") == 0)
-      return directive_row_data();
+      /* DL? */
+      if (strcmp(directive_upper, "DL") == 0)
+        return directive_dl_long_faraddr();
 
-    /* DBM/DWM? */
-    if (strcmp(directive_upper, "DBM") == 0 || strcmp(directive_upper, "DWM") == 0)
-      return directive_dbm_dwm_dlm_ddm_filter();
+      /* DS? */
+      if (strcmp(directive_upper, "DS") == 0)
+        return directive_dsb_ds();
+    }
+    else if (length == 3) {
+      /* DEF */
+      if (strcmp(directive_upper, "DEF") == 0)
+        return directive_define_def_equ();
 
-    /* DLM? */
-    if (strcmp(directive_upper, "DLM") == 0)
-      return directive_dbm_dwm_dlm_ddm_filter();
+      /* DSB? */
+      if (strcmp(directive_upper, "DSB") == 0)
+        return directive_dsb_ds();
 
-    /* DSL? */
-    if (strcmp(directive_upper, "DSL") == 0)
-      return directive_dsl();
+      /* DSW? */
+      if (strcmp(directive_upper, "DSW") == 0)
+        return directive_dsw();
 
-    /* DDM? */
-    if (strcmp(directive_upper, "DDM") == 0)
-      return directive_dbm_dwm_dlm_ddm_filter();
+      /* DSL? */
+      if (strcmp(directive_upper, "DSL") == 0)
+        return directive_dsl();
 
-    /* DD? */
-    if (strcmp(directive_upper, "DD") == 0)
-      return directive_dd();
+      /* DSD? */
+      if (strcmp(directive_upper, "DSD") == 0)
+        return directive_dsd();
 
-    /* DSD? */
-    if (strcmp(directive_upper, "DSD") == 0)
-      return directive_dsd();
+      /* DBM/DWM? */
+      if (strcmp(directive_upper, "DBM") == 0 || strcmp(directive_upper, "DWM") == 0)
+        return directive_dbm_dwm_dlm_ddm_filter();
+      
+      /* DLM? */
+      if (strcmp(directive_upper, "DLM") == 0)
+        return directive_dbm_dwm_dlm_ddm_filter();
 
-    /* DL? */
-    if (strcmp(directive_upper, "DL") == 0)
-      return directive_dl_long_faraddr();
+      /* DDM? */
+      if (strcmp(directive_upper, "DDM") == 0)
+        return directive_dbm_dwm_dlm_ddm_filter();
+    }
+    else {
+      /* DEFINE */
+      if (strcmp(directive_upper, "DEFINE") == 0)
+        return directive_define_def_equ();
 
-    /* DSTRUCT */
-    if (strcmp(directive_upper, "DSTRUCT") == 0)
-      return directive_dstruct();
+      /* DATA? */
+      if (strcmp(directive_upper, "DATA") == 0)
+        return directive_row_data();
 
-    /* DS/DSB? */
-    if (strcmp(directive_upper, "DSB") == 0 || strcmp(directive_upper, "DS") == 0)
-      return directive_dsb_ds();
+      /* DSTRUCT */
+      if (strcmp(directive_upper, "DSTRUCT") == 0)
+        return directive_dstruct();
 
-    /* DSW? */
-    if (strcmp(directive_upper, "DSW") == 0)
-      return directive_dsw();
+      /* DBRND/DWRND */
+      if (strcmp(directive_upper, "DBRND") == 0 || strcmp(directive_upper, "DWRND") == 0)
+        return directive_dbrnd_dwrnd();
 
-    /* DBRND/DWRND */
-    if (strcmp(directive_upper, "DBRND") == 0 || strcmp(directive_upper, "DWRND") == 0)
-      return directive_dbrnd_dwrnd();
-
-    /* DWSIN/DBSIN/DWCOS/DBCOS */
-    if (strcmp(directive_upper, "DWSIN") == 0 || strcmp(directive_upper, "DBSIN") == 0 || strcmp(directive_upper, "DWCOS") == 0 || strcmp(directive_upper, "DBCOS") == 0)
-      return directive_dwsin_dbsin_dwcos_dbcos();
+      /* DWSIN/DBSIN/DWCOS/DBCOS */
+      if (strcmp(directive_upper, "DWSIN") == 0 || strcmp(directive_upper, "DBSIN") == 0 || strcmp(directive_upper, "DWCOS") == 0 || strcmp(directive_upper, "DBCOS") == 0)
+        return directive_dwsin_dbsin_dwcos_dbcos();
     
 #ifdef GB
-    /* DESTINATIONCODE */
-    if (strcmp(directive_upper, "DESTINATIONCODE") == 0) {
-      no_library_files(".DESTINATIONCODE");
+      /* DESTINATIONCODE */
+      if (strcmp(directive_upper, "DESTINATIONCODE") == 0) {
+        no_library_files(".DESTINATIONCODE");
 
-      q = input_number();
+        q = input_number();
 
-      if (q == FAILED)
-	return FAILED;
-      if (q != SUCCEEDED || q < 0) {
-	print_error(".DESTINATIONCODE needs a non-negative value.\n", ERROR_DIR);
-	return FAILED;
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED || q < 0) {
+          print_error(".DESTINATIONCODE needs a non-negative value.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        if (q == SUCCEEDED && g_countrycode_defined != 0) {
+          if (g_countrycode != g_parsed_int) {
+            print_error(".DESTINATIONCODE was defined for the second time.\n", ERROR_DIR);
+            return FAILED;
+          }
+        }
+
+        g_countrycode = g_parsed_int;
+        g_countrycode_defined = 1;
+
+        return SUCCEEDED;
       }
-
-      if (q == SUCCEEDED && g_countrycode_defined != 0) {
-	if (g_countrycode != g_parsed_int) {
-	  print_error(".DESTINATIONCODE was defined for the second time.\n", ERROR_DIR);
-	  return FAILED;
-	}
-      }
-
-      g_countrycode = g_parsed_int;
-      g_countrycode_defined = 1;
-
-      return SUCCEEDED;
-    }
 #endif
+    }
   
     break;
 
   case 'E':
 
-    /* ENDS */
-    if (strcmp(directive_upper, "ENDS") == 0) {
-      if (g_section_status == OFF) {
-	print_error("There is no open section.\n", ERROR_DIR);
-	return FAILED;
-      }
-      if (g_dstruct_status == ON) {
-	print_error("You can't close a section inside .DSTRUCT.\n", ERROR_DIR);
-	return FAILED;
-      }
+    if (length == 1) {    
+      /* E (INTERNAL) */
+      if (strcmp(directive_upper, "E") == 0) {
+        if (g_active_file_info_last != NULL) {
+          g_active_file_info_tmp = g_active_file_info_last;
+          g_active_file_info_last = g_active_file_info_last->prev;
+          free(g_active_file_info_tmp);
 
-      /* generate a section end label? */
-      if (g_extra_definitions == ON)
-	generate_label("SECTIONEND_", g_sections_last->name);
+          if (g_active_file_info_last == NULL)
+            g_active_file_info_first = NULL;
+          else {
+            fprintf(g_file_out_ptr, "f%d ", g_active_file_info_last->filename_id);
+
+            if (g_active_file_info_last->namespace[0] == 0)
+              fprintf(g_file_out_ptr, "t0 ");
+            else
+              fprintf(g_file_out_ptr, "t1 %s ", g_active_file_info_last->namespace);      
+          }
+        }
+
+        /* fix the line */
+        if (g_active_file_info_last != NULL)
+          g_active_file_info_last->line_current--;
+
+        fprintf(g_file_out_ptr, "E ");
+        g_open_files--;
+        if (g_open_files == 0)
+          return EVALUATE_TOKEN_EOP;
+
+        if (g_extra_definitions == ON) {
+          redefine("WLA_FILENAME", 0.0, get_file_name(g_active_file_info_last->filename_id), DEFINITION_TYPE_STRING,
+                   (int)strlen(get_file_name(g_active_file_info_last->filename_id)));
+          redefine("wla_filename", 0.0, get_file_name(g_active_file_info_last->filename_id), DEFINITION_TYPE_STRING,
+                   (int)strlen(get_file_name(g_active_file_info_last->filename_id)));
+        }
+
+        return SUCCEEDED;
+      }
+    }
+    else if (length == 3) {
+      /* EQU */
+      if (strcmp(directive_upper, "EQU") == 0)
+        return directive_define_def_equ();    
+    }
+    else if (length == 4) {
+      /* ENDS */
+      if (strcmp(directive_upper, "ENDS") == 0) {
+        if (g_section_status == OFF) {
+          print_error("There is no open section.\n", ERROR_DIR);
+          return FAILED;
+        }
+        if (g_dstruct_status == ON) {
+          print_error("You can't close a section inside .DSTRUCT.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        /* generate a section end label? */
+        if (g_extra_definitions == ON)
+          generate_label("SECTIONEND_", g_sections_last->name);
   
-      g_section_status = OFF;
-      g_bankheader_status = OFF;
-      g_in_ramsection = NO;
-    
-      fprintf(g_file_out_ptr, "s ");
-
-      return SUCCEEDED;
-    }
-
-    /* ENDB */
-    if (strcmp(directive_upper, "ENDB") == 0) {
-      if (g_block_status <= 0) {
-	print_error("There is no open .BLOCK.\n", ERROR_DIR);
-	return FAILED;
-      }
-
-      g_block_status--;
-      fprintf(g_file_out_ptr, "G ");
-
-      return SUCCEEDED;
-    }
-
-    /* ENDM */
-    if (strcmp(directive_upper, "ENDM") == 0)
-      return directive_endm();
-    
-    /* ENDR */
-    if (strcmp(directive_upper, "ENDR") == 0) {
-      struct repeat_runtime *rr;
-    
-      if (g_repeat_active == 0) {
-	print_error("There is no open repetition.\n", ERROR_DIR);
-	return FAILED;
-      }
-
-      rr = &g_repeat_stack[g_repeat_active - 1];
-
-      rr->counter--;
-      if (rr->counter == 0) {
-	g_repeat_active--;
-      
-	/* repeat end */
-	fprintf(g_file_out_ptr, "J ");
-
-	if (strlen(rr->index_name) > 0) {
-	  if (undefine(rr->index_name) == FAILED)
-	    return FAILED;
-	}
-	return SUCCEEDED;
-      }
-
-      rr->repeats++;
-      if (strlen(rr->index_name) > 0) {
-	if (redefine(rr->index_name, (double)rr->repeats, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-	  return FAILED;
-      }
-    
-      g_source_pointer = rr->start;
-      g_active_file_info_last->line_current = rr->start_line;
-
-      return SUCCEEDED;
-    }
-
-    /* ENDBITS? */
-    if (strcmp(directive_upper, "ENDBITS") == 0) {
-      fprintf(g_file_out_ptr, "+999 ");
-
-      return SUCCEEDED;
-    }
-    
-    /* ENDASM */
-    if (strcmp(directive_upper, "ENDASM") == 0) {
-      int endasm = 1, x;
-
-      while (1) {
-	x = g_source_pointer;
-	q = get_next_token();
-	if (q == GET_NEXT_TOKEN_STRING)
-	  continue;
-
-	/* end of file? */
-	if (strcmp(g_tmp, ".E") == 0) {
-	  g_source_pointer = x;
-	  return SUCCEEDED;
-	}
-	if (strcaselesscmp(g_tmp, ".ASM") == 0) {
-	  endasm--;
-	  if (endasm == 0)
-	    return SUCCEEDED;
-	}
-	if (strcaselesscmp(g_tmp, ".ENDASM") == 0)
-	  endasm++;
-      }
-    }
-
-    /* EQU */
-    if (strcmp(directive_upper, "EQU") == 0)
-      return directive_define_def_equ();
-    
-    /* EMPTYFILL */
-    if (strcmp(directive_upper, "EMPTYFILL") == 0) {
-      no_library_files(".EMPTYFILL");
-
-      q = input_number();
-
-      if (q == FAILED)
-	return FAILED;
-      if (q != SUCCEEDED || g_parsed_int < -128 || g_parsed_int > 255) {
-	snprintf(g_error_message, sizeof(g_error_message), ".EMPTYFILL needs a 8-bit value, got %d.\n", g_parsed_int);
-	print_error(g_error_message, ERROR_DIR);
-	return FAILED;
-      }
-
-      if (g_emptyfill_defined != 0) {
-	if (g_emptyfill != g_parsed_int) {
-	  print_error(".EMPTYFILL was defined for the second time.\n", ERROR_DIR);
-	  return FAILED;
-	}
-	return SUCCEEDED;
-      }
-
-      g_emptyfill = g_parsed_int;
-      g_emptyfill_defined = 1;
-      
-      return SUCCEEDED;
-    }
-
-    /* ENUM */
-    if (strcmp(directive_upper, "ENUM") == 0) {
-      if (g_dstruct_status == ON) {
-	print_error("You can't use start an ENUM inside .DSTRUCT.\n", ERROR_DIR);
-	return FAILED;
-      }
-
-      q = input_number();
-      if (q == FAILED)
-	return FAILED;
-      if (q != SUCCEEDED) {
-	print_error(".ENUM needs a starting value.\n", ERROR_DIR);
-	return FAILED;
+        g_section_status = OFF;
+        g_bankheader_status = OFF;
+        g_in_ramsection = NO;
+        
+        fprintf(g_file_out_ptr, "s ");
+        
+        return SUCCEEDED;
       }
       
-      g_enum_offset = 0;
-      g_last_enum_offset = 0;
-      g_max_enum_offset = 0;
-      g_base_enum_offset = g_parsed_int;
+      /* ENDB */
+      if (strcmp(directive_upper, "ENDB") == 0) {
+        if (g_block_status <= 0) {
+          print_error("There is no open .BLOCK.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        g_block_status--;
+        fprintf(g_file_out_ptr, "G ");
+
+        return SUCCEEDED;
+      }
+
+      /* ENDM */
+      if (strcmp(directive_upper, "ENDM") == 0)
+        return directive_endm();
+    
+      /* ENDR */
+      if (strcmp(directive_upper, "ENDR") == 0) {
+        struct repeat_runtime *rr;
+    
+        if (g_repeat_active == 0) {
+          print_error("There is no open repetition.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        rr = &g_repeat_stack[g_repeat_active - 1];
+
+        rr->counter--;
+        if (rr->counter == 0) {
+          g_repeat_active--;
+          
+          /* repeat end */
+          fprintf(g_file_out_ptr, "J ");
+
+          if (strlen(rr->index_name) > 0) {
+            if (undefine(rr->index_name) == FAILED)
+              return FAILED;
+          }
+          return SUCCEEDED;
+        }
+
+        rr->repeats++;
+        if (strlen(rr->index_name) > 0) {
+          if (redefine(rr->index_name, (double)rr->repeats, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+            return FAILED;
+        }
+    
+        g_source_pointer = rr->start;
+        g_active_file_info_last->line_current = rr->start_line;
+
+        return SUCCEEDED;
+      }
+
+      /* ENUM */
+      if (strcmp(directive_upper, "ENUM") == 0) {
+        if (g_dstruct_status == ON) {
+          print_error("You can't use start an ENUM inside .DSTRUCT.\n", ERROR_DIR);
+          return FAILED;
+        }
+
+        q = input_number();
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED) {
+          print_error(".ENUM needs a starting value.\n", ERROR_DIR);
+          return FAILED;
+        }
       
-      /* "ASC" or "DESC"? */
-      if (compare_next_token("ASC") == SUCCEEDED) {
-	g_enum_ord = 1;
-	skip_next_token();
-      }
-      else if (compare_next_token("DESC") == SUCCEEDED) {
-	g_enum_ord = -1;
-	skip_next_token();
-      }
-      else
-	g_enum_ord = 1;
-
-      /* do we have "EXPORT" defined? */
-      if (compare_next_token("EXPORT") == SUCCEEDED) {
-	skip_next_token();
-	g_enum_exp = YES;
-      }
-      else
-	g_enum_exp = NO;
-
-      /* setup g_active_struct (enum vars stored here temporarily) */
-      g_active_struct = calloc(sizeof(struct structure), 1);
-      if (g_active_struct == NULL) {
-	print_error("Out of memory while parsing .ENUM.\n", ERROR_DIR);
-	return FAILED;
-      }
-      g_active_struct->alive = YES;
-      _remember_new_structure(g_active_struct);
-      g_active_struct->name[0] = '\0';
-      g_active_struct->items = NULL;
-      g_active_struct->last_item = NULL;
-      g_union_stack = NULL;
-
-      g_in_enum = YES;
-
-      return SUCCEEDED;
-    }
-
-    /* ENUMID */
-    if (strcmp(directive_upper, "ENUMID") == 0)
-      return directive_enumid();
-
-    /* EXPORT */
-    if (strcmp(directive_upper, "EXPORT") == 0) {
-      q = 0;
-      while (1) {
-	int string_result;
-
-	string_result = input_next_string();
-	if (string_result == FAILED)
-	  return FAILED;
-	if (string_result == INPUT_NUMBER_EOL) {
-	  if (q != 0) {
-	    next_line();
-	    return SUCCEEDED;
-	  }
-	  print_error(".EXPORT requires definition name(s).\n", ERROR_DIR);
-	  return FAILED;
-	}
-
-	q++;
-
-	if (export_a_definition(g_tmp) == FAILED)
-	  return FAILED;
-      }
+        g_enum_offset = 0;
+        g_last_enum_offset = 0;
+        g_max_enum_offset = 0;
+        g_base_enum_offset = g_parsed_int;
       
-      return FAILED;
+        /* "ASC" or "DESC"? */
+        if (compare_next_token("ASC") == SUCCEEDED) {
+          g_enum_ord = 1;
+          skip_next_token();
+        }
+        else if (compare_next_token("DESC") == SUCCEEDED) {
+          g_enum_ord = -1;
+          skip_next_token();
+        }
+        else
+          g_enum_ord = 1;
+
+        /* do we have "EXPORT" defined? */
+        if (compare_next_token("EXPORT") == SUCCEEDED) {
+          skip_next_token();
+          g_enum_exp = YES;
+        }
+        else
+          g_enum_exp = NO;
+
+        /* setup g_active_struct (enum vars stored here temporarily) */
+        g_active_struct = calloc(sizeof(struct structure), 1);
+        if (g_active_struct == NULL) {
+          print_error("Out of memory while parsing .ENUM.\n", ERROR_DIR);
+          return FAILED;
+        }
+        g_active_struct->alive = YES;
+        _remember_new_structure(g_active_struct);
+        g_active_struct->name[0] = '\0';
+        g_active_struct->items = NULL;
+        g_active_struct->last_item = NULL;
+        g_union_stack = NULL;
+
+        g_in_enum = YES;
+
+        return SUCCEEDED;
+      }
     }
+    else {    
+      /* ENDBITS? */
+      if (strcmp(directive_upper, "ENDBITS") == 0) {
+        fprintf(g_file_out_ptr, "+999 ");
+
+        return SUCCEEDED;
+      }
+    
+      /* ENDASM */
+      if (strcmp(directive_upper, "ENDASM") == 0) {
+        int endasm = 1, x;
+
+        while (1) {
+          x = g_source_pointer;
+          q = get_next_token();
+          if (q == GET_NEXT_TOKEN_STRING)
+            continue;
+
+          /* end of file? */
+          if (strcmp(g_tmp, ".E") == 0) {
+            g_source_pointer = x;
+            return SUCCEEDED;
+          }
+          if (strcaselesscmp(g_tmp, ".ASM") == 0) {
+            endasm--;
+            if (endasm == 0)
+              return SUCCEEDED;
+          }
+          if (strcaselesscmp(g_tmp, ".ENDASM") == 0)
+            endasm++;
+        }
+      }
+
+      /* EMPTYFILL */
+      if (strcmp(directive_upper, "EMPTYFILL") == 0) {
+        no_library_files(".EMPTYFILL");
+
+        q = input_number();
+
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED || g_parsed_int < -128 || g_parsed_int > 255) {
+          snprintf(g_error_message, sizeof(g_error_message), ".EMPTYFILL needs a 8-bit value, got %d.\n", g_parsed_int);
+          print_error(g_error_message, ERROR_DIR);
+          return FAILED;
+        }
+
+        if (g_emptyfill_defined != 0) {
+          if (g_emptyfill != g_parsed_int) {
+            print_error(".EMPTYFILL was defined for the second time.\n", ERROR_DIR);
+            return FAILED;
+          }
+          return SUCCEEDED;
+        }
+
+        g_emptyfill = g_parsed_int;
+        g_emptyfill_defined = 1;
+      
+        return SUCCEEDED;
+      }
+
+      /* ENUMID */
+      if (strcmp(directive_upper, "ENUMID") == 0)
+        return directive_enumid();
+
+      /* EXPORT */
+      if (strcmp(directive_upper, "EXPORT") == 0) {
+        q = 0;
+        while (1) {
+          int string_result;
+
+          string_result = input_next_string();
+          if (string_result == FAILED)
+            return FAILED;
+          if (string_result == INPUT_NUMBER_EOL) {
+            if (q != 0) {
+              next_line();
+              return SUCCEEDED;
+            }
+            print_error(".EXPORT requires definition name(s).\n", ERROR_DIR);
+            return FAILED;
+          }
+
+          q++;
+
+          if (export_a_definition(g_tmp) == FAILED)
+            return FAILED;
+        }
+      
+        return FAILED;
+      }
 
 #if defined(W65816)  
-    /* EXHIROM */
-    if (strcmp(directive_upper, "EXHIROM") == 0) {
-      no_library_files(".EXHIROM");
+      /* EXHIROM */
+      if (strcmp(directive_upper, "EXHIROM") == 0) {
+        no_library_files(".EXHIROM");
 
-      if (g_lorom_defined != 0 || g_exlorom_defined != 0 || g_hirom_defined != 0) {
-	give_snes_rom_mode_defined_error(".EXHIROM");
-	return FAILED;
+        if (g_lorom_defined != 0 || g_exlorom_defined != 0 || g_hirom_defined != 0) {
+          give_snes_rom_mode_defined_error(".EXHIROM");
+          return FAILED;
+        }
+
+        g_exhirom_defined++;
+        g_snes_mode++;
+
+        return SUCCEEDED;
       }
-
-      g_exhirom_defined++;
-      g_snes_mode++;
-
-      return SUCCEEDED;
-    }
   
-    /* EXLOROM */
-    /*
-      if (strcmp(directive_upper, "EXLOROM") == 0) {
-      no_library_files(".EXLOROM");
-
-      if (g_hirom_defined != 0 || g_lorom_defined != 0 || g_exhirom_defined != 0) {
-      give_snes_rom_mode_defined_error(".EXLOROM");
-      return FAILED;
-      }
-
-      g_exlorom_defined++;
-      snes_mode++;
-
-      return SUCCEEDED;
-      }
-    */
+      /* EXLOROM */
+      /*
+        if (strcmp(directive_upper, "EXLOROM") == 0) {
+        no_library_files(".EXLOROM");
+        
+        if (g_hirom_defined != 0 || g_lorom_defined != 0 || g_exhirom_defined != 0) {
+        give_snes_rom_mode_defined_error(".EXLOROM");
+        return FAILED;
+        }
+        
+        g_exlorom_defined++;
+        snes_mode++;
+        
+        return SUCCEEDED;
+        }
+      */
 #endif
-    
-    /* E (INTERNAL) */
-    if (strcmp(directive_upper, "E") == 0) {
-      if (g_active_file_info_last != NULL) {
-	g_active_file_info_tmp = g_active_file_info_last;
-	g_active_file_info_last = g_active_file_info_last->prev;
-	free(g_active_file_info_tmp);
-
-	if (g_active_file_info_last == NULL)
-	  g_active_file_info_first = NULL;
-	else {
-	  fprintf(g_file_out_ptr, "f%d ", g_active_file_info_last->filename_id);
-
-	  if (g_active_file_info_last->namespace[0] == 0)
-	    fprintf(g_file_out_ptr, "t0 ");
-	  else
-	    fprintf(g_file_out_ptr, "t1 %s ", g_active_file_info_last->namespace);      
-	}
-      }
-
-      /* fix the line */
-      if (g_active_file_info_last != NULL)
-	g_active_file_info_last->line_current--;
-
-      fprintf(g_file_out_ptr, "E ");
-      g_open_files--;
-      if (g_open_files == 0)
-	return EVALUATE_TOKEN_EOP;
-
-      if (g_extra_definitions == ON) {
-	redefine("WLA_FILENAME", 0.0, get_file_name(g_active_file_info_last->filename_id), DEFINITION_TYPE_STRING,
-		 (int)strlen(get_file_name(g_active_file_info_last->filename_id)));
-	redefine("wla_filename", 0.0, get_file_name(g_active_file_info_last->filename_id), DEFINITION_TYPE_STRING,
-		 (int)strlen(get_file_name(g_active_file_info_last->filename_id)));
-      }
-
-      return SUCCEEDED;
     }
     
     break;
