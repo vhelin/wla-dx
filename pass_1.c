@@ -9618,6 +9618,10 @@ int parse_directive(void) {
       /* BANK */
       if (strcmp(directive_upper, "BANK") == 0)
         return directive_bank();
+
+      /* BITS? */
+      if (strcmp(directive_upper, "BITS") == 0)
+        return directive_bits();
     }
     else {
       /* BREAKPOINT? */
@@ -9625,10 +9629,6 @@ int parse_directive(void) {
         fprintf(g_file_out_ptr, "Z ");
         return SUCCEEDED;
       }
-
-      /* BITS? */
-      if (strcmp(directive_upper, "BITS") == 0)
-        return directive_bits();
 
       /* BLOCK */
       if (strcmp(directive_upper, "BLOCK") == 0)
