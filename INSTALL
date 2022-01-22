@@ -82,6 +82,11 @@ Try to redefine shell enviroment variables CC and LD to gcc, e.g., in bash:
 
 Gcc should compile WLA DX just fine.
 
+PS. Some legacy makefiles (like for Amiga and MSDOS) can also be found in the
+"historical" folder. To use those you'll need to copy them to where they
+need to be (e.g., "/historical/wlalink/*" to "/wlalink/", "historical/makefiles/*"
+to "/", "/historical/msdos.bat" to "/"...)
+
 
 -----------------------------------------------------------------------------
 4. HOW TO MAKE E.G. DEBUGGABLE EXECUTABLES
@@ -92,6 +97,12 @@ Using CMake:
   cmake -DGDB_DEBUGGING=ON -DCMAKE_BUILD_TYPE=Debug -G "[your platform]"
   make
 
-Using the old makefiles:
 
-  Well, just edit the makefiles directly.
+-----------------------------------------------------------------------------
+5. HOW TO MAKE E.G. GPROF EXECUTABLES
+-----------------------------------------------------------------------------
+
+Using CMake:
+
+  cmake -DCMAKE_C_FLAGS="-g -pg" -G "[your platform]"
+  make
