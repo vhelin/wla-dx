@@ -9,13 +9,13 @@ LibraryMain:
 .block "Hello World"
 	ABX
 	ADCB #$12
-	ADCB ,S
+	ADCB,S
 	ADCB A,S
 	ADCB B,S
-	ADCB ,S+
-	ADCB ,S++
-	ADCB ,-S
-	ADCB ,--S
+	ADCB,S+
+	ADCB,S++
+	ADCB,-S
+	ADCB,--S
 	ADCB [,S]
 	ADCB [A,S]
 	ADCB [B,S]

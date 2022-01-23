@@ -20,56 +20,56 @@ BANKS 1
 .ORGA 0
 
 ; @BT linked.gb
-	
-start:	nop
-	or a,a
-	pop af
-	ld sp,test1
+        
+start:  nop
+        or a,a
+        pop af
+        ld sp,test1
 startend:
 
 .section "Section1" keep
-	.db 0, 1, 2, 3
+        .db 0, 1, 2, 3
 test1:
-	.db test1 & $ff, 5, 6
+        .db test1 & $ff, 5, 6
 test1end:
-	.db "01>"		; @BT TEST-01 01 START
-	.dsb test1end-test1, 0	; @BT 00 00 00
-	.db "<01"		; @BT END
+        .db "01>"               ; @BT TEST-01 01 START
+        .dsb test1end-test1, 0  ; @BT 00 00 00
+        .db "<01"               ; @BT END
 .ends
 
 .section "Section2" keep
-test3:	ld h,e
-	ld h,100
-	ld bc,test3
+test3:  ld h,e
+        ld h,100
+        ld bc,test3
 test3end:
-	.db "02>"		; @BT TEST-02 02 START
-	.dsb test1end-test1 + test3end-test3, 1 ; @BT 01 01 01 01 01 01 01 01 01
-	.db "<02"		; @BT END
+        .db "02>"               ; @BT TEST-02 02 START
+        .dsb test1end-test1 + test3end-test3, 1 ; @BT 01 01 01 01 01 01 01 01 01
+        .db "<02"               ; @BT END
 .ends
 
 .section "Section3" keep
 test2:
-	.db 7, 8, 9, (test1 & $ff) + 6, 11, 12, 13, 14
+        .db 7, 8, 9, (test1 & $ff) + 6, 11, 12, 13, 14
 test2end:
-	.db "03>"		; @BT TEST-03 03 START
-	.dsb test2end-test2 - (test3end-test3), 2 ; @BT 02 02
-	.db "<03"		; @BT END
+        .db "03>"               ; @BT TEST-03 03 START
+        .dsb test2end-test2 - (test3end-test3), 2 ; @BT 02 02
+        .db "<03"               ; @BT END
 .ends
 
 .section "Section4" keep
-	.db "04>"		; @BT TEST-04 04 START
-	.db test4end-test4, startend-start ; @BT 06 06
-	.db "<04"		; @BT END
+        .db "04>"               ; @BT TEST-04 04 START
+        .db test4end-test4, startend-start ; @BT 06 06
+        .db "<04"               ; @BT END
 .ends
-	
+        
 .section "Section5" keep
-test4:	.dw test1, test2, test3
+test4:  .dw test1, test2, test3
 test4end:
 .ends
-	
-	.db "05>"		; @BT TEST-05 05 START
-	.dsb startend-start, 3	; @BT 03 03 03 03 03 03
-	.db "<05"		; @BT END
+        
+        .db "05>"               ; @BT TEST-05 05 START
+        .dsb startend-start, 3  ; @BT 03 03 03 03 03 03
+        .db "<05"               ; @BT END
 
 TESTSTRINGSTART:
     .DB "test"
@@ -158,5 +158,30 @@ YUMTestCode:
         .db YUMTestCode@InstructionUnderTest - YUMTestCode ; @BT 03
         .db "<10"                         ; @BT END
 YUMEnd: nop
+        .ends
+        
+        .section "TEST-11" free keep
+        .db "11>"               ; @BT TEST-11 11 START
+        nop                     ; @BT 00
+-       nop                     ; @BT 00
+__      jr +                    ; @BT 18 00
++       jr _b                   ; @BT 18 FC
+--      jr _f                   ; @BT 18 02
+        jr  +                   ; @BT 18 03
+__      nop                     ; @BT 00
+-       jr -                    ; @BT 18 FE
++       jr --                   ; @BT 18 F7
+        jr  -                   ; @BT 18 FA
+        .db "<11"               ; @BT END
+        .ends
+
+        .section "TEST-12" free keep
++:      .db "12>"               ; @BT TEST-12 12 START
+-:      .db - 1 - 2 + 3         ; @BT 00
+--:     .db -1-2+3              ; @BT 00
+---:    .db 1    +   3   - 5    ; @BT FF
+---     .db   2  -  1   +  1-1  ; @BT 01
+--      .dw start     - 2  +  1 ; @BT FF FF
+-       .db "<12"               ; @BT END
         .ends
         

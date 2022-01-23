@@ -796,7 +796,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
           output--;
 #else
         /* go back? */
-        if ((z == 3 || *input == ',') && *(output - 1) == ' ')
+        if ((z == 3 || *input == ',') && *(output - 1) == ' ' && *(output - 2) == ' ')
           output--;
 #endif
         *output = *input;
