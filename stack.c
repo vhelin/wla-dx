@@ -2007,7 +2007,6 @@ static int s_dsp_last_data_stream_position = 0, s_dsp_has_data_stream_parser_bee
 static int s_dsp_add = 0, s_dsp_add_old = 0, s_dsp_section_id = -1, s_dsp_bits_current = 0, s_dsp_inz, s_dsp_line_number = 0;
 static struct section_def *s_dsp_s = NULL;
 static struct map_t *s_dsp_labels_map = NULL;
-static struct data_stream_local_label *s_dsp_local_labels_first = NULL, *s_dsp_local_labels_last = NULL;
 
 
 int data_stream_parser_free(void) {
@@ -2027,25 +2026,6 @@ int data_stream_parser_free(void) {
   g_data_stream_items_last = NULL;
 
   return SUCCEEDED;
-}
-
-
-static void _free_local_labels_of_a_section(void) {
-
-  struct data_stream_local_label *dSLL = s_dsp_local_labels_first;
-
-  while (dSLL != NULL) {
-    struct data_stream_local_label *next = dSLL->next;
-
-    if (hashmap_remove(s_dsp_labels_map, dSLL->label) == MAP_MISSING)
-      fprintf(stderr, "_free_local_labels_of_a_section(): Label \"%s\" has gone missing. Please submit a bug report!\n", dSLL->label);
-    free(dSLL);
-
-    dSLL = next;
-  }
-
-  s_dsp_local_labels_first = NULL;
-  s_dsp_local_labels_last = NULL;
 }
 
 
@@ -2120,7 +2100,6 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 's':
-      _free_local_labels_of_a_section();
       s_dsp_section_id = -1;
       s_dsp_s = NULL;
       continue;
@@ -2304,7 +2283,11 @@ int data_stream_parser_parse(void) {
 
         fscanf(f_in, "%s ", dSI->label);
 
-        if (is_label_anonymous(dSI->label) == NO) {
+        if (is_label_anonymous(dSI->label) == YES) {
+	  /* we skip anonymous labels here, too much trouble */
+	  free(dSI);
+	}
+	else {
           /* if the label has '@' at the start, mangle the label name to make it unique */
           int n = 0, m;
 
@@ -2327,53 +2310,32 @@ int data_stream_parser_parse(void) {
 
             mangled_label = YES;
           }
-        }
-        else {
-          /* remember this local label as we need to free them from the hashmap when the section gets closed */
-          struct data_stream_local_label *dSLL = calloc(sizeof(struct data_stream_local_label), 1);
 
-          if (dSLL == NULL) {
-            print_error("Out of memory error while allocating a data_stream_local_label.\n", ERROR_ERR);
-            return FAILED;
-          }
-
-          strcpy(dSLL->label, dSI->label);
-          dSLL->next = NULL;
-
-          if (s_dsp_local_labels_first == NULL) {
-            s_dsp_local_labels_first = dSLL;
-            s_dsp_local_labels_last = dSLL;
-          }
-          else {
-            s_dsp_local_labels_last->next = dSLL;
-            s_dsp_local_labels_last = dSLL;
-          }
-        }
-
-        if (is_label_anonymous(dSI->label) == NO && g_namespace[0] != 0 && mangled_label == NO) {
-          if (s_dsp_section_id < 0 || s_dsp_s->nspace == NULL) {
-            if (add_namespace(dSI->label, g_namespace, sizeof(dSI->label)) == FAILED)
-              return FAILED;
-          }
-        }
+	  if (is_label_anonymous(dSI->label) == NO && g_namespace[0] != 0 && mangled_label == NO) {
+	    if (s_dsp_section_id < 0 || s_dsp_s->nspace == NULL) {
+	      if (add_namespace(dSI->label, g_namespace, sizeof(dSI->label)) == FAILED)
+		return FAILED;
+	    }
+	  }
         
-        dSI->next = NULL;
-        dSI->address = s_dsp_add;
-        dSI->section_id = s_dsp_section_id;
+	  dSI->next = NULL;
+	  dSI->address = s_dsp_add;
+	  dSI->section_id = s_dsp_section_id;
 
-        /* store the entry in a hashmap for quick discovery */
-        if (hashmap_put(s_dsp_labels_map, dSI->label, dSI) == MAP_OMEM)
-          fprintf(stderr, "data_stream_parser_parse(): Out of memory error while trying to insert label \"%s\" into a hashmap.\n", dSI->label);
+	  /* store the entry in a hashmap for quick discovery */
+	  if (hashmap_put(s_dsp_labels_map, dSI->label, dSI) == MAP_OMEM)
+	    fprintf(stderr, "data_stream_parser_parse(): Out of memory error while trying to insert label \"%s\" into a hashmap.\n", dSI->label);
 
-        /* store the entry in a linked list so we can free it later */
-        if (g_data_stream_items_first == NULL) {
-          g_data_stream_items_first = dSI;
-          g_data_stream_items_last = dSI;
-        }
-        else {
-          g_data_stream_items_last->next = dSI;
-          g_data_stream_items_last = dSI;
-        }
+	  /* store the entry in a linked list so we can free it later */
+	  if (g_data_stream_items_first == NULL) {
+	    g_data_stream_items_first = dSI;
+	    g_data_stream_items_last = dSI;
+	  }
+	  else {
+	    g_data_stream_items_last->next = dSI;
+	    g_data_stream_items_last = dSI;
+	  }
+	}
       }
 
       continue;

@@ -9479,12 +9479,15 @@ int parse_directive(void) {
   if ((q = parse_if_directive()) != -1)
     return q;
 
+  /* make valgrind happy */
+  directive_upper[0] = 0;
+  
   /* convert the directive to upper case */
   length = strlen(g_current_directive);
   for (i = 0; i < length; i++)
     directive_upper[i] = toupper(g_current_directive[i]);
   directive_upper[i] = 0;
-  
+
   c = directive_upper[0];
 
   switch (c) {
