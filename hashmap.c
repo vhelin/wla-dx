@@ -31,7 +31,7 @@ typedef struct _hashmap_map{
 /*
  * Return an empty hashmap, or NULL on failure.
  */
-map_t hashmap_new() {
+map_t hashmap_new(void) {
 
   hashmap_map* m = (hashmap_map*) calloc(sizeof(hashmap_map), 1);
   if (!m)
