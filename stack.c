@@ -1999,9 +1999,23 @@ extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_se
 extern char g_namespace[MAX_NAME_LENGTH + 1];
 extern FILE *g_file_out_ptr;
 
+/* internal variables for data_stream_parser_parse(), saved here so that the function can continue next time it's called from
+   where it left off previous call */
+static struct data_stream_item *s_dsp_parent_labels[10];
+static int s_dsp_last_data_stream_position = 0, s_dsp_has_data_stream_parser_been_initialized = NO;
+static int s_dsp_add = 0, s_dsp_add_old = 0, s_dsp_section_id = -1, s_dsp_bits_current = 0, s_dsp_inz, s_dsp_line_number = 0;
+static struct section_def *s_dsp_s = NULL;
+static struct map_t *s_dsp_labels_map = NULL;
+static struct data_stream_local_label *s_dsp_local_labels_first = NULL, *s_dsp_local_labels_last = NULL;
+
 
 int data_stream_parser_free(void) {
 
+  if (s_dsp_labels_map != NULL) {
+    hashmap_free(s_dsp_labels_map);
+    s_dsp_labels_map = NULL;
+  }
+  
   while (g_data_stream_items_first != NULL) {
     struct data_stream_item *next = g_data_stream_items_first->next;
     free(g_data_stream_items_first);
@@ -2015,47 +2029,23 @@ int data_stream_parser_free(void) {
 }
 
 
-static void _free_local_and_child_labels_of_a_section(int section_id) {
+static void _free_local_labels_of_a_section(void) {
 
-  struct data_stream_item *dSI = g_data_stream_items_first;
-  struct data_stream_item *dSI_prev = NULL;
-  struct data_stream_item *dSI_next = NULL;
+  struct data_stream_local_label *dSLL = s_dsp_local_labels_first;
 
-  while (dSI != NULL) {
-    if (dSI->section_id == section_id) {
-      if (dSI->label[0] == '@' || is_label_anonymous(dSI->label)) {
-        if (dSI_prev == NULL) {
-          dSI_next = dSI->next;
-          g_data_stream_items_first = dSI_next;
-          if (g_data_stream_items_last == dSI)
-            g_data_stream_items_last = dSI_next;
-          free(dSI);
-          dSI = dSI_next;
-          continue;
-        }
-        else {
-          dSI_next = dSI->next;
-          dSI_prev->next = dSI_next;
-          if (g_data_stream_items_last == dSI)
-            g_data_stream_items_last = dSI_prev;
-          free(dSI);
-          dSI = dSI_next;
-          continue;
-        }
-      }
-    }
-    dSI_prev = dSI;
-    dSI = dSI->next;
+  while (dSLL != NULL) {
+    struct data_stream_local_label *next = dSLL->next;
+
+    if (hashmap_remove(s_dsp_labels_map, dSLL->label) == MAP_MISSING)
+      fprintf(stderr, "_free_local_labels_of_a_section(): Label \"%s\" has gone missing. Please submit a bug report!\n", dSLL->label);
+    free(dSLL);
+
+    dSLL = next;
   }
+
+  s_dsp_local_labels_first = NULL;
+  s_dsp_local_labels_last = NULL;
 }
-
-
-/* internal variables for data_stream_parser_parse(), saved here so that the function can continue next time it's called from
-   where it left off previous call */
-static struct data_stream_item *s_dsp_parent_labels[10];
-static int s_dsp_last_data_stream_position = 0, s_dsp_has_data_stream_parser_been_initialized = NO;
-static int s_dsp_add = 0, s_dsp_add_old = 0, s_dsp_section_id = -1, s_dsp_bits_current = 0, s_dsp_inz, s_dsp_line_number = 0;
-static struct section_def *s_dsp_s = NULL;
 
 
 int data_stream_parser_parse(void) {
@@ -2074,6 +2064,8 @@ int data_stream_parser_parse(void) {
     
     memset(s_dsp_parent_labels, 0, sizeof(s_dsp_parent_labels));
     g_namespace[0] = 0;
+
+    s_dsp_labels_map = hashmap_new();
   
     /* seek to the beginning of the file for parsing */
     fseek(g_file_out_ptr, 0, SEEK_SET);
@@ -2127,7 +2119,7 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 's':
-      _free_local_and_child_labels_of_a_section(s_dsp_section_id);
+      _free_local_labels_of_a_section();
       s_dsp_section_id = -1;
       s_dsp_s = NULL;
       continue;
@@ -2204,7 +2196,6 @@ int data_stream_parser_parse(void) {
       continue;
 
 #ifdef SUPERFX
-
     case '*':
       fscanf(f_in, "%*s ");
       s_dsp_add++;
@@ -2214,7 +2205,6 @@ int data_stream_parser_parse(void) {
       fscanf(f_in, "%*d ");
       s_dsp_add++;
       continue;
-
 #endif
 
     case '+':
@@ -2307,7 +2297,7 @@ int data_stream_parser_parse(void) {
 
         dSI = calloc(sizeof(struct data_stream_item), 1);
         if (dSI == NULL) {
-          print_error("Out of memory error while allocating a data_stream_item.\n", ERROR_STC);
+          print_error("Out of memory error while allocating a data_stream_item.\n", ERROR_ERR);
           return FAILED;
         }
 
@@ -2337,6 +2327,27 @@ int data_stream_parser_parse(void) {
             mangled_label = YES;
           }
         }
+        else {
+          /* remember this local label as we need to free them from the hashmap when the section gets closed */
+          struct data_stream_local_label *dSLL = calloc(sizeof(struct data_stream_local_label), 1);
+
+          if (dSLL == NULL) {
+            print_error("Out of memory error while allocating a data_stream_local_label.\n", ERROR_ERR);
+            return FAILED;
+          }
+
+          strcpy(dSLL->label, dSI->label);
+          dSLL->next = NULL;
+
+          if (s_dsp_local_labels_first == NULL) {
+            s_dsp_local_labels_first = dSLL;
+            s_dsp_local_labels_last = dSLL;
+          }
+          else {
+            s_dsp_local_labels_last->next = dSLL;
+            s_dsp_local_labels_last = dSLL;
+          }
+        }
 
         if (is_label_anonymous(dSI->label) == NO && g_namespace[0] != 0 && mangled_label == NO) {
           if (s_dsp_section_id < 0 || s_dsp_s->nspace == NULL) {
@@ -2349,6 +2360,11 @@ int data_stream_parser_parse(void) {
         dSI->address = s_dsp_add;
         dSI->section_id = s_dsp_section_id;
 
+        /* store the entry in a hashmap for quick discovery */
+        if (hashmap_put(s_dsp_labels_map, dSI->label, dSI) == MAP_OMEM)
+          fprintf(stderr, "data_stream_parser_parse(): Out of memory error while trying to insert label \"%s\" into a hashmap.\n", dSI->label);
+
+        /* store the entry in a linked list so we can free it later */
         if (g_data_stream_items_first == NULL) {
           g_data_stream_items_first = dSI;
           g_data_stream_items_last = dSI;
@@ -2413,14 +2429,9 @@ struct data_stream_item *data_stream_parser_find_label(char *label) {
         return NULL;
     }
   }
-  
-  dSI = g_data_stream_items_first;
-  while (dSI != NULL) {
-    if (strcmp(mangled_label, dSI->label) == 0)
-      return dSI;
-    dSI = dSI->next;
-  }
 
-  return NULL;
+  hashmap_get(s_dsp_labels_map, mangled_label, (void *)&dSI);
+
+  return dSI;
 }
 

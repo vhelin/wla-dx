@@ -782,5 +782,10 @@ struct data_stream_item {
   struct data_stream_item *next;
 };
 
+struct data_stream_local_label {
+  char label[MAX_NAME_LENGTH + 1];
+  struct data_stream_local_label *next;
+};
+
 #endif /* _DEFINES_H */
 
