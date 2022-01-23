@@ -1492,14 +1492,15 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
       if (s->type == STACK_ITEM_TYPE_STRING) {
         if (_process_string(s, &cannot_resolve) == FAILED)
           return FAILED;
-        if (cannot_resolve != 0)
-          return FAILED;
       }
       s++;
       stack_item_count--;
     }
   }
 
+  if (cannot_resolve != 0)
+    return FAILED;
+  
   /* find a string, a stack, bank, or a NOT and fail */
   stack_item_count = backup;
   while (stack_item_count > 0) {

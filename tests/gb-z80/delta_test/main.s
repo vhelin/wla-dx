@@ -82,16 +82,16 @@ TESTSTRINGEND:
         .section "TEST-06" free
 TestCode:
         nop
-        nop
-        nop
-        nop
+-       nop
+__      nop
++       nop
         nop
         nop
 @InstructionUnderTest:
         .dsb 4, 0
         nop
-        nop
-        nop
+-       nop
++       nop
 
         .define OffsetOfInstructionUnderTest1 @InstructionUnderTest - TestCode
         .export OffsetOfInstructionUnderTest1
