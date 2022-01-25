@@ -9471,6 +9471,34 @@ int directive_stringmap(void) {
 }
 
 
+int directive_rombanksize_banksize(void) {
+
+  int q;
+  
+  q = input_number();
+
+  if (q == FAILED)
+    return FAILED;
+  if (q != SUCCEEDED || g_parsed_int < 0) {
+    print_error(".ROMBANKSIZE needs a positive integer value.\n", ERROR_DIR);
+    return FAILED;
+  }
+
+  if (g_banksize_defined != 0) {
+    if (g_banksize != g_parsed_int) {
+      print_error(".ROMBANKSIZE was defined for the second time.\n", ERROR_DIR);
+      return FAILED;
+    }
+    return SUCCEEDED;
+  }
+
+  g_banksize = g_parsed_int;
+  g_banksize_defined = 1;
+
+  return SUCCEEDED;
+}
+
+
 int parse_directive(void) {
 
   char c, directive_upper[MAX_NAME_LENGTH + 1];
@@ -9640,6 +9668,10 @@ int parse_directive(void) {
       /* BACKGROUND */
       if (strcmp(directive_upper, "BACKGROUND") == 0)
         return directive_background();
+
+      /* BANKSIZE */
+      if (strcmp(directive_upper, "BANKSIZE") == 0)
+        return directive_rombanksize_banksize();
     }
     
     break;
@@ -10743,29 +10775,8 @@ int parse_directive(void) {
 #endif
 
     /* ROMBANKSIZE */
-    if (strcmp(directive_upper, "ROMBANKSIZE") == 0 || strcmp(directive_upper, "BANKSIZE") == 0) {
-      q = input_number();
-
-      if (q == FAILED)
-	return FAILED;
-      if (q != SUCCEEDED || g_parsed_int < 0) {
-	print_error(".ROMBANKSIZE needs a positive integer value.\n", ERROR_DIR);
-	return FAILED;
-      }
-
-      if (g_banksize_defined != 0) {
-	if (g_banksize != g_parsed_int) {
-	  print_error(".ROMBANKSIZE was defined for the second time.\n", ERROR_DIR);
-	  return FAILED;
-	}
-	return SUCCEEDED;
-      }
-
-      g_banksize = g_parsed_int;
-      g_banksize_defined = 1;
-
-      return SUCCEEDED;
-    }
+    if (strcmp(directive_upper, "ROMBANKSIZE") == 0)
+      return directive_rombanksize_banksize();
 
     break;
     
