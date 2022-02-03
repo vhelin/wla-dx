@@ -42,7 +42,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.1a (23.1.2022)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.1a (3.2.2022)";
 char g_wla_version[] = "10.1";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -515,9 +515,16 @@ void procedures_at_exit(void) {
     free(s1->data);
     free(s1->listfile_cmds);
     free(s1->listfile_ints);
-    hashmap_free(s1->label_map);
-    if (s1->nspace != NULL)
-      hashmap_free(s1->nspace->label_map);
+    if (s1->label_map != NULL) {
+      hashmap_free(s1->label_map);
+      s1->label_map = NULL;
+    }
+    if (s1->nspace != NULL) {
+      if (s1->nspace->label_map != NULL) {
+        hashmap_free(s1->nspace->label_map);
+        s1->nspace->label_map = NULL;
+      }
+    }
     s2 = s1->next;
     free(s1);
     s1 = s2;
