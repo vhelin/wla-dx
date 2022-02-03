@@ -4998,6 +4998,7 @@ int directive_section(void) {
           print_error("Out of memory error.\n", ERROR_DIR);
           return FAILED;
         }
+	nspace->label_map = NULL;
         strcpy(nspace->name, g_tmp);
         if (hashmap_put(g_namespace_map, nspace->name, nspace) != MAP_OK) {
           print_error("Namespace hashmap error.\n", ERROR_DIR);
@@ -5005,7 +5006,9 @@ int directive_section(void) {
         }
       }
 
-      nspace->label_map = hashmap_new();
+      if (nspace->label_map == NULL)
+	nspace->label_map = hashmap_new();
+
       g_sec_tmp->nspace = nspace;
     }
     /* the size of the section? */
