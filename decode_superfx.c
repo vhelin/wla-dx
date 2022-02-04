@@ -446,17 +446,17 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
             if (z == SUCCEEDED) {
               if ((y >= 0 && y <= 510) && ((y & 1) == 0)) {
                 /* use SMS */
-                output_assembled_opcode(g_opt_tmp, "d%d d%d d%d ", 0x3E, 0xF0 | tiny, y >> 1);
+                output_assembled_opcode(g_opt_tmp, "d%d d%d d%d ", 0x3E, 0xA0 | tiny, y >> 1);
               }
               else {
                 /* use SM */
-                output_assembled_opcode(g_opt_tmp, "d%d d%d y%d ", 0x3D, 0xF0 | tiny, y);
+                output_assembled_opcode(g_opt_tmp, "d%d d%d y%d ", 0x3E, 0xF0 | tiny, y);
               }
             }
             else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-              output_assembled_opcode(g_opt_tmp, "d%d d%d r%s ", 0x3D, 0xF0 | tiny, g_label);
+              output_assembled_opcode(g_opt_tmp, "d%d d%d r%s ", 0x3E, 0xF0 | tiny, g_label);
             else
-              output_assembled_opcode(g_opt_tmp, "d%d d%d C%d ", 0x3D, 0xF0 | tiny, g_latest_stack);
+              output_assembled_opcode(g_opt_tmp, "d%d d%d C%d ", 0x3E, 0xF0 | tiny, g_latest_stack);
 
             g_source_pointer = g_inz;
             return SUCCEEDED;

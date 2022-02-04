@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------
 
-v10.1 (03-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
+v10.1 (04-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                       given in any order, only the first argument must be the
                       section's name.
                     [ALL] Strings can be split to multiple lines using '\'.
@@ -29,6 +29,9 @@ v10.1 (03-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                       WLA to crash at exit.
                     [658] The maximum SRAMSIZE in SNES ROM header is now 7
                       instead of 3.
+                    [SFX] Fixed "MOVE (xx),Rn" macro instruction parsing. And
+                      even currently WLA cannot create a SMS instruction if
+                      WLA postpones the argument's handling to WLALINK...
 
 v10.0 (21-Jun-2021) [ALL] WARNING: Precedence of operators in calculations
                       that WLA calculates is now more fine grained and C like.
