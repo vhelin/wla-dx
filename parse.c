@@ -213,6 +213,9 @@ int input_next_string(void) {
       return FAILED;
   }
 
+  if (expand_variables_inside_string(g_tmp, sizeof(g_tmp), &k) == FAILED)
+    return FAILED;
+  
   return SUCCEEDED;
 }
 
@@ -1222,7 +1225,7 @@ int get_next_plain_string(void) {
     }
 
     c = g_buffer[g_source_pointer];
-    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '\\' || c == '@' || c == ':') {
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '{' || c == '}' || c == '\\' || c == '@' || c == ':') {
       g_tmp[g_ss] = c;
       g_ss++;
       g_source_pointer++;
@@ -1240,6 +1243,9 @@ int get_next_plain_string(void) {
     g_ss = (int)strlen(g_tmp);
   }
 
+  if (expand_variables_inside_string(g_tmp, sizeof(g_tmp), &g_ss) == FAILED)
+    return FAILED;
+  
   return SUCCEEDED;
 }
 

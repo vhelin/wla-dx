@@ -20,12 +20,15 @@
         ; @BT linked.rom
         
 
-        .SECTION "TEST-01" FORCE
         .DEFINE I0 = 0
         .DEFINE I1 = 1
         .DEFINE I10 = 5+3+2
         .DEFINE I23 = 20+3
         .DEFINE ABC = "ABC"
+        .DEFINE VALUE_{I0} 0
+        .EXPORT VALUE_{I0}
+
+        .SECTION "TEST-01" FORCE        
 test_{I1}:
 test_{I1}_address_{I0}
         .DB "01>"               ; @BT TEST-01 01 START
