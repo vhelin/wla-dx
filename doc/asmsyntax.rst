@@ -243,10 +243,22 @@ It's possible to substitute definition's name with its value inside a label.
 Here's an example::
 
     .REPEAT 10 INDEX COUNT
-    Label_{COUNT}:
+    Label_{COUNT}:                      ; -> Label_0, Label_1, Label_2...
     .DW Label_{COUNT}
     .ENDR
 
+Substitution supports minimal formatting for integers::
+
+    .DEFINE COUNT = 10
+    .DEFINE UNIT = 5
+    Label_{%.4x{COUNT}}:                ; -> Label_000a
+    Label_{%03X{COUNT}}_{%03X{UNIT}}:   ; -> Label_00A_005
+    Label_{%.9d{COUNT}}:                ; -> Label_000000010
+    Label_{%03i{COUNT}}:                ; -> Label_010
+
+The examples show all the formatting symbols currently supported.
+
+    
     
 Mnemonics
 ---------

@@ -298,8 +298,8 @@ static int _input_number_return_definition(struct definition *def) {
 
 int expand_variables_inside_string(char *label, int max_size, int *length) {
 
-  char var_name[MAX_NAME_LENGTH + 1], tmp[MAX_NAME_LENGTH + 1];
-  int size, i, j, k, terminated, substitutions = 0, max_size_tmp;
+  char var_name[MAX_NAME_LENGTH + 1], tmp[MAX_NAME_LENGTH + 1], formatting[32];
+  int size, i, j, k, terminated, substitutions = 0, max_size_tmp, use_formatting = NO;
 
   max_size_tmp = sizeof(tmp);
   
@@ -311,6 +311,37 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
   for (i = 0, k = 0; i < size && k < max_size_tmp; i++) {
     if (label[i] == '{' && label[i+1] != '\\') {
       terminated = NO;
+
+      /* do we have formatting? */
+      if (label[i+1] == '%' && i+4 < size) {
+        /* yes! */
+        int f = 0, n;
+        char c;
+
+        use_formatting = YES;
+        formatting[f++] = '%';
+        i += 2;
+
+        for (n = 0; n < 4; n++, i++) {
+          c = label[i];
+          if (c == '{')
+            break;
+          if (!((c >= '0' && c <= '9') || c == '.' || c == 'x' || c == 'X' || c == 'd' || c == 'i')) {
+            snprintf(g_xyz, sizeof(g_xyz), "Unsupported formatting symbol '%c'.\n", c);
+            print_error(g_xyz, ERROR_NUM);
+            return FAILED;
+          }
+
+          formatting[f++] = c;
+        }
+
+        if (label[i] != '{') {
+          print_error("Error in formatting.\n", ERROR_NUM);
+          return FAILED;
+        }
+
+        formatting[f] = 0;
+      }
 
       for (j = 0; i+j+1 < size; j++) {
         var_name[j] = label[i+j+1];
@@ -334,29 +365,45 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
         }
         else {
           char substitution[MAX_NAME_LENGTH + 1];
-          int can_substitute = NO;
+          int q, size_substitution;
           
           if (definition->type == DEFINITION_TYPE_VALUE) {
-            snprintf(substitution, sizeof(substitution), "%d", (int)definition->value);
-            can_substitute = YES;
+            if (use_formatting == YES)
+              snprintf(substitution, sizeof(substitution), formatting, (int)definition->value);
+            else
+              snprintf(substitution, sizeof(substitution), "%d", (int)definition->value);
           }
           else if (definition->type == DEFINITION_TYPE_STRING || definition->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+            if (use_formatting == YES) {
+              print_error("Cannot use formatting with string definitions.\n", ERROR_NUM);
+              return FAILED;
+            }
             strcpy(substitution, definition->string);
-            can_substitute = YES;
+          }
+          else {
+            snprintf(g_xyz, sizeof(g_xyz), "Definition \"%s\" is not suitable for substitution!\n", var_name);
+            print_error(g_xyz, ERROR_NUM);
+            return FAILED;
           }
 
-          if (can_substitute == YES) {
-            /* perform substitution */
-            int q, size_substitution;
+          /* perform substitution */
+          size_substitution = strlen(substitution);
+          for (q = 0; k < max_size_tmp && q < size_substitution; q++)
+            tmp[k++] = substitution[q];
+          
+          i += j+1;
+          substitutions++;
 
-            size_substitution = strlen(substitution);
-            for (q = 0; k < max_size_tmp && q < size_substitution; q++)
-              tmp[k++] = substitution[q];
-            
-            i += j+1;
-            substitutions++;
-            continue;
+          if (use_formatting == YES) {
+            if (i+1 < size && label[i+1] == '}')
+              i++;
+            else {
+              print_error("The end of the substitution is missing a '}'.\n", ERROR_NUM);
+              return FAILED;
+            }
           }
+          
+          continue;
         }
       }
     }
