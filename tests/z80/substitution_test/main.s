@@ -26,7 +26,10 @@
         .DEFINE I3 = 3
         .DEFINE I10 = 5+3+2
         .DEFINE I23 = 20+3
-        .DEFINE ABC = "ABC"
+        .DEFINE DEF_A = "A"
+        .DEFINE DEF_B = "B"
+        .DEFINE DEF_C = "C"
+        .DEFINE ABC = { "{DEF_A}{DEF_B}{DEF_C}" }
         .DEFINE VALUE_{I0} 0
         .EXPORT VALUE_{I0}
 
