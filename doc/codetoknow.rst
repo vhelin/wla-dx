@@ -1,9 +1,6 @@
 Things you should know about coding for...
 ==========================================
 
-Please check out the source code examples (in ``tests`` directory) for
-quick target system specific information.
-
 Please be aware that the source code files in there are mainly used to test that
 the compiler and linker work, they are not possibly good examples of how you should
 write code using WLA DX. 

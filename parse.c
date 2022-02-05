@@ -293,6 +293,98 @@ static int _input_number_return_definition(struct definition *def) {
 }
 
 
+int expand_variables_inside_string(char *label, int max_size, int *length) {
+
+  char var_name[MAX_NAME_LENGTH + 1], tmp[MAX_NAME_LENGTH + 1];
+  int size, i, j, k, terminated, substitutions = 0, max_size_tmp;
+
+  max_size_tmp = sizeof(tmp);
+  
+  if (length == NULL)
+    size = strlen(label);
+  else
+    size = *length;
+
+  for (i = 0, k = 0; i < size && k < max_size_tmp; i++) {
+    if (label[i] == '{' && label[i+1] != '\\') {
+      terminated = NO;
+
+      for (j = 0; i+j+1 < size; j++) {
+        var_name[j] = label[i+j+1];
+        if (var_name[j] == '}') {
+          var_name[j] = 0;
+          terminated = YES;
+          break;
+        }
+      }
+
+      if (terminated == YES) {
+        /* try to find the definition */
+        struct definition *definition = NULL;
+  
+        hashmap_get(g_defines_map, var_name, (void*)&definition);
+
+        if (definition != NULL) {
+          char substitution[MAX_NAME_LENGTH + 1];
+          int can_substitute = NO;
+          
+          if (definition->type == DEFINITION_TYPE_VALUE) {
+            snprintf(substitution, sizeof(substitution), "%d", (int)definition->value);
+            can_substitute = YES;
+          }
+          else if (definition->type == DEFINITION_TYPE_STRING || definition->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+            strcpy(substitution, definition->string);
+            can_substitute = YES;
+          }
+
+          if (can_substitute == YES) {
+            /* perform substitution */
+            int q, size_substitution;
+
+            size_substitution = strlen(substitution);
+            for (q = 0; k < max_size_tmp && q < size_substitution; q++)
+              tmp[k++] = substitution[q];
+            
+            i += j+1;
+            substitutions++;
+            continue;
+          }
+        }
+      }
+    }
+
+    tmp[k++] = label[i];
+  }
+
+  if (k < max_size_tmp)
+    tmp[k] = 0;
+  else {
+    if (g_input_number_error_msg == YES) {
+      snprintf(g_xyz, sizeof(g_xyz), "Cannot perform substitutions for string \"%s\", buffer is too small.\n", label);
+      print_error(g_xyz, ERROR_NUM);
+    }
+    return FAILED;
+  }
+  
+  if (substitutions > 0) {
+    if (k < max_size) {
+      strcpy(label, tmp);
+      if (length != NULL)
+        *length = k;
+    }
+    else {
+      if (g_input_number_error_msg == YES) {
+        snprintf(g_xyz, sizeof(g_xyz), "Cannot perform substitutions for string \"%s\", buffer is too small.\n", label);
+        print_error(g_xyz, ERROR_NUM);
+      }
+      return FAILED;
+    }
+  }
+
+  return SUCCEEDED;
+}
+
+
 int input_number(void) {
 
   char label_tmp[MAX_NAME_LENGTH + 1];
@@ -873,6 +965,9 @@ int input_number(void) {
     if (g_input_parse_special_chars == YES && process_string_for_special_characters(g_label, &k) == FAILED)
       return FAILED;
 
+    if (expand_variables_inside_string(g_label, sizeof(g_label), &k) == FAILED)
+      return FAILED;
+    
     if (k >= MAX_NAME_LENGTH) {
       if (g_input_number_error_msg == YES) {
         snprintf(g_xyz, sizeof(g_xyz), "The string is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
@@ -1027,6 +1122,9 @@ int input_number(void) {
   }
 
   process_special_labels(g_label);
+
+  if (expand_variables_inside_string(g_label, sizeof(g_label), NULL) == FAILED)
+    return FAILED;
   
   return INPUT_NUMBER_ADDRESS_LABEL;
 }
@@ -1182,6 +1280,9 @@ int get_next_token(void) {
     if (process_string_for_special_characters(g_tmp, &g_ss) == FAILED)
       return FAILED;
 
+    if (expand_variables_inside_string(g_tmp, sizeof(g_tmp), &g_ss) == FAILED)
+      return FAILED;
+    
     return GET_NEXT_TOKEN_STRING;
   }
 
@@ -1222,6 +1323,9 @@ int get_next_token(void) {
     g_ss = (int)strlen(g_tmp);
   }
 
+  if (expand_variables_inside_string(g_tmp, sizeof(g_tmp), &g_ss) == FAILED)
+    return FAILED;
+  
   return SUCCEEDED;
 }
 

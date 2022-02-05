@@ -914,6 +914,9 @@ int stack_calculate(char *in, int *value) {
         si[q].string[k] = 0;
         si[q].type = STACK_ITEM_TYPE_STRING;
         got_label = YES;
+
+        if (expand_variables_inside_string(si[q].string, sizeof(((struct stack_item *)0)->string), NULL) == FAILED)
+          return FAILED;
       }
       else {
         si[q].type = STACK_ITEM_TYPE_VALUE;
