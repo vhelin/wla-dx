@@ -327,7 +327,12 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
   
         hashmap_get(g_defines_map, var_name, (void*)&definition);
 
-        if (definition != NULL) {
+        if (definition == NULL) {
+          snprintf(g_xyz, sizeof(g_xyz), "Cannot find definition \"%s\"!\n", var_name);
+          print_error(g_xyz, ERROR_NUM);
+          return FAILED;
+        }
+        else {
           char substitution[MAX_NAME_LENGTH + 1];
           int can_substitute = NO;
           
