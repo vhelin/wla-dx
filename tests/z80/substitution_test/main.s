@@ -70,10 +70,20 @@ Label_{%.4x{COUNT}}:
 Label_{%03X{COUNT}}_{%03X{UNIT}}:
 Label_{%.9d{COUNT}}:
 Label_{%03i{COUNT}}:
+
+        .MACRO MacroTest
+Hack_{\@+2}:
+Hack_{\@+1}_Hack:
+        .ENDM
+
+        MacroTest
+        MacroTest
+        MacroTest
+        MacroTest
         
         .DB "02>"               ; @BT TEST-02 02 START
         .DB "{ABC}"             ; @BT 7B 41 42 43 7D
-        .DB {"{I1}"}, {"{%i{I2}}"}, {"{%1d{I3}}"} ; @BT 31 32 33
+        .DB {"{I1}"}, {"{%i{I2}}"}, {"{%.1d{I3}}"} ; @BT 31 32 33
         .DB "<02"               ; @BT END
 
         .DB "03>"               ; @BT TEST-03 03 START
