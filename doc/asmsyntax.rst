@@ -238,15 +238,9 @@ Here are some examples of strings::
 Substitution
 ------------
 
-It's possible to substitute definition's name with its value inside a string
-or a label.
+It's possible to substitute definition's name with its value inside a label.
 
-Here is an example::
-
-    .DEFINE VALUE_123 = 100 + 20 + 3
-    .DB "VALUE_123={VALUE_123}" ; this becomes "VALUE_123=123"
-
-Another example::
+Here's an example::
 
     .REPEAT 10 INDEX COUNT
     Label_{COUNT}:

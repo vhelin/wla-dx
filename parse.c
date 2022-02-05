@@ -968,8 +968,10 @@ int input_number(void) {
     if (g_input_parse_special_chars == YES && process_string_for_special_characters(g_label, &k) == FAILED)
       return FAILED;
 
+    /*
     if (expand_variables_inside_string(g_label, sizeof(g_label), &k) == FAILED)
       return FAILED;
+    */
     
     if (k >= MAX_NAME_LENGTH) {
       if (g_input_number_error_msg == YES) {

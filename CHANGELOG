@@ -7,7 +7,7 @@ v10.1 (05-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                       given in any order, only the first argument must be the
                       section's name.
                     [ALL] A definition can be substituted with its value in
-                      strings and labels (e.g., label_{COUNTER}).
+                      labels (e.g., label_{COUNTER}).
                     [ALL] Strings can be split to multiple lines using '\'.
                     [ALL] Added WINDOW and BITWINDOW to .SECTION and .RAMSECTION.
                       These can be used to limit where the .SECTION and
