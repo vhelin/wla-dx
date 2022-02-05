@@ -22,6 +22,8 @@
 
         .DEFINE I0 = 0
         .DEFINE I1 = 1
+        .DEFINE I2 = 2
+        .DEFINE I3 = 3
         .DEFINE I10 = 5+3+2
         .DEFINE I23 = 20+3
         .DEFINE ABC = "ABC"
@@ -42,10 +44,6 @@ formatted_{%.4X{I10}}_label:
 substitution_of_{I10}
         .DB "10"
         .DB ")02"
-
-        .DB "03("
-        .DB "123"
-        .DB ")03"
 
         .DB "04("
         .DB "ABCDEF"
@@ -72,7 +70,15 @@ Label_{%03i{COUNT}}:
         
         .DB "02>"               ; @BT TEST-02 02 START
         .DB "{ABC}"             ; @BT 7B 41 42 43 7D
+        .DB {"{I1}"}, {"{%i{I2}}"}, {"{%1d{I3}}"} ; @BT 31 32 33
         .DB "<02"               ; @BT END
+
+        .DB "03>"               ; @BT TEST-03 03 START
+        .DB {"{ABC}"}           ; @BT 41 42 43
+        .DB {   "0{%03X{I10}}0"    } ; @BT 30 30 30 41 30
+        .DB { "{ABC}0{%03X{I10}}0" } ; @BT 41 42 43 30 30 30 41 30
+        .DB "<03"               ; @BT END
+        
         .ENDS
         
         

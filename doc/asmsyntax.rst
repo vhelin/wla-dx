@@ -258,7 +258,10 @@ Substitution supports minimal formatting for integers::
 
 The examples show all the formatting symbols currently supported.
 
-    
+The same substitution works for strings inside quotes when the quoted string is as follows::
+
+    .db { "HELLO_{COUNT}" }             ; -> "HELLO_10"
+
     
 Mnemonics
 ---------

@@ -443,8 +443,8 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
 int input_number(void) {
 
   char label_tmp[MAX_NAME_LENGTH + 1];
-  unsigned char e, ee;
-  int k, p, q, spaces = 0, curly_braces = 0, check_if_a_definition = YES, can_have_calculations = YES;
+  unsigned char e, ee, check_if_a_definition = YES, can_have_calculations = YES, use_substitution = NO;
+  int k, p, q, spaces = 0, curly_braces = 0;
   double decimal_mul;
 #ifdef SPC700
   int dot = 0;
@@ -468,6 +468,29 @@ int input_number(void) {
   if (e == 0x0A)
     return INPUT_NUMBER_EOL;
 
+  /* using substitution with quoted strings? */
+  if (e == '{') {
+    int old_position = g_source_pointer;
+    unsigned char old_e = e;
+    
+    /* skip white space */
+    while (g_buffer[g_source_pointer] == ' ')
+      g_source_pointer++;
+
+    e = g_buffer[g_source_pointer++];
+
+    if (e == '"') {
+      /* later when we parse a quoted string we'll check that it's followed by a '}', and
+         we'll use substitution in that quoted string... */
+      use_substitution = YES;
+    }
+    else {
+      /* roll back */
+      e = old_e;
+      g_source_pointer = old_position;
+    }
+  }
+  
   /* are we parsing a macro argument, and could it begin with a '#' (ARG_IMMEDIATE)? */
   if (g_input_allow_leading_hashtag == YES) {
     if (e == '#') {
@@ -1020,10 +1043,23 @@ int input_number(void) {
     if (g_input_parse_special_chars == YES && process_string_for_special_characters(g_label, &k) == FAILED)
       return FAILED;
 
-    /*
-    if (expand_variables_inside_string(g_label, sizeof(g_label), &k) == FAILED)
-      return FAILED;
-    */
+    if (use_substitution) {
+      if (expand_variables_inside_string(g_label, sizeof(g_label), &k) == FAILED)
+        return FAILED;
+
+      /* make sure we are followed by a '}' */
+
+      /* skip white space */
+      while (g_buffer[g_source_pointer] == ' ')
+        g_source_pointer++;
+
+      if (g_buffer[g_source_pointer] != '}') {
+        print_error("The string used in substitution isn't followed by a '}'.\n", ERROR_NUM);
+        return FAILED;
+      }
+
+      g_source_pointer++;
+    }
     
     if (k >= MAX_NAME_LENGTH) {
       if (g_input_number_error_msg == YES) {
