@@ -265,7 +265,12 @@ The same substitution works for strings inside quotes when the quoted string is 
 Note that only WLA can do the substitution and it needs to know the value of the definition
 at the time the substitution is done, i.e., the time a string containing a substitution is
 parsed.
-    
+
+Also note that you can embed calculations into substitutions::
+
+    .DEFINE COUNT = 1
+    Label_{COUNT+1}:                    ; -> Label_2
+
     
 Mnemonics
 ---------

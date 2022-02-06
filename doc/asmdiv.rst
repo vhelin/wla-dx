@@ -2172,7 +2172,7 @@ And here's how they can be used::
 
 Note that you must separate the arguments with commas.
 
-Here is a special case::
+Note that the following works as well::
 
     .DEF prev_test $0000
 
@@ -2183,10 +2183,6 @@ Here is a special case::
         .REDEF prev_test __\._{\@+1}
         .BYTE  str.length, str, 0
     .ENDM
-
-When creating a label inside a macro, you can add a super simple
-addition or subtraction after ``\@`` to adjust the value. Only one
-digit number is supported.
 
 If you want to give names to the macro's arguments you can do that
 by listing them in order after supplying ARGS after the macro's name.

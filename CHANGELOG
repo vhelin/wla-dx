@@ -8,7 +8,8 @@ v10.1 (06-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                       section's name.
                     [ALL] A definition can be substituted with its value in
                       labels (e.g., label_{COUNTER}) and in quoted strings
-                      (e.g., {"ID={COUNTER}"}).
+                      (e.g., {"ID={COUNTER}"}). Note that also label_{COUNTER+1}
+                      works.
                     [ALL] Strings can be split to multiple lines using '\'.
                     [ALL] Added WINDOW and BITWINDOW to .SECTION and .RAMSECTION.
                       These can be used to limit where the .SECTION and

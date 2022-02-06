@@ -3730,7 +3730,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
 
             o = 2;
           }
-	  else if (it->size == 3) {
+          else if (it->size == 3) {
             if (g_inz == SUCCEEDED && (g_parsed_int < -8388608 || g_parsed_int > 16777215)) {
               snprintf(g_error_message, sizeof(g_error_message), "\"%s.%s\" expects 24-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
               print_error(g_error_message, ERROR_DIR);
@@ -3756,11 +3756,11 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
 
             o = 4;
           }
-	  else {
-	    snprintf(g_error_message, sizeof(g_error_message), "Internal error, unhandled it->size %d. Please submit a bug report!\n", it->size);
-	    print_error(g_error_message, ERROR_DIR);
-	    return FAILED;
-	  }
+          else {
+            snprintf(g_error_message, sizeof(g_error_message), "Internal error, unhandled it->size %d. Please submit a bug report!\n", it->size);
+            print_error(g_error_message, ERROR_DIR);
+            return FAILED;
+          }
         }
         /* fill the rest of the item with emptyfill or zero */
         if (g_emptyfill_defined != 0)
@@ -4999,7 +4999,7 @@ int directive_section(void) {
           print_error("Out of memory error.\n", ERROR_DIR);
           return FAILED;
         }
-	nspace->label_map = NULL;
+        nspace->label_map = NULL;
         strcpy(nspace->name, g_tmp);
         if (hashmap_put(g_namespace_map, nspace->name, nspace) != MAP_OK) {
           print_error("Namespace hashmap error.\n", ERROR_DIR);
@@ -5008,7 +5008,7 @@ int directive_section(void) {
       }
 
       if (nspace->label_map == NULL)
-	nspace->label_map = hashmap_new();
+        nspace->label_map = hashmap_new();
 
       g_sec_tmp->nspace = nspace;
     }
@@ -9492,7 +9492,7 @@ int directive_stringmap(void) {
     /* if no match was found, it's an error */
     if (entry == NULL) {
       if (g_makefile_rules == YES) {
-	    /* in makefile mode, it's ignored */
+            /* in makefile mode, it's ignored */
         return SUCCEEDED;
       }
       snprintf(g_error_message, sizeof(g_error_message), "STRINGMAP: could not find a match in the table at substring \"%s\".\n", p);
@@ -9603,10 +9603,10 @@ int parse_directive(void) {
       q = input_number();
 
       if (q == FAILED)
-	return FAILED;
+        return FAILED;
       if (q != SUCCEEDED || !(g_parsed_int == 8 || g_parsed_int == 16)) {
-	print_error("The accumulator size must be 8 or 16.\n", ERROR_DIR);
-	return FAILED;
+        print_error("The accumulator size must be 8 or 16.\n", ERROR_DIR);
+        return FAILED;
       }
 
       g_accu_size = g_parsed_int;
@@ -9724,7 +9724,7 @@ int parse_directive(void) {
       no_library_files(".COMPUTEGBCHECKSUM");
     
       if (g_gbheader_defined != 0)
-	print_error(".COMPUTEGBCHECKSUM is unnecessary when GBHEADER is defined.\n", ERROR_WRN);
+        print_error(".COMPUTEGBCHECKSUM is unnecessary when GBHEADER is defined.\n", ERROR_WRN);
 
       g_computechecksum_defined = 1;
 
@@ -9736,7 +9736,7 @@ int parse_directive(void) {
       no_library_files(".COMPUTEGBCOMPLEMENTCHECK");
     
       if (g_gbheader_defined != 0)
-	print_error(".COMPUTEGBCOMPLEMENTCHECK is unnecessary when GBHEADER is defined.\n", ERROR_WRN);
+        print_error(".COMPUTEGBCOMPLEMENTCHECK is unnecessary when GBHEADER is defined.\n", ERROR_WRN);
 
       g_computecomplementcheck_defined = 1;
 
@@ -9750,17 +9750,17 @@ int parse_directive(void) {
       q = input_number();
 
       if (q == FAILED)
-	return FAILED;
+        return FAILED;
       if (q != SUCCEEDED || q < 0) {
-	print_error(".COUNTRYCODE needs a non-negative value.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".COUNTRYCODE needs a non-negative value.\n", ERROR_DIR);
+        return FAILED;
       }
 
       if (g_countrycode_defined != 0) {
-	if (g_countrycode != g_parsed_int) {
-	  print_error(".COUNTRYCODE was defined for the second time.\n", ERROR_DIR);
-	  return FAILED;
-	}
+        if (g_countrycode != g_parsed_int) {
+          print_error(".COUNTRYCODE was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
       }
 
       g_countrycode = g_parsed_int;
@@ -9776,17 +9776,17 @@ int parse_directive(void) {
       q = input_number();
 
       if (q == SUCCEEDED && g_cartridgetype_defined != 0) {
-	if (g_cartridgetype != g_parsed_int) {
-	  print_error(".CARTRIDGETYPE was defined for the second time.\n", ERROR_DIR);
-	  return FAILED;
-	}
+        if (g_cartridgetype != g_parsed_int) {
+          print_error(".CARTRIDGETYPE was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
       }
 
       if (q == FAILED)
-	return FAILED;
+        return FAILED;
       if (q != SUCCEEDED) {
-	print_error(".CARTRIDGETYPE needs an immediate value.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".CARTRIDGETYPE needs an immediate value.\n", ERROR_DIR);
+        return FAILED;
       }
 
       g_cartridgetype = g_parsed_int;
@@ -9802,11 +9802,11 @@ int parse_directive(void) {
       no_library_files(".COMPUTESNESCHECKSUM");
     
       if (g_hirom_defined == 0 && g_lorom_defined == 0 && g_exhirom_defined == 0 && g_exlorom_defined == 0) {
-	print_error(".COMPUTESNESCHECKSUM needs .LOROM, .HIROM or .EXHIROM defined earlier.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".COMPUTESNESCHECKSUM needs .LOROM, .HIROM or .EXHIROM defined earlier.\n", ERROR_DIR);
+        return FAILED;
       }
       if (g_snesheader_defined != 0) 
-	print_error(".COMPUTESNESCHECKSUM is unnecessary when .SNESHEADER defined.\n", ERROR_WRN);
+        print_error(".COMPUTESNESCHECKSUM is unnecessary when .SNESHEADER defined.\n", ERROR_WRN);
 
       g_computesneschecksum_defined = 1;
 
@@ -9829,48 +9829,48 @@ int parse_directive(void) {
     if (strcmp(directive_upper, "CHANGEFILE") == 0) {
       q = input_number();
       if (q != SUCCEEDED) {
-	print_error("Internal error in (internal) .CHANGEFILE. Please submit a bug report...\n", ERROR_DIR);
-	return FAILED;
+        print_error("Internal error in (internal) .CHANGEFILE. Please submit a bug report...\n", ERROR_DIR);
+        return FAILED;
       }
     
       g_active_file_info_tmp = calloc(sizeof(struct active_file_info), 1);
       if (g_active_file_info_tmp == NULL) {
-	snprintf(g_error_message, sizeof(g_error_message), "Out of memory while trying allocate error tracking data structure.\n");
-	print_error(g_error_message, ERROR_DIR);
-	return FAILED;
+        snprintf(g_error_message, sizeof(g_error_message), "Out of memory while trying allocate error tracking data structure.\n");
+        print_error(g_error_message, ERROR_DIR);
+        return FAILED;
       }
       g_active_file_info_tmp->next = NULL;
 
       if (g_active_file_info_first == NULL) {
-	g_active_file_info_first = g_active_file_info_tmp;
-	g_active_file_info_last = g_active_file_info_tmp;
-	g_active_file_info_tmp->prev = NULL;
+        g_active_file_info_first = g_active_file_info_tmp;
+        g_active_file_info_last = g_active_file_info_tmp;
+        g_active_file_info_tmp->prev = NULL;
       }
       else {
-	g_active_file_info_tmp->prev = g_active_file_info_last;
-	g_active_file_info_last->next = g_active_file_info_tmp;
-	g_active_file_info_last = g_active_file_info_tmp;
+        g_active_file_info_tmp->prev = g_active_file_info_last;
+        g_active_file_info_last->next = g_active_file_info_tmp;
+        g_active_file_info_last = g_active_file_info_tmp;
       }
       
       g_active_file_info_tmp->line_current = 0;
       g_active_file_info_tmp->filename_id = g_parsed_int;
 
       if (g_extra_definitions == ON) {
-	g_file_name_info_tmp = g_file_name_info_first;
-	while (g_file_name_info_tmp != NULL) {
-	  if (g_file_name_info_tmp->id == g_parsed_int)
-	    break;
-	  g_file_name_info_tmp = g_file_name_info_tmp->next;
-	}
+        g_file_name_info_tmp = g_file_name_info_first;
+        while (g_file_name_info_tmp != NULL) {
+          if (g_file_name_info_tmp->id == g_parsed_int)
+            break;
+          g_file_name_info_tmp = g_file_name_info_tmp->next;
+        }
 
-	if (g_file_name_info_tmp == NULL) {
-	  snprintf(g_error_message, sizeof(g_error_message), "Internal error: Could not find the name of file %d.\n", g_parsed_int);
-	  print_error(g_error_message, ERROR_DIR);
-	  return FAILED;
-	}
+        if (g_file_name_info_tmp == NULL) {
+          snprintf(g_error_message, sizeof(g_error_message), "Internal error: Could not find the name of file %d.\n", g_parsed_int);
+          print_error(g_error_message, ERROR_DIR);
+          return FAILED;
+        }
 
-	redefine("WLA_FILENAME", 0.0, g_file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(g_file_name_info_tmp->name));
-	redefine("wla_filename", 0.0, g_file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(g_file_name_info_tmp->name));
+        redefine("WLA_FILENAME", 0.0, g_file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(g_file_name_info_tmp->name));
+        redefine("wla_filename", 0.0, g_file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(g_file_name_info_tmp->name));
       }
 
       /* output the file id */
@@ -9879,31 +9879,31 @@ int parse_directive(void) {
       g_open_files++;
 
       if (compare_next_token("NAMESPACE") == SUCCEEDED) {
-	skip_next_token();
+        skip_next_token();
 
-	g_expect_calculations = NO;
-	q = input_number();
-	g_expect_calculations = YES;
+        g_expect_calculations = NO;
+        q = input_number();
+        g_expect_calculations = YES;
     
-	if (q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
-	  print_error("Internal error: Namespace string is missing.\n", ERROR_DIR);
-	  return FAILED;
-	}
+        if (q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
+          print_error("Internal error: Namespace string is missing.\n", ERROR_DIR);
+          return FAILED;
+        }
 
-	strcpy(g_active_file_info_tmp->namespace, g_label);
+        strcpy(g_active_file_info_tmp->namespace, g_label);
 
-	fprintf(g_file_out_ptr, "t1 %s ", g_active_file_info_tmp->namespace);
+        fprintf(g_file_out_ptr, "t1 %s ", g_active_file_info_tmp->namespace);
       }
       else if (compare_next_token("NONAMESPACE") == SUCCEEDED) {
-	skip_next_token();
+        skip_next_token();
       
-	g_active_file_info_tmp->namespace[0] = 0;
+        g_active_file_info_tmp->namespace[0] = 0;
 
-	fprintf(g_file_out_ptr, "t0 ");
+        fprintf(g_file_out_ptr, "t0 ");
       }
       else {
-	print_error("Internal error: NAMESPACE/NONAMESPACE is missing.\n", ERROR_DIR);
-	return FAILED;
+        print_error("Internal error: NAMESPACE/NONAMESPACE is missing.\n", ERROR_DIR);
+        return FAILED;
       }
     
       return SUCCEEDED;
@@ -10371,20 +10371,20 @@ int parse_directive(void) {
     
       q = input_number();
       if (q == INPUT_NUMBER_EOL)
-	print_error("HALT: .FAIL found.\n", ERROR_NONE);
+        print_error("HALT: .FAIL found.\n", ERROR_NONE);
       else if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
-	snprintf(g_error_message, sizeof(g_error_message), "\"%s\"\n", g_label);
-	print_error(g_error_message, ERROR_FAI);
+        snprintf(g_error_message, sizeof(g_error_message), "\"%s\"\n", g_label);
+        print_error(g_error_message, ERROR_FAI);
 
-	q = input_number();
-	if (q == SUCCEEDED)
-	  exit_value = g_parsed_int;
+        q = input_number();
+        if (q == SUCCEEDED)
+          exit_value = g_parsed_int;
       }
       else if (q == SUCCEEDED)
-	exit_value = g_parsed_int;
+        exit_value = g_parsed_int;
       else {
-	print_error(".FAIL takes an optional string, but we got something else here...\n", ERROR_DIR);
-	return FAILED;
+        print_error(".FAIL takes an optional string, but we got something else here...\n", ERROR_DIR);
+        return FAILED;
       }
 
       /* make a silent exit */
@@ -10397,8 +10397,8 @@ int parse_directive(void) {
       no_library_files(".FASTROM");
     
       if (g_slowrom_defined != 0) {
-	print_error(".SLOWROM was defined prior to .FASTROM.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".SLOWROM was defined prior to .FASTROM.\n", ERROR_DIR);
+        return FAILED;
       }
 
       g_fastrom_defined++;
@@ -10432,8 +10432,8 @@ int parse_directive(void) {
       no_library_files(".HIROM");
 
       if (g_lorom_defined != 0 || g_exlorom_defined != 0 || g_exhirom_defined != 0) {
-	give_snes_rom_mode_defined_error(".HIROM");
-	return FAILED;
+        give_snes_rom_mode_defined_error(".HIROM");
+        return FAILED;
       }
 
       g_hirom_defined++;
@@ -10453,10 +10453,10 @@ int parse_directive(void) {
       q = input_number();
 
       if (q == FAILED)
-	return FAILED;
+        return FAILED;
       if (q != SUCCEEDED || !(g_parsed_int == 8 || g_parsed_int == 16)) {
-	print_error("The index size must be 8 or 16.\n", ERROR_DIR);
-	return FAILED;
+        print_error("The index size must be 8 or 16.\n", ERROR_DIR);
+        return FAILED;
       }
 
       g_index_size = g_parsed_int;
@@ -10501,28 +10501,28 @@ int parse_directive(void) {
       no_library_files(".LICENSEECODENEW");
     
       if (g_licenseecodeold_defined != 0) {
-	print_error(".LICENSEECODENEW and .LICENSEECODEOLD cannot both be defined.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".LICENSEECODENEW and .LICENSEECODEOLD cannot both be defined.\n", ERROR_DIR);
+        return FAILED;
       }
 
       if ((token_result = get_next_token()) == FAILED)
-	return FAILED;
+        return FAILED;
 
       if (token_result != GET_NEXT_TOKEN_STRING) {
-	print_error(".LICENSEECODENEW requires a string of two letters.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".LICENSEECODENEW requires a string of two letters.\n", ERROR_DIR);
+        return FAILED;
       }
       if (!(g_tmp[0] != 0 && g_tmp[1] != 0 && g_tmp[2] == 0)) {
-	print_error(".LICENSEECODENEW requires a string of two letters.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".LICENSEECODENEW requires a string of two letters.\n", ERROR_DIR);
+        return FAILED;
       }
 
       if (g_licenseecodenew_defined != 0) {
-	if (g_tmp[0] != g_licenseecodenew_c1 || g_tmp[1] != g_licenseecodenew_c2) {
-	  print_error(".LICENSEECODENEW was defined for the second time.\n", ERROR_DIR);
-	  return FAILED;
-	}
-	return SUCCEEDED;
+        if (g_tmp[0] != g_licenseecodenew_c1 || g_tmp[1] != g_licenseecodenew_c2) {
+          print_error(".LICENSEECODENEW was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
+        return SUCCEEDED;
       }
 
       g_licenseecodenew_c1 = g_tmp[0];
@@ -10537,26 +10537,26 @@ int parse_directive(void) {
       no_library_files(".LICENSEECODEOLD");
       
       if (g_licenseecodenew_defined != 0) {
-	print_error(".LICENSEECODENEW and .LICENSEECODEOLD cannot both be defined.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".LICENSEECODENEW and .LICENSEECODEOLD cannot both be defined.\n", ERROR_DIR);
+        return FAILED;
       }
 
       q = input_number();
 
       if (q == FAILED)
-	return FAILED;
+        return FAILED;
       if (q != SUCCEEDED || g_parsed_int < -128 || g_parsed_int > 255) {
-	snprintf(g_error_message, sizeof(g_error_message), ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", g_parsed_int);
-	print_error(g_error_message, ERROR_DIR);
-	return FAILED;
+        snprintf(g_error_message, sizeof(g_error_message), ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", g_parsed_int);
+        print_error(g_error_message, ERROR_DIR);
+        return FAILED;
       }
 
       if (g_licenseecodeold_defined != 0) {
-	if (g_licenseecodeold != g_parsed_int) {
-	  print_error(".LICENSEECODEOLD was defined for the second time.\n", ERROR_DIR);
-	  return FAILED;
-	}
-	return SUCCEEDED;
+        if (g_licenseecodeold != g_parsed_int) {
+          print_error(".LICENSEECODEOLD was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
+        return SUCCEEDED;
       }
 
       g_licenseecodeold = g_parsed_int;
@@ -10572,8 +10572,8 @@ int parse_directive(void) {
       no_library_files(".LOROM");
 
       if (g_hirom_defined != 0 || g_exlorom_defined != 0 || g_exhirom_defined != 0) {
-	give_snes_rom_mode_defined_error(".LOROM");
-	return FAILED;
+        give_snes_rom_mode_defined_error(".LOROM");
+        return FAILED;
       }
 
       g_lorom_defined++;
@@ -10594,9 +10594,9 @@ int parse_directive(void) {
     /* M */
     if (strcmp(directive_upper, "M") == 0) {
       if (g_line_count_status == OFF)
-	g_line_count_status = ON;
+        g_line_count_status = ON;
       else
-	g_line_count_status = OFF;
+        g_line_count_status = OFF;
       return SUCCEEDED;
     }
 
@@ -10656,8 +10656,8 @@ int parse_directive(void) {
       g_expect_calculations = YES;
 
       if (number_result != INPUT_NUMBER_STRING && number_result != INPUT_NUMBER_ADDRESS_LABEL) {
-	print_error(".OUTNAME needs a file name string.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".OUTNAME needs a file name string.\n", ERROR_DIR);
+        return FAILED;
       }
 
       strcpy(g_final_name, g_label);
@@ -10717,22 +10717,22 @@ int parse_directive(void) {
       q = input_number();
 
       if (q == FAILED)
-	return FAILED;
+        return FAILED;
       if (q != SUCCEEDED || q < 0) {
-	print_error(".RAMSIZE needs a non-negative value.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".RAMSIZE needs a non-negative value.\n", ERROR_DIR);
+        return FAILED;
       }
 
       if (g_rambanks_defined != 0) {
-	if (g_rambanks != g_parsed_int) {
-	  print_error(".RAMSIZE was defined for the second time.\n", ERROR_DIR);
-	  return FAILED;
-	}
+        if (g_rambanks != g_parsed_int) {
+          print_error(".RAMSIZE was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
       }
 
       if (g_parsed_int != 0 && g_parsed_int != 1 && g_parsed_int != 2 && g_parsed_int != 3 && g_parsed_int != 4 && g_parsed_int != 5) {
-	print_error("Unsupported RAM size.\n", ERROR_DIR);
-	return FAILED;
+        print_error("Unsupported RAM size.\n", ERROR_DIR);
+        return FAILED;
       }
 
       g_rambanks = g_parsed_int;
@@ -10746,12 +10746,12 @@ int parse_directive(void) {
       no_library_files(".ROMGBC");
     
       if (g_romdmg != 0) {
-	print_error(".ROMDMG was defined prior to .ROMGBC.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".ROMDMG was defined prior to .ROMGBC.\n", ERROR_DIR);
+        return FAILED;
       }
       else if (g_romgbc == 2) {
-	print_error(".ROMGBCONLY was defined prior to .ROMGBC.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".ROMGBCONLY was defined prior to .ROMGBC.\n", ERROR_DIR);
+        return FAILED;
       }
 
       g_romgbc = 1;
@@ -10764,12 +10764,12 @@ int parse_directive(void) {
       no_library_files(".ROMGBCONLY");
 
       if (g_romdmg != 0) {
-	print_error(".ROMDMG was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".ROMDMG was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
+        return FAILED;
       }
       else if (g_romgbc == 1) {
-	print_error(".ROMGBC was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".ROMGBC was defined prior to .ROMGBCONLY.\n", ERROR_DIR);
+        return FAILED;
       }
 
       g_romgbc = 2;
@@ -10782,16 +10782,16 @@ int parse_directive(void) {
       no_library_files(".ROMDMG");
     
       if (g_romgbc == 1) {
-	print_error(".ROMGBC was defined prior to .ROMDMG.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".ROMGBC was defined prior to .ROMDMG.\n", ERROR_DIR);
+        return FAILED;
       }
       else if (g_romgbc == 2) {
-	print_error(".ROMGBCONLY was defined prior to .ROMDMG.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".ROMGBCONLY was defined prior to .ROMDMG.\n", ERROR_DIR);
+        return FAILED;
       }
       else if (g_romsgb != 0) {
-	print_error(".ROMDMG and .ROMSGB cannot be mixed.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".ROMDMG and .ROMSGB cannot be mixed.\n", ERROR_DIR);
+        return FAILED;
       }
 
       g_romdmg = 1;
@@ -10804,8 +10804,8 @@ int parse_directive(void) {
       no_library_files(".ROMSGB");
     
       if (g_romdmg != 0) {
-	print_error(".ROMDMG and .ROMSGB cannot be mixed.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".ROMDMG and .ROMSGB cannot be mixed.\n", ERROR_DIR);
+        return FAILED;
       }
 
       g_romsgb = 1;
@@ -10841,8 +10841,8 @@ int parse_directive(void) {
     /* SYM/SYMBOL */
     if (strcmp(directive_upper, "SYM") == 0 || strcmp(directive_upper, "SYMBOL") == 0) {
       if (input_next_string() != SUCCEEDED) {
-	print_error(".SYM requires a symbol name.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".SYM requires a symbol name.\n", ERROR_DIR);
+        return FAILED;
       }
 
       fprintf(g_file_out_ptr, "Y%s ", g_tmp);
@@ -10862,10 +10862,10 @@ int parse_directive(void) {
     if (strcmp(directive_upper, "SEED") == 0) {
       q = input_number();
       if (q == FAILED)
-	return FAILED;
+        return FAILED;
       if (q != SUCCEEDED) {
-	print_error(".SEED needs a seed value for the randon number generator.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".SEED needs a seed value for the randon number generator.\n", ERROR_DIR);
+        return FAILED;
       }
 
       /* reseed the random number generator */
@@ -10910,8 +10910,8 @@ int parse_directive(void) {
       no_library_files(".SLOWROM");
     
       if (g_fastrom_defined != 0) {
-	print_error(".FASTROM was defined prior to .SLOWROM.\n", ERROR_DIR);
-	return FAILED;
+        print_error(".FASTROM was defined prior to .SLOWROM.\n", ERROR_DIR);
+        return FAILED;
       }
 
       g_slowrom_defined++;
@@ -10965,19 +10965,19 @@ int parse_directive(void) {
       q = input_number();
 
       if (q == FAILED)
-	return FAILED;
+        return FAILED;
       if (q != SUCCEEDED || g_parsed_int < -128 || g_parsed_int > 255) {
-	snprintf(g_error_message, sizeof(g_error_message), ".VERSION needs a 8-bit value, got %d.\n", g_parsed_int);
-	print_error(g_error_message, ERROR_DIR);
-	return FAILED;
+        snprintf(g_error_message, sizeof(g_error_message), ".VERSION needs a 8-bit value, got %d.\n", g_parsed_int);
+        print_error(g_error_message, ERROR_DIR);
+        return FAILED;
       }
 
       if (g_version_defined != 0) {
-	if (g_version != g_parsed_int) {
-	  print_error(".VERSION was defined for the second time.\n", ERROR_DIR);
-	  return FAILED;
-	}
-	return SUCCEEDED;
+        if (g_version != g_parsed_int) {
+          print_error(".VERSION was defined for the second time.\n", ERROR_DIR);
+          return FAILED;
+        }
+        return SUCCEEDED;
       }
 
       g_version = g_parsed_int;

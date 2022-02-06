@@ -37,6 +37,8 @@ extern int g_stack_inserted;
 static int g_is_calculating_deltas = NO, g_delta_counter = 0, g_delta_section = -1, g_delta_address = -1, g_delta_old_type = 0;
 static struct stack_item *g_delta_old_pointer;
 
+static int _resolve_string(struct stack_item *s, int *cannot_resolve);
+
 
 static int _stack_insert(void) {
 
@@ -238,13 +240,14 @@ static int _get_op_priority(int op) {
 }
 
 
-int stack_calculate(char *in, int *value) {
+int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_substitutor) {
 
   int q = 0, b = 0, d, k, op[256], n, o, l, curly_braces = 0, got_label = NO;
   struct stack_item si[256], ta[256];
   struct stack s;
   unsigned char e;
   double dou = 0.0, dom;
+  char *in_original = in;
 
 
   /* initialize (from Amiga's SAS/C) */
@@ -256,7 +259,7 @@ int stack_calculate(char *in, int *value) {
   }
 
   /* slice the data into infix format */
-  while (*in != 0xA) {
+  while (*in != 0xA && *in != 0) {
     if (q >= 255) {
       print_error("Out of stack space.\n", ERROR_STC);
       return FAILED;
@@ -524,6 +527,8 @@ int stack_calculate(char *in, int *value) {
       q++;
       in++;
     }
+    else if (*in == '}')
+      break;
     else if (*in == ',')
       break;
     else if (*in == ']')
@@ -539,7 +544,7 @@ int stack_calculate(char *in, int *value) {
           d = (d << 1) + (e - '0');
         else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
                  e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == '~' ||
-                 e == ']' || e == '.' || e == '=' || e == '!' || e == 0xA)
+                 e == ']' || e == '.' || e == '=' || e == '!' || e == '}' || e == 0xA)
           break;
         else {
           if (g_input_number_error_msg == YES) {
@@ -607,7 +612,7 @@ int stack_calculate(char *in, int *value) {
           d += e - 'a' + 10;
         else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' ||
                  e == '*' || e == '/' || e == ',' || e == '^' || e == '<' || e == '>' ||
-                 e == '#' || e == '~' || e == ']' || e == '.' || e == '=' || e == '!' || e == 0xA) {
+                 e == '#' || e == '~' || e == ']' || e == '.' || e == '=' || e == '!' || e == '}' || e == 0xA) {
           needs_shifting = YES;
           break;
         }
@@ -675,7 +680,7 @@ int stack_calculate(char *in, int *value) {
           else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' ||
                    e == '*' || e == '/' || e == ',' || e == '^' || e == '<' || e == '>' ||
                    e == '#' || e == '~' || e == ']' || e == '.' || e == 'h' || e == 'H' ||
-                   e == '=' || e == '!' || e == 0xA) {
+                   e == '=' || e == '!' || e == '}' || e == 0xA) {
             needs_shifting = YES;
             break;
           }
@@ -734,7 +739,7 @@ int stack_calculate(char *in, int *value) {
           }
           else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
                    e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == '~' ||
-                   e == ']' || e == '=' || e == '!' || e == 0xA)
+                   e == ']' || e == '=' || e == '!' || e == '}' || e == 0xA)
             break;
           else if (e == '.') {
             if (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D')
@@ -820,6 +825,10 @@ int stack_calculate(char *in, int *value) {
           curly_braces--;
 
         if (curly_braces <= 0) {
+          if (from_substitutor == YES && curly_braces < 0) {
+            si[q].string[k] = 0;
+            break;
+          }
           if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
               e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == ']' ||
               e == '~' || e == '=' || e == '!' || e == 0xA)
@@ -915,7 +924,7 @@ int stack_calculate(char *in, int *value) {
         si[q].type = STACK_ITEM_TYPE_STRING;
         got_label = YES;
 
-        if (expand_variables_inside_string(si[q].string, sizeof(((struct stack_item *)0)->string), NULL) == FAILED)
+        if (from_substitutor == NO && expand_variables_inside_string(si[q].string, sizeof(((struct stack_item *)0)->string), NULL) == FAILED)
           return FAILED;
       }
       else {
@@ -940,7 +949,7 @@ int stack_calculate(char *in, int *value) {
   }
   
   /* only one item found -> let the item parser handle it */
-  if (q == 1)
+  if (q == 1 && from_substitutor == NO)
     return STACK_CALCULATE_DELAY;
 
   /* check if there was data before the computation */
@@ -975,7 +984,7 @@ int stack_calculate(char *in, int *value) {
   }
 
   /* update the source pointer */
-  g_source_pointer = (int)(in - g_buffer);
+  *bytes_parsed += (int)(in - in_original) - 1;
 
   /* fix the sign in every operand */
   for (b = 1, k = 0; k < q; k++) {
@@ -1235,8 +1244,12 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
   if (g_tmp_def != NULL) {
     if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
       if (g_input_parse_if == NO) {
+        /* change the contents */
+        strcpy(s->string, g_tmp_def->string);
+        /*
         snprintf(g_xyz, sizeof(g_xyz), "Definition \"%s\" is a string definition.\n", g_tmp_def->alias);
         print_error(g_xyz, ERROR_STC);
+        */
         return FAILED;
       }
       else {
@@ -2287,10 +2300,10 @@ int data_stream_parser_parse(void) {
         fscanf(f_in, "%s ", dSI->label);
 
         if (is_label_anonymous(dSI->label) == YES) {
-	  /* we skip anonymous labels here, too much trouble */
-	  free(dSI);
-	}
-	else {
+          /* we skip anonymous labels here, too much trouble */
+          free(dSI);
+        }
+        else {
           /* if the label has '@' at the start, mangle the label name to make it unique */
           int n = 0, m;
 
@@ -2314,31 +2327,31 @@ int data_stream_parser_parse(void) {
             mangled_label = YES;
           }
 
-	  if (is_label_anonymous(dSI->label) == NO && g_namespace[0] != 0 && mangled_label == NO) {
-	    if (s_dsp_section_id < 0 || s_dsp_s->nspace == NULL) {
-	      if (add_namespace(dSI->label, g_namespace, sizeof(dSI->label)) == FAILED)
-		return FAILED;
-	    }
-	  }
+          if (is_label_anonymous(dSI->label) == NO && g_namespace[0] != 0 && mangled_label == NO) {
+            if (s_dsp_section_id < 0 || s_dsp_s->nspace == NULL) {
+              if (add_namespace(dSI->label, g_namespace, sizeof(dSI->label)) == FAILED)
+                return FAILED;
+            }
+          }
         
-	  dSI->next = NULL;
-	  dSI->address = s_dsp_add;
-	  dSI->section_id = s_dsp_section_id;
+          dSI->next = NULL;
+          dSI->address = s_dsp_add;
+          dSI->section_id = s_dsp_section_id;
 
-	  /* store the entry in a hashmap for quick discovery */
-	  if (hashmap_put(s_dsp_labels_map, dSI->label, dSI) == MAP_OMEM)
-	    fprintf(stderr, "data_stream_parser_parse(): Out of memory error while trying to insert label \"%s\" into a hashmap.\n", dSI->label);
+          /* store the entry in a hashmap for quick discovery */
+          if (hashmap_put(s_dsp_labels_map, dSI->label, dSI) == MAP_OMEM)
+            fprintf(stderr, "data_stream_parser_parse(): Out of memory error while trying to insert label \"%s\" into a hashmap.\n", dSI->label);
 
-	  /* store the entry in a linked list so we can free it later */
-	  if (g_data_stream_items_first == NULL) {
-	    g_data_stream_items_first = dSI;
-	    g_data_stream_items_last = dSI;
-	  }
-	  else {
-	    g_data_stream_items_last->next = dSI;
-	    g_data_stream_items_last = dSI;
-	  }
-	}
+          /* store the entry in a linked list so we can free it later */
+          if (g_data_stream_items_first == NULL) {
+            g_data_stream_items_first = dSI;
+            g_data_stream_items_last = dSI;
+          }
+          else {
+            g_data_stream_items_last->next = dSI;
+            g_data_stream_items_last = dSI;
+          }
+        }
       }
 
       continue;

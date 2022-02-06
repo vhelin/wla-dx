@@ -47,7 +47,9 @@ label2: dsb 2
         .DEFINE DEF_A = "A"
         .DEFINE DEF_B = "B"
         .DEFINE DEF_C = "C"
+        .PRINT "1ST SUBSTITUTION - START\n"
         .DEFINE ABC = { "{DEF_A}{DEF_B}{DEF_C}" }
+        .PRINT "1ST SUBSTITUTION - END\n"
         .DEFINE VALUE_{I0} 0
         .EXPORT VALUE_{I0}
 
@@ -85,14 +87,17 @@ substitution_of_{I10}
         .DEFINE UNIT = 5
 Label_{%.4x{COUNT}}:
 Label_{%.3X{COUNT}}_{%.3X{UNIT}}:
-Label_{%.9d{COUNT}}:
-Label_{%.3i{COUNT}}:
+Label_{%.9d{COUNT+1}}:
+Label_{%.3i{COUNT+1+2+3+4+I10}}:
 
         .MACRO MacroTest
-Hack_{\@+2}:
+Hack_{\@+1000}:
 Hack_{\@+1}_Hack:
+Hack_{3+\@}_More:
         .ENDM
 
+All_{1+1+1+1}_MacroTests1:
+All_{I10-6}_MacroTests2:      
         MacroTest
         MacroTest
         MacroTest
@@ -114,6 +119,34 @@ Hack_{\@+1}_Hack:
         .DB {"{_sizeof_label1}"}     ; @BT 31
         .DB "<04"                    ; @BT END
 
+        .PRINT "I10-1 = ", I10-1, " = 9\n"
+        
+        .DB "05>"                ; @BT TEST-05 05 START
+        .DB {"{1+2+3+4}"}        ; @BT 31 30
+        .DB {"{-1+I10}"}         ; @BT 39
+        .DB { "{I10-1}" }        ; @BT 39
+        .DB { "{I23-I10-I3*4}" } ; @BT 31
+        .DB "<05"                ; @BT END
+
+        .DB "06>"                 ; @BT TEST-06 06 START
+        .DB { "{I10-%1}" }        ; @BT 39
+        .DB { "{I10-$1}" }        ; @BT 39
+        .DB { "{I10-0x1}" }       ; @BT 39
+        .DB { "{I10-1h}" }        ; @BT 39
+        .DB { "{I10-0b00001}" }   ; @BT 39
+        .DB { "{-%1+I10}" }       ; @BT 39
+        .DB { "{%1+I10-2}" }      ; @BT 39
+        .DB { "{-$1+I10}" }       ; @BT 39
+        .DB { "{-0x1+I10}" }      ; @BT 39
+        .DB { "{-1h+I10}" }       ; @BT 39
+        .DB { "{-0b00001+I10}" }  ; @BT 39
+        .DB { "{%.1X{I10-%1}}" }  ; @BT 39
+        .DB { "{%.1x{%1+I2+6}}" } ; @BT 39
+        .DB { "{%.1d{I10-$1}}" }  ; @BT 39
+        .DB { "{%.1i{I10-0x1}}" } ; @BT 39
+        .DB { "{%.1d{I10-1h}}" }  ; @BT 39
+        .DB "<06"                 ; @BT END
+        
         .db _sizeof_label1
         .ENDS
         
