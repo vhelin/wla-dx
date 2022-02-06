@@ -322,11 +322,19 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
         formatting[f++] = '%';
         i += 2;
 
-        for (n = 0; n < 4; n++, i++) {
+        if (label[i] != '.') {
+          print_error("The formatting string must begin with \"%.\".\n", ERROR_NUM);
+          return FAILED;
+        }
+
+        formatting[f++] = '.';
+        i++;
+
+        for (n = 0; n < 3; n++, i++) {
           c = label[i];
           if (c == '{')
             break;
-          if (!((c >= '0' && c <= '9') || c == '.' || c == 'x' || c == 'X' || c == 'd' || c == 'i')) {
+          if (!((c >= '0' && c <= '9') || c == 'x' || c == 'X' || c == 'd' || c == 'i')) {
             snprintf(g_xyz, sizeof(g_xyz), "Unsupported formatting symbol '%c'.\n", c);
             print_error(g_xyz, ERROR_NUM);
             return FAILED;
@@ -336,7 +344,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
         }
 
         if (label[i] != '{') {
-          print_error("Error in formatting.\n", ERROR_NUM);
+          print_error("Error in formatting. Formatting string is too long?\n", ERROR_NUM);
           return FAILED;
         }
 

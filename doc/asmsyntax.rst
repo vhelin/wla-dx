@@ -252,9 +252,9 @@ Substitution supports minimal formatting for integers::
     .DEFINE COUNT = 10
     .DEFINE UNIT = 5
     Label_{%.4x{COUNT}}:                ; -> Label_000a
-    Label_{%03X{COUNT}}_{%03X{UNIT}}:   ; -> Label_00A_005
+    Label_{%.3X{COUNT}}_{%.3X{UNIT}}:   ; -> Label_00A_005
     Label_{%.9d{COUNT}}:                ; -> Label_000000010
-    Label_{%03i{COUNT}}:                ; -> Label_010
+    Label_{%.3i{COUNT}}:                ; -> Label_010
 
 The examples show all the formatting symbols currently supported.
 
@@ -262,6 +262,10 @@ The same substitution works for strings inside quotes when the quoted string is 
 
     .db { "HELLO_{COUNT}" }             ; -> "HELLO_10"
 
+Note that only WLA can do the substitution and it needs to know the value of the definition
+at the time the substitution is done, i.e., the time a string containing a substitution is
+parsed.
+    
     
 Mnemonics
 ---------
