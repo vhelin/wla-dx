@@ -185,7 +185,7 @@ int input_next_string(void) {
     return INPUT_NUMBER_EOL;
 
   /* we assume it is a label */
-  g_tmp[0] = e;
+  g_label[0] = e;
   for (k = 1; k < MAX_NAME_LENGTH; k++) {
     e = g_buffer[g_source_pointer++];
     if (e == 0x0A || e == ',') {
@@ -194,7 +194,7 @@ int input_next_string(void) {
     }
     else if (e == ' ')
       break;
-    g_tmp[k] = e;
+    g_label[k] = e;
   }
 
   if (k == MAX_NAME_LENGTH) {
@@ -205,15 +205,15 @@ int input_next_string(void) {
     return FAILED;
   }
 
-  g_tmp[k] = 0;
+  g_label[k] = 0;
 
   /* expand e.g., \1 and \@ */
   if (g_macro_active != 0) {
-    if (expand_macro_arguments(g_tmp) == FAILED)
+    if (expand_macro_arguments(g_label) == FAILED)
       return FAILED;
   }
 
-  if (expand_variables_inside_string(g_tmp, sizeof(g_tmp), &k) == FAILED)
+  if (expand_variables_inside_string(g_label, sizeof(g_label), &k) == FAILED)
     return FAILED;
   
   return SUCCEEDED;
@@ -296,51 +296,48 @@ static int _input_number_return_definition(struct definition *def) {
 }
 
 
-static char g_local[4096];
-
-
 int expand_variables_inside_string(char *label, int max_size, int *length) {
 
-  char tmp[MAX_NAME_LENGTH + 1], formatting[32];
-  int size, i, k, substitutions = 0, max_size_tmp, use_formatting = NO, p, parsed_int;
-  char substitution[MAX_NAME_LENGTH + 1];
+  char tmp[MAX_NAME_LENGTH + 1], formatting[8], substitution[MAX_NAME_LENGTH + 1], local[MAX_NAME_LENGTH + 1];
+  int size, i, k, substitutions = 0, max_size_tmp, use_formatting = NO, p, parsed_int, input_size = 0;
   int q, size_substitution;        
 
   /* quick exit if no curly braces are found */
   i = 0;
   k = NO;
   while (label[i] != 0) {
-    if (label[i] == '{') {
+    if (label[i] == '{')
       k = YES;
-      break;
-    }
     i++;
+    input_size++;
   }
 
   if (k == NO)
     return SUCCEEDED;
+
+  input_size++;
   
-  /* copy label -> g_local as label might be g_label that stack calculator uses */
-  if (max_size > (int)sizeof(g_local)) {
+  /* copy label -> local as label might be g_label that stack calculator uses */
+  if (input_size > (int)sizeof(local)) {
     print_error("Buffer for substitution is too small! Please submit a bug report!\n", ERROR_NUM);
     return FAILED;
   }
 
-  strcpy(g_local, label);
+  strcpy(local, label);
   
   max_size_tmp = sizeof(tmp);
   
   if (length == NULL)
-    size = strlen(g_local);
+    size = input_size;
   else
     size = *length;
 
   for (i = 0, k = 0; i < size && k < max_size_tmp; i++) {
-    if (g_local[i] == '{') {
+    if (local[i] == '{') {
       /* do we have formatting? */
       i++;
       
-      if (i+4 < size && g_local[i] == '%' && g_local[i+1] == '.') {
+      if (i+5 < size && local[i] == '%' && local[i+1] == '.') {
         /* yes! */
         int f = 0, n;
         char c;
@@ -349,7 +346,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
         formatting[f++] = '%';
         i++;
 
-        if (g_local[i] != '.') {
+        if (local[i] != '.') {
           print_error("The formatting string must begin with \"%.\".\n", ERROR_NUM);
           return FAILED;
         }
@@ -358,7 +355,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
         i++;
 
         for (n = 0; n < 3; n++, i++) {
-          c = g_local[i];
+          c = local[i];
           if (c == '{')
             break;
           if (!((c >= '0' && c <= '9') || c == 'x' || c == 'X' || c == 'd' || c == 'i')) {
@@ -370,7 +367,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
           formatting[f++] = c;
         }
 
-        if (g_local[i] != '{') {
+        if (local[i] != '{') {
           print_error("Error in formatting. Formatting string is too long?\n", ERROR_NUM);
           return FAILED;
         }
@@ -380,7 +377,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
       }
 
       /* launch stack calculator */
-      p = stack_calculate(&g_local[i], &parsed_int, &i, YES);
+      p = stack_calculate(&local[i], &parsed_int, &i, YES);
       i++;
 
       if (p == STACK_CALCULATE_DELAY || p == INPUT_NUMBER_STACK) {
@@ -418,41 +415,39 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
       substitutions++;
 
       if (use_formatting == YES) {
-        if (i+1 < size && g_local[i+1] == '}')
+        if (i+1 < size && local[i+1] == '}')
           i++;
         else {
           print_error("The end of the substitution is missing a '}'.\n", ERROR_NUM);
           return FAILED;
         }
       }
-          
+
       continue;
     }
 
-    tmp[k++] = g_local[i];
+    tmp[k++] = local[i];
   }
 
-  if (k < max_size_tmp)
-    tmp[k] = 0;
-  else {
-    if (g_input_number_error_msg == YES) {
-      snprintf(g_xyz, sizeof(g_xyz), "Cannot perform substitutions for string \"%s\", buffer is too small.\n", g_local);
-      print_error(g_xyz, ERROR_NUM);
-    }
-    return FAILED;
-  }
-  
   if (substitutions > 0) {
+    /* terminate the string with substitutions */
+    if (k < max_size_tmp)
+      tmp[k] = 0;
+    else {
+      snprintf(g_xyz, sizeof(g_xyz), "Cannot perform substitutions for string \"%s\", buffer is too small.\n", local);
+      print_error(g_xyz, ERROR_NUM);
+      return FAILED;
+    }
+
+    /* copy back the string with substitutions */
     if (k < max_size) {
       strcpy(label, tmp);
       if (length != NULL)
         *length = k;
     }
     else {
-      if (g_input_number_error_msg == YES) {
-        snprintf(g_xyz, sizeof(g_xyz), "Cannot perform substitutions for string \"%s\", buffer is too small.\n", g_local);
-        print_error(g_xyz, ERROR_NUM);
-      }
+      snprintf(g_xyz, sizeof(g_xyz), "Cannot perform substitutions for string \"%s\", buffer is too small.\n", local);
+      print_error(g_xyz, ERROR_NUM);
       return FAILED;
     }
   }
@@ -1337,7 +1332,7 @@ int get_next_plain_string(void) {
 
     c = g_buffer[g_source_pointer];
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '{' || c == '}' || c == '\\' || c == '@' || c == ':') {
-      g_tmp[g_ss] = c;
+      g_label[g_ss] = c;
       g_ss++;
       g_source_pointer++;
     }
@@ -1345,16 +1340,16 @@ int get_next_plain_string(void) {
       break;
   }
 
-  g_tmp[g_ss] = 0;
+  g_label[g_ss] = 0;
 
   /* expand e.g., \1 and \@ */
   if (g_macro_active != 0) {
-    if (expand_macro_arguments(g_tmp) == FAILED)
+    if (expand_macro_arguments(g_label) == FAILED)
       return FAILED;
-    g_ss = (int)strlen(g_tmp);
+    g_ss = (int)strlen(g_label);
   }
 
-  if (expand_variables_inside_string(g_tmp, sizeof(g_tmp), &g_ss) == FAILED)
+  if (expand_variables_inside_string(g_label, sizeof(g_label), &g_ss) == FAILED)
     return FAILED;
   
   return SUCCEEDED;

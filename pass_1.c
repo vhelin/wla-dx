@@ -1851,7 +1851,7 @@ int parse_enum_token(void) {
       return FAILED;
     }
     else if (inz == SUCCEEDED)
-      strcpy(st->name, g_tmp);
+      strcpy(st->name, g_label);
     else if (inz == INPUT_NUMBER_EOL)
       next_line();
 
@@ -1903,7 +1903,7 @@ int parse_enum_token(void) {
       return FAILED;
     }
     else if (inz == SUCCEEDED)
-      strcpy(st->name, g_tmp);
+      strcpy(st->name, g_label);
     else if (inz == INPUT_NUMBER_EOL)
       next_line();
 
@@ -4983,16 +4983,16 @@ int directive_section(void) {
       /* get the name */
       if (input_next_string() == FAILED)
         return FAILED;
-      if (g_tmp[0] == '\"' && g_tmp[strlen(g_tmp)-1] == '\"') {
+      if (g_label[0] == '\"' && g_label[strlen(g_label)-1] == '\"') {
         l = 0;
-        while (g_tmp[l+1] != '\"') {
-          g_tmp[l] = g_tmp[l+1];
+        while (g_label[l+1] != '\"') {
+          g_label[l] = g_label[l+1];
           l++;
         }
-        g_tmp[l] = 0;
+        g_label[l] = 0;
       }
 
-      hashmap_get(g_namespace_map, g_tmp, (void*)&nspace);
+      hashmap_get(g_namespace_map, g_label, (void*)&nspace);
       if (nspace == NULL) {
         nspace = calloc(1, sizeof(struct namespace_def));
         if (nspace == NULL) {
@@ -5000,7 +5000,7 @@ int directive_section(void) {
           return FAILED;
         }
         nspace->label_map = NULL;
-        strcpy(nspace->name, g_tmp);
+        strcpy(nspace->name, g_label);
         if (hashmap_put(g_namespace_map, nspace->name, nspace) != MAP_OK) {
           print_error("Namespace hashmap error.\n", ERROR_DIR);
           return FAILED;
@@ -6799,13 +6799,13 @@ int directive_arraydef_arraydefine(void) {
     return FAILED;
 
   /* check that the array doesn't exist */
-  if (_get_array(g_tmp) != NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "\"%s\" is already defined.\n", g_tmp);
+  if (_get_array(g_label) != NULL) {
+    snprintf(g_error_message, sizeof(g_error_message), "\"%s\" is already defined.\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
 
-  strcpy(name, g_tmp);
+  strcpy(name, g_label);
   
   /* skip SIZE if present */
   if (compare_next_token("SIZE") == SUCCEEDED)
@@ -6846,9 +6846,9 @@ int directive_arrayin(void) {
     return FAILED;
 
   /* check that the array exists */
-  arr = _get_array(g_tmp);
+  arr = _get_array(g_label);
   if (arr == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Array \"%s\" doesn't exist.\n", g_tmp);
+    snprintf(g_error_message, sizeof(g_error_message), "Array \"%s\" doesn't exist.\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -6933,9 +6933,9 @@ int directive_arrayout(void) {
     return FAILED;
 
   /* check that the array exists */
-  arr = _get_array(g_tmp);
+  arr = _get_array(g_label);
   if (arr == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Array \"%s\" doesn't exist.\n", g_tmp);
+    snprintf(g_error_message, sizeof(g_error_message), "Array \"%s\" doesn't exist.\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -6974,7 +6974,7 @@ int directive_arrayout(void) {
   if (get_next_plain_string() == FAILED)
     return FAILED;
 
-  redefine(g_tmp, (double)arr->data[index], NULL, DEFINITION_TYPE_VALUE, 0);
+  redefine(g_label, (double)arr->data[index], NULL, DEFINITION_TYPE_VALUE, 0);
 
   return SUCCEEDED;
 }
@@ -7012,9 +7012,9 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
     return FAILED;
 
   /* check that the array exists */
-  arr = _get_array(g_tmp);
+  arr = _get_array(g_label);
   if (arr == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Array \"%s\" doesn't exist.\n", g_tmp);
+    snprintf(g_error_message, sizeof(g_error_message), "Array \"%s\" doesn't exist.\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -7211,14 +7211,16 @@ int directive_define_def_equ(void) {
   
   int j, size, export, q;
   double dou;
-  char k[256];
+  char k[256], label[MAX_NAME_LENGTH+1];
 
   if (get_next_plain_string() == FAILED)
     return FAILED;
 
+  strcpy(label, g_label);
+  
   /* check the user doesn't try to define reserved labels */
-  if (is_reserved_definition(g_tmp) == YES) {
-    snprintf(g_error_message, sizeof(g_error_message), "\"%s\" is a reserved definition label and is not user definable.\n", g_tmp);
+  if (is_reserved_definition(label) == YES) {
+    snprintf(g_error_message, sizeof(g_error_message), "\"%s\" is a reserved definition label and is not user definable.\n", label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -7239,21 +7241,21 @@ int directive_define_def_equ(void) {
   }
 
   if (q == SUCCEEDED)
-    q = add_a_new_definition(g_tmp, (double)j, NULL, DEFINITION_TYPE_VALUE, 0);
+    q = add_a_new_definition(label, (double)j, NULL, DEFINITION_TYPE_VALUE, 0);
   else if (q == INPUT_NUMBER_FLOAT)
-    q = add_a_new_definition(g_tmp, dou, NULL, DEFINITION_TYPE_VALUE, 0);
+    q = add_a_new_definition(label, dou, NULL, DEFINITION_TYPE_VALUE, 0);
   else if (q == INPUT_NUMBER_STRING)
-    q = add_a_new_definition(g_tmp, 0.0, k, DEFINITION_TYPE_STRING, size);
+    q = add_a_new_definition(label, 0.0, k, DEFINITION_TYPE_STRING, size);
   else if (q == INPUT_NUMBER_STACK)
-    q = add_a_new_definition(g_tmp, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
+    q = add_a_new_definition(label, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
   else if (q == INPUT_NUMBER_EOL)
-    q = add_a_new_definition(g_tmp, 0.0, NULL, DEFINITION_TYPE_VALUE, 0);
+    q = add_a_new_definition(label, 0.0, NULL, DEFINITION_TYPE_VALUE, 0);
   
   if (q == FAILED)
     return FAILED;
 
   if (export == YES) {
-    if (export_a_definition(g_tmp) == FAILED)
+    if (export_a_definition(label) == FAILED)
       return FAILED;
   }
 
@@ -7286,8 +7288,8 @@ int directive_undef_undefine(void) {
 
     q++;
 
-    if (undefine(g_tmp) == FAILED) {
-      snprintf(g_error_message, sizeof(g_error_message), "Could not .%s \"%s\".\n", bak, g_tmp);
+    if (undefine(g_label) == FAILED) {
+      snprintf(g_error_message, sizeof(g_error_message), "Could not .%s \"%s\".\n", bak, g_label);
       print_error(g_error_message, ERROR_WRN);
     }
   }
@@ -7474,14 +7476,16 @@ int directive_redefine_redef(void) {
   
   int j, size, export, q;
   double dou;
-  char k[256];
+  char k[256], label[MAX_NAME_LENGTH+1];
 
   if (get_next_plain_string() == FAILED)
     return FAILED;
 
+  strcpy(label, g_label);
+
   /* check the user doesn't try to define reserved labels */
-  if (is_reserved_definition(g_tmp) == YES) {
-    snprintf(g_error_message, sizeof(g_error_message), "\"%s\" is a reserved definition label and is not user definable.\n", g_tmp);
+  if (is_reserved_definition(label) == YES) {
+    snprintf(g_error_message, sizeof(g_error_message), "\"%s\" is a reserved definition label and is not user definable.\n", label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -7502,19 +7506,19 @@ int directive_redefine_redef(void) {
   }
 
   if (q == SUCCEEDED)
-    redefine(g_tmp, (double)j, NULL, DEFINITION_TYPE_VALUE, 0);
+    redefine(label, (double)j, NULL, DEFINITION_TYPE_VALUE, 0);
   else if (q == INPUT_NUMBER_FLOAT)
-    redefine(g_tmp, dou, NULL, DEFINITION_TYPE_VALUE, 0);
+    redefine(label, dou, NULL, DEFINITION_TYPE_VALUE, 0);
   else if (q == INPUT_NUMBER_STRING)
-    redefine(g_tmp, 0.0, k, DEFINITION_TYPE_STRING, size);
+    redefine(label, 0.0, k, DEFINITION_TYPE_STRING, size);
   else if (q == INPUT_NUMBER_STACK)
-    redefine(g_tmp, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
+    redefine(label, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
 
   if (export == YES) {
-    if (export_a_definition(g_tmp) == FAILED)
+    if (export_a_definition(label) == FAILED)
       return FAILED;
   }
-    
+
   return SUCCEEDED;
 }
 
@@ -7952,13 +7956,13 @@ int directive_macro(void) {
         print_error("Out of memory error.\n", ERROR_NONE);
         return FAILED;
       }
-      m->argument_names[q-1] = calloc(strlen(g_tmp)+1, 1);
+      m->argument_names[q-1] = calloc(strlen(g_label)+1, 1);
       if (m->argument_names[q-1] == NULL) {
         print_error("Out of memory error.\n", ERROR_NONE);
         return FAILED;
       }
 
-      strcpy(m->argument_names[q-1], g_tmp);
+      strcpy(m->argument_names[q-1], g_label);
     }
   }
 
@@ -8017,10 +8021,10 @@ int directive_rept_repeat(void) {
     if (input_next_string() != SUCCEEDED)
       return FAILED;
 
-    if (redefine(g_tmp, 0.0, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+    if (redefine(g_label, 0.0, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
 
-    strcpy(index_name, g_tmp);
+    strcpy(index_name, g_label);
   }
     
   if (g_parsed_int == 0) {
@@ -10287,7 +10291,7 @@ int parse_directive(void) {
 
           q++;
 
-          if (export_a_definition(g_tmp) == FAILED)
+          if (export_a_definition(g_label) == FAILED)
             return FAILED;
         }
       
@@ -10845,7 +10849,7 @@ int parse_directive(void) {
         return FAILED;
       }
 
-      fprintf(g_file_out_ptr, "Y%s ", g_tmp);
+      fprintf(g_file_out_ptr, "Y%s ", g_label);
 
       return SUCCEEDED;
     }
