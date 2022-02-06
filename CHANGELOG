@@ -16,7 +16,7 @@ v10.1 (06-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                     [ALL] The assembler is now able to calculate A-B where
                       A and B are labels in the same section. Only the linker
                       used to be able to do this.
-                    [ALL] WLA assembles now "WLAG" library files and "WLAh"
+                    [ALL] WLA assembles now "WLAG" library files and "WLAi"
                       object files.
                     [ALL] Fixed multiple memory leaks. Should now work better
                       on an Amiga.
@@ -35,6 +35,7 @@ v10.1 (06-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                     [SFX] Fixed "MOVE (xx),Rn" macro instruction parsing. And
                       even currently WLA cannot create a SMS instruction if
                       WLA postpones the argument's handling to WLALINK...
+                    [Z80] Added CHECKSUMSIZE and FORCECHECKSUM to .SMSHEADER.
 
 v10.0 (21-Jun-2021) [ALL] WARNING: Precedence of operators in calculations
                       that WLA calculates is now more fine grained and C like.

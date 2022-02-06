@@ -18,14 +18,14 @@
 extern unsigned char *g_rom, *g_rom_usage;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern int g_romsize, g_sms_checksum, g_smstag_defined, g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_sms_header;
-extern int g_snes_rom_mode;
+extern int g_snes_rom_mode, g_sms_checksum_already_written, g_sms_checksum_size_defined, g_sms_checksum_size;
 
 
 int reserve_checksum_bytes(void) {
 
   /* reserve checksum bytes so that no free type sections will be placed over them */
   
-  if (g_sms_checksum != 0 || g_sms_header != 0) {
+  if (g_sms_checksum_already_written == 0 && (g_sms_checksum != 0 || g_sms_header != 0)) {
     int tag_address = 0x7FF0;
     
     if (g_romsize < 0x4000)
@@ -422,6 +422,10 @@ int compute_sms_checksum(void) {
   int tag_address = 0x7FF0, j, checksum, checksum_max = 32*1024, rom_size = 0;
 
 
+  /* has the checksum already been written by FORCECHECKSUM? */
+  if (g_sms_checksum_already_written != 0)
+    return SUCCEEDED;
+
   if (g_romsize < 0x2000) {
     fprintf(stderr, "COMPUTE_SMS_CHECKSUM: SMS/GG checksum computing requires a ROM of at least 8KBs.\n");
     return FAILED;
@@ -490,6 +494,10 @@ int compute_sms_checksum(void) {
     checksum_max = tag_address;
   }
 
+  /* OVERRIDE from CHECKSUMSIZE! */
+  if (g_sms_checksum_size_defined != 0)
+    checksum_max = g_sms_checksum_size;
+  
   /* add together ROM SIZE minus SMS/GG header */
   checksum = 0;
   for (j = 0; j < checksum_max; j++) {

@@ -3099,8 +3099,9 @@ This is not a compulsory directive.
 ``.SMSHEADER``
 --------------
 
-All the fields in ``.SMSHEADER`` are optional and default to zero except ROMSIZE. If
-ROMSIZE is not specified it will be calculated automatically::
+All the fields in ``.SMSHEADER`` are optional and PRODUCTCODE, VERSION,
+REGIONCODE and RESERVEDSPACE default to zero. If ROMSIZE is not specified
+it will be calculated automatically::
 
     .SMSHEADER
         PRODUCTCODE 26, 70, 2 ; 2.5 bytes
@@ -3108,6 +3109,9 @@ ROMSIZE is not specified it will be calculated automatically::
         REGIONCODE 4          ; 3-7
         RESERVEDSPACE 0, 0    ; 2 bytes
         ROMSIZE 0             ; 0-15
+        CHECKSUMSIZE 32*1024  ; Uses the first this-many bytes in checksum
+                              ;   calculations (excluding header area)
+        FORCECHECKSUM $1234   ; Forces the checksum to be this value
     .ENDSMS
 
 The ``REGIONCODE`` also defines the system:

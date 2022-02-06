@@ -59,7 +59,8 @@ int g_romsize, g_rombanks, g_banksize, g_verbose_mode = OFF, g_section_overwrite
 int g_pc_bank, g_pc_full, g_pc_slot, g_pc_slot_max;
 int g_file_header_size, g_file_footer_size, *g_banksizes = NULL, *g_bankaddress = NULL;
 int g_output_mode = OUTPUT_ROM, g_discard_unreferenced_sections = OFF, g_use_libdir = NO;
-int g_program_start, g_program_end, g_sms_checksum, g_smstag_defined = 0, g_snes_rom_mode = SNES_ROM_MODE_LOROM, g_snes_rom_speed = SNES_ROM_SPEED_SLOWROM, g_sms_header = 0;
+int g_program_start, g_program_end, g_sms_checksum, g_smstag_defined = 0, g_snes_rom_mode = SNES_ROM_MODE_LOROM, g_snes_rom_speed = SNES_ROM_SPEED_SLOWROM;
+int g_sms_header = 0, g_sms_checksum_already_written = 0, g_sms_checksum_size_defined = 0, g_sms_checksum_size = 0;
 int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode = 0;
 int g_smc_status = 0, g_snes_sramsize = 0;
 int g_output_type = OUTPUT_TYPE_UNDEFINED, g_sort_sections = YES;

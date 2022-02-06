@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file format "WLAh"
+WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file format "WLAi"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAh" - WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file version 33 (16-Aug-2021)
+        "WLAi" - WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file version 34 (06-Feb-2022)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -29,7 +29,10 @@ header:
                    bit 5 - snes exhirom (1 = yes)
                    bit 6 - snes exlorom (1 = yes)
                    bit 7 - endianess (1 = big endian))
-  1     extr bits (bit 0 - 65ce02 indicator (1 == 65ce02))
+  1     extr bits (bit 0 - 65ce02 indicator (1 == 65ce02)
+                   bit 1 - sms checksum was already written (1 == yes)
+                   bit 2 - use a special range for sms checksum calculation (1 == yes))
+  4     special range for sms checksum calculation (int)
 
 rom bank map:
 

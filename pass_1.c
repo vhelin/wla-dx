@@ -40,7 +40,8 @@ int g_sdsctag_name_value, g_sdsctag_notes_value, g_sdsctag_author_value;
 int g_computesmschecksum_defined = 0, g_sdsctag_defined = 0, g_smstag_defined = 0;
 int g_smsheader_defined = 0, g_smsversion = 0, g_smsversion_defined = 0, g_smsregioncode = 0, g_smsregioncode_defined = 0;
 int g_smsproductcode_defined = 0, g_smsproductcode1 = 0, g_smsproductcode2 = 0, g_smsproductcode3 = 0, g_smsreservedspace1 = 0;
-int g_smsreservedspace2 = 0, smsreservedspace_defined = 0, g_smsromsize = 0, g_smsromsize_defined = 0;
+int g_smsreservedspace2 = 0, g_smsreservedspace_defined = 0, g_smsromsize = 0, g_smsromsize_defined = 0;
+int g_smsforcechecksum = 0, g_smsforcechecksum_defined = 0, g_smschecksumsize = 0, g_smschecksumsize_defined = 0;
 #endif
 
 int g_org_defined = 1, g_background_defined = 0;
@@ -7662,7 +7663,7 @@ int directive_smsheader(void) {
       }
 
       g_smsreservedspace1 = g_parsed_int & 255;
-      smsreservedspace_defined = 1;
+      g_smsreservedspace_defined = 1;
 
       q = input_number();
 
@@ -7674,6 +7675,42 @@ int directive_smsheader(void) {
       }
 
       g_smsreservedspace2 = g_parsed_int & 255;
+    }
+    else if (strcaselesscmp(g_tmp, "CHECKSUMSIZE") == 0) {
+      if (g_smsforcechecksum_defined == 1) {
+        print_error("FORCECHECKSUM is already defined.\n", ERROR_DIR);
+        return FAILED;
+      }
+      
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED) {
+        print_error("CHECKSUMSIZE needs the number of bytes for calculating the checksum.\n", ERROR_DIR);
+        return FAILED;
+      }
+
+      g_smschecksumsize = g_parsed_int;
+      g_smschecksumsize_defined = 1;
+    }
+    else if (strcaselesscmp(g_tmp, "FORCECHECKSUM") == 0) {
+      if (g_smschecksumsize_defined == 1) {
+        print_error("CHECKSUMSIZE is already defined.\n", ERROR_DIR);
+        return FAILED;
+      }
+
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED) {
+        print_error("FORCECHECKSUM needs the checksum.\n", ERROR_DIR);
+        return FAILED;
+      }
+
+      g_smsforcechecksum = g_parsed_int;
+      g_smsforcechecksum_defined = 1;
     }
     else {
       token_result = FAILED;

@@ -11,9 +11,13 @@
 
 
 
+/* read an integer from t */
+#define READ_T (t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24)); t += 4;
+
 extern struct object_file *g_obj_first;
 extern int g_emptyfill, g_sms_checksum, g_smstag_defined, g_snes_rom_mode, g_snes_rom_speed, g_smc_status, g_sms_header;
-extern int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode, g_snes_sramsize;
+extern int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode, g_snes_sramsize, g_sms_checksum_already_written;
+extern int g_sms_checksum_size_defined, g_sms_checksum_size;
 
 
 
@@ -24,7 +28,7 @@ int check_file_types(void) {
   
   o = g_obj_first;
   while (o != NULL) {
-    if (strncmp((char *)o->data, "WLAh", 4) == 0)
+    if (strncmp((char *)o->data, "WLAi", 4) == 0)
       o->format = WLA_VERSION_OBJ;
     else if (strncmp((char *)o->data, "WLAG", 4) == 0)
       o->format = WLA_VERSION_LIB;
@@ -67,6 +71,7 @@ int check_headers(void) {
 
   int count = 0, misc_bits = 0, more_bits = 0, extr_bits = 0, e;
   struct object_file *o;
+  unsigned char *t;
 
   
   o = g_obj_first;
@@ -75,6 +80,7 @@ int check_headers(void) {
       misc_bits = *(o->data + OBJ_MISC_BITS);
       more_bits = *(o->data + OBJ_MORE_BITS);
       extr_bits = *(o->data + OBJ_EXTR_BITS);
+      t = o->data + OBJ_SMS_CHECKSUM_SIZE;
 
       if ((misc_bits & 128) != 0)
         o->cpu_65816 = YES;
@@ -92,8 +98,9 @@ int check_headers(void) {
         o->little_endian = YES;
       
       if (count == 0) {
-        /* misc bits */
+        /* empty fill */
         g_emptyfill = *(o->data + OBJ_EMPTY_FILL);
+        /* misc bits */
         g_sms_checksum = misc_bits & 1;
         g_snes_rom_mode = misc_bits & 2;
         g_snes_mode = misc_bits & 4;
@@ -111,6 +118,10 @@ int check_headers(void) {
         if (((more_bits >> 6) & 1) == 1)
           g_snes_rom_mode = SNES_ROM_MODE_EXLOROM;
         /* extr bits */
+        g_sms_checksum_already_written = (extr_bits >> 1) & 1;
+        g_sms_checksum_size_defined = (extr_bits >> 2) & 1;
+        /* sms checksum size */
+        g_sms_checksum_size = READ_T;
       }
       else {
         e = *(o->data + OBJ_EMPTY_FILL);
@@ -174,6 +185,13 @@ int check_headers(void) {
               g_snes_rom_mode = e;
             }
           }
+        }
+
+        if (g_sms_checksum_already_written == 0 && ((extr_bits >> 1) & 1) != 0)
+          g_sms_checksum_already_written = (extr_bits >> 1) & 1;
+        if (g_sms_checksum_size_defined == 0 && ((extr_bits >> 2) & 1) != 0) {
+          g_sms_checksum_size_defined = (extr_bits >> 2) & 1;
+          g_sms_checksum_size = READ_T;
         }
       }
 

@@ -56,7 +56,8 @@ extern int g_computesneschecksum_defined, g_sramsize, g_sramsize_defined, g_exlo
 #endif
 
 #ifdef Z80
-extern int g_computesmschecksum_defined, g_smstag_defined, g_smsheader_defined;
+extern int g_computesmschecksum_defined, g_smstag_defined, g_smsheader_defined, g_smsforcechecksum_defined;
+extern int g_smschecksumsize_defined, g_smschecksumsize;
 #endif
 
 struct label_def *g_unknown_labels = NULL, *g_unknown_labels_last = NULL;
@@ -1739,7 +1740,7 @@ int write_object_file(void) {
   }
 
   /* header */
-  fprintf(final_ptr, "WLAh%c", g_emptyfill);
+  fprintf(final_ptr, "WLAi%c", g_emptyfill);
 
   /* misc bits */
   ind = 0;
@@ -1811,13 +1812,29 @@ int write_object_file(void) {
   /* extr bits */
   ind = 0;
 
-#ifdef CSG65CE02
+#if defined(CSG65CE02)
   /* 65ce02 bit */
   ind |= 1 << 0;
 #endif
 
+#if defined(Z80)
+  if (g_smsforcechecksum_defined != 0)
+    ind |= 1 << 1;
+  if (g_smschecksumsize_defined != 0)
+    ind |= 1 << 2;
+#endif
+  
   fprintf(final_ptr, "%c", ind);
-    
+
+#if defined(Z80)
+  /* sms checksum calculation special range */
+  ov = g_smschecksumsize;
+  WRITEOUT_OV;
+#else
+  ov = 0;
+  WRITEOUT_OV;
+#endif
+
   /* rom bank map */
   ov = g_rombanks;
   WRITEOUT_OV;                                   /* number of rom banks */

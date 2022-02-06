@@ -10,13 +10,14 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-#define OBJ_FORMAT_INFO  0
-#define OBJ_EMPTY_FILL   4
-#define OBJ_MISC_BITS    5
-#define OBJ_MORE_BITS    6
-#define OBJ_EXTR_BITS    7
-#define OBJ_ROMBANKS     8
-#define OBJ_ROMBANKMAP  12
+#define OBJ_FORMAT_INFO        0
+#define OBJ_EMPTY_FILL         4
+#define OBJ_MISC_BITS          5
+#define OBJ_MORE_BITS          6
+#define OBJ_EXTR_BITS          7
+#define OBJ_SMS_CHECKSUM_SIZE  8
+#define OBJ_ROMBANKS          12
+#define OBJ_ROMBANKMAP        16
 
 #define LIB_FORMAT_INFO       0
 #define LIB_MISC_BITS         4

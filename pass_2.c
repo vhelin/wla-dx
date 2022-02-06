@@ -39,6 +39,7 @@ extern int g_computesmschecksum_defined, g_sdsctag_defined, g_smstag_defined;
 extern int g_smsheader_defined, g_smsversion, g_smsversion_defined, g_smsregioncode, g_smsregioncode_defined;
 extern int g_smsproductcode_defined, g_smsproductcode1, g_smsproductcode2, g_smsproductcode3, g_smsreservedspace1, g_smsreservedspace2;
 extern int g_smsromsize, g_smsromsize_defined;
+extern int g_smsforcechecksum, g_smsforcechecksum_defined, g_smschecksumsize, g_smschecksumsize_defined;
 #endif
 
 #if defined(W65816)
@@ -143,6 +144,12 @@ int pass_2(void) {
     mem_insert_absolute(tag_address + 0xD, g_smsproductcode2);
     mem_insert_absolute(tag_address + 0xE, (g_smsproductcode3 << 4) | g_smsversion);
     mem_insert_absolute(tag_address + 0xF, (rc << 4) | rs);
+
+    /* force checksum? */
+    if (g_smsforcechecksum_defined != 0) {
+      mem_insert_absolute(tag_address + 0xA, g_smsforcechecksum & 0xff);
+      mem_insert_absolute(tag_address + 0xB, (g_smsforcechecksum >> 8) & 0xff);
+    }
   }
 
   /* SDSCTAG */
