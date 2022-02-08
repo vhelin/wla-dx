@@ -17,6 +17,7 @@ extern int g_ind, g_source_pointer, g_extra_definitions, g_parsed_int, g_use_inc
 extern char g_tmp[4096], g_error_message[sizeof(g_tmp) + MAX_NAME_LENGTH + 1 + 1024], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
 extern struct ext_include_collection g_ext_incdirs;
 extern FILE *g_file_out_ptr;
+extern struct stringmaptable *g_stringmaptables;
 
 struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
 struct active_file_info *g_active_file_info_first = NULL, *g_active_file_info_last = NULL, *g_active_file_info_tmp = NULL;
@@ -31,7 +32,7 @@ char *g_include_dir = NULL;
 int g_include_dir_size = 0;
 
 char *g_buffer = NULL;
-int g_size = 0;
+int g_source_file_size = 0;
 
 
 int create_full_name(char *dir, char *name) {
@@ -241,7 +242,7 @@ int include_file(char *name, int *include_size, char *namespace) {
   /* calculate checksum for post-compilation file verification */
   g_file_name_info_tmp->checksum = crc32((unsigned char*)g_include_in_tmp, file_size);
 
-  if (g_size == 0) {
+  if (g_source_file_size == 0) {
     g_buffer = calloc(sizeof(char) * (change_file_buffer_size + (file_size + 4)), 1);
     if (g_buffer == NULL) {
       snprintf(g_error_message, sizeof(g_error_message), "Out of memory while trying to allocate room for \"%s\".\n", g_full_name);
@@ -252,20 +253,20 @@ int include_file(char *name, int *include_size, char *namespace) {
     memcpy(g_buffer, change_file_buffer, change_file_buffer_size);
     
     /* preprocess */
-    preprocess_file(g_include_in_tmp, g_include_in_tmp + file_size, &g_buffer[change_file_buffer_size], &g_size, g_full_name);
-    g_size += change_file_buffer_size;
+    preprocess_file(g_include_in_tmp, g_include_in_tmp + file_size, &g_buffer[change_file_buffer_size], &g_source_file_size, g_full_name);
+    g_source_file_size += change_file_buffer_size;
 
-    g_buffer[g_size++] = 0xA;
-    g_buffer[g_size++] = '.';
-    g_buffer[g_size++] = 'E';
-    g_buffer[g_size++] = ' ';
+    g_buffer[g_source_file_size++] = 0xA;
+    g_buffer[g_source_file_size++] = '.';
+    g_buffer[g_source_file_size++] = 'E';
+    g_buffer[g_source_file_size++] = ' ';
 
-    *include_size = g_size;
+    *include_size = g_source_file_size;
 
     return SUCCEEDED;
   }
 
-  tmp_b = calloc(sizeof(char) * (g_size + change_file_buffer_size + file_size + 4), 1);
+  tmp_b = calloc(sizeof(char) * (g_source_file_size + change_file_buffer_size + file_size + 4), 1);
   if (tmp_b == NULL) {
     snprintf(g_error_message, sizeof(g_error_message), "Out of memory while trying to expand the project to incorporate file \"%s\".\n", g_full_name);
     print_error(g_error_message, ERROR_INC);
@@ -302,11 +303,11 @@ int include_file(char *name, int *include_size, char *namespace) {
 
   memcpy(tmp_b, g_buffer, g_source_pointer);
   memcpy(tmp_b + g_source_pointer, g_tmp_a, size);
-  memcpy(tmp_b + g_source_pointer + size, g_buffer + g_source_pointer, g_size - g_source_pointer);
+  memcpy(tmp_b + g_source_pointer + size, g_buffer + g_source_pointer, g_source_file_size - g_source_pointer);
 
   free(g_buffer);
 
-  g_size += size;
+  g_source_file_size += size;
   g_buffer = tmp_b;
 
   *include_size = size;
@@ -317,7 +318,7 @@ int include_file(char *name, int *include_size, char *namespace) {
 
 int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct macro_static **macro) {
 
-  struct incbin_file_data *ifd;
+  struct incbin_file_data *ifd = NULL;
   char *in_tmp, *n;
   int file_size, q;
   FILE *f = NULL;
@@ -326,57 +327,77 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   if (error_code != SUCCEEDED)
     return error_code;
 
-  fseek(f, 0, SEEK_END);
-  file_size = (int)ftell(f);
-  fseek(f, 0, SEEK_SET);
-
-  ifd = (struct incbin_file_data *)calloc(sizeof(struct incbin_file_data), 1);
-  n = calloc(sizeof(char) * (strlen(g_full_name)+1), 1);
-  in_tmp = (char *)calloc(sizeof(char) * file_size, 1);
-  if (ifd == NULL || n == NULL || in_tmp == NULL) {
-    if (ifd != NULL)
-      free(ifd);
-    if (n != NULL)
-      free(n);
-    if (in_tmp != NULL)
-      free(in_tmp);
-    snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating data structure for \"%s\".\n", g_full_name);
-    print_error(g_error_message, ERROR_INB);
-    fclose(f);
-    return FAILED;
-  }
-
-  /* read the whole file into a buffer */
-  if (fread(in_tmp, 1, file_size, f) != (size_t) file_size) {
-    snprintf(g_error_message, sizeof(g_error_message), "Could not read all %d bytes of \"%s\"!", file_size, g_full_name);
-    print_error(g_error_message, ERROR_INC);
-    return FAILED;
-  }
-
-  fclose(f);
-
-  /* complete the structure */
-  ifd->next = NULL;
-  ifd->size = file_size;
-  strcpy(n, g_full_name);
-  ifd->name = n;
-  ifd->data = in_tmp;
-
-  /* find the index */
+  /* try to find the file in our cache */
+  ifd = g_incbin_file_data_first;
   q = 0;
-  if (g_incbin_file_data_first != NULL) {
-    g_ifd_tmp = g_incbin_file_data_first;
-    while (g_ifd_tmp->next != NULL && strcmp(g_ifd_tmp->name, g_full_name) != 0) {
-      g_ifd_tmp = g_ifd_tmp->next;
-      q++;
+  while (ifd != NULL) {
+    if (strcmp(g_full_name, ifd->name) == 0) {
+      /* found it! */
+      file_size = ifd->size;
+      fclose(f);
+      break;
     }
-    if (g_ifd_tmp->next == NULL && strcmp(g_ifd_tmp->name, g_full_name) != 0) {
-      g_ifd_tmp->next = ifd;
+    else {
       q++;
+      ifd = ifd->next;
     }
   }
-  else
-    g_incbin_file_data_first = ifd;
+
+  if (ifd == NULL) {
+    struct incbin_file_data *ifd2;
+    
+    fseek(f, 0, SEEK_END);
+    file_size = (int)ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    ifd = (struct incbin_file_data *)calloc(sizeof(struct incbin_file_data), 1);
+    n = calloc(sizeof(char) * (strlen(g_full_name)+1), 1);
+    in_tmp = (char *)calloc(sizeof(char) * file_size, 1);
+    if (ifd == NULL || n == NULL || in_tmp == NULL) {
+      free(ifd);
+      free(n);
+      free(in_tmp);
+      snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating data structure for \"%s\".\n", g_full_name);
+      print_error(g_error_message, ERROR_INB);
+      fclose(f);
+      return FAILED;
+    }
+
+    /* read the whole file into a buffer */
+    if (fread(in_tmp, 1, file_size, f) != (size_t) file_size) {
+      free(ifd);
+      free(n);
+      free(in_tmp);
+      snprintf(g_error_message, sizeof(g_error_message), "Could not read all %d bytes of \"%s\"!", file_size, g_full_name);
+      print_error(g_error_message, ERROR_INC);
+      return FAILED;
+    }
+
+    fclose(f);
+
+    /* complete the structure */
+    ifd->next = NULL;
+    ifd->size = file_size;
+    strcpy(n, g_full_name);
+    ifd->name = n;
+    ifd->data = in_tmp;
+
+    /* calculate the index, remember the entry */
+    q = 0;
+    ifd2 = g_incbin_file_data_first;
+    while (ifd2 != NULL) {
+      q++;
+      if (ifd2->next == NULL) {
+	ifd2->next = ifd;
+	break;
+      }
+      else
+	ifd2 = ifd2->next;
+    }
+    
+    if (g_incbin_file_data_first == NULL)
+      g_incbin_file_data_first = ifd;
+  }
 
   *id = q;
 
@@ -489,36 +510,35 @@ int print_file_names(void) {
 
   struct incbin_file_data *ifd;
   struct file_name_info *fni;
-
+  struct stringmaptable *smt;
+  int is_first_line = YES;
   
   fni = g_file_name_info_first;
   ifd = g_incbin_file_data_first;
-
-  /* handle the main file name differently */
-  if (fni != NULL) {
-    if (fni->next != NULL || ifd != NULL)
-      fprintf(stdout, "%s \\\n", fni->name);
-    else
-      fprintf(stdout, "%s\n", fni->name);
-    fni = fni->next;
-  }
+  smt = g_stringmaptables;
 
   /* included files */
+  /* handle the main file name differently */
   while (fni != NULL) {
-    if (fni->next != NULL || ifd != NULL)
-      fprintf(stdout, "\t%s \\\n", fni->name);
+    if (is_first_line == YES) {
+      fprintf(stdout, "%s", fni->name);
+      is_first_line = NO;
+    }
     else
-      fprintf(stdout, "\t%s\n", fni->name);
+      fprintf(stdout, " \\\n\t%s", fni->name);
     fni = fni->next;
   }
 
   /* incbin files */
   while (ifd != NULL) {
-    if (ifd->next != NULL)
-      fprintf(stdout, "\t%s \\\n", ifd->name);
-    else
-      fprintf(stdout, "\t%s\n", ifd->name);
+    fprintf(stdout, " \\\n\t%s", ifd->name);
     ifd = ifd->next;
+  }
+
+  /* stringmaptable files */
+  while (smt != NULL) {
+    fprintf(stdout, " \\\n\t%s", smt->filename);
+    smt = smt->next;
   }
 
   return SUCCEEDED;
@@ -776,7 +796,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
           output--;
 #else
         /* go back? */
-        if ((z == 3 || *input == ',') && *(output - 1) == ' ')
+        if ((z == 3 || *input == ',') && *(output - 1) == ' ' && *(output - 2) == ' ')
           output--;
 #endif
         *output = *input;

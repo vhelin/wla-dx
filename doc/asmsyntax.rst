@@ -235,6 +235,43 @@ Here are some examples of strings::
     "He said: \"Please, kiss me honey.\""
 
 
+Substitution
+------------
+
+It's possible to substitute definition's name with its value inside a label.
+
+Here's an example::
+
+    .REPEAT 10 INDEX COUNT
+    Label_{COUNT}:                      ; -> Label_0, Label_1, Label_2...
+    .DW Label_{COUNT}
+    .ENDR
+
+Substitution supports minimal formatting for integers::
+
+    .DEFINE COUNT = 10
+    .DEFINE UNIT = 5
+    Label_{%.4x{COUNT}}:                ; -> Label_000a
+    Label_{%.3X{COUNT}}_{%.3X{UNIT}}:   ; -> Label_00A_005
+    Label_{%.9d{COUNT}}:                ; -> Label_000000010
+    Label_{%.3i{COUNT}}:                ; -> Label_010
+
+The examples show all the formatting symbols currently supported.
+
+The same substitution works for strings inside quotes when the quoted string is as follows::
+
+    .db { "HELLO_{COUNT}" }             ; -> "HELLO_10"
+
+Note that only WLA can do the substitution and it needs to know the value of the definition
+at the time the substitution is done, i.e., the time a string containing a substitution is
+parsed.
+
+Also note that you can embed calculations into substitutions::
+
+    .DEFINE COUNT = 1
+    Label_{COUNT+1}:                    ; -> Label_2
+
+    
 Mnemonics
 ---------
 

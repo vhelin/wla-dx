@@ -84,10 +84,14 @@ label_b:.db "<04"
         .db "<11"
 
         .db "12>"
-        move ($A1),r10
-        move ($A2), r11
-        move (label_a),r12
-        move (label_a | $1200), r13
+        .print "12>\n"
+        move ($A1),r10              ; -> sm ($A1), r10   -> 3E FA A1 00
+        move ($A2), r11             ; -> sms ($A2), r11  -> 3E AB 51
+        move (label_a),r12          ; -> sm ($22), r12   -> 3E FC 22 00 ... NOTE: as WLA doesn't know that label_a is $22 it bails out to sm here...
+                                    ;                                       this is not what SNES Development Manual says, but then again WLA DX
+                                    ;                                       is not an official Nintendo/SNES assmebler...
+        move (label_a | $1200), r13 ; -> sm ($1222), r13 -> 3E FD 22 12
+        .print "<12\n"
         .db "<12"
 
         .db "13>"

@@ -42,7 +42,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.1a (22.9.2021)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.1a (6.2.2022)";
 char g_wla_version[] = "10.1";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -60,6 +60,7 @@ extern struct repeat_runtime *g_repeat_stack;
 extern struct section_def *g_sections_first;
 extern struct macro_runtime *g_macro_stack;
 extern struct label_def *g_unknown_labels;
+extern struct label_def *g_unknown_header_labels;
 extern struct filepointer *g_filepointers;
 extern struct map_t *g_namespace_map;
 extern struct after_section *g_after_sections;
@@ -67,21 +68,26 @@ extern struct label_sizeof *g_label_sizeofs;
 extern struct block_name *g_block_names;
 extern struct stringmaptable *g_stringmaptables;
 extern struct array *g_arrays_first;
+extern struct structure *g_structures_first;
+extern struct structure **g_saved_structures;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern char *g_label_stack[256];
 extern char *g_include_in_tmp, *g_tmp_a;
 extern char *g_rom_banks, *g_rom_banks_usage_table;
 extern char *g_include_dir, *g_buffer, *g_full_name;
 extern int g_include_in_tmp_size, g_tmp_a_size, *g_banks, *g_bankaddress;
+extern int g_saved_structures_count, g_saved_structures_max2;
 
 int g_output_format = OUTPUT_NONE, g_verbose_mode = OFF, g_test_mode = OFF;
 int g_extra_definitions = OFF, g_commandline_parsing = ON, g_makefile_rules = NO;
 int g_listfile_data = NO, g_quiet = NO, g_use_incdir = NO, g_little_endian = YES;
 int g_create_sizeof_definitions = YES, g_global_label_hint = HINT_NONE, g_keep_empty_sections = NO;
+int g_saved_structures_count2 = 0, g_saved_structures_max2 = 0;
 
 char *g_final_name = NULL, *g_asm_name = NULL;
 
 struct ext_include_collection g_ext_incdirs;
+struct structure **g_saved_structures2 = NULL;
 
 
 
@@ -406,6 +412,54 @@ int parse_flags(char **flags, int flagc, int *print_usage) {
 }
 
 
+static void _remember_deletable_structure(struct structure *st) {
+
+  int i;
+
+  /* do we already remember the structure? */
+  for (i = 0; i < g_saved_structures_count2; i++) {
+    if (g_saved_structures2[i] == st)
+      return;
+  }
+
+  if (g_saved_structures_count2 >= g_saved_structures_max2) {
+    g_saved_structures_max2 += 256;
+    g_saved_structures2 = realloc(g_saved_structures2, sizeof(struct structure *) * g_saved_structures_max2);
+    if (g_saved_structures2 == NULL) {
+      fprintf(stderr, "_remember_deletable_structure(): Out of memory error.\n");
+      return;
+    }
+  }
+  
+  g_saved_structures2[g_saved_structures_count2++] = st;
+}
+
+
+static void _mark_struct_deleted(struct structure *st) {
+
+  struct structure_item *si = st->items;
+
+  if (st->alive == NO)
+    return;
+
+  st->items = NULL;
+  st->alive = NO;
+  
+  while (si != NULL) {
+    struct structure_item *tmp = si;
+
+    if (si->type == STRUCTURE_ITEM_TYPE_UNION)
+      _mark_struct_deleted(si->union_items);
+    /* don't free si->instance for STRUCTURE_ITEM_TYPE_INSTANCE since that's a reusable
+       structure */
+    si = si->next;
+    free(tmp);
+  }
+
+  _remember_deletable_structure(st);
+}
+
+
 void procedures_at_exit(void) {
 
   struct file_name_info *f, *ft;
@@ -431,8 +485,50 @@ void procedures_at_exit(void) {
   free(g_include_dir);
   free(g_full_name);
 
+  /* NOTE: the implementation of structures leaked memory and the only way i (Ville Helin) was able to
+     fix the leak was to collect all allocated structures, and then unroll them here and free them
+     all here, finally... if you come up with a better solution, thank you */
+  for (i = 0; i < g_saved_structures_count; i++)
+    _mark_struct_deleted(g_saved_structures[i]);
+  for (i = 0; i < g_saved_structures_count2; i++)
+    free(g_saved_structures2[i]);
+  free(g_saved_structures);
+  free(g_saved_structures2);
+
+  /*
+  st = g_structures_first;
+  while (st != NULL) {
+    struct structure *st2 = st->next;
+    _free_struct(st);
+    st = st2;
+  }
+  */
+
   for (i = 0; i < 256; i++)
     free(g_label_stack[i]);
+
+  /* NOTE! freeing the sections must come before freeing g_defines_map, as section's nspace
+     requires that. don't really know why, but Valgrind pointed to that direction, it has
+     something to do with section->nspace->label_map... */
+  s1 = g_sections_first;
+  while (s1 != NULL) {
+    free(s1->data);
+    free(s1->listfile_cmds);
+    free(s1->listfile_ints);
+    if (s1->label_map != NULL) {
+      hashmap_free(s1->label_map);
+      s1->label_map = NULL;
+    }
+    if (s1->nspace != NULL) {
+      if (s1->nspace->label_map != NULL) {
+        hashmap_free(s1->nspace->label_map);
+        s1->nspace->label_map = NULL;
+      }
+    }
+    s2 = s1->next;
+    free(s1);
+    s1 = s2;
+  }
 
   if (g_defines_map != NULL) {
     hashmap_free_all_elements(g_defines_map);
@@ -470,6 +566,13 @@ void procedures_at_exit(void) {
   }
 
   l1 = g_unknown_labels;
+  while (l1 != NULL) {
+    l2 = l1->next;
+    free(l1);
+    l1 = l2;
+  }
+
+  l1 = g_unknown_header_labels;
   while (l1 != NULL) {
     l2 = l1->next;
     free(l1);
@@ -545,17 +648,6 @@ void procedures_at_exit(void) {
     f = ft;
   }
 
-  s1 = g_sections_first;
-  while (s1 != NULL) {
-    free(s1->data);
-    free(s1->listfile_cmds);
-    free(s1->listfile_ints);
-    hashmap_free(s1->label_map);
-    s2 = s1->next;
-    free(s1);
-    s1 = s2;
-  }
-
   f1 = g_filepointers;
   while (f1 != NULL) {
     f2 = f1->next;
@@ -583,6 +675,7 @@ void procedures_at_exit(void) {
       sm->entries = e->next;
       free(e);
     }
+    free(sm->filename);
     g_stringmaptables = sm->next;
     free(sm);
   }

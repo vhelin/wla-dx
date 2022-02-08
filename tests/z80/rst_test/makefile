@@ -16,7 +16,7 @@ linked.rom: $(OFILES) makefile
 sms.o: sms.s
 	$(CC) $(CFLAGS) sms.o sms.s
 
-check:
+check: linked.rom
 	byte_tester -s sms.s
 
 $(OFILES): $(HFILES)

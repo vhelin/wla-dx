@@ -1,12 +1,12 @@
 
-CC = wla-gb
+CC = wla-65816
 CFLAGS = -x -o
 LD = wlalink
 LDFLAGS = -v -s
 
-SFILES = main.s
+SFILES = main.s ram.s
 IFILES = 
-OFILES = main.o
+OFILES = main.o ram.o
 
 all: linked.gb check
 
@@ -15,6 +15,9 @@ linked.gb: $(OFILES) makefile
 
 main.o: main.s
 	$(CC) $(CFLAGS) main.o main.s
+
+ram.o: ram.s
+	$(CC) $(CFLAGS) ram.o ram.s
 
 check: linked.gb
 	byte_tester -s main.s

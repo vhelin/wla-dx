@@ -34,6 +34,12 @@ age    db
 weight dw
 .ENDST
 
+.struct another
+name   ds 16
+age    db
+height dw
+.endst
+	
 .db "01>"                                                      ; @BT TEST-01 01 START
 .DSTRUCT waterdrop1 INSTANCEOF water DATA "tingle", 40, 120    ; @BT 74 69 6E 67 6C 65 00 00 28 78 00
 .DSTRUCT waterdrop2, water, "tingle", 40, 120                  ; @BT 74 69 6E 67 6C 65 00 00 28 78 00

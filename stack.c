@@ -16,7 +16,7 @@
 
 
 extern int g_input_number_error_msg, g_bankheader_status, g_input_float_mode, g_global_label_hint, g_input_parse_if;
-extern int g_source_pointer, g_size, g_parsed_int, g_macro_active, g_string_size, g_section_status, g_parse_floats;
+extern int g_source_pointer, g_source_file_size, g_parsed_int, g_macro_active, g_string_size, g_section_status, g_parse_floats;
 extern char g_xyz[512], *g_buffer, g_tmp[4096], g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
 extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map;
@@ -36,6 +36,8 @@ extern int g_stack_inserted;
 
 static int g_is_calculating_deltas = NO, g_delta_counter = 0, g_delta_section = -1, g_delta_address = -1, g_delta_old_type = 0;
 static struct stack_item *g_delta_old_pointer;
+
+static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 
 
 static int _stack_insert(void) {
@@ -106,7 +108,6 @@ static int _break_before_value_or_string(int i, struct stack_item *si) {
 
   return FAILED;
 }
-
 
 #if WLA_DEBUG
 static void _debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int count, int id) {
@@ -239,13 +240,14 @@ static int _get_op_priority(int op) {
 }
 
 
-int stack_calculate(char *in, int *value) {
+int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_substitutor) {
 
   int q = 0, b = 0, d, k, op[256], n, o, l, curly_braces = 0, got_label = NO;
   struct stack_item si[256], ta[256];
   struct stack s;
   unsigned char e;
   double dou = 0.0, dom;
+  char *in_original = in;
 
 
   /* initialize (from Amiga's SAS/C) */
@@ -257,7 +259,7 @@ int stack_calculate(char *in, int *value) {
   }
 
   /* slice the data into infix format */
-  while (*in != 0xA) {
+  while (*in != 0xA && *in != 0) {
     if (q >= 255) {
       print_error("Out of stack space.\n", ERROR_STC);
       return FAILED;
@@ -525,6 +527,8 @@ int stack_calculate(char *in, int *value) {
       q++;
       in++;
     }
+    else if (*in == '}')
+      break;
     else if (*in == ',')
       break;
     else if (*in == ']')
@@ -540,7 +544,7 @@ int stack_calculate(char *in, int *value) {
           d = (d << 1) + (e - '0');
         else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
                  e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == '~' ||
-                 e == ']' || e == '.' || e == '=' || e == '!' || e == 0xA)
+                 e == ']' || e == '.' || e == '=' || e == '!' || e == '}' || e == 0xA)
           break;
         else {
           if (g_input_number_error_msg == YES) {
@@ -608,7 +612,7 @@ int stack_calculate(char *in, int *value) {
           d += e - 'a' + 10;
         else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' ||
                  e == '*' || e == '/' || e == ',' || e == '^' || e == '<' || e == '>' ||
-                 e == '#' || e == '~' || e == ']' || e == '.' || e == '=' || e == '!' || e == 0xA) {
+                 e == '#' || e == '~' || e == ']' || e == '.' || e == '=' || e == '!' || e == '}' || e == 0xA) {
           needs_shifting = YES;
           break;
         }
@@ -676,7 +680,7 @@ int stack_calculate(char *in, int *value) {
           else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' ||
                    e == '*' || e == '/' || e == ',' || e == '^' || e == '<' || e == '>' ||
                    e == '#' || e == '~' || e == ']' || e == '.' || e == 'h' || e == 'H' ||
-                   e == '=' || e == '!' || e == 0xA) {
+                   e == '=' || e == '!' || e == '}' || e == 0xA) {
             needs_shifting = YES;
             break;
           }
@@ -735,7 +739,7 @@ int stack_calculate(char *in, int *value) {
           }
           else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
                    e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == '~' ||
-                   e == ']' || e == '=' || e == '!' || e == 0xA)
+                   e == ']' || e == '=' || e == '!' || e == '}' || e == 0xA)
             break;
           else if (e == '.') {
             if (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D')
@@ -821,6 +825,10 @@ int stack_calculate(char *in, int *value) {
           curly_braces--;
 
         if (curly_braces <= 0) {
+          if (from_substitutor == YES && curly_braces < 0) {
+            si[q].string[k] = 0;
+            break;
+          }
           if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
               e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == ']' ||
               e == '~' || e == '=' || e == '!' || e == 0xA)
@@ -915,6 +923,9 @@ int stack_calculate(char *in, int *value) {
         si[q].string[k] = 0;
         si[q].type = STACK_ITEM_TYPE_STRING;
         got_label = YES;
+
+        if (from_substitutor == NO && expand_variables_inside_string(si[q].string, sizeof(((struct stack_item *)0)->string), NULL) == FAILED)
+          return FAILED;
       }
       else {
         si[q].type = STACK_ITEM_TYPE_VALUE;
@@ -938,7 +949,7 @@ int stack_calculate(char *in, int *value) {
   }
   
   /* only one item found -> let the item parser handle it */
-  if (q == 1)
+  if (q == 1 && from_substitutor == NO)
     return STACK_CALCULATE_DELAY;
 
   /* check if there was data before the computation */
@@ -973,7 +984,7 @@ int stack_calculate(char *in, int *value) {
   }
 
   /* update the source pointer */
-  g_source_pointer = (int)(in - g_buffer);
+  *bytes_parsed += (int)(in - in_original) - 1;
 
   /* fix the sign in every operand */
   for (b = 1, k = 0; k < q; k++) {
@@ -1034,6 +1045,13 @@ int stack_calculate(char *in, int *value) {
       b = 0;
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_LEFT)
       b = 1;
+    else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && (si[k].value == SI_OP_COMPARE_EQ ||
+                                                        si[k].value == SI_OP_COMPARE_NEQ ||
+                                                        si[k].value == SI_OP_COMPARE_LTE ||
+                                                        si[k].value == SI_OP_COMPARE_LT ||
+                                                        si[k].value == SI_OP_COMPARE_GT ||
+                                                        si[k].value == SI_OP_COMPARE_GTE))
+      b = 1;
   }
 
   /* turn unary XORs into NOTs */
@@ -1053,17 +1071,15 @@ int stack_calculate(char *in, int *value) {
   for (k = 0; k < q; k++) {
     if (si[k].type == STACK_ITEM_TYPE_STRING) {
       if (k+2 < q && si[k+1].type == STACK_ITEM_TYPE_OPERATOR && si[k+1].value == SI_OP_SUB && si[k+2].type == STACK_ITEM_TYPE_STRING) {
-	k += 2;
-	g_is_calculating_deltas = YES;
+        k += 2;
+        g_is_calculating_deltas = YES;
       }
       else {
-	g_is_calculating_deltas = NO;
-	break;
+        g_is_calculating_deltas = NO;
+        break;
       }
     }
   }
-
-  data_stream_parser_free();
 
   /* convert infix stack into postfix stack */
   for (b = 0, k = 0, d = 0; k < q; k++) {
@@ -1146,7 +1162,7 @@ int stack_calculate(char *in, int *value) {
   }
 
   /* only one string? */
-  if (d == 1 && ta[0].type == STACK_ITEM_TYPE_STRING) {
+  if (d == 1 && ta[0].type == STACK_ITEM_TYPE_STRING && ta[0].sign == SI_SIGN_POSITIVE) {
     strcpy(g_label, ta[0].string);
     process_special_labels(g_label);
     return STACK_RETURN_LABEL;
@@ -1228,8 +1244,12 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
   if (g_tmp_def != NULL) {
     if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
       if (g_input_parse_if == NO) {
+        /* change the contents */
+        strcpy(s->string, g_tmp_def->string);
+        /*
         snprintf(g_xyz, sizeof(g_xyz), "Definition \"%s\" is a string definition.\n", g_tmp_def->alias);
         print_error(g_xyz, ERROR_STC);
+        */
         return FAILED;
       }
       else {
@@ -1257,8 +1277,8 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
   else {
     if (g_is_calculating_deltas == YES) {
       /* the current calculation we are trying to solve contains at least one label pair A-B, and no other
-	 uses of labels. if we come here then a label wasn't a definition, but we can try to find the label's
-	 (possibly) non-final address, and use that as that should work when calculating deltas... */
+         uses of labels. if we come here then a label wasn't a definition, but we can try to find the label's
+         (possibly) non-final address, and use that as that should work when calculating deltas... */
       struct data_stream_item *dSI;
       
       /* read the labels and their addresses from the internal data stream */
@@ -1266,36 +1286,45 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
 
       dSI = data_stream_parser_find_label(s->string);
       if (dSI != NULL) {
-	if (g_delta_counter == 0) {
-	  g_delta_section = dSI->section_id;
-	  g_delta_address = dSI->address;
+        if (g_delta_counter == 0) {
+          g_delta_section = dSI->section_id;
+          g_delta_address = dSI->address;
 
-	  /* store the pointer and type if we need to reverse this change */
-	  g_delta_old_pointer = s;
-	  g_delta_old_type = s->type;
+          /* store the pointer and type if we need to reverse this change */
+          g_delta_old_pointer = s;
+          g_delta_old_type = s->type;
 
-	  s->type = STACK_ITEM_TYPE_VALUE;
-	  s->value = dSI->address;
+          s->type = STACK_ITEM_TYPE_VALUE;
+          s->value = dSI->address;
 
-	  g_delta_counter = 1;
-	}
-	else if (g_delta_counter == 1) {
-	  if (g_delta_section != dSI->section_id) {
-	    /* ABORT! labels A-B are from different sections, we cannot calculate the delta here... */
+          g_delta_counter = 1;
+        }
+        else if (g_delta_counter == 1) {
+          if (g_delta_section != dSI->section_id) {
+            /* ABORT! labels A-B are from different sections, we cannot calculate the delta here... */
 
-	    /* reverse the previous change */
-	    g_delta_old_pointer->type = g_delta_old_type;
+            /* reverse the previous change */
+            g_delta_old_pointer->type = g_delta_old_type;
 
-	    *cannot_resolve = 1;
-	  }
-	  else {
-	    /* success! A-B makes sense! */
-	    s->type = STACK_ITEM_TYPE_VALUE;
-	    s->value = dSI->address;
-	  }
+            *cannot_resolve = 1;
+          }
+          else {
+            /* success! A-B makes sense! */
+            s->type = STACK_ITEM_TYPE_VALUE;
+            s->value = dSI->address;
+          }
 
-	  g_delta_counter = 0;
-	}
+          g_delta_counter = 0;
+        }
+        else {
+          /* ABORT! could not find the first label thus we fail here at calculating the delta... */
+          *cannot_resolve = 1;
+        }
+      }
+      else {
+        /* ABORT! cannot find the label thus we fail here at calculating the delta... */
+        *cannot_resolve = 1;
+        g_delta_counter = -1;
       }
     }
   }
@@ -1428,24 +1457,24 @@ static int _process_string(struct stack_item *s, int *cannot_resolve) {
 }
 
 
-int resolve_stack(struct stack_item s[], int x) {
+int resolve_stack(struct stack_item s[], int stack_item_count) {
 
   struct stack_item *st;
-  int q = x, cannot_resolve = 0;
+  int backup = stack_item_count, cannot_resolve = 0;
 
   st = s;
-  while (x > 0) {
+  while (stack_item_count > 0) {
     int process_single = YES;
     
-    if (x >= 3 && g_input_parse_if == YES) {
-      /* [string] [string] ==/!= ? */
+    if (stack_item_count >= 3 && g_input_parse_if == YES) {
+      /* [string] [string] ==/!=/</>/<=/>= ? */
       s += 2;
-      x -= 2;
+      stack_item_count -= 2;
       
       if (s->type == STACK_ITEM_TYPE_OPERATOR && (s->value == SI_OP_COMPARE_EQ || s->value == SI_OP_COMPARE_NEQ || s->value == SI_OP_COMPARE_LT ||
                                                   s->value == SI_OP_COMPARE_GT || s->value == SI_OP_COMPARE_LTE || s->value == SI_OP_COMPARE_GTE)) {
         s -= 2;
-        x += 2;
+        stack_item_count += 2;
 
         if (s->type == STACK_ITEM_TYPE_STRING) {
           int cannot;
@@ -1455,7 +1484,7 @@ int resolve_stack(struct stack_item s[], int x) {
         }
         
         s++;
-        x--;
+        stack_item_count--;
 
         if (s->type == STACK_ITEM_TYPE_STRING) {
           int cannot;
@@ -1465,13 +1494,13 @@ int resolve_stack(struct stack_item s[], int x) {
         }
 
         s += 2;
-        x -= 2;
+        stack_item_count -= 2;
 
         process_single = NO;
       }
       else {
         s -= 2;
-        x += 2;
+        stack_item_count += 2;
       }
     }
 
@@ -1481,44 +1510,45 @@ int resolve_stack(struct stack_item s[], int x) {
           return FAILED;
       }
       s++;
-      x--;
+      stack_item_count--;
     }
   }
 
   if (cannot_resolve != 0)
     return FAILED;
-
+  
   /* find a string, a stack, bank, or a NOT and fail */
-  while (q > 0) {
+  stack_item_count = backup;
+  while (stack_item_count > 0) {
     int process_single = YES;
     
-    if (q >= 3 && g_input_parse_if == YES) {
+    if (stack_item_count >= 3 && g_input_parse_if == YES) {
       /* [string] [string] ==/!= ? */
       st += 2;
-      q -= 2;
+      stack_item_count -= 2;
 
       if (st->type == STACK_ITEM_TYPE_OPERATOR && (st->value == SI_OP_COMPARE_EQ || st->value == SI_OP_COMPARE_NEQ || st->value == SI_OP_COMPARE_LT ||
                                                    st->value == SI_OP_COMPARE_GT || st->value == SI_OP_COMPARE_LTE || st->value == SI_OP_COMPARE_GTE)) {
         st -= 2;
-        q += 2;
+        stack_item_count += 2;
 
         if (st->type == STACK_ITEM_TYPE_STACK || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
           return FAILED;
 
         st++;
-        q--;
+        stack_item_count--;
 
         if (st->type == STACK_ITEM_TYPE_STACK || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
           return FAILED;
         
         st += 2;
-        q -= 2;
+        stack_item_count -= 2;
 
         process_single = NO;
       }
       else {
         st -= 2;
-        q += 2;
+        stack_item_count += 2;
       }
     }
 
@@ -1527,7 +1557,7 @@ int resolve_stack(struct stack_item s[], int x) {
         return FAILED;
       if (g_input_parse_if == NO && st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_NOT)
         return FAILED;
-      q--;
+      stack_item_count--;
       st++;
     }
   }
@@ -1547,7 +1577,7 @@ static int _comparing_a_string_with_a_number(char *sp1, char *sp2, struct stack 
 }
 
 
-int compute_stack(struct stack *sta, int x, double *result) {
+int compute_stack(struct stack *sta, int stack_item_count, double *result) {
 
   struct stack_item *s;
   double v[256];
@@ -1557,7 +1587,10 @@ int compute_stack(struct stack *sta, int x, double *result) {
   v[0] = 0.0;
 
   s = sta->stack;
-  for (r = 0, t = 0; r < x; r++, s++) {
+  /*
+  _debug_print_stack(0, 0, s, stack_item_count, 0);
+  */
+  for (r = 0, t = 0; r < stack_item_count; r++, s++) {
     if (s->type == STACK_ITEM_TYPE_VALUE) {
       if (s->sign == SI_SIGN_NEGATIVE)
         v[t] = -s->value;
@@ -1969,14 +2002,36 @@ int stack_create_stack_stack(int stack_id) {
 }
 
 
-struct data_stream_item *g_data_stream_items_first = NULL, *g_data_stream_items_last = NULL;
-int g_is_data_stream_processed = NO;
+/* TODO: move the following code to its own file... */
 
+#include "pass_3.h"
+
+#define XSTRINGIFY(x) #x
+#define STRINGIFY(x) XSTRINGIFY(x)
+#define STRING_READ_FORMAT ("%" STRINGIFY(MAX_NAME_LENGTH) "s ")
+
+struct data_stream_item *g_data_stream_items_first = NULL, *g_data_stream_items_last = NULL;
+
+extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
+extern char g_namespace[MAX_NAME_LENGTH + 1];
 extern FILE *g_file_out_ptr;
+
+/* internal variables for data_stream_parser_parse(), saved here so that the function can continue next time it's called from
+   where it left off previous call */
+static struct data_stream_item *s_dsp_parent_labels[10];
+static int s_dsp_last_data_stream_position = 0, s_dsp_has_data_stream_parser_been_initialized = NO;
+static int s_dsp_add = 0, s_dsp_add_old = 0, s_dsp_section_id = -1, s_dsp_bits_current = 0, s_dsp_inz, s_dsp_line_number = 0;
+static struct section_def *s_dsp_s = NULL;
+static struct map_t *s_dsp_labels_map = NULL;
 
 
 int data_stream_parser_free(void) {
 
+  if (s_dsp_labels_map != NULL) {
+    hashmap_free(s_dsp_labels_map);
+    s_dsp_labels_map = NULL;
+  }
+  
   while (g_data_stream_items_first != NULL) {
     struct data_stream_item *next = g_data_stream_items_first->next;
     free(g_data_stream_items_first);
@@ -1986,28 +2041,34 @@ int data_stream_parser_free(void) {
   g_data_stream_items_first = NULL;
   g_data_stream_items_last = NULL;
 
-  g_is_data_stream_processed = NO;
-
   return SUCCEEDED;
 }
 
 
 int data_stream_parser_parse(void) {
 
-  int add = 0, add_old = 0, section_id = -1, bits_current = 0, inz, line_number = 0;
   FILE *f_in;
   char c;
   
-  if (g_is_data_stream_processed == YES)
-    return SUCCEEDED;
-
   if (g_file_out_ptr == NULL) {
     print_error("The internal data stream is closed! It should be open. Please submit a bug report!\n", ERROR_STC);
     return FAILED;
   }
 
-  /* seek to the beginning of the file for parsing */
-  fseek(g_file_out_ptr, 0, SEEK_SET);
+  if (s_dsp_has_data_stream_parser_been_initialized == NO) {
+    /* do the init when we first time come here */
+    s_dsp_has_data_stream_parser_been_initialized = YES;
+    
+    memset(s_dsp_parent_labels, 0, sizeof(s_dsp_parent_labels));
+    g_namespace[0] = 0;
+
+    s_dsp_labels_map = hashmap_new();
+  
+    /* seek to the beginning of the file for parsing */
+    fseek(g_file_out_ptr, 0, SEEK_SET);
+  }
+  else
+    fseek(g_file_out_ptr, s_dsp_last_data_stream_position, SEEK_SET);
 
   f_in = g_file_out_ptr;
 
@@ -2033,68 +2094,73 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 'P':
-      add_old = add;
+      s_dsp_add_old = s_dsp_add;
       continue;
     case 'p':
-      add = add_old;
+      s_dsp_add = s_dsp_add_old;
       continue;
 
     case 'A':
     case 'S':
       if (c == 'A')
-        fscanf(f_in, "%d %*d", &section_id);
+        fscanf(f_in, "%d %*d", &s_dsp_section_id);
       else
-        fscanf(f_in, "%d ", &section_id);
+        fscanf(f_in, "%d ", &s_dsp_section_id);
 
-      add_old = add;
+      s_dsp_add_old = s_dsp_add;
 
+      s_dsp_s = g_sections_first;
+      while (s_dsp_s != NULL && s_dsp_s->id != s_dsp_inz)
+        s_dsp_s = s_dsp_s->next;
+      
       continue;
 
     case 's':
-      section_id = -1;
+      s_dsp_section_id = -1;
+      s_dsp_s = NULL;
       continue;
 
     case 'x':
     case 'o':
-      fscanf(f_in, "%d %*d ", &inz);
-      add += inz;
+      fscanf(f_in, "%d %*d ", &s_dsp_inz);
+      s_dsp_add += s_dsp_inz;
       continue;
 
     case 'X':
-      fscanf(f_in, "%d %*d ", &inz);
-      add += inz * 2;
+      fscanf(f_in, "%d %*d ", &s_dsp_inz);
+      s_dsp_add += s_dsp_inz * 2;
       continue;
 
     case 'h':
-      fscanf(f_in, "%d %*d ", &inz);
-      add += inz * 3;
+      fscanf(f_in, "%d %*d ", &s_dsp_inz);
+      s_dsp_add += s_dsp_inz * 3;
       continue;
 
     case 'w':
-      fscanf(f_in, "%d %*d ", &inz);
-      add += inz * 4;
+      fscanf(f_in, "%d %*d ", &s_dsp_inz);
+      s_dsp_add += s_dsp_inz * 4;
       continue;
 
     case 'z':
     case 'q':
       fscanf(f_in, "%*s ");
-      add += 3;
+      s_dsp_add += 3;
       continue;
 
     case 'T':
       fscanf(f_in, "%*d ");
-      add += 3;
+      s_dsp_add += 3;
       continue;
 
     case 'u':
     case 'V':
       fscanf(f_in, "%*s ");
-      add += 4;
+      s_dsp_add += 4;
       continue;
 
     case 'U':
       fscanf(f_in, "%*d ");
-      add += 4;
+      s_dsp_add += 4;
       continue;
 
     case 'v':
@@ -2110,33 +2176,31 @@ int data_stream_parser_parse(void) {
     case 'd':
     case 'c':
       fscanf(f_in, "%*s ");
-      add++;
+      s_dsp_add++;
       continue;
 
     case 'M':
     case 'r':
       fscanf(f_in, "%*s ");
-      add += 2;
+      s_dsp_add += 2;
       continue;
 
     case 'y':
     case 'C':
       fscanf(f_in, "%*d ");
-      add += 2;
+      s_dsp_add += 2;
       continue;
 
 #ifdef SUPERFX
-
     case '*':
       fscanf(f_in, "%*s ");
-      add++;
+      s_dsp_add++;
       continue;
       
     case '-':
       fscanf(f_in, "%*d ");
-      add++;
+      s_dsp_add++;
       continue;
-
 #endif
 
     case '+':
@@ -2147,20 +2211,20 @@ int data_stream_parser_parse(void) {
         fscanf(f_in, "%d ", &bits_to_add);
 
         if (bits_to_add == 999) {
-          bits_current = 0;
+          s_dsp_bits_current = 0;
 
           continue;
         }
         else {
-          if (bits_current == 0)
-            add++;
-          bits_current += bits_to_add;
-          while (bits_current > 8) {
-            bits_current -= 8;
-            add++;
+          if (s_dsp_bits_current == 0)
+            s_dsp_add++;
+          s_dsp_bits_current += bits_to_add;
+          while (s_dsp_bits_current > 8) {
+            s_dsp_bits_current -= 8;
+            s_dsp_add++;
           }
           if (bits_to_add == 8)
-            bits_current = 0;
+            s_dsp_bits_current = 0;
         }
 
         fscanf(f_in, "%c", &type);
@@ -2178,22 +2242,22 @@ int data_stream_parser_parse(void) {
 #ifdef SPC700
     case 'n':
       fscanf(f_in, "%*d %*s ");
-      add += 2;
+      s_dsp_add += 2;
       continue;
 
     case 'N':
       fscanf(f_in, "%*d %*d ");
-      add += 2;
+      s_dsp_add += 2;
       continue;
 #endif
 
     case 'D':
-      fscanf(f_in, "%*d %*d %*d %d ", &inz);
-      add += inz;
+      fscanf(f_in, "%*d %*d %*d %d ", &s_dsp_inz);
+      s_dsp_add += s_dsp_inz;
       continue;
 
     case 'O':
-      fscanf(f_in, "%d ", &add);
+      fscanf(f_in, "%d ", &s_dsp_add);
       continue;
 
     case 'B':
@@ -2208,9 +2272,11 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 't':
-      fscanf(f_in, "%d ", &inz);
-      if (inz != 0)
-        fscanf(f_in, "%*s ");
+      fscanf(f_in, "%d ", &s_dsp_inz);
+      if (s_dsp_inz == 0)
+        g_namespace[0] = 0;
+      else
+        fscanf(f_in, STRING_READ_FORMAT, g_namespace);
       continue;
 
     case 'Z': /* breakpoint */
@@ -2222,28 +2288,70 @@ int data_stream_parser_parse(void) {
         fscanf(f_in, "%*s ");
       }
       else {
-	struct data_stream_item *dSI;
+        struct data_stream_item *dSI;
+        int mangled_label = NO;
 
-	dSI = calloc(sizeof(struct data_stream_item), 1);
-	if (dSI == NULL) {
-	  print_error("Out of memory error while allocating a data_stream_item.\n", ERROR_STC);
-	  return FAILED;
-	}
+        dSI = calloc(sizeof(struct data_stream_item), 1);
+        if (dSI == NULL) {
+          print_error("Out of memory error while allocating a data_stream_item.\n", ERROR_ERR);
+          return FAILED;
+        }
 
         fscanf(f_in, "%s ", dSI->label);
 
-	dSI->next = NULL;
-	dSI->address = add;
-	dSI->section_id = section_id;
+        if (is_label_anonymous(dSI->label) == YES) {
+          /* we skip anonymous labels here, too much trouble */
+          free(dSI);
+        }
+        else {
+          /* if the label has '@' at the start, mangle the label name to make it unique */
+          int n = 0, m;
 
-	if (g_data_stream_items_first == NULL) {
-	  g_data_stream_items_first = dSI;
-	  g_data_stream_items_last = dSI;
-	}
-	else {
-	  g_data_stream_items_last->next = dSI;
-	  g_data_stream_items_last = dSI;
-	}
+          while (n < 10 && dSI->label[n] == '@')
+            n++;
+          m = n;
+          while (m < 10)
+            s_dsp_parent_labels[m++] = NULL;
+
+          if (n < 10)
+            s_dsp_parent_labels[n] = dSI;
+          n--;
+          while (n >= 0 && s_dsp_parent_labels[n] == 0)
+            n--;
+
+          if (n >= 0) {
+            /* mangle the label so that we'll save only full forms of labels */
+            if (mangle_label(dSI->label, s_dsp_parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+              return FAILED;
+
+            mangled_label = YES;
+          }
+
+          if (is_label_anonymous(dSI->label) == NO && g_namespace[0] != 0 && mangled_label == NO) {
+            if (s_dsp_section_id < 0 || s_dsp_s->nspace == NULL) {
+              if (add_namespace(dSI->label, g_namespace, sizeof(dSI->label)) == FAILED)
+                return FAILED;
+            }
+          }
+        
+          dSI->next = NULL;
+          dSI->address = s_dsp_add;
+          dSI->section_id = s_dsp_section_id;
+
+          /* store the entry in a hashmap for quick discovery */
+          if (hashmap_put(s_dsp_labels_map, dSI->label, dSI) == MAP_OMEM)
+            fprintf(stderr, "data_stream_parser_parse(): Out of memory error while trying to insert label \"%s\" into a hashmap.\n", dSI->label);
+
+          /* store the entry in a linked list so we can free it later */
+          if (g_data_stream_items_first == NULL) {
+            g_data_stream_items_first = dSI;
+            g_data_stream_items_last = dSI;
+          }
+          else {
+            g_data_stream_items_last->next = dSI;
+            g_data_stream_items_last = dSI;
+          }
+        }
       }
 
       continue;
@@ -2253,7 +2361,7 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 'k':
-      fscanf(f_in, "%d ", &line_number);
+      fscanf(f_in, "%d ", &s_dsp_line_number);
       continue;
 
     case 'e':
@@ -2266,26 +2374,43 @@ int data_stream_parser_parse(void) {
     }
   }
 
+  /* remember the data stream position for the next time this function is called */
+  s_dsp_last_data_stream_position = (int)ftell(f_in);
+  
   /* seek to the very end of the file so we can continue writing to it */
   fseek(g_file_out_ptr, 0, SEEK_END);
   
-  g_is_data_stream_processed = YES;
-
   return SUCCEEDED;
 }
 
 
 struct data_stream_item *data_stream_parser_find_label(char *label) {
 
+  char mangled_label[MAX_NAME_LENGTH+1];
   struct data_stream_item *dSI;
 
-  dSI = g_data_stream_items_first;
-  while (dSI != NULL) {
-    if (strcmp(label, dSI->label) == 0)
-      return dSI;
-    dSI = dSI->next;
+  strcpy(mangled_label, label);
+  
+  if (is_label_anonymous(label) == NO) {
+    /* if the label has '@' at the start, mangle the label name to get its full form */
+    int n = 0;
+
+    while (n < 10 && label[n] == '@')
+      n++;
+    n--;
+
+    if (n >= 0) {
+      if (s_dsp_parent_labels[n] == NULL) {
+        fprintf(stderr, "DATA_STREAM_PARSER_FIND_LABEL: Parent of label \"%s\" is missing! Please submit a bug report!\n", label);
+        return NULL;
+      }
+      if (mangle_label(mangled_label, s_dsp_parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+        return NULL;
+    }
   }
 
-  return NULL;
+  hashmap_get(s_dsp_labels_map, mangled_label, (void *)&dSI);
+
+  return dSI;
 }
 

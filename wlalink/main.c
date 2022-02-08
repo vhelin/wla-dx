@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char g_version_string[] = "$VER: wlalink 5.16a (17.8.2021)";
+char g_version_string[] = "$VER: wlalink 5.16a (21.1.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -50,7 +50,7 @@ struct slot g_slots[256];
 struct after_section *g_after_sections = NULL, *g_after_tmp;
 struct label_sizeof *g_label_sizeofs = NULL;
 struct section_fix *g_sec_fix_first = NULL, *g_sec_fix_tmp = NULL;
-unsigned char *g_rom, *g_rom_usage, *g_file_header = NULL, *g_file_footer = NULL;
+unsigned char *g_rom = NULL, *g_rom_usage = NULL, *g_file_header = NULL, *g_file_footer = NULL;
 char g_load_address_label[MAX_NAME_LENGTH + 1], **g_ram_slots[256];
 int g_load_address = 0, g_load_address_type = LOAD_ADDRESS_TYPE_UNDEFINED;
 char g_program_address_start_label[MAX_NAME_LENGTH + 1], g_program_address_end_label[MAX_NAME_LENGTH + 1];
@@ -59,7 +59,8 @@ int g_romsize, g_rombanks, g_banksize, g_verbose_mode = OFF, g_section_overwrite
 int g_pc_bank, g_pc_full, g_pc_slot, g_pc_slot_max;
 int g_file_header_size, g_file_footer_size, *g_banksizes = NULL, *g_bankaddress = NULL;
 int g_output_mode = OUTPUT_ROM, g_discard_unreferenced_sections = OFF, g_use_libdir = NO;
-int g_program_start, g_program_end, g_sms_checksum, g_smstag_defined = 0, g_snes_rom_mode = SNES_ROM_MODE_LOROM, g_snes_rom_speed = SNES_ROM_SPEED_SLOWROM, g_sms_header = 0;
+int g_program_start, g_program_end, g_sms_checksum, g_smstag_defined = 0, g_snes_rom_mode = SNES_ROM_MODE_LOROM, g_snes_rom_speed = SNES_ROM_SPEED_SLOWROM;
+int g_sms_header = 0, g_sms_checksum_already_written = 0, g_sms_checksum_size_defined = 0, g_sms_checksum_size = 0;
 int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode = 0;
 int g_smc_status = 0, g_snes_sramsize = 0;
 int g_output_type = OUTPUT_TYPE_UNDEFINED, g_sort_sections = YES;
@@ -1080,6 +1081,10 @@ void procedures_at_exit(void) {
   
   if (g_sorted_anonymous_labels != NULL)
     free(g_sorted_anonymous_labels);
+
+  /* free ROM */
+  free(g_rom);
+  free(g_rom_usage);
 }
 
 

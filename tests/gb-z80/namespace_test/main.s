@@ -153,5 +153,14 @@ _globalFunc: ; Should not be called
 	.db _sizeof__globalFunc
 .ENDS
 
+.SECTION "Sharing the namespace inside the same file" namespace "shared" free keep
+anotherSharedEntry:
+        nop
+        ret
+
+_anotherGlobalFunc:
+        jr _anotherGlobalFunc
+.ENDS
+        
 _globalFunc:
 	ret
