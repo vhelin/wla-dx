@@ -408,7 +408,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
       }
 
       /* perform substitution */
-      size_substitution = strlen(substitution);
+      size_substitution = (int)strlen(substitution);
       for (q = 0; k < max_size_tmp && q < size_substitution; q++)
         tmp[k++] = substitution[q];
           
