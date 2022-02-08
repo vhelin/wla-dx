@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------
 
-v10.1 (06-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
+v10.1 (08-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                       given in any order, only the first argument must be the
                       section's name.
                     [ALL] A definition can be substituted with its value in
@@ -31,6 +31,8 @@ v10.1 (06-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                       work again.
                     [ALL] Sharing a namespace between sections should not make
                       WLA to crash at exit.
+                    [ALL] MAX_NAME_LENGTH is now 1023 instead of 255. This
+                      change allows to longer strings/labels.
                     [658] The maximum SRAMSIZE in SNES ROM header is now 7
                       instead of 3.
                     [SFX] Fixed "MOVE (xx),Rn" macro instruction parsing. And

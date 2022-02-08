@@ -199,7 +199,7 @@ int input_next_string(void) {
 
   if (k == MAX_NAME_LENGTH) {
     if (g_input_number_error_msg == YES) {
-      snprintf(g_xyz, sizeof(g_xyz), "The string is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
+      snprintf(g_xyz, sizeof(g_xyz), "The string is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
       print_error(g_xyz, ERROR_NUM);
     }
     return FAILED;
@@ -262,7 +262,7 @@ static int _input_number_return_definition(struct definition *def) {
       /* we need to keep the ':' prefix */
       if (strlen(def->string) >= MAX_NAME_LENGTH-1) {
         if (g_input_number_error_msg == YES) {
-          snprintf(g_xyz, sizeof(g_xyz), "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
+          snprintf(g_xyz, sizeof(g_xyz), "The label is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
           print_error(g_xyz, ERROR_NUM);
         }
         return FAILED;          
@@ -1079,7 +1079,7 @@ int input_number(void) {
     
     if (k >= MAX_NAME_LENGTH) {
       if (g_input_number_error_msg == YES) {
-        snprintf(g_xyz, sizeof(g_xyz), "The string is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
+        snprintf(g_xyz, sizeof(g_xyz), "The string is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
         print_error(g_xyz, ERROR_NUM);
       }
       return FAILED;
@@ -1149,7 +1149,7 @@ int input_number(void) {
 
   if (k == MAX_NAME_LENGTH) {
     if (g_input_number_error_msg == YES) {
-      snprintf(g_xyz, sizeof(g_xyz), "The label is too long (max %d characters allowed).\n", MAX_NAME_LENGTH);
+      snprintf(g_xyz, sizeof(g_xyz), "The label is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
       print_error(g_xyz, ERROR_NUM);
     }
     return FAILED;
