@@ -28,8 +28,8 @@ extern struct after_section *g_after_sections;
 extern struct label_sizeof *g_label_sizeofs;
 extern FILE *g_file_out_ptr;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
-extern char g_tmp_name[MAX_NAME_LENGTH + 1], g_tmp[4096], *g_final_name;
-extern int g_rombanks, g_output_format, g_test_mode, g_listfile_data, g_little_endian;
+extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp, *g_final_name;
+extern int g_rombanks, g_output_format, g_test_mode, g_listfile_data, g_little_endian, g_sizeof_g_tmp;
 
 #ifdef GB
 extern char g_licenseecodenew_c1, g_licenseecodenew_c2;
@@ -700,7 +700,7 @@ int pass_4(void) {
 
           if (g_namespace[0] != 0) {
             if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-              if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+              if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
                 return FAILED;
             }
           }
@@ -940,7 +940,7 @@ int pass_4(void) {
 
           if (g_namespace[0] != 0 && mangled_label == NO) {
             if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-              if (add_namespace(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+              if (add_namespace(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
                 return FAILED;
             }
           }
@@ -1259,7 +1259,7 @@ int pass_4(void) {
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+          if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
             return FAILED;
         }
       }
@@ -1322,7 +1322,7 @@ int pass_4(void) {
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+          if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
             return FAILED;
         }
       }
@@ -1391,7 +1391,7 @@ int pass_4(void) {
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+          if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
             return FAILED;
         }
       }
@@ -1448,7 +1448,7 @@ int pass_4(void) {
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+          if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
             return FAILED;
         }
       }
@@ -1507,7 +1507,7 @@ int pass_4(void) {
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+          if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
             return FAILED;
         }
       }
@@ -1561,7 +1561,7 @@ int pass_4(void) {
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+          if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
             return FAILED;
         }
       }
@@ -1607,7 +1607,7 @@ int pass_4(void) {
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (_add_namespace_to_reference(g_tmp, g_namespace, sizeof(g_tmp)) == FAILED)
+          if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
             return FAILED;
         }
       }

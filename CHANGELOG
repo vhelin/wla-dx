@@ -32,7 +32,8 @@ v10.1 (08-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                     [ALL] Sharing a namespace between sections should not make
                       WLA to crash at exit.
                     [ALL] MAX_NAME_LENGTH is now 1023 instead of 255. This
-                      change allows to longer strings/labels.
+                      change allows to longer strings/labels (NOTE: On Amiga
+                      the limit is still the same 255, due to limited stack).
                     [658] The maximum SRAMSIZE in SNES ROM header is now 7
                       instead of 3.
                     [SFX] Fixed "MOVE (xx),Rn" macro instruction parsing. And

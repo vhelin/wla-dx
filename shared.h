@@ -3,7 +3,7 @@
 #define _SHARED_H
 
 /* want to use longer strings and labels? change this - PS. it doesn't contain the null terminator */
-#ifdef AMIGA
+#if defined(AMIGA) || defined(MSDOS)
 #define MAX_NAME_LENGTH 255
 #else
 #define MAX_NAME_LENGTH 1023

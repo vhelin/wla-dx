@@ -15,6 +15,13 @@
 #define HINT_TYPE_GIVEN   1
 #define HINT_TYPE_DEDUCED 2
 
+/* want to have more operands and operators in a calculation? change this... */
+#if defined(AMIGA) || defined(MSDOS)
+#define MAX_STACK_CALCULATOR_ITEMS 64
+#else
+#define MAX_STACK_CALCULATOR_ITEMS 256
+#endif
+
 #define STACK_CALCULATE_DELAY 2
 #define STACK_RETURN_LABEL 1024
 

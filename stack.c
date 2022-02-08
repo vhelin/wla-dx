@@ -17,7 +17,7 @@
 
 extern int g_input_number_error_msg, g_bankheader_status, g_input_float_mode, g_global_label_hint, g_input_parse_if;
 extern int g_source_pointer, g_source_file_size, g_parsed_int, g_macro_active, g_string_size, g_section_status, g_parse_floats;
-extern char g_xyz[512], *g_buffer, g_tmp[4096], g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
+extern char g_xyz[512], *g_buffer, *g_tmp, g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
 extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
@@ -242,8 +242,8 @@ static int _get_op_priority(int op) {
 
 int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_substitutor) {
 
-  int q = 0, b = 0, d, k, op[256], n, o, l, curly_braces = 0, got_label = NO;
-  struct stack_item si[256], ta[256];
+  int q = 0, b = 0, d, k, op[MAX_STACK_CALCULATOR_ITEMS], n, o, l, curly_braces = 0, got_label = NO;
+  struct stack_item si[MAX_STACK_CALCULATOR_ITEMS], ta[MAX_STACK_CALCULATOR_ITEMS];
   struct stack s;
   unsigned char e;
   double dou = 0.0, dom;
@@ -251,7 +251,7 @@ int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_
 
 
   /* initialize (from Amiga's SAS/C) */
-  for (k = 0; k < 256; k++) {
+  for (k = 0; k < MAX_STACK_CALCULATOR_ITEMS; k++) {
     si[k].type = STACK_ITEM_TYPE_VALUE;
     si[k].sign = SI_SIGN_POSITIVE;
     si[k].value = 0.0;
@@ -260,8 +260,8 @@ int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_
 
   /* slice the data into infix format */
   while (*in != 0xA && *in != 0) {
-    if (q >= 255) {
-      print_error("Out of stack space.\n", ERROR_STC);
+    if (q >= MAX_STACK_CALCULATOR_ITEMS-1) {
+      print_error("Out of stack space. Adjust MAX_STACK_CALCULATOR_ITEMS in defines.h and recompile WLA!\n", ERROR_STC);
       return FAILED;
     }
 
@@ -1580,8 +1580,8 @@ static int _comparing_a_string_with_a_number(char *sp1, char *sp2, struct stack 
 int compute_stack(struct stack *sta, int stack_item_count, double *result) {
 
   struct stack_item *s;
-  double v[256];
-  char *sp[256];
+  double v[MAX_STACK_CALCULATOR_ITEMS];
+  char *sp[MAX_STACK_CALCULATOR_ITEMS];
   int r, t, z;
 
   v[0] = 0.0;

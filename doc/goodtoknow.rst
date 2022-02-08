@@ -1,8 +1,12 @@
 Good things to know about WLA
 =============================
 
-- Is 255 bytes too little for a string (file names, labels, definition labels,
-  etc)? Check out ``MAX_NAME_LENGTH`` in ``shared.h``.
+- Is 255 (Amiga, MSDOS) or 1023 (other platforms) bytes too little for a
+  string (file names, labels, definition labels, etc)? Check out
+  ``MAX_NAME_LENGTH`` in ``shared.h``.
+- Want to have more operators and operands in a calculation than 64 (Amiga,
+  MSDOS) or 256 (other platforms)? Check out ``MAX_STACK_CALCULATOR_ITEMS``
+  in ``defines.h``.
 - WLA preprocessor doesn't expand macros and repetitions. Those are actually
   traversed in the assembling phase.
 - WLA's source code is mainly a huge mess, but WLALINK is quite well

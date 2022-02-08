@@ -88,7 +88,8 @@ char g_name[32];
 int g_name_defined = 0;
 #endif
 
-char g_tmp[4096], g_error_message[sizeof(g_tmp) + MAX_NAME_LENGTH + 1 + 1024];
+int g_sizeof_g_tmp = 4096, g_sizeof_g_error_message = 4096 + MAX_NAME_LENGTH + 1 + 1024;
+char *g_tmp = NULL, *g_error_message = NULL;
 char *g_label_stack[256];
 char g_current_directive[MAX_NAME_LENGTH + 1];
 
@@ -201,7 +202,7 @@ static int _get_slot_number_by_its_name(char *slot_name, int *number) {
     }
   }
 
-  snprintf(g_error_message, sizeof(g_error_message), "Cannot find SLOT \"%s\".\n", slot_name);
+  snprintf(g_error_message, g_sizeof_g_error_message, "Cannot find SLOT \"%s\".\n", slot_name);
   print_error(g_error_message, ERROR_DIR);
 
   return FAILED;  
@@ -221,7 +222,7 @@ static int _get_slot_number_by_a_value(int value, int *slot) {
     /* value can be the direct SLOT ID, but can it be a SLOT's address as well? */
     for (i = 0; i < g_slots_amount; i++) {
       if (g_slots[i].address == value && value != i) {
-        snprintf(g_error_message, sizeof(g_error_message), "There is a SLOT number %d, but there also is a SLOT (with ID %d) with starting address %d ($%x)... Using SLOT %d.\n", value, i, value, value, value);
+        snprintf(g_error_message, g_sizeof_g_error_message, "There is a SLOT number %d, but there also is a SLOT (with ID %d) with starting address %d ($%x)... Using SLOT %d.\n", value, i, value, value, value);
         print_error(g_error_message, ERROR_WRN);
         break;
       }
@@ -240,7 +241,7 @@ static int _get_slot_number_by_a_value(int value, int *slot) {
 
   *slot = -1;
 
-  snprintf(g_error_message, sizeof(g_error_message), "Cannot find SLOT %d.\n", value);
+  snprintf(g_error_message, g_sizeof_g_error_message, "Cannot find SLOT %d.\n", value);
   print_error(g_error_message, ERROR_DIR);
   
   return FAILED;
@@ -389,7 +390,7 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
   if (number_result == FAILED)
     return FAILED;
   else if (number_result == INPUT_NUMBER_EOL) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs data.\n", name);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs data.\n", name);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
@@ -496,14 +497,14 @@ int macro_insert_byte_db(char *name) {
     hashmap_get(g_defines_map, "_OUT", (void*)&d);
 
   if (d == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
+    snprintf(g_error_message, g_sizeof_g_error_message, "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
 
   if (d->type == DEFINITION_TYPE_VALUE) {
     if (d->value < -128 || d->value > 255) {
-      snprintf(g_error_message, sizeof(g_error_message), ".%s expects 8-bit data, %d is out of range!\n", name, (int)d->value);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".%s expects 8-bit data, %d is out of range!\n", name, (int)d->value);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -513,7 +514,7 @@ int macro_insert_byte_db(char *name) {
     fprintf(g_file_out_ptr, "c%d ", (int)d->value);
   }
   else {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s cannot handle strings in \"_OUT/_out\".\n", name);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s cannot handle strings in \"_OUT/_out\".\n", name);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -530,14 +531,14 @@ int macro_insert_word_db(char *name) {
     hashmap_get(g_defines_map, "_OUT", (void*)&d);
 
   if (d == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
+    snprintf(g_error_message, g_sizeof_g_error_message, "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
 
   if (d->type == DEFINITION_TYPE_VALUE) {
     if (d->value < -32768 || d->value > 65535) {
-      snprintf(g_error_message, sizeof(g_error_message), ".%s expects 16-bit data, %d is out of range!\n", name, (int)d->value);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".%s expects 16-bit data, %d is out of range!\n", name, (int)d->value);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -553,7 +554,7 @@ int macro_insert_word_db(char *name) {
     */
   }
   else {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s cannot handle strings in \"_OUT/_out\".\n", name);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s cannot handle strings in \"_OUT/_out\".\n", name);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -570,14 +571,14 @@ int macro_insert_long_db(char *name) {
     hashmap_get(g_defines_map, "_OUT", (void*)&d);
 
   if (d == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
+    snprintf(g_error_message, g_sizeof_g_error_message, "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
 
   if (d->type == DEFINITION_TYPE_VALUE) {
     if (d->value < -8388608 || d->value > 16777215) {
-      snprintf(g_error_message, sizeof(g_error_message), ".%s expects 24-bit data, %d is out of range!\n", name, (int)d->value);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".%s expects 24-bit data, %d is out of range!\n", name, (int)d->value);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -593,7 +594,7 @@ int macro_insert_long_db(char *name) {
     */
   }
   else {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s cannot handle strings in \"_OUT/_out\".\n", name);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s cannot handle strings in \"_OUT/_out\".\n", name);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -610,14 +611,14 @@ int macro_insert_double_dw(char *name) {
     hashmap_get(g_defines_map, "_OUT", (void*)&d);
 
   if (d == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
+    snprintf(g_error_message, g_sizeof_g_error_message, "No \"_OUT/_out\" defined, .%s takes its output from there.\n", name);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
 
   if (d->type == DEFINITION_TYPE_VALUE) {
     if (d->value < -2147483648.0 || d->value > 2147483647.0) {
-      snprintf(g_error_message, sizeof(g_error_message), ".%s expects 32-bit data, %d is out of range!\n", name, (int)d->value);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".%s expects 32-bit data, %d is out of range!\n", name, (int)d->value);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -633,7 +634,7 @@ int macro_insert_double_dw(char *name) {
     */
   }
   else {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s cannot handle strings in \"_OUT/_out\".\n", name);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s cannot handle strings in \"_OUT/_out\".\n", name);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -735,12 +736,12 @@ int pass_1(void) {
             return FAILED;
           }
           if (g_org_defined == 0) {
-            snprintf(g_error_message, sizeof(g_error_message), "\"%s\" needs a position in memory.\n", g_tmp);
+            snprintf(g_error_message, g_sizeof_g_error_message, "\"%s\" needs a position in memory.\n", g_tmp);
             print_error(g_error_message, ERROR_LOG);
             return FAILED;
           }
           if (g_ss >= MAX_NAME_LENGTH) {
-            snprintf(g_error_message, sizeof(g_error_message), "The label \"%s\" is too long. Max label length is %d characters.\n", g_tmp, MAX_NAME_LENGTH);
+            snprintf(g_error_message, g_sizeof_g_error_message, "The label \"%s\" is too long. Max label length is %d characters.\n", g_tmp, MAX_NAME_LENGTH);
             print_error(g_error_message, ERROR_NONE);
             return FAILED;
           }
@@ -752,7 +753,7 @@ int pass_1(void) {
           /* check out for \@-symbols */
           if (g_macro_active != 0 && q >= 2) {
             if (g_tmp[q - 2] == '\\' && g_tmp[q - 1] == '@')
-              snprintf(&g_tmp[q - 2], sizeof(g_tmp) - (q - 2), "%d", g_macro_runtime_current->macro->calls - 1);
+              snprintf(&g_tmp[q - 2], g_sizeof_g_tmp - (q - 2), "%d", g_macro_runtime_current->macro->calls - 1);
           }
 
           add_label_to_label_stack(g_tmp);
@@ -776,7 +777,7 @@ int pass_1(void) {
       }
       
       if (m == NULL) {
-        snprintf(g_error_message, sizeof(g_error_message), "Unknown symbol \"%s\".\n", g_tmp);
+        snprintf(g_error_message, g_sizeof_g_error_message, "Unknown symbol \"%s\".\n", g_tmp);
         print_error(g_error_message, ERROR_ERR);
         return FAILED;
       }
@@ -853,7 +854,7 @@ int pass_1(void) {
       continue;
     }
     else if (q == FAILED) {
-      snprintf(g_error_message, sizeof(g_error_message), "Couldn't parse \"%s\".\n", g_tmp);
+      snprintf(g_error_message, g_sizeof_g_error_message, "Couldn't parse \"%s\".\n", g_tmp);
       print_error(g_error_message, ERROR_ERR);
       return FAILED;
     }
@@ -917,11 +918,11 @@ static int parse_push_pull_registers(int accept_u) {
     
     if (z != INPUT_NUMBER_ADDRESS_LABEL) {
       if (accept_u == 1) {
-        snprintf(g_error_message, sizeof(g_error_message), "%s, got something else instead.\n", error_no_s);
+        snprintf(g_error_message, g_sizeof_g_error_message, "%s, got something else instead.\n", error_no_s);
         print_error(g_error_message, ERROR_ERR);
       }
       else {
-        snprintf(g_error_message, sizeof(g_error_message), "%s, got something else instead.\n", error_no_u);
+        snprintf(g_error_message, g_sizeof_g_error_message, "%s, got something else instead.\n", error_no_u);
         print_error(g_error_message, ERROR_ERR);
       }
       return -1;
@@ -933,7 +934,7 @@ static int parse_push_pull_registers(int accept_u) {
       reg = 1 << 5;
     else if (strcaselesscmp(g_label, "U") == 0) {
       if (accept_u == 0) {
-        snprintf(g_error_message, sizeof(g_error_message), "%s, got \"%s\" instead.\n", error_no_u, g_label);
+        snprintf(g_error_message, g_sizeof_g_error_message, "%s, got \"%s\" instead.\n", error_no_u, g_label);
         print_error(g_error_message, ERROR_ERR);
         return -1;
       }
@@ -941,7 +942,7 @@ static int parse_push_pull_registers(int accept_u) {
     }
     else if (strcaselesscmp(g_label, "S") == 0) {
       if (accept_u == 1) {
-        snprintf(g_error_message, sizeof(g_error_message), "%s, got \"%s\" instead.\n", error_no_s, g_label);
+        snprintf(g_error_message, g_sizeof_g_error_message, "%s, got \"%s\" instead.\n", error_no_s, g_label);
         print_error(g_error_message, ERROR_ERR);
         return -1;
       }
@@ -959,18 +960,18 @@ static int parse_push_pull_registers(int accept_u) {
       reg = 1 << 3;
     else {
       if (accept_u == 1) {
-        snprintf(g_error_message, sizeof(g_error_message), "%s, got \"%s\" instead.\n", error_no_s, g_label);
+        snprintf(g_error_message, g_sizeof_g_error_message, "%s, got \"%s\" instead.\n", error_no_s, g_label);
         print_error(g_error_message, ERROR_ERR);
       }
       else {
-        snprintf(g_error_message, sizeof(g_error_message), "%s, got \"%s\" instead.\n", error_no_u, g_label);
+        snprintf(g_error_message, g_sizeof_g_error_message, "%s, got \"%s\" instead.\n", error_no_u, g_label);
         print_error(g_error_message, ERROR_ERR);
       }
       return -1;
     }
 
     if ((register_byte & reg) != 0) {
-      snprintf(g_error_message, sizeof(g_error_message), "Register \"%s\" was already defined.\n", g_label);
+      snprintf(g_error_message, g_sizeof_g_error_message, "Register \"%s\" was already defined.\n", g_label);
       print_error(g_error_message, ERROR_ERR);
       return -1;
     }
@@ -980,9 +981,9 @@ static int parse_push_pull_registers(int accept_u) {
 
   if (register_byte == 0) {
     if (accept_u == 1)
-      snprintf(g_error_message, sizeof(g_error_message), "%s, got nothing instead.\n", error_no_s);
+      snprintf(g_error_message, g_sizeof_g_error_message, "%s, got nothing instead.\n", error_no_s);
     else
-      snprintf(g_error_message, sizeof(g_error_message), "%s, got nothing instead.\n", error_no_u);
+      snprintf(g_error_message, g_sizeof_g_error_message, "%s, got nothing instead.\n", error_no_u);
     print_error(g_error_message, ERROR_ERR);
 
     return -1;
@@ -1018,7 +1019,7 @@ static int get_register_byte_from_label_exg_tfr(void) {
   if (strcaselesscmp(g_label, "DP") == 0)
     return 0xB;
 
-  snprintf(g_error_message, sizeof(g_error_message), "Was expecting register D/X/Y/U/S/PC/A/B/CC/DP, got \"%s\" instead.\n", g_label);
+  snprintf(g_error_message, g_sizeof_g_error_message, "Was expecting register D/X/Y/U/S/PC/A/B/CC/DP, got \"%s\" instead.\n", g_label);
   print_error(g_error_message, ERROR_ERR);
 
   return -1;
@@ -1147,12 +1148,12 @@ int evaluate_token(void) {
       return FAILED;
     }
     if (g_org_defined == 0) {
-      snprintf(g_error_message, sizeof(g_error_message), "\"%s\" needs a position in memory.\n", g_tmp);
+      snprintf(g_error_message, g_sizeof_g_error_message, "\"%s\" needs a position in memory.\n", g_tmp);
       print_error(g_error_message, ERROR_LOG);
       return FAILED;
     }
     if (g_ss >= MAX_NAME_LENGTH) {
-      snprintf(g_error_message, sizeof(g_error_message), "The label \"%s\" is too long. Max label length is %d characters.\n", g_tmp, MAX_NAME_LENGTH);
+      snprintf(g_error_message, g_sizeof_g_error_message, "The label \"%s\" is too long. Max label length is %d characters.\n", g_tmp, MAX_NAME_LENGTH);
       print_error(g_error_message, ERROR_NONE);
       return FAILED;
     }
@@ -1164,7 +1165,7 @@ int evaluate_token(void) {
     /* check for \@-symbols */
     if (g_macro_active != 0) {
       if (g_tmp[g_ss - 3] == '\\' && g_tmp[g_ss - 2] == '@')
-        snprintf(&g_tmp[g_ss - 3], sizeof(g_tmp) - (g_ss - 3), "%d", g_macro_runtime_current->macro->calls - 1);
+        snprintf(&g_tmp[g_ss - 3], g_sizeof_g_tmp - (g_ss - 3), "%d", g_macro_runtime_current->macro->calls - 1);
     }
 
     add_label_to_label_stack(g_tmp);
@@ -1394,7 +1395,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
 
   hashmap_get(g_defines_map, name, (void*)&d);
   if (d != NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "\"%s\" was defined for the second time.\n", name);
+    snprintf(g_error_message, g_sizeof_g_error_message, "\"%s\" was defined for the second time.\n", name);
     if (g_commandline_parsing == OFF)
       print_error(g_error_message, ERROR_DIR);
     else
@@ -1404,7 +1405,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
 
   d = calloc(sizeof(struct definition), 1);
   if (d == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Out of memory while trying to add a new definition (\"%s\").\n", name);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while trying to add a new definition (\"%s\").\n", name);
     if (g_commandline_parsing == OFF)
       print_error(g_error_message, ERROR_DIR);
     else
@@ -1478,7 +1479,7 @@ int localize_path(char *path) {
 int verify_name_length(char *name) {
 
   if (strlen(name) > MAX_NAME_LENGTH) {
-    snprintf(g_error_message, sizeof(g_error_message), "The label \"%s\" is too long. Max label length is %d bytes.\n", name, MAX_NAME_LENGTH);
+    snprintf(g_error_message, g_sizeof_g_error_message, "The label \"%s\" is too long. Max label length is %d bytes.\n", name, MAX_NAME_LENGTH);
     print_error(g_error_message, ERROR_NONE);
     return FAILED;
   }
@@ -1553,19 +1554,19 @@ void print_error(char *error, int type) {
 void give_snes_rom_mode_defined_error(char *prior) {
 
   if (g_lorom_defined != 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".LOROM was defined prior to %s.\n", prior);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".LOROM was defined prior to %s.\n", prior);
     print_error(g_error_message, ERROR_DIR);
   }
   else if (g_hirom_defined != 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".HIROM was defined prior to %s.\n", prior);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".HIROM was defined prior to %s.\n", prior);
     print_error(g_error_message, ERROR_DIR);
   }
   else if (g_exlorom_defined != 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".EXLOROM was defined prior to %s.\n", prior);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".EXLOROM was defined prior to %s.\n", prior);
     print_error(g_error_message, ERROR_DIR);
   }
   else if (g_exhirom_defined != 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".EXHIROM was defined prior to %s.\n", prior);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".EXHIROM was defined prior to %s.\n", prior);
     print_error(g_error_message, ERROR_DIR);
   }
 }
@@ -1688,7 +1689,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
   struct structure_item *si;
 
   if (strlen(basename) > MAX_NAME_LENGTH) {
-    snprintf(g_error_message, sizeof(g_error_message), "Name \"%s\" is too long!\n", basename);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Name \"%s\" is too long!\n", basename);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -2036,7 +2037,7 @@ int parse_enum_token(void) {
 
     if (g_create_sizeof_definitions == YES) {
       if (strlen(g_active_struct->name) > MAX_NAME_LENGTH - 8) {
-        snprintf(g_error_message, sizeof(g_error_message), ".STRUCT \"%s\"'s name is too long!\n", g_active_struct->name);
+        snprintf(g_error_message, g_sizeof_g_error_message, ".STRUCT \"%s\"'s name is too long!\n", g_active_struct->name);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -2046,7 +2047,7 @@ int parse_enum_token(void) {
     }
     
     if (g_active_struct->items == NULL) {
-      snprintf(g_error_message, sizeof(g_error_message), ".STRUCT \"%s\" is empty!\n", g_active_struct->name);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".STRUCT \"%s\" is empty!\n", g_active_struct->name);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -2148,7 +2149,7 @@ int parse_enum_token(void) {
     st = get_structure(g_tmp);
 
     if (st == NULL) {
-      snprintf(g_error_message, sizeof(g_error_message), "No STRUCT named \"%s\" available.\n", g_tmp);
+      snprintf(g_error_message, g_sizeof_g_error_message, "No STRUCT named \"%s\" available.\n", g_tmp);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -2170,9 +2171,9 @@ int parse_enum_token(void) {
     }
     else {
       if (number_result == INPUT_NUMBER_STRING)
-        snprintf(g_error_message, sizeof(g_error_message), "Expected the number of structures, got \"%s\" instead.\n", g_label);
+        snprintf(g_error_message, g_sizeof_g_error_message, "Expected the number of structures, got \"%s\" instead.\n", g_label);
       else
-        snprintf(g_error_message, sizeof(g_error_message), "Expected the number of structures.\n");
+        snprintf(g_error_message, g_sizeof_g_error_message, "Expected the number of structures.\n");
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -2186,14 +2187,14 @@ int parse_enum_token(void) {
         return FAILED;
       else if (q == SUCCEEDED) {
         if (g_parsed_int < 0) {
-          snprintf(g_error_message, sizeof(g_error_message), "STARTFROM needs to be >= 0.\n");
+          snprintf(g_error_message, g_sizeof_g_error_message, "STARTFROM needs to be >= 0.\n");
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
         }
         start_from = g_parsed_int;
       }
       else {
-        snprintf(g_error_message, sizeof(g_error_message), "STARTFROM needs a number >= 0.\n");
+        snprintf(g_error_message, g_sizeof_g_error_message, "STARTFROM needs a number >= 0.\n");
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -2219,7 +2220,7 @@ int parse_enum_token(void) {
     if (q == FAILED)
       return FAILED;
     if (q != SUCCEEDED) {
-      snprintf(g_error_message, sizeof(g_error_message), "%s needs size.\n", bak);
+      snprintf(g_error_message, g_sizeof_g_error_message, "%s needs size.\n", bak);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -2272,11 +2273,11 @@ int parse_enum_token(void) {
   }
   else {
     if (g_in_enum == YES)
-      snprintf(g_error_message, sizeof(g_error_message), "Unexpected symbol \"%s\" in .ENUM.\n", g_tmp);
+      snprintf(g_error_message, g_sizeof_g_error_message, "Unexpected symbol \"%s\" in .ENUM.\n", g_tmp);
     else if (g_in_ramsection == YES)
-      snprintf(g_error_message, sizeof(g_error_message), "Unexpected symbol \"%s\" in .RAMSECTION.\n", g_tmp);
+      snprintf(g_error_message, g_sizeof_g_error_message, "Unexpected symbol \"%s\" in .RAMSECTION.\n", g_tmp);
     else /* struct */
-      snprintf(g_error_message, sizeof(g_error_message), "Unexpected symbol \"%s\" in .STRUCT.\n", g_tmp);
+      snprintf(g_error_message, g_sizeof_g_error_message, "Unexpected symbol \"%s\" in .STRUCT.\n", g_tmp);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -2430,7 +2431,7 @@ int directive_slot(void) {
   }
 
   if (g_parsed_int < 0 || g_parsed_int > 255 || g_slots[g_parsed_int].size == 0) {
-    snprintf(g_error_message, sizeof(g_error_message), "There is no SLOT number %d.\n", g_parsed_int);
+    snprintf(g_error_message, g_sizeof_g_error_message, "There is no SLOT number %d.\n", g_parsed_int);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -2450,7 +2451,7 @@ int directive_bank(void) {
   no_library_files(".BANK definitions");
     
   if (g_section_status == ON) {
-    snprintf(g_error_message, sizeof(g_error_message), "Section \"%s\" is open. Do not try to change the bank.\n", g_sections_last->name);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Section \"%s\" is open. Do not try to change the bank.\n", g_sections_last->name);
     print_error(g_error_message, ERROR_LOG);
     return FAILED;
   }
@@ -2473,7 +2474,7 @@ int directive_bank(void) {
   }
 
   if (g_rombanks <= g_parsed_int && g_output_format != OUTPUT_LIBRARY) {
-    snprintf(g_error_message, sizeof(g_error_message), "ROM banks == %d, selected bank %d.\n", g_rombanks, g_parsed_int);
+    snprintf(g_error_message, g_sizeof_g_error_message, "ROM banks == %d, selected bank %d.\n", g_rombanks, g_parsed_int);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -2504,7 +2505,7 @@ int directive_bank(void) {
     }
 
     if (g_slots[g_parsed_int].size == 0) {
-      snprintf(g_error_message, sizeof(g_error_message), "There is no SLOT number %d.\n", g_parsed_int);
+      snprintf(g_error_message, g_sizeof_g_error_message, "There is no SLOT number %d.\n", g_parsed_int);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -2524,12 +2525,12 @@ int directive_bank(void) {
   }
 
   if (g_slots[slot].size < g_banks[bank]) {
-    snprintf(g_error_message, sizeof(g_error_message), "SLOT %d's size %d < BANK %d's size %d.\n", slot, g_slots[slot].size, bank, g_banks[bank]);
+    snprintf(g_error_message, g_sizeof_g_error_message, "SLOT %d's size %d < BANK %d's size %d.\n", slot, g_slots[slot].size, bank, g_banks[bank]);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
   if (g_slots[slot].size > g_banks[bank]) {
-    snprintf(g_error_message, sizeof(g_error_message), "SLOT %d's size %d > BANK %d's size %d, but the bank fits inside.\n", slot, g_slots[slot].size, bank, g_banks[bank]);
+    snprintf(g_error_message, g_sizeof_g_error_message, "SLOT %d's size %d > BANK %d's size %d, but the bank fits inside.\n", slot, g_slots[slot].size, bank, g_banks[bank]);
     print_error(g_error_message, ERROR_WRN);
   }
 
@@ -2542,7 +2543,7 @@ int directive_dbm_dwm_dlm_ddm_filter(void) {
   struct macro_static *macro;
 
   if (input_number() != INPUT_NUMBER_ADDRESS_LABEL) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s requires macro name.\n", g_current_directive);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s requires macro name.\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -2556,7 +2557,7 @@ int directive_dbm_dwm_dlm_ddm_filter(void) {
   }
 
   if (macro == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "No MACRO \"%s\" defined.\n", g_label);
+    snprintf(g_error_message, g_sizeof_g_error_message, "No MACRO \"%s\" defined.\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -2582,7 +2583,7 @@ int directive_dbm_dwm_dlm_ddm_filter(void) {
       return FAILED;
   }
   else {
-    snprintf(g_error_message, sizeof(g_error_message), "Unsupported filter macro directive \"%s\". Please submit a bug report!\n", g_current_directive);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Unsupported filter macro directive \"%s\". Please submit a bug report!\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -2608,7 +2609,7 @@ int directive_table(void) {
       if (result == FAILED)
         return FAILED;
       if (result != SUCCEEDED) {
-        snprintf(g_error_message, sizeof(g_error_message), "%s needs size.\n", bak);
+        snprintf(g_error_message, g_sizeof_g_error_message, "%s needs size.\n", bak);
         print_error(g_error_message, ERROR_INP);
         return FAILED;
       }
@@ -2626,7 +2627,7 @@ int directive_table(void) {
       if (result == FAILED)
         return FAILED;
       if (result != SUCCEEDED) {
-        snprintf(g_error_message, sizeof(g_error_message), "%s needs size.\n", bak);
+        snprintf(g_error_message, g_sizeof_g_error_message, "%s needs size.\n", bak);
         print_error(g_error_message, ERROR_INP);
         return FAILED;
       }
@@ -2644,7 +2645,7 @@ int directive_table(void) {
       if (result == FAILED)
         return FAILED;
       if (result != SUCCEEDED) {
-        snprintf(g_error_message, sizeof(g_error_message), "%s needs size.\n", bak);
+        snprintf(g_error_message, g_sizeof_g_error_message, "%s needs size.\n", bak);
         print_error(g_error_message, ERROR_INP);
         return FAILED;
       }
@@ -2662,7 +2663,7 @@ int directive_table(void) {
       if (result == FAILED)
         return FAILED;
       if (result != SUCCEEDED) {
-        snprintf(g_error_message, sizeof(g_error_message), "%s needs size.\n", bak);
+        snprintf(g_error_message, g_sizeof_g_error_message, "%s needs size.\n", bak);
         print_error(g_error_message, ERROR_INP);
         return FAILED;
       }
@@ -2671,7 +2672,7 @@ int directive_table(void) {
         g_table_format[g_table_size++] = 'd';
     }
     else {
-      snprintf(g_error_message, sizeof(g_error_message), "Unknown symbol \"%s\".\n", g_label);
+      snprintf(g_error_message, g_sizeof_g_error_message, "Unknown symbol \"%s\".\n", g_label);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -2680,7 +2681,7 @@ int directive_table(void) {
   }
 
   if (g_table_size >= (int)sizeof(g_table_format)) {
-    snprintf(g_error_message, sizeof(g_error_message), ".TABLE is out of size.\n");
+    snprintf(g_error_message, g_sizeof_g_error_message, ".TABLE is out of size.\n");
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -2688,14 +2689,14 @@ int directive_table(void) {
   if (result == FAILED)
     return FAILED;
   else if (result == INPUT_NUMBER_EOL && g_table_size == 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".TABLE needs data.\n");
+    snprintf(g_error_message, g_sizeof_g_error_message, ".TABLE needs data.\n");
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
   else if (result == INPUT_NUMBER_EOL)
     next_line();
   else {
-    snprintf(g_error_message, sizeof(g_error_message), "Unknown symbol.\n");
+    snprintf(g_error_message, g_sizeof_g_error_message, "Unknown symbol.\n");
     print_error(g_error_message, ERROR_DIR);
     return FAILED;      
   }
@@ -2715,14 +2716,14 @@ int directive_row_data(void) {
   strcpy(bak, g_current_directive);
 
   if (g_table_defined == 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".TABLE needs to be defined before .%s can be used.\n", bak);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".TABLE needs to be defined before .%s can be used.\n", bak);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
     
   if (strcaselesscmp(bak, "ROW") == 0) {
     if (g_table_index != 0) {
-      snprintf(g_error_message, sizeof(g_error_message), ".ROW cannot be used here. .DATA needs to be used again to give the remaining of the row.\n");
+      snprintf(g_error_message, g_sizeof_g_error_message, ".ROW cannot be used here. .DATA needs to be used again to give the remaining of the row.\n");
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -2734,7 +2735,7 @@ int directive_row_data(void) {
     if (result == INPUT_NUMBER_STRING) {
       if (g_table_format[g_table_index] == 'b') {
         if (strlen(g_label) != 1) {
-          snprintf(g_error_message, sizeof(g_error_message), ".%s was expecting a byte, got %d bytes instead.\n", bak, (int)strlen(g_label));
+          snprintf(g_error_message, g_sizeof_g_error_message, ".%s was expecting a byte, got %d bytes instead.\n", bak, (int)strlen(g_label));
           print_error(g_error_message, ERROR_INP);
           return FAILED;
         }
@@ -2743,7 +2744,7 @@ int directive_row_data(void) {
       }
       else if (g_table_format[g_table_index] == 'w') {
         if (strlen(g_label) > 2 || strlen(g_label) <= 0) {
-          snprintf(g_error_message, sizeof(g_error_message), ".%s was expecting a word (2 bytes), got %d bytes instead.\n", bak, (int)strlen(g_label));
+          snprintf(g_error_message, g_sizeof_g_error_message, ".%s was expecting a word (2 bytes), got %d bytes instead.\n", bak, (int)strlen(g_label));
           print_error(g_error_message, ERROR_INP);
           return FAILED;
         }
@@ -2752,7 +2753,7 @@ int directive_row_data(void) {
       }
       else if (g_table_format[g_table_index] == 'l') {
         if (strlen(g_label) > 3 || strlen(g_label) <= 0) {
-          snprintf(g_error_message, sizeof(g_error_message), ".%s was expecting a long (3 bytes), got %d bytes instead.\n", bak, (int)strlen(g_label));
+          snprintf(g_error_message, g_sizeof_g_error_message, ".%s was expecting a long (3 bytes), got %d bytes instead.\n", bak, (int)strlen(g_label));
           print_error(g_error_message, ERROR_INP);
           return FAILED;
         }
@@ -2761,7 +2762,7 @@ int directive_row_data(void) {
       }
       else if (g_table_format[g_table_index] == 'd') {
         if (strlen(g_label) > 4 || strlen(g_label) <= 0) {
-          snprintf(g_error_message, sizeof(g_error_message), ".%s was expecting a double word (4 bytes), got %d bytes instead.\n", bak, (int)strlen(g_label));
+          snprintf(g_error_message, g_sizeof_g_error_message, ".%s was expecting a double word (4 bytes), got %d bytes instead.\n", bak, (int)strlen(g_label));
           print_error(g_error_message, ERROR_INP);
           return FAILED;
         }
@@ -2769,7 +2770,7 @@ int directive_row_data(void) {
         fprintf(g_file_out_ptr, "u%d ", (g_label[0] << 24) | (g_label[1] << 16) | (g_label[2] << 8) | g_label[3]);
       }
       else {
-        snprintf(g_error_message, sizeof(g_error_message), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
+        snprintf(g_error_message, g_sizeof_g_error_message, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -2777,7 +2778,7 @@ int directive_row_data(void) {
     else if (result == SUCCEEDED) {
       if (g_table_format[g_table_index] == 'b') {
         if (g_parsed_int < -128 || g_parsed_int > 255) {
-          snprintf(g_error_message, sizeof(g_error_message), ".%s expects 8-bit data, %d is out of range!\n", bak, g_parsed_int);
+          snprintf(g_error_message, g_sizeof_g_error_message, ".%s expects 8-bit data, %d is out of range!\n", bak, g_parsed_int);
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
         }
@@ -2786,7 +2787,7 @@ int directive_row_data(void) {
       }
       else if (g_table_format[g_table_index] == 'w') {
         if (g_parsed_int < -32768 || g_parsed_int > 65535) {
-          snprintf(g_error_message, sizeof(g_error_message), ".%s expects 16-bit data, %d is out of range!\n", bak, g_parsed_int);
+          snprintf(g_error_message, g_sizeof_g_error_message, ".%s expects 16-bit data, %d is out of range!\n", bak, g_parsed_int);
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
         }
@@ -2795,7 +2796,7 @@ int directive_row_data(void) {
       }
       else if (g_table_format[g_table_index] == 'l') {
         if (g_parsed_int < -8388608 || g_parsed_int > 16777215) {
-          snprintf(g_error_message, sizeof(g_error_message), ".%s expects 24-bit data, %d is out of range!\n", bak, g_parsed_int);
+          snprintf(g_error_message, g_sizeof_g_error_message, ".%s expects 24-bit data, %d is out of range!\n", bak, g_parsed_int);
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
         }
@@ -2805,7 +2806,7 @@ int directive_row_data(void) {
       else if (g_table_format[g_table_index] == 'd') {
         /*
         if (g_parsed_int < -2147483648 || g_parsed_int > 2147483647) {
-          snprintf(g_error_message, sizeof(g_error_message), ".%s expects 32-bit data, %d is out of range!\n", bak, g_parsed_int);
+          snprintf(g_error_message, g_sizeof_g_error_message, ".%s expects 32-bit data, %d is out of range!\n", bak, g_parsed_int);
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
         }
@@ -2814,7 +2815,7 @@ int directive_row_data(void) {
         fprintf(g_file_out_ptr, "u%d ", g_parsed_int);
       }
       else {
-        snprintf(g_error_message, sizeof(g_error_message), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
+        snprintf(g_error_message, g_sizeof_g_error_message, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -2833,7 +2834,7 @@ int directive_row_data(void) {
         fprintf(g_file_out_ptr, "k%d V%s ", g_active_file_info_last->line_current, g_label);
       }
       else {
-        snprintf(g_error_message, sizeof(g_error_message), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
+        snprintf(g_error_message, g_sizeof_g_error_message, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -2852,7 +2853,7 @@ int directive_row_data(void) {
         fprintf(g_file_out_ptr, "U%d ", g_latest_stack);
       }
       else {
-        snprintf(g_error_message, sizeof(g_error_message), ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
+        snprintf(g_error_message, g_sizeof_g_error_message, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -2872,14 +2873,14 @@ int directive_row_data(void) {
     return FAILED;
 
   if (result == INPUT_NUMBER_EOL && i == 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs data.\n", bak);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs data.\n", bak);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
 
   if (strcaselesscmp(bak, "ROW") == 0) {
     if (g_table_index != 0 || rows != 1) {
-      snprintf(g_error_message, sizeof(g_error_message), ".ROW needs exactly one row of data, no more, no less.\n");
+      snprintf(g_error_message, g_sizeof_g_error_message, ".ROW needs exactly one row of data, no more, no less.\n");
       print_error(g_error_message, ERROR_INP);
       return FAILED;
     }
@@ -2911,7 +2912,7 @@ int directive_db_byt_byte(void) {
     }
 
     if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
-      snprintf(g_error_message, sizeof(g_error_message), ".%s expects 8-bit data, %d is out of range!\n", bak, g_parsed_int);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".%s expects 8-bit data, %d is out of range!\n", bak, g_parsed_int);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -2930,7 +2931,7 @@ int directive_db_byt_byte(void) {
     return FAILED;
 
   if (number_result == INPUT_NUMBER_EOL && i == 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs data.\n", bak);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs data.\n", bak);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
@@ -2984,7 +2985,7 @@ int directive_hex(void) {
       }
         
       if (error == YES) {
-        snprintf(g_error_message, sizeof(g_error_message), "'%c' does not belong to a hexadecimal value!\n", g_label[o]);
+        snprintf(g_error_message, g_sizeof_g_error_message, "'%c' does not belong to a hexadecimal value!\n", g_label[o]);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -3055,7 +3056,7 @@ int directive_bits(void) {
       fprintf(g_file_out_ptr, "+%d ", bits);
 
       if ((g_parsed_int & mask) != 0) {
-        snprintf(g_error_message, sizeof(g_error_message), "We are defining %d bits, but the given value $%x (%d) uses more bits!\n", bits, g_parsed_int, g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "We are defining %d bits, but the given value $%x (%d) uses more bits!\n", bits, g_parsed_int, g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -3207,7 +3208,7 @@ int directive_asctable_asciitable(void) {
   }
 
   if (token_result != SUCCEEDED) {
-    snprintf(g_error_message, sizeof(g_error_message), "Error in .%s data structure.\n", bak);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Error in .%s data structure.\n", bak);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -3257,7 +3258,7 @@ int directive_asc(void) {
       if (map_only_strings == YES) {
         /* pass through the byte */
         if (g_parsed_int < -128 || g_parsed_int > 255) {
-          snprintf(g_error_message, sizeof(g_error_message), "Expected a byte value between -128 and 255, got %d.\n", g_parsed_int);
+          snprintf(g_error_message, g_sizeof_g_error_message, "Expected a byte value between -128 and 255, got %d.\n", g_parsed_int);
           print_error(g_error_message, ERROR_INP);
           return FAILED;
         }
@@ -3266,7 +3267,7 @@ int directive_asc(void) {
       else {
         /* remap the byte */
         if (g_parsed_int < 0 || g_parsed_int > 255) {
-          snprintf(g_error_message, sizeof(g_error_message), ".%s needs string / byte (0-255) data.\n", bak);
+          snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs string / byte (0-255) data.\n", bak);
           print_error(g_error_message, ERROR_INP);
           return FAILED;
         }
@@ -3275,7 +3276,7 @@ int directive_asc(void) {
       }
     }
     else {
-      snprintf(g_error_message, sizeof(g_error_message), ".%s needs string / byte (0-255) data.\n", bak);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs string / byte (0-255) data.\n", bak);
       print_error(g_error_message, ERROR_INP);
       return FAILED;
     }
@@ -3297,7 +3298,7 @@ int directive_dw_word_addr(void) {
   number_result = input_number();
   for (i = 0; number_result == SUCCEEDED || number_result == INPUT_NUMBER_ADDRESS_LABEL || number_result == INPUT_NUMBER_STACK; i++) {
     if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-      snprintf(g_error_message, sizeof(g_error_message), ".%s expects 16-bit data, %d is out of range!\n", bak, g_parsed_int);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".%s expects 16-bit data, %d is out of range!\n", bak, g_parsed_int);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -3316,7 +3317,7 @@ int directive_dw_word_addr(void) {
     return FAILED;
 
   if ((number_result == INPUT_NUMBER_EOL || number_result == INPUT_NUMBER_STRING) && i == 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs data.\n", bak);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs data.\n", bak);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
@@ -3340,7 +3341,7 @@ int directive_dl_long_faraddr(void) {
   number_result = input_number();
   for (i = 0; number_result == SUCCEEDED || number_result == INPUT_NUMBER_ADDRESS_LABEL || number_result == INPUT_NUMBER_STACK; i++) {
     if (number_result == SUCCEEDED && (g_parsed_int < -8388608 || g_parsed_int > 16777215)) {
-      snprintf(g_error_message, sizeof(g_error_message), ".%s expects 24-bit data, %d is out of range!\n", bak, g_parsed_int);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".%s expects 24-bit data, %d is out of range!\n", bak, g_parsed_int);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -3359,7 +3360,7 @@ int directive_dl_long_faraddr(void) {
     return FAILED;
 
   if ((number_result == INPUT_NUMBER_EOL || number_result == INPUT_NUMBER_STRING) && i == 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs data.\n", bak);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs data.\n", bak);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
@@ -3384,7 +3385,7 @@ int directive_dsl(void) {
   }
 
   if (g_parsed_int < 1 || g_parsed_int > 65535) {
-    snprintf(g_error_message, sizeof(g_error_message), ".DSL expects a 16-bit positive integer as size, %d is out of range!\n", g_parsed_int);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".DSL expects a 16-bit positive integer as size, %d is out of range!\n", g_parsed_int);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -3400,7 +3401,7 @@ int directive_dsl(void) {
   }
 
   if (q == SUCCEEDED && (g_parsed_int < -8388608 || g_parsed_int > 16777215)) {
-    snprintf(g_error_message, sizeof(g_error_message), ".DSL expects 24-bit data, %d is out of range!\n", g_parsed_int);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".DSL expects 24-bit data, %d is out of range!\n", g_parsed_int);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -3434,7 +3435,7 @@ int directive_dd(void) {
   for (i = 0; number_result == SUCCEEDED || number_result == INPUT_NUMBER_ADDRESS_LABEL || number_result == INPUT_NUMBER_STACK; i++) {
     /*
     if (number_result == SUCCEEDED && (g_parsed_int < -2147483648 || g_parsed_int > 2147483647)) {
-      snprintf(g_error_message, sizeof(g_error_message), ".%s expects 32-bit data, %d is out of range!\n", bak, g_parsed_int);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".%s expects 32-bit data, %d is out of range!\n", bak, g_parsed_int);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -3454,7 +3455,7 @@ int directive_dd(void) {
     return FAILED;
 
   if ((number_result == INPUT_NUMBER_EOL || number_result == INPUT_NUMBER_STRING) && i == 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs data.\n", bak);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs data.\n", bak);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
@@ -3479,7 +3480,7 @@ int directive_dsd(void) {
   }
 
   if (g_parsed_int < 1 || g_parsed_int > 65535) {
-    snprintf(g_error_message, sizeof(g_error_message), ".DSD expects a 16-bit positive integer as size, %d is out of range!\n", g_parsed_int);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".DSD expects a 16-bit positive integer as size, %d is out of range!\n", g_parsed_int);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -3496,7 +3497,7 @@ int directive_dsd(void) {
 
   /*
   if (q == SUCCEEDED && (g_parsed_int < -2147483648 || g_parsed_int > 2147483647)) {
-    snprintf(g_error_message, sizeof(g_error_message), ".DSD expects 32-bit data, %d is out of range!\n", g_parsed_int);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".DSD expects 32-bit data, %d is out of range!\n", g_parsed_int);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -3685,7 +3686,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
         /* take care of the strings */
         if (g_inz == INPUT_NUMBER_STRING) {
           if (it->size < g_string_size) {
-            snprintf(g_error_message, sizeof(g_error_message), "String \"%s\" doesn't fit into the %d bytes of \"%s.%s\". Discarding the overflow.\n", g_label, it->size, s->name, it->name);
+            snprintf(g_error_message, g_sizeof_g_error_message, "String \"%s\" doesn't fit into the %d bytes of \"%s.%s\". Discarding the overflow.\n", g_label, it->size, s->name, it->name);
             print_error(g_error_message, ERROR_WRN);
             c = it->size;
           }
@@ -3700,7 +3701,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
         else {
           if (it->size == 1) {
             if ((g_inz == SUCCEEDED) && (g_parsed_int < -128 || g_parsed_int > 255)) {
-              snprintf(g_error_message, sizeof(g_error_message), "\"%s.%s\" expects 8-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
+              snprintf(g_error_message, g_sizeof_g_error_message, "\"%s.%s\" expects 8-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
               print_error(g_error_message, ERROR_DIR);
               return FAILED;
             }
@@ -3716,7 +3717,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
           }
           else if (it->size == 2) {
             if (g_inz == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-              snprintf(g_error_message, sizeof(g_error_message), "\"%s.%s\" expects 16-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
+              snprintf(g_error_message, g_sizeof_g_error_message, "\"%s.%s\" expects 16-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
               print_error(g_error_message, ERROR_DIR);
               return FAILED;
             }
@@ -3732,7 +3733,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
           }
           else if (it->size == 3) {
             if (g_inz == SUCCEEDED && (g_parsed_int < -8388608 || g_parsed_int > 16777215)) {
-              snprintf(g_error_message, sizeof(g_error_message), "\"%s.%s\" expects 24-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
+              snprintf(g_error_message, g_sizeof_g_error_message, "\"%s.%s\" expects 24-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
               print_error(g_error_message, ERROR_DIR);
               return FAILED;
             }
@@ -3757,7 +3758,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             o = 4;
           }
           else {
-            snprintf(g_error_message, sizeof(g_error_message), "Internal error, unhandled it->size %d. Please submit a bug report!\n", it->size);
+            snprintf(g_error_message, g_sizeof_g_error_message, "Internal error, unhandled it->size %d. Please submit a bug report!\n", it->size);
             print_error(g_error_message, ERROR_DIR);
             return FAILED;
           }
@@ -3924,7 +3925,7 @@ int directive_dstruct(void) {
   s = get_structure(g_label);
 
   if (s == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Reference to an unidentified structure \"%s\".\n", g_label);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Reference to an unidentified structure \"%s\".\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -3985,7 +3986,7 @@ int directive_dstruct(void) {
         strcpy(field_name, g_tmp);
 
         if (find_struct_field(s, field_name, &item_size, &field_offset) == FAILED) {
-          snprintf(g_error_message, sizeof(g_error_message), ".DSTRUCT: Couldn't find field \"%s\" in structure \"%s\".\n", field_name, s->name);
+          snprintf(g_error_message, g_sizeof_g_error_message, ".DSTRUCT: Couldn't find field \"%s\" in structure \"%s\".\n", field_name, s->name);
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
         }
@@ -4050,7 +4051,7 @@ int directive_dstruct(void) {
   if (g_inz == INPUT_NUMBER_EOL)
     next_line();
   else {
-    snprintf(g_error_message, sizeof(g_error_message), "Too much data for structure \"%s\".\n", s->name);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Too much data for structure \"%s\".\n", s->name);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -4070,13 +4071,13 @@ int directive_dsb_ds(void) {
   if (q == FAILED)
     return FAILED;
   if (q != SUCCEEDED) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs size.\n", bak);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs size.\n", bak);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
 
   if (g_parsed_int < 1 || g_parsed_int > 65535) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s expects a 16-bit positive integer as size, %d is out of range!\n", bak, g_parsed_int);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s expects a 16-bit positive integer as size, %d is out of range!\n", bak, g_parsed_int);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -4087,13 +4088,13 @@ int directive_dsb_ds(void) {
   if (q == FAILED)
     return FAILED;
   if (!(q == SUCCEEDED || q == INPUT_NUMBER_ADDRESS_LABEL || q == INPUT_NUMBER_STACK)) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs data.\n", bak);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs data.\n", bak);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
 
   if (q == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128)) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s expects 8-bit data, %d is out of range!\n", bak, g_parsed_int);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s expects 8-bit data, %d is out of range!\n", bak, g_parsed_int);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -4127,7 +4128,7 @@ int directive_dsw(void) {
   }
 
   if (g_parsed_int < 1 || g_parsed_int > 65535) {
-    snprintf(g_error_message, sizeof(g_error_message), ".DSW expects a 16-bit positive integer as size, %d is out of range!\n", g_parsed_int);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".DSW expects a 16-bit positive integer as size, %d is out of range!\n", g_parsed_int);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -4143,7 +4144,7 @@ int directive_dsw(void) {
   }
 
   if (q == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-    snprintf(g_error_message, sizeof(g_error_message), ".DSW expects 16-bit data, %d is out of range!\n", g_parsed_int);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".DSW expects 16-bit data, %d is out of range!\n", g_parsed_int);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -4443,7 +4444,7 @@ int directive_ramsection(void) {
   fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   if (g_section_status == ON) {
-    snprintf(g_error_message, sizeof(g_error_message), "There is already an open section called \"%s\".\n", g_sections_last->name);
+    snprintf(g_error_message, g_sizeof_g_error_message, "There is already an open section called \"%s\".\n", g_sections_last->name);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -4457,7 +4458,7 @@ int directive_ramsection(void) {
 
   g_sec_tmp = calloc(sizeof(struct section_def), 1);
   if (g_sec_tmp == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new RAMSECTION \"%s\".\n", g_tmp);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while allocating room for a new RAMSECTION \"%s\".\n", g_tmp);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -4485,7 +4486,7 @@ int directive_ramsection(void) {
   
   /* add the namespace to the ramsection's name? */
   if (g_active_file_info_last->namespace[0] != 0) {
-    if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "RAMSECTION") == FAILED) {
+    if (add_namespace_to_string(g_tmp, g_sizeof_g_tmp, "RAMSECTION") == FAILED) {
       free(g_sec_tmp);
       return FAILED;
     }
@@ -4504,7 +4505,7 @@ int directive_ramsection(void) {
   g_sec_next = g_sections_first;
   while (g_sec_next != NULL) {
     if (strcmp(g_sec_next->name, g_tmp) == 0) {
-      snprintf(g_error_message, sizeof(g_error_message), "RAMSECTION \"%s\" was defined for the second time.\n", g_tmp);
+      snprintf(g_error_message, g_sizeof_g_error_message, "RAMSECTION \"%s\" was defined for the second time.\n", g_tmp);
       print_error(g_error_message, ERROR_DIR);
       free(g_sec_tmp);
       return FAILED;
@@ -4542,7 +4543,7 @@ int directive_ramsection(void) {
       }
 
       if (g_parsed_int > 255 && g_output_format != OUTPUT_LIBRARY) {
-        snprintf(g_error_message, sizeof(g_error_message), "We can have 256 RAM banks (0-255) per slot, selected bank %d.\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "We can have 256 RAM banks (0-255) per slot, selected bank %d.\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -4576,7 +4577,7 @@ int directive_ramsection(void) {
       }
 
       if (g_slots[g_parsed_int].size == 0) {
-        snprintf(g_error_message, sizeof(g_error_message), "There is no SLOT number %d.\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "There is no SLOT number %d.\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -4644,7 +4645,7 @@ int directive_ramsection(void) {
       g_sec_tmp->window_end = g_parsed_int;
 
       if (g_sec_tmp->window_start > g_sec_tmp->window_end) {
-        snprintf(g_error_message, sizeof(g_error_message), "The start ($%.4x) of the WINDOW is bigger than the end ($%.4x).\n", g_sec_tmp->window_start, g_sec_tmp->window_end);
+        snprintf(g_error_message, g_sizeof_g_error_message, "The start ($%.4x) of the WINDOW is bigger than the end ($%.4x).\n", g_sec_tmp->window_start, g_sec_tmp->window_end);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -4739,7 +4740,7 @@ int directive_ramsection(void) {
     
       after_tmp = calloc(sizeof(struct after_section), 1);
       if (after_tmp == NULL) {
-        snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new APPENDTO \"%s\".\n", g_tmp);
+        snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while allocating room for a new APPENDTO \"%s\".\n", g_tmp);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -4759,7 +4760,7 @@ int directive_ramsection(void) {
       
         /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
         if (strlen(g_tmp) >= sizeof(buf)) {
-          snprintf(g_error_message, sizeof(g_error_message), "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
+          snprintf(g_error_message, g_sizeof_g_error_message, "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
         }
@@ -4768,7 +4769,7 @@ int directive_ramsection(void) {
         strcpy(g_tmp, buf);
       }
       else if (g_active_file_info_last->namespace[0] != 0) {
-        if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "APPENDTO") == FAILED)
+        if (add_namespace_to_string(g_tmp, g_sizeof_g_tmp, "APPENDTO") == FAILED)
           return FAILED;
       }
     
@@ -4786,7 +4787,7 @@ int directive_ramsection(void) {
     
       after_tmp = calloc(sizeof(struct after_section), 1);
       if (after_tmp == NULL) {
-        snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new AFTER \"%s\".\n", g_tmp);
+        snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while allocating room for a new AFTER \"%s\".\n", g_tmp);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -4806,7 +4807,7 @@ int directive_ramsection(void) {
       
         /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
         if (strlen(g_tmp) >= sizeof(buf)) {
-          snprintf(g_error_message, sizeof(g_error_message), "The AFTER string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
+          snprintf(g_error_message, g_sizeof_g_error_message, "The AFTER string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
         }
@@ -4815,7 +4816,7 @@ int directive_ramsection(void) {
         strcpy(g_tmp, buf);
       }
       else if (g_active_file_info_last->namespace[0] != 0) {
-        if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "AFTER") == FAILED)
+        if (add_namespace_to_string(g_tmp, g_sizeof_g_tmp, "AFTER") == FAILED)
           return FAILED;
       }
     
@@ -4882,7 +4883,7 @@ int directive_section(void) {
     return FAILED;
   }
   else if (g_section_status == ON) {
-    snprintf(g_error_message, sizeof(g_error_message), "There is already an open section called \"%s\".\n", g_sections_last->name);
+    snprintf(g_error_message, g_sizeof_g_error_message, "There is already an open section called \"%s\".\n", g_sections_last->name);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -4904,7 +4905,7 @@ int directive_section(void) {
 
   g_sec_tmp = calloc(sizeof(struct section_def), 1);
   if (g_sec_tmp == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new SECTION \"%s\".\n", g_tmp);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while allocating room for a new SECTION \"%s\".\n", g_tmp);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -4933,7 +4934,7 @@ int directive_section(void) {
     g_sec_next = g_sections_first;
     while (g_sec_next != NULL) {
       if (strcmp(g_sec_next->name, g_tmp) == 0 && g_sec_next->bank == g_bank) {
-        snprintf(g_error_message, sizeof(g_error_message), "BANKHEADER section was defined for the second time for bank %d.\n", g_bank);
+        snprintf(g_error_message, g_sizeof_g_error_message, "BANKHEADER section was defined for the second time for bank %d.\n", g_bank);
         print_error(g_error_message, ERROR_DIR);
         free(g_sec_tmp);
         return FAILED;
@@ -4945,7 +4946,7 @@ int directive_section(void) {
     g_sec_next = g_sections_first;
     while (g_sec_next != NULL) {
       if (strcmp(g_sec_next->name, g_tmp) == 0) {
-        snprintf(g_error_message, sizeof(g_error_message), "SECTION \"%s\" was defined for the second time.\n", g_tmp);
+        snprintf(g_error_message, g_sizeof_g_error_message, "SECTION \"%s\" was defined for the second time.\n", g_tmp);
         print_error(g_error_message, ERROR_DIR);
         free(g_sec_tmp);
         return FAILED;
@@ -5073,7 +5074,7 @@ int directive_section(void) {
       g_sec_tmp->window_end = g_parsed_int;
 
       if (g_sec_tmp->window_start > g_sec_tmp->window_end) {
-        snprintf(g_error_message, sizeof(g_error_message), "The start ($%.4x) of the WINDOW is bigger than the end ($%.4x).\n", g_sec_tmp->window_start, g_sec_tmp->window_end);
+        snprintf(g_error_message, g_sizeof_g_error_message, "The start ($%.4x) of the WINDOW is bigger than the end ($%.4x).\n", g_sec_tmp->window_start, g_sec_tmp->window_end);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -5156,7 +5157,7 @@ int directive_section(void) {
 
       after_tmp = calloc(sizeof(struct after_section), 1);
       if (after_tmp == NULL) {
-        snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new APPENDTO \"%s\".\n", g_tmp);
+        snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while allocating room for a new APPENDTO \"%s\".\n", g_tmp);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -5176,7 +5177,7 @@ int directive_section(void) {
       
         /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
         if (strlen(g_tmp) >= sizeof(buf)) {
-          snprintf(g_error_message, sizeof(g_error_message), "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
+          snprintf(g_error_message, g_sizeof_g_error_message, "The APPENDTO string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
           print_error(g_error_message, ERROR_DIR);
           free(after_tmp);
           return FAILED;
@@ -5186,7 +5187,7 @@ int directive_section(void) {
         strcpy(g_tmp, buf);
       }
       else if (g_active_file_info_last->namespace[0] != 0) {
-        if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "APPENDTO") == FAILED) {
+        if (add_namespace_to_string(g_tmp, g_sizeof_g_tmp, "APPENDTO") == FAILED) {
           free(after_tmp);
           return FAILED;
         }
@@ -5206,7 +5207,7 @@ int directive_section(void) {
     
       after_tmp = calloc(sizeof(struct after_section), 1);
       if (after_tmp == NULL) {
-        snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for a new AFTER \"%s\".\n", g_tmp);
+        snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while allocating room for a new AFTER \"%s\".\n", g_tmp);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -5226,7 +5227,7 @@ int directive_section(void) {
       
         /* nope, this goes to global namespace. now '*:' has done its job, let's remove it */
         if (strlen(g_tmp) >= sizeof(buf)) {
-          snprintf(g_error_message, sizeof(g_error_message), "The AFTER string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
+          snprintf(g_error_message, g_sizeof_g_error_message, "The AFTER string \"%s\" is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp);
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
         }
@@ -5235,7 +5236,7 @@ int directive_section(void) {
         strcpy(g_tmp, buf);
       }
       else if (g_active_file_info_last->namespace[0] != 0) {
-        if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "AFTER") == FAILED)
+        if (add_namespace_to_string(g_tmp, g_sizeof_g_tmp, "AFTER") == FAILED)
           return FAILED;
       }
     
@@ -5360,7 +5361,7 @@ int directive_fopen(void) {
   /* open the file */
   f->f = fopen(f->filename, "rb");
   if (f->f == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Error opening file \"%s\" for reading.\n", f->filename);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Error opening file \"%s\" for reading.\n", f->filename);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -5387,7 +5388,7 @@ int directive_fclose(void) {
   }
 
   if (f == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Couldn't find filepointer \"%s\".\n", g_tmp);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Couldn't find filepointer \"%s\".\n", g_tmp);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -5424,7 +5425,7 @@ int directive_fsize(void) {
   }
 
   if (f == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Couldn't find filepointer \"%s\".\n", g_tmp);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Couldn't find filepointer \"%s\".\n", g_tmp);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -5463,7 +5464,7 @@ int directive_ftell(void) {
   }
 
   if (f == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Couldn't find filepointer \"%s\".\n", g_tmp);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Couldn't find filepointer \"%s\".\n", g_tmp);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -5471,7 +5472,7 @@ int directive_ftell(void) {
   b = ftell(f->f);
 
   if (b < 0) {
-    snprintf(g_error_message, sizeof(g_error_message), "Error getting ftell(%s).\n", g_tmp);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Error getting ftell(%s).\n", g_tmp);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -5512,7 +5513,7 @@ int directive_fseek(void) {
   }
 
   if (f == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Couldn't find filepointer \"%s\".\n", g_label);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Couldn't find filepointer \"%s\".\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -5562,13 +5563,13 @@ int directive_fread(void) {
   }
 
   if (f == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Couldn't find filepointer \"%s\".\n", g_tmp);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Couldn't find filepointer \"%s\".\n", g_tmp);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
 
   if (fscanf(f->f, "%c", &c) <= 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".FREAD couldn't read a byte from file \"%s\" (%s).\n", f->filename, g_tmp);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".FREAD couldn't read a byte from file \"%s\" (%s).\n", f->filename, g_tmp);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -5809,7 +5810,7 @@ int directive_rombanks(void) {
     if (g_parsed_int <= g_rombanks)
       return SUCCEEDED;
 
-    snprintf(g_error_message, sizeof(g_error_message), "Upgrading from %d to %d ROM banks.\n", g_rombanks, g_parsed_int);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Upgrading from %d to %d ROM banks.\n", g_rombanks, g_parsed_int);
     print_error(g_error_message, ERROR_WRN);
   }
 
@@ -6097,7 +6098,7 @@ int directive_rombankmap(void) {
 
   if (g_rombanks_defined != 0) {
     if (b > g_rombanks) {
-      snprintf(g_error_message, sizeof(g_error_message), "Upgrading from %d to %d ROM banks.\n", g_rombanks, b);
+      snprintf(g_error_message, g_sizeof_g_error_message, "Upgrading from %d to %d ROM banks.\n", g_rombanks, b);
       print_error(g_error_message, ERROR_WRN);
     }
     else
@@ -6157,7 +6158,7 @@ int directive_memorymap(void) {
       }
 
       if (g_slots[g_defaultslot].size == 0) {
-        snprintf(g_error_message, sizeof(g_error_message), "Unknown DEFAULTSLOT %d.\n", g_defaultslot);
+        snprintf(g_error_message, g_sizeof_g_error_message, "Unknown DEFAULTSLOT %d.\n", g_defaultslot);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -6340,12 +6341,12 @@ int directive_unbackground(void) {
     return FAILED;
   }
   if (start >= g_max_address) {
-    snprintf(g_error_message, sizeof(g_error_message), "The block's starting address $%x is beyond the ROM's ending address $%x.\n", start, g_max_address-1);
+    snprintf(g_error_message, g_sizeof_g_error_message, "The block's starting address $%x is beyond the ROM's ending address $%x.\n", start, g_max_address-1);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
   if (end >= g_max_address) {
-    snprintf(g_error_message, sizeof(g_error_message), "The block's ending address $%x is beyond the ROM's ending address $%x. Using the ROM's ending address instead.\n", end, g_max_address-1);
+    snprintf(g_error_message, g_sizeof_g_error_message, "The block's ending address $%x is beyond the ROM's ending address $%x. Using the ROM's ending address instead.\n", end, g_max_address-1);
     end = g_max_address;
     print_error(g_error_message, ERROR_WRN);
   }
@@ -6398,7 +6399,7 @@ int directive_background(void) {
   localize_path(g_full_name);
 
   if ((file_in_ptr = fopen(g_full_name, "rb")) == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Error opening .BACKGROUND file \"%s\".\n", g_full_name);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Error opening .BACKGROUND file \"%s\".\n", g_full_name);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -6408,7 +6409,7 @@ int directive_background(void) {
   fseek(file_in_ptr, 0, SEEK_SET);
   
   if (background_size > g_max_address) {
-    snprintf(g_error_message, sizeof(g_error_message), ".BACKGROUND file \"%s\" size (%d) is larger than ROM size (%d).\n", g_full_name, background_size, g_max_address);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".BACKGROUND file \"%s\" size (%d) is larger than ROM size (%d).\n", g_full_name, background_size, g_max_address);
     print_error(g_error_message, ERROR_DIR);
     fclose(file_in_ptr);
     return FAILED;
@@ -6416,7 +6417,7 @@ int directive_background(void) {
 
   memset(g_rom_banks_usage_table, 2, background_size);
   if (fread(g_rom_banks, 1, background_size, file_in_ptr) != (size_t) background_size) {
-    snprintf(g_error_message, sizeof(g_error_message), "Could not read all %d bytes of \"%s\"!", background_size, g_full_name);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Could not read all %d bytes of \"%s\"!", background_size, g_full_name);
     print_error(g_error_message, ERROR_INC);
     return FAILED;
   }
@@ -6568,7 +6569,7 @@ int directive_gbheader(void) {
       if (q == FAILED)
         return FAILED;
       if (q != SUCCEEDED || g_parsed_int < -128 || g_parsed_int > 255) {
-        snprintf(g_error_message, sizeof(g_error_message), ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -6616,7 +6617,7 @@ int directive_gbheader(void) {
       int number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
-        snprintf(g_error_message, sizeof(g_error_message), "CARTRIDGETYPE needs a 8-bit value, got %d.\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "CARTRIDGETYPE needs a 8-bit value, got %d.\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -6636,7 +6637,7 @@ int directive_gbheader(void) {
       int number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
-        snprintf(g_error_message, sizeof(g_error_message), "RAMSIZE needs a 8-bit value, got %d.\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "RAMSIZE needs a 8-bit value, got %d.\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -6656,7 +6657,7 @@ int directive_gbheader(void) {
       int number_result = input_number();
       
       if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
-        snprintf(g_error_message, sizeof(g_error_message), "COUNTRYCODE needs a non-negative value, got %d.\n\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "COUNTRYCODE needs a non-negative value, got %d.\n\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -6676,7 +6677,7 @@ int directive_gbheader(void) {
       int number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
-        snprintf(g_error_message, sizeof(g_error_message), "DESTINATIONCODE needs a non-negative value, got %d.\n\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "DESTINATIONCODE needs a non-negative value, got %d.\n\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -6696,7 +6697,7 @@ int directive_gbheader(void) {
       int number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
-        snprintf(g_error_message, sizeof(g_error_message), "VERSION needs a non-negative value, got %d.\n\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "VERSION needs a non-negative value, got %d.\n\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -6800,7 +6801,7 @@ int directive_arraydef_arraydefine(void) {
 
   /* check that the array doesn't exist */
   if (_get_array(g_label) != NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "\"%s\" is already defined.\n", g_label);
+    snprintf(g_error_message, g_sizeof_g_error_message, "\"%s\" is already defined.\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -6818,7 +6819,7 @@ int directive_arraydef_arraydefine(void) {
   else if (q == SUCCEEDED) {
   }
   else {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs an immediate value for the size.\n", bak);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs an immediate value for the size.\n", bak);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -6848,7 +6849,7 @@ int directive_arrayin(void) {
   /* check that the array exists */
   arr = _get_array(g_label);
   if (arr == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Array \"%s\" doesn't exist.\n", g_label);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Array \"%s\" doesn't exist.\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -6935,7 +6936,7 @@ int directive_arrayout(void) {
   /* check that the array exists */
   arr = _get_array(g_label);
   if (arr == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Array \"%s\" doesn't exist.\n", g_label);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Array \"%s\" doesn't exist.\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -6962,7 +6963,7 @@ int directive_arrayout(void) {
     return FAILED;
   }
   if (index >= arr->size) {
-    snprintf(g_error_message, sizeof(g_error_message), "Index %d is out of array \"%s\"'s size of %d items.\n", index, arr->name, arr->size);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Index %d is out of array \"%s\"'s size of %d items.\n", index, arr->name, arr->size);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -6999,7 +7000,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
   else if (strcaselesscmp(g_current_directive, "ARRAYDD") == 0)
     data_size = 4;
   else {
-    snprintf(g_error_message, sizeof(g_error_message), "Unsupported directive \".%s\"! Please submit a bug report!\n", g_current_directive);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Unsupported directive \".%s\"! Please submit a bug report!\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -7014,7 +7015,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
   /* check that the array exists */
   arr = _get_array(g_label);
   if (arr == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Array \"%s\" doesn't exist.\n", g_label);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Array \"%s\" doesn't exist.\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -7039,7 +7040,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
       break;
     }
     else {
-      snprintf(g_error_message, sizeof(g_error_message), ".%s needs an immediate value or a string for the index.\n", bak);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs an immediate value or a string for the index.\n", bak);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -7048,12 +7049,12 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
       index = g_parsed_int;
 
       if (index < 0) {
-        snprintf(g_error_message, sizeof(g_error_message), ".%s needs a positive or zero value for the index.\n", bak);
+        snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs a positive or zero value for the index.\n", bak);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
       if (index >= arr->size) {
-        snprintf(g_error_message, sizeof(g_error_message), "Index %d is out of array \"%s\"'s size of %d items.\n", index, arr->name, arr->size);
+        snprintf(g_error_message, g_sizeof_g_error_message, "Index %d is out of array \"%s\"'s size of %d items.\n", index, arr->name, arr->size);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -7064,7 +7065,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
     if (data_size == 1) {
       if (q == SUCCEEDED) {
         if (i < -128 || i > 255) {
-          snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array (index %d) is out of 8-bit range!\n", i, index);
+          snprintf(g_error_message, g_sizeof_g_error_message, "The value (%d) in the array (index %d) is out of 8-bit range!\n", i, index);
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
         }
@@ -7078,7 +7079,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
           index = (int)g_label[k];
 
           if (index >= arr->size) {
-            snprintf(g_error_message, sizeof(g_error_message), "Index %d ('%c') is out of array \"%s\"'s size of %d items.\n", index, (char)index, arr->name, arr->size);
+            snprintf(g_error_message, g_sizeof_g_error_message, "Index %d ('%c') is out of array \"%s\"'s size of %d items.\n", index, (char)index, arr->name, arr->size);
             print_error(g_error_message, ERROR_DIR);
             return FAILED;
           }
@@ -7086,7 +7087,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
           i = arr->data[index];
 
           if (i < -128 || i > 255) {
-            snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array (index %d, '%c') is out of 8-bit range!\n", i, index, (char)index);
+            snprintf(g_error_message, g_sizeof_g_error_message, "The value (%d) in the array (index %d, '%c') is out of 8-bit range!\n", i, index, (char)index);
             print_error(g_error_message, ERROR_DIR);
             return FAILED;
           }
@@ -7098,7 +7099,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
     else if (data_size == 2) {
       if (q == SUCCEEDED) {
         if (i < -32768 || i > 65535) {
-          snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array (index %d) is out of 16-bit range!\n", i, index);
+          snprintf(g_error_message, g_sizeof_g_error_message, "The value (%d) in the array (index %d) is out of 16-bit range!\n", i, index);
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
         }
@@ -7112,7 +7113,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
           index = (int)g_label[k];
 
           if (index >= arr->size) {
-            snprintf(g_error_message, sizeof(g_error_message), "Index %d ('%c') is out of array \"%s\"'s size of %d items.\n", index, (char)index, arr->name, arr->size);
+            snprintf(g_error_message, g_sizeof_g_error_message, "Index %d ('%c') is out of array \"%s\"'s size of %d items.\n", index, (char)index, arr->name, arr->size);
             print_error(g_error_message, ERROR_DIR);
             return FAILED;
           }
@@ -7120,7 +7121,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
           i = arr->data[index];
 
           if (i < -32768 || i > 65535) {
-            snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array (index %d, '%c') is out of 16-bit range!\n", i, index, (char)index);
+            snprintf(g_error_message, g_sizeof_g_error_message, "The value (%d) in the array (index %d, '%c') is out of 16-bit range!\n", i, index, (char)index);
             print_error(g_error_message, ERROR_DIR);
             return FAILED;
           }
@@ -7132,7 +7133,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
     else if (data_size == 3) {
       if (q == SUCCEEDED) {
         if (i < -8388608 || i > 16777215) {
-          snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array (index %d) is out of 24-bit range!\n", i, index);
+          snprintf(g_error_message, g_sizeof_g_error_message, "The value (%d) in the array (index %d) is out of 24-bit range!\n", i, index);
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
         }
@@ -7146,7 +7147,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
           index = (int)g_label[k];
 
           if (index >= arr->size) {
-            snprintf(g_error_message, sizeof(g_error_message), "Index %d ('%c') is out of array \"%s\"'s size of %d items.\n", index, (char)index, arr->name, arr->size);
+            snprintf(g_error_message, g_sizeof_g_error_message, "Index %d ('%c') is out of array \"%s\"'s size of %d items.\n", index, (char)index, arr->name, arr->size);
             print_error(g_error_message, ERROR_DIR);
             return FAILED;
           }
@@ -7154,7 +7155,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
           i = arr->data[index];
 
           if (i < -8388608 || i > 16777215) {
-            snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array (index %d, '%c') is out of 24-bit range!\n", i, index, (char)index);
+            snprintf(g_error_message, g_sizeof_g_error_message, "The value (%d) in the array (index %d, '%c') is out of 24-bit range!\n", i, index, (char)index);
             print_error(g_error_message, ERROR_DIR);
             return FAILED;
           }
@@ -7167,7 +7168,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
       if (q == SUCCEEDED) {
         /*
           if (i < -2147483648 || i > 2147483647) {
-          snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array is out of 32-bit range!\n", i);
+          snprintf(g_error_message, g_sizeof_g_error_message, "The value (%d) in the array is out of 32-bit range!\n", i);
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
           }
@@ -7182,7 +7183,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
           index = (int)g_label[k];
 
           if (index >= arr->size) {
-            snprintf(g_error_message, sizeof(g_error_message), "Index %d ('%c') is out of array \"%s\"'s size of %d items.\n", index, (char)index, arr->name, arr->size);
+            snprintf(g_error_message, g_sizeof_g_error_message, "Index %d ('%c') is out of array \"%s\"'s size of %d items.\n", index, (char)index, arr->name, arr->size);
             print_error(g_error_message, ERROR_DIR);
             return FAILED;
           }
@@ -7191,7 +7192,7 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
 
           /*
           if (i < -2147483648 || i > 2147483647) {
-            snprintf(g_error_message, sizeof(g_error_message), "The value (%d) in the array (index %d, '%c') is out of 32-bit range!\n", i, index, (char)index);
+            snprintf(g_error_message, g_sizeof_g_error_message, "The value (%d) in the array (index %d, '%c') is out of 32-bit range!\n", i, index, (char)index);
             print_error(g_error_message, ERROR_DIR);
             return FAILED;
           }
@@ -7220,7 +7221,7 @@ int directive_define_def_equ(void) {
   
   /* check the user doesn't try to define reserved labels */
   if (is_reserved_definition(label) == YES) {
-    snprintf(g_error_message, sizeof(g_error_message), "\"%s\" is a reserved definition label and is not user definable.\n", label);
+    snprintf(g_error_message, g_sizeof_g_error_message, "\"%s\" is a reserved definition label and is not user definable.\n", label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -7281,7 +7282,7 @@ int directive_undef_undefine(void) {
         next_line();
         return SUCCEEDED;
       }
-      snprintf(g_error_message, sizeof(g_error_message), ".%s requires definition name(s).\n", bak);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".%s requires definition name(s).\n", bak);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -7289,7 +7290,7 @@ int directive_undef_undefine(void) {
     q++;
 
     if (undefine(g_label) == FAILED) {
-      snprintf(g_error_message, sizeof(g_error_message), "Could not .%s \"%s\".\n", bak, g_label);
+      snprintf(g_error_message, g_sizeof_g_error_message, "Could not .%s \"%s\".\n", bak, g_label);
       print_error(g_error_message, ERROR_WRN);
     }
   }
@@ -7318,7 +7319,7 @@ int directive_enumid(void) {
     }
     
     if (is_reserved_definition(g_label) == YES) {
-      snprintf(g_error_message, sizeof(g_error_message), "\"%s\" is a reserved definition label and is not user definable.\n", g_label);
+      snprintf(g_error_message, g_sizeof_g_error_message, "\"%s\" is a reserved definition label and is not user definable.\n", g_label);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -7485,7 +7486,7 @@ int directive_redefine_redef(void) {
 
   /* check the user doesn't try to define reserved labels */
   if (is_reserved_definition(label) == YES) {
-    snprintf(g_error_message, sizeof(g_error_message), "\"%s\" is a reserved definition label and is not user definable.\n", label);
+    snprintf(g_error_message, g_sizeof_g_error_message, "\"%s\" is a reserved definition label and is not user definable.\n", label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -7564,7 +7565,7 @@ int directive_smsheader(void) {
       if (q == FAILED)
         return FAILED;
       if (q != SUCCEEDED || g_parsed_int < 0 || g_parsed_int > 15) {
-        snprintf(g_error_message, sizeof(g_error_message), "VERSION needs a value between 0 and 15, got %d.\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "VERSION needs a value between 0 and 15, got %d.\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -7585,7 +7586,7 @@ int directive_smsheader(void) {
       if (q == FAILED)
         return FAILED;
       if (q != SUCCEEDED || g_parsed_int < 0 || g_parsed_int > 15) {
-        snprintf(g_error_message, sizeof(g_error_message), "ROMSIZE needs a value between 0 and 15, got %d.\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "ROMSIZE needs a value between 0 and 15, got %d.\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -7606,7 +7607,7 @@ int directive_smsheader(void) {
       if (q == FAILED)
         return FAILED;
       if (q != SUCCEEDED || g_parsed_int < 3|| g_parsed_int > 7) {
-        snprintf(g_error_message, sizeof(g_error_message), "REGIONCODE needs a value between 3 and 7, got %d.\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "REGIONCODE needs a value between 3 and 7, got %d.\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -7895,7 +7896,7 @@ int directive_macro(void) {
 
   /* append the namespace, if this file uses if */
   if (g_active_file_info_last->namespace[0] != 0) {
-    if (add_namespace_to_string(g_tmp, sizeof(g_tmp), "MACRO") == FAILED)
+    if (add_namespace_to_string(g_tmp, g_sizeof_g_tmp, "MACRO") == FAILED)
       return FAILED;
   }
 
@@ -7903,7 +7904,7 @@ int directive_macro(void) {
     return FAILED;
   
   if (m != NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "MACRO \"%s\" was defined for the second time.\n", g_tmp);
+    snprintf(g_error_message, g_sizeof_g_error_message, "MACRO \"%s\" was defined for the second time.\n", g_tmp);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -7944,7 +7945,7 @@ int directive_macro(void) {
           next_line();
           break;
         }
-        snprintf(g_error_message, sizeof(g_error_message), "MACRO \"%s\" is missing argument names?\n", m->name);
+        snprintf(g_error_message, g_sizeof_g_error_message, "MACRO \"%s\" is missing argument names?\n", m->name);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -7978,7 +7979,7 @@ int directive_macro(void) {
     }
     else if ((strncmp(&g_buffer[g_source_pointer], ".E", 2) == 0) && (g_buffer[g_source_pointer + 2] == 0x0A || g_buffer[g_source_pointer + 2] == ' ')) {
       g_active_file_info_last->line_current = macro_start_line;
-      snprintf(g_error_message, sizeof(g_error_message), "MACRO \"%s\" wasn't terminated with .ENDM.\n", m->name);
+      snprintf(g_error_message, g_sizeof_g_error_message, "MACRO \"%s\" wasn't terminated with .ENDM.\n", m->name);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -8003,13 +8004,13 @@ int directive_rept_repeat(void) {
   if (q == FAILED)
     return FAILED;
   if (q != SUCCEEDED) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs a count.\n", c);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs a count.\n", c);
     print_error(g_error_message, ERROR_INP);
     return FAILED;
   }
 
   if (g_parsed_int < 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s count value must be positive or zero.\n", c);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s count value must be positive or zero.\n", c);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -8053,7 +8054,7 @@ int directive_rept_repeat(void) {
     
     /* return the condition's line number */
     g_active_file_info_last->line_current = l;
-    snprintf(g_error_message, sizeof(g_error_message), ".%s must end to .ENDR.\n", c);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s must end to .ENDR.\n", c);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -8197,7 +8198,7 @@ int directive_endm(void) {
     return SUCCEEDED;
   }
 
-  snprintf(g_error_message, sizeof(g_error_message), "No .MACRO open.\n");
+  snprintf(g_error_message, g_sizeof_g_error_message, "No .MACRO open.\n");
   print_error(g_error_message, ERROR_DIR);
 
   return FAILED;
@@ -8375,7 +8376,7 @@ int directive_snesheader(void) {
       int number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
-        snprintf(g_error_message, sizeof(g_error_message), "CARTRIDGETYPE expects 8-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "CARTRIDGETYPE expects 8-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8402,7 +8403,7 @@ int directive_snesheader(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
-        snprintf(g_error_message, sizeof(g_error_message), "ROMSIZE expects 8-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "ROMSIZE expects 8-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8422,7 +8423,7 @@ int directive_snesheader(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < 0 || g_parsed_int > 7)) {
-        snprintf(g_error_message, sizeof(g_error_message), "SRAMSIZE expects 0-7, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "SRAMSIZE expects 0-7, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8444,7 +8445,7 @@ int directive_snesheader(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
-        snprintf(g_error_message, sizeof(g_error_message), "COUNTRY expects 8-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "COUNTRY expects 8-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8466,7 +8467,7 @@ int directive_snesheader(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
-        snprintf(g_error_message, sizeof(g_error_message), "LICENSEECODE expects 8-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "LICENSEECODE expects 8-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8481,7 +8482,7 @@ int directive_snesheader(void) {
       int number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
-        snprintf(g_error_message, sizeof(g_error_message), "VERSION expects 8-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "VERSION expects 8-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8590,7 +8591,7 @@ int directive_snesnativevector(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-        snprintf(g_error_message, sizeof(g_error_message), "COP expects 16-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "COP expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8615,7 +8616,7 @@ int directive_snesnativevector(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-        snprintf(g_error_message, sizeof(g_error_message), "BRK expects 16-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "BRK expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8640,7 +8641,7 @@ int directive_snesnativevector(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-        snprintf(g_error_message, sizeof(g_error_message), "ABORT expects 16-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "ABORT expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8665,7 +8666,7 @@ int directive_snesnativevector(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-        snprintf(g_error_message, sizeof(g_error_message), "NMI expects 16-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "NMI expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8690,7 +8691,7 @@ int directive_snesnativevector(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-        snprintf(g_error_message, sizeof(g_error_message), "UNUSED expects 16-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "UNUSED expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8715,7 +8716,7 @@ int directive_snesnativevector(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-        snprintf(g_error_message, sizeof(g_error_message), "IRQ expects 16-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "IRQ expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8822,7 +8823,7 @@ int directive_snesemuvector(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-        snprintf(g_error_message, sizeof(g_error_message), "COP expects 16-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "COP expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8847,7 +8848,7 @@ int directive_snesemuvector(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-        snprintf(g_error_message, sizeof(g_error_message), "RESET expects 16-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "RESET expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8872,7 +8873,7 @@ int directive_snesemuvector(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-        snprintf(g_error_message, sizeof(g_error_message), "ABORT expects 16-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "ABORT expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8897,7 +8898,7 @@ int directive_snesemuvector(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-        snprintf(g_error_message, sizeof(g_error_message), "NMI expects 16-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "NMI expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8922,7 +8923,7 @@ int directive_snesemuvector(void) {
       number_result = input_number();
 
       if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-        snprintf(g_error_message, sizeof(g_error_message), "UNUSED expects 16-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "UNUSED expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -8947,7 +8948,7 @@ int directive_snesemuvector(void) {
       number_result = input_number();
       
       if (number_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
-        snprintf(g_error_message, sizeof(g_error_message), "IRQBRK expects 16-bit data, %d is out of range!\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, "IRQBRK expects 16-bit data, %d is out of range!\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -9078,7 +9079,7 @@ int directive_printv(void) {
     return FAILED;
   if (q != SUCCEEDED) {
     if (q == INPUT_NUMBER_ADDRESS_LABEL) {
-      snprintf(g_error_message, sizeof(g_error_message), "\"%s\" is not known.\n", g_label);
+      snprintf(g_error_message, g_sizeof_g_error_message, "\"%s\" is not known.\n", g_label);
       print_error(g_error_message, ERROR_DIR);
     }
     print_error(".PRINTV can only print currently known values.\n", ERROR_DIR);
@@ -9112,7 +9113,7 @@ int directive_dbrnd_dwrnd(void) {
   if (q == FAILED)
     return FAILED;
   if (q != SUCCEEDED) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs the number of random numbers.\n", g_current_directive);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs the number of random numbers.\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -9120,7 +9121,7 @@ int directive_dbrnd_dwrnd(void) {
   c = g_parsed_int;
 
   if (c <= 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs that the number of random numbers is > 0.\n", g_current_directive);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs that the number of random numbers is > 0.\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -9130,7 +9131,7 @@ int directive_dbrnd_dwrnd(void) {
   if (q == FAILED)
     return FAILED;
   if (q != SUCCEEDED) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs the min value.\n", g_current_directive);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs the min value.\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -9142,7 +9143,7 @@ int directive_dbrnd_dwrnd(void) {
   if (q == FAILED)
     return FAILED;
   if (q != SUCCEEDED) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs the max value.\n", g_current_directive);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs the max value.\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -9150,7 +9151,7 @@ int directive_dbrnd_dwrnd(void) {
   max = g_parsed_int;
 
   if (min >= max) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs that min < max.\n", g_current_directive);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs that min < max.\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -9161,7 +9162,7 @@ int directive_dbrnd_dwrnd(void) {
     
     if (o == 1) {
       if (q < -32768 || q > 65535) {
-        snprintf(g_error_message, sizeof(g_error_message), ".%s: Expected a 16-bit value, computed %d.\n", g_current_directive, q);
+        snprintf(g_error_message, g_sizeof_g_error_message, ".%s: Expected a 16-bit value, computed %d.\n", g_current_directive, q);
         print_error(g_error_message, ERROR_NONE);
         return FAILED;
       }
@@ -9169,7 +9170,7 @@ int directive_dbrnd_dwrnd(void) {
     }
     else {
       if (q > 255 || q < -128) {
-        snprintf(g_error_message, sizeof(g_error_message), ".%s: Expected a 8-bit value, computed %d.\n", g_current_directive, q);
+        snprintf(g_error_message, g_sizeof_g_error_message, ".%s: Expected a 8-bit value, computed %d.\n", g_current_directive, q);
         print_error(g_error_message, ERROR_NONE);
         return FAILED;
       }
@@ -9199,7 +9200,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
   p = input_number();
   g_input_float_mode = OFF;
   if (p != SUCCEEDED && p != INPUT_NUMBER_FLOAT) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs a value for starting angle.\n", g_current_directive);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs a value for starting angle.\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -9210,7 +9211,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
     a = g_parsed_double;
 
   if (input_number() != SUCCEEDED || g_parsed_int < 0) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs an non-negative integer value for additional angles.\n", g_current_directive);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs an non-negative integer value for additional angles.\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -9220,7 +9221,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
   g_input_float_mode = ON;
   p = input_number();
   if (p != SUCCEEDED && p != INPUT_NUMBER_FLOAT) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs a value for angle step.\n", g_current_directive);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs a value for angle step.\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -9232,7 +9233,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
 
   p = input_number();
   if (p != SUCCEEDED && p != INPUT_NUMBER_FLOAT) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs a value to multiply the result with.\n", g_current_directive);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs a value to multiply the result with.\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -9245,7 +9246,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
   p = input_number();
   g_input_float_mode = OFF;
   if (p != SUCCEEDED && p != INPUT_NUMBER_FLOAT) {
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs a value to add to the result.\n", g_current_directive);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs a value to add to the result.\n", g_current_directive);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -9266,7 +9267,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
 
     if (o == 1) {
       if (value < -32768 || value > 65535) {
-        snprintf(g_error_message, sizeof(g_error_message), ".%s: Expected a 16-bit value, computed %d.\n", g_current_directive, value);
+        snprintf(g_error_message, g_sizeof_g_error_message, ".%s: Expected a 16-bit value, computed %d.\n", g_current_directive, value);
         print_error(g_error_message, ERROR_NONE);
         return FAILED;
       }
@@ -9274,7 +9275,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
     }
     else {
       if (value > 255 || value < -128) {
-        snprintf(g_error_message, sizeof(g_error_message), ".%s: Expected a 8-bit value, computed %d.\n", g_current_directive, value);
+        snprintf(g_error_message, g_sizeof_g_error_message, ".%s: Expected a 8-bit value, computed %d.\n", g_current_directive, value);
         print_error(g_error_message, ERROR_NONE);
         return FAILED;
       }
@@ -9332,7 +9333,7 @@ int directive_stringmap_table(void) {
 
   map->filename = calloc(strlen(g_label) + 1, 1);
   if (map->filename == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Out of memory while trying allocate info structure for file \"%s\".\n", g_full_name);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while trying allocate info structure for file \"%s\".\n", g_full_name);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -9344,7 +9345,7 @@ int directive_stringmap_table(void) {
       /* If in makefile mode, this is not an error. We just make an empty map. */
       return SUCCEEDED;
     }
-    snprintf(g_error_message, sizeof(g_error_message), "Error opening file \"%s\".\n", g_label);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Error opening file \"%s\".\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -9381,7 +9382,7 @@ int directive_stringmap_table(void) {
     /* left of = should be a string of hex digits, for a variable whole number of bytes */
     char_count = (int)(equals_pos - p);
     if (char_count == 0) {
-      snprintf(g_error_message, sizeof(g_error_message), "STRINGMAPTABLE: No text before '=' at line %d of file \"%s\".\n", line_number, g_label);
+      snprintf(g_error_message, g_sizeof_g_error_message, "STRINGMAPTABLE: No text before '=' at line %d of file \"%s\".\n", line_number, g_label);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -9402,7 +9403,7 @@ int directive_stringmap_table(void) {
       else if (c >= 'A' && c <= 'F')
         accumulator |= c - 'A' + 10;
       else {
-        snprintf(g_error_message, sizeof(g_error_message), "STRINGMAPTABLE: Invalid hex character '%c' at line %d of file \"%s\".\n", c, line_number, g_label);
+        snprintf(g_error_message, g_sizeof_g_error_message, "STRINGMAPTABLE: Invalid hex character '%c' at line %d of file \"%s\".\n", c, line_number, g_label);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -9421,7 +9422,7 @@ int directive_stringmap_table(void) {
     p[strcspn(p, "\r\n")] = 0;
     entry->text_length = (int)strlen(++p);
     if (entry->text_length == 0) {
-      snprintf(g_error_message, sizeof(g_error_message), "STRINGMAPTABLE: no text after '=' at line %d of file \"%s\".\n", line_number, g_label);
+      snprintf(g_error_message, g_sizeof_g_error_message, "STRINGMAPTABLE: no text after '=' at line %d of file \"%s\".\n", line_number, g_label);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -9464,7 +9465,7 @@ int directive_stringmap(void) {
     }
   }
   if (table == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "STRINGMAP: could not find table called \"%s\".\n", g_label);
+    snprintf(g_error_message, g_sizeof_g_error_message, "STRINGMAP: could not find table called \"%s\".\n", g_label);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;    
   }
@@ -9499,7 +9500,7 @@ int directive_stringmap(void) {
             /* in makefile mode, it's ignored */
         return SUCCEEDED;
       }
-      snprintf(g_error_message, sizeof(g_error_message), "STRINGMAP: could not find a match in the table at substring \"%s\".\n", p);
+      snprintf(g_error_message, g_sizeof_g_error_message, "STRINGMAP: could not find a match in the table at substring \"%s\".\n", p);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;    
     }
@@ -9839,7 +9840,7 @@ int parse_directive(void) {
     
       g_active_file_info_tmp = calloc(sizeof(struct active_file_info), 1);
       if (g_active_file_info_tmp == NULL) {
-        snprintf(g_error_message, sizeof(g_error_message), "Out of memory while trying allocate error tracking data structure.\n");
+        snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while trying allocate error tracking data structure.\n");
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -9868,7 +9869,7 @@ int parse_directive(void) {
         }
 
         if (g_file_name_info_tmp == NULL) {
-          snprintf(g_error_message, sizeof(g_error_message), "Internal error: Could not find the name of file %d.\n", g_parsed_int);
+          snprintf(g_error_message, g_sizeof_g_error_message, "Internal error: Could not find the name of file %d.\n", g_parsed_int);
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
         }
@@ -10248,7 +10249,7 @@ int parse_directive(void) {
         if (q == FAILED)
           return FAILED;
         if (q != SUCCEEDED || g_parsed_int < -128 || g_parsed_int > 255) {
-          snprintf(g_error_message, sizeof(g_error_message), ".EMPTYFILL needs a 8-bit value, got %d.\n", g_parsed_int);
+          snprintf(g_error_message, g_sizeof_g_error_message, ".EMPTYFILL needs a 8-bit value, got %d.\n", g_parsed_int);
           print_error(g_error_message, ERROR_DIR);
           return FAILED;
         }
@@ -10377,7 +10378,7 @@ int parse_directive(void) {
       if (q == INPUT_NUMBER_EOL)
         print_error("HALT: .FAIL found.\n", ERROR_NONE);
       else if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
-        snprintf(g_error_message, sizeof(g_error_message), "\"%s\"\n", g_label);
+        snprintf(g_error_message, g_sizeof_g_error_message, "\"%s\"\n", g_label);
         print_error(g_error_message, ERROR_FAI);
 
         q = input_number();
@@ -10550,7 +10551,7 @@ int parse_directive(void) {
       if (q == FAILED)
         return FAILED;
       if (q != SUCCEEDED || g_parsed_int < -128 || g_parsed_int > 255) {
-        snprintf(g_error_message, sizeof(g_error_message), ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, ".LICENSEECODEOLD needs a 8-bit value, got %d.\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -10971,7 +10972,7 @@ int parse_directive(void) {
       if (q == FAILED)
         return FAILED;
       if (q != SUCCEEDED || g_parsed_int < -128 || g_parsed_int > 255) {
-        snprintf(g_error_message, sizeof(g_error_message), ".VERSION needs a 8-bit value, got %d.\n", g_parsed_int);
+        snprintf(g_error_message, g_sizeof_g_error_message, ".VERSION needs a 8-bit value, got %d.\n", g_parsed_int);
         print_error(g_error_message, ERROR_DIR);
         return FAILED;
       }
@@ -11119,7 +11120,7 @@ int parse_if_directive(void) {
     if (q == FAILED)
       return FAILED;
     if (q != SUCCEEDED) {
-      snprintf(g_error_message, sizeof(g_error_message), ".IF needs immediate data.\n");
+      snprintf(g_error_message, g_sizeof_g_error_message, ".IF needs immediate data.\n");
       print_error(g_error_message, ERROR_INP);
       return FAILED;
     }
@@ -11157,7 +11158,7 @@ int parse_if_directive(void) {
     if (q == FAILED)
       return FAILED;
     if (q != SUCCEEDED) {
-      snprintf(g_error_message, sizeof(g_error_message), ".ELIF needs immediate data.\n");
+      snprintf(g_error_message, g_sizeof_g_error_message, ".ELIF needs immediate data.\n");
       print_error(g_error_message, ERROR_INP);
       return FAILED;
     }
@@ -11196,7 +11197,7 @@ int parse_if_directive(void) {
 
     q = input_number();
     if (q != SUCCEEDED && q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
-      snprintf(g_error_message, sizeof(g_error_message), ".%s needs immediate data.\n", bak);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs immediate data.\n", bak);
       print_error(g_error_message, ERROR_INP);
       return FAILED;
     }
@@ -11208,7 +11209,7 @@ int parse_if_directive(void) {
 
     q = input_number();
     if (q != SUCCEEDED && q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
-      snprintf(g_error_message, sizeof(g_error_message), ".%s needs immediate data.\n", bak);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs immediate data.\n", bak);
       print_error(g_error_message, ERROR_INP);
       return FAILED;
     }
@@ -11311,7 +11312,7 @@ int parse_if_directive(void) {
     strcpy(bak, g_current_directive);
 
     if (g_macro_active == 0) {
-      snprintf(g_error_message, sizeof(g_error_message), ".%s can be only used inside a macro.\n", bak);
+      snprintf(g_error_message, g_sizeof_g_error_message, ".%s can be only used inside a macro.\n", bak);
       print_error(g_error_message, ERROR_DIR);
       return FAILED;
     }
@@ -11355,7 +11356,7 @@ int parse_if_directive(void) {
       }
     }
 
-    snprintf(g_error_message, sizeof(g_error_message), ".%s needs an argument.\n", bak);
+    snprintf(g_error_message, g_sizeof_g_error_message, ".%s needs an argument.\n", bak);
     print_error(g_error_message, ERROR_DIR);
 
     return FAILED;
@@ -11418,7 +11419,7 @@ int find_next_point(char *name) {
 
   /* return the condition's line number */
   g_active_file_info_last->line_current = line_current;
-  snprintf(g_error_message, sizeof(g_error_message), ".%s must end to .ENDIF/.ELSE.\n", name);
+  snprintf(g_error_message, g_sizeof_g_error_message, ".%s must end to .ENDIF/.ELSE.\n", name);
   print_error(g_error_message, ERROR_DIR);
 
   return FAILED;
@@ -11430,7 +11431,7 @@ int find_next_point(char *name) {
 void delete_stack(struct stack *s) {
 
   if (s == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Deleting a non-existing computation stack. This can lead to problems.\n");
+    snprintf(g_error_message, g_sizeof_g_error_message, "Deleting a non-existing computation stack. This can lead to problems.\n");
     print_error(g_error_message, ERROR_WRN);
     return;
   }
@@ -11590,7 +11591,7 @@ int export_a_definition(char *name) {
   export = g_export_first;
   while (export != NULL) {
     if (strcmp(export->name, name) == 0) {
-      snprintf(g_error_message, sizeof(g_error_message), "\"%s\" was .EXPORTed for the second time.\n", name);
+      snprintf(g_error_message, g_sizeof_g_error_message, "\"%s\" was .EXPORTed for the second time.\n", name);
       print_error(g_error_message, ERROR_WRN);
       return SUCCEEDED;
     }
@@ -11599,7 +11600,7 @@ int export_a_definition(char *name) {
 
   export = calloc(sizeof(struct export_def), 1);
   if (export == NULL) {
-    snprintf(g_error_message, sizeof(g_error_message), "Out of memory while allocating room for \".EXPORT %s\".\n", name);
+    snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while allocating room for \".EXPORT %s\".\n", name);
     print_error(g_error_message, ERROR_DIR);
     return FAILED;
   }
@@ -11718,7 +11719,7 @@ int add_namespace_to_string(char *s, int sizeof_s, char *type) {
   snprintf(buf, sizeof(buf), "%s.%s", g_active_file_info_last->namespace, s);
   buf[sizeof(buf)-1] = 0;
   if (strlen(buf) >= (size_t)sizeof_s) {
-    snprintf(g_error_message, sizeof(g_error_message), "The current file namespace \"%s\" cannot be added to %s's \"%s\" name - increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_active_file_info_last->namespace, type, s);
+    snprintf(g_error_message, g_sizeof_g_error_message, "The current file namespace \"%s\" cannot be added to %s's \"%s\" name - increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_active_file_info_last->namespace, type, s);
     print_error(g_error_message, ERROR_ERR);
     return FAILED;
   }

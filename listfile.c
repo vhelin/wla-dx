@@ -15,7 +15,7 @@ extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_se
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
-extern char g_tmp_name[MAX_NAME_LENGTH + 1], g_tmp[4096];
+extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp;
 extern int g_verbose_mode, g_section_status, g_cartridgetype, g_output_format;
 
 
