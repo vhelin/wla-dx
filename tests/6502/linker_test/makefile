@@ -1,7 +1,7 @@
 
-CC = wla-6502
+CC = $(WLAVALGRIND) wla-6502
 CFLAGS = -i -x -o
-LD = wlalink
+LD = $(WLAVALGRIND) wlalink
 LDFLAGS = -v -S -i
 
 SFILES = setup.s linker_test.s

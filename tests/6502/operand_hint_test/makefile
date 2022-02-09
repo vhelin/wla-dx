@@ -1,7 +1,7 @@
 
-CC = wla-6502
+CC = $(WLAVALGRIND) wla-6502
 CFLAGS = -D abba = 123h -D man=0ah -D name1=George -D name2="John" -D name3 = Peter -D name4 = "Susan" -o
-LD = wlalink
+LD = $(WLAVALGRIND) wlalink
 LDFLAGS = -v -i -s
 
 SFILES = main.s
