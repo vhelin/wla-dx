@@ -47,7 +47,10 @@ fi
 # Makefiles in the tests folder use WLAVALGRIND to run Valgrind at the same time
 # with WLA and WLALINK
 if ! [ -x "$(command -v valgrind)" ]; then
-  echo 'Warning: Valgrind is not installed so we cannot perform memory checks...'
+  echo
+  echo '########################################################################'
+  echo 'WARNING: Valgrind is not installed so we cannot perform memory checks...'
+  echo '########################################################################'
   export WLAVALGRIND=
 else
   export WLAVALGRIND='valgrind --error-exitcode=1 --tool=memcheck --leak-check=full --errors-for-leak-kinds=all'

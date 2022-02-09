@@ -1,7 +1,7 @@
 
 CC = $(WLAVALGRIND) wla-gb
 CFLAGS = -x -o
-LD = wlalink
+LD = $(WLAVALGRIND) wlalink
 LDFLAGS = -d -v -s
 
 SFILES = setup.s main.s

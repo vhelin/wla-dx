@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char g_version_string[] = "$VER: wlalink 5.16a (21.1.2022)";
+char g_version_string[] = "$VER: wlalink 5.16a (10.2.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -965,6 +965,17 @@ int localize_path(char *path) {
 }
 
 
+static void _free_section_namespace(struct section *s) {
+
+  if (s->nspace != NULL) {
+    if (s->nspace->label_map != NULL) {
+      hashmap_free(s->nspace->label_map);
+      s->nspace->label_map = NULL;
+    }
+  }
+}
+
+
 void procedures_at_exit(void) {
 
   struct source_file_name *f, *fn;
@@ -993,14 +1004,6 @@ void procedures_at_exit(void) {
     o = g_obj_first;
     g_obj_first = g_obj_first->next;
     free(o);
-  }
-
-  if (g_global_unique_label_map != NULL)
-    hashmap_free(g_global_unique_label_map);
-
-  if (g_namespace_map != NULL) {
-    hashmap_free_all_elements(g_namespace_map);
-    hashmap_free(g_namespace_map);
   }
 
   while (g_labels_first != NULL) {
@@ -1037,12 +1040,14 @@ void procedures_at_exit(void) {
     if (g_sec_first->data != NULL)
       free(g_sec_first->data);
     hashmap_free(g_sec_first->label_map);
+    _free_section_namespace(g_sec_first);
     free(g_sec_first);
     g_sec_first = s;
   }
 
   while (g_sec_bankhd_first != NULL) {
     s = g_sec_bankhd_first->next;
+    _free_section_namespace(g_sec_bankhd_first);
     free(g_sec_bankhd_first);
     g_sec_bankhd_first = s;
   }
@@ -1058,6 +1063,14 @@ void procedures_at_exit(void) {
     g_after_sections = g_after_tmp->next;
     free(g_after_tmp);
     g_after_tmp = g_after_sections;
+  }
+
+  if (g_global_unique_label_map != NULL)
+    hashmap_free(g_global_unique_label_map);
+
+  if (g_namespace_map != NULL) {
+    hashmap_free_all_elements(g_namespace_map);
+    hashmap_free(g_namespace_map);
   }
 
   if (g_banksizes != NULL)
