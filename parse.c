@@ -401,6 +401,8 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
         }
         strcpy(substitution, g_label);
       }
+      else if (p == FAILED)
+        return FAILED;
       else {
         snprintf(g_xyz, sizeof(g_xyz), "Unhandled return type %d from stack_calculate()! Please submit a bug report!\n", p);
         print_error(g_xyz, ERROR_NUM);
@@ -1414,8 +1416,27 @@ int get_next_token(void) {
            && g_ss < MAX_NAME_LENGTH; g_tmp[g_ss++] = g_buffer[g_source_pointer++]);
   }
   else {
-    for (g_ss = 0; g_buffer[g_source_pointer] != 0xA && g_buffer[g_source_pointer] != ',' && g_buffer[g_source_pointer] != ' ' && g_ss < MAX_NAME_LENGTH; ) {
-      g_tmp[g_ss] = g_buffer[g_source_pointer];
+    int curly_brackets = 0;
+    
+    for (g_ss = 0; g_ss < MAX_NAME_LENGTH; ) {
+      unsigned char e = g_buffer[g_source_pointer];
+
+      if (e == 0xA)
+        break;
+      else if (e == '{')
+        curly_brackets++;
+      else if (e == '}') {
+        curly_brackets--;
+        if (curly_brackets < 0)
+          break;
+      }
+      if (curly_brackets == 0) {
+        if (e == ',')
+          break;
+        if (e == ' ')
+          break;
+      }
+      g_tmp[g_ss] = e;
       g_ss++;
       g_source_pointer++;
     }

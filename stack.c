@@ -442,6 +442,19 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       q++;
       in++;
     }
+    else if (*in == '\\' && *(in + 1) == '@') {
+      if (g_macro_runtime_current != NULL) {
+        si[q].type = STACK_ITEM_TYPE_VALUE;
+        si[q].value = g_macro_runtime_current->macro->calls - 1;
+        si[q].sign = SI_SIGN_POSITIVE;
+        in += 2;
+        q++;
+      }
+      else {
+        print_error("\"\\@\" cannot be used here as we are not inside a .MACRO.\n", ERROR_NUM);
+        return FAILED;
+      }
+    }
     else if (*in == '=' && *(in + 1) == '=') {
       if (g_input_parse_if == YES) {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
@@ -781,7 +794,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         if (e == '\\' && *in == '"')
           e = *in++;
 
-        si[q].string[k] = e;        
+        si[q].string[k] = e;
       }
 
       if (e != '"') {

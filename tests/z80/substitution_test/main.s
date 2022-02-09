@@ -60,6 +60,7 @@ label2: dsb 2
 test_{I1}:
 test_{I1}_address_{I0}
         .DB "01("
+MyValueIs_{%.1X{ 0x3 }}
 formatted_{%.4X{I10}}
 formatted_{%.4X{I10}}_label:
         .DB "A1B"
@@ -91,6 +92,21 @@ Label_{%.9d{COUNT+1}}:
 Label_{%.3i{COUNT+1+2+3+4+I10}}:
 
         .MACRO MacroTest
+        .if \@ == 2
+          .db "07>"                ; @BT TEST-07 07 START
+LastNumberShouldBeTwo_{\@+1+2-3}
+LastNumberShouldBeThree_{ \@ + 1 + 3 - 3 }:
+InTheMiddleShouldBeFive_{  \@  *  2  +  1  }_IsThere        
+          .db {"{\@ + 3 - 3 + 1}"} ; @BT 33
+          .db { "{\@*\@}" }        ; @BT 34
+          .db {"{\1+\@}" }         ; @BT 35
+          .db "<07"                ; @BT END
+        .endif
+        .if 0 + \@ + 1 == 2 + 1
+        .db "08>"                 ; @BT TEST-08 08 START
+        .db MyValueIs_{ %11 } + 1 ; @BT 04
+        .db "<08"                 ; @BT END
+        .endif
 Hack_{\@+1000}:
 Hack_{\@+1}_Hack:
 Hack_{3+\@}_More:
@@ -98,10 +114,10 @@ Hack_{3+\@}_More:
 
 All_{1+1+1+1}_MacroTests1:
 All_{I10-6}_MacroTests2:      
-        MacroTest
-        MacroTest
-        MacroTest
-        MacroTest
+        MacroTest 1
+        MacroTest 2
+        MacroTest 3
+        MacroTest 4
         
         .DB "02>"               ; @BT TEST-02 02 START
         .DB "{ABC}"             ; @BT 7B 41 42 43 7D
