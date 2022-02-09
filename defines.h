@@ -22,6 +22,9 @@
 #define MAX_STACK_CALCULATOR_ITEMS 256
 #endif
 
+/* the number of times stack_calculate() can exist in call stack any given point in time */
+#define MAX_STACK_CALCULATE_CALL_DEPTH 16
+
 #define STACK_CALCULATE_DELAY 2
 #define STACK_RETURN_LABEL 1024
 

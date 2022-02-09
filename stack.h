@@ -3,6 +3,7 @@
 #define _STACK_H
 
 int get_label_length(char *l);
+int stack_calculate_free_allocations(void);
 int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_substitutor);
 int stack_create_label_stack(char *label);
 int stack_create_stack_stack(int stack_id);

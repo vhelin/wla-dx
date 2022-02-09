@@ -1,7 +1,7 @@
 Good things to know about WLA
 =============================
 
-- Is 255 (Amiga, MSDOS) or 1023 (other platforms) bytes too little for a
+- Is 511 (Amiga, MSDOS) or 2047 (other platforms) bytes too little for a
   string (file names, labels, definition labels, etc)? Check out
   ``MAX_NAME_LENGTH`` in ``shared.h``.
 - Want to have more operators and operands in a calculation than 64 (Amiga,

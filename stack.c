@@ -240,23 +240,12 @@ static int _get_op_priority(int op) {
 }
 
 
-int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_substitutor) {
+static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_substitutor, struct stack_item *si, struct stack_item *ta) {
 
-  int q = 0, b = 0, d, k, op[MAX_STACK_CALCULATOR_ITEMS], n, o, l, curly_braces = 0, got_label = NO;
-  struct stack_item si[MAX_STACK_CALCULATOR_ITEMS], ta[MAX_STACK_CALCULATOR_ITEMS];
-  struct stack s;
-  unsigned char e;
+  int q = 0, b = 0, d, k, n, o, l, curly_braces = 0, got_label = NO;
+  unsigned char e, op[MAX_STACK_CALCULATOR_ITEMS];
   double dou = 0.0, dom;
   char *in_original = in;
-
-
-  /* initialize (from Amiga's SAS/C) */
-  for (k = 0; k < MAX_STACK_CALCULATOR_ITEMS; k++) {
-    si[k].type = STACK_ITEM_TYPE_VALUE;
-    si[k].sign = SI_SIGN_POSITIVE;
-    si[k].value = 0.0;
-    si[k].string[0] = 0;
-  }
 
   /* slice the data into infix format */
   while (*in != 0xA && *in != 0) {
@@ -1099,7 +1088,7 @@ int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_
     /* operators get inspected */
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR) {
       if (b == 0) {
-        op[0] = (int)si[k].value;
+        op[0] = (unsigned char)si[k].value;
         b++;
       }
       else {
@@ -1127,7 +1116,7 @@ int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_
             d++;
           }
           b++;
-          op[b] = (int)si[k].value;
+          op[b] = (unsigned char)si[k].value;
           b++;
         }
       }
@@ -1144,6 +1133,8 @@ int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_
 
   /* are all the symbols known? */
   if (resolve_stack(ta, d) == SUCCEEDED) {
+    struct stack s;
+
     s.stack = ta;
     s.linenumber = g_active_file_info_last->line_current;
     s.filename_id = g_active_file_info_last->filename_id;
@@ -1229,6 +1220,70 @@ int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_
   _stack_insert();
 
   return INPUT_NUMBER_STACK;
+}
+
+
+static unsigned char s_stack_calculate_initialized = NO;
+static struct stack_item *s_stack_calculate_si_pointers[2*MAX_STACK_CALCULATE_CALL_DEPTH];
+static int s_stack_calculate_pointer_index = 0;
+
+
+static struct stack_item *_stack_calculate_get_array(void) {
+
+  /* out of arrays? */
+  if (s_stack_calculate_pointer_index >= 2*MAX_STACK_CALCULATE_CALL_DEPTH)
+    return NULL;
+
+  if (s_stack_calculate_si_pointers[s_stack_calculate_pointer_index] == NULL)
+    s_stack_calculate_si_pointers[s_stack_calculate_pointer_index] = calloc(sizeof(struct stack_item) * MAX_STACK_CALCULATOR_ITEMS, 1);
+  
+  return s_stack_calculate_si_pointers[s_stack_calculate_pointer_index++];
+}
+
+
+int stack_calculate_free_allocations(void) {
+
+  int i;
+
+  if (s_stack_calculate_initialized == NO)
+    return SUCCEEDED;
+
+  for (i = 0; i < 2*MAX_STACK_CALCULATE_CALL_DEPTH; i++)
+    free(s_stack_calculate_si_pointers[i]);
+
+  return SUCCEEDED;
+}
+
+
+int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_substitutor) {
+
+  struct stack_item *si, *ta;
+  int result;
+  
+  if (s_stack_calculate_initialized == NO) {
+    int i;
+
+    for (i = 0; i < 2*MAX_STACK_CALCULATE_CALL_DEPTH; i++)
+      s_stack_calculate_si_pointers[i] = NULL;
+
+    s_stack_calculate_initialized = YES;
+  }
+
+  /* get arrays (or allocate them if they don't exist) */
+  si = _stack_calculate_get_array();
+  ta = _stack_calculate_get_array();
+
+  if (si == NULL || ta == NULL) {
+    print_error("STACK_CALCULATE: Out of struct stack_item arrays. Please submit a bug report!\n", ERROR_STC);
+    return FAILED;
+  }
+  
+  result = _stack_calculate(in, value, bytes_parsed, from_substitutor, si, ta);
+
+  /* release the arrays */
+  s_stack_calculate_pointer_index -= 2;
+  
+  return result;
 }
 
 

@@ -4,9 +4,9 @@
 
 /* want to use longer strings and labels? change this - PS. it doesn't contain the null terminator */
 #if defined(AMIGA) || defined(MSDOS)
-#define MAX_NAME_LENGTH 255
+#define MAX_NAME_LENGTH 511
 #else
-#define MAX_NAME_LENGTH 1023
+#define MAX_NAME_LENGTH 2047
 #endif
 
 #define MAX_FLOAT_DIGITS 25
