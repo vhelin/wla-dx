@@ -283,7 +283,7 @@ int listfile_write_listfiles(struct section *sections) {
           while (m < file_size) {
             if (source_file[m] == 0xA) {
               m++;
-              if (source_file[m] == 0xD)
+              if (m < file_size && source_file[m] == 0xD)
                 m++;
               current_linenumber++;
               fprintf(f, "\n");
