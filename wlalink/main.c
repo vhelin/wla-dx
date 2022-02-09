@@ -965,7 +965,18 @@ int localize_path(char *path) {
 }
 
 
-static void _free_section_namespace(struct section *s) {
+static void _free_section_allocations(struct section *s) {
+
+  if (s->listfile_cmds != NULL)
+    free(s->listfile_cmds);
+  if (s->listfile_ints != NULL)
+    free(s->listfile_ints);
+
+  if (s->data != NULL)
+    free(s->data);
+
+  if (s->label_map != NULL)
+    hashmap_free(s->label_map);
 
   if (s->nspace != NULL) {
     if (s->nspace->label_map != NULL) {
@@ -1033,21 +1044,14 @@ void procedures_at_exit(void) {
 
   while (g_sec_first != NULL) {
     s = g_sec_first->next;
-    if (g_sec_first->listfile_cmds != NULL)
-      free(g_sec_first->listfile_cmds);
-    if (g_sec_first->listfile_ints != NULL)
-      free(g_sec_first->listfile_ints);
-    if (g_sec_first->data != NULL)
-      free(g_sec_first->data);
-    hashmap_free(g_sec_first->label_map);
-    _free_section_namespace(g_sec_first);
+    _free_section_allocations(g_sec_first);
     free(g_sec_first);
     g_sec_first = s;
   }
 
   while (g_sec_bankhd_first != NULL) {
     s = g_sec_bankhd_first->next;
-    _free_section_namespace(g_sec_bankhd_first);
+    _free_section_allocations(g_sec_bankhd_first);
     free(g_sec_bankhd_first);
     g_sec_bankhd_first = s;
   }

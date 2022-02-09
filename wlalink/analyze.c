@@ -189,9 +189,15 @@ int free_section(struct section *s) {
 
   /* free label map */
   hashmap_free(s->label_map);
-          
+
+  if (s->listfile_cmds != NULL)
+    free(s->listfile_cmds);
+  if (s->listfile_ints != NULL)
+    free(s->listfile_ints);
+  
   if (s->data != NULL)
     free(s->data);
+
   free(s);
 
   return SUCCEEDED;
@@ -1212,7 +1218,7 @@ static int _try_to_insert_after_section(struct sort_capsule *sort_capsules, stru
 
 
 static int _append_sections(struct section *s_source, struct section *s_target) {
-    
+
   char label_tmp[MAX_NAME_LENGTH + 1];
   struct reference *r;
   struct stack *st;
