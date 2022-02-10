@@ -1,7 +1,7 @@
 
-CC = wla-6510
+CC = $(WLAVALGRIND) wla-6510
 CFLAGS = -o
-LD = wlalink
+LD = $(WLAVALGRIND) wlalink
 LDFLAGS = -v -b -s -t CBMPRG -a LoadAddress
 
 SFILES = main.s

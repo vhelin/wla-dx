@@ -14,7 +14,7 @@ steps:
     set -ex
     sudo apt -y update
     sudo apt install -y valgrind
-  displayName: 'Install valgrind'
+  displayName: 'Install Valgrind'
   timeoutInMinutes: 20
 - script: |
     cmake -G "Unix Makefiles"

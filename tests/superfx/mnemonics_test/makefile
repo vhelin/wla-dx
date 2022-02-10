@@ -1,7 +1,7 @@
 
-CC = wla-superfx
+CC = $(WLAVALGRIND) wla-superfx
 CFLAGS = -v -i -o
-LD = wlalink
+LD = $(WLAVALGRIND) wlalink
 LDFLAGS = -v -i -s
 
 SFILES = main.s

@@ -1,7 +1,7 @@
 
-CC = wla-spc700
+CC = $(WLAVALGRIND) wla-spc700
 CFLAGS = -i -o
-LD = wlalink
+LD = $(WLAVALGRIND) wlalink
 LDFLAGS = -i -v -S
 
 SFILES = main.s

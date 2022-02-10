@@ -1,7 +1,7 @@
 
-CC = wla-z80
+CC = $(WLAVALGRIND) wla-z80
 CFLAGS = -v -i -o
-LD = wlalink
+LD = $(WLAVALGRIND) wlalink
 LDFLAGS = -v -i -s
 
 SFILES = main.s

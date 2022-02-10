@@ -1,7 +1,7 @@
 
-CC = wla-65816
+CC = $(WLAVALGRIND) wla-65816
 CFLAGS = -v -I include_dir_1 -I include_dir_2 -D NAME="kullervo" -o
-LD = wlalink
+LD = $(WLAVALGRIND) wlalink
 LDFLAGS = -v -S
 
 SFILES = main.s can_you_tell_this_name_is_intended_to_test_the_capability_of_wla_to_handle_long_filenames_and_stufffffffff.s

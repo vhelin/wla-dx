@@ -1,7 +1,7 @@
 
-CC = wla-z80
+CC = $(WLAVALGRIND) wla-z80
 CFLAGS = -D TEST_STRING="S>HELLO<S" -i -o
-LD = wlalink
+LD = $(WLAVALGRIND) wlalink
 LDFLAGS = -v -s -i
 
 SFILES = setup.s main.s
