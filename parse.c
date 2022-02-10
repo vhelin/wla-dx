@@ -344,7 +344,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
         i++;
 
         if (local[i] != '.') {
-          print_error(ERROR_NUM, "The formatting string must begin with \"%.\".\n");
+          print_error(ERROR_NUM, "The formatting string must begin with \"%%.\".\n");
           return FAILED;
         }
 

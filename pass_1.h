@@ -25,8 +25,10 @@ void reset_label_stack(void);
 int add_label_to_label_stack(char *l);
 int get_full_label(char *l, char *out);
 
-#if defined(__RESHARPER__) || defined(__GNUC__)
-[[gnu::format(printf, 2, 3)]]
+#if defined(__GNUC__)
+__attribute__((format(printf, 2, 3)))
+#elif defined(__RESHARPER__)
+[[rscpp::format(printf, 2, 3)]]
 #endif
 void print_error(int type, char *error, ...);
 
