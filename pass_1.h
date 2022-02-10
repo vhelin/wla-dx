@@ -24,7 +24,14 @@ void generate_label(char *header, char *footer);
 void reset_label_stack(void);
 int add_label_to_label_stack(char *l);
 int get_full_label(char *l, char *out);
-void print_error(char *error, int type);
+
+#if defined(__GNUC__)
+__attribute__((format(printf, 2, 3)))
+#elif defined(__RESHARPER__)
+[[rscpp::format(printf, 2, 3)]]
+#endif
+void print_error(int type, char *error, ...);
+
 void next_line(void);
 void delete_stack(struct stack *s);
 

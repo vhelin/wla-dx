@@ -71,13 +71,13 @@ extern struct array *g_arrays_first;
 extern struct structure *g_structures_first;
 extern struct structure **g_saved_structures;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
-extern char *g_label_stack[256], *g_tmp, *g_error_message;
+extern char *g_label_stack[256], *g_tmp;
 extern char *g_include_in_tmp, *g_tmp_a;
 extern char *g_rom_banks, *g_rom_banks_usage_table;
 extern char *g_include_dir, *g_buffer, *g_full_name;
 extern int g_include_in_tmp_size, g_tmp_a_size, *g_banks, *g_bankaddress;
 extern int g_saved_structures_count, g_saved_structures_max2;
-extern int g_sizeof_g_tmp, g_sizeof_g_error_message;
+extern int g_sizeof_g_tmp;
 
 int g_output_format = OUTPUT_NONE, g_verbose_mode = OFF, g_test_mode = OFF;
 int g_extra_definitions = OFF, g_commandline_parsing = ON, g_makefile_rules = NO;
@@ -95,9 +95,8 @@ struct structure **g_saved_structures2 = NULL;
 static int _allocate_global_buffers(void) {
 
   g_tmp = calloc(g_sizeof_g_tmp, 1);
-  g_error_message = calloc(g_sizeof_g_error_message, 1);
 
-  if (g_tmp == NULL || g_error_message == NULL)
+  if (g_tmp == NULL)
     return FAILED;
 
   return SUCCEEDED;
@@ -107,7 +106,6 @@ static int _allocate_global_buffers(void) {
 static void _free_global_buffers(void) {
 
   free(g_tmp);
-  free(g_error_message);
 }
 
 

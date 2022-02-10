@@ -23,7 +23,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
     if (z == SUCCEEDED && (g_parsed_int > 127 || g_parsed_int < -128)) {
-      print_error("Out of 8-bit range.\n", ERROR_NUM);
+      print_error(ERROR_NUM, "Out of 8-bit range.\n");
       return FAILED;
     }
 
@@ -70,7 +70,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
       if (g_opt_tmp->skip_xbit == 1)
         break;
-      print_error("Out of 16-bit range.\n", ERROR_NUM);
+      print_error(ERROR_NUM, "Out of 16-bit range.\n");
       return FAILED;
     }
 
@@ -155,13 +155,13 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     
     if (y == 0) {
       if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128)) {
-        print_error("Out of 8-bit range.\n", ERROR_NUM);
+        print_error(ERROR_NUM, "Out of 8-bit range.\n");
         return FAILED;
       }
     }
     else {
       if (z == SUCCEEDED && (g_parsed_int > 65535 || g_parsed_int < -32768)) {
-        print_error("Out of 16-bit range.\n", ERROR_NUM);
+        print_error(ERROR_NUM, "Out of 16-bit range.\n");
         return FAILED;
       }
     }
@@ -279,9 +279,9 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     g_source_pointer = y;
     if (z != SUCCEEDED) {
       if (g_opt_tmp->skip_xbit == 0)
-        print_error("REP needs immediate data.\n", ERROR_LOG);
+        print_error(ERROR_LOG, "REP needs immediate data.\n");
       else
-        print_error("SEP needs immediate data.\n", ERROR_LOG);
+        print_error(ERROR_LOG, "SEP needs immediate data.\n");
       return FAILED;
     }
     if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
@@ -348,13 +348,13 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     
     if (y == 0) {
       if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128)) {
-        print_error("Out of 8-bit range.\n", ERROR_NUM);
+        print_error(ERROR_NUM, "Out of 8-bit range.\n");
         return FAILED;
       }
     }
     else {
       if (z == SUCCEEDED && (g_parsed_int > 65535 || g_parsed_int < -32768)) {
-        print_error("Out of 16-bit range.\n", ERROR_NUM);
+        print_error(ERROR_NUM, "Out of 16-bit range.\n");
         return FAILED;
       }
     }
@@ -459,7 +459,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128)) {
       if (g_opt_tmp->skip_xbit == 2)
         break;
-      print_error("Out of 8-bit range.\n", ERROR_NUM);
+      print_error(ERROR_NUM, "Out of 8-bit range.\n");
       return FAILED;
     }
     

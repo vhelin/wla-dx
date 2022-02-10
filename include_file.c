@@ -13,8 +13,8 @@
 #include "printf.h"
 
 
-extern int g_ind, g_source_pointer, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules, g_sizeof_g_error_message;
-extern char *g_tmp, *g_error_message, g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
+extern int g_ind, g_source_pointer, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules;
+extern char *g_tmp, g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
 extern struct ext_include_collection g_ext_incdirs;
 extern FILE *g_file_out_ptr;
 extern struct stringmaptable *g_stringmaptables;
@@ -187,8 +187,7 @@ int include_file(char *name, int *include_size, char *namespace) {
         free(g_file_name_info_tmp);
       if (n != NULL)
         free(n);
-      snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while trying allocate info structure for file \"%s\".\n", g_full_name);
-      print_error(g_error_message, ERROR_INC);
+      print_error(ERROR_INC, "Out of memory while trying allocate info structure for file \"%s\".\n", g_full_name);
       return FAILED;
     }
     g_file_name_info_tmp->next = NULL;
@@ -222,8 +221,7 @@ int include_file(char *name, int *include_size, char *namespace) {
 
     g_include_in_tmp = calloc(sizeof(char) * file_size, 1);
     if (g_include_in_tmp == NULL) {
-      snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while trying to allocate room for \"%s\".\n", g_full_name);
-      print_error(g_error_message, ERROR_INC);
+      print_error(ERROR_INC, "Out of memory while trying to allocate room for \"%s\".\n", g_full_name);
       return FAILED;
     }
 
@@ -232,8 +230,7 @@ int include_file(char *name, int *include_size, char *namespace) {
 
   /* read the whole file into a buffer */
   if (fread(g_include_in_tmp, 1, file_size, f) != (size_t) file_size) {
-    snprintf(g_error_message, g_sizeof_g_error_message, "Could not read all %d bytes of \"%s\"!", file_size, g_full_name);
-    print_error(g_error_message, ERROR_INC);
+    print_error(ERROR_INC, "Could not read all %d bytes of \"%s\"!", file_size, g_full_name);
     return FAILED;
   }
 
@@ -245,8 +242,7 @@ int include_file(char *name, int *include_size, char *namespace) {
   if (g_source_file_size == 0) {
     g_buffer = calloc(sizeof(char) * (change_file_buffer_size + (file_size + 4)), 1);
     if (g_buffer == NULL) {
-      snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while trying to allocate room for \"%s\".\n", g_full_name);
-      print_error(g_error_message, ERROR_INC);
+      print_error(ERROR_INC, "Out of memory while trying to allocate room for \"%s\".\n", g_full_name);
       return FAILED;
     }
 
@@ -268,8 +264,7 @@ int include_file(char *name, int *include_size, char *namespace) {
 
   tmp_b = calloc(sizeof(char) * (g_source_file_size + change_file_buffer_size + file_size + 4), 1);
   if (tmp_b == NULL) {
-    snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while trying to expand the project to incorporate file \"%s\".\n", g_full_name);
-    print_error(g_error_message, ERROR_INC);
+    print_error(ERROR_INC, "Out of memory while trying to expand the project to incorporate file \"%s\".\n", g_full_name);
     return FAILED;
   }
 
@@ -280,8 +275,7 @@ int include_file(char *name, int *include_size, char *namespace) {
 
     g_tmp_a = calloc(sizeof(char) * (change_file_buffer_size + file_size + 4), 1);
     if (g_tmp_a == NULL) {
-      snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while allocating new room for \"%s\".\n", g_full_name);
-      print_error(g_error_message, ERROR_INC);
+      print_error(ERROR_INC, "Out of memory while allocating new room for \"%s\".\n", g_full_name);
       free(tmp_b);
       return FAILED;
     }
@@ -357,8 +351,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       free(ifd);
       free(n);
       free(in_tmp);
-      snprintf(g_error_message, g_sizeof_g_error_message, "Out of memory while allocating data structure for \"%s\".\n", g_full_name);
-      print_error(g_error_message, ERROR_INB);
+      print_error(ERROR_INB, "Out of memory while allocating data structure for \"%s\".\n", g_full_name);
       fclose(f);
       return FAILED;
     }
@@ -368,8 +361,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       free(ifd);
       free(n);
       free(in_tmp);
-      snprintf(g_error_message, g_sizeof_g_error_message, "Could not read all %d bytes of \"%s\"!", file_size, g_full_name);
-      print_error(g_error_message, ERROR_INC);
+      print_error(ERROR_INC, "Could not read all %d bytes of \"%s\"!", file_size, g_full_name);
       return FAILED;
     }
 
@@ -407,15 +399,14 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   else {
     skip_next_token();
     if (input_number() != SUCCEEDED) {
-      print_error(".INCBIN needs the amount of skipped bytes.\n", ERROR_DIR);
+      print_error(ERROR_DIR, ".INCBIN needs the amount of skipped bytes.\n");
       return FAILED;
     }
 
     *skip = g_parsed_int;
 
     if (g_parsed_int >= file_size) {
-      snprintf(g_error_message, g_sizeof_g_error_message, "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", g_parsed_int, file_size, g_full_name);
-      print_error(g_error_message, ERROR_INB);
+      print_error(ERROR_INB, "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", g_parsed_int, file_size, g_full_name);
       return FAILED;
     }
   }
@@ -426,15 +417,14 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   else {
     skip_next_token();
     if (input_number() != SUCCEEDED) {
-      print_error(".INCBIN needs the amount of bytes for reading.\n", ERROR_DIR);
+      print_error(ERROR_DIR, ".INCBIN needs the amount of bytes for reading.\n");
       return FAILED;
     }
 
     *read = g_parsed_int;
 
     if (*skip + *read > file_size) {
-      snprintf(g_error_message, g_sizeof_g_error_message, "Overreading file \"%s\" by %d bytes.\n", g_full_name, *skip + *read - file_size);
-      print_error(g_error_message, ERROR_INB);
+      print_error(ERROR_INB, "Overreading file \"%s\" by %d bytes.\n", g_full_name, *skip + *read - file_size);
       return FAILED;
     }
   }
@@ -444,8 +434,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     *swap = 0;
   else {
     if ((*read & 1) == 1) {
-      snprintf(g_error_message, g_sizeof_g_error_message, "The read size of file \"%s\" is odd (%d)! Cannot perform SWAP.\n", g_full_name, *read);
-      print_error(g_error_message, ERROR_INB);
+      print_error(ERROR_INB, "The read size of file \"%s\" is odd (%d)! Cannot perform SWAP.\n", g_full_name, *read);
       return FAILED;
     }
     *swap = 1;
@@ -475,8 +464,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       return FAILED;
 
     if (*macro == NULL) {
-      snprintf(g_error_message, g_sizeof_g_error_message, "No MACRO \"%s\" defined.\n", g_tmp);
-      print_error(g_error_message, ERROR_INB);
+      print_error(ERROR_INB, "No MACRO \"%s\" defined.\n", g_tmp);
       return FAILED;
     }
   }
@@ -605,8 +593,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
           for ( ; input < input_end && *input != '/' && *input != 0x0A; input++)
             ;
           if (input >= input_end) {
-            snprintf(g_error_message, g_sizeof_g_error_message, "Comment wasn't terminated properly in file \"%s\".\n", file_name);
-            print_error(g_error_message, ERROR_INC);
+            print_error(ERROR_INC, "Comment wasn't terminated properly in file \"%s\".\n", file_name);
             return FAILED;
           }
           if (*input == 0x0A) {

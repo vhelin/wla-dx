@@ -19,7 +19,7 @@ int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OF
 int g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO, g_input_parse_special_chars = YES;
 int g_input_allow_leading_ampersand = NO, g_plus_and_minus_ends_label = NO;
 int g_newline_beginning = ON, g_parsed_double_decimal_numbers = 0, g_operand_hint, g_operand_hint_type;
-char g_label[MAX_NAME_LENGTH + 1], g_xyz[512];
+char g_label[MAX_NAME_LENGTH + 1];
 char g_unevaluated_expression[256];
 char g_expanded_macro_string[MAX_NAME_LENGTH + 1];
 double g_parsed_double;
@@ -134,8 +134,7 @@ int compare_next_token(char *token) {
 
       if (d > g_macro_runtime_current->supplied_arguments) {
         if (g_input_number_error_msg == YES) {
-          snprintf(g_xyz, sizeof(g_xyz), "COMPARE_NEXT_SYMBOL: Macro \"%s\" wasn't called with enough arguments.\n", g_macro_runtime_current->macro->name);
-          print_error(g_xyz, ERROR_NONE);
+          print_error(ERROR_NONE, "COMPARE_NEXT_SYMBOL: Macro \"%s\" wasn't called with enough arguments.\n", g_macro_runtime_current->macro->name);
         }
         return FAILED;
       }
@@ -199,8 +198,7 @@ int input_next_string(void) {
 
   if (k == MAX_NAME_LENGTH) {
     if (g_input_number_error_msg == YES) {
-      snprintf(g_xyz, sizeof(g_xyz), "The string is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
-      print_error(g_xyz, ERROR_NUM);
+      print_error(ERROR_NUM, "The string is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
     }
     return FAILED;
   }
@@ -262,8 +260,7 @@ static int _input_number_return_definition(struct definition *def) {
       /* we need to keep the ':' prefix */
       if (strlen(def->string) >= MAX_NAME_LENGTH-1) {
         if (g_input_number_error_msg == YES) {
-          snprintf(g_xyz, sizeof(g_xyz), "The label is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
-          print_error(g_xyz, ERROR_NUM);
+          print_error(ERROR_NUM, "The label is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
         }
         return FAILED;          
       }
@@ -319,7 +316,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
   
   /* copy label -> local as label might be g_label that stack calculator uses */
   if (input_size > (int)sizeof(local)) {
-    print_error("Buffer for substitution is too small! Please submit a bug report!\n", ERROR_NUM);
+    print_error(ERROR_NUM, "Buffer for substitution is too small! Please submit a bug report!\n");
     return FAILED;
   }
 
@@ -347,7 +344,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
         i++;
 
         if (local[i] != '.') {
-          print_error("The formatting string must begin with \"%.\".\n", ERROR_NUM);
+          print_error(ERROR_NUM, "The formatting string must begin with \"%%.\".\n");
           return FAILED;
         }
 
@@ -359,8 +356,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
           if (c == '{')
             break;
           if (!((c >= '0' && c <= '9') || c == 'x' || c == 'X' || c == 'd' || c == 'i')) {
-            snprintf(g_xyz, sizeof(g_xyz), "Unsupported formatting symbol '%c'.\n", c);
-            print_error(g_xyz, ERROR_NUM);
+            print_error(ERROR_NUM, "Unsupported formatting symbol '%c'.\n", c);
             return FAILED;
           }
 
@@ -368,7 +364,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
         }
 
         if (local[i] != '{') {
-          print_error("Error in formatting. Formatting string is too long?\n", ERROR_NUM);
+          print_error(ERROR_NUM, "Error in formatting. Formatting string is too long?\n");
           return FAILED;
         }
 
@@ -381,7 +377,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
       i++;
 
       if (p == STACK_CALCULATE_DELAY || p == INPUT_NUMBER_STACK) {
-        print_error("Postponed calculation is not suitable for substitution as we need immediate results.\n", ERROR_NUM);
+        print_error(ERROR_NUM, "Postponed calculation is not suitable for substitution as we need immediate results.\n");
         return FAILED;
       }
 
@@ -396,7 +392,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
       }
       else if (p == STACK_RETURN_LABEL) {
         if (use_formatting == YES) {
-          print_error("Cannot use formatting with strings.\n", ERROR_NUM);
+          print_error(ERROR_NUM, "Cannot use formatting with strings.\n");
           return FAILED;
         }
         strcpy(substitution, g_label);
@@ -404,9 +400,8 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
       else if (p == FAILED)
         return FAILED;
       else {
-        snprintf(g_xyz, sizeof(g_xyz), "Unhandled return type %d from stack_calculate()! Please submit a bug report!\n", p);
-        print_error(g_xyz, ERROR_NUM);
-        return FAILED;        
+        print_error(ERROR_NUM, "Unhandled return type %d from stack_calculate()! Please submit a bug report!\n", p);
+        return FAILED;
       }
 
       /* perform substitution */
@@ -420,7 +415,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
         if (i+1 < size && local[i+1] == '}')
           i++;
         else {
-          print_error("The end of the substitution is missing a '}'.\n", ERROR_NUM);
+          print_error(ERROR_NUM, "The end of the substitution is missing a '}'.\n");
           return FAILED;
         }
       }
@@ -436,8 +431,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
     if (k < max_size_tmp)
       tmp[k] = 0;
     else {
-      snprintf(g_xyz, sizeof(g_xyz), "Cannot perform substitutions for string \"%s\", buffer is too small.\n", local);
-      print_error(g_xyz, ERROR_NUM);
+      print_error(ERROR_NUM, "Cannot perform substitutions for string \"%s\", buffer is too small.\n", local);
       return FAILED;
     }
 
@@ -448,8 +442,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
         *length = k;
     }
     else {
-      snprintf(g_xyz, sizeof(g_xyz), "Cannot perform substitutions for string \"%s\", buffer is too small.\n", local);
-      print_error(g_xyz, ERROR_NUM);
+      print_error(ERROR_NUM, "Cannot perform substitutions for string \"%s\", buffer is too small.\n", local);
       return FAILED;
     }
   }
@@ -580,13 +573,11 @@ int input_number(void) {
     }
 
     if (g_parsed_int > g_macro_runtime_current->supplied_arguments) {
-      snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", g_parsed_int, g_macro_runtime_current->macro->name, g_macro_runtime_current->supplied_arguments);
-      print_error(g_xyz, ERROR_NUM);
+      print_error(ERROR_NUM, "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", g_parsed_int, g_macro_runtime_current->macro->name, g_macro_runtime_current->supplied_arguments);
       return FAILED;
     }
     if (g_parsed_int == 0) {
-      snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", g_parsed_int, g_macro_runtime_current->macro->name);
-      print_error(g_xyz, ERROR_NUM);
+      print_error(ERROR_NUM, "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", g_parsed_int, g_macro_runtime_current->macro->name);
       return FAILED;
     }
 
@@ -601,13 +592,12 @@ int input_number(void) {
       if (g_tmp_def != NULL)
         return _input_number_return_definition(g_tmp_def);
       else {
-        snprintf(g_xyz, sizeof(g_xyz), "Cannot find definition for \"%s\".\n", g_label);
-        print_error(g_xyz, ERROR_NUM);
+        print_error(ERROR_NUM, "Cannot find definition for \"%s\".\n", g_label);
         return FAILED;
       }
     }
     else {
-      print_error("? can be only used to evaluate definitions.\n", ERROR_ERR);
+      print_error(ERROR_ERR, "? can be only used to evaluate definitions.\n");
       return FAILED;
     }
   }
@@ -645,13 +635,11 @@ int input_number(void) {
 
     if (exit_here == YES) {
       if (g_parsed_int > g_macro_runtime_current->supplied_arguments) {
-        snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", g_parsed_int, g_macro_runtime_current->macro->name, g_macro_runtime_current->supplied_arguments);
-        print_error(g_xyz, ERROR_NUM);
+        print_error(ERROR_NUM, "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", g_parsed_int, g_macro_runtime_current->macro->name, g_macro_runtime_current->supplied_arguments);
         return FAILED;
       }
       if (g_parsed_int == 0) {
-        snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", g_parsed_int, g_macro_runtime_current->macro->name);
-        print_error(g_xyz, ERROR_NUM);
+        print_error(ERROR_NUM, "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", g_parsed_int, g_macro_runtime_current->macro->name);
         return FAILED;
       }
 
@@ -675,7 +663,7 @@ int input_number(void) {
         g_parsed_double = ma->value;
       }
       else {
-        print_error("Macro argument list has been corrupted! Please send a bug report!\n", ERROR_ERR);
+        print_error(ERROR_ERR, "Macro argument list has been corrupted! Please send a bug report!\n");
         return FAILED;
       }
 
@@ -855,10 +843,9 @@ int input_number(void) {
       if (e >= '0' && e <= '9') {
         if (k == max_digits - 1) {
           if (q == 0)
-            print_error("Too many digits in the integer value. Max 10 is supported.\n", ERROR_NUM);
+            print_error(ERROR_NUM, "Too many digits in the integer value. Max 10 is supported.\n");
           else {
-            snprintf(g_xyz, sizeof(g_xyz), "Too many digits in the floating point value. Max %d is supported.\n", MAX_FLOAT_DIGITS);
-            print_error(g_xyz, ERROR_NUM);
+            print_error(ERROR_NUM, "Too many digits in the floating point value. Max %d is supported.\n", MAX_FLOAT_DIGITS);
           }
           return FAILED;
         }
@@ -875,7 +862,7 @@ int input_number(void) {
       }
       else if (e == '.') {
         if (q == 1) {
-          print_error("Syntax error.\n", ERROR_NUM);
+          print_error(ERROR_NUM, "Syntax error.\n");
           return FAILED;
         }
         e = g_buffer[g_source_pointer+1];
@@ -913,7 +900,7 @@ int input_number(void) {
       }
       else if ((e >= 'a' && e <= 'z') || (e >= 'A' && e <= 'Z')) {
         /* a number directly followed by a letter when parsing a integer/float -> syntax error */
-        print_error("Syntax error.\n", ERROR_NUM);
+        print_error(ERROR_NUM, "Syntax error.\n");
         return FAILED;
       }
       else
@@ -974,7 +961,7 @@ int input_number(void) {
     }
     else {
       if (g_input_number_error_msg == YES)
-        print_error("Malformed '?' detected!\n", ERROR_NUM);
+        print_error(ERROR_NUM, "Malformed '?' detected!\n");
       return FAILED;
     }
 
@@ -1039,7 +1026,7 @@ int input_number(void) {
       }
       
       if (e == 0 || e == 0x0A) {
-        print_error("String wasn't terminated properly.\n", ERROR_NUM);
+        print_error(ERROR_NUM, "String wasn't terminated properly.\n");
         return FAILED;
       }
 
@@ -1047,7 +1034,7 @@ int input_number(void) {
     }
 
     if (k >= MAX_NAME_LENGTH)
-      print_error("String parsing was interrupted due to buffer getting full.\n", ERROR_WRN);
+      print_error(ERROR_WRN, "String parsing was interrupted due to buffer getting full.\n");
     
     g_label[k] = 0;
 
@@ -1072,7 +1059,7 @@ int input_number(void) {
         g_source_pointer++;
 
       if (g_buffer[g_source_pointer] != '}') {
-        print_error("The string used in substitution isn't followed by a '}'.\n", ERROR_NUM);
+        print_error(ERROR_NUM, "The string used in substitution isn't followed by a '}'.\n");
         return FAILED;
       }
 
@@ -1081,8 +1068,7 @@ int input_number(void) {
     
     if (k >= MAX_NAME_LENGTH) {
       if (g_input_number_error_msg == YES) {
-        snprintf(g_xyz, sizeof(g_xyz), "The string is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
-        print_error(g_xyz, ERROR_NUM);
+        print_error(ERROR_NUM, "The string is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
       }
       return FAILED;
     }
@@ -1151,8 +1137,7 @@ int input_number(void) {
 
   if (k == MAX_NAME_LENGTH) {
     if (g_input_number_error_msg == YES) {
-      snprintf(g_xyz, sizeof(g_xyz), "The label is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
-      print_error(g_xyz, ERROR_NUM);
+      print_error(ERROR_NUM, "The label is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
     }
     return FAILED;
   }
@@ -1267,19 +1252,19 @@ int parse_string_length(char *end) {
   if (g_tmp_def != NULL) {
     if (g_tmp_def->type == DEFINITION_TYPE_VALUE) {
       if (g_input_number_error_msg == YES) {
-        print_error(".length of a value does not make any sense.\n", ERROR_NUM);
+        print_error(ERROR_NUM, ".length of a value does not make any sense.\n");
       }
       return FAILED;
     }
     else if (g_tmp_def->type == DEFINITION_TYPE_STACK) {
       if (g_input_number_error_msg == YES) {
-        print_error(".length of a pending computation does not make any sense.\n", ERROR_NUM);
+        print_error(ERROR_NUM, ".length of a pending computation does not make any sense.\n");
       }
       return FAILED;
     }
     else if (g_tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
       if (g_input_number_error_msg == YES) {
-        print_error(".length of an address label does not make any sense.\n", ERROR_NUM);
+        print_error(ERROR_NUM, ".length of an address label does not make any sense.\n");
       }
       return FAILED;
     }
@@ -1328,7 +1313,7 @@ int get_next_plain_string(void) {
   g_ss = 0;
   while (1) {
     if (g_ss >= MAX_NAME_LENGTH) {
-      print_error("GET_NEXT_PLAIN_STRING: Too long for a string.\n", ERROR_NONE);
+      print_error(ERROR_NONE, "GET_NEXT_PLAIN_STRING: Too long for a string.\n");
       return FAILED;
     }
 
@@ -1378,7 +1363,7 @@ int get_next_token(void) {
     }
 
     if (g_buffer[g_source_pointer] == 0xA) {
-      print_error("GET_NEXT_TOKEN: String wasn't terminated properly.\n", ERROR_NONE);
+      print_error(ERROR_NONE, "GET_NEXT_TOKEN: String wasn't terminated properly.\n");
       return FAILED;
     }
     g_tmp[g_ss] = 0;
@@ -1443,7 +1428,7 @@ int get_next_token(void) {
   }
 
   if (g_ss >= MAX_NAME_LENGTH) {
-    print_error("GET_NEXT_TOKEN: Too long for a token.\n", ERROR_NONE);
+    print_error(ERROR_NONE, "GET_NEXT_TOKEN: Too long for a token.\n");
     return FAILED;
   }
 
@@ -1476,7 +1461,7 @@ int skip_next_token(void) {
     for (g_source_pointer++; g_buffer[g_source_pointer] != 0x0A && g_buffer[g_source_pointer] != '"'; g_source_pointer++)
       ;
     if (g_buffer[g_source_pointer] == 0x0A) {
-      print_error("SKIP_NEXT_TOKEN: String wasn't terminated properly.\n", ERROR_NONE);
+      print_error(ERROR_NONE, "SKIP_NEXT_TOKEN: String wasn't terminated properly.\n");
       return FAILED;
     }
     g_source_pointer++;
@@ -1522,8 +1507,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
       if (d <= 0 || d > g_macro_runtime_current->supplied_arguments) {
         if (g_input_number_error_msg == YES) {
-          snprintf(g_xyz, sizeof(g_xyz), "EXPAND_MACRO_ARGUMENTS: Macro \"%s\" wasn't called with enough arguments, ?%d is out of range.\n", g_macro_runtime_current->macro->name, d);
-          print_error(g_xyz, ERROR_NUM);
+          print_error(ERROR_NUM, "EXPAND_MACRO_ARGUMENTS: Macro \"%s\" wasn't called with enough arguments, ?%d is out of range.\n", g_macro_runtime_current->macro->name, d);
         }
     
         return FAILED;
@@ -1546,7 +1530,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
           else if (type == INPUT_NUMBER_STRING)
             strcpy(t, g_label);
           else {
-            print_error("The definition cannot be converted to a string.\n", ERROR_ERR);
+            print_error(ERROR_ERR, "The definition cannot be converted to a string.\n");
             return FAILED;
           }
         
@@ -1557,13 +1541,12 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
           }
         }
         else {
-          snprintf(g_xyz, sizeof(g_xyz), "Cannot find definition for \"%s\".\n", g_label);
-          print_error(g_xyz, ERROR_NUM);
+          print_error(ERROR_NUM, "Cannot find definition for \"%s\".\n", g_label);
           return FAILED;
         }
       }
       else {
-        print_error("? can be only used to evaluate definitions.\n", ERROR_ERR);
+        print_error(ERROR_ERR, "? can be only used to evaluate definitions.\n");
         return FAILED;
       }
     }
@@ -1608,8 +1591,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
         if (d <= 0 || d > g_macro_runtime_current->supplied_arguments) {
           if (g_input_number_error_msg == YES) {
-            snprintf(g_xyz, sizeof(g_xyz), "EXPAND_MACRO_ARGUMENTS: Macro \"%s\" wasn't called with enough arguments, \\?%d is out of range.\n", g_macro_runtime_current->macro->name, d);
-            print_error(g_xyz, ERROR_NUM);
+            print_error(ERROR_NUM, "EXPAND_MACRO_ARGUMENTS: Macro \"%s\" wasn't called with enough arguments, \\?%d is out of range.\n", g_macro_runtime_current->macro->name, d);
           }
     
           return FAILED;
@@ -1684,8 +1666,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
         if (d > g_macro_runtime_current->supplied_arguments) {
           if (g_input_number_error_msg == YES) {
-            snprintf(g_xyz, sizeof(g_xyz), "EXPAND_MACRO_ARGUMENTS: Macro \"%s\" wasn't called with enough arguments, \\%d is out of range.\n", g_macro_runtime_current->macro->name, d);
-            print_error(g_xyz, ERROR_NUM);
+            print_error(ERROR_NUM, "EXPAND_MACRO_ARGUMENTS: Macro \"%s\" wasn't called with enough arguments, \\%d is out of range.\n", g_macro_runtime_current->macro->name, d);
           }
     
           return FAILED;
@@ -1717,16 +1698,14 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
         }
         else if (type == INPUT_NUMBER_STACK) {
           if (g_input_number_error_msg == YES) {
-            snprintf(g_xyz, sizeof(g_xyz), "EXPAND_MACRO_ARGUMENTS: Macro argument \\%d is a pending stack calculation and cannot be expanded into a string.\n", d);
-            print_error(g_xyz, ERROR_NUM);
+            print_error(ERROR_NUM, "EXPAND_MACRO_ARGUMENTS: Macro argument \\%d is a pending stack calculation and cannot be expanded into a string.\n", d);
           }
     
           return FAILED;
         }
         else {
           if (g_input_number_error_msg == YES) {
-            snprintf(g_xyz, sizeof(g_xyz), "EXPAND_MACRO_ARGUMENTS: Macro argument \\%d is of unknown type, please submit a bug report.\n", d);
-            print_error(g_xyz, ERROR_NUM);
+            print_error(ERROR_NUM, "EXPAND_MACRO_ARGUMENTS: Macro argument \\%d is of unknown type, please submit a bug report.\n", d);
           }
     
           return FAILED;
@@ -1734,8 +1713,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
       }
       else {
         if (g_input_number_error_msg == YES) {
-          snprintf(g_xyz, sizeof(g_xyz), "EXPAND_MACRO_ARGUMENTS: Unsupported special character '%c'.\n", in[i + 1]);
-          print_error(g_xyz, ERROR_NUM);
+          print_error(ERROR_NUM, "EXPAND_MACRO_ARGUMENTS: Unsupported special character '%c'.\n", in[i + 1]);
         }
     
         return FAILED;
@@ -1750,8 +1728,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 
   if (k >= MAX_NAME_LENGTH) {
     if (g_input_number_error_msg == YES) {
-      snprintf(g_xyz, sizeof(g_xyz), "EXPAND_MACRO_ARGUMENTS: The result string is too large, increase MAX_NAME_LENGTH and compile WLA DX again.\n");
-      print_error(g_xyz, ERROR_NUM);
+      print_error(ERROR_NUM, "EXPAND_MACRO_ARGUMENTS: The result string is too large, increase MAX_NAME_LENGTH and compile WLA DX again.\n");
     }
     
     return FAILED;
@@ -1852,7 +1829,7 @@ int process_string_for_special_characters(char *label, int *string_size) {
       
       tmp_c = (int)strtol(tmp_a, &tmp_b, 16);
       if (*tmp_b) {
-        print_error("'\\x' needs hexadecimal byte (00-FF) data.\n", ERROR_INP);
+        print_error(ERROR_INP, "'\\x' needs hexadecimal byte (00-FF) data.\n");
         return FAILED;
       }
 
@@ -1863,7 +1840,7 @@ int process_string_for_special_characters(char *label, int *string_size) {
     else if (label[read] == '\\' && label[read + 1] == '<') {
       read += 2;
       if (read >= size) {
-        print_error("'\\<' needs character data.\n", ERROR_INP);
+        print_error(ERROR_INP, "'\\<' needs character data.\n");
         return FAILED;
       }
       label[write++] = label[read] | 0x80;
@@ -1871,7 +1848,7 @@ int process_string_for_special_characters(char *label, int *string_size) {
     }
     /* handle '\>' */
     else if (read == 0 && label[read] == '\\' && label[read + 1] == '>') {
-      print_error("'\\>' needs character data (previous byte).\n", ERROR_INP);
+      print_error(ERROR_INP, "'\\>' needs character data (previous byte).\n");
       return FAILED;
     }
     else if (read < size - 2 && label[read + 1] == '\\' && label[read + 2] == '>') {
@@ -1907,12 +1884,12 @@ int parse_function_asc(char *in, int *result, int *parsed_chars) {
   g_expect_calculations = old_expect;
 
   if (res != SUCCEEDED || g_parsed_int < 0 || g_parsed_int > 255) {
-    print_error("asc() requires an immediate value between 0 and 255.\n", ERROR_NUM);
+    print_error(ERROR_NUM, "asc() requires an immediate value between 0 and 255.\n");
     return FAILED;
   }
   
   if (g_buffer[g_source_pointer] != ')') {
-    print_error("Malformed \"asc(?)\" detected!\n", ERROR_NUM);
+    print_error(ERROR_NUM, "Malformed \"asc(?)\" detected!\n");
     return FAILED;
   }
 
@@ -1926,7 +1903,7 @@ int parse_function_asc(char *in, int *result, int *parsed_chars) {
   g_source_pointer = source_pointer_original;
   
   if (g_asciitable_defined == 0) {
-    print_error("No .ASCIITABLE defined. Using the default n->n -mapping.\n", ERROR_WRN);
+    print_error(ERROR_WRN, "No .ASCIITABLE defined. Using the default n->n -mapping.\n");
     *result = g_parsed_int;
   }
   else
@@ -1949,7 +1926,7 @@ int parse_function_defined(char *in, int *result, int *parsed_chars) {
   name[i] = 0;
 
   if (*in != ')') {
-    print_error("Malformed \"defined(?)\" detected!\n", ERROR_NUM);
+    print_error(ERROR_NUM, "Malformed \"defined(?)\" detected!\n");
     return FAILED;
   }
 
@@ -1984,12 +1961,12 @@ int parse_function_exists(char *in, int *result, int *parsed_chars) {
   g_expect_calculations = old_expect;
 
   if (res != INPUT_NUMBER_ADDRESS_LABEL && res != INPUT_NUMBER_STRING) {
-    print_error("exists() requires a file name string.\n", ERROR_NUM);
+    print_error(ERROR_NUM, "exists() requires a file name string.\n");
     return FAILED;
   }
   
   if (g_buffer[g_source_pointer] != ')') {
-    print_error("Malformed \"exists(?)\" detected!\n", ERROR_NUM);
+    print_error(ERROR_NUM, "Malformed \"exists(?)\" detected!\n");
     return FAILED;
   }
 

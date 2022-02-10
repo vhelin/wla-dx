@@ -26,7 +26,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
     if (z == SUCCEEDED && (g_parsed_int > 127 || g_parsed_int < -128)) {
-      print_error("Out of signed 8-bit range.\n", ERROR_NUM);
+      print_error(ERROR_NUM, "Out of signed 8-bit range.\n");
       return FAILED;
     }
 
@@ -68,7 +68,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
     if (z == SUCCEEDED && (g_parsed_int > 65535 || g_parsed_int < -32768)) {
-      print_error("Out of 16-bit range.\n", ERROR_NUM);
+      print_error(ERROR_NUM, "Out of 16-bit range.\n");
       return FAILED;
     }
 
@@ -125,7 +125,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < 0)) {
       if (g_opt_tmp->skip_8bit == 1)
         break;
-      print_error("Out of 8-bit range.\n", ERROR_NUM);
+      print_error(ERROR_NUM, "Out of 8-bit range.\n");
       return FAILED;
     }
 
