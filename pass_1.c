@@ -1480,6 +1480,7 @@ void print_error(int type, char *error, ...) {
   char error_err[] = "ERROR:";
   char error_fai[] = "FAIL:";
   char *t = NULL;
+  va_list argptr;
 
   switch (type) {
   case ERROR_FAI:
@@ -1524,7 +1525,6 @@ void print_error(int type, char *error, ...) {
     fputs(" ", stderr);
   }
 
-  va_list argptr;
   va_start(argptr, error);
   vfprintf(stderr, error, argptr);
   va_end(argptr);
@@ -11459,7 +11459,6 @@ void reset_label_stack(void) {
 /* get the full version of a (possibly child) label */
 int get_full_label(char *l, char *out) {
 
-  char *error_message = "GET_FULL_LABEL: Constructed label size will be >= MAX_NAME_LENGTH. Edit the define in shared.h, recompile WLA and try again...\n";
   int level = 0, q;
 
   for (q = 0; q < MAX_NAME_LENGTH; q++) {
@@ -11476,14 +11475,14 @@ int get_full_label(char *l, char *out) {
     strcpy(out, g_label_stack[0]);
     for (q = 1; q < level; q++) {
       if (strlen(out) + strlen(g_label_stack[q]) >= MAX_NAME_LENGTH) {
-        print_error(ERROR_ERR, error_message);
+        print_error(ERROR_ERR, "GET_FULL_LABEL: Constructed label size will be >= MAX_NAME_LENGTH. Edit the define in shared.h, recompile WLA and try again...\n");
         return FAILED;  
       }
       strncat(out, g_label_stack[q], MAX_NAME_LENGTH);
     }
 
     if (strlen(out) + strlen(&l[level-1]) >= MAX_NAME_LENGTH) {
-      print_error(ERROR_ERR, error_message);
+      print_error(ERROR_ERR, "GET_FULL_LABEL: Constructed label size will be >= MAX_NAME_LENGTH. Edit the define in shared.h, recompile WLA and try again...\n");
       return FAILED;    
     }
 
