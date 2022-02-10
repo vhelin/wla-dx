@@ -32,7 +32,7 @@ unsigned char g_nintendo_logo_dat[] = {
 #endif
 
 #ifdef Z80
-extern char g_sdsctag_name_str[MAX_NAME_LENGTH + 1], g_sdsctag_notes_str[MAX_NAME_LENGTH + 1], g_sdsctag_author_str[MAX_NAME_LENGTH + 1];
+extern char *g_sdsctag_name_str, *g_sdsctag_notes_str, *g_sdsctag_author_str;
 extern int g_sdsctag_name_type, g_sdsctag_notes_type, g_sdsctag_author_type, g_sdsc_ma, g_sdsc_mi;
 extern int g_sdsctag_name_value, g_sdsctag_notes_value, g_sdsctag_author_value;
 extern int g_computesmschecksum_defined, g_sdsctag_defined, g_smstag_defined;
