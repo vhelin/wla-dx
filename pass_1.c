@@ -9100,7 +9100,7 @@ int directive_stringmap_table(void) {
   g_expect_calculations = YES;
 
   if (parse_result != INPUT_NUMBER_STRING && parse_result != INPUT_NUMBER_ADDRESS_LABEL) {
-    print_error(ERROR_DIR, ".STRINGMAPTABLE needs a file name string.\n");
+    print_error(ERROR_DIR, ".STRINGMAPTABLE needs a name string.\n");
     return FAILED;
   }
 
@@ -9113,7 +9113,11 @@ int directive_stringmap_table(void) {
   map->next = g_stringmaptables;
   g_stringmaptables = map;
 
-  strcpy(map->name, g_label);
+  map->name = string_duplicate(g_label);
+  if (map->name == NULL) {
+    print_error(ERROR_ERR, "STRINGMAPTABLE: Out of memory error.\n");
+    return FAILED;
+  }
 
   g_expect_calculations = NO;
   parse_result = input_number();
@@ -9128,12 +9132,11 @@ int directive_stringmap_table(void) {
   create_full_name(g_include_dir, g_label);
   localize_path(g_label);
 
-  map->filename = calloc(strlen(g_label) + 1, 1);
+  map->filename = string_duplicate(g_label);
   if (map->filename == NULL) {
-    print_error(ERROR_DIR, "Out of memory while trying allocate info structure for file \"%s\".\n", g_full_name);
+    print_error(ERROR_ERR, "STRINGMAPTABLE: Out of memory error.\n");
     return FAILED;
   }
-  strcpy(map->filename, g_label);
 
   table_file = fopen(g_label, "r");
   if (table_file == NULL) {

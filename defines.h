@@ -762,7 +762,7 @@ struct stringmap_entry {
 };
 
 struct stringmaptable {
-  char name[MAX_NAME_LENGTH + 1];
+  char *name;
   char *filename;
   struct stringmap_entry *entries;
   struct stringmaptable *next;
