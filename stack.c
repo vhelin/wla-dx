@@ -178,8 +178,7 @@ int get_label_length(char *l) {
     if (g_tmp_def->type == DEFINITION_TYPE_STRING)
       return (int)strlen(g_tmp_def->string);
     else {
-      snprintf(g_xyz, sizeof(g_xyz), "Definition \"%s\" is not a string definition. .length returns 0 for that...\n", l);
-      print_error(g_xyz, ERROR_NUM);
+      print_error(ERROR_NUM, "Definition \"%s\" is not a string definition. .length returns 0 for that...\n", l);
       return 0;
     }
   }
@@ -250,7 +249,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   /* slice the data into infix format */
   while (*in != 0xA && *in != 0) {
     if (q >= MAX_STACK_CALCULATOR_ITEMS-1) {
-      print_error("Out of stack space. Adjust MAX_STACK_CALCULATOR_ITEMS in defines.h and recompile WLA!\n", ERROR_STC);
+      print_error(ERROR_STC, "Out of stack space. Adjust MAX_STACK_CALCULATOR_ITEMS in defines.h and recompile WLA!\n");
       return FAILED;
     }
 
@@ -348,7 +347,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     else if (*in == '#') {
       if (q == 0) {
         if (g_input_number_error_msg == YES)
-          print_error("Syntax error. Invalid use of modulo.\n", ERROR_STC);
+          print_error(ERROR_STC, "Syntax error. Invalid use of modulo.\n");
         return FAILED;
       }
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
@@ -451,7 +450,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         q++;
       }
       else {
-        print_error("\"\\@\" cannot be used here as we are not inside a .MACRO.\n", ERROR_NUM);
+        print_error(ERROR_NUM, "\"\\@\" cannot be used here as we are not inside a .MACRO.\n");
         return FAILED;
       }
     }
@@ -515,7 +514,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         break;
 
       if (d != HINT_NONE && d != g_operand_hint) {
-        print_error("Confusing operand hint!\n", ERROR_STC);
+        print_error(ERROR_STC, "Confusing operand hint!\n");
         in++;
       }
     }
@@ -550,8 +549,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           break;
         else {
           if (g_input_number_error_msg == YES) {
-            snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected a 0 or 1.\n", e, e);
-            print_error(g_xyz, ERROR_NUM);
+            print_error(ERROR_NUM, "Got '%c' (%d) when expected a 0 or 1.\n", e, e);
           }
           return FAILED;
         }
@@ -582,8 +580,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         d = *in;
       in++;
       if (*in != '\'') {
-        snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected \"'\".\n", *in, *in);
-        print_error(g_xyz, ERROR_NUM);
+        print_error(ERROR_NUM, "Got '%c' (%d) when expected \"'\".\n", *in, *in);
         return FAILED;
       }
       in++;
@@ -620,8 +617,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
         else {
           if (g_input_number_error_msg == YES) {
-            snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected [0-F].\n", e, e);
-            print_error(g_xyz, ERROR_NUM);
+            print_error(ERROR_NUM, "Got '%c' (%d) when expected [0-F].\n", e, e);
           }
           return FAILED;
         }
@@ -688,8 +684,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           }
           else {
             if (g_input_number_error_msg == YES) {
-              snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected [0-F].\n", e, e);
-              print_error(g_xyz, ERROR_NUM);
+              print_error(ERROR_NUM, "Got '%c' (%d) when expected [0-F].\n", e, e);
             }
             return FAILED;
           }
@@ -722,10 +717,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           if (e >= '0' && e <= '9') {
             if (k == max_digits - 1) {
               if (n == 0)
-                print_error("Too many digits in the integer value. Max 10 is supported.\n", ERROR_NUM);
+                print_error(ERROR_NUM, "Too many digits in the integer value. Max 10 is supported.\n");
               else {
-                snprintf(g_xyz, sizeof(g_xyz), "Too many digits in the floating point value. Max %d is supported.\n", MAX_FLOAT_DIGITS);
-                print_error(g_xyz, ERROR_NUM);
+                print_error(ERROR_NUM, "Too many digits in the floating point value. Max %d is supported.\n", MAX_FLOAT_DIGITS);
               }
               return FAILED;
             }
@@ -750,7 +744,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
               break;
             if (n == 1) {
               if (g_input_number_error_msg == YES)
-                print_error("Syntax error.\n", ERROR_NUM);
+                print_error(ERROR_NUM, "Syntax error.\n");
               return FAILED;
             }
             n = 1;
@@ -758,8 +752,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           }
           else {
             if (g_input_number_error_msg == YES) {
-              snprintf(g_xyz, sizeof(g_xyz), "Got '%c' (%d) when expected [0-9].\n", e, e);
-              print_error(g_xyz, ERROR_NUM);
+              print_error(ERROR_NUM, "Got '%c' (%d) when expected [0-9].\n", e, e);
             }
             return FAILED;
           }
@@ -798,7 +791,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       }
 
       if (e != '"') {
-        print_error("Malformed string.\n", ERROR_NUM);
+        print_error(ERROR_NUM, "Malformed string.\n");
         return FAILED;
       }
       
@@ -940,7 +933,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   }
 
   if (b != 0) {
-    print_error("Unbalanced parentheses.\n", ERROR_STC);
+    print_error(ERROR_STC, "Unbalanced parentheses.\n");
     return FAILED;
   }
 
@@ -995,7 +988,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           si[k + 1].value != SI_OP_BANK_BYTE && si[k + 1].value != SI_OP_HIGH_BYTE && si[k + 1].value != SI_OP_LOW_BYTE &&
           si[k + 1].value != SI_OP_HIGH_WORD && si[k + 1].value != SI_OP_LOW_WORD) {
         if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
-          print_error("Error in computation syntax.\n", ERROR_STC);
+          print_error(ERROR_STC, "Error in computation syntax.\n");
           return FAILED;
         }
       }
@@ -1029,7 +1022,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
 
         if (o != 0) {
-          print_error("Unbalanced parentheses.\n", ERROR_STC);
+          print_error(ERROR_STC, "Unbalanced parentheses.\n");
           return FAILED;
         }
 
@@ -1179,7 +1172,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   /* we have a stack full of computation and we save it for wlalink */
   g_stacks_tmp = calloc(sizeof(struct stack), 1);
   if (g_stacks_tmp == NULL) {
-    print_error("Out of memory error while allocating room for a new stack.\n", ERROR_STC);
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
     return FAILED;
   }
   g_stacks_tmp->next = NULL;
@@ -1190,7 +1183,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   g_stacks_tmp->stack = calloc(sizeof(struct stack_item) * d, 1);
   if (g_stacks_tmp->stack == NULL) {
     free(g_stacks_tmp);
-    print_error("Out of memory error while allocating room for a new stack.\n", ERROR_STC);
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
     return FAILED;
   }
 
@@ -1287,7 +1280,7 @@ int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_
   ta = _stack_calculate_get_array();
 
   if (si == NULL || ta == NULL) {
-    print_error("STACK_CALCULATE: Out of struct stack_item arrays. Please submit a bug report!\n", ERROR_STC);
+    print_error(ERROR_STC, "STACK_CALCULATE: Out of struct stack_item arrays. Please submit a bug report!\n");
     return FAILED;
   }
   
@@ -1315,8 +1308,7 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
         /* change the contents */
         strcpy(s->string, g_tmp_def->string);
         /*
-        snprintf(g_xyz, sizeof(g_xyz), "Definition \"%s\" is a string definition.\n", g_tmp_def->alias);
-        print_error(g_xyz, ERROR_STC);
+        print_error(ERROR_STC, "Definition \"%s\" is a string definition.\n", g_tmp_def->alias);
         */
         return FAILED;
       }
@@ -1428,12 +1420,11 @@ static int _process_string(struct stack_item *s, int *cannot_resolve) {
     }
 
     if (b > g_macro_runtime_current->supplied_arguments) {
-      snprintf(g_xyz, sizeof(g_xyz), "Referencing argument number %d inside .MACRO \"%s\". The .MACRO has only %d arguments.\n", b, g_macro_runtime_current->macro->name, g_macro_runtime_current->supplied_arguments);
-      print_error(g_xyz, ERROR_NUM);
+      print_error(ERROR_NUM, "Referencing argument number %d inside .MACRO \"%s\". The .MACRO has only %d arguments.\n", b, g_macro_runtime_current->macro->name, g_macro_runtime_current->supplied_arguments);
       return FAILED;
     }
     if (b == 0) {
-      print_error(".MACRO arguments are counted from 1.\n", ERROR_NUM);
+      print_error(ERROR_NUM, ".MACRO arguments are counted from 1.\n");
       return FAILED;
     }
 
@@ -1448,7 +1439,7 @@ static int _process_string(struct stack_item *s, int *cannot_resolve) {
         return FAILED;
     }
     else {
-      print_error("? can be only used to evaluate definitions.\n", ERROR_ERR);
+      print_error(ERROR_ERR, "? can be only used to evaluate definitions.\n");
       return FAILED;
     }
   }
@@ -1474,12 +1465,11 @@ static int _process_string(struct stack_item *s, int *cannot_resolve) {
       }
       else {
         if (b > g_macro_runtime_current->supplied_arguments) {
-          snprintf(g_xyz, sizeof(g_xyz), "Reference to .MACRO argument number %d (\"%s\") is out of range. The .MACRO has %d arguments.\n", b, s->string, g_macro_runtime_current->supplied_arguments);
-          print_error(g_xyz, ERROR_STC);
+          print_error(ERROR_STC, "Reference to .MACRO argument number %d (\"%s\") is out of range. The .MACRO has %d arguments.\n", b, s->string, g_macro_runtime_current->supplied_arguments);
           return FAILED;
         }
         if (b == 0) {
-          print_error(".MACRO arguments are counted from 1.\n", ERROR_STC);
+          print_error(ERROR_STC, ".MACRO arguments are counted from 1.\n");
           return FAILED;
         }
           
@@ -1962,12 +1952,12 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
   /*
     #ifdef W65816
     if (v[0] < -8388608 || v[0] > 16777215) {
-    print_error("Out of 24-bit range.\n", ERROR_STC);
+    print_error(ERROR_STC, "Out of 24-bit range.\n");
     return FAILED;
     }
     #else
     if (v[0] < -32768 || v[0] > 65536) {
-    print_error("Out of 16-bit range.\n", ERROR_STC);
+    print_error(ERROR_STC, "Out of 16-bit range.\n");
     return FAILED;
     }
     #endif
@@ -1987,7 +1977,7 @@ int stack_create_label_stack(char *label) {
   /* we need to create a stack that holds just one label */
   g_stacks_tmp = calloc(sizeof(struct stack), 1);
   if (g_stacks_tmp == NULL) {
-    print_error("Out of memory error while allocating room for a new stack.\n", ERROR_STC);
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
     return FAILED;
   }
   g_stacks_tmp->next = NULL;
@@ -1998,7 +1988,7 @@ int stack_create_label_stack(char *label) {
   g_stacks_tmp->stack = calloc(sizeof(struct stack_item), 1);
   if (g_stacks_tmp->stack == NULL) {
     free(g_stacks_tmp);
-    print_error("Out of memory error while allocating room for a new stack.\n", ERROR_STC);
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
     return FAILED;
   }
 
@@ -2031,7 +2021,7 @@ int stack_create_stack_stack(int stack_id) {
   /* we need to create a stack that holds just one computation stack */
   g_stacks_tmp = calloc(sizeof(struct stack), 1);
   if (g_stacks_tmp == NULL) {
-    print_error("Out of memory error while allocating room for a new stack.\n", ERROR_STC);
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
     return FAILED;
   }
   g_stacks_tmp->next = NULL;
@@ -2042,7 +2032,7 @@ int stack_create_stack_stack(int stack_id) {
   g_stacks_tmp->stack = calloc(sizeof(struct stack_item), 1);
   if (g_stacks_tmp->stack == NULL) {
     free(g_stacks_tmp);
-    print_error("Out of memory error while allocating room for a new stack.\n", ERROR_STC);
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
     return FAILED;
   }
 
@@ -2119,7 +2109,7 @@ int data_stream_parser_parse(void) {
   char c;
   
   if (g_file_out_ptr == NULL) {
-    print_error("The internal data stream is closed! It should be open. Please submit a bug report!\n", ERROR_STC);
+    print_error(ERROR_STC, "The internal data stream is closed! It should be open. Please submit a bug report!\n");
     return FAILED;
   }
 
@@ -2361,7 +2351,7 @@ int data_stream_parser_parse(void) {
 
         dSI = calloc(sizeof(struct data_stream_item), 1);
         if (dSI == NULL) {
-          print_error("Out of memory error while allocating a data_stream_item.\n", ERROR_ERR);
+          print_error(ERROR_ERR, "Out of memory error while allocating a data_stream_item.\n");
           return FAILED;
         }
 

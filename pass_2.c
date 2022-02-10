@@ -497,7 +497,7 @@ int create_a_new_section_structure(void) {
 
   g_sec_tmp = calloc(sizeof(struct section_def), 1);
   if (g_sec_tmp == NULL) {
-    print_error("Out of memory while allocating room for a new SECTION.\n", ERROR_DIR);
+    print_error(ERROR_DIR, "Out of memory while allocating room for a new SECTION.\n");
     return FAILED;
   }
 

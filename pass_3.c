@@ -18,7 +18,7 @@ extern struct block_name *g_block_names;
 extern struct after_section *g_after_sections;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
-extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp, *g_error_message, g_namespace[MAX_NAME_LENGTH + 1];
+extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp, g_namespace[MAX_NAME_LENGTH + 1];
 extern int g_verbose_mode, g_section_status, g_output_format, g_keep_empty_sections, g_quiet, g_sizeof_g_error_message;
 
 
@@ -335,13 +335,11 @@ int pass_3(void) {
 
         /* check the label is not already defined */
 
-        snprintf(g_error_message, g_sizeof_g_error_message, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
-                 get_file_name(g_file_name_id), line_number, l->label);
-
         if (s != NULL) {
           /* always put the label into the section's label_map */
           if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, "%s", g_error_message);
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
+                 get_file_name(g_file_name_id), line_number, l->label);
             return FAILED;
           }
           if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
@@ -355,7 +353,8 @@ int pass_3(void) {
           if (s != NULL && s->nspace != NULL) {
             /* label in a namespace */
             if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
-              fprintf(stderr, "%s", g_error_message);
+              fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
+                 get_file_name(g_file_name_id), line_number, l->label);
               return FAILED;
             }
             if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
@@ -366,7 +365,8 @@ int pass_3(void) {
           else {
             /* global label */
             if (hashmap_get(g_global_unique_label_map, l->label, NULL) == MAP_OK) {
-              fprintf(stderr, "%s", g_error_message);
+              fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
+                 get_file_name(g_file_name_id), line_number, l->label);
               return FAILED;
             }
             if ((err = hashmap_put(g_global_unique_label_map, l->label, l)) != MAP_OK) {
@@ -945,13 +945,11 @@ int pass_3(void) {
 
       /* check the label is not already defined */
 
-      snprintf(g_error_message, g_sizeof_g_error_message, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
-               get_file_name(g_file_name_id), line_number, l->label);
-
       if (s != NULL) {
         /* always put the label into the section's label_map */
         if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
-          fprintf(stderr, "%s", g_error_message);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
+               get_file_name(g_file_name_id), line_number, l->label);
           return FAILED;
         }
         if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
@@ -965,7 +963,8 @@ int pass_3(void) {
         if (s != NULL && s->nspace != NULL) {
           /* label in a namespace */
           if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, "%s", g_error_message);
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
+               get_file_name(g_file_name_id), line_number, l->label);
             return FAILED;
           }
           if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
@@ -976,7 +975,8 @@ int pass_3(void) {
         else {
           /* global label */
           if (hashmap_get(g_global_unique_label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, "%s", g_error_message);
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
+               get_file_name(g_file_name_id), line_number, l->label);
             return FAILED;
           }
           if ((err = hashmap_put(g_global_unique_label_map, l->label, l)) != MAP_OK) {

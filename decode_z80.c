@@ -8,12 +8,12 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     /* give a warning when assembling "JP (HL)"! */
     /*
       if (g_opt_tmp->hex == 0xE9 && strcmp(g_opt_tmp->op, "JP (HL)") == 0)
-      print_error("\"JP (HL)\" is semantically incorrect. Please use \"JP HL\" instead.\n", ERROR_WRN);
+      print_error(ERROR_WRN, "\"JP (HL)\" is semantically incorrect. Please use \"JP HL\" instead.\n");
     */
     /* give a warning when assembling "JP (HL')"! */
     /*
       if (g_opt_tmp->hex == 0xE9 && strcmp(g_opt_tmp->op, "JP (HL')") == 0)
-      print_error("\"JP (HL')\" is semantically incorrect. Please use \"JP HL'\" instead.\n", ERROR_WRN);
+      print_error(ERROR_WRN, "\"JP (HL')\" is semantically incorrect. Please use \"JP HL'\" instead.\n");
     */
 
     return SUCCEEDED;
@@ -74,7 +74,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
       return FAILED;
     if (z == SUCCEEDED && (g_parsed_int > 65535 || g_parsed_int < -32768)) {
-      print_error("Out of 16-bit range.\n", ERROR_NUM);
+      print_error(ERROR_NUM, "Out of 16-bit range.\n");
       return FAILED;
     }
 
@@ -108,12 +108,12 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     /* give a warning when assembling "JP (IX)"! */
     /*
       if (g_opt_tmp->hex == 0xE9DD && strcmp(g_opt_tmp->op, "JP (IX)") == 0)
-      print_error("\"JP (IX)\" is semantically incorrect. Please use \"JP IX\" instead.\n", ERROR_WRN);
+      print_error(ERROR_WRN, "\"JP (IX)\" is semantically incorrect. Please use \"JP IX\" instead.\n");
     */
     /* give a warning when assembling "JP (IY)"! */
     /*
       if (g_opt_tmp->hex == 0xE9FD && strcmp(g_opt_tmp->op, "JP (IY)") == 0)
-      print_error("\"JP (IY)\" is semantically incorrect. Please use \"JP IY\" instead.\n", ERROR_WRN);
+      print_error(ERROR_WRN, "\"JP (IY)\" is semantically incorrect. Please use \"JP IY\" instead.\n");
     */
     
     return SUCCEEDED;
@@ -137,7 +137,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == SUCCEEDED) {
       if ((g_opt_tmp->op[x] == 'x' && (g_parsed_int > 255 || g_parsed_int < -128)) ||
           (g_opt_tmp->op[x] == 's' && (g_parsed_int > 127 || g_parsed_int < -128))) {
-        print_error("Out of 8-bit range.\n", ERROR_NUM);
+        print_error(ERROR_NUM, "Out of 8-bit range.\n");
         return FAILED;
       }
     }
@@ -177,7 +177,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == SUCCEEDED) {
       if ((g_opt_tmp->op[x] == 'x' && (g_parsed_int > 255 || g_parsed_int < -128)) ||
           (g_opt_tmp->op[x] == 's' && (g_parsed_int > 127 || g_parsed_int < -128))) {
-        print_error("Out of 8-bit range.\n", ERROR_NUM);
+        print_error(ERROR_NUM, "Out of 8-bit range.\n");
         return FAILED;
       }
     }
@@ -249,7 +249,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == SUCCEEDED) {
       if ((g_opt_tmp->op[x] == 'x' && (g_parsed_int > 255 || g_parsed_int < -128)) ||
           (g_opt_tmp->op[x] == 's' && (g_parsed_int > 127 || g_parsed_int < -128))) {
-        print_error("Out of 8-bit range.\n", ERROR_NUM);
+        print_error(ERROR_NUM, "Out of 8-bit range.\n");
         return FAILED;
       }
     }
@@ -382,7 +382,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
         if (z == SUCCEEDED) {
           if ((g_opt_tmp->op[x] == 'x' && (g_parsed_int > 255 || g_parsed_int < -128)) ||
               (g_opt_tmp->op[x] == 's' && (g_parsed_int > 127 || g_parsed_int < -128))) {
-            print_error("Out of 8-bit range.\n", ERROR_NUM);
+            print_error(ERROR_NUM, "Out of 8-bit range.\n");
             return FAILED;
           }
         }
