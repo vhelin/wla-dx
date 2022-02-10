@@ -11,11 +11,27 @@ pool:
 
 steps:
 - script: |
+    set -ex
+    sudo apt -y update
+    sudo apt install -y valgrind
+  displayName: 'Install valgrind'
+  timeoutInMinutes: 20
+- script: |
     cmake -G "Unix Makefiles"
     make
+  displayName: 'Build Release'
+  timeoutInMinutes: 20
+- script: |
     ./run_tests.sh
+  displayName: 'Run Tests (Release)'
+  timeoutInMinutes: 20
+- script: |
     make clean
     cmake -DGDB_DEBUGGING=ON -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles"
     make
+  displayName: 'Build Debug'
+  timeoutInMinutes: 20
+- script: |
     ./run_tests.sh
-  displayName: 'make'
+  displayName: 'Run Tests (Debug)'
+  timeoutInMinutes: 20
