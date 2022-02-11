@@ -90,7 +90,9 @@ char *g_final_name = NULL, *g_asm_name = NULL;
 struct ext_include_collection g_ext_incdirs;
 struct structure **g_saved_structures2 = NULL;
 
-
+#ifdef Z80
+extern char *g_sdsctag_name_str, *g_sdsctag_notes_str, *g_sdsctag_author_str;
+#endif
 
 static int _allocate_global_buffers(void) {
 
@@ -720,6 +722,12 @@ void procedures_at_exit(void) {
   stack_calculate_free_allocations();
   
   _free_global_buffers();
+
+#ifdef Z80
+  free(g_sdsctag_name_str);
+  free(g_sdsctag_notes_str);
+  free(g_sdsctag_author_str);
+#endif
 }
 
 
