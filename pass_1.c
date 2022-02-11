@@ -34,7 +34,7 @@ int g_version = 0, g_version_defined = 0;
 #endif
 
 #ifdef Z80
-char *g_sdsctag_name_str, *g_sdsctag_notes_str, *g_sdsctag_author_str;
+char *g_sdsctag_name_str = NULL, *g_sdsctag_notes_str = NULL, *g_sdsctag_author_str = NULL;
 int g_sdsctag_name_type, g_sdsctag_notes_type, g_sdsctag_author_type, g_sdsc_ma, g_sdsc_mi;
 int g_sdsctag_name_value, g_sdsctag_notes_value, g_sdsctag_author_value;
 int g_computesmschecksum_defined = 0, g_sdsctag_defined = 0, g_smstag_defined = 0;
