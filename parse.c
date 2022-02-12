@@ -1081,13 +1081,18 @@ int input_number(void) {
 
   /* the last choice is a label */
   g_label[0] = e;
+  curly_braces = 0;
   for (k = 1; k < MAX_NAME_LENGTH; k++) {
     e = g_buffer[g_source_pointer++];
-    if (e == 0x0A || e == ')' || e == ',' || e == ']') {
+    if (e == '{')
+      curly_braces++;
+    else if (e == '}')
+      curly_braces--;
+    else if (e == 0x0A || e == ')' || e == ',' || e == ']') {
       g_source_pointer--;
       break;
     }
-    if (g_plus_and_minus_ends_label == YES && (e == '-' || e == '+')) {
+    else if (g_plus_and_minus_ends_label == YES && (e == '-' || e == '+')) {
       g_source_pointer--;
       break;
     }
@@ -1095,7 +1100,7 @@ int input_number(void) {
     else if (e == '.')
       dot = k;
 #endif
-    else if (e == ' ')
+    else if (e == ' ' && curly_braces <= 0)
       break;
     g_label[k] = e;
 

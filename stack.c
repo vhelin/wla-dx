@@ -545,7 +545,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           d = (d << 1) + (e - '0');
         else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
                  e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == '~' ||
-                 e == ']' || e == '.' || e == '=' || e == '!' || e == '}' || e == 0xA)
+                 e == ']' || e == '.' || e == '=' || e == '!' || e == '}' || e == 0xA || e == 0)
           break;
         else {
           if (g_input_number_error_msg == YES) {
@@ -611,7 +611,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           d += e - 'a' + 10;
         else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' ||
                  e == '*' || e == '/' || e == ',' || e == '^' || e == '<' || e == '>' ||
-                 e == '#' || e == '~' || e == ']' || e == '.' || e == '=' || e == '!' || e == '}' || e == 0xA) {
+                 e == '#' || e == '~' || e == ']' || e == '.' || e == '=' || e == '!' || e == '}' || e == 0xA || e == 0) {
           needs_shifting = YES;
           break;
         }
@@ -678,7 +678,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' ||
                    e == '*' || e == '/' || e == ',' || e == '^' || e == '<' || e == '>' ||
                    e == '#' || e == '~' || e == ']' || e == '.' || e == 'h' || e == 'H' ||
-                   e == '=' || e == '!' || e == '}' || e == 0xA) {
+                   e == '=' || e == '!' || e == '}' || e == 0xA || e == 0) {
             needs_shifting = YES;
             break;
           }
@@ -735,7 +735,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           }
           else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
                    e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == '~' ||
-                   e == ']' || e == '=' || e == '!' || e == '}' || e == 0xA)
+                   e == ']' || e == '=' || e == '!' || e == '}' || e == 0xA || e == 0)
             break;
           else if (e == '.') {
             if (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D')
@@ -826,12 +826,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           }
           if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
               e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == ']' ||
-              e == '~' || e == '=' || e == '!' || e == 0xA)
+              e == '~' || e == '=' || e == '!' || e == 0xA || e == 0)
             break;
           if (e == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D') &&
               (*(in+2) == ' ' || *(in+2) == ')' || *(in+2) == '|' || *(in+2) == '&' || *(in+2) == '+' || *(in+2) == '-' || *(in+2) == '*' ||
                *(in+2) == '/' || *(in+2) == ',' || *(in+2) == '^' || *(in+2) == '<' || *(in+2) == '>' || *(in+2) == '#' || *(in+2) == ']' ||
-               *(in+2) == '~' || *(in+2) == 0xA))
+               *(in+2) == '~' || *(in+2) == 0xA || *(in+2) == 0))
             break;
         }
         else if (e == 0xA)

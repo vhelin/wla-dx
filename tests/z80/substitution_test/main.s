@@ -56,7 +56,7 @@ label2: dsb 2
         .BANK 0 SLOT 0
         .ORG 0
 
-        .SECTION "TEST-01" FORCE        
+        .SECTION "TESTS-A" FORCE
 test_{I1}:
 test_{I1}_address_{I0}
         .DB "01("
@@ -112,7 +112,7 @@ Hack_{\@+1}_Hack:
 Hack_{3+\@}_More:
         .ENDM
 
-All_{1+1+1+1}_MacroTests1:
+All_{1 + 1+1+1}_MacroTests1:
 All_{I10-6}_MacroTests2:      
         MacroTest 1
         MacroTest 2
@@ -162,8 +162,32 @@ All_{I10-6}_MacroTests2:
         .DB { "{%.1i{I10-0x1}}" } ; @BT 39
         .DB { "{%.1d{I10-1h}}" }  ; @BT 39
         .DB "<06"                 ; @BT END
-        
-        .db _sizeof_label1
+
+        .DB _sizeof_label1
         .ENDS
         
         
+
+        .BANK 0 SLOT 0
+        .ORG $1000
+
+        .SECTION "TESTS-B" FORCE
+
+        .DB "09>"                 ; @BT TEST-09 09 START
+gfxHeader{5 - 1}
+gfxHeaderB1{%101 - %1}
+gfxHeaderB2{0b101 - 0b1}
+gfxHeaderH1{0x5 - 0x1}
+gfxHeaderH2{5h - 1h}
+gfxHeaderH3{$5 - $1}
+        .DW gfxHeader{5 - 1}         ; @BT 03 10
+        .DW gfxHeaderB1{%101 - %1}   ; @BT 03 10
+        .DW gfxHeaderB2{0b101 - 0b1} ; @BT 03 10
+        .DW gfxHeaderH1{0x5 - 0x1}   ; @BT 03 10
+        .DW gfxHeaderH2{5h - 1h}     ; @BT 03 10
+        .DW gfxHeaderH3{$5 - $1}     ; @BT 03 10
+.define COUNT2 5
+        .DW gfxHeader{COUNT2 - 1}    ; @BT 03 10
+        .DB "<09"                    ; @BT END
+
+        .ENDS
