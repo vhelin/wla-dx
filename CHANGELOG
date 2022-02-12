@@ -31,9 +31,9 @@ v10.1 (09-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                       work again.
                     [ALL] Sharing a namespace between sections should not make
                       WLA to crash at exit.
-                    [ALL] MAX_NAME_LENGTH is now 1023 instead of 255. This
+                    [ALL] MAX_NAME_LENGTH is now 2047 instead of 255. This
                       change allows to longer strings/labels (NOTE: On Amiga
-                      the limit is still the same 255, due to limited stack).
+                      and MSDOS the limit is 511, due to limited stack).
                     [ALL] Turned some huge stack allocations into heap
                       allocations.
                     [ALL] \@ should now work in .IFs.
