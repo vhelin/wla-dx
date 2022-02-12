@@ -173,8 +173,8 @@ int compare_next_token(char *token) {
 
 int input_next_string(void) {
 
+  int k, curly_braces = 0;
   char e;
-  int k;
   
   /* skip white space */
   for (e = g_buffer[g_source_pointer++]; e == ' ' || e == ','; e = g_buffer[g_source_pointer++])
@@ -187,11 +187,15 @@ int input_next_string(void) {
   g_label[0] = e;
   for (k = 1; k < MAX_NAME_LENGTH; k++) {
     e = g_buffer[g_source_pointer++];
-    if (e == 0x0A || e == ',') {
+    if (e == '{')
+      curly_braces++;
+    else if (e == '}')
+      curly_braces++;
+    else if (e == 0x0A || e == ',') {
       g_source_pointer--;
       break;
     }
-    else if (e == ' ')
+    else if (curly_braces <= 0 && e == ' ')
       break;
     g_label[k] = e;
   }
@@ -331,9 +335,15 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
 
   for (i = 0, k = 0; i < size && k < max_size_tmp; i++) {
     if (local[i] == '{') {
-      /* do we have formatting? */
+      use_formatting = NO;
+      
       i++;
       
+      /* skip whitespace */
+      while (i < size && local[i] == ' ')
+        i++;
+
+      /* do we have formatting? */
       if (i+5 < size && local[i] == '%' && local[i+1] == '.') {
         /* yes! */
         int f = 0, n;
@@ -412,10 +422,13 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
       substitutions++;
 
       if (use_formatting == YES) {
+        /* skip whitespace */
+        while (i+1 < size && local[i+1] == ' ')
+          i++;
         if (i+1 < size && local[i+1] == '}')
           i++;
         else {
-          print_error(ERROR_NUM, "The end of the substitution is missing a '}'.\n");
+          print_error(ERROR_NUM, "The end of the substitution is missing a '}'. Got '%c' instead.\n", local[i+1]);
           return FAILED;
         }
       }
