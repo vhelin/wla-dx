@@ -548,15 +548,20 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
                  e == ']' || e == '.' || e == '=' || e == '!' || e == '}' || e == 0xA || e == 0)
           break;
         else {
-          if (g_input_number_error_msg == YES) {
+          if (g_input_number_error_msg == YES)
             print_error(ERROR_NUM, "Got '%c' (%d) when expected a 0 or 1.\n", e, e);
-          }
           return FAILED;
         }
       }
 
-      if (k == 32)
+      if (k == 32) {
         in++;
+        if (*in == '0' || *in == '1') {
+          if (g_input_number_error_msg == YES)
+            print_error(ERROR_NUM, "Too many bits in a binary value, max is 32.\n");
+          return FAILED;
+        }
+      }
 
       si[q].type = STACK_ITEM_TYPE_VALUE;
       si[q].value = d;

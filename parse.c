@@ -814,6 +814,13 @@ int input_number(void) {
         break;
     }
 
+    if (k == 32) {
+      if (g_buffer[g_source_pointer] == '0' || g_buffer[g_source_pointer] == '1') {
+        print_error(ERROR_NUM, "Too many bits in a binary value, max is 32.\n");
+        return FAILED;
+      }
+    }
+
     if (e == '.') {
       e = g_buffer[g_source_pointer+1];
       if (e == 'b' || e == 'B') {
