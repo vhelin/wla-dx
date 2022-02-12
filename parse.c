@@ -1324,6 +1324,7 @@ void skip_whitespace(void) {
 
 int get_next_plain_string(void) {
 
+  int curly_braces = 0;
   char c;
   
   skip_whitespace();
@@ -1336,7 +1337,20 @@ int get_next_plain_string(void) {
     }
 
     c = g_buffer[g_source_pointer];
-    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '{' || c == '}' || c == '\\' || c == '@' || c == ':') {
+
+    if (c == '{')
+      curly_braces++;
+    else if (c == '}')
+      curly_braces--;
+    else if (c == 0xA)
+      break;
+
+    if (curly_braces > 0) {
+      g_label[g_ss] = c;
+      g_ss++;
+      g_source_pointer++;
+    }
+    else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '{' || c == '}' || c == '\\' || c == '@' || c == ':') {
       g_label[g_ss] = c;
       g_ss++;
       g_source_pointer++;

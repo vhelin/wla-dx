@@ -156,7 +156,7 @@ All_{I10-6}_MacroTests2:
         .DB { "{-0x1+I10}" }      ; @BT 39
         .DB { "{-1h+I10}" }       ; @BT 39
         .DB { "{-0b00001+I10}" }  ; @BT 39
-        .DB { "{%.1X{I10-%1}}" }  ; @BT 39
+        .DB { "{%.1X{ I10 - %1 }}" } ; @BT 39
         .DB { "{%.1x{%1+I2+6}}" } ; @BT 39
         .DB { "{%.1d{I10-$1}}" }  ; @BT 39
         .DB { "{%.1i{I10-0x1}}" } ; @BT 39
@@ -206,4 +206,21 @@ Data{   %.4X{0xBEEF   }  }{ I3 }{ %.4X{ $DEAD }}
         .DB COUNTER_FROM_{0}_TO_{%.x{ 1 + 1 + 1 + %1 }} ; @BT 00 01 02 03 04
         .ENDR
         .DB "<11"               ; @BT END
+
+        .DB "12>"               ; @BT TEST-12 12 START
+        .DEFINE FILE_ID = 0
+        .PRINT "FILE_ID = ", FILE_ID, "\n"
+        .INCLUDE { "{%.2d{ FILE_ID+1 }}.s" }     ; @BT 01
+        .REDEFINE FILE_ID = FILE_ID + 1
+        .PRINT "FILE_ID = ", FILE_ID, "\n"
+        .INCLUDE {"{%.2d{FILE_ID+1}}.s"}         ; @BT 02
+        .REDEFINE FILE_ID = FILE_ID + 1
+        .PRINT "FILE_ID = ", FILE_ID, "\n"
+        .INCLUDE { "{%.2d{ FILE_ID + 0x1 }}.s" } ; @BT 03
+        .REDEFINE FILE_ID = FILE_ID + 1
+        .PRINT "FILE_ID = ", FILE_ID, "\n"
+        .DEFINE FILE_NAME_{%.2d{1+1-1}} { "{%.2d{ FILE_ID + %00000000000000000000000000000001 }}.s" }
+        .INCLUDE FILE_NAME_{%.2d{1}}             ; @BT 04
+        .DB "<12"               ; @BT END
+        
         .ENDS

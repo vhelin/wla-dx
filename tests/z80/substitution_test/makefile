@@ -24,4 +24,4 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	rm -f $(OFILES) core *~ linked.rom linked.sym main.lst
+	rm -f $(OFILES) core *.lst *~ linked.rom linked.sym main.lst
