@@ -182,7 +182,7 @@ gfxHeaderH2{5h - 1h}
 gfxHeaderH3{$5 - $1}
         .DW gfxHeader{5 - 1}         ; @BT 03 10
 Data{ 1 + 1 * 1 }{%.3d{ %10 + %10 * %10 }}{      $3      +      $3       *        $3    }Label:
-Data{   %.4X{0xBEEF   }  }{ I3 }{ %.4X{ $DEAD }}
+Data{   %.4X{   0xBEEF   }  }{ I3 }{ %.4X{ $DEAD }}
         .DW gfxHeaderB1{%101 - %1}   ; @BT 03 10
         .DW gfxHeaderB2{0b101 - 0b1} ; @BT 03 10
         .DW gfxHeaderH1{0x5 - 0x1}   ; @BT 03 10
@@ -193,11 +193,11 @@ Data{   %.4X{0xBEEF   }  }{ I3 }{ %.4X{ $DEAD }}
         .DB "<09"                    ; @BT END
 
         .MACRO MAKE_DATA
-        .DW \1
+        .DW \1, COUNT\2
         .ENDM
 
         .DB "10>"               ; @BT TEST-10 10 START
-        MAKE_DATA Data{ 1 + 1 * 1 }{%.3d{%10 + %10 * %10}}{    $3    +    $3     *      $3           }Label ; @BT 05 10
+        MAKE_DATA Data{ 1 + 1 * 1 }{%.3d{%10 + %10 * %10}}{    $3    +    $3     *      $3           }Label, 2 ; @BT 05 10 05 00
         .DW Data{   %.4X{0xBEEF   }  }{ I3 }{ %.4X{ 0xDEAD }} ; @BT 05 10
         .DB "<10"               ; @BT END
 
