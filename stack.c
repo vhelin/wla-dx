@@ -2173,8 +2173,13 @@ int data_stream_parser_parse(void) {
       s_dsp_add_old = s_dsp_add;
 
       s_dsp_s = g_sections_first;
-      while (s_dsp_s != NULL && s_dsp_s->id != s_dsp_inz)
+      while (s_dsp_s != NULL && s_dsp_s->id != s_dsp_section_id)
         s_dsp_s = s_dsp_s->next;
+
+      if (s_dsp_s == NULL) {
+        print_error(ERROR_ERR, "Section with ID \"%d\" has gone missing! Please submit a bug report!\n", s_dsp_section_id);
+        return FAILED;
+      }
       
       continue;
 
