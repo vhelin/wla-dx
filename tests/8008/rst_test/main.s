@@ -34,28 +34,30 @@ BANKS 2
 
 .section "Section-LABELS" FORCE
 label_00:
-	.db 1
+    .db 1
 label_01:
-	.db 1
+    .db 1
 label_02:
-	.db 1
+    .db 1
 label_03:
-	.db 1
+    .db 1
 label_04:
-	.db 1
+    .db 1
 label_05:
-	.db 1
+    .db 1
 label_06:
-	.db 1
+    .db 1
 label_07:
 .ends
 
+; @BT linked.rom
+
 .section "Section-RSTs" FORCE
-.db "01>"
-	RST 0
-	RST label_00
-	RST label_00+1
-	RST ONE+1
-	RST THREE+1+TWO+ONE
-.db "<01"
+.db "01>"                   ; @BT TEST-01 01 START
+    RST 0                   ; @BT 05
+    RST label_00            ; @BT 05
+    RST label_00+1          ; @BT 0D
+    RST ONE+1               ; @BT 15
+    RST THREE+1+TWO+ONE     ; @BT 3D
+.db "<01"                   ; @BT END
 .ends
