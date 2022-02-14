@@ -272,13 +272,17 @@ int main(int argc, char *argv[]) {
   fseek(f, 0, SEEK_END);
   input_size = (int)ftell(f);
   fseek(f, 0, SEEK_SET);
-  input = calloc(input_size, 1);
+  /* make sure we allocate one extra byte for terminator 0 */
+  input = calloc(input_size + 1, 1);
   current = input;
 
   if (fread(input, 1, input_size, f) != (size_t) input_size) {
     fprintf(stderr, "Could not read all %d bytes of \"%s\"!", input_size, input_name);
     return FAILED;
   };
+
+  free(input_name);
+  input_name = NULL;
 
   /* Extract input from comments in file */
   if (should_extract_comments) {

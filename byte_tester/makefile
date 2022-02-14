@@ -2,7 +2,7 @@
 CC=gcc
 LD=gcc
 
-CFLAGS= -c -ansi -O3 -pedantic -Wall
+CFLAGS= -c -ansi -O0 -g -pedantic -Wall
 LDFLAGS = 
 
 CFILES = main.c
