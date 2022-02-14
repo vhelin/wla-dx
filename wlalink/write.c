@@ -36,7 +36,7 @@ extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024], **g_ram_slots[256];
 extern char g_load_address_label[MAX_NAME_LENGTH + 1];
 extern char g_program_address_start_label[MAX_NAME_LENGTH + 1], g_program_address_end_label[MAX_NAME_LENGTH + 1];
 extern int g_load_address, g_load_address_type;
-extern int g_romsize, g_rombanks, g_banksize, g_verbose_mode, g_section_overwrite, g_symbol_mode;
+extern int g_romsize, g_rombanks, g_banksize, g_verbose_mode, g_section_overwrite;
 extern int g_pc_bank, g_pc_full, g_pc_slot, g_pc_slot_max, g_snes_rom_mode;
 extern int g_file_header_size, g_file_footer_size, *g_bankaddress, *g_banksizes;
 extern int g_memory_file_id, g_memory_file_id_source, g_memory_line_number, g_output_mode;
@@ -1695,7 +1695,7 @@ static void _fprintf_snes_label(FILE *f, struct label *l, int noca5h) {
     address = 0;
   else if (address > 0xffff)
     fprintf(stderr, "%s: %s:%d: _fprintf_snes_label(): The address of label \"%s\" inside a bank is $%.4x > $FFFF! Please submit a bug report!\n", get_file_name(l->file_id), get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name, address);
-  
+
   if (noca5h == YES)
     fprintf(f, "%.4x%.4x %s\n", bank, address, l->name);
   else

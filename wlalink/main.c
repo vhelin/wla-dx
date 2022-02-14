@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char g_version_string[] = "$VER: wlalink 5.16a (10.2.2022)";
+char g_version_string[] = "$VER: wlalink 5.16a (14.2.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -50,12 +50,12 @@ struct slot g_slots[256];
 struct after_section *g_after_sections = NULL, *g_after_tmp;
 struct label_sizeof *g_label_sizeofs = NULL;
 struct section_fix *g_sec_fix_first = NULL, *g_sec_fix_tmp = NULL;
-unsigned char *g_rom = NULL, *g_rom_usage = NULL, *g_file_header = NULL, *g_file_footer = NULL;
+unsigned char *g_rom = NULL, *g_rom_usage = NULL, *g_file_header = NULL, *g_file_footer = NULL, g_symbol_mode = SYMBOL_MODE_NONE;
 char g_load_address_label[MAX_NAME_LENGTH + 1], **g_ram_slots[256];
 int g_load_address = 0, g_load_address_type = LOAD_ADDRESS_TYPE_UNDEFINED;
 char g_program_address_start_label[MAX_NAME_LENGTH + 1], g_program_address_end_label[MAX_NAME_LENGTH + 1];
 int g_program_address_start = -1, g_program_address_end = -1, g_program_address_start_type = LOAD_ADDRESS_TYPE_UNDEFINED, g_program_address_end_type = LOAD_ADDRESS_TYPE_UNDEFINED;
-int g_romsize, g_rombanks, g_banksize, g_verbose_mode = OFF, g_section_overwrite = OFF, g_symbol_mode = SYMBOL_MODE_NONE;
+int g_romsize, g_rombanks, g_banksize, g_verbose_mode = OFF, g_section_overwrite = OFF;
 int g_pc_bank, g_pc_full, g_pc_slot, g_pc_slot_max;
 int g_file_header_size, g_file_footer_size, *g_banksizes = NULL, *g_bankaddress = NULL;
 int g_output_mode = OUTPUT_ROM, g_discard_unreferenced_sections = OFF, g_use_libdir = NO;
@@ -67,7 +67,8 @@ int g_output_type = OUTPUT_TYPE_UNDEFINED, g_sort_sections = YES;
 int g_num_sorted_anonymous_labels = 0;
 int g_emptyfill = 0;
 
-static int g_create_sizeof_definitions = YES, g_listfile_data = NO, g_output_addr_to_line = OFF;
+static int g_create_sizeof_definitions = YES, g_listfile_data = NO;
+static unsigned char g_output_addr_to_line = OFF;
 
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 char g_ext_libdir[MAX_NAME_LENGTH + 2];

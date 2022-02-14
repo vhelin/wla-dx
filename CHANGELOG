@@ -1336,10 +1336,12 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.16 (10-Feb-2021) Added support for WINDOW and BITWINDOW in .SECTION and
+v5.16 (14-Feb-2021) Added support for WINDOW and BITWINDOW in .SECTION and
                       .RAMSECTION.
                     Fixed multiple memory leaks. Should now work better
                       on an Amiga.
+                    On Windows it was possible that -s actually wrote a WLA
+                      symbol file instead of a NOCA$H symbol file.
                     Removed warnings that begin with "COMPUTE_STACK: The
                       passed on SLOT/BANK/BASE changed..." as they were kind
                       of pointless.
