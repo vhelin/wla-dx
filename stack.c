@@ -2407,8 +2407,10 @@ int data_stream_parser_parse(void) {
           dSI->section_id = s_dsp_section_id;
 
           /* store the entry in a hashmap for quick discovery */
-          if (hashmap_put(s_dsp_labels_map, dSI->label, dSI) == MAP_OMEM)
+          if (hashmap_put(s_dsp_labels_map, dSI->label, dSI) == MAP_OMEM) {
             fprintf(stderr, "data_stream_parser_parse(): Out of memory error while trying to insert label \"%s\" into a hashmap.\n", dSI->label);
+            return FAILED;
+          }
 
           /* store the entry in a linked list so we can free it later */
           if (g_data_stream_items_first == NULL) {
