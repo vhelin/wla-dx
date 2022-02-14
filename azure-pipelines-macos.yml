@@ -1,0 +1,31 @@
+# C/C++ with GCC
+# Build your C/C++ project with GCC using make.
+# Add steps that publish test results, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/apps/c-cpp/gcc
+
+trigger:
+- master
+
+pool:
+  vmImage: 'macOS-latest'
+
+steps:
+- script: |
+    cmake -G "Unix Makefiles"
+    make
+  displayName: 'Build Release'
+  timeoutInMinutes: 20
+- script: |
+    ./run_tests.sh
+  displayName: 'Run Tests (Release)'
+  timeoutInMinutes: 20
+- script: |
+    make clean
+    cmake -DGDB_DEBUGGING=ON -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles"
+    make
+  displayName: 'Build Debug'
+  timeoutInMinutes: 20
+- script: |
+    ./run_tests.sh
+  displayName: 'Run Tests (Debug)'
+  timeoutInMinutes: 20
