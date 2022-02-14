@@ -20,6 +20,6 @@ dump_symbol_file() {
 }
 
 # All labels are in the symbol file.
-expect_line '00008000 _private_label_8000'
-expect_line '00008000 public_label_8001'
-expect_line '00108000 label_108001'
+expect_line '00:8000 _private_label_8000'
+expect_line '00:8000 public_label_8001'
+expect_line '10:8000 label_108001'

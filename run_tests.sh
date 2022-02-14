@@ -21,8 +21,13 @@ runTest() {
     cd ..
 }
 
-export PATH=$PATH:$PWD/binaries:$PWD/build/binaries
-# echo $PATH
+if [ $# -eq 1 ]; then
+    if [ "$1" = "-windows" ]; then
+        export PATH=$PATH:$PWD/windows/Release
+    else
+	export PATH=$PATH:$PWD/binaries:$PWD/build/binaries
+    fi
+fi
 
 # byte_tester
 echo Building byte_tester...
