@@ -27,6 +27,8 @@ if [ $# -eq 1 ]; then
     else
 	export PATH=$PATH:$PWD/binaries:$PWD/build/binaries
     fi
+else
+    export PATH=$PATH:$PWD/binaries:$PWD/build/binaries
 fi
 
 # byte_tester
