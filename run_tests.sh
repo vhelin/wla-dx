@@ -35,6 +35,8 @@ fi
 echo Building byte_tester...
 cd byte_tester
 make install
+# just in case...
+cp byte_tester* ../binaries/
 
 if test -f "byte_tester"; then
     BYTE_TESTER="byte_tester"
