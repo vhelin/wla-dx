@@ -30,4 +30,7 @@
 .org SNES_CHECKSUM + SNES_CHECKSUM_SIZE
 .db "<CK"
 
+; @BT result.rom
+; @BT TEST-CK CK START 3C FC C3 03 END
+
 .computesneschecksum

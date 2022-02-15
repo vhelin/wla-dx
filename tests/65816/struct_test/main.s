@@ -29,12 +29,14 @@
         .BANK 0 SLOT 0
         .ORG $0000
 
-        .db "01>"
-        .db chan1.dataPtr, chan1.dataPos
-        .db chan2.dataPtr, chan2.dataPos
-        .db chan3.dataPtr, chan3.dataPos
-        .db chan3.extra1, chan3.extra2
-        .db "<01"
+        ; @BT result.rom
+
+        .db "01>"                           ; @BT TEST-01 01 START
+        .db chan1.dataPtr, chan1.dataPos    ; @BT 00 02
+        .db chan2.dataPtr, chan2.dataPos    ; @BT 04 06
+        .db chan3.dataPtr, chan3.dataPos    ; @BT 08 0A
+        .db chan3.extra1, chan3.extra2      ; @BT 0C 0D
+        .db "<01"                           ; @BT END
 
         .struct game_object
         posX db
@@ -51,13 +53,13 @@
         hello     DB
         .ENDS
 
-        .db "02>"
-        .dw moomin1, phantom, nyanko,
-        .dw enemy1.posX, enemy1.posY
-        .dw posX, posY
-        .dw enemy2.posX, enemy2.posY
-        .dw hello
-        .db "<02"
+        .db "02>"                           ; @BT TEST-02 02 START
+        .dw moomin1, phantom, nyanko,       ; @BT 00 80 02 80 03 80
+        .dw enemy1.posX, enemy1.posY        ; @BT 04 80 05 80
+        .dw posX, posY                      ; @BT 06 80 07 80
+        .dw enemy2.posX, enemy2.posY        ; @BT 08 80 09 80
+        .dw hello                           ; @BT 0A 80
+        .db "<02"                           ; @BT END
 
         .STRUCT blob
         label1   dw
@@ -70,11 +72,11 @@
         blob2 INSTANCEOF blob
         .ENDE
 
-        .db "03>"
-        .dw blob1.label1, blob1.label2
-        .dw label1, label2
-        .dw blob2.label1, blob2.label2
-        .db "<03"
+        .db "03>"                           ; @BT TEST-03 03 START
+        .dw blob1.label1, blob1.label2      ; @BT 00 10 02 10
+        .dw label1, label2                  ; @BT 04 10 06 10
+        .dw blob2.label1, blob2.label2      ; @BT 08 10 0A 10
+        .db "<03"                           ; @BT END
 
         .STRUCT position_t
         pos_x  DW

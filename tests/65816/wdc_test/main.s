@@ -13,30 +13,33 @@
 
 .bank 0 slot 0
 .section "Section1" force
-	.DB "01>"
-	AND #10
-	AND 10,X
-	AND 10
-	.DB "<01"
+
+	; @BT result.rom
+
+	.DB "01>"		; @BT TEST-01 01 START
+	AND #10			; @BT 29 0A
+	AND 10,X		; @BT 35 0A
+	AND 10			; @BT 25 0A
+	.DB "<01"		; @BT END
 
 	.WDC
 	
-	.DB "02>"
-	AND #<10
-	AND <10,X
-	AND <10
-	LSR <10
-	LSR
-	.DB "<02"
+	.DB "02>"		; @BT TEST-02 02 START
+	AND #<10		; @BT 29 0A
+	AND <10,X		; @BT 35 0A
+	AND <10			; @BT 25 0A
+	LSR <10			; @BT 46 0A
+	LSR				; @BT 4A
+	.DB "<02"		; @BT END
 
 	.NOWDC
 	
-	.DB "03>"
-	AND #<$1020
-	AND <$1020,X
-	AND <$1020
-	LSR <$1020
-	LSR
-	.DB "<03"
+	.DB "03>"		; @BT TEST-03 03 START
+	AND #<$1020		; @BT 29 20
+	AND <$1020,X	; @BT 35 20
+	AND <$1020		; @BT 25 20
+	LSR <$1020		; @BT 46 20
+	LSR				; @BT 4A
+	.DB "<03"		; @BT END
 .ends
 

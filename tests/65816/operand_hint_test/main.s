@@ -69,19 +69,21 @@ irqbrk hotto
 .BANK 0 SLOT 0
 .ORG $0000
 
+; @BT result.rom
+
         .EQU Intro_greyText2nd = Intro_greyText+$8c00
-        .db "01>"
-        LoadBlockToVRAM Intro_greyText+$8c00,$4e00,$1c00
-        .db "<01"
-        .db "02>"
-        LoadBlockToVRAM Intro_greyText2nd,$100,$200,$300
-        .db "<02"
-        .db "03>"
-        LoadBlockToXRAM :(Intro_greyText2nd)+1
-        .db "<03"
-        .db "04>"
-        LoadBlockToXRAM (Intro_greyText2nd >> 16)
-        .db "<04"
+        .db "01>"                                               ; @BT TEST-01 01 START
+        LoadBlockToVRAM Intro_greyText+$8c00,$4e00,$1c00        ; @BT 21
+        .db "<01"                                               ; @BT END
+        .db "02>"                                               ; @BT TEST-02 02 START
+        LoadBlockToVRAM Intro_greyText2nd,$100,$200,$300        ; @BT 21
+        .db "<02"                                               ; @BT END
+        .db "03>"                                               ; @BT TEST-03 03 START
+        LoadBlockToXRAM :(Intro_greyText2nd)+1                  ; @BT 22
+        .db "<03"                                               ; @BT END
+        .db "04>"                                               ; @BT TEST-04 04 START
+        LoadBlockToXRAM (Intro_greyText2nd >> 16)               ; @BT 01
+        .db "<04"                                               ; @BT END
 Intro_greyText: 
         lda.b   #($80 | (>40))
 
