@@ -74,8 +74,6 @@ label_\1:
         db_string "HI", 1           ; @BT 01 42 48 49 00 31
         .db "<07"                   ; @BT END
         
-
-        
 .MACRO make_rst
   .ORG (?1 * $0003 + $203)
   .SECTION "BOOT_RESET_\1_?1" SIZE $0003 FORCE KEEP
@@ -156,3 +154,61 @@ boot_rst_\1_?1:
         .db "{}", "{", "}"    ; @BT 7B 7D 7B 7D
         .db "hello".length    ; @BT 05
         .db "<12"             ; @BT END
+
+--      .db "13>"               ; @BT TEST-13 13 START
+-       bne --                  ; @BT D0 FB
+        bne -                   ; @BT D0 FC
+        bne ++                  ; @BT D0 03
+        bne +                   ; @BT D0 00
++       nop                     ; @BT EA
+++      .db "<13"               ; @BT END
+        
+        // once more to see that references to local labels stay local...
+        .section "SAME-BUT-SECTION-1" keep
+--      .db "14>"               ; @BT TEST-14 14 START
+-       bne --                  ; @BT D0 FB
+        bne -                   ; @BT D0 FC
+        bne ++                  ; @BT D0 03
+        bne +                   ; @BT D0 00
++       nop                     ; @BT EA
+++      .db "<14"               ; @BT END
+        .ends
+
+        // once more to see that references to local labels stay local...
+        .section "SAME-BUT-SECTION-2" keep
+--      .db "15>"               ; @BT TEST-15 15 START
+-       bne --                  ; @BT D0 FB
+        bne -                   ; @BT D0 FC
+        bne ++                  ; @BT D0 03
+        bne +                   ; @BT D0 00
++       nop                     ; @BT EA
+++      .db "<15"               ; @BT END
+        .ends
+
+        // once more to see that references to local labels stay local...
+--      .db "16>"               ; @BT TEST-16 16 START
+-       bne --                  ; @BT D0 FB
+        bne -                   ; @BT D0 FC
+        bne ++                  ; @BT D0 03
+        bne +                   ; @BT D0 00
++       nop                     ; @BT EA
+++      .db "<16"               ; @BT END
+
+        // once more to see that references to local labels stay local...
+--      .db "17>"               ; @BT TEST-17 17 START
+-       bne --                  ; @BT D0 FB
+        bne -                   ; @BT D0 FC
+        bne ++                  ; @BT D0 03
+        bne +                   ; @BT D0 00
++       nop                     ; @BT EA
+++      .db "<17"               ; @BT END
+
+        .DB "18>"               ; @BT TEST-18 18 START
+        .DB %00000000000000000000000000000111  ; @BT 07
+        .DB 0b00000000000000000000000000000101 ; @BT 05
+        .DB %00000000000000000000000000000001 + %00000000000000000000000000000010   ; @BT 03
+        .DB 0b00000000000000000000000000000011 - 0b00000000000000000000000000000001 ; @BT 02
+        .DB "<18"               ; @BT END
+        
+
+        

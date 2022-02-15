@@ -96,7 +96,9 @@ Label_{%.3i{COUNT+1+2+3+4+I10}}:
           .db "07>"                ; @BT TEST-07 07 START
 LastNumberShouldBeTwo_{\@+1+2-3}
 LastNumberShouldBeThree_{ \@ + 1 + 3 - 3 }:
-InTheMiddleShouldBeFive_{  \@  *  2  +  1  }_IsThere        
+InTheMiddleShouldBeFive_{  \@  *  2  +  1  }_IsThere
+LastNumbersShouldBeOneTwoThree_{1 + \@ - 2}{%.1d{\@}}{\@+1}
+InTheMiddleOneTwoThree_{\@ - 1}{\@}{\@+1}_IsThere
           .db {"{\@ + 3 - 3 + 1}"} ; @BT 33
           .db { "{\@*\@}" }        ; @BT 34
           .db {"{\1+\@}" }         ; @BT 35
@@ -224,10 +226,10 @@ Data{   %.4X{   0xBEEF   }  }{ I3 }{ %.4X{ $DEAD }}
         .DB "<12"               ; @BT END
 
         .DB "13>"               ; @BT TEST-13 13 START
-        .DB %00000000000000000000000000000111  ; @BT 07
-        .DB 0b00000000000000000000000000000101 ; @BT 05
-        .DB %00000000000000000000000000000001 + %00000000000000000000000000000010   ; @BT 03
-        .DB 0b00000000000000000000000000000011 - 0b00000000000000000000000000000001 ; @BT 02
+        .DB I{1+3-1}-I{%.1d{1+1}}+I{1} ; @BT 02
+        .DB I{3}, I{1+1}+1, I{1}       ; @BT 03 03 01
+        .DB I{$3}, I{$1+$1}+$1, I{$1}  ; @BT 03 03 01
+        .DB I{%11}, I{%1+%1}+%1, I{%1} ; @BT 03 03 01
         .DB "<13"               ; @BT END
         
         .ENDS
