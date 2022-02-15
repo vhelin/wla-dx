@@ -35,37 +35,39 @@ __\._{\@+1}:
 .MACRO .storager
         .DB \@, \@+1, 1+\@+1, \@-1
 .ENDM
+
+; @BT result.rom
         
 .bank 0 slot 1
 .section "Bank0" force
 main:
-        .db "01>"
-        .term "YES"
-        .db "<01"
+        .db "01>"       ; @BT TEST-01 01 START
+        .term "YES"     ; @BT 00 00 03 59 45 53 00
+        .db "<01"       ; @BT END
 
-        .db "02>"
-        .term "NO"
-        .db "<02"
-        
-        .db "03>"
-        .term "HELLO"
-        .db "<03"
+        .db "02>"       ; @BT TEST-02 02 START
+        .term "NO"      ; @BT 0E 80 02 4E 4F 00
+        .db "<02"       ; @BT END
 
-        .db "04>"
-        .test "JA"
-        .db "<04"
+        .db "03>"       ; @BT TEST-03 03 START
+        .term "HELLO"   ; @BT 1A 80 05 48 45 4C 4C 4F 00
+        .db "<03"       ; @BT END
 
-        .db "05>"
-        .test "NEIN"
-        .db "<05"
-        
-        .db "06>"
-        .test "HALLO"
-        .db "<06"
+        .db "04>"       ; @BT TEST-04 04 START
+        .test "JA"      ; @BT 00 00 02 4A 41 00 2B 80 2C 80
+        .db "<04"       ; @BT END
 
-        .db "07>"
-        .storager
-        .db "<07"
+        .db "05>"       ; @BT TEST-05 05 START
+        .test "NEIN"    ; @BT 2B 80 04 4E 45 49 4E 00 3B 80 3C 80
+        .db "<05"       ; @BT END
+
+        .db "06>"       ; @BT TEST-06 06 START
+        .test "HALLO"   ; @BT 3B 80 05 48 41 4C 4C 4F 00 4D 80 4E 80
+        .db "<06"       ; @BT END
+
+        .db "07>"       ; @BT TEST-07 07 START
+        .storager       ; @BT 00 01 02 FF
+        .db "<07"       ; @BT END
 
 MIDDLE1 = 1+2+3
 MIDDLE2= 1+1+1
@@ -76,10 +78,16 @@ MIDDLE5=2+1+1
         MIDDLE7= 1+1
         MIDDLE8 =1+1
 
-        .db "08>"
-        .db MIDDLE1+ 1, 1 + MIDDLE2 + 1, MIDDLE3+ 1, 2+ MIDDLE4 +1, 3+MIDDLE5+1
-        .db 1+MIDDLE6+1, 2+ MIDDLE7+ 2, 3 +MIDDLE8 +3
-        .db "<08"
+        .db "08>"               ; @BT TEST-08 08 START
+        .db MIDDLE1 + 1,        ; @BT 07
+        .db 1 + MIDDLE2 + 1,    ; @BT 05
+        .db MIDDLE3 + 1         ; @BT 04
+        .db 2 + MIDDLE4 +1,     ; @BT 04
+        .db 3 + MIDDLE5 + 1     ; @BT 08
+        .db 1 + MIDDLE6 + 1,    ; @BT 04
+        .db 2 + MIDDLE7 + 2,    ; @BT 06
+        .db 3 + MIDDLE8 + 3     ; @BT 08
+        .db "<08"               ; @BT END
 .ends
 
 .macro MACROX   
@@ -95,9 +103,9 @@ MIDDLE5=2+1+1
 StartHello:
 StartHelloEnd:
 HelloStart:
-        .db "09>"
-        MACROX Hello
-        .db "<09"
+        .db "09>"       ; @BT TEST-09 09 START
+        MACROX Hello    ; @BT 75 80 75 80 75 80 01 01 01
+        .db "<09"       ; @BT END
 .ends
 
 .macro .differentThings1
@@ -115,12 +123,12 @@ HelloStart:
 .endm
         
 .section "TestingDifferentThings1"
-        .db "10>"
-TDT1:   .differentThings1 100
-        .differentThings1 "HELLO"
-        .differentThings1 TDT1
-        .differentThings1 TDT1+1
-        .db "<10"
+        .db "10>"                       ; @BT TEST-10 10 START
+TDT1:   .differentThings1 100           ; @BT 01
+        .differentThings1 "HELLO"       ; @BT 02
+        .differentThings1 TDT1          ; @BT 03
+        .differentThings1 TDT1+1        ; @BT 04
+        .db "<10"                       ; @BT END
 .ends
 
 .macro .differentThings2
@@ -147,21 +155,21 @@ TDT1:   .differentThings1 100
 .endm
 
 .section "TestingDifferentThings2"
-        .db "11>"
-TDT2:   .differentThings2 TDT2+1, 100
-        .differentThings2 TDT2, "HELLO"
-        .differentThings2 "HELLO", TDT2
-        .differentThings2 100, TDT2+1
-        .db "<11"
+        .db "11>"                               ; @BT TEST-11 11 START
+TDT2:   .differentThings2 TDT2+1, 100           ; @BT 01
+        .differentThings2 TDT2, "HELLO"         ; @BT 02
+        .differentThings2 "HELLO", TDT2         ; @BT 03
+        .differentThings2 100, TDT2+1           ; @BT 04
+        .db "<11"                               ; @BT END
 
 LABEL_0 nop
 LABEL_1 nop
 LABEL_2 nop
 LABEL_3 nop
 
-        .db "12>"
-        REFERENCE_LABELS
-        .db "<12"
+        .db "12>"               ; @BT TEST-12 12 START
+        REFERENCE_LABELS        ; @BT 8F 80 90 80 91 80 8F 80 90 80
+        .db "<12"               ; @BT END
 
 .MACRO  _set
         lda #\1
@@ -170,7 +178,7 @@ LABEL_3 nop
 
 .DEF SOME_CONST 1
         
-        .db "13>"
-        _set SOME_CONST        
-        .db "<13"
+        .db "13>"               ; @BT TEST-13 13 START
+        _set SOME_CONST         ; @BT A9 01 9D 00 80
+        .db "<13"               ; @BT END
 .ends
