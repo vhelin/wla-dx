@@ -4,10 +4,10 @@
 //////////////////////////////////////////////////////////////////////
         
 .memorymap
-	slotsize $8000
-	defaultslot 1
-	slot 0 $0000
-	slot 1 $8000
+        slotsize $8000
+        defaultslot 1
+        slot 0 $0000
+        slot 1 $8000
 .endme                    
 
 .lorom
@@ -38,47 +38,32 @@
 .bank 0 slot 1
 
 ; @BT result.rom
-; @BT TEST-07 07 START 00 31 END
-; @BT TEST-08 08 START 01 32 END
-; @BT TEST-09 09 START 02 33 END
-; @BT TEST-10 10 START 03 34 END
-; @BT TEST-11 11 START 04 35 END
-; @BT TEST-12 12 START 05 36 END
-; @BT TEST-13 13 START 06 37 END
-; @BT TEST-14 14 START 07 38 END
-; @BT 
-; @BT 
-; @BT
-; @BT
-; @BT
-; @BT
-
 
 .section "SectionA" force
 main:
-	.db "01>"                                               ; @BT TEST-01 01 START
+        .db "01>"                                               ; @BT TEST-01 01 START
         .dbm FILTER_MACRO_B, $123456, $ABCDEF, "0123456789"     ; @BT 56 EF 30 31 32 33 34 35 36 37 38 39
-	.db "<01"                                               ; @BT END
+        .db "<01"                                               ; @BT END
 
-	.db "02>"                                               ; @BT TEST-02 02 START
+        .db "02>"                                               ; @BT TEST-02 02 START
         .dwm FILTER_MACRO_W, $123456, $ABCDEF, "0123456789"     ; @BT 56 34 EF CD 30 00 31 00 32 00 33 00 34 00 35 00 36 00 37 00 38 00 39 00
-	.db "<02"                                               ; @BT END
+        .db "<02"                                               ; @BT END
 
-	.db "03>"                                               ; @BT TEST-03 03 START
+        .db "03>"                                               ; @BT TEST-03 03 START
         .dlm FILTER_MACRO_L, $123456, $ABCDEF, "0123456789"     ; @BT 56 34 12 EF CD AB 30 00 00 31 00 00 32 00 00 33 00 00 34 00 00 35 00 00 36 00 00 37 00 00 38 00 00 39 00 00
-	.db "<03"                                               ; @BT END
+        .db "<03"                                               ; @BT END
 
         .db "04>"                                               ; @BT TEST-04 04 START
         .dbm FILTER_MACRO_2, $123456, $ABCDEF, "01234"          ; @BT 00 01 02 03 04 05 06
-	.db "<04"                                               ; @BT END
+        .db "<04"                                               ; @BT END
 
         .db "05>"                                               ; @BT TEST-05 05 START
         .dwm FILTER_MACRO_2, $123456, $ABCDEF, "01234"          ; @BT 00 00 01 00 02 00 03 00 04 00 05 00 06 00
-	.db "<05"                                               ; @BT END
+        .db "<05"                                               ; @BT END
 
         .db "06>"                                               ; @BT TEST-06 06 START
         .dlm FILTER_MACRO_2, $123456, $ABCDEF, "01234"          ; @BT 00 00 00 01 00 00 02 00 00 03 00 00 04 00 00 05 00 00 06 00 00
-	.db "<06"                                               ; @BT END
+        .db "<06"                                               ; @BT END
 .ends
 
 //////////////////////////////////////////////////////////////////////
@@ -88,7 +73,7 @@ main:
 .bank 1 slot 0
 
 .MACRO make_rst
-  // these tests start from 07
+  // these tests start from 07 (range: 07-14)
   .DEFINE CHAR = \1+7
   .IF CHAR < 10
     .DEFINE CHAR_1 = '0'
@@ -107,6 +92,15 @@ rts_\1: .db \1, "\2"
 
   .UNDEFINE CHAR, CHAR_1, CHAR_2
 .ENDM
+
+; @BT TEST-07 07 START 00 31 END
+; @BT TEST-08 08 START 01 32 END
+; @BT TEST-09 09 START 02 33 END
+; @BT TEST-10 10 START 03 34 END
+; @BT TEST-11 11 START 04 35 END
+; @BT TEST-12 12 START 05 36 END
+; @BT TEST-13 13 START 06 37 END
+; @BT TEST-14 14 START 07 38 END
 
 .REPEAT 8 INDEX IDX
   make_rst IDX IDX+1
