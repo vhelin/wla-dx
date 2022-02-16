@@ -2592,7 +2592,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
       bank[t] = s->bank;
       t++;
     }
-    else if (s->type == STACK_ITEM_TYPE_STRING) {
+    else if (s->type == STACK_ITEM_TYPE_LABEL) {
       /* parse_stack() turned this string into a value */
       v_ram[t] = s->value_ram;
       v_rom[t] = s->value_rom;
@@ -3281,7 +3281,7 @@ int parse_stack(struct stack *sta) {
   k_ram = 0.0;
   k_rom = 0.0;
   while (g != sta->stacksize) {
-    if (si->type == STACK_ITEM_TYPE_STRING) {
+    if (si->type == STACK_ITEM_TYPE_LABEL) {
       l = NULL;
 
       /* bank number search */

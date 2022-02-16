@@ -181,6 +181,8 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
     else if (type == STACK_ITEM_TYPE_OPERATOR)
       snprintf(sid, sizeof(g_stack_item_description), "stack_item: operator           : %s\n", get_stack_item_operator_name((int)si->value_ram));
     else if (type == STACK_ITEM_TYPE_STRING)
+      snprintf(sid, sizeof(g_stack_item_description), "stack_item: string             : %s\n", si->string);
+    else if (type == STACK_ITEM_TYPE_LABEL)
       snprintf(sid, sizeof(g_stack_item_description), "stack_item: label              : %s\n", si->string);
     else if (type == STACK_ITEM_TYPE_STACK) {
       struct stack *st = find_stack((int)si->value_ram, file_id);

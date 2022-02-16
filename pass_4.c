@@ -172,7 +172,7 @@ static int _mangle_stack_references(struct stack *stack) {
   int ind, n, j;
 
   for (ind = 0; ind < stack->stacksize; ind++) {
-    if (stack->stack[ind].type == STACK_ITEM_TYPE_STRING) {
+    if (stack->stack[ind].type == STACK_ITEM_TYPE_LABEL) {
       n = 0;
       j = 0;
 
@@ -237,7 +237,7 @@ static int _add_namespace_to_stack_references(struct stack *st, char *name_space
   int j;
 
   for (j = 0; j < st->stacksize; j++) {
-    if (st->stack[j].type == STACK_ITEM_TYPE_STRING) {
+    if (st->stack[j].type == STACK_ITEM_TYPE_LABEL) {
       if (is_label_anonymous(st->stack[j].string) == YES)
         continue;
       
@@ -2034,7 +2034,7 @@ int write_object_file(void) {
       
     for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
       fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
-      if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
+      if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_LABEL)
         fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
       else {
         dou = g_stacks_tmp->stack[ind].value;
@@ -2079,7 +2079,7 @@ int write_object_file(void) {
 
     for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
       fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
-      if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
+      if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_LABEL)
         fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
       else {
         dou = g_stacks_tmp->stack[ind].value;
@@ -2361,7 +2361,7 @@ int write_library_file(void) {
 
     for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
       fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
-      if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_STRING)
+      if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_LABEL)
         fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
       else {
         dou = g_stacks_tmp->stack[ind].value;

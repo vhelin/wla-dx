@@ -39,9 +39,10 @@
 
 #define STACK_ITEM_TYPE_VALUE    0
 #define STACK_ITEM_TYPE_OPERATOR 1
-#define STACK_ITEM_TYPE_STRING   2
+#define STACK_ITEM_TYPE_LABEL    2
 #define STACK_ITEM_TYPE_DELETED  3
 #define STACK_ITEM_TYPE_STACK    4
+#define STACK_ITEM_TYPE_STRING   5
 
 #define SI_OP_ADD          0
 #define SI_OP_SUB          1

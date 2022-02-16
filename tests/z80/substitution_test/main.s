@@ -47,6 +47,7 @@ label2: dsb 2
         .DEFINE DEF_A = "A"
         .DEFINE DEF_B = "B"
         .DEFINE DEF_C = "C"
+        .DEFINE DEF_I = "I"
         .PRINT "1ST SUBSTITUTION - START\n"
         .DEFINE ABC = { "{DEF_A}{DEF_B}{DEF_C}" }
         .PRINT "1ST SUBSTITUTION - END\n"
@@ -106,7 +107,9 @@ InTheMiddleOneTwoThree_{\@ - 1}{\@}{\@+1}_IsThere
         .endif
         .if 0 + \@ + 1 == 2 + 1
         .db "08>"                 ; @BT TEST-08 08 START
+        .print "-----------------------------------------------------------------\n"
         .db MyValueIs_{ %11 } + 1 ; @BT 04
+        .print "-----------------------------------------------------------------\n"
         .db "<08"                 ; @BT END
         .endif
 Hack_{\@+1000}:
@@ -227,9 +230,9 @@ Data{   %.4X{   0xBEEF   }  }{ I3 }{ %.4X{ $DEAD }}
 
         .DB "13>"               ; @BT TEST-13 13 START
         .DB I{1+3-1}-I{%.1d{1+1}}+I{1} ; @BT 02
-        .DB I{3}, I{1+1}+1, I{1}       ; @BT 03 03 01
-        .DB I{$3}, I{$1+$1}+$1, I{$1}  ; @BT 03 03 01
+        .DB {DEF_I}{3}, I{1+1}+1, I{1}       ; @BT 03 03 01
+        .DB I{$3}, {DEF_I}{$1+$1}+$1, {DEF_I}{$1}  ; @BT 03 03 01
         .DB I{%11}, I{%1+%1}+%1, I{%1} ; @BT 03 03 01
         .DB "<13"               ; @BT END
-        
+
         .ENDS

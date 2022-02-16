@@ -123,7 +123,7 @@ pending calculations:
   4     bank number (int)
   4     base (int)
   ...
-  1     type (0 = value, 1 = operator, 2 = string, 3 = deleted, 4 = stack)
+  1     type (0 = value, 1 = operator, 2 = label, 3 = deleted, 4 = stack, 5 = string)
   1     sign (0 = positive, 1 = negative)
   8     value (double) OR
   n     string (0 terminated)
@@ -261,7 +261,7 @@ pending calculations:
   4     relative address (int)
   4     line number (int)
   ...
-  1     type (0 = value, 1 = operator, 2 = string, 3 = deleted, 4 = stack)
+  1     type (0 = value, 1 = operator, 2 = label, 3 = deleted, 4 = stack, 5 = string)
   1     sign (0 = positive, 1 = negative)
   8     value (double) OR
   n     string (0 terminated)

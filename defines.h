@@ -25,8 +25,9 @@
 /* the number of times stack_calculate() can exist in call stack any given point in time */
 #define MAX_STACK_CALCULATE_CALL_DEPTH 16
 
-#define STACK_CALCULATE_DELAY 2
-#define STACK_RETURN_LABEL 1024
+#define STACK_CALCULATE_DELAY  2
+#define STACK_RETURN_LABEL  1024
+#define STACK_RETURN_STRING 2048
 
 #define STACK_NONE    0
 #define STACK_INSIDE  1

@@ -400,12 +400,16 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
         else
           snprintf(substitution, sizeof(substitution), "%d", parsed_int);
       }
-      else if (p == STACK_RETURN_LABEL) {
+      else if (p == STACK_RETURN_STRING) {
         if (use_formatting == YES) {
           print_error(ERROR_NUM, "Cannot use formatting with strings.\n");
           return FAILED;
         }
         strcpy(substitution, g_label);
+      }
+      else if (p == STACK_RETURN_LABEL) {
+        print_error(ERROR_NUM, "Label \"%s\" cannot be used in a substitution here as its value is unknown.\n", g_label);
+        return FAILED;
       }
       else if (p == FAILED)
         return FAILED;
@@ -563,6 +567,8 @@ int input_number(void) {
           break;
         else if (p == STACK_RETURN_LABEL)
           return INPUT_NUMBER_ADDRESS_LABEL;
+        else if (p == STACK_RETURN_STRING)
+          return INPUT_NUMBER_STRING;
         else
           return p;
       }

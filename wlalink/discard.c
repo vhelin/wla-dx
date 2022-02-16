@@ -144,7 +144,7 @@ int discard_iteration(void) {
     si = st->stack;
     i = 0;
     while (i != st->stacksize) {
-      if (si->type == STACK_ITEM_TYPE_STRING && is_label_anonymous(si->string) == NO) {
+      if (si->type == STACK_ITEM_TYPE_LABEL && is_label_anonymous(si->string) == NO) {
         find_label(si->string, ss, &l);
 
         if (l != NULL && l->section_struct != NULL) {

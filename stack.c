@@ -103,6 +103,8 @@ static int _break_before_value_or_string(int i, struct stack_item *si) {
     return SUCCEEDED;
   if (si->type == STACK_ITEM_TYPE_STRING)
     return SUCCEEDED;
+  if (si->type == STACK_ITEM_TYPE_LABEL)
+    return SUCCEEDED;
   if (si->type == STACK_ITEM_TYPE_OPERATOR && si->value == SI_OP_RIGHT)
     return SUCCEEDED;
 
@@ -265,7 +267,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     else if (*in == '-') {
       if (*(in + 1) == '-') {
-        si[q].type = STACK_ITEM_TYPE_STRING;
+        si[q].type = STACK_ITEM_TYPE_LABEL;
         si[q].sign = SI_SIGN_POSITIVE;
         for (k = 0; *in == '-' && k < 32; k++, in++) {
           si[q].string[k] = '-';
@@ -281,7 +283,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     else if (*in == '+') {
       if (*(in + 1) == '+') {
-        si[q].type = STACK_ITEM_TYPE_STRING;
+        si[q].type = STACK_ITEM_TYPE_LABEL;
         si[q].sign = SI_SIGN_POSITIVE;
         for (k = 0; *in == '+' && k < 32; k++, in++)
           si[q].string[k] = '+';
@@ -382,7 +384,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         /* should we end parsing here? */
         if (b == 0 && q > 0) {
           if ((si[q-1].type == STACK_ITEM_TYPE_OPERATOR && si[q-1].value == SI_OP_RIGHT) ||
-              si[q-1].type == STACK_ITEM_TYPE_VALUE || si[q-1].type == STACK_ITEM_TYPE_STRING)
+              si[q-1].type == STACK_ITEM_TYPE_VALUE || si[q-1].type == STACK_ITEM_TYPE_STRING ||
+              si[q-1].type == STACK_ITEM_TYPE_LABEL)
             break;
         }
 
@@ -419,7 +422,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         /* should we end parsing here? */
         if (b == 0 && q > 0) {
           if ((si[q-1].type == STACK_ITEM_TYPE_OPERATOR && si[q-1].value == SI_OP_RIGHT) ||
-              si[q-1].type == STACK_ITEM_TYPE_VALUE || si[q-1].type == STACK_ITEM_TYPE_STRING)
+              si[q-1].type == STACK_ITEM_TYPE_VALUE || si[q-1].type == STACK_ITEM_TYPE_STRING ||
+              si[q-1].type == STACK_ITEM_TYPE_LABEL)
             break;
         }
 
@@ -921,7 +925,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       else if (is_string == YES) {
         process_special_labels(si[q].string);
         si[q].string[k] = 0;
-        si[q].type = STACK_ITEM_TYPE_STRING;
+        si[q].type = STACK_ITEM_TYPE_LABEL;
         got_label = YES;
 
         if (from_substitutor == NO && expand_variables_inside_string(si[q].string, sizeof(((struct stack_item *)0)->string), NULL) == FAILED)
@@ -953,8 +957,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     return STACK_CALCULATE_DELAY;
 
   /* check if there was data before the computation */
-  if (q > 1 && (si[0].type == STACK_ITEM_TYPE_STRING || si[0].type == STACK_ITEM_TYPE_VALUE)) {
-    if (si[1].type == STACK_ITEM_TYPE_STRING || si[1].type == STACK_ITEM_TYPE_VALUE)
+  if (q > 1 && (si[0].type == STACK_ITEM_TYPE_LABEL || si[0].type == STACK_ITEM_TYPE_VALUE)) {
+    if (si[1].type == STACK_ITEM_TYPE_LABEL || si[1].type == STACK_ITEM_TYPE_VALUE)
       return STACK_CALCULATE_DELAY;
     if (si[1].type == STACK_ITEM_TYPE_OPERATOR) {
       if (si[1].value == SI_OP_LEFT)
@@ -965,7 +969,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 #ifdef SPC700
   /* check if the computation is of the form "y+X" or "y+Y" and remove that "+X" or "+Y" */
   if (q > 2 && si[q - 2].type == STACK_ITEM_TYPE_OPERATOR && si[q - 2].value == SI_OP_ADD) {
-    if (si[q - 1].type == STACK_ITEM_TYPE_STRING && si[q - 1].string[1] == 0) {
+    if (si[q - 1].type == STACK_ITEM_TYPE_LABEL && si[q - 1].string[1] == 0) {
       char w = si[q - 1].string[0];
 
       if (w == 'x' || w == 'X' || w == 'y' || w == 'Y') {
@@ -999,7 +1003,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       }
     }
     if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_SUB && b == 1) {
-      if (si[k + 1].type == STACK_ITEM_TYPE_VALUE || si[k + 1].type == STACK_ITEM_TYPE_STRING) {
+      if (si[k + 1].type == STACK_ITEM_TYPE_VALUE || si[k + 1].type == STACK_ITEM_TYPE_LABEL) {
         if (si[k + 1].sign == SI_SIGN_POSITIVE)
           si[k + 1].sign = SI_SIGN_NEGATIVE;
         else
@@ -1011,7 +1015,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         o = 1;
         l = k + 2;
         while (o > 0 && l < q) {
-          if (si[l].type == STACK_ITEM_TYPE_VALUE || si[l].type == STACK_ITEM_TYPE_STRING) {
+          if (si[l].type == STACK_ITEM_TYPE_VALUE || si[l].type == STACK_ITEM_TYPE_LABEL) {
             if (si[l].sign == SI_SIGN_POSITIVE)
               si[l].sign = SI_SIGN_NEGATIVE;
             else
@@ -1036,12 +1040,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     /* remove unnecessary + */
     if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_ADD && b == 1) {
-      if (si[k + 1].type == STACK_ITEM_TYPE_VALUE || si[k + 1].type == STACK_ITEM_TYPE_STRING)
+      if (si[k + 1].type == STACK_ITEM_TYPE_VALUE || si[k + 1].type == STACK_ITEM_TYPE_LABEL)
         si[k].type = STACK_ITEM_TYPE_DELETED;
       else if (si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].value == SI_OP_LEFT)
         si[k].type = STACK_ITEM_TYPE_DELETED;
     }
-    else if (si[k].type == STACK_ITEM_TYPE_VALUE || si[k].type == STACK_ITEM_TYPE_STRING)
+    else if (si[k].type == STACK_ITEM_TYPE_VALUE || si[k].type == STACK_ITEM_TYPE_LABEL)
       b = 0;
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_LEFT)
       b = 1;
@@ -1058,7 +1062,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   for (b = 1, k = 0; k < q; k++) {
     if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_XOR && b == 1)
       si[k].value = SI_OP_NOT;
-    else if (si[k].type == STACK_ITEM_TYPE_VALUE || si[k].type == STACK_ITEM_TYPE_STRING)
+    else if (si[k].type == STACK_ITEM_TYPE_VALUE || si[k].type == STACK_ITEM_TYPE_LABEL)
       b = 0;
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_LEFT)
       b = 1;
@@ -1069,8 +1073,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   g_delta_counter = 0;
   
   for (k = 0; k < q; k++) {
-    if (si[k].type == STACK_ITEM_TYPE_STRING) {
-      if (k+2 < q && si[k+1].type == STACK_ITEM_TYPE_OPERATOR && si[k+1].value == SI_OP_SUB && si[k+2].type == STACK_ITEM_TYPE_STRING) {
+    if (si[k].type == STACK_ITEM_TYPE_LABEL) {
+      if (k+2 < q && si[k+1].type == STACK_ITEM_TYPE_OPERATOR && si[k+1].value == SI_OP_SUB && si[k+2].type == STACK_ITEM_TYPE_LABEL) {
         k += 2;
         g_is_calculating_deltas = YES;
       }
@@ -1090,7 +1094,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       ta[d].sign = si[k].sign;
       d++;
     }
-    else if (si[k].type == STACK_ITEM_TYPE_STRING) {
+    else if (si[k].type == STACK_ITEM_TYPE_STRING || si[k].type == STACK_ITEM_TYPE_LABEL) {
       ta[d].type = si[k].type;
       strcpy(ta[d].string, si[k].string);
       ta[d].sign = si[k].sign;
@@ -1167,6 +1171,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   if (d == 1 && ta[0].type == STACK_ITEM_TYPE_STRING && ta[0].sign == SI_SIGN_POSITIVE) {
     strcpy(g_label, ta[0].string);
     process_special_labels(g_label);
+    return STACK_RETURN_STRING;
+  }
+  /* only one label? */
+  if (d == 1 && ta[0].type == STACK_ITEM_TYPE_LABEL && ta[0].sign == SI_SIGN_POSITIVE) {
+    strcpy(g_label, ta[0].string);
+    process_special_labels(g_label);
     return STACK_RETURN_LABEL;
   }
 
@@ -1217,10 +1227,19 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       g_stacks_tmp->stack[q].value = ta[q].value;
       g_stacks_tmp->stack[q].sign = ta[q].sign;
     }
-    else {
-      g_stacks_tmp->stack[q].type = STACK_ITEM_TYPE_STRING;
+    else if (ta[q].type == STACK_ITEM_TYPE_STRING) {
+      /* fail if we have a string inside a pending calculation! */
+      print_error(ERROR_STC, "A string (\"%s\") inside a calculation doesn't make any sense...\n", ta[q].string);
+      return FAILED;
+    }
+    else if (ta[q].type == STACK_ITEM_TYPE_LABEL) {
+      g_stacks_tmp->stack[q].type = STACK_ITEM_TYPE_LABEL;
       g_stacks_tmp->stack[q].sign = ta[q].sign;
       strcpy(g_stacks_tmp->stack[q].string, ta[q].string);
+    }
+    else {
+      print_error(ERROR_STC, "Unhandled stack item type '%d' in _stack_calculate()! Please submit a bug report!\n", ta[q].type);
+      return FAILED;
     }
   }
 
@@ -1311,6 +1330,7 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
     if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
       if (g_input_parse_if == NO) {
         /* change the contents */
+        s->type = STACK_ITEM_TYPE_STRING;
         strcpy(s->string, g_tmp_def->string);
         /*
         print_error(ERROR_STC, "Definition \"%s\" is a string definition.\n", g_tmp_def->alias);
@@ -1539,7 +1559,7 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
         s -= 2;
         stack_item_count += 2;
 
-        if (s->type == STACK_ITEM_TYPE_STRING) {
+        if (s->type == STACK_ITEM_TYPE_LABEL) {
           int cannot;
 
           if (_process_string(s, &cannot) == FAILED)
@@ -1549,7 +1569,7 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
         s++;
         stack_item_count--;
 
-        if (s->type == STACK_ITEM_TYPE_STRING) {
+        if (s->type == STACK_ITEM_TYPE_LABEL) {
           int cannot;
 
           if (_process_string(s, &cannot) == FAILED)
@@ -1568,7 +1588,7 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
     }
 
     if (process_single == YES) {
-      if (s->type == STACK_ITEM_TYPE_STRING) {
+      if (s->type == STACK_ITEM_TYPE_LABEL) {
         if (_process_string(s, &cannot_resolve) == FAILED)
           return FAILED;
       }
@@ -1616,7 +1636,7 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
     }
 
     if (process_single == YES) {
-      if (st->type == STACK_ITEM_TYPE_STRING || st->type == STACK_ITEM_TYPE_STACK || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
+      if (st->type == STACK_ITEM_TYPE_STRING || st->type == STACK_ITEM_TYPE_LABEL || st->type == STACK_ITEM_TYPE_STACK || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
         return FAILED;
       if (g_input_parse_if == NO && st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_NOT)
         return FAILED;
@@ -1662,7 +1682,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
       sp[t] = NULL;
       t++;
     }
-    else if (s->type == STACK_ITEM_TYPE_STRING) {
+    else if (s->type == STACK_ITEM_TYPE_LABEL || s->type == STACK_ITEM_TYPE_STRING) {
       sp[t] = s->string;
       v[t] = 0;
       t++;
@@ -2007,7 +2027,7 @@ int stack_create_label_stack(char *label) {
      those that are referenced to be STACK_POSITION_CODE stacks */
   g_stacks_tmp->position = STACK_POSITION_DEFINITION;
 
-  g_stacks_tmp->stack[0].type = STACK_ITEM_TYPE_STRING;
+  g_stacks_tmp->stack[0].type = STACK_ITEM_TYPE_LABEL;
   g_stacks_tmp->stack[0].sign = SI_SIGN_POSITIVE;
   strcpy(g_stacks_tmp->stack[0].string, label);
 

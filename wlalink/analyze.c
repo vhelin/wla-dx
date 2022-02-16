@@ -719,11 +719,15 @@ int collect_dlr(void) {
           s->stack[n].bank = -1;
           s->stack[n].type = *(t++);
           s->stack[n].sign = *(t++);
-          if (s->stack[n].type == STACK_ITEM_TYPE_STRING) {
+          if (s->stack[n].type == STACK_ITEM_TYPE_LABEL) {
             for (q = 0; *t != 0; t++, q++)
               s->stack[n].string[q] = *t;
             s->stack[n].string[q] = 0;
             t++;
+          }
+          else if (s->stack[n].type == STACK_ITEM_TYPE_STRING) {
+            fprintf(stderr, "COLLECT_DLR: String \"%s\" inside a pending calculation doesn't make any sense. Please fix the calculation.\n", t);
+            return FAILED;
           }
           else {
             READ_DOU;
@@ -970,11 +974,15 @@ int collect_dlr(void) {
           s->stack[n].bank = -1;
           s->stack[n].type = *(t++);
           s->stack[n].sign = *(t++);
-          if (s->stack[n].type == STACK_ITEM_TYPE_STRING) {
+          if (s->stack[n].type == STACK_ITEM_TYPE_LABEL) {
             for (q = 0; *t != 0; t++, q++)
               s->stack[n].string[q] = *t;
             s->stack[n].string[q] = 0;
             t++;
+          }
+          else if (s->stack[n].type == STACK_ITEM_TYPE_STRING) {
+            fprintf(stderr, "COLLECT_DLR: String \"%s\" inside a pending calculation doesn't make any sense. Please fix the calculation.\n", t);
+            return FAILED;
           }
           else {
             READ_DOU;
