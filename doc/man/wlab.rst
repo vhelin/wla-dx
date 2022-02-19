@@ -33,7 +33,7 @@ Choose one:
 DESCRIPTION
 -----------
 
-:manpage:`wla(1)` converts binary files to WLA's byte definition strings and
+:manpage:`wlab(1)` converts binary files to WLA's byte definition strings and
 print it to the standard output.
 
 

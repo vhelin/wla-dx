@@ -25,14 +25,15 @@ while arch < archcount
     cd $tests[$t]
 
     # Run test
-    rm *.o *.sym *.rom *.prg
+	make clean
     make -f makefile
-    rm *.o *.sym *.rom *.prg
 
     if -f testsfile
       byte_tester testsfile
     endif
 
+	make clean
+	
     t++
     cd ..
   endwhile

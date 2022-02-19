@@ -42,7 +42,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.1a (9.2.2022)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.1 (19.2.2022)";
 char g_wla_version[] = "10.1";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
   }
   
   if (g_output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
-    char title[] = "WLA " ARCH_STR " Macro Assembler v10.1a";
+    char title[] = "WLA " ARCH_STR " Macro Assembler v10.1";
     int length, left, right;
 
     length = (int)strlen(title);
@@ -201,6 +201,9 @@ int main(int argc, char *argv[]) {
       printf(" ");
     printf("---\n");
     printf("----------------------------------------------------------------------\n");
+#ifdef AMIGACPU
+    printf("                         Compiled for " AMIGACPU "\n");
+#endif
     printf("                Programmed by Ville Helin in 1998-2008\n");
     printf("        In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
 

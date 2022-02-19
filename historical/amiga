@@ -111,6 +111,12 @@ smake
 copy wla to binaries/wla-gb.020
 
 copy makefiles/smake.gb to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-gb.040
+
+copy makefiles/smake.gb to smakefile
 copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
@@ -125,6 +131,12 @@ copy makefiles/scoptions.020 to scoptions
 smake clean
 smake
 copy wla to binaries/wla-superfx.020
+
+copy makefiles/smake.superfx to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-superfx.040
 
 copy makefiles/smake.superfx to smakefile
 copy makefiles/scoptions.000 to scoptions
@@ -143,6 +155,12 @@ smake
 copy wla to binaries/wla-z80.020
 
 copy makefiles/smake.z80 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-z80.040
+
+copy makefiles/smake.z80 to smakefile
 copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
@@ -157,6 +175,12 @@ copy makefiles/scoptions.020 to scoptions
 smake clean
 smake
 copy wla to binaries/wla-6502.020
+
+copy makefiles/smake.6502 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-6502.040
 
 copy makefiles/smake.6502 to smakefile
 copy makefiles/scoptions.000 to scoptions
@@ -175,6 +199,12 @@ smake
 copy wla to binaries/wla-6510.020
 
 copy makefiles/smake.6510 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-6510.040
+
+copy makefiles/smake.6510 to smakefile
 copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
@@ -189,6 +219,12 @@ copy makefiles/scoptions.020 to scoptions
 smake clean
 smake
 copy wla to binaries/wla-65c02.020
+
+copy makefiles/smake.65c02 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-65c02.040
 
 copy makefiles/smake.65c02 to smakefile
 copy makefiles/scoptions.000 to scoptions
@@ -207,6 +243,12 @@ smake
 copy wla to binaries/wla-65ce02.020
 
 copy makefiles/smake.65ce02 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-65ce02.040
+
+copy makefiles/smake.65ce02 to smakefile
 copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
@@ -221,6 +263,12 @@ copy makefiles/scoptions.020 to scoptions
 smake clean
 smake
 copy wla to binaries/wla-6800.020
+
+copy makefiles/smake.6800 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-6800.040
 
 copy makefiles/smake.6800 to smakefile
 copy makefiles/scoptions.000 to scoptions
@@ -239,6 +287,12 @@ smake
 copy wla to binaries/wla-6801.020
 
 copy makefiles/smake.6801 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-6801.040
+
+copy makefiles/smake.6801 to smakefile
 copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
@@ -253,6 +307,12 @@ copy makefiles/scoptions.020 to scoptions
 smake clean
 smake
 copy wla to binaries/wla-6809.020
+
+copy makefiles/smake.6809 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-6809.040
 
 copy makefiles/smake.6809 to smakefile
 copy makefiles/scoptions.000 to scoptions
@@ -271,6 +331,12 @@ smake
 copy wla to binaries/wla-8008.020
 
 copy makefiles/smake.8008 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-8008.040
+
+copy makefiles/smake.8008 to smakefile
 copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
@@ -285,6 +351,12 @@ copy makefiles/scoptions.020 to scoptions
 smake clean
 smake
 copy wla to binaries/wla-8080.020
+
+copy makefiles/smake.8080 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-8080.040
 
 copy makefiles/smake.8080 to smakefile
 copy makefiles/scoptions.000 to scoptions
@@ -303,6 +375,12 @@ smake
 copy wla to binaries/wla-65816.020
 
 copy makefiles/smake.65816 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-65816.040
+
+copy makefiles/smake.65816 to smakefile
 copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
@@ -317,6 +395,12 @@ copy makefiles/scoptions.020 to scoptions
 smake clean
 smake
 copy wla to binaries/wla-spc700.020
+
+copy makefiles/smake.spc700 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-spc700.040
 
 copy makefiles/smake.spc700 to smakefile
 copy makefiles/scoptions.000 to scoptions
@@ -335,6 +419,12 @@ smake
 copy wla to binaries/wla-huc6280.020
 
 copy makefiles/smake.huc6280 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/wla-huc6280.040
+
+copy makefiles/smake.huc6280 to smakefile
 copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
@@ -345,9 +435,26 @@ copy wla to binaries/wla-huc6280.000
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 cd wlalink
+
+copy /makefiles/scoptions.020 to scoptions
 smake clean
 smake
-copy wlalink to /binaries/
+copy wlalink to /binaries/wlalink.020
+
+copy /makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wlalink to /binaries/wlalink.040
+
+copy /makefiles/scoptions.000 to scoptions
+smake clean
+smake
+copy wlalink to /binaries/wlalink.000
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; CLEAN
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 smake clean
 cd /
 smake clean

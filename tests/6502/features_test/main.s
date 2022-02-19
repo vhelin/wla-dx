@@ -210,5 +210,12 @@ boot_rst_\1_?1:
         .DB 0b00000000000000000000000000000011 - 0b00000000000000000000000000000001 ; @BT 02
         .DB "<18"               ; @BT END
         
+        .bank 1 slot 0
+        .org 0
 
-        
+this_is_the_longest_label_for_a_while:
+        .db "19>"               ; @BT TEST-19 19 START
+this_is_a_long_label:
+        .dw __label__           ; @BT 03 80
+        .dw __label__ + $2000   ; @BT 03 A0
+        .db "<19"               ; @BT END

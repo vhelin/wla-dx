@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char g_version_string[] = "$VER: wlalink 5.16a (14.2.2022)";
+char g_version_string[] = "$VER: wlalink 5.16 (19.2.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -273,7 +273,7 @@ int main(int argc, char *argv[]) {
     i = FAILED;
 
   if (i == FAILED) {
-    char title[] = "WLALINK - WLA DX Macro Assembler Linker v5.16a";
+    char title[] = "WLALINK - WLA DX Macro Assembler Linker v5.16";
     int length, left, right;
 
     length = (int)strlen(title);
@@ -289,6 +289,9 @@ int main(int argc, char *argv[]) {
       printf(" ");
     printf("---\n");
     printf("----------------------------------------------------------------------\n");
+#ifdef AMIGACPU
+    printf("                         Compiled for " AMIGACPU "\n");
+#endif
     printf("                Programmed by Ville Helin in 1998-2008\n");
     printf("        In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
 

@@ -230,7 +230,11 @@ int main(int argc, char *argv[]) {
   
   if (argc < 2 || argc > 3 || argv == NULL) {
     fprintf(stderr, "\n");
+#ifdef AMIGACPU
+    fprintf(stderr, "Byte tester 2.0 (" AMIGACPU ")\n");
+#else
     fprintf(stderr, "Byte tester 2.0\n");
+#endif
     fprintf(stderr, "\n");
     fprintf(stderr, "USAGE: %s [-s] <TESTS FILE / SOURCE FILE>\n", argv[0]);
     fprintf(stderr, "\n");
