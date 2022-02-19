@@ -812,8 +812,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         return FAILED;
     }
     else {
-      /* it must be a string! */
-      int is_string = YES, is_already_processed_function = NO;
+      /* it must be a label! */
+      int is_label = YES, is_already_processed_function = NO;
 
       /* we'll break if the previous item in the stack was a value or a string / label */
       if (_break_before_value_or_string(q, &si[0]) == SUCCEEDED)
@@ -855,7 +855,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           if (parse_function_asc(in, &d, &parsed_chars) == FAILED)
             return FAILED;
           in += parsed_chars;
-          is_string = NO;
+          is_label = NO;
           break;
         }
         if (k == 7 && strcaselesscmpn(si[q].string, "defined(", 8) == 0) {
@@ -864,7 +864,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           if (parse_function_defined(in, &d, &parsed_chars) == FAILED)
             return FAILED;
           in += parsed_chars;
-          is_string = NO;
+          is_label = NO;
           break;
         }
         if (k == 6 && strcaselesscmpn(si[q].string, "exists(", 7) == 0) {
@@ -873,7 +873,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           if (parse_function_exists(in, &d, &parsed_chars) == FAILED)
             return FAILED;
           in += parsed_chars;
-          is_string = NO;          
+          is_label = NO;          
           break;
         }
         if (k == 6 && strcaselesscmpn(si[q].string, "lobyte(", 7) == 0) {
@@ -922,9 +922,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
       if (is_already_processed_function == YES) {
       }
-      else if (is_string == YES) {
-        process_special_labels(si[q].string);
+      else if (is_label == YES) {
         si[q].string[k] = 0;
+        process_special_labels(si[q].string);
         si[q].type = STACK_ITEM_TYPE_LABEL;
         got_label = YES;
 
