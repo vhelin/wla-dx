@@ -1,0 +1,4 @@
+[objects]
+sms.o
+[ramsections]
+bank 1 slot 4 size 4094 "Variables_1"

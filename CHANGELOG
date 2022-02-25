@@ -3,6 +3,8 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------
 
+v10.2 (26-Feb-2022) [ALL] Added SIZE to .RAMSECTION.
+
 v10.1 (19-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                       given in any order, only the first argument must be the
                       section's name.
@@ -1336,6 +1338,8 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
+
+v5.17 (26-Feb-2011) Added SIZE to [sections] and [ramsections].
 
 v5.16 (19-Feb-2021) Added support for WINDOW and BITWINDOW in .SECTION and
                       .RAMSECTION.

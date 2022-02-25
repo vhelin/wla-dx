@@ -209,6 +209,7 @@ struct section_fix {
   int  offset;
   int  priority;
   int  priority_defined;
+  int  size;
   int  is_ramsection;
   int  bitwindow;
   int  window_start;

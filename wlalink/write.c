@@ -1101,6 +1101,27 @@ int fix_all_sections(void) {
         }
         if (g_sec_fix_tmp->org >= 0)
           s->address = g_sec_fix_tmp->org;
+
+        if (g_sec_fix_tmp->size >= 0) {
+          if (g_sec_fix_tmp->size <= s->size)
+            s->size = g_sec_fix_tmp->size;
+          else {
+            /* the new size is larger than the old one -> enlarge the buffer */
+            int i;
+
+            s->data = realloc(s->data, g_sec_fix_tmp->size);
+            if (s->data == NULL) {
+              fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: Out of memory error while enlarging section \"%s\".", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
+              return FAILED;
+            }
+
+            /* zero the new data */
+            for (i = s->size; i < g_sec_fix_tmp->size; i++)
+              s->data[i] = 0;
+
+            s->size = g_sec_fix_tmp->size;
+          }
+        }
         
         break;
       }

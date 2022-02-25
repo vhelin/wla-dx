@@ -33,7 +33,7 @@ int load_files(char *argv[], int argc) {
 
   int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n, alignment, offset;
   int org_defined, org, orga_defined, orga, status_defined, status, priority_defined, priority, appendto_defined, keep_defined;
-  int alignment_defined, offset_defined, after_defined, bitwindow_defined, window_defined;
+  int alignment_defined, offset_defined, after_defined, bitwindow_defined, window_defined, size, size_defined;
   int bitwindow, window_start, window_end;
   char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32], appendto_name[MAX_NAME_LENGTH + 1], after_name[MAX_NAME_LENGTH + 1];
   struct label *l;
@@ -121,6 +121,8 @@ int load_files(char *argv[], int argc) {
     offset_defined = NO;
     bitwindow_defined = NO;
     window_defined = NO;
+    size_defined = NO;
+    size = 0;
     bank = 0;
     slot = 0;
     base = 0;
@@ -272,6 +274,21 @@ int load_files(char *argv[], int argc) {
 
           if (get_next_number(&tmp[x], &org, &x) == FAILED) {
             fprintf(stderr, "%s:%d: LOAD_FILES: Error in ORG number.\n", argv[argc - 2], line);
+            fclose(fop);
+            return FAILED;
+          }
+        }
+        else if (strcaselesscmp(token, "size") == 0) {
+          if (size_defined == YES) {
+            fprintf(stderr, "%s:%d: LOAD_FILES: SIZE defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            fclose(fop);
+            return FAILED;
+          }
+
+          size_defined = YES;
+
+          if (get_next_number(&tmp[x], &size, &x) == FAILED || size < 0) {
+            fprintf(stderr, "%s:%d: LOAD_FILES: Error in SIZE number.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
@@ -526,7 +543,12 @@ int load_files(char *argv[], int argc) {
         g_sec_fix_tmp->offset = offset;
       else
         g_sec_fix_tmp->offset = -1;
-      
+
+      if (size_defined == YES)
+        g_sec_fix_tmp->size = size;
+      else
+        g_sec_fix_tmp->size = -1;
+
       if (appendto_defined == YES || after_defined == YES) {
         g_after_tmp = calloc(1, sizeof(struct after_section));
         if (g_after_tmp == NULL) {

@@ -4487,6 +4487,24 @@ int directive_ramsection(void) {
 
       g_sec_tmp->slot = g_parsed_int;
     }
+    /* the size of the section? */
+    else if (compare_next_token("SIZE") == SUCCEEDED) {
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      if (input_number() != SUCCEEDED) {
+        print_error(ERROR_DIR, "Could not parse the SIZE.\n");
+        return FAILED;
+      }
+
+      if (g_sec_tmp->maxsize_status == ON && g_sec_tmp->maxsize != g_parsed_int) {
+        print_error(ERROR_DIR, "The SIZE of the section has already been defined.\n");
+        return FAILED;
+      }
+
+      g_sec_tmp->maxsize_status = ON;
+      g_sec_tmp->maxsize = g_parsed_int;
+    }
     else if (compare_next_token("ORGA") == SUCCEEDED) {
       if (g_output_format == OUTPUT_LIBRARY) {
         print_error(ERROR_DIR, ".RAMSECTION cannot take ORGA when inside a library.\n");
