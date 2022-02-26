@@ -1103,15 +1103,21 @@ int fix_all_sections(void) {
           s->address = g_sec_fix_tmp->org;
 
         if (g_sec_fix_tmp->size >= 0) {
-          if (g_sec_fix_tmp->size <= s->size)
-            s->size = g_sec_fix_tmp->size;
+          if (g_sec_fix_tmp->size == s->size) {
+            /* do nothing */
+          }
+          else if (g_sec_fix_tmp->size < s->size) {
+            /* we cannot shrink the section */
+            fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: Shrinking a section (\"%s\" in this case) is not allowed.\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
+            return FAILED;
+          }
           else {
             /* the new size is larger than the old one -> enlarge the buffer */
             int i;
 
             s->data = realloc(s->data, g_sec_fix_tmp->size);
             if (s->data == NULL) {
-              fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: Out of memory error while enlarging section \"%s\".", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
+              fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: Out of memory error while enlarging section \"%s\".\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
               return FAILED;
             }
 
