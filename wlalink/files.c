@@ -21,7 +21,7 @@ extern struct object_file *g_obj_first, *g_obj_last, *g_obj_tmp;
 extern struct label *g_labels_first, *g_labels_last;
 extern unsigned char *g_file_header, *g_file_footer;
 extern char g_ext_libdir[MAX_NAME_LENGTH + 1];
-extern int g_file_header_size, g_file_footer_size, g_use_libdir;
+extern int g_file_header_size, g_file_footer_size, g_use_libdir, g_paths_in_linkfile_are_relative_to_linkfile;
 extern struct after_section *g_after_sections, *g_after_tmp;
 extern struct section_fix *g_sec_fix_first, *g_sec_fix_tmp;
 
@@ -35,10 +35,20 @@ int load_files(char *argv[], int argc) {
   int org_defined, org, orga_defined, orga, status_defined, status, priority_defined, priority, appendto_defined, keep_defined;
   int alignment_defined, offset_defined, after_defined, bitwindow_defined, window_defined, size, size_defined;
   int bitwindow, window_start, window_end;
-  char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32], appendto_name[MAX_NAME_LENGTH + 1], after_name[MAX_NAME_LENGTH + 1];
+  char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32], appendto_name[MAX_NAME_LENGTH + 1], after_name[MAX_NAME_LENGTH + 1], linkfile_path[MAX_NAME_LENGTH + 1];
   struct label *l;
   FILE *fop, *f;
 
+  if (g_paths_in_linkfile_are_relative_to_linkfile == YES) {
+    /* extract the path from linkfile */
+    snprintf(linkfile_path, sizeof(linkfile_path), "%s", argv[argc - 2]);
+    for (i = strlen(linkfile_path) - 1; i >= 0; i--) {
+      if (linkfile_path[i] == '\\' || linkfile_path[i] == '/')
+        break;
+    }
+    linkfile_path[i + 1] = 0;
+  }
+  
   fop = fopen(argv[argc - 2], "rb");
   if (fop == NULL) {
     fprintf(stderr, "LOAD_FILES: Could not open file \"%s\".\n", argv[argc - 2]);
@@ -663,18 +673,30 @@ int load_files(char *argv[], int argc) {
       }
       
       if (g_use_libdir == YES) {
-        f = fopen(token, "rb");
+        if (g_paths_in_linkfile_are_relative_to_linkfile == YES) {
+          snprintf(tmp_token, sizeof(tmp_token), "%s%s", linkfile_path, token);
+          f = fopen(tmp_token, "rb");
+        }
+        else
+          f = fopen(token, "rb");
       
         /* use the current working directory if the library isn't found in the ext_libdir directory */
         if (f == NULL)
           snprintf(tmp_token, sizeof(tmp_token), "%s%s", g_ext_libdir, token);
         else {
-          snprintf(tmp_token, sizeof(tmp_token), "%s", token);
+          if (g_paths_in_linkfile_are_relative_to_linkfile == YES)
+            snprintf(tmp_token, sizeof(tmp_token), "%s%s", linkfile_path, token);
+          else
+            snprintf(tmp_token, sizeof(tmp_token), "%s", token);
           fclose(f);
         }
       }
-      else
-        snprintf(tmp_token, sizeof(tmp_token), "%s", token);
+      else {
+        if (g_paths_in_linkfile_are_relative_to_linkfile == YES)
+          snprintf(tmp_token, sizeof(tmp_token), "%s%s", linkfile_path, token);
+        else
+          snprintf(tmp_token, sizeof(tmp_token), "%s", token);
+      }
 
       if (load_file(tmp_token, bank, slot, slot_name, YES, base, base_defined) == FAILED) {
         fclose(fop);
@@ -690,10 +712,18 @@ int load_files(char *argv[], int argc) {
       continue;
     }
     /* object file loading */
-    else if (load_file(token, 0, 0, NULL, NO, 0, OFF) == FAILED) {
-      fclose(fop);
-      return FAILED;
+    else {
+      if (g_paths_in_linkfile_are_relative_to_linkfile == YES)
+        snprintf(tmp_token, sizeof(tmp_token), "%s%s", linkfile_path, token);
+      else
+        snprintf(tmp_token, sizeof(tmp_token), "%s", token);
+      
+      if (load_file(tmp_token, 0, 0, NULL, NO, 0, OFF) == FAILED) {
+        fclose(fop);
+        return FAILED;
+      }
     }
+    
     if (get_next_token(&tmp[x], token, &x) == FAILED)
       continue;
 

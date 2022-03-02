@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char g_version_string[] = "$VER: wlalink 5.17a (26.2.2022)";
+char g_version_string[] = "$VER: wlalink 5.17a (2.3.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -65,7 +65,7 @@ int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode = 0;
 int g_smc_status = 0, g_snes_sramsize = 0;
 int g_output_type = OUTPUT_TYPE_UNDEFINED, g_sort_sections = YES;
 int g_num_sorted_anonymous_labels = 0;
-int g_emptyfill = 0;
+int g_emptyfill = 0, g_paths_in_linkfile_are_relative_to_linkfile = NO;
 
 static int g_create_sizeof_definitions = YES, g_listfile_data = NO;
 static unsigned char g_output_addr_to_line = OFF;
@@ -318,6 +318,7 @@ int main(int argc, char *argv[]) {
     printf("-nS Don't sort the sections\n");
     printf("-i  Write list files\n");
     printf("-r  ROM file output (default)\n");
+    printf("-R  Make file paths in link file relative to its location\n");
     printf("-s  Write also a NO$GMB/NO$SNES symbol file\n");
     printf("-S  Write also a WLA symbol file\n");
     printf("-A  Add address-to-line mapping data to WLA symbol file\n");
@@ -1161,6 +1162,12 @@ int parse_flags(char **flags, int flagc) {
         return FAILED;
       output_mode_defined++;
       g_output_mode = OUTPUT_ROM;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-R")) {
+      if (g_paths_in_linkfile_are_relative_to_linkfile == YES)
+        return FAILED;
+      g_paths_in_linkfile_are_relative_to_linkfile = YES;
       continue;
     }
     else if (!strcmp(flags[count], "-t")) {

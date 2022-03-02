@@ -35,7 +35,7 @@ extern unsigned char *g_file_header, *g_file_footer;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024], **g_ram_slots[256];
 extern char g_load_address_label[MAX_NAME_LENGTH + 1];
 extern char g_program_address_start_label[MAX_NAME_LENGTH + 1], g_program_address_end_label[MAX_NAME_LENGTH + 1];
-extern int g_load_address, g_load_address_type;
+extern int g_load_address, g_load_address_type, g_emptyfill;
 extern int g_romsize, g_rombanks, g_banksize, g_verbose_mode, g_section_overwrite;
 extern int g_pc_bank, g_pc_full, g_pc_slot, g_pc_slot_max, g_snes_rom_mode;
 extern int g_file_header_size, g_file_footer_size, *g_bankaddress, *g_banksizes;
@@ -1121,9 +1121,9 @@ int fix_all_sections(void) {
               return FAILED;
             }
 
-            /* zero the new data */
+            /* emptyfill the new data */
             for (i = s->size; i < g_sec_fix_tmp->size; i++)
-              s->data[i] = 0;
+              s->data[i] = g_emptyfill;
 
             s->size = g_sec_fix_tmp->size;
           }

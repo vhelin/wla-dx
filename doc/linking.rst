@@ -90,6 +90,10 @@ to link together. Here's the format:
 If flag ``v`` is used, WLALINK displays information about ROM file after a
 succesful linking.
 
+If flag ``R`` is used the file paths inside the link file are relative
+to the directory where the link file is, not relative to current working
+directory.
+
 If flag ``nS`` is used, WLALINK doesn't sort the sections at all, so they
 are placed in the output in their order of appearance.
 

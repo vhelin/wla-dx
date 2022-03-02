@@ -1339,7 +1339,9 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.17 (26-Feb-2011) Added SIZE to [sections] and [ramsections].
+v5.17 (02-Mar-2011) Added SIZE to [sections] and [ramsections].
+                    Added -R (file paths inside link file are relative to
+                      linkfile's location).
 
 v5.16 (19-Feb-2021) Added support for WINDOW and BITWINDOW in .SECTION and
                       .RAMSECTION.
