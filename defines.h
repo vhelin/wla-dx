@@ -505,8 +505,8 @@ struct optcode {
 #define DEFINITION_TYPE_ADDRESS_LABEL 3
 
 struct definition {
-  char   alias[MAX_NAME_LENGTH + 1];
-  char   string[MAX_NAME_LENGTH + 1];
+  char   *alias;
+  char   *string;
   double value;
   int    type;
   int    size;

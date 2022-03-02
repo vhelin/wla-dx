@@ -1392,8 +1392,9 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
     return FAILED;
   }
 
-  strcpy(d->alias, name);
+  d->alias = string_duplicate(name);
   d->type = type;
+  d->string = NULL;
 
   if ((err = hashmap_put(g_defines_map, d->alias, d)) != MAP_OK) {
     fprintf(stderr, "ADD_A_NEW_DEFINITION: Hashmap error %d\n", err);
@@ -1405,8 +1406,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
   else if (type == DEFINITION_TYPE_STACK)
     d->value = value;
   else if (type == DEFINITION_TYPE_STRING || type == DEFINITION_TYPE_ADDRESS_LABEL) {
-    memcpy(d->string, string, size);
-    d->string[size] = 0;
+    d->string = string_duplicate(string);
     d->size = size;
   }
 

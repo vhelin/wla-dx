@@ -559,6 +559,13 @@ void procedures_at_exit(void) {
   }
 
   if (g_defines_map != NULL) {
+    struct definition *e;
+    e = hashmap_begin_iteration(g_defines_map);
+    while (e != NULL) {
+      free(e->alias);
+      free(e->string);
+      e = hashmap_next_iteration(g_defines_map);
+    }
     hashmap_free_all_elements(g_defines_map);
     hashmap_free(g_defines_map);
   }
