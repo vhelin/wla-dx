@@ -190,16 +190,22 @@ int strcaselesscmp(char *s1, char *s2) {
   return 0;
 }
 
-char * string_duplicate(char * p) {
+char * string_duplicate_size(char * p, int size) {
   char* result;
   if (p == NULL) {
     return NULL;
   }
-  result = calloc(sizeof(char), strlen(p) + 1);
+  result = calloc(sizeof(char), size + 1);
   if (result != NULL) {
-    strcpy(result, p);
+    strncpy(result, p, size);
+    result[size] = '\0';
   }
   return result;
+}
+
+char * string_duplicate(char * p) {
+  // Duplicate string with its existing length
+  return string_duplicate_size(p, (int)strlen(p));
 }
 
 
@@ -1335,14 +1341,15 @@ int redefine(char *name, double value, char *string, int type, int size) {
     return add_a_new_definition(name, value, string, type, size);
 
   d->type = type;
+  free(d->string);
+  d->string = NULL;
 
   if (type == DEFINITION_TYPE_VALUE)
     d->value = value;
   else if (type == DEFINITION_TYPE_STACK)
     d->value = value;
   else if (type == DEFINITION_TYPE_STRING || type == DEFINITION_TYPE_ADDRESS_LABEL) {
-    memcpy(d->string, string, size);
-    d->string[size] = 0;
+    d->string = string_duplicate_size(string, size);
     d->size = size;
   }
 
@@ -1406,7 +1413,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
   else if (type == DEFINITION_TYPE_STACK)
     d->value = value;
   else if (type == DEFINITION_TYPE_STRING || type == DEFINITION_TYPE_ADDRESS_LABEL) {
-    d->string = string_duplicate(string);
+    d->string = string_duplicate_size(string, size);
     d->size = size;
   }
 
