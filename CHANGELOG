@@ -3,7 +3,9 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------
 
-v10.2 (26-Feb-2022) [ALL] Added SIZE to .RAMSECTION.
+v10.2 (02-Mar-2022) [ALL] Added SIZE to .RAMSECTION.
+                    [ALL] WLA's summary is now printed to stdout instead of
+                      stderr.
 
 v10.1 (19-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                       given in any order, only the first argument must be the
@@ -1342,6 +1344,8 @@ v1.0 (10-Jul-2000) The first public release.
 v5.17 (02-Mar-2011) Added SIZE to [sections] and [ramsections].
                     Added -R (file paths inside link file are relative to
                       linkfile's location).
+                    WLALINK's summary is now printed to stdout instead of
+                       stderr.
 
 v5.16 (19-Feb-2021) Added support for WINDOW and BITWINDOW in .SECTION and
                       .RAMSECTION.

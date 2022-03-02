@@ -2487,9 +2487,9 @@ int show_project_information_object(void) {
     s = s->next;
   }
 
-  fprintf(stderr, "-------------------------------------------------\n");
-  fprintf(stderr, "---                   ROM                     ---\n");
-  fprintf(stderr, "-------------------------------------------------\n");
+  printf("-------------------------------------------------\n");
+  printf("---                   ROM                     ---\n");
+  printf("-------------------------------------------------\n");
 
   for (i = 0; i < g_rombanks; i++) {  
     int bank_address = g_banksize * i, j, used_rom = 0, found_block, block_start, used_sections = 0;
@@ -2522,8 +2522,8 @@ int show_project_information_object(void) {
       continue;
 
     f = ((float)used_rom)/g_banksize * 100.0f;
-    fprintf(stderr, "ROM bank %d (%d bytes (%.2f%%) used)\n", i, used_rom, f);
-    fprintf(stderr, "  - Outside .SECTIONs (%d bytes)\n", used_rom - used_sections);
+    printf("ROM bank %d (%d bytes (%.2f%%) used)\n", i, used_rom, f);
+    printf("  - Outside .SECTIONs (%d bytes)\n", used_rom - used_sections);
 
     found_block = NO;
     block_start = 0;
@@ -2535,20 +2535,20 @@ int show_project_information_object(void) {
         block_start = j;
       }
       else if (g_rom_banks_usage_table[bank_address + j] == 0 && found_block == YES) {
-        fprintf(stderr, "    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j - 1, j - block_start);
+        printf("    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j - 1, j - block_start);
         printed_something = YES;
         found_block = NO;
       }
       else if (found_block == YES && j == g_banksize - 1) {
-        fprintf(stderr, "    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j - 1, j - block_start);
+        printf("    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j - 1, j - block_start);
         printed_something = YES;
       }
     }
 
     if (printed_something == NO)
-      fprintf(stderr, "    - No data outside .SECTIONs.\n");
+      printf("    - No data outside .SECTIONs.\n");
     
-    fprintf(stderr, "  - Sections (%d bytes)\n", used_sections);
+    printf("  - Sections (%d bytes)\n", used_sections);
 
     printed_something = NO;
     
@@ -2560,7 +2560,7 @@ int show_project_information_object(void) {
         if (status == SECTION_STATUS_FREE || status == SECTION_STATUS_FORCE || status == SECTION_STATUS_OVERWRITE ||
             status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE || status == SECTION_STATUS_SUPERFREE ||
             status == SECTION_STATUS_SEMISUBFREE) {
-          fprintf(stderr, "    - .SECTION \"%s\" (%d bytes).\n", s->name, s->size);
+          printf("    - .SECTION \"%s\" (%d bytes).\n", s->name, s->size);
           printed_something = YES;
         }
       }
@@ -2569,15 +2569,15 @@ int show_project_information_object(void) {
     }
 
     if (printed_something == NO)
-      fprintf(stderr, "    - No .SECTIONs found.\n");
+      printf("    - No .SECTIONs found.\n");
   }
 
-  fprintf(stderr, "-------------------------------------------------\n");
-  fprintf(stderr, "---                   RAM                     ---\n");
-  fprintf(stderr, "-------------------------------------------------\n");
+  printf("-------------------------------------------------\n");
+  printf("---                   RAM                     ---\n");
+  printf("-------------------------------------------------\n");
 
   if (total_used_ram == 0)
-    fprintf(stderr, "No .RAMSECTIONs were found, no information about RAM.\n");
+    printf("No .RAMSECTIONs were found, no information about RAM.\n");
   else {
     char slot_name[MAX_NAME_LENGTH + 1];
     int slot, bank;
@@ -2609,7 +2609,7 @@ int show_project_information_object(void) {
           snprintf(slot_name, sizeof(slot_name), "%d", slot);      
 
         f = ((float)ram_used)/g_slots[slot].size * 100.0f;
-        fprintf(stderr, "RAM slot %s bank %d (%d bytes (%.2f%%) used)\n", slot_name, bank, ram_used, f);
+        printf("RAM slot %s bank %d (%d bytes (%.2f%%) used)\n", slot_name, bank, ram_used, f);
 
         s = g_sections_first;
         while (s != NULL) {
@@ -2618,7 +2618,7 @@ int show_project_information_object(void) {
 
             if (status == SECTION_STATUS_RAM_FREE || status == SECTION_STATUS_RAM_FORCE ||
                 status == SECTION_STATUS_RAM_SEMIFREE || status == SECTION_STATUS_RAM_SEMISUBFREE)
-              fprintf(stderr, "  - .RAMSECTION \"%s\" (%d bytes).\n", s->name, s->size);
+              printf("  - .RAMSECTION \"%s\" (%d bytes).\n", s->name, s->size);
           }
           
           s = s->next;
@@ -2627,17 +2627,17 @@ int show_project_information_object(void) {
     }
   }
 
-  fprintf(stderr, "-------------------------------------------------\n");
-  fprintf(stderr, "---                 SUMMARY                   ---\n");
-  fprintf(stderr, "-------------------------------------------------\n");
+  printf("-------------------------------------------------\n");
+  printf("---                 SUMMARY                   ---\n");
+  printf("-------------------------------------------------\n");
 
   f = ((float)total_used_rom)/(g_rombanks * g_banksize) * 100.0f;
-  fprintf(stderr, "ROM: %d bytes (%.2f%%) used.\n", total_used_rom, f);
+  printf("ROM: %d bytes (%.2f%%) used.\n", total_used_rom, f);
   
   if (total_used_ram == 0)
-    fprintf(stderr, "RAM: No .RAMSECTIONs were found, no information about RAM.\n");
+    printf("RAM: No .RAMSECTIONs were found, no information about RAM.\n");
   else
-    fprintf(stderr, "RAM: %d bytes used.\n", total_used_ram);
+    printf("RAM: %d bytes used.\n", total_used_ram);
 
   fflush(stderr);
   fflush(stdout);
@@ -2646,15 +2646,15 @@ int show_project_information_object(void) {
   g_sec_tmp = g_sections_first;
   while (g_sec_tmp != NULL) {
     if (g_sec_tmp->status == SECTION_STATUS_HEADER) {
-      fprintf(stderr, "Bank %d header section size %d.\n", g_sec_tmp->bank, g_sec_tmp->size);
+      printf("Bank %d header section size %d.\n", g_sec_tmp->bank, g_sec_tmp->size);
       ind += g_sec_tmp->size;
     }
     g_sec_tmp = g_sec_tmp->next;
   }
 
   if (ind != 0) {
-    fprintf(stderr, "Total %d additional bytes (from headers and footers).\n", ind);
-    fprintf(stderr, "Total size %d bytes.\n", ind + g_max_address);
+    printf("Total %d additional bytes (from headers and footers).\n", ind);
+    printf("Total size %d bytes.\n", ind + g_max_address);
   }
   */
   
@@ -2686,9 +2686,9 @@ int show_project_information_library(void) {
     s = s->next;
   }
 
-  fprintf(stderr, "-------------------------------------------------\n");
-  fprintf(stderr, "---                   ROM                     ---\n");
-  fprintf(stderr, "-------------------------------------------------\n");
+  printf("-------------------------------------------------\n");
+  printf("---                   ROM                     ---\n");
+  printf("-------------------------------------------------\n");
 
   s = g_sections_first;
   while (s != NULL) {
@@ -2697,17 +2697,17 @@ int show_project_information_library(void) {
     if (status == SECTION_STATUS_FREE || status == SECTION_STATUS_FORCE || status == SECTION_STATUS_OVERWRITE ||
         status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE || status == SECTION_STATUS_SUPERFREE ||
         status == SECTION_STATUS_SEMISUBFREE)
-      fprintf(stderr, ".SECTION \"%s\" (%d bytes).\n", s->name, s->size);
+      printf(".SECTION \"%s\" (%d bytes).\n", s->name, s->size);
 
     s = s->next;
   }
 
-  fprintf(stderr, "-------------------------------------------------\n");
-  fprintf(stderr, "---                   RAM                     ---\n");
-  fprintf(stderr, "-------------------------------------------------\n");
+  printf("-------------------------------------------------\n");
+  printf("---                   RAM                     ---\n");
+  printf("-------------------------------------------------\n");
 
   if (total_used_ram == 0)
-    fprintf(stderr, "No .RAMSECTIONs were found, no information about RAM.\n");
+    printf("No .RAMSECTIONs were found, no information about RAM.\n");
   else {
     s = g_sections_first;
     while (s != NULL) {
@@ -2715,23 +2715,23 @@ int show_project_information_library(void) {
 
       if (status == SECTION_STATUS_RAM_FREE || status == SECTION_STATUS_RAM_FORCE ||
           status == SECTION_STATUS_RAM_SEMIFREE || status == SECTION_STATUS_RAM_SEMISUBFREE)
-        fprintf(stderr, ".RAMSECTION \"%s\" (%d bytes).\n", s->name, s->size);
+        printf(".RAMSECTION \"%s\" (%d bytes).\n", s->name, s->size);
 
       s = s->next;
     }
   }
 
-  fprintf(stderr, "-------------------------------------------------\n");
-  fprintf(stderr, "---                 SUMMARY                   ---\n");
-  fprintf(stderr, "-------------------------------------------------\n");
+  printf("-------------------------------------------------\n");
+  printf("---                 SUMMARY                   ---\n");
+  printf("-------------------------------------------------\n");
 
   f = ((float)total_used_rom)/(g_rombanks * g_banksize) * 100.0f;
-  fprintf(stderr, "ROM: %d bytes (%.2f%%) used of total %d.\n", total_used_rom, f, g_rombanks * g_banksize);
+  printf("ROM: %d bytes (%.2f%%) used of total %d.\n", total_used_rom, f, g_rombanks * g_banksize);
 
   if (total_used_ram == 0)
-    fprintf(stderr, "RAM: No .RAMSECTIONs were found, no information about RAM.\n");
+    printf("RAM: No .RAMSECTIONs were found, no information about RAM.\n");
   else
-    fprintf(stderr, "RAM: %d bytes used.\n", total_used_ram);
+    printf("RAM: %d bytes used.\n", total_used_ram);
 
   fflush(stderr);
   fflush(stdout);

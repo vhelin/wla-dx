@@ -686,9 +686,9 @@ int _show_ram_information(int *free, int *total) {
   char *slot_usage_data, slot_name[MAX_NAME_LENGTH+1];
   float f;
   
-  fprintf(stderr, "-------------------------------------------------\n");
-  fprintf(stderr, "---                   RAM                     ---\n");
-  fprintf(stderr, "-------------------------------------------------\n");
+  printf("-------------------------------------------------\n");
+  printf("---                   RAM                     ---\n");
+  printf("-------------------------------------------------\n");
 
   *free = 0;
   *total = 0;
@@ -722,7 +722,7 @@ int _show_ram_information(int *free, int *total) {
         snprintf(slot_name, sizeof(slot_name), "%d", slot);
 
       f = ((float)bank_free)/(bank_free + bank_used) * 100.0f;
-      fprintf(stderr, "RAM slot %s bank %d (%d bytes (%.2f%%) free)\n", slot_name, bank, bank_free, f);
+      printf("RAM slot %s bank %d (%d bytes (%.2f%%) free)\n", slot_name, bank, bank_free, f);
 
       area_start = -1;
       area_end = -1;
@@ -744,7 +744,7 @@ int _show_ram_information(int *free, int *total) {
         }
         
         if (print_area == YES) {
-          fprintf(stderr, "  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+          printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
           area_start = -1;
           area_end = -1;
         }
@@ -755,7 +755,7 @@ int _show_ram_information(int *free, int *total) {
   }
 
   if (printed_something == NO)
-    fprintf(stderr, "No .RAMSECTIONs were found, no information about RAM.\n");
+    printf("No .RAMSECTIONs were found, no information about RAM.\n");
   
   return SUCCEEDED;
 }
@@ -766,46 +766,46 @@ int _show_headers_and_footers_information(void) {
   struct section *s;
   int i = 0, prints = 0;
   
-  fprintf(stderr, "-------------------------------------------------\n");
-  fprintf(stderr, "---           HEADERS AND FOOTERS             ---\n");
-  fprintf(stderr, "-------------------------------------------------\n");
+  printf("-------------------------------------------------\n");
+  printf("---           HEADERS AND FOOTERS             ---\n");
+  printf("-------------------------------------------------\n");
 
   if (g_file_header_size != 0) {
-    fprintf(stderr, "File header size %d.\n", g_file_header_size);
+    printf("File header size %d.\n", g_file_header_size);
     prints++;
   }
   if (g_file_footer_size != 0) {
-    fprintf(stderr, "File footer size %d.\n", g_file_footer_size);
+    printf("File footer size %d.\n", g_file_footer_size);
     prints++;
   }
   
   i = g_file_header_size + g_file_footer_size;
   
   if (g_output_type == OUTPUT_TYPE_CBM_PRG) {
-    fprintf(stderr, "2 additional bytes from the CBM PRG header.\n");
+    printf("2 additional bytes from the CBM PRG header.\n");
     i += 2;
     prints++;
   }
   
   if (g_smc_status != 0) {
-    fprintf(stderr, "512 additional bytes from the SMC ROM header.\n");
+    printf("512 additional bytes from the SMC ROM header.\n");
     i += 512;
     prints++;
   }
 
   s = g_sec_bankhd_first;
   while (s != NULL) {
-    fprintf(stderr, "ROM bank %d header section size %d.\n", s->bank, s->size);
+    printf("ROM bank %d header section size %d.\n", s->bank, s->size);
     i += s->size;
     s = s->next;
   }
 
   if (i != 0) {
     if (prints > 1)
-      fprintf(stderr, "Total %d additional bytes (from headers and footers).\n", i);
+      printf("Total %d additional bytes (from headers and footers).\n", i);
   }
   else
-    fprintf(stderr, "No headers or footers found.\n");
+    printf("No headers or footers found.\n");
 
   return SUCCEEDED;
 }
@@ -819,12 +819,15 @@ int show_rom_ram_information(void) {
   if (g_verbose_mode == OFF)
     return SUCCEEDED;
 
+  fflush(stderr);
+  fflush(stdout);
+  
   if (g_output_mode == OUTPUT_ROM) {
     /* ROM information */
 
-    fprintf(stderr, "-------------------------------------------------\n");
-    fprintf(stderr, "---                   ROM                     ---\n");
-    fprintf(stderr, "-------------------------------------------------\n");
+    printf("-------------------------------------------------\n");
+    printf("---                   ROM                     ---\n");
+    printf("-------------------------------------------------\n");
   
     for (r = 0, address = 0; r < g_rombanks; r++) {
       int address_old = address;
@@ -837,7 +840,7 @@ int show_rom_ram_information(void) {
       }
 
       f = (((float)(g_banksizes[r] - rom_bank_used_bytes))/g_banksizes[r]) * 100.0f;
-      fprintf(stderr, "ROM bank %d (%d bytes (%.2f%%) free)\n", r, g_banksizes[r] - rom_bank_used_bytes, f);
+      printf("ROM bank %d (%d bytes (%.2f%%) free)\n", r, g_banksizes[r] - rom_bank_used_bytes, f);
 
       address = address_old;
       area_start = -1;
@@ -860,7 +863,7 @@ int show_rom_ram_information(void) {
         }
         
         if (print_area == YES) {
-          fprintf(stderr, "  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+          printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
           area_start = -1;
           area_end = -1;
         }      
@@ -870,27 +873,27 @@ int show_rom_ram_information(void) {
     _show_ram_information(&ram_free, &ram_total);
     _show_headers_and_footers_information();
     
-    fprintf(stderr, "-------------------------------------------------\n");
-    fprintf(stderr, "---                 SUMMARY                   ---\n");
-    fprintf(stderr, "-------------------------------------------------\n");
+    printf("-------------------------------------------------\n");
+    printf("---                 SUMMARY                   ---\n");
+    printf("-------------------------------------------------\n");
 
     f = (((float)(g_romsize - rom_used_bytes))/g_romsize) * 100.0f;
-    fprintf(stderr, "ROM: %d bytes (%.2f%%) free of total %d.\n", g_romsize - rom_used_bytes, f, g_romsize);
+    printf("ROM: %d bytes (%.2f%%) free of total %d.\n", g_romsize - rom_used_bytes, f, g_romsize);
 
     if (ram_free <= 0)
-      fprintf(stderr, "RAM: No .RAMSECTIONs were found, no information about RAM.\n");
+      printf("RAM: No .RAMSECTIONs were found, no information about RAM.\n");
     else {
       f = (((float)ram_free)/ram_total) * 100.0f;
-      fprintf(stderr, "RAM: %d bytes (%.2f%%) free of total %d.\n", ram_free, f, ram_total);
+      printf("RAM: %d bytes (%.2f%%) free of total %d.\n", ram_free, f, ram_total);
     }
   }
   else {
     /* PRG information */
     int prg_size = g_program_end - g_program_start + 1, used_bytes;
 
-    fprintf(stderr, "-------------------------------------------------\n");
-    fprintf(stderr, "---                   PRG                     ---\n");
-    fprintf(stderr, "-------------------------------------------------\n");
+    printf("-------------------------------------------------\n");
+    printf("---                   PRG                     ---\n");
+    printf("-------------------------------------------------\n");
 
     for (a = g_program_start, used_bytes = 0; a <= g_program_end; a++) {
       if (g_rom_usage[a] != 0)
@@ -898,7 +901,7 @@ int show_rom_ram_information(void) {
     }
 
     f = (((float)(prg_size - used_bytes))/prg_size) * 100.0f;
-    fprintf(stderr, "PRG $%.4x-$%.4x (%d bytes (%.2f%%) free)\n", g_program_start, g_program_end, prg_size - used_bytes, f);
+    printf("PRG $%.4x-$%.4x (%d bytes (%.2f%%) free)\n", g_program_start, g_program_end, prg_size - used_bytes, f);
 
     area_start = -1;
     area_end = -1;
@@ -920,7 +923,7 @@ int show_rom_ram_information(void) {
       }
         
       if (print_area == YES) {
-        fprintf(stderr, "  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+        printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
         area_start = -1;
         area_end = -1;
       }      
@@ -929,20 +932,23 @@ int show_rom_ram_information(void) {
     _show_ram_information(&ram_free, &ram_total);
     _show_headers_and_footers_information();
 
-    fprintf(stderr, "-------------------------------------------------\n");
-    fprintf(stderr, "---                 SUMMARY                   ---\n");
-    fprintf(stderr, "-------------------------------------------------\n");
+    printf("-------------------------------------------------\n");
+    printf("---                 SUMMARY                   ---\n");
+    printf("-------------------------------------------------\n");
 
     f = (((float)(prg_size - used_bytes))/prg_size) * 100.0f;
-    fprintf(stderr, "PRG: %d bytes (%.2f%%) free of total %d.\n", prg_size - used_bytes, f, prg_size);
+    printf("PRG: %d bytes (%.2f%%) free of total %d.\n", prg_size - used_bytes, f, prg_size);
 
     if (ram_free <= 0)
-      fprintf(stderr, "RAM: No .RAMSECTIONs were found, no information about RAM.\n");
+      printf("RAM: No .RAMSECTIONs were found, no information about RAM.\n");
     else {
       f = (((float)ram_free)/ram_total) * 100.0f;
-      fprintf(stderr, "RAM: %d bytes (%.2f%%) free of total %d.\n", ram_free, f, ram_total);
+      printf("RAM: %d bytes (%.2f%%) free of total %d.\n", ram_free, f, ram_total);
     }
   }
+
+  fflush(stderr);
+  fflush(stdout);
   
   return SUCCEEDED;
 }
