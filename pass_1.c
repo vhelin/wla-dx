@@ -204,7 +204,7 @@ char * string_duplicate_size(char * p, int size) {
 }
 
 char * string_duplicate(char * p) {
-  // Duplicate string with its existing length
+  /* Duplicate string with its existing length */
   return string_duplicate_size(p, (int)strlen(p));
 }
 
