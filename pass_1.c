@@ -1366,6 +1366,8 @@ int undefine(char *name) {
 
   hashmap_remove(g_defines_map, name);
 
+  free(d->alias);
+  free(d->string);
   free(d);
 
   return SUCCEEDED;
