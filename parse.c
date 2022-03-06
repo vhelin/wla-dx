@@ -269,16 +269,16 @@ static int _input_number_return_definition(struct definition *def) {
         return FAILED;          
       }
       snprintf(g_label, sizeof(g_label), ":%.254s", def->string);
-      g_string_size = def->size + 1;
+      g_string_size = (int)(strlen(def->string) + 1);
     }
     else {
-      g_string_size = def->size;
+      g_string_size = (int)strlen(def->string);
       memcpy(g_label, def->string, g_string_size);
       g_label[g_string_size] = 0;
     }
   }
   else {
-    g_string_size = def->size;
+    g_string_size = (int)strlen(def->string);
     memcpy(g_label, def->string, g_string_size);
     g_label[g_string_size] = 0;
     
@@ -1300,7 +1300,7 @@ int parse_string_length(char *end) {
       return FAILED;
     }
     else {
-      g_string_size = g_tmp_def->size;
+      g_string_size = (int)strlen(g_tmp_def->string);
       memcpy(g_label, g_tmp_def->string, g_string_size);
       g_label[g_string_size] = 0;
 

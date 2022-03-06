@@ -4,9 +4,9 @@
 
 int pass_1(void);
 int evaluate_token(void);
-int add_a_new_definition(char *name, double value, char *string, int type, int size);
+int add_a_new_definition(char *name, double value, char *string, int type);
 int export_a_definition(char *name);
-int redefine(char *name, double value, char *string, int type, int size);
+int redefine(char *name, double value, char *string, int type);
 int undefine(char *name);
 int parse_directive(void);
 int parse_if_directive(void);
@@ -14,7 +14,7 @@ int enum_add_label(char *name, int type, int size, struct structure *instance);
 int add_label_to_enum_or_ramsection(char *name, int size);
 int parse_enum_token(void);
 int find_next_point(char *name);
-int get_new_definition_data(int *b, char *c, int *size, double *data, int *export);
+int get_new_definition_data(int *b, char *c, double *data, int *export);
 int localize_path(char *path);
 int verify_name_length(char *name);
 int is_reserved_definition(char *t);

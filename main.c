@@ -797,13 +797,13 @@ int generate_extra_definitions(void) {
     }
   }
 
-  if (add_a_new_definition("WLA_TIME", 0.0, tmp, DEFINITION_TYPE_STRING, (int)strlen(tmp)) == FAILED)
+  if (add_a_new_definition("WLA_TIME", 0.0, tmp, DEFINITION_TYPE_STRING) == FAILED)
     return FAILED;
-  if (add_a_new_definition("wla_time", 0.0, tmp, DEFINITION_TYPE_STRING, (int)strlen(tmp)) == FAILED)
+  if (add_a_new_definition("wla_time", 0.0, tmp, DEFINITION_TYPE_STRING) == FAILED)
     return FAILED;
-  if (add_a_new_definition("WLA_VERSION", 0.0, g_wla_version, DEFINITION_TYPE_STRING, (int)strlen(g_wla_version)) == FAILED)
+  if (add_a_new_definition("WLA_VERSION", 0.0, g_wla_version, DEFINITION_TYPE_STRING) == FAILED)
     return FAILED;
-  if (add_a_new_definition("wla_version", 0.0, g_wla_version, DEFINITION_TYPE_STRING, (int)strlen(g_wla_version)) == FAILED)
+  if (add_a_new_definition("wla_version", 0.0, g_wla_version, DEFINITION_TYPE_STRING) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
@@ -824,7 +824,7 @@ int parse_and_add_definition(char *c, int contains_flag) {
   n[i] = 0;
 
   if (*c == 0)
-    return add_a_new_definition(n, 0.0, NULL, DEFINITION_TYPE_VALUE, 0);
+    return add_a_new_definition(n, 0.0, NULL, DEFINITION_TYPE_VALUE);
   else if (*c == '=') {
     c++;
     if (*c == 0)
@@ -852,7 +852,7 @@ int parse_and_add_definition(char *c, int contains_flag) {
           return FAILED;
         }
       }
-      return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
+      return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE);
     }
 
     /* binary value? */
@@ -869,7 +869,7 @@ int parse_and_add_definition(char *c, int contains_flag) {
           return FAILED;
         }
       }
-      return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
+      return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE);
     }
     
     /* decimal value? */
@@ -882,7 +882,7 @@ int parse_and_add_definition(char *c, int contains_flag) {
           return FAILED;
         }
       }
-      return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE, 0);
+      return add_a_new_definition(n, (double)i, NULL, DEFINITION_TYPE_VALUE);
     }
 
     /* quoted string? */
@@ -906,7 +906,7 @@ int parse_and_add_definition(char *c, int contains_flag) {
       s[t] = 0;
       
       if (*c == 0)
-        result = add_a_new_definition(n, 0.0, s, DEFINITION_TYPE_STRING, (int)strlen(s));
+        result = add_a_new_definition(n, 0.0, s, DEFINITION_TYPE_STRING);
       else {
         fprintf(stderr, "PARSE_AND_ADD_DEFINITION: Incorrectly terminated quoted string (%s).\n", value);
         result = FAILED;
@@ -917,7 +917,7 @@ int parse_and_add_definition(char *c, int contains_flag) {
     }
 
     /* unquoted string */
-    return add_a_new_definition(n, 0.0, c, DEFINITION_TYPE_STRING, (int)strlen(c));
+    return add_a_new_definition(n, 0.0, c, DEFINITION_TYPE_STRING);
   }
 
   return FAILED;
