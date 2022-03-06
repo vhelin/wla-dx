@@ -42,7 +42,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.2a (2.3.2022)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.2a (7.3.2022)";
 char g_wla_version[] = "10.2";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -70,6 +70,7 @@ extern struct stringmaptable *g_stringmaptables;
 extern struct array *g_arrays_first;
 extern struct structure *g_structures_first;
 extern struct structure **g_saved_structures;
+extern struct string *g_fopen_filenames_first, *g_fopen_filenames_last;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern char *g_label_stack[256], *g_tmp;
 extern char *g_include_in_tmp, *g_tmp_a;
@@ -500,6 +501,7 @@ void procedures_at_exit(void) {
   struct label_sizeof *ls;
   struct block_name *bn;
   struct array *ar1, *ar2;
+  struct string *strings;
   int i, index;
   
   /* free all the dynamically allocated data structures and close open files */
@@ -667,6 +669,15 @@ void procedures_at_exit(void) {
     as = g_after_sections;
   }
 
+  strings = g_fopen_filenames_first;
+  while (strings != NULL) {
+    struct string *strings_next = strings->next;
+
+    free(strings->string);
+    free(strings);
+    strings = strings_next;
+  }
+  
   free(g_buffer);
   free(g_include_in_tmp);
   free(g_tmp_a);

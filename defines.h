@@ -753,6 +753,11 @@ struct filepointer {
   struct filepointer *next;
 };
 
+struct string {
+  char *string;
+  struct string *next;
+};
+
 struct stringmap_entry {
   int bytes_length;
   unsigned char *bytes;

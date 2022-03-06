@@ -113,6 +113,7 @@ struct label_sizeof *g_label_sizeofs = NULL;
 struct block_name *g_block_names = NULL;
 struct stringmaptable *g_stringmaptables = NULL;
 struct array *g_arrays_first = NULL;
+struct string *g_fopen_filenames_first = NULL, *g_fopen_filenames_last = NULL;
 
 extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name;
 extern int g_source_file_size, g_input_number_error_msg, g_verbose_mode, g_output_format, g_open_files, g_input_parse_if;
@@ -123,7 +124,7 @@ extern int g_create_sizeof_definitions, g_input_allow_leading_hashtag, g_input_h
 extern int g_plus_and_minus_ends_label;
 extern FILE *g_file_out_ptr;
 extern double g_parsed_double;
-extern char *g_final_name;
+extern char *g_final_name, g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
 
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
@@ -5212,6 +5213,7 @@ int directive_section(void) {
 int directive_fopen(void) {
   
   struct filepointer *f;
+  struct string *string;
   char *c;
   int o;
 
@@ -5236,6 +5238,41 @@ int directive_fopen(void) {
   }
   strcpy(c, g_label);
 
+  string = g_fopen_filenames_first;
+  while (string != NULL) {
+    if (strcmp(c, string->string) == 0)
+      break;
+    string = string->next;
+  }
+
+  if (string == NULL) {
+    /* remember the file name for makefile generation */
+    string = calloc(sizeof(struct string), 1);
+    if (string == NULL) {
+      print_error(ERROR_DIR, "Out of memory error.\n");
+      free(c);
+      return FAILED;
+    }
+    string->string = calloc(strlen(g_label) + 1, 1);
+    if (string->string == NULL) {
+      print_error(ERROR_DIR, "Out of memory error.\n");
+      free(c);
+      free(string);
+      return FAILED;
+    }
+    strcpy(string->string, g_label);
+    string->next = NULL;
+
+    if (g_fopen_filenames_first == NULL) {
+      g_fopen_filenames_first = string;
+      g_fopen_filenames_last = string;
+    }
+    else {
+      g_fopen_filenames_last->next = string;
+      g_fopen_filenames_last = string;
+    }
+  }
+  
   /* get the file pointer name */
   if (get_next_token() == FAILED) {
     free(c);
@@ -5282,8 +5319,14 @@ int directive_fopen(void) {
   /* open the file */
   f->f = fopen(f->filename, "rb");
   if (f->f == NULL) {
-    print_error(ERROR_DIR, "Error opening file \"%s\" for reading.\n", f->filename);
-    return FAILED;
+    if (g_makefile_rules == YES) {
+      /* lets just use a tmp file for file operations */
+      f->f = fopen(g_makefile_tmp_name, "wb");
+    }
+    if (f->f == NULL) {
+      print_error(ERROR_DIR, "Error opening file \"%s\" for reading.\n", f->filename);
+      return FAILED;
+    }
   }
 
   return SUCCEEDED;
@@ -9146,7 +9189,7 @@ int directive_stringmap_table(void) {
     return FAILED;
   }
 
-  /* Allocate and insert at the front of the chain */
+  /* allocate and insert at the front of the chain */
   map = calloc(sizeof(struct stringmaptable), 1);
   if (map == NULL) {
     print_error(ERROR_ERR, "STRINGMAPTABLE: Out of memory error.\n");
@@ -9183,7 +9226,7 @@ int directive_stringmap_table(void) {
   table_file = fopen(g_label, "r");
   if (table_file == NULL) {
     if (g_makefile_rules == YES) {
-      /* If in makefile mode, this is not an error. We just make an empty map. */
+      /* if in makefile mode, this is not an error, we just make an empty map */
       return SUCCEEDED;
     }
     print_error(ERROR_DIR, "Error opening file \"%s\".\n", g_label);
@@ -9205,7 +9248,7 @@ int directive_stringmap_table(void) {
 
     equals_pos = strchr(p, '=');
 
-    /* lines should be in the form <hex>=<text> with no whitespace. */
+    /* lines should be in the form <hex>=<text> with no whitespace */
     if (equals_pos == NULL)
       continue;
 
@@ -9333,7 +9376,7 @@ int directive_stringmap(void) {
     /* if no match was found, it's an error */
     if (entry == NULL) {
       if (g_makefile_rules == YES) {
-            /* in makefile mode, it's ignored */
+        /* in makefile mode, it's ignored */
         return SUCCEEDED;
       }
       print_error(ERROR_DIR, "STRINGMAP: could not find a match in the table at substring \"%s\".\n", p);

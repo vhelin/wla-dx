@@ -18,6 +18,7 @@ extern char *g_tmp, g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
 extern struct ext_include_collection g_ext_incdirs;
 extern FILE *g_file_out_ptr;
 extern struct stringmaptable *g_stringmaptables;
+extern struct string *g_fopen_filenames_first;
 
 struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
 struct active_file_info *g_active_file_info_first = NULL, *g_active_file_info_last = NULL, *g_active_file_info_tmp = NULL;
@@ -314,10 +315,10 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
   struct incbin_file_data *ifd = NULL;
   char *in_tmp, *n;
-  int file_size, q;
+  int file_size, q, error_code;
   FILE *f = NULL;
 
-  int error_code = find_file(name, &f);
+  error_code = find_file(name, &f);
   if (error_code != SUCCEEDED)
     return error_code;
 
@@ -482,7 +483,6 @@ char *get_file_name(int id) {
 
   struct file_name_info *fni;
 
-  
   fni = g_file_name_info_first;
   while (fni != NULL) {
     if (id == fni->id)
@@ -499,11 +499,13 @@ int print_file_names(void) {
   struct incbin_file_data *ifd;
   struct file_name_info *fni;
   struct stringmaptable *smt;
+  struct string *fopens;
   int is_first_line = YES;
   
   fni = g_file_name_info_first;
   ifd = g_incbin_file_data_first;
   smt = g_stringmaptables;
+  fopens = g_fopen_filenames_first;
 
   /* included files */
   /* handle the main file name differently */
@@ -527,6 +529,12 @@ int print_file_names(void) {
   while (smt != NULL) {
     fprintf(stdout, " \\\n\t%s", smt->filename);
     smt = smt->next;
+  }
+
+  /* filenames used in .fopens */
+  while (fopens != NULL) {
+    fprintf(stdout, " \\\n\t%s", fopens->string);
+    fopens = fopens->next;
   }
 
   return SUCCEEDED;
