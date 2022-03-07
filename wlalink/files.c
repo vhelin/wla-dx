@@ -42,7 +42,7 @@ int load_files(char *argv[], int argc) {
   if (g_paths_in_linkfile_are_relative_to_linkfile == YES) {
     /* extract the path from linkfile */
     snprintf(linkfile_path, sizeof(linkfile_path), "%s", argv[argc - 2]);
-    for (i = strlen(linkfile_path) - 1; i >= 0; i--) {
+    for (i = (int)strlen(linkfile_path) - 1; i >= 0; i--) {
       if (linkfile_path[i] == '\\' || linkfile_path[i] == '/')
         break;
     }
