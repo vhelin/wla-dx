@@ -398,8 +398,8 @@ struct optcode g_opcodes_table[] = {
   { "SHX ?,Y", 0x9E, 2, 0 },
   { "SHX.W ?,Y", 0x9E, 2, 0 },
 
-  { "SHY ?,Y", 0x9C, 2, 0 },
-  { "SHY.W ?,Y", 0x9C, 2, 0 },
+  { "SHY ?,X", 0x9C, 2, 0 },
+  { "SHY.W ?,X", 0x9C, 2, 0 },
 
   { "SLO (x,X)", 0x03, 4, 0 },
   { "SLO (x),Y", 0x13, 4, 0 },
