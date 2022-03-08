@@ -1165,7 +1165,7 @@ int evaluate_token(void) {
 
   /* OPCODE? */
   {
-    int op_id = g_tmp[0];
+    int op_id = (unsigned char)g_tmp[0];
 
     if (op_id < 0) {
       print_error(ERROR_LOG, "Invalid value\n");
@@ -1177,7 +1177,7 @@ int evaluate_token(void) {
 
   g_opt_tmp = &g_opcodes_table[g_ind];
 
-  for (f = g_opcode_n[(unsigned int)g_tmp[0]]; f > 0; f--) {
+  for (f = g_opcode_n[(unsigned char)g_tmp[0]]; f > 0; f--) {
 #if W65816
     if (g_use_wdc_standard == 0) {
       /* skip all mnemonics that contain '<', '|' and '>' */
