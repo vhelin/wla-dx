@@ -1363,6 +1363,7 @@ int get_next_plain_string(void) {
       g_ss++;
       g_source_pointer++;
     }
+    /* NOTE: casting to (unsigned char) is needed to get UTF-8 to work */
     else if ((unsigned char)c > 127 || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '{' || c == '}' || c == '\\' || c == '@' || c == ':') {
       g_label[g_ss] = c;
       g_ss++;

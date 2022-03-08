@@ -1164,17 +1164,7 @@ int evaluate_token(void) {
   }
 
   /* OPCODE? */
-  {
-    int op_id = (unsigned char)g_tmp[0];
-
-    if (op_id < 0) {
-      print_error(ERROR_LOG, "Invalid value\n");
-      return FAILED;
-    }
-
-    g_ind = g_opcode_p[op_id];
-  }
-
+  g_ind = g_opcode_p[(unsigned char)g_tmp[0]];
   g_opt_tmp = &g_opcodes_table[g_ind];
 
   for (f = g_opcode_n[(unsigned char)g_tmp[0]]; f > 0; f--) {
