@@ -17,6 +17,9 @@ x = 8bit
 "ADC ?,Y" $79
 "ADC x" $65
 "ADC x,X" $75
+"ALR #x" $4B
+"ANC #x" $0B
+"ANC2 #x" $2B
 "AND #x" $29
 "AND (x),Y" $31
 "AND (x,X)" $21
@@ -25,12 +28,15 @@ x = 8bit
 "AND ?,Y" $39
 "AND x" $25
 "AND x,X" $35
+"ANE #x" $8B
+"ARR #x" $6B
 "ASL ?" $0E
 "ASL ?,X" $1E
 "ASL A" $0A
 "ASL x" $06
 "ASL x,X" $16
 "ASL" $0A
+"AXS #x" $CB
 "BCC x" $90
 "BCS x" $B0
 "BEQ x" $F0
@@ -61,6 +67,13 @@ x = 8bit
 "CPY #x" $C0
 "CPY ?" $CC
 "CPY x" $C4
+"DCP (x),Y" $D3
+"DCP (x,X)" $C3
+"DCP ?" $CF
+"DCP ?,X" $DF
+"DCP ?,Y" $DB
+"DCP x" $C7
+"DCP x,X" $D7
 "DEC ?" $CE
 "DEC ?,X" $DE
 "DEC x" $C6
@@ -81,9 +94,24 @@ x = 8bit
 "INC x,X" $F6
 "INX" $E8
 "INY" $C8
+"ISC (x),Y" $F3
+"ISC (x,X)" $E3
+"ISC ?" $EF
+"ISC ?,X" $FF
+"ISC ?,Y" $FB
+"ISC x" $E7
+"ISC x,X" $F7
+"JAM" $02
 "JMP (?)" $6C
 "JMP ?" $4C
 "JSR ?" $20
+"LAS ?,Y" $BB
+"LAX (x),Y" $B3
+"LAX (x,X)" $A3
+"LAX ?" $AF
+"LAX ?,Y" $BF
+"LAX x" $A7
+"LAX x,Y" $B7
 "LDA #x" $A9
 "LDA (x),Y" $B1
 "LDA (x,X)" $A1
@@ -108,6 +136,12 @@ x = 8bit
 "LSR x" $46
 "LSR x,X" $56
 "LSR" $4A
+"LXA #x" $AB
+"NOP #x" $80
+"NOP ?" $0C
+"NOP ?,X" $1C
+"NOP x" $04
+"NOP x,X" $14
 "NOP" $EA
 "ORA #x" $09
 "ORA (x),Y" $11
@@ -121,6 +155,13 @@ x = 8bit
 "PHP" $08
 "PLA" $68
 "PLP" $28
+"RLA (x),Y" $33
+"RLA (x,X)" $23
+"RLA ?" $2F
+"RLA ?,X" $3F
+"RLA ?,Y" $3B
+"RLA x" $27
+"RLA x,X" $37
 "ROL ?" $2E
 "ROL ?,X" $3E
 "ROL A" $2A
@@ -133,8 +174,19 @@ x = 8bit
 "ROR x" $66
 "ROR x,X" $76
 "ROR" $6A
+"RRA (x),Y" $73
+"RRA (x,X)" $63
+"RRA ?" $6F
+"RRA ?,X" $7F
+"RRA ?,Y" $7B
+"RRA x" $67
+"RRA x,X" $77
 "RTI" $40
 "RTS" $60
+"SAX (x,X)" $83
+"SAX ?" $8F
+"SAX x" $87
+"SAX x,Y" $97
 "SBC #x" $E9
 "SBC (x),Y" $F1
 "SBC (x,X)" $E1
@@ -143,9 +195,28 @@ x = 8bit
 "SBC ?,Y" $F9
 "SBC x" $E5
 "SBC x,X" $F5
+"SBX #x" $CB
 "SEC" $38
 "SED" $F8
 "SEI" $78
+"SHA (x),Y" $93
+"SHA ?,Y" $9F
+"SHX ?,Y" $9E
+"SHY ?,X" $9C
+"SLO (x),Y" $13
+"SLO (x,X)" $03
+"SLO ?" $0F
+"SLO ?,X" $1F
+"SLO ?,Y" $1B
+"SLO x" $07
+"SLO x,X" $17
+"SRE (x),Y" $53
+"SRE (x,X)" $43
+"SRE ?" $4F
+"SRE ?,X" $5F
+"SRE ?,Y" $5B
+"SRE x" $47
+"SRE x,X" $57
 "STA (x),Y" $91
 "STA (x,X)" $81
 "STA ?" $8D
@@ -159,9 +230,11 @@ x = 8bit
 "STY ?" $8C
 "STY x" $84
 "STY x,X" $94
+"TAS ?,Y" $9B
 "TAX" $AA
 "TAY" $A8
 "TSX" $BA
 "TXA" $8A
 "TXS" $9A
 "TYA" $98
+"USBC #x" $EB
