@@ -72,11 +72,6 @@ make
 move w-8080.exe binaries\
 make clean
 
-copy makefiles\makefile.msdos.6510 MAKEFILE
-make
-move w-6510.exe binaries\
-make clean
-
 copy makefiles\makefile.msdos.65816 MAKEFILE
 make
 move w-65816.exe binaries\

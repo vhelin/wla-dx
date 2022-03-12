@@ -1,6 +1,6 @@
 
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
-; a small example showing the wla 6510 syntax
+; a small example showing the wla 6502 syntax
 ; written by ville helin <vhelin@cc.hut.fi> in 2002
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 

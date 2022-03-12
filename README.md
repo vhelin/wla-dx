@@ -2,7 +2,7 @@ WLA DX
 ======
 
 WLA DX - Yet Another
-GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX
+GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX
 Multi Platform Cross Assembler Package
 
 Linux: [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status/vhelin.wla-dx%20Linux?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=1&branchName=master)
@@ -21,7 +21,6 @@ Supported architectures are:
 * 6502
 * 65C02
 * 65CE02
-* 6510
 * 65816
 * 6800
 * 6801

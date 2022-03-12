@@ -252,26 +252,6 @@
 #endif
 
 /**************************************************************/
-/* 6510                                                       */
-/**************************************************************/
-
-#ifdef MCS6510
-
-/* opcode types */
-
-/* 0 - plain text  8b */
-/* 1 - x              */
-/* 2 - ?              */
-/* 3 - plain text 16b */
-/* 4 - x (absolute)   */
-
-#define OP_SIZE_MAX 12
-#define ARCH_STR "MSC6510"
-#define WLA_NAME "6510"
-
-#endif
-
-/**************************************************************/
 /* spc700                                                     */
 /**************************************************************/
 
@@ -478,7 +458,7 @@ struct optcode {
 #if defined(Z80) || defined(GB) || defined(I8008) || defined(I8080)
   unsigned char value;
 #endif
-#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800) || defined(MC6801) || defined(MC6809)
+#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
   unsigned char skip_8bit;
 #endif
 #if defined(W65816)

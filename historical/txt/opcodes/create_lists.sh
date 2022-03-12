@@ -72,20 +72,6 @@ export WLA_NICELIST=NICELIST2
 make
 ./op | sort > _65ce02_o
 
-# 6510
-
-make clean
-export WLA_TARGET=MCS6510
-export WLA_NICELIST=NICELIST1
-make
-./op | sort > _6510_a
-
-make clean
-export WLA_TARGET=MCS6510
-export WLA_NICELIST=NICELIST2
-make
-./op | sort > _6510_o
-
 # 65816
 
 make clean
@@ -240,11 +226,6 @@ cat header_o_65c02.txt _65c02_o > mnemonics_65c02_o.txt
 
 cat header_a_65ce02.txt _65ce02_a > mnemonics_65ce02_a.txt
 cat header_o_65ce02.txt _65ce02_o > mnemonics_65ce02_o.txt
-
-# 6510
-
-cat header_a_6510.txt _6510_a > mnemonics_6510_a.txt
-cat header_o_6510.txt _6510_o > mnemonics_6510_o.txt
 
 # 65816
 

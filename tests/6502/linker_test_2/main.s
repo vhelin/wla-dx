@@ -1,6 +1,6 @@
 
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
-; a small example showing the wla 6510 syntax
+; a small example showing the wla 6502 syntax
 ; written by ville helin <vhelin@cc.hut.fi> in 1998-2002
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
@@ -129,7 +129,7 @@ MORE_ACTION:
 
 	ARR	#20
 	AXS	#20
-	XAA	#20
+	ANC2	#20
 	.db "E2"
 .ENDS
 	

@@ -1,5 +1,5 @@
 
-CC = $(WLAVALGRIND) wla-6510
+CC = $(WLAVALGRIND) wla-6502
 CFLAGS = -o
 LD = $(WLAVALGRIND) wlalink
 LDFLAGS = -v -b -s -t CBMPRG -a 123h

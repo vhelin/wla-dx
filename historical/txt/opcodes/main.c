@@ -22,9 +22,6 @@
 #ifdef CSG65CE02
 #include "../../../opcodes_65ce02.c"
 #endif
-#ifdef MCS6510
-#include "../../../opcodes_6510.c"
-#endif
 #ifdef W65816
 #include "../../../opcodes_65816.c"
 #endif
@@ -93,7 +90,7 @@ int main(int argc, char *argv[]) {
 #if defined(GB) || defined(I8008) || defined(I8080)
     printf("  { \"%s\", 0x%X, %d, %d },\n", g_opcodes_table[i].op, g_opcodes_table[i].hex, g_opcodes_table[i].type, g_opcodes_table[i].value);
 #endif
-#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800) || defined(MC6801) || defined(MC6809)
+#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
     printf("  { \"%s\", 0x%X, %d, %d },\n", g_opcodes_table[i].op, g_opcodes_table[i].hex, g_opcodes_table[i].type, g_opcodes_table[i].skip_8bit);
 #endif
 #ifdef Z80
@@ -213,7 +210,7 @@ int main(int argc, char *argv[]) {
     printf("\n");
 #endif
 
-#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800) || defined(MC6801) || defined(MC6809)
+#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
     printf("\"%s\" ", g_opcodes_table[i].op);
 
     if (g_opcodes_table[i].hex & 0xFF00)
@@ -400,7 +397,7 @@ int main(int argc, char *argv[]) {
     printf("\"\n");
 #endif
 
-#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MCS6510) || defined(MC6800) || defined(MC6801) || defined(MC6809)
+#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
     if (g_opcodes_table[i].hex & 0xFF00)
       printf("$%.2X%.2X ", g_opcodes_table[i].hex & 0xFF, (g_opcodes_table[i].hex >> 8) & 0xFF);
     else

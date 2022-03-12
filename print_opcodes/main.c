@@ -20,9 +20,6 @@
 #ifdef WDC65C02
 #include "../opcodes_65c02.c"
 #endif
-#ifdef MCS6510
-#include "../opcodes_6510.c"
-#endif
 #ifdef W65816
 #include "../opcodes_65816.c"
 #endif
@@ -37,7 +34,6 @@
 int main(int argc, char *argv[]) {
 
   int i;
-
 
 
   i = 0;

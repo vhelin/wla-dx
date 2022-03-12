@@ -1,6 +1,6 @@
 
 /*
-  wla - part of wla dx gb-z80/z80/6502/65c02/6510/6800/6801/6809/65816/huc6280/spc-700/8008/8080/SuperFX
+  wla - part of wla dx gb-z80/z80/6502/65c02/6800/6801/6809/65816/huc6280/spc-700/8008/8080/SuperFX
   macro assembler package by ville helin <ville.helin@iki.fi>. this is gpl software.
 */
 

@@ -134,7 +134,7 @@ extern int g_makefile_rules;
 
 static int g_macro_stack_size = 0, g_repeat_stack_size = 0;
 
-#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(MCS6510) || defined(W65816) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
+#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(W65816) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
 int g_xbit_size = 0, g_accu_size = 8, g_index_size = 8;
 #endif
 
@@ -1231,9 +1231,6 @@ int evaluate_token(void) {
 #endif
 #ifdef CSG65CE02
 #include "decode_65ce02.c"
-#endif
-#ifdef MCS6510
-#include "decode_6510.c"
 #endif
 #ifdef W65816
 #include "decode_65816.c"
@@ -9434,7 +9431,7 @@ int parse_directive(void) {
   switch (c) {
   case '1':
 
-#if defined(MCS6502) || defined(MCS6510) || defined(W65816) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
+#if defined(MCS6502) || defined(W65816) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
     /* 16BIT */
     if (strcmp(directive_upper, "16BIT") == 0) {
       g_xbit_size = 16;
@@ -9458,7 +9455,7 @@ int parse_directive(void) {
     
   case '8':
 
-#if defined(MCS6502) || defined(MCS6510) || defined(W65816) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
+#if defined(MCS6502) || defined(W65816) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
     /* 8BIT */
     if (strcmp(directive_upper, "8BIT") == 0) {
       g_xbit_size = 8;

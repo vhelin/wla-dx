@@ -14,7 +14,6 @@ warning_message = [
 
 cpus = [
     {'name': '6502', 'define': 'MCS6502'},
-    {'name': '6510', 'define': 'MCS6510'},
     {'name': '65816', 'define': 'W65816'},
     {'name': '65c02', 'define': 'WDC65C02'},
     {'name': '65ce02', 'define': 'CSG65CE02'},

@@ -1,6 +1,6 @@
 
 /*
- wlad - part of wla dx gb-z80/z80/6502/6510/65816 macro assembler package by/copyright
+ wlad - part of wla dx gb-z80/z80/6502/65816 macro assembler package by/copyright
  ville helin <vhelin@cc.hut.fi>. this is gpl software.
  */
 

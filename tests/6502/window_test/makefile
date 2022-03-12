@@ -1,15 +1,15 @@
 
-CC = $(WLAVALGRIND) wla-6510
+CC = $(WLAVALGRIND) wla-6502
 CFLAGS = -o
 LD = $(WLAVALGRIND) wlalink
-LDFLAGS = -v -b -s -t CBMPRG -a LoadAddress
+LDFLAGS = -v -s
 
 SFILES = main.s
 IFILES = 
 OFILES = main.o
 
 all: $(OFILES) makefile
-	$(LD) $(LDFLAGS) linkfile linked.prg
+	$(LD) $(LDFLAGS) linkfile linked.rom
 
 main.o: main.s
 	$(CC) $(CFLAGS) main.o main.s
@@ -19,4 +19,4 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	rm -f $(OFILES) core *~ linked.prg *.sym
+	rm -f $(OFILES) core *~ linked.rom *.sym

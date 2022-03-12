@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file format "WLAi"
+WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file format "WLAi"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAi" - WLA GB-Z80/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file version 34 (06-Feb-2022)
+        "WLAi" - WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file version 34 (06-Feb-2022)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -186,7 +186,7 @@ section:
 
 
 
-WLA-GB/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX library file format "WLAG"
+WLA-GB/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX library file format "WLAG"
 
 
 bytes   description
@@ -194,7 +194,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAG" - WLA-GB/Z80/6502/65C02/65CE02/6510/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX library file version 27 (17-Aug-2021)
+        "WLAG" - WLA-GB/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX library file version 27 (17-Aug-2021)
   1     misc bits (bit 0 - endianess (1 = big endian)
                    bit 1 - 65816 indicator (1 == 65816)
                    bit 2 - 65ce02 indicator (1 == 65ce02))

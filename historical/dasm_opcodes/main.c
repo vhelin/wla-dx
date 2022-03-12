@@ -18,9 +18,6 @@
 #ifdef MCS6502
 #include "../opcodes_6502.c"
 #endif
-#ifdef MCS6510
-#include "../opcodes_6510.c"
-#endif
 #ifdef W65816
 #include "../opcodes_65816.c"
 #endif

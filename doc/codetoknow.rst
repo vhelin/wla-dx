@@ -98,24 +98,6 @@ Opcodes that make relative label references::
     BBS*
 
 
-6510
-----
-
-Read the subsection :ref:`codesub6502` as the information applies also to 6510
-coding...
-
-Opcodes that make relative label references::
-
-    BCC
-    BCS
-    BEQ
-    BMI
-    BNE
-    BPL
-    BVC
-    BVS
-
-
 65816
 -----
 

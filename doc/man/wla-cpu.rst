@@ -12,7 +12,6 @@ SYNOPSIS
 --------
 
 | ``wla-6502`` [``OPTIONS``] ``SRC_FILE``
-| ``wla-6510`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-65816`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-65c02`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-65ce02`` [``OPTIONS``] ``SRC_FILE``
