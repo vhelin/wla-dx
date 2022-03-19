@@ -18,7 +18,7 @@ BANKS 10
 
 .slot 0
 
-.section "bossman" size 500 superfree
+.section "bossman" superfree
 .repeat $200
   .db 1
 .endr

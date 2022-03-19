@@ -3,13 +3,16 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.2 (12-Mar-2022) [ALL] Added SIZE to .RAMSECTION.
+v10.2 (19-Mar-2022) [ALL] Added SIZE to .RAMSECTION.
+                    [ALL] If SIZE is used with a .SECTION or .RAMSECTION and
+                      the section doesn't fit into it, we now issue an error
+                      instead of a warning.
                     [ALL] .FOPEN should now work with makefile generation.
                     [ALL] WLA's summary is now printed to stdout instead of
                       stderr.
                     [ALL] Added support for UTF-8 source files (meaning labels,
                       macro names, definitions, etc. can all be UTF-8).
-                    [ALL] Removed wla-6510 as wla-6502 can be used for 6510.
+                    [651] Removed wla-6510 as wla-6502 can be used for 6510.
                     [650] Added undocumented opcodes to wla-6502.
 
 v10.1 (19-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now

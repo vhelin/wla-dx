@@ -184,7 +184,7 @@ _loop:
 .ENDS
 
 
-.section "BANKHEADER_NOT_REALLY" SIZE $20
+.section "BANKHEADER_NOT_REALLY" SIZE 128
 .db	"HS"
 
 .dw MAIN, MORE_ACTION, grid_put_sprite

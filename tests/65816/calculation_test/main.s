@@ -81,4 +81,9 @@ label_224:
         .db (label_216 & 15) >> 1,      ; @BT 03
         .db ~(label_216 & 15)           ; @BT F9
         .db "<06"                       ; @BT END
-        
+
+        .section "extrabits" appendto "Section1"
+        .db "07>"                                                       ; @BT TEST-07 07 START
+        .db $fe,$ff,$ff,$ff,$ff,$ff,$fe,$ff,$1,$0,$fe,$ff,$2,$0,$ff,$ff ; @BT FE FF FF FF FF FF FE FF 01 00 FE FF 02 00 FF FF
+        .db "<07"                                                       ; @BT END
+        .ends

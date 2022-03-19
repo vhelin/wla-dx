@@ -361,8 +361,9 @@ int pass_4(void) {
       ind = 0;
       if (g_sec_tmp->maxsize_status == ON) {
         if (g_sec_tmp->maxsize < g_sec_tmp->size) {
-          fprintf(stderr, "%s: INTERNAL_PASS_2: Section \"%s\" doesn't fit into the specified %d bytes. Enlarging to %d bytes.\n",
-                  get_file_name(g_filename_id), g_sec_tmp->name, g_sec_tmp->maxsize, g_sec_tmp->size);
+          fprintf(stderr, "%s: INTERNAL_PASS_2: Section \"%s\" (size %d) doesn't fit into the specified %d bytes.\n",
+                  get_file_name(g_filename_id), g_sec_tmp->name, g_sec_tmp->size, g_sec_tmp->maxsize);
+          return FAILED;
         }
         else if (g_sec_tmp->size < g_sec_tmp->maxsize) {
           g_sec_tmp->size = g_sec_tmp->maxsize;
