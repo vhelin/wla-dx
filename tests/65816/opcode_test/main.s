@@ -106,3 +106,21 @@ SLOT 0 $0000
     LDX #HEXSIXHUNDRED.w    ; manually generate wrong opcode
                             ; @BT a2 00 06
     .DB "<06"               ; @BT END
+
+        ///////////////////////////////////////////////
+        /* testing a little bit some negative values */
+        ///////////////////////////////////////////////
+        
+        .db "07>"               ; @BT TEST-07 07 START
+test07a:
+test07b:
+        .db -2                  ; @BT FE
+test07c:
+        .db 10-12               ; @BT FE
+        .dw -2                  ; @BT FE FF
+        .dw 10-12               ; @BT FE FF
+        .db test07b-test07a-1   ; @BT FF
+        .db test07b-test07a-2   ; @BT FE
+        .db test07a-test07c     ; @BT FF
+        .db "<07"               ; @BT END
+        

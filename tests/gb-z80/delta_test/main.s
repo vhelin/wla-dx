@@ -1,5 +1,5 @@
 
-; testing label delta calculation
+; testing label delta calculation in wla-gb (the assembler, not the linker)
 
 .MEMORYMAP
 DEFAULTSLOT 1
@@ -183,5 +183,40 @@ __      nop                     ; @BT 00
 ---     .db   2  -  1   +  1-1  ; @BT 01
 --      .dw start     - 2  +  1 ; @BT FF FF
 -       .db "<12"               ; @BT END
+        .ends
+        
+        .section "TEST-13" free keep
+        .db "13>"               ; @BT TEST-13 13 START
+        .dw test13c-test13a     ; @BT 02 00
+test13a
+test13b .dw test13b-test13a     ; @BT 00 00
+        .ends
+        
+        .section "TEST-13 APPEND 1" free appendto "TEST-13"
+test13c .dw test13c - test13b   ; @BT 02 00
+        .dw test13b-test13a     ; @BT 00 00
+@childA
+        .ends
+
+        .section "TEST-13 APPEND 2" free appendto "TEST-13 APPEND 1"
+test13d .dw test13d - test13c   ; @BT 04 00
+        .dw test13b-test13a     ; @BT 00 00
+@child1:
+@child2:
+        .dw test13d@child2 - @child1 ; @BT 00 00
+test13e:
+@child1:
+@child2:
+        .dw test13e@child{1+1} - test13e@child1 ; @BT 00 00
+        .dw @child{2-1+1} - test13c@childA      ; @BT 06 00
+        .dw test13f@childA - test13f            ; @BT 01 00
+        .dsb startend-start, 3  ; @BT 03 03 03 03 03 03
+        .dsb test1end-test1, 0  ; @BT 00 00 00
+test13f:.db 1                   ; @BT 01
+@childA
+        .dw @childA - test13f + 1 ; @BT 02 00
+        .dw 1 + @childA - test13f ; @BT 02 00
+        .dw @childA + 1 - test13f ; @BT 02 00
+        .db "<13"               ; @BT END
         .ends
         
