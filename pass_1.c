@@ -54,7 +54,7 @@ int g_section_status = OFF, g_section_id = 1, g_line_count_status = ON;
 int g_parsed_int, g_source_pointer, g_ind, g_inz, g_ifdef = 0, g_slots_amount = 0, g_skip_elifs[256];
 int g_memorymap_defined = 0;
 int g_defaultslot_defined = 0, g_defaultslot, g_current_slot = 0;
-int g_banksize_defined = 0, g_banksize;
+int g_banksize_defined = 0, g_banksize = 0;
 int g_rombankmap_defined = 0, *g_banks = NULL, *g_bankaddress = NULL;
 int g_bankheader_status = OFF;
 int g_macro_active = 0;

@@ -2466,7 +2466,7 @@ int write_library_file(void) {
 
 int show_project_information_object(void) {
 
-  int total_used_ram = 0, total_used_rom = 0, i, printed_something;
+  int total_used_ram = 0, total_used_rom = 0, i, printed_something, total_rom_size = 0;
   struct section_def *s;
   float f;
     
@@ -2493,10 +2493,12 @@ int show_project_information_object(void) {
   printf("-------------------------------------------------\n");
 
   for (i = 0; i < g_rombanks; i++) {  
-    int bank_address = g_banksize * i, j, used_rom = 0, found_block, block_start, used_sections = 0;
+    int bank_address = g_bankaddress[i], j, used_rom = 0, found_block, block_start, used_sections = 0, bank_size = g_banks[i];
 
+    total_rom_size += bank_size;
+    
     /* calculate ROM usage (this bank) */
-    for (j = 0; j < g_banksize; j++) {
+    for (j = 0; j < bank_size; j++) {
       if (g_rom_banks_usage_table[bank_address + j] > 0) {
         used_rom++;
         total_used_rom++;
@@ -2522,7 +2524,7 @@ int show_project_information_object(void) {
     if (used_rom == 0)
       continue;
 
-    f = ((float)used_rom)/g_banksize * 100.0f;
+    f = ((float)used_rom)/bank_size * 100.0f;
     printf("ROM bank %d (%d bytes (%.2f%%) used)\n", i, used_rom, f);
     printf("  - Outside .SECTIONs (%d bytes)\n", used_rom - used_sections);
 
@@ -2530,7 +2532,7 @@ int show_project_information_object(void) {
     block_start = 0;
     printed_something = NO;
     
-    for (j = 0; j < g_banksize; j++) {
+    for (j = 0; j < bank_size; j++) {
       if (g_rom_banks_usage_table[bank_address + j] != 0 && found_block == NO) {
         found_block = YES;
         block_start = j;
@@ -2540,8 +2542,8 @@ int show_project_information_object(void) {
         printed_something = YES;
         found_block = NO;
       }
-      else if (found_block == YES && j == g_banksize - 1) {
-        printf("    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j - 1, j - block_start);
+      else if (found_block == YES && j == bank_size - 1) {
+        printf("    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j, j - block_start + 1);
         printed_something = YES;
       }
     }
@@ -2632,7 +2634,7 @@ int show_project_information_object(void) {
   printf("---                 SUMMARY                   ---\n");
   printf("-------------------------------------------------\n");
 
-  f = ((float)total_used_rom)/(g_rombanks * g_banksize) * 100.0f;
+  f = ((float)total_used_rom)/total_rom_size * 100.0f;
   printf("ROM: %d bytes (%.2f%%) used.\n", total_used_rom, f);
   
   if (total_used_ram == 0)
@@ -2665,12 +2667,15 @@ int show_project_information_object(void) {
 
 int show_project_information_library(void) {
 
-  int total_used_ram = 0, total_used_rom = 0;
+  int total_used_ram = 0, total_used_rom = 0, total_rom_size = 0, i;
   struct section_def *s;
   float f;
 
   fflush(stderr);
   fflush(stdout);
+
+  for (i = 0; i < g_rombanks; i++)
+    total_rom_size += g_banks[i];
 
   s = g_sections_first;
   while (s != NULL) {
@@ -2726,8 +2731,8 @@ int show_project_information_library(void) {
   printf("---                 SUMMARY                   ---\n");
   printf("-------------------------------------------------\n");
 
-  f = ((float)total_used_rom)/(g_rombanks * g_banksize) * 100.0f;
-  printf("ROM: %d bytes (%.2f%%) used of total %d.\n", total_used_rom, f, g_rombanks * g_banksize);
+  f = ((float)total_used_rom)/total_rom_size * 100.0f;
+  printf("ROM: %d bytes (%.2f%%) used of total %d.\n", total_used_rom, f, total_rom_size);
 
   if (total_used_ram == 0)
     printf("RAM: No .RAMSECTIONs were found, no information about RAM.\n");
