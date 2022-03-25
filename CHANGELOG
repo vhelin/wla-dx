@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.2 (25-Mar-2022) [ALL] Added SIZE to .RAMSECTION.
+v10.2 (26-Mar-2022) [ALL] Added SIZE to .RAMSECTION.
                     [ALL] If SIZE is used with a .SECTION or .RAMSECTION and
                       the section doesn't fit into it, we now issue an error
                       instead of a warning.
@@ -16,6 +16,8 @@ v10.2 (25-Mar-2022) [ALL] Added SIZE to .RAMSECTION.
                       the verbose summary ROM information was not fully working.
                     [651] Removed wla-6510 as wla-6502 can be used for 6510.
                     [650] Added undocumented opcodes to wla-6502.
+                    [GB ] It's now possible to set the number of ROM banks to
+                      any value between 1 and 512.
 
 v10.1 (19-Feb-2022) [ALL] Arguments to .SECTION and .RAMSECTION can be now
                       given in any order, only the first argument must be the

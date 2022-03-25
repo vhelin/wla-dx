@@ -5702,12 +5702,11 @@ int directive_rombanks(void) {
   }
 
 #ifdef GB
-  if (g_parsed_int != 2 && g_parsed_int != 4 && g_parsed_int != 8 && g_parsed_int != 16 && g_parsed_int != 32 && g_parsed_int != 64 &&
-      g_parsed_int != 128 && g_parsed_int != 256 && g_parsed_int != 512 && g_parsed_int != 72 && g_parsed_int != 80 && g_parsed_int != 96) {
-    print_error(ERROR_DIR, "Unsupported amount of ROM banks.\n");
+  if (g_parsed_int > 512) {
+    print_error(ERROR_DIR, "The number (%d) of ROMBANKS is out of range [1, 512].\n", g_parsed_int);
     return FAILED;
   }
-
+  
   if (g_parsed_int == 2)
     g_romtype = 0;
   else if (g_parsed_int == 4)
@@ -5720,18 +5719,45 @@ int directive_rombanks(void) {
     g_romtype = 4;
   else if (g_parsed_int == 64)
     g_romtype = 5;
-  else if (g_parsed_int == 128)
-    g_romtype = 6;
-  else if (g_parsed_int == 256)
-    g_romtype = 7;
-  else if (g_parsed_int == 512)
-    g_romtype = 8;
   else if (g_parsed_int == 72)
     g_romtype = 0x52;
   else if (g_parsed_int == 80)
     g_romtype = 0x53;
   else if (g_parsed_int == 96)
     g_romtype = 0x54;
+  else if (g_parsed_int == 128)
+    g_romtype = 6;
+  else if (g_parsed_int == 256)
+    g_romtype = 7;
+  else if (g_parsed_int == 512)
+    g_romtype = 8;
+  else {
+    if (g_parsed_int <= 2)
+      g_romtype = 0;
+    else if (g_parsed_int <= 4)
+      g_romtype = 1;
+    else if (g_parsed_int <= 8)
+      g_romtype = 2;
+    else if (g_parsed_int <= 16)
+      g_romtype = 3;
+    else if (g_parsed_int <= 32)
+      g_romtype = 4;
+    else if (g_parsed_int <= 64)
+      g_romtype = 5;
+    else if (g_parsed_int <= 72)
+      g_romtype = 0x52;
+    else if (g_parsed_int <= 80)
+      g_romtype = 0x53;
+    else if (g_parsed_int <= 96)
+      g_romtype = 0x54;
+    else if (g_parsed_int <= 128)
+      g_romtype = 6;
+    else if (g_parsed_int <= 256)
+      g_romtype = 7;
+    else if (g_parsed_int <= 512)
+      g_romtype = 8;
+    print_error(ERROR_WRN, "The number of ROM banks (%d) is not officially supported. Setting ROM size indicator byte at $0148 to %X...\n", g_parsed_int, g_romtype);
+  }
 #endif
 
   /* check that the old bank map (smaller) and the new one equal as much as they can */
@@ -6006,9 +6032,8 @@ int directive_rombankmap(void) {
   }
 
 #ifdef GB
-  if (b != 2 && b != 4 && b != 8 && b != 16 && b != 32 && b != 64 &&
-      b != 128 && b != 256 && b != 512 && b != 72 && b != 80 && b != 96) {
-    print_error(ERROR_DIR, "Unsupported amount of ROM banks.\n");
+  if (b > 512) {
+    print_error(ERROR_DIR, "The number (%d) of ROMBANKS is out of range [1, 512].\n", b);
     return FAILED;
   }
 
@@ -6024,18 +6049,45 @@ int directive_rombankmap(void) {
     g_romtype = 4;
   else if (b == 64)
     g_romtype = 5;
-  else if (b == 128)
-    g_romtype = 6;
-  else if (b == 256)
-    g_romtype = 7;
-  else if (b == 512)
-    g_romtype = 8;
   else if (b == 72)
     g_romtype = 0x52;
   else if (b == 80)
     g_romtype = 0x53;
   else if (b == 96)
     g_romtype = 0x54;
+  else if (b == 128)
+    g_romtype = 6;
+  else if (b == 256)
+    g_romtype = 7;
+  else if (b == 512)
+    g_romtype = 8;
+  else {
+    if (b <= 2)
+      g_romtype = 0;
+    else if (b <= 4)
+      g_romtype = 1;
+    else if (b <= 8)
+      g_romtype = 2;
+    else if (b <= 16)
+      g_romtype = 3;
+    else if (b <= 32)
+      g_romtype = 4;
+    else if (b <= 64)
+      g_romtype = 5;
+    else if (b <= 72)
+      g_romtype = 0x52;
+    else if (b <= 80)
+      g_romtype = 0x53;
+    else if (b <= 96)
+      g_romtype = 0x54;
+    else if (b <= 128)
+      g_romtype = 6;
+    else if (b <= 256)
+      g_romtype = 7;
+    else if (b <= 512)
+      g_romtype = 8;
+    print_error(ERROR_WRN, "The number of ROM banks (%d) is not officially supported. Setting ROM size indicator byte at $0148 to %X...\n", b, g_romtype);
+  }
 #endif
 
   if (g_rombanks_defined != 0) {
