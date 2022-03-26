@@ -14,7 +14,7 @@
 
 
 #ifdef GB
-extern int g_licenseecodeold;
+extern int g_licenseecodeold, g_romsize, g_romsize_defined;
 extern int g_nintendologo_defined;
 extern int g_name_defined, g_licenseecodeold_defined, g_licenseecodenew_defined;
 extern int g_countrycode, g_countrycode_defined;
@@ -362,15 +362,73 @@ int pass_2(void) {
     
     if (g_rambanks_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB RAM banks");
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB RAM size");
 
       mem_insert_absolute(329, g_rambanks);
     }
-    if (g_rombanks_defined != 0) {
-      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM banks");
+    if (g_rombanks_defined != 0 && g_romsize_defined != 0) {
+      int romsize = g_romsize;
 
-      mem_insert_absolute(328, g_romtype);
+      if (romsize < 0) {
+        int b = g_rombanks;
+
+        if (b == 2)
+          romsize = 0;
+        else if (b == 4)
+          romsize = 1;
+        else if (b == 8)
+          romsize = 2;
+        else if (b == 16)
+          romsize = 3;
+        else if (b == 32)
+          romsize = 4;
+        else if (b == 64)
+          romsize = 5;
+        else if (b == 72)
+          romsize = 0x52;
+        else if (b == 80)
+          romsize = 0x53;
+        else if (b == 96)
+          romsize = 0x54;
+        else if (b == 128)
+          romsize = 6;
+        else if (b == 256)
+          romsize = 7;
+        else if (b == 512)
+          romsize = 8;
+        else {
+          if (b <= 2)
+            romsize = 0;
+          else if (b <= 4)
+            romsize = 1;
+          else if (b <= 8)
+            romsize = 2;
+          else if (b <= 16)
+            romsize = 3;
+          else if (b <= 32)
+            romsize = 4;
+          else if (b <= 64)
+            romsize = 5;
+          else if (b <= 72)
+            romsize = 0x52;
+          else if (b <= 80)
+            romsize = 0x53;
+          else if (b <= 96)
+            romsize = 0x54;
+          else if (b <= 128)
+            romsize = 6;
+          else if (b <= 256)
+            romsize = 7;
+          else /* if (b <= 512) */
+            romsize = 8;
+          fprintf(stderr, "WARNING: The number of ROM banks (%d) is not officially supported. Setting ROM size indicator byte at $0148 to %X...\n", b, romsize);
+        }
+      }
+      
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM size");
+
+      mem_insert_absolute(328, romsize);
     }
     if (g_cartridgetype_defined != 0) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */

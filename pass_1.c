@@ -26,7 +26,7 @@ char g_licenseecodenew_c1, g_licenseecodenew_c2;
 int g_gbheader_defined = 0;
 int g_nintendologo_defined = 0;
 int g_computechecksum_defined = 0, g_computecomplementcheck_defined = 0;
-int g_romgbc = 0, g_romdmg = 0, g_romsgb = 0;
+int g_romgbc = 0, g_romdmg = 0, g_romsgb = 0, g_romsize = 0, g_romsize_defined = 0;
 int g_cartridgetype = 0, g_cartridgetype_defined = 0;
 int g_countrycode = 0, g_countrycode_defined = 0;
 int g_licenseecodenew_defined = 0, g_licenseecodeold = 0, g_licenseecodeold_defined = 0;
@@ -47,7 +47,7 @@ int g_smsforcechecksum = 0, g_smsforcechecksum_defined = 0, g_smschecksumsize = 
 int g_org_defined = 1, g_background_defined = 0;
 int g_enumid_defined = 0, g_enumid = 0, g_enumid_adder = 1, g_enumid_export = 0;
 int g_bank = 0, g_bank_defined = 1;
-int g_rombanks = 0, g_rombanks_defined = 0, g_romtype = 0, g_max_address = 0;
+int g_rombanks = 0, g_rombanks_defined = 0, g_max_address = 0;
 int g_rambanks = 0, g_rambanks_defined = 0;
 int g_emptyfill, g_emptyfill_defined = 0;
 int g_section_status = OFF, g_section_id = 1, g_line_count_status = ON;
@@ -3334,10 +3334,11 @@ int directive_dsl(void) {
     return FAILED;
   }
 
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+
   if (q == SUCCEEDED)
     fprintf(g_file_out_ptr, "h%d %d ", parsed_int, g_parsed_int);
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
-    fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
     for (q = 0; q < parsed_int; q++)
       fprintf(g_file_out_ptr, "q%s ", g_label);
   }
@@ -4011,10 +4012,11 @@ int directive_dsb_ds(void) {
     return FAILED;
   }
 
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+
   if (q == SUCCEEDED)
     fprintf(g_file_out_ptr, "x%d %d ", parsed_int, g_parsed_int);
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
-    fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
     for (q = 0; q < parsed_int; q++)
       fprintf(g_file_out_ptr, "R%s ", g_label);
   }
@@ -4059,10 +4061,11 @@ int directive_dsw(void) {
     return FAILED;
   }
 
+  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+
   if (q == SUCCEEDED)
     fprintf(g_file_out_ptr, "X%d %d ", parsed_int, g_parsed_int);
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
-    fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
     for (q = 0; q < parsed_int; q++)
       fprintf(g_file_out_ptr, "r%s ", g_label);
   }
@@ -5701,65 +5704,6 @@ int directive_rombanks(void) {
     return FAILED;
   }
 
-#ifdef GB
-  if (g_parsed_int > 512) {
-    print_error(ERROR_DIR, "The number (%d) of ROMBANKS is out of range [1, 512].\n", g_parsed_int);
-    return FAILED;
-  }
-  
-  if (g_parsed_int == 2)
-    g_romtype = 0;
-  else if (g_parsed_int == 4)
-    g_romtype = 1;
-  else if (g_parsed_int == 8)
-    g_romtype = 2;
-  else if (g_parsed_int == 16)
-    g_romtype = 3;
-  else if (g_parsed_int == 32)
-    g_romtype = 4;
-  else if (g_parsed_int == 64)
-    g_romtype = 5;
-  else if (g_parsed_int == 72)
-    g_romtype = 0x52;
-  else if (g_parsed_int == 80)
-    g_romtype = 0x53;
-  else if (g_parsed_int == 96)
-    g_romtype = 0x54;
-  else if (g_parsed_int == 128)
-    g_romtype = 6;
-  else if (g_parsed_int == 256)
-    g_romtype = 7;
-  else if (g_parsed_int == 512)
-    g_romtype = 8;
-  else {
-    if (g_parsed_int <= 2)
-      g_romtype = 0;
-    else if (g_parsed_int <= 4)
-      g_romtype = 1;
-    else if (g_parsed_int <= 8)
-      g_romtype = 2;
-    else if (g_parsed_int <= 16)
-      g_romtype = 3;
-    else if (g_parsed_int <= 32)
-      g_romtype = 4;
-    else if (g_parsed_int <= 64)
-      g_romtype = 5;
-    else if (g_parsed_int <= 72)
-      g_romtype = 0x52;
-    else if (g_parsed_int <= 80)
-      g_romtype = 0x53;
-    else if (g_parsed_int <= 96)
-      g_romtype = 0x54;
-    else if (g_parsed_int <= 128)
-      g_romtype = 6;
-    else if (g_parsed_int <= 256)
-      g_romtype = 7;
-    else if (g_parsed_int <= 512)
-      g_romtype = 8;
-    print_error(ERROR_WRN, "The number of ROM banks (%d) is not officially supported. Setting ROM size indicator byte at $0148 to %X...\n", g_parsed_int, g_romtype);
-  }
-#endif
-
   /* check that the old bank map (smaller) and the new one equal as much as they can */
   if (g_rombanks_defined != 0) {
     int bank;
@@ -6031,69 +5975,9 @@ int directive_rombankmap(void) {
     return FAILED;      
   }
 
-#ifdef GB
-  if (b > 512) {
-    print_error(ERROR_DIR, "The number (%d) of ROMBANKS is out of range [1, 512].\n", b);
-    return FAILED;
-  }
-
-  if (b == 2)
-    g_romtype = 0;
-  else if (b == 4)
-    g_romtype = 1;
-  else if (b == 8)
-    g_romtype = 2;
-  else if (b == 16)
-    g_romtype = 3;
-  else if (b == 32)
-    g_romtype = 4;
-  else if (b == 64)
-    g_romtype = 5;
-  else if (b == 72)
-    g_romtype = 0x52;
-  else if (b == 80)
-    g_romtype = 0x53;
-  else if (b == 96)
-    g_romtype = 0x54;
-  else if (b == 128)
-    g_romtype = 6;
-  else if (b == 256)
-    g_romtype = 7;
-  else if (b == 512)
-    g_romtype = 8;
-  else {
-    if (b <= 2)
-      g_romtype = 0;
-    else if (b <= 4)
-      g_romtype = 1;
-    else if (b <= 8)
-      g_romtype = 2;
-    else if (b <= 16)
-      g_romtype = 3;
-    else if (b <= 32)
-      g_romtype = 4;
-    else if (b <= 64)
-      g_romtype = 5;
-    else if (b <= 72)
-      g_romtype = 0x52;
-    else if (b <= 80)
-      g_romtype = 0x53;
-    else if (b <= 96)
-      g_romtype = 0x54;
-    else if (b <= 128)
-      g_romtype = 6;
-    else if (b <= 256)
-      g_romtype = 7;
-    else if (b <= 512)
-      g_romtype = 8;
-    print_error(ERROR_WRN, "The number of ROM banks (%d) is not officially supported. Setting ROM size indicator byte at $0148 to %X...\n", b, g_romtype);
-  }
-#endif
-
   if (g_rombanks_defined != 0) {
-    if (b > g_rombanks) {
+    if (b > g_rombanks)
       print_error(ERROR_WRN, "Upgrading from %d to %d ROM banks.\n", g_rombanks, b);
-    }
     else
       return SUCCEEDED;
   }
@@ -6636,6 +6520,28 @@ int directive_gbheader(void) {
       }
       else
         return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "ROMSIZE") == 0) {
+      int number_result = input_number();
+
+      if (number_result == INPUT_NUMBER_EOL) {
+        next_line();
+        g_parsed_int = -1;
+      }
+      else if (number_result == SUCCEEDED && (g_parsed_int < -128 || g_parsed_int > 255)) {
+        print_error(ERROR_DIR, "ROMSIZE needs a 8-bit value, got %d.\n", g_parsed_int);
+        return FAILED;
+      }
+      else if (number_result != SUCCEEDED)
+        return FAILED;
+      
+      if (g_romsize_defined != 0 && g_romsize != g_parsed_int) {
+        print_error(ERROR_DIR, "ROMSIZE was defined for the second time.\n");
+        return FAILED;
+      }
+
+      g_romsize = g_parsed_int;
+      g_romsize_defined = 1;
     }
     else if (strcaselesscmp(g_tmp, "COUNTRYCODE") == 0) {
       int number_result = input_number();
@@ -10633,7 +10539,7 @@ int parse_directive(void) {
 
       if (q == FAILED)
         return FAILED;
-      if (q != SUCCEEDED || q < 0) {
+      if (q != SUCCEEDED || g_parsed_int < 0) {
         print_error(ERROR_DIR, ".RAMSIZE needs a non-negative value.\n");
         return FAILED;
       }
@@ -10655,6 +10561,36 @@ int parse_directive(void) {
 
       return SUCCEEDED;
     }
+
+    /* ROMSIZE */
+    if (strcmp(directive_upper, "ROMSIZE") == 0) {
+      no_library_files(".ROMSIZE");
+
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      else if (q == INPUT_NUMBER_EOL) {
+        next_line();
+        g_parsed_int = -1;
+      }
+      else if (q != SUCCEEDED || g_parsed_int < 0) {
+        print_error(ERROR_DIR, ".ROMSIZE needs a non-negative value.\n");
+        return FAILED;
+      }
+
+      if (g_romsize_defined != 0) {
+        if (g_romsize != g_parsed_int) {
+          print_error(ERROR_DIR, ".ROMSIZE was defined for the second time.\n");
+          return FAILED;
+        }
+      }
+
+      g_romsize = g_parsed_int;
+      g_romsize_defined = 1;
+
+      return SUCCEEDED;
+    }    
 
     /* ROMGBC */
     if (strcmp(directive_upper, "ROMGBC") == 0) {

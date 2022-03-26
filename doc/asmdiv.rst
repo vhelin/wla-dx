@@ -63,6 +63,7 @@ GB   ``.ROMDMG``
 GB   ``.ROMGBC``
 GB   ``.ROMGBCONLY``
 GB   ``.ROMSGB``
+GB   ``.ROMSIZE 1``
 658  ``.SLOWROM``
 658  ``.SMC``
 Z80  ``.SMSHEADER``
@@ -1672,6 +1673,7 @@ Here's an example::
         LICENSEECODENEW "HI"  ; identical to a freestanding .LICENSEECODENEW.
         CARTRIDGETYPE $00     ; identical to a freestanding .CARTRIDGETYPE.
         RAMSIZE $09           ; identical to a freestanding .RAMSIZE.
+        ROMSIZE               ; identical to a freestanding .ROMSIZE.
         COUNTRYCODE $01       ; identical to a freestanding .COUNTRYCODE/DESTINATIONCODE.
         DESTINATIONCODE $01   ; identical to a freestanding .DESTINATIONCODE/COUNTRYCODE.
         NINTENDOLOGO          ; identical to a freestanding .NINTENDOLOGO.
@@ -2724,9 +2726,7 @@ way you can enlarge the size of the project on the fly.
 ``.ROMBANKS 2``
 ---------------
 
-Indicates the size of the ROM in rombanks. This value is converted to a
-standard Gameboy ROM size indicator value found at ``$148`` in a Gameboy ROM,
-and there this one is put into.
+Indicates the size of the ROM in rombanks.
 
 This is a compulsory directive unless ``.ROMBANKMAP`` is defined.
 
@@ -2779,6 +2779,16 @@ Inserts data into the specific ROM location to mark the ROM as a Super
 Gameboy enhanced ROM (``$03`` -> ``$0146``).
 
 This is not a compulsory directive. ``.ROMSGB`` cannot be used with ``.ROMDMG``.
+
+
+``.ROMSIZE 1``
+--------------
+
+This is a standard Gameboy ROM size indicator value found at ``$148`` in a
+Gameboy ROM, and there this one is put to also. If you don't specify a value
+then WLA-GB tries to calculate it based on ``.ROMBANKS`` / ``.ROMBANKMAP``.
+
+This is not a compulsory directive.
 
 
 ``.ROW $ff00, 1, "3"``
