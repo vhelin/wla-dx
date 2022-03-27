@@ -24,7 +24,7 @@ extern struct active_file_info *g_active_file_info_first, *g_active_file_info_la
 extern struct macro_runtime *g_macro_runtime_current;
 extern struct section_def *g_sec_tmp;
 extern double g_parsed_double;
-extern int g_operand_hint, g_operand_hint_type;
+extern int g_operand_hint, g_operand_hint_type, g_can_calculate_a_minus_b;
 
 int g_latest_stack = 0, g_stacks_inside = 0, g_stacks_outside = 0, g_stack_id = 0;
 struct stack *g_stacks_first = NULL, *g_stacks_tmp = NULL, *g_stacks_last = NULL;
@@ -1359,7 +1359,7 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
       s->value = g_tmp_def->value;
     }
   }
-  else {
+  else if (g_can_calculate_a_minus_b == YES) {
     if (g_is_calculating_deltas == YES) {
       /* the current calculation we are trying to solve contains at least one label pair A-B, and no other
          uses of labels. if we come here then a label wasn't a definition, but we can try to find the label's

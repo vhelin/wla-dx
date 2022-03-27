@@ -4,6 +4,8 @@
 ----------------------------------------------------------------------------------------------------
 
 v10.2 (27-Mar-2022) [ALL] Added SIZE to .RAMSECTION.
+                    [ALL] Added -d to disable WLA's ability to calculate A-B
+                      where A and B are labels.
                     [ALL] If SIZE is used with a .SECTION or .RAMSECTION and
                       the section doesn't fit into it, we now issue an error
                       instead of a warning.
