@@ -138,6 +138,8 @@ int add_section(struct section *s) {
       ss = ss->next;
     }
 
+    s->is_bankheader_section = YES;
+
     if (g_sec_bankhd_first == NULL) {
       g_sec_bankhd_first = s;
       g_sec_bankhd_last = s;
@@ -149,6 +151,8 @@ int add_section(struct section *s) {
     }
   }
   else {
+    s->is_bankheader_section = NO;
+
     if (g_sec_first == NULL) {
       g_sec_first = s;
       g_sec_last = s;

@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.2 (26-Mar-2022) [ALL] Added SIZE to .RAMSECTION.
+v10.2 (27-Mar-2022) [ALL] Added SIZE to .RAMSECTION.
                     [ALL] If SIZE is used with a .SECTION or .RAMSECTION and
                       the section doesn't fit into it, we now issue an error
                       instead of a warning.
@@ -14,6 +14,8 @@ v10.2 (26-Mar-2022) [ALL] Added SIZE to .RAMSECTION.
                       macro names, definitions, etc. can all be UTF-8).
                     [ALL] When .ROMBANKMAP had ROM banks of different sizes,
                       the verbose summary's ROM information was not fully working.
+                    [ALL] Memory overwrite messages should now have working
+                      line numbers in all cases.
                     [651] Removed wla-6510 as wla-6502 can be used for 6510.
                     [650] Added undocumented opcodes to wla-6502.
                     [GB ] It's now possible to set the number of ROM banks to
@@ -1356,11 +1358,15 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.17 (02-Mar-2011) Added SIZE to [sections] and [ramsections].
+v5.17 (27-Mar-2011) Added SIZE to [sections] and [ramsections].
                     Added -R (file paths inside link file are relative to
                       linkfile's location).
                     WLALINK's summary is now printed to stdout instead of
-                       stderr.
+                      stderr.
+                    WLALINK didn't print verbose mode's summary at the end if
+                      listfile writing was enabled, but there was no listfile
+                      data.
+                    Bankheader sections now have listfile data.
 
 v5.16 (19-Feb-2021) Added support for WINDOW and BITWINDOW in .SECTION and
                       .RAMSECTION.

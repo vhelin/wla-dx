@@ -14,15 +14,17 @@
 .ORG 0
 
 .SECTION "BANKHEADER"
-	.DW	MAIN
+        .DW     MAIN            ; 07 00
+        .DB     1+2+3           ; 06
+        .DW     MAIN+1          ; 08 00
 .ENDS
 
 
 
 .SECTION "Beginning"
 
-MAIN:	NOP
-	JP	MORE_ACTION
+MAIN:   NOP
+        JP      MORE_ACTION
 .ENDS
 
 
@@ -30,9 +32,9 @@ MAIN:	NOP
 .SECTION "Action"
 
 MORE_ACTION:
-	EXX
-	DEC	A
-	JR	NC, MORE_ACTION
-	JP	MORE_ACTION
+        EXX
+        DEC     A
+        JR      NC, MORE_ACTION
+        JP      MORE_ACTION
 
 .ENDS

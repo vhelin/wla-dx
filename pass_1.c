@@ -1568,12 +1568,10 @@ void next_line(void) {
   if (g_active_file_info_last == NULL)
     return;
 
-  /* output the file number for list file structure building */
-  if (g_listfile_data == YES)
-    fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
-
-  if (g_active_file_info_last != NULL)
+  if (g_active_file_info_last != NULL) {
     g_active_file_info_last->line_current++;
+    fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
+  }
 }
 
 
@@ -1809,9 +1807,8 @@ int parse_enum_token(void) {
   
   /* check for "if" directives (the only directives permitted in an enum/ramsection) */
   if (g_tmp[0] == '.') {
-    if ((q = parse_if_directive()) != -1) {
+    if ((q = parse_if_directive()) != -1)
       return q;
-    }
   }
 
   if (strcaselesscmp(g_tmp, ".UNION") == 0) {
@@ -2840,8 +2837,6 @@ int directive_db_byt_byte(void) {
   char bak[256];
   int i, char_index, number_result;
 
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
-
   strcpy(bak, g_current_directive);
 
   number_result = input_number();
@@ -2900,8 +2895,6 @@ int directive_hex(void) {
 
   int i, o, nybble_1 = 0, nybble_2 = 0, error, number_result;
 
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
-
   number_result = input_number();
   for (i = 0; number_result == INPUT_NUMBER_STRING; i++) {
     if ((g_string_size & 1) == 1) {
@@ -2957,8 +2950,6 @@ int directive_hex(void) {
 int directive_bits(void) {
 
   int bits, q;
-
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   q = input_number();
 
@@ -3225,8 +3216,6 @@ int directive_dw_word_addr(void) {
   int i, number_result;
   char bak[256];
 
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
-
   strcpy(bak, g_current_directive);
 
   number_result = input_number();
@@ -3265,8 +3254,6 @@ int directive_dl_long_faraddr(void) {
 
   int i, number_result;
   char bak[256];
-
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   strcpy(bak, g_current_directive);
 
@@ -3334,8 +3321,6 @@ int directive_dsl(void) {
     return FAILED;
   }
 
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
-
   if (q == SUCCEEDED)
     fprintf(g_file_out_ptr, "h%d %d ", parsed_int, g_parsed_int);
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
@@ -3355,8 +3340,6 @@ int directive_dd(void) {
 
   int i, number_result;
   char bak[256];
-
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   strcpy(bak, g_current_directive);
 
@@ -3431,7 +3414,6 @@ int directive_dsd(void) {
   if (q == SUCCEEDED)
     fprintf(g_file_out_ptr, "w%d %d ", parsed_int, g_parsed_int);
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
-    fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
     for (q = 0; q < parsed_int; q++)
       fprintf(g_file_out_ptr, "V%s ", g_label);
   }
@@ -4012,8 +3994,6 @@ int directive_dsb_ds(void) {
     return FAILED;
   }
 
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
-
   if (q == SUCCEEDED)
     fprintf(g_file_out_ptr, "x%d %d ", parsed_int, g_parsed_int);
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
@@ -4060,8 +4040,6 @@ int directive_dsw(void) {
     print_error(ERROR_DIR, ".DSW expects 16-bit data, %d is out of range!\n", g_parsed_int);
     return FAILED;
   }
-
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   if (q == SUCCEEDED)
     fprintf(g_file_out_ptr, "X%d %d ", parsed_int, g_parsed_int);
@@ -4354,8 +4332,6 @@ int directive_ramsection(void) {
 
   int q, current_slot_address;
       
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
-
   if (g_section_status == ON) {
     print_error(ERROR_DIR, "There is already an open section called \"%s\".\n", g_sections_last->name);
     return FAILED;
@@ -4796,8 +4772,6 @@ int directive_ramsection(void) {
 int directive_section(void) {
   
   int l;
-
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   if (g_dstruct_status == ON) {
     print_error(ERROR_DIR, "You can't set the section inside .DSTRUCT.\n");
@@ -5557,7 +5531,6 @@ int directive_block(void) {
   
   g_block_status++;
 
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
   fprintf(g_file_out_ptr, "g%d ", b->id);
 
   return SUCCEEDED;
@@ -6675,8 +6648,6 @@ int directive_arraydef_arraydefine(void) {
   struct array *arr;
   int q;
 
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
-
   strcpy(bak, g_current_directive);
 
   /* skip NAME if present */
@@ -6722,8 +6693,6 @@ int directive_arrayin(void) {
   struct array *arr;
   int index, value, q;
   
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
-
   /* skip NAME if present */
   if (compare_next_token("NAME") == SUCCEEDED)
     skip_next_token();
@@ -6808,8 +6777,6 @@ int directive_arrayout(void) {
   struct array *arr;
   int index, q;
   
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
-
   /* skip NAME if present */
   if (compare_next_token("NAME") == SUCCEEDED)
     skip_next_token();
@@ -6868,8 +6835,6 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
   struct array *arr;
   int index = 0, q, i = 0, data_size;
   char bak[256];
-
-  fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
 
   strcpy(bak, g_current_directive);
 

@@ -291,9 +291,9 @@ int listfile_collect(void) {
         add = 0;
         skip = 0;
 
-        /* add line number */
+        /* add line number - NOTE: this 'k' terminates the list file item on the previous line, thus -1 */
         section->listfile_cmds[command] = 'k';
-        section->listfile_ints[command*3 + 0] = line_number;
+        section->listfile_ints[command*3 + 0] = line_number-1;
         command++;
       }
       continue;

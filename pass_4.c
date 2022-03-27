@@ -418,7 +418,7 @@ int pass_4(void) {
       fscanf(g_file_out_ptr, "%d %d", &ind, &x);
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing DSB data", get_file_name(g_filename_id), g_line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .DSB data", get_file_name(g_filename_id), g_line_number);
 
       if (ind < 0) { /* going backward */
         if (g_section_status == ON)
@@ -452,7 +452,7 @@ int pass_4(void) {
       inz = (inz >> 8) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing DSW data", get_file_name(g_filename_id), g_line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .DSW data", get_file_name(g_filename_id), g_line_number);
 
       while (ind > 0) {
         if (g_little_endian == YES) {
@@ -479,7 +479,7 @@ int pass_4(void) {
       inz = (inz >> 16) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing DSL data", get_file_name(g_filename_id), g_line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .DSL data", get_file_name(g_filename_id), g_line_number);
 
       while (ind > 0) {
         if (g_little_endian == YES) {
@@ -511,7 +511,7 @@ int pass_4(void) {
       inz = (inz >> 24) & 0xFF;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing DSD data", get_file_name(g_filename_id), g_line_number);
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .DSD data", get_file_name(g_filename_id), g_line_number);
 
       while (ind > 0) {
         if (g_little_endian == YES) {

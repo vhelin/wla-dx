@@ -56,15 +56,15 @@ static int _listfile_sort(const void *a, const void *b) {
 }
 
 
-int listfile_write_listfiles(struct section *sections) {
+int listfile_write_listfiles(struct section *sections, struct section *bankheader_sections) {
 
   struct listfileitem *listfileitems = NULL;
   struct section *s, **selected_sections;
   int count, i, j, current_linenumber, m, o, p, source_file_id = -1, add, wrote_line, listfile_item_count = 0, section_count = 0;
   char command, tmp[1024], *source_file, *source_file_name;
 
-  if (sections == NULL)
-    return FAILED;
+  if (sections == NULL && bankheader_sections == NULL)
+    return SUCCEEDED;
 
   /* count the listfile items */
   s = sections;
@@ -79,7 +79,19 @@ int listfile_write_listfiles(struct section *sections) {
 
     s = s->next;
   }
+  s = bankheader_sections;
+  while (s != NULL) {
+    if (s->listfile_items <= 0 || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE ||
+        s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
+    }
+    else {
+      listfile_item_count += s->listfile_items;
+      section_count++;
+    }
 
+    s = s->next;
+  }
+  
   if (listfile_item_count <= 0) {
     /* no listfile data, so we cannot write listfiles... */
     return SUCCEEDED;
@@ -109,6 +121,16 @@ int listfile_write_listfiles(struct section *sections) {
       selected_sections[j++] = s;
 
     s = s->next;
+  }
+  s = bankheader_sections;
+  while (s != NULL) {
+    if (s->listfile_items <= 0 || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE ||
+        s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
+    }
+    else
+      selected_sections[j++] = s;
+
+    s = s->next;
   }  
 
   /* sort them (lexical order) */
@@ -129,19 +151,29 @@ int listfile_write_listfiles(struct section *sections) {
           listfileitems[count].sourcefilename = get_source_file_name(s->file_id, source_file_id);
           listfileitems[count].linenumber = s->listfile_ints[j*3 + 0];
           listfileitems[count].length = s->listfile_ints[j*3 + 1];
+          listfileitems[count].section = s;
           add += s->listfile_ints[j*3 + 2];
           listfileitems[count].address = s->output_address + add;
           add += s->listfile_ints[j*3 + 1];
           count++;
+          /*
+          fprintf(stderr, "LFI: k %s %d %d %x\n", listfileitems[count-1].sourcefilename, listfileitems[count-1].linenumber, listfileitems[count-1].length, listfileitems[count-1].address);
+          */
         }
         else {
           /* skip */
+          /*
+          fprintf(stderr, "LFI: k SKIPPED\n");
+          */
           add += s->listfile_ints[j*3 + 2];
         }
       }
       else if (command == 'f') {
         /* another file */
         source_file_id = s->listfile_ints[j*3 + 0];
+        /*
+        fprintf(stderr, "LFI: f FILE_ID %d\n", source_file_id);
+        */
       }
       else {
         fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", command);
@@ -230,8 +262,14 @@ int listfile_write_listfiles(struct section *sections) {
       wrote_line = NO;
       for (p = 0, o = 0; o < listfileitems[j].length; o++) {
         fprintf(f, "$");
-        _listfile_write_hex(f, g_rom[listfileitems[j].address + o] >> 4);
-        _listfile_write_hex(f, g_rom[listfileitems[j].address + o] & 15);
+        if (listfileitems[j].section != NULL && listfileitems[j].section->is_bankheader_section == YES) {
+          _listfile_write_hex(f, listfileitems[j].section->data[listfileitems[j].address + o] >> 4);
+          _listfile_write_hex(f, listfileitems[j].section->data[listfileitems[j].address + o] & 15);
+        }
+        else {
+          _listfile_write_hex(f, g_rom[listfileitems[j].address + o] >> 4);
+          _listfile_write_hex(f, g_rom[listfileitems[j].address + o] & 15);
+        }
         fprintf(f, " ");
         p += 4;
         if ((o % 10) == 9 && o != 0 && o < listfileitems[j].length-1) {

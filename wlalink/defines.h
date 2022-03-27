@@ -185,6 +185,7 @@ struct section {
   int  *listfile_ints;
   char marked;
   char placed;
+  char is_bankheader_section;
   char *listfile_cmds;
   unsigned char *data;
   struct namespace_def *nspace;

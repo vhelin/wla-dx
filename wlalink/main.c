@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char g_version_string[] = "$VER: wlalink 5.17a (2.3.2022)";
+char g_version_string[] = "$VER: wlalink 5.17a (27.3.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -669,7 +669,7 @@ int main(int argc, char *argv[]) {
 
   /* write list files */
   if (g_listfile_data == YES) {
-    if (listfile_write_listfiles(g_sec_first) == FAILED)
+    if (listfile_write_listfiles(g_sec_first, g_sec_bankhd_first) == FAILED)
       return FAILED;
   }
 

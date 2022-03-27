@@ -1,8 +1,8 @@
 
 CC = $(WLAVALGRIND) wla-z80
-CFLAGS = -o
+CFLAGS = -i -o
 LD = $(WLAVALGRIND) wlalink
-LDFLAGS = -v
+LDFLAGS = -i -S -v
 
 SFILES = setup.s main.s
 IFILES = defines.i
@@ -22,4 +22,4 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	rm -f $(OFILES) core *~ linked.rom
+	rm -f $(OFILES) core *~ linked.rom linked.sym main.lst

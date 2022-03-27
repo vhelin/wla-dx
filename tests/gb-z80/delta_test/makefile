@@ -1,8 +1,8 @@
 
 CC = $(WLAVALGRIND) wla-gb
-CFLAGS = -x -o
+CFLAGS = -i -x -o
 LD = $(WLAVALRGIND) wlalink
-LDFLAGS = -v -s
+LDFLAGS = -i -v -s
 
 SFILES = main.s
 IFILES = 
@@ -23,4 +23,4 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	rm -f $(OFILES) core *~ linked.gb linked.sym
+	rm -f $(OFILES) core *~ linked.gb linked.sym main.lst
