@@ -267,7 +267,15 @@ int listfile_write_listfiles(void) {
         }
         else {
           if (s2 != NULL && s2->appended_to == YES) {
-            int address_new = listfileitems[j].address - s2->output_address + s2->appended_to_section->output_address + s2->appended_to_offset;
+            /* this loop finds the target of possibly chained appendto secions */
+            struct section *s3 = s2->appended_to_section;
+            int address_new = listfileitems[j].address - s2->output_address + s3->output_address + s2->appended_to_offset;
+            while (s3->appended_to == YES) {
+              struct section *s4 = s3->appended_to_section;
+              address_new = address_new - s3->output_address + s4->output_address + s3->appended_to_offset;
+              s3 = s4;
+            }
+            
             _listfile_write_hex(f, g_rom[address_new + o] >> 4);
             _listfile_write_hex(f, g_rom[address_new + o] & 15);
           }

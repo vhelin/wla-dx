@@ -1360,7 +1360,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.17 (27-Mar-2011) Added SIZE to [sections] and [ramsections].
+v5.17 (29-Mar-2011) Added SIZE to [sections] and [ramsections].
                     Added -R (file paths inside link file are relative to
                       linkfile's location).
                     WLALINK's summary is now printed to stdout instead of
@@ -1369,6 +1369,8 @@ v5.17 (27-Mar-2011) Added SIZE to [sections] and [ramsections].
                       listfile writing was enabled, but there was no listfile
                       data.
                     Bankheader sections now have listfile data.
+                    Sections that were appended to other sections have now
+                      listfile data.
 
 v5.16 (19-Feb-2021) Added support for WINDOW and BITWINDOW in .SECTION and
                       .RAMSECTION.

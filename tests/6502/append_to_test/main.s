@@ -53,3 +53,30 @@ label_C .DB 7, 8
         .db 4, 5
         .ends
 
+        /////////////////////////////////////////////////////////////////////////////
+        // TEST 3
+        /////////////////////////////////////////////////////////////////////////////
+
+        .org $200
+
+        .section "S03.05" APPENDTO "S03.04"
+        .db VALUE_10-9, VALUE_10-10
+        .db "<03"
+        .ends
+
+        .section "S03.03" APPENDTO "S03.02"
+        .db VALUE_10-5, VALUE_10-6
+        .ends
+
+        .section "S03.01" KEEP
+        .db "03>"
+        .db VALUE_10-1, VALUE_10-2, 0
+        .ends
+
+        .section "S03.04" APPENDTO "S03.03"
+        .db VALUE_10-7, VALUE_10-8, 0
+        .ends
+
+        .section "S03.02" APPENDTO "S03.01"
+        .db VALUE_10-3, VALUE_10-4
+        .ends
