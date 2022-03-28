@@ -9,7 +9,7 @@
 #include "files.h"
 
 
-/* output */
+extern struct section *g_sec_first, *g_sec_last, *g_sec_bankhd_first, *g_sec_bankhd_last;
 extern unsigned char *g_rom;
 
 
@@ -56,18 +56,15 @@ static int _listfile_sort(const void *a, const void *b) {
 }
 
 
-int listfile_write_listfiles(struct section *sections, struct section *bankheader_sections) {
+int listfile_write_listfiles(void) {
 
   struct listfileitem *listfileitems = NULL;
   struct section *s, **selected_sections;
   int count, i, j, current_linenumber, m, o, p, source_file_id = -1, add, wrote_line, listfile_item_count = 0, section_count = 0;
   char command, tmp[1024], *source_file, *source_file_name;
 
-  if (sections == NULL && bankheader_sections == NULL)
-    return SUCCEEDED;
-
   /* count the listfile items */
-  s = sections;
+  s = g_sec_first;
   while (s != NULL) {
     if (s->listfile_items <= 0 || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE ||
         s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
@@ -79,7 +76,7 @@ int listfile_write_listfiles(struct section *sections, struct section *bankheade
 
     s = s->next;
   }
-  s = bankheader_sections;
+  s = g_sec_bankhd_first;
   while (s != NULL) {
     if (s->listfile_items <= 0 || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE ||
         s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
@@ -112,7 +109,7 @@ int listfile_write_listfiles(struct section *sections, struct section *bankheade
 
   /* collect the valid sections */
   j = 0;
-  s = sections;
+  s = g_sec_first;
   while (s != NULL) {
     if (s->listfile_items <= 0 || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE ||
         s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
@@ -122,7 +119,7 @@ int listfile_write_listfiles(struct section *sections, struct section *bankheade
 
     s = s->next;
   }
-  s = bankheader_sections;
+  s = g_sec_bankhd_first;
   while (s != NULL) {
     if (s->listfile_items <= 0 || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE ||
         s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
@@ -261,14 +258,23 @@ int listfile_write_listfiles(struct section *sections, struct section *bankheade
       /* write the bytes */
       wrote_line = NO;
       for (p = 0, o = 0; o < listfileitems[j].length; o++) {
+        struct section *s2 = listfileitems[j].section;
+        
         fprintf(f, "$");
-        if (listfileitems[j].section != NULL && listfileitems[j].section->is_bankheader_section == YES) {
+        if (s2 != NULL && s2->is_bankheader_section == YES) {
           _listfile_write_hex(f, listfileitems[j].section->data[listfileitems[j].address + o] >> 4);
           _listfile_write_hex(f, listfileitems[j].section->data[listfileitems[j].address + o] & 15);
         }
         else {
-          _listfile_write_hex(f, g_rom[listfileitems[j].address + o] >> 4);
-          _listfile_write_hex(f, g_rom[listfileitems[j].address + o] & 15);
+          if (s2 != NULL && s2->appended_to == YES) {
+            int address_new = listfileitems[j].address - s2->output_address + s2->appended_to_section->output_address + s2->appended_to_offset;
+            _listfile_write_hex(f, g_rom[address_new + o] >> 4);
+            _listfile_write_hex(f, g_rom[address_new + o] & 15);
+          }
+          else {
+            _listfile_write_hex(f, g_rom[listfileitems[j].address + o] >> 4);
+            _listfile_write_hex(f, g_rom[listfileitems[j].address + o] & 15);
+          }
         }
         fprintf(f, " ");
         p += 4;

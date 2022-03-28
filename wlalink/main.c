@@ -669,7 +669,7 @@ int main(int argc, char *argv[]) {
 
   /* write list files */
   if (g_listfile_data == YES) {
-    if (listfile_write_listfiles(g_sec_first, g_sec_bankhd_first) == FAILED)
+    if (listfile_write_listfiles() == FAILED)
       return FAILED;
   }
 

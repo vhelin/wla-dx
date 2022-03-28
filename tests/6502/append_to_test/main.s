@@ -25,7 +25,7 @@ label_B:.DB 3, 4, 5, 6
         .ENDS
 
         .SECTION "SectionD" FREE APPENDTO "SectionA" PRIORITY 6
-label_D:.DB 9, $A, $B, $C, $D
+label_D:.DB 9, VALUE_10, VALUE_10 + 1, $C, $D
         .ENDS
         
         .SECTION "SectionA" FREE PRIORITY 9

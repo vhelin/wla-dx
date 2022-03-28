@@ -127,6 +127,9 @@ int add_section(struct section *s) {
   s->after = NULL;
   s->alive = YES;
   s->placed = NO;
+  s->appended_to = NO;
+  s->appended_to_section = NULL;
+  s->appended_to_offset = 0;
 
   if (strcmp(s->name, "BANKHEADER") == 0) {
     ss = g_sec_bankhd_first;
@@ -1236,8 +1239,9 @@ static int _append_sections(struct section *s_source, struct section *s_target) 
   struct stack *st;
   struct label *l;
   unsigned char *data;
-  int size;
+  int size, offset;
 
+  offset = s_target->size;
   size = s_source->size + s_target->size;
   data = calloc(size, 1);
   if (data == NULL) {
@@ -1306,18 +1310,12 @@ static int _append_sections(struct section *s_source, struct section *s_target) 
       
   /* finalize */
   s_target->size = size;
+  s_source->alive = NO;
 
-  /* kill the appended section */
-  if (g_sec_first == s_source) {
-    g_sec_first = s_source->next;
-    g_sec_first->prev = NULL;
-  }
-  if (g_sec_last == s_source) {
-    g_sec_last = s_source->prev;
-    g_sec_last->next = NULL;
-  }
-      
-  free_section(s_source);
+  /* listfile writer needs the following data */
+  s_source->appended_to = YES;
+  s_source->appended_to_section = s_target;
+  s_source->appended_to_offset = offset;
 
   return SUCCEEDED;
 }  
@@ -1446,26 +1444,24 @@ static void _print_sort_capsules(struct sort_capsule *sc, int indentation) {
 #endif
 
 
-static void _collect_sections(struct sort_capsule *sc) {
+static void _collect_back_sections(struct sort_capsule *sc) {
 
   while (sc != NULL) {
-    if (sc->alive == YES) {
-      if (g_sec_first == NULL) {
-        g_sec_first = sc->section;
-        g_sec_last = sc->section;
-        g_sec_last->next = NULL;
-        g_sec_last->prev = NULL;
-      }
-      else {
-        g_sec_last->next = sc->section;
-        sc->section->prev = g_sec_last;
-        g_sec_last = sc->section;
-        g_sec_last->next = NULL;
-      }
+    if (g_sec_first == NULL) {
+      g_sec_first = sc->section;
+      g_sec_last = sc->section;
+      g_sec_last->next = NULL;
+      g_sec_last->prev = NULL;
+    }
+    else {
+      g_sec_last->next = sc->section;
+      sc->section->prev = g_sec_last;
+      g_sec_last = sc->section;
+      g_sec_last->next = NULL;
     }
 
     if (sc->children != NULL)
-      _collect_sections(sc->children);
+      _collect_back_sections(sc->children);
     
     sc = sc->next;
   }
@@ -1668,7 +1664,7 @@ int merge_sections(void) {
   /* collect back sections, and make sections to be able to do AFTER operation themselves in insert_sections() */
   g_sec_first = NULL;
   g_sec_last = NULL;
-  _collect_sections(sort_capsules_first);
+  _collect_back_sections(sort_capsules_first);
 
 #ifdef WLALINK_DEBUG
   
@@ -1689,6 +1685,12 @@ int merge_sections(void) {
       if (s->after != NULL)
         printf(", AF");
       printf(")\n");
+    }
+    else {
+      printf("\"%s\" (%d", s->name, s->status);
+      if (s->after != NULL)
+        printf(", AF");
+      printf(") DEAD & MERGED\n");
     }
     s = s->next;
   }

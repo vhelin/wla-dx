@@ -179,8 +179,10 @@ struct section {
   int  i;
   int  referenced;
   int  alive;
+  int  appended_to;
   int  alignment;
   int  offset;
+  int  appended_to_offset;
   int  listfile_items;
   int  *listfile_ints;
   char marked;
@@ -193,6 +195,7 @@ struct section {
   struct section *after;
   struct section *next;
   struct section *prev;
+  struct section *appended_to_section;
 };
 
 struct section_fix {
