@@ -28,28 +28,21 @@ static int _listfile_write_hex(FILE *f, int data) {
 }
 
 
-static int _listfile_sort(const void *a, const void *b) {
+static int _listfileitem_sort(const void *a, const void *b) {
 
-  struct section *sa, *sb;
+  struct listfileitem *sa, *sb;
 
-  sa = *((struct section **)a);
-  sb = *((struct section **)b);
+  sa = *((struct listfileitem **)a);
+  sb = *((struct listfileitem **)b);
 
-  if (sa->file_id > sb->file_id)
+  if (sa->sourcefilename > sb->sourcefilename)
     return 1;
-  else if (sa->file_id < sb->file_id)
+  else if (sa->sourcefilename < sb->sourcefilename)
     return -1;
 
-  if (sa->file_id_source > sb->file_id_source)
+  if (sa->linenumber > sb->linenumber)
     return 1;
-  else if (sa->file_id_source < sb->file_id_source)
-    return -1;
-
-  /* sort all .SECTIONs into their lexical order inside a source file */
-
-  if (sa->id > sb->id)
-    return 1;
-  else if (sa->id < sb->id)
+  else if (sa->linenumber < sb->linenumber)
     return -1;
 
   return 0;
@@ -58,7 +51,7 @@ static int _listfile_sort(const void *a, const void *b) {
 
 int listfile_write_listfiles(void) {
 
-  struct listfileitem *listfileitems = NULL;
+  struct listfileitem *listfileitems = NULL, **listfileitems_ptr = NULL;
   struct section *s, **selected_sections;
   int count, i, j, current_linenumber, m, o, p, source_file_id = -1, add, wrote_line, listfile_item_count = 0, section_count = 0;
   char command, tmp[1024], *source_file, *source_file_name;
@@ -100,13 +93,24 @@ int listfile_write_listfiles(void) {
     return FAILED;
   }
 
-  selected_sections = calloc(sizeof(struct section *) * section_count, 1);
-  if (listfileitems == NULL) {
-    fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
+  listfileitems_ptr = calloc(sizeof(struct listfileitem *) * listfile_item_count, 1);
+  if (listfileitems_ptr == NULL) {
     free(listfileitems);
+    fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
     return FAILED;
   }
 
+  selected_sections = calloc(sizeof(struct section *) * section_count, 1);
+  if (listfileitems == NULL) {
+    free(listfileitems);
+    free(listfileitems_ptr);
+    fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
+    return FAILED;
+  }
+
+  for (i = 0; i < listfile_item_count; i++)
+    listfileitems_ptr[i] = &listfileitems[i];
+  
   /* collect the valid sections */
   j = 0;
   s = g_sec_first;
@@ -130,9 +134,6 @@ int listfile_write_listfiles(void) {
     s = s->next;
   }  
 
-  /* sort them (lexical order) */
-  qsort(selected_sections, section_count, sizeof(struct section *), _listfile_sort);  
-  
   /* collect the list file items from the data */
   count = 0;
   for (i = 0; i < section_count; i++) {
@@ -182,6 +183,9 @@ int listfile_write_listfiles(void) {
   }
 
   free(selected_sections);
+
+  /* sort the listfileitems (lexical order) */
+  qsort(listfileitems_ptr, count, sizeof(struct listfileitem *), _listfileitem_sort);
   
   /* write the listfiles */
   j = 0;
@@ -189,7 +193,7 @@ int listfile_write_listfiles(void) {
     int file_size;
     FILE *f;
 
-    source_file_name = listfileitems[j].sourcefilename;
+    source_file_name = listfileitems_ptr[j]->sourcefilename;
     f = fopen(source_file_name, "rb");
     fseek(f, 0, SEEK_END);
     file_size = (int)ftell(f);
@@ -200,6 +204,7 @@ int listfile_write_listfiles(void) {
       fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
       fclose(f);
       free(listfileitems);
+      free(listfileitems_ptr);
       return FAILED;
     }
 
@@ -207,6 +212,7 @@ int listfile_write_listfiles(void) {
       fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Could not read all %d bytes of \"%s\"!", file_size, source_file_name);
       fclose(f);
       free(listfileitems);
+      free(listfileitems_ptr);
       free(source_file);
       return FAILED;
     }
@@ -224,6 +230,7 @@ int listfile_write_listfiles(void) {
     if (f == NULL) {
       fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Could not open file \"%s\" for writing.\n", tmp);
       free(listfileitems);
+      free(listfileitems_ptr);
       free(source_file);
       return FAILED;
     }
@@ -231,11 +238,11 @@ int listfile_write_listfiles(void) {
     /* write the lines */
     current_linenumber = 0;
     m = 0;
-    while (j < count && strcmp(listfileitems[j].sourcefilename, source_file_name) == 0) {
+    while (j < count && strcmp(listfileitems_ptr[j]->sourcefilename, source_file_name) == 0) {
       int is_behind = NO;
 
       /* goto line x */
-      while (current_linenumber < listfileitems[j].linenumber-1) {
+      while (current_linenumber < listfileitems_ptr[j]->linenumber-1) {
         for (o = 0; o < 40; o++)
           fprintf(f, " ");
         while (1) {
@@ -252,24 +259,24 @@ int listfile_write_listfiles(void) {
         }
       }
 
-      if (current_linenumber > listfileitems[j].linenumber-1)
+      if (current_linenumber > listfileitems_ptr[j]->linenumber-1)
         is_behind = YES;
       
       /* write the bytes */
       wrote_line = NO;
-      for (p = 0, o = 0; o < listfileitems[j].length; o++) {
-        struct section *s2 = listfileitems[j].section;
+      for (p = 0, o = 0; o < listfileitems_ptr[j]->length; o++) {
+        struct section *s2 = listfileitems_ptr[j]->section;
         
         fprintf(f, "$");
         if (s2 != NULL && s2->is_bankheader_section == YES) {
-          _listfile_write_hex(f, listfileitems[j].section->data[listfileitems[j].address + o] >> 4);
-          _listfile_write_hex(f, listfileitems[j].section->data[listfileitems[j].address + o] & 15);
+          _listfile_write_hex(f, listfileitems_ptr[j]->section->data[listfileitems_ptr[j]->address + o] >> 4);
+          _listfile_write_hex(f, listfileitems_ptr[j]->section->data[listfileitems_ptr[j]->address + o] & 15);
         }
         else {
           if (s2 != NULL && s2->appended_to == YES) {
             /* this loop finds the target of possibly chained appendto secions */
             struct section *s3 = s2->appended_to_section;
-            int address_new = listfileitems[j].address - s2->output_address + s3->output_address + s2->appended_to_offset;
+            int address_new = listfileitems_ptr[j]->address - s2->output_address + s3->output_address + s2->appended_to_offset;
             while (s3->appended_to == YES) {
               struct section *s4 = s3->appended_to_section;
               address_new = address_new - s3->output_address + s4->output_address + s3->appended_to_offset;
@@ -280,13 +287,13 @@ int listfile_write_listfiles(void) {
             _listfile_write_hex(f, g_rom[address_new + o] & 15);
           }
           else {
-            _listfile_write_hex(f, g_rom[listfileitems[j].address + o] >> 4);
-            _listfile_write_hex(f, g_rom[listfileitems[j].address + o] & 15);
+            _listfile_write_hex(f, g_rom[listfileitems_ptr[j]->address + o] >> 4);
+            _listfile_write_hex(f, g_rom[listfileitems_ptr[j]->address + o] & 15);
           }
         }
         fprintf(f, " ");
         p += 4;
-        if ((o % 10) == 9 && o != 0 && o < listfileitems[j].length-1) {
+        if ((o % 10) == 9 && o != 0 && o < listfileitems_ptr[j]->length-1) {
           if (wrote_line == NO) {
             /* write padding */
             wrote_line = YES;
@@ -377,6 +384,8 @@ int listfile_write_listfiles(void) {
 
   if (listfileitems != NULL)
     free(listfileitems);
+  if (listfileitems_ptr != NULL)
+    free(listfileitems_ptr);
 
   return SUCCEEDED;
 }
