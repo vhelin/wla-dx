@@ -1741,7 +1741,7 @@ int write_object_file(void) {
   }
 
   /* header */
-  fprintf(final_ptr, "WLAi%c", g_emptyfill);
+  fprintf(final_ptr, "WLAj%c", g_emptyfill);
 
   /* misc bits */
   ind = 0;
@@ -2110,7 +2110,15 @@ int write_object_file(void) {
 
     g_label_sizeof_tmp = g_label_sizeof_tmp->next;
   }    
-    
+
+  /* global list file items */
+  if (g_listfile_data == YES)
+    listfile_globals_write(final_ptr);
+  else {
+    ov = 0;
+    WRITEOUT_OV;
+  }
+  
   /* appendto/after sections */
   ov = 0;
   g_after_tmp = g_after_sections;
@@ -2237,7 +2245,7 @@ int write_library_file(void) {
   }
 
   /* header */
-  fprintf(final_ptr, "WLAG");
+  fprintf(final_ptr, "WLAH");
 
   /* misc bits */
   ind = 0;
@@ -2393,6 +2401,14 @@ int write_library_file(void) {
     g_label_sizeof_tmp = g_label_sizeof_tmp->next;
   }
     
+  /* global list file items */
+  if (g_listfile_data == YES)
+    listfile_globals_write(final_ptr);
+  else {
+    ov = 0;
+    WRITEOUT_OV;
+  }
+
   /* appendto/after sections */
   ov = 0;
   g_after_tmp = g_after_sections;

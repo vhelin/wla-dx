@@ -88,8 +88,8 @@ char g_name[32];
 int g_name_defined = 0;
 #endif
 
-int g_sizeof_g_tmp = 4096;
-char *g_tmp = NULL;
+int g_sizeof_g_tmp = 4096, g_global_listfile_items = 0, *g_global_listfile_ints = NULL;
+char *g_tmp = NULL, *g_global_listfile_cmds = NULL;
 char *g_label_stack[256];
 char g_current_directive[MAX_NAME_LENGTH + 1];
 

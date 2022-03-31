@@ -15,14 +15,21 @@ extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_se
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
-extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp;
-extern int g_verbose_mode, g_section_status, g_cartridgetype, g_output_format;
+extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp, *g_global_listfile_cmds;
+extern int g_verbose_mode, g_section_status, g_cartridgetype, g_output_format, *g_global_listfile_ints, g_global_listfile_items;
+extern int *g_bankaddress;
+
+
+static int _get_rom_address(int bank, int origin) {
+
+  return g_bankaddress[bank] + origin;
+}
 
 
 int listfile_collect(void) {
 
-  int add = 0, skip = 0, file_name_id = 0, inz, line_number = 0, command = 0, inside_macro = 0, inside_repeat = 0;
-  int x, y, dstruct_start = -1, bits_current = 0;
+  int add = 0, skip = 0, file_name_id = 0, inz, line_number = 0, command = 0, global_command = 0, inside_macro = 0, inside_repeat = 0;
+  int x, y, dstruct_start = -1, bits_current = 0, bank = 0, origin = 0, origin_old = 0;
   struct section_def *section = NULL;
   FILE *file_in;
   char c;
@@ -30,6 +37,14 @@ int listfile_collect(void) {
 
   if ((file_in = fopen(g_tmp_name, "rb")) == NULL) {
     fprintf(stderr, "LISTFILE_COLLECT: Error opening file \"%s\".\n", g_tmp_name);
+    return FAILED;
+  }
+
+  /* allocate the global listfile data */
+  g_global_listfile_ints = calloc(sizeof(int) * g_global_listfile_items * 3, 1);
+  g_global_listfile_cmds = calloc(g_global_listfile_items, 1);
+  if (g_global_listfile_ints == NULL || g_global_listfile_cmds == NULL) {
+    fprintf(stderr, "LISTFILE_COLLECT: Out of memory error.\n");
     return FAILED;
   }
 
@@ -71,6 +86,8 @@ int listfile_collect(void) {
       else
         fscanf(file_in, "%d ", &inz);
 
+      origin_old = origin;
+      
       section = g_sections_first;
       while (section->id != inz)
         section = section->next;
@@ -95,6 +112,8 @@ int listfile_collect(void) {
       continue;
 
     case 's':
+      if (section != NULL && section->advance_org == NO)
+        origin = origin_old;
       section = NULL;
       continue;
 
@@ -102,43 +121,51 @@ int listfile_collect(void) {
     case 'o':
       fscanf(file_in, "%d %*d ", &inz);
       add += inz;
+      origin += inz;
       continue;
 
     case 'X':
       fscanf(file_in, "%d %*d ", &inz);
       add += inz * 2;
+      origin += inz * 2;
       continue;
 
     case 'h':
       fscanf(file_in, "%d %*d ", &inz);
       add += inz * 3;
+      origin += inz * 3;
       continue;
 
     case 'w':
       fscanf(file_in, "%d %*d ", &inz);
       add += inz * 4;
+      origin += inz * 4;
       continue;
 
     case 'z':
     case 'q':
       fscanf(file_in, "%*s ");
       add += 3;
+      origin += 3;
       continue;
 
     case 'T':
       fscanf(file_in, "%*d ");
       add += 3;
+      origin += 3;
       continue;
 
     case 'u':
     case 'V':
       fscanf(file_in, "%*s ");
       add += 4;
+      origin += 4;
       continue;
 
     case 'U':
       fscanf(file_in, "%*d ");
       add += 4;
+      origin += 4;
       continue;
 
     case 'b':
@@ -155,17 +182,20 @@ int listfile_collect(void) {
     case 'c':
       fscanf(file_in, "%*s ");
       add++;
+      origin++;
       continue;
 
 #ifdef SUPERFX
     case '*':
       fscanf(file_in, "%*s ");
       add++;
+      origin++;
       continue;
 
     case '-':
       fscanf(file_in, "%*d ");
       add++;
+      origin++;
       continue;
 #endif
       
@@ -175,12 +205,14 @@ int listfile_collect(void) {
     case 'r':
       fscanf(file_in, "%*s ");
       add += 2;
+      origin += 2;
       continue;
 
     case 'y':
     case 'C':
       fscanf(file_in, "%*d ");
       add += 2;
+      origin += 2;
       continue;
 
     case '+':
@@ -196,12 +228,15 @@ int listfile_collect(void) {
           continue;
         }
         else {
-          if (bits_current == 0)
+          if (bits_current == 0) {
             add++;
+            origin++;
+          }
           bits_current += bits_to_add;
           while (bits_current > 8) {
             bits_current -= 8;
             add++;
+            origin++;
           }
           if (bits_to_add == 8)
             bits_current = 0;
@@ -227,25 +262,28 @@ int listfile_collect(void) {
     case 'n':
       fscanf(file_in, "%*d %*s ");
       add += 2;
+      origin += 2;
       continue;
 
     case 'N':
       fscanf(file_in, "%*d %*d ");
       add += 2;
+      origin += 2;
       continue;
 #endif
 
     case 'D':
       fscanf(file_in, "%*d %*d %*d %d ", &inz);
       add += inz;
+      origin += inz;
       continue;
 
     case 'O':
-      fscanf(file_in, "%*d ");
+      fscanf(file_in, "%d ", &origin);
       continue;
 
     case 'B':
-      fscanf(file_in, "%*d %*d ");
+      fscanf(file_in, "%d %*d ", &bank);
       continue;
 
     case 'Z':
@@ -274,6 +312,17 @@ int listfile_collect(void) {
         section->listfile_ints[command*3 + 0] = file_name_id;
         command++;
       }
+      else {
+        /* terminate the previous line */
+        g_global_listfile_ints[global_command*3 + 1] = add;
+        add = 0;
+        skip = 0;
+
+        /* add file name */
+        g_global_listfile_cmds[global_command] = 'f';
+        g_global_listfile_ints[global_command*3 + 0] = file_name_id;
+        global_command++;
+      }
       continue;
 
     case 'k':
@@ -296,6 +345,19 @@ int listfile_collect(void) {
         section->listfile_ints[command*3 + 0] = line_number-1;
         command++;
       }
+      else {
+        /* terminate the previous line */
+        g_global_listfile_ints[global_command*3 + 1] = add;
+        g_global_listfile_ints[global_command*3 + 2] = _get_rom_address(bank, origin)-add;
+
+        add = 0;
+        skip = 0;
+
+        /* add line number - NOTE: this 'k' terminates the list file item on the previous line, thus -1 */
+        g_global_listfile_cmds[global_command] = 'k';
+        g_global_listfile_ints[global_command*3 + 0] = line_number-1;
+        global_command++;
+      }
       continue;
 
     case 'e':
@@ -314,6 +376,19 @@ int listfile_collect(void) {
 
   fclose(file_in);
 
+  /* sanity check */
+  if (g_global_listfile_items != global_command) {
+    fprintf(stderr, "LISTFILE_COLLECT: Global final listfile item count %d doesn't match the anticipated count %d.\n", global_command, g_global_listfile_items);
+    if (global_command < g_global_listfile_items) {
+      fprintf(stderr, "LISTFILE_COLLECT: In this case it's not a problem, the buffer was large enough. But please submit a bug report!\n");
+      g_global_listfile_items = global_command;
+    }
+    else {
+      fprintf(stderr, "LISTFILE_COLLET: We ran out of buffer, cannot continue. Please submit a bug report!\n");
+      return FAILED;
+    }
+  }
+  
   return SUCCEEDED;
 }
 
@@ -358,3 +433,41 @@ int listfile_block_write(FILE *file_out, struct section_def *section) {
 
   return SUCCEEDED;
 }
+
+
+int listfile_globals_write(FILE *file_out) {
+
+  int i, d;
+
+
+  if (file_out == NULL)
+    return FAILED;
+
+  d = g_global_listfile_items;
+  WRITEOUT_D;
+
+  for (i = 0; i < g_global_listfile_items; i++) {
+    fprintf(file_out, "%c", g_global_listfile_cmds[i]);
+    if (g_global_listfile_cmds[i] == 'k') {
+      /* next line: line number, line length, skip bytes */
+      d = g_global_listfile_ints[i*3 + 0];
+      WRITEOUT_D;
+      d = g_global_listfile_ints[i*3 + 1];
+      WRITEOUT_D;
+      d = g_global_listfile_ints[i*3 + 2];
+      WRITEOUT_D;
+    }
+    else if (g_global_listfile_cmds[i] == 'f') {
+      /* next file: file name id */
+      d = g_global_listfile_ints[i*3 + 0];
+      WRITEOUT_D;
+    }
+    else {
+      fprintf(stderr, "LISTFILE_GLOBALS_WRITE: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", g_global_listfile_cmds[i]);
+      return FAILED;
+    }
+  }
+
+  return SUCCEEDED;
+}
+

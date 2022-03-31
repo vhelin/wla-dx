@@ -769,6 +769,10 @@ int collect_dlr(void) {
         g_label_sizeofs = ls;
       }
 
+      /* global listfile block */
+      if (listfile_block_read_global(&t, g_obj_tmp) == FAILED)
+        return FAILED;
+      
       /* appendto/after sections */
       i = READ_T;
 
@@ -1024,6 +1028,10 @@ int collect_dlr(void) {
         g_label_sizeofs = ls;
       }
       
+      /* global listfile block */
+      if (listfile_block_read_global(&t, g_obj_tmp) == FAILED)
+        return FAILED;
+
       /* appendto/after sections */
       i = READ_T;
 

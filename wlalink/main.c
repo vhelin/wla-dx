@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char g_version_string[] = "$VER: wlalink 5.17a (30.3.2022)";
+char g_version_string[] = "$VER: wlalink 5.17a (31.3.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -1015,16 +1015,15 @@ void procedures_at_exit(void) {
   while (g_obj_first != NULL) {
     f = g_obj_first->source_file_names_list;
     while (f != NULL) {
-      if (f->name != NULL)
-        free(f->name);
+      free(f->name);
       fn = f->next;
       free(f);
       f = fn;
     }
-    if (g_obj_first->data != NULL)
-      free(g_obj_first->data);
-    if (g_obj_first->name != NULL)
-      free(g_obj_first->name);
+    free(g_obj_first->data);
+    free(g_obj_first->name);
+    free(g_obj_first->listfile_ints);
+    free(g_obj_first->listfile_cmds);
     o = g_obj_first;
     g_obj_first = g_obj_first->next;
     free(o);
@@ -1090,10 +1089,8 @@ void procedures_at_exit(void) {
     hashmap_free(g_namespace_map);
   }
 
-  if (g_banksizes != NULL)
-    free(g_banksizes);
-  if (g_bankaddress != NULL)
-    free(g_bankaddress);
+  free(g_banksizes);
+  free(g_bankaddress);
 
   /* free RAM slot/bank usage arrays */
   for (i = 0; i < 256; i++) {
@@ -1109,8 +1106,7 @@ void procedures_at_exit(void) {
     }
   }
   
-  if (g_sorted_anonymous_labels != NULL)
-    free(g_sorted_anonymous_labels);
+  free(g_sorted_anonymous_labels);
 
   /* free ROM */
   free(g_rom);

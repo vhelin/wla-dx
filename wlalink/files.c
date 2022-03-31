@@ -773,6 +773,9 @@ int load_file(char *file_name, int bank, int slot, char *slot_name, int fix_slot
   o->exported_defines = NULL;
   o->data_blocks = NULL;
   o->source_file_names_list = NULL;
+  o->listfile_items = 0;
+  o->listfile_ints = NULL;
+  o->listfile_cmds = NULL;
 
   o->slot_name[0] = 0;
   if (slot_name != NULL)

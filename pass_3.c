@@ -20,6 +20,7 @@ extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
 extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp, g_namespace[MAX_NAME_LENGTH + 1];
 extern int g_verbose_mode, g_section_status, g_output_format, g_keep_empty_sections, g_quiet, g_sizeof_g_error_message;
+extern int g_global_listfile_items;
 
 
 struct label_def *g_label_last, *g_label_tmp, *g_labels = NULL;
@@ -1001,12 +1002,16 @@ int pass_3(void) {
       fscanf(f_in, "%d ", &g_file_name_id);
       if (s != NULL)
         s->listfile_items++;
+      else
+        g_global_listfile_items++;
       continue;
 
     case 'k':
       fscanf(f_in, "%d ", &line_number);
       if (s != NULL)
         s->listfile_items++;
+      else
+        g_global_listfile_items++;
       continue;
 
     case 'e':

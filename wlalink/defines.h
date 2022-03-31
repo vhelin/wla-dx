@@ -87,6 +87,9 @@ struct object_file {
   int cpu_65ce02;
   int id;
   int fix_slot;
+  int listfile_items;
+  int *listfile_ints;
+  char *listfile_cmds;
   struct source_file_name *source_file_names_list;
   struct object_file *next;
 };

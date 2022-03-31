@@ -9,6 +9,7 @@
 #include "files.h"
 
 
+extern struct object_file *g_obj_first, *g_obj_last, *g_obj_tmp;
 extern struct section *g_sec_first, *g_sec_last, *g_sec_bankhd_first, *g_sec_bankhd_last;
 extern unsigned char *g_rom;
 
@@ -53,6 +54,7 @@ int listfile_write_listfiles(void) {
 
   struct listfileitem *listfileitems = NULL, **listfileitems_ptr = NULL;
   struct section *s, **selected_sections;
+  struct object_file *obj;
   int count, i, j, current_linenumber, m, o, p, source_file_id = -1, add, wrote_line, listfile_item_count = 0, section_count = 0;
   char command, tmp[1024], *source_file, *source_file_name;
 
@@ -80,6 +82,11 @@ int listfile_write_listfiles(void) {
     }
 
     s = s->next;
+  }
+  obj = g_obj_first;
+  while (obj != NULL) {
+    listfile_item_count += obj->listfile_items;
+    obj = obj->next;
   }
   
   if (listfile_item_count <= 0) {
@@ -181,7 +188,47 @@ int listfile_write_listfiles(void) {
       }
     }
   }
-
+  obj = g_obj_first;
+  while (obj != NULL) {
+    for (j = 0; j < obj->listfile_items; j++) {
+      command = obj->listfile_cmds[j];
+      if (command == 'k') {
+        /* new line */
+        if (obj->listfile_ints[j*3 + 1] > 0) {
+          listfileitems[count].sourcefilename = get_source_file_name(obj->id, source_file_id);
+          listfileitems[count].linenumber = obj->listfile_ints[j*3 + 0];
+          listfileitems[count].length = obj->listfile_ints[j*3 + 1];
+          listfileitems[count].section = NULL;
+          listfileitems[count].address = obj->listfile_ints[j*3 + 2];
+          count++;
+          /*
+          fprintf(stderr, "LFI: k %s %d %d %x\n", listfileitems[count-1].sourcefilename, listfileitems[count-1].linenumber, listfileitems[count-1].length, listfileitems[count-1].address);
+          */
+        }
+        else {
+          /* skip */
+          /*
+          fprintf(stderr, "LFI: k SKIPPED\n");
+          */
+        }
+      }
+      else if (command == 'f') {
+        /* another file */
+        source_file_id = obj->listfile_ints[j*3 + 0];
+        /*
+        fprintf(stderr, "LFI: f FILE_ID %d\n", source_file_id);
+        */
+      }
+      else {
+        fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", command);
+        free(listfileitems);
+        free(selected_sections);
+        return FAILED;
+      }
+    }
+    obj = obj->next;
+  }
+  
   free(selected_sections);
 
   /* sort the listfileitems (lexical order) */
@@ -396,7 +443,6 @@ int listfile_block_read(unsigned char **d, struct section *s) {
   unsigned char *t;
   int i;
 
-
   if (d == NULL || s == NULL)
     return FAILED;
 
@@ -438,6 +484,60 @@ int listfile_block_read(unsigned char **d, struct section *s) {
     else {
       s->listfile_items = 0;
       fprintf(stderr, "LISTFILE_BLOCK_READ: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", s->listfile_cmds[i]);
+      return FAILED;
+    }
+  }
+
+  *d = t;
+
+  return SUCCEEDED;
+}
+
+
+int listfile_block_read_global(unsigned char **d, struct object_file *obj) {
+
+  unsigned char *t;
+  int i;
+
+  if (d == NULL || obj == NULL)
+    return FAILED;
+
+  t = *d;
+  obj->listfile_items = READ_T;
+  if (obj->listfile_items == 0) {
+    /* no listfile information! */
+    obj->listfile_cmds = NULL;
+    obj->listfile_ints = NULL;
+    *d = t;
+    return SUCCEEDED;
+  }
+
+  /* we have listfile information */
+  obj->listfile_cmds = calloc(obj->listfile_items, 1);
+  obj->listfile_ints = calloc(sizeof(int) * obj->listfile_items*3, 1);
+
+  if (obj->listfile_cmds == NULL || obj->listfile_ints == NULL) {
+    obj->listfile_items = 0;
+    fprintf(stderr, "LISTFILE_BLOCK_READ_GLOBAL: Out of memory error.\n");
+    return FAILED;
+  }
+
+  /* read the items */
+  for (i = 0; i < obj->listfile_items; i++) {
+    obj->listfile_cmds[i] = *(t++);
+    if (obj->listfile_cmds[i] == 'k') {
+      /* new line */
+      obj->listfile_ints[i*3 + 0] = READ_T;
+      obj->listfile_ints[i*3 + 1] = READ_T;
+      obj->listfile_ints[i*3 + 2] = READ_T;
+    }
+    else if (obj->listfile_cmds[i] == 'f') {
+      /* file name */
+      obj->listfile_ints[i*3 + 0] = READ_T;
+    }
+    else {
+      obj->listfile_items = 0;
+      fprintf(stderr, "LISTFILE_BLOCK_READ_GLOBAL: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", obj->listfile_cmds[i]);
       return FAILED;
     }
   }

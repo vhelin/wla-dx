@@ -12,5 +12,6 @@ struct listfileitem {
 
 int listfile_write_listfiles(void);
 int listfile_block_read(unsigned char **d, struct section *s);
+int listfile_block_read_global(unsigned char **d, struct object_file *obj);
 
 #endif

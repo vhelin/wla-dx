@@ -42,7 +42,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.2a (27.3.2022)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.2a (31.3.2022)";
 char g_wla_version[] = "10.2";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -72,13 +72,13 @@ extern struct structure *g_structures_first;
 extern struct structure **g_saved_structures;
 extern struct string *g_fopen_filenames_first, *g_fopen_filenames_last;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
-extern char *g_label_stack[256], *g_tmp;
+extern char *g_label_stack[256], *g_tmp, *g_global_listfile_cmds;
 extern char *g_include_in_tmp, *g_tmp_a;
 extern char *g_rom_banks, *g_rom_banks_usage_table;
 extern char *g_include_dir, *g_buffer, *g_full_name;
 extern int g_include_in_tmp_size, g_tmp_a_size, *g_banks, *g_bankaddress;
 extern int g_saved_structures_count, g_saved_structures_max2;
-extern int g_sizeof_g_tmp;
+extern int g_sizeof_g_tmp, g_global_listfile_items, *g_global_listfile_ints;
 
 int g_output_format = OUTPUT_NONE, g_verbose_mode = OFF, g_test_mode = OFF;
 int g_extra_definitions = OFF, g_commandline_parsing = ON, g_makefile_rules = NO;
@@ -691,6 +691,8 @@ void procedures_at_exit(void) {
   free(g_rom_banks_usage_table);
   free(g_banks);
   free(g_bankaddress);
+  free(g_global_listfile_cmds);
+  free(g_global_listfile_ints);
 
   f = g_file_name_info_first;
   while (f != NULL) {
