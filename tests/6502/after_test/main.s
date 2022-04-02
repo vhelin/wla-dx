@@ -1,18 +1,21 @@
 
-        .EMPTYFILL 0
-        
         .MEMORYMAP
            DEFAULTSLOT 0
            SLOTSIZE $2000
            SLOT 0 $0000
+           SLOT 1 $2000
+           SLOT 2 $4000
+           SLOT 3 $6000
         .ENDME
 
         .ROMBANKMAP
-           BANKSTOTAL 1
+           BANKSTOTAL 4
            BANKSIZE $2000
-           BANKS 1
+           BANKS 4
         .ENDRO
 
+        .EMPTYFILL $00
+        
         .BANK 0 SLOT 0
         .ORG 0
 

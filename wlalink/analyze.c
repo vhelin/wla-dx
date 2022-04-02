@@ -1485,8 +1485,9 @@ static void _propagate_after_target_sections(struct sort_capsule *sc, struct sor
       /* make the AFTER section to have the same type as the source section so that we can process
          both one after another in insert_sections() */
       sc->section->status = parent->section->status;
-      /* also make sure the AFTER section inherits its source section's bank and slot... */
+      /* also make sure the AFTER section inherits its source section's base, bank and slot... */
       sc->section->bank = parent->section->bank;
+      sc->section->base = parent->section->base;
       sc->section->slot = parent->section->slot;
     }
     if (sc->children != NULL) {

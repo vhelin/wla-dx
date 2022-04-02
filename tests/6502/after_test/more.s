@@ -1,17 +1,20 @@
 
-        .EMPTYFILL 0
-        
         .MEMORYMAP
            DEFAULTSLOT 0
            SLOTSIZE $2000
            SLOT 0 $0000
+           SLOT 1 $2000
+           SLOT 2 $4000
+           SLOT 3 $6000
         .ENDME
 
         .ROMBANKMAP
-           BANKSTOTAL 1
+           BANKSTOTAL 4
            BANKSIZE $2000
-           BANKS 1
+           BANKS 4
         .ENDRO
+
+        .EMPTYFILL $00
 
         .BANK 0 SLOT 0
         .ORG 0
@@ -49,7 +52,7 @@
         .ends
         
         /////////////////////////////////////////////////////////////////////////////
-        // TEST 3
+        // TEST 4
         /////////////////////////////////////////////////////////////////////////////
 
         .org $300
@@ -64,3 +67,38 @@
         .db $ee
         .ends
         
+        /////////////////////////////////////////////////////////////////////////////
+        // TEST 5
+        /////////////////////////////////////////////////////////////////////////////
+
+        .bank 0 slot 0
+        .org $100
+
+        .SECTION "Section2X" FREE AFTER "Section1X"
+label_2X:.DB :label_2X, 3
+        .ENDS
+
+        .bank 1 slot 1
+        .org $200
+        
+        .SECTION "Section4X" FREE AFTER "Section3X" PRIORITY 26 OFFSET 1
+label_4X:.DB 6, 5+:label_4X
+        .DB "<05"
+        .ENDS
+
+        .bank 2 slot 2
+        .org $300
+        
+        .SECTION "Section1X" FORCE PRIORITY 29
+        .DB "05>"
+label_1X:.DB 0, 1
+        .ENDS
+
+        .bank 3 slot 3
+        .org $400
+        
+        .SECTION "Section3X" FREE APPENDTO "Section2X" PRIORITY 27
+label_3X:.DB 4, 5
+        .ENDS
+        
+

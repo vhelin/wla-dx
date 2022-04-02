@@ -4,9 +4,15 @@
 
 struct listfileitem {
   char *sourcefilename;
-  int linenumber;
-  int address;
-  int length;
+  int  linenumber;
+  int  real_linenumber;
+  int  address;
+  int  offset;
+  int  length;
+  int  base;
+  int  bank;
+  int  slot;
+  int  running_id;
   struct section *section;
 };
 

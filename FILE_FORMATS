@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file format "WLAj"
+WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file format "WLAk"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAj" - WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file version 35 (30-Mar-2022)
+        "WLAk" - WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file version 36 (02-Apr-2022)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -140,7 +140,7 @@ label sizeofs
 
 global list file information
 
-  n     list file information block
+  n     global list file information block **
 
 section appendtos/afters
 
@@ -186,11 +186,11 @@ section:
   4     window end (int)
   n     data
   1     list file information (0 == no, 1 == yes)
-  n     list file information block (if present)
+  n     list file information block (if present) *
 
 
 
-WLA-GB/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX library file format "WLAH"
+WLA-GB/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX library file format "WLAI"
 
 
 bytes   description
@@ -198,7 +198,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAH" - WLA-GB/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX library file version 28 (30-Mar-2022)
+        "WLAI" - WLA-GB/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX library file version 29 (02-Apr-2022)
   1     misc bits (bit 0 - endianess (1 = big endian)
                    bit 1 - 65816 indicator (1 == 65816)
                    bit 2 - 65ce02 indicator (1 == 65ce02))
@@ -282,7 +282,7 @@ label sizeofs
 
 global list file information
 
-  n     list file information block
+  n     global list file information block **
 
 section appendtos/afters
 
@@ -311,7 +311,7 @@ sections:
   4     window end (int)
   n     data
   1     list file information (0 == no, 1 == yes)
-  n     list file information block (if present)
+  n     list file information block (if present) *
   ...
 
 
@@ -327,4 +327,23 @@ bytes   description
   4     data 0 (int)
   4     data 1 (present only if command == 'k') (int)
   4     data 2 (present only if command == 'k') (int)
+  4     data 3 (present only if command == 'k') (int)
   ...
+
+
+** global list file information block:
+
+bytes   description
+
+  4     number of items
+  ...
+  1     command ('f' == file name, 'k' == new line)
+  4     data 0 (int)
+  4     data 1 (present only if command == 'k') (int)
+  4     data 2 (present only if command == 'k') (int)
+  4     data 3 (present only if command == 'k') (int)
+  4     data 4 (present only if command == 'k') (int)
+  4     data 5 (present only if command == 'k') (int)
+  4     data 6 (present only if command == 'k') (int)
+  ...
+

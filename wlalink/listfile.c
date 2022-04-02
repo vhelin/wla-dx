@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "defines.h"
 #include "listfile.h"
@@ -11,7 +12,10 @@
 
 extern struct object_file *g_obj_first, *g_obj_last, *g_obj_tmp;
 extern struct section *g_sec_first, *g_sec_last, *g_sec_bankhd_first, *g_sec_bankhd_last;
+extern struct slot g_slots[256];
 extern unsigned char *g_rom;
+extern int *g_bankaddress;
+extern char g_version_string[];
 
 
 /* read an integer from t */
@@ -46,7 +50,18 @@ static int _listfileitem_sort(const void *a, const void *b) {
   else if (sa->linenumber < sb->linenumber)
     return -1;
 
+  if (sa->running_id > sb->running_id)
+    return 1;
+  else if (sa->running_id < sb->running_id)
+    return -1;
+    
   return 0;
+}
+
+
+static int _get_pc(int slot, int offset) {
+
+  return g_slots[slot].address + offset;
 }
 
 
@@ -55,8 +70,8 @@ int listfile_write_listfiles(void) {
   struct listfileitem *listfileitems = NULL, **listfileitems_ptr = NULL;
   struct section *s, **selected_sections;
   struct object_file *obj;
-  int count, i, j, current_linenumber, m, o, p, source_file_id = -1, add, wrote_line, listfile_item_count = 0, section_count = 0;
-  char command, tmp[1024], *source_file, *source_file_name;
+  int count, i, j, current_linenumber, m, o, p, source_file_id = -1, add, wrote_line, listfile_item_count = 0, section_count = 0, chars = 60;
+  char command, tmp[1024], *source_file, *source_file_name, cpu_65816 = NO;
 
   /* count the listfile items */
   s = g_sec_first;
@@ -152,14 +167,38 @@ int listfile_write_listfiles(void) {
       command = s->listfile_cmds[j];
       if (command == 'k') {
         /* new line */
-        if (s->listfile_ints[j*3 + 1] > 0) {
+        if (s->listfile_ints[j*5 + 1] > 0) {
           listfileitems[count].sourcefilename = get_source_file_name(s->file_id, source_file_id);
-          listfileitems[count].linenumber = s->listfile_ints[j*3 + 0];
-          listfileitems[count].length = s->listfile_ints[j*3 + 1];
+          listfileitems[count].linenumber = s->listfile_ints[j*5 + 0];
+          listfileitems[count].length = s->listfile_ints[j*5 + 1];
           listfileitems[count].section = s;
-          add += s->listfile_ints[j*3 + 2];
+          listfileitems[count].base = s->base;
+          listfileitems[count].bank = s->bank;
+          listfileitems[count].slot = s->slot;
+          add += s->listfile_ints[j*5 + 2];
+          listfileitems[count].offset = add + s->address;
           listfileitems[count].address = s->output_address + add;
-          add += s->listfile_ints[j*3 + 1];
+          add += s->listfile_ints[j*5 + 1];
+          listfileitems[count].running_id = s->listfile_ints[j*5 + 3];
+          listfileitems[count].real_linenumber = s->listfile_ints[j*5 + 4];
+
+          /* fix base, bank, slot, and offset for sections that were appended */
+          if (s->appended_to == YES) {
+            /* this loop finds the target of possibly chained appendto secions */
+            struct section *s3 = s->appended_to_section;
+            int offset_new = listfileitems[count].offset - s->address + s3->address + s->appended_to_offset;
+            while (s3->appended_to == YES) {
+              struct section *s4 = s3->appended_to_section;
+              offset_new = offset_new - s3->address + s4->address + s3->appended_to_offset;
+              s3 = s4;
+            }
+
+            listfileitems[count].offset = offset_new;
+            listfileitems[count].base = s3->base;
+            listfileitems[count].bank = s3->bank;
+            listfileitems[count].slot = s3->slot;
+          }
+
           count++;
           /*
           fprintf(stderr, "LFI: k %s %d %d %x\n", listfileitems[count-1].sourcefilename, listfileitems[count-1].linenumber, listfileitems[count-1].length, listfileitems[count-1].address);
@@ -170,12 +209,12 @@ int listfile_write_listfiles(void) {
           /*
           fprintf(stderr, "LFI: k SKIPPED\n");
           */
-          add += s->listfile_ints[j*3 + 2];
+          add += s->listfile_ints[j*5 + 2];
         }
       }
       else if (command == 'f') {
         /* another file */
-        source_file_id = s->listfile_ints[j*3 + 0];
+        source_file_id = s->listfile_ints[j*5 + 0];
         /*
         fprintf(stderr, "LFI: f FILE_ID %d\n", source_file_id);
         */
@@ -190,16 +229,24 @@ int listfile_write_listfiles(void) {
   }
   obj = g_obj_first;
   while (obj != NULL) {
+    if (obj->cpu_65816 == YES)
+      cpu_65816 = YES;
     for (j = 0; j < obj->listfile_items; j++) {
       command = obj->listfile_cmds[j];
       if (command == 'k') {
         /* new line */
-        if (obj->listfile_ints[j*3 + 1] > 0) {
+        if (obj->listfile_ints[j*8 + 1] > 0) {
           listfileitems[count].sourcefilename = get_source_file_name(obj->id, source_file_id);
-          listfileitems[count].linenumber = obj->listfile_ints[j*3 + 0];
-          listfileitems[count].length = obj->listfile_ints[j*3 + 1];
+          listfileitems[count].linenumber = obj->listfile_ints[j*8 + 0];
+          listfileitems[count].length = obj->listfile_ints[j*8 + 1];
           listfileitems[count].section = NULL;
-          listfileitems[count].address = obj->listfile_ints[j*3 + 2];
+          listfileitems[count].base = obj->listfile_ints[j*8 + 3];
+          listfileitems[count].bank = obj->listfile_ints[j*8 + 4];
+          listfileitems[count].slot = obj->listfile_ints[j*8 + 5];
+          listfileitems[count].offset = obj->listfile_ints[j*8 + 2];
+          listfileitems[count].address = g_bankaddress[listfileitems[count].bank] + listfileitems[count].offset;
+          listfileitems[count].running_id = obj->listfile_ints[j*8 + 6];
+          listfileitems[count].real_linenumber = obj->listfile_ints[j*8 + 7];
           count++;
           /*
           fprintf(stderr, "LFI: k %s %d %d %x\n", listfileitems[count-1].sourcefilename, listfileitems[count-1].linenumber, listfileitems[count-1].length, listfileitems[count-1].address);
@@ -210,11 +257,12 @@ int listfile_write_listfiles(void) {
           /*
           fprintf(stderr, "LFI: k SKIPPED\n");
           */
+          add += s->listfile_ints[j*8 + 2];
         }
       }
       else if (command == 'f') {
         /* another file */
-        source_file_id = obj->listfile_ints[j*3 + 0];
+        source_file_id = obj->listfile_ints[j*8 + 0];
         /*
         fprintf(stderr, "LFI: f FILE_ID %d\n", source_file_id);
         */
@@ -233,6 +281,10 @@ int listfile_write_listfiles(void) {
 
   /* sort the listfileitems (lexical order) */
   qsort(listfileitems_ptr, count, sizeof(struct listfileitem *), _listfileitem_sort);
+
+  /* 65816 contains "base" information as well */
+  if (cpu_65816 == YES)
+    chars += 5;
   
   /* write the listfiles */
   j = 0;
@@ -282,15 +334,35 @@ int listfile_write_listfiles(void) {
       return FAILED;
     }
 
+    fprintf(f, "; WLALINK (%s) listing file\n", g_version_string);
+    {
+      time_t timer;
+      char time_buffer[32];
+      struct tm* tm_info;
+
+      timer = time(NULL);
+      tm_info = localtime(&timer);
+
+      strftime(time_buffer, 32, "%Y-%m-%d %H:%M:%S", tm_info);
+      fprintf(f, "; %s\n", time_buffer);
+    }
+    fprintf(f, "\n");
+    
+    if (cpu_65816 == YES)
+      fprintf(f, ";Line Base Bank Slot PC   Offset Hex\n");
+    else
+      fprintf(f, ";Line Bank Slot PC   Offset Hex                             Source\n");
+    
     /* write the lines */
     current_linenumber = 0;
     m = 0;
+
     while (j < count && strcmp(listfileitems_ptr[j]->sourcefilename, source_file_name) == 0) {
       int is_behind = NO;
 
       /* goto line x */
       while (current_linenumber < listfileitems_ptr[j]->linenumber-1) {
-        for (o = 0; o < 40; o++)
+        for (o = 0; o < chars; o++)
           fprintf(f, " ");
         while (1) {
           if (source_file[m] == 0xA) {
@@ -308,13 +380,29 @@ int listfile_write_listfiles(void) {
 
       if (current_linenumber > listfileitems_ptr[j]->linenumber-1)
         is_behind = YES;
+
+      p = 0;
+
+      fprintf(f, "%*d ", 5, listfileitems_ptr[j]->real_linenumber);
+      p += 6;
+      if (cpu_65816 == YES) {
+        fprintf(f, "%.4X ", listfileitems_ptr[j]->base);
+        p += 5;
+      }
+      fprintf(f, "%.4X ", listfileitems_ptr[j]->bank);
+      p += 5;
+      fprintf(f, "%.4X ", listfileitems_ptr[j]->slot);
+      p += 5;
+      fprintf(f, "%.4X ", _get_pc(listfileitems_ptr[j]->slot, listfileitems_ptr[j]->offset));
+      p += 5;
+      fprintf(f, "%.4X   ", listfileitems_ptr[j]->offset);
+      p += 7;
       
       /* write the bytes */
       wrote_line = NO;
-      for (p = 0, o = 0; o < listfileitems_ptr[j]->length; o++) {
+      for (o = 0; o < listfileitems_ptr[j]->length; o++) {
         struct section *s2 = listfileitems_ptr[j]->section;
         
-        fprintf(f, "$");
         if (s2 != NULL && s2->is_bankheader_section == YES) {
           _listfile_write_hex(f, listfileitems_ptr[j]->section->data[listfileitems_ptr[j]->address + o] >> 4);
           _listfile_write_hex(f, listfileitems_ptr[j]->section->data[listfileitems_ptr[j]->address + o] & 15);
@@ -339,12 +427,12 @@ int listfile_write_listfiles(void) {
           }
         }
         fprintf(f, " ");
-        p += 4;
+        p += 3;
         if ((o % 10) == 9 && o != 0 && o < listfileitems_ptr[j]->length-1) {
           if (wrote_line == NO) {
             /* write padding */
             wrote_line = YES;
-            while (p < 40) {
+            while (p < chars) {
               fprintf(f, " ");
               p++;
             }
@@ -380,7 +468,7 @@ int listfile_write_listfiles(void) {
         /* has the line been written already? */
         if (wrote_line == NO) {
           /* write padding */
-          while (p < 40) {
+          while (p < chars) {
             fprintf(f, " ");
             p++;
           }
@@ -408,7 +496,7 @@ int listfile_write_listfiles(void) {
 
     /* write the rest of the file */
     while (m < file_size) {
-      for (o = 0; o < 40; o++)
+      for (o = 0; o < chars; o++)
         fprintf(f, " ");
       while (m < file_size) {
         if (source_file[m] == 0xA) {
@@ -460,7 +548,7 @@ int listfile_block_read(unsigned char **d, struct section *s) {
   t++;
   s->listfile_items = READ_T;
   s->listfile_cmds = calloc(s->listfile_items, 1);
-  s->listfile_ints = calloc(sizeof(int) * s->listfile_items*3, 1);
+  s->listfile_ints = calloc(sizeof(int) * s->listfile_items*5, 1);
 
   if (s->listfile_cmds == NULL || s->listfile_ints == NULL) {
     s->listfile_items = 0;
@@ -473,13 +561,15 @@ int listfile_block_read(unsigned char **d, struct section *s) {
     s->listfile_cmds[i] = *(t++);
     if (s->listfile_cmds[i] == 'k') {
       /* new line */
-      s->listfile_ints[i*3 + 0] = READ_T;
-      s->listfile_ints[i*3 + 1] = READ_T;
-      s->listfile_ints[i*3 + 2] = READ_T;
+      s->listfile_ints[i*5 + 0] = READ_T;
+      s->listfile_ints[i*5 + 1] = READ_T;
+      s->listfile_ints[i*5 + 2] = READ_T;
+      s->listfile_ints[i*5 + 3] = READ_T;
+      s->listfile_ints[i*5 + 4] = READ_T;
     }
     else if (s->listfile_cmds[i] == 'f') {
       /* file name */
-      s->listfile_ints[i*3 + 0] = READ_T;
+      s->listfile_ints[i*5 + 0] = READ_T;
     }
     else {
       s->listfile_items = 0;
@@ -514,7 +604,7 @@ int listfile_block_read_global(unsigned char **d, struct object_file *obj) {
 
   /* we have listfile information */
   obj->listfile_cmds = calloc(obj->listfile_items, 1);
-  obj->listfile_ints = calloc(sizeof(int) * obj->listfile_items*3, 1);
+  obj->listfile_ints = calloc(sizeof(int) * obj->listfile_items*8, 1);
 
   if (obj->listfile_cmds == NULL || obj->listfile_ints == NULL) {
     obj->listfile_items = 0;
@@ -527,13 +617,18 @@ int listfile_block_read_global(unsigned char **d, struct object_file *obj) {
     obj->listfile_cmds[i] = *(t++);
     if (obj->listfile_cmds[i] == 'k') {
       /* new line */
-      obj->listfile_ints[i*3 + 0] = READ_T;
-      obj->listfile_ints[i*3 + 1] = READ_T;
-      obj->listfile_ints[i*3 + 2] = READ_T;
+      obj->listfile_ints[i*8 + 0] = READ_T;
+      obj->listfile_ints[i*8 + 1] = READ_T;
+      obj->listfile_ints[i*8 + 2] = READ_T;
+      obj->listfile_ints[i*8 + 3] = READ_T;
+      obj->listfile_ints[i*8 + 4] = READ_T;
+      obj->listfile_ints[i*8 + 5] = READ_T;
+      obj->listfile_ints[i*8 + 6] = READ_T;
+      obj->listfile_ints[i*8 + 7] = READ_T;
     }
     else if (obj->listfile_cmds[i] == 'f') {
       /* file name */
-      obj->listfile_ints[i*3 + 0] = READ_T;
+      obj->listfile_ints[i*8 + 0] = READ_T;
     }
     else {
       obj->listfile_items = 0;

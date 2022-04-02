@@ -41,12 +41,23 @@ SLOT 0 $0000
 	.db "<HERE"
 .ENDS
 
-
 .BANK 1 SLOT 0
 .ORG $0000
 .SECTION "AnotherSection" FORCE
 label:	nop
 .ENDS
+
+        .base $C1
+        .bank 0 slot 0
+        .section "Tail" APPENDTO "AnotherSection"
+label_Tail:     nop
+        .ends
+
+        .base $C2
+        .bank 2 slot 0
+        .section "Tip" AFTER "Tail"
+label_Tip:     nop
+        .ends
 
 
 .ramsection "RAM 1" bank 0 slot 0

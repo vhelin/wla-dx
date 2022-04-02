@@ -1,4 +1,4 @@
-
+// MAIN.S
         .MEMORYMAP
         DEFAULTSLOT 0
         SLOTSIZE $2000
@@ -208,7 +208,7 @@ Data{   %.4X{   0xBEEF   }  }{ I3 }{ %.4X{ $DEAD }}
 
         .DB "11>"               ; @BT TEST-11 11 START
         .REPEAT 5 INDEX COUNTER_FROM_{0}_TO_{%.x{ 1 + 1 + 1 + %1 }}
-        .DB COUNTER_FROM_{0}_TO_{%.x{ 1 + 1 + 1 + %1 }} ; @BT 00 01 02 03 04
+        .DB 4-COUNTER_FROM_{0}_TO_{%.x{ 1 + 1 + 1 + %1 }} ; @BT 04 03 02 01 00
         .ENDR
         .DB "<11"               ; @BT END
 
@@ -236,3 +236,13 @@ Data{   %.4X{   0xBEEF   }  }{ I3 }{ %.4X{ $DEAD }}
         .DB "<13"               ; @BT END
 
         .ENDS
+
+        .DB "14>"               ; @BT TEST-14 14 START
+        .REPEAT 5 INDEX COUNTER_FROM_{0}_TO_{%.x{ 1 + 1 + 1 + %1 }}
+        .DB 4-COUNTER_FROM_{0}_TO_{%.x{ 1 + 1 + 1 + %1 }} ; @BT 04 FF 03 FF 02 FF 01 FF 00 FF
+        .DB $ff
+        .ENDR
+        .REPEAT 5 INDEX COUNTER_FROM_{0}_TO_{%.x{ 1 + 1 + 1 + %1 }}
+        .DB COUNTER_FROM_{0}_TO_{%.x{ 1 + 1 + 1 + %1 }} ; @BT 00 01 02 03 04
+        .ENDR
+        .DB "<14"               ; @BT END

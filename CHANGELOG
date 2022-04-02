@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.2 (31-Mar-2022) [ALL] Added SIZE to .RAMSECTION.
+v10.2 (02-Apr-2022) [ALL] Added SIZE to .RAMSECTION.
                     [ALL] Added -d to disable WLA's ability to calculate A-B
                       where A and B are labels.
                     [ALL] If SIZE is used with a .SECTION or .RAMSECTION and
@@ -18,7 +18,7 @@ v10.2 (31-Mar-2022) [ALL] Added SIZE to .RAMSECTION.
                       the verbose summary's ROM information was not fully working.
                     [ALL] Memory overwrite messages should now have working
                       line numbers in all cases.
-                    [ALL] WLA assembles now "WLAH" library files and "WLAj"
+                    [ALL] WLA assembles now "WLAI" library files and "WLAk"
                       object files.
                     [651] Removed wla-6510 as wla-6502 can be used for 6510.
                     [650] Added undocumented opcodes to wla-6502.
@@ -1362,7 +1362,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.17 (31-Mar-2022) Added SIZE to [sections] and [ramsections].
+v5.17 (02-Apr-2022) Added SIZE to [sections] and [ramsections].
                     Added -R (file paths inside link file are relative to
                       linkfile's location).
                     WLALINK's summary is now printed to stdout instead of
@@ -1377,6 +1377,11 @@ v5.17 (31-Mar-2022) Added SIZE to [sections] and [ramsections].
                       kill the listfile data before it in the source file
                       any more.
                     Code outside .SECTIONs has now listfile data.
+                    Listfiles contain now line number, base (65816 only),
+                      bank, slot, PC and offset in addition to hexadecimal
+                      bytes.
+                    If .SECTION "A" is using "AFTER "B"", .SECTION "A" will
+                      now inherit .SECTION "B"'s .BASE as well.
 
 v5.16 (19-Feb-2021) Added support for WINDOW and BITWINDOW in .SECTION and
                       .RAMSECTION.

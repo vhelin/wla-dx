@@ -1741,7 +1741,7 @@ int write_object_file(void) {
   }
 
   /* header */
-  fprintf(final_ptr, "WLAj%c", g_emptyfill);
+  fprintf(final_ptr, "WLAk%c", g_emptyfill);
 
   /* misc bits */
   ind = 0;
@@ -2245,7 +2245,7 @@ int write_library_file(void) {
   }
 
   /* header */
-  fprintf(final_ptr, "WLAH");
+  fprintf(final_ptr, "WLAI");
 
   /* misc bits */
   ind = 0;
