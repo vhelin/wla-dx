@@ -257,7 +257,7 @@ int listfile_write_listfiles(void) {
           /*
           fprintf(stderr, "LFI: k SKIPPED\n");
           */
-          add += s->listfile_ints[j*8 + 2];
+          add += obj->listfile_ints[j*8 + 2];
         }
       }
       else if (command == 'f') {
