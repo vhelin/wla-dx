@@ -5,7 +5,7 @@ import os
 
 # -- General configuration ------------------------------------------------
 
-needs_sphinx = '4.0'
+#needs_sphinx = '1.8.6'
 sys.path.insert(0, os.path.abspath('./sphinx'))
 extensions = [
     'singletext',
