@@ -180,6 +180,14 @@ calculations and sees only the preprocessed output of WLA)::
                     ; for WLALINK (so it's better to use \@ with labels inside
                     ; a macro).
 
+To make local labels inside a ``.MACRO`` isolated, and the previous example
+to work, use the keyword ``ISOLATED`` ::
+
+    .macro dummy isolated
+    -  dec a        ; #
+       jp nz, -     ; jump -> #
+    .endm
+
 WLALINK will also generate ``_sizeof_[label]`` defines that measure the
 distance between two consecutive labels. These labels have the same scope as
 the labels they describe. Here is an example::

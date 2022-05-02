@@ -26,6 +26,7 @@ extern struct file_name_info *g_file_name_info_first;
 extern struct slot g_slots[256];
 extern struct after_section *g_after_sections;
 extern struct label_sizeof *g_label_sizeofs;
+extern struct label_context g_label_context, *g_label_context_first, *g_label_context_last;
 extern FILE *g_file_out_ptr;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp, *g_final_name;
@@ -62,7 +63,6 @@ extern int g_smschecksumsize_defined, g_smschecksumsize;
 
 struct label_def *g_unknown_labels = NULL, *g_unknown_labels_last = NULL;
 struct label_def *g_unknown_header_labels = NULL, *g_unknown_header_labels_last = NULL;
-struct label_def *g_parent_labels[10];
 struct after_section *g_after_tmp;
 struct label_sizeof *g_label_sizeof_tmp;
 
@@ -89,15 +89,29 @@ static struct label_def *_new_unknown_reference(int type) {
   struct label_def *label;
   int n = 0, j = 0;
 
+  if ((is_label_anonymous(g_tmp) == YES || strcmp(g_tmp, "_b") == 0 || strcmp(g_tmp, "_f") == 0) && g_label_context_last->isolated_macro != NULL) {
+    char tmp_buffer[MAX_NAME_LENGTH + 1];
+    
+    /* add context to the anonymous label */
+    if (strlen(g_tmp) + strlen(g_label_context_last->isolated_macro->name) + 1 < MAX_NAME_LENGTH + 1) {
+      snprintf(tmp_buffer, sizeof(tmp_buffer), "%s:%s", g_tmp, g_label_context_last->isolated_macro->name);
+      strcpy(g_tmp, tmp_buffer);
+    }
+    else {
+      fprintf(stderr, "%s:%d: _NEW_UNKNOWN_REFERENCE: Cannot add context name to the anonymous label, buffer is too small!\n", get_file_name(g_filename_id), g_line_number);
+      return NULL;
+    }
+  }
+
   if (g_tmp[0] == ':')
     j = 1;
   while (n < 10 && g_tmp[n+j] == '@')
     n++;
   n--;
-  while (n >= 0 && g_parent_labels[n] == NULL)
+  while (n >= 0 && g_label_context_last->parent_labels[n] == NULL)
     n--;
   if (n >= 0) {
-    if (mangle_label(&g_tmp[j], g_parent_labels[n]->label, n, MAX_NAME_LENGTH-j) == FAILED)
+    if (mangle_label(&g_tmp[j], g_label_context_last->parent_labels[n]->label, n, MAX_NAME_LENGTH-j, g_filename_id, g_line_number) == FAILED)
       return NULL;
   }
 
@@ -183,11 +197,11 @@ static int _mangle_stack_references(struct stack *stack) {
         n++;
 
       n--;
-      while (n >= 0 && g_parent_labels[n] == NULL)
+      while (n >= 0 && g_label_context_last->parent_labels[n] == NULL)
         n--;
 
       if (n >= 0) {
-        if (mangle_label(&stack->stack[ind].string[j], g_parent_labels[n]->label, n, MAX_NAME_LENGTH-j) == FAILED)
+        if (mangle_label(&stack->stack[ind].string[j], g_label_context_last->parent_labels[n]->label, n, MAX_NAME_LENGTH-j, g_filename_id, g_line_number) == FAILED)
           return FAILED;
       }
     }
@@ -255,19 +269,24 @@ static void _bits_add_bit(int *bits_byte, int *bits_position, int *bits_to_defin
   int bit = (data >> (*bits_to_define - 1)) & 1;
 
   *bits_to_define = *bits_to_define - 1;
-
   *bits_byte = *bits_byte | (bit << (7 - *bits_position));
-
   *bits_position = *bits_position + 1;
 }
 
 
 int pass_4(void) {
 
-  char *t, c;
   int i, o, z, y, add_old = 0, x, q, inside_macro = 0, inside_repeat = 0, inz, ind, bits_position = 0, bits_byte = 0;
+  char *t, c, tmp_buffer[MAX_NAME_LENGTH + 1];
 
-  memset(g_parent_labels, 0, sizeof(g_parent_labels));
+  /* initialize label context */
+  g_label_context.isolated_macro = NULL;
+  g_label_context.next = NULL;
+  g_label_context.prev = NULL;
+  for (x = 0; x < 10; x++)
+    g_label_context.parent_labels[x] = NULL;
+  g_label_context_last = &g_label_context;
+  g_label_context_first = &g_label_context;
 
   g_namespace[0] = 0;
   
@@ -303,14 +322,22 @@ int pass_4(void) {
       continue;
 
     case 'i':
-      fscanf(g_file_out_ptr, "%*s ");
+      fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
       inside_macro++;
+
+      if (process_macro_in(inz, tmp_buffer, g_filename_id, g_line_number) == FAILED)
+        return FAILED;
+        
       continue;
     case 'I':
-      fscanf(g_file_out_ptr, "%*s ");
+      fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
       inside_macro--;
-      continue;
+
+      if (process_macro_out(inz, tmp_buffer, g_filename_id, g_line_number) == FAILED)
+        return FAILED;
         
+      continue;
+
     case 'g':
       fscanf(g_file_out_ptr, "%*s ");
       continue;
@@ -926,28 +953,28 @@ int pass_4(void) {
 
           m = n + 1;
           while (m < 10)
-            g_parent_labels[m++] = NULL;
+            g_label_context_last->parent_labels[m++] = NULL;
 
           m = n;
           n--;
-          while (n >= 0 && g_parent_labels[n] == NULL)
+          while (n >= 0 && g_label_context_last->parent_labels[n] == NULL)
             n--;
 
           if (n >= 0) {
-            if (mangle_label(g_tmp, g_parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+            if (mangle_label(g_tmp, g_label_context_last->parent_labels[n]->label, n, MAX_NAME_LENGTH, g_filename_id, g_line_number) == FAILED)
               return FAILED;
             mangled_label = YES;
           }
 
           if (g_namespace[0] != 0 && mangled_label == NO) {
             if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-              if (add_namespace(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
+              if (add_namespace(g_tmp, g_namespace, g_sizeof_g_tmp, g_filename_id, g_line_number) == FAILED)
                 return FAILED;
             }
           }
             
           if (m < 10 && find_label(g_tmp, g_sec_tmp, (void*)&l) == SUCCEEDED)
-            g_parent_labels[m] = l;
+            g_label_context_last->parent_labels[m] = l;
         }
       }
       continue;

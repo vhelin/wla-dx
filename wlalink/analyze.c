@@ -51,7 +51,32 @@ extern int *g_banksizes, *g_bankaddress, g_banksize;
 
 
 
+int parse_context_from_name(char *name, char *context) {
+
+  int i, j, length;
+
+  length = strlen(name);
+  for (i = 0; i < length; i++) {
+    if (name[i] == ':') {
+      name[i] = 0;
+      i++;
+      for (j = 0; i < length; i++, j++)
+        context[j] = name[i];
+      context[j] = 0;
+      break;
+    }
+  }
+
+  return SUCCEEDED;
+}
+
+
 int add_reference(struct reference *r) {
+
+  r->context[0] = 0;
+  
+  /* local labels might have a context -> reformat such labels */
+  parse_context_from_name(r->name, r->context);
 
   r->file_id = g_obj_tmp->id;
   r->next = NULL;
@@ -272,6 +297,11 @@ int find_label(char *str, struct section *s, struct label **out) {
 
 int add_label(struct label *l) {
 
+  l->context[0] = 0;
+  
+  /* local labels might have a context -> reformat such labels */
+  parse_context_from_name(l->name, l->context);
+  
   l->next = NULL;
   l->alive = YES;
 

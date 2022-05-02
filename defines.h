@@ -509,11 +509,13 @@ struct macro_argument {
 
 struct macro_static {
   char name[MAX_NAME_LENGTH + 1];
+  int  id;
   int  start;
   int  calls;
   int  filename_id;
   int  start_line;
   int  nargument_names;
+  int  is_isolated;
   char **argument_names;
   struct macro_static *next;
 };
@@ -777,5 +779,11 @@ struct data_stream_item {
   struct data_stream_item *next;
 };
 
-#endif /* _DEFINES_H */
+struct label_context {
+  struct label_def *parent_labels[10];
+  struct macro_static *isolated_macro;
+  struct label_context *next;
+  struct label_context *prev;
+};
 
+#endif /* _DEFINES_H */

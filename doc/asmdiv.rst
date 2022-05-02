@@ -2160,17 +2160,12 @@ Here are some examples::
     .INCBIN FIVE
     .ENDM
     
-    .MACRO TEST NARGS 3
-        .DB \1, \2, \3
-    .ENDM
-
 And here's how they can be used::
 
     NOPMONSTER
     LOAD_ABCD $10, $20, $30, XYZ, "merman.bin"
     QUEEN 123
     LOAD_ABCD_2 $10, $20, $30, XYZ, "merman.bin"
-    TEST 1, 2, 3
 
 Note that you must separate the arguments with commas.
 
@@ -2240,6 +2235,26 @@ Here's another useful example::
 
     REDEFINER &DEFINITION_A    ; here we feed the definition's name
                                ; as first argument, not it's value
+
+Another useful example::
+
+    .MACRO LOOP ISOLATED
+       LD A, 10
+    -  DEC A                   ; B
+       JP NZ, -
+    .ENDM
+
+    ...
+       LD B, 20
+    -  LOOP                    ; C
+       DEC B
+       JP NZ, -                ; A
+    ...
+
+Here is use the keyword ``ISOLATED`` to make the local labels inside
+the macro to be isolated from the outside world. Without it the jump
+in A would jump to B, but now it jumps to C. Using the same keyword
+we would also make the macro to have its own child label stack.
 
 This is not a compulsory directive.
 

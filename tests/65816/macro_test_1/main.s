@@ -182,3 +182,153 @@ LABEL_3 nop
         _set SOME_CONST         ; @BT A9 01 9D 00 80
         .db "<13"               ; @BT END
 .ends
+
+        .MACRO TEST
+        .IF NARGS == 0          ; inside a .MACRO NARGS holds the number of arguments
+            .DB 0               ; the .MACRO was called with
+        .ELIF NARGS == 1
+            .DB \1
+        .ELIF NARGS == 2
+            .DB \1, \2
+        .ELIF NARGS == 3
+            .DB \1, \2, \3
+        .ENDIF
+        .ENDM
+
+        .db "14>"               ; @BT TEST-14 14 START
+        TEST                    ; @BT 00
+        TEST 1                  ; @BT 01
+        TEST 2, 3               ; @BT 02 03
+        TEST 4, 5, 6            ; @BT 04 05 06
+        .db "<14"               ; @BT END
+
+        ///////////////////////////////////////////////////////////////////////////////
+        // .MACRO isolation tests
+        ///////////////////////////////////////////////////////////////////////////////
+
+        // 1
+        
+        .bank 0 slot 1
+        .orga $A000
+
+        .macro INSIDEISOLATEDMACRO ISOLATED
+@Son2:
+        .endm
+        
+        .macro ISOLATIONTEST1 ISOLATED
+IAmIsolated:
+@Son2:  .dw IAmIsolated
+@Son1:
+        INSIDEISOLATEDMACRO
+        .dw IAmIsolated@Son1
+        .dw IAmIsolated@Son2
+        .endm
+
+        .db "15>"               ; @BT TEST-15 15 START
+BaseMaster:
+        ISOLATIONTEST1          ; @BT 03 A0 05 A0 03 A0
+@Child1:.dw BaseMaster@Child1   ; @BT 09 A0
+        .db "<15"               ; @BT END
+        
+        // 2
+
+        .bank 0 slot 1
+        .orga $A100
+
+        .macro LOCALREFERENCE1 ISOLATED
+-       .dw -
+-       .dw -
+        .endm
+
+        .db "16>"               ; @BT TEST-16 16 START
+-       .db 0                   ; @BT 00
+        LOCALREFERENCE1         ; @BT 04 A1 06 A1
+        .dw -                   ; @BT 03 A1
+        .db "<16"               ; @BT END
+        
+        // 3
+
+        .bank 0 slot 1
+        .orga $A200
+
+        .macro LOCALREFERENCE2 ISOLATED
+__      .dw _b
+        .endm
+
+        .db "17>"               ; @BT TEST-17 17 START
+__      .db 0                   ; @BT 00
+        LOCALREFERENCE2         ; @BT 04 A2
+        .dw _b                  ; @BT 03 A2
+        .db "<17"               ; @BT END
+
+        // 4
+
+        .bank 0 slot 1
+        .orga $A300
+
+        .macro LOCALREFERENCE4 ISOLATED
+        .db 2
+__      .dw _b
+        .endm
+        
+        .macro LOCALREFERENCE3 ISOLATED
+__      .db 1
+        LOCALREFERENCE4
+        .dw _b
+        .endm
+
+        .db "18>"               ; @BT TEST-18 18 START
+__      .db 0                   ; @BT 00
+        LOCALREFERENCE3         ; @BT 01 02 06 A3 04 A3
+        .dw _b                  ; @BT 03 A3
+        .db "<18"               ; @BT END
+
+        // 5
+
+        .bank 0 slot 1
+        .orga $A400
+
+        .macro LOCALREFERENCE5
+__      .db 1
+        .dw _b
+        .endm
+
+        .db "19>"               ; @BT TEST-19 19 START
+__      .db 0                   ; @BT 00
+        LOCALREFERENCE5         ; @BT 01 04 A4
+        .dw _b                  ; @BT 04 A4
+        .db "<19"               ; @BT END
+
+        // 6
+
+        .bank 0 slot 1
+        .orga $A500
+
+        .macro MAZE1 ISOLATED
+--      .db 0
+-       .db 0
+        .dw -
+        .dw --
+        .endm
+
+        .macro MAZE2 ISOLATED
+        .dw ++
+        .dw +
++       .db 0
+++      .db 0
+        .endm
+
+        .db "20>"               ; @BT TEST-20 20 START
+--      .db 0                   ; @BT 00
+-       .db 0                   ; @BT 00
+        MAZE1                   ; @BT 00 00 06 A5 05 A5
+        .dw -                   ; @BT 04 A5
+        .dw --                  ; @BT 03 A5
+        .dw ++                  ; @BT 1A A5
+        .dw +                   ; @BT 19 A5
+        MAZE2                   ; @BT 18 A5 17 A5 00 00
++       .db 0                   ; @BT 00
+++      .db 0                   ; @BT 00
+        .db "<20"               ; @BT END
+
+        

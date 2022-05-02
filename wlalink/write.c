@@ -1424,7 +1424,7 @@ int fix_references(void) {
     /* request for bank number? */
     if (r->name[0] == ':') {
       if (is_label_anonymous(&r->name[1]) == YES)
-        l = get_closest_anonymous_label(&r->name[1], x, r->file_id, r->section_status, r->section);
+        l = get_closest_anonymous_label(&r->name[1], r->context, x, r->file_id, r->section_status, r->section);
       else if (strcaselesscmp(&r->name[1], "CADDR") == 0) {
         lt.status = LABEL_STATUS_LABEL;
         strcpy(lt.name, &r->name[1]);
@@ -1530,7 +1530,7 @@ int fix_references(void) {
     /* normal reference */
     else {
       if (is_label_anonymous(r->name) == YES)
-        l = get_closest_anonymous_label(r->name, x, r->file_id, r->section_status, r->section);
+        l = get_closest_anonymous_label(r->name, r->context, x, r->file_id, r->section_status, r->section);
       else if (strcaselesscmp(r->name, "CADDR") == 0) {
         lt.status = LABEL_STATUS_DEFINE;
         strcpy(lt.name, r->name);
@@ -3346,7 +3346,7 @@ int parse_stack(struct stack *sta) {
       /* normal label address search */
       else {
         if (is_label_anonymous(si->string) == YES) {
-          l = get_closest_anonymous_label(si->string, sta->address, sta->file_id, sta->section_status, sta->section);
+          l = get_closest_anonymous_label(si->string, NULL, sta->address, sta->file_id, sta->section_status, sta->section);
           if (l != NULL) {
             k_rom = l->rom_address;
             k_ram = l->address;
@@ -3510,10 +3510,15 @@ int is_label_anonymous(char *label) {
   c = *label;
   if (!(c == '-' || c == '+'))
     return NO;
+  
   length = (int)strlen(label);
-  for (i = 0; i < length; i++) {
-    if (*(label + i) != c)
-      return NO;
+  for (i = 1; i < length; i++) {
+    if (*(label + i) == c)
+      continue;
+    if (*(label + i) == ':')
+      return YES;
+    
+    return NO;
   }
 
   return YES;
@@ -3600,22 +3605,31 @@ int sort_anonymous_labels() {
 }
 
 
-/* sort_anonymous_labels must be called before this. */
-/* Though currently, this doesn't take advantage of the fact that they're sorted. */
-struct label *get_closest_anonymous_label(char *name, int rom_address, int file_id, int section_status, int section) {
+/* sort_anonymous_labels must be called before this. though currently, this doesn't take advantage
+   of the fact that they're sorted. */
+struct label *get_closest_anonymous_label(char *name, char *context, int rom_address, int file_id, int section_status, int section) {
 
+  char context_name[MAX_NAME_LENGTH + 1];
   struct label *l;
   struct label *closest = NULL;
   int d = 999999999, e;
   int j;
 
+  if (context == NULL) {
+    /* get the context from the label */
+    context_name[0] = 0;
 
+    
+    
+    context = context_name;
+  }
+  
   j = 0;
 
   if (strcmp(name, "_b") == 0 || strcmp(name, "_B") == 0) {
     while (j < g_num_sorted_anonymous_labels) {
       l = g_sorted_anonymous_labels[j];
-      if (strcmp("__", l->name) == 0 && file_id == l->file_id && section_status == l->section_status) {
+      if (strcmp("__", l->name) == 0 && strcmp(context, l->context) == 0 && file_id == l->file_id && section_status == l->section_status) {
         if (section_status == OFF || (section_status == ON && section == l->section)) {
           e = rom_address - l->rom_address;
           if (e >= 0 && e < d) {
@@ -3632,7 +3646,7 @@ struct label *get_closest_anonymous_label(char *name, int rom_address, int file_
   if (strcmp(name, "_f") == 0 || strcmp(name, "_F") == 0) {
     while (j < g_num_sorted_anonymous_labels) {
       l = g_sorted_anonymous_labels[j];
-      if (strcmp("__", l->name) == 0 && file_id == l->file_id && section_status == l->section_status) {
+      if (strcmp("__", l->name) == 0 && strcmp(context, l->context) == 0 && file_id == l->file_id && section_status == l->section_status) {
         if (section_status == OFF || (section_status == ON && section == l->section)) {
           e = l->rom_address - rom_address;
           if (e > 0 && e < d) {
@@ -3650,7 +3664,7 @@ struct label *get_closest_anonymous_label(char *name, int rom_address, int file_
   /* -, --, +, ++, ... */
   while (j < g_num_sorted_anonymous_labels) {
     l = g_sorted_anonymous_labels[j];
-    if (strcmp(name, l->name) == 0 && file_id == l->file_id && section_status == l->section_status) {
+    if (strcmp(name, l->name) == 0 && strcmp(context, l->context) == 0 && file_id == l->file_id && section_status == l->section_status) {
       if (section_status == OFF || (section_status == ON && section == l->section)) {
         if (name[0] == '-') {
           e = rom_address - l->rom_address;

@@ -123,6 +123,7 @@ struct sort_capsule {
 
 struct label {
   char name[MAX_NAME_LENGTH + 1];
+  char context[MAX_NAME_LENGTH + 1];
   int file_id;
   int file_id_source;
   int linenumber;
@@ -143,6 +144,7 @@ struct label {
 
 struct reference {
   char name[MAX_NAME_LENGTH + 1];
+  char context[MAX_NAME_LENGTH + 1];
   int  address;
   int  type;
   int  section;

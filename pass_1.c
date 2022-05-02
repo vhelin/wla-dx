@@ -140,7 +140,7 @@ int g_xbit_size = 0, g_accu_size = 8, g_index_size = 8;
 
 /* vars used when in an enum, ramsection, or struct. */
 /* some variables named "enum_" are used in enums, ramsections, and structs. */
-static int g_in_enum = NO, g_in_ramsection = NO, g_in_struct = NO;
+static int g_in_enum = NO, g_in_ramsection = NO, g_in_struct = NO, g_macro_id = 0;
 static int g_enum_exp, g_enum_ord;
 static int g_enum_offset; /* Offset relative to enum start where we're at right now */
 static int g_last_enum_offset;
@@ -329,8 +329,8 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
   m->calls++;
 
   /* macro call start */
-  fprintf(g_file_out_ptr, "i%s ", m->name);
-  
+  fprintf(g_file_out_ptr, "i%d %s ", m->id, m->name);
+
   mrt->caller = caller;
   mrt->macro = m;
   mrt->macro_return_i = g_source_pointer;
@@ -726,7 +726,7 @@ int pass_1(void) {
 
         /* reset the flag as there can be only one label / line */
         g_newline_beginning = OFF;
-
+    
         if (compare_next_token("=") == SUCCEEDED || old_tmp_q == '=') {
           /* it's actually a definition! */
           g_source_pointer -= g_ss;
@@ -827,9 +827,8 @@ int pass_1(void) {
           strcpy(mrt->argument_data[p]->string, g_label);
         else if (q == INPUT_NUMBER_STACK)
           mrt->argument_data[p]->value = (double)g_latest_stack;
-        else if (q == SUCCEEDED) {
+        else if (q == SUCCEEDED)
           mrt->argument_data[p]->value = g_parsed_double;
-        }
         else
           return FAILED;
 
@@ -917,12 +916,10 @@ static int parse_push_pull_registers(int accept_u) {
     }
     
     if (z != INPUT_NUMBER_ADDRESS_LABEL) {
-      if (accept_u == 1) {
+      if (accept_u == 1)
         print_error(ERROR_ERR, "%s, got something else instead.\n", error_no_s);
-      }
-      else {
+      else
         print_error(ERROR_ERR, "%s, got something else instead.\n", error_no_u);
-      }
       return -1;
     }
 
@@ -955,12 +952,10 @@ static int parse_push_pull_registers(int accept_u) {
     else if (strcaselesscmp(g_label, "DP") == 0)
       reg = 1 << 3;
     else {
-      if (accept_u == 1) {
+      if (accept_u == 1)
         print_error(ERROR_ERR, "%s, got \"%s\" instead.\n", error_no_s, g_label);
-      }
-      else {
+      else
         print_error(ERROR_ERR, "%s, got \"%s\" instead.\n", error_no_u, g_label);
-      }
       return -1;
     }
 
@@ -7762,6 +7757,15 @@ int directive_macro(void) {
   m->calls = 0;
   m->filename_id = g_active_file_info_last->filename_id;
   m->argument_names = NULL;
+  m->is_isolated = NO;
+  m->id = g_macro_id++;
+
+  /* is ISOLATED defined? */
+  if (compare_next_token("ISOLATED") == SUCCEEDED) {
+    skip_next_token();
+
+    m->is_isolated = YES;
+  }
 
   /* is ARGS defined? */
   q = 0;
@@ -7922,7 +7926,7 @@ int directive_endm(void) {
     g_macro_active--;
 
     /* macro call end */
-    fprintf(g_file_out_ptr, "I%s ", g_macro_stack[g_macro_active].macro->name);
+    fprintf(g_file_out_ptr, "I%d %s ", g_macro_stack[g_macro_active].macro->id, g_macro_stack[g_macro_active].macro->name);
     
     /* free the arguments */
     if (g_macro_stack[g_macro_active].supplied_arguments > 0) {
@@ -7937,6 +7941,10 @@ int directive_endm(void) {
       undefine(g_macro_stack[g_macro_active].macro->argument_names[q]);
 
     g_source_pointer = g_macro_stack[g_macro_active].macro_return_i;
+
+    /* we return to the beginning of a new line? */
+    if (g_buffer[g_source_pointer - 1] == 0xA)
+      g_newline_beginning = ON;
 
     if ((g_extra_definitions == ON) && (g_active_file_info_last->filename_id != g_macro_stack[g_macro_active].macro_return_filename_id)) {
       redefine("WLA_FILENAME", 0.0, get_file_name(g_macro_stack[g_macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING);

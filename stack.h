@@ -13,7 +13,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result);
 /* TODO: move these to their own file */
 int data_stream_parser_free(void);
 int data_stream_parser_parse(void);
-struct data_stream_item *data_stream_parser_find_label(char *label);
+struct data_stream_item *data_stream_parser_find_label(char *label, int file_name_id, int line_number);
 
 #endif
 

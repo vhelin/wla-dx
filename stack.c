@@ -37,6 +37,8 @@ extern int g_stack_inserted;
 static int g_is_calculating_deltas = NO, g_delta_counter = 0, g_delta_section = -1, g_delta_address = -1, g_delta_old_type = 0;
 static struct stack_item *g_delta_old_pointer;
 
+static int s_dsp_file_name_id = 0, s_dsp_line_number = 0;
+
 static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 
 
@@ -1369,7 +1371,7 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
       /* read the labels and their addresses from the internal data stream */
       data_stream_parser_parse();
 
-      dSI = data_stream_parser_find_label(s->string);
+      dSI = data_stream_parser_find_label(s->string, s_dsp_file_name_id, s_dsp_line_number);
       if (dSI != NULL) {
         if (g_delta_counter == 0) {
           g_delta_section = dSI->section_id;
@@ -2103,7 +2105,7 @@ extern FILE *g_file_out_ptr;
    where it left off previous call */
 static struct data_stream_item *s_dsp_parent_labels[10];
 static int s_dsp_last_data_stream_position = 0, s_dsp_has_data_stream_parser_been_initialized = NO;
-static int s_dsp_add = 0, s_dsp_add_old = 0, s_dsp_section_id = -1, s_dsp_bits_current = 0, s_dsp_inz, s_dsp_line_number = 0;
+static int s_dsp_add = 0, s_dsp_add_old = 0, s_dsp_section_id = -1, s_dsp_bits_current = 0, s_dsp_inz;
 static struct section_def *s_dsp_s = NULL;
 static struct map_t *s_dsp_labels_map = NULL;
 
@@ -2170,10 +2172,10 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 'i':
-      fscanf(f_in, "%*s ");
+      fscanf(f_in, "%*d %*s ");
       continue;
     case 'I':
-      fscanf(f_in, "%*s ");
+      fscanf(f_in, "%*d %*s ");
       continue;
 
     case 'P':
@@ -2372,9 +2374,8 @@ int data_stream_parser_parse(void) {
     case 'L': /* label */
       if (c == 'Z') {
       }
-      else if (c == 'Y') {
+      else if (c == 'Y')
         fscanf(f_in, "%*s ");
-      }
       else {
         struct data_stream_item *dSI;
         int mangled_label = NO;
@@ -2409,7 +2410,7 @@ int data_stream_parser_parse(void) {
 
           if (n >= 0) {
             /* mangle the label so that we'll save only full forms of labels */
-            if (mangle_label(dSI->label, s_dsp_parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+            if (mangle_label(dSI->label, s_dsp_parent_labels[n]->label, n, MAX_NAME_LENGTH, s_dsp_file_name_id, s_dsp_line_number) == FAILED)
               return FAILED;
 
             mangled_label = YES;
@@ -2417,7 +2418,7 @@ int data_stream_parser_parse(void) {
 
           if (is_label_anonymous(dSI->label) == NO && g_namespace[0] != 0 && mangled_label == NO) {
             if (s_dsp_section_id < 0 || s_dsp_s->nspace == NULL) {
-              if (add_namespace(dSI->label, g_namespace, sizeof(dSI->label)) == FAILED)
+              if (add_namespace(dSI->label, g_namespace, sizeof(dSI->label), s_dsp_file_name_id, s_dsp_line_number) == FAILED)
                 return FAILED;
             }
           }
@@ -2447,7 +2448,7 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 'f':
-      fscanf(f_in, "%*d ");
+      fscanf(f_in, "%d ", &s_dsp_file_name_id);
       continue;
 
     case 'k':
@@ -2474,7 +2475,7 @@ int data_stream_parser_parse(void) {
 }
 
 
-struct data_stream_item *data_stream_parser_find_label(char *label) {
+struct data_stream_item *data_stream_parser_find_label(char *label, int file_name_id, int line_number) {
 
   char mangled_label[MAX_NAME_LENGTH+1];
   struct data_stream_item *dSI;
@@ -2494,7 +2495,7 @@ struct data_stream_item *data_stream_parser_find_label(char *label) {
         fprintf(stderr, "DATA_STREAM_PARSER_FIND_LABEL: Parent of label \"%s\" is missing! Please submit a bug report!\n", label);
         return NULL;
       }
-      if (mangle_label(mangled_label, s_dsp_parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+      if (mangle_label(mangled_label, s_dsp_parent_labels[n]->label, n, MAX_NAME_LENGTH, file_name_id, line_number) == FAILED)
         return NULL;
     }
   }

@@ -16,6 +16,7 @@ extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_se
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern struct block_name *g_block_names;
 extern struct after_section *g_after_sections;
+extern struct macro_static *g_macros_first;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
 extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp, g_namespace[MAX_NAME_LENGTH + 1];
@@ -26,22 +27,43 @@ extern int g_global_listfile_items;
 struct label_def *g_label_last, *g_label_tmp, *g_labels = NULL;
 struct map_t *g_global_unique_label_map = NULL;
 struct block *g_blocks = NULL;
+struct label_context g_label_context, *g_label_context_first = NULL, *g_label_context_last = NULL;
+
 
 static int g_dstruct_start, g_dstruct_item_offset, g_dstruct_item_size, g_mangled_label;
+
 
 #define XSTRINGIFY(x) #x
 #define STRINGIFY(x) XSTRINGIFY(x)
 #define STRING_READ_FORMAT ("%" STRINGIFY(MAX_NAME_LENGTH) "s ")
 
 
+int free_label_context_allocations(void) {
+
+  struct label_context *lc = g_label_context_first;
+
+  if (lc == NULL)
+    return SUCCEEDED;
+
+  lc = lc->next;
+
+  while (lc != NULL) {
+    struct label_context *next = lc->next;
+    free(lc);
+    lc = next;
+  }
+  
+  return SUCCEEDED;
+}
+
 
 int pass_3(void) {
 
-  struct section_def *s;
+  struct section_def *s = NULL;
   struct label_def *l;
   struct block_name *bn;
-  struct label_def *parent_labels[10];
   struct block *b;
+  char tmp_buffer[MAX_NAME_LENGTH + 1];
   FILE *f_in;
   int bank = 0, slot = 0, add = 0, g_file_name_id = 0, inz, line_number = 0, o, add_old = 0, inside_macro = 0, inside_repeat = 0;
   int base = 0x00, bits_current = 0;
@@ -50,9 +72,15 @@ int pass_3(void) {
   int err;
 
 
-  memset(parent_labels, 0, sizeof(parent_labels));
-  s = NULL;
-
+  /* initialize label context */
+  g_label_context.isolated_macro = NULL;
+  g_label_context.next = NULL;
+  g_label_context.prev = NULL;
+  for (x = 0; x < 10; x++)
+    g_label_context.parent_labels[x] = NULL;
+  g_label_context_last = &g_label_context;
+  g_label_context_first = &g_label_context;
+  
   g_namespace[0] = 0;
   
   if (g_verbose_mode == ON)
@@ -81,12 +109,20 @@ int pass_3(void) {
         continue;
 
       case 'i':
-        fscanf(f_in, "%*s ");
+        fscanf(f_in, "%d %s ", &inz, tmp_buffer);
         inside_macro++;
+
+        if (process_macro_in(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
+          return FAILED;
+        
         continue;
       case 'I':
-        fscanf(f_in, "%*s ");
+        fscanf(f_in, "%d %s ", &inz, tmp_buffer);
         inside_macro--;
+
+        if (process_macro_out(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
+          return FAILED;
+        
         continue;
 
       case 'P':
@@ -104,7 +140,8 @@ int pass_3(void) {
           continue;
         }
 
-        fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n",
+                get_file_name(g_file_name_id), line_number);
         return FAILED;
 
       case 'd':
@@ -114,7 +151,8 @@ int pass_3(void) {
           continue;
         }
 
-        fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n",
+                get_file_name(g_file_name_id), line_number);
         return FAILED;
 
       case 'y':
@@ -124,7 +162,8 @@ int pass_3(void) {
           continue;
         }
 
-        fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n",
+                get_file_name(g_file_name_id), line_number);
         return FAILED;
 
 #ifdef SUPERFX
@@ -136,7 +175,8 @@ int pass_3(void) {
           continue;
         }
 
-        fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n",
+                get_file_name(g_file_name_id), line_number);
         return FAILED;
       
       case '-':
@@ -146,7 +186,8 @@ int pass_3(void) {
           continue;
         }
 
-        fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n",
+                get_file_name(g_file_name_id), line_number);
         return FAILED;
 
 #endif
@@ -182,14 +223,14 @@ int pass_3(void) {
           else if (type == 'c')
             fscanf(f_in, "%*d");
           else {
-            fprintf(stderr, "INTERNAL_PASS_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", type);
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, type);
             return FAILED;
           }
 
           continue;
         }
 
-        fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(g_file_name_id), line_number);
         return FAILED;
         
       case 'v':
@@ -224,7 +265,7 @@ int pass_3(void) {
         
         b = calloc(sizeof(struct block), 1);
         if (b == NULL) {
-          fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for block \"%s\".\n",
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Out of memory while trying to allocate room for block \"%s\".\n",
                   get_file_name(g_file_name_id), line_number, bn->name);
           return FAILED;
         }
@@ -240,9 +281,8 @@ int pass_3(void) {
       case 'G':
         b = g_blocks;
         g_blocks = g_blocks->next;
-        if (g_quiet == NO) {
-          printf("INTERNAL_PASS_1: Block \"%s\" is %d bytes in size.\n", b->name, add - b->address);
-        }
+        if (g_quiet == NO)
+          printf("%s:%d: INTERNAL_PASS_1: Block \"%s\" is %d bytes in size.\n", get_file_name(g_file_name_id), line_number, b->name, add - b->address);
         free(b);
         continue;
 
@@ -260,7 +300,7 @@ int pass_3(void) {
         l = calloc(sizeof(struct label_def), 1);
         if (l == NULL) {
           fscanf(f_in, STRING_READ_FORMAT, g_tmp);
-          fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for label \"%s\".\n",
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Out of memory while trying to allocate room for label \"%s\".\n",
                   get_file_name(g_file_name_id), line_number, g_tmp);
           return FAILED;
         }
@@ -287,24 +327,35 @@ int pass_3(void) {
             n++;
           m = n;
           while (m < 10)
-            parent_labels[m++] = NULL;
+            g_label_context_last->parent_labels[m++] = NULL;
 
           if (n < 10)
-            parent_labels[n] = l;
+            g_label_context_last->parent_labels[n] = l;
           n--;
-          while (n >= 0 && parent_labels[n] == 0)
+          while (n >= 0 && g_label_context_last->parent_labels[n] == 0)
             n--;
 
           if (n >= 0) {
-            if (mangle_label(l->label, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+            if (mangle_label(l->label, g_label_context_last->parent_labels[n]->label, n, MAX_NAME_LENGTH, g_file_name_id, line_number) == FAILED)
               return FAILED;
             g_mangled_label = YES;
           }
         }
-
+        else if (c == 'L' && is_label_anonymous(l->label) == YES && g_label_context_last->isolated_macro != NULL) {
+          /* add context to the anonymous label */
+          if (strlen(l->label) + strlen(g_label_context_last->isolated_macro->name) + 1 < sizeof(l->label) - 1) {
+            snprintf(tmp_buffer, sizeof(tmp_buffer), "%s:%s", l->label, g_label_context_last->isolated_macro->name);
+            strcpy(l->label, tmp_buffer);
+          }
+          else {
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Cannot add context name to the anonymous label, buffer is too small!\n", get_file_name(g_file_name_id), line_number);
+            return FAILED;
+          }
+        }
+        
         if (c == 'L' && is_label_anonymous(l->label) == NO && g_namespace[0] != 0 && g_mangled_label == NO) {
           if (s == NULL || s->nspace == NULL) {
-            if (add_namespace(l->label, g_namespace, sizeof(l->label)) == FAILED)
+            if (add_namespace(l->label, g_namespace, sizeof(l->label), g_file_name_id, line_number) == FAILED)
               return FAILED;
           }
         }
@@ -339,12 +390,11 @@ int pass_3(void) {
         if (s != NULL) {
           /* always put the label into the section's label_map */
           if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
-                 get_file_name(g_file_name_id), line_number, l->label);
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n", get_file_name(g_file_name_id), line_number, l->label);
             return FAILED;
           }
           if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
-            fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Hashmap error %d. Please send a bug report!", get_file_name(g_file_name_id), line_number, err);
             return FAILED;
           }
         }
@@ -354,24 +404,22 @@ int pass_3(void) {
           if (s != NULL && s->nspace != NULL) {
             /* label in a namespace */
             if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
-              fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
-                 get_file_name(g_file_name_id), line_number, l->label);
+              fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n", get_file_name(g_file_name_id), line_number, l->label);
               return FAILED;
             }
             if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
-              fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+              fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Hashmap error %d. Please send a bug report!", get_file_name(g_file_name_id), line_number, err);
               return FAILED;
             }
           }
           else {
             /* global label */
             if (hashmap_get(g_global_unique_label_map, l->label, NULL) == MAP_OK) {
-              fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
-                 get_file_name(g_file_name_id), line_number, l->label);
+              fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n", get_file_name(g_file_name_id), line_number, l->label);
               return FAILED;
             }
             if ((err = hashmap_put(g_global_unique_label_map, l->label, l)) != MAP_OK) {
-              fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+              fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Hashmap error %d. Please send a bug report!", get_file_name(g_file_name_id), line_number, err);
               return FAILED;
             }
           }
@@ -427,7 +475,7 @@ int pass_3(void) {
           continue;
         }
         
-        fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(g_file_name_id), line_number);
         return FAILED;
 
       case 's':
@@ -437,7 +485,7 @@ int pass_3(void) {
         if (s->size == 0 && s->keep == NO && g_keep_empty_sections == NO) {
           struct after_section *as;
  
-          fprintf(stderr, "INTERNAL_PASS_1: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_1: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), line_number, get_file_name(g_file_name_id), s->name);
           s->alive = NO;
 
           /* discard all labels which belong to this section */
@@ -472,8 +520,7 @@ int pass_3(void) {
         continue;
 
       default:
-        fprintf(stderr, "INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n");
-        return FAILED;
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(g_file_name_id), line_number);
       }
     }
   }
@@ -493,12 +540,20 @@ int pass_3(void) {
         continue;
 
       case 'i':
-        fscanf(f_in, "%*s ");
+        fscanf(f_in, "%d %s ", &inz, tmp_buffer);
         inside_macro++;
+
+        if (process_macro_in(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
+          return FAILED;
+        
         continue;
       case 'I':
-        fscanf(f_in, "%*s ");
+        fscanf(f_in, "%d %s ", &inz, tmp_buffer);
         inside_macro--;
+
+        if (process_macro_out(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
+          return FAILED;
+        
         continue;
 
       case 'f':
@@ -549,7 +604,7 @@ int pass_3(void) {
         continue;
 
       default:
-        fprintf(stderr, "INTERNAL_PASS_1: A section must be open before any code/data can be accepted.\n");
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_1: A section must be open before any code/data can be accepted.\n", get_file_name(g_file_name_id), line_number);
         return FAILED;
       }
     }
@@ -574,12 +629,20 @@ int pass_3(void) {
       continue;
 
     case 'i':
-      fscanf(f_in, "%*s ");
+      fscanf(f_in, "%d %s ", &inz, tmp_buffer);
       inside_macro++;
+
+      if (process_macro_in(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
+        return FAILED;
+        
       continue;
     case 'I':
-      fscanf(f_in, "%*s ");
+      fscanf(f_in, "%d %s ", &inz, tmp_buffer);
       inside_macro--;
+
+      if (process_macro_out(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
+        return FAILED;
+        
       continue;
 
     case 'P':
@@ -781,7 +844,7 @@ int pass_3(void) {
         else if (type == 'c')
           fscanf(f_in, "%*d");
         else {
-          fprintf(stderr, "INTERNAL_PASS_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", type);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, type);
           return FAILED;
         }
 
@@ -825,7 +888,7 @@ int pass_3(void) {
 
       b = calloc(sizeof(struct block), 1);
       if (b == NULL) {
-        fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for block \"%s\".\n",
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Out of memory while trying to allocate room for block \"%s\".\n",
                 get_file_name(g_file_name_id), line_number, bn->name);
         return FAILED;
       }
@@ -841,7 +904,7 @@ int pass_3(void) {
       b = g_blocks;
       g_blocks = g_blocks->next;
       if (g_quiet == NO) {
-        printf("INTERNAL_PASS_1: Block \"%s\" is %d bytes in size.\n", b->name, add - b->address);
+        printf("%s:%d: INTERNAL_PASS_1: Block \"%s\" is %d bytes in size.\n", get_file_name(g_file_name_id), line_number, b->name, add - b->address);
       }
       free(b);
       continue;
@@ -860,7 +923,7 @@ int pass_3(void) {
       l = calloc(sizeof(struct label_def), 1);
       if (l == NULL) {
         fscanf(f_in, STRING_READ_FORMAT, g_tmp);
-        fprintf(stderr, "%s:%d INTERNAL_PASS_1: Out of memory while trying to allocate room for label \"%s\".\n",
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Out of memory while trying to allocate room for label \"%s\".\n",
                 get_file_name(g_file_name_id), line_number, g_tmp);
         return FAILED;
       }
@@ -887,24 +950,35 @@ int pass_3(void) {
           n++;
         m = n;
         while (m < 10)
-          parent_labels[m++] = NULL;
+          g_label_context_last->parent_labels[m++] = NULL;
 
         if (n < 10)
-          parent_labels[n] = l;
+          g_label_context_last->parent_labels[n] = l;
         n--;
-        while (n >= 0 && parent_labels[n] == 0)
+        while (n >= 0 && g_label_context_last->parent_labels[n] == 0)
           n--;
 
         if (n >= 0) {
-          if (mangle_label(l->label, parent_labels[n]->label, n, MAX_NAME_LENGTH) == FAILED)
+          if (mangle_label(l->label, g_label_context_last->parent_labels[n]->label, n, MAX_NAME_LENGTH, g_file_name_id, line_number) == FAILED)
             return FAILED;
           g_mangled_label = YES;
+        }
+      }
+      else if (c == 'L' && is_label_anonymous(l->label) == YES && g_label_context_last->isolated_macro != NULL) {
+        /* add context to the anonymous label */
+        if (strlen(l->label) + strlen(g_label_context_last->isolated_macro->name) + 1 < sizeof(l->label) - 1) {
+          snprintf(tmp_buffer, sizeof(tmp_buffer), "%s:%s", l->label, g_label_context_last->isolated_macro->name);
+          strcpy(l->label, tmp_buffer);
+        }
+        else {
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Cannot add context name to the anonymous label, buffer is too small!\n", get_file_name(g_file_name_id), line_number);
+          return FAILED;
         }
       }
 
       if (c == 'L' && is_label_anonymous(l->label) == NO && g_namespace[0] != 0 && g_mangled_label == NO) {
         if (s == NULL || s->nspace == NULL) {
-          if (add_namespace(l->label, g_namespace, sizeof(l->label)) == FAILED)
+          if (add_namespace(l->label, g_namespace, sizeof(l->label), g_file_name_id, line_number) == FAILED)
             return FAILED;
         }
       }
@@ -949,12 +1023,11 @@ int pass_3(void) {
       if (s != NULL) {
         /* always put the label into the section's label_map */
         if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
-               get_file_name(g_file_name_id), line_number, l->label);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n", get_file_name(g_file_name_id), line_number, l->label);
           return FAILED;
         }
         if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
-          fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Hashmap error %d. Please send a bug report!", get_file_name(g_file_name_id), line_number, err);
           return FAILED;
         }
       }
@@ -964,24 +1037,22 @@ int pass_3(void) {
         if (s != NULL && s->nspace != NULL) {
           /* label in a namespace */
           if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
-               get_file_name(g_file_name_id), line_number, l->label);
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n", get_file_name(g_file_name_id), line_number, l->label);
             return FAILED;
           }
           if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
-            fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Hashmap error %d. Please send a bug report!", get_file_name(g_file_name_id), line_number, err);
             return FAILED;
           }
         }
         else {
           /* global label */
           if (hashmap_get(g_global_unique_label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n",
-               get_file_name(g_file_name_id), line_number, l->label);
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Label \"%s\" was defined for the second time.\n", get_file_name(g_file_name_id), line_number, l->label);
             return FAILED;
           }
           if ((err = hashmap_put(g_global_unique_label_map, l->label, l)) != MAP_OK) {
-            fprintf(stderr, "Hashmap error %d. Please send a bug report!", err);
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Hashmap error %d. Please send a bug report!", get_file_name(g_file_name_id), line_number, err);
             return FAILED;
           }
         }
@@ -1022,7 +1093,7 @@ int pass_3(void) {
       }
       else {
         if (g_dstruct_item_offset != -1 && add - g_dstruct_item_offset > g_dstruct_item_size) {
-          fprintf(stderr, "%s:%d INTERNAL_PASS_1: %d too many bytes in struct field.\n", get_file_name(g_file_name_id), line_number, (add - g_dstruct_item_offset) - g_dstruct_item_size);
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_1: %d too many bytes in struct field.\n", get_file_name(g_file_name_id), line_number, (add - g_dstruct_item_offset) - g_dstruct_item_size);
           return FAILED;
         }
 
@@ -1037,7 +1108,7 @@ int pass_3(void) {
       continue;
 
     default:
-      fprintf(stderr, "%s: INTERNAL_PASS_1: Unknown internal symbol \"%c\" in \"%s\" at offset %ld.\n", get_file_name(g_file_name_id), c, g_tmp_name, ftell(f_in)-1);
+      fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Unknown internal symbol \"%c\" in \"%s\" at offset %ld.\n", get_file_name(g_file_name_id), line_number, c, g_tmp_name, ftell(f_in)-1);
       return FAILED;
     }
   }
@@ -1045,7 +1116,7 @@ int pass_3(void) {
   fclose(f_in);
 
   if (g_blocks != NULL) {
-    fprintf(stderr, "%s:%d INTERNAL_PASS_1: .BLOCK \"%s\" was left open.\n", get_file_name(g_blocks->filename_id), g_blocks->line_number, g_blocks->name);
+    fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .BLOCK \"%s\" was left open.\n", get_file_name(g_blocks->filename_id), g_blocks->line_number, g_blocks->name);
     return FAILED;
   }
 
@@ -1053,35 +1124,41 @@ int pass_3(void) {
 }
 
 
-/* is the label of form __, -, --, ---, +, ++, +++, ... ? */
+/* is the label of form __, -, --, ---, +, ++, +++, -:context, +:context ... ? */
 int is_label_anonymous(char *label) {
 
-  int length, i;
+  int i, length;
   char c;
 
   if (strcmp(label, "__") == 0)
     return YES;
 
   c = *label;
-  if (!(c == '-' || c == '+'))
-    return NO;
-  length = (int)strlen(label);
-  for (i = 0; i < length; i++) {
-    if (*(label + i) != c)
-      return NO;
-  }
+  if (c == '-' || c == '+')
+    return YES;
 
+  length = strlen(label);
+  for (i = 1; i < length; i++) {
+    if (label[i] == c)
+      continue;
+    /* context follows? */
+    if (label[i] == ':')
+      return YES;
+
+    return NO;
+  }
+  
   return YES;
 }
 
 
-int mangle_label(char *label, char *parent, int n, unsigned int label_size) {
+int mangle_label(char *label, char *parent, int n, unsigned int label_size, int file_name_id, int line_number) {
 
   char buf[MAX_NAME_LENGTH*2+2];
   int len;
 
   if (parent == NULL) {
-    fprintf(stderr, "MANGLE_LABEL: Parent label of label \"%s\" is NULL! Please submit a bug report!\n", label);
+    fprintf(stderr, "%s:%d: MANGLE_LABEL: Parent label of label \"%s\" is NULL! Please submit a bug report!\n", get_file_name(file_name_id), line_number, label);
     return FAILED;
   }
 
@@ -1091,7 +1168,7 @@ int mangle_label(char *label, char *parent, int n, unsigned int label_size) {
   strcpy(&buf[len], label+n);
 
   if (len+strlen(label+n)+1 > label_size) {
-    fprintf(stderr, "MANGLE_LABEL: Child label expands to \"%s\" which is %d characters too large.\n", buf, (int)(strlen(buf)-label_size+1));
+    fprintf(stderr, "%s:%d: MANGLE_LABEL: Child label expands to \"%s\" which is %d characters too large.\n", get_file_name(file_name_id), line_number, buf, (int)(strlen(buf)-label_size+1));
     return FAILED;
   }
 
@@ -1102,7 +1179,7 @@ int mangle_label(char *label, char *parent, int n, unsigned int label_size) {
 }
 
 
-int add_namespace(char *label, char *name_space, unsigned int label_size) {
+int add_namespace(char *label, char *name_space, unsigned int label_size, int file_name_id, int line_number) {
 
   char buf[MAX_NAME_LENGTH*2+2];
 
@@ -1113,11 +1190,88 @@ int add_namespace(char *label, char *name_space, unsigned int label_size) {
   
   snprintf(buf, sizeof(buf), "%s.%s", name_space, label);
   if (strlen(buf) >= label_size) {
-    fprintf(stderr, "ADD_NAMESPACE: Label expands to \"%s\" which is %d characters too large.\n", buf, (int)(strlen(buf)-label_size+1));
+    fprintf(stderr, "%s:%d: ADD_NAMESPACE: Label expands to \"%s\" which is %d characters too large.\n", get_file_name(file_name_id), line_number, buf, (int)(strlen(buf)-label_size+1));
     return FAILED;
   }
 
   strcpy(label, buf);
+
+  return SUCCEEDED;
+}
+
+
+int macro_get_by_id(int id, struct macro_static **macro_out) {
+
+  struct macro_static *macro;
+
+  macro = g_macros_first;
+  while (macro != NULL) {
+    if (macro->id == id)
+      break;
+    macro = macro->next;
+  }
+
+  *macro_out = macro;
+  
+  return SUCCEEDED;
+}
+
+
+int process_macro_in(int id, char *name, int file_name_id, int line_number) {
+
+  struct macro_static *macro;
+  int x;
+
+  /* find the .MACRO */
+  macro_get_by_id(id, &macro);
+  if (macro == NULL) {
+    fprintf(stderr, "%s:%d: .MACRO %s has gone missing! Please submit a bug report!\n", get_file_name(file_name_id), line_number, name);
+    return FAILED;
+  }
+  
+  /* is it ISOLATED? */
+  if (macro->is_isolated == YES) {
+    /* yes, create a new label context for it */
+    struct label_context *lc = calloc(sizeof(struct label_context), 1);
+
+    if (lc == NULL) {
+      fprintf(stderr, "%s:%d: Out of memory while allocating a new label context.\n", get_file_name(file_name_id), line_number);
+      return FAILED;
+    }
+
+    lc->isolated_macro = macro;
+    lc->next = NULL;
+    lc->prev = g_label_context_last;
+    g_label_context_last->next = lc;
+    g_label_context_last = lc;
+    for (x = 0; x < 10; x++)
+      lc->parent_labels[x] = NULL;
+  }
+
+  return SUCCEEDED;
+}
+
+
+int process_macro_out(int id, char *name, int file_name_id, int line_number) {
+
+  struct macro_static *macro;
+
+  /* find the .MACRO */
+  macro_get_by_id(id, &macro);
+  if (macro == NULL) {
+    fprintf(stderr, "%s:%d: .MACRO %s has gone missing! Please submit a bug report!\n", get_file_name(file_name_id), line_number, name);
+    return FAILED;
+  }
+  
+  /* is it ISOLATED? */
+  if (macro->is_isolated == YES) {
+    /* yes, free the current label context */
+    struct label_context *lc = g_label_context_last->prev;
+
+    lc->next = NULL;
+    free(g_label_context_last);
+    g_label_context_last = lc;
+  }
 
   return SUCCEEDED;
 }

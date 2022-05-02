@@ -55,13 +55,13 @@ int listfile_collect(void) {
       continue;
 
     case 'i':
-      fscanf(file_in, "%*s ");
+      fscanf(file_in, "%*d %*s ");
       inside_macro++;
       /* HACK! */
       line_number--;
       continue;
     case 'I':
-      fscanf(file_in, "%*s ");
+      fscanf(file_in, "%*d %*s ");
       inside_macro--;
       continue;
 
