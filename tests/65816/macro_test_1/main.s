@@ -331,4 +331,69 @@ __      .db 0                   ; @BT 00
 ++      .db 0                   ; @BT 00
         .db "<20"               ; @BT END
 
+        // 7
         
+        .bank 0 slot 1
+        .orga $A600
+        
+        .macro MASK ISOLATED
+__      .db 0
+        .endm
+        
+        .db "21>"               ; @BT TEST-21 21 START
+__      .db 0                   ; @BT 00
+        MASK                    ; @BT 00
+        .dw _b + $10            ; @BT 13 A6
+        .db "<21"               ; @BT END
+
+        // 8
+        
+        .bank 0 slot 1
+        .orga $A700
+
+        .macro KAMEN2 ISOLATED
+__      .db 0
+        .dw _b + $20
+        .endm
+        
+        .macro KAMEN1 ISOLATED
+__      .db 0
+        KAMEN2
+        .dw _b + $10
+        .endm
+        
+        .db "22>"               ; @BT TEST-22 22 START
+__      .db 0                   ; @BT 00
+        KAMEN1                  ; @BT 00 00 25 A7 14 A7
+        .db "<22"               ; @BT END
+
+        // 9
+        
+        .bank 0 slot 1
+        .orga $A800
+
+        .macro KAMEN2B ISOLATED
+__      .db 0
+        .dw _b + $20
+        .endm
+        
+        .macro KAMEN1B
+__      .db 0
+        KAMEN2B
+        .dw _b + $10
+        .endm
+        
+        .db "23>"               ; @BT TEST-23 23 START
+__      .db 0                   ; @BT 00
+        KAMEN1B                 ; @BT 00 00 25 A8 14 A8
+        .db "<23"               ; @BT END
+
+        // 9 (JUST CHECKING)
+
+        .bank 0 slot 1
+        .orga $A900
+
+A900:   .db "24>"               ; @BT TEST-24 24 START
+        .db :A900               ; @BT 00
+        .db 1 + :A900 + 1       ; @BT 02
+        .db "<24"               ; @BT END

@@ -58,8 +58,12 @@ int parse_context_from_name(char *name, char *context) {
   length = strlen(name);
   for (i = 0; i < length; i++) {
     if (name[i] == ':') {
+      /* there is a context attached to the label! */
+
+      /* remove it from the name... */
       name[i] = 0;
       i++;
+      /* ... and copy it to context variable */
       for (j = 0; i < length; i++, j++)
         context[j] = name[i];
       context[j] = 0;

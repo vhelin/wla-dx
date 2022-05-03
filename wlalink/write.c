@@ -3503,15 +3503,22 @@ int is_label_anonymous(char *label) {
   int length, i;
   char c;
 
-
-  if (strcmp(label, "_f") == 0 || strcmp(label, "_F") == 0 || strcmp(label, "_b") == 0 || strcmp(label, "_B") == 0 || strcmp(label, "__") == 0)
-    return YES;
-
+  length = (int)strlen(label);
+  if (length == 2) {
+    if (strcmp(label, "_f") == 0 || strcmp(label, "_F") == 0 || strcmp(label, "_b") == 0 || strcmp(label, "_B") == 0 || strcmp(label, "__") == 0)
+      return YES;
+  }
+  else if (length > 2) {
+    c = label[1];
+    
+    if (label[0] == '_' && (c == 'f' || c == 'F' || c == 'b' || c == 'B') && label[2] == ':')
+      return YES;
+  }
+  
   c = *label;
   if (!(c == '-' || c == '+'))
     return NO;
   
-  length = (int)strlen(label);
   for (i = 1; i < length; i++) {
     if (*(label + i) == c)
       continue;
@@ -3618,9 +3625,7 @@ struct label *get_closest_anonymous_label(char *name, char *context, int rom_add
   if (context == NULL) {
     /* get the context from the label */
     context_name[0] = 0;
-
-    
-    
+    parse_context_from_name(name, context_name);
     context = context_name;
   }
   
