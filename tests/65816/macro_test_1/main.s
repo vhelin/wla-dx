@@ -388,7 +388,7 @@ __      .db 0                   ; @BT 00
         KAMEN1B                 ; @BT 00 00 25 A8 14 A8
         .db "<23"               ; @BT END
 
-        // 9 (JUST CHECKING)
+        // 10 (JUST CHECKING)
 
         .bank 0 slot 1
         .orga $A900
@@ -397,3 +397,19 @@ A900:   .db "24>"               ; @BT TEST-24 24 START
         .db :A900               ; @BT 00
         .db 1 + :A900 + 1       ; @BT 02
         .db "<24"               ; @BT END
+
+        // 11
+
+        .bank 0 slot 1
+        .orga $AA00
+
+        .macro ISOLATEDMACRO ISOLATED
+AA03:   .db 0
+@child: .db 1
+        .dw @child
+        .endm
+        
+AA00:   .db "25>"               ; @BT TEST-25 25 START
+@child: ISOLATEDMACRO           ; @BT 00 01 04 AA
+        .dw @child              ; @BT 03 AA
+        .db "<25"               ; @BT END
