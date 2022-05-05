@@ -2251,10 +2251,49 @@ Another useful example::
        JP NZ, -                ; A
     ...
 
-Here is use the keyword ``ISOLATED`` to make the local labels inside
-the macro to be isolated from the outside world. Without it the jump
-in A would jump to B, but now it jumps to C. Using the same keyword
-we would also make the macro to have its own child label stack.
+Here we use the keyword ``ISOLATED`` to make un-named labels inside the
+macro to be isolated from the outside world. Without it the jump in A
+would jump to B, but now it jumps to C.
+
+Using the keyword ``ISOLATED`` we would also make the macro to have its own
+child label stack::
+
+            .macro MACROM
+    AA03:   .db 0
+    @child: .db 1          ; A
+            .dw @child     ; B
+            .endm
+
+    AA00:   .db "25>"
+    @child: MACROM         ; C
+            .dw @child     ; D
+            .db "<25"
+
+In this case B points to A and D points to A. If you add keyword ``ISOLATED``
+to ``.MACRO`` MACROM then B still points to A, but A doesn't bleed out of MACROM
+and D points to C. Exiting a ``.MACRO`` that uses keyword ``ISOLATED`` restores
+the child label stack. 
+
+One example more, but this time with local labels::
+
+            .macro LOCALS isolated
+    _hello: .db 0            ; A
+            .dw _hello + 1   ; B
+            .endm
+
+    _hello: .db "27>"        ; C
+            .db 0, 1, 2
+            LOCALS
+            .dw _hello + 2   ; D
+            .db "<27"
+
+Normally this would create the local label ``_hello`` twice and it would not
+work. Adding the keyword ``ISOLATED`` to ``.MACRO`` makes the local labels
+unique and D points to C and B points to A.
+
+To enable only local label isolation use the keyword ``ISOLATELOCAL`` instead of
+``ISOLATED`` and to enable only the isolation of un-named labels use the keyword
+``ISOLATEUNNAMED``.
 
 This is not a compulsory directive.
 

@@ -10,5 +10,6 @@ int macro_get_by_id(int id, struct macro_static **macro_out);
 int process_macro_in(int id, char *name, int file_name_id, int line_number);
 int process_macro_out(int id, char *name, int file_name_id, int line_number);
 int free_label_context_allocations(void);
+int add_context_to_anonymous_label(char *label, int label_size, struct label_context *label_context, int file_name_id, int line_number);
 
 #endif

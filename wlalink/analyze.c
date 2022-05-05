@@ -50,6 +50,8 @@ extern int g_emptyfill;
 extern int *g_banksizes, *g_bankaddress, g_banksize;
 
 
+int is_label_anonymous(char *label);
+
 
 int parse_context_from_name(char *name, char *context) {
 
@@ -79,8 +81,10 @@ int add_reference(struct reference *r) {
 
   r->context[0] = 0;
   
-  /* local labels might have a context -> reformat such labels */
-  parse_context_from_name(r->name, r->context);
+  if (is_label_anonymous(r->name) == YES) {
+    /* anonymous labels might have a context -> reformat such labels */
+    parse_context_from_name(r->name, r->context);
+  }
 
   r->file_id = g_obj_tmp->id;
   r->next = NULL;
@@ -302,9 +306,11 @@ int find_label(char *str, struct section *s, struct label **out) {
 int add_label(struct label *l) {
 
   l->context[0] = 0;
-  
-  /* local labels might have a context -> reformat such labels */
-  parse_context_from_name(l->name, l->context);
+
+  if (is_label_anonymous(l->name) == YES) {
+    /* anonymous labels might have a context -> reformat such labels */
+    parse_context_from_name(l->name, l->context);
+  }
   
   l->next = NULL;
   l->alive = YES;

@@ -3504,15 +3504,15 @@ int is_label_anonymous(char *label) {
   char c;
 
   length = (int)strlen(label);
-  if (length == 2) {
-    if (strcmp(label, "_f") == 0 || strcmp(label, "_F") == 0 || strcmp(label, "_b") == 0 || strcmp(label, "_B") == 0 || strcmp(label, "__") == 0)
-      return YES;
-  }
-  else if (length > 2) {
+  if (length >= 2 && label[0] == '_') {
     c = label[1];
     
-    if (label[0] == '_' && (c == 'f' || c == 'F' || c == 'b' || c == 'B') && label[2] == ':')
-      return YES;
+    if (c == 'f' || c == 'F' || c == 'b' || c == 'B' || c == '_') {
+      if (length == 2)
+        return YES;
+      if (length > 2 && label[2] == ':')
+        return YES;
+    }
   }
   
   c = *label;

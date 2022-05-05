@@ -336,7 +336,7 @@ __      .db 0                   ; @BT 00
         .bank 0 slot 1
         .orga $A600
         
-        .macro MASK ISOLATED
+        .macro MASK ISOLATEUNNAMED
 __      .db 0
         .endm
         
@@ -372,7 +372,7 @@ __      .db 0                   ; @BT 00
         .bank 0 slot 1
         .orga $A800
 
-        .macro KAMEN2B ISOLATED
+        .macro KAMEN2B ISOLATEUNNAMED
 __      .db 0
         .dw _b + $20
         .endm
@@ -413,3 +413,35 @@ AA00:   .db "25>"               ; @BT TEST-25 25 START
 @child: ISOLATEDMACRO           ; @BT 00 01 04 AA
         .dw @child              ; @BT 03 AA
         .db "<25"               ; @BT END
+
+        // 12
+
+        .bank 0 slot 1
+        .orga $AB00
+
+        .macro VERYISOLATED1 ISOLATELOCAL
+_hello: .db 0
+        .dw _hello
+        .endm
+
+_hello: .db "26>"               ; @BT TEST-26 26 START
+        .db 0, 1, 2             ; @BT 00 01 02
+        VERYISOLATED1           ; @BT 00 06 AB 
+        .dw _hello              ; @BT 00 AB
+        .db "<26"               ; @BT END
+        
+        // 13
+
+        .bank 0 slot 1
+        .orga $AC00
+
+        .macro VERYISOLATED2 ISOLATELOCAL
+_hello2:.db 0
+        .dw _hello2 + 1
+        .endm
+
+_hello2: .db "27>"              ; @BT TEST-27 27 START
+        .db 0, 1, 2             ; @BT 00 01 02
+        VERYISOLATED2           ; @BT 00 07 AC 
+        .dw _hello2 + 2         ; @BT 02 AC
+        .db "<27"               ; @BT END

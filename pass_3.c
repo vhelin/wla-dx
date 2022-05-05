@@ -20,17 +20,18 @@ extern struct macro_static *g_macros_first;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
 extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp, g_namespace[MAX_NAME_LENGTH + 1];
+extern char *g_asm_name;
 extern int g_verbose_mode, g_section_status, g_output_format, g_keep_empty_sections, g_quiet, g_sizeof_g_error_message;
 extern int g_global_listfile_items;
-
 
 struct label_def *g_label_last, *g_label_tmp, *g_labels = NULL;
 struct map_t *g_global_unique_label_map = NULL;
 struct block *g_blocks = NULL;
 struct label_context g_label_context, *g_label_context_first = NULL, *g_label_context_last = NULL;
 
+static int g_dstruct_start, g_dstruct_item_offset, g_dstruct_item_size, s_mangled_label;
 
-static int g_dstruct_start, g_dstruct_item_offset, g_dstruct_item_size, g_mangled_label;
+int g_label_context_running_number = 0;
 
 
 #define XSTRINGIFY(x) #x
@@ -45,6 +46,7 @@ int free_label_context_allocations(void) {
   if (lc == NULL)
     return SUCCEEDED;
 
+  /* do note that the first struct label_context is not allocated using calloc() */
   lc = lc->next;
 
   while (lc != NULL) {
@@ -70,7 +72,6 @@ int pass_3(void) {
   int x, y;
   char c;
   int err;
-
 
   /* initialize label context */
   g_label_context.isolated_macro = NULL;
@@ -317,7 +318,7 @@ int pass_3(void) {
         else
           fscanf(f_in, STRING_READ_FORMAT, l->label);
 
-        g_mangled_label = NO;
+        s_mangled_label = NO;
 
         if (c == 'L' && is_label_anonymous(l->label) == NO) {
           /* if the label has '@' at the start, mangle the label name to make it unique */
@@ -338,28 +339,22 @@ int pass_3(void) {
           if (n >= 0) {
             if (mangle_label(l->label, g_label_context_last->parent_labels[n]->label, n, MAX_NAME_LENGTH, g_file_name_id, line_number) == FAILED)
               return FAILED;
-            g_mangled_label = YES;
+            s_mangled_label = YES;
           }
         }
-        else if (c == 'L' && is_label_anonymous(l->label) == YES && g_label_context_last->isolated_macro != NULL) {
-          /* add context to the anonymous label */
-          if (strlen(l->label) + strlen(g_label_context_last->isolated_macro->name) + 1 < sizeof(l->label) - 1) {
-            snprintf(tmp_buffer, sizeof(tmp_buffer), "%s:%s", l->label, g_label_context_last->isolated_macro->name);
-            strcpy(l->label, tmp_buffer);
-          }
-          else {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Cannot add context name to the anonymous label, buffer is too small!\n", get_file_name(g_file_name_id), line_number);
-            return FAILED;
-          }
-        }
-        
-        if (c == 'L' && is_label_anonymous(l->label) == NO && g_namespace[0] != 0 && g_mangled_label == NO) {
+
+        if (c == 'L' && is_label_anonymous(l->label) == NO && g_namespace[0] != 0 && s_mangled_label == NO) {
           if (s == NULL || s->nspace == NULL) {
             if (add_namespace(l->label, g_namespace, sizeof(l->label), g_file_name_id, line_number) == FAILED)
               return FAILED;
           }
         }
 
+        if (c == 'L' && (is_label_anonymous(l->label) == YES || l->label[0] == '_') && g_label_context_last->isolated_macro != NULL) {
+          if (add_context_to_anonymous_label(l->label, sizeof(l->label), g_label_context_last, g_file_name_id, line_number) == FAILED)
+            return FAILED;
+        }
+        
         l->next = NULL;
         l->section_status = ON;
         l->filename_id = g_file_name_id;
@@ -940,7 +935,7 @@ int pass_3(void) {
       else
         fscanf(f_in, STRING_READ_FORMAT, l->label);
 
-      g_mangled_label = NO;
+      s_mangled_label = NO;
       
       if (c == 'L' && is_label_anonymous(l->label) == NO) {
         /* if the label has '@' at the start, mangle the label name to make it unique */
@@ -961,26 +956,20 @@ int pass_3(void) {
         if (n >= 0) {
           if (mangle_label(l->label, g_label_context_last->parent_labels[n]->label, n, MAX_NAME_LENGTH, g_file_name_id, line_number) == FAILED)
             return FAILED;
-          g_mangled_label = YES;
-        }
-      }
-      else if (c == 'L' && is_label_anonymous(l->label) == YES && g_label_context_last->isolated_macro != NULL) {
-        /* add context to the anonymous label */
-        if (strlen(l->label) + strlen(g_label_context_last->isolated_macro->name) + 1 < sizeof(l->label) - 1) {
-          snprintf(tmp_buffer, sizeof(tmp_buffer), "%s:%s", l->label, g_label_context_last->isolated_macro->name);
-          strcpy(l->label, tmp_buffer);
-        }
-        else {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Cannot add context name to the anonymous label, buffer is too small!\n", get_file_name(g_file_name_id), line_number);
-          return FAILED;
+          s_mangled_label = YES;
         }
       }
 
-      if (c == 'L' && is_label_anonymous(l->label) == NO && g_namespace[0] != 0 && g_mangled_label == NO) {
+      if (c == 'L' && is_label_anonymous(l->label) == NO && g_namespace[0] != 0 && s_mangled_label == NO) {
         if (s == NULL || s->nspace == NULL) {
           if (add_namespace(l->label, g_namespace, sizeof(l->label), g_file_name_id, line_number) == FAILED)
             return FAILED;
         }
+      }
+
+      if (c == 'L' && (is_label_anonymous(l->label) == YES || l->label[0] == '_') && g_label_context_last->isolated_macro != NULL) {
+        if (add_context_to_anonymous_label(l->label, sizeof(l->label), g_label_context_last, g_file_name_id, line_number) == FAILED)
+          return FAILED;
       }
       
       l->next = NULL;
@@ -1133,6 +1122,12 @@ int is_label_anonymous(char *label) {
   if (strcmp(label, "__") == 0)
     return YES;
 
+  if (strlen(label) == 2 && label[0] == '_') {
+    c = label[1];
+    if (c == 'b' || c == 'B' || c == 'f' || c == 'F')
+      return YES;
+  }
+
   c = *label;
   if (c == '-' || c == '+')
     return YES;
@@ -1230,7 +1225,7 @@ int process_macro_in(int id, char *name, int file_name_id, int line_number) {
   }
   
   /* is it ISOLATED? */
-  if (macro->is_isolated == YES) {
+  if (macro->isolated_local == YES || macro->isolated_unnamed == YES) {
     /* yes, create a new label context for it */
     struct label_context *lc = calloc(sizeof(struct label_context), 1);
 
@@ -1239,6 +1234,7 @@ int process_macro_in(int id, char *name, int file_name_id, int line_number) {
       return FAILED;
     }
 
+    lc->running_number = g_label_context_running_number++;
     lc->isolated_macro = macro;
     lc->next = NULL;
     lc->prev = g_label_context_last;
@@ -1264,13 +1260,45 @@ int process_macro_out(int id, char *name, int file_name_id, int line_number) {
   }
   
   /* is it ISOLATED? */
-  if (macro->is_isolated == YES) {
+  if (macro->isolated_local == YES || macro->isolated_unnamed == YES) {
     /* yes, free the current label context */
     struct label_context *lc = g_label_context_last->prev;
 
     lc->next = NULL;
     free(g_label_context_last);
     g_label_context_last = lc;
+  }
+
+  return SUCCEEDED;
+}
+
+
+int add_context_to_anonymous_label(char *label, int label_size, struct label_context *label_context, int file_name_id, int line_number) {
+
+  char new_label[MAX_NAME_LENGTH + 1];
+  int can_do = NO;
+
+  if (is_label_anonymous(label) == YES) {
+    if (label_context->isolated_macro->isolated_unnamed == YES)
+      can_do = YES;
+  }
+  else if (label[0] == '_') {
+    if (label_context->isolated_macro->isolated_local == YES)
+      can_do = YES;
+  }
+
+  if (can_do == YES) {
+    int full_length = strlen(label) + 1 + strlen(label_context->isolated_macro->name) + 1 + strlen(g_asm_name) + 10;
+
+    if (full_length < label_size - 1 && full_length < (int)(sizeof(new_label) - 1)) {
+      snprintf(new_label, sizeof(new_label), "%s:%s_%s_%d", label, g_asm_name, label_context->isolated_macro->name, label_context->running_number);
+      strcpy(label, new_label);
+    }
+    else {
+      fprintf(stderr, "%s:%d: Cannot add context name to the anonymous/local label, buffer is too small!\n", get_file_name(file_name_id), line_number);
+      fprintf(stderr, "   (new label would have been \"%s:%s_%s_%d\")\n", label, g_asm_name, label_context->isolated_macro->name, label_context->running_number);
+      return FAILED;
+    }
   }
 
   return SUCCEEDED;

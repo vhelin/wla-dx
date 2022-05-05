@@ -180,7 +180,7 @@ calculations and sees only the preprocessed output of WLA)::
                     ; for WLALINK (so it's better to use \@ with labels inside
                     ; a macro).
 
-To make local labels inside a ``.MACRO`` isolated, and the previous example
+To make un-named labels inside a ``.MACRO`` isolated, and the previous example
 to work, use the keyword ``ISOLATED`` ::
 
     .macro dummy isolated
@@ -188,23 +188,8 @@ to work, use the keyword ``ISOLATED`` ::
        jp nz, -     ; jump -> #
     .endm
 
-The same issue exists with child labels::
-
-            .macro MACROM
-    AA03:   .db 0
-    @child: .db 1          ; A
-            .dw @child     ; B
-            .endm
-
-    AA00:   .db "25>"
-    @child: MACROM         ; C
-            .dw @child     ; D
-            .db "<25"
-
-In this case B points to A and D points to A. If you add keyword ``ISOLATED``
-to ``.MACRO`` MACROM then B still points to A, but A doesn't bleed out of MACROM
-and D points to C. Exiting a ``.MACRO`` that uses keyword ``ISOLATED`` restores
-the child label stack.
+The same issue exists with child labels. See ``.MACRO``'s documentation for
+more details.
 
 WLALINK will also generate ``_sizeof_[label]`` defines that measure the
 distance between two consecutive labels. These labels have the same scope as

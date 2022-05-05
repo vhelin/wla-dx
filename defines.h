@@ -515,7 +515,8 @@ struct macro_static {
   int  filename_id;
   int  start_line;
   int  nargument_names;
-  int  is_isolated;
+  int  isolated_local;
+  int  isolated_unnamed;
   char **argument_names;
   struct macro_static *next;
 };
@@ -784,6 +785,7 @@ struct label_context {
   struct macro_static *isolated_macro;
   struct label_context *next;
   struct label_context *prev;
+  int running_number;
 };
 
 #endif /* _DEFINES_H */

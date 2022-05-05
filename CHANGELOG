@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.2 (03-May-2022) [ALL] Added SIZE to .RAMSECTION.
+v10.2 (05-May-2022) [ALL] Added SIZE to .RAMSECTION.
                     [ALL] Added -d to disable WLA's ability to calculate A-B
                       where A and B are labels.
                     [ALL] If SIZE is used with a .SECTION or .RAMSECTION and
@@ -22,8 +22,9 @@ v10.2 (03-May-2022) [ALL] Added SIZE to .RAMSECTION.
                       object files.
                     [ALL] Labels without ':' can now be used right on the next
                       line after a .MACRO call.
-                    [ALL] Added keyword ISOLATED to .MACRO. This makes the local
-                      labels inside a .MACRO to stay inside and not affect the
+                    [ALL] Added keywords ISOLATED, ISOLATELOCAL and ISOLATEUNNAMED
+                      to .MACRO. These makes the local and unnamed labels
+                      inside a .MACRO to stay inside and not affect the
                       outside world. The same goes for child label stack.
                     [651] Removed wla-6510 as wla-6502 can be used for 6510.
                     [650] Added undocumented opcodes to wla-6502.
@@ -1367,7 +1368,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.17 (03-May-2022) Added SIZE to [sections] and [ramsections].
+v5.17 (05-May-2022) Added SIZE to [sections] and [ramsections].
                     Added -R (file paths inside link file are relative to
                       linkfile's location).
                     WLALINK's summary is now printed to stdout instead of

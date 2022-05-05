@@ -31,6 +31,7 @@ extern FILE *g_file_out_ptr;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp, *g_final_name;
 extern int g_rombanks, g_output_format, g_test_mode, g_listfile_data, g_little_endian, g_sizeof_g_tmp;
+extern int g_label_context_running_number;
 
 #ifdef GB
 extern char g_licenseecodenew_c1, g_licenseecodenew_c2;
@@ -89,18 +90,9 @@ static struct label_def *_new_unknown_reference(int type) {
   struct label_def *label;
   int n = 0, j = 0;
 
-  if ((is_label_anonymous(g_tmp) == YES || strcmp(g_tmp, "_b") == 0 || strcmp(g_tmp, "_f") == 0) && g_label_context_last->isolated_macro != NULL) {
-    char tmp_buffer[MAX_NAME_LENGTH + 1];
-    
-    /* add context to the anonymous label */
-    if (strlen(g_tmp) + strlen(g_label_context_last->isolated_macro->name) + 1 < MAX_NAME_LENGTH + 1) {
-      snprintf(tmp_buffer, sizeof(tmp_buffer), "%s:%s", g_tmp, g_label_context_last->isolated_macro->name);
-      strcpy(g_tmp, tmp_buffer);
-    }
-    else {
-      fprintf(stderr, "%s:%d: _NEW_UNKNOWN_REFERENCE: Cannot add context name to the anonymous label, buffer is too small!\n", get_file_name(g_filename_id), g_line_number);
+  if ((is_label_anonymous(g_tmp) == YES || g_tmp[0] == '_' || strcmp(g_tmp, "_b") == 0 || strcmp(g_tmp, "_f") == 0) && g_label_context_last->isolated_macro != NULL) {
+    if (add_context_to_anonymous_label(g_tmp, g_sizeof_g_tmp, g_label_context_last, g_filename_id, g_line_number) == FAILED)
       return NULL;
-    }
   }
 
   if (g_tmp[0] == ':')
@@ -208,18 +200,9 @@ static int _mangle_stack_references(struct stack *stack) {
 
       /* add current ISOLATED .MACRO context? */
       s = stack->stack[ind].string;
-      if ((is_label_anonymous(s) == YES || strcmp(s, "_b") == 0 || strcmp(s, "_f") == 0) && g_label_context_last->isolated_macro != NULL) {
-        char tmp_buffer[MAX_NAME_LENGTH + 1];
-    
-        /* yes! */
-        if (strlen(s) + strlen(g_label_context_last->isolated_macro->name) + 1 < MAX_NAME_LENGTH + 1) {
-          snprintf(tmp_buffer, sizeof(tmp_buffer), "%s:%s", s, g_label_context_last->isolated_macro->name);
-          strcpy(s, tmp_buffer);
-        }
-        else {
-          fprintf(stderr, "%s:%d: _MANGLE_STACK_REFERENCES: Cannot add context name to the anonymous label, buffer is too small!\n", get_file_name(g_filename_id), g_line_number);
+      if ((is_label_anonymous(s) == YES || s[0] == '_' || strcmp(s, "_b") == 0 || strcmp(s, "_f") == 0) && g_label_context_last->isolated_macro != NULL) {
+        if (add_context_to_anonymous_label(s, sizeof(stack->stack[ind].string), g_label_context_last, g_filename_id, g_line_number) == FAILED)
           return FAILED;
-        }
       }
     }
   }
@@ -304,7 +287,8 @@ int pass_4(void) {
     g_label_context.parent_labels[x] = NULL;
   g_label_context_last = &g_label_context;
   g_label_context_first = &g_label_context;
-
+  g_label_context_running_number = 0;
+ 
   g_namespace[0] = 0;
   
   g_section_status = OFF;

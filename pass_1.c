@@ -7757,14 +7757,37 @@ int directive_macro(void) {
   m->calls = 0;
   m->filename_id = g_active_file_info_last->filename_id;
   m->argument_names = NULL;
-  m->is_isolated = NO;
+  m->isolated_local = NO;
+  m->isolated_unnamed = NO;
   m->id = g_macro_id++;
 
-  /* is ISOLATED defined? */
-  if (compare_next_token("ISOLATED") == SUCCEEDED) {
-    skip_next_token();
+  while (1) {
+    int got_some = NO;
+    
+    /* is ISOLATED defined? */
+    if (compare_next_token("ISOLATED") == SUCCEEDED) {
+      skip_next_token();
+      got_some = YES;
+      m->isolated_local = YES;
+      m->isolated_unnamed = YES;
+    }
 
-    m->is_isolated = YES;
+    /* is ISOLATELOCAL defined? */
+    if (compare_next_token("ISOLATELOCAL") == SUCCEEDED) {
+      skip_next_token();
+      got_some = YES;
+      m->isolated_local = YES;
+    }
+
+    /* is ISOLATEUNNAMED defined? */
+    if (compare_next_token("ISOLATEUNNAMED") == SUCCEEDED) {
+      skip_next_token();
+      got_some = YES;
+      m->isolated_unnamed = YES;
+    }
+
+    if (got_some == NO)
+      break;
   }
 
   /* is ARGS defined? */
