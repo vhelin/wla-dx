@@ -121,7 +121,7 @@ extern int g_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_be
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
 extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
 extern int g_create_sizeof_definitions, g_input_allow_leading_hashtag, g_input_has_leading_hashtag, g_input_allow_leading_ampersand;
-extern int g_plus_and_minus_ends_label;
+extern int g_plus_and_minus_ends_label, g_get_next_token_use_substitution;
 extern FILE *g_file_out_ptr;
 extern double g_parsed_double;
 extern char *g_final_name, g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -11226,6 +11226,9 @@ int find_next_point(char *name) {
   /* disable macro decoding */
   g_macro_active = 0;
 
+  /* don't use substitution in get_next_token() */
+  g_get_next_token_use_substitution = NO;
+
   while (get_next_token() != FAILED) {
     if (g_tmp[0] == '.') {
       if (strcaselesscmp(g_current_directive, "ENDIF") == 0) {
@@ -11260,6 +11263,7 @@ int find_next_point(char *name) {
 
     if (depth == 0) {
       g_macro_active = m;
+      g_get_next_token_use_substitution = YES;
       return SUCCEEDED;
     }
     else

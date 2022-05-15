@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.2 (05-May-2022) [ALL] Added SIZE to .RAMSECTION.
+v10.2 (15-May-2022) [ALL] Added SIZE to .RAMSECTION.
                     [ALL] Added -d to disable WLA's ability to calculate A-B
                       where A and B are labels.
                     [ALL] If SIZE is used with a .SECTION or .RAMSECTION and
@@ -26,6 +26,8 @@ v10.2 (05-May-2022) [ALL] Added SIZE to .RAMSECTION.
                       to .MACRO. These make the local and unnamed labels
                       inside a .MACRO to stay inside and not affect the
                       outside world. The same goes for child label stack.
+                    [ALL] We now ignore substitution in code that is skipped
+                      using .IFs.
                     [651] Removed wla-6510 as wla-6502 can be used for 6510.
                     [650] Added undocumented opcodes to wla-6502.
                     [GB ] It's now possible to set the number of ROM banks to

@@ -246,3 +246,16 @@ Data{   %.4X{   0xBEEF   }  }{ I3 }{ %.4X{ $DEAD }}
         .DB COUNTER_FROM_{0}_TO_{%.x{ 1 + 1 + 1 + %1 }} ; @BT 00 01 02 03 04
         .ENDR
         .DB "<14"               ; @BT END
+
+        .DEFINE SUPERDUPER 1
+        
+        .DB "15>"               ; @BT TEST-15 15 START
+        .IF 0
+        .DB "{HAH}"
+        .DB { "{HOH}" }
+        .ENDIF
+        .DB "{HI}"              ; @BT 7B 48 49 7D
+        .DB { "{SUPERDUPER}" }  ; @BT 31
+        .DB "<15"               ; @BT END
+        
+        

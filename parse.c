@@ -17,7 +17,7 @@ int parse_string_length(char *end);
 
 int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OFF, g_parse_floats = YES;
 int g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO, g_input_parse_special_chars = YES;
-int g_input_allow_leading_ampersand = NO, g_plus_and_minus_ends_label = NO;
+int g_input_allow_leading_ampersand = NO, g_plus_and_minus_ends_label = NO, g_get_next_token_use_substitution = YES;
 int g_newline_beginning = ON, g_parsed_double_decimal_numbers = 0, g_operand_hint, g_operand_hint_type;
 char g_label[MAX_NAME_LENGTH + 1];
 char g_unevaluated_expression[256];
@@ -1425,8 +1425,10 @@ int get_next_token(void) {
     if (process_string_for_special_characters(g_tmp, &g_ss) == FAILED)
       return FAILED;
 
-    if (expand_variables_inside_string(g_tmp, g_sizeof_g_tmp, &g_ss) == FAILED)
-      return FAILED;
+    if (g_get_next_token_use_substitution == YES) {
+      if (expand_variables_inside_string(g_tmp, g_sizeof_g_tmp, &g_ss) == FAILED)
+        return FAILED;
+    }
     
     return GET_NEXT_TOKEN_STRING;
   }
@@ -1487,8 +1489,10 @@ int get_next_token(void) {
     g_ss = (int)strlen(g_tmp);
   }
 
-  if (expand_variables_inside_string(g_tmp, g_sizeof_g_tmp, &g_ss) == FAILED)
-    return FAILED;
+  if (g_get_next_token_use_substitution == YES) {
+    if (expand_variables_inside_string(g_tmp, g_sizeof_g_tmp, &g_ss) == FAILED)
+      return FAILED;
+  }
   
   return SUCCEEDED;
 }
