@@ -15,7 +15,3 @@ steps:
     cmake --build . --config Release -j
   displayName: 'Build Release'
   timeoutInMinutes: 120
-- script: |
-    ./run_tests.sh
-  displayName: 'Run Tests (Release)'
-  timeoutInMinutes: 20
