@@ -15,3 +15,9 @@ steps:
     cmake --build . --config Release -j
   displayName: 'Build Release'
   timeoutInMinutes: 120
+- script: |
+    cmake --taget clean
+    cmake .
+    cmake --build . --config Debug -j
+  displayName: 'Build Debug'
+  timeoutInMinutes: 120
