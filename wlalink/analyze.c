@@ -57,7 +57,7 @@ int parse_context_from_name(char *name, char *context) {
 
   int i, j, length;
 
-  length = strlen(name);
+  length = (int)strlen(name);
   for (i = 0; i < length; i++) {
     if (name[i] == ':') {
       /* there is a context attached to the label! */

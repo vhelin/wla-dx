@@ -1132,7 +1132,7 @@ int is_label_anonymous(char *label) {
   if (c == '-' || c == '+')
     return YES;
 
-  length = strlen(label);
+  length = (int)strlen(label);
   for (i = 1; i < length; i++) {
     if (label[i] == c)
       continue;
@@ -1288,7 +1288,7 @@ int add_context_to_anonymous_label(char *label, int label_size, struct label_con
   }
 
   if (can_do == YES) {
-    int full_length = strlen(label) + 1 + strlen(label_context->isolated_macro->name) + 1 + strlen(g_asm_name) + 10;
+    int full_length = (int)strlen(label) + 1 + (int)strlen(label_context->isolated_macro->name) + 1 + (int)strlen(g_asm_name) + 10;
 
     if (full_length < label_size - 1 && full_length < (int)(sizeof(new_label) - 1)) {
       snprintf(new_label, sizeof(new_label), "%s:%s_%s_%d", label, g_asm_name, label_context->isolated_macro->name, label_context->running_number);
