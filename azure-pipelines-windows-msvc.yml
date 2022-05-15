@@ -10,7 +10,7 @@ pool:
   vmImage: 'windows-2022'
 
 steps:
-- script: 'cmake make'
+- script: |
     cmake .
     cmake --build . --config Release -j
     make
