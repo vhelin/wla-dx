@@ -23,7 +23,7 @@ v10.2 (05-May-2022) [ALL] Added SIZE to .RAMSECTION.
                     [ALL] Labels without ':' can now be used right on the next
                       line after a .MACRO call.
                     [ALL] Added keywords ISOLATED, ISOLATELOCAL and ISOLATEUNNAMED
-                      to .MACRO. These makes the local and unnamed labels
+                      to .MACRO. These make the local and unnamed labels
                       inside a .MACRO to stay inside and not affect the
                       outside world. The same goes for child label stack.
                     [651] Removed wla-6510 as wla-6502 can be used for 6510.
