@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char g_version_string[] = "$VER: wlalink 5.17a (5.5.2022)";
+char g_version_string[] = "$VER: wlalink 5.17a (4.6.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -325,7 +325,7 @@ int main(int argc, char *argv[]) {
     printf("-v  Verbose messages\n");
     printf("-L <DIR>  Library directory\n");
     printf("-t <TYPE> Output type (supported types: 'CBMPRG')\n");
-    printf("-a <ADDR> Load address for CBM PRG\n\n");
+    printf("-a <ADDR> Load address (can also be label) for CBM PRG\n\n");
     printf("EXAMPLE: %s -d -v -S linkfile linked.rom\n\n", argv[0]);
     return 0;
   }

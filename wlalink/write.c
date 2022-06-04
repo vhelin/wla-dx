@@ -131,6 +131,9 @@ int _cbm_write_prg_header(FILE *f) {
         l = l->next;
         continue;
       }
+      /* skip RAM_USAGE_SLOT_* labels that we've generated ourselves */
+      if (l->file_id < 0)
+        continue;
       
       if ((int)l->address < address2 || label == NULL) {
         address2 = (int)l->address;

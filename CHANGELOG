@@ -26,7 +26,7 @@ v10.2 (15-May-2022) [ALL] Added SIZE to .RAMSECTION.
                       to .MACRO. These make the local and unnamed labels
                       inside a .MACRO to stay inside and not affect the
                       outside world. The same goes for child label stack.
-                    [ALL] We now ignore substitution in code that is skipped
+                    [ALL] We now don't do substitution in code that is skipped
                       using .IFs.
                     [651] Removed wla-6510 as wla-6502 can be used for 6510.
                     [650] Added undocumented opcodes to wla-6502.
@@ -1370,7 +1370,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.17 (05-May-2022) Added SIZE to [sections] and [ramsections].
+v5.17 (04-Jun-2022) Added SIZE to [sections] and [ramsections].
                     Added -R (file paths inside link file are relative to
                       linkfile's location).
                     WLALINK's summary is now printed to stdout instead of
@@ -1390,6 +1390,8 @@ v5.17 (05-May-2022) Added SIZE to [sections] and [ramsections].
                       bytes.
                     If .SECTION "A" is using "AFTER "B"", .SECTION "A" will
                       now inherit .SECTION "B"'s .BASE as well.
+                    We now skip the generated RAM_USAGE_SLOT_* labels when
+                      trying to automatically find load address for a CBMPRG.
 
 v5.16 (19-Feb-2021) Added support for WINDOW and BITWINDOW in .SECTION and
                       .RAMSECTION.
