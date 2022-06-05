@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "defines.h"
 #include "memory.h"
@@ -2550,6 +2551,26 @@ static void _pass_on_bank(int *bank, int t) {
 }
 
 
+static double _round(double d) {
+
+  int i = (int)d;
+
+  double delta = d - (double)i;
+  if (delta < 0.0) {
+    if (delta <= -0.5)
+      return (double)(i - 1);
+    else
+      return (double)i;
+  }
+  else {
+    if (delta < 0.5)
+      return (double)i;
+    else
+      return (double)(i + 1);
+  }
+}
+
+
 int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *result_slot, int *result_base, int *result_bank) {
 
   struct stack_item *s;
@@ -2741,6 +2762,18 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         _pass_on_base(base, t);
         _pass_on_bank(bank, t);
         t--;
+        break;
+      case SI_OP_ROUND:
+        v_ram[t - 1] = _round(v_ram[t - 1]);
+        v_rom[t - 1] = _round(v_rom[t - 1]);
+        break;
+      case SI_OP_FLOOR:
+        v_ram[t - 1] = floor(v_ram[t - 1]);
+        v_rom[t - 1] = floor(v_rom[t - 1]);
+        break;
+      case SI_OP_CEIL:
+        v_ram[t - 1] = ceil(v_ram[t - 1]);
+        v_rom[t - 1] = ceil(v_rom[t - 1]);
         break;
       case SI_OP_BANK:
         z = (int)v_rom[t - 1];

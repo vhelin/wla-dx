@@ -86,4 +86,23 @@ addr_06:LDA #bank(addr_03) + 1 - 1                                      ; @BT A9
 addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
         .DB "<10"                               ; @BT END
 
+        .DB "11>"                                            ; @BT TEST-11 11 START
+        .DB round(1.1), round(2.5), round(-0.1), round(-1.6) ; @BT 01 03 00 FE
+        .DB round(256 / 40)                                  ; @BT 06
+        .DB round(13.2 / 2)                                  ; @BT 07
+        .DB round(256 / 39)                                  ; @BT 07
+        .DB 2 + round(256 / 40) + 1                          ; @BT 09
+        .DB "<11"                                            ; @BT END
+
+        .DB "12>"                                            ; @BT TEST-12 12 START
+        .DB floor(1.1), floor(2.5), floor(-0.1), floor(-1.6) ; @BT 01 02 FF FE
+        .DB floor(256 / 40)                                  ; @BT 06
+        .DB 2 + floor(256 / 40) + 1                          ; @BT 09
+        .DB "<12"                                            ; @BT END
+        
+        .DB "13>"                                            ; @BT TEST-13 13 START
+        .DB ceil(1.1), ceil(2.5), ceil(-0.1), ceil(-1.6)     ; @BT 02 03 00 FF
+        .DB ceil(256 / 40)                                   ; @BT 07
+        .DB 2 + ceil(256 / 40) + 1                           ; @BT 0A
+        .DB "<13"                                            ; @BT END
         

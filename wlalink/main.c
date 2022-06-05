@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char g_version_string[] = "$VER: wlalink 5.17a (4.6.2022)";
+char g_version_string[] = "$VER: wlalink 5.17a (5.6.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -102,6 +102,9 @@ static const char *g_si_operator_logical_and = "&&";
 static const char *g_si_operator_low_word = "loword()";
 static const char *g_si_operator_high_word = "hiword()";
 static const char *g_si_operator_bank_byte = "bankbyte()";
+static const char *g_si_operator_round = "round()";
+static const char *g_si_operator_floor = "floor()";
+static const char *g_si_operator_ceil = "ceil()";
 
 static const char *get_stack_item_operator_name(int operator) {
 
@@ -157,6 +160,12 @@ static const char *get_stack_item_operator_name(int operator) {
     return g_si_operator_high_word;
   else if (operator == SI_OP_BANK_BYTE)
     return g_si_operator_bank_byte;
+  else if (operator == SI_OP_ROUND)
+    return g_si_operator_round;
+  else if (operator == SI_OP_FLOOR)
+    return g_si_operator_floor;
+  else if (operator == SI_OP_CEIL)
+    return g_si_operator_ceil;
   
   fprintf(stderr, "\n");
   fprintf(stderr, "get_stack_item_operator_name(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", operator);

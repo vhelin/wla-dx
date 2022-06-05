@@ -148,6 +148,12 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
         printf("hiword()");
       else if (value == SI_OP_BANK_BYTE)
         printf("bankbyte()");
+      else if (value == SI_OP_ROUND)
+        printf("round()");
+      else if (value == SI_OP_CEIL)
+        printf("ceil()");
+      else if (value == SI_OP_FLOOR)
+        printf("floor()");
       else {
         if (value >= (int)strlen(ar)) {
           printf("ERROR!\n");
@@ -222,6 +228,9 @@ static struct stack_item_priority_item g_stack_item_priority_items[] = {
   { SI_OP_HIGH_WORD, 110 },
   { SI_OP_BANK, 110 },
   { SI_OP_BANK_BYTE, 110 },
+  { SI_OP_ROUND, 110 },
+  { SI_OP_CEIL, 110 },
+  { SI_OP_FLOOR, 110 },
   { SI_OP_NOT, 120 },
   { 999, 999 }
 };
@@ -920,6 +929,27 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_already_processed_function = YES;
           break;
         }
+        if (k == 5 && strcaselesscmpn(si[q].string, "round(", 6) == 0) {
+          si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].value = SI_OP_ROUND;
+          in--;
+          is_already_processed_function = YES;
+          break;
+        }
+        if (k == 4 && strcaselesscmpn(si[q].string, "ceil(", 5) == 0) {
+          si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].value = SI_OP_CEIL;
+          in--;
+          is_already_processed_function = YES;
+          break;
+        }
+        if (k == 5 && strcaselesscmpn(si[q].string, "floor(", 6) == 0) {
+          si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].value = SI_OP_FLOOR;
+          in--;
+          is_already_processed_function = YES;
+          break;
+        }
       }
 
       if (is_already_processed_function == YES) {
@@ -997,7 +1027,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     if (g_input_parse_if == NO) {
       if ((q - k) != 1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].value != SI_OP_BANK &&
           si[k + 1].value != SI_OP_BANK_BYTE && si[k + 1].value != SI_OP_HIGH_BYTE && si[k + 1].value != SI_OP_LOW_BYTE &&
-          si[k + 1].value != SI_OP_HIGH_WORD && si[k + 1].value != SI_OP_LOW_WORD) {
+          si[k + 1].value != SI_OP_HIGH_WORD && si[k + 1].value != SI_OP_LOW_WORD && si[k + 1].value != SI_OP_ROUND &&
+          si[k + 1].value != SI_OP_FLOOR && si[k + 1].value != SI_OP_CEIL) {
         if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
           print_error(ERROR_STC, "Error in computation syntax.\n");
           return FAILED;
@@ -1662,6 +1693,26 @@ static int _comparing_a_string_with_a_number(char *sp1, char *sp2, struct stack 
 }
 
 
+static double _round(double d) {
+
+  int i = (int)d;
+
+  double delta = d - (double)i;
+  if (delta < 0.0) {
+    if (delta <= -0.5)
+      return (double)(i - 1);
+    else
+      return (double)i;
+  }
+  else {
+    if (delta < 0.5)
+      return (double)i;
+    else
+      return (double)(i + 1);
+  }
+}
+
+
 int compute_stack(struct stack *sta, int stack_item_count, double *result) {
 
   struct stack_item *s;
@@ -1753,6 +1804,18 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         z = z & 0xFFFF;
 #endif
         v[t - 1] = z & 0xFFFF;
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_ROUND:
+        v[t - 1] = _round(v[t - 1]);
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_CEIL:
+        v[t - 1] = ceil(v[t - 1]);
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_FLOOR:
+        v[t - 1] = floor(v[t - 1]);
         sp[t - 1] = NULL;
         break;
       case SI_OP_LOGICAL_OR:
