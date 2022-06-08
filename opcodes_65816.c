@@ -723,7 +723,7 @@ struct optcode g_opcodes_table[] = {
   { "TSB.W ?", 0x0C, 2, 0 },
 
   { "WAI", 0xCB, 0, 0 },
-  { "WDM", 0x42, 0, 0 },
+  { "WDM x", 0x42, 0xA, 0 },
 
   { "XBA", 0xEB, 0, 0 },
   { "XCE", 0xFB, 0, 0 },

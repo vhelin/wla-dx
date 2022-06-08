@@ -470,6 +470,6 @@ x = 8bit
 "TYA" $98
 "TYX" $BB
 "WAI" $CB
-"WDM" $42
+"WDM x" $42
 "XBA" $EB
 "XCE" $FB
