@@ -24,7 +24,7 @@
     <ClCompile Include="..\..\include_file.c" />
     <ClCompile Include="..\..\listfile.c" />
     <ClCompile Include="..\..\main.c" />
-    <ClCompile Include="..\..\opcodes_z80.c" />
+    <ClCompile Include="..\..\instructions_z80.c" />
     <ClCompile Include="..\..\parse.c" />
     <ClCompile Include="..\..\pass_1.c" />
     <ClCompile Include="..\..\pass_2.c" />
@@ -33,7 +33,7 @@
     <ClCompile Include="..\..\printf.c" />
     <ClCompile Include="..\..\stack.c" />
     <ClCompile Include="..\..\mersenne_twister.c" />
-    <ClCompile Include="..\GEN-TABLES-Z80\opcodes_z80_tables.c" />
+    <ClCompile Include="..\GEN-TABLES-Z80\instructions_z80_tables.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

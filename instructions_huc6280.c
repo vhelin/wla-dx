@@ -1,6 +1,6 @@
 #define FILE void
 #include "defines.h"
-struct optcode g_opcodes_table[] = {
+struct instruction g_instructions_table[] = {
   { "ADC #x", 0x69, 7, 0 },
   { "ADC (x,X)", 0x61, 7, 0 },
   { "ADC (x),Y", 0x71, 7, 0 },

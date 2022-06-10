@@ -1,6 +1,6 @@
 @echo off
 
-# create all the opcode decoding speedup tables
+# create all the instruction decoding speedup tables
 
 set WLA_QUIET=1
 

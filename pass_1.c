@@ -97,7 +97,7 @@ unsigned char *g_rom_banks = NULL, *g_rom_banks_usage_table = NULL;
 
 struct structure **g_saved_structures = NULL;
 struct export_def *g_export_first = NULL, *g_export_last = NULL;
-struct optcode *g_opt_tmp;
+struct instruction *g_instruction_tmp;
 struct definition *g_tmp_def;
 struct map_t *g_defines_map = NULL;
 struct macro_static *g_macros_first = NULL, *g_macros_last = NULL;
@@ -159,8 +159,8 @@ static struct union_stack *g_union_stack = NULL; /* stores variables for nested 
 static char g_table_format[256];
 static int g_table_defined = 0, g_table_size = 0, g_table_index = 0;
 
-extern int g_opcode_n[256], g_opcode_p[256];
-extern struct optcode g_opcodes_table[];
+extern int g_instruction_n[256], g_instruction_p[256];
+extern struct instruction g_instructions_table[];
 
 #define no_library_files(name)                                          \
   do {                                                                  \
@@ -867,11 +867,11 @@ int pass_1(void) {
 }
 
 
-void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
+void output_assembled_instruction(struct instruction *instruction, const char *format, ...) {
 
   va_list ap;
   
-  if (oc == NULL)
+  if (instruction == NULL)
     return;
   
   va_start(ap, format);
@@ -884,7 +884,7 @@ void output_assembled_opcode(struct optcode *oc, const char *format, ...) {
     va_end(ap);
     va_start(ap, format);
     vsnprintf(ttt, sizeof(ttt), format, ap);
-    printf("LINE %5d: OPCODE: %16s ::: %s\n", g_active_file_info_last->line_current, oc->op, ttt);
+    printf("LINE %5d: OPCODE: %16s ::: %s\n", g_active_file_info_last->line_current, instruction->op, ttt);
   }
 #endif
 
@@ -1158,16 +1158,16 @@ int evaluate_token(void) {
     return SUCCEEDED;
   }
 
-  /* OPCODE? */
-  g_ind = g_opcode_p[(unsigned char)g_tmp[0]];
-  g_opt_tmp = &g_opcodes_table[g_ind];
+  /* INSTRUCTION? */
+  g_ind = g_instruction_p[(unsigned char)g_tmp[0]];
+  g_instruction_tmp = &g_instructions_table[g_ind];
 
-  for (f = g_opcode_n[(unsigned char)g_tmp[0]]; f > 0; f--) {
+  for (f = g_instruction_n[(unsigned char)g_tmp[0]]; f > 0; f--) {
 #if W65816
     if (g_use_wdc_standard == 0) {
       /* skip all mnemonics that contain '<', '|' and '>' */
       for (g_inz = 0, g_parsed_int = SUCCEEDED; g_inz < OP_SIZE_MAX; g_inz++) {
-        char c = g_opt_tmp->op[g_inz];
+        char c = g_instruction_tmp->op[g_inz];
 
         if (c == 0)
           break;
@@ -1179,7 +1179,7 @@ int evaluate_token(void) {
 
       if (g_parsed_int == FAILED) {
         /* try the next mnemonic in the array */
-        g_opt_tmp = &g_opcodes_table[++g_ind];
+        g_instruction_tmp = &g_instructions_table[++g_ind];
         continue;
       }
     }
@@ -1189,7 +1189,7 @@ int evaluate_token(void) {
     for (g_inz = 0, g_parsed_int = SUCCEEDED; g_inz < OP_SIZE_MAX; g_inz++) {
       if (g_tmp[g_inz] == 0)
         break;
-      if (g_opt_tmp->op[g_inz] != toupper((int)g_tmp[g_inz])) {
+      if (g_instruction_tmp->op[g_inz] != toupper((int)g_tmp[g_inz])) {
         g_parsed_int = FAILED;
         break;
       }
@@ -1197,7 +1197,7 @@ int evaluate_token(void) {
 
     if (g_parsed_int == FAILED) {
       /* try the next mnemonic in the array */
-      g_opt_tmp = &g_opcodes_table[++g_ind];
+      g_instruction_tmp = &g_instructions_table[++g_ind];
       continue;
     }
 
@@ -1210,7 +1210,7 @@ int evaluate_token(void) {
     g_stack_inserted = STACK_NONE;
 #endif
 
-    switch (g_opt_tmp->type) {
+    switch (g_instruction_tmp->type) {
 
 #ifdef GB
 #include "decode_gb.c"
@@ -1304,7 +1304,7 @@ int evaluate_token(void) {
     }
 #endif
 
-    g_opt_tmp = &g_opcodes_table[++g_ind];
+    g_instruction_tmp = &g_instructions_table[++g_ind];
   }
 
   /* allow error messages from input_numbers() */

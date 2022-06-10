@@ -437,7 +437,7 @@
 
 #if defined(SUPERFX)
 
-struct optcode {
+struct instruction {
   char *op;
   unsigned char type;
   unsigned char hex;
@@ -448,7 +448,7 @@ struct optcode {
 
 #else
 
-struct optcode {
+struct instruction {
   char *op;
   unsigned short hex;
   unsigned char type;

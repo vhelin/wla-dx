@@ -7,7 +7,7 @@ CFLAGS = -mtune=i486 -c -O3 -ansi -pedantic -Wall -DMSDOS -DMCS6502 -DNDEBUG=1
 LD = gcc
 LDFLAGS = -lm
 
-OFILES = opcodes_6502.o mersenne_twister.o crc32.o hashmap.o stack.o parse.o opcodes_6502_tables.o main.o pass_1.o pass_4.o pass_2.o listfile.o pass_3.o include_file.o printf.o
+OFILES = main.o crc32.o hashmap.o include_file.o listfile.o mersenne_twister.o parse.o pass_1.o pass_2.o pass_3.o pass_4.o printf.o stack.o instructions_6502_tables.o instructions_6502.o
 
 all: $(OFILES)
 	$(LD) $(LDFLAGS) $(OFILES) -o w-6502.exe
@@ -22,6 +22,12 @@ hashmap.o: hashmap.c hashmap.h crc32.h
 include_file.o: include_file.c include_file.h crc32.h defines.h hashmap.h shared.h parse.h pass_1.h printf.h
 	$(CC) $(CFLAGS) include_file.c
 
+instructions_6502.o: instructions_6502.c 
+	$(CC) $(CFLAGS) instructions_6502.c
+
+instructions_6502_tables.o: instructions_6502_tables.c 
+	$(CC) $(CFLAGS) instructions_6502_tables.c
+
 listfile.o: listfile.c listfile.h defines.h hashmap.h shared.h include_file.h
 	$(CC) $(CFLAGS) listfile.c
 
@@ -30,12 +36,6 @@ main.o: main.c main.h defines.h hashmap.h shared.h hashmap.h include_file.h list
 
 mersenne_twister.o: mersenne_twister.c mersenne_twister.h
 	$(CC) $(CFLAGS) mersenne_twister.c
-
-opcodes_6502.o: opcodes_6502.c 
-	$(CC) $(CFLAGS) opcodes_6502.c
-
-opcodes_6502_tables.o: opcodes_6502_tables.c 
-	$(CC) $(CFLAGS) opcodes_6502_tables.c
 
 parse.o: parse.c parse.h defines.h hashmap.h shared.h pass_1.h stack.h include_file.h printf.h
 	$(CC) $(CFLAGS) parse.c

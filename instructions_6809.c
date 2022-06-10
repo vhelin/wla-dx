@@ -12,7 +12,7 @@
 #define B7_(X) ((X) % 8)
 #define B_(x) B0_(0##x)
 
-struct optcode g_opcodes_table[] = {
+struct instruction g_instructions_table[] = {
   { "ABX", 0x3A, 0, 0, 0 },
 
   { "ADCA #x", 0x89, 1, 0, 0 },

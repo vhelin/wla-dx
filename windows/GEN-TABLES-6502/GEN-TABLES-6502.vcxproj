@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\opcodes_6502.c" />
-    <ClCompile Include="..\..\opcode_table_generator\main.c" />
+    <ClCompile Include="..\..\instructions_6502.c" />
+    <ClCompile Include="..\..\instruction_table_generator\main.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -106,7 +106,7 @@
       </AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>$(OutDir)\GEN-TABLES-6502.exe opcodes_6502_tables.c</Command>
+      <Command>$(OutDir)\GEN-TABLES-6502.exe instructions_6502_tables.c</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

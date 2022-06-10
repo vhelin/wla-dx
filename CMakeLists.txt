@@ -144,24 +144,24 @@ foreach(ARCH IN LISTS ARCHS)
     list(GET ARCH 0 WLA_NAME)
     list(GET ARCH 1 COMPILE_DEF)
 
-    # Generate opcode table
+    # Generate instructions table
     if((NOT CMAKE_CROSSCOMPILING) OR CMAKE_CROSSCOMPILING_EMULATOR)
         add_executable(gen-${WLA_NAME}
-            "opcode_table_generator/main.c"
-            "opcodes_${WLA_NAME}.c"
+            "instruction_table_generator/main.c"
+            "instructions_${WLA_NAME}.c"
             )
         set_property(TARGET gen-${WLA_NAME} APPEND
             PROPERTY COMPILE_DEFINITIONS
                 "${COMPILE_DEF}"
             )
         set_property(TARGET gen-${WLA_NAME} PROPERTY
-            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/op_tbl_gen/")
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/ins_tbl_gen/")
         list(APPEND GENERATOR_TARGETS gen-${WLA_NAME})
         add_dependencies(generators gen-${WLA_NAME})
     endif()
-    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/op_tbl_gen/")
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/ins_tbl_gen/")
     set(TABLE_GEN_OUTPUT
-        "${CMAKE_CURRENT_BINARY_DIR}/op_tbl_gen/opcodes_${WLA_NAME}_tables.c")
+        "${CMAKE_CURRENT_BINARY_DIR}/ins_tbl_gen/instructions_${WLA_NAME}_tables.c")
     add_custom_command(
         OUTPUT "${TABLE_GEN_OUTPUT}"
         COMMAND ${GEN_PREFIX}gen-${WLA_NAME}
@@ -171,7 +171,7 @@ foreach(ARCH IN LISTS ARCHS)
     # Generate actual wla binary
     add_executable(wla-${WLA_NAME}
         ${WLA_SRCS} "${TABLE_GEN_OUTPUT}"
-        "opcodes_${WLA_NAME}.c"
+        "instructions_${WLA_NAME}.c"
         )
     set_property(TARGET wla-${WLA_NAME} APPEND PROPERTY
         COMPILE_DEFINITIONS "${COMPILE_DEF}")

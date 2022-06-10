@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\opcodes_8080.c" />
-    <ClCompile Include="..\..\opcode_table_generator\main.c" />
+    <ClCompile Include="..\..\instructions_8080.c" />
+    <ClCompile Include="..\..\instruction_table_generator\main.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -107,7 +107,7 @@
       </AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>$(OutDir)\GEN-TABLES-8080.exe opcodes_8080_tables.c</Command>
+      <Command>$(OutDir)\GEN-TABLES-8080.exe instructions_8080_tables.c</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

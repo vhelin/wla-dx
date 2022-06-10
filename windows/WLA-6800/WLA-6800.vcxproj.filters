@@ -30,9 +30,6 @@
     <ClCompile Include="..\..\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\opcodes_6800.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\parse.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -57,7 +54,10 @@
     <ClCompile Include="..\..\mersenne_twister.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\GEN-TABLES-6800\opcodes_6800_tables.c">
+    <ClCompile Include="..\..\instructions_6800.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GEN-TABLES-6800\instructions_6800_tables.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

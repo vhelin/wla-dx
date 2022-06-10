@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\opcode_table_generator\main.c">
+    <ClCompile Include="..\..\instruction_table_generator\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\opcodes_superfx.c">
+    <ClCompile Include="..\..\instructions_superfx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

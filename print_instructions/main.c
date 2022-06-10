@@ -9,26 +9,26 @@
 
 
 #ifdef GB
-#include "../opcodes_gb.c"
+#include "../instructions_gb.c"
 #endif
 #ifdef Z80
-#include "../opcodes_z80.c"
+#include "../instructions_z80.c"
 #endif
 #ifdef MCS6502
-#include "../opcodes_6502.c"
+#include "../instructions_6502.c"
 #endif
 #ifdef WDC65C02
-#include "../opcodes_65c02.c"
+#include "../instructions_65c02.c"
 #endif
 #ifdef W65816
-#include "../opcodes_65816.c"
+#include "../instructions_65816.c"
 #endif
 #ifdef SPC700
-#include "../opcodes_spc700.c"
+#include "../instructions_spc700.c"
 #endif
 
 
-/* this program is used to print the opcodes */
+/* this program is used to print the instructions */
 
 
 int main(int argc, char *argv[]) {

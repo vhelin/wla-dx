@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\opcodes_superfx.c" />
-    <ClCompile Include="..\..\opcode_table_generator\main.c" />
+    <ClCompile Include="..\..\instructions_superfx.c" />
+    <ClCompile Include="..\..\instruction_table_generator\main.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -105,7 +105,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>$(OutDir)\GEN-TABLES-SUPERFX.exe opcodes_superfx_tables.c</Command>
+      <Command>$(OutDir)\GEN-TABLES-SUPERFX.exe instructions_superfx_tables.c</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

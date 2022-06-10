@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\GEN-TABLES-65CE02\opcodes_65ce02_tables.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\crc32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -31,9 +28,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\opcodes_65ce02.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\parse.c">
@@ -58,6 +52,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\mersenne_twister.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\instructions_65ce02.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GEN-TABLES-65CE02\instructions_65ce02_tables.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
