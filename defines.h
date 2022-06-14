@@ -710,6 +710,7 @@ struct structure {
   struct structure_item *items;
   struct structure_item *last_item;
   int size;
+  int defined_size;
   struct structure *next;
   int alive;
 };

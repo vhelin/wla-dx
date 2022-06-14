@@ -1098,6 +1098,13 @@ generated, like so::
         ...
     .ENDST
 
+You can use ``SIZE`` to specify the size of the instance. The additional
+bytes are filled with ``.EMPTYFILL``::
+
+    .DSTRUCT INSTANCEOF drop_pair SIZE 128 VALUES
+        ...
+    .ENDST
+  
 This is not a compulsory directive.
 
 
@@ -3415,6 +3422,18 @@ other labels should be safe::
 
     lda enemy1.b  ; load a byte from zeropage address enemy1 or from the address
                   ; of enemy1.b??? i can't tell you, and WLA can't tell you...
+
+It's possible to explicitly define the size of the ``.STRUCT`` by using keyword
+``SIZE``::
+
+    .STRUCT PaddedStruct SIZE 8
+    posX  DW
+    posY  DW
+    .ENDST
+
+Normally this ``.STRUCT`` would define four bytes, but by using keyword ``SIZE``
+its size is now eight bytes. The extra padding, put after the last item in the
+``.STRUCT``, will contain ``.EMPTYFILL`` bytes when used with ``.DSTRUCT``.
 
 This is not a compulsory directive.
 

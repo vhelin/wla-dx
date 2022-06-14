@@ -14,6 +14,8 @@
         .BANK 00  SLOT 0
         .ORG    0
 
+        .EMPTYFILL $ff
+        
 .struct waterDrop
 size   db
 weight db	
@@ -60,7 +62,6 @@ waterPool2 instanceof waterPool
 	OnMore  DW
 .ENDST
 
-; @BT linked.rom
 ; @BT TEST-02 02 START 56 34 12 EF CD AB 89 EE 34 12   03 02 01 07 06 05 04 BB 78 56   13 12 11 17 16 15 14 10 56 34 END
 
 .DB "02>"
@@ -82,3 +83,75 @@ waterPool2 instanceof waterPool
 .DSTRUCT State3 INSTANCEOF sState $111213 $14151617 $10 $3456
 
 .DB "<02"
+
+        
+        .db "03>"               ; @BT TEST-03 03 START
+
+        .struct ThreeBytes
+        Byte1 DB
+        Rest  DW
+        .endst
+
+        .db _sizeof_ThreeBytes  ; @BT 03
+
+        .dstruct ThreeBytes1 INSTANCEOF ThreeBytes VALUES
+        Byte1:  .DB 1           ; @BT 01
+        Rest:   .DW $0302       ; @BT 02 03
+        .endst
+
+        .db _sizeof_ThreeBytes1 ; @BT 03
+
+        .dstruct ThreeBytes2 INSTANCEOF ThreeBytes SIZE 3 VALUES
+        Byte1:  .DB 4           ; @BT 04
+        Rest:   .DW $0605       ; @BT 05 06
+        .endst
+
+        .db _sizeof_ThreeBytes2 ; @BT 03
+        
+        .dstruct ThreeBytes3 INSTANCEOF ThreeBytes SIZE 5 VALUES
+        Byte1:  .DB 4           ; @BT 04
+        Rest:   .DW $0605       ; @BT 05 06
+                                ; @BT FF FF
+        .endst
+
+        .db _sizeof_ThreeBytes3 ; @BT 05
+        
+        .dstruct ThreeBytes4 INSTANCEOF ThreeBytes VALUES
+        Byte1:  .DB 7           ; @BT 07
+        Rest:   .DW $0908       ; @BT 08 09
+        .endst
+
+        .db _sizeof_ThreeBytes4 ; @BT 03
+        
+        .db "<03"               ; @BT END
+        
+
+        .db "04>"               ; @BT TEST-04 04 START
+
+        .struct FourBytes SIZE 6
+        Byte1 DB
+        Byte2 DB
+        Rest  DW
+        .endst
+
+        .db _sizeof_FourBytes   ; @BT 06
+
+        .dstruct FourBytes1 INSTANCEOF FourBytes VALUES
+        Byte1:  .DB 1           ; @BT 01
+        Byte2:  .DB 2           ; @BT 02
+        Rest:   .DW $0403       ; @BT 03 04
+                                ; @BT FF FF
+        .endst
+
+        .db _sizeof_FourBytes1  ; @BT 06
+        
+        .dstruct FourBytes2 INSTANCEOF FourBytes SIZE 8 VALUES
+        Byte1:  .DB 5           ; @BT 05
+        Byte2:  .DB 6           ; @BT 06
+        Rest:   .DW $0807       ; @BT 07 08
+                                ; @BT FF FF FF FF
+        .endst
+
+        .db _sizeof_FourBytes2  ; @BT 08
+
+        .db "<04"               ; @BT END

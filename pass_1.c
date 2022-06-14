@@ -162,6 +162,9 @@ static int g_table_defined = 0, g_table_size = 0, g_table_index = 0;
 extern int g_instruction_n[256], g_instruction_p[256];
 extern struct instruction g_instructions_table[];
 
+static int s_source_pointer_old = 0, s_line_current_old = 0;
+
+
 #define no_library_files(name)                                          \
   do {                                                                  \
     if (g_output_format == OUTPUT_LIBRARY) {                            \
@@ -1570,6 +1573,21 @@ void next_line(void) {
 }
 
 
+/* NOTE! this doesn't work is every case, only for small jumps inside the same source file */
+void remember_current_source_file_position(void) {
+
+  s_source_pointer_old = g_source_pointer;
+  s_line_current_old = g_active_file_info_last->line_current;
+}
+
+
+void roll_back_to_remembered_source_file_position(void) {
+
+  g_source_pointer = s_source_pointer_old;
+  g_active_file_info_last->line_current = s_line_current_old;
+}
+
+
 /* used by .RAMSECTIONs only */
 int add_label_sizeof(char *label, int size) {
 
@@ -1792,7 +1810,7 @@ static void _remember_new_structure(struct structure *st) {
 
 
 
-/* either "g_in_enum", "g_in_ramsection", or "g_in_struct" should be true when this is called. */
+/* either "g_in_enum", "g_in_ramsection", or "g_in_struct" should be YES when this is called. */
 int parse_enum_token(void) {
 
   struct structure *st = NULL;
@@ -1985,7 +2003,7 @@ int parse_enum_token(void) {
     /* generate a section end label? */
     if (g_extra_definitions == ON)
       generate_label("SECTIONEND_", g_sections_last->name);
-      
+
     g_active_struct = NULL;
 
     fprintf(g_file_out_ptr, "s ");
@@ -2010,13 +2028,24 @@ int parse_enum_token(void) {
     /* create the SIZEOF-definition for the entire struct */
     g_active_struct->size = g_max_enum_offset;
 
+    if (g_active_struct->defined_size > 0 && g_active_struct->size > g_active_struct->defined_size) {
+      print_error(ERROR_DIR, ".STRUCT \"%s\"'s calculated size is %d, but explicitly given SIZE is %d -> make SIZE larger!\n", g_active_struct->name, g_active_struct->size, g_active_struct->defined_size);
+      return FAILED;
+    }
+    
     if (g_create_sizeof_definitions == YES) {
+      int size = g_active_struct->size;
+      
       if (strlen(g_active_struct->name) > MAX_NAME_LENGTH - 8) {
         print_error(ERROR_DIR, ".STRUCT \"%s\"'s name is too long!\n", g_active_struct->name);
         return FAILED;
       }
+
+      if (g_active_struct->defined_size > 0)
+        size = g_active_struct->defined_size;
+      
       snprintf(tmpname, sizeof(tmpname), "_sizeof_%s", g_active_struct->name);
-      if (add_a_new_definition(tmpname, (double)g_active_struct->size, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+      if (add_a_new_definition(tmpname, (double)size, NULL, DEFINITION_TYPE_VALUE) == FAILED)
         return FAILED;
     }
     
@@ -3493,7 +3522,8 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
     if (verify_name_length(tmpname) == FAILED)
       return FAILED;
 
-    if (it->type != STRUCTURE_ITEM_TYPE_UNION) { /* add field label */
+    if (it->type != STRUCTURE_ITEM_TYPE_UNION) {
+      /* add field label */
       char full_label[MAX_NAME_LENGTH + 1];
 
       fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
@@ -3514,7 +3544,8 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
 
         us = it->union_items;
         while (us != NULL) {
-          if (us->name[0] != '\0') { /* check if the union is named */
+          if (us->name[0] != '\0') {
+            /* check if the union is named */
             char full_label[MAX_NAME_LENGTH + 1];
 
             snprintf(tmpname, sizeof(tmpname), "%s.%s", iname, us->name);
@@ -3532,11 +3563,13 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             strcpy(tmpname, iname);
 
           parse_dstruct_entry(tmpname, us, labels_only);
-          fprintf(g_file_out_ptr, "o%d 0 ", -us->size); /* rewind */
+          /* rewind */
+          fprintf(g_file_out_ptr, "o%d 0 ", -us->size);
           us = us->next;
         }
 
-        fprintf(g_file_out_ptr, "o%d 0 ", it->size); /* jump to union end */
+        /* jump to union end */
+        fprintf(g_file_out_ptr, "o%d 0 ", it->size);
       }
     }
     else if (it->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
@@ -3787,8 +3820,7 @@ int directive_dstruct(void) {
 
   char iname[MAX_NAME_LENGTH*2+5];
   struct structure *s;
-  int q, q2;
-  int labels_only;
+  int q, q2, supplied_size, labels_only;
 
   if (compare_next_token("INSTANCEOF") == SUCCEEDED) { /* nameless */
     skip_next_token();
@@ -3838,17 +3870,48 @@ int directive_dstruct(void) {
      }
   */
 
+  supplied_size = s->defined_size;
+  
+  if (compare_next_token("SIZE") == SUCCEEDED) {
+    /* we have fixed size for this instance */
+    skip_next_token();
+    
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      print_error(ERROR_INP, "SIZE needs an immediate value.\n");
+      return FAILED;
+    }
+
+    if (g_parsed_int < 1) {
+      print_error(ERROR_DIR, "SIZE must be > 0.\n");
+      return FAILED;
+    }
+    if (g_parsed_int < s->size) {
+      print_error(ERROR_DIR, ".STRUCT \"%s\"'s size is %d, but SIZE is %d which is smaller -> please increase SIZE!\n", s->name, s->size, g_parsed_int);
+      return FAILED;
+    }
+    
+    supplied_size = g_parsed_int;
+  }
+
   if (iname[0] != '\0') {
     char full_label[MAX_NAME_LENGTH + 1];
+    int size = s->size;
     
     fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, iname);
 
     if (get_full_label(iname, full_label) == FAILED)
       return FAILED;
-    if (add_label_sizeof(full_label, s->size) == FAILED)
+
+    if (supplied_size > 0)
+      size = supplied_size;
+    
+    if (add_label_sizeof(full_label, size) == FAILED)
       return FAILED;
   }
-
+  
   if (compare_next_token("VALUES") == SUCCEEDED) {
     /* new syntax */
 
@@ -3870,12 +3933,10 @@ int directive_dstruct(void) {
     q = get_next_token();
 
     while (q == SUCCEEDED) {
-      if ((q2 = parse_if_directive()) != -1) {
+      if ((q2 = parse_if_directive()) != -1)
         return q2;
-      }
-      if (strcaselesscmp(g_tmp, ".ENDST") == 0) {
+      if (strcaselesscmp(g_tmp, ".ENDST") == 0)
         break;
-      }
       else {
         if (g_tmp[strlen(g_tmp)-1] == ':')
           g_tmp[strlen(g_tmp)-1] = '\0';
@@ -3910,17 +3971,28 @@ int directive_dstruct(void) {
       return FAILED;
     }
 
+    /* back to start of struct */
+    fprintf(g_file_out_ptr, "e%d -3 ", 0);
+
     /* now generate labels */
     if (iname[0] != '\0') {
       labels_only = YES;
-      fprintf(g_file_out_ptr, "e%d -3 ", 0); /* back to start of struct */
+
       if (parse_dstruct_entry(iname, s, &labels_only) == FAILED)
         return FAILED;
     }
 
-    fprintf(g_file_out_ptr, "e%d -3 ", 0); /* back to start of struct */
-    fprintf(g_file_out_ptr, "e%d -2 ", s->size); /* mark end of .DSTRUCT */
+    /* mark end of .DSTRUCT */
+    fprintf(g_file_out_ptr, "e%d -2 ", s->size);
 
+    if (supplied_size > 0) {
+      q = supplied_size - s->size;
+      while (q > 0) {
+        fprintf(g_file_out_ptr, "d%d ", g_emptyfill);
+        q--;
+      }
+    }
+    
     g_dstruct_status = OFF;
 
     return SUCCEEDED;
@@ -4302,12 +4374,39 @@ int directive_struct(void) {
   g_active_struct->items = NULL;
   g_active_struct->last_item = NULL;
   g_active_struct->alive = YES;
+  g_active_struct->defined_size = -1;
   _remember_new_structure(g_active_struct);
 
   if (get_next_token() == FAILED)
     return FAILED;
 
   strcpy(g_active_struct->name, g_tmp);
+
+  /* SIZE defined? */
+  if (compare_next_token("SIZE") == SUCCEEDED) {
+    /* we have fixed size for this .STRUCT ? */
+    int q;
+
+    remember_current_source_file_position();
+    
+    skip_next_token();
+    
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      /* SIZE was actually a field in the .STRUCT? roll back */
+      roll_back_to_remembered_source_file_position();
+    }
+    else {
+      if (g_parsed_int < 1) {
+        print_error(ERROR_DIR, "SIZE must be > 0.\n");
+        return FAILED;
+      }
+
+      g_active_struct->defined_size = g_parsed_int;
+    }
+  }
   
   g_union_stack = NULL;
 
