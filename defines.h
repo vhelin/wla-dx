@@ -693,6 +693,7 @@ struct structure_item {
   char name[MAX_NAME_LENGTH + 1];
   int type;
   int size;
+  int defined_size;
 
   /* only for TYPE_INSTANCE */
   struct structure *instance;

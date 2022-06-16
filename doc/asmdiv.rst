@@ -1348,7 +1348,6 @@ the generated definitions automatically.
 
 Here's an example of ``.ENUM``::
 
-    ...
     .STRUCT mon                ; check out the documentation on
     name ds 2                  ; .STRUCT
     age  db
@@ -1365,7 +1364,6 @@ Here's an example of ``.ENUM``::
     monster   INSTANCEOF mon 3 ; three instances of structure mon
     dragon    INSTANCEOF mon   ; one mon
     .ENDE
-    ...
 
 Previous example transforms into following definitions::
 
@@ -1437,6 +1435,18 @@ Regarding nemesis, you'll get these definitions::
     
 If you want more flexible variable positioning, take a look at
 ``.RAMSECTION`` s.
+
+You can also specify the size of an instantiated struct (padding added at the end)
+using the keyword ``SIZE``. Also use keyword ``COUNT`` to make things more clear::
+
+    .STRUCT mon                            ; the size of this .STRUCT is 3 (bytes)
+    name ds 2
+    age  db
+    .ENDST
+
+    .ENUM $A000
+    monsters INSTANCEOF mon SIZE 4 COUNT 8 ; eight instances of structure mon
+    .ENDE                                  ; but each instance is padded to 4 bytes
 
 This is not a compulsory directive.
 
@@ -2624,6 +2634,16 @@ NOTE! The generated _sizeof_ labels for ``.RAMSECTION`` "vars 3" will be::
     _sizeof_moomin3_a   (== 1)
     _sizeof_moomin3_b   (== 1)
     _sizeof_moomin3_c   (== 1)
+
+Going back to the previous example, if you wanted to make the size of all
+instances of ``game_object`` to be 8 (bytes) in ``enemies``::
+
+    .RAMSECTION "vars 4" BANK 1 SLOT $A000
+    enemies      INSTANCEOF game_object SIZE 8 COUNT 2 STARTFROM 0
+    .ENDS
+
+Use the keyword ``SIZE`` to do that. Also note that the keyword ``COUNT``
+is optional, and recommended.
 
 It is also possible to merge two or more sections using ``APPENDTO``::
 

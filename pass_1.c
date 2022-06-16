@@ -49,7 +49,7 @@ int g_enumid_defined = 0, g_enumid = 0, g_enumid_adder = 1, g_enumid_export = 0;
 int g_bank = 0, g_bank_defined = 1;
 int g_rombanks = 0, g_rombanks_defined = 0, g_max_address = 0;
 int g_rambanks = 0, g_rambanks_defined = 0;
-int g_emptyfill, g_emptyfill_defined = 0;
+int g_emptyfill = 0, g_emptyfill_defined = 0;
 int g_section_status = OFF, g_section_id = 1, g_line_count_status = ON;
 int g_parsed_int, g_source_pointer, g_ind, g_inz, g_ifdef = 0, g_slots_amount = 0, g_skip_elifs[256];
 int g_memorymap_defined = 0;
@@ -1651,7 +1651,8 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
         fprintf(g_file_out_ptr, "L%s ", name);
     }
   }
-  else { /* sizeof pass */
+  else {
+    /* sizeof pass */
     if (g_in_ramsection) {
       if (add_label_sizeof(name, size) == FAILED)
         return FAILED;
@@ -1674,7 +1675,6 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
   return SUCCEEDED;
 }
 
-
 /* add all fields from a struct at the current offset in the enum/ramsection.
    this is used to construct enums or ramsections through temporary structs, even if
    INSTANCEOF isn't used. g_enum_sizeof_pass should be set to YES or NO before calling. */
@@ -1691,6 +1691,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
   si = st->items;
   while (si != NULL) {
     int real_si_size = si->size;
+
     if (si->type == STRUCTURE_ITEM_TYPE_DOTTED)
       real_si_size = 0;
 
@@ -1719,24 +1720,59 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 
       if (si->num_instances <= 1) {
         /* add definition for first (possibly only) instance of struct */
+        int padding = 0;
+
+        if (si->instance->defined_size > 0)
+          padding = si->instance->defined_size - si->instance->size;
+        
+        if (si->defined_size > 0)
+          padding = si->defined_size - si->instance->size;
+
         if (enum_add_struct_fields(tmp, si->instance, 0) == FAILED)
           return FAILED;
+
+        /* there is padding in the INSTANCEOF */
+        if (padding > 0) {
+          if (g_enum_sizeof_pass == NO)
+            fprintf(g_file_out_ptr, "x%d %d ", padding, g_emptyfill);
+          g_enum_offset += padding;
+          g_last_enum_offset += padding;
+        }
       }
       else {
         g = si->start_from;
         while (g < si->start_from + si->num_instances) {
+          int padding = 0, size = si->instance->size;
+
+          if (si->instance->defined_size > 0) {
+            padding = si->instance->defined_size - si->instance->size;
+            size = si->instance->defined_size;
+          }
+          
+          if (si->defined_size > 0) {
+            padding = si->defined_size - si->instance->size;
+            size = si->defined_size;
+          }
+          
           if (basename[0] != '\0')
             snprintf(tmp, sizeof(tmp), "%s.%s.%d", basename, si->name, g);
           else
             snprintf(tmp, sizeof(tmp), "%s.%d", si->name, g);
-
           if (verify_name_length(tmp) == FAILED)
             return FAILED;
-          if (add_label_to_enum_or_ramsection(tmp, si->instance->size) == FAILED)
+          if (add_label_to_enum_or_ramsection(tmp, size) == FAILED)
             return FAILED;
           if (enum_add_struct_fields(tmp, si->instance, 0) == FAILED)
             return FAILED;
           g++;
+
+          /* there is padding in the INSTANCEOF */
+          if (padding > 0) {
+            if (g_enum_sizeof_pass == NO)
+              fprintf(g_file_out_ptr, "x%d %d ", padding, g_emptyfill);
+            g_enum_offset += padding;
+            g_last_enum_offset += padding;
+          }
         }
       }
     }
@@ -1786,14 +1822,14 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 }
 
 
-static void _remember_new_structure(struct structure *st) {
+static int _remember_new_structure(struct structure *st) {
 
   int i;
 
   /* do we already remember the structure? */
   for (i = 0; i < g_saved_structures_count; i++) {
     if (g_saved_structures[i] == st)
-      return;
+      return SUCCEEDED;
   }
 
   if (g_saved_structures_count >= g_saved_structures_max) {
@@ -1801,11 +1837,13 @@ static void _remember_new_structure(struct structure *st) {
     g_saved_structures = realloc(g_saved_structures, sizeof(struct structure *) * g_saved_structures_max);
     if (g_saved_structures == NULL) {
       fprintf(stderr, "_remember_new_structure(): Out of memory error.\n");
-      return;
+      return FAILED;
     }
   }
   
   g_saved_structures[g_saved_structures_count++] = st;
+
+  return SUCCEEDED;
 }
 
 
@@ -1816,7 +1854,7 @@ int parse_enum_token(void) {
   struct structure *st = NULL;
   struct structure_item *si;
   char tmpname[MAX_NAME_LENGTH + 8 + 1], bak[256];
-  int type, size, q, start_from = 1;
+  int type, size, q, start_from = 1, instances = 0, defined_size;
   
   /* check for "if" directives (the only directives permitted in an enum/ramsection) */
   if (g_tmp[0] == '.') {
@@ -1837,7 +1875,9 @@ int parse_enum_token(void) {
     st->name[0] = '\0';
     st->last_item = NULL;
     st->alive = YES;
-    _remember_new_structure(st);
+
+    if (_remember_new_structure(st) == FAILED)
+      return FAILED;
   
     inz = input_next_string();
     if (inz == FAILED) {
@@ -1889,7 +1929,9 @@ int parse_enum_token(void) {
     st->items = NULL;
     st->last_item = NULL;
     st->alive = YES;
-    _remember_new_structure(st);
+
+    if (_remember_new_structure(st) == FAILED)
+      return FAILED;
     
     inz = input_next_string();
     if (inz == FAILED) {
@@ -2074,11 +2116,12 @@ int parse_enum_token(void) {
 
     /* get the size/type */
     if (get_next_token() == FAILED)
-      return FAILED;
+      return FAILED;    
   }
   
   type = 0;
   size = 0;
+  defined_size = -1;
 
   if (strcaselesscmp(g_tmp, "DB") == 0 || strcaselesscmp(g_tmp, "BYT") == 0 || strcaselesscmp(g_tmp, "BYTE") == 0) {
     size = 1;
@@ -2143,6 +2186,7 @@ int parse_enum_token(void) {
   /* it's an instance of a structure! */
   else if (strcaselesscmp(g_tmp, "INSTANCEOF") == 0) {
     int number_result;
+
     type = STRUCTURE_ITEM_TYPE_INSTANCEOF;
 
     if (get_next_token() == FAILED)
@@ -2155,12 +2199,45 @@ int parse_enum_token(void) {
       return FAILED;
     }
 
+    /* is the next token SIZE? */
+    if (compare_next_token("SIZE") == SUCCEEDED) {
+      remember_current_source_file_position();
+
+      skip_next_token();
+
+      q = input_number();
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED) {
+        /* SIZE was actually a field? roll back */
+        roll_back_to_remembered_source_file_position();
+      }
+      else {
+        if (g_parsed_int < 1) {
+          print_error(ERROR_DIR, "SIZE must be > 0.\n");
+          return FAILED;
+        }
+        if (g_parsed_int < st->size) {
+          print_error(ERROR_DIR, ".STRUCT \"%s\"'s calculated size is %d, but explicitly given SIZE is %d -> make SIZE larger!\n", st->name, st->size, g_parsed_int);
+          return FAILED;
+        }
+          
+        defined_size = g_parsed_int;
+        size = g_parsed_int * instances;
+      }
+    }
+
+    /* skip optional COUNT */
+    if (compare_next_token("COUNT") == SUCCEEDED)
+      skip_next_token();
+    
     /* get the number of structures to be made */
     number_result = input_number();
     if (number_result == INPUT_NUMBER_EOL) {
       next_line();
       size = st->size;
       g_parsed_int = 1;
+      instances = 1;
     }
     else if (number_result == SUCCEEDED) {
       if (g_parsed_int < 1) {
@@ -2169,6 +2246,7 @@ int parse_enum_token(void) {
       }
 
       size = st->size * g_parsed_int;
+      instances = g_parsed_int;
     }
     else {
       if (number_result == INPUT_NUMBER_STRING)
@@ -2287,11 +2365,12 @@ int parse_enum_token(void) {
   si->next = NULL;
   strcpy(si->name, tmpname);
   si->size = size;
+  si->defined_size = defined_size;
   si->type = type;
   si->start_from = start_from;
   if (type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
     si->instance = st;
-    si->num_instances = si->size/st->size;
+    si->num_instances = instances;
   }
   else if (type == STRUCTURE_ITEM_TYPE_UNION)
     si->union_items = st;
@@ -3595,13 +3674,18 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
         fprintf(g_file_out_ptr, "o%d 0 ", -it->instance->size);
 
         for (g = 1; g <= it->num_instances; g++) {
+          int size = it->instance->size;
+
+          if (it->defined_size > 0)
+            size = it->defined_size;
+          
           snprintf(tmpname, sizeof(tmpname), "%s.%s.%d", iname, it->name, g);
           if (verify_name_length(tmpname) == FAILED)
             return FAILED;
 
           fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
 
-          if (add_label_sizeof(tmpname, it->instance->size) == FAILED)
+          if (add_label_sizeof(tmpname, size) == FAILED)
             return FAILED;
           if (parse_dstruct_entry(tmpname, it->instance, labels_only) == FAILED)
             return FAILED;
@@ -3693,11 +3777,9 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             return FAILED;
           }
         }
-        /* fill the rest of the item with emptyfill or zero */
-        if (g_emptyfill_defined != 0)
-          f = g_emptyfill;
-        else
-          f = 0;
+        
+        /* fill the rest of the item with emptyfill */
+        f = g_emptyfill;
 
         for (; o < it->size; o++)
           fprintf(g_file_out_ptr, "d%d ", f);
@@ -3788,15 +3870,20 @@ int find_struct_field(struct structure *s, char *field_name, int *item_size, int
         
             snprintf(num_str, sizeof(num_str), "%d", g);
             if (strncmp(num_str, after_dot, strlen(num_str)) == 0) {
+              int size = si->instance->size;
+
+              if (si->defined_size > 0)
+                size = si->defined_size;
+
               /* entire string matched? */
               if (strcmp(num_str, after_dot) == 0) {
-                *field_offset = offset + (g-1) * si->instance->size;
-                *item_size = si->instance->size;
+                *field_offset = offset + (g-1) * size;
+                *item_size = size;
                 return SUCCEEDED;
               }
               /* only prefix matched */
               if (after_dot[strlen(num_str)] == '.' && find_struct_field(si->instance, after_dot + strlen(num_str) + 1, item_size, field_offset) == SUCCEEDED) {
-                *field_offset += offset + (g-1) * si->instance->size;
+                *field_offset += offset + (g-1) * size;
                 return SUCCEEDED;
               }
             }
@@ -4375,7 +4462,9 @@ int directive_struct(void) {
   g_active_struct->last_item = NULL;
   g_active_struct->alive = YES;
   g_active_struct->defined_size = -1;
-  _remember_new_structure(g_active_struct);
+
+  if (_remember_new_structure(g_active_struct) == FAILED)
+    return FAILED;
 
   if (get_next_token() == FAILED)
     return FAILED;
@@ -4851,7 +4940,10 @@ int directive_ramsection(void) {
     return FAILED;
   }
   g_active_struct->alive = YES;
-  _remember_new_structure(g_active_struct);
+
+  if (_remember_new_structure(g_active_struct) == FAILED)
+    return FAILED;
+  
   g_active_struct->name[0] = '\0';
   g_active_struct->items = NULL;
   g_active_struct->last_item = NULL;
@@ -10110,7 +10202,10 @@ int parse_directive(void) {
           return FAILED;
         }
         g_active_struct->alive = YES;
-        _remember_new_structure(g_active_struct);
+
+        if (_remember_new_structure(g_active_struct) == FAILED)
+          return FAILED;
+
         g_active_struct->name[0] = '\0';
         g_active_struct->items = NULL;
         g_active_struct->last_item = NULL;

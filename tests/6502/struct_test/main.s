@@ -3,6 +3,7 @@
            DEFAULTSLOT 0
            SLOTSIZE $2000
            SLOT 0 $8000
+           SLOT 1 $A000
         .ENDME
 
         .ROMBANKMAP
@@ -155,3 +156,46 @@ waterPool2 instanceof waterPool
         .db _sizeof_FourBytes2  ; @BT 08
 
         .db "<04"               ; @BT END
+        
+
+        .struct object
+        size DB
+        life DB
+        .endst
+        
+        .ramsection "objects1" bank 0 slot 1
+        objects1 instanceof object 2
+        .ends
+
+        .ramsection "objects2" bank 0 slot 1
+        objects2 instanceof object size 4 count 2
+        size     DB
+        objectA  instanceof object size 8 count 1
+        objectB  instanceof object 1
+        .ends
+
+        .ramsection "objects3" bank 0 slot 1
+        objects3 instanceof object 2
+        .ends
+
+        .struct object2 size 4
+        size DB
+        life DB
+        .endst
+        
+        .ramsection "objects4" bank 0 slot 1
+        objects4 instanceof object2 size 8 count 2
+        .ends
+        
+        .enum $C000 export
+        .union
+helloA: db
+helloB: db
+helloC: dw
+        .nextu
+helloD: db
+        .endu
+helloE: db
+        obju    instanceof object size 8 count 2
+helloF: db
+        .ende

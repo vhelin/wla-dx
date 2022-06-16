@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.2 (15-Jun-2022) [ALL] Added SIZE to .RAMSECTION.
+v10.2 (16-Jun-2022) [ALL] Added SIZE to .RAMSECTION.
                     [ALL] Added -d to disable WLA's ability to calculate A-B
                       where A and B are labels.
                     [ALL] If SIZE is used with a .SECTION or .RAMSECTION and
@@ -28,7 +28,10 @@ v10.2 (15-Jun-2022) [ALL] Added SIZE to .RAMSECTION.
                       outside world. The same goes for child label stack.
                     [ALL] We now don't do substitution in code that is skipped
                       using .IFs.
-                    [ALL] Added SIZE to .DSTRUCT and .STRUCT.
+                    [ALL] Added SIZE to .DSTRUCT and .STRUCT and to INSTANCEOF
+                      in .RAMSECTION and .ENUM.
+                    [ALL] Added optional COUNT to INSTANCEOF in .RAMSECTION and
+                      .ENUM.
                     [ALL] Added round(), floor() and ceil().
                     [658] WDM takes now a byte (i.e., "WDM $12").
                     [651] Removed wla-6510 as wla-6502 can be used for 6510.
