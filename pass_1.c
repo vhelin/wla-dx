@@ -2122,7 +2122,8 @@ int parse_enum_token(void) {
   type = 0;
   size = 0;
   defined_size = -1;
-
+  instances = 1;
+  
   if (strcaselesscmp(g_tmp, "DB") == 0 || strcaselesscmp(g_tmp, "BYT") == 0 || strcaselesscmp(g_tmp, "BYTE") == 0) {
     size = 1;
     type = STRUCTURE_ITEM_TYPE_DATA;
@@ -2199,81 +2200,126 @@ int parse_enum_token(void) {
       return FAILED;
     }
 
-    /* is the next token SIZE? */
-    if (compare_next_token("SIZE") == SUCCEEDED) {
-      remember_current_source_file_position();
+    while (1) {
+      /* is the next token SIZE? */
+      if (compare_next_token("SIZE") == SUCCEEDED) {
+        remember_current_source_file_position();
 
-      skip_next_token();
+        skip_next_token();
 
-      q = input_number();
-      if (q == FAILED)
-        return FAILED;
-      if (q != SUCCEEDED) {
-        /* SIZE was actually a field? roll back */
-        roll_back_to_remembered_source_file_position();
-      }
-      else {
-        if (g_parsed_int < 1) {
-          print_error(ERROR_DIR, "SIZE must be > 0.\n");
+        q = input_number();
+        if (q == FAILED)
           return FAILED;
+        if (q != SUCCEEDED) {
+          /* SIZE was actually a field? roll back */
+          roll_back_to_remembered_source_file_position();
+
+          break;
         }
-        if (g_parsed_int < st->size) {
-          print_error(ERROR_DIR, ".STRUCT \"%s\"'s calculated size is %d, but explicitly given SIZE is %d -> make SIZE larger!\n", st->name, st->size, g_parsed_int);
-          return FAILED;
-        }
+        else {
+          if (g_parsed_int < 1) {
+            print_error(ERROR_DIR, "SIZE must be > 0.\n");
+            return FAILED;
+          }
+          if (g_parsed_int < st->size) {
+            print_error(ERROR_DIR, ".STRUCT \"%s\"'s calculated size is %d, but explicitly given SIZE is %d -> make SIZE larger!\n", st->name, st->size, g_parsed_int);
+            return FAILED;
+          }
           
-        defined_size = g_parsed_int;
-        size = g_parsed_int * instances;
+          defined_size = g_parsed_int;
+        }
       }
-    }
+      else if (compare_next_token("COUNT") == SUCCEEDED) {
+        remember_current_source_file_position();
 
-    /* skip optional COUNT */
-    if (compare_next_token("COUNT") == SUCCEEDED)
-      skip_next_token();
-    
-    /* get the number of structures to be made */
-    number_result = input_number();
-    if (number_result == INPUT_NUMBER_EOL) {
-      next_line();
-      size = st->size;
-      g_parsed_int = 1;
-      instances = 1;
-    }
-    else if (number_result == SUCCEEDED) {
-      if (g_parsed_int < 1) {
-        print_error(ERROR_DIR, "The number of structures must be greater than 0.\n");
-        return FAILED;
+        skip_next_token();
+
+        q = input_number();
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED) {
+          /* COUNT was actually a field? roll back */
+          roll_back_to_remembered_source_file_position();
+
+          break;
+        }
+        else {
+          if (g_parsed_int < 1) {
+            print_error(ERROR_DIR, "COUNT must be > 0.\n");
+            return FAILED;
+          }
+
+          instances = g_parsed_int;
+        }
       }
+      else if (compare_next_token("STARTFROM") == SUCCEEDED) {
+        remember_current_source_file_position();
+        
+        skip_next_token();
 
-      size = st->size * g_parsed_int;
-      instances = g_parsed_int;
-    }
-    else {
-      if (number_result == INPUT_NUMBER_STRING)
-        print_error(ERROR_DIR, "Expected the number of structures, got \"%s\" instead.\n", g_label);
-      else
-        print_error(ERROR_DIR, "Expected the number of structures.\n");
-      return FAILED;
-    }
+        q = input_number();
 
-    if (compare_next_token("STARTFROM") == SUCCEEDED) {
-      skip_next_token();
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED) {
+          /* STARTFROM was actually a field? roll back */
+          roll_back_to_remembered_source_file_position();
 
-      q = input_number();
+          break;
+        }
 
-      if (q == FAILED)
-        return FAILED;
-      else if (q == SUCCEEDED) {
         if (g_parsed_int < 0) {
           print_error(ERROR_DIR, "STARTFROM needs to be >= 0.\n");
           return FAILED;
         }
+
         start_from = g_parsed_int;
       }
       else {
-        print_error(ERROR_DIR, "STARTFROM needs a number >= 0.\n");
-        return FAILED;
-      }
+        /* get the number of structures to be made */
+        number_result = input_number();
+        if (number_result == INPUT_NUMBER_EOL) {
+          next_line();
+          break;
+        }
+        else if (number_result == SUCCEEDED) {
+          if (g_parsed_int < 1) {
+            print_error(ERROR_DIR, "The number of structures must be greater than 0.\n");
+            return FAILED;
+          }
+
+          instances = g_parsed_int;
+        }
+        else {
+          if (number_result == INPUT_NUMBER_STRING)
+            print_error(ERROR_DIR, "Expected the number of structures, got \"%s\" instead.\n", g_label);
+          else
+            print_error(ERROR_DIR, "Expected the number of structures.\n");
+          return FAILED;
+        }
+
+        /* test for EOL */
+        remember_current_source_file_position();
+
+        number_result = input_number();
+        if (number_result == INPUT_NUMBER_EOL) {
+          next_line();
+          break;
+        }
+        else {
+          /* this is not yet the end */
+          roll_back_to_remembered_source_file_position();
+        }
+      }      
+    }
+
+    if (defined_size > 0)
+      size = defined_size * instances;
+    else {
+      if (st->defined_size > 0)
+        size = st->defined_size * instances;
+      else
+        size = st->size * instances;
     }
   }
   else if (strcaselesscmp(g_tmp, ".db") == 0 || strcaselesscmp(g_tmp, ".byt") == 0 ||

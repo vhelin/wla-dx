@@ -2,13 +2,13 @@
 CC = $(WLAVALGRIND) wla-z80
 CFLAGS = -x -o
 LD = $(WLAVALGRIND) wlalink
-LDFLAGS = -v -d -S
+LDFLAGS = -v -S
 
 SFILES = sms.s
 IFILES = 
 OFILES = sms.o
 
-all: linked.rom
+all: linked.rom check
 
 linked.rom: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.rom
@@ -16,6 +16,8 @@ linked.rom: $(OFILES) makefile
 sms.o: sms.s
 	$(CC) $(CFLAGS) sms.o sms.s
 
+check: linked.rom
+	byte_tester -s sms.s
 
 $(OFILES): $(HFILES)
 

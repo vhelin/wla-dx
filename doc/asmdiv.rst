@@ -3551,7 +3551,8 @@ This is not a compulsory directive.
 ``.UNION name``
 ---------------
 
-Begins a "union". This can only be used in enums, ramsections, and structs.
+Begins a "union". This can only be used in ``.ENUM`` s, ``.RAMSECTION`` s
+and ``.STRUCT`` s.
 
 When entering a union, the current address in the enum is saved, and the
 following data is processed as normal. When the ``.NEXTU`` directive is
