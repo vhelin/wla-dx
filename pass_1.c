@@ -3953,9 +3953,10 @@ int directive_dstruct(void) {
 
   char iname[MAX_NAME_LENGTH*2+5];
   struct structure *s;
-  int q, q2, supplied_size, labels_only;
+  int q, q2, supplied_size, labels_only, generate_labels = YES;
 
-  if (compare_next_token("INSTANCEOF") == SUCCEEDED) { /* nameless */
+  if (compare_next_token("INSTANCEOF") == SUCCEEDED) {
+    /* nameless */
     skip_next_token();
     iname[0] = '\0';
   }
@@ -4004,37 +4005,48 @@ int directive_dstruct(void) {
   */
 
   supplied_size = s->defined_size;
-  
-  if (compare_next_token("SIZE") == SUCCEEDED) {
-    /* we have fixed size for this instance */
-    skip_next_token();
-    
-    q = input_number();
-    if (q == FAILED)
-      return FAILED;
-    if (q != SUCCEEDED) {
-      print_error(ERROR_INP, "SIZE needs an immediate value.\n");
-      return FAILED;
-    }
 
-    if (g_parsed_int < 1) {
-      print_error(ERROR_DIR, "SIZE must be > 0.\n");
-      return FAILED;
-    }
-    if (g_parsed_int < s->size) {
-      print_error(ERROR_DIR, ".STRUCT \"%s\"'s size is %d, but SIZE is %d which is smaller -> please increase SIZE!\n", s->name, s->size, g_parsed_int);
-      return FAILED;
-    }
+  while (1) {
+    if (compare_next_token("SIZE") == SUCCEEDED) {
+      /* we have fixed size for this instance */
+      skip_next_token();
     
-    supplied_size = g_parsed_int;
+      q = input_number();
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED) {
+        print_error(ERROR_INP, "SIZE needs an immediate value.\n");
+        return FAILED;
+      }
+
+      if (g_parsed_int < 1) {
+        print_error(ERROR_DIR, "SIZE must be > 0.\n");
+        return FAILED;
+      }
+      if (g_parsed_int < s->size) {
+        print_error(ERROR_DIR, ".STRUCT \"%s\"'s size is %d, but SIZE is %d which is smaller -> please increase SIZE!\n", s->name, s->size, g_parsed_int);
+        return FAILED;
+      }
+    
+      supplied_size = g_parsed_int;
+    }
+    else if (compare_next_token("NOLABELS") == SUCCEEDED) {
+      /* no labels for this instance */
+      skip_next_token();
+
+      generate_labels = NO;
+    }
+    else
+      break;
   }
 
   if (iname[0] != '\0') {
     char full_label[MAX_NAME_LENGTH + 1];
     int size = s->size;
-    
-    fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, iname);
 
+    if (generate_labels == YES)
+      fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, iname);
+    
     if (get_full_label(iname, full_label) == FAILED)
       return FAILED;
 
@@ -4111,8 +4123,10 @@ int directive_dstruct(void) {
     if (iname[0] != '\0') {
       labels_only = YES;
 
-      if (parse_dstruct_entry(iname, s, &labels_only) == FAILED)
-        return FAILED;
+      if (generate_labels == YES) {
+        if (parse_dstruct_entry(iname, s, &labels_only) == FAILED)
+          return FAILED;
+      }
     }
 
     /* mark end of .DSTRUCT */

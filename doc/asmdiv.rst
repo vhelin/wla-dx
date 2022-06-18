@@ -1017,8 +1017,8 @@ the structure, and in this example it could be like::
     .ENDST
 
 There are two syntaxes for .DSTRUCT; the new and legacy versions. To use
-the new syntax, put the keyword "VALUES" at the end of the first line.
-The old syntax uses the keyword "DATA" or none at all.
+the new syntax, put the keyword ``VALUES`` at the end of the first line.
+The old syntax uses the keyword ``DATA`` or none at all.
 
 The new syntax looks like this::
 
@@ -1030,7 +1030,7 @@ The new syntax looks like this::
 
 The fields can be put in any order. Any omitted fields are set to the
 ``.EMPTYFILL`` value (``$00`` by default). Any data-defining directive
-can be used within .DSTRUCT, as long as it does not exceed the size of
+can be used within ``.DSTRUCT``, as long as it does not exceed the size of
 the data it is being defined for. The only exception is .DSTRUCT itself,
 which cannot be nested.
 
@@ -1091,9 +1091,8 @@ in this context, as opposed to the 11 bytes for the entire
 Named unions can be assigned to in a similar way, by writing its full
 name with a ``.`` separating the union name and the field name.
 
-The struct can be defined namelessly, in which case no labels will be
-generated, like so::
-
+The struct can be defined namelessly::
+  
     .DSTRUCT INSTANCEOF drop_pair VALUES
         ...
     .ENDST
@@ -1102,6 +1101,12 @@ You can use ``SIZE`` to specify the size of the instance. The additional
 bytes are filled with ``.EMPTYFILL``::
 
     .DSTRUCT INSTANCEOF drop_pair SIZE 128 VALUES
+        ...
+    .ENDST
+
+If you don't want to generate labels use ``NOLABELS``::
+
+    .DSTRUCT INSTANCEOF drop_pair NOLABELS VALUES
         ...
     .ENDST
   

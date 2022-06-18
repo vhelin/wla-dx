@@ -7,9 +7,9 @@
         .ENDME
 
         .ROMBANKMAP
-           BANKSTOTAL 1
+           BANKSTOTAL 2
            BANKSIZE $2000
-           BANKS 1
+           BANKS 2
         .ENDRO
 
         .BANK 00  SLOT 0
@@ -156,4 +156,66 @@ waterPool2 instanceof waterPool
         .db _sizeof_FourBytes2  ; @BT 08
 
         .db "<04"               ; @BT END
+        
+
+        .BANK 1 SLOT 1
+        .ORG 0
+
+        .db "05>"               ; @BT TEST-05 05 START
+        
+        .dstruct FourBytes3 INSTANCEOF FourBytes NOLABELS SIZE 8 VALUES
+        Byte1:  .DB 5           ; @BT 05
+        Byte2:  .DB 6           ; @BT 06
+        Rest:   .DW $0807       ; @BT 07 08
+                                ; @BT FF FF FF FF
+        .endst
+
+        .dstruct FourBytes4 INSTANCEOF FourBytes SIZE 8 VALUES
+        Byte1:  .DB 5           ; @BT 05
+        Byte2:  .DB 6           ; @BT 06
+        Rest:   .DW $0807       ; @BT 07 08
+                                ; @BT FF FF FF FF
+        .endst
+
+AfterFourBytes4:
+        
+        .dw FourBytes4          ; @BT 0B A0
+        .dw FourBytes4.Byte1    ; @BT 0B A0
+        .dw FourBytes4.Byte2    ; @BT 0C A0
+        .dw FourBytes4.Rest     ; @BT 0D A0
+        .dw AfterFourBytes4     ; @BT 13 A0
+
+        .dstruct INSTANCEOF FourBytes NOLABELS SIZE 8 VALUES
+        Byte1:  .DB 5           ; @BT 05
+        Byte2:  .DB 6           ; @BT 06
+        Rest:   .DW $0807       ; @BT 07 08
+                                ; @BT FF FF FF FF
+        .endst
+
+        .dstruct INSTANCEOF FourBytes NOLABELS SIZE 8 VALUES
+        Byte1:  .DB 5           ; @BT 05
+        Byte2:  .DB 6           ; @BT 06
+        Rest:   .DW $0807       ; @BT 07 08
+                                ; @BT FF FF FF FF
+        .endst
+
+        .dstruct INSTANCEOF FourBytes NOLABELS VALUES
+        Byte1:  .DB 5           ; @BT 05
+        Byte2:  .DB 6           ; @BT 06
+        Rest:   .DW $0807       ; @BT 07 08
+                                ; @BT FF FF
+        .endst
+
+        .dstruct INSTANCEOF FourBytes NOLABELS VALUES
+        Byte1:  .DB 5           ; @BT 05
+        Byte2:  .DB 6           ; @BT 06
+        Rest:   .DW $0807       ; @BT 07 08
+                                ; @BT FF FF
+        .endst
+
+AfterAll:
+
+        .dw AfterAll            ; @BT 39 A0
+        
+        .db "<05"               ; @BT END
         
