@@ -438,7 +438,7 @@
 #if defined(SUPERFX)
 
 struct instruction {
-  char *op;
+  char *string;
   unsigned char type;
   unsigned char hex;
   unsigned char prefix;
@@ -449,7 +449,7 @@ struct instruction {
 #else
 
 struct instruction {
-  char *op;
+  char *string;
   unsigned short hex;
   unsigned char type;
 #if defined(Z80)

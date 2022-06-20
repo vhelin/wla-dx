@@ -1170,7 +1170,7 @@ int evaluate_token(void) {
     if (g_use_wdc_standard == 0) {
       /* skip all mnemonics that contain '<', '|' and '>' */
       for (g_inz = 0, g_parsed_int = SUCCEEDED; g_inz < INSTRUCTION_STRING_LENGTH_MAX; g_inz++) {
-        char c = g_instruction_tmp->op[g_inz];
+        char c = g_instruction_tmp->string[g_inz];
 
         if (c == 0)
           break;
@@ -1192,7 +1192,7 @@ int evaluate_token(void) {
     for (g_inz = 0, g_parsed_int = SUCCEEDED; g_inz < INSTRUCTION_STRING_LENGTH_MAX; g_inz++) {
       if (g_tmp[g_inz] == 0)
         break;
-      if (g_instruction_tmp->op[g_inz] != toupper((int)g_tmp[g_inz])) {
+      if (g_instruction_tmp->string[g_inz] != toupper((int)g_tmp[g_inz])) {
         g_parsed_int = FAILED;
         break;
       }

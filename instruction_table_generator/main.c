@@ -76,15 +76,15 @@ int main(int argc, char *argv[]) {
   indexes[(int)lower_char] = 0;
 
   while (g_instructions_table[index].type != 0xff) {
-    if (strlen(g_instructions_table[index].op) > max) {
-      max = (unsigned int)strlen(g_instructions_table[index].op);
-      strcpy(max_name, g_instructions_table[index].op);
+    if (strlen(g_instructions_table[index].string) > max) {
+      max = (unsigned int)strlen(g_instructions_table[index].string);
+      strcpy(max_name, g_instructions_table[index].string);
     }
 
-    if (opt_tmp[index].op[0] != upper_char) {
+    if (opt_tmp[index].string[0] != upper_char) {
       counts[(int)upper_char] = count;
       counts[(int)lower_char] = count;
-      upper_char = opt_tmp[index].op[0];
+      upper_char = opt_tmp[index].string[0];
       lower_char = tolower((int)upper_char);
 
       if (last_lower_char > lower_char) {
@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
     fclose(out);
 
 #if !defined(WLA_QUIET)
-  printf("MAIN: Max instruction.op (\"%s\") length was %u bytes.\n", max_name, max);
+  printf("MAIN: Max instruction.string (\"%s\") length was %u bytes.\n", max_name, max);
 #endif
 
   return 0;

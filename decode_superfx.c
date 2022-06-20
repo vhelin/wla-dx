@@ -1,7 +1,7 @@
 
 case 0:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+  if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
     output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
         
     if (g_instruction_tmp->prefix != 0)
@@ -12,20 +12,20 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
 
     return SUCCEEDED;
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 1:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
     for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
         if (g_instruction_tmp->prefix != 0)
@@ -37,18 +37,18 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
 
         return SUCCEEDED;
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 2:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == 'e') {
+  if (g_instruction_tmp->string[x] == 'e') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
     z = input_number();
@@ -64,7 +64,7 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
     }
 
     for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
         if (z == SUCCEEDED)
@@ -81,24 +81,24 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         g_source_pointer = g_inz;
         return SUCCEEDED;
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 3:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
     for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == 'x') {
+      if (g_instruction_tmp->string[x] == 'x') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
         z = input_number();
@@ -114,7 +114,7 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         }
 
         for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-          if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
             if (g_instruction_tmp->prefix != 0)
@@ -134,28 +134,28 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             g_source_pointer = g_inz;
             return SUCCEEDED;
           }
-          if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
             break;
         }
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 4:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
     for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == '?') {
+      if (g_instruction_tmp->string[x] == '?') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
         z = input_number();
@@ -171,7 +171,7 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         }
 
         for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-          if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
             if (g_instruction_tmp->prefix != 0)
@@ -187,28 +187,28 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             g_source_pointer = g_inz;
             return SUCCEEDED;
           }
-          if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
             break;
         }
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 5:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
     for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == 'y') {
+      if (g_instruction_tmp->string[x] == 'y') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
         z = input_number();
@@ -228,7 +228,7 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         }
 
         for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-          if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
             if (g_instruction_tmp->prefix != 0)
@@ -244,34 +244,34 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             g_source_pointer = g_inz;
             return SUCCEEDED;
           }
-          if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
             break;
         }
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 6:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
     for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == '*') {
+      if (g_instruction_tmp->string[x] == '*') {
         z = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
         if (z < 0)
           return FAILED;
 
         for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-          if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
             if (g_instruction_tmp->hex == 0xB0) {
               /* MOVES */
@@ -286,28 +286,28 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             g_source_pointer = g_inz;
             return SUCCEEDED;
           }
-          if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
             break;
         }
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 7:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
     for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == '?') {
+      if (g_instruction_tmp->string[x] == '?') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
         z = input_number();
@@ -323,7 +323,7 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         }
 
         for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-          if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
             if (z == SUCCEEDED) {
@@ -344,28 +344,28 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             g_source_pointer = g_inz;
             return SUCCEEDED;
           }
-          if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
             break;
         }
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 8:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
     for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == '?') {
+      if (g_instruction_tmp->string[x] == '?') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
         z = input_number();
@@ -381,7 +381,7 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         }
 
         for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-          if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
             if (z == SUCCEEDED) {
@@ -402,22 +402,22 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             g_source_pointer = g_inz;
             return SUCCEEDED;
           }
-          if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
             break;
         }
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 9:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '?') {
+  if (g_instruction_tmp->string[x] == '?') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
     z = input_number();
@@ -434,13 +434,13 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
     }
 
     for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == '*') {
+      if (g_instruction_tmp->string[x] == '*') {
         tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
         if (tiny < 0)
           return FAILED;
 
         for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-          if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
             if (z == SUCCEEDED) {
@@ -461,34 +461,34 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             g_source_pointer = g_inz;
             return SUCCEEDED;
           }
-          if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
             break;
         }
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 10:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
     for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == '*') {
+      if (g_instruction_tmp->string[x] == '*') {
         z = parse_tiny_int(0, 11);
         if (z < 0)
           return FAILED;
 
         for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-          if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
             if (tiny == 0) /* LDB (R*) */
@@ -499,34 +499,34 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             g_source_pointer = g_inz;
             return SUCCEEDED;
           }
-          if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
             break;
         }
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 11:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     tiny = parse_tiny_int(0, 11);
     if (tiny < 0)
       return FAILED;
 
     for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == '*') {
+      if (g_instruction_tmp->string[x] == '*') {
         z = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
         if (z < 0)
           return FAILED;
 
         for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-          if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
             if (z == 0) /* STB (R*) */
@@ -537,34 +537,34 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             g_source_pointer = g_inz;
             return SUCCEEDED;
           }
-          if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
             break;
         }
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 12:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
     for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == '*') {
+      if (g_instruction_tmp->string[x] == '*') {
         z = parse_tiny_int(0, 11);
         if (z < 0)
           return FAILED;
 
         for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-          if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
             if (tiny == 0) /* LDW (R*) */
@@ -575,34 +575,34 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             g_source_pointer = g_inz;
             return SUCCEEDED;
           }
-          if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
             break;
         }
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 13:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     tiny = parse_tiny_int(0, 11);
     if (tiny < 0)
       return FAILED;
 
     for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == '*') {
+      if (g_instruction_tmp->string[x] == '*') {
         z = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
         if (z < 0)
           return FAILED;
 
         for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-          if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
             if (z == 0) /* STW (R*) */
@@ -613,15 +613,15 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             g_source_pointer = g_inz;
             return SUCCEEDED;
           }
-          if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
             break;
         }
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
@@ -632,7 +632,7 @@ case 14:
   int v, s;
   
   for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-    if (g_instruction_tmp->op[x] == '?') {
+    if (g_instruction_tmp->string[x] == '?') {
       y = g_source_pointer;
       g_source_pointer = g_inz;
       z = input_number();
@@ -653,13 +653,13 @@ case 14:
       s = g_latest_stack;
 
       for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->op[x] == '*') {
+        if (g_instruction_tmp->string[x] == '*') {
           tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
           if (tiny < 0)
             return FAILED;
           
           for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
               output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (g_instruction_tmp->prefix != 0)
@@ -675,15 +675,15 @@ case 14:
               g_source_pointer = g_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
           break;
       }
     }
-    if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+    if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
       break;
   }
 }
@@ -695,7 +695,7 @@ case 15:
   int v, s;
   
   for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-    if (g_instruction_tmp->op[x] == 'y') {
+    if (g_instruction_tmp->string[x] == 'y') {
       y = g_source_pointer;
       g_source_pointer = g_inz;
       z = input_number();
@@ -720,13 +720,13 @@ case 15:
       s = g_latest_stack;
       
       for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->op[x] == '*') {
+        if (g_instruction_tmp->string[x] == '*') {
           tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
           if (tiny < 0)
             return FAILED;
 
           for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
               output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               
               if (g_instruction_tmp->prefix != 0)
@@ -742,15 +742,15 @@ case 15:
               g_source_pointer = g_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
           break;
       }
     }
-    if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+    if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
       break;
   }
 }

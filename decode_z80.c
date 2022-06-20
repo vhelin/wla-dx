@@ -1,24 +1,24 @@
 
 case 0:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+  if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
     output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
     g_source_pointer = g_inz;
 
     /* give a warning when assembling "JP (HL)"! */
     /*
-      if (g_instruction_tmp->hex == 0xE9 && strcmp(g_instruction_tmp->op, "JP (HL)") == 0)
+      if (g_instruction_tmp->hex == 0xE9 && strcmp(g_instruction_tmp->string, "JP (HL)") == 0)
       print_error(ERROR_WRN, "\"JP (HL)\" is semantically incorrect. Please use \"JP HL\" instead.\n");
     */
     /* give a warning when assembling "JP (HL')"! */
     /*
-      if (g_instruction_tmp->hex == 0xE9 && strcmp(g_instruction_tmp->op, "JP (HL')") == 0)
+      if (g_instruction_tmp->hex == 0xE9 && strcmp(g_instruction_tmp->string, "JP (HL')") == 0)
       print_error(ERROR_WRN, "\"JP (HL')\" is semantically incorrect. Please use \"JP HL'\" instead.\n");
     */
 
     return SUCCEEDED;
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
@@ -26,7 +26,7 @@ break;
 case 11:
 case 1:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == 'x') {
+  if (g_instruction_tmp->string[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
     z = input_number();
@@ -38,7 +38,7 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       break;
 
     for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
         if (z == SUCCEEDED)
           output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -54,18 +54,18 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         g_source_pointer = g_inz;
         return SUCCEEDED;
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 2:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '?') {
+  if (g_instruction_tmp->string[x] == '?') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
     z = input_number();
@@ -79,7 +79,7 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
     }
 
     for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
         if (z == SUCCEEDED)
           output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -90,42 +90,42 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         g_source_pointer = g_inz;
         return SUCCEEDED;
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 3:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+  if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
     output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
     g_source_pointer = g_inz;
 
     /* give a warning when assembling "JP (IX)"! */
     /*
-      if (g_instruction_tmp->hex == 0xE9DD && strcmp(g_instruction_tmp->op, "JP (IX)") == 0)
+      if (g_instruction_tmp->hex == 0xE9DD && strcmp(g_instruction_tmp->string, "JP (IX)") == 0)
       print_error(ERROR_WRN, "\"JP (IX)\" is semantically incorrect. Please use \"JP IX\" instead.\n");
     */
     /* give a warning when assembling "JP (IY)"! */
     /*
-      if (g_instruction_tmp->hex == 0xE9FD && strcmp(g_instruction_tmp->op, "JP (IY)") == 0)
+      if (g_instruction_tmp->hex == 0xE9FD && strcmp(g_instruction_tmp->string, "JP (IY)") == 0)
       print_error(ERROR_WRN, "\"JP (IY)\" is semantically incorrect. Please use \"JP IY\" instead.\n");
     */
     
     return SUCCEEDED;
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 4:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == 'x' || g_instruction_tmp->op[x] == 's') {
+  if (g_instruction_tmp->string[x] == 'x' || g_instruction_tmp->string[x] == 's') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
     z = input_number();
@@ -135,15 +135,15 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       return FAILED;
 
     if (z == SUCCEEDED) {
-      if ((g_instruction_tmp->op[x] == 'x' && (g_parsed_int > 255 || g_parsed_int < -128)) ||
-          (g_instruction_tmp->op[x] == 's' && (g_parsed_int > 127 || g_parsed_int < -128))) {
+      if ((g_instruction_tmp->string[x] == 'x' && (g_parsed_int > 255 || g_parsed_int < -128)) ||
+          (g_instruction_tmp->string[x] == 's' && (g_parsed_int > 127 || g_parsed_int < -128))) {
         print_error(ERROR_NUM, "Out of 8-bit range.\n");
         return FAILED;
       }
     }
 
     for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
         if (z == SUCCEEDED)
           output_assembled_instruction(g_instruction_tmp, "y%d d%d ", g_instruction_tmp->hex, g_parsed_int);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -154,18 +154,18 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         g_source_pointer = g_inz;
         return SUCCEEDED;
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 5:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == 'x' || g_instruction_tmp->op[x] == 's') {
+  if (g_instruction_tmp->string[x] == 'x' || g_instruction_tmp->string[x] == 's') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
     z = input_number();
@@ -175,15 +175,15 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       return FAILED;
     
     if (z == SUCCEEDED) {
-      if ((g_instruction_tmp->op[x] == 'x' && (g_parsed_int > 255 || g_parsed_int < -128)) ||
-          (g_instruction_tmp->op[x] == 's' && (g_parsed_int > 127 || g_parsed_int < -128))) {
+      if ((g_instruction_tmp->string[x] == 'x' && (g_parsed_int > 255 || g_parsed_int < -128)) ||
+          (g_instruction_tmp->string[x] == 's' && (g_parsed_int > 127 || g_parsed_int < -128))) {
         print_error(ERROR_NUM, "Out of 8-bit range.\n");
         return FAILED;
       }
     }
 
     for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
         if (z == SUCCEEDED)
           output_assembled_instruction(g_instruction_tmp, "y%d d%d d%d ", g_instruction_tmp->hex, g_parsed_int, g_instruction_tmp->hex_x);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -194,18 +194,18 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         g_source_pointer = g_inz;
         return SUCCEEDED;
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 6:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '?') {
+  if (g_instruction_tmp->string[x] == '?') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
     z = input_number();
@@ -215,7 +215,7 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       return FAILED;
 
     for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
         if (z == SUCCEEDED)
           output_assembled_instruction(g_instruction_tmp, "y%d y%d ", g_instruction_tmp->hex, g_parsed_int);
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -226,18 +226,18 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         g_source_pointer = g_inz;
         return SUCCEEDED;
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 7:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == 'x' || g_instruction_tmp->op[x] == 's') {
+  if (g_instruction_tmp->string[x] == 'x' || g_instruction_tmp->string[x] == 's') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
     z = input_number();
@@ -247,8 +247,8 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       return FAILED;
 
     if (z == SUCCEEDED) {
-      if ((g_instruction_tmp->op[x] == 'x' && (g_parsed_int > 255 || g_parsed_int < -128)) ||
-          (g_instruction_tmp->op[x] == 's' && (g_parsed_int > 127 || g_parsed_int < -128))) {
+      if ((g_instruction_tmp->string[x] == 'x' && (g_parsed_int > 255 || g_parsed_int < -128)) ||
+          (g_instruction_tmp->string[x] == 's' && (g_parsed_int > 127 || g_parsed_int < -128))) {
         print_error(ERROR_NUM, "Out of 8-bit range.\n");
         return FAILED;
       }
@@ -261,7 +261,7 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       strcpy(labelx, g_label);
 
     for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == 'x') {
+      if (g_instruction_tmp->string[x] == 'x') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
         z = input_number();
@@ -273,7 +273,7 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           break;
 
         for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-          if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
             if (v == SUCCEEDED)
@@ -293,22 +293,22 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             g_source_pointer = g_inz;
             return SUCCEEDED;
           }
-          if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
             break;
         }
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 8:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
     z = input_number();
@@ -318,23 +318,23 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       break;
 
     for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
         g_source_pointer = g_inz;
         return SUCCEEDED;
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 9:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
     z = input_number();
@@ -344,23 +344,23 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       break;
     
     for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
         g_source_pointer = g_inz;
         return SUCCEEDED;
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
 
 case 10:
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
     z = input_number();
@@ -370,7 +370,7 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       break;
 
     for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == 'x' || g_instruction_tmp->op[x] == 's') {
+      if (g_instruction_tmp->string[x] == 'x' || g_instruction_tmp->string[x] == 's') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
         z = input_number();
@@ -380,15 +380,15 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           return FAILED;
         
         if (z == SUCCEEDED) {
-          if ((g_instruction_tmp->op[x] == 'x' && (g_parsed_int > 255 || g_parsed_int < -128)) ||
-              (g_instruction_tmp->op[x] == 's' && (g_parsed_int > 127 || g_parsed_int < -128))) {
+          if ((g_instruction_tmp->string[x] == 'x' && (g_parsed_int > 255 || g_parsed_int < -128)) ||
+              (g_instruction_tmp->string[x] == 's' && (g_parsed_int > 127 || g_parsed_int < -128))) {
             print_error(ERROR_NUM, "Out of 8-bit range.\n");
             return FAILED;
           }
         }
 
         for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-          if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
             if (z == SUCCEEDED)
               output_assembled_instruction(g_instruction_tmp, "y%d d%d d%d ", g_instruction_tmp->hex, g_parsed_int, g_instruction_tmp->hex_x);
             else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -399,15 +399,15 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             g_source_pointer = g_inz;
             return SUCCEEDED;
           }
-          if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
             break;
         }
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
@@ -415,7 +415,7 @@ break;
 case 100:
 /* "RST *" that gets delayed to WLALINK */
 for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-  if (g_instruction_tmp->op[x] == '*') {
+  if (g_instruction_tmp->string[x] == '*') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
     z = input_number();
@@ -425,7 +425,7 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       break;
 
     for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-      if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d v1 ", g_active_file_info_last->line_current);
         if (z == INPUT_NUMBER_ADDRESS_LABEL)
           output_assembled_instruction(g_instruction_tmp, "Q%s ", g_label);
@@ -438,11 +438,11 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         g_source_pointer = g_inz;
         return SUCCEEDED;
       }
-      if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+      if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
         break;
     }
   }
-  if (g_instruction_tmp->op[x] != toupper((int)g_buffer[g_inz]))
+  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
     break;
  }
 break;
