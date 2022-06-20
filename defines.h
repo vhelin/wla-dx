@@ -119,7 +119,7 @@
 
 #ifdef GB
 
-/* opcode types */
+/* instruction types */
 
 /* 0 - plain text  8b */
 /* 1 - x              */
@@ -128,7 +128,7 @@
 /* 8 - *           8b */
 /* 9 - *          16b */
 
-#define OP_SIZE_MAX 16
+#define OP_SIZE_MAX 15
 #define ARCH_STR "GB-Z80"
 #define WLA_NAME "gb"
 
@@ -140,7 +140,7 @@
 
 #ifdef SUPERFX
 
-/* opcode types */
+/* instruction types */
 
 /* 0  - plain text */
 /* 1  - * (0-15)   */
@@ -159,7 +159,7 @@
 /* 14 - ? * (0-15) */
 /* 15 - y * (0-15) */
 
-#define OP_SIZE_MAX 16
+#define OP_SIZE_MAX 14
 #define ARCH_STR "SuperFX"
 #define WLA_NAME "superfx"
 
@@ -171,7 +171,7 @@
 
 #ifdef MCS6502
 
-/* opcode types */
+/* instruction types */
 
 /* 0 - plain text  8b */
 /* 1 - x              */
@@ -191,7 +191,7 @@
 
 #ifdef WDC65C02
 
-/* opcode types */
+/* instruction types */
 
 /* 0 - plain text  8b */
 /* 1 - x              */
@@ -212,7 +212,7 @@
 
 #ifdef CSG65CE02
 
-/* opcode types */
+/* instruction types */
 
 /* 0 - plain text  8b */
 /* 1 - x              */
@@ -233,7 +233,7 @@
 
 #ifdef HUC6280
 
-/* opcode types */
+/* instruction types */
 
 /* 0 - plain text  8b */
 /* 1 - x              */
@@ -257,7 +257,7 @@
 
 #ifdef SPC700
 
-/* opcode types */
+/* instruction types */
 
 /* 0 - plain text   */
 /* 1 - x            */
@@ -283,7 +283,7 @@
 
 #ifdef Z80
 
-/* opcode types */
+/* instruction types */
 
 /* 0 - plain text  8b */
 /* 1 - x              */
@@ -297,7 +297,7 @@
 /* 9 - *          16b */
 /* a - * x        24b */
 
-#define OP_SIZE_MAX 20
+#define OP_SIZE_MAX 18
 #define ARCH_STR "Z80"
 #define WLA_NAME "z80"
 
@@ -309,7 +309,7 @@
 
 #ifdef MC6800
 
-/* opcode types */
+/* instruction types */
 
 /* 0 - plain text  8b */
 /* 1 - x              */
@@ -317,7 +317,7 @@
 /* 3 - plain text 16b */
 /* 4 - x (absolute)   */
 
-#define OP_SIZE_MAX 12
+#define OP_SIZE_MAX 11
 #define ARCH_STR "MC6800"
 #define WLA_NAME "6800"
 
@@ -329,7 +329,7 @@
 
 #ifdef MC6801
 
-/* opcode types */
+/* instruction types */
 
 /* 0 - plain text  8b */
 /* 1 - x              */
@@ -337,7 +337,7 @@
 /* 3 - plain text 16b */
 /* 4 - x (absolute)   */
 
-#define OP_SIZE_MAX 12
+#define OP_SIZE_MAX 11
 #define ARCH_STR "MC6801"
 #define WLA_NAME "6801"
 
@@ -349,7 +349,7 @@
 
 #ifdef MC6809
 
-/* opcode types */
+/* instruction types */
 
 /* 0  - plain text  8b */
 /* 1  - x              */
@@ -364,7 +364,7 @@
 /* 10 - exg / tfr */
 /* 11 - pshs / pshu / puls / pulu */
 
-#define OP_SIZE_MAX 16
+#define OP_SIZE_MAX 13
 #define ARCH_STR "MC6809"
 #define WLA_NAME "6809"
 
@@ -376,14 +376,14 @@
 
 #ifdef I8008
 
-/* opcode types */
+/* instruction types */
  
 /* 0 - plain text  8b */
 /* 1 - x              */
 /* 2 - ?              */
 /* 8 - *           8b */
  
-#define OP_SIZE_MAX 12
+#define OP_SIZE_MAX 6
 #define ARCH_STR "I8008"
 #define WLA_NAME "8008"
 
@@ -395,14 +395,14 @@
 
 #ifdef I8080
 
-/* opcode types */
+/* instruction types */
  
 /* 0 - plain text  8b */
 /* 1 - x              */
 /* 2 - ?              */
 /* 8 - *           8b */
  
-#define OP_SIZE_MAX 12
+#define OP_SIZE_MAX 9
 #define ARCH_STR "I8080"
 #define WLA_NAME "8080"
 
@@ -414,7 +414,7 @@
 
 #ifdef W65816
 
-/* opcode types */
+/* instruction types */
 
 /* 0 - plain text  8b */
 /* 1 - x              */
@@ -428,7 +428,7 @@
 /* 9 - relative ?     */
 /* a - x (absolute)   */
 
-#define OP_SIZE_MAX 16
+#define OP_SIZE_MAX 14
 #define ARCH_STR "W65816"
 #define WLA_NAME "65816"
 

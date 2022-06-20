@@ -37,6 +37,10 @@ v10.2 (20-Jun-2022) [ALL] Added SIZE to .RAMSECTION.
                       .ENUM.
                     [ALL] Added NOLABELS to .DSTRUCT.
                     [ALL] Added round(), floor() and ceil().
+                    [Z80] Added "EX HL,DE" (an alias for "EX DE,HL").
+                    [Z80] Added "EX HL,(SP)" (an alias for "EX (SP),HL").
+                    [Z80] Added "EX IX,(SP)" (an alias for "EX (SP),IX").
+                    [Z80] Added "EX IY,(SP)" (an alias for "EX (SP),IY").
                     [658] WDM takes now a byte (i.e., "WDM $12").
                     [651] Removed wla-6510 as wla-6502 can be used for 6510.
                     [650] Added undocumented opcodes to wla-6502.

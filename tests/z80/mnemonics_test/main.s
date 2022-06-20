@@ -28,6 +28,7 @@
         rl (iy+$12),d      ; @BT FD CB 12 12
         rlc (ix+$34), e    ; @BT DD CB 34 03
         .db "<03"          ; @BT END
+
         .ends
 
         .db "04>"          ; @BT TEST-04 04 START
@@ -49,4 +50,21 @@
         sra (iy+$51), b    ; @BT FD CB 51 28
         srl (ix+$32),h     ; @BT DD CB 32 3C
         .db "<07"          ; @BT END
+
+        .db "08>"               ; @BT TEST-08 08 START
+        ex af',af               ; @BT 08
+        ex af',af               ; @BT 08
+        ex de',hl'              ; @BT EB
+        ex de,hl                ; @BT EB
+        ex hl',de'              ; @BT EB
+        ex hl,de                ; @BT EB
+        ex (sp),hl'             ; @BT E3
+        ex (sp),hl              ; @BT E3
+        ex (sp),ix              ; @BT DD E3
+        ex (sp),iy              ; @BT FD E3
+        ex hl',(sp)             ; @BT E3
+        ex hl,(sp)              ; @BT E3
+        ex ix,(sp)              ; @BT DD E3
+        ex iy,(sp)              ; @BT FD E3        
+        .db "<08"               ; @BT END
         

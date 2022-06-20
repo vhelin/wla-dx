@@ -570,10 +570,16 @@ struct instruction g_instructions_table[] = {
   { "EX AF,AF'", 0x8, 0, 0, 0 },
   { "EX DE',HL'", 0xeb, 0, 0, 0 },
   { "EX DE,HL", 0xeb, 0, 0, 0 },
+  { "EX HL',DE'", 0xeb, 0, 0, 0 },
+  { "EX HL,DE", 0xeb, 0, 0, 0 },
   { "EX (SP),HL'", 0xe3, 0, 0, 0 },
   { "EX (SP),HL", 0xe3, 0, 0, 0 },
   { "EX (SP),IX", 0xe3dd, 3, 0, 0 },
   { "EX (SP),IY", 0xe3fd, 3, 0, 0 },
+  { "EX HL',(SP)", 0xe3, 0, 0, 0 },
+  { "EX HL,(SP)", 0xe3, 0, 0, 0 },
+  { "EX IX,(SP)", 0xe3dd, 3, 0, 0 },
+  { "EX IY,(SP)", 0xe3fd, 3, 0, 0 },
 
   { "EXX", 0xd9, 0, 0, 0 },
 
