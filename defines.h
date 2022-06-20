@@ -128,7 +128,7 @@
 /* 8 - *           8b */
 /* 9 - *          16b */
 
-#define OP_SIZE_MAX 15
+#define INSTRUCTION_STRING_LENGTH_MAX 15
 #define ARCH_STR "GB-Z80"
 #define WLA_NAME "gb"
 
@@ -159,7 +159,7 @@
 /* 14 - ? * (0-15) */
 /* 15 - y * (0-15) */
 
-#define OP_SIZE_MAX 14
+#define INSTRUCTION_STRING_LENGTH_MAX 14
 #define ARCH_STR "SuperFX"
 #define WLA_NAME "superfx"
 
@@ -179,7 +179,7 @@
 /* 3 - plain text 16b */
 /* 4 - x (absolute)   */
 
-#define OP_SIZE_MAX 12
+#define INSTRUCTION_STRING_LENGTH_MAX 12
 #define ARCH_STR "6502"
 #define WLA_NAME "6502"
 
@@ -200,7 +200,7 @@
 /* 4 - x (absolute)   */
 /* 5 - x-abs x-rel    */
 
-#define OP_SIZE_MAX 12
+#define INSTRUCTION_STRING_LENGTH_MAX 12
 #define ARCH_STR "WDC65C02"
 #define WLA_NAME "65c02"
 
@@ -221,7 +221,7 @@
 /* 4 - x (absolute)   */
 /* 5 - x-abs x-rel    */
 
-#define OP_SIZE_MAX 12
+#define INSTRUCTION_STRING_LENGTH_MAX 12
 #define ARCH_STR "CSG65CE02"
 #define WLA_NAME "65ce02"
 
@@ -245,7 +245,7 @@
 /* 7 - x (absolute)   */
 /* 8 - x-abs x-rel    */
 
-#define OP_SIZE_MAX 12
+#define INSTRUCTION_STRING_LENGTH_MAX 12
 #define ARCH_STR "HUC6280"
 #define WLA_NAME "huc6280"
 
@@ -271,7 +271,7 @@
 /* d - x ~ x (even) [1, 2] */
 /* f - ? (13-bit) ~ */
 
-#define OP_SIZE_MAX 12
+#define INSTRUCTION_STRING_LENGTH_MAX 12
 #define ARCH_STR "SPC700"
 #define WLA_NAME "spc700"
 
@@ -297,7 +297,7 @@
 /* 9 - *          16b */
 /* a - * x        24b */
 
-#define OP_SIZE_MAX 18
+#define INSTRUCTION_STRING_LENGTH_MAX 18
 #define ARCH_STR "Z80"
 #define WLA_NAME "z80"
 
@@ -317,7 +317,7 @@
 /* 3 - plain text 16b */
 /* 4 - x (absolute)   */
 
-#define OP_SIZE_MAX 11
+#define INSTRUCTION_STRING_LENGTH_MAX 11
 #define ARCH_STR "MC6800"
 #define WLA_NAME "6800"
 
@@ -337,7 +337,7 @@
 /* 3 - plain text 16b */
 /* 4 - x (absolute)   */
 
-#define OP_SIZE_MAX 11
+#define INSTRUCTION_STRING_LENGTH_MAX 11
 #define ARCH_STR "MC6801"
 #define WLA_NAME "6801"
 
@@ -364,7 +364,7 @@
 /* 10 - exg / tfr */
 /* 11 - pshs / pshu / puls / pulu */
 
-#define OP_SIZE_MAX 13
+#define INSTRUCTION_STRING_LENGTH_MAX 13
 #define ARCH_STR "MC6809"
 #define WLA_NAME "6809"
 
@@ -383,7 +383,7 @@
 /* 2 - ?              */
 /* 8 - *           8b */
  
-#define OP_SIZE_MAX 6
+#define INSTRUCTION_STRING_LENGTH_MAX 6
 #define ARCH_STR "I8008"
 #define WLA_NAME "8008"
 
@@ -402,7 +402,7 @@
 /* 2 - ?              */
 /* 8 - *           8b */
  
-#define OP_SIZE_MAX 9
+#define INSTRUCTION_STRING_LENGTH_MAX 9
 #define ARCH_STR "I8080"
 #define WLA_NAME "8080"
 
@@ -428,7 +428,7 @@
 /* 9 - relative ?     */
 /* a - x (absolute)   */
 
-#define OP_SIZE_MAX 14
+#define INSTRUCTION_STRING_LENGTH_MAX 14
 #define ARCH_STR "W65816"
 #define WLA_NAME "65816"
 

@@ -1,7 +1,7 @@
 
 case 0:
 /* plain text 8-bit */
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
     if (g_instruction_tmp->hex > 0xFF)
       output_assembled_instruction(g_instruction_tmp, "d%d d%d ", (g_instruction_tmp->hex >> 8) & 0xFF, g_instruction_tmp->hex & 0xFF);
@@ -18,7 +18,7 @@ break;
 case 5:
 case 1:
 /* 8-bit signed operand, relative address */
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -33,7 +33,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
       return FAILED;
     }
 
-    for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -68,7 +68,7 @@ break;
 
 case 2:
 /* 16-bit operand */
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '?') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -82,7 +82,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
       return FAILED;
     }
 
-    for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -112,7 +112,7 @@ break;
 
 case 3:
 /* plain text 16-bit */
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
     output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
     g_source_pointer = g_inz;
@@ -127,7 +127,7 @@ case 4:
 /* 8-bit unsigned operand, absolute address */
 if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
   break;
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -146,7 +146,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
       return FAILED;
     }
 
-    for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -178,7 +178,7 @@ case 6:
 /* 5-bit signed operand, absolute address + post op byte code */
 if (g_xbit_size >= 8 && g_instruction_tmp->skip_8bit == 1)
   break;
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 's') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -197,7 +197,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (g_parsed_int > 15 || g_parsed_int < -16)
       break;
 
-    for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -223,7 +223,7 @@ case 7:
 /* 8-bit signed operand, relative address + post op byte code */
 if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
   break;
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -242,7 +242,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
       return FAILED;
     }
 
-    for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -276,7 +276,7 @@ break;
 
 case 8:
 /* 16-bit operand + post op byte code */
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '?') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -290,7 +290,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
       return FAILED;
     }
 
-    for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -320,7 +320,7 @@ break;
 
 case 9:
 /* plain text 8-bit + post op byte code */
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
     output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -340,7 +340,7 @@ break;
 
 case 10:
 /* EXG / TFR */
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'r') {
     g_parsed_int = parse_exg_tfr_registers();
     if (g_parsed_int < 0)
@@ -360,7 +360,7 @@ break;
 
 case 11:
 /* PSHS / PSHU / PULS / PULU */
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'r') {
     g_parsed_int = parse_push_pull_registers(g_instruction_tmp->addressing_mode_bits);
     if (g_parsed_int < 0)
@@ -380,7 +380,7 @@ break;
 
 case 12:
 /* 16-bit signed operand, relative address */
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '?') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -394,7 +394,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
       return FAILED;
     }
 
-    for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 

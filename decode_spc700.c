@@ -1,6 +1,6 @@
 
 case 0:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
     output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
     g_source_pointer = g_inz;
@@ -12,7 +12,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 1:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -24,7 +24,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
       break;
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
           
@@ -49,7 +49,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 2:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '?') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -63,7 +63,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
       return FAILED;
     }
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -87,7 +87,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 3:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -107,7 +107,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == INPUT_NUMBER_ADDRESS_LABEL)
       strcpy(labelx, g_label);
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == '~') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
@@ -119,7 +119,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
         if (g_parsed_int > 7 || g_parsed_int < 0)
           break;
 
-        for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
             output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex | (g_parsed_int << 5));
@@ -148,7 +148,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 4:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -168,7 +168,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == INPUT_NUMBER_ADDRESS_LABEL)
       strcpy(labelx, g_label);
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == '~') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
@@ -180,7 +180,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
         if (g_parsed_int > 7 || g_parsed_int < 0)
           break;
 
-        for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
             output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex | (((g_parsed_int << 1) + 1) << 4));
@@ -209,7 +209,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 5:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '~') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -221,7 +221,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (g_parsed_int > 0xF || g_parsed_int < 0)
       break;
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex | (g_parsed_int << 4));
         g_source_pointer = g_inz;
@@ -237,7 +237,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 0xA:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -255,7 +255,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == INPUT_NUMBER_ADDRESS_LABEL)
       strcpy(labelx, g_label);
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 'x') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
@@ -267,7 +267,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
         if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
           break;
 
-        for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               
@@ -305,7 +305,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 0xB:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -325,7 +325,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == INPUT_NUMBER_ADDRESS_LABEL)
       strcpy(labelx, g_label);
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 'x') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
@@ -337,7 +337,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
         if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
           break;
 
-        for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               
@@ -372,7 +372,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 0xC:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -392,7 +392,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == INPUT_NUMBER_ADDRESS_LABEL)
       strcpy(labelx, g_label);
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == '~') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
@@ -405,7 +405,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
           break;
         g = g_parsed_int;
 
-        for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 'x') {
             y = g_source_pointer;
             g_source_pointer = g_inz;
@@ -417,7 +417,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
             if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
               break;
 
-            for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+            for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
               if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
                 output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                 output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex | (g << 5));
@@ -460,7 +460,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 0xD:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -480,7 +480,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == INPUT_NUMBER_ADDRESS_LABEL)
       strcpy(labelx, g_label);
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == '~') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
@@ -493,7 +493,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
           break;
         g = g_parsed_int;
 
-        for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 'x') {
             y = g_source_pointer;
             g_source_pointer = g_inz;
@@ -505,7 +505,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
             if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
               break;
 
-            for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+            for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
               if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
                 output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                 output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex | (((g << 1) + 1) << 4));
@@ -548,7 +548,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 0xE:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -560,7 +560,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
       break;
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
           
@@ -586,7 +586,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 0xF:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '?') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -606,7 +606,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
     if (z == INPUT_NUMBER_ADDRESS_LABEL)
       strcpy(labelx, g_label);
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == '~') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
@@ -618,7 +618,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
         if (g_parsed_int > 7 || g_parsed_int < 0)
           break;
 
-        for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               

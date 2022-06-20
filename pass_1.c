@@ -1169,7 +1169,7 @@ int evaluate_token(void) {
 #if W65816
     if (g_use_wdc_standard == 0) {
       /* skip all mnemonics that contain '<', '|' and '>' */
-      for (g_inz = 0, g_parsed_int = SUCCEEDED; g_inz < OP_SIZE_MAX; g_inz++) {
+      for (g_inz = 0, g_parsed_int = SUCCEEDED; g_inz < INSTRUCTION_STRING_LENGTH_MAX; g_inz++) {
         char c = g_instruction_tmp->op[g_inz];
 
         if (c == 0)
@@ -1189,7 +1189,7 @@ int evaluate_token(void) {
 #endif
     
     /* try to match the first part of the mnemonic, already read into g_tmp */
-    for (g_inz = 0, g_parsed_int = SUCCEEDED; g_inz < OP_SIZE_MAX; g_inz++) {
+    for (g_inz = 0, g_parsed_int = SUCCEEDED; g_inz < INSTRUCTION_STRING_LENGTH_MAX; g_inz++) {
       if (g_tmp[g_inz] == 0)
         break;
       if (g_instruction_tmp->op[g_inz] != toupper((int)g_tmp[g_inz])) {

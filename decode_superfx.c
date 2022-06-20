@@ -1,6 +1,6 @@
 
 case 0:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
     output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
         
@@ -18,13 +18,13 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 1:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -47,7 +47,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 2:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'e') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -63,7 +63,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
       }
     }
 
-    for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -91,13 +91,13 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 3:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 'x') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
@@ -113,7 +113,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
           }
         }
 
-        for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -148,13 +148,13 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 4:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == '?') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
@@ -170,7 +170,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
           }
         }
 
-        for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -201,13 +201,13 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 5:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 'y') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
@@ -227,7 +227,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
           }
         }
 
-        for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -258,19 +258,19 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 6:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == '*') {
         z = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
         if (z < 0)
           return FAILED;
 
-        for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
             if (g_instruction_tmp->hex == 0xB0) {
@@ -300,13 +300,13 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 7:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == '?') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
@@ -322,7 +322,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
           }
         }
 
-        for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -358,13 +358,13 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 8:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == '?') {
         y = g_source_pointer;
         g_source_pointer = g_inz;
@@ -380,7 +380,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
           }
         }
 
-        for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -416,7 +416,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 9:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '?') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -433,13 +433,13 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
       y = g_parsed_int;
     }
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == '*') {
         tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
         if (tiny < 0)
           return FAILED;
 
-        for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -475,19 +475,19 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 10:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == '*') {
         z = parse_tiny_int(0, 11);
         if (z < 0)
           return FAILED;
 
-        for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -513,19 +513,19 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 11:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '*') {
     tiny = parse_tiny_int(0, 11);
     if (tiny < 0)
       return FAILED;
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == '*') {
         z = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
         if (z < 0)
           return FAILED;
 
-        for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -551,19 +551,19 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 12:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '*') {
     tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
     if (tiny < 0)
       return FAILED;
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == '*') {
         z = parse_tiny_int(0, 11);
         if (z < 0)
           return FAILED;
 
-        for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -589,19 +589,19 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 13:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '*') {
     tiny = parse_tiny_int(0, 11);
     if (tiny < 0)
       return FAILED;
 
-    for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == '*') {
         z = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
         if (z < 0)
           return FAILED;
 
-        for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+        for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
             output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -631,7 +631,7 @@ case 14:
   char labelx[MAX_NAME_LENGTH + 1];
   int v, s;
   
-  for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+  for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
     if (g_instruction_tmp->op[x] == '?') {
       y = g_source_pointer;
       g_source_pointer = g_inz;
@@ -652,13 +652,13 @@ case 14:
       strcpy(labelx, g_label);
       s = g_latest_stack;
 
-      for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+      for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         if (g_instruction_tmp->op[x] == '*') {
           tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
           if (tiny < 0)
             return FAILED;
           
-          for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
               output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
@@ -694,7 +694,7 @@ case 15:
   char labelx[MAX_NAME_LENGTH + 1];
   int v, s;
   
-  for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+  for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
     if (g_instruction_tmp->op[x] == 'y') {
       y = g_source_pointer;
       g_source_pointer = g_inz;
@@ -719,13 +719,13 @@ case 15:
       strcpy(labelx, g_label);
       s = g_latest_stack;
       
-      for (x++; x < OP_SIZE_MAX; g_inz++, x++) {
+      for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         if (g_instruction_tmp->op[x] == '*') {
           tiny = parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
           if (tiny < 0)
             return FAILED;
 
-          for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
               output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               

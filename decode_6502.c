@@ -1,6 +1,6 @@
 
 case 0:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
     output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
     g_source_pointer = g_inz;
@@ -13,7 +13,7 @@ break;
 
 case 5:
 case 1:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -28,7 +28,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
       return FAILED;
     }
 
-    for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         if (z == SUCCEEDED)
           output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
@@ -55,7 +55,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 2:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == '?') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -69,7 +69,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
       return FAILED;
     }
 
-    for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         if (z == SUCCEEDED)
           output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
@@ -91,7 +91,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
 break;
 
 case 3:
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
     output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
     g_source_pointer = g_inz;
@@ -105,7 +105,7 @@ break;
 case 4:
 if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
   break;
-for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
+for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
   if (g_instruction_tmp->op[x] == 'x') {
     y = g_source_pointer;
     g_source_pointer = g_inz;
@@ -124,7 +124,7 @@ for ( ; x < OP_SIZE_MAX; g_inz++, x++) {
       return FAILED;
     }
 
-    for (x++ ; x < OP_SIZE_MAX; g_inz++, x++) {
+    for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
       if (g_instruction_tmp->op[x] == 0 && g_buffer[g_inz] == 0x0A) {
         if (z == SUCCEEDED)
           output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
