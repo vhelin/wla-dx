@@ -1450,9 +1450,14 @@ using the keyword ``SIZE``. Also use keyword ``COUNT`` to make things more clear
     .ENDST
 
     .ENUM $A000
-    monsters INSTANCEOF mon SIZE 4 COUNT 8 ; eight instances of structure mon
-    .ENDE                                  ; but each instance is padded to 4 bytes
+    monsters INSTANCEOF mon SIZE 4 COUNT 2 ; two instances of structure mon.
+    .ENDE                                  ; each instance is padded to 4 bytes.
 
+Note that in the previous example we'll also get extra definitions
+
+    _paddingof_monsters.1   (== 1)
+    _paddingof_monsters.2   (== 1)
+    
 This is not a compulsory directive.
 
 
@@ -3459,6 +3464,11 @@ It's possible to explicitly define the size of the ``.STRUCT`` by using keyword
 Normally this ``.STRUCT`` would define four bytes, but by using keyword ``SIZE``
 its size is now eight bytes. The extra padding, put after the last item in the
 ``.STRUCT``, will contain ``.EMPTYFILL`` bytes when used with ``.DSTRUCT``.
+
+Note that if we ``.DSTRUCT`` "PaddedStruct" and name it PS1 we'll also get a
+definition
+
+    _paddingof_PS1   (== 4)
 
 This is not a compulsory directive.
 

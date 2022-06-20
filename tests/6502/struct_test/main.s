@@ -216,6 +216,12 @@ AfterFourBytes4:
 AfterAll:
 
         .dw AfterAll            ; @BT 39 A0
+
+        .db _paddingof_FourBytes1 ; @BT 02
+        .db _paddingof_FourBytes2 ; @BT 04
+        .db _paddingof_FourBytes3 ; @BT 04
+        .db _paddingof_FourBytes4 ; @BT 04
         
         .db "<05"               ; @BT END
-        
+
+        .export _paddingof_FourBytes1, _paddingof_FourBytes2, _paddingof_FourBytes3, _paddingof_FourBytes4

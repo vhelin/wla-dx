@@ -42,7 +42,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.2a (18.6.2022)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.2a (20.6.2022)";
 char g_wla_version[] = "10.2";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -232,10 +232,10 @@ int main(int argc, char *argv[]) {
     printf("-k  Keep empty sections\n");
     printf("-M  Output makefile rules\n");
     printf("-q  Quiet\n");
-    printf("-s  Don't create _sizeof_* definitions\n");
+    printf("-s  Don't create _sizeof_* and _paddingof_* definitions\n");
     printf("-t  Test compile\n");
     printf("-v  Verbose messages\n");
-    printf("-x  Extra compile time labels & definitions\n");
+    printf("-x  Extra compile time labels and definitions\n");
     printf("-I <DIR>  Include directory\n");
     printf("-D <DEF>  Declare definition\n\n");
     printf("OUTPUT:\n");

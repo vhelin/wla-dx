@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.2 (18-Jun-2022) [ALL] Added SIZE to .RAMSECTION.
+v10.2 (20-Jun-2022) [ALL] Added SIZE to .RAMSECTION.
                     [ALL] Added -d to disable WLA's ability to calculate A-B
                       where A and B are labels.
                     [ALL] If SIZE is used with a .SECTION or .RAMSECTION and
@@ -30,6 +30,9 @@ v10.2 (18-Jun-2022) [ALL] Added SIZE to .RAMSECTION.
                       using .IFs.
                     [ALL] Added SIZE to .DSTRUCT and .STRUCT and to INSTANCEOF
                       in .RAMSECTION and .ENUM.
+                    [ALL] If padding is put to a .DSTRUCT or INSTANCEOF in
+                      .RAMSECTION or .ENUM, _paddingof_* definition is created
+                      unless -s is given.
                     [ALL] Added optional COUNT to INSTANCEOF in .RAMSECTION and
                       .ENUM.
                     [ALL] Added NOLABELS to .DSTRUCT.

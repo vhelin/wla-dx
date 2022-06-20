@@ -129,8 +129,33 @@ BANKS 4
         .db _sizeof_objects8    ; @BT 20
         .db _sizeof_objects8.1  ; @BT 10
         .db _sizeof_objects8.2  ; @BT 10
+        .db _paddingof_objects2.1 ; @BT 02
+        .db _paddingof_objects2.2 ; @BT 02
+        .db _paddingof_objects2.3 ; @BT 02
+        .db _paddingof_objects2.4 ; @BT 02
+        .db _paddingof_objectA    ; @BT 06
+        .db _paddingof_objects4.1 ; @BT 06
+        .db _paddingof_objects4.2 ; @BT 06
+        .db _paddingof_objects5.1 ; @BT 02
+        .db _paddingof_objects5.2 ; @BT 02
+        .db _paddingof_objects5.3 ; @BT 02
+        .db _paddingof_objects8.1 ; @BT 0B
+        .db _paddingof_objects8.2 ; @BT 0B
         .db "<01"               ; @BT END
 
+        .export _paddingof_objects2.1
+        .export _paddingof_objects2.2
+        .export _paddingof_objects2.3
+        .export _paddingof_objects2.4
+        .export _paddingof_objectA
+        .export _paddingof_objects4.1
+        .export _paddingof_objects4.2
+        .export _paddingof_objects5.1
+        .export _paddingof_objects5.2
+        .export _paddingof_objects5.3
+        .export _paddingof_objects8.1
+        .export _paddingof_objects8.2
+        
         ;------------------------------------------------------------------------
         ; TEST-02
         ;------------------------------------------------------------------------
@@ -195,7 +220,7 @@ helloG: dw
         objectsX6 instanceof object4 count 2
 helloH: db
         .ende
-
+        
         .db "03>"               ; @BT TEST-03 03 START
         .dw helloA              ; @BT 00 C0
         .dw helloB              ; @BT 01 C0
@@ -257,4 +282,12 @@ helloH: db
         .dw objectsX6.2.varA    ; @BT 4B C0
         .dw objectsX6.2.varB    ; @BT 4C C0
         .dw helloH              ; @BT 50 C0
+        .db _paddingof_objectsX1.1 ; @BT 06
+        .db _paddingof_objectsX1.2 ; @BT 06
+        .db _paddingof_objectsX2.0 ; @BT 06
+        .db _paddingof_objectsX2.1 ; @BT 06
+        .db _paddingof_objectsX4   ; @BT 02
+        .db _paddingof_objectsX5   ; @BT 0B
+        .db _paddingof_objectsX6.1 ; @BT 03
+        .db _paddingof_objectsX6.2 ; @BT 03
         .db "<03"               ; @BT END

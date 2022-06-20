@@ -141,7 +141,7 @@ int g_xbit_size = 0, g_accu_size = 8, g_index_size = 8;
 /* vars used when in an enum, ramsection, or struct. */
 /* some variables named "enum_" are used in enums, ramsections, and structs. */
 static int g_in_enum = NO, g_in_ramsection = NO, g_in_struct = NO, g_macro_id = 0;
-static int g_enum_exp, g_enum_ord;
+static int g_enum_export, g_enum_ord;
 static int g_enum_offset; /* Offset relative to enum start where we're at right now */
 static int g_last_enum_offset;
 static int g_base_enum_offset; /* start address of enum */
@@ -1603,7 +1603,7 @@ int add_label_sizeof(char *label, int size) {
 
   ls = calloc(sizeof(struct label_sizeof), 1);
   if (ls == NULL) {
-    print_error(ERROR_DIR, "Out of memory error while allocating a label sizeof structure.\n");
+    print_error(ERROR_DIR, "Out of memory error while allocating a label_sizeof structure.\n");
     return FAILED;
   }
   
@@ -1636,7 +1636,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
     if (g_in_enum || g_in_struct) {
       if (add_a_new_definition(name, (double)(g_base_enum_offset+g_enum_offset), NULL, DEFINITION_TYPE_VALUE) == FAILED)
         return FAILED;
-      if (g_enum_exp == YES)
+      if (g_enum_export == YES)
         if (export_a_definition(name) == FAILED)
           return FAILED;
     }
@@ -1662,7 +1662,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
         snprintf(tmp, sizeof(tmp), "_sizeof_%s", name);
         if (add_a_new_definition(tmp, (double)size, NULL, DEFINITION_TYPE_VALUE) == FAILED)
           return FAILED;
-        if (g_in_enum == YES && g_enum_exp == YES) {
+        if (g_in_enum == YES && g_enum_export == YES) {
           if (export_a_definition(tmp) == FAILED)
             return FAILED;
         }
@@ -1674,6 +1674,26 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
 
   return SUCCEEDED;
 }
+
+
+static int _add_paddingof_definition(char *name, int padding) {
+
+  char tmp[MAX_NAME_LENGTH+10];
+
+  if (g_create_sizeof_definitions == NO)
+    return SUCCEEDED;
+  
+  snprintf(tmp, sizeof(tmp), "_paddingof_%s", name);
+  if (add_a_new_definition(tmp, (double)padding, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+    return FAILED;
+  if (g_in_enum == YES && g_enum_export == YES) {
+    if (export_a_definition(tmp) == FAILED)
+      return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
 
 /* add all fields from a struct at the current offset in the enum/ramsection.
    this is used to construct enums or ramsections through temporary structs, even if
@@ -1735,6 +1755,11 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
         if (padding > 0) {
           if (g_enum_sizeof_pass == NO)
             fprintf(g_file_out_ptr, "x%d %d ", padding, g_emptyfill);
+          else {
+            if (_add_paddingof_definition(tmp, padding) == FAILED)
+              return FAILED;
+          }
+          
           g_enum_offset += padding;
           g_last_enum_offset += padding;
         }
@@ -1758,6 +1783,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
             snprintf(tmp, sizeof(tmp), "%s.%s.%d", basename, si->name, g);
           else
             snprintf(tmp, sizeof(tmp), "%s.%d", si->name, g);
+
           if (verify_name_length(tmp) == FAILED)
             return FAILED;
           if (add_label_to_enum_or_ramsection(tmp, size) == FAILED)
@@ -1770,6 +1796,11 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
           if (padding > 0) {
             if (g_enum_sizeof_pass == NO)
               fprintf(g_file_out_ptr, "x%d %d ", padding, g_emptyfill);
+            else {
+              if (_add_paddingof_definition(tmp, padding) == FAILED)
+                return FAILED;
+            }
+            
             g_enum_offset += padding;
             g_last_enum_offset += padding;
           }
@@ -4055,6 +4086,11 @@ int directive_dstruct(void) {
     
     if (add_label_sizeof(full_label, size) == FAILED)
       return FAILED;
+    if (supplied_size > 0) {
+      q = supplied_size - s->size;
+      if (_add_paddingof_definition(full_label, q) == FAILED)
+        return FAILED;
+    }
   }
   
   if (compare_next_token("VALUES") == SUCCEEDED) {
@@ -4132,6 +4168,7 @@ int directive_dstruct(void) {
     /* mark end of .DSTRUCT */
     fprintf(g_file_out_ptr, "e%d -2 ", s->size);
 
+    /* generate padding */
     if (supplied_size > 0) {
       q = supplied_size - s->size;
       while (q > 0) {
@@ -4564,7 +4601,7 @@ int directive_struct(void) {
   g_max_enum_offset = 0;
   g_base_enum_offset = 0;
   g_enum_ord = 1;
-  g_enum_exp = 0;
+  g_enum_export = NO;
   g_in_struct = YES;
 
   return SUCCEEDED;
@@ -10218,7 +10255,7 @@ int parse_directive(void) {
       /* ENUM */
       if (strcmp(directive_upper, "ENUM") == 0) {
         if (g_dstruct_status == ON) {
-          print_error(ERROR_DIR, "You can't use start an ENUM inside .DSTRUCT.\n");
+          print_error(ERROR_DIR, "You can't use start an .ENUM inside .DSTRUCT.\n");
           return FAILED;
         }
 
@@ -10250,10 +10287,10 @@ int parse_directive(void) {
         /* do we have "EXPORT" defined? */
         if (compare_next_token("EXPORT") == SUCCEEDED) {
           skip_next_token();
-          g_enum_exp = YES;
+          g_enum_export = YES;
         }
         else
-          g_enum_exp = NO;
+          g_enum_export = NO;
 
         /* setup g_active_struct (enum vars stored here temporarily) */
         g_active_struct = calloc(sizeof(struct structure), 1);
