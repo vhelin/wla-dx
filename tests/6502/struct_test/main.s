@@ -217,6 +217,13 @@ AfterAll:
 
         .dw AfterAll            ; @BT 39 A0
 
+        .dstruct INSTANCEOF ThreeBytes NOLABELS DATA 1, $0302   ; @BT 01 02 03
+        .dstruct INSTANCEOF ThreeBytes NOLABELS SIZE 4 DATA 1, $0302 ; @BT 01 02 03 FF
+        .dstruct INSTANCEOF ThreeBytes SIZE 5 NOLABELS DATA 1, $0302 ; @BT 01 02 03 FF FF
+        .dstruct INSTANCEOF FourBytes NOLABELS DATA 5, 6, $0807 ; @BT 05 06 07 08 FF FF
+        .dstruct INSTANCEOF FourBytes NOLABELS DATA 5, 6, $0807 ; @BT 05 06 07 08 FF FF
+        .dstruct INSTANCEOF FourBytes NOLABELS SIZE 8 DATA 5, 6, $0807 ; @BT 05 06 07 08 FF FF FF FF
+        
         .db _paddingof_FourBytes1 ; @BT 02
         .db _paddingof_FourBytes2 ; @BT 04
         .db _paddingof_FourBytes3 ; @BT 04

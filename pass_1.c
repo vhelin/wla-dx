@@ -3665,7 +3665,7 @@ int directive_name_w65816(void) {
 
 /* this is used for legacy .DSTRUCT syntax, and only for generating labels in the new
  * .DSTRUCT syntax. */
-int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
+int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int generate_labels) {
 
   char tmpname[MAX_NAME_LENGTH*2+10];
   struct structure_item *it;
@@ -3682,12 +3682,15 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
       /* add field label */
       char full_label[MAX_NAME_LENGTH + 1];
 
-      fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
+      if (generate_labels == YES)
+        fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
     
       if (get_full_label(tmpname, full_label) == FAILED)
         return FAILED;
-      if (add_label_sizeof(full_label, it->size) == FAILED)
-        return FAILED;
+      if (generate_labels == YES) {
+        if (add_label_sizeof(full_label, it->size) == FAILED)
+          return FAILED;
+      }
     }
 
     if (it->type == STRUCTURE_ITEM_TYPE_UNION) {
@@ -3708,17 +3711,20 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
             if (verify_name_length(tmpname) == FAILED)
               return FAILED;
 
-            fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
+            if (generate_labels == YES)
+              fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
 
             if (get_full_label(tmpname, full_label) == FAILED)
               return FAILED;
-            if (add_label_sizeof(full_label, us->size) == FAILED)
-              return FAILED;
+            if (generate_labels == YES) {
+              if (add_label_sizeof(full_label, us->size) == FAILED)
+                return FAILED;
+            }
           }
           else
             strcpy(tmpname, iname);
 
-          parse_dstruct_entry(tmpname, us, labels_only);
+          parse_dstruct_entry(tmpname, us, labels_only, generate_labels);
           /* rewind */
           fprintf(g_file_out_ptr, "o%d 0 ", -us->size);
           us = us->next;
@@ -3736,7 +3742,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
         return FAILED;
 
       if (it->num_instances == 1) {
-        if (parse_dstruct_entry(tmpname, it->instance, labels_only) == FAILED)
+        if (parse_dstruct_entry(tmpname, it->instance, labels_only, generate_labels) == FAILED)
           return FAILED;
       }
       else {
@@ -3745,7 +3751,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
         snprintf(tmpname, sizeof(tmpname), "%s.%s", iname, it->name);
       
         /* we have "struct.instance" and "struct.1.instance" referencing the same data. */
-        parse_dstruct_entry(tmpname, it->instance, &labels_only_tmp);
+        parse_dstruct_entry(tmpname, it->instance, &labels_only_tmp, generate_labels);
 
         /* return to start of struct */
         fprintf(g_file_out_ptr, "o%d 0 ", -it->instance->size);
@@ -3760,11 +3766,14 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only) {
           if (verify_name_length(tmpname) == FAILED)
             return FAILED;
 
-          fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
+          if (generate_labels == YES)
+            fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
 
-          if (add_label_sizeof(tmpname, size) == FAILED)
-            return FAILED;
-          if (parse_dstruct_entry(tmpname, it->instance, labels_only) == FAILED)
+          if (generate_labels == YES) {
+            if (add_label_sizeof(tmpname, size) == FAILED)
+              return FAILED;
+          }
+          if (parse_dstruct_entry(tmpname, it->instance, labels_only, generate_labels) == FAILED)
             return FAILED;
         }
       }
@@ -3980,6 +3989,26 @@ int find_struct_field(struct structure *s, char *field_name, int *item_size, int
 }
 
 
+static void _generate_dstruct_padding(struct structure *s, int supplied_size) {
+
+  int size;
+      
+  size = s->size;
+  if (s->defined_size > 0)
+    size = s->defined_size;
+  if (supplied_size > 0)
+    size = supplied_size;
+
+  if (size > s->size) {
+    size = size - s->size;
+    while (size > 0) {
+      fprintf(g_file_out_ptr, "d%d ", g_emptyfill);
+      size--;
+    }
+  }
+}
+
+
 int directive_dstruct(void) {
 
   char iname[MAX_NAME_LENGTH*2+5];
@@ -4157,10 +4186,9 @@ int directive_dstruct(void) {
 
     /* now generate labels */
     if (iname[0] != '\0') {
-      labels_only = YES;
-
       if (generate_labels == YES) {
-        if (parse_dstruct_entry(iname, s, &labels_only) == FAILED)
+        labels_only = YES;
+        if (parse_dstruct_entry(iname, s, &labels_only, YES) == FAILED)
           return FAILED;
       }
     }
@@ -4169,14 +4197,8 @@ int directive_dstruct(void) {
     fprintf(g_file_out_ptr, "e%d -2 ", s->size);
 
     /* generate padding */
-    if (supplied_size > 0) {
-      q = supplied_size - s->size;
-      while (q > 0) {
-        fprintf(g_file_out_ptr, "d%d ", g_emptyfill);
-        q--;
-      }
-    }
-    
+    _generate_dstruct_padding(s, supplied_size);
+
     g_dstruct_status = OFF;
 
     return SUCCEEDED;
@@ -4196,9 +4218,12 @@ int directive_dstruct(void) {
   }
   
   labels_only = NO;
-  if (parse_dstruct_entry(iname, s, &labels_only) == FAILED)
+  if (parse_dstruct_entry(iname, s, &labels_only, generate_labels) == FAILED)
     return FAILED;
-
+  
+  /* generate padding */
+  _generate_dstruct_padding(s, supplied_size);
+  
   if (g_inz == INPUT_NUMBER_EOL)
     next_line();
   else {
