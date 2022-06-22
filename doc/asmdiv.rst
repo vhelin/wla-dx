@@ -1006,7 +1006,7 @@ This is not a compulsory directive.
 ``.DSTRUCT waterdrop INSTANCEOF water VALUES``
 --------------------------------------------------------------
 
-Defines an instance of struct water, called waterdrop, and fills
+Defines an instance of ``.STRUCT`` water, called waterdrop, and fills
 it with the given data. Before calling ``.DSTRUCT`` we must have defined
 the structure, and in this example it could be like::
 
@@ -1016,7 +1016,7 @@ the structure, and in this example it could be like::
         weight dw
     .ENDST
 
-There are two syntaxes for .DSTRUCT; the new and legacy versions. To use
+There are two syntaxes for ``.DSTRUCT``; the new and legacy versions. To use
 the new syntax, put the keyword ``VALUES`` at the end of the first line.
 The old syntax uses the keyword ``DATA`` or none at all.
 
@@ -1031,7 +1031,7 @@ The new syntax looks like this::
 The fields can be put in any order. Any omitted fields are set to the
 ``.EMPTYFILL`` value (``$00`` by default). Any data-defining directive
 can be used within ``.DSTRUCT``, as long as it does not exceed the size of
-the data it is being defined for. The only exception is .DSTRUCT itself,
+the data it is being defined for. The only exception is ``.DSTRUCT`` itself,
 which cannot be nested.
 
 The old syntax looks like this::
@@ -1110,6 +1110,10 @@ If you don't want to generate labels use ``NOLABELS``::
         ...
     .ENDST
   
+Here's another example using the legacy syntax::
+
+    .DSTRUCT INSTANCEOF water SIZE 32 NOLABELS DATA "Ocean", 100, 16384
+
 This is not a compulsory directive.
 
 
