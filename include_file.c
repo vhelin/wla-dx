@@ -313,9 +313,9 @@ int include_file(char *name, int *include_size, char *namespace) {
 
 int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct macro_static **macro) {
 
-  struct incbin_file_data *ifd = NULL;
+  struct incbin_file_data *ifd;
   char *in_tmp, *n;
-  int file_size, q, error_code;
+  int file_size = 0, q, error_code;
   FILE *f = NULL;
 
   error_code = find_file(name, &f);

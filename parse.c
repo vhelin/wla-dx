@@ -300,7 +300,7 @@ static int _input_number_return_definition(struct definition *def) {
 int expand_variables_inside_string(char *label, int max_size, int *length) {
 
   char tmp[MAX_NAME_LENGTH + 1], formatting[8], substitution[MAX_NAME_LENGTH + 1], local[MAX_NAME_LENGTH + 1];
-  int size, i, k, substitutions = 0, max_size_tmp, use_formatting = NO, p, parsed_int, input_size = 0;
+  int size, i, k, substitutions = 0, max_size_tmp, p, parsed_int, input_size = 0;
   int q, size_substitution;
 
   /* quick exit if no curly braces are found */
@@ -335,7 +335,7 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
 
   for (i = 0, k = 0; i < size && k < max_size_tmp; i++) {
     if (local[i] == '{') {
-      use_formatting = NO;
+      int use_formatting = NO;
       
       i++;
       

@@ -359,8 +359,8 @@ static size_t _etoa(out_fct_type out, char* buffer, size_t idx, size_t maxlen, d
 static size_t _ftoa(out_fct_type out, char* buffer, size_t idx, size_t maxlen, double value, unsigned int prec, unsigned int width, unsigned int flags)
 {
   char buf[PRINTF_FTOA_BUFFER_SIZE];
-  size_t len  = 0U;
-  double diff = 0.0;
+  size_t len = 0U;
+  double diff;
   int negative;
   int whole;
   double tmp;

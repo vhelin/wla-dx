@@ -10902,7 +10902,7 @@ int parse_directive(void) {
       g_romsize_defined = 1;
 
       return SUCCEEDED;
-    }    
+    }
 
     /* ROMGBC */
     if (strcmp(directive_upper, "ROMGBC") == 0) {

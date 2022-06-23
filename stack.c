@@ -1464,7 +1464,6 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
 
 static int _process_string(struct stack_item *s, int *cannot_resolve) {
 
-  int try_resolve_string = NO;
   struct macro_argument *ma;
   int a, b, k;
   char c;
@@ -1507,7 +1506,8 @@ static int _process_string(struct stack_item *s, int *cannot_resolve) {
       s->value = g_macro_runtime_current->macro->calls - 1;
     }
     else {
-      try_resolve_string = NO;
+      int try_resolve_string = NO;
+      
       for (a = 0, b = 0; s->string[a + 1] != 0 && a < 10; a++) {
         c = s->string[a + 1];
         if (c < '0' || c > '9') {
