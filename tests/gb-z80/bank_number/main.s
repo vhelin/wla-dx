@@ -11,9 +11,10 @@ SLOT 2 $c000
 .ENDME
 
 .ROMBANKSIZE $4000
-.ROMBANKS 2
-
-.emptyfill $00
+.ROMBANKS 4
+.ROMSIZE
+        
+.emptyfill $ee
 
 .ORGA $150
 
@@ -26,3 +27,9 @@ Start:
         .db $00 + :(Start + $4000)
         .db "<01"
 
+        .org $0148-3
+        .db "02>"
+        .org $0148+1
+        .db "<02"
+        
+        

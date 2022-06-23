@@ -16,6 +16,8 @@ BANKSIZE $6000
 BANKS 1
 .ENDRO
 
+.EMPTYFILL $ff
+        
 .BANK 0 SLOT 0
 .ORGA 0
 
@@ -219,4 +221,12 @@ test13f:.db 1                   ; @BT 01
         .dw @childA + 1 - test13f ; @BT 02 00
         .db "<13"               ; @BT END
         .ends
+        
+
+        .org $0148-3
+        .db "14>"               ; @BT TEST-14 14 START
+        //.db $ff               ; @BT FF
+        .org $0148+1
+        .db "<14"               ; @BT END
+
         
