@@ -3,6 +3,8 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
+v10.3 (24-Jun-2022) 
+
 v10.2 (24-Jun-2022) [ALL] Added SIZE to .RAMSECTION.
                     [ALL] Added -d to disable WLA's ability to calculate A-B
                       where A and B are labels.
@@ -1383,6 +1385,8 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
+
+v5.18 (24-Jun-2022) 
 
 v5.17 (24-Jun-2022) Added SIZE to [sections] and [ramsections].
                     Added -R (file paths inside link file are relative to
