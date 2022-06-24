@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.2 (20-Jun-2022) [ALL] Added SIZE to .RAMSECTION.
+v10.2 (24-Jun-2022) [ALL] Added SIZE to .RAMSECTION.
                     [ALL] Added -d to disable WLA's ability to calculate A-B
                       where A and B are labels.
                     [ALL] If SIZE is used with a .SECTION or .RAMSECTION and
@@ -1384,7 +1384,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.17 (05-Jun-2022) Added SIZE to [sections] and [ramsections].
+v5.17 (24-Jun-2022) Added SIZE to [sections] and [ramsections].
                     Added -R (file paths inside link file are relative to
                       linkfile's location).
                     WLALINK's summary is now printed to stdout instead of
@@ -1407,7 +1407,7 @@ v5.17 (05-Jun-2022) Added SIZE to [sections] and [ramsections].
                     We now skip the generated RAM_USAGE_SLOT_* labels when
                       trying to automatically find load address for a CBMPRG.
 
-v5.16 (19-Feb-2021) Added support for WINDOW and BITWINDOW in .SECTION and
+v5.16 (19-Feb-2022) Added support for WINDOW and BITWINDOW in .SECTION and
                       .RAMSECTION.
                     Fixed multiple memory leaks. Should now work better
                       on an Amiga.

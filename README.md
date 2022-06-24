@@ -20,7 +20,7 @@ memory map (that should be shared across all object and library files).
 Supported architectures are:
 
 * Z80
-* GB (Z80-GB)
+* GB (GB-Z80)
 * 6502
 * 65C02
 * 65CE02
