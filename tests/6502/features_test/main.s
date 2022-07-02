@@ -219,3 +219,23 @@ this_is_a_long_label:
         .dw __label__           ; @BT 03 80
         .dw __label__ + $2000   ; @BT 03 A0
         .db "<19"               ; @BT END
+
+        .db "20>"               ; @BT TEST-20 20 START
+        .hex "aabbcc"           ; @BT AA BB CC
+        .hex "aa" "bb" "cc"     ; @BT AA BB CC
+        .hex "aa", "bb", "cc"   ; @BT AA BB CC
+        .hex 012233 AABB        ; @BT 01 22 33 AA BB
+        .hex 11 22 33 AA BB     ; @BT 11 22 33 AA BB
+        .hex 0b00 0B11          ; @BT 0B 00 0B 11
+        .hex block
+             01 02 03 04 05 06  ; @BT 01 02 03 04 05 06
+             07 08 09 0A 0B 0C  ; @BT 07 08 09 0A 0B 0C
+        .endhex
+        .define HEXES "A0A1A2A3"
+        .hex block
+             11 12 13 14 15 16  ; @BT 11 12 13 14 15 16
+             17 18 19 1A 1B 1C  ; @BT 17 18 19 1A 1B 1C
+             HEXES              ; @BT A0 A1 A2 A3
+        .endhex
+        .db "<20"               ; @BT END
+        

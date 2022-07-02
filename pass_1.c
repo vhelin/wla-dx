@@ -121,7 +121,7 @@ extern int g_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_be
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
 extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
 extern int g_create_sizeof_definitions, g_input_allow_leading_hashtag, g_input_has_leading_hashtag, g_input_allow_leading_ampersand;
-extern int g_plus_and_minus_ends_label, g_get_next_token_use_substitution;
+extern int g_plus_and_minus_ends_label, g_get_next_token_use_substitution, g_input_number_turn_values_into_strings;
 extern FILE *g_file_out_ptr;
 extern double g_parsed_double;
 extern char *g_final_name, g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -1518,7 +1518,8 @@ void print_error(int type, char *error, ...) {
     break;
   }
 
-  fprintf(stderr, "%s:%d: ", get_file_name(g_active_file_info_last->filename_id), g_active_file_info_last->line_current);
+  if (g_active_file_info_last != NULL)
+    fprintf(stderr, "%s:%d: ", get_file_name(g_active_file_info_last->filename_id), g_active_file_info_last->line_current);
 
   if (t != NULL) {
     fputs(t, stderr);
@@ -3073,10 +3074,43 @@ static int _char_to_hex(char e) {
 
 int directive_hex(void) {
 
-  int i, o, nybble_1 = 0, nybble_2 = 0, error, number_result;
+  int i, o, nybble_1 = 0, nybble_2 = 0, error, number_result, is_block = NO, is_done = NO;
+
+  if (compare_next_token("BLOCK") == SUCCEEDED) {
+    skip_next_token();
+    is_block = YES;
+  }
+
+  /* make sure input_number() returns things like 01 as strings, not as numbers */
+  g_input_number_turn_values_into_strings = YES;
 
   number_result = input_number();
-  for (i = 0; number_result == INPUT_NUMBER_STRING; i++) {
+
+  for (i = 0; is_done == NO; i++) {
+    if (is_block == NO) {
+      if (number_result == INPUT_NUMBER_EOL)
+        break;
+    }
+    else {
+      while (number_result == INPUT_NUMBER_EOL) {
+        next_line();
+        number_result = input_number();
+      }
+    }
+
+    if (number_result == FAILED)
+      return FAILED;
+    if (number_result != INPUT_NUMBER_STRING && number_result != INPUT_NUMBER_ADDRESS_LABEL) {
+      print_error(ERROR_INP, ".HEX needs data in string format.\n");
+      return FAILED;
+    }
+
+    if (is_block == YES) {
+      if (strcaselesscmp(g_label, ".ENDHEX") == 0)
+        break;
+    }
+
+    g_string_size = (int)strlen(g_label);
     if ((g_string_size & 1) == 1) {
       print_error(ERROR_INP, "The string length for .HEX must be a multiple of 2.\n");
       return FAILED;
@@ -3118,11 +3152,9 @@ int directive_hex(void) {
 
   if (number_result == INPUT_NUMBER_EOL)
     next_line();
-  else {
-    print_error(ERROR_INP, ".HEX takes only strings.\n");
-    return FAILED;
-  }
 
+  g_input_number_turn_values_into_strings = NO;
+  
   return SUCCEEDED;
 }
 

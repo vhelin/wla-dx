@@ -19,6 +19,7 @@ int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OF
 int g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO, g_input_parse_special_chars = YES;
 int g_input_allow_leading_ampersand = NO, g_plus_and_minus_ends_label = NO, g_get_next_token_use_substitution = YES;
 int g_newline_beginning = ON, g_parsed_double_decimal_numbers = 0, g_operand_hint, g_operand_hint_type;
+int g_input_number_turn_values_into_strings = NO;
 char g_label[MAX_NAME_LENGTH + 1];
 char g_unevaluated_expression[256];
 char g_expanded_macro_string[MAX_NAME_LENGTH + 1];
@@ -468,6 +469,32 @@ int expand_variables_inside_string(char *label, int max_size, int *length) {
 }
 
 
+static int _parse_value_into_string(char e) {
+
+  int k;
+        
+  /* override! */
+  g_label[0] = e;
+
+  for (k = 1; k < MAX_NAME_LENGTH; k++, g_source_pointer++) {
+    e = g_buffer[g_source_pointer];
+    g_label[k] = e;
+    if (e >= '0' && e <= '9')
+      continue;
+    else if (e >= 'a' && e <= 'z')
+      continue;
+    else if (e >= 'A' && e <= 'Z')
+      continue;
+    break;
+  }
+
+  g_label[k] = 0;
+  g_string_size = k;
+        
+  return INPUT_NUMBER_STRING;
+}
+
+
 int input_number(void) {
 
   char label_tmp[MAX_NAME_LENGTH + 1];
@@ -810,6 +837,9 @@ int input_number(void) {
   }
 
   if (e == '%' || (e == '0' && (g_buffer[g_source_pointer] == 'b' || g_buffer[g_source_pointer] == 'B'))) {
+    if (e == '0' && g_input_number_turn_values_into_strings == YES)
+      return _parse_value_into_string(e);
+        
     if (e == '0')
       g_source_pointer++;
     for (g_parsed_int = 0, k = 0; k < 32; k++, g_source_pointer++) {
@@ -858,6 +888,9 @@ int input_number(void) {
   
   if (e >= '0' && e <= '9') {
     int max_digits = 10;
+
+    if (g_input_number_turn_values_into_strings == YES)
+      return _parse_value_into_string(e);
     
     /* we are parsing decimals when q == 1 */
     q = 0;

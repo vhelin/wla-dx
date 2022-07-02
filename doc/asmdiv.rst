@@ -1725,6 +1725,14 @@ using ``.DB`` ::
 
     .DB $a0, $A0, $ff, $DE
 
+``.HEX`` can also be used in the following ways::
+
+    .HEX 01 AA 02 BB 03 CC    ; -> .DB $01, $AA, $02, $BB, $03, $CC
+    .HEX BLOCK
+         01 02 03 04 05 06    ; -> .DB $01, $02, $03, $04, $05, $06
+         07 08 09 0A 0B 0C    ; -> .DB $07, $08, $09, $0A, $0B, $0C
+    .ENDHEX
+    
 This is not a compulsory directive.
 
 
