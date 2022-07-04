@@ -42,7 +42,8 @@ cheat_codes:
 .ends
 
 .org $200
-
+address_0x0200: 
+        
 ; @BT result.rom
 
 .section "TEST01" force
@@ -80,3 +81,20 @@ label_2:
     tset1 !cheat_codes                              ; @BT 0E 01 00
     .db "<03"                                       ; @BT END
 .ends
+
+.section "TEST04" force
+        .db "04>"                   ; @BT TEST-04 04 START
+        jmp !address_0x0200         ; @BT 5F 00 02
+        jmp [!address_0x0200+x]     ; @BT 1F 00 02
+        .db "<04"                   ; @BT END
+.ends
+        
+        .section "TEST05" force
+        .db "05>"               ; @BT TEST-05 05 START
+        .db "Test\\"            ; @BT 54 65 73 74 5C
+        .db "\\'"               ; @BT 5C 27
+        .db "\\"                ; @BT 5C
+        .db "T\\\"\\T"          ; @BT 54 5C 22 5C 54
+        .db "<05"               ; @BT END
+        .ends
+        

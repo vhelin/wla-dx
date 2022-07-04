@@ -3,7 +3,8 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.3 (02-Jul-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
+v10.3 (04-Jul-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
+                    [ALL] "\\" should now work inside strings.
 
 v10.2 (24-Jun-2022) [ALL] Added SIZE to .RAMSECTION.
                     [ALL] Added -d to disable WLA's ability to calculate A-B

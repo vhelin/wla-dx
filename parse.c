@@ -1033,7 +1033,14 @@ int input_number(void) {
     for (k = 0; k < MAX_NAME_LENGTH; ) {
       e = g_buffer[g_source_pointer++];
 
-      if (e == '\\' && g_buffer[g_source_pointer] == '"') {
+      if (e == '\\' && g_buffer[g_source_pointer] == '\\') {
+        /* let process_string_for_special_characters() handle '\\' */
+        g_label[k++] = '\\';
+        g_label[k++] = '\\';
+        g_source_pointer++;
+        continue;
+      }
+      else if (e == '\\' && g_buffer[g_source_pointer] == '"') {
         g_label[k++] = '"';
         g_source_pointer++;
         continue;
@@ -1872,8 +1879,13 @@ int process_string_for_special_characters(char *label, int *string_size) {
     size = *string_size;
   
   for (read = 0, write = 0; read < size; ) {
+    /* handle '\\' */
+    if (label[read] == '\\' && label[read + 1] == '\\') {
+      label[write++] = '\\';
+      read += 2;
+    }    
     /* handle '\0' */
-    if (label[read] == '\\' && label[read + 1] == '0') {
+    else if (label[read] == '\\' && label[read + 1] == '0') {
       label[write++] = 0;
       read += 2;
     }
