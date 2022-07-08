@@ -30,9 +30,7 @@ int g_latest_stack = 0, g_stacks_inside = 0, g_stacks_outside = 0, g_stack_id = 
 struct stack *g_stacks_first = NULL, *g_stacks_tmp = NULL, *g_stacks_last = NULL;
 struct stack *g_stacks_header_first = NULL, *g_stacks_header_last = NULL;
 
-#ifndef GB
 extern int g_stack_inserted;
-#endif
 
 static int g_is_calculating_deltas = NO, g_delta_counter = 0, g_delta_section = -1, g_delta_address = -1, g_delta_old_type = 0;
 static struct stack_item *g_delta_old_pointer;
@@ -55,10 +53,7 @@ static int _stack_insert(void) {
       g_stacks_last = g_stacks_tmp;
     }
     g_stacks_outside++;
-
-#ifndef GB
     g_stack_inserted = STACK_OUTSIDE;
-#endif
   }
   /* inside a bankheader section */
   else {
@@ -71,10 +66,7 @@ static int _stack_insert(void) {
       g_stacks_header_last = g_stacks_tmp;
     }
     g_stacks_inside++;
-
-#ifndef GB
     g_stack_inserted = STACK_INSIDE;
-#endif
   }
 
   g_stacks_tmp->id = g_stack_id;

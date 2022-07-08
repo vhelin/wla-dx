@@ -23,6 +23,8 @@
 .BANK 0 SLOT 0
 .ORG $150
 
+; @BT linked.gb
+        
 .SECTION "Beginning [NO]" FORCE
 
 ; Try making local labels before any parent labels are available. Labels should
@@ -164,3 +166,17 @@ _anotherGlobalFunc:
         
 _globalFunc:
 	ret
+
+
+        .include "namespaced.i" namespace "namespaced"
+        
+
+        .db "02>"                              ; @BT TEST-02 02 START
+
+        ld [namespaced.namespacedLabel],A      ; @BT EA 00 04
+        ld [namespaced.namespacedLabel+1],A    ; @BT EA 01 04
+        
+        ld [namespaced.namespacedRAMVariable1],A          ; @BT EA 00 A0
+        ld [namespaced.namespacedRAMVariable1+1],A        ; @BT EA 01 A0
+
+        .db "<02"                              ; @BT END

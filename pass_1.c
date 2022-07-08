@@ -66,11 +66,9 @@ int g_dstruct_status = OFF;
 int g_saved_structures_count = 0, g_saved_structures_max = 0;
 unsigned char g_asciitable[256];
 
-#ifndef GB
 extern struct stack *g_stacks_header_first, *g_stacks_header_last;
 extern int g_stacks_inside, g_stacks_outside;
 int g_stack_inserted;
-#endif
 
 #if defined(W65816)
 char g_snesid[4];
@@ -1208,10 +1206,8 @@ int evaluate_token(void) {
     x = g_inz;
     g_inz = g_source_pointer;
 
-#ifndef GB
     /* no stack rollback */
     g_stack_inserted = STACK_NONE;
-#endif
 
     switch (g_instruction_tmp->type) {
 
@@ -1260,10 +1256,8 @@ int evaluate_token(void) {
       
     }
 
-#ifndef GB
     /* perform stack rollback? */
     if (g_stack_inserted != STACK_NONE) {
-
       struct stack *s;
 
       if (g_stack_inserted == STACK_OUTSIDE) {
@@ -1305,7 +1299,6 @@ int evaluate_token(void) {
         }
       }
     }
-#endif
 
     g_instruction_tmp = &g_instructions_table[++g_ind];
   }
@@ -11626,8 +11619,6 @@ int find_next_point(char *name) {
 }
 
 
-#ifndef GB
-
 void delete_stack(struct stack *s) {
 
   if (s == NULL) {
@@ -11638,8 +11629,6 @@ void delete_stack(struct stack *s) {
   free(s->stack);
   free(s);
 }
-
-#endif
 
 
 int is_reserved_definition(char *t) {

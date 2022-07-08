@@ -254,7 +254,7 @@ static int _add_namespace_to_stack_references(struct stack *st, char *name_space
     if (st->stack[j].type == STACK_ITEM_TYPE_LABEL) {
       if (is_label_anonymous(st->stack[j].string) == YES)
         continue;
-      
+
       if (_add_namespace_to_reference(st->stack[j].string, name_space, sizeof(st->stack[j].string)) == FAILED)
         return FAILED;
     }
