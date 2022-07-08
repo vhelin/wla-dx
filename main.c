@@ -10,17 +10,8 @@
 #include <string.h>
 #include <time.h>
 
-#ifdef UNIX
-#include <unistd.h>
-#elif defined(WIN32)
-/* Windows.h can't be included since it relies on compiler extensions */
-typedef unsigned long DWORD;
-DWORD __stdcall GetCurrentProcessId(void);
-#endif
-
 #include "main.h"
 #include "defines.h"
-
 #include "parse.h"
 #include "include_file.h"
 #include "pass_1.h"
@@ -766,30 +757,19 @@ void procedures_at_exit(void) {
 int generate_tmp_name(char *filename) {
 
   static int running_id = 0;
-  char name[32]; /* should be enough */
-  int status;
-  int pid;
+  char name[32];
 
-#if defined(UNIX)
-  char header[] = ".wla";
-  
-  pid = (int)getpid();
-#elif defined(WIN32)
-  char header[] = ".wla";
+  while (1) {
+    FILE *f;
+    
+    snprintf(name, sizeof(name)-1, "wla_tmp_%d.tmp", running_id);
+    running_id++;
 
-  pid = GetCurrentProcessId();
-#else /* for Amiga, MSDOS... */
-  char header[] = "wla";
+    f = fopen(name, "rb");
+    if (f == NULL)
+      break;
 
-  pid = 0;
-#endif
-
-  status = snprintf(name, sizeof(name)-1, "%s%da%d", header, pid, running_id) + 1;
-  running_id++;
-  if (status >= (int)sizeof(name)) {
-    fprintf(stderr, "MAIN: Temp filename exceeded limit: %d >= %d! "
-            "Aborting...\n", status, (int)sizeof(name));
-    abort();
+    fclose(f);
   }
 
   /* copy the filename out */
