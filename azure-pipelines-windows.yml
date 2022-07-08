@@ -32,7 +32,7 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
-- bash: ./run_tests.sh -windows
+- bash: ./run_tests.sh -windows-x86
   workingDirectory: '$(Build.SourcesDirectory)'
   displayName: 'Run Tests'
 

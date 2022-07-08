@@ -22,8 +22,10 @@ runTest() {
 }
 
 if [ $# -eq 1 ]; then
-    if [ "$1" = "-windows" ]; then
+    if [ "$1" = "-windows-x86" ]; then
         export PATH=$PATH:$PWD/windows/Release
+    elif [ "$1" = "-windows-x64" ]; then
+        export PATH=$PATH:$PWD/windows/x64/Release
     else
 	export PATH=$PATH:$PWD/binaries:$PWD/build/binaries
     fi
