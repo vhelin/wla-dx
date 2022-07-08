@@ -7,7 +7,7 @@ trigger:
 - master
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'windows-2019'
 
 variables:
   solution: '**/*.sln'
@@ -15,8 +15,6 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- script: choco install windows-sdk-10.0 --version=10.0.17134.0
-
 - task: NuGetToolInstaller@1
 
 - task: NuGetCommand@2
