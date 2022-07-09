@@ -98,3 +98,41 @@ label_2:
         .db "<05"               ; @BT END
         .ends
         
+
+        .org $10
+
+        .STRUCT HELPERVARIABLES
+        N0  DB
+        N1  DB
+        N2  DB
+        N3  DB
+        .ENDST
+
+        .dstruct helpervariable INSTANCEOF HELPERVARIABLES DATA 0, 1, 2, 3
+
+        .define ONE 1
+        
+        .db "06>"                ; @BT TEST-06 06 START
+        mov 1, a                 ; @BT C4 01
+        MOV helpervariable, A    ; @BT C4 10
+        MOV helpervariable.N0, A ; @BT C4 10
+        .db helpervariable       ; @BT 10
+        .db helpervariable.N0    ; @BT 10
+        .db helpervariable.N1    ; @BT 11
+        .db helpervariable.N2    ; @BT 12
+        .db helpervariable.N3    ; @BT 13
+        MOV helpervariable, X    ; @BT D8 10
+        MOV helpervariable.N0, X ; @BT D8 10
+        .db helpervariable.N0+1  ; @BT 11
+        .db helpervariable.N1+1  ; @BT 12
+        .db helpervariable.N2+1  ; @BT 13
+        .db helpervariable.N3+1  ; @BT 14
+        MOV1 1.1,C               ; @BT CA 01 20
+        MOV1 helpervariable.1,C  ; @BT CA 10 20
+        MOV1 helpervariable.N1.1,C ; @BT CA 11 20
+        MOV1 helpervariable.N1.ONE,C ; @BT CA 11 20
+        .db "<06"                ; @BT END
+        
+        
+
+        

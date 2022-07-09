@@ -25,6 +25,10 @@ char g_unevaluated_expression[256];
 char g_expanded_macro_string[MAX_NAME_LENGTH + 1];
 double g_parsed_double;
 
+#ifdef SPC700
+int g_input_number_expects_dot = NO;
+#endif
+
 extern int g_source_pointer, g_source_file_size, g_parsed_int, g_macro_active, g_sizeof_g_tmp;
 extern char *g_buffer, *g_tmp, g_current_directive[256], *g_label_stack[256];
 extern unsigned char g_asciitable[256];
@@ -1163,7 +1167,7 @@ int input_number(void) {
       break;
     }
 #ifdef SPC700
-    else if (e == '.')
+    else if (e == '.' && g_input_number_expects_dot == YES)
       dot = k;
 #endif
     else if (e == ' ' && curly_braces <= 0)

@@ -86,6 +86,10 @@ char g_name[32];
 int g_name_defined = 0;
 #endif
 
+#ifdef SPC700
+extern int g_input_number_expects_dot;
+#endif
+
 int g_sizeof_g_tmp = 4096, g_global_listfile_items = 0, *g_global_listfile_ints = NULL;
 char *g_tmp = NULL, *g_global_listfile_cmds = NULL;
 char *g_label_stack[256];
@@ -696,6 +700,11 @@ int pass_1(void) {
     
     q = evaluate_token();
 
+#ifdef SPC700
+    /* instruction parser might set this to YES, inside evaluate_token() */
+    g_input_number_expects_dot = NO;
+#endif
+    
     if (q == SUCCEEDED)
       continue;
     else if (q == EVALUATE_TOKEN_EOP)
@@ -1091,6 +1100,24 @@ int parse_tiny_int(int min, int max) {
 #endif
 
 
+#ifdef SPC700
+
+static int _has_instruction_a_dot(char *instruction) {
+
+  int i = 0;
+  
+  while (instruction[i] != 0) {
+    if (instruction[i] == '.')
+      return YES;
+    i++;
+  }
+
+  return NO;
+}
+
+#endif
+
+
 int evaluate_token(void) {
 
   int f, z, x, y;
@@ -1209,6 +1236,15 @@ int evaluate_token(void) {
     /* no stack rollback */
     g_stack_inserted = STACK_NONE;
 
+#ifdef SPC700
+    /* does the instruction contain a dot? */
+    /* NOTE: as instruction decoders call return, we'll need to set this variable later back to NO */
+    if (_has_instruction_a_dot(g_instruction_tmp->string))
+      g_input_number_expects_dot = YES;
+    else
+      g_input_number_expects_dot = NO;
+#endif
+    
     switch (g_instruction_tmp->type) {
 
 #ifdef GB
