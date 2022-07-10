@@ -467,6 +467,9 @@ struct instruction {
 #if defined(MC6809)
   unsigned char addressing_mode_bits;
 #endif
+#if defined(SPC700)
+  unsigned char has_dot;
+#endif
 };
 
 #endif
