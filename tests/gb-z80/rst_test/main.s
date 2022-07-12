@@ -52,19 +52,21 @@ label_30:
 label_38:
 .ends
 
+; @BT linked.rom
+
 .section "Section-RSTs" FORCE
-.db "01>"
-	RST 0
-	RST label_00
-	RST label_08+8
-	RST 8+label_10
-	RST label_28+$10
-.db "<01"
+.db "01>"            ; @BT TEST-01 01 START
+	RST 0            ; @BT C7
+	RST label_00     ; @BT C7
+	RST label_08+8   ; @BT D7
+	RST 8+label_10   ; @BT DF
+	RST label_28+$10 ; @BT FF
+.db "<01"            ; @BT END
 .ends
 
         ; .ROMSIZE test
         .org $0148-3
-        .db "02>"
-        .org $0148+1
-        .db "<02"
+        .db "02>"       ; @BT TEST-02 02 START
+        .org $0148+1    ; @BT 11
+        .db "<02"       ; @BT END
         
