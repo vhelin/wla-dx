@@ -4,6 +4,15 @@
       namespacedRAMVariable2:  db
       .ends
 
+      .macro callMeSub
+      .db $22
+      .endm
+      
+      .macro callMe
+      callMeSub
+      .db $11
+      .endm
+      
       .org $400
 
 ; @BT linked.gb
@@ -22,5 +31,7 @@ namespacedLabel:
       ld [namespacedRAMVariable1],A          ; @BT EA 00 A0
       ld [namespacedRAMVariable1+1],A        ; @BT EA 01 A0
 
+      callMe                                 ; @BT 22 11
+      
       .db "<01"                              ; @BT END
       

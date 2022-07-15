@@ -179,4 +179,6 @@ _globalFunc:
         ld [namespaced.namespacedRAMVariable1],A          ; @BT EA 00 A0
         ld [namespaced.namespacedRAMVariable1+1],A        ; @BT EA 01 A0
 
+        namespaced.callMe                      ; @BT 22 11
+        
         .db "<02"                              ; @BT END

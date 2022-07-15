@@ -216,6 +216,29 @@ char *string_duplicate(char *p) {
 }
 
 
+static int _add_namespace_to_string(char *s, int sizeof_s, char *type, char *namespace) {
+
+  char buf[MAX_NAME_LENGTH + 1];
+    
+  snprintf(buf, sizeof(buf), "%s.%s", namespace, s);
+  buf[sizeof(buf)-1] = 0;
+  if (strlen(buf) >= (size_t)sizeof_s) {
+    print_error(ERROR_ERR, "The current file namespace \"%s\" cannot be added to %s's \"%s\" name - increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", namespace, type, s);
+    return FAILED;
+  }
+
+  strcpy(s, buf);
+
+  return SUCCEEDED;
+}
+
+
+int add_namespace_to_string(char *s, int sizeof_s, char *type) {
+
+  return _add_namespace_to_string(s, sizeof_s, type, g_active_file_info_last->namespace);
+}
+
+
 static int _get_slot_number_by_its_name(char *slot_name, int *number) {
 
   int i;
@@ -278,10 +301,45 @@ int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
   strcpy(fullname, name);
 
   /* append the namespace, if this file uses if */
-  if (add_namespace == YES && g_active_file_info_last->namespace[0] != 0) {
-    if (add_namespace_to_string(fullname, sizeof(fullname), "MACRO") == FAILED) {
-      *macro_out = NULL;
-      return FAILED;
+  if (add_namespace == YES) {
+    if (g_active_file_info_last->namespace[0] != 0) {
+      if (add_namespace_to_string(fullname, sizeof(fullname), "MACRO") == FAILED) {
+        *macro_out = NULL;
+        return FAILED;
+      }
+    }
+    else {
+      /* namespace isn't defined, but are we inside a .MACRO that's been namespaced? */
+      if (g_macro_active > 0) {
+        struct macro_runtime *rt;
+        struct macro_static *st;
+        int dot = -1, i = 0;
+    
+        rt = &g_macro_stack[g_macro_active - 1];
+        st = rt->macro;
+
+        while (st->name[i] != 0) {
+          if (st->name[i] == '.') {
+            dot = i;
+            break;
+          }
+          i++;
+        }
+
+        if (dot >= 0) {
+          /* yes! try to use the .MACRO's namespace */
+          char namespace[MAX_NAME_LENGTH + 1];
+
+          for (i = 0; i < dot; i++)
+            namespace[i] = st->name[i];
+          namespace[i] = 0;
+        
+          if (_add_namespace_to_string(fullname, sizeof(fullname), "MACRO", namespace) == FAILED) {
+            *macro_out = NULL;
+            return FAILED;
+          }
+        }
+      }
     }
   }
 
@@ -11905,23 +11963,6 @@ int get_full_label(char *l, char *out) {
 
     strncat(out, &l[level-1], MAX_NAME_LENGTH);
   }
-
-  return SUCCEEDED;
-}
-
-
-int add_namespace_to_string(char *s, int sizeof_s, char *type) {
-
-  char buf[MAX_NAME_LENGTH + 1];
-    
-  snprintf(buf, sizeof(buf), "%s.%s", g_active_file_info_last->namespace, s);
-  buf[sizeof(buf)-1] = 0;
-  if (strlen(buf) >= (size_t)sizeof_s) {
-    print_error(ERROR_ERR, "The current file namespace \"%s\" cannot be added to %s's \"%s\" name - increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_active_file_info_last->namespace, type, s);
-    return FAILED;
-  }
-
-  strcpy(s, buf);
 
   return SUCCEEDED;
 }
