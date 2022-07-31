@@ -1212,7 +1212,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   /* we have a stack full of computation and we save it for wlalink */
   g_stacks_tmp = calloc(sizeof(struct stack), 1);
   if (g_stacks_tmp == NULL) {
-    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
     return FAILED;
   }
   g_stacks_tmp->next = NULL;
@@ -1223,7 +1223,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   g_stacks_tmp->stack = calloc(sizeof(struct stack_item) * d, 1);
   if (g_stacks_tmp->stack == NULL) {
     free(g_stacks_tmp);
-    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
     return FAILED;
   }
 
@@ -1688,8 +1688,8 @@ static int _comparing_a_string_with_a_number(char *sp1, char *sp2, struct stack 
 static double _round(double d) {
 
   int i = (int)d;
-
   double delta = d - (double)i;
+
   if (delta < 0.0) {
     if (delta <= -0.5)
       return (double)(i - 1);

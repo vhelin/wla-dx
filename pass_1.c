@@ -768,6 +768,8 @@ int pass_1(void) {
     else if (q == EVALUATE_TOKEN_EOP)
       return SUCCEEDED;
     else if (q == EVALUATE_TOKEN_NOT_IDENTIFIED) {
+      int got_opening_parenthesis = NO;
+        
       /* check if it is of the form "LABEL:XYZ" */
       for (q = 0; q < g_ss; q++) {
         if (g_tmp[q] == ':')
@@ -859,8 +861,18 @@ int pass_1(void) {
       mrt->argument_data = NULL;
       mrt->incbin_data = NULL;
 
+      /* skip '(' */
+      if (compare_and_skip_next_symbol('(') == SUCCEEDED)
+        got_opening_parenthesis = YES;
+
       /* collect macro arguments */
       for (p = 0; 1; p++) {
+        if (got_opening_parenthesis == YES) {
+          /* skip ')' */
+          if (compare_and_skip_next_symbol(')') == SUCCEEDED) {
+          }
+        }
+        
         /* take away the white space */
         while (1) {
           if (g_buffer[g_source_pointer] == ' ' || g_buffer[g_source_pointer] == ',')
@@ -8113,11 +8125,54 @@ int directive_sdsctag(void) {
 #endif
 
 
+static int _parse_macro_argument_names(struct macro_static *m, int *count, int inside_parentheses) {
+
+  while (1) {
+    int string_result;
+
+    if (inside_parentheses == YES) {
+      if (compare_and_skip_next_symbol(')') == SUCCEEDED)
+        break;
+    }
+    
+    string_result = input_next_string();
+
+    if (string_result == FAILED)
+      return FAILED;
+    if (string_result == INPUT_NUMBER_EOL) {
+      if (*count != 0) {
+        next_line();
+        break;
+      }
+      print_error(ERROR_DIR, "MACRO \"%s\" is missing argument names?\n", m->name);
+      return FAILED;
+    }
+    
+    (*count)++;
+
+    /* store the label */
+    m->argument_names = realloc(m->argument_names, sizeof(char *)*(*count));
+    if (m->argument_names == NULL) {
+      print_error(ERROR_NONE, "Out of memory error.\n");
+      return FAILED;
+    }
+    m->argument_names[*count-1] = calloc(strlen(g_label)+1, 1);
+    if (m->argument_names[*count-1] == NULL) {
+      print_error(ERROR_NONE, "Out of memory error.\n");
+      return FAILED;
+    }
+
+    strcpy(m->argument_names[*count-1], g_label);
+  }
+
+  return SUCCEEDED;
+}
+
+
 int directive_macro(void) {
 
   struct macro_static *m;
-  int macro_start_line;
-  int q;
+  int macro_start_line, q = 0;
 
   if (g_dstruct_status == ON) {
     print_error(ERROR_DIR, "You can't define a macro inside .DSTRUCT.\n");
@@ -8172,6 +8227,14 @@ int directive_macro(void) {
   m->isolated_unnamed = NO;
   m->id = g_macro_id++;
 
+  /* skip '(' if it exists */
+  if (compare_and_skip_next_symbol('(') == SUCCEEDED) {
+    if (compare_and_skip_next_symbol(')') == FAILED) {
+      if (_parse_macro_argument_names(m, &q, YES) == FAILED)
+        return FAILED;
+    }
+  }
+  
   while (1) {
     int got_some = NO;
     
@@ -8202,39 +8265,12 @@ int directive_macro(void) {
   }
 
   /* is ARGS defined? */
-  q = 0;
   if (compare_next_token("ARGS") == SUCCEEDED) {
     skip_next_token();
 
-    while (1) {
-      int string_result = input_next_string();
-
-      if (string_result == FAILED)
-        return FAILED;
-      if (string_result == INPUT_NUMBER_EOL) {
-        if (q != 0) {
-          next_line();
-          break;
-        }
-        print_error(ERROR_DIR, "MACRO \"%s\" is missing argument names?\n", m->name);
-        return FAILED;
-      }
-      q++;
-
-      /* store the label */
-      m->argument_names = realloc(m->argument_names, sizeof(char *)*q);
-      if (m->argument_names == NULL) {
-        print_error(ERROR_NONE, "Out of memory error.\n");
-        return FAILED;
-      }
-      m->argument_names[q-1] = calloc(strlen(g_label)+1, 1);
-      if (m->argument_names[q-1] == NULL) {
-        print_error(ERROR_NONE, "Out of memory error.\n");
-        return FAILED;
-      }
-
-      strcpy(m->argument_names[q-1], g_label);
-    }
+    q = 0;
+    if (_parse_macro_argument_names(m, &q, NO) == FAILED)
+      return FAILED;
   }
 
   m->nargument_names = q;

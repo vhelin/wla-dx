@@ -200,6 +200,10 @@ int input_next_string(void) {
       g_source_pointer--;
       break;
     }
+    else if (e == '(' || e == ')') {
+      g_source_pointer--;
+      break;
+    }
     else if (curly_braces <= 0 && e == ' ')
       break;
     g_label[k] = e;
@@ -1208,6 +1212,11 @@ int input_number(void) {
 
       return SUCCEEDED;
     }
+
+    if (e == '(') {
+      g_source_pointer--;
+      break;
+    }
   }
 
   if (k == MAX_NAME_LENGTH) {
@@ -1512,6 +1521,8 @@ int get_next_token(void) {
           break;
         if (e == ' ')
           break;
+        if (e == '(')
+          break;
       }
       g_tmp[g_ss] = e;
       g_ss++;
@@ -1539,6 +1550,23 @@ int get_next_token(void) {
   }
   
   return SUCCEEDED;
+}
+
+
+int compare_and_skip_next_symbol(char symbol) {
+
+  int pos = g_source_pointer;
+  
+  while (g_buffer[pos] == ' ')
+    pos++;
+
+  if (g_buffer[pos] == symbol) {
+    pos++;
+    g_source_pointer = pos;
+    return SUCCEEDED;
+  }
+
+  return FAILED;
 }
 
 
@@ -2014,26 +2042,40 @@ int parse_function_asc(char *in, int *result, int *parsed_chars) {
 
 int parse_function_defined(char *in, int *result, int *parsed_chars) {
 
-  char name[MAX_NAME_LENGTH+1];
+  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
   struct definition *d;
-  int i;
 
-  for (i = 0; i < MAX_NAME_LENGTH && *in != ')' && *in != 0xA && *in != 0; i++, in++) {
-    name[i] = *in;
-    (*parsed_chars)++;
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_pointer for input_number() */
+
+  g_source_pointer = (int)(in - g_buffer);
+  source_pointer_backup = g_source_pointer;
+
+  g_expect_calculations = NO;
+  res = get_next_plain_string();
+  g_expect_calculations = old_expect;
+
+  if (res != SUCCEEDED) {
+    print_error(ERROR_NUM, "defined() requires a definition name string.\n");
+    return FAILED;
   }
-  name[i] = 0;
-
-  if (*in != ')') {
+  
+  if (g_buffer[g_source_pointer] != ')') {
     print_error(ERROR_NUM, "Malformed \"defined(?)\" detected!\n");
     return FAILED;
   }
 
   /* skip ')' */
-  (*parsed_chars)++;
+  g_source_pointer++;
+
+  /* count the parsed chars */
+  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+
+  /* return g_source_pointer */
+  g_source_pointer = source_pointer_original;
 
   /* try to find the definition */
-  hashmap_get(g_defines_map, name, (void*)&d);
+  hashmap_get(g_defines_map, g_label, (void*)&d);
 
   if (d != NULL)
     *result = 1;

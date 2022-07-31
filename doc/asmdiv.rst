@@ -2206,6 +2206,13 @@ And here's how they can be used::
     QUEEN 123
     LOAD_ABCD_2 $10, $20, $30, XYZ, "merman.bin"
 
+Note that arguments can be optionally wrapped inside parentheses::
+
+    NOPMONSTER()
+    LOAD_ABCD($10, $20, $30, XYZ, "merman.bin")
+    QUEEN(123)
+    LOAD_ABCD_2($10, $20, $30, XYZ, "merman.bin")
+    
 Note that you must separate the arguments with commas.
 
 Note that the following works as well::
@@ -2333,6 +2340,12 @@ unique and D points to C and B points to A.
 To enable only local label isolation use the keyword ``ISOLATELOCAL`` instead of
 ``ISOLATED`` and to enable only the isolation of un-named labels use the keyword
 ``ISOLATEUNNAMED``.
+
+Note that there is an alternative way of defining a ``.MACRO``::
+
+    .macro DBSUMOFTWOVALUES(v1,v2) isolated
+    .db v1+v2
+    .endm
 
 This is not a compulsory directive.
 

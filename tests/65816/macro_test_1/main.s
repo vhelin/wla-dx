@@ -295,7 +295,7 @@ __      .db 1
 
         .db "19>"               ; @BT TEST-19 19 START
 __      .db 0                   ; @BT 00
-        LOCALREFERENCE5         ; @BT 01 04 A4
+        LOCALREFERENCE5()       ; @BT 01 04 A4
         .dw _b                  ; @BT 04 A4
         .db "<19"               ; @BT END
 
