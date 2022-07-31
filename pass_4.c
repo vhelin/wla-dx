@@ -2027,10 +2027,21 @@ int write_object_file(void) {
 
   /* pending calculations */
   ov = g_stacks_outside + g_stacks_inside;
+  g_stacks_tmp = g_stacks_first;
+  while (g_stacks_tmp != NULL) {
+    if (g_stacks_tmp->is_function_body == YES)
+      ov--;
+    g_stacks_tmp = g_stacks_tmp->next;
+  }
   WRITEOUT_OV;
 
   g_stacks_tmp = g_stacks_first;
   while (g_stacks_tmp != NULL) {
+    if (g_stacks_tmp->is_function_body == YES) {
+      g_stacks_tmp = g_stacks_tmp->next;
+      continue;
+    }
+
     ov = g_stacks_tmp->id;
     WRITEOUT_OV;
 
@@ -2370,10 +2381,21 @@ int write_library_file(void) {
 
   /* pending calculations */
   ov = g_stacks_outside;
+  g_stacks_tmp = g_stacks_first;
+  while (g_stacks_tmp != NULL) {
+    if (g_stacks_tmp->is_function_body == YES)
+      ov--;
+    g_stacks_tmp = g_stacks_tmp->next;
+  }
   WRITEOUT_OV;
 
   g_stacks_tmp = g_stacks_first;
   while (g_stacks_tmp != NULL) {
+    if (g_stacks_tmp->is_function_body == YES) {
+      g_stacks_tmp = g_stacks_tmp->next;
+      continue;
+    }
+
     ov = g_stacks_tmp->id;
     WRITEOUT_OV;
 

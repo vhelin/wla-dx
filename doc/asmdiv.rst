@@ -152,6 +152,7 @@ ALL  ``.FREAD FP_DATABIN DATA``
 ALL  ``.FSEEK FP_DATABIN 10 START``
 ALL  ``.FSIZE FP_DATABIN SIZE``
 ALL  ``.FTELL FP_DATABIN POSITION``
+ALL  ``.FUNCTION SUM_AB(varA,varB)``
 ALL  ``.HEX "a0A0ffDE"``
 ALL  ``.IF DEBUG == 2``
 ALL  ``.IFDEF IF``
@@ -1691,6 +1692,23 @@ is an ordinary definition label, so you can ``.UNDEFINE`` it.
 This is not a compulsory directive.
 
 
+``.FUNCTION SUM_AB(varA,varB)``
+-------------------------------
+
+Creates a function called ``SUM_AB``. Here are some examples::
+
+    .FUNCTION SUM_AB(varA, varB) (varA + varB)
+    .FUNCTION SUB_A_6(varA) varA+6
+    .FUNCTION SUM_ABC(varA, varB, varC) (SUM_AB(varA. varB) + varC)
+    .FUNCTION CONSTANT_1() 1
+
+``.FUNCTION`` can be used anywhere values are expected::
+
+    LDA SUM_AB(1, 2)
+    
+This is not a compulsory directive.
+
+
 ``.GBHEADER``
 -------------
 
@@ -2206,6 +2224,13 @@ And here's how they can be used::
     QUEEN 123
     LOAD_ABCD_2 $10, $20, $30, XYZ, "merman.bin"
 
+Note that arguments can be optionally wrapped inside parentheses::
+
+    NOPMONSTER()
+    LOAD_ABCD($10, $20, $30, XYZ, "merman.bin")
+    QUEEN(123)
+    LOAD_ABCD_2($10, $20, $30, XYZ, "merman.bin")
+    
 Note that you must separate the arguments with commas.
 
 Note that the following works as well::
@@ -2333,6 +2358,12 @@ unique and D points to C and B points to A.
 To enable only local label isolation use the keyword ``ISOLATELOCAL`` instead of
 ``ISOLATED`` and to enable only the isolation of un-named labels use the keyword
 ``ISOLATEUNNAMED``.
+
+Note that there is an alternative way of defining a ``.MACRO``::
+
+    .macro DBSUMOFTWOVALUES(v1,v2) isolated
+    .db v1+v2
+    .endm
 
 This is not a compulsory directive.
 

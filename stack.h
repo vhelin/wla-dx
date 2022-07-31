@@ -9,6 +9,7 @@ int stack_create_label_stack(char *label);
 int stack_create_stack_stack(int stack_id);
 int resolve_stack(struct stack_item s[], int stack_item_count);
 int compute_stack(struct stack *sta, int stack_item_count, double *result);
+int calculation_stack_insert(void);
 
 /* TODO: move these to their own file */
 int data_stream_parser_free(void);

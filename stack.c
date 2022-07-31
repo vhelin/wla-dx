@@ -23,10 +23,12 @@ extern struct map_t *g_defines_map;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct macro_runtime *g_macro_runtime_current;
 extern struct section_def *g_sec_tmp;
+extern struct function *g_functions_first;
 extern double g_parsed_double;
 extern int g_operand_hint, g_operand_hint_type, g_can_calculate_a_minus_b;
 
-int g_latest_stack = 0, g_stacks_inside = 0, g_stacks_outside = 0, g_stack_id = 0;
+int g_latest_stack = 0, g_stacks_inside = 0, g_stacks_outside = 0, g_stack_id = 0, g_resolve_stack_calculations = YES;
+int g_parsing_function_body = NO;
 struct stack *g_stacks_first = NULL, *g_stacks_tmp = NULL, *g_stacks_last = NULL;
 struct stack *g_stacks_header_first = NULL, *g_stacks_header_last = NULL;
 
@@ -40,7 +42,7 @@ static int s_dsp_file_name_id = 0, s_dsp_line_number = 0;
 static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 
 
-static int _stack_insert(void) {
+int calculation_stack_insert(void) {
 
   /* outside bankheader sections */
   if (g_bankheader_status == OFF) {
@@ -763,9 +765,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
             max_digits = MAX_FLOAT_DIGITS+1;
           }
           else {
-            if (g_input_number_error_msg == YES) {
+            if (g_input_number_error_msg == YES)
               print_error(ERROR_NUM, "Got '%c' (%d) when expected [0-9].\n", e, e);
-            }
             return FAILED;
           }
         }
@@ -942,6 +943,75 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_already_processed_function = YES;
           break;
         }
+
+	if (e == '(') {
+	  /* are we calling a user created function? */
+	  int found_function = NO, res, parsed_chars = 0;
+	  
+	  si[q].string[k] = 0;
+
+	  res = parse_function(in, si[q].string, &found_function, &parsed_chars);
+	  if (found_function == NO) {
+	    print_error(ERROR_NUM, "Could not find function \"%s\".\n", si[q].string);
+	    return FAILED;
+	  }
+
+	  if (res == FAILED)
+	    return FAILED;
+	  else if (res == SUCCEEDED) {
+	    si[q].type = STACK_ITEM_TYPE_VALUE;
+	    si[q].value = g_parsed_double;
+	    si[q].sign = SI_SIGN_POSITIVE;
+	  }
+	  else if (res == INPUT_NUMBER_STACK) {
+            if (g_parsing_function_body == YES) {
+              int item;
+
+              g_stacks_tmp = g_stacks_first;
+              while (g_stacks_tmp != NULL) {
+                if (g_stacks_tmp->id == g_latest_stack)
+                  break;
+                g_stacks_tmp = g_stacks_tmp->next;
+              }
+
+              si[q].type = STACK_ITEM_TYPE_OPERATOR;
+              si[q].value = SI_OP_LEFT;
+              q++;
+
+              /* unroll the calculation stack here */
+              for (item = 0; q < MAX_STACK_CALCULATOR_ITEMS && item < g_stacks_tmp->stacksize; item++) {
+                si[q].type = g_stacks_tmp->stack[item].type;
+                si[q].sign = g_stacks_tmp->stack[item].sign;
+                si[q].value = g_stacks_tmp->stack[item].value;
+                if (si[q].type == STACK_ITEM_TYPE_LABEL)
+                  strcpy(si[q].string, g_stacks_tmp->stack[item].string);
+                q++;
+              }
+              
+              if (q >= MAX_STACK_CALCULATOR_ITEMS-1) {
+                print_error(ERROR_STC, "Out of stack space. Adjust MAX_STACK_CALCULATOR_ITEMS in defines.h and recompile WLA!\n");
+                return FAILED;
+              }
+
+              si[q].type = STACK_ITEM_TYPE_OPERATOR;
+              si[q].value = SI_OP_RIGHT;
+            }
+            else {
+              si[q].type = STACK_ITEM_TYPE_STACK;
+              si[q].value = g_latest_stack;
+              si[q].sign = SI_SIGN_POSITIVE;
+            }
+	  }
+	  else {
+	    print_error(ERROR_NUM, "Function \"%s\" didn't return a stack calculation or a value.\n", si[q].string);
+	    return FAILED;
+	  }
+
+          in += parsed_chars;
+          is_already_processed_function = YES;	  
+
+	  break;
+	}
       }
 
       if (is_already_processed_function == YES) {
@@ -960,7 +1030,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[q].value = d;
         si[q].sign = SI_SIGN_POSITIVE;
       }
-      
+
       q++;
     }
   }
@@ -975,10 +1045,33 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     g_operand_hint = HINT_16BIT;
     g_operand_hint_type = HINT_TYPE_GIVEN;
   }
-  
+
   /* only one item found -> let the item parser handle it */
-  if (q == 1 && from_substitutor == NO)
+  if (q == 1 && from_substitutor == NO) {
+    if (si[0].type == STACK_ITEM_TYPE_VALUE) {
+      /* update the source pointer */
+      *bytes_parsed += (int)(in - in_original) - 1;
+
+      g_parsed_double = si[0].value;
+
+      if (g_input_float_mode == ON)
+	return INPUT_NUMBER_FLOAT;
+
+      *value = (int)si[0].value;
+
+      return SUCCEEDED;
+    }
+    else if (si[0].type == STACK_ITEM_TYPE_STACK) {
+      /* update the source pointer */
+      *bytes_parsed += (int)(in - in_original) - 1;
+
+      g_latest_stack = si[0].value;
+
+      return INPUT_NUMBER_STACK;
+    }
+
     return STACK_CALCULATE_DELAY;
+  }
 
   /* check if there was data before the computation */
   if (q > 1 && (si[0].type == STACK_ITEM_TYPE_LABEL || si[0].type == STACK_ITEM_TYPE_VALUE)) {
@@ -1013,7 +1106,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
   /* update the source pointer */
   *bytes_parsed += (int)(in - in_original) - 1;
-
+  
   /* fix the sign in every operand */
   for (b = 1, k = 0; k < q; k++) {
     if (g_input_parse_if == NO) {
@@ -1125,6 +1218,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       ta[d].sign = si[k].sign;
       d++;
     }
+    else if (si[k].type == STACK_ITEM_TYPE_STACK) {
+      ta[d].type = si[k].type;
+      ta[d].value = si[k].value;
+      ta[d].sign = si[k].sign;
+      d++;
+    }
     /* operators get inspected */
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR) {
       if (b == 0) {
@@ -1172,7 +1271,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   }
 
   /* are all the symbols known? */
-  if (resolve_stack(ta, d) == SUCCEEDED) {
+  if (g_resolve_stack_calculations == YES && resolve_stack(ta, d) == SUCCEEDED) {
     struct stack s;
 
     s.stack = ta;
@@ -1212,7 +1311,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   /* we have a stack full of computation and we save it for wlalink */
   g_stacks_tmp = calloc(sizeof(struct stack), 1);
   if (g_stacks_tmp == NULL) {
-    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
     return FAILED;
   }
   g_stacks_tmp->next = NULL;
@@ -1223,7 +1322,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   g_stacks_tmp->stack = calloc(sizeof(struct stack_item) * d, 1);
   if (g_stacks_tmp->stack == NULL) {
     free(g_stacks_tmp);
-    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
     return FAILED;
   }
 
@@ -1232,6 +1331,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   g_stacks_tmp->special_id = 0;
   g_stacks_tmp->bits_position = 0;
   g_stacks_tmp->bits_to_define = 0;
+  g_stacks_tmp->is_function_body = NO;
 
   /* all stacks will be definition stacks by default. pass_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
@@ -1272,7 +1372,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   _debug_print_stack(g_stacks_tmp->linenumber, g_stack_id, g_stacks_tmp->stack, d, 0);
 #endif
 
-  _stack_insert();
+  calculation_stack_insert();
 
   return INPUT_NUMBER_STACK;
 }
@@ -1688,8 +1788,8 @@ static int _comparing_a_string_with_a_number(char *sp1, char *sp2, struct stack 
 static double _round(double d) {
 
   int i = (int)d;
-
   double delta = d - (double)i;
+
   if (delta < 0.0) {
     if (delta <= -0.5)
       return (double)(i - 1);
@@ -2079,7 +2179,8 @@ int stack_create_label_stack(char *label) {
   g_stacks_tmp->special_id = 0;
   g_stacks_tmp->bits_position = 0;
   g_stacks_tmp->bits_to_define = 0;
-  
+  g_stacks_tmp->is_function_body = NO;
+    
   /* all stacks will be definition stacks by default. pass_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
   g_stacks_tmp->position = STACK_POSITION_DEFINITION;
@@ -2092,7 +2193,7 @@ int stack_create_label_stack(char *label) {
   _debug_print_stack(g_stacks_tmp->linenumber, g_stack_id, g_stacks_tmp->stack, 1, 1);
 #endif
   
-  _stack_insert();
+  calculation_stack_insert();
 
   return SUCCEEDED;
 }
@@ -2123,6 +2224,7 @@ int stack_create_stack_stack(int stack_id) {
   g_stacks_tmp->special_id = 0;
   g_stacks_tmp->bits_position = 0;
   g_stacks_tmp->bits_to_define = 0;
+  g_stacks_tmp->is_function_body = NO;
   
   /* all stacks will be definition stacks by default. pass_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
@@ -2136,7 +2238,7 @@ int stack_create_stack_stack(int stack_id) {
   _debug_print_stack(g_stacks_tmp->linenumber, stack_id, g_stacks_tmp->stack, 1, 2);
 #endif
 
-  _stack_insert();
+  calculation_stack_insert();
     
   return SUCCEEDED;
 }

@@ -210,4 +210,30 @@ label_\2:
 
         .db "20>"       ; @BT TEST-20 20 START
         floor_0 &FIVE   ; @BT 05 07 01 04
+        floor_0(&FIVE)  ; @BT 05 07 01 04
         .db "<20"       ; @BT END
+
+//////////////////////////////////////////////////////////////////////
+// test 7
+//////////////////////////////////////////////////////////////////////
+
+        .macro addThreeValues( v1, v2, v3 )
+        .db v1+v2+v3
+        .endm
+
+	.macro addFourValues(v1,v2,v3,v4) isolatelocal
+	.db v1+v2+v3+v4
+	.endm
+
+	.macro oneMacro()
+	.db 1
+	.endm
+
+        .db "21>"                   ; @BT TEST-21 21 START
+        addThreeValues(3,4,5)       ; @BT 0C
+        addThreeValues(1+2,2+2,2+3) ; @BT 0C
+	addFourValues(0,1,2,3)	    ; @BT 06
+	addFourValues(0,-1,1-1,0)   ; @BT FF
+	oneMacro()		    ; @BT 01
+        .db "<21"                   ; @BT END
+        

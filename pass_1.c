@@ -67,7 +67,7 @@ int g_saved_structures_count = 0, g_saved_structures_max = 0;
 unsigned char g_asciitable[256];
 
 extern struct stack *g_stacks_header_first, *g_stacks_header_last;
-extern int g_stacks_inside, g_stacks_outside;
+extern int g_stacks_inside, g_stacks_outside, g_resolve_stack_calculations;
 int g_stack_inserted;
 
 #if defined(W65816)
@@ -116,6 +116,7 @@ struct block_name *g_block_names = NULL;
 struct stringmaptable *g_stringmaptables = NULL;
 struct array *g_arrays_first = NULL;
 struct string *g_fopen_filenames_first = NULL, *g_fopen_filenames_last = NULL;
+struct function *g_functions_first = NULL, *g_functions_last = NULL;
 
 extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name;
 extern int g_source_file_size, g_input_number_error_msg, g_verbose_mode, g_output_format, g_open_files, g_input_parse_if;
@@ -132,7 +133,7 @@ extern struct active_file_info *g_active_file_info_first, *g_active_file_info_la
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern struct stack *g_stacks_first, *g_stacks_tmp, *g_stacks_last;
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
-extern int g_makefile_rules;
+extern int g_makefile_rules, g_parsing_function_body;
 
 static int g_macro_stack_size = 0, g_repeat_stack_size = 0;
 
@@ -768,6 +769,8 @@ int pass_1(void) {
     else if (q == EVALUATE_TOKEN_EOP)
       return SUCCEEDED;
     else if (q == EVALUATE_TOKEN_NOT_IDENTIFIED) {
+      int got_opening_parenthesis = NO;
+	
       /* check if it is of the form "LABEL:XYZ" */
       for (q = 0; q < g_ss; q++) {
         if (g_tmp[q] == ':')
@@ -859,8 +862,18 @@ int pass_1(void) {
       mrt->argument_data = NULL;
       mrt->incbin_data = NULL;
 
+      /* skip '(' */
+      if (compare_and_skip_next_symbol('(') == SUCCEEDED)
+	got_opening_parenthesis = YES;
+
       /* collect macro arguments */
       for (p = 0; 1; p++) {
+	if (got_opening_parenthesis == YES) {
+	  /* skip ')' */
+	  if (compare_and_skip_next_symbol(')') == SUCCEEDED) {
+	  }
+	}
+	
         /* take away the white space */
         while (1) {
           if (g_buffer[g_source_pointer] == ' ' || g_buffer[g_source_pointer] == ',')
@@ -7444,6 +7457,94 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
 }
 
 
+int directive_function(void) {
+  
+  char name[MAX_NAME_LENGTH+1];
+  struct function *f;
+  int res;
+
+  if (get_next_plain_string() == FAILED)
+    return FAILED;
+
+  strcpy(name, g_label);
+  
+  f = calloc(sizeof(struct function), 1);
+  if (f == NULL) {
+    print_error(ERROR_DIR, "Out of memory while allocating a new function.\n");
+    return FAILED;
+  }
+
+  strcpy(f->name, name);
+  f->filename_id = g_active_file_info_last->filename_id;
+  f->line_number = g_active_file_info_last->line_current;
+  f->nargument_names = 0;
+  f->stack = NULL;
+  f->next = NULL;
+
+  if (g_functions_first == NULL) {
+    g_functions_first = f;
+    g_functions_last = f;
+  }
+  else {
+    g_functions_last->next = f;
+    g_functions_last = f;
+  }
+
+  if (compare_and_skip_next_symbol('(') == FAILED) {
+    print_error(ERROR_DIR, "Opening parenthesis is missing from function \"%s\".\n", name);
+    return FAILED;
+  }
+  
+  while (1) {
+    if (compare_and_skip_next_symbol(')') == SUCCEEDED)
+      break;
+
+    res = input_next_string();
+    if (res == INPUT_NUMBER_EOL)
+      next_line();
+    else if (res == FAILED)
+      return FAILED;
+
+    f->argument_names[f->nargument_names] = calloc((int)strlen(g_label) + 1, 1);
+    if (f->argument_names[f->nargument_names] == NULL) {
+      print_error(ERROR_DIR, "Out of memory while allocating a new function.\n");
+      return FAILED;
+    }
+    strcpy(f->argument_names[f->nargument_names], g_label);
+    f->nargument_names++;
+  }
+
+  /* parse the function's body */
+  g_resolve_stack_calculations = NO;
+  g_parsing_function_body = YES;
+  res = input_number();
+  g_parsing_function_body = NO;
+  g_resolve_stack_calculations = YES;
+
+  /* it should either be a value or a calculation stack */
+  if (res == SUCCEEDED) {
+    f->type = res;
+    f->value = (int)g_parsed_double;
+  }
+  else if (res == INPUT_NUMBER_STACK) {
+    f->type = res;
+    f->value = g_latest_stack;
+    f->stack = g_stacks_tmp;
+
+    /* mark the calculation stack as function body so we don't export it in pass_4.c */
+    f->stack->is_function_body = YES;
+  }
+  else if (res == FAILED)
+    return FAILED;
+  else {
+    print_error(ERROR_DIR, "The function doesn't have a working body. It should either be a value or a calculation.\n");
+    return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
 int directive_define_def_equ(void) {
   
   int j, export, q;
@@ -8113,11 +8214,54 @@ int directive_sdsctag(void) {
 #endif
 
 
+static int _parse_macro_argument_names(struct macro_static *m, int *count, int inside_parentheses) {
+
+  while (1) {
+    int string_result;
+
+    if (inside_parentheses == YES) {
+      if (compare_and_skip_next_symbol(')') == SUCCEEDED)
+	break;
+    }
+    
+    string_result = input_next_string();
+
+    if (string_result == FAILED)
+      return FAILED;
+    if (string_result == INPUT_NUMBER_EOL) {
+      if (*count != 0) {
+	next_line();
+	break;
+      }
+      print_error(ERROR_DIR, "MACRO \"%s\" is missing argument names?\n", m->name);
+      return FAILED;
+    }
+    
+    (*count)++;
+
+    /* store the label */
+    m->argument_names = realloc(m->argument_names, sizeof(char *)*(*count));
+    if (m->argument_names == NULL) {
+      print_error(ERROR_NONE, "Out of memory error.\n");
+      return FAILED;
+    }
+    m->argument_names[*count-1] = calloc(strlen(g_label)+1, 1);
+    if (m->argument_names[*count-1] == NULL) {
+      print_error(ERROR_NONE, "Out of memory error.\n");
+      return FAILED;
+    }
+
+    strcpy(m->argument_names[*count-1], g_label);
+  }
+
+  return SUCCEEDED;
+}
+
+
 int directive_macro(void) {
 
   struct macro_static *m;
-  int macro_start_line;
-  int q;
+  int macro_start_line, q = 0;
 
   if (g_dstruct_status == ON) {
     print_error(ERROR_DIR, "You can't define a macro inside .DSTRUCT.\n");
@@ -8172,6 +8316,14 @@ int directive_macro(void) {
   m->isolated_unnamed = NO;
   m->id = g_macro_id++;
 
+  /* skip '(' if it exists */
+  if (compare_and_skip_next_symbol('(') == SUCCEEDED) {
+    if (compare_and_skip_next_symbol(')') == FAILED) {
+      if (_parse_macro_argument_names(m, &q, YES) == FAILED)
+	return FAILED;
+    }
+  }
+  
   while (1) {
     int got_some = NO;
     
@@ -8202,39 +8354,12 @@ int directive_macro(void) {
   }
 
   /* is ARGS defined? */
-  q = 0;
   if (compare_next_token("ARGS") == SUCCEEDED) {
     skip_next_token();
 
-    while (1) {
-      int string_result = input_next_string();
-
-      if (string_result == FAILED)
-        return FAILED;
-      if (string_result == INPUT_NUMBER_EOL) {
-        if (q != 0) {
-          next_line();
-          break;
-        }
-        print_error(ERROR_DIR, "MACRO \"%s\" is missing argument names?\n", m->name);
-        return FAILED;
-      }
-      q++;
-
-      /* store the label */
-      m->argument_names = realloc(m->argument_names, sizeof(char *)*q);
-      if (m->argument_names == NULL) {
-        print_error(ERROR_NONE, "Out of memory error.\n");
-        return FAILED;
-      }
-      m->argument_names[q-1] = calloc(strlen(g_label)+1, 1);
-      if (m->argument_names[q-1] == NULL) {
-        print_error(ERROR_NONE, "Out of memory error.\n");
-        return FAILED;
-      }
-
-      strcpy(m->argument_names[q-1], g_label);
-    }
+    q = 0;
+    if (_parse_macro_argument_names(m, &q, NO) == FAILED)
+      return FAILED;
   }
 
   m->nargument_names = q;
@@ -10565,6 +10690,10 @@ int parse_directive(void) {
     break;
     
   case 'F':
+
+    /* FUNCTION */
+    if (strcmp(directive_upper, "FUNCTION") == 0)
+      return directive_function();
 
     /* FILTER? */
     if (strcmp(directive_upper, "FILTER") == 0)

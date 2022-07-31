@@ -36,7 +36,9 @@ extern struct active_file_info *g_active_file_info_first, *g_active_file_info_la
 extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map;
 extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
-extern int g_latest_stack, g_asciitable_defined, g_global_label_hint;
+extern struct function *g_functions_first;
+extern struct stack *g_stacks_tmp;
+extern int g_latest_stack, g_asciitable_defined, g_global_label_hint, g_parsing_function_body;
 
 
 int is_string_ending_with(char *s, char *e) {
@@ -197,6 +199,10 @@ int input_next_string(void) {
     else if (e == '}')
       curly_braces++;
     else if (e == 0x0A || e == ',') {
+      g_source_pointer--;
+      break;
+    }
+    else if (e == '(' || e == ')') {
       g_source_pointer--;
       break;
     }
@@ -1208,6 +1214,11 @@ int input_number(void) {
 
       return SUCCEEDED;
     }
+
+    if (e == '(') {
+      g_source_pointer--;
+      break;
+    }
   }
 
   if (k == MAX_NAME_LENGTH) {
@@ -1512,6 +1523,8 @@ int get_next_token(void) {
           break;
         if (e == ' ')
           break;
+	if (e == '(')
+	  break;
       }
       g_tmp[g_ss] = e;
       g_ss++;
@@ -1539,6 +1552,23 @@ int get_next_token(void) {
   }
   
   return SUCCEEDED;
+}
+
+
+int compare_and_skip_next_symbol(char symbol) {
+
+  int pos = g_source_pointer;
+  
+  while (g_buffer[pos] == ' ')
+    pos++;
+
+  if (g_buffer[pos] == symbol) {
+    pos++;
+    g_source_pointer = pos;
+    return SUCCEEDED;
+  }
+
+  return FAILED;
 }
 
 
@@ -1968,6 +1998,158 @@ int process_string_for_special_characters(char *label, int *string_size) {
 }
 
 
+int parse_function(char *in, char *name, int *found_function, int *parsed_chars) {
+
+  int res, source_pointer_original = g_source_pointer, source_pointer_backup;
+  struct function *fun = g_functions_first;
+
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_pointer for input_number() */
+
+  g_source_pointer = (int)(in - g_buffer);
+  source_pointer_backup = g_source_pointer;
+
+  while (fun != NULL) {
+    if (strcmp(name, fun->name) == 0) {
+      /* we found the function! let's parse the arguments */
+      struct stack_item *si;
+      int i, j;
+
+      *found_function = YES;
+
+      /* is the function just a constant? */
+      if (fun->type == SUCCEEDED) {
+	g_parsed_int = fun->value;
+	g_parsed_double = (double)fun->value;
+
+	return SUCCEEDED;
+      }
+      
+      /* clone the stack calculation */
+      si = calloc(sizeof(struct stack_item) * fun->stack->stacksize, 1);
+      if (si == NULL) {
+	print_error(ERROR_NUM, "Out of memory error while parsing function \"%s\".\n", name);
+	return FAILED;
+      }
+
+      for (i = 0; i < fun->stack->stacksize; i++) {
+	si[i].value = fun->stack->stack[i].value;
+	si[i].type = fun->stack->stack[i].type;
+	si[i].sign = fun->stack->stack[i].sign;
+	if (si[i].type == STACK_ITEM_TYPE_LABEL)
+	  strcpy(si[i].string, fun->stack->stack[i].string);
+      }
+
+      for (i = 0; i < fun->nargument_names; i++) {
+	res = input_number();
+
+	if (res == FAILED) {
+	  free(si);
+	  return FAILED;
+	}
+	else if (res != SUCCEEDED && res != INPUT_NUMBER_ADDRESS_LABEL && res != INPUT_NUMBER_STACK) {
+	  free(si);
+	  print_error(ERROR_NUM, "Argument %d is not a value, label or a pending calculation.\n", i+1);
+	  return FAILED;
+	}
+
+	/* substitute the result into the stack calculation */
+	for (j = 0; j < fun->stack->stacksize; j++) {
+	  if (si[j].type == STACK_ITEM_TYPE_LABEL) {
+	    if (strcmp(fun->argument_names[i], si[j].string) == 0) {
+	      if (res == SUCCEEDED) {
+		si[j].type = STACK_ITEM_TYPE_VALUE;
+		si[j].value = g_parsed_int;
+		si[j].sign = SI_SIGN_POSITIVE;
+	      }
+	      else if (res == INPUT_NUMBER_ADDRESS_LABEL) {
+		strcpy(si[j].string, g_label);
+		si[j].sign = SI_SIGN_POSITIVE;
+	      }
+	      else {
+		si[j].type = STACK_ITEM_TYPE_STACK;
+		si[j].value = g_latest_stack;
+		si[j].sign = SI_SIGN_POSITIVE;
+	      }
+	    }
+	  }
+	}
+      }
+
+      if (g_buffer[g_source_pointer] != ')') {
+	free(si);
+	print_error(ERROR_NUM, "Malformed \"%s()\" detected!\n", name);
+	return FAILED;
+      }
+
+      /* skip ')' */
+      g_source_pointer++;
+
+      /* count the parsed chars */
+      *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+
+      /* return g_source_pointer */
+      g_source_pointer = source_pointer_original;
+
+      /* try to parse the stack calculation */
+      if (resolve_stack(si, fun->stack->stacksize) == SUCCEEDED) {
+	struct stack s;
+	double dou;
+
+	s.stack = si;
+	s.linenumber = fun->line_number;
+	s.filename_id = fun->filename_id;
+
+	if (compute_stack(&s, fun->stack->stacksize, &dou) == FAILED)
+	  return FAILED;
+
+	free(si);
+
+	g_parsed_double = dou;
+	g_parsed_int = (int)dou;
+
+	return SUCCEEDED;
+      }
+
+      /* save the stack calculation */
+      g_stacks_tmp = calloc(sizeof(struct stack), 1);
+      if (g_stacks_tmp == NULL) {
+        free(si);
+        print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
+        return FAILED;
+      }
+      g_stacks_tmp->next = NULL;
+      g_stacks_tmp->type = STACK_TYPE_UNKNOWN;
+      g_stacks_tmp->bank = -123456;
+      g_stacks_tmp->stacksize = fun->stack->stacksize;
+      g_stacks_tmp->relative_references = 0;
+      g_stacks_tmp->stack = si;
+
+      g_stacks_tmp->linenumber = g_active_file_info_last->line_current;
+      g_stacks_tmp->filename_id = g_active_file_info_last->filename_id;
+      g_stacks_tmp->special_id = 0;
+      g_stacks_tmp->bits_position = 0;
+      g_stacks_tmp->bits_to_define = 0;
+      g_stacks_tmp->is_function_body = g_parsing_function_body;
+
+      /* all stacks will be definition stacks by default. pass_4 will mark
+         those that are referenced to be STACK_POSITION_CODE stacks */
+      g_stacks_tmp->position = STACK_POSITION_DEFINITION;
+
+      calculation_stack_insert();      
+
+      return INPUT_NUMBER_STACK;
+    }
+    
+    fun = fun->next;
+  }
+
+  *found_function = NO;
+
+  return SUCCEEDED;
+}
+
+
 int parse_function_asc(char *in, int *result, int *parsed_chars) {
 
   int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
@@ -2014,26 +2196,40 @@ int parse_function_asc(char *in, int *result, int *parsed_chars) {
 
 int parse_function_defined(char *in, int *result, int *parsed_chars) {
 
-  char name[MAX_NAME_LENGTH+1];
+  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
   struct definition *d;
-  int i;
 
-  for (i = 0; i < MAX_NAME_LENGTH && *in != ')' && *in != 0xA && *in != 0; i++, in++) {
-    name[i] = *in;
-    (*parsed_chars)++;
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_pointer for input_number() */
+
+  g_source_pointer = (int)(in - g_buffer);
+  source_pointer_backup = g_source_pointer;
+
+  g_expect_calculations = NO;
+  res = get_next_plain_string();
+  g_expect_calculations = old_expect;
+
+  if (res != SUCCEEDED) {
+    print_error(ERROR_NUM, "defined() requires a definition name string.\n");
+    return FAILED;
   }
-  name[i] = 0;
-
-  if (*in != ')') {
+  
+  if (g_buffer[g_source_pointer] != ')') {
     print_error(ERROR_NUM, "Malformed \"defined(?)\" detected!\n");
     return FAILED;
   }
 
   /* skip ')' */
-  (*parsed_chars)++;
+  g_source_pointer++;
+
+  /* count the parsed chars */
+  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+
+  /* return g_source_pointer */
+  g_source_pointer = source_pointer_original;
 
   /* try to find the definition */
-  hashmap_get(g_defines_map, name, (void*)&d);
+  hashmap_get(g_defines_map, g_label, (void*)&d);
 
   if (d != NULL)
     *result = 1;

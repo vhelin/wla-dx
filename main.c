@@ -33,7 +33,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.3a (15.7.2022)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.3a (30.7.2022)";
 char g_wla_version[] = "10.3";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -62,6 +62,7 @@ extern struct array *g_arrays_first;
 extern struct structure *g_structures_first;
 extern struct structure **g_saved_structures;
 extern struct string *g_fopen_filenames_first, *g_fopen_filenames_last;
+extern struct function *g_functions_first, *g_functions_last;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern char *g_label_stack[256], *g_tmp, *g_global_listfile_cmds;
 extern char *g_include_in_tmp, *g_tmp_a;
@@ -659,6 +660,16 @@ void procedures_at_exit(void) {
     g_stacks_tmp = g_stacks_first;
   }
 
+  while (g_functions_first != NULL) {
+    struct function *fun = g_functions_first->next;
+
+    for (i = 0; i < g_functions_first->nargument_names; i++)
+      free(g_functions_first->argument_names[i]);
+    free(g_functions_first);
+
+    g_functions_first = fun;
+  }
+  
   as = g_after_sections;
   while (as != NULL) {
     g_after_sections = as->next;

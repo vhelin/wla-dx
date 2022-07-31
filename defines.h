@@ -554,6 +554,18 @@ struct macro_runtime {
   struct macro_argument **argument_data;
 };
 
+struct function {
+  char name[MAX_NAME_LENGTH + 1];
+  int  filename_id;
+  int  line_number;
+  int  nargument_names;
+  char *argument_names[64];
+  int  type;
+  int  value;
+  struct stack *stack;
+  struct function *next;
+};
+
 struct label_def {
   char label[MAX_NAME_LENGTH + 1];
   unsigned char section_status;
@@ -678,6 +690,7 @@ struct stack {
   int special_id;
   int bits_position;
   int bits_to_define;
+  int is_function_body;
 };
 
 struct stack_item {
