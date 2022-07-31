@@ -1065,7 +1065,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       /* update the source pointer */
       *bytes_parsed += (int)(in - in_original) - 1;
 
-      g_latest_stack = si[0].value;
+      g_latest_stack = (int)si[0].value;
 
       return INPUT_NUMBER_STACK;
     }
