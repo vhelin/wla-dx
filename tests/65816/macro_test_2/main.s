@@ -210,4 +210,19 @@ label_\2:
 
         .db "20>"       ; @BT TEST-20 20 START
         floor_0 &FIVE   ; @BT 05 07 01 04
+        floor_0(&FIVE)  ; @BT 05 07 01 04
         .db "<20"       ; @BT END
+
+//////////////////////////////////////////////////////////////////////
+// test 7
+//////////////////////////////////////////////////////////////////////
+
+        .macro addThreeValues
+        .db \1+\2+\3
+        .endm
+
+        .db "21>"               ; @BT TEST-21 21 START
+        addThreeValues(3,4,5)   ; @BT 0C
+        addThreeValues(1+2,2+2,5) ; @BT 0C
+        .db "<21"               ; @BT END
+        

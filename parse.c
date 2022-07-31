@@ -1208,6 +1208,11 @@ int input_number(void) {
 
       return SUCCEEDED;
     }
+
+    if (e == '(') {
+      g_source_pointer--;
+      break;
+    }
   }
 
   if (k == MAX_NAME_LENGTH) {
@@ -1512,6 +1517,8 @@ int get_next_token(void) {
           break;
         if (e == ' ')
           break;
+        if (e == '(')
+          break;
       }
       g_tmp[g_ss] = e;
       g_ss++;
@@ -1539,6 +1546,23 @@ int get_next_token(void) {
   }
   
   return SUCCEEDED;
+}
+
+
+int compare_and_skip_next_symbol(char symbol) {
+
+  int pos = g_source_pointer;
+  
+  while (g_buffer[pos] == ' ')
+    pos++;
+
+  if (g_buffer[pos] == symbol) {
+    pos++;
+    g_source_pointer = pos;
+    return SUCCEEDED;
+  }
+
+  return FAILED;
 }
 
 
