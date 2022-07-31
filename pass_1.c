@@ -770,7 +770,7 @@ int pass_1(void) {
       return SUCCEEDED;
     else if (q == EVALUATE_TOKEN_NOT_IDENTIFIED) {
       int got_opening_parenthesis = NO;
-	
+
       /* check if it is of the form "LABEL:XYZ" */
       for (q = 0; q < g_ss; q++) {
         if (g_tmp[q] == ':')
@@ -864,16 +864,16 @@ int pass_1(void) {
 
       /* skip '(' */
       if (compare_and_skip_next_symbol('(') == SUCCEEDED)
-	got_opening_parenthesis = YES;
+        got_opening_parenthesis = YES;
 
       /* collect macro arguments */
       for (p = 0; 1; p++) {
-	if (got_opening_parenthesis == YES) {
-	  /* skip ')' */
-	  if (compare_and_skip_next_symbol(')') == SUCCEEDED) {
-	  }
-	}
-	
+        if (got_opening_parenthesis == YES) {
+          /* skip ')' */
+          if (compare_and_skip_next_symbol(')') == SUCCEEDED) {
+          }
+        }
+
         /* take away the white space */
         while (1) {
           if (g_buffer[g_source_pointer] == ' ' || g_buffer[g_source_pointer] == ',')
@@ -8221,7 +8221,7 @@ static int _parse_macro_argument_names(struct macro_static *m, int *count, int i
 
     if (inside_parentheses == YES) {
       if (compare_and_skip_next_symbol(')') == SUCCEEDED)
-	break;
+        break;
     }
     
     string_result = input_next_string();
@@ -8230,8 +8230,8 @@ static int _parse_macro_argument_names(struct macro_static *m, int *count, int i
       return FAILED;
     if (string_result == INPUT_NUMBER_EOL) {
       if (*count != 0) {
-	next_line();
-	break;
+        next_line();
+        break;
       }
       print_error(ERROR_DIR, "MACRO \"%s\" is missing argument names?\n", m->name);
       return FAILED;
@@ -8320,7 +8320,7 @@ int directive_macro(void) {
   if (compare_and_skip_next_symbol('(') == SUCCEEDED) {
     if (compare_and_skip_next_symbol(')') == FAILED) {
       if (_parse_macro_argument_names(m, &q, YES) == FAILED)
-	return FAILED;
+        return FAILED;
     }
   }
   

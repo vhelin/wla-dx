@@ -1523,8 +1523,8 @@ int get_next_token(void) {
           break;
         if (e == ' ')
           break;
-	if (e == '(')
-	  break;
+        if (e == '(')
+          break;
       }
       g_tmp[g_ss] = e;
       g_ss++;
@@ -2019,67 +2019,67 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
 
       /* is the function just a constant? */
       if (fun->type == SUCCEEDED) {
-	g_parsed_int = fun->value;
-	g_parsed_double = (double)fun->value;
+        g_parsed_int = fun->value;
+        g_parsed_double = (double)fun->value;
 
-	return SUCCEEDED;
+        return SUCCEEDED;
       }
       
       /* clone the stack calculation */
       si = calloc(sizeof(struct stack_item) * fun->stack->stacksize, 1);
       if (si == NULL) {
-	print_error(ERROR_NUM, "Out of memory error while parsing function \"%s\".\n", name);
-	return FAILED;
+        print_error(ERROR_NUM, "Out of memory error while parsing function \"%s\".\n", name);
+        return FAILED;
       }
 
       for (i = 0; i < fun->stack->stacksize; i++) {
-	si[i].value = fun->stack->stack[i].value;
-	si[i].type = fun->stack->stack[i].type;
-	si[i].sign = fun->stack->stack[i].sign;
-	if (si[i].type == STACK_ITEM_TYPE_LABEL)
-	  strcpy(si[i].string, fun->stack->stack[i].string);
+        si[i].value = fun->stack->stack[i].value;
+        si[i].type = fun->stack->stack[i].type;
+        si[i].sign = fun->stack->stack[i].sign;
+        if (si[i].type == STACK_ITEM_TYPE_LABEL)
+          strcpy(si[i].string, fun->stack->stack[i].string);
       }
 
       for (i = 0; i < fun->nargument_names; i++) {
-	res = input_number();
+        res = input_number();
 
-	if (res == FAILED) {
-	  free(si);
-	  return FAILED;
-	}
-	else if (res != SUCCEEDED && res != INPUT_NUMBER_ADDRESS_LABEL && res != INPUT_NUMBER_STACK) {
-	  free(si);
-	  print_error(ERROR_NUM, "Argument %d is not a value, label or a pending calculation.\n", i+1);
-	  return FAILED;
-	}
+        if (res == FAILED) {
+          free(si);
+          return FAILED;
+        }
+        else if (res != SUCCEEDED && res != INPUT_NUMBER_ADDRESS_LABEL && res != INPUT_NUMBER_STACK) {
+          free(si);
+          print_error(ERROR_NUM, "Argument %d is not a value, label or a pending calculation.\n", i+1);
+          return FAILED;
+        }
 
-	/* substitute the result into the stack calculation */
-	for (j = 0; j < fun->stack->stacksize; j++) {
-	  if (si[j].type == STACK_ITEM_TYPE_LABEL) {
-	    if (strcmp(fun->argument_names[i], si[j].string) == 0) {
-	      if (res == SUCCEEDED) {
-		si[j].type = STACK_ITEM_TYPE_VALUE;
-		si[j].value = g_parsed_int;
-		si[j].sign = SI_SIGN_POSITIVE;
-	      }
-	      else if (res == INPUT_NUMBER_ADDRESS_LABEL) {
-		strcpy(si[j].string, g_label);
-		si[j].sign = SI_SIGN_POSITIVE;
-	      }
-	      else {
-		si[j].type = STACK_ITEM_TYPE_STACK;
-		si[j].value = g_latest_stack;
-		si[j].sign = SI_SIGN_POSITIVE;
-	      }
-	    }
-	  }
-	}
+        /* substitute the result into the stack calculation */
+        for (j = 0; j < fun->stack->stacksize; j++) {
+          if (si[j].type == STACK_ITEM_TYPE_LABEL) {
+            if (strcmp(fun->argument_names[i], si[j].string) == 0) {
+              if (res == SUCCEEDED) {
+                si[j].type = STACK_ITEM_TYPE_VALUE;
+                si[j].value = g_parsed_int;
+                si[j].sign = SI_SIGN_POSITIVE;
+              }
+              else if (res == INPUT_NUMBER_ADDRESS_LABEL) {
+                strcpy(si[j].string, g_label);
+                si[j].sign = SI_SIGN_POSITIVE;
+              }
+              else {
+                si[j].type = STACK_ITEM_TYPE_STACK;
+                si[j].value = g_latest_stack;
+                si[j].sign = SI_SIGN_POSITIVE;
+              }
+            }
+          }
+        }
       }
 
       if (g_buffer[g_source_pointer] != ')') {
-	free(si);
-	print_error(ERROR_NUM, "Malformed \"%s()\" detected!\n", name);
-	return FAILED;
+        free(si);
+        print_error(ERROR_NUM, "Malformed \"%s()\" detected!\n", name);
+        return FAILED;
       }
 
       /* skip ')' */
@@ -2093,22 +2093,22 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
 
       /* try to parse the stack calculation */
       if (resolve_stack(si, fun->stack->stacksize) == SUCCEEDED) {
-	struct stack s;
-	double dou;
+        struct stack s;
+        double dou;
 
-	s.stack = si;
-	s.linenumber = fun->line_number;
-	s.filename_id = fun->filename_id;
+        s.stack = si;
+        s.linenumber = fun->line_number;
+        s.filename_id = fun->filename_id;
 
-	if (compute_stack(&s, fun->stack->stacksize, &dou) == FAILED)
-	  return FAILED;
+        if (compute_stack(&s, fun->stack->stacksize, &dou) == FAILED)
+          return FAILED;
 
-	free(si);
+        free(si);
 
-	g_parsed_double = dou;
-	g_parsed_int = (int)dou;
+        g_parsed_double = dou;
+        g_parsed_int = (int)dou;
 
-	return SUCCEEDED;
+        return SUCCEEDED;
       }
 
       /* save the stack calculation */

@@ -114,5 +114,4 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
 	.DB defined(VALUE_{%.1d{VALUE_1}})   ; @BT 01
 	.DB 1+defined(VALUE_{%.1d{VALUE_1}}) ; @BT 02
 	.DB 2+defined(VALUE_{%.1d{0}})       ; @BT 02
-	
 	.DB "<14"		; @BT END
