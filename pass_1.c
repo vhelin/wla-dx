@@ -768,6 +768,8 @@ int pass_1(void) {
     else if (q == EVALUATE_TOKEN_EOP)
       return SUCCEEDED;
     else if (q == EVALUATE_TOKEN_NOT_IDENTIFIED) {
+      int got_opening_parenthesis = NO;
+        
       /* check if it is of the form "LABEL:XYZ" */
       for (q = 0; q < g_ss; q++) {
         if (g_tmp[q] == ':')
@@ -859,8 +861,18 @@ int pass_1(void) {
       mrt->argument_data = NULL;
       mrt->incbin_data = NULL;
 
+      /* skip '(' */
+      if (compare_and_skip_next_symbol('(') == SUCCEEDED)
+        got_opening_parenthesis = YES;
+
       /* collect macro arguments */
       for (p = 0; 1; p++) {
+        if (got_opening_parenthesis == YES) {
+          /* skip ')' */
+          if (compare_and_skip_next_symbol(')') == SUCCEEDED) {
+          }
+        }
+        
         /* take away the white space */
         while (1) {
           if (g_buffer[g_source_pointer] == ' ' || g_buffer[g_source_pointer] == ',')

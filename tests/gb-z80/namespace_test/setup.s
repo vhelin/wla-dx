@@ -50,7 +50,7 @@ func2:
 ;
 ; just testing here that a. this section gets dropped, and b. the name of the section is ok
 ;
-.section Discard(3) namespace NamelessWarriorSection
+.section "Discard(3)" namespace NamelessWarriorSection
 	.dw $dead, $beef
 hello1:	.dw hello2
 hello2:	.dw hello3

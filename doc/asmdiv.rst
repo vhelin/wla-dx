@@ -2206,6 +2206,13 @@ And here's how they can be used::
     QUEEN 123
     LOAD_ABCD_2 $10, $20, $30, XYZ, "merman.bin"
 
+Note that arguments can be optionally wrapped inside parentheses::
+
+    NOPMONSTER()
+    LOAD_ABCD($10, $20, $30, XYZ, "merman.bin")
+    QUEEN(123)
+    LOAD_ABCD_2($10, $20, $30, XYZ, "merman.bin")
+    
 Note that you must separate the arguments with commas.
 
 Note that the following works as well::

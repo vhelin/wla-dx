@@ -105,4 +105,13 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
         .DB ceil(256 / 40)                                   ; @BT 07
         .DB 2 + ceil(256 / 40) + 1                           ; @BT 0A
         .DB "<13"                                            ; @BT END
-        
+
+	.DEFINE VALUE_1 = 1
+	
+	.DB "14>"		; @BT TEST-14 14 START
+	.DB defined(VALUE_1)	; @BT 01
+	.DB defined(VALUE_0)+2  ; @BT 02
+	.DB defined(VALUE_{%.1d{VALUE_1}}) ; @BT 01
+	
+	.DB "<14"		; @BT END
+	

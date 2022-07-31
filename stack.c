@@ -1688,8 +1688,8 @@ static int _comparing_a_string_with_a_number(char *sp1, char *sp2, struct stack 
 static double _round(double d) {
 
   int i = (int)d;
-
   double delta = d - (double)i;
+
   if (delta < 0.0) {
     if (delta <= -0.5)
       return (double)(i - 1);
