@@ -68,4 +68,8 @@
         cmp [sumABC(VALUE_1+1,VALUE_2+1,3+1)] ; @BT C7 09
         lda sumABC(1,2,3)                     ; @BT A5 06
         lda sumABC(VALUE_1,VALUE_2,3)         ; @BT A5 06
+        lda sumABC(1,2,3).w                   ; @BT AD 06 00
+        lda sumABC(1,2,3).w + sumABC(0,1,2).w ; @BT AD 09 00
+        lda (sumABC(1,2,3))                   ; @BT B2 06
+        lda sumABC(sumAB1(0+0,0-0),2,3).w     ; @BT AD 06 00
         .db "<03"               ; @BT END

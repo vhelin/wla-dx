@@ -499,6 +499,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     else if (*in == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D')) {
       in++;
       d = g_operand_hint;
+      k = g_operand_hint_type;
       if (*in == 'b' || *in == 'B') {
         g_operand_hint = HINT_8BIT;
         g_operand_hint_type = HINT_TYPE_GIVEN;
@@ -522,7 +523,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       else
         break;
 
-      if (d != HINT_NONE && d != g_operand_hint) {
+      if (d != HINT_NONE && k == HINT_TYPE_GIVEN && d != g_operand_hint) {
         print_error(ERROR_STC, "Confusing operand hint!\n");
         in++;
       }
