@@ -754,8 +754,12 @@ int pass_1(void) {
 
   while (1) {
     q = get_next_token();
-    if (q != SUCCEEDED)
-      break;
+    if (q == FAILED)
+      return FAILED;
+    else if (q == GET_NEXT_TOKEN_STRING) {
+      print_error(ERROR_LOG, "Encountered quoted string \"%s\" where no quoted string should be.\n", g_tmp);
+      return FAILED;
+    }
     
     q = evaluate_token();
 
