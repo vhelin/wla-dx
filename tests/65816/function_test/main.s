@@ -24,6 +24,12 @@
         .bank 0 slot 0
         .org 0
 
+        .define varA 1
+        .define varB 2
+        .define var1 3
+        .define var2 4
+        .define var3 5
+
         .function sumAB(varA,varB) varA+varB
         .function sumABC(var1,var2,var3) sumAB(var1,var2)+var3
         .function sumAB1(varA, varB) sumAB(varA, varB) + sumAB(1, 0)
@@ -73,3 +79,24 @@
         lda (sumABC(1,2,3))                   ; @BT B2 06
         lda sumABC(sumAB1(0+0,0-0),2,3).w     ; @BT AD 06 00
         .db "<03"               ; @BT END
+
+        .db "04>"               ; @BT TEST-04 04 START
+        .db varA                ; @BT 01
+        .db varB                ; @BT 02
+        .db var1                ; @BT 03
+        .db var2                ; @BT 04
+        .db var3                ; @BT 05
+        .db "<04"               ; @BT END
+
+        .db "05>"                ; @BT TEST-05 05 START
+        .db varA + sumAB(varA,1) ; @BT 03
+        .db varA + sumABC(varA,var1,var2) + var3 ; @BT 0E
+        .redefine varA 2
+        .db varA + sumAB(varA,1) ; @BT 05
+        .db varA + sumABC(varA,var1,var2) + var3 ; @BT 10
+        .db varA                 ; @BT 02
+        .db "<05"                ; @BT END
+
+        
+        
+        
