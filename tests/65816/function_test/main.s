@@ -29,10 +29,12 @@
         .define var1 3
         .define var2 4
         .define var3 5
+        .define var4 1
 
         .function sumAB(varA,varB) varA+varB
         .function sumABC(var1,var2,var3) sumAB(var1,var2)+var3
         .function sumAB1(varA, varB) sumAB(varA, varB) + sumAB(1, 0)
+        .function sumCD(var{%.1d{1+0}},var2) var{%.1d{0+var4}}+var{%.1d{1+1}}
         .function constant() 1+2+3
 
         .db "01>"               ; @BT TEST-01 01 START
@@ -95,6 +97,8 @@
         .db varA + sumAB(varA,1) ; @BT 05
         .db varA + sumABC(varA,var1,var2) + var3 ; @BT 10
         .db varA                 ; @BT 02
+        .db sumAB(var{%.1d{2-1}},2) ; @BT 05
+        .db sumCD(sumCD(1,2),3)+sumCD(1,2) ; @BT 09
         .db "<05"                ; @BT END
 
         

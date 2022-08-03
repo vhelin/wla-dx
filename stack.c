@@ -1047,22 +1047,22 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     g_operand_hint_type = HINT_TYPE_GIVEN;
   }
 
-  /* only one item found -> let the item parser handle it */
+  /* only one item found -> let the item parser handle it? */
+  if (q == 1 && si[0].type == STACK_ITEM_TYPE_VALUE) {
+    /* update the source pointer */
+    *bytes_parsed += (int)(in - in_original) - 1;
+
+    g_parsed_double = si[0].value;
+
+    if (g_input_float_mode == ON)
+      return INPUT_NUMBER_FLOAT;
+
+    *value = (int)si[0].value;
+
+    return SUCCEEDED;
+  }
   if (q == 1 && from_substitutor == NO) {
-    if (si[0].type == STACK_ITEM_TYPE_VALUE) {
-      /* update the source pointer */
-      *bytes_parsed += (int)(in - in_original) - 1;
-
-      g_parsed_double = si[0].value;
-
-      if (g_input_float_mode == ON)
-	return INPUT_NUMBER_FLOAT;
-
-      *value = (int)si[0].value;
-
-      return SUCCEEDED;
-    }
-    else if (si[0].type == STACK_ITEM_TYPE_STACK) {
+    if (si[0].type == STACK_ITEM_TYPE_STACK) {
       /* update the source pointer */
       *bytes_parsed += (int)(in - in_original) - 1;
 
@@ -1073,7 +1073,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
     return STACK_CALCULATE_DELAY;
   }
-
+  
   /* check if there was data before the computation */
   if (q > 1 && (si[0].type == STACK_ITEM_TYPE_LABEL || si[0].type == STACK_ITEM_TYPE_VALUE)) {
     if (si[1].type == STACK_ITEM_TYPE_LABEL || si[1].type == STACK_ITEM_TYPE_VALUE)
@@ -1272,7 +1272,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   }
 
   /* are all the symbols known? */
-  if (g_resolve_stack_calculations == YES && resolve_stack(ta, d) == SUCCEEDED) {
+  if ((g_resolve_stack_calculations == YES || from_substitutor == YES) && resolve_stack(ta, d) == SUCCEEDED) {
     struct stack s;
 
     s.stack = ta;
