@@ -67,4 +67,14 @@
         ex ix,(sp)              ; @BT DD E3
         ex iy,(sp)              ; @BT FD E3        
         .db "<08"               ; @BT END
+
+        .db "09>"               ; @BT TEST-09 09 START
+        .IFDEF SKIPTHENEXTBLOCK
+        ld a, d
+        add a, (ix+14)
+        cp $bf
+        ret nc
+        .ENDIF
+        .db 0                   ; @BT 00
+        .db "<09"               ; @BT END
         

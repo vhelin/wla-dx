@@ -1523,7 +1523,7 @@ int get_next_token(void) {
           break;
         if (e == ' ')
           break;
-        if (e == '(')
+        if (g_ss > 0 && e == '(')
           break;
       }
       g_tmp[g_ss] = e;

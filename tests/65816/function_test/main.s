@@ -101,6 +101,14 @@
         .db sumCD(sumCD(1,2),3)+sumCD(1,2) ; @BT 09
         .db "<05"                ; @BT END
 
-        
-        
-        
+        .db "06>"               ; @BT TEST-06 06 START
+        .redefine varA = 1
+        .define RUNNER{%.1d{varA+0}} = varA
+        .rept sumAB(1+1,0+1)
+        .db sumAB1(0,RUNNER{%.1d{2-varA}}) ; @BT 02 03 04
+        .redefine RUNNER{%.1d{2-varA}} = RUNNER{%.1d{0+varA}} + 1
+        .endr
+        .rept sumABC(0+1,0+2,0+3)+sumAB1(sumAB(0,1),0+varA*2)
+        .db 1                   ; @BT 01 01 01 01 01 01 01 01 01 01
+        .endr
+        .db "<06"               ; @BT END

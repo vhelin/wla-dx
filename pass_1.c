@@ -11494,7 +11494,7 @@ int parse_if_directive(void) {
     }
 
     g_skip_elifs[g_ifdef] = NO;
-    
+
     return find_next_point("IFDEF");
   }
 

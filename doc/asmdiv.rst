@@ -1698,7 +1698,7 @@ This is not a compulsory directive.
 Creates a function called ``SUM_AB``. Here are some examples::
 
     .FUNCTION SUM_AB(varA, varB) (varA + varB)
-    .FUNCTION SUB_A_6(varA) varA+6
+    .FUNCTION SUB_A_6(varA) varA-6
     .FUNCTION SUM_ABC(varA, varB, varC) (SUM_AB(varA. varB) + varC)
     .FUNCTION CONSTANT_1() 1
 
