@@ -492,6 +492,7 @@ struct definition {
   char   *string;
   double value;
   int    type;
+  int    size;
 };
 
 struct after_section {

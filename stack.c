@@ -492,6 +492,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     else if (*in == '(') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
       si[q].value = SI_OP_LEFT;
+      /* was previous token ')'? */
+      if (q > 0 && si[q-1].type == STACK_ITEM_TYPE_OPERATOR && si[q-1].value == SI_OP_RIGHT)
+        break;      
       q++;
       b++;
       in++;

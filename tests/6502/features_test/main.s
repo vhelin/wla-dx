@@ -238,4 +238,20 @@ this_is_a_long_label:
              HEXES              ; @BT A0 A1 A2 A3
         .endhex
         .db "<20"               ; @BT END
+
+        .db "21>"               ; @BT TEST-21 21 START
+        .define BYTES $01 $00 $02
+        .define MULTIBYTE 1+1,2+2,3+3
+        .define MOREBYTES (4+4) (5+5)
+        .db BYTES               ; @BT 01 00 02
+        .db MULTIBYTE           ; @BT 02 04 06
+        .db MOREBYTES           ; @BT 08 0A
+        .db "<21"               ; @BT END
+        
+        .db "22>"               ; @BT TEST-22 22 START
+        .define ALLBYTES BYTES MULTIBYTE MOREBYTES $ff
+        .db ALLBYTES            ; @BT 01 00 02 02 04 06 08 0A FF
+        .define BYTES3 BYTES (1+1) BYTES "HI" BYTES
+        .db BYTES3              ; @BT 01 00 02 02 01 00 02 48 49 01 00 02
+        .db "<22"               ; @BT END
         

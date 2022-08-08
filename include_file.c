@@ -450,7 +450,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     if (get_next_token() == FAILED)
       return FAILED;
 
-    add_a_new_definition(g_tmp, (double)file_size, NULL, DEFINITION_TYPE_VALUE);
+    add_a_new_definition(g_tmp, (double)file_size, NULL, DEFINITION_TYPE_VALUE, 0);
   }
 
   /* FILTER? */

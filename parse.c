@@ -280,16 +280,16 @@ static int _input_number_return_definition(struct definition *def) {
         return FAILED;          
       }
       snprintf(g_label, sizeof(g_label), ":%.254s", def->string);
-      g_string_size = (int)(strlen(def->string) + 1);
+      g_string_size = def->size + 1;
     }
     else {
-      g_string_size = (int)strlen(def->string);
+      g_string_size = def->size;
       memcpy(g_label, def->string, g_string_size);
       g_label[g_string_size] = 0;
     }
   }
   else {
-    g_string_size = (int)strlen(def->string);
+    g_string_size = def->size;
     memcpy(g_label, def->string, g_string_size);
     g_label[g_string_size] = 0;
     
@@ -1337,25 +1337,22 @@ int parse_string_length(char *end) {
   
   if (g_tmp_def != NULL) {
     if (g_tmp_def->type == DEFINITION_TYPE_VALUE) {
-      if (g_input_number_error_msg == YES) {
+      if (g_input_number_error_msg == YES)
         print_error(ERROR_NUM, ".length of a value does not make any sense.\n");
-      }
       return FAILED;
     }
     else if (g_tmp_def->type == DEFINITION_TYPE_STACK) {
-      if (g_input_number_error_msg == YES) {
+      if (g_input_number_error_msg == YES)
         print_error(ERROR_NUM, ".length of a pending computation does not make any sense.\n");
-      }
       return FAILED;
     }
     else if (g_tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
-      if (g_input_number_error_msg == YES) {
+      if (g_input_number_error_msg == YES)
         print_error(ERROR_NUM, ".length of an address label does not make any sense.\n");
-      }
       return FAILED;
     }
     else {
-      g_string_size = (int)strlen(g_tmp_def->string);
+      g_string_size = g_tmp_def->size;
       memcpy(g_label, g_tmp_def->string, g_string_size);
       g_label[g_string_size] = 0;
 

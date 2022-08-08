@@ -198,22 +198,29 @@ int strcaselesscmp(char *s1, char *s2) {
 }
 
 
-char *string_duplicate(char *p) {
+char *string_duplicate_size(char *p, int size) {
 
   char *result;
 
   if (p == NULL)
     return NULL;
 
-  result = calloc(sizeof(char), strlen(p) + 1);
+  result = calloc(sizeof(char), size + 1);
   if (result == NULL) {
-    print_error(ERROR_DIR, "Out of memory while allocating a new string.\n");
+    print_error(ERROR_DIR, "Out of memory while allocating a new string (\"%s\").\n", p);
     return NULL;
   }
 
-  strcpy(result, p);
+  memcpy(result, p, size);
+  result[size] = 0;
 
   return result;
+}
+
+
+char *string_duplicate(char *p) {
+
+  return string_duplicate_size(p, (int)strlen(p));
 }
 
 
@@ -402,8 +409,8 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
   mrt->macro_return_filename_id = g_active_file_info_last->filename_id;
 
   if ((g_extra_definitions == ON) && (g_active_file_info_last->filename_id != m->filename_id)) {
-    redefine("WLA_FILENAME", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING);
-    redefine("wla_filename", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING);
+    redefine("WLA_FILENAME", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(m->filename_id)));
+    redefine("wla_filename", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(m->filename_id)));
   }
 
   g_active_file_info_last->line_current = m->start_line;
@@ -411,9 +418,9 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
   g_source_pointer = m->start;
 
   /* redefine NARGS */
-  if (redefine("NARGS", (double)nargs, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+  if (redefine("NARGS", (double)nargs, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
-  if (redefine("nargs", (double)nargs, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+  if (redefine("nargs", (double)nargs, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
@@ -920,13 +927,13 @@ int pass_1(void) {
         /* do we have a name for this argument? */
         if (p < m->nargument_names) {
           if (q == INPUT_NUMBER_ADDRESS_LABEL)
-            redefine(m->argument_names[p], 0.0, g_label, DEFINITION_TYPE_ADDRESS_LABEL);
+            redefine(m->argument_names[p], 0.0, g_label, DEFINITION_TYPE_ADDRESS_LABEL, (int)strlen(g_label));
           else if (q == INPUT_NUMBER_STRING)
-            redefine(m->argument_names[p], 0.0, g_label, DEFINITION_TYPE_STRING);
+            redefine(m->argument_names[p], 0.0, g_label, DEFINITION_TYPE_STRING, (int)strlen(g_label));
           else if (q == INPUT_NUMBER_STACK)
-            redefine(m->argument_names[p], (double)g_latest_stack, NULL, DEFINITION_TYPE_STACK);
+            redefine(m->argument_names[p], (double)g_latest_stack, NULL, DEFINITION_TYPE_STACK, 0);
           else if (q == SUCCEEDED)
-            redefine(m->argument_names[p], g_parsed_double, NULL, DEFINITION_TYPE_VALUE);
+            redefine(m->argument_names[p], g_parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
         }
       }
 
@@ -1400,7 +1407,7 @@ int evaluate_token(void) {
 }
 
 
-int redefine(char *name, double value, char *string, int type) {
+int redefine(char *name, double value, char *string, int type, int size) {
 
   struct definition *d;
   
@@ -1408,7 +1415,7 @@ int redefine(char *name, double value, char *string, int type) {
   
   /* it wasn't defined previously */
   if (d == NULL)
-    return add_a_new_definition(name, value, string, type);
+    return add_a_new_definition(name, value, string, type, size);
 
   d->type = type;
   free(d->string);
@@ -1419,7 +1426,8 @@ int redefine(char *name, double value, char *string, int type) {
   else if (type == DEFINITION_TYPE_STACK)
     d->value = value;
   else if (type == DEFINITION_TYPE_STRING || type == DEFINITION_TYPE_ADDRESS_LABEL) {
-    d->string = string_duplicate(string);
+    d->string = string_duplicate_size(string, size);
+    d->size = size;
     if (d->string == NULL)
       return FAILED;
   }
@@ -1445,7 +1453,7 @@ int undefine(char *name) {
 }
 
 
-int add_a_new_definition(char *name, double value, char *string, int type) {
+int add_a_new_definition(char *name, double value, char *string, int type, int size) {
 
   struct definition *d;
   int err;
@@ -1488,7 +1496,8 @@ int add_a_new_definition(char *name, double value, char *string, int type) {
   else if (type == DEFINITION_TYPE_STACK)
     d->value = value;
   else if (type == DEFINITION_TYPE_STRING || type == DEFINITION_TYPE_ADDRESS_LABEL) {
-    d->string = string_duplicate(string);
+    d->string = string_duplicate_size(string, size);
+    d->size = size;
     if (d->string == NULL)
       return FAILED;
   }
@@ -1698,7 +1707,7 @@ int add_label_sizeof(char *label, int size) {
 
   /* define locally also, since we can */
   snprintf(tmpname, sizeof(tmpname), "_sizeof_%s", label);
-  if (add_a_new_definition(tmpname, (double)size, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+  if (add_a_new_definition(tmpname, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
@@ -1718,7 +1727,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
       return FAILED;
 
     if (g_in_enum || g_in_struct) {
-      if (add_a_new_definition(name, (double)(g_base_enum_offset+g_enum_offset), NULL, DEFINITION_TYPE_VALUE) == FAILED)
+      if (add_a_new_definition(name, (double)(g_base_enum_offset+g_enum_offset), NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
         return FAILED;
       if (g_enum_export == YES)
         if (export_a_definition(name) == FAILED)
@@ -1744,7 +1753,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
     else {
       if (g_create_sizeof_definitions == YES) {
         snprintf(tmp, sizeof(tmp), "_sizeof_%s", name);
-        if (add_a_new_definition(tmp, (double)size, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+        if (add_a_new_definition(tmp, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
           return FAILED;
         if (g_in_enum == YES && g_enum_export == YES) {
           if (export_a_definition(tmp) == FAILED)
@@ -1768,7 +1777,7 @@ static int _add_paddingof_definition(char *name, int padding) {
     return SUCCEEDED;
   
   snprintf(tmp, sizeof(tmp), "_paddingof_%s", name);
-  if (add_a_new_definition(tmp, (double)padding, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+  if (add_a_new_definition(tmp, (double)padding, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
   if (g_in_enum == YES && g_enum_export == YES) {
     if (export_a_definition(tmp) == FAILED)
@@ -2202,7 +2211,7 @@ int parse_enum_token(void) {
         size = g_active_struct->defined_size;
       
       snprintf(tmpname, sizeof(tmpname), "_sizeof_%s", g_active_struct->name);
-      if (add_a_new_definition(tmpname, (double)size, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+      if (add_a_new_definition(tmpname, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
         return FAILED;
     }
     
@@ -5787,7 +5796,7 @@ int directive_fsize(void) {
   if (get_next_token() == FAILED)
     return FAILED;
 
-  if (add_a_new_definition(g_tmp, (double)b, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+  if (add_a_new_definition(g_tmp, (double)b, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
@@ -5827,7 +5836,7 @@ int directive_ftell(void) {
   if (get_next_token() == FAILED)
     return FAILED;
 
-  if (redefine(g_tmp, (double)b, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+  if (redefine(g_tmp, (double)b, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
@@ -5921,7 +5930,7 @@ int directive_fread(void) {
   if (get_next_token() == FAILED)
     return FAILED;
 
-  if (redefine(g_tmp, (double)c, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+  if (redefine(g_tmp, (double)c, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
@@ -6004,19 +6013,19 @@ int directive_shift(void) {
   for (q = 0; q < o; q++) {
     ma = rt->argument_data[q];
     if (ma->type == SUCCEEDED)
-      redefine(st->argument_names[q], ma->value, NULL, DEFINITION_TYPE_VALUE);
+      redefine(st->argument_names[q], ma->value, NULL, DEFINITION_TYPE_VALUE, 0);
     else if (ma->type == INPUT_NUMBER_STACK)
-      redefine(st->argument_names[q], ma->value, NULL, DEFINITION_TYPE_STACK);
+      redefine(st->argument_names[q], ma->value, NULL, DEFINITION_TYPE_STACK, 0);
     else if (ma->type == INPUT_NUMBER_ADDRESS_LABEL)
-      redefine(st->argument_names[q], 0.0, ma->string, DEFINITION_TYPE_ADDRESS_LABEL);
+      redefine(st->argument_names[q], 0.0, ma->string, DEFINITION_TYPE_ADDRESS_LABEL, (int)strlen(ma->string));
     else if (ma->type == INPUT_NUMBER_STRING)
-      redefine(st->argument_names[q], 0.0, ma->string, DEFINITION_TYPE_STRING);
+      redefine(st->argument_names[q], 0.0, ma->string, DEFINITION_TYPE_STRING, (int)strlen(ma->string));
   }
 
   /* redefine NARGS */
-  if (redefine("NARGS", (double)rt->supplied_arguments, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+  if (redefine("NARGS", (double)rt->supplied_arguments, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
-  if (redefine("nargs", (double)rt->supplied_arguments, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+  if (redefine("nargs", (double)rt->supplied_arguments, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
@@ -7247,7 +7256,7 @@ int directive_arrayout(void) {
   if (get_next_plain_string() == FAILED)
     return FAILED;
 
-  redefine(g_label, (double)arr->data[index], NULL, DEFINITION_TYPE_VALUE);
+  redefine(g_label, (double)arr->data[index], NULL, DEFINITION_TYPE_VALUE, 0);
 
   return SUCCEEDED;
 }
@@ -7551,9 +7560,9 @@ int directive_function(void) {
 
 int directive_define_def_equ(void) {
   
-  int j, export, q;
-  double dou;
   char k[256], label[MAX_NAME_LENGTH+1];
+  int j, export, q, size;
+  double dou;
 
   if (get_next_plain_string() == FAILED)
     return FAILED;
@@ -7571,7 +7580,7 @@ int directive_define_def_equ(void) {
     skip_next_token();
 
   g_input_float_mode = ON;
-  q = get_new_definition_data(&j, k, &dou, &export);
+  q = get_new_definition_data(&j, k, &size, &dou, &export);
   g_input_float_mode = OFF;
   if (q == FAILED)
     return FAILED;
@@ -7582,15 +7591,15 @@ int directive_define_def_equ(void) {
   }
 
   if (q == SUCCEEDED)
-    q = add_a_new_definition(label, (double)j, NULL, DEFINITION_TYPE_VALUE);
+    q = add_a_new_definition(label, (double)j, NULL, DEFINITION_TYPE_VALUE, 0);
   else if (q == INPUT_NUMBER_FLOAT)
-    q = add_a_new_definition(label, dou, NULL, DEFINITION_TYPE_VALUE);
+    q = add_a_new_definition(label, dou, NULL, DEFINITION_TYPE_VALUE, 0);
   else if (q == INPUT_NUMBER_STRING)
-    q = add_a_new_definition(label, 0.0, k, DEFINITION_TYPE_STRING);
+    q = add_a_new_definition(label, 0.0, k, DEFINITION_TYPE_STRING, size);
   else if (q == INPUT_NUMBER_STACK)
-    q = add_a_new_definition(label, (double)j, NULL, DEFINITION_TYPE_STACK);
+    q = add_a_new_definition(label, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
   else if (q == INPUT_NUMBER_EOL)
-    q = add_a_new_definition(label, 0.0, NULL, DEFINITION_TYPE_VALUE);
+    q = add_a_new_definition(label, 0.0, NULL, DEFINITION_TYPE_VALUE, 0);
   
   if (q == FAILED)
     return FAILED;
@@ -7661,7 +7670,7 @@ int directive_enumid(void) {
       return FAILED;
     }
 
-    if (add_a_new_definition(g_label, (double)g_enumid, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+    if (add_a_new_definition(g_label, (double)g_enumid, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
 
     if (g_enumid_export == 1) {
@@ -7763,7 +7772,7 @@ int directive_input(void) {
         break;
     }
     if (k[j] == 0) {
-      redefine(g_tmp, (double)v, NULL, DEFINITION_TYPE_VALUE);
+      redefine(g_tmp, (double)v, NULL, DEFINITION_TYPE_VALUE, 0);
       return SUCCEEDED;
     }
   }
@@ -7783,7 +7792,7 @@ int directive_input(void) {
         break;
     }
     if (k[j] == 0) {
-      redefine(g_tmp, (double)v, NULL, DEFINITION_TYPE_VALUE);
+      redefine(g_tmp, (double)v, NULL, DEFINITION_TYPE_VALUE, 0);
       return SUCCEEDED;
     }
   }
@@ -7798,13 +7807,13 @@ int directive_input(void) {
         break;
     }
     if (k[j] == 0) {
-      redefine(g_tmp, (double)v, NULL, DEFINITION_TYPE_VALUE);
+      redefine(g_tmp, (double)v, NULL, DEFINITION_TYPE_VALUE, 0);
       return SUCCEEDED;
     }
   }
 
   /* it's a string */
-  redefine(g_tmp, 0.0, k, DEFINITION_TYPE_STRING);
+  redefine(g_tmp, 0.0, k, DEFINITION_TYPE_STRING, (int)strlen(k));
 
   return SUCCEEDED;
 }
@@ -7812,9 +7821,9 @@ int directive_input(void) {
 
 int directive_redefine_redef(void) {
   
-  int j, export, q;
-  double dou;
   char k[256], label[MAX_NAME_LENGTH+1];
+  int j, export, q, size;
+  double dou;
 
   if (get_next_plain_string() == FAILED)
     return FAILED;
@@ -7832,7 +7841,7 @@ int directive_redefine_redef(void) {
     skip_next_token();
 
   g_input_float_mode = ON;
-  q = get_new_definition_data(&j, k, &dou, &export);
+  q = get_new_definition_data(&j, k, &size, &dou, &export);
   g_input_float_mode = OFF;
   if (q == FAILED)
     return FAILED;
@@ -7843,13 +7852,13 @@ int directive_redefine_redef(void) {
   }
 
   if (q == SUCCEEDED)
-    redefine(label, (double)j, NULL, DEFINITION_TYPE_VALUE);
+    redefine(label, (double)j, NULL, DEFINITION_TYPE_VALUE, 0);
   else if (q == INPUT_NUMBER_FLOAT)
-    redefine(label, dou, NULL, DEFINITION_TYPE_VALUE);
+    redefine(label, dou, NULL, DEFINITION_TYPE_VALUE, 0);
   else if (q == INPUT_NUMBER_STRING)
-    redefine(label, 0.0, k, DEFINITION_TYPE_STRING);
+    redefine(label, 0.0, k, DEFINITION_TYPE_STRING, size);
   else if (q == INPUT_NUMBER_STACK)
-    redefine(label, (double)j, NULL, DEFINITION_TYPE_STACK);
+    redefine(label, (double)j, NULL, DEFINITION_TYPE_STACK, 0);
 
   if (export == YES) {
     if (export_a_definition(label) == FAILED)
@@ -8418,7 +8427,7 @@ int directive_rept_repeat(void) {
     if (input_next_string() != SUCCEEDED)
       return FAILED;
 
-    if (redefine(g_label, 0.0, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+    if (redefine(g_label, 0.0, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
 
     strcpy(index_name, g_label);
@@ -8510,8 +8519,8 @@ int directive_endm(void) {
       g_newline_beginning = ON;
 
     if ((g_extra_definitions == ON) && (g_active_file_info_last->filename_id != g_macro_stack[g_macro_active].macro_return_filename_id)) {
-      redefine("WLA_FILENAME", 0.0, get_file_name(g_macro_stack[g_macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING);
-      redefine("wla_filename", 0.0, get_file_name(g_macro_stack[g_macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING);
+      redefine("WLA_FILENAME", 0.0, get_file_name(g_macro_stack[g_macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(g_macro_stack[g_macro_active].macro_return_filename_id)));
+      redefine("wla_filename", 0.0, get_file_name(g_macro_stack[g_macro_active].macro_return_filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(g_macro_stack[g_macro_active].macro_return_filename_id)));
     }
 
     g_active_file_info_last->filename_id = g_macro_stack[g_macro_active].macro_return_filename_id;
@@ -8527,9 +8536,9 @@ int directive_endm(void) {
     }
     else {
       /* redefine NARGS */
-      if (redefine("NARGS", (double)g_macro_stack[g_macro_active - 1].supplied_arguments, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+      if (redefine("NARGS", (double)g_macro_stack[g_macro_active - 1].supplied_arguments, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
         return FAILED;
-      if (redefine("nargs", (double)g_macro_stack[g_macro_active - 1].supplied_arguments, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+      if (redefine("nargs", (double)g_macro_stack[g_macro_active - 1].supplied_arguments, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
         return FAILED;
 
       g_macro_runtime_current = &g_macro_stack[g_macro_active - 1];
@@ -10231,8 +10240,8 @@ int parse_directive(void) {
           return FAILED;
         }
 
-        redefine("WLA_FILENAME", 0.0, g_file_name_info_tmp->name, DEFINITION_TYPE_STRING);
-        redefine("wla_filename", 0.0, g_file_name_info_tmp->name, DEFINITION_TYPE_STRING);
+        redefine("WLA_FILENAME", 0.0, g_file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(g_file_name_info_tmp->name));
+        redefine("wla_filename", 0.0, g_file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(g_file_name_info_tmp->name));
       }
 
       /* output the file id */
@@ -10413,8 +10422,8 @@ int parse_directive(void) {
           return EVALUATE_TOKEN_EOP;
 
         if (g_extra_definitions == ON) {
-          redefine("WLA_FILENAME", 0.0, get_file_name(g_active_file_info_last->filename_id), DEFINITION_TYPE_STRING);
-          redefine("wla_filename", 0.0, get_file_name(g_active_file_info_last->filename_id), DEFINITION_TYPE_STRING);
+          redefine("WLA_FILENAME", 0.0, get_file_name(g_active_file_info_last->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(g_active_file_info_last->filename_id)));
+          redefine("wla_filename", 0.0, get_file_name(g_active_file_info_last->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(g_active_file_info_last->filename_id)));
         }
 
         return SUCCEEDED;
@@ -10494,7 +10503,7 @@ int parse_directive(void) {
 
         rr->repeats++;
         if (strlen(rr->index_name) > 0) {
-          if (redefine(rr->index_name, (double)rr->repeats, NULL, DEFINITION_TYPE_VALUE) == FAILED)
+          if (redefine(rr->index_name, (double)rr->repeats, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
             return FAILED;
         }
     
@@ -11850,7 +11859,7 @@ int is_reserved_definition(char *t) {
 }
 
 
-int get_new_definition_data(int *b, char *c, double *data, int *export) {
+int get_new_definition_data(int *b, char *c, int *size, double *data, int *export) {
 
   int a, x, n, s;
 
@@ -11892,8 +11901,8 @@ int get_new_definition_data(int *b, char *c, double *data, int *export) {
       if (x == SUCCEEDED)
         *b = g_parsed_int;
       else if (x == INPUT_NUMBER_STRING) {
-        strcpy(c, g_label);
-        s = (int)strlen(g_label);
+        memcpy(c, g_label, g_string_size);
+        s = g_string_size;
       }
       else if (x == INPUT_NUMBER_FLOAT) {
         *data = g_parsed_double;
@@ -11936,8 +11945,8 @@ int get_new_definition_data(int *b, char *c, double *data, int *export) {
     }
 
     if (x == INPUT_NUMBER_STRING) {
-      strcpy(&c[s], g_label);
-      s += (int)strlen(g_label);
+      memcpy(&c[s], g_label, g_string_size);
+      s += g_string_size;
     }
     else if (x == SUCCEEDED) {
       if (g_parsed_int > 255) {
@@ -11971,6 +11980,8 @@ int get_new_definition_data(int *b, char *c, double *data, int *export) {
   if (a == INPUT_NUMBER_STRING)
     c[s] = 0;
 
+  *size = s;
+  
   return a;
 }
 

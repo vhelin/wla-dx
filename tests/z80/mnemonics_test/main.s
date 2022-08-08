@@ -68,10 +68,15 @@
         ex iy,(sp)              ; @BT FD E3        
         .db "<08"               ; @BT END
 
+        .function sumAB(varA, varB) (varA + varB)
+        
         .db "09>"               ; @BT TEST-09 09 START
         .IFDEF SKIPTHENEXTBLOCK
         ld a, d
         add a, (ix+14)
+        ex (sp),hl
+        add a, (ix+sumAB(10,4))
+        add a, (ix+sumDE(10,4))
         cp $bf
         ret nc
         .ENDIF
