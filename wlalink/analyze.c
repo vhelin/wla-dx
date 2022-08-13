@@ -45,7 +45,7 @@ extern struct slot g_slots[256];
 extern struct after_section *g_after_sections, *g_after_tmp;
 extern struct label_sizeof *g_label_sizeofs;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
-extern int g_rombanks, g_verbose_mode, g_section_overwrite, g_discard_unreferenced_sections;
+extern int g_rombanks, g_section_overwrite, g_discard_unreferenced_sections;
 extern int g_emptyfill;
 extern int *g_banksizes, *g_bankaddress, g_banksize;
 

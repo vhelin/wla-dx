@@ -691,7 +691,8 @@ int pass_3(void) {
       if (s->size == 0 && s->keep == NO && g_keep_empty_sections == NO) {
         struct after_section *as;
         
-        fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
+        if (g_verbose_mode == ON)
+          fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
         s->alive = NO;
 
         /* discard all labels which belong to this section */

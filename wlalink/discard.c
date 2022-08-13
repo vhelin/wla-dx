@@ -17,7 +17,7 @@ extern struct section *g_sec_bankhd_first;
 extern struct label *g_labels_first, *g_labels_last;
 extern struct stack *g_stacks_first, *g_stacks_last;
 
-extern int g_verbose_mode;
+extern int g_verbose_level;
 
 
 int discard_unused_sections(void) {
@@ -50,7 +50,7 @@ int discard_unused_sections(void) {
     }
   }
 
-  if (g_verbose_mode == ON) {
+  if (g_verbose_level >= 1) {
     /* announce all the unreferenced sections that will get dropped */
     s = g_sec_first;
     while (s != NULL) {

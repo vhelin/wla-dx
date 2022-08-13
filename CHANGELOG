@@ -16,7 +16,7 @@ v10.3 (08-Aug-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
                     [ALL] Multibyte .DEFINEs (e.g., "MB = $01 $00 $02") were
                       broken in v10.2.
                     [ALL] Multibyte .DEFINEs work now better inside other
-                      multibyte defines.
+                      multibyte .DEFINEs.
                     [GB ] Sometimes WLA-GB would generate unused pending
                       calculations when parsing the code, and namespaces would
                       not work in them thus breaking the linking phase.
@@ -1404,7 +1404,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.18 (24-Jun-2022) 
+v5.18 (13-Aug-2022) Added -v1 and -v2 (shorter verbose levels).
 
 v5.17 (24-Jun-2022) Added SIZE to [sections] and [ramsections].
                     Added -R (file paths inside link file are relative to

@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char g_version_string[] = "$VER: wlalink 5.18a (24.6.2022)";
+char g_version_string[] = "$VER: wlalink 5.18a (13.8.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -55,7 +55,7 @@ char g_load_address_label[MAX_NAME_LENGTH + 1], **g_ram_slots[256];
 int g_load_address = 0, g_load_address_type = LOAD_ADDRESS_TYPE_UNDEFINED;
 char g_program_address_start_label[MAX_NAME_LENGTH + 1], g_program_address_end_label[MAX_NAME_LENGTH + 1];
 int g_program_address_start = -1, g_program_address_end = -1, g_program_address_start_type = LOAD_ADDRESS_TYPE_UNDEFINED, g_program_address_end_type = LOAD_ADDRESS_TYPE_UNDEFINED;
-int g_romsize, g_rombanks, g_banksize, g_verbose_mode = OFF, g_section_overwrite = OFF;
+int g_romsize, g_rombanks, g_banksize, g_verbose_level = 0, g_section_overwrite = OFF;
 int g_pc_bank, g_pc_full, g_pc_slot, g_pc_slot_max;
 int g_file_header_size, g_file_footer_size, *g_banksizes = NULL, *g_bankaddress = NULL;
 int g_output_mode = OUTPUT_ROM, g_discard_unreferenced_sections = OFF, g_use_libdir = NO;
@@ -331,7 +331,9 @@ int main(int argc, char *argv[]) {
     printf("-s  Write also a NO$GMB/NO$SNES symbol file\n");
     printf("-S  Write also a WLA symbol file\n");
     printf("-A  Add address-to-line mapping data to WLA symbol file\n");
-    printf("-v  Verbose messages\n");
+    printf("-v  Verbose messages (all)\n");
+    printf("-v1 Verbose messages (only discard sections)\n");
+    printf("-v2 Verbose messages (-v1 plus short summary)\n");
     printf("-L <DIR>  Library directory\n");
     printf("-t <TYPE> Output type (supported types: 'CBMPRG')\n");
     printf("-a <ADDR> Load address (can also be label) for CBM PRG\n\n");
@@ -694,11 +696,13 @@ int _show_ram_information(int *free, int *total) {
   int printed_something = NO, bank_used, bank_free, slot, bank, i, area_start, area_end;
   char *slot_usage_data, slot_name[MAX_NAME_LENGTH+1];
   float f;
-  
-  printf("-------------------------------------------------\n");
-  printf("---                   RAM                     ---\n");
-  printf("-------------------------------------------------\n");
 
+  if (g_verbose_level >= 100) {
+    printf("-------------------------------------------------\n");
+    printf("---                   RAM                     ---\n");
+    printf("-------------------------------------------------\n");
+  }
+  
   *free = 0;
   *total = 0;
 
@@ -731,7 +735,8 @@ int _show_ram_information(int *free, int *total) {
         snprintf(slot_name, sizeof(slot_name), "%d", slot);
 
       f = ((float)bank_free)/(bank_free + bank_used) * 100.0f;
-      printf("RAM slot %s bank %d (%d bytes (%.2f%%) free)\n", slot_name, bank, bank_free, f);
+      if (g_verbose_level >= 100)
+        printf("RAM slot %s bank %d (%d bytes (%.2f%%) free)\n", slot_name, bank, bank_free, f);
 
       area_start = -1;
       area_end = -1;
@@ -753,7 +758,8 @@ int _show_ram_information(int *free, int *total) {
         }
         
         if (print_area == YES) {
-          printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+          if (g_verbose_level >= 100)
+            printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
           area_start = -1;
           area_end = -1;
         }
@@ -763,8 +769,10 @@ int _show_ram_information(int *free, int *total) {
     }
   }
 
-  if (printed_something == NO)
-    printf("No .RAMSECTIONs were found, no information about RAM.\n");
+  if (printed_something == NO) {
+    if (g_verbose_level >= 100)
+      printf("No .RAMSECTIONs were found, no information about RAM.\n");
+  }
   
   return SUCCEEDED;
 }
@@ -774,6 +782,9 @@ int _show_headers_and_footers_information(void) {
 
   struct section *s;
   int i = 0, prints = 0;
+
+  if (g_verbose_level < 100)
+    return SUCCEEDED;
   
   printf("-------------------------------------------------\n");
   printf("---           HEADERS AND FOOTERS             ---\n");
@@ -825,7 +836,7 @@ int show_rom_ram_information(void) {
   int a, address, r, rom_used_bytes = 0, rom_bank_used_bytes, area_start, area_end, ram_free, ram_total;
   float f;
 
-  if (g_verbose_mode == OFF)
+  if (g_verbose_level <= 1)
     return SUCCEEDED;
 
   fflush(stderr);
@@ -834,10 +845,12 @@ int show_rom_ram_information(void) {
   if (g_output_mode == OUTPUT_ROM) {
     /* ROM information */
 
-    printf("-------------------------------------------------\n");
-    printf("---                   ROM                     ---\n");
-    printf("-------------------------------------------------\n");
-  
+    if (g_verbose_level >= 100) {
+      printf("-------------------------------------------------\n");
+      printf("---                   ROM                     ---\n");
+      printf("-------------------------------------------------\n");
+    }
+    
     for (r = 0, address = 0; r < g_rombanks; r++) {
       int address_old = address;
     
@@ -849,7 +862,8 @@ int show_rom_ram_information(void) {
       }
 
       f = (((float)(g_banksizes[r] - rom_bank_used_bytes))/g_banksizes[r]) * 100.0f;
-      printf("ROM bank %d (%d bytes (%.2f%%) free)\n", r, g_banksizes[r] - rom_bank_used_bytes, f);
+      if (g_verbose_level >= 100)
+        printf("ROM bank %d (%d bytes (%.2f%%) free)\n", r, g_banksizes[r] - rom_bank_used_bytes, f);
 
       address = address_old;
       area_start = -1;
@@ -872,7 +886,8 @@ int show_rom_ram_information(void) {
         }
         
         if (print_area == YES) {
-          printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+          if (g_verbose_level >= 100)
+            printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
           area_start = -1;
           area_end = -1;
         }      
@@ -882,10 +897,12 @@ int show_rom_ram_information(void) {
     _show_ram_information(&ram_free, &ram_total);
     _show_headers_and_footers_information();
     
-    printf("-------------------------------------------------\n");
-    printf("---                 SUMMARY                   ---\n");
-    printf("-------------------------------------------------\n");
-
+    if (g_verbose_level >= 100) {
+      printf("-------------------------------------------------\n");
+      printf("---                 SUMMARY                   ---\n");
+      printf("-------------------------------------------------\n");
+    }
+    
     f = (((float)(g_romsize - rom_used_bytes))/g_romsize) * 100.0f;
     printf("ROM: %d bytes (%.2f%%) free of total %d.\n", g_romsize - rom_used_bytes, f, g_romsize);
 
@@ -900,17 +917,20 @@ int show_rom_ram_information(void) {
     /* PRG information */
     int prg_size = g_program_end - g_program_start + 1, used_bytes;
 
-    printf("-------------------------------------------------\n");
-    printf("---                   PRG                     ---\n");
-    printf("-------------------------------------------------\n");
-
+    if (g_verbose_level >= 100) {
+      printf("-------------------------------------------------\n");
+      printf("---                   PRG                     ---\n");
+      printf("-------------------------------------------------\n");
+    }
+    
     for (a = g_program_start, used_bytes = 0; a <= g_program_end; a++) {
       if (g_rom_usage[a] != 0)
         used_bytes++;
     }
 
     f = (((float)(prg_size - used_bytes))/prg_size) * 100.0f;
-    printf("PRG $%.4x-$%.4x (%d bytes (%.2f%%) free)\n", g_program_start, g_program_end, prg_size - used_bytes, f);
+    if (g_verbose_level >= 100)
+      printf("PRG $%.4x-$%.4x (%d bytes (%.2f%%) free)\n", g_program_start, g_program_end, prg_size - used_bytes, f);
 
     area_start = -1;
     area_end = -1;
@@ -932,7 +952,8 @@ int show_rom_ram_information(void) {
       }
         
       if (print_area == YES) {
-        printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+        if (g_verbose_level >= 100)
+          printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
         area_start = -1;
         area_end = -1;
       }      
@@ -941,10 +962,12 @@ int show_rom_ram_information(void) {
     _show_ram_information(&ram_free, &ram_total);
     _show_headers_and_footers_information();
 
-    printf("-------------------------------------------------\n");
-    printf("---                 SUMMARY                   ---\n");
-    printf("-------------------------------------------------\n");
-
+    if (g_verbose_level >= 100) {
+      printf("-------------------------------------------------\n");
+      printf("---                 SUMMARY                   ---\n");
+      printf("-------------------------------------------------\n");
+    }
+    
     f = (((float)(prg_size - used_bytes))/prg_size) * 100.0f;
     printf("PRG: %d bytes (%.2f%%) free of total %d.\n", prg_size - used_bytes, f, prg_size);
 
@@ -1229,7 +1252,15 @@ int parse_flags(char **flags, int flagc) {
       continue;
     }
     else if (!strcmp(flags[count], "-v")) {
-      g_verbose_mode = ON;
+      g_verbose_level = 100;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-v1")) {
+      g_verbose_level = 1;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-v2")) {
+      g_verbose_level = 2;
       continue;
     }
     else if (!strcmp(flags[count], "-s")) {

@@ -84,7 +84,7 @@ _camilla
   JESUS "evil", "emperor"
 */
 
-.section "structTest"
+.section "structTest" keep
 	ld (iy + ABCDEFGHIJKLMN.abcdefghijklmnopqrstuvwxyzabcdef.ABCDEFGHIJKLMNO), $00
 	ld (iy + ABCDEFGHIJKLMN.abcdefghijklmnopqrstuvwxyzabcdef.ABCDEFGHIJKLMNOP), $00
 
@@ -297,3 +297,9 @@ ENUM_NOT_OK_123 dw
 .ENUMID MONSTER_ID_1
 .ENUMID MONSTER_ID_2
 .ENUMID MONSTER_ID_3
+
+
+        .section "Unreferenced" free
+Unreferenced:   .db 0
+        .ends
+        
