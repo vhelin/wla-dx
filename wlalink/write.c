@@ -2630,25 +2630,31 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
   s = sta->stack;
   for (r = 0, t = 0; r < x; r++, s++) {
     if (s->type == STACK_ITEM_TYPE_VALUE) {
-      /* RAM */
-      if (s->sign == SI_SIGN_NEGATIVE)
+      if (s->sign == SI_SIGN_NEGATIVE) {
         v_ram[t] = -s->value_ram;
-      else
-        v_ram[t] = s->value_ram;
-      /* ROM */
-      if (s->sign == SI_SIGN_NEGATIVE)
         v_rom[t] = -s->value_rom;
-      else
+      }
+      else {
+        v_ram[t] = s->value_ram;
         v_rom[t] = s->value_rom;
+      }
+
       slot[t] = s->slot;
       base[t] = s->base;
       bank[t] = s->bank;
       t++;
     }
     else if (s->type == STACK_ITEM_TYPE_LABEL) {
-      /* parse_stack() turned this string into a value */
-      v_ram[t] = s->value_ram;
-      v_rom[t] = s->value_rom;
+      /* parse_stack() turned this string into a value, and embedded the sign into the value */
+      if (s->sign == SI_SIGN_NEGATIVE) {
+        v_ram[t] = -s->value_ram;
+        v_rom[t] = -s->value_rom;
+      }
+      else {
+        v_ram[t] = s->value_ram;
+        v_rom[t] = s->value_rom;
+      }
+
       slot[t] = s->slot;
       base[t] = s->base;
       bank[t] = s->bank;
@@ -2671,8 +2677,15 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
       if (compute_stack(st, &res_ram, &res_rom, &res_slot, &res_base, &res_bank) == FAILED)
         return FAILED;
 
-      v_ram[t] = res_ram;
-      v_rom[t] = res_rom;
+      if (s->sign == SI_SIGN_NEGATIVE) {
+        v_ram[t] = -res_ram;
+        v_rom[t] = -res_rom;
+      }
+      else {
+        v_ram[t] = res_ram;
+        v_rom[t] = res_rom;
+      }
+      
       slot[t] = res_slot;
       base[t] = res_base;
       bank[t] = res_bank;

@@ -117,6 +117,13 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
   for (k = 0; k < count; k++) {
     char ar[] = "+-*()|&/^01%~<>!:<>";
 
+    if (ta[k].type != STACK_ITEM_TYPE_OPERATOR) {
+      if (ta[k].sign == SI_SIGN_POSITIVE)
+        printf("+");
+      else
+        printf("-");
+    }
+    
     if (ta[k].type == STACK_ITEM_TYPE_OPERATOR) {
       int value = (int)ta[k].value;
 
@@ -271,13 +278,18 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       continue;
     }
     else if (*in == '-') {
-      if (*(in + 1) == '-') {
+      k = YES;
+      e = *(in + 2);
+      if ((e >= '0' && e <= '9') || (e >= 'a' && e <= 'z') || (e >= 'A' && e <= 'Z') || e == '_')
+        k = NO;
+      
+      if (*(in + 1) == '-' && k == YES) {
         si[q].type = STACK_ITEM_TYPE_LABEL;
         si[q].sign = SI_SIGN_POSITIVE;
-        for (k = 0; *in == '-' && k < 32; k++, in++) {
+        for (k = 0; *in == '-' && k < 32; k++, in++)
           si[q].string[k] = '-';
-        }
         si[q].string[k] = 0;
+        fprintf(stderr, "GOT %s\n", si[q].string);
       }
       else {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
@@ -1110,14 +1122,30 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
   /* update the source pointer */
   *bytes_parsed += (int)(in - in_original) - 1;
-  
+
   /* fix the sign in every operand */
   for (b = 1, k = 0; k < q; k++) {
     if (g_input_parse_if == NO) {
-      if ((q - k) != 1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].value != SI_OP_BANK &&
-          si[k + 1].value != SI_OP_BANK_BYTE && si[k + 1].value != SI_OP_HIGH_BYTE && si[k + 1].value != SI_OP_LOW_BYTE &&
-          si[k + 1].value != SI_OP_HIGH_WORD && si[k + 1].value != SI_OP_LOW_WORD && si[k + 1].value != SI_OP_ROUND &&
-          si[k + 1].value != SI_OP_FLOOR && si[k + 1].value != SI_OP_CEIL) {
+      /* *-1 or *-LABEL? */
+      if (k < q-2 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k].value != SI_OP_RIGHT &&
+          si[k + 1].value == SI_OP_SUB && (si[k + 2].type == STACK_ITEM_TYPE_VALUE || si[k + 2].type == STACK_ITEM_TYPE_LABEL)) {
+        if (si[k + 2].sign == SI_SIGN_POSITIVE)
+          si[k + 2].sign = SI_SIGN_NEGATIVE;
+        else
+          si[k + 2].sign = SI_SIGN_POSITIVE;
+        /* it wasn't a minus operator, it was a sign */
+        si[k + 1].type = STACK_ITEM_TYPE_DELETED;
+      }
+      if ((q - k) != 1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR &&
+          si[k + 1].value != SI_OP_BANK &&
+          si[k + 1].value != SI_OP_BANK_BYTE &&
+          si[k + 1].value != SI_OP_HIGH_BYTE &&
+          si[k + 1].value != SI_OP_LOW_BYTE &&
+          si[k + 1].value != SI_OP_HIGH_WORD &&
+          si[k + 1].value != SI_OP_LOW_WORD &&
+          si[k + 1].value != SI_OP_ROUND &&
+          si[k + 1].value != SI_OP_FLOOR &&
+          si[k + 1].value != SI_OP_CEIL) {
         if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
           print_error(ERROR_STC, "Error in computation syntax.\n");
           return FAILED;
@@ -1475,7 +1503,6 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
       /* turn this reference to a stack calculation define into a direct reference to the stack calculation as */
       /* this way we don't have to care if the define is exported or not as stack calculations are always exported */
       s->type = STACK_ITEM_TYPE_STACK;
-      s->sign = SI_SIGN_POSITIVE;
       s->value = g_tmp_def->value;
     }
     else if (g_tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {

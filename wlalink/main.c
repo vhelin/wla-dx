@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char g_version_string[] = "$VER: wlalink 5.18a (13.8.2022)";
+char g_version_string[] = "$VER: wlalink 5.18a (19.8.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -184,22 +184,26 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
     snprintf(sid, sizeof(g_stack_item_description), "NULL");
   else {
     int type = si->type;
+    char sign = '+';
+
+    if (si->sign == SI_SIGN_NEGATIVE)
+      sign = '-';
     
     if (type == STACK_ITEM_TYPE_VALUE)
-      snprintf(sid, sizeof(g_stack_item_description), "stack_item: value              : %f/$%x (RAM) %f/$%x (ROM)\n", si->value_ram, (int)si->value_ram, si->value_rom, (int)si->value_rom);
+      snprintf(sid, sizeof(g_stack_item_description), "stack_item: value (%c)          : %f/$%x (RAM) %f/$%x (ROM)\n", sign, si->value_ram, (int)si->value_ram, si->value_rom, (int)si->value_rom);
     else if (type == STACK_ITEM_TYPE_OPERATOR)
       snprintf(sid, sizeof(g_stack_item_description), "stack_item: operator           : %s\n", get_stack_item_operator_name((int)si->value_ram));
     else if (type == STACK_ITEM_TYPE_STRING)
       snprintf(sid, sizeof(g_stack_item_description), "stack_item: string             : %s\n", si->string);
     else if (type == STACK_ITEM_TYPE_LABEL)
-      snprintf(sid, sizeof(g_stack_item_description), "stack_item: label              : %s\n", si->string);
+      snprintf(sid, sizeof(g_stack_item_description), "stack_item: label (%c)          : %s\n", sign, si->string);
     else if (type == STACK_ITEM_TYPE_STACK) {
       struct stack *st = find_stack((int)si->value_ram, file_id);
 
       if (st->computed == YES)
-        snprintf(sid, sizeof(g_stack_item_description), "stack_item: (stack) calculation: %d (result = %d/$%x (RAM) %d/$%x (ROM))\n", (int)si->value_ram, st->result_ram, st->result_ram, st->result_rom, st->result_rom);
+        snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation: (%c)   : %d (result = %d/$%x (RAM) %d/$%x (ROM))\n", sign, (int)si->value_ram, st->result_ram, st->result_ram, st->result_rom, st->result_rom);
       else
-        snprintf(sid, sizeof(g_stack_item_description), "stack_item: (stack) calculation: %d (result = ?)\n", (int)si->value_ram);
+        snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation: (%c)   : %d (result = ?)\n", sign, (int)si->value_ram);
     }
     else
       snprintf(sid, sizeof(g_stack_item_description), "stack_item: UNKNOWN!");

@@ -58,7 +58,7 @@ MAP '\n' = $50
         AND ASC('A') + (2*5) - asc('B') + 1, X          ; @BT 35 0A
         AND (ASC('A') + (2*5) - asc('B') + 1, X)        ; @BT 21 0A
         .db "<07"                                       ; @BT END
-
+        
 .define CALCULATION_1 = ASC('A')*100 + asc('B')*5 - 4
 .define CALCULATION_2 = ASC('!')-$80
 
