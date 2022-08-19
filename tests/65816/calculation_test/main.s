@@ -141,3 +141,34 @@ label_224:
         .db "<09"                ; @BT END
         .ends
         
+        .section "Section7" force
+        .define VALUE_6_1 VALUE_3 + VALUE_3
+        .define VALUE_6_2 -VALUE_6_1
+        .define VALUE_6_3 -VALUE_6_2
+        .define VALUE_6_4 -VALUE_6_3
+        .db "10>"               ; @BT TEST-10 10 START
+        .db VALUE_6_4           ; @BT FA
+        .db -VALUE_6_4          ; @BT 06
+        .db 0-VALUE_6_4         ; @BT 06
+        .define VALUE_3_1 -VALUE_3
+        .define VALUE_3_2 -VALUE_3_1
+        .define VALUE_3_3 -VALUE_3_2
+        .db VALUE_3_3           ; @BT FD
+        .db -VALUE_3_3          ; @BT 03
+        .db 0-VALUE_3_3         ; @BT 03
+        .define VALUE_3_4 0-VALUE_3
+        .define VALUE_3_5 0-VALUE_3_4
+        .db VALUE_3_5           ; @BT 03
+        .db -VALUE_3_5          ; @BT FD
+        .db 0-VALUE_3_5         ; @BT FD
+        .define VALUE_6_5 -VALUE_3 + -VALUE_3
+        .define VALUE_6_6 -VALUE_6_5
+        .define VALUE_6_7 -VALUE_6_6
+        .db VALUE_6_5           ; @BT FA
+        .db VALUE_6_6           ; @BT 06
+        .db VALUE_6_7           ; @BT FA
+        .db -VALUE_6_7          ; @BT 06
+        .db 0-VALUE_6_7         ; @BT 06
+        .db "<10"               ; @BT END
+        .ends
+        

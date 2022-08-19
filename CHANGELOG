@@ -8,7 +8,7 @@ v10.3 (19-Aug-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
                     [ALL] .MACRO calling another .MACRO, inside a namespaced
                       file, should now work.
                     [ALL] .MACRO arguments can now be put inside parentheses
-                      when calling a .MACRO.
+                      when calling a .MACRO (e.g., "MyMacro(1, 2)").
                     [ALL] defined() can now process strings with substitution.
                     [ALL] Added an alternative way of defining a .MACRO
                       (e.g., ".macro SUM(value1,value2) isolated").
