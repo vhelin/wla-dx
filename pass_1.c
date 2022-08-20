@@ -119,7 +119,7 @@ struct string *g_fopen_filenames_first = NULL, *g_fopen_filenames_last = NULL;
 struct function *g_functions_first = NULL, *g_functions_last = NULL;
 
 extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name;
-extern int g_source_file_size, g_input_number_error_msg, g_verbose_mode, g_output_format, g_open_files, g_input_parse_if;
+extern int g_source_file_size, g_input_number_error_msg, g_verbose_level, g_output_format, g_open_files, g_input_parse_if;
 extern int g_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations, g_input_parse_special_chars;
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
 extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
@@ -741,7 +741,7 @@ int pass_1(void) {
   struct macro_static *m = NULL;
   int o, p, q;
   
-  if (g_verbose_mode == ON)
+  if (g_verbose_level >= 100)
     printf("Pass 1...\n");
 
   reset_label_stack();

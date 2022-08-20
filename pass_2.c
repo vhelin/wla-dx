@@ -57,7 +57,7 @@ extern FILE *g_file_out_ptr;
 extern int g_rambanks, g_rambanks_defined, g_ifdef;
 extern int g_rombanks_defined, g_rombanks;
 extern int g_output_format, g_romgbc, g_romsgb, g_romdmg, g_max_address;
-extern int g_romtype, g_verbose_mode, g_section_status, g_background_defined, g_memorymap_defined;
+extern int g_romtype, g_verbose_level, g_section_status, g_background_defined, g_memorymap_defined;
 extern int g_emptyfill_defined, g_emptyfill, g_rombankmap_defined, g_section_id;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
@@ -78,7 +78,7 @@ int pass_2(void) {
     return FAILED;
   }
 
-  if (g_verbose_mode == ON)
+  if (g_verbose_level >= 100)
     printf("Directive checks...\n");
 
   if (g_section_status == ON) {

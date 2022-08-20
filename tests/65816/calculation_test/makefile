@@ -4,9 +4,9 @@ CFLAGS = -v -i -o
 LD = $(WLAVALGRIND) wlalink
 LDFLAGS = -v -i -s
 
-SFILES = main.s
+SFILES = main.s defines.s
 IFILES = 
-OFILES = main.o
+OFILES = main.o defines.o
 
 all: result.rom check
 
@@ -15,6 +15,9 @@ result.rom: $(OFILES) makefile
 
 main.o: main.s
 	$(CC) $(CFLAGS) main.o main.s
+
+defines.o: defines.s
+	$(CC) $(CFLAGS) defines.o defines.s
 
 check: result.rom
 	byte_tester -s main.s

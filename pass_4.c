@@ -43,7 +43,7 @@ extern int g_licenseecodeold, g_romgbc;
 #endif
 
 extern int g_romtype, g_rambanks, g_emptyfill, g_max_address;
-extern int g_rambanks_defined, g_verbose_mode;
+extern int g_rambanks_defined, g_verbose_level;
 extern int g_section_status;
 extern int g_banksize, g_banksize_defined;
 extern int g_slots_amount;
@@ -295,7 +295,7 @@ int pass_4(void) {
   g_bankheader_status = OFF;
   g_mem_insert_overwrite = OFF;
 
-  if (g_verbose_mode == ON)
+  if (g_verbose_level >= 100)
     printf("Internal pass 2...\n");
 
   if ((g_file_out_ptr = fopen(g_tmp_name, "rb")) == NULL) {
@@ -1747,9 +1747,9 @@ int pass_4(void) {
   }
 
   /* show project information */
-  if (g_verbose_mode == ON && g_output_format != OUTPUT_LIBRARY)
+  if (g_verbose_level >= 2 && g_output_format == OUTPUT_OBJECT)
     show_project_information_object();
-  else if (g_verbose_mode == ON && g_output_format == OUTPUT_LIBRARY)
+  else if (g_verbose_level >= 2 && g_output_format == OUTPUT_LIBRARY)
     show_project_information_library();
 
   return SUCCEEDED;
@@ -2554,10 +2554,12 @@ int show_project_information_object(void) {
     s = s->next;
   }
 
-  printf("-------------------------------------------------\n");
-  printf("---                   ROM                     ---\n");
-  printf("-------------------------------------------------\n");
-
+  if (g_verbose_level >= 100) {
+    printf("-------------------------------------------------\n");
+    printf("---                   ROM                     ---\n");
+    printf("-------------------------------------------------\n");
+  }
+    
   for (i = 0; i < g_rombanks; i++) {  
     int bank_address = g_bankaddress[i], j, used_rom = 0, found_block, block_start, used_sections = 0, bank_size = g_banks[i];
 
@@ -2591,9 +2593,11 @@ int show_project_information_object(void) {
       continue;
 
     f = ((float)used_rom)/bank_size * 100.0f;
-    printf("ROM bank %d (%d bytes (%.2f%%) used)\n", i, used_rom, f);
-    printf("  - Outside .SECTIONs (%d bytes)\n", used_rom - used_sections);
-
+    if (g_verbose_level >= 100) {
+      printf("ROM bank %d (%d bytes (%.2f%%) used)\n", i, used_rom, f);
+      printf("  - Outside .SECTIONs (%d bytes)\n", used_rom - used_sections);
+    }
+    
     found_block = NO;
     block_start = 0;
     printed_something = NO;
@@ -2604,20 +2608,27 @@ int show_project_information_object(void) {
         block_start = j;
       }
       else if (g_rom_banks_usage_table[bank_address + j] == 0 && found_block == YES) {
-        printf("    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j - 1, j - block_start);
-        printed_something = YES;
+        if (g_verbose_level >= 100) {
+          printf("    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j - 1, j - block_start);
+          printed_something = YES;
+        }
         found_block = NO;
       }
       else if (found_block == YES && j == bank_size - 1) {
-        printf("    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j, j - block_start + 1);
-        printed_something = YES;
+        if (g_verbose_level >= 100) {
+          printf("    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j, j - block_start + 1);
+          printed_something = YES;
+        }
       }
     }
 
-    if (printed_something == NO)
-      printf("    - No data outside .SECTIONs.\n");
+    if (printed_something == NO) {
+      if (g_verbose_level >= 100)
+        printf("    - No data outside .SECTIONs.\n");
+    }
     
-    printf("  - Sections (%d bytes)\n", used_sections);
+    if (g_verbose_level >= 100)
+      printf("  - Sections (%d bytes)\n", used_sections);
 
     printed_something = NO;
     
@@ -2629,24 +2640,32 @@ int show_project_information_object(void) {
         if (status == SECTION_STATUS_FREE || status == SECTION_STATUS_FORCE || status == SECTION_STATUS_OVERWRITE ||
             status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE || status == SECTION_STATUS_SUPERFREE ||
             status == SECTION_STATUS_SEMISUBFREE) {
-          printf("    - .SECTION \"%s\" (%d bytes).\n", s->name, s->size);
-          printed_something = YES;
+          if (g_verbose_level >= 100) {
+            printf("    - .SECTION \"%s\" (%d bytes).\n", s->name, s->size);
+            printed_something = YES;
+          }
         }
       }
       
       s = s->next;
     }
 
-    if (printed_something == NO)
-      printf("    - No .SECTIONs found.\n");
+    if (printed_something == NO) {
+      if (g_verbose_level >= 100)
+        printf("    - No .SECTIONs found.\n");
+    }
   }
 
-  printf("-------------------------------------------------\n");
-  printf("---                   RAM                     ---\n");
-  printf("-------------------------------------------------\n");
-
-  if (total_used_ram == 0)
-    printf("No .RAMSECTIONs were found, no information about RAM.\n");
+  if (g_verbose_level >= 100) {
+    printf("-------------------------------------------------\n");
+    printf("---                   RAM                     ---\n");
+    printf("-------------------------------------------------\n");
+  }
+  
+  if (total_used_ram == 0) {
+    if (g_verbose_level >= 100)
+      printf("No .RAMSECTIONs were found, no information about RAM.\n");
+  }
   else {
     char slot_name[MAX_NAME_LENGTH + 1];
     int slot, bank;
@@ -2678,7 +2697,8 @@ int show_project_information_object(void) {
           snprintf(slot_name, sizeof(slot_name), "%d", slot);      
 
         f = ((float)ram_used)/g_slots[slot].size * 100.0f;
-        printf("RAM slot %s bank %d (%d bytes (%.2f%%) used)\n", slot_name, bank, ram_used, f);
+        if (g_verbose_level >= 100)
+          printf("RAM slot %s bank %d (%d bytes (%.2f%%) used)\n", slot_name, bank, ram_used, f);
 
         s = g_sections_first;
         while (s != NULL) {
@@ -2686,8 +2706,10 @@ int show_project_information_object(void) {
             int status = s->status;
 
             if (status == SECTION_STATUS_RAM_FREE || status == SECTION_STATUS_RAM_FORCE ||
-                status == SECTION_STATUS_RAM_SEMIFREE || status == SECTION_STATUS_RAM_SEMISUBFREE)
-              printf("  - .RAMSECTION \"%s\" (%d bytes).\n", s->name, s->size);
+                status == SECTION_STATUS_RAM_SEMIFREE || status == SECTION_STATUS_RAM_SEMISUBFREE) {
+              if (g_verbose_level >= 100)
+                printf("  - .RAMSECTION \"%s\" (%d bytes).\n", s->name, s->size);
+            }
           }
           
           s = s->next;
@@ -2696,10 +2718,12 @@ int show_project_information_object(void) {
     }
   }
 
-  printf("-------------------------------------------------\n");
-  printf("---                 SUMMARY                   ---\n");
-  printf("-------------------------------------------------\n");
-
+  if (g_verbose_level >= 100) {
+    printf("-------------------------------------------------\n");
+    printf("---                 SUMMARY                   ---\n");
+    printf("-------------------------------------------------\n");
+  }
+  
   f = ((float)total_used_rom)/total_rom_size * 100.0f;
   printf("ROM: %d bytes (%.2f%%) used.\n", total_used_rom, f);
   

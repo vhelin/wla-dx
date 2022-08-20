@@ -33,7 +33,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.3a (19.8.2022)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.3a (20.8.2022)";
 char g_wla_version[] = "10.3";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -72,7 +72,7 @@ extern int g_include_in_tmp_size, g_tmp_a_size, *g_banks, *g_bankaddress;
 extern int g_saved_structures_count, g_saved_structures_max2;
 extern int g_sizeof_g_tmp, g_global_listfile_items, *g_global_listfile_ints;
 
-int g_output_format = OUTPUT_NONE, g_verbose_mode = OFF, g_test_mode = OFF;
+int g_output_format = OUTPUT_NONE, g_verbose_level = 0, g_test_mode = OFF;
 int g_extra_definitions = OFF, g_commandline_parsing = ON, g_makefile_rules = NO;
 int g_listfile_data = NO, g_quiet = NO, g_use_incdir = NO, g_little_endian = YES;
 int g_create_sizeof_definitions = YES, g_global_label_hint = HINT_NONE, g_keep_empty_sections = NO;
@@ -227,6 +227,8 @@ int main(int argc, char *argv[]) {
     printf("-s  Don't create _sizeof_* and _paddingof_* definitions\n");
     printf("-t  Test compile\n");
     printf("-v  Verbose messages\n");
+    printf("-v1 Verbose messages (only discard sections)\n");
+    printf("-v2 Verbose messages (-v1 plus short summary)\n");
     printf("-x  Extra compile time labels and definitions\n");
     printf("-I <DIR>  Include directory\n");
     printf("-D <DEF>  Declare definition\n\n");
@@ -368,7 +370,15 @@ int parse_flags(char **flags, int flagc, int *print_usage) {
       continue;
     }
     else if (!strcmp(flags[count], "-v")) {
-      g_verbose_mode = ON;
+      g_verbose_level = 100;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-v1")) {
+      g_verbose_level = 1;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-v2")) {
+      g_verbose_level = 2;
       continue;
     }
     else if (!strcmp(flags[count], "-h")) {
@@ -390,7 +400,7 @@ int parse_flags(char **flags, int flagc, int *print_usage) {
     else if (!strcmp(flags[count], "-M")) {
       g_makefile_rules = YES;
       g_test_mode = ON;
-      g_verbose_mode = OFF;
+      g_verbose_level = 0;
       g_quiet = YES;
       /* if file loading requires a tmp file, this will be its name */
       generate_tmp_name(g_makefile_tmp_name);

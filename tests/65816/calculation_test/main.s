@@ -171,4 +171,25 @@ label_224:
         .db 0-VALUE_6_7         ; @BT 06
         .db "<10"               ; @BT END
         .ends
-        
+
+        .section "Section8" force
+        .define VALUE_A = -VALUE_3 + 5 // 2
+        .define VALUE_B = -VALUE_A + -VALUE_A // -4
+        .define VALUE_C = VALUE_B + VALUE_B*-2 // 4
+        .define VALUE_D = VALUE_C + -VALUE_A - VALUE_B // 6
+        .db "11>"                                      ; @BT TEST-11 11 START
+        .db VALUE_A                                    ; @BT 02
+        .db VALUE_B                                    ; @BT FC
+        .db VALUE_C                                    ; @BT 04
+        .db VALUE_D                                    ; @BT 06
+        .db -VALUE_A - -VALUE_A                        ; @BT 00
+        .db VALUE_A - -VALUE_A                         ; @BT 04
+        .db -VALUE_A - (-VALUE_A)                      ; @BT 00
+        .db VALUE_A - (-VALUE_A)                       ; @BT 04
+        .db VALUE_D + VALUE_B - VALUE_A + VALUE_C      ; @BT 04
+        .db VALUE_D*1 + VALUE_B*1 - VALUE_A*1 + VALUE_C*1 ; @BT 04
+        .db VALUE_D*0 + VALUE_B*0 - VALUE_A*0 + VALUE_C*0 ; @BT 00
+        .db VALUE_D*2 + VALUE_B*2 - VALUE_A*2 + VALUE_C*2 ; @BT 08
+        .db "<11"                                      ; @BT END
+        .ends
+

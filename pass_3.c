@@ -21,7 +21,7 @@ extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
 extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp, g_namespace[MAX_NAME_LENGTH + 1];
 extern char *g_asm_name;
-extern int g_verbose_mode, g_section_status, g_output_format, g_keep_empty_sections, g_quiet, g_sizeof_g_error_message;
+extern int g_verbose_level, g_section_status, g_output_format, g_keep_empty_sections, g_quiet, g_sizeof_g_error_message;
 extern int g_global_listfile_items;
 
 struct label_def *g_label_last, *g_label_tmp, *g_labels = NULL;
@@ -84,7 +84,7 @@ int pass_3(void) {
   
   g_namespace[0] = 0;
   
-  if (g_verbose_mode == ON)
+  if (g_verbose_level >= 100)
     printf("Internal pass 1...\n");
 
   if ((f_in = fopen(g_tmp_name, "rb")) == NULL) {
@@ -691,7 +691,7 @@ int pass_3(void) {
       if (s->size == 0 && s->keep == NO && g_keep_empty_sections == NO) {
         struct after_section *as;
         
-        if (g_verbose_mode == ON)
+        if (g_verbose_level >= 1)
           fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
         s->alive = NO;
 
