@@ -112,3 +112,10 @@
         .db 1                   ; @BT 01 01 01 01 01 01 01 01 01 01
         .endr
         .db "<06"               ; @BT END
+
+        .db "07>"               ; @BT TEST-07 07 START
+        asl sumAB(VALUE_1,VALUE_3+1) ; @BT 06 05
+        cmp #sumABC(1,2,VALUE_3)     ; @BT C9 06
+        cmp [sumABC(1,VALUE_4/2,VALUE_4-1)] ; @BT C7 06
+        .db "<07"               ; @BT END
+        

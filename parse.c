@@ -2053,7 +2053,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
       free(si);
       return FAILED;
     }
-    else if (res != SUCCEEDED && res != INPUT_NUMBER_ADDRESS_LABEL && res != INPUT_NUMBER_STACK) {
+    else if (res != SUCCEEDED && res != INPUT_NUMBER_ADDRESS_LABEL && res != INPUT_NUMBER_STACK && res != INPUT_NUMBER_FLOAT) {
       free(si);
       print_error(ERROR_NUM, "Argument %d is not a value, label or a pending calculation.\n", i+1);
       return FAILED;
@@ -2066,6 +2066,11 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
           if (res == SUCCEEDED) {
             si[j].type = STACK_ITEM_TYPE_VALUE;
             si[j].value = g_parsed_int;
+            si[j].sign = SI_SIGN_POSITIVE;
+          }
+          else if (res == INPUT_NUMBER_FLOAT) {
+            si[j].type = STACK_ITEM_TYPE_VALUE;
+            si[j].value = g_parsed_double;
             si[j].sign = SI_SIGN_POSITIVE;
           }
           else if (res == INPUT_NUMBER_ADDRESS_LABEL) {

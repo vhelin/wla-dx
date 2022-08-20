@@ -1,5 +1,6 @@
 [objects]
 main.o
+defines.o
 [definitions]
 VALUE_1 1
 VALUE_2 2
