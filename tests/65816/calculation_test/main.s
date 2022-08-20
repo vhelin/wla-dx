@@ -198,7 +198,7 @@ label_224:
         .define VALUE_F = -VALUE_8 + 7 + VALUE_E // 4
         .define VALUE_G = VALUE_E - VALUE_F // 1
         .define VALUE_H = -VALUE_G - VALUE_F + VALUE_E // 0
-        .define VALUE_I = -VALUE_9 + 2 + VALUE_9 // 2
+        .define VALUE_I = -VALUE_9 - 7 + VALUE_9*2 // 2
         .define VALUE_10 = VALUE_E + VALUE_F + VALUE_G // 10
         .export VALUE_10 // this needs to be exported as there are no references to it in this file, only in defines.s
         .db "12>"                                      ; @BT TEST-12 12 START

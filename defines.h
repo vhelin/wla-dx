@@ -697,6 +697,7 @@ struct stack {
 struct stack_item {
   int type;
   int sign;
+  int can_calculate_deltas;
   double value;
   char string[MAX_NAME_LENGTH + 1];
 };

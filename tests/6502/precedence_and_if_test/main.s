@@ -527,3 +527,50 @@
           .fail "-(-(2-4)) != -(4-2) ---> FAILS"
         .endif
         
+        ////////////////////////////////////////////////////////////////////////
+
+        .define LUT_SIZE 64
+        .define VALUE_0 0
+        .org $200
+        .section "HURLUMHEI" free align $300
+some_label:
+        .rept 64
+        .db 0
+        .endr
+some_label_end:
+        .ends
+
+        .db "12>"               ; @BT TEST-12 12 START
+        .dw some_label          ; @BT 00 83
+        .dw LUT_SIZE-LUT_SIZE+some_label ; @BT 00 83
+        .dw some_label - VALUE_0         ; @BT 00 83
+        .db some_label_end - some_label  ; @BT 40
+        .db 1 + some_label_end - some_label  ; @BT 41
+        .db 1 + (some_label_end - some_label)  ; @BT 41
+        .db 1 + some_label_end - some_label + 1  ; @BT 42
+        .db (some_label_end - some_label)*2 - (some_label_end - some_label) ; @BT 40
+        .dw (some_label_end - some_label)*2 + some_label - (some_label_end - some_label)*(4-2) ; @BT 00 83
+        .rept (some_label_end - some_label)*2 + 4 - (some_label_end - some_label)*(4-2)
+        .db 3                   ; @BT 03 03 03 03
+        .endr
+        .db "<12"                        ; @BT END
+        
+        .if LUT_SIZE != LUT_SIZE+0
+          .fail "Calculations are broken..."
+        .endif
+        .if (some_label_end-some_label) != LUT_SIZE
+          .fail "LUT should have 64 entries (1)!"
+        .endif
+        .if (some_label_end-some_label) != LUT_SIZE-LUT_SIZE+64
+          .fail "LUT should have 64 entries (2)!"
+        .endif
+        .if some_label_end-some_label != LUT_SIZE
+          .fail "LUT should have 64 entries (3)!"
+        .endif
+        .if (some_label_end - some_label)*2 - (LUT_SIZE-LUT_SIZE) - (some_label_end - some_label) != LUT_SIZE
+          .fail "LUT should have 64 entries (4)!"
+        .endif
+        .if (some_label_end-some_label) != some_label_end-some_label
+          .fail "Delta calculation is broken!"
+        .endif
+        

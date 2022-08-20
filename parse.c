@@ -2041,6 +2041,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
     si[i].value = fun->stack->stack[i].value;
     si[i].type = fun->stack->stack[i].type;
     si[i].sign = fun->stack->stack[i].sign;
+    si[i].can_calculate_deltas = fun->stack->stack[i].can_calculate_deltas;
     if (si[i].type == STACK_ITEM_TYPE_LABEL)
       strcpy(si[i].string, fun->stack->stack[i].string);
   }
