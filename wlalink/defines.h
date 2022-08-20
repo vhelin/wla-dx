@@ -270,6 +270,7 @@ struct stack_item {
   int slot;
   int base;
   int bank;
+  int stack_file_id;
   double value_ram;
   double value_rom;
   char string[MAX_NAME_LENGTH + 1];

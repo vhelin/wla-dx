@@ -193,3 +193,21 @@ label_224:
         .db "<11"                                      ; @BT END
         .ends
 
+        .section "Section9" force
+        .define VALUE_E = -VALUE_7 + 7 + 5 // 5
+        .define VALUE_F = -VALUE_8 + 7 + VALUE_E // 4
+        .define VALUE_G = VALUE_E - VALUE_F // 1
+        .define VALUE_H = -VALUE_G - VALUE_F + VALUE_E // 0
+        .define VALUE_I = -VALUE_9 + 2 + VALUE_9 // 2
+        .define VALUE_10 = VALUE_E + VALUE_F + VALUE_G // 10
+        .export VALUE_10 // this needs to be exported as there are no references to it in this file, only in defines.s
+        .db "12>"                                      ; @BT TEST-12 12 START
+        .db VALUE_E                                    ; @BT 05
+        .db VALUE_F                                    ; @BT 04
+        .db VALUE_G                                    ; @BT 01
+        .db VALUE_H                                    ; @BT 00
+        .db VALUE_I                                    ; @BT 02
+        .db -VALUE_B*2 - VALUE_F*2 - VALUE_H*100 + VALUE_E*2 - VALUE_I*2 ; @BT 06
+        .db "<12"                                            ; @BT END
+        .ends
+

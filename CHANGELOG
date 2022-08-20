@@ -1412,9 +1412,11 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.18 (19-Aug-2022) Added -v1 and -v2 (shorter verbose levels).
+v5.18 (20-Aug-2022) Added -v1 and -v2 (shorter verbose levels).
                     Pending calculations that were marked negative inside
                       pending calculations should now work.
+                    Pending calculations that contain pending calculations
+                      that are defined in other files should work now.
 
 v5.17 (24-Jun-2022) Added SIZE to [sections] and [ramsections].
                     Added -R (file paths inside link file are relative to

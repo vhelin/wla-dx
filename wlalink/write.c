@@ -2661,11 +2661,18 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
       t++;
     }
     else if (s->type == STACK_ITEM_TYPE_STACK) {
+      int file_id;
+      
       /* we have a stack (A) inside a stack (B)! find the stack (A)! */
-      st = find_stack((int)s->value_ram, sta->file_id);
+      if (s->stack_file_id >= 0)
+        file_id = s->stack_file_id;
+      else
+        file_id = sta->file_id;
+      
+      st = find_stack((int)s->value_ram, file_id);
 
       if (st == NULL) {
-        fprintf(stderr, "COMPUTE_STACK: A computation stack has gone missing. This is a fatal internal error. Please send the WLA DX author a bug report.\n");
+        fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: A computation stack (id = %d, %s) has gone missing. This is a fatal internal error. Please send the WLA DX author a bug report.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, (int)s->value_ram, get_file_name(file_id));
         return FAILED;
       }
 
@@ -3470,7 +3477,7 @@ int parse_stack(struct stack *sta) {
         /* HACK: here we abuse the stack item structure's members */
         si->value_ram = l->address;
         si->value_rom = l->address;
-        si->sign = l->file_id;
+        si->stack_file_id = l->file_id;
         si->type = STACK_ITEM_TYPE_STACK;
       }
       else {

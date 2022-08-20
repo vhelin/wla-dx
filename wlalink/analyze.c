@@ -762,6 +762,7 @@ int collect_dlr(void) {
           s->stack[n].slot = -1;
           s->stack[n].base = -1;
           s->stack[n].bank = -1;
+          s->stack[n].stack_file_id = -1;
           s->stack[n].type = *(t++);
           s->stack[n].sign = *(t++);
           if (s->stack[n].type == STACK_ITEM_TYPE_LABEL) {
@@ -1021,6 +1022,7 @@ int collect_dlr(void) {
           s->stack[n].slot = -1;
           s->stack[n].base = -1;
           s->stack[n].bank = -1;
+          s->stack[n].stack_file_id = -1;
           s->stack[n].type = *(t++);
           s->stack[n].sign = *(t++);
           if (s->stack[n].type == STACK_ITEM_TYPE_LABEL) {
