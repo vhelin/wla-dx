@@ -290,7 +290,6 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         for (k = 0; *in == '-' && k < 32; k++, in++)
           si[q].string[k] = '-';
         si[q].string[k] = 0;
-        fprintf(stderr, "GOT %s\n", si[q].string);
       }
       else {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;

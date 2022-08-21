@@ -222,11 +222,24 @@ test13f:.db 1                   ; @BT 01
         .db "<13"               ; @BT END
         .ends
         
-
+        // testing that ROM size indicator is set to emptyfill
         .org $0148-3
         .db "14>"               ; @BT TEST-14 14 START
         //.db $ff               ; @BT FF
         .org $0148+1
         .db "<14"               ; @BT END
 
+        .db "15>"               ; @BT TEST-15 15 START
+        .define VALUE_100 = 100
+        .define VALUE_2 = (test13f@childA - test13f)*2 + (VALUE_100 - VALUE_100) + 2 - 1 - 1
+        .rept (test13f@childA - test13f)*2 + (test13d@child2 - test13d@child1) - (test13b - test13a)*(test13c@childA - test13c)
+        .db 3                   ; @BT 03 03
+        .endr
+        .rept (test13f@childA - test13f)*2 + (VALUE_100 - VALUE_100) + (VALUE_2 - VALUE_2 - VALUE_2) + 2 - (test13b - test13a)*(test13c@childA - test13c)
+        .db 4                   ; @BT 04 04
+        .endr
+        .rept VALUE_2 + (test13f@childA - test13f) - (VALUE_2 - VALUE_2)
+        .db 5                   ; @BT 05 05 05
+        .endr
+        .db "<15"               ; @BT END
         
