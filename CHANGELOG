@@ -20,6 +20,7 @@ v10.3 (20-Aug-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
                     [ALL] Calculations like ">-VAR" and "2--1" work now,
                       only ">(-VAR)" and "2-(-1)" used to work before.
                     [ALL] Added -v1 and -v2 (shorter verbose levels).
+                    [ALL] Changed the license to GPL-2.0-or-later.
                     [GB ] Sometimes WLA-GB would generate unused pending
                       calculations when parsing the code, and namespaces would
                       not work in them thus breaking the linking phase.

@@ -71,3 +71,9 @@ Usage
 Use the [documentation](https://wla-dx.readthedocs.io/en/latest/) as a starting
 point.
 
+
+License
+=======
+
+WLA DX is GPL-2.0-or-later software. See the file LICENSE or https://spdx.org/licenses/GPL-2.0-or-later.html
+for more information.
