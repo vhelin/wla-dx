@@ -1360,7 +1360,7 @@ int evaluate_token(void) {
       if (g_stack_inserted == STACK_OUTSIDE) {
         if (g_stacks_outside == 1) {
           g_stacks_outside = 0;
-          delete_stack(g_stacks_first);
+          delete_stack_calculation_struct(g_stacks_first);
           g_stacks_first = NULL;
           g_stacks_last = NULL;
         }
@@ -1371,7 +1371,7 @@ int evaluate_token(void) {
           for (y = 0; y < g_stacks_outside - 1; y++)
             s = s->next;
 
-          delete_stack(s->next);
+          delete_stack_calculation_struct(s->next);
           s->next = NULL;
           g_stacks_last = s;
         }
@@ -1379,7 +1379,7 @@ int evaluate_token(void) {
       else {
         if (g_stacks_inside == 1) {
           g_stacks_inside = 0;
-          delete_stack(g_stacks_header_first);
+          delete_stack_calculation_struct(g_stacks_header_first);
           g_stacks_header_first = NULL;
           g_stacks_header_last = NULL;
         }
@@ -1390,7 +1390,7 @@ int evaluate_token(void) {
           for (y = 0; y < g_stacks_inside - 1; y++)
             s = s->next;
 
-          delete_stack(s->next);
+          delete_stack_calculation_struct(s->next);
           s->next = NULL;
           g_stacks_header_last = s;
         }
@@ -11844,7 +11844,7 @@ int find_next_point(char *name) {
 }
 
 
-void delete_stack(struct stack *s) {
+void delete_stack_calculation_struct(struct stack *s) {
 
   if (s == NULL) {
     print_error(ERROR_WRN, "Deleting a non-existing computation stack. This can lead to problems.\n");

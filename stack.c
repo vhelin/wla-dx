@@ -44,6 +44,9 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 
 int calculation_stack_insert(struct stack *s) {
 
+  s->next = NULL;
+  s->prev = NULL;
+  
   /* outside bankheader sections */
   if (g_bankheader_status == OFF) {
     if (g_stacks_first == NULL) {
@@ -52,8 +55,10 @@ int calculation_stack_insert(struct stack *s) {
     }
     else {
       g_stacks_last->next = s;
+      s->prev = g_stacks_last->next;
       g_stacks_last = s;
     }
+    s->is_bankheader_section = NO;    
     g_stacks_outside++;
     g_stack_inserted = STACK_OUTSIDE;
   }
@@ -65,12 +70,15 @@ int calculation_stack_insert(struct stack *s) {
     }
     else {
       g_stacks_header_last->next = s;
+      s->prev = g_stacks_header_last->next;
       g_stacks_header_last = s;
     }
+    s->is_bankheader_section = YES;
     g_stacks_inside++;
     g_stack_inserted = STACK_INSIDE;
   }
 
+  s->is_single_instance = NO;
   s->id = g_stack_id;
   s->section_status = g_section_status;
   if (g_section_status == ON)
@@ -82,6 +90,33 @@ int calculation_stack_insert(struct stack *s) {
   g_stack_id++;
 
   return SUCCEEDED;
+}
+
+
+void delete_stack_calculation(struct stack *s) {
+
+  if (s == NULL || s->is_single_instance == NO)
+    return;
+
+  if (s->prev != NULL)
+    s->prev->next = s->next;
+  if (s->next != NULL)
+    s->next->prev = s->prev;
+  
+  if (s->is_bankheader_section == YES) {
+    if (g_stacks_header_first == s)
+      g_stacks_header_first = s->next;
+    if (g_stacks_header_last == s)
+      g_stacks_header_last = s->prev;
+  }
+  else {
+    if (g_stacks_first == s)
+      g_stacks_first = s->next;
+    if (g_stacks_last == s)
+      g_stacks_last = s->prev;
+  }
+
+  delete_stack_calculation_struct(s);
 }
 
 
@@ -1791,6 +1826,48 @@ static int _process_string(struct stack_item *s, int *cannot_resolve) {
 }
 
 
+static int _try_to_calculate(struct stack_item *st) {
+
+  struct stack *s;
+
+  s = find_stack_calculation((int)st->value, YES);
+  if (s == NULL)
+    return FAILED;
+
+  if (s->has_been_calculated == YES) {
+    st->type = STACK_ITEM_TYPE_VALUE;
+    st->value = s->value;
+
+    return SUCCEEDED;
+  }
+
+  if (resolve_stack(s->stack, s->stacksize) == SUCCEEDED) {
+    double dou;
+          
+    if (compute_stack(s, s->stacksize, &dou) == FAILED)
+      return FAILED;
+
+    if (s->is_single_instance == YES) {
+      free(s->stack);
+      s->stack = NULL;
+      s->stacksize = 0;
+      s->has_been_calculated = YES;
+      s->value = dou;
+
+      /* HACK: don't export this calculation in pass_4.c */
+      s->is_function_body = YES;
+    }
+
+    st->type = STACK_ITEM_TYPE_VALUE;
+    st->value = dou;
+
+    return SUCCEEDED;
+  }
+
+  return FAILED;
+}
+
+
 int resolve_stack(struct stack_item s[], int stack_item_count) {
 
   struct stack_item *st;
@@ -1851,7 +1928,7 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
   if (cannot_resolve != 0)
     return FAILED;
 
-  /* find a string, a stack, bank, or a NOT and fail */
+  /* find a string, a stack that cannot be calculated and turned into a value here, bank, or a NOT and fail */
   stack_item_count = backup;
   while (stack_item_count > 0) {
     int process_single = YES;
@@ -1866,13 +1943,21 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
         st -= 2;
         stack_item_count += 2;
 
-        if (st->type == STACK_ITEM_TYPE_STACK || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
+        if (st->type == STACK_ITEM_TYPE_STACK) {
+          if (_try_to_calculate(st) == FAILED)
+            return FAILED;
+        }
+        else if ((st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
           return FAILED;
 
         st++;
         stack_item_count--;
 
-        if (st->type == STACK_ITEM_TYPE_STACK || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
+        if (st->type == STACK_ITEM_TYPE_STACK) {
+          if (_try_to_calculate(st) == FAILED)
+            return FAILED;
+        }
+        else if ((st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
           return FAILED;
         
         st += 2;
@@ -1887,7 +1972,11 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
     }
 
     if (process_single == YES) {
-      if (st->type == STACK_ITEM_TYPE_STRING || st->type == STACK_ITEM_TYPE_LABEL || st->type == STACK_ITEM_TYPE_STACK || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
+      if (st->type == STACK_ITEM_TYPE_STACK) {
+        if (_try_to_calculate(st) == FAILED)
+          return FAILED;
+      }
+      if (st->type == STACK_ITEM_TYPE_STRING || st->type == STACK_ITEM_TYPE_LABEL || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
         return FAILED;
       if (g_input_parse_if == NO && st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_NOT)
         return FAILED;
@@ -2373,7 +2462,7 @@ int stack_create_stack_stack(int stack_id) {
 struct stack *find_stack_calculation(int id, int print_error_on_failure) {
 
   struct stack *s;
-
+  
   s = g_stacks_first;
   while (s != NULL) {
     if (s->id == id)

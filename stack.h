@@ -11,6 +11,7 @@ int resolve_stack(struct stack_item s[], int stack_item_count);
 int compute_stack(struct stack *sta, int stack_item_count, double *result);
 int calculation_stack_insert(struct stack *s);
 void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int count, int id, struct stack *stack);
+void delete_stack_calculation(struct stack *s);
 struct stack *find_stack_calculation(int id, int print_error_on_failure);
 
 /* TODO: move these to their own file */

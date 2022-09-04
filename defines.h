@@ -693,6 +693,10 @@ struct stack {
   int bits_position;
   int bits_to_define;
   char is_function_body;
+  char is_bankheader_section;
+  char is_single_instance;
+  char has_been_calculated;
+  double value;
 };
 
 struct stack_item {

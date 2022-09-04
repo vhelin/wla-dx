@@ -200,15 +200,61 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
         .db SUM_ABC2(2-1,3+1,4+0)-SUM_ABC2(1-2,2+2,3-3+3)+0     ; @BT 03
         .db SUM_ABC3(-7,1-4,10+1)+SUM_ABC3(4+0,5+0,6+0)-1     ; @BT 0F
         .db SUM_ABC4(1-3,2-2,-2+4)+SUM_ABC4(5+0,6+0,7+0)-0     ; @BT 12
-        .db 1+SUM_ABC2(2+0,3+0,4+0)-1     ; @BT 09
-        .db 1+SUM_ABC3(4+0,5+0,6+0)-1     ; @BT 0F
-        .db 1+SUM_ABC4(5+0,6+0,7+0)-1     ; @BT 12
-        .db 1+SUM_ABC5(6+0,7+0,8+0)-1     ; @BT 15
-        .db 1+SUM_ABC5(6+0,7+0,8+0)-1     ; @BT 15
-        .db 1+SUM_ABC6(0+0,1+0,2+0)-1     ; @BT 03
-        .db 1+SUM_ABC6(0+0,1+0,2+0)-1     ; @BT 03
-        .db 1+SUM_ABC7(0+0,1+0,2+0)-1     ; @BT 03
-        .db 1+SUM_ABC7(0+0,1+0,2+0)-1     ; @BT 03
+        .db SUM_ABC2(-2+2,-1+2,-4+2+2)+SUM_ABC2(2+0,3+0,4+0)-1     ; @BT 09
+        .db SUM_ABC3(0+0,1-1,4-3)+SUM_ABC3(4+0,5+0,6+0)-1     ; @BT 0F
+        .db SUM_ABC4(1+1-1,3-2-1,-3+2+1)+SUM_ABC4(5+0,6+0,7+0)-1     ; @BT 12
+        .db SUM_ABC5(3-1-1,2-1-1,-2+(1+1))+SUM_ABC5(6+0,7+0,8+0)-1     ; @BT 15
+        .db SUM_ABC5(2-(1+1),0-1+1,4-1-1-1)+SUM_ABC5(6+0,7+0,8+0)-1     ; @BT 15
+        .db 2+SUM_ABC6(0+0,1+0,2+0)-SUM_ABC6(2*1-1,4-2*2,6-2*2-1)+0    ; @BT 03
+        .db 6+SUM_ABC6(0+0,1+0,2+0)-SUM_ABC6(1+(2-1)+0-(1-1),-6+1+6,6>>1)-0     ; @BT 03
+        .db SUM_ABC7(0+0,0-0,1*1)+SUM_ABC7(0+0,1+0,2+0)-SUM_ABC7(0+0,2<<1,-5+2)     ; @BT 03
+        .db SUM+SUM_ABC7(SUM,1+0,2+0)-SUM_ABC7(SUM*0,SUM+SUM,0+0)     ; @BT 03
         .db 1+SUM-1             ; @BT 0F
         .db "<18"               ; @BT END
 
+        .function MUL_AB(varA, varB) varA*varB
+        .function MUL_ABC1(varA, varB, varC) MUL_AB(varA, varB*varC)
+        .function MUL_ABC2(varA, varB, varC) 1*MUL_ABC1(varA*(2-1), (0+1)*varB, 1*varC*1)
+
+        .db "19>"               ; @BT TEST-19 19 START
+        .db MUL_AB(1,2)         ; @BT 02
+        .db MUL_AB(1+1,1+2)     ; @BT 06
+        .db MUL_AB(MUL_AB(0,1), MUL_AB(2,3)) ; @BT 00
+        .db MUL_AB(MUL_AB(1,2), MUL_AB(3,2)) ; @BT 0C
+        .db MUL_AB(MUL_AB(MUL_AB(1,2), MUL_AB(2,3)), MUL_AB(MUL_AB(3,4), MUL_AB(4,5)))-2879 ; @BT 01
+        .db MUL_ABC1(1,2,3)     ; @BT 06
+        .db MUL_ABC1(1+0,2+0,3+0)     ; @BT 06
+        .db MUL_ABC1(SUM_ABC6(0+0,1+0,1), SUM_ABC7(1,2,3), SUM_ABC5(0-6,-4-1,5+5+1+1)) ; @BT 0C
+        .db MUL_ABC2(1,2,3)     ; @BT 06
+        .db MUL_ABC2(1+0,2+0,3+0)     ; @BT 06
+        .db MUL_ABC2(SUM_ABC6(0+0,1+0,1), SUM_ABC7(1,2,3), SUM_ABC5(0-6,-4-1,5+5+1+1)) ; @BT 0C
+        .db MUL_AB(1,2)+0         ; @BT 02
+        .db MUL_AB(1+1,1+2)+0     ; @BT 06
+        .db MUL_AB(MUL_AB(0,1), MUL_AB(2,3))+0 ; @BT 00
+        .db MUL_AB(MUL_AB(1,2), MUL_AB(3,2))+0 ; @BT 0C
+        .db MUL_AB(MUL_AB(MUL_AB(1,2), MUL_AB(2,3)), MUL_AB(MUL_AB(3,4), MUL_AB(4,5)))-2879 ; @BT 01
+        .db MUL_ABC1(1,2,3)+0     ; @BT 06
+        .db MUL_ABC1(1+0,2+0,3+0)+0     ; @BT 06
+        .db MUL_ABC1(SUM_ABC6(0+0,1+0,1), SUM_ABC7(1,2,3), SUM_ABC5(0-6,-4-1,5+5+1+1))+0 ; @BT 0C
+        .db MUL_ABC2(1,2,3)+0     ; @BT 06
+        .db MUL_ABC2(1+0,2+0,3+0)+0     ; @BT 06
+        .db MUL_ABC2(SUM_ABC6(0+0,1+0,1), SUM_ABC7(1,2,3), SUM_ABC5(0-6,-4-1,5+5+1+1))+0 ; @BT 0C
+        .db "<19"               ; @BT END
+        
+        .db "20>"               ; @BT TEST-20 20 START
+        .rept MUL_AB(1,2)
+        .db 1                   ; @BT 01 01
+        .endr
+        .db "<20"               ; @BT END
+
+        .db "21>"               ; @BT TEST-21 21 START
+        .rept MUL_AB(0+2,1+1)
+        .db 2                   ; @BT 02 02 02 02
+        .endr
+        .db "<21"               ; @BT END
+
+        .db "22>"               ; @BT TEST-22 22 START
+        .rept SUM_ABC7(1*1,2*1,3*1)
+        .db 3                   ; @BT 03 03 03 03 03 03
+        .endr
+        .db "<22"               ; @BT END

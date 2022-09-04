@@ -1996,41 +1996,45 @@ int process_string_for_special_characters(char *label, int *string_size) {
 
 
 static int _save_stack_calculation(struct stack_item *stack, int stacksize, int linenumber, int filename_id) {
-    
-  g_stacks_tmp = calloc(sizeof(struct stack), 1);
-  if (g_stacks_tmp == NULL) {
+
+  struct stack *s;
+  
+  s = calloc(sizeof(struct stack), 1);
+  if (s == NULL) {
     free(stack);
     print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
     return FAILED;
   }
-  g_stacks_tmp->next = NULL;
-  g_stacks_tmp->type = STACK_TYPE_UNKNOWN;
-  g_stacks_tmp->bank = -123456;
-  g_stacks_tmp->stacksize = stacksize;
-  g_stacks_tmp->relative_references = 0;
-  g_stacks_tmp->stack = stack;
+  s->next = NULL;
+  s->type = STACK_TYPE_UNKNOWN;
+  s->bank = -123456;
+  s->stacksize = stacksize;
+  s->relative_references = 0;
+  s->stack = stack;
 
   if (linenumber < 0)
-    g_stacks_tmp->linenumber = g_active_file_info_last->line_current;
+    s->linenumber = g_active_file_info_last->line_current;
   else
-    g_stacks_tmp->linenumber = linenumber;
+    s->linenumber = linenumber;
 
   if (filename_id < 0)
-    g_stacks_tmp->filename_id = g_active_file_info_last->filename_id;
+    s->filename_id = g_active_file_info_last->filename_id;
   else
-    g_stacks_tmp->filename_id = filename_id;
+    s->filename_id = filename_id;
 
-  g_stacks_tmp->special_id = 0;
-  g_stacks_tmp->bits_position = 0;
-  g_stacks_tmp->bits_to_define = 0;
-  g_stacks_tmp->is_function_body = g_parsing_function_body;
+  s->special_id = 0;
+  s->bits_position = 0;
+  s->bits_to_define = 0;
+  s->is_function_body = g_parsing_function_body;
 
   /* all stacks will be definition stacks by default. pass_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
-  g_stacks_tmp->position = STACK_POSITION_DEFINITION;
+  s->position = STACK_POSITION_DEFINITION;
   
-  calculation_stack_insert(g_stacks_tmp);
+  calculation_stack_insert(s);
 
+  s->is_single_instance = YES;
+  
   return SUCCEEDED;
 }
 
