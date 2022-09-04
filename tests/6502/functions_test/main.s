@@ -258,3 +258,9 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
         .db 3                   ; @BT 03 03 03 03 03 03
         .endr
         .db "<22"               ; @BT END
+
+        .db "23>"               ; @BT TEST-23 23 START
+        .rept SUM_ABC7(MUL_ABC1(1+0,0+1,2*1)+0, 1+MUL_ABC2(-1*1,1*(2-1),SUM_ABC3(0+0,4-1-1-1,2-2)*(5-4)), 1+SUM_ABC6(0-2,MUL_ABC2(0+0,1-1,2-2),0))
+        .db 4                   ; @BT 04
+        .endr
+        .db "<23"               ; @BT END

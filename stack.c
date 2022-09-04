@@ -31,6 +31,7 @@ int g_latest_stack = 0, g_stacks_inside = 0, g_stacks_outside = 0, g_stack_id = 
 int g_parsing_function_body = NO;
 struct stack *g_stacks_first = NULL, *g_stacks_tmp = NULL, *g_stacks_last = NULL;
 struct stack *g_stacks_header_first = NULL, *g_stacks_header_last = NULL;
+struct stack *g_latest_stack_struct = NULL;
 
 extern int g_stack_inserted;
 
@@ -41,7 +42,6 @@ static int s_dsp_file_name_id = 0, s_dsp_line_number = 0;
 
 static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 
-static struct stack *s_latest_stack = NULL;
 
 
 int calculation_stack_insert(struct stack *s) {
@@ -89,7 +89,7 @@ int calculation_stack_insert(struct stack *s) {
     s->section_id = 0;
 
   g_latest_stack = g_stack_id;
-  s_latest_stack = s;
+  g_latest_stack_struct = s;
   g_stack_id++;
 
   return SUCCEEDED;
@@ -2466,8 +2466,8 @@ struct stack *find_stack_calculation(int id, int print_error_on_failure) {
 
   struct stack *s;
 
-  if (s_latest_stack != NULL && s_latest_stack->id == id)
-    return s_latest_stack;
+  if (g_latest_stack_struct != NULL && g_latest_stack_struct->id == id)
+    return g_latest_stack_struct;
   
   s = g_stacks_first;
   while (s != NULL) {

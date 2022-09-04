@@ -66,7 +66,7 @@ int g_dstruct_status = OFF;
 int g_saved_structures_count = 0, g_saved_structures_max = 0;
 unsigned char g_asciitable[256];
 
-extern struct stack *g_stacks_header_first, *g_stacks_header_last;
+extern struct stack *g_stacks_header_first, *g_stacks_header_last, *g_latest_stack_struct;
 extern int g_stacks_inside, g_stacks_outside, g_resolve_stack_calculations;
 int g_stack_inserted;
 
@@ -11851,6 +11851,9 @@ void delete_stack_calculation_struct(struct stack *s) {
     return;
   }
 
+  if (s == g_latest_stack_struct)
+    g_latest_stack_struct = NULL;
+  
   free(s->stack);
   free(s);
 }
