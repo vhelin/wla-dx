@@ -42,17 +42,17 @@ static int s_dsp_file_name_id = 0, s_dsp_line_number = 0;
 static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 
 
-int calculation_stack_insert(void) {
+int calculation_stack_insert(struct stack *s) {
 
   /* outside bankheader sections */
   if (g_bankheader_status == OFF) {
     if (g_stacks_first == NULL) {
-      g_stacks_first = g_stacks_tmp;
-      g_stacks_last = g_stacks_tmp;
+      g_stacks_first = s;
+      g_stacks_last = s;
     }
     else {
-      g_stacks_last->next = g_stacks_tmp;
-      g_stacks_last = g_stacks_tmp;
+      g_stacks_last->next = s;
+      g_stacks_last = s;
     }
     g_stacks_outside++;
     g_stack_inserted = STACK_OUTSIDE;
@@ -60,23 +60,23 @@ int calculation_stack_insert(void) {
   /* inside a bankheader section */
   else {
     if (g_stacks_header_first == NULL) {
-      g_stacks_header_first = g_stacks_tmp;
-      g_stacks_header_last = g_stacks_tmp;
+      g_stacks_header_first = s;
+      g_stacks_header_last = s;
     }
     else {
-      g_stacks_header_last->next = g_stacks_tmp;
-      g_stacks_header_last = g_stacks_tmp;
+      g_stacks_header_last->next = s;
+      g_stacks_header_last = s;
     }
     g_stacks_inside++;
     g_stack_inserted = STACK_INSIDE;
   }
 
-  g_stacks_tmp->id = g_stack_id;
-  g_stacks_tmp->section_status = g_section_status;
+  s->id = g_stack_id;
+  s->section_status = g_section_status;
   if (g_section_status == ON)
-    g_stacks_tmp->section_id = g_sec_tmp->id;
+    s->section_id = g_sec_tmp->id;
   else
-    g_stacks_tmp->section_id = 0;
+    s->section_id = 0;
 
   g_latest_stack = g_stack_id;
   g_stack_id++;
@@ -108,14 +108,23 @@ static int _break_before_value_or_string(int i, struct stack_item *si) {
 }
 
 #if WLA_DEBUG
-static void _debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int count, int id) {
+void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int count, int id, struct stack *stack) {
 
   int k;
   
-  printf("LINE %5d: ID = %d (STACK) CALCULATION ID = %d (c%d): ", line_number, id, stack_id, stack_id);
-
+  printf("LINE %5d: ID = %d (STACK) CALCULATION ID = %d (c%d) ", line_number, id, stack_id, stack_id);
+  if (stack == NULL)
+    printf("FB?: ");
+  else if (stack->is_function_body == YES)
+    printf("FBy: ");
+  else
+    printf("FBn: ");
+  
   for (k = 0; k < count; k++) {
     char ar[] = "+-*()|&/^01%~<>!:<>";
+
+    if (ta[k].type == STACK_ITEM_TYPE_DELETED)
+      continue;
 
     if (ta[k].type != STACK_ITEM_TYPE_OPERATOR) {
       if (ta[k].sign == SI_SIGN_POSITIVE)
@@ -158,7 +167,7 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
       else {
         if (value >= (int)strlen(ar)) {
           printf("ERROR!\n");
-          printf("_debug_print_stack(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", value);
+          printf("debug_print_stack(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", value);
           exit(1);
         }
         printf("%c", ar[value]);
@@ -168,8 +177,10 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
       printf("V(%f)", ta[k].value);
     else if (ta[k].type == STACK_ITEM_TYPE_STACK)
       printf("C(%d)", (int)ta[k].value);
-    else
+    else if (ta[k].type == STACK_ITEM_TYPE_STRING || ta[k].type == STACK_ITEM_TYPE_LABEL)
       printf("S(%s)", ta[k].string);
+    else
+      printf("?");
 
     if (k < count-1)
       printf(", ");
@@ -269,9 +280,11 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
     /* init the stack item */
     si[q].type = 0x123456;
-    si[q].sign = 0x123456;
+    si[q].sign = -1;
     si[q].value = 0x123456;
     si[q].can_calculate_deltas = NO;
+    si[q].has_been_replaced = NO;
+    si[q].is_in_postfix = NO;
     si[q].string[0] = 0;
 
     if (*in == ' ') {
@@ -981,26 +994,33 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 	  }
 	  else if (res == INPUT_NUMBER_STACK) {
             if (g_parsing_function_body == YES) {
+              struct stack *s;
               int item;
 
-              g_stacks_tmp = g_stacks_first;
-              while (g_stacks_tmp != NULL) {
-                if (g_stacks_tmp->id == g_latest_stack)
-                  break;
-                g_stacks_tmp = g_stacks_tmp->next;
-              }
+              s = find_stack_calculation(g_latest_stack, YES);
+              if (s == NULL)
+                return FAILED;
 
+              /* WARNING: here we embed a postfix calculation inside an infix calculation!
+                 it should work as the infix -> postfix converter should notice the postfix
+                 parts and just copy them directly... */
               si[q].type = STACK_ITEM_TYPE_OPERATOR;
               si[q].value = SI_OP_LEFT;
+              si[q].is_in_postfix = YES;
+              /* abuse the struct */
+              si[q].string[0] = 'X';
+              si[q].string[1] = 0;
               q++;
 
-              /* unroll the calculation stack here */
-              for (item = 0; q < MAX_STACK_CALCULATOR_ITEMS && item < g_stacks_tmp->stacksize; item++) {
-                si[q].type = g_stacks_tmp->stack[item].type;
-                si[q].sign = g_stacks_tmp->stack[item].sign;
-                si[q].value = g_stacks_tmp->stack[item].value;
+              for (item = 0; q < MAX_STACK_CALCULATOR_ITEMS && item < s->stacksize; item++) {
+                si[q].type = s->stack[item].type;
+                si[q].sign = s->stack[item].sign;
+                si[q].value = s->stack[item].value;
+                si[q].is_in_postfix = YES;
                 if (si[q].type == STACK_ITEM_TYPE_LABEL)
-                  strcpy(si[q].string, g_stacks_tmp->stack[item].string);
+                  strcpy(si[q].string, s->stack[item].string);
+                else
+                  si[q].string[0] = 0;
                 q++;
               }
               
@@ -1011,12 +1031,16 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
               si[q].type = STACK_ITEM_TYPE_OPERATOR;
               si[q].value = SI_OP_RIGHT;
+              si[q].is_in_postfix = YES;
+              /* abuse the struct */
+              si[q].string[0] = 'X';
+              si[q].string[1] = 0;
             }
             else {
               si[q].type = STACK_ITEM_TYPE_STACK;
               si[q].value = g_latest_stack;
               si[q].sign = SI_SIGN_POSITIVE;
-            }
+            }           
 	  }
 	  else {
 	    print_error(ERROR_NUM, "Function \"%s\" didn't return a stack calculation or a value.\n", si[q].string);
@@ -1099,6 +1123,11 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
   }
 
+#if WLA_DEBUG
+  fprintf(stderr, "PREOPT:\n");
+  debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
+#endif
+  
 #ifdef SPC700
   /* check if the computation is of the form "y+X" or "y+Y" and remove that "+X" or "+Y" */
   if (q > 2 && si[q - 2].type == STACK_ITEM_TYPE_OPERATOR && si[q - 2].value == SI_OP_ADD) {
@@ -1125,6 +1154,10 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
   /* fix the sign in every operand */
   for (b = 1, k = 0; k < q; k++) {
+    if (si[k].is_in_postfix == YES) {
+      b = 0;
+      continue;
+    }
     if (g_input_parse_if == NO) {
       /* *-1 or *-LABEL? */
       if (k < q-2 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k].value != SI_OP_RIGHT &&
@@ -1147,6 +1180,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           si[k + 1].value != SI_OP_FLOOR &&
           si[k + 1].value != SI_OP_CEIL) {
         if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
+#if WLA_DEBUG
+          debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
+#endif
           print_error(ERROR_STC, "Error in computation syntax.\n");
           return FAILED;
         }
@@ -1195,7 +1231,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       else if (si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].value == SI_OP_LEFT)
         si[k].type = STACK_ITEM_TYPE_DELETED;
     }
-    else if (si[k].type == STACK_ITEM_TYPE_VALUE || si[k].type == STACK_ITEM_TYPE_LABEL)
+    else if (si[k].type == STACK_ITEM_TYPE_VALUE || si[k].type == STACK_ITEM_TYPE_LABEL || si[k].type == STACK_ITEM_TYPE_STACK)
       b = 0;
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_LEFT)
       b = 1;
@@ -1210,9 +1246,13 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
   /* turn unary XORs into NOTs */
   for (b = 1, k = 0; k < q; k++) {
+    if (si[k].is_in_postfix == YES) {
+      b = 0;
+      continue;
+    }
     if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_XOR && b == 1)
       si[k].value = SI_OP_NOT;
-    else if (si[k].type == STACK_ITEM_TYPE_VALUE || si[k].type == STACK_ITEM_TYPE_LABEL)
+    else if (si[k].type == STACK_ITEM_TYPE_VALUE || si[k].type == STACK_ITEM_TYPE_LABEL || si[k].type == STACK_ITEM_TYPE_STACK)
       b = 0;
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_LEFT)
       b = 1;
@@ -1221,6 +1261,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   /* are we calculating deltas between two labels? */
   if (g_can_calculate_a_minus_b == YES) {
     for (k = 0; k < q; k++) {
+      if (si[k].is_in_postfix == YES)
+        continue;
       if (si[k].type == STACK_ITEM_TYPE_LABEL) {
         if (k+2 < q && si[k+1].type == STACK_ITEM_TYPE_OPERATOR && si[k+1].value == SI_OP_SUB && si[k+2].type == STACK_ITEM_TYPE_LABEL) {
           /* yes! mark such labels! */
@@ -1232,9 +1274,29 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
   }
 
+#if WLA_DEBUG
+  fprintf(stderr, "INFIX:\n");
+  debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
+#endif
+    
   /* convert infix stack into postfix stack */
   for (b = 0, k = 0, d = 0; k < q; k++) {
     ta[d].can_calculate_deltas = si[k].can_calculate_deltas;
+    ta[d].is_in_postfix = NO;
+    ta[d].has_been_replaced = si[k].has_been_replaced;
+
+    /* postfix sections are copied 1:1 */
+    if (si[k].is_in_postfix == YES && !(si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].string[0] == 'X')) {
+      ta[d].type = si[k].type;
+      ta[d].value = si[k].value;
+      ta[d].sign = si[k].sign;
+      if (si[k].type == STACK_ITEM_TYPE_STRING || si[k].type == STACK_ITEM_TYPE_LABEL)
+        strcpy(ta[d].string, si[k].string);
+      else
+        ta[d].string[0] = 0;
+      d++;
+      continue;
+    }
     
     /* operands pass through */
     if (si[k].type == STACK_ITEM_TYPE_VALUE) {
@@ -1301,6 +1363,11 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     d++;
   }
 
+#if WLA_DEBUG
+  fprintf(stderr, "POSTFIX:\n");
+  debug_print_stack(g_active_file_info_last->line_current, -1, ta, d, 0, NULL);
+#endif
+    
   /* are all the symbols known? */
   if ((g_resolve_stack_calculations == YES || from_substitutor == YES) && resolve_stack(ta, d) == SUCCEEDED) {
     struct stack s;
@@ -1368,7 +1435,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   g_stacks_tmp->special_id = 0;
   g_stacks_tmp->bits_position = 0;
   g_stacks_tmp->bits_to_define = 0;
-  g_stacks_tmp->is_function_body = NO;
+  g_stacks_tmp->is_function_body = g_parsing_function_body;
 
   /* all stacks will be definition stacks by default. pass_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
@@ -1406,10 +1473,10 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   }
 
 #if WLA_DEBUG
-  _debug_print_stack(g_stacks_tmp->linenumber, g_stack_id, g_stacks_tmp->stack, d, 0);
+  debug_print_stack(g_stacks_tmp->linenumber, g_stack_id, g_stacks_tmp->stack, d, 0, g_stacks_tmp);
 #endif
 
-  calculation_stack_insert();
+  calculation_stack_insert(g_stacks_tmp);
 
   return INPUT_NUMBER_STACK;
 }
@@ -1875,7 +1942,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
 
   s = sta->stack;
   /*
-  _debug_print_stack(0, 0, s, stack_item_count, 0);
+    debug_print_stack(0, 0, s, stack_item_count, 0, NULL);
   */
   for (r = 0, t = 0; r < stack_item_count; r++, s++) {
     if (s->type == STACK_ITEM_TYPE_VALUE) {
@@ -2249,10 +2316,10 @@ int stack_create_label_stack(char *label) {
   strcpy(g_stacks_tmp->stack[0].string, label);
 
 #if WLA_DEBUG
-  _debug_print_stack(g_stacks_tmp->linenumber, g_stack_id, g_stacks_tmp->stack, 1, 1);
+  debug_print_stack(g_stacks_tmp->linenumber, g_stack_id, g_stacks_tmp->stack, 1, 1, g_stacks_tmp);
 #endif
   
-  calculation_stack_insert();
+  calculation_stack_insert(g_stacks_tmp);
 
   return SUCCEEDED;
 }
@@ -2294,12 +2361,30 @@ int stack_create_stack_stack(int stack_id) {
   g_stacks_tmp->stack[0].sign = SI_SIGN_POSITIVE;
 
 #if WLA_DEBUG
-  _debug_print_stack(g_stacks_tmp->linenumber, stack_id, g_stacks_tmp->stack, 1, 2);
+  debug_print_stack(g_stacks_tmp->linenumber, stack_id, g_stacks_tmp->stack, 1, 2, g_stacks_tmp);
 #endif
 
-  calculation_stack_insert();
+  calculation_stack_insert(g_stacks_tmp);
     
   return SUCCEEDED;
+}
+
+
+struct stack *find_stack_calculation(int id, int print_error_on_failure) {
+
+  struct stack *s;
+
+  s = g_stacks_first;
+  while (s != NULL) {
+    if (s->id == id)
+      break;
+    s = s->next;
+  }
+
+  if (s == NULL && print_error_on_failure == YES)
+    print_error(ERROR_NUM, "Stack calculation %d has gone missing! Please submit a bug report!\n", id);
+
+  return s;
 }
 
 

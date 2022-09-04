@@ -7479,6 +7479,16 @@ int directive_function(void) {
   if (get_next_plain_string() == FAILED)
     return FAILED;
 
+  /* do we already have a function with that name? */
+  f = g_functions_first;
+  while (f != NULL) {
+    if (strcmp(g_label, f->name) == 0) {
+      print_error(ERROR_DIR, ".FUNCTION called \"%s\" exists already!\n", g_label);
+      return FAILED;
+    }
+    f = f->next;
+  }
+  
   strcpy(name, g_label);
   
   f = calloc(sizeof(struct function), 1);

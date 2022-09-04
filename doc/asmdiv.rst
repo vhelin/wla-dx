@@ -1705,6 +1705,7 @@ Creates a function called ``SUM_AB``. Here are some examples::
 ``.FUNCTION`` can be used anywhere values are expected::
 
     LDA SUM_AB(1, 2)
+    .DEFINE SUM = 0 + 1 + SUM_AB(2, 3) + 4 + 5
     
 This is not a compulsory directive.
 

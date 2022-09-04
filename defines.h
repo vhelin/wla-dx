@@ -675,6 +675,7 @@ struct block_name {
 struct stack {
   struct stack_item *stack;
   struct stack *next;
+  struct stack *prev;
   int id;
   int position;
   int filename_id;
@@ -691,13 +692,15 @@ struct stack {
   int special_id;
   int bits_position;
   int bits_to_define;
-  int is_function_body;
+  char is_function_body;
 };
 
 struct stack_item {
   int type;
-  int sign;
-  int can_calculate_deltas;
+  char sign;
+  char can_calculate_deltas;
+  char has_been_replaced;
+  char is_in_postfix;
   double value;
   char string[MAX_NAME_LENGTH + 1];
 };

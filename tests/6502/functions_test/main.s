@@ -114,4 +114,101 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
 	.DB defined(VALUE_{%.1d{VALUE_1}})   ; @BT 01
 	.DB 1+defined(VALUE_{%.1d{VALUE_1}}) ; @BT 02
 	.DB 2+defined(VALUE_{%.1d{0}})       ; @BT 02
+        .db (1+1)+(1+1)                      ; @BT 04
 	.DB "<14"		; @BT END
+
+        .FUNCTION SUM_AB(varA, varB) (varA + varB)
+        .FUNCTION SUM_AB2(var1,var2) var1*1+var2*1
+        .function SUM_AB3(var1,var2) SUM_AB(SUM_AB(4-2-1-1,var1),SUM_AB(1+var2-1,0))
+        .FUNCTION SUM_AB4(var1,var2) var1*1+var2*(2-1)
+        .FUNCTION SUB_A_6(varA) varA-6
+        .FUNCTION SUM_ABC(varA, varB, varC) (SUM_AB(varA, varB) + varC)
+        .function SUM_ABC2(varA,varB,varC) SUM_AB(SUM_AB(varA,varB),varC)
+        .function SUM_ABC3(varA,varB,varC) SUM_AB(SUM_AB(varA,varB),varC)
+        .function SUM_ABC4(varA,varB,varC) SUM_AB2(SUM_AB2(varA,varB),varC)
+        .function SUM_ABC5(varA,varB,varC) SUM_AB3(SUM_AB3(varA,varB),varC)
+        .function SUM_ABC6(varA,varB,varC) SUM_AB3(SUM_AB2(varA,varB),SUM_AB2(2-1,varC-1))
+        .function SUM_ABC7(varA,varB,varC) SUM_AB2(SUM_AB2(varA,varB),varC) - 0*SUM_AB2(varA+1,varB)
+        .function CONSTANT_1() 1
+        .DEFINE SUM = 0 + 1 + SUM_AB(2, 3) + 4 + 5
+
+        .db "15>"               ; @BT TEST-15 15 START
+        .db SUM_AB(1,2)         ; @BT 03
+        .db SUB_A_6(10)         ; @BT 04
+        .db SUM_ABC(1,2,3)      ; @BT 06
+        .db SUM_ABC(1,2,3)      ; @BT 06
+        .db SUM_ABC2(2,3,4)     ; @BT 09
+        .db SUM_ABC3(4,5,6)     ; @BT 0F
+        .db SUM_ABC4(5,6,7)     ; @BT 12
+        .db SUM_ABC2(2,3,4)     ; @BT 09
+        .db SUM_ABC3(4,5,6)     ; @BT 0F
+        .db SUM_ABC4(5,6,7)     ; @BT 12
+        .db SUM_ABC5(6,7,8)     ; @BT 15
+        .db SUM_ABC5(6,7,8)     ; @BT 15
+        .db SUM_ABC6(0,1,2)     ; @BT 03
+        .db SUM_ABC6(0,1,2)     ; @BT 03
+        .db SUM_ABC7(0,1,2)     ; @BT 03
+        .db SUM_ABC7(0,1,2)     ; @BT 03
+        .db SUM                 ; @BT 0F
+        .db "<15"               ; @BT END
+
+        .db "16>"               ; @BT TEST-16 16 START
+        .db SUM_AB(2-1,2+1)     ; @BT 04
+        .db SUB_A_6(13-2)       ; @BT 05
+        .db SUM_ABC(1+0,2+0,3+0)      ; @BT 06
+        .db SUM_ABC(1+0,2+0,3+0)      ; @BT 06
+        .db SUM_ABC2(2+0,3+0,4+0)     ; @BT 09
+        .db SUM_ABC3(4+0,5+0,6+0)     ; @BT 0F
+        .db SUM_ABC4(5+0,6+0,7+0)     ; @BT 12
+        .db SUM_ABC2(2+0,3+0,4+0)     ; @BT 09
+        .db SUM_ABC3(4+0,5+0,6+0)     ; @BT 0F
+        .db SUM_ABC4(5+0,6+0,7+0)     ; @BT 12
+        .db SUM_ABC5(6+0,7+0,8+0)     ; @BT 15
+        .db SUM_ABC5(6+0,7+0,8+0)     ; @BT 15
+        .db SUM_ABC6(0+0,1+0,2+0)     ; @BT 03
+        .db SUM_ABC6(0+0,1+0,2+0)     ; @BT 03
+        .db SUM_ABC7(0+0,1+0,2+0)     ; @BT 03
+        .db SUM_ABC7(0+0,1+0,2+0)     ; @BT 03
+        .db SUM                 ; @BT 0F
+        .db "<16"               ; @BT END
+
+        .db "17>"               ; @BT TEST-17 17 START
+        .db 1+SUM_AB(2-1,2+1)-1     ; @BT 04
+        .db 1+SUB_A_6(13-2)-1       ; @BT 05
+        .db 1+SUM_ABC(1+0,2+0,3+0)-1      ; @BT 06
+        .db 1+SUM_ABC(1+0,2+0,3+0)-1      ; @BT 06
+        .db 1+SUM_ABC2(2+0,3+0,4+0)-1     ; @BT 09
+        .db 1+SUM_ABC3(4+0,5+0,6+0)-1     ; @BT 0F
+        .db 1+SUM_ABC4(5+0,6+0,7+0)-1     ; @BT 12
+        .db 1+SUM_ABC2(2+0,3+0,4+0)-1     ; @BT 09
+        .db 1+SUM_ABC3(4+0,5+0,6+0)-1     ; @BT 0F
+        .db 1+SUM_ABC4(5+0,6+0,7+0)-1     ; @BT 12
+        .db 1+SUM_ABC5(6+0,7+0,8+0)-1     ; @BT 15
+        .db 1+SUM_ABC5(6+0,7+0,8+0)-1     ; @BT 15
+        .db 1+SUM_ABC6(0+0,1+0,2+0)-1     ; @BT 03
+        .db 1+SUM_ABC6(0+0,1+0,2+0)-1     ; @BT 03
+        .db 1+SUM_ABC7(0+0,1+0,2+0)-1     ; @BT 03
+        .db 1+SUM_ABC7(0+0,1+0,2+0)-1     ; @BT 03
+        .db 1+SUM-1             ; @BT 0F
+        .db "<17"               ; @BT END
+
+        .db "18>"               ; @BT TEST-18 18 START
+        .db 1+SUM_AB(2-1,2+1)-SUM_AB(0-3,2+2)     ; @BT 04
+        .db SUM_AB(0+1,2-1-1)+SUB_A_6(13-2)-1     ; @BT 05
+        .db SUB_A_6(8-1)+SUM_ABC(1+0,2+0,3+0)-1      ; @BT 06
+        .db SUM_ABC(2-2,3-2,-2+1+1)+SUM_ABC(1+0,2+0,3+0)-1      ; @BT 06
+        .db SUM_ABC2(2-1,3+1,4+0)-SUM_ABC2(1-2,2+2,3-3+3)+0     ; @BT 03
+        .db SUM_ABC3(-7,1-4,10+1)+SUM_ABC3(4+0,5+0,6+0)-1     ; @BT 0F
+        .db SUM_ABC4(1-3,2-2,-2+4)+SUM_ABC4(5+0,6+0,7+0)-0     ; @BT 12
+        .db 1+SUM_ABC2(2+0,3+0,4+0)-1     ; @BT 09
+        .db 1+SUM_ABC3(4+0,5+0,6+0)-1     ; @BT 0F
+        .db 1+SUM_ABC4(5+0,6+0,7+0)-1     ; @BT 12
+        .db 1+SUM_ABC5(6+0,7+0,8+0)-1     ; @BT 15
+        .db 1+SUM_ABC5(6+0,7+0,8+0)-1     ; @BT 15
+        .db 1+SUM_ABC6(0+0,1+0,2+0)-1     ; @BT 03
+        .db 1+SUM_ABC6(0+0,1+0,2+0)-1     ; @BT 03
+        .db 1+SUM_ABC7(0+0,1+0,2+0)-1     ; @BT 03
+        .db 1+SUM_ABC7(0+0,1+0,2+0)-1     ; @BT 03
+        .db 1+SUM-1             ; @BT 0F
+        .db "<18"               ; @BT END
+

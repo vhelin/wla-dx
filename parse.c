@@ -37,7 +37,7 @@ extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map;
 extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
 extern struct function *g_functions_first;
-extern struct stack *g_stacks_tmp;
+extern struct stack *g_stacks_tmp, *g_stacks_first;
 extern int g_latest_stack, g_asciitable_defined, g_global_label_hint, g_parsing_function_body, g_resolve_stack_calculations;
 
 
@@ -1995,6 +1995,171 @@ int process_string_for_special_characters(char *label, int *string_size) {
 }
 
 
+static int _save_stack_calculation(struct stack_item *stack, int stacksize, int linenumber, int filename_id) {
+    
+  g_stacks_tmp = calloc(sizeof(struct stack), 1);
+  if (g_stacks_tmp == NULL) {
+    free(stack);
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
+    return FAILED;
+  }
+  g_stacks_tmp->next = NULL;
+  g_stacks_tmp->type = STACK_TYPE_UNKNOWN;
+  g_stacks_tmp->bank = -123456;
+  g_stacks_tmp->stacksize = stacksize;
+  g_stacks_tmp->relative_references = 0;
+  g_stacks_tmp->stack = stack;
+
+  if (linenumber < 0)
+    g_stacks_tmp->linenumber = g_active_file_info_last->line_current;
+  else
+    g_stacks_tmp->linenumber = linenumber;
+
+  if (filename_id < 0)
+    g_stacks_tmp->filename_id = g_active_file_info_last->filename_id;
+  else
+    g_stacks_tmp->filename_id = filename_id;
+
+  g_stacks_tmp->special_id = 0;
+  g_stacks_tmp->bits_position = 0;
+  g_stacks_tmp->bits_to_define = 0;
+  g_stacks_tmp->is_function_body = g_parsing_function_body;
+
+  /* all stacks will be definition stacks by default. pass_4 will mark
+     those that are referenced to be STACK_POSITION_CODE stacks */
+  g_stacks_tmp->position = STACK_POSITION_DEFINITION;
+  
+  calculation_stack_insert(g_stacks_tmp);
+
+  return SUCCEEDED;
+}
+
+
+static int _clone_stack_calculation(struct stack_item **stack_out, struct stack_item *stack, int stacksize, char *function_name) {
+
+  struct stack_item *si;
+  int i;
+  
+  si = calloc(sizeof(struct stack_item) * stacksize, 1);
+  if (si == NULL) {
+    print_error(ERROR_NUM, "Out of memory error while parsing function \"%s\".\n", function_name);
+    return FAILED;
+  }
+
+  for (i = 0; i < stacksize; i++) {
+    si[i].value = stack[i].value;
+    si[i].type = stack[i].type;
+    si[i].sign = stack[i].sign;
+    si[i].can_calculate_deltas = stack[i].can_calculate_deltas;
+    si[i].has_been_replaced = stack[i].has_been_replaced;
+    si[i].is_in_postfix = stack[i].is_in_postfix;
+    if (si[i].type == STACK_ITEM_TYPE_LABEL)
+      strcpy(si[i].string, stack[i].string);
+    else
+      si[i].string[0] = 0;
+  }
+
+  *stack_out = si;
+
+  return SUCCEEDED;
+}
+
+
+static int _reset_has_been_replaced_status(struct stack_item *stack, int stacksize) {
+
+  struct stack *s;
+  int i;
+
+  for (i = 0; i < stacksize; i++) {
+    stack[i].has_been_replaced = NO;
+
+    /* dig deeper */
+    if (stack[i].type == STACK_ITEM_TYPE_STACK) {
+      s = find_stack_calculation((int)stack[i].value, YES);
+      if (s == NULL)
+        return FAILED;
+      
+      _reset_has_been_replaced_status(s->stack, s->stacksize);
+    }
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _clone_contained_stack_calculations(struct stack_item *stack, int stacksize, char *function_name) {
+
+  struct stack_item *si;
+  struct stack *s;
+  int i;
+
+  for (i = 0; i < stacksize; i++) {
+    if (stack[i].type == STACK_ITEM_TYPE_STACK) {
+      s = find_stack_calculation((int)stack[i].value, YES);
+      if (s == NULL)
+        return FAILED;
+
+      if (_clone_stack_calculation(&si, s->stack, s->stacksize, function_name) == FAILED)
+        return FAILED;
+
+      if (_save_stack_calculation(si, s->stacksize, s->linenumber, s->filename_id) == FAILED)
+        return FAILED;
+
+      stack[i].value = g_latest_stack;
+
+      if (_clone_contained_stack_calculations(si, s->stacksize, function_name) == FAILED)
+        return FAILED;
+    }
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _replace_labels_inside_stack_calculation(struct stack_item *stack, int stacksize, char *label, int result, int parsed_int, double parsed_double, char *parsed_label, int parsed_stack) {
+
+  struct stack *s;
+  int j;
+
+  for (j = 0; j < stacksize; j++) {
+    if (stack[j].type == STACK_ITEM_TYPE_STACK) {
+      /* dig deeper! */
+      s = find_stack_calculation((int)stack[j].value, YES);
+      if (s == NULL)
+        return FAILED;
+      
+      if (_replace_labels_inside_stack_calculation(s->stack, s->stacksize, label, result, parsed_int, parsed_double, parsed_label, parsed_stack) == FAILED)
+        return FAILED;
+    }
+    else if (stack[j].type == STACK_ITEM_TYPE_LABEL) {
+      if (stack[j].has_been_replaced == NO && strcmp(label, stack[j].string) == 0) {
+        if (result == SUCCEEDED) {
+          stack[j].type = STACK_ITEM_TYPE_VALUE;
+          stack[j].value = parsed_int;
+          stack[j].sign = SI_SIGN_POSITIVE;
+        }
+        else if (result == INPUT_NUMBER_FLOAT) {
+          stack[j].type = STACK_ITEM_TYPE_VALUE;
+          stack[j].value = parsed_double;
+          stack[j].sign = SI_SIGN_POSITIVE;
+        }
+        else if (result == INPUT_NUMBER_ADDRESS_LABEL) {
+          strcpy(stack[j].string, parsed_label);
+          stack[j].sign = SI_SIGN_POSITIVE;
+        }
+        else {
+          stack[j].type = STACK_ITEM_TYPE_STACK;
+          stack[j].value = parsed_stack;
+          stack[j].sign = SI_SIGN_POSITIVE;
+        }
+      }
+    }    
+  }
+
+  return SUCCEEDED;
+}
+
+
 int parse_function(char *in, char *name, int *found_function, int *parsed_chars) {
 
   int res, source_pointer_original = g_source_pointer, source_pointer_backup, i, j;
@@ -2029,21 +2194,22 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
 
     return SUCCEEDED;
   }
-      
+
   /* clone the stack calculation */
-  si = calloc(sizeof(struct stack_item) * fun->stack->stacksize, 1);
-  if (si == NULL) {
-    print_error(ERROR_NUM, "Out of memory error while parsing function \"%s\".\n", name);
+  if (_clone_stack_calculation(&si, fun->stack->stack, fun->stack->stacksize, name) == FAILED)
+    return FAILED;
+
+  /* clone all contained stack calculations */
+  if (_clone_contained_stack_calculations(si, fun->stack->stacksize, name) == FAILED) {
+    free(si);
     return FAILED;
   }
 
-  for (i = 0; i < fun->stack->stacksize; i++) {
-    si[i].value = fun->stack->stack[i].value;
-    si[i].type = fun->stack->stack[i].type;
-    si[i].sign = fun->stack->stack[i].sign;
-    si[i].can_calculate_deltas = fun->stack->stack[i].can_calculate_deltas;
-    if (si[i].type == STACK_ITEM_TYPE_LABEL)
-      strcpy(si[i].string, fun->stack->stack[i].string);
+  if (g_parsing_function_body == NO) {
+    if (_reset_has_been_replaced_status(si, fun->stack->stacksize) == FAILED) {
+      free(si);
+      return FAILED;
+    }
   }
 
   for (i = 0; i < fun->nargument_names; i++) {
@@ -2059,9 +2225,47 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
       return FAILED;
     }
 
+    if (res == INPUT_NUMBER_STACK) {
+      /* mark all instances of argument names in the stack as has-been-replaced */
+      struct stack *s;
+
+      s = find_stack_calculation(g_latest_stack, YES);
+      if (s == NULL) {
+        free(si);
+        return FAILED;
+      }
+      
+      for (j = 0; j < s->stacksize; j++) {
+        if (s->stack[j].type == STACK_ITEM_TYPE_LABEL) {
+          int k;
+
+          for (k = 0; k < fun->nargument_names; k++) {
+            if (strcmp(fun->argument_names[k], s->stack[j].string) == 0) {
+              s->stack[j].has_been_replaced = YES;
+              break;
+            }
+          }
+        }
+      }
+    }
+    
     /* substitute the result into the stack calculation */
     for (j = 0; j < fun->stack->stacksize; j++) {
-      if (si[j].type == STACK_ITEM_TYPE_LABEL) {
+      if (si[j].type == STACK_ITEM_TYPE_STACK) {
+        struct stack *s;
+
+        s = find_stack_calculation((int)si[j].value, YES);
+        if (s == NULL) {
+          free(si);
+          return FAILED;
+        }
+
+        if (_replace_labels_inside_stack_calculation(s->stack, s->stacksize, fun->argument_names[i], res, g_parsed_int, g_parsed_double, g_label, g_latest_stack) == FAILED) {
+          free(si);
+          return FAILED;
+        }
+      }
+      else if (si[j].type == STACK_ITEM_TYPE_LABEL) {
         if (strcmp(fun->argument_names[i], si[j].string) == 0) {
           if (res == SUCCEEDED) {
             si[j].type = STACK_ITEM_TYPE_VALUE;
@@ -2123,31 +2327,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
   }
 
   /* save the stack calculation */
-  g_stacks_tmp = calloc(sizeof(struct stack), 1);
-  if (g_stacks_tmp == NULL) {
-    free(si);
-    print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
-    return FAILED;
-  }
-  g_stacks_tmp->next = NULL;
-  g_stacks_tmp->type = STACK_TYPE_UNKNOWN;
-  g_stacks_tmp->bank = -123456;
-  g_stacks_tmp->stacksize = fun->stack->stacksize;
-  g_stacks_tmp->relative_references = 0;
-  g_stacks_tmp->stack = si;
-
-  g_stacks_tmp->linenumber = g_active_file_info_last->line_current;
-  g_stacks_tmp->filename_id = g_active_file_info_last->filename_id;
-  g_stacks_tmp->special_id = 0;
-  g_stacks_tmp->bits_position = 0;
-  g_stacks_tmp->bits_to_define = 0;
-  g_stacks_tmp->is_function_body = g_parsing_function_body;
-
-  /* all stacks will be definition stacks by default. pass_4 will mark
-     those that are referenced to be STACK_POSITION_CODE stacks */
-  g_stacks_tmp->position = STACK_POSITION_DEFINITION;
-  
-  calculation_stack_insert();      
+  _save_stack_calculation(si, fun->stack->stacksize, -1, -1);
 
   return INPUT_NUMBER_STACK;
 }
