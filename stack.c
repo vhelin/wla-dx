@@ -43,7 +43,6 @@ static int s_dsp_file_name_id = 0, s_dsp_line_number = 0;
 static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 
 
-
 int calculation_stack_insert(struct stack *s) {
 
   s->next = NULL;
@@ -80,6 +79,7 @@ int calculation_stack_insert(struct stack *s) {
     g_stack_inserted = STACK_INSIDE;
   }
 
+  s->has_been_calculated = NO;
   s->is_single_instance = NO;
   s->id = g_stack_id;
   s->section_status = g_section_status;
@@ -1035,7 +1035,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
               struct stack *s;
               int item;
 
-              s = find_stack_calculation(g_latest_stack, YES);
+              s = find_stack_calculation_latest(YES);
               if (s == NULL)
                 return FAILED;
 
@@ -1419,6 +1419,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     s.stack = ta;
     s.linenumber = g_active_file_info_last->line_current;
     s.filename_id = g_active_file_info_last->filename_id;
+    s.has_been_calculated = NO;
 
     if (compute_stack(&s, d, &dou) == FAILED)
       return FAILED;
@@ -1480,6 +1481,11 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   g_stacks_tmp->position = STACK_POSITION_DEFINITION;
 
   for (q = 0; q < d; q++) {
+    g_stacks_tmp->stack[q].can_calculate_deltas = ta[q].can_calculate_deltas;
+    g_stacks_tmp->stack[q].has_been_replaced = ta[q].has_been_replaced;
+    g_stacks_tmp->stack[q].is_in_postfix = NO;
+    g_stacks_tmp->stack[q].stack_calculation = ta[q].stack_calculation;
+    
     if (ta[q].type == STACK_ITEM_TYPE_OPERATOR) {
       g_stacks_tmp->stack[q].type = STACK_ITEM_TYPE_OPERATOR;
       g_stacks_tmp->stack[q].value = ta[q].value;
@@ -1833,7 +1839,7 @@ static int _try_to_calculate(struct stack_item *st) {
 
   struct stack *s;
 
-  s = find_stack_calculation((int)st->value, YES);
+  s = find_stack_calculation(st, YES);
   if (s == NULL)
     return FAILED;
 
@@ -2029,6 +2035,11 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
   double v[MAX_STACK_CALCULATOR_ITEMS];
   char *sp[MAX_STACK_CALCULATOR_ITEMS];
   int r, t, z;
+
+  if (sta->has_been_calculated == YES) {
+    *result = sta->value;
+    return SUCCEEDED;
+  }
 
   v[0] = 0.0;
 
@@ -2462,13 +2473,10 @@ int stack_create_stack_stack(int stack_id) {
 }
 
 
-struct stack *find_stack_calculation(int id, int print_error_on_failure) {
+static struct stack *_find_stack_calculation(int id, int print_error_on_failure) {
 
   struct stack *s;
 
-  if (g_latest_stack_struct != NULL && g_latest_stack_struct->id == id)
-    return g_latest_stack_struct;
-  
   s = g_stacks_first;
   while (s != NULL) {
     if (s->id == id)
@@ -2479,6 +2487,37 @@ struct stack *find_stack_calculation(int id, int print_error_on_failure) {
   if (s == NULL && print_error_on_failure == YES)
     print_error(ERROR_NUM, "Stack calculation %d has gone missing! Please submit a bug report!\n", id);
 
+  return s;
+}
+
+
+struct stack *find_stack_calculation_latest(int print_error_on_failure) {
+
+  if (g_latest_stack_struct != NULL && g_latest_stack_struct->id == g_latest_stack)
+    return g_latest_stack_struct;
+  
+  return _find_stack_calculation(g_latest_stack, print_error_on_failure);
+}
+
+
+struct stack *find_stack_calculation(struct stack_item *si, int print_error_on_failure) {
+
+  struct stack *s;
+  int id = (int)si->value;
+
+  if (si->stack_calculation != NULL && si->stack_calculation->id == id)
+    return si->stack_calculation;
+
+  if (g_latest_stack_struct != NULL && g_latest_stack_struct->id == id) {
+    si->stack_calculation = g_latest_stack_struct;
+    return si->stack_calculation;
+  }
+  
+  /* cache the pointer locally */
+  s = _find_stack_calculation(id, print_error_on_failure);
+
+  si->stack_calculation = s;
+  
   return s;
 }
 

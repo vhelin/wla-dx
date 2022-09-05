@@ -2057,6 +2057,7 @@ static int _clone_stack_calculation(struct stack_item **stack_out, struct stack_
     si[i].can_calculate_deltas = stack[i].can_calculate_deltas;
     si[i].has_been_replaced = stack[i].has_been_replaced;
     si[i].is_in_postfix = stack[i].is_in_postfix;
+    si[i].stack_calculation = stack[i].stack_calculation;
     if (si[i].type == STACK_ITEM_TYPE_LABEL)
       strcpy(si[i].string, stack[i].string);
     else
@@ -2079,7 +2080,7 @@ static int _reset_has_been_replaced_status(struct stack_item *stack, int stacksi
 
     /* dig deeper */
     if (stack[i].type == STACK_ITEM_TYPE_STACK) {
-      s = find_stack_calculation((int)stack[i].value, YES);
+      s = find_stack_calculation(&stack[i], YES);
       if (s == NULL)
         return FAILED;
       
@@ -2099,7 +2100,7 @@ static int _clone_contained_stack_calculations(struct stack_item *stack, int sta
 
   for (i = 0; i < stacksize; i++) {
     if (stack[i].type == STACK_ITEM_TYPE_STACK) {
-      s = find_stack_calculation((int)stack[i].value, YES);
+      s = find_stack_calculation(&stack[i], YES);
       if (s == NULL)
         return FAILED;
 
@@ -2110,6 +2111,7 @@ static int _clone_contained_stack_calculations(struct stack_item *stack, int sta
         return FAILED;
 
       stack[i].value = g_latest_stack;
+      stack[i].stack_calculation = find_stack_calculation_latest(YES);
 
       if (_clone_contained_stack_calculations(si, s->stacksize, function_name) == FAILED)
         return FAILED;
@@ -2128,7 +2130,7 @@ static int _replace_labels_inside_stack_calculation(struct stack_item *stack, in
   for (j = 0; j < stacksize; j++) {
     if (stack[j].type == STACK_ITEM_TYPE_STACK) {
       /* dig deeper! */
-      s = find_stack_calculation((int)stack[j].value, YES);
+      s = find_stack_calculation(&stack[j], YES);
       if (s == NULL)
         return FAILED;
       
@@ -2233,7 +2235,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
       /* mark all instances of argument names in the stack as has-been-replaced */
       struct stack *s;
 
-      s = find_stack_calculation(g_latest_stack, YES);
+      s = find_stack_calculation_latest(YES);
       if (s == NULL) {
         free(si);
         return FAILED;
@@ -2258,7 +2260,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
       if (si[j].type == STACK_ITEM_TYPE_STACK) {
         struct stack *s;
 
-        s = find_stack_calculation((int)si[j].value, YES);
+        s = find_stack_calculation(&si[j], YES);
         if (s == NULL) {
           free(si);
           return FAILED;

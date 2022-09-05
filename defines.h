@@ -706,6 +706,7 @@ struct stack_item {
   char has_been_replaced;
   char is_in_postfix;
   double value;
+  struct stack *stack_calculation;
   char string[MAX_NAME_LENGTH + 1];
 };
 
