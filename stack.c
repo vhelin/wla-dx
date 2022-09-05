@@ -80,6 +80,7 @@ int calculation_stack_insert(struct stack *s) {
   }
 
   s->has_been_calculated = NO;
+  s->value = 0.0;
   s->is_single_instance = NO;
   s->id = g_stack_id;
   s->section_status = g_section_status;
@@ -1420,6 +1421,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     s.linenumber = g_active_file_info_last->line_current;
     s.filename_id = g_active_file_info_last->filename_id;
     s.has_been_calculated = NO;
+    s.value = 0.0;
 
     if (compute_stack(&s, d, &dou) == FAILED)
       return FAILED;
