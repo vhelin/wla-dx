@@ -43,11 +43,38 @@ static int s_dsp_file_name_id = 0, s_dsp_line_number = 0;
 static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 
 
-int calculation_stack_insert(struct stack *s) {
+void init_stack_struct(struct stack *s) {
 
+  s->stack = NULL;
   s->next = NULL;
   s->prev = NULL;
-  
+  s->id = -123456;
+  s->position = STACK_POSITION_DEFINITION;
+  s->filename_id = -123456;
+  s->stacksize = 0;
+  s->linenumber = -123456;
+  s->type = STACK_TYPE_UNKNOWN;
+  s->bank = -123456;
+  s->slot = -123456;
+  s->relative_references = 0;
+  s->base = -123456;
+  /* NOTE! section_status is not really set anywhere, but pass_4.c uses it -> investigate */
+  s->section_status = 0;
+  s->section_id = -123456;
+  s->address = -123456;
+  s->special_id = 0;
+  s->bits_position = 0;
+  s->bits_to_define = 0;
+  s->is_function_body = NO;
+  s->is_bankheader_section = NO;
+  s->is_single_instance = NO;
+  s->has_been_calculated = NO;
+  s->value = 0.0;
+}
+
+
+int calculation_stack_insert(struct stack *s) {
+
   /* outside bankheader sections */
   if (g_bankheader_status == OFF) {
     if (g_stacks_first == NULL) {
@@ -79,9 +106,6 @@ int calculation_stack_insert(struct stack *s) {
     g_stack_inserted = STACK_INSIDE;
   }
 
-  s->has_been_calculated = NO;
-  s->value = 0.0;
-  s->is_single_instance = NO;
   s->id = g_stack_id;
   s->section_status = g_section_status;
   if (g_section_status == ON)
@@ -324,6 +348,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     si[q].can_calculate_deltas = NO;
     si[q].has_been_replaced = NO;
     si[q].is_in_postfix = NO;
+    si[q].stack_calculation = NULL;
     si[q].string[0] = 0;
 
     if (*in == ' ') {
@@ -1056,6 +1081,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
                 si[q].sign = s->stack[item].sign;
                 si[q].value = s->stack[item].value;
                 si[q].is_in_postfix = YES;
+                si[q].can_calculate_deltas = s->stack[item].can_calculate_deltas;
+                si[q].has_been_replaced = s->stack[item].has_been_replaced;
+                si[q].stack_calculation = s->stack[item].stack_calculation;
                 if (si[q].type == STACK_ITEM_TYPE_LABEL)
                   strcpy(si[q].string, s->stack[item].string);
                 else
@@ -1416,12 +1444,11 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       print_error(ERROR_STC, "g_delta_counter == %d != 0! Internal error. Please submit a bug report!\n", g_delta_counter);
       return FAILED;
     }
-    
+
+    init_stack_struct(&s);
     s.stack = ta;
     s.linenumber = g_active_file_info_last->line_current;
     s.filename_id = g_active_file_info_last->filename_id;
-    s.has_been_calculated = NO;
-    s.value = 0.0;
 
     if (compute_stack(&s, d, &dou) == FAILED)
       return FAILED;
@@ -1459,11 +1486,10 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
     return FAILED;
   }
-  g_stacks_tmp->next = NULL;
-  g_stacks_tmp->type = STACK_TYPE_UNKNOWN;
-  g_stacks_tmp->bank = -123456;
+
+  init_stack_struct(g_stacks_tmp);
+
   g_stacks_tmp->stacksize = d;
-  g_stacks_tmp->relative_references = 0;
   g_stacks_tmp->stack = calloc(sizeof(struct stack_item) * d, 1);
   if (g_stacks_tmp->stack == NULL) {
     free(g_stacks_tmp);
@@ -1473,9 +1499,6 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
   g_stacks_tmp->linenumber = g_active_file_info_last->line_current;
   g_stacks_tmp->filename_id = g_active_file_info_last->filename_id;
-  g_stacks_tmp->special_id = 0;
-  g_stacks_tmp->bits_position = 0;
-  g_stacks_tmp->bits_to_define = 0;
   g_stacks_tmp->is_function_body = g_parsing_function_body;
 
   /* all stacks will be definition stacks by default. pass_4 will mark
@@ -2393,11 +2416,10 @@ int stack_create_label_stack(char *label) {
     print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
     return FAILED;
   }
-  g_stacks_tmp->next = NULL;
-  g_stacks_tmp->type = STACK_TYPE_UNKNOWN;
-  g_stacks_tmp->bank = -123456;
+
+  init_stack_struct(g_stacks_tmp);
+
   g_stacks_tmp->stacksize = 1;
-  g_stacks_tmp->relative_references = 0;
   g_stacks_tmp->stack = calloc(sizeof(struct stack_item), 1);
   if (g_stacks_tmp->stack == NULL) {
     free(g_stacks_tmp);
@@ -2407,10 +2429,6 @@ int stack_create_label_stack(char *label) {
 
   g_stacks_tmp->linenumber = g_active_file_info_last->line_current;
   g_stacks_tmp->filename_id = g_active_file_info_last->filename_id;
-  g_stacks_tmp->special_id = 0;
-  g_stacks_tmp->bits_position = 0;
-  g_stacks_tmp->bits_to_define = 0;
-  g_stacks_tmp->is_function_body = NO;
     
   /* all stacks will be definition stacks by default. pass_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
@@ -2418,6 +2436,10 @@ int stack_create_label_stack(char *label) {
 
   g_stacks_tmp->stack[0].type = STACK_ITEM_TYPE_LABEL;
   g_stacks_tmp->stack[0].sign = SI_SIGN_POSITIVE;
+  g_stacks_tmp->stack[0].can_calculate_deltas = NO;
+  g_stacks_tmp->stack[0].has_been_replaced = NO;
+  g_stacks_tmp->stack[0].is_in_postfix = NO;
+  g_stacks_tmp->stack[0].stack_calculation = NULL;
   strcpy(g_stacks_tmp->stack[0].string, label);
 
 #if WLA_DEBUG
@@ -2438,11 +2460,10 @@ int stack_create_stack_stack(int stack_id) {
     print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
     return FAILED;
   }
-  g_stacks_tmp->next = NULL;
-  g_stacks_tmp->type = STACK_TYPE_UNKNOWN;
-  g_stacks_tmp->bank = -123456;
+
+  init_stack_struct(g_stacks_tmp);
+  
   g_stacks_tmp->stacksize = 1;
-  g_stacks_tmp->relative_references = 0;
   g_stacks_tmp->stack = calloc(sizeof(struct stack_item), 1);
   if (g_stacks_tmp->stack == NULL) {
     free(g_stacks_tmp);
@@ -2452,10 +2473,6 @@ int stack_create_stack_stack(int stack_id) {
 
   g_stacks_tmp->linenumber = g_active_file_info_last->line_current;
   g_stacks_tmp->filename_id = g_active_file_info_last->filename_id;
-  g_stacks_tmp->special_id = 0;
-  g_stacks_tmp->bits_position = 0;
-  g_stacks_tmp->bits_to_define = 0;
-  g_stacks_tmp->is_function_body = NO;
   
   /* all stacks will be definition stacks by default. pass_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
@@ -2464,6 +2481,10 @@ int stack_create_stack_stack(int stack_id) {
   g_stacks_tmp->stack[0].type = STACK_ITEM_TYPE_STACK;
   g_stacks_tmp->stack[0].value = stack_id;
   g_stacks_tmp->stack[0].sign = SI_SIGN_POSITIVE;
+  g_stacks_tmp->stack[0].can_calculate_deltas = NO;
+  g_stacks_tmp->stack[0].has_been_replaced = NO;
+  g_stacks_tmp->stack[0].is_in_postfix = NO;
+  g_stacks_tmp->stack[0].stack_calculation = NULL;
 
 #if WLA_DEBUG
   debug_print_stack(g_stacks_tmp->linenumber, stack_id, g_stacks_tmp->stack, 1, 2, g_stacks_tmp);

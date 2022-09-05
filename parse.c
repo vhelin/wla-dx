@@ -2005,11 +2005,10 @@ static int _save_stack_calculation(struct stack_item *stack, int stacksize, int 
     print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
     return FAILED;
   }
-  s->next = NULL;
-  s->type = STACK_TYPE_UNKNOWN;
-  s->bank = -123456;
+
+  init_stack_struct(s);
+
   s->stacksize = stacksize;
-  s->relative_references = 0;
   s->stack = stack;
 
   if (linenumber < 0)
@@ -2022,9 +2021,6 @@ static int _save_stack_calculation(struct stack_item *stack, int stacksize, int 
   else
     s->filename_id = filename_id;
 
-  s->special_id = 0;
-  s->bits_position = 0;
-  s->bits_to_define = 0;
   s->is_function_body = g_parsing_function_body;
 
   /* all stacks will be definition stacks by default. pass_4 will mark
