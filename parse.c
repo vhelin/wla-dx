@@ -2313,6 +2313,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
     struct stack s;
     double dou;
 
+    init_stack_struct(&s);
     s.stack = si;
     s.linenumber = fun->line_number;
     s.filename_id = fun->filename_id;
