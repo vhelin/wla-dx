@@ -2118,7 +2118,7 @@ static int _clone_contained_stack_calculations(struct stack_item *stack, int sta
 }
 
 
-static int _replace_labels_inside_stack_calculation(struct stack_item *stack, int stacksize, char *label, int result, int parsed_int, double parsed_double, char *parsed_label, int parsed_stack) {
+static int _replace_labels_inside_stack_calculation(struct stack_item *stack, int stacksize, char *label, int result, int parsed_int, double parsed_double, char *parsed_label, int parsed_stack, struct stack *parsed_stack_struct) {
 
   struct stack *s;
   int j;
@@ -2130,7 +2130,7 @@ static int _replace_labels_inside_stack_calculation(struct stack_item *stack, in
       if (s == NULL)
         return FAILED;
       
-      if (_replace_labels_inside_stack_calculation(s->stack, s->stacksize, label, result, parsed_int, parsed_double, parsed_label, parsed_stack) == FAILED)
+      if (_replace_labels_inside_stack_calculation(s->stack, s->stacksize, label, result, parsed_int, parsed_double, parsed_label, parsed_stack, parsed_stack_struct) == FAILED)
         return FAILED;
     }
     else if (stack[j].type == STACK_ITEM_TYPE_LABEL) {
@@ -2153,6 +2153,7 @@ static int _replace_labels_inside_stack_calculation(struct stack_item *stack, in
           stack[j].type = STACK_ITEM_TYPE_STACK;
           stack[j].value = parsed_stack;
           stack[j].sign = SI_SIGN_POSITIVE;
+          stack[j].stack_calculation = parsed_stack_struct;
         }
       }
     }    
@@ -2215,6 +2216,8 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
   }
 
   for (i = 0; i < fun->nargument_names; i++) {
+    struct stack *stack = NULL;
+
     res = input_number();
 
     if (res == FAILED) {
@@ -2229,21 +2232,19 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
 
     if (res == INPUT_NUMBER_STACK) {
       /* mark all instances of argument names in the stack as has-been-replaced */
-      struct stack *s;
-
-      s = find_stack_calculation_latest(YES);
-      if (s == NULL) {
+      stack = find_stack_calculation_latest(YES);
+      if (stack == NULL) {
         free(si);
         return FAILED;
       }
       
-      for (j = 0; j < s->stacksize; j++) {
-        if (s->stack[j].type == STACK_ITEM_TYPE_LABEL) {
+      for (j = 0; j < stack->stacksize; j++) {
+        if (stack->stack[j].type == STACK_ITEM_TYPE_LABEL) {
           int k;
 
           for (k = 0; k < fun->nargument_names; k++) {
-            if (strcmp(fun->argument_names[k], s->stack[j].string) == 0) {
-              s->stack[j].has_been_replaced = YES;
+            if (strcmp(fun->argument_names[k], stack->stack[j].string) == 0) {
+              stack->stack[j].has_been_replaced = YES;
               break;
             }
           }
@@ -2262,7 +2263,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
           return FAILED;
         }
 
-        if (_replace_labels_inside_stack_calculation(s->stack, s->stacksize, fun->argument_names[i], res, g_parsed_int, g_parsed_double, g_label, g_latest_stack) == FAILED) {
+        if (_replace_labels_inside_stack_calculation(s->stack, s->stacksize, fun->argument_names[i], res, g_parsed_int, g_parsed_double, g_label, g_latest_stack, stack) == FAILED) {
           free(si);
           return FAILED;
         }
@@ -2287,6 +2288,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
             si[j].type = STACK_ITEM_TYPE_STACK;
             si[j].value = g_latest_stack;
             si[j].sign = SI_SIGN_POSITIVE;
+            si[j].stack_calculation = stack;
           }
         }
       }
