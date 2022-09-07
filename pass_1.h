@@ -33,7 +33,6 @@ __attribute__((format(printf, 2, 3)))
 void print_error(int type, char *error, ...);
 
 void next_line(void);
-void delete_stack_calculation_struct(struct stack *s);
 
 int add_namespace_to_string(char *s, int sizeof_s, char *type);
 int macro_get(char *name, int add_namespace, struct macro_static **macro_out);

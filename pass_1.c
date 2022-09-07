@@ -66,9 +66,7 @@ int g_dstruct_status = OFF;
 int g_saved_structures_count = 0, g_saved_structures_max = 0;
 unsigned char g_asciitable[256];
 
-extern struct stack *g_stacks_header_first, *g_stacks_header_last, *g_latest_stack_struct;
-extern int g_stacks_inside, g_stacks_outside, g_resolve_stack_calculations;
-int g_stack_inserted;
+extern int g_resolve_stack_calculations;
 
 #if defined(W65816)
 char g_snesid[4];
@@ -120,7 +118,7 @@ struct function *g_functions_first = NULL, *g_functions_last = NULL;
 
 extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name;
 extern int g_source_file_size, g_input_number_error_msg, g_verbose_level, g_output_format, g_open_files, g_input_parse_if;
-extern int g_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations, g_input_parse_special_chars;
+extern int g_last_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations, g_input_parse_special_chars;
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
 extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
 extern int g_create_sizeof_definitions, g_input_allow_leading_hashtag, g_input_has_leading_hashtag, g_input_allow_leading_ampersand;
@@ -1184,7 +1182,7 @@ int parse_tiny_int(int min, int max) {
 
 int evaluate_token(void) {
 
-  int f, z, x, y;
+  int f, z, x, y, last_stack_id_backup;
 #if defined(Z80) || defined(SPC700) || defined(W65816) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280)
   int e = 0, v = 0, h = 0;
   char labelx[MAX_NAME_LENGTH + 1];
@@ -1297,8 +1295,10 @@ int evaluate_token(void) {
     x = g_inz;
     g_inz = g_source_pointer;
 
-    /* no stack rollback */
-    g_stack_inserted = STACK_NONE;
+    /* remember the last stack calculation created -> if we create new stack calculations in the
+       following switch() and need to roll back after that we'll delete all stack calculations created
+       after this stack id... */
+    last_stack_id_backup = g_last_stack_id;
 
 #ifdef SPC700
     /* does the instruction contain a dot? */
@@ -1354,47 +1354,19 @@ int evaluate_token(void) {
     }
 
     /* perform stack rollback? */
-    if (g_stack_inserted != STACK_NONE) {
-      struct stack *s;
+    if (g_last_stack_id > last_stack_id_backup) {
+      /* we have created new stack calculations in vain as we didn't find a matching instruction ->
+         delete all unnecessary stack calculations */
+      for (y = last_stack_id_backup; y < g_last_stack_id; y++) {
+        struct stack *s = find_stack_calculation(y, YES);
 
-      if (g_stack_inserted == STACK_OUTSIDE) {
-        if (g_stacks_outside == 1) {
-          g_stacks_outside = 0;
-          delete_stack_calculation_struct(g_stacks_first);
-          g_stacks_first = NULL;
-          g_stacks_last = NULL;
-        }
-        else {
-          s = g_stacks_first;
-          g_stacks_outside--;
+        if (s == NULL)
+          return FAILED;
 
-          for (y = 0; y < g_stacks_outside - 1; y++)
-            s = s->next;
-
-          delete_stack_calculation_struct(s->next);
-          s->next = NULL;
-          g_stacks_last = s;
-        }
+        delete_stack_calculation_struct(s);
       }
-      else {
-        if (g_stacks_inside == 1) {
-          g_stacks_inside = 0;
-          delete_stack_calculation_struct(g_stacks_header_first);
-          g_stacks_header_first = NULL;
-          g_stacks_header_last = NULL;
-        }
-        else {
-          s = g_stacks_header_first;
-          g_stacks_inside--;
 
-          for (y = 0; y < g_stacks_inside - 1; y++)
-            s = s->next;
-
-          delete_stack_calculation_struct(s->next);
-          s->next = NULL;
-          g_stacks_header_last = s;
-        }
-      }
+      g_last_stack_id = last_stack_id_backup;
     }
 
     g_instruction_tmp = &g_instructions_table[++g_ind];
@@ -11841,21 +11813,6 @@ int find_next_point(char *name) {
   print_error(ERROR_DIR, ".%s must end to .ENDIF/.ELSE.\n", name);
 
   return FAILED;
-}
-
-
-void delete_stack_calculation_struct(struct stack *s) {
-
-  if (s == NULL) {
-    print_error(ERROR_WRN, "Deleting a non-existing computation stack. This can lead to problems.\n");
-    return;
-  }
-
-  if (s == g_latest_stack_struct)
-    g_latest_stack_struct = NULL;
-  
-  free(s->stack);
-  free(s);
 }
 
 

@@ -29,10 +29,6 @@
 #define STACK_RETURN_LABEL  1024
 #define STACK_RETURN_STRING 2048
 
-#define STACK_NONE    0
-#define STACK_INSIDE  1
-#define STACK_OUTSIDE 2
-
 #define INPUT_NUMBER_EOL           2
 #define INPUT_NUMBER_ADDRESS_LABEL 3
 #define INPUT_NUMBER_STRING        4
@@ -674,8 +670,6 @@ struct block_name {
 
 struct stack {
   struct stack_item *stack;
-  struct stack *next;
-  struct stack *prev;
   int id;
   int position;
   int filename_id;
@@ -706,7 +700,6 @@ struct stack_item {
   char has_been_replaced;
   char is_in_postfix;
   double value;
-  struct stack *stack_calculation;
   char string[MAX_NAME_LENGTH + 1];
 };
 

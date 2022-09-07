@@ -18,7 +18,7 @@
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern struct export_def *g_export_first, *g_export_last;
-extern struct stack *g_stacks_first, *g_stacks_tmp, *g_stacks_last, *g_stacks_header_first, *g_stacks_header_last;
+extern struct stack *g_stacks_tmp;
 extern struct label_def *g_label_tmp, *g_label_last, *g_labels;
 extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map, *g_namespace_map, *g_global_unique_label_map;
@@ -48,7 +48,7 @@ extern int g_section_status;
 extern int g_banksize, g_banksize_defined;
 extern int g_slots_amount;
 extern int *g_banks, *g_bankaddress, g_rombankmap_defined;
-extern int g_latest_stack, g_stacks_outside, g_stacks_inside;
+extern int g_latest_stack, g_stacks_outside, g_stacks_inside, g_last_stack_id;
 extern int g_bankheader_status;
 extern int g_smc_defined, g_makefile_rules;
 
@@ -805,17 +805,7 @@ int pass_4(void) {
         else if (type == 'c') {
           fscanf(g_file_out_ptr, "%d", &inz);
 
-          if (g_bankheader_status == OFF)
-            g_stacks_tmp = g_stacks_first;
-          else
-            g_stacks_tmp = g_stacks_header_first;
-
-          while (g_stacks_tmp != NULL) {
-            if (g_stacks_tmp->id == inz)
-              break;
-            g_stacks_tmp = g_stacks_tmp->next;
-          }
-
+          g_stacks_tmp = find_stack_calculation(inz, NO);
           if (g_stacks_tmp == NULL) {
             fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
             return FAILED;
@@ -986,17 +976,7 @@ int pass_4(void) {
     case 'c':
       fscanf(g_file_out_ptr, "%d", &inz);
 
-      if (g_bankheader_status == OFF)
-        g_stacks_tmp = g_stacks_first;
-      else
-        g_stacks_tmp = g_stacks_header_first;
-
-      while (g_stacks_tmp != NULL) {
-        if (g_stacks_tmp->id == inz)
-          break;
-        g_stacks_tmp = g_stacks_tmp->next;
-      }
-
+      g_stacks_tmp = find_stack_calculation(inz, NO);
       if (g_stacks_tmp == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
@@ -1046,17 +1026,7 @@ int pass_4(void) {
     case 'C':
       fscanf(g_file_out_ptr, "%d", &inz);
 
-      if (g_bankheader_status == OFF)
-        g_stacks_tmp = g_stacks_first;
-      else
-        g_stacks_tmp = g_stacks_header_first;
-
-      while (g_stacks_tmp != NULL) {
-        if (g_stacks_tmp->id == inz)
-          break;
-        g_stacks_tmp = g_stacks_tmp->next;
-      }
-
+      g_stacks_tmp = find_stack_calculation(inz, NO);
       if (g_stacks_tmp == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
@@ -1105,17 +1075,7 @@ int pass_4(void) {
     case 'N':
       fscanf(g_file_out_ptr, "%d %d", &x, &inz);
 
-      if (g_bankheader_status == OFF)
-        g_stacks_tmp = g_stacks_first;
-      else
-        g_stacks_tmp = g_stacks_header_first;
-
-      while (g_stacks_tmp != NULL) {
-        if (g_stacks_tmp->id == inz)
-          break;
-        g_stacks_tmp = g_stacks_tmp->next;
-      }
-
+      g_stacks_tmp = find_stack_calculation(inz, NO);
       if (g_stacks_tmp == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
@@ -1164,17 +1124,7 @@ int pass_4(void) {
     case 'T':
       fscanf(g_file_out_ptr, "%d", &inz);
 
-      if (g_bankheader_status == OFF)
-        g_stacks_tmp = g_stacks_first;
-      else
-        g_stacks_tmp = g_stacks_header_first;
-
-      while (g_stacks_tmp != NULL) {
-        if (g_stacks_tmp->id == inz)
-          break;
-        g_stacks_tmp = g_stacks_tmp->next;
-      }
-
+      g_stacks_tmp = find_stack_calculation(inz, NO);
       if (g_stacks_tmp == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
@@ -1224,17 +1174,7 @@ int pass_4(void) {
     case 'U':
       fscanf(g_file_out_ptr, "%d", &inz);
 
-      if (g_bankheader_status == OFF)
-        g_stacks_tmp = g_stacks_first;
-      else
-        g_stacks_tmp = g_stacks_header_first;
-
-      while (g_stacks_tmp != NULL) {
-        if (g_stacks_tmp->id == inz)
-          break;
-        g_stacks_tmp = g_stacks_tmp->next;
-      }
-
+      g_stacks_tmp = find_stack_calculation(inz, NO);
       if (g_stacks_tmp == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
@@ -2026,108 +1966,64 @@ int write_object_file(void) {
   }
 
   /* pending calculations */
-  ov = g_stacks_outside + g_stacks_inside;
-  g_stacks_tmp = g_stacks_first;
-  while (g_stacks_tmp != NULL) {
-    if (g_stacks_tmp->is_function_body == YES)
-      ov--;
-    g_stacks_tmp = g_stacks_tmp->next;
+  ov = 0;
+  for (inz = 0; inz < g_last_stack_id; inz++) {
+    struct stack *stack = find_stack_calculation(inz, NO);
+
+    if (stack == NULL)
+      continue;
+    if (stack->is_function_body == NO)
+      ov++;
   }
   WRITEOUT_OV;
 
-  g_stacks_tmp = g_stacks_first;
-  while (g_stacks_tmp != NULL) {
-    if (g_stacks_tmp->is_function_body == YES) {
-      g_stacks_tmp = g_stacks_tmp->next;
+  for (inz = 0; inz < g_last_stack_id; inz++) {
+    struct stack *stack = find_stack_calculation(inz, NO);
+
+    if (stack == NULL)
       continue;
-    }
+    if (stack->is_function_body == YES)
+      continue;
 
-    ov = g_stacks_tmp->id;
+    ov = stack->id;
     WRITEOUT_OV;
 
-    fprintf(final_ptr, "%c%c", g_stacks_tmp->type | (g_stacks_tmp->relative_references << 7), g_stacks_tmp->special_id);
+    fprintf(final_ptr, "%c%c", stack->type | (stack->relative_references << 7), stack->special_id);
 
-    ov = g_stacks_tmp->section_id;
+    ov = stack->section_id;
     WRITEOUT_OV;
 
-    ov = g_stacks_tmp->filename_id;
+    ov = stack->filename_id;
     WRITEOUT_OV;
 
-    fprintf(final_ptr, "%c%c", g_stacks_tmp->stacksize, g_stacks_tmp->position);
+    fprintf(final_ptr, "%c%c", stack->stacksize, stack->position);
 
-    if (g_stacks_tmp->type == STACK_TYPE_BITS)
-      fprintf(final_ptr, "%c%c", g_stacks_tmp->bits_position, g_stacks_tmp->bits_to_define);
+    if (stack->type == STACK_TYPE_BITS)
+      fprintf(final_ptr, "%c%c", stack->bits_position, stack->bits_to_define);
 
-    fprintf(final_ptr, "%c", g_stacks_tmp->slot);
+    fprintf(final_ptr, "%c", stack->slot);
+
+    ov = stack->address;
+    WRITEOUT_OV;
+
+    ov = stack->linenumber;
+    WRITEOUT_OV;
+
+    ov = stack->bank;
+    WRITEOUT_OV;
+
+    ov = stack->base;
+    WRITEOUT_OV;
       
-    ov = g_stacks_tmp->address;
-    WRITEOUT_OV;
-
-    ov = g_stacks_tmp->linenumber;
-    WRITEOUT_OV;
-
-    ov = g_stacks_tmp->bank;
-    WRITEOUT_OV;
-
-    ov = g_stacks_tmp->base;
-    WRITEOUT_OV;
-      
-    for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
-      fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
-      if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_LABEL)
-        fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
+    for (ind = 0; ind < stack->stacksize; ind++) {
+      fprintf(final_ptr, "%c%c", stack->stack[ind].type, stack->stack[ind].sign);
+      if (stack->stack[ind].type == STACK_ITEM_TYPE_LABEL)
+        fprintf(final_ptr, "%s%c", stack->stack[ind].string, 0);
       else {
-        dou = g_stacks_tmp->stack[ind].value;
+        dou = stack->stack[ind].value;
         WRITEOUT_DOU;
       }
     }
-
-    g_stacks_tmp = g_stacks_tmp->next;
-  }
-
-  g_stacks_tmp = g_stacks_header_first;
-  while (g_stacks_tmp != NULL) {
-    ov = g_stacks_tmp->id;
-    WRITEOUT_OV;
-
-    fprintf(final_ptr, "%c%c", g_stacks_tmp->type, g_stacks_tmp->special_id);
-
-    ov = g_stacks_tmp->section_id;
-    WRITEOUT_OV;
-
-    ov = g_stacks_tmp->filename_id;
-    WRITEOUT_OV;
-
-    fprintf(final_ptr, "%c%c", g_stacks_tmp->stacksize, g_stacks_tmp->position);
-
-    if (g_stacks_tmp->type == STACK_TYPE_BITS)
-      fprintf(final_ptr, "%c%c", g_stacks_tmp->bits_position, g_stacks_tmp->bits_to_define);
-
-    fprintf(final_ptr, "%c", g_stacks_tmp->slot);
-      
-    ov = g_stacks_tmp->address;
-    WRITEOUT_OV;
-
-    ov = g_stacks_tmp->linenumber;
-    WRITEOUT_OV;
-
-    ov = g_stacks_tmp->bank;
-    WRITEOUT_OV;
-
-    ov = g_stacks_tmp->base;
-    WRITEOUT_OV;
-
-    for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
-      fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
-      if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_LABEL)
-        fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
-      else {
-        dou = g_stacks_tmp->stack[ind].value;
-        WRITEOUT_DOU;
-      }
-    }
-
-    g_stacks_tmp = g_stacks_tmp->next;
   }
 
   /* label sizeofs */
@@ -2273,7 +2169,7 @@ int write_object_file(void) {
 
 int write_library_file(void) {
 
-  int ind, ov;
+  int ind, inz, ov;
   FILE *final_ptr;
   unsigned char *cp;
   double dou;
@@ -2380,55 +2276,56 @@ int write_library_file(void) {
   }
 
   /* pending calculations */
-  ov = g_stacks_outside;
-  g_stacks_tmp = g_stacks_first;
-  while (g_stacks_tmp != NULL) {
-    if (g_stacks_tmp->is_function_body == YES)
-      ov--;
-    g_stacks_tmp = g_stacks_tmp->next;
+  ov = 0;
+  for (inz = 0; inz < g_last_stack_id; inz++) {
+    struct stack *stack = find_stack_calculation(inz, NO);
+
+    if (stack == NULL)
+      continue;
+    if (stack->is_function_body == NO)
+      ov++;
   }
   WRITEOUT_OV;
 
-  g_stacks_tmp = g_stacks_first;
-  while (g_stacks_tmp != NULL) {
-    if (g_stacks_tmp->is_function_body == YES) {
-      g_stacks_tmp = g_stacks_tmp->next;
+  for (inz = 0; inz < g_last_stack_id; inz++) {
+    struct stack *stack = find_stack_calculation(inz, NO);
+
+    if (stack == NULL)
       continue;
-    }
+    if (stack->is_function_body == YES)
+      continue;
 
-    ov = g_stacks_tmp->id;
+    ov = stack->id;
     WRITEOUT_OV;
 
-    fprintf(final_ptr, "%c%c", g_stacks_tmp->type | (g_stacks_tmp->relative_references << 7), g_stacks_tmp->special_id);
+    fprintf(final_ptr, "%c%c", stack->type | (stack->relative_references << 7), stack->special_id);
 
-    ov = g_stacks_tmp->section_id;
+    ov = stack->section_id;
     WRITEOUT_OV;
 
-    ov = g_stacks_tmp->filename_id;
+    ov = stack->filename_id;
     WRITEOUT_OV;
       
-    fprintf(final_ptr, "%c%c", g_stacks_tmp->stacksize, g_stacks_tmp->position);
+    fprintf(final_ptr, "%c%c", stack->stacksize, stack->position);
 
-    if (g_stacks_tmp->type == STACK_TYPE_BITS)
-      fprintf(final_ptr, "%c%c", g_stacks_tmp->bits_position, g_stacks_tmp->bits_to_define);
+    if (stack->type == STACK_TYPE_BITS)
+      fprintf(final_ptr, "%c%c", stack->bits_position, stack->bits_to_define);
 
-    ov = g_stacks_tmp->address;
+    ov = stack->address;
     WRITEOUT_OV;
 
-    ov = g_stacks_tmp->linenumber;
+    ov = stack->linenumber;
     WRITEOUT_OV;
 
-    for (ind = 0; ind < g_stacks_tmp->stacksize; ind++) {
-      fprintf(final_ptr, "%c%c", g_stacks_tmp->stack[ind].type, g_stacks_tmp->stack[ind].sign);
-      if (g_stacks_tmp->stack[ind].type == STACK_ITEM_TYPE_LABEL)
-        fprintf(final_ptr, "%s%c", g_stacks_tmp->stack[ind].string, 0);
+    for (ind = 0; ind < stack->stacksize; ind++) {
+      fprintf(final_ptr, "%c%c", stack->stack[ind].type, stack->stack[ind].sign);
+      if (stack->stack[ind].type == STACK_ITEM_TYPE_LABEL)
+        fprintf(final_ptr, "%s%c", stack->stack[ind].string, 0);
       else {
-        dou = g_stacks_tmp->stack[ind].value;
+        dou = stack->stack[ind].value;
         WRITEOUT_DOU;
       }
     }
-
-    g_stacks_tmp = g_stacks_tmp->next;
   }
 
   /* label sizeofs */

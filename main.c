@@ -46,7 +46,6 @@ extern struct macro_static *g_macros_first;
 extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map;
 extern struct export_def *g_export_first, *g_export_last;
-extern struct stack *g_stacks_first, *g_stacks_tmp, *g_stacks_last, *g_stacks_header_first, *g_stacks_header_last;
 extern struct repeat_runtime *g_repeat_stack;
 extern struct section_def *g_sections_first;
 extern struct macro_runtime *g_macro_stack;
@@ -654,21 +653,7 @@ void procedures_at_exit(void) {
     g_ifd_tmp = g_incbin_file_data_first;
   }
 
-  g_stacks_tmp = g_stacks_first;
-  while (g_stacks_tmp != NULL) {
-    free(g_stacks_tmp->stack);
-    g_stacks_first = g_stacks_tmp->next;
-    free(g_stacks_tmp);
-    g_stacks_tmp = g_stacks_first;
-  }
-
-  g_stacks_tmp = g_stacks_header_first;
-  while (g_stacks_tmp != NULL) {
-    free(g_stacks_tmp->stack);
-    g_stacks_first = g_stacks_tmp->next;
-    free(g_stacks_tmp);
-    g_stacks_tmp = g_stacks_first;
-  }
+  free_stack_calculations();
 
   while (g_functions_first != NULL) {
     struct function *fun = g_functions_first->next;

@@ -21,8 +21,11 @@
 
         .db "01>"                                     ; @BT TEST-01 01 START
 label_01:
-        .db <$1234, >$5678, :label_01, bank(label_01) ; @BT 34 56
-                                                      ; @BT 01 01
+        .db <$1234              ; @BT 34
+        .db >$5678              ; @BT 56
+        .db :label_01           ; @BT 01
+        .db bank(label_01)      ; @BT 01
+
         .db "<01"                                     ; @BT END
 
         .db "02>"                                     ; @BT TEST-02 02 START
