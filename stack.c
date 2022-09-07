@@ -112,7 +112,7 @@ void free_stack_calculations(void) {
 
   int i;
 
-  for (i = 0; i < g_latest_stack; i++) {
+  for (i = 0; i < g_last_stack_id; i++) {
     if (g_stack_calculations[i] != NULL)
       delete_stack_calculation_struct(g_stack_calculations[i]);
   }
