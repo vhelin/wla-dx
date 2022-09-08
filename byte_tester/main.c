@@ -14,6 +14,8 @@
 #define TRUE  1
 #define FALSE 0
 
+#define MAX_BYTES_PER_TEST 1024
+
 
 int _get_next_number(char *in, int *out) {
 
@@ -222,18 +224,18 @@ int extract_comments(char *input, size_t size) {
 
 int main(int argc, char *argv[]) {
 
-  char tmp[256], test_id[256], tag_id[256];
+  char tmp[MAX_BYTES_PER_TEST], test_id[MAX_BYTES_PER_TEST], tag_id[MAX_BYTES_PER_TEST];
   char *input_name = NULL, *input = NULL, *current = NULL;
-  unsigned char bytes[256];
+  unsigned char bytes[MAX_BYTES_PER_TEST];
   int input_size, file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, should_extract_comments = NO, use_address = NO, address = 0, did_we_read_data = NO, got_it = NO;
   FILE *f;
   
   if (argc < 2 || argc > 3 || argv == NULL) {
     fprintf(stderr, "\n");
 #ifdef AMIGACPU
-    fprintf(stderr, "Byte tester 2.0 (" AMIGACPU ")\n");
+    fprintf(stderr, "Byte tester 2.1 (" AMIGACPU ")\n");
 #else
-    fprintf(stderr, "Byte tester 2.0\n");
+    fprintf(stderr, "Byte tester 2.1\n");
 #endif
     fprintf(stderr, "\n");
     fprintf(stderr, "USAGE: %s [-s] <TESTS FILE / SOURCE FILE>\n", argv[0]);
@@ -404,8 +406,8 @@ int main(int argc, char *argv[]) {
     byte_count = 0;
 
     while (1) {
-      if (byte_count == 256) {
-        fprintf(stderr, "Test \"%s\" FAILED - Each test can contain max 256 bytes.\n", test_id);
+      if (byte_count == MAX_BYTES_PER_TEST) {
+        fprintf(stderr, "Test \"%s\" FAILED - Each test can contain max %d bytes.\n", test_id, MAX_BYTES_PER_TEST);
         failures = 1;
         end = 1;
         break;

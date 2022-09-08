@@ -1941,7 +1941,7 @@ You can optionally use ``SWAP`` after the file name, e.g., ::
 
 ``.INCBIN`` data is divided into blocks of two bytes, and inside every block
 the bytes are exchanged (like ``SWAP r`` does to nibbles). This requires that
-the size of the file is even.
+the size of the read data is even.
 
 You can also force WLA to skip n bytes from the beginning of the file
 by writing for example::
@@ -1955,7 +1955,16 @@ It is also possible to incbin only n bytes from a file::
 
     .INCBIN "kitten.bin" READ 10
 
-Will read ten bytes from the beginning of ``kitten.bin``.
+Will read ten bytes from the beginning of ``kitten.bin``. Or if you make it
+negative, like::
+
+    .INCBIN "kitten.bin" READ -2
+
+all bytes except the last two are read. To extend this::
+
+    .INCBIN "kitten.bin" SKIP 1 READ -2
+
+and one byte will be skipped at the beginning of the file and two at the end. 
 
 You can also force WLA to create a definition holding the size
 of the file::

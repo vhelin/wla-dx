@@ -341,6 +341,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   if (ifd == NULL) {
     struct incbin_file_data *ifd2;
     
+    /* add the file to our cache */
     fseek(f, 0, SEEK_END);
     file_size = (int)ftell(f);
     fseek(f, 0, SEEK_SET);
@@ -393,85 +394,98 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   }
 
   *id = q;
+  *skip = 0;
+  *read = 0;
+  *swap = 0;
+  *macro = NULL;
+  
+  while (1) {
+    /* SKIP bytes? */
+    if (compare_next_token("SKIP") == SUCCEEDED) {
+      skip_next_token();
+      if (input_number() != SUCCEEDED) {
+        print_error(ERROR_DIR, ".INCBIN needs the amount of skipped bytes.\n");
+        return FAILED;
+      }
 
-  /* SKIP bytes? */
-  if (compare_next_token("SKIP") == FAILED)
-    *skip = 0;
-  else {
-    skip_next_token();
-    if (input_number() != SUCCEEDED) {
-      print_error(ERROR_DIR, ".INCBIN needs the amount of skipped bytes.\n");
-      return FAILED;
+      if (g_parsed_int == 0) {
+        print_error(ERROR_DIR, "SKIP must be positive or negative, 0 doesn't make sense.\n");
+        return FAILED;
+      }
+      
+      *skip = g_parsed_int;
+
+      if (g_parsed_int >= file_size) {
+        print_error(ERROR_INB, "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", g_parsed_int, file_size, g_full_name);
+        return FAILED;
+      }
     }
+    /* READ bytes? */
+    else if (compare_next_token("READ") == SUCCEEDED) {
+      skip_next_token();
+      if (input_number() != SUCCEEDED) {
+        print_error(ERROR_DIR, ".INCBIN needs the amount of bytes for reading.\n");
+        return FAILED;
+      }
 
-    *skip = g_parsed_int;
+      if (g_parsed_int == 0) {
+        print_error(ERROR_DIR, "READ must be positive or negative, 0 doesn't make sense.\n");
+        return FAILED;
+      }
 
-    if (g_parsed_int >= file_size) {
-      print_error(ERROR_INB, "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", g_parsed_int, file_size, g_full_name);
-      return FAILED;
+      *read = g_parsed_int;
     }
+    /* SWAP bytes? */
+    else if (compare_next_token("SWAP") == SUCCEEDED) {
+      skip_next_token();
+      *swap = 1;
+    }
+    /* FSIZE? */
+    else if (compare_next_token("FSIZE") == SUCCEEDED) {
+      skip_next_token();
+
+      /* get the definition label */
+      if (get_next_token() == FAILED)
+        return FAILED;
+
+      add_a_new_definition(g_tmp, (double)file_size, NULL, DEFINITION_TYPE_VALUE, 0);
+    }
+    /* FILTER? */
+    else if (compare_next_token("FILTER") == SUCCEEDED) {
+      skip_next_token();
+
+      /* get the filter macro name */
+      if (get_next_token() == FAILED)
+        return FAILED;
+
+      if (macro_get(g_tmp, YES, macro) == FAILED)
+        return FAILED;
+      
+      if (*macro == NULL) {
+        print_error(ERROR_INB, "No MACRO \"%s\" defined.\n", g_tmp);
+        return FAILED;
+      }
+    }
+    else
+      break;
   }
 
-  /* READ bytes? */
-  if (compare_next_token("READ") == FAILED)
+  /* negative READ? */
+  if (*read < 0)
+    *read = file_size + *read - *skip;
+  else if (*read == 0)
     *read = file_size - *skip;
-  else {
-    skip_next_token();
-    if (input_number() != SUCCEEDED) {
-      print_error(ERROR_DIR, ".INCBIN needs the amount of bytes for reading.\n");
-      return FAILED;
-    }
 
-    *read = g_parsed_int;
-
-    if (*skip + *read > file_size) {
-      print_error(ERROR_INB, "Overreading file \"%s\" by %d bytes.\n", g_full_name, *skip + *read - file_size);
-      return FAILED;
-    }
+  if (*skip + *read > file_size) {
+    print_error(ERROR_INB, "Overreading file \"%s\" by %d bytes.\n", g_full_name, *skip + *read - file_size);
+    return FAILED;
   }
 
-  /* SWAP bytes? */
-  if (compare_next_token("SWAP") == FAILED)
-    *swap = 0;
-  else {
-    if ((*read & 1) == 1) {
-      print_error(ERROR_INB, "The read size of file \"%s\" is odd (%d)! Cannot perform SWAP.\n", g_full_name, *read);
-      return FAILED;
-    }
-    *swap = 1;
-    skip_next_token();
+  if (*swap == 1 && (*read & 1) == 1) {
+    print_error(ERROR_INB, "The read size of file \"%s\" is odd (%d)! Cannot perform SWAP.\n", g_full_name, *read);
+    return FAILED;
   }
-
-  /* FSIZE? */
-  if (compare_next_token("FSIZE") == SUCCEEDED) {
-    skip_next_token();
-
-    /* get the definition label */
-    if (get_next_token() == FAILED)
-      return FAILED;
-
-    add_a_new_definition(g_tmp, (double)file_size, NULL, DEFINITION_TYPE_VALUE, 0);
-  }
-
-  /* FILTER? */
-  if (compare_next_token("FILTER") == SUCCEEDED) {
-    skip_next_token();
-
-    /* get the filter macro name */
-    if (get_next_token() == FAILED)
-      return FAILED;
-
-    if (macro_get(g_tmp, YES, macro) == FAILED)
-      return FAILED;
-
-    if (*macro == NULL) {
-      print_error(ERROR_INB, "No MACRO \"%s\" defined.\n", g_tmp);
-      return FAILED;
-    }
-  }
-  else
-    *macro = NULL;
-
+  
   return SUCCEEDED;
 }
 

@@ -274,13 +274,24 @@ data1b:	.incbin "data.txt" skip 1 filter macroOne
 data2b:	.incbin "data.txt" skip 1 filter macroOne
 	.db "06>"              ; @BT TEST-06 06 START
 	.incbin "data.txt"     ; @BT 44 41 54 41 32
+        .incbin "data.txt" READ -2 ; @BT 44 41 54
+        .incbin "data.txt" READ -2 SKIP 2 ; @BT 54
+        .incbin "data.txt" SKIP 2 READ -2 ; @BT 54
+        .incbin "data.txt" READ -1 SWAP   ; @BT 41 44 41 54
+        .incbin "data.txt" SWAP FSIZE TWO READ -2 SKIP 1 ; @BT 54 41
+        .incbin "data.txt" READ 2 SKIP 2                 ; @BT 54 41
+        .incbin "data.txt" READ 2 SWAP SKIP 2            ; @BT 41 54
+        .db TWO+1                                        ; @BT 06
 	.db "<06"	       ; @BT END
+
         .db "04>"              ; @BT TEST-04 04 START
 	.incbin "data.txt"     ; @BT 44 41 54 41 32
 	.db "<04"	       ; @BT END
+
         .db "05>"              ; @BT TEST-05 05 START
 	.incbin "data.txt" filter macroOne ; @BT 45 42 55 42 33
 	.db "<05"	       ; @BT END
+
         .db "07>"              ; @BT TEST-07 07 START
 	.incbin "data.txt" skip 2 filter macroOne ; @BT 55 42 33
 	.db "<07"	       ; @BT END
@@ -288,5 +299,6 @@ data2b:	.incbin "data.txt" skip 1 filter macroOne
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 ; .stringmap test
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
-.stringmaptable foo "table-UTF8.tbl"
-.stringmap foo "あいうえおかきくけこがぎぐげごさ[EOS]"
+
+        .stringmaptable foo "table-UTF8.tbl"
+        .stringmap foo "あいうえおかきくけこがぎぐげごさ[EOS]"

@@ -101,7 +101,7 @@ int calculation_stack_insert(struct stack *s) {
 
   g_stack_calculations[g_latest_stack] = s;
 
-  /* remove this dependency! */
+  /* TODO: remove this dependency! */
   g_stacks_tmp = s;
   
   return SUCCEEDED;
