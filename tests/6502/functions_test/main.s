@@ -215,6 +215,8 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
         .function MUL_AB(varA, varB) varA*varB
         .function MUL_ABC1(varA, varB, varC) MUL_AB(varA, varB*varC)
         .function MUL_ABC2(varA, varB, varC) 1*MUL_ABC1(varA*(2-1), (0+1)*varB, 1*varC*1)
+        .define NUM_THREE = NUM_ONE + NUM_TWO
+        .export NUM_THREE
 
         .db "19>"               ; @BT TEST-19 19 START
         .db MUL_AB(1,2)         ; @BT 02
@@ -240,6 +242,9 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
         .db MUL_ABC2(1+0,2+0,3+0)+0     ; @BT 06
         .db MUL_ABC2(SUM_ABC6(0+0,1+0,1), SUM_ABC7(1,2,3), SUM_ABC5(0-6,-4-1,5+5+1+1))+0 ; @BT 0C
         .db MUL_ABC2(0+1, SUM_ABC6(0+0,1+0,1) - SUM_ABC7(1,2,3), SUM_ABC5(1+2+3, 0-4-2-2-2, 1+1))+0 ; @BT 08
+        .db MUL_ABC2(0+NUM_ONE, SUM_ABC6(0+0,NUM_ONE+0,1) - SUM_ABC7(NUM_ONE,NUM_TWO,3), SUM_ABC5(NUM_THREE+3, 0-4-2-NUM_TWO-2, 1+1))+0 ; @BT 08
+        .db NUM_THREE * NUM_TWO ; @BT 06
+        .db NUM_THREE           ; @BT 03
         .db "<19"               ; @BT END
         
         .db "20>"               ; @BT TEST-20 20 START

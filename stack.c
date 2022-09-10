@@ -24,6 +24,7 @@ extern struct active_file_info *g_active_file_info_first, *g_active_file_info_la
 extern struct macro_runtime *g_macro_runtime_current;
 extern struct section_def *g_sec_tmp;
 extern struct function *g_functions_first;
+extern struct export_def *g_export_first;
 extern double g_parsed_double;
 extern int g_operand_hint, g_operand_hint_type, g_can_calculate_a_minus_b;
 
@@ -43,6 +44,7 @@ void init_stack_struct(struct stack *s) {
 
   s->stack = NULL;
   s->id = -123456;
+  s->compressed_id = -123456;
   s->position = STACK_POSITION_DEFINITION;
   s->filename_id = -123456;
   s->stacksize = 0;
@@ -157,6 +159,108 @@ struct stack *find_stack_calculation(int id, int print_error_message) {
   }
 
   return s;
+}
+
+
+int compress_stack_calculation_ids(void) {
+
+  struct stack **stack_calculations = NULL;
+  struct export_def *export_tmp;
+  int i, compressed_id = 0;
+  
+  /* 1. give stack calculations new IDs */
+
+  /* pending calculations we'll export come first */
+  for (i = 0; i < g_last_stack_id; i++) {
+    struct stack *s = g_stack_calculations[i];
+
+    if (s == NULL)
+      continue;
+    if (s->is_function_body == YES)
+      continue;
+
+    s->compressed_id = compressed_id++;
+  }
+
+  /* next come the pending calculations we will not export */
+  for (i = 0; i < g_last_stack_id; i++) {
+    struct stack *s = g_stack_calculations[i];
+
+    if (s == NULL)
+      continue;
+    if (s->is_function_body == NO)
+      continue;
+
+    s->compressed_id = compressed_id++;
+  }
+
+  /* 2. reorder the stack calculations into a new pointer array */
+
+  stack_calculations = calloc(sizeof(struct stack *) * g_stack_calculations_max, 1);
+  if (stack_calculations == NULL) {
+    print_error(ERROR_NUM, "Out of memory error while trying to reorder stack calculations pointer array!\n");
+    return FAILED;
+  }
+
+  for (i = 0; i < g_last_stack_id; i++) {
+    struct stack *s = g_stack_calculations[i];
+
+    if (s == NULL)
+      continue;
+
+    stack_calculations[s->compressed_id] = s;
+  }
+
+  /* 3. update all stack calculation IDs in the stack calculations */
+
+  for (i = 0; i < g_last_stack_id; i++) {
+    struct stack *s = g_stack_calculations[i];
+    int j;
+
+    if (s == NULL)
+      continue;
+
+    for (j = 0; j < s->stacksize; j++) {
+      if (s->stack[j].type == STACK_ITEM_TYPE_STACK) {
+        struct stack *s2 = g_stack_calculations[(int)s->stack[j].value];
+
+        s->stack[j].value = (double)s2->compressed_id;
+      }
+    }
+  }
+
+  /* 4. update all definitions that contain stack calculation IDs */
+
+  export_tmp = g_export_first;
+  while (export_tmp != NULL) {
+    hashmap_get(g_defines_map, export_tmp->name, (void*)&g_tmp_def);
+    if (g_tmp_def != NULL) {
+      if (g_tmp_def->type == DEFINITION_TYPE_STACK) {
+        struct stack *s = g_stack_calculations[(int)g_tmp_def->value];
+
+        if (s != NULL)
+          g_tmp_def->value = (double)s->compressed_id;
+      }
+    }
+
+    export_tmp = export_tmp->next;
+  }
+  
+  /* 5. delete the old array, replace it with the new array */
+
+  free(g_stack_calculations);
+  g_stack_calculations = stack_calculations;
+
+  /* 6. finalize the ID changes */
+
+  for (i = 0; i < g_last_stack_id; i++) {
+    struct stack *s = g_stack_calculations[i];
+
+    if (s != NULL)
+      s->id = s->compressed_id;
+  }
+  
+  return SUCCEEDED;
 }
 
 

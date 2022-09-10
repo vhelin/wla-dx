@@ -4,9 +4,9 @@ CFLAGS = -o
 LD = $(WLAVALGRIND) wlalink
 LDFLAGS = -v -s
 
-SFILES = main.s
+SFILES = main.s bonus.s
 IFILES = 
-OFILES = main.o
+OFILES = main.o bonus.o
 
 all: linked.rom check
 
@@ -16,8 +16,12 @@ linked.rom: $(OFILES) makefile
 main.o: main.s
 	$(CC) $(CFLAGS) main.o main.s
 
+bonus.o: bonus.s
+	$(CC) $(CFLAGS) bonus.o bonus.s
+
 check: linked.rom
 	byte_tester -s main.s
+	byte_tester -s bonus.s
 
 $(OFILES): $(HFILES)
 

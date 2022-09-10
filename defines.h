@@ -671,6 +671,7 @@ struct block_name {
 struct stack {
   struct stack_item *stack;
   int id;
+  int compressed_id;
   int position;
   int filename_id;
   int stacksize;

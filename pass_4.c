@@ -1669,6 +1669,11 @@ int pass_4(void) {
   fclose(g_file_out_ptr);
   g_file_out_ptr = NULL;
 
+  /* make sure that the pending calculations we export next have consecutive IDs starting from zero.
+     when pending calculations are exported like this the pointer tables in the linker take less memory. */
+  if (compress_stack_calculation_ids() == FAILED)
+    return FAILED;
+
   if (g_output_format == OUTPUT_LIBRARY && g_test_mode == OFF) {
     /* library file output */
     if (write_library_file() == FAILED)
@@ -2944,9 +2949,8 @@ int export_definitions(FILE *final_ptr) {
         dou = g_tmp_def->value;
         WRITEOUT_DOU;
       }
-      else if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
+      else if (g_tmp_def->type == DEFINITION_TYPE_STRING)
         fprintf(stderr, "INTERNAL_PASS_2: Definition \"%s\" is a string definition, and it cannot be exported.\n", export_tmp->name);
-      }
       else if (g_tmp_def->type == DEFINITION_TYPE_STACK) {
         fprintf(final_ptr, "%s%c", g_tmp_def->alias, 0x1);
         dou = g_tmp_def->value;
