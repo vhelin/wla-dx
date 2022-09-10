@@ -544,7 +544,7 @@ int main(int argc, char *argv[]) {
         int z;
         
         for (z = 0; z < s->stacksize; z++) {
-          struct stack_item *si = &s->stack[z];
+          struct stack_item *si = &s->stack_items[z];
           if (si->stack_file_id >= 0)
             printf(get_stack_item_description(si, si->stack_file_id));
           else
@@ -636,7 +636,7 @@ int main(int argc, char *argv[]) {
         int z;
         
         for (z = 0; z < s->stacksize; z++) {
-          struct stack_item *si = &s->stack[z];
+          struct stack_item *si = &s->stack_items[z];
           if (si->stack_file_id >= 0)
             printf(get_stack_item_description(si, si->stack_file_id));
           else
@@ -1095,7 +1095,7 @@ void procedures_at_exit(void) {
 
   while (g_stacks_first != NULL) {
     sta = g_stacks_first->next;
-    free(g_stacks_first->stack);
+    free(g_stacks_first->stack_items);
     free(g_stacks_first);
     g_stacks_first = sta;
   }

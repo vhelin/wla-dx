@@ -2627,7 +2627,7 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
   */
 
   x = sta->stacksize;
-  s = sta->stack;
+  s = sta->stack_items;
   for (r = 0, t = 0; r < x; r++, s++) {
     if (s->type == STACK_ITEM_TYPE_VALUE) {
       if (s->sign == SI_SIGN_NEGATIVE) {
@@ -3361,7 +3361,7 @@ int parse_stack(struct stack *sta) {
     break;
   }
 
-  si = sta->stack;
+  si = sta->stack_items;
   g = 0;
   k_ram = 0.0;
   k_rom = 0.0;

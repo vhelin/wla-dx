@@ -23,7 +23,6 @@ extern struct map_t *g_defines_map;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct macro_runtime *g_macro_runtime_current;
 extern struct section_def *g_sec_tmp;
-extern struct function *g_functions_first;
 extern struct export_def *g_export_first;
 extern double g_parsed_double;
 extern int g_operand_hint, g_operand_hint_type, g_can_calculate_a_minus_b;

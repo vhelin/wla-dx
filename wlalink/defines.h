@@ -234,7 +234,7 @@ struct slot {
 };
 
 struct stack {
-  struct stack_item *stack;
+  struct stack_item *stack_items;
   struct stack *next;
   struct stack *prev;
   int id;

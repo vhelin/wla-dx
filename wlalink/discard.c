@@ -141,7 +141,7 @@ int discard_iteration(void) {
       }
     }
 
-    si = st->stack;
+    si = st->stack_items;
     i = 0;
     while (i != st->stacksize) {
       if (si->type == STACK_ITEM_TYPE_LABEL && is_label_anonymous(si->string) == NO) {

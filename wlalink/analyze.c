@@ -749,8 +749,8 @@ int collect_dlr(void) {
         s->base = READ_T;
         s->stacksize = x;
         
-        s->stack = calloc(sizeof(struct stack_item) * x, 1);
-        if (s->stack == NULL) {
+        s->stack_items = calloc(sizeof(struct stack_item) * x, 1);
+        if (s->stack_items == NULL) {
           fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
           free(s);
           return FAILED;
@@ -759,26 +759,26 @@ int collect_dlr(void) {
         add_stack(s);
 
         for (n = 0; n != x; n++) {
-          s->stack[n].slot = -1;
-          s->stack[n].base = -1;
-          s->stack[n].bank = -1;
-          s->stack[n].stack_file_id = -1;
-          s->stack[n].type = *(t++);
-          s->stack[n].sign = *(t++);
-          if (s->stack[n].type == STACK_ITEM_TYPE_LABEL) {
+          s->stack_items[n].slot = -1;
+          s->stack_items[n].base = -1;
+          s->stack_items[n].bank = -1;
+          s->stack_items[n].stack_file_id = -1;
+          s->stack_items[n].type = *(t++);
+          s->stack_items[n].sign = *(t++);
+          if (s->stack_items[n].type == STACK_ITEM_TYPE_LABEL) {
             for (q = 0; *t != 0; t++, q++)
-              s->stack[n].string[q] = *t;
-            s->stack[n].string[q] = 0;
+              s->stack_items[n].string[q] = *t;
+            s->stack_items[n].string[q] = 0;
             t++;
           }
-          else if (s->stack[n].type == STACK_ITEM_TYPE_STRING) {
+          else if (s->stack_items[n].type == STACK_ITEM_TYPE_STRING) {
             fprintf(stderr, "COLLECT_DLR: String \"%s\" inside a pending calculation doesn't make any sense. Please fix the calculation.\n", t);
             return FAILED;
           }
           else {
             READ_DOU;
-            s->stack[n].value_ram = dou;
-            s->stack[n].value_rom = dou;
+            s->stack_items[n].value_ram = dou;
+            s->stack_items[n].value_rom = dou;
           }
         }
       }
@@ -1009,8 +1009,8 @@ int collect_dlr(void) {
         s->slot = g_obj_tmp->slot;
         s->base = g_obj_tmp->base;
         
-        s->stack = calloc(sizeof(struct stack_item) * x, 1);
-        if (s->stack == NULL) {
+        s->stack_items = calloc(sizeof(struct stack_item) * x, 1);
+        if (s->stack_items == NULL) {
           fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
           free(s);
           return FAILED;
@@ -1019,26 +1019,26 @@ int collect_dlr(void) {
         add_stack(s);
 
         for (n = 0; n != x; n++) {
-          s->stack[n].slot = -1;
-          s->stack[n].base = -1;
-          s->stack[n].bank = -1;
-          s->stack[n].stack_file_id = -1;
-          s->stack[n].type = *(t++);
-          s->stack[n].sign = *(t++);
-          if (s->stack[n].type == STACK_ITEM_TYPE_LABEL) {
+          s->stack_items[n].slot = -1;
+          s->stack_items[n].base = -1;
+          s->stack_items[n].bank = -1;
+          s->stack_items[n].stack_file_id = -1;
+          s->stack_items[n].type = *(t++);
+          s->stack_items[n].sign = *(t++);
+          if (s->stack_items[n].type == STACK_ITEM_TYPE_LABEL) {
             for (q = 0; *t != 0; t++, q++)
-              s->stack[n].string[q] = *t;
-            s->stack[n].string[q] = 0;
+              s->stack_items[n].string[q] = *t;
+            s->stack_items[n].string[q] = 0;
             t++;
           }
-          else if (s->stack[n].type == STACK_ITEM_TYPE_STRING) {
+          else if (s->stack_items[n].type == STACK_ITEM_TYPE_STRING) {
             fprintf(stderr, "COLLECT_DLR: String \"%s\" inside a pending calculation doesn't make any sense. Please fix the calculation.\n", t);
             return FAILED;
           }
           else {
             READ_DOU;
-            s->stack[n].value_ram = dou;
-            s->stack[n].value_rom = dou;
+            s->stack_items[n].value_ram = dou;
+            s->stack_items[n].value_rom = dou;
           }
         }
       }
@@ -2040,9 +2040,9 @@ int clean_up_dlr(void) {
           while (s != NULL) {
             if (s->section_status == ON && s->section == sec->id) {
               st = s;
-              if (st->stack != NULL) {
-                free(st->stack);
-                st->stack = NULL;
+              if (st->stack_items != NULL) {
+                free(st->stack_items);
+                st->stack_items = NULL;
               }
               if (st->prev == NULL)
                 g_stacks_first = st->next;
