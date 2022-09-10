@@ -42,7 +42,12 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           
           if (g_instruction_tmp->type == 4) {
             /* 4 -> let's configure the stack so that all label references inside are relative */
-            g_stacks_tmp->relative_references = 1;
+            struct stack *stack = find_stack_calculation(g_latest_stack, YES);
+
+            if (stack == NULL)
+              return FAILED;
+    
+            stack->relative_references = 1;
           }
         }
 

@@ -18,7 +18,6 @@
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern struct export_def *g_export_first, *g_export_last;
-extern struct stack *g_stacks_tmp;
 extern struct label_def *g_label_tmp, *g_label_last, *g_labels;
 extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map, *g_namespace_map, *g_global_unique_label_map;
@@ -278,6 +277,7 @@ int pass_4(void) {
 
   int i, o, z, y, add_old = 0, x, q, inside_macro = 0, inside_repeat = 0, inz, ind, bits_position = 0, bits_byte = 0;
   char *t, c, tmp_buffer[MAX_NAME_LENGTH + 1];
+  struct stack *stack;
 
   /* initialize label context */
   g_label_context.isolated_macro = NULL;
@@ -805,40 +805,40 @@ int pass_4(void) {
         else if (type == 'c') {
           fscanf(g_file_out_ptr, "%d", &inz);
 
-          g_stacks_tmp = find_stack_calculation(inz, NO);
-          if (g_stacks_tmp == NULL) {
+          stack = find_stack_calculation(inz, NO);
+          if (stack == NULL) {
             fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
             return FAILED;
           }
 
-          if (g_stacks_tmp->section_status == ON) {
+          if (stack->section_status == ON) {
             /* relative address, to the beginning of the section */
-            g_stacks_tmp->address = g_sec_tmp->i;
+            stack->address = g_sec_tmp->i;
           }
           else {
             /* complete address, in ROM memory */
-            g_stacks_tmp->address = g_pc_bank;
+            stack->address = g_pc_bank;
           }
 
-          g_stacks_tmp->bank = g_rom_bank;
-          g_stacks_tmp->slot = g_slot;
-          g_stacks_tmp->type = STACK_TYPE_BITS;
-          g_stacks_tmp->base = g_base;
-          g_stacks_tmp->bits_position = bits_position;
-          g_stacks_tmp->bits_to_define = bits_to_define;
+          stack->bank = g_rom_bank;
+          stack->slot = g_slot;
+          stack->type = STACK_TYPE_BITS;
+          stack->base = g_base;
+          stack->bits_position = bits_position;
+          stack->bits_to_define = bits_to_define;
 
-          if (_mangle_stack_references(g_stacks_tmp) == FAILED)
+          if (_mangle_stack_references(stack) == FAILED)
             return FAILED;
 
           if (g_namespace[0] != 0) {
             if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-              if (_add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
+              if (_add_namespace_to_stack_references(stack, g_namespace) == FAILED)
                 return FAILED;
             }
           }
         
           /* this stack was referred from the code */
-          g_stacks_tmp->position = STACK_POSITION_CODE;
+          stack->position = STACK_POSITION_CODE;
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
           snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for .BITS' bits", get_file_name(g_filename_id), g_line_number);
@@ -976,42 +976,42 @@ int pass_4(void) {
     case 'c':
       fscanf(g_file_out_ptr, "%d", &inz);
 
-      g_stacks_tmp = find_stack_calculation(inz, NO);
-      if (g_stacks_tmp == NULL) {
+      stack = find_stack_calculation(inz, NO);
+      if (stack == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
-      if (g_stacks_tmp->section_status == ON) {
+      if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
-        g_stacks_tmp->address = g_sec_tmp->i;
+        stack->address = g_sec_tmp->i;
       }
       else {
         /* complete address, in ROM memory */
-        g_stacks_tmp->address = g_pc_bank;
+        stack->address = g_pc_bank;
       }
 
-      g_stacks_tmp->bank = g_rom_bank;
-      g_stacks_tmp->slot = g_slot;
+      stack->bank = g_rom_bank;
+      stack->slot = g_slot;
       if (c == '-')
-        g_stacks_tmp->type = STACK_TYPE_9BIT_SHORT;
+        stack->type = STACK_TYPE_9BIT_SHORT;
       else
-        g_stacks_tmp->type = STACK_TYPE_8BIT;
-      g_stacks_tmp->base = g_base;
-      g_stacks_tmp->special_id = g_special_id;
+        stack->type = STACK_TYPE_8BIT;
+      stack->base = g_base;
+      stack->special_id = g_special_id;
         
-      if (_mangle_stack_references(g_stacks_tmp) == FAILED)
+      if (_mangle_stack_references(stack) == FAILED)
         return FAILED;
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (_add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
+          if (_add_namespace_to_stack_references(stack, g_namespace) == FAILED)
             return FAILED;
         }
       }
 
       /* this stack was referred from the code */
-      g_stacks_tmp->position = STACK_POSITION_CODE;
+      stack->position = STACK_POSITION_CODE;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for an 8-bit computation", get_file_name(g_filename_id), g_line_number);
@@ -1026,38 +1026,38 @@ int pass_4(void) {
     case 'C':
       fscanf(g_file_out_ptr, "%d", &inz);
 
-      g_stacks_tmp = find_stack_calculation(inz, NO);
-      if (g_stacks_tmp == NULL) {
+      stack = find_stack_calculation(inz, NO);
+      if (stack == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
-      if (g_stacks_tmp->section_status == ON) {
+      if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
-        g_stacks_tmp->address = g_sec_tmp->i;
+        stack->address = g_sec_tmp->i;
       }
       else {
         /* complete address, in ROM memory */
-        g_stacks_tmp->address = g_pc_bank;
+        stack->address = g_pc_bank;
       }
 
-      g_stacks_tmp->bank = g_rom_bank;
-      g_stacks_tmp->slot = g_slot;
-      g_stacks_tmp->type = STACK_TYPE_16BIT;
-      g_stacks_tmp->base = g_base;
+      stack->bank = g_rom_bank;
+      stack->slot = g_slot;
+      stack->type = STACK_TYPE_16BIT;
+      stack->base = g_base;
         
-      if (_mangle_stack_references(g_stacks_tmp) == FAILED)
+      if (_mangle_stack_references(stack) == FAILED)
         return FAILED;
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (_add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
+          if (_add_namespace_to_stack_references(stack, g_namespace) == FAILED)
             return FAILED;
         }
       }
         
       /* this stack was referred from the code */
-      g_stacks_tmp->position = STACK_POSITION_CODE;
+      stack->position = STACK_POSITION_CODE;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 16-bit computation", get_file_name(g_filename_id), g_line_number);
@@ -1075,38 +1075,38 @@ int pass_4(void) {
     case 'N':
       fscanf(g_file_out_ptr, "%d %d", &x, &inz);
 
-      g_stacks_tmp = find_stack_calculation(inz, NO);
-      if (g_stacks_tmp == NULL) {
+      stack = find_stack_calculation(inz, NO);
+      if (stack == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
-      if (g_stacks_tmp->section_status == ON) {
+      if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
-        g_stacks_tmp->address = g_sec_tmp->i;
+        stack->address = g_sec_tmp->i;
       }
       else {
         /* complete address, in ROM memory */
-        g_stacks_tmp->address = g_pc_bank;
+        stack->address = g_pc_bank;
       }
 
-      g_stacks_tmp->bank = g_rom_bank;
-      g_stacks_tmp->slot = g_slot;
-      g_stacks_tmp->type = STACK_TYPE_13BIT;
-      g_stacks_tmp->base = g_base;
+      stack->bank = g_rom_bank;
+      stack->slot = g_slot;
+      stack->type = STACK_TYPE_13BIT;
+      stack->base = g_base;
         
-      if (_mangle_stack_references(g_stacks_tmp) == FAILED)
+      if (_mangle_stack_references(stack) == FAILED)
         return FAILED;
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (_add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
+          if (_add_namespace_to_stack_references(stack, g_namespace) == FAILED)
             return FAILED;
         }
       }
         
       /* this stack was referred from the code */
-      g_stacks_tmp->position = STACK_POSITION_CODE;
+      stack->position = STACK_POSITION_CODE;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 13-bit computation", get_file_name(g_filename_id), g_line_number);
@@ -1124,38 +1124,38 @@ int pass_4(void) {
     case 'T':
       fscanf(g_file_out_ptr, "%d", &inz);
 
-      g_stacks_tmp = find_stack_calculation(inz, NO);
-      if (g_stacks_tmp == NULL) {
+      stack = find_stack_calculation(inz, NO);
+      if (stack == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
-      if (g_stacks_tmp->section_status == ON) {
+      if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
-        g_stacks_tmp->address = g_sec_tmp->i;
+        stack->address = g_sec_tmp->i;
       }
       else {
         /* complete address, in ROM memory */
-        g_stacks_tmp->address = g_pc_bank;
+        stack->address = g_pc_bank;
       }
 
-      g_stacks_tmp->bank = g_rom_bank;
-      g_stacks_tmp->slot = g_slot;
-      g_stacks_tmp->type = STACK_TYPE_24BIT;
-      g_stacks_tmp->base = g_base;
+      stack->bank = g_rom_bank;
+      stack->slot = g_slot;
+      stack->type = STACK_TYPE_24BIT;
+      stack->base = g_base;
 
-      if (_mangle_stack_references(g_stacks_tmp) == FAILED)
+      if (_mangle_stack_references(stack) == FAILED)
         return FAILED;
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (_add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
+          if (_add_namespace_to_stack_references(stack, g_namespace) == FAILED)
             return FAILED;
         }
       }
         
       /* this stack was referred from the code */
-      g_stacks_tmp->position = STACK_POSITION_CODE;
+      stack->position = STACK_POSITION_CODE;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 24-bit computation", get_file_name(g_filename_id), g_line_number);
@@ -1174,38 +1174,38 @@ int pass_4(void) {
     case 'U':
       fscanf(g_file_out_ptr, "%d", &inz);
 
-      g_stacks_tmp = find_stack_calculation(inz, NO);
-      if (g_stacks_tmp == NULL) {
+      stack = find_stack_calculation(inz, NO);
+      if (stack == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
-      if (g_stacks_tmp->section_status == ON) {
+      if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
-        g_stacks_tmp->address = g_sec_tmp->i;
+        stack->address = g_sec_tmp->i;
       }
       else {
         /* complete address, in ROM memory */
-        g_stacks_tmp->address = g_pc_bank;
+        stack->address = g_pc_bank;
       }
 
-      g_stacks_tmp->bank = g_rom_bank;
-      g_stacks_tmp->slot = g_slot;
-      g_stacks_tmp->type = STACK_TYPE_32BIT;
-      g_stacks_tmp->base = g_base;
+      stack->bank = g_rom_bank;
+      stack->slot = g_slot;
+      stack->type = STACK_TYPE_32BIT;
+      stack->base = g_base;
 
-      if (_mangle_stack_references(g_stacks_tmp) == FAILED)
+      if (_mangle_stack_references(stack) == FAILED)
         return FAILED;
 
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (_add_namespace_to_stack_references(g_stacks_tmp, g_namespace) == FAILED)
+          if (_add_namespace_to_stack_references(stack, g_namespace) == FAILED)
             return FAILED;
         }
       }
         
       /* this stack was referred from the code */
-      g_stacks_tmp->position = STACK_POSITION_CODE;
+      stack->position = STACK_POSITION_CODE;
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 32-bit computation", get_file_name(g_filename_id), g_line_number);

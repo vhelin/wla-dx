@@ -283,9 +283,14 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
             else if (z == INPUT_NUMBER_ADDRESS_LABEL)
               output_assembled_instruction(g_instruction_tmp, "R%s ", g_label);
             else {
+              struct stack *stack = find_stack_calculation(g_latest_stack, YES);
+
+              if (stack == NULL)
+                return FAILED;
+    
+              stack->relative_references = 1;
+
               output_assembled_instruction(g_instruction_tmp, "c%d ", g_latest_stack);
-              /* let's configure the stack so that all label references inside are relative */
-              g_stacks_tmp->relative_references = 1;
             }
 
             g_source_pointer = g_inz;
@@ -434,9 +439,14 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
                 else if (z == INPUT_NUMBER_ADDRESS_LABEL)
                   output_assembled_instruction(g_instruction_tmp, "R%s ", g_label);
                 else {
+                  struct stack *stack = find_stack_calculation(g_latest_stack, YES);
+
+                  if (stack == NULL)
+                    return FAILED;
+
+                  stack->relative_references = 1;
+
                   output_assembled_instruction(g_instruction_tmp, "c%d ", g_latest_stack);
-                  /* let's configure the stack so that all label references inside are relative */
-                  g_stacks_tmp->relative_references = 1;
                 }
 
                 g_source_pointer = g_inz;
@@ -522,9 +532,14 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
                 else if (z == INPUT_NUMBER_ADDRESS_LABEL)
                   output_assembled_instruction(g_instruction_tmp, "R%s ", g_label);
                 else {
+                  struct stack *stack = find_stack_calculation(g_latest_stack, YES);
+
+                  if (stack == NULL)
+                    return FAILED;
+
+                  stack->relative_references = 1;
+
                   output_assembled_instruction(g_instruction_tmp, "c%d ", g_latest_stack);
-                  /* let's configure the stack so that all label references inside are relative */
-                  g_stacks_tmp->relative_references = 1;
                 }
 
                 g_source_pointer = g_inz;
@@ -569,8 +584,14 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
         else if (z == INPUT_NUMBER_ADDRESS_LABEL)
           output_assembled_instruction(g_instruction_tmp, "d%d R%s ", g_instruction_tmp->hex, g_label);
         else {
+          struct stack *stack = find_stack_calculation(g_latest_stack, YES);
+
+          if (stack == NULL)
+            return FAILED;
+    
+          stack->relative_references = 1;
+
           output_assembled_instruction(g_instruction_tmp, "d%d c%d ", g_instruction_tmp->hex, g_latest_stack);
-          g_stacks_tmp->relative_references = 1;
         }
 
         g_source_pointer = g_inz;

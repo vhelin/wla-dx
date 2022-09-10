@@ -30,7 +30,7 @@ extern int g_operand_hint, g_operand_hint_type, g_can_calculate_a_minus_b;
 
 int g_latest_stack = 0, g_last_stack_id = 0, g_resolve_stack_calculations = YES, g_stack_calculations_max = 0;
 int g_parsing_function_body = NO;
-struct stack *g_stacks_tmp = NULL, **g_stack_calculations = NULL;
+struct stack **g_stack_calculations = NULL;
 
 static int g_delta_counter = 0, g_delta_section = -1, g_delta_address = -1;
 static struct stack_item *g_delta_old_pointer = NULL;
@@ -103,9 +103,6 @@ int calculation_stack_insert(struct stack *s) {
 
   g_stack_calculations[g_latest_stack] = s;
 
-  /* TODO: remove this dependency! */
-  g_stacks_tmp = s;
-  
   return SUCCEEDED;
 }
 
@@ -449,6 +446,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   unsigned char e, op[MAX_STACK_CALCULATOR_ITEMS];
   double dou = 0.0, dom;
   char *in_original = in;
+  struct stack *stack;
 
   /* slice the data into infix format */
   while (*in != 0xA && *in != 0) {
@@ -1595,48 +1593,48 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   */
 
   /* we have a stack full of computation and we save it for wlalink */
-  g_stacks_tmp = calloc(sizeof(struct stack), 1);
-  if (g_stacks_tmp == NULL) {
+  stack = calloc(sizeof(struct stack), 1);
+  if (stack == NULL) {
     print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
     return FAILED;
   }
 
-  init_stack_struct(g_stacks_tmp);
+  init_stack_struct(stack);
 
-  g_stacks_tmp->stacksize = d;
-  g_stacks_tmp->stack = calloc(sizeof(struct stack_item) * d, 1);
-  if (g_stacks_tmp->stack == NULL) {
-    free(g_stacks_tmp);
+  stack->stacksize = d;
+  stack->stack = calloc(sizeof(struct stack_item) * d, 1);
+  if (stack->stack == NULL) {
+    free(stack);
     print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
     return FAILED;
   }
 
-  g_stacks_tmp->linenumber = g_active_file_info_last->line_current;
-  g_stacks_tmp->filename_id = g_active_file_info_last->filename_id;
-  g_stacks_tmp->is_function_body = g_parsing_function_body;
+  stack->linenumber = g_active_file_info_last->line_current;
+  stack->filename_id = g_active_file_info_last->filename_id;
+  stack->is_function_body = g_parsing_function_body;
 
   /* all stacks will be definition stacks by default. pass_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
-  g_stacks_tmp->position = STACK_POSITION_DEFINITION;
+  stack->position = STACK_POSITION_DEFINITION;
 
   for (q = 0; q < d; q++) {
-    g_stacks_tmp->stack[q].can_calculate_deltas = ta[q].can_calculate_deltas;
-    g_stacks_tmp->stack[q].has_been_replaced = ta[q].has_been_replaced;
-    g_stacks_tmp->stack[q].is_in_postfix = NO;
+    stack->stack[q].can_calculate_deltas = ta[q].can_calculate_deltas;
+    stack->stack[q].has_been_replaced = ta[q].has_been_replaced;
+    stack->stack[q].is_in_postfix = NO;
     
     if (ta[q].type == STACK_ITEM_TYPE_OPERATOR) {
-      g_stacks_tmp->stack[q].type = STACK_ITEM_TYPE_OPERATOR;
-      g_stacks_tmp->stack[q].value = ta[q].value;
+      stack->stack[q].type = STACK_ITEM_TYPE_OPERATOR;
+      stack->stack[q].value = ta[q].value;
     }
     else if (ta[q].type == STACK_ITEM_TYPE_VALUE) {
-      g_stacks_tmp->stack[q].type = STACK_ITEM_TYPE_VALUE;
-      g_stacks_tmp->stack[q].value = ta[q].value;
-      g_stacks_tmp->stack[q].sign = ta[q].sign;
+      stack->stack[q].type = STACK_ITEM_TYPE_VALUE;
+      stack->stack[q].value = ta[q].value;
+      stack->stack[q].sign = ta[q].sign;
     }
     else if (ta[q].type == STACK_ITEM_TYPE_STACK) {
-      g_stacks_tmp->stack[q].type = STACK_ITEM_TYPE_STACK;
-      g_stacks_tmp->stack[q].value = ta[q].value;
-      g_stacks_tmp->stack[q].sign = ta[q].sign;
+      stack->stack[q].type = STACK_ITEM_TYPE_STACK;
+      stack->stack[q].value = ta[q].value;
+      stack->stack[q].sign = ta[q].sign;
     }
     else if (ta[q].type == STACK_ITEM_TYPE_STRING) {
       /* fail if we have a string inside a pending calculation! */
@@ -1644,9 +1642,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       return FAILED;
     }
     else if (ta[q].type == STACK_ITEM_TYPE_LABEL) {
-      g_stacks_tmp->stack[q].type = STACK_ITEM_TYPE_LABEL;
-      g_stacks_tmp->stack[q].sign = ta[q].sign;
-      strcpy(g_stacks_tmp->stack[q].string, ta[q].string);
+      stack->stack[q].type = STACK_ITEM_TYPE_LABEL;
+      stack->stack[q].sign = ta[q].sign;
+      strcpy(stack->stack[q].string, ta[q].string);
     }
     else {
       print_error(ERROR_STC, "Unhandled stack item type '%d' in _stack_calculate()! Please submit a bug report!\n", ta[q].type);
@@ -1655,10 +1653,10 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   }
 
 #if WLA_DEBUG
-  debug_print_stack(g_stacks_tmp->linenumber, g_last_stack_id, g_stacks_tmp->stack, d, 0, g_stacks_tmp);
+  debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack, d, 0, stack);
 #endif
 
-  calculation_stack_insert(g_stacks_tmp);
+  calculation_stack_insert(stack);
 
   return INPUT_NUMBER_STACK;
 }
@@ -2520,45 +2518,47 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
 
 int stack_create_label_stack(char *label) {
 
+  struct stack *stack;
+  
   if (label == NULL)
     return FAILED;
 
   /* we need to create a stack that holds just one label */
-  g_stacks_tmp = calloc(sizeof(struct stack), 1);
-  if (g_stacks_tmp == NULL) {
+  stack = calloc(sizeof(struct stack), 1);
+  if (stack == NULL) {
     print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
     return FAILED;
   }
 
-  init_stack_struct(g_stacks_tmp);
+  init_stack_struct(stack);
 
-  g_stacks_tmp->stacksize = 1;
-  g_stacks_tmp->stack = calloc(sizeof(struct stack_item), 1);
-  if (g_stacks_tmp->stack == NULL) {
-    free(g_stacks_tmp);
+  stack->stacksize = 1;
+  stack->stack = calloc(sizeof(struct stack_item), 1);
+  if (stack->stack == NULL) {
+    free(stack);
     print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
     return FAILED;
   }
 
-  g_stacks_tmp->linenumber = g_active_file_info_last->line_current;
-  g_stacks_tmp->filename_id = g_active_file_info_last->filename_id;
+  stack->linenumber = g_active_file_info_last->line_current;
+  stack->filename_id = g_active_file_info_last->filename_id;
     
   /* all stacks will be definition stacks by default. pass_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
-  g_stacks_tmp->position = STACK_POSITION_DEFINITION;
+  stack->position = STACK_POSITION_DEFINITION;
 
-  g_stacks_tmp->stack[0].type = STACK_ITEM_TYPE_LABEL;
-  g_stacks_tmp->stack[0].sign = SI_SIGN_POSITIVE;
-  g_stacks_tmp->stack[0].can_calculate_deltas = NO;
-  g_stacks_tmp->stack[0].has_been_replaced = NO;
-  g_stacks_tmp->stack[0].is_in_postfix = NO;
-  strcpy(g_stacks_tmp->stack[0].string, label);
+  stack->stack[0].type = STACK_ITEM_TYPE_LABEL;
+  stack->stack[0].sign = SI_SIGN_POSITIVE;
+  stack->stack[0].can_calculate_deltas = NO;
+  stack->stack[0].has_been_replaced = NO;
+  stack->stack[0].is_in_postfix = NO;
+  strcpy(stack->stack[0].string, label);
 
 #if WLA_DEBUG
-  debug_print_stack(g_stacks_tmp->linenumber, g_last_stack_id, g_stacks_tmp->stack, 1, 1, g_stacks_tmp);
+  debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack, 1, 1, stack);
 #endif
   
-  calculation_stack_insert(g_stacks_tmp);
+  calculation_stack_insert(stack);
 
   return SUCCEEDED;
 }
@@ -2566,42 +2566,44 @@ int stack_create_label_stack(char *label) {
 
 int stack_create_stack_stack(int stack_id) {
 
-  /* we need to create a stack that holds just one computation stack */
-  g_stacks_tmp = calloc(sizeof(struct stack), 1);
-  if (g_stacks_tmp == NULL) {
-    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
-    return FAILED;
-  }
-
-  init_stack_struct(g_stacks_tmp);
+  struct stack *stack;
   
-  g_stacks_tmp->stacksize = 1;
-  g_stacks_tmp->stack = calloc(sizeof(struct stack_item), 1);
-  if (g_stacks_tmp->stack == NULL) {
-    free(g_stacks_tmp);
+  /* we need to create a stack that holds just one computation stack */
+  stack = calloc(sizeof(struct stack), 1);
+  if (stack == NULL) {
     print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
     return FAILED;
   }
 
-  g_stacks_tmp->linenumber = g_active_file_info_last->line_current;
-  g_stacks_tmp->filename_id = g_active_file_info_last->filename_id;
+  init_stack_struct(stack);
+  
+  stack->stacksize = 1;
+  stack->stack = calloc(sizeof(struct stack_item), 1);
+  if (stack->stack == NULL) {
+    free(stack);
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
+    return FAILED;
+  }
+
+  stack->linenumber = g_active_file_info_last->line_current;
+  stack->filename_id = g_active_file_info_last->filename_id;
   
   /* all stacks will be definition stacks by default. pass_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
-  g_stacks_tmp->position = STACK_POSITION_DEFINITION;
+  stack->position = STACK_POSITION_DEFINITION;
 
-  g_stacks_tmp->stack[0].type = STACK_ITEM_TYPE_STACK;
-  g_stacks_tmp->stack[0].value = stack_id;
-  g_stacks_tmp->stack[0].sign = SI_SIGN_POSITIVE;
-  g_stacks_tmp->stack[0].can_calculate_deltas = NO;
-  g_stacks_tmp->stack[0].has_been_replaced = NO;
-  g_stacks_tmp->stack[0].is_in_postfix = NO;
+  stack->stack[0].type = STACK_ITEM_TYPE_STACK;
+  stack->stack[0].value = stack_id;
+  stack->stack[0].sign = SI_SIGN_POSITIVE;
+  stack->stack[0].can_calculate_deltas = NO;
+  stack->stack[0].has_been_replaced = NO;
+  stack->stack[0].is_in_postfix = NO;
 
 #if WLA_DEBUG
-  debug_print_stack(g_stacks_tmp->linenumber, stack_id, g_stacks_tmp->stack, 1, 2, g_stacks_tmp);
+  debug_print_stack(stack->linenumber, stack_id, stack->stack, 1, 2, stack);
 #endif
 
-  calculation_stack_insert(g_stacks_tmp);
+  calculation_stack_insert(stack);
     
   return SUCCEEDED;
 }

@@ -40,7 +40,12 @@ for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
           output_assembled_instruction(g_instruction_tmp, "d%d c%d ", g_instruction_tmp->hex, g_latest_stack);
           if (g_instruction_tmp->type == 5) {
             /* 5 -> let's configure the stack so that all label references inside are relative */
-            g_stacks_tmp->relative_references = 1;
+            struct stack *stack = find_stack_calculation(g_latest_stack, YES);
+
+            if (stack == NULL)
+              return FAILED;
+    
+            stack->relative_references = 1;
           }
         }
         

@@ -129,7 +129,6 @@ extern char *g_final_name, g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
 
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
-extern struct stack *g_stacks_first, *g_stacks_tmp, *g_stacks_last;
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern int g_makefile_rules, g_parsing_function_body;
 
@@ -7524,7 +7523,10 @@ int directive_function(void) {
   else if (res == INPUT_NUMBER_STACK) {
     f->type = res;
     f->value = g_latest_stack;
-    f->stack = g_stacks_tmp;
+    f->stack = find_stack_calculation(g_latest_stack, YES);
+
+    if (f->stack == NULL)
+      return FAILED;
 
     /* mark the calculation stack as function body so we don't export it in pass_4.c */
     f->stack->is_function_body = YES;
@@ -11847,8 +11849,13 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
   }
 
   if (x == INPUT_NUMBER_STACK) {
-    *b = g_stacks_tmp->id;
-    g_stacks_tmp->position = STACK_POSITION_DEFINITION;
+    struct stack *stack = find_stack_calculation(g_latest_stack, YES);
+
+    if (stack == NULL)
+      return FAILED;
+    
+    *b = g_latest_stack;
+    stack->position = STACK_POSITION_DEFINITION;
 
     /* export the definition? */
     if (compare_next_token("EXPORT") == SUCCEEDED) {
@@ -11862,6 +11869,7 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
       return SUCCEEDED;
     }
     next_line();
+    
     return INPUT_NUMBER_STACK;
   }
 

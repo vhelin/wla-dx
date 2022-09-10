@@ -37,7 +37,6 @@ extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map;
 extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
 extern struct function *g_functions_first;
-extern struct stack *g_stacks_tmp;
 extern int g_latest_stack, g_asciitable_defined, g_global_label_hint, g_parsing_function_body, g_resolve_stack_calculations;
 
 

@@ -1,6 +1,7 @@
 [objects]
 main.o
 bonus.o
+simple.o
 [definitions]
 NUM_ONE 1
 NUM_TWO 2
