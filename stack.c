@@ -1653,7 +1653,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   }
 
 #if WLA_DEBUG
-  debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack, d, 0, stack);
+  debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack_items, d, 0, stack);
 #endif
 
   calculation_stack_insert(stack);
