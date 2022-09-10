@@ -42,7 +42,7 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 
 void init_stack_struct(struct stack *s) {
 
-  s->stack = NULL;
+  s->stack_items = NULL;
   s->id = -123456;
   s->compressed_id = -123456;
   s->position = STACK_POSITION_DEFINITION;
@@ -132,7 +132,7 @@ void delete_stack_calculation_struct(struct stack *s) {
   else {
     g_stack_calculations[s->id] = NULL;
 
-    free(s->stack);
+    free(s->stack_items);
     free(s);
   }
 }
@@ -218,10 +218,10 @@ int compress_stack_calculation_ids(void) {
       continue;
 
     for (j = 0; j < s->stacksize; j++) {
-      if (s->stack[j].type == STACK_ITEM_TYPE_STACK) {
-        struct stack *s2 = g_stack_calculations[(int)s->stack[j].value];
+      if (s->stack_items[j].type == STACK_ITEM_TYPE_STACK) {
+        struct stack *s2 = g_stack_calculations[(int)s->stack_items[j].value];
 
-        s->stack[j].value = (double)s2->compressed_id;
+        s->stack_items[j].value = (double)s2->compressed_id;
       }
     }
   }
@@ -1190,14 +1190,14 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
               q++;
 
               for (item = 0; q < MAX_STACK_CALCULATOR_ITEMS && item < s->stacksize; item++) {
-                si[q].type = s->stack[item].type;
-                si[q].sign = s->stack[item].sign;
-                si[q].value = s->stack[item].value;
+                si[q].type = s->stack_items[item].type;
+                si[q].sign = s->stack_items[item].sign;
+                si[q].value = s->stack_items[item].value;
                 si[q].is_in_postfix = YES;
-                si[q].can_calculate_deltas = s->stack[item].can_calculate_deltas;
-                si[q].has_been_replaced = s->stack[item].has_been_replaced;
+                si[q].can_calculate_deltas = s->stack_items[item].can_calculate_deltas;
+                si[q].has_been_replaced = s->stack_items[item].has_been_replaced;
                 if (si[q].type == STACK_ITEM_TYPE_LABEL)
-                  strcpy(si[q].string, s->stack[item].string);
+                  strcpy(si[q].string, s->stack_items[item].string);
                 else
                   si[q].string[0] = 0;
                 q++;
@@ -1558,7 +1558,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
 
     init_stack_struct(&s);
-    s.stack = ta;
+    s.stack_items = ta;
     s.linenumber = g_active_file_info_last->line_current;
     s.filename_id = g_active_file_info_last->filename_id;
 
@@ -1602,8 +1602,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   init_stack_struct(stack);
 
   stack->stacksize = d;
-  stack->stack = calloc(sizeof(struct stack_item) * d, 1);
-  if (stack->stack == NULL) {
+  stack->stack_items = calloc(sizeof(struct stack_item) * d, 1);
+  if (stack->stack_items == NULL) {
     free(stack);
     print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
     return FAILED;
@@ -1618,23 +1618,23 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   stack->position = STACK_POSITION_DEFINITION;
 
   for (q = 0; q < d; q++) {
-    stack->stack[q].can_calculate_deltas = ta[q].can_calculate_deltas;
-    stack->stack[q].has_been_replaced = ta[q].has_been_replaced;
-    stack->stack[q].is_in_postfix = NO;
+    stack->stack_items[q].can_calculate_deltas = ta[q].can_calculate_deltas;
+    stack->stack_items[q].has_been_replaced = ta[q].has_been_replaced;
+    stack->stack_items[q].is_in_postfix = NO;
     
     if (ta[q].type == STACK_ITEM_TYPE_OPERATOR) {
-      stack->stack[q].type = STACK_ITEM_TYPE_OPERATOR;
-      stack->stack[q].value = ta[q].value;
+      stack->stack_items[q].type = STACK_ITEM_TYPE_OPERATOR;
+      stack->stack_items[q].value = ta[q].value;
     }
     else if (ta[q].type == STACK_ITEM_TYPE_VALUE) {
-      stack->stack[q].type = STACK_ITEM_TYPE_VALUE;
-      stack->stack[q].value = ta[q].value;
-      stack->stack[q].sign = ta[q].sign;
+      stack->stack_items[q].type = STACK_ITEM_TYPE_VALUE;
+      stack->stack_items[q].value = ta[q].value;
+      stack->stack_items[q].sign = ta[q].sign;
     }
     else if (ta[q].type == STACK_ITEM_TYPE_STACK) {
-      stack->stack[q].type = STACK_ITEM_TYPE_STACK;
-      stack->stack[q].value = ta[q].value;
-      stack->stack[q].sign = ta[q].sign;
+      stack->stack_items[q].type = STACK_ITEM_TYPE_STACK;
+      stack->stack_items[q].value = ta[q].value;
+      stack->stack_items[q].sign = ta[q].sign;
     }
     else if (ta[q].type == STACK_ITEM_TYPE_STRING) {
       /* fail if we have a string inside a pending calculation! */
@@ -1642,9 +1642,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       return FAILED;
     }
     else if (ta[q].type == STACK_ITEM_TYPE_LABEL) {
-      stack->stack[q].type = STACK_ITEM_TYPE_LABEL;
-      stack->stack[q].sign = ta[q].sign;
-      strcpy(stack->stack[q].string, ta[q].string);
+      stack->stack_items[q].type = STACK_ITEM_TYPE_LABEL;
+      stack->stack_items[q].sign = ta[q].sign;
+      strcpy(stack->stack_items[q].string, ta[q].string);
     }
     else {
       print_error(ERROR_STC, "Unhandled stack item type '%d' in _stack_calculate()! Please submit a bug report!\n", ta[q].type);
@@ -1989,15 +1989,15 @@ static int _try_to_calculate(struct stack_item *st) {
     return SUCCEEDED;
   }
 
-  if (resolve_stack(s->stack, s->stacksize) == SUCCEEDED) {
+  if (resolve_stack(s->stack_items, s->stacksize) == SUCCEEDED) {
     double dou;
           
     if (compute_stack(s, s->stacksize, &dou) == FAILED)
       return FAILED;
 
     if (s->is_single_instance == YES) {
-      free(s->stack);
-      s->stack = NULL;
+      free(s->stack_items);
+      s->stack_items = NULL;
       s->stacksize = 0;
       s->has_been_calculated = YES;
       s->value = dou;
@@ -2182,7 +2182,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
 
   v[0] = 0.0;
 
-  s = sta->stack;
+  s = sta->stack_items;
   /*
     debug_print_stack(0, 0, s, stack_item_count, 0, NULL);
   */
@@ -2536,8 +2536,8 @@ int stack_create_label_stack(char *label) {
   init_stack_struct(stack);
 
   stack->stacksize = 1;
-  stack->stack = calloc(sizeof(struct stack_item), 1);
-  if (stack->stack == NULL) {
+  stack->stack_items = calloc(sizeof(struct stack_item), 1);
+  if (stack->stack_items == NULL) {
     free(stack);
     print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
     return FAILED;
@@ -2550,15 +2550,15 @@ int stack_create_label_stack(char *label) {
      those that are referenced to be STACK_POSITION_CODE stacks */
   stack->position = STACK_POSITION_DEFINITION;
 
-  stack->stack[0].type = STACK_ITEM_TYPE_LABEL;
-  stack->stack[0].sign = SI_SIGN_POSITIVE;
-  stack->stack[0].can_calculate_deltas = NO;
-  stack->stack[0].has_been_replaced = NO;
-  stack->stack[0].is_in_postfix = NO;
-  strcpy(stack->stack[0].string, label);
+  stack->stack_items[0].type = STACK_ITEM_TYPE_LABEL;
+  stack->stack_items[0].sign = SI_SIGN_POSITIVE;
+  stack->stack_items[0].can_calculate_deltas = NO;
+  stack->stack_items[0].has_been_replaced = NO;
+  stack->stack_items[0].is_in_postfix = NO;
+  strcpy(stack->stack_items[0].string, label);
 
 #if WLA_DEBUG
-  debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack, 1, 1, stack);
+  debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack_items, 1, 1, stack);
 #endif
   
   calculation_stack_insert(stack);
@@ -2581,8 +2581,8 @@ int stack_create_stack_stack(int stack_id) {
   init_stack_struct(stack);
   
   stack->stacksize = 1;
-  stack->stack = calloc(sizeof(struct stack_item), 1);
-  if (stack->stack == NULL) {
+  stack->stack_items = calloc(sizeof(struct stack_item), 1);
+  if (stack->stack_items == NULL) {
     free(stack);
     print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
     return FAILED;
@@ -2595,15 +2595,15 @@ int stack_create_stack_stack(int stack_id) {
      those that are referenced to be STACK_POSITION_CODE stacks */
   stack->position = STACK_POSITION_DEFINITION;
 
-  stack->stack[0].type = STACK_ITEM_TYPE_STACK;
-  stack->stack[0].value = stack_id;
-  stack->stack[0].sign = SI_SIGN_POSITIVE;
-  stack->stack[0].can_calculate_deltas = NO;
-  stack->stack[0].has_been_replaced = NO;
-  stack->stack[0].is_in_postfix = NO;
+  stack->stack_items[0].type = STACK_ITEM_TYPE_STACK;
+  stack->stack_items[0].value = stack_id;
+  stack->stack_items[0].sign = SI_SIGN_POSITIVE;
+  stack->stack_items[0].can_calculate_deltas = NO;
+  stack->stack_items[0].has_been_replaced = NO;
+  stack->stack_items[0].is_in_postfix = NO;
 
 #if WLA_DEBUG
-  debug_print_stack(stack->linenumber, stack_id, stack->stack, 1, 2, stack);
+  debug_print_stack(stack->linenumber, stack_id, stack->stack_items, 1, 2, stack);
 #endif
 
   calculation_stack_insert(stack);

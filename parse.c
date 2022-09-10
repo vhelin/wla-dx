@@ -1994,13 +1994,13 @@ int process_string_for_special_characters(char *label, int *string_size) {
 }
 
 
-static int _save_stack_calculation(struct stack_item *stack, int stacksize, int linenumber, int filename_id) {
+static int _save_stack_calculation(struct stack_item *stack_items, int stacksize, int linenumber, int filename_id) {
 
   struct stack *s;
   
   s = calloc(sizeof(struct stack), 1);
   if (s == NULL) {
-    free(stack);
+    free(stack_items);
     print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
     return FAILED;
   }
@@ -2008,7 +2008,7 @@ static int _save_stack_calculation(struct stack_item *stack, int stacksize, int 
   init_stack_struct(s);
 
   s->stacksize = stacksize;
-  s->stack = stack;
+  s->stack_items = stack_items;
 
   if (linenumber < 0)
     s->linenumber = g_active_file_info_last->line_current;
@@ -2034,7 +2034,7 @@ static int _save_stack_calculation(struct stack_item *stack, int stacksize, int 
 }
 
 
-static int _clone_stack_calculation(struct stack_item **stack_out, struct stack_item *stack, int stacksize, char *function_name) {
+static int _clone_stack_calculation(struct stack_item **stack_items_out, struct stack_item *stack_items, int stacksize, char *function_name) {
 
   struct stack_item *si;
   int i;
@@ -2046,39 +2046,39 @@ static int _clone_stack_calculation(struct stack_item **stack_out, struct stack_
   }
 
   for (i = 0; i < stacksize; i++) {
-    si[i].value = stack[i].value;
-    si[i].type = stack[i].type;
-    si[i].sign = stack[i].sign;
-    si[i].can_calculate_deltas = stack[i].can_calculate_deltas;
-    si[i].has_been_replaced = stack[i].has_been_replaced;
-    si[i].is_in_postfix = stack[i].is_in_postfix;
+    si[i].value = stack_items[i].value;
+    si[i].type = stack_items[i].type;
+    si[i].sign = stack_items[i].sign;
+    si[i].can_calculate_deltas = stack_items[i].can_calculate_deltas;
+    si[i].has_been_replaced = stack_items[i].has_been_replaced;
+    si[i].is_in_postfix = stack_items[i].is_in_postfix;
     if (si[i].type == STACK_ITEM_TYPE_LABEL)
-      strcpy(si[i].string, stack[i].string);
+      strcpy(si[i].string, stack_items[i].string);
     else
       si[i].string[0] = 0;
   }
 
-  *stack_out = si;
+  *stack_items_out = si;
 
   return SUCCEEDED;
 }
 
 
-static int _reset_has_been_replaced_status(struct stack_item *stack, int stacksize) {
+static int _reset_has_been_replaced_status(struct stack_item *stack_items, int stacksize) {
 
   struct stack *s;
   int i;
 
   for (i = 0; i < stacksize; i++) {
-    stack[i].has_been_replaced = NO;
+    stack_items[i].has_been_replaced = NO;
 
     /* dig deeper */
-    if (stack[i].type == STACK_ITEM_TYPE_STACK) {
-      s = find_stack_calculation((int)stack[i].value, YES);
+    if (stack_items[i].type == STACK_ITEM_TYPE_STACK) {
+      s = find_stack_calculation((int)stack_items[i].value, YES);
       if (s == NULL)
         return FAILED;
       
-      _reset_has_been_replaced_status(s->stack, s->stacksize);
+      _reset_has_been_replaced_status(s->stack_items, s->stacksize);
     }
   }
 
@@ -2086,25 +2086,25 @@ static int _reset_has_been_replaced_status(struct stack_item *stack, int stacksi
 }
 
 
-static int _clone_contained_stack_calculations(struct stack_item *stack, int stacksize, char *function_name) {
+static int _clone_contained_stack_calculations(struct stack_item *stack_items, int stacksize, char *function_name) {
 
   struct stack_item *si;
   struct stack *s;
   int i;
 
   for (i = 0; i < stacksize; i++) {
-    if (stack[i].type == STACK_ITEM_TYPE_STACK) {
-      s = find_stack_calculation((int)stack[i].value, YES);
+    if (stack_items[i].type == STACK_ITEM_TYPE_STACK) {
+      s = find_stack_calculation((int)stack_items[i].value, YES);
       if (s == NULL)
         return FAILED;
 
-      if (_clone_stack_calculation(&si, s->stack, s->stacksize, function_name) == FAILED)
+      if (_clone_stack_calculation(&si, s->stack_items, s->stacksize, function_name) == FAILED)
         return FAILED;
 
       if (_save_stack_calculation(si, s->stacksize, s->linenumber, s->filename_id) == FAILED)
         return FAILED;
 
-      stack[i].value = g_latest_stack;
+      stack_items[i].value = g_latest_stack;
 
       if (_clone_contained_stack_calculations(si, s->stacksize, function_name) == FAILED)
         return FAILED;
@@ -2115,41 +2115,41 @@ static int _clone_contained_stack_calculations(struct stack_item *stack, int sta
 }
 
 
-static int _replace_labels_inside_stack_calculation(struct stack_item *stack, int stacksize, char *label, int result, int parsed_int, double parsed_double, char *parsed_label, int parsed_stack) {
+static int _replace_labels_inside_stack_calculation(struct stack_item *stack_items, int stacksize, char *label, int result, int parsed_int, double parsed_double, char *parsed_label, int parsed_stack) {
 
   struct stack *s;
   int j;
 
   for (j = 0; j < stacksize; j++) {
-    if (stack[j].type == STACK_ITEM_TYPE_STACK) {
+    if (stack_items[j].type == STACK_ITEM_TYPE_STACK) {
       /* dig deeper! */
-      s = find_stack_calculation((int)stack[j].value, YES);
+      s = find_stack_calculation((int)stack_items[j].value, YES);
       if (s == NULL)
         return FAILED;
       
-      if (_replace_labels_inside_stack_calculation(s->stack, s->stacksize, label, result, parsed_int, parsed_double, parsed_label, parsed_stack) == FAILED)
+      if (_replace_labels_inside_stack_calculation(s->stack_items, s->stacksize, label, result, parsed_int, parsed_double, parsed_label, parsed_stack) == FAILED)
         return FAILED;
     }
-    else if (stack[j].type == STACK_ITEM_TYPE_LABEL) {
-      if (stack[j].has_been_replaced == NO && strcmp(label, stack[j].string) == 0) {
+    else if (stack_items[j].type == STACK_ITEM_TYPE_LABEL) {
+      if (stack_items[j].has_been_replaced == NO && strcmp(label, stack_items[j].string) == 0) {
         if (result == SUCCEEDED) {
-          stack[j].type = STACK_ITEM_TYPE_VALUE;
-          stack[j].value = parsed_int;
-          stack[j].sign = SI_SIGN_POSITIVE;
+          stack_items[j].type = STACK_ITEM_TYPE_VALUE;
+          stack_items[j].value = parsed_int;
+          stack_items[j].sign = SI_SIGN_POSITIVE;
         }
         else if (result == INPUT_NUMBER_FLOAT) {
-          stack[j].type = STACK_ITEM_TYPE_VALUE;
-          stack[j].value = parsed_double;
-          stack[j].sign = SI_SIGN_POSITIVE;
+          stack_items[j].type = STACK_ITEM_TYPE_VALUE;
+          stack_items[j].value = parsed_double;
+          stack_items[j].sign = SI_SIGN_POSITIVE;
         }
         else if (result == INPUT_NUMBER_ADDRESS_LABEL) {
-          strcpy(stack[j].string, parsed_label);
-          stack[j].sign = SI_SIGN_POSITIVE;
+          strcpy(stack_items[j].string, parsed_label);
+          stack_items[j].sign = SI_SIGN_POSITIVE;
         }
         else {
-          stack[j].type = STACK_ITEM_TYPE_STACK;
-          stack[j].value = parsed_stack;
-          stack[j].sign = SI_SIGN_POSITIVE;
+          stack_items[j].type = STACK_ITEM_TYPE_STACK;
+          stack_items[j].value = parsed_stack;
+          stack_items[j].sign = SI_SIGN_POSITIVE;
         }
       }
     }    
@@ -2195,7 +2195,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
   }
 
   /* clone the stack calculation */
-  if (_clone_stack_calculation(&si, fun->stack->stack, fun->stack->stacksize, name) == FAILED)
+  if (_clone_stack_calculation(&si, fun->stack->stack_items, fun->stack->stacksize, name) == FAILED)
     return FAILED;
 
   /* clone all contained stack calculations */
@@ -2235,12 +2235,12 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
       }
       
       for (j = 0; j < stack->stacksize; j++) {
-        if (stack->stack[j].type == STACK_ITEM_TYPE_LABEL) {
+        if (stack->stack_items[j].type == STACK_ITEM_TYPE_LABEL) {
           int k;
 
           for (k = 0; k < fun->nargument_names; k++) {
-            if (strcmp(fun->argument_names[k], stack->stack[j].string) == 0) {
-              stack->stack[j].has_been_replaced = YES;
+            if (strcmp(fun->argument_names[k], stack->stack_items[j].string) == 0) {
+              stack->stack_items[j].has_been_replaced = YES;
               break;
             }
           }
@@ -2259,7 +2259,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
           return FAILED;
         }
 
-        if (_replace_labels_inside_stack_calculation(s->stack, s->stacksize, fun->argument_names[i], res, g_parsed_int, g_parsed_double, g_label, g_latest_stack) == FAILED) {
+        if (_replace_labels_inside_stack_calculation(s->stack_items, s->stacksize, fun->argument_names[i], res, g_parsed_int, g_parsed_double, g_label, g_latest_stack) == FAILED) {
           free(si);
           return FAILED;
         }
@@ -2311,7 +2311,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
     double dou;
 
     init_stack_struct(&s);
-    s.stack = si;
+    s.stack_items = si;
     s.linenumber = fun->line_number;
     s.filename_id = fun->filename_id;
 

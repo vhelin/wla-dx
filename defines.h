@@ -669,7 +669,7 @@ struct block_name {
 };
 
 struct stack {
-  struct stack_item *stack;
+  struct stack_item *stack_items;
   int id;
   int compressed_id;
   int position;

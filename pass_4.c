@@ -178,14 +178,14 @@ static int _mangle_stack_references(struct stack *stack) {
   char *s;
 
   for (ind = 0; ind < stack->stacksize; ind++) {
-    if (stack->stack[ind].type == STACK_ITEM_TYPE_LABEL) {
+    if (stack->stack_items[ind].type == STACK_ITEM_TYPE_LABEL) {
       n = 0;
       j = 0;
 
-      if (stack->stack[ind].string[0] == ':')
+      if (stack->stack_items[ind].string[0] == ':')
         j = 1;
 
-      while (n < 10 && stack->stack[ind].string[n+j] == '@')
+      while (n < 10 && stack->stack_items[ind].string[n+j] == '@')
         n++;
 
       n--;
@@ -193,14 +193,14 @@ static int _mangle_stack_references(struct stack *stack) {
         n--;
 
       if (n >= 0) {
-        if (mangle_label(&stack->stack[ind].string[j], g_label_context_last->parent_labels[n]->label, n, MAX_NAME_LENGTH-j, g_filename_id, g_line_number) == FAILED)
+        if (mangle_label(&stack->stack_items[ind].string[j], g_label_context_last->parent_labels[n]->label, n, MAX_NAME_LENGTH-j, g_filename_id, g_line_number) == FAILED)
           return FAILED;
       }
 
       /* add current ISOLATED .MACRO context? */
-      s = stack->stack[ind].string;
+      s = stack->stack_items[ind].string;
       if ((is_label_anonymous(s) == YES || s[0] == '_' || strcmp(s, "_b") == 0 || strcmp(s, "_f") == 0) && g_label_context_last->isolated_macro != NULL) {
-        if (add_context_to_anonymous_label(s, sizeof(stack->stack[ind].string), g_label_context_last, g_filename_id, g_line_number) == FAILED)
+        if (add_context_to_anonymous_label(s, sizeof(stack->stack_items[ind].string), g_label_context_last, g_filename_id, g_line_number) == FAILED)
           return FAILED;
       }
     }
@@ -250,11 +250,11 @@ static int _add_namespace_to_stack_references(struct stack *st, char *name_space
   int j;
 
   for (j = 0; j < st->stacksize; j++) {
-    if (st->stack[j].type == STACK_ITEM_TYPE_LABEL) {
-      if (is_label_anonymous(st->stack[j].string) == YES)
+    if (st->stack_items[j].type == STACK_ITEM_TYPE_LABEL) {
+      if (is_label_anonymous(st->stack_items[j].string) == YES)
         continue;
 
-      if (_add_namespace_to_reference(st->stack[j].string, name_space, sizeof(st->stack[j].string)) == FAILED)
+      if (_add_namespace_to_reference(st->stack_items[j].string, name_space, sizeof(st->stack_items[j].string)) == FAILED)
         return FAILED;
     }
   }
@@ -2021,11 +2021,11 @@ int write_object_file(void) {
     WRITEOUT_OV;
       
     for (ind = 0; ind < stack->stacksize; ind++) {
-      fprintf(final_ptr, "%c%c", stack->stack[ind].type, stack->stack[ind].sign);
-      if (stack->stack[ind].type == STACK_ITEM_TYPE_LABEL)
-        fprintf(final_ptr, "%s%c", stack->stack[ind].string, 0);
+      fprintf(final_ptr, "%c%c", stack->stack_items[ind].type, stack->stack_items[ind].sign);
+      if (stack->stack_items[ind].type == STACK_ITEM_TYPE_LABEL)
+        fprintf(final_ptr, "%s%c", stack->stack_items[ind].string, 0);
       else {
-        dou = stack->stack[ind].value;
+        dou = stack->stack_items[ind].value;
         WRITEOUT_DOU;
       }
     }
@@ -2323,11 +2323,11 @@ int write_library_file(void) {
     WRITEOUT_OV;
 
     for (ind = 0; ind < stack->stacksize; ind++) {
-      fprintf(final_ptr, "%c%c", stack->stack[ind].type, stack->stack[ind].sign);
-      if (stack->stack[ind].type == STACK_ITEM_TYPE_LABEL)
-        fprintf(final_ptr, "%s%c", stack->stack[ind].string, 0);
+      fprintf(final_ptr, "%c%c", stack->stack_items[ind].type, stack->stack_items[ind].sign);
+      if (stack->stack_items[ind].type == STACK_ITEM_TYPE_LABEL)
+        fprintf(final_ptr, "%s%c", stack->stack_items[ind].string, 0);
       else {
-        dou = stack->stack[ind].value;
+        dou = stack->stack_items[ind].value;
         WRITEOUT_DOU;
       }
     }
