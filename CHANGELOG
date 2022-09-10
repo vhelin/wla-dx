@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.3 (08-Sep-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
+v10.3 (10-Sep-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
                     [ALL] "\\" should now work inside strings.
                     [ALL] .MACRO calling another .MACRO, inside a namespaced
                       file, should now work.
@@ -24,6 +24,8 @@ v10.3 (08-Sep-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
                     [ALL] Parameters to .INCBIN can now be given in any order.
                     [ALL] Negative READ parameter to .INCBIN means that
                       many bytes are not read from the end of the file.
+                    [ALL] WLA's ability to calculate A-B would break the
+                      execution of the app if A was a definition.
                     [GB ] Sometimes WLA-GB would generate unused pending
                       calculations when parsing the code, and namespaces would
                       not work in them thus breaking the linking phase.

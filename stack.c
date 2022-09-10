@@ -1767,12 +1767,15 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
       s->value = g_tmp_def->value;
     }
 
+    /* ok this is tricky! as can_calculate_deltas == YES come in pairs we'll need to reset this pair to NO */
     if (s->can_calculate_deltas == YES) {
       /* delta calculation failed! */
+      s->can_calculate_deltas = NO;
       if (g_delta_counter == 0)
-        g_delta_counter = -1;
+        (s+1)->can_calculate_deltas = NO;
       else
-        g_delta_counter = 0;
+        (s-1)->can_calculate_deltas = NO;
+      g_delta_counter = 0;
     }
   }
   else if (g_can_calculate_a_minus_b == YES) {
