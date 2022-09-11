@@ -307,6 +307,9 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
       else
         printf("-");
     }
+
+    if (ta[k].can_calculate_deltas == YES)
+      printf("@");
     
     if (ta[k].type == STACK_ITEM_TYPE_OPERATOR) {
       int value = (int)ta[k].value;
@@ -1725,13 +1728,71 @@ int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_
 }
 
 
+static void _remove_can_calculate_deltas_pair(struct stack_item *s) {
+
+  int i = 1;
+
+  /* delta calculation has failed for this A-B pair -> set can_calculate_deltas to NO
+     for convenience */
+  
+  s->can_calculate_deltas = NO;
+
+  if (g_delta_counter == 0) {
+    while (1) {
+      if ((s+i)->type == STACK_ITEM_TYPE_LABEL) {
+        (s+i)->can_calculate_deltas = NO;
+        break;
+      }
+      i++;
+    }
+  }
+  else {
+    while (1) {
+      if ((s-i)->type == STACK_ITEM_TYPE_LABEL) {
+        (s-i)->can_calculate_deltas = NO;
+        break;
+      }
+      i++;
+    }
+  }
+  
+  g_delta_counter = 0;
+}
+
+
 static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
 
+  /*
+  if (s->type == STACK_ITEM_TYPE_STRING)
+    fprintf(stderr, "STR 1 ***%s***\n", s->string);
+  if (s->type == STACK_ITEM_TYPE_LABEL)
+    fprintf(stderr, "LBL 1 ***%s***\n", s->string);
+  else if (s->type == STACK_ITEM_TYPE_VALUE)
+    fprintf(stderr, "VAL 1 ***%d***\n", (int)s->value);
+  else if (s->type == STACK_ITEM_TYPE_STACK)
+    fprintf(stderr, "CAL 1 ***%d***\n", (int)s->value);
+  else
+    fprintf(stderr, "??? 1\n");
+  */
+  
   if (g_macro_active != 0) {
     /* expand e.g., \1 and \@ */
     if (expand_macro_arguments(s->string) == FAILED)
       return FAILED;
   }
+
+  /*
+  if (s->type == STACK_ITEM_TYPE_STRING)
+    fprintf(stderr, "STR 2 ***%s***\n", s->string);
+  if (s->type == STACK_ITEM_TYPE_LABEL)
+    fprintf(stderr, "LBL 2 ***%s***\n", s->string);
+  else if (s->type == STACK_ITEM_TYPE_VALUE)
+    fprintf(stderr, "VAL 2 ***%d***\n", (int)s->value);
+  else if (s->type == STACK_ITEM_TYPE_STACK)
+    fprintf(stderr, "CAL 2 ***%d***\n", (int)s->value);
+  else
+    fprintf(stderr, "??? 2\n");
+  */
 
   hashmap_get(g_defines_map, s->string, (void*)&g_tmp_def);
   if (g_tmp_def != NULL) {
@@ -1766,15 +1827,9 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
       s->value = g_tmp_def->value;
     }
 
-    /* ok this is tricky! as can_calculate_deltas == YES come in pairs we'll need to reset this pair to NO */
     if (s->can_calculate_deltas == YES) {
       /* delta calculation failed! */
-      s->can_calculate_deltas = NO;
-      if (g_delta_counter == 0)
-        (s+1)->can_calculate_deltas = NO;
-      else
-        (s-1)->can_calculate_deltas = NO;
-      g_delta_counter = 0;
+      _remove_can_calculate_deltas_pair(s);
     }
   }
   else if (g_can_calculate_a_minus_b == YES) {
@@ -1782,12 +1837,14 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
       /* the current calculation we are trying to solve contains at least one label pair A-B, and no other
          uses of labels. if we come here then a label wasn't a definition, but we can try to find the label's
          (possibly) non-final address, and use that as that should work when calculating deltas... */
-      struct data_stream_item *dSI;
+      struct data_stream_item *dSI = NULL;
 
       /* read the labels and their addresses from the internal data stream */
       data_stream_parser_parse();
 
-      dSI = data_stream_parser_find_label(s->string, s_dsp_file_name_id, s_dsp_line_number);
+      if (s->type == STACK_ITEM_TYPE_LABEL)
+        dSI = data_stream_parser_find_label(s->string, s_dsp_file_name_id, s_dsp_line_number);
+
       if (dSI != NULL) {
         if (g_delta_counter == 0) {
           g_delta_section = dSI->section_id;
@@ -1801,6 +1858,8 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
           g_delta_counter = 1;
         }
         else if (g_delta_counter == 1) {
+          _remove_can_calculate_deltas_pair(s);
+
           if (g_delta_section != dSI->section_id) {
             /* ABORT! labels A-B are from different sections, we cannot calculate the delta here... */
             *cannot_resolve = 1;
@@ -1813,23 +1872,13 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
             /* turn A to a value as well for the delta calculation to work */
             g_delta_old_pointer->type = STACK_ITEM_TYPE_VALUE;
           }
-
-          g_delta_counter = 0;
-        }
-        else {
-          /* ABORT! could not find the first label thus we fail here at calculating the delta... */
-          *cannot_resolve = 1;
-          g_delta_counter = 0;
         }
       }
       else {
         /* ABORT! cannot find the label thus we fail here at calculating the delta... */
         *cannot_resolve = 1;
 
-        if (g_delta_counter == 0)
-          g_delta_counter = -1;
-        else
-          g_delta_counter = 0;
+        _remove_can_calculate_deltas_pair(s);
       }
     }
   }
@@ -1950,6 +1999,11 @@ static int _process_string(struct stack_item *s, int *cannot_resolve) {
         }
         else
           strcpy(s->string, g_label);
+
+        if (s->can_calculate_deltas == YES) {
+          /* delta calculation failed! */
+          _remove_can_calculate_deltas_pair(s);
+        }
       }
     }
   }
@@ -1962,10 +2016,7 @@ static int _process_string(struct stack_item *s, int *cannot_resolve) {
   if (did_resolve_string == NO) {
     if (s->can_calculate_deltas == YES) {
       /* delta calculation failed! */
-      if (g_delta_counter == 0)
-        g_delta_counter = -1;
-      else
-        g_delta_counter = 0;
+      _remove_can_calculate_deltas_pair(s);
     }
   }
   
