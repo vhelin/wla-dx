@@ -955,6 +955,20 @@ int insert_sections(void) {
 }
 
 
+struct stack *find_stack(int id, int file_id) {
+
+  struct stack *st = g_stacks_first;
+
+  while (st != NULL) {
+    if (st->id == id && st->file_id == file_id)
+      return st;
+    st = st->next;
+  }
+
+  return NULL;
+}
+
+
 /* transform computation stack definitions to ordinary definitions */
 int transform_stack_definitions(void) {
 
@@ -975,13 +989,9 @@ int transform_stack_definitions(void) {
          printf("value: \"%d\"\n", l->address);
       */
 
-      s = g_stacks_first;
       /* find the stack associated with the definition */
-      while (s != NULL) {
-        if (s->file_id == l->file_id && s->id == l->address)
-          break;
-        s = s->next;
-      }
+      s = find_stack(l->address, l->file_id);
+
       /* did we find it? */
       if (s == NULL) {
         fprintf(stderr, "TRANSFORM_STACK_DEFINITIONS: No computation stack associated with computation definition label \"%s\". This is a fatal internal error. Please send the WLA DX author a bug report.\n", l->name);
@@ -1060,9 +1070,11 @@ int fix_all_sections(void) {
   g_sec_fix_tmp = g_sec_fix_first;
   while (g_sec_fix_tmp != NULL) {
     /* find the section, and fix bank, slot, org/orga, etc... */
+    char c1 = g_sec_fix_tmp->name[0];
+    
     s = g_sec_first;
     while (s != NULL) {
-      if (strcmp(s->name, g_sec_fix_tmp->name) == 0) {
+      if (c1 == s->name[0] && strcmp(s->name, g_sec_fix_tmp->name) == 0) {
         s->bank = g_sec_fix_tmp->bank;
 
         if (g_sec_fix_tmp->slot < 0) {
@@ -2235,9 +2247,8 @@ int compute_pending_calculations(void) {
         /* get the section */
         s = g_sec_first;
         while (s != NULL) {
-          if (sta->section == s->id) {
+          if (sta->section == s->id)
             break;
-          }
           s = s->next;
         }
         if (s != NULL && s->alive == YES)
@@ -2486,20 +2497,6 @@ static int _get_bank_of_address(int address, int slot) {
       return -1;
     }
   }
-}
-
-
-struct stack *find_stack(int id, int file_id) {
-
-  struct stack *st = g_stacks_first;
-
-  while (st != NULL) {
-    if (st->id == id && st->file_id == file_id)
-      return st;
-    st = st->next;
-  }
-
-  return NULL;
 }
 
 
@@ -3908,10 +3905,11 @@ int generate_sizeof_label_definitions(void) {
   /* process the labels */
   for (j = 0; j < labelsN; j++) {
     struct label_sizeof *ls = g_label_sizeofs;
+    char c1 = labels[j]->name[0];
 
     /* try to find the size in "label sizeofs"... */
     while (ls != NULL) {
-      if (labels[j]->file_id == ls->file_id && strcmp(labels[j]->name, ls->name) == 0) {
+      if (labels[j]->file_id == ls->file_id && c1 == ls->name[0] && strcmp(labels[j]->name, ls->name) == 0) {
         size = ls->size;
         break;
       }
@@ -4011,14 +4009,17 @@ int fix_sectionstartend_labels(void) {
 
 int get_slot_by_its_name(char *name, int *slot) {
 
+  char c1;
   int i;
   
   if (name == NULL || slot == NULL)
     return FAILED;
 
+  c1 = name[0];
+  
   for (i = 0; i < 256; i++) {
     if (g_slots[i].usage == ON) {
-      if (strcmp(g_slots[i].name, name) == 0) {
+      if (c1 == g_slots[i].name[0] && strcmp(g_slots[i].name, name) == 0) {
         *slot = i;
         return SUCCEEDED;
       }

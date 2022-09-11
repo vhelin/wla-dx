@@ -164,7 +164,7 @@ int add_section(struct section *s) {
   s->appended_to_section = NULL;
   s->appended_to_offset = 0;
 
-  if (strcmp(s->name, "BANKHEADER") == 0) {
+  if (s->name[0] == 'B' && strcmp(s->name, "BANKHEADER") == 0) {
     ss = g_sec_bankhd_first;
     while (ss != NULL) {
       if (ss->bank == s->bank) {
@@ -214,7 +214,7 @@ int free_section(struct section *s) {
   if (s->next != NULL)
     s->next->prev = s->prev;
 
-  if (strcmp(s->name, "BANKHEADER") == 0) {
+  if (s->name[0] == 'B' && strcmp(s->name, "BANKHEADER") == 0) {
     if (g_sec_bankhd_first == s)
       g_sec_bankhd_first = s->next;
     if (g_sec_bankhd_last == s)
@@ -574,13 +574,13 @@ int collect_dlr(void) {
   struct stack *s;
   struct label *l;
   struct label_sizeof *ls;
-  int section, x, i, n, q;
+  int section_id_base, x, i, n, q;
   unsigned char *t, *dtmp;
   double dou;
-
   
-  section = 0;
+  section_id_base = 0;
   g_obj_tmp = g_obj_first;
+
   while (g_obj_tmp != NULL) {
     /* OBJECT FILE */
     if (g_obj_tmp->format == WLA_VERSION_OBJ) {
@@ -655,7 +655,7 @@ int collect_dlr(void) {
           l->section_status = OFF;
         else {
           l->section_status = ON;
-          l->section += section;
+          l->section += section_id_base;
         }
         l->address = READ_T;
         l->linenumber = READ_T;
@@ -699,7 +699,7 @@ int collect_dlr(void) {
           r->section_status = OFF;
         else {
           r->section_status = ON;
-          r->section += section;
+          r->section += section_id_base;
         }
         r->linenumber = READ_T;
         r->address = READ_T;
@@ -727,7 +727,7 @@ int collect_dlr(void) {
           s->section_status = OFF;
         else {
           s->section_status = ON;
-          s->section += section;
+          s->section += section_id_base;
         }
         s->file_id_source = READ_T;
         x = *(t++);
@@ -917,7 +917,7 @@ int collect_dlr(void) {
 
         t++;
         l->section = READ_T;
-        l->section += section;
+        l->section += section_id_base;
         l->file_id_source = READ_T;
         l->linenumber = READ_T;
         l->section_status = ON;
@@ -946,7 +946,7 @@ int collect_dlr(void) {
         r->type = *(t++);
         r->special_id = *(t++);
         r->section = READ_T;
-        r->section += section;
+        r->section += section_id_base;
         r->file_id_source = READ_T;
 
         if (r->type == REFERENCE_TYPE_BITS) {
@@ -987,7 +987,7 @@ int collect_dlr(void) {
           s->section_status = OFF;
         else {
           s->section_status = ON;
-          s->section += section;
+          s->section += section_id_base;
         }
         s->file_id_source = READ_T;
         x = *(t++);
@@ -1112,7 +1112,7 @@ int collect_dlr(void) {
     }
 
     g_obj_tmp = g_obj_tmp->next;
-    section += 0x10000;
+    section_id_base += 0x10000;
   }
 
   return SUCCEEDED;
@@ -1138,12 +1138,15 @@ static int _compare_sections(struct section *a, struct section *b) {
 static struct section *_find_section(char *section_name) {
 
   struct section *s = g_sec_first, *ss = NULL;
+  char s1 = section_name[0];
 
   while (s != NULL) {
-    if (strcmp(s->name, section_name) == 0) {
-      if (ss != NULL)
-        fprintf(stderr, "_find_section(): Multiple sections called \"%s\" found for APPENDTO/AFTER operation. Please have only one section called \"%s\" in the source files. Using the last found section...\n", section_name, section_name);
-      ss = s;
+    if (s1 == s->name[0]) {
+      if (strcmp(s->name, section_name) == 0) {
+        if (ss != NULL)
+          fprintf(stderr, "_find_section(): Multiple sections called \"%s\" found for APPENDTO/AFTER operation. Please have only one section called \"%s\" in the source files. Using the last found section...\n", section_name, section_name);
+        ss = s;
+      }
     }
     s = s->next;
   }
@@ -1177,7 +1180,7 @@ static struct section *_find_after_source_section(struct after_section *as) {
 
   /* use the name... */
   while (s != NULL) {
-    if (as->file_id == s->file_id && strcmp(s->name, as->section) == 0) {
+    if (as->file_id == s->file_id && s->name[0] == as->section[0] && strcmp(s->name, as->section) == 0) {
       fprintf(stderr, "... Found it!\n");
       return s;
     }
@@ -1193,10 +1196,13 @@ static struct section *_find_after_source_section(struct after_section *as) {
 static void _kill_label(char *name, struct section *s) {
 
   struct label *l = g_labels_first;
+  char c1 = name[0];
 
   while (l != NULL) {
-    if (s->id == l->section && strcmp(name, l->name) == 0)
-      l->alive = NO;
+    if (s->id == l->section && c1 == l->name[0]) {
+      if (strcmp(name, l->name) == 0)
+        l->alive = NO;
+    }
     l = l->next;
   }
 }
@@ -1288,6 +1294,7 @@ static int _append_sections(struct section *s_source, struct section *s_target) 
   struct label *l;
   unsigned char *data;
   int size, offset;
+  char c1;
 
   offset = s_target->size;
   size = s_source->size + s_target->size;
@@ -1317,11 +1324,14 @@ static int _append_sections(struct section *s_source, struct section *s_target) 
   /* try to adjust SECTIONEND_%s of the target as the target section has grown */
   snprintf(label_tmp, sizeof(label_tmp), "SECTIONEND_%s", s_target->name);
 
+  c1 = label_tmp[0];
   l = g_labels_first;
   while (l != NULL) {
-    if (strcmp(label_tmp, l->name) == 0) {
-      l->address += s_source->size;
-      break;
+    if (c1 == l->name[0]) {
+      if (strcmp(label_tmp, l->name) == 0) {
+        l->address += s_source->size;
+        break;
+      }
     }
     l = l->next;
   }
@@ -1760,12 +1770,12 @@ int merge_sections(void) {
 int parse_data_blocks(void) {
 
   struct section *s;
-  int section, i, x;
+  int section_id_base, i, x;
   unsigned char *t, *p;
   char buf[256];
 
   g_obj_tmp = g_obj_first;
-  section = 0;
+  section_id_base = 0;
 
   while (g_obj_tmp != NULL) {
     /* OBJECT FILE */
@@ -1836,7 +1846,7 @@ int parse_data_blocks(void) {
           if (s->id >= 0x10000) {
             fprintf(stderr, "PARSE_DATA_BLOCKS: Section \"%s\"'s ID %d is too much! Currently we allow only 65535 sections inside an object file. Please open an issue about this in GitHub!\n", s->name, s->id);
           }
-          s->id += section;
+          s->id += section_id_base;
           s->slot = *(t++);
           s->file_id_source = READ_T;
           s->address = READ_T;
@@ -1864,7 +1874,7 @@ int parse_data_blocks(void) {
         }
       }
       g_obj_tmp = g_obj_tmp->next;
-      section += 0x10000;
+      section_id_base += 0x10000;
       continue;
     }
     /* LIBRARY FILE */
@@ -1919,7 +1929,7 @@ int parse_data_blocks(void) {
         if (s->id >= 0x10000) {
           fprintf(stderr, "PARSE_DATA_BLOCKS: Section \"%s\"'s ID %d is too much! Currently we allow only 65535 sections inside a library file. Please open an issue about this in GitHub!\n", s->name, s->id);
         }
-        s->id += section;
+        s->id += section_id_base;
         s->file_id_source = READ_T;
         s->size = READ_T;
         s->alignment = READ_T;
@@ -1953,7 +1963,7 @@ int parse_data_blocks(void) {
         add_section(s);
       }
       g_obj_tmp = g_obj_tmp->next;
-      section += 0x10000;
+      section_id_base += 0x10000;
       continue;
     }
   }
@@ -2004,16 +2014,17 @@ int clean_up_dlr(void) {
   struct stack *s, *st;
   struct label *l, *la;
   struct section *se, *sec, *sect;
-
+  char c1;
 
   se = g_sec_first;
 
   while (se != NULL) {
     /* remove duplicates of unique sections and all the related data */
     if (strlen(se->name) >= 3 && se->name[0] == '!' && se->name[1] == '_' && se->name[2] == '_') {
+      c1 = se->name[0];
       sec = se->next;
       while (sec != NULL) {
-        if (strcmp(se->name, sec->name) == 0) {
+        if (c1 == sec->name[0] && strcmp(se->name, sec->name) == 0) {
           /* free references */
           r = g_reference_first;
           while (r != NULL) {
