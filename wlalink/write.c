@@ -975,7 +975,6 @@ int transform_stack_definitions(void) {
   struct label *l;
   struct stack *s;
 
-
   l = g_labels_first;
   while (l != NULL) {
     if (l->status == LABEL_STATUS_STACK) {
@@ -990,7 +989,7 @@ int transform_stack_definitions(void) {
       */
 
       /* find the stack associated with the definition */
-      s = find_stack(l->address, l->file_id);
+      s = find_stack((int)l->address, l->file_id);
 
       /* did we find it? */
       if (s == NULL) {
