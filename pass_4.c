@@ -414,7 +414,7 @@ int pass_4(void) {
       else
         g_sec_tmp->data = NULL;
       
-      if (strcmp(g_sec_tmp->name, "BANKHEADER") == 0)
+      if (g_sec_tmp->name[0] == 'B' && strcmp(g_sec_tmp->name, "BANKHEADER") == 0)
         g_bankheader_status = ON;
 
       g_sec_tmp->i = 0;

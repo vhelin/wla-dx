@@ -246,12 +246,15 @@ int add_namespace_to_string(char *s, int sizeof_s, char *type) {
 
 static int _get_slot_number_by_its_name(char *slot_name, int *number) {
 
+  char c1 = slot_name[0];
   int i;
   
   for (i = 0; i < g_slots_amount; i++) {
-    if (strcmp(slot_name, g_slots[i].name) == 0) {
-      *number = i;
-      return SUCCEEDED;
+    if (c1 == g_slots[i].name[0]) {
+      if (strcmp(slot_name, g_slots[i].name) == 0) {
+        *number = i;
+        return SUCCEEDED;
+      }
     }
   }
 
@@ -302,6 +305,7 @@ int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
 
   struct macro_static *macro;
   char fullname[MAX_NAME_LENGTH + 1];
+  char c1;
 
   strcpy(fullname, name);
 
@@ -348,10 +352,13 @@ int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
     }
   }
 
+  c1 = fullname[0];
   macro = g_macros_first;
   while (macro != NULL) {
-    if (strcmp(macro->name, fullname) == 0)
-      break;
+    if (c1 == macro->name[0]) {
+      if (strcmp(macro->name, fullname) == 0)
+        break;
+    }
     macro = macro->next;
   }
 
@@ -718,10 +725,13 @@ int macro_insert_double_dw(char *name) {
 struct structure* get_structure(char *name) {
 
   struct structure *s = g_structures_first;
+  char c1 = name[0];
 
   while (s != NULL) {
-    if (strcmp(name, s->name) == 0)
-      return s;
+    if (c1 == s->name[0]) {
+      if (strcmp(name, s->name) == 0)
+        return s;
+    }
     s = s->next;
   }
 
@@ -4731,6 +4741,7 @@ int directive_struct(void) {
 int directive_ramsection(void) {
 
   int q, current_slot_address;
+  char c1;
       
   if (g_section_status == ON) {
     print_error(ERROR_DIR, "There is already an open section called \"%s\".\n", g_sections_last->name);
@@ -4790,11 +4801,14 @@ int directive_ramsection(void) {
   
   /* look for duplicate sections */
   g_sec_next = g_sections_first;
+  c1 = g_tmp[0];
   while (g_sec_next != NULL) {
-    if (strcmp(g_sec_next->name, g_tmp) == 0) {
-      print_error(ERROR_DIR, "RAMSECTION \"%s\" was defined for the second time.\n", g_tmp);
-      free(g_sec_tmp);
-      return FAILED;
+    if (c1 == g_sec_next->name[0]) {
+      if (strcmp(g_sec_next->name, g_tmp) == 0) {
+        print_error(ERROR_DIR, "RAMSECTION \"%s\" was defined for the second time.\n", g_tmp);
+        free(g_sec_tmp);
+        return FAILED;
+      }
     }
     g_sec_next = g_sec_next->next;
   }
@@ -5173,7 +5187,8 @@ int directive_ramsection(void) {
 
 
 int directive_section(void) {
-  
+
+  char c1;
   int l;
 
   if (g_dstruct_status == ON) {
@@ -5224,12 +5239,14 @@ int directive_section(void) {
 
   fprintf(g_file_out_ptr, "S%d ", g_sec_tmp->id);
 
-  if (strcmp(g_tmp, "BANKHEADER") == 0) {
+  c1 = g_tmp[0];
+  
+  if (c1 == 'B' && strcmp(g_tmp, "BANKHEADER") == 0) {
     no_library_files("bank header sections");
       
     g_sec_next = g_sections_first;
     while (g_sec_next != NULL) {
-      if (strcmp(g_sec_next->name, g_tmp) == 0 && g_sec_next->bank == g_bank) {
+      if (g_sec_next->name[0] == 'B' && strcmp(g_sec_next->name, g_tmp) == 0 && g_sec_next->bank == g_bank) {
         print_error(ERROR_DIR, "BANKHEADER section was defined for the second time for bank %d.\n", g_bank);
         free(g_sec_tmp);
         return FAILED;
@@ -5240,7 +5257,7 @@ int directive_section(void) {
   else {
     g_sec_next = g_sections_first;
     while (g_sec_next != NULL) {
-      if (strcmp(g_sec_next->name, g_tmp) == 0) {
+      if (c1 == g_sec_next->name[0] && strcmp(g_sec_next->name, g_tmp) == 0) {
         print_error(ERROR_DIR, "SECTION \"%s\" was defined for the second time.\n", g_tmp);
         free(g_sec_tmp);
         return FAILED;
@@ -5563,7 +5580,7 @@ int directive_section(void) {
   }
 
   /* bankheader section? */
-  if (strcmp(g_sec_tmp->name, "BANKHEADER") == 0) {
+  if (g_sec_tmp->name[0] == 'B' && strcmp(g_sec_tmp->name, "BANKHEADER") == 0) {
     g_sec_tmp->status = SECTION_STATUS_HEADER;
     g_bankheader_status = ON;
   }
@@ -6998,10 +7015,13 @@ int directive_gbheader(void) {
 static struct array *_get_array(char *name) {
 
   struct array *arr = g_arrays_first;
+  char c1 = name[0];
 
   while (arr != NULL) {
-    if (strcmp(name, arr->name) == 0)
-      return arr;
+    if (c1 == arr->name[0]) {
+      if (strcmp(name, arr->name) == 0)
+        return arr;
+    }
     arr = arr->next;
   }
 
@@ -7446,16 +7466,20 @@ int directive_function(void) {
   char name[MAX_NAME_LENGTH+1];
   struct function *f;
   int res;
+  char c1;
 
   if (get_next_plain_string() == FAILED)
     return FAILED;
 
   /* do we already have a function with that name? */
+  c1 = g_label[0];
   f = g_functions_first;
   while (f != NULL) {
-    if (strcmp(g_label, f->name) == 0) {
-      print_error(ERROR_DIR, ".FUNCTION called \"%s\" exists already!\n", g_label);
-      return FAILED;
+    if (c1 == f->name[0]) {
+      if (strcmp(g_label, f->name) == 0) {
+        print_error(ERROR_DIR, ".FUNCTION called \"%s\" exists already!\n", g_label);
+        return FAILED;
+      }
     }
     f = f->next;
   }
@@ -11967,13 +11991,16 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
 int export_a_definition(char *name) {
 
   struct export_def *export;
+  char c1 = name[0];
 
   /* don't export it twice or more often */
   export = g_export_first;
   while (export != NULL) {
-    if (strcmp(export->name, name) == 0) {
-      print_error(ERROR_WRN, "\"%s\" was .EXPORTed for the second time.\n", name);
-      return SUCCEEDED;
+    if (c1 == export->name[0]) {
+      if (strcmp(export->name, name) == 0) {
+        print_error(ERROR_WRN, "\"%s\" was .EXPORTed for the second time.\n", name);
+        return SUCCEEDED;
+      }
     }
     export = export->next;
   }

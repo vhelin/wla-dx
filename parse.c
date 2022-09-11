@@ -2046,16 +2046,18 @@ static int _clone_stack_calculation(struct stack_item **stack_items_out, struct 
   }
 
   for (i = 0; i < stacksize; i++) {
-    si[i].value = stack_items[i].value;
-    si[i].type = stack_items[i].type;
-    si[i].sign = stack_items[i].sign;
-    si[i].can_calculate_deltas = stack_items[i].can_calculate_deltas;
-    si[i].has_been_replaced = stack_items[i].has_been_replaced;
-    si[i].is_in_postfix = stack_items[i].is_in_postfix;
-    if (si[i].type == STACK_ITEM_TYPE_LABEL)
-      strcpy(si[i].string, stack_items[i].string);
+    struct stack_item *out = &si[i], *in = &stack_items[i];
+    
+    out->value = in->value;
+    out->type = in->type;
+    out->sign = in->sign;
+    out->can_calculate_deltas = in->can_calculate_deltas;
+    out->has_been_replaced = in->has_been_replaced;
+    out->is_in_postfix = in->is_in_postfix;
+    if (out->type == STACK_ITEM_TYPE_LABEL)
+      strcpy(out->string, in->string);
     else
-      si[i].string[0] = 0;
+      out->string[0] = 0;
   }
 
   *stack_items_out = si;
@@ -2121,35 +2123,37 @@ static int _replace_labels_inside_stack_calculation(struct stack_item *stack_ite
   int j;
 
   for (j = 0; j < stacksize; j++) {
-    if (stack_items[j].type == STACK_ITEM_TYPE_STACK) {
+    struct stack_item *si = &stack_items[j];
+
+    if (si->type == STACK_ITEM_TYPE_STACK) {
       /* dig deeper! */
-      s = find_stack_calculation((int)stack_items[j].value, YES);
+      s = find_stack_calculation((int)si->value, YES);
       if (s == NULL)
         return FAILED;
       
       if (_replace_labels_inside_stack_calculation(s->stack_items, s->stacksize, label, result, parsed_int, parsed_double, parsed_label, parsed_stack) == FAILED)
         return FAILED;
     }
-    else if (stack_items[j].type == STACK_ITEM_TYPE_LABEL) {
-      if (stack_items[j].has_been_replaced == NO && strcmp(label, stack_items[j].string) == 0) {
+    else if (si->type == STACK_ITEM_TYPE_LABEL) {
+      if (si->has_been_replaced == NO && label[0] == si->string[0] && strcmp(label, si->string) == 0) {
         if (result == SUCCEEDED) {
-          stack_items[j].type = STACK_ITEM_TYPE_VALUE;
-          stack_items[j].value = parsed_int;
-          stack_items[j].sign = SI_SIGN_POSITIVE;
+          si->type = STACK_ITEM_TYPE_VALUE;
+          si->value = parsed_int;
+          si->sign = SI_SIGN_POSITIVE;
         }
         else if (result == INPUT_NUMBER_FLOAT) {
-          stack_items[j].type = STACK_ITEM_TYPE_VALUE;
-          stack_items[j].value = parsed_double;
-          stack_items[j].sign = SI_SIGN_POSITIVE;
+          si->type = STACK_ITEM_TYPE_VALUE;
+          si->value = parsed_double;
+          si->sign = SI_SIGN_POSITIVE;
         }
         else if (result == INPUT_NUMBER_ADDRESS_LABEL) {
-          strcpy(stack_items[j].string, parsed_label);
-          stack_items[j].sign = SI_SIGN_POSITIVE;
+          strcpy(si->string, parsed_label);
+          si->sign = SI_SIGN_POSITIVE;
         }
         else {
-          stack_items[j].type = STACK_ITEM_TYPE_STACK;
-          stack_items[j].value = parsed_stack;
-          stack_items[j].sign = SI_SIGN_POSITIVE;
+          si->type = STACK_ITEM_TYPE_STACK;
+          si->value = parsed_stack;
+          si->sign = SI_SIGN_POSITIVE;
         }
       }
     }    
@@ -2164,6 +2168,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
   int res, source_pointer_original = g_source_pointer, source_pointer_backup, i, j;
   struct function *fun = g_functions_first;
   struct stack_item *si;
+  char c1 = name[0];
 
   /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
      let's update g_source_pointer for input_number() */
@@ -2173,8 +2178,10 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
 
   /* find the function */
   while (fun != NULL) {
-    if (strcmp(name, fun->name) == 0)
-      break;
+    if (c1 == fun->name[0]) {
+      if (strcmp(name, fun->name) == 0)
+        break;
+    }
     fun = fun->next;
   }
 
@@ -2250,10 +2257,12 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
     
     /* substitute the result into the stack calculation */
     for (j = 0; j < fun->stack->stacksize; j++) {
-      if (si[j].type == STACK_ITEM_TYPE_STACK) {
+      struct stack_item *sij = &si[j];
+      
+      if (sij->type == STACK_ITEM_TYPE_STACK) {
         struct stack *s;
 
-        s = find_stack_calculation((int)si[j].value, YES);
+        s = find_stack_calculation((int)sij->value, YES);
         if (s == NULL) {
           free(si);
           return FAILED;
@@ -2264,26 +2273,26 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
           return FAILED;
         }
       }
-      else if (si[j].type == STACK_ITEM_TYPE_LABEL) {
-        if (strcmp(fun->argument_names[i], si[j].string) == 0) {
+      else if (sij->type == STACK_ITEM_TYPE_LABEL) {
+        if (strcmp(fun->argument_names[i], sij->string) == 0) {
           if (res == SUCCEEDED) {
-            si[j].type = STACK_ITEM_TYPE_VALUE;
-            si[j].value = g_parsed_int;
-            si[j].sign = SI_SIGN_POSITIVE;
+            sij->type = STACK_ITEM_TYPE_VALUE;
+            sij->value = g_parsed_int;
+            sij->sign = SI_SIGN_POSITIVE;
           }
           else if (res == INPUT_NUMBER_FLOAT) {
-            si[j].type = STACK_ITEM_TYPE_VALUE;
-            si[j].value = g_parsed_double;
-            si[j].sign = SI_SIGN_POSITIVE;
+            sij->type = STACK_ITEM_TYPE_VALUE;
+            sij->value = g_parsed_double;
+            sij->sign = SI_SIGN_POSITIVE;
           }
           else if (res == INPUT_NUMBER_ADDRESS_LABEL) {
-            strcpy(si[j].string, g_label);
-            si[j].sign = SI_SIGN_POSITIVE;
+            strcpy(sij->string, g_label);
+            sij->sign = SI_SIGN_POSITIVE;
           }
           else {
-            si[j].type = STACK_ITEM_TYPE_STACK;
-            si[j].value = g_latest_stack;
-            si[j].sign = SI_SIGN_POSITIVE;
+            sij->type = STACK_ITEM_TYPE_STACK;
+            sij->value = g_latest_stack;
+            sij->sign = SI_SIGN_POSITIVE;
           }
         }
       }
