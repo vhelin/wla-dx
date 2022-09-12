@@ -211,6 +211,21 @@ int _smc_create_and_write(FILE *f) {
 }
 
 
+struct section *find_section(int id) {
+
+  struct section *s;
+  
+  s = g_sec_first;
+  while (s != NULL) {
+    if (s->id == id)
+      return s;
+    s = s->next;
+  }
+
+  return NULL;
+}
+
+
 int sort_sections(void) {
 
   struct section *s, **sa;
@@ -1176,20 +1191,14 @@ int fix_label_sections(void) {
     if (l->alive == YES) {
       if (l->section_status == ON) {
         /* search for the label's section */
-        s = g_sec_first;
-        while (s != NULL) {
-          if (s->id == l->section) {
-            l->section_struct = s;
-            break;
-          }
-          s = s->next;
-        }
-
+        s = find_section(l->section);
         if (s == NULL) {
           fprintf(stderr, "FIX_LABEL_SECTIONS: Internal error: couldn't find section %d for label \"%s\".\n",
                   l->section, l->name);
           return FAILED;
         }
+
+        l->section_struct = s;
       }
 
       insert_label_into_maps(l, 0);
@@ -1404,15 +1413,11 @@ int fix_references(void) {
     x = r->address;
     /* search for the section of the reference and fix the address */
     if (r->section_status == ON) {
-      s = g_sec_first;
-      while (s != NULL) {
-        if (s->id == r->section) {
-          r->bank = s->bank;
-          x += s->address;
-          r->address += s->address;
-          break;
-        }
-        s = s->next;
+      s = find_section(r->section);
+      if (s != NULL) {
+        r->bank = s->bank;
+        x += s->address;
+        r->address += s->address;
       }
       /* reference is inside a discarded section? */
       if (s != NULL && s->alive == NO) {
@@ -1801,9 +1806,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char output_ad
       }
       /* skip all dropped section labels */
       if (l->section_status == ON) {
-        s = g_sec_first;
-        while (l->section != s->id)
-          s = s->next;
+        s = find_section(l->section);
         if (s->alive == NO) {
           l = l->next;
           continue;
@@ -1858,9 +1861,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char output_ad
 
         /* skip all dropped section labels */
         if (l->section_status == ON) {
-          s = g_sec_first;
-          while (l->section != s->id)
-            s = s->next;
+          s = find_section(l->section);
           if (s->alive == NO) {
             l = l->next;
             continue;
@@ -2195,14 +2196,9 @@ int compute_pending_calculations(void) {
 
     if (sta->section_status == ON) {
       /* get section address */
-      s = g_sec_first;
-      while (s != NULL) {
-        if (sta->section == s->id) {
-          sta->bank = s->bank;
-          break;
-        }
-        s = s->next;
-      }
+      s = find_section(sta->section);
+      if (s != NULL)
+        sta->bank = s->bank;
       /* the computation is inside a discarded section? */
       if (s != NULL && s->alive == NO) {
         sta = sta->next;
@@ -2241,12 +2237,7 @@ int compute_pending_calculations(void) {
       /* skip the calculations inside discarded sections */
       if (sta->section_status == ON) {
         /* get the section */
-        s = g_sec_first;
-        while (s != NULL) {
-          if (sta->section == s->id)
-            break;
-          s = s->next;
-        }
+        s = find_section(sta->section);
         if (s != NULL && s->alive == YES)
           k = 1;
         else
@@ -2278,14 +2269,9 @@ int compute_pending_calculations(void) {
     /* find source address */
     if (sta->section_status == ON) {
       /* get section address */
-      s = g_sec_first;
-      while (s != NULL) {
-        if (sta->section == s->id) {
-          sta->bank = s->bank;
-          break;
-        }
-        s = s->next;
-      }
+      s = find_section(sta->section);
+      if (s != NULL)
+        sta->bank = s->bank;
       /* the computation is inside a discarded section? */
       if (s != NULL && s->alive == NO) {
         sta = sta->next;
@@ -3317,15 +3303,10 @@ int parse_stack(struct stack *sta) {
   int g, ed;
 
 
-  s = NULL;
-  if (sta->section_status != 0) {
-    s = g_sec_first;
-    while (s != NULL) {
-      if (s->id == sta->section)
-        break;
-      s = s->next;
-    }
-  }
+  if (sta->section_status != 0)
+    s = find_section(sta->section);
+  else
+    s = NULL;
 
   /* calculate extra displacement (ed) depending on relative operand size:
      6809, 65816 and 65ce02 can have 16-bit relative operands so the start of

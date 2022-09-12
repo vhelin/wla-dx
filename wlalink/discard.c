@@ -94,15 +94,11 @@ int discard_iteration(void) {
       continue;
     }
 
-    s = NULL;
-    if (r->section_status != 0) {
-      s = g_sec_first;
-      while (s != NULL) {
-        if (s->id == r->section)
-          break;
-        s = s->next;
-      }
-    }
+    if (r->section_status != 0)
+      s = find_section(r->section);
+    else
+      s = NULL;
+
     find_label(r->name, s, &l);
 
     if (l != NULL && l->section_status == ON) {
@@ -116,11 +112,8 @@ int discard_iteration(void) {
         /* find it in special sections first */
         while (ss != NULL && ss->id != r->section)
           ss = ss->next;
-        if (ss == NULL) {
-          ss = g_sec_first;
-          while (ss->id != r->section)
-            ss = ss->next;
-        }
+        if (ss == NULL)
+          ss = find_section(r->section);
         if (ss->alive == YES)
           s->referenced++;
       }
@@ -131,15 +124,10 @@ int discard_iteration(void) {
   /* loop through computations */
   st = g_stacks_first;
   while (st != NULL) {
-    ss = NULL;
-    if (st->section_status != 0) {
-      ss = g_sec_first;
-      while (ss != NULL) {
-        if (ss->id == st->section)
-          break;
-        ss = ss->next;
-      }
-    }
+    if (st->section_status != 0)
+      ss = find_section(st->section);
+    else
+      ss = NULL;
 
     si = st->stack_items;
     i = 0;
@@ -179,30 +167,12 @@ int discard_dropped_labels(void) {
   while (l != NULL) {
     if (l->section_status == ON) {
       /* find the section */
-      s = g_sec_first;
-      while (s->id != l->section)
-        s = s->next;
+      s = find_section(l->section);
+
       /* is it dead? */
       if (s->alive == NO) {
-        /* nope! remove the label! */
-
-        /* don't actually free the label from memory, but mark it dead
-           struct label *ll;
-
-           if (l->prev == NULL)
-           labels_first = l->next;
-           else
-           l->prev->next = l->next;
-           if (l->next != NULL)
-           l->next->prev = l->prev;
-           ll = l->next;
-
-           free(l);
-
-           l = ll;
-        */
+        /* don't actually free the label from memory, but mark it dead */
         l->alive = NO;
-
         l = l->next;
       }
       else

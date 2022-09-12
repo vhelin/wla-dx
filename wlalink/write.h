@@ -26,6 +26,7 @@ int is_label_anonymous(char *label);
 int sort_anonymous_labels(void);
 struct label *get_closest_anonymous_label(char *name, char *context, int rom_address, int file_id, int section_status, int section);
 struct stack *find_stack(int id, int file_id);
+struct section *find_section(int id);
 int generate_ram_bank_usage_labels(void);
 int generate_sizeof_label_definitions(void);
 int fix_sectionstartend_labels(void);
