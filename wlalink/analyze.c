@@ -53,6 +53,69 @@ extern int *g_banksizes, *g_bankaddress, g_banksize;
 int is_label_anonymous(char *label);
 
 
+static int _add_pointer_to_a_pointer_array(void *ptr, int id, void ***array, int *max, int *array_max) {
+
+  if (id > *max)
+    *max = id;
+
+  while (id >= *array_max) {
+    int i, j;
+
+    i = *array_max;
+    j = i + 1024;
+
+    /* increase the pointer array size */
+    *array_max = j;
+
+    *array = realloc(*array, sizeof(void **) * j);
+    if (*array == NULL) {
+      fprintf(stderr, "_add_pointer_to_a_pointer_array(): Out of memory error!\n");
+      *array_max = 0;
+      
+      return FAILED;
+    }
+
+    while (i < j) {
+      (*array)[i] = NULL;
+      i++;
+    }
+  }
+
+  (*array)[id] = ptr;
+  
+  return SUCCEEDED;
+}
+
+
+int free_stack(struct stack *s) {
+
+  struct object_file *file;
+  
+  if (s == NULL)
+    return SUCCEEDED;
+
+  file = get_file(s->file_id);
+  file->stacks[s->id] = NULL;
+  
+  if (s->stack_items != NULL) {
+    free(s->stack_items);
+    s->stack_items = NULL;
+  }
+  if (s->prev == NULL)
+    g_stacks_first = s->next;
+  else
+    s->prev->next = s->next;
+  if (s->next == NULL)
+    g_stacks_last = s->prev;
+  else
+    s->next->prev = s->prev;
+
+  free(s);
+
+  return SUCCEEDED;
+}
+
+
 int parse_context_from_name(char *name, char *context) {
 
   int i, j, length;
@@ -128,6 +191,10 @@ int add_stack(struct stack *sta) {
     g_stacks_last->next = sta;
     g_stacks_last = sta;
   }
+
+  /* add the pointer also to a pointer array for quick discovery with the ID */
+  if (_add_pointer_to_a_pointer_array((void *)sta, sta->id, (void ***)&g_obj_tmp->stacks, &g_obj_tmp->stacks_max, &g_obj_tmp->stacks_array_max) == FAILED)
+    return FAILED;
 
   return SUCCEEDED;
 }
@@ -2050,22 +2117,9 @@ int clean_up_dlr(void) {
           s = g_stacks_first;
           while (s != NULL) {
             if (s->section_status == ON && s->section == sec->id) {
-              st = s;
-              if (st->stack_items != NULL) {
-                free(st->stack_items);
-                st->stack_items = NULL;
-              }
-              if (st->prev == NULL)
-                g_stacks_first = st->next;
-              else
-                st->prev->next = st->next;
-              if (st->next == NULL)
-                g_stacks_last = st->prev;
-              else
-                st->next->prev = st->prev;
-              
-              s = s->next;
-              free(st);
+              st = s->next;
+              free_stack(s);
+              s = st;
             }
             else
               s = s->next;

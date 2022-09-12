@@ -957,15 +957,12 @@ int insert_sections(void) {
 
 struct stack *find_stack(int id, int file_id) {
 
-  struct stack *st = g_stacks_first;
+  static struct object_file *file = NULL;
 
-  while (st != NULL) {
-    if (st->id == id && st->file_id == file_id)
-      return st;
-    st = st->next;
-  }
-
-  return NULL;
+  if (file == NULL || file->id != file_id)
+    file = get_file(file_id);
+  
+  return file->stacks[id];
 }
 
 

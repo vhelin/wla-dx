@@ -91,6 +91,9 @@ struct object_file {
   int *listfile_ints;
   char *listfile_cmds;
   struct source_file_name *source_file_names_list;
+  struct stack **stacks;
+  int stacks_max;
+  int stacks_array_max;
   struct object_file *next;
 };
 

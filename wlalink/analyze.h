@@ -2,6 +2,7 @@
 int parse_context_from_name(char *name, char *context);
 int add_reference(struct reference *r);
 int add_stack(struct stack *sta);
+int free_stack(struct stack *s);
 int add_label(struct label *l);
 int add_section(struct section *s);
 int free_section(struct section *s);

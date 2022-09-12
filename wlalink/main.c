@@ -1070,6 +1070,7 @@ void procedures_at_exit(void) {
     free(g_obj_first->name);
     free(g_obj_first->listfile_ints);
     free(g_obj_first->listfile_cmds);
+    free(g_obj_first->stacks);
     o = g_obj_first;
     g_obj_first = g_obj_first->next;
     free(o);

@@ -776,6 +776,9 @@ int load_file(char *file_name, int bank, int slot, char *slot_name, int fix_slot
   o->listfile_items = 0;
   o->listfile_ints = NULL;
   o->listfile_cmds = NULL;
+  o->stacks = NULL;
+  o->stacks_max = -1;
+  o->stacks_array_max = 0;
 
   o->slot_name[0] = 0;
   if (slot_name != NULL)
@@ -882,7 +885,7 @@ char *get_source_file_name(int file_id, int source_id) {
 struct object_file *get_file(int file_id) {
 
   struct object_file *o;
-  
+
   o = g_obj_first;
   while (o != NULL) {
     if (o->id == file_id)
