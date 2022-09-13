@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char g_version_string[] = "$VER: wlalink 5.18a (4.9.2022)";
+char g_version_string[] = "$VER: wlalink 5.18a (13.9.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -70,6 +70,9 @@ int g_emptyfill = 0, g_paths_in_linkfile_are_relative_to_linkfile = NO;
 static int g_create_sizeof_definitions = YES, g_listfile_data = NO;
 static unsigned char g_output_addr_to_line = OFF;
 
+extern struct object_file **g_object_files;
+extern struct pointer_array **g_section_table_table;
+extern int g_section_table_table_max;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 char g_ext_libdir[MAX_NAME_LENGTH + 2];
 
@@ -1058,6 +1061,16 @@ void procedures_at_exit(void) {
   int i, p;
 
   /* free all the dynamically allocated data structures */
+  free(g_object_files);
+
+  for (i = 0; i < g_section_table_table_max; i++) {
+    if (g_section_table_table[i] != NULL) {
+      free(g_section_table_table[i]->ptr);
+      free(g_section_table_table[i]);
+    }
+  }
+  free(g_section_table_table);
+  
   while (g_obj_first != NULL) {
     f = g_obj_first->source_file_names_list;
     while (f != NULL) {

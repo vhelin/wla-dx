@@ -31,6 +31,7 @@ extern struct map_t *g_global_unique_label_map;
 extern struct map_t *g_namespace_map;
 extern struct slot g_slots[256];
 extern struct label_sizeof *g_label_sizeofs;
+extern struct pointer_array **g_section_table_table;
 extern unsigned char *g_rom, *g_rom_usage;
 extern unsigned char *g_file_header, *g_file_footer;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024], **g_ram_slots[256];
@@ -44,6 +45,7 @@ extern int g_memory_file_id, g_memory_file_id_source, g_memory_line_number, g_ou
 extern int g_program_start, g_program_end, g_snes_mode, g_smc_status;
 extern int g_snes_sramsize, g_num_sorted_anonymous_labels, g_sort_sections;
 extern int g_output_type, g_program_address_start, g_program_address_end, g_program_address_start_type, g_program_address_end_type;
+extern int g_section_table_table_max;
 
 static int g_current_stack_calculation_addr = 0;
 
@@ -213,16 +215,8 @@ int _smc_create_and_write(FILE *f) {
 
 struct section *find_section(int id) {
 
-  struct section *s;
-  
-  s = g_sec_first;
-  while (s != NULL) {
-    if (s->id == id)
-      return s;
-    s = s->next;
-  }
-
-  return NULL;
+  /* NOTE! this function doesn't return bankheader sections */
+  return (struct section *)g_section_table_table[id >> 16]->ptr[id & 0xffff];
 }
 
 

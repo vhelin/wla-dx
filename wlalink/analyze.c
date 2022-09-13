@@ -49,11 +49,14 @@ extern int g_rombanks, g_section_overwrite, g_discard_unreferenced_sections;
 extern int g_emptyfill;
 extern int *g_banksizes, *g_bankaddress, g_banksize;
 
+struct pointer_array **g_section_table_table = NULL;
+int g_section_table_table_max = -1, g_section_table_table_array_max = 0;
+
 
 int is_label_anonymous(char *label);
 
 
-static int _add_pointer_to_a_pointer_array(void *ptr, int id, void ***array, int *max, int *array_max) {
+int add_pointer_to_a_pointer_array(void *ptr, int id, void ***array, int *max, int *array_max, int size_increase) {
 
   if (id > *max)
     *max = id;
@@ -62,14 +65,14 @@ static int _add_pointer_to_a_pointer_array(void *ptr, int id, void ***array, int
     int i, j;
 
     i = *array_max;
-    j = i + 1024;
+    j = i + size_increase;
 
     /* increase the pointer array size */
     *array_max = j;
 
     *array = realloc(*array, sizeof(void **) * j);
     if (*array == NULL) {
-      fprintf(stderr, "_add_pointer_to_a_pointer_array(): Out of memory error!\n");
+      fprintf(stderr, "add_pointer_to_a_pointer_array(): Out of memory error!\n");
       *array_max = 0;
       
       return FAILED;
@@ -193,33 +196,65 @@ int add_stack(struct stack *sta) {
   }
 
   /* add the pointer also to a pointer array for quick discovery with the ID */
-  if (_add_pointer_to_a_pointer_array((void *)sta, sta->id, (void ***)&g_obj_tmp->stacks, &g_obj_tmp->stacks_max, &g_obj_tmp->stacks_array_max) == FAILED)
+  if (add_pointer_to_a_pointer_array((void *)sta, sta->id, (void ***)&g_obj_tmp->stacks, &g_obj_tmp->stacks_max, &g_obj_tmp->stacks_array_max, 1024) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
 }
 
 
+/*
+static void _print_section_id_tables(void) {
+
+  int i, j;
+
+  fprintf(stderr, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+  
+  for (i = 0; i <= g_section_table_table_max; i++) {
+    struct pointer_array *pointer_array = (struct pointer_array *)g_section_table_table[i];
+
+    if (pointer_array == NULL)
+      continue;
+    
+    fprintf(stderr, "#####################################################\n");
+    fprintf(stderr, "TABLE %d (0 -> %d)\n", i, pointer_array->max);
+    fprintf(stderr, "#####################################################\n");
+
+    for (j = 0; j <= pointer_array->max; j++) {
+      struct section *s = (struct section *)pointer_array->ptr[j];
+
+      if (s == NULL)
+        continue;
+
+      fprintf(stderr, "SECTION %.6d (%.6d): \"%s\"\n", s->id, j, s->name);
+    }
+  }
+
+  fprintf(stderr, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+}
+*/
+
+
 int add_section(struct section *s) {
 
+  struct pointer_array *pointer_array;
   unsigned char *data;
   struct section *ss;
-
+  int table = s->id >> 16, id = s->id, add_pointer_array = NO;
   
   /* create a local copy of the data */
   if (s->size > 0) {
     data = calloc(s->size, 1);
     if (data == NULL) {
-      fprintf(stderr, "%s: ADD_SECTION: Out of memory.\n", g_obj_tmp->name);
+      fprintf(stderr, "%s: ADD_SECTION: Out of memory with section \"%s\".\n", g_obj_tmp->name, s->name);
       return FAILED;
     }
 
     memcpy(data, s->data, s->size);
     s->data = data;
   }
-  else {
+  else
     s->data = NULL;
-  }
 
   s->file_id = g_obj_tmp->id;
   s->next = NULL;
@@ -267,6 +302,41 @@ int add_section(struct section *s) {
     }
   }
 
+  /* add the pointer also to a pointer array for quick discovery with the ID */
+
+  if (table > g_section_table_table_max)
+    pointer_array = NULL;
+  else
+    pointer_array = g_section_table_table[table];
+
+  if (pointer_array == NULL) {
+    /* allocate container for this table */
+    pointer_array = calloc(sizeof(struct pointer_array), 1);
+    if (pointer_array == NULL) {
+      fprintf(stderr, "%s: ADD_SECTION: Out of memory with section \"%s\".\n", g_obj_tmp->name, s->name);
+      return FAILED;
+    }
+
+    pointer_array->ptr = NULL;
+    pointer_array->max = -1;
+    pointer_array->array_max = 0;
+
+    add_pointer_array = YES;
+  }
+  
+  if (table > g_section_table_table_max || add_pointer_array == YES) {
+    /* expand pointer array (table) */
+    if (add_pointer_to_a_pointer_array((void *)pointer_array, table, (void ***)&g_section_table_table, &g_section_table_table_max, &g_section_table_table_array_max, 256) == FAILED)
+      return FAILED;
+  }
+
+  /* WARNING: bankheader sections don't go into this speedup array, but there must be a NULL there */
+  if (s->is_bankheader_section == YES)
+    s = NULL;
+  
+  if (add_pointer_to_a_pointer_array((void *)s, id & 0xffff, (void ***)&pointer_array->ptr, &pointer_array->max, &pointer_array->array_max, 256) == FAILED)
+    return FAILED;
+
   return SUCCEEDED;
 }
 
@@ -304,6 +374,9 @@ int free_section(struct section *s) {
   
   if (s->data != NULL)
     free(s->data);
+
+  /* remove from the quick ID LUT */
+  g_section_table_table[s->id >> 16]->ptr[s->id & 0xffff] = NULL;
 
   free(s);
 

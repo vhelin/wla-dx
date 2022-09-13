@@ -15,3 +15,4 @@ int obtain_rombanks(void);
 int collect_dlr(void);
 int merge_sections(void);
 int clean_up_dlr(void);
+int add_pointer_to_a_pointer_array(void *ptr, int id, void ***array, int *max, int *array_max, int size_increase);

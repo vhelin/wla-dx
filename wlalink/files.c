@@ -25,6 +25,9 @@ extern int g_file_header_size, g_file_footer_size, g_use_libdir, g_paths_in_link
 extern struct after_section *g_after_sections, *g_after_tmp;
 extern struct section_fix *g_sec_fix_first, *g_sec_fix_tmp;
 
+struct object_file **g_object_files = NULL;
+int g_object_files_max = -1, g_object_files_array_max = 0;
+
 static char g_file_name_error[] = "???";
 
 
@@ -802,6 +805,10 @@ int load_file(char *file_name, int bank, int slot, char *slot_name, int fix_slot
   o->name = name;
   o->id = id++;
 
+  /* add the pointer also to a pointer array for quick discovery with the ID */
+  if (add_pointer_to_a_pointer_array((void *)o, o->id, (void ***)&g_object_files, &g_object_files_max, &g_object_files_array_max, 64) == FAILED)
+    return FAILED;
+
   return SUCCEEDED;
 }
 
@@ -884,18 +891,12 @@ char *get_source_file_name(int file_id, int source_id) {
 
 struct object_file *get_file(int file_id) {
 
-  struct object_file *o;
-
-  o = g_obj_first;
-  while (o != NULL) {
-    if (o->id == file_id)
-      return o;
-    o = o->next;
+  if (file_id < 0 || file_id > g_object_files_max || g_object_files[file_id] == NULL) {
+    fprintf(stderr, "GET_FILE: Trying to find file %d which has gone missing! Please submit a bug report!\n", file_id);
+    return NULL;
   }
-
-  fprintf(stderr, "GET_FILE: Internal error, file %d is missing!\n", file_id);
-
-  return NULL;
+  
+  return g_object_files[file_id];
 }
 
 

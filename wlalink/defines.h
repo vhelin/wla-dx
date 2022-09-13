@@ -279,4 +279,10 @@ struct stack_item {
   char string[MAX_NAME_LENGTH + 1];
 };
 
+struct pointer_array {
+  void **ptr;
+  int  max;
+  int  array_max;
+};
+
 #endif /* _DEFINES_H */
