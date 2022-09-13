@@ -1063,7 +1063,7 @@ void procedures_at_exit(void) {
   /* free all the dynamically allocated data structures */
   free(g_object_files);
 
-  for (i = 0; i < g_section_table_table_max; i++) {
+  for (i = 0; i <= g_section_table_table_max; i++) {
     if (g_section_table_table[i] != NULL) {
       free(g_section_table_table[i]->ptr);
       free(g_section_table_table[i]);
