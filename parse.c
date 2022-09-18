@@ -1,8 +1,11 @@
 
+#include "flags.h"
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "defines.h"
 
@@ -38,6 +41,8 @@ extern struct map_t *g_defines_map;
 extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
 extern struct function *g_functions_first;
 extern int g_latest_stack, g_asciitable_defined, g_global_label_hint, g_parsing_function_body, g_resolve_stack_calculations;
+
+PROFILE_GLOBALS_EXTERN();
 
 
 int is_string_ending_with(char *s, char *e) {
@@ -504,7 +509,11 @@ static int _parse_value_into_string(char e) {
 }
 
 
+#ifdef PROFILE_FUNCTIONS
+int _input_number(void) {
+#else
 int input_number(void) {
+#endif
 
   char label_tmp[MAX_NAME_LENGTH + 1];
   unsigned char e, ee, check_if_a_definition = YES, can_have_calculations = YES, use_substitution = NO;
@@ -2477,3 +2486,19 @@ int parse_function_exists(char *in, int *result, int *parsed_chars) {
   
   return SUCCEEDED;
 }
+
+
+#ifdef PROFILE_FUNCTIONS
+int input_number(void) {
+
+  int ret;
+  PROFILE_VARIABLES();
+
+  PROFILE_START();
+  ret = _input_number();
+  PROFILE_END("input_number");
+
+  return ret;
+}
+#endif
+ 

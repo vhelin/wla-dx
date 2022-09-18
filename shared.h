@@ -25,6 +25,72 @@
   #pragma warning(disable:4996) /* Just in case */
 #endif
 
+#ifdef PROFILE_FUNCTIONS
+#include <time.h>
+#include <sys/time.h>
+#define PROFILE_MAX_ENTRIES (1024*1024)
+#define PROFILE_GLOBALS() double g_profile_times_ms[PROFILE_MAX_ENTRIES]; \
+  char *g_profile_function_names[PROFILE_MAX_ENTRIES]; \
+  int g_profile_entry_id = 0
+#define PROFILE_GLOBALS_EXTERN() extern double g_profile_times_ms[PROFILE_MAX_ENTRIES]; \
+  extern char *g_profile_function_names[PROFILE_MAX_ENTRIES]; \
+  extern int g_profile_entry_id
+#define PROFILE_AT_EXIT() { \
+  if (g_profile_entry_id > 0) { \
+    FILE *file_names, *file_times; \
+    int loop; \
+    unsigned char *cp; \
+    file_names = fopen("_profile_function_names.wla", "ab"); \
+    file_times = fopen("_profile_function_times.wla", "ab"); \
+    fprintf(file_names, "0 "); \
+    fprintf(file_times, "%c%c%c%c%c%c%c%c", 0, 0, 0, 0, 0, 0, 0, 0); \
+    for (loop = 0; loop < g_profile_entry_id; loop++) { \
+      fprintf(file_names, "%s ", g_profile_function_names[loop]); \
+      cp = (unsigned char *)&g_profile_times_ms[loop]; \
+      fprintf(file_times, "%c%c%c%c%c%c%c%c", cp[0], cp[1], cp[2], cp[3], cp[4], cp[5], cp[6], cp[7]); \
+    } \
+  } \
+}
+/* CSV:
+  if (g_profile_entry_id > 0) { \
+    FILE *file_cvs; \
+    int loop; \
+    file_cvs = fopen("_profile_function_cvs.cvs", "ab"); \
+    for (loop = 0; loop < g_profile_entry_id; loop++) \
+      fprintf(file_cvs, "%s,%f\n", g_profile_function_names[loop], g_profile_times_ms[loop]);  \
+  } \
+}
+*/
+#define PROFILE_VARIABLES() struct timeval time_begin, time_end; \
+  static int is_profiling = NO; \
+  int output_profiling_data = NO;
+#define PROFILE_START() if (is_profiling == NO) { is_profiling = YES; output_profiling_data = YES; gettimeofday(&time_begin, NULL); }
+#define PROFILE_END(function_name) if (output_profiling_data == YES) { gettimeofday(&time_end, NULL); \
+  g_profile_times_ms[g_profile_entry_id] = (time_end.tv_sec + time_end.tv_usec / 1e6 - time_begin.tv_sec - time_begin.tv_usec / 1e6) * 1000.0; \
+  if (g_profile_times_ms[g_profile_entry_id] < 0.0) g_profile_times_ms[g_profile_entry_id] = 0.0; \
+  g_profile_function_names[g_profile_entry_id++] = function_name; \
+  is_profiling = NO; output_profiling_data = NO; }
+/*
+#define PROFILE_VARIABLES() struct timespec time_begin, time_end;
+#define PROFILE_START() clock_gettime(CLOCK_MONOTONIC, &time_begin);
+#define PROFILE_END(function_name) clock_gettime(CLOCK_MONOTONIC, &time_end); \
+  fprintf(stderr, function_name " = %fms.\n", (time_end.tv_nsec - time_begin.tv_nsec) / 1000000.0 + (time_end.tv_sec  - time_begin.tv_sec));
+*/
+/*
+#define PROFILE_VARIABLES() clock_t clock_start, clock_time;
+#define PROFILE_START() clock_start = clock();
+#define PROFILE_END(function_name) clock_time = ((double) (clock() - clock_start)) / (CLOCKS_PER_SEC / 1000.0); \
+  fprintf(stderr, function_name " = %fms.\n", (double)clock_time);
+*/
+#else
+#define PROFILE_GLOBALS() extern int g_profile_entry_id
+#define PROFILE_GLOBALS_EXTERN() extern int g_profile_entry_id
+#define PROFILE_AT_EXIT()
+#define PROFILE_VARIABLES()
+#define PROFILE_START()
+#define PROFILE_END(function_name)
+#endif
+
 #define FAILED    0
 #define SUCCEEDED 1
 

@@ -1,4 +1,6 @@
 
+#include "flags.h"
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -983,7 +985,7 @@ void output_assembled_instruction(struct instruction *instruction, const char *f
     va_end(ap);
     va_start(ap, format);
     vsnprintf(ttt, sizeof(ttt), format, ap);
-    printf("LINE %5d: OPCODE: %16s ::: %s\n", g_active_file_info_last->line_current, instruction->string, ttt);
+    printf("LINE %5d: INSTRUCTION: %16s ::: %s\n", g_active_file_info_last->line_current, instruction->string, ttt);
   }
 #endif
 

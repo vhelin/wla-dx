@@ -4,6 +4,8 @@
   macro assembler package by ville helin <ville.helin@iki.fi>. this is gpl software.
 */
 
+#include "flags.h"
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,6 +89,9 @@ struct structure **g_saved_structures2 = NULL;
 extern char *g_sdsctag_name_str, *g_sdsctag_notes_str, *g_sdsctag_author_str;
 #endif
 
+PROFILE_GLOBALS();
+
+
 static int _allocate_global_buffers(void) {
 
   g_tmp = calloc(g_sizeof_g_tmp, 1);
@@ -107,6 +112,7 @@ static void _free_global_buffers(void) {
 int main(int argc, char *argv[]) {
 
   int parse_flags_result, print_usage = YES, n_ctr, q, include_size = 0;
+  PROFILE_VARIABLES();
 
   if (sizeof(double) != 8) {
     fprintf(stderr, "MAIN: sizeof(double) == %d != 8. WLA will not work properly.\n", (int)sizeof(double));
@@ -261,19 +267,31 @@ int main(int argc, char *argv[]) {
   if (include_file(g_asm_name, &include_size, NULL) == FAILED)
     return 1;
 
+  PROFILE_START();  
   if (pass_1() == FAILED)
     return 1;
-  if (pass_2() == FAILED)
+  PROFILE_END("pass_1");
+
+  PROFILE_START();
+    if (pass_2() == FAILED)
     return 1;
+  PROFILE_END("pass_2");
+
+  PROFILE_START();
   if (pass_3() == FAILED)
     return 1;
+  PROFILE_END("pass_3");
+
   if (g_listfile_data == YES) {
     if (listfile_collect() == FAILED)
       return 1;
   }
+
+  PROFILE_START();
   if (pass_4() == FAILED)
     return 1;
-
+  PROFILE_END("pass_4");
+  
   return 0;
 }
 
@@ -756,6 +774,8 @@ void procedures_at_exit(void) {
   free(g_sdsctag_notes_str);
   free(g_sdsctag_author_str);
 #endif
+
+  PROFILE_AT_EXIT();
 }
 
 

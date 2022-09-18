@@ -2,7 +2,8 @@
         .MEMORYMAP
            DEFAULTSLOT 0
            SLOTSIZE $2000
-           SLOT 0 $8000
+           SLOT 0 $0000
+           SLOT 1 $8000
         .ENDME
 
         .ROMBANKMAP

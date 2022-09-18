@@ -32,6 +32,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 */
 
+#include "flags.h"
+
 #if defined(AMIGA) || (defined(MSDOS) && !defined(WIN32))
 typedef unsigned long uintptr_t;
 typedef long intmax_t;

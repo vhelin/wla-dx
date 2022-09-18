@@ -2,7 +2,8 @@
         .MEMORYMAP
            DEFAULTSLOT 0
            SLOTSIZE $2000
-           SLOT 0 $8000
+           SLOT 0 $0000
+           SLOT 1 $8000
         .ENDME
 
         .ROMBANKMAP
@@ -12,7 +13,7 @@
         .ENDRO
 
 
-        .BANK 0 SLOT 0
+        .BANK 0 SLOT 1
         .ORG 0
         
         .DEFINE BIG_VALUE = $ABCD
@@ -33,7 +34,7 @@ addr_02:.DB lobyte($1234), lobyte($FF00+$EE)            ; @BT 34 EE
         .DB lobyte($A001) + lobyte($0102)               ; @BT 03
         .DB "<02"                                       ; @BT END
 
-        .BANK 1 SLOT 0
+        .BANK 1 SLOT 1
         .ORG 0
 
         .DB "03>"               ; @BT TEST-03 03 START
@@ -41,7 +42,7 @@ addr_03:LDX loword(addr_03).w   ; @BT AE 03 80
         LDA #bank(addr_03).b    ; @BT A9 01
         .DB "<03"               ; @BT END
         
-        .BANK 0 SLOT 0
+        .BANK 0 SLOT 1
         .ORG $40
 
         .DEFINE BIGGEST_VALUE = $ABCDEF01
@@ -380,7 +381,7 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
         // repeat some of the tests inside .SECTIONs
         ////////////////////////////////////////////////////////////////////////////////////////////
 
-        .section "RepeatedCalculations" free
+        .section "RepeatedCalculations1" free
 
         .db "15>"               ; @BT TEST-15 15 START
         .db SUM_AB(1,2)         ; @BT 03

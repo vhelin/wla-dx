@@ -1,6 +1,9 @@
+
 /*
 * Generic crc32 helper function
 */
+
+#include "flags.h"
 
 #include "crc32.h"
 

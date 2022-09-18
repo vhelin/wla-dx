@@ -41,6 +41,8 @@
    email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
 */
 
+#include "flags.h"
+
 #include "mersenne_twister.h"
 
 /* Period parameters */  

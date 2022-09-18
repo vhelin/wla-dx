@@ -1,4 +1,6 @@
 
+#include "flags.h"
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,6 +39,8 @@ static struct stack_item *g_delta_old_pointer = NULL;
 static int s_dsp_file_name_id = 0, s_dsp_line_number = 0;
 
 static int _resolve_string(struct stack_item *s, int *cannot_resolve);
+
+PROFILE_GLOBALS_EXTERN();
 
 
 void init_stack_struct(struct stack *s) {
@@ -282,7 +286,7 @@ static int _break_before_value_or_string(int i, struct stack_item *si) {
   return FAILED;
 }
 
-#if WLA_DEBUG
+#ifdef WLA_DEBUG
 void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int count, int id, struct stack *stack) {
 
   int k;
@@ -1304,7 +1308,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
   }
 
-#if WLA_DEBUG
+#ifdef WLA_DEBUG
   fprintf(stderr, "PREOPT:\n");
   debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
 #endif
@@ -1361,7 +1365,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           si[k + 1].value != SI_OP_FLOOR &&
           si[k + 1].value != SI_OP_CEIL) {
         if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
-#if WLA_DEBUG
+#ifdef WLA_DEBUG
           debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
 #endif
           print_error(ERROR_STC, "Error in computation syntax.\n");
@@ -1455,7 +1459,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
   }
 
-#if WLA_DEBUG
+#ifdef WLA_DEBUG
   fprintf(stderr, "INFIX:\n");
   debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
 #endif
@@ -1549,7 +1553,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     d++;
   }
 
-#if WLA_DEBUG
+#ifdef WLA_DEBUG
   fprintf(stderr, "POSTFIX:\n");
   debug_print_stack(g_active_file_info_last->line_current, -1, ta, d, 0, NULL);
 #endif
@@ -1662,7 +1666,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
   }
 
-#if WLA_DEBUG
+#ifdef WLA_DEBUG
   debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack_items, d, 0, stack);
 #endif
 
@@ -1708,6 +1712,9 @@ int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_
 
   struct stack_item *si, *ta;
   int result;
+  PROFILE_VARIABLES();
+
+  PROFILE_START();
   
   if (s_stack_calculate_initialized == NO) {
     int i;
@@ -1731,6 +1738,8 @@ int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_
 
   /* release the arrays */
   s_stack_calculate_pointer_index -= 2;
+
+  PROFILE_END("stack_calculate");
   
   return result;
 }
@@ -2617,7 +2626,7 @@ int stack_create_label_stack(char *label) {
   si->is_in_postfix = NO;
   strcpy(si->string, label);
 
-#if WLA_DEBUG
+#ifdef WLA_DEBUG
   debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack_items, 1, 1, stack);
 #endif
   
