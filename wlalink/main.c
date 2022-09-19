@@ -798,7 +798,7 @@ int _show_ram_information(int *free, int *total) {
 int _show_headers_and_footers_information(void) {
 
   struct section *s;
-  int i = 0, prints = 0;
+  int i, prints = 0;
 
   if (g_verbose_level < 100)
     return SUCCEEDED;

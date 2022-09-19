@@ -1775,7 +1775,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char output_ad
   name[y++] = 's';
   name[y++] = 'y';
   name[y++] = 'm';
-  name[y++] = 0;
+  name[y] = 0;
 
   f = fopen(name, "wb");
   if (f == NULL) {
@@ -3059,7 +3059,7 @@ int write_bank_header_calculations(struct stack *sta) {
   
     while (bits_to_define > 0) {
       int bits_to_define_this_byte = 8 - bits_position;
-      int bits = 0;
+      int bits;
 
       if (bits_to_define_this_byte > bits_to_define)
         bits_to_define_this_byte = bits_to_define;
@@ -3252,7 +3252,7 @@ int write_bank_header_references(struct reference *r) {
   
       while (bits_to_define > 0) {
         int bits_to_define_this_byte = 8 - bits_position;
-        int bits = 0;
+        int bits;
 
         if (bits_to_define_this_byte > bits_to_define)
           bits_to_define_this_byte = bits_to_define;

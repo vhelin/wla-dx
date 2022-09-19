@@ -47,7 +47,7 @@ int reserve_checksum_bytes(void) {
 
         /* region code */
         if (g_rom_usage[tag_address + 0xF] == 0) {
-          int rs = 0;
+          int rs;
 
           /* try to calculate the correct romsize value */
           if (g_romsize < 16*1024)
@@ -419,7 +419,7 @@ int add_tmr_sega(void) {
 
 int compute_sms_checksum(void) {
 
-  int tag_address = 0x7FF0, j, checksum, checksum_max = 32*1024, rom_size = 0;
+  int tag_address, j, checksum, checksum_max;
 
 
   /* has the checksum already been written by FORCECHECKSUM? */
@@ -442,7 +442,8 @@ int compute_sms_checksum(void) {
      previously then it would be > 1 as reserving it would increase the counter by one... */
   if (g_rom_usage[tag_address + 0xF] > 0) {
     /* we have the ROM size written in the header so let's use it */
-    rom_size = g_rom[tag_address + 0xF] & 0xF;
+    int rom_size = g_rom[tag_address + 0xF] & 0xF;
+    
     if (rom_size == 0x0A) {
       tag_address = 0x1FF0;
       checksum_max = 8*1024;

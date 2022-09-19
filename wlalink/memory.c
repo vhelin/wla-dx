@@ -163,7 +163,7 @@ int mem_insert_bits(int address, int data, int bits_position, int bits_to_define
   
   while (bits_to_define > 0) {
     int bits_to_define_this_byte = 8 - bits_position;
-    int bits = 0;
+    int bits;
 
     if (bits_to_define_this_byte > bits_to_define)
       bits_to_define_this_byte = bits_to_define;
