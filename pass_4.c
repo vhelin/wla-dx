@@ -277,7 +277,7 @@ static void _bits_add_bit(int *bits_byte, int *bits_position, int *bits_to_defin
 
 int pass_4(void) {
 
-  int i, o, z, y, add_old = 0, x, q, inside_macro = 0, inside_repeat = 0, inz, ind, bits_position = 0, bits_byte = 0;
+  int i, o, z, y, add_old = 0, x, q, inz, ind, bits_position = 0, bits_byte = 0;
   char *t, c, tmp_buffer[MAX_NAME_LENGTH + 1];
   struct stack *stack;
 
@@ -318,15 +318,12 @@ int pass_4(void) {
       continue;
 
     case 'j':
-      inside_repeat++;
       continue;
     case 'J':
-      inside_repeat--;
       continue;
 
     case 'i':
       fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
-      inside_macro++;
 
       if (process_macro_in(inz, tmp_buffer, g_filename_id, g_line_number) == FAILED)
         return FAILED;
@@ -334,7 +331,6 @@ int pass_4(void) {
       continue;
     case 'I':
       fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
-      inside_macro--;
 
       if (process_macro_out(inz, tmp_buffer, g_filename_id, g_line_number) == FAILED)
         return FAILED;
@@ -367,10 +363,15 @@ int pass_4(void) {
 
     case 'A':
     case 'S':
-      if (c == 'A')
+      if (c == 'A') {
         fscanf(g_file_out_ptr, "%d %d ", &x, &ind);
-      else
+        inz = YES;
+      }
+      else {
         fscanf(g_file_out_ptr, "%d ", &x);
+        inz = NO;
+        ind = 0x123456;
+      }
 
       add_old = g_pc_bank;
 
@@ -385,8 +386,14 @@ int pass_4(void) {
       if (g_sec_tmp->alive == NO)
         continue;
 
-      if (c == 'A')
+      if (c == 'A') {
+        if (inz == NO) {
+          /* sanity check */
+          fprintf(stderr, "%s: INTERNAL_PASS_2: ind has not been set, but we use its value! Please submit a bug report!\n", get_file_name(g_filename_id));
+          return FAILED;
+        }
         g_sec_tmp->address = ind;
+      }
 
       ind = 0;
       if (g_sec_tmp->maxsize_status == ON) {
@@ -708,7 +715,7 @@ int pass_4(void) {
 
           while (bits_to_define > 0) {
             int bits_to_define_this_byte = 8 - bits_position;
-            int bits = 0;
+            int bits;
             
             if (bits_to_define_this_byte > bits_to_define)
               bits_to_define_this_byte = bits_to_define;
@@ -752,7 +759,7 @@ int pass_4(void) {
 
               while (bits_to_define > 0) {
                 int bits_to_define_this_byte = 8 - bits_position;
-                int bits = 0;
+                int bits;
             
                 if (bits_to_define_this_byte > bits_to_define)
                   bits_to_define_this_byte = bits_to_define;
@@ -786,7 +793,7 @@ int pass_4(void) {
           /* add zeroes */
           while (bits_to_define > 0) {
             int bits_to_define_this_byte = 8 - bits_position;
-            int bits = 0;
+            int bits;
             
             if (bits_to_define_this_byte > bits_to_define)
               bits_to_define_this_byte = bits_to_define;
@@ -848,7 +855,7 @@ int pass_4(void) {
           /* add zeroes */
           while (bits_to_define > 0) {
             int bits_to_define_this_byte = 8 - bits_position;
-            int bits = 0;
+            int bits;
             
             if (bits_to_define_this_byte > bits_to_define)
               bits_to_define_this_byte = bits_to_define;

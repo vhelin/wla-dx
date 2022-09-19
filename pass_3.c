@@ -69,7 +69,7 @@ int pass_3(void) {
   struct block *b;
   char tmp_buffer[MAX_NAME_LENGTH + 1];
   FILE *f_in;
-  int bank = 0, slot = 0, add = 0, g_file_name_id = 0, inz, line_number = 0, o, add_old = 0, inside_macro = 0, inside_repeat = 0;
+  int bank = 0, slot = 0, add = 0, g_file_name_id = 0, inz, line_number = 0, o, add_old = 0;
   int base = 0x00, bits_current = 0;
   int x, y;
   char c;
@@ -105,15 +105,12 @@ int pass_3(void) {
         continue;
 
       case 'j':
-        inside_repeat++;
         continue;
       case 'J':
-        inside_repeat--;
         continue;
 
       case 'i':
         fscanf(f_in, "%d %s ", &inz, tmp_buffer);
-        inside_macro++;
 
         if (process_macro_in(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
           return FAILED;
@@ -121,7 +118,6 @@ int pass_3(void) {
         continue;
       case 'I':
         fscanf(f_in, "%d %s ", &inz, tmp_buffer);
-        inside_macro--;
 
         if (process_macro_out(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
           return FAILED;
@@ -530,15 +526,12 @@ int pass_3(void) {
         continue;
 
       case 'j':
-        inside_repeat++;
         continue;
       case 'J':
-        inside_repeat--;
         continue;
 
       case 'i':
         fscanf(f_in, "%d %s ", &inz, tmp_buffer);
-        inside_macro++;
 
         if (process_macro_in(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
           return FAILED;
@@ -546,7 +539,6 @@ int pass_3(void) {
         continue;
       case 'I':
         fscanf(f_in, "%d %s ", &inz, tmp_buffer);
-        inside_macro--;
 
         if (process_macro_out(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
           return FAILED;
@@ -607,9 +599,6 @@ int pass_3(void) {
     }
   }
 
-  inside_macro = 0;
-  inside_repeat = 0;
-
   /* second (major) loop */
   while (fread(&c, 1, 1, f_in) != 0) {
     switch (c) {
@@ -619,15 +608,12 @@ int pass_3(void) {
       continue;
 
     case 'j':
-      inside_repeat++;
       continue;
     case 'J':
-      inside_repeat--;
       continue;
 
     case 'i':
       fscanf(f_in, "%d %s ", &inz, tmp_buffer);
-      inside_macro++;
 
       if (process_macro_in(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
         return FAILED;
@@ -635,7 +621,6 @@ int pass_3(void) {
       continue;
     case 'I':
       fscanf(f_in, "%d %s ", &inz, tmp_buffer);
-      inside_macro--;
 
       if (process_macro_out(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
         return FAILED;

@@ -164,7 +164,7 @@ struct stack *find_stack_calculation(int id, int print_error_message) {
 
 int compress_stack_calculation_ids(void) {
 
-  struct stack **stack_calculations = NULL;
+  struct stack **stack_calculations;
   struct export_def *export_tmp;
   int i, compressed_id = 0;
   
@@ -469,6 +469,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     si[q].has_been_replaced = NO;
     si[q].is_in_postfix = NO;
     si[q].string[0] = 0;
+
+    /* for sanity check */
+    d = 0x123456;
 
     if (*in == ' ') {
       in++;
@@ -799,7 +802,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           d = '\r';
         else if (*in == 'n')
           d = '\n';
-        else if (*in == '0')
+        else /* if (*in == '0') */
           d = '\0';
       }
       else
@@ -1002,6 +1005,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       in++;
       
       si[q].sign = SI_SIGN_POSITIVE;
+      e = *in;
       for (k = 0; k < MAX_NAME_LENGTH; k++) {
         e = *in++;
 
@@ -1251,6 +1255,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           return FAILED;
       }
       else {
+        if (d == 0x123456) {
+          /* sanity check */
+          fprintf(stderr, "d = 0x123456! Internal error! Please submit a bug report!\n");
+          return FAILED;
+        }
+        
         si[q].type = STACK_ITEM_TYPE_VALUE;
         si[q].value = d;
         si[q].sign = SI_SIGN_POSITIVE;

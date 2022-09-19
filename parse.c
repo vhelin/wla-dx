@@ -2242,7 +2242,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
 
     if (res == INPUT_NUMBER_STACK) {
       /* mark all instances of argument names in the stack as has-been-replaced */
-      struct stack *stack = NULL;
+      struct stack *stack;
 
       stack = find_stack_calculation(g_latest_stack, YES);
       if (stack == NULL) {

@@ -1115,7 +1115,7 @@ static int get_register_byte_from_label_exg_tfr(void) {
 
 static int parse_exg_tfr_registers(void) {
 
-  int register_byte = 0, data = 0, y, z;
+  int register_byte, data, y, z;
 
   /* source register */
   y = g_source_pointer;
@@ -1961,7 +1961,7 @@ int parse_enum_token(void) {
   struct structure *st = NULL;
   struct structure_item *si;
   char tmpname[MAX_NAME_LENGTH + 8 + 1], bak[256];
-  int type, size, q, start_from = 1, instances = 0, defined_size;
+  int type, size, q, start_from = 1, instances, defined_size;
   
   /* check for "if" directives (the only directives permitted in an enum/ramsection) */
   if (g_tmp[0] == '.') {
@@ -2226,10 +2226,10 @@ int parse_enum_token(void) {
       return FAILED;    
   }
   
-  type = 0;
-  size = 0;
   defined_size = -1;
   instances = 1;
+
+  /* notice that "type" and "size" are defined in every branch of this if-elif-else construction */
   
   if (strcaselesscmp(g_tmp, "DB") == 0 || strcaselesscmp(g_tmp, "BYT") == 0 || strcaselesscmp(g_tmp, "BYTE") == 0) {
     size = 1;
@@ -3149,7 +3149,7 @@ static int _char_to_hex(char e) {
 
 int directive_hex(void) {
 
-  int i, o, nybble_1 = 0, nybble_2 = 0, error, number_result, is_block = NO, is_done = NO;
+  int i, o, nybble_2 = 0, error, number_result, is_block = NO, is_done = NO;
 
   if (compare_next_token("BLOCK") == SUCCEEDED) {
     skip_next_token();
@@ -3192,6 +3192,8 @@ int directive_hex(void) {
     }
       
     for (o = 0; o < g_string_size; ) {
+      int nybble_1;
+      
       error = NO;
 
       nybble_1 = _char_to_hex(g_label[o]);
@@ -7033,7 +7035,7 @@ static struct array *_get_array(char *name) {
 
 static struct array *_create_array(char *name, int size) {
 
-  struct array *arr = NULL;
+  struct array *arr;
   int i, *data;
   
   arr = calloc(sizeof(struct array), 1);
