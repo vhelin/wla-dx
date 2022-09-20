@@ -70,7 +70,7 @@ int listfile_write_listfiles(void) {
   struct listfileitem *listfileitems, **listfileitems_ptr;
   struct section *s, **selected_sections;
   struct object_file *obj;
-  int count, i, j, current_linenumber, m, o, p, source_file_id = -1, add = -0x12345678, wrote_line, listfile_item_count = 0, section_count = 0, chars = 60;
+  int count, i, j, current_linenumber, m, o, p, source_file_id = -1, wrote_line, listfile_item_count = 0, section_count = 0, chars = 60;
   char command, tmp[1024], *source_file, *source_file_name, cpu_65816 = NO;
 
   /* count the listfile items */
@@ -159,10 +159,11 @@ int listfile_write_listfiles(void) {
   /* collect the list file items from the data */
   count = 0;
   for (i = 0; i < section_count; i++) {
+    int add = 0;
+    
     s = selected_sections[i];
     
     /* parse the list file information */
-    add = 0;
     for (j = 0; j < s->listfile_items; j++) {
       command = s->listfile_cmds[j];
       if (command == 'k') {
