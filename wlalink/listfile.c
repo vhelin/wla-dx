@@ -70,7 +70,7 @@ int listfile_write_listfiles(void) {
   struct listfileitem *listfileitems, **listfileitems_ptr;
   struct section *s, **selected_sections;
   struct object_file *obj;
-  int count, i, j, current_linenumber, m, o, p, source_file_id = -1, add = 0x123456, wrote_line, listfile_item_count = 0, section_count = 0, chars = 60;
+  int count, i, j, current_linenumber, m, o, p, source_file_id = -1, add = -0x12345678, wrote_line, listfile_item_count = 0, section_count = 0, chars = 60;
   char command, tmp[1024], *source_file, *source_file_name, cpu_65816 = NO;
 
   /* count the listfile items */
@@ -209,6 +209,14 @@ int listfile_write_listfiles(void) {
           /*
           fprintf(stderr, "LFI: k SKIPPED\n");
           */
+
+          if (add == -0x12345678) {
+            fprintf(stderr, "LISTFILE_WRITE_LISTFILES: add == -0x12345678! Internal error! Please submit a bug report!\n");
+            free(listfileitems);
+            free(selected_sections);
+            return FAILED;
+          }
+
           add += s->listfile_ints[j*5 + 2];
         }
       }
@@ -257,13 +265,6 @@ int listfile_write_listfiles(void) {
           /*
           fprintf(stderr, "LFI: k SKIPPED\n");
           */
-          if (add == 0x123456) {
-            fprintf(stderr, "LISTFILE_WRITE_LISTFILES: add == 0x123456! Internal error! Please submit a bug report!\n");
-            free(listfileitems);
-            free(selected_sections);
-            return FAILED;
-          }
-          add += obj->listfile_ints[j*8 + 2];
         }
       }
       else if (command == 'f') {

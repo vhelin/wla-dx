@@ -692,13 +692,13 @@ int main(int argc, char *argv[]) {
   /* export symbolic information file */
   if (g_symbol_mode != SYMBOL_MODE_NONE) {
     if (write_symbol_file(argv[argc - 1], g_symbol_mode, g_output_addr_to_line) == FAILED)
-      return FAILED;
+      return 1;
   }
 
   /* write list files */
   if (g_listfile_data == YES) {
     if (listfile_write_listfiles() == FAILED)
-      return FAILED;
+      return 1;
   }
 
   /* show rom & ram information */

@@ -1,8 +1,8 @@
 
 CC = $(WLAVALGRIND) wla-6502
-CFLAGS = -o
+CFLAGS = -i -o
 LD = $(WLAVALGRIND) wlalink
-LDFLAGS = -v -s
+LDFLAGS = -i -v -s
 
 SFILES = main.s bonus.s simple.s copy.s
 IFILES = 
@@ -35,4 +35,4 @@ $(OFILES): $(HFILES)
 
 
 clean:
-	rm -f $(OFILES) core *~ linked.rom linked.sym
+	rm -f $(OFILES) core *~ linked.rom linked.sym *.lst

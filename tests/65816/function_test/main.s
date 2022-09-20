@@ -118,4 +118,12 @@
         cmp #sumABC(1,2,VALUE_3)     ; @BT C9 06
         cmp [sumABC(1,VALUE_4/2,VALUE_4-1)] ; @BT C7 06
         .db "<07"               ; @BT END
+
+        // just testing that 0x7F -> 0x100 jump works in listfiles
+        .org $100
+_0x100: .db "08>"               ; @BT TEST-08 08 START
+        .db _0x100 >> 8, _0x100 & 0xff ; @BT 01 00
+        .db "<08"                      ; @BT END
+        
+        
         
