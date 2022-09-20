@@ -4553,28 +4553,31 @@ int directive_include(int is_real) {
 
   /* convert the path to local enviroment */
   localize_path(path);
+
+  namespace[0] = 0;
   
-  if (compare_next_token("NAMESPACE") != SUCCEEDED)
-    namespace[0] = 0;
-  else {
-    skip_next_token();
+  while (1) {
+    if (compare_next_token("NAMESPACE") == SUCCEEDED) {
+      skip_next_token();
 
-    g_expect_calculations = NO;
-    o = input_number();
-    g_expect_calculations = YES;
+      g_expect_calculations = NO;
+      o = input_number();
+      g_expect_calculations = YES;
     
-    if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
-      print_error(ERROR_DIR, "Namespace string is missing.\n");
-      return FAILED;
+      if (o != INPUT_NUMBER_STRING && o != INPUT_NUMBER_ADDRESS_LABEL) {
+        print_error(ERROR_DIR, "Namespace string is missing.\n");
+        return FAILED;
+      }
+
+      strcpy(namespace, g_label);
     }
+    else if (compare_next_token("ONCE") == SUCCEEDED) {
+      skip_next_token();
 
-    strcpy(namespace, g_label);
-  }
-
-  if (compare_next_token("ONCE") == SUCCEEDED) {
-    skip_next_token();
-
-    got_once = YES;
+      got_once = YES;
+    }
+    else
+      break;
   }
   
   if (is_real == YES) {

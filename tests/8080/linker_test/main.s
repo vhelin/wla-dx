@@ -126,7 +126,7 @@ LABEL	.print "THE END\n"
 
 .ENDS	
 
-	.include "name", "space" ".s" namespace "oops"
+	.include "name", "space" ".s" once namespace "oops"
 	.dw hello.NamespaceMain, oops.NamespaceBonus
 	
 .DB "DD>"

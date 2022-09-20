@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.3 (10-Sep-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
+v10.3 (20-Sep-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
                     [ALL] "\\" should now work inside strings.
                     [ALL] .MACRO calling another .MACRO, inside a namespaced
                       file, should now work.
@@ -12,7 +12,7 @@ v10.3 (10-Sep-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
                     [ALL] defined() can now process strings with substitution.
                     [ALL] Added an alternative way of defining a .MACRO
                       (e.g., ".macro SUM(value1,value2) isolated").
-                    [ALL] Added .FUNCTION.
+                    [ALL] Added .FUNCTION (for things like ".DB SUM(1, 2)").
                     [ALL] Multibyte .DEFINEs (e.g., "MB = $01 $00 $02") were
                       broken in v10.2.
                     [ALL] Multibyte .DEFINEs work now better inside other
@@ -21,7 +21,10 @@ v10.3 (10-Sep-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
                       only ">(-VAR)" and "2-(-1)" used to work before.
                     [ALL] Added -v1 and -v2 (shorter verbose levels).
                     [ALL] Changed the license to GPL-2.0-or-later.
-                    [ALL] Parameters to .INCBIN can now be given in any order.
+                    [ALL] Parameters (SKIP, READ, SWAP, FSIZE and FILTER)
+                      to .INCBIN can now be given in any order.
+                    [ALL] Parameters (ONCE and NAMESPACE) to .INCLUDE can
+                      now be given in any order.
                     [ALL] Negative READ parameter to .INCBIN means that
                       many bytes are not read from the end of the file.
                     [ALL] WLA's ability to calculate A-B would break the
