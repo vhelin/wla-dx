@@ -101,7 +101,7 @@
 
         // define an array for mapping ASCII values into
         // less bits
-        .ARRAYDEFINE NAME MapArray SIZE 4
+        .ARRAYDEFINE SIZE 4 NAME MapArray
         
         .ARRAYIN NAME MapArray INDEX 'A' VALUES %0000, %0001, %0010, \
             %0011, %0100, %0101, %0110
@@ -119,4 +119,44 @@
         .DB "08>"                           ; @BT TEST-08 08 START
         .FILTER MapInto4Bits "BAGED", 0     ; @BT 10 64 3F
         .DB "<08"                           ; @BT END
+
+        // same as TEST-08, but with different .ARRAYDEFINE
+        .ARRAYDEF MapArray2 SIZE 4
+        
+        .ARRAYIN NAME MapArray2 INDEX 'A' VALUES %0000, %0001, %0010, \
+            %0011, %0100, %0101, %0110
+        .ARRAYIN NAME MapArray2 INDEX  0  VALUE %1111
+
+        .MACRO MapInto4Bits2
+        .ARRAYOUT NAME MapArray2 INDEX \1 DEFINITION MAPPING
+        .PRINT \2, ": ", \1, " -> ", MAPPING, "\n"
+        .BITS 4 MAPPING
+        .IF \1 == 0
+            .ENDBITS
+        .ENDIF
+        .ENDM
+        
+        .DB "09>"                           ; @BT TEST-09 09 START
+        .FILTER MapInto4Bits2 "BAGED", 0    ; @BT 10 64 3F
+        .DB "<09"                           ; @BT END
+
+        // same as TEST-08, but with different .ARRAYDEFINE
+        .ARRAYDEFINE MapArray3 4
+        
+        .ARRAYIN NAME MapArray3 INDEX 'A' VALUES %0000, %0001, %0010, \
+            %0011, %0100, %0101, %0110
+        .ARRAYIN NAME MapArray3 INDEX  0  VALUE %1111
+
+        .MACRO MapInto4Bits3
+        .ARRAYOUT NAME MapArray3 INDEX \1 DEFINITION MAPPING
+        .PRINT \2, ": ", \1, " -> ", MAPPING, "\n"
+        .BITS 4 MAPPING
+        .IF \1 == 0
+            .ENDBITS
+        .ENDIF
+        .ENDM
+        
+        .DB "10>"                           ; @BT TEST-10 10 START
+        .FILTER MapInto4Bits3 "BAGED", 0    ; @BT 10 64 3F
+        .DB "<10"                           ; @BT END
         

@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.3 (20-Sep-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
+v10.3 (21-Sep-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
                     [ALL] "\\" should now work inside strings.
                     [ALL] .MACRO calling another .MACRO, inside a namespaced
                       file, should now work.
@@ -24,6 +24,8 @@ v10.3 (20-Sep-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
                     [ALL] Parameters (SKIP, READ, SWAP, FSIZE and FILTER)
                       to .INCBIN can now be given in any order.
                     [ALL] Parameters (ONCE and NAMESPACE) to .INCLUDE can
+                      now be given in any order.
+                    [ALL] Parameters (NAME and SIZE) to .ARRAYDEFINE can
                       now be given in any order.
                     [ALL] Negative READ parameter to .INCBIN means that
                       many bytes are not read from the end of the file.

@@ -7076,41 +7076,84 @@ int directive_arraydef_arraydefine(void) {
 
   char name[MAX_NAME_LENGTH + 1], bak[256];
   struct array *arr;
-  int q;
+  int q, name_defined = NO, size = 0;
 
   strcpy(bak, g_current_directive);
 
-  /* skip NAME if present */
-  if (compare_next_token("NAME") == SUCCEEDED)
-    skip_next_token();
+  if (compare_next_token("NAME") != SUCCEEDED && compare_next_token("SIZE") != SUCCEEDED) {
+    /* this is the name */
+    if (get_next_plain_string() == FAILED)
+      return FAILED;
 
-  if (get_next_plain_string() == FAILED)
-    return FAILED;
+    /* check that the array doesn't exist */
+    if (_get_array(g_label) != NULL) {
+      print_error(ERROR_DIR, "\"%s\" is already defined.\n", g_label);
+      return FAILED;
+    }
 
-  /* check that the array doesn't exist */
-  if (_get_array(g_label) != NULL) {
-    print_error(ERROR_DIR, "\"%s\" is already defined.\n", g_label);
-    return FAILED;
+    strcpy(name, g_label);
+
+    name_defined = YES;
   }
-
-  strcpy(name, g_label);
   
-  /* skip SIZE if present */
-  if (compare_next_token("SIZE") == SUCCEEDED)
-    skip_next_token();
+  while (1) {
+    if (compare_next_token("NAME") == SUCCEEDED) {
+      skip_next_token();
+
+      if (get_next_plain_string() == FAILED)
+        return FAILED;
+
+      /* check that the array doesn't exist */
+      if (_get_array(g_label) != NULL) {
+        print_error(ERROR_DIR, "\"%s\" is already defined.\n", g_label);
+        return FAILED;
+      }
+      
+      strcpy(name, g_label);
+
+      name_defined = YES;
+    }
+    else if (compare_next_token("SIZE") == SUCCEEDED) {
+      skip_next_token();
   
-  q = input_number();
+      q = input_number();
+      
+      if (q == FAILED)
+        return FAILED;
+      else if (q == SUCCEEDED) {
+      }
+      else {
+        print_error(ERROR_DIR, ".%s needs an immediate value for the size.\n", bak);
+        return FAILED;
+      }
 
-  if (q == FAILED)
-    return FAILED;
-  else if (q == SUCCEEDED) {
+      size = g_parsed_int;
+    }
+    else
+      break;
   }
-  else {
-    print_error(ERROR_DIR, ".%s needs an immediate value for the size.\n", bak);
+
+  if (name_defined == NO) {
+    fprintf(stderr, ".%s need a name.\n", bak);
     return FAILED;
   }
 
-  arr = _create_array(name, g_parsed_int);
+  if (size == 0) {
+    q = input_number();
+      
+    if (q == FAILED)
+      return FAILED;
+    else if (q == SUCCEEDED) {
+    }
+    else {
+      print_error(ERROR_DIR, ".%s needs an immediate value for the size.\n", bak);
+      return FAILED;
+    }
+
+    size = g_parsed_int;
+  }
+    
+  arr = _create_array(name, size);
   if (arr == NULL)
     return FAILED;
 
