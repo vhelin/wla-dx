@@ -840,6 +840,10 @@ Here's how it works::
     for (i = 0; i < A; i++)
       output_data((rand() % (C-B+1)) + B);
 
+You can also use the following keywords to make the code clearer::
+
+    .DBRND COUNT A MIN B MAX C
+      
 This is not a compulsory directive.
 
 

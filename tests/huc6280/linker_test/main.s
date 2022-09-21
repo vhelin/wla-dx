@@ -305,3 +305,6 @@ BANKLABEL:
 .dwrnd 20, 0, 100
 .seed 3
 .dwrnd 10, -10, 10
+.dbrnd count 8 min 0 max 20
+.dwrnd count 16 min 16 max 32
+        

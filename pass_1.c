@@ -7695,9 +7695,8 @@ int directive_undef_undefine(void) {
 
     q++;
 
-    if (undefine(g_label) == FAILED) {
+    if (undefine(g_label) == FAILED)
       print_error(ERROR_WRN, "Could not .%s \"%s\".\n", bak, g_label);
-    }
   }
 
   return SUCCEEDED;
@@ -9552,6 +9551,9 @@ int directive_dbrnd_dwrnd(void) {
   else
     o = 0;
 
+  if (compare_next_token("COUNT") == SUCCEEDED)
+    skip_next_token();
+
   /* get the count */
   q = input_number();
   if (q == FAILED)
@@ -9568,6 +9570,9 @@ int directive_dbrnd_dwrnd(void) {
     return FAILED;
   }
 
+  if (compare_next_token("MIN") == SUCCEEDED)
+    skip_next_token();
+  
   /* get min */
   q = input_number();
   if (q == FAILED)
@@ -9579,6 +9584,9 @@ int directive_dbrnd_dwrnd(void) {
 
   min = g_parsed_int;
 
+  if (compare_next_token("MAX") == SUCCEEDED)
+    skip_next_token();
+  
   /* get max */
   q = input_number();
   if (q == FAILED)
