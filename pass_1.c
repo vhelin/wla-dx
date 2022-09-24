@@ -4623,8 +4623,8 @@ int directive_include(int is_real) {
 
 int directive_incbin(void) {
 
-  struct macro_static *m;
-  int s, r, j, o, id, swap;
+  struct macro_static *macro;
+  int skip, read, j, o, id, swap;
 
   if (g_org_defined == 0 && g_output_format != OUTPUT_LIBRARY) {
     print_error(ERROR_LOG, "Before you can .INCBIN data you'll need to use ORG.\n");
@@ -4645,12 +4645,12 @@ int directive_incbin(void) {
   /* convert the path string to local enviroment */
   localize_path(g_label);
 
-  if (incbin_file(g_label, &id, &swap, &s, &r, &m) == FAILED)
+  if (incbin_file(g_label, &id, &swap, &skip, &read, &macro) == FAILED)
     return FAILED;
   
-  if (m == NULL) {
+  if (macro == NULL) {
     /* D [id] [swap] [skip] [size] */
-    fprintf(g_file_out_ptr, "D%d %d %d %d ", id, swap, s, r);
+    fprintf(g_file_out_ptr, "D%d %d %d %d ", id, swap, skip, read);
   }
   else {
     /* we want to filter the data */
@@ -4669,10 +4669,10 @@ int directive_incbin(void) {
 
     min->data = (unsigned char *)ifd->data;
     min->swap = swap;
-    min->position = s;
-    min->left = r;
+    min->position = skip;
+    min->left = read;
 
-    if (macro_start_incbin(m, min, YES) == FAILED)
+    if (macro_start_incbin(macro, min, YES) == FAILED)
       return FAILED;
   }
 
@@ -9641,6 +9641,10 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
   else
     f = 2;
 
+  /* skip DATA if present */
+  if (compare_next_token("ANGLE") == SUCCEEDED)
+    skip_next_token();
+  
   g_input_float_mode = ON;
   p = input_number();
   g_input_float_mode = OFF;

@@ -410,11 +410,6 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
         return FAILED;
       }
 
-      if (g_parsed_int == 0) {
-        print_error(ERROR_DIR, "SKIP must be positive or negative, 0 doesn't make sense.\n");
-        return FAILED;
-      }
-      
       *skip = g_parsed_int;
 
       if (g_parsed_int >= file_size) {
