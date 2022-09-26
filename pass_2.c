@@ -111,7 +111,7 @@ int pass_2(void) {
   /* SMSHEADER */
   if (g_smsheader_defined != 0) {
     int tag_address = 0x7FF0;
-    int rs = 0, rc = 4;
+    int rs, rc = 4;
 
     if (g_smsromsize_defined != 0)
       rs = g_smsromsize;

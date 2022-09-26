@@ -138,7 +138,6 @@ def generate(cpu, new_line, template):
             'hashmap.h',
             'printf.h',
             'mersenne_twister.h',
-            'decode_' + cpu['name'] + '.c',
         ],
         'pass_2.c': [
             'pass_2.h',

@@ -275,6 +275,8 @@ data2b:	.incbin "data.txt" skip 1 filter macroOne
 	.db "06>"              ; @BT TEST-06 06 START
 	.incbin "data.txt"     ; @BT 44 41 54 41 32
         .incbin "data.txt" READ -2 ; @BT 44 41 54
+        .incbin "data.txt" skip 0  ; @BT 44 41 54 41 32
+        .incbin "data.txt" READ -2 skip 0 ; @BT 44 41 54
         .incbin "data.txt" READ -2 SKIP 2 ; @BT 54
         .incbin "data.txt" SKIP 2 READ -2 ; @BT 54
         .incbin "data.txt" READ -1 SWAP   ; @BT 41 44 41 54

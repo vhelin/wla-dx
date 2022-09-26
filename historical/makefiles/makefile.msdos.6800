@@ -40,7 +40,7 @@ mersenne_twister.o: mersenne_twister.c mersenne_twister.h
 parse.o: parse.c parse.h defines.h hashmap.h shared.h pass_1.h stack.h include_file.h printf.h
 	$(CC) $(CFLAGS) parse.c
 
-pass_1.o: pass_1.c pass_1.h defines.h hashmap.h shared.h main.h include_file.h parse.h pass_2.h pass_3.h stack.h hashmap.h printf.h mersenne_twister.h decode_6800.c
+pass_1.o: pass_1.c pass_1.h defines.h hashmap.h shared.h main.h include_file.h parse.h pass_2.h pass_3.h stack.h hashmap.h printf.h mersenne_twister.h
 	$(CC) $(CFLAGS) pass_1.c
 
 pass_2.o: pass_2.c pass_2.h defines.h hashmap.h shared.h pass_1.h pass_4.h hashmap.h printf.h
