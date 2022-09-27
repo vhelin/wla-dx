@@ -169,7 +169,7 @@ int extract_comments(char *input, size_t size) {
 
   while (*current) {
     int comment_length;
-    char *comment = NULL, *result = NULL;
+    char *comment = NULL, *result;
 
     /* Search for the next comment of
        each type, picking the nearest.  */
@@ -225,9 +225,9 @@ int extract_comments(char *input, size_t size) {
 int main(int argc, char *argv[]) {
 
   char tmp[MAX_BYTES_PER_TEST], test_id[MAX_BYTES_PER_TEST], tag_id[MAX_BYTES_PER_TEST];
-  char *input_name = NULL, *input = NULL, *current = NULL;
+  char *input_name = NULL, *input, *current = NULL;
   unsigned char bytes[MAX_BYTES_PER_TEST];
-  int input_size, file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, should_extract_comments = NO, use_address = NO, address = 0, did_we_read_data = NO, got_it = NO;
+  int input_size, file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, should_extract_comments = NO, use_address = NO, address = 0, did_we_read_data = NO;
   FILE *f;
   
   if (argc < 2 || argc > 3 || argv == NULL) {
@@ -288,12 +288,10 @@ int main(int argc, char *argv[]) {
   };
 
   free(input_name);
-  input_name = NULL;
 
   /* Extract input from comments in file */
-  if (should_extract_comments) {
+  if (should_extract_comments)
     extract_comments(input, input_size);
-  }
 
   get_token(&current, tmp);
 
@@ -343,11 +341,12 @@ int main(int argc, char *argv[]) {
       }
     }
     else if (strcmp(tag_id, "-y") == 0) {
+      int got_it = NO;
+
       if (!get_token(&current, tmp))
         break;
 
       length = (int)strlen(tmp);
-      got_it = NO;
 
       for (i = 0; i < file_size; i++) {
         for (j = 0; j < length; j++) {
@@ -367,11 +366,12 @@ int main(int argc, char *argv[]) {
       }
     }
     else if (strcmp(tag_id, "-n") == 0) {
+      int got_it = NO;
+      
       if (!get_token(&current, tmp))
         break;
 
       length = (int)strlen(tmp);
-      got_it = NO;
       
       for (i = 0; i < file_size; i++) {
         for (j = 0; j < length; j++) {
