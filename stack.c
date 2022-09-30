@@ -164,7 +164,7 @@ struct stack *find_stack_calculation(int id, int print_error_message) {
 
 int compress_stack_calculation_ids(void) {
 
-  struct stack **stack_calculations;
+  struct stack **stack_calculations = NULL;
   struct export_def *export_tmp;
   int i, compressed_id = 0;
   
@@ -196,21 +196,23 @@ int compress_stack_calculation_ids(void) {
 
   /* 2. reorder the stack calculations into a new pointer array */
 
-  stack_calculations = calloc(sizeof(struct stack *) * g_stack_calculations_max, 1);
-  if (stack_calculations == NULL) {
-    print_error(ERROR_NUM, "Out of memory error while trying to reorder stack calculations pointer array!\n");
-    return FAILED;
+  if (g_stack_calculations_max > 0) {
+    stack_calculations = calloc(sizeof(struct stack *) * g_stack_calculations_max, 1);
+    if (stack_calculations == NULL) {
+      print_error(ERROR_NUM, "Out of memory error while trying to reorder stack calculations pointer array! g_stack_calculations_max = %d!\n", g_stack_calculations_max);
+      return FAILED;
+    }
+
+    for (i = 0; i < g_last_stack_id; i++) {
+      struct stack *s = g_stack_calculations[i];
+
+      if (s == NULL)
+        continue;
+
+      stack_calculations[s->compressed_id] = s;
+    }
   }
-
-  for (i = 0; i < g_last_stack_id; i++) {
-    struct stack *s = g_stack_calculations[i];
-
-    if (s == NULL)
-      continue;
-
-    stack_calculations[s->compressed_id] = s;
-  }
-
+  
   /* 3. update all stack calculation IDs in the stack calculations */
 
   for (i = 0; i < g_last_stack_id; i++) {
