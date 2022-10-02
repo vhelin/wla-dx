@@ -60,5 +60,8 @@
     <ClCompile Include="..\GEN-TABLES-SPC700\instructions_spc700_tables.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\decode.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

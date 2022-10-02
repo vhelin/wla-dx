@@ -7,7 +7,7 @@ CFLAGS = -mtune=i486 -c -O3 -ansi -pedantic -Wall -DMSDOS -DI8008 -DNDEBUG=1
 LD = gcc
 LDFLAGS = -lm
 
-OFILES = main.o crc32.o hashmap.o include_file.o listfile.o mersenne_twister.o parse.o pass_1.o pass_2.o pass_3.o pass_4.o printf.o stack.o instructions_8008_tables.o instructions_8008.o
+OFILES = main.o crc32.o decode.o hashmap.o include_file.o listfile.o mersenne_twister.o parse.o pass_1.o pass_2.o pass_3.o pass_4.o printf.o stack.o instructions_8008_tables.o instructions_8008.o
 
 all: $(OFILES)
 	$(LD) $(LDFLAGS) $(OFILES) -o w-8008.exe
@@ -15,6 +15,9 @@ all: $(OFILES)
 
 crc32.o: crc32.c crc32.h
 	$(CC) $(CFLAGS) crc32.c
+
+decode.o: decode.c decode.h parse.h pass_1.h printf.h stack.h
+	$(CC) $(CFLAGS) decode.c
 
 hashmap.o: hashmap.c hashmap.h crc32.h
 	$(CC) $(CFLAGS) hashmap.c
@@ -40,7 +43,7 @@ mersenne_twister.o: mersenne_twister.c mersenne_twister.h
 parse.o: parse.c parse.h defines.h hashmap.h shared.h pass_1.h stack.h include_file.h printf.h
 	$(CC) $(CFLAGS) parse.c
 
-pass_1.o: pass_1.c pass_1.h defines.h hashmap.h shared.h main.h include_file.h parse.h pass_2.h pass_3.h stack.h hashmap.h printf.h mersenne_twister.h
+pass_1.o: pass_1.c pass_1.h decode.h defines.h hashmap.h shared.h main.h include_file.h parse.h pass_2.h pass_3.h stack.h hashmap.h printf.h mersenne_twister.h
 	$(CC) $(CFLAGS) pass_1.c
 
 pass_2.o: pass_2.c pass_2.h defines.h hashmap.h shared.h pass_1.h pass_4.h hashmap.h printf.h

@@ -3,7 +3,6 @@
 #define _PASS_1_H
 
 int pass_1(void);
-int evaluate_token(void);
 int add_a_new_definition(char *name, double value, char *string, int type, int size);
 int export_a_definition(char *name);
 int redefine(char *name, double value, char *string, int type, int size);

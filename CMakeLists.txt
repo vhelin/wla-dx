@@ -115,6 +115,8 @@ set(WLA_SRCS
     main.h
     crc32.c
     crc32.h
+    decode.c
+    decode.h
     hashmap.c
     hashmap.h
     parse.c

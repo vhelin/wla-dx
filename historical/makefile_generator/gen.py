@@ -98,6 +98,13 @@ def generate(cpu, new_line, template):
         'crc32.c': [
             'crc32.h'
         ],
+        'decode.c': [
+            'decode.h',
+            'parse.h',
+            'pass_1.h',
+            'printf.h',
+            'stack.h'
+        ],
         'hashmap.c': [
             'hashmap.h',
             'crc32.h',
@@ -128,6 +135,7 @@ def generate(cpu, new_line, template):
         ],
         'pass_1.c': [
             'pass_1.h',
+            'decode.h',
             'defines.h',
             'main.h',
             'include_file.h',
