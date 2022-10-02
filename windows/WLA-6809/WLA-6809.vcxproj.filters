@@ -60,5 +60,8 @@
     <ClCompile Include="..\GEN-TABLES-6809\instructions_6809_tables.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\decode.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

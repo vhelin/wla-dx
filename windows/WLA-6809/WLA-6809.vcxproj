@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\crc32.c" />
+    <ClCompile Include="..\..\decode.c" />
     <ClCompile Include="..\..\hashmap.c" />
     <ClCompile Include="..\..\include_file.c" />
     <ClCompile Include="..\..\listfile.c" />

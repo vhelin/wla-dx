@@ -60,5 +60,8 @@
     <ClCompile Include="..\GEN-TABLES-Z80\instructions_z80_tables.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\decode.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

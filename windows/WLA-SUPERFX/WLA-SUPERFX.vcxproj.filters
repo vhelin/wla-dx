@@ -60,5 +60,8 @@
     <ClCompile Include="..\GEN-TABLES-SUPERFX\instructions_superfx_tables.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\decode.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

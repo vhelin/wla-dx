@@ -60,5 +60,8 @@
     <ClCompile Include="..\GEN-TABLES-HUC6280\instructions_huc6280_tables.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\decode.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
