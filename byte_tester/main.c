@@ -17,6 +17,11 @@
 #define MAX_BYTES_PER_TEST 1024
 
 
+#ifdef AMIGACPU
+__near long __stack = 200000;
+#endif
+
+
 int _get_next_number(char *in, int *out) {
 
   int i = 0, o, n;
