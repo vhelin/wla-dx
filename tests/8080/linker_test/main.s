@@ -124,10 +124,21 @@ JUMP_MACRO $f
 
 LABEL	.print "THE END\n"
 
-.ENDS	
+.ENDS
 
-	.include "name", "space" ".s" once namespace "oops"
+	.define STR_SPACE "space"
+
+	.include "name", STR_SPACE ".s" once namespace "oops"
 	.dw hello.NamespaceMain, oops.NamespaceBonus
+
+	.define INCLUDE "include"
+	.define LU "lu"
+	
+	.DB "10>"
+	.include "{INCLUDE}3.s"
+	.include { "{INCLUDE}3.s" }
+	.include { "inc{LU}de3.s" }
+	.db "<10"
 	
 .DB "DD>"
  TEST 3

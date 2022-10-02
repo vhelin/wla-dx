@@ -35,8 +35,8 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.3 (2.10.2022)";
-char g_wla_version[] = "10.3";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.4a (2.10.2022)";
+char g_wla_version[] = "10.4";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
 
@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
   }
   
   if (g_output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
-    char title[] = "WLA " ARCH_STR " Macro Assembler v10.3";
+    char title[] = "WLA " ARCH_STR " Macro Assembler v10.4a";
     int length, left, right;
 
     length = (int)strlen(title);
