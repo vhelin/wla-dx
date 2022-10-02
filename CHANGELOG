@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.3 (21-Sep-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
+v10.3 (02-Oct-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
                     [ALL] "\\" should now work inside strings.
                     [ALL] .MACRO calling another .MACRO, inside a namespaced
                       file, should now work.
@@ -1425,7 +1425,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.18 (13-Sep-2022) Added -v1 and -v2 (shorter verbose levels).
+v5.18 (02-Oct-2022) Added -v1 and -v2 (shorter verbose levels).
                     Pending calculations that were marked negative inside
                       pending calculations should now work.
                     Pending calculations that contain pending calculations
