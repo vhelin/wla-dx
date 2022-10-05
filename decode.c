@@ -789,8 +789,17 @@ int evaluate_token(void) {
                 _output_assembled_instruction(g_instruction_tmp, "y%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
                 _output_assembled_instruction(g_instruction_tmp, "k%d y%d R%s ", g_active_file_info_last->line_current, g_instruction_tmp->hex, g_label);
-              else
+              else {
+                /* 4 -> let's configure the stack so that all label references inside are relative */
+                struct stack *stack = find_stack_calculation(g_latest_stack, YES);
+
+                if (stack == NULL)
+                  return FAILED;
+                  
+                stack->relative_references = 1;
+
                 _output_assembled_instruction(g_instruction_tmp, "y%d c%d ", g_instruction_tmp->hex, g_latest_stack);
+              }
               
               g_source_pointer = g_inz;
               return SUCCEEDED;

@@ -4,9 +4,9 @@ CFLAGS = -v -i -o
 LD = $(WLAVALGRIND) wlalink
 LDFLAGS = -v -i -s
 
-SFILES = main.s
+SFILES = main.s more.s
 IFILES = 
-OFILES = main.o
+OFILES = main.o more.o
 
 all: result.rom check
 
@@ -19,6 +19,8 @@ check: result.rom
 main.o: main.s
 	$(CC) $(CFLAGS) main.o main.s
 
+more.o: more.s
+	$(CC) $(CFLAGS) more.o more.s
 
 $(OFILES): $(HFILES)
 

@@ -82,4 +82,42 @@
         .ENDIF
         .db 0                   ; @BT 00
         .db "<09"               ; @BT END
-        
+
+        .db "10>"		; @BT TEST-10 10 START
+address_test_10:
+	ld e,(iy+address_test_10) ; @BT FD 5E FD
+	ld e,(iy+address_test_10+1) ; @BT FD 5E FB
+	ld e,(iy+0+address_test_10) ; @BT FD 5E F7
+	ld e,(iy+0+address_test_10+1) ; @BT FD 5E F5
+	.db "<10"		  ; @BT END
+
+	.struct Object
+	status  db
+	data    dsb 8
+	.endst
+
+	.dstruct Object1 instanceof Object DATA 1, "HELLO"
+	
+	.db "11>"		; @BT TEST-11 11 START
+	ld e,(iy+Object1.data) ; @BT FD 5E F2
+	ld e,(iy+Object1.data+1) ; @BT FD 5E F0
+	ld e,(iy+Object1.data) ; @BT FD 5E EC
+	ld e,(iy+Object1.data+1) ; @BT FD 5E EA
+	ld e,(iy-0+Object1.data) ; @BT FD 5E E6
+	ld e,(iy-0+Object1.data+1) ; @BT FD 5E E4
+	ld e,(iy-0+Object1.data) ; @BT FD 5E E0
+	ld e,(iy-0+Object1.data+1) ; @BT FD 5E DE
+	.db "<11"		    ; @BT END
+
+	.db "12>"		; @BT TEST-12 12 START
+	ld e,(iy+Object.data) ; @BT FD 5E 01
+	ld e,(iy+Object.data+1) ; @BT FD 5E 02
+	.db "<12"		; @BT END
+	
+	.section "Section2" force
+	.db "13>"		; @BT TEST-13 13 START
+	ld e,(iy+Object2.data) ; @BT FD 5E 07
+	ld e,(iy+Object2.data) ; @BT FD 5E 04
+	.db "<13"		    ; @BT END
+	.ends
+	
