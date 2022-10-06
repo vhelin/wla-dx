@@ -132,7 +132,26 @@ label_2:
         MOV1 helpervariable.N1.1,C ; @BT CA 11 20
         MOV1 helpervariable.N1.ONE,C ; @BT CA 11 20
         .db "<06"                ; @BT END
-        
-        
 
-        
+        .define TWO ONE*2
+
+        .db "07>"               ; @BT TEST-07 07 START
+        MOV1 HELPERVARIABLES2.N1.1,C   ; @BT CA 01 20
+        MOV1 HELPERVARIABLES2.N2.TWO,C ; @BT CA 02 40
+        MOV1 THREE+1.1,C               ; @BT CA 04 20
+        MOV1 THREE.TWO,C               ; @BT CA 03 40
+        MOV1 VALUE_8191+1-1.1,C        ; @BT CA FF 3F
+        MOV1 VALUE_8191.TWO,C          ; @BT CA FF 5F
+        MOV1 VALUE_8191_2+1-1.1,C      ; @BT CA FF 3F
+        MOV1 VALUE_8191_2.TWO,C        ; @BT CA FF 5F
+        .db "<07"               ; @BT END
+
+        .STRUCT HELPERVARIABLES2
+        N0  DB
+        N1  DB
+        N2  DB
+        N3  DB
+        .ENDST
+
+        .define THREE ONE+ONE+ONE
+        .define VALUE_8191 8190*ONE+THREE-2

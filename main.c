@@ -35,7 +35,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.4a (5.10.2022)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.4a (6.10.2022)";
 char g_wla_version[] = "10.4";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -45,7 +45,6 @@ extern struct file_name_info *g_file_name_info_first;
 extern struct label_def *g_label_tmp, *g_labels;
 extern struct map_t *g_global_unique_label_map;
 extern struct macro_static *g_macros_first;
-extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map;
 extern struct export_def *g_export_first, *g_export_last;
 extern struct repeat_runtime *g_repeat_stack;

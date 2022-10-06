@@ -3,7 +3,10 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.4 (05-Oct-2022) [Z80] All category 4 instructions (like "LD E,(IY+n)"),
+v10.4 (06-Oct-2022) [ALL] If a value is .DEFINEd later in the same source file
+                     than used in a pending calculation, WLA can now solve
+                     the pending calculation before exporting it to WLALINK.
+                    [Z80] All category 4 instructions (like "LD E,(IY+n)"),
                       make labels inside n PC relative, if n is a calculation.
 
 v10.3 (02-Oct-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.

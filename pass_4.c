@@ -21,7 +21,6 @@ extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_se
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern struct export_def *g_export_first, *g_export_last;
 extern struct label_def *g_label_tmp, *g_label_last, *g_labels;
-extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map, *g_namespace_map, *g_global_unique_label_map;
 extern struct file_name_info *g_file_name_info_first;
 extern struct slot g_slots[256];
@@ -84,6 +83,30 @@ static int g_dstruct_start = -1, g_special_id = 0;
 #define STRINGIFY(x) XSTRINGIFY(x)
 #define STRING_READ_FORMAT ("%" STRINGIFY(MAX_NAME_LENGTH) "s ")
 
+
+static int _try_to_calculate_stack_calculation_define(struct definition *definition) {
+
+  struct stack *stack = find_stack_calculation((int)definition->value, YES);
+
+  if (stack == NULL)
+    return FAILED;
+  
+  if (stack->is_function_body == NO && resolve_stack(stack->stack_items, stack->stacksize) == SUCCEEDED) {
+    double r;
+    
+    if (compute_stack(stack, stack->stacksize, &r) == FAILED)
+      return FAILED;
+
+    /* HACK: mark it to be function body so it won't get exported */
+    stack->is_function_body = YES;
+    
+    /* calculation succeeded -> turn the define into a value define */
+    definition->type = DEFINITION_TYPE_VALUE;
+    definition->value = r;
+  }
+
+  return SUCCEEDED;
+}
 
 
 static struct label_def *_new_unknown_reference(int type) {
@@ -280,7 +303,8 @@ int pass_4(void) {
   int i, o, z, y, add_old = 0, x, q, inz, ind, bits_position = 0, bits_byte = 0;
   char *t, c, tmp_buffer[MAX_NAME_LENGTH + 1];
   struct stack *stack;
-
+  struct definition *tmp_def;
+  
   /* initialize label context */
   g_label_context.isolated_macro = NULL;
   g_label_context.next = NULL;
@@ -742,43 +766,47 @@ int pass_4(void) {
                 return FAILED;
             }
           }
-
-          x = 0;
-          hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
-          if (g_tmp_def != NULL) {
-            if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
+          
+          hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
+          if (tmp_def != NULL) {
+            if (tmp_def->type == DEFINITION_TYPE_STRING) {
               fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
               return FAILED;
             }
-            else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
-              o = (int)g_tmp_def->value;
-              x = 1;
+            else {
+              if (tmp_def->type == DEFINITION_TYPE_STACK) {
+                if (_try_to_calculate_stack_calculation_define(tmp_def) == FAILED)
+                  return FAILED;
+              }
+              
+              if (tmp_def->type != DEFINITION_TYPE_STACK) {
+                o = (int)tmp_def->value;
 
-              /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-              snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .BITS' bits", get_file_name(g_filename_id), g_line_number);
+                /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+                snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .BITS' bits", get_file_name(g_filename_id), g_line_number);
 
-              while (bits_to_define > 0) {
-                int bits_to_define_this_byte = 8 - bits_position;
-                int bits;
+                while (bits_to_define > 0) {
+                  int bits_to_define_this_byte = 8 - bits_position;
+                  int bits;
             
-                if (bits_to_define_this_byte > bits_to_define)
-                  bits_to_define_this_byte = bits_to_define;
+                  if (bits_to_define_this_byte > bits_to_define)
+                    bits_to_define_this_byte = bits_to_define;
 
-                for (bits = 0; bits < bits_to_define_this_byte; bits++)
-                  _bits_add_bit(&bits_byte, &bits_position, &bits_to_define, o);
+                  for (bits = 0; bits < bits_to_define_this_byte; bits++)
+                    _bits_add_bit(&bits_byte, &bits_position, &bits_to_define, o);
 
-                if (bits_position == 8) {
-                  bits_position = 0;
-                  if (mem_insert(bits_byte) == FAILED)
-                    return FAILED;
-                  bits_byte = 0;
+                  if (bits_position == 8) {
+                    bits_position = 0;
+                    if (mem_insert(bits_byte) == FAILED)
+                      return FAILED;
+                    bits_byte = 0;
+                  }
                 }
+
+                continue;
               }
             }
           }
-
-          if (x == 1)
-            continue;
 
           label = _new_unknown_reference(REFERENCE_TYPE_BITS);
           if (label == NULL)
@@ -1019,14 +1047,41 @@ int pass_4(void) {
         }
       }
 
-      /* this stack was referred from the code */
-      stack->position = STACK_POSITION_CODE;
-
-      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for an 8-bit computation", get_file_name(g_filename_id), g_line_number);
+      /* try once again to calculate the stack calculation (works for contained .DEFINEs that came lexically after this calculation) */
+      if (stack->is_function_body == NO && resolve_stack(stack->stack_items, stack->stacksize) == SUCCEEDED) {
+        double r;
         
-      if (mem_insert_padding() == FAILED)
-        return FAILED;
+        if (compute_stack(stack, stack->stacksize, &r) == FAILED)
+          return FAILED;
+
+        /* HACK: mark it to be function body so it won't get exported */
+        stack->is_function_body = YES;
+
+        o = (int)r;
+        if (c == '-') {
+          if ((o & 1) == 1) {
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: The RAM address must be even.\n", get_file_name(g_filename_id), g_line_number);
+            return FAILED;
+          }
+          o = o >> 1;
+        }
+        
+        /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing an 8-bit computation", get_file_name(g_filename_id), g_line_number);
+
+        if (mem_insert(o & 0xFF) == FAILED)
+          return FAILED;
+      }
+      else {
+        /* this stack was referred from the code */
+        stack->position = STACK_POSITION_CODE;
+
+        /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for an 8-bit computation", get_file_name(g_filename_id), g_line_number);
+        
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+      }
 
       continue;
 
@@ -1065,17 +1120,47 @@ int pass_4(void) {
         }
       }
         
-      /* this stack was referred from the code */
-      stack->position = STACK_POSITION_CODE;
+      /* try once again to calculate the stack calculation (works for contained .DEFINEs that came lexically after this calculation) */
+      if (stack->is_function_body == NO && resolve_stack(stack->stack_items, stack->stacksize) == SUCCEEDED) {
+        double r;
+        
+        if (compute_stack(stack, stack->stacksize, &r) == FAILED)
+          return FAILED;
 
-      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 16-bit computation", get_file_name(g_filename_id), g_line_number);
+        /* HACK: mark it to be function body so it won't get exported */
+        stack->is_function_body = YES;
 
-      if (mem_insert_padding() == FAILED)
-        return FAILED;
-      if (mem_insert_padding() == FAILED)
-        return FAILED;
+        o = (int)r;
 
+        /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 16-bit computation", get_file_name(g_filename_id), g_line_number);
+        
+        if (g_little_endian == YES) {
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert((o >> 8) & 0xFF) == FAILED)
+            return FAILED;
+        }
+        else {
+          if (mem_insert((o >> 8) & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
+        }
+      }
+      else {
+        /* this stack was referred from the code */
+        stack->position = STACK_POSITION_CODE;
+
+        /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 16-bit computation", get_file_name(g_filename_id), g_line_number);
+
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+      }
+      
       continue;
 
 #ifdef SPC700
@@ -1113,17 +1198,43 @@ int pass_4(void) {
             return FAILED;
         }
       }
+
+      /* try once again to calculate the stack calculation (works for contained .DEFINEs that came lexically after this calculation) */
+      if (stack->is_function_body == NO && resolve_stack(stack->stack_items, stack->stacksize) == SUCCEEDED) {
+        double r;
         
-      /* this stack was referred from the code */
-      stack->position = STACK_POSITION_CODE;
+        if (compute_stack(stack, stack->stacksize, &r) == FAILED)
+          return FAILED;
 
-      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 13-bit computation", get_file_name(g_filename_id), g_line_number);
+        /* HACK: mark it to be function body so it won't get exported */
+        stack->is_function_body = YES;
 
-      if (mem_insert(0x00) == FAILED)
-        return FAILED;
-      if (mem_insert(x << (13 - 8)) == FAILED)
-        return FAILED;
+        o = (int)r;
+        if (o > 8191 || o < 0) {
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference value of %d is out of 13-bit range.\n", get_file_name(g_filename_id), g_line_number, o);
+          return FAILED;
+        }
+
+        /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 13-bit computation", get_file_name(g_filename_id), g_line_number);
+
+        if (mem_insert(o & 0xFF) == FAILED)
+          return FAILED;
+        if (mem_insert(((o | x << 13) & 0xFF00) >> 8) == FAILED)
+          return FAILED;
+      }
+      else {
+        /* this stack was referred from the code */
+        stack->position = STACK_POSITION_CODE;
+
+        /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 13-bit computation", get_file_name(g_filename_id), g_line_number);
+
+        if (mem_insert(0x00) == FAILED)
+          return FAILED;
+        if (mem_insert(x << (13 - 8)) == FAILED)
+          return FAILED;
+      }
 
       continue;
 #endif
@@ -1162,19 +1273,53 @@ int pass_4(void) {
             return FAILED;
         }
       }
+
+      /* try once again to calculate the stack calculation (works for contained .DEFINEs that came lexically after this calculation) */
+      if (stack->is_function_body == NO && resolve_stack(stack->stack_items, stack->stacksize) == SUCCEEDED) {
+        double r;
         
-      /* this stack was referred from the code */
-      stack->position = STACK_POSITION_CODE;
+        if (compute_stack(stack, stack->stacksize, &r) == FAILED)
+          return FAILED;
 
-      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 24-bit computation", get_file_name(g_filename_id), g_line_number);
+        /* HACK: mark it to be function body so it won't get exported */
+        stack->is_function_body = YES;
 
-      if (mem_insert_padding() == FAILED)
-        return FAILED;
-      if (mem_insert_padding() == FAILED)
-        return FAILED;
-      if (mem_insert_padding() == FAILED)
-        return FAILED;
+        o = (int)r;
+
+        /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 24-bit computation", get_file_name(g_filename_id), g_line_number);
+
+        if (g_little_endian == YES) {
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert((o >> 8) & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert((o >> 16) & 0xFF) == FAILED)
+            return FAILED;
+        }
+        else {
+          if (mem_insert((o >> 16) & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert((o >> 8) & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
+        }
+      }
+      else {
+        /* this stack was referred from the code */
+        stack->position = STACK_POSITION_CODE;
+
+        /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 24-bit computation", get_file_name(g_filename_id), g_line_number);
+
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+      }
 
       continue;
 
@@ -1213,20 +1358,58 @@ int pass_4(void) {
         }
       }
         
-      /* this stack was referred from the code */
-      stack->position = STACK_POSITION_CODE;
+      /* try once again to calculate the stack calculation (works for contained .DEFINEs that came lexically after this calculation) */
+      if (stack->is_function_body == NO && resolve_stack(stack->stack_items, stack->stacksize) == SUCCEEDED) {
+        double r;
+        
+        if (compute_stack(stack, stack->stacksize, &r) == FAILED)
+          return FAILED;
 
-      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 32-bit computation", get_file_name(g_filename_id), g_line_number);
+        /* HACK: mark it to be function body so it won't get exported */
+        stack->is_function_body = YES;
 
-      if (mem_insert_padding() == FAILED)
-        return FAILED;
-      if (mem_insert_padding() == FAILED)
-        return FAILED;
-      if (mem_insert_padding() == FAILED)
-        return FAILED;
-      if (mem_insert_padding() == FAILED)
-        return FAILED;
+        o = (int)r;
+
+        /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 32-bit computation", get_file_name(g_filename_id), g_line_number);
+
+        if (g_little_endian == YES) {
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert((o >> 8) & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert((o >> 16) & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert((o >> 24) & 0xFF) == FAILED)
+            return FAILED;
+        }
+        else {
+          if (mem_insert((o >> 24) & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert((o >> 16) & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert((o >> 8) & 0xFF) == FAILED)
+            return FAILED;
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
+        }
+      }
+      else {
+        /* this stack was referred from the code */
+        stack->position = STACK_POSITION_CODE;
+
+        /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 32-bit computation", get_file_name(g_filename_id), g_line_number);
+
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+      }
 
       continue;
 
@@ -1241,42 +1424,46 @@ int pass_4(void) {
             return FAILED;
         }
       }
-          
-      x = 0;
-      hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
-      if (g_tmp_def != NULL) {
-        if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
+
+      hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
+      if (tmp_def != NULL) {
+        if (tmp_def->type == DEFINITION_TYPE_STRING) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
-        else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
-          o = (int)g_tmp_def->value;
-          x = 1;
-
-          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 24-bit reference", get_file_name(g_filename_id), g_line_number);
-
-          if (g_little_endian == YES) {
-            if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 8) & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 16) & 0xFF) == FAILED)
+        else {
+          if (tmp_def->type == DEFINITION_TYPE_STACK) {
+            if (_try_to_calculate_stack_calculation_define(tmp_def) == FAILED)
               return FAILED;
           }
-          else {
-            if (mem_insert((o >> 16) & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 8) & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
+
+          if (tmp_def->type != DEFINITION_TYPE_STACK) {
+            o = (int)tmp_def->value;
+
+            /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+            snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 24-bit reference", get_file_name(g_filename_id), g_line_number);
+
+            if (g_little_endian == YES) {
+              if (mem_insert(o & 0xFF) == FAILED)
+                return FAILED;
+              if (mem_insert((o >> 8) & 0xFF) == FAILED)
+                return FAILED;
+              if (mem_insert((o >> 16) & 0xFF) == FAILED)
+                return FAILED;
+            }
+            else {
+              if (mem_insert((o >> 16) & 0xFF) == FAILED)
+                return FAILED;
+              if (mem_insert((o >> 8) & 0xFF) == FAILED)
+                return FAILED;
+              if (mem_insert(o & 0xFF) == FAILED)
+                return FAILED;
+            }
+
+            continue;
           }
         }
       }
-
-      if (x == 1)
-        continue;
 
       if (_new_unknown_reference(REFERENCE_TYPE_DIRECT_24BIT) == NULL)
         return FAILED;
@@ -1304,46 +1491,50 @@ int pass_4(void) {
             return FAILED;
         }
       }
-          
-      x = 0;
-      hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
-      if (g_tmp_def != NULL) {
-        if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
+
+      hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
+      if (tmp_def != NULL) {
+        if (tmp_def->type == DEFINITION_TYPE_STRING) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
-        else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
-          o = (int)g_tmp_def->value;
-          x = 1;
-
-          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 32-bit reference", get_file_name(g_filename_id), g_line_number);
-
-          if (g_little_endian == YES) {
-            if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 8) & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 16) & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 24) & 0xFF) == FAILED)
+        else {
+          if (tmp_def->type == DEFINITION_TYPE_STACK) {
+            if (_try_to_calculate_stack_calculation_define(tmp_def) == FAILED)
               return FAILED;
           }
-          else {
-            if (mem_insert((o >> 24) & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 16) & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 8) & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
+          
+          if (tmp_def->type != DEFINITION_TYPE_STACK) {
+            o = (int)tmp_def->value;
+
+            /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+            snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 32-bit reference", get_file_name(g_filename_id), g_line_number);
+
+            if (g_little_endian == YES) {
+              if (mem_insert(o & 0xFF) == FAILED)
+                return FAILED;
+              if (mem_insert((o >> 8) & 0xFF) == FAILED)
+                return FAILED;
+              if (mem_insert((o >> 16) & 0xFF) == FAILED)
+                return FAILED;
+              if (mem_insert((o >> 24) & 0xFF) == FAILED)
+                return FAILED;
+            }
+            else {
+              if (mem_insert((o >> 24) & 0xFF) == FAILED)
+                return FAILED;
+              if (mem_insert((o >> 16) & 0xFF) == FAILED)
+                return FAILED;
+              if (mem_insert((o >> 8) & 0xFF) == FAILED)
+                return FAILED;
+              if (mem_insert(o & 0xFF) == FAILED)
+                return FAILED;
+            }
+
+            continue;
           }
         }
       }
-
-      if (x == 1)
-        continue;
 
       if (_new_unknown_reference(REFERENCE_TYPE_DIRECT_32BIT) == NULL)
         return FAILED;
@@ -1373,38 +1564,42 @@ int pass_4(void) {
             return FAILED;
         }
       }
-                
-      x = 0;
-      hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
-      if (g_tmp_def != NULL) {
-        if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
+
+      hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
+      if (tmp_def != NULL) {
+        if (tmp_def->type == DEFINITION_TYPE_STRING) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
-        else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
-          o = (int)g_tmp_def->value;
-          x = 1;
-
-          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(g_filename_id), g_line_number);
-
-          if (g_little_endian == YES) {
-            if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o >> 8) & 0xFF) == FAILED)
+        else {
+          if (tmp_def->type == DEFINITION_TYPE_STACK) {
+            if (_try_to_calculate_stack_calculation_define(tmp_def) == FAILED)
               return FAILED;
           }
-          else {
-            if (mem_insert((o >> 8) & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
+
+          if (tmp_def->type != DEFINITION_TYPE_STACK) {
+            o = (int)tmp_def->value;
+
+            /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+            snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(g_filename_id), g_line_number);
+
+            if (g_little_endian == YES) {
+              if (mem_insert(o & 0xFF) == FAILED)
+                return FAILED;
+              if (mem_insert((o >> 8) & 0xFF) == FAILED)
+                return FAILED;
+            }
+            else {
+              if (mem_insert((o >> 8) & 0xFF) == FAILED)
+                return FAILED;
+              if (mem_insert(o & 0xFF) == FAILED)
+                return FAILED;
+            }
+
+            continue;
           }
         }
       }
-
-      if (x == 1)
-        continue;
 
       if (_new_unknown_reference(REFERENCE_TYPE_RELATIVE_16BIT) == NULL)
         return FAILED;
@@ -1431,37 +1626,41 @@ int pass_4(void) {
         }
       }
 
-      x = 0;
-      hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
-      if (g_tmp_def != NULL) {
-        if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
+      hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
+      if (tmp_def != NULL) {
+        if (tmp_def->type == DEFINITION_TYPE_STRING) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
-        else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
-          o = (int)g_tmp_def->value;
-          x = 1;
-
-          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(g_filename_id), g_line_number);
-
-          if (g_little_endian == YES) {
-            if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert((o & 0xFF00) >> 8) == FAILED)
+        else {
+          if (tmp_def->type == DEFINITION_TYPE_STACK) {
+            if (_try_to_calculate_stack_calculation_define(tmp_def) == FAILED)
               return FAILED;
           }
-          else {
-            if (mem_insert((o >> 8) & 0xFF) == FAILED)
-              return FAILED;
-            if (mem_insert(o & 0xFF) == FAILED)
-              return FAILED;
+
+          if (tmp_def->type != DEFINITION_TYPE_STACK) {
+            o = (int)tmp_def->value;
+
+            /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+            snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(g_filename_id), g_line_number);
+
+            if (g_little_endian == YES) {
+              if (mem_insert(o & 0xFF) == FAILED)
+                return FAILED;
+              if (mem_insert((o & 0xFF00) >> 8) == FAILED)
+                return FAILED;
+            }
+            else {
+              if (mem_insert((o >> 8) & 0xFF) == FAILED)
+                return FAILED;
+              if (mem_insert(o & 0xFF) == FAILED)
+                return FAILED;
+            }
+
+            continue;
           }
         }
       }
-
-      if (x == 1)
-        continue;
 
       if (_new_unknown_reference(REFERENCE_TYPE_DIRECT_16BIT) == NULL)
         return FAILED;
@@ -1490,33 +1689,38 @@ int pass_4(void) {
         }
       }
 
-      x = 0;
-      hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
-      if (g_tmp_def != NULL) {
-        if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
+      hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
+      if (tmp_def != NULL) {
+        if (tmp_def->type == DEFINITION_TYPE_STRING) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
-        else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
-          o = (int)g_tmp_def->value;
-          x = 1;
-          if (o > 8191 || o < 0) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference value of \"%s\" is out of 13-bit range.\n", get_file_name(g_filename_id), g_line_number, g_tmp);
-            return FAILED;
+        else {
+          if (tmp_def->type == DEFINITION_TYPE_STACK) {
+            if (_try_to_calculate_stack_calculation_define(tmp_def) == FAILED)
+              return FAILED;
           }
 
-          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 13-bit reference", get_file_name(g_filename_id), g_line_number);
+          if (tmp_def->type != DEFINITION_TYPE_STACK) {
+            o = (int)tmp_def->value;
 
-          if (mem_insert(o & 0xFF) == FAILED)
-            return FAILED;
-          if (mem_insert(((o | inz << 13) & 0xFF00) >> 8) == FAILED)
-            return FAILED;
+            if (o > 8191 || o < 0) {
+              fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference value of \"%s\" (%d) is out of 13-bit range.\n", get_file_name(g_filename_id), g_line_number, g_tmp, o);
+              return FAILED;
+            }
+
+            /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+            snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 13-bit reference", get_file_name(g_filename_id), g_line_number);
+
+            if (mem_insert(o & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert(((o | inz << 13) & 0xFF00) >> 8) == FAILED)
+              return FAILED;
+
+            continue;
+          }
         }
       }
-
-      if (x == 1)
-        continue;
 
       if (_new_unknown_reference(REFERENCE_TYPE_DIRECT_13BIT) == NULL)
         return FAILED;
@@ -1544,28 +1748,32 @@ int pass_4(void) {
         }
       }
 
-      x = 0;
-      hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
-      if (g_tmp_def != NULL) {
-        if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
+      hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
+      if (tmp_def != NULL) {
+        if (tmp_def->type == DEFINITION_TYPE_STRING) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
-        else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
-          o = (int)g_tmp_def->value;
-          x = 1;
+        else {
+          if (tmp_def->type == DEFINITION_TYPE_STACK) {
+            if (_try_to_calculate_stack_calculation_define(tmp_def) == FAILED)
+              return FAILED;
+          }
 
-          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(g_filename_id), g_line_number);
+          if (tmp_def->type != DEFINITION_TYPE_STACK) {
+            o = (int)tmp_def->value;
 
-          if (mem_insert(o & 0xFF) == FAILED)
-            return FAILED;
+            /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+            snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(g_filename_id), g_line_number);
+
+            if (mem_insert(o & 0xFF) == FAILED)
+              return FAILED;
+
+            continue;
+          }
         }
       }
-
-      if (x == 1)
-        continue;
-
+      
       if (_new_unknown_reference(REFERENCE_TYPE_RELATIVE_8BIT) == NULL)
         return FAILED;
 
@@ -1590,36 +1798,40 @@ int pass_4(void) {
         }
       }
 
-      x = 0;
-      hashmap_get(g_defines_map, g_tmp, (void*)&g_tmp_def);
-      if (g_tmp_def != NULL) {
-        if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
+      hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
+      if (tmp_def != NULL) {
+        if (tmp_def->type == DEFINITION_TYPE_STRING) {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
-        else if (g_tmp_def->type != DEFINITION_TYPE_STACK) {
-          o = (int)g_tmp_def->value;
-          x = 1;
-
-          /* 9-bit short? */
-          if (c == '*') {
-            if ((c & 1) == 1) {
-              fprintf(stderr, "%s:%d: INTERNAL_PASS_2: The RAM address must be even.\n", get_file_name(g_filename_id), g_line_number);
+        else {
+          if (tmp_def->type == DEFINITION_TYPE_STACK) {
+            if (_try_to_calculate_stack_calculation_define(tmp_def) == FAILED)
               return FAILED;
-            }
-            o = o >> 1;
           }
 
-          /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(g_filename_id), g_line_number);
+          if (tmp_def->type != DEFINITION_TYPE_STACK) {
+            o = (int)tmp_def->value;
+
+            /* 9-bit short? */
+            if (c == '*') {
+              if ((o & 1) == 1) {
+                fprintf(stderr, "%s:%d: INTERNAL_PASS_2: The RAM address must be even.\n", get_file_name(g_filename_id), g_line_number);
+                return FAILED;
+              }
+              o = o >> 1;
+            }
+
+            /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+            snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing an 8-bit reference", get_file_name(g_filename_id), g_line_number);
             
-          if (mem_insert(o & 0xFF) == FAILED)
-            return FAILED;
+            if (mem_insert(o & 0xFF) == FAILED)
+              return FAILED;
+
+            continue;
+          }
         }
       }
-
-      if (x == 1)
-        continue;
 
       if (c == '*') {
         if (_new_unknown_reference(REFERENCE_TYPE_DIRECT_9BIT_SHORT) == NULL)
@@ -2926,6 +3138,7 @@ int mem_insert_absolute(int add, unsigned char x) {
 int export_definitions(FILE *final_ptr) {
 
   struct export_def *export_tmp;
+  struct definition *tmp_def;
   unsigned char *cp;
   double dou;
   int ov;
@@ -2933,11 +3146,11 @@ int export_definitions(FILE *final_ptr) {
   ov = 0;
   export_tmp = g_export_first;
   while (export_tmp != NULL) {
-    hashmap_get(g_defines_map, export_tmp->name, (void*)&g_tmp_def);
-    if (g_tmp_def != NULL) {
-      if (g_tmp_def->type == DEFINITION_TYPE_VALUE)
+    hashmap_get(g_defines_map, export_tmp->name, (void*)&tmp_def);
+    if (tmp_def != NULL) {
+      if (tmp_def->type == DEFINITION_TYPE_VALUE)
         ov++;
-      if (g_tmp_def->type == DEFINITION_TYPE_STACK)
+      if (tmp_def->type == DEFINITION_TYPE_STACK)
         ov++;
     }
 
@@ -2948,21 +3161,21 @@ int export_definitions(FILE *final_ptr) {
 
   export_tmp = g_export_first;
   while (export_tmp != NULL) {
-    hashmap_get(g_defines_map, export_tmp->name, (void*)&g_tmp_def);
+    hashmap_get(g_defines_map, export_tmp->name, (void*)&tmp_def);
 
-    if (g_tmp_def == NULL)
+    if (tmp_def == NULL)
       fprintf(stderr, "WARNING: Trying to export an unknown definition \"%s\".\n", export_tmp->name);
     else {
-      if (g_tmp_def->type == DEFINITION_TYPE_VALUE) {
-        fprintf(final_ptr, "%s%c", g_tmp_def->alias, 0x0);
-        dou = g_tmp_def->value;
+      if (tmp_def->type == DEFINITION_TYPE_VALUE) {
+        fprintf(final_ptr, "%s%c", tmp_def->alias, 0x0);
+        dou = tmp_def->value;
         WRITEOUT_DOU;
       }
-      else if (g_tmp_def->type == DEFINITION_TYPE_STRING)
+      else if (tmp_def->type == DEFINITION_TYPE_STRING)
         fprintf(stderr, "INTERNAL_PASS_2: Definition \"%s\" is a string definition, and it cannot be exported.\n", export_tmp->name);
-      else if (g_tmp_def->type == DEFINITION_TYPE_STACK) {
-        fprintf(final_ptr, "%s%c", g_tmp_def->alias, 0x1);
-        dou = g_tmp_def->value;
+      else if (tmp_def->type == DEFINITION_TYPE_STACK) {
+        fprintf(final_ptr, "%s%c", tmp_def->alias, 0x1);
+        dou = tmp_def->value;
         WRITEOUT_DOU;
       }
     }

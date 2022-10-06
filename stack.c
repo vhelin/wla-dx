@@ -20,7 +20,6 @@
 extern int g_input_number_error_msg, g_bankheader_status, g_input_float_mode, g_global_label_hint, g_input_parse_if;
 extern int g_source_pointer, g_source_file_size, g_parsed_int, g_macro_active, g_string_size, g_section_status, g_parse_floats;
 extern char g_xyz[512], *g_buffer, *g_tmp, g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
-extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct macro_runtime *g_macro_runtime_current;
@@ -235,13 +234,15 @@ int compress_stack_calculation_ids(void) {
 
   export_tmp = g_export_first;
   while (export_tmp != NULL) {
-    hashmap_get(g_defines_map, export_tmp->name, (void*)&g_tmp_def);
-    if (g_tmp_def != NULL) {
-      if (g_tmp_def->type == DEFINITION_TYPE_STACK) {
-        struct stack *s = g_stack_calculations[(int)g_tmp_def->value];
+    struct definition *tmp_def;
+    
+    hashmap_get(g_defines_map, export_tmp->name, (void*)&tmp_def);
+    if (tmp_def != NULL) {
+      if (tmp_def->type == DEFINITION_TYPE_STACK) {
+        struct stack *s = g_stack_calculations[(int)tmp_def->value];
 
         if (s != NULL)
-          g_tmp_def->value = (double)s->compressed_id;
+          tmp_def->value = (double)s->compressed_id;
       }
     }
 
@@ -376,13 +377,14 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
 
 int get_label_length(char *l) {
 
+  struct definition *tmp_def;
   int length;
   
-  hashmap_get(g_defines_map, l, (void*)&g_tmp_def);
+  hashmap_get(g_defines_map, l, (void*)&tmp_def);
 
-  if (g_tmp_def != NULL) {
-    if (g_tmp_def->type == DEFINITION_TYPE_STRING)
-      return (int)strlen(g_tmp_def->string);
+  if (tmp_def != NULL) {
+    if (tmp_def->type == DEFINITION_TYPE_STRING)
+      return (int)strlen(tmp_def->string);
     else {
       print_error(ERROR_NUM, "Definition \"%s\" is not a string definition. .length returns 0 for that...\n", l);
       return 0;
@@ -1791,6 +1793,8 @@ static void _remove_can_calculate_deltas_pair(struct stack_item *s) {
 
 static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
 
+  struct definition *tmp_def;
+
   /*
   if (s->type == STACK_ITEM_TYPE_STRING)
     fprintf(stderr, "STR 1 ***%s***\n", s->string);
@@ -1823,37 +1827,37 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
     fprintf(stderr, "??? 2\n");
   */
 
-  hashmap_get(g_defines_map, s->string, (void*)&g_tmp_def);
-  if (g_tmp_def != NULL) {
-    if (g_tmp_def->type == DEFINITION_TYPE_STRING) {
+  hashmap_get(g_defines_map, s->string, (void*)&tmp_def);
+  if (tmp_def != NULL) {
+    if (tmp_def->type == DEFINITION_TYPE_STRING) {
       if (g_input_parse_if == NO) {
         /* change the contents */
         s->type = STACK_ITEM_TYPE_STRING;
-        strcpy(s->string, g_tmp_def->string);
+        strcpy(s->string, tmp_def->string);
         /*
-        print_error(ERROR_STC, "Definition \"%s\" is a string definition.\n", g_tmp_def->alias);
+        print_error(ERROR_STC, "Definition \"%s\" is a string definition.\n", tmp_def->alias);
         */
         return FAILED;
       }
       else {
         *cannot_resolve = 1;
-        strcpy(s->string, g_tmp_def->string);
+        strcpy(s->string, tmp_def->string);
       }
     }
-    else if (g_tmp_def->type == DEFINITION_TYPE_STACK) {
+    else if (tmp_def->type == DEFINITION_TYPE_STACK) {
       /* turn this reference to a stack calculation define into a direct reference to the stack calculation as */
       /* this way we don't have to care if the define is exported or not as stack calculations are always exported */
       s->type = STACK_ITEM_TYPE_STACK;
-      s->value = g_tmp_def->value;
+      s->value = tmp_def->value;
     }
-    else if (g_tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+    else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
       /* wla cannot resolve address labels (unless outside a section) -> only wlalink can do that */
       *cannot_resolve = 1;
-      strcpy(s->string, g_tmp_def->string);
+      strcpy(s->string, tmp_def->string);
     }
     else {
       s->type = STACK_ITEM_TYPE_VALUE;
-      s->value = g_tmp_def->value;
+      s->value = tmp_def->value;
     }
 
     if (s->can_calculate_deltas == YES) {

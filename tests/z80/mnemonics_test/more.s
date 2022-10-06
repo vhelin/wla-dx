@@ -11,11 +11,11 @@
 
         .bank 0 slot 0
 
-	.struct Object
-	status  db
-	data    dsb 8
-	.endst
+        .struct Object
+        status  db
+        data    dsb 8
+        .endst
 
-	.section "Section3" after "Section2"
-	.dstruct Object2 instanceof Object DATA 2, "MOTO"
-	.ends
+        .section "Section3" after "Section2"
+        .dstruct Object2 instanceof Object DATA 2, "MOTO"
+        .ends

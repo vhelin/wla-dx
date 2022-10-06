@@ -1,3 +1,4 @@
-
 [objects]
 main.o
+[definitions]
+VALUE_8191_2 8191

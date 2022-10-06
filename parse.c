@@ -36,7 +36,6 @@ extern int g_source_pointer, g_source_file_size, g_parsed_int, g_macro_active, g
 extern char *g_buffer, *g_tmp, g_current_directive[256], *g_label_stack[256];
 extern unsigned char g_asciitable[256];
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
-extern struct definition *g_tmp_def;
 extern struct map_t *g_defines_map;
 extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
 extern struct function *g_functions_first;
@@ -650,11 +649,13 @@ int input_number(void) {
     k = ma->type;
 
     if (k == INPUT_NUMBER_ADDRESS_LABEL) {
+      struct definition *tmp_def;
+
       strcpy(g_label, ma->string);
 
-      hashmap_get(g_defines_map, g_label, (void*)&g_tmp_def);
-      if (g_tmp_def != NULL)
-        return _input_number_return_definition(g_tmp_def);
+      hashmap_get(g_defines_map, g_label, (void*)&tmp_def);
+      if (tmp_def != NULL)
+        return _input_number_return_definition(tmp_def);
       else {
         print_error(ERROR_NUM, "Cannot find definition for \"%s\".\n", g_label);
         return FAILED;
@@ -1302,10 +1303,12 @@ int input_number(void) {
 
   if (check_if_a_definition == YES && g_parsing_function_body == NO) {
     /* check if the label is actually a definition */
-    if (hashmap_get(g_defines_map, g_label, (void*)&g_tmp_def) != MAP_OK)
-      hashmap_get(g_defines_map, label_tmp, (void*)&g_tmp_def);
-    if (g_tmp_def != NULL)
-      return _input_number_return_definition(g_tmp_def);
+    struct definition *tmp_def;
+    
+    if (hashmap_get(g_defines_map, g_label, (void*)&tmp_def) != MAP_OK)
+      hashmap_get(g_defines_map, label_tmp, (void*)&tmp_def);
+    if (tmp_def != NULL)
+      return _input_number_return_definition(tmp_def);
   }
 
   /* are labels 16-bit by default? */
@@ -1337,31 +1340,33 @@ int process_special_labels(char *label) {
 
 int parse_string_length(char *end) {
 
+  struct definition *tmp_def;
+
   /* remove ".length" from the end of label (end points to inside of label) */
   end[0] = 0;
 
   /* check if the label is actually a definition - it should be or else we'll give an error */
-  hashmap_get(g_defines_map, g_label, (void*)&g_tmp_def);
+  hashmap_get(g_defines_map, g_label, (void*)&tmp_def);
   
-  if (g_tmp_def != NULL) {
-    if (g_tmp_def->type == DEFINITION_TYPE_VALUE) {
+  if (tmp_def != NULL) {
+    if (tmp_def->type == DEFINITION_TYPE_VALUE) {
       if (g_input_number_error_msg == YES)
         print_error(ERROR_NUM, ".length of a value does not make any sense.\n");
       return FAILED;
     }
-    else if (g_tmp_def->type == DEFINITION_TYPE_STACK) {
+    else if (tmp_def->type == DEFINITION_TYPE_STACK) {
       if (g_input_number_error_msg == YES)
         print_error(ERROR_NUM, ".length of a pending computation does not make any sense.\n");
       return FAILED;
     }
-    else if (g_tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
+    else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
       if (g_input_number_error_msg == YES)
         print_error(ERROR_NUM, ".length of an address label does not make any sense.\n");
       return FAILED;
     }
     else {
-      g_string_size = g_tmp_def->size;
-      memcpy(g_label, g_tmp_def->string, g_string_size);
+      g_string_size = tmp_def->size;
+      memcpy(g_label, tmp_def->string, g_string_size);
       g_label[g_string_size] = 0;
 
       g_parsed_int = (int)strlen(g_label);
@@ -1646,11 +1651,13 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
       ma = g_macro_runtime_current->argument_data[d - 1];
 
       if (ma->type == INPUT_NUMBER_ADDRESS_LABEL) {
-        strcpy(g_label, ma->string);
+	struct definition *tmp_def;
 
-        hashmap_get(g_defines_map, g_label, (void*)&g_tmp_def);
-        if (g_tmp_def != NULL) {
-          int type = _input_number_return_definition(g_tmp_def);
+	strcpy(g_label, ma->string);
+
+        hashmap_get(g_defines_map, g_label, (void*)&tmp_def);
+        if (tmp_def != NULL) {
+          int type = _input_number_return_definition(tmp_def);
 
           if (type == SUCCEEDED)
             snprintf(t, sizeof(t), "%d", g_parsed_int);

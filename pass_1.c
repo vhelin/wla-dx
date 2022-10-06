@@ -100,7 +100,6 @@ unsigned char *g_rom_banks = NULL, *g_rom_banks_usage_table = NULL;
 
 struct structure **g_saved_structures = NULL;
 struct export_def *g_export_first = NULL, *g_export_last = NULL;
-struct definition *g_tmp_def;
 struct map_t *g_defines_map = NULL;
 struct macro_static *g_macros_first = NULL, *g_macros_last = NULL;
 struct section_def *g_sections_first = NULL, *g_sections_last = NULL, *g_sec_tmp, *g_sec_next;

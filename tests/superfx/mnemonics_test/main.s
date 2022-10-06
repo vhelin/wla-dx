@@ -169,3 +169,14 @@ label_b:.db "<04"                   ; @BT END
         .db "<22"                   ; @BT END
         .ends
 
+        .db "23>"                   ; @BT TEST-23 23 START
+        lms r9, (VALUE_88H)         ; @BT 3D A9 44
+        lms r9, (VALUE_88H+1-1)     ; @BT 3D A9 44
+        lms r1,(VALUE_22H)          ; @BT 3D A1 11
+        lms r1,(VALUE_22H-1+1)      ; @BT 3D A1 11
+        .db "<23"                   ; @BT END
+
+        .define VALUE_22H 11h+11h
+        .define VALUE_44H VALUE_22H*2
+        .define VALUE_88H VALUE_44H*2
+        
