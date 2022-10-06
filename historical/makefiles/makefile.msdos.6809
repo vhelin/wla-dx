@@ -7,7 +7,7 @@ CFLAGS = -mtune=i486 -c -O3 -ansi -pedantic -Wall -DMSDOS -DMC6809 -DNDEBUG=1
 LD = gcc
 LDFLAGS = -lm
 
-OFILES = main.o crc32.o decode.o hashmap.o include.o listfile.o mersenne.o parse.o pass_1.o pass_2.o pass_3.o pass_4.o printf.o stack.o instructions_6809_tables.o instructions_6809.o
+OFILES = main.o crc32.o decode.o hashmap.o include.o listfile.o mersenne.o parse.o pass_1.o pass_2.o pass_3.o pass_4.o printf.o stack.o t6809.o i6809.o
 
 all: $(OFILES)
 	$(LD) $(LDFLAGS) $(OFILES) -o w-6809.exe
@@ -22,14 +22,11 @@ decode.o: decode.c decode.h parse.h pass_1.h printf.h stack.h
 hashmap.o: hashmap.c hashmap.h crc32.h
 	$(CC) $(CFLAGS) hashmap.c
 
+i6809.o: i6809.c 
+	$(CC) $(CFLAGS) i6809.c
+
 include.o: include.c include.h crc32.h defines.h hashmap.h shared.h parse.h pass_1.h printf.h
 	$(CC) $(CFLAGS) include.c
-
-instructions_6809.o: instructions_6809.c 
-	$(CC) $(CFLAGS) instructions_6809.c
-
-instructions_6809_tables.o: instructions_6809_tables.c 
-	$(CC) $(CFLAGS) instructions_6809_tables.c
 
 listfile.o: listfile.c listfile.h defines.h hashmap.h shared.h include.h
 	$(CC) $(CFLAGS) listfile.c
@@ -60,6 +57,9 @@ printf.o: printf.c printf.h
 
 stack.o: stack.c stack.h defines.h hashmap.h shared.h hashmap.h parse.h pass_1.h include.h printf.h
 	$(CC) $(CFLAGS) stack.c
+
+t6809.o: t6809.c 
+	$(CC) $(CFLAGS) t6809.c
 
 
 clean:

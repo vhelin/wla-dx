@@ -8,7 +8,7 @@ LD=gcc
 CFLAGS= -c -O3 -ansi -pedantic -Wall -DUNIX -DZ80
 LDFLAGS = -lm
 
-OFILES = main.o crc32.o decode.o hashmap.o include.o listfile.o mersenne.o parse.o pass_1.o pass_2.o pass_3.o pass_4.o printf.o stack.o instructions_z80_tables.o instructions_z80.o
+OFILES = main.o crc32.o decode.o hashmap.o include.o listfile.o mersenne.o parse.o pass_1.o pass_2.o pass_3.o pass_4.o printf.o stack.o tz80.o iz80.o
 
 
 all: $(OFILES) makefile
@@ -28,11 +28,8 @@ hashmap.o: hashmap.c hashmap.h crc32.h
 include.o: include.c include.h crc32.h defines.h hashmap.h shared.h parse.h pass_1.h printf.h
 	$(CC) $(CFLAGS) include.c
 
-instructions_z80.o: instructions_z80.c 
-	$(CC) $(CFLAGS) instructions_z80.c
-
-instructions_z80_tables.o: instructions_z80_tables.c 
-	$(CC) $(CFLAGS) instructions_z80_tables.c
+iz80.o: iz80.c 
+	$(CC) $(CFLAGS) iz80.c
 
 listfile.o: listfile.c listfile.h defines.h hashmap.h shared.h include.h
 	$(CC) $(CFLAGS) listfile.c
@@ -63,6 +60,9 @@ printf.o: printf.c printf.h
 
 stack.o: stack.c stack.h defines.h hashmap.h shared.h hashmap.h parse.h pass_1.h include.h printf.h
 	$(CC) $(CFLAGS) stack.c
+
+tz80.o: tz80.c 
+	$(CC) $(CFLAGS) tz80.c
 
 
 clean:

@@ -4,93 +4,93 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 copy makefiles/scoptions.000 to scoptions
-sc define AMIGA=1 define GB=1 instructions_gb.c
-sc define AMIGA=1 define Z80=1 instructions_z80.c
-sc define AMIGA=1 define MCS6502=1 instructions_6502.c
-sc define AMIGA=1 define WDC65C02=1 instructions_65c02.c
-sc define AMIGA=1 define CSG65CE02=1 instructions_65ce02.c
-sc define AMIGA=1 define MC6800=1 instructions_6800.c
-sc define AMIGA=1 define MC6801=1 instructions_6801.c
-sc define AMIGA=1 define MC6809=1 instructions_6809.c
-sc define AMIGA=1 define I8008=1 instructions_8008.c
-sc define AMIGA=1 define I8080=1 instructions_8080.c
-sc define AMIGA=1 define W65816=1 instructions_65816.c
-sc define AMIGA=1 define SPC700=1 instructions_spc700.c
-sc define AMIGA=1 define HUC6280=1 instructions_huc6280.c
-sc define AMIGA=1 define SUPERFX=1 instructions_superfx.c
+sc define AMIGA=1 define GB=1 igb.c
+sc define AMIGA=1 define Z80=1 iz80.c
+sc define AMIGA=1 define MCS6502=1 i6502.c
+sc define AMIGA=1 define WDC65C02=1 i65c02.c
+sc define AMIGA=1 define CSG65CE02=1 i65ce02.c
+sc define AMIGA=1 define MC6800=1 i6800.c
+sc define AMIGA=1 define MC6801=1 i6801.c
+sc define AMIGA=1 define MC6809=1 i6809.c
+sc define AMIGA=1 define I8008=1 i8008.c
+sc define AMIGA=1 define I8080=1 i8080.c
+sc define AMIGA=1 define W65816=1 i65816.c
+sc define AMIGA=1 define SPC700=1 ispc700.c
+sc define AMIGA=1 define HUC6280=1 ihuc6280.c
+sc define AMIGA=1 define SUPERFX=1 isuperfx.c
 
 copy makefiles/scoptions.000 to instruction_table_generator/scoptions
 cd instruction_table_generator
 
 sc define AMIGA=1 define GB=1 main.c
-slink FROM LIB:c.o main.o /instructions_gb.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-instruction_table_generator /instructions_gb_tables.c
-delete instruction_table_generator main.o /instructions_gb.o
+slink FROM LIB:c.o main.o /igb.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /tgb.c
+delete instruction_table_generator main.o /igb.o
 
 sc define AMIGA=1 define Z80=1 main.c
-slink FROM LIB:c.o main.o /instructions_z80.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-instruction_table_generator /instructions_z80_tables.c
-delete instruction_table_generator main.o /instructions_z80.o
+slink FROM LIB:c.o main.o /iz80.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /tz80.c
+delete instruction_table_generator main.o /iz80.o
 
 sc define AMIGA=1 define MCS6502=1 main.c
-slink FROM LIB:c.o main.o /instructions_6502.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-instruction_table_generator /instructions_6502_tables.c
-delete instruction_table_generator main.o /instructions_6502.o
+slink FROM LIB:c.o main.o /i6502.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /t6502.c
+delete instruction_table_generator main.o /i6502.o
 
 sc define AMIGA=1 define WDC65C02=1 main.c
-slink FROM LIB:c.o main.o /instructions_65c02.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-instruction_table_generator /instructions_65c02_tables.c
-delete instruction_table_generator main.o /instructions_65c02.o
+slink FROM LIB:c.o main.o /i65c02.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /t65c02.c
+delete instruction_table_generator main.o /i65c02.o
 
 sc define AMIGA=1 define CSG65CE02=1 main.c
-slink FROM LIB:c.o main.o /instructions_65ce02.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-instruction_table_generator /instructions_65ce02_tables.c
-delete instruction_table_generator main.o /instructions_65ce02.o
+slink FROM LIB:c.o main.o /i65ce02.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /t65ce02.c
+delete instruction_table_generator main.o /i65ce02.o
 
 sc define AMIGA=1 define MC6800=1 main.c
-slink FROM LIB:c.o main.o /instructions_6800.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-instruction_table_generator /instructions_6800_tables.c
-delete instruction_table_generator main.o /instructions_6800.o
+slink FROM LIB:c.o main.o /i6800.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /t6800.c
+delete instruction_table_generator main.o /i6800.o
 
 sc define AMIGA=1 define MC6801=1 main.c
-slink FROM LIB:c.o main.o /instructions_6801.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-instruction_table_generator /instructions_6801_tables.c
-delete instruction_table_generator main.o /instructions_6801.o
+slink FROM LIB:c.o main.o /i6801.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /t6801.c
+delete instruction_table_generator main.o /i6801.o
 
 sc define AMIGA=1 define MC6809=1 main.c
-slink FROM LIB:c.o main.o /instructions_6809.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-instruction_table_generator /instructions_6809_tables.c
-delete instruction_table_generator main.o /instructions_6809.o
+slink FROM LIB:c.o main.o /i6809.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /t6809.c
+delete instruction_table_generator main.o /i6809.o
 
 sc define AMIGA=1 define I8008=1 main.c
-slink FROM LIB:c.o main.o /instructions_8008.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-instruction_table_generator /instructions_8008_tables.c
-delete instruction_table_generator main.o /instructions_8008.o
+slink FROM LIB:c.o main.o /i8008.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /t8008.c
+delete instruction_table_generator main.o /i8008.o
 
 sc define AMIGA=1 define I8080=1 main.c
-slink FROM LIB:c.o main.o /instructions_8080.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-instruction_table_generator /instructions_8080_tables.c
-delete instruction_table_generator main.o /instructions_8080.o
+slink FROM LIB:c.o main.o /i8080.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /t8080.c
+delete instruction_table_generator main.o /i8080.o
 
 sc define AMIGA=1 define W65816=1 main.c
-slink FROM LIB:c.o main.o /instructions_65816.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-instruction_table_generator /instructions_65816_tables.c
-delete instruction_table_generator main.o /instructions_65816.o
+slink FROM LIB:c.o main.o /i65816.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /t65816.c
+delete instruction_table_generator main.o /i65816.o
 
 sc define AMIGA=1 define SPC700=1 main.c
-slink FROM LIB:c.o main.o /instructions_spc700.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-instruction_table_generator /instructions_spc700_tables.c
-delete instruction_table_generator main.o /instructions_spc700.o
+slink FROM LIB:c.o main.o /ispc700.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /tspc700.c
+delete instruction_table_generator main.o /ispc700.o
 
 sc define AMIGA=1 define HUC6280=1 main.c
-slink FROM LIB:c.o main.o /instructions_huc6280.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-instruction_table_generator /instructions_huc6280_tables.c
-delete instruction_table_generator main.o /instructions_huc6280.o
+slink FROM LIB:c.o main.o /ihuc6280.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /thuc6280.c
+delete instruction_table_generator main.o /ihuc6280.o
 
 sc define AMIGA=1 define SUPERFX=1 main.c
-slink FROM LIB:c.o main.o /instructions_superfx.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
-instruction_table_generator /instructions_superfx_tables.c
-delete instruction_table_generator main.o /instructions_superfx.o
+slink FROM LIB:c.o main.o /isuperfx.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /tsuperfx.c
+delete instruction_table_generator main.o /isuperfx.o
 
 cd /
 

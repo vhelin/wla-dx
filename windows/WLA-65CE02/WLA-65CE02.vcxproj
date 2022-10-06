@@ -25,7 +25,7 @@
     <ClCompile Include="..\..\include.c" />
     <ClCompile Include="..\..\listfile.c" />
     <ClCompile Include="..\..\main.c" />
-    <ClCompile Include="..\..\instructions_65ce02.c" />
+    <ClCompile Include="..\..\i65ce02.c" />
     <ClCompile Include="..\..\parse.c" />
     <ClCompile Include="..\..\pass_1.c" />
     <ClCompile Include="..\..\pass_2.c" />
@@ -34,7 +34,7 @@
     <ClCompile Include="..\..\printf.c" />
     <ClCompile Include="..\..\stack.c" />
     <ClCompile Include="..\..\mersenne.c" />
-    <ClCompile Include="..\GEN-TABLES-65CE02\instructions_65ce02_tables.c" />
+    <ClCompile Include="..\GEN-TABLES-65CE02\t65ce02.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

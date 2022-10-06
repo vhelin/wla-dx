@@ -22,7 +22,7 @@ wla_[ab].tmp
 *.exe
 
 # Generated files
-opcodes_*_tables.c
+ins_tbl_gen/t*.c
 
 # CMake files
 /*[Bb]uild*/
@@ -43,8 +43,6 @@ ImportGenerators.cmake
 *.tlog
 *.VC.*
 *.log
-
-
 *.idb
 *.pdb
 *.ilk

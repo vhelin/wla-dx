@@ -8,7 +8,7 @@ LD=gcc
 CFLAGS= -c -O3 -ansi -pedantic -Wall -DUNIX -DI8080
 LDFLAGS = -lm
 
-OFILES = main.o crc32.o decode.o hashmap.o include.o listfile.o mersenne.o parse.o pass_1.o pass_2.o pass_3.o pass_4.o printf.o stack.o instructions_8080_tables.o instructions_8080.o
+OFILES = main.o crc32.o decode.o hashmap.o include.o listfile.o mersenne.o parse.o pass_1.o pass_2.o pass_3.o pass_4.o printf.o stack.o t8080.o i8080.o
 
 
 all: $(OFILES) makefile
@@ -25,14 +25,11 @@ decode.o: decode.c decode.h parse.h pass_1.h printf.h stack.h
 hashmap.o: hashmap.c hashmap.h crc32.h
 	$(CC) $(CFLAGS) hashmap.c
 
+i8080.o: i8080.c 
+	$(CC) $(CFLAGS) i8080.c
+
 include.o: include.c include.h crc32.h defines.h hashmap.h shared.h parse.h pass_1.h printf.h
 	$(CC) $(CFLAGS) include.c
-
-instructions_8080.o: instructions_8080.c 
-	$(CC) $(CFLAGS) instructions_8080.c
-
-instructions_8080_tables.o: instructions_8080_tables.c 
-	$(CC) $(CFLAGS) instructions_8080_tables.c
 
 listfile.o: listfile.c listfile.h defines.h hashmap.h shared.h include.h
 	$(CC) $(CFLAGS) listfile.c
@@ -63,6 +60,9 @@ printf.o: printf.c printf.h
 
 stack.o: stack.c stack.h defines.h hashmap.h shared.h hashmap.h parse.h pass_1.h include.h printf.h
 	$(CC) $(CFLAGS) stack.c
+
+t8080.o: t8080.c 
+	$(CC) $(CFLAGS) t8080.c
 
 
 clean:

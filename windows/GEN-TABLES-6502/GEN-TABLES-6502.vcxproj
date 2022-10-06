@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\instructions_6502.c" />
+    <ClCompile Include="..\..\i6502.c" />
     <ClCompile Include="..\..\instruction_table_generator\main.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -106,7 +106,7 @@
       </AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>$(OutDir)\GEN-TABLES-6502.exe instructions_6502_tables.c</Command>
+      <Command>$(OutDir)\GEN-TABLES-6502.exe t6502.c</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -124,7 +124,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>$(OutDir)\GEN-TABLES-6502.exe instructions_6502_tables.c</Command>
+      <Command>$(OutDir)\GEN-TABLES-6502.exe t6502.c</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -142,7 +142,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>$(OutDir)\GEN-TABLES-6502.exe instructions_6502_tables.c</Command>
+      <Command>$(OutDir)\GEN-TABLES-6502.exe t6502.c</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -164,7 +164,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>$(OutDir)\GEN-TABLES-6502.exe instructions_6502_tables.c</Command>
+      <Command>$(OutDir)\GEN-TABLES-6502.exe t6502.c</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

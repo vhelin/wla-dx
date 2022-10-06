@@ -8,46 +8,46 @@
 
 
 #ifdef GB
-#include "../../../instructions_gb.c"
+#include "../../../igb.c"
 #endif
 #ifdef Z80
-#include "../../../instructions_z80.c"
+#include "../../../iz80.c"
 #endif
 #ifdef MCS6502
-#include "../../../instructions_6502.c"
+#include "../../../i6502.c"
 #endif
 #ifdef WDC65C02
-#include "../../../instructions_65c02.c"
+#include "../../../i65c02.c"
 #endif
 #ifdef CSG65CE02
-#include "../../../instructions_65ce02.c"
+#include "../../../i65ce02.c"
 #endif
 #ifdef W65816
-#include "../../../instructions_65816.c"
+#include "../../../i65816.c"
 #endif
 #ifdef SPC700
-#include "../../../instructions_spc700.c"
+#include "../../../ispc700.c"
 #endif
 #ifdef SUPERFX
-#include "../../../instructions_superfx.c"
+#include "../../../isuperfx.c"
 #endif
 #ifdef HUC6280
-#include "../../../instructions_huc6280.c"
+#include "../../../ihuc6280.c"
 #endif
 #ifdef I8008
-#include "../../../instructions_8008.c"
+#include "../../../i8008.c"
 #endif
 #ifdef I8080
-#include "../../../instructions_8080.c"
+#include "../../../i8080.c"
 #endif
 #ifdef MC6800
-#include "../../../instructions_6800.c"
+#include "../../../i6800.c"
 #endif
 #ifdef MC6801
-#include "../../../instructions_6801.c"
+#include "../../../i6801.c"
 #endif
 #ifdef MC6809
-#include "../../../instructions_6809.c"
+#include "../../../i6809.c"
 #endif
 
 

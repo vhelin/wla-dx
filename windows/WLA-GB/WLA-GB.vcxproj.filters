@@ -54,10 +54,10 @@
     <ClCompile Include="..\..\mersenne.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\instructions_gb.c">
+    <ClCompile Include="..\..\igb.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\GEN-TABLES-GB\instructions_gb_tables.c">
+    <ClCompile Include="..\GEN-TABLES-GB\tgb.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\decode.c">

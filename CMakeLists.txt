@@ -150,7 +150,7 @@ foreach(ARCH IN LISTS ARCHS)
     if((NOT CMAKE_CROSSCOMPILING) OR CMAKE_CROSSCOMPILING_EMULATOR)
         add_executable(gen-${WLA_NAME}
             "instruction_table_generator/main.c"
-            "instructions_${WLA_NAME}.c"
+            "i${WLA_NAME}.c"
             )
         set_property(TARGET gen-${WLA_NAME} APPEND
             PROPERTY COMPILE_DEFINITIONS
@@ -163,7 +163,7 @@ foreach(ARCH IN LISTS ARCHS)
     endif()
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/ins_tbl_gen/")
     set(TABLE_GEN_OUTPUT
-        "${CMAKE_CURRENT_BINARY_DIR}/ins_tbl_gen/instructions_${WLA_NAME}_tables.c")
+        "${CMAKE_CURRENT_BINARY_DIR}/ins_tbl_gen/t${WLA_NAME}.c")
     add_custom_command(
         OUTPUT "${TABLE_GEN_OUTPUT}"
         COMMAND ${GEN_PREFIX}gen-${WLA_NAME}
@@ -173,7 +173,7 @@ foreach(ARCH IN LISTS ARCHS)
     # Generate actual wla binary
     add_executable(wla-${WLA_NAME}
         ${WLA_SRCS} "${TABLE_GEN_OUTPUT}"
-        "instructions_${WLA_NAME}.c"
+        "i${WLA_NAME}.c"
         )
     set_property(TARGET wla-${WLA_NAME} APPEND PROPERTY
         COMPILE_DEFINITIONS "${COMPILE_DEF}")

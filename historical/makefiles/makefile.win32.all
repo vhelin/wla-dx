@@ -5,9 +5,9 @@ LD = gcc
 LDFLAGS = -lm
 WLAFLAGS = $(CFLAGS)
 
-CFILES = main.c parse.c include.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c printf.c mersenne.c instructions_$(WLA2)_tables.c instructions_$(WLA2).c
+CFILES = main.c parse.c include.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c printf.c mersenne.c t$(WLA2).c i$(WLA2).c
 HFILES = main.h parse.h include.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h crc32.h hashmap.h printf.h mersenne.h defines.h
-OFILES = main.o parse.o include.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o printf.o mersenne.o instructions_$(WLA2)_tables.c instructions_$(WLA2).c
+OFILES = main.o parse.o include.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o printf.o mersenne.o t$(WLA2).c i$(WLA2).c
 
 
 all: $(OFILES) makefile
@@ -25,13 +25,13 @@ parse.o: parse.c defines.h parse.h makefile
 include.o: include.c defines.h include.h makefile
 	$(CC) $(CFLAGS) include.c
 
-instructions_$(WLA2)_tables.o: instructions_$(WLA2)_tables.c
-	$(CC) $(CFLAGS) instructions_$(WLA2)_tables.c
+t$(WLA2).o: t$(WLA2).c
+	$(CC) $(CFLAGS) t$(WLA2).c
 
-instructions_$(WLA2).o: instructions_$(WLA2).c
-	$(CC) $(CFLAGS) instructions_$(WLA2).c
+i$(WLA2).o: i$(WLA2).c
+	$(CC) $(CFLAGS) i$(WLA2).c
 
-pass_1.o: pass_1.c defines.h pass_1.h parse.h makefile instructions_$(WLA2).c
+pass_1.o: pass_1.c defines.h pass_1.h parse.h makefile i$(WLA2).c
 	$(CC) $(CFLAGS) pass_1.c
 
 pass_2.o: pass_2.c defines.h pass_2.h makefile

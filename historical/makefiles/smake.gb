@@ -12,7 +12,7 @@ LINKER = slink
 LLIB = LIB LIB:sc$(MATH).lib LIB:sc.lib LIB:amiga.lib
 LFLAGS = STRIPDEBUG NOICONS
 
-OFILES = main.o crc32.o decode.o hashmap.o include.o listfile.o mersenne.o parse.o pass_1.o pass_2.o pass_3.o pass_4.o printf.o stack.o instructions_gb_tables.o instructions_gb.o
+OFILES = main.o crc32.o decode.o hashmap.o include.o listfile.o mersenne.o parse.o pass_1.o pass_2.o pass_3.o pass_4.o printf.o stack.o tgb.o igb.o
 
 
 all: main
@@ -30,14 +30,11 @@ decode.o: decode.c decode.h parse.h pass_1.h printf.h stack.h
 hashmap.o: hashmap.c hashmap.h crc32.h
 	$(CC) $(CFLAGS) hashmap.c
 
+igb.o: igb.c 
+	$(CC) $(CFLAGS) igb.c
+
 include.o: include.c include.h crc32.h defines.h hashmap.h shared.h parse.h pass_1.h printf.h
 	$(CC) $(CFLAGS) include.c
-
-instructions_gb.o: instructions_gb.c 
-	$(CC) $(CFLAGS) instructions_gb.c
-
-instructions_gb_tables.o: instructions_gb_tables.c 
-	$(CC) $(CFLAGS) instructions_gb_tables.c
 
 listfile.o: listfile.c listfile.h defines.h hashmap.h shared.h include.h
 	$(CC) $(CFLAGS) listfile.c
@@ -68,6 +65,9 @@ printf.o: printf.c printf.h
 
 stack.o: stack.c stack.h defines.h hashmap.h shared.h hashmap.h parse.h pass_1.h include.h printf.h
 	$(CC) $(CFLAGS) stack.c
+
+tgb.o: tgb.c 
+	$(CC) $(CFLAGS) tgb.c
 
 
 clean:

@@ -54,10 +54,10 @@
     <ClCompile Include="..\..\mersenne.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\instructions_z80.c">
+    <ClCompile Include="..\..\iz80.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\GEN-TABLES-Z80\instructions_z80_tables.c">
+    <ClCompile Include="..\GEN-TABLES-Z80\tz80.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\decode.c">

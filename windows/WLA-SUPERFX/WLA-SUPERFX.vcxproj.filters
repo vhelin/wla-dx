@@ -54,10 +54,10 @@
     <ClCompile Include="..\..\stack.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\instructions_superfx.c">
+    <ClCompile Include="..\..\isuperfx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\GEN-TABLES-SUPERFX\instructions_superfx_tables.c">
+    <ClCompile Include="..\GEN-TABLES-SUPERFX\tsuperfx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\decode.c">

@@ -18,7 +18,7 @@
     <ClCompile Include="..\..\instruction_table_generator\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\instructions_gb.c">
+    <ClCompile Include="..\..\igb.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

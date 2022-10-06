@@ -183,8 +183,8 @@ def generate(cpu, new_line, template):
             'include.h',
             'printf.h',
         ],
-        'instructions_' + cpu['name'] + '_tables.c': [],
-        'instructions_' + cpu['name'] + '.c': [],
+        't' + cpu['name'] + '.c': [],
+        'i' + cpu['name'] + '.c': [],
     }
 
     # It's possible that an header such as defines.h includes other headers.

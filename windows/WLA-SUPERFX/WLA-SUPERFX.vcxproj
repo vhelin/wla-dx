@@ -26,7 +26,7 @@
     <ClCompile Include="..\..\listfile.c" />
     <ClCompile Include="..\..\main.c" />
     <ClCompile Include="..\..\mersenne.c" />
-    <ClCompile Include="..\..\instructions_superfx.c" />
+    <ClCompile Include="..\..\isuperfx.c" />
     <ClCompile Include="..\..\parse.c" />
     <ClCompile Include="..\..\pass_1.c" />
     <ClCompile Include="..\..\pass_2.c" />
@@ -34,7 +34,7 @@
     <ClCompile Include="..\..\pass_4.c" />
     <ClCompile Include="..\..\printf.c" />
     <ClCompile Include="..\..\stack.c" />
-    <ClCompile Include="..\GEN-TABLES-SUPERFX\instructions_superfx_tables.c" />
+    <ClCompile Include="..\GEN-TABLES-SUPERFX\tsuperfx.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
