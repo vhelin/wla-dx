@@ -85,9 +85,9 @@ def generate(cpu, new_line, template):
             'main.h',
             'defines.h',
             'hashmap.h',
-            'include_file.h',
+            'include.h',
             'listfile.h',
-            'mersenne_twister.h',
+            'mersenne.h',
             'parse.h',
             'pass_1.h',
             'pass_2.h',
@@ -109,8 +109,8 @@ def generate(cpu, new_line, template):
             'hashmap.h',
             'crc32.h',
         ],
-        'include_file.c': [
-            'include_file.h',
+        'include.c': [
+            'include.h',
             'crc32.h',
             'defines.h',
             'parse.h',
@@ -120,17 +120,17 @@ def generate(cpu, new_line, template):
         'listfile.c': [
             'listfile.h',
             'defines.h',
-            'include_file.h',
+            'include.h',
         ],
-        'mersenne_twister.c': [
-            'mersenne_twister.h'
+        'mersenne.c': [
+            'mersenne.h'
         ],
         'parse.c': [
             'parse.h',
             'defines.h',
             'pass_1.h',
             'stack.h',
-            'include_file.h',
+            'include.h',
             'printf.h',
         ],
         'pass_1.c': [
@@ -138,14 +138,14 @@ def generate(cpu, new_line, template):
             'decode.h',
             'defines.h',
             'main.h',
-            'include_file.h',
+            'include.h',
             'parse.h',
             'pass_2.h',
             'pass_3.h',
             'stack.h',
             'hashmap.h',
             'printf.h',
-            'mersenne_twister.h',
+            'mersenne.h',
         ],
         'pass_2.c': [
             'pass_2.h',
@@ -158,12 +158,12 @@ def generate(cpu, new_line, template):
         'pass_3.c': [
             'pass_3.h',
             'defines.h',
-            'include_file.h',
+            'include.h',
             'printf.h',
         ],
         'pass_4.c': [
             'defines.h',
-            'include_file.h',
+            'include.h',
             'listfile.h',
             'pass_3.h',
             'pass_4.h',
@@ -180,7 +180,7 @@ def generate(cpu, new_line, template):
             'hashmap.h',
             'parse.h',
             'pass_1.h',
-            'include_file.h',
+            'include.h',
             'printf.h',
         ],
         'instructions_' + cpu['name'] + '_tables.c': [],

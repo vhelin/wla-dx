@@ -43,7 +43,7 @@
 
 #include "flags.h"
 
-#include "mersenne_twister.h"
+#include "mersenne.h"
 
 /* Period parameters */  
 #define N 624

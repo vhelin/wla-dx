@@ -22,10 +22,10 @@
     <ClCompile Include="..\..\crc32.c" />
     <ClCompile Include="..\..\decode.c" />
     <ClCompile Include="..\..\hashmap.c" />
-    <ClCompile Include="..\..\include_file.c" />
+    <ClCompile Include="..\..\include.c" />
     <ClCompile Include="..\..\listfile.c" />
     <ClCompile Include="..\..\main.c" />
-    <ClCompile Include="..\..\mersenne_twister.c" />
+    <ClCompile Include="..\..\mersenne.c" />
     <ClCompile Include="..\..\instructions_superfx.c" />
     <ClCompile Include="..\..\parse.c" />
     <ClCompile Include="..\..\pass_1.c" />

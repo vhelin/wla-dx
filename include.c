@@ -9,7 +9,7 @@
 #include "crc32.h"
 #include "defines.h"
 
-#include "include_file.h"
+#include "include.h"
 #include "pass_1.h"
 #include "parse.h"
 #include "printf.h"

@@ -121,8 +121,8 @@ set(WLA_SRCS
     hashmap.h
     parse.c
     parse.h
-    include_file.c
-    include_file.h
+    include.c
+    include.h
     pass_1.c
     pass_1.h
     pass_2.c
@@ -137,8 +137,8 @@ set(WLA_SRCS
     listfile.h
     printf.c
     printf.h
-    mersenne_twister.c
-    mersenne_twister.h
+    mersenne.c
+    mersenne.h
     )
 
 foreach(ARCH IN LISTS ARCHS)

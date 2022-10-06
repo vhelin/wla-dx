@@ -22,7 +22,7 @@
     <ClCompile Include="..\..\crc32.c" />
     <ClCompile Include="..\..\decode.c" />
     <ClCompile Include="..\..\hashmap.c" />
-    <ClCompile Include="..\..\include_file.c" />
+    <ClCompile Include="..\..\include.c" />
     <ClCompile Include="..\..\listfile.c" />
     <ClCompile Include="..\..\main.c" />
     <ClCompile Include="..\..\instructions_8008.c" />
@@ -33,7 +33,7 @@
     <ClCompile Include="..\..\pass_4.c" />
     <ClCompile Include="..\..\printf.c" />
     <ClCompile Include="..\..\stack.c" />
-    <ClCompile Include="..\..\mersenne_twister.c" />
+    <ClCompile Include="..\..\mersenne.c" />
     <ClCompile Include="..\GEN-TABLES-8008\instructions_8008_tables.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

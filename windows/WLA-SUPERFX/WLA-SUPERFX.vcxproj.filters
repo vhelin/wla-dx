@@ -21,7 +21,7 @@
     <ClCompile Include="..\..\hashmap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\include_file.c">
+    <ClCompile Include="..\..\include.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\listfile.c">
@@ -30,7 +30,7 @@
     <ClCompile Include="..\..\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\mersenne_twister.c">
+    <ClCompile Include="..\..\mersenne.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\parse.c">

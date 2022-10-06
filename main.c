@@ -15,7 +15,7 @@
 #include "main.h"
 #include "defines.h"
 #include "parse.h"
-#include "include_file.h"
+#include "include.h"
 #include "pass_1.h"
 #include "pass_2.h"
 #include "pass_3.h"
@@ -23,7 +23,7 @@
 #include "listfile.h"
 #include "hashmap.h"
 #include "printf.h"
-#include "mersenne_twister.h"
+#include "mersenne.h"
 #include "stack.h"
 
 

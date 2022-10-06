@@ -7,7 +7,7 @@ CFLAGS = -mtune=i486 -c -O3 -ansi -pedantic -Wall -DMSDOS -DMC6801 -DNDEBUG=1
 LD = gcc
 LDFLAGS = -lm
 
-OFILES = main.o crc32.o decode.o hashmap.o include_file.o listfile.o mersenne_twister.o parse.o pass_1.o pass_2.o pass_3.o pass_4.o printf.o stack.o instructions_6801_tables.o instructions_6801.o
+OFILES = main.o crc32.o decode.o hashmap.o include.o listfile.o mersenne.o parse.o pass_1.o pass_2.o pass_3.o pass_4.o printf.o stack.o instructions_6801_tables.o instructions_6801.o
 
 all: $(OFILES)
 	$(LD) $(LDFLAGS) $(OFILES) -o w-6801.exe
@@ -22,8 +22,8 @@ decode.o: decode.c decode.h parse.h pass_1.h printf.h stack.h
 hashmap.o: hashmap.c hashmap.h crc32.h
 	$(CC) $(CFLAGS) hashmap.c
 
-include_file.o: include_file.c include_file.h crc32.h defines.h hashmap.h shared.h parse.h pass_1.h printf.h
-	$(CC) $(CFLAGS) include_file.c
+include.o: include.c include.h crc32.h defines.h hashmap.h shared.h parse.h pass_1.h printf.h
+	$(CC) $(CFLAGS) include.c
 
 instructions_6801.o: instructions_6801.c 
 	$(CC) $(CFLAGS) instructions_6801.c
@@ -31,34 +31,34 @@ instructions_6801.o: instructions_6801.c
 instructions_6801_tables.o: instructions_6801_tables.c 
 	$(CC) $(CFLAGS) instructions_6801_tables.c
 
-listfile.o: listfile.c listfile.h defines.h hashmap.h shared.h include_file.h
+listfile.o: listfile.c listfile.h defines.h hashmap.h shared.h include.h
 	$(CC) $(CFLAGS) listfile.c
 
-main.o: main.c main.h defines.h hashmap.h shared.h hashmap.h include_file.h listfile.h mersenne_twister.h parse.h pass_1.h pass_2.h pass_3.h pass_4.h printf.h
+main.o: main.c main.h defines.h hashmap.h shared.h hashmap.h include.h listfile.h mersenne.h parse.h pass_1.h pass_2.h pass_3.h pass_4.h printf.h
 	$(CC) $(CFLAGS) main.c
 
-mersenne_twister.o: mersenne_twister.c mersenne_twister.h
-	$(CC) $(CFLAGS) mersenne_twister.c
+mersenne.o: mersenne.c mersenne.h
+	$(CC) $(CFLAGS) mersenne.c
 
-parse.o: parse.c parse.h defines.h hashmap.h shared.h pass_1.h stack.h include_file.h printf.h
+parse.o: parse.c parse.h defines.h hashmap.h shared.h pass_1.h stack.h include.h printf.h
 	$(CC) $(CFLAGS) parse.c
 
-pass_1.o: pass_1.c pass_1.h decode.h defines.h hashmap.h shared.h main.h include_file.h parse.h pass_2.h pass_3.h stack.h hashmap.h printf.h mersenne_twister.h
+pass_1.o: pass_1.c pass_1.h decode.h defines.h hashmap.h shared.h main.h include.h parse.h pass_2.h pass_3.h stack.h hashmap.h printf.h mersenne.h
 	$(CC) $(CFLAGS) pass_1.c
 
 pass_2.o: pass_2.c pass_2.h defines.h hashmap.h shared.h pass_1.h pass_4.h hashmap.h printf.h
 	$(CC) $(CFLAGS) pass_2.c
 
-pass_3.o: pass_3.c pass_3.h defines.h hashmap.h shared.h include_file.h printf.h
+pass_3.o: pass_3.c pass_3.h defines.h hashmap.h shared.h include.h printf.h
 	$(CC) $(CFLAGS) pass_3.c
 
-pass_4.o: pass_4.c defines.h hashmap.h shared.h include_file.h listfile.h pass_3.h pass_4.h parse.h stack.h printf.h
+pass_4.o: pass_4.c defines.h hashmap.h shared.h include.h listfile.h pass_3.h pass_4.h parse.h stack.h printf.h
 	$(CC) $(CFLAGS) pass_4.c
 
 printf.o: printf.c printf.h
 	$(CC) $(CFLAGS) printf.c
 
-stack.o: stack.c stack.h defines.h hashmap.h shared.h hashmap.h parse.h pass_1.h include_file.h printf.h
+stack.o: stack.c stack.h defines.h hashmap.h shared.h hashmap.h parse.h pass_1.h include.h printf.h
 	$(CC) $(CFLAGS) stack.c
 
 

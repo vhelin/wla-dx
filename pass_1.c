@@ -12,7 +12,7 @@
 #include "defines.h"
 
 #include "main.h"
-#include "include_file.h"
+#include "include.h"
 #include "parse.h"
 #include "pass_1.h"
 #include "pass_2.h"
@@ -21,7 +21,7 @@
 #include "hashmap.h"
 #include "printf.h"
 #include "decode.h"
-#include "mersenne_twister.h"
+#include "mersenne.h"
 
 
 #ifdef GB
