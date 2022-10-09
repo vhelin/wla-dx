@@ -14,6 +14,7 @@
 #include "stack.h"
 #include "include.h"
 #include "printf.h"
+#include "mersenne.h"
 
 
 int parse_string_length(char *end);
@@ -1190,7 +1191,7 @@ int input_number(void) {
     g_label[k] = e;
 
     /* is it actually a function? */
-    if (k == 3 && strcaselesscmpn(g_label, "asc('", 4) == 0) {
+    if (k == 3 && strcaselesscmpn(g_label, "asc(", 4) == 0) {
       int parsed_chars = 0;
       
       if (parse_function_asc(&g_buffer[g_source_pointer], &g_parsed_int, &parsed_chars) == FAILED)
@@ -1201,7 +1202,18 @@ int input_number(void) {
 
       return SUCCEEDED;
     }
-    if (k == 7 && strcaselesscmpn(g_label, "defined(", 8) == 0) {
+    else if (k == 6 && strcaselesscmpn(g_label, "random(", 7) == 0) {
+      int parsed_chars = 0;
+      
+      if (parse_function_random(&g_buffer[g_source_pointer], &g_parsed_int, &parsed_chars) == FAILED)
+        return FAILED;
+      
+      g_source_pointer += parsed_chars;
+      g_parsed_double = (double)g_parsed_int;
+
+      return SUCCEEDED;
+    }
+    else if (k == 7 && strcaselesscmpn(g_label, "defined(", 8) == 0) {
       int parsed_chars = 0;
           
       if (parse_function_defined(&g_buffer[g_source_pointer], &g_parsed_int, &parsed_chars) == FAILED)
@@ -1212,7 +1224,7 @@ int input_number(void) {
 
       return SUCCEEDED;
     }
-    if (k == 6 && strcaselesscmpn(g_label, "exists(", 7) == 0) {
+    else if (k == 6 && strcaselesscmpn(g_label, "exists(", 7) == 0) {
       int parsed_chars = 0;
           
       if (parse_function_exists(&g_buffer[g_source_pointer], &g_parsed_int, &parsed_chars) == FAILED)
@@ -2397,6 +2409,64 @@ int parse_function_asc(char *in, int *result, int *parsed_chars) {
   }
   else
     *result = (int)g_asciitable[g_parsed_int];
+
+  return SUCCEEDED;
+}
+
+
+int parse_function_random(char *in, int *result, int *parsed_chars) {
+
+  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
+  int min, max;
+  
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_pointer for input_number() */
+
+  g_source_pointer = (int)(in - g_buffer);
+  source_pointer_backup = g_source_pointer;
+
+  g_expect_calculations = YES;
+  res = input_number();
+
+  if (res != SUCCEEDED) {
+    print_error(ERROR_NUM, "random() requires an immediate value for min.\n");
+    return FAILED;
+  }
+
+  min = g_parsed_int;
+
+  g_expect_calculations = YES;
+  res = input_number();
+  g_expect_calculations = old_expect;
+
+  if (res != SUCCEEDED) {
+    print_error(ERROR_NUM, "random() requires an immediate value for max.\n");
+    return FAILED;
+  }
+
+  max = g_parsed_int;
+
+  if (min >= max) {
+    print_error(ERROR_DIR, "random() needs that min < max.\n");
+    return FAILED;
+  }
+  
+  if (g_buffer[g_source_pointer] != ')') {
+    print_error(ERROR_NUM, "Malformed \"random(?,?)\" detected!\n");
+    return FAILED;
+  }
+
+  /* skip ')' */
+  g_source_pointer++;
+
+  /* count the parsed chars */
+  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+
+  /* return g_source_pointer */
+  g_source_pointer = source_pointer_original;
+
+  /* output the random number */
+  *result = (genrand_int32() % (max-min+1)) + min;
 
   return SUCCEEDED;
 }

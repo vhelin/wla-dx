@@ -1082,7 +1082,16 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_label = NO;
           break;
         }
-        if (k == 7 && strcaselesscmpn(si[q].string, "defined(", 8) == 0) {
+        else if (k == 6 && strcaselesscmpn(si[q].string, "random(", 7) == 0) {
+          int parsed_chars = 0;
+          
+          if (parse_function_random(in, &d, &parsed_chars) == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_label = NO;
+          break;
+        }
+        else if (k == 7 && strcaselesscmpn(si[q].string, "defined(", 8) == 0) {
           int parsed_chars = 0;
           
           if (parse_function_defined(in, &d, &parsed_chars) == FAILED)
@@ -1091,7 +1100,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_label = NO;
           break;
         }
-        if (k == 6 && strcaselesscmpn(si[q].string, "exists(", 7) == 0) {
+        else if (k == 6 && strcaselesscmpn(si[q].string, "exists(", 7) == 0) {
           int parsed_chars = 0;
 
           if (parse_function_exists(in, &d, &parsed_chars) == FAILED)
@@ -1100,63 +1109,63 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_label = NO;          
           break;
         }
-        if (k == 6 && strcaselesscmpn(si[q].string, "lobyte(", 7) == 0) {
+        else if (k == 6 && strcaselesscmpn(si[q].string, "lobyte(", 7) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
           si[q].value = SI_OP_LOW_BYTE;
           in--;
           is_already_processed_function = YES;
           break;
         }
-        if (k == 6 && strcaselesscmpn(si[q].string, "hibyte(", 7) == 0) {
+        else if (k == 6 && strcaselesscmpn(si[q].string, "hibyte(", 7) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
           si[q].value = SI_OP_HIGH_BYTE;
           in--;
           is_already_processed_function = YES;
           break;
         }
-        if (k == 6 && strcaselesscmpn(si[q].string, "loword(", 7) == 0) {
+        else if (k == 6 && strcaselesscmpn(si[q].string, "loword(", 7) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
           si[q].value = SI_OP_LOW_WORD;
           in--;
           is_already_processed_function = YES;
           break;
         }
-        if (k == 6 && strcaselesscmpn(si[q].string, "hiword(", 7) == 0) {
+        else if (k == 6 && strcaselesscmpn(si[q].string, "hiword(", 7) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
           si[q].value = SI_OP_HIGH_WORD;
           in--;
           is_already_processed_function = YES;
           break;
         }
-        if (k == 8 && strcaselesscmpn(si[q].string, "bankbyte(", 9) == 0) {
+        else if (k == 8 && strcaselesscmpn(si[q].string, "bankbyte(", 9) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
           si[q].value = SI_OP_BANK_BYTE;
           in--;
           is_already_processed_function = YES;
           break;
         }
-        if (k == 4 && strcaselesscmpn(si[q].string, "bank(", 5) == 0) {
+        else if (k == 4 && strcaselesscmpn(si[q].string, "bank(", 5) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
           si[q].value = SI_OP_BANK;
           in--;
           is_already_processed_function = YES;
           break;
         }
-        if (k == 5 && strcaselesscmpn(si[q].string, "round(", 6) == 0) {
+        else if (k == 5 && strcaselesscmpn(si[q].string, "round(", 6) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
           si[q].value = SI_OP_ROUND;
           in--;
           is_already_processed_function = YES;
           break;
         }
-        if (k == 4 && strcaselesscmpn(si[q].string, "ceil(", 5) == 0) {
+        else if (k == 4 && strcaselesscmpn(si[q].string, "ceil(", 5) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
           si[q].value = SI_OP_CEIL;
           in--;
           is_already_processed_function = YES;
           break;
         }
-        if (k == 5 && strcaselesscmpn(si[q].string, "floor(", 6) == 0) {
+        else if (k == 5 && strcaselesscmpn(si[q].string, "floor(", 6) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
           si[q].value = SI_OP_FLOOR;
           in--;

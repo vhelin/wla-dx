@@ -19,5 +19,6 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
 int parse_function_asc(char *in, int *result, int *parsed_chars);
 int parse_function_defined(char *in, int *result, int *parsed_chars);
 int parse_function_exists(char *in, int *result, int *parsed_chars);
+int parse_function_random(char *in, int *result, int *parsed_chars);
 
 #endif

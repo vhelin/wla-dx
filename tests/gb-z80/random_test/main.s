@@ -43,3 +43,23 @@ BANKS 1
         .db "02>"                  ; @BT TEST-02 02 START
         .dbrnd COUNT 5 MIN 0 MAX 9 ; @BT 06 03 09 02 02
         .db "<02"                  ; @BT END
+
+        .seed 111
+        .db "03>"                  ; @BT TEST-03 03 START
+        .db random(0, 9)           ; @BT 00
+        .db random(0, 9)           ; @BT 02
+        .db random(0, 9)           ; @BT 06
+        .db random(0, 9)           ; @BT 08
+        .db random(0, 9)           ; @BT 02
+        .db "<03"                  ; @BT END
+
+        .define VALUE_10 = 10
+        
+        .seed 222
+        .db "04>"                  ; @BT TEST-04 04 START
+        .db random(1-1, 9)         ; @BT 06
+        .db random(0, 10-1)        ; @BT 03
+        .db random(VALUE_10-VALUE_10, VALUE_10-1) ; @BT 09
+        .db random(VALUE_10-VALUE_10, VALUE_10-1)*4-6 ; @BT 02
+        .db 10+random(VALUE_10-9-1, 1+VALUE_10-2)*10-28 ; @BT 02
+        .db "<04"                  ; @BT END

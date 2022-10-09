@@ -8,6 +8,7 @@ v10.4 (09-Oct-2022) [ALL] If a value is .DEFINEd later in the same source file
                      the pending calculation before exporting it to WLALINK.
                     [ALL] Added .SEEDRANDOM (seeds random number generator
                      with current time -> random).
+                    [ALL] Added built-in function random(min, max).
                     [Z80] All category 4 instructions (like "LD E,(IY+n)"),
                       make labels inside n PC relative, if n is a calculation.
 
