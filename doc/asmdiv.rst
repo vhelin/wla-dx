@@ -193,6 +193,7 @@ ALL  ``.ROMBANKSIZE $4000``
 ALL  ``.ROW $ff00, 1, "3"``
 ALL  ``.SECTION "Init" FORCE``
 ALL  ``.SEED 123``
+ALL  ``.SEEDRANDOM``
 ALL  ``.SHIFT``
 ALL  ``.SLOT 1``
 ALL  ``.STRINGMAP script "Hello\n"``
@@ -3183,6 +3184,20 @@ you different values every time you run WLA.
 In WLA DX 9.4a and before we used the stdlib's ``srand()`` and ``rand()``
 functions making the output differ on different platforms. Since v9.4 WLA DX
 contains its own Mersenne Twister pseudo random number generator.
+
+This is not a compulsory directive.
+
+
+``.SEEDRANDOM``
+---------------
+
+Seeds the random number generator with the output of ``time()``, which is,
+according to the manual, *the time since the Epoch (00:00:00 UTC,
+January 1, 1970), measured in seconds*.
+
+By default the (pseudo) random number generator is seeded with ``time()``,
+so you don't have to do it yourself, but just in the case you want to do it
+somewhere in the source code, use this.
 
 This is not a compulsory directive.
 

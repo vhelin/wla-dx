@@ -10921,6 +10921,14 @@ int parse_directive(void) {
       return SUCCEEDED;
     }
 
+    /* SEEDRANDOM */
+    if (strcmp(directive_upper, "SEEDRANDOM") == 0) {
+      /* init the randon number generator with current time */
+      init_genrand((unsigned long)time(NULL));
+
+      return SUCCEEDED;
+    }
+
 #ifdef Z80
     /* SMSTAG */
     if (strcmp(directive_upper, "SMSTAG") == 0) {
