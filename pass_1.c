@@ -1283,14 +1283,14 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
     if (verify_name_length(name) == FAILED)
       return FAILED;
 
-    if (g_in_enum || g_in_struct) {
+    if (g_in_enum == YES || g_in_struct == YES) {
       if (add_a_new_definition(name, (double)(g_base_enum_offset+g_enum_offset), NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
         return FAILED;
       if (g_enum_export == YES)
         if (export_a_definition(name) == FAILED)
           return FAILED;
     }
-    else if (g_in_ramsection) {
+    else if (g_in_ramsection == YES) {
       if (g_last_enum_offset != g_enum_offset) {
         /* this sometimes abuses the "dsb" implementation to move backwards in the ramsection. */
         fprintf(g_file_out_ptr, "x%d 0 ", g_enum_offset-g_last_enum_offset);
@@ -1303,7 +1303,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
   }
   else {
     /* sizeof pass */
-    if (g_in_ramsection) {
+    if (g_in_ramsection == YES) {
       if (add_label_sizeof(name, size) == FAILED)
         return FAILED;
     }
@@ -1404,7 +1404,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
         /* there is padding in the INSTANCEOF */
         if (padding > 0) {
           if (g_enum_sizeof_pass == NO) {
-            if (g_in_enum == NO)
+            if (g_in_enum == NO && g_in_struct == NO)
               fprintf(g_file_out_ptr, "x%d %d ", padding, g_emptyfill);
           }
           else {

@@ -37,6 +37,10 @@ SLOT 0 $0000
 	testbyte2	db ;dsb $8000
 .ENDST
 
+        .STRUCT testnest
+	    nest1 INSTANCEOF teststruct
+        .ENDST
+
 .ENUM 0 EXPORT
 	test1 INSTANCEOF teststruct
         test2 INSTANCEOF teststruct
