@@ -9,6 +9,9 @@ v10.4 (11-Oct-2022) [ALL] If a value is .DEFINEd later in the same source file
                     [ALL] Added .SEEDRANDOM (seeds random number generator
                      with current time -> random).
                     [ALL] Added built-in function random(min, max).
+                    [ALL] -M doesn't force quiet mode any more, and if you
+                      specify -o or -l later on the command line you can
+                      output object and library files at the same time.
                     [ALL] Fixed INSTANCEOF in .ENUM when .STRUCT used SIZE
                       (WLA doesn't generate bytes in that case any more).
                     [Z80] All category 4 instructions (like "LD E,(IY+n)"),

@@ -8,11 +8,11 @@ OFILES = main.o extras.o
 all: $(OFILES) makefile
 
 main.o: main.s
-	$(CC) $(CFLAGS) main.s
+	$(CC) $(CFLAGS) -o main.o main.s
 
 extras.o: extras.s
 	$(CC) $(CFLAGS) extras.s
 
 
 clean:
-	rm -f core *~ linked.rom linked.sym
+	rm -f core *~ linked.rom linked.sym *.o

@@ -12,7 +12,7 @@ You can supply WLA with some (or all or none) of the following option flags.
     WLALINK can produce list files.
 -k  Keep all empty sections. By default they are discarded.
 -M  WLA generates makefile rules describing the dependencies of the main
-    source file. Use only with flags ``o`` and ``l``.
+    source file.
 -q  Quiet mode. ``.PRINT*`` -directives output nothing.
 -s  Don't create _sizeof_* and _padding_* definitions.
 -t  Test compile. Doesn't output any files.
@@ -36,9 +36,11 @@ search this directory for included files before defaulting to the specified
 Examples::
 
     [seravy@localhost tbp]# wla -D VERSION=255 -x -v -i -o testa.o testa.s
-    [seravy@localhost tbp]# wla -M -o testa.o testa.s
+    [seravy@localhost tbp]# wla -M testa.s
     [seravy@localhost tbp]# wla -D VERSION=$FF -D MESSAGE=\"Hello world\" -l testb.lib testb.s
     [seravy@localhost tbp]# wla -I ../../include -l testb.lib testb.s
     [seravy@localhost tbp]# wla -M -I myfiles -l testa.lib testa.s
+
+NOTE: If you use -M and -l/-o at the same time, specify -M first on the command line.
     
-Note that the first example produces a file named ``testa.o``.
+NOTE: The first example produces a file named ``testa.o``.
