@@ -1403,8 +1403,10 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 
         /* there is padding in the INSTANCEOF */
         if (padding > 0) {
-          if (g_enum_sizeof_pass == NO)
-            fprintf(g_file_out_ptr, "x%d %d ", padding, g_emptyfill);
+          if (g_enum_sizeof_pass == NO) {
+            if (g_in_enum == NO)
+              fprintf(g_file_out_ptr, "x%d %d ", padding, g_emptyfill);
+          }
           else {
             if (_add_paddingof_definition(tmp, padding) == FAILED)
               return FAILED;
@@ -3675,7 +3677,7 @@ int find_struct_field(struct structure *s, char *field_name, int *item_size, int
 static void _generate_dstruct_padding(struct structure *s, int supplied_size) {
 
   int size;
-      
+
   size = s->size;
   if (s->defined_size > 0)
     size = s->defined_size;

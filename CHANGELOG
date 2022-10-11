@@ -3,12 +3,14 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.4 (09-Oct-2022) [ALL] If a value is .DEFINEd later in the same source file
+v10.4 (11-Oct-2022) [ALL] If a value is .DEFINEd later in the same source file
                      than used in a pending calculation, WLA can now solve
                      the pending calculation before exporting it to WLALINK.
                     [ALL] Added .SEEDRANDOM (seeds random number generator
                      with current time -> random).
                     [ALL] Added built-in function random(min, max).
+                    [ALL] Fixed INSTANCEOF in .ENUM when .STRUCT used SIZE
+                      (WLA doesn't generate bytes in that case any more).
                     [Z80] All category 4 instructions (like "LD E,(IY+n)"),
                       make labels inside n PC relative, if n is a calculation.
 

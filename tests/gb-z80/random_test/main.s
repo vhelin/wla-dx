@@ -63,3 +63,10 @@ BANKS 1
         .db random(VALUE_10-VALUE_10, VALUE_10-1)*4-6 ; @BT 02
         .db 10+random(VALUE_10-9-1, 1+VALUE_10-2)*10-28 ; @BT 02
         .db "<04"                  ; @BT END
+
+        .seed 111
+        .db "05>"                  ; @BT TEST-05 05 START
+        .db random(0, 9) + random(0, 9) + random(0, 9) ; @BT 08
+        .db random(0, 9) - 2*random(0, 9) ; @BT 04
+        .db "<05"                  ; @BT END
+        

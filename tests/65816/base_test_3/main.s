@@ -32,9 +32,29 @@ SLOT 0 $0000
 	lda #:label	;A9C2		LDA #$C2
 			; - should be A9C1  LDA #$C1
 
+.STRUCT teststruct SIZE 8
+	testbyte1	db ;dsb $8000
+	testbyte2	db ;dsb $8000
+.ENDST
+
+.ENUM 0 EXPORT
+	test1 INSTANCEOF teststruct
+        test2 INSTANCEOF teststruct
+        test3 INSTANCEOF teststruct
+        test4 INSTANCEOF teststruct
+.ENDE
+        
 .BANK 1 SLOT 0
 .ORG $0000
 
 
 label:
 	nop
+
+        .ramsection "RAMSection" bank 0 slot 0
+        ram1 instanceof teststruct
+        ram2 instanceof teststruct
+        ram3 instanceof teststruct
+        ram4 instanceof teststruct
+        .ends
+        
