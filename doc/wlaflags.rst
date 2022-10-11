@@ -15,7 +15,7 @@ You can supply WLA with some (or all or none) of the following option flags.
     source file.
 -q  Quiet mode. ``.PRINT*`` -directives output nothing.
 -s  Don't create _sizeof_* and _padding_* definitions.
--t  Test compile. Doesn't output any files.
+-t  Test assemble. Doesn't output any files.
 -v  Verbose mode. Shows a lot of information about the compiling process.
 -x  Extra compile time labels and definitions. WLA does extra work by creating
     few helpful definitions, and labels SECTIONSTART_[section name] and
@@ -40,7 +40,7 @@ Examples::
     [seravy@localhost tbp]# wla -D VERSION=$FF -D MESSAGE=\"Hello world\" -l testb.lib testb.s
     [seravy@localhost tbp]# wla -I ../../include -l testb.lib testb.s
     [seravy@localhost tbp]# wla -M -I myfiles -l testa.lib testa.s
-
+    
 NOTE: If you use -M and -l/-o at the same time, specify -M first on the command line.
     
 NOTE: The first example produces a file named ``testa.o``.

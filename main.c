@@ -229,7 +229,7 @@ int main(int argc, char *argv[]) {
     printf("-M  Output makefile rules\n");
     printf("-q  Quiet\n");
     printf("-s  Don't create _sizeof_* and _paddingof_* definitions\n");
-    printf("-t  Test compile\n");
+    printf("-t  Test assemble\n");
     printf("-v  Verbose messages\n");
     printf("-v1 Verbose messages (only discard sections)\n");
     printf("-v2 Verbose messages (-v1 plus short summary)\n");
@@ -297,7 +297,7 @@ int main(int argc, char *argv[]) {
 
 int parse_flags(char **flags, int flagc, int *print_usage) {
 
-  int asm_name_def = 0, count;
+  int asm_name_def = 0, count, test_given = NO;
   char *str_build;
   
   for (count = 1; count < flagc; count++) {
@@ -413,6 +413,7 @@ int parse_flags(char **flags, int flagc, int *print_usage) {
     }
     else if (!strcmp(flags[count], "-t")) {
       g_test_mode = ON;
+      test_given = YES;
       continue;
     }
     else if (!strcmp(flags[count], "-M")) {
@@ -458,6 +459,10 @@ int parse_flags(char **flags, int flagc, int *print_usage) {
       }
     }
   }
+
+  /* make sure test mode is still turned on! */
+  if (test_given == YES)
+    g_test_mode = ON;
   
   if (asm_name_def <= 0)
     return FAILED;
