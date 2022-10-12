@@ -62,3 +62,19 @@ label:
         ram4 instanceof teststruct
         .ends
         
+.STRUCT 1 SIZE 8
+    testbyte1   db
+.ENDST
+
+.STRUCT 2 SIZE 8
+    testbyte2   db
+.ENDST
+
+.STRUCT both
+        INSTANCEOF 1    ; name1 INSTANCEOF 1
+        INSTANCEOF 2    ; name2 INSTANCEOF 2
+.ENDST
+
+.ENUM 0 export
+    test    INSTANCEOF both
+.ENDE

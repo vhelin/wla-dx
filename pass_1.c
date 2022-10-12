@@ -1328,11 +1328,11 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
 
 static int _add_paddingof_definition(char *name, int padding) {
 
-  char tmp[MAX_NAME_LENGTH+10];
+  char tmp[MAX_NAME_LENGTH+11+1];
 
   if (g_create_sizeof_definitions == NO)
     return SUCCEEDED;
-  
+
   snprintf(tmp, sizeof(tmp), "_paddingof_%s", name);
   if (add_a_new_definition(tmp, (double)padding, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
@@ -1408,8 +1408,10 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
               fprintf(g_file_out_ptr, "x%d %d ", padding, g_emptyfill);
           }
           else {
-            if (_add_paddingof_definition(tmp, padding) == FAILED)
-              return FAILED;
+            if (si->name[0] != '\0') {
+              if (_add_paddingof_definition(tmp, padding) == FAILED)
+                return FAILED;
+            }
           }
           
           g_enum_offset += padding;
@@ -1449,8 +1451,10 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
             if (g_enum_sizeof_pass == NO)
               fprintf(g_file_out_ptr, "x%d %d ", padding, g_emptyfill);
             else {
-              if (_add_paddingof_definition(tmp, padding) == FAILED)
-                return FAILED;
+              if (si->name[0] != '\0') {
+                if (_add_paddingof_definition(tmp, padding) == FAILED)
+                  return FAILED;
+              }
             }
             
             g_enum_offset += padding;
