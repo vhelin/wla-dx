@@ -42,7 +42,6 @@ int create_full_name(char *dir, char *name) {
 
   char *tmp;
   int i;
-
   
   if (dir == NULL && name == NULL)
     return SUCCEEDED;
@@ -504,19 +503,21 @@ char *get_file_name(int id) {
   return get_file_name_error;
 }
 
+
+/* converts filename to forward slashes for make compatibility */
 void print_file_name(FILE *f, char *prefix, char *file_name) {
-  /* Converts filename to forward slashes for make compatibility */
+
   char c;
+  
   fprintf(f, "%s", prefix);
   for (c = *file_name++; c != 0; c = *file_name++) {
-    if (c == '\\') {
+    if (c == '\\')
       fputc('/', f);
-    }
-    else {
+    else
       fputc(c, f);
-    }
   }
 }
+
 
 int print_file_names(void) {
 
