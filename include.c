@@ -504,6 +504,18 @@ char *get_file_name(int id) {
   return get_file_name_error;
 }
 
+void print_file_name(FILE *f, char *prefix, char *file_name) {
+  /* Converts filename to forward slashes for make compatibility */
+  fprintf(f, "%s", prefix);
+  for (char c = *file_name++; c != 0; c = *file_name++) {
+    if (c == '\\') {
+      fputc('/', f);
+    }
+    else {
+      fputc(c, f);
+    }
+  }
+}
 
 int print_file_names(void) {
 
@@ -522,29 +534,29 @@ int print_file_names(void) {
   /* handle the main file name differently */
   while (fni != NULL) {
     if (is_first_line == YES) {
-      fprintf(stdout, "%s", fni->name);
+      print_file_name(stdout, "", fni->name);
       is_first_line = NO;
     }
     else
-      fprintf(stdout, " \\\n\t%s", fni->name);
+      print_file_name(stdout, " \\\n\t", fni->name);
     fni = fni->next;
   }
 
   /* incbin files */
   while (ifd != NULL) {
-    fprintf(stdout, " \\\n\t%s", ifd->name);
+    print_file_name(stdout, " \\\n\t", ifd->name);
     ifd = ifd->next;
   }
 
   /* stringmaptable files */
   while (smt != NULL) {
-    fprintf(stdout, " \\\n\t%s", smt->filename);
+    print_file_name(stdout, " \\\n\t", smt->filename);
     smt = smt->next;
   }
 
   /* filenames used in .fopens */
   while (fopens != NULL) {
-    fprintf(stdout, " \\\n\t%s", fopens->string);
+    print_file_name(stdout, " \\\n\t", fopens->string);
     fopens = fopens->next;
   }
 

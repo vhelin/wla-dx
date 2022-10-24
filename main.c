@@ -420,6 +420,7 @@ int parse_flags(char **flags, int flagc, int *print_usage) {
       g_makefile_rules = YES;
       g_test_mode = ON;
       g_verbose_level = 0;
+      g_quiet = YES;
       /* if file loading requires a tmp file, this will be its name */
       generate_tmp_name(g_makefile_tmp_name);
       continue;
