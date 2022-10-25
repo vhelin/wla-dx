@@ -28,6 +28,8 @@ hibyte()   Returns the high byte, bits 8-15 (the same as preceding ``>``)
 hiword()   Returns the high word, bits 16-31
 lobyte()   Returns the low byte, bits 0-7 (the same as preceding ``<``)
 loword()   Returns the low word, bits 0-15
+max()      Takes two arguments, a and b, return the bigger value
+min()      Takes two arguments, a and b, returns the smaller value
 random()   Takes two arguments, min and max, returns a pseudo random number like ``.DBRND``
 round()    The same as ANSI C99 round()
 ========== ================================================================================
@@ -41,11 +43,11 @@ Examples of functions
 
 Here's an example about how these functions can be used ::
 
-    .IF defined(USE_DEBUG) && defined(DEBUG_SHOW)
+    .IF defined(USE_DEBUG) && defined(DEBUG_SHOW) && min(VALUE_A, VALUE_B) > 10
   
     LDX #loword(CPU_ADDR)           ; instead of (CPU_ADDR & $00FFFF)
     LDA #bankbyte(CPU_ADDR)         ; instead of :CPU_ADDR
-    .DB random(0,10)                ; defines a byte with value 0-10
+    .DB random(0, 10)               ; defines a byte with value 0-10
 
     .ENDIF
 

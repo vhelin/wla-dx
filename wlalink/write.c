@@ -2768,6 +2768,20 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
         v_ram[t - 1] = ceil(v_ram[t - 1]);
         v_rom[t - 1] = ceil(v_rom[t - 1]);
         break;
+      case SI_OP_MIN:
+        if (v_ram[t - 1] < v_ram[t - 2])
+          v_ram[t - 2] = v_ram[t - 1];
+        if (v_rom[t - 1] < v_rom[t - 2])
+          v_rom[t - 2] = v_rom[t - 2];
+        t--;
+        break;
+      case SI_OP_MAX:
+        if (v_ram[t - 1] > v_ram[t - 2])
+          v_ram[t - 2] = v_ram[t - 1];
+        if (v_rom[t - 1] > v_rom[t - 2])
+          v_rom[t - 2] = v_rom[t - 1];
+        t--;
+        break;        
       case SI_OP_BANK:
         z = (int)v_rom[t - 1];
         y = _get_bank_of_address(z, slot[t - 1]);

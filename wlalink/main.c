@@ -108,6 +108,8 @@ static const char *g_si_operator_bank_byte = "bankbyte()";
 static const char *g_si_operator_round = "round()";
 static const char *g_si_operator_floor = "floor()";
 static const char *g_si_operator_ceil = "ceil()";
+static const char *g_si_operator_min = "min()";
+static const char *g_si_operator_max = "max()";
 
 static const char *get_stack_item_operator_name(int operator) {
 
@@ -169,6 +171,10 @@ static const char *get_stack_item_operator_name(int operator) {
     return g_si_operator_floor;
   else if (operator == SI_OP_CEIL)
     return g_si_operator_ceil;
+  else if (operator == SI_OP_MIN)
+    return g_si_operator_min;
+  else if (operator == SI_OP_MAX)
+    return g_si_operator_max;
   
   fprintf(stderr, "\n");
   fprintf(stderr, "get_stack_item_operator_name(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", operator);

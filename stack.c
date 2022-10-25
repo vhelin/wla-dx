@@ -15,6 +15,7 @@
 #include "stack.h"
 #include "include.h"
 #include "printf.h"
+#include "mersenne.h"
 
 
 extern int g_input_number_error_msg, g_bankheader_status, g_input_float_mode, g_global_label_hint, g_input_parse_if;
@@ -26,7 +27,8 @@ extern struct macro_runtime *g_macro_runtime_current;
 extern struct section_def *g_sec_tmp;
 extern struct export_def *g_export_first;
 extern double g_parsed_double;
-extern int g_operand_hint, g_operand_hint_type, g_can_calculate_a_minus_b;
+extern unsigned char g_asciitable[256];
+extern int g_operand_hint, g_operand_hint_type, g_can_calculate_a_minus_b, g_expect_calculations, g_asciitable_defined;
 
 int g_latest_stack = 0, g_last_stack_id = 0, g_resolve_stack_calculations = YES, g_stack_calculations_max = 0;
 int g_parsing_function_body = NO;
@@ -429,6 +431,8 @@ static struct stack_item_priority_item g_stack_item_priority_items[] = {
   { SI_OP_ROUND, 110 },
   { SI_OP_CEIL, 110 },
   { SI_OP_FLOOR, 110 },
+  { SI_OP_MIN, 110 },
+  { SI_OP_MAX, 110 },
   { SI_OP_NOT, 120 },
   { 999, 999 }
 };
@@ -449,6 +453,263 @@ static int _get_op_priority(int op) {
   return 0;
 }
 
+
+static int _parse_function_asc(char *in, int *result, int *parsed_chars) {
+
+  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
+  
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_pointer for input_number() */
+
+  g_source_pointer = (int)(in - g_buffer);
+  source_pointer_backup = g_source_pointer;
+
+  g_expect_calculations = NO;
+  res = input_number();
+  g_expect_calculations = old_expect;
+
+  if (res != SUCCEEDED || g_parsed_int < 0 || g_parsed_int > 255) {
+    print_error(ERROR_NUM, "asc() requires an immediate value between 0 and 255.\n");
+    return FAILED;
+  }
+  
+  if (g_buffer[g_source_pointer] != ')') {
+    print_error(ERROR_NUM, "Malformed \"asc(?)\" detected!\n");
+    return FAILED;
+  }
+
+  /* skip ')' */
+  g_source_pointer++;
+
+  /* count the parsed chars */
+  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+
+  /* return g_source_pointer */
+  g_source_pointer = source_pointer_original;
+  
+  if (g_asciitable_defined == 0) {
+    print_error(ERROR_WRN, "No .ASCIITABLE defined. Using the default n->n -mapping.\n");
+    *result = g_parsed_int;
+  }
+  else
+    *result = (int)g_asciitable[g_parsed_int];
+
+  return SUCCEEDED;
+}
+
+
+static int _parse_function_random(char *in, int *result, int *parsed_chars) {
+
+  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
+  int min, max;
+  
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_pointer for input_number() */
+
+  g_source_pointer = (int)(in - g_buffer);
+  source_pointer_backup = g_source_pointer;
+
+  g_expect_calculations = YES;
+  res = input_number();
+
+  if (res != SUCCEEDED) {
+    print_error(ERROR_NUM, "random() requires an immediate value for min.\n");
+    return FAILED;
+  }
+
+  min = g_parsed_int;
+
+  g_expect_calculations = YES;
+  res = input_number();
+  g_expect_calculations = old_expect;
+
+  if (res != SUCCEEDED) {
+    print_error(ERROR_NUM, "random() requires an immediate value for max.\n");
+    return FAILED;
+  }
+
+  max = g_parsed_int;
+
+  if (min >= max) {
+    print_error(ERROR_DIR, "random() needs that min < max.\n");
+    return FAILED;
+  }
+  
+  if (g_buffer[g_source_pointer] != ')') {
+    print_error(ERROR_NUM, "Malformed \"random(?,?)\" detected!\n");
+    return FAILED;
+  }
+
+  /* skip ')' */
+  g_source_pointer++;
+
+  /* count the parsed chars */
+  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+
+  /* return g_source_pointer */
+  g_source_pointer = source_pointer_original;
+
+  /* output the random number */
+  *result = (genrand_int32() % (max-min+1)) + min;
+
+  return SUCCEEDED;
+}
+
+
+static int _parse_function_defined(char *in, int *result, int *parsed_chars) {
+
+  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
+  struct definition *d;
+
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_pointer for input_number() */
+
+  g_source_pointer = (int)(in - g_buffer);
+  source_pointer_backup = g_source_pointer;
+
+  g_expect_calculations = NO;
+  res = get_next_plain_string();
+  g_expect_calculations = old_expect;
+
+  if (res != SUCCEEDED) {
+    print_error(ERROR_NUM, "defined() requires a definition name string.\n");
+    return FAILED;
+  }
+  
+  if (g_buffer[g_source_pointer] != ')') {
+    print_error(ERROR_NUM, "Malformed \"defined(?)\" detected!\n");
+    return FAILED;
+  }
+
+  /* skip ')' */
+  g_source_pointer++;
+
+  /* count the parsed chars */
+  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+
+  /* return g_source_pointer */
+  g_source_pointer = source_pointer_original;
+
+  /* try to find the definition */
+  hashmap_get(g_defines_map, g_label, (void*)&d);
+
+  if (d != NULL)
+    *result = 1;
+  else
+    *result = 0;
+  
+  return SUCCEEDED;
+}
+
+
+static int _parse_function_exists(char *in, int *result, int *parsed_chars) {
+
+  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
+  FILE *f;
+  
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_pointer for input_number() */
+
+  g_source_pointer = (int)(in - g_buffer);
+  source_pointer_backup = g_source_pointer;
+
+  g_expect_calculations = NO;
+  res = input_number();
+  g_expect_calculations = old_expect;
+
+  if (res != INPUT_NUMBER_ADDRESS_LABEL && res != INPUT_NUMBER_STRING) {
+    print_error(ERROR_NUM, "exists() requires a file name string.\n");
+    return FAILED;
+  }
+  
+  if (g_buffer[g_source_pointer] != ')') {
+    print_error(ERROR_NUM, "Malformed \"exists(?)\" detected!\n");
+    return FAILED;
+  }
+
+  /* skip ')' */
+  g_source_pointer++;
+
+  /* count the parsed chars */
+  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+
+  /* return g_source_pointer */
+  g_source_pointer = source_pointer_original;
+  
+  f = fopen(g_label, "rb");
+  if (f == NULL)
+    *result = 0;
+  else {
+    *result = 1;
+
+    fclose(f);
+  }
+  
+  return SUCCEEDED;
+}
+
+
+static int _parse_function_minmax(char *in, int *type_a, int *type_b, double *value_a, double *value_b, char *string_a, char *string_b, int *parsed_chars) {
+
+  int res, source_pointer_original = g_source_pointer, source_pointer_backup;
+  
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_pointer for input_number() */
+
+  g_source_pointer = (int)(in - g_buffer);
+  source_pointer_backup = g_source_pointer;
+
+  /* a */
+  res = input_number();
+
+  *type_a = res;
+  if (res == SUCCEEDED)
+    *value_a = g_parsed_int;
+  else if (res == INPUT_NUMBER_FLOAT)
+    *value_a = g_parsed_double;
+  else if (res == INPUT_NUMBER_ADDRESS_LABEL)
+    strcpy(string_a, g_label);
+  else if (res == INPUT_NUMBER_STACK)
+    *value_a = g_latest_stack;
+  else {
+    print_error(ERROR_STC, "Unhandled result type %d of a in min(a,b)/max(a,b)!\n", res);
+    return FAILED;
+  }
+
+  /* b */
+  res = input_number();
+
+  *type_b = res;
+  if (res == SUCCEEDED)
+    *value_b = g_parsed_int;
+  else if (res == INPUT_NUMBER_FLOAT)
+    *value_b = g_parsed_double;
+  else if (res == INPUT_NUMBER_ADDRESS_LABEL)
+    strcpy(string_b, g_label);
+  else if (res == INPUT_NUMBER_STACK)
+    *value_b = g_latest_stack;
+  else {
+    print_error(ERROR_STC, "Unhandled result type %d of b in min(a,b)/max(a,b)!\n", res);
+    return FAILED;
+  }
+  
+  if (g_buffer[g_source_pointer] != ')') {
+    print_error(ERROR_NUM, "Malformed \"min(a,b)/max(a,b)\" detected!\n");
+    return FAILED;
+  }
+
+  /* skip ')' */
+  g_source_pointer++;
+
+  /* count the parsed chars */
+  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+
+  /* return g_source_pointer */
+  g_source_pointer = source_pointer_original;
+  
+  return SUCCEEDED;
+}
+ 
 
 static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_substitutor, struct stack_item *si, struct stack_item *ta) {
 
@@ -1076,16 +1337,71 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         if (k == 3 && strcaselesscmpn(si[q].string, "asc(", 4) == 0) {
           int parsed_chars = 0;
           
-          if (parse_function_asc(in, &d, &parsed_chars) == FAILED)
+          if (_parse_function_asc(in, &d, &parsed_chars) == FAILED)
             return FAILED;
           in += parsed_chars;
           is_label = NO;
           break;
         }
+        else if (k == 3 && (strcaselesscmpn(si[q].string, "min(", 4) == 0 || strcaselesscmpn(si[q].string, "max(", 4) == 0)) {
+          int parsed_chars = 0, type_a = -1, type_b = -1;
+          char string_a[MAX_NAME_LENGTH + 1], string_b[MAX_NAME_LENGTH + 1];
+          double value_a = 0, value_b = 0;
+
+          if (_parse_function_minmax(in, &type_a, &type_b, &value_a, &value_b, string_a, string_b, &parsed_chars) == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_already_processed_function = YES;
+
+          si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          if (si[q].string[1] == 'i')
+            si[q].value = SI_OP_MIN;
+          else
+            si[q].value = SI_OP_MAX;
+          
+          q++;
+
+          if (q+2 >= MAX_STACK_CALCULATOR_ITEMS-1) {
+            print_error(ERROR_STC, "Out of stack space. Adjust MAX_STACK_CALCULATOR_ITEMS in defines.h and recompile WLA!\n");
+            return FAILED;
+          }
+
+          si[q].sign = SI_SIGN_POSITIVE;
+          if (type_a == SUCCEEDED || type_a == INPUT_NUMBER_FLOAT) {
+            si[q].type = STACK_ITEM_TYPE_VALUE;
+            si[q].value = value_a;
+          }
+          else if (type_a == INPUT_NUMBER_ADDRESS_LABEL) {
+            si[q].type = STACK_ITEM_TYPE_LABEL;
+            strcpy(si[q].string, string_a);
+          }
+          else if (type_a == INPUT_NUMBER_STACK) {
+            si[q].type = STACK_ITEM_TYPE_STACK;
+            si[q].value = value_a;
+          }
+
+          q++;
+
+          si[q].sign = SI_SIGN_POSITIVE;
+          if (type_b == SUCCEEDED || type_b == INPUT_NUMBER_FLOAT) {
+            si[q].type = STACK_ITEM_TYPE_VALUE;
+            si[q].value = value_b;
+          }
+          else if (type_b == INPUT_NUMBER_ADDRESS_LABEL) {
+            si[q].type = STACK_ITEM_TYPE_LABEL;
+            strcpy(si[q].string, string_b);
+          }
+          else if (type_b == INPUT_NUMBER_STACK) {
+            si[q].type = STACK_ITEM_TYPE_STACK;
+            si[q].value = value_b;
+          }
+          
+          break;
+        }
         else if (k == 6 && strcaselesscmpn(si[q].string, "random(", 7) == 0) {
           int parsed_chars = 0;
           
-          if (parse_function_random(in, &d, &parsed_chars) == FAILED)
+          if (_parse_function_random(in, &d, &parsed_chars) == FAILED)
             return FAILED;
           in += parsed_chars;
           is_label = NO;
@@ -1094,7 +1410,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         else if (k == 7 && strcaselesscmpn(si[q].string, "defined(", 8) == 0) {
           int parsed_chars = 0;
           
-          if (parse_function_defined(in, &d, &parsed_chars) == FAILED)
+          if (_parse_function_defined(in, &d, &parsed_chars) == FAILED)
             return FAILED;
           in += parsed_chars;
           is_label = NO;
@@ -1103,7 +1419,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         else if (k == 6 && strcaselesscmpn(si[q].string, "exists(", 7) == 0) {
           int parsed_chars = 0;
 
-          if (parse_function_exists(in, &d, &parsed_chars) == FAILED)
+          if (_parse_function_exists(in, &d, &parsed_chars) == FAILED)
             return FAILED;
           in += parsed_chars;
           is_label = NO;          
@@ -1386,7 +1702,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           si[k + 1].value != SI_OP_LOW_WORD &&
           si[k + 1].value != SI_OP_ROUND &&
           si[k + 1].value != SI_OP_FLOOR &&
-          si[k + 1].value != SI_OP_CEIL) {
+          si[k + 1].value != SI_OP_CEIL &&
+          si[k + 1].value != SI_OP_MIN &&
+          si[k + 1].value != SI_OP_MAX) {
         if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
 #ifdef WLA_DEBUG
           debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
@@ -2369,6 +2687,18 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
       case SI_OP_FLOOR:
         v[t - 1] = floor(v[t - 1]);
         sp[t - 1] = NULL;
+        break;
+      case SI_OP_MIN:
+        if (v[t - 1] < v[t - 2])
+          v[t - 2] = v[t - 1];
+        sp[t - 2] = NULL;
+        t--;
+        break;
+      case SI_OP_MAX:
+        if (v[t - 1] > v[t - 2])
+          v[t - 2] = v[t - 1];
+        sp[t - 2] = NULL;
+        t--;
         break;
       case SI_OP_LOGICAL_OR:
         if (v[t-1] != 0 || v[t-2] != 0)

@@ -1190,52 +1190,6 @@ int input_number(void) {
       break;
     g_label[k] = e;
 
-    /* is it actually a function? */
-    if (k == 3 && strcaselesscmpn(g_label, "asc(", 4) == 0) {
-      int parsed_chars = 0;
-      
-      if (parse_function_asc(&g_buffer[g_source_pointer], &g_parsed_int, &parsed_chars) == FAILED)
-        return FAILED;
-      
-      g_source_pointer += parsed_chars;
-      g_parsed_double = (double)g_parsed_int;
-
-      return SUCCEEDED;
-    }
-    else if (k == 6 && strcaselesscmpn(g_label, "random(", 7) == 0) {
-      int parsed_chars = 0;
-      
-      if (parse_function_random(&g_buffer[g_source_pointer], &g_parsed_int, &parsed_chars) == FAILED)
-        return FAILED;
-      
-      g_source_pointer += parsed_chars;
-      g_parsed_double = (double)g_parsed_int;
-
-      return SUCCEEDED;
-    }
-    else if (k == 7 && strcaselesscmpn(g_label, "defined(", 8) == 0) {
-      int parsed_chars = 0;
-          
-      if (parse_function_defined(&g_buffer[g_source_pointer], &g_parsed_int, &parsed_chars) == FAILED)
-        return FAILED;
-      
-      g_source_pointer += parsed_chars;
-      g_parsed_double = (double)g_parsed_int;
-
-      return SUCCEEDED;
-    }
-    else if (k == 6 && strcaselesscmpn(g_label, "exists(", 7) == 0) {
-      int parsed_chars = 0;
-          
-      if (parse_function_exists(&g_buffer[g_source_pointer], &g_parsed_int, &parsed_chars) == FAILED)
-        return FAILED;
-      
-      g_source_pointer += parsed_chars;
-      g_parsed_double = (double)g_parsed_int;
-
-      return SUCCEEDED;
-    }
-
     if (e == '(') {
       g_source_pointer--;
       break;
@@ -1845,24 +1799,21 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
           }
         }
         else if (type == INPUT_NUMBER_STACK) {
-          if (g_input_number_error_msg == YES) {
+          if (g_input_number_error_msg == YES)
             print_error(ERROR_NUM, "EXPAND_MACRO_ARGUMENTS: Macro argument \\%d is a pending stack calculation and cannot be expanded into a string.\n", d);
-          }
     
           return FAILED;
         }
         else {
-          if (g_input_number_error_msg == YES) {
+          if (g_input_number_error_msg == YES)
             print_error(ERROR_NUM, "EXPAND_MACRO_ARGUMENTS: Macro argument \\%d is of unknown type, please submit a bug report.\n", d);
-          }
     
           return FAILED;
         }
       }
       else {
-        if (g_input_number_error_msg == YES) {
+        if (g_input_number_error_msg == YES)
           print_error(ERROR_NUM, "EXPAND_MACRO_ARGUMENTS: Unsupported special character '%c'.\n", in[i + 1]);
-        }
     
         return FAILED;
       }
@@ -2367,201 +2318,6 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
   _save_stack_calculation(si, fun->stack->stacksize, -1, -1);
 
   return INPUT_NUMBER_STACK;
-}
-
-
-int parse_function_asc(char *in, int *result, int *parsed_chars) {
-
-  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
-  
-  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
-     let's update g_source_pointer for input_number() */
-
-  g_source_pointer = (int)(in - g_buffer);
-  source_pointer_backup = g_source_pointer;
-
-  g_expect_calculations = NO;
-  res = input_number();
-  g_expect_calculations = old_expect;
-
-  if (res != SUCCEEDED || g_parsed_int < 0 || g_parsed_int > 255) {
-    print_error(ERROR_NUM, "asc() requires an immediate value between 0 and 255.\n");
-    return FAILED;
-  }
-  
-  if (g_buffer[g_source_pointer] != ')') {
-    print_error(ERROR_NUM, "Malformed \"asc(?)\" detected!\n");
-    return FAILED;
-  }
-
-  /* skip ')' */
-  g_source_pointer++;
-
-  /* count the parsed chars */
-  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
-
-  /* return g_source_pointer */
-  g_source_pointer = source_pointer_original;
-  
-  if (g_asciitable_defined == 0) {
-    print_error(ERROR_WRN, "No .ASCIITABLE defined. Using the default n->n -mapping.\n");
-    *result = g_parsed_int;
-  }
-  else
-    *result = (int)g_asciitable[g_parsed_int];
-
-  return SUCCEEDED;
-}
-
-
-int parse_function_random(char *in, int *result, int *parsed_chars) {
-
-  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
-  int min, max;
-  
-  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
-     let's update g_source_pointer for input_number() */
-
-  g_source_pointer = (int)(in - g_buffer);
-  source_pointer_backup = g_source_pointer;
-
-  g_expect_calculations = YES;
-  res = input_number();
-
-  if (res != SUCCEEDED) {
-    print_error(ERROR_NUM, "random() requires an immediate value for min.\n");
-    return FAILED;
-  }
-
-  min = g_parsed_int;
-
-  g_expect_calculations = YES;
-  res = input_number();
-  g_expect_calculations = old_expect;
-
-  if (res != SUCCEEDED) {
-    print_error(ERROR_NUM, "random() requires an immediate value for max.\n");
-    return FAILED;
-  }
-
-  max = g_parsed_int;
-
-  if (min >= max) {
-    print_error(ERROR_DIR, "random() needs that min < max.\n");
-    return FAILED;
-  }
-  
-  if (g_buffer[g_source_pointer] != ')') {
-    print_error(ERROR_NUM, "Malformed \"random(?,?)\" detected!\n");
-    return FAILED;
-  }
-
-  /* skip ')' */
-  g_source_pointer++;
-
-  /* count the parsed chars */
-  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
-
-  /* return g_source_pointer */
-  g_source_pointer = source_pointer_original;
-
-  /* output the random number */
-  *result = (genrand_int32() % (max-min+1)) + min;
-
-  return SUCCEEDED;
-}
-
-
-int parse_function_defined(char *in, int *result, int *parsed_chars) {
-
-  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
-  struct definition *d;
-
-  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
-     let's update g_source_pointer for input_number() */
-
-  g_source_pointer = (int)(in - g_buffer);
-  source_pointer_backup = g_source_pointer;
-
-  g_expect_calculations = NO;
-  res = get_next_plain_string();
-  g_expect_calculations = old_expect;
-
-  if (res != SUCCEEDED) {
-    print_error(ERROR_NUM, "defined() requires a definition name string.\n");
-    return FAILED;
-  }
-  
-  if (g_buffer[g_source_pointer] != ')') {
-    print_error(ERROR_NUM, "Malformed \"defined(?)\" detected!\n");
-    return FAILED;
-  }
-
-  /* skip ')' */
-  g_source_pointer++;
-
-  /* count the parsed chars */
-  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
-
-  /* return g_source_pointer */
-  g_source_pointer = source_pointer_original;
-
-  /* try to find the definition */
-  hashmap_get(g_defines_map, g_label, (void*)&d);
-
-  if (d != NULL)
-    *result = 1;
-  else
-    *result = 0;
-  
-  return SUCCEEDED;
-}
-
-
-int parse_function_exists(char *in, int *result, int *parsed_chars) {
-
-  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
-  FILE *f;
-  
-  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
-     let's update g_source_pointer for input_number() */
-
-  g_source_pointer = (int)(in - g_buffer);
-  source_pointer_backup = g_source_pointer;
-
-  g_expect_calculations = NO;
-  res = input_number();
-  g_expect_calculations = old_expect;
-
-  if (res != INPUT_NUMBER_ADDRESS_LABEL && res != INPUT_NUMBER_STRING) {
-    print_error(ERROR_NUM, "exists() requires a file name string.\n");
-    return FAILED;
-  }
-  
-  if (g_buffer[g_source_pointer] != ')') {
-    print_error(ERROR_NUM, "Malformed \"exists(?)\" detected!\n");
-    return FAILED;
-  }
-
-  /* skip ')' */
-  g_source_pointer++;
-
-  /* count the parsed chars */
-  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
-
-  /* return g_source_pointer */
-  g_source_pointer = source_pointer_original;
-  
-  f = fopen(g_label, "rb");
-  if (f == NULL)
-    *result = 0;
-  else {
-    *result = 1;
-
-    fclose(f);
-  }
-  
-  return SUCCEEDED;
 }
 
 
