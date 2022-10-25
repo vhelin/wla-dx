@@ -7113,7 +7113,27 @@ int directive_function(void) {
     }
     f = f->next;
   }
-  
+
+  /* also check built-in function names */
+  if (strcmp("asc", g_label) == 0 ||
+      strcmp("min", g_label) == 0 ||
+      strcmp("max", g_label) == 0 ||
+      strcmp("random", g_label) == 0 ||
+      strcmp("defined", g_label) == 0 ||
+      strcmp("exists", g_label) == 0 ||
+      strcmp("lobyte", g_label) == 0 ||
+      strcmp("hibyte", g_label) == 0 ||
+      strcmp("loword", g_label) == 0 ||
+      strcmp("hiword", g_label) == 0 ||
+      strcmp("bankbyte", g_label) == 0 ||
+      strcmp("bank", g_label) == 0 ||
+      strcmp("round", g_label) == 0 ||
+      strcmp("ceil", g_label) == 0 ||
+      strcmp("floor", g_label) == 0) {
+    print_error(ERROR_DIR, "You cannot redefine a built-in .FUNCTION \"%s\"!\n", g_label);
+    return FAILED;
+  }
+
   strcpy(name, g_label);
   
   f = calloc(sizeof(struct function), 1);
