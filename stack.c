@@ -351,6 +351,10 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
         printf("ceil()");
       else if (value == SI_OP_FLOOR)
         printf("floor()");
+      else if (value == SI_OP_MIN)
+        printf("min()");
+      else if (value == SI_OP_MAX)
+        printf("max()");
       else {
         if (value >= (int)strlen(ar)) {
           printf("ERROR!\n");
