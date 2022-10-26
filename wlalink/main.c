@@ -216,7 +216,7 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
         snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation:       : THIS STACK CALCULATION (id = %d, %s) HAS GONE MISSING!\n", (int)si->value_ram, get_file_name(file_id));
       else {
         if (st->computed == YES)
-          snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation: (%c)   : %d (result = %d/$%x (RAM) %d/$%x (ROM), %s)\n", sign, (int)si->value_ram, st->result_ram, st->result_ram, st->result_rom, st->result_rom, get_file_name(st->file_id));
+          snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation: (%c)   : %d (result = %d/$%x (RAM) %d/$%x (ROM), %s)\n", sign, (int)si->value_ram, (int)st->result_ram, (int)st->result_ram, (int)st->result_rom, (int)st->result_rom, get_file_name(st->file_id));
         else
           snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation: (%c)   : %d (result = ?, %s)\n", sign, (int)si->value_ram, get_file_name(st->file_id));
       }
@@ -558,9 +558,9 @@ int main(int argc, char *argv[]) {
         for (z = 0; z < s->stacksize; z++) {
           struct stack_item *si = &s->stack_items[z];
           if (si->stack_file_id >= 0)
-            printf(get_stack_item_description(si, si->stack_file_id));
+            printf("%s", get_stack_item_description(si, si->stack_file_id));
           else
-            printf(get_stack_item_description(si, s->file_id));
+            printf("%s", get_stack_item_description(si, s->file_id));
         }
       }
       printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d (%d)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->section & 0xffff);
@@ -650,9 +650,9 @@ int main(int argc, char *argv[]) {
         for (z = 0; z < s->stacksize; z++) {
           struct stack_item *si = &s->stack_items[z];
           if (si->stack_file_id >= 0)
-            printf(get_stack_item_description(si, si->stack_file_id));
+            printf("%s", get_stack_item_description(si, si->stack_file_id));
           else
-            printf(get_stack_item_description(si, s->file_id));
+            printf("%s", get_stack_item_description(si, s->file_id));
         }
       }
       printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d (%d) result: %d/$%x (ROM) %d/$%x (RAM)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->section & 0xffff, (int)s->result_rom, (int)s->result_rom, (int)s->result_ram, (int)s->result_ram);
