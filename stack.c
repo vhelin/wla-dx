@@ -355,6 +355,8 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
         printf("min()");
       else if (value == SI_OP_MAX)
         printf("max()");
+      else if (value == SI_OP_SQRT)
+        printf("sqrt()");
       else {
         if (value >= (int)strlen(ar)) {
           printf("ERROR!\n");
@@ -437,6 +439,7 @@ static struct stack_item_priority_item g_stack_item_priority_items[] = {
   { SI_OP_FLOOR, 110 },
   { SI_OP_MIN, 110 },
   { SI_OP_MAX, 110 },
+  { SI_OP_SQRT, 110 },
   { SI_OP_NOT, 120 },
   { 999, 999 }
 };
@@ -713,7 +716,51 @@ static int _parse_function_minmax(char *in, int *type_a, int *type_b, double *va
   
   return SUCCEEDED;
 }
- 
+
+
+static int _parse_function_sqrt(char *in, int *type, double *value, char *string, int *parsed_chars) {
+
+  int res, source_pointer_original = g_source_pointer, source_pointer_backup;
+  
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_pointer for input_number() */
+
+  g_source_pointer = (int)(in - g_buffer);
+  source_pointer_backup = g_source_pointer;
+
+  res = input_number();
+
+  *type = res;
+  if (res == SUCCEEDED)
+    *value = g_parsed_int;
+  else if (res == INPUT_NUMBER_FLOAT)
+    *value = g_parsed_double;
+  else if (res == INPUT_NUMBER_ADDRESS_LABEL)
+    strcpy(string, g_label);
+  else if (res == INPUT_NUMBER_STACK)
+    *value = g_latest_stack;
+  else {
+    print_error(ERROR_STC, "Unhandled result type %d of a in sqrt()!\n", res);
+    return FAILED;
+  }  
+  
+  if (g_buffer[g_source_pointer] != ')') {
+    print_error(ERROR_NUM, "Malformed \"sqrt(?)\" detected!\n");
+    return FAILED;
+  }
+
+  /* skip ')' */
+  g_source_pointer++;
+
+  /* count the parsed chars */
+  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+
+  /* return g_source_pointer */
+  g_source_pointer = source_pointer_original;
+  
+  return SUCCEEDED;
+}
+
 
 static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_substitutor, struct stack_item *si, struct stack_item *ta) {
 
@@ -1402,6 +1449,42 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           
           break;
         }
+        else if (k == 4 && strcaselesscmpn(si[q].string, "sqrt(", 5) == 0) {
+          int parsed_chars = 0, type = -1;
+          char string[MAX_NAME_LENGTH + 1];
+          double value = 0;
+
+          if (_parse_function_sqrt(in, &type, &value, string, &parsed_chars) == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_already_processed_function = YES;
+
+          si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].value = SI_OP_SQRT;
+          
+          q++;
+
+          if (q+1 >= MAX_STACK_CALCULATOR_ITEMS-1) {
+            print_error(ERROR_STC, "Out of stack space. Adjust MAX_STACK_CALCULATOR_ITEMS in defines.h and recompile WLA!\n");
+            return FAILED;
+          }
+
+          si[q].sign = SI_SIGN_POSITIVE;
+          if (type == SUCCEEDED || type == INPUT_NUMBER_FLOAT) {
+            si[q].type = STACK_ITEM_TYPE_VALUE;
+            si[q].value = value;
+          }
+          else if (type == INPUT_NUMBER_ADDRESS_LABEL) {
+            si[q].type = STACK_ITEM_TYPE_LABEL;
+            strcpy(si[q].string, string);
+          }
+          else if (type == INPUT_NUMBER_STACK) {
+            si[q].type = STACK_ITEM_TYPE_STACK;
+            si[q].value = value;
+          }
+
+          break;
+        }
         else if (k == 6 && strcaselesscmpn(si[q].string, "random(", 7) == 0) {
           int parsed_chars = 0;
           
@@ -1708,7 +1791,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           si[k + 1].value != SI_OP_FLOOR &&
           si[k + 1].value != SI_OP_CEIL &&
           si[k + 1].value != SI_OP_MIN &&
-          si[k + 1].value != SI_OP_MAX) {
+          si[k + 1].value != SI_OP_MAX &&
+          si[k + 1].value != SI_OP_SQRT) {
         if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
 #ifdef WLA_DEBUG
           debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
@@ -2703,6 +2787,14 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
           v[t - 2] = v[t - 1];
         sp[t - 2] = NULL;
         t--;
+        break;
+      case SI_OP_SQRT:
+        if (v[t - 1] < 0.0) {
+          fprintf(stderr, "%s:%d: COMPUTE_STACK: sqrt() needs a value that is >= 0.0, %f doesn't work!\n", get_file_name(sta->filename_id), sta->linenumber, v[t - 1]);
+          return FAILED;
+        }
+        v[t - 1] = sqrt(v[t - 1]);
+        sp[t - 1] = NULL;
         break;
       case SI_OP_LOGICAL_OR:
         if (v[t-1] != 0 || v[t-2] != 0)

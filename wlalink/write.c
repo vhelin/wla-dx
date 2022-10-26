@@ -2782,6 +2782,18 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
           v_rom[t - 2] = v_rom[t - 1];
         t--;
         break;        
+      case SI_OP_SQRT:
+        if (v_ram[t - 1] < 0.0) {
+          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: sqrt() needs a value that is >= 0.0, %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_ram[t - 1]);
+          return FAILED;
+        }
+        if (v_rom[t - 1] < 0.0) {
+          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: sqrt() needs a value that is >= 0.0, %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_rom[t - 1]);
+          return FAILED;
+        }
+        v_ram[t - 1] = sqrt(v_ram[t - 1]);
+        v_rom[t - 1] = sqrt(v_rom[t - 1]);
+        break;
       case SI_OP_BANK:
         z = (int)v_rom[t - 1];
         y = _get_bank_of_address(z, slot[t - 1]);

@@ -32,6 +32,7 @@ max()      Takes two arguments, a and b, return the bigger value
 min()      Takes two arguments, a and b, returns the smaller value
 random()   Takes two arguments, min and max, returns a pseudo random number like ``.DBRND``
 round()    The same as ANSI C99 round()
+sqrt()     Returns the square root of the supplied value
 ========== ================================================================================
 
 Note! Use bankbyte() with WLA-65816 as on that platform the bank (+ base) bits

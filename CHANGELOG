@@ -8,13 +8,13 @@ v10.4 (26-Oct-2022) [ALL] If a value is .DEFINEd later in the same source file
                      the pending calculation before exporting it to WLALINK.
                     [ALL] Added .SEEDRANDOM (seeds random number generator
                      with current time -> random).
-                    [ALL] Added built-in function random(min, max).
+                    [ALL] Added built-in functions min(a,b), max(a,b),
+                      random(min, max) and sqrt(a).
                     [ALL] When using -M, if you specify -o or -l later on the
                       command line you can output an object or a library file
                       at the same time.
                     [ALL] Unnamed .STRUCTs inside other .STRUCTs don't generate
                       _paddingof_* definitions any more.
-                    [ALL] Added built-in function min(a,b) and max(a,b).
                     [ALL] Fixed INSTANCEOF in .ENUM when .STRUCT used SIZE
                       (WLA doesn't generate bytes in that case any more).
                     [Z80] All category 4 instructions (like "LD E,(IY+n)"),

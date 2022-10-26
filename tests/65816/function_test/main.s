@@ -191,3 +191,13 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .redefine runnerA = min(runnerA + 0, max(1+runnerA-1, runnerA-runnerA) - 1)
         .endr
         .db "<12"               ; @BT END
+
+        .db "13>"               ; @BT TEST-13 13 START
+        .db sqrt(9+0+0+1-1)     ; @BT 03
+        .db floor(sqrt(VALUE_16+1)) ; @BT 04
+        .db sqrt(9+0+0+1-1) + floor(sqrt(1+VALUE_16)) ; @BT 07
+        .db floor(sqrt(1*sqrt(4+3+2) + floor(sqrt(1+VALUE_16)) + 1*1*1*1 + floor(sqrt(16))*1 + sqrt(VALUE_16+1+VALUE_5*2))) ; @BT 04
+        .rept min(2+floor(sqrt(8+1)), floor(sqrt(1+8)))
+        .db 1                   ; @BT 01 01 01
+        .endr
+        .db "<13"               ; @BT END

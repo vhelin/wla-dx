@@ -110,6 +110,7 @@ static const char *g_si_operator_floor = "floor()";
 static const char *g_si_operator_ceil = "ceil()";
 static const char *g_si_operator_min = "min()";
 static const char *g_si_operator_max = "max()";
+static const char *g_si_operator_sqrt = "sqrt()";
 
 static const char *get_stack_item_operator_name(int operator) {
 
@@ -175,6 +176,8 @@ static const char *get_stack_item_operator_name(int operator) {
     return g_si_operator_min;
   else if (operator == SI_OP_MAX)
     return g_si_operator_max;
+  else if (operator == SI_OP_SQRT)
+    return g_si_operator_sqrt;
   
   fprintf(stderr, "\n");
   fprintf(stderr, "get_stack_item_operator_name(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", operator);

@@ -143,6 +143,7 @@
 #define SI_OP_FLOOR       30
 #define SI_OP_MIN         31
 #define SI_OP_MAX         32
+#define SI_OP_SQRT        33
 
 #define SI_SIGN_POSITIVE 0
 #define SI_SIGN_NEGATIVE 1
