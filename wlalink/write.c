@@ -2783,8 +2783,6 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
           fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: sqrt() needs a value that is >= 0.0, %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_rom[t - 1]);
           return FAILED;
         }
-        fprintf(stderr, "SOURCE RAM %f\n", v_ram[t - 1]);
-        fprintf(stderr, "SOURCE ROM %f\n", v_rom[t - 1]);
         v_ram[t - 1] = sqrt(v_ram[t - 1]);
         v_rom[t - 1] = sqrt(v_rom[t - 1]);
         break;
