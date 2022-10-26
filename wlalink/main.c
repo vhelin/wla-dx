@@ -655,7 +655,7 @@ int main(int argc, char *argv[]) {
             printf(get_stack_item_description(si, s->file_id));
         }
       }
-      printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d (%d) result: %d/$%x (ROM) %d/$%x (RAM)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->section & 0xffff, s->result_rom, s->result_rom, s->result_ram, s->result_ram);
+      printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d (%d) result: %d/$%x (ROM) %d/$%x (RAM)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->section & 0xffff, (int)s->result_rom, (int)s->result_rom, (int)s->result_ram, (int)s->result_ram);
       s = s->next;
     }
     printf("----------------------------------------------------------------------\n");
