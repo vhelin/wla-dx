@@ -130,7 +130,6 @@ struct label {
   int file_id;
   int file_id_source;
   int linenumber;
-  int rom_address;
   int address_in_section;
   int section;
   int section_status;
@@ -140,6 +139,7 @@ struct label {
   int status;
   int alive;
   double address;
+  double rom_address;
   struct section *section_struct;
   struct label *next;
   struct label *prev;
@@ -244,8 +244,8 @@ struct stack {
   int relative_references;
   int under_work;
   int computed;
-  int result_ram;
-  int result_rom;
+  double result_ram;
+  double result_rom;
   int result_slot;
   int result_base;
   int result_bank;

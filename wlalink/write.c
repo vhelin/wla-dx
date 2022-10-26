@@ -1274,9 +1274,9 @@ int fix_label_addresses(void) {
             l->address += s->address;
 
             if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE || s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE)
-              l->rom_address = (int)l->address + g_slots[l->slot].size * l->bank;
+              l->rom_address = l->address + g_slots[l->slot].size * l->bank;
             else
-              l->rom_address = (int)l->address + g_bankaddress[l->bank];
+              l->rom_address = l->address + g_bankaddress[l->bank];
 
             if (s->status != SECTION_STATUS_ABSOLUTE)
               l->address += g_slots[l->slot].address;
@@ -1287,7 +1287,7 @@ int fix_label_addresses(void) {
         }
         else {
           l->address_in_section = (int)l->address;
-          l->rom_address = (int)l->address + g_bankaddress[l->bank];
+          l->rom_address = l->address + g_bankaddress[l->bank];
           l->address += g_slots[l->slot].address;
         }
       }
@@ -3498,7 +3498,7 @@ int get_snes_pc_bank(struct label *l) {
     else {
       /* use rom_address instead of address, as address points to
          the position in destination machine's memory, not in rom */
-      k = l->rom_address;
+      k = (int)l->rom_address;
 
       if (g_snes_rom_mode == SNES_ROM_MODE_HIROM || g_snes_rom_mode == SNES_ROM_MODE_EXHIROM)
         x = k / 0x10000;
@@ -3676,7 +3676,7 @@ struct label *get_closest_anonymous_label(char *name, char *context, int rom_add
       l = g_sorted_anonymous_labels[j];
       if (strcmp("__", l->name) == 0 && strcmp(context, l->context) == 0 && file_id == l->file_id && section_status == l->section_status) {
         if (section_status == OFF || (section_status == ON && section == l->section)) {
-          e = rom_address - l->rom_address;
+          e = rom_address - (int)l->rom_address;
           if (e >= 0 && e < d) {
             closest = l;
             d = e;
@@ -3693,7 +3693,7 @@ struct label *get_closest_anonymous_label(char *name, char *context, int rom_add
       l = g_sorted_anonymous_labels[j];
       if (strcmp("__", l->name) == 0 && strcmp(context, l->context) == 0 && file_id == l->file_id && section_status == l->section_status) {
         if (section_status == OFF || (section_status == ON && section == l->section)) {
-          e = l->rom_address - rom_address;
+          e = (int)l->rom_address - rom_address;
           if (e > 0 && e < d) {
             closest = l;
             d = e;
@@ -3712,14 +3712,14 @@ struct label *get_closest_anonymous_label(char *name, char *context, int rom_add
     if (strcmp(name, l->name) == 0 && strcmp(context, l->context) == 0 && file_id == l->file_id && section_status == l->section_status) {
       if (section_status == OFF || (section_status == ON && section == l->section)) {
         if (name[0] == '-') {
-          e = rom_address - l->rom_address;
+          e = rom_address - (int)l->rom_address;
           if (e >= 0 && e < d) {
             closest = l;
             d = e;
           }
         }
         else {
-          e = l->rom_address - rom_address;
+          e = (int)l->rom_address - rom_address;
           if (e > 0 && e < d) {
             closest = l;
             d = e;
@@ -3764,7 +3764,7 @@ static int _create_ram_bank_usage_label(int bank, int slot, char *slot_name, con
   l->status = LABEL_STATUS_LABEL;
   l->alive = YES;
   l->address = address;
-  l->rom_address = (int)address;
+  l->rom_address = address;
   l->base = 0;
   l->bank = bank;
   l->slot = slot;
@@ -3909,7 +3909,7 @@ int generate_sizeof_label_definitions(void) {
           continue;
       }
       else {
-        size = labels[j+1]->rom_address - labels[j]->rom_address;
+        size = (int)labels[j+1]->rom_address - (int)labels[j]->rom_address;
       }
     }
 
@@ -3932,7 +3932,7 @@ int generate_sizeof_label_definitions(void) {
     l->status = LABEL_STATUS_DEFINE;
     l->alive = YES;
     l->address = size;
-    l->rom_address = (int)size;
+    l->rom_address = size;
     l->base = 0;
     l->file_id = labels[j]->file_id;
 
