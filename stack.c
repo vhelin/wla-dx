@@ -720,7 +720,7 @@ static int _parse_function_minmax(char *in, int *type_a, int *type_b, double *va
 
 static int _parse_function_sqrt(char *in, int *type, double *value, char *string, int *parsed_chars) {
 
-  int res, source_pointer_original = g_source_pointer, source_pointer_backup;
+  int res, source_pointer_original = g_source_pointer, source_pointer_backup, input_float_mode = g_input_float_mode;
   
   /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
      let's update g_source_pointer for input_number() */
@@ -728,7 +728,9 @@ static int _parse_function_sqrt(char *in, int *type, double *value, char *string
   g_source_pointer = (int)(in - g_buffer);
   source_pointer_backup = g_source_pointer;
 
+  g_input_float_mode = ON;
   res = input_number();
+  g_input_float_mode = input_float_mode;
 
   *type = res;
   if (res == SUCCEEDED)
@@ -742,8 +744,8 @@ static int _parse_function_sqrt(char *in, int *type, double *value, char *string
   else {
     print_error(ERROR_STC, "Unhandled result type %d of a in sqrt()!\n", res);
     return FAILED;
-  }  
-  
+  }
+
   if (g_buffer[g_source_pointer] != ')') {
     print_error(ERROR_NUM, "Malformed \"sqrt(?)\" detected!\n");
     return FAILED;
@@ -1452,7 +1454,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         else if (k == 4 && strcaselesscmpn(si[q].string, "sqrt(", 5) == 0) {
           int parsed_chars = 0, type = -1;
           char string[MAX_NAME_LENGTH + 1];
-          double value = 0;
+          double value = 0.0;
 
           if (_parse_function_sqrt(in, &type, &value, string, &parsed_chars) == FAILED)
             return FAILED;

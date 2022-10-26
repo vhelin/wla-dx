@@ -30,7 +30,7 @@ lobyte()   Returns the low byte, bits 0-7 (the same as preceding ``<``)
 loword()   Returns the low word, bits 0-15
 max()      Takes two arguments, a and b, return the bigger value
 min()      Takes two arguments, a and b, returns the smaller value
-random()   Takes two arguments, min and max, returns a pseudo random number like ``.DBRND``
+random()   Takes two arguments, min and max, returns a pseudo random integer like ``.DBRND``
 round()    The same as ANSI C99 round()
 sqrt()     Returns the square root of the supplied value
 ========== ================================================================================

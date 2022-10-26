@@ -241,6 +241,7 @@ static int _input_number_return_definition(struct definition *def) {
 
   if (def->type == DEFINITION_TYPE_VALUE) {
     g_parsed_int = (int)def->value;
+    g_parsed_double = def->value;
 
     if (g_operand_hint == HINT_NONE) {
       if (g_parsed_int > 0xFFFFFF)
@@ -262,9 +263,10 @@ static int _input_number_return_definition(struct definition *def) {
       }
 #endif
     }
-      
-    g_parsed_double = (double)g_parsed_int;
-    
+
+    if (g_input_float_mode == ON && g_parsed_double - (int)g_parsed_double != 0.0)
+      return INPUT_NUMBER_FLOAT;
+
     return SUCCEEDED;
   }
   else if (def->type == DEFINITION_TYPE_STACK) {

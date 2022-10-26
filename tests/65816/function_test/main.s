@@ -197,6 +197,14 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .db floor(sqrt(VALUE_16+1)) ; @BT 04
         .db sqrt(9+0+0+1-1) + floor(sqrt(1+VALUE_16)) ; @BT 07
         .db floor(sqrt(1*sqrt(4+3+2) + floor(sqrt(1+VALUE_16)) + 1*1*1*1 + floor(sqrt(16))*1 + sqrt(VALUE_16+1+VALUE_5*2))) ; @BT 04
+        .db floor(sqrt(5.5)*3)   ; @BT 07
+
+        .define FIVE_POINT_FIVE = 5.5
+        // calculated here
+        .db floor(sqrt(FIVE_POINT_FIVE)*3)   ; @BT 07
+        // calculated in WLALINK
+        .db floor(sqrt(FIVE_POINT_FIVEONE)*3)   ; @BT 07
+        
         .rept min(2+floor(sqrt(8+1)), floor(sqrt(1+8)))
         .db 1                   ; @BT 01 01 01
         .endr

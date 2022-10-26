@@ -181,7 +181,7 @@ int main(int argc, char *argv[]) {
       }
     }
   }
-  
+
   if (g_output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
     char title[] = "WLA " ARCH_STR " Macro Assembler v10.4a";
     int length, left, right;
