@@ -87,7 +87,6 @@ int strcaselesscmp(char *s1, const char *s2) {
 int _cbm_write_prg_header(FILE *f) {
 
   int address = 0;
-
   
   if (f == NULL)
     return FAILED;
@@ -168,7 +167,6 @@ int _cbm_write_prg_header(FILE *f) {
 int _smc_create_and_write(FILE *f) {
 
   int i;
-
 
   if (f == NULL)
     return FAILED;
@@ -1025,7 +1023,6 @@ int try_put_label(map_t map, struct label *l) {
 
   int err;
 
-
   if (hashmap_get(map, l->name, NULL) == MAP_OK) {
     if (l->status == LABEL_STATUS_DEFINE)
       fprintf(stderr, "%s: TRY_PUT_LABEL: Definition \"%s\" was defined more than once.\n", get_file_name(l->file_id), l->name);
@@ -1051,7 +1048,6 @@ int check_ramsections(void) {
 
   struct section *s;
 
-
   s = g_sec_first;
   while (s != NULL) {
     if (s->bank < 0 && s->slot < 0) {
@@ -1070,7 +1066,6 @@ int check_ramsections(void) {
 int fix_all_sections(void) {
 
   struct section *s;
-
   
   g_sec_fix_tmp = g_sec_fix_first;
   while (g_sec_fix_tmp != NULL) {
@@ -1212,7 +1207,6 @@ int insert_label_into_maps(struct label* l, int is_sizeof) {
   int put_in_anything = 1;
   char* base_name;
 
-
   /* for "sizeof" labels, "base_name" refers to the label name without the "_sizeof_"
    * prefix. */
   base_name = l->name;
@@ -1261,7 +1255,6 @@ int fix_label_addresses(void) {
 
   struct section *s;
   struct label *l;
-
 
   /* fix labels' addresses */
   l = g_labels_first;
@@ -1395,7 +1388,6 @@ int fix_references(void) {
   struct section *s;
   struct label *l, lt;
   int i, x;
-
 
   g_section_overwrite = OFF;
 
@@ -2033,7 +2025,6 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char output_ad
 static int _get_rom_address_of_label(char *label, int *address) {
 
   struct label *l;
-    
 
   find_label(label, NULL, &l);
 
@@ -2062,7 +2053,6 @@ int write_rom_file(char *outname) {
   struct section *s;
   FILE *f;
   int i, b, e;
-
   
   /* get the addresses of the program start and end */
   if (g_program_address_start_type == LOAD_ADDRESS_TYPE_LABEL) {
@@ -2174,8 +2164,8 @@ int compute_pending_calculations(void) {
 
   struct section *s;
   struct stack *sta;
+  double result;
   int k, a;
-
 
   g_section_overwrite = ON;
 
@@ -2287,8 +2277,10 @@ int compute_pending_calculations(void) {
     g_current_stack_calculation_addr = sta->memory_address;
 
     /* all the references have been decoded, now compute */
-    if (compute_stack(sta, &k, NULL, NULL, NULL, NULL) == FAILED)
+    if (compute_stack(sta, &result, NULL, NULL, NULL, NULL) == FAILED)
       return FAILED;
+
+    k = (int)result;
 
     g_memory_file_id = sta->file_id;
     g_memory_file_id_source = sta->file_id_source;
@@ -2544,12 +2536,12 @@ static double _round(double d) {
 }
 
 
-int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *result_slot, int *result_base, int *result_bank) {
+int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int *result_slot, int *result_base, int *result_bank) {
 
+  int r, t, z, y, x, res_base, res_bank, res_slot, slot[256], base[256], bank[256];
+  double v_ram[256], v_rom[256], q, res_ram, res_rom;
   struct stack_item *s;
   struct stack *st;
-  int r, t, z, y, x, res_ram, res_rom, res_base, res_bank, res_slot, slot[256], base[256], bank[256];
-  double v_ram[256], v_rom[256], q;
 
   if (sta->under_work == YES) {
     fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: A loop found in computation.\n", get_file_name(sta->file_id),
@@ -2791,6 +2783,8 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
           fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: sqrt() needs a value that is >= 0.0, %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_rom[t - 1]);
           return FAILED;
         }
+        fprintf(stderr, "SOURCE RAM %f\n", v_ram[t - 1]);
+        fprintf(stderr, "SOURCE ROM %f\n", v_rom[t - 1]);
         v_ram[t - 1] = sqrt(v_ram[t - 1]);
         v_rom[t - 1] = sqrt(v_rom[t - 1]);
         break;
@@ -2964,9 +2958,9 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
   }
 
   if (result_ram != NULL)
-    *result_ram = (int)v_ram[0];
+    *result_ram = v_ram[0];
   if (result_rom != NULL)
-    *result_rom = (int)v_rom[0];
+    *result_rom = v_rom[0];
   if (result_slot != NULL)
     *result_slot = sta->result_slot;
   if (result_base != NULL)
@@ -2974,8 +2968,8 @@ int compute_stack(struct stack *sta, int *result_ram, int *result_rom, int *resu
   if (result_bank != NULL)
     *result_bank = sta->result_bank;
 
-  sta->result_ram = (int)v_ram[0];
-  sta->result_rom = (int)v_rom[0];
+  sta->result_ram = v_ram[0];
+  sta->result_rom = v_rom[0];
   sta->result_slot = (int)slot[0];
   sta->result_base = (int)base[0];
   sta->result_bank = (int)bank[0];
@@ -2995,17 +2989,19 @@ int write_bank_header_calculations(struct stack *sta) {
 
   struct section *s;
   unsigned char *t;
+  double result;
   int k;
-
 
   /* parse stack items */
   if (parse_stack(sta) == FAILED)
     return FAILED;
 
   /* all the references have been decoded, now compute */
-  if (compute_stack(sta, &k, NULL, NULL, NULL, NULL) == FAILED)
+  if (compute_stack(sta, &result, NULL, NULL, NULL, NULL) == FAILED)
     return FAILED;
 
+  k = (int)result;
+  
   s = g_sec_bankhd_first;
   while (s != NULL && sta->section != s->id)
     s = s->next;
@@ -3160,7 +3156,6 @@ int write_bank_header_references(struct reference *r) {
   struct label *l;
   unsigned char *t;
   int a;
-
 
   s = g_sec_bankhd_first;
   while (r->section != s->id)
@@ -3321,7 +3316,6 @@ int parse_stack(struct stack *sta) {
   struct label *l, lt;
   double k_ram, k_rom;
   int g, ed;
-
 
   if (sta->section_status != 0)
     s = find_section(sta->section);
@@ -3492,7 +3486,6 @@ int get_snes_pc_bank(struct label *l) {
 
   int x, k;
 
-
   /* TODO: clean up this mess */
 
   /* do we override the user's banking scheme (.HIROM/.LOROM/.EXHIROM/.EXLOROM)? */
@@ -3530,7 +3523,6 @@ int correct_65816_library_sections(void) {
 
   struct section *s;
   struct label *l;
-
 
   s = g_sec_first;
   while (s != NULL) {
@@ -3589,7 +3581,6 @@ static int _labels_compare(const void *a, const void *b) {
   const struct label *l1 = a;
   const struct label *l2 = b;
 
-
   if (l1->section_status == OFF && l2->section_status == ON)
     return 1;
   if (l1->section_status == ON && l2->section_status == OFF)
@@ -3629,7 +3620,6 @@ int sort_anonymous_labels() {
 
   int j = 0;
   struct label *l;
-
 
   g_num_sorted_anonymous_labels = 0;
 
@@ -3849,7 +3839,6 @@ int generate_sizeof_label_definitions(void) {
   int labelsN = 0, j;
   double size = 0.0;
 
-
   if (g_labels_first == NULL)
     return SUCCEEDED;
 
@@ -3972,7 +3961,6 @@ int fix_sectionstartend_labels(void) {
   struct label *l1, *l2;
   int count;
   char tmp[MAX_NAME_LENGTH * 2];
-
 
   if (g_labels_first == NULL)
     return SUCCEEDED;

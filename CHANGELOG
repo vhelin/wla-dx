@@ -1442,7 +1442,9 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.19 (02-Oct-2022) 
+v5.19 (26-Oct-2022) WLALINK turned doubles into ints too early in computing
+                      pending calculations on some cases thus loosing
+                      precision.
 
 v5.18 (02-Oct-2022) Added -v1 and -v2 (shorter verbose levels).
                     Pending calculations that were marked negative inside

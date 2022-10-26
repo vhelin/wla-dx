@@ -204,6 +204,9 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .db floor(sqrt(FIVE_POINT_FIVE)*3)   ; @BT 07
         // calculated in WLALINK
         .db floor(sqrt(FIVE_POINT_FIVEONE)*3)   ; @BT 07
+
+        .db floor(sqrt(FIVE_POINT_FIVE+0.0001)*3)   ; @BT 07
+        .db floor(sqrt(FIVE_POINT_FIVEONE+0.0001)*3)   ; @BT 07
         
         .rept min(2+floor(sqrt(8+1)), floor(sqrt(1+8)))
         .db 1                   ; @BT 01 01 01
