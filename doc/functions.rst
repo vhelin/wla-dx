@@ -17,6 +17,7 @@ Built-in functions
 The following built-in functions can be used where ever a number is expected:
 
 ========== ================================================================================
+abs()      Returns the positive version of the argument
 asc()      Uses ``.ASCIITABLE`` to map the supplied value
 bank()     Returns the bank (the same as preceding ``:``)
 bankbyte() Returns the bank byte, bits 16-23

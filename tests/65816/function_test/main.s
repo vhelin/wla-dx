@@ -212,3 +212,15 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .db 1                   ; @BT 01 01 01
         .endr
         .db "<13"               ; @BT END
+
+        .db "14>"               ; @BT TEST-14 14 START
+        .db abs(0xf0)           ; @BT F0
+        .db abs(-9.1)           ; @BT 09
+        .db abs(-8.9 - 0.2)     ; @BT 09
+        .db abs(FIVE_POINT_FIVE) ; @BT 05
+        .db abs(FIVE_POINT_FIVE+0.0001) ; @BT 05
+        .db floor(sqrt(abs(-FIVE_POINT_FIVE))) ; @BT 02
+        .db floor(sqrt(abs(-FIVE_POINT_FIVE*3))) ; @BT 04
+        .db floor(sqrt(abs(-FIVE_POINT_FIVE+0.0001))*3) ; @BT 07
+        .db floor(sqrt(abs(-FIVE_POINT_FIVEONE+0.0001))*3) ; @BT 07
+        .db "<14"               ; @BT END

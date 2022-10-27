@@ -2786,6 +2786,10 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         v_ram[t - 1] = sqrt(v_ram[t - 1]);
         v_rom[t - 1] = sqrt(v_rom[t - 1]);
         break;
+      case SI_OP_ABS:
+        v_ram[t - 1] = fabs(v_ram[t - 1]);
+        v_rom[t - 1] = fabs(v_rom[t - 1]);
+        break;
       case SI_OP_BANK:
         z = (int)v_rom[t - 1];
         y = _get_bank_of_address(z, slot[t - 1]);

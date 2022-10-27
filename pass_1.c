@@ -7130,7 +7130,8 @@ int directive_function(void) {
       strcmp("round", g_label) == 0 ||
       strcmp("ceil", g_label) == 0 ||
       strcmp("floor", g_label) == 0 ||
-      strcmp("sqrt", g_label) == 0) {
+      strcmp("sqrt", g_label) == 0 ||
+      strcmp("abs", g_label) == 0) {
     print_error(ERROR_DIR, "You cannot redefine a built-in .FUNCTION \"%s\"!\n", g_label);
     return FAILED;
   }
