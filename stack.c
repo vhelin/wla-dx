@@ -659,9 +659,9 @@ static int _parse_function_exists(char *in, int *result, int *parsed_chars) {
 }
 
 
-static int _parse_function_minmax(char *in, int *type_a, int *type_b, double *value_a, double *value_b, char *string_a, char *string_b, int *parsed_chars) {
+static int _parse_function_math2(char *in, int *type_a, int *type_b, double *value_a, double *value_b, char *string_a, char *string_b, int *parsed_chars, char *name) {
 
-  int res, source_pointer_original = g_source_pointer, source_pointer_backup;
+  int res, source_pointer_original = g_source_pointer, source_pointer_backup, input_float_mode = g_input_float_mode;
   
   /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
      let's update g_source_pointer for input_number() */
@@ -670,6 +670,7 @@ static int _parse_function_minmax(char *in, int *type_a, int *type_b, double *va
   source_pointer_backup = g_source_pointer;
 
   /* a */
+  g_input_float_mode = ON;
   res = input_number();
 
   *type_a = res;
@@ -682,13 +683,14 @@ static int _parse_function_minmax(char *in, int *type_a, int *type_b, double *va
   else if (res == INPUT_NUMBER_STACK)
     *value_a = g_latest_stack;
   else {
-    print_error(ERROR_STC, "Unhandled result type %d of a in min(a,b)/max(a,b)!\n", res);
+    print_error(ERROR_STC, "Unhandled result type %d of a in %s!\n", res, name);
     return FAILED;
   }
 
   /* b */
   res = input_number();
-
+  g_input_float_mode = input_float_mode;
+  
   *type_b = res;
   if (res == SUCCEEDED)
     *value_b = g_parsed_int;
@@ -699,12 +701,12 @@ static int _parse_function_minmax(char *in, int *type_a, int *type_b, double *va
   else if (res == INPUT_NUMBER_STACK)
     *value_b = g_latest_stack;
   else {
-    print_error(ERROR_STC, "Unhandled result type %d of b in min(a,b)/max(a,b)!\n", res);
+    print_error(ERROR_STC, "Unhandled result type %d of b in %s!\n", res, name);
     return FAILED;
   }
   
   if (g_buffer[g_source_pointer] != ')') {
-    print_error(ERROR_NUM, "Malformed \"min(a,b)/max(a,b)\" detected!\n");
+    print_error(ERROR_NUM, "Malformed \"%s\" detected!\n", name);
     return FAILED;
   }
 
@@ -721,7 +723,7 @@ static int _parse_function_minmax(char *in, int *type_a, int *type_b, double *va
 }
 
 
-static int _parse_function_sqrt(char *in, int *type, double *value, char *string, int *parsed_chars) {
+static int _parse_function_math1(char *in, int *type, double *value, char *string, int *parsed_chars, char *name) {
 
   int res, source_pointer_original = g_source_pointer, source_pointer_backup, input_float_mode = g_input_float_mode;
   
@@ -745,12 +747,12 @@ static int _parse_function_sqrt(char *in, int *type, double *value, char *string
   else if (res == INPUT_NUMBER_STACK)
     *value = g_latest_stack;
   else {
-    print_error(ERROR_STC, "Unhandled result type %d of a in sqrt()!\n", res);
+    print_error(ERROR_STC, "Unhandled result type %d of a in %s!\n", res, name);
     return FAILED;
   }
 
   if (g_buffer[g_source_pointer] != ')') {
-    print_error(ERROR_NUM, "Malformed \"sqrt(?)\" detected!\n");
+    print_error(ERROR_NUM, "Malformed \"%s\" detected!\n", name);
     return FAILED;
   }
 
@@ -767,48 +769,94 @@ static int _parse_function_sqrt(char *in, int *type, double *value, char *string
 }
 
 
-static int _parse_function_abs(char *in, int *type, double *value, char *string, int *parsed_chars) {
+static int _parse_function_math1_base(char **in, struct stack_item *si, int *q, char *name, int operator) {
 
-  int res, source_pointer_original = g_source_pointer, source_pointer_backup, input_float_mode = g_input_float_mode;
-  
-  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
-     let's update g_source_pointer for input_number() */
+  int parsed_chars = 0, type = -1;
+  char string[MAX_NAME_LENGTH + 1];
+  double value = 0.0;
 
-  g_source_pointer = (int)(in - g_buffer);
-  source_pointer_backup = g_source_pointer;
+  if (_parse_function_math1(*in, &type, &value, string, &parsed_chars, name) == FAILED)
+    return FAILED;
+  *in += parsed_chars;
 
-  g_input_float_mode = ON;
-  res = input_number();
-  g_input_float_mode = input_float_mode;
+  si[*q].type = STACK_ITEM_TYPE_OPERATOR;
+  si[*q].value = operator;
 
-  *type = res;
-  if (res == SUCCEEDED)
-    *value = g_parsed_int;
-  else if (res == INPUT_NUMBER_FLOAT)
-    *value = g_parsed_double;
-  else if (res == INPUT_NUMBER_ADDRESS_LABEL)
-    strcpy(string, g_label);
-  else if (res == INPUT_NUMBER_STACK)
-    *value = g_latest_stack;
-  else {
-    print_error(ERROR_STC, "Unhandled result type %d of a in abs()!\n", res);
+  (*q)++;
+
+  if ((*q)+1 >= MAX_STACK_CALCULATOR_ITEMS-1) {
+    print_error(ERROR_STC, "Out of stack space. Adjust MAX_STACK_CALCULATOR_ITEMS in defines.h and recompile WLA!\n");
     return FAILED;
   }
 
-  if (g_buffer[g_source_pointer] != ')') {
-    print_error(ERROR_NUM, "Malformed \"abs(?)\" detected!\n");
+  si[*q].sign = SI_SIGN_POSITIVE;
+  if (type == SUCCEEDED || type == INPUT_NUMBER_FLOAT) {
+    si[*q].type = STACK_ITEM_TYPE_VALUE;
+    si[*q].value = value;
+  }
+  else if (type == INPUT_NUMBER_ADDRESS_LABEL) {
+    si[*q].type = STACK_ITEM_TYPE_LABEL;
+    strcpy(si[*q].string, string);
+  }
+  else if (type == INPUT_NUMBER_STACK) {
+    si[*q].type = STACK_ITEM_TYPE_STACK;
+    si[*q].value = value;
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _parse_function_math2_base(char **in, struct stack_item *si, int *q, char *name, int operator) {
+
+  int parsed_chars = 0, type_a = -1, type_b = -1;
+  char string_a[MAX_NAME_LENGTH + 1], string_b[MAX_NAME_LENGTH + 1];
+  double value_a = 0, value_b = 0;
+
+  if (_parse_function_math2(*in, &type_a, &type_b, &value_a, &value_b, string_a, string_b, &parsed_chars, name) == FAILED)
+    return FAILED;
+  *in += parsed_chars;
+
+  si[*q].type = STACK_ITEM_TYPE_OPERATOR;
+  si[*q].value = operator;
+          
+  (*q)++;
+
+  if (*q+2 >= MAX_STACK_CALCULATOR_ITEMS-1) {
+    print_error(ERROR_STC, "Out of stack space. Adjust MAX_STACK_CALCULATOR_ITEMS in defines.h and recompile WLA!\n");
     return FAILED;
   }
 
-  /* skip ')' */
-  g_source_pointer++;
+  si[*q].sign = SI_SIGN_POSITIVE;
+  if (type_a == SUCCEEDED || type_a == INPUT_NUMBER_FLOAT) {
+    si[*q].type = STACK_ITEM_TYPE_VALUE;
+    si[*q].value = value_a;
+  }
+  else if (type_a == INPUT_NUMBER_ADDRESS_LABEL) {
+    si[*q].type = STACK_ITEM_TYPE_LABEL;
+    strcpy(si[*q].string, string_a);
+  }
+  else if (type_a == INPUT_NUMBER_STACK) {
+    si[*q].type = STACK_ITEM_TYPE_STACK;
+    si[*q].value = value_a;
+  }
 
-  /* count the parsed chars */
-  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+  (*q)++;
 
-  /* return g_source_pointer */
-  g_source_pointer = source_pointer_original;
-  
+  si[*q].sign = SI_SIGN_POSITIVE;
+  if (type_b == SUCCEEDED || type_b == INPUT_NUMBER_FLOAT) {
+    si[*q].type = STACK_ITEM_TYPE_VALUE;
+    si[*q].value = value_b;
+  }
+  else if (type_b == INPUT_NUMBER_ADDRESS_LABEL) {
+    si[*q].type = STACK_ITEM_TYPE_LABEL;
+    strcpy(si[*q].string, string_b);
+  }
+  else if (type_b == INPUT_NUMBER_STACK) {
+    si[*q].type = STACK_ITEM_TYPE_STACK;
+    si[*q].value = value_b;
+  }
+
   return SUCCEEDED;
 }
 
@@ -1445,131 +1493,28 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_label = NO;
           break;
         }
-        else if (k == 3 && (strcaselesscmpn(si[q].string, "min(", 4) == 0 || strcaselesscmpn(si[q].string, "max(", 4) == 0)) {
-          int parsed_chars = 0, type_a = -1, type_b = -1;
-          char string_a[MAX_NAME_LENGTH + 1], string_b[MAX_NAME_LENGTH + 1];
-          double value_a = 0, value_b = 0;
-
-          if (_parse_function_minmax(in, &type_a, &type_b, &value_a, &value_b, string_a, string_b, &parsed_chars) == FAILED)
+        else if (k == 3 && strcaselesscmpn(si[q].string, "min(", 4) == 0) {
+          if (_parse_function_math2_base(&in, si, &q, "min(a,b)", SI_OP_MIN) == FAILED)
             return FAILED;
-          in += parsed_chars;
           is_already_processed_function = YES;
-
-          si[q].type = STACK_ITEM_TYPE_OPERATOR;
-          if (si[q].string[1] == 'i')
-            si[q].value = SI_OP_MIN;
-          else
-            si[q].value = SI_OP_MAX;
-          
-          q++;
-
-          if (q+2 >= MAX_STACK_CALCULATOR_ITEMS-1) {
-            print_error(ERROR_STC, "Out of stack space. Adjust MAX_STACK_CALCULATOR_ITEMS in defines.h and recompile WLA!\n");
+          break;
+        }
+        else if (k == 3 && strcaselesscmpn(si[q].string, "max(", 4) == 0) {
+          if (_parse_function_math2_base(&in, si, &q, "max(a,b)", SI_OP_MAX) == FAILED)
             return FAILED;
-          }
-
-          si[q].sign = SI_SIGN_POSITIVE;
-          if (type_a == SUCCEEDED || type_a == INPUT_NUMBER_FLOAT) {
-            si[q].type = STACK_ITEM_TYPE_VALUE;
-            si[q].value = value_a;
-          }
-          else if (type_a == INPUT_NUMBER_ADDRESS_LABEL) {
-            si[q].type = STACK_ITEM_TYPE_LABEL;
-            strcpy(si[q].string, string_a);
-          }
-          else if (type_a == INPUT_NUMBER_STACK) {
-            si[q].type = STACK_ITEM_TYPE_STACK;
-            si[q].value = value_a;
-          }
-
-          q++;
-
-          si[q].sign = SI_SIGN_POSITIVE;
-          if (type_b == SUCCEEDED || type_b == INPUT_NUMBER_FLOAT) {
-            si[q].type = STACK_ITEM_TYPE_VALUE;
-            si[q].value = value_b;
-          }
-          else if (type_b == INPUT_NUMBER_ADDRESS_LABEL) {
-            si[q].type = STACK_ITEM_TYPE_LABEL;
-            strcpy(si[q].string, string_b);
-          }
-          else if (type_b == INPUT_NUMBER_STACK) {
-            si[q].type = STACK_ITEM_TYPE_STACK;
-            si[q].value = value_b;
-          }
-          
+          is_already_processed_function = YES;
           break;
         }
         else if (k == 3 && strcaselesscmpn(si[q].string, "abs(", 4) == 0) {
-          int parsed_chars = 0, type = -1;
-          char string[MAX_NAME_LENGTH + 1];
-          double value = 0.0;
-
-          if (_parse_function_abs(in, &type, &value, string, &parsed_chars) == FAILED)
+          if (_parse_function_math1_base(&in, si, &q, "abs(a)", SI_OP_ABS) == FAILED)
             return FAILED;
-          in += parsed_chars;
           is_already_processed_function = YES;
-
-          si[q].type = STACK_ITEM_TYPE_OPERATOR;
-          si[q].value = SI_OP_ABS;
-          
-          q++;
-
-          if (q+1 >= MAX_STACK_CALCULATOR_ITEMS-1) {
-            print_error(ERROR_STC, "Out of stack space. Adjust MAX_STACK_CALCULATOR_ITEMS in defines.h and recompile WLA!\n");
-            return FAILED;
-          }
-
-          si[q].sign = SI_SIGN_POSITIVE;
-          if (type == SUCCEEDED || type == INPUT_NUMBER_FLOAT) {
-            si[q].type = STACK_ITEM_TYPE_VALUE;
-            si[q].value = value;
-          }
-          else if (type == INPUT_NUMBER_ADDRESS_LABEL) {
-            si[q].type = STACK_ITEM_TYPE_LABEL;
-            strcpy(si[q].string, string);
-          }
-          else if (type == INPUT_NUMBER_STACK) {
-            si[q].type = STACK_ITEM_TYPE_STACK;
-            si[q].value = value;
-          }
-
           break;
         }
         else if (k == 4 && strcaselesscmpn(si[q].string, "sqrt(", 5) == 0) {
-          int parsed_chars = 0, type = -1;
-          char string[MAX_NAME_LENGTH + 1];
-          double value = 0.0;
-
-          if (_parse_function_sqrt(in, &type, &value, string, &parsed_chars) == FAILED)
+          if (_parse_function_math1_base(&in, si, &q, "sqrt(a)", SI_OP_SQRT) == FAILED)
             return FAILED;
-          in += parsed_chars;
           is_already_processed_function = YES;
-
-          si[q].type = STACK_ITEM_TYPE_OPERATOR;
-          si[q].value = SI_OP_SQRT;
-          
-          q++;
-
-          if (q+1 >= MAX_STACK_CALCULATOR_ITEMS-1) {
-            print_error(ERROR_STC, "Out of stack space. Adjust MAX_STACK_CALCULATOR_ITEMS in defines.h and recompile WLA!\n");
-            return FAILED;
-          }
-
-          si[q].sign = SI_SIGN_POSITIVE;
-          if (type == SUCCEEDED || type == INPUT_NUMBER_FLOAT) {
-            si[q].type = STACK_ITEM_TYPE_VALUE;
-            si[q].value = value;
-          }
-          else if (type == INPUT_NUMBER_ADDRESS_LABEL) {
-            si[q].type = STACK_ITEM_TYPE_LABEL;
-            strcpy(si[q].string, string);
-          }
-          else if (type == INPUT_NUMBER_STACK) {
-            si[q].type = STACK_ITEM_TYPE_STACK;
-            si[q].value = value;
-          }
-
           break;
         }
         else if (k == 6 && strcaselesscmpn(si[q].string, "random(", 7) == 0) {
