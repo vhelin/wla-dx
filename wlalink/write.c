@@ -2649,6 +2649,15 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
       if (compute_stack(st, &res_ram, &res_rom, &res_slot, &res_base, &res_bank) == FAILED)
         return FAILED;
 
+      {
+        /* HACK: adding this block here fixed a random weird crash where "sta" became unreachable inside this function on macOS thus
+           crashing the code at the end of this function. a debug build doesn't crash WLALINK so i'm thinking that compiler's
+           code optimizations are breaking the program... */
+        char hack[64];
+
+        snprintf(hack, 64, "%d", sta->id);
+      }
+      
       if (s->sign == SI_SIGN_NEGATIVE) {
         v_ram[t] = -res_ram;
         v_rom[t] = -res_rom;
