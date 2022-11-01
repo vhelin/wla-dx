@@ -44,6 +44,28 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 PROFILE_GLOBALS_EXTERN();
 
 
+struct stack *allocate_struct_stack(int items) {
+
+  struct stack *stack = calloc(sizeof(struct stack), 1);
+  if (stack == NULL) {
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
+    return NULL;
+  }
+
+  init_stack_struct(stack);
+
+  stack->stacksize = items;
+  stack->stack_items = calloc(sizeof(struct stack_item) * items, 1);
+  if (stack->stack_items == NULL) {
+    free(stack);
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
+    return NULL;
+  }
+
+  return stack;
+}
+
+
 void init_stack_struct(struct stack *s) {
 
   s->stack_items = NULL;
@@ -306,17 +328,37 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
   
   for (k = 0; k < count; k++) {
     char ar[] = "+-*()|&/^01%~<>!:<>";
+    int add_sign = YES;
 
     if (ta[k].type == STACK_ITEM_TYPE_DELETED)
       continue;
 
-    if (ta[k].type != STACK_ITEM_TYPE_OPERATOR) {
+    if (ta[k].type == STACK_ITEM_TYPE_OPERATOR) {
+      int value = (int)ta[k].value;
+
+      if (!(value == SI_OP_ROUND ||
+            value == SI_OP_CEIL ||
+            value == SI_OP_FLOOR ||
+            value == SI_OP_MIN ||
+            value == SI_OP_MAX ||
+            value == SI_OP_SQRT ||
+            value == SI_OP_COS ||
+            value == SI_OP_SIN ||
+            value == SI_OP_TAN ||
+            value == SI_OP_ACOS ||
+            value == SI_OP_ASIN ||
+            value == SI_OP_ATAN ||
+            value == SI_OP_ABS))
+        add_sign = NO;
+    }
+    
+    if (add_sign == YES) {
       if (ta[k].sign == SI_SIGN_POSITIVE)
         printf("+");
       else
         printf("-");
     }
-
+    
     if (ta[k].can_calculate_deltas == YES)
       printf("@");
     
@@ -359,6 +401,18 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
         printf("sqrt()");
       else if (value == SI_OP_ABS)
         printf("abs()");
+      else if (value == SI_OP_COS)
+        printf("cos()");
+      else if (value == SI_OP_SIN)
+        printf("sin()");
+      else if (value == SI_OP_TAN)
+        printf("tan()");
+      else if (value == SI_OP_ACOS)
+        printf("acos()");
+      else if (value == SI_OP_ASIN)
+        printf("asin()");
+      else if (value == SI_OP_ATAN)
+        printf("atan()");
       else {
         if (value >= (int)strlen(ar)) {
           printf("ERROR!\n");
@@ -443,6 +497,12 @@ static struct stack_item_priority_item g_stack_item_priority_items[] = {
   { SI_OP_MAX, 110 },
   { SI_OP_SQRT, 110 },
   { SI_OP_ABS, 110 },
+  { SI_OP_COS, 110 },
+  { SI_OP_SIN, 110 },
+  { SI_OP_TAN, 110 },
+  { SI_OP_ACOS, 110 },
+  { SI_OP_ASIN, 110 },
+  { SI_OP_ATAN, 110 },
   { SI_OP_NOT, 120 },
   { 999, 999 }
 };
@@ -781,6 +841,7 @@ static int _parse_function_math1_base(char **in, struct stack_item *si, int *q, 
 
   si[*q].type = STACK_ITEM_TYPE_OPERATOR;
   si[*q].value = operator;
+  si[*q].sign = SI_SIGN_POSITIVE;
 
   (*q)++;
 
@@ -819,7 +880,8 @@ static int _parse_function_math2_base(char **in, struct stack_item *si, int *q, 
 
   si[*q].type = STACK_ITEM_TYPE_OPERATOR;
   si[*q].value = operator;
-          
+  si[*q].sign = SI_SIGN_POSITIVE;
+  
   (*q)++;
 
   if (*q+2 >= MAX_STACK_CALCULATOR_ITEMS-1) {
@@ -864,7 +926,7 @@ static int _parse_function_math2_base(char **in, struct stack_item *si, int *q, 
 static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_substitutor, struct stack_item *si, struct stack_item *ta) {
 
   int q = 0, b = 0, d, k, n, o, l, curly_braces = 0, got_label = NO;
-  unsigned char e, op[MAX_STACK_CALCULATOR_ITEMS];
+  unsigned char e, op[MAX_STACK_CALCULATOR_ITEMS], sign[MAX_STACK_CALCULATOR_ITEMS];
   double dou = 0.0, dom;
   char *in_original = in;
   struct stack *stack;
@@ -907,6 +969,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       }
       else {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
+        si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_SUB;
         in++;
       }
@@ -922,6 +985,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       }
       else {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
+        si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_ADD;
         in++;
       }
@@ -929,12 +993,14 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     else if (*in == '*') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_MULTIPLY;
       q++;
       in++;
     }
     else if (*in == '/') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_DIVIDE;
       q++;
       in++;
@@ -942,6 +1008,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     else if (*in == '|' && *(in + 1) == '|') {
       if (g_input_parse_if == YES) {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
+        si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_LOGICAL_OR;
         q++;
         in += 2;
@@ -951,6 +1018,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     else if (*in == '|') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_OR;
       q++;
       in++;
@@ -958,6 +1026,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     else if (*in == '&' && *(in + 1) == '&') {
       if (g_input_parse_if == YES) {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
+        si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_LOGICAL_AND;
         q++;
         in += 2;
@@ -967,12 +1036,14 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     else if (*in == '&') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_AND;
       q++;
       in++;
     }
     else if (*in == '^') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_POWER;
       q++;
       in++;
@@ -984,12 +1055,14 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         return FAILED;
       }
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_MODULO;
       q++;
       in++;
     }
     else if (*in == '<' && *(in + 1) == '<') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_SHIFT_LEFT;
       q++;
       in += 2;
@@ -997,6 +1070,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     else if (*in == '<' && *(in + 1) == '=') {
       if (g_input_parse_if == YES) {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
+        si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_LTE;
         q++;
         in += 2;
@@ -1007,6 +1081,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     else if (*in == '<') {
       if (g_input_parse_if == YES) {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
+        si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_LT;
         q++;
         in++;
@@ -1021,6 +1096,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
 
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
+        si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_LOW_BYTE;
         q++;
         in++;
@@ -1028,6 +1104,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     else if (*in == '>' && *(in + 1) == '>') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_SHIFT_RIGHT;
       q++;
       in += 2;
@@ -1035,6 +1112,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     else if (*in == '>' && *(in + 1) == '=') {
       if (g_input_parse_if == YES) {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
+        si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_GTE;
         q++;
         in += 2;
@@ -1045,6 +1123,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     else if (*in == '>') {
       if (g_input_parse_if == YES) {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
+        si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_GT;
         q++;
         in++;
@@ -1059,6 +1138,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
 
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
+        si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_HIGH_BYTE;
         q++;
         in++;
@@ -1066,12 +1146,14 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     else if (*in == '~') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_XOR;
       q++;
       in++;
     }
     else if (*in == ':') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_BANK;
       q++;
       in++;
@@ -1092,6 +1174,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     else if (*in == '=' && *(in + 1) == '=') {
       if (g_input_parse_if == YES) {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
+        si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_EQ;
         q++;
         in += 2;
@@ -1102,6 +1185,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     else if (*in == '!' && *(in + 1) == '=') {
       if (g_input_parse_if == YES) {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
+        si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_NEQ;
         q++;
         in += 2;
@@ -1111,12 +1195,14 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     else if (*in == '!') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_NOT;
       q++;
       in++;
     }
     else if (*in == '(') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_LEFT;
       /* was previous token ')'? */
       if (q > 0 && si[q-1].type == STACK_ITEM_TYPE_OPERATOR && si[q-1].value == SI_OP_RIGHT)
@@ -1159,6 +1245,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     else if (*in == ')') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_RIGHT;
       /* end of expression? */
       if (b == 0)
@@ -1511,6 +1598,42 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_already_processed_function = YES;
           break;
         }
+        else if (k == 3 && strcaselesscmpn(si[q].string, "cos(", 4) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "cos(a)", SI_OP_COS) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 3 && strcaselesscmpn(si[q].string, "sin(", 4) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "sin(a)", SI_OP_SIN) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 3 && strcaselesscmpn(si[q].string, "tan(", 4) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "tan(a)", SI_OP_TAN) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 3 && strcaselesscmpn(si[q].string, "acos(", 4) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "acos(a)", SI_OP_ACOS) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 3 && strcaselesscmpn(si[q].string, "asin(", 4) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "asin(a)", SI_OP_ASIN) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 3 && strcaselesscmpn(si[q].string, "atan(", 4) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "atan(a)", SI_OP_ATAN) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
         else if (k == 4 && strcaselesscmpn(si[q].string, "sqrt(", 5) == 0) {
           if (_parse_function_math1_base(&in, si, &q, "sqrt(a)", SI_OP_SQRT) == FAILED)
             return FAILED;
@@ -1546,6 +1669,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
         else if (k == 6 && strcaselesscmpn(si[q].string, "lobyte(", 7) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].sign = SI_SIGN_POSITIVE;
           si[q].value = SI_OP_LOW_BYTE;
           in--;
           is_already_processed_function = YES;
@@ -1553,6 +1677,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
         else if (k == 6 && strcaselesscmpn(si[q].string, "hibyte(", 7) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].sign = SI_SIGN_POSITIVE;
           si[q].value = SI_OP_HIGH_BYTE;
           in--;
           is_already_processed_function = YES;
@@ -1560,6 +1685,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
         else if (k == 6 && strcaselesscmpn(si[q].string, "loword(", 7) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].sign = SI_SIGN_POSITIVE;
           si[q].value = SI_OP_LOW_WORD;
           in--;
           is_already_processed_function = YES;
@@ -1567,6 +1693,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
         else if (k == 6 && strcaselesscmpn(si[q].string, "hiword(", 7) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].sign = SI_SIGN_POSITIVE;
           si[q].value = SI_OP_HIGH_WORD;
           in--;
           is_already_processed_function = YES;
@@ -1574,6 +1701,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
         else if (k == 8 && strcaselesscmpn(si[q].string, "bankbyte(", 9) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].sign = SI_SIGN_POSITIVE;
           si[q].value = SI_OP_BANK_BYTE;
           in--;
           is_already_processed_function = YES;
@@ -1581,6 +1709,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
         else if (k == 4 && strcaselesscmpn(si[q].string, "bank(", 5) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].sign = SI_SIGN_POSITIVE;
           si[q].value = SI_OP_BANK;
           in--;
           is_already_processed_function = YES;
@@ -1588,6 +1717,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
         else if (k == 5 && strcaselesscmpn(si[q].string, "round(", 6) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].sign = SI_SIGN_POSITIVE;
           si[q].value = SI_OP_ROUND;
           in--;
           is_already_processed_function = YES;
@@ -1595,6 +1725,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
         else if (k == 4 && strcaselesscmpn(si[q].string, "ceil(", 5) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].sign = SI_SIGN_POSITIVE;
           si[q].value = SI_OP_CEIL;
           in--;
           is_already_processed_function = YES;
@@ -1602,32 +1733,33 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
         else if (k == 5 && strcaselesscmpn(si[q].string, "floor(", 6) == 0) {
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
+          si[q].sign = SI_SIGN_POSITIVE;
           si[q].value = SI_OP_FLOOR;
           in--;
           is_already_processed_function = YES;
           break;
         }
 
-	if (e == '(') {
-	  /* are we calling a user created function? */
-	  int found_function = NO, res, parsed_chars = 0;
-	  
-	  si[q].string[k] = 0;
+        if (e == '(') {
+          /* are we calling a user created function? */
+          int found_function = NO, res, parsed_chars = 0;
+          
+          si[q].string[k] = 0;
 
-	  res = parse_function(in, si[q].string, &found_function, &parsed_chars);
-	  if (found_function == NO) {
-	    print_error(ERROR_NUM, "Could not find function \"%s\".\n", si[q].string);
-	    return FAILED;
-	  }
+          res = parse_function(in, si[q].string, &found_function, &parsed_chars);
+          if (found_function == NO) {
+            print_error(ERROR_NUM, "Could not find function \"%s\".\n", si[q].string);
+            return FAILED;
+          }
 
-	  if (res == FAILED)
-	    return FAILED;
-	  else if (res == SUCCEEDED) {
-	    si[q].type = STACK_ITEM_TYPE_VALUE;
-	    si[q].value = g_parsed_double;
-	    si[q].sign = SI_SIGN_POSITIVE;
-	  }
-	  else if (res == INPUT_NUMBER_STACK) {
+          if (res == FAILED)
+            return FAILED;
+          else if (res == SUCCEEDED) {
+            si[q].type = STACK_ITEM_TYPE_VALUE;
+            si[q].value = g_parsed_double;
+            si[q].sign = SI_SIGN_POSITIVE;
+          }
+          else if (res == INPUT_NUMBER_STACK) {
             if (g_parsing_function_body == YES) {
               struct stack *s;
               int item;
@@ -1640,6 +1772,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
                  it should work as the infix -> postfix converter should notice the postfix
                  parts and just copy them directly... */
               si[q].type = STACK_ITEM_TYPE_OPERATOR;
+              si[q].sign = SI_SIGN_POSITIVE;
               si[q].value = SI_OP_LEFT;
               si[q].is_in_postfix = YES;
               /* abuse the struct */
@@ -1667,6 +1800,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
               }
 
               si[q].type = STACK_ITEM_TYPE_OPERATOR;
+              si[q].sign = SI_SIGN_POSITIVE;
               si[q].value = SI_OP_RIGHT;
               si[q].is_in_postfix = YES;
               /* abuse the struct */
@@ -1678,17 +1812,17 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
               si[q].value = g_latest_stack;
               si[q].sign = SI_SIGN_POSITIVE;
             }           
-	  }
-	  else {
-	    print_error(ERROR_NUM, "Function \"%s\" didn't return a stack calculation or a value.\n", si[q].string);
-	    return FAILED;
-	  }
+          }
+          else {
+            print_error(ERROR_NUM, "Function \"%s\" didn't return a stack calculation or a value.\n", si[q].string);
+            return FAILED;
+          }
 
           in += parsed_chars;
-          is_already_processed_function = YES;	  
+          is_already_processed_function = YES;    
 
-	  break;
-	}
+          break;
+        }
       }
 
       if (is_already_processed_function == YES) {
@@ -1812,6 +1946,29 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         /* it wasn't a minus operator, it was a sign */
         si[k + 1].type = STACK_ITEM_TYPE_DELETED;
       }
+      /* -abs()? */
+      if (k < q-1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_SUB && si[k+1].type == STACK_ITEM_TYPE_OPERATOR &&
+          (si[k + 1].value == SI_OP_ROUND ||
+           si[k + 1].value == SI_OP_FLOOR ||
+           si[k + 1].value == SI_OP_CEIL ||
+           si[k + 1].value == SI_OP_MIN ||
+           si[k + 1].value == SI_OP_MAX ||
+           si[k + 1].value == SI_OP_ABS ||
+           si[k + 1].value == SI_OP_COS ||
+           si[k + 1].value == SI_OP_SIN ||
+           si[k + 1].value == SI_OP_TAN ||
+           si[k + 1].value == SI_OP_ACOS ||
+           si[k + 1].value == SI_OP_ASIN ||
+           si[k + 1].value == SI_OP_ATAN ||
+           si[k + 1].value == SI_OP_SQRT)) {
+        if (k == 0 || (si[k - 1].type == STACK_ITEM_TYPE_OPERATOR && si[k - 1].value == SI_OP_LEFT)) {
+          si[k].type = STACK_ITEM_TYPE_DELETED;
+          if (si[k + 1].sign == SI_SIGN_POSITIVE)
+            si[k + 1].sign = SI_SIGN_NEGATIVE;
+          else
+            si[k + 1].sign = SI_SIGN_POSITIVE;
+        }
+      }
       if ((q - k) != 1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR &&
           si[k + 1].value != SI_OP_BANK &&
           si[k + 1].value != SI_OP_BANK_BYTE &&
@@ -1825,6 +1982,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           si[k + 1].value != SI_OP_MIN &&
           si[k + 1].value != SI_OP_MAX &&
           si[k + 1].value != SI_OP_ABS &&
+          si[k + 1].value != SI_OP_COS &&
+          si[k + 1].value != SI_OP_SIN &&
+          si[k + 1].value != SI_OP_TAN &&
+          si[k + 1].value != SI_OP_ACOS &&
+          si[k + 1].value != SI_OP_ASIN &&
+          si[k + 1].value != SI_OP_ATAN &&
           si[k + 1].value != SI_OP_SQRT) {
         if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
 #ifdef WLA_DEBUG
@@ -1859,6 +2022,33 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
               o++;
             else if (si[l].value == SI_OP_RIGHT)
               o--;
+            else if (si[l].value == SI_OP_ROUND ||
+                     si[l].value == SI_OP_FLOOR ||
+                     si[l].value == SI_OP_CEIL ||
+                     si[l].value == SI_OP_ABS ||
+                     si[l].value == SI_OP_COS ||
+                     si[l].value == SI_OP_SIN ||
+                     si[l].value == SI_OP_TAN ||
+                     si[l].value == SI_OP_ACOS ||
+                     si[l].value == SI_OP_ASIN ||
+                     si[l].value == SI_OP_ATAN ||
+                     si[l].value == SI_OP_SQRT) {
+              if (si[l].sign == SI_SIGN_POSITIVE)
+                si[l].sign = SI_SIGN_NEGATIVE;
+              else
+                si[l].sign = SI_SIGN_POSITIVE;
+              /* skip argument */
+              l++;
+            }
+            else if (si[l].value == SI_OP_MIN ||
+                     si[l].value == SI_OP_MAX) {
+              if (si[l].sign == SI_SIGN_POSITIVE)
+                si[l].sign = SI_SIGN_NEGATIVE;
+              else
+                si[l].sign = SI_SIGN_POSITIVE;
+              /* skip arguments */
+              l += 2;
+            }
           }
           l++;
         }
@@ -1905,6 +2095,14 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       b = 1;
   }
 
+  /* embed signs into values */
+  for (k = 0; k < q; k++) {
+    if (si[k].type == STACK_ITEM_TYPE_VALUE && si[k].sign == SI_SIGN_NEGATIVE) {
+      si[k].sign = SI_SIGN_POSITIVE;
+      si[k].value = -si[k].value;
+    }
+  }
+  
   /* are we calculating deltas between two labels? */
   if (g_can_calculate_a_minus_b == YES) {
     for (k = 0; k < q; k++) {
@@ -1971,6 +2169,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     else if (type == STACK_ITEM_TYPE_OPERATOR) {
       if (b == 0) {
         op[0] = (unsigned char)in->value;
+        sign[0] = in->sign;
         b++;
       }
       else {
@@ -1983,6 +2182,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           while (op[b] != SI_OP_LEFT) {
             out->type = STACK_ITEM_TYPE_OPERATOR;
             out->value = op[b];
+            out->sign = sign[b];
             b--;
             d++;
             out = &ta[d];
@@ -1995,12 +2195,14 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           while (b != -1 && op[b] != SI_OP_LEFT && _get_op_priority(op[b]) >= priority) {
             out->type = STACK_ITEM_TYPE_OPERATOR;
             out->value = op[b];
+            out->sign = sign[b];
             b--;
             d++;
             out = &ta[d];
           }
           b++;
           op[b] = (unsigned char)in->value;
+          sign[b] = in->sign;
           b++;
         }
       }
@@ -2011,6 +2213,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   while (b > 0) {
     b--;
     ta[d].type = STACK_ITEM_TYPE_OPERATOR;
+    ta[d].sign = sign[b];
     ta[d].value = op[b];
     d++;
   }
@@ -2066,22 +2269,10 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   */
 
   /* we have a stack full of computation and we save it for wlalink */
-  stack = calloc(sizeof(struct stack), 1);
-  if (stack == NULL) {
-    print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
+  stack = allocate_struct_stack(d);
+  if (stack == NULL)
     return FAILED;
-  }
-
-  init_stack_struct(stack);
-
-  stack->stacksize = d;
-  stack->stack_items = calloc(sizeof(struct stack_item) * d, 1);
-  if (stack->stack_items == NULL) {
-    free(stack);
-    print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
-    return FAILED;
-  }
-
+  
   stack->linenumber = g_active_file_info_last->line_current;
   stack->filename_id = g_active_file_info_last->filename_id;
   stack->is_function_body = g_parsing_function_body;
@@ -2101,6 +2292,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     if (type == STACK_ITEM_TYPE_OPERATOR) {
       out->type = STACK_ITEM_TYPE_OPERATOR;
       out->value = in->value;
+      out->sign = in->sign;
     }
     else if (type == STACK_ITEM_TYPE_VALUE) {
       out->type = STACK_ITEM_TYPE_VALUE;
@@ -2714,9 +2906,12 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
   v[0] = 0.0;
 
   s = sta->stack_items;
-  /*
-    debug_print_stack(0, 0, s, stack_item_count, 0, NULL);
-  */
+
+#ifdef WLA_DEBUG
+  fprintf(stderr, "SOLVING:\n");
+  debug_print_stack(0, 0, s, stack_item_count, 0, NULL);
+#endif
+  
   for (r = 0, t = 0; r < stack_item_count; r++, s++) {
     if (s->type == STACK_ITEM_TYPE_VALUE) {
       if (s->sign == SI_SIGN_NEGATIVE)
@@ -2799,38 +2994,96 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_ROUND:
         v[t - 1] = _round(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
       case SI_OP_CEIL:
         v[t - 1] = ceil(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
       case SI_OP_FLOOR:
         v[t - 1] = floor(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
       case SI_OP_MIN:
         if (v[t - 1] < v[t - 2])
           v[t - 2] = v[t - 1];
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 2] = -v[t - 2];
         sp[t - 2] = NULL;
         t--;
         break;
       case SI_OP_MAX:
         if (v[t - 1] > v[t - 2])
           v[t - 2] = v[t - 1];
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 2] = -v[t - 2];
         sp[t - 2] = NULL;
         t--;
         break;
       case SI_OP_ABS:
         v[t - 1] = fabs(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
-        break;        
+        break;
+      case SI_OP_COS:
+        v[t - 1] = cos(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_SIN:
+        v[t - 1] = sin(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_TAN:
+        v[t - 1] = tan(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_ACOS:
+        if (v[t - 1] < -1.0 || v[t - 1] > 1.0) {
+          fprintf(stderr, "%s:%d: COMPUTE_STACK: acos() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->filename_id), sta->linenumber, v[t - 1]);
+          return FAILED;
+        }
+        v[t - 1] = acos(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_ASIN:
+        if (v[t - 1] < -1.0 || v[t - 1] > 1.0) {
+          fprintf(stderr, "%s:%d: COMPUTE_STACK: asin() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->filename_id), sta->linenumber, v[t - 1]);
+          return FAILED;
+        }
+        v[t - 1] = asin(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_ATAN:
+        v[t - 1] = atan(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
+        break;
       case SI_OP_SQRT:
         if (v[t - 1] < 0.0) {
           fprintf(stderr, "%s:%d: COMPUTE_STACK: sqrt() needs a value that is >= 0.0, %f doesn't work!\n", get_file_name(sta->filename_id), sta->linenumber, v[t - 1]);
           return FAILED;
         }
         v[t - 1] = sqrt(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
       case SI_OP_LOGICAL_OR:
@@ -3083,21 +3336,9 @@ int stack_create_label_stack(char *label) {
     return FAILED;
 
   /* we need to create a stack that holds just one label */
-  stack = calloc(sizeof(struct stack), 1);
-  if (stack == NULL) {
-    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
+  stack = allocate_struct_stack(1);
+  if (stack == NULL)
     return FAILED;
-  }
-
-  init_stack_struct(stack);
-
-  stack->stacksize = 1;
-  stack->stack_items = calloc(sizeof(struct stack_item), 1);
-  if (stack->stack_items == NULL) {
-    free(stack);
-    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
-    return FAILED;
-  }
 
   stack->linenumber = g_active_file_info_last->line_current;
   stack->filename_id = g_active_file_info_last->filename_id;
@@ -3130,21 +3371,9 @@ int stack_create_stack_stack(int stack_id) {
   struct stack_item *si;
   
   /* we need to create a stack that holds just one computation stack */
-  stack = calloc(sizeof(struct stack), 1);
-  if (stack == NULL) {
-    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
+  stack = allocate_struct_stack(1);
+  if (stack == NULL)
     return FAILED;
-  }
-
-  init_stack_struct(stack);
-  
-  stack->stacksize = 1;
-  stack->stack_items = calloc(sizeof(struct stack_item), 1);
-  if (stack->stack_items == NULL) {
-    free(stack);
-    print_error(ERROR_STC, "Out of memory error while allocating room for a new stack.\n");
-    return FAILED;
-  }
 
   stack->linenumber = g_active_file_info_last->line_current;
   stack->filename_id = g_active_file_info_last->filename_id;

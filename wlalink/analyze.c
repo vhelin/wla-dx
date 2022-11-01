@@ -97,6 +97,9 @@ int free_stack(struct stack *s) {
   if (s == NULL)
     return SUCCEEDED;
 
+  s->value_12345678 = -1;
+  s->value_87654321 = -1;
+
   file = get_file(s->file_id);
   file->stacks[s->id] = NULL;
   
@@ -198,6 +201,9 @@ int add_stack(struct stack *sta) {
   /* add the pointer also to a pointer array for quick discovery with the ID */
   if (add_pointer_to_a_pointer_array((void *)sta, sta->id, (void ***)&g_obj_tmp->stacks, &g_obj_tmp->stacks_max, &g_obj_tmp->stacks_array_max, 1024) == FAILED)
     return FAILED;
+
+  sta->value_12345678 = 12345678;
+  sta->value_87654321 = 87654321;
 
   return SUCCEEDED;
 }

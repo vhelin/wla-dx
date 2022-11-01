@@ -1619,9 +1619,9 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
       ma = g_macro_runtime_current->argument_data[d - 1];
 
       if (ma->type == INPUT_NUMBER_ADDRESS_LABEL) {
-	struct definition *tmp_def;
+        struct definition *tmp_def;
 
-	strcpy(g_label, ma->string);
+        strcpy(g_label, ma->string);
 
         hashmap_get(g_defines_map, g_label, (void*)&tmp_def);
         if (tmp_def != NULL) {
@@ -2120,21 +2120,16 @@ static int _replace_labels_inside_stack_calculation(struct stack_item *stack_ite
         if (result == SUCCEEDED) {
           si->type = STACK_ITEM_TYPE_VALUE;
           si->value = parsed_int;
-          si->sign = SI_SIGN_POSITIVE;
         }
         else if (result == INPUT_NUMBER_FLOAT) {
           si->type = STACK_ITEM_TYPE_VALUE;
           si->value = parsed_double;
-          si->sign = SI_SIGN_POSITIVE;
         }
-        else if (result == INPUT_NUMBER_ADDRESS_LABEL) {
+        else if (result == INPUT_NUMBER_ADDRESS_LABEL)
           strcpy(si->string, parsed_label);
-          si->sign = SI_SIGN_POSITIVE;
-        }
         else {
           si->type = STACK_ITEM_TYPE_STACK;
           si->value = parsed_stack;
-          si->sign = SI_SIGN_POSITIVE;
         }
       }
     }    
@@ -2146,7 +2141,7 @@ static int _replace_labels_inside_stack_calculation(struct stack_item *stack_ite
 
 int parse_function(char *in, char *name, int *found_function, int *parsed_chars) {
 
-  int res, source_pointer_original = g_source_pointer, source_pointer_backup, i, j;
+  int res, source_pointer_original = g_source_pointer, source_pointer_backup, i, j, input_float_mode;
   struct function *fun = g_functions_first;
   struct stack_item *si;
   char c1 = name[0];
@@ -2176,8 +2171,8 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
 
   /* is the function just a constant? */
   if (fun->type == SUCCEEDED) {
-    g_parsed_int = fun->value;
-    g_parsed_double = (double)fun->value;
+    g_parsed_int = (int)fun->value;
+    g_parsed_double = fun->value;
 
     return SUCCEEDED;
   }
@@ -2200,7 +2195,10 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
   }
 
   for (i = 0; i < fun->nargument_names; i++) {
+    input_float_mode = g_input_float_mode;
+    g_input_float_mode = ON;
     res = input_number();
+    g_input_float_mode = input_float_mode;
 
     if (res == FAILED) {
       free(si);
@@ -2259,21 +2257,16 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
           if (res == SUCCEEDED) {
             sij->type = STACK_ITEM_TYPE_VALUE;
             sij->value = g_parsed_int;
-            sij->sign = SI_SIGN_POSITIVE;
           }
           else if (res == INPUT_NUMBER_FLOAT) {
             sij->type = STACK_ITEM_TYPE_VALUE;
             sij->value = g_parsed_double;
-            sij->sign = SI_SIGN_POSITIVE;
           }
-          else if (res == INPUT_NUMBER_ADDRESS_LABEL) {
+          else if (res == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(sij->string, g_label);
-            sij->sign = SI_SIGN_POSITIVE;
-          }
           else {
             sij->type = STACK_ITEM_TYPE_STACK;
             sij->value = g_latest_stack;
-            sij->sign = SI_SIGN_POSITIVE;
           }
         }
       }

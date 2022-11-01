@@ -7131,6 +7131,12 @@ int directive_function(void) {
       strcmp("ceil", g_label) == 0 ||
       strcmp("floor", g_label) == 0 ||
       strcmp("sqrt", g_label) == 0 ||
+      strcmp("cos", g_label) == 0 ||
+      strcmp("sin", g_label) == 0 ||
+      strcmp("tan", g_label) == 0 ||
+      strcmp("acos", g_label) == 0 ||
+      strcmp("asin", g_label) == 0 ||
+      strcmp("atan", g_label) == 0 ||
       strcmp("abs", g_label) == 0) {
     print_error(ERROR_DIR, "You cannot redefine a built-in .FUNCTION \"%s\"!\n", g_label);
     return FAILED;
@@ -7187,17 +7193,26 @@ int directive_function(void) {
   /* parse the function's body */
   g_resolve_stack_calculations = NO;
   g_parsing_function_body = YES;
+  g_input_float_mode = ON;
   res = input_number();
   g_parsing_function_body = NO;
   g_resolve_stack_calculations = YES;
+  g_input_float_mode = OFF;
+
+  /* turn single address labels into calculation stacks */
+  if (res == INPUT_NUMBER_ADDRESS_LABEL) {
+    if (stack_create_label_stack(g_label) == FAILED)
+      return FAILED;
+    res = INPUT_NUMBER_STACK;
+  }
 
   /* it should either be a value or a calculation stack */
-  if (res == SUCCEEDED) {
-    f->type = res;
-    f->value = (int)g_parsed_double;
-  }
+  f->type = res;
+  if (res == SUCCEEDED)
+    f->value = g_parsed_int;
+  else if (res == INPUT_NUMBER_FLOAT)
+    f->value = g_parsed_double;
   else if (res == INPUT_NUMBER_STACK) {
-    f->type = res;
     f->value = g_latest_stack;
     f->stack = find_stack_calculation(g_latest_stack, YES);
 

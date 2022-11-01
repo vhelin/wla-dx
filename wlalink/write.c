@@ -2535,13 +2535,15 @@ static double _round(double d) {
   }
 }
 
+const char *get_stack_item_operator_name(int operator);
+char *get_stack_item_description(struct stack_item *si, int file_id);
 
 int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int *result_slot, int *result_base, int *result_bank) {
 
   int r, t, z, y, x, res_base, res_bank, res_slot, slot[256], base[256], bank[256];
   double v_ram[256], v_rom[256], q, res_ram, res_rom;
-  struct stack_item *s;
-  struct stack *st;
+  struct stack_item *s = NULL;
+  struct stack *st = NULL;
 
   if (sta->under_work == YES) {
     fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: A loop found in computation.\n", get_file_name(sta->file_id),
@@ -2649,15 +2651,6 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
       if (compute_stack(st, &res_ram, &res_rom, &res_slot, &res_base, &res_bank) == FAILED)
         return FAILED;
 
-      {
-        /* HACK: adding this block here fixed a random weird crash where "sta" became unreachable inside this function on macOS thus
-           crashing the code at the end of this function. a debug build doesn't crash WLALINK so i'm thinking that compiler's
-           code optimizations are breaking the program... */
-        char hack[64];
-
-        snprintf(hack, 64, "%d", sta->id);
-      }
-      
       if (s->sign == SI_SIGN_NEGATIVE) {
         v_ram[t] = -res_ram;
         v_rom[t] = -res_rom;
@@ -2760,20 +2753,36 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
       case SI_OP_ROUND:
         v_ram[t - 1] = _round(v_ram[t - 1]);
         v_rom[t - 1] = _round(v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
         break;
       case SI_OP_FLOOR:
         v_ram[t - 1] = floor(v_ram[t - 1]);
         v_rom[t - 1] = floor(v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
         break;
       case SI_OP_CEIL:
         v_ram[t - 1] = ceil(v_ram[t - 1]);
         v_rom[t - 1] = ceil(v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
         break;
       case SI_OP_MIN:
         if (v_ram[t - 1] < v_ram[t - 2])
           v_ram[t - 2] = v_ram[t - 1];
         if (v_rom[t - 1] < v_rom[t - 2])
           v_rom[t - 2] = v_rom[t - 2];
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 2] = -v_ram[t - 2];
+          v_rom[t - 2] = -v_rom[t - 2];
+        }
         t--;
         break;
       case SI_OP_MAX:
@@ -2781,6 +2790,10 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
           v_ram[t - 2] = v_ram[t - 1];
         if (v_rom[t - 1] > v_rom[t - 2])
           v_rom[t - 2] = v_rom[t - 1];
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 2] = -v_ram[t - 2];
+          v_rom[t - 2] = -v_rom[t - 2];
+        }
         t--;
         break;        
       case SI_OP_SQRT:
@@ -2794,10 +2807,74 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         v_ram[t - 1] = sqrt(v_ram[t - 1]);
         v_rom[t - 1] = sqrt(v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
         break;
       case SI_OP_ABS:
         v_ram[t - 1] = fabs(v_ram[t - 1]);
         v_rom[t - 1] = fabs(v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
+        break;
+      case SI_OP_COS:
+        v_ram[t - 1] = cos(v_ram[t - 1]);
+        v_rom[t - 1] = cos(v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
+        break;
+      case SI_OP_SIN:
+        v_ram[t - 1] = sin(v_ram[t - 1]);
+        v_rom[t - 1] = sin(v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
+        break;
+      case SI_OP_ATAN:
+        v_ram[t - 1] = atan(v_ram[t - 1]);
+        v_rom[t - 1] = atan(v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
+        break;
+      case SI_OP_ASIN:
+        if (v_ram[t - 1] < -1.0 || v_ram[t - 1] > 1.0) {
+          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: asin() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_ram[t - 1]);
+          return FAILED;
+        }
+        if (v_rom[t - 1] < -1.0 || v_rom[t - 1] > 1.0) {
+          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: asin() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_rom[t - 1]);
+          return FAILED;
+        }
+        v_ram[t - 1] = asin(v_ram[t - 1]);
+        v_rom[t - 1] = asin(v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
+        break;
+      case SI_OP_ACOS:
+        if (v_ram[t - 1] < -1.0 || v_ram[t - 1] > 1.0) {
+          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: acos() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_ram[t - 1]);
+          return FAILED;
+        }
+        if (v_rom[t - 1] < -1.0 || v_rom[t - 1] > 1.0) {
+          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: acos() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_rom[t - 1]);
+          return FAILED;
+        }
+        v_ram[t - 1] = acos(v_ram[t - 1]);
+        v_rom[t - 1] = acos(v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
         break;
       case SI_OP_BANK:
         z = (int)v_rom[t - 1];

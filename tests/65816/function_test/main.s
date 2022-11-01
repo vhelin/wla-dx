@@ -215,6 +215,7 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
 
         .function localAbs(a) abs(a)
         .function makeNegative(a) -abs(a)
+        .function negative2X(a) -(abs(a) + abs(a))
         
         .db "14>"               ; @BT TEST-14 14 START
         .db abs(0xf0)           ; @BT F0
@@ -232,4 +233,40 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .db abs(abs(abs(localAbs(-FIVE_POINT_FIVEONE)))) ; @BT 05
         .db abs(localAbs(localAbs(abs(-FIVE_POINT_FIVEONE+0.0001)))) ; @BT 05
         .db abs(localAbs(localAbs(abs(makeNegative(FIVE_POINT_FIVEONE+1.0001))))) ; @BT 06
-        .db "<14"               ; @BT END
+        .db makeNegative(-2)    ; @BT FE
+        .db makeNegative(FIVE_POINT_FIVEONE+1.0001) ; @BT FA
+        .db negative2X(-2)                          ; @BT FC
+        .db -(abs(-1) + abs(-3) - abs(-2))          ; @BT FE
+        .db -(abs(-1) + 3 - abs(-2))                ; @BT FE
+        .db -(1 + abs(-3) - 2)                      ; @BT FE
+        .db -(abs(1) + abs(3) - abs(2))             ; @BT FE
+        .db -(-abs(-1) - abs(-3) + abs(-2))         ; @BT 02
+        .db -(-1 - abs(-3) + 2)                     ; @BT 02
+        .db -(-abs(-1) - 3 + abs(-2))               ; @BT 02
+        .db "<14"                                   ; @BT END
+
+        .function negate1(a) -a
+        .function negate2(b) -b+0
+        .function negate3(c) 0-c
+        .function nothing(d) d
+
+        .db "15>"                              ; @BT TEST-15 15 START
+        .db negate1(-2)                        ; @BT 02
+        .db negate1(FIVE_POINT_FIVEONE+1.0001) ; @BT FA
+        .db negate2(-2)                        ; @BT 02
+        .db negate2(FIVE_POINT_FIVEONE+1.0001) ; @BT FA
+        .db negate3(-2)                        ; @BT 02
+        .db negate3(FIVE_POINT_FIVEONE+1.0001) ; @BT FA
+        .db nothing(-2)                        ; @BT FE
+        .db nothing(FIVE_POINT_FIVEONE+1.0001) ; @BT 06
+        .db "<15"                              ; @BT END
+
+        .function mulOnePointFiveOne(b) 1.51*b
+
+        .db "16>"                 ; @BT TEST-16 16 START
+        .db mulOnePointFiveOne(2) ; @BT 03
+        .db -(cos(0.5)*1.0001)*1.5       ; @BT 01
+        .db -negate1(cos(0.5)*1.0001)*1.5 ; @BT 01
+        .db mulOnePointFiveOne(FIVE_POINT_FIVEONE-3.51) ; @BT 03
+        .db -(cos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.5  ; @BT 01
+        .db "<16"                 ; @BT END

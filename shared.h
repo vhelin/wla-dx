@@ -145,6 +145,12 @@
 #define SI_OP_MAX         32
 #define SI_OP_SQRT        33
 #define SI_OP_ABS         34
+#define SI_OP_COS         35
+#define SI_OP_SIN         36
+#define SI_OP_TAN         37
+#define SI_OP_ACOS        38
+#define SI_OP_ASIN        39
+#define SI_OP_ATAN        40
 
 #define SI_SIGN_POSITIVE 0
 #define SI_SIGN_NEGATIVE 1

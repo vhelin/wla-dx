@@ -16,6 +16,7 @@ void init_stack_struct(struct stack *s);
 void free_stack_calculations(void);
 void delete_stack_calculation_struct(struct stack *s);
 struct stack *find_stack_calculation(int id, int print_error_message);
+struct stack *allocate_struct_stack(int items);
 
 /* TODO: move these to their own file */
 int data_stream_parser_free(void);

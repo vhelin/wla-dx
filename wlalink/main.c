@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG
 */
 
-char g_version_string[] = "$VER: wlalink 5.19a (28.10.2022)";
+char g_version_string[] = "$VER: wlalink 5.19a (1.11.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -76,8 +76,6 @@ extern int g_section_table_table_max;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 char g_ext_libdir[MAX_NAME_LENGTH + 2];
 
-#ifdef WLALINK_DEBUG
-
 static const char *g_si_operator_plus = "+";
 static const char *g_si_operator_minus = "-";
 static const char *g_si_operator_multiply = "*";
@@ -112,8 +110,14 @@ static const char *g_si_operator_min = "min()";
 static const char *g_si_operator_max = "max()";
 static const char *g_si_operator_sqrt = "sqrt()";
 static const char *g_si_operator_abs = "abs()";
+static const char *g_si_operator_cos = "cos()";
+static const char *g_si_operator_sin = "sin()";
+static const char *g_si_operator_tan = "tan()";
+static const char *g_si_operator_acos = "acos()";
+static const char *g_si_operator_asin = "asin()";
+static const char *g_si_operator_atan = "atan()";
 
-static const char *get_stack_item_operator_name(int operator) {
+const char *get_stack_item_operator_name(int operator) {
 
   if (operator == SI_OP_ADD)
     return g_si_operator_plus;
@@ -181,6 +185,18 @@ static const char *get_stack_item_operator_name(int operator) {
     return g_si_operator_sqrt;
   else if (operator == SI_OP_ABS)
     return g_si_operator_abs;
+  else if (operator == SI_OP_COS)
+    return g_si_operator_cos;
+  else if (operator == SI_OP_SIN)
+    return g_si_operator_sin;
+  else if (operator == SI_OP_TAN)
+    return g_si_operator_tan;
+  else if (operator == SI_OP_ACOS)
+    return g_si_operator_acos;
+  else if (operator == SI_OP_ASIN)
+    return g_si_operator_asin;
+  else if (operator == SI_OP_ATAN)
+    return g_si_operator_atan;
   
   fprintf(stderr, "\n");
   fprintf(stderr, "get_stack_item_operator_name(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", operator);
@@ -207,7 +223,7 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
     if (type == STACK_ITEM_TYPE_VALUE)
       snprintf(sid, sizeof(g_stack_item_description), "stack_item: value (%c)          : %f/$%x (RAM) %f/$%x (ROM)\n", sign, si->value_ram, (int)si->value_ram, si->value_rom, (int)si->value_rom);
     else if (type == STACK_ITEM_TYPE_OPERATOR)
-      snprintf(sid, sizeof(g_stack_item_description), "stack_item: operator           : %s\n", get_stack_item_operator_name((int)si->value_ram));
+      snprintf(sid, sizeof(g_stack_item_description), "stack_item: operator (%c)       : %s\n", sign, get_stack_item_operator_name((int)si->value_ram));
     else if (type == STACK_ITEM_TYPE_STRING)
       snprintf(sid, sizeof(g_stack_item_description), "stack_item: string             : %s\n", si->string);
     else if (type == STACK_ITEM_TYPE_LABEL)
@@ -231,7 +247,7 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
   return sid;
 }
 
-static void _debug_print_label(struct label *l) {
+void _debug_print_label(struct label *l) {
 
   printf("label: \"%s\" file: %s status: %d section: %d (%d) bank: %d slot: %d base: %d address: %d/$%x alive: %d\n", l->name, get_file_name(l->file_id), l->status, l->section, l->section & 0xffff, l->bank, l->slot, l->base, (int)l->address, (int)l->address, l->alive);
 }
@@ -280,8 +296,6 @@ static void _debug_print_sections(void) {
     printf("----------------------------------------------------------------------\n");
   }
 }
-
-#endif
 
 
 int main(int argc, char *argv[]) {

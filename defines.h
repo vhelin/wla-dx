@@ -558,7 +558,7 @@ struct function {
   int  nargument_names;
   char *argument_names[64];
   int  type;
-  int  value;
+  double value;
   struct stack *stack;
   struct function *next;
 };
