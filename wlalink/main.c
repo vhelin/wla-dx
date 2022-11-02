@@ -237,7 +237,7 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
         snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation:       : THIS STACK CALCULATION (id = %d, %s) HAS GONE MISSING!\n", (int)si->value_ram, get_file_name(file_id));
       else {
         if (st->computed == YES)
-          snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation: (%c)   : %d (result = %f/$%x (RAM) %f/$%x (ROM), %s)\n", sign, si->value_ram, st->result_ram, (int)st->result_ram, st->result_rom, (int)st->result_rom, get_file_name(st->file_id));
+          snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation: (%c)   : %d (result = %f/$%x (RAM) %f/$%x (ROM), %s)\n", sign, (int)si->value_ram, st->result_ram, (int)st->result_ram, st->result_rom, (int)st->result_rom, get_file_name(st->file_id));
         else
           snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation: (%c)   : %d (result = ?, %s)\n", sign, (int)si->value_ram, get_file_name(st->file_id));
       }

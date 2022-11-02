@@ -846,7 +846,6 @@ int load_file_data(char *file_name, unsigned char **data, int *size) {
 
 char *get_file_name(int id) {
 
-  static char error[] = "GET_FILE_NAME: Internal data corruption.";
   struct object_file *o;
 
   o = g_obj_first;
@@ -856,7 +855,10 @@ char *get_file_name(int id) {
     o = o->next;
   }
 
-  return error;
+  fprintf(stderr, "GET_FILE_NAME: Internal data corruption, file %d has gone missing! Please submit a bug report!\n", id);
+  exit(1);
+  
+  return NULL;
 }
 
 

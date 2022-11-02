@@ -64,7 +64,7 @@ if ! [ -x "$(command -v valgrind)" ]; then
   echo '########################################################################'
   export WLAVALGRIND=
 else
-  export WLAVALGRIND='valgrind --error-exitcode=1 --tool=memcheck --leak-check=full --errors-for-leak-kinds=all'
+  export WLAVALGRIND='valgrind --error-exitcode=1 --tool=memcheck --leak-check=full --errors-for-leak-kinds=all --track-origins=yes -s'
 fi
 
 cd ..
