@@ -30,5 +30,6 @@
         .define VALUE_5 = max(max(VALUE_1, VALUE_4+1), min(min(VALUE_1+0, 1+VALUE_3-1), max(VALUE_4-1, 0+1+2-VALUE_3)))
         .define VALUE_16 = max(max(VALUE_1, VALUE_4*4), min(min(VALUE_1+0, 1+VALUE_3-1), max(VALUE_4-1, 0+1+2-VALUE_3)))
         .define FIVE_POINT_FIVEONE = 5.51
+        .define POINT_FIVE = 0.5
         
-        .export VALUE_3, VALUE_4, VALUE_5, VALUE_16, FIVE_POINT_FIVEONE
+        .export VALUE_3, VALUE_4, VALUE_5, VALUE_16, FIVE_POINT_FIVEONE, POINT_FIVE

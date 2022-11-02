@@ -2011,7 +2011,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         o = 1;
         l = k + 2;
         while (o > 0 && l < q) {
-          if (si[l].type == STACK_ITEM_TYPE_VALUE || si[l].type == STACK_ITEM_TYPE_LABEL) {
+          if (si[l].type == STACK_ITEM_TYPE_VALUE || si[l].type == STACK_ITEM_TYPE_LABEL || si[l].type == STACK_ITEM_TYPE_STACK) {
             if (si[l].sign == SI_SIGN_POSITIVE)
               si[l].sign = SI_SIGN_NEGATIVE;
             else
@@ -2714,7 +2714,7 @@ static int _try_to_calculate(struct stack_item *st) {
 
   if (resolve_stack(s->stack_items, s->stacksize) == SUCCEEDED) {
     double dou;
-          
+
     if (compute_stack(s, s->stacksize, &dou) == FAILED)
       return FAILED;
 

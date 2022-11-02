@@ -29,10 +29,10 @@
 
 /* define this if you want to display debug information when you run WLALINK */
 /*
-  #define WLALINK_DEBUG
+  #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.19a (1.11.2022)";
+char g_version_string[] = "$VER: wlalink 5.19a (2.11.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -75,6 +75,8 @@ extern struct pointer_array **g_section_table_table;
 extern int g_section_table_table_max;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 char g_ext_libdir[MAX_NAME_LENGTH + 2];
+
+#if WLALINK_DEBUG
 
 static const char *g_si_operator_plus = "+";
 static const char *g_si_operator_minus = "-";
@@ -235,7 +237,7 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
         snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation:       : THIS STACK CALCULATION (id = %d, %s) HAS GONE MISSING!\n", (int)si->value_ram, get_file_name(file_id));
       else {
         if (st->computed == YES)
-          snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation: (%c)   : %d (result = %d/$%x (RAM) %d/$%x (ROM), %s)\n", sign, (int)si->value_ram, (int)st->result_ram, (int)st->result_ram, (int)st->result_rom, (int)st->result_rom, get_file_name(st->file_id));
+          snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation: (%c)   : %d (result = %f/$%x (RAM) %f/$%x (ROM), %s)\n", sign, si->value_ram, st->result_ram, (int)st->result_ram, st->result_rom, (int)st->result_rom, get_file_name(st->file_id));
         else
           snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation: (%c)   : %d (result = ?, %s)\n", sign, (int)si->value_ram, get_file_name(st->file_id));
       }
@@ -297,6 +299,7 @@ static void _debug_print_sections(void) {
   }
 }
 
+#endif
 
 int main(int argc, char *argv[]) {
 
@@ -672,7 +675,7 @@ int main(int argc, char *argv[]) {
             printf("%s", get_stack_item_description(si, s->file_id));
         }
       }
-      printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d (%d) result: %d/$%x (ROM) %d/$%x (RAM)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->section & 0xffff, (int)s->result_rom, (int)s->result_rom, (int)s->result_ram, (int)s->result_ram);
+      printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d (%d) result: %f/$%x (ROM) %f/$%x (RAM)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->section & 0xffff, s->result_rom, (int)s->result_rom, s->result_ram, (int)s->result_ram);
       s = s->next;
     }
     printf("----------------------------------------------------------------------\n");

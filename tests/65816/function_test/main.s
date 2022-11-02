@@ -262,6 +262,8 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .db "<15"                              ; @BT END
 
         .function mulOnePointFiveOne(b) 1.51*b
+        .function justCos(c) cos(c)
+        .function minusCos(d) -cos(d)
 
         .db "16>"                 ; @BT TEST-16 16 START
         .db mulOnePointFiveOne(2) ; @BT 03
@@ -269,4 +271,6 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .db -negate1(cos(0.5)*1.0001)*1.5 ; @BT 01
         .db mulOnePointFiveOne(FIVE_POINT_FIVEONE-3.51) ; @BT 03
         .db -(cos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.5  ; @BT 01
+        .db -(justCos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.5  ; @BT 01
+        .db (minusCos(FIVE_POINT_FIVEONE-5.01)*-1.0001)*1.5  ; @BT 01
         .db "<16"                 ; @BT END

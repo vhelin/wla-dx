@@ -237,7 +237,6 @@ struct slot {
 };
 
 struct stack {
-  int value_12345678;
   struct stack_item *stack_items;
   struct stack *next;
   struct stack *prev;
@@ -266,7 +265,6 @@ struct stack {
   int special_id;
   int bits_position;
   int bits_to_define;
-  int value_87654321;
 };
 
 struct stack_item {

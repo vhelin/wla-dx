@@ -1001,7 +1001,7 @@ int transform_stack_definitions(void) {
         return FAILED;
       }
       /* is it ok? */
-      if (s->computed == 0) {
+      if (s->computed == NO) {
         fprintf(stderr, "TRANSFORM_STACK_DEFINITIONS: The computation of definition \"%s\" hasn't been solved. This is a fatal internal error. Please send the WLA DX author a bug report.\n", l->name);
         return FAILED;
       }
@@ -3061,7 +3061,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
   sta->result_slot = (int)slot[0];
   sta->result_base = (int)base[0];
   sta->result_bank = (int)bank[0];
-  
+
   sta->computed = YES;
   sta->under_work = NO;
 
