@@ -28,9 +28,6 @@ extern struct section_fix *g_sec_fix_first, *g_sec_fix_tmp;
 struct object_file **g_object_files = NULL;
 int g_object_files_max = -1, g_object_files_array_max = 0;
 
-static char g_file_name_error[] = "???";
-
-
 
 int load_files(char *argv[], int argc) {
 
@@ -847,18 +844,24 @@ int load_file_data(char *file_name, unsigned char **data, int *size) {
 static char s_unknown_file_name[] = "?";
 
 
-char *get_file_name(int id) {
+/* NOTE: get_file_name(-1) must return something, like "?", as it's a special case */
+char *get_file_name(int file_id) {
 
-  struct object_file *o;
+  if (file_id < 0 || file_id > g_object_files_max || g_object_files[file_id] == NULL)
+    return s_unknown_file_name;
+  else
+    return g_object_files[file_id]->name;
+}
 
-  o = g_obj_first;
-  while (o != NULL) {
-    if (o->id == id)
-      return o->name;
-    o = o->next;
+
+struct object_file *get_file(int file_id) {
+
+  if (file_id < 0 || file_id > g_object_files_max || g_object_files[file_id] == NULL) {
+    fprintf(stderr, "GET_FILE: Trying to find file %d which has gone missing! Please submit a bug report!\n", file_id);
+    return NULL;
   }
-
-  return s_unknown_file_name;
+  
+  return g_object_files[file_id];
 }
 
 
@@ -875,7 +878,7 @@ char *get_source_file_name(int file_id, int source_id) {
   }
 
   if (o == NULL)
-    return g_file_name_error;
+    return s_unknown_file_name;
 
   s = o->source_file_names_list;
   while (s != NULL) {
@@ -885,20 +888,9 @@ char *get_source_file_name(int file_id, int source_id) {
   }
 
   if (s == NULL)
-    return g_file_name_error;
+    return s_unknown_file_name;
 
   return s->name;
-}
-
-
-struct object_file *get_file(int file_id) {
-
-  if (file_id < 0 || file_id > g_object_files_max || g_object_files[file_id] == NULL) {
-    fprintf(stderr, "GET_FILE: Trying to find file %d which has gone missing! Please submit a bug report!\n", file_id);
-    return NULL;
-  }
-  
-  return g_object_files[file_id];
 }
 
 

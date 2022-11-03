@@ -1616,20 +1616,38 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_already_processed_function = YES;
           break;
         }
-        else if (k == 3 && strcaselesscmpn(si[q].string, "acos(", 4) == 0) {
+        else if (k == 4 && strcaselesscmpn(si[q].string, "acos(", 5) == 0) {
           if (_parse_function_math1_base(&in, si, &q, "acos(a)", SI_OP_ACOS) == FAILED)
             return FAILED;
           is_already_processed_function = YES;
           break;
         }
-        else if (k == 3 && strcaselesscmpn(si[q].string, "asin(", 4) == 0) {
+        else if (k == 4 && strcaselesscmpn(si[q].string, "asin(", 5) == 0) {
           if (_parse_function_math1_base(&in, si, &q, "asin(a)", SI_OP_ASIN) == FAILED)
             return FAILED;
           is_already_processed_function = YES;
           break;
         }
-        else if (k == 3 && strcaselesscmpn(si[q].string, "atan(", 4) == 0) {
+        else if (k == 4 && strcaselesscmpn(si[q].string, "atan(", 5) == 0) {
           if (_parse_function_math1_base(&in, si, &q, "atan(a)", SI_OP_ATAN) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 5 && strcaselesscmpn(si[q].string, "round(", 6) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "round(a)", SI_OP_ROUND) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 4 && strcaselesscmpn(si[q].string, "ceil(", 5) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "ceil(a)", SI_OP_CEIL) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 5 && strcaselesscmpn(si[q].string, "floor(", 6) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "floor(a)", SI_OP_FLOOR) == FAILED)
             return FAILED;
           is_already_processed_function = YES;
           break;
@@ -1711,30 +1729,6 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
           si[q].sign = SI_SIGN_POSITIVE;
           si[q].value = SI_OP_BANK;
-          in--;
-          is_already_processed_function = YES;
-          break;
-        }
-        else if (k == 5 && strcaselesscmpn(si[q].string, "round(", 6) == 0) {
-          si[q].type = STACK_ITEM_TYPE_OPERATOR;
-          si[q].sign = SI_SIGN_POSITIVE;
-          si[q].value = SI_OP_ROUND;
-          in--;
-          is_already_processed_function = YES;
-          break;
-        }
-        else if (k == 4 && strcaselesscmpn(si[q].string, "ceil(", 5) == 0) {
-          si[q].type = STACK_ITEM_TYPE_OPERATOR;
-          si[q].sign = SI_SIGN_POSITIVE;
-          si[q].value = SI_OP_CEIL;
-          in--;
-          is_already_processed_function = YES;
-          break;
-        }
-        else if (k == 5 && strcaselesscmpn(si[q].string, "floor(", 6) == 0) {
-          si[q].type = STACK_ITEM_TYPE_OPERATOR;
-          si[q].sign = SI_SIGN_POSITIVE;
-          si[q].value = SI_OP_FLOOR;
           in--;
           is_already_processed_function = YES;
           break;

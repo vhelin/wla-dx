@@ -273,4 +273,12 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .db -(cos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.5  ; @BT 01
         .db -(justCos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.5  ; @BT 01
         .db (minusCos(FIVE_POINT_FIVEONE-5.01)*-1.0001)*1.5  ; @BT 01
+        .db -(-cos(0.1)-0.1)*6                               ; @BT 06
+        .db -(-cos(FIVE_POINT_FIVEONE-5.41)-0.1)*6           ; @BT 06
+        .db -(-cos(0.1)-0.1 - cos(0.1)-0.1)*2                ; @BT 04
+        .db -(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1)*2 ; @BT 04
+        .db (ceil(cos(FIVE_POINT_FIVEONE-5.41)+0.1)) ; @BT 02
+        .db (ceil(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT FC
+        .db -(ceil(cos(FIVE_POINT_FIVEONE-5.41)+0.1)) ; @BT FE
+        .db -(ceil(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT 04
         .db "<16"                 ; @BT END

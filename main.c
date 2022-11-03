@@ -36,7 +36,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.4a (2.11.2022)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.4a (4.11.2022)";
 char g_wla_version[] = "10.4";
 
 char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
@@ -144,6 +144,17 @@ int main(int argc, char *argv[]) {
 #else
   g_little_endian = YES;
 #endif
+
+  /*
+  fprintf(stderr, "COS 0.5 = %f\n", cos(0.5));
+  fprintf(stderr, "COS -0.5 = %f\n", cos(-0.5));
+  fprintf(stderr, "COS 0.1 = %f\n", cos(0.1));
+  fprintf(stderr, "COS -2.1 = %f\n", cos(-2.1));
+  fprintf(stderr, "SIN 0.5 = %f\n", sin(0.5));
+  fprintf(stderr, "SIN -0.5 = %f\n", sin(-0.5));
+  fprintf(stderr, "COS 0.1 = %f\n", cos(0.1));
+  fprintf(stderr, "COS -2.1 = %f\n", cos(-2.1));
+  */
   
   /* init mem_insert() buffer */
   g_mem_insert_action[0] = 0;
