@@ -348,6 +348,12 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
             value == SI_OP_ACOS ||
             value == SI_OP_ASIN ||
             value == SI_OP_ATAN ||
+            value == SI_OP_LOW_BYTE ||
+            value == SI_OP_HIGH_BYTE ||
+            value == SI_OP_LOW_WORD ||
+            value == SI_OP_HIGH_WORD ||
+            value == SI_OP_BANK_BYTE ||
+            value == SI_OP_BANK ||
             value == SI_OP_ABS))
         add_sign = NO;
     }
@@ -1658,6 +1664,42 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_already_processed_function = YES;
           break;
         }
+        else if (k == 6 && strcaselesscmpn(si[q].string, "lobyte(", 7) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "lobyte(a)", SI_OP_LOW_BYTE) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 6 && strcaselesscmpn(si[q].string, "hibyte(", 7) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "hibyte(a)", SI_OP_HIGH_BYTE) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 6 && strcaselesscmpn(si[q].string, "loword(", 7) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "loword(a)", SI_OP_LOW_WORD) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 6 && strcaselesscmpn(si[q].string, "hiword(", 7) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "hiword(a)", SI_OP_HIGH_WORD) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 8 && strcaselesscmpn(si[q].string, "bankbyte(", 9) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "bankbyte(a)", SI_OP_BANK_BYTE) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 4 && strcaselesscmpn(si[q].string, "bank(", 5) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "bank(a)", SI_OP_BANK) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
         else if (k == 6 && strcaselesscmpn(si[q].string, "random(", 7) == 0) {
           int parsed_chars = 0;
           
@@ -1683,54 +1725,6 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
             return FAILED;
           in += parsed_chars;
           is_label = NO;          
-          break;
-        }
-        else if (k == 6 && strcaselesscmpn(si[q].string, "lobyte(", 7) == 0) {
-          si[q].type = STACK_ITEM_TYPE_OPERATOR;
-          si[q].sign = SI_SIGN_POSITIVE;
-          si[q].value = SI_OP_LOW_BYTE;
-          in--;
-          is_already_processed_function = YES;
-          break;
-        }
-        else if (k == 6 && strcaselesscmpn(si[q].string, "hibyte(", 7) == 0) {
-          si[q].type = STACK_ITEM_TYPE_OPERATOR;
-          si[q].sign = SI_SIGN_POSITIVE;
-          si[q].value = SI_OP_HIGH_BYTE;
-          in--;
-          is_already_processed_function = YES;
-          break;
-        }
-        else if (k == 6 && strcaselesscmpn(si[q].string, "loword(", 7) == 0) {
-          si[q].type = STACK_ITEM_TYPE_OPERATOR;
-          si[q].sign = SI_SIGN_POSITIVE;
-          si[q].value = SI_OP_LOW_WORD;
-          in--;
-          is_already_processed_function = YES;
-          break;
-        }
-        else if (k == 6 && strcaselesscmpn(si[q].string, "hiword(", 7) == 0) {
-          si[q].type = STACK_ITEM_TYPE_OPERATOR;
-          si[q].sign = SI_SIGN_POSITIVE;
-          si[q].value = SI_OP_HIGH_WORD;
-          in--;
-          is_already_processed_function = YES;
-          break;
-        }
-        else if (k == 8 && strcaselesscmpn(si[q].string, "bankbyte(", 9) == 0) {
-          si[q].type = STACK_ITEM_TYPE_OPERATOR;
-          si[q].sign = SI_SIGN_POSITIVE;
-          si[q].value = SI_OP_BANK_BYTE;
-          in--;
-          is_already_processed_function = YES;
-          break;
-        }
-        else if (k == 4 && strcaselesscmpn(si[q].string, "bank(", 5) == 0) {
-          si[q].type = STACK_ITEM_TYPE_OPERATOR;
-          si[q].sign = SI_SIGN_POSITIVE;
-          si[q].value = SI_OP_BANK;
-          in--;
-          is_already_processed_function = YES;
           break;
         }
 
@@ -1954,6 +1948,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
            si[k + 1].value == SI_OP_ACOS ||
            si[k + 1].value == SI_OP_ASIN ||
            si[k + 1].value == SI_OP_ATAN ||
+           si[k + 1].value == SI_OP_LOW_BYTE ||
+           si[k + 1].value == SI_OP_HIGH_BYTE ||
+           si[k + 1].value == SI_OP_LOW_WORD ||
+           si[k + 1].value == SI_OP_HIGH_WORD ||
+           si[k + 1].value == SI_OP_BANK_BYTE ||
+           si[k + 1].value == SI_OP_BANK ||
            si[k + 1].value == SI_OP_SQRT)) {
         if (k == 0 || (si[k - 1].type == STACK_ITEM_TYPE_OPERATOR && si[k - 1].value == SI_OP_LEFT)) {
           si[k].type = STACK_ITEM_TYPE_DELETED;
@@ -2026,6 +2026,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
                      si[l].value == SI_OP_ACOS ||
                      si[l].value == SI_OP_ASIN ||
                      si[l].value == SI_OP_ATAN ||
+                     si[l].value == SI_OP_LOW_BYTE ||
+                     si[l].value == SI_OP_HIGH_BYTE ||
+                     si[l].value == SI_OP_LOW_WORD ||
+                     si[l].value == SI_OP_HIGH_WORD ||
+                     si[l].value == SI_OP_BANK_BYTE ||
+                     si[l].value == SI_OP_BANK ||
                      si[l].value == SI_OP_SQRT) {
               if (si[l].sign == SI_SIGN_POSITIVE)
                 si[l].sign = SI_SIGN_NEGATIVE;
@@ -2948,6 +2954,8 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         z = z & 0xFF;
 #endif
         v[t - 1] = z & 0xFF;
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
       case SI_OP_HIGH_BYTE:
@@ -2957,6 +2965,8 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         z = z & 0xFF;
 #endif
         v[t - 1] = z & 0xFF;
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
       case SI_OP_BANK_BYTE:
@@ -2966,6 +2976,8 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         z = z & 0xFF;
 #endif
         v[t - 1] = z & 0xFF;
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
      case SI_OP_LOW_WORD:
@@ -2975,6 +2987,8 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         z = z & 0xFFFF;
 #endif
         v[t - 1] = z & 0xFFFF;
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
       case SI_OP_HIGH_WORD:
@@ -2984,6 +2998,8 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         z = z & 0xFFFF;
 #endif
         v[t - 1] = z & 0xFFFF;
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
       case SI_OP_ROUND:

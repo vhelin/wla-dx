@@ -282,3 +282,37 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .db -(ceil(cos(FIVE_POINT_FIVEONE-5.41)+0.1)) ; @BT FE
         .db -(ceil(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT 04
         .db "<16"                 ; @BT END
+
+        .function simpleSumAB(a,b) a+b
+        .function simpleSumABC(a,b,c) a+b+c
+        
+        .db "17>"               ; @BT TEST-17 17 START
+        .db -(-simpleSumAB(1,2)) ; @BT 03
+        .db -(-simpleSumABC(1,2,3)) ; @BT 06
+        .db -(simpleSumAB(1,2)) ; @BT FD
+        .db -(simpleSumABC(1,2,3)) ; @BT FA
+        .db -(-simpleSumAB(1+0,2+0)) ; @BT 03
+        .db -(-simpleSumABC(1+0,2+0,3+0)) ; @BT 06
+        .db -(simpleSumAB(1+0,2+0)) ; @BT FD
+        .db -(simpleSumABC(1+0,2+0,3+0)) ; @BT FA
+        .db -(-simpleSumAB(1,2)+1) ; @BT 02
+        .db -(-simpleSumABC(1,2,3)+1) ; @BT 05
+        .db -(simpleSumAB(1,2)+1) ; @BT FC
+        .db -(simpleSumABC(1,2,3)+1) ; @BT F9
+        .db -(-simpleSumAB(1+0,2+0)+1) ; @BT 02
+        .db -(-simpleSumABC(1+0,2+0,3+0)+1) ; @BT 05
+        .db -(simpleSumAB(1+0,2+0)+1) ; @BT FC
+        .db -(simpleSumABC(1+0,2+0,3+0)+1) ; @BT F9
+        .db "<17"               ; @BT END
+
+        .db "18>"               ; @BT TEST-18 18 START
+        .db lobyte(0x1122)      ; @BT 22
+        .db -lobyte(0x1102)     ; @BT FE
+        .db lobyte(VALUE_16)    ; @BT 10
+        .db -lobyte(VALUE_16)   ; @BT F0
+        .db lobyte(0x1122+1)    ; @BT 23
+        .db -lobyte(0x1102+1)   ; @BT FD
+        .db lobyte(VALUE_16+1)  ; @BT 11
+        .db -lobyte(VALUE_16+1) ; @BT EF
+        .db "<18"               ; @BT END
+        

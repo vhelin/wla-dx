@@ -2888,6 +2888,10 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
           y += base[t - 1];
         v_ram[t - 1] = y & 0xFF;
         v_rom[t - 1] = y & 0xFF;
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
         break;
       case SI_OP_BANK_BYTE:
         z = ((int)v_ram[t - 1]) >> 16;
@@ -2913,6 +2917,10 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
 #endif
         v_ram[t - 1] = z & 0xFF;
         v_rom[t - 1] = y & 0xFF;
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
         break;
       case SI_OP_LOW_BYTE:
         z = (int)v_ram[t - 1];
@@ -2924,6 +2932,10 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
 #endif
         v_ram[t - 1] = z & 0xFF;
         v_rom[t - 1] = y & 0xFF;
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
         break;
       case SI_OP_HIGH_BYTE:
         z = ((int)v_ram[t - 1]) >> 8;
@@ -2935,6 +2947,10 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
 #endif
         v_ram[t - 1] = z & 0xFF;
         v_rom[t - 1] = y & 0xFF;
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
         break;
       case SI_OP_LOW_WORD:
         z = (int)v_ram[t - 1];
@@ -2946,6 +2962,10 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
 #endif
         v_ram[t - 1] = z & 0xFFFF;
         v_rom[t - 1] = y & 0xFFFF;
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
         break;
       case SI_OP_HIGH_WORD:
         z = ((int)v_ram[t - 1]) >> 16;
@@ -2957,6 +2977,10 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
 #endif
         v_ram[t - 1] = z & 0xFFFF;
         v_rom[t - 1] = y & 0xFFFF;
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
         break;
       case SI_OP_MODULO:
         if (((int)v_ram[t - 1]) == 0 || ((int)v_rom[t - 1]) == 0) {
