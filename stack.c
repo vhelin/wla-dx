@@ -931,18 +931,30 @@ static int _parse_function_math2_base(char **in, struct stack_item *si, int *q, 
 
 static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_substitutor, struct stack_item *si, struct stack_item *ta) {
 
-  int q = 0, b = 0, d, k, n, o, l, curly_braces = 0, got_label = NO;
+  int q = 0, b = 0, d, k, n, o, l, curly_braces = 0, got_label = NO, can_skip_newline = NO;
   unsigned char e, op[MAX_STACK_CALCULATOR_ITEMS], sign[MAX_STACK_CALCULATOR_ITEMS];
   double dou = 0.0, dom;
   char *in_original = in;
   struct stack *stack;
 
   /* slice the data into infix format */
-  while (*in != 0xA && *in != 0) {
+  while (*in != 0) {
+    if (*in == 0xA) {
+      if (can_skip_newline == YES && q > 1) {
+        can_skip_newline = NO;
+        in++;
+        next_line();
+        continue;
+      }
+      else
+        break;
+    }
     if (q >= MAX_STACK_CALCULATOR_ITEMS-1) {
       print_error(ERROR_STC, "Out of stack space. Adjust MAX_STACK_CALCULATOR_ITEMS in defines.h and recompile WLA!\n");
       return FAILED;
     }
+
+    can_skip_newline = NO;
 
     /* init the stack item */
     si[q].type = 0x123456;
@@ -978,6 +990,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_SUB;
         in++;
+        can_skip_newline = YES;
       }
       q++;
     }
@@ -994,6 +1007,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_ADD;
         in++;
+        can_skip_newline = YES;
       }
       q++;
     }
@@ -1001,6 +1015,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
       si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_MULTIPLY;
+      can_skip_newline = YES;
       q++;
       in++;
     }
@@ -1008,6 +1023,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
       si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_DIVIDE;
+      can_skip_newline = YES;
       q++;
       in++;
     }
@@ -1016,6 +1032,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_LOGICAL_OR;
+        can_skip_newline = YES;
         q++;
         in += 2;
       }
@@ -1026,6 +1043,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
       si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_OR;
+      can_skip_newline = YES;
       q++;
       in++;
     }
@@ -1034,6 +1052,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_LOGICAL_AND;
+        can_skip_newline = YES;
         q++;
         in += 2;
       }
@@ -1044,6 +1063,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
       si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_AND;
+      can_skip_newline = YES;
       q++;
       in++;
     }
@@ -1051,6 +1071,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
       si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_POWER;
+      can_skip_newline = YES;
       q++;
       in++;
     }
@@ -1063,6 +1084,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
       si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_MODULO;
+      can_skip_newline = YES;
       q++;
       in++;
     }
@@ -1070,6 +1092,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
       si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_SHIFT_LEFT;
+      can_skip_newline = YES;
       q++;
       in += 2;
     }
@@ -1078,6 +1101,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_LTE;
+        can_skip_newline = YES;
         q++;
         in += 2;
       }
@@ -1089,6 +1113,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_LT;
+        can_skip_newline = YES;
         q++;
         in++;
       }
@@ -1104,6 +1129,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_LOW_BYTE;
+        can_skip_newline = YES;
         q++;
         in++;
       }
@@ -1112,6 +1138,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
       si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_SHIFT_RIGHT;
+      can_skip_newline = YES;
       q++;
       in += 2;
     }
@@ -1120,6 +1147,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_GTE;
+        can_skip_newline = YES;
         q++;
         in += 2;
       }
@@ -1131,6 +1159,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_GT;
+        can_skip_newline = YES;
         q++;
         in++;
       }
@@ -1146,6 +1175,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_HIGH_BYTE;
+        can_skip_newline = YES;
         q++;
         in++;
       }
@@ -1154,6 +1184,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
       si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_XOR;
+      can_skip_newline = YES;
       q++;
       in++;
     }
@@ -1182,6 +1213,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_EQ;
+        can_skip_newline = YES;
         q++;
         in += 2;
       }
@@ -1193,6 +1225,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_NEQ;
+        can_skip_newline = YES;
         q++;
         in += 2;
       }
@@ -1210,6 +1243,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
       si[q].sign = SI_SIGN_POSITIVE;
       si[q].value = SI_OP_LEFT;
+      can_skip_newline = YES;
       /* was previous token ')'? */
       if (q > 0 && si[q-1].type == STACK_ITEM_TYPE_OPERATOR && si[q-1].value == SI_OP_RIGHT)
         break;      

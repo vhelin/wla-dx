@@ -303,6 +303,11 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .db -(-simpleSumABC(1+0,2+0,3+0)+1) ; @BT 05
         .db -(simpleSumAB(1+0,2+0)+1) ; @BT FC
         .db -(simpleSumABC(1+0,2+0,3+0)+1) ; @BT F9
+        .db 1 +
+            1                   ; @BT 02
+        .db -(simpleSumABC(VALUE_16-15, simpleSumAB(1+1,2-1), simpleSumABC(VALUE_16-14,VALUE_16-17,1+1-6))) ; @BT FF
+        .db -(simpleSumABC(VALUE_16-15, simpleSumAB(1+1,2-1), simpleSumABC(VALUE_16-14,VALUE_16-17,1+1-6)) +
+              simpleSumABC(VALUE_16-15, simpleSumAB(1+1,2-1), simpleSumABC(VALUE_16-14,VALUE_16-17,1+1-6))) ; @BT FE
         .db "<17"               ; @BT END
 
         .db "18>"               ; @BT TEST-18 18 START
@@ -313,6 +318,12 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .db lobyte(0x1122+1)    ; @BT 23
         .db -lobyte(0x1102+1)   ; @BT FD
         .db lobyte(VALUE_16+1)  ; @BT 11
-        .db -lobyte(VALUE_16+1) ; @BT EF
+        .db -lobyte(VALUE_16+1) ; @BT EF        
+        .db -(lobyte(0x1122+1)-0x24) ; @BT 01
+        .db -(lobyte(VALUE_16+1)-15) ; @BT FE
+        .db -(lobyte(0x0102) - hibyte(0x0304) + lobyte(16)/16) ; @BT 02
+        .db -(lobyte(0x0102) + (-hibyte(0x0304) + lobyte(16)/16)) ; @BT 02
+        .db 1 +
+        2+0*0+
+        1                       ; @BT 04
         .db "<18"               ; @BT END
-        
