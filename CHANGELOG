@@ -28,8 +28,6 @@ v10.4 (06-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
                       (WLA doesn't generate bytes in that case any more).
                     [ALL] Negating pending calculations inside parentheses inside
                       pending calculations ignored the sign.
-                    [Z80] All category 4 instructions (like "LD E,(IY+n)"),
-                      make labels inside n PC relative, if n is a calculation.
 
 v10.3 (02-Oct-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
                     [ALL] "\\" should now work inside strings.
