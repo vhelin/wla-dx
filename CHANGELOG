@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.4 (05-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
+v10.4 (06-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
                       than used in a pending calculation, WLA can now solve
                       the pending calculation before exporting it to WLALINK.
                     [ALL] Added .SEEDRANDOM (seeds random number generator
@@ -19,10 +19,11 @@ v10.4 (05-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
                     [ALL] When using -M, if you specify -o or -l later on the
                       command line you can output an object or a library file
                       at the same time.
-                    [ALL] Calculation can be split into multiple lines if the
+                    [ALL] A calculation can be split into multiple lines if the
                       last symbol on the line is a '+', '-', '*'. etc.
                     [ALL] Unnamed .STRUCTs inside other .STRUCTs don't generate
                       _paddingof_* definitions any more.
+                    [ALL] Pending calculations work now as macro arguments.
                     [ALL] Fixed INSTANCEOF in .ENUM when .STRUCT used SIZE
                       (WLA doesn't generate bytes in that case any more).
                     [ALL] Negating pending calculations inside parentheses inside

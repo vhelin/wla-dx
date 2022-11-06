@@ -748,8 +748,10 @@ static int _parse_function_math2(char *in, int *type_a, int *type_b, double *val
     strcpy(string_a, g_label);
   else if (res == INPUT_NUMBER_STACK)
     *value_a = g_latest_stack;
+  else if (res == FAILED)
+    return FAILED;
   else {
-    print_error(ERROR_STC, "Unhandled result type %d of a in %s!\n", res, name);
+    print_error(ERROR_STC, "Unhandled result type %d of argument a in %s!\n", res, name);
     return FAILED;
   }
 
@@ -766,8 +768,10 @@ static int _parse_function_math2(char *in, int *type_a, int *type_b, double *val
     strcpy(string_b, g_label);
   else if (res == INPUT_NUMBER_STACK)
     *value_b = g_latest_stack;
+  else if (res == FAILED)
+    return FAILED;
   else {
-    print_error(ERROR_STC, "Unhandled result type %d of b in %s!\n", res, name);
+    print_error(ERROR_STC, "Unhandled result type %d of argument b in %s!\n", res, name);
     return FAILED;
   }
   
@@ -812,8 +816,10 @@ static int _parse_function_math1(char *in, int *type, double *value, char *strin
     strcpy(string, g_label);
   else if (res == INPUT_NUMBER_STACK)
     *value = g_latest_stack;
+  else if (res == FAILED)
+    return FAILED;
   else {
-    print_error(ERROR_STC, "Unhandled result type %d of a in %s!\n", res, name);
+    print_error(ERROR_STC, "Unhandled result type %d of argument a in %s!\n", res, name);
     return FAILED;
   }
 
@@ -2484,7 +2490,7 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
   
   if (g_macro_active != 0) {
     /* expand e.g., \1 and \@ */
-    if (expand_macro_arguments(s->string) == FAILED)
+    if (expand_macro_arguments(s->string, NULL, NULL) == FAILED)
       return FAILED;
   }
 

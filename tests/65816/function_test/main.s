@@ -38,6 +38,7 @@
         .function constant() 1+2+3
 
         .db "01>"               ; @BT TEST-01 01 START
+_0x03:
         .db sumAB(1,2)          ; @BT 03
         .db 1 + sumAB(1,2)      ; @BT 04
         .db sumABC(3,4,5)       ; @BT 0C
@@ -323,7 +324,41 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .db -(lobyte(VALUE_16+1)-15) ; @BT FE
         .db -(lobyte(0x0102) - hibyte(0x0304) + lobyte(16)/16) ; @BT 02
         .db -(lobyte(0x0102) + (-hibyte(0x0304) + lobyte(16)/16)) ; @BT 02
-        .db 1 +
-        2+0*0+
-        1                       ; @BT 04
+        .db 1+
+            2+0*
+            0+
+            1                   ; @BT 04
         .db "<18"               ; @BT END
+
+        .macro macroLoByte
+        .db lobyte(\1)
+        .endm
+
+        .macro macroBankByte
+        adc #bankbyte(\1)
+        .endm
+        
+        .db "19>"               ; @BT TEST-19 19 START
+        macroBankByte(_0x100)   ; @BT 69 00
+        macroLoByte(_0x100)     ; @BT 00
+        macroBankByte(_0x100+1) ; @BT 69 00
+        macroLoByte(_0x100+1)   ; @BT 01
+        .db lobyte(_0x100)      ; @BT 00
+        .db hibyte(_0x100)      ; @BT 01
+        .db <_0x100             ; @BT 00
+        .db >_0x100             ; @BT 01
+        .db "<19"               ; @BT END
+
+        .org 0x300
+        .section "Section_0x300" force
+        .db 00
+_0x301:
+        .db "20>"               ; @BT TEST-20 20 START
+        adc #lobyte(_0x301)     ; @BT 69 01
+        adc hibyte(_0x301)      ; @BT 65 03
+        adc #<_0x301            ; @BT 69 01
+        adc >_0x301             ; @BT 65 03
+        .db "<20"               ; @BT END
+
+        .ends
+        

@@ -226,7 +226,7 @@ int input_next_string(void) {
 
   /* expand e.g., \1 and \@ */
   if (g_macro_active != 0) {
-    if (expand_macro_arguments(g_label) == FAILED)
+    if (expand_macro_arguments(g_label, NULL, NULL) == FAILED)
       return FAILED;
   }
 
@@ -1128,7 +1128,7 @@ int input_number(void) {
 
     /* expand e.g., \1 and \@ */
     if (g_macro_active != 0) {
-      if (expand_macro_arguments(g_label) == FAILED)
+      if (expand_macro_arguments(g_label, NULL, NULL) == FAILED)
         return FAILED;
       k = (int)strlen(g_label);
     }
@@ -1242,11 +1242,37 @@ int input_number(void) {
 #endif
   
   g_label[k] = 0;
-  
+
   /* expand e.g., \1 and \@ */
   if (g_macro_active != 0) {
-    if (expand_macro_arguments(g_label) == FAILED)
+    double ret_value;
+    int ret_type;
+    
+    if (expand_macro_arguments(g_label, &ret_type, &ret_value) == FAILED)
       return FAILED;
+
+    /* NOTE! the string could have turned into e.g., a stack calculation! */
+    if (ret_type == SUCCEEDED) {
+      g_parsed_int = (int)ret_value;
+      g_parsed_double = ret_value;
+
+      return SUCCEEDED;
+    }
+    else if (ret_type == INPUT_NUMBER_FLOAT) {
+      g_parsed_int = (int)ret_value;
+      g_parsed_double = ret_value;
+
+      if (g_input_float_mode == ON)
+        return INPUT_NUMBER_FLOAT;
+      else
+        return SUCCEEDED;
+    }
+    else if (ret_type == INPUT_NUMBER_STACK) {
+      g_latest_stack = (int)ret_value;
+
+      return INPUT_NUMBER_STACK;
+    }
+    
     k = (int)strlen(g_label);
   }
 
@@ -1410,7 +1436,7 @@ int get_next_plain_string(void) {
 
   /* expand e.g., \1 and \@ */
   if (g_macro_active != 0) {
-    if (expand_macro_arguments(g_label) == FAILED)
+    if (expand_macro_arguments(g_label, NULL, NULL) == FAILED)
       return FAILED;
     g_ss = (int)strlen(g_label);
   }
@@ -1450,7 +1476,7 @@ int get_next_token(void) {
 
     /* expand e.g., \1 and \@ */
     if (g_macro_active != 0) {
-      if (expand_macro_arguments(g_tmp) == FAILED)
+      if (expand_macro_arguments(g_tmp, NULL, NULL) == FAILED)
         return FAILED;
       g_ss = (int)strlen(g_tmp);
     }
@@ -1519,7 +1545,7 @@ int get_next_token(void) {
 
   /* expand e.g., \1 and \@ */
   if (g_macro_active != 0) {
-    if (expand_macro_arguments(g_tmp) == FAILED)
+    if (expand_macro_arguments(g_tmp, NULL, NULL) == FAILED)
       return FAILED;
     g_ss = (int)strlen(g_tmp);
   }
@@ -1583,11 +1609,10 @@ int skip_next_token(void) {
 }
 
 
-int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
+int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up, int *res_type, double *res_value) {
 
   char t[MAX_NAME_LENGTH + 1];
   int i, j, k;
-
 
   memset(g_expanded_macro_string, 0, MAX_NAME_LENGTH + 1);
 
@@ -1801,10 +1826,21 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
           }
         }
         else if (type == INPUT_NUMBER_STACK) {
-          if (g_input_number_error_msg == YES)
-            print_error(ERROR_NUM, "EXPAND_MACRO_ARGUMENTS: Macro argument \\%d is a pending stack calculation and cannot be expanded into a string.\n", d);
+          /* it's actually a stack calculation! */
+          if (res_type != NULL) {
+            *res_type = INPUT_NUMBER_STACK;
+            *move_up = 0;
+            *res_value = g_macro_runtime_current->argument_data[d - 1]->value;
+            in[0] = 0;
+
+            return SUCCEEDED;
+          }
+          else {
+            if (g_input_number_error_msg == YES)
+              print_error(ERROR_NUM, "EXPAND_MACRO_ARGUMENTS: Macro argument \\%d is a pending stack calculation and cannot be expanded into a string.\n", d);
     
-          return FAILED;
+            return FAILED;
+          }
         }
         else {
           if (g_input_number_error_msg == YES)
@@ -1842,11 +1878,11 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up) {
 }
 
 
-int _expand_macro_arguments(char *in, int *expands) {
+int _expand_macro_arguments(char *in, int *expands, int *type, double *value) {
 
   int move_up = 0;
 
-  if (_expand_macro_arguments_one_pass(in, expands, &move_up) == FAILED)
+  if (_expand_macro_arguments_one_pass(in, expands, &move_up, type, value) == FAILED)
     return FAILED;
 
   /* macro argument numbers? if we find and expand some, we'll need to recursively call this function */
@@ -1856,7 +1892,7 @@ int _expand_macro_arguments(char *in, int *expands) {
     if (g_macro_active > 0) {
       g_macro_runtime_current = &g_macro_stack[g_macro_active - 1];
       /* recursive call to self */
-      return _expand_macro_arguments(in, expands);
+      return _expand_macro_arguments(in, expands, type, value);
     }
   }
 
@@ -1864,13 +1900,18 @@ int _expand_macro_arguments(char *in, int *expands) {
 }
   
 
-int expand_macro_arguments(char *in) {
+int expand_macro_arguments(char *in, int *type, double *value) {
 
   /* save the current macro_runtime pointers */
   struct macro_runtime* mr = g_macro_runtime_current;
   int ma = g_macro_active, expands = 0, ret;
 
-  ret = _expand_macro_arguments(in, &expands);
+  /* by default we expect strings to stay strings, but _expand_macro_arguments() could return e.g.,
+     stack calculations as well */
+  if (type != NULL)
+    *type = INPUT_NUMBER_ADDRESS_LABEL;
+  
+  ret = _expand_macro_arguments(in, &expands, type, value);
 
   /* return the current macro_runtime as recursive _expand_macro_arguments() might have modified it */
   g_macro_runtime_current = mr;
