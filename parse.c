@@ -1612,7 +1612,7 @@ int skip_next_token(void) {
 int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up, int *res_type, double *res_value) {
 
   char t[MAX_NAME_LENGTH + 1];
-  int i, j, k;
+  int i, j, k, argument_start;
 
   memset(g_expanded_macro_string, 0, MAX_NAME_LENGTH + 1);
 
@@ -1680,6 +1680,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up, int *
       }
     }
     else if (in[i] == '\\') {
+      argument_start = i;
       if (in[i + 1] == '"' || in[i + 1] == 'n' || in[i + 1] == '\\' || in[i + 1] == 'r' || in[i + 1] == 't' || in[i + 1] == 'x' || in[i + 1] == '0') {
         g_expanded_macro_string[k++] = in[i];
         i++;
@@ -1808,11 +1809,22 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up, int *
           char tmp_string[32];
           int i;
 
-          snprintf(tmp_string, sizeof(tmp_string), "%d", (int)g_macro_runtime_current->argument_data[d - 1]->value);
-          for (i = 0; k < MAX_NAME_LENGTH && i < (int)sizeof(tmp_string); i++, k++) {
-            if (tmp_string[i] == 0)
-              break;
-            g_expanded_macro_string[k] = tmp_string[i];
+          if (res_type != NULL && argument_start == 0) {
+            /* we need to return this value! */
+            *res_type = SUCCEEDED;
+            *move_up = 0;
+            *res_value = g_macro_runtime_current->argument_data[d - 1]->value;
+            in[0] = 0;
+
+            return SUCCEEDED;            
+          }
+          else {
+            snprintf(tmp_string, sizeof(tmp_string), "%d", (int)g_macro_runtime_current->argument_data[d - 1]->value);
+            for (i = 0; k < MAX_NAME_LENGTH && i < (int)sizeof(tmp_string); i++, k++) {
+              if (tmp_string[i] == 0)
+                break;
+              g_expanded_macro_string[k] = tmp_string[i];
+            }
           }
         }
         else if (type == INPUT_NUMBER_ADDRESS_LABEL || type == INPUT_NUMBER_STRING) {
@@ -1827,7 +1839,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up, int *
         }
         else if (type == INPUT_NUMBER_STACK) {
           /* it's actually a stack calculation! */
-          if (res_type != NULL) {
+          if (res_type != NULL && argument_start == 0) {
             *res_type = INPUT_NUMBER_STACK;
             *move_up = 0;
             *res_value = g_macro_runtime_current->argument_data[d - 1]->value;

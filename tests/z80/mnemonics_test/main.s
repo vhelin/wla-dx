@@ -114,4 +114,33 @@ address_test_10:
         .db 01                   ; @BT 01
         .db "<13"                ; @BT END
         .ends
+
+        .org 0x200
+        
+        .section "boot" force
+        .db "14>"               ; @BT TEST-14 14 START
+        di                      ; @BT F3
+        im 1                    ; @BT ED 56
+        ld sp, $dff0            ; @BT 31 F0 DF
+
+        ld iy, myLabel          ; @BT FD 21 34 12
+        ld ixh, >myLabel        ; @BT DD 26 12
+        ld ixl, <myLabel        ; @BT DD 2E 34
+
+        ld hl, myLabel          ; @BT 21 34 12
+        ld d, >myLabel          ; @BT 16 12
+        ld e, <myLabel          ; @BT 1E 34
+
+        .db "<14"               ; BT END
+
+-:      jp -
+        .ends
+
+        .org 0x1234
+        
+        .section "someSection" force
+myLabel:
+        outi
+        ret
+        .ends
         

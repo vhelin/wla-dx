@@ -337,12 +337,35 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .macro macroBankByte
         adc #bankbyte(\1)
         .endm
+
+        .define label_0x301 l_0x301
+        .define label_0x302 l_0x301+1
+        .define label_0x303 label_0x302+1
+        .define label_0x304 0+label_0x303+1
         
         .db "19>"               ; @BT TEST-19 19 START
         macroBankByte(_0x100)   ; @BT 69 00
         macroLoByte(_0x100)     ; @BT 00
         macroBankByte(_0x100+1) ; @BT 69 00
         macroLoByte(_0x100+1)   ; @BT 01
+        macroLoByte(label_0x301) ; @BT 01
+
+        .if exists(I_DONT_EXIST)
+          macroLoByte(_0x100+1)
+          macroLoByte(label_0x301)
+        .endif
+        
+        macroLoByte(label_0x302) ; @BT 02
+        macroLoByte(label_0x303) ; @BT 03
+        macroLoByte(label_0x304) ; @BT 04
+        macroLoByte(<label_0x301) ; @BT 01
+        macroLoByte(<label_0x302) ; @BT 02
+        macroLoByte(<label_0x303) ; @BT 03
+        macroLoByte(<label_0x304) ; @BT 04
+        macroLoByte(>label_0x301) ; @BT 03
+        macroLoByte(>label_0x302) ; @BT 03
+        macroLoByte(>label_0x303) ; @BT 03
+        macroLoByte(>label_0x304) ; @BT 03
         .db lobyte(_0x100)      ; @BT 00
         .db hibyte(_0x100)      ; @BT 01
         .db <_0x100             ; @BT 00
@@ -352,6 +375,7 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .org 0x300
         .section "Section_0x300" force
         .db 00
+l_0x301:
 _0x301:
         .db "20>"               ; @BT TEST-20 20 START
         adc #lobyte(_0x301)     ; @BT 69 01
