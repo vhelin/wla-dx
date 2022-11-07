@@ -2849,14 +2849,6 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         break;
       case SI_OP_ASIN:
-        if (v_ram[t - 1] < -1.0 || v_ram[t - 1] > 1.0) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: asin() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_ram[t - 1]);
-          return FAILED;
-        }
-        if (v_rom[t - 1] < -1.0 || v_rom[t - 1] > 1.0) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: asin() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_rom[t - 1]);
-          return FAILED;
-        }
         v_ram[t - 1] = asin(v_ram[t - 1]);
         v_rom[t - 1] = asin(v_rom[t - 1]);
         if (s->sign == SI_SIGN_NEGATIVE) {
@@ -2865,14 +2857,6 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         break;
       case SI_OP_ACOS:
-        if (v_ram[t - 1] < -1.0 || v_ram[t - 1] > 1.0) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: acos() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_ram[t - 1]);
-          return FAILED;
-        }
-        if (v_rom[t - 1] < -1.0 || v_rom[t - 1] > 1.0) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: acos() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_rom[t - 1]);
-          return FAILED;
-        }
         v_ram[t - 1] = acos(v_ram[t - 1]);
         v_rom[t - 1] = acos(v_rom[t - 1]);
         if (s->sign == SI_SIGN_NEGATIVE) {

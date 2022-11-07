@@ -477,18 +477,18 @@ _0x301:
         .db "<23"               ; @BT END
         
         .db "24>"                 ; @BT TEST-24 24 START
-        .db -(acos(0.5)*1.0001)*1.95      ; @BT FE
-        .db "<24"                 ; @BT END
+        .db -(acos(0.5)*1.0001)*1.95        ; @BT FE
+        .db -negate1(acos(0.5)*1.0001)*1.95 ; @BT 02
+        .db -(acos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.95  ; @BT FE
+        .db -(-acos(0.1)-0.1)*6                           ; @BT 09
+        
+        // cos -> acos
 
-        /*
-        .db -negate1(cos(0.5)*1.0001)*1.5 ; @BxT 01
-        .db -(cos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.5  ; @BxT 01
-        .db -(-cos(0.1)-0.1)*6                               ; @BxT 06
-        .db -(-cos(FIVE_POINT_FIVEONE-5.41)-0.1)*6           ; @BxT 06
-        .db -(-cos(0.1)-0.1 - cos(0.1)-0.1)*2                ; @BxT 04
-        .db -(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1)*2 ; @BxT 04
-        .db (ceil(cos(FIVE_POINT_FIVEONE-5.41)+0.1)) ; @BxT 02
-        .db (ceil(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BxT FC
-        .db -(ceil(cos(FIVE_POINT_FIVEONE-5.41)+0.1)) ; @BxT FE
-        .db -(ceil(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BxT 04
-        */
+        .db -(-cos(FIVE_POINT_FIVEONE-5.41)-0.1)*6           ; @BT 06
+        .db -(-cos(0.1)-0.1 - cos(0.1)-0.1)*2                ; @BT 04
+        .db -(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1)*2 ; @BT 04
+        .db (ceil(cos(FIVE_POINT_FIVEONE-5.41)+0.1)) ; @BT 02
+        .db (ceil(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT FC
+        .db -(ceil(cos(FIVE_POINT_FIVEONE-5.41)+0.1)) ; @BT FE
+        .db -(ceil(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT 04
+        .db "<24"                 ; @BT END
