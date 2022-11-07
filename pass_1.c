@@ -901,9 +901,11 @@ int pass_1(void) {
         o = g_source_pointer;
         g_input_allow_leading_hashtag = YES;
         g_input_allow_leading_ampersand = YES;
+        g_input_float_mode = ON;
         q = input_number();
         g_input_allow_leading_hashtag = NO;
         g_input_allow_leading_ampersand = NO;
+        g_input_float_mode = OFF;
         if (q == INPUT_NUMBER_EOL)
           break;
 
@@ -925,6 +927,8 @@ int pass_1(void) {
         else if (q == INPUT_NUMBER_STACK)
           mrt->argument_data[p]->value = (double)g_latest_stack;
         else if (q == SUCCEEDED)
+          mrt->argument_data[p]->value = (double)g_parsed_int;
+        else if (q == INPUT_NUMBER_FLOAT)
           mrt->argument_data[p]->value = g_parsed_double;
         else
           return FAILED;
@@ -938,6 +942,8 @@ int pass_1(void) {
           else if (q == INPUT_NUMBER_STACK)
             redefine(m->argument_names[p], (double)g_latest_stack, NULL, DEFINITION_TYPE_STACK, 0);
           else if (q == SUCCEEDED)
+            redefine(m->argument_names[p], g_parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
+          else if (q == INPUT_NUMBER_FLOAT)
             redefine(m->argument_names[p], g_parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
         }
       }

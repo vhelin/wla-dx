@@ -730,6 +730,10 @@ int input_number(void) {
         g_parsed_int = (int)ma->value;
         g_parsed_double = ma->value;
       }
+      else if (k == INPUT_NUMBER_FLOAT) {
+        g_parsed_int = (int)ma->value;
+        g_parsed_double = ma->value;
+      }
       else {
         print_error(ERROR_ERR, "Macro argument list has been corrupted! Please send a bug report!\n");
         return FAILED;
@@ -760,7 +764,14 @@ int input_number(void) {
         }
       }
 
-      return k;
+      if (k == INPUT_NUMBER_FLOAT) {
+        if (g_input_float_mode == ON)
+          return INPUT_NUMBER_FLOAT;
+        else
+          return SUCCEEDED;
+      }
+      else
+        return k;
     }
     else {
       g_source_pointer = start_i;
@@ -1805,13 +1816,16 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up, int *
         type = g_macro_runtime_current->argument_data[d - 1]->type;
 
         /* replace e.g., \1 in the string with processed macro argument */
-        if (type == SUCCEEDED) {
+        if (type == SUCCEEDED || type == INPUT_NUMBER_FLOAT) {
           char tmp_string[32];
           int i;
 
           if (res_type != NULL && argument_start == 0) {
             /* we need to return this value! */
-            *res_type = SUCCEEDED;
+            if (type == INPUT_NUMBER_FLOAT && g_input_float_mode == ON)
+              *res_type = INPUT_NUMBER_FLOAT;
+            else
+              *res_type = SUCCEEDED;
             *move_up = 0;
             *res_value = g_macro_runtime_current->argument_data[d - 1]->value;
             in[0] = 0;

@@ -2283,9 +2283,17 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     
     g_parsed_double = dou;
 
-    if (g_input_float_mode == ON)
+    if (g_input_float_mode == ON) {
+#ifdef WLA_DEBUG
+      fprintf(stderr, "RETURN FLOAT %f\n", dou);
+#endif
       return INPUT_NUMBER_FLOAT;
+    }
 
+#ifdef WLA_DEBUG
+    fprintf(stderr, "RETURN INT %d\n", (int)dou);
+#endif
+    
     *value = (int)dou;
 
     return SUCCEEDED;
@@ -2295,12 +2303,18 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   if (d == 1 && ta[0].type == STACK_ITEM_TYPE_STRING && ta[0].sign == SI_SIGN_POSITIVE) {
     strcpy(g_label, ta[0].string);
     process_special_labels(g_label);
+#ifdef WLA_DEBUG
+    fprintf(stderr, "RETURN STRING %s\n", g_label);
+#endif
     return STACK_RETURN_STRING;
   }
   /* only one label? */
   if (d == 1 && ta[0].type == STACK_ITEM_TYPE_LABEL && ta[0].sign == SI_SIGN_POSITIVE) {
     strcpy(g_label, ta[0].string);
     process_special_labels(g_label);
+#ifdef WLA_DEBUG
+    fprintf(stderr, "RETURN LABEL %s\n", g_label);
+#endif
     return STACK_RETURN_LABEL;
   }
 
@@ -2365,6 +2379,11 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 #endif
 
   calculation_stack_insert(stack);
+
+#ifdef WLA_DEBUG
+    fprintf(stderr, "RETURN STACK %d\n", g_latest_stack);
+    debug_print_stack(g_active_file_info_last->line_current, g_latest_stack, ta, d, 0, NULL);
+#endif
 
   return INPUT_NUMBER_STACK;
 }
@@ -2694,12 +2713,16 @@ static int _process_string(struct stack_item *s, int *cannot_resolve) {
         }
         else if (k == INPUT_NUMBER_STACK)
           g_latest_stack = (int)ma->value;
+        else if (k == INPUT_NUMBER_FLOAT) {
+          g_parsed_int = (int)ma->value;
+          g_parsed_double = ma->value;
+        }
         else if (k == SUCCEEDED) {
           g_parsed_int = (int)ma->value;
           g_parsed_double = ma->value;
         }
           
-        if (!(k == SUCCEEDED || k == INPUT_NUMBER_ADDRESS_LABEL || k == INPUT_NUMBER_STACK))
+        if (!(k == SUCCEEDED || k == INPUT_NUMBER_ADDRESS_LABEL || k == INPUT_NUMBER_STACK || k == INPUT_NUMBER_FLOAT))
           return FAILED;
           
         if (k == SUCCEEDED) {
@@ -2709,6 +2732,10 @@ static int _process_string(struct stack_item *s, int *cannot_resolve) {
         else if (k == INPUT_NUMBER_STACK) {
           s->type = STACK_ITEM_TYPE_STACK;
           s->value = g_latest_stack;
+        }
+        else if (k == INPUT_NUMBER_FLOAT) {
+          s->type = STACK_ITEM_TYPE_VALUE;
+          s->value = g_parsed_double;
         }
         else
           strcpy(s->string, g_label);
@@ -3373,6 +3400,10 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
 
   *result = v[0];
 
+#ifdef WLA_DEBUG
+  fprintf(stderr, "RESULT = %f\n", *result);
+#endif
+  
   return SUCCEEDED;
 }
 

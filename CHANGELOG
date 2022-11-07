@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.4 (06-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
+v10.4 (07-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
                       than used in a pending calculation, WLA can now solve
                       the pending calculation before exporting it to WLALINK.
                     [ALL] Added .SEEDRANDOM (seeds random number generator
@@ -13,6 +13,10 @@ v10.4 (06-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
                       acos(a), asin(a), atan(a).
                     [ALL] When a built-in function was called with a negative
                       sign the sign was ignored sometimes.
+                    [ALL] Floating point values can be given to a .MACRO as
+                      arguments and accessed via \1 etc., not rounded to
+                      integers any more. Previously only named args would work
+                      without rounding.
                     [ALL] When using a .FUNCTION the result was rounded to
                       an integer - not any more.
                     [ALL] .FUNCTION body can now be a single argument.

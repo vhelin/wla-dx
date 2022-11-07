@@ -383,6 +383,73 @@ _0x301:
         adc #<_0x301            ; @BT 69 01
         adc >_0x301             ; @BT 65 03
         .db "<20"               ; @BT END
-
         .ends
+
+        .DEFINE VMDATAL         $2118
+
+        .BASE $C0
+
+        .MACRO DMA_CH0
+          lda #lobyte(\1)
+        .ENDM
+
+        .MACRO DMA_CH1
+          lda #lobyte(\1+1.1)
+        .ENDM
+
+        .MACRO DMA_CH2
+          lda #lobyte(1.1+\1)
+        .ENDM
+
+        .function myLoByte(a) lobyte(a*4)
         
+        .MACRO DMA_CH3
+          lda #myLoByte(\1)
+        .ENDM
+        
+        .db "21>"               ; @BT TEST-21 21 START
+        DMA_CH0 VMDATAL         ; @BT A9 18
+        DMA_CH0 $2118           ; @BT A9 18
+        DMA_CH0 VMDATAL+1       ; @BT A9 19
+        DMA_CH0 $2118+2         ; @BT A9 1A
+        DMA_CH0 VMDATAL+1.2     ; @BT A9 19
+        DMA_CH0 $2118+2.1       ; @BT A9 1A
+        DMA_CH0 VMDATAL+(1.2*6) ; @BT A9 1F
+        DMA_CH0 $2118+(1.2*6)   ; @BT A9 1F
+        DMA_CH0 l_0x301         ; @BT A9 01
+        DMA_CH3 l_0x301         ; @BT A9 04
+        DMA_CH1 VMDATAL         ; @BT A9 19
+        DMA_CH1 $2118           ; @BT A9 19
+        DMA_CH1 VMDATAL+1       ; @BT A9 1A
+        DMA_CH1 $2118+2         ; @BT A9 1B
+        DMA_CH1 VMDATAL+1.2     ; @BT A9 1A
+        DMA_CH1 $2118+2.1       ; @BT A9 1B
+        DMA_CH1 VMDATAL+(1.2*6) ; @BT A9 20
+        DMA_CH1 $2118+(1.2*6)   ; @BT A9 20
+        DMA_CH2 VMDATAL         ; @BT A9 19
+        DMA_CH2 $2118           ; @BT A9 19
+        DMA_CH2 VMDATAL+1       ; @BT A9 1A
+        DMA_CH2 $2118+2         ; @BT A9 1B
+        DMA_CH2 VMDATAL+1.2     ; @BT A9 1A
+        DMA_CH2 $2118+2.1       ; @BT A9 1B
+        DMA_CH2 VMDATAL+(1.2*6) ; @BT A9 20
+        DMA_CH2 $2118+(1.2*6)   ; @BT A9 20
+        DMA_CH1 VMDATAL+1.1         ; @BT A9 1A
+        DMA_CH1 $2118+1.1           ; @BT A9 1A
+        DMA_CH1 VMDATAL+1+1.1       ; @BT A9 1B
+        DMA_CH1 $2118+2+1.1         ; @BT A9 1C
+        DMA_CH1 VMDATAL+1.2+1.1     ; @BT A9 1B
+        DMA_CH1 $2118+2.1+1.1       ; @BT A9 1C
+        DMA_CH1 VMDATAL+(1.2*6)+1.1 ; @BT A9 21
+        DMA_CH1 $2118+(1.2*6)+1.1   ; @BT A9 21
+        .db "<21"               ; @BT END
+        
+        .db "22>"               ; @BT TEST-22 22 START
+        DMA_CH3(1.26)           ; @BT A9 05
+        DMA_CH3(1.26+0)         ; @BT A9 05
+        DMA_CH3(VALUE_1+0.26)   ; @BT A9 05
+        DMA_CH3(VALUE_16+0.26-15) ; @BT A9 05
+        .db "<22"               ; @BT END
+
+        
+
