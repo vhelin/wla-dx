@@ -268,11 +268,11 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
 
         .db "16>"                 ; @BT TEST-16 16 START
         .db mulOnePointFiveOne(2) ; @BT 03
-        .db -(cos(0.5)*1.0001)*1.5       ; @BT 01
+        .db -(cos(0.5)*1.0001)*1.5       ; @BT FF
         .db -negate1(cos(0.5)*1.0001)*1.5 ; @BT 01
         .db mulOnePointFiveOne(FIVE_POINT_FIVEONE-3.51) ; @BT 03
-        .db -(cos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.5  ; @BT 01
-        .db -(justCos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.5  ; @BT 01
+        .db -(cos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.5  ; @BT FF
+        .db -(justCos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.5  ; @BT FF
         .db (minusCos(FIVE_POINT_FIVEONE-5.01)*-1.0001)*1.5  ; @BT 01
         .db -(-cos(0.1)-0.1)*6                               ; @BT 06
         .db -(-cos(FIVE_POINT_FIVEONE-5.41)-0.1)*6           ; @BT 06
@@ -322,8 +322,8 @@ _0x100: .db "08>"               ; @BT TEST-08 08 START
         .db -lobyte(VALUE_16+1) ; @BT EF        
         .db -(lobyte(0x1122+1)-0x24) ; @BT 01
         .db -(lobyte(VALUE_16+1)-15) ; @BT FE
-        .db -(lobyte(0x0102) - hibyte(0x0304) + lobyte(16)/16) ; @BT 02
-        .db -(lobyte(0x0102) + (-hibyte(0x0304) + lobyte(16)/16)) ; @BT 02
+        .db -(lobyte(0x0102) - hibyte(0x0304) + lobyte(16)/16) ; @BT 00
+        .db -(lobyte(0x0102) + (-hibyte(0x0304) + lobyte(16)/16)) ; @BT 00
         .db 1+
             2+0*
             0+
@@ -418,6 +418,14 @@ _0x301:
         DMA_CH0 $2118+(1.2*6)   ; @BT A9 1F
         DMA_CH0 l_0x301         ; @BT A9 01
         DMA_CH3 l_0x301         ; @BT A9 04
+        DMA_CH0 label_0x301     ; @BT A9 01
+        DMA_CH3 label_0x301     ; @BT A9 04
+        DMA_CH0 label_0x302     ; @BT A9 02
+        DMA_CH3 label_0x302     ; @BT A9 08
+        DMA_CH0 label_0x303     ; @BT A9 03
+        DMA_CH3 label_0x303     ; @BT A9 0C
+        DMA_CH0 label_0x304     ; @BT A9 04
+        DMA_CH3 label_0x304     ; @BT A9 10
         DMA_CH1 VMDATAL         ; @BT A9 19
         DMA_CH1 $2118           ; @BT A9 19
         DMA_CH1 VMDATAL+1       ; @BT A9 1A
@@ -434,14 +442,14 @@ _0x301:
         DMA_CH2 $2118+2.1       ; @BT A9 1B
         DMA_CH2 VMDATAL+(1.2*6) ; @BT A9 20
         DMA_CH2 $2118+(1.2*6)   ; @BT A9 20
-        DMA_CH1 VMDATAL+1.1         ; @BT A9 1A
-        DMA_CH1 $2118+1.1           ; @BT A9 1A
-        DMA_CH1 VMDATAL+1+1.1       ; @BT A9 1B
-        DMA_CH1 $2118+2+1.1         ; @BT A9 1C
-        DMA_CH1 VMDATAL+1.2+1.1     ; @BT A9 1B
-        DMA_CH1 $2118+2.1+1.1       ; @BT A9 1C
+        DMA_CH1 VMDATAL+1.1     ; @BT A9 1A
+        DMA_CH1 $2118+1.1       ; @BT A9 1A
+        DMA_CH1 VMDATAL+1+1.1   ; @BT A9 1B
+        DMA_CH1 $2118+2+1.1     ; @BT A9 1C
+        DMA_CH1 VMDATAL+1.2+1.1 ; @BT A9 1B
+        DMA_CH1 $2118+2.1+1.1   ; @BT A9 1C
         DMA_CH1 VMDATAL+(1.2*6)+1.1 ; @BT A9 21
-        DMA_CH1 $2118+(1.2*6)+1.1   ; @BT A9 21
+        DMA_CH1 $2118+(1.2*6)+1.1 ; @BT A9 21
         .db "<21"               ; @BT END
         
         .db "22>"               ; @BT TEST-22 22 START
@@ -449,7 +457,38 @@ _0x301:
         DMA_CH3(1.26+0)         ; @BT A9 05
         DMA_CH3(VALUE_1+0.26)   ; @BT A9 05
         DMA_CH3(VALUE_16+0.26-15) ; @BT A9 05
+        DMA_CH3(VALUE_15+0.26-14) ; @BT A9 05
         .db "<22"               ; @BT END
 
-        
+        .macro macroMulBy2Point5One(a)
+        .db \1*2.51
+        .db a*2.51
+        .db 2.51*\1
+        .db 2.51*a
+        .endm
 
+        .db "23>"               ; @BT TEST-23 23 START
+        macroMulBy2Point5One(1) ; @BT 02 02 02 02
+        macroMulBy2Point5One(VALUE_1) ; @BT 02 02 02 02
+        macroMulBy2Point5One(VALUE_1+1) ; @BT 05 05 05 05
+        macroMulBy2Point5One(VALUE_16-VALUE_15+1.51) ; @BT 06 06 06 06
+        macroMulBy2Point5One(2.51) ; @BT 06 06 06 06
+        macroMulBy2Point5One(3.2)  ; @BT 08 08 08 08
+        .db "<23"               ; @BT END
+        
+        .db "24>"                 ; @BT TEST-24 24 START
+        .db -(acos(0.5)*1.0001)*1.95      ; @BT FE
+        .db "<24"                 ; @BT END
+
+        /*
+        .db -negate1(cos(0.5)*1.0001)*1.5 ; @BxT 01
+        .db -(cos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.5  ; @BxT 01
+        .db -(-cos(0.1)-0.1)*6                               ; @BxT 06
+        .db -(-cos(FIVE_POINT_FIVEONE-5.41)-0.1)*6           ; @BxT 06
+        .db -(-cos(0.1)-0.1 - cos(0.1)-0.1)*2                ; @BxT 04
+        .db -(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1)*2 ; @BxT 04
+        .db (ceil(cos(FIVE_POINT_FIVEONE-5.41)+0.1)) ; @BxT 02
+        .db (ceil(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BxT FC
+        .db -(ceil(cos(FIVE_POINT_FIVEONE-5.41)+0.1)) ; @BxT FE
+        .db -(ceil(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BxT 04
+        */

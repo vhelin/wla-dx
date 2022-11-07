@@ -118,6 +118,7 @@ static const char *g_si_operator_tan = "tan()";
 static const char *g_si_operator_acos = "acos()";
 static const char *g_si_operator_asin = "asin()";
 static const char *g_si_operator_atan = "atan()";
+static const char *g_si_operator_negate = "negate()";
 
 const char *get_stack_item_operator_name(int operator) {
 
@@ -199,6 +200,8 @@ const char *get_stack_item_operator_name(int operator) {
     return g_si_operator_asin;
   else if (operator == SI_OP_ATAN)
     return g_si_operator_atan;
+  else if (operator == SI_OP_NEGATE)
+    return g_si_operator_negate;
   
   fprintf(stderr, "\n");
   fprintf(stderr, "get_stack_item_operator_name(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", operator);

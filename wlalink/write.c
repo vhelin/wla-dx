@@ -2683,6 +2683,10 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         _pass_on_bank(bank, t);
         t--;
         break;
+      case SI_OP_NEGATE:
+        v_ram[t - 1] = -v_ram[t - 1];
+        v_rom[t - 1] = -v_rom[t - 1];
+        break;
       case SI_OP_NOT:
         if (sta->type == STACK_TYPE_8BIT)
           y = 0xFF;

@@ -419,6 +419,8 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
         printf("asin()");
       else if (value == SI_OP_ATAN)
         printf("atan()");
+      else if (value == SI_OP_NEGATE)
+        printf("negate()");
       else {
         if (value >= (int)strlen(ar)) {
           printf("ERROR!\n");
@@ -486,6 +488,7 @@ static struct stack_item_priority_item g_stack_item_priority_items[] = {
   { SI_OP_SHIFT_RIGHT, 80 },
   { SI_OP_ADD, 90 },
   { SI_OP_SUB, 90 },
+  { SI_OP_NEGATE, 100 },
   { SI_OP_MULTIPLY, 100 },
   { SI_OP_DIVIDE, 100 },
   { SI_OP_MODULO, 100 },
@@ -937,7 +940,7 @@ static int _parse_function_math2_base(char **in, struct stack_item *si, int *q, 
 
 static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_substitutor, struct stack_item *si, struct stack_item *ta) {
 
-  int q = 0, b = 0, d, k, n, o, l, curly_braces = 0, got_label = NO, can_skip_newline = NO;
+  int q = 0, b = 0, d, k, n, curly_braces = 0, got_label = NO, can_skip_newline = NO;
   unsigned char e, op[MAX_STACK_CALCULATOR_ITEMS], sign[MAX_STACK_CALCULATOR_ITEMS];
   double dou = 0.0, dom;
   char *in_original = in;
@@ -2033,7 +2036,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       }
     }
     if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_SUB && b == 1) {
-      if (si[k + 1].type == STACK_ITEM_TYPE_VALUE || si[k + 1].type == STACK_ITEM_TYPE_LABEL) {
+      if (si[k + 1].type == STACK_ITEM_TYPE_VALUE || si[k + 1].type == STACK_ITEM_TYPE_LABEL) {        
         if (si[k + 1].sign == SI_SIGN_POSITIVE)
           si[k + 1].sign = SI_SIGN_NEGATIVE;
         else
@@ -2041,65 +2044,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         /* it wasn't a minus operator, it was a sign */
         si[k].type = STACK_ITEM_TYPE_DELETED;
       }
-      else if (si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].value == SI_OP_LEFT) {
-        o = 1;
-        l = k + 2;
-        while (o > 0 && l < q) {
-          if (si[l].type == STACK_ITEM_TYPE_VALUE || si[l].type == STACK_ITEM_TYPE_LABEL || si[l].type == STACK_ITEM_TYPE_STACK) {
-            if (si[l].sign == SI_SIGN_POSITIVE)
-              si[l].sign = SI_SIGN_NEGATIVE;
-            else
-              si[l].sign = SI_SIGN_POSITIVE;
-          }
-          else if (si[l].type == STACK_ITEM_TYPE_OPERATOR) {
-            if (si[l].value == SI_OP_LEFT)
-              o++;
-            else if (si[l].value == SI_OP_RIGHT)
-              o--;
-            else if (si[l].value == SI_OP_ROUND ||
-                     si[l].value == SI_OP_FLOOR ||
-                     si[l].value == SI_OP_CEIL ||
-                     si[l].value == SI_OP_ABS ||
-                     si[l].value == SI_OP_COS ||
-                     si[l].value == SI_OP_SIN ||
-                     si[l].value == SI_OP_TAN ||
-                     si[l].value == SI_OP_ACOS ||
-                     si[l].value == SI_OP_ASIN ||
-                     si[l].value == SI_OP_ATAN ||
-                     si[l].value == SI_OP_LOW_BYTE ||
-                     si[l].value == SI_OP_HIGH_BYTE ||
-                     si[l].value == SI_OP_LOW_WORD ||
-                     si[l].value == SI_OP_HIGH_WORD ||
-                     si[l].value == SI_OP_BANK_BYTE ||
-                     si[l].value == SI_OP_BANK ||
-                     si[l].value == SI_OP_SQRT) {
-              if (si[l].sign == SI_SIGN_POSITIVE)
-                si[l].sign = SI_SIGN_NEGATIVE;
-              else
-                si[l].sign = SI_SIGN_POSITIVE;
-              /* skip argument */
-              l++;
-            }
-            else if (si[l].value == SI_OP_MIN ||
-                     si[l].value == SI_OP_MAX) {
-              if (si[l].sign == SI_SIGN_POSITIVE)
-                si[l].sign = SI_SIGN_NEGATIVE;
-              else
-                si[l].sign = SI_SIGN_POSITIVE;
-              /* skip arguments */
-              l += 2;
-            }
-          }
-          l++;
-        }
-
-        if (o != 0) {
-          print_error(ERROR_STC, "Unbalanced parentheses.\n");
-          return FAILED;
-        }
-
-        si[k].type = STACK_ITEM_TYPE_DELETED;
-      }
+      else if (si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].value == SI_OP_LEFT)
+        si[k].value = SI_OP_NEGATE;
     }
     /* remove unnecessary + */
     if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_ADD && b == 1) {
@@ -3286,6 +3232,10 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         }
         sp[t - 2] = NULL;
         t--;
+        break;
+      case SI_OP_NEGATE:
+        v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
         break;
       case SI_OP_NOT:
         if (g_input_parse_if == YES) {
