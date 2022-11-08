@@ -479,16 +479,52 @@ _0x301:
         .db "24>"                 ; @BT TEST-24 24 START
         .db -(acos(0.5)*1.0001)*1.95        ; @BT FE
         .db -negate1(acos(0.5)*1.0001)*1.95 ; @BT 02
-        .db -(acos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.95  ; @BT FE
-        .db -(-acos(0.1)-0.1)*6                           ; @BT 09
-        
-        // cos -> acos
-
-        .db -(-cos(FIVE_POINT_FIVEONE-5.41)-0.1)*6           ; @BT 06
-        .db -(-cos(0.1)-0.1 - cos(0.1)-0.1)*2                ; @BT 04
-        .db -(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1)*2 ; @BT 04
-        .db (ceil(cos(FIVE_POINT_FIVEONE-5.41)+0.1)) ; @BT 02
-        .db (ceil(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT FC
-        .db -(ceil(cos(FIVE_POINT_FIVEONE-5.41)+0.1)) ; @BT FE
-        .db -(ceil(-cos(FIVE_POINT_FIVEONE-5.41)-0.1 - cos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT 04
+        .db -(acos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.95 ; @BT FE
+        .db -(-acos(0.1)-0.1)*6                          ; @BT 09
+        .db -(-acos(FIVE_POINT_FIVEONE-5.41)-0.1)*9      ; @BT 0E
+        .db -(-acos(0.1)-0.1 - acos(0.1)-0.1)*8          ; @BT 19
+        .db -(-acos(FIVE_POINT_FIVEONE-5.41)-0.1 - acos(FIVE_POINT_FIVEONE-5.41)-0.1)*8 ; @BT 19
+        .db (ceil(acos(FIVE_POINT_FIVEONE-5.41)+0.1))    ; @BT 02        
+        .db (ceil(-acos(FIVE_POINT_FIVEONE-5.41)-0.1 - acos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT FA
+        .db -(ceil(acos(FIVE_POINT_FIVEONE-5.41)+0.1))   ; @BT FE
+        .db -(ceil(-acos(FIVE_POINT_FIVEONE-5.41)-0.1 - acos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT 06
+        .db -(ceil(-acos(FIVE_POINT_FIVEONE-5.41)-0.1 - acos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT 06
+        .db -(floor(-acos(FIVE_POINT_FIVEONE-5.41)-0.1 - acos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT 08
+        .db -(acos(VALUE_15-14.9)*1.0001)*1.95 ; @BT FE
+        .db -(-acos(VALUE_15-14.9)-0.1)*9      ; @BT 0E
+        .db -(-acos(VALUE_15-14.9)-0.1 - acos(VALUE_15-14.9)-0.1)*8 ; @BT 19
+        .db (ceil(acos(VALUE_15-14.9)+0.1))    ; @BT 02        
+        .db (ceil(-acos(VALUE_15-14.91)-0.1 - acos(VALUE_15-14.9)-0.1))*2 ; @BT FA
+        .db -(ceil(acos(VALUE_15-14.9)+0.1))   ; @BT FE
+        .db -(ceil(-acos(VALUE_15-14.9)-0.1 - acos(VALUE_15-14.9)-0.1))*2 ; @BT 06
+        .db -(ceil(-acos(VALUE_15-14.9)-0.1 - acos(VALUE_15-14.9)-0.1))*2 ; @BT 06
+        .db -(floor(-acos(VALUE_15-14.9)-0.1 - acos(VALUE_15-14.9)-0.1))*2 ; @BT 08
         .db "<24"                 ; @BT END
+
+        .function myAcos(a) acos(a)
+
+        .db "25>"                 ; @BT TEST-25 25 START
+        .db -(myAcos(0.5)*1.0001)*1.95        ; @BT FE
+        .db -negate1(myAcos(0.5)*1.0001)*1.95 ; @BT 02
+        .db -(myAcos(FIVE_POINT_FIVEONE-5.01)*1.0001)*1.95 ; @BT FE
+        .db -(-myAcos(0.1)-0.1)*6                          ; @BT 09
+        .db -(-myAcos(FIVE_POINT_FIVEONE-5.41)-0.1)*9      ; @BT 0E
+        .db -(-myAcos(0.1)-0.1 - myAcos(0.1)-0.1)*8        ; @BT 19
+        .db -(-myAcos(FIVE_POINT_FIVEONE-5.41)-0.1 - myAcos(FIVE_POINT_FIVEONE-5.41)-0.1)*8 ; @BT 19
+        .db (ceil(myAcos(FIVE_POINT_FIVEONE-5.41)+0.1))    ; @BT 02        
+        .db (ceil(-myAcos(FIVE_POINT_FIVEONE-5.41)-0.1 - myAcos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT FA
+        .db -(ceil(myAcos(FIVE_POINT_FIVEONE-5.41)+0.1))   ; @BT FE
+        .db -(ceil(-myAcos(FIVE_POINT_FIVEONE-5.41)-0.1 - myAcos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT 06
+        .db -(ceil(-myAcos(FIVE_POINT_FIVEONE-5.41)-0.1 - myAcos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT 06
+        .db -(floor(-myAcos(FIVE_POINT_FIVEONE-5.41)-0.1 - myAcos(FIVE_POINT_FIVEONE-5.41)-0.1))*2 ; @BT 08
+        .db -(myAcos(VALUE_15-14.9)*1.0001)*1.95 ; @BT FE
+        .db -(-myAcos(VALUE_15-14.9)-0.1)*9      ; @BT 0E
+        .db -(-myAcos(VALUE_15-14.9)-0.1 - myAcos(VALUE_15-14.9)-0.1)*8 ; @BT 19
+        .db (ceil(myAcos(VALUE_15-14.9)+0.1))    ; @BT 02        
+        .db (ceil(-myAcos(VALUE_15-14.91)-0.1 - myAcos(VALUE_15-14.9)-0.1))*2 ; @BT FA
+        .db -(ceil(myAcos(VALUE_15-14.9)+0.1))   ; @BT FE
+        .db -(ceil(-myAcos(VALUE_15-14.9)-0.1 - myAcos(VALUE_15-14.9)-0.1))*2 ; @BT 06
+        .db -(ceil(-myAcos(VALUE_15-14.9)-0.1 - myAcos(VALUE_15-14.9)-0.1))*2 ; @BT 06
+        .db -(floor(-myAcos(VALUE_15-14.9)-0.1 - myAcos(VALUE_15-14.9)-0.1))*2 ; @BT 08
+        .db "<25"                 ; @BT END
+        

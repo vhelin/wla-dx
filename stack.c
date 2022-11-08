@@ -2006,6 +2006,16 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
             si[k + 1].sign = SI_SIGN_POSITIVE;
         }
       }
+      /* -C(?)? (stack calculation) */
+      if (k < q-1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_SUB && si[k+1].type == STACK_ITEM_TYPE_STACK) {
+        if (k == 0 || (si[k - 1].type == STACK_ITEM_TYPE_OPERATOR && si[k - 1].value == SI_OP_LEFT)) {
+          si[k].type = STACK_ITEM_TYPE_DELETED;
+          if (si[k + 1].sign == SI_SIGN_POSITIVE)
+            si[k + 1].sign = SI_SIGN_NEGATIVE;
+          else
+            si[k + 1].sign = SI_SIGN_POSITIVE;
+        }
+      }
       if ((q - k) != 1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR &&
           si[k + 1].value != SI_OP_BANK &&
           si[k + 1].value != SI_OP_BANK_BYTE &&
