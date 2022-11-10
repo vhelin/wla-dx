@@ -526,5 +526,14 @@ _0x301:
         .db -(ceil(-myAcos(VALUE_15-14.9)-0.1 - myAcos(VALUE_15-14.9)-0.1))*2 ; @BT 06
         .db -(ceil(-myAcos(VALUE_15-14.9)-0.1 - myAcos(VALUE_15-14.9)-0.1))*2 ; @BT 06
         .db -(floor(-myAcos(VALUE_15-14.9)-0.1 - myAcos(VALUE_15-14.9)-0.1))*2 ; @BT 08
+        .db -(floor(-myAcos(VALUE_15-14.9) -
+            0.1 -
+            myAcos(VALUE_15-14.9) -
+            0.1)) *
+            2 ; @BT 08
         .db "<25"                 ; @BT END
+
+        .db "26>"                 ; @BT TEST-26 26 START
+        .db atan2(4.0, 1.0*1.0)*4 ; @BT 05
+        .db "<26"                 ; @BT END
         

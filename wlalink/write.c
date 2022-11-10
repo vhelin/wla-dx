@@ -2848,6 +2848,15 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
           v_rom[t - 1] = -v_rom[t - 1];
         }
         break;
+      case SI_OP_ATAN2:
+        v_ram[t - 1] = atan2(v_ram[t - 2], v_ram[t - 1]);
+        v_rom[t - 1] = atan2(v_rom[t - 2], v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 2] = -v_ram[t - 2];
+          v_rom[t - 2] = -v_rom[t - 2];
+        }
+        t--;
+        break;
       case SI_OP_ASIN:
         v_ram[t - 1] = asin(v_ram[t - 1]);
         v_rom[t - 1] = asin(v_rom[t - 1]);

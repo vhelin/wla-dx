@@ -152,6 +152,7 @@
 #define SI_OP_ASIN        39
 #define SI_OP_ATAN        40
 #define SI_OP_NEGATE      41
+#define SI_OP_ATAN2       42
 
 #define SI_SIGN_POSITIVE 0
 #define SI_SIGN_NEGATIVE 1

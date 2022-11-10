@@ -22,6 +22,7 @@ acos()     The same as ANSI C90 acos()
 asc()      Uses ``.ASCIITABLE`` to map the supplied value
 asin()     The same as ANSI C90 asin()
 atan()     The same as ANSI C90 atan()
+atan2()    The same as ANSI C90 atan2()
 bank()     Returns the bank (the same as preceding ``:``)
 bankbyte() Returns the bank byte, bits 16-23
 ceil()     The same as ANSI C90 ceil()

@@ -348,6 +348,7 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
             value == SI_OP_ACOS ||
             value == SI_OP_ASIN ||
             value == SI_OP_ATAN ||
+            value == SI_OP_ATAN2 ||
             value == SI_OP_LOW_BYTE ||
             value == SI_OP_HIGH_BYTE ||
             value == SI_OP_LOW_WORD ||
@@ -388,39 +389,41 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
       else if (value == SI_OP_LOGICAL_AND)
         printf("&&");
       else if (value == SI_OP_LOW_WORD)
-        printf("loword()");
+        printf("loword(a)");
       else if (value == SI_OP_HIGH_WORD)
-        printf("hiword()");
+        printf("hiword(a)");
       else if (value == SI_OP_BANK_BYTE)
-        printf("bankbyte()");
+        printf("bankbyte(a)");
       else if (value == SI_OP_ROUND)
-        printf("round()");
+        printf("round(a)");
       else if (value == SI_OP_CEIL)
-        printf("ceil()");
+        printf("ceil(a)");
       else if (value == SI_OP_FLOOR)
-        printf("floor()");
+        printf("floor(a)");
       else if (value == SI_OP_MIN)
-        printf("min()");
+        printf("min(a,b)");
       else if (value == SI_OP_MAX)
-        printf("max()");
+        printf("max(a,b)");
       else if (value == SI_OP_SQRT)
-        printf("sqrt()");
+        printf("sqrt(a)");
       else if (value == SI_OP_ABS)
-        printf("abs()");
+        printf("abs(a)");
       else if (value == SI_OP_COS)
-        printf("cos()");
+        printf("cos(a)");
       else if (value == SI_OP_SIN)
-        printf("sin()");
+        printf("sin(a)");
       else if (value == SI_OP_TAN)
-        printf("tan()");
+        printf("tan(a)");
       else if (value == SI_OP_ACOS)
-        printf("acos()");
+        printf("acos(a)");
       else if (value == SI_OP_ASIN)
-        printf("asin()");
+        printf("asin(a)");
       else if (value == SI_OP_ATAN)
-        printf("atan()");
+        printf("atan(a)");
+      else if (value == SI_OP_ATAN2)
+        printf("atan2(a,b)");
       else if (value == SI_OP_NEGATE)
-        printf("negate()");
+        printf("negate(a)");
       else {
         if (value >= (int)strlen(ar)) {
           printf("ERROR!\n");
@@ -512,6 +515,7 @@ static struct stack_item_priority_item g_stack_item_priority_items[] = {
   { SI_OP_ACOS, 110 },
   { SI_OP_ASIN, 110 },
   { SI_OP_ATAN, 110 },
+  { SI_OP_ATAN2, 110 },
   { SI_OP_NOT, 120 },
   { 999, 999 }
 };
@@ -1683,6 +1687,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_already_processed_function = YES;
           break;
         }
+        else if (k == 5 && strcaselesscmpn(si[q].string, "atan2(", 6) == 0) {
+          if (_parse_function_math2_base(&in, si, &q, "atan2(a,b)", SI_OP_ATAN2) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
         else if (k == 5 && strcaselesscmpn(si[q].string, "round(", 6) == 0) {
           if (_parse_function_math1_base(&in, si, &q, "round(a)", SI_OP_ROUND) == FAILED)
             return FAILED;
@@ -1991,6 +2001,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
            si[k + 1].value == SI_OP_ACOS ||
            si[k + 1].value == SI_OP_ASIN ||
            si[k + 1].value == SI_OP_ATAN ||
+           si[k + 1].value == SI_OP_ATAN2 ||
            si[k + 1].value == SI_OP_LOW_BYTE ||
            si[k + 1].value == SI_OP_HIGH_BYTE ||
            si[k + 1].value == SI_OP_LOW_WORD ||
@@ -2035,6 +2046,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           si[k + 1].value != SI_OP_ACOS &&
           si[k + 1].value != SI_OP_ASIN &&
           si[k + 1].value != SI_OP_ATAN &&
+          si[k + 1].value != SI_OP_ATAN2 &&
           si[k + 1].value != SI_OP_SQRT) {
         if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
 #ifdef WLA_DEBUG
@@ -3108,6 +3120,13 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         if (s->sign == SI_SIGN_NEGATIVE)
           v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
+        break;
+      case SI_OP_ATAN2:
+        v[t - 2] = atan2(v[t - 2], v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 2] = -v[t - 2];
+        sp[t - 2] = NULL;
+        t--;
         break;
       case SI_OP_SQRT:
         if (v[t - 1] < 0.0) {

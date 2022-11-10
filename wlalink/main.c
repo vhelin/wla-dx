@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.19a (9.11.2022)";
+char g_version_string[] = "$VER: wlalink 5.19a (10.11.2022)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -102,23 +102,24 @@ static const char *g_si_operator_compare_lte = "<=";
 static const char *g_si_operator_compare_gte = ">=";
 static const char *g_si_operator_logical_or = "||";
 static const char *g_si_operator_logical_and = "&&";
-static const char *g_si_operator_low_word = "loword()";
-static const char *g_si_operator_high_word = "hiword()";
-static const char *g_si_operator_bank_byte = "bankbyte()";
-static const char *g_si_operator_round = "round()";
-static const char *g_si_operator_floor = "floor()";
-static const char *g_si_operator_ceil = "ceil()";
-static const char *g_si_operator_min = "min()";
-static const char *g_si_operator_max = "max()";
-static const char *g_si_operator_sqrt = "sqrt()";
-static const char *g_si_operator_abs = "abs()";
-static const char *g_si_operator_cos = "cos()";
-static const char *g_si_operator_sin = "sin()";
-static const char *g_si_operator_tan = "tan()";
-static const char *g_si_operator_acos = "acos()";
-static const char *g_si_operator_asin = "asin()";
-static const char *g_si_operator_atan = "atan()";
-static const char *g_si_operator_negate = "negate()";
+static const char *g_si_operator_low_word = "loword(a)";
+static const char *g_si_operator_high_word = "hiword(a)";
+static const char *g_si_operator_bank_byte = "bankbyte(a)";
+static const char *g_si_operator_round = "round(a)";
+static const char *g_si_operator_floor = "floor(a)";
+static const char *g_si_operator_ceil = "ceil(a)";
+static const char *g_si_operator_min = "min(a,b)";
+static const char *g_si_operator_max = "max(a,b)";
+static const char *g_si_operator_sqrt = "sqrt(a)";
+static const char *g_si_operator_abs = "abs(a)";
+static const char *g_si_operator_cos = "cos(a)";
+static const char *g_si_operator_sin = "sin(a)";
+static const char *g_si_operator_tan = "tan(a)";
+static const char *g_si_operator_acos = "acos(a)";
+static const char *g_si_operator_asin = "asin(a)";
+static const char *g_si_operator_atan = "atan(a)";
+static const char *g_si_operator_negate = "negate(a)";
+static const char *g_si_operator_atan2 = "atan2(a,b)";
 
 const char *get_stack_item_operator_name(int operator) {
 
@@ -202,6 +203,8 @@ const char *get_stack_item_operator_name(int operator) {
     return g_si_operator_atan;
   else if (operator == SI_OP_NEGATE)
     return g_si_operator_negate;
+  else if (operator == SI_OP_ATAN2)
+    return g_si_operator_atan2;
   
   fprintf(stderr, "\n");
   fprintf(stderr, "get_stack_item_operator_name(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", operator);

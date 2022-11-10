@@ -7143,6 +7143,7 @@ int directive_function(void) {
       strcmp("acos", g_label) == 0 ||
       strcmp("asin", g_label) == 0 ||
       strcmp("atan", g_label) == 0 ||
+      strcmp("atan2", g_label) == 0 ||
       strcmp("abs", g_label) == 0) {
     print_error(ERROR_DIR, "You cannot redefine a built-in .FUNCTION \"%s\"!\n", g_label);
     return FAILED;
