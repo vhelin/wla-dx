@@ -15,7 +15,7 @@ extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_se
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
-extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp, *g_global_listfile_cmds;
+extern char *g_tmp, *g_global_listfile_cmds;
 extern int g_verbose_mode, g_section_status, g_cartridgetype, g_output_format, *g_global_listfile_ints, g_global_listfile_items;
 extern int *g_bankaddress;
 
@@ -26,14 +26,11 @@ int listfile_collect(void) {
   int x, y, dstruct_start = -1, bits_current = 0, base = 0, bank = 0, origin = 0, origin_old = 0, slot = 0, running_id = 0;
   int real_line_number = 0;
   struct section_def *section = NULL;
-  FILE *file_in;
   char c;
 
-  if ((file_in = fopen(g_tmp_name, "rb")) == NULL) {
-    fprintf(stderr, "LISTFILE_COLLECT: Error opening file \"%s\".\n", g_tmp_name);
-    return FAILED;
-  }
-
+  /* rewind to the beginning of the internal data stream */
+  fseek(g_file_out_ptr, 0, SEEK_SET);
+  
   /* allocate the global listfile data */
   g_global_listfile_ints = calloc(sizeof(int) * g_global_listfile_items * 8, 1);
   g_global_listfile_cmds = calloc(g_global_listfile_items, 1);
@@ -42,7 +39,7 @@ int listfile_collect(void) {
     return FAILED;
   }
 
-  while (fread(&c, 1, 1, file_in) != 0) {
+  while (fread(&c, 1, 1, g_file_out_ptr) != 0) {
     switch (c) {
 
     case 'j':
@@ -55,13 +52,13 @@ int listfile_collect(void) {
       continue;
 
     case 'i':
-      fscanf(file_in, "%*d %*s ");
+      fscanf(g_file_out_ptr, "%*d %*s ");
       inside_macro++;
       /* HACK! */
       line_number--;
       continue;
     case 'I':
-      fscanf(file_in, "%*d %*s ");
+      fscanf(g_file_out_ptr, "%*d %*s ");
       inside_macro--;
       continue;
 
@@ -72,7 +69,7 @@ int listfile_collect(void) {
       continue;
 
     case 'g':
-      fscanf(file_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       continue;
     case 'G':
       continue;
@@ -80,9 +77,9 @@ int listfile_collect(void) {
     case 'A':
     case 'S':
       if (c == 'A')
-        fscanf(file_in, "%d %*d", &inz);
+        fscanf(g_file_out_ptr, "%d %*d", &inz);
       else
-        fscanf(file_in, "%d ", &inz);
+        fscanf(g_file_out_ptr, "%d ", &inz);
 
       origin_old = origin;
       
@@ -119,81 +116,81 @@ int listfile_collect(void) {
 
     case 'x':
     case 'o':
-      fscanf(file_in, "%d %*d ", &inz);
+      fscanf(g_file_out_ptr, "%d %*d ", &inz);
       add += inz;
       origin += inz;
       continue;
 
     case 'X':
-      fscanf(file_in, "%d %*d ", &inz);
+      fscanf(g_file_out_ptr, "%d %*d ", &inz);
       add += inz * 2;
       origin += inz * 2;
       continue;
 
     case 'h':
-      fscanf(file_in, "%d %*d ", &inz);
+      fscanf(g_file_out_ptr, "%d %*d ", &inz);
       add += inz * 3;
       origin += inz * 3;
       continue;
 
     case 'w':
-      fscanf(file_in, "%d %*d ", &inz);
+      fscanf(g_file_out_ptr, "%d %*d ", &inz);
       add += inz * 4;
       origin += inz * 4;
       continue;
 
     case 'z':
     case 'q':
-      fscanf(file_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       add += 3;
       origin += 3;
       continue;
 
     case 'T':
-      fscanf(file_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       add += 3;
       origin += 3;
       continue;
 
     case 'u':
     case 'V':
-      fscanf(file_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       add += 4;
       origin += 4;
       continue;
 
     case 'U':
-      fscanf(file_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       add += 4;
       origin += 4;
       continue;
 
     case 'b':
-      fscanf(file_in, "%d ", &base);
+      fscanf(g_file_out_ptr, "%d ", &base);
       continue;
 
     case 'v':
-      fscanf(file_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       continue;
 
     case 'R':
     case 'Q':
     case 'd':
     case 'c':
-      fscanf(file_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       add++;
       origin++;
       continue;
 
 #ifdef SUPERFX
     case '*':
-      fscanf(file_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       add++;
       origin++;
       continue;
 
     case '-':
-      fscanf(file_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       add++;
       origin++;
       continue;
@@ -203,14 +200,14 @@ int listfile_collect(void) {
     case 'M':
 #endif
     case 'r':
-      fscanf(file_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       add += 2;
       origin += 2;
       continue;
 
     case 'y':
     case 'C':
-      fscanf(file_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       add += 2;
       origin += 2;
       continue;
@@ -220,7 +217,7 @@ int listfile_collect(void) {
         int bits_to_add;
         char type;
           
-        fscanf(file_in, "%d ", &bits_to_add);
+        fscanf(g_file_out_ptr, "%d ", &bits_to_add);
 
         if (bits_to_add == 999) {
           bits_current = 0;
@@ -242,14 +239,14 @@ int listfile_collect(void) {
             bits_current = 0;
         }
 
-        fscanf(file_in, "%c", &type);
+        fscanf(g_file_out_ptr, "%c", &type);
 
         if (type == 'a')
-          fscanf(file_in, "%*d");
+          fscanf(g_file_out_ptr, "%*d");
         else if (type == 'b')
-          fscanf(file_in, "%*s");
+          fscanf(g_file_out_ptr, "%*s");
         else if (type == 'c')
-          fscanf(file_in, "%*d");
+          fscanf(g_file_out_ptr, "%*d");
         else {
           fprintf(stderr, "%s: LISTFILE_COLLECT: Unknown internal .BITS data type \"%c\". Please submit a bug report!\n", get_file_name(file_name_id), type);
           return FAILED;
@@ -260,46 +257,46 @@ int listfile_collect(void) {
       
 #ifdef SPC700
     case 'n':
-      fscanf(file_in, "%*d %*s ");
+      fscanf(g_file_out_ptr, "%*d %*s ");
       add += 2;
       origin += 2;
       continue;
 
     case 'N':
-      fscanf(file_in, "%*d %*d ");
+      fscanf(g_file_out_ptr, "%*d %*d ");
       add += 2;
       origin += 2;
       continue;
 #endif
 
     case 'D':
-      fscanf(file_in, "%*d %*d %*d %d ", &inz);
+      fscanf(g_file_out_ptr, "%*d %*d %*d %d ", &inz);
       add += inz;
       origin += inz;
       continue;
 
     case 'O':
-      fscanf(file_in, "%d ", &origin);
+      fscanf(g_file_out_ptr, "%d ", &origin);
       continue;
 
     case 'B':
-      fscanf(file_in, "%d %d ", &bank, &slot);
+      fscanf(g_file_out_ptr, "%d %d ", &bank, &slot);
       continue;
 
     case 'Z':
       continue;
 
     case 't':
-      fscanf(file_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       continue;
       
     case 'Y':
     case 'L':
-      fscanf(file_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       continue;
 
     case 'f':
-      fscanf(file_in, "%d ", &file_name_id);
+      fscanf(g_file_out_ptr, "%d ", &file_name_id);
 
       if (section != NULL) {
         /* terminate the previous line */
@@ -330,9 +327,9 @@ int listfile_collect(void) {
     case 'k':
       /* all listfile data produced by .MACROs are put where they are called from */
       if (inside_macro > 0 || inside_repeat > 0)
-        fscanf(file_in, "%d ", &real_line_number);
+        fscanf(g_file_out_ptr, "%d ", &real_line_number);
       else {
-        fscanf(file_in, "%d ", &line_number);
+        fscanf(g_file_out_ptr, "%d ", &line_number);
         real_line_number = line_number;
       }
       
@@ -374,7 +371,7 @@ int listfile_collect(void) {
       continue;
 
     case 'e':
-      fscanf(file_in, "%d %d ", &x, &y);
+      fscanf(g_file_out_ptr, "%d %d ", &x, &y);
       if (y == -1) /* Mark start of .DSTRUCT */
         dstruct_start = add;
       else
@@ -386,8 +383,6 @@ int listfile_collect(void) {
       return FAILED;
     }
   }
-
-  fclose(file_in);
 
   /* sanity check */
   if (g_global_listfile_items != global_command) {

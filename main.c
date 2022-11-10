@@ -39,8 +39,6 @@ __near long __stack = 200000;
 char g_version_string[] = "$VER: wla-" WLA_NAME " 10.4a (10.11.2022)";
 char g_wla_version[] = "10.4";
 
-char g_tmp_name[MAX_NAME_LENGTH + 1], g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
-
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern struct file_name_info *g_file_name_info_first;
 extern struct label_def *g_label_tmp, *g_labels;
@@ -123,10 +121,6 @@ int main(int argc, char *argv[]) {
 
   /* init the randon number generator with current time */
   init_genrand((unsigned long)time(NULL));
-
-  /* zero the tmp name for internal symbol stream and makefile generation */
-  g_tmp_name[0] = 0;
-  g_makefile_tmp_name[0] = 0;
 
   if (_allocate_global_buffers() == FAILED) {
     fprintf(stderr, "MAIN: Out of memory error while allocating global buffers.\n");
@@ -249,11 +243,9 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  generate_tmp_name(g_tmp_name);
-
-  g_file_out_ptr = fopen(g_tmp_name, "wb+");
+  g_file_out_ptr = tmpfile();
   if (g_file_out_ptr == NULL) {
-    fprintf(stderr, "MAIN: Error opening file \"%s\" for reading and writing.\n", g_tmp_name);
+    fprintf(stderr, "MAIN: Error creating a tmp file for WLA's internal data stream.\n");
     return 1;
   }
 
@@ -422,8 +414,6 @@ int parse_flags(char **flags, int flagc, int *print_usage) {
       g_test_mode = ON;
       g_verbose_level = 0;
       g_quiet = YES;
-      /* if file loading requires a tmp file, this will be its name */
-      generate_tmp_name(g_makefile_tmp_name);
       continue;
     }
     else if (!strcmp(flags[count], "-q")) {
@@ -537,8 +527,10 @@ void procedures_at_exit(void) {
   int i, index;
   
   /* free all the dynamically allocated data structures and close open files */
-  if (g_file_out_ptr != NULL)
+  if (g_file_out_ptr != NULL) {
     fclose(g_file_out_ptr);
+    g_file_out_ptr = NULL;
+  }
 
   free(g_macro_stack);
   free(g_repeat_stack);
@@ -759,12 +751,6 @@ void procedures_at_exit(void) {
 
   data_stream_parser_free();
   
-  /* remove the tmp files */
-  if (g_tmp_name[0] != 0)
-    remove(g_tmp_name);
-  if (g_makefile_tmp_name[0] != 0)
-    remove(g_makefile_tmp_name);
-
   /* cleanup any incdirs we added */
   for (index = 0; index < g_ext_incdirs.count; index++)
     free(g_ext_incdirs.names[index]);
@@ -783,32 +769,6 @@ void procedures_at_exit(void) {
 #endif
 
   PROFILE_AT_EXIT();
-}
-
-
-/* NOTE: filename must contain at least 32 bytes */
-int generate_tmp_name(char *filename) {
-
-  static int running_id = 0;
-  char name[32];
-
-  while (1) {
-    FILE *f;
-    
-    snprintf(name, sizeof(name)-1, "wla_tmp_%d.tmp", running_id);
-    running_id++;
-
-    f = fopen(name, "rb");
-    if (f == NULL)
-      break;
-
-    fclose(f);
-  }
-
-  /* copy the filename out */
-  strcpy(filename, name);
-
-  return SUCCEEDED;
 }
 
 

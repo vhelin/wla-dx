@@ -483,9 +483,6 @@ int pass_2(void) {
   }
 #endif
 
-  fclose(g_file_out_ptr);
-  g_file_out_ptr = NULL;
-
   /* clear the mem_insert*() warnings/errors buffer */
   g_mem_insert_action[0] = 0;
 

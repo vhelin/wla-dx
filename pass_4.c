@@ -29,7 +29,7 @@ extern struct label_sizeof *g_label_sizeofs;
 extern struct label_context g_label_context, *g_label_context_first, *g_label_context_last;
 extern FILE *g_file_out_ptr;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
-extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp, *g_final_name;
+extern char *g_tmp, *g_final_name;
 extern int g_rombanks, g_output_format, g_test_mode, g_listfile_data, g_little_endian, g_sizeof_g_tmp;
 extern int g_label_context_running_number;
 
@@ -324,11 +324,9 @@ int pass_4(void) {
   if (g_verbose_level >= 100)
     printf("Internal pass 2...\n");
 
-  if ((g_file_out_ptr = fopen(g_tmp_name, "rb")) == NULL) {
-    fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\".\n", g_tmp_name);
-    return FAILED;
-  }
-
+  /* rewind to the beginning of the internal data stream */
+  fseek(g_file_out_ptr, 0, SEEK_SET);
+  
   while (fread(&c, 1, 1, g_file_out_ptr) != 0) {
     switch (c) {
 
@@ -1886,9 +1884,6 @@ int pass_4(void) {
       continue;
     }
   }
-
-  fclose(g_file_out_ptr);
-  g_file_out_ptr = NULL;
 
   /* make sure that the pending calculations we export next have consecutive IDs starting from zero.
      when pending calculations are exported like this the pointer tables in the linker take less memory. */

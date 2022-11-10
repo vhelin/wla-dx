@@ -21,7 +21,7 @@ extern struct after_section *g_after_sections;
 extern struct macro_static *g_macros_first;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
-extern char g_tmp_name[MAX_NAME_LENGTH + 1], *g_tmp, g_namespace[MAX_NAME_LENGTH + 1];
+extern char *g_tmp, g_namespace[MAX_NAME_LENGTH + 1];
 extern char *g_asm_name;
 extern int g_verbose_level, g_section_status, g_output_format, g_keep_empty_sections, g_quiet, g_sizeof_g_error_message;
 extern int g_global_listfile_items;
@@ -68,7 +68,6 @@ int pass_3(void) {
   struct block_name *bn;
   struct block *b;
   char tmp_buffer[MAX_NAME_LENGTH + 1];
-  FILE *f_in;
   int bank = 0, slot = 0, add = 0, g_file_name_id = 0, inz, line_number = 0, o, add_old = 0;
   int base = 0x00, bits_current = 0;
   int x, y;
@@ -89,15 +88,13 @@ int pass_3(void) {
   if (g_verbose_level >= 100)
     printf("Internal pass 1...\n");
 
-  if ((f_in = fopen(g_tmp_name, "rb")) == NULL) {
-    fprintf(stderr, "INTERNAL_PASS_1: Error opening file \"%s\".\n", g_tmp_name);
-    return FAILED;
-  }
+  /* rewind to the beginning of the internal data stream */
+  fseek(g_file_out_ptr, 0, SEEK_SET);
 
   /* first loop */
   o = 0;
   if (g_output_format == OUTPUT_OBJECT) {
-    while (o == 0 && fread(&c, 1, 1, f_in) != 0) {
+    while (o == 0 && fread(&c, 1, 1, g_file_out_ptr) != 0) {
       switch (c) {
 
       case ' ':
@@ -110,14 +107,14 @@ int pass_3(void) {
         continue;
 
       case 'i':
-        fscanf(f_in, "%d %s ", &inz, tmp_buffer);
+        fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
 
         if (process_macro_in(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
           return FAILED;
         
         continue;
       case 'I':
-        fscanf(f_in, "%d %s ", &inz, tmp_buffer);
+        fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
 
         if (process_macro_out(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
           return FAILED;
@@ -133,7 +130,7 @@ int pass_3(void) {
 
       case 'x':
       case 'o':
-        fscanf(f_in, "%d %*d ", &inz);
+        fscanf(g_file_out_ptr, "%d %*d ", &inz);
         if (g_section_status == ON) {
           add += inz;
           continue;
@@ -145,7 +142,7 @@ int pass_3(void) {
 
       case 'd':
         if (g_section_status == ON) {
-          fscanf(f_in, "%*s ");
+          fscanf(g_file_out_ptr, "%*s ");
           add++;
           continue;
         }
@@ -156,7 +153,7 @@ int pass_3(void) {
 
       case 'y':
         if (g_section_status == ON) {
-          fscanf(f_in, "%*d ");
+          fscanf(g_file_out_ptr, "%*d ");
           add += 2;
           continue;
         }
@@ -169,7 +166,7 @@ int pass_3(void) {
 
       case '*':
         if (g_section_status == ON) {
-          fscanf(f_in, "%*s ");
+          fscanf(g_file_out_ptr, "%*s ");
           add++;
           continue;
         }
@@ -180,7 +177,7 @@ int pass_3(void) {
       
       case '-':
         if (g_section_status == ON) {
-          fscanf(f_in, "%*d ");
+          fscanf(g_file_out_ptr, "%*d ");
           add++;
           continue;
         }
@@ -196,7 +193,7 @@ int pass_3(void) {
           int bits_to_add;
           char type;
           
-          fscanf(f_in, "%d ", &bits_to_add);
+          fscanf(g_file_out_ptr, "%d ", &bits_to_add);
 
           if (bits_to_add == 0) {
             bits_current = 0;
@@ -213,14 +210,14 @@ int pass_3(void) {
               bits_current = 0;
           }
 
-          fscanf(f_in, "%c", &type);
+          fscanf(g_file_out_ptr, "%c", &type);
 
           if (type == 'a')
-            fscanf(f_in, "%*d");
+            fscanf(g_file_out_ptr, "%*d");
           else if (type == 'b')
-            fscanf(f_in, "%*s");
+            fscanf(g_file_out_ptr, "%*s");
           else if (type == 'c')
-            fscanf(f_in, "%*d");
+            fscanf(g_file_out_ptr, "%*d");
           else {
             fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, type);
             return FAILED;
@@ -233,27 +230,27 @@ int pass_3(void) {
         return FAILED;
         
       case 'v':
-        fscanf(f_in, "%*d ");
+        fscanf(g_file_out_ptr, "%*d ");
         continue;
         
       case 'b':
-        fscanf(f_in, "%d ", &base);
+        fscanf(g_file_out_ptr, "%d ", &base);
         continue;
 
       case 'f':
-        fscanf(f_in, "%d ", &g_file_name_id);
+        fscanf(g_file_out_ptr, "%d ", &g_file_name_id);
         continue;
 
       case 'B':
-        fscanf(f_in, "%d %d ", &bank, &slot);
+        fscanf(g_file_out_ptr, "%d %d ", &bank, &slot);
         continue;
 
       case 'k':
-        fscanf(f_in, "%d ", &line_number);
+        fscanf(g_file_out_ptr, "%d ", &line_number);
         continue;
 
       case 'g':
-        fscanf(f_in, "%d ", &x);
+        fscanf(g_file_out_ptr, "%d ", &x);
 
         bn = g_block_names;
         while (bn != NULL) {
@@ -286,11 +283,11 @@ int pass_3(void) {
         continue;
 
       case 't':
-        fscanf(f_in, "%d ", &inz);
+        fscanf(g_file_out_ptr, "%d ", &inz);
         if (inz == 0)
           g_namespace[0] = 0;
         else
-          fscanf(f_in, STRING_READ_FORMAT, g_namespace);
+          fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
         continue;
 
       case 'Z': /* breakpoint */
@@ -298,7 +295,7 @@ int pass_3(void) {
       case 'L': /* label */
         l = calloc(sizeof(struct label_def), 1);
         if (l == NULL) {
-          fscanf(f_in, STRING_READ_FORMAT, g_tmp);
+          fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
           fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Out of memory while trying to allocate room for label \"%s\".\n",
                   get_file_name(g_file_name_id), line_number, g_tmp);
           return FAILED;
@@ -314,7 +311,7 @@ int pass_3(void) {
         if (c == 'Z')
           l->label[0] = 0;
         else
-          fscanf(f_in, STRING_READ_FORMAT, l->label);
+          fscanf(g_file_out_ptr, STRING_READ_FORMAT, l->label);
 
         s_mangled_label = NO;
 
@@ -430,7 +427,7 @@ int pass_3(void) {
         continue;
 
       case 'S':
-        fscanf(f_in, "%d ", &inz);
+        fscanf(g_file_out_ptr, "%d ", &inz);
 
         add_old = add;
 
@@ -508,7 +505,7 @@ int pass_3(void) {
         continue;
 
       case 'O':
-        fscanf(f_in, "%d ", &add);
+        fscanf(g_file_out_ptr, "%d ", &add);
         o++;
         continue;
 
@@ -518,7 +515,7 @@ int pass_3(void) {
     }
   }
   else {
-    while (o == 0 && fread(&c, 1, 1, f_in) != 0) {
+    while (o == 0 && fread(&c, 1, 1, g_file_out_ptr) != 0) {
       switch (c) {
 
       case ' ':
@@ -531,14 +528,14 @@ int pass_3(void) {
         continue;
 
       case 'i':
-        fscanf(f_in, "%d %s ", &inz, tmp_buffer);
+        fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
 
         if (process_macro_in(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
           return FAILED;
         
         continue;
       case 'I':
-        fscanf(f_in, "%d %s ", &inz, tmp_buffer);
+        fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
 
         if (process_macro_out(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
           return FAILED;
@@ -546,19 +543,19 @@ int pass_3(void) {
         continue;
 
       case 'f':
-        fscanf(f_in, "%d ", &g_file_name_id);
+        fscanf(g_file_out_ptr, "%d ", &g_file_name_id);
         continue;
 
       case 't':
-        fscanf(f_in, "%d ", &inz);
+        fscanf(g_file_out_ptr, "%d ", &inz);
         if (inz == 0)
           g_namespace[0] = 0;
         else
-          fscanf(f_in, STRING_READ_FORMAT, g_namespace);
+          fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
         continue;       
 
       case 'S':
-        fscanf(f_in, "%d ", &inz);
+        fscanf(g_file_out_ptr, "%d ", &inz);
 
         add_old = add;
 
@@ -589,7 +586,7 @@ int pass_3(void) {
         continue;
 
       case 'k':
-        fscanf(f_in, "%d ", &line_number);
+        fscanf(g_file_out_ptr, "%d ", &line_number);
         continue;
 
       default:
@@ -600,7 +597,7 @@ int pass_3(void) {
   }
 
   /* second (major) loop */
-  while (fread(&c, 1, 1, f_in) != 0) {
+  while (fread(&c, 1, 1, g_file_out_ptr) != 0) {
     switch (c) {
 
     case ' ':
@@ -613,14 +610,14 @@ int pass_3(void) {
       continue;
 
     case 'i':
-      fscanf(f_in, "%d %s ", &inz, tmp_buffer);
+      fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
 
       if (process_macro_in(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
         return FAILED;
         
       continue;
     case 'I':
-      fscanf(f_in, "%d %s ", &inz, tmp_buffer);
+      fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
 
       if (process_macro_out(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
         return FAILED;
@@ -637,9 +634,9 @@ int pass_3(void) {
     case 'A':
     case 'S':
       if (c == 'A')
-        fscanf(f_in, "%d %*d", &inz);
+        fscanf(g_file_out_ptr, "%d %*d", &inz);
       else
-        fscanf(f_in, "%d ", &inz);
+        fscanf(g_file_out_ptr, "%d ", &inz);
 
       add_old = add;
 
@@ -711,84 +708,84 @@ int pass_3(void) {
 
     case 'x':
     case 'o':
-      fscanf(f_in, "%d %*d ", &inz);
+      fscanf(g_file_out_ptr, "%d %*d ", &inz);
       add += inz;
       continue;
 
     case 'X':
-      fscanf(f_in, "%d %*d ", &inz);
+      fscanf(g_file_out_ptr, "%d %*d ", &inz);
       add += inz * 2;
       continue;
 
     case 'h':
-      fscanf(f_in, "%d %*d ", &inz);
+      fscanf(g_file_out_ptr, "%d %*d ", &inz);
       add += inz * 3;
       continue;
 
     case 'w':
-      fscanf(f_in, "%d %*d ", &inz);
+      fscanf(g_file_out_ptr, "%d %*d ", &inz);
       add += inz * 4;
       continue;
 
     case 'z':
     case 'q':
-      fscanf(f_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       add += 3;
       continue;
 
     case 'T':
-      fscanf(f_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       add += 3;
       continue;
 
     case 'u':
     case 'V':
-      fscanf(f_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       add += 4;
       continue;
 
     case 'U':
-      fscanf(f_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       add += 4;
       continue;
 
     case 'v':
-      fscanf(f_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       continue;
         
     case 'b':
-      fscanf(f_in, "%d ", &base);
+      fscanf(g_file_out_ptr, "%d ", &base);
       continue;
 
     case 'R':
     case 'Q':
     case 'd':
     case 'c':
-      fscanf(f_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       add++;
       continue;
 
     case 'M':
     case 'r':
-      fscanf(f_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       add += 2;
       continue;
 
     case 'y':
     case 'C':
-      fscanf(f_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       add += 2;
       continue;
 
 #ifdef SUPERFX
 
     case '*':
-      fscanf(f_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       add++;
       continue;
       
     case '-':
-      fscanf(f_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       add++;
       continue;
 
@@ -799,7 +796,7 @@ int pass_3(void) {
         int bits_to_add;
         char type;
           
-        fscanf(f_in, "%d ", &bits_to_add);
+        fscanf(g_file_out_ptr, "%d ", &bits_to_add);
 
         if (bits_to_add == 999) {
           bits_current = 0;
@@ -818,14 +815,14 @@ int pass_3(void) {
             bits_current = 0;
         }
 
-        fscanf(f_in, "%c", &type);
+        fscanf(g_file_out_ptr, "%c", &type);
 
         if (type == 'a')
-          fscanf(f_in, "%*d");
+          fscanf(g_file_out_ptr, "%*d");
         else if (type == 'b')
-          fscanf(f_in, "%*s");
+          fscanf(g_file_out_ptr, "%*s");
         else if (type == 'c')
-          fscanf(f_in, "%*d");
+          fscanf(g_file_out_ptr, "%*d");
         else {
           fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, type);
           return FAILED;
@@ -836,31 +833,31 @@ int pass_3(void) {
 
 #ifdef SPC700
     case 'n':
-      fscanf(f_in, "%*d %*s ");
+      fscanf(g_file_out_ptr, "%*d %*s ");
       add += 2;
       continue;
 
     case 'N':
-      fscanf(f_in, "%*d %*d ");
+      fscanf(g_file_out_ptr, "%*d %*d ");
       add += 2;
       continue;
 #endif
 
     case 'D':
-      fscanf(f_in, "%*d %*d %*d %d ", &inz);
+      fscanf(g_file_out_ptr, "%*d %*d %*d %d ", &inz);
       add += inz;
       continue;
 
     case 'O':
-      fscanf(f_in, "%d ", &add);
+      fscanf(g_file_out_ptr, "%d ", &add);
       continue;
 
     case 'B':
-      fscanf(f_in, "%d %d ", &bank, &slot);
+      fscanf(g_file_out_ptr, "%d %d ", &bank, &slot);
       continue;
 
     case 'g':
-      fscanf(f_in, "%d ", &x);
+      fscanf(g_file_out_ptr, "%d ", &x);
 
       bn = g_block_names;
       while (bn != NULL) {
@@ -893,11 +890,11 @@ int pass_3(void) {
       continue;
 
     case 't':
-      fscanf(f_in, "%d ", &inz);
+      fscanf(g_file_out_ptr, "%d ", &inz);
       if (inz == 0)
         g_namespace[0] = 0;
       else
-        fscanf(f_in, STRING_READ_FORMAT, g_namespace);
+        fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
       continue;
 
     case 'Z': /* breakpoint */
@@ -905,7 +902,7 @@ int pass_3(void) {
     case 'L': /* label */
       l = calloc(sizeof(struct label_def), 1);
       if (l == NULL) {
-        fscanf(f_in, STRING_READ_FORMAT, g_tmp);
+        fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
         fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Out of memory while trying to allocate room for label \"%s\".\n",
                 get_file_name(g_file_name_id), line_number, g_tmp);
         return FAILED;
@@ -921,7 +918,7 @@ int pass_3(void) {
       if (c == 'Z')
         l->label[0] = 0;
       else
-        fscanf(f_in, STRING_READ_FORMAT, l->label);
+        fscanf(g_file_out_ptr, STRING_READ_FORMAT, l->label);
 
       s_mangled_label = NO;
       
@@ -1047,7 +1044,7 @@ int pass_3(void) {
       continue;
 
     case 'f':
-      fscanf(f_in, "%d ", &g_file_name_id);
+      fscanf(g_file_out_ptr, "%d ", &g_file_name_id);
       if (s != NULL)
         s->listfile_items++;
       else
@@ -1055,7 +1052,7 @@ int pass_3(void) {
       continue;
 
     case 'k':
-      fscanf(f_in, "%d ", &line_number);
+      fscanf(g_file_out_ptr, "%d ", &line_number);
       if (s != NULL)
         s->listfile_items++;
       else
@@ -1063,7 +1060,7 @@ int pass_3(void) {
       continue;
 
     case 'e':
-      fscanf(f_in, "%d %d ", &x, &y);
+      fscanf(g_file_out_ptr, "%d %d ", &x, &y);
       if (y == -1) { /* mark start of .DSTRUCT */
         g_dstruct_start = add;
         g_dstruct_item_offset = -1;
@@ -1085,12 +1082,10 @@ int pass_3(void) {
       continue;
 
     default:
-      fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Unknown internal symbol \"%c\" in \"%s\" at offset %ld.\n", get_file_name(g_file_name_id), line_number, c, g_tmp_name, ftell(f_in)-1);
+      fprintf(stderr, "%s:%d: INTERNAL_PASS_1: Unknown internal symbol \"%c\"! Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, c);
       return FAILED;
     }
   }
-
-  fclose(f_in);
 
   if (g_blocks != NULL) {
     fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .BLOCK \"%s\" was left open.\n", get_file_name(g_blocks->filename_id), g_blocks->line_number, g_blocks->name);

@@ -16,7 +16,7 @@
 
 
 extern int g_ind, g_source_pointer, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules;
-extern char *g_tmp, g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
+extern char *g_tmp;
 extern struct ext_include_collection g_ext_incdirs;
 extern FILE *g_file_out_ptr;
 extern struct stringmaptable *g_stringmaptables;
@@ -113,7 +113,7 @@ static void print_find_error(char* name) {
 }
 
 
-static int find_file(char *name, FILE** f) {
+static int find_file(char *name, FILE **f) {
 
   int index;
 
@@ -141,8 +141,7 @@ static int find_file(char *name, FILE** f) {
   /* if we can't find the file, but are only printing makefile rules, silently use an empty file */
   /* a warning might be nice */
   if (g_makefile_rules == YES) {
-    fclose(fopen(g_makefile_tmp_name, "wb"));
-    (*f) = fopen(g_makefile_tmp_name, "rb");
+    (*f) = tmpfile();
     if (*f != NULL)
       return SUCCEEDED;
   }

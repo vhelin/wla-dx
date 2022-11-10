@@ -126,7 +126,7 @@ extern int g_create_sizeof_definitions, g_input_allow_leading_hashtag, g_input_h
 extern int g_plus_and_minus_ends_label, g_get_next_token_use_substitution, g_input_number_turn_values_into_strings;
 extern FILE *g_file_out_ptr;
 extern double g_parsed_double;
-extern char *g_final_name, g_makefile_tmp_name[MAX_NAME_LENGTH + 1];
+extern char *g_final_name;
 
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
@@ -5298,7 +5298,7 @@ int directive_fopen(void) {
   if (f->f == NULL) {
     if (g_makefile_rules == YES) {
       /* lets just use a tmp file for file operations */
-      f->f = fopen(g_makefile_tmp_name, "wb");
+      f->f = tmpfile();
     }
     if (f->f == NULL) {
       print_error(ERROR_DIR, "Error opening file \"%s\" for reading.\n", f->filename);
