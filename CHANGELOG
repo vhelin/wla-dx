@@ -10,7 +10,8 @@ v10.4 (10-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
                       with current time -> random).
                     [ALL] Added built-in functions min(a,b), max(a,b),
                       random(min, max), sqrt(a), abs(a), cos(a), sin(a), tan(a),
-                      acos(a), asin(a), atan(a) and atan2(a,b).
+                      acos(a), asin(a), atan(a), atan2(a,b), cosh(a), sinh(a)
+                      and tanh(a).
                     [ALL] When a built-in function was called with a negative
                       sign the sign was ignored sometimes.
                     [ALL] Floating point values can be given to a .MACRO as
@@ -21,6 +22,8 @@ v10.4 (10-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
                       an integer - not any more.
                     [ALL] .FUNCTION body can now be a single argument.
                     [ALL] We now use ANSI C's tmpfile() to create tmp files.
+                      This should allow multiple concurrent instances of WLA to
+                      run in the same directory.
                     [ALL] When using -M, if you specify -o or -l later on the
                       command line you can output an object or a library file
                       at the same time.

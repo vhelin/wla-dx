@@ -2840,6 +2840,38 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
           v_rom[t - 1] = -v_rom[t - 1];
         }
         break;
+      case SI_OP_TAN:
+        v_ram[t - 1] = tan(v_ram[t - 1]);
+        v_rom[t - 1] = tan(v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
+        break;
+      case SI_OP_COSH:
+        v_ram[t - 1] = cosh(v_ram[t - 1]);
+        v_rom[t - 1] = cosh(v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
+        break;
+      case SI_OP_SINH:
+        v_ram[t - 1] = sinh(v_ram[t - 1]);
+        v_rom[t - 1] = sinh(v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
+        break;
+      case SI_OP_TANH:
+        v_ram[t - 1] = tanh(v_ram[t - 1]);
+        v_rom[t - 1] = tanh(v_rom[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
+        break;        
       case SI_OP_ATAN:
         v_ram[t - 1] = atan(v_ram[t - 1]);
         v_rom[t - 1] = atan(v_rom[t - 1]);
@@ -2849,8 +2881,8 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         break;
       case SI_OP_ATAN2:
-        v_ram[t - 1] = atan2(v_ram[t - 2], v_ram[t - 1]);
-        v_rom[t - 1] = atan2(v_rom[t - 2], v_rom[t - 1]);
+        v_ram[t - 2] = atan2(v_ram[t - 2], v_ram[t - 1]);
+        v_rom[t - 2] = atan2(v_rom[t - 2], v_rom[t - 1]);
         if (s->sign == SI_SIGN_NEGATIVE) {
           v_ram[t - 2] = -v_ram[t - 2];
           v_rom[t - 2] = -v_rom[t - 2];

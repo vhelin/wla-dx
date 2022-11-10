@@ -535,5 +535,28 @@ _0x301:
 
         .db "26>"                 ; @BT TEST-26 26 START
         .db atan2(4.0, 1.0*1.0)*4 ; @BT 05
+        .db atan2(VALUE_4, 1.0*1.0)*4 ; @BT 05
+        .db min(VALUE_4, 1.0*1.0)*4   ; @BT 04
+        .db tan(100)*10           ; @BT FB
+        .db -tan(100)*10          ; @BT 05
+        .db ceil(-tan(100)*10)    ; @BT 06
+        .db tan(VALUE_1*100)*10        ; @BT FB
+        .db -tan(VALUE_1*100)*10       ; @BT 05
+        .db ceil(-tan(VALUE_1*100)*10) ; @BT 06
         .db "<26"                 ; @BT END
+        
+        .db "27>"               ; @BT TEST-27 27 START
+        .db cosh(0.2)*5         ; @BT 05
+        .db -cosh(0.2)*2        ; @BT FE
+        .db cosh(VALUE_1/5)*5      ; @BT 05
+        .db -cosh(VALUE_15/15/5)*2 ; @BT FE
+        .db sinh(0.2)*5         ; @BT 01
+        .db -sinh(0.2)*10       ; @BT FE
+        .db sinh(VALUE_1/5)*5*5      ; @BT 05
+        .db -sinh(VALUE_15/15/5)*5*2 ; @BT FE
+        .db tanh(0.2)*6         ; @BT 01
+        .db -tanh(0.2)*10       ; @BT FF
+        .db tanh(VALUE_1/5)*5*5      ; @BT 04
+        .db -tanh(VALUE_15/15/5)*5*2 ; @BT FF
+        .db "<27"               ; @BT END
         

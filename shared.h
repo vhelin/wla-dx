@@ -153,6 +153,9 @@
 #define SI_OP_ATAN        40
 #define SI_OP_NEGATE      41
 #define SI_OP_ATAN2       42
+#define SI_OP_COSH        43
+#define SI_OP_SINH        44
+#define SI_OP_TANH        45
 
 #define SI_SIGN_POSITIVE 0
 #define SI_SIGN_NEGATIVE 1

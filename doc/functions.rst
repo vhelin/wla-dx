@@ -27,6 +27,7 @@ bank()     Returns the bank (the same as preceding ``:``)
 bankbyte() Returns the bank byte, bits 16-23
 ceil()     The same as ANSI C90 ceil()
 cos()      The same as ANSI C90 cos()
+cosh()     The same as ANSI C90 cosh()
 defined()  Returns 1 (true) if the supplied definition exists, 0 (false) otherwise
 exists()   Returns 1 (true) if the supplied file exists, 0 (false) otherwise
 floor()    The same as ANSI C90 floor()
@@ -39,8 +40,10 @@ min()      Takes two arguments, a and b, returns the smaller value
 random()   Takes two arguments, min and max, returns a pseudo random integer like ``.DBRND``
 round()    The same as ANSI C99 round()
 sin()      The same as ANSI C90 sin()
+sinh()     The same as ANSI C90 sinh()
 sqrt()     Returns the square root of the supplied value
 tan()      The same as ANSI C90 tan()
+tanh()     The same as ANSI C90 tanh()
 ========== ================================================================================
 
 Note! Use bankbyte() with WLA-65816 as on that platform the bank (+ base) bits

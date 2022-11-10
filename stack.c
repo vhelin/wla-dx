@@ -349,6 +349,9 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
             value == SI_OP_ASIN ||
             value == SI_OP_ATAN ||
             value == SI_OP_ATAN2 ||
+            value == SI_OP_COSH ||
+            value == SI_OP_SINH ||
+            value == SI_OP_TANH ||
             value == SI_OP_LOW_BYTE ||
             value == SI_OP_HIGH_BYTE ||
             value == SI_OP_LOW_WORD ||
@@ -424,6 +427,12 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
         printf("atan2(a,b)");
       else if (value == SI_OP_NEGATE)
         printf("negate(a)");
+      else if (value == SI_OP_COSH)
+        printf("cosh(a)");
+      else if (value == SI_OP_SINH)
+        printf("sinh(a)");
+      else if (value == SI_OP_TANH)
+        printf("tanh(a)");
       else {
         if (value >= (int)strlen(ar)) {
           printf("ERROR!\n");
@@ -512,6 +521,9 @@ static struct stack_item_priority_item g_stack_item_priority_items[] = {
   { SI_OP_COS, 110 },
   { SI_OP_SIN, 110 },
   { SI_OP_TAN, 110 },
+  { SI_OP_COSH, 110 },
+  { SI_OP_SINH, 110 },
+  { SI_OP_TANH, 110 },
   { SI_OP_ACOS, 110 },
   { SI_OP_ASIN, 110 },
   { SI_OP_ATAN, 110 },
@@ -1669,6 +1681,24 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_already_processed_function = YES;
           break;
         }
+        else if (k == 4 && strcaselesscmpn(si[q].string, "cosh(", 5) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "cosh(a)", SI_OP_COSH) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 4 && strcaselesscmpn(si[q].string, "sinh(", 5) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "sinh(a)", SI_OP_SINH) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 4 && strcaselesscmpn(si[q].string, "tanh(", 5) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "tanh(a)", SI_OP_TANH) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
         else if (k == 4 && strcaselesscmpn(si[q].string, "acos(", 5) == 0) {
           if (_parse_function_math1_base(&in, si, &q, "acos(a)", SI_OP_ACOS) == FAILED)
             return FAILED;
@@ -1998,6 +2028,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
            si[k + 1].value == SI_OP_COS ||
            si[k + 1].value == SI_OP_SIN ||
            si[k + 1].value == SI_OP_TAN ||
+           si[k + 1].value == SI_OP_COSH ||
+           si[k + 1].value == SI_OP_SINH ||
+           si[k + 1].value == SI_OP_TANH ||
            si[k + 1].value == SI_OP_ACOS ||
            si[k + 1].value == SI_OP_ASIN ||
            si[k + 1].value == SI_OP_ATAN ||
@@ -2043,6 +2076,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           si[k + 1].value != SI_OP_COS &&
           si[k + 1].value != SI_OP_SIN &&
           si[k + 1].value != SI_OP_TAN &&
+          si[k + 1].value != SI_OP_COSH &&
+          si[k + 1].value != SI_OP_SINH &&
+          si[k + 1].value != SI_OP_TANH &&
           si[k + 1].value != SI_OP_ACOS &&
           si[k + 1].value != SI_OP_ASIN &&
           si[k + 1].value != SI_OP_ATAN &&
@@ -3095,6 +3131,24 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
           v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
+      case SI_OP_COSH:
+        v[t - 1] = cosh(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_SINH:
+        v[t - 1] = sinh(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_TANH:
+        v[t - 1] = tanh(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
+        break;
       case SI_OP_ACOS:
         if (v[t - 1] < -1.0 || v[t - 1] > 1.0) {
           fprintf(stderr, "%s:%d: COMPUTE_STACK: acos() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->filename_id), sta->linenumber, v[t - 1]);
@@ -3505,7 +3559,6 @@ int data_stream_parser_free(void) {
 
 int data_stream_parser_parse(void) {
 
-  FILE *f_in;
   char c;
   
   if (g_file_out_ptr == NULL) {
@@ -3528,11 +3581,9 @@ int data_stream_parser_parse(void) {
   else
     fseek(g_file_out_ptr, s_dsp_last_data_stream_position, SEEK_SET);
 
-  f_in = g_file_out_ptr;
-
   /* parse the internal data stream to find labels and their possibly non-final addresses */
   
-  while (fread(&c, 1, 1, f_in) != 0) {
+  while (fread(&c, 1, 1, g_file_out_ptr) != 0) {
     switch (c) {
 
     case ' ':
@@ -3545,10 +3596,10 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 'i':
-      fscanf(f_in, "%*d %*s ");
+      fscanf(g_file_out_ptr, "%*d %*s ");
       continue;
     case 'I':
-      fscanf(f_in, "%*d %*s ");
+      fscanf(g_file_out_ptr, "%*d %*s ");
       continue;
 
     case 'P':
@@ -3561,9 +3612,9 @@ int data_stream_parser_parse(void) {
     case 'A':
     case 'S':
       if (c == 'A')
-        fscanf(f_in, "%d %*d", &s_dsp_section_id);
+        fscanf(g_file_out_ptr, "%d %*d", &s_dsp_section_id);
       else
-        fscanf(f_in, "%d ", &s_dsp_section_id);
+        fscanf(g_file_out_ptr, "%d ", &s_dsp_section_id);
 
       s_dsp_add_old = s_dsp_add;
 
@@ -3585,83 +3636,83 @@ int data_stream_parser_parse(void) {
 
     case 'x':
     case 'o':
-      fscanf(f_in, "%d %*d ", &s_dsp_inz);
+      fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
       s_dsp_add += s_dsp_inz;
       continue;
 
     case 'X':
-      fscanf(f_in, "%d %*d ", &s_dsp_inz);
+      fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
       s_dsp_add += s_dsp_inz * 2;
       continue;
 
     case 'h':
-      fscanf(f_in, "%d %*d ", &s_dsp_inz);
+      fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
       s_dsp_add += s_dsp_inz * 3;
       continue;
 
     case 'w':
-      fscanf(f_in, "%d %*d ", &s_dsp_inz);
+      fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
       s_dsp_add += s_dsp_inz * 4;
       continue;
 
     case 'z':
     case 'q':
-      fscanf(f_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       s_dsp_add += 3;
       continue;
 
     case 'T':
-      fscanf(f_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       s_dsp_add += 3;
       continue;
 
     case 'u':
     case 'V':
-      fscanf(f_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       s_dsp_add += 4;
       continue;
 
     case 'U':
-      fscanf(f_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       s_dsp_add += 4;
       continue;
 
     case 'v':
-      fscanf(f_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       continue;
         
     case 'b':
-      fscanf(f_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       continue;
 
     case 'R':
     case 'Q':
     case 'd':
     case 'c':
-      fscanf(f_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       s_dsp_add++;
       continue;
 
     case 'M':
     case 'r':
-      fscanf(f_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       s_dsp_add += 2;
       continue;
 
     case 'y':
     case 'C':
-      fscanf(f_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       s_dsp_add += 2;
       continue;
 
 #ifdef SUPERFX
     case '*':
-      fscanf(f_in, "%*s ");
+      fscanf(g_file_out_ptr, "%*s ");
       s_dsp_add++;
       continue;
       
     case '-':
-      fscanf(f_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       s_dsp_add++;
       continue;
 #endif
@@ -3671,7 +3722,7 @@ int data_stream_parser_parse(void) {
         int bits_to_add;
         char type;
           
-        fscanf(f_in, "%d ", &bits_to_add);
+        fscanf(g_file_out_ptr, "%d ", &bits_to_add);
 
         if (bits_to_add == 999) {
           s_dsp_bits_current = 0;
@@ -3690,56 +3741,56 @@ int data_stream_parser_parse(void) {
             s_dsp_bits_current = 0;
         }
 
-        fscanf(f_in, "%c", &type);
+        fscanf(g_file_out_ptr, "%c", &type);
 
         if (type == 'a')
-          fscanf(f_in, "%*d");
+          fscanf(g_file_out_ptr, "%*d");
         else if (type == 'b')
-          fscanf(f_in, "%*s");
+          fscanf(g_file_out_ptr, "%*s");
         else if (type == 'c')
-          fscanf(f_in, "%*d");
+          fscanf(g_file_out_ptr, "%*d");
 
         continue;
       }
 
 #ifdef SPC700
     case 'n':
-      fscanf(f_in, "%*d %*s ");
+      fscanf(g_file_out_ptr, "%*d %*s ");
       s_dsp_add += 2;
       continue;
 
     case 'N':
-      fscanf(f_in, "%*d %*d ");
+      fscanf(g_file_out_ptr, "%*d %*d ");
       s_dsp_add += 2;
       continue;
 #endif
 
     case 'D':
-      fscanf(f_in, "%*d %*d %*d %d ", &s_dsp_inz);
+      fscanf(g_file_out_ptr, "%*d %*d %*d %d ", &s_dsp_inz);
       s_dsp_add += s_dsp_inz;
       continue;
 
     case 'O':
-      fscanf(f_in, "%d ", &s_dsp_add);
+      fscanf(g_file_out_ptr, "%d ", &s_dsp_add);
       continue;
 
     case 'B':
-      fscanf(f_in, "%*d %*d ");
+      fscanf(g_file_out_ptr, "%*d %*d ");
       continue;
 
     case 'g':
-      fscanf(f_in, "%*d ");
+      fscanf(g_file_out_ptr, "%*d ");
       continue;
 
     case 'G':
       continue;
 
     case 't':
-      fscanf(f_in, "%d ", &s_dsp_inz);
+      fscanf(g_file_out_ptr, "%d ", &s_dsp_inz);
       if (s_dsp_inz == 0)
         g_namespace[0] = 0;
       else
-        fscanf(f_in, STRING_READ_FORMAT, g_namespace);
+        fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
       continue;
 
     case 'Z': /* breakpoint */
@@ -3748,7 +3799,7 @@ int data_stream_parser_parse(void) {
       if (c == 'Z') {
       }
       else if (c == 'Y')
-        fscanf(f_in, "%*s ");
+        fscanf(g_file_out_ptr, "%*s ");
       else {
         struct data_stream_item *dSI;
         int mangled_label = NO;
@@ -3759,7 +3810,7 @@ int data_stream_parser_parse(void) {
           return FAILED;
         }
 
-        fscanf(f_in, "%s ", dSI->label);
+        fscanf(g_file_out_ptr, "%s ", dSI->label);
 
         if (is_label_anonymous(dSI->label) == YES) {
           /* we skip anonymous labels here, too much trouble */
@@ -3821,15 +3872,15 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 'f':
-      fscanf(f_in, "%d ", &s_dsp_file_name_id);
+      fscanf(g_file_out_ptr, "%d ", &s_dsp_file_name_id);
       continue;
 
     case 'k':
-      fscanf(f_in, "%d ", &s_dsp_line_number);
+      fscanf(g_file_out_ptr, "%d ", &s_dsp_line_number);
       continue;
 
     case 'e':
-      fscanf(f_in, "%*d %*d ");
+      fscanf(g_file_out_ptr, "%*d %*d ");
       continue;
 
     default:
@@ -3839,7 +3890,7 @@ int data_stream_parser_parse(void) {
   }
 
   /* remember the data stream position for the next time this function is called */
-  s_dsp_last_data_stream_position = (int)ftell(f_in);
+  s_dsp_last_data_stream_position = (int)ftell(g_file_out_ptr);
   
   /* seek to the very end of the file so we can continue writing to it */
   fseek(g_file_out_ptr, 0, SEEK_END);

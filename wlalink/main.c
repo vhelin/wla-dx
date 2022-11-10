@@ -115,6 +115,9 @@ static const char *g_si_operator_abs = "abs(a)";
 static const char *g_si_operator_cos = "cos(a)";
 static const char *g_si_operator_sin = "sin(a)";
 static const char *g_si_operator_tan = "tan(a)";
+static const char *g_si_operator_cosh = "cosh(a)";
+static const char *g_si_operator_sinh = "sinh(a)";
+static const char *g_si_operator_tanh = "tanh(a)";
 static const char *g_si_operator_acos = "acos(a)";
 static const char *g_si_operator_asin = "asin(a)";
 static const char *g_si_operator_atan = "atan(a)";
@@ -195,6 +198,12 @@ const char *get_stack_item_operator_name(int operator) {
     return g_si_operator_sin;
   else if (operator == SI_OP_TAN)
     return g_si_operator_tan;
+  else if (operator == SI_OP_COSH)
+    return g_si_operator_cosh;
+  else if (operator == SI_OP_SINH)
+    return g_si_operator_sinh;
+  else if (operator == SI_OP_TANH)
+    return g_si_operator_tanh;
   else if (operator == SI_OP_ACOS)
     return g_si_operator_acos;
   else if (operator == SI_OP_ASIN)
