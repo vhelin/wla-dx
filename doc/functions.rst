@@ -34,9 +34,12 @@ floor()    The same as ANSI C90 floor()
 hibyte()   Returns the high byte, bits 8-15 (the same as preceding ``>``)
 hiword()   Returns the high word, bits 16-31
 lobyte()   Returns the low byte, bits 0-7 (the same as preceding ``<``)
+log()      The same as ANSI C90 log()
+log10()    The same as ANSI C90 log10()
 loword()   Returns the low word, bits 0-15
 max()      Takes two arguments, a and b, return the bigger value
 min()      Takes two arguments, a and b, returns the smaller value
+pow()      The same as ANSI C90 pow()
 random()   Takes two arguments, min and max, returns a pseudo random integer like ``.DBRND``
 round()    The same as ANSI C99 round()
 sin()      The same as ANSI C90 sin()

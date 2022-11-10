@@ -352,6 +352,9 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
             value == SI_OP_COSH ||
             value == SI_OP_SINH ||
             value == SI_OP_TANH ||
+            value == SI_OP_LOG ||
+            value == SI_OP_LOG10 ||
+            value == SI_OP_POW ||
             value == SI_OP_LOW_BYTE ||
             value == SI_OP_HIGH_BYTE ||
             value == SI_OP_LOW_WORD ||
@@ -433,6 +436,12 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
         printf("sinh(a)");
       else if (value == SI_OP_TANH)
         printf("tanh(a)");
+      else if (value == SI_OP_LOG)
+        printf("log(a)");
+      else if (value == SI_OP_LOG10)
+        printf("log10(a)");
+      else if (value == SI_OP_POW)
+        printf("pow(a,b)");
       else {
         if (value >= (int)strlen(ar)) {
           printf("ERROR!\n");
@@ -528,6 +537,9 @@ static struct stack_item_priority_item g_stack_item_priority_items[] = {
   { SI_OP_ASIN, 110 },
   { SI_OP_ATAN, 110 },
   { SI_OP_ATAN2, 110 },
+  { SI_OP_LOG, 110 },
+  { SI_OP_LOG10, 110 },
+  { SI_OP_POW, 110 },
   { SI_OP_NOT, 120 },
   { 999, 999 }
 };
@@ -1657,6 +1669,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_already_processed_function = YES;
           break;
         }
+        else if (k == 3 && strcaselesscmpn(si[q].string, "pow(", 4) == 0) {
+          if (_parse_function_math2_base(&in, si, &q, "pow(a,b)", SI_OP_POW) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
         else if (k == 3 && strcaselesscmpn(si[q].string, "abs(", 4) == 0) {
           if (_parse_function_math1_base(&in, si, &q, "abs(a)", SI_OP_ABS) == FAILED)
             return FAILED;
@@ -1677,6 +1695,18 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
         else if (k == 3 && strcaselesscmpn(si[q].string, "tan(", 4) == 0) {
           if (_parse_function_math1_base(&in, si, &q, "tan(a)", SI_OP_TAN) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 3 && strcaselesscmpn(si[q].string, "log(", 4) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "log(a)", SI_OP_LOG) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 5 && strcaselesscmpn(si[q].string, "log10(", 6) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "log10(a)", SI_OP_LOG10) == FAILED)
             return FAILED;
           is_already_processed_function = YES;
           break;
@@ -2041,6 +2071,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
            si[k + 1].value == SI_OP_HIGH_WORD ||
            si[k + 1].value == SI_OP_BANK_BYTE ||
            si[k + 1].value == SI_OP_BANK ||
+           si[k + 1].value == SI_OP_LOG ||
+           si[k + 1].value == SI_OP_LOG10 ||
+           si[k + 1].value == SI_OP_POW ||
            si[k + 1].value == SI_OP_SQRT)) {
         if (k == 0 || (si[k - 1].type == STACK_ITEM_TYPE_OPERATOR && si[k - 1].value == SI_OP_LEFT)) {
           si[k].type = STACK_ITEM_TYPE_DELETED;
@@ -2083,6 +2116,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           si[k + 1].value != SI_OP_ASIN &&
           si[k + 1].value != SI_OP_ATAN &&
           si[k + 1].value != SI_OP_ATAN2 &&
+          si[k + 1].value != SI_OP_LOG &&
+          si[k + 1].value != SI_OP_LOG10 &&
+          si[k + 1].value != SI_OP_POW &&
           si[k + 1].value != SI_OP_SQRT) {
         if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
 #ifdef WLA_DEBUG
@@ -3131,6 +3167,18 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
           v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
+      case SI_OP_LOG:
+        v[t - 1] = log(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_LOG10:
+        v[t - 1] = log10(v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
+        break;
       case SI_OP_COSH:
         v[t - 1] = cosh(v[t - 1]);
         if (s->sign == SI_SIGN_NEGATIVE)
@@ -3177,6 +3225,13 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_ATAN2:
         v[t - 2] = atan2(v[t - 2], v[t - 1]);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 2] = -v[t - 2];
+        sp[t - 2] = NULL;
+        t--;
+        break;
+      case SI_OP_POW:
+        v[t - 2] = pow(v[t - 2], v[t - 1]);
         if (s->sign == SI_SIGN_NEGATIVE)
           v[t - 2] = -v[t - 2];
         sp[t - 2] = NULL;

@@ -156,6 +156,9 @@
 #define SI_OP_COSH        43
 #define SI_OP_SINH        44
 #define SI_OP_TANH        45
+#define SI_OP_LOG         46
+#define SI_OP_LOG10       47
+#define SI_OP_POW         48
 
 #define SI_SIGN_POSITIVE 0
 #define SI_SIGN_NEGATIVE 1

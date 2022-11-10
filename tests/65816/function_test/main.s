@@ -559,4 +559,19 @@ _0x301:
         .db tanh(VALUE_1/5)*5*5      ; @BT 04
         .db -tanh(VALUE_15/15/5)*5*2 ; @BT FF
         .db "<27"               ; @BT END
+
+        .db "28>"                 ; @BT TEST-28 28 START
+        .db log(20)*2             ; @BT 05
+        .db -log(20)*2            ; @BT FB
+        .db log(VALUE_16+4)*2+0.1 ; @BT 06
+        .db -log(VALUE_15+5)*2    ; @BT FB
+        .db log10(20)*4           ; @BT 05
+        .db -log10(20)*4          ; @BT FB
+        .db log10(VALUE_15+5)*4   ; @BT 05
+        .db -log10(VALUE_16+4)*4  ; @BT FB
+        .db pow(2.5,2.1)          ; @BT 06
+        .db -pow(2.5,2.1)         ; @BT FA
+        .db pow(VALUE_1*2.5,VALUE_1*2.1)*1 ; @BT 06
+        .db -pow(VALUE_15/15*2.5,VALUE_16/16*2.1)*1 ; @BT FA
+        .db "<28"               ; @BT END
         

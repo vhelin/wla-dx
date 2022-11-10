@@ -7147,6 +7147,9 @@ int directive_function(void) {
       strcmp("cosh", g_label) == 0 ||
       strcmp("sinh", g_label) == 0 ||
       strcmp("tanh", g_label) == 0 ||
+      strcmp("log", g_label) == 0 ||
+      strcmp("log10", g_label) == 0 ||
+      strcmp("pow", g_label) == 0 ||
       strcmp("abs", g_label) == 0) {
     print_error(ERROR_DIR, "You cannot redefine a built-in .FUNCTION \"%s\"!\n", g_label);
     return FAILED;
