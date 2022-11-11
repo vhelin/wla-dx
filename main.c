@@ -234,7 +234,9 @@ int main(int argc, char *argv[]) {
     printf("OUTPUT:\n");
     printf("-o <FILE>  Output object file\n");
     printf("-l <FILE>  Output library file\n\n");
-    printf("EXAMPLE: %s -D VER=1 -D TWO=2 -v -o main.o main.asm\n\n", argv[0]);
+    printf("EXAMPLES:\n");
+    printf("%s -M -t -o main.o main.asm\n", argv[0]);
+    printf("%s -D VER=1 -D TWO=2 -v -o main.o main.asm\n\n", argv[0]);
     return 0;
   }
 

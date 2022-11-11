@@ -23,7 +23,7 @@ v10.4 (10-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
                     [ALL] .FUNCTION body can now be a single argument.
                     [ALL] We now use ANSI C's tmpfile() to create tmp files.
                       This should allow multiple concurrent instances of WLA to
-                      run in the same directory.
+                      run in the same directory at the same time.
                     [ALL] When using -M, if you specify -o or -l later on the
                       command line you can output an object or a library file
                       at the same time.

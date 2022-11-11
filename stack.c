@@ -786,10 +786,15 @@ static int _parse_function_math2(char *in, int *type_a, int *type_b, double *val
     return FAILED;
   }
 
+  if (g_buffer[g_source_pointer] == ')') {
+    print_error(ERROR_STC, "%s is missing argument b!\n", name);
+    return FAILED;
+  }
+  
   /* b */
   res = input_number();
   g_input_float_mode = input_float_mode;
-  
+
   *type_b = res;
   if (res == SUCCEEDED)
     *value_b = g_parsed_int;
@@ -834,6 +839,11 @@ static int _parse_function_math1(char *in, int *type, double *value, char *strin
   g_source_pointer = (int)(in - g_buffer);
   source_pointer_backup = g_source_pointer;
 
+  if (g_buffer[g_source_pointer] == ')') {
+    print_error(ERROR_STC, "%s is missing argument a!\n", name);
+    return FAILED;
+  }
+  
   g_input_float_mode = ON;
   res = input_number();
   g_input_float_mode = input_float_mode;
@@ -1953,6 +1963,11 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
   }
 
+  if (q == 0) {
+    print_error(ERROR_STC, "Expected a calculation or a value, but got nothing!\n");
+    return FAILED;
+  }
+  
   if (b != 0) {
     print_error(ERROR_STC, "Unbalanced parentheses.\n");
     return FAILED;
