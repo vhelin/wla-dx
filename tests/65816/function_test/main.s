@@ -32,7 +32,9 @@
         .define var4 1
 
         .function sumAB(varA,varB) varA+varB
-        .function sumABC(var1,var2,var3) sumAB(var1,var2)+var3
+        .function sumABC(var1,var2,var3) sumAB(var1,
+                                               var2) +
+                                               var3
         .function sumAB1(varA, varB) sumAB(varA, varB) + sumAB(1, 0)
         .function sumCD(var{%.1d{1+0}},var2) var{%.1d{0+var4}}+var{%.1d{1+1}}
         .function constant() 1+2+3
@@ -55,7 +57,10 @@ _0x03:
         .db sumAB(VALUE_1,1)     ; @BT 02
         .db 1 + sumAB(VALUE_1,2) ; @BT 04
         .db 1 + sumAB(VALUE_1+VALUE_2,2) ; @BT 06
-        .db VALUE_2 - sumABC(VALUE_1-1, VALUE_2-2, sumAB(VALUE_1-1,VALUE_2-1)) + sumAB(constant(), VALUE_2-1) ; @BT 08
+        .db VALUE_2 - sumABC(VALUE_1-1,
+                             VALUE_2-2,
+                             sumAB(VALUE_1-1,VALUE_2-1)) +
+                             sumAB(constant(), VALUE_2-1) ; @BT 08
         .db sumAB1(1, 2)         ; @BT 04
         .db sumAB1(sumAB1(1, 2), 3)  ; @BT 08
         .db sumAB1(VALUE_1, VALUE_2) ; @BT 04
@@ -571,7 +576,7 @@ _0x301:
         .db -log10(VALUE_16+4)*4  ; @BT FB
         .db pow(2.5,2.1)          ; @BT 06
         .db -pow(2.5,2.1)         ; @BT FA
-        .db pow(VALUE_1*2.5,VALUE_1*2.1)*1 ; @BT 06
+        .db pow(VALUE_1*2.5,
+                VALUE_1*2.1)*1 ; @BT 06
         .db -pow(VALUE_15/15*2.5,VALUE_16/16*2.1)*1 ; @BT FA
         .db "<28"               ; @BT END
-        

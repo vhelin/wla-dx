@@ -2265,6 +2265,10 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
     input_float_mode = g_input_float_mode;
     g_input_float_mode = ON;
     res = input_number();
+    while (res == INPUT_NUMBER_EOL) {
+      next_line();
+      res = input_number();
+    }
     g_input_float_mode = input_float_mode;
 
     if (res == FAILED) {

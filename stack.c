@@ -769,7 +769,11 @@ static int _parse_function_math2(char *in, int *type_a, int *type_b, double *val
   /* a */
   g_input_float_mode = ON;
   res = input_number();
-
+  while (res == INPUT_NUMBER_EOL) {
+    next_line();
+    res = input_number();
+  }
+  
   *type_a = res;
   if (res == SUCCEEDED)
     *value_a = g_parsed_int;
@@ -793,6 +797,10 @@ static int _parse_function_math2(char *in, int *type_a, int *type_b, double *val
   
   /* b */
   res = input_number();
+  while (res == INPUT_NUMBER_EOL) {
+    next_line();
+    res = input_number();
+  }
   g_input_float_mode = input_float_mode;
 
   *type_b = res;
@@ -846,6 +854,10 @@ static int _parse_function_math1(char *in, int *type, double *value, char *strin
   
   g_input_float_mode = ON;
   res = input_number();
+  while (res == INPUT_NUMBER_EOL) {
+    next_line();
+    res = input_number();
+  }
   g_input_float_mode = input_float_mode;
 
   *type = res;
@@ -1964,7 +1976,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   }
 
   if (q == 0) {
-    print_error(ERROR_STC, "Expected a calculation or a value, but got nothing!\n");
+    print_error(ERROR_STC, "Expected a calculation, label or a value, but got nothing!\n");
     return FAILED;
   }
   
