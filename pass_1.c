@@ -1367,8 +1367,10 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
   si = st->items;
   while (si != NULL) {
     int real_si_size = si->size;
-
-    if (si->type == STRUCTURE_ITEM_TYPE_DOTTED)
+    int old_g_enum_offset = g_enum_offset;
+    int old_g_last_enum_offset = g_last_enum_offset;
+    
+    if (si->type == STRUCTURE_ITEM_TYPE_DOTTED || si->type == STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF)
       real_si_size = 0;
 
     if (reverse)
@@ -1390,8 +1392,8 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
     else
       snprintf(tmp, sizeof(tmp), "%s", basename);
     
-    /* if this struct has an .instanceof in it, we need to recurse */
-    if (si->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
+    /* if this struct has an INSTANCEOF in it, we need to recurse */
+    if (si->type == STRUCTURE_ITEM_TYPE_INSTANCEOF || si->type == STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF) {
       int g;
 
       if (si->num_instances <= 1) {
@@ -1419,9 +1421,15 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
                 return FAILED;
             }
           }
-          
+
           g_enum_offset += padding;
           g_last_enum_offset += padding;
+        }
+
+        if (si->type == STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF) {
+          /* this doesn't advance the counters */
+          g_enum_offset = old_g_enum_offset;
+          g_last_enum_offset = old_g_last_enum_offset;
         }
       }
       else {
@@ -1467,6 +1475,12 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
             g_last_enum_offset += padding;
           }
         }
+
+        if (si->type == STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF) {
+          /* this doesn't advance the counters */
+          g_enum_offset = old_g_enum_offset;
+          g_last_enum_offset = old_g_last_enum_offset;
+        }
       }
     }
     /* if this struct has a .union in it, we treat each union block like a struct */
@@ -1505,7 +1519,8 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
     else
       g_enum_offset += real_si_size;
 
-    if (reverse) /* after defining data, go back to start, for DESC enums */
+    /* after defining data, go back to start, for DESC enums */
+    if (reverse)
       g_enum_offset -= real_si_size;
 
     si = si->next;
@@ -1878,10 +1893,13 @@ int parse_enum_token(void) {
     type = STRUCTURE_ITEM_TYPE_DATA;
   }
   /* it's an instance of a structure! */
-  else if (strcaselesscmp(g_tmp, "INSTANCEOF") == 0) {
+  else if (strcaselesscmp(g_tmp, "INSTANCEOF") == 0 || strcaselesscmp(g_tmp, ".INSTANCEOF") == 0) {
     int number_result;
 
-    type = STRUCTURE_ITEM_TYPE_INSTANCEOF;
+    if (g_tmp[0] == '.')
+      type = STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF;
+    else
+      type = STRUCTURE_ITEM_TYPE_INSTANCEOF;
 
     if (get_next_token() == FAILED)
       return FAILED;
@@ -2052,8 +2070,6 @@ int parse_enum_token(void) {
   }
   else if (strcaselesscmp(g_tmp, ".dsl") == 0) {
     /* don't do anything for "dotted" versions */
-    strcpy(bak, g_tmp);
-    
     q = input_number();
     if (q == FAILED)
       return FAILED;
@@ -2072,8 +2088,6 @@ int parse_enum_token(void) {
   }
   else if (strcaselesscmp(g_tmp, ".dsd") == 0) {
     /* don't do anything for "dotted" versions */
-    strcpy(bak, g_tmp);
-    
     q = input_number();
     if (q == FAILED)
       return FAILED;
@@ -2102,12 +2116,14 @@ int parse_enum_token(void) {
     return FAILED;
   }
   si->next = NULL;
+  si->instance = NULL;
+  si->union_items = NULL;
   strcpy(si->name, tmpname);
   si->size = size;
   si->defined_size = defined_size;
   si->type = type;
   si->start_from = start_from;
-  if (type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
+  if (type == STRUCTURE_ITEM_TYPE_INSTANCEOF || type == STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF) {
     si->instance = st;
     si->num_instances = instances;
   }
@@ -2120,7 +2136,7 @@ int parse_enum_token(void) {
     g_active_struct->last_item->next = si;
   g_active_struct->last_item = si;
 
-  if (type != STRUCTURE_ITEM_TYPE_DOTTED)
+  if (type != STRUCTURE_ITEM_TYPE_DOTTED && type != STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF)
     g_enum_offset += size;
 
   if (g_enum_offset > g_max_enum_offset)
@@ -3674,7 +3690,7 @@ int find_struct_field(struct structure *s, char *field_name, int *item_size, int
       /* else keep looking */
     }
 
-    if (si->type != STRUCTURE_ITEM_TYPE_DOTTED)
+    if (si->type != STRUCTURE_ITEM_TYPE_DOTTED && si->type != STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF)
       offset += si->size;
 
     si = si->next;

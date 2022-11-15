@@ -704,10 +704,11 @@ struct stack_item {
   char string[MAX_NAME_LENGTH + 1];
 };
 
-#define STRUCTURE_ITEM_TYPE_DATA            0
-#define STRUCTURE_ITEM_TYPE_DOTTED          1
-#define STRUCTURE_ITEM_TYPE_INSTANCEOF      2
-#define STRUCTURE_ITEM_TYPE_UNION           3
+#define STRUCTURE_ITEM_TYPE_DATA              0
+#define STRUCTURE_ITEM_TYPE_DOTTED            1
+#define STRUCTURE_ITEM_TYPE_INSTANCEOF        2
+#define STRUCTURE_ITEM_TYPE_UNION             3
+#define STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF 4
 
 struct structure_item {
   char name[MAX_NAME_LENGTH + 1];

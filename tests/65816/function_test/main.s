@@ -538,32 +538,32 @@ _0x301:
             2 ; @BT 08
         .db "<25"                 ; @BT END
 
-        .db "26>"                 ; @BT TEST-26 26 START
-        .db atan2(4.0, 1.0*1.0)*4 ; @BT 05
-        .db atan2(VALUE_4, 1.0*1.0)*4 ; @BT 05
-        .db min(VALUE_4, 1.0*1.0)*4   ; @BT 04
-        .db tan(100)*10           ; @BT FB
-        .db -tan(100)*10          ; @BT 05
-        .db ceil(-tan(100)*10)    ; @BT 06
+        .db "26>"                      ; @BT TEST-26 26 START
+        .db atan2(4.0, 1.0*1.0)*4      ; @BT 05
+        .db atan2(VALUE_4, 1.0*1.0)*4  ; @BT 05
+        .db min(VALUE_4, 1.0*1.0)*4    ; @BT 04
+        .db tan(100)*10                ; @BT FB
+        .db -tan(100)*10               ; @BT 05
+        .db ceil(-tan(100)*10)         ; @BT 06
         .db tan(VALUE_1*100)*10        ; @BT FB
         .db -tan(VALUE_1*100)*10       ; @BT 05
         .db ceil(-tan(VALUE_1*100)*10) ; @BT 06
-        .db "<26"                 ; @BT END
+        .db "<26"                      ; @BT END
         
-        .db "27>"               ; @BT TEST-27 27 START
-        .db cosh(0.2)*5         ; @BT 05
-        .db -cosh(0.2)*2        ; @BT FE
-        .db cosh(VALUE_1/5)*5      ; @BT 05
-        .db -cosh(VALUE_15/15/5)*2 ; @BT FE
-        .db sinh(0.2)*5         ; @BT 01
-        .db -sinh(0.2)*10       ; @BT FE
+        .db "27>"                    ; @BT TEST-27 27 START
+        .db cosh(0.2)*5              ; @BT 05
+        .db -cosh(0.2)*2             ; @BT FE
+        .db cosh(VALUE_1/5)*5        ; @BT 05
+        .db -cosh(VALUE_15/15/5)*2   ; @BT FE
+        .db sinh(0.2)*5              ; @BT 01
+        .db -sinh(0.2)*10            ; @BT FE
         .db sinh(VALUE_1/5)*5*5      ; @BT 05
         .db -sinh(VALUE_15/15/5)*5*2 ; @BT FE
-        .db tanh(0.2)*6         ; @BT 01
-        .db -tanh(0.2)*10       ; @BT FF
+        .db tanh(0.2)*6              ; @BT 01
+        .db -tanh(0.2)*10            ; @BT FF
         .db tanh(VALUE_1/5)*5*5      ; @BT 04
         .db -tanh(VALUE_15/15/5)*5*2 ; @BT FF
-        .db "<27"               ; @BT END
+        .db "<27"                    ; @BT END
 
         .db "28>"                 ; @BT TEST-28 28 START
         .db log(20)*2             ; @BT 05
@@ -577,6 +577,25 @@ _0x301:
         .db pow(2.5,2.1)          ; @BT 06
         .db -pow(2.5,2.1)         ; @BT FA
         .db pow(VALUE_1*2.5,
-                VALUE_1*2.1)*1 ; @BT 06
+                VALUE_1*2.1)*1    ; @BT 06
         .db -pow(VALUE_15/15*2.5,VALUE_16/16*2.1)*1 ; @BT FA
-        .db "<28"               ; @BT END
+        .db "<28"                 ; @BT END
+
+        .macro myAtan2
+        .db atan2(\1, \2*1.0)*4
+        .endm
+
+        .macro myCosh
+        .db cosh(\1)*5
+        .endm
+
+        .db "29>"                 ; @BT TEST-29 29 START
+        myAtan2(4.0, 1.0)         ; @BT 05
+        myAtan2(4.0+0, 1.0*1.0)   ; @BT 05
+        myAtan2(VALUE_4, VALUE_1) ; @BT 05
+        myAtan2(VALUE_4*1, VALUE_1-1+1) ; @BT 05
+        myCosh(0.2)               ; @BT 05
+        myCosh(0.2*1.0)           ; @BT 05
+        myCosh(VALUE_1/5)         ; @BT 05
+        .db "<29"                 ; @BT END
+        

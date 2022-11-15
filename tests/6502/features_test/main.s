@@ -254,4 +254,27 @@ this_is_a_long_label:
         .define BYTES3 BYTES (1+1) BYTES "HI" BYTES
         .db BYTES3              ; @BT 01 00 02 02 01 00 02 48 49 01 00 02
         .db "<22"               ; @BT END
+
+
+        .struct inside_struct size 4
+        data3 db
+        data4 db
+        .endst
         
+        .struct my_struct
+        data1 db
+        data2 db
+        datas instanceof inside_struct
+        .endst
+
+        .enum 0 export
+        yello db
+        foo .dsb 8
+        bar .instanceof my_struct count 2 // size 8
+        baz .db
+        qux .dw
+        quux .dsb 1
+        corge .dsw 1
+        dataA dsb 16
+        dataB db
+        .ende

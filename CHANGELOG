@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.4 (11-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
+v10.4 (15-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
                       than used in a pending calculation, WLA can now solve
                       the pending calculation before exporting it to WLALINK.
                     [ALL] Added .SEEDRANDOM (seeds random number generator
@@ -21,6 +21,8 @@ v10.4 (11-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
                     [ALL] When using a .FUNCTION the result was rounded to
                       an integer - not any more.
                     [ALL] .FUNCTION body can now be a single argument.
+                    [ALL] Built-in (and .FUNCTION) arguments can now be put on
+                      multiple lines.
                     [ALL] We now use ANSI C's tmpfile() to create tmp files.
                       This should allow multiple concurrent instances of WLA to
                       run in the same directory at the same time.
@@ -38,6 +40,7 @@ v10.4 (11-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
                       pending calculations ignored the sign.
                     [ALL] Negating calculations inside parentheses should now
                       work in every case.
+                    [ALL] Dotted .INSTANCEOF works now in .ENUMs.
 
 v10.3 (02-Oct-2022) [ALL] Improved parser for .HEX, and added BLOCK to .HEX.
                     [ALL] "\\" should now work inside strings.
