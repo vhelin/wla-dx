@@ -598,4 +598,64 @@ _0x301:
         myCosh(0.2*1.0)           ; @BT 05
         myCosh(VALUE_1/5)         ; @BT 05
         .db "<29"                 ; @BT END
+
+        .db "30>"               ; @BT TEST-30 30 START
+        .db sign(101.1)         ; @BT 01
+        .db sign(-101.1)        ; @BT FF
+        .db sign(0.0)           ; @BT 00
+        .db sign(101.1-101)     ; @BT 01
+        .db sign(-101.1+101)    ; @BT FF
+        .db sign(3-2-1)         ; @BT 00
+        .db clamp(100, 1, 2)    ; @BT 02
+        .db clamp(-100, 1, 2)   ; @BT 01
+        .db clamp(3, 1, 5)      ; @BT 03
+        .db sign(VALUE_15)      ; @BT 01
+        .db sign(-VALUE_15)     ; @BT FF
+        .db sign(VALUE_15-VALUE_15)  ; @BT 00
+        .db sign(VALUE_16-VALUE_15)  ; @BT 01
+        .db sign(-VALUE_16+VALUE_15) ; @BT FF
+        .db sign(VALUE_16-VALUE_15-VALUE_1) ; @BT 00
+        .db clamp(VALUE_15, 1, 2)    ; @BT 02
+        .db clamp(-VALUE_15, 1, 2)   ; @BT 01
+        .db clamp(VALUE_3, 1, 5)     ; @BT 03
+        .db sign(VALUE_15+0)      ; @BT 01
+        .db sign(-VALUE_15+0)     ; @BT FF
+        .db sign(VALUE_15-VALUE_15+0)  ; @BT 00
+        .db sign(VALUE_16-VALUE_15+0)  ; @BT 01
+        .db sign(-VALUE_16+VALUE_15+0) ; @BT FF
+        .db sign(VALUE_16-VALUE_15-VALUE_1+0) ; @BT 00
+        .db clamp(VALUE_15, VALUE_4-VALUE_3, VALUE_5-VALUE_3)  ; @BT 02
+        .db clamp(-VALUE_15, VALUE_4-VALUE_3, VALUE_5-VALUE_3) ; @BT 01
+        .db clamp(VALUE_3, VALUE_4-VALUE_3, VALUE_4+VALUE_1)   ; @BT 03
+        .db "<30"               ; @BT END
+
+        .db "31>"                ; @BT TEST-31 31 START
+        .db -sign(101.1)         ; @BT FF
+        .db -sign(-101.1)        ; @BT 01
+        .db -sign(0.0)           ; @BT 00
+        .db -sign(101.1-101)     ; @BT FF
+        .db -sign(-101.1+101)    ; @BT 01
+        .db -sign(3-2-1)         ; @BT 00
+        .db -clamp(100, 1, 2)    ; @BT FE
+        .db -clamp(-100, 1, 2)   ; @BT FF
+        .db -clamp(3, 1, 5)      ; @BT FD
+        .db -sign(VALUE_15)      ; @BT FF
+        .db -sign(-VALUE_15)     ; @BT 01
+        .db -sign(VALUE_15-VALUE_15)  ; @BT 00
+        .db -sign(VALUE_16-VALUE_15)  ; @BT FF
+        .db -sign(-VALUE_16+VALUE_15) ; @BT 01
+        .db -sign(VALUE_16-VALUE_15-VALUE_1) ; @BT 00
+        .db -clamp(VALUE_15, 1, 2)    ; @BT FE
+        .db -clamp(-VALUE_15, 1, 2)   ; @BT FF
+        .db -clamp(VALUE_3, 1, 5)     ; @BT FD
+        .db -sign(VALUE_15+0)      ; @BT FF
+        .db -sign(-VALUE_15+0)     ; @BT 01
+        .db -sign(VALUE_15-VALUE_15+0)  ; @BT 00
+        .db -sign(VALUE_16-VALUE_15+0)  ; @BT FF
+        .db -sign(-VALUE_16+VALUE_15+0) ; @BT 01
+        .db -sign(VALUE_16-VALUE_15-VALUE_1+0) ; @BT 00
+        .db -clamp(VALUE_15, VALUE_4-VALUE_3, VALUE_5-VALUE_3)  ; @BT FE
+        .db -clamp(-VALUE_15, VALUE_4-VALUE_3, VALUE_5-VALUE_3) ; @BT FF
+        .db -clamp(VALUE_3, VALUE_4-VALUE_3, VALUE_4+VALUE_1)   ; @BT FD
+        .db "<31"                ; @BT END
         

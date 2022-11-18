@@ -361,6 +361,8 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
             value == SI_OP_HIGH_WORD ||
             value == SI_OP_BANK_BYTE ||
             value == SI_OP_BANK ||
+            value == SI_OP_CLAMP ||
+            value == SI_OP_SIGN ||
             value == SI_OP_ABS))
         add_sign = NO;
     }
@@ -442,6 +444,10 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
         printf("log10(a)");
       else if (value == SI_OP_POW)
         printf("pow(a,b)");
+      else if (value == SI_OP_CLAMP)
+        printf("pow(v,min,max)");
+      else if (value == SI_OP_SIGN)
+        printf("sign(a)");
       else {
         if (value >= (int)strlen(ar)) {
           printf("ERROR!\n");
@@ -540,6 +546,8 @@ static struct stack_item_priority_item g_stack_item_priority_items[] = {
   { SI_OP_LOG, 110 },
   { SI_OP_LOG10, 110 },
   { SI_OP_POW, 110 },
+  { SI_OP_CLAMP, 110 },
+  { SI_OP_SIGN, 110 },
   { SI_OP_NOT, 120 },
   { 999, 999 }
 };
@@ -756,6 +764,63 @@ static int _parse_function_exists(char *in, int *result, int *parsed_chars) {
 }
 
 
+static int _parse_function_math1(char *in, int *type, double *value, char *string, int *parsed_chars, char *name) {
+
+  int res, source_pointer_original = g_source_pointer, source_pointer_backup, input_float_mode = g_input_float_mode;
+  
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_pointer for input_number() */
+
+  g_source_pointer = (int)(in - g_buffer);
+  source_pointer_backup = g_source_pointer;
+
+  if (g_buffer[g_source_pointer] == ')') {
+    print_error(ERROR_STC, "%s is missing argument 1!\n", name);
+    return FAILED;
+  }
+  
+  g_input_float_mode = ON;
+  res = input_number();
+  while (res == INPUT_NUMBER_EOL) {
+    next_line();
+    res = input_number();
+  }
+  g_input_float_mode = input_float_mode;
+
+  *type = res;
+  if (res == SUCCEEDED)
+    *value = g_parsed_int;
+  else if (res == INPUT_NUMBER_FLOAT)
+    *value = g_parsed_double;
+  else if (res == INPUT_NUMBER_ADDRESS_LABEL)
+    strcpy(string, g_label);
+  else if (res == INPUT_NUMBER_STACK)
+    *value = g_latest_stack;
+  else if (res == FAILED)
+    return FAILED;
+  else {
+    print_error(ERROR_STC, "Unhandled result type %d of argument 1 in %s!\n", res, name);
+    return FAILED;
+  }
+
+  if (g_buffer[g_source_pointer] != ')') {
+    print_error(ERROR_NUM, "Malformed \"%s\" detected!\n", name);
+    return FAILED;
+  }
+
+  /* skip ')' */
+  g_source_pointer++;
+
+  /* count the parsed chars */
+  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+
+  /* return g_source_pointer */
+  g_source_pointer = source_pointer_original;
+  
+  return SUCCEEDED;
+}
+
+
 static int _parse_function_math2(char *in, int *type_a, int *type_b, double *value_a, double *value_b, char *string_a, char *string_b, int *parsed_chars, char *name) {
 
   int res, source_pointer_original = g_source_pointer, source_pointer_backup, input_float_mode = g_input_float_mode;
@@ -786,12 +851,12 @@ static int _parse_function_math2(char *in, int *type_a, int *type_b, double *val
   else if (res == FAILED)
     return FAILED;
   else {
-    print_error(ERROR_STC, "Unhandled result type %d of argument a in %s!\n", res, name);
+    print_error(ERROR_STC, "Unhandled result type %d of argument 1 in %s!\n", res, name);
     return FAILED;
   }
 
   if (g_buffer[g_source_pointer] == ')') {
-    print_error(ERROR_STC, "%s is missing argument b!\n", name);
+    print_error(ERROR_STC, "%s is missing argument 2!\n", name);
     return FAILED;
   }
   
@@ -815,7 +880,7 @@ static int _parse_function_math2(char *in, int *type_a, int *type_b, double *val
   else if (res == FAILED)
     return FAILED;
   else {
-    print_error(ERROR_STC, "Unhandled result type %d of argument b in %s!\n", res, name);
+    print_error(ERROR_STC, "Unhandled result type %d of argument 2 in %s!\n", res, name);
     return FAILED;
   }
   
@@ -837,7 +902,7 @@ static int _parse_function_math2(char *in, int *type_a, int *type_b, double *val
 }
 
 
-static int _parse_function_math1(char *in, int *type, double *value, char *string, int *parsed_chars, char *name) {
+static int _parse_function_math3(char *in, int *type_a, int *type_b, int *type_c, double *value_a, double *value_b, double *value_c, char *string_a, char *string_b, char *string_c, int *parsed_chars, char *name) {
 
   int res, source_pointer_original = g_source_pointer, source_pointer_backup, input_float_mode = g_input_float_mode;
   
@@ -847,12 +912,36 @@ static int _parse_function_math1(char *in, int *type, double *value, char *strin
   g_source_pointer = (int)(in - g_buffer);
   source_pointer_backup = g_source_pointer;
 
+  /* a */
+  g_input_float_mode = ON;
+  res = input_number();
+  while (res == INPUT_NUMBER_EOL) {
+    next_line();
+    res = input_number();
+  }
+  
+  *type_a = res;
+  if (res == SUCCEEDED)
+    *value_a = g_parsed_int;
+  else if (res == INPUT_NUMBER_FLOAT)
+    *value_a = g_parsed_double;
+  else if (res == INPUT_NUMBER_ADDRESS_LABEL)
+    strcpy(string_a, g_label);
+  else if (res == INPUT_NUMBER_STACK)
+    *value_a = g_latest_stack;
+  else if (res == FAILED)
+    return FAILED;
+  else {
+    print_error(ERROR_STC, "Unhandled result type %d of argument 1 in %s!\n", res, name);
+    return FAILED;
+  }
+
   if (g_buffer[g_source_pointer] == ')') {
-    print_error(ERROR_STC, "%s is missing argument a!\n", name);
+    print_error(ERROR_STC, "%s is missing argument 2!\n", name);
     return FAILED;
   }
   
-  g_input_float_mode = ON;
+  /* b */
   res = input_number();
   while (res == INPUT_NUMBER_EOL) {
     next_line();
@@ -860,22 +949,51 @@ static int _parse_function_math1(char *in, int *type, double *value, char *strin
   }
   g_input_float_mode = input_float_mode;
 
-  *type = res;
+  *type_b = res;
   if (res == SUCCEEDED)
-    *value = g_parsed_int;
+    *value_b = g_parsed_int;
   else if (res == INPUT_NUMBER_FLOAT)
-    *value = g_parsed_double;
+    *value_b = g_parsed_double;
   else if (res == INPUT_NUMBER_ADDRESS_LABEL)
-    strcpy(string, g_label);
+    strcpy(string_b, g_label);
   else if (res == INPUT_NUMBER_STACK)
-    *value = g_latest_stack;
+    *value_b = g_latest_stack;
   else if (res == FAILED)
     return FAILED;
   else {
-    print_error(ERROR_STC, "Unhandled result type %d of argument a in %s!\n", res, name);
+    print_error(ERROR_STC, "Unhandled result type %d of argument 2 in %s!\n", res, name);
     return FAILED;
   }
 
+  if (g_buffer[g_source_pointer] == ')') {
+    print_error(ERROR_STC, "%s is missing argument 3!\n", name);
+    return FAILED;
+  }
+  
+  /* c */
+  res = input_number();
+  while (res == INPUT_NUMBER_EOL) {
+    next_line();
+    res = input_number();
+  }
+  g_input_float_mode = input_float_mode;
+
+  *type_c = res;
+  if (res == SUCCEEDED)
+    *value_c = g_parsed_int;
+  else if (res == INPUT_NUMBER_FLOAT)
+    *value_c = g_parsed_double;
+  else if (res == INPUT_NUMBER_ADDRESS_LABEL)
+    strcpy(string_c, g_label);
+  else if (res == INPUT_NUMBER_STACK)
+    *value_c = g_latest_stack;
+  else if (res == FAILED)
+    return FAILED;
+  else {
+    print_error(ERROR_STC, "Unhandled result type %d of argument 3 in %s!\n", res, name);
+    return FAILED;
+  }
+  
   if (g_buffer[g_source_pointer] != ')') {
     print_error(ERROR_NUM, "Malformed \"%s\" detected!\n", name);
     return FAILED;
@@ -984,6 +1102,77 @@ static int _parse_function_math2_base(char **in, struct stack_item *si, int *q, 
     si[*q].value = value_b;
   }
 
+  return SUCCEEDED;
+}
+
+
+static int _parse_function_math3_base(char **in, struct stack_item *si, int *q, char *name, int operator) {
+
+  int parsed_chars = 0, type_a = -1, type_b = -1, type_c = -1;
+  char string_a[MAX_NAME_LENGTH + 1], string_b[MAX_NAME_LENGTH + 1], string_c[MAX_NAME_LENGTH + 1];
+  double value_a = 0, value_b = 0, value_c = 0;
+
+  if (_parse_function_math3(*in, &type_a, &type_b, &type_c, &value_a, &value_b, &value_c, string_a, string_b, string_c, &parsed_chars, name) == FAILED)
+    return FAILED;
+  *in += parsed_chars;
+
+  si[*q].type = STACK_ITEM_TYPE_OPERATOR;
+  si[*q].value = operator;
+  si[*q].sign = SI_SIGN_POSITIVE;
+  
+  (*q)++;
+
+  if (*q+3 >= MAX_STACK_CALCULATOR_ITEMS-1) {
+    print_error(ERROR_STC, "Out of stack space. Adjust MAX_STACK_CALCULATOR_ITEMS in defines.h and recompile WLA!\n");
+    return FAILED;
+  }
+
+  si[*q].sign = SI_SIGN_POSITIVE;
+  if (type_a == SUCCEEDED || type_a == INPUT_NUMBER_FLOAT) {
+    si[*q].type = STACK_ITEM_TYPE_VALUE;
+    si[*q].value = value_a;
+  }
+  else if (type_a == INPUT_NUMBER_ADDRESS_LABEL) {
+    si[*q].type = STACK_ITEM_TYPE_LABEL;
+    strcpy(si[*q].string, string_a);
+  }
+  else if (type_a == INPUT_NUMBER_STACK) {
+    si[*q].type = STACK_ITEM_TYPE_STACK;
+    si[*q].value = value_a;
+  }
+
+  (*q)++;
+
+  si[*q].sign = SI_SIGN_POSITIVE;
+  if (type_b == SUCCEEDED || type_b == INPUT_NUMBER_FLOAT) {
+    si[*q].type = STACK_ITEM_TYPE_VALUE;
+    si[*q].value = value_b;
+  }
+  else if (type_b == INPUT_NUMBER_ADDRESS_LABEL) {
+    si[*q].type = STACK_ITEM_TYPE_LABEL;
+    strcpy(si[*q].string, string_b);
+  }
+  else if (type_b == INPUT_NUMBER_STACK) {
+    si[*q].type = STACK_ITEM_TYPE_STACK;
+    si[*q].value = value_b;
+  }
+
+  (*q)++;
+
+  si[*q].sign = SI_SIGN_POSITIVE;
+  if (type_c == SUCCEEDED || type_c == INPUT_NUMBER_FLOAT) {
+    si[*q].type = STACK_ITEM_TYPE_VALUE;
+    si[*q].value = value_c;
+  }
+  else if (type_c == INPUT_NUMBER_ADDRESS_LABEL) {
+    si[*q].type = STACK_ITEM_TYPE_LABEL;
+    strcpy(si[*q].string, string_c);
+  }
+  else if (type_c == INPUT_NUMBER_STACK) {
+    si[*q].type = STACK_ITEM_TYPE_STACK;
+    si[*q].value = value_c;
+  }
+  
   return SUCCEEDED;
 }
 
@@ -1769,6 +1958,18 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_already_processed_function = YES;
           break;
         }
+        else if (k == 4 && strcaselesscmpn(si[q].string, "sign(", 5) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "sign(a)", SI_OP_SIGN) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 5 && strcaselesscmpn(si[q].string, "clamp(", 6) == 0) {
+          if (_parse_function_math3_base(&in, si, &q, "clamp(v,min,max)", SI_OP_CLAMP) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
         else if (k == 5 && strcaselesscmpn(si[q].string, "atan2(", 6) == 0) {
           if (_parse_function_math2_base(&in, si, &q, "atan2(a,b)", SI_OP_ATAN2) == FAILED)
             return FAILED;
@@ -2101,6 +2302,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
            si[k + 1].value == SI_OP_LOG ||
            si[k + 1].value == SI_OP_LOG10 ||
            si[k + 1].value == SI_OP_POW ||
+           si[k + 1].value == SI_OP_CLAMP ||
+           si[k + 1].value == SI_OP_SIGN ||
            si[k + 1].value == SI_OP_SQRT)) {
         if (k == 0 || (si[k - 1].type == STACK_ITEM_TYPE_OPERATOR && si[k - 1].value == SI_OP_LEFT)) {
           si[k].type = STACK_ITEM_TYPE_DELETED;
@@ -2146,6 +2349,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           si[k + 1].value != SI_OP_LOG &&
           si[k + 1].value != SI_OP_LOG10 &&
           si[k + 1].value != SI_OP_POW &&
+          si[k + 1].value != SI_OP_CLAMP &&
+          si[k + 1].value != SI_OP_SIGN &&
           si[k + 1].value != SI_OP_SQRT) {
         if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
 #ifdef WLA_DEBUG
@@ -3175,6 +3380,27 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         if (s->sign == SI_SIGN_NEGATIVE)
           v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
+        break;
+      case SI_OP_SIGN:
+        if (v[t - 1] == 0.0)
+          v[t - 1] = 0.0;
+        else if (v[t - 1] < 0.0)
+          v[t - 1] = -1.0;
+        else
+          v[t - 1] = 1.0;
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_CLAMP:
+        if (v[t - 3] < v[t - 2])
+          v[t - 3] = v[t - 2];
+        else if (v[t - 3] > v[t - 1])
+          v[t - 3] = v[t - 1];
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 3] = -v[t - 3];
+        sp[t - 3] = NULL;
+        t -= 2;
         break;
       case SI_OP_COS:
         v[t - 1] = cos(v[t - 1]);

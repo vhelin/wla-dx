@@ -2824,6 +2824,26 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
           v_rom[t - 1] = -v_rom[t - 1];
         }
         break;
+      case SI_OP_SIGN:
+        if (v_ram[t - 1] == 0.0)
+          v_ram[t - 1] = 0.0;
+        else if (v_ram[t - 1] < 0.0)
+          v_ram[t - 1] = -1.0;
+        else
+          v_ram[t - 1] = 1.0;
+
+        if (v_rom[t - 1] == 0.0)
+          v_rom[t - 1] = 0.0;
+        else if (v_rom[t - 1] < 0.0)
+          v_rom[t - 1] = -1.0;
+        else
+          v_rom[t - 1] = 1.0;
+        
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
+        break;
       case SI_OP_COS:
         v_ram[t - 1] = cos(v_ram[t - 1]);
         v_rom[t - 1] = cos(v_rom[t - 1]);
@@ -2904,6 +2924,24 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
           v_rom[t - 2] = -v_rom[t - 2];
         }
         t--;
+        break;
+      case SI_OP_CLAMP:
+        if (v_ram[t - 3] < v_ram[t - 2])
+          v_ram[t - 3] = v_ram[t - 2];
+        else if (v_ram[t - 3] > v_ram[t - 1])
+          v_ram[t - 3] = v_ram[t - 1];
+
+        if (v_rom[t - 3] < v_rom[t - 2])
+          v_rom[t - 3] = v_rom[t - 2];
+        else if (v_rom[t - 3] > v_rom[t - 1])
+          v_rom[t - 3] = v_rom[t - 1];
+        
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 3] = -v_ram[t - 3];
+          v_rom[t - 3] = -v_rom[t - 3];
+        }
+        
+        t -= 2;
         break;
       case SI_OP_POW:
         v_ram[t - 2] = pow(v_ram[t - 2], v_ram[t - 1]);

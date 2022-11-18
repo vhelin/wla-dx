@@ -26,6 +26,7 @@ atan2()    The same as ANSI C90 atan2()
 bank()     Returns the bank (the same as preceding ``:``)
 bankbyte() Returns the bank byte, bits 16-23
 ceil()     The same as ANSI C90 ceil()
+clamp()    Takes three arguments, value, min and max, clamps the value between min and max
 cos()      The same as ANSI C90 cos()
 cosh()     The same as ANSI C90 cosh()
 defined()  Returns 1 (true) if the supplied definition exists, 0 (false) otherwise
@@ -37,11 +38,12 @@ lobyte()   Returns the low byte, bits 0-7 (the same as preceding ``<``)
 log()      The same as ANSI C90 log()
 log10()    The same as ANSI C90 log10()
 loword()   Returns the low word, bits 0-15
-max()      Takes two arguments, a and b, return the bigger value
+max()      Takes two arguments, a and b, returns the bigger value
 min()      Takes two arguments, a and b, returns the smaller value
 pow()      The same as ANSI C90 pow()
 random()   Takes two arguments, min and max, returns a pseudo random integer like ``.DBRND``
 round()    The same as ANSI C99 round()
+sign()     Return 0 if the supplied value is 0, -1 if negative and 1 if positive
 sin()      The same as ANSI C90 sin()
 sinh()     The same as ANSI C90 sinh()
 sqrt()     Returns the square root of the supplied value

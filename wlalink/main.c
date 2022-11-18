@@ -126,6 +126,8 @@ static const char *g_si_operator_atan2 = "atan2(a,b)";
 static const char *g_si_operator_log = "log(a)";
 static const char *g_si_operator_log10 = "log10(a)";
 static const char *g_si_operator_pow = "pow(a,b)";
+static const char *g_si_operator_sign = "sign(a)";
+static const char *g_si_operator_clamp = "clamp(v,min,max)";
 
 const char *get_stack_item_operator_name(int operator) {
 
@@ -223,6 +225,10 @@ const char *get_stack_item_operator_name(int operator) {
     return g_si_operator_log10;
   else if (operator == SI_OP_POW)
     return g_si_operator_pow;
+  else if (operator == SI_OP_SIGN)
+    return g_si_operator_sign;
+  else if (operator == SI_OP_CLAMP)
+    return g_si_operator_clamp;
   
   fprintf(stderr, "\n");
   fprintf(stderr, "get_stack_item_operator_name(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", operator);
