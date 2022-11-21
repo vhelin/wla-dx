@@ -793,13 +793,13 @@ int generate_extra_definitions(void) {
     }
   }
   
-  if (add_a_new_definition("WLA_TIME", 0.0, tmp, DEFINITION_TYPE_STRING, (int)strlen("WLA_TIME")) == FAILED)
+  if (add_a_new_definition("WLA_TIME", 0.0, tmp, DEFINITION_TYPE_STRING, (int)strlen(tmp)) == FAILED)
     return FAILED;
-  if (add_a_new_definition("wla_time", 0.0, tmp, DEFINITION_TYPE_STRING, (int)strlen("wla_time")) == FAILED)
+  if (add_a_new_definition("wla_time", 0.0, tmp, DEFINITION_TYPE_STRING, (int)strlen(tmp)) == FAILED)
     return FAILED;
-  if (add_a_new_definition("WLA_VERSION", 0.0, g_wla_version, DEFINITION_TYPE_STRING, (int)strlen("WLA_VERSION")) == FAILED)
+  if (add_a_new_definition("WLA_VERSION", 0.0, g_wla_version, DEFINITION_TYPE_STRING, (int)strlen(g_wla_version)) == FAILED)
     return FAILED;
-  if (add_a_new_definition("wla_version", 0.0, g_wla_version, DEFINITION_TYPE_STRING, (int)strlen("wla_version")) == FAILED)
+  if (add_a_new_definition("wla_version", 0.0, g_wla_version, DEFINITION_TYPE_STRING, (int)strlen(g_wla_version)) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
