@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------
 
-v10.4 (18-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
+v10.4 (24-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
                       than used in a pending calculation, WLA can now solve
                       the pending calculation before exporting it to WLALINK.
                     [ALL] Added .SEEDRANDOM (seeds random number generator
@@ -1465,7 +1465,7 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.19 (01-Nov-2022) WLALINK turned doubles into ints too early in computing
+v5.19 (24-Nov-2022) WLALINK turned doubles into ints too early in computing
                       pending calculations on some cases thus losing
                       precision.
 
