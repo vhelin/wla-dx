@@ -1063,7 +1063,7 @@ int pass_4(void) {
           }
           o = o >> 1;
         }
-        
+
         /* create a what-we-are-doing message for mem_insert*() warnings/errors */
         snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing an 8-bit computation", get_file_name(g_filename_id), g_line_number);
 

@@ -3182,7 +3182,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
   sta->under_work = NO;
 
   /*
-    printf("RESULT: %d (RAM) %d (ROM)\n", sta->result_ram, sta->result_rom);
+    printf("RESULT: %f (RAM) %f (ROM)\n", sta->result_ram, sta->result_rom);
   */
 
   return SUCCEEDED;

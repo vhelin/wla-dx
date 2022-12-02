@@ -211,3 +211,36 @@ label_224:
         .db "<12"                                            ; @BT END
         .ends
 
+        .org $500
+
+        .db "13>"               ; @BT TEST-13 13 START
+        .dsb 4, <label          ; @BT 16 16 16 16
+        .dsb 4, <definition     ; @BT 89 89 89 89
+        .dsb 4, definition & 0xff ; @BT 89 89 89 89
+        .dsb 4, 1 + 2             ; @BT 03 03 03 03
+        .db "<13"                 ; @BT END
+
+label:
+        
+        .db "14>"               ; @BT TEST-14 14 START
+        .dsw 4, <label          ; @BT 16 00 16 00 16 00 16 00
+        .dsw 4, <definition     ; @BT 89 00 89 00 89 00 89 00
+        .dsw 4, definition & 0xff ; @BT 89 00 89 00 89 00 89 00
+        .dsw 4, 1 + 2             ; @BT 03 00 03 00 03 00 03 00
+        .db "<14"                 ; @BT END
+
+        .db "15>"               ; @BT TEST-15 15 START
+        .dsl 4, <label          ; @BT 16 00 00 16 00 00 16 00 00 16 00 00
+        .dsl 4, <definition     ; @BT 89 00 00 89 00 00 89 00 00 89 00 00
+        .dsl 4, definition & 0xff ; @BT 89 00 00 89 00 00 89 00 00 89 00 00
+        .dsl 4, 1 + 2             ; @BT 03 00 00 03 00 00 03 00 00 03 00 00
+        .db "<15"                 ; @BT END
+
+        .db "16>"               ; @BT TEST-16 16 START
+        .dsd 4, <label          ; @BT 16 00 00 00 16 00 00 00 16 00 00 00 16 00 00 00
+        .dsd 4, <definition     ; @BT 89 00 00 00 89 00 00 00 89 00 00 00 89 00 00 00
+        .dsd 4, definition & 0xff ; @BT 89 00 00 00 89 00 00 00 89 00 00 00 89 00 00 00
+        .dsd 4, 1 + 2             ; @BT 03 00 00 00 03 00 00 00 03 00 00 00 03 00 00 00
+        .db "<16"                 ; @BT END
+        
+        .define definition $6789

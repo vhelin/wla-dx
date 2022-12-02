@@ -3219,8 +3219,16 @@ int directive_dsl(void) {
       fprintf(g_file_out_ptr, "q%s ", g_label);
   }
   else if (q == INPUT_NUMBER_STACK) {
-    for (q = 0; q < parsed_int; q++)
-      fprintf(g_file_out_ptr, "T%d ", g_latest_stack);
+    int latest_stack = g_latest_stack;
+    
+    for (q = 0; q < parsed_int; q++) {
+      if (q == 0)
+        fprintf(g_file_out_ptr, "T%d ", latest_stack);
+      else {
+        stack_create_stack_stack(latest_stack);
+        fprintf(g_file_out_ptr, "T%d ", g_latest_stack);
+      }
+    }
   }
 
   return SUCCEEDED;
@@ -3309,8 +3317,16 @@ int directive_dsd(void) {
       fprintf(g_file_out_ptr, "V%s ", g_label);
   }
   else if (q == INPUT_NUMBER_STACK) {
-    for (q = 0; q < parsed_int; q++)
-      fprintf(g_file_out_ptr, "U%d ", g_latest_stack);
+    int latest_stack = g_latest_stack;
+    
+    for (q = 0; q < parsed_int; q++) {
+      if (q == 0)
+        fprintf(g_file_out_ptr, "U%d ", latest_stack);
+      else {
+        stack_create_stack_stack(latest_stack);
+        fprintf(g_file_out_ptr, "U%d ", g_latest_stack);
+      }
+    }
   }
 
   return SUCCEEDED;
@@ -3988,8 +4004,16 @@ int directive_dsb_ds(void) {
       fprintf(g_file_out_ptr, "R%s ", g_label);
   }
   else if (q == INPUT_NUMBER_STACK) {
-    for (q = 0; q < parsed_int; q++)
-      fprintf(g_file_out_ptr, "c%d ", g_latest_stack);
+    int latest_stack = g_latest_stack;
+    
+    for (q = 0; q < parsed_int; q++) {
+      if (q == 0)
+        fprintf(g_file_out_ptr, "c%d ", latest_stack);
+      else {
+        stack_create_stack_stack(latest_stack);
+        fprintf(g_file_out_ptr, "c%d ", g_latest_stack);
+      }
+    }
   }
 
   return SUCCEEDED;
@@ -4035,8 +4059,16 @@ int directive_dsw(void) {
       fprintf(g_file_out_ptr, "r%s ", g_label);
   }
   else if (q == INPUT_NUMBER_STACK) {
-    for (q = 0; q < parsed_int; q++)
-      fprintf(g_file_out_ptr, "C%d ", g_latest_stack);
+    int latest_stack = g_latest_stack;
+    
+    for (q = 0; q < parsed_int; q++) {
+      if (q == 0)
+        fprintf(g_file_out_ptr, "C%d ", latest_stack);
+      else {
+        stack_create_stack_stack(latest_stack);
+        fprintf(g_file_out_ptr, "C%d ", g_latest_stack);
+      }
+    }
   }
 
   return SUCCEEDED;
