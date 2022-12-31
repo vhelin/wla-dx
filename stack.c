@@ -3966,7 +3966,7 @@ int stack_add_offset_plus_n_to_stack(int id, int n) {
   si->is_in_postfix = YES;
 
 #if WLA_DEBUG
-  debug_print_stack(stack->linenumber, id, stack->stack_items, 5, -1, stack);
+  debug_print_stack(stack->linenumber, id, stack->stack_items, stack->stacksize, -1, stack);
 #endif
 
   return SUCCEEDED;
