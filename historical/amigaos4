@@ -57,6 +57,10 @@ make -f makefiles/makefile.amiga.huc6280
 move wla-huc6280 TO binaries
 
 make -f makefiles/makefile.amiga.huc6280 clean
+make -f makefiles/makefile.amiga.68000
+move wla-68000 TO binaries
+
+make -f makefiles/makefile.amiga.68000 clean
 make -f makefiles/makefile.amiga.6800
 move wla-6800 TO binaries
 

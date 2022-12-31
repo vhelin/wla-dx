@@ -18,6 +18,13 @@ void delete_stack_calculation_struct(struct stack *s);
 struct stack *find_stack_calculation(int id, int print_error_message);
 struct stack *allocate_struct_stack(int items);
 
+#if defined(MC68000)
+int stack_create_stack_caddr_offset(int type, int data, char *label);
+int stack_create_stack_caddr_offset_plus_n(int type, int data, char *label, int n);
+int stack_add_offset_plus_n_to_stack(int id, int n);
+int does_stack_contain_one_label(int id);
+#endif
+
 /* TODO: move these to their own file */
 int data_stream_parser_free(void);
 int data_stream_parser_parse(void);

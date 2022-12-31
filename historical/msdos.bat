@@ -47,6 +47,11 @@ make
 move w-65ce02.exe binaries\
 make clean
 
+copy makefiles\makefile.msdos.68000 MAKEFILE
+make
+move w-68000.exe binaries\
+make clean
+
 copy makefiles\makefile.msdos.6800 MAKEFILE
 make
 move w-6800.exe binaries\

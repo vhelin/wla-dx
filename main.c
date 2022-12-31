@@ -1,6 +1,6 @@
 
 /*
-  wla - part of wla dx gb-z80/z80/6502/65c02/6800/6801/6809/65816/huc6280/spc-700/8008/8080/SuperFX
+  wla - part of wla dx gb-z80/z80/6502/65c02/68000/6800/6801/6809/65816/huc6280/spc-700/8008/8080/SuperFX
   macro assembler package by ville helin <ville.helin@iki.fi>. this is gpl software.
 */
 
@@ -36,7 +36,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.5a (2.12.2022)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.5a (31.12.2022)";
 char g_wla_version[] = "10.5";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
   g_ext_incdirs.max_name_size_bytes = MAX_NAME_LENGTH + 1;
 
   /* select little/big endianess */
-#if defined(MC6800) || defined(MC6801) || defined(MC6809)
+#if defined(MC6800) || defined(MC6801) || defined(MC6809) || defined(MC68000)
   g_little_endian = NO;
 #else
   g_little_endian = YES;

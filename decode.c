@@ -18,7 +18,7 @@
 
 extern FILE *g_file_out_ptr;
 extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name;
-extern int g_in_enum, g_in_ramsection, g_in_struct, g_macro_id, g_sizeof_g_tmp;
+extern int g_in_enum, g_in_ramsection, g_in_struct, g_macro_id, g_sizeof_g_tmp, g_fail_quetly_on_non_found_functions;
 extern int g_ss, g_source_pointer, g_parsed_int, g_section_status, g_org_defined, g_bankheader_status, g_macro_active;
 extern int g_source_file_size, g_input_number_error_msg, g_verbose_level, g_output_format, g_open_files, g_input_parse_if;
 extern int g_last_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations, g_input_parse_special_chars;
@@ -270,21 +270,622 @@ int _parse_tiny_int(int min, int max) {
 #endif
 
 
+#ifdef MC68000
+
+static int _mc68000_size_check(int data, int size) {
+
+  if (size == B8(00000000)) {
+    /* .b */
+    if (data > 255 || data < -128) {
+      print_error(ERROR_NUM, "Out of 8-bit range.\n");
+      return FAILED;
+    }
+  }
+  else if (size == B8(00000001)) {
+    /* .w */
+    if (data > 65535 || data < -32768) {
+      print_error(ERROR_NUM, "Out of 16-bit range.\n");
+      return FAILED;
+    }
+  }
+
+  return SUCCEEDED;
+}
+
+
+static void _mc68000_emit_extra_data(int mode, int reg1, int reg2, int data_type, int data, char *label, int size) {
+
+  if (mode == B8(00000111) && reg1 == B8(00000100)) {
+    /* #<data> */
+    if (size == B8(00000000)) {
+      /* .b */
+      if (data_type == SUCCEEDED)
+        _output_assembled_instruction(g_instruction_tmp, "d0 d%d ", data);
+      else if (data_type == INPUT_NUMBER_ADDRESS_LABEL)
+        _output_assembled_instruction(g_instruction_tmp, "k%d d0 R%s ", g_active_file_info_last->line_current, label);
+      else
+        _output_assembled_instruction(g_instruction_tmp, "d0 c%d ", data);
+    }
+    else if (size == B8(00000001)) {
+      /* .w */
+      if (data_type == SUCCEEDED)
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", data);
+      else if (data_type == INPUT_NUMBER_ADDRESS_LABEL)
+        _output_assembled_instruction(g_instruction_tmp, "k%d r%s ", g_active_file_info_last->line_current, label);
+      else
+        _output_assembled_instruction(g_instruction_tmp, "C%d ", data);
+    }
+    else {
+      /* .l */
+      if (data_type == SUCCEEDED)
+        _output_assembled_instruction(g_instruction_tmp, "u%d ", data);
+      else if (data_type == INPUT_NUMBER_ADDRESS_LABEL)
+        _output_assembled_instruction(g_instruction_tmp, "k%d V%s ", g_active_file_info_last->line_current, label);
+      else
+        _output_assembled_instruction(g_instruction_tmp, "U%d ", data);
+    }
+  }
+  else if (mode == B8(00000101) || (mode == B8(00000111) && reg1 == B8(00000000))) {
+    /* 16-bit */
+    if (data_type == SUCCEEDED)
+      _output_assembled_instruction(g_instruction_tmp, "y%d ", data);
+    else if (data_type == INPUT_NUMBER_ADDRESS_LABEL)
+      _output_assembled_instruction(g_instruction_tmp, "k%d r%s ", g_active_file_info_last->line_current, label);
+    else
+      _output_assembled_instruction(g_instruction_tmp, "C%d ", data);
+  }
+  else if (mode == B8(00000111) && reg1 == B8(00000010)) {
+    /* (d16,PC) */
+    stack_create_stack_caddr_offset(data_type, data, label);
+    _output_assembled_instruction(g_instruction_tmp, "C%d ", g_latest_stack);
+  }
+  else if ((mode == B8(00000111) && reg1 == B8(00000001)) || (mode == B8(00000111) && reg1 == B8(00000100))) {
+    /* 32-bit */
+    if (data_type == SUCCEEDED)
+      _output_assembled_instruction(g_instruction_tmp, "u%d ", data);
+    else if (data_type == INPUT_NUMBER_ADDRESS_LABEL)
+      _output_assembled_instruction(g_instruction_tmp, "k%d V%s ", g_active_file_info_last->line_current, label);
+    else
+      _output_assembled_instruction(g_instruction_tmp, "U%d ", data);
+  }
+  else if (mode == B8(00000111) && reg1 == B8(00000011)) {
+    /* (d8,Dn,PC) */
+    if (data_type == SUCCEEDED)
+      _output_assembled_instruction(g_instruction_tmp, "d%d ", reg2 << 4);
+    else if (data_type == INPUT_NUMBER_ADDRESS_LABEL)
+      _output_assembled_instruction(g_instruction_tmp, "k%d d%d ", g_active_file_info_last->line_current, reg2 << 4);
+    else
+      _output_assembled_instruction(g_instruction_tmp, "d%d ", reg2 << 4);
+
+    stack_create_stack_caddr_offset_plus_n(data_type, data, label, 1);
+    _output_assembled_instruction(g_instruction_tmp, "c%d ", g_latest_stack);
+  }
+  else if (mode == B8(00000110)) {
+    /* (d8,An,Dn) */
+    if (data_type == SUCCEEDED)
+      _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", reg2 << 4, data);
+    else if (data_type == INPUT_NUMBER_ADDRESS_LABEL)
+      _output_assembled_instruction(g_instruction_tmp, "k%d d%d Q%s ", g_active_file_info_last->line_current, reg2 << 4, label);
+    else
+      _output_assembled_instruction(g_instruction_tmp, "d%d c%d ", reg2 << 4, data);
+  }
+}
+
+
+/*
+   mode  reg1  reg2  addressing mode
+   000 - nnn - ??? - Dn
+   001 - nnn - ??? - An
+   010 - nnn - ??? - (An)
+   011 - nnn - ??? - (An)+
+   100 - nnn - ??? - -(An)
+   101 - nnn - ??? - (d16,An) / d16(An)
+   110 - nnn - mmm - (d8,An,Dm)
+   111 - 000 - ??? - (xxx).W
+   111 - 001 - ??? - (xxx).L
+   111 - 100 - ??? - #<data>
+   111 - 010 - ??? - (d16,PC) / d16(PC)
+   111 - 011 - nnn - (d8,PC,Dn)
+  1000 - ??? - ??? - CCR
+  1001 - ??? - ??? - SR
+  1010 - ??? - ??? - USP
+*/
+
+static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *mode, int *data, int *data_type, char *label, unsigned int extras) {
+
+  int i = *index, saved_i, predecrement = NO, postincrement = NO, y, z;
+  char c;
+
+  *data_type = FAILED;
+
+  if (code[i] == ' ')
+    i++;
+  
+  if (code[i] == '-') {
+    predecrement = YES;
+    i++;
+  }
+
+  saved_i = i;
+  c = toupper((int)code[i]);
+
+  if (extras == YES) {
+    if (c == 'C' && toupper((int)code[i+1]) == 'C' && toupper((int)code[i+2]) == 'R' && code[i+3] == 0xA) {
+      i += 3;
+
+      *mode = B8(00001000);
+      *index = i;
+
+      return SUCCEEDED;
+    }
+    else if (c == 'S' && toupper((int)code[i+1]) == 'R' && (code[i+2] == 0xA || code[i+2] == ',')) {
+      i += 2;
+
+      *mode = B8(00001001);
+      *index = i;
+
+      return SUCCEEDED;
+    }
+    else if (c == 'U' && toupper((int)code[i+1]) == 'S' && toupper((int)code[i+2]) == 'P' && (code[i+3] == 0xA || code[i+3] == ',')) {
+      i += 3;
+
+      *mode = B8(00001010);
+      *index = i;
+
+      return SUCCEEDED;
+    }
+  }
+
+  if (c == 'A' || c == 'D') {
+    /* An OR Dn */
+    if (predecrement == YES)
+      return FAILED;
+    
+    i++;
+    if (code[i] >= '0' && code[i] <= '7') {
+      *reg1 = code[i] - '0';
+
+      i++;
+      if (code[i] == 0xA || code[i] == ',') {
+        if (c == 'A')
+          *mode = B8(00000001);
+        else
+          *mode = B8(00000000);
+
+        *index = i;
+      
+        return SUCCEEDED;
+      }
+    }
+  }
+  else if (c == '#') {
+    /* #<data> */
+    if (predecrement == YES)
+      return FAILED;
+    
+    i++;
+
+    y = g_source_pointer;
+    g_source_pointer = i;
+    z = input_number();
+    i = g_source_pointer;
+    g_source_pointer = y;
+
+    if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
+      return FAILED;
+
+    *data_type = z;
+    if (z == INPUT_NUMBER_ADDRESS_LABEL)
+      strcpy(label, g_label);
+    else if (z == INPUT_NUMBER_STACK)
+      *data = g_latest_stack;
+    else
+      *data = g_parsed_int;
+
+    *mode = B8(00000111);
+    *reg1 = B8(00000100);
+    
+    *index = i;
+
+    return SUCCEEDED;    
+  }
+
+  i = saved_i;
+  
+  if (c == '(') {
+    /* (An), (d16,An) etc? */
+    i++;
+
+    c = toupper((int)code[i]);
+
+    /* An? */
+    if (c == 'A') {
+      i++;
+      if (code[i] >= '0' && code[i] <= '7') {
+        *reg1 = code[i] - '0';
+
+        i++;
+        if (code[i] == ')') {
+          i++;
+
+          if (code[i] == '+') {
+            if (predecrement == YES)
+              return FAILED;
+            postincrement = YES;
+            i++;
+          }
+
+          if (code[i] != 0xA && code[i] != ',')
+            return FAILED;
+
+          if (predecrement == YES)
+            *mode = B8(00000100);
+          else if (postincrement == YES)
+            *mode = B8(00000011);
+          else
+            *mode = B8(00000010);
+
+          *index = i;
+      
+          return SUCCEEDED;
+        }
+      }
+    }
+
+    /* d8 OR d16 here? */
+    y = g_source_pointer;
+    g_source_pointer = i;
+    z = input_number();
+    i = g_source_pointer;
+    g_source_pointer = y;
+    
+    if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
+      return FAILED;
+
+    /* we could have one of the following addressing modes here
+       101 - nnn - ??? - (d16,An)
+       110 - nnn - mmm - (d8,An,Dm)
+       111 - 010 - ??? - (d16,PC)
+       111 - 011 - nnn - (d8,PC,Dn) */
+
+    *data_type = z;
+    if (z == INPUT_NUMBER_ADDRESS_LABEL)
+      strcpy(label, g_label);
+    else if (z == INPUT_NUMBER_STACK)
+      *data = g_latest_stack;
+    else
+      *data = g_parsed_int;
+
+    if (code[i] == ',') {
+      i++;
+      
+      c = toupper((int)code[i]);
+
+      if (c == 'A') {
+        /* (d16,An) OR (d8,An,Dm) */
+        if (predecrement == YES)
+          return FAILED;
+
+        i++;
+        if (code[i] >= '0' && code[i] <= '7') {
+          *reg1 = code[i] - '0';
+
+          i++;
+          if (code[i] == ')') {
+            i++;
+            
+            if (z == SUCCEEDED && (*data > 32767 || *data < -32768)) {
+              print_error(ERROR_NUM, "Out of signed 16-bit range.\n");
+              return FAILED;
+            }
+
+            *mode = B8(00000101);
+
+            *index = i;
+      
+            return SUCCEEDED;
+          }
+          else if (code[i] == ',') {
+            i++;
+
+            c = toupper((int)code[i]);
+            
+            if (c == 'D') {
+              /* (d8,An,Dm) */
+              i++;
+              if (code[i] >= '0' && code[i] <= '7') {
+                *mode = B8(00000110);
+                *reg2 = code[i] - '0';
+
+                i++;
+
+                if (z == SUCCEEDED && (*data > 127 || *data < -128)) {
+                  print_error(ERROR_NUM, "Out of signed 8-bit range.\n");
+                  return FAILED;
+                }
+                
+                if (code[i] != ')')
+                  return FAILED;
+
+                i++;
+                *index = i;
+
+                return SUCCEEDED;
+              }
+            }
+          }
+        }
+      }
+      else if (c == 'P') {
+        /* (d16,PC) OR (d8,PC,Dn) */
+        i++;
+        
+        if (predecrement == YES)
+          return FAILED;
+        
+        c = toupper((int)code[i]);
+
+        if (c == 'C') {
+          i++;
+
+          if (code[i] == ')') {
+            i++;
+            
+            if (z == SUCCEEDED && (*data > 32767 || *data < -32768)) {
+              print_error(ERROR_NUM, "Out of signed 16-bit range.\n");
+              return FAILED;
+            }
+
+            *mode = B8(00000111);
+            *reg1 = B8(00000010);
+
+            *index = i;
+      
+            return SUCCEEDED;
+          }
+          else if (code[i] == ',') {
+            i++;
+
+            c = toupper((int)code[i]);            
+          
+            if (c == 'D') {
+              /* (d8,PC,Dn) */
+              i++;
+              if (code[i] >= '0' && code[i] <= '7') {
+                *reg2 = code[i] - '0';
+
+                i++;
+                if (code[i] == ')') {
+                  i++;
+            
+                  if (z == SUCCEEDED && (*data > 127 || *data < -128)) {
+                    print_error(ERROR_NUM, "Out of signed 8-bit range.\n");
+                    return FAILED;
+                  }
+
+                  *mode = B8(00000111);
+                  *reg1 = B8(00000011);
+
+                  *index = i;
+      
+                  return SUCCEEDED;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  i = saved_i;
+
+  /* what remains is
+     101 - nnn - ??? - d16(An)
+     111 - 000 - ??? - (xxx).W
+     111 - 001 - ??? - (xxx).L
+     111 - 010 - ??? - d16(PC) */
+
+  y = g_source_pointer;
+  g_source_pointer = i;
+  g_fail_quetly_on_non_found_functions = YES;
+  z = input_number();
+  g_fail_quetly_on_non_found_functions = NO;
+  i = g_source_pointer;
+  g_source_pointer = y;
+    
+  if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
+    return FAILED;
+
+  *data_type = z;
+  if (z == INPUT_NUMBER_ADDRESS_LABEL)
+    strcpy(label, g_label);
+  else if (z == INPUT_NUMBER_STACK)
+    *data = g_latest_stack;
+  else
+    *data = g_parsed_int;
+
+  if (code[i] == 0xA || code[i] == ',') {
+    /* we have
+       111 - 000 - ??? - (xxx).W
+       111 - 001 - ??? - (xxx).L */
+    *mode = B8(00000111);
+
+    if (g_operand_hint == HINT_16BIT)
+      *reg1 = B8(00000000);
+    else
+      *reg1 = B8(00000001);
+
+    *index = i;
+
+    return SUCCEEDED;    
+  }
+  else if (code[i] == '(') {
+    /* we have
+     101 - nnn - ??? - d16(An)
+     111 - 010 - ??? - d16(PC) */    
+    i++;
+
+    if (z == SUCCEEDED && (*data > 32767 || *data < -32768)) {
+      print_error(ERROR_NUM, "Out of signed 16-bit range.\n");
+      return FAILED;
+    }
+
+    c = toupper((int)code[i]);
+
+    if (c == 'P') {
+      /* d16(PC) */    
+      i++;
+
+      c = toupper((int)code[i]);
+
+      if (c == 'C') {
+        i++;
+        if (code[i] == ')') {
+          i++;
+            
+          *mode = B8(00000111);
+          *reg1 = B8(00000010);
+
+          *index = i;
+          
+          return SUCCEEDED;
+        }
+      }
+    }
+    else if (c == 'A') {
+      /* d16(An) */
+      i++;
+      if (code[i] >= '0' && code[i] <= '7') {
+        *mode = B8(00000101);
+        *reg1 = code[i] - '0';
+
+        i++;
+                
+        if (code[i] != ')')
+          return FAILED;
+        
+        i++;
+        *index = i;
+
+        return SUCCEEDED;
+      }
+    }    
+  }
+
+  return FAILED;
+}
+
+
+/*
+   mode  reg   addressing mode
+   000 - nnn - Dn
+   001 - nnn - An
+   010 - nnn - (An)
+   011 - nnn - (An)+
+   100 - nnn - -(An)
+*/
+
+static int _mc68000_parse_register(char *code, int *index, int *reg, int *mode) {
+
+  int i = *index, predecrement = NO, postincrement = NO;
+  char c;
+
+  if (code[i] == ' ')
+    i++;
+
+  if (code[i] == '-') {
+    predecrement = YES;
+    i++;
+  }
+
+  c = toupper((int)code[i]);
+
+  if (c == 'A' || c == 'D') {
+    if (predecrement == YES)
+      return FAILED;
+    
+    i++;
+    if (code[i] >= '0' && code[i] <= '7') {
+      *reg = code[i] - '0';
+
+      i++;
+      if (code[i] != 0xA && code[i] != ',')
+        return FAILED;
+
+      if (c == 'A')
+        *mode = B8(00000001);
+      else
+        *mode = B8(00000000);
+    }
+  }
+  else if (c == '(') {
+    i++;
+
+    c = toupper((int)code[i]);
+
+    if (c == 'A') {
+      i++;
+      if (code[i] >= '0' && code[i] <= '7') {
+        *reg = code[i] - '0';
+
+        i++;
+        if (code[i] != ')')
+          return FAILED;
+        i++;
+
+        if (code[i] == '+') {
+          if (predecrement == YES)
+            return FAILED;
+          postincrement = YES;
+          i++;
+        }
+
+        if (code[i] != 0xA && code[i] != ',')
+          return FAILED;
+
+        if (predecrement == YES)
+          *mode = B8(00000100);
+        else if (postincrement == YES)
+          *mode = B8(00000011);
+        else
+          *mode = B8(00000010);
+      }
+      else
+        return FAILED;
+    }
+    else
+      return FAILED;
+  }
+  else
+    return FAILED;
+
+  *index = i;
+      
+  return SUCCEEDED;
+}
+
+#endif
+
+
 int evaluate_token(void) {
 
-  int f, z, x, y, last_stack_id_backup;
+  int f, x, y, last_stack_id_backup;
 #if defined(Z80) || defined(SPC700) || defined(W65816) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280)
   int e, v, h;
   char labelx[MAX_NAME_LENGTH + 1];
 #endif
-#ifdef SPC700
+#if defined(SPC700)
   int g;
 #endif
-#ifdef HUC6280
+#if !defined(MC68000)
+  int z;
+#endif
+#if defined(HUC6280)
   int r = 0, s, t = 0, u = 0;
   char labely[MAX_NAME_LENGTH + 1];
 #endif
-#ifdef SUPERFX
+#if defined(SUPERFX)
   int tiny;
 #endif
   
@@ -2324,6 +2925,2434 @@ int evaluate_token(void) {
       
 #endif
 
+#ifdef MC68000
+
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+      /* <68000> */
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+
+    case 0:
+      /* plain text 8-bit */
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          _output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
+          g_source_pointer = g_inz;
+          return SUCCEEDED;
+        }
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          break;
+      }
+      break;
+
+    case 1:
+      /* ABCD, SBCD, ADDX, SUBX */
+      {
+        int done = NO, register_y = 0, register_y_mode = 0, register_x = 0, register_x_mode = 0, opcode;
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        /* "Dy, Dx" OR "-(Ay),-(Ax)" */
+        if (_mc68000_parse_register(g_buffer, &g_inz, &register_y, &register_y_mode) == FAILED)
+          break;
+
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_register(g_buffer, &g_inz, &register_x, &register_x_mode) == FAILED)
+          break;
+        
+        if (register_y_mode == B8(00000000) && register_x_mode == B8(00000000))
+          opcode = g_instruction_tmp->hex | (register_x << 9) | register_y;
+        else if (register_y_mode == B8(00000100) && register_x_mode == B8(00000100))
+          opcode = g_instruction_tmp->hex | (register_x << 9) | (1 << 3) | register_y;
+        else
+          break;
+
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+        
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 2:
+      /* ADD, SUB */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, register_x1 = 0, register_x2 = 0, register_x_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, immediate = NO, mode;
+        char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        mode = g_instruction_tmp->mode;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+        if (register_y_mode == B8(00000111) && register_y1 == B8(00000100)) {
+          immediate = YES;
+
+          /* is immediate value [1, 8]? */
+          if (mode == MC68000_MODE_ALL && data_type_y == SUCCEEDED && data_y >= 1 && data_y <= 8) {
+            mode = MC68000_MODE_Q;
+
+            /* yes, switch add -> addq */
+            if (opcode == B16(11010000, 00000000))
+              opcode = B16(01010000, 00000000);
+            /* sub -> subq */
+            else if (opcode == B16(10010000, 00000000))
+              opcode = B16(01010001, 00000000);            
+          }
+        }
+        
+        /* immediate ea size checks */
+        if (data_type_y == SUCCEEDED && immediate == YES) {
+          if (_mc68000_size_check(data_y, size) == FAILED)
+            return FAILED;
+        }
+          
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
+          break;
+
+	/* source or target must be Dn */
+	if (immediate == NO && mode == MC68000_MODE_ALL && register_x_mode != B8(00000001)) {
+	  if (register_x_mode != B8(00000000) && register_y_mode != B8(00000000)) {
+	    print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	    return FAILED;
+	  }
+	}
+        /* no .B with An */
+        if (register_x_mode == B8(00000001) || register_y_mode == B8(00000001)) {
+          if (size == B8(00000000)) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        /* PC relative ea cannot be destination */
+        if ((register_x_mode == B8(00000111) && register_x1 == B8(00000010)) ||
+            (register_x_mode == B8(00000111) && register_x1 == B8(00000011))) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+        /* immediate ea cannot be destination */
+        if (register_x_mode == B8(00000111) && register_x1 == B8(00000100)) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+        /* immediate source expected? */
+        if (mode == MC68000_MODE_I || mode == MC68000_MODE_Q) {
+          if (immediate == NO) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        /* destination An? */
+        if (mode == MC68000_MODE_A) {
+          if (register_x_mode != B8(00000001)) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        /* immediate source and destination An? */
+        if (mode == MC68000_MODE_I) {
+          if (register_x_mode == B8(00000001)) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        
+        /* choose the size and opmode */
+        if (mode == MC68000_MODE_Q) {
+          /* size */
+          opcode |= size << 6;
+        }
+        else if (register_x_mode == B8(00000001)) {
+          /* destination is An */
+          if (size == B8(00000001)) {
+            /* .w */
+            opcode |= B8(00000011) << 6;
+          }
+          else {
+            /* .l */
+            opcode |= B8(00000111) << 6;
+          }
+        }
+        else if (immediate == YES) {
+          /* immediate source */
+
+          /* switch add -> addi */
+          if (opcode == B16(11010000, 00000000))
+            opcode = B16(00000110, 00000000);
+          /* sub -> subi */
+          else if (opcode == B16(10010000, 00000000))
+            opcode = B16(00000100, 00000000);
+          
+          /* size */
+          opcode |= size << 6;
+        }
+        else if (register_x_mode == B8(00000000)) {
+          /* destination is Dn */
+          opcode |= size << 6;
+        }
+        else {
+          /* destination is ea */
+          opcode |= (size | (1 << 2)) << 6;
+        }
+        
+        /* set register */
+        if (mode == MC68000_MODE_Q) {
+          /* actually here we encode the data (1-8) */
+          if (data_type_y != SUCCEEDED) {
+            print_error(ERROR_NUM, "The value [1, 8] must be known at this stage, it cannot be postponed to the linker.\n");
+            return FAILED;
+          }
+          if (data_y < 1 || data_y > 8) {
+            print_error(ERROR_NUM, "The value %d is out of range [1, 8].\n", data_y);
+            return FAILED;
+          }
+
+          /* 8 here is encoded as 0! */
+          if (data_y < 8)
+            opcode |= data_y << 9;
+
+          /* eat data_y so _mc68000_emit_extra_data() will not emit anything */
+          register_y_mode = 0;
+        }
+        else if (register_x_mode == B8(00000001))
+          opcode |= register_x1 << 9;
+        else if (immediate == YES) {
+          /* immediate */
+        }
+        else if (register_x_mode == B8(00000000))
+          opcode |= register_x1 << 9;
+        else
+          opcode |= register_y1 << 9;
+        
+        /* set ea */
+        if (mode == MC68000_MODE_Q) {
+          opcode |= register_x_mode << 3;
+          opcode |= register_x1;
+        }
+        else if (register_x_mode == B8(00000001)) {
+          opcode |= register_y_mode << 3;
+          opcode |= register_y1;
+        }
+        else if (immediate == YES) {
+          /* immediate source */
+          opcode |= register_x_mode << 3;
+          opcode |= register_x1;
+        }
+        else if (register_x_mode == B8(00000000)) {
+          opcode |= register_y_mode << 3;
+          opcode |= register_y1;
+        }
+        else {
+          opcode |= register_x_mode << 3;
+          opcode |= register_x1;
+        }
+
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        /* emit extra data */
+        _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+        _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 3:
+      /* AND, ANDI, OR, ORI */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, register_x1 = 0, register_x2 = 0, register_x_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, immediate = NO, mode;
+        char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        mode = g_instruction_tmp->mode;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+        if (register_y_mode == B8(00000111) && register_y1 == B8(00000100))
+          immediate = YES;
+
+        /* immediate ea size checks */
+        if (data_type_y == SUCCEEDED && immediate == YES) {
+          if (_mc68000_size_check(data_y, size) == FAILED)
+            return FAILED;
+        }
+          
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+          break;
+
+	if (immediate) {
+	  if (register_x_mode == B8(00001000)) {
+	    /* #<data>, CCR */
+
+	    /* not .b? */
+	    if (size != B8(00000000)) {
+	      print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	      return FAILED;
+	    }
+
+	    /* andi */
+	    if (opcode == B16(00000010, 00000000))
+	      opcode = B16(00000010, 00111100);
+            /* ori */
+            else if (opcode == B16(00000000, 00000000))
+	      opcode = B16(00000000, 00111100);
+            
+	    /* emit opcode */
+	    _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+	    /* emit extra data */
+	    _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+	    g_source_pointer = g_inz;
+
+	    return SUCCEEDED;
+	  }
+	  else if (register_x_mode == B8(00001001)) {
+	    /* #<data>, SR */
+
+	    /* not .w? */
+	    if (size != B8(00000001)) {
+	      print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	      return FAILED;
+	    }
+
+	    /* andi */
+	    if (opcode == B16(00000010, 00000000))
+	      opcode = B16(00000010, 01111100);
+            /* ori */
+	    else if (opcode == B16(00000000, 00000000))
+	      opcode = B16(00000000, 01111100);
+            
+	    /* emit opcode */
+	    _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+	    /* emit extra data */
+	    _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+	    g_source_pointer = g_inz;
+
+	    return SUCCEEDED;
+	  }
+	}
+
+	/* source or target must be Dn */
+	if (immediate == NO) {
+	  if (register_x_mode != B8(00000000) && register_y_mode != B8(00000000)) {
+	    print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	    return FAILED;
+	  }
+	}
+        /* no An */
+        if (register_x_mode == B8(00000001) || register_y_mode == B8(00000001)) {
+	  print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	  return FAILED;
+        }
+        /* PC relative ea cannot be destination */
+        if ((register_x_mode == B8(00000111) && register_x1 == B8(00000010)) ||
+            (register_x_mode == B8(00000111) && register_x1 == B8(00000011))) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+        /* immediate ea cannot be destination */
+        if (register_x_mode == B8(00000111) && register_x1 == B8(00000100)) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+        /* immediate source expected? */
+        if (mode == MC68000_MODE_I) {
+          if (immediate == NO) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        
+        if (immediate == YES) {
+          /* immediate source */
+
+          /* switch and -> andi */
+          if (opcode == B16(11000000, 00000000))
+            opcode = B16(00000010, 00000000);
+          /* switch or -> ori */
+          else if (opcode == B16(10000000, 00000000))
+            opcode = B16(00000000, 00000000);
+          
+          /* size */
+          opcode |= size << 6;
+        }
+        else if (register_x_mode == B8(00000000)) {
+          /* destination is Dn */
+          opcode |= size << 6;
+        }
+        else {
+          /* destination is ea */
+          opcode |= (size | (1 << 2)) << 6;
+        }
+        
+        /* set register */
+        if (immediate == YES) {
+          /* immediate */
+        }
+        else if (register_x_mode == B8(00000000))
+          opcode |= register_x1 << 9;
+        else
+          opcode |= register_y1 << 9;
+        
+        /* set ea */
+        if (immediate == YES) {
+          /* immediate source */
+          opcode |= register_x_mode << 3;
+          opcode |= register_x1;
+        }
+        else if (register_x_mode == B8(00000000)) {
+          opcode |= register_y_mode << 3;
+          opcode |= register_y1;
+        }
+        else {
+          opcode |= register_x_mode << 3;
+          opcode |= register_x1;
+        }
+
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        /* emit extra data */
+        _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+        _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 4:
+      /* ASR/ASL, LSR/LSL, ROR/ROL, ROXR/ROXL */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, register_x1 = 0, register_x2 = 0, register_x_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, immediate = NO;
+        char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+        if (register_y_mode == B8(00000111) && register_y1 == B8(00000100))
+          immediate = YES;
+	else if (register_y_mode != B8(00000000)) {
+	  /* <ea> */
+
+	  /* needs to be .w */
+	  if (size != B8(00000001)) {
+	    print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	    return FAILED;
+	  }
+	  /* no An */
+	  if (register_y_mode == B8(00000001)) {
+	    print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	    return FAILED;
+	  }
+	  /* PC relative ea cannot be source */
+	  if ((register_y_mode == B8(00000111) && register_y1 == B8(00000010)) ||
+	      (register_y_mode == B8(00000111) && register_y1 == B8(00000011))) {
+	    print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	    return FAILED;
+	  }
+
+          /* lsl/lsr? */
+          if (opcode == B16(11100001, 00001000))
+            opcode = B16(11100011, 00000000);
+          else if (opcode == B16(11100000, 00001000))
+            opcode = B16(11100010, 00000000);
+          /* rol/ror? */
+          else if (opcode == B16(11100001, 00011000))
+            opcode = B16(11100111, 11000000);
+          else if (opcode == B16(11100000, 00011000))
+            opcode = B16(11100110, 11000000);
+          /* roxl/roxr? */
+          else if (opcode == B16(11100001, 00010000))
+            opcode = B16(11100101, 11000000);
+          else if (opcode == B16(11100000, 00010000))
+            opcode = B16(11100100, 11000000);
+          
+	  /* size */
+	  opcode |= B8(11000000);
+
+	  /* set ea */
+	  opcode |= register_y_mode << 3;
+	  opcode |= register_y1;
+
+	  /* emit opcode */
+	  _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+	  /* emit extra data */
+	  _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+	  g_source_pointer = g_inz;
+
+	  return SUCCEEDED;
+	}
+
+        /* immediate ea size checks */
+        if (data_type_y == SUCCEEDED && immediate == YES) {
+          if (_mc68000_size_check(data_y, size) == FAILED)
+            return FAILED;
+        }
+          
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+          break;
+
+	/* if source is not immediate then it must be Dn */
+	if (immediate == NO && register_y_mode != B8(00000000)) {
+	  print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	  return FAILED;
+	}
+	/* target must be Dn */
+	if (register_x_mode != B8(00000000)) {
+	  print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	  return FAILED;
+	}
+
+	if (immediate == YES) {
+          /* actually here we encode the data (1-8) */
+          if (data_type_y != SUCCEEDED) {
+            print_error(ERROR_NUM, "The value [1, 8] must be known at this stage, it cannot be postponed to the linker.\n");
+            return FAILED;
+          }
+          if (data_y < 1 || data_y > 8) {
+            print_error(ERROR_NUM, "The value %d is out of range [1, 8].\n", data_y);
+            return FAILED;
+          }
+
+          /* 8 here is encoded as 0! */
+          if (data_y < 8)
+            opcode |= data_y << 9;
+	}
+	else {
+	  /* encode the source register number */
+	  opcode |= register_y1 << 9;
+	  opcode |= 1 << 5;
+	}
+
+	/* size */
+	opcode |= size << 6;
+        
+        /* set destination register */
+	opcode |= register_x1;
+        
+	/* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 5:
+      /* Bcc */
+      {
+        int done = NO, opcode, size, backup, res;
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+	backup = g_source_pointer;
+	g_source_pointer = g_inz;
+	res = input_number();
+	g_inz = g_source_pointer;
+	g_source_pointer = backup;
+
+	if (!(res == SUCCEEDED || res == INPUT_NUMBER_ADDRESS_LABEL || res == INPUT_NUMBER_STACK))
+	  return FAILED;
+
+	if (res == INPUT_NUMBER_STACK) {
+	  /* let's configure the stack so that all label references inside are relative */
+	  struct stack *stack = find_stack_calculation(g_latest_stack, YES);
+	  if (stack == NULL)
+	    return FAILED;
+    
+	  stack->relative_references = 1;
+	}
+
+	/* emit opcode */
+	_output_assembled_instruction(g_instruction_tmp, "d%d ", opcode >> 8);
+
+	if (size == B8(00000000) || g_operand_hint == HINT_8BIT) {
+	  /* 8-bit */
+	  if (res == INPUT_NUMBER_ADDRESS_LABEL)
+	    _output_assembled_instruction(g_instruction_tmp, "k%d R%s ", g_active_file_info_last->line_current, g_label);
+	  else if (res == INPUT_NUMBER_STACK)
+	    _output_assembled_instruction(g_instruction_tmp, "c%d ", g_latest_stack);
+	  else
+	    _output_assembled_instruction(g_instruction_tmp, "d%d ", g_parsed_int);
+	}
+	else {
+	  /* 16-bit */
+	  _output_assembled_instruction(g_instruction_tmp, "d0 ");
+	  
+	  if (res == INPUT_NUMBER_ADDRESS_LABEL) {
+	    struct stack *stack;
+	    
+	    if (stack_create_label_stack(g_label) == FAILED)
+	      return FAILED;
+	    if (stack_add_offset_plus_n_to_stack(g_latest_stack, 2) == FAILED)
+	      return FAILED;
+
+	    /* let's configure the stack so that all label references inside are relative */
+	    stack = find_stack_calculation(g_latest_stack, YES);
+	    if (stack == NULL)
+	      return FAILED;
+    
+	    stack->relative_references = 1;
+	  
+	    _output_assembled_instruction(g_instruction_tmp, "C%d ", g_latest_stack);
+	  }
+	  else if (res == INPUT_NUMBER_STACK) {
+	    if (does_stack_contain_one_label(g_latest_stack) == YES) {
+	      if (stack_add_offset_plus_n_to_stack(g_latest_stack, 2) == FAILED)
+		return FAILED;
+	    }
+
+	    _output_assembled_instruction(g_instruction_tmp, "C%d ", g_latest_stack);
+	  }
+	  else
+	    _output_assembled_instruction(g_instruction_tmp, "y%d ", g_parsed_int);
+	}
+
+	g_source_pointer = g_inz;
+	
+	return SUCCEEDED;
+      }
+      break;
+
+    case 6:
+      /* BCHG, BCLR, BSET, BTST */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, register_x1 = 0, register_x2 = 0, register_x_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, immediate = NO;
+        char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+        if (register_y_mode == B8(00000111) && register_y1 == B8(00000100))
+          immediate = YES;
+	else if (register_y_mode != B8(00000000)) {
+	  print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	  return FAILED;
+	}
+
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
+          break;
+
+	/* no destination An */
+	if (register_x_mode == B8(00000001)) {
+	  print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	  return FAILED;
+	}
+	/* PC relative ea cannot be target */
+	if ((register_x_mode == B8(00000111) && register_x1 == B8(00000010)) ||
+	    (register_x_mode == B8(00000111) && register_x1 == B8(00000011))) {
+	  print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	  return FAILED;
+	}
+	/* no immediate target */
+        if (register_x_mode == B8(00000111) && register_x1 == B8(00000100)) {
+	  print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	  return FAILED;
+	}
+
+	if (immediate == YES) {
+          if (data_type_y != SUCCEEDED) {
+	    if (register_x_mode == B8(00000000))
+	      print_error(ERROR_NUM, "The value [1, 32] must be known at this stage, it cannot be postponed to the linker.\n");
+	    else
+	      print_error(ERROR_NUM, "The value [1, 8] must be known at this stage, it cannot be postponed to the linker.\n");
+	    return FAILED;
+          }
+
+	  if (register_x_mode == B8(00000000)) {
+	    if (data_y < 1 || data_y > 32) {
+	      print_error(ERROR_NUM, "The value %d is out of range [1, 32].\n", data_y);
+	      return FAILED;
+	    }
+	  }
+	  else {
+	    if (data_y < 1 || data_y > 8) {
+	      print_error(ERROR_NUM, "The value %d is out of range [1, 8].\n", data_y);
+	      return FAILED;
+	    }
+	  }
+
+	  /* BCHG */
+	  if (opcode == B16(00000001, 01000000))
+	    opcode = B16(00001000, 01000000);
+	  /* BCLR */
+	  else if (opcode == B16(00000001, 10000000))
+	    opcode = B16(00001000, 10000000);
+	  /* BSET */
+	  else if (opcode == B16(00000001, 11000000))
+	    opcode = B16(00001000, 11000000);
+	  /* BTST */
+	  else if (opcode == B16(00000001, 00000000))
+	    opcode = B16(00001000, 00000000);
+	}
+	else {	  
+	  /* register */
+	  opcode |= register_y1 << 9;
+	}
+
+	if (register_x_mode == B8(00000000))
+	  size = B8(00000010);
+	else
+	  size = B8(00000000);
+	
+	/* encode mode */
+	opcode |= register_x_mode << 3;
+	
+        /* set destination register */
+	opcode |= register_x1;
+        
+	/* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+	if (immediate == YES) {
+	  /* output bit number 1-8/1-32 */
+	  _output_assembled_instruction(g_instruction_tmp, "d0 d%d ", data_y);
+	}
+
+	/* emit extra data */
+	_mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 7:
+      /* CHK */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, register_x1 = 0, register_x2 = 0, register_x_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size;
+        char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+	/* source cannot be An */
+	if (register_y_mode == B8(00000001)) {
+	  print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	  return FAILED;
+	}
+
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
+          break;
+
+	/* target can only be Dn */
+	if (register_x_mode != B8(00000000)) {
+	  print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	  return FAILED;
+	}
+	
+	/* register */
+	opcode |= register_x1 << 9;
+
+	/* encode mode */
+	opcode |= register_y_mode << 3;
+	
+        /* set destination register */
+	opcode |= register_y1;
+
+	/* size */
+	if (size == B8(00000001))
+	  opcode |= B8(00000011) << 7;
+	else
+	  opcode |= B8(00000010) << 7;
+	
+	/* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+	/* emit extra data */
+	_mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 8:
+      /* CLR, NEG, NEGX, SCC, TAS, TST */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, opcode, data_y = 0, data_type_y = FAILED, size;
+        char label_y[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+	/* target cannot be An, immediate... */
+	if (register_y_mode == B8(00000001) ||
+	    (register_y_mode == B8(00000111) && register_y1 == B8(00000100)) ||
+	    (register_y_mode == B8(00000111) && register_y1 == B8(00000010)) ||
+	    (register_y_mode == B8(00000111) && register_y1 == B8(00000011))) {
+	    print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	  return FAILED;
+	}
+
+	/* encode mode */
+	opcode |= register_y_mode << 3;
+	
+        /* set destination register */
+	opcode |= register_y1;
+
+	/* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+	/* emit extra data */
+	_mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 9:
+      /* CMP */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, register_x1 = 0, register_x2 = 0, register_x_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, immediate = NO, mode;
+        char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        mode = g_instruction_tmp->mode;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+        if (register_y_mode == B8(00000111) && register_y1 == B8(00000100))
+          immediate = YES;
+        
+        /* immediate ea size checks */
+        if (data_type_y == SUCCEEDED && immediate == YES) {
+          if (_mc68000_size_check(data_y, size) == FAILED)
+            return FAILED;
+        }
+          
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
+          break;
+
+        /* An destination? */
+        if (register_x_mode == B8(00000001)) {
+          if (size == B8(00000000)) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        /* immediate? */
+        else if (immediate == YES) {
+          /* An cannot be destination */
+          if (register_x_mode == B8(00000001)) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+          /* PC relative ea cannot be destination */
+          if ((register_x_mode == B8(00000111) && register_x1 == B8(00000010)) ||
+              (register_x_mode == B8(00000111) && register_x1 == B8(00000011))) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+          /* immediate cannot be destination */
+          if (register_x_mode == B8(00000111) && register_x1 == B8(00000100)) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+
+          /* cmp -> cmpi? */
+          if (opcode == B16(10110000, 00000000))
+            opcode = B16(00001100, 00000000);
+        }
+        else {
+          /* only Dn, An and (An)+ targets are accepted */
+
+          /* cmp -> cmp? */
+          if (register_x_mode == B8(00000000)) {
+          }
+          /* cmp -> cmpm? */
+          else if (register_y_mode == B8(00000011) && register_x_mode == B8(00000011)) {
+            if (opcode == B16(10110000, 00000000))
+              opcode = B16(10110001, 00001000);
+          }
+          else {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        /* immediate source expected? */
+        if (mode == MC68000_MODE_I) {
+          if (immediate == NO) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        /* destination An? */
+        if (mode == MC68000_MODE_A) {
+          if (register_x_mode != B8(00000001)) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        /* (An)+, (Am)+ ? */
+        if (mode == MC68000_MODE_M) {
+          if (register_y_mode != B8(00000011) || register_x_mode != B8(00000011)) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+
+        /* choose the size and opmode */
+        if (register_x_mode == B8(00000001)) {
+          /* destination is An */
+          if (size == B8(00000001)) {
+            /* .w */
+            opcode |= B8(00000011) << 6;
+          }
+          else if (size == B8(00000010)) {
+            /* .l */
+            opcode |= B8(00000111) << 6;
+          }
+          else {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        else if (immediate == YES) {
+          /* immediate source */
+
+          /* size */
+          opcode |= size << 6;
+        }
+        else if (register_x_mode == B8(00000000)) {
+          /* destination is Dn */
+          opcode |= size << 6;
+        }
+        else if (register_y_mode == B8(00000011) && register_x_mode == B8(00000011)) {
+          /* (An)+, (Am)+ */
+          opcode |= size << 6;
+        }
+        else {
+          /* destination is ea */
+          opcode |= (size | (1 << 2)) << 6;
+        }
+        
+        /* set register */
+        if (register_x_mode == B8(00000001))
+          opcode |= register_x1 << 9;
+        else if (immediate == YES) {
+          /* immediate */
+        }
+        else if (register_x_mode == B8(00000000))
+          opcode |= register_x1 << 9;
+        else if (register_y_mode == B8(00000011) && register_x_mode == B8(00000011)) {
+          /* (An)+, (Am)+ */
+          opcode |= register_x1 << 9;
+          opcode |= register_y1;
+        }
+        else
+          opcode |= register_y1 << 9;
+        
+        /* set ea */
+        if (register_x_mode == B8(00000001)) {
+          opcode |= register_y_mode << 3;
+          opcode |= register_y1;
+        }
+        else if (immediate == YES) {
+          /* immediate source */
+          opcode |= register_x_mode << 3;
+          opcode |= register_x1;
+        }
+        else if (register_y_mode == B8(00000011) && register_x_mode == B8(00000011)) {
+          /* (An)+, (Am)+ */
+        }
+        else if (register_x_mode == B8(00000000)) {
+          opcode |= register_y_mode << 3;
+          opcode |= register_y1;
+        }
+
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        /* emit extra data */
+        _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+        _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+      
+    case 10:
+      /* DBcc */
+      {
+        int register_y1 = 0, register_y2 = 0, register_y_mode = 0, data_y = 0, data_type_y = FAILED;
+        int done = NO, opcode, backup, res;
+        char label_y[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+        /* source needs to be Dn */
+        if (register_y_mode != B8(00000000)) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+        
+	backup = g_source_pointer;
+	g_source_pointer = g_inz;
+	res = input_number();
+	g_inz = g_source_pointer;
+	g_source_pointer = backup;
+
+	if (!(res == SUCCEEDED || res == INPUT_NUMBER_ADDRESS_LABEL || res == INPUT_NUMBER_STACK))
+	  return FAILED;
+
+	if (res == INPUT_NUMBER_STACK) {
+	  /* let's configure the stack so that all label references inside are relative */
+	  struct stack *stack = find_stack_calculation(g_latest_stack, YES);
+	  if (stack == NULL)
+	    return FAILED;
+    
+	  stack->relative_references = 1;
+	}
+
+        /* encode register */
+        opcode |= register_y1;
+
+	/* emit opcode */
+	_output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        /* 16-bit */
+        if (res == INPUT_NUMBER_ADDRESS_LABEL) {
+          struct stack *stack;
+	    
+          if (stack_create_label_stack(g_label) == FAILED)
+            return FAILED;
+          if (stack_add_offset_plus_n_to_stack(g_latest_stack, 2) == FAILED)
+            return FAILED;
+
+          /* let's configure the stack so that all label references inside are relative */
+          stack = find_stack_calculation(g_latest_stack, YES);
+          if (stack == NULL)
+            return FAILED;
+    
+          stack->relative_references = 1;
+	  
+          _output_assembled_instruction(g_instruction_tmp, "C%d ", g_latest_stack);
+        }
+        else if (res == INPUT_NUMBER_STACK) {
+          if (does_stack_contain_one_label(g_latest_stack) == YES) {
+            if (stack_add_offset_plus_n_to_stack(g_latest_stack, 2) == FAILED)
+              return FAILED;
+          }
+
+          _output_assembled_instruction(g_instruction_tmp, "C%d ", g_latest_stack);
+        }
+        else
+          _output_assembled_instruction(g_instruction_tmp, "y%d ", g_parsed_int);
+
+	g_source_pointer = g_inz;
+	
+	return SUCCEEDED;
+      }
+      break;
+
+    case 11:
+      /* DIVS, DIVU, MULS, MULU */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, register_x1 = 0, register_x2 = 0, register_x_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size;
+        char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+        /* source cannot be An */
+	if (register_y_mode == B8(00000001)) {
+	  print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	  return FAILED;
+	}
+        
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
+          break;
+
+        /* target must be Dn */
+	if (register_x_mode != B8(00000000)) {
+	  print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	  return FAILED;
+	}
+
+        /* register */
+        opcode |= register_x1 << 9;
+
+	/* encode mode */
+	opcode |= register_y_mode << 3;
+	
+        /* set destination register */
+	opcode |= register_y1;
+        
+	/* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+	/* emit extra data */
+	_mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 12:
+      /* EOR */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, register_x1 = 0, register_x2 = 0, register_x_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, immediate = NO, mode;
+        char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        mode = g_instruction_tmp->mode;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+        if (register_y_mode == B8(00000111) && register_y1 == B8(00000100))
+          immediate = YES;
+
+        /* immediate ea size checks */
+        if (data_type_y == SUCCEEDED && immediate == YES) {
+          if (_mc68000_size_check(data_y, size) == FAILED)
+            return FAILED;
+        }
+          
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+          break;
+
+	if (immediate) {
+	  if (register_x_mode == B8(00001000)) {
+	    /* #<data>, CCR */
+
+	    /* not .b? */
+	    if (size != B8(00000000)) {
+	      print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	      return FAILED;
+	    }
+
+	    /* eori */
+	    if (opcode == B16(00001010, 00000000))
+	      opcode = B16(00001010, 00111100);
+
+	    /* emit opcode */
+	    _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+	    /* emit extra data */
+	    _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+	    g_source_pointer = g_inz;
+
+	    return SUCCEEDED;
+	  }
+	  else if (register_x_mode == B8(00001001)) {
+	    /* #<data>, SR */
+
+	    /* not .w? */
+	    if (size != B8(00000001)) {
+	      print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	      return FAILED;
+	    }
+
+	    /* eori */
+	    if (opcode == B16(00001010, 00000000))
+	      opcode = B16(00001010, 01111100);
+
+	    /* emit opcode */
+	    _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+	    /* emit extra data */
+	    _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+	    g_source_pointer = g_inz;
+
+	    return SUCCEEDED;
+	  }
+	}
+
+	/* source must be Dn */
+	if (immediate == NO) {
+	  if (register_y_mode != B8(00000000)) {
+	    print_error(ERROR_NUM, "Invalid addressing mode.\n");
+	    return FAILED;
+	  }
+	}
+        else {
+          /* no An */
+          if (register_x_mode == B8(00000001)) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+          /* PC relative ea cannot be destination */
+          if ((register_x_mode == B8(00000111) && register_x1 == B8(00000010)) ||
+              (register_x_mode == B8(00000111) && register_x1 == B8(00000011))) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+          /* immediate ea cannot be destination */
+          if (register_x_mode == B8(00000111) && register_x1 == B8(00000100)) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        /* immediate source expected? */
+        if (mode == MC68000_MODE_I) {
+          if (immediate == NO) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        
+        if (immediate == YES) {
+          /* immediate source */
+
+          /* switch eor -> eori */
+          if (opcode == B16(10110000, 00000000))
+            opcode = B16(00001010, 00000000);
+
+          /* size */
+          opcode |= size << 6;
+        }
+        else if (register_y_mode == B8(00000000)) {
+          /* source is Dn */
+          opcode |= (B8(00000100) | size) << 6;
+        }
+        
+        /* set register */
+        if (register_y_mode == B8(00000000))
+          opcode |= register_y1 << 9;
+        
+        /* set ea */
+        opcode |= register_x_mode << 3;
+        opcode |= register_x1;
+
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        /* emit extra data */
+        _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+        _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 13:
+      /* EXG */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, register_x1 = 0, register_x2 = 0, register_x_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, opmode;
+        char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+          break;
+
+	/* Dn, Dm */
+        if (register_y_mode == B8(00000000) && register_x_mode == B8(00000000))
+          opmode = B8(01000);
+        /* An, Am */
+        else if (register_y_mode == B8(00000001) && register_x_mode == B8(00000001))
+          opmode = B8(01001);
+        /* Dn, Am */
+        else if (register_y_mode == B8(00000000) && register_x_mode == B8(00000001))
+          opmode = B8(10001);
+        else {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+
+        /* opmode */
+        opcode |= opmode << 3;
+        
+        /* set registers */
+        opcode |= register_y1 << 9;
+        opcode |= register_x1;
+        
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        /* emit extra data */
+        _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+        _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 14:
+      /* EXT */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, size;
+        char label_y[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+	/* only Dn is accepted */
+        if (register_y_mode != B8(00000000)) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+
+        /* opmode */
+        opcode |= size << 6;
+        
+        /* register */
+        opcode |= register_y1;
+        
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 15:
+      /* JMP, JSR, PEA */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, size;
+        char label_y[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+	/* Dn or An or (An)+ or -(An) or immediate */
+        if (register_y_mode == B8(00000000) || register_y_mode == B8(00000001) ||
+            register_y_mode == B8(00000011) || register_y_mode == B8(00000100) ||
+            (register_y_mode == B8(00000111) && register_y1 == B8(00000100))) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+
+        /* mode */
+        opcode |= register_y_mode << 3;
+        
+        /* register */
+        opcode |= register_y1;
+        
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        /* emit extra data */
+        _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 16:
+      /* LEA */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, register_x1 = 0, register_x2 = 0, register_x_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size;
+        char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+          break;
+
+	/* Dn or An or (An)+ or -(An) or immediate as source? */
+        if (register_y_mode == B8(00000000) || register_y_mode == B8(00000001) ||
+            register_y_mode == B8(00000011) || register_y_mode == B8(00000100) ||
+            (register_y_mode == B8(00000111) && register_y1 == B8(00000100))) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+        /* something else than An as target? */
+        if (register_x_mode != B8(00000001)) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+
+        /* mode */
+        opcode |= register_y_mode << 3;
+        
+        /* set registers */
+        opcode |= register_y1;
+        opcode |= register_x1 << 9;
+        
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        /* emit extra data */
+        _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 17:
+      /* LINK */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, register_x1 = 0, register_x2 = 0, register_x_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size;
+        char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+          break;
+
+	/* An source? */
+        if (register_y_mode != B8(00000001)) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+        /* immediate target? */
+        if (register_x_mode != B8(00000111) || register_x1 != B8(00000100)) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+
+        /* register */
+        opcode |= register_y1;
+        
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        /* emit extra data */
+        _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 18:
+      /* NBCD */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, size;
+        char label_y[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+	/* invalid addressing modes? */
+        if (register_y_mode == B8(00000001) ||
+            (register_y_mode == B8(00000111) && register_y1 == B8(00000100)) ||
+            (register_y_mode == B8(00000111) && register_y1 == B8(00000010)) ||
+            (register_y_mode == B8(00000111) && register_y1 == B8(00000011))) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+
+        /* mode */
+        opcode |= register_y_mode << 3;
+        
+        /* register */
+        opcode |= register_y1;
+        
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        /* emit extra data */
+        _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 19:
+      /* STOP */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, size;
+        char label_y[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+        /* immediate? */
+        if (register_y_mode != B8(00000111) || register_y1 != B8(00000100)) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        /* emit extra data */
+        _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 20:
+      /* SWAP */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED;
+        char label_y[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+	/* only Dn is accepted */
+        if (register_y_mode != B8(00000000)) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+
+        /* register */
+        opcode |= register_y1;
+        
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 21:
+      /* TRAP */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED;
+        char label_y[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+	/* only immediate is accepted */
+        if (register_y_mode != B8(00000111) || register_y1 != B8(00000100)) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+        /* only [0, 15] is accepted */
+        if (data_type_y != SUCCEEDED) {
+          print_error(ERROR_NUM, "The value [0, 15] must be known at this stage, it cannot be postponed to the linker.\n");
+          return FAILED;
+        }
+        if (data_y < 0 || data_y > 15) {
+          print_error(ERROR_NUM, "The value %d is out of range [0, 15].\n", data_y);
+          return FAILED;
+        }
+
+        /* vector */
+        opcode |= data_y;
+        
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 22:
+      /* UNLK */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED;
+        char label_y[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+	/* only An is accepted */
+        if (register_y_mode != B8(00000001)) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+
+        /* register */
+        opcode |= register_y1;
+        
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 23:
+      /* MOVE, MOVEA, MOVEQ */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, register_x1 = 0, register_x2 = 0, register_x_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, immediate = NO, mode;
+        char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        mode = g_instruction_tmp->mode;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, YES) == FAILED)
+          break;
+
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+          break;
+
+        /* PC relative ea cannot be destination */
+        if ((register_x_mode == B8(00000111) && register_x1 == B8(00000010)) ||
+            (register_x_mode == B8(00000111) && register_x1 == B8(00000011))) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+        /* immediate ea cannot be destination */
+        if (register_x_mode == B8(00000111) && register_x1 == B8(00000100)) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+
+        /* move to CCR? */
+        if (register_x_mode == B8(00001000)) {
+          if (register_y_mode > B8(00000111) || register_y_mode == B8(00000001) || mode != MC68000_MODE_ALL) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+
+          opcode = B16(01000100, 11000000);
+
+          /* mode */
+          opcode |= register_y_mode << 3;
+
+          /* register */
+          opcode |= register_y1;
+
+          /* emit opcode */
+          _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+          /* emit extra data */
+          _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+          g_source_pointer = g_inz;
+
+          return SUCCEEDED;          
+        }
+        /* move from SR? */
+        else if (register_y_mode == B8(00001001)) {
+          if (register_x_mode > B8(00000111) || register_x_mode == B8(00000001) || mode != MC68000_MODE_ALL) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+
+          opcode = B16(01000000, 11000000);
+
+          /* mode */
+          opcode |= register_x_mode << 3;
+
+          /* register */
+          opcode |= register_x1;
+
+          /* emit opcode */
+          _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+          /* emit extra data */
+          _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
+
+          g_source_pointer = g_inz;
+
+          return SUCCEEDED;
+        }
+        /* move to SR? */
+        else if (register_x_mode == B8(00001001)) {
+          if (register_y_mode > B8(00000111) || register_y_mode == B8(00000001) || mode != MC68000_MODE_ALL) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+
+          opcode = B16(01000110, 11000000);
+
+          /* mode */
+          opcode |= register_y_mode << 3;
+
+          /* register */
+          opcode |= register_y1;
+
+          /* emit opcode */
+          _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+          /* emit extra data */
+          _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+          g_source_pointer = g_inz;
+
+          return SUCCEEDED;
+        }
+        /* move from USP? */
+        else if (register_y_mode == B8(00001010) && register_x_mode == B8(00000001)) {
+          if (mode != MC68000_MODE_ALL) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+
+          opcode = B16(01001110, 01101000);
+
+          /* register */
+          opcode |= register_x1;
+
+          /* emit opcode */
+          _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+          /* emit extra data */
+          _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+          g_source_pointer = g_inz;
+
+          return SUCCEEDED;
+        }
+        /* move to USP? */
+        else if (register_x_mode == B8(00001010) && register_y_mode == B8(00000001)) {
+          if (mode != MC68000_MODE_ALL) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+
+          opcode = B16(01001110, 01100000);
+
+          /* register */
+          opcode |= register_y1;
+
+          /* emit opcode */
+          _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+          /* emit extra data */
+          _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+
+          g_source_pointer = g_inz;
+
+          return SUCCEEDED;
+        }
+
+        if (register_y_mode == B8(00000111) && register_y1 == B8(00000100)) {
+          immediate = YES;
+
+          /* is immediate value [-128, 127]? */
+          if (register_x_mode == B8(00000000) && mode == MC68000_MODE_ALL && data_type_y == SUCCEEDED && data_y >= -128 && data_y <= 127) {
+            mode = MC68000_MODE_Q;
+
+            /* yes, switch move -> moveq */
+            if (opcode == B16(00000000, 00000000))
+              opcode = B16(01110000, 00000000);
+          }
+        }
+
+        /* no special source or target */
+        if (register_x_mode > B8(00000111) || register_y_mode > B8(00000111)) {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+        /* immediate ea size checks */
+        if (data_type_y == SUCCEEDED && immediate == YES) {
+          if (_mc68000_size_check(data_y, size) == FAILED)
+            return FAILED;
+        }
+
+        /* no .B with An */
+        if (register_x_mode == B8(00000001) || register_y_mode == B8(00000001)) {
+          if (size == B8(00000000)) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        /* immediate source expected? */
+        if (mode == MC68000_MODE_Q) {
+          if (immediate == NO) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+          /* destination must be Dn */
+          if (register_x_mode != B8(00000000)) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        /* destination An? */
+        if (mode == MC68000_MODE_A) {
+          if (register_x_mode != B8(00000001)) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+        }
+        
+        /* choose the size and opmode */
+        if (mode == MC68000_MODE_Q) {
+        }
+        else if (register_x_mode == B8(00000001)) {
+          /* destination is An */
+          opcode |= B8(01000000);
+          
+          if (size == B8(00000001)) {
+            /* .w */
+            opcode |= B8(00000011) << 12;
+          }
+          else {
+            /* .l */
+            opcode |= B8(00000010) << 12;
+          }
+        }
+        else {
+          /* destination is ea */
+          if (size == B8(00000000))
+            opcode |= B8(00000001) << 12;
+          else if (size == B8(00000001))
+            opcode |= B8(00000011) << 12;
+          else
+            opcode |= size << 12;
+        }
+        
+        /* set source */
+        if (mode == MC68000_MODE_Q) {
+          /* actually here we encode the data (-128 - 127) */
+          if (data_type_y != SUCCEEDED) {
+            print_error(ERROR_NUM, "The value [-128, 127] must be known at this stage, it cannot be postponed to the linker.\n");
+            return FAILED;
+          }
+          if (data_y < -128 || data_y > 127) {
+            print_error(ERROR_NUM, "The value %d is out of range [-128, 127].\n", data_y);
+            return FAILED;
+          }
+
+          opcode |= data_y & 0xff;
+
+          /* eat data_y so _mc68000_emit_extra_data() will not emit anything */
+          register_y_mode = 0;
+        }
+        else if (register_x_mode == B8(00000001))
+          opcode |= register_x1 << 9;
+        else {
+          opcode |= register_y_mode << 3;
+          opcode |= register_y1;
+        }
+        
+        /* set ea */
+        if (mode == MC68000_MODE_Q)
+          opcode |= register_x1 << 9;
+        else if (register_x_mode == B8(00000001)) {
+          opcode |= register_y_mode << 3;
+          opcode |= register_y1;
+        }
+        else {
+          opcode |= register_x_mode << 6;
+          opcode |= register_x1 << 9;
+        }
+
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        /* emit extra data */
+        _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+        _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 24:
+      /* MOVEP */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, register_x1 = 0, register_x2 = 0, register_x_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size;
+        char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+          break;
+
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+          break;
+
+        /* Dx, (d16, Ay)? */
+        if (register_y_mode == B8(00000000) && register_x_mode == B8(00000101)) {
+          /* Dx */
+          opcode |= register_y1 << 9;
+
+          /* Ay */
+          opcode |= register_x1;
+
+          if (size == B8(00000001))
+            opcode |= B8(00000110) << 6;
+          else
+            opcode |= B8(00000111) << 6;
+        }
+        /* (d16, Ay), Dx? */
+        else if (register_x_mode == B8(00000000) && register_y_mode == B8(00000101)) {
+          /* Dx */
+          opcode |= register_x1 << 9;
+
+          /* Ay */
+          opcode |= register_y1;
+
+          if (size == B8(00000001))
+            opcode |= B8(00000100) << 6;
+          else
+            opcode |= B8(00000101) << 6;
+        }
+        else {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+        
+        /* emit opcode */
+        _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+        /* emit extra data */
+        _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+        _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
+
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+      
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+      /* </68000> */
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+
+#endif
+      
 #ifdef MC6800
 
       /*************************************************************************************************/

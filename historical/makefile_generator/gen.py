@@ -17,6 +17,7 @@ cpus = [
     {'name': '65816', 'define': 'W65816'},
     {'name': '65c02', 'define': 'WDC65C02'},
     {'name': '65ce02', 'define': 'CSG65CE02'},
+    {'name': '68000', 'define': 'MC68000'},
     {'name': '6800', 'define': 'MC6800'},
     {'name': '6801', 'define': 'MC6801'},
     {'name': '6809', 'define': 'MC6809'},

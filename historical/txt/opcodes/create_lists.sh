@@ -142,6 +142,20 @@ export WLA_NICELIST=NICELIST2
 make
 ./op | sort > _8080_o
 
+# MC68000
+
+make clean
+export WLA_TARGET=MC68000
+export WLA_NICELIST=NICELIST1
+make
+./op | sort > _68000_a
+
+make clean
+export WLA_TARGET=MC68000
+export WLA_NICELIST=NICELIST2
+make
+./op | sort > _68000_o
+
 # MC6800
 
 make clean

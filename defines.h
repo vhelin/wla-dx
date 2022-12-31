@@ -300,6 +300,52 @@
 #endif
 
 /**************************************************************/
+/* 68000                                                      */
+/**************************************************************/
+
+#ifdef MC68000
+
+/* instruction types */
+
+/*  0 - plain text 16b */
+/*  1 - ABCD, SBCD, ADDX, SUBX */
+/*  2 - ADD, SUB  */
+/*  3 - AND, ANDI, OR, ORI */
+/*  4 - ASR/ASL, LSR/LSL, ROR/ROL, ROXR/ROXL */
+/*  5 - Bcc */
+/*  6 - BCHG, BCLR, BSET, BTST */
+/*  7 - CHK */
+/*  8 - CLR, NEG, NEGX, SCC, TAS, TST */
+/*  9 - CMP */
+/* 10 - DBcc */
+/* 11 - DIVS, DIVU, MULS, MULU */
+/* 12 - EOR */
+/* 13 - EXG */
+/* 14 - EXT */
+/* 15 - JMP, JSR, PEA */
+/* 16 - LEA */
+/* 17 - LINK */
+/* 18 - NBCD */
+/* 19 - STOP */
+/* 20 - SWAP */
+/* 21 - TRAP */
+/* 22 - UNLK */
+/* 23 - MOVE, MOVEA, MOVEQ */
+/* 24 - MOVEP */
+
+#define MC68000_MODE_ALL 0
+#define MC68000_MODE_A   1
+#define MC68000_MODE_I   2
+#define MC68000_MODE_Q   3
+#define MC68000_MODE_M   4
+
+#define INSTRUCTION_STRING_LENGTH_MAX 16
+#define ARCH_STR "MC68000"
+#define WLA_NAME "68000"
+
+#endif
+
+/**************************************************************/
 /* 6800                                                       */
 /**************************************************************/
 
@@ -448,6 +494,10 @@ struct instruction {
   char *string;
   unsigned short hex;
   unsigned char type;
+#if defined(MC68000)
+  unsigned char size;
+  unsigned char mode;
+#endif
 #if defined(Z80)
   unsigned char hex_x;
 #endif
@@ -810,5 +860,22 @@ struct label_context {
   struct label_context *prev;
   int running_number;
 };
+
+/* binary value macros */
+#define HEX_(n) 0x##n##LU
+#define B8_(x) ((x & 0x0000000FLU) ?   1:0) | \
+               ((x & 0x000000F0LU) ?   2:0) | \
+               ((x & 0x00000F00LU) ?   4:0) | \
+               ((x & 0x0000F000LU) ?   8:0) | \
+               ((x & 0x000F0000LU) ?  16:0) | \
+               ((x & 0x00F00000LU) ?  32:0) | \
+               ((x & 0x0F000000LU) ?  64:0) | \
+               ((x & 0xF0000000LU) ? 128:0)
+#define B8(d) ((unsigned char)B8_(HEX_(d)))
+#define B16(db1, db2) (((unsigned short)(B8(db1) << 8) | B8(db2)))
+#define B32(db1, db2, db3, db4) (((unsigned long)B8(db1) << 24) | \
+                                 ((unsigned long)B8(db2) << 16) | \
+                                 ((unsigned long)B8(db3) <<  8) | \
+                                 ((unsigned long)B8(db4)))
 
 #endif /* _DEFINES_H */

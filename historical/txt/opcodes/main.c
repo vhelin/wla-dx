@@ -40,6 +40,9 @@
 #ifdef I8080
 #include "../../../i8080.c"
 #endif
+#ifdef MC68000
+#include "../../../i68000.c"
+#endif
 #ifdef MC6800
 #include "../../../i6800.c"
 #endif

@@ -31,7 +31,7 @@ extern unsigned char g_asciitable[256];
 extern int g_operand_hint, g_operand_hint_type, g_can_calculate_a_minus_b, g_expect_calculations, g_asciitable_defined;
 
 int g_latest_stack = 0, g_last_stack_id = 0, g_resolve_stack_calculations = YES, g_stack_calculations_max = 0;
-int g_parsing_function_body = NO;
+int g_parsing_function_body = NO, g_fail_quetly_on_non_found_functions = NO;
 struct stack **g_stack_calculations = NULL;
 
 static int g_delta_counter = 0, g_delta_section = -1, g_delta_address = -1;
@@ -1559,7 +1559,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           d = (d << 1) + (e - '0');
         else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
                  e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == '~' ||
-                 e == ']' || e == '.' || e == '=' || e == '!' || e == '}' || e == 0xA || e == 0)
+                 e == ']' || e == '.' || e == '=' || e == '!' || e == '}' || e == '(' || e == 0xA || e == 0)
           break;
         else {
           if (g_input_number_error_msg == YES)
@@ -1628,7 +1628,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           d += e - 'A' + 10;
         else if (e >= 'a' && e <= 'f')
           d += e - 'a' + 10;
-        else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' ||
+        else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '(' ||
                  e == '*' || e == '/' || e == ',' || e == '^' || e == '<' || e == '>' ||
                  e == '#' || e == '~' || e == ']' || e == '.' || e == '=' || e == '!' || e == '}' || e == 0xA || e == 0) {
           needs_shifting = YES;
@@ -1697,7 +1697,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' ||
                    e == '*' || e == '/' || e == ',' || e == '^' || e == '<' || e == '>' ||
                    e == '#' || e == '~' || e == ']' || e == '.' || e == 'h' || e == 'H' ||
-                   e == '=' || e == '!' || e == '}' || e == 0xA || e == 0) {
+                   e == '=' || e == '!' || e == '}' || e == '(' || e == 0xA || e == 0) {
             needs_shifting = YES;
             break;
           }
@@ -1754,7 +1754,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           }
           else if (e == ' ' || e == ')' || e == '|' || e == '&' || e == '+' || e == '-' || e == '*' ||
                    e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == '~' ||
-                   e == ']' || e == '=' || e == '!' || e == '}' || e == 0xA || e == 0)
+                   e == ']' || e == '=' || e == '!' || e == '}' || e == '(' || e == 0xA || e == 0)
             break;
           else if (e == '.') {
             if (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D')
@@ -1823,7 +1823,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     else {
       /* it must be a label! */
-      int is_label = YES, is_already_processed_function = NO;
+      int is_label = YES, is_already_processed_function = NO, unknown_function = NO;
 
       /* we'll break if the previous item in the stack was a value or a string / label */
       if (_break_before_value_or_string(q, &si[0]) == SUCCEEDED)
@@ -2072,6 +2072,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
           res = parse_function(in, si[q].string, &found_function, &parsed_chars);
           if (found_function == NO) {
+            if (g_fail_quetly_on_non_found_functions == YES) {
+              in--;
+              unknown_function = YES;
+              break;
+            }
+
             print_error(ERROR_NUM, "Could not find function \"%s\".\n", si[q].string);
             return FAILED;
           }
@@ -2173,6 +2179,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       }
 
       q++;
+
+      if (unknown_function == YES)
+        break;
     }
   }
 
@@ -2193,30 +2202,32 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   }
 
   /* only one item found -> let the item parser handle it? */
-  if (q == 1 && si[0].type == STACK_ITEM_TYPE_VALUE) {
-    /* update the source pointer */
-    *bytes_parsed += (int)(in - in_original) - 1;
-
-    g_parsed_double = si[0].value;
-
-    if (g_input_float_mode == ON)
-      return INPUT_NUMBER_FLOAT;
-
-    *value = (int)si[0].value;
-
-    return SUCCEEDED;
-  }
-  if (q == 1 && from_substitutor == NO) {
-    if (si[0].type == STACK_ITEM_TYPE_STACK) {
+  if (q == 1) {
+    if (si[0].type == STACK_ITEM_TYPE_VALUE) {
       /* update the source pointer */
       *bytes_parsed += (int)(in - in_original) - 1;
 
-      g_latest_stack = (int)si[0].value;
+      g_parsed_double = si[0].value;
 
-      return INPUT_NUMBER_STACK;
+      if (g_input_float_mode == ON)
+        return INPUT_NUMBER_FLOAT;
+
+      *value = (int)si[0].value;
+
+      return SUCCEEDED;
     }
+    if (from_substitutor == NO) {
+      if (si[0].type == STACK_ITEM_TYPE_STACK) {
+        /* update the source pointer */
+        *bytes_parsed += (int)(in - in_original) - 1;
 
-    return STACK_CALCULATE_DELAY;
+        g_latest_stack = (int)si[0].value;
+
+        return INPUT_NUMBER_STACK;
+      }
+
+      return STACK_CALCULATE_DELAY;
+    }
   }
   
   /* check if there was data before the computation */
@@ -2718,7 +2729,7 @@ int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_
     print_error(ERROR_STC, "STACK_CALCULATE: Out of struct stack_item arrays. Please submit a bug report!\n");
     return FAILED;
   }
-  
+
   result = _stack_calculate(in, value, bytes_parsed, from_substitutor, si, ta);
 
   /* release the arrays */
@@ -3777,11 +3788,11 @@ int stack_create_label_stack(char *label) {
   si->is_in_postfix = NO;
   strcpy(si->string, label);
 
+  calculation_stack_insert(stack);
+
 #ifdef WLA_DEBUG
   debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack_items, 1, 1, stack);
 #endif
-  
-  calculation_stack_insert(stack);
 
   return SUCCEEDED;
 }
@@ -3820,6 +3831,195 @@ int stack_create_stack_stack(int stack_id) {
     
   return SUCCEEDED;
 }
+
+
+#if defined(MC68000)
+
+static int _stack_create_stack_caddr_offset(int type, int data, char *label, struct stack *stack) {
+
+  struct stack_item *si;
+
+  /* 0 */
+  si = &stack->stack_items[0];
+  si->value = data;
+
+  if (type == SUCCEEDED)
+    si->type = STACK_ITEM_TYPE_VALUE;
+  else if (type == INPUT_NUMBER_ADDRESS_LABEL) {
+    si->type = STACK_ITEM_TYPE_LABEL;
+    strcpy(si->string, label);
+  }
+  else if (type == INPUT_NUMBER_STACK)
+    si->type = STACK_ITEM_TYPE_STACK;
+  else {
+    fprintf(stderr, "%s:%d: STACK_CREATE_STACK_CADDR_OFFSET: Unhandled data type %d! Please submit a bug report!\n", get_file_name(stack->filename_id), stack->linenumber, type);
+    return FAILED;
+  }
+  
+  si->sign = SI_SIGN_POSITIVE;
+  si->can_calculate_deltas = NO;
+  si->has_been_replaced = NO;
+  si->is_in_postfix = YES;
+
+  /* 1 */
+  si = &stack->stack_items[1];
+  si->type = STACK_ITEM_TYPE_LABEL;
+  si->value = 0;
+  strcpy(si->string, "CADDR");
+  si->sign = SI_SIGN_POSITIVE;
+  si->can_calculate_deltas = NO;
+  si->has_been_replaced = NO;
+  si->is_in_postfix = YES;
+  
+  /* 2 */
+  si = &stack->stack_items[2];
+  si->type = STACK_ITEM_TYPE_OPERATOR;
+  si->value = SI_OP_SUB;
+  si->sign = SI_SIGN_POSITIVE;
+  si->can_calculate_deltas = NO;
+  si->has_been_replaced = NO;
+  si->is_in_postfix = YES;
+
+  return SUCCEEDED;
+}
+
+
+int stack_create_stack_caddr_offset(int type, int data, char *label) {
+
+  struct stack *stack;
+  
+  stack = allocate_struct_stack(3);
+  if (stack == NULL)
+    return FAILED;
+
+  stack->linenumber = g_active_file_info_last->line_current;
+  stack->filename_id = g_active_file_info_last->filename_id;
+  
+  /* all stacks will be definition stacks by default. pass_4 will mark
+     those that are referenced to be STACK_POSITION_CODE stacks */
+  stack->position = STACK_POSITION_DEFINITION;
+
+  if (_stack_create_stack_caddr_offset(type, data, label, stack) == FAILED)
+    return FAILED;
+
+  calculation_stack_insert(stack);
+    
+#if WLA_DEBUG
+  debug_print_stack(stack->linenumber, g_latest_stack, stack->stack_items, 3, -1, stack);
+#endif
+
+  return SUCCEEDED;
+}
+
+
+int does_stack_contain_one_label(int id) {
+
+  struct stack *stack = find_stack_calculation(id, YES);
+  int i, labels = 0;
+  
+  if (stack == NULL)
+    return NO;
+
+  for (i = 0; i < stack->stacksize; i++) {
+    if (stack->stack_items[i].type == STACK_ITEM_TYPE_LABEL)
+      labels++;
+  }
+
+  if (labels == 1)
+    return YES;
+  else
+    return NO;
+}
+
+
+int stack_add_offset_plus_n_to_stack(int id, int n) {
+
+  struct stack *stack = find_stack_calculation(id, YES);
+  struct stack_item *si;
+
+  if (stack == NULL)
+    return FAILED;
+
+  stack->stacksize += 2;
+  stack->stack_items = realloc(stack->stack_items, sizeof(struct stack_item) * stack->stacksize);
+  if (stack->stack_items == NULL) {
+    print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
+    return FAILED;
+  }
+  
+  /* x */
+  si = &stack->stack_items[stack->stacksize - 2];
+  si->type = STACK_ITEM_TYPE_VALUE;
+  si->value = n;
+  si->sign = SI_SIGN_POSITIVE;
+  si->can_calculate_deltas = NO;
+  si->has_been_replaced = NO;
+  si->is_in_postfix = YES;
+  
+  /* x+1 */
+  si = &stack->stack_items[stack->stacksize - 1];
+  si->type = STACK_ITEM_TYPE_OPERATOR;
+  si->value = SI_OP_ADD;
+  si->sign = SI_SIGN_POSITIVE;
+  si->can_calculate_deltas = NO;
+  si->has_been_replaced = NO;
+  si->is_in_postfix = YES;
+
+#if WLA_DEBUG
+  debug_print_stack(stack->linenumber, id, stack->stack_items, 5, -1, stack);
+#endif
+
+  return SUCCEEDED;
+}
+
+
+int stack_create_stack_caddr_offset_plus_n(int type, int data, char *label, int n) {
+
+  struct stack *stack;
+  struct stack_item *si;
+  
+  stack = allocate_struct_stack(5);
+  if (stack == NULL)
+    return FAILED;
+
+  stack->linenumber = g_active_file_info_last->line_current;
+  stack->filename_id = g_active_file_info_last->filename_id;
+  
+  /* all stacks will be definition stacks by default. pass_4 will mark
+     those that are referenced to be STACK_POSITION_CODE stacks */
+  stack->position = STACK_POSITION_DEFINITION;
+
+  if (_stack_create_stack_caddr_offset(type, data, label, stack) == FAILED)
+    return FAILED;
+
+  /* 3 */
+  si = &stack->stack_items[3];
+  si->type = STACK_ITEM_TYPE_VALUE;
+  si->value = n;
+  si->sign = SI_SIGN_POSITIVE;
+  si->can_calculate_deltas = NO;
+  si->has_been_replaced = NO;
+  si->is_in_postfix = YES;
+  
+  /* 4 */
+  si = &stack->stack_items[4];
+  si->type = STACK_ITEM_TYPE_OPERATOR;
+  si->value = SI_OP_ADD;
+  si->sign = SI_SIGN_POSITIVE;
+  si->can_calculate_deltas = NO;
+  si->has_been_replaced = NO;
+  si->is_in_postfix = YES;
+
+  calculation_stack_insert(stack);
+    
+#if WLA_DEBUG
+  debug_print_stack(stack->linenumber, g_latest_stack, stack->stack_items, 5, -1, stack);
+#endif
+
+  return SUCCEEDED;
+}
+
+#endif
 
 
 /* TODO: move the following code to its own file... */

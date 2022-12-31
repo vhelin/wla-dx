@@ -819,6 +819,8 @@ int input_number(void) {
         break;
     }
 
+    e = g_buffer[g_source_pointer];
+
     if (e == '.') {
       e = g_buffer[g_source_pointer+1];
       if (e == 'b' || e == 'B') {
@@ -890,6 +892,8 @@ int input_number(void) {
       }
     }
 
+    e = g_buffer[g_source_pointer];
+    
     if (e == '.') {
       e = g_buffer[g_source_pointer+1];
       if (e == 'b' || e == 'B') {
@@ -1187,7 +1191,7 @@ int input_number(void) {
       curly_braces++;
     else if (e == '}')
       curly_braces--;
-    else if (e == 0x0A || e == ')' || e == ',' || e == ']') {
+    else if (e == 0x0A || e == '(' || e == ')' || e == ',' || e == ']') {
       g_source_pointer--;
       break;
     }
@@ -1202,11 +1206,6 @@ int input_number(void) {
     else if (e == ' ' && curly_braces <= 0)
       break;
     g_label[k] = e;
-
-    if (e == '(') {
-      g_source_pointer--;
-      break;
-    }
   }
 
   if (k == MAX_NAME_LENGTH) {
@@ -2216,9 +2215,6 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
   /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
      let's update g_source_pointer for input_number() */
 
-  g_source_pointer = (int)(in - g_buffer);
-  source_pointer_backup = g_source_pointer;
-
   /* find the function */
   while (fun != NULL) {
     if (c1 == fun->name[0]) {
@@ -2232,7 +2228,10 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
     *found_function = NO;
     return SUCCEEDED;
   }
-    
+
+  g_source_pointer = (int)(in - g_buffer);
+  source_pointer_backup = g_source_pointer;
+  
   /* we found the function! let's parse the arguments */
   *found_function = YES;
 

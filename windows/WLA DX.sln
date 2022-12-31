@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.960
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.33027.164
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GEN-TABLES-6502", "GEN-TABLES-6502\GEN-TABLES-6502.vcxproj", "{55C5F650-1F69-49DC-BC08-AD8C4C775D2B}"
 EndProject
@@ -106,6 +106,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wla-superfx", "WLA-SUPERFX\
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GEN-TABLES-SUPERFX", "GEN-TABLES-SUPERFX\GEN-TABLES-SUPERFX.vcxproj", "{A0C5B781-E02E-4C7C-9F1A-E30AC134AED1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GEN-TABLES-68000", "GEN-TABLES-68000\GEN-TABLES-68000.vcxproj", "{857547F4-8EB2-4861-882F-0C2C2581F275}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wla-68000", "wla-68000\wla-68000.vcxproj", "{A11C099B-5A61-44F2-9FB8-AD591863AFCA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{857547F4-8EB2-4861-882F-0C2C2581F275} = {857547F4-8EB2-4861-882F-0C2C2581F275}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -363,6 +370,22 @@ Global
 		{A0C5B781-E02E-4C7C-9F1A-E30AC134AED1}.Release|x64.Build.0 = Release|x64
 		{A0C5B781-E02E-4C7C-9F1A-E30AC134AED1}.Release|x86.ActiveCfg = Release|Win32
 		{A0C5B781-E02E-4C7C-9F1A-E30AC134AED1}.Release|x86.Build.0 = Release|Win32
+		{857547F4-8EB2-4861-882F-0C2C2581F275}.Debug|x64.ActiveCfg = Debug|x64
+		{857547F4-8EB2-4861-882F-0C2C2581F275}.Debug|x64.Build.0 = Debug|x64
+		{857547F4-8EB2-4861-882F-0C2C2581F275}.Debug|x86.ActiveCfg = Debug|Win32
+		{857547F4-8EB2-4861-882F-0C2C2581F275}.Debug|x86.Build.0 = Debug|Win32
+		{857547F4-8EB2-4861-882F-0C2C2581F275}.Release|x64.ActiveCfg = Release|x64
+		{857547F4-8EB2-4861-882F-0C2C2581F275}.Release|x64.Build.0 = Release|x64
+		{857547F4-8EB2-4861-882F-0C2C2581F275}.Release|x86.ActiveCfg = Release|Win32
+		{857547F4-8EB2-4861-882F-0C2C2581F275}.Release|x86.Build.0 = Release|Win32
+		{A11C099B-5A61-44F2-9FB8-AD591863AFCA}.Debug|x64.ActiveCfg = Debug|x64
+		{A11C099B-5A61-44F2-9FB8-AD591863AFCA}.Debug|x64.Build.0 = Debug|x64
+		{A11C099B-5A61-44F2-9FB8-AD591863AFCA}.Debug|x86.ActiveCfg = Debug|Win32
+		{A11C099B-5A61-44F2-9FB8-AD591863AFCA}.Debug|x86.Build.0 = Debug|Win32
+		{A11C099B-5A61-44F2-9FB8-AD591863AFCA}.Release|x64.ActiveCfg = Release|x64
+		{A11C099B-5A61-44F2-9FB8-AD591863AFCA}.Release|x64.Build.0 = Release|x64
+		{A11C099B-5A61-44F2-9FB8-AD591863AFCA}.Release|x86.ActiveCfg = Release|Win32
+		{A11C099B-5A61-44F2-9FB8-AD591863AFCA}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
