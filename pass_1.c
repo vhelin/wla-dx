@@ -47,6 +47,10 @@ int g_smsreservedspace2 = 0, g_smsreservedspace_defined = 0, g_smsromsize = 0, g
 int g_smsforcechecksum = 0, g_smsforcechecksum_defined = 0, g_smschecksumsize = 0, g_smschecksumsize_defined = 0;
 #endif
 
+#ifdef MC68000
+int g_computesmdchecksum_defined = 0;
+#endif
+
 int g_org_defined = 1, g_background_defined = 0;
 int g_enumid_defined = 0, g_enumid = 0, g_enumid_adder = 1, g_enumid_export = 0;
 int g_bank = 0, g_bank_defined = 1;
@@ -9937,6 +9941,17 @@ int parse_directive(void) {
     }
 #endif
 
+#ifdef MC68000
+    /* COMPUTESMDCHECKSUM */
+    if (strcmp(directive_upper, "COMPUTESMDCHECKSUM") == 0) {
+      no_library_files(".COMPUTESMDCHECKSUM");
+
+      g_computesmdchecksum_defined++;
+
+      return SUCCEEDED;
+    }
+#endif
+    
 #ifdef Z80
     /* COMPUTESMSCHECKSUM */
     if (strcmp(directive_upper, "COMPUTESMSCHECKSUM") == 0) {

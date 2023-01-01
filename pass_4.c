@@ -57,9 +57,13 @@ extern int g_lorom_defined, g_hirom_defined, g_slowrom_defined, g_fastrom_define
 extern int g_computesneschecksum_defined, g_sramsize, g_sramsize_defined, g_exlorom_defined;
 #endif
 
-#ifdef Z80
+#if defined(Z80)
 extern int g_computesmschecksum_defined, g_smstag_defined, g_smsheader_defined, g_smsforcechecksum_defined;
 extern int g_smschecksumsize_defined, g_smschecksumsize;
+#endif
+
+#if defined(MC68000)
+extern int g_computesmdchecksum_defined;
 #endif
 
 struct label_def *g_unknown_labels = NULL, *g_unknown_labels_last = NULL;
@@ -1935,7 +1939,7 @@ int write_object_file(void) {
   /* misc bits */
   ind = 0;
 
-#ifdef Z80
+#if defined(Z80)
   if (g_computesmschecksum_defined != 0)
     ind |= 1 << 0;
 #endif
@@ -2012,6 +2016,11 @@ int write_object_file(void) {
     ind |= 1 << 1;
   if (g_smschecksumsize_defined != 0)
     ind |= 1 << 2;
+#endif
+
+#if defined(MC68000)
+  if (g_computesmdchecksum_defined != 0)
+    ind |= 1 << 3;
 #endif
   
   fprintf(final_ptr, "%c", ind);

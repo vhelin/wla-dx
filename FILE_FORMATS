@@ -31,7 +31,8 @@ header:
                    bit 7 - endianess (1 = big endian))
   1     extr bits (bit 0 - 65ce02 indicator (1 == 65ce02)
                    bit 1 - sms checksum was already written (1 == yes)
-                   bit 2 - use a special range for sms checksum calculation (1 == yes))
+                   bit 2 - use a special range for sms checksum calculation (1 == yes)
+                   bit 3 - sega mega drive checksum (1 == compute))
   4     special range for sms checksum calculation (int)
 
 rom bank map:

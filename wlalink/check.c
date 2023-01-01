@@ -10,7 +10,6 @@
 #include "files.h"
 
 
-
 /* read an integer from t */
 #define READ_T (t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24)); t += 4;
 #define READ_T_FINAL (t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24));
@@ -18,8 +17,7 @@
 extern struct object_file *g_obj_first;
 extern int g_emptyfill, g_sms_checksum, g_smstag_defined, g_snes_rom_mode, g_snes_rom_speed, g_smc_status, g_sms_header;
 extern int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode, g_snes_sramsize, g_sms_checksum_already_written;
-extern int g_sms_checksum_size_defined, g_sms_checksum_size;
-
+extern int g_sms_checksum_size_defined, g_sms_checksum_size, g_smd_checksum;
 
 
 int check_file_types(void) {
@@ -123,6 +121,7 @@ int check_headers(void) {
         /* extr bits */
         g_sms_checksum_already_written = (extr_bits >> 1) & 1;
         g_sms_checksum_size_defined = (extr_bits >> 2) & 1;
+        g_smd_checksum = (extr_bits >> 3) & 1;
         /* sms checksum size */
         g_sms_checksum_size = READ_T_FINAL;
       }
@@ -149,6 +148,9 @@ int check_headers(void) {
         if (g_sms_header == 0 && (more_bits & 16) != 0)
           g_sms_header = more_bits & 16;
 
+        if (g_smd_checksum == 0 && ((extr_bits >> 3) & 1) != 0)
+          g_smd_checksum = 1;
+        
         e = (more_bits >> 1) & 3;
         if (g_snes_sramsize < e) {
           printf("CHECK_HEADERS: Conflicting SNES SRAM size in file \"%s\". Old $%.2x, new $%.2x. Using $%.2x as it's bigger.\n", o->name, g_snes_sramsize, e, e);

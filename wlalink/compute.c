@@ -18,7 +18,7 @@
 extern unsigned char *g_rom, *g_rom_usage;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern int g_romsize, g_sms_checksum, g_smstag_defined, g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_sms_header;
-extern int g_snes_rom_mode, g_sms_checksum_already_written, g_sms_checksum_size_defined, g_sms_checksum_size;
+extern int g_snes_rom_mode, g_sms_checksum_already_written, g_sms_checksum_size_defined, g_sms_checksum_size, g_smd_checksum;
 
 
 int reserve_checksum_bytes(void) {
@@ -126,6 +126,16 @@ int reserve_checksum_bytes(void) {
     }
   }
 
+  if (g_smd_checksum != 0) {
+    if (g_romsize >= 0x190) {
+      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s", "Reserving SMD ROM checksum bytes");
+
+      mem_insert(0x18E, 0);
+      mem_insert(0x18F, 0);
+    }
+  }
+
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
   snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "???");
     
@@ -147,6 +157,8 @@ int compute_checksums(void) {
     compute_gb_checksum();
   if (g_snes_checksum != 0)
     compute_snes_checksum();
+  if (g_smd_checksum != 0)
+    compute_smd_checksum();
 
   return SUCCEEDED;
 }
@@ -155,7 +167,6 @@ int compute_checksums(void) {
 int compute_gb_complement_check(void) {
 
   int res, j;
-
 
   if (g_romsize < 0x8000) {
     fprintf(stderr, "COMPUTE_GB_COMPLEMENT_CHECK: GB complement check computing requires a ROM of at least 32KB.\n");
@@ -179,10 +190,37 @@ int compute_gb_complement_check(void) {
 }
 
 
+int compute_smd_checksum(void) {
+
+  unsigned short int *rom = (unsigned short int *)g_rom;
+  int checksum, j;
+
+  if (g_romsize < 0x1000) {
+    fprintf(stderr, "COMPUTE_SMD_CHECKSUM: SMD checksum computing requires a ROM of at least 4KB.\n");
+    return FAILED;
+  }
+
+  checksum = 0;
+
+  for (j = 0x100; j < g_romsize/2; j++)
+    checksum += rom[j];
+
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s", "Writing SMD ROM checksum bytes");
+    
+  mem_insert_allow_overwrite(0x18E, (checksum >> 8) & 0xFF, 1);
+  mem_insert_allow_overwrite(0x18F, checksum & 0xFF, 1);
+
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "???");
+
+  return SUCCEEDED;
+}
+
+
 int compute_gb_checksum(void) {
 
   int checksum, j;
-
   
   if (g_romsize < 0x8000) {
     fprintf(stderr, "COMPUTE_GB_CHECKSUM: GB checksum computing requires a ROM of at least 32KB.\n");
@@ -212,7 +250,6 @@ int finalize_snes_rom(void) {
 
   int i;
   
-  
   if (g_snes_rom_mode == SNES_ROM_MODE_EXHIROM && g_romsize >= 0x410000) {
     /* create a what-we-are-doing message for mem_insert*() warnings/errors */
     snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s", "Mirroring SNES ROM header from $40ffb0-$40ffff -> $ffb0-$ffff");
@@ -232,7 +269,6 @@ int finalize_snes_rom(void) {
 int compute_snes_exhirom_checksum(void) {
 
   int i, j, checksum = 0, inv;
-
 
   /* do first the low 40-8Mbits (32Mbits) */
   for (i = 0; i < 32/8*1024*1024; i++) {
@@ -284,7 +320,7 @@ int compute_snes_exhirom_checksum(void) {
 }
 
 
-static int round_up_to_next_power_of_2(int x) {
+static int _round_up_to_next_power_of_2(int x) {
 
   int exponent;
 
@@ -323,7 +359,7 @@ int compute_snes_checksum(void) {
     }
   }
 
-  mirror_end = round_up_to_next_power_of_2(g_romsize);
+  mirror_end = _round_up_to_next_power_of_2(g_romsize);
   if (mirror_end == -1) {
     fprintf(stderr, "COMPUTE_SNES_CHECKSUM: Internal error: failed to round ROM size (%#x).\n", g_romsize);
     return FAILED;
@@ -385,7 +421,6 @@ int compute_snes_checksum(void) {
 int add_tmr_sega(void) {
 
   int tag_address = 0x7FF0;
-
   
   if (g_romsize < 0x4000)
     tag_address = 0x1FF0;
@@ -420,7 +455,6 @@ int add_tmr_sega(void) {
 int compute_sms_checksum(void) {
 
   int tag_address, j, checksum, checksum_max;
-
 
   /* has the checksum already been written by FORCECHECKSUM? */
   if (g_sms_checksum_already_written != 0)

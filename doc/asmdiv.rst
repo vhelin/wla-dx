@@ -32,6 +32,7 @@ Group 1:
 
 === ==========================================================================
 GB   ``.COMPUTEGBCHECKSUM``
+68K  ``.COMPUTESMDCHECKSUM``
 Z80  ``.COMPUTESMSCHECKSUM``
 658  ``.COMPUTESNESCHECKSUM``
 Z80  ``.SDSCTAG 1.0, "DUNGEON MAN", "A wild dungeon exploration game", "Ville Helin"``
@@ -698,6 +699,15 @@ When this directive is used WLA computes the ROM complement check found at
 
 Note that you can still use ``.COMPUTECOMPLEMENTCHECK`` (the old name for this
 directive), but it's not recommended.
+
+This is not a compulsory directive.
+
+
+``.COMPUTESMDCHECKSUM``
+-----------------------
+
+When this directive is used WLA computes the Sega Mega Drive ROM checksum
+found at ``$18E``. Note that this directive works only with WLA-68000.
 
 This is not a compulsory directive.
 
