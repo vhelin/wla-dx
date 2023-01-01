@@ -29,6 +29,8 @@ int does_stack_contain_one_label(int id);
 int data_stream_parser_free(void);
 int data_stream_parser_parse(void);
 struct data_stream_item *data_stream_parser_find_label(char *label, int file_name_id, int line_number);
+struct section_def *data_stream_parser_get_current_section(void);
+int data_stream_parser_get_current_address(void);
 
 #endif
 

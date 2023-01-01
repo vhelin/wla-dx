@@ -4041,8 +4041,21 @@ extern FILE *g_file_out_ptr;
 static struct data_stream_item *s_dsp_parent_labels[10];
 static int s_dsp_last_data_stream_position = 0, s_dsp_has_data_stream_parser_been_initialized = NO;
 static int s_dsp_add = 0, s_dsp_add_old = 0, s_dsp_section_id = -1, s_dsp_bits_current = 0, s_dsp_inz;
+static int s_dstruct_start, s_dstruct_item_offset, s_dstruct_item_size;
 static struct section_def *s_dsp_s = NULL;
 static struct map_t *s_dsp_labels_map = NULL;
+
+
+struct section_def *data_stream_parser_get_current_section(void) {
+
+  return s_dsp_s;
+}
+
+
+int data_stream_parser_get_current_address(void) {
+
+  return s_dsp_add;
+}
 
 
 int data_stream_parser_free(void) {
@@ -4134,10 +4147,31 @@ int data_stream_parser_parse(void) {
         print_error(ERROR_ERR, "Section with ID \"%d\" has gone missing! Please submit a bug report!\n", s_dsp_section_id);
         return FAILED;
       }
-      
+
+      if (s_dsp_s->status == SECTION_STATUS_FREE || s_dsp_s->status == SECTION_STATUS_RAM_FREE)
+        s_dsp_add = 0;
+
+      if (s_dsp_s->status == SECTION_STATUS_RAM_FORCE) {
+        if (s_dsp_s->address < 0)
+          s_dsp_s->address_from_dsp = s_dsp_add;
+        else {
+          s_dsp_add = s_dsp_s->address;
+          s_dsp_s->address_from_dsp = s_dsp_s->address;
+        }
+      }
+      else
+        s_dsp_s->address_from_dsp = s_dsp_add;
+
       continue;
 
     case 's':
+      s_dsp_s->size = s_dsp_add - s_dsp_s->address_from_dsp;
+        
+      if (s_dsp_s->advance_org == NO)
+        s_dsp_add = s_dsp_add_old;
+      else
+        s_dsp_add = s_dsp_add_old + s_dsp_s->size;
+      
       s_dsp_section_id = -1;
       s_dsp_s = NULL;
       continue;
@@ -4388,7 +4422,30 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 'e':
-      fscanf(g_file_out_ptr, "%*d %*d ");
+      {
+        int x, y;
+        
+        fscanf(g_file_out_ptr, "%d %d ", &x, &y);
+        if (y == -1) {
+          /* mark start of .DSTRUCT */
+          s_dstruct_start = s_dsp_add;
+          s_dstruct_item_offset = -1;
+        }
+        else {
+          if (s_dstruct_item_offset != -1 && s_dsp_add - s_dstruct_item_offset > s_dstruct_item_size) {
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: %d too many bytes in struct field.\n", get_file_name(s_dsp_file_name_id), s_dsp_line_number, (s_dsp_add - s_dstruct_item_offset) - s_dstruct_item_size);
+            return FAILED;
+          }
+          
+          s_dsp_add = s_dstruct_start + x;
+          if (y < 0)
+            s_dstruct_item_offset = -1;
+          else {
+            s_dstruct_item_offset = s_dsp_add;
+            s_dstruct_item_size = y;
+          }
+        }
+      }
       continue;
 
     default:

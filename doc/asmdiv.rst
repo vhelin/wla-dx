@@ -85,6 +85,7 @@ Group 3:
 65x  ``.8BIT``
 658  ``.ACCU 8``
 ALL  ``.ADDR 16000, main, 255``
+ALL  ``.ALIGN 4``
 ALL  ``.ARRAYDB NAME MyArray INDICES '0', 0, 1``
 ALL  ``.ARRAYDD NAME MyArray INDICES '0', 0, 1``
 ALL  ``.ARRAYDEF NAME MyArray SIZE 256``
@@ -318,6 +319,17 @@ This is not a compulsory directive.
 --------------------------
 
 ``.ADDR`` is an alias for ``.DW``.
+
+This is not a compulsory directive.
+
+
+``.ALIGN 4``
+------------
+
+Makes it so that on the next line the address is a multiple of the supplied
+value. Currently this directive can only be given outside ``.SECTION`` s or
+inside FORCE ``.SECTION`` s or inside ``.SECTION`` s that have the same
+alignment.
 
 This is not a compulsory directive.
 

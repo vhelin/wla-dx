@@ -646,6 +646,7 @@ int create_a_new_section_structure(void) {
   g_sec_tmp->offset = 0;
   g_sec_tmp->priority = 0;
   g_sec_tmp->address = 0;
+  g_sec_tmp->address_from_dsp = -1;
   g_sec_tmp->keep = NO;
   g_sec_tmp->bank = 0;
   g_sec_tmp->base = 0;

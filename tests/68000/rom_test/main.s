@@ -40,9 +40,70 @@
 
         ; @BT linked.rom
 
-        // TODO: add real tests
-        
         .db "01>"               ; @BT TEST-01 01 START
+        // 3
+        .align 8                ; @BT AA AA AA AA AA
+        // 8
         .db 0                   ; @BT 00
-        .db "<01"               ; @BT END
+        // 9
+        .align 2                ; @BT AA
+        // 10
+        .db 0, 1, 2, 3, 4, 5    ; @BT 00 01 02 03 04 05
+        // 16
+        .align 4
+        // 16
+        .db 4, 5, 6, 7          ; @BT 04 05 06 07
+        // 20
         
+        .section "ForceSection" FORCE
+        .align 16               ; @BT AA AA AA AA AA AA AA AA AA AA AA AA
+        // 32
+        .db 0, 1, 2             ; @BT 00 01 02
+        // 35
+        .ends
+
+        .db "<01"               ; @BT END
+
+        .section "Align4-A" ALIGN 4 RETURNORG
+        .db "02>"               ; @BT TEST-02 02 START
+        // 3
+        .align 4                ; @BT AA
+        // 4
+        .db 0                   ; @BT 00
+        // 5
+        .align 4                ; @BT AA AA AA
+        // 8
+        .db 1, 2                ; @BT 01 02
+        .db "<02"               ; @BT END
+        .ends
+
+        .section "Align4-B" ALIGN 4
+        .db "03>"               ; @BT TEST-03 03 START
+        // 3
+        .align 4                ; @BT AA
+        // 4
+        .db 0                   ; @BT 00
+        // 5
+        .align 4                ; @BT AA AA AA
+        // 8
+        .db 1, 2                ; @BT 01 02
+        .db "<03"               ; @BT END
+        .ends
+
+        .ORG $201
+
+        .db "04>"               ; @BT TEST-04 04 START
+        // 4
+        .align 8                ; @BT AA AA AA AA
+        // 8
+        .db 0                   ; @BT 00
+        // 9
+        .align 2                ; @BT AA
+        // 10
+        .db 0, 1, 2, 3, 4, 5    ; @BT 00 01 02 03 04 05
+        // 16
+        .align 4
+        // 16
+        .db 4, 5, 6, 7          ; @BT 04 05 06 07
+        // 20
+        .db "<04"

@@ -2921,6 +2921,60 @@ int directive_bits(void) {
 }
 
 
+int directive_align(void) {
+
+  int q, address, align, remainder;
+  struct section_def *s;
+
+  q = input_number();
+
+  if (q == FAILED)
+    return FAILED;
+  if (q != SUCCEEDED || g_parsed_int < 2) {
+    print_error(ERROR_DIR, ".ALIGN needs an integer greater than 1.\n");
+    return FAILED;
+  }
+
+  align = g_parsed_int;
+  
+  /* fast forward to the current point to calculate our current address */
+  if (data_stream_parser_parse() == FAILED)
+    return FAILED;
+
+  s = data_stream_parser_get_current_section();
+  address = data_stream_parser_get_current_address();
+  
+  if (s != NULL) {
+    /* check if the section works with .ALIGN */
+    if (s->status == SECTION_STATUS_FORCE) {
+      /* this is good */
+    }
+    else if (s->alignment == align) {
+      /* this is also good */
+      address = s->alignment + address - s->address_from_dsp;
+    }
+    else {
+      print_error(ERROR_DIR, ".ALIGN works currently in FORCE .SECTIONs and .SECTIONs that have the same ALIGN.\n");
+      return FAILED;
+    }
+  }
+
+  /* we are outside a section - this is easy, just emptyfill until aligned... */
+  remainder = address % align;
+
+  if (remainder != 0) {
+    int target = address - remainder + align;
+
+    while (address < target) {
+      fprintf(g_file_out_ptr, "d%d ", g_emptyfill);
+      address++;
+    }
+  }
+
+  return SUCCEEDED;
+}
+
+
 int directive_asctable_asciitable(void) {
   
   int astart, aend, q, o, token_result;
@@ -4435,6 +4489,7 @@ int directive_ramsection(void) {
   g_sec_tmp->nspace = NULL;
   g_sec_tmp->bank = 0;
   g_sec_tmp->address = -1;
+  g_sec_tmp->address_from_dsp = -1;
   g_sec_tmp->bitwindow = 0;
   g_sec_tmp->window_start = -1;
   g_sec_tmp->window_end = -1;
@@ -4893,6 +4948,7 @@ int directive_section(void) {
   g_sec_tmp->bitwindow = 0;
   g_sec_tmp->window_start = -1;
   g_sec_tmp->window_end = -1;
+  g_sec_tmp->address_from_dsp = -1;
 
   fprintf(g_file_out_ptr, "S%d ", g_sec_tmp->id);
 
@@ -10019,6 +10075,10 @@ int parse_directive(void) {
     }
 #endif
 
+    /* ALIGN */
+    if (strcmp(directive_upper, "ALIGN") == 0)
+      return directive_align();
+    
     /* ASCTABLE/ASCIITABLE? */
     if (strcmp(directive_upper, "ASCTABLE") == 0 || strcmp(directive_upper, "ASCIITABLE") == 0)
       return directive_asctable_asciitable();

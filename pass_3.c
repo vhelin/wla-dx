@@ -572,8 +572,14 @@ int pass_3(void) {
           else
             add = s->address;
         }
-        else
+        else {
           s->address = add;
+
+          if (s->address_from_dsp >= 0 && s->address_from_dsp != add) {
+            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, s->name, s->address_from_dsp, add);
+            return FAILED;
+          }
+        }
 
         s->bank = bank;
         s->base = base;
@@ -659,9 +665,15 @@ int pass_3(void) {
         else
           add = s->address;
       }
-      else
+      else {
         s->address = add;
-      
+
+        if (s->address_from_dsp >= 0 && s->address_from_dsp != add) {
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, s->name, s->address_from_dsp, add);
+          return FAILED;
+        }
+      }
+          
       s->listfile_items = 1;
       s->listfile_ints = NULL;
       s->listfile_cmds = NULL;

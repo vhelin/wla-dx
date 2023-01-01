@@ -640,6 +640,7 @@ struct section_def {
   int  offset;
   int  priority;
   int  address; /* in bank */
+  int  address_from_dsp;
   int  keep;
   int  bank;
   int  base;
