@@ -2949,12 +2949,12 @@ int directive_align(void) {
     if (s->status == SECTION_STATUS_FORCE) {
       /* this is good */
     }
-    else if (s->alignment == align) {
+    else if ((s->alignment % align) == 0) {
       /* this is also good */
       address = s->alignment + address - s->address_from_dsp;
     }
     else {
-      print_error(ERROR_DIR, ".ALIGN works currently in FORCE .SECTIONs and .SECTIONs that have the same ALIGN.\n");
+      print_error(ERROR_DIR, ".ALIGN works currently in FORCE .SECTIONs and .SECTIONs that have ALIGN that is a multiple of .ALIGN.\n");
       return FAILED;
     }
   }

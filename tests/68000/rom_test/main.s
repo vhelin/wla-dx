@@ -27,7 +27,7 @@
           TITLEDOMESTIC "             "    ; 48 bytes (all spaces)
           TITLEOVERSEAS "             "    ; 48 bytes (all spaces)
           SERIALNUMBER  "             "    ; 14 bytes (all spaces)
-          DEVICESUPPORT "J            "    ; 16 bytes (all spaces)
+          DEVICESUPPORT "J            "    ; 16 bytes ('J' and the rest are spaces)
           ROMADDRESSRANGE $0, -1           ;  8 bytes (-1 is turned into ROM size minus one)
           RAMADDRESSRANGE $FF0000, $FFFFFF ;  8 bytes
           EXTRAMEMORY "RA", $A0, $20, 0, 0 ; 12 bytes (S and E and start and end, both 0)
@@ -64,7 +64,7 @@
 
         .db "<01"               ; @BT END
 
-        .section "Align4-A" ALIGN 4 RETURNORG
+        .section "Align4-A" ALIGN 8 RETURNORG
         .db "02>"               ; @BT TEST-02 02 START
         // 3
         .align 4                ; @BT AA
@@ -74,6 +74,14 @@
         .align 4                ; @BT AA AA AA
         // 8
         .db 1, 2                ; @BT 01 02
+        // 10
+        .align 4                ; @BT AA AA
+        // 12
+        .db 3                   ; @BT 03
+        // 13
+        .align 2                ; @BT AA
+        // 14
+        .db 4, 5                ; @BT 04 05
         .db "<02"               ; @BT END
         .ends
 
@@ -86,7 +94,12 @@
         // 5
         .align 4                ; @BT AA AA AA
         // 8
-        .db 1, 2                ; @BT 01 02
+        .db 1                   ; @BT 01
+        // 9
+        .align 2                ; @BT AA
+        // 10
+        .db 2                   ; @BT 02
+        // 11
         .db "<03"               ; @BT END
         .ends
 

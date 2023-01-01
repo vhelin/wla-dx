@@ -328,8 +328,8 @@ This is not a compulsory directive.
 
 Makes it so that on the next line the address is a multiple of the supplied
 value. Currently this directive can only be given outside ``.SECTION`` s or
-inside FORCE ``.SECTION`` s or inside ``.SECTION`` s that have the same
-alignment.
+inside FORCE ``.SECTION`` s or inside ``.SECTION`` s that have ALIGN that is
+a multiple of the ``.ALIGN`` here.
 
 This is not a compulsory directive.
 
@@ -3302,7 +3302,7 @@ in ``.SMDHEADER`` are optional. Here are the default values::
         TITLEDOMESTIC "             "    ; 48 bytes (all spaces)
         TITLEOVERSEAS "             "    ; 48 bytes (all spaces)
         SERIALNUMBER  "             "    ; 14 bytes (all spaces)
-        DEVICESUPPORT "J            "    ; 16 bytes (all spaces)
+        DEVICESUPPORT "J            "    ; 16 bytes ('J' and the rest are spaces)
         ROMADDRESSRANGE $0, -1           ;  8 bytes (-1 is turned into ROM size minus one)
         RAMADDRESSRANGE $FF0000, $FFFFFF ;  8 bytes
         EXTRAMEMORY "RA", $A0, $20, S, E ; 12 bytes (S and E and start and end, both 0)
