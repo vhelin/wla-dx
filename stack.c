@@ -2903,7 +2903,7 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
   /* is this form "string".length? */
   if (is_string_ending_with(s->string, ".length") > 0 ||
       is_string_ending_with(s->string, ".LENGTH") > 0) {
-    /* we have a X.length -> parse */
+    /* we have a X.length -> calculate */
     s->string[strlen(s->string) - 7] = 0;
     s->value = get_label_length(s->string);
     s->type = STACK_ITEM_TYPE_VALUE;

@@ -48,7 +48,19 @@ int g_smsforcechecksum = 0, g_smsforcechecksum_defined = 0, g_smschecksumsize = 
 #endif
 
 #ifdef MC68000
-int g_computesmdchecksum_defined = 0;
+char g_smdheader_systemtype[17] = "SEGA MEGA DRIVE ";
+char g_smdheader_copyright[17] = "                ";
+char g_smdheader_titledomestic[49] = "                                                ";
+char g_smdheader_titleoverseas[49] = "                                                ";
+char g_smdheader_serialnumber[15] = "              ";
+char g_smdheader_devicesupport[17] = "J               ";
+int g_smdheader_romaddressrange_start = 0, g_smdheader_romaddressrange_end = -1;
+int g_smdheader_ramaddressrange_start = 0xff0000, g_smdheader_ramaddressrange_end = 0xffffff;
+char g_smdheader_extramemory_type_1[3] = "RA";
+int g_smdheader_extramemory_type_2 = 0xa0, g_smdheader_extramemory_type_3 = 0x20, g_smdheader_extramemory_start = 0, g_smdheader_extramemory_end = 0;
+char g_smdheader_modemsupport[13] = "            ";
+char g_smdheader_regionsupport[4] = "JUE";
+int g_computesmdchecksum_defined = 0, g_smdheader_defined = NO;
 #endif
 
 int g_org_defined = 1, g_background_defined = 0;
@@ -7968,6 +7980,271 @@ int directive_sdsctag(void) {
 #endif
 
 
+#ifdef MC68000
+
+static void _copy_and_pad_string(char *output, char *input, int size, char padding) {
+
+  int i = 0;
+
+  while (i < size) {
+    if (input[i] == 0)
+      break;
+    output[i] = input[i];
+    i++;
+  }
+  while (i < size)
+    output[i++] = padding;
+}
+
+
+int directive_smdheader(void) {
+  
+  int q, token_result;
+    
+  if (g_smdheader_defined == YES) {
+    print_error(ERROR_DIR, ".SMDHEADER can be defined only once.\n");
+    return FAILED;
+  }
+
+  if (g_computesmdchecksum_defined != 0)
+    print_error(ERROR_WRN, ".COMPUTESMDCHECKSUM is unnecessary when .SMDHEADER is defined.\n");
+
+  if (g_output_format == OUTPUT_LIBRARY) {
+    print_error(ERROR_DIR, "Libraries don't take .SMDHEADER.\n");
+    return FAILED;
+  }
+
+  while ((token_result = get_next_token()) == SUCCEEDED) {
+    /* .IF directive? */
+    if (g_tmp[0] == '.') {
+      q = parse_if_directive();
+      if (q == FAILED)
+        return FAILED;
+      else if (q == SUCCEEDED)
+        continue;
+      /* else q == -1, continue executing below */
+    }
+
+    if (strcaselesscmp(g_tmp, ".ENDSMD") == 0)
+      break;
+    else if (strcaselesscmp(g_tmp, "SYSTEMTYPE") == 0) {
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 16) {
+        print_error(ERROR_DIR, "SYSTEMTYPE expects a string with maximum 16 characters.\n");
+        return FAILED;
+      }
+
+      _copy_and_pad_string(g_smdheader_systemtype, g_label, 16, ' ');
+    }
+    else if (strcaselesscmp(g_tmp, "COPYRIGHT") == 0) {
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 16) {
+        print_error(ERROR_DIR, "COPYRIGHT expects a string with maximum 16 characters.\n");
+        return FAILED;
+      }
+
+      _copy_and_pad_string(g_smdheader_copyright, g_label, 16, ' ');
+    }
+    else if (strcaselesscmp(g_tmp, "TITLEDOMESTIC") == 0) {
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 48) {
+        print_error(ERROR_DIR, "TITLEDOMESTIC expects a string with maximum 48 characters.\n");
+        return FAILED;
+      }
+
+      _copy_and_pad_string(g_smdheader_titledomestic, g_label, 48, ' ');
+    }
+    else if (strcaselesscmp(g_tmp, "TITLEOVERSEAS") == 0) {
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 48) {
+        print_error(ERROR_DIR, "TITLEOVERSEAS expects a string with maximum 48 characters.\n");
+        return FAILED;
+      }
+
+      _copy_and_pad_string(g_smdheader_titleoverseas, g_label, 48, ' ');
+    }
+    else if (strcaselesscmp(g_tmp, "SERIALNUMBER") == 0) {
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 14) {
+        print_error(ERROR_DIR, "SERIALNUMBER expects a string with maximum 14 characters.\n");
+        return FAILED;
+      }
+
+      _copy_and_pad_string(g_smdheader_serialnumber, g_label, 14, ' ');
+    }
+    else if (strcaselesscmp(g_tmp, "DEVICESUPPORT") == 0) {
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 16) {
+        print_error(ERROR_DIR, "DEVICESUPPORT expects a string with maximum 16 characters.\n");
+        return FAILED;
+      }
+
+      _copy_and_pad_string(g_smdheader_devicesupport, g_label, 16, ' ');
+    }
+    else if (strcaselesscmp(g_tmp, "ROMADDRESSRANGE") == 0) {
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED) {
+        print_error(ERROR_DIR, "ROMADDRESSRANGE takes two integers, start and end.\n");
+        return FAILED;
+      }
+
+      g_smdheader_romaddressrange_start = g_parsed_int;
+
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED) {
+        print_error(ERROR_DIR, "ROMADDRESSRANGE takes two integers, start and end.\n");
+        return FAILED;
+      }
+
+      g_smdheader_romaddressrange_end = g_parsed_int;
+    }
+    else if (strcaselesscmp(g_tmp, "RAMADDRESSRANGE") == 0) {
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED) {
+        print_error(ERROR_DIR, "RAMADDRESSRANGE takes two integers, start and end.\n");
+        return FAILED;
+      }
+
+      g_smdheader_ramaddressrange_start = g_parsed_int;
+
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED) {
+        print_error(ERROR_DIR, "RAMADDRESSRANGE takes two integers, start and end.\n");
+        return FAILED;
+      }
+
+      g_smdheader_ramaddressrange_end = g_parsed_int;
+    }
+    else if (strcaselesscmp(g_tmp, "EXTRAMEMORY") == 0) {
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 2) {
+        print_error(ERROR_DIR, "EXTRAMEMORY expects here a string with maximum 2 characters.\n");
+        return FAILED;
+      }
+
+      _copy_and_pad_string(g_smdheader_extramemory_type_1, g_label, 2, ' ');
+
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED || g_parsed_int < -128 || g_parsed_int > 255) {
+        print_error(ERROR_DIR, "EXTRAMEMORY expects here a byte value (RAM type).\n");
+        return FAILED;
+      }
+
+      g_smdheader_extramemory_type_2 = g_parsed_int;
+
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED || g_parsed_int < -128 || g_parsed_int > 255) {
+        print_error(ERROR_DIR, "EXTRAMEMORY expects here a byte value (this is usually $20).\n");
+        return FAILED;
+      }
+
+      g_smdheader_extramemory_type_3 = g_parsed_int;
+      
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED) {
+        print_error(ERROR_DIR, "EXTRAMEMORY expects here a start address value.\n");
+        return FAILED;
+      }
+
+      g_smdheader_extramemory_start = g_parsed_int;
+
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED) {
+        print_error(ERROR_DIR, "EXTRAMEMORY expects here a end address value.\n");
+        return FAILED;
+      }
+
+      g_smdheader_extramemory_end = g_parsed_int;
+    }
+    else if (strcaselesscmp(g_tmp, "MODEMSUPPORT") == 0) {
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 12) {
+        print_error(ERROR_DIR, "MODEMSUPPORT expects a string with maximum 12 characters.\n");
+        return FAILED;
+      }
+
+      _copy_and_pad_string(g_smdheader_modemsupport, g_label, 12, ' ');
+    }
+    else if (strcaselesscmp(g_tmp, "REGIONSUPPORT") == 0) {
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 3) {
+        print_error(ERROR_DIR, "REGIONSUPPORT expects a string with maximum 3 characters.\n");
+        return FAILED;
+      }
+
+      _copy_and_pad_string(g_smdheader_regionsupport, g_label, 3, ' ');
+    }
+    else {
+      token_result = FAILED;
+      break;
+    }
+  }
+
+  if (token_result != SUCCEEDED) {
+    print_error(ERROR_DIR, "Error in .SMDHEADER data structure.\n");
+    return FAILED;
+  }
+
+  g_smdheader_defined = YES;
+  g_computesmdchecksum_defined++;
+      
+  return SUCCEEDED;
+}
+
+#endif
+
+
 static int _parse_macro_argument_names(struct macro_static *m, int *count, int inside_parentheses) {
 
   while (1) {
@@ -11070,6 +11347,12 @@ int parse_directive(void) {
       return directive_sdsctag();
 #endif
 
+#if defined(MC68000)
+    /* SMDHEADER */
+    if (strcmp(g_current_directive, "SMDHEADER") == 0)
+      return directive_smdheader();
+#endif
+    
 #if defined(W65816)  
     /* SMC */
     if (strcmp(directive_upper, "SMC") == 0) {

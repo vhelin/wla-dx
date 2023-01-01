@@ -7,7 +7,7 @@ v10.5 (01-Jan-2023) [ALL] .DSB, .DSW, .DSL and .DSD produced only one pending
                       calculation struct when encountered a pending calculation
                       thus the result was wrong.
                     [68K] Added support for MC68000.
-                    [68K] Added .COMPUTESMDCHECKSUM.
+                    [68K] Added .COMPUTESMDCHECKSUM and .SMDHEADER.
 
 v10.4 (24-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
                       than used in a pending calculation, WLA can now solve

@@ -55,6 +55,22 @@ extern int g_hirom_defined, g_lorom_defined, g_slowrom_defined, g_fastrom_define
 extern int g_computesneschecksum_defined, g_exhirom_defined, g_exlorom_defined;
 #endif
 
+#if defined(MC68000)
+extern char g_smdheader_systemtype[17];
+extern char g_smdheader_copyright[17];
+extern char g_smdheader_titledomestic[49];
+extern char g_smdheader_titleoverseas[49];
+extern char g_smdheader_serialnumber[15];
+extern char g_smdheader_devicesupport[17];
+extern int g_smdheader_romaddressrange_start, g_smdheader_romaddressrange_end;
+extern int g_smdheader_ramaddressrange_start, g_smdheader_ramaddressrange_end;
+extern char g_smdheader_extramemory_type_1[3];
+extern int g_smdheader_extramemory_type_2, g_smdheader_extramemory_type_3, g_smdheader_extramemory_start, g_smdheader_extramemory_end;
+extern char g_smdheader_modemsupport[13];
+extern char g_smdheader_regionsupport[4];
+extern int g_computesmdchecksum_defined, g_smdheader_defined;
+#endif
+
 extern FILE *g_file_out_ptr;
 extern int g_rambanks, g_rambanks_defined, g_ifdef;
 extern int g_rombanks_defined, g_rombanks;
@@ -300,6 +316,73 @@ int pass_2(void) {
       mem_insert_absolute(0x7FE8, ye_l);
       mem_insert_absolute(0x7FE9, ye_h);
     */
+  }
+#endif
+
+#if defined(MC68000)
+  /* SMDHEADER */
+  if (g_smdheader_defined == YES) {
+    int i;
+    
+    /* create a section that contains half of the header data */
+    if (create_a_new_section_structure() == FAILED)
+      return FAILED;
+    strcpy(g_sec_tmp->name, "!__WLA_SMDHEADER_PART_1");
+    g_sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+    fprintf(g_file_out_ptr, "A%d %d ", g_sec_tmp->id, 0x100);
+
+    /* insert the system line (0) */
+    fprintf(g_file_out_ptr, "k0 ");
+
+    for (i = 0; i < 16; i++)
+      fprintf(g_file_out_ptr, "d%d ", g_smdheader_systemtype[i]);
+    for (i = 0; i < 16; i++)
+      fprintf(g_file_out_ptr, "d%d ", g_smdheader_copyright[i]);
+    for (i = 0; i < 48; i++)
+      fprintf(g_file_out_ptr, "d%d ", g_smdheader_titledomestic[i]);
+    for (i = 0; i < 48; i++)
+      fprintf(g_file_out_ptr, "d%d ", g_smdheader_titleoverseas[i]);
+    for (i = 0; i < 14; i++)
+      fprintf(g_file_out_ptr, "d%d ", g_smdheader_serialnumber[i]);
+    
+    fprintf(g_file_out_ptr, "s ");
+
+    /* create a section that contains half of the header data */
+    if (create_a_new_section_structure() == FAILED)
+      return FAILED;
+    strcpy(g_sec_tmp->name, "!__WLA_SMDHEADER_PART_2");
+    g_sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+    fprintf(g_file_out_ptr, "A%d %d ", g_sec_tmp->id, 0x190);
+
+    /* insert the system line (0) */
+    fprintf(g_file_out_ptr, "k0 ");
+
+    for (i = 0; i < 16; i++)
+      fprintf(g_file_out_ptr, "d%d ", g_smdheader_devicesupport[i]);
+    fprintf(g_file_out_ptr, "u%d ", g_smdheader_romaddressrange_start);
+    if (g_smdheader_romaddressrange_end < 0)
+      fprintf(g_file_out_ptr, "u%d ", g_max_address - 1);
+    else
+      fprintf(g_file_out_ptr, "u%d ", g_smdheader_romaddressrange_end);
+    fprintf(g_file_out_ptr, "u%d ", g_smdheader_ramaddressrange_start);
+    fprintf(g_file_out_ptr, "u%d ", g_smdheader_ramaddressrange_end);
+    for (i = 0; i < 2; i++)
+      fprintf(g_file_out_ptr, "d%d ", g_smdheader_extramemory_type_1[i]);
+    fprintf(g_file_out_ptr, "d%d ", g_smdheader_extramemory_type_2);
+    fprintf(g_file_out_ptr, "d%d ", g_smdheader_extramemory_type_3);
+    fprintf(g_file_out_ptr, "u%d ", g_smdheader_extramemory_start);
+    fprintf(g_file_out_ptr, "u%d ", g_smdheader_extramemory_end);
+    for (i = 0; i < 12; i++)
+      fprintf(g_file_out_ptr, "d%d ", g_smdheader_modemsupport[i]);
+    for (i = 0; i < 40; i++)
+      fprintf(g_file_out_ptr, "d%d ", ' ');
+    for (i = 0; i < 3; i++)
+      fprintf(g_file_out_ptr, "d%d ", g_smdheader_regionsupport[i]);
+    for (i = 0; i < 13; i++)
+      fprintf(g_file_out_ptr, "d%d ", ' ');
+    
+    fprintf(g_file_out_ptr, "s ");
+
   }
 #endif
 

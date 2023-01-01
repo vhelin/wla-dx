@@ -69,6 +69,7 @@ GB   ``.ROMSGB``
 GB   ``.ROMSIZE 1``
 658  ``.SLOWROM``
 658  ``.SMC``
+68K  ``.SMDHEADER``
 Z80  ``.SMSHEADER``
 658  ``.SNESEMUVECTOR``
 658  ``.SNESHEADER``
@@ -3273,6 +3274,33 @@ three bytes:
         * Bit ``1``: ``0``
         * Bit ``0``: ``0``
 ====== ===================================================================
+
+This is not a compulsory directive.
+
+
+``.SMDHEADER``
+--------------
+
+Defines the Sega Mega Drive ROM header in ``$100-$1FF``. All the fields
+in ``.SMDHEADER`` are optional. Here are the default values::
+
+    .SMDHEADER
+        SYSTEMTYPE "SEGA MEGA DRIVE "    ; 16 bytes
+        COPYRIGHT  "                "    ; 16 bytes
+        TITLEDOMESTIC "             "    ; 48 bytes (all spaces)
+        TITLEOVERSEAS "             "    ; 48 bytes (all spaces)
+        SERIALNUMBER  "             "    ; 14 bytes (all spaces)
+        DEVICESUPPORT "J            "    ; 16 bytes (all spaces)
+        ROMADDRESSRANGE $0, -1           ;  8 bytes (-1 is turned into ROM size minus one)
+        RAMADDRESSRANGE $FF0000, $FFFFFF ;  8 bytes
+        EXTRAMEMORY "RA", $A0, $20, S, E ; 12 bytes (S and E and start and end, both 0)
+        MODEMSUPPORT "            "      ; 12 bytes (all spaces)
+        REGIONSUPPORT "JUE"              ;  3 bytes
+    .ENDSMD
+
+When ``.SMDHEADER`` is defined, also the ROM checksum is calculated.
+
+See https://plutiedev.com/rom-header for more information about the SMD header.
 
 This is not a compulsory directive.
 
