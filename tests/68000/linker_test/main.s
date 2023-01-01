@@ -1287,6 +1287,32 @@ end_85: .db "<85"                ; @BT END
         movep.l $1234(a7),d4     ; @BT 09 4F 12 34
         movep.l ($5678,a2),d1    ; @BT 03 4A 56 78
         .db "<86"                ; @BT END
+
+        .db "87>"                ; @BT TEST-87 87 START
+        movem.w d0-d7/a0-a7,(a1) ; @BT 48 91 FF FF
+        movem.l d0-d3/a4-a7,(a1) ; @BT 48 D1 F0 0F
+        movem.w d1/d3/d6-d7/a0/a2/a4-a6,-(a7) ; @BT 48 A7 53 AE
+        movem.w d0-d7/a0-a7,$1234(a3) ; @BT 48 AB FF FF 12 34
+        movem.l d0-d3/a4-a7,($12,a3,d4) ; @BT 48 F3 F0 0F 40 12
+        movem.w d1/d3/d6-d7/a0/a2/a4-a6,$1234.w ; @BT 48 B8 75 CA 12 34
+        movem.w d0-d3/d5/a0-a6,$12345678 ; @BT 48 B9 7F 2F 12 34 56 78
+        movem d0-d7/a0-a7,(a1) ; @BT 48 91 FF FF
+        movem d1/d3/d6-d7/a0/a2/a4-a6,-(a7) ; @BT 48 A7 53 AE
+        movem d0-d7/a0-a7,$1234(a3) ; @BT 48 AB FF FF 12 34
+        movem d1/d3/d6-d7/a0/a2/a4-a6,$1234.w ; @BT 48 B8 75 CA 12 34
+        movem d0-d3/d5/a0-a6,$12345678 ; @BT 48 B9 7F 2F 12 34 56 78
+        .db "<87"                ; @BT END
+
+        .db "88>"                ; @BT TEST-88 88 START
+        movem.l (a3),a0/a2/a4-a6/d3-d5/d7 ; @BT 4C D3 75 B8
+        movem.w (a4)+,a0-a5/d0-d4 ; @BT 4C 9C 3F 1F
+        movem.l $5678(a7),d0-d7   ; @BT 4C EF 00 FF 56 78
+        movem.l ($78,a1,d2),a0-a5/d0-d1 ; @BT 4C F1 3F 03 20 78
+        movem.w $3456.w,a0/a2/a4/a6/d0/d2/d4/d6 ; @BT 4C B8 55 55 34 56
+        movem.l $12345678,a0-a2/d0-d2 ; @BT 4C F9 07 07 12 34 56 78
+        movem.w end_88(pc),a0/a5/d1 ; @BT 4C BA 21 02 00 08
+        movem.l (end_88,pc,d0),d1-d4/a0-a2/d5/a4 ; @BT 4C FB 17 3E 00 02
+end_88: .db "<88"                ; @BT END
         
         .org $ABCE
 label_ABCE:

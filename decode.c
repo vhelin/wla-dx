@@ -372,6 +372,19 @@ static void _mc68000_emit_extra_data(int mode, int reg1, int reg2, int data_type
 }
 
 
+static int _mc68000_reverse_register_list(int list) {
+
+  int i, reversed = 0;
+
+  for (i = 0; i < 16; i++) {
+    if ((list & (1 << i)) != 0)
+      reversed |= 1 << (15 - i);
+  }
+
+  return reversed;
+}
+
+
 /*
    mode  reg1  reg2  addressing mode
    000 - nnn - ??? - Dn
@@ -389,6 +402,7 @@ static void _mc68000_emit_extra_data(int mode, int reg1, int reg2, int data_type
   1000 - ??? - ??? - CCR
   1001 - ??? - ??? - SR
   1010 - ??? - ??? - USP
+  1011 - lst - ??? - register list, a7-a0/d7-d0
 */
 
 static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *mode, int *data, int *data_type, char *label, unsigned int extras) {
@@ -433,6 +447,117 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
       *index = i;
 
       return SUCCEEDED;
+    }
+    else if ((c == 'A' || c == 'D') && (code[i+1] >= '0' && code[i+1] <= '7')) {
+      /* try to parse a register list, could be a single register though */
+      int old_i = i, registers = 0, list = 0, success = YES, number, c2, number2;
+
+      while (1) {
+        if (code[i] == 0xA || code[i] == ',')
+          break;
+
+        c = toupper((int)code[i++]);
+        if (code[i] >= '0' && code[i] <= '7')
+          number = code[i++] - '0';
+        else {
+          success = NO;
+          break;
+        }
+
+        if (code[i] == '/' || code[i] == 0xA || code[i] == ',') {
+          /* add this register to the list */
+          if (c == 'A') {
+            if ((list & (1 << (8 + number))) == 0) {
+              registers++;
+              list |= (1 << (8 + number));
+            }
+          }
+          else if (c == 'D') {
+            if ((list & (1 << number)) == 0) {
+              registers++;
+              list |= 1 << number;
+            }
+          }
+          else {
+            success = NO;
+            break;
+          }
+
+          if (code[i] == '/')
+            i++;
+        }
+        else if (code[i] == '-') {
+          /* it's a range! */
+          i++;
+          
+          c2 = toupper((int)code[i++]);
+
+          if (c2 != c) {
+            /* different register type */
+            print_error(ERROR_NUM, "Unsupported register range.\n");
+            return FAILED;
+          }
+
+          if (code[i] >= '0' && code[i] <= '7')
+            number2 = code[i++] - '0';
+          else {
+            print_error(ERROR_NUM, "Malformed register range.\n");
+            return FAILED;
+          }
+
+          if (number2 < number) {
+            /* make number to be less than number2 */
+            c2 = number;
+            number = number2;
+            number2 = c2;
+          }
+
+          /* add registers to the list */
+          while (number <= number2) {
+            if (c == 'A') {
+              if ((list & (1 << (8 + number))) == 0) {
+                registers++;
+                list |= (1 << (8 + number));
+              }
+            }
+            else if (c == 'D') {
+              if ((list & (1 << number)) == 0) {
+                registers++;
+                list |= 1 << number;
+              }
+            }
+            else {
+              success = NO;
+              break;
+            }
+            
+            number++;
+          }
+
+          if (code[i] == '/')
+            i++;
+        }
+        else {
+          success = NO;
+          break;
+        }
+      }
+      
+      /* did we get a single register? */
+      if (registers <= 1 || success == NO) {
+        /* yes, break and continue */
+        i = old_i;
+
+        c = toupper((int)code[i]);
+      }
+      else {
+        /* no, we got a list! */
+        *reg1 = list;
+        *mode = B8(00001011);
+        *index = i;
+
+        return SUCCEEDED;
+      }
     }
   }
 
@@ -5296,7 +5421,7 @@ int evaluate_token(void) {
           break;
         g_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
           break;
 
         /* Dx, (d16, Ay)? */
@@ -5337,6 +5462,136 @@ int evaluate_token(void) {
         _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
         _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
 
+        g_source_pointer = g_inz;
+
+        return SUCCEEDED;
+      }
+      break;
+
+    case 25:
+      /* MOVEM */
+      {
+        int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, register_x1 = 0, register_x2 = 0, register_x_mode = 0, opcode;
+        int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size;
+        char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
+        
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          if (g_instruction_tmp->string[x] == 0) {
+	    if (g_buffer[g_inz] == ' ') {
+	      done = YES;
+	      break;
+	    }
+	    else
+	      break;
+          }
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            break;
+        }
+
+        if (done == NO)
+          break;
+
+        size = g_instruction_tmp->size;
+        opcode = g_instruction_tmp->hex;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, YES) == FAILED)
+          break;
+
+        if (g_buffer[g_inz] != ',')
+          break;
+        g_inz++;
+
+        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+          break;
+
+        /* turn register source into a register list */
+        if (register_y_mode == B8(00000000)) {
+          /* Dn */
+          register_y_mode = B8(00001011);
+          register_y1 = 1 << register_y1;
+        }
+        if (register_y_mode == B8(00000001)) {
+          /* An */
+          register_y_mode = B8(00001011);
+          register_y1 = 1 << (register_y1 + 8);
+        }
+
+        /* turn register target into a register list */
+        if (register_x_mode == B8(00000000)) {
+          /* Dn */
+          register_x_mode = B8(00001011);
+          register_x1 = 1 << register_x1;
+        }
+        if (register_x_mode == B8(00000001)) {
+          /* An */
+          register_x_mode = B8(00001011);
+          register_x1 = 1 << (register_x1 + 8);
+        }
+        
+        /* register source? */
+        if (register_y_mode == B8(00001011)) {
+          /* register to memory */
+
+          /* no Dn, An, immediate or PC relative modes */
+          if (register_x_mode == B8(00000000) || register_x_mode == B8(00000001) ||
+              register_x_mode == B8(00000011) || (register_x_mode == B8(00000111) && register_x1 == B8(00000100)) ||
+              (register_x_mode == B8(00000111) && register_x1 == B8(00000010)) ||
+              (register_x_mode == B8(00000111) && register_x1 == B8(00000011))) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+
+          /* -(An)? */
+          if (register_x_mode == B8(00000100))
+            register_y1 = _mc68000_reverse_register_list(register_y1);
+
+          /* mode */
+          opcode |= register_x_mode << 3;
+
+          /* register */
+          opcode |= register_x1;
+
+          /* emit opcode */
+          _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+          /* emit register list */
+          _output_assembled_instruction(g_instruction_tmp, "y%d ", register_y1);
+                    
+          /* emit extra data */
+          _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
+        }
+        /* register target? */
+        else if (register_x_mode == B8(00001011)) {
+          /* memory to register */
+          opcode |= 1 << 10;
+
+          /* no Dn, An, immediate */
+          if (register_y_mode == B8(00000000) || register_y_mode == B8(00000001) ||
+              register_y_mode == B8(00000100) || (register_y_mode == B8(00000111) && register_y1 == B8(00000100))) {
+            print_error(ERROR_NUM, "Invalid addressing mode.\n");
+            return FAILED;
+          }
+
+          /* mode */
+          opcode |= register_y_mode << 3;
+
+          /* register */
+          opcode |= register_y1;          
+
+          /* emit opcode */
+          _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
+
+          /* emit register list */
+          _output_assembled_instruction(g_instruction_tmp, "y%d ", register_x1);
+          
+          /* emit extra data */
+          _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
+        }
+        else {
+          print_error(ERROR_NUM, "Invalid addressing mode.\n");
+          return FAILED;
+        }
+        
         g_source_pointer = g_inz;
 
         return SUCCEEDED;

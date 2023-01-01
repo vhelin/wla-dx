@@ -332,6 +332,7 @@
 /* 22 - UNLK */
 /* 23 - MOVE, MOVEA, MOVEQ */
 /* 24 - MOVEP */
+/* 25 - MOVEM */
 
 #define MC68000_MODE_ALL 0
 #define MC68000_MODE_A   1
