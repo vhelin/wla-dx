@@ -42,7 +42,8 @@
 
         .db "01>"               ; @BT TEST-01 01 START
         // 3
-        .align 8                ; @BT AA AA AA AA AA
+        .align 8                ; @BT 05 06 07 AA AA
+// 05, 06 and 07 come from .SECTION "Tiny"
         // 8
         .db 0                   ; @BT 00
         // 9
@@ -120,3 +121,7 @@
         .db 4, 5, 6, 7          ; @BT 04 05 06 07
         // 20
         .db "<04"
+
+        .section "Tiny" FREE
+        .db 5, 6, 7
+        .ends

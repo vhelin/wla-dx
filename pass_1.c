@@ -2957,18 +2957,25 @@ int directive_align(void) {
       print_error(ERROR_DIR, ".ALIGN works currently in FORCE .SECTIONs and .SECTIONs that have ALIGN that is a multiple of .ALIGN.\n");
       return FAILED;
     }
-  }
 
-  /* we are outside a section - this is easy, just emptyfill until aligned... */
-  remainder = address % align;
+    /* emptyfill until aligned... */
+    remainder = address % align;
 
-  if (remainder != 0) {
-    int target = address - remainder + align;
+    if (remainder != 0) {
+      int target = address - remainder + align;
 
-    while (address < target) {
-      fprintf(g_file_out_ptr, "d%d ", g_emptyfill);
-      address++;
+      while (address < target) {
+        fprintf(g_file_out_ptr, "d%d ", g_emptyfill);
+        address++;
+      }
     }
+  }
+  else {
+    /* just redefine .ORG */
+    remainder = address % align;
+
+    if (remainder != 0)
+      fprintf(g_file_out_ptr, "O%d ", address - remainder + align);
   }
 
   return SUCCEEDED;
