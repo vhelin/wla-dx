@@ -2772,6 +2772,18 @@ address, do as follows::
 
 Other types that are supported: ``SEMIFREE`` and ``SEMISUBFREE``.
 
+Note that ``.ALIGN`` also works inside a ``.RAMSECTION``, but there are
+limitations (see ``.ALIGN``). Here's an example::
+
+    .RAMSECTION "AlignTest" BANK 0 SLOT 1 ALIGN 8
+    Objects INSTANCEOF game_object COUNT 2
+    .ALIGN 8
+    Byte1 DB
+    Byte2 DB
+    .ALIGN 4
+    Checksum DW
+    .ENDS
+
 Here's the order in which WLA writes the RAM sections:
 
 1. ``FORCE``

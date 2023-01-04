@@ -291,3 +291,94 @@ helloH: db
         .db _paddingof_objectsX6.1 ; @BT 03
         .db _paddingof_objectsX6.2 ; @BT 03
         .db "<03"               ; @BT END
+
+        ;------------------------------------------------------------------------
+        ; TEST-04
+        ;------------------------------------------------------------------------
+
+        .ramsection "AlignTest" bank 2 slot 4 align 8
+        object_1 instanceof object
+        // 2
+        extrabyte_1 db
+        // 3
+        .align 4
+        // 4
+        offset_4 db
+        // 5
+        object_2 instanceof object3
+        // 10
+        .align 8
+        // 16
+        extrabyte_2 dw
+        // 18
+        .align 4
+        // 20
+        extrabyte_3 db
+        // 21
+        extrabyte_4 db
+        // 22
+        extrabyte_5 db
+        // 23
+        extrabyte_6 db
+        // 24
+        .align 4
+        // 24
+        extrabyte_7 db
+        // 25
+        .ends
+        
+        /*
+        01:e000 SECTIONSTART_AlignTest
+        01:e000 object_1
+        01:e000 object_1.size
+        01:e001 object_1.life
+        01:e002 extrabyte_1
+        01:e004 offset_4
+        01:e005 object_2
+        01:e005 object_2.type
+        01:e006 object_2.size
+        01:e007 object_2.life
+        01:e006 object_2.posX
+        01:e007 object_2.posY
+        01:e006 object_2.subtype
+        01:e008 object_2.varA
+        01:e009 object_2.varB
+        01:e010 extrabyte_2
+        01:e014 extrabyte_3
+        01:e015 extrabyte_4
+        01:e016 extrabyte_5
+        01:e017 extrabyte_6
+        01:e018 extrabyte_7
+        01:e018 SECTIONEND_AlignTest
+        */
+
+        .db "04>"               ; @BT TEST-04 04 START
+        .dw extrabyte_1         ; @BT 02 E0
+        .dw extrabyte_2         ; @BT 10 E0
+        .dw extrabyte_7         ; @BT 18 E0
+        .db "<04"               ; @BT END
+        
+        ;------------------------------------------------------------------------
+        ; TEST-05
+        ;------------------------------------------------------------------------
+
+        .ramsection "AlignTest2" bank 2 slot 4 align 8
+        morebyte_1 db
+        // 1
+        .align 8
+        // 8
+        morebyte_2 db
+        // 9
+        .ends
+
+        /*
+        02:e020 SECTIONSTART_AlignTest2
+        02:e020 morebyte_1
+        02:e028 morebyte_2
+        02:e029 SECTIONEND_AlignTest2
+        */
+        
+        .db "05>"               ; @BT TEST-05 05 START
+        .dw morebyte_1          ; @BT 20 E0
+        .dw morebyte_2          ; @BT 28 E0
+        .db "<05"               ; @BT END

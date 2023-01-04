@@ -120,8 +120,25 @@
         // 16
         .db 4, 5, 6, 7          ; @BT 04 05 06 07
         // 20
-        .db "<04"
+        .db "<04"               ; @BT END
 
         .section "Tiny" FREE
         .db 5, 6, 7
         .ends
+
+        .section "Big1" FREE ALIGN 16
+        .db "05>"               ; @BT TEST-05 05 START
+        .db CADDR & 15          ; @BT 03
+        .align 8                ; @BT AA AA AA AA
+        .db CADDR & 15          ; @BT 08
+        .db "<05"               ; @BT END
+        .ends
+
+        .section "Big2" FREE ALIGN 16
+        .db "06>"               ; @BT TEST-06 06 START
+        .db CADDR & 15          ; @BT 03
+        .align 8                ; @BT AA AA AA AA
+        .db CADDR & 15          ; @BT 08
+        .db "<06"               ; @BT END
+        .ends
+        

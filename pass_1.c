@@ -178,6 +178,8 @@ static int g_table_defined = 0, g_table_size = 0, g_table_index = 0;
 
 static int s_source_pointer_old = 0, s_line_current_old = 0;
 
+static struct section_def *g_active_ramsection = NULL;
+
 
 #define no_library_files(name)                                          \
   do {                                                                  \
@@ -1571,12 +1573,51 @@ static int _remember_new_structure(struct structure *st) {
 }
 
 
+static int _add_new_stack_item(char *tmpname, int size, int defined_size, int type, int start_from, struct structure *st, int instances) {
+  
+  struct structure_item *si;
+
+  /* add this label/value to the struct. */
+  si = calloc(sizeof(struct structure_item), 1);
+  if (si == NULL) {
+    print_error(ERROR_DIR, "Out of memory while allocating a new STRUCT.\n");
+    return FAILED;
+  }
+  si->next = NULL;
+  si->instance = NULL;
+  si->union_items = NULL;
+  strcpy(si->name, tmpname);
+  si->size = size;
+  si->defined_size = defined_size;
+  si->type = type;
+  si->start_from = start_from;
+  if (type == STRUCTURE_ITEM_TYPE_INSTANCEOF || type == STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF) {
+    si->instance = st;
+    si->num_instances = instances;
+  }
+  else if (type == STRUCTURE_ITEM_TYPE_UNION)
+    si->union_items = st;
+
+  if (g_active_struct->items == NULL)
+    g_active_struct->items = si;
+  if (g_active_struct->last_item != NULL)
+    g_active_struct->last_item->next = si;
+  g_active_struct->last_item = si;
+
+  if (type != STRUCTURE_ITEM_TYPE_DOTTED && type != STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF)
+    g_enum_offset += size;
+
+  if (g_enum_offset > g_max_enum_offset)
+    g_max_enum_offset = g_enum_offset;
+
+  return SUCCEEDED;
+}
+
 
 /* either "g_in_enum", "g_in_ramsection", or "g_in_struct" should be YES when this is called. */
 int parse_enum_token(void) {
 
   struct structure *st = NULL;
-  struct structure_item *si;
   char tmpname[MAX_NAME_LENGTH + 8 + 1], bak[256];
   int type, size, q, start_from = 1, instances, defined_size;
   
@@ -1673,6 +1714,7 @@ int parse_enum_token(void) {
     return SUCCEEDED;
   }
   else if (strcaselesscmp(g_tmp, ".ENDU") == 0) {
+    struct structure_item *si;
     struct union_stack *ust;
     int total_size;
 
@@ -1771,6 +1813,7 @@ int parse_enum_token(void) {
       generate_label("SECTIONEND_", g_sections_last->name);
 
     g_active_struct = NULL;
+    g_active_ramsection = NULL;
 
     fprintf(g_file_out_ptr, "s ");
     g_section_status = OFF;
@@ -1828,7 +1871,32 @@ int parse_enum_token(void) {
 
     return SUCCEEDED;
   }
+  else if (g_in_ramsection == YES && strcaselesscmp(g_tmp, ".ALIGN") == 0) {
+    int remainder;
+    
+    /* get the alignment */
+    q = input_number();
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED || g_parsed_int < 2) {
+      print_error(ERROR_DIR, ".ALIGN needs an integer greater than 1.\n");
+      return FAILED;
+    }
 
+    if ((g_active_ramsection->alignment % g_parsed_int) != 0) {
+      print_error(ERROR_DIR, ".ALIGN works currently in .RAMSECTIONs that have ALIGN that is a multiple of .ALIGN.\n");
+      return FAILED;
+    }
+
+    remainder = g_enum_offset % g_parsed_int;
+    if (remainder > 0) {
+      if (_add_new_stack_item("", g_parsed_int - remainder, -1, STRUCTURE_ITEM_TYPE_DATA, 1, NULL, 1) == FAILED)
+      return FAILED;
+    }
+    
+    return SUCCEEDED;
+  }
+  
   if (strcaselesscmp(g_tmp, "INSTANCEOF") == 0) {
     /* anonymous instance! */
     tmpname[0] = 0;
@@ -2049,14 +2117,12 @@ int parse_enum_token(void) {
         size = st->size * instances;
     }
   }
-  else if (strcaselesscmp(g_tmp, ".db") == 0 || strcaselesscmp(g_tmp, ".byt") == 0 ||
-           strcaselesscmp(g_tmp, ".byte") == 0) {
+  else if (strcaselesscmp(g_tmp, ".db") == 0 || strcaselesscmp(g_tmp, ".byt") == 0 || strcaselesscmp(g_tmp, ".byte") == 0) {
     /* don't do anything for "dotted" versions */
     size = 1;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
   }
-  else if (strcaselesscmp(g_tmp, ".dw") == 0 || strcaselesscmp(g_tmp, ".word") == 0 ||
-           strcaselesscmp(g_tmp, ".addr") == 0) {
+  else if (strcaselesscmp(g_tmp, ".dw") == 0 || strcaselesscmp(g_tmp, ".word") == 0 || strcaselesscmp(g_tmp, ".addr") == 0) {
     /* don't do anything for "dotted" versions */
     size = 2;
     type = STRUCTURE_ITEM_TYPE_DOTTED;
@@ -2125,38 +2191,8 @@ int parse_enum_token(void) {
     return FAILED;
   }
 
-  /* add this label/value to the struct. */
-  si = calloc(sizeof(struct structure_item), 1);
-  if (si == NULL) {
-    print_error(ERROR_DIR, "Out of memory while allocating a new STRUCT.\n");
+  if (_add_new_stack_item(tmpname, size, defined_size, type, start_from, st, instances) == FAILED)
     return FAILED;
-  }
-  si->next = NULL;
-  si->instance = NULL;
-  si->union_items = NULL;
-  strcpy(si->name, tmpname);
-  si->size = size;
-  si->defined_size = defined_size;
-  si->type = type;
-  si->start_from = start_from;
-  if (type == STRUCTURE_ITEM_TYPE_INSTANCEOF || type == STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF) {
-    si->instance = st;
-    si->num_instances = instances;
-  }
-  else if (type == STRUCTURE_ITEM_TYPE_UNION)
-    si->union_items = st;
-
-  if (g_active_struct->items == NULL)
-    g_active_struct->items = si;
-  if (g_active_struct->last_item != NULL)
-    g_active_struct->last_item->next = si;
-  g_active_struct->last_item = si;
-
-  if (type != STRUCTURE_ITEM_TYPE_DOTTED && type != STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF)
-    g_enum_offset += size;
-
-  if (g_enum_offset > g_max_enum_offset)
-    g_max_enum_offset = g_enum_offset;
 
   return SUCCEEDED;
 }
@@ -4901,6 +4937,8 @@ int directive_ramsection(void) {
   
   g_in_ramsection = YES;
 
+  g_active_ramsection = g_sec_tmp;
+  
   return SUCCEEDED;
 }
 
