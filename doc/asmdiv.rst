@@ -3045,10 +3045,15 @@ file according to the section type and ``.BANK`` and ``.ORG`` directive
 values.
 
 The example begins a section called ``Init``. Before a section can be
-declared, ``.BANK`` and ``.ORG`` must be used unless WLA is in library file
+declared, ``.BANK`` and ``.ORG`` should be used unless WLA is in library file
 output mode. Library file's sections must all be ``FREE`` ones. ``.BANK``
 tells the bank number where this section will be later relocated into. ``.ORG``
 tells the offset for the relocation from the beginning of ``.BANK``.
+
+It is also possible to supply ``BANK``, ``SLOT`` and ``ORG`` or ``ORGA`` to
+``.SECTION`` as follows::
+
+    .SECTION "NoInheritedParameters" BANK 0 SLOT 1 ORGA $1000
 
 You can put sections inside a namespace. For instance, if you put a section
 into a namespace called ``bank0``, then labels in that section can be

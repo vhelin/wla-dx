@@ -645,12 +645,12 @@ int create_a_new_section_structure(void) {
   g_sec_tmp->alignment = 1;
   g_sec_tmp->offset = 0;
   g_sec_tmp->priority = 0;
-  g_sec_tmp->address = 0;
+  g_sec_tmp->address = -1;
   g_sec_tmp->address_from_dsp = -1;
   g_sec_tmp->keep = NO;
-  g_sec_tmp->bank = 0;
+  g_sec_tmp->bank = -1;
+  g_sec_tmp->slot = -1;
   g_sec_tmp->base = 0;
-  g_sec_tmp->slot = 0;
   g_sec_tmp->size = 0;
   g_sec_tmp->status = 0;
   g_sec_tmp->bitwindow = 0;

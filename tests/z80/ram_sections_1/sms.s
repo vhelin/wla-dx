@@ -43,7 +43,7 @@ rs0b127_b	dw
 rs0b127_c	dw
 .ENDS
 
-.RAMSECTION "RamSection 1 bank 0 slot 3 NO REF" BANK 0 SLOT 3 ORGA $C002 FORCE
+.RAMSECTION "RamSection 1 bank 0 slot 3 NO REF" ORGA $C002 BANK 0 SLOT 3 FORCE
 rs1b0_a	dw
 rs1b0_b	db
 .ENDS

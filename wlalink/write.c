@@ -298,7 +298,7 @@ static int _after_section_override_ram(struct section *s, char **ram_slots[256],
   i = g_slots[s->slot].size;
   for (q = 0; a + q < i && q < s->size; q++) {
     if (c[a + q] != 0) {
-      fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in slot %d.\n", s->name, s->size, s->slot);
+      fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
       return FAILED;
     }
   }
@@ -317,7 +317,7 @@ static int _mark_ram_section_area(struct section *s, int address, int max_addres
 
   if (i < s->size) {
     /* address overflow! */
-    fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in slot %d.\n", s->name, s->size, s->slot);
+    fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
     return FAILED;        
   }
 
@@ -375,8 +375,8 @@ static int _insert_rom_after_section(struct section *s) {
     }
   }
   else {
-    fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes).\n", get_file_name(s->file_id),
-            get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
+    fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
+            get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
     return FAILED;
   }
 
@@ -474,7 +474,7 @@ int insert_sections(void) {
       else {
         for (q = 0; address + q < slot_size && q < s->size; q++) {
           if (c[address + q] != 0) {
-            fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in slot %d.\n", s->name, s->size, s->slot);
+            fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
             return FAILED;
           }
         }
@@ -526,7 +526,7 @@ int insert_sections(void) {
         }
 
         if (t == 0) {
-          fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in slot %d.\n", s->name, s->size, s->slot);
+          fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
           return FAILED;
         }
 
@@ -578,7 +578,7 @@ int insert_sections(void) {
         }
 
         if (t == 0) {
-          fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in slot %d.\n", s->name, s->size, s->slot);
+          fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
           return FAILED;
         }
 
@@ -648,8 +648,8 @@ int insert_sections(void) {
         }
       }
       else {
-        fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes).\n", get_file_name(s->file_id),
-                get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
+        fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
+                get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
         return FAILED;
       }
     }
@@ -900,8 +900,8 @@ int insert_sections(void) {
               return FAILED;
         }
         else {
-          fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes).\n", get_file_name(s->file_id),
-                  get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
+          fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
+                  get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
           return FAILED;
         }
       }

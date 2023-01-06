@@ -4148,20 +4148,19 @@ int data_stream_parser_parse(void) {
         return FAILED;
       }
 
-      if (s_dsp_s->status == SECTION_STATUS_FREE || s_dsp_s->status == SECTION_STATUS_RAM_FREE)
+      if (s_dsp_s->status == SECTION_STATUS_FREE || s_dsp_s->status == SECTION_STATUS_RAM_FREE) {
         s_dsp_add = 0;
-
-      if (s_dsp_s->status == SECTION_STATUS_RAM_FORCE) {
+        s_dsp_s->address_from_dsp = 0;
+      }
+      else {
         if (s_dsp_s->address < 0)
           s_dsp_s->address_from_dsp = s_dsp_add;
         else {
           s_dsp_add = s_dsp_s->address;
-          s_dsp_s->address_from_dsp = s_dsp_s->address;
+          s_dsp_s->address_from_dsp = s_dsp_add;
         }
       }
-      else
-        s_dsp_s->address_from_dsp = s_dsp_add;
-
+      
       continue;
 
     case 's':

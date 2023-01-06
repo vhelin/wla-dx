@@ -438,10 +438,10 @@ int pass_3(void) {
         /* a .RAMSECTION? */
         if (s->status == SECTION_STATUS_RAM_FREE) {
           s->address = 0;
+          add = 0;
           s->listfile_items = 1;
           s->listfile_ints = NULL;
           s->listfile_cmds = NULL;
-          add = 0;
           g_section_status = ON;
           continue;
         }
@@ -457,14 +457,17 @@ int pass_3(void) {
           continue;
         }
         else if (s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
-          s->address = add;
+          if (s->address < 0)
+            s->address = add;
+          else
+            add = s->address;
           s->listfile_items = 1;
           s->listfile_ints = NULL;
           s->listfile_cmds = NULL;
           g_section_status = ON;
           continue;
         }
-        
+
         fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(g_file_name_id), line_number);
         return FAILED;
 
@@ -563,27 +566,27 @@ int pass_3(void) {
         while (s != NULL && s->id != inz)
           s = s->next;
 
-        if (s->status == SECTION_STATUS_FREE)
+        if (s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_RAM_FREE) {
+          s->address = 0;
           add = 0;
-
-        if (s->status == SECTION_STATUS_RAM_FORCE) {
-          if (s->address < 0)
-            s->address = add;
-          else
-            add = s->address;
         }
         else {
-          s->address = add;
-
-          if (s->address_from_dsp >= 0 && s->address_from_dsp != add) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, s->name, s->address_from_dsp, add);
-            return FAILED;
-          }
+          if (s->address >= 0)
+            add = s->address;
+          else
+            s->address = add;
         }
 
-        s->bank = bank;
+        if (s->address_from_dsp >= 0 && s->address_from_dsp != add) {
+          fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, s->name, s->address_from_dsp, add);
+          return FAILED;
+        }
+
+        if (s->bank < 0)
+          s->bank = bank;
+        if (s->slot < 0)
+          s->slot = slot;
         s->base = base;
-        s->slot = slot;
         s->listfile_items = 1;
         s->listfile_ints = NULL;
         s->listfile_cmds = NULL;
@@ -650,28 +653,28 @@ int pass_3(void) {
       while (s != NULL && s->id != inz)
         s = s->next;
 
-      if (s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_RAM_FREE)
+      if (s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_RAM_FREE) {
+        s->address = 0;
         add = 0;
-
-      if (s->status != SECTION_STATUS_RAM_FREE && s->status != SECTION_STATUS_RAM_FORCE && s->status != SECTION_STATUS_RAM_SEMIFREE && s->status != SECTION_STATUS_RAM_SEMISUBFREE) {
-        s->bank = bank;
-        s->base = base;
-        s->slot = slot;
-      }
-
-      if (s->status == SECTION_STATUS_RAM_FORCE) {
-        if (s->address < 0)
-          s->address = add;
-        else
-          add = s->address;
       }
       else {
-        s->address = add;
+        if (s->address >= 0)
+          add = s->address;
+        else
+          s->address = add;
+      }
+      
+      if (s->status != SECTION_STATUS_RAM_FREE && s->status != SECTION_STATUS_RAM_FORCE && s->status != SECTION_STATUS_RAM_SEMIFREE && s->status != SECTION_STATUS_RAM_SEMISUBFREE) {
+        if (s->bank < 0)
+          s->bank = bank;
+        if (s->slot < 0)
+          s->slot = slot;
+        s->base = base;
+      }
 
-        if (s->address_from_dsp >= 0 && s->address_from_dsp != add) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, s->name, s->address_from_dsp, add);
-          return FAILED;
-        }
+      if (s->address_from_dsp >= 0 && s->address_from_dsp != add) {
+        fprintf(stderr, "%s:%d: INTERNAL_PASS_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, s->name, s->address_from_dsp, add);
+        return FAILED;
       }
           
       s->listfile_items = 1;

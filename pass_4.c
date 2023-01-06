@@ -154,16 +154,18 @@ static struct label_def *_new_unknown_reference(int type) {
     label->section_struct = g_sec_tmp;
     /* relative address, to the beginning of the section */
     label->address = g_sec_tmp->i;
+    label->bank = g_sec_tmp->bank;
+    label->slot = g_sec_tmp->slot;
   }
   else {
     label->section_id = 0;
     label->section_struct = NULL;
     /* bank address, in ROM memory */
     label->address = g_pc_bank;
+    label->bank = g_rom_bank;
+    label->slot = g_slot;
   }
 
-  label->bank = g_rom_bank;
-  label->slot = g_slot;
   label->base = g_base;
   label->special_id = g_special_id;
   label->bits_position = 0;
@@ -853,14 +855,16 @@ int pass_4(void) {
           if (stack->section_status == ON) {
             /* relative address, to the beginning of the section */
             stack->address = g_sec_tmp->i;
+            stack->bank = g_sec_tmp->bank;
+            stack->slot = g_sec_tmp->slot;
           }
           else {
             /* complete address, in ROM memory */
             stack->address = g_pc_bank;
+            stack->bank = g_rom_bank;
+            stack->slot = g_slot;
           }
 
-          stack->bank = g_rom_bank;
-          stack->slot = g_slot;
           stack->type = STACK_TYPE_BITS;
           stack->base = g_base;
           stack->bits_position = bits_position;
@@ -1024,14 +1028,16 @@ int pass_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
+        stack->bank = g_sec_tmp->bank;
+        stack->slot = g_sec_tmp->slot;
       }
       else {
         /* complete address, in ROM memory */
         stack->address = g_pc_bank;
+        stack->bank = g_rom_bank;
+        stack->slot = g_slot;
       }
 
-      stack->bank = g_rom_bank;
-      stack->slot = g_slot;
       if (c == '-')
         stack->type = STACK_TYPE_9BIT_SHORT;
       else
@@ -1101,14 +1107,16 @@ int pass_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
+        stack->bank = g_sec_tmp->bank;
+        stack->slot = g_sec_tmp->slot;
       }
       else {
         /* complete address, in ROM memory */
         stack->address = g_pc_bank;
+        stack->bank = g_rom_bank;
+        stack->slot = g_slot;
       }
 
-      stack->bank = g_rom_bank;
-      stack->slot = g_slot;
       stack->type = STACK_TYPE_16BIT;
       stack->base = g_base;
         
@@ -1180,14 +1188,16 @@ int pass_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
+        stack->bank = g_sec_tmp->bank;
+        stack->slot = g_sec_tmp->slot;
       }
       else {
         /* complete address, in ROM memory */
         stack->address = g_pc_bank;
+        stack->bank = g_rom_bank;
+        stack->slot = g_slot;
       }
 
-      stack->bank = g_rom_bank;
-      stack->slot = g_slot;
       stack->type = STACK_TYPE_13BIT;
       stack->base = g_base;
         
@@ -1255,14 +1265,16 @@ int pass_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
+        stack->bank = g_sec_tmp->bank;
+        stack->slot = g_sec_tmp->slot;
       }
       else {
         /* complete address, in ROM memory */
         stack->address = g_pc_bank;
+        stack->bank = g_rom_bank;
+        stack->slot = g_slot;
       }
 
-      stack->bank = g_rom_bank;
-      stack->slot = g_slot;
       stack->type = STACK_TYPE_24BIT;
       stack->base = g_base;
 
@@ -1339,14 +1351,16 @@ int pass_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
+        stack->bank = g_sec_tmp->bank;
+        stack->slot = g_sec_tmp->slot;
       }
       else {
         /* complete address, in ROM memory */
         stack->address = g_pc_bank;
+        stack->bank = g_rom_bank;
+        stack->slot = g_slot;
       }
 
-      stack->bank = g_rom_bank;
-      stack->slot = g_slot;
       stack->type = STACK_TYPE_32BIT;
       stack->base = g_base;
 

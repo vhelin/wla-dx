@@ -4494,9 +4494,9 @@ int directive_struct(void) {
 
 int directive_ramsection(void) {
 
-  int q, current_slot_address;
+  int q, orga_given = -1;
   char c1;
-      
+
   if (g_section_status == ON) {
     print_error(ERROR_DIR, "There is already an open section called \"%s\".\n", g_sections_last->name);
     return FAILED;
@@ -4531,6 +4531,7 @@ int directive_ramsection(void) {
   g_sec_tmp->advance_org = YES;
   g_sec_tmp->nspace = NULL;
   g_sec_tmp->bank = 0;
+  g_sec_tmp->slot = 0;
   g_sec_tmp->address = -1;
   g_sec_tmp->address_from_dsp = -1;
   g_sec_tmp->bitwindow = 0;
@@ -4671,13 +4672,7 @@ int directive_ramsection(void) {
         return FAILED;
       }
 
-      current_slot_address = g_slots[g_sec_tmp->slot].address;
-      if (g_parsed_int < current_slot_address || g_parsed_int >= (current_slot_address + g_slots[g_sec_tmp->slot].size)) {
-        print_error(ERROR_DIR, "ORGA is outside the current SLOT.\n");
-        return FAILED;
-      }
-
-      g_sec_tmp->address = g_parsed_int - current_slot_address;
+      orga_given = g_parsed_int;
     }
     else if (compare_next_token("ORG") == SUCCEEDED) {
       if (g_output_format == OUTPUT_LIBRARY) {
@@ -4938,6 +4933,17 @@ int directive_ramsection(void) {
   g_in_ramsection = YES;
 
   g_active_ramsection = g_sec_tmp;
+
+  if (orga_given >= 0) {
+    int current_slot_address = g_slots[g_sec_tmp->slot].address;
+
+    if (orga_given < current_slot_address || orga_given >= (current_slot_address + g_slots[g_sec_tmp->slot].size)) {
+      print_error(ERROR_DIR, "ORGA is outside the current SLOT.\n");
+      return FAILED;
+    }
+
+    g_sec_tmp->address = orga_given - current_slot_address;
+  }
   
   return SUCCEEDED;
 }
@@ -4945,8 +4951,8 @@ int directive_ramsection(void) {
 
 int directive_section(void) {
 
+  int l, q, org_given = -1, orga_given = -1;
   char c1;
-  int l;
 
   if (g_dstruct_status == ON) {
     print_error(ERROR_DIR, "You can't set the section inside .DSTRUCT.\n");
@@ -4979,6 +4985,8 @@ int directive_section(void) {
   }
   
   g_sec_tmp->priority = 0;
+  g_sec_tmp->address = -1;
+  g_sec_tmp->address_from_dsp = -1;
   g_sec_tmp->listfile_items = 0;
   g_sec_tmp->listfile_ints = NULL;
   g_sec_tmp->listfile_cmds = NULL;
@@ -4993,10 +5001,9 @@ int directive_section(void) {
   g_sec_tmp->bitwindow = 0;
   g_sec_tmp->window_start = -1;
   g_sec_tmp->window_end = -1;
-  g_sec_tmp->address_from_dsp = -1;
-
-  fprintf(g_file_out_ptr, "S%d ", g_sec_tmp->id);
-
+  g_sec_tmp->bank = -1;
+  g_sec_tmp->slot = -1;
+  
   c1 = g_tmp[0];
   
   if (c1 == 'B' && strcmp(g_tmp, "BANKHEADER") == 0) {
@@ -5028,10 +5035,6 @@ int directive_section(void) {
   g_sec_tmp->next = NULL;
   g_sec_tmp->status = SECTION_STATUS_FREE;
 
-  /* generate a section start label? */
-  if (g_extra_definitions == ON)
-    generate_label("SECTIONSTART_", g_sec_tmp->name);
-  
   g_sec_tmp->label_map = hashmap_new();
 
   if (g_sections_first == NULL) {
@@ -5111,6 +5114,93 @@ int directive_section(void) {
       }
 
       g_sec_tmp->alignment = g_parsed_int;
+    }
+    /* org? */
+    else if (compare_next_token("ORG") == SUCCEEDED) {
+      no_library_files(".ORG definitions");
+
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      if (input_number() != SUCCEEDED) {
+        print_error(ERROR_DIR, "Could not parse the ORG.\n");
+        return FAILED;
+      }
+
+      org_given = g_parsed_int;
+    }
+    /* orga? */
+    else if (compare_next_token("ORGA") == SUCCEEDED) {
+      no_library_files(".ORGA definitions");
+  
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      if (input_number() != SUCCEEDED) {
+        print_error(ERROR_DIR, "Could not parse the ORGA.\n");
+        return FAILED;
+      }
+
+      orga_given = g_parsed_int;
+    }
+    /* bank? */
+    else if (compare_next_token("BANK") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+        print_error(ERROR_DIR, ".SECTION cannot take BANK when inside a library.\n");
+        return FAILED;
+      }
+      if (g_rombanks_defined == 0) {
+        print_error(ERROR_DIR, "No .ROMBANKS defined.\n");
+        return FAILED;
+      }
+
+      skip_next_token();
+
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+
+      if (q != SUCCEEDED || g_parsed_int < 0 || g_parsed_int >= g_rombanks) {
+        print_error(ERROR_DIR, "BANK number must be in [0, %d].\n", g_rombanks - 1);
+        return FAILED;
+      }
+
+      g_sec_tmp->bank = g_parsed_int;
+    }
+    /* slot? */
+    else if (compare_next_token("SLOT") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+        print_error(ERROR_DIR, ".SECTION cannot take SLOT when inside a library.\n");
+        return FAILED;
+      }
+
+      skip_next_token();
+
+      q = input_number();
+      if (q == FAILED)
+        return FAILED;
+      if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
+        /* turn the label into a number */
+        if (_get_slot_number_by_its_name(g_label, &g_parsed_int) == FAILED)
+          return FAILED;
+        q = SUCCEEDED;
+      }
+      else if (q == SUCCEEDED) {
+        /* is the number a direct SLOT number, or is it an address? */
+        q = _get_slot_number_by_a_value(g_parsed_int, &g_parsed_int);
+      }
+      if (q != SUCCEEDED) {
+        print_error(ERROR_DIR, "Cannot find the SLOT.\n");
+        return FAILED;
+      }
+
+      if (g_slots[g_parsed_int].size == 0) {
+        print_error(ERROR_DIR, "There is no SLOT number %d.\n", g_parsed_int);
+        return FAILED;
+      }
+
+      g_sec_tmp->slot = g_parsed_int;
     }
     /* offset the section? */
     else if (compare_next_token("OFFSET") == SUCCEEDED) {
@@ -5345,9 +5435,31 @@ int directive_section(void) {
 
   g_sec_tmp->alive = YES;
   g_sec_tmp->filename_id = g_active_file_info_last->filename_id;
-  g_sec_tmp->bank = g_bank;
+  if (g_sec_tmp->bank < 0)
+    g_sec_tmp->bank = g_bank;
+  if (g_sec_tmp->slot < 0)
+    g_sec_tmp->slot = g_current_slot;
   g_section_status = ON;
 
+  fprintf(g_file_out_ptr, "S%d ", g_sec_tmp->id);
+
+  /* generate a section start label? */
+  if (g_extra_definitions == ON)
+    generate_label("SECTIONSTART_", g_sec_tmp->name);
+
+  if (org_given >= 0)
+    g_sec_tmp->address = org_given;
+  else if (orga_given >= 0) {
+    int current_slot_address = g_slots[g_sec_tmp->slot].address;
+    
+    if (orga_given < current_slot_address || orga_given > (current_slot_address + g_slots[g_sec_tmp->slot].size)) {
+      print_error(ERROR_DIR, "ORGA is outside the section's SLOT.\n");
+      return FAILED;
+    }
+
+    g_sec_tmp->address = orga_given - current_slot_address;
+  }
+  
   return SUCCEEDED;
 }
 
