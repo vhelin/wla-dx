@@ -457,7 +457,8 @@ int load_files(char *argv[], int argc) {
                                              strcaselesscmp(token, "semisubfree") == 0 ||
                                              strcaselesscmp(token, "semifree") == 0 ||
                                              strcaselesscmp(token, "superfree") == 0 ||
-                                             strcaselesscmp(token, "overwrite") == 0)) {
+                                             strcaselesscmp(token, "overwrite") == 0 ||
+                                             strcaselesscmp(token, "banked") == 0)) {
           if (status_defined == YES) {
             fprintf(stderr, "%s:%d: LOAD_FILES: Section type was defined for the second time.\n", argv[argc - 2], line);
             fclose(fop);
@@ -514,17 +515,21 @@ int load_files(char *argv[], int argc) {
         return FAILED;
       }
       if (slot_defined == NO) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: %s requires a SLOT.\n", argv[argc - 2], line, state_name);
+        fprintf(stderr, "%s:%d: LOAD_FILES: \"%s\" requires a SLOT.\n", argv[argc - 2], line, state_name);
         fclose(fop);
         return FAILED;
       }
-      if (bank_defined == NO) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: %s requires a BANK.\n", argv[argc - 2], line, state_name);
-        fclose(fop);
-        return FAILED;
+      if (status_defined == YES && status == SECTION_STATUS_BANKED) {
+      }
+      else {
+        if (bank_defined == NO) {
+          fprintf(stderr, "%s:%d: LOAD_FILES: \"%s\" requires a BANK.\n", argv[argc - 2], line, state_name);
+          fclose(fop);
+          return FAILED;
+        }
       }
       if (appendto_defined == YES && (org_defined == YES || orga_defined == YES || after_defined == YES)) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: %s can't use APPENDTO with ORG, ORGA or AFTER.\n", argv[argc - 2], line, state_name);
+        fprintf(stderr, "%s:%d: LOAD_FILES: \"%s\" can't use APPENDTO with ORG, ORGA or AFTER.\n", argv[argc - 2], line, state_name);
         fclose(fop);
         return FAILED;
       }

@@ -86,7 +86,7 @@ hello1: .db :hello1      ; @BT 01
         .dsb $4000 0
         .ends
         
-        .section "Banked" banked banks 15-13/10/1 keep slot 2
+        .section "BankedSection" banked banks 15-13/10/1 keep slot 2
         .db "08>"               ; @BT TEST-08 08 START
         .dw CADDR               ; @BT 03 80
 banked_1:
