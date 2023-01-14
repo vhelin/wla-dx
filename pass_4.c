@@ -2365,6 +2365,9 @@ int write_object_file(void) {
       else
         fprintf(final_ptr, "%s%c", g_sec_tmp->nspace->name, 0);
 
+      if (g_sec_tmp->status == SECTION_STATUS_BANKED)
+        fprintf(final_ptr, "%s%c", g_sec_tmp->banked_banks, 0);
+      
       ov = g_sec_tmp->id;
       WRITEOUT_OV;
 
@@ -2721,7 +2724,7 @@ int show_project_information_object(void) {
       if (s->bank == i) {
         if (status == SECTION_STATUS_FREE || status == SECTION_STATUS_FORCE || status == SECTION_STATUS_OVERWRITE ||
             status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE || status == SECTION_STATUS_SUPERFREE ||
-            status == SECTION_STATUS_SEMISUBFREE) {
+            status == SECTION_STATUS_SEMISUBFREE || status == SECTION_STATUS_BANKED) {
           used_rom += s->size;
           used_sections += s->size;
         }
@@ -2780,7 +2783,7 @@ int show_project_information_object(void) {
       if (s->bank == i) {
         if (status == SECTION_STATUS_FREE || status == SECTION_STATUS_FORCE || status == SECTION_STATUS_OVERWRITE ||
             status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE || status == SECTION_STATUS_SUPERFREE ||
-            status == SECTION_STATUS_SEMISUBFREE) {
+            status == SECTION_STATUS_SEMISUBFREE || status == SECTION_STATUS_BANKED) {
           if (g_verbose_level >= 100) {
             printf("    - .SECTION \"%s\" (%d bytes).\n", s->name, s->size);
             printed_something = YES;
@@ -2933,7 +2936,7 @@ int show_project_information_library(void) {
 
     if (status == SECTION_STATUS_FREE || status == SECTION_STATUS_FORCE || status == SECTION_STATUS_OVERWRITE ||
         status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE || status == SECTION_STATUS_SUPERFREE ||
-        status == SECTION_STATUS_SEMISUBFREE)
+        status == SECTION_STATUS_SEMISUBFREE || status == SECTION_STATUS_BANKED)
       printf(".SECTION \"%s\" (%d bytes).\n", s->name, s->size);
 
     s = s->next;

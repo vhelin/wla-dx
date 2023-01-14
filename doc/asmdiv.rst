@@ -3067,8 +3067,8 @@ to some specific size, the following way::
 
     .SECTION "Init" SIZE 100 FREE
 
-It's possible to force WLALINK to align the ``FREE``, ``SEMIFREE`` and
-``SUPERFREE`` sections by giving the alignment as follows::
+It's possible to force WLALINK to align the sections by giving the alignment
+as follows::
 
     .SECTION "Init" SIZE 100 ALIGN 4 FREE
 
@@ -3117,6 +3117,14 @@ suitable banks have the same size with the slot of the section, no other banks
 are considered). You can also leave away the type specifier as the default type
 for the section is ``FREE``.
 
+If you wish to specify the banks where the section could be inserted into, use
+``BANKED`` (and ``BANKS`` to specify the banks list)::
+
+    .SECTION "IAmABankedSection" BANKED BANKS 15-13/10/6-9/3/1
+
+The banks list in the example unrolls into this: [ 15, 14, 13, 10, 6, 7,
+8, 9, 3, 1 ]. The banks are inspected for free space in the given order.
+
 You can name the sections as you wish, but there is one special name. A section
 called ``BANKHEADER`` is placed in the front of the bank where it is defined.
 These sections contain data that is not in the memory map of the machine, so
@@ -3162,10 +3170,11 @@ the section will be inserted somewhere in any bank with the same size as bank ``
 Here's the order in which WLA writes the sections:
 
 1. ``FORCE``
-2. ``SEMISUBFREE``
-3. ``SEMIFREE`` & ``FREE``
-4. ``SUPERFREE``
-5. ``OVERWRITE``
+2. ``BANKED``
+3. ``SEMISUBFREE``
+4. ``SEMIFREE`` & ``FREE``
+5. ``SUPERFREE``
+6. ``OVERWRITE``
 
 Before the sections are inserted into the output file, they are sorted by
 priorities, so that the section with the highest priority is processed first.

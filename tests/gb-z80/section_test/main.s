@@ -18,9 +18,9 @@
 .ENDME
 
 .ROMBANKMAP
-BANKSTOTAL 2
+BANKSTOTAL 16
 BANKSIZE $4000
-BANKS 2
+BANKS 16
 .ENDRO
 
 .ROMSIZE $11
@@ -37,6 +37,7 @@ BANKS 2
         .db "04>"        ; @BT TEST-04 04 START
         .dw CADDR        ; @BT 0B 60
 hello1: .db :hello1      ; @BT 01
+        .dw hello1       ; @BT 0D 60
         .db "<04"        ; @BT END
         .ends
 
@@ -63,7 +64,7 @@ hello1: .db :hello1      ; @BT 01
 
         .section "Bank1Slot1Org6000Semifree2" semifree keep returnorg
         .db "05>"        ; @BT TEST-05 05 START
-        .dw CADDR+0      ; @BT 14 60
+        .dw CADDR+0      ; @BT 16 60
         .db "<05"        ; @BT END
         .ends
         
@@ -71,6 +72,29 @@ hello1: .db :hello1      ; @BT 01
         .db "06>"        ; @BT TEST-06 06 START
         .dw CADDR+0      ; @BT 03 02
         .db "<06"        ; @BT END
+        .ends
+
+        .section "FillBank15" bank 15 slot 2 org 0 keep force
+        .dsb $4000 0
+        .ends
+
+        .section "FillBank14" bank 14 slot 2 org 0 keep force
+        .dsb $4000 0
+        .ends
+
+        .section "FillBank13" bank 13 slot 2 org 0 keep force
+        .dsb $4000 0
+        .ends
+        
+        .section "Banked" banked banks 15-13/10/1 keep slot 2
+        .db "08>"               ; @BT TEST-08 08 START
+        .dw CADDR               ; @BT 03 80
+banked_1:
+        .db 1                   ; @BT 01
+        .db :banked_1           ; @BT 0A
+banked_2:
+        .db banked_2 - banked_1 ; @BT 02
+        .db "<08"               ; @BT END
         .ends
         
         ;------------------------------------------------------------------------------

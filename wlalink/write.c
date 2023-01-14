@@ -415,6 +415,171 @@ static int _does_window_allow_section_placement(struct section *s, int address) 
 }
 
 
+static int _unroll_banked_banks(struct section *s, int banks[1024], int *banks_max) {
+
+  int i = 0, max = 0, bank, bank2, digits;
+  char c;
+  
+  while (s->banked_banks[i] != 0) {
+    bank = 0;
+    digits = 0;
+    
+    /* parse the 1st number */
+    while (1) {
+      c = s->banked_banks[i];
+      if (c >= '0' && c <= '9') {
+        bank = bank * 10 + c - '0';
+        digits++;
+        i++;
+      }
+      else
+        break;
+    }
+
+    if (digits == 0) {
+      fprintf(stderr, "%s: %s: _UNROLL_BANKED_BANKS: Section \"%s\" has malformed BANKS list (%s).\n", get_file_name(s->file_id),
+              get_source_file_name(s->file_id, s->file_id_source), s->name, s->banked_banks);
+      return FAILED;
+    }
+
+    /* single bank number? */
+    c = s->banked_banks[i];
+    if (c == 0 || c == '/') {
+      if (bank >= 1024) {
+        fprintf(stderr, "%s: %s: _UNROLL_BANKED_BANKS: Bank %d in Section \"%s\"'s BANKS list is out of range [0, 1023]. Please submit a bug report if this should work!\n", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), bank, s->name);
+        return FAILED;
+      }
+
+      banks[max++] = bank;
+
+      if (c == '/')
+        i++;
+      
+      continue;
+    }
+
+    /* range? */
+    if (c != '-') {
+      fprintf(stderr, "%s: %s: _UNROLL_BANKED_BANKS: Section \"%s\" has malformed BANKS list (%s).\n", get_file_name(s->file_id),
+              get_source_file_name(s->file_id, s->file_id_source), s->name, s->banked_banks);
+      return FAILED;
+    }
+
+    i++;
+
+    bank2 = 0;
+    digits = 0;
+    
+    /* parse the 1st number */
+    while (1) {
+      c = s->banked_banks[i];
+      if (c >= '0' && c <= '9') {
+        bank2 = bank2 * 10 + c - '0';
+        digits++;
+        i++;
+      }
+      else
+        break;
+    }
+
+    if (digits == 0 || (c != 0 && c != '/')) {
+      fprintf(stderr, "%s: %s: _UNROLL_BANKED_BANKS: Section \"%s\" has malformed BANKS list (%s).\n", get_file_name(s->file_id),
+              get_source_file_name(s->file_id, s->file_id_source), s->name, s->banked_banks);
+      return FAILED;
+    }
+
+    while (1) {
+      if (bank >= 1024) {
+        fprintf(stderr, "%s: %s: _UNROLL_BANKED_BANKS: Bank %d in Section \"%s\"'s BANKS list is out of range [0, 1023]. Please submit a bug report if this should work!\n", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), bank, s->name);
+        return FAILED;
+      }
+
+      banks[max++] = bank;
+
+      if (bank < bank2)
+        bank++;
+      else if (bank > bank2)
+        bank--;
+      else
+        break;
+    }
+
+    if (c == '/')
+      i++;
+  }
+
+  if (max <= 0) {
+    fprintf(stderr, "%s: %s: _UNROLL_BANKED_BANKS: No banks in section \"%s\"'s BANKS list (%s).\n", get_file_name(s->file_id),
+            get_source_file_name(s->file_id, s->file_id_source), s->name, s->banked_banks);
+    return FAILED;
+  }
+  
+  *banks_max = max;
+
+  return SUCCEEDED;
+}
+
+
+static int _try_to_insert_banked_section(struct section *s, int bank) {
+
+  int i, d, f, x;
+  
+  s->bank = bank;
+  
+  g_pc_bank = s->address;
+  d = g_bankaddress[s->bank];
+
+  /* align the starting address */
+  f = (g_pc_bank + d) % s->alignment;
+  if (f > 0)
+    g_pc_bank += s->alignment - f;
+
+  i = FAILED;
+  while (i == FAILED) {
+    f = g_pc_bank;
+    for (x = 0; g_pc_bank + s->offset < g_banksizes[s->bank] && g_rom_usage[g_pc_bank + s->offset + d] == 0 && x < s->size; g_pc_bank++, x++)
+      ;
+    if (x == s->size) {
+      if (_does_window_allow_section_placement(s, g_slots[s->slot].address + f + s->offset) == YES)
+        break;
+      else
+        g_pc_bank = f + 1;
+    }
+    if (g_pc_bank + s->offset >= g_banksizes[s->bank])
+      return FAILED;
+
+    /* find the next starting address */
+    f = (g_pc_bank + d) % s->alignment;
+    if (f > 0)
+      g_pc_bank += s->alignment - f;
+    for (; g_pc_bank + s->offset < g_banksizes[s->bank] && g_rom_usage[g_pc_bank + s->offset + d] != 0; g_pc_bank += s->alignment)
+      ;
+  }
+
+  g_memory_file_id = s->file_id;
+  g_banksize = g_banksizes[s->bank];
+  g_pc_bank = f + s->offset;
+  g_pc_slot = g_slots[s->slot].address + g_pc_bank;
+  g_pc_full = g_pc_bank + g_bankaddress[s->bank];
+  g_pc_slot_max = g_slots[s->slot].address + g_slots[s->slot].size;
+  g_section_overwrite = OFF;
+
+  s->address = g_pc_bank;
+  s->output_address = g_pc_full;
+  s->placed = YES;
+      
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+
+  for (i = 0; i < s->size; i++) {
+    if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
+      return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
 int insert_sections(void) {
 
   int d, f, i, x, t, q;
@@ -694,6 +859,43 @@ int insert_sections(void) {
     s = s->next;
   }
 
+  /* BANKED sections */
+  s = g_sec_first;
+  while (s != NULL) {
+    if (s->alive == YES && (s->status == SECTION_STATUS_BANKED)) {
+      if (s->after != NULL) {
+        if (_insert_rom_after_section(s) == FAILED)
+          return FAILED;
+      }
+      else {
+        int banks[1024], bank = 0, banks_max = 0;
+
+        if (_unroll_banked_banks(s, banks, &banks_max) == FAILED)
+          return FAILED;
+
+        while (1) {
+          if (banks[bank] >= g_rombanks) {
+            fprintf(stderr, "%s: %s: INSERT_SECTIONS: Bank %d for section \"%s\" is out of range [0, %d].\n", get_file_name(s->file_id),
+                    get_source_file_name(s->file_id, s->file_id_source), banks[bank], s->name, g_rombanks);
+            return FAILED;
+          }
+          
+          if (_try_to_insert_banked_section(s, banks[bank]) == SUCCEEDED)
+            break;
+
+          bank++;
+          if (bank == banks_max) {
+            fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes).\n", get_file_name(s->file_id),
+                    get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
+            return FAILED;
+          }
+        }
+      }
+    }
+
+    s = s->next;
+  }
+  
   /* SEMISUBFREE sections */
   s = g_sec_first;
   while (s != NULL) {
@@ -1086,6 +1288,9 @@ int fix_all_sections(void) {
             return FAILED;
         }
 
+        if (g_sec_fix_tmp->banked_banks[0] != 0)
+          strcpy(s->banked_banks, g_sec_fix_tmp->banked_banks);
+        
         if (g_sec_fix_tmp->status >= 0)
           s->status = g_sec_fix_tmp->status;
 
@@ -1145,6 +1350,15 @@ int fix_all_sections(void) {
 
             s->size = g_sec_fix_tmp->size;
           }
+        }
+
+        if (s->status == SECTION_STATUS_BANKED && s->banked_banks[0] == 0) {
+          fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: Section \"%s\" is marked as BANKED, but no BANKS are defined.\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
+          return FAILED;
+        }
+        if (s->status != SECTION_STATUS_BANKED && s->banked_banks[0] != 0) {
+          fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: Section \"%s\" is not BANKED, but BANKS are defined.\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
+          return FAILED;
         }
         
         break;

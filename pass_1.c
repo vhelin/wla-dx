@@ -4537,6 +4537,7 @@ int directive_ramsection(void) {
   g_sec_tmp->bitwindow = 0;
   g_sec_tmp->window_start = -1;
   g_sec_tmp->window_end = -1;
+  g_sec_tmp->banked_banks[0] = 0;
   
   /* add the namespace to the ramsection's name? */
   if (g_active_file_info_last->namespace[0] != 0) {
@@ -5003,6 +5004,7 @@ int directive_section(void) {
   g_sec_tmp->window_end = -1;
   g_sec_tmp->bank = -1;
   g_sec_tmp->slot = -1;
+  g_sec_tmp->banked_banks[0] = 0;
   
   c1 = g_tmp[0];
   
@@ -5263,6 +5265,26 @@ int directive_section(void) {
       if (skip_next_token() == FAILED)
         return FAILED;
     }
+    else if (compare_next_token("BANKS") == SUCCEEDED) {
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      /* collect the banks list string */
+      if (get_next_token() == FAILED)
+        return FAILED;
+
+      strcpy(g_sec_tmp->banked_banks, g_tmp);
+    }
+    else if (compare_next_token("BANKED") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+        print_error(ERROR_DIR, "Libraries don't take BANKED sections.\n");
+        return FAILED;
+      }
+
+      g_sec_tmp->status = SECTION_STATUS_BANKED;
+      if (skip_next_token() == FAILED)
+        return FAILED;
+    }
     else if (compare_next_token("FREE") == SUCCEEDED) {
       g_sec_tmp->status = SECTION_STATUS_FREE;
       if (skip_next_token() == FAILED)
@@ -5459,6 +5481,16 @@ int directive_section(void) {
 
     g_sec_tmp->address = orga_given - current_slot_address;
   }
+
+  /* sanity check */
+  if (g_sec_tmp->status == SECTION_STATUS_BANKED && g_sec_tmp->banked_banks[0] == 0) {
+    print_error(ERROR_DIR, "BANKED section needs BANKS list.\n");
+    return FAILED;
+  }
+  if (g_sec_tmp->status != SECTION_STATUS_BANKED && g_sec_tmp->banked_banks[0] != 0) {
+    print_error(ERROR_DIR, "Only BANKED sections take BANKS.\n");
+    return FAILED;
+  }  
   
   return SUCCEEDED;
 }

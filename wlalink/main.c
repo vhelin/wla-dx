@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.20a (1.1.2023)";
+char g_version_string[] = "$VER: wlalink 5.20a (14.1.2023)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -300,7 +300,8 @@ static void _debug_print_sections(void) {
       "SEMISUBFREE",
       "RAM FORCE",
       "RAM SEMIFREE",
-      "RAM SEMISUBFREE"
+      "RAM SEMISUBFREE",
+      "BANKED"
     };
 
     printf("\n");

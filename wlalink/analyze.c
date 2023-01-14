@@ -1950,7 +1950,8 @@ int parse_data_blocks(void) {
           while (*t != SECTION_STATUS_FREE && *t != SECTION_STATUS_FORCE && *t != SECTION_STATUS_OVERWRITE &&
                  *t != SECTION_STATUS_HEADER && *t != SECTION_STATUS_SEMIFREE && *t != SECTION_STATUS_ABSOLUTE &&
                  *t != SECTION_STATUS_RAM_FREE && *t != SECTION_STATUS_SUPERFREE && *t != SECTION_STATUS_SEMISUBFREE &&
-                 *t != SECTION_STATUS_RAM_FORCE && *t != SECTION_STATUS_RAM_SEMIFREE && *t != SECTION_STATUS_RAM_SEMISUBFREE)
+                 *t != SECTION_STATUS_RAM_FORCE && *t != SECTION_STATUS_RAM_SEMIFREE && *t != SECTION_STATUS_RAM_SEMISUBFREE &&
+                 *t != SECTION_STATUS_BANKED)
             s->name[i++] = *(t++);
           s->name[i] = 0;
           s->status = *(t++);
@@ -1982,6 +1983,15 @@ int parse_data_blocks(void) {
             s->nspace = nspace;
           }
 
+          /* banked_banks */
+          if (s->status == SECTION_STATUS_BANKED) {
+            i = 0;
+            while (*t != 0)
+              s->banked_banks[i++] = *(t++);
+            s->banked_banks[i] = 0;
+            t++;
+          }
+          
           s->id = READ_T;
           if (s->id >= 0x10000) {
             fprintf(stderr, "PARSE_DATA_BLOCKS: Section \"%s\"'s ID %d is too much! Currently we allow only 65535 sections inside an object file. Please open an issue about this in GitHub!\n", s->name, s->id);

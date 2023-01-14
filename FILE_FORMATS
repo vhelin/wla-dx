@@ -169,9 +169,12 @@ section:
 
   n     name (terminated with 0 (free), 1 (force), 2 (overwrite), 3 (header),
                               4 (semifree), 5 (absolute), 6 (ram free),
-                              7 (superfree), 8 (semisubfree) or 9 (ram force))
+                              7 (superfree), 8 (semisubfree), 9 (ram force),
+                              10 (ram semifree), 11 (ram semisubfree) or
+                              12 (banked)
   1     keep the section (0 = no, 1 = yes)
   n     namespace (terminated with 0)
+  n     banked banks list (terminated with 0, only present if type is BANKED)
   4     section id (int)
   1     slot number (0-255)
   4     file id (int)
@@ -298,7 +301,7 @@ section appendtos/afters
 sections:
 
   ...
-  n     name (terminated with 0 (for free), 6 (ram) or 7 (for superfree))
+  n     name (terminated with 0 (for free), 6 (ram free) or 7 (for superfree))
   1     keep the section (0 = no, 1 = yes)
   n     namespace (terminated with 0)
   4     section id (int)
