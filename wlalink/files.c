@@ -35,7 +35,7 @@ int load_files(char *argv[], int argc) {
   int org_defined, org, orga_defined, orga, status_defined, status, priority_defined, priority, appendto_defined, keep_defined;
   int alignment_defined, offset_defined, after_defined, bitwindow_defined, window_defined, size, size_defined, banks_defined;
   int bitwindow, window_start, window_end;
-  char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32], appendto_name[MAX_NAME_LENGTH + 1], after_name[MAX_NAME_LENGTH + 1], linkfile_path[MAX_NAME_LENGTH + 1], banked_banks[MAX_NAME_LENGTH + 1];
+  char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32], appendto_name[MAX_NAME_LENGTH + 1], after_name[MAX_NAME_LENGTH + 1], linkfile_path[MAX_NAME_LENGTH + 1], banks[MAX_NAME_LENGTH + 1];
   struct label *l;
   FILE *fop, *f;
 
@@ -243,7 +243,7 @@ int load_files(char *argv[], int argc) {
             return FAILED;
           }
 
-          strcpy(banked_banks, token);
+          strcpy(banks, token);
         }
         else if (strcaselesscmp(token, "slot") == 0) {
           if (slot_defined == YES) {
@@ -458,7 +458,7 @@ int load_files(char *argv[], int argc) {
                                              strcaselesscmp(token, "semifree") == 0 ||
                                              strcaselesscmp(token, "superfree") == 0 ||
                                              strcaselesscmp(token, "overwrite") == 0 ||
-                                             strcaselesscmp(token, "banked") == 0)) {
+                                             strcaselesscmp(token, "semisuperfree") == 0)) {
           if (status_defined == YES) {
             fprintf(stderr, "%s:%d: LOAD_FILES: Section type was defined for the second time.\n", argv[argc - 2], line);
             fclose(fop);
@@ -479,8 +479,8 @@ int load_files(char *argv[], int argc) {
             status = SECTION_STATUS_SUPERFREE;
           else if (strcaselesscmp(token, "semisubfree") == 0)
             status = SECTION_STATUS_SEMISUBFREE;
-          else if (strcaselesscmp(token, "banked") == 0)
-            status = SECTION_STATUS_BANKED;
+          else if (strcaselesscmp(token, "semisuperfree") == 0)
+            status = SECTION_STATUS_SEMISUPERFREE;
         }
         else if (state == STATE_RAMSECTIONS && (strcaselesscmp(token, "free") == 0 ||
                                                 strcaselesscmp(token, "semifree") == 0 ||
@@ -519,11 +519,16 @@ int load_files(char *argv[], int argc) {
         fclose(fop);
         return FAILED;
       }
-      if (status_defined == YES && status == SECTION_STATUS_BANKED) {
+      if (status_defined == YES && status == SECTION_STATUS_SEMISUPERFREE) {
+        if (banks_defined == NO) {
+          fprintf(stderr, "%s:%d: LOAD_FILES: SEMISUPERFREE .SECTION \"%s\" requires BANKS to be defined.\n", argv[argc - 2], line, state_name);
+          fclose(fop);
+          return FAILED;
+        }
       }
       else {
         if (bank_defined == NO) {
-          fprintf(stderr, "%s:%d: LOAD_FILES: \"%s\" requires a BANK.\n", argv[argc - 2], line, state_name);
+          fprintf(stderr, "%s:%d: LOAD_FILES: \"%s\" requires a BANK to be defined.\n", argv[argc - 2], line, state_name);
           fclose(fop);
           return FAILED;
         }
@@ -554,9 +559,9 @@ int load_files(char *argv[], int argc) {
       g_sec_fix_tmp->window_end = window_end;
 
       if (banks_defined == YES)
-        strcpy(g_sec_fix_tmp->banked_banks, banked_banks);
+        strcpy(g_sec_fix_tmp->banks, banks);
       else
-        g_sec_fix_tmp->banked_banks[0] = 0;
+        g_sec_fix_tmp->banks[0] = 0;
       if (orga_defined == YES)
         g_sec_fix_tmp->orga = orga;
       else

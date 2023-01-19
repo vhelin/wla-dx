@@ -167,7 +167,7 @@ struct reference {
 
 struct section {
   char name[MAX_NAME_LENGTH + 1];
-  char banked_banks[MAX_NAME_LENGTH + 1];
+  char banks[MAX_NAME_LENGTH + 1];
   int  file_id;
   int  file_id_source;
   int  priority;
@@ -211,7 +211,7 @@ struct section_fix {
   char name[MAX_NAME_LENGTH + 1];
   char file_name[MAX_NAME_LENGTH + 1];
   char slot_name[MAX_NAME_LENGTH + 1];
-  char banked_banks[MAX_NAME_LENGTH + 1];
+  char banks[MAX_NAME_LENGTH + 1];
   int  line_number;
   int  keep;
   int  bank;

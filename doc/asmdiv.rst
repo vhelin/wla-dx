@@ -3118,9 +3118,9 @@ are considered). You can also leave away the type specifier as the default type
 for the section is ``FREE``.
 
 If you wish to specify the banks where the section could be inserted into, use
-``BANKED`` (and ``BANKS`` to specify the banks list)::
+``SEMISUPERFREE`` (and ``BANKS`` to specify the banks list)::
 
-    .SECTION "IAmABankedSection" BANKED BANKS 15-13/10/6-9/3/1
+    .SECTION "IAmABankedSection" SEMISUPERFREE BANKS 15-13/10/6-9/3/1
 
 The banks list in the example unrolls into this: [ 15, 14, 13, 10, 6, 7,
 8, 9, 3, 1 ]. The banks are inspected for free space in the given order.
@@ -3170,7 +3170,7 @@ the section will be inserted somewhere in any bank with the same size as bank ``
 Here's the order in which WLA writes the sections:
 
 1. ``FORCE``
-2. ``BANKED``
+2. ``SEMISUPERFREE``
 3. ``SEMISUBFREE``
 4. ``SEMIFREE`` & ``FREE``
 5. ``SUPERFREE``

@@ -4148,7 +4148,7 @@ int data_stream_parser_parse(void) {
         return FAILED;
       }
 
-      if (s_dsp_s->status == SECTION_STATUS_FREE || s_dsp_s->status == SECTION_STATUS_RAM_FREE || s_dsp_s->status == SECTION_STATUS_BANKED) {
+      if (s_dsp_s->status == SECTION_STATUS_FREE || s_dsp_s->status == SECTION_STATUS_RAM_FREE || s_dsp_s->status == SECTION_STATUS_SEMISUPERFREE) {
         s_dsp_add = 0;
         s_dsp_s->address_from_dsp = 0;
       }

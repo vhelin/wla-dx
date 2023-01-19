@@ -301,7 +301,7 @@ static void _debug_print_sections(void) {
       "RAM FORCE",
       "RAM SEMIFREE",
       "RAM SEMISUBFREE",
-      "BANKED"
+      "SEMISUPERFREE"
     };
 
     printf("\n");

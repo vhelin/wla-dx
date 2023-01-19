@@ -8,7 +8,7 @@ v10.5 (14-Jan-2023) [ALL] .DSB, .DSW, .DSL and .DSD produced only one pending
                       thus the result was wrong.
                     [ALL] Added .ALIGN.
                     [ALL] Added BANK, SLOT, ORG and ORGA to .SECTION.
-                    [ALL] Added a new .SECTION type: BANKED
+                    [ALL] Added a new .SECTION type: SEMISUPERFREE
                     [68K] Added support for MC68000.
                     [68K] Added .COMPUTESMDCHECKSUM and .SMDHEADER.
 

@@ -566,7 +566,7 @@ int pass_3(void) {
         while (s != NULL && s->id != inz)
           s = s->next;
 
-        if (s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_BANKED) {
+        if (s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_SEMISUPERFREE) {
           s->address = 0;
           add = 0;
         }
@@ -653,7 +653,7 @@ int pass_3(void) {
       while (s != NULL && s->id != inz)
         s = s->next;
 
-      if (s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_BANKED) {
+      if (s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_SEMISUPERFREE) {
         s->address = 0;
         add = 0;
       }

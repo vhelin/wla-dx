@@ -1951,7 +1951,7 @@ int parse_data_blocks(void) {
                  *t != SECTION_STATUS_HEADER && *t != SECTION_STATUS_SEMIFREE && *t != SECTION_STATUS_ABSOLUTE &&
                  *t != SECTION_STATUS_RAM_FREE && *t != SECTION_STATUS_SUPERFREE && *t != SECTION_STATUS_SEMISUBFREE &&
                  *t != SECTION_STATUS_RAM_FORCE && *t != SECTION_STATUS_RAM_SEMIFREE && *t != SECTION_STATUS_RAM_SEMISUBFREE &&
-                 *t != SECTION_STATUS_BANKED)
+                 *t != SECTION_STATUS_SEMISUPERFREE)
             s->name[i++] = *(t++);
           s->name[i] = 0;
           s->status = *(t++);
@@ -1983,12 +1983,12 @@ int parse_data_blocks(void) {
             s->nspace = nspace;
           }
 
-          /* banked_banks */
-          if (s->status == SECTION_STATUS_BANKED) {
+          /* banks */
+          if (s->status == SECTION_STATUS_SEMISUPERFREE) {
             i = 0;
             while (*t != 0)
-              s->banked_banks[i++] = *(t++);
-            s->banked_banks[i] = 0;
+              s->banks[i++] = *(t++);
+            s->banks[i] = 0;
             t++;
           }
           
