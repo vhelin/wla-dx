@@ -41,8 +41,7 @@ extern int g_use_wdc_standard;
 extern int g_input_number_expects_dot;
 #endif
 
-/* NOTE: get rid of these two! */
-extern int g_inz, g_ind;
+static int s_inz, s_ind;
 
 static struct instruction *g_instruction_tmp;
 
@@ -83,15 +82,15 @@ static int _parse_push_pull_registers(int accept_u) {
 
   while (1) {
     y = g_source_pointer;
-    g_source_pointer = g_inz;
+    g_source_pointer = s_inz;
     prev_i = g_source_pointer;
     z = input_number();
-    g_inz = g_source_pointer;
+    s_inz = g_source_pointer;
     g_source_pointer = y;
 
     if (z == INPUT_NUMBER_EOL) {
       /* roll back to the index before EOL */
-      g_inz = prev_i;
+      s_inz = prev_i;
       break;
     }
     
@@ -198,9 +197,9 @@ static int _parse_exg_tfr_registers(void) {
 
   /* source register */
   y = g_source_pointer;
-  g_source_pointer = g_inz;
+  g_source_pointer = s_inz;
   z = input_number();
-  g_inz = g_source_pointer;
+  s_inz = g_source_pointer;
   g_source_pointer = y;
 
   if (z != INPUT_NUMBER_ADDRESS_LABEL) {
@@ -215,9 +214,9 @@ static int _parse_exg_tfr_registers(void) {
 
   /* destination register */
   y = g_source_pointer;
-  g_source_pointer = g_inz;
+  g_source_pointer = s_inz;
   z = input_number();
-  g_inz = g_source_pointer;
+  s_inz = g_source_pointer;
   g_source_pointer = y;
 
   if (z != INPUT_NUMBER_ADDRESS_LABEL) {
@@ -251,9 +250,9 @@ int _parse_tiny_int(int min, int max) {
   int old_s, value, res;
   
   old_s = g_source_pointer;
-  g_source_pointer = g_inz;
+  g_source_pointer = s_inz;
   res = input_number();
-  g_inz = g_source_pointer;
+  s_inz = g_source_pointer;
   g_source_pointer = old_s;
 
   if (res != SUCCEEDED)
@@ -1065,15 +1064,15 @@ int evaluate_token(void) {
   }
 
   /* INSTRUCTION? */
-  g_ind = g_instruction_p[(unsigned char)g_tmp[0]];
-  g_instruction_tmp = &g_instructions_table[g_ind];
+  s_ind = g_instruction_p[(unsigned char)g_tmp[0]];
+  g_instruction_tmp = &g_instructions_table[s_ind];
 
   for (f = g_instruction_n[(unsigned char)g_tmp[0]]; f > 0; f--) {
 #if W65816
     if (g_use_wdc_standard == 0) {
       /* skip all mnemonics that contain '<', '|' and '>' */
-      for (g_inz = 0, g_parsed_int = SUCCEEDED; g_inz < INSTRUCTION_STRING_LENGTH_MAX; g_inz++) {
-        char c = g_instruction_tmp->string[g_inz];
+      for (s_inz = 0, g_parsed_int = SUCCEEDED; s_inz < INSTRUCTION_STRING_LENGTH_MAX; s_inz++) {
+        char c = g_instruction_tmp->string[s_inz];
 
         if (c == 0)
           break;
@@ -1085,17 +1084,17 @@ int evaluate_token(void) {
 
       if (g_parsed_int == FAILED) {
         /* try the next mnemonic in the array */
-        g_instruction_tmp = &g_instructions_table[++g_ind];
+        g_instruction_tmp = &g_instructions_table[++s_ind];
         continue;
       }
     }
 #endif
     
     /* try to match the first part of the mnemonic, already read into g_tmp */
-    for (g_inz = 0, g_parsed_int = SUCCEEDED; g_inz < INSTRUCTION_STRING_LENGTH_MAX; g_inz++) {
-      if (g_tmp[g_inz] == 0)
+    for (s_inz = 0, g_parsed_int = SUCCEEDED; s_inz < INSTRUCTION_STRING_LENGTH_MAX; s_inz++) {
+      if (g_tmp[s_inz] == 0)
         break;
-      if (g_instruction_tmp->string[g_inz] != toupper((int)g_tmp[g_inz])) {
+      if (g_instruction_tmp->string[s_inz] != toupper((int)g_tmp[s_inz])) {
         g_parsed_int = FAILED;
         break;
       }
@@ -1103,13 +1102,13 @@ int evaluate_token(void) {
 
     if (g_parsed_int == FAILED) {
       /* try the next mnemonic in the array */
-      g_instruction_tmp = &g_instructions_table[++g_ind];
+      g_instruction_tmp = &g_instructions_table[++s_ind];
       continue;
     }
 
     /* beginning matches the input */
-    x = g_inz;
-    g_inz = g_source_pointer;
+    x = s_inz;
+    s_inz = g_source_pointer;
 
     /* remember the last stack calculation created -> if we create new stack calculations in the
        following switch() and need to roll back after that we'll delete all stack calculations created
@@ -1135,10 +1134,10 @@ int evaluate_token(void) {
       /*************************************************************************************************/
       
     case 0:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
 
           /* give a warning when assembling "JP (HL)"! */
           /*
@@ -1148,21 +1147,21 @@ int evaluate_token(void) {
 
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 4:
     case 1:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x' || g_instruction_tmp->string[x] == 's') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           if (x > 0 && (g_instruction_tmp->string[x-1] == '+' || g_instruction_tmp->string[x-1] == '-'))
             g_source_pointer--;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -1174,8 +1173,8 @@ int evaluate_token(void) {
             }
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1194,25 +1193,25 @@ int evaluate_token(void) {
                 }
               }
 
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 2:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -1221,8 +1220,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1230,96 +1229,96 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex, g_latest_stack);
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 3:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 8:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (z != SUCCEEDED || g_parsed_int != g_instruction_tmp->value)
             break;
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 9:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (z != SUCCEEDED || g_parsed_int != g_instruction_tmp->value)
             break;
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 100:
       /* "RST *" that gets delayed to WLALINK */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             break;
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d v1 ", g_active_file_info_last->line_current);
               if (z == INPUT_NUMBER_ADDRESS_LABEL)
                 _output_assembled_instruction(g_instruction_tmp, "Q%s ", g_label);
@@ -1329,14 +1328,14 @@ int evaluate_token(void) {
               /* reset to "no special case" */
               _output_assembled_instruction(g_instruction_tmp, "v0 ");
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -1362,10 +1361,10 @@ int evaluate_token(void) {
       /*************************************************************************************************/
       
     case 0:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           
           /* give a warning when assembling "JP (HL)"! */
           /*
@@ -1380,27 +1379,27 @@ int evaluate_token(void) {
           
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 11:
     case 1:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
             break;
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1418,25 +1417,25 @@ int evaluate_token(void) {
                 }
               }
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 2:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -1445,8 +1444,8 @@ int evaluate_token(void) {
             return FAILED;
           }
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1454,23 +1453,23 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex, g_latest_stack);
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 3:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           
           /* give a warning when assembling "JP (IX)"! */
           /*
@@ -1485,18 +1484,18 @@ int evaluate_token(void) {
           
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 4:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x' || g_instruction_tmp->string[x] == 's') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -1509,8 +1508,8 @@ int evaluate_token(void) {
             }
           }
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "y%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1518,25 +1517,25 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "y%d c%d ", g_instruction_tmp->hex, g_latest_stack);
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 5:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x' || g_instruction_tmp->string[x] == 's') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -1549,8 +1548,8 @@ int evaluate_token(void) {
             }
           }
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "y%d d%d d%d ", g_instruction_tmp->hex, g_parsed_int, g_instruction_tmp->hex_x);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1558,31 +1557,31 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "y%d c%d d%d ", g_instruction_tmp->hex, g_latest_stack, g_instruction_tmp->hex_x);
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 6:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "y%d y%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1590,25 +1589,25 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "y%d C%d ", g_instruction_tmp->hex, g_latest_stack);
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 7:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x' || g_instruction_tmp->string[x] == 's') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -1627,20 +1626,20 @@ int evaluate_token(void) {
           if (z == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(labelx, g_label);
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == 'x') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
               if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
                 break;
               
-              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (v == SUCCEEDED)
@@ -1657,91 +1656,91 @@ int evaluate_token(void) {
                   else
                     _output_assembled_instruction(g_instruction_tmp, "c%d ", g_latest_stack);
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 8:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (z != SUCCEEDED || g_parsed_int != g_instruction_tmp->value)
             break;
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 9:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (z != SUCCEEDED || g_parsed_int != g_instruction_tmp->value)
             break;
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 10:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (z != SUCCEEDED || g_parsed_int != g_instruction_tmp->value)
             break;
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == 'x' || g_instruction_tmp->string[x] == 's') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
@@ -1754,8 +1753,8 @@ int evaluate_token(void) {
                 }
               }
               
-              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   if (z == SUCCEEDED)
                     _output_assembled_instruction(g_instruction_tmp, "y%d d%d d%d ", g_instruction_tmp->hex, g_parsed_int, g_instruction_tmp->hex_x);
                   else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1763,36 +1762,36 @@ int evaluate_token(void) {
                   else
                     _output_assembled_instruction(g_instruction_tmp, "y%d c%d d%d ", g_instruction_tmp->hex, g_latest_stack, g_instruction_tmp->hex_x);
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 100:
       /* "RST *" that gets delayed to WLALINK */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             break;
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d v1 ", g_active_file_info_last->line_current);
               if (z == INPUT_NUMBER_ADDRESS_LABEL)
                 _output_assembled_instruction(g_instruction_tmp, "Q%s ", g_label);
@@ -1802,14 +1801,14 @@ int evaluate_token(void) {
               /* reset to "no special case" */
               _output_assembled_instruction(g_instruction_tmp, "v0 ");
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -1835,25 +1834,25 @@ int evaluate_token(void) {
       /*************************************************************************************************/
       
     case 0:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 5:
     case 1:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -1863,8 +1862,8 @@ int evaluate_token(void) {
             return FAILED;
           }
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1882,25 +1881,25 @@ int evaluate_token(void) {
                 }
               }
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 2:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -1909,8 +1908,8 @@ int evaluate_token(void) {
             return FAILED;
           }
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1918,26 +1917,26 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex, g_latest_stack);
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 3:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -1945,12 +1944,12 @@ int evaluate_token(void) {
     case 4:
       if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -1964,8 +1963,8 @@ int evaluate_token(void) {
             return FAILED;
           }
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1973,14 +1972,14 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d c%d ", g_instruction_tmp->hex, g_latest_stack);
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -2006,13 +2005,13 @@ int evaluate_token(void) {
       /*************************************************************************************************/
 
     case 0:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -2021,12 +2020,12 @@ int evaluate_token(void) {
     case 1:
       if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -2036,8 +2035,8 @@ int evaluate_token(void) {
           if (g_operand_hint == HINT_16BIT)
             break;
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2055,25 +2054,25 @@ int evaluate_token(void) {
                 }
               }
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 2:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -2082,8 +2081,8 @@ int evaluate_token(void) {
             return FAILED;
           }
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2091,26 +2090,26 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex, g_latest_stack);
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 3:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -2118,12 +2117,12 @@ int evaluate_token(void) {
     case 4:
       if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -2133,8 +2132,8 @@ int evaluate_token(void) {
           if (g_operand_hint == HINT_16BIT)
             break;
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2142,25 +2141,25 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d c%d ", g_instruction_tmp->hex, g_latest_stack);
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 5:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -2173,20 +2172,20 @@ int evaluate_token(void) {
           if (z == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(labelx, g_label);
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == 'x') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
               if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
                 break;
               
-              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (v == SUCCEEDED)
@@ -2214,18 +2213,18 @@ int evaluate_token(void) {
                     stack->relative_references = 1;
                   }
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -2251,13 +2250,13 @@ int evaluate_token(void) {
       /*************************************************************************************************/
       
     case 0:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -2266,12 +2265,12 @@ int evaluate_token(void) {
     case 1:
       if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -2281,8 +2280,8 @@ int evaluate_token(void) {
           if (g_operand_hint == HINT_16BIT)
             break;
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2300,25 +2299,25 @@ int evaluate_token(void) {
                 }
               }
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 2:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -2327,8 +2326,8 @@ int evaluate_token(void) {
             return FAILED;
           }
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2336,26 +2335,26 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex, g_latest_stack);
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 3:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -2363,12 +2362,12 @@ int evaluate_token(void) {
     case 4:
       if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -2378,8 +2377,8 @@ int evaluate_token(void) {
           if (g_operand_hint == HINT_16BIT)
             break;
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2387,25 +2386,25 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d c%d ", g_instruction_tmp->hex, g_latest_stack);
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 5:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -2418,20 +2417,20 @@ int evaluate_token(void) {
           if (z == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(labelx, g_label);
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == 'x') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
               if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
                 break;
               
-              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (v == SUCCEEDED)
@@ -2459,30 +2458,30 @@ int evaluate_token(void) {
                     stack->relative_references = 1;
                   }
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 7:
       /* 16-bit relative */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -2491,8 +2490,8 @@ int evaluate_token(void) {
             return FAILED;
           }
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2511,14 +2510,14 @@ int evaluate_token(void) {
                 stack->relative_references = 1;
               }
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -2544,25 +2543,25 @@ int evaluate_token(void) {
       /*************************************************************************************************/
 
     case 0:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 11:
     case 1:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -2571,8 +2570,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2590,14 +2589,14 @@ int evaluate_token(void) {
                 }
               }
 
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -2605,12 +2604,12 @@ int evaluate_token(void) {
     case 2:
       if (g_xbit_size > 16 && g_instruction_tmp->skip_xbit == 1)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -2623,8 +2622,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2632,45 +2631,45 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex, g_latest_stack);
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 3:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '&') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_STACK || z == INPUT_NUMBER_ADDRESS_LABEL))
             return FAILED;
     
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d z%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
                 _output_assembled_instruction(g_instruction_tmp, "k%d d%d q%s ", g_active_file_info_last->line_current, g_instruction_tmp->hex, g_label);
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d T%d ", g_instruction_tmp->hex, g_latest_stack);
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -2678,12 +2677,12 @@ int evaluate_token(void) {
       /* IMMEDIATE VALUES: ACCUMULATOR */
 
     case 4:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -2715,8 +2714,8 @@ int evaluate_token(void) {
             }
           }
     
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               /* 8BIT */
               if (y == 0) {
                 if (z == SUCCEEDED)
@@ -2736,14 +2735,14 @@ int evaluate_token(void) {
                   _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex, g_latest_stack);
               }
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -2751,12 +2750,12 @@ int evaluate_token(void) {
       /* MVN & MVP */
 
     case 5:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -2769,20 +2768,20 @@ int evaluate_token(void) {
           if (z == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(labelx, g_label);
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == 'x') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
               if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
                 break;
 
-              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   /* NOTE: in the source code it's "MVP/MVN x1, x2", but we output "MVP/MVN x2, x1" */
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
             
@@ -2800,18 +2799,18 @@ int evaluate_token(void) {
                   else
                     _output_assembled_instruction(g_instruction_tmp, "c%d ", h);
 
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -2819,12 +2818,12 @@ int evaluate_token(void) {
       /* SEP & REP */
 
     case 6:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (z != SUCCEEDED) {
             if (g_instruction_tmp->skip_xbit == 0)
@@ -2836,8 +2835,8 @@ int evaluate_token(void) {
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
             break;
     
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
         
               _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
         
@@ -2856,14 +2855,14 @@ int evaluate_token(void) {
                   g_accu_size = 8;
               }
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -2871,12 +2870,12 @@ int evaluate_token(void) {
       /* IMMEDIATE VALUES: INDEX */
 
     case 7:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -2908,8 +2907,8 @@ int evaluate_token(void) {
             }
           }
     
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               /* 8BIT */
               if (y == 0) {
                 if (z == SUCCEEDED)
@@ -2929,45 +2928,45 @@ int evaluate_token(void) {
                   _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex, g_latest_stack);
               }
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 8:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 9:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
           if (z == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 32767))
             break;
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2986,14 +2985,14 @@ int evaluate_token(void) {
                 stack->relative_references = 1;
               }
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -3001,12 +3000,12 @@ int evaluate_token(void) {
     case 0xA:
       if (g_xbit_size > 8 && g_instruction_tmp->skip_xbit == 2)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -3019,8 +3018,8 @@ int evaluate_token(void) {
             return FAILED;
           }
     
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -3028,14 +3027,14 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d c%d ", g_instruction_tmp->hex, g_latest_stack);
 
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -3062,13 +3061,13 @@ int evaluate_token(void) {
 
     case 0:
       /* plain text 8-bit */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -3078,16 +3077,16 @@ int evaluate_token(void) {
       {
         int done = NO, register_y = 0, register_y_mode = 0, register_x = 0, register_x_mode = 0, opcode;
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -3095,14 +3094,14 @@ int evaluate_token(void) {
           break;
 
         /* "Dy, Dx" OR "-(Ay),-(Ax)" */
-        if (_mc68000_parse_register(g_buffer, &g_inz, &register_y, &register_y_mode) == FAILED)
+        if (_mc68000_parse_register(g_buffer, &s_inz, &register_y, &register_y_mode) == FAILED)
           break;
 
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_register(g_buffer, &g_inz, &register_x, &register_x_mode) == FAILED)
+        if (_mc68000_parse_register(g_buffer, &s_inz, &register_x, &register_x_mode) == FAILED)
           break;
         
         if (register_y_mode == B8(00000000) && register_x_mode == B8(00000000))
@@ -3114,7 +3113,7 @@ int evaluate_token(void) {
 
         _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
         
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -3127,16 +3126,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, immediate = NO, mode;
         char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -3147,7 +3146,7 @@ int evaluate_token(void) {
         mode = g_instruction_tmp->mode;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
         if (register_y_mode == B8(00000111) && register_y1 == B8(00000100)) {
@@ -3172,11 +3171,11 @@ int evaluate_token(void) {
             return FAILED;
         }
           
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
           break;
 
 	/* source or target must be Dn */
@@ -3323,7 +3322,7 @@ int evaluate_token(void) {
         _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
         _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -3336,16 +3335,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, immediate = NO, mode;
         char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -3356,7 +3355,7 @@ int evaluate_token(void) {
         mode = g_instruction_tmp->mode;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
         if (register_y_mode == B8(00000111) && register_y1 == B8(00000100))
@@ -3368,11 +3367,11 @@ int evaluate_token(void) {
             return FAILED;
         }
           
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
           break;
 
 	if (immediate) {
@@ -3398,7 +3397,7 @@ int evaluate_token(void) {
 	    /* emit extra data */
 	    _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-	    g_source_pointer = g_inz;
+	    g_source_pointer = s_inz;
 
 	    return SUCCEEDED;
 	  }
@@ -3424,7 +3423,7 @@ int evaluate_token(void) {
 	    /* emit extra data */
 	    _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-	    g_source_pointer = g_inz;
+	    g_source_pointer = s_inz;
 
 	    return SUCCEEDED;
 	  }
@@ -3514,7 +3513,7 @@ int evaluate_token(void) {
         _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
         _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -3527,16 +3526,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, immediate = NO;
         char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -3546,7 +3545,7 @@ int evaluate_token(void) {
         size = g_instruction_tmp->size;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
         if (register_y_mode == B8(00000111) && register_y1 == B8(00000100))
@@ -3600,7 +3599,7 @@ int evaluate_token(void) {
 	  /* emit extra data */
 	  _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-	  g_source_pointer = g_inz;
+	  g_source_pointer = s_inz;
 
 	  return SUCCEEDED;
 	}
@@ -3611,11 +3610,11 @@ int evaluate_token(void) {
             return FAILED;
         }
           
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
           break;
 
 	/* if source is not immediate then it must be Dn */
@@ -3659,7 +3658,7 @@ int evaluate_token(void) {
 	/* emit opcode */
         _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -3670,16 +3669,16 @@ int evaluate_token(void) {
       {
         int done = NO, opcode, size, backup, res;
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -3690,9 +3689,9 @@ int evaluate_token(void) {
         opcode = g_instruction_tmp->hex;
 
 	backup = g_source_pointer;
-	g_source_pointer = g_inz;
+	g_source_pointer = s_inz;
 	res = input_number();
-	g_inz = g_source_pointer;
+	s_inz = g_source_pointer;
 	g_source_pointer = backup;
 
 	if (!(res == SUCCEEDED || res == INPUT_NUMBER_ADDRESS_LABEL || res == INPUT_NUMBER_STACK))
@@ -3752,7 +3751,7 @@ int evaluate_token(void) {
 	    _output_assembled_instruction(g_instruction_tmp, "y%d ", g_parsed_int);
 	}
 
-	g_source_pointer = g_inz;
+	g_source_pointer = s_inz;
 	
 	return SUCCEEDED;
       }
@@ -3765,16 +3764,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, immediate = NO;
         char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -3784,7 +3783,7 @@ int evaluate_token(void) {
         size = g_instruction_tmp->size;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
         if (register_y_mode == B8(00000111) && register_y1 == B8(00000100))
@@ -3794,11 +3793,11 @@ int evaluate_token(void) {
 	  return FAILED;
 	}
 
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
           break;
 
 	/* no destination An */
@@ -3880,7 +3879,7 @@ int evaluate_token(void) {
 	/* emit extra data */
 	_mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -3893,16 +3892,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size;
         char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -3912,7 +3911,7 @@ int evaluate_token(void) {
         size = g_instruction_tmp->size;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
 	/* source cannot be An */
@@ -3921,11 +3920,11 @@ int evaluate_token(void) {
 	  return FAILED;
 	}
 
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
           break;
 
 	/* target can only be Dn */
@@ -3955,7 +3954,7 @@ int evaluate_token(void) {
 	/* emit extra data */
 	_mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -3967,16 +3966,16 @@ int evaluate_token(void) {
         int done = NO, register_y1 = 0, register_y2 = 0, register_y_mode = 0, opcode, data_y = 0, data_type_y = FAILED, size;
         char label_y[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -3986,7 +3985,7 @@ int evaluate_token(void) {
         size = g_instruction_tmp->size;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
 	/* target cannot be An, immediate... */
@@ -4010,7 +4009,7 @@ int evaluate_token(void) {
 	/* emit extra data */
 	_mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -4023,16 +4022,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, immediate = NO, mode;
         char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -4043,7 +4042,7 @@ int evaluate_token(void) {
         mode = g_instruction_tmp->mode;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
         if (register_y_mode == B8(00000111) && register_y1 == B8(00000100))
@@ -4055,11 +4054,11 @@ int evaluate_token(void) {
             return FAILED;
         }
           
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
           break;
 
         /* An destination? */
@@ -4206,7 +4205,7 @@ int evaluate_token(void) {
         _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
         _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -4219,16 +4218,16 @@ int evaluate_token(void) {
         int done = NO, opcode, backup, res;
         char label_y[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -4237,7 +4236,7 @@ int evaluate_token(void) {
 
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
         /* source needs to be Dn */
@@ -4247,9 +4246,9 @@ int evaluate_token(void) {
         }
         
 	backup = g_source_pointer;
-	g_source_pointer = g_inz;
+	g_source_pointer = s_inz;
 	res = input_number();
-	g_inz = g_source_pointer;
+	s_inz = g_source_pointer;
 	g_source_pointer = backup;
 
 	if (!(res == SUCCEEDED || res == INPUT_NUMBER_ADDRESS_LABEL || res == INPUT_NUMBER_STACK))
@@ -4299,7 +4298,7 @@ int evaluate_token(void) {
         else
           _output_assembled_instruction(g_instruction_tmp, "y%d ", g_parsed_int);
 
-	g_source_pointer = g_inz;
+	g_source_pointer = s_inz;
 	
 	return SUCCEEDED;
       }
@@ -4312,16 +4311,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size;
         char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -4331,7 +4330,7 @@ int evaluate_token(void) {
         size = g_instruction_tmp->size;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
         /* source cannot be An */
@@ -4340,11 +4339,11 @@ int evaluate_token(void) {
 	  return FAILED;
 	}
         
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
           break;
 
         /* target must be Dn */
@@ -4368,7 +4367,7 @@ int evaluate_token(void) {
 	/* emit extra data */
 	_mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -4381,16 +4380,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, immediate = NO, mode;
         char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -4401,7 +4400,7 @@ int evaluate_token(void) {
         mode = g_instruction_tmp->mode;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
         if (register_y_mode == B8(00000111) && register_y1 == B8(00000100))
@@ -4413,11 +4412,11 @@ int evaluate_token(void) {
             return FAILED;
         }
           
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
           break;
 
 	if (immediate) {
@@ -4440,7 +4439,7 @@ int evaluate_token(void) {
 	    /* emit extra data */
 	    _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-	    g_source_pointer = g_inz;
+	    g_source_pointer = s_inz;
 
 	    return SUCCEEDED;
 	  }
@@ -4463,7 +4462,7 @@ int evaluate_token(void) {
 	    /* emit extra data */
 	    _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-	    g_source_pointer = g_inz;
+	    g_source_pointer = s_inz;
 
 	    return SUCCEEDED;
 	  }
@@ -4532,7 +4531,7 @@ int evaluate_token(void) {
         _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
         _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -4545,16 +4544,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, opmode;
         char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -4564,14 +4563,14 @@ int evaluate_token(void) {
         size = g_instruction_tmp->size;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
           break;
 
 	/* Dn, Dm */
@@ -4602,7 +4601,7 @@ int evaluate_token(void) {
         _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
         _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -4615,16 +4614,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, size;
         char label_y[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -4634,7 +4633,7 @@ int evaluate_token(void) {
         size = g_instruction_tmp->size;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
 	/* only Dn is accepted */
@@ -4652,7 +4651,7 @@ int evaluate_token(void) {
         /* emit opcode */
         _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -4665,16 +4664,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, size;
         char label_y[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -4684,7 +4683,7 @@ int evaluate_token(void) {
         size = g_instruction_tmp->size;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
 	/* Dn or An or (An)+ or -(An) or immediate */
@@ -4707,7 +4706,7 @@ int evaluate_token(void) {
         /* emit extra data */
         _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -4720,16 +4719,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size;
         char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -4739,14 +4738,14 @@ int evaluate_token(void) {
         size = g_instruction_tmp->size;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
           break;
 
 	/* Dn or An or (An)+ or -(An) or immediate as source? */
@@ -4775,7 +4774,7 @@ int evaluate_token(void) {
         /* emit extra data */
         _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -4788,16 +4787,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size;
         char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -4807,14 +4806,14 @@ int evaluate_token(void) {
         size = g_instruction_tmp->size;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
           break;
 
 	/* An source? */
@@ -4837,7 +4836,7 @@ int evaluate_token(void) {
         /* emit extra data */
         _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -4850,16 +4849,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, size;
         char label_y[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -4869,7 +4868,7 @@ int evaluate_token(void) {
         size = g_instruction_tmp->size;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
 	/* invalid addressing modes? */
@@ -4893,7 +4892,7 @@ int evaluate_token(void) {
         /* emit extra data */
         _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -4906,16 +4905,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, size;
         char label_y[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -4925,7 +4924,7 @@ int evaluate_token(void) {
         size = g_instruction_tmp->size;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
         /* immediate? */
@@ -4940,7 +4939,7 @@ int evaluate_token(void) {
         /* emit extra data */
         _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -4953,16 +4952,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED;
         char label_y[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -4971,7 +4970,7 @@ int evaluate_token(void) {
 
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
 	/* only Dn is accepted */
@@ -4986,7 +4985,7 @@ int evaluate_token(void) {
         /* emit opcode */
         _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -4999,16 +4998,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED;
         char label_y[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -5017,7 +5016,7 @@ int evaluate_token(void) {
 
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
 	/* only immediate is accepted */
@@ -5041,7 +5040,7 @@ int evaluate_token(void) {
         /* emit opcode */
         _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -5054,16 +5053,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED;
         char label_y[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -5072,7 +5071,7 @@ int evaluate_token(void) {
 
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
 	/* only An is accepted */
@@ -5087,7 +5086,7 @@ int evaluate_token(void) {
         /* emit opcode */
         _output_assembled_instruction(g_instruction_tmp, "y%d ", opcode);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -5100,16 +5099,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size, immediate = NO, mode;
         char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -5120,14 +5119,14 @@ int evaluate_token(void) {
         mode = g_instruction_tmp->mode;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, YES) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, YES) == FAILED)
           break;
 
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
           break;
 
         /* PC relative ea cannot be destination */
@@ -5163,7 +5162,7 @@ int evaluate_token(void) {
           /* emit extra data */
           _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
 
           return SUCCEEDED;          
         }
@@ -5188,7 +5187,7 @@ int evaluate_token(void) {
           /* emit extra data */
           _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
 
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
 
           return SUCCEEDED;
         }
@@ -5213,7 +5212,7 @@ int evaluate_token(void) {
           /* emit extra data */
           _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
 
           return SUCCEEDED;
         }
@@ -5235,7 +5234,7 @@ int evaluate_token(void) {
           /* emit extra data */
           _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
 
           return SUCCEEDED;
         }
@@ -5257,7 +5256,7 @@ int evaluate_token(void) {
           /* emit extra data */
           _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
 
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
 
           return SUCCEEDED;
         }
@@ -5382,7 +5381,7 @@ int evaluate_token(void) {
         _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
         _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -5395,16 +5394,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size;
         char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -5414,14 +5413,14 @@ int evaluate_token(void) {
         size = g_instruction_tmp->size;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, NO) == FAILED)
           break;
 
         /* Dx, (d16, Ay)? */
@@ -5462,7 +5461,7 @@ int evaluate_token(void) {
         _mc68000_emit_extra_data(register_y_mode, register_y1, register_y2, data_type_y, data_y, label_y, size);
         _mc68000_emit_extra_data(register_x_mode, register_x1, register_x2, data_type_x, data_x, label_x, size);
 
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -5475,16 +5474,16 @@ int evaluate_token(void) {
         int data_y = 0, data_type_y = FAILED, data_x = 0, data_type_x = FAILED, size;
         char label_y[MAX_NAME_LENGTH + 1], label_x[MAX_NAME_LENGTH + 1];
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 0) {
-	    if (g_buffer[g_inz] == ' ') {
+	    if (g_buffer[s_inz] == ' ') {
 	      done = YES;
 	      break;
 	    }
 	    else
 	      break;
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
 
@@ -5494,14 +5493,14 @@ int evaluate_token(void) {
         size = g_instruction_tmp->size;
         opcode = g_instruction_tmp->hex;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, YES) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, YES) == FAILED)
           break;
 
-        if (g_buffer[g_inz] != ',')
+        if (g_buffer[s_inz] != ',')
           break;
-        g_inz++;
+        s_inz++;
 
-        if (_mc68000_parse_ea(g_buffer, &g_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
+        if (_mc68000_parse_ea(g_buffer, &s_inz, &register_x1, &register_x2, &register_x_mode, &data_x, &data_type_x, label_x, YES) == FAILED)
           break;
 
         /* turn register source into a register list */
@@ -5592,7 +5591,7 @@ int evaluate_token(void) {
           return FAILED;
         }
         
-        g_source_pointer = g_inz;
+        g_source_pointer = s_inz;
 
         return SUCCEEDED;
       }
@@ -5620,13 +5619,13 @@ int evaluate_token(void) {
 
     case 0:
       /* plain text 8-bit */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -5634,12 +5633,12 @@ int evaluate_token(void) {
     case 5:
     case 1:
       /* 8-bit signed operand, relative address */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
 
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -5649,8 +5648,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -5668,26 +5667,26 @@ int evaluate_token(void) {
                 }
               }
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 2:
       /* 16-bit operand */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -5696,8 +5695,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -5705,27 +5704,27 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex, g_latest_stack);
 
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 3:
       /* plain text 16-bit */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -5734,12 +5733,12 @@ int evaluate_token(void) {
       /* 8-bit unsigned operand, absolute address */
       if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
     
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -5753,8 +5752,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -5762,14 +5761,14 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d c%d ", g_instruction_tmp->hex, g_latest_stack);
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -5796,13 +5795,13 @@ int evaluate_token(void) {
 
     case 0:
       /* plain text 8-bit */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -5810,12 +5809,12 @@ int evaluate_token(void) {
     case 5:
     case 1:
       /* 8-bit signed operand, relative address */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
 
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -5825,8 +5824,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -5844,26 +5843,26 @@ int evaluate_token(void) {
                 }
               }
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 2:
       /* 16-bit operand */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -5872,8 +5871,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -5881,27 +5880,27 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex, g_latest_stack);
 
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 3:
       /* plain text 16-bit */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -5910,12 +5909,12 @@ int evaluate_token(void) {
       /* 8-bit unsigned operand, absolute address */
       if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
     
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -5929,8 +5928,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -5938,14 +5937,14 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d c%d ", g_instruction_tmp->hex, g_latest_stack);
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -5972,16 +5971,16 @@ int evaluate_token(void) {
 
     case 0:
       /* plain text 8-bit */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           if (g_instruction_tmp->hex > 0xFF)
             _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", (g_instruction_tmp->hex >> 8) & 0xFF, g_instruction_tmp->hex & 0xFF);
           else
             _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -5989,12 +5988,12 @@ int evaluate_token(void) {
     case 5:
     case 1:
       /* 8-bit signed operand, relative address */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
 
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -6004,8 +6003,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (g_instruction_tmp->hex > 0xFF)
@@ -6030,26 +6029,26 @@ int evaluate_token(void) {
                 }
               }
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 2:
       /* 16-bit operand */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -6058,8 +6057,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (g_instruction_tmp->hex > 0xFF)
@@ -6074,27 +6073,27 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "C%d ", g_latest_stack);
 
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 3:
       /* plain text 16-bit */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -6103,12 +6102,12 @@ int evaluate_token(void) {
       /* 8-bit unsigned operand, absolute address */
       if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
     
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -6122,8 +6121,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (g_instruction_tmp->hex > 0xFF)
@@ -6138,14 +6137,14 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "c%d ", g_latest_stack);
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -6154,12 +6153,12 @@ int evaluate_token(void) {
       /* 5-bit signed operand, absolute address + post op byte code */
       if (g_xbit_size >= 8 && g_instruction_tmp->skip_8bit == 1)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 's') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
 
           /* TODO: add a mechanism so that we could use 5-bit addreslabel references and calculations */
@@ -6173,8 +6172,8 @@ int evaluate_token(void) {
           if (g_parsed_int > 15 || g_parsed_int < -16)
             break;
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (g_instruction_tmp->hex > 0xFF)
@@ -6183,14 +6182,14 @@ int evaluate_token(void) {
                 _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
 
               _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->addressing_mode_bits | (g_parsed_int & 0x1F));
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -6199,12 +6198,12 @@ int evaluate_token(void) {
       /* 8-bit signed operand, relative address + post op byte code */
       if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
 
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -6218,8 +6217,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (g_instruction_tmp->hex > 0xFF)
@@ -6245,26 +6244,26 @@ int evaluate_token(void) {
                 stack->relative_references = 1;
               }
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 8:
       /* 16-bit operand + post op byte code */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -6273,8 +6272,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (g_instruction_tmp->hex > 0xFF)
@@ -6289,22 +6288,22 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->addressing_mode_bits, g_latest_stack);
 
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 9:
       /* plain text 8-bit + post op byte code */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
           if (g_instruction_tmp->hex > 0xFF)
@@ -6313,17 +6312,17 @@ int evaluate_token(void) {
             _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
 
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->addressing_mode_bits);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 10:
       /* EXG / TFR */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'r') {
           g_parsed_int = _parse_exg_tfr_registers();
           if (g_parsed_int < 0)
@@ -6333,17 +6332,17 @@ int evaluate_token(void) {
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_parsed_int);
         
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 11:
       /* PSHS / PSHU / PULS / PULU */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'r') {
           g_parsed_int = _parse_push_pull_registers(g_instruction_tmp->addressing_mode_bits);
           if (g_parsed_int < 0)
@@ -6353,22 +6352,22 @@ int evaluate_token(void) {
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_parsed_int);
         
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 12:
       /* 16-bit signed operand, relative address */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -6377,8 +6376,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (g_instruction_tmp->hex > 0xFF)
@@ -6404,14 +6403,14 @@ int evaluate_token(void) {
                 stack->relative_references = 1;
               }
 
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -6437,26 +6436,26 @@ int evaluate_token(void) {
       /*************************************************************************************************/
 
     case 0:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 1:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x' || g_instruction_tmp->string[x] == 's') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           if (x > 0 && (g_instruction_tmp->string[x-1] == '+' || g_instruction_tmp->string[x-1] == '-'))
             g_source_pointer--;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -6468,8 +6467,8 @@ int evaluate_token(void) {
             }
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -6488,25 +6487,25 @@ int evaluate_token(void) {
                 }
               }
 
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 2:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -6515,8 +6514,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -6524,58 +6523,58 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex, g_latest_stack);
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 8:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (z != SUCCEEDED || g_parsed_int != g_instruction_tmp->value)
             break;
     
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 100:
       /* "RST *" that gets delayed to WLALINK */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             break;
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d v2 ", g_active_file_info_last->line_current);
               if (z == INPUT_NUMBER_ADDRESS_LABEL)
                 _output_assembled_instruction(g_instruction_tmp, "Q%s ", g_label);
@@ -6585,14 +6584,14 @@ int evaluate_token(void) {
               /* reset to "no special case" */
               _output_assembled_instruction(g_instruction_tmp, "v0 ");
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -6618,26 +6617,26 @@ int evaluate_token(void) {
       /*************************************************************************************************/
 
     case 0:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 1:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x' || g_instruction_tmp->string[x] == 's') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           if (x > 0 && (g_instruction_tmp->string[x-1] == '+' || g_instruction_tmp->string[x-1] == '-'))
             g_source_pointer--;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -6649,8 +6648,8 @@ int evaluate_token(void) {
             }
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -6669,25 +6668,25 @@ int evaluate_token(void) {
                 }
               }
 
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 2:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -6696,8 +6695,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -6705,58 +6704,58 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex, g_latest_stack);
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 8:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (z != SUCCEEDED || g_parsed_int != g_instruction_tmp->value)
             break;
     
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 100:
       /* "RST *" that gets delayed to WLALINK */
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             break;
 
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d v3 ", g_active_file_info_last->line_current);
               if (z == INPUT_NUMBER_ADDRESS_LABEL)
                 _output_assembled_instruction(g_instruction_tmp, "Q%s ", g_label);
@@ -6766,14 +6765,14 @@ int evaluate_token(void) {
               /* reset to "no special case" */
               _output_assembled_instruction(g_instruction_tmp, "v0 ");
         
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -6799,32 +6798,32 @@ int evaluate_token(void) {
       /*************************************************************************************************/
 
     case 0:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 1:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
             break;
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
           
               if (z == SUCCEEDED)
@@ -6835,25 +6834,25 @@ int evaluate_token(void) {
                 _output_assembled_instruction(g_instruction_tmp, "d%d c%d ", g_instruction_tmp->hex, g_latest_stack);
               }
 
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 2:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -6862,8 +6861,8 @@ int evaluate_token(void) {
             return FAILED;
           }
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (z == SUCCEEDED)
@@ -6873,27 +6872,27 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex, g_latest_stack);
 
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 3:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           g_parse_floats = NO;
           z = input_number();
           g_parse_floats = YES;
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -6906,20 +6905,20 @@ int evaluate_token(void) {
           if (z == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(labelx, g_label);
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '~') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (z != SUCCEEDED)
                 break;
               if (g_parsed_int > 7 || g_parsed_int < 0)
                 break;
 
-              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex | (g_parsed_int << 5));
 
@@ -6930,31 +6929,31 @@ int evaluate_token(void) {
                   else
                     _output_assembled_instruction(g_instruction_tmp, "c%d ", h);
 
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 4:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           g_parse_floats = NO;
           z = input_number();
           g_parse_floats = YES;
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -6967,20 +6966,20 @@ int evaluate_token(void) {
           if (z == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(labelx, g_label);
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '~') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (z != SUCCEEDED)
                 break;
               if (g_parsed_int > 7 || g_parsed_int < 0)
                 break;
 
-              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex | (((g_parsed_int << 1) + 1) << 4));
 
@@ -6991,57 +6990,57 @@ int evaluate_token(void) {
                   else
                     _output_assembled_instruction(g_instruction_tmp, "c%d ", h);
 
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 5:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '~') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (z != SUCCEEDED)
             break;
           if (g_parsed_int > 0xF || g_parsed_int < 0)
             break;
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex | (g_parsed_int << 4));
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 0xA:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -7054,20 +7053,20 @@ int evaluate_token(void) {
           if (z == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(labelx, g_label);
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == 'x') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
               if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
                 break;
 
-              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               
                   if (v == SUCCEEDED)
@@ -7092,31 +7091,31 @@ int evaluate_token(void) {
                     _output_assembled_instruction(g_instruction_tmp, "c%d ", g_latest_stack);
                   }
 
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 0xB:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           g_parse_floats = NO;
           z = input_number();
           g_parse_floats = YES;
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -7129,20 +7128,20 @@ int evaluate_token(void) {
           if (z == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(labelx, g_label);
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == 'x') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
               if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
                 break;
 
-              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               
                   if (z == SUCCEEDED)
@@ -7159,31 +7158,31 @@ int evaluate_token(void) {
                   else
                     _output_assembled_instruction(g_instruction_tmp, "c%d ", h);
 
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 0xC:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           g_parse_floats = NO;
           z = input_number();
           g_parse_floats = YES;
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -7196,12 +7195,12 @@ int evaluate_token(void) {
           if (z == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(labelx, g_label);
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '~') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (z != SUCCEEDED)
                 break;
@@ -7209,20 +7208,20 @@ int evaluate_token(void) {
                 break;
               g = g_parsed_int;
 
-              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
                 if (g_instruction_tmp->string[x] == 'x') {
                   y = g_source_pointer;
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   z = input_number();
-                  g_inz = g_source_pointer;
+                  s_inz = g_source_pointer;
                   g_source_pointer = y;
                   if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                     return FAILED;
                   if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
                     break;
 
-                  for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                    if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+                  for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                    if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                       _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                       _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex | (g << 5));
 
@@ -7248,35 +7247,35 @@ int evaluate_token(void) {
                         _output_assembled_instruction(g_instruction_tmp, "c%d ", g_latest_stack);
                       }
 
-                      g_source_pointer = g_inz;
+                      g_source_pointer = s_inz;
                       return SUCCEEDED;
                     }
-                    if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                    if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                       break;
                   }
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 0xD:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           g_parse_floats = NO;
           z = input_number();
           g_parse_floats = YES;
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -7289,12 +7288,12 @@ int evaluate_token(void) {
           if (z == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(labelx, g_label);
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '~') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (z != SUCCEEDED)
                 break;
@@ -7302,20 +7301,20 @@ int evaluate_token(void) {
                 break;
               g = g_parsed_int;
 
-              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
                 if (g_instruction_tmp->string[x] == 'x') {
                   y = g_source_pointer;
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   z = input_number();
-                  g_inz = g_source_pointer;
+                  s_inz = g_source_pointer;
                   g_source_pointer = y;
                   if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                     return FAILED;
                   if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
                     break;
 
-                  for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                    if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+                  for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                    if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                       _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                       _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex | (((g << 1) + 1) << 4));
 
@@ -7341,41 +7340,41 @@ int evaluate_token(void) {
                         _output_assembled_instruction(g_instruction_tmp, "c%d ", g_latest_stack);
                       }
 
-                      g_source_pointer = g_inz;
+                      g_source_pointer = s_inz;
                       return SUCCEEDED;
                     }
-                    if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                    if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                       break;
                   }
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 0xE:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
             break;
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
           
               if (z == SUCCEEDED)
@@ -7393,27 +7392,27 @@ int evaluate_token(void) {
                 _output_assembled_instruction(g_instruction_tmp, "d%d c%d ", g_instruction_tmp->hex, g_latest_stack);
               }
 
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 0xF:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           g_parse_floats = NO;
           z = input_number();
           g_parse_floats = YES;
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -7426,20 +7425,20 @@ int evaluate_token(void) {
           if (z == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(labelx, g_label);
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '~') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (z != SUCCEEDED)
                 break;
               if (g_parsed_int > 7 || g_parsed_int < 0)
                 break;
 
-              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               
                   if (v == SUCCEEDED)
@@ -7449,18 +7448,18 @@ int evaluate_token(void) {
                   else
                     _output_assembled_instruction(g_instruction_tmp, "d%d N%d %d ", g_instruction_tmp->hex, g_parsed_int, h);
 
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -7486,13 +7485,13 @@ int evaluate_token(void) {
       /*************************************************************************************************/
       
     case 0:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -7501,12 +7500,12 @@ int evaluate_token(void) {
     case 1:
       if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -7516,8 +7515,8 @@ int evaluate_token(void) {
           if (g_operand_hint == HINT_16BIT)
             break;
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -7535,25 +7534,25 @@ int evaluate_token(void) {
                 }
               }
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 2:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -7562,8 +7561,8 @@ int evaluate_token(void) {
             return FAILED;
           }
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d y%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -7571,26 +7570,26 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex, g_latest_stack);
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 3:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "y%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -7601,12 +7600,12 @@ int evaluate_token(void) {
       h = -1;
       z = -1;
       s = 0;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -7622,18 +7621,18 @@ int evaluate_token(void) {
           s = 1;
           break;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       if (s == 0)
         break;
 
-      for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -7649,18 +7648,18 @@ int evaluate_token(void) {
           s = 2;
           break;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       if (s == 1)
         break;
 
-      for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -7671,14 +7670,14 @@ int evaluate_token(void) {
           s = 3;
           break;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       if (s == 2)
         break;
 
-      for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
 
@@ -7718,10 +7717,10 @@ int evaluate_token(void) {
             return FAILED;
           }
           
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -7729,12 +7728,12 @@ int evaluate_token(void) {
     case 5:
       if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -7747,12 +7746,12 @@ int evaluate_token(void) {
           if (z == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(labelx, g_label);
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == 'x') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
@@ -7761,8 +7760,8 @@ int evaluate_token(void) {
               if (g_operand_hint == HINT_16BIT)
                 break;
               
-              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (v == SUCCEEDED)
@@ -7779,29 +7778,29 @@ int evaluate_token(void) {
                   else
                     _output_assembled_instruction(g_instruction_tmp, "c%d ", g_latest_stack);
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 6:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -7814,12 +7813,12 @@ int evaluate_token(void) {
           if (z == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(labelx, g_label);
 
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '?') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
@@ -7828,8 +7827,8 @@ int evaluate_token(void) {
                 return FAILED;
               }
               
-              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (v == SUCCEEDED)
@@ -7846,18 +7845,18 @@ int evaluate_token(void) {
                   else
                     _output_assembled_instruction(g_instruction_tmp, "C%d ", g_latest_stack);
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -7865,12 +7864,12 @@ int evaluate_token(void) {
     case 7:
       if (g_xbit_size > 8 && g_instruction_tmp->skip_8bit == 1)
         break;
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
@@ -7880,8 +7879,8 @@ int evaluate_token(void) {
           if (g_operand_hint == HINT_16BIT)
             break;
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", g_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -7889,25 +7888,25 @@ int evaluate_token(void) {
               else
                 _output_assembled_instruction(g_instruction_tmp, "d%d c%d ", g_instruction_tmp->hex, g_latest_stack);
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 8:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'x') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -7920,20 +7919,20 @@ int evaluate_token(void) {
           if (z == INPUT_NUMBER_ADDRESS_LABEL)
             strcpy(labelx, g_label);
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == 'x') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
               if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
                 break;
               
-              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (v == SUCCEEDED)
@@ -7961,18 +7960,18 @@ int evaluate_token(void) {
                     stack->relative_references = 1;
                   }
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -7998,32 +7997,32 @@ int evaluate_token(void) {
       /*************************************************************************************************/
 
     case 0:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-        if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+        if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
           _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
           
           if (g_instruction_tmp->prefix != 0)
             _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->prefix);
           
           _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex);
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           
           return SUCCEEDED;
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 1:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           tiny = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
           if (tiny < 0)
             return FAILED;
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               
               if (g_instruction_tmp->prefix != 0)
@@ -8031,26 +8030,26 @@ int evaluate_token(void) {
               
               _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex | tiny);
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 2:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == 'e') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -8061,8 +8060,8 @@ int evaluate_token(void) {
             }
           }
           
-          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-            if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+          for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+            if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
               _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               
               if (z == SUCCEEDED)
@@ -8080,31 +8079,31 @@ int evaluate_token(void) {
                 _output_assembled_instruction(g_instruction_tmp, "d%d c%d ", g_instruction_tmp->hex, g_latest_stack);
               }
               
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               return SUCCEEDED;
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 3:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           tiny = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
           if (tiny < 0)
             return FAILED;
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == 'x') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
@@ -8115,8 +8114,8 @@ int evaluate_token(void) {
                 }
               }
               
-              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (g_instruction_tmp->prefix != 0)
@@ -8137,35 +8136,35 @@ int evaluate_token(void) {
                     _output_assembled_instruction(g_instruction_tmp, "d%d c%d ", g_instruction_tmp->hex | tiny, g_latest_stack);
                   }
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 4:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           tiny = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
           if (tiny < 0)
             return FAILED;
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '?') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
@@ -8176,8 +8175,8 @@ int evaluate_token(void) {
                 }
               }
               
-              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (g_instruction_tmp->prefix != 0)
@@ -8190,35 +8189,35 @@ int evaluate_token(void) {
                   else
                     _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex | tiny, g_latest_stack);
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 5:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           tiny = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
           if (tiny < 0)
             return FAILED;
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == 'y') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
@@ -8233,8 +8232,8 @@ int evaluate_token(void) {
                 }
               }
               
-              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (g_instruction_tmp->prefix != 0)
@@ -8247,37 +8246,37 @@ int evaluate_token(void) {
                   else
                     _output_assembled_instruction(g_instruction_tmp, "d%d -%d ", g_instruction_tmp->hex | tiny, g_latest_stack);
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 6:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           tiny = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
           if (tiny < 0)
             return FAILED;
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '*') {
               z = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
               if (z < 0)
                 return FAILED;
               
-              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   if (g_instruction_tmp->hex == 0xB0) {
                     /* MOVES */
@@ -8289,35 +8288,35 @@ int evaluate_token(void) {
                     _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->prefix | z);
                     _output_assembled_instruction(g_instruction_tmp, "d%d ", g_instruction_tmp->hex | tiny);
                   }
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 7:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           tiny = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
           if (tiny < 0)
             return FAILED;
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '?') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
@@ -8328,8 +8327,8 @@ int evaluate_token(void) {
                 }
               }
               
-              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (z == SUCCEEDED) {
@@ -8347,35 +8346,35 @@ int evaluate_token(void) {
                   else
                     _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", 0xF0 | tiny, g_latest_stack);
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 8:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           tiny = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
           if (tiny < 0)
             return FAILED;
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '?') {
               y = g_source_pointer;
-              g_source_pointer = g_inz;
+              g_source_pointer = s_inz;
               z = input_number();
-              g_inz = g_source_pointer;
+              s_inz = g_source_pointer;
               g_source_pointer = y;
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
@@ -8386,8 +8385,8 @@ int evaluate_token(void) {
                 }
               }
               
-              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (z == SUCCEEDED) {
@@ -8405,29 +8404,29 @@ int evaluate_token(void) {
                   else
                     _output_assembled_instruction(g_instruction_tmp, "d%d d%d C%d ", 0x3D, 0xF0 | tiny, g_latest_stack);
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 9:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '?') {
           y = g_source_pointer;
-          g_source_pointer = g_inz;
+          g_source_pointer = s_inz;
           z = input_number();
-          g_inz = g_source_pointer;
+          s_inz = g_source_pointer;
           g_source_pointer = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
@@ -8439,14 +8438,14 @@ int evaluate_token(void) {
             y = g_parsed_int;
           }
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '*') {
               tiny = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
               if (tiny < 0)
                 return FAILED;
               
-              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (z == SUCCEEDED) {
@@ -8464,37 +8463,37 @@ int evaluate_token(void) {
                   else
                     _output_assembled_instruction(g_instruction_tmp, "d%d d%d C%d ", 0x3E, 0xF0 | tiny, g_latest_stack);
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 10:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           tiny = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
           if (tiny < 0)
             return FAILED;
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '*') {
               z = _parse_tiny_int(0, 11);
               if (z < 0)
                 return FAILED;
               
-              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (tiny == 0) /* LDB (R*) */
@@ -8502,37 +8501,37 @@ int evaluate_token(void) {
                   else /* TO R* + LDB (R*) */
                     _output_assembled_instruction(g_instruction_tmp, "d%d d%d d%d ", 0x10 | tiny, 0x3D, 0x40 | z);
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 11:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           tiny = _parse_tiny_int(0, 11);
           if (tiny < 0)
             return FAILED;
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '*') {
               z = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
               if (z < 0)
                 return FAILED;
               
-              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (z == 0) /* STB (R*) */
@@ -8540,37 +8539,37 @@ int evaluate_token(void) {
                   else /* FROM R* + STB (R*) */
                     _output_assembled_instruction(g_instruction_tmp, "d%d d%d d%d ", 0xB0 | z, 0x3D, 0x30 | tiny);
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
 
     case 12:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           tiny = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
           if (tiny < 0)
             return FAILED;
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '*') {
               z = _parse_tiny_int(0, 11);
               if (z < 0)
                 return FAILED;
               
-              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (tiny == 0) /* LDW (R*) */
@@ -8578,37 +8577,37 @@ int evaluate_token(void) {
                   else /* TO R* + LDW (R*) */
                     _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", 0x10 | tiny, 0x40 | z);
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
       
     case 13:
-      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
         if (g_instruction_tmp->string[x] == '*') {
           tiny = _parse_tiny_int(0, 11);
           if (tiny < 0)
             return FAILED;
           
-          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
             if (g_instruction_tmp->string[x] == '*') {
               z = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
               if (z < 0)
                 return FAILED;
               
-              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+              for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                   _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (z == 0) /* STW (R*) */
@@ -8616,18 +8615,18 @@ int evaluate_token(void) {
                   else /* FROM R* + STW (R*) */
                     _output_assembled_instruction(g_instruction_tmp, "d%d d%d ", 0xB0 | z, 0x30 | tiny);
                   
-                  g_source_pointer = g_inz;
+                  g_source_pointer = s_inz;
                   return SUCCEEDED;
                 }
-                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                   break;
               }
             }
-            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+            if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
               break;
           }
         }
-        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+        if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
           break;
       }
       break;
@@ -8637,12 +8636,12 @@ int evaluate_token(void) {
         char labelx[MAX_NAME_LENGTH + 1];
         int v, s;
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == '?') {
             y = g_source_pointer;
-            g_source_pointer = g_inz;
+            g_source_pointer = s_inz;
             z = input_number();
-            g_inz = g_source_pointer;
+            s_inz = g_source_pointer;
             g_source_pointer = y;
             if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
               return FAILED;
@@ -8658,14 +8657,14 @@ int evaluate_token(void) {
             strcpy(labelx, g_label);
             s = g_latest_stack;
             
-            for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+            for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
               if (g_instruction_tmp->string[x] == '*') {
                 tiny = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
                 if (tiny < 0)
                   return FAILED;
                 
-                for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                  if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+                for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                  if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                     _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                     
                     if (g_instruction_tmp->prefix != 0)
@@ -8678,18 +8677,18 @@ int evaluate_token(void) {
                     else
                       _output_assembled_instruction(g_instruction_tmp, "d%d C%d ", g_instruction_tmp->hex | tiny, s);
                     
-                    g_source_pointer = g_inz;
+                    g_source_pointer = s_inz;
                     return SUCCEEDED;
                   }
-                  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                     break;
                 }
               }
-              if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+              if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                 break;
             }
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
       }
@@ -8700,12 +8699,12 @@ int evaluate_token(void) {
         char labelx[MAX_NAME_LENGTH + 1];
         int v, s;
         
-        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+        for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
           if (g_instruction_tmp->string[x] == 'y') {
             y = g_source_pointer;
-            g_source_pointer = g_inz;
+            g_source_pointer = s_inz;
             z = input_number();
-            g_inz = g_source_pointer;
+            s_inz = g_source_pointer;
             g_source_pointer = y;
             if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
               return FAILED;
@@ -8725,14 +8724,14 @@ int evaluate_token(void) {
             strcpy(labelx, g_label);
             s = g_latest_stack;
             
-            for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
+            for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
               if (g_instruction_tmp->string[x] == '*') {
                 tiny = _parse_tiny_int(g_instruction_tmp->min, g_instruction_tmp->max);
                 if (tiny < 0)
                   return FAILED;
                 
-                for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; g_inz++, x++) {
-                  if (g_instruction_tmp->string[x] == 0 && g_buffer[g_inz] == 0x0A) {
+                for (x++ ; x < INSTRUCTION_STRING_LENGTH_MAX; s_inz++, x++) {
+                  if (g_instruction_tmp->string[x] == 0 && g_buffer[s_inz] == 0x0A) {
                     _output_assembled_instruction(g_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                     
                     if (g_instruction_tmp->prefix != 0)
@@ -8745,18 +8744,18 @@ int evaluate_token(void) {
                     else
                       _output_assembled_instruction(g_instruction_tmp, "d%d -%d ", g_instruction_tmp->hex | tiny, s);
                     
-                    g_source_pointer = g_inz;
+                    g_source_pointer = s_inz;
                     return SUCCEEDED;
                   }
-                  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+                  if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                     break;
                 }
               }
-              if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+              if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
                 break;
             }
           }
-          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[g_inz]))
+          if (g_instruction_tmp->string[x] != toupper((int)g_buffer[s_inz]))
             break;
         }
       }
@@ -8790,7 +8789,7 @@ int evaluate_token(void) {
       g_last_stack_id = last_stack_id_backup;
     }
 
-    g_instruction_tmp = &g_instructions_table[++g_ind];
+    g_instruction_tmp = &g_instructions_table[++s_ind];
   }
 
   /* allow error messages from input_numbers() */
