@@ -23,6 +23,7 @@ wla_[ab].tmp
 
 # Generated files
 ins_tbl_gen/t*.c
+byte_tester/makefile
 
 # CMake files
 /*[Bb]uild*/
