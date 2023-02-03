@@ -41,7 +41,7 @@ extern int g_use_wdc_standard;
 extern int g_input_number_expects_dot;
 #endif
 
-static int s_inz, s_ind;
+static int s_inz;
 
 static struct instruction *g_instruction_tmp;
 
@@ -994,7 +994,7 @@ static int _mc68000_parse_register(char *code, int *index, int *reg, int *mode) 
 
 int evaluate_token(void) {
 
-  int f, x, y, last_stack_id_backup;
+  int f, x, y, last_stack_id_backup, l_ind;
 #if defined(Z80) || defined(SPC700) || defined(W65816) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280)
   int e, v, h;
   char labelx[MAX_NAME_LENGTH + 1];
@@ -1064,8 +1064,8 @@ int evaluate_token(void) {
   }
 
   /* INSTRUCTION? */
-  s_ind = g_instruction_p[(unsigned char)g_tmp[0]];
-  g_instruction_tmp = &g_instructions_table[s_ind];
+  l_ind = g_instruction_p[(unsigned char)g_tmp[0]];
+  g_instruction_tmp = &g_instructions_table[l_ind];
 
   for (f = g_instruction_n[(unsigned char)g_tmp[0]]; f > 0; f--) {
 #if W65816
@@ -1084,7 +1084,7 @@ int evaluate_token(void) {
 
       if (g_parsed_int == FAILED) {
         /* try the next mnemonic in the array */
-        g_instruction_tmp = &g_instructions_table[++s_ind];
+        g_instruction_tmp = &g_instructions_table[++l_ind];
         continue;
       }
     }
@@ -1102,7 +1102,7 @@ int evaluate_token(void) {
 
     if (g_parsed_int == FAILED) {
       /* try the next mnemonic in the array */
-      g_instruction_tmp = &g_instructions_table[++s_ind];
+      g_instruction_tmp = &g_instructions_table[++l_ind];
       continue;
     }
 
@@ -8789,7 +8789,7 @@ int evaluate_token(void) {
       g_last_stack_id = last_stack_id_backup;
     }
 
-    g_instruction_tmp = &g_instructions_table[++s_ind];
+    g_instruction_tmp = &g_instructions_table[++l_ind];
   }
 
   /* allow error messages from input_numbers() */
