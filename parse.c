@@ -17,8 +17,6 @@
 #include "mersenne.h"
 
 
-int parse_string_length(char *end);
-
 int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OFF, g_parse_floats = YES;
 int g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO, g_input_parse_special_chars = YES;
 int g_input_allow_leading_ampersand = NO, g_plus_and_minus_ends_label = NO, g_get_next_token_use_substitution = YES;
@@ -33,7 +31,7 @@ double g_parsed_double;
 int g_input_number_expects_dot = NO;
 #endif
 
-extern int g_source_pointer, g_source_file_size, g_parsed_int, g_macro_active, g_sizeof_g_tmp;
+extern int g_source_index, g_source_file_size, g_parsed_int, g_macro_active, g_sizeof_g_tmp;
 extern char *g_buffer, *g_tmp, g_current_directive[256], *g_label_stack[256];
 extern unsigned char g_asciitable[256];
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
@@ -41,6 +39,8 @@ extern struct map_t *g_defines_map;
 extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
 extern struct function *g_functions_first;
 extern int g_latest_stack, g_asciitable_defined, g_global_label_hint, g_parsing_function_body, g_resolve_stack_calculations;
+
+int parse_string_length(char *end);
 
 PROFILE_GLOBALS_EXTERN();
 
@@ -102,7 +102,7 @@ int compare_next_token(char *token) {
   length = (int)strlen(token);
 
   /* skip white space */
-  ii = g_source_pointer;
+  ii = g_source_index;
   for (e = g_buffer[ii]; e == ' ' || e == ',' || e == '\\' || e == 0x0A; e = g_buffer[++ii]) {
     if (e == '\\' && g_buffer[ii + 1] != 0x0A)
       break;
@@ -188,7 +188,7 @@ int input_next_string(void) {
   char e;
   
   /* skip white space */
-  for (e = g_buffer[g_source_pointer++]; e == ' ' || e == ','; e = g_buffer[g_source_pointer++])
+  for (e = g_buffer[g_source_index++]; e == ' ' || e == ','; e = g_buffer[g_source_index++])
     ;
 
   if (e == 0x0A)
@@ -197,17 +197,17 @@ int input_next_string(void) {
   /* we assume it is a label */
   g_label[0] = e;
   for (k = 1; k < MAX_NAME_LENGTH; k++) {
-    e = g_buffer[g_source_pointer++];
+    e = g_buffer[g_source_index++];
     if (e == '{')
       curly_braces++;
     else if (e == '}')
       curly_braces++;
     else if (e == 0x0A || e == ',') {
-      g_source_pointer--;
+      g_source_index--;
       break;
     }
     else if (e == '(' || e == ')') {
-      g_source_pointer--;
+      g_source_index--;
       break;
     }
     else if (curly_braces <= 0 && e == ' ')
@@ -492,8 +492,8 @@ static int _parse_value_into_string(char e) {
   /* override! */
   g_label[0] = e;
 
-  for (k = 1; k < MAX_NAME_LENGTH; k++, g_source_pointer++) {
-    e = g_buffer[g_source_pointer];
+  for (k = 1; k < MAX_NAME_LENGTH; k++, g_source_index++) {
+    e = g_buffer[g_source_index];
     g_label[k] = e;
     if (e >= '0' && e <= '9')
       continue;
@@ -531,12 +531,12 @@ int input_number(void) {
   g_input_has_leading_hashtag = NO;
       
   /* skip white space */
-  for (e = g_buffer[g_source_pointer++]; e == ' ' || e == ',' || e == '\\'; e = g_buffer[g_source_pointer++]) {
-    if (e == '\\' && g_buffer[g_source_pointer] == 0xA) {
-      g_source_pointer++;
+  for (e = g_buffer[g_source_index++]; e == ' ' || e == ',' || e == '\\'; e = g_buffer[g_source_index++]) {
+    if (e == '\\' && g_buffer[g_source_index] == 0xA) {
+      g_source_index++;
       next_line();
     }
-    else if (e == '\\' && g_buffer[g_source_pointer] != 0xA)
+    else if (e == '\\' && g_buffer[g_source_index] != 0xA)
       break;
   }
 
@@ -545,14 +545,14 @@ int input_number(void) {
 
   /* using substitution with quoted strings? */
   if (e == '{') {
-    int old_position = g_source_pointer;
+    int old_position = g_source_index;
     unsigned char old_e = e;
     
     /* skip white space */
-    while (g_buffer[g_source_pointer] == ' ')
-      g_source_pointer++;
+    while (g_buffer[g_source_index] == ' ')
+      g_source_index++;
 
-    e = g_buffer[g_source_pointer++];
+    e = g_buffer[g_source_index++];
 
     if (e == '"') {
       /* later when we parse a quoted string we'll check that it's followed by a '}', and
@@ -562,7 +562,7 @@ int input_number(void) {
     else {
       /* roll back */
       e = old_e;
-      g_source_pointer = old_position;
+      g_source_index = old_position;
     }
   }
   
@@ -570,7 +570,7 @@ int input_number(void) {
   if (g_input_allow_leading_hashtag == YES) {
     if (e == '#') {
       g_input_has_leading_hashtag = YES;
-      e = g_buffer[g_source_pointer++];
+      e = g_buffer[g_source_index++];
     }
   }
 
@@ -580,13 +580,13 @@ int input_number(void) {
     if (e == '&') {
       check_if_a_definition = NO;
       can_have_calculations = NO;
-      e = g_buffer[g_source_pointer++];
+      e = g_buffer[g_source_index++];
     }
   }
 
   if (g_expect_calculations == YES && can_have_calculations == YES) {
     /* check the type of the expression */
-    p = g_source_pointer;
+    p = g_source_index;
     ee = e;
     while (ee != 0x0A) {
       if (ee == '{')
@@ -608,7 +608,7 @@ int input_number(void) {
           break;
         
         /* launch stack calculator */
-        p = stack_calculate(&g_buffer[g_source_pointer - 1], &g_parsed_int, &g_source_pointer, NO);
+        p = stack_calculate(&g_buffer[g_source_index - 1], &g_parsed_int, &g_source_index, NO);
 
         if (p == STACK_CALCULATE_DELAY)
           break;
@@ -625,15 +625,15 @@ int input_number(void) {
   }
 
   /* MACRO */
-  if (g_macro_active != 0 && e == '?' && g_buffer[g_source_pointer] >= '1' && g_buffer[g_source_pointer] <= '9') {
+  if (g_macro_active != 0 && e == '?' && g_buffer[g_source_index] >= '1' && g_buffer[g_source_index] <= '9') {
     struct macro_argument *ma;
     
     for (g_parsed_int = 0, k = 0; k < 4; k++) {
-      e = g_buffer[g_source_pointer++];
+      e = g_buffer[g_source_index++];
       if (e >= '0' && e <= '9')
         g_parsed_int = (g_parsed_int * 10) + (e - '0');
       else {
-        g_source_pointer--;
+        g_source_index--;
         break;
       }
     }
@@ -672,30 +672,30 @@ int input_number(void) {
   if (g_macro_active != 0 && e == '\\') {
     struct macro_argument *ma;
     int exit_here = YES;
-    int start_i = g_source_pointer;
+    int start_i = g_source_index;
     unsigned char start_e = e;
 
-    if (g_buffer[g_source_pointer] == '@') {
-      g_source_pointer++;
+    if (g_buffer[g_source_index] == '@') {
+      g_source_index++;
       g_parsed_int = g_macro_runtime_current->macro->calls - 1;
 
-      if (g_buffer[g_source_pointer] != ' ' && g_buffer[g_source_pointer] != 0xA && g_buffer[g_source_pointer] != ',')
+      if (g_buffer[g_source_index] != ' ' && g_buffer[g_source_index] != 0xA && g_buffer[g_source_index] != ',')
         exit_here = NO;
       else
         return SUCCEEDED;
     }
-    else if (g_buffer[g_source_pointer] >= '0' && g_buffer[g_source_pointer] <= '9') {
+    else if (g_buffer[g_source_index] >= '0' && g_buffer[g_source_index] <= '9') {
       for (g_parsed_int = 0, k = 0; k < 4; k++) {
-        e = g_buffer[g_source_pointer++];
+        e = g_buffer[g_source_index++];
         if (e >= '0' && e <= '9')
           g_parsed_int = (g_parsed_int * 10) + (e - '0');
         else {
-          g_source_pointer--;
+          g_source_index--;
           break;
         }
       }
 
-      if (g_buffer[g_source_pointer] != ' ' && g_buffer[g_source_pointer] != 0xA && g_buffer[g_source_pointer] != ',' && g_buffer[g_source_pointer] != '.')
+      if (g_buffer[g_source_index] != ' ' && g_buffer[g_source_index] != 0xA && g_buffer[g_source_index] != ',' && g_buffer[g_source_index] != '.')
         exit_here = NO;
     }
     else
@@ -741,26 +741,26 @@ int input_number(void) {
 
       /* does the MACRO argument number end with a .b/.w/.l/.d? */
       if (e == '.') {
-        e = g_buffer[g_source_pointer+1];
+        e = g_buffer[g_source_index+1];
         if (e == 'b' || e == 'B') {
           g_operand_hint = HINT_8BIT;
           g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_pointer += 2;
+          g_source_index += 2;
         }
         else if (e == 'w' || e == 'W') {
           g_operand_hint = HINT_16BIT;
           g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_pointer += 2;
+          g_source_index += 2;
         }
         else if (e == 'l' || e == 'L') {
           g_operand_hint = HINT_24BIT;
           g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_pointer += 2;
+          g_source_index += 2;
         }
         else if (e == 'd' || e == 'D') {
           g_operand_hint = HINT_32BIT;
           g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_pointer += 2;
+          g_source_index += 2;
         }
       }
 
@@ -774,7 +774,7 @@ int input_number(void) {
         return k;
     }
     else {
-      g_source_pointer = start_i;
+      g_source_index = start_i;
       e = start_e;
     }
   }
@@ -783,13 +783,13 @@ int input_number(void) {
   g_parsed_int = 0;
   if (e >= '0' && e <= '9') {
     for (k = 0; 1; k++) {
-      if (g_buffer[g_source_pointer+k] >= '0' && g_buffer[g_source_pointer+k] <= '9')
+      if (g_buffer[g_source_index+k] >= '0' && g_buffer[g_source_index+k] <= '9')
         continue;
-      if (g_buffer[g_source_pointer+k] >= 'a' && g_buffer[g_source_pointer+k] <= 'f')
+      if (g_buffer[g_source_index+k] >= 'a' && g_buffer[g_source_index+k] <= 'f')
         continue;
-      if (g_buffer[g_source_pointer+k] >= 'A' && g_buffer[g_source_pointer+k] <= 'F')
+      if (g_buffer[g_source_index+k] >= 'A' && g_buffer[g_source_index+k] <= 'F')
         continue;
-      if (g_buffer[g_source_pointer+k] == 'h' || g_buffer[g_source_pointer+k] == 'H') {
+      if (g_buffer[g_source_index+k] == 'h' || g_buffer[g_source_index+k] == 'H') {
         g_parsed_int = 1;
         break;
       }
@@ -797,13 +797,13 @@ int input_number(void) {
     }
   }
 
-  if (e == '$' || g_parsed_int == 1 || (e == '0' && (g_buffer[g_source_pointer] == 'x' || g_buffer[g_source_pointer] == 'X'))) {
+  if (e == '$' || g_parsed_int == 1 || (e == '0' && (g_buffer[g_source_index] == 'x' || g_buffer[g_source_index] == 'X'))) {
     if (g_parsed_int == 1)
-      g_source_pointer--;
+      g_source_index--;
     else if (e == '0')
-      g_source_pointer++;
-    for (g_parsed_int = 0, k = 0; k < 8; k++, g_source_pointer++) {
-      e = g_buffer[g_source_pointer];
+      g_source_index++;
+    for (g_parsed_int = 0, k = 0; k < 8; k++, g_source_index++) {
+      e = g_buffer[g_source_index];
       if (e >= '0' && e <= '9')
         g_parsed_int = (g_parsed_int << 4) + e - '0';
       else if (e >= 'A' && e <= 'F')
@@ -811,37 +811,37 @@ int input_number(void) {
       else if (e >= 'a' && e <= 'f')
         g_parsed_int = (g_parsed_int << 4) + e - 'a' + 10;
       else if (e == 'h' || e == 'H') {
-        g_source_pointer++;
-        e = g_buffer[g_source_pointer];
+        g_source_index++;
+        e = g_buffer[g_source_index];
         break;
       }
       else
         break;
     }
 
-    e = g_buffer[g_source_pointer];
+    e = g_buffer[g_source_index];
 
     if (e == '.') {
-      e = g_buffer[g_source_pointer+1];
+      e = g_buffer[g_source_index+1];
       if (e == 'b' || e == 'B') {
         g_operand_hint = HINT_8BIT;
         g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_pointer += 2;
+        g_source_index += 2;
       }
       else if (e == 'w' || e == 'W') {
         g_operand_hint = HINT_16BIT;
         g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_pointer += 2;
+        g_source_index += 2;
       }
       else if (e == 'l' || e == 'L') {
         g_operand_hint = HINT_24BIT;
         g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_pointer += 2;
+        g_source_index += 2;
       }
       else if (e == 'd' || e == 'D') {
         g_operand_hint = HINT_32BIT;
         g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_pointer += 2;
+        g_source_index += 2;
       }
     }
 
@@ -871,14 +871,14 @@ int input_number(void) {
     return SUCCEEDED;
   }
 
-  if (e == '%' || (e == '0' && (g_buffer[g_source_pointer] == 'b' || g_buffer[g_source_pointer] == 'B'))) {
+  if (e == '%' || (e == '0' && (g_buffer[g_source_index] == 'b' || g_buffer[g_source_index] == 'B'))) {
     if (e == '0' && g_input_number_turn_values_into_strings == YES)
       return _parse_value_into_string(e);
         
     if (e == '0')
-      g_source_pointer++;
-    for (g_parsed_int = 0, k = 0; k < 32; k++, g_source_pointer++) {
-      e = g_buffer[g_source_pointer];
+      g_source_index++;
+    for (g_parsed_int = 0, k = 0; k < 32; k++, g_source_index++) {
+      e = g_buffer[g_source_index];
       if (e == '0' || e == '1')
         g_parsed_int = (g_parsed_int << 1) + e - '0';
       else
@@ -886,35 +886,35 @@ int input_number(void) {
     }
 
     if (k == 32) {
-      if (g_buffer[g_source_pointer] == '0' || g_buffer[g_source_pointer] == '1') {
+      if (g_buffer[g_source_index] == '0' || g_buffer[g_source_index] == '1') {
         print_error(ERROR_NUM, "Too many bits in a binary value, max is 32.\n");
         return FAILED;
       }
     }
 
-    e = g_buffer[g_source_pointer];
+    e = g_buffer[g_source_index];
     
     if (e == '.') {
-      e = g_buffer[g_source_pointer+1];
+      e = g_buffer[g_source_index+1];
       if (e == 'b' || e == 'B') {
         g_operand_hint = HINT_8BIT;
         g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_pointer += 2;
+        g_source_index += 2;
       }
       else if (e == 'w' || e == 'W') {
         g_operand_hint = HINT_16BIT;
         g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_pointer += 2;
+        g_source_index += 2;
       }
       else if (e == 'l' || e == 'L') {
         g_operand_hint = HINT_24BIT;
         g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_pointer += 2;
+        g_source_index += 2;
       }
       else if (e == 'd' || e == 'D') {
         g_operand_hint = HINT_32BIT;
         g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_pointer += 2;
+        g_source_index += 2;
       }
     }
 
@@ -934,8 +934,8 @@ int input_number(void) {
     g_parsed_double = e-'0';
     g_parsed_double_decimal_numbers = 0;
     decimal_mul = 0.1;
-    for (k = 0; k < max_digits; k++, g_source_pointer++) {
-      e = g_buffer[g_source_pointer];
+    for (k = 0; k < max_digits; k++, g_source_index++) {
+      e = g_buffer[g_source_index];
       if (e >= '0' && e <= '9') {
         if (k == max_digits - 1) {
           if (q == 0)
@@ -961,7 +961,7 @@ int input_number(void) {
           print_error(ERROR_NUM, "Syntax error.\n");
           return FAILED;
         }
-        e = g_buffer[g_source_pointer+1];
+        e = g_buffer[g_source_index+1];
         if (e >= '0' && e <= '9') {
           /* float mode, read decimals */
           if (g_parse_floats == NO)
@@ -972,25 +972,25 @@ int input_number(void) {
         else if (e == 'b' || e == 'B') {
           g_operand_hint = HINT_8BIT;
           g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_pointer += 2;
+          g_source_index += 2;
           break;
         }
         else if (e == 'w' || e == 'W') {
           g_operand_hint = HINT_16BIT;
           g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_pointer += 2;
+          g_source_index += 2;
           break;
         }
         else if (e == 'l' || e == 'L') {
           g_operand_hint = HINT_24BIT;
           g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_pointer += 2;
+          g_source_index += 2;
           break;
         }
         else if (e == 'd' || e == 'D') {
           g_operand_hint = HINT_32BIT;
           g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_pointer += 2;
+          g_source_index += 2;
           break;
         }
       }
@@ -1034,26 +1034,26 @@ int input_number(void) {
   }
   
   if (e == '\'') {
-    if (g_buffer[g_source_pointer + 1] == '\'') {
+    if (g_buffer[g_source_index + 1] == '\'') {
       /* '?' */
-      g_parsed_int = g_buffer[g_source_pointer];
-      g_source_pointer += 2;
+      g_parsed_int = g_buffer[g_source_index];
+      g_source_index += 2;
     }
-    else if (g_buffer[g_source_pointer] == '\\' && (g_buffer[g_source_pointer+1] == 't' ||
-                                                    g_buffer[g_source_pointer+1] == 'r' ||
-                                                    g_buffer[g_source_pointer+1] == 'n' ||
-                                                    g_buffer[g_source_pointer+1] == '0') && g_buffer[g_source_pointer+2] == '\'') {
+    else if (g_buffer[g_source_index] == '\\' && (g_buffer[g_source_index+1] == 't' ||
+                                                    g_buffer[g_source_index+1] == 'r' ||
+                                                    g_buffer[g_source_index+1] == 'n' ||
+                                                    g_buffer[g_source_index+1] == '0') && g_buffer[g_source_index+2] == '\'') {
       /* '\?' */
-      g_source_pointer++;
-      if (g_buffer[g_source_pointer] == 't')
+      g_source_index++;
+      if (g_buffer[g_source_index] == 't')
         g_parsed_int = '\t';
-      else if (g_buffer[g_source_pointer] == 'r')
+      else if (g_buffer[g_source_index] == 'r')
         g_parsed_int = '\r';
-      else if (g_buffer[g_source_pointer] == 'n')
+      else if (g_buffer[g_source_index] == 'n')
         g_parsed_int = '\n';
-      else if (g_buffer[g_source_pointer] == '0')
+      else if (g_buffer[g_source_index] == '0')
         g_parsed_int = '\0';
-      g_source_pointer += 2;
+      g_source_index += 2;
     }
     else {
       if (g_input_number_error_msg == YES)
@@ -1068,18 +1068,18 @@ int input_number(void) {
 
   if (e == '"') {
     for (k = 0; k < MAX_NAME_LENGTH; ) {
-      e = g_buffer[g_source_pointer++];
+      e = g_buffer[g_source_index++];
 
-      if (e == '\\' && g_buffer[g_source_pointer] == '\\') {
+      if (e == '\\' && g_buffer[g_source_index] == '\\') {
         /* let process_string_for_special_characters() handle '\\' */
         g_label[k++] = '\\';
         g_label[k++] = '\\';
-        g_source_pointer++;
+        g_source_index++;
         continue;
       }
-      else if (e == '\\' && g_buffer[g_source_pointer] == '"') {
+      else if (e == '\\' && g_buffer[g_source_index] == '"') {
         g_label[k++] = '"';
-        g_source_pointer++;
+        g_source_index++;
         continue;
       }
 
@@ -1087,15 +1087,15 @@ int input_number(void) {
         int is_string_split = -1;
         
         /* check for "string".length */
-        if (g_buffer[g_source_pointer+0] == '.' &&
-            (g_buffer[g_source_pointer+1] == 'l' || g_buffer[g_source_pointer+1] == 'L') &&
-            (g_buffer[g_source_pointer+2] == 'e' || g_buffer[g_source_pointer+2] == 'E') &&
-            (g_buffer[g_source_pointer+3] == 'n' || g_buffer[g_source_pointer+3] == 'N') &&
-            (g_buffer[g_source_pointer+4] == 'g' || g_buffer[g_source_pointer+4] == 'G') &&
-            (g_buffer[g_source_pointer+5] == 't' || g_buffer[g_source_pointer+5] == 'T') &&
-            (g_buffer[g_source_pointer+6] == 'h' || g_buffer[g_source_pointer+6] == 'H')) {
+        if (g_buffer[g_source_index+0] == '.' &&
+            (g_buffer[g_source_index+1] == 'l' || g_buffer[g_source_index+1] == 'L') &&
+            (g_buffer[g_source_index+2] == 'e' || g_buffer[g_source_index+2] == 'E') &&
+            (g_buffer[g_source_index+3] == 'n' || g_buffer[g_source_index+3] == 'N') &&
+            (g_buffer[g_source_index+4] == 'g' || g_buffer[g_source_index+4] == 'G') &&
+            (g_buffer[g_source_index+5] == 't' || g_buffer[g_source_index+5] == 'T') &&
+            (g_buffer[g_source_index+6] == 'h' || g_buffer[g_source_index+6] == 'H')) {
           /* yes, we've got it! calculate the length and return the integer */
-          g_source_pointer += 7;
+          g_source_index += 7;
           g_label[k] = 0;
           g_parsed_int = (int)get_label_length(g_label);
           g_parsed_double = (double)g_parsed_int;
@@ -1104,20 +1104,20 @@ int input_number(void) {
         }
 
         /* does the string continue on the next line? */
-        if (g_buffer[g_source_pointer] == ' ' && g_buffer[g_source_pointer+1] == '\\' && g_buffer[g_source_pointer+2] == 0x0A)
+        if (g_buffer[g_source_index] == ' ' && g_buffer[g_source_index+1] == '\\' && g_buffer[g_source_index+2] == 0x0A)
           is_string_split = 3;
-        if (g_buffer[g_source_pointer] == '\\' && g_buffer[g_source_pointer+1] == 0x0A)
+        if (g_buffer[g_source_index] == '\\' && g_buffer[g_source_index+1] == 0x0A)
           is_string_split = 2;
 
         if (is_string_split > 0) {
           int skip = is_string_split;
 
-          while (g_buffer[g_source_pointer+skip] == ' ')
+          while (g_buffer[g_source_index+skip] == ' ')
             skip++;
 
-          if (g_buffer[g_source_pointer+skip] == '"') {
-            g_source_pointer += skip + 1;
-            e = g_buffer[g_source_pointer++];
+          if (g_buffer[g_source_index+skip] == '"') {
+            g_source_index += skip + 1;
+            e = g_buffer[g_source_index++];
 
             /* as we skipped a 0x0A before we need to advance the line counter as well */
             next_line();
@@ -1158,15 +1158,15 @@ int input_number(void) {
       /* make sure we are followed by a '}' */
 
       /* skip white space */
-      while (g_buffer[g_source_pointer] == ' ')
-        g_source_pointer++;
+      while (g_buffer[g_source_index] == ' ')
+        g_source_index++;
 
-      if (g_buffer[g_source_pointer] != '}') {
+      if (g_buffer[g_source_index] != '}') {
         print_error(ERROR_NUM, "The string used in substitution isn't followed by a '}'.\n");
         return FAILED;
       }
 
-      g_source_pointer++;
+      g_source_index++;
     }
     
     if (k >= MAX_NAME_LENGTH) {
@@ -1186,17 +1186,17 @@ int input_number(void) {
   g_label[0] = e;
   curly_braces = 0;
   for (k = 1; k < MAX_NAME_LENGTH; k++) {
-    e = g_buffer[g_source_pointer++];
+    e = g_buffer[g_source_index++];
     if (e == '{')
       curly_braces++;
     else if (e == '}')
       curly_braces--;
     else if (e == 0x0A || e == '(' || e == ')' || e == ',' || e == ']') {
-      g_source_pointer--;
+      g_source_index--;
       break;
     }
     else if (g_plus_and_minus_ends_label == YES && (e == '-' || e == '+')) {
-      g_source_pointer--;
+      g_source_index--;
       break;
     }
 #ifdef SPC700
@@ -1240,13 +1240,13 @@ int input_number(void) {
 #ifdef SPC700
     else if (g_label[k-1] >= '0' && g_label[k-1] <= '7') {
       k -= 2;
-      g_source_pointer -= 2;
+      g_source_index -= 2;
     }
 #endif
   }
 #ifdef SPC700
   else if (dot > 0) {
-    g_source_pointer -= k - dot;
+    g_source_index -= k - dot;
     k -= k - dot;
   }
 #endif
@@ -1387,15 +1387,15 @@ int parse_string_length(char *end) {
 void skip_whitespace(void) {
 
   while (1) {
-    if (g_source_pointer >= g_source_file_size)
+    if (g_source_index >= g_source_file_size)
       break;
-    if (g_buffer[g_source_pointer] == ' ' || (g_buffer[g_source_pointer] == '\\' && g_buffer[g_source_pointer+1] == 0xA)) {
-      g_source_pointer++;
+    if (g_buffer[g_source_index] == ' ' || (g_buffer[g_source_index] == '\\' && g_buffer[g_source_index+1] == 0xA)) {
+      g_source_index++;
       g_newline_beginning = OFF;
       continue;
     }
-    if (g_buffer[g_source_pointer] == 0xA) {
-      g_source_pointer++;
+    if (g_buffer[g_source_index] == 0xA) {
+      g_source_index++;
       next_line();
       continue;
     }
@@ -1418,7 +1418,7 @@ int get_next_plain_string(void) {
       return FAILED;
     }
 
-    c = g_buffer[g_source_pointer];
+    c = g_buffer[g_source_index];
 
     if (c == '{')
       curly_braces++;
@@ -1430,13 +1430,13 @@ int get_next_plain_string(void) {
     if (curly_braces > 0) {
       g_label[g_ss] = c;
       g_ss++;
-      g_source_pointer++;
+      g_source_index++;
     }
     /* NOTE: casting to (unsigned char) is needed to get UTF-8 to work */
     else if ((unsigned char)c > 127 || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '.' || c == '{' || c == '}' || c == '\\' || c == '@' || c == ':') {
       g_label[g_ss] = c;
       g_ss++;
-      g_source_pointer++;
+      g_source_index++;
     }
     else
       break;
@@ -1463,26 +1463,26 @@ int get_next_token(void) {
   skip_whitespace();
 
   /* skip leading commas */
-  while (g_buffer[g_source_pointer] == ',')
-    g_source_pointer++;
+  while (g_buffer[g_source_index] == ',')
+    g_source_index++;
   
   /* "string"? */
-  if (g_buffer[g_source_pointer] == '"') {
-    for (g_ss = 0, g_source_pointer++; g_buffer[g_source_pointer] != 0xA && g_buffer[g_source_pointer] != '"'; ) {
-      if (g_buffer[g_source_pointer] == '\\' && g_buffer[g_source_pointer + 1] == '"') {
+  if (g_buffer[g_source_index] == '"') {
+    for (g_ss = 0, g_source_index++; g_buffer[g_source_index] != 0xA && g_buffer[g_source_index] != '"'; ) {
+      if (g_buffer[g_source_index] == '\\' && g_buffer[g_source_index + 1] == '"') {
         g_tmp[g_ss++] = '"';
-        g_source_pointer += 2;
+        g_source_index += 2;
       }
       else
-        g_tmp[g_ss++] = g_buffer[g_source_pointer++];
+        g_tmp[g_ss++] = g_buffer[g_source_index++];
     }
 
-    if (g_buffer[g_source_pointer] == 0xA) {
+    if (g_buffer[g_source_index] == 0xA) {
       print_error(ERROR_NONE, "GET_NEXT_TOKEN: String wasn't terminated properly.\n");
       return FAILED;
     }
     g_tmp[g_ss] = 0;
-    g_source_pointer++;
+    g_source_index++;
 
     /* expand e.g., \1 and \@ */
     if (g_macro_active != 0) {
@@ -1502,26 +1502,26 @@ int get_next_token(void) {
     return GET_NEXT_TOKEN_STRING;
   }
 
-  if (g_buffer[g_source_pointer] == '.') {
+  if (g_buffer[g_source_index] == '.') {
     g_tmp[0] = '.';
-    g_source_pointer++;
-    for (g_ss = 1; g_buffer[g_source_pointer] != 0x0A && g_buffer[g_source_pointer] != ' ' && g_buffer[g_source_pointer] != '-' && g_ss < MAX_NAME_LENGTH; ) {
-      g_tmp[g_ss] = g_buffer[g_source_pointer];
-      g_current_directive[g_ss - 1] = toupper((int)g_buffer[g_source_pointer]);
-      g_source_pointer++;
+    g_source_index++;
+    for (g_ss = 1; g_buffer[g_source_index] != 0x0A && g_buffer[g_source_index] != ' ' && g_buffer[g_source_index] != '-' && g_ss < MAX_NAME_LENGTH; ) {
+      g_tmp[g_ss] = g_buffer[g_source_index];
+      g_current_directive[g_ss - 1] = toupper((int)g_buffer[g_source_index]);
+      g_source_index++;
       g_ss++;
     }
     g_current_directive[g_ss - 1] = 0;
   }
-  else if (g_buffer[g_source_pointer] == '=' || g_buffer[g_source_pointer] == '>' || g_buffer[g_source_pointer] == '<' || g_buffer[g_source_pointer] == '!') {
-    for (g_ss = 0; g_buffer[g_source_pointer] != 0xA && (g_buffer[g_source_pointer] == '=' || g_buffer[g_source_pointer] == '!' || g_buffer[g_source_pointer] == '<' || g_buffer[g_source_pointer] == '>')
-           && g_ss < MAX_NAME_LENGTH; g_tmp[g_ss++] = g_buffer[g_source_pointer++]);
+  else if (g_buffer[g_source_index] == '=' || g_buffer[g_source_index] == '>' || g_buffer[g_source_index] == '<' || g_buffer[g_source_index] == '!') {
+    for (g_ss = 0; g_buffer[g_source_index] != 0xA && (g_buffer[g_source_index] == '=' || g_buffer[g_source_index] == '!' || g_buffer[g_source_index] == '<' || g_buffer[g_source_index] == '>')
+           && g_ss < MAX_NAME_LENGTH; g_tmp[g_ss++] = g_buffer[g_source_index++]);
   }
   else {
     int curly_brackets = 0;
     
     for (g_ss = 0; g_ss < MAX_NAME_LENGTH; ) {
-      unsigned char e = g_buffer[g_source_pointer];
+      unsigned char e = g_buffer[g_source_index];
 
       if (e == 0xA)
         break;
@@ -1542,7 +1542,7 @@ int get_next_token(void) {
       }
       g_tmp[g_ss] = e;
       g_ss++;
-      g_source_pointer++;
+      g_source_index++;
     }
   }
 
@@ -1571,14 +1571,14 @@ int get_next_token(void) {
 
 int compare_and_skip_next_symbol(char symbol) {
 
-  int pos = g_source_pointer;
+  int pos = g_source_index;
   
   while (g_buffer[pos] == ' ')
     pos++;
 
   if (g_buffer[pos] == symbol) {
     pos++;
-    g_source_pointer = pos;
+    g_source_index = pos;
     return SUCCEEDED;
   }
 
@@ -1590,28 +1590,28 @@ int skip_next_token(void) {
 
   int c;
   
-  for (c = g_buffer[g_source_pointer]; c == ' ' || c == ',' || (c == '\\' && g_buffer[g_source_pointer+1] == 0xA) || c == 0xA; c = g_buffer[++g_source_pointer]) {
+  for (c = g_buffer[g_source_index]; c == ' ' || c == ',' || (c == '\\' && g_buffer[g_source_index+1] == 0xA) || c == 0xA; c = g_buffer[++g_source_index]) {
     if (c == 0xA)
       next_line();
   }
 
-  if (g_buffer[g_source_pointer] == '"') {
-    for (g_source_pointer++; g_buffer[g_source_pointer] != 0x0A && g_buffer[g_source_pointer] != '"'; g_source_pointer++)
+  if (g_buffer[g_source_index] == '"') {
+    for (g_source_index++; g_buffer[g_source_index] != 0x0A && g_buffer[g_source_index] != '"'; g_source_index++)
       ;
-    if (g_buffer[g_source_pointer] == 0x0A) {
+    if (g_buffer[g_source_index] == 0x0A) {
       print_error(ERROR_NONE, "SKIP_NEXT_TOKEN: String wasn't terminated properly.\n");
       return FAILED;
     }
-    g_source_pointer++;
+    g_source_index++;
 
     return SUCCEEDED;
   }
-  else if (g_buffer[g_source_pointer] == '=' || g_buffer[g_source_pointer] == '>' || g_buffer[g_source_pointer] == '<' || g_buffer[g_source_pointer] == '!') {
-    for (; g_buffer[g_source_pointer] != 0xA && (g_buffer[g_source_pointer] == '=' || g_buffer[g_source_pointer] == '!' || g_buffer[g_source_pointer] == '<' || g_buffer[g_source_pointer] == '>'); g_source_pointer++)
+  else if (g_buffer[g_source_index] == '=' || g_buffer[g_source_index] == '>' || g_buffer[g_source_index] == '<' || g_buffer[g_source_index] == '!') {
+    for (; g_buffer[g_source_index] != 0xA && (g_buffer[g_source_index] == '=' || g_buffer[g_source_index] == '!' || g_buffer[g_source_index] == '<' || g_buffer[g_source_index] == '>'); g_source_index++)
       ;
   }
   else {
-    for (; g_buffer[g_source_pointer] != 0x0A && g_buffer[g_source_pointer] != ' ' && g_buffer[g_source_pointer] != ','; g_source_pointer++)
+    for (; g_buffer[g_source_index] != 0x0A && g_buffer[g_source_index] != ' ' && g_buffer[g_source_index] != ','; g_source_index++)
       ;
   }
   
@@ -2207,13 +2207,13 @@ static int _replace_labels_inside_stack_calculation(struct stack_item *stack_ite
 
 int parse_function(char *in, char *name, int *found_function, int *parsed_chars) {
 
-  int res, source_pointer_original = g_source_pointer, source_pointer_backup, i, j, input_float_mode;
+  int res, source_index_original = g_source_index, source_index_backup, i, j, input_float_mode;
   struct function *fun = g_functions_first;
   struct stack_item *si;
   char c1 = name[0];
 
   /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
-     let's update g_source_pointer for input_number() */
+     let's update g_source_index for input_number() */
 
   /* find the function */
   while (fun != NULL) {
@@ -2229,8 +2229,8 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
     return SUCCEEDED;
   }
 
-  g_source_pointer = (int)(in - g_buffer);
-  source_pointer_backup = g_source_pointer;
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
   
   /* we found the function! let's parse the arguments */
   *found_function = YES;
@@ -2343,20 +2343,20 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
     }
   }
 
-  if (g_buffer[g_source_pointer] != ')') {
+  if (g_buffer[g_source_index] != ')') {
     free(si);
     print_error(ERROR_NUM, "Malformed \"%s()\" detected!\n", name);
     return FAILED;
   }
 
   /* skip ')' */
-  g_source_pointer++;
+  g_source_index++;
 
   /* count the parsed chars */
-  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+  *parsed_chars = (int)(g_source_index - source_index_backup);
 
-  /* return g_source_pointer */
-  g_source_pointer = source_pointer_original;
+  /* return g_source_index */
+  g_source_index = source_index_original;
 
   /* try to parse the stack calculation */
   if (g_parsing_function_body == NO && resolve_stack(si, fun->stack->stacksize) == SUCCEEDED) {

@@ -15,7 +15,7 @@
 #include "printf.h"
 
 
-extern int g_ind, g_source_pointer, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules;
+extern int g_ind, g_source_index, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules;
 extern char *g_tmp;
 extern struct ext_include_collection g_ext_incdirs;
 extern FILE *g_file_out_ptr;
@@ -296,9 +296,9 @@ int include_file(char *name, int *include_size, char *namespace) {
   g_tmp_a[size++] = 'E';
   g_tmp_a[size++] = ' ';
 
-  memcpy(tmp_b, g_buffer, g_source_pointer);
-  memcpy(tmp_b + g_source_pointer, g_tmp_a, size);
-  memcpy(tmp_b + g_source_pointer + size, g_buffer + g_source_pointer, g_source_file_size - g_source_pointer);
+  memcpy(tmp_b, g_buffer, g_source_index);
+  memcpy(tmp_b + g_source_index, g_tmp_a, size);
+  memcpy(tmp_b + g_source_index + size, g_buffer + g_source_index, g_source_file_size - g_source_index);
 
   free(g_buffer);
 

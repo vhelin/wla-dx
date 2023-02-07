@@ -19,7 +19,7 @@
 
 
 extern int g_input_number_error_msg, g_bankheader_status, g_input_float_mode, g_global_label_hint, g_input_parse_if;
-extern int g_source_pointer, g_source_file_size, g_parsed_int, g_macro_active, g_string_size, g_section_status, g_parse_floats;
+extern int g_source_index, g_source_file_size, g_parsed_int, g_macro_active, g_string_size, g_section_status, g_parse_floats;
 extern char g_xyz[512], *g_buffer, *g_tmp, g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
 extern struct map_t *g_defines_map;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
@@ -571,13 +571,13 @@ static int _get_op_priority(int op) {
 
 static int _parse_function_asc(char *in, int *result, int *parsed_chars) {
 
-  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
+  int res, old_expect = g_expect_calculations, source_index_original = g_source_index, source_index_backup;
   
   /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
-     let's update g_source_pointer for input_number() */
+     let's update g_source_index for input_number() */
 
-  g_source_pointer = (int)(in - g_buffer);
-  source_pointer_backup = g_source_pointer;
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
 
   g_expect_calculations = NO;
   res = input_number();
@@ -588,19 +588,19 @@ static int _parse_function_asc(char *in, int *result, int *parsed_chars) {
     return FAILED;
   }
   
-  if (g_buffer[g_source_pointer] != ')') {
+  if (g_buffer[g_source_index] != ')') {
     print_error(ERROR_NUM, "Malformed \"asc(?)\" detected!\n");
     return FAILED;
   }
 
   /* skip ')' */
-  g_source_pointer++;
+  g_source_index++;
 
   /* count the parsed chars */
-  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+  *parsed_chars = (int)(g_source_index - source_index_backup);
 
-  /* return g_source_pointer */
-  g_source_pointer = source_pointer_original;
+  /* return g_source_index */
+  g_source_index = source_index_original;
   
   if (g_asciitable_defined == 0) {
     print_error(ERROR_WRN, "No .ASCIITABLE defined. Using the default n->n -mapping.\n");
@@ -615,14 +615,14 @@ static int _parse_function_asc(char *in, int *result, int *parsed_chars) {
 
 static int _parse_function_random(char *in, int *result, int *parsed_chars) {
 
-  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
+  int res, old_expect = g_expect_calculations, source_index_original = g_source_index, source_index_backup;
   int min, max;
   
   /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
-     let's update g_source_pointer for input_number() */
+     let's update g_source_index for input_number() */
 
-  g_source_pointer = (int)(in - g_buffer);
-  source_pointer_backup = g_source_pointer;
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
 
   g_expect_calculations = YES;
   res = input_number();
@@ -650,19 +650,19 @@ static int _parse_function_random(char *in, int *result, int *parsed_chars) {
     return FAILED;
   }
   
-  if (g_buffer[g_source_pointer] != ')') {
+  if (g_buffer[g_source_index] != ')') {
     print_error(ERROR_NUM, "Malformed \"random(?,?)\" detected!\n");
     return FAILED;
   }
 
   /* skip ')' */
-  g_source_pointer++;
+  g_source_index++;
 
   /* count the parsed chars */
-  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+  *parsed_chars = (int)(g_source_index - source_index_backup);
 
-  /* return g_source_pointer */
-  g_source_pointer = source_pointer_original;
+  /* return g_source_index */
+  g_source_index = source_index_original;
 
   /* output the random number */
   *result = (genrand_int32() % (max-min+1)) + min;
@@ -673,14 +673,14 @@ static int _parse_function_random(char *in, int *result, int *parsed_chars) {
 
 static int _parse_function_defined(char *in, int *result, int *parsed_chars) {
 
-  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
+  int res, old_expect = g_expect_calculations, source_index_original = g_source_index, source_index_backup;
   struct definition *d;
 
   /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
-     let's update g_source_pointer for input_number() */
+     let's update g_source_index for input_number() */
 
-  g_source_pointer = (int)(in - g_buffer);
-  source_pointer_backup = g_source_pointer;
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
 
   g_expect_calculations = NO;
   res = get_next_plain_string();
@@ -691,19 +691,19 @@ static int _parse_function_defined(char *in, int *result, int *parsed_chars) {
     return FAILED;
   }
   
-  if (g_buffer[g_source_pointer] != ')') {
+  if (g_buffer[g_source_index] != ')') {
     print_error(ERROR_NUM, "Malformed \"defined(?)\" detected!\n");
     return FAILED;
   }
 
   /* skip ')' */
-  g_source_pointer++;
+  g_source_index++;
 
   /* count the parsed chars */
-  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+  *parsed_chars = (int)(g_source_index - source_index_backup);
 
-  /* return g_source_pointer */
-  g_source_pointer = source_pointer_original;
+  /* return g_source_index */
+  g_source_index = source_index_original;
 
   /* try to find the definition */
   hashmap_get(g_defines_map, g_label, (void*)&d);
@@ -719,14 +719,14 @@ static int _parse_function_defined(char *in, int *result, int *parsed_chars) {
 
 static int _parse_function_exists(char *in, int *result, int *parsed_chars) {
 
-  int res, old_expect = g_expect_calculations, source_pointer_original = g_source_pointer, source_pointer_backup;
+  int res, old_expect = g_expect_calculations, source_index_original = g_source_index, source_index_backup;
   FILE *f;
   
   /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
-     let's update g_source_pointer for input_number() */
+     let's update g_source_index for input_number() */
 
-  g_source_pointer = (int)(in - g_buffer);
-  source_pointer_backup = g_source_pointer;
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
 
   g_expect_calculations = NO;
   res = input_number();
@@ -737,19 +737,19 @@ static int _parse_function_exists(char *in, int *result, int *parsed_chars) {
     return FAILED;
   }
   
-  if (g_buffer[g_source_pointer] != ')') {
+  if (g_buffer[g_source_index] != ')') {
     print_error(ERROR_NUM, "Malformed \"exists(?)\" detected!\n");
     return FAILED;
   }
 
   /* skip ')' */
-  g_source_pointer++;
+  g_source_index++;
 
   /* count the parsed chars */
-  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+  *parsed_chars = (int)(g_source_index - source_index_backup);
 
-  /* return g_source_pointer */
-  g_source_pointer = source_pointer_original;
+  /* return g_source_index */
+  g_source_index = source_index_original;
   
   f = fopen(g_label, "rb");
   if (f == NULL)
@@ -766,15 +766,15 @@ static int _parse_function_exists(char *in, int *result, int *parsed_chars) {
 
 static int _parse_function_math1(char *in, int *type, double *value, char *string, int *parsed_chars, char *name) {
 
-  int res, source_pointer_original = g_source_pointer, source_pointer_backup, input_float_mode = g_input_float_mode;
+  int res, source_index_original = g_source_index, source_index_backup, input_float_mode = g_input_float_mode;
   
   /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
-     let's update g_source_pointer for input_number() */
+     let's update g_source_index for input_number() */
 
-  g_source_pointer = (int)(in - g_buffer);
-  source_pointer_backup = g_source_pointer;
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
 
-  if (g_buffer[g_source_pointer] == ')') {
+  if (g_buffer[g_source_index] == ')') {
     print_error(ERROR_STC, "%s is missing argument 1!\n", name);
     return FAILED;
   }
@@ -803,19 +803,19 @@ static int _parse_function_math1(char *in, int *type, double *value, char *strin
     return FAILED;
   }
 
-  if (g_buffer[g_source_pointer] != ')') {
+  if (g_buffer[g_source_index] != ')') {
     print_error(ERROR_NUM, "Malformed \"%s\" detected!\n", name);
     return FAILED;
   }
 
   /* skip ')' */
-  g_source_pointer++;
+  g_source_index++;
 
   /* count the parsed chars */
-  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+  *parsed_chars = (int)(g_source_index - source_index_backup);
 
-  /* return g_source_pointer */
-  g_source_pointer = source_pointer_original;
+  /* return g_source_index */
+  g_source_index = source_index_original;
   
   return SUCCEEDED;
 }
@@ -823,13 +823,13 @@ static int _parse_function_math1(char *in, int *type, double *value, char *strin
 
 static int _parse_function_math2(char *in, int *type_a, int *type_b, double *value_a, double *value_b, char *string_a, char *string_b, int *parsed_chars, char *name) {
 
-  int res, source_pointer_original = g_source_pointer, source_pointer_backup, input_float_mode = g_input_float_mode;
+  int res, source_index_original = g_source_index, source_index_backup, input_float_mode = g_input_float_mode;
   
   /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
-     let's update g_source_pointer for input_number() */
+     let's update g_source_index for input_number() */
 
-  g_source_pointer = (int)(in - g_buffer);
-  source_pointer_backup = g_source_pointer;
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
 
   /* a */
   g_input_float_mode = ON;
@@ -855,7 +855,7 @@ static int _parse_function_math2(char *in, int *type_a, int *type_b, double *val
     return FAILED;
   }
 
-  if (g_buffer[g_source_pointer] == ')') {
+  if (g_buffer[g_source_index] == ')') {
     print_error(ERROR_STC, "%s is missing argument 2!\n", name);
     return FAILED;
   }
@@ -884,19 +884,19 @@ static int _parse_function_math2(char *in, int *type_a, int *type_b, double *val
     return FAILED;
   }
   
-  if (g_buffer[g_source_pointer] != ')') {
+  if (g_buffer[g_source_index] != ')') {
     print_error(ERROR_NUM, "Malformed \"%s\" detected!\n", name);
     return FAILED;
   }
 
   /* skip ')' */
-  g_source_pointer++;
+  g_source_index++;
 
   /* count the parsed chars */
-  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+  *parsed_chars = (int)(g_source_index - source_index_backup);
 
-  /* return g_source_pointer */
-  g_source_pointer = source_pointer_original;
+  /* return g_source_index */
+  g_source_index = source_index_original;
   
   return SUCCEEDED;
 }
@@ -904,13 +904,13 @@ static int _parse_function_math2(char *in, int *type_a, int *type_b, double *val
 
 static int _parse_function_math3(char *in, int *type_a, int *type_b, int *type_c, double *value_a, double *value_b, double *value_c, char *string_a, char *string_b, char *string_c, int *parsed_chars, char *name) {
 
-  int res, source_pointer_original = g_source_pointer, source_pointer_backup, input_float_mode = g_input_float_mode;
+  int res, source_index_original = g_source_index, source_index_backup, input_float_mode = g_input_float_mode;
   
   /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
-     let's update g_source_pointer for input_number() */
+     let's update g_source_index for input_number() */
 
-  g_source_pointer = (int)(in - g_buffer);
-  source_pointer_backup = g_source_pointer;
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
 
   /* a */
   g_input_float_mode = ON;
@@ -936,7 +936,7 @@ static int _parse_function_math3(char *in, int *type_a, int *type_b, int *type_c
     return FAILED;
   }
 
-  if (g_buffer[g_source_pointer] == ')') {
+  if (g_buffer[g_source_index] == ')') {
     print_error(ERROR_STC, "%s is missing argument 2!\n", name);
     return FAILED;
   }
@@ -965,7 +965,7 @@ static int _parse_function_math3(char *in, int *type_a, int *type_b, int *type_c
     return FAILED;
   }
 
-  if (g_buffer[g_source_pointer] == ')') {
+  if (g_buffer[g_source_index] == ')') {
     print_error(ERROR_STC, "%s is missing argument 3!\n", name);
     return FAILED;
   }
@@ -994,19 +994,19 @@ static int _parse_function_math3(char *in, int *type_a, int *type_b, int *type_c
     return FAILED;
   }
   
-  if (g_buffer[g_source_pointer] != ')') {
+  if (g_buffer[g_source_index] != ')') {
     print_error(ERROR_NUM, "Malformed \"%s\" detected!\n", name);
     return FAILED;
   }
 
   /* skip ')' */
-  g_source_pointer++;
+  g_source_index++;
 
   /* count the parsed chars */
-  *parsed_chars = (int)(g_source_pointer - source_pointer_backup);
+  *parsed_chars = (int)(g_source_index - source_index_backup);
 
-  /* return g_source_pointer */
-  g_source_pointer = source_pointer_original;
+  /* return g_source_index */
+  g_source_index = source_index_original;
   
   return SUCCEEDED;
 }
