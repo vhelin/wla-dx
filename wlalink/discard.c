@@ -19,25 +19,24 @@ extern struct stack *g_stacks_first, *g_stacks_last;
 
 extern int g_verbose_level;
 
-
 int discard_unused_sections(void) {
 
   struct section *s;
-  int a = 0, b = -1;
+  int num_dropped_before = 0, num_dropped_after = -1;
 
   
   /* iterate section discarding until there's no change in the amount of dropped sections */
-  while (a != b) {
+  while (num_dropped_before != num_dropped_after) {
     s = g_sec_first;
     while (s != NULL) {
       s->referenced = 0;
       s = s->next;
     }
 
-    a = b;
+    num_dropped_before = num_dropped_after;
     discard_iteration();
 
-    b = 0;
+    num_dropped_after = 0;
     s = g_sec_first;
     while (s != NULL) {
       if (s->referenced == 0)
@@ -45,7 +44,7 @@ int discard_unused_sections(void) {
       else
         s->alive = YES;
       if (s->alive == NO)
-        b++;
+        num_dropped_after++;
       s = s->next;
     }
   }
