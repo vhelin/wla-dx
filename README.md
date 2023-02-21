@@ -1,4 +1,4 @@
-WLA DX
+Wzonka-Lad Assembler Deluxe
 ======
 
 WLA DX - Yet Another
