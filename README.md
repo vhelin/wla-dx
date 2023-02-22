@@ -41,10 +41,10 @@ Supported architectures are:
 Installing
 ==========
 
+See `INSTALL` for more detailed instructions.
+
 Compiling
 ---------
-
-See `INSTALL` for more detailed instructions.
 
 You need:
 
