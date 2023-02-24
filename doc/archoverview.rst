@@ -13,7 +13,7 @@ WLA has four separate phases:
 1. ``phase_1.c``: ``phase_1()``:
 
    - The biggest data processor in WLA.
-   - Includes the include files: every time time happens the file is read in,
+   - Includes the include files: every time this happens the file is read in,
      white space is removed, lines formatted, etc.
    - Macros are processed along with directives
    - All textual data, code, etc. are transformed into WLA's internal byte
