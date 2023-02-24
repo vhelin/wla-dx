@@ -8,7 +8,7 @@ and WLALINK (the linker).
 WLA
 ---
 
-WLA has four separate phases, called a little bit incorrectly passes:
+WLA has four separate phases:
 
 1. ``phase_1.c``: ``phase_1()``:
 
