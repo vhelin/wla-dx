@@ -14,9 +14,9 @@
 #include "main.h"
 #include "include.h"
 #include "parse.h"
-#include "pass_1.h"
-#include "pass_2.h"
-#include "pass_3.h"
+#include "phase_1.h"
+#include "phase_2.h"
+#include "phase_3.h"
 #include "stack.h"
 #include "hashmap.h"
 #include "printf.h"
@@ -758,7 +758,7 @@ struct structure* get_structure(char *name) {
 int directive_define_def_equ(void);
 
 
-int pass_1(void) {
+int phase_1(void) {
 
   struct macro_runtime *mrt;
   struct macro_static *m = NULL;
@@ -979,7 +979,7 @@ int pass_1(void) {
       return FAILED;
     }
     else {
-      printf("PASS_1: Internal error, unknown return type %d.\n", q);
+      printf("PHASE_1: Internal error, unknown return type %d.\n", q);
       return FAILED;
     }
   }
@@ -7543,7 +7543,7 @@ int directive_function(void) {
     if (f->stack == NULL)
       return FAILED;
 
-    /* mark the calculation stack as function body so we don't export it in pass_4.c */
+    /* mark the calculation stack as function body so we don't export it in phase_4.c */
     f->stack->is_function_body = YES;
   }
   else if (res == FAILED)

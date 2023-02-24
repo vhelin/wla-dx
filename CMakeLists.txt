@@ -124,14 +124,14 @@ set(WLA_SRCS
     parse.h
     include.c
     include.h
-    pass_1.c
-    pass_1.h
-    pass_2.c
-    pass_2.h
-    pass_3.c
-    pass_3.h
-    pass_4.c
-    pass_4.h
+    phase_1.c
+    phase_1.h
+    phase_2.c
+    phase_2.h
+    phase_3.c
+    phase_3.h
+    phase_4.c
+    phase_4.h
     stack.c
     stack.h
     listfile.c

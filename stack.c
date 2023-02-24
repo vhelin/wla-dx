@@ -11,7 +11,7 @@
 
 #include "hashmap.h"
 #include "parse.h"
-#include "pass_1.h"
+#include "phase_1.h"
 #include "stack.h"
 #include "include.h"
 #include "printf.h"
@@ -80,7 +80,7 @@ void init_stack_struct(struct stack *s) {
   s->slot = -123456;
   s->relative_references = 0;
   s->base = -123456;
-  /* NOTE! section_status is not really set anywhere, but pass_4.c uses it -> investigate */
+  /* NOTE! section_status is not really set anywhere, but phase_4.c uses it -> investigate */
   s->section_status = 0;
   s->section_id = -123456;
   s->address = -123456;
@@ -2614,7 +2614,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   stack->filename_id = g_active_file_info_last->filename_id;
   stack->is_function_body = g_parsing_function_body;
 
-  /* all stacks will be definition stacks by default. pass_4 will mark
+  /* all stacks will be definition stacks by default. phase_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
   stack->position = STACK_POSITION_DEFINITION;
 
@@ -3075,7 +3075,7 @@ static int _try_to_calculate(struct stack_item *st) {
       s->has_been_calculated = YES;
       s->value = dou;
 
-      /* HACK: don't export this calculation in pass_4.c */
+      /* HACK: don't export this calculation in phase_4.c */
       s->is_function_body = YES;
     }
 
@@ -3776,7 +3776,7 @@ int stack_create_label_stack(char *label) {
   stack->linenumber = g_active_file_info_last->line_current;
   stack->filename_id = g_active_file_info_last->filename_id;
     
-  /* all stacks will be definition stacks by default. pass_4 will mark
+  /* all stacks will be definition stacks by default. phase_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
   stack->position = STACK_POSITION_DEFINITION;
 
@@ -3811,7 +3811,7 @@ int stack_create_stack_stack(int stack_id) {
   stack->linenumber = g_active_file_info_last->line_current;
   stack->filename_id = g_active_file_info_last->filename_id;
   
-  /* all stacks will be definition stacks by default. pass_4 will mark
+  /* all stacks will be definition stacks by default. phase_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
   stack->position = STACK_POSITION_DEFINITION;
 
@@ -3895,7 +3895,7 @@ int stack_create_stack_caddr_offset(int type, int data, char *label) {
   stack->linenumber = g_active_file_info_last->line_current;
   stack->filename_id = g_active_file_info_last->filename_id;
   
-  /* all stacks will be definition stacks by default. pass_4 will mark
+  /* all stacks will be definition stacks by default. phase_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
   stack->position = STACK_POSITION_DEFINITION;
 
@@ -3985,7 +3985,7 @@ int stack_create_stack_caddr_offset_plus_n(int type, int data, char *label, int 
   stack->linenumber = g_active_file_info_last->line_current;
   stack->filename_id = g_active_file_info_last->filename_id;
   
-  /* all stacks will be definition stacks by default. pass_4 will mark
+  /* all stacks will be definition stacks by default. phase_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
   stack->position = STACK_POSITION_DEFINITION;
 
@@ -4024,7 +4024,7 @@ int stack_create_stack_caddr_offset_plus_n(int type, int data, char *label, int 
 
 /* TODO: move the following code to its own file... */
 
-#include "pass_3.h"
+#include "phase_3.h"
 
 #define XSTRINGIFY(x) #x
 #define STRINGIFY(x) XSTRINGIFY(x)
@@ -4432,7 +4432,7 @@ int data_stream_parser_parse(void) {
         }
         else {
           if (s_dstruct_item_offset != -1 && s_dsp_add - s_dstruct_item_offset > s_dstruct_item_size) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_1: %d too many bytes in struct field.\n", get_file_name(s_dsp_file_name_id), s_dsp_line_number, (s_dsp_add - s_dstruct_item_offset) - s_dstruct_item_size);
+            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: %d too many bytes in struct field.\n", get_file_name(s_dsp_file_name_id), s_dsp_line_number, (s_dsp_add - s_dstruct_item_offset) - s_dstruct_item_size);
             return FAILED;
           }
           

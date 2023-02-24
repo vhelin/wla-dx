@@ -16,7 +16,7 @@ SLOT 0 $8000
 
 
 ;for some reason WLA gives the error: 
-;  INTERNAL_PASS_1: .ORG needs to be set before any code/data can be accepted.
+;  INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.
 ;unless I put a .BANK and .ORG statement before the .BASE statement ... why is that?
 
 

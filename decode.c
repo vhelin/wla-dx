@@ -11,7 +11,7 @@
 #include "defines.h"
 
 #include "stack.h"
-#include "pass_1.h"
+#include "phase_1.h"
 #include "parse.h"
 #include "printf.h"
 
