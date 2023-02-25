@@ -1,8 +1,8 @@
 
-#ifndef _PASS_4_H
-#define _PASS_4_H
+#ifndef _PHASE_4_H
+#define _PHASE_4_H
 
-int pass_4(void);
+int phase_4(void);
 int mem_insert(unsigned char x);
 int mem_insert_padding(void);
 int mem_insert_absolute(int add, unsigned char x);

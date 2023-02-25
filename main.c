@@ -17,10 +17,10 @@
 #include "defines.h"
 #include "parse.h"
 #include "include.h"
-#include "pass_1.h"
-#include "pass_2.h"
-#include "pass_3.h"
-#include "pass_4.h"
+#include "phase_1.h"
+#include "phase_2.h"
+#include "phase_3.h"
+#include "phase_4.h"
 #include "listfile.h"
 #include "hashmap.h"
 #include "printf.h"
@@ -262,19 +262,19 @@ int main(int argc, char *argv[]) {
     return 1;
 
   PROFILE_START();  
-  if (pass_1() == FAILED)
+  if (phase_1() == FAILED)
     return 1;
-  PROFILE_END("pass_1");
+  PROFILE_END("phase_1");
 
   PROFILE_START();
-    if (pass_2() == FAILED)
+    if (phase_2() == FAILED)
     return 1;
-  PROFILE_END("pass_2");
+  PROFILE_END("phase_2");
 
   PROFILE_START();
-  if (pass_3() == FAILED)
+  if (phase_3() == FAILED)
     return 1;
-  PROFILE_END("pass_3");
+  PROFILE_END("phase_3");
 
   if (g_listfile_data == YES) {
     if (listfile_collect() == FAILED)
@@ -282,9 +282,9 @@ int main(int argc, char *argv[]) {
   }
 
   PROFILE_START();
-  if (pass_4() == FAILED)
+  if (phase_4() == FAILED)
     return 1;
-  PROFILE_END("pass_4");
+  PROFILE_END("phase_4");
   
   return 0;
 }

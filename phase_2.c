@@ -8,9 +8,9 @@
 #include <time.h>
 
 #include "defines.h"
-#include "pass_1.h"
-#include "pass_2.h"
-#include "pass_4.h"
+#include "phase_1.h"
+#include "phase_2.h"
+#include "phase_4.h"
 #include "hashmap.h"
 #include "printf.h"
 
@@ -89,7 +89,7 @@ void write_snes_cartridge_information(int start);
 #endif
 
 
-int pass_2(void) {
+int phase_2(void) {
 
   if (g_ifdef > 0) {
     fprintf(stderr, "%x x .ENDIFs are missing.\n", g_ifdef);

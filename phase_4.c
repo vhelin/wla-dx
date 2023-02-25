@@ -10,8 +10,8 @@
 
 #include "include.h"
 #include "listfile.h"
-#include "pass_3.h"
-#include "pass_4.h"
+#include "phase_3.h"
+#include "phase_4.h"
 #include "parse.h"
 #include "stack.h"
 #include "printf.h"
@@ -304,7 +304,7 @@ static void _bits_add_bit(int *bits_byte, int *bits_position, int *bits_to_defin
 }
 
 
-int pass_4(void) {
+int phase_4(void) {
 
   int i, o, z, y, add_old = 0, x, q, inz, ind, bits_position = 0, bits_byte = 0;
   char *t, c, tmp_buffer[MAX_NAME_LENGTH + 1];
@@ -417,7 +417,7 @@ int pass_4(void) {
       if (c == 'A') {
         if (inz == NO) {
           /* sanity check */
-          fprintf(stderr, "%s: INTERNAL_PASS_2: ind has not been set, but we use its value! Please submit a bug report!\n", get_file_name(g_filename_id));
+          fprintf(stderr, "%s: INTERNAL_PHASE_2: ind has not been set, but we use its value! Please submit a bug report!\n", get_file_name(g_filename_id));
           return FAILED;
         }
         g_sec_tmp->address = ind;
@@ -426,7 +426,7 @@ int pass_4(void) {
       ind = 0;
       if (g_sec_tmp->maxsize_status == ON) {
         if (g_sec_tmp->maxsize < g_sec_tmp->size) {
-          fprintf(stderr, "%s: INTERNAL_PASS_2: Section \"%s\" (size %d) doesn't fit into the specified %d bytes.\n",
+          fprintf(stderr, "%s: INTERNAL_PHASE_2: Section \"%s\" (size %d) doesn't fit into the specified %d bytes.\n",
                   get_file_name(g_filename_id), g_sec_tmp->name, g_sec_tmp->size, g_sec_tmp->maxsize);
           return FAILED;
         }
@@ -439,7 +439,7 @@ int pass_4(void) {
       if (g_sec_tmp->size > 0) {
         g_sec_tmp->data = calloc(sizeof(unsigned char) * g_sec_tmp->size, 1);
         if (g_sec_tmp->data == NULL) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Out of memory when trying to allocate room for section \"%s\".\n",
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Out of memory when trying to allocate room for section \"%s\".\n",
                   get_file_name(g_filename_id), g_line_number, g_sec_tmp->name);
           return FAILED;
         }
@@ -774,7 +774,7 @@ int pass_4(void) {
           hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
           if (tmp_def != NULL) {
             if (tmp_def->type == DEFINITION_TYPE_STRING) {
-              fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
+              fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
               return FAILED;
             }
             else {
@@ -848,7 +848,7 @@ int pass_4(void) {
 
           stack = find_stack_calculation(inz, NO);
           if (stack == NULL) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
+            fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
             return FAILED;
           }
 
@@ -1021,7 +1021,7 @@ int pass_4(void) {
 
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
@@ -1068,7 +1068,7 @@ int pass_4(void) {
         o = (int)r;
         if (c == '-') {
           if ((o & 1) == 1) {
-            fprintf(stderr, "%s:%d: INTERNAL_PASS_2: The RAM address must be even.\n", get_file_name(g_filename_id), g_line_number);
+            fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: The RAM address must be even.\n", get_file_name(g_filename_id), g_line_number);
             return FAILED;
           }
           o = o >> 1;
@@ -1100,7 +1100,7 @@ int pass_4(void) {
 
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
@@ -1181,7 +1181,7 @@ int pass_4(void) {
 
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
@@ -1223,7 +1223,7 @@ int pass_4(void) {
 
         o = (int)r;
         if (o > 8191 || o < 0) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference value of %d is out of 13-bit range.\n", get_file_name(g_filename_id), g_line_number, o);
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference value of %d is out of 13-bit range.\n", get_file_name(g_filename_id), g_line_number, o);
           return FAILED;
         }
 
@@ -1258,7 +1258,7 @@ int pass_4(void) {
 
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
@@ -1344,7 +1344,7 @@ int pass_4(void) {
 
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(g_filename_id), g_line_number, inz);
         return FAILED;
       }
 
@@ -1444,7 +1444,7 @@ int pass_4(void) {
       hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
       if (tmp_def != NULL) {
         if (tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
         else {
@@ -1511,7 +1511,7 @@ int pass_4(void) {
       hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
       if (tmp_def != NULL) {
         if (tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
         else {
@@ -1584,7 +1584,7 @@ int pass_4(void) {
       hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
       if (tmp_def != NULL) {
         if (tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
         else {
@@ -1645,7 +1645,7 @@ int pass_4(void) {
       hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
       if (tmp_def != NULL) {
         if (tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
         else {
@@ -1708,7 +1708,7 @@ int pass_4(void) {
       hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
       if (tmp_def != NULL) {
         if (tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
         else {
@@ -1721,7 +1721,7 @@ int pass_4(void) {
             o = (int)tmp_def->value;
 
             if (o > 8191 || o < 0) {
-              fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference value of \"%s\" (%d) is out of 13-bit range.\n", get_file_name(g_filename_id), g_line_number, g_tmp, o);
+              fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference value of \"%s\" (%d) is out of 13-bit range.\n", get_file_name(g_filename_id), g_line_number, g_tmp, o);
               return FAILED;
             }
 
@@ -1767,7 +1767,7 @@ int pass_4(void) {
       hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
       if (tmp_def != NULL) {
         if (tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
         else {
@@ -1817,7 +1817,7 @@ int pass_4(void) {
       hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
       if (tmp_def != NULL) {
         if (tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PASS_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(g_filename_id), g_line_number, g_tmp);
           return FAILED;
         }
         else {
@@ -1832,7 +1832,7 @@ int pass_4(void) {
             /* 9-bit short? */
             if (c == '*') {
               if ((o & 1) == 1) {
-                fprintf(stderr, "%s:%d: INTERNAL_PASS_2: The RAM address must be even.\n", get_file_name(g_filename_id), g_line_number);
+                fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: The RAM address must be even.\n", get_file_name(g_filename_id), g_line_number);
                 return FAILED;
               }
               o = o >> 1;
@@ -1943,7 +1943,7 @@ int write_object_file(void) {
   double dou;
 
   if ((final_ptr = fopen(g_final_name, "wb")) == NULL) {
-    fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\" for writing.\n", g_final_name);
+    fprintf(stderr, "INTERNAL_PHASE_2: Error opening file \"%s\" for writing.\n", g_final_name);
     return FAILED;
   }
 
@@ -2422,7 +2422,7 @@ int write_library_file(void) {
   double dou;
   
   if ((final_ptr = fopen(g_final_name, "wb")) == NULL) {
-    fprintf(stderr, "INTERNAL_PASS_2: Error opening file \"%s\" for writing.\n", g_final_name);
+    fprintf(stderr, "INTERNAL_PHASE_2: Error opening file \"%s\" for writing.\n", g_final_name);
     return FAILED;
   }
 
@@ -2506,7 +2506,7 @@ int write_library_file(void) {
     WRITEOUT_OV;
 
     if (g_label_tmp->section_status == OFF) {
-      fprintf(stderr, "INTERNAL_PASS_2: Label \"%s\" is outside all sections.\n", g_label_tmp->label);
+      fprintf(stderr, "INTERNAL_PHASE_2: Label \"%s\" is outside all sections.\n", g_label_tmp->label);
       return FAILED;
     }
 
@@ -3193,7 +3193,7 @@ int export_definitions(FILE *final_ptr) {
         WRITEOUT_DOU;
       }
       else if (tmp_def->type == DEFINITION_TYPE_STRING)
-        fprintf(stderr, "INTERNAL_PASS_2: Definition \"%s\" is a string definition, and it cannot be exported.\n", export_tmp->name);
+        fprintf(stderr, "INTERNAL_PHASE_2: Definition \"%s\" is a string definition, and it cannot be exported.\n", export_tmp->name);
       else if (tmp_def->type == DEFINITION_TYPE_STACK) {
         fprintf(final_ptr, "%s%c", tmp_def->alias, 0x1);
         dou = tmp_def->value;

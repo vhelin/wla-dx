@@ -33,16 +33,16 @@
     <ClCompile Include="..\..\parse.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\pass_1.c">
+    <ClCompile Include="..\..\phase_1.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\pass_2.c">
+    <ClCompile Include="..\..\phase_2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\pass_3.c">
+    <ClCompile Include="..\..\phase_3.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\pass_4.c">
+    <ClCompile Include="..\..\phase_4.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\printf.c">

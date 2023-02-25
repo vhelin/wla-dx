@@ -10,7 +10,7 @@
 #include "defines.h"
 
 #include "parse.h"
-#include "pass_1.h"
+#include "phase_1.h"
 #include "stack.h"
 #include "include.h"
 #include "printf.h"
@@ -2069,7 +2069,7 @@ static int _save_stack_calculation(struct stack_item *stack_items, int stacksize
 
   s->is_function_body = g_parsing_function_body;
 
-  /* all stacks will be definition stacks by default. pass_4 will mark
+  /* all stacks will be definition stacks by default. phase_4 will mark
      those that are referenced to be STACK_POSITION_CODE stacks */
   s->position = STACK_POSITION_DEFINITION;
 

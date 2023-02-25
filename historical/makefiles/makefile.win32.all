@@ -5,9 +5,9 @@ LD = gcc
 LDFLAGS = -lm
 WLAFLAGS = $(CFLAGS)
 
-CFILES = main.c parse.c include.c pass_1.c pass_2.c pass_3.c pass_4.c stack.c listfile.c crc32.c hashmap.c printf.c mersenne.c t$(WLA2).c i$(WLA2).c
-HFILES = main.h parse.h include.h pass_1.h pass_2.h pass_3.h pass_4.h stack.h listfile.h crc32.h hashmap.h printf.h mersenne.h defines.h
-OFILES = main.o parse.o include.o pass_1.o pass_2.o pass_3.o pass_4.o stack.o listfile.o crc32.o hashmap.o printf.o mersenne.o t$(WLA2).c i$(WLA2).c
+CFILES = main.c parse.c include.c phase_1.c phase_2.c phase_3.c phase_4.c stack.c listfile.c crc32.c hashmap.c printf.c mersenne.c t$(WLA2).c i$(WLA2).c
+HFILES = main.h parse.h include.h phase_1.h phase_2.h phase_3.h phase_4.h stack.h listfile.h crc32.h hashmap.h printf.h mersenne.h defines.h
+OFILES = main.o parse.o include.o phase_1.o phase_2.o phase_3.o phase_4.o stack.o listfile.o crc32.o hashmap.o printf.o mersenne.o t$(WLA2).c i$(WLA2).c
 
 
 all: $(OFILES) makefile
@@ -31,17 +31,17 @@ t$(WLA2).o: t$(WLA2).c
 i$(WLA2).o: i$(WLA2).c
 	$(CC) $(CFLAGS) i$(WLA2).c
 
-pass_1.o: pass_1.c defines.h pass_1.h parse.h makefile i$(WLA2).c
-	$(CC) $(CFLAGS) pass_1.c
+phase_1.o: phase_1.c defines.h phase_1.h parse.h makefile i$(WLA2).c
+	$(CC) $(CFLAGS) phase_1.c
 
-pass_2.o: pass_2.c defines.h pass_2.h makefile
-	$(CC) $(CFLAGS) pass_2.c
+phase_2.o: phase_2.c defines.h phase_2.h makefile
+	$(CC) $(CFLAGS) phase_2.c
 
-pass_3.o: pass_3.c defines.h pass_3.h makefile
-	$(CC) $(CFLAGS) pass_3.c
+phase_3.o: phase_3.c defines.h phase_3.h makefile
+	$(CC) $(CFLAGS) phase_3.c
 
-pass_4.o: pass_4.c defines.h pass_4.h makefile
-	$(CC) $(CFLAGS) pass_4.c
+phase_4.o: phase_4.c defines.h phase_4.h makefile
+	$(CC) $(CFLAGS) phase_4.c
 
 stack.o: stack.c defines.h stack.h makefile
 	$(CC) $(CFLAGS) stack.c

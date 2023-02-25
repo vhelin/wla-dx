@@ -27,10 +27,10 @@
     <ClCompile Include="..\..\main.c" />
     <ClCompile Include="..\..\ispc700.c" />
     <ClCompile Include="..\..\parse.c" />
-    <ClCompile Include="..\..\pass_1.c" />
-    <ClCompile Include="..\..\pass_2.c" />
-    <ClCompile Include="..\..\pass_3.c" />
-    <ClCompile Include="..\..\pass_4.c" />
+    <ClCompile Include="..\..\phase_1.c" />
+    <ClCompile Include="..\..\phase_2.c" />
+    <ClCompile Include="..\..\phase_3.c" />
+    <ClCompile Include="..\..\phase_4.c" />
     <ClCompile Include="..\..\printf.c" />
     <ClCompile Include="..\..\stack.c" />
     <ClCompile Include="..\..\mersenne.c" />
