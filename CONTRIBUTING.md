@@ -10,7 +10,7 @@ We're using ANSI C89/C90 here so that WLA DX could be compiled on old systems as
 well.
 
 ## Code Style
-Please write your code using the convetions below. When in doubth, use same
+Please write your code using the conventions below. When in doubt, use the same
 style as the code is written in general inside WLA DX.
 
 ### Indent using spaces, not tabs
@@ -111,3 +111,11 @@ decision, there might be more):
 ### Keep comments in lower case
 Keep comments in lower case, though some keywords etc. can be in upper
 case
+
+### How to add tests
+
+a) Clone an existing test directory and modify it
+or
+b) Insert tests into existing test source files / makefiles
+
+No need to list the new tests anywhere; a directory inside tests is considered one test directory
