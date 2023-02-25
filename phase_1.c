@@ -5608,6 +5608,10 @@ int directive_fopen(void) {
     if (g_makefile_rules == YES) {
       /* lets just use a tmp file for file operations */
       f->f = tmpfile();
+      if (f->f == NULL) {
+        print_error(ERROR_DIR, "Error creating a tmp file for \"%s\"!\n", f->filename);
+        return FAILED;
+      }
     }
     if (f->f == NULL) {
       print_error(ERROR_DIR, "Error opening file \"%s\" for reading.\n", f->filename);

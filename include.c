@@ -144,6 +144,10 @@ static int find_file(char *name, FILE **f) {
     (*f) = tmpfile();
     if (*f != NULL)
       return SUCCEEDED;
+
+    print_error(ERROR_INC, "Error creating a tmp file for \"%s\"!\n", name);
+
+    return FAILED;
   }
   
   print_find_error(name);
