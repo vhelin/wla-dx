@@ -32,7 +32,7 @@ int g_input_number_expects_dot = NO;
 #endif
 
 extern int g_source_index, g_source_file_size, g_parsed_int, g_macro_active, g_sizeof_g_tmp;
-extern char *g_buffer, *g_tmp, g_current_directive[256], *g_label_stack[256];
+extern char *g_buffer, *g_tmp, g_current_directive[MAX_NAME_LENGTH + 1], *g_label_stack[256];
 extern unsigned char g_asciitable[256];
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct map_t *g_defines_map;
