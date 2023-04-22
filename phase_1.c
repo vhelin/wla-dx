@@ -177,6 +177,7 @@ static char g_table_format[256];
 static int g_table_defined = 0, g_table_size = 0, g_table_index = 0;
 
 static int s_source_index_old = 0, s_line_current_old = 0;
+static int s_autopriority = 65535;
 
 static struct section_def *g_active_ramsection = NULL;
 
@@ -5432,6 +5433,12 @@ int directive_section(void) {
       }
 
       g_sec_tmp->priority = g_parsed_int;
+    }
+    else if (compare_next_token("AUTOPRIORITY") == SUCCEEDED) {
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      g_sec_tmp->priority = s_autopriority--;
     }
     else if (compare_next_token("KEEP") == SUCCEEDED) {
       if (skip_next_token() == FAILED)

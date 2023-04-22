@@ -3182,6 +3182,11 @@ If priorities are the same, then the size of the section matters, and bigger
 sections are processed before smaller ones. The default ``PRIORITY``, when not
 explicitly given, is 0.
 
+You can use ``AUTOPRIORITY`` instead of ``PRIORITY`` when you want to assign
+descending priority to sections. Using this you can make it so that e.g.,
+``APPENDTO`` sections are appended in the lexical parsing order. ``AUTOPRIORITY``
+starts from 65535 and is subtracted by one every time it's used.
+
 You can also create a RAM section. For more information about them, please
 read the ``.RAMSECTION`` directive explanation.
 
