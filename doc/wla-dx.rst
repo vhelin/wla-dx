@@ -5,6 +5,7 @@
     :numbered:
     
     introduction
+    quickstart
     asmdiv
     asmsyntax
     errormsg
