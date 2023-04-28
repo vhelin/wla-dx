@@ -22,3 +22,11 @@ Right after these, before any code is written, you should define bank, slot and 
     .ORGA $0000
 
 Now you are ready to start programming!
+
+The next step would be creating a linkfile for the linker as after the assembly files go through the assembler they need to be linked.
+Here is a minimal example of a linkfile when your project has just main.s (that has been assembled into main.o)::
+
+    [objects]
+    main.o
+
+Give this to the linker and you'll get the final binaries.
