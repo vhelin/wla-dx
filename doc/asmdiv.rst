@@ -3167,14 +3167,17 @@ somewhere in bank ``0`` and it has a sorting ``PRIORITY`` of 1000. If you replac
 but not in the ``$0`` - ``$14F`` area. If you replace ``FREE`` with ``SUPERFREE``
 the section will be inserted somewhere in any bank with the same size as bank ``0``.
 
-Here's the order in which WLA writes the sections:
+Here's the order in which WLALINK writes the sections:
 
 1. ``FORCE``
 2. ``SEMISUPERFREE``
 3. ``SEMISUBFREE``
-4. ``SEMIFREE`` & ``FREE``
-5. ``SUPERFREE``
-6. ``OVERWRITE``
+4. ``SEMIFREE``
+5. ``FREE``
+6. ``SUPERFREE``
+7. ``OVERWRITE``
+
+You can change this order using ``[sectionwriteorder]`` in a link file.
 
 Before the sections are inserted into the output file, they are sorted by
 priorities, so that the section with the highest priority is processed first.

@@ -2089,7 +2089,7 @@ int parse_data_blocks(void) {
         s->window_start = READ_T;
         s->window_end = READ_T;
         s->data = t;
-
+          
         s->address = 0;
         s->bank = g_obj_tmp->bank;
         s->slot = g_obj_tmp->slot;

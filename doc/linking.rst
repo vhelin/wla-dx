@@ -26,6 +26,7 @@ to link together. Here's the format:
         [definitions]
         [ramsections]
         [sections]
+        [sectionwriteorder]
 
 2. Start to list the file names. ::
     
@@ -87,6 +88,19 @@ to link together. Here's the format:
         start $150
         ...
 
+8. If you want to change the order in which the linker writes the sections to output::
+
+        [sectionwriteorder]
+        OVERWRITE
+        FORCE
+        FREE
+        SEMISUPERFREE
+        SEMISUBFREE
+        SEMIFREE
+        SUPERFREE
+
+Note that you have to specify all the section types here.
+        
 If flag ``v`` is used, WLALINK displays information about ROM file after a
 succesful linking.
 

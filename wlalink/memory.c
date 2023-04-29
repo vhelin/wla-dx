@@ -126,6 +126,9 @@ int mem_insert_pc(unsigned char d, int slot_current, int bank_current) {
   
   if (g_section_overwrite == OFF)
     g_rom_usage[g_pc_full]++;
+  else
+    g_rom_usage[g_pc_full] = 1;
+
   g_rom[g_pc_full] = d;
   g_pc_slot++;
   g_pc_bank++;
