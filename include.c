@@ -15,7 +15,7 @@
 #include "printf.h"
 
 
-extern int g_ind, g_source_index, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules;
+extern int g_source_index, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules;
 extern char *g_tmp;
 extern struct ext_include_collection g_ext_incdirs;
 extern FILE *g_file_out_ptr;

@@ -70,7 +70,7 @@ int g_rombanks = 0, g_rombanks_defined = 0, g_max_address = 0;
 int g_rambanks = 0, g_rambanks_defined = 0;
 int g_emptyfill = 0, g_emptyfill_defined = 0;
 int g_section_status = OFF, g_section_id = 1, g_line_count_status = ON;
-int g_parsed_int, g_source_index, g_ind, g_inz, g_ifdef = 0, g_slots_amount = 0, g_skip_elifs[256];
+int g_parsed_int, g_source_index, g_parse_dstruct_result, g_ifdef = 0, g_slots_amount = 0, g_skip_elifs[256];
 int g_memorymap_defined = 0;
 int g_defaultslot_defined = 0, g_defaultslot, g_current_slot = 0;
 int g_banksize_defined = 0, g_banksize = 0;
@@ -3566,6 +3566,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
             strcpy(tmpname, iname);
 
           parse_dstruct_entry(tmpname, us, labels_only, generate_labels);
+
           /* rewind */
           fprintf(g_file_out_ptr, "o%d 0 ", -us->size);
           us = us->next;
@@ -3630,7 +3631,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
     else {
       if (*labels_only == NO) {
         /* take care of the strings */
-        if (g_inz == INPUT_NUMBER_STRING) {
+        if (g_parse_dstruct_result == INPUT_NUMBER_STRING) {
           if (it->size < g_string_size) {
             print_error(ERROR_WRN, "String \"%s\" doesn't fit into the %d bytes of \"%s.%s\". Discarding the overflow.\n", g_label, it->size, s->name, it->name);
             c = it->size;
@@ -3645,56 +3646,56 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
         /* take care of the rest */
         else {
           if (it->size == 1) {
-            if ((g_inz == SUCCEEDED) && (g_parsed_int < -128 || g_parsed_int > 255)) {
+            if ((g_parse_dstruct_result == SUCCEEDED) && (g_parsed_int < -128 || g_parsed_int > 255)) {
               print_error(ERROR_DIR, "\"%s.%s\" expects 8-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
               return FAILED;
             }
 
-            if (g_inz == SUCCEEDED)
+            if (g_parse_dstruct_result == SUCCEEDED)
               fprintf(g_file_out_ptr, "d%d ", g_parsed_int);
-            else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+            else if (g_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
               fprintf(g_file_out_ptr, "k%d Q%s ", g_active_file_info_last->line_current, g_label);
-            else if (g_inz == INPUT_NUMBER_STACK)
+            else if (g_parse_dstruct_result == INPUT_NUMBER_STACK)
               fprintf(g_file_out_ptr, "c%d ", g_latest_stack);
 
             o = 1;
           }
           else if (it->size == 2) {
-            if (g_inz == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
+            if (g_parse_dstruct_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
               print_error(ERROR_DIR, "\"%s.%s\" expects 16-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
               return FAILED;
             }
 
-            if (g_inz == SUCCEEDED)
+            if (g_parse_dstruct_result == SUCCEEDED)
               fprintf(g_file_out_ptr, "y%d", g_parsed_int);
-            else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+            else if (g_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
               fprintf(g_file_out_ptr, "k%d r%s ", g_active_file_info_last->line_current, g_label);
-            else if (g_inz == INPUT_NUMBER_STACK)
+            else if (g_parse_dstruct_result == INPUT_NUMBER_STACK)
               fprintf(g_file_out_ptr, "C%d ", g_latest_stack);
 
             o = 2;
           }
           else if (it->size == 3) {
-            if (g_inz == SUCCEEDED && (g_parsed_int < -8388608 || g_parsed_int > 16777215)) {
+            if (g_parse_dstruct_result == SUCCEEDED && (g_parsed_int < -8388608 || g_parsed_int > 16777215)) {
               print_error(ERROR_DIR, "\"%s.%s\" expects 24-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
               return FAILED;
             }
 
-            if (g_inz == SUCCEEDED)
+            if (g_parse_dstruct_result == SUCCEEDED)
               fprintf(g_file_out_ptr, "z%d", g_parsed_int);
-            else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+            else if (g_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
               fprintf(g_file_out_ptr, "k%d q%s ", g_active_file_info_last->line_current, g_label);
-            else if (g_inz == INPUT_NUMBER_STACK)
+            else if (g_parse_dstruct_result == INPUT_NUMBER_STACK)
               fprintf(g_file_out_ptr, "T%d ", g_latest_stack);
 
             o = 3;
           }
           else if (it->size == 4) {
-            if (g_inz == SUCCEEDED)
+            if (g_parse_dstruct_result == SUCCEEDED)
               fprintf(g_file_out_ptr, "u%d", g_parsed_int);
-            else if (g_inz == INPUT_NUMBER_ADDRESS_LABEL)
+            else if (g_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
               fprintf(g_file_out_ptr, "k%d V%s ", g_active_file_info_last->line_current, g_label);
-            else if (g_inz == INPUT_NUMBER_STACK)
+            else if (g_parse_dstruct_result == INPUT_NUMBER_STACK)
               fprintf(g_file_out_ptr, "U%d ", g_latest_stack);
 
             o = 4;
@@ -3719,8 +3720,8 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
     it = it->next;
 
     if (*labels_only == NO) {
-      g_inz = input_number();
-      if (!(g_inz == SUCCEEDED || g_inz == INPUT_NUMBER_STRING || g_inz == INPUT_NUMBER_ADDRESS_LABEL || g_inz == INPUT_NUMBER_STACK))
+      g_parse_dstruct_result = input_number();
+      if (!(g_parse_dstruct_result == SUCCEEDED || g_parse_dstruct_result == INPUT_NUMBER_STRING || g_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL || g_parse_dstruct_result == INPUT_NUMBER_STACK))
         *labels_only = YES; /* ran out of data to read */
     }
   }
@@ -3852,9 +3853,9 @@ static void _generate_dstruct_padding(struct structure *s, int supplied_size) {
 
 int directive_dstruct(void) {
 
+  int q, q2, supplied_size, labels_only, generate_labels = YES;
   char iname[MAX_NAME_LENGTH*2+5];
   struct structure *s;
-  int q, q2, supplied_size, labels_only, generate_labels = YES;
 
   if (compare_next_token("INSTANCEOF") == SUCCEEDED) {
     /* nameless */
@@ -4049,9 +4050,9 @@ int directive_dstruct(void) {
 
   /* legacy syntax */
 
-  g_inz = input_number();
+  g_parse_dstruct_result = input_number();
 
-  if (g_inz == INPUT_NUMBER_ADDRESS_LABEL) {
+  if (g_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL) {
     if (g_label[strlen(g_label)-1] == ':') {
       print_error(ERROR_ERR, "Label in a wrong place?\n");
       return FAILED;
@@ -4065,7 +4066,7 @@ int directive_dstruct(void) {
   /* generate padding */
   _generate_dstruct_padding(s, supplied_size);
   
-  if (g_inz == INPUT_NUMBER_EOL)
+  if (g_parse_dstruct_result == INPUT_NUMBER_EOL)
     next_line();
   else {
     print_error(ERROR_DIR, "Too much data for structure \"%s\".\n", s->name);
