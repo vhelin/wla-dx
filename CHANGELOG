@@ -1475,7 +1475,8 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.20 (29-Apr-2022) Added [sectionwriteorder] to linkfile.
+v5.20 (29-Apr-2022) Added [sectionwriteorder] and [ramsectionwriteorder]
+                      to linkfile.
 
 v5.19 (24-Nov-2022) WLALINK turned doubles into ints too early in computing
                       pending calculations on some cases thus losing

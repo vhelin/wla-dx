@@ -2788,8 +2788,11 @@ Here's the order in which WLA writes the RAM sections:
 
 1. ``FORCE``
 2. ``SEMISUBFREE``
-3. ``SEMIFREE`` & ``FREE``
+3. ``SEMIFREE``
+4. ``FREE``
 
+You can change this order using ``[ramsectionwriteorder]`` in a link file.
+   
 NOTE: You can use ``ORGA`` to specify the fixed address for a ``FORCE``
 ``RAMSECTION``. ``ORG`` is also supported.
 

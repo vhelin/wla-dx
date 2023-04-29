@@ -285,7 +285,7 @@ void _debug_print_label(struct label *l) {
 }
 
 static void _debug_print_sections(void) {
-    
+
   if (g_sec_first != NULL) {
     struct section *s = g_sec_first;
     char *section_status[] = {

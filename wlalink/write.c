@@ -45,7 +45,7 @@ extern int g_memory_file_id, g_memory_file_id_source, g_memory_line_number, g_ou
 extern int g_program_start, g_program_end, g_snes_mode, g_smc_status;
 extern int g_snes_sramsize, g_num_sorted_anonymous_labels, g_sort_sections;
 extern int g_output_type, g_program_address_start, g_program_address_end, g_program_address_start_type, g_program_address_end_type;
-extern int g_section_table_table_max, g_section_write_order[SECTION_TYPES_COUNT-2];
+extern int g_section_table_table_max, g_section_write_order[SECTION_TYPES_COUNT-2], g_ramsection_write_order[RAMSECTION_TYPES_COUNT];
 
 static int g_current_stack_calculation_addr = 0;
 
@@ -1332,19 +1332,32 @@ int insert_sections(void) {
   /*******************************************************************************************/
   /* RAM sections */
   /*******************************************************************************************/
-  
-  if (_write_ramsections_force() == FAILED)
-    return FAILED;
 
-  if (_write_ramsections_semisubfree() == FAILED)
-    return FAILED;
+  for (i = 0; i < RAMSECTION_TYPES_COUNT; i++) {
+    int status = g_ramsection_write_order[i];
 
-  if (_write_ramsections_free_and_semifree(SECTION_STATUS_RAM_SEMIFREE) == FAILED)
-    return FAILED;
+    if (status == SECTION_STATUS_RAM_FREE) {
+      if (_write_ramsections_free_and_semifree(SECTION_STATUS_RAM_FREE) == FAILED)
+        return FAILED;
+    }
+    else if (status == SECTION_STATUS_RAM_FORCE) {
+      if (_write_ramsections_force() == FAILED)
+        return FAILED;
+    }
+    else if (status == SECTION_STATUS_RAM_SEMISUBFREE) {
+      if (_write_ramsections_semisubfree() == FAILED)
+        return FAILED;
+    }
+    else if (status == SECTION_STATUS_RAM_SEMIFREE) {
+      if (_write_ramsections_free_and_semifree(SECTION_STATUS_RAM_SEMIFREE) == FAILED)
+        return FAILED;
+    }
+    else {
+      fprintf(stderr, "INSERT_SECTIONS: Unhandled .RAMSECTION type %d. Please submit a bug report!\n", status);
+      return FAILED;
+    }
+  }
 
-  if (_write_ramsections_free_and_semifree(SECTION_STATUS_RAM_FREE) == FAILED)
-    return FAILED;
-  
   /*******************************************************************************************/
   /* ROM sections */
   /*******************************************************************************************/
