@@ -1,0 +1,2 @@
+[objects]
+main.o

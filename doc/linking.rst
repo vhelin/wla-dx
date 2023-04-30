@@ -137,6 +137,12 @@ If flag ``D`` is used, WLALINK doesn't create any _sizeof_* labels. Note that
 to disable fully _sizeof_* label creation, you'll also need to give WLA the
 ``s`` flag.
 
+If flag ``pS`` is used then WLALINK doesn't use section type in writing the
+``.SECTION`` s, but instead uses just the ``PRIORITY`` (and size) when it
+writes the ``.SECTION`` s to output.
+
+Flag ``pR`` works the same as ``pS`` but for ``.RAMSECTION`` s.
+
 If flag ``t`` is used with ``c64PRG``, WLALINK will add a two byte header to the
 program file (use with flag ``b``). The header contains the load address for
 the PRG. Use the flag ``a`` to specify the load address. It can be a value or

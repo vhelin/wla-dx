@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.20a (29.4.2023)";
+char g_version_string[] = "$VER: wlalink 5.20a (30.4.2023)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -64,7 +64,7 @@ int g_sms_header = 0, g_sms_checksum_already_written = 0, g_sms_checksum_size_de
 int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode = 0, g_smd_checksum;
 int g_smc_status = 0, g_snes_sramsize = 0;
 int g_output_type = OUTPUT_TYPE_UNDEFINED, g_sort_sections = YES;
-int g_num_sorted_anonymous_labels = 0;
+int g_num_sorted_anonymous_labels = 0, g_use_priority_only_writing_sections = NO, g_use_priority_only_writing_ramsections = NO;
 int g_emptyfill = 0, g_paths_in_linkfile_are_relative_to_linkfile = NO;
 
 static int g_create_sizeof_definitions = YES, g_listfile_data = NO;
@@ -397,6 +397,8 @@ int main(int argc, char *argv[]) {
     printf("-D  Don't create _sizeof_* definitions\n");
     printf("-nS Don't sort the sections\n");
     printf("-i  Write list files\n");
+    printf("-pS Write .SECTIONs based on PRIORITY only, ignore .SECTION types\n");
+    printf("-pR Write .RAMSECTIONs based on PRIORITY only, ignore .RAMSECTION types\n");
     printf("-r  ROM file output (default)\n");
     printf("-R  Make file paths in link file relative to its location\n");
     printf("-s  Write also a NO$GMB/NO$SNES symbol file\n");
@@ -1337,6 +1339,14 @@ int parse_flags(char **flags, int flagc) {
     }
     else if (!strcmp(flags[count], "-nS")) {
       g_sort_sections = NO;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-pS")) {
+      g_use_priority_only_writing_sections = YES;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-pR")) {
+      g_use_priority_only_writing_ramsections = YES;
       continue;
     }
     else if (!strcmp(flags[count], "-v")) {

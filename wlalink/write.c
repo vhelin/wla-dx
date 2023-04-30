@@ -46,6 +46,7 @@ extern int g_program_start, g_program_end, g_snes_mode, g_smc_status;
 extern int g_snes_sramsize, g_num_sorted_anonymous_labels, g_sort_sections;
 extern int g_output_type, g_program_address_start, g_program_address_end, g_program_address_start_type, g_program_address_end_type;
 extern int g_section_table_table_max, g_section_write_order[SECTION_TYPES_COUNT-2], g_ramsection_write_order[RAMSECTION_TYPES_COUNT];
+extern int g_use_priority_only_writing_sections, g_use_priority_only_writing_ramsections;
 
 static int g_current_stack_calculation_addr = 0;
 
@@ -753,7 +754,7 @@ static int _write_sections_semisuperfree(void) {
 
   s = g_sec_first;
   while (s != NULL) {
-    if (s->alive == YES && (s->status == SECTION_STATUS_SEMISUPERFREE)) {
+    if (s->alive == YES && s->status == SECTION_STATUS_SEMISUPERFREE) {
       if (_write_section_semisuperfree(s) == FAILED)
         return FAILED;
     }
@@ -1333,28 +1334,55 @@ int insert_sections(void) {
   /* RAM sections */
   /*******************************************************************************************/
 
-  for (i = 0; i < RAMSECTION_TYPES_COUNT; i++) {
-    int status = g_ramsection_write_order[i];
+  if (g_use_priority_only_writing_ramsections == YES) {
+    s = g_sec_first;
+    while (s != NULL) {
+      if (s->alive == YES) {
+        if (s->status == SECTION_STATUS_RAM_FREE) {
+          if (_write_ramsection_free_and_semifree(s) == FAILED)
+            return FAILED;
+        }
+        else if (s->status == SECTION_STATUS_RAM_SEMIFREE) {
+          if (_write_ramsection_free_and_semifree(s) == FAILED)
+            return FAILED;
+        }
+        else if (s->status == SECTION_STATUS_RAM_FORCE) {
+          if (_write_ramsection_force(s) == FAILED)
+            return FAILED;
+        }
+        else if (s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
+          if (_write_ramsection_semisubfree(s) == FAILED)
+            return FAILED;
+        }
+      }
+      
+      s = s->next;
+    }
+  }
+  else {
+    for (i = 0; i < RAMSECTION_TYPES_COUNT; i++) {
+      int status = g_ramsection_write_order[i];
 
-    if (status == SECTION_STATUS_RAM_FREE) {
-      if (_write_ramsections_free_and_semifree(SECTION_STATUS_RAM_FREE) == FAILED)
+      if (status == SECTION_STATUS_RAM_FREE) {
+        if (_write_ramsections_free_and_semifree(SECTION_STATUS_RAM_FREE) == FAILED)
+          return FAILED;
+      }
+      else if (status == SECTION_STATUS_RAM_FORCE) {
+        if (_write_ramsections_force() == FAILED)
+          return FAILED;
+      }
+      else if (status == SECTION_STATUS_RAM_SEMISUBFREE) {
+        if (_write_ramsections_semisubfree() == FAILED)
+          return FAILED;
+      }
+      else if (status == SECTION_STATUS_RAM_SEMIFREE) {
+        if (_write_ramsections_free_and_semifree(SECTION_STATUS_RAM_SEMIFREE) == FAILED)
+          return FAILED;
+      }
+      else {
+        fprintf(stderr, "INSERT_SECTIONS: Unhandled .RAMSECTION type %d. Please submit a bug report!\n", status);
         return FAILED;
-    }
-    else if (status == SECTION_STATUS_RAM_FORCE) {
-      if (_write_ramsections_force() == FAILED)
-        return FAILED;
-    }
-    else if (status == SECTION_STATUS_RAM_SEMISUBFREE) {
-      if (_write_ramsections_semisubfree() == FAILED)
-        return FAILED;
-    }
-    else if (status == SECTION_STATUS_RAM_SEMIFREE) {
-      if (_write_ramsections_free_and_semifree(SECTION_STATUS_RAM_SEMIFREE) == FAILED)
-        return FAILED;
-    }
-    else {
-      fprintf(stderr, "INSERT_SECTIONS: Unhandled .RAMSECTION type %d. Please submit a bug report!\n", status);
-      return FAILED;
+      }
     }
   }
 
@@ -1366,41 +1394,80 @@ int insert_sections(void) {
     return FAILED;
 
   /* write user definable sections */
-  
-  for (i = 0; i < SECTION_TYPES_COUNT-2; i++) {
-    int status = g_section_write_order[i];
 
-    if (status == SECTION_STATUS_FORCE) {
-      if (_write_sections_force() == FAILED)
-        return FAILED;
+  if (g_use_priority_only_writing_sections == YES) {
+    s = g_sec_first;
+    while (s != NULL) {
+      if (s->alive == YES) {
+        if (s->status == SECTION_STATUS_FORCE) {
+          if (_write_section_force(s) == FAILED)
+            return FAILED;
+        }
+        else if (s->status == SECTION_STATUS_SEMISUPERFREE) {
+          if (_write_section_semisuperfree(s) == FAILED)
+            return FAILED;
+        }
+        else if (s->status == SECTION_STATUS_SEMISUBFREE) {
+          if (_write_section_semisubfree(s) == FAILED)
+            return FAILED;
+        }
+        else if (s->status == SECTION_STATUS_SEMIFREE) {
+          if (_write_section_free_and_semifree(s) == FAILED)
+            return FAILED;
+        }
+        else if (s->status == SECTION_STATUS_FREE) {
+          if (_write_section_free_and_semifree(s) == FAILED)
+            return FAILED;
+        }
+        else if (s->status == SECTION_STATUS_SUPERFREE) {
+          if (_write_section_superfree(s) == FAILED)
+            return FAILED;
+        }
+        else if (s->status == SECTION_STATUS_OVERWRITE) {
+          if (_write_section_overwrite(s) == FAILED)
+            return FAILED;
+        }
+      }
+      
+      s = s->next;
     }
-    else if (status == SECTION_STATUS_SEMISUPERFREE) {
-      if (_write_sections_semisuperfree() == FAILED)
+  }
+  else {
+    for (i = 0; i < SECTION_TYPES_COUNT-2; i++) {
+      int status = g_section_write_order[i];
+
+      if (status == SECTION_STATUS_FORCE) {
+        if (_write_sections_force() == FAILED)
+          return FAILED;
+      }
+      else if (status == SECTION_STATUS_SEMISUPERFREE) {
+        if (_write_sections_semisuperfree() == FAILED)
+          return FAILED;
+      }
+      else if (status == SECTION_STATUS_SEMISUBFREE) {
+        if (_write_sections_semisubfree() == FAILED)
+          return FAILED;
+      }
+      else if (status == SECTION_STATUS_SEMIFREE) {
+        if (_write_sections_free_and_semifree(SECTION_STATUS_SEMIFREE) == FAILED)
+          return FAILED;
+      }
+      else if (status == SECTION_STATUS_FREE) {
+        if (_write_sections_free_and_semifree(SECTION_STATUS_FREE) == FAILED)
+          return FAILED;
+      }
+      else if (status == SECTION_STATUS_SUPERFREE) {
+        if (_write_sections_superfree() == FAILED)
+          return FAILED;
+      }
+      else if (status == SECTION_STATUS_OVERWRITE) {
+        if (_write_sections_overwrite() == FAILED)
+          return FAILED;
+      }
+      else {
+        fprintf(stderr, "INSERT_SECTIONS: Unhandled .SECTION type %d. Please submit a bug report!\n", status);
         return FAILED;
-    }
-    else if (status == SECTION_STATUS_SEMISUBFREE) {
-      if (_write_sections_semisubfree() == FAILED)
-        return FAILED;
-    }
-    else if (status == SECTION_STATUS_SEMIFREE) {
-      if (_write_sections_free_and_semifree(SECTION_STATUS_SEMIFREE) == FAILED)
-        return FAILED;
-    }
-    else if (status == SECTION_STATUS_FREE) {
-      if (_write_sections_free_and_semifree(SECTION_STATUS_FREE) == FAILED)
-        return FAILED;
-    }
-    else if (status == SECTION_STATUS_SUPERFREE) {
-      if (_write_sections_superfree() == FAILED)
-        return FAILED;
-    }
-    else if (status == SECTION_STATUS_OVERWRITE) {
-      if (_write_sections_overwrite() == FAILED)
-        return FAILED;
-    }
-    else {
-      fprintf(stderr, "INSERT_SECTIONS: Unhandled .SECTION type %d. Please submit a bug report!\n", status);
-      return FAILED;
+      }
     }
   }
   
