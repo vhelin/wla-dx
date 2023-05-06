@@ -16,5 +16,6 @@ int strcaselesscmpn(char *s1, char *s2, int length);
 int process_special_labels(char *label);
 int process_string_for_special_characters(char *label, int *string_size);
 int parse_function(char *in, char *name, int *found_function, int *parsed_chars);
+int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macros);
 
 #endif

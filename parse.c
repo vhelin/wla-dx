@@ -183,21 +183,21 @@ int compare_next_token(char *token) {
 }
 
 
-static int _add_namespace_to_g_label(int add_outside_macros) {
+int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macros) {
 
   /* don't add namespace to some specific labels */
-  if (strcaselesscmp(g_label, "_out") == 0)
+  if (strcaselesscmp(label, "_out") == 0)
     return SUCCEEDED;
-  if (g_label[0] == '\\')
+  if (label[0] == '\\')
     return SUCCEEDED;
-  if (g_label[0] == '@')
+  if (label[0] == '@')
     return SUCCEEDED;
   
   /* label reference inside a namespaced .MACRO? */
   if (g_macro_active != 0) {
     struct definition *tmp_def;
     
-    hashmap_get(g_defines_map, g_label, (void*)&tmp_def);
+    hashmap_get(g_defines_map, label, (void*)&tmp_def);
     if (tmp_def == NULL) {
       struct macro_runtime *mrt = &g_macro_stack[g_macro_active - 1];
 
@@ -205,18 +205,18 @@ static int _add_namespace_to_g_label(int add_outside_macros) {
         /* yes! add the namespace! */
         char label_tmp[MAX_NAME_LENGTH + 1];
       
-        if (strlen(mrt->macro->namespace) + strlen(g_label) >= MAX_NAME_LENGTH) {
+        if (strlen(mrt->macro->namespace) + strlen(label) >= MAX_NAME_LENGTH) {
           print_error(ERROR_NUM, "The label with the namespace is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
           return FAILED;
         }
       
-        snprintf(label_tmp, sizeof(label_tmp), "%s.%s", mrt->macro->namespace, g_label);
-        strcpy(g_label, label_tmp);
+        snprintf(label_tmp, sizeof(label_tmp), "%s.%s", mrt->macro->namespace, label);
+        strcpy(label, label_tmp);
       }
     }
   }
   else if (add_outside_macros == YES)
-    add_namespace_to_string(g_label, sizeof(g_label), "_add_namespace_to_g_label()");
+    add_namespace_to_string(label, sizeof_label, "add_namespace_to_a_label()");
 
   return SUCCEEDED;
 }
@@ -274,7 +274,7 @@ int input_next_string(void) {
     return FAILED;
 
   if (g_add_namespace_to_everything_inside_a_namespaced_file == YES || g_force_add_namespace == YES) {
-    if (_add_namespace_to_g_label(YES) == FAILED)
+    if (add_namespace_to_a_label(g_label, sizeof(g_label), YES) == FAILED)
       return FAILED;
   }
   
@@ -1334,8 +1334,14 @@ int input_number(void) {
   if (expand_variables_inside_string(g_label, sizeof(g_label), &k) == FAILED)
     return FAILED;
 
-  if (_add_namespace_to_g_label(NO) == FAILED)
-    return FAILED;
+  if (g_add_namespace_to_everything_inside_a_namespaced_file == YES || g_force_add_namespace == YES) {
+    if (add_namespace_to_a_label(g_label, sizeof(g_label), YES) == FAILED)
+      return FAILED;
+  }
+  else {
+    if (add_namespace_to_a_label(g_label, sizeof(g_label), NO) == FAILED)
+      return FAILED;
+  }
 
   /* label_tmp contains the label without possible prefix ':' */
   if (strlen(g_label) > 1 && g_label[0] == ':')
@@ -1504,7 +1510,7 @@ int get_next_plain_string(void) {
     return FAILED;
 
   if (g_add_namespace_to_everything_inside_a_namespaced_file == YES || g_force_add_namespace == YES) {
-    if (_add_namespace_to_g_label(YES) == FAILED)
+    if (add_namespace_to_a_label(g_label, sizeof(g_label), YES) == FAILED)
       return FAILED;
   }
 

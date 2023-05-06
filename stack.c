@@ -30,6 +30,7 @@ extern struct macro_runtime *g_macro_stack;
 extern double g_parsed_double;
 extern unsigned char g_asciitable[256];
 extern int g_operand_hint, g_operand_hint_type, g_can_calculate_a_minus_b, g_expect_calculations, g_asciitable_defined;
+extern int g_add_namespace_to_everything_inside_a_namespaced_file, g_force_add_namespace;
 
 int g_latest_stack = 0, g_last_stack_id = 0, g_resolve_stack_calculations = YES, g_stack_calculations_max = 0;
 int g_parsing_function_body = NO, g_fail_quetly_on_non_found_functions = NO;
@@ -2168,26 +2169,13 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           return FAILED;
 
         /* label reference inside a namespaced .MACRO? */
-        if (g_macro_active != 0 && si[q].string[0] != '\\' && si[q].string[0] != '@') {
-          struct definition *tmp_def;
-    
-          hashmap_get(g_defines_map, si[q].string, (void*)&tmp_def);
-          if (tmp_def == NULL) {
-            struct macro_runtime *mrt = &g_macro_stack[g_macro_active - 1];
-
-            if (mrt->macro->namespace[0] != 0) {
-              /* yes! add the namespace! */
-              char label_tmp[MAX_NAME_LENGTH + 1];
-            
-              if (strlen(mrt->macro->namespace) + k >= MAX_NAME_LENGTH) {
-                print_error(ERROR_STC, "The label with the namespace is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
-                return FAILED;
-              }
-      
-              snprintf(label_tmp, sizeof(label_tmp), "%s.%s", mrt->macro->namespace, si[q].string);
-              strcpy(si[q].string, label_tmp);
-            }
-          }
+        if (g_add_namespace_to_everything_inside_a_namespaced_file == YES || g_force_add_namespace == YES) {
+          if (add_namespace_to_a_label(si[q].string, sizeof(si[q].string), YES) == FAILED)
+            return FAILED;
+        }
+        else {
+          if (add_namespace_to_a_label(si[q].string, sizeof(si[q].string), NO) == FAILED)
+            return FAILED;
         }
       }
       else {

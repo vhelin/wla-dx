@@ -12,6 +12,10 @@ someLabel2:
         .macro IncrementHELLOMOTO
         .redefine HELLOMOTO \1+1
         .endm
+
+        .define HIYA 1
+        .db HIYA, HIYA+1
+        .export HIYA
         
 macro:
         .incbin "macro.s" fsize macroSize
