@@ -560,6 +560,7 @@ struct macro_argument {
 
 struct macro_static {
   char name[MAX_NAME_LENGTH + 1];
+  char namespace[MAX_NAME_LENGTH + 1];
   int  id;
   int  start;
   int  calls;

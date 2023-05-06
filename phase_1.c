@@ -326,7 +326,7 @@ int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
 
   strcpy(fullname, name);
 
-  /* append the namespace, if this file uses if */
+  /* append the namespace, if this file uses it */
   if (add_namespace == YES) {
     if (g_active_file_info_last->namespace[0] != 0) {
       if (add_namespace_to_string(fullname, sizeof(fullname), "MACRO") == FAILED) {
@@ -8604,6 +8604,12 @@ int directive_macro(void) {
   m->isolated_unnamed = NO;
   m->id = g_macro_id++;
 
+  /* store the namespace so we'll later know in which namespace the .MACRO was defined in */
+  if (g_active_file_info_last->namespace[0] != 0)
+    strcpy(m->namespace, g_active_file_info_last->namespace);
+  else
+    m->namespace[0] = 0;
+  
   /* skip '(' if it exists */
   if (compare_and_skip_next_symbol('(') == SUCCEEDED) {
     if (compare_and_skip_next_symbol(')') == FAILED) {

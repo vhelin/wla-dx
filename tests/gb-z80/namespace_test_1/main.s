@@ -182,3 +182,18 @@ _globalFunc:
         namespaced.callMe                      ; @BT 22 11
         
         .db "<02"                              ; @BT END
+
+
+        .define HELLOMOTO 1
+
+        .include "macro.s" namespace foo
+
+        .section "main" free keep
+        call foo.someLabel
+        foo.someMacro
+        .db "03>"               ; @BT TEST-03 03 START
+        foo.IncrementHELLOMOTO 1
+        .db HELLOMOTO           ; @BT 02
+        .db "<03"               ; @BT END
+        .ends
+        

@@ -1323,6 +1323,22 @@ int input_number(void) {
 
   process_special_labels(g_label);
 
+  /* label reference inside a namespaced .MACRO? */
+  if (g_macro_active != 0) {
+    struct macro_runtime *mrt = &g_macro_stack[g_macro_active - 1];
+
+    if (mrt->macro->namespace[0] != 0) {
+      /* yes! add the namespace! */
+      if (strlen(mrt->macro->namespace) + strlen(g_label) >= MAX_NAME_LENGTH) {
+        print_error(ERROR_NUM, "The label with the namespace is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
+        return FAILED;
+      }
+      
+      snprintf(label_tmp, sizeof(label_tmp), "%s.%s", mrt->macro->namespace, g_label);
+      strcpy(g_label, label_tmp);
+    }
+  }
+  
   return INPUT_NUMBER_ADDRESS_LABEL;
 }
 
