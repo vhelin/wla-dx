@@ -1479,11 +1479,13 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 
 
-v5.20 (30-Apr-2022) Added [sectionwriteorder] and [ramsectionwriteorder]
+v5.20 (06-May-2022) Added [sectionwriteorder] and [ramsectionwriteorder]
                       to linkfile.
                     Added -pS and -pR that make WLALINK to ignore .SECTION
                       types when writing the .SECTIONs to output, only
                       .SECTION's PRIORITY (and size) will affect the order.
+                    Negative definitions have now 8 characters in a symbol
+                      file written with -S.
 
 v5.19 (24-Nov-2022) WLALINK turned doubles into ints too early in computing
                       pending calculations on some cases thus losing

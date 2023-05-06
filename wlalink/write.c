@@ -2470,7 +2470,7 @@ int write_symbol_file(char *outname, unsigned char mode, unsigned char output_ad
           continue;
         }
 
-        fprintf(f, "%.8lx %s\n", (long unsigned int)l->address, l->name);
+        fprintf(f, "%.8x %s\n", (unsigned int)l->address, l->name);
 
         l = l->next;
       }
