@@ -16,12 +16,13 @@
 
 
 extern int g_source_index, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules;
-extern char *g_tmp;
+extern char *g_tmp, g_label[MAX_NAME_LENGTH + 1];
 extern struct ext_include_collection g_ext_incdirs;
 extern FILE *g_file_out_ptr;
 extern struct stringmaptable *g_stringmaptables;
 extern struct string *g_fopen_filenames_first;
-
+extern int g_add_namespace_to_everything_inside_a_namespaced_file;
+        
 struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
 struct active_file_info *g_active_file_info_first = NULL, *g_active_file_info_last = NULL, *g_active_file_info_tmp = NULL;
 struct file_name_info *g_file_name_info_first = NULL, *g_file_name_info_last = NULL, *g_file_name_info_tmp;
@@ -444,24 +445,30 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       skip_next_token();
 
       /* get the definition label */
-      if (get_next_token() == FAILED)
+      if (get_next_plain_string() == FAILED)
         return FAILED;
 
-      add_a_new_definition(g_tmp, (double)file_size, NULL, DEFINITION_TYPE_VALUE, 0);
+      add_a_new_definition(g_label, (double)file_size, NULL, DEFINITION_TYPE_VALUE, 0);
     }
     /* FILTER? */
     else if (compare_next_token("FILTER") == SUCCEEDED) {
       skip_next_token();
 
       /* get the filter macro name */
-      if (get_next_token() == FAILED)
+      if (get_next_plain_string() == FAILED)
         return FAILED;
 
-      if (macro_get(g_tmp, YES, macro) == FAILED)
-        return FAILED;
+      if (g_add_namespace_to_everything_inside_a_namespaced_file == NO) {
+        if (macro_get(g_label, YES, macro) == FAILED)
+          return FAILED;
+      }
+      else {
+        if (macro_get(g_label, NO, macro) == FAILED)
+          return FAILED;
+      }
       
       if (*macro == NULL) {
-        print_error(ERROR_INB, "No MACRO \"%s\" defined.\n", g_tmp);
+        print_error(ERROR_INB, "No MACRO \"%s\" defined.\n", g_label);
         return FAILED;
       }
     }

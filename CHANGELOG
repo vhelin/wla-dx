@@ -3,13 +3,17 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------------
 
-v10.5 (22-Apr-2023) [ALL] .DSB, .DSW, .DSL and .DSD produced only one pending
+v10.5 (06-May-2023) [ALL] .DSB, .DSW, .DSL and .DSD produced only one pending
                       calculation struct when encountered a pending calculation
                       thus the result was wrong.
                     [ALL] Added .ALIGN.
                     [ALL] Added BANK, SLOT, ORG and ORGA to .SECTION.
                     [ALL] Added a new .SECTION type: SEMISUPERFREE
                     [ALL] Added AUTOPRIORITY to .SECTION.
+                    [ALL] Everything should be now namespaced inside a
+                      namespaced file with -a flag.
+                    [ALL] References inside a .MACRO inside a namespaced file
+                      have now the namespace added to them.
                     [68K] Added support for MC68000.
                     [68K] Added .COMPUTESMDCHECKSUM and .SMDHEADER.
 

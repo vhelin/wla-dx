@@ -2168,20 +2168,25 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           return FAILED;
 
         /* label reference inside a namespaced .MACRO? */
-        if (g_macro_active != 0 && si[q].string[0] != '\\') {
-          struct macro_runtime *mrt = &g_macro_stack[g_macro_active - 1];
+        if (g_macro_active != 0 && si[q].string[0] != '\\' && si[q].string[0] != '@') {
+          struct definition *tmp_def;
+    
+          hashmap_get(g_defines_map, si[q].string, (void*)&tmp_def);
+          if (tmp_def == NULL) {
+            struct macro_runtime *mrt = &g_macro_stack[g_macro_active - 1];
 
-          if (mrt->macro->namespace[0] != 0) {
-            /* yes! add the namespace! */
-            char label_tmp[MAX_NAME_LENGTH + 1];
+            if (mrt->macro->namespace[0] != 0) {
+              /* yes! add the namespace! */
+              char label_tmp[MAX_NAME_LENGTH + 1];
             
-            if (strlen(mrt->macro->namespace) + k >= MAX_NAME_LENGTH) {
-              print_error(ERROR_STC, "The label with the namespace is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
-              return FAILED;
-            }
+              if (strlen(mrt->macro->namespace) + k >= MAX_NAME_LENGTH) {
+                print_error(ERROR_STC, "The label with the namespace is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
+                return FAILED;
+              }
       
-            snprintf(label_tmp, sizeof(label_tmp), "%s.%s", mrt->macro->namespace, si[q].string);
-            strcpy(si[q].string, label_tmp);
+              snprintf(label_tmp, sizeof(label_tmp), "%s.%s", mrt->macro->namespace, si[q].string);
+              strcpy(si[q].string, label_tmp);
+            }
           }
         }
       }

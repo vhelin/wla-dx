@@ -129,7 +129,7 @@ LABEL	.print "THE END\n"
 	.define STR_SPACE "space"
 
 	.include "name", STR_SPACE ".s" once namespace "oops"
-	.dw hello.NamespaceMain, oops.NamespaceBonus
+	.dw oops.NamespaceMain, oops.NamespaceBonus
 
 	.define INCLUDE "include"
 	.define LU "lu"

@@ -147,7 +147,7 @@ extern char *g_final_name;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
-extern int g_makefile_rules, g_parsing_function_body;
+extern int g_makefile_rules, g_parsing_function_body, g_force_add_namespace;
 
 static int g_macro_stack_size = 0, g_repeat_stack_size = 0;
 
@@ -257,6 +257,9 @@ static int _add_namespace_to_string(char *s, int sizeof_s, char *type, char *nam
 
 int add_namespace_to_string(char *s, int sizeof_s, char *type) {
 
+  if (g_active_file_info_last == NULL || g_active_file_info_last->namespace[0] == 0)
+    return SUCCEEDED;
+  
   return _add_namespace_to_string(s, sizeof_s, type, g_active_file_info_last->namespace);
 }
 
@@ -326,7 +329,6 @@ int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
 
   strcpy(fullname, name);
 
-  /* append the namespace, if this file uses it */
   if (add_namespace == YES) {
     if (g_active_file_info_last->namespace[0] != 0) {
       if (add_namespace_to_string(fullname, sizeof(fullname), "MACRO") == FAILED) {
@@ -7656,6 +7658,35 @@ int directive_undef_undefine(void) {
 }
 
 
+int directive_export(void) {
+
+  int q = 0;
+
+  while (1) {
+    int string_result;
+
+    string_result = input_next_string();
+    if (string_result == FAILED)
+      return FAILED;
+    if (string_result == INPUT_NUMBER_EOL) {
+      if (q != 0) {
+        next_line();
+        return SUCCEEDED;
+      }
+      print_error(ERROR_DIR, ".EXPORT requires definition name(s).\n");
+      return FAILED;
+    }
+
+    q++;
+
+    if (export_a_definition(g_label) == FAILED)
+      return FAILED;
+  }
+      
+  return FAILED;
+}
+
+
 int directive_enumid(void) {
   
   int q;
@@ -8556,33 +8587,24 @@ int directive_macro(void) {
     return FAILED;
   }
 
-  if (get_next_token() == FAILED)
+  g_force_add_namespace = YES;
+  if (get_next_plain_string() == FAILED)
     return FAILED;
-
-  if (strcaselesscmp(g_current_directive, "ENDM") == 0) {
-    print_error(ERROR_DIR, "A MACRO must have a name.\n");
-    return FAILED;
-  }
-
+  g_force_add_namespace = NO;
+  
   macro_start_line = g_active_file_info_last->line_current;
 
-  /* append the namespace, if this file uses if */
-  if (g_active_file_info_last->namespace[0] != 0) {
-    if (add_namespace_to_string(g_tmp, g_sizeof_g_tmp, "MACRO") == FAILED)
-      return FAILED;
-  }
-
-  if (macro_get(g_tmp, NO, &m) == FAILED)
+  if (macro_get(g_label, NO, &m) == FAILED)
     return FAILED;
   
   if (m != NULL) {
-    print_error(ERROR_DIR, "MACRO \"%s\" was defined for the second time.\n", g_tmp);
+    print_error(ERROR_DIR, ".MACRO \"%s\" was defined for the second time.\n", g_label);
     return FAILED;
   }
 
   m = calloc(sizeof(struct macro_static), 1);
   if (m == NULL) {
-    print_error(ERROR_DIR, "Out of memory while allocating room for a new MACRO.\n");
+    print_error(ERROR_DIR, "Out of memory while allocating room for a new .MACRO.\n");
     return FAILED;
   }
 
@@ -8595,7 +8617,7 @@ int directive_macro(void) {
     g_macros_last = m;
   }
 
-  strcpy(m->name, g_tmp);
+  strcpy(m->name, g_label);
   m->next = NULL;
   m->calls = 0;
   m->filename_id = g_active_file_info_last->filename_id;
@@ -10948,31 +10970,8 @@ int parse_directive(void) {
         return directive_enumid();
 
       /* EXPORT */
-      if (strcmp(directive_upper, "EXPORT") == 0) {
-        q = 0;
-        while (1) {
-          int string_result;
-
-          string_result = input_next_string();
-          if (string_result == FAILED)
-            return FAILED;
-          if (string_result == INPUT_NUMBER_EOL) {
-            if (q != 0) {
-              next_line();
-              return SUCCEEDED;
-            }
-            print_error(ERROR_DIR, ".EXPORT requires definition name(s).\n");
-            return FAILED;
-          }
-
-          q++;
-
-          if (export_a_definition(g_label) == FAILED)
-            return FAILED;
-        }
-      
-        return FAILED;
-      }
+      if (strcmp(directive_upper, "EXPORT") == 0)
+        return directive_export();
 
 #if defined(W65816)  
       /* EXHIROM */

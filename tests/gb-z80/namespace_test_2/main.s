@@ -19,5 +19,17 @@
         .section "main" free keep
         call foo.someLabel
         foo.someMacro
+        foo.myMacro 1
         .ends
-        
+
+        .macro "myMacro2" args myArg2
+        .print "myArg2 equals ", myArg2, "\n"
+
+        .if myArg2 < 0 || myArg2 > 15
+            .fail "invalid arg"
+        .endif
+
+        .db myArg2 + 1
+        .endm
+
+        myMacro2 2

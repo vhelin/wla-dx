@@ -24,9 +24,7 @@ namespacedLabel:
       .dw namespacedRAMVariable1+1           ; @BT 01 A0
 
       ld [namespacedLabel],A                 ; @BT EA 00 04
-      ld [namespaced.namespacedLabel],A      ; @BT EA 00 04
       ld [namespacedLabel+1],A               ; @BT EA 01 04
-      ld [namespaced.namespacedLabel+1],A    ; @BT EA 01 04
         
       ld [namespacedRAMVariable1],A          ; @BT EA 00 A0
       ld [namespacedRAMVariable1+1],A        ; @BT EA 01 A0

@@ -7,7 +7,7 @@
 .redefine _out \1+1
 .endm
 
-.section "NamespaceTest1" namespace "hello" keep
+.section "NamespaceTest1" keep
 NamespaceMain:
 	nop
 	call NamespaceMain
