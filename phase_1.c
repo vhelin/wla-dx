@@ -147,7 +147,7 @@ extern char *g_final_name;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
-extern int g_makefile_rules, g_parsing_function_body, g_force_add_namespace, g_add_namespace_to_everything_inside_a_namespaced_file;
+extern int g_makefile_rules, g_parsing_function_body, g_force_add_namespace, g_is_file_isolated_counter;
 
 static int g_macro_stack_size = 0, g_repeat_stack_size = 0;
 
@@ -4331,15 +4331,15 @@ int directive_include(int is_real) {
     else if (compare_next_token("ISOLATED") == SUCCEEDED) {
       skip_next_token();
 
-      if (g_add_namespace_to_everything_inside_a_namespaced_file == 0)
-        g_add_namespace_to_everything_inside_a_namespaced_file++;
+      if (g_is_file_isolated_counter == 0)
+        g_is_file_isolated_counter++;
     }
     else
       break;
   }
 
   /* propagate the current file's namespace */
-  if (namespace[0] == 0 && g_add_namespace_to_everything_inside_a_namespaced_file > 0)
+  if (namespace[0] == 0 && g_is_file_isolated_counter > 0)
     strcpy(namespace, g_active_file_info_last->namespace);
   
   if (is_real == YES) {
@@ -10624,7 +10624,7 @@ int parse_directive(void) {
       q = input_number();
       g_expect_calculations = YES;
       
-      g_add_namespace_to_everything_inside_a_namespaced_file = g_parsed_int;
+      g_is_file_isolated_counter = g_parsed_int;
       
       return SUCCEEDED;
     }
@@ -10775,10 +10775,10 @@ int parse_directive(void) {
           redefine("wla_filename", 0.0, get_file_name(g_active_file_info_last->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(g_active_file_info_last->filename_id)));
         }
 
-        if (g_add_namespace_to_everything_inside_a_namespaced_file > 1)
-          g_add_namespace_to_everything_inside_a_namespaced_file--;
-        if (g_add_namespace_to_everything_inside_a_namespaced_file == 1)
-          g_add_namespace_to_everything_inside_a_namespaced_file = 0;
+        if (g_is_file_isolated_counter > 1)
+          g_is_file_isolated_counter--;
+        if (g_is_file_isolated_counter == 1)
+          g_is_file_isolated_counter = 0;
           
         return SUCCEEDED;
       }
@@ -10949,8 +10949,8 @@ int parse_directive(void) {
           /* end of file? */
           if (strcmp(g_tmp, ".E") == 0) {
             g_source_index = x;
-            if (g_add_namespace_to_everything_inside_a_namespaced_file > 0)
-              g_add_namespace_to_everything_inside_a_namespaced_file--;
+            if (g_is_file_isolated_counter > 0)
+              g_is_file_isolated_counter--;
             return SUCCEEDED;
           }
           if (strcaselesscmp(g_tmp, ".ASM") == 0) {

@@ -30,7 +30,7 @@ extern struct macro_runtime *g_macro_stack;
 extern double g_parsed_double;
 extern unsigned char g_asciitable[256];
 extern int g_operand_hint, g_operand_hint_type, g_can_calculate_a_minus_b, g_expect_calculations, g_asciitable_defined;
-extern int g_add_namespace_to_everything_inside_a_namespaced_file, g_force_add_namespace;
+extern int g_is_file_isolated_counter, g_force_add_namespace;
 
 int g_latest_stack = 0, g_last_stack_id = 0, g_resolve_stack_calculations = YES, g_stack_calculations_max = 0;
 int g_parsing_function_body = NO, g_fail_quetly_on_non_found_functions = NO;
@@ -2169,7 +2169,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           return FAILED;
 
         /* label reference inside a namespaced .MACRO? */
-        if (g_add_namespace_to_everything_inside_a_namespaced_file > 0 || g_force_add_namespace == YES) {
+        if (g_is_file_isolated_counter > 0 || g_force_add_namespace == YES) {
           if (add_namespace_to_a_label(si[q].string, sizeof(si[q].string), YES) == FAILED)
             return FAILED;
         }

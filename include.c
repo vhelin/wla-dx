@@ -21,7 +21,7 @@ extern struct ext_include_collection g_ext_incdirs;
 extern FILE *g_file_out_ptr;
 extern struct stringmaptable *g_stringmaptables;
 extern struct string *g_fopen_filenames_first;
-extern int g_add_namespace_to_everything_inside_a_namespaced_file;
+extern int g_is_file_isolated_counter;
         
 struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
 struct active_file_info *g_active_file_info_first = NULL, *g_active_file_info_last = NULL, *g_active_file_info_tmp = NULL;
@@ -214,7 +214,7 @@ int include_file(char *name, int *include_size, char *namespace) {
     g_file_name_id++;
   }
 
-  isolation_counter = g_add_namespace_to_everything_inside_a_namespaced_file;
+  isolation_counter = g_is_file_isolated_counter;
   if (isolation_counter > 0)
     isolation_counter++;
 
@@ -462,7 +462,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       if (get_next_plain_string() == FAILED)
         return FAILED;
 
-      if (g_add_namespace_to_everything_inside_a_namespaced_file <= 0) {
+      if (g_is_file_isolated_counter <= 0) {
         if (macro_get(g_label, YES, macro) == FAILED)
           return FAILED;
       }

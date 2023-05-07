@@ -39,7 +39,7 @@ extern struct map_t *g_defines_map;
 extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
 extern struct function *g_functions_first;
 extern int g_latest_stack, g_asciitable_defined, g_global_label_hint, g_parsing_function_body, g_resolve_stack_calculations;
-extern int g_add_namespace_to_everything_inside_a_namespaced_file;
+extern int g_is_file_isolated_counter;
 
 int parse_string_length(char *end);
 
@@ -185,7 +185,7 @@ int compare_next_token(char *token) {
 
 static int should_we_add_namespace(void) {
 
-  if (g_add_namespace_to_everything_inside_a_namespaced_file > 0 || g_force_add_namespace == YES)
+  if (g_is_file_isolated_counter > 0 || g_force_add_namespace == YES)
     return YES;
 
   if (g_macro_active != 0) {

@@ -76,7 +76,7 @@ int g_extra_definitions = OFF, g_commandline_parsing = ON, g_makefile_rules = NO
 int g_listfile_data = NO, g_quiet = NO, g_use_incdir = NO, g_little_endian = YES;
 int g_create_sizeof_definitions = YES, g_global_label_hint = HINT_NONE, g_keep_empty_sections = NO;
 int g_saved_structures_count2 = 0, g_saved_structures_max2 = 0;
-int g_can_calculate_a_minus_b = YES, g_add_namespace_to_everything_inside_a_namespaced_file = 0;
+int g_can_calculate_a_minus_b = YES, g_is_file_isolated_counter = 0;
 
 char *g_final_name = NULL, *g_asm_name = NULL;
 
