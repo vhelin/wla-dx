@@ -197,8 +197,8 @@ _globalFunc:
         .section "main" free keep
         call foo.someLabel
         foo.someMacro
-        .db "03>"               ; @BT TEST-03 03 START
         foo.IncrementHELLOMOTO 1
+        .db "03>"               ; @BT TEST-03 03 START
         .db HELLOMOTO           ; @BT 02
         .db "<03"               ; @BT END
         .ends

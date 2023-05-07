@@ -206,7 +206,7 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
   /* don't add namespace to some specific labels */
   if (strcaselesscmp(label, "_out") == 0)
     return SUCCEEDED;
-  if (label[0] == '\\' || label[0] == '@' || label[0] == '-' || label[0] == '+')
+  if (label[0] == '\\' || label[0] == '@' || label[0] == '-' || label[0] == '+' || label[0] == '_')
     return SUCCEEDED;
 
   /* does the label already contain a namespace? */

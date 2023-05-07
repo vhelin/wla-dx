@@ -7,15 +7,19 @@ someLabel2:
         jr -
         .ends
 
+_local: 
 -:
         ret
         jr -
         
-        .macro someMacro
-        call someLabel2+1
+        .macro someMacro isolated
+_local: call someLabel2+1
+        call _local
         .endm
 
-        .macro IncrementHELLOMOTO
+        .macro IncrementHELLOMOTO isolated
+_local: call someLabel2+1
+        call _local
         .redefine HELLOMOTO \1+1
         .endm
 
