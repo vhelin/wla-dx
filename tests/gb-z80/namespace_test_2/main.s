@@ -38,10 +38,9 @@
 
         .include "helo.s" namespace "helo" isolated
         .include "moto.s" namespace "moto" isolated
-        
+
         .section "main2" free keep
         call moto.barLabel
         .db helo.VALUE
         .ends
 
-        

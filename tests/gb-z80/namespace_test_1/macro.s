@@ -2,9 +2,15 @@
         .section "someSection" free
 someLabel:
 someLabel2:
+-:      
         ret
+        jr -
         .ends
 
+-:
+        ret
+        jr -
+        
         .macro someMacro
         call someLabel2+1
         .endm
