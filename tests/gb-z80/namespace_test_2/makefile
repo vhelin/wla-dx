@@ -1,8 +1,8 @@
 
 CC = $(WLAVALGRIND) wla-gb
-CFLAGS = -a -x -o
+CFLAGS = -x -o
 LD = $(WLAVALGRIND) wlalink
-LDFLAGS = -d -v -s
+LDFLAGS = -d -v -S
 
 SFILES = main.s
 IFILES = 
