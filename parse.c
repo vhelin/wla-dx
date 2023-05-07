@@ -201,6 +201,8 @@ static int should_we_add_namespace(void) {
 
 int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macros) {
 
+  int i = 0;
+  
   /* don't add namespace to some specific labels */
   if (strcaselesscmp(label, "_out") == 0)
     return SUCCEEDED;
@@ -208,6 +210,15 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
     return SUCCEEDED;
   if (label[0] == '@')
     return SUCCEEDED;
+
+  /* does the label already contain a namespace? */
+  while (1) {
+    if (label[i] == '.')
+      return SUCCEEDED;
+    if (label[i] == 0)
+      break;
+    i++;
+  }
   
   /* label reference inside a namespaced .MACRO? */
   if (g_macro_active != 0) {
