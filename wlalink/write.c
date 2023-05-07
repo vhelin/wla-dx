@@ -47,6 +47,7 @@ extern int g_snes_sramsize, g_num_sorted_anonymous_labels, g_sort_sections;
 extern int g_output_type, g_program_address_start, g_program_address_end, g_program_address_start_type, g_program_address_end_type;
 extern int g_section_table_table_max, g_section_write_order[SECTION_TYPES_COUNT-2], g_ramsection_write_order[RAMSECTION_TYPES_COUNT];
 extern int g_use_priority_only_writing_sections, g_use_priority_only_writing_ramsections;
+extern int g_allow_duplicate_labels_and_definitions;
 
 static int g_current_stack_calculation_addr = 0;
 
@@ -1542,9 +1543,9 @@ int try_put_label(map_t map, struct label *l) {
     else
       fprintf(stderr, "%s: %s:%d: TRY_PUT_LABEL: Label \"%s\" was defined more than once.\n", get_file_name(l->file_id),
               get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name);
-    /*
-    return FAILED;
-    */
+
+    if (g_allow_duplicate_labels_and_definitions == NO)
+      return FAILED;
   }
   
   if ((err = hashmap_put(map, l->name, l)) != MAP_OK) {
@@ -1715,7 +1716,8 @@ int fix_label_sections(void) {
         l->section_struct = s;
       }
 
-      insert_label_into_maps(l, 0);
+      if (insert_label_into_maps(l, 0) == FAILED)
+        return FAILED;
     }
     
     l = l->next;

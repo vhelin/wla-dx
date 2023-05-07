@@ -16,7 +16,7 @@
       .org $400
 
 ; @BT linked.gb
-      
+
 namespacedLabel:
       .db "01>"                              ; @BT TEST-01 01 START
       
