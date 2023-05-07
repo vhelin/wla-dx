@@ -1275,7 +1275,7 @@ static int _compare_sections(struct section *a, struct section *b) {
 }
 
 
-static struct section *_find_section(char *section_name) {
+static int _find_section(char *section_name, struct section **section) {
 
   struct section *s = g_sec_first, *ss = NULL;
   char s1 = section_name[0];
@@ -1283,15 +1283,19 @@ static struct section *_find_section(char *section_name) {
   while (s != NULL) {
     if (s1 == s->name[0]) {
       if (strcmp(s->name, section_name) == 0) {
-        if (ss != NULL)
-          fprintf(stderr, "_find_section(): Multiple sections called \"%s\" found for APPENDTO/AFTER operation. Please have only one section called \"%s\" in the source files. Using the last found section...\n", section_name, section_name);
+        if (ss != NULL) {
+          fprintf(stderr, "_find_section(): Multiple sections called \"%s\" found for APPENDTO/AFTER operation. Please have only one section called \"%s\" in the source files.\n", section_name, section_name);
+          return FAILED;
+        }
         ss = s;
       }
     }
     s = s->next;
   }
 
-  return ss;
+  *section = ss;
+  
+  return SUCCEEDED;
 }
 
 
@@ -1301,7 +1305,8 @@ static struct section *_find_after_source_section(struct after_section *as) {
   
   /* use the name? */
   if (as->section_id < 0 && as->file_id < 0) {
-    s = _find_section(as->section);
+    if (_find_section(as->section, &s) == FAILED)
+      return FAILED;
     if (s == NULL)
       fprintf(stderr, "_find_after_source_section(): Cannot find section \"%s\" for appending! Is it defined in the source code? If it is, please submit a bug report!\n", as->section);
     return s;
@@ -1716,7 +1721,8 @@ int merge_sections(void) {
   as = g_after_sections;
   while (as != NULL) {
     as->section_s = _find_after_source_section(as);
-    as->after_s = _find_section(as->after);
+    if (_find_section(as->after, &as->after_s) == FAILED)
+      return FAILED;
 
     if (as->section_s == NULL) {
       fprintf(stderr, "MERGE_SECTIONS: Source section \"%s\" was not found, ignoring the -> \"%s\" APPENDTO/AFTER. This shouldn't actually happen so please submit a bug report!\n", as->section, as->after);
