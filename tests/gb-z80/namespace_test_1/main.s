@@ -186,8 +186,14 @@ _globalFunc:
 
         .define HELLOMOTO 1
 
+        .include "macro.s" namespace bar isolated
+        .include "macro.s" isolated namespace yor
         .include "macro.s" namespace foo
 
+        bar.DefineYASS
+        yor.DefineYASS
+        foo.DefineYASS
+        
         .section "main" free keep
         call foo.someLabel
         foo.someMacro

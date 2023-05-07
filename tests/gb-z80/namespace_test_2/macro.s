@@ -20,3 +20,7 @@ someLabel2:
         .db myArg + 1
         .endm
         
+        .define HIYA 1
+        .db HIYA, HIYA+1
+        .export HIYA
+        

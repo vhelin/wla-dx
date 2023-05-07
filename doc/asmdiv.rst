@@ -2072,6 +2072,11 @@ inside the included file uses ``APPENDTO`` with a section name that starts with
 ``"*:"``, that ``APPENDTO`` is considered to belong to the global namespace and we
 won't prefix it with the ``.INCLUDE`` 's namespace.
 
+To add the namespace prefix to everything including ``.DEFINE`` s use the keyword
+``ISOLATED``::
+
+    .INCLUDE "music_player.s" NAMESPACE "musicplayer" ISOLATED
+  
 Note that you can create the file name from pieces::
 
     .INCLUDE ROOTDIR, SUBDIR, "cthulhu.s" NAMESPACE "cthulhu"

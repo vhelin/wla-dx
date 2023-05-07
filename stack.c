@@ -2169,7 +2169,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           return FAILED;
 
         /* label reference inside a namespaced .MACRO? */
-        if (g_add_namespace_to_everything_inside_a_namespaced_file == YES || g_force_add_namespace == YES) {
+        if (g_add_namespace_to_everything_inside_a_namespaced_file > 0 || g_force_add_namespace == YES) {
           if (add_namespace_to_a_label(si[q].string, sizeof(si[q].string), YES) == FAILED)
             return FAILED;
         }

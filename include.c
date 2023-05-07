@@ -159,7 +159,7 @@ static int find_file(char *name, FILE **f) {
 
 int include_file(char *name, int *include_size, char *namespace) {
 
-  int file_size, id, change_file_buffer_size, size;
+  int file_size, id, change_file_buffer_size, size, isolation_counter;
   char *tmp_b, *n, change_file_buffer[MAX_NAME_LENGTH * 2];
   FILE *f = NULL;
 
@@ -214,10 +214,14 @@ int include_file(char *name, int *include_size, char *namespace) {
     g_file_name_id++;
   }
 
+  isolation_counter = g_add_namespace_to_everything_inside_a_namespaced_file;
+  if (isolation_counter > 0)
+    isolation_counter++;
+
   if (namespace == NULL || namespace[0] == 0)
-    snprintf(change_file_buffer, sizeof(change_file_buffer), "%c.CHANGEFILE %d NONAMESPACE%c", 0xA, id, 0xA);
+    snprintf(change_file_buffer, sizeof(change_file_buffer), "%c.CHANGEFILE %d NONAMESPACE %d%c", 0xA, id, isolation_counter, 0xA);
   else
-    snprintf(change_file_buffer, sizeof(change_file_buffer), "%c.CHANGEFILE %d NAMESPACE %s%c", 0xA, id, namespace, 0xA);
+    snprintf(change_file_buffer, sizeof(change_file_buffer), "%c.CHANGEFILE %d NAMESPACE %s %d%c", 0xA, id, namespace, isolation_counter, 0xA);
   change_file_buffer_size = (int)strlen(change_file_buffer);
 
   /* reallocate buffer */
@@ -458,7 +462,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       if (get_next_plain_string() == FAILED)
         return FAILED;
 
-      if (g_add_namespace_to_everything_inside_a_namespaced_file == NO) {
+      if (g_add_namespace_to_everything_inside_a_namespaced_file <= 0) {
         if (macro_get(g_label, YES, macro) == FAILED)
           return FAILED;
       }

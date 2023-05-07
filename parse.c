@@ -183,6 +183,22 @@ int compare_next_token(char *token) {
 }
 
 
+static int should_we_add_namespace(void) {
+
+  if (g_add_namespace_to_everything_inside_a_namespaced_file > 0 || g_force_add_namespace == YES)
+    return YES;
+
+  if (g_macro_active != 0) {
+    struct macro_runtime *mrt = &g_macro_stack[g_macro_active - 1];
+
+    if (mrt->macro->namespace[0] != 0)
+      return YES;
+  }
+
+  return NO;
+}
+
+
 int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macros) {
 
   /* don't add namespace to some specific labels */
@@ -273,7 +289,7 @@ int input_next_string(void) {
   if (expand_variables_inside_string(g_label, sizeof(g_label), &k) == FAILED)
     return FAILED;
 
-  if (g_add_namespace_to_everything_inside_a_namespaced_file == YES || g_force_add_namespace == YES) {
+  if (should_we_add_namespace() == YES) {
     if (add_namespace_to_a_label(g_label, sizeof(g_label), YES) == FAILED)
       return FAILED;
   }
@@ -1334,7 +1350,7 @@ int input_number(void) {
   if (expand_variables_inside_string(g_label, sizeof(g_label), &k) == FAILED)
     return FAILED;
 
-  if (g_add_namespace_to_everything_inside_a_namespaced_file == YES || g_force_add_namespace == YES) {
+  if (should_we_add_namespace() == YES) {
     if (add_namespace_to_a_label(g_label, sizeof(g_label), YES) == FAILED)
       return FAILED;
   }
@@ -1509,7 +1525,7 @@ int get_next_plain_string(void) {
   if (expand_variables_inside_string(g_label, sizeof(g_label), &g_ss) == FAILED)
     return FAILED;
 
-  if (g_add_namespace_to_everything_inside_a_namespaced_file == YES || g_force_add_namespace == YES) {
+  if (should_we_add_namespace() == YES) {
     if (add_namespace_to_a_label(g_label, sizeof(g_label), YES) == FAILED)
       return FAILED;
   }

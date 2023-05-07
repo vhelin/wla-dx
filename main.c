@@ -36,7 +36,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.5a (6.5.2023)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.5a (7.5.2023)";
 char g_wla_version[] = "10.5";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -76,7 +76,7 @@ int g_extra_definitions = OFF, g_commandline_parsing = ON, g_makefile_rules = NO
 int g_listfile_data = NO, g_quiet = NO, g_use_incdir = NO, g_little_endian = YES;
 int g_create_sizeof_definitions = YES, g_global_label_hint = HINT_NONE, g_keep_empty_sections = NO;
 int g_saved_structures_count2 = 0, g_saved_structures_max2 = 0;
-int g_can_calculate_a_minus_b = YES, g_add_namespace_to_everything_inside_a_namespaced_file = NO;
+int g_can_calculate_a_minus_b = YES, g_add_namespace_to_everything_inside_a_namespaced_file = 0;
 
 char *g_final_name = NULL, *g_asm_name = NULL;
 
@@ -216,7 +216,6 @@ int main(int argc, char *argv[]) {
 
     printf("USAGE: %s [OPTIONS] <OUTPUT> <ASM FILE>\n\n", argv[0]);
     printf("OPTIONS:\n");
-    printf("-a  Add namespace to everything inside a namespaced file\n");
     printf("-d  Disable WLA's ability to calculate A-B where A and B are labels\n");
     printf("-h  Assume all label references are 16-bit by default (size hints\n");
     printf("    still work)\n");
@@ -373,10 +372,6 @@ int parse_flags(char **flags, int flagc, int *print_usage) {
         return FAILED;
 
       count++;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-a")) {
-      g_add_namespace_to_everything_inside_a_namespaced_file = YES;
       continue;
     }
     else if (!strcmp(flags[count], "-i")) {

@@ -147,7 +147,7 @@ extern char *g_final_name;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
-extern int g_makefile_rules, g_parsing_function_body, g_force_add_namespace;
+extern int g_makefile_rules, g_parsing_function_body, g_force_add_namespace, g_add_namespace_to_everything_inside_a_namespaced_file;
 
 static int g_macro_stack_size = 0, g_repeat_stack_size = 0;
 
@@ -4273,7 +4273,8 @@ int directive_include(int is_real) {
   accumulated_name[0] = 0;
 
   while (1) {
-    if (compare_next_token("NAMESPACE") == SUCCEEDED || compare_next_token("ONCE") == SUCCEEDED)
+    if (compare_next_token("NAMESPACE") == SUCCEEDED || compare_next_token("ONCE") == SUCCEEDED ||
+        compare_next_token("ISOLATED") == SUCCEEDED)
       break;
 
     g_expect_calculations = NO;
@@ -4327,9 +4328,19 @@ int directive_include(int is_real) {
 
       got_once = YES;
     }
+    else if (compare_next_token("ISOLATED") == SUCCEEDED) {
+      skip_next_token();
+
+      if (g_add_namespace_to_everything_inside_a_namespaced_file == 0)
+        g_add_namespace_to_everything_inside_a_namespaced_file++;
+    }
     else
       break;
   }
+
+  /* propagate the current file's namespace */
+  if (namespace[0] == 0 && g_add_namespace_to_everything_inside_a_namespaced_file > 0)
+    strcpy(namespace, g_active_file_info_last->namespace);
   
   if (is_real == YES) {
     if (include_file(path, &include_size, namespace) == FAILED)
@@ -8631,7 +8642,7 @@ int directive_macro(void) {
     strcpy(m->namespace, g_active_file_info_last->namespace);
   else
     m->namespace[0] = 0;
-  
+
   /* skip '(' if it exists */
   if (compare_and_skip_next_symbol('(') == SUCCEEDED) {
     if (compare_and_skip_next_symbol(')') == FAILED) {
@@ -8639,7 +8650,7 @@ int directive_macro(void) {
         return FAILED;
     }
   }
-  
+
   while (1) {
     int got_some = NO;
     
@@ -10607,7 +10618,14 @@ int parse_directive(void) {
         print_error(ERROR_DIR, "Internal error: NAMESPACE/NONAMESPACE is missing.\n");
         return FAILED;
       }
-    
+
+      /* get the isolation counter */
+      g_expect_calculations = NO;
+      q = input_number();
+      g_expect_calculations = YES;
+      
+      g_add_namespace_to_everything_inside_a_namespaced_file = g_parsed_int;
+      
       return SUCCEEDED;
     }
     
@@ -10757,6 +10775,11 @@ int parse_directive(void) {
           redefine("wla_filename", 0.0, get_file_name(g_active_file_info_last->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(g_active_file_info_last->filename_id)));
         }
 
+        if (g_add_namespace_to_everything_inside_a_namespaced_file > 1)
+          g_add_namespace_to_everything_inside_a_namespaced_file--;
+        if (g_add_namespace_to_everything_inside_a_namespaced_file == 1)
+          g_add_namespace_to_everything_inside_a_namespaced_file = 0;
+          
         return SUCCEEDED;
       }
     }
@@ -10926,6 +10949,8 @@ int parse_directive(void) {
           /* end of file? */
           if (strcmp(g_tmp, ".E") == 0) {
             g_source_index = x;
+            if (g_add_namespace_to_everything_inside_a_namespaced_file > 0)
+              g_add_namespace_to_everything_inside_a_namespaced_file--;
             return SUCCEEDED;
           }
           if (strcaselesscmp(g_tmp, ".ASM") == 0) {

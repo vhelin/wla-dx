@@ -16,6 +16,13 @@ someLabel2:
         .define HIYA 1
         .db HIYA, HIYA+1
         .export HIYA
+
+        .macro DefineYASS
+        .define YASS 1
+        .export YASS
+        .endm
+        
+        .include "nop.s"
         
 macro:
         .incbin "macro.s" fsize macroSize
