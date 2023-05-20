@@ -284,8 +284,8 @@ examples::
     LSR 11.B   ; $46 $0B
     LSR 11.W   ; $4E $0B $00
 
-In WLA-65816 ``.ACCU``/``.INDEX``/``SEP``/``REP`` override
-``.8BIT``/``.16BIT``/``.24BIT`` when considering the immediate values, so be
+In WLA-65816 ``.ACCU`` / ``.INDEX`` / ``SEP`` / ``REP`` override
+``.8BIT`` / ``.16BIT``/``.24BIT`` when considering the immediate values, so be
 careful. Still, operand hints override all of these, so use them to be sure.
 
 This is not a compulsory directive.
@@ -294,7 +294,7 @@ This is not a compulsory directive.
 ``.ACCU 8``
 -----------
 
-Forces WLA to override the accumulator size given with ``SEP``/``REP``.
+Forces WLA to override the accumulator size given with ``SEP`` / ``REP``.
 ``.ACCU`` doesn't produce any code, it only affects the way WLA interprets the
 immediate values (8 for 8 bit operands, 16 for 16 bit operands) for opcodes
 dealing with the accumulator.
@@ -309,7 +309,7 @@ will produce ``$29 $06``, and after giving ``.ACCU 16``::
 
 will yield ``$29 $00 $06``.
 
-Note that ``SEP``/``REP`` again will in turn reset the accumulator/index
+Note that ``SEP`` / ``REP`` again will in turn reset the accumulator/index
 register size.
 
 This is not a compulsory directive.
@@ -580,7 +580,7 @@ can also type the following::
 This tells WLA to move into BANK 0 which will be put into the ``DEFAULTSLOT``
 of ``.MEMORYMAP``.
 
-Every time you use ``.BANK``, supply ``.ORG``/``.ORGA`` as well, just to make
+Every time you use ``.BANK``, supply ``.ORG`` / ``.ORGA`` as well, just to make
 sure WLA calculates addresses correctly.
 
 This is a compulsory directive.
@@ -733,7 +733,7 @@ and ``$7FFB`` (or ``$3FFA`` - ``$3FFB`` is the ROM is 16KBs, or
 ``$1FFA`` - ``$1FFB`` for 8KB ROMs) in a SMS/GG ROM. Note that this directive
 can only be used with WLA-z80. Also note that the ROM size must be at least
 8KBs. The checksum is calculated using bytes
-``0x0000`` - ``0x1FEF``/``0x3FEF``/``0x7FEF``.
+``0x0000`` - ``0x1FEF`` / ``0x3FEF`` / ``0x7FEF``.
 
 This is not a compulsory directive.
 
@@ -1802,7 +1802,7 @@ This is not a compulsory directive.
 ------------------
 
 If the condition is fulfilled the following piece of code is
-acknowledged until ``.ENDIF``/``.ELSE``/``.ELIF`` occurs in the text,
+acknowledged until ``.ENDIF`` / ``.ELSE`` / ``.ELIF`` occurs in the text,
 otherwise it is skipped. Operands must be immediate values or strings.
 
 The following operators are supported:
@@ -1838,7 +1838,7 @@ This is not a compulsory directive.
 -------------
 
 If ``IF`` is defined, then the following piece of code is acknowledged
-until ``.ENDIF``/``.ELSE`` occurs in the text, otherwise it is skipped.
+until ``.ENDIF`` / ``.ELSE`` occurs in the text, otherwise it is skipped.
 
 This is not a compulsory directive.
 
@@ -1847,7 +1847,7 @@ This is not a compulsory directive.
 --------------
 
 If the specified argument is defined (argument number two, in the example),
-then the following piece of code is acknowledged until ``.ENDIF``/``.ELSE``
+then the following piece of code is acknowledged until ``.ENDIF`` / ``.ELSE``
 occurs in the macro, otherwise it is skipped.
 
 This is not a compulsory directive. ``.IFDEFM`` works only inside a macro.
@@ -1857,7 +1857,7 @@ This is not a compulsory directive. ``.IFDEFM`` works only inside a macro.
 -----------------
 
 If the value of ``DEBUG`` equals to ``2``, then the following piece of code is
-acknowledged until ``.ENDIF``/``.ELSE`` occurs in the text, otherwise it is
+acknowledged until ``.ENDIF`` / ``.ELSE`` occurs in the text, otherwise it is
 skipped. Both arguments can be computations, defines or immediate values.
 
 This is not a compulsory directive.
@@ -1867,7 +1867,7 @@ This is not a compulsory directive.
 ----------------------
 
 If ``main.s`` file can be found, then the following piece of code is
-acknowledged until ``.ENDIF``/``.LESE`` occurs in the text, otherwise it is
+acknowledged until ``.ENDIF`` / ``.ELSE`` occurs in the text, otherwise it is
 skipped.
 
 By writing the following few lines you can include a file if it exists
@@ -1884,7 +1884,7 @@ This is not a compulsory directive.
 -----------------
 
 If the value of ``DEBUG`` is greater than ``2``, then the following piece of
-code is acknowledged until ``.ENDIF``/``.ELSE`` occurs in the text, otherwise
+code is acknowledged until ``.ENDIF`` / ``.ELSE`` occurs in the text, otherwise
 it is skipped. Both arguments can be computations, defines or immediate values.
 
 This is not a compulsory directive.
@@ -1894,7 +1894,7 @@ This is not a compulsory directive.
 -------------------
 
 If the value of ``DEBUG`` is greater or equal to ``2``, then the following
-pieceof code is acknowledged until ``.ENDIF``/``.ELSE`` occurs in the text,
+pieceof code is acknowledged until ``.ENDIF`` / ``.ELSE`` occurs in the text,
 otherwise it is skipped. Both arguments can be computations, defines or
 immediate values.
 
@@ -1905,7 +1905,7 @@ This is not a compulsory directive.
 -----------------
 
 If the value of ``DEBUG`` is less than ``2``, then the following piece of code
-is acknowledged until ``.ENDIF``/``.ELSE`` occurs in the text, otherwise it is
+is acknowledged until ``.ENDIF`` / ``.ELSE`` occurs in the text, otherwise it is
 skipped. Both arguments can be computations, defines or immediate values.
 
 This is not a compulsory directive.
@@ -1915,7 +1915,7 @@ This is not a compulsory directive.
 -------------------
 
 If the value of ``DEBUG`` is less or equal to ``2``, then the following piece of
-code is acknowledged until ``.ENDIF``/``.ELSE`` occurs in the text, otherwise
+code is acknowledged until ``.ENDIF`` / ``.ELSE`` occurs in the text, otherwise
 it is skipped. Both arguments can be computations, defines or immediate values.
 
 This is not a compulsory directive.
@@ -1925,7 +1925,7 @@ This is not a compulsory directive.
 --------------
 
 If ``IF`` is not defined, then the following piece of code is acknowledged
-until ``.ENDIF``/``.ELSE`` occurs in the text, otherwise it is skipped.
+until ``.ENDIF`` / ``.ELSE`` occurs in the text, otherwise it is skipped.
 
 This is not a compulsory directive.
 
@@ -1934,7 +1934,7 @@ This is not a compulsory directive.
 ---------------
 
 If the specified argument is not defined, then the following piece of
-code is acknowledged until ``.ENDIF``/``.ELSE`` occurs in the macro, otherwise
+code is acknowledged until ``.ENDIF`` / ``.ELSE`` occurs in the macro, otherwise
 it is skipped.
 
 This is not a compulsory directive. ``.IFNDEFM`` works only inside a macro.
@@ -1944,7 +1944,7 @@ This is not a compulsory directive. ``.IFNDEFM`` works only inside a macro.
 ------------------
 
 If the value of ``DEBUG`` doesn't equal to ``2``, then the following piece of
-code is acknowledged until ``.ENDIF``/``.ELSE`` occurs in the text, otherwise
+code is acknowledged until ``.ENDIF`` / ``.ELSE`` occurs in the text, otherwise
 it is skipped. Both arguments can be computations, defines or immediate values.
 
 This is not a compulsory directive.
@@ -2095,8 +2095,8 @@ This is not a compulsory directive.
 ``.INDEX 8``
 ------------
 
-Forces WLA to override the index (``X``/``Y``) register size given with
-``SEP``/``REP``. ``.INDEX`` doesn't produce any code, it only affects the way
+Forces WLA to override the index (``X`` / ``Y``) register size given with
+``SEP`` / ``REP``. ``.INDEX`` doesn't produce any code, it only affects the way
 WLA interprets the immediate values (``8`` for 8 bit operands, ``16`` for 16
 bit operands) for opcodes dealing with the index registers.
 
@@ -2110,7 +2110,7 @@ will produce ``$E0 $A0``, and after giving ``.INDEX 16``
 
 will yield ``$E0 $00 $A0``.
 
-Note that ``SEP``/``REP`` again will in turn reset the accumulator/index
+Note that ``SEP`` / ``REP`` again will in turn reset the accumulator/index
 register size.
 
 This is not a compulsory directive.

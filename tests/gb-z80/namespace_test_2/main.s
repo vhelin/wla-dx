@@ -44,3 +44,13 @@
         .db helo.VALUE
         .ends
 
+
+        
+        .include "fileA.asm" namespace "foo" isolated
+
+        .dstruct Instance2 instanceof foo.Instance DATA "tingle", 10, 11
+        
+        .ramsection "ram" slot 2
+foo:      instanceof foo.Instance
+        .ends
+        

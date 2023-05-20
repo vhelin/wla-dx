@@ -21,7 +21,7 @@ int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OF
 int g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO, g_input_parse_special_chars = YES;
 int g_input_allow_leading_ampersand = NO, g_plus_and_minus_ends_label = NO, g_get_next_token_use_substitution = YES;
 int g_newline_beginning = ON, g_parsed_double_decimal_numbers = 0, g_operand_hint, g_operand_hint_type;
-int g_input_number_turn_values_into_strings = NO, g_force_add_namespace = NO;
+int g_input_number_turn_values_into_strings = NO, g_force_add_namespace = NO, g_force_ignore_namespace = NO;
 char g_label[MAX_NAME_LENGTH + 1];
 char g_unevaluated_expression[256];
 char g_expanded_macro_string[MAX_NAME_LENGTH + 1];
@@ -185,6 +185,9 @@ int compare_next_token(char *token) {
 
 static int should_we_add_namespace(void) {
 
+  if (g_force_ignore_namespace == YES)
+    return NO;
+  
   if (g_is_file_isolated_counter > 0 || g_force_add_namespace == YES)
     return YES;
 

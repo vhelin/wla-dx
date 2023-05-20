@@ -31,7 +31,7 @@ struct map_t *g_global_unique_label_map = NULL;
 struct block *g_blocks = NULL;
 struct label_context g_label_context, *g_label_context_first = NULL, *g_label_context_last = NULL;
 
-static int g_dstruct_start, g_dstruct_item_offset, g_dstruct_item_size, s_mangled_label;
+static int g_dstruct_start, g_dstruct_item_offset, g_dstruct_item_size;
 
 int g_label_context_running_number = 0;
 
@@ -67,12 +67,9 @@ int phase_3(void) {
   struct label_def *l;
   struct block_name *bn;
   struct block *b;
-  char tmp_buffer[MAX_NAME_LENGTH + 1];
-  int bank = 0, slot = 0, add = 0, g_file_name_id = 0, inz, line_number = 0, o, add_old = 0;
-  int base = 0x00, bits_current = 0;
-  int x, y;
-  char c;
-  int err;
+  int bank = 0, slot = 0, address = 0, file_name_id = 0, inz, line_number = 0, o, address_old = 0;
+  int base = 0x00, bits_current = 0, x, y, err;
+  char tmp_buffer[MAX_NAME_LENGTH + 1], c;
 
   /* initialize label context */
   g_label_context.isolated_macro = NULL;
@@ -109,57 +106,57 @@ int phase_3(void) {
       case 'i':
         fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
 
-        if (process_macro_in(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
+        if (process_macro_in(inz, tmp_buffer, file_name_id, line_number) == FAILED)
           return FAILED;
         
         continue;
       case 'I':
         fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
 
-        if (process_macro_out(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
+        if (process_macro_out(inz, tmp_buffer, file_name_id, line_number) == FAILED)
           return FAILED;
         
         continue;
 
       case 'P':
-        add_old = add;
+        address_old = address;
         continue;
       case 'p':
-        add = add_old;
+        address = address_old;
         continue;
 
       case 'x':
       case 'o':
         fscanf(g_file_out_ptr, "%d %*d ", &inz);
         if (g_section_status == ON) {
-          add += inz;
+          address += inz;
           continue;
         }
 
         fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
-                get_file_name(g_file_name_id), line_number);
+                get_file_name(file_name_id), line_number);
         return FAILED;
 
       case 'd':
         if (g_section_status == ON) {
           fscanf(g_file_out_ptr, "%*s ");
-          add++;
+          address++;
           continue;
         }
 
         fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
-                get_file_name(g_file_name_id), line_number);
+                get_file_name(file_name_id), line_number);
         return FAILED;
 
       case 'y':
         if (g_section_status == ON) {
           fscanf(g_file_out_ptr, "%*d ");
-          add += 2;
+          address += 2;
           continue;
         }
 
         fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
-                get_file_name(g_file_name_id), line_number);
+                get_file_name(file_name_id), line_number);
         return FAILED;
 
 #ifdef SUPERFX
@@ -167,23 +164,23 @@ int phase_3(void) {
       case '*':
         if (g_section_status == ON) {
           fscanf(g_file_out_ptr, "%*s ");
-          add++;
+          address++;
           continue;
         }
 
         fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
-                get_file_name(g_file_name_id), line_number);
+                get_file_name(file_name_id), line_number);
         return FAILED;
       
       case '-':
         if (g_section_status == ON) {
           fscanf(g_file_out_ptr, "%*d ");
-          add++;
+          address++;
           continue;
         }
 
         fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
-                get_file_name(g_file_name_id), line_number);
+                get_file_name(file_name_id), line_number);
         return FAILED;
 
 #endif
@@ -200,11 +197,11 @@ int phase_3(void) {
           }
           else {
             if (bits_current == 0)
-              add++;
+              address++;
             bits_current += bits_to_add;
             while (bits_current > 8) {
               bits_current -= 8;
-              add++;
+              address++;
             }
             if (bits_to_add == 8)
               bits_current = 0;
@@ -219,14 +216,14 @@ int phase_3(void) {
           else if (type == 'c')
             fscanf(g_file_out_ptr, "%*d");
           else {
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, type);
+            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", get_file_name(file_name_id), line_number, type);
             return FAILED;
           }
 
           continue;
         }
 
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(g_file_name_id), line_number);
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(file_name_id), line_number);
         return FAILED;
         
       case 'v':
@@ -238,7 +235,7 @@ int phase_3(void) {
         continue;
 
       case 'f':
-        fscanf(g_file_out_ptr, "%d ", &g_file_name_id);
+        fscanf(g_file_out_ptr, "%d ", &file_name_id);
         continue;
 
       case 'B':
@@ -262,23 +259,23 @@ int phase_3(void) {
         b = calloc(sizeof(struct block), 1);
         if (b == NULL) {
           fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for block \"%s\".\n",
-                  get_file_name(g_file_name_id), line_number, bn->name);
+                  get_file_name(file_name_id), line_number, bn->name);
           return FAILED;
         }
 
-        b->filename_id = g_file_name_id;
+        b->filename_id = file_name_id;
         b->line_number = line_number;
         b->next = g_blocks;
         g_blocks = b;
         strcpy(b->name, bn->name);
-        b->address = add;
+        b->address = address;
         continue;
 
       case 'G':
         b = g_blocks;
         g_blocks = g_blocks->next;
         if (g_quiet == NO)
-          printf("%s:%d: INTERNAL_PHASE_1: Block \"%s\" is %d bytes in size.\n", get_file_name(g_file_name_id), line_number, b->name, add - b->address);
+          printf("%s:%d: INTERNAL_PHASE_1: Block \"%s\" is %d bytes in size.\n", get_file_name(file_name_id), line_number, b->name, address - b->address);
         free(b);
         continue;
 
@@ -293,77 +290,129 @@ int phase_3(void) {
       case 'Z': /* breakpoint */
       case 'Y': /* symbol */
       case 'L': /* label */
-        l = calloc(sizeof(struct label_def), 1);
-        if (l == NULL) {
-          fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for label \"%s\".\n",
-                  get_file_name(g_file_name_id), line_number, g_tmp);
-          return FAILED;
-        }
-
-        if (c == 'Y')
-          l->symbol = 1;
-        else if (c == 'L')
-          l->symbol = 0;
-        else
-          l->symbol = 2;
-
-        if (c == 'Z')
-          l->label[0] = 0;
-        else
-          fscanf(g_file_out_ptr, STRING_READ_FORMAT, l->label);
-
-        s_mangled_label = NO;
-
-        if (c == 'L' && is_label_anonymous(l->label) == NO) {
-          /* if the label has '@' at the start, mangle the label name to make it unique */
-          int n = 0, m;
-
-          while (n < 10 && l->label[n] == '@')
-            n++;
-          m = n;
-          while (m < 10)
-            g_label_context_last->parent_labels[m++] = NULL;
-
-          if (n < 10)
-            g_label_context_last->parent_labels[n] = l;
-          n--;
-          while (n >= 0 && g_label_context_last->parent_labels[n] == 0)
-            n--;
-
-          if (n >= 0) {
-            if (mangle_label(l->label, g_label_context_last->parent_labels[n]->label, n, MAX_NAME_LENGTH, g_file_name_id, line_number) == FAILED)
-              return FAILED;
-            s_mangled_label = YES;
-          }
-        }
-
-        if (c == 'L' && is_label_anonymous(l->label) == NO && g_namespace[0] != 0 && s_mangled_label == NO) {
-          if (s == NULL || s->nspace == NULL) {
-            if (add_namespace(l->label, g_namespace, sizeof(l->label), g_file_name_id, line_number) == FAILED)
-              return FAILED;
-          }
-        }
-
-        if (c == 'L' && (is_label_anonymous(l->label) == YES || l->label[0] == '_') && g_label_context_last->isolated_macro != NULL) {
-          if (add_context_to_anonymous_label(l->label, sizeof(l->label), g_label_context_last, g_file_name_id, line_number) == FAILED)
+        {
+          int mangled_label = NO;
+          
+          l = calloc(sizeof(struct label_def), 1);
+          if (l == NULL) {
+            fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for label \"%s\".\n",
+                    get_file_name(file_name_id), line_number, g_tmp);
             return FAILED;
-        }
-        
-        l->next = NULL;
-        l->section_status = ON;
-        l->filename_id = g_file_name_id;
-        l->linenumber = line_number;
-        l->alive = YES;
-        l->section_id = s->id;
-        l->section_struct = s;
-        /* section labels get a relative address */
-        l->address = add;
-        l->bank = s->bank;
-        l->slot = s->slot;
-        l->base = base;
+          }
 
-        if (c == 'Z' || is_label_anonymous(l->label) == YES) {
+          if (c == 'Y')
+            l->symbol = 1;
+          else if (c == 'L')
+            l->symbol = 0;
+          else
+            l->symbol = 2;
+
+          if (c == 'Z')
+            l->label[0] = 0;
+          else
+            fscanf(g_file_out_ptr, STRING_READ_FORMAT, l->label);
+
+          if (c == 'L' && is_label_anonymous(l->label) == NO) {
+            /* if the label has '@' at the start, mangle the label name to make it unique */
+            int n = 0, m;
+
+            while (n < 10 && l->label[n] == '@')
+              n++;
+            m = n;
+            while (m < 10)
+              g_label_context_last->parent_labels[m++] = NULL;
+
+            if (n < 10)
+              g_label_context_last->parent_labels[n] = l;
+            n--;
+            while (n >= 0 && g_label_context_last->parent_labels[n] == 0)
+              n--;
+
+            if (n >= 0) {
+              if (mangle_label(l->label, g_label_context_last->parent_labels[n]->label, n, MAX_NAME_LENGTH, file_name_id, line_number) == FAILED)
+                return FAILED;
+              mangled_label = YES;
+            }
+          }
+
+          if (c == 'L' && is_label_anonymous(l->label) == NO && g_namespace[0] != 0 && mangled_label == NO) {
+            if (s == NULL || s->nspace == NULL) {
+              if (add_namespace(l->label, g_namespace, sizeof(l->label), file_name_id, line_number) == FAILED)
+                return FAILED;
+            }
+          }
+
+          if (c == 'L' && (is_label_anonymous(l->label) == YES || l->label[0] == '_') && g_label_context_last->isolated_macro != NULL) {
+            if (add_context_to_anonymous_label(l->label, sizeof(l->label), g_label_context_last, file_name_id, line_number) == FAILED)
+              return FAILED;
+          }
+        
+          l->next = NULL;
+          l->section_status = ON;
+          l->filename_id = file_name_id;
+          l->linenumber = line_number;
+          l->alive = YES;
+          l->section_id = s->id;
+          l->section_struct = s;
+          /* section labels get a relative address */
+          l->address = address;
+          l->bank = s->bank;
+          l->slot = s->slot;
+          l->base = base;
+
+          if (c == 'Z' || is_label_anonymous(l->label) == YES) {
+            if (g_labels != NULL) {
+              g_label_last->next = l;
+              g_label_last = l;
+            }
+            else {
+              g_labels = l;
+              g_label_last = l;
+            }
+            continue;
+          }
+
+          /* check the label is not already defined */
+
+          if (s != NULL) {
+            /* always put the label into the section's label_map */
+            if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
+              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
+              return FAILED;
+            }
+            if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
+              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
+              return FAILED;
+            }
+          }
+
+          /* don't put local labels into namespaces or the global namespace */
+          if (s == NULL || l->label[0] != '_') {
+            if (s != NULL && s->nspace != NULL) {
+              /* label in a namespace */
+              if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
+                fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
+                return FAILED;
+              }
+              if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
+                fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
+                return FAILED;
+              }
+            }
+            else {
+              /* global label */
+              if (hashmap_get(g_global_unique_label_map, l->label, NULL) == MAP_OK) {
+                fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
+                return FAILED;
+              }
+              if ((err = hashmap_put(g_global_unique_label_map, l->label, l)) != MAP_OK) {
+                fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
+                return FAILED;
+              }
+            }
+          }
+
           if (g_labels != NULL) {
             g_label_last->next = l;
             g_label_last = l;
@@ -372,64 +421,14 @@ int phase_3(void) {
             g_labels = l;
             g_label_last = l;
           }
+
           continue;
         }
-
-        /* check the label is not already defined */
-
-        if (s != NULL) {
-          /* always put the label into the section's label_map */
-          if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(g_file_name_id), line_number, l->label);
-            return FAILED;
-          }
-          if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(g_file_name_id), line_number, err);
-            return FAILED;
-          }
-        }
-
-        /* don't put local labels into namespaces or the global namespace */
-        if (s == NULL || l->label[0] != '_') {
-          if (s != NULL && s->nspace != NULL) {
-            /* label in a namespace */
-            if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
-              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(g_file_name_id), line_number, l->label);
-              return FAILED;
-            }
-            if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
-              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(g_file_name_id), line_number, err);
-              return FAILED;
-            }
-          }
-          else {
-            /* global label */
-            if (hashmap_get(g_global_unique_label_map, l->label, NULL) == MAP_OK) {
-              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(g_file_name_id), line_number, l->label);
-              return FAILED;
-            }
-            if ((err = hashmap_put(g_global_unique_label_map, l->label, l)) != MAP_OK) {
-              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(g_file_name_id), line_number, err);
-              return FAILED;
-            }
-          }
-        }
-
-        if (g_labels != NULL) {
-          g_label_last->next = l;
-          g_label_last = l;
-        }
-        else {
-          g_labels = l;
-          g_label_last = l;
-        }
-
-        continue;
 
       case 'S':
         fscanf(g_file_out_ptr, "%d ", &inz);
 
-        add_old = add;
+        address_old = address;
 
         s = g_sections_first;
         while (s != NULL && s->id != inz)
@@ -438,7 +437,7 @@ int phase_3(void) {
         /* a .RAMSECTION? */
         if (s->status == SECTION_STATUS_RAM_FREE) {
           s->address = 0;
-          add = 0;
+          address = 0;
           s->listfile_items = 1;
           s->listfile_ints = NULL;
           s->listfile_cmds = NULL;
@@ -447,9 +446,9 @@ int phase_3(void) {
         }
         else if (s->status == SECTION_STATUS_RAM_FORCE) {
           if (s->address < 0)
-            s->address = add;
+            s->address = address;
           else
-            add = s->address;
+            address = s->address;
           s->listfile_items = 1;
           s->listfile_ints = NULL;
           s->listfile_cmds = NULL;
@@ -458,9 +457,9 @@ int phase_3(void) {
         }
         else if (s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
           if (s->address < 0)
-            s->address = add;
+            s->address = address;
           else
-            add = s->address;
+            address = s->address;
           s->listfile_items = 1;
           s->listfile_ints = NULL;
           s->listfile_cmds = NULL;
@@ -468,17 +467,17 @@ int phase_3(void) {
           continue;
         }
 
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(g_file_name_id), line_number);
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(file_name_id), line_number);
         return FAILED;
 
       case 's':
-        s->size = add - s->address;
+        s->size = address - s->address;
 
         /* discard an empty section? */
         if (s->size == 0 && s->keep == NO && g_keep_empty_sections == NO) {
           struct after_section *as;
  
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), line_number, get_file_name(g_file_name_id), s->name);
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: %s: Discarding an empty section \"%s\".\n", get_file_name(file_name_id), line_number, get_file_name(file_name_id), s->name);
           s->alive = NO;
 
           /* discard all labels which belong to this section */
@@ -499,21 +498,21 @@ int phase_3(void) {
         }
 
         if (s->advance_org == NO)
-          add = add_old;
+          address = address_old;
         else
-          add = add_old + s->size;
+          address = address_old + s->size;
 
         g_section_status = OFF;
         s = NULL;
         continue;
 
       case 'O':
-        fscanf(g_file_out_ptr, "%d ", &add);
+        fscanf(g_file_out_ptr, "%d ", &address);
         o++;
         continue;
 
       default:
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(g_file_name_id), line_number);
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(file_name_id), line_number);
       }
     }
   }
@@ -533,20 +532,20 @@ int phase_3(void) {
       case 'i':
         fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
 
-        if (process_macro_in(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
+        if (process_macro_in(inz, tmp_buffer, file_name_id, line_number) == FAILED)
           return FAILED;
         
         continue;
       case 'I':
         fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
 
-        if (process_macro_out(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
+        if (process_macro_out(inz, tmp_buffer, file_name_id, line_number) == FAILED)
           return FAILED;
         
         continue;
 
       case 'f':
-        fscanf(g_file_out_ptr, "%d ", &g_file_name_id);
+        fscanf(g_file_out_ptr, "%d ", &file_name_id);
         continue;
 
       case 't':
@@ -560,7 +559,7 @@ int phase_3(void) {
       case 'S':
         fscanf(g_file_out_ptr, "%d ", &inz);
 
-        add_old = add;
+        address_old = address;
 
         s = g_sections_first;
         while (s != NULL && s->id != inz)
@@ -568,17 +567,17 @@ int phase_3(void) {
 
         if (s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_SEMISUPERFREE) {
           s->address = 0;
-          add = 0;
+          address = 0;
         }
         else {
           if (s->address >= 0)
-            add = s->address;
+            address = s->address;
           else
-            s->address = add;
+            s->address = address;
         }
 
-        if (s->address_from_dsp >= 0 && s->address_from_dsp != add) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, s->name, s->address_from_dsp, add);
+        if (s->address_from_dsp >= 0 && s->address_from_dsp != address) {
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(file_name_id), line_number, s->name, s->address_from_dsp, address);
           return FAILED;
         }
 
@@ -599,7 +598,7 @@ int phase_3(void) {
         continue;
 
       default:
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: A section must be open before any code/data can be accepted.\n", get_file_name(g_file_name_id), line_number);
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: A section must be open before any code/data can be accepted.\n", get_file_name(file_name_id), line_number);
         return FAILED;
       }
     }
@@ -621,23 +620,23 @@ int phase_3(void) {
     case 'i':
       fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
 
-      if (process_macro_in(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
+      if (process_macro_in(inz, tmp_buffer, file_name_id, line_number) == FAILED)
         return FAILED;
         
       continue;
     case 'I':
       fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
 
-      if (process_macro_out(inz, tmp_buffer, g_file_name_id, line_number) == FAILED)
+      if (process_macro_out(inz, tmp_buffer, file_name_id, line_number) == FAILED)
         return FAILED;
         
       continue;
 
     case 'P':
-      add_old = add;
+      address_old = address;
       continue;
     case 'p':
-      add = add_old;
+      address = address_old;
       continue;
 
     case 'A':
@@ -647,7 +646,7 @@ int phase_3(void) {
       else
         fscanf(g_file_out_ptr, "%d ", &inz);
 
-      add_old = add;
+      address_old = address;
 
       s = g_sections_first;
       while (s != NULL && s->id != inz)
@@ -655,13 +654,13 @@ int phase_3(void) {
 
       if (s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_SEMISUPERFREE) {
         s->address = 0;
-        add = 0;
+        address = 0;
       }
       else {
         if (s->address >= 0)
-          add = s->address;
+          address = s->address;
         else
-          s->address = add;
+          s->address = address;
       }
       
       if (s->status != SECTION_STATUS_RAM_FREE && s->status != SECTION_STATUS_RAM_FORCE && s->status != SECTION_STATUS_RAM_SEMIFREE && s->status != SECTION_STATUS_RAM_SEMISUBFREE) {
@@ -672,8 +671,8 @@ int phase_3(void) {
         s->base = base;
       }
 
-      if (s->address_from_dsp >= 0 && s->address_from_dsp != add) {
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, s->name, s->address_from_dsp, add);
+      if (s->address_from_dsp >= 0 && s->address_from_dsp != address) {
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(file_name_id), line_number, s->name, s->address_from_dsp, address);
         return FAILED;
       }
           
@@ -684,14 +683,14 @@ int phase_3(void) {
       continue;
 
     case 's':
-      s->size = add - s->address;
+      s->size = address - s->address;
 
       /* discard an empty section? */
       if (s->size == 0 && s->keep == NO && g_keep_empty_sections == NO) {
         struct after_section *as;
         
         if (g_verbose_level >= 1)
-          fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(g_file_name_id), s->name);
+          fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(file_name_id), s->name);
         s->alive = NO;
 
         /* discard all labels which belong to this section */
@@ -713,9 +712,9 @@ int phase_3(void) {
 
       /* some sections don't affect the ORG outside of them */
       if (s->advance_org == NO)
-        add = add_old;
+        address = address_old;
       else
-        add = add_old + s->size;
+        address = address_old + s->size;
       
       g_section_status = OFF;
       s = NULL;
@@ -724,44 +723,44 @@ int phase_3(void) {
     case 'x':
     case 'o':
       fscanf(g_file_out_ptr, "%d %*d ", &inz);
-      add += inz;
+      address += inz;
       continue;
 
     case 'X':
       fscanf(g_file_out_ptr, "%d %*d ", &inz);
-      add += inz * 2;
+      address += inz * 2;
       continue;
 
     case 'h':
       fscanf(g_file_out_ptr, "%d %*d ", &inz);
-      add += inz * 3;
+      address += inz * 3;
       continue;
 
     case 'w':
       fscanf(g_file_out_ptr, "%d %*d ", &inz);
-      add += inz * 4;
+      address += inz * 4;
       continue;
 
     case 'z':
     case 'q':
       fscanf(g_file_out_ptr, "%*s ");
-      add += 3;
+      address += 3;
       continue;
 
     case 'T':
       fscanf(g_file_out_ptr, "%*d ");
-      add += 3;
+      address += 3;
       continue;
 
     case 'u':
     case 'V':
       fscanf(g_file_out_ptr, "%*s ");
-      add += 4;
+      address += 4;
       continue;
 
     case 'U':
       fscanf(g_file_out_ptr, "%*d ");
-      add += 4;
+      address += 4;
       continue;
 
     case 'v':
@@ -777,31 +776,31 @@ int phase_3(void) {
     case 'd':
     case 'c':
       fscanf(g_file_out_ptr, "%*s ");
-      add++;
+      address++;
       continue;
 
     case 'M':
     case 'r':
       fscanf(g_file_out_ptr, "%*s ");
-      add += 2;
+      address += 2;
       continue;
 
     case 'y':
     case 'C':
       fscanf(g_file_out_ptr, "%*d ");
-      add += 2;
+      address += 2;
       continue;
 
 #ifdef SUPERFX
 
     case '*':
       fscanf(g_file_out_ptr, "%*s ");
-      add++;
+      address++;
       continue;
       
     case '-':
       fscanf(g_file_out_ptr, "%*d ");
-      add++;
+      address++;
       continue;
 
 #endif
@@ -820,11 +819,11 @@ int phase_3(void) {
         }
         else {
           if (bits_current == 0)
-            add++;
+            address++;
           bits_current += bits_to_add;
           while (bits_current > 8) {
             bits_current -= 8;
-            add++;
+            address++;
           }
           if (bits_to_add == 8)
             bits_current = 0;
@@ -839,7 +838,7 @@ int phase_3(void) {
         else if (type == 'c')
           fscanf(g_file_out_ptr, "%*d");
         else {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, type);
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", get_file_name(file_name_id), line_number, type);
           return FAILED;
         }
 
@@ -849,22 +848,22 @@ int phase_3(void) {
 #ifdef SPC700
     case 'n':
       fscanf(g_file_out_ptr, "%*d %*s ");
-      add += 2;
+      address += 2;
       continue;
 
     case 'N':
       fscanf(g_file_out_ptr, "%*d %*d ");
-      add += 2;
+      address += 2;
       continue;
 #endif
 
     case 'D':
       fscanf(g_file_out_ptr, "%*d %*d %*d %d ", &inz);
-      add += inz;
+      address += inz;
       continue;
 
     case 'O':
-      fscanf(g_file_out_ptr, "%d ", &add);
+      fscanf(g_file_out_ptr, "%d ", &address);
       continue;
 
     case 'B':
@@ -884,22 +883,22 @@ int phase_3(void) {
       b = calloc(sizeof(struct block), 1);
       if (b == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for block \"%s\".\n",
-                get_file_name(g_file_name_id), line_number, bn->name);
+                get_file_name(file_name_id), line_number, bn->name);
         return FAILED;
       }
-      b->filename_id = g_file_name_id;
+      b->filename_id = file_name_id;
       b->line_number = line_number;
       b->next = g_blocks;
       g_blocks = b;
       strcpy(b->name, bn->name);
-      b->address = add;
+      b->address = address;
       continue;
 
     case 'G':
       b = g_blocks;
       g_blocks = g_blocks->next;
       if (g_quiet == NO) {
-        printf("%s:%d: INTERNAL_PHASE_1: Block \"%s\" is %d bytes in size.\n", get_file_name(g_file_name_id), line_number, b->name, add - b->address);
+        printf("%s:%d: INTERNAL_PHASE_1: Block \"%s\" is %d bytes in size.\n", get_file_name(file_name_id), line_number, b->name, address - b->address);
       }
       free(b);
       continue;
@@ -915,87 +914,139 @@ int phase_3(void) {
     case 'Z': /* breakpoint */
     case 'Y': /* symbol */
     case 'L': /* label */
-      l = calloc(sizeof(struct label_def), 1);
-      if (l == NULL) {
-        fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for label \"%s\".\n",
-                get_file_name(g_file_name_id), line_number, g_tmp);
-        return FAILED;
-      }
-
-      if (c == 'Y')
-        l->symbol = 1;
-      else if (c == 'L')
-        l->symbol = 0;
-      else
-        l->symbol = 2;
-
-      if (c == 'Z')
-        l->label[0] = 0;
-      else
-        fscanf(g_file_out_ptr, STRING_READ_FORMAT, l->label);
-
-      s_mangled_label = NO;
-      
-      if (c == 'L' && is_label_anonymous(l->label) == NO) {
-        /* if the label has '@' at the start, mangle the label name to make it unique */
-        int n = 0, m;
-
-        while (n < 10 && l->label[n] == '@')
-          n++;
-        m = n;
-        while (m < 10)
-          g_label_context_last->parent_labels[m++] = NULL;
-
-        if (n < 10)
-          g_label_context_last->parent_labels[n] = l;
-        n--;
-        while (n >= 0 && g_label_context_last->parent_labels[n] == 0)
-          n--;
-
-        if (n >= 0) {
-          if (mangle_label(l->label, g_label_context_last->parent_labels[n]->label, n, MAX_NAME_LENGTH, g_file_name_id, line_number) == FAILED)
-            return FAILED;
-          s_mangled_label = YES;
-        }
-      }
-
-      if (c == 'L' && is_label_anonymous(l->label) == NO && g_namespace[0] != 0 && s_mangled_label == NO) {
-        if (s == NULL || s->nspace == NULL) {
-          if (add_namespace(l->label, g_namespace, sizeof(l->label), g_file_name_id, line_number) == FAILED)
-            return FAILED;
-        }
-      }
-
-      if (c == 'L' && (is_label_anonymous(l->label) == YES || l->label[0] == '_') && g_label_context_last->isolated_macro != NULL) {
-        if (add_context_to_anonymous_label(l->label, sizeof(l->label), g_label_context_last, g_file_name_id, line_number) == FAILED)
+      {
+        int mangled_label = NO;
+        
+        l = calloc(sizeof(struct label_def), 1);
+        if (l == NULL) {
+          fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for label \"%s\".\n",
+                  get_file_name(file_name_id), line_number, g_tmp);
           return FAILED;
-      }
+        }
+
+        if (c == 'Y')
+          l->symbol = 1;
+        else if (c == 'L')
+          l->symbol = 0;
+        else
+          l->symbol = 2;
+
+        if (c == 'Z')
+          l->label[0] = 0;
+        else
+          fscanf(g_file_out_ptr, STRING_READ_FORMAT, l->label);
+
+        if (c == 'L' && is_label_anonymous(l->label) == NO) {
+          /* if the label has '@' at the start, mangle the label name to make it unique */
+          int n = 0, m;
+
+          while (n < 10 && l->label[n] == '@')
+            n++;
+          m = n;
+          while (m < 10)
+            g_label_context_last->parent_labels[m++] = NULL;
+
+          if (n < 10)
+            g_label_context_last->parent_labels[n] = l;
+          n--;
+          while (n >= 0 && g_label_context_last->parent_labels[n] == 0)
+            n--;
+
+          if (n >= 0) {
+            if (mangle_label(l->label, g_label_context_last->parent_labels[n]->label, n, MAX_NAME_LENGTH, file_name_id, line_number) == FAILED)
+              return FAILED;
+            mangled_label = YES;
+          }
+        }
+
+        if (c == 'L' && is_label_anonymous(l->label) == NO && g_namespace[0] != 0 && mangled_label == NO) {
+          if (s == NULL || s->nspace == NULL) {
+            if (add_namespace(l->label, g_namespace, sizeof(l->label), file_name_id, line_number) == FAILED)
+              return FAILED;
+          }
+        }
+
+        if (c == 'L' && (is_label_anonymous(l->label) == YES || l->label[0] == '_') && g_label_context_last->isolated_macro != NULL) {
+          if (add_context_to_anonymous_label(l->label, sizeof(l->label), g_label_context_last, file_name_id, line_number) == FAILED)
+            return FAILED;
+        }
       
-      l->next = NULL;
-      l->section_status = g_section_status;
-      l->filename_id = g_file_name_id;
-      l->linenumber = line_number;
-      l->alive = YES;
-      if (g_section_status == ON) {
-        l->section_id = s->id;
-        l->section_struct = s;
-        /* section labels get a relative address */
-        l->address = add - s->address;
-        l->bank = s->bank;
-        l->slot = s->slot;
-      }
-      else {
-        l->section_id = 0;
-        l->section_struct = NULL;
-        l->address = add;
-        l->bank = bank;
-        l->slot = slot;
-      }
+        l->next = NULL;
+        l->section_status = g_section_status;
+        l->filename_id = file_name_id;
+        l->linenumber = line_number;
+        l->alive = YES;
+        if (g_section_status == ON) {
+          l->section_id = s->id;
+          l->section_struct = s;
+          /* section labels get a relative address */
+          l->address = address - s->address;
+          l->bank = s->bank;
+          l->slot = s->slot;
+        }
+        else {
+          l->section_id = 0;
+          l->section_struct = NULL;
+          l->address = address;
+          l->bank = bank;
+          l->slot = slot;
+        }
 
-      l->base = base;
+        l->base = base;
 
-      if (c == 'Z' || is_label_anonymous(l->label) == YES) {
+        if (c == 'Z' || is_label_anonymous(l->label) == YES) {
+          if (g_labels != NULL) {
+            g_label_last->next = l;
+            g_label_last = l;
+          }
+          else {
+            g_labels = l;
+            g_label_last = l;
+          }
+          continue;
+        }
+
+        /* check the label is not already defined */
+
+        if (s != NULL) {
+          /* always put the label into the section's label_map */
+          if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
+            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
+            return FAILED;
+          }
+          if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
+            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
+            return FAILED;
+          }
+        }
+
+        /* don't put local labels into namespaces or the global namespace */
+        if (s == NULL || l->label[0] != '_') {
+          if (s != NULL && s->nspace != NULL) {
+            /* label in a namespace */
+            if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
+              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
+              return FAILED;
+            }
+            if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
+              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
+              return FAILED;
+            }
+          }
+          else {
+            /* global label */
+            if (hashmap_get(g_global_unique_label_map, l->label, NULL) == MAP_OK) {
+              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
+              return FAILED;
+            }
+            if ((err = hashmap_put(g_global_unique_label_map, l->label, l)) != MAP_OK) {
+              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
+              return FAILED;
+            }
+          }
+        }
+
         if (g_labels != NULL) {
           g_label_last->next = l;
           g_label_last = l;
@@ -1004,62 +1055,12 @@ int phase_3(void) {
           g_labels = l;
           g_label_last = l;
         }
+
         continue;
       }
 
-      /* check the label is not already defined */
-
-      if (s != NULL) {
-        /* always put the label into the section's label_map */
-        if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(g_file_name_id), line_number, l->label);
-          return FAILED;
-        }
-        if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(g_file_name_id), line_number, err);
-          return FAILED;
-        }
-      }
-
-      /* don't put local labels into namespaces or the global namespace */
-      if (s == NULL || l->label[0] != '_') {
-        if (s != NULL && s->nspace != NULL) {
-          /* label in a namespace */
-          if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(g_file_name_id), line_number, l->label);
-            return FAILED;
-          }
-          if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(g_file_name_id), line_number, err);
-            return FAILED;
-          }
-        }
-        else {
-          /* global label */
-          if (hashmap_get(g_global_unique_label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(g_file_name_id), line_number, l->label);
-            return FAILED;
-          }
-          if ((err = hashmap_put(g_global_unique_label_map, l->label, l)) != MAP_OK) {
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(g_file_name_id), line_number, err);
-            return FAILED;
-          }
-        }
-      }
-
-      if (g_labels != NULL) {
-        g_label_last->next = l;
-        g_label_last = l;
-      }
-      else {
-        g_labels = l;
-        g_label_last = l;
-      }
-
-      continue;
-
     case 'f':
-      fscanf(g_file_out_ptr, "%d ", &g_file_name_id);
+      fscanf(g_file_out_ptr, "%d ", &file_name_id);
       if (s != NULL)
         s->listfile_items++;
       else
@@ -1077,27 +1078,27 @@ int phase_3(void) {
     case 'e':
       fscanf(g_file_out_ptr, "%d %d ", &x, &y);
       if (y == -1) { /* mark start of .DSTRUCT */
-        g_dstruct_start = add;
+        g_dstruct_start = address;
         g_dstruct_item_offset = -1;
       }
       else {
-        if (g_dstruct_item_offset != -1 && add - g_dstruct_item_offset > g_dstruct_item_size) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: %d too many bytes in struct field.\n", get_file_name(g_file_name_id), line_number, (add - g_dstruct_item_offset) - g_dstruct_item_size);
+        if (g_dstruct_item_offset != -1 && address - g_dstruct_item_offset > g_dstruct_item_size) {
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: %d too many bytes in struct field.\n", get_file_name(file_name_id), line_number, (address - g_dstruct_item_offset) - g_dstruct_item_size);
           return FAILED;
         }
 
-        add = g_dstruct_start + x;
+        address = g_dstruct_start + x;
         if (y < 0)
           g_dstruct_item_offset = -1;
         else {
-          g_dstruct_item_offset = add;
+          g_dstruct_item_offset = address;
           g_dstruct_item_size = y;
         }
       }
       continue;
 
     default:
-      fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Unknown internal symbol \"%c\"! Please submit a bug report!\n", get_file_name(g_file_name_id), line_number, c);
+      fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Unknown internal symbol \"%c\"! Please submit a bug report!\n", get_file_name(file_name_id), line_number, c);
       return FAILED;
     }
   }

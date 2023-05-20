@@ -147,7 +147,7 @@ extern char *g_final_name;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
-extern int g_makefile_rules, g_parsing_function_body, g_force_add_namespace, g_is_file_isolated_counter;
+extern int g_makefile_rules, g_parsing_function_body, g_force_add_namespace, g_is_file_isolated_counter, g_force_ignore_namespace;
 
 static int g_macro_stack_size = 0, g_repeat_stack_size = 0;
 
@@ -362,7 +362,7 @@ int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
             namespace[i] = st->name[i];
           namespace[i] = 0;
         
-          if (_add_namespace_to_string(fullname, sizeof(fullname), "MACRO", namespace) == FAILED) {
+          if (_add_namespace_to_string(fullname, sizeof(fullname), ".MACRO", namespace) == FAILED) {
             *macro_out = NULL;
             return FAILED;
           }
@@ -3866,7 +3866,9 @@ int directive_dstruct(void) {
   }
   else {
     /* get instance name */
+    g_force_ignore_namespace = YES;
     q = input_number();
+    g_force_ignore_namespace = NO;
     if (q == FAILED)
       return FAILED;
     if (q != INPUT_NUMBER_ADDRESS_LABEL) {
@@ -4466,6 +4468,10 @@ int directive_struct(void) {
     return FAILED;
 
   strcpy(g_active_struct->name, g_tmp);
+
+  /* add namespace? */
+  if (g_is_file_isolated_counter > 0)
+    add_namespace_to_string(g_active_struct->name, sizeof(g_active_struct->name), ".STRUCT");
 
   /* SIZE defined? */
   if (compare_next_token("SIZE") == SUCCEEDED) {
