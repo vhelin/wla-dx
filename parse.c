@@ -206,6 +206,9 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
 
   int i = 0;
   
+  if (g_force_ignore_namespace == YES)
+    return SUCCEEDED;
+
   /* don't add namespace to some specific labels */
   if (strcaselesscmp(label, "_out") == 0)
     return SUCCEEDED;

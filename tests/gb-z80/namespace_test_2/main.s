@@ -54,3 +54,11 @@
 foo:      instanceof foo.Instance
         .ends
         
+
+        .include "fileB.asm" namespace "yuh"
+
+        yuh.DefineCockooInstance Cockoo1 1 2
+        yuh.DefineCockooInstance Cockoo2 3 4
+
+        .dstruct Cockoo3 instanceof Cockoo data 5 6
+        

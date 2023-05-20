@@ -3866,9 +3866,11 @@ int directive_dstruct(void) {
   }
   else {
     /* get instance name */
-    g_force_ignore_namespace = YES;
+    if (g_is_file_isolated_counter <= 0)
+      g_force_ignore_namespace = YES;
     q = input_number();
-    g_force_ignore_namespace = NO;
+    if (g_is_file_isolated_counter <= 0)
+      g_force_ignore_namespace = NO;
     if (q == FAILED)
       return FAILED;
     if (q != INPUT_NUMBER_ADDRESS_LABEL) {
@@ -3882,7 +3884,11 @@ int directive_dstruct(void) {
   }
 
   /* get structure name */
+  if (g_is_file_isolated_counter <= 0)
+    g_force_ignore_namespace = YES;
   q = input_number();
+  if (g_is_file_isolated_counter <= 0)
+    g_force_ignore_namespace = NO;
   if (q == FAILED)
     return FAILED;
   if (q != INPUT_NUMBER_ADDRESS_LABEL) {
@@ -4446,6 +4452,8 @@ int directive_incbin(void) {
 
 int directive_struct(void) {
 
+  int q;
+  
   if (g_dstruct_status == ON) {
     print_error(ERROR_DIR, "You can't use .STRUCT inside .DSTRUCT.\n");
     return FAILED;
@@ -4464,14 +4472,19 @@ int directive_struct(void) {
   if (_remember_new_structure(s_active_struct) == FAILED)
     return FAILED;
 
-  if (get_next_token() == FAILED)
+  if (g_is_file_isolated_counter <= 0)
+    g_force_ignore_namespace = YES;
+  q = input_number();
+  if (g_is_file_isolated_counter <= 0)
+    g_force_ignore_namespace = NO;
+  if (q == FAILED)
     return FAILED;
-
-  strcpy(s_active_struct->name, g_tmp);
-
-  /* add namespace? */
-  if (g_is_file_isolated_counter > 0)
-    add_namespace_to_string(s_active_struct->name, sizeof(s_active_struct->name), ".STRUCT");
+  if (q != INPUT_NUMBER_ADDRESS_LABEL && q != INPUT_NUMBER_STRING) {
+    print_error(ERROR_DIR, ".STRUCT needs a name string.\n");
+    return FAILED;
+  }
+  
+  strcpy(s_active_struct->name, g_label);
 
   /* SIZE defined? */
   if (compare_next_token("SIZE") == SUCCEEDED) {

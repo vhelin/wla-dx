@@ -116,17 +116,17 @@
             ram4 instanceof teststruct
         .ends
 
-        .STRUCT 1 SIZE 8
+        .STRUCT a1 SIZE 8
             testbyte1   db
         .ENDST
 
-        .STRUCT 2 SIZE 8
+        .STRUCT a2 SIZE 8
             testbyte2   db
         .ENDST
 
         .STRUCT both
-            INSTANCEOF 1    ; name1 INSTANCEOF 1
-            INSTANCEOF 2    ; name2 INSTANCEOF 2
+            INSTANCEOF a1    ; name1 INSTANCEOF a1
+            INSTANCEOF a2    ; name2 INSTANCEOF a2
         .ENDST
 
         .ENUM 0 export
