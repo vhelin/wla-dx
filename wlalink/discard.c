@@ -19,11 +19,11 @@ extern struct stack *g_stacks_first, *g_stacks_last;
 
 extern int g_verbose_level;
 
+
 int discard_unused_sections(void) {
 
   struct section *s;
   int num_dropped_before = 0, num_dropped_after = -1;
-
   
   /* iterate section discarding until there's no change in the amount of dropped sections */
   while (num_dropped_before != num_dropped_after) {
@@ -72,7 +72,6 @@ int discard_iteration(void) {
   struct label *l;
   struct stack *st;
   int i;
-
   
   /* check section names for special characters '!', and check if the section is of proper type */
   s = g_sec_first;
@@ -161,7 +160,6 @@ int discard_dropped_labels(void) {
   struct section *s;
   struct label *l;
 
-  
   l = g_labels_first;
   while (l != NULL) {
     if (l->section_status == ON) {

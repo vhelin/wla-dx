@@ -49,7 +49,7 @@ extern int g_section_table_table_max, g_section_write_order[SECTION_TYPES_COUNT-
 extern int g_use_priority_only_writing_sections, g_use_priority_only_writing_ramsections;
 extern int g_allow_duplicate_labels_and_definitions;
 
-static int g_current_stack_calculation_addr = 0;
+static int s_current_stack_calculation_addr = 0;
 
 
 
@@ -2801,7 +2801,7 @@ int compute_pending_calculations(void) {
 
     /* we save the address for all those CADDRs inside definition stacks that are
        encountered during the next compute_stack() */
-    g_current_stack_calculation_addr = sta->memory_address;
+    s_current_stack_calculation_addr = sta->memory_address;
 
     /* all the references have been decoded, now compute */
     if (compute_stack(sta, &result, NULL, NULL, NULL, NULL) == FAILED)
@@ -4137,8 +4137,8 @@ int parse_stack(struct stack *sta) {
         }
         else if (strcaselesscmp(si->string, "CADDR") == 0) {
           if (sta->position == STACK_POSITION_DEFINITION) {
-            k_rom = g_current_stack_calculation_addr;
-            k_ram = g_current_stack_calculation_addr;
+            k_rom = s_current_stack_calculation_addr;
+            k_ram = s_current_stack_calculation_addr;
             fprintf(stderr, "%s: %s:%d: PARSE_STACK: We have a CADDR inside a calculation inside a definition. Please check that the result is correct...\n", get_file_name(sta->file_id),
                     get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           }

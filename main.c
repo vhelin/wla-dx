@@ -68,20 +68,20 @@ extern char *g_include_in_tmp, *g_tmp_a;
 extern char *g_rom_banks, *g_rom_banks_usage_table;
 extern char *g_include_dir, *g_buffer, *g_full_name;
 extern int g_include_in_tmp_size, g_tmp_a_size, *g_banks, *g_bankaddress;
-extern int g_saved_structures_count, g_saved_structures_max2;
-extern int g_sizeof_g_tmp, g_global_listfile_items, *g_global_listfile_ints;
+extern int g_saved_structures_count, g_sizeof_g_tmp, g_global_listfile_items, *g_global_listfile_ints;
 
 int g_output_format = OUTPUT_NONE, g_verbose_level = 0, g_test_mode = OFF;
 int g_extra_definitions = OFF, g_commandline_parsing = ON, g_makefile_rules = NO;
 int g_listfile_data = NO, g_quiet = NO, g_use_incdir = NO, g_little_endian = YES;
 int g_create_sizeof_definitions = YES, g_global_label_hint = HINT_NONE, g_keep_empty_sections = NO;
-int g_saved_structures_count2 = 0, g_saved_structures_max2 = 0;
 int g_can_calculate_a_minus_b = YES, g_is_file_isolated_counter = 0;
 
 char *g_final_name = NULL, *g_asm_name = NULL;
 
 struct ext_include_collection g_ext_incdirs;
-struct structure **g_saved_structures2 = NULL;
+
+static struct structure **s_deletable_structures = NULL;
+static int s_deletable_structures_max = 0, s_deletable_structures_count = 0;
 
 #ifdef Z80
 extern char *g_sdsctag_name_str, *g_sdsctag_notes_str, *g_sdsctag_author_str;
@@ -470,21 +470,21 @@ static void _remember_deletable_structure(struct structure *st) {
   int i;
 
   /* do we already remember the structure? */
-  for (i = 0; i < g_saved_structures_count2; i++) {
-    if (g_saved_structures2[i] == st)
+  for (i = 0; i < s_deletable_structures_count; i++) {
+    if (s_deletable_structures[i] == st)
       return;
   }
 
-  if (g_saved_structures_count2 >= g_saved_structures_max2) {
-    g_saved_structures_max2 += 256;
-    g_saved_structures2 = realloc(g_saved_structures2, sizeof(struct structure *) * g_saved_structures_max2);
-    if (g_saved_structures2 == NULL) {
+  if (s_deletable_structures_count >= s_deletable_structures_max) {
+    s_deletable_structures_max += 256;
+    s_deletable_structures = realloc(s_deletable_structures, sizeof(struct structure *) * s_deletable_structures_max);
+    if (s_deletable_structures == NULL) {
       fprintf(stderr, "_remember_deletable_structure(): Out of memory error.\n");
       return;
     }
   }
   
-  g_saved_structures2[g_saved_structures_count2++] = st;
+  s_deletable_structures[s_deletable_structures_count++] = st;
 }
 
 
@@ -546,10 +546,10 @@ void procedures_at_exit(void) {
      all here, finally... if you come up with a better solution, thank you */
   for (i = 0; i < g_saved_structures_count; i++)
     _mark_struct_deleted(g_saved_structures[i]);
-  for (i = 0; i < g_saved_structures_count2; i++)
-    free(g_saved_structures2[i]);
+  for (i = 0; i < s_deletable_structures_count; i++)
+    free(s_deletable_structures[i]);
   free(g_saved_structures);
-  free(g_saved_structures2);
+  free(s_deletable_structures);
 
   /*
   st = g_structures_first;

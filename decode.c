@@ -40,9 +40,8 @@ extern int g_use_wdc_standard;
 extern int g_input_number_expects_dot;
 #endif
 
-static int s_parser_source_index;
-
 static struct instruction *s_instruction_tmp;
+static int s_parser_source_index;
 
 
 static void _output_assembled_instruction(struct instruction *instruction, const char *format, ...) {

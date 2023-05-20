@@ -52,8 +52,9 @@ struct label_sizeof *g_label_sizeofs = NULL;
 struct section_fix *g_sec_fix_first = NULL, *g_sec_fix_tmp = NULL;
 unsigned char *g_rom = NULL, *g_rom_usage = NULL, *g_file_header = NULL, *g_file_footer = NULL, g_symbol_mode = SYMBOL_MODE_NONE;
 char g_load_address_label[MAX_NAME_LENGTH + 1], **g_ram_slots[256];
-int g_load_address = 0, g_load_address_type = LOAD_ADDRESS_TYPE_UNDEFINED;
 char g_program_address_start_label[MAX_NAME_LENGTH + 1], g_program_address_end_label[MAX_NAME_LENGTH + 1];
+char g_ext_libdir[MAX_NAME_LENGTH + 2];
+int g_load_address = 0, g_load_address_type = LOAD_ADDRESS_TYPE_UNDEFINED;
 int g_program_address_start = -1, g_program_address_end = -1, g_program_address_start_type = LOAD_ADDRESS_TYPE_UNDEFINED, g_program_address_end_type = LOAD_ADDRESS_TYPE_UNDEFINED;
 int g_romsize, g_rombanks, g_banksize, g_verbose_level = 0, g_section_overwrite = OFF;
 int g_pc_bank, g_pc_full, g_pc_slot, g_pc_slot_max;
@@ -67,14 +68,13 @@ int g_output_type = OUTPUT_TYPE_UNDEFINED, g_sort_sections = YES;
 int g_num_sorted_anonymous_labels = 0, g_use_priority_only_writing_sections = NO, g_use_priority_only_writing_ramsections = NO;
 int g_emptyfill = 0, g_paths_in_linkfile_are_relative_to_linkfile = NO;
 
-static int g_create_sizeof_definitions = YES, g_listfile_data = NO;
-static unsigned char g_output_addr_to_line = OFF;
+static int s_create_sizeof_definitions = YES, s_listfile_data = NO;
+static unsigned char s_output_addr_to_line = OFF;
 
 extern struct object_file **g_object_files;
 extern struct pointer_array **g_section_table_table;
 extern int g_section_table_table_max;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
-char g_ext_libdir[MAX_NAME_LENGTH + 2];
 
 #if WLALINK_DEBUG
 
@@ -656,7 +656,7 @@ int main(int argc, char *argv[]) {
     return 1;
   
   /* generate _sizeof_[label] definitions */
-  if (g_create_sizeof_definitions == YES) {
+  if (s_create_sizeof_definitions == YES) {
     if (generate_sizeof_label_definitions() == FAILED)
       return 1;
   }
@@ -755,12 +755,12 @@ int main(int argc, char *argv[]) {
 
   /* export symbolic information file */
   if (g_symbol_mode != SYMBOL_MODE_NONE) {
-    if (write_symbol_file(argv[argc - 1], g_symbol_mode, g_output_addr_to_line) == FAILED)
+    if (write_symbol_file(argv[argc - 1], g_symbol_mode, s_output_addr_to_line) == FAILED)
       return 1;
   }
 
   /* write list files */
-  if (g_listfile_data == YES) {
+  if (s_listfile_data == YES) {
     if (listfile_write_listfiles() == FAILED)
       return 1;
   }
@@ -1340,7 +1340,7 @@ int parse_flags(char **flags, int flagc) {
       continue;
     }
     else if (!strcmp(flags[count], "-i")) {
-      g_listfile_data = YES;
+      s_listfile_data = YES;
       continue;
     }
     else if (!strcmp(flags[count], "-nS")) {
@@ -1376,7 +1376,7 @@ int parse_flags(char **flags, int flagc) {
       continue;
     }
     else if (!strcmp(flags[count], "-A")) {
-      g_output_addr_to_line = ON;
+      s_output_addr_to_line = ON;
       continue;
     }
     else if (!strcmp(flags[count], "-d")) {
@@ -1384,7 +1384,7 @@ int parse_flags(char **flags, int flagc) {
       continue;
     }
     else if (!strcmp(flags[count], "-D")) {
-      g_create_sizeof_definitions = NO;
+      s_create_sizeof_definitions = NO;
       continue;
     }
     else {

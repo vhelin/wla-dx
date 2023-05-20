@@ -149,7 +149,7 @@ extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern int g_makefile_rules, g_parsing_function_body, g_force_add_namespace, g_is_file_isolated_counter, g_force_ignore_namespace;
 
-static int g_macro_stack_size = 0, g_repeat_stack_size = 0;
+static int s_macro_stack_size = 0, s_repeat_stack_size = 0;
 
 #if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(W65816) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
 int g_xbit_size = 0, g_accu_size = 8, g_index_size = 8;
@@ -158,28 +158,28 @@ int g_xbit_size = 0, g_accu_size = 8, g_index_size = 8;
 /* vars used when in an enum, ramsection, or struct. */
 /* some variables named "enum_" are used in enums, ramsections, and structs. */
 int g_in_enum = NO, g_in_ramsection = NO, g_in_struct = NO, g_macro_id = 0;
-static int g_enum_export, g_enum_ord;
-static int g_enum_offset; /* Offset relative to enum start where we're at right now */
-static int g_last_enum_offset;
-static int g_base_enum_offset; /* start address of enum */
-static int g_enum_sizeof_pass; /* set on second pass through enum/ramsection, generating _sizeof labels */
+static int s_enum_export, s_enum_ord;
+static int s_enum_offset; /* Offset relative to enum start where we're at right now */
+static int s_last_enum_offset;
+static int s_base_enum_offset; /* start address of enum */
+static int s_enum_sizeof_pass; /* set on second pass through enum/ramsection, generating _sizeof labels */
 /* temporary struct used to build up enums/ramsections (and, of course, structs)
    this gets temporarily replaced when inside a union (each union is considered a separate struct). */
-static struct structure *g_active_struct = NULL;
+static struct structure *s_active_struct = NULL;
 
-static int g_union_base_offset; /* start address of current union */
-static int g_max_enum_offset; /* highest position seen within current union group */
-static struct structure *g_union_first_struct = NULL; /* first struct in current union */
-static struct union_stack *g_union_stack = NULL; /* stores variables for nested unions */
+static int s_union_base_offset; /* start address of current union */
+static int s_max_enum_offset; /* highest position seen within current union group */
+static struct structure *s_union_first_struct = NULL; /* first struct in current union */
+static struct union_stack *s_union_stack = NULL; /* stores variables for nested unions */
 
 /* for .TABLE, .DATA and .ROW */
-static char g_table_format[256];
-static int g_table_defined = 0, g_table_size = 0, g_table_index = 0;
+static char s_table_format[256];
+static int s_table_defined = 0, s_table_size = 0, s_table_index = 0;
 
 static int s_source_index_old = 0, s_line_current_old = 0;
 static int s_autopriority = 65535;
 
-static struct section_def *g_active_ramsection = NULL;
+static struct section_def *s_active_ramsection = NULL;
 
 
 #define no_library_files(name)                                          \
@@ -389,15 +389,15 @@ int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
 
 int macro_stack_grow(void) {
 
-  if (g_macro_active == g_macro_stack_size) {
+  if (g_macro_active == s_macro_stack_size) {
     struct macro_runtime *macro;
     int old_size;
 
     /* enlarge the macro stack */
-    old_size = g_macro_stack_size;
-    g_macro_stack_size = (g_macro_stack_size<<1)+2;
+    old_size = s_macro_stack_size;
+    s_macro_stack_size = (s_macro_stack_size<<1)+2;
 
-    macro = calloc(sizeof(struct macro_runtime) * g_macro_stack_size, 1);
+    macro = calloc(sizeof(struct macro_runtime) * s_macro_stack_size, 1);
     if (macro == NULL) {
       print_error(ERROR_ERR, "Out of memory error while enlarging macro stack buffer.\n");
       return FAILED;
@@ -1298,7 +1298,7 @@ int add_label_sizeof(char *label, int size) {
 }
 
 
-/* g_enum_offset and g_last_enum_offset should be set when calling this. */
+/* s_enum_offset and s_last_enum_offset should be set when calling this. */
 int add_label_to_enum_or_ramsection(char *name, int size) {
 
   char tmp[MAX_NAME_LENGTH+10];
@@ -1306,21 +1306,21 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
   /* there are two passes done when adding a temporary struct to an enum/ramsection. first
      pass is to add the labels, second is to add sizeof definitions. if done in only one
      pass, the resulting sym file is very ugly... */
-  if (g_enum_sizeof_pass == NO) {
+  if (s_enum_sizeof_pass == NO) {
     if (verify_name_length(name) == FAILED)
       return FAILED;
 
     if (g_in_enum == YES || g_in_struct == YES) {
-      if (add_a_new_definition(name, (double)(g_base_enum_offset+g_enum_offset), NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+      if (add_a_new_definition(name, (double)(s_base_enum_offset+s_enum_offset), NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
         return FAILED;
-      if (g_enum_export == YES)
+      if (s_enum_export == YES)
         if (export_a_definition(name) == FAILED)
           return FAILED;
     }
     else if (g_in_ramsection == YES) {
-      if (g_last_enum_offset != g_enum_offset) {
+      if (s_last_enum_offset != s_enum_offset) {
         /* this sometimes abuses the "dsb" implementation to move backwards in the ramsection. */
-        fprintf(g_file_out_ptr, "x%d 0 ", g_enum_offset-g_last_enum_offset);
+        fprintf(g_file_out_ptr, "x%d 0 ", s_enum_offset-s_last_enum_offset);
       }
       fprintf(g_file_out_ptr, "k%d ", g_active_file_info_last->line_current);
       /* we skip label emissions for "." (because .ENUM and .RAMSECTION use it as an anonymous label) */
@@ -1339,7 +1339,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
         snprintf(tmp, sizeof(tmp), "_sizeof_%s", name);
         if (add_a_new_definition(tmp, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
           return FAILED;
-        if (g_in_enum == YES && g_enum_export == YES) {
+        if (g_in_enum == YES && s_enum_export == YES) {
           if (export_a_definition(tmp) == FAILED)
             return FAILED;
         }
@@ -1347,7 +1347,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
     }
   }
 
-  g_last_enum_offset = g_enum_offset;
+  s_last_enum_offset = s_enum_offset;
 
   return SUCCEEDED;
 }
@@ -1363,7 +1363,7 @@ static int _add_paddingof_definition(char *name, int padding) {
   snprintf(tmp, sizeof(tmp), "_paddingof_%s", name);
   if (add_a_new_definition(tmp, (double)padding, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
     return FAILED;
-  if (g_in_enum == YES && g_enum_export == YES) {
+  if (g_in_enum == YES && s_enum_export == YES) {
     if (export_a_definition(tmp) == FAILED)
       return FAILED;
   }
@@ -1374,7 +1374,7 @@ static int _add_paddingof_definition(char *name, int padding) {
 
 /* add all fields from a struct at the current offset in the enum/ramsection.
    this is used to construct enums or ramsections through temporary structs, even if
-   INSTANCEOF isn't used. g_enum_sizeof_pass should be set to YES or NO before calling. */
+   INSTANCEOF isn't used. s_enum_sizeof_pass should be set to YES or NO before calling. */
 int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 
   char tmp[MAX_NAME_LENGTH * 2 + 5];
@@ -1388,14 +1388,14 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
   si = st->items;
   while (si != NULL) {
     int real_si_size = si->size;
-    int old_g_enum_offset = g_enum_offset;
-    int old_g_last_enum_offset = g_last_enum_offset;
+    int old_g_enum_offset = s_enum_offset;
+    int old_g_last_enum_offset = s_last_enum_offset;
     
     if (si->type == STRUCTURE_ITEM_TYPE_DOTTED || si->type == STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF)
       real_si_size = 0;
 
     if (reverse)
-      g_enum_offset -= real_si_size;
+      s_enum_offset -= real_si_size;
 
     /* make definition for this item */
     if (si->name[0] != '\0') {
@@ -1432,7 +1432,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 
         /* there is padding in the INSTANCEOF */
         if (padding > 0) {
-          if (g_enum_sizeof_pass == NO) {
+          if (s_enum_sizeof_pass == NO) {
             if (g_in_enum == NO && g_in_struct == NO)
               fprintf(g_file_out_ptr, "x%d %d ", padding, g_emptyfill);
           }
@@ -1443,14 +1443,14 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
             }
           }
 
-          g_enum_offset += padding;
-          g_last_enum_offset += padding;
+          s_enum_offset += padding;
+          s_last_enum_offset += padding;
         }
 
         if (si->type == STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF) {
           /* this doesn't advance the counters */
-          g_enum_offset = old_g_enum_offset;
-          g_last_enum_offset = old_g_last_enum_offset;
+          s_enum_offset = old_g_enum_offset;
+          s_last_enum_offset = old_g_last_enum_offset;
         }
       }
       else {
@@ -1483,7 +1483,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 
           /* there is padding in the INSTANCEOF */
           if (padding > 0) {
-            if (g_enum_sizeof_pass == NO)
+            if (s_enum_sizeof_pass == NO)
               fprintf(g_file_out_ptr, "x%d %d ", padding, g_emptyfill);
             else {
               if (si->name[0] != '\0') {
@@ -1492,26 +1492,26 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
               }
             }
             
-            g_enum_offset += padding;
-            g_last_enum_offset += padding;
+            s_enum_offset += padding;
+            s_last_enum_offset += padding;
           }
         }
 
         if (si->type == STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF) {
           /* this doesn't advance the counters */
-          g_enum_offset = old_g_enum_offset;
-          g_last_enum_offset = old_g_last_enum_offset;
+          s_enum_offset = old_g_enum_offset;
+          s_last_enum_offset = old_g_last_enum_offset;
         }
       }
     }
     /* if this struct has a .union in it, we treat each union block like a struct */
     else if (si->type == STRUCTURE_ITEM_TYPE_UNION) {
-      int orig_offset = g_enum_offset;
+      int orig_offset = s_enum_offset;
       char union_basename[MAX_NAME_LENGTH * 2 + 5];
       struct structure *un = si->union_items;
 
       while (un != NULL) {
-        g_enum_offset = orig_offset;
+        s_enum_offset = orig_offset;
 
         if (un->name[0] != '\0') {
           if (basename[0] != '\0')
@@ -1535,14 +1535,14 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
       }
 
       /* this is the size of the largest union */
-      g_enum_offset = orig_offset + real_si_size;
+      s_enum_offset = orig_offset + real_si_size;
     }
     else
-      g_enum_offset += real_si_size;
+      s_enum_offset += real_si_size;
 
     /* after defining data, go back to start, for DESC enums */
     if (reverse)
-      g_enum_offset -= real_si_size;
+      s_enum_offset -= real_si_size;
 
     si = si->next;
   }
@@ -1601,17 +1601,17 @@ static int _add_new_stack_item(char *tmpname, int size, int defined_size, int ty
   else if (type == STRUCTURE_ITEM_TYPE_UNION)
     si->union_items = st;
 
-  if (g_active_struct->items == NULL)
-    g_active_struct->items = si;
-  if (g_active_struct->last_item != NULL)
-    g_active_struct->last_item->next = si;
-  g_active_struct->last_item = si;
+  if (s_active_struct->items == NULL)
+    s_active_struct->items = si;
+  if (s_active_struct->last_item != NULL)
+    s_active_struct->last_item->next = si;
+  s_active_struct->last_item = si;
 
   if (type != STRUCTURE_ITEM_TYPE_DOTTED && type != STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF)
-    g_enum_offset += size;
+    s_enum_offset += size;
 
-  if (g_enum_offset > g_max_enum_offset)
-    g_max_enum_offset = g_enum_offset;
+  if (s_enum_offset > s_max_enum_offset)
+    s_max_enum_offset = s_enum_offset;
 
   return SUCCEEDED;
 }
@@ -1664,30 +1664,30 @@ int parse_enum_token(void) {
       free(st);
       return FAILED;
     }
-    ust->active_struct = g_active_struct;
-    ust->union_first_struct = g_union_first_struct;
-    ust->union_base_offset = g_union_base_offset;
-    ust->max_enum_offset = g_max_enum_offset;
-    ust->prev = g_union_stack;
-    g_union_stack = ust;
+    ust->active_struct = s_active_struct;
+    ust->union_first_struct = s_union_first_struct;
+    ust->union_base_offset = s_union_base_offset;
+    ust->max_enum_offset = s_max_enum_offset;
+    ust->prev = s_union_stack;
+    s_union_stack = ust;
 
-    g_active_struct = st;
-    g_union_first_struct = g_active_struct;
-    g_union_base_offset = g_enum_offset;
-    g_max_enum_offset = g_union_base_offset;
+    s_active_struct = st;
+    s_union_first_struct = s_active_struct;
+    s_union_base_offset = s_enum_offset;
+    s_max_enum_offset = s_union_base_offset;
     return SUCCEEDED;
   }
   else if (strcaselesscmp(g_tmp, ".NEXTU") == 0) {
     int inz;
 
-    if (g_union_stack == NULL) {
+    if (s_union_stack == NULL) {
       print_error(ERROR_DIR, "There is no open .UNION.\n");
       return FAILED;
     }
 
-    if (g_enum_offset > g_max_enum_offset)
-      g_max_enum_offset = g_enum_offset;
-    g_active_struct->size = g_enum_offset - g_union_base_offset;
+    if (s_enum_offset > s_max_enum_offset)
+      s_max_enum_offset = s_enum_offset;
+    s_active_struct->size = s_enum_offset - s_union_base_offset;
     st = calloc(sizeof(struct structure), 1);
     if (st == NULL) {
       print_error(ERROR_DIR, "PARSE_ENUM_TOKEN: Out of memory error.\n");
@@ -1711,9 +1711,9 @@ int parse_enum_token(void) {
     else if (inz == INPUT_NUMBER_EOL)
       next_line();
 
-    g_active_struct->next = st;
-    g_active_struct = st;
-    g_enum_offset = g_union_base_offset;
+    s_active_struct->next = st;
+    s_active_struct = st;
+    s_enum_offset = s_union_base_offset;
     return SUCCEEDED;
   }
   else if (strcaselesscmp(g_tmp, ".ENDU") == 0) {
@@ -1721,35 +1721,35 @@ int parse_enum_token(void) {
     struct union_stack *ust;
     int total_size;
 
-    if (g_union_stack == NULL) {
+    if (s_union_stack == NULL) {
       print_error(ERROR_DIR, "There is no open .UNION.\n");
       return FAILED;
     }
 
-    if (g_enum_offset > g_max_enum_offset)
-      g_max_enum_offset = g_enum_offset;
+    if (s_enum_offset > s_max_enum_offset)
+      s_max_enum_offset = s_enum_offset;
 
-    total_size = g_max_enum_offset - g_union_base_offset;
+    total_size = s_max_enum_offset - s_union_base_offset;
 
-    g_active_struct->size = g_enum_offset - g_union_base_offset;
-    g_active_struct->next = NULL;
+    s_active_struct->size = s_enum_offset - s_union_base_offset;
+    s_active_struct->next = NULL;
 
-    st = g_union_first_struct;
+    st = s_union_first_struct;
 
-    g_enum_offset = g_max_enum_offset;
+    s_enum_offset = s_max_enum_offset;
 
     /* pop previous union from the "stack" */
-    ust = g_union_stack;
-    g_active_struct = g_union_stack->active_struct;
-    g_union_first_struct = g_union_stack->union_first_struct;
-    g_union_base_offset = ust->union_base_offset;
-    g_max_enum_offset = ust->max_enum_offset;
-    g_union_stack = g_union_stack->prev;
+    ust = s_union_stack;
+    s_active_struct = s_union_stack->active_struct;
+    s_union_first_struct = s_union_stack->union_first_struct;
+    s_union_base_offset = ust->union_base_offset;
+    s_max_enum_offset = ust->max_enum_offset;
+    s_union_stack = s_union_stack->prev;
     free(ust);
 
-    /* just popped g_max_enum_offset; need to update it for end of union */
-    if (g_enum_offset > g_max_enum_offset)
-      g_max_enum_offset = g_enum_offset;
+    /* just popped s_max_enum_offset; need to update it for end of union */
+    if (s_enum_offset > s_max_enum_offset)
+      s_max_enum_offset = s_enum_offset;
 
     /* create a new structure item of type STRUCTURE_ITEM_TYPE_UNION */
     si = calloc(sizeof(struct structure_item), 1);
@@ -1762,61 +1762,61 @@ int parse_enum_token(void) {
     si->size = total_size;
     si->next = NULL;
     si->union_items = st;
-    if (g_active_struct->items == NULL)
-      g_active_struct->items = si;
-    if (g_active_struct->last_item != NULL)
-      g_active_struct->last_item->next = si;
-    g_active_struct->last_item = si;
+    if (s_active_struct->items == NULL)
+      s_active_struct->items = si;
+    if (s_active_struct->last_item != NULL)
+      s_active_struct->last_item->next = si;
+    s_active_struct->last_item = si;
     return SUCCEEDED;
   }
   else if (g_in_enum == YES && strcaselesscmp(g_tmp, ".ENDE") == 0) {
-    if (g_union_stack != NULL) {
+    if (s_union_stack != NULL) {
       print_error(ERROR_DIR, ".UNION not closed.\n");
       return FAILED;
     }
     
-    g_enum_offset = 0;
-    g_enum_sizeof_pass = NO;
-    if (enum_add_struct_fields("", g_active_struct, (g_enum_ord == -1 ? 1 : 0)) == FAILED)
+    s_enum_offset = 0;
+    s_enum_sizeof_pass = NO;
+    if (enum_add_struct_fields("", s_active_struct, (s_enum_ord == -1 ? 1 : 0)) == FAILED)
       return FAILED;
 
-    g_enum_offset = 0;
-    g_enum_sizeof_pass = YES;
-    if (enum_add_struct_fields("", g_active_struct, (g_enum_ord == -1 ? 1 : 0)) == FAILED)
+    s_enum_offset = 0;
+    s_enum_sizeof_pass = YES;
+    if (enum_add_struct_fields("", s_active_struct, (s_enum_ord == -1 ? 1 : 0)) == FAILED)
       return FAILED;
 
-    g_active_struct = NULL;
+    s_active_struct = NULL;
 
     g_in_enum = NO;
     return SUCCEEDED;
   }
   else if (g_in_ramsection == YES && strcaselesscmp(g_tmp, ".ENDS") == 0) {
-    if (g_union_stack != NULL) {
+    if (s_union_stack != NULL) {
       print_error(ERROR_DIR, ".UNION not closed.\n");
       return FAILED;
     }
 
-    g_enum_offset = 0;
-    g_last_enum_offset = 0;
-    g_enum_sizeof_pass = NO;
-    if (enum_add_struct_fields("", g_active_struct, 0) == FAILED)
+    s_enum_offset = 0;
+    s_last_enum_offset = 0;
+    s_enum_sizeof_pass = NO;
+    if (enum_add_struct_fields("", s_active_struct, 0) == FAILED)
       return FAILED;
 
-    g_enum_offset = 0;
-    g_last_enum_offset = 0;
-    g_enum_sizeof_pass = YES;
-    if (enum_add_struct_fields("", g_active_struct, 0) == FAILED)
+    s_enum_offset = 0;
+    s_last_enum_offset = 0;
+    s_enum_sizeof_pass = YES;
+    if (enum_add_struct_fields("", s_active_struct, 0) == FAILED)
       return FAILED;
 
-    if (g_max_enum_offset > g_last_enum_offset)
-      fprintf(g_file_out_ptr, "o%d 0 ", g_max_enum_offset-g_last_enum_offset);
+    if (s_max_enum_offset > s_last_enum_offset)
+      fprintf(g_file_out_ptr, "o%d 0 ", s_max_enum_offset-s_last_enum_offset);
 
     /* generate a section end label? */
     if (g_extra_definitions == ON)
       generate_label("SECTIONEND_", g_sections_last->name);
 
-    g_active_struct = NULL;
-    g_active_ramsection = NULL;
+    s_active_struct = NULL;
+    s_active_ramsection = NULL;
 
     fprintf(g_file_out_ptr, "s ");
     g_section_status = OFF;
@@ -1825,52 +1825,52 @@ int parse_enum_token(void) {
     return SUCCEEDED;
   }
   else if (g_in_struct && strcaselesscmp(g_tmp, ".ENDST") == 0) {
-    g_enum_offset = 0;
-    g_last_enum_offset = 0;
-    g_enum_sizeof_pass = NO;
-    if (enum_add_struct_fields(g_active_struct->name, g_active_struct, 0) == FAILED)
+    s_enum_offset = 0;
+    s_last_enum_offset = 0;
+    s_enum_sizeof_pass = NO;
+    if (enum_add_struct_fields(s_active_struct->name, s_active_struct, 0) == FAILED)
       return FAILED;
 
-    g_enum_offset = 0;
-    g_last_enum_offset = 0;
-    g_enum_sizeof_pass = YES;
-    if (enum_add_struct_fields(g_active_struct->name, g_active_struct, 0) == FAILED)
+    s_enum_offset = 0;
+    s_last_enum_offset = 0;
+    s_enum_sizeof_pass = YES;
+    if (enum_add_struct_fields(s_active_struct->name, s_active_struct, 0) == FAILED)
       return FAILED;
     
     /* create the SIZEOF-definition for the entire struct */
-    g_active_struct->size = g_max_enum_offset;
+    s_active_struct->size = s_max_enum_offset;
 
-    if (g_active_struct->defined_size > 0 && g_active_struct->size > g_active_struct->defined_size) {
-      print_error(ERROR_DIR, ".STRUCT \"%s\"'s calculated size is %d, but explicitly given SIZE is %d -> make SIZE larger!\n", g_active_struct->name, g_active_struct->size, g_active_struct->defined_size);
+    if (s_active_struct->defined_size > 0 && s_active_struct->size > s_active_struct->defined_size) {
+      print_error(ERROR_DIR, ".STRUCT \"%s\"'s calculated size is %d, but explicitly given SIZE is %d -> make SIZE larger!\n", s_active_struct->name, s_active_struct->size, s_active_struct->defined_size);
       return FAILED;
     }
     
     if (g_create_sizeof_definitions == YES) {
-      int size = g_active_struct->size;
+      int size = s_active_struct->size;
       
-      if (strlen(g_active_struct->name) > MAX_NAME_LENGTH - 8) {
-        print_error(ERROR_DIR, ".STRUCT \"%s\"'s name is too long!\n", g_active_struct->name);
+      if (strlen(s_active_struct->name) > MAX_NAME_LENGTH - 8) {
+        print_error(ERROR_DIR, ".STRUCT \"%s\"'s name is too long!\n", s_active_struct->name);
         return FAILED;
       }
 
-      if (g_active_struct->defined_size > 0)
-        size = g_active_struct->defined_size;
+      if (s_active_struct->defined_size > 0)
+        size = s_active_struct->defined_size;
       
-      snprintf(tmpname, sizeof(tmpname), "_sizeof_%s", g_active_struct->name);
+      snprintf(tmpname, sizeof(tmpname), "_sizeof_%s", s_active_struct->name);
       if (add_a_new_definition(tmpname, (double)size, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
         return FAILED;
     }
     
-    if (g_active_struct->items == NULL) {
-      print_error(ERROR_DIR, ".STRUCT \"%s\" is empty!\n", g_active_struct->name);
+    if (s_active_struct->items == NULL) {
+      print_error(ERROR_DIR, ".STRUCT \"%s\" is empty!\n", s_active_struct->name);
       return FAILED;
     }
 
-    g_active_struct->next = g_structures_first;
-    g_structures_first = g_active_struct;
+    s_active_struct->next = g_structures_first;
+    g_structures_first = s_active_struct;
 
     g_in_struct = NO;
-    g_active_struct = NULL;
+    s_active_struct = NULL;
 
     return SUCCEEDED;
   }
@@ -1886,12 +1886,12 @@ int parse_enum_token(void) {
       return FAILED;
     }
 
-    if ((g_active_ramsection->alignment % g_parsed_int) != 0) {
+    if ((s_active_ramsection->alignment % g_parsed_int) != 0) {
       print_error(ERROR_DIR, ".ALIGN works currently in .RAMSECTIONs that have ALIGN that is a multiple of .ALIGN.\n");
       return FAILED;
     }
 
-    remainder = g_enum_offset % g_parsed_int;
+    remainder = s_enum_offset % g_parsed_int;
     if (remainder > 0) {
       if (_add_new_stack_item("", g_parsed_int - remainder, -1, STRUCTURE_ITEM_TYPE_DATA, 1, NULL, 1) == FAILED)
       return FAILED;
@@ -2474,9 +2474,9 @@ int directive_table(void) {
   int result, i;
 
   result = input_number();
-  for (g_table_size = 0; g_table_size < (int)sizeof(g_table_format) && (result == INPUT_NUMBER_STRING || result == INPUT_NUMBER_ADDRESS_LABEL); ) {
+  for (s_table_size = 0; s_table_size < (int)sizeof(s_table_format) && (result == INPUT_NUMBER_STRING || result == INPUT_NUMBER_ADDRESS_LABEL); ) {
     if (strcaselesscmp(g_label, "db") == 0 || strcaselesscmp(g_label, "byte") == 0 || strcaselesscmp(g_label, "byt") == 0) {
-      g_table_format[g_table_size++] = 'b';
+      s_table_format[s_table_size++] = 'b';
     }
     else if (strcaselesscmp(g_label, "ds") == 0 || strcaselesscmp(g_label, "dsb") == 0) {
       strcpy(bak, g_label);
@@ -2489,11 +2489,11 @@ int directive_table(void) {
         return FAILED;
       }
 
-      for (i = 0; i < g_parsed_int && g_table_size < (int)sizeof(g_table_format); i++)
-        g_table_format[g_table_size++] = 'b';
+      for (i = 0; i < g_parsed_int && s_table_size < (int)sizeof(s_table_format); i++)
+        s_table_format[s_table_size++] = 'b';
     }
     else if (strcaselesscmp(g_label, "dw") == 0 || strcaselesscmp(g_label, "word") == 0 || strcaselesscmp(g_label, "addr") == 0) {
-      g_table_format[g_table_size++] = 'w';
+      s_table_format[s_table_size++] = 'w';
     }
     else if (strcaselesscmp(g_label, "dsw") == 0) {
       strcpy(bak, g_label);
@@ -2506,11 +2506,11 @@ int directive_table(void) {
         return FAILED;
       }
 
-      for (i = 0; i < g_parsed_int && g_table_size < (int)sizeof(g_table_format); i++)
-        g_table_format[g_table_size++] = 'w';
+      for (i = 0; i < g_parsed_int && s_table_size < (int)sizeof(s_table_format); i++)
+        s_table_format[s_table_size++] = 'w';
     }
     else if (strcaselesscmp(g_label, "dl") == 0 || strcaselesscmp(g_label, "long") == 0 || strcaselesscmp(g_label, "faraddr") == 0) {
-      g_table_format[g_table_size++] = 'l';
+      s_table_format[s_table_size++] = 'l';
     }
     else if (strcaselesscmp(g_label, "dsl") == 0) {
       strcpy(bak, g_label);
@@ -2523,11 +2523,11 @@ int directive_table(void) {
         return FAILED;
       }
 
-      for (i = 0; i < g_parsed_int && g_table_size < (int)sizeof(g_table_format); i++)
-        g_table_format[g_table_size++] = 'l';
+      for (i = 0; i < g_parsed_int && s_table_size < (int)sizeof(s_table_format); i++)
+        s_table_format[s_table_size++] = 'l';
     }
     else if (strcaselesscmp(g_label, "dd") == 0) {
-      g_table_format[g_table_size++] = 'd';
+      s_table_format[s_table_size++] = 'd';
     }
     else if (strcaselesscmp(g_label, "dsd") == 0) {
       strcpy(bak, g_label);
@@ -2540,8 +2540,8 @@ int directive_table(void) {
         return FAILED;
       }
 
-      for (i = 0; i < g_parsed_int && g_table_size < (int)sizeof(g_table_format); i++)
-        g_table_format[g_table_size++] = 'd';
+      for (i = 0; i < g_parsed_int && s_table_size < (int)sizeof(s_table_format); i++)
+        s_table_format[s_table_size++] = 'd';
     }
     else {
       print_error(ERROR_DIR, "Unknown symbol \"%s\".\n", g_label);
@@ -2551,14 +2551,14 @@ int directive_table(void) {
     result = input_number();
   }
 
-  if (g_table_size >= (int)sizeof(g_table_format)) {
+  if (s_table_size >= (int)sizeof(s_table_format)) {
     print_error(ERROR_DIR, ".TABLE is out of size.\n");
     return FAILED;
   }
 
   if (result == FAILED)
     return FAILED;
-  else if (result == INPUT_NUMBER_EOL && g_table_size == 0) {
+  else if (result == INPUT_NUMBER_EOL && s_table_size == 0) {
     print_error(ERROR_INP, ".TABLE needs data.\n");
     return FAILED;
   }
@@ -2569,8 +2569,8 @@ int directive_table(void) {
     return FAILED;      
   }
 
-  g_table_defined = 1;
-  g_table_index = 0;
+  s_table_defined = 1;
+  s_table_index = 0;
 
   return SUCCEEDED;    
 }
@@ -2583,13 +2583,13 @@ int directive_row_data(void) {
   
   strcpy(bak, g_current_directive);
 
-  if (g_table_defined == 0) {
+  if (s_table_defined == 0) {
     print_error(ERROR_DIR, ".TABLE needs to be defined before .%s can be used.\n", bak);
     return FAILED;
   }
     
   if (strcaselesscmp(bak, "ROW") == 0) {
-    if (g_table_index != 0) {
+    if (s_table_index != 0) {
       print_error(ERROR_DIR, ".ROW cannot be used here. .DATA needs to be used again to give the remaining of the row.\n");
       return FAILED;
     }
@@ -2599,7 +2599,7 @@ int directive_row_data(void) {
   i = 0;
   for ( ; result == SUCCEEDED || result == INPUT_NUMBER_STRING || result == INPUT_NUMBER_ADDRESS_LABEL || result == INPUT_NUMBER_STACK; ) {
     if (result == INPUT_NUMBER_STRING) {
-      if (g_table_format[g_table_index] == 'b') {
+      if (s_table_format[s_table_index] == 'b') {
         if (strlen(g_label) != 1) {
           print_error(ERROR_INP, ".%s was expecting a byte, got %d bytes instead.\n", bak, (int)strlen(g_label));
           return FAILED;
@@ -2607,7 +2607,7 @@ int directive_row_data(void) {
 
         fprintf(g_file_out_ptr, "d%d ", g_label[0]);          
       }
-      else if (g_table_format[g_table_index] == 'w') {
+      else if (s_table_format[s_table_index] == 'w') {
         if (strlen(g_label) > 2 || strlen(g_label) <= 0) {
           print_error(ERROR_INP, ".%s was expecting a word (2 bytes), got %d bytes instead.\n", bak, (int)strlen(g_label));
           return FAILED;
@@ -2615,7 +2615,7 @@ int directive_row_data(void) {
 
         fprintf(g_file_out_ptr, "y%d ", (g_label[0] << 8) | g_label[1]);
       }
-      else if (g_table_format[g_table_index] == 'l') {
+      else if (s_table_format[s_table_index] == 'l') {
         if (strlen(g_label) > 3 || strlen(g_label) <= 0) {
           print_error(ERROR_INP, ".%s was expecting a long (3 bytes), got %d bytes instead.\n", bak, (int)strlen(g_label));
           return FAILED;
@@ -2623,7 +2623,7 @@ int directive_row_data(void) {
 
         fprintf(g_file_out_ptr, "z%d ", (g_label[0] << 16) | (g_label[1] << 8) | g_label[2]);
       }
-      else if (g_table_format[g_table_index] == 'd') {
+      else if (s_table_format[s_table_index] == 'd') {
         if (strlen(g_label) > 4 || strlen(g_label) <= 0) {
           print_error(ERROR_INP, ".%s was expecting a double word (4 bytes), got %d bytes instead.\n", bak, (int)strlen(g_label));
           return FAILED;
@@ -2632,12 +2632,12 @@ int directive_row_data(void) {
         fprintf(g_file_out_ptr, "u%d ", (g_label[0] << 24) | (g_label[1] << 16) | (g_label[2] << 8) | g_label[3]);
       }
       else {
-        print_error(ERROR_DIR, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
+        print_error(ERROR_DIR, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, s_table_format[s_table_index]);
         return FAILED;
       }
     }
     else if (result == SUCCEEDED) {
-      if (g_table_format[g_table_index] == 'b') {
+      if (s_table_format[s_table_index] == 'b') {
         if (g_parsed_int < -128 || g_parsed_int > 255) {
           print_error(ERROR_DIR, ".%s expects 8-bit data, %d is out of range!\n", bak, g_parsed_int);
           return FAILED;
@@ -2645,7 +2645,7 @@ int directive_row_data(void) {
     
         fprintf(g_file_out_ptr, "d%d ", g_parsed_int);
       }
-      else if (g_table_format[g_table_index] == 'w') {
+      else if (s_table_format[s_table_index] == 'w') {
         if (g_parsed_int < -32768 || g_parsed_int > 65535) {
           print_error(ERROR_DIR, ".%s expects 16-bit data, %d is out of range!\n", bak, g_parsed_int);
           return FAILED;
@@ -2653,7 +2653,7 @@ int directive_row_data(void) {
 
         fprintf(g_file_out_ptr, "y%d ", g_parsed_int);
       }
-      else if (g_table_format[g_table_index] == 'l') {
+      else if (s_table_format[s_table_index] == 'l') {
         if (g_parsed_int < -8388608 || g_parsed_int > 16777215) {
           print_error(ERROR_DIR, ".%s expects 24-bit data, %d is out of range!\n", bak, g_parsed_int);
           return FAILED;
@@ -2661,7 +2661,7 @@ int directive_row_data(void) {
 
         fprintf(g_file_out_ptr, "z%d ", g_parsed_int);
       }
-      else if (g_table_format[g_table_index] == 'd') {
+      else if (s_table_format[s_table_index] == 'd') {
         /*
         if (g_parsed_int < -2147483648 || g_parsed_int > 2147483647) {
           print_error(ERROR_DIR, ".%s expects 32-bit data, %d is out of range!\n", bak, g_parsed_int);
@@ -2672,52 +2672,52 @@ int directive_row_data(void) {
         fprintf(g_file_out_ptr, "u%d ", g_parsed_int);
       }
       else {
-        print_error(ERROR_DIR, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
+        print_error(ERROR_DIR, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, s_table_format[s_table_index]);
         return FAILED;
       }
     }
     else if (result == INPUT_NUMBER_ADDRESS_LABEL) {
-      if (g_table_format[g_table_index] == 'b') {
+      if (s_table_format[s_table_index] == 'b') {
         fprintf(g_file_out_ptr, "k%d Q%s ", g_active_file_info_last->line_current, g_label);
       }
-      else if (g_table_format[g_table_index] == 'w') {
+      else if (s_table_format[s_table_index] == 'w') {
         fprintf(g_file_out_ptr, "k%d r%s ", g_active_file_info_last->line_current, g_label);
       }
-      else if (g_table_format[g_table_index] == 'l') {
+      else if (s_table_format[s_table_index] == 'l') {
         fprintf(g_file_out_ptr, "k%d q%s ", g_active_file_info_last->line_current, g_label);
       }
-      else if (g_table_format[g_table_index] == 'd') {
+      else if (s_table_format[s_table_index] == 'd') {
         fprintf(g_file_out_ptr, "k%d V%s ", g_active_file_info_last->line_current, g_label);
       }
       else {
-        print_error(ERROR_DIR, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
+        print_error(ERROR_DIR, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, s_table_format[s_table_index]);
         return FAILED;
       }
     }
     else if (result == INPUT_NUMBER_STACK) {
-      if (g_table_format[g_table_index] == 'b') {
+      if (s_table_format[s_table_index] == 'b') {
         fprintf(g_file_out_ptr, "c%d ", g_latest_stack);
       }
-      else if (g_table_format[g_table_index] == 'w') {
+      else if (s_table_format[s_table_index] == 'w') {
         fprintf(g_file_out_ptr, "C%d ", g_latest_stack);
       }
-      else if (g_table_format[g_table_index] == 'l') {
+      else if (s_table_format[s_table_index] == 'l') {
         fprintf(g_file_out_ptr, "T%d ", g_latest_stack);
       }
-      else if (g_table_format[g_table_index] == 'd') {
+      else if (s_table_format[s_table_index] == 'd') {
         fprintf(g_file_out_ptr, "U%d ", g_latest_stack);
       }
       else {
-        print_error(ERROR_DIR, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, g_table_format[g_table_index]);
+        print_error(ERROR_DIR, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, s_table_format[s_table_index]);
         return FAILED;
       }
     }
 
     i++;
-    g_table_index++;
-    if (g_table_index >= g_table_size) {
+    s_table_index++;
+    if (s_table_index >= s_table_size) {
       rows++;
-      g_table_index = 0;
+      s_table_index = 0;
     }
 
     result = input_number();
@@ -2732,7 +2732,7 @@ int directive_row_data(void) {
   }
 
   if (strcaselesscmp(bak, "ROW") == 0) {
-    if (g_table_index != 0 || rows != 1) {
+    if (s_table_index != 0 || rows != 1) {
       print_error(ERROR_INP, ".ROW needs exactly one row of data, no more, no less.\n");
       return FAILED;
     }
@@ -4451,27 +4451,27 @@ int directive_struct(void) {
     return FAILED;
   }
 
-  g_active_struct = calloc(sizeof(struct structure), 1);
-  if (g_active_struct == NULL) {
+  s_active_struct = calloc(sizeof(struct structure), 1);
+  if (s_active_struct == NULL) {
     print_error(ERROR_DIR, "Out of memory while allocating a new .STRUCT.\n");
     return FAILED;
   }
-  g_active_struct->items = NULL;
-  g_active_struct->last_item = NULL;
-  g_active_struct->alive = YES;
-  g_active_struct->defined_size = -1;
+  s_active_struct->items = NULL;
+  s_active_struct->last_item = NULL;
+  s_active_struct->alive = YES;
+  s_active_struct->defined_size = -1;
 
-  if (_remember_new_structure(g_active_struct) == FAILED)
+  if (_remember_new_structure(s_active_struct) == FAILED)
     return FAILED;
 
   if (get_next_token() == FAILED)
     return FAILED;
 
-  strcpy(g_active_struct->name, g_tmp);
+  strcpy(s_active_struct->name, g_tmp);
 
   /* add namespace? */
   if (g_is_file_isolated_counter > 0)
-    add_namespace_to_string(g_active_struct->name, sizeof(g_active_struct->name), ".STRUCT");
+    add_namespace_to_string(s_active_struct->name, sizeof(s_active_struct->name), ".STRUCT");
 
   /* SIZE defined? */
   if (compare_next_token("SIZE") == SUCCEEDED) {
@@ -4495,18 +4495,18 @@ int directive_struct(void) {
         return FAILED;
       }
 
-      g_active_struct->defined_size = g_parsed_int;
+      s_active_struct->defined_size = g_parsed_int;
     }
   }
   
-  g_union_stack = NULL;
+  s_union_stack = NULL;
 
-  g_enum_offset = 0;
-  g_last_enum_offset = 0;
-  g_max_enum_offset = 0;
-  g_base_enum_offset = 0;
-  g_enum_ord = 1;
-  g_enum_export = NO;
+  s_enum_offset = 0;
+  s_last_enum_offset = 0;
+  s_max_enum_offset = 0;
+  s_base_enum_offset = 0;
+  s_enum_ord = 1;
+  s_enum_export = NO;
   g_in_struct = YES;
 
   return SUCCEEDED;
@@ -4930,31 +4930,31 @@ int directive_ramsection(void) {
       break;
   }
 
-  g_enum_offset = 0;
-  g_last_enum_offset = 0;
-  g_max_enum_offset = 0;
-  g_base_enum_offset = 0;
-  g_enum_ord = 1;
+  s_enum_offset = 0;
+  s_last_enum_offset = 0;
+  s_max_enum_offset = 0;
+  s_base_enum_offset = 0;
+  s_enum_ord = 1;
 
-  /* setup g_active_struct (ramsection vars stored here temporarily) */
-  g_active_struct = calloc(sizeof(struct structure), 1);
-  if (g_active_struct == NULL) {
+  /* setup s_active_struct (ramsection vars stored here temporarily) */
+  s_active_struct = calloc(sizeof(struct structure), 1);
+  if (s_active_struct == NULL) {
     print_error(ERROR_DIR, "Out of memory while parsing .RAMSECTION.\n");
     return FAILED;
   }
-  g_active_struct->alive = YES;
+  s_active_struct->alive = YES;
 
-  if (_remember_new_structure(g_active_struct) == FAILED)
+  if (_remember_new_structure(s_active_struct) == FAILED)
     return FAILED;
   
-  g_active_struct->name[0] = '\0';
-  g_active_struct->items = NULL;
-  g_active_struct->last_item = NULL;
-  g_union_stack = NULL;
+  s_active_struct->name[0] = '\0';
+  s_active_struct->items = NULL;
+  s_active_struct->last_item = NULL;
+  s_union_stack = NULL;
   
   g_in_ramsection = YES;
 
-  g_active_ramsection = g_sec_tmp;
+  s_active_ramsection = g_sec_tmp;
 
   if (orga_given >= 0) {
     int current_slot_address = g_slots[g_sec_tmp->slot].address;
@@ -8783,11 +8783,11 @@ int directive_rept_repeat(void) {
     return FAILED;
   }
 
-  if (g_repeat_active == g_repeat_stack_size) {
+  if (g_repeat_active == s_repeat_stack_size) {
     struct repeat_runtime *rr;
 
-    g_repeat_stack_size = (g_repeat_stack_size<<1)+2;
-    rr = realloc(g_repeat_stack, sizeof(struct repeat_runtime) * g_repeat_stack_size);
+    s_repeat_stack_size = (s_repeat_stack_size<<1)+2;
+    rr = realloc(g_repeat_stack, sizeof(struct repeat_runtime) * s_repeat_stack_size);
     if (rr == NULL) {
       print_error(ERROR_ERR, "Out of memory error while enlarging repeat stack buffer.\n");
       return FAILED;
@@ -10888,46 +10888,46 @@ int parse_directive(void) {
           return FAILED;
         }
       
-        g_enum_offset = 0;
-        g_last_enum_offset = 0;
-        g_max_enum_offset = 0;
-        g_base_enum_offset = g_parsed_int;
+        s_enum_offset = 0;
+        s_last_enum_offset = 0;
+        s_max_enum_offset = 0;
+        s_base_enum_offset = g_parsed_int;
       
         /* "ASC" or "DESC"? */
         if (compare_next_token("ASC") == SUCCEEDED) {
-          g_enum_ord = 1;
+          s_enum_ord = 1;
           skip_next_token();
         }
         else if (compare_next_token("DESC") == SUCCEEDED) {
-          g_enum_ord = -1;
+          s_enum_ord = -1;
           skip_next_token();
         }
         else
-          g_enum_ord = 1;
+          s_enum_ord = 1;
 
         /* do we have "EXPORT" defined? */
         if (compare_next_token("EXPORT") == SUCCEEDED) {
           skip_next_token();
-          g_enum_export = YES;
+          s_enum_export = YES;
         }
         else
-          g_enum_export = NO;
+          s_enum_export = NO;
 
-        /* setup g_active_struct (enum vars stored here temporarily) */
-        g_active_struct = calloc(sizeof(struct structure), 1);
-        if (g_active_struct == NULL) {
+        /* setup s_active_struct (enum vars stored here temporarily) */
+        s_active_struct = calloc(sizeof(struct structure), 1);
+        if (s_active_struct == NULL) {
           print_error(ERROR_DIR, "Out of memory while parsing .ENUM.\n");
           return FAILED;
         }
-        g_active_struct->alive = YES;
+        s_active_struct->alive = YES;
 
-        if (_remember_new_structure(g_active_struct) == FAILED)
+        if (_remember_new_structure(s_active_struct) == FAILED)
           return FAILED;
 
-        g_active_struct->name[0] = '\0';
-        g_active_struct->items = NULL;
-        g_active_struct->last_item = NULL;
-        g_union_stack = NULL;
+        s_active_struct->name[0] = '\0';
+        s_active_struct->items = NULL;
+        s_active_struct->last_item = NULL;
+        s_union_stack = NULL;
 
         g_in_enum = YES;
 
