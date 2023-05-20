@@ -26,17 +26,9 @@ extern int g_is_file_isolated_counter;
 struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
 struct active_file_info *g_active_file_info_first = NULL, *g_active_file_info_last = NULL, *g_active_file_info_tmp = NULL;
 struct file_name_info *g_file_name_info_first = NULL, *g_file_name_info_last = NULL, *g_file_name_info_tmp;
-char *g_include_in_tmp = NULL, *g_tmp_a = NULL;
+char *g_include_in_tmp = NULL, *g_tmp_a = NULL, *g_full_name = NULL, *g_include_dir = NULL, *g_buffer = NULL;
 int g_include_in_tmp_size = 0, g_tmp_a_size = 0, g_file_name_id = 1, g_open_files = 0;
-
-char *g_full_name = NULL;
-int g_full_name_size = 0;
-
-char *g_include_dir = NULL;
-int g_include_dir_size = 0;
-
-char *g_buffer = NULL;
-int g_source_file_size = 0;
+int g_full_name_size = 0, g_include_dir_size = 0, g_source_file_size = 0;
 
 
 int create_full_name(char *dir, char *name) {

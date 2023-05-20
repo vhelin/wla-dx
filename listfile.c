@@ -499,4 +499,3 @@ int listfile_globals_write(FILE *file_out) {
 
   return SUCCEEDED;
 }
-

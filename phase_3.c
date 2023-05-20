@@ -31,7 +31,7 @@ struct map_t *g_global_unique_label_map = NULL;
 struct block *g_blocks = NULL;
 struct label_context g_label_context, *g_label_context_first = NULL, *g_label_context_last = NULL;
 
-static int g_dstruct_start, g_dstruct_item_offset, g_dstruct_item_size;
+static int s_dstruct_start, s_dstruct_item_offset, s_dstruct_item_size;
 
 int g_label_context_running_number = 0;
 
@@ -1078,21 +1078,21 @@ int phase_3(void) {
     case 'e':
       fscanf(g_file_out_ptr, "%d %d ", &x, &y);
       if (y == -1) { /* mark start of .DSTRUCT */
-        g_dstruct_start = address;
-        g_dstruct_item_offset = -1;
+        s_dstruct_start = address;
+        s_dstruct_item_offset = -1;
       }
       else {
-        if (g_dstruct_item_offset != -1 && address - g_dstruct_item_offset > g_dstruct_item_size) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: %d too many bytes in struct field.\n", get_file_name(file_name_id), line_number, (address - g_dstruct_item_offset) - g_dstruct_item_size);
+        if (s_dstruct_item_offset != -1 && address - s_dstruct_item_offset > s_dstruct_item_size) {
+          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: %d too many bytes in struct field.\n", get_file_name(file_name_id), line_number, (address - s_dstruct_item_offset) - s_dstruct_item_size);
           return FAILED;
         }
 
-        address = g_dstruct_start + x;
+        address = s_dstruct_start + x;
         if (y < 0)
-          g_dstruct_item_offset = -1;
+          s_dstruct_item_offset = -1;
         else {
-          g_dstruct_item_offset = address;
-          g_dstruct_item_size = y;
+          s_dstruct_item_offset = address;
+          s_dstruct_item_size = y;
         }
       }
       continue;

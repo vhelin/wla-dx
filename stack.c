@@ -36,10 +36,8 @@ int g_latest_stack = 0, g_last_stack_id = 0, g_resolve_stack_calculations = YES,
 int g_parsing_function_body = NO, g_fail_quetly_on_non_found_functions = NO;
 struct stack **g_stack_calculations = NULL;
 
-static int g_delta_counter = 0, g_delta_section = -1, g_delta_address = -1;
-static struct stack_item *g_delta_old_pointer = NULL;
-
-static int s_dsp_file_name_id = 0, s_dsp_line_number = 0;
+static int s_delta_counter = 0, s_delta_section = -1, s_dsp_file_name_id = 0, s_dsp_line_number = 0;
+static struct stack_item *s_delta_old_pointer = NULL;
 
 static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 
@@ -2563,8 +2561,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     struct stack s;
 
     /* sanity check */
-    if (g_delta_counter != 0) {
-      print_error(ERROR_STC, "g_delta_counter == %d != 0! Internal error. Please submit a bug report!\n", g_delta_counter);
+    if (s_delta_counter != 0) {
+      print_error(ERROR_STC, "s_delta_counter == %d != 0! Internal error. Please submit a bug report!\n", s_delta_counter);
       return FAILED;
     }
 
@@ -2762,7 +2760,7 @@ static void _remove_can_calculate_deltas_pair(struct stack_item *s) {
   
   s->can_calculate_deltas = NO;
 
-  if (g_delta_counter == 0) {
+  if (s_delta_counter == 0) {
     while (1) {
       if ((s+i)->type == STACK_ITEM_TYPE_LABEL) {
         (s+i)->can_calculate_deltas = NO;
@@ -2781,7 +2779,7 @@ static void _remove_can_calculate_deltas_pair(struct stack_item *s) {
     }
   }
   
-  g_delta_counter = 0;
+  s_delta_counter = 0;
 }
 
 
@@ -2873,21 +2871,20 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
         dSI = data_stream_parser_find_label(s->string, s_dsp_file_name_id, s_dsp_line_number);
 
       if (dSI != NULL) {
-        if (g_delta_counter == 0) {
-          g_delta_section = dSI->section_id;
-          g_delta_address = dSI->address;
+        if (s_delta_counter == 0) {
+          s_delta_section = dSI->section_id;
 
           /* store the pointer to a stack_item as we'll turn it into a value later if we can calculate the delta */
-          g_delta_old_pointer = s;
+          s_delta_old_pointer = s;
 
           s->value = dSI->address;
 
-          g_delta_counter = 1;
+          s_delta_counter = 1;
         }
-        else if (g_delta_counter == 1) {
+        else if (s_delta_counter == 1) {
           _remove_can_calculate_deltas_pair(s);
 
-          if (g_delta_section != dSI->section_id) {
+          if (s_delta_section != dSI->section_id) {
             /* ABORT! labels A-B are from different sections, we cannot calculate the delta here... */
             *cannot_resolve = 1;
           }
@@ -2897,7 +2894,7 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
             s->value = dSI->address;
 
             /* turn A to a value as well for the delta calculation to work */
-            g_delta_old_pointer->type = STACK_ITEM_TYPE_VALUE;
+            s_delta_old_pointer->type = STACK_ITEM_TYPE_VALUE;
           }
         }
       }
