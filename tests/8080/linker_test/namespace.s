@@ -7,14 +7,14 @@
 .redefine _out \1+1
 .endm
 
-.section "!NamespaceTest1" namespace "hello"
+.section "NamespaceTest1" keep
 NamespaceMain:
 	nop
 	call NamespaceMain
 	call NamespaceMain+1
 	.ends
 
-.section "!NamespaceTest2" free
+.section "NamespaceTest2" free keep
 NamespaceBonus:
 	nop
 	call NamespaceBonus

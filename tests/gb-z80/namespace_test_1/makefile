@@ -2,20 +2,25 @@
 CC = $(WLAVALGRIND) wla-gb
 CFLAGS = -x -o
 LD = $(WLAVALGRIND) wlalink
-LDFLAGS = -c -d -v -s
+LDFLAGS = -d -v -S
 
-SFILES = setup.s exmain.s
+SFILES = setup.s main.s
 IFILES = defines1.i defines2.i
 OFILES = main.o setup.o
 
-all: $(OFILES) makefile
+all: linked.gb check
+
+linked.gb: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.gb
 
-main.o: exmain.s defines1.i gb_memory1.i
-	$(CC) $(CFLAGS) main.o exmain.s
+main.o: main.s defines1.i gb_memory1.i
+	$(CC) $(CFLAGS) main.o main.s
 
-setup.o: setup.s defines2.i gb_memory2.i
+setup.o: setup.s defines2.i gb_memory1.i
 	$(CC) $(CFLAGS) setup.o setup.s
+
+check: linked.gb
+	byte_tester -s namespaced.i ; byte_tester -s main.s
 
 
 $(OFILES): $(HFILES)

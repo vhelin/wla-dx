@@ -79,10 +79,9 @@ extern int g_romtype, g_verbose_level, g_section_status, g_background_defined, g
 extern int g_emptyfill_defined, g_emptyfill, g_rombankmap_defined, g_section_id;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
+extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 
 char g_include_directives_name[] = "INCLUDE_DIRECTIVES:";
-
-extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 
 #if defined(W65816)
 void write_snes_cartridge_information(int start);

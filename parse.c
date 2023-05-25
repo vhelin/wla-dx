@@ -21,7 +21,7 @@ int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OF
 int g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO, g_input_parse_special_chars = YES;
 int g_input_allow_leading_ampersand = NO, g_plus_and_minus_ends_label = NO, g_get_next_token_use_substitution = YES;
 int g_newline_beginning = ON, g_parsed_double_decimal_numbers = 0, g_operand_hint, g_operand_hint_type;
-int g_input_number_turn_values_into_strings = NO;
+int g_input_number_turn_values_into_strings = NO, g_force_add_namespace = NO, g_force_ignore_namespace = NO;
 char g_label[MAX_NAME_LENGTH + 1];
 char g_unevaluated_expression[256];
 char g_expanded_macro_string[MAX_NAME_LENGTH + 1];
@@ -32,13 +32,14 @@ int g_input_number_expects_dot = NO;
 #endif
 
 extern int g_source_index, g_source_file_size, g_parsed_int, g_macro_active, g_sizeof_g_tmp;
-extern char *g_buffer, *g_tmp, g_current_directive[256], *g_label_stack[256];
+extern char *g_buffer, *g_tmp, g_current_directive[MAX_NAME_LENGTH + 1], *g_label_stack[256];
 extern unsigned char g_asciitable[256];
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct map_t *g_defines_map;
 extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
 extern struct function *g_functions_first;
 extern int g_latest_stack, g_asciitable_defined, g_global_label_hint, g_parsing_function_body, g_resolve_stack_calculations;
+extern int g_is_file_isolated_counter;
 
 int parse_string_length(char *end);
 
@@ -182,6 +183,76 @@ int compare_next_token(char *token) {
 }
 
 
+static int should_we_add_namespace(void) {
+
+  if (g_force_ignore_namespace == YES)
+    return NO;
+  
+  if (g_is_file_isolated_counter > 0 || g_force_add_namespace == YES)
+    return YES;
+
+  if (g_macro_active != 0) {
+    struct macro_runtime *mrt = &g_macro_stack[g_macro_active - 1];
+
+    if (mrt->macro->namespace[0] != 0)
+      return YES;
+  }
+
+  return NO;
+}
+
+
+int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macros) {
+
+  int i = 0;
+  
+  if (g_force_ignore_namespace == YES)
+    return SUCCEEDED;
+
+  /* don't add namespace to some specific labels */
+  if (strcaselesscmp(label, "_out") == 0)
+    return SUCCEEDED;
+  if (label[0] == '\\' || label[0] == '@' || label[0] == '-' || label[0] == '+' || label[0] == '_')
+    return SUCCEEDED;
+
+  /* does the label already contain a namespace? */
+  while (1) {
+    if (label[i] == '.')
+      return SUCCEEDED;
+    if (label[i] == 0)
+      break;
+    i++;
+  }
+  
+  /* label reference inside a namespaced .MACRO? */
+  if (g_macro_active != 0) {
+    struct definition *tmp_def;
+    
+    hashmap_get(g_defines_map, label, (void*)&tmp_def);
+    if (tmp_def == NULL) {
+      struct macro_runtime *mrt = &g_macro_stack[g_macro_active - 1];
+
+      if (mrt->macro->namespace[0] != 0) {
+        /* yes! add the namespace! */
+        char label_tmp[MAX_NAME_LENGTH + 1];
+      
+        if (strlen(mrt->macro->namespace) + strlen(label) >= MAX_NAME_LENGTH) {
+          print_error(ERROR_NUM, "The label with the namespace is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
+          return FAILED;
+        }
+      
+        snprintf(label_tmp, sizeof(label_tmp), "%s.%s", mrt->macro->namespace, label);
+        strcpy(label, label_tmp);
+      }
+    }
+  }
+  else if (add_outside_macros == YES)
+    add_namespace_to_string(label, sizeof_label, "add_namespace_to_a_label()");
+
+  return SUCCEEDED;
+}
+ 
+
 int input_next_string(void) {
 
   int k, curly_braces = 0;
@@ -232,6 +303,11 @@ int input_next_string(void) {
 
   if (expand_variables_inside_string(g_label, sizeof(g_label), &k) == FAILED)
     return FAILED;
+
+  if (should_we_add_namespace() == YES) {
+    if (add_namespace_to_a_label(g_label, sizeof(g_label), YES) == FAILED)
+      return FAILED;
+  }
   
   return SUCCEEDED;
 }
@@ -1289,6 +1365,15 @@ int input_number(void) {
   if (expand_variables_inside_string(g_label, sizeof(g_label), &k) == FAILED)
     return FAILED;
 
+  if (should_we_add_namespace() == YES) {
+    if (add_namespace_to_a_label(g_label, sizeof(g_label), YES) == FAILED)
+      return FAILED;
+  }
+  else {
+    if (add_namespace_to_a_label(g_label, sizeof(g_label), NO) == FAILED)
+      return FAILED;
+  }
+
   /* label_tmp contains the label without possible prefix ':' */
   if (strlen(g_label) > 1 && g_label[0] == ':')
     strcpy(label_tmp, &g_label[1]);
@@ -1438,6 +1523,8 @@ int get_next_plain_string(void) {
       g_ss++;
       g_source_index++;
     }
+    else if (c == '"')
+      g_source_index++;
     else
       break;
   }
@@ -1448,11 +1535,17 @@ int get_next_plain_string(void) {
   if (g_macro_active != 0) {
     if (expand_macro_arguments(g_label, NULL, NULL) == FAILED)
       return FAILED;
-    g_ss = (int)strlen(g_label);
   }
 
   if (expand_variables_inside_string(g_label, sizeof(g_label), &g_ss) == FAILED)
     return FAILED;
+
+  if (should_we_add_namespace() == YES) {
+    if (add_namespace_to_a_label(g_label, sizeof(g_label), YES) == FAILED)
+      return FAILED;
+  }
+
+  g_ss = (int)strlen(g_label);
   
   return SUCCEEDED;
 }

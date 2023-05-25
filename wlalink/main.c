@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.20a (14.1.2023)";
+char g_version_string[] = "$VER: wlalink 5.20a (7.5.2023)";
 
 #ifdef AMIGA
 __near long __stack = 200000;
@@ -52,8 +52,9 @@ struct label_sizeof *g_label_sizeofs = NULL;
 struct section_fix *g_sec_fix_first = NULL, *g_sec_fix_tmp = NULL;
 unsigned char *g_rom = NULL, *g_rom_usage = NULL, *g_file_header = NULL, *g_file_footer = NULL, g_symbol_mode = SYMBOL_MODE_NONE;
 char g_load_address_label[MAX_NAME_LENGTH + 1], **g_ram_slots[256];
-int g_load_address = 0, g_load_address_type = LOAD_ADDRESS_TYPE_UNDEFINED;
 char g_program_address_start_label[MAX_NAME_LENGTH + 1], g_program_address_end_label[MAX_NAME_LENGTH + 1];
+char g_ext_libdir[MAX_NAME_LENGTH + 2];
+int g_load_address = 0, g_load_address_type = LOAD_ADDRESS_TYPE_UNDEFINED;
 int g_program_address_start = -1, g_program_address_end = -1, g_program_address_start_type = LOAD_ADDRESS_TYPE_UNDEFINED, g_program_address_end_type = LOAD_ADDRESS_TYPE_UNDEFINED;
 int g_romsize, g_rombanks, g_banksize, g_verbose_level = 0, g_section_overwrite = OFF;
 int g_pc_bank, g_pc_full, g_pc_slot, g_pc_slot_max;
@@ -62,19 +63,18 @@ int g_output_mode = OUTPUT_ROM, g_discard_unreferenced_sections = OFF, g_use_lib
 int g_program_start, g_program_end, g_sms_checksum, g_smstag_defined = 0, g_snes_rom_mode = SNES_ROM_MODE_LOROM, g_snes_rom_speed = SNES_ROM_SPEED_SLOWROM;
 int g_sms_header = 0, g_sms_checksum_already_written = 0, g_sms_checksum_size_defined = 0, g_sms_checksum_size = 0;
 int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode = 0, g_smd_checksum;
-int g_smc_status = 0, g_snes_sramsize = 0;
+int g_smc_status = 0, g_snes_sramsize = 0, g_allow_duplicate_labels_and_definitions = NO;
 int g_output_type = OUTPUT_TYPE_UNDEFINED, g_sort_sections = YES;
-int g_num_sorted_anonymous_labels = 0;
+int g_num_sorted_anonymous_labels = 0, g_use_priority_only_writing_sections = NO, g_use_priority_only_writing_ramsections = NO;
 int g_emptyfill = 0, g_paths_in_linkfile_are_relative_to_linkfile = NO;
 
-static int g_create_sizeof_definitions = YES, g_listfile_data = NO;
-static unsigned char g_output_addr_to_line = OFF;
+static int s_create_sizeof_definitions = YES, s_listfile_data = NO;
+static unsigned char s_output_addr_to_line = OFF;
 
 extern struct object_file **g_object_files;
 extern struct pointer_array **g_section_table_table;
 extern int g_section_table_table_max;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
-char g_ext_libdir[MAX_NAME_LENGTH + 2];
 
 #if WLALINK_DEBUG
 
@@ -285,7 +285,7 @@ void _debug_print_label(struct label *l) {
 }
 
 static void _debug_print_sections(void) {
-    
+
   if (g_sec_first != NULL) {
     struct section *s = g_sec_first;
     char *section_status[] = {
@@ -390,24 +390,28 @@ int main(int argc, char *argv[]) {
 #endif
     printf("USAGE: %s [OPTIONS] <LINK FILE> <OUTPUT FILE>\n\n", argv[0]);
     printf("OPTIONS:\n");
+    printf("-a <ADDR> Load address (can also be label) for CBM PRG\n");
+    printf("-A  Add address-to-line mapping data to WLA symbol file\n");
     printf("-b  Program file output\n");
-    printf("-bS Starting address of the program (optional)\n");
     printf("-bE Ending address of the program (optional)\n");
+    printf("-bS Starting address of the program (optional)\n");
+    printf("-c  Allow duplicate labels and definitions\n");
     printf("-d  Discard unreferenced sections\n");
     printf("-D  Don't create _sizeof_* definitions\n");
-    printf("-nS Don't sort the sections\n");
     printf("-i  Write list files\n");
+    printf("-L <DIR> Library directory\n");
+    printf("-nS Don't sort the sections\n");
+    printf("-pR Write .RAMSECTIONs based on PRIORITY only, ignore .RAMSECTION types\n");
+    printf("-pS Write .SECTIONs based on PRIORITY only, ignore .SECTION types\n");
     printf("-r  ROM file output (default)\n");
     printf("-R  Make file paths in link file relative to its location\n");
     printf("-s  Write also a NO$GMB/NO$SNES symbol file\n");
     printf("-S  Write also a WLA symbol file\n");
-    printf("-A  Add address-to-line mapping data to WLA symbol file\n");
+    printf("-t <TYPE> Output type (supported types: 'CBMPRG')\n");
     printf("-v  Verbose messages (all)\n");
     printf("-v1 Verbose messages (only discard sections)\n");
     printf("-v2 Verbose messages (-v1 plus short summary)\n");
-    printf("-L <DIR>  Library directory\n");
-    printf("-t <TYPE> Output type (supported types: 'CBMPRG')\n");
-    printf("-a <ADDR> Load address (can also be label) for CBM PRG\n\n");
+    printf("\n");
     printf("EXAMPLE: %s -d -v -S linkfile linked.rom\n\n", argv[0]);
     return 0;
   }
@@ -652,7 +656,7 @@ int main(int argc, char *argv[]) {
     return 1;
   
   /* generate _sizeof_[label] definitions */
-  if (g_create_sizeof_definitions == YES) {
+  if (s_create_sizeof_definitions == YES) {
     if (generate_sizeof_label_definitions() == FAILED)
       return 1;
   }
@@ -751,12 +755,12 @@ int main(int argc, char *argv[]) {
 
   /* export symbolic information file */
   if (g_symbol_mode != SYMBOL_MODE_NONE) {
-    if (write_symbol_file(argv[argc - 1], g_symbol_mode, g_output_addr_to_line) == FAILED)
+    if (write_symbol_file(argv[argc - 1], g_symbol_mode, s_output_addr_to_line) == FAILED)
       return 1;
   }
 
   /* write list files */
-  if (g_listfile_data == YES) {
+  if (s_listfile_data == YES) {
     if (listfile_write_listfiles() == FAILED)
       return 1;
   }
@@ -1331,12 +1335,24 @@ int parse_flags(char **flags, int flagc) {
       count++;
       continue;
     }
+    else if (!strcmp(flags[count], "-c")) {
+      g_allow_duplicate_labels_and_definitions = YES;
+      continue;
+    }
     else if (!strcmp(flags[count], "-i")) {
-      g_listfile_data = YES;
+      s_listfile_data = YES;
       continue;
     }
     else if (!strcmp(flags[count], "-nS")) {
       g_sort_sections = NO;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-pS")) {
+      g_use_priority_only_writing_sections = YES;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-pR")) {
+      g_use_priority_only_writing_ramsections = YES;
       continue;
     }
     else if (!strcmp(flags[count], "-v")) {
@@ -1360,7 +1376,7 @@ int parse_flags(char **flags, int flagc) {
       continue;
     }
     else if (!strcmp(flags[count], "-A")) {
-      g_output_addr_to_line = ON;
+      s_output_addr_to_line = ON;
       continue;
     }
     else if (!strcmp(flags[count], "-d")) {
@@ -1368,7 +1384,7 @@ int parse_flags(char **flags, int flagc) {
       continue;
     }
     else if (!strcmp(flags[count], "-D")) {
-      g_create_sizeof_definitions = NO;
+      s_create_sizeof_definitions = NO;
       continue;
     }
     else {

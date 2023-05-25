@@ -15,27 +15,20 @@
 #include "printf.h"
 
 
-extern int g_ind, g_source_index, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules;
-extern char *g_tmp;
+extern int g_source_index, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules;
+extern char *g_tmp, g_label[MAX_NAME_LENGTH + 1];
 extern struct ext_include_collection g_ext_incdirs;
 extern FILE *g_file_out_ptr;
 extern struct stringmaptable *g_stringmaptables;
 extern struct string *g_fopen_filenames_first;
-
+extern int g_is_file_isolated_counter;
+        
 struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
 struct active_file_info *g_active_file_info_first = NULL, *g_active_file_info_last = NULL, *g_active_file_info_tmp = NULL;
 struct file_name_info *g_file_name_info_first = NULL, *g_file_name_info_last = NULL, *g_file_name_info_tmp;
-char *g_include_in_tmp = NULL, *g_tmp_a = NULL;
+char *g_include_in_tmp = NULL, *g_tmp_a = NULL, *g_full_name = NULL, *g_include_dir = NULL, *g_buffer = NULL;
 int g_include_in_tmp_size = 0, g_tmp_a_size = 0, g_file_name_id = 1, g_open_files = 0;
-
-char *g_full_name = NULL;
-int g_full_name_size = 0;
-
-char *g_include_dir = NULL;
-int g_include_dir_size = 0;
-
-char *g_buffer = NULL;
-int g_source_file_size = 0;
+int g_full_name_size = 0, g_include_dir_size = 0, g_source_file_size = 0;
 
 
 int create_full_name(char *dir, char *name) {
@@ -158,7 +151,7 @@ static int find_file(char *name, FILE **f) {
 
 int include_file(char *name, int *include_size, char *namespace) {
 
-  int file_size, id, change_file_buffer_size, size;
+  int file_size, id, change_file_buffer_size, size, isolation_counter;
   char *tmp_b, *n, change_file_buffer[MAX_NAME_LENGTH * 2];
   FILE *f = NULL;
 
@@ -213,10 +206,14 @@ int include_file(char *name, int *include_size, char *namespace) {
     g_file_name_id++;
   }
 
+  isolation_counter = g_is_file_isolated_counter;
+  if (isolation_counter > 0)
+    isolation_counter++;
+
   if (namespace == NULL || namespace[0] == 0)
-    snprintf(change_file_buffer, sizeof(change_file_buffer), "%c.CHANGEFILE %d NONAMESPACE%c", 0xA, id, 0xA);
+    snprintf(change_file_buffer, sizeof(change_file_buffer), "%c.CHANGEFILE %d NONAMESPACE %d%c", 0xA, id, isolation_counter, 0xA);
   else
-    snprintf(change_file_buffer, sizeof(change_file_buffer), "%c.CHANGEFILE %d NAMESPACE %s%c", 0xA, id, namespace, 0xA);
+    snprintf(change_file_buffer, sizeof(change_file_buffer), "%c.CHANGEFILE %d NAMESPACE %s %d%c", 0xA, id, namespace, isolation_counter, 0xA);
   change_file_buffer_size = (int)strlen(change_file_buffer);
 
   /* reallocate buffer */
@@ -444,24 +441,30 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       skip_next_token();
 
       /* get the definition label */
-      if (get_next_token() == FAILED)
+      if (get_next_plain_string() == FAILED)
         return FAILED;
 
-      add_a_new_definition(g_tmp, (double)file_size, NULL, DEFINITION_TYPE_VALUE, 0);
+      add_a_new_definition(g_label, (double)file_size, NULL, DEFINITION_TYPE_VALUE, 0);
     }
     /* FILTER? */
     else if (compare_next_token("FILTER") == SUCCEEDED) {
       skip_next_token();
 
       /* get the filter macro name */
-      if (get_next_token() == FAILED)
+      if (get_next_plain_string() == FAILED)
         return FAILED;
 
-      if (macro_get(g_tmp, YES, macro) == FAILED)
-        return FAILED;
+      if (g_is_file_isolated_counter <= 0) {
+        if (macro_get(g_label, YES, macro) == FAILED)
+          return FAILED;
+      }
+      else {
+        if (macro_get(g_label, NO, macro) == FAILED)
+          return FAILED;
+      }
       
       if (*macro == NULL) {
-        print_error(ERROR_INB, "No MACRO \"%s\" defined.\n", g_tmp);
+        print_error(ERROR_INB, "No MACRO \"%s\" defined.\n", g_label);
         return FAILED;
       }
     }

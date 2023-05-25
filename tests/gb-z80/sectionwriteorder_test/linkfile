@@ -1,0 +1,17 @@
+[objects]
+main.o
+
+[sectionwriteorder]
+OVERWRITE
+FORCE
+FREE
+SEMISUPERFREE
+SEMISUBFREE
+SEMIFREE
+SUPERFREE
+
+[ramsectionwriteorder]
+FORCE
+FREE
+SEMIFREE
+SEMISUBFREE

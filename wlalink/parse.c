@@ -12,9 +12,10 @@ int get_next_token(char *in, char *out, int *pos) {
 
   int i, t;
 
-
   /* skip white space */
-  for (i = 0; in[i] == ' ' || in[i] == 0x09; i++);
+  for (i = 0; in[i] == ' ' || in[i] == 0x09; i++)
+    ;
+
   if (in[i] == 0)
     return FAILED;
 

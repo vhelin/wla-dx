@@ -26,7 +26,9 @@ to link together. Here's the format:
         [definitions]
         [ramsections]
         [sections]
-
+        [sectionwriteorder]
+        [ramsectionwriteorder]
+        
 2. Start to list the file names. ::
     
         [objects]
@@ -87,6 +89,27 @@ to link together. Here's the format:
         start $150
         ...
 
+8. If you want to change the order in which the linker writes the sections to output::
+
+        [sectionwriteorder]
+        OVERWRITE
+        FORCE
+        FREE
+        SEMISUPERFREE
+        SEMISUBFREE
+        SEMIFREE
+        SUPERFREE
+
+9. If you want to change the order in which the linker writes the RAM sections to output::
+
+        [ramsectionwriteorder]
+        FREE
+        FORCE
+        SEMISUBFREE
+        SEMIFREE
+        
+Note that you have to specify all the section types here.
+        
 If flag ``v`` is used, WLALINK displays information about ROM file after a
 succesful linking.
 
@@ -113,6 +136,12 @@ won't be linking any dead code/data.
 If flag ``D`` is used, WLALINK doesn't create any _sizeof_* labels. Note that
 to disable fully _sizeof_* label creation, you'll also need to give WLA the
 ``s`` flag.
+
+If flag ``pS`` is used then WLALINK doesn't use section type in writing the
+``.SECTION`` s, but instead uses just the ``PRIORITY`` (and size) when it
+writes the ``.SECTION`` s to output.
+
+Flag ``pR`` works the same as ``pS`` but for ``.RAMSECTION`` s.
 
 If flag ``t`` is used with ``c64PRG``, WLALINK will add a two byte header to the
 program file (use with flag ``b``). The header contains the load address for

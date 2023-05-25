@@ -28,13 +28,44 @@ extern struct section_fix *g_sec_fix_first, *g_sec_fix_tmp;
 struct object_file **g_object_files = NULL;
 int g_object_files_max = -1, g_object_files_array_max = 0;
 
+int g_section_write_order[SECTION_TYPES_COUNT-2] = {
+  SECTION_STATUS_FORCE,
+  SECTION_STATUS_SEMISUPERFREE,
+  SECTION_STATUS_SEMISUBFREE,
+  SECTION_STATUS_SEMIFREE,
+  SECTION_STATUS_FREE,
+  SECTION_STATUS_SUPERFREE,
+  SECTION_STATUS_OVERWRITE
+};
+
+static int s_section_write_order_index = 0;
+
+int g_ramsection_write_order[RAMSECTION_TYPES_COUNT] = {
+  SECTION_STATUS_RAM_FORCE,
+  SECTION_STATUS_RAM_SEMISUBFREE,
+  SECTION_STATUS_RAM_SEMIFREE,
+  SECTION_STATUS_RAM_FREE
+};
+
+static int s_ramsection_write_order_index = 0;
+
+
+static void _process_tmp(char *tmp) {
+
+  int i;
+  
+  for (i = 0; !(tmp[i] == 0x0D || tmp[i] == 0x0A || tmp[i] == 0x00); i++)
+    ;
+  tmp[i] = 0;
+}
+
 
 int load_files(char *argv[], int argc) {
 
   int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n, alignment, offset;
   int org_defined, org, orga_defined, orga, status_defined, status, priority_defined, priority, appendto_defined, keep_defined;
   int alignment_defined, offset_defined, after_defined, bitwindow_defined, window_defined, size, size_defined, banks_defined;
-  int bitwindow, window_start, window_end;
+  int bitwindow, window_start, window_end, sectionwriteorder_defined = NO, ramsectionwriteorder_defined = NO;
   char tmp[1024], token[1024], tmp_token[1024 + MAX_NAME_LENGTH + 2], slot_name[MAX_NAME_LENGTH + 1], state_name[32], appendto_name[MAX_NAME_LENGTH + 1], after_name[MAX_NAME_LENGTH + 1], linkfile_path[MAX_NAME_LENGTH + 1], banks[MAX_NAME_LENGTH + 1];
   struct label *l;
   FILE *fop, *f;
@@ -64,9 +95,7 @@ int load_files(char *argv[], int argc) {
       continue;
 
     /* remove garbage from the end */
-    for (i = 0; !(tmp[i] == 0x0D || tmp[i] == 0x0A || tmp[i] == 0x00); i++)
-      ;
-    tmp[i] = 0;
+    _process_tmp(tmp);
 
     /* empty line check */
     if (get_next_token(tmp, token, &x) == FAILED)
@@ -102,6 +131,14 @@ int load_files(char *argv[], int argc) {
       else if (strcaselesscmp(token, "[sections]") == 0) {
         state = STATE_SECTIONS;
         strcpy(state_name, "section");
+        continue;
+      }
+      else if (strcaselesscmp(token, "[sectionwriteorder]") == 0) {
+        state = STATE_SECTION_WRITE_ORDER;
+        continue;
+      }
+      else if (strcaselesscmp(token, "[ramsectionwriteorder]") == 0) {
+        state = STATE_RAMSECTION_WRITE_ORDER;
         continue;
       }
       else {
@@ -210,6 +247,192 @@ int load_files(char *argv[], int argc) {
       fprintf(stderr, "%s:%d: LOAD_FILES: Syntax error.\n", argv[argc - 2], line);
       fclose(fop);
       return FAILED;
+    }
+    /* section write order? */
+    else if (state == STATE_SECTION_WRITE_ORDER) {
+      int statuses[SECTION_TYPES_COUNT_ALL], sum;
+
+      if (s_section_write_order_index > 0) {
+        fprintf(stderr, "%s:%d: LOAD_FILES: Excess data in [sectionwriteorder].\n", argv[argc - 2], line);
+        fclose(fop);
+        return FAILED;
+      }
+      
+      if (sectionwriteorder_defined == YES) {
+        fprintf(stderr, "%s:%d: LOAD_FILES: [sectionwriteorder] was defined twice.\n", argv[argc - 2], line);
+        fclose(fop);
+        return FAILED;
+      }
+      
+      for (i = 0; i < SECTION_TYPES_COUNT_ALL; i++)
+        statuses[i] = 0;
+      
+      i = SUCCEEDED;
+
+      while (i == SUCCEEDED) {
+        int status;
+
+        if (strcaselesscmp(token, "force") == 0)
+          status = SECTION_STATUS_FORCE;
+        else if (strcaselesscmp(token, "semisuperfree") == 0)
+          status = SECTION_STATUS_SEMISUPERFREE;
+        else if (strcaselesscmp(token, "semisubfree") == 0)
+          status = SECTION_STATUS_SEMISUBFREE;
+        else if (strcaselesscmp(token, "semifree") == 0)
+          status = SECTION_STATUS_SEMIFREE;
+        else if (strcaselesscmp(token, "free") == 0)
+          status = SECTION_STATUS_FREE;
+        else if (strcaselesscmp(token, "superfree") == 0)
+          status = SECTION_STATUS_SUPERFREE;
+        else if (strcaselesscmp(token, "overwrite") == 0)
+          status = SECTION_STATUS_OVERWRITE;
+        else {
+          if (strlen(token) > 0 && token[0] != '[') {
+            fprintf(stderr, "%s:%d: LOAD_FILES: Unknown token \"%s\" in [sectionwriteorder].\n", argv[argc - 2], line, token);
+            fclose(fop);
+            return FAILED;
+          }
+          break;
+        }
+
+        if (statuses[status] != 0) {
+          fprintf(stderr, "%s:%d: LOAD_FILES: \"%s\" was already defined.\n", argv[argc - 2], line, token);
+          fclose(fop);
+          return FAILED;
+        }
+
+        statuses[status] = 1;
+
+        if (s_section_write_order_index >= SECTION_TYPES_COUNT-2) {
+          fprintf(stderr, "%s:%d: LOAD_FILES: Too many section types in [sectionwriteorder].\n", argv[argc - 2], line);
+          fclose(fop);
+          return FAILED;
+        }
+
+        g_section_write_order[s_section_write_order_index++] = status;
+
+        if (s_section_write_order_index >= SECTION_TYPES_COUNT-2)
+          break;
+
+        if (fgets(tmp, 255, fop) == NULL) {
+          fprintf(stderr, "%s:%d: LOAD_FILES: Out of lines in [sectionwriteorder].\n", argv[argc - 2], line);
+          fclose(fop);
+          return FAILED;          
+        }
+        
+        line++;
+
+        /* remove garbage from the end */
+        _process_tmp(tmp);
+        
+        x = 0;
+        i = get_next_token(tmp, token, &x);
+      }
+      
+      /* count the types */
+      sum = 0;
+      for (i = 0; i < SECTION_TYPES_COUNT_ALL; i++) {
+        if (statuses[i] != 0)
+          sum++;
+      }
+
+      if (sum != SECTION_TYPES_COUNT-2) {
+        fprintf(stderr, "%s:%d: LOAD_FILES: Not enough section types (all must be given) in [sectionwriteorder].\n", argv[argc - 2], line);
+        fclose(fop);
+        return FAILED;
+      }
+
+      sectionwriteorder_defined = YES;
+    }
+    /* ramsection write order? */
+    else if (state == STATE_RAMSECTION_WRITE_ORDER) {
+      int statuses[SECTION_TYPES_COUNT_ALL], sum;
+
+      if (s_ramsection_write_order_index > 0) {
+        fprintf(stderr, "%s:%d: LOAD_FILES: Excess data in [ramsectionwriteorder].\n", argv[argc - 2], line);
+        fclose(fop);
+        return FAILED;
+      }
+      
+      if (ramsectionwriteorder_defined == YES) {
+        fprintf(stderr, "%s:%d: LOAD_FILES: [ramsectionwriteorder] was defined twice.\n", argv[argc - 2], line);
+        fclose(fop);
+        return FAILED;
+      }
+      
+      for (i = 0; i < SECTION_TYPES_COUNT_ALL; i++)
+        statuses[i] = 0;
+      
+      i = SUCCEEDED;
+
+      while (i == SUCCEEDED) {
+        int status;
+
+        if (strcaselesscmp(token, "force") == 0)
+          status = SECTION_STATUS_RAM_FORCE;
+        else if (strcaselesscmp(token, "semisubfree") == 0)
+          status = SECTION_STATUS_RAM_SEMISUBFREE;
+        else if (strcaselesscmp(token, "semifree") == 0)
+          status = SECTION_STATUS_RAM_SEMIFREE;
+        else if (strcaselesscmp(token, "free") == 0)
+          status = SECTION_STATUS_RAM_FREE;
+        else {
+          if (strlen(token) > 0 && token[0] != '[') {
+            fprintf(stderr, "%s:%d: LOAD_FILES: Unknown token \"%s\" in [ramsectionwriteorder].\n", argv[argc - 2], line, token);
+            fclose(fop);
+            return FAILED;
+          }
+          break;
+        }
+
+        if (statuses[status] != 0) {
+          fprintf(stderr, "%s:%d: LOAD_FILES: \"%s\" was already defined.\n", argv[argc - 2], line, token);
+          fclose(fop);
+          return FAILED;
+        }
+
+        statuses[status] = 1;
+
+        if (s_ramsection_write_order_index >= RAMSECTION_TYPES_COUNT) {
+          fprintf(stderr, "%s:%d: LOAD_FILES: Too many section types in [ramsectionwriteorder].\n", argv[argc - 2], line);
+          fclose(fop);
+          return FAILED;
+        }
+
+        g_ramsection_write_order[s_ramsection_write_order_index++] = status;
+
+        if (s_ramsection_write_order_index >= RAMSECTION_TYPES_COUNT)
+          break;
+
+        if (fgets(tmp, 255, fop) == NULL) {
+          fprintf(stderr, "%s:%d: LOAD_FILES: Out of lines in [ramsectionwriteorder].\n", argv[argc - 2], line);
+          fclose(fop);
+          return FAILED;          
+        }
+        
+        line++;
+
+        /* remove garbage from the end */
+        _process_tmp(tmp);
+        
+        x = 0;
+        i = get_next_token(tmp, token, &x);
+      }
+      
+      /* count the types */
+      sum = 0;
+      for (i = 0; i < SECTION_TYPES_COUNT_ALL; i++) {
+        if (statuses[i] != 0)
+          sum++;
+      }
+
+      if (sum != RAMSECTION_TYPES_COUNT) {
+        fprintf(stderr, "%s:%d: LOAD_FILES: Not enough section types (all must be given) in [ramsectionwriteorder].\n", argv[argc - 2], line);
+        fclose(fop);
+        return FAILED;
+      }
+
+      ramsectionwriteorder_defined = YES;
     }
     /* section / ramsection settings? */
     else if (state == STATE_RAMSECTIONS || state == STATE_SECTIONS) {

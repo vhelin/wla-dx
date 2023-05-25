@@ -43,7 +43,8 @@
 .BANK 7 SLOT 0
 .ORG $3ff0
 
-
+DUPLICATELABEL:
+        
 .SECTION "Joopa [NO]" FORCE
 	.REPT 2
 	nop

@@ -131,6 +131,7 @@
 
 	.db	jessie,love,james,"HERE!"
 
+DUPLICATELABEL: 
 MAIN:DI
 	LD	SP, stack_ptr-1		;stack_ptr is defined in setup.s
 	LD	A, 'C'                -   10
