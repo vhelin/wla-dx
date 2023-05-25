@@ -1,24 +1,6 @@
 Assembler Directives
 ====================
 
-A compulsory directive is one that must appear somewhere in 
-your source code, or else WLA-DX will produce an error.
-
-Some directives are always compulsory, such as:
-
-.MEMORYMAP
-.BANK
-.ORG
-
-These directives are compulsory unless .ROMBANKMAP is defined:
-
-.ROMBANKS
-.ROMBANKSIZE
-
-Other directives are not compulsory.
-
-====================================================================
-
 Here's the order in which the data is placed into the output:
 
 1. Data and group 3 directives outside sections.
