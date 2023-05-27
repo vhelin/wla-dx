@@ -13,12 +13,12 @@ _local:
         jr -
         
         .macro someMacro isolated
-_local: call someLabel2+1
+_local: call foo.someLabel2+1
         call _local
         .endm
 
         .macro IncrementHELLOMOTO isolated
-_local: call someLabel2+1
+_local: call foo.someLabel2+1
         call _local
         .redefine HELLOMOTO \1+1
         .endm

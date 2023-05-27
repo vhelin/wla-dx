@@ -422,6 +422,10 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
   g_macro_active++;
   m->calls++;
 
+  /* use the caller's namespace? */
+  if (m->use_caller_namespace == YES)
+    strcpy(m->namespace, g_active_file_info_last->namespace);
+  
   /* macro call start */
   fprintf(g_file_out_ptr, "i%d %s ", m->id, m->name);
 
@@ -8696,11 +8700,15 @@ int directive_macro(void) {
   m->isolated_unnamed = NO;
   m->id = g_macro_id++;
 
-  /* store the namespace so we'll later know in which namespace the .MACRO was defined in */
-  if (g_active_file_info_last->namespace[0] != 0)
+  if (g_is_file_isolated_counter > 0) {
+    /* store the namespace so we'll later know in which namespace the .MACRO was defined in */
     strcpy(m->namespace, g_active_file_info_last->namespace);
-  else
+    m->use_caller_namespace = NO;
+  }
+  else {
     m->namespace[0] = 0;
+    m->use_caller_namespace = YES;
+  }
 
   /* skip '(' if it exists */
   if (compare_and_skip_next_symbol('(') == SUCCEEDED) {

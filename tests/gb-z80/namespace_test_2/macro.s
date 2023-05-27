@@ -6,8 +6,8 @@ someLabel2:
         .ends
 
         .macro someMacro
-        call someLabel2
-        call someLabel2+2
+        call foo.someLabel2
+        call foo.someLabel2+2
         .endm
 
         .macro "myMacro" args myArg

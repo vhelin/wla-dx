@@ -202,4 +202,7 @@ _globalFunc:
         .db HELLOMOTO           ; @BT 02
         .db "<03"               ; @BT END
         .ends
+
+        .include "namespace1.i" namespace namespace1
+        .include "namespace2.i" namespace namespace2
         

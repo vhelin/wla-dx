@@ -569,6 +569,7 @@ struct macro_static {
   int  nargument_names;
   int  isolated_local;
   int  isolated_unnamed;
+  int  use_caller_namespace;
   char **argument_names;
   struct macro_static *next;
 };
