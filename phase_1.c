@@ -80,8 +80,8 @@ int g_macro_active = 0;
 int g_repeat_active = 0;
 int g_smc_defined = 0;
 int g_asciitable_defined = 0;
-int g_block_status = 0, g_block_name_id = 0;
-int g_dstruct_status = OFF;
+int s_block_status = 0, g_block_name_id = 0;
+int s_dstruct_status = OFF;
 int g_saved_structures_count = 0, g_saved_structures_max = 0;
 unsigned char g_asciitable[256];
 
@@ -2215,7 +2215,7 @@ int directive_org(void) {
     print_error(ERROR_DIR, "You can't issue .ORG inside a .SECTION.\n");
     return FAILED;
   }
-  if (g_dstruct_status == ON) {
+  if (s_dstruct_status == ON) {
     print_error(ERROR_DIR, "You can't issue .ORGA inside .DSTRUCT.\n");
     return FAILED;
   }
@@ -2251,7 +2251,7 @@ int directive_orga(void) {
     print_error(ERROR_DIR, "You can't issue .ORGA inside a .SECTION.\n");
     return FAILED;
   }
-  if (g_dstruct_status == ON) {
+  if (s_dstruct_status == ON) {
     print_error(ERROR_DIR, "You can't issue .ORGA inside .DSTRUCT.\n");
     return FAILED;
   }
@@ -2290,7 +2290,7 @@ int directive_slot(void) {
     print_error(ERROR_DIR, "You can't issue .SLOT inside a .SECTION.\n");
     return FAILED;
   }
-  if (g_dstruct_status == ON) {
+  if (s_dstruct_status == ON) {
     print_error(ERROR_DIR, "You can't issue .SLOT inside .DSTRUCT.\n");
     return FAILED;
   }
@@ -2338,7 +2338,7 @@ int directive_bank(void) {
     print_error(ERROR_LOG, "Section \"%s\" is open. Do not try to change the bank.\n", g_sections_last->name);
     return FAILED;
   }
-  if (g_dstruct_status == ON) {
+  if (s_dstruct_status == ON) {
     print_error(ERROR_DIR, "You can't use .BANK inside .DSTRUCT.\n");
     return FAILED;
   }
@@ -3981,12 +3981,12 @@ int directive_dstruct(void) {
     char field_name[MAX_NAME_LENGTH + 1];
     int item_size;
 
-    if (g_dstruct_status == ON) {
+    if (s_dstruct_status == ON) {
       print_error(ERROR_DIR, "You can't have nested .DSTRUCT's.\n");
       return FAILED;
     }
 
-    g_dstruct_status = ON;
+    s_dstruct_status = ON;
 
     skip_next_token();
 
@@ -4051,7 +4051,7 @@ int directive_dstruct(void) {
     /* generate padding */
     _generate_dstruct_padding(s, supplied_size);
 
-    g_dstruct_status = OFF;
+    s_dstruct_status = OFF;
 
     return SUCCEEDED;
   }
@@ -4454,7 +4454,7 @@ int directive_struct(void) {
 
   int q;
   
-  if (g_dstruct_status == ON) {
+  if (s_dstruct_status == ON) {
     print_error(ERROR_DIR, "You can't use .STRUCT inside .DSTRUCT.\n");
     return FAILED;
   }
@@ -4535,7 +4535,7 @@ int directive_ramsection(void) {
     print_error(ERROR_DIR, "There is already an open section called \"%s\".\n", g_sections_last->name);
     return FAILED;
   }
-  if (g_dstruct_status == ON) {
+  if (s_dstruct_status == ON) {
     print_error(ERROR_DIR, "You can't use .RAMSECTION inside .DSTRUCT.\n");
     return FAILED;
   }
@@ -4989,7 +4989,7 @@ int directive_section(void) {
   int l, q, org_given = -1, orga_given = -1;
   char c1;
 
-  if (g_dstruct_status == ON) {
+  if (s_dstruct_status == ON) {
     print_error(ERROR_DIR, "You can't set the section inside .DSTRUCT.\n");
     return FAILED;
   }
@@ -5895,7 +5895,7 @@ int directive_block(void) {
   b->next = g_block_names;
   g_block_names = b;
   
-  g_block_status++;
+  s_block_status++;
 
   fprintf(g_file_out_ptr, "g%d ", b->id);
 
@@ -8612,7 +8612,7 @@ int directive_macro(void) {
   struct macro_static *m;
   int macro_start_line, q = 0;
 
-  if (g_dstruct_status == ON) {
+  if (s_dstruct_status == ON) {
     print_error(ERROR_DIR, "You can't define a macro inside .DSTRUCT.\n");
     return FAILED;
   }
@@ -10814,7 +10814,7 @@ int parse_directive(void) {
           print_error(ERROR_DIR, "There is no open section.\n");
           return FAILED;
         }
-        if (g_dstruct_status == ON) {
+        if (s_dstruct_status == ON) {
           print_error(ERROR_DIR, "You can't close a section inside .DSTRUCT.\n");
           return FAILED;
         }
@@ -10834,12 +10834,12 @@ int parse_directive(void) {
       
       /* ENDB */
       if (strcmp(directive_upper, "ENDB") == 0) {
-        if (g_block_status <= 0) {
+        if (s_block_status <= 0) {
           print_error(ERROR_DIR, "There is no open .BLOCK.\n");
           return FAILED;
         }
 
-        g_block_status--;
+        s_block_status--;
         fprintf(g_file_out_ptr, "G ");
 
         return SUCCEEDED;
@@ -10888,7 +10888,7 @@ int parse_directive(void) {
 
       /* ENUM */
       if (strcmp(directive_upper, "ENUM") == 0) {
-        if (g_dstruct_status == ON) {
+        if (s_dstruct_status == ON) {
           print_error(ERROR_DIR, "You can't use start an .ENUM inside .DSTRUCT.\n");
           return FAILED;
         }
