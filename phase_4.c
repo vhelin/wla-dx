@@ -153,6 +153,7 @@ static struct label_def *_new_unknown_reference(int type) {
     label->section_struct = g_sec_tmp;
     /* relative address, to the beginning of the section */
     label->address = g_sec_tmp->i;
+    label->base = g_sec_tmp->base;
     label->bank = g_sec_tmp->bank;
     label->slot = g_sec_tmp->slot;
   }
@@ -161,11 +162,11 @@ static struct label_def *_new_unknown_reference(int type) {
     label->section_struct = NULL;
     /* bank address, in ROM memory */
     label->address = s_pc_bank;
+    label->base = s_base;
     label->bank = s_rom_bank;
     label->slot = s_slot;
   }
 
-  label->base = s_base;
   label->special_id = s_special_id;
   label->bits_position = 0;
   label->bits_to_define = 0;
@@ -854,18 +855,19 @@ int phase_4(void) {
           if (stack->section_status == ON) {
             /* relative address, to the beginning of the section */
             stack->address = g_sec_tmp->i;
+            stack->base = g_sec_tmp->base;
             stack->bank = g_sec_tmp->bank;
             stack->slot = g_sec_tmp->slot;
           }
           else {
             /* complete address, in ROM memory */
             stack->address = s_pc_bank;
+            stack->base = s_base;
             stack->bank = s_rom_bank;
             stack->slot = s_slot;
           }
 
           stack->type = STACK_TYPE_BITS;
-          stack->base = s_base;
           stack->bits_position = bits_position;
           stack->bits_to_define = bits_to_define;
 
@@ -1027,12 +1029,14 @@ int phase_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
+        stack->base = g_sec_tmp->base;
         stack->bank = g_sec_tmp->bank;
         stack->slot = g_sec_tmp->slot;
       }
       else {
         /* complete address, in ROM memory */
         stack->address = s_pc_bank;
+        stack->base = s_base;
         stack->bank = s_rom_bank;
         stack->slot = s_slot;
       }
@@ -1041,7 +1045,6 @@ int phase_4(void) {
         stack->type = STACK_TYPE_9BIT_SHORT;
       else
         stack->type = STACK_TYPE_8BIT;
-      stack->base = s_base;
       stack->special_id = s_special_id;
         
       if (_mangle_stack_references(stack) == FAILED)
@@ -1106,18 +1109,19 @@ int phase_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
+        stack->base = g_sec_tmp->base;
         stack->bank = g_sec_tmp->bank;
         stack->slot = g_sec_tmp->slot;
       }
       else {
         /* complete address, in ROM memory */
         stack->address = s_pc_bank;
+        stack->base = s_base;
         stack->bank = s_rom_bank;
         stack->slot = s_slot;
       }
 
       stack->type = STACK_TYPE_16BIT;
-      stack->base = s_base;
         
       if (_mangle_stack_references(stack) == FAILED)
         return FAILED;
@@ -1187,18 +1191,19 @@ int phase_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
+        stack->base = g_sec_tmp->base;
         stack->bank = g_sec_tmp->bank;
         stack->slot = g_sec_tmp->slot;
       }
       else {
         /* complete address, in ROM memory */
         stack->address = s_pc_bank;
+        stack->base = s_base;
         stack->bank = s_rom_bank;
         stack->slot = s_slot;
       }
 
       stack->type = STACK_TYPE_13BIT;
-      stack->base = s_base;
         
       if (_mangle_stack_references(stack) == FAILED)
         return FAILED;
@@ -1264,18 +1269,19 @@ int phase_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
+        stack->base = g_sec_tmp->base;
         stack->bank = g_sec_tmp->bank;
         stack->slot = g_sec_tmp->slot;
       }
       else {
         /* complete address, in ROM memory */
         stack->address = s_pc_bank;
+        stack->base = s_base;
         stack->bank = s_rom_bank;
         stack->slot = s_slot;
       }
 
       stack->type = STACK_TYPE_24BIT;
-      stack->base = s_base;
 
       if (_mangle_stack_references(stack) == FAILED)
         return FAILED;
@@ -1350,18 +1356,19 @@ int phase_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
+        stack->base = g_sec_tmp->base;
         stack->bank = g_sec_tmp->bank;
         stack->slot = g_sec_tmp->slot;
       }
       else {
         /* complete address, in ROM memory */
         stack->address = s_pc_bank;
+        stack->base = s_base;
         stack->bank = s_rom_bank;
         stack->slot = s_slot;
       }
 
       stack->type = STACK_TYPE_32BIT;
-      stack->base = s_base;
 
       if (_mangle_stack_references(stack) == FAILED)
         return FAILED;

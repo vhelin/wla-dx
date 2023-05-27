@@ -68,7 +68,7 @@ int phase_3(void) {
   struct block_name *bn;
   struct block *b;
   int bank = 0, slot = 0, address = 0, file_name_id = 0, inz, line_number = 0, o, address_old = 0;
-  int base = 0x00, bits_current = 0, x, y, err;
+  int base = 0, bits_current = 0, x, y, err;
   char tmp_buffer[MAX_NAME_LENGTH + 1], c;
 
   /* initialize label context */
@@ -359,7 +359,7 @@ int phase_3(void) {
           l->address = address;
           l->bank = s->bank;
           l->slot = s->slot;
-          l->base = base;
+          l->base = s->base;
 
           if (c == 'Z' || is_label_anonymous(l->label) == YES) {
             if (g_labels != NULL) {
@@ -585,7 +585,8 @@ int phase_3(void) {
           s->bank = bank;
         if (s->slot < 0)
           s->slot = slot;
-        s->base = base;
+        if (s->base < 0)
+          s->base = base;
         s->listfile_items = 1;
         s->listfile_ints = NULL;
         s->listfile_cmds = NULL;
@@ -663,13 +664,12 @@ int phase_3(void) {
           s->address = address;
       }
       
-      if (s->status != SECTION_STATUS_RAM_FREE && s->status != SECTION_STATUS_RAM_FORCE && s->status != SECTION_STATUS_RAM_SEMIFREE && s->status != SECTION_STATUS_RAM_SEMISUBFREE) {
-        if (s->bank < 0)
-          s->bank = bank;
-        if (s->slot < 0)
-          s->slot = slot;
+      if (s->bank < 0)
+        s->bank = bank;
+      if (s->slot < 0)
+        s->slot = slot;
+      if (s->base < 0)
         s->base = base;
-      }
 
       if (s->address_from_dsp >= 0 && s->address_from_dsp != address) {
         fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(file_name_id), line_number, s->name, s->address_from_dsp, address);
@@ -984,6 +984,7 @@ int phase_3(void) {
           l->address = address - s->address;
           l->bank = s->bank;
           l->slot = s->slot;
+          l->base = s->base;
         }
         else {
           l->section_id = 0;
@@ -991,9 +992,8 @@ int phase_3(void) {
           l->address = address;
           l->bank = bank;
           l->slot = slot;
+          l->base = base;
         }
-
-        l->base = base;
 
         if (c == 'Z' || is_label_anonymous(l->label) == YES) {
           if (g_labels != NULL) {

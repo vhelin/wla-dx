@@ -4564,8 +4564,9 @@ int directive_ramsection(void) {
   g_sec_tmp->offset = 0;
   g_sec_tmp->advance_org = YES;
   g_sec_tmp->nspace = NULL;
-  g_sec_tmp->bank = 0;
-  g_sec_tmp->slot = 0;
+  g_sec_tmp->base = -1;
+  g_sec_tmp->bank = -1;
+  g_sec_tmp->slot = -1;
   g_sec_tmp->address = -1;
   g_sec_tmp->address_from_dsp = -1;
   g_sec_tmp->bitwindow = 0;
@@ -4639,6 +4640,25 @@ int directive_ramsection(void) {
       }
 
       g_sec_tmp->bank = g_parsed_int;
+    }
+    else if (compare_next_token("BASE") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+        print_error(ERROR_DIR, ".RAMSECTION cannot take BASE when inside a library.\n");
+        return FAILED;
+      }
+
+      skip_next_token();
+
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED || g_parsed_int < 0) {
+        print_error(ERROR_DIR, "BASE must be zero or positive.\n");
+        return FAILED;
+      }
+
+      g_sec_tmp->base = g_parsed_int;
     }
     else if (compare_next_token("SLOT") == SUCCEEDED) {
       if (g_output_format == OUTPUT_LIBRARY) {
@@ -5036,6 +5056,7 @@ int directive_section(void) {
   g_sec_tmp->bitwindow = 0;
   g_sec_tmp->window_start = -1;
   g_sec_tmp->window_end = -1;
+  g_sec_tmp->base = -1;
   g_sec_tmp->bank = -1;
   g_sec_tmp->slot = -1;
   g_sec_tmp->banks[0] = 0;
@@ -5179,6 +5200,26 @@ int directive_section(void) {
 
       orga_given = g_parsed_int;
     }
+    /* base? */
+    else if (compare_next_token("BASE") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+        print_error(ERROR_DIR, ".SECTION cannot take BASE when inside a library.\n");
+        return FAILED;
+      }
+
+      skip_next_token();
+
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED || g_parsed_int < 0) {
+        print_error(ERROR_DIR, "BASE must be zero or positive.\n");
+        return FAILED;
+      }
+
+      g_sec_tmp->base = g_parsed_int;
+    }
     /* bank? */
     else if (compare_next_token("BANK") == SUCCEEDED) {
       if (g_output_format == OUTPUT_LIBRARY) {
@@ -5196,7 +5237,6 @@ int directive_section(void) {
 
       if (q == FAILED)
         return FAILED;
-
       if (q != SUCCEEDED || g_parsed_int < 0 || g_parsed_int >= g_rombanks) {
         print_error(ERROR_DIR, "BANK number must be in [0, %d].\n", g_rombanks - 1);
         return FAILED;
@@ -10396,7 +10436,7 @@ int parse_directive(void) {
         if (q == FAILED)
           return FAILED;
         if (q != SUCCEEDED || g_parsed_int < 0) {
-          print_error(ERROR_DIR, ".BASE number must be zero or positive.\n");
+          print_error(ERROR_DIR, ".BASE must be zero or positive.\n");
           return FAILED;
         }
 

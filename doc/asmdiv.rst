@@ -187,7 +187,7 @@ ALL  ``.ORGA $150``
 ALL  ``.PRINT "Numbers 1 and 10: ", DEC 1, " $", HEX 10, "\n"``
 ALL  ``.PRINTT "Here we are...\n"``
 ALL  ``.PRINTV DEC DEBUG+1``
-ALL  ``.RAMSECTION "Vars" BANK 0 SLOT 1 ALIGN 256 OFFSET 32``
+ALL  ``.RAMSECTION "Vars" BASE $7E BANK 0 SLOT 1 ALIGN 256 OFFSET 32``
 ALL  ``.REDEF IF $F``
 ALL  ``.REDEFINE IF $F``
 ALL  ``.REPEAT 6``
@@ -2634,8 +2634,8 @@ result. Here's an example::
 This is not a compulsory directive.
 
 
-``.RAMSECTION "Vars" BANK 0 SLOT 1 ALIGN 256 OFFSET 32``
---------------------------------------------------------
+``.RAMSECTION "Vars" BASE $7E BANK 0 SLOT 1 ALIGN 256 OFFSET 32``
+-----------------------------------------------------------------
 
 ``RAMSECTION`` s accept only variable labels and variable sizes, and the
 syntax to define these is identical to ``.ENUM`` (all the syntax rules that
@@ -3058,10 +3058,10 @@ output mode. Library file's sections must all be ``FREE`` ones. ``.BANK``
 tells the bank number where this section will be later relocated into. ``.ORG``
 tells the offset for the relocation from the beginning of ``.BANK``.
 
-It is also possible to supply ``BANK``, ``SLOT`` and ``ORG`` or ``ORGA`` to
-``.SECTION`` as follows::
+It is also possible to supply ``BANK``, ``SLOT``, ``BASE`` and ``ORG`` or ``ORGA``
+to ``.SECTION`` as follows::
 
-    .SECTION "NoInheritedParameters" BANK 0 SLOT 1 ORGA $1000
+    .SECTION "NoInheritedParameters" BASE $70 BANK 0 SLOT 1 ORGA $1000
 
 You can put sections inside a namespace. For instance, if you put a section
 into a namespace called ``bank0``, then labels in that section can be
