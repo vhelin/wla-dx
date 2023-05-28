@@ -202,6 +202,16 @@ static int should_we_add_namespace(void) {
 }
 
 
+static char *s_no_namespace_labels[] = {
+  "ARG_IMMEDIATE",
+  "ARG_NUMBER",
+  "ARG_LABEL",
+  "ARG_STRING",
+  "ARG_PENDING_CALCULATION",
+  NULL
+};
+
+
 int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macros) {
 
   int i = 0;
@@ -215,7 +225,15 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
   if (label[0] == '\\' || label[0] == '@' || label[0] == '-' || label[0] == '+' || label[0] == '_')
     return SUCCEEDED;
 
+  i = 0;
+  while (s_no_namespace_labels[i] != NULL) {
+    if (strcaselesscmp(s_no_namespace_labels[i], label) == 0)
+      return SUCCEEDED;
+    i++;
+  }
+  
   /* does the label already contain a namespace? */
+  i = 0;
   while (1) {
     if (label[i] == '.')
       return SUCCEEDED;
