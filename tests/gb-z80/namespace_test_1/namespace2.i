@@ -9,3 +9,10 @@ labelNamespace2: nop
 someLabel:
         namespace1.someMacro 123
 .ends
+
+
+.section "some section" free
+label:
+    namespace1.myMacro 1
+    namespace1.myMacro 2
+.ends

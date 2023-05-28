@@ -422,10 +422,6 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
   g_macro_active++;
   m->calls++;
 
-  /* use the caller's namespace? */
-  if (m->use_caller_namespace == YES)
-    strcpy(m->namespace, g_active_file_info_last->namespace);
-  
   /* macro call start */
   fprintf(g_file_out_ptr, "i%d %s ", m->id, m->name);
 
@@ -958,18 +954,29 @@ int phase_1(void) {
         else
           return FAILED;
 
+        /* use the caller's namespace? */
+        if (m->use_caller_namespace == YES)
+          strcpy(m->namespace, g_active_file_info_last->namespace);
+          
         /* do we have a name for this argument? */
         if (p < m->nargument_names) {
+          char argument_name[MAX_NAME_LENGTH + 1];
+
+          if (m->namespace[0] == 0)
+            strcpy(argument_name, m->argument_names[p]);
+          else
+            snprintf(argument_name, sizeof(argument_name), "%s.%s", m->namespace, m->argument_names[p]);
+
           if (q == INPUT_NUMBER_ADDRESS_LABEL)
-            redefine(m->argument_names[p], 0.0, g_label, DEFINITION_TYPE_ADDRESS_LABEL, (int)strlen(g_label));
+            redefine(argument_name, 0.0, g_label, DEFINITION_TYPE_ADDRESS_LABEL, (int)strlen(g_label));
           else if (q == INPUT_NUMBER_STRING)
-            redefine(m->argument_names[p], 0.0, g_label, DEFINITION_TYPE_STRING, (int)strlen(g_label));
+            redefine(argument_name, 0.0, g_label, DEFINITION_TYPE_STRING, (int)strlen(g_label));
           else if (q == INPUT_NUMBER_STACK)
-            redefine(m->argument_names[p], (double)g_latest_stack, NULL, DEFINITION_TYPE_STACK, 0);
+            redefine(argument_name, (double)g_latest_stack, NULL, DEFINITION_TYPE_STACK, 0);
           else if (q == SUCCEEDED)
-            redefine(m->argument_names[p], g_parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
+            redefine(argument_name, g_parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
           else if (q == INPUT_NUMBER_FLOAT)
-            redefine(m->argument_names[p], g_parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
+            redefine(argument_name, g_parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
         }
       }
 
@@ -7649,6 +7656,7 @@ int directive_define_def_equ(void) {
   
   char k[256], label[MAX_NAME_LENGTH+1];
   int j, export, q, size;
+  struct definition *d;
   double dou;
 
   if (get_next_plain_string() == FAILED)
@@ -7659,6 +7667,12 @@ int directive_define_def_equ(void) {
   /* check the user doesn't try to define reserved labels */
   if (is_reserved_definition(label) == YES) {
     print_error(ERROR_DIR, "\"%s\" is a reserved definition label and is not user definable.\n", label);
+    return FAILED;
+  }
+
+  hashmap_get(g_defines_map, label, (void*)&d);
+  if (d != NULL) {
+    print_error(ERROR_DIR, "\"%s\" was defined for the second time.\n", label);
     return FAILED;
   }
 
@@ -11904,13 +11918,13 @@ int parse_if_directive(void) {
   if (strcaselesscmp(g_current_directive, "IFDEF") == 0) {
     struct definition *d;
 
-    if (get_next_token() == FAILED)
+    if (get_next_plain_string() == FAILED)
       return FAILED;
-
+    
     if (_increase_ifdef() == FAILED)
       return FAILED;
 
-    hashmap_get(g_defines_map, g_tmp, (void *)&d);
+    hashmap_get(g_defines_map, g_label, (void *)&d);
     if (d != NULL) {
       g_skip_elifs[g_ifdef] = YES;
       return SUCCEEDED;
@@ -12092,13 +12106,13 @@ int parse_if_directive(void) {
   if (strcaselesscmp(g_current_directive, "IFNDEF") == 0) {
     struct definition *d;
 
-    if (get_next_token() == FAILED)
+    if (get_next_plain_string() == FAILED)
       return FAILED;
 
     if (_increase_ifdef() == FAILED)
       return FAILED;
 
-    hashmap_get(g_defines_map, g_tmp, (void*)&d);
+    hashmap_get(g_defines_map, g_label, (void*)&d);
     if (d != NULL) {
       char* tmp;
       int result;

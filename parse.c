@@ -214,7 +214,7 @@ static char *s_no_namespace_labels[] = {
 
 int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macros) {
 
-  int i = 0;
+  int i;
   
   if (g_force_ignore_namespace == YES)
     return SUCCEEDED;
@@ -326,7 +326,7 @@ int input_next_string(void) {
     if (add_namespace_to_a_label(g_label, sizeof(g_label), YES) == FAILED)
       return FAILED;
   }
-  
+
   return SUCCEEDED;
 }
 

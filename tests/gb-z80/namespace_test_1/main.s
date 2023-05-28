@@ -206,8 +206,10 @@ _globalFunc:
         .include "namespace1.i" namespace namespace1
         .include "namespace2.i" namespace namespace2
 
-        .db "04>"               ; @BT TEST-04 04 START
-        namespace1.someMacro 3  ; @BT 03 03
+        .db "04>"                      ; @BT TEST-04 04 START
+        .print "-----------------------------------\n"
+        namespace1.someMacro 3         ; @BT 03 03
         namespace1.someMacro VALUE_5-1 ; @BT 04 04
+        .print "-----------------------------------\n"
         .db "<04"                      ; @BT END
         

@@ -28,3 +28,9 @@
     .endif
     .print "\n"
   .endm
+
+.macro "myMacro" args someOptionalArg
+    .ifndef someOptionalArg
+        .define someOptionalArg 0
+    .endif
+.endm
