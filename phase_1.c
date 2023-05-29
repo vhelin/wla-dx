@@ -10292,6 +10292,31 @@ int directive_stringmap(void) {
 }
 
 
+int directive_assert(void) {
+
+  int q;
+
+  g_input_parse_if = YES;
+  q = input_number();
+  g_input_parse_if = NO;
+
+  if (q == FAILED)
+    return FAILED;
+  if (q != SUCCEEDED) {
+    print_error(ERROR_INP, ".ASSERT needs immediate data.\n");
+    return FAILED;
+  }
+
+  /* 0 = false, otherwise it's true */
+  if (g_parsed_int != 0)
+    return SUCCEEDED;
+  else {
+    print_error(ERROR_INP, ".ASSERT failed.\n");
+    return FAILED;
+  }
+}
+
+
 int directive_rombanksize_banksize(void) {
 
   int q;
@@ -10432,6 +10457,10 @@ int parse_directive(void) {
     if (strcmp(directive_upper, "ASM") == 0)
       return SUCCEEDED;
 
+    /* ASSERT */
+    if (strcmp(directive_upper, "ASSERT") == 0)
+      return directive_assert();
+    
     break;
 
   case 'B':

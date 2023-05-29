@@ -206,6 +206,10 @@ _globalFunc:
         .include "namespace1.i" namespace namespace1
         .include "namespace2.i" namespace namespace2
 
+        .assert "hello" == "hello"
+        .assert 1+1 == 2
+        .assert VALUE_6 != 5
+        
         .db "04>"                      ; @BT TEST-04 04 START
         .print "-----------------------------------\n"
         namespace1.someMacro 3         ; @BT 03 03

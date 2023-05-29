@@ -34,3 +34,5 @@
         .define someOptionalArg 0
     .endif
 .endm
+
+    .define VALUE_6 = 6

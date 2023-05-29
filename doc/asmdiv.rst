@@ -99,6 +99,7 @@ ALL  ``.ASCIITABLE``
 ALL  ``.ASCSTR "HELLO WORLD!", $A``
 ALL  ``.ASCTABLE``
 ALL  ``.ASM``
+ALL  ``.ASSERT VALUE_1 == 1``
 ALL  ``.BACKGROUND "parallax.gb"``
 ALL  ``.BANK 0 SLOT 1``
 ALL  ``.BASE $80``
@@ -549,6 +550,15 @@ Tells WLA to start assembling. Use ``.ASM`` to continue the work which has been
 disabled with ``.ENDASM``. ``.ASM`` and ``.ENDASM`` can be used to mask away
 big blocks of code. This is analogous to the ANSI C -comments (``/*...*/``),
 but ``.ASM`` and ``.ENDASM`` can be nested, unlike the ANSI C -counterpart.
+
+This is not a compulsory directive.
+
+
+``.ASSERT VALUE_1 == 1``
+------------------------
+
+``.ASSERT`` takes a condition, and if it's evaluated to be true, nothing happens. If
+it's false, then assembling ends right there in an error.
 
 This is not a compulsory directive.
 
