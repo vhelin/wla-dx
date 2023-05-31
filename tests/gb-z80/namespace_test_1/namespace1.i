@@ -36,3 +36,25 @@
 .endm
 
     .define VALUE_6 = 6
+
+.macro "myMacro2" args myArg
+    ld a, myArg
+.endm
+
+    myMacro2 1
+    myMacro2 2
+    
+.macro "macroA" args someArg
+    .print "macroA someArg = ", someArg, "\n"
+.endm
+
+.macro "macroB" args someArg
+    .print "macroB someArg = ", someArg, "\n"
+    macroA ; call macroA without an argument
+.endm
+
+.macro "caller"
+    macroB 123
+.endm
+
+    caller

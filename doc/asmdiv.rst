@@ -2263,10 +2263,10 @@ Here are some examples::
     .ENDM
     
     .MACRO LOAD_ABCD_2 ARGS ONE, TWO, THREE, FOUR, FIVE
-        LD A, ONE
-        LD B, TWO
-        LD C, THREE
-        LD D, FOUR
+        LD A, ONE        ; note! ONE, TWO, THREE, FOUR and FIVE
+        LD B, TWO        ; here are actually definitions that
+        LD C, THREE      ; exist as long as the .MACRO is alive
+        LD D, FOUR       ; so be careful when using named args...
         NOPMONSTER
         LD HL, 1<<ONE
     .INCBIN FIVE
@@ -2292,9 +2292,9 @@ Note that the following works as well::
 
     .DEF prev_test $0000
 
-    .MACRO .test ARGS str
-    __\._{\@+1}:                   ; this will become __.test_1 during
-        .PRINT __\._{\@+1}, "\n"   ; the first call, __.test_2 during the
+    .MACRO test ARGS str
+    __\._{\@+1}:                   ; this will become __test_1 during
+        .PRINT __\._{\@+1}, "\n"   ; the first call, __test_2 during the
         .WORD  prev_test           ; second call...
         .REDEF prev_test __\._{\@+1}
         .BYTE  str.length, str, 0
@@ -2319,7 +2319,7 @@ Here's an example::
 You can also use ``\?`` to ask for the type of the argument in the
 following fashion::
     
-    .macro .differentThings
+    .macro differentThings
       .if \?1 == ARG_IMMEDIATE
         .db \1
       .elif \?1 == ARG_NUMBER
@@ -2335,11 +2335,11 @@ following fashion::
   
     .section "TestingDifferentThings"
     TDT1:
-        .differentThings 100
-        .differentThings "HELLO"
-        .differentThings TDT1
-        .differentThings TDT1+1
-        .differentThings #0
+        differentThings 100
+        differentThings "HELLO"
+        differentThings TDT1
+        differentThings TDT1+1
+        differentThings #0
     .ends
 
 The previous example will result in .db 1, 2, 3, 4, 0

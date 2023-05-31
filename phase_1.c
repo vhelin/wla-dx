@@ -330,43 +330,26 @@ int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
   strcpy(fullname, name);
 
   if (add_namespace == YES) {
-    if (g_active_file_info_last->namespace[0] != 0) {
-      if (add_namespace_to_string(fullname, sizeof(fullname), "MACRO") == FAILED) {
-        *macro_out = NULL;
-        return FAILED;
+    /* are we inside a .MACRO that's been namespaced? */
+    if (g_macro_active > 0) {
+      struct macro_runtime *rt;
+      struct macro_static *st;
+    
+      rt = &g_macro_stack[g_macro_active - 1];
+      st = rt->macro;
+
+      if (st->defined_namespace[0] != 0) {
+        /* yes! try to use the .MACRO's namespace */
+        if (_add_namespace_to_string(fullname, sizeof(fullname), ".MACRO", st->defined_namespace) == FAILED) {
+          *macro_out = NULL;
+          return FAILED;
+        }
       }
     }
-    else {
-      /* namespace isn't defined, but are we inside a .MACRO that's been namespaced? */
-      if (g_macro_active > 0) {
-        struct macro_runtime *rt;
-        struct macro_static *st;
-        int dot = -1, i = 0;
-    
-        rt = &g_macro_stack[g_macro_active - 1];
-        st = rt->macro;
-
-        while (st->name[i] != 0) {
-          if (st->name[i] == '.') {
-            dot = i;
-            break;
-          }
-          i++;
-        }
-
-        if (dot >= 0) {
-          /* yes! try to use the .MACRO's namespace */
-          char namespace[MAX_NAME_LENGTH + 1];
-
-          for (i = 0; i < dot; i++)
-            namespace[i] = st->name[i];
-          namespace[i] = 0;
-        
-          if (_add_namespace_to_string(fullname, sizeof(fullname), ".MACRO", namespace) == FAILED) {
-            *macro_out = NULL;
-            return FAILED;
-          }
-        }
+    else if (g_active_file_info_last->namespace[0] != 0) {
+      if (add_namespace_to_string(fullname, sizeof(fullname), ".MACRO") == FAILED) {
+        *macro_out = NULL;
+        return FAILED;
       }
     }
   }
@@ -898,7 +881,12 @@ int phase_1(void) {
       mrt = &g_macro_stack[g_macro_active];
       mrt->argument_data = NULL;
       mrt->incbin_data = NULL;
+      mrt->definition_storage = NULL;
 
+      /* use the caller's namespace? */
+      if (m->use_caller_namespace == YES)
+        strcpy(m->namespace, g_active_file_info_last->namespace);
+      
       /* skip '(' */
       if (compare_and_skip_next_symbol('(') == SUCCEEDED)
         got_opening_parenthesis = YES;
@@ -954,18 +942,33 @@ int phase_1(void) {
         else
           return FAILED;
 
-        /* use the caller's namespace? */
-        if (m->use_caller_namespace == YES)
-          strcpy(m->namespace, g_active_file_info_last->namespace);
-          
         /* do we have a name for this argument? */
         if (p < m->nargument_names) {
           char argument_name[MAX_NAME_LENGTH + 1];
+          struct definition *definition;
 
           if (m->namespace[0] == 0)
             strcpy(argument_name, m->argument_names[p]);
           else
             snprintf(argument_name, sizeof(argument_name), "%s.%s", m->namespace, m->argument_names[p]);
+
+          /* does the definition exist already? */
+          hashmap_get(g_defines_map, argument_name, (void*)&definition);
+          if (definition != NULL) {
+            /* yes, store it! */
+            struct definition_storage *storage = calloc(sizeof(struct definition_storage), 1);
+            if (storage == NULL) {
+              print_error(ERROR_ERR, "Out of memory error while trying to store a definition.\n");
+              return FAILED;
+            }
+
+            storage->definition = definition;
+            storage->next = mrt->definition_storage;
+            mrt->definition_storage = storage;
+
+            /* temporarily remove the definition, because a new one is going to replace it */
+            hashmap_remove(g_defines_map, argument_name);
+          }
 
           if (q == INPUT_NUMBER_ADDRESS_LABEL)
             redefine(argument_name, 0.0, g_label, DEFINITION_TYPE_ADDRESS_LABEL, (int)strlen(g_label));
@@ -8724,6 +8727,8 @@ int directive_macro(void) {
     m->use_caller_namespace = YES;
   }
 
+  strcpy(m->defined_namespace, g_active_file_info_last->namespace);
+
   /* skip '(' if it exists */
   if (compare_and_skip_next_symbol('(') == SUCCEEDED) {
     if (compare_and_skip_next_symbol(')') == FAILED) {
@@ -8887,6 +8892,7 @@ int directive_rept_repeat(void) {
 
 int directive_endm(void) {
 
+  struct definition_storage *storage;
   int q;
   
   if (g_macro_active != 0) {
@@ -8904,9 +8910,28 @@ int directive_endm(void) {
     }
 
     /* free the argument definitions */
-    for (q = 0; q < g_macro_stack[g_macro_active].macro->nargument_names; q++)
-      undefine(g_macro_stack[g_macro_active].macro->argument_names[q]);
+    for (q = 0; q < g_macro_stack[g_macro_active].macro->nargument_names; q++) {
+      char argument_name[MAX_NAME_LENGTH + 1];
 
+      if (g_macro_stack[g_macro_active].macro->namespace[0] == 0)
+        strcpy(argument_name, g_macro_stack[g_macro_active].macro->argument_names[q]);
+      else
+        snprintf(argument_name, sizeof(argument_name), "%s.%s", g_macro_stack[g_macro_active].macro->namespace,
+                 g_macro_stack[g_macro_active].macro->argument_names[q]);
+
+      undefine(argument_name);
+    }
+
+    /* return back stored definitions */
+    storage = g_macro_stack[g_macro_active].definition_storage;
+    while (storage != NULL) {
+      if ((q = hashmap_put(g_defines_map, storage->definition->alias, storage->definition)) != MAP_OK) {
+        fprintf(stderr, "DIRECTIVE_ENDM: Hashmap error %d\n", q);
+        return FAILED;
+      }
+      storage = storage->next;
+    }
+      
     g_source_index = g_macro_stack[g_macro_active].macro_return_i;
 
     /* we return to the beginning of a new line? */

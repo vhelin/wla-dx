@@ -216,4 +216,8 @@ _globalFunc:
         namespace1.someMacro VALUE_5-1 ; @BT 04 04
         .print "-----------------------------------\n"
         .db "<04"                      ; @BT END
+
+        namespace1.myMacro2 1
+
+
         

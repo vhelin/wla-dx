@@ -258,7 +258,7 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
           print_error(ERROR_NUM, "The label with the namespace is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
           return FAILED;
         }
-      
+
         snprintf(label_tmp, sizeof(label_tmp), "%s.%s", mrt->macro->namespace, label);
         strcpy(label, label_tmp);
       }

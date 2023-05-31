@@ -16,3 +16,9 @@ label:
     namespace1.myMacro 1
     namespace1.myMacro 2
 .ends
+
+    namespace1.myMacro 1
+    namespace1.myMacro 2
+    namespace1.myMacro 3
+
+    namespace1.myMacro2 2

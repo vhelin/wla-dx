@@ -561,6 +561,7 @@ struct macro_argument {
 struct macro_static {
   char name[MAX_NAME_LENGTH + 1];
   char namespace[MAX_NAME_LENGTH + 1];
+  char defined_namespace[MAX_NAME_LENGTH + 1];
   int  id;
   int  start;
   int  calls;
@@ -589,6 +590,11 @@ struct macro_incbin {
 #define MACRO_CALLER_INCBIN 5
 #define MACRO_CALLER_FILTER 6
 
+struct definition_storage {
+  struct definition *definition;
+  struct definition_storage *next;
+};
+
 struct macro_runtime {
   struct macro_static *macro;
   int  macro_return_i;
@@ -602,6 +608,7 @@ struct macro_runtime {
   int  offset;
   struct macro_incbin *incbin_data;
   struct macro_argument **argument_data;
+  struct definition_storage *definition_storage;
 };
 
 struct function {
