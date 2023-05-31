@@ -235,13 +235,15 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
   /* does the label already contain a namespace? */
   i = 0;
   while (1) {
-    if (label[i] == '.')
-      return SUCCEEDED;
+    if (label[i] == '.') {
+      if (strcaselesscmp(&label[i], ".length") != 0)
+        return SUCCEEDED;
+    }
     if (label[i] == 0)
       break;
     i++;
   }
-  
+
   /* label reference inside a namespaced .MACRO? */
   if (g_macro_active != 0) {
     struct definition *tmp_def;
@@ -1400,11 +1402,13 @@ int input_number(void) {
 
   /* check for "string".length */
   if (strstr(g_label, ".length") != NULL) {
-    parse_string_length(strstr(g_label, ".length"));
+    if (parse_string_length(strstr(g_label, ".length")) == FAILED)
+      return FAILED;
     return SUCCEEDED;
   }
   else if (strstr(g_label, ".LENGTH") != NULL) {
-    parse_string_length(strstr(g_label, ".LENGTH"));
+    if (parse_string_length(strstr(g_label, ".LENGTH")) == FAILED)
+      return FAILED;
     return SUCCEEDED;
   }
 
@@ -1478,7 +1482,7 @@ int parse_string_length(char *end) {
 
       g_parsed_int = (int)strlen(g_label);
       g_parsed_double = (double)g_parsed_int;
-          
+
       return SUCCEEDED;
     }
   }
