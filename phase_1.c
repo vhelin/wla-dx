@@ -8925,12 +8925,18 @@ int directive_endm(void) {
     /* return back stored definitions */
     storage = g_macro_stack[g_macro_active].definition_storage;
     while (storage != NULL) {
+      struct definition_storage *ds = storage->next;
+      
       if ((q = hashmap_put(g_defines_map, storage->definition->alias, storage->definition)) != MAP_OK) {
         fprintf(stderr, "DIRECTIVE_ENDM: Hashmap error %d\n", q);
         return FAILED;
       }
-      storage = storage->next;
+
+      free(storage);
+
+      storage = ds;
     }
+    g_macro_stack[g_macro_active].definition_storage = NULL;
       
     g_source_index = g_macro_stack[g_macro_active].macro_return_i;
 
