@@ -1,0 +1,3 @@
+
+        foo.myMacro 3
+        

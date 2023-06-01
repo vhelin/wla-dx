@@ -8633,9 +8633,13 @@ static int _parse_macro_argument_names(struct macro_static *m, int *count, int i
       if (compare_and_skip_next_symbol(')') == SUCCEEDED)
         break;
     }
-    
-    string_result = input_next_string();
 
+    if (g_is_file_isolated_counter > 0)
+      g_force_ignore_namespace = YES;
+    string_result = input_next_string();
+    if (g_is_file_isolated_counter > 0)
+      g_force_ignore_namespace = NO;
+    
     if (string_result == FAILED)
       return FAILED;
     if (string_result == INPUT_NUMBER_EOL) {

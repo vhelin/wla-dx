@@ -2389,7 +2389,7 @@ child label stack::
             .db "<25"
 
 In this case B points to A and D points to A. If you add keyword ``ISOLATED``
-to ``.MACRO`` MACROM then B still points to A, but A doesn't bleed out of MACROM
+to ``.MACRO`` MACROM then B still points to A, but A doesn't leak out of MACROM
 and D points to C. Exiting a ``.MACRO`` that uses keyword ``ISOLATED`` restores
 the child label stack. 
 
