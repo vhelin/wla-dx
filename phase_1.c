@@ -4488,15 +4488,11 @@ int directive_struct(void) {
 
   if (g_is_file_isolated_counter <= 0)
     g_force_ignore_namespace = YES;
-  q = input_number();
+  q = get_next_plain_string();
   if (g_is_file_isolated_counter <= 0)
     g_force_ignore_namespace = NO;
   if (q == FAILED)
     return FAILED;
-  if (q != INPUT_NUMBER_ADDRESS_LABEL && q != INPUT_NUMBER_STRING) {
-    print_error(ERROR_DIR, ".STRUCT needs a name string.\n");
-    return FAILED;
-  }
   
   strcpy(s_active_struct->name, g_label);
 

@@ -7,3 +7,8 @@
           .db myArg, myArg+1
           myMacro2 myArg
         .endm
+
+        .struct "MyStruct"
+          foo: db
+        .endst
+        

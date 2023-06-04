@@ -42,4 +42,11 @@ init:     foo.myMacro 6         ; @BT 06 07 08
           .db "<03"             ; @BT END
 -:        jp -
         .ends
+
+        .include rum.s namespace "rum"
+        
+        .ramsection "ram" slot 1 keep
+          lol: instanceof NotIsolated
+          foo: instanceof foo.MyStruct
+        .ends
         
