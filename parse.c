@@ -38,6 +38,8 @@ extern struct active_file_info *g_active_file_info_first, *g_active_file_info_la
 extern struct map_t *g_defines_map;
 extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
 extern struct function *g_functions_first;
+extern struct map_t *g_namespace_map;
+extern struct namespace *g_namespaces_first;
 extern int g_latest_stack, g_asciitable_defined, g_global_label_hint, g_parsing_function_body, g_resolve_stack_calculations;
 extern int g_is_file_isolated_counter;
 
@@ -214,6 +216,7 @@ static char *s_no_namespace_labels[] = {
 
 int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macros) {
 
+  char namespace_tmp[MAX_NAME_LENGTH + 1];
   int i;
   
   if (g_force_ignore_namespace == YES)
@@ -235,9 +238,25 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
   /* does the label already contain a namespace? */
   i = 0;
   while (1) {
+    namespace_tmp[i] = label[i];
     if (label[i] == '.') {
-      if (strcaselesscmp(&label[i], ".length") != 0)
-        return SUCCEEDED;
+      if (strcaselesscmp(&label[i], ".length") != 0) {
+        /* we have a dot in the name -> check if we know the namespace */
+        struct namespace *namespace = g_namespaces_first;
+        
+        namespace_tmp[i] = 0;
+
+        while (namespace != NULL) {
+          if (strcmp(namespace_tmp, namespace->name) == 0) {
+            /* we know the namespace -> don't add it! */
+            return SUCCEEDED;
+          }
+          namespace = namespace->next;
+        }
+
+        /* it is not probably a namespace so proceed adding the namespace to the label */
+        break;
+      }
     }
     if (label[i] == 0)
       break;

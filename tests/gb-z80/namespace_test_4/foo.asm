@@ -12,3 +12,15 @@
           foo: db
         .endst
         
+        .struct Foo
+          bar_1: db
+          bar_2: db
+        .endst
+
+        .macro "MyMacro3"
+        .db Foo.bar_1
+        .db Foo.bar_2
+        .db Foo.bar_1+1
+        .db Foo.bar_2+1
+        .endm
+        

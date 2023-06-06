@@ -36,7 +36,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.5a (31.5.2023)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.5a (6.6.2023)";
 char g_wla_version[] = "10.5";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -62,6 +62,7 @@ extern struct structure *g_structures_first;
 extern struct structure **g_saved_structures;
 extern struct string *g_fopen_filenames_first, *g_fopen_filenames_last;
 extern struct function *g_functions_first, *g_functions_last;
+extern struct namespace *g_namespaces_first;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern char *g_label_stack[256], *g_tmp, *g_global_listfile_cmds;
 extern char *g_include_in_tmp, *g_tmp_a;
@@ -670,6 +671,12 @@ void procedures_at_exit(void) {
     free(g_ifd_tmp->name);
     free(g_ifd_tmp);
     g_ifd_tmp = g_incbin_file_data_first;
+  }
+
+  while (g_namespaces_first != NULL) {
+    struct namespace *next = g_namespaces_first->next;
+    free(g_namespaces_first);
+    g_namespaces_first = next;
   }
 
   free_stack_calculations();

@@ -50,3 +50,8 @@ init:     foo.myMacro 6         ; @BT 06 07 08
           foo: instanceof foo.MyStruct
         .ends
         
+        .section "init2" free keep
+        .db "04>"               ; @BT TEST-04 04 START
+init2:  foo.MyMacro3            ; @BT 00 01 01 02
+        .db "<04"               ; @BT END
+        .ends

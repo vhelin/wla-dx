@@ -694,6 +694,11 @@ struct export_def {
   struct export_def *next;
 };
 
+struct namespace {
+  char   name[MAX_NAME_LENGTH + 1];
+  struct namespace *next;
+};
+
 struct active_file_info {
   int    filename_id;
   int    line_current;

@@ -132,6 +132,7 @@ struct stringmaptable *g_stringmaptables = NULL;
 struct array *g_arrays_first = NULL;
 struct string *g_fopen_filenames_first = NULL, *g_fopen_filenames_last = NULL;
 struct function *g_functions_first = NULL, *g_functions_last = NULL;
+struct namespace *g_namespaces_first = NULL;
 
 extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name;
 extern int g_source_file_size, g_input_number_error_msg, g_verbose_level, g_output_format, g_open_files, g_input_parse_if;
@@ -886,7 +887,7 @@ int phase_1(void) {
       /* use the caller's namespace? */
       if (m->use_caller_namespace == YES)
         strcpy(m->namespace, g_active_file_info_last->namespace);
-      
+
       /* skip '(' */
       if (compare_and_skip_next_symbol('(') == SUCCEEDED)
         got_opening_parenthesis = YES;
@@ -4272,6 +4273,25 @@ int directive_incdir(void) {
 }
 
 
+static int _remember_namespace(char *name) {
+
+  struct namespace *nspace = NULL;
+  
+  nspace = calloc(sizeof(struct namespace), 1);
+  if (nspace == NULL) {
+    print_error(ERROR_DIR, "Out of memory while remembering namespace \"%s\".\n", name);
+    return FAILED;
+  }
+
+  strcpy(nspace->name, name);
+      
+  nspace->next = g_namespaces_first;
+  g_namespaces_first = nspace;
+
+  return SUCCEEDED;
+}
+
+
 int directive_include(int is_real) {
 
   int o, include_size = 0, accumulated_name_length = 0, character_c_position = 0, got_once = NO;
@@ -4344,6 +4364,9 @@ int directive_include(int is_real) {
       }
 
       strcpy(namespace, g_label);
+
+      if (_remember_namespace(namespace) == FAILED)
+        return FAILED;
     }
     else if (compare_next_token("ONCE") == SUCCEEDED) {
       skip_next_token();
