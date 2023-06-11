@@ -2086,7 +2086,9 @@ To add the namespace prefix to everything including ``.DEFINE`` s use the keywor
 ``ISOLATED``::
 
     .INCLUDE "music_player.s" NAMESPACE "musicplayer" ISOLATED
-  
+
+Note that a dot is the namespace separator so your namespace cannot contain a dot.
+    
 Note that you can create the file name from pieces::
 
     .INCLUDE ROOTDIR, SUBDIR, "cthulhu.s" NAMESPACE "cthulhu"

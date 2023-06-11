@@ -4292,6 +4292,22 @@ static int _remember_namespace(char *name) {
 }
 
 
+static int _is_namespace_valid(char *name) {
+
+  int i = 0;
+
+  while (1) {
+    if (name[i] == 0)
+      return YES;
+    else if (name[i] == '.') {
+      print_error(ERROR_DIR, "Namespace (here \"%s\") cannot contain a dot.\n", name);
+      return NO;
+    }
+    i++;
+  }
+}
+
+
 int directive_include(int is_real) {
 
   int o, include_size = 0, accumulated_name_length = 0, character_c_position = 0, got_once = NO;
@@ -4363,6 +4379,9 @@ int directive_include(int is_real) {
         return FAILED;
       }
 
+      if (_is_namespace_valid(g_label) == NO)
+        return FAILED;
+      
       strcpy(namespace, g_label);
 
       if (_remember_namespace(namespace) == FAILED)
@@ -5155,6 +5174,9 @@ int directive_section(void) {
         g_label[l] = 0;
       }
 
+      if (_is_namespace_valid(g_label) == NO)
+        return FAILED;
+              
       hashmap_get(g_namespace_map, g_label, (void*)&nspace);
       if (nspace == NULL) {
         nspace = calloc(1, sizeof(struct namespace_def));
@@ -10780,6 +10802,9 @@ int parse_directive(void) {
           print_error(ERROR_DIR, "Internal error: Namespace string is missing.\n");
           return FAILED;
         }
+
+        if (_is_namespace_valid(g_label) == NO)
+          return FAILED;
 
         strcpy(g_active_file_info_tmp->namespace, g_label);
 

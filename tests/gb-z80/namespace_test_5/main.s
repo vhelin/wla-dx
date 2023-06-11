@@ -25,7 +25,8 @@
         .include "foo.asm"
 
         .db "01>"               ; @BT TEST-01 01 START
-        .include "bar.asm" namespace "bar" isolated ; @BT 06 06 07 06 01
+        .include "bar.asm" namespace "bar" isolated ; @BT 06 06 07 06 01 08 09 0F
+        .db myArg                                   ; @BT 0B
         .db "<01"                                   ; @BT END
         
         
