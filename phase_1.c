@@ -7681,9 +7681,13 @@ int directive_define_def_equ(void) {
   struct definition *d;
   double dou;
 
+  if (g_is_file_isolated_counter > 0)
+    g_force_add_namespace = YES;
   if (get_next_plain_string() == FAILED)
     return FAILED;
-
+  if (g_is_file_isolated_counter > 0)
+    g_force_add_namespace = NO;
+  
   strcpy(label, g_label);
   
   /* check the user doesn't try to define reserved labels */
@@ -7745,8 +7749,14 @@ int directive_undef_undefine(void) {
 
   q = 0;
   while (1) {
-    int string_result = input_next_string();
+    int string_result;
 
+    if (g_is_file_isolated_counter > 0)
+      g_force_add_namespace = YES;
+    string_result = input_next_string();
+    if (g_is_file_isolated_counter > 0)
+      g_force_add_namespace = NO;
+  
     if (string_result == FAILED)
       return FAILED;
     if (string_result == INPUT_NUMBER_EOL) {
@@ -7976,9 +7986,13 @@ int directive_redefine_redef(void) {
   int j, export, q, size;
   double dou;
 
+  if (g_is_file_isolated_counter > 0)
+    g_force_add_namespace = YES;
   if (get_next_plain_string() == FAILED)
     return FAILED;
-
+  if (g_is_file_isolated_counter > 0)
+    g_force_add_namespace = NO;
+  
   strcpy(label, g_label);
 
   /* check the user doesn't try to define reserved labels */

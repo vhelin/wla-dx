@@ -217,6 +217,7 @@ static char *s_no_namespace_labels[] = {
 int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macros) {
 
   char namespace_tmp[MAX_NAME_LENGTH + 1];
+  struct definition *tmp_def;
   int i;
   
   if (g_force_ignore_namespace == YES)
@@ -263,10 +264,17 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
     i++;
   }
 
+  if (g_force_add_namespace == NO) {
+    /* do we find the label without the namespace in defines? */
+    hashmap_get(g_defines_map, label, (void*)&tmp_def);
+    if (tmp_def != NULL) {
+      /* yes -> don't add namespace as we want, hopefully, create a reference to that */
+      return SUCCEEDED;
+    }
+  }
+  
   /* label reference inside a namespaced .MACRO? */
   if (g_macro_active != 0) {
-    struct definition *tmp_def;
-    
     hashmap_get(g_defines_map, label, (void*)&tmp_def);
     if (tmp_def == NULL) {
       struct macro_runtime *mrt = &g_macro_stack[g_macro_active - 1];
