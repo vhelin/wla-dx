@@ -214,6 +214,19 @@ static char *s_no_namespace_labels[] = {
 };
 
 
+static int _add_namespace_to_a_label(char *output, int sizeof_output, char *input) {
+
+  if ((int)strlen(input) >= sizeof_output - 1) {
+    print_error(ERROR_NUM, "The label with the namespace is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
+    return FAILED;
+  }
+
+  strcpy(output, input);
+
+  return SUCCEEDED;
+}
+
+
 int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macros) {
 
   char namespace_tmp[MAX_NAME_LENGTH + 1];
@@ -264,39 +277,48 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
     i++;
   }
 
-  if (g_force_add_namespace == NO) {
-    /* do we find the label without the namespace in defines? */
-    hashmap_get(g_defines_map, label, (void*)&tmp_def);
-    if (tmp_def != NULL) {
-      /* yes -> don't add namespace as we want, hopefully, create a reference to that */
-      return SUCCEEDED;
-    }
-  }
+  namespace_tmp[0] = 0;
   
   /* label reference inside a namespaced .MACRO? */
   if (g_macro_active != 0) {
-    hashmap_get(g_defines_map, label, (void*)&tmp_def);
-    if (tmp_def == NULL) {
-      struct macro_runtime *mrt = &g_macro_stack[g_macro_active - 1];
+    struct macro_runtime *mrt = &g_macro_stack[g_macro_active - 1];
 
-      if (mrt->macro->namespace[0] != 0) {
-        /* yes! add the namespace! */
-        char label_tmp[MAX_NAME_LENGTH + 1];
-      
-        if (strlen(mrt->macro->namespace) + strlen(label) >= MAX_NAME_LENGTH) {
-          print_error(ERROR_NUM, "The label with the namespace is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
-          return FAILED;
-        }
-
-        snprintf(label_tmp, sizeof(label_tmp), "%s.%s", mrt->macro->namespace, label);
-        strcpy(label, label_tmp);
+    if (mrt->macro->namespace[0] != 0) {
+      /* yes! add the namespace! */
+      if (strlen(mrt->macro->namespace) + strlen(label) >= MAX_NAME_LENGTH) {
+        print_error(ERROR_NUM, "The label with the namespace is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
+        return FAILED;
       }
+
+      snprintf(namespace_tmp, sizeof(namespace_tmp), "%s.%s", mrt->macro->namespace, label);
     }
   }
-  else if (add_outside_macros == YES)
-    add_namespace_to_string(label, sizeof_label, "add_namespace_to_a_label()");
+  else if (add_outside_macros == YES) {
+    strcpy(namespace_tmp, label);
+    add_namespace_to_string(namespace_tmp, sizeof(namespace_tmp), "add_namespace_to_a_label()");
+  }
 
-  return SUCCEEDED;
+  if (namespace_tmp[0] == 0)
+    return SUCCEEDED;
+
+  if (g_force_add_namespace == YES)
+    return _add_namespace_to_a_label(label, sizeof_label, namespace_tmp);
+
+  /* do we find the label with the namespace in defines? */
+  hashmap_get(g_defines_map, namespace_tmp, (void*)&tmp_def);
+  if (tmp_def != NULL) {
+    /* yes! */
+    return _add_namespace_to_a_label(label, sizeof_label, namespace_tmp);
+  }
+
+  /* do we find the label without the namespace in defines? */
+  hashmap_get(g_defines_map, label, (void*)&tmp_def);
+  if (tmp_def != NULL) {
+    /* yes! */
+    return SUCCEEDED;
+  }
+  
+  return _add_namespace_to_a_label(label, sizeof_label, namespace_tmp);
 }
  
 
