@@ -28,6 +28,7 @@
 
         .db "01>"               ; @BT TEST-01 01 START
         .include "include1.i" namespace i1 ; @BT 05
+        i1.theMacro                        ; @BT 09
         .include "include2.i" namespace i2 ; @BT 07
         .db "<01"                          ; @BT END
 

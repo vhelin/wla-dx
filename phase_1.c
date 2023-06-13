@@ -1996,20 +1996,23 @@ int parse_enum_token(void) {
   }
   /* it's an instance of a structure! */
   else if (strcaselesscmp(g_tmp, "INSTANCEOF") == 0 || strcaselesscmp(g_tmp, ".INSTANCEOF") == 0) {
-    int number_result;
-
     if (g_tmp[0] == '.')
       type = STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF;
     else
       type = STRUCTURE_ITEM_TYPE_INSTANCEOF;
 
-    if (get_next_token() == FAILED)
+    q = get_next_plain_string();
+    if (q == FAILED)
       return FAILED;
-
-    st = get_structure(g_tmp);
+    if (q == INPUT_NUMBER_EOL) {
+      print_error(ERROR_DIR, "INSTANCEOF need a .STRUCT name.\n");
+      return FAILED;
+    }
+    
+    st = get_structure(g_label);
 
     if (st == NULL) {
-      print_error(ERROR_DIR, "No STRUCT named \"%s\" available.\n", g_tmp);
+      print_error(ERROR_DIR, "No .STRUCT named \"%s\" available.\n", g_label);
       return FAILED;
     }
 
@@ -2090,12 +2093,12 @@ int parse_enum_token(void) {
       }
       else {
         /* get the number of structures to be made */
-        number_result = input_number();
-        if (number_result == INPUT_NUMBER_EOL) {
+        q = input_number();
+        if (q == INPUT_NUMBER_EOL) {
           next_line();
           break;
         }
-        else if (number_result == SUCCEEDED) {
+        else if (q == SUCCEEDED) {
           if (g_parsed_int < 1) {
             print_error(ERROR_DIR, "The number of structures must be greater than 0.\n");
             return FAILED;
@@ -2104,7 +2107,7 @@ int parse_enum_token(void) {
           instances = g_parsed_int;
         }
         else {
-          if (number_result == INPUT_NUMBER_STRING)
+          if (q == INPUT_NUMBER_STRING)
             print_error(ERROR_DIR, "Expected the number of structures, got \"%s\" instead.\n", g_label);
           else
             print_error(ERROR_DIR, "Expected the number of structures.\n");
@@ -2114,8 +2117,8 @@ int parse_enum_token(void) {
         /* test for EOL */
         remember_current_source_file_position();
 
-        number_result = input_number();
-        if (number_result == INPUT_NUMBER_EOL) {
+        q = input_number();
+        if (q == INPUT_NUMBER_EOL) {
           next_line();
           break;
         }
@@ -8679,12 +8682,12 @@ int directive_smdheader(void) {
 #endif
 
 
-static int _parse_macro_argument_names(struct macro_static *m, int *count, int inside_parentheses) {
+static int _parse_macro_argument_names(struct macro_static *m, int *count, int is_inside_parentheses) {
 
   while (1) {
     int string_result;
 
-    if (inside_parentheses == YES) {
+    if (is_inside_parentheses == YES) {
       if (compare_and_skip_next_symbol(')') == SUCCEEDED)
         break;
     }

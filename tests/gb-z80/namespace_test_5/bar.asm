@@ -17,4 +17,20 @@ someLabel:
 
         barMacro 8
         .db myArg
+
+        .struct Bar
+          value: db
+        .endst
+
+        .ramsection "ram" bank 0 slot 2 keep returnorg
+          foo: instanceof Bar
+        .ends
+
+        .macro theMacro
+          .dstruct instance instanceof Bar values
+            value .db 9
+          .endst
+        .endm
+
+        theMacro
         
