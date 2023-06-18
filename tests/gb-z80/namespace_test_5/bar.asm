@@ -30,6 +30,7 @@ someLabel:
           .dstruct instance instanceof Bar values
             value .db 9
           .endst
+          .db _sizeof_Bar.value
         .endm
 
         theMacro

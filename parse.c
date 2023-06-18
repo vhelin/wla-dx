@@ -214,14 +214,22 @@ static char *s_no_namespace_labels[] = {
 };
 
 
-static int _add_namespace_to_a_label(char *output, int sizeof_output, char *input) {
+static int _add_namespace_to_a_label(char *output, int sizeof_output, char *input, int is_sizeof) {
 
-  if ((int)strlen(input) >= sizeof_output - 1) {
+  int length = (int)strlen(input);
+
+  if (is_sizeof == YES)
+    length += 8;
+  
+  if (length >= sizeof_output - 1) {
     print_error(ERROR_NUM, "The label with the namespace is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
     return FAILED;
   }
 
-  strcpy(output, input);
+  if (is_sizeof == YES)
+    snprintf(output, sizeof_output, "_sizeof_%s", input);
+  else
+    strcpy(output, input);
 
   return SUCCEEDED;
 }
@@ -229,22 +237,32 @@ static int _add_namespace_to_a_label(char *output, int sizeof_output, char *inpu
 
 int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macros) {
 
-  char namespace_tmp[MAX_NAME_LENGTH + 1];
+  char namespace_tmp[MAX_NAME_LENGTH + 1], label_tmp[MAX_NAME_LENGTH + 1];
   struct definition *tmp_def;
-  int i;
+  int i, is_sizeof = NO;
   
   if (g_force_ignore_namespace == YES)
     return SUCCEEDED;
 
+  strcpy(label_tmp, label);
+  
   /* don't add namespace to some specific labels */
   if (strcaselesscmp(label, "_out") == 0)
     return SUCCEEDED;
-  if (label[0] == '\\' || label[0] == '@' || label[0] == '-' || label[0] == '+' || label[0] == '_')
+  if (label[0] == '\\' || label[0] == '@' || label[0] == '-' || label[0] == '+')
     return SUCCEEDED;
+  if (label[0] == '_') {
+    if (strncmp(label, "_sizeof_", 8) == 0) {
+      is_sizeof = YES;
+      strcpy(label_tmp, &label[8]);
+    }
+    else
+      return SUCCEEDED;
+  }
 
   i = 0;
   while (s_no_namespace_labels[i] != NULL) {
-    if (strcaselesscmp(s_no_namespace_labels[i], label) == 0)
+    if (strcaselesscmp(s_no_namespace_labels[i], label_tmp) == 0)
       return SUCCEEDED;
     i++;
   }
@@ -252,9 +270,9 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
   /* does the label already contain a namespace? */
   i = 0;
   while (1) {
-    namespace_tmp[i] = label[i];
-    if (label[i] == '.') {
-      if (strcaselesscmp(&label[i], ".length") != 0) {
+    namespace_tmp[i] = label_tmp[i];
+    if (label_tmp[i] == '.') {
+      if (strcaselesscmp(&label_tmp[i], ".length") != 0) {
         /* we have a dot in the name -> check if we know the namespace */
         struct namespace *namespace = g_namespaces_first;
         
@@ -272,7 +290,7 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
         break;
       }
     }
-    if (label[i] == 0)
+    if (label_tmp[i] == 0)
       break;
     i++;
   }
@@ -285,16 +303,16 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
 
     if (mrt->macro->namespace[0] != 0) {
       /* yes! add the namespace! */
-      if (strlen(mrt->macro->namespace) + strlen(label) >= MAX_NAME_LENGTH) {
+      if (strlen(mrt->macro->namespace) + strlen(label_tmp) >= MAX_NAME_LENGTH) {
         print_error(ERROR_NUM, "The label with the namespace is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
         return FAILED;
       }
 
-      snprintf(namespace_tmp, sizeof(namespace_tmp), "%s.%s", mrt->macro->namespace, label);
+      snprintf(namespace_tmp, sizeof(namespace_tmp), "%s.%s", mrt->macro->namespace, label_tmp);
     }
   }
   else if (add_outside_macros == YES) {
-    strcpy(namespace_tmp, label);
+    strcpy(namespace_tmp, label_tmp);
     add_namespace_to_string(namespace_tmp, sizeof(namespace_tmp), "add_namespace_to_a_label()");
   }
 
@@ -302,13 +320,18 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
     return SUCCEEDED;
 
   if (g_force_add_namespace == YES)
-    return _add_namespace_to_a_label(label, sizeof_label, namespace_tmp);
+    return _add_namespace_to_a_label(label, sizeof_label, namespace_tmp, is_sizeof);
 
   /* do we find the label with the namespace in defines? */
-  hashmap_get(g_defines_map, namespace_tmp, (void*)&tmp_def);
+  if (is_sizeof == YES) {
+    snprintf(label_tmp, sizeof(label_tmp), "_sizeof_%s", namespace_tmp);
+    hashmap_get(g_defines_map, label_tmp, (void*)&tmp_def);
+  }
+  else
+    hashmap_get(g_defines_map, namespace_tmp, (void*)&tmp_def);
   if (tmp_def != NULL) {
     /* yes! */
-    return _add_namespace_to_a_label(label, sizeof_label, namespace_tmp);
+    return _add_namespace_to_a_label(label, sizeof_label, namespace_tmp, is_sizeof);
   }
 
   /* do we find the label without the namespace in defines? */
@@ -318,7 +341,7 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
     return SUCCEEDED;
   }
   
-  return _add_namespace_to_a_label(label, sizeof_label, namespace_tmp);
+  return _add_namespace_to_a_label(label, sizeof_label, namespace_tmp, is_sizeof);
 }
  
 

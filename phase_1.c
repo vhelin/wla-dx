@@ -3976,7 +3976,7 @@ int directive_dstruct(void) {
 
     if (generate_labels == YES)
       fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, iname);
-    
+
     if (get_full_label(iname, full_label) == FAILED)
       return FAILED;
 
