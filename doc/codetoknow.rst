@@ -142,6 +142,15 @@ Opcodes that make relative label references::
 Use ``.WDC`` to start parsing WDC standard assembly code. ``.NOWDC`` sets
 the parser to parse WLA syntax assembly code.
 
+``MVN`` and ``MVP`` work as follows::
+
+    MVN $xx, $yy
+    MVN $xxyy
+    MVP $xx, $yy
+    MVP $xxyy
+
+``xx`` is the source byte, ``yy`` is the target byte.
+
 
 HUC6280
 -------
