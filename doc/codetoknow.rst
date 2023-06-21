@@ -149,7 +149,7 @@ the parser to parse WLA syntax assembly code.
     MVP $xx, $yy
     MVP $xxyy
 
-``xx`` is the source byte, ``yy`` is the target byte.
+``xx`` is the source bank, ``yy`` is the target bank.
 
 
 HUC6280
