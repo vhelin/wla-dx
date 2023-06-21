@@ -98,6 +98,8 @@ Opcodes that make relative label references::
     BBS*
 
 
+.. _codesub65816:
+    
 65816
 -----
 
