@@ -980,7 +980,6 @@ int input_number(void) {
         g_parsed_int = (g_parsed_int << 4) + e - 'a' + 10;
       else if (e == 'h' || e == 'H') {
         g_source_index++;
-        e = g_buffer[g_source_index];
         break;
       }
       else

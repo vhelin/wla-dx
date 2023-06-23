@@ -3250,6 +3250,13 @@ static double _round(double d) {
 }
 
 
+/* we have trouble with "and" on Amiga thus this function - a bug in SAS/C? perhaps issues on other platforms as well? */
+static int _perform_and(int a, int b) {
+
+  return a & b;
+}
+
+
 int compute_stack(struct stack *sta, int stack_item_count, double *result) {
 
   struct stack_item *s;
@@ -3308,55 +3315,35 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_LOW_BYTE:
         z = (int)v[t - 1];
-#ifdef AMIGA
-        /* on Amiga this needs to be done twice - a bug in SAS/C? */
-        z = z & 0xFF;
-#endif
-        v[t - 1] = z & 0xFF;
+		v[t - 1] = _perform_and(z, 0xFF);
         if (s->sign == SI_SIGN_NEGATIVE)
           v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
       case SI_OP_HIGH_BYTE:
         z = ((int)v[t - 1]) >> 8;
-#ifdef AMIGA
-        /* on Amiga this needs to be done twice - a bug in SAS/C? */
-        z = z & 0xFF;
-#endif
-        v[t - 1] = z & 0xFF;
+		v[t - 1] = _perform_and(z, 0xFF);
         if (s->sign == SI_SIGN_NEGATIVE)
           v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
       case SI_OP_BANK_BYTE:
         z = ((int)v[t - 1]) >> 16;
-#ifdef AMIGA
-        /* on Amiga this needs to be done twice - a bug in SAS/C? */
-        z = z & 0xFF;
-#endif
-        v[t - 1] = z & 0xFF;
+		v[t - 1] = _perform_and(z, 0xFF);
         if (s->sign == SI_SIGN_NEGATIVE)
           v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
      case SI_OP_LOW_WORD:
         z = (int)v[t - 1];
-#ifdef AMIGA
-        /* on Amiga this needs to be done twice - a bug in SAS/C? */
-        z = z & 0xFFFF;
-#endif
-        v[t - 1] = z & 0xFFFF;
+		v[t - 1] = _perform_and(z, 0xFFFF);
         if (s->sign == SI_SIGN_NEGATIVE)
           v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
         break;
       case SI_OP_HIGH_WORD:
         z = ((int)v[t - 1]) >> 16;
-#ifdef AMIGA
-        /* on Amiga this needs to be done twice - a bug in SAS/C? */
-        z = z & 0xFFFF;
-#endif
-        v[t - 1] = z & 0xFFFF;
+		v[t - 1] = _perform_and(z, 0xFFFF);
         if (s->sign == SI_SIGN_NEGATIVE)
           v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;

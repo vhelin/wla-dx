@@ -3065,12 +3065,20 @@ static double _round(double d) {
 const char *get_stack_item_operator_name(int operator);
 char *get_stack_item_description(struct stack_item *si, int file_id);
 
+
+/* we have trouble with "and" on Amiga thus this function - a bug in SAS/C? perhaps issues on other platforms as well? */
+static int _perform_and(int a, int b) {
+
+  return a & b;
+}
+
+
 int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int *result_slot, int *result_base, int *result_bank) {
 
   int r, t, z, y, x, res_base, res_bank, res_slot, slot[256], base[256], bank[256];
   double v_ram[256], v_rom[256], q, res_ram, res_rom;
-  struct stack_item *s = NULL;
-  struct stack *st = NULL;
+  struct stack_item *s;
+  struct stack *st;
 
   if (sta->under_work == YES) {
     fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: A loop found in computation.\n", get_file_name(sta->file_id),
@@ -3529,13 +3537,8 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
             y += base[t - 1];
         }
                 
-#ifdef AMIGA
-        /* on Amiga this needs to be done twice - a bug in SAS/C? */
-        z = z & 0xFF;
-        y = y & 0xFF;
-#endif
-        v_ram[t - 1] = z & 0xFF;
-        v_rom[t - 1] = y & 0xFF;
+        v_ram[t - 1] = _perform_and(z, 0xFF);
+        v_rom[t - 1] = _perform_and(y, 0xFF);
         if (s->sign == SI_SIGN_NEGATIVE) {
           v_ram[t - 1] = -v_ram[t - 1];
           v_rom[t - 1] = -v_rom[t - 1];
@@ -3544,13 +3547,8 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
       case SI_OP_LOW_BYTE:
         z = (int)v_ram[t - 1];
         y = (int)v_rom[t - 1];
-#ifdef AMIGA
-        /* on Amiga this needs to be done twice - a bug in SAS/C? */
-        z = z & 0xFF;
-        y = y & 0xFF;
-#endif
-        v_ram[t - 1] = z & 0xFF;
-        v_rom[t - 1] = y & 0xFF;
+        v_ram[t - 1] = _perform_and(z, 0xFF);
+        v_rom[t - 1] = _perform_and(y, 0xFF);
         if (s->sign == SI_SIGN_NEGATIVE) {
           v_ram[t - 1] = -v_ram[t - 1];
           v_rom[t - 1] = -v_rom[t - 1];
@@ -3559,13 +3557,8 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
       case SI_OP_HIGH_BYTE:
         z = ((int)v_ram[t - 1]) >> 8;
         y = ((int)v_rom[t - 1]) >> 8;
-#ifdef AMIGA
-        /* on Amiga this needs to be done twice - a bug in SAS/C? */
-        z = z & 0xFF;
-        y = y & 0xFF;
-#endif
-        v_ram[t - 1] = z & 0xFF;
-        v_rom[t - 1] = y & 0xFF;
+        v_ram[t - 1] = _perform_and(z, 0xFF);
+        v_rom[t - 1] = _perform_and(y, 0xFF);
         if (s->sign == SI_SIGN_NEGATIVE) {
           v_ram[t - 1] = -v_ram[t - 1];
           v_rom[t - 1] = -v_rom[t - 1];
@@ -3574,13 +3567,8 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
       case SI_OP_LOW_WORD:
         z = (int)v_ram[t - 1];
         y = (int)v_rom[t - 1];
-#ifdef AMIGA
-        /* on Amiga this needs to be done twice - a bug in SAS/C? */
-        z = z & 0xFFFF;
-        y = y & 0xFFFF;
-#endif
-        v_ram[t - 1] = z & 0xFFFF;
-        v_rom[t - 1] = y & 0xFFFF;
+        v_ram[t - 1] = _perform_and(z, 0xFFFF);
+        v_rom[t - 1] = _perform_and(y, 0xFFFF);
         if (s->sign == SI_SIGN_NEGATIVE) {
           v_ram[t - 1] = -v_ram[t - 1];
           v_rom[t - 1] = -v_rom[t - 1];
@@ -3589,13 +3577,8 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
       case SI_OP_HIGH_WORD:
         z = ((int)v_ram[t - 1]) >> 16;
         y = ((int)v_rom[t - 1]) >> 16;
-#ifdef AMIGA
-        /* on Amiga this needs to be done twice - a bug in SAS/C? */
-        z = z & 0xFFFF;
-        y = y & 0xFFFF;
-#endif
-        v_ram[t - 1] = z & 0xFFFF;
-        v_rom[t - 1] = y & 0xFFFF;
+        v_ram[t - 1] = _perform_and(z, 0xFFFF);
+        v_rom[t - 1] = _perform_and(y, 0xFFFF);
         if (s->sign == SI_SIGN_NEGATIVE) {
           v_ram[t - 1] = -v_ram[t - 1];
           v_rom[t - 1] = -v_rom[t - 1];

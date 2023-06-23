@@ -4278,7 +4278,7 @@ int directive_incdir(void) {
 
 static int _remember_namespace(char *name) {
 
-  struct namespace *nspace = NULL;
+  struct namespace *nspace;
   
   nspace = calloc(sizeof(struct namespace), 1);
   if (nspace == NULL) {
@@ -10827,7 +10827,7 @@ int parse_directive(void) {
 
       /* get the isolation counter */
       g_expect_calculations = NO;
-      q = input_number();
+      input_number();
       g_expect_calculations = YES;
       
       g_is_file_isolated_counter = g_parsed_int;

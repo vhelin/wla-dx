@@ -250,7 +250,7 @@ int load_files(char *argv[], int argc) {
     }
     /* section write order? */
     else if (state == STATE_SECTION_WRITE_ORDER) {
-      int statuses[SECTION_TYPES_COUNT_ALL], sum;
+      int statuses[SECTION_TYPES_COUNT_ALL], sum, j;
 
       if (s_section_write_order_index > 0) {
         fprintf(stderr, "%s:%d: LOAD_FILES: Excess data in [sectionwriteorder].\n", argv[argc - 2], line);
@@ -267,9 +267,9 @@ int load_files(char *argv[], int argc) {
       for (i = 0; i < SECTION_TYPES_COUNT_ALL; i++)
         statuses[i] = 0;
       
-      i = SUCCEEDED;
+      j = SUCCEEDED;
 
-      while (i == SUCCEEDED) {
+      while (j == SUCCEEDED) {
         int status;
 
         if (strcaselesscmp(token, "force") == 0)
@@ -326,7 +326,7 @@ int load_files(char *argv[], int argc) {
         _process_tmp(tmp);
         
         x = 0;
-        i = get_next_token(tmp, token, &x);
+        j = get_next_token(tmp, token, &x);
       }
       
       /* count the types */
@@ -346,7 +346,7 @@ int load_files(char *argv[], int argc) {
     }
     /* ramsection write order? */
     else if (state == STATE_RAMSECTION_WRITE_ORDER) {
-      int statuses[SECTION_TYPES_COUNT_ALL], sum;
+      int statuses[SECTION_TYPES_COUNT_ALL], sum, j;
 
       if (s_ramsection_write_order_index > 0) {
         fprintf(stderr, "%s:%d: LOAD_FILES: Excess data in [ramsectionwriteorder].\n", argv[argc - 2], line);
@@ -363,9 +363,9 @@ int load_files(char *argv[], int argc) {
       for (i = 0; i < SECTION_TYPES_COUNT_ALL; i++)
         statuses[i] = 0;
       
-      i = SUCCEEDED;
+      j = SUCCEEDED;
 
-      while (i == SUCCEEDED) {
+      while (j == SUCCEEDED) {
         int status;
 
         if (strcaselesscmp(token, "force") == 0)
@@ -416,7 +416,7 @@ int load_files(char *argv[], int argc) {
         _process_tmp(tmp);
         
         x = 0;
-        i = get_next_token(tmp, token, &x);
+        j = get_next_token(tmp, token, &x);
       }
       
       /* count the types */
