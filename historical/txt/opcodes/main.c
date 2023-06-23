@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
     }
 #endif
 
-#ifdef REARRANGE
+#if defined(REARRANGE)
 
 #if defined(GB) || defined(I8008) || defined(I8080)
     printf("  { \"%s\", 0x%X, %d, %d },\n", g_instructions_table[i].string, g_instructions_table[i].hex, g_instructions_table[i].type, g_instructions_table[i].value);
@@ -96,13 +96,16 @@ int main(int argc, char *argv[]) {
 #if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
     printf("  { \"%s\", 0x%X, %d, %d },\n", g_instructions_table[i].string, g_instructions_table[i].hex, g_instructions_table[i].type, g_instructions_table[i].skip_8bit);
 #endif
-#ifdef Z80
+#if defined(MC68000)
+    printf("  { \"%s\", 0x%X, %d },\n", g_instructions_table[i].string, g_instructions_table[i].hex, g_instructions_table[i].type);
+#endif
+#if defined(Z80)
     printf("  { \"%s\", 0x%X, %d, %d, %d },\n", g_instructions_table[i].string, g_instructions_table[i].hex, g_instructions_table[i].type, g_instructions_table[i].hex_x, g_instructions_table[i].value);
 #endif
-#ifdef W65816
+#if defined(W65816)
     printf("  { \"%s\", 0x%X, %d, %d },\n", g_instructions_table[i].string, g_instructions_table[i].hex, g_instructions_table[i].type, g_instructions_table[i].skip_xbit);
 #endif
-#ifdef SUPERFX
+#if defined(SUPERFX)
     printf("  { \"%s\", %d, 0x%X, 0x%X, %d, %d },\n", g_instructions_table[i].string, g_instructions_table[i].type, g_instructions_table[i].hex, g_instructions_table[i].prefix, g_instructions_table[i].min, g_instructions_table[i].max);
 #endif
     
@@ -110,7 +113,7 @@ int main(int argc, char *argv[]) {
 
 
 
-#ifdef NICELIST1 /* alphabetical order */
+#if defined(NICELIST1) /* alphabetical order */
 
 #if defined(GB)
     if (g_instructions_table[i].type == 8 || g_instructions_table[i].type == 9) {
@@ -175,7 +178,7 @@ int main(int argc, char *argv[]) {
     printf("$%.2X\n", g_instructions_table[i].hex);
 #endif
 
-#ifdef Z80
+#if defined(Z80)
     if (g_instructions_table[i].type == 8 || g_instructions_table[i].type == 9 || g_instructions_table[i].type == 10) {
       int k;
 
@@ -213,7 +216,7 @@ int main(int argc, char *argv[]) {
     printf("\n");
 #endif
 
-#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
+#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280)
     printf("\"%s\" ", g_instructions_table[i].string);
 
     if (g_instructions_table[i].hex & 0xFF00)
@@ -222,7 +225,34 @@ int main(int argc, char *argv[]) {
       printf("$%.2X\n", g_instructions_table[i].hex);
 #endif
 
-#ifdef W65816
+#if defined(MC6800) || defined(MC6801)
+    printf("\"%s\" ", g_instructions_table[i].string);
+    printf("$%.2X\n", g_instructions_table[i].hex);
+#endif
+
+#if defined(MC68000)
+    printf("\"%s\" ", g_instructions_table[i].string);
+    printf("$%.4X\n", g_instructions_table[i].hex);
+#endif
+
+#if defined(MC6809)
+    printf("\"%s\" ", g_instructions_table[i].string);
+
+    if (g_instructions_table[i].hex & 0xFF00)
+      printf("$%.2X%.2X", (g_instructions_table[i].hex >> 8) & 0xFF, g_instructions_table[i].hex & 0xFF);
+    else
+      printf("$%.2X", g_instructions_table[i].hex);
+
+    if (g_instructions_table[i].type == 6 ||
+        g_instructions_table[i].type == 7 ||
+        g_instructions_table[i].type == 8 ||
+        g_instructions_table[i].type == 9)
+      printf("%.2X", g_instructions_table[i].addressing_mode_bits);
+    
+    printf("\n");
+#endif
+    
+#if defined(W65816)
     printf("\"%s\" ", g_instructions_table[i].string);
 
     if (g_instructions_table[i].hex & 0xFF00 && g_instructions_table[i].type != 8)
@@ -233,12 +263,12 @@ int main(int argc, char *argv[]) {
       printf("$%.2X\n", g_instructions_table[i].hex);
 #endif
 
-#ifdef SPC700
+#if defined(SPC700)
     printf("\"%s\" ", g_instructions_table[i].string);
     printf("$%.2X\n", g_instructions_table[i].hex);
 #endif
 
-#ifdef SUPERFX
+#if defined(SUPERFX)
     printf("\"%s\"", g_instructions_table[i].string);
 
     if (g_instructions_table[i].prefix != 0) {
@@ -296,7 +326,7 @@ int main(int argc, char *argv[]) {
 
 
 
-#ifdef NICELIST2 /* instruction order */
+#if defined(NICELIST2) /* instruction order */
 
 #if defined(GB)
     if ((g_instructions_table[i].hex & 0xFF) == 0xCB)
@@ -361,7 +391,7 @@ int main(int argc, char *argv[]) {
       printf("\"%s\"\n", g_instructions_table[i].string);
 #endif
 
-#ifdef Z80
+#if defined(Z80)
     if (g_instructions_table[i].hex & 0xFF00)
       printf("$%.2X%.2X", g_instructions_table[i].hex & 0xFF, (g_instructions_table[i].hex >> 8) & 0xFF);
     else
@@ -400,7 +430,7 @@ int main(int argc, char *argv[]) {
     printf("\"\n");
 #endif
 
-#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
+#if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280)
     if (g_instructions_table[i].hex & 0xFF00)
       printf("$%.2X%.2X ", g_instructions_table[i].hex & 0xFF, (g_instructions_table[i].hex >> 8) & 0xFF);
     else
@@ -409,7 +439,32 @@ int main(int argc, char *argv[]) {
     printf("\"%s\"\n", g_instructions_table[i].string);
 #endif
 
-#ifdef W65816
+#if defined(MC6800) || defined(MC6801)
+    printf("$%.2X ", g_instructions_table[i].hex);
+    printf("\"%s\"\n", g_instructions_table[i].string);
+#endif
+
+#if defined(MC68000)
+    printf("$%.4X ", g_instructions_table[i].hex);
+    printf("\"%s\"\n", g_instructions_table[i].string);
+#endif
+    
+#if defined(MC6809)
+    if (g_instructions_table[i].hex & 0xFF00)
+      printf("$%.2X%.2X", (g_instructions_table[i].hex >> 8) & 0xFF, g_instructions_table[i].hex & 0xFF);
+    else
+      printf("$%.2X", g_instructions_table[i].hex);
+
+    if (g_instructions_table[i].type == 6 ||
+        g_instructions_table[i].type == 7 ||
+        g_instructions_table[i].type == 8 ||
+        g_instructions_table[i].type == 9)
+      printf("%.2X", g_instructions_table[i].addressing_mode_bits);
+    
+    printf(" \"%s\"\n", g_instructions_table[i].string);
+#endif
+    
+#if defined(W65816)
     if (g_instructions_table[i].hex & 0xFF00 && g_instructions_table[i].type != 8)
       printf("$%.2X%.2X ", g_instructions_table[i].hex & 0xFF, (g_instructions_table[i].hex >> 8) & 0xFF);
     else if (g_instructions_table[i].type == 8)
@@ -420,12 +475,12 @@ int main(int argc, char *argv[]) {
     printf("\"%s\"\n", g_instructions_table[i].string);
 #endif
 
-#ifdef SPC700
+#if defined(SPC700)
     printf("$%.2X ", g_instructions_table[i].hex);
     printf("\"%s\"\n", g_instructions_table[i].string);
 #endif
 
-#ifdef SUPERFX
+#if defined(SUPERFX)
     printed_something = NO;
 
     if (g_instructions_table[i].prefix != 0) {

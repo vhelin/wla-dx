@@ -13,762 +13,762 @@ s = 5bit signed ([-16, +15])
 
 "ABX" $3A
 "ADCA #x" $89
-"ADCA (,--S)" $A9
-"ADCA (,--U)" $A9
-"ADCA (,--X)" $A9
-"ADCA (,--Y)" $A9
-"ADCA (,S)" $A9
-"ADCA (,S++)" $A9
-"ADCA (,U)" $A9
-"ADCA (,U++)" $A9
-"ADCA (,X)" $A9
-"ADCA (,X++)" $A9
-"ADCA (,Y)" $A9
-"ADCA (,Y++)" $A9
-"ADCA (?)" $A9
-"ADCA (?,PCR)" $A9
-"ADCA (?,S)" $A9
-"ADCA (?,U)" $A9
-"ADCA (?,X)" $A9
-"ADCA (?,Y)" $A9
-"ADCA (A,S)" $A9
-"ADCA (A,U)" $A9
-"ADCA (A,X)" $A9
-"ADCA (A,Y)" $A9
-"ADCA (B,S)" $A9
-"ADCA (B,U)" $A9
-"ADCA (B,X)" $A9
-"ADCA (B,Y)" $A9
-"ADCA (D,S)" $A9
-"ADCA (D,U)" $A9
-"ADCA (D,X)" $A9
-"ADCA (D,Y)" $A9
-"ADCA (x,PCR)" $A9
-"ADCA (x,S)" $A9
-"ADCA (x,U)" $A9
-"ADCA (x,X)" $A9
-"ADCA (x,Y)" $A9
+"ADCA (,--S)" $A9F3
+"ADCA (,--U)" $A9D3
+"ADCA (,--X)" $A993
+"ADCA (,--Y)" $A9B3
+"ADCA (,S)" $A9F4
+"ADCA (,S++)" $A9F1
+"ADCA (,U)" $A9D4
+"ADCA (,U++)" $A9D1
+"ADCA (,X)" $A994
+"ADCA (,X++)" $A991
+"ADCA (,Y)" $A9B4
+"ADCA (,Y++)" $A9B1
+"ADCA (?)" $A99F
+"ADCA (?,PCR)" $A99D
+"ADCA (?,S)" $A9F9
+"ADCA (?,U)" $A9D9
+"ADCA (?,X)" $A999
+"ADCA (?,Y)" $A9B9
+"ADCA (A,S)" $A9F6
+"ADCA (A,U)" $A9D6
+"ADCA (A,X)" $A996
+"ADCA (A,Y)" $A9B6
+"ADCA (B,S)" $A9F5
+"ADCA (B,U)" $A9D5
+"ADCA (B,X)" $A995
+"ADCA (B,Y)" $A9B5
+"ADCA (D,S)" $A9FB
+"ADCA (D,U)" $A9DB
+"ADCA (D,X)" $A99B
+"ADCA (D,Y)" $A9BB
+"ADCA (x,PCR)" $A99C
+"ADCA (x,S)" $A9F8
+"ADCA (x,U)" $A9D8
+"ADCA (x,X)" $A998
+"ADCA (x,Y)" $A9B8
 "ADCA ?" $B9
-"ADCA ?,PCR" $A9
-"ADCA ?,S" $A9
-"ADCA ?,U" $A9
-"ADCA ?,X" $A9
-"ADCA ?,Y" $A9
-"ADCA A,S" $A9
-"ADCA A,U" $A9
-"ADCA A,X" $A9
-"ADCA A,Y" $A9
-"ADCA B,S" $A9
-"ADCA B,U" $A9
-"ADCA B,X" $A9
-"ADCA B,Y" $A9
-"ADCA D,S" $A9
-"ADCA D,U" $A9
-"ADCA D,X" $A9
-"ADCA D,Y" $A9
-"ADCA s,S" $A9
-"ADCA s,U" $A9
-"ADCA s,X" $A9
-"ADCA s,Y" $A9
+"ADCA ?,PCR" $A98D
+"ADCA ?,S" $A9E9
+"ADCA ?,U" $A9C9
+"ADCA ?,X" $A989
+"ADCA ?,Y" $A9A9
+"ADCA A,S" $A9E6
+"ADCA A,U" $A9C6
+"ADCA A,X" $A986
+"ADCA A,Y" $A9A6
+"ADCA B,S" $A9E5
+"ADCA B,U" $A9C5
+"ADCA B,X" $A985
+"ADCA B,Y" $A9A5
+"ADCA D,S" $A9EB
+"ADCA D,U" $A9CB
+"ADCA D,X" $A98B
+"ADCA D,Y" $A9AB
+"ADCA s,S" $A960
+"ADCA s,U" $A940
+"ADCA s,X" $A900
+"ADCA s,Y" $A920
 "ADCA x" $99
-"ADCA x,PCR" $A9
-"ADCA x,S" $A9
-"ADCA x,U" $A9
-"ADCA x,X" $A9
-"ADCA x,Y" $A9
-"ADCA,--S" $A9
-"ADCA,--U" $A9
-"ADCA,--X" $A9
-"ADCA,--Y" $A9
-"ADCA,-S" $A9
-"ADCA,-U" $A9
-"ADCA,-X" $A9
-"ADCA,-Y" $A9
-"ADCA,S" $A9
-"ADCA,S+" $A9
-"ADCA,S++" $A9
-"ADCA,U" $A9
-"ADCA,U+" $A9
-"ADCA,U++" $A9
-"ADCA,X" $A9
-"ADCA,X+" $A9
-"ADCA,X++" $A9
-"ADCA,Y" $A9
-"ADCA,Y+" $A9
-"ADCA,Y++" $A9
+"ADCA x,PCR" $A98C
+"ADCA x,S" $A9E8
+"ADCA x,U" $A9C8
+"ADCA x,X" $A988
+"ADCA x,Y" $A9A8
+"ADCA,--S" $A9E3
+"ADCA,--U" $A9C3
+"ADCA,--X" $A983
+"ADCA,--Y" $A9A3
+"ADCA,-S" $A9E2
+"ADCA,-U" $A9C2
+"ADCA,-X" $A982
+"ADCA,-Y" $A9A2
+"ADCA,S" $A9E4
+"ADCA,S+" $A9E0
+"ADCA,S++" $A9E1
+"ADCA,U" $A9C4
+"ADCA,U+" $A9C0
+"ADCA,U++" $A9C1
+"ADCA,X" $A984
+"ADCA,X+" $A980
+"ADCA,X++" $A981
+"ADCA,Y" $A9A4
+"ADCA,Y+" $A9A0
+"ADCA,Y++" $A9A1
 "ADCB #x" $C9
-"ADCB (,--S)" $E9
-"ADCB (,--U)" $E9
-"ADCB (,--X)" $E9
-"ADCB (,--Y)" $E9
-"ADCB (,S)" $E9
-"ADCB (,S++)" $E9
-"ADCB (,U)" $E9
-"ADCB (,U++)" $E9
-"ADCB (,X)" $E9
-"ADCB (,X++)" $E9
-"ADCB (,Y)" $E9
-"ADCB (,Y++)" $E9
-"ADCB (?)" $E9
-"ADCB (?,PCR)" $E9
-"ADCB (?,S)" $E9
-"ADCB (?,U)" $E9
-"ADCB (?,X)" $E9
-"ADCB (?,Y)" $E9
-"ADCB (A,S)" $E9
-"ADCB (A,U)" $E9
-"ADCB (A,X)" $E9
-"ADCB (A,Y)" $E9
-"ADCB (B,S)" $E9
-"ADCB (B,U)" $E9
-"ADCB (B,X)" $E9
-"ADCB (B,Y)" $E9
-"ADCB (D,S)" $E9
-"ADCB (D,U)" $E9
-"ADCB (D,X)" $E9
-"ADCB (D,Y)" $E9
-"ADCB (x,PCR)" $E9
-"ADCB (x,S)" $E9
-"ADCB (x,U)" $E9
-"ADCB (x,X)" $E9
-"ADCB (x,Y)" $E9
+"ADCB (,--S)" $E9F3
+"ADCB (,--U)" $E9D3
+"ADCB (,--X)" $E993
+"ADCB (,--Y)" $E9B3
+"ADCB (,S)" $E9F4
+"ADCB (,S++)" $E9F1
+"ADCB (,U)" $E9D4
+"ADCB (,U++)" $E9D1
+"ADCB (,X)" $E994
+"ADCB (,X++)" $E991
+"ADCB (,Y)" $E9B4
+"ADCB (,Y++)" $E9B1
+"ADCB (?)" $E99F
+"ADCB (?,PCR)" $E99D
+"ADCB (?,S)" $E9F9
+"ADCB (?,U)" $E9D9
+"ADCB (?,X)" $E999
+"ADCB (?,Y)" $E9B9
+"ADCB (A,S)" $E9F6
+"ADCB (A,U)" $E9D6
+"ADCB (A,X)" $E996
+"ADCB (A,Y)" $E9B6
+"ADCB (B,S)" $E9F5
+"ADCB (B,U)" $E9D5
+"ADCB (B,X)" $E995
+"ADCB (B,Y)" $E9B5
+"ADCB (D,S)" $E9FB
+"ADCB (D,U)" $E9DB
+"ADCB (D,X)" $E99B
+"ADCB (D,Y)" $E9BB
+"ADCB (x,PCR)" $E99C
+"ADCB (x,S)" $E9F8
+"ADCB (x,U)" $E9D8
+"ADCB (x,X)" $E998
+"ADCB (x,Y)" $E9B8
 "ADCB ?" $F9
-"ADCB ?,PCR" $E9
-"ADCB ?,S" $E9
-"ADCB ?,U" $E9
-"ADCB ?,X" $E9
-"ADCB ?,Y" $E9
-"ADCB A,S" $E9
-"ADCB A,U" $E9
-"ADCB A,X" $E9
-"ADCB A,Y" $E9
-"ADCB B,S" $E9
-"ADCB B,U" $E9
-"ADCB B,X" $E9
-"ADCB B,Y" $E9
-"ADCB D,S" $E9
-"ADCB D,U" $E9
-"ADCB D,X" $E9
-"ADCB D,Y" $E9
-"ADCB s,S" $E9
-"ADCB s,U" $E9
-"ADCB s,X" $E9
-"ADCB s,Y" $E9
+"ADCB ?,PCR" $E98D
+"ADCB ?,S" $E9E9
+"ADCB ?,U" $E9C9
+"ADCB ?,X" $E989
+"ADCB ?,Y" $E9A9
+"ADCB A,S" $E9E6
+"ADCB A,U" $E9C6
+"ADCB A,X" $E986
+"ADCB A,Y" $E9A6
+"ADCB B,S" $E9E5
+"ADCB B,U" $E9C5
+"ADCB B,X" $E985
+"ADCB B,Y" $E9A5
+"ADCB D,S" $E9EB
+"ADCB D,U" $E9CB
+"ADCB D,X" $E98B
+"ADCB D,Y" $E9AB
+"ADCB s,S" $E960
+"ADCB s,U" $E940
+"ADCB s,X" $E900
+"ADCB s,Y" $E920
 "ADCB x" $D9
-"ADCB x,PCR" $E9
-"ADCB x,S" $E9
-"ADCB x,U" $E9
-"ADCB x,X" $E9
-"ADCB x,Y" $E9
-"ADCB,--S" $E9
-"ADCB,--U" $E9
-"ADCB,--X" $E9
-"ADCB,--Y" $E9
-"ADCB,-S" $E9
-"ADCB,-U" $E9
-"ADCB,-X" $E9
-"ADCB,-Y" $E9
-"ADCB,S" $E9
-"ADCB,S+" $E9
-"ADCB,S++" $E9
-"ADCB,U" $E9
-"ADCB,U+" $E9
-"ADCB,U++" $E9
-"ADCB,X" $E9
-"ADCB,X+" $E9
-"ADCB,X++" $E9
-"ADCB,Y" $E9
-"ADCB,Y+" $E9
-"ADCB,Y++" $E9
+"ADCB x,PCR" $E98C
+"ADCB x,S" $E9E8
+"ADCB x,U" $E9C8
+"ADCB x,X" $E988
+"ADCB x,Y" $E9A8
+"ADCB,--S" $E9E3
+"ADCB,--U" $E9C3
+"ADCB,--X" $E983
+"ADCB,--Y" $E9A3
+"ADCB,-S" $E9E2
+"ADCB,-U" $E9C2
+"ADCB,-X" $E982
+"ADCB,-Y" $E9A2
+"ADCB,S" $E9E4
+"ADCB,S+" $E9E0
+"ADCB,S++" $E9E1
+"ADCB,U" $E9C4
+"ADCB,U+" $E9C0
+"ADCB,U++" $E9C1
+"ADCB,X" $E984
+"ADCB,X+" $E980
+"ADCB,X++" $E981
+"ADCB,Y" $E9A4
+"ADCB,Y+" $E9A0
+"ADCB,Y++" $E9A1
 "ADDA #x" $8B
-"ADDA (,--S)" $AB
-"ADDA (,--U)" $AB
-"ADDA (,--X)" $AB
-"ADDA (,--Y)" $AB
-"ADDA (,S)" $AB
-"ADDA (,S++)" $AB
-"ADDA (,U)" $AB
-"ADDA (,U++)" $AB
-"ADDA (,X)" $AB
-"ADDA (,X++)" $AB
-"ADDA (,Y)" $AB
-"ADDA (,Y++)" $AB
-"ADDA (?)" $AB
-"ADDA (?,PCR)" $AB
-"ADDA (?,S)" $AB
-"ADDA (?,U)" $AB
-"ADDA (?,X)" $AB
-"ADDA (?,Y)" $AB
-"ADDA (A,S)" $AB
-"ADDA (A,U)" $AB
-"ADDA (A,X)" $AB
-"ADDA (A,Y)" $AB
-"ADDA (B,S)" $AB
-"ADDA (B,U)" $AB
-"ADDA (B,X)" $AB
-"ADDA (B,Y)" $AB
-"ADDA (D,S)" $AB
-"ADDA (D,U)" $AB
-"ADDA (D,X)" $AB
-"ADDA (D,Y)" $AB
-"ADDA (x,PCR)" $AB
-"ADDA (x,S)" $AB
-"ADDA (x,U)" $AB
-"ADDA (x,X)" $AB
-"ADDA (x,Y)" $AB
+"ADDA (,--S)" $ABF3
+"ADDA (,--U)" $ABD3
+"ADDA (,--X)" $AB93
+"ADDA (,--Y)" $ABB3
+"ADDA (,S)" $ABF4
+"ADDA (,S++)" $ABF1
+"ADDA (,U)" $ABD4
+"ADDA (,U++)" $ABD1
+"ADDA (,X)" $AB94
+"ADDA (,X++)" $AB91
+"ADDA (,Y)" $ABB4
+"ADDA (,Y++)" $ABB1
+"ADDA (?)" $AB9F
+"ADDA (?,PCR)" $AB9D
+"ADDA (?,S)" $ABF9
+"ADDA (?,U)" $ABD9
+"ADDA (?,X)" $AB99
+"ADDA (?,Y)" $ABB9
+"ADDA (A,S)" $ABF6
+"ADDA (A,U)" $ABD6
+"ADDA (A,X)" $AB96
+"ADDA (A,Y)" $ABB6
+"ADDA (B,S)" $ABF5
+"ADDA (B,U)" $ABD5
+"ADDA (B,X)" $AB95
+"ADDA (B,Y)" $ABB5
+"ADDA (D,S)" $ABFB
+"ADDA (D,U)" $ABDB
+"ADDA (D,X)" $AB9B
+"ADDA (D,Y)" $ABBB
+"ADDA (x,PCR)" $AB9C
+"ADDA (x,S)" $ABF8
+"ADDA (x,U)" $ABD8
+"ADDA (x,X)" $AB98
+"ADDA (x,Y)" $ABB8
 "ADDA ?" $BB
-"ADDA ?,PCR" $AB
-"ADDA ?,S" $AB
-"ADDA ?,U" $AB
-"ADDA ?,X" $AB
-"ADDA ?,Y" $AB
-"ADDA A,S" $AB
-"ADDA A,U" $AB
-"ADDA A,X" $AB
-"ADDA A,Y" $AB
-"ADDA B,S" $AB
-"ADDA B,U" $AB
-"ADDA B,X" $AB
-"ADDA B,Y" $AB
-"ADDA D,S" $AB
-"ADDA D,U" $AB
-"ADDA D,X" $AB
-"ADDA D,Y" $AB
-"ADDA s,S" $AB
-"ADDA s,U" $AB
-"ADDA s,X" $AB
-"ADDA s,Y" $AB
+"ADDA ?,PCR" $AB8D
+"ADDA ?,S" $ABE9
+"ADDA ?,U" $ABC9
+"ADDA ?,X" $AB89
+"ADDA ?,Y" $ABA9
+"ADDA A,S" $ABE6
+"ADDA A,U" $ABC6
+"ADDA A,X" $AB86
+"ADDA A,Y" $ABA6
+"ADDA B,S" $ABE5
+"ADDA B,U" $ABC5
+"ADDA B,X" $AB85
+"ADDA B,Y" $ABA5
+"ADDA D,S" $ABEB
+"ADDA D,U" $ABCB
+"ADDA D,X" $AB8B
+"ADDA D,Y" $ABAB
+"ADDA s,S" $AB60
+"ADDA s,U" $AB40
+"ADDA s,X" $AB00
+"ADDA s,Y" $AB20
 "ADDA x" $9B
-"ADDA x,PCR" $AB
-"ADDA x,S" $AB
-"ADDA x,U" $AB
-"ADDA x,X" $AB
-"ADDA x,Y" $AB
-"ADDA,--S" $AB
-"ADDA,--U" $AB
-"ADDA,--X" $AB
-"ADDA,--Y" $AB
-"ADDA,-S" $AB
-"ADDA,-U" $AB
-"ADDA,-X" $AB
-"ADDA,-Y" $AB
-"ADDA,S" $AB
-"ADDA,S+" $AB
-"ADDA,S++" $AB
-"ADDA,U" $AB
-"ADDA,U+" $AB
-"ADDA,U++" $AB
-"ADDA,X" $AB
-"ADDA,X+" $AB
-"ADDA,X++" $AB
-"ADDA,Y" $AB
-"ADDA,Y+" $AB
-"ADDA,Y++" $AB
+"ADDA x,PCR" $AB8C
+"ADDA x,S" $ABE8
+"ADDA x,U" $ABC8
+"ADDA x,X" $AB88
+"ADDA x,Y" $ABA8
+"ADDA,--S" $ABE3
+"ADDA,--U" $ABC3
+"ADDA,--X" $AB83
+"ADDA,--Y" $ABA3
+"ADDA,-S" $ABE2
+"ADDA,-U" $ABC2
+"ADDA,-X" $AB82
+"ADDA,-Y" $ABA2
+"ADDA,S" $ABE4
+"ADDA,S+" $ABE0
+"ADDA,S++" $ABE1
+"ADDA,U" $ABC4
+"ADDA,U+" $ABC0
+"ADDA,U++" $ABC1
+"ADDA,X" $AB84
+"ADDA,X+" $AB80
+"ADDA,X++" $AB81
+"ADDA,Y" $ABA4
+"ADDA,Y+" $ABA0
+"ADDA,Y++" $ABA1
 "ADDB #x" $CB
-"ADDB (,--S)" $EB
-"ADDB (,--U)" $EB
-"ADDB (,--X)" $EB
-"ADDB (,--Y)" $EB
-"ADDB (,S)" $EB
-"ADDB (,S++)" $EB
-"ADDB (,U)" $EB
-"ADDB (,U++)" $EB
-"ADDB (,X)" $EB
-"ADDB (,X++)" $EB
-"ADDB (,Y)" $EB
-"ADDB (,Y++)" $EB
-"ADDB (?)" $EB
-"ADDB (?,PCR)" $EB
-"ADDB (?,S)" $EB
-"ADDB (?,U)" $EB
-"ADDB (?,X)" $EB
-"ADDB (?,Y)" $EB
-"ADDB (A,S)" $EB
-"ADDB (A,U)" $EB
-"ADDB (A,X)" $EB
-"ADDB (A,Y)" $EB
-"ADDB (B,S)" $EB
-"ADDB (B,U)" $EB
-"ADDB (B,X)" $EB
-"ADDB (B,Y)" $EB
-"ADDB (D,S)" $EB
-"ADDB (D,U)" $EB
-"ADDB (D,X)" $EB
-"ADDB (D,Y)" $EB
-"ADDB (x,PCR)" $EB
-"ADDB (x,S)" $EB
-"ADDB (x,U)" $EB
-"ADDB (x,X)" $EB
-"ADDB (x,Y)" $EB
+"ADDB (,--S)" $EBF3
+"ADDB (,--U)" $EBD3
+"ADDB (,--X)" $EB93
+"ADDB (,--Y)" $EBB3
+"ADDB (,S)" $EBF4
+"ADDB (,S++)" $EBF1
+"ADDB (,U)" $EBD4
+"ADDB (,U++)" $EBD1
+"ADDB (,X)" $EB94
+"ADDB (,X++)" $EB91
+"ADDB (,Y)" $EBB4
+"ADDB (,Y++)" $EBB1
+"ADDB (?)" $EB9F
+"ADDB (?,PCR)" $EB9D
+"ADDB (?,S)" $EBF9
+"ADDB (?,U)" $EBD9
+"ADDB (?,X)" $EB99
+"ADDB (?,Y)" $EBB9
+"ADDB (A,S)" $EBF6
+"ADDB (A,U)" $EBD6
+"ADDB (A,X)" $EB96
+"ADDB (A,Y)" $EBB6
+"ADDB (B,S)" $EBF5
+"ADDB (B,U)" $EBD5
+"ADDB (B,X)" $EB95
+"ADDB (B,Y)" $EBB5
+"ADDB (D,S)" $EBFB
+"ADDB (D,U)" $EBDB
+"ADDB (D,X)" $EB9B
+"ADDB (D,Y)" $EBBB
+"ADDB (x,PCR)" $EB9C
+"ADDB (x,S)" $EBF8
+"ADDB (x,U)" $EBD8
+"ADDB (x,X)" $EB98
+"ADDB (x,Y)" $EBB8
 "ADDB ?" $FB
-"ADDB ?,PCR" $EB
-"ADDB ?,S" $EB
-"ADDB ?,U" $EB
-"ADDB ?,X" $EB
-"ADDB ?,Y" $EB
-"ADDB A,S" $EB
-"ADDB A,U" $EB
-"ADDB A,X" $EB
-"ADDB A,Y" $EB
-"ADDB B,S" $EB
-"ADDB B,U" $EB
-"ADDB B,X" $EB
-"ADDB B,Y" $EB
-"ADDB D,S" $EB
-"ADDB D,U" $EB
-"ADDB D,X" $EB
-"ADDB D,Y" $EB
-"ADDB s,S" $EB
-"ADDB s,U" $EB
-"ADDB s,X" $EB
-"ADDB s,Y" $EB
+"ADDB ?,PCR" $EB8D
+"ADDB ?,S" $EBE9
+"ADDB ?,U" $EBC9
+"ADDB ?,X" $EB89
+"ADDB ?,Y" $EBA9
+"ADDB A,S" $EBE6
+"ADDB A,U" $EBC6
+"ADDB A,X" $EB86
+"ADDB A,Y" $EBA6
+"ADDB B,S" $EBE5
+"ADDB B,U" $EBC5
+"ADDB B,X" $EB85
+"ADDB B,Y" $EBA5
+"ADDB D,S" $EBEB
+"ADDB D,U" $EBCB
+"ADDB D,X" $EB8B
+"ADDB D,Y" $EBAB
+"ADDB s,S" $EB60
+"ADDB s,U" $EB40
+"ADDB s,X" $EB00
+"ADDB s,Y" $EB20
 "ADDB x" $DB
-"ADDB x,PCR" $EB
-"ADDB x,S" $EB
-"ADDB x,U" $EB
-"ADDB x,X" $EB
-"ADDB x,Y" $EB
-"ADDB,--S" $EB
-"ADDB,--U" $EB
-"ADDB,--X" $EB
-"ADDB,--Y" $EB
-"ADDB,-S" $EB
-"ADDB,-U" $EB
-"ADDB,-X" $EB
-"ADDB,-Y" $EB
-"ADDB,S" $EB
-"ADDB,S+" $EB
-"ADDB,S++" $EB
-"ADDB,U" $EB
-"ADDB,U+" $EB
-"ADDB,U++" $EB
-"ADDB,X" $EB
-"ADDB,X+" $EB
-"ADDB,X++" $EB
-"ADDB,Y" $EB
-"ADDB,Y+" $EB
-"ADDB,Y++" $EB
+"ADDB x,PCR" $EB8C
+"ADDB x,S" $EBE8
+"ADDB x,U" $EBC8
+"ADDB x,X" $EB88
+"ADDB x,Y" $EBA8
+"ADDB,--S" $EBE3
+"ADDB,--U" $EBC3
+"ADDB,--X" $EB83
+"ADDB,--Y" $EBA3
+"ADDB,-S" $EBE2
+"ADDB,-U" $EBC2
+"ADDB,-X" $EB82
+"ADDB,-Y" $EBA2
+"ADDB,S" $EBE4
+"ADDB,S+" $EBE0
+"ADDB,S++" $EBE1
+"ADDB,U" $EBC4
+"ADDB,U+" $EBC0
+"ADDB,U++" $EBC1
+"ADDB,X" $EB84
+"ADDB,X+" $EB80
+"ADDB,X++" $EB81
+"ADDB,Y" $EBA4
+"ADDB,Y+" $EBA0
+"ADDB,Y++" $EBA1
 "ADDD #x" $C3
-"ADDD (,--S)" $E3
-"ADDD (,--U)" $E3
-"ADDD (,--X)" $E3
-"ADDD (,--Y)" $E3
-"ADDD (,S)" $E3
-"ADDD (,S++)" $E3
-"ADDD (,U)" $E3
-"ADDD (,U++)" $E3
-"ADDD (,X)" $E3
-"ADDD (,X++)" $E3
-"ADDD (,Y)" $E3
-"ADDD (,Y++)" $E3
-"ADDD (?)" $E3
-"ADDD (?,PCR)" $E3
-"ADDD (?,S)" $E3
-"ADDD (?,U)" $E3
-"ADDD (?,X)" $E3
-"ADDD (?,Y)" $E3
-"ADDD (A,S)" $E3
-"ADDD (A,U)" $E3
-"ADDD (A,X)" $E3
-"ADDD (A,Y)" $E3
-"ADDD (B,S)" $E3
-"ADDD (B,U)" $E3
-"ADDD (B,X)" $E3
-"ADDD (B,Y)" $E3
-"ADDD (D,S)" $E3
-"ADDD (D,U)" $E3
-"ADDD (D,X)" $E3
-"ADDD (D,Y)" $E3
-"ADDD (x,PCR)" $E3
-"ADDD (x,S)" $E3
-"ADDD (x,U)" $E3
-"ADDD (x,X)" $E3
-"ADDD (x,Y)" $E3
+"ADDD (,--S)" $E3F3
+"ADDD (,--U)" $E3D3
+"ADDD (,--X)" $E393
+"ADDD (,--Y)" $E3B3
+"ADDD (,S)" $E3F4
+"ADDD (,S++)" $E3F1
+"ADDD (,U)" $E3D4
+"ADDD (,U++)" $E3D1
+"ADDD (,X)" $E394
+"ADDD (,X++)" $E391
+"ADDD (,Y)" $E3B4
+"ADDD (,Y++)" $E3B1
+"ADDD (?)" $E39F
+"ADDD (?,PCR)" $E39D
+"ADDD (?,S)" $E3F9
+"ADDD (?,U)" $E3D9
+"ADDD (?,X)" $E399
+"ADDD (?,Y)" $E3B9
+"ADDD (A,S)" $E3F6
+"ADDD (A,U)" $E3D6
+"ADDD (A,X)" $E396
+"ADDD (A,Y)" $E3B6
+"ADDD (B,S)" $E3F5
+"ADDD (B,U)" $E3D5
+"ADDD (B,X)" $E395
+"ADDD (B,Y)" $E3B5
+"ADDD (D,S)" $E3FB
+"ADDD (D,U)" $E3DB
+"ADDD (D,X)" $E39B
+"ADDD (D,Y)" $E3BB
+"ADDD (x,PCR)" $E39C
+"ADDD (x,S)" $E3F8
+"ADDD (x,U)" $E3D8
+"ADDD (x,X)" $E398
+"ADDD (x,Y)" $E3B8
 "ADDD ?" $F3
-"ADDD ?,PCR" $E3
-"ADDD ?,S" $E3
-"ADDD ?,U" $E3
-"ADDD ?,X" $E3
-"ADDD ?,Y" $E3
-"ADDD A,S" $E3
-"ADDD A,U" $E3
-"ADDD A,X" $E3
-"ADDD A,Y" $E3
-"ADDD B,S" $E3
-"ADDD B,U" $E3
-"ADDD B,X" $E3
-"ADDD B,Y" $E3
-"ADDD D,S" $E3
-"ADDD D,U" $E3
-"ADDD D,X" $E3
-"ADDD D,Y" $E3
-"ADDD s,S" $E3
-"ADDD s,U" $E3
-"ADDD s,X" $E3
-"ADDD s,Y" $E3
+"ADDD ?,PCR" $E38D
+"ADDD ?,S" $E3E9
+"ADDD ?,U" $E3C9
+"ADDD ?,X" $E389
+"ADDD ?,Y" $E3A9
+"ADDD A,S" $E3E6
+"ADDD A,U" $E3C6
+"ADDD A,X" $E386
+"ADDD A,Y" $E3A6
+"ADDD B,S" $E3E5
+"ADDD B,U" $E3C5
+"ADDD B,X" $E385
+"ADDD B,Y" $E3A5
+"ADDD D,S" $E3EB
+"ADDD D,U" $E3CB
+"ADDD D,X" $E38B
+"ADDD D,Y" $E3AB
+"ADDD s,S" $E360
+"ADDD s,U" $E340
+"ADDD s,X" $E300
+"ADDD s,Y" $E320
 "ADDD x" $D3
-"ADDD x,PCR" $E3
-"ADDD x,S" $E3
-"ADDD x,U" $E3
-"ADDD x,X" $E3
-"ADDD x,Y" $E3
-"ADDD,--S" $E3
-"ADDD,--U" $E3
-"ADDD,--X" $E3
-"ADDD,--Y" $E3
-"ADDD,-S" $E3
-"ADDD,-U" $E3
-"ADDD,-X" $E3
-"ADDD,-Y" $E3
-"ADDD,S" $E3
-"ADDD,S+" $E3
-"ADDD,S++" $E3
-"ADDD,U" $E3
-"ADDD,U+" $E3
-"ADDD,U++" $E3
-"ADDD,X" $E3
-"ADDD,X+" $E3
-"ADDD,X++" $E3
-"ADDD,Y" $E3
-"ADDD,Y+" $E3
-"ADDD,Y++" $E3
+"ADDD x,PCR" $E38C
+"ADDD x,S" $E3E8
+"ADDD x,U" $E3C8
+"ADDD x,X" $E388
+"ADDD x,Y" $E3A8
+"ADDD,--S" $E3E3
+"ADDD,--U" $E3C3
+"ADDD,--X" $E383
+"ADDD,--Y" $E3A3
+"ADDD,-S" $E3E2
+"ADDD,-U" $E3C2
+"ADDD,-X" $E382
+"ADDD,-Y" $E3A2
+"ADDD,S" $E3E4
+"ADDD,S+" $E3E0
+"ADDD,S++" $E3E1
+"ADDD,U" $E3C4
+"ADDD,U+" $E3C0
+"ADDD,U++" $E3C1
+"ADDD,X" $E384
+"ADDD,X+" $E380
+"ADDD,X++" $E381
+"ADDD,Y" $E3A4
+"ADDD,Y+" $E3A0
+"ADDD,Y++" $E3A1
 "ANDA #x" $84
-"ANDA (,--S)" $A4
-"ANDA (,--U)" $A4
-"ANDA (,--X)" $A4
-"ANDA (,--Y)" $A4
-"ANDA (,S)" $A4
-"ANDA (,S++)" $A4
-"ANDA (,U)" $A4
-"ANDA (,U++)" $A4
-"ANDA (,X)" $A4
-"ANDA (,X++)" $A4
-"ANDA (,Y)" $A4
-"ANDA (,Y++)" $A4
-"ANDA (?)" $A4
-"ANDA (?,PCR)" $A4
-"ANDA (?,S)" $A4
-"ANDA (?,U)" $A4
-"ANDA (?,X)" $A4
-"ANDA (?,Y)" $A4
-"ANDA (A,S)" $A4
-"ANDA (A,U)" $A4
-"ANDA (A,X)" $A4
-"ANDA (A,Y)" $A4
-"ANDA (B,S)" $A4
-"ANDA (B,U)" $A4
-"ANDA (B,X)" $A4
-"ANDA (B,Y)" $A4
-"ANDA (D,S)" $A4
-"ANDA (D,U)" $A4
-"ANDA (D,X)" $A4
-"ANDA (D,Y)" $A4
-"ANDA (x,PCR)" $A4
-"ANDA (x,S)" $A4
-"ANDA (x,U)" $A4
-"ANDA (x,X)" $A4
-"ANDA (x,Y)" $A4
+"ANDA (,--S)" $A4F3
+"ANDA (,--U)" $A4D3
+"ANDA (,--X)" $A493
+"ANDA (,--Y)" $A4B3
+"ANDA (,S)" $A4F4
+"ANDA (,S++)" $A4F1
+"ANDA (,U)" $A4D4
+"ANDA (,U++)" $A4D1
+"ANDA (,X)" $A494
+"ANDA (,X++)" $A491
+"ANDA (,Y)" $A4B4
+"ANDA (,Y++)" $A4B1
+"ANDA (?)" $A49F
+"ANDA (?,PCR)" $A49D
+"ANDA (?,S)" $A4F9
+"ANDA (?,U)" $A4D9
+"ANDA (?,X)" $A499
+"ANDA (?,Y)" $A4B9
+"ANDA (A,S)" $A4F6
+"ANDA (A,U)" $A4D6
+"ANDA (A,X)" $A496
+"ANDA (A,Y)" $A4B6
+"ANDA (B,S)" $A4F5
+"ANDA (B,U)" $A4D5
+"ANDA (B,X)" $A495
+"ANDA (B,Y)" $A4B5
+"ANDA (D,S)" $A4FB
+"ANDA (D,U)" $A4DB
+"ANDA (D,X)" $A49B
+"ANDA (D,Y)" $A4BB
+"ANDA (x,PCR)" $A49C
+"ANDA (x,S)" $A4F8
+"ANDA (x,U)" $A4D8
+"ANDA (x,X)" $A498
+"ANDA (x,Y)" $A4B8
 "ANDA ?" $B4
-"ANDA ?,PCR" $A4
-"ANDA ?,S" $A4
-"ANDA ?,U" $A4
-"ANDA ?,X" $A4
-"ANDA ?,Y" $A4
-"ANDA A,S" $A4
-"ANDA A,U" $A4
-"ANDA A,X" $A4
-"ANDA A,Y" $A4
-"ANDA B,S" $A4
-"ANDA B,U" $A4
-"ANDA B,X" $A4
-"ANDA B,Y" $A4
-"ANDA D,S" $A4
-"ANDA D,U" $A4
-"ANDA D,X" $A4
-"ANDA D,Y" $A4
-"ANDA s,S" $A4
-"ANDA s,U" $A4
-"ANDA s,X" $A4
-"ANDA s,Y" $A4
+"ANDA ?,PCR" $A48D
+"ANDA ?,S" $A4E9
+"ANDA ?,U" $A4C9
+"ANDA ?,X" $A489
+"ANDA ?,Y" $A4A9
+"ANDA A,S" $A4E6
+"ANDA A,U" $A4C6
+"ANDA A,X" $A486
+"ANDA A,Y" $A4A6
+"ANDA B,S" $A4E5
+"ANDA B,U" $A4C5
+"ANDA B,X" $A485
+"ANDA B,Y" $A4A5
+"ANDA D,S" $A4EB
+"ANDA D,U" $A4CB
+"ANDA D,X" $A48B
+"ANDA D,Y" $A4AB
+"ANDA s,S" $A460
+"ANDA s,U" $A440
+"ANDA s,X" $A400
+"ANDA s,Y" $A420
 "ANDA x" $94
-"ANDA x,PCR" $A4
-"ANDA x,S" $A4
-"ANDA x,U" $A4
-"ANDA x,X" $A4
-"ANDA x,Y" $A4
-"ANDA,--S" $A4
-"ANDA,--U" $A4
-"ANDA,--X" $A4
-"ANDA,--Y" $A4
-"ANDA,-S" $A4
-"ANDA,-U" $A4
-"ANDA,-X" $A4
-"ANDA,-Y" $A4
-"ANDA,S" $A4
-"ANDA,S+" $A4
-"ANDA,S++" $A4
-"ANDA,U" $A4
-"ANDA,U+" $A4
-"ANDA,U++" $A4
-"ANDA,X" $A4
-"ANDA,X+" $A4
-"ANDA,X++" $A4
-"ANDA,Y" $A4
-"ANDA,Y+" $A4
-"ANDA,Y++" $A4
+"ANDA x,PCR" $A48C
+"ANDA x,S" $A4E8
+"ANDA x,U" $A4C8
+"ANDA x,X" $A488
+"ANDA x,Y" $A4A8
+"ANDA,--S" $A4E3
+"ANDA,--U" $A4C3
+"ANDA,--X" $A483
+"ANDA,--Y" $A4A3
+"ANDA,-S" $A4E2
+"ANDA,-U" $A4C2
+"ANDA,-X" $A482
+"ANDA,-Y" $A4A2
+"ANDA,S" $A4E4
+"ANDA,S+" $A4E0
+"ANDA,S++" $A4E1
+"ANDA,U" $A4C4
+"ANDA,U+" $A4C0
+"ANDA,U++" $A4C1
+"ANDA,X" $A484
+"ANDA,X+" $A480
+"ANDA,X++" $A481
+"ANDA,Y" $A4A4
+"ANDA,Y+" $A4A0
+"ANDA,Y++" $A4A1
 "ANDB #x" $C4
-"ANDB (,--S)" $E4
-"ANDB (,--U)" $E4
-"ANDB (,--X)" $E4
-"ANDB (,--Y)" $E4
-"ANDB (,S)" $E4
-"ANDB (,S++)" $E4
-"ANDB (,U)" $E4
-"ANDB (,U++)" $E4
-"ANDB (,X)" $E4
-"ANDB (,X++)" $E4
-"ANDB (,Y)" $E4
-"ANDB (,Y++)" $E4
-"ANDB (?)" $E4
-"ANDB (?,PCR)" $E4
-"ANDB (?,S)" $E4
-"ANDB (?,U)" $E4
-"ANDB (?,X)" $E4
-"ANDB (?,Y)" $E4
-"ANDB (A,S)" $E4
-"ANDB (A,U)" $E4
-"ANDB (A,X)" $E4
-"ANDB (A,Y)" $E4
-"ANDB (B,S)" $E4
-"ANDB (B,U)" $E4
-"ANDB (B,X)" $E4
-"ANDB (B,Y)" $E4
-"ANDB (D,S)" $E4
-"ANDB (D,U)" $E4
-"ANDB (D,X)" $E4
-"ANDB (D,Y)" $E4
-"ANDB (x,PCR)" $E4
-"ANDB (x,S)" $E4
-"ANDB (x,U)" $E4
-"ANDB (x,X)" $E4
-"ANDB (x,Y)" $E4
+"ANDB (,--S)" $E4F3
+"ANDB (,--U)" $E4D3
+"ANDB (,--X)" $E493
+"ANDB (,--Y)" $E4B3
+"ANDB (,S)" $E4F4
+"ANDB (,S++)" $E4F1
+"ANDB (,U)" $E4D4
+"ANDB (,U++)" $E4D1
+"ANDB (,X)" $E494
+"ANDB (,X++)" $E491
+"ANDB (,Y)" $E4B4
+"ANDB (,Y++)" $E4B1
+"ANDB (?)" $E49F
+"ANDB (?,PCR)" $E49D
+"ANDB (?,S)" $E4F9
+"ANDB (?,U)" $E4D9
+"ANDB (?,X)" $E499
+"ANDB (?,Y)" $E4B9
+"ANDB (A,S)" $E4F6
+"ANDB (A,U)" $E4D6
+"ANDB (A,X)" $E496
+"ANDB (A,Y)" $E4B6
+"ANDB (B,S)" $E4F5
+"ANDB (B,U)" $E4D5
+"ANDB (B,X)" $E495
+"ANDB (B,Y)" $E4B5
+"ANDB (D,S)" $E4FB
+"ANDB (D,U)" $E4DB
+"ANDB (D,X)" $E49B
+"ANDB (D,Y)" $E4BB
+"ANDB (x,PCR)" $E49C
+"ANDB (x,S)" $E4F8
+"ANDB (x,U)" $E4D8
+"ANDB (x,X)" $E498
+"ANDB (x,Y)" $E4B8
 "ANDB ?" $F4
-"ANDB ?,PCR" $E4
-"ANDB ?,S" $E4
-"ANDB ?,U" $E4
-"ANDB ?,X" $E4
-"ANDB ?,Y" $E4
-"ANDB A,S" $E4
-"ANDB A,U" $E4
-"ANDB A,X" $E4
-"ANDB A,Y" $E4
-"ANDB B,S" $E4
-"ANDB B,U" $E4
-"ANDB B,X" $E4
-"ANDB B,Y" $E4
-"ANDB D,S" $E4
-"ANDB D,U" $E4
-"ANDB D,X" $E4
-"ANDB D,Y" $E4
-"ANDB s,S" $E4
-"ANDB s,U" $E4
-"ANDB s,X" $E4
-"ANDB s,Y" $E4
+"ANDB ?,PCR" $E48D
+"ANDB ?,S" $E4E9
+"ANDB ?,U" $E4C9
+"ANDB ?,X" $E489
+"ANDB ?,Y" $E4A9
+"ANDB A,S" $E4E6
+"ANDB A,U" $E4C6
+"ANDB A,X" $E486
+"ANDB A,Y" $E4A6
+"ANDB B,S" $E4E5
+"ANDB B,U" $E4C5
+"ANDB B,X" $E485
+"ANDB B,Y" $E4A5
+"ANDB D,S" $E4EB
+"ANDB D,U" $E4CB
+"ANDB D,X" $E48B
+"ANDB D,Y" $E4AB
+"ANDB s,S" $E460
+"ANDB s,U" $E440
+"ANDB s,X" $E400
+"ANDB s,Y" $E420
 "ANDB x" $D4
-"ANDB x,PCR" $E4
-"ANDB x,S" $E4
-"ANDB x,U" $E4
-"ANDB x,X" $E4
-"ANDB x,Y" $E4
-"ANDB,--S" $E4
-"ANDB,--U" $E4
-"ANDB,--X" $E4
-"ANDB,--Y" $E4
-"ANDB,-S" $E4
-"ANDB,-U" $E4
-"ANDB,-X" $E4
-"ANDB,-Y" $E4
-"ANDB,S" $E4
-"ANDB,S+" $E4
-"ANDB,S++" $E4
-"ANDB,U" $E4
-"ANDB,U+" $E4
-"ANDB,U++" $E4
-"ANDB,X" $E4
-"ANDB,X+" $E4
-"ANDB,X++" $E4
-"ANDB,Y" $E4
-"ANDB,Y+" $E4
-"ANDB,Y++" $E4
+"ANDB x,PCR" $E48C
+"ANDB x,S" $E4E8
+"ANDB x,U" $E4C8
+"ANDB x,X" $E488
+"ANDB x,Y" $E4A8
+"ANDB,--S" $E4E3
+"ANDB,--U" $E4C3
+"ANDB,--X" $E483
+"ANDB,--Y" $E4A3
+"ANDB,-S" $E4E2
+"ANDB,-U" $E4C2
+"ANDB,-X" $E482
+"ANDB,-Y" $E4A2
+"ANDB,S" $E4E4
+"ANDB,S+" $E4E0
+"ANDB,S++" $E4E1
+"ANDB,U" $E4C4
+"ANDB,U+" $E4C0
+"ANDB,U++" $E4C1
+"ANDB,X" $E484
+"ANDB,X+" $E480
+"ANDB,X++" $E481
+"ANDB,Y" $E4A4
+"ANDB,Y+" $E4A0
+"ANDB,Y++" $E4A1
 "ANDCC #x" $1C
-"ASL (,--S)" $68
-"ASL (,--U)" $68
-"ASL (,--X)" $68
-"ASL (,--Y)" $68
-"ASL (,S)" $68
-"ASL (,S++)" $68
-"ASL (,U)" $68
-"ASL (,U++)" $68
-"ASL (,X)" $68
-"ASL (,X++)" $68
-"ASL (,Y)" $68
-"ASL (,Y++)" $68
-"ASL (?)" $68
-"ASL (?,PCR)" $68
-"ASL (?,S)" $68
-"ASL (?,U)" $68
-"ASL (?,X)" $68
-"ASL (?,Y)" $68
-"ASL (A,S)" $68
-"ASL (A,U)" $68
-"ASL (A,X)" $68
-"ASL (A,Y)" $68
-"ASL (B,S)" $68
-"ASL (B,U)" $68
-"ASL (B,X)" $68
-"ASL (B,Y)" $68
-"ASL (D,S)" $68
-"ASL (D,U)" $68
-"ASL (D,X)" $68
-"ASL (D,Y)" $68
-"ASL (x,PCR)" $68
-"ASL (x,S)" $68
-"ASL (x,U)" $68
-"ASL (x,X)" $68
-"ASL (x,Y)" $68
+"ASL (,--S)" $68F3
+"ASL (,--U)" $68D3
+"ASL (,--X)" $6893
+"ASL (,--Y)" $68B3
+"ASL (,S)" $68F4
+"ASL (,S++)" $68F1
+"ASL (,U)" $68D4
+"ASL (,U++)" $68D1
+"ASL (,X)" $6894
+"ASL (,X++)" $6891
+"ASL (,Y)" $68B4
+"ASL (,Y++)" $68B1
+"ASL (?)" $689F
+"ASL (?,PCR)" $689D
+"ASL (?,S)" $68F9
+"ASL (?,U)" $68D9
+"ASL (?,X)" $6899
+"ASL (?,Y)" $68B9
+"ASL (A,S)" $68F6
+"ASL (A,U)" $68D6
+"ASL (A,X)" $6896
+"ASL (A,Y)" $68B6
+"ASL (B,S)" $68F5
+"ASL (B,U)" $68D5
+"ASL (B,X)" $6895
+"ASL (B,Y)" $68B5
+"ASL (D,S)" $68FB
+"ASL (D,U)" $68DB
+"ASL (D,X)" $689B
+"ASL (D,Y)" $68BB
+"ASL (x,PCR)" $689C
+"ASL (x,S)" $68F8
+"ASL (x,U)" $68D8
+"ASL (x,X)" $6898
+"ASL (x,Y)" $68B8
 "ASL ?" $78
-"ASL ?,PCR" $68
-"ASL ?,S" $68
-"ASL ?,U" $68
-"ASL ?,X" $68
-"ASL ?,Y" $68
-"ASL A,S" $68
-"ASL A,U" $68
-"ASL A,X" $68
-"ASL A,Y" $68
-"ASL B,S" $68
-"ASL B,U" $68
-"ASL B,X" $68
-"ASL B,Y" $68
-"ASL D,S" $68
-"ASL D,U" $68
-"ASL D,X" $68
-"ASL D,Y" $68
-"ASL s,S" $68
-"ASL s,U" $68
-"ASL s,X" $68
-"ASL s,Y" $68
+"ASL ?,PCR" $688D
+"ASL ?,S" $68E9
+"ASL ?,U" $68C9
+"ASL ?,X" $6889
+"ASL ?,Y" $68A9
+"ASL A,S" $68E6
+"ASL A,U" $68C6
+"ASL A,X" $6886
+"ASL A,Y" $68A6
+"ASL B,S" $68E5
+"ASL B,U" $68C5
+"ASL B,X" $6885
+"ASL B,Y" $68A5
+"ASL D,S" $68EB
+"ASL D,U" $68CB
+"ASL D,X" $688B
+"ASL D,Y" $68AB
+"ASL s,S" $6860
+"ASL s,U" $6840
+"ASL s,X" $6800
+"ASL s,Y" $6820
 "ASL x" $08
-"ASL x,PCR" $68
-"ASL x,S" $68
-"ASL x,U" $68
-"ASL x,X" $68
-"ASL x,Y" $68
-"ASL,--S" $68
-"ASL,--U" $68
-"ASL,--X" $68
-"ASL,--Y" $68
-"ASL,-S" $68
-"ASL,-U" $68
-"ASL,-X" $68
-"ASL,-Y" $68
-"ASL,S" $68
-"ASL,S+" $68
-"ASL,S++" $68
-"ASL,U" $68
-"ASL,U+" $68
-"ASL,U++" $68
-"ASL,X" $68
-"ASL,X+" $68
-"ASL,X++" $68
-"ASL,Y" $68
-"ASL,Y+" $68
-"ASL,Y++" $68
+"ASL x,PCR" $688C
+"ASL x,S" $68E8
+"ASL x,U" $68C8
+"ASL x,X" $6888
+"ASL x,Y" $68A8
+"ASL,--S" $68E3
+"ASL,--U" $68C3
+"ASL,--X" $6883
+"ASL,--Y" $68A3
+"ASL,-S" $68E2
+"ASL,-U" $68C2
+"ASL,-X" $6882
+"ASL,-Y" $68A2
+"ASL,S" $68E4
+"ASL,S+" $68E0
+"ASL,S++" $68E1
+"ASL,U" $68C4
+"ASL,U+" $68C0
+"ASL,U++" $68C1
+"ASL,X" $6884
+"ASL,X+" $6880
+"ASL,X++" $6881
+"ASL,Y" $68A4
+"ASL,Y+" $68A0
+"ASL,Y++" $68A1
 "ASLA" $48
 "ASLB" $58
-"ASR (,--S)" $67
-"ASR (,--U)" $67
-"ASR (,--X)" $67
-"ASR (,--Y)" $67
-"ASR (,S)" $67
-"ASR (,S++)" $67
-"ASR (,U)" $67
-"ASR (,U++)" $67
-"ASR (,X)" $67
-"ASR (,X++)" $67
-"ASR (,Y)" $67
-"ASR (,Y++)" $67
-"ASR (?)" $67
-"ASR (?,PCR)" $67
-"ASR (?,S)" $67
-"ASR (?,U)" $67
-"ASR (?,X)" $67
-"ASR (?,Y)" $67
-"ASR (A,S)" $67
-"ASR (A,U)" $67
-"ASR (A,X)" $67
-"ASR (A,Y)" $67
-"ASR (B,S)" $67
-"ASR (B,U)" $67
-"ASR (B,X)" $67
-"ASR (B,Y)" $67
-"ASR (D,S)" $67
-"ASR (D,U)" $67
-"ASR (D,X)" $67
-"ASR (D,Y)" $67
-"ASR (x,PCR)" $67
-"ASR (x,S)" $67
-"ASR (x,U)" $67
-"ASR (x,X)" $67
-"ASR (x,Y)" $67
+"ASR (,--S)" $67F3
+"ASR (,--U)" $67D3
+"ASR (,--X)" $6793
+"ASR (,--Y)" $67B3
+"ASR (,S)" $67F4
+"ASR (,S++)" $67F1
+"ASR (,U)" $67D4
+"ASR (,U++)" $67D1
+"ASR (,X)" $6794
+"ASR (,X++)" $6791
+"ASR (,Y)" $67B4
+"ASR (,Y++)" $67B1
+"ASR (?)" $679F
+"ASR (?,PCR)" $679D
+"ASR (?,S)" $67F9
+"ASR (?,U)" $67D9
+"ASR (?,X)" $6799
+"ASR (?,Y)" $67B9
+"ASR (A,S)" $67F6
+"ASR (A,U)" $67D6
+"ASR (A,X)" $6796
+"ASR (A,Y)" $67B6
+"ASR (B,S)" $67F5
+"ASR (B,U)" $67D5
+"ASR (B,X)" $6795
+"ASR (B,Y)" $67B5
+"ASR (D,S)" $67FB
+"ASR (D,U)" $67DB
+"ASR (D,X)" $679B
+"ASR (D,Y)" $67BB
+"ASR (x,PCR)" $679C
+"ASR (x,S)" $67F8
+"ASR (x,U)" $67D8
+"ASR (x,X)" $6798
+"ASR (x,Y)" $67B8
 "ASR ?" $77
-"ASR ?,PCR" $67
-"ASR ?,S" $67
-"ASR ?,U" $67
-"ASR ?,X" $67
-"ASR ?,Y" $67
-"ASR A,S" $67
-"ASR A,U" $67
-"ASR A,X" $67
-"ASR A,Y" $67
-"ASR B,S" $67
-"ASR B,U" $67
-"ASR B,X" $67
-"ASR B,Y" $67
-"ASR D,S" $67
-"ASR D,U" $67
-"ASR D,X" $67
-"ASR D,Y" $67
-"ASR s,S" $67
-"ASR s,U" $67
-"ASR s,X" $67
-"ASR s,Y" $67
+"ASR ?,PCR" $678D
+"ASR ?,S" $67E9
+"ASR ?,U" $67C9
+"ASR ?,X" $6789
+"ASR ?,Y" $67A9
+"ASR A,S" $67E6
+"ASR A,U" $67C6
+"ASR A,X" $6786
+"ASR A,Y" $67A6
+"ASR B,S" $67E5
+"ASR B,U" $67C5
+"ASR B,X" $6785
+"ASR B,Y" $67A5
+"ASR D,S" $67EB
+"ASR D,U" $67CB
+"ASR D,X" $678B
+"ASR D,Y" $67AB
+"ASR s,S" $6760
+"ASR s,U" $6740
+"ASR s,X" $6700
+"ASR s,Y" $6720
 "ASR x" $07
-"ASR x,PCR" $67
-"ASR x,S" $67
-"ASR x,U" $67
-"ASR x,X" $67
-"ASR x,Y" $67
-"ASR,--S" $67
-"ASR,--U" $67
-"ASR,--X" $67
-"ASR,--Y" $67
-"ASR,-S" $67
-"ASR,-U" $67
-"ASR,-X" $67
-"ASR,-Y" $67
-"ASR,S" $67
-"ASR,S+" $67
-"ASR,S++" $67
-"ASR,U" $67
-"ASR,U+" $67
-"ASR,U++" $67
-"ASR,X" $67
-"ASR,X+" $67
-"ASR,X++" $67
-"ASR,Y" $67
-"ASR,Y+" $67
-"ASR,Y++" $67
+"ASR x,PCR" $678C
+"ASR x,S" $67E8
+"ASR x,U" $67C8
+"ASR x,X" $6788
+"ASR x,Y" $67A8
+"ASR,--S" $67E3
+"ASR,--U" $67C3
+"ASR,--X" $6783
+"ASR,--Y" $67A3
+"ASR,-S" $67E2
+"ASR,-U" $67C2
+"ASR,-X" $6782
+"ASR,-Y" $67A2
+"ASR,S" $67E4
+"ASR,S+" $67E0
+"ASR,S++" $67E1
+"ASR,U" $67C4
+"ASR,U+" $67C0
+"ASR,U++" $67C1
+"ASR,X" $6784
+"ASR,X+" $6780
+"ASR,X++" $6781
+"ASR,Y" $67A4
+"ASR,Y+" $67A0
+"ASR,Y++" $67A1
 "ASRA" $47
 "ASRB" $57
 "BCC x" $24
@@ -779,173 +779,173 @@ s = 5bit signed ([-16, +15])
 "BHI x" $22
 "BHS x" $24
 "BITA #x" $85
-"BITA (,--S)" $A5
-"BITA (,--U)" $A5
-"BITA (,--X)" $A5
-"BITA (,--Y)" $A5
-"BITA (,S)" $A5
-"BITA (,S++)" $A5
-"BITA (,U)" $A5
-"BITA (,U++)" $A5
-"BITA (,X)" $A5
-"BITA (,X++)" $A5
-"BITA (,Y)" $A5
-"BITA (,Y++)" $A5
-"BITA (?)" $A5
-"BITA (?,PCR)" $A5
-"BITA (?,S)" $A5
-"BITA (?,U)" $A5
-"BITA (?,X)" $A5
-"BITA (?,Y)" $A5
-"BITA (A,S)" $A5
-"BITA (A,U)" $A5
-"BITA (A,X)" $A5
-"BITA (A,Y)" $A5
-"BITA (B,S)" $A5
-"BITA (B,U)" $A5
-"BITA (B,X)" $A5
-"BITA (B,Y)" $A5
-"BITA (D,S)" $A5
-"BITA (D,U)" $A5
-"BITA (D,X)" $A5
-"BITA (D,Y)" $A5
-"BITA (x,PCR)" $A5
-"BITA (x,S)" $A5
-"BITA (x,U)" $A5
-"BITA (x,X)" $A5
-"BITA (x,Y)" $A5
+"BITA (,--S)" $A5F3
+"BITA (,--U)" $A5D3
+"BITA (,--X)" $A593
+"BITA (,--Y)" $A5B3
+"BITA (,S)" $A5F4
+"BITA (,S++)" $A5F1
+"BITA (,U)" $A5D4
+"BITA (,U++)" $A5D1
+"BITA (,X)" $A594
+"BITA (,X++)" $A591
+"BITA (,Y)" $A5B4
+"BITA (,Y++)" $A5B1
+"BITA (?)" $A59F
+"BITA (?,PCR)" $A59D
+"BITA (?,S)" $A5F9
+"BITA (?,U)" $A5D9
+"BITA (?,X)" $A599
+"BITA (?,Y)" $A5B9
+"BITA (A,S)" $A5F6
+"BITA (A,U)" $A5D6
+"BITA (A,X)" $A596
+"BITA (A,Y)" $A5B6
+"BITA (B,S)" $A5F5
+"BITA (B,U)" $A5D5
+"BITA (B,X)" $A595
+"BITA (B,Y)" $A5B5
+"BITA (D,S)" $A5FB
+"BITA (D,U)" $A5DB
+"BITA (D,X)" $A59B
+"BITA (D,Y)" $A5BB
+"BITA (x,PCR)" $A59C
+"BITA (x,S)" $A5F8
+"BITA (x,U)" $A5D8
+"BITA (x,X)" $A598
+"BITA (x,Y)" $A5B8
 "BITA ?" $B5
-"BITA ?,PCR" $A5
-"BITA ?,S" $A5
-"BITA ?,U" $A5
-"BITA ?,X" $A5
-"BITA ?,Y" $A5
-"BITA A,S" $A5
-"BITA A,U" $A5
-"BITA A,X" $A5
-"BITA A,Y" $A5
-"BITA B,S" $A5
-"BITA B,U" $A5
-"BITA B,X" $A5
-"BITA B,Y" $A5
-"BITA D,S" $A5
-"BITA D,U" $A5
-"BITA D,X" $A5
-"BITA D,Y" $A5
-"BITA s,S" $A5
-"BITA s,U" $A5
-"BITA s,X" $A5
-"BITA s,Y" $A5
+"BITA ?,PCR" $A58D
+"BITA ?,S" $A5E9
+"BITA ?,U" $A5C9
+"BITA ?,X" $A589
+"BITA ?,Y" $A5A9
+"BITA A,S" $A5E6
+"BITA A,U" $A5C6
+"BITA A,X" $A586
+"BITA A,Y" $A5A6
+"BITA B,S" $A5E5
+"BITA B,U" $A5C5
+"BITA B,X" $A585
+"BITA B,Y" $A5A5
+"BITA D,S" $A5EB
+"BITA D,U" $A5CB
+"BITA D,X" $A58B
+"BITA D,Y" $A5AB
+"BITA s,S" $A560
+"BITA s,U" $A540
+"BITA s,X" $A500
+"BITA s,Y" $A520
 "BITA x" $95
-"BITA x,PCR" $A5
-"BITA x,S" $A5
-"BITA x,U" $A5
-"BITA x,X" $A5
-"BITA x,Y" $A5
-"BITA,--S" $A5
-"BITA,--U" $A5
-"BITA,--X" $A5
-"BITA,--Y" $A5
-"BITA,-S" $A5
-"BITA,-U" $A5
-"BITA,-X" $A5
-"BITA,-Y" $A5
-"BITA,S" $A5
-"BITA,S+" $A5
-"BITA,S++" $A5
-"BITA,U" $A5
-"BITA,U+" $A5
-"BITA,U++" $A5
-"BITA,X" $A5
-"BITA,X+" $A5
-"BITA,X++" $A5
-"BITA,Y" $A5
-"BITA,Y+" $A5
-"BITA,Y++" $A5
+"BITA x,PCR" $A58C
+"BITA x,S" $A5E8
+"BITA x,U" $A5C8
+"BITA x,X" $A588
+"BITA x,Y" $A5A8
+"BITA,--S" $A5E3
+"BITA,--U" $A5C3
+"BITA,--X" $A583
+"BITA,--Y" $A5A3
+"BITA,-S" $A5E2
+"BITA,-U" $A5C2
+"BITA,-X" $A582
+"BITA,-Y" $A5A2
+"BITA,S" $A5E4
+"BITA,S+" $A5E0
+"BITA,S++" $A5E1
+"BITA,U" $A5C4
+"BITA,U+" $A5C0
+"BITA,U++" $A5C1
+"BITA,X" $A584
+"BITA,X+" $A580
+"BITA,X++" $A581
+"BITA,Y" $A5A4
+"BITA,Y+" $A5A0
+"BITA,Y++" $A5A1
 "BITB #x" $C5
-"BITB (,--S)" $E5
-"BITB (,--U)" $E5
-"BITB (,--X)" $E5
-"BITB (,--Y)" $E5
-"BITB (,S)" $E5
-"BITB (,S++)" $E5
-"BITB (,U)" $E5
-"BITB (,U++)" $E5
-"BITB (,X)" $E5
-"BITB (,X++)" $E5
-"BITB (,Y)" $E5
-"BITB (,Y++)" $E5
-"BITB (?)" $E5
-"BITB (?,PCR)" $E5
-"BITB (?,S)" $E5
-"BITB (?,U)" $E5
-"BITB (?,X)" $E5
-"BITB (?,Y)" $E5
-"BITB (A,S)" $E5
-"BITB (A,U)" $E5
-"BITB (A,X)" $E5
-"BITB (A,Y)" $E5
-"BITB (B,S)" $E5
-"BITB (B,U)" $E5
-"BITB (B,X)" $E5
-"BITB (B,Y)" $E5
-"BITB (D,S)" $E5
-"BITB (D,U)" $E5
-"BITB (D,X)" $E5
-"BITB (D,Y)" $E5
-"BITB (x,PCR)" $E5
-"BITB (x,S)" $E5
-"BITB (x,U)" $E5
-"BITB (x,X)" $E5
-"BITB (x,Y)" $E5
+"BITB (,--S)" $E5F3
+"BITB (,--U)" $E5D3
+"BITB (,--X)" $E593
+"BITB (,--Y)" $E5B3
+"BITB (,S)" $E5F4
+"BITB (,S++)" $E5F1
+"BITB (,U)" $E5D4
+"BITB (,U++)" $E5D1
+"BITB (,X)" $E594
+"BITB (,X++)" $E591
+"BITB (,Y)" $E5B4
+"BITB (,Y++)" $E5B1
+"BITB (?)" $E59F
+"BITB (?,PCR)" $E59D
+"BITB (?,S)" $E5F9
+"BITB (?,U)" $E5D9
+"BITB (?,X)" $E599
+"BITB (?,Y)" $E5B9
+"BITB (A,S)" $E5F6
+"BITB (A,U)" $E5D6
+"BITB (A,X)" $E596
+"BITB (A,Y)" $E5B6
+"BITB (B,S)" $E5F5
+"BITB (B,U)" $E5D5
+"BITB (B,X)" $E595
+"BITB (B,Y)" $E5B5
+"BITB (D,S)" $E5FB
+"BITB (D,U)" $E5DB
+"BITB (D,X)" $E59B
+"BITB (D,Y)" $E5BB
+"BITB (x,PCR)" $E59C
+"BITB (x,S)" $E5F8
+"BITB (x,U)" $E5D8
+"BITB (x,X)" $E598
+"BITB (x,Y)" $E5B8
 "BITB ?" $F5
-"BITB ?,PCR" $E5
-"BITB ?,S" $E5
-"BITB ?,U" $E5
-"BITB ?,X" $E5
-"BITB ?,Y" $E5
-"BITB A,S" $E5
-"BITB A,U" $E5
-"BITB A,X" $E5
-"BITB A,Y" $E5
-"BITB B,S" $E5
-"BITB B,U" $E5
-"BITB B,X" $E5
-"BITB B,Y" $E5
-"BITB D,S" $E5
-"BITB D,U" $E5
-"BITB D,X" $E5
-"BITB D,Y" $E5
-"BITB s,S" $E5
-"BITB s,U" $E5
-"BITB s,X" $E5
-"BITB s,Y" $E5
+"BITB ?,PCR" $E58D
+"BITB ?,S" $E5E9
+"BITB ?,U" $E5C9
+"BITB ?,X" $E589
+"BITB ?,Y" $E5A9
+"BITB A,S" $E5E6
+"BITB A,U" $E5C6
+"BITB A,X" $E586
+"BITB A,Y" $E5A6
+"BITB B,S" $E5E5
+"BITB B,U" $E5C5
+"BITB B,X" $E585
+"BITB B,Y" $E5A5
+"BITB D,S" $E5EB
+"BITB D,U" $E5CB
+"BITB D,X" $E58B
+"BITB D,Y" $E5AB
+"BITB s,S" $E560
+"BITB s,U" $E540
+"BITB s,X" $E500
+"BITB s,Y" $E520
 "BITB x" $D5
-"BITB x,PCR" $E5
-"BITB x,S" $E5
-"BITB x,U" $E5
-"BITB x,X" $E5
-"BITB x,Y" $E5
-"BITB,--S" $E5
-"BITB,--U" $E5
-"BITB,--X" $E5
-"BITB,--Y" $E5
-"BITB,-S" $E5
-"BITB,-U" $E5
-"BITB,-X" $E5
-"BITB,-Y" $E5
-"BITB,S" $E5
-"BITB,S+" $E5
-"BITB,S++" $E5
-"BITB,U" $E5
-"BITB,U+" $E5
-"BITB,U++" $E5
-"BITB,X" $E5
-"BITB,X+" $E5
-"BITB,X++" $E5
-"BITB,Y" $E5
-"BITB,Y+" $E5
-"BITB,Y++" $E5
+"BITB x,PCR" $E58C
+"BITB x,S" $E5E8
+"BITB x,U" $E5C8
+"BITB x,X" $E588
+"BITB x,Y" $E5A8
+"BITB,--S" $E5E3
+"BITB,--U" $E5C3
+"BITB,--X" $E583
+"BITB,--Y" $E5A3
+"BITB,-S" $E5E2
+"BITB,-U" $E5C2
+"BITB,-X" $E582
+"BITB,-Y" $E5A2
+"BITB,S" $E5E4
+"BITB,S+" $E5E0
+"BITB,S++" $E5E1
+"BITB,U" $E5C4
+"BITB,U+" $E5C0
+"BITB,U++" $E5C1
+"BITB,X" $E584
+"BITB,X+" $E580
+"BITB,X++" $E581
+"BITB,Y" $E5A4
+"BITB,Y+" $E5A0
+"BITB,Y++" $E5A1
 "BLE x" $2F
 "BLO x" $25
 "BLS x" $23
@@ -958,3894 +958,3894 @@ s = 5bit signed ([-16, +15])
 "BSR x" $8D
 "BVC x" $28
 "BVS x" $29
-"CLR (,--S)" $6F
-"CLR (,--U)" $6F
-"CLR (,--X)" $6F
-"CLR (,--Y)" $6F
-"CLR (,S)" $6F
-"CLR (,S++)" $6F
-"CLR (,U)" $6F
-"CLR (,U++)" $6F
-"CLR (,X)" $6F
-"CLR (,X++)" $6F
-"CLR (,Y)" $6F
-"CLR (,Y++)" $6F
-"CLR (?)" $6F
-"CLR (?,PCR)" $6F
-"CLR (?,S)" $6F
-"CLR (?,U)" $6F
-"CLR (?,X)" $6F
-"CLR (?,Y)" $6F
-"CLR (A,S)" $6F
-"CLR (A,U)" $6F
-"CLR (A,X)" $6F
-"CLR (A,Y)" $6F
-"CLR (B,S)" $6F
-"CLR (B,U)" $6F
-"CLR (B,X)" $6F
-"CLR (B,Y)" $6F
-"CLR (D,S)" $6F
-"CLR (D,U)" $6F
-"CLR (D,X)" $6F
-"CLR (D,Y)" $6F
-"CLR (x,PCR)" $6F
-"CLR (x,S)" $6F
-"CLR (x,U)" $6F
-"CLR (x,X)" $6F
-"CLR (x,Y)" $6F
+"CLR (,--S)" $6FF3
+"CLR (,--U)" $6FD3
+"CLR (,--X)" $6F93
+"CLR (,--Y)" $6FB3
+"CLR (,S)" $6FF4
+"CLR (,S++)" $6FF1
+"CLR (,U)" $6FD4
+"CLR (,U++)" $6FD1
+"CLR (,X)" $6F94
+"CLR (,X++)" $6F91
+"CLR (,Y)" $6FB4
+"CLR (,Y++)" $6FB1
+"CLR (?)" $6F9F
+"CLR (?,PCR)" $6F9D
+"CLR (?,S)" $6FF9
+"CLR (?,U)" $6FD9
+"CLR (?,X)" $6F99
+"CLR (?,Y)" $6FB9
+"CLR (A,S)" $6FF6
+"CLR (A,U)" $6FD6
+"CLR (A,X)" $6F96
+"CLR (A,Y)" $6FB6
+"CLR (B,S)" $6FF5
+"CLR (B,U)" $6FD5
+"CLR (B,X)" $6F95
+"CLR (B,Y)" $6FB5
+"CLR (D,S)" $6FFB
+"CLR (D,U)" $6FDB
+"CLR (D,X)" $6F9B
+"CLR (D,Y)" $6FBB
+"CLR (x,PCR)" $6F9C
+"CLR (x,S)" $6FF8
+"CLR (x,U)" $6FD8
+"CLR (x,X)" $6F98
+"CLR (x,Y)" $6FB8
 "CLR ?" $7F
-"CLR ?,PCR" $6F
-"CLR ?,S" $6F
-"CLR ?,U" $6F
-"CLR ?,X" $6F
-"CLR ?,Y" $6F
-"CLR A,S" $6F
-"CLR A,U" $6F
-"CLR A,X" $6F
-"CLR A,Y" $6F
-"CLR B,S" $6F
-"CLR B,U" $6F
-"CLR B,X" $6F
-"CLR B,Y" $6F
-"CLR D,S" $6F
-"CLR D,U" $6F
-"CLR D,X" $6F
-"CLR D,Y" $6F
-"CLR s,S" $6F
-"CLR s,U" $6F
-"CLR s,X" $6F
-"CLR s,Y" $6F
+"CLR ?,PCR" $6F8D
+"CLR ?,S" $6FE9
+"CLR ?,U" $6FC9
+"CLR ?,X" $6F89
+"CLR ?,Y" $6FA9
+"CLR A,S" $6FE6
+"CLR A,U" $6FC6
+"CLR A,X" $6F86
+"CLR A,Y" $6FA6
+"CLR B,S" $6FE5
+"CLR B,U" $6FC5
+"CLR B,X" $6F85
+"CLR B,Y" $6FA5
+"CLR D,S" $6FEB
+"CLR D,U" $6FCB
+"CLR D,X" $6F8B
+"CLR D,Y" $6FAB
+"CLR s,S" $6F60
+"CLR s,U" $6F40
+"CLR s,X" $6F00
+"CLR s,Y" $6F20
 "CLR x" $0F
-"CLR x,PCR" $6F
-"CLR x,S" $6F
-"CLR x,U" $6F
-"CLR x,X" $6F
-"CLR x,Y" $6F
-"CLR,--S" $6F
-"CLR,--U" $6F
-"CLR,--X" $6F
-"CLR,--Y" $6F
-"CLR,-S" $6F
-"CLR,-U" $6F
-"CLR,-X" $6F
-"CLR,-Y" $6F
-"CLR,S" $6F
-"CLR,S+" $6F
-"CLR,S++" $6F
-"CLR,U" $6F
-"CLR,U+" $6F
-"CLR,U++" $6F
-"CLR,X" $6F
-"CLR,X+" $6F
-"CLR,X++" $6F
-"CLR,Y" $6F
-"CLR,Y+" $6F
-"CLR,Y++" $6F
+"CLR x,PCR" $6F8C
+"CLR x,S" $6FE8
+"CLR x,U" $6FC8
+"CLR x,X" $6F88
+"CLR x,Y" $6FA8
+"CLR,--S" $6FE3
+"CLR,--U" $6FC3
+"CLR,--X" $6F83
+"CLR,--Y" $6FA3
+"CLR,-S" $6FE2
+"CLR,-U" $6FC2
+"CLR,-X" $6F82
+"CLR,-Y" $6FA2
+"CLR,S" $6FE4
+"CLR,S+" $6FE0
+"CLR,S++" $6FE1
+"CLR,U" $6FC4
+"CLR,U+" $6FC0
+"CLR,U++" $6FC1
+"CLR,X" $6F84
+"CLR,X+" $6F80
+"CLR,X++" $6F81
+"CLR,Y" $6FA4
+"CLR,Y+" $6FA0
+"CLR,Y++" $6FA1
 "CLRA" $4F
 "CLRB" $5F
 "CMPA #x" $81
-"CMPA (,--S)" $A1
-"CMPA (,--U)" $A1
-"CMPA (,--X)" $A1
-"CMPA (,--Y)" $A1
-"CMPA (,S)" $A1
-"CMPA (,S++)" $A1
-"CMPA (,U)" $A1
-"CMPA (,U++)" $A1
-"CMPA (,X)" $A1
-"CMPA (,X++)" $A1
-"CMPA (,Y)" $A1
-"CMPA (,Y++)" $A1
-"CMPA (?)" $A1
-"CMPA (?,PCR)" $A1
-"CMPA (?,S)" $A1
-"CMPA (?,U)" $A1
-"CMPA (?,X)" $A1
-"CMPA (?,Y)" $A1
-"CMPA (A,S)" $A1
-"CMPA (A,U)" $A1
-"CMPA (A,X)" $A1
-"CMPA (A,Y)" $A1
-"CMPA (B,S)" $A1
-"CMPA (B,U)" $A1
-"CMPA (B,X)" $A1
-"CMPA (B,Y)" $A1
-"CMPA (D,S)" $A1
-"CMPA (D,U)" $A1
-"CMPA (D,X)" $A1
-"CMPA (D,Y)" $A1
-"CMPA (x,PCR)" $A1
-"CMPA (x,S)" $A1
-"CMPA (x,U)" $A1
-"CMPA (x,X)" $A1
-"CMPA (x,Y)" $A1
+"CMPA (,--S)" $A1F3
+"CMPA (,--U)" $A1D3
+"CMPA (,--X)" $A193
+"CMPA (,--Y)" $A1B3
+"CMPA (,S)" $A1F4
+"CMPA (,S++)" $A1F1
+"CMPA (,U)" $A1D4
+"CMPA (,U++)" $A1D1
+"CMPA (,X)" $A194
+"CMPA (,X++)" $A191
+"CMPA (,Y)" $A1B4
+"CMPA (,Y++)" $A1B1
+"CMPA (?)" $A19F
+"CMPA (?,PCR)" $A19D
+"CMPA (?,S)" $A1F9
+"CMPA (?,U)" $A1D9
+"CMPA (?,X)" $A199
+"CMPA (?,Y)" $A1B9
+"CMPA (A,S)" $A1F6
+"CMPA (A,U)" $A1D6
+"CMPA (A,X)" $A196
+"CMPA (A,Y)" $A1B6
+"CMPA (B,S)" $A1F5
+"CMPA (B,U)" $A1D5
+"CMPA (B,X)" $A195
+"CMPA (B,Y)" $A1B5
+"CMPA (D,S)" $A1FB
+"CMPA (D,U)" $A1DB
+"CMPA (D,X)" $A19B
+"CMPA (D,Y)" $A1BB
+"CMPA (x,PCR)" $A19C
+"CMPA (x,S)" $A1F8
+"CMPA (x,U)" $A1D8
+"CMPA (x,X)" $A198
+"CMPA (x,Y)" $A1B8
 "CMPA ?" $B1
-"CMPA ?,PCR" $A1
-"CMPA ?,S" $A1
-"CMPA ?,U" $A1
-"CMPA ?,X" $A1
-"CMPA ?,Y" $A1
-"CMPA A,S" $A1
-"CMPA A,U" $A1
-"CMPA A,X" $A1
-"CMPA A,Y" $A1
-"CMPA B,S" $A1
-"CMPA B,U" $A1
-"CMPA B,X" $A1
-"CMPA B,Y" $A1
-"CMPA D,S" $A1
-"CMPA D,U" $A1
-"CMPA D,X" $A1
-"CMPA D,Y" $A1
-"CMPA s,S" $A1
-"CMPA s,U" $A1
-"CMPA s,X" $A1
-"CMPA s,Y" $A1
+"CMPA ?,PCR" $A18D
+"CMPA ?,S" $A1E9
+"CMPA ?,U" $A1C9
+"CMPA ?,X" $A189
+"CMPA ?,Y" $A1A9
+"CMPA A,S" $A1E6
+"CMPA A,U" $A1C6
+"CMPA A,X" $A186
+"CMPA A,Y" $A1A6
+"CMPA B,S" $A1E5
+"CMPA B,U" $A1C5
+"CMPA B,X" $A185
+"CMPA B,Y" $A1A5
+"CMPA D,S" $A1EB
+"CMPA D,U" $A1CB
+"CMPA D,X" $A18B
+"CMPA D,Y" $A1AB
+"CMPA s,S" $A160
+"CMPA s,U" $A140
+"CMPA s,X" $A100
+"CMPA s,Y" $A120
 "CMPA x" $91
-"CMPA x,PCR" $A1
-"CMPA x,S" $A1
-"CMPA x,U" $A1
-"CMPA x,X" $A1
-"CMPA x,Y" $A1
-"CMPA,--S" $A1
-"CMPA,--U" $A1
-"CMPA,--X" $A1
-"CMPA,--Y" $A1
-"CMPA,-S" $A1
-"CMPA,-U" $A1
-"CMPA,-X" $A1
-"CMPA,-Y" $A1
-"CMPA,S" $A1
-"CMPA,S+" $A1
-"CMPA,S++" $A1
-"CMPA,U" $A1
-"CMPA,U+" $A1
-"CMPA,U++" $A1
-"CMPA,X" $A1
-"CMPA,X+" $A1
-"CMPA,X++" $A1
-"CMPA,Y" $A1
-"CMPA,Y+" $A1
-"CMPA,Y++" $A1
+"CMPA x,PCR" $A18C
+"CMPA x,S" $A1E8
+"CMPA x,U" $A1C8
+"CMPA x,X" $A188
+"CMPA x,Y" $A1A8
+"CMPA,--S" $A1E3
+"CMPA,--U" $A1C3
+"CMPA,--X" $A183
+"CMPA,--Y" $A1A3
+"CMPA,-S" $A1E2
+"CMPA,-U" $A1C2
+"CMPA,-X" $A182
+"CMPA,-Y" $A1A2
+"CMPA,S" $A1E4
+"CMPA,S+" $A1E0
+"CMPA,S++" $A1E1
+"CMPA,U" $A1C4
+"CMPA,U+" $A1C0
+"CMPA,U++" $A1C1
+"CMPA,X" $A184
+"CMPA,X+" $A180
+"CMPA,X++" $A181
+"CMPA,Y" $A1A4
+"CMPA,Y+" $A1A0
+"CMPA,Y++" $A1A1
 "CMPB #x" $C1
-"CMPB (,--S)" $E1
-"CMPB (,--U)" $E1
-"CMPB (,--X)" $E1
-"CMPB (,--Y)" $E1
-"CMPB (,S)" $E1
-"CMPB (,S++)" $E1
-"CMPB (,U)" $E1
-"CMPB (,U++)" $E1
-"CMPB (,X)" $E1
-"CMPB (,X++)" $E1
-"CMPB (,Y)" $E1
-"CMPB (,Y++)" $E1
-"CMPB (?)" $E1
-"CMPB (?,PCR)" $E1
-"CMPB (?,S)" $E1
-"CMPB (?,U)" $E1
-"CMPB (?,X)" $E1
-"CMPB (?,Y)" $E1
-"CMPB (A,S)" $E1
-"CMPB (A,U)" $E1
-"CMPB (A,X)" $E1
-"CMPB (A,Y)" $E1
-"CMPB (B,S)" $E1
-"CMPB (B,U)" $E1
-"CMPB (B,X)" $E1
-"CMPB (B,Y)" $E1
-"CMPB (D,S)" $E1
-"CMPB (D,U)" $E1
-"CMPB (D,X)" $E1
-"CMPB (D,Y)" $E1
-"CMPB (x,PCR)" $E1
-"CMPB (x,S)" $E1
-"CMPB (x,U)" $E1
-"CMPB (x,X)" $E1
-"CMPB (x,Y)" $E1
+"CMPB (,--S)" $E1F3
+"CMPB (,--U)" $E1D3
+"CMPB (,--X)" $E193
+"CMPB (,--Y)" $E1B3
+"CMPB (,S)" $E1F4
+"CMPB (,S++)" $E1F1
+"CMPB (,U)" $E1D4
+"CMPB (,U++)" $E1D1
+"CMPB (,X)" $E194
+"CMPB (,X++)" $E191
+"CMPB (,Y)" $E1B4
+"CMPB (,Y++)" $E1B1
+"CMPB (?)" $E19F
+"CMPB (?,PCR)" $E19D
+"CMPB (?,S)" $E1F9
+"CMPB (?,U)" $E1D9
+"CMPB (?,X)" $E199
+"CMPB (?,Y)" $E1B9
+"CMPB (A,S)" $E1F6
+"CMPB (A,U)" $E1D6
+"CMPB (A,X)" $E196
+"CMPB (A,Y)" $E1B6
+"CMPB (B,S)" $E1F5
+"CMPB (B,U)" $E1D5
+"CMPB (B,X)" $E195
+"CMPB (B,Y)" $E1B5
+"CMPB (D,S)" $E1FB
+"CMPB (D,U)" $E1DB
+"CMPB (D,X)" $E19B
+"CMPB (D,Y)" $E1BB
+"CMPB (x,PCR)" $E19C
+"CMPB (x,S)" $E1F8
+"CMPB (x,U)" $E1D8
+"CMPB (x,X)" $E198
+"CMPB (x,Y)" $E1B8
 "CMPB ?" $F1
-"CMPB ?,PCR" $E1
-"CMPB ?,S" $E1
-"CMPB ?,U" $E1
-"CMPB ?,X" $E1
-"CMPB ?,Y" $E1
-"CMPB A,S" $E1
-"CMPB A,U" $E1
-"CMPB A,X" $E1
-"CMPB A,Y" $E1
-"CMPB B,S" $E1
-"CMPB B,U" $E1
-"CMPB B,X" $E1
-"CMPB B,Y" $E1
-"CMPB D,S" $E1
-"CMPB D,U" $E1
-"CMPB D,X" $E1
-"CMPB D,Y" $E1
-"CMPB s,S" $E1
-"CMPB s,U" $E1
-"CMPB s,X" $E1
-"CMPB s,Y" $E1
+"CMPB ?,PCR" $E18D
+"CMPB ?,S" $E1E9
+"CMPB ?,U" $E1C9
+"CMPB ?,X" $E189
+"CMPB ?,Y" $E1A9
+"CMPB A,S" $E1E6
+"CMPB A,U" $E1C6
+"CMPB A,X" $E186
+"CMPB A,Y" $E1A6
+"CMPB B,S" $E1E5
+"CMPB B,U" $E1C5
+"CMPB B,X" $E185
+"CMPB B,Y" $E1A5
+"CMPB D,S" $E1EB
+"CMPB D,U" $E1CB
+"CMPB D,X" $E18B
+"CMPB D,Y" $E1AB
+"CMPB s,S" $E160
+"CMPB s,U" $E140
+"CMPB s,X" $E100
+"CMPB s,Y" $E120
 "CMPB x" $D1
-"CMPB x,PCR" $E1
-"CMPB x,S" $E1
-"CMPB x,U" $E1
-"CMPB x,X" $E1
-"CMPB x,Y" $E1
-"CMPB,--S" $E1
-"CMPB,--U" $E1
-"CMPB,--X" $E1
-"CMPB,--Y" $E1
-"CMPB,-S" $E1
-"CMPB,-U" $E1
-"CMPB,-X" $E1
-"CMPB,-Y" $E1
-"CMPB,S" $E1
-"CMPB,S+" $E1
-"CMPB,S++" $E1
-"CMPB,U" $E1
-"CMPB,U+" $E1
-"CMPB,U++" $E1
-"CMPB,X" $E1
-"CMPB,X+" $E1
-"CMPB,X++" $E1
-"CMPB,Y" $E1
-"CMPB,Y+" $E1
-"CMPB,Y++" $E1
-"CMPD #x" $8310
-"CMPD (,--S)" $A310
-"CMPD (,--U)" $A310
-"CMPD (,--X)" $A310
-"CMPD (,--Y)" $A310
-"CMPD (,S)" $A310
-"CMPD (,S++)" $A310
-"CMPD (,U)" $A310
-"CMPD (,U++)" $A310
-"CMPD (,X)" $A310
-"CMPD (,X++)" $A310
-"CMPD (,Y)" $A310
-"CMPD (,Y++)" $A310
-"CMPD (?)" $A310
-"CMPD (?,PCR)" $A310
-"CMPD (?,S)" $A310
-"CMPD (?,U)" $A310
-"CMPD (?,X)" $A310
-"CMPD (?,Y)" $A310
-"CMPD (A,S)" $A310
-"CMPD (A,U)" $A310
-"CMPD (A,X)" $A310
-"CMPD (A,Y)" $A310
-"CMPD (B,S)" $A310
-"CMPD (B,U)" $A310
-"CMPD (B,X)" $A310
-"CMPD (B,Y)" $A310
-"CMPD (D,S)" $A310
-"CMPD (D,U)" $A310
-"CMPD (D,X)" $A310
-"CMPD (D,Y)" $A310
-"CMPD (x,PCR)" $A310
-"CMPD (x,S)" $A310
-"CMPD (x,U)" $A310
-"CMPD (x,X)" $A310
-"CMPD (x,Y)" $A310
-"CMPD ?" $B310
-"CMPD ?,PCR" $A310
-"CMPD ?,S" $A310
-"CMPD ?,U" $A310
-"CMPD ?,X" $A310
-"CMPD ?,Y" $A310
-"CMPD A,S" $A310
-"CMPD A,U" $A310
-"CMPD A,X" $A310
-"CMPD A,Y" $A310
-"CMPD B,S" $A310
-"CMPD B,U" $A310
-"CMPD B,X" $A310
-"CMPD B,Y" $A310
-"CMPD D,S" $A310
-"CMPD D,U" $A310
-"CMPD D,X" $A310
-"CMPD D,Y" $A310
-"CMPD s,S" $A310
-"CMPD s,U" $A310
-"CMPD s,X" $A310
-"CMPD s,Y" $A310
-"CMPD x" $9310
-"CMPD x,PCR" $A310
-"CMPD x,S" $A310
-"CMPD x,U" $A310
-"CMPD x,X" $A310
-"CMPD x,Y" $A310
-"CMPD,--S" $A310
-"CMPD,--U" $A310
-"CMPD,--X" $A310
-"CMPD,--Y" $A310
-"CMPD,-S" $A310
-"CMPD,-U" $A310
-"CMPD,-X" $A310
-"CMPD,-Y" $A310
-"CMPD,S" $A310
-"CMPD,S+" $A310
-"CMPD,S++" $A310
-"CMPD,U" $A310
-"CMPD,U+" $A310
-"CMPD,U++" $A310
-"CMPD,X" $A310
-"CMPD,X+" $A310
-"CMPD,X++" $A310
-"CMPD,Y" $A310
-"CMPD,Y+" $A310
-"CMPD,Y++" $A310
-"CMPS #x" $8C11
-"CMPS (,--S)" $AC11
-"CMPS (,--U)" $AC11
-"CMPS (,--X)" $AC11
-"CMPS (,--Y)" $AC11
-"CMPS (,S)" $AC11
-"CMPS (,S++)" $AC11
-"CMPS (,U)" $AC11
-"CMPS (,U++)" $AC11
-"CMPS (,X)" $AC11
-"CMPS (,X++)" $AC11
-"CMPS (,Y)" $AC11
-"CMPS (,Y++)" $AC11
-"CMPS (?)" $AC11
-"CMPS (?,PCR)" $AC11
-"CMPS (?,S)" $AC11
-"CMPS (?,U)" $AC11
-"CMPS (?,X)" $AC11
-"CMPS (?,Y)" $AC11
-"CMPS (A,S)" $AC11
-"CMPS (A,U)" $AC11
-"CMPS (A,X)" $AC11
-"CMPS (A,Y)" $AC11
-"CMPS (B,S)" $AC11
-"CMPS (B,U)" $AC11
-"CMPS (B,X)" $AC11
-"CMPS (B,Y)" $AC11
-"CMPS (D,S)" $AC11
-"CMPS (D,U)" $AC11
-"CMPS (D,X)" $AC11
-"CMPS (D,Y)" $AC11
-"CMPS (x,PCR)" $AC11
-"CMPS (x,S)" $AC11
-"CMPS (x,U)" $AC11
-"CMPS (x,X)" $AC11
-"CMPS (x,Y)" $AC11
-"CMPS ?" $BC11
-"CMPS ?,PCR" $AC11
-"CMPS ?,S" $AC11
-"CMPS ?,U" $AC11
-"CMPS ?,X" $AC11
-"CMPS ?,Y" $AC11
-"CMPS A,S" $AC11
-"CMPS A,U" $AC11
-"CMPS A,X" $AC11
-"CMPS A,Y" $AC11
-"CMPS B,S" $AC11
-"CMPS B,U" $AC11
-"CMPS B,X" $AC11
-"CMPS B,Y" $AC11
-"CMPS D,S" $AC11
-"CMPS D,U" $AC11
-"CMPS D,X" $AC11
-"CMPS D,Y" $AC11
-"CMPS s,S" $AC11
-"CMPS s,U" $AC11
-"CMPS s,X" $AC11
-"CMPS s,Y" $AC11
-"CMPS x" $9C11
-"CMPS x,PCR" $AC11
-"CMPS x,S" $AC11
-"CMPS x,U" $AC11
-"CMPS x,X" $AC11
-"CMPS x,Y" $AC11
-"CMPS,--S" $AC11
-"CMPS,--U" $AC11
-"CMPS,--X" $AC11
-"CMPS,--Y" $AC11
-"CMPS,-S" $AC11
-"CMPS,-U" $AC11
-"CMPS,-X" $AC11
-"CMPS,-Y" $AC11
-"CMPS,S" $AC11
-"CMPS,S+" $AC11
-"CMPS,S++" $AC11
-"CMPS,U" $AC11
-"CMPS,U+" $AC11
-"CMPS,U++" $AC11
-"CMPS,X" $AC11
-"CMPS,X+" $AC11
-"CMPS,X++" $AC11
-"CMPS,Y" $AC11
-"CMPS,Y+" $AC11
-"CMPS,Y++" $AC11
-"CMPU #x" $8311
-"CMPU (,--S)" $A311
-"CMPU (,--U)" $A311
-"CMPU (,--X)" $A311
-"CMPU (,--Y)" $A311
-"CMPU (,S)" $A311
-"CMPU (,S++)" $A311
-"CMPU (,U)" $A311
-"CMPU (,U++)" $A311
-"CMPU (,X)" $A311
-"CMPU (,X++)" $A311
-"CMPU (,Y)" $A311
-"CMPU (,Y++)" $A311
-"CMPU (?)" $A311
-"CMPU (?,PCR)" $A311
-"CMPU (?,S)" $A311
-"CMPU (?,U)" $A311
-"CMPU (?,X)" $A311
-"CMPU (?,Y)" $A311
-"CMPU (A,S)" $A311
-"CMPU (A,U)" $A311
-"CMPU (A,X)" $A311
-"CMPU (A,Y)" $A311
-"CMPU (B,S)" $A311
-"CMPU (B,U)" $A311
-"CMPU (B,X)" $A311
-"CMPU (B,Y)" $A311
-"CMPU (D,S)" $A311
-"CMPU (D,U)" $A311
-"CMPU (D,X)" $A311
-"CMPU (D,Y)" $A311
-"CMPU (x,PCR)" $A311
-"CMPU (x,S)" $A311
-"CMPU (x,U)" $A311
-"CMPU (x,X)" $A311
-"CMPU (x,Y)" $A311
-"CMPU ?" $B311
-"CMPU ?,PCR" $A311
-"CMPU ?,S" $A311
-"CMPU ?,U" $A311
-"CMPU ?,X" $A311
-"CMPU ?,Y" $A311
-"CMPU A,S" $A311
-"CMPU A,U" $A311
-"CMPU A,X" $A311
-"CMPU A,Y" $A311
-"CMPU B,S" $A311
-"CMPU B,U" $A311
-"CMPU B,X" $A311
-"CMPU B,Y" $A311
-"CMPU D,S" $A311
-"CMPU D,U" $A311
-"CMPU D,X" $A311
-"CMPU D,Y" $A311
-"CMPU s,S" $A311
-"CMPU s,U" $A311
-"CMPU s,X" $A311
-"CMPU s,Y" $A311
-"CMPU x" $9311
-"CMPU x,PCR" $A311
-"CMPU x,S" $A311
-"CMPU x,U" $A311
-"CMPU x,X" $A311
-"CMPU x,Y" $A311
-"CMPU,--S" $A311
-"CMPU,--U" $A311
-"CMPU,--X" $A311
-"CMPU,--Y" $A311
-"CMPU,-S" $A311
-"CMPU,-U" $A311
-"CMPU,-X" $A311
-"CMPU,-Y" $A311
-"CMPU,S" $A311
-"CMPU,S+" $A311
-"CMPU,S++" $A311
-"CMPU,U" $A311
-"CMPU,U+" $A311
-"CMPU,U++" $A311
-"CMPU,X" $A311
-"CMPU,X+" $A311
-"CMPU,X++" $A311
-"CMPU,Y" $A311
-"CMPU,Y+" $A311
-"CMPU,Y++" $A311
+"CMPB x,PCR" $E18C
+"CMPB x,S" $E1E8
+"CMPB x,U" $E1C8
+"CMPB x,X" $E188
+"CMPB x,Y" $E1A8
+"CMPB,--S" $E1E3
+"CMPB,--U" $E1C3
+"CMPB,--X" $E183
+"CMPB,--Y" $E1A3
+"CMPB,-S" $E1E2
+"CMPB,-U" $E1C2
+"CMPB,-X" $E182
+"CMPB,-Y" $E1A2
+"CMPB,S" $E1E4
+"CMPB,S+" $E1E0
+"CMPB,S++" $E1E1
+"CMPB,U" $E1C4
+"CMPB,U+" $E1C0
+"CMPB,U++" $E1C1
+"CMPB,X" $E184
+"CMPB,X+" $E180
+"CMPB,X++" $E181
+"CMPB,Y" $E1A4
+"CMPB,Y+" $E1A0
+"CMPB,Y++" $E1A1
+"CMPD #x" $1083
+"CMPD (,--S)" $10A3F3
+"CMPD (,--U)" $10A3D3
+"CMPD (,--X)" $10A393
+"CMPD (,--Y)" $10A3B3
+"CMPD (,S)" $10A3F4
+"CMPD (,S++)" $10A3F1
+"CMPD (,U)" $10A3D4
+"CMPD (,U++)" $10A3D1
+"CMPD (,X)" $10A394
+"CMPD (,X++)" $10A391
+"CMPD (,Y)" $10A3B4
+"CMPD (,Y++)" $10A3B1
+"CMPD (?)" $10A39F
+"CMPD (?,PCR)" $10A39D
+"CMPD (?,S)" $10A3F9
+"CMPD (?,U)" $10A3D9
+"CMPD (?,X)" $10A399
+"CMPD (?,Y)" $10A3B9
+"CMPD (A,S)" $10A3F6
+"CMPD (A,U)" $10A3D6
+"CMPD (A,X)" $10A396
+"CMPD (A,Y)" $10A3B6
+"CMPD (B,S)" $10A3F5
+"CMPD (B,U)" $10A3D5
+"CMPD (B,X)" $10A395
+"CMPD (B,Y)" $10A3B5
+"CMPD (D,S)" $10A3FB
+"CMPD (D,U)" $10A3DB
+"CMPD (D,X)" $10A39B
+"CMPD (D,Y)" $10A3BB
+"CMPD (x,PCR)" $10A39C
+"CMPD (x,S)" $10A3F8
+"CMPD (x,U)" $10A3D8
+"CMPD (x,X)" $10A398
+"CMPD (x,Y)" $10A3B8
+"CMPD ?" $10B3
+"CMPD ?,PCR" $10A38D
+"CMPD ?,S" $10A3E9
+"CMPD ?,U" $10A3C9
+"CMPD ?,X" $10A389
+"CMPD ?,Y" $10A3A9
+"CMPD A,S" $10A3E6
+"CMPD A,U" $10A3C6
+"CMPD A,X" $10A386
+"CMPD A,Y" $10A3A6
+"CMPD B,S" $10A3E5
+"CMPD B,U" $10A3C5
+"CMPD B,X" $10A385
+"CMPD B,Y" $10A3A5
+"CMPD D,S" $10A3EB
+"CMPD D,U" $10A3CB
+"CMPD D,X" $10A38B
+"CMPD D,Y" $10A3AB
+"CMPD s,S" $10A360
+"CMPD s,U" $10A340
+"CMPD s,X" $10A300
+"CMPD s,Y" $10A320
+"CMPD x" $1093
+"CMPD x,PCR" $10A38C
+"CMPD x,S" $10A3E8
+"CMPD x,U" $10A3C8
+"CMPD x,X" $10A388
+"CMPD x,Y" $10A3A8
+"CMPD,--S" $10A3E3
+"CMPD,--U" $10A3C3
+"CMPD,--X" $10A383
+"CMPD,--Y" $10A3A3
+"CMPD,-S" $10A3E2
+"CMPD,-U" $10A3C2
+"CMPD,-X" $10A382
+"CMPD,-Y" $10A3A2
+"CMPD,S" $10A3E4
+"CMPD,S+" $10A3E0
+"CMPD,S++" $10A3E1
+"CMPD,U" $10A3C4
+"CMPD,U+" $10A3C0
+"CMPD,U++" $10A3C1
+"CMPD,X" $10A384
+"CMPD,X+" $10A380
+"CMPD,X++" $10A381
+"CMPD,Y" $10A3A4
+"CMPD,Y+" $10A3A0
+"CMPD,Y++" $10A3A1
+"CMPS #x" $118C
+"CMPS (,--S)" $11ACF3
+"CMPS (,--U)" $11ACD3
+"CMPS (,--X)" $11AC93
+"CMPS (,--Y)" $11ACB3
+"CMPS (,S)" $11ACF4
+"CMPS (,S++)" $11ACF1
+"CMPS (,U)" $11ACD4
+"CMPS (,U++)" $11ACD1
+"CMPS (,X)" $11AC94
+"CMPS (,X++)" $11AC91
+"CMPS (,Y)" $11ACB4
+"CMPS (,Y++)" $11ACB1
+"CMPS (?)" $11AC9F
+"CMPS (?,PCR)" $11AC9D
+"CMPS (?,S)" $11ACF9
+"CMPS (?,U)" $11ACD9
+"CMPS (?,X)" $11AC99
+"CMPS (?,Y)" $11ACB9
+"CMPS (A,S)" $11ACF6
+"CMPS (A,U)" $11ACD6
+"CMPS (A,X)" $11AC96
+"CMPS (A,Y)" $11ACB6
+"CMPS (B,S)" $11ACF5
+"CMPS (B,U)" $11ACD5
+"CMPS (B,X)" $11AC95
+"CMPS (B,Y)" $11ACB5
+"CMPS (D,S)" $11ACFB
+"CMPS (D,U)" $11ACDB
+"CMPS (D,X)" $11AC9B
+"CMPS (D,Y)" $11ACBB
+"CMPS (x,PCR)" $11AC9C
+"CMPS (x,S)" $11ACF8
+"CMPS (x,U)" $11ACD8
+"CMPS (x,X)" $11AC98
+"CMPS (x,Y)" $11ACB8
+"CMPS ?" $11BC
+"CMPS ?,PCR" $11AC8D
+"CMPS ?,S" $11ACE9
+"CMPS ?,U" $11ACC9
+"CMPS ?,X" $11AC89
+"CMPS ?,Y" $11ACA9
+"CMPS A,S" $11ACE6
+"CMPS A,U" $11ACC6
+"CMPS A,X" $11AC86
+"CMPS A,Y" $11ACA6
+"CMPS B,S" $11ACE5
+"CMPS B,U" $11ACC5
+"CMPS B,X" $11AC85
+"CMPS B,Y" $11ACA5
+"CMPS D,S" $11ACEB
+"CMPS D,U" $11ACCB
+"CMPS D,X" $11AC8B
+"CMPS D,Y" $11ACAB
+"CMPS s,S" $11AC60
+"CMPS s,U" $11AC40
+"CMPS s,X" $11AC00
+"CMPS s,Y" $11AC20
+"CMPS x" $119C
+"CMPS x,PCR" $11AC8C
+"CMPS x,S" $11ACE8
+"CMPS x,U" $11ACC8
+"CMPS x,X" $11AC88
+"CMPS x,Y" $11ACA8
+"CMPS,--S" $11ACE3
+"CMPS,--U" $11ACC3
+"CMPS,--X" $11AC83
+"CMPS,--Y" $11ACA3
+"CMPS,-S" $11ACE2
+"CMPS,-U" $11ACC2
+"CMPS,-X" $11AC82
+"CMPS,-Y" $11ACA2
+"CMPS,S" $11ACE4
+"CMPS,S+" $11ACE0
+"CMPS,S++" $11ACE1
+"CMPS,U" $11ACC4
+"CMPS,U+" $11ACC0
+"CMPS,U++" $11ACC1
+"CMPS,X" $11AC84
+"CMPS,X+" $11AC80
+"CMPS,X++" $11AC81
+"CMPS,Y" $11ACA4
+"CMPS,Y+" $11ACA0
+"CMPS,Y++" $11ACA1
+"CMPU #x" $1183
+"CMPU (,--S)" $11A3F3
+"CMPU (,--U)" $11A3D3
+"CMPU (,--X)" $11A393
+"CMPU (,--Y)" $11A3B3
+"CMPU (,S)" $11A3F4
+"CMPU (,S++)" $11A3F1
+"CMPU (,U)" $11A3D4
+"CMPU (,U++)" $11A3D1
+"CMPU (,X)" $11A394
+"CMPU (,X++)" $11A391
+"CMPU (,Y)" $11A3B4
+"CMPU (,Y++)" $11A3B1
+"CMPU (?)" $11A39F
+"CMPU (?,PCR)" $11A39D
+"CMPU (?,S)" $11A3F9
+"CMPU (?,U)" $11A3D9
+"CMPU (?,X)" $11A399
+"CMPU (?,Y)" $11A3B9
+"CMPU (A,S)" $11A3F6
+"CMPU (A,U)" $11A3D6
+"CMPU (A,X)" $11A396
+"CMPU (A,Y)" $11A3B6
+"CMPU (B,S)" $11A3F5
+"CMPU (B,U)" $11A3D5
+"CMPU (B,X)" $11A395
+"CMPU (B,Y)" $11A3B5
+"CMPU (D,S)" $11A3FB
+"CMPU (D,U)" $11A3DB
+"CMPU (D,X)" $11A39B
+"CMPU (D,Y)" $11A3BB
+"CMPU (x,PCR)" $11A39C
+"CMPU (x,S)" $11A3F8
+"CMPU (x,U)" $11A3D8
+"CMPU (x,X)" $11A398
+"CMPU (x,Y)" $11A3B8
+"CMPU ?" $11B3
+"CMPU ?,PCR" $11A38D
+"CMPU ?,S" $11A3E9
+"CMPU ?,U" $11A3C9
+"CMPU ?,X" $11A389
+"CMPU ?,Y" $11A3A9
+"CMPU A,S" $11A3E6
+"CMPU A,U" $11A3C6
+"CMPU A,X" $11A386
+"CMPU A,Y" $11A3A6
+"CMPU B,S" $11A3E5
+"CMPU B,U" $11A3C5
+"CMPU B,X" $11A385
+"CMPU B,Y" $11A3A5
+"CMPU D,S" $11A3EB
+"CMPU D,U" $11A3CB
+"CMPU D,X" $11A38B
+"CMPU D,Y" $11A3AB
+"CMPU s,S" $11A360
+"CMPU s,U" $11A340
+"CMPU s,X" $11A300
+"CMPU s,Y" $11A320
+"CMPU x" $1193
+"CMPU x,PCR" $11A38C
+"CMPU x,S" $11A3E8
+"CMPU x,U" $11A3C8
+"CMPU x,X" $11A388
+"CMPU x,Y" $11A3A8
+"CMPU,--S" $11A3E3
+"CMPU,--U" $11A3C3
+"CMPU,--X" $11A383
+"CMPU,--Y" $11A3A3
+"CMPU,-S" $11A3E2
+"CMPU,-U" $11A3C2
+"CMPU,-X" $11A382
+"CMPU,-Y" $11A3A2
+"CMPU,S" $11A3E4
+"CMPU,S+" $11A3E0
+"CMPU,S++" $11A3E1
+"CMPU,U" $11A3C4
+"CMPU,U+" $11A3C0
+"CMPU,U++" $11A3C1
+"CMPU,X" $11A384
+"CMPU,X+" $11A380
+"CMPU,X++" $11A381
+"CMPU,Y" $11A3A4
+"CMPU,Y+" $11A3A0
+"CMPU,Y++" $11A3A1
 "CMPX #x" $8C
-"CMPX (,--S)" $AC
-"CMPX (,--U)" $AC
-"CMPX (,--X)" $AC
-"CMPX (,--Y)" $AC
-"CMPX (,S)" $AC
-"CMPX (,S++)" $AC
-"CMPX (,U)" $AC
-"CMPX (,U++)" $AC
-"CMPX (,X)" $AC
-"CMPX (,X++)" $AC
-"CMPX (,Y)" $AC
-"CMPX (,Y++)" $AC
-"CMPX (?)" $AC
-"CMPX (?,PCR)" $AC
-"CMPX (?,S)" $AC
-"CMPX (?,U)" $AC
-"CMPX (?,X)" $AC
-"CMPX (?,Y)" $AC
-"CMPX (A,S)" $AC
-"CMPX (A,U)" $AC
-"CMPX (A,X)" $AC
-"CMPX (A,Y)" $AC
-"CMPX (B,S)" $AC
-"CMPX (B,U)" $AC
-"CMPX (B,X)" $AC
-"CMPX (B,Y)" $AC
-"CMPX (D,S)" $AC
-"CMPX (D,U)" $AC
-"CMPX (D,X)" $AC
-"CMPX (D,Y)" $AC
-"CMPX (x,PCR)" $AC
-"CMPX (x,S)" $AC
-"CMPX (x,U)" $AC
-"CMPX (x,X)" $AC
-"CMPX (x,Y)" $AC
+"CMPX (,--S)" $ACF3
+"CMPX (,--U)" $ACD3
+"CMPX (,--X)" $AC93
+"CMPX (,--Y)" $ACB3
+"CMPX (,S)" $ACF4
+"CMPX (,S++)" $ACF1
+"CMPX (,U)" $ACD4
+"CMPX (,U++)" $ACD1
+"CMPX (,X)" $AC94
+"CMPX (,X++)" $AC91
+"CMPX (,Y)" $ACB4
+"CMPX (,Y++)" $ACB1
+"CMPX (?)" $AC9F
+"CMPX (?,PCR)" $AC9D
+"CMPX (?,S)" $ACF9
+"CMPX (?,U)" $ACD9
+"CMPX (?,X)" $AC99
+"CMPX (?,Y)" $ACB9
+"CMPX (A,S)" $ACF6
+"CMPX (A,U)" $ACD6
+"CMPX (A,X)" $AC96
+"CMPX (A,Y)" $ACB6
+"CMPX (B,S)" $ACF5
+"CMPX (B,U)" $ACD5
+"CMPX (B,X)" $AC95
+"CMPX (B,Y)" $ACB5
+"CMPX (D,S)" $ACFB
+"CMPX (D,U)" $ACDB
+"CMPX (D,X)" $AC9B
+"CMPX (D,Y)" $ACBB
+"CMPX (x,PCR)" $AC9C
+"CMPX (x,S)" $ACF8
+"CMPX (x,U)" $ACD8
+"CMPX (x,X)" $AC98
+"CMPX (x,Y)" $ACB8
 "CMPX ?" $BC
-"CMPX ?,PCR" $AC
-"CMPX ?,S" $AC
-"CMPX ?,U" $AC
-"CMPX ?,X" $AC
-"CMPX ?,Y" $AC
-"CMPX A,S" $AC
-"CMPX A,U" $AC
-"CMPX A,X" $AC
-"CMPX A,Y" $AC
-"CMPX B,S" $AC
-"CMPX B,U" $AC
-"CMPX B,X" $AC
-"CMPX B,Y" $AC
-"CMPX D,S" $AC
-"CMPX D,U" $AC
-"CMPX D,X" $AC
-"CMPX D,Y" $AC
-"CMPX s,S" $AC
-"CMPX s,U" $AC
-"CMPX s,X" $AC
-"CMPX s,Y" $AC
+"CMPX ?,PCR" $AC8D
+"CMPX ?,S" $ACE9
+"CMPX ?,U" $ACC9
+"CMPX ?,X" $AC89
+"CMPX ?,Y" $ACA9
+"CMPX A,S" $ACE6
+"CMPX A,U" $ACC6
+"CMPX A,X" $AC86
+"CMPX A,Y" $ACA6
+"CMPX B,S" $ACE5
+"CMPX B,U" $ACC5
+"CMPX B,X" $AC85
+"CMPX B,Y" $ACA5
+"CMPX D,S" $ACEB
+"CMPX D,U" $ACCB
+"CMPX D,X" $AC8B
+"CMPX D,Y" $ACAB
+"CMPX s,S" $AC60
+"CMPX s,U" $AC40
+"CMPX s,X" $AC00
+"CMPX s,Y" $AC20
 "CMPX x" $9C
-"CMPX x,PCR" $AC
-"CMPX x,S" $AC
-"CMPX x,U" $AC
-"CMPX x,X" $AC
-"CMPX x,Y" $AC
-"CMPX,--S" $AC
-"CMPX,--U" $AC
-"CMPX,--X" $AC
-"CMPX,--Y" $AC
-"CMPX,-S" $AC
-"CMPX,-U" $AC
-"CMPX,-X" $AC
-"CMPX,-Y" $AC
-"CMPX,S" $AC
-"CMPX,S+" $AC
-"CMPX,S++" $AC
-"CMPX,U" $AC
-"CMPX,U+" $AC
-"CMPX,U++" $AC
-"CMPX,X" $AC
-"CMPX,X+" $AC
-"CMPX,X++" $AC
-"CMPX,Y" $AC
-"CMPX,Y+" $AC
-"CMPX,Y++" $AC
-"CMPY #x" $8C10
-"CMPY (,--S)" $AC10
-"CMPY (,--U)" $AC10
-"CMPY (,--X)" $AC10
-"CMPY (,--Y)" $AC10
-"CMPY (,S)" $AC10
-"CMPY (,S++)" $AC10
-"CMPY (,U)" $AC10
-"CMPY (,U++)" $AC10
-"CMPY (,X)" $AC10
-"CMPY (,X++)" $AC10
-"CMPY (,Y)" $AC10
-"CMPY (,Y++)" $AC10
-"CMPY (?)" $AC10
-"CMPY (?,PCR)" $AC10
-"CMPY (?,S)" $AC10
-"CMPY (?,U)" $AC10
-"CMPY (?,X)" $AC10
-"CMPY (?,Y)" $AC10
-"CMPY (A,S)" $AC10
-"CMPY (A,U)" $AC10
-"CMPY (A,X)" $AC10
-"CMPY (A,Y)" $AC10
-"CMPY (B,S)" $AC10
-"CMPY (B,U)" $AC10
-"CMPY (B,X)" $AC10
-"CMPY (B,Y)" $AC10
-"CMPY (D,S)" $AC10
-"CMPY (D,U)" $AC10
-"CMPY (D,X)" $AC10
-"CMPY (D,Y)" $AC10
-"CMPY (x,PCR)" $AC10
-"CMPY (x,S)" $AC10
-"CMPY (x,U)" $AC10
-"CMPY (x,X)" $AC10
-"CMPY (x,Y)" $AC10
-"CMPY ?" $BC10
-"CMPY ?,PCR" $AC10
-"CMPY ?,S" $AC10
-"CMPY ?,U" $AC10
-"CMPY ?,X" $AC10
-"CMPY ?,Y" $AC10
-"CMPY A,S" $AC10
-"CMPY A,U" $AC10
-"CMPY A,X" $AC10
-"CMPY A,Y" $AC10
-"CMPY B,S" $AC10
-"CMPY B,U" $AC10
-"CMPY B,X" $AC10
-"CMPY B,Y" $AC10
-"CMPY D,S" $AC10
-"CMPY D,U" $AC10
-"CMPY D,X" $AC10
-"CMPY D,Y" $AC10
-"CMPY s,S" $AC10
-"CMPY s,U" $AC10
-"CMPY s,X" $AC10
-"CMPY s,Y" $AC10
-"CMPY x" $9C10
-"CMPY x,PCR" $AC10
-"CMPY x,S" $AC10
-"CMPY x,U" $AC10
-"CMPY x,X" $AC10
-"CMPY x,Y" $AC10
-"CMPY,--S" $AC10
-"CMPY,--U" $AC10
-"CMPY,--X" $AC10
-"CMPY,--Y" $AC10
-"CMPY,-S" $AC10
-"CMPY,-U" $AC10
-"CMPY,-X" $AC10
-"CMPY,-Y" $AC10
-"CMPY,S" $AC10
-"CMPY,S+" $AC10
-"CMPY,S++" $AC10
-"CMPY,U" $AC10
-"CMPY,U+" $AC10
-"CMPY,U++" $AC10
-"CMPY,X" $AC10
-"CMPY,X+" $AC10
-"CMPY,X++" $AC10
-"CMPY,Y" $AC10
-"CMPY,Y+" $AC10
-"CMPY,Y++" $AC10
-"COM (,--S)" $63
-"COM (,--U)" $63
-"COM (,--X)" $63
-"COM (,--Y)" $63
-"COM (,S)" $63
-"COM (,S++)" $63
-"COM (,U)" $63
-"COM (,U++)" $63
-"COM (,X)" $63
-"COM (,X++)" $63
-"COM (,Y)" $63
-"COM (,Y++)" $63
-"COM (?)" $63
-"COM (?,PCR)" $63
-"COM (?,S)" $63
-"COM (?,U)" $63
-"COM (?,X)" $63
-"COM (?,Y)" $63
-"COM (A,S)" $63
-"COM (A,U)" $63
-"COM (A,X)" $63
-"COM (A,Y)" $63
-"COM (B,S)" $63
-"COM (B,U)" $63
-"COM (B,X)" $63
-"COM (B,Y)" $63
-"COM (D,S)" $63
-"COM (D,U)" $63
-"COM (D,X)" $63
-"COM (D,Y)" $63
-"COM (x,PCR)" $63
-"COM (x,S)" $63
-"COM (x,U)" $63
-"COM (x,X)" $63
-"COM (x,Y)" $63
+"CMPX x,PCR" $AC8C
+"CMPX x,S" $ACE8
+"CMPX x,U" $ACC8
+"CMPX x,X" $AC88
+"CMPX x,Y" $ACA8
+"CMPX,--S" $ACE3
+"CMPX,--U" $ACC3
+"CMPX,--X" $AC83
+"CMPX,--Y" $ACA3
+"CMPX,-S" $ACE2
+"CMPX,-U" $ACC2
+"CMPX,-X" $AC82
+"CMPX,-Y" $ACA2
+"CMPX,S" $ACE4
+"CMPX,S+" $ACE0
+"CMPX,S++" $ACE1
+"CMPX,U" $ACC4
+"CMPX,U+" $ACC0
+"CMPX,U++" $ACC1
+"CMPX,X" $AC84
+"CMPX,X+" $AC80
+"CMPX,X++" $AC81
+"CMPX,Y" $ACA4
+"CMPX,Y+" $ACA0
+"CMPX,Y++" $ACA1
+"CMPY #x" $108C
+"CMPY (,--S)" $10ACF3
+"CMPY (,--U)" $10ACD3
+"CMPY (,--X)" $10AC93
+"CMPY (,--Y)" $10ACB3
+"CMPY (,S)" $10ACF4
+"CMPY (,S++)" $10ACF1
+"CMPY (,U)" $10ACD4
+"CMPY (,U++)" $10ACD1
+"CMPY (,X)" $10AC94
+"CMPY (,X++)" $10AC91
+"CMPY (,Y)" $10ACB4
+"CMPY (,Y++)" $10ACB1
+"CMPY (?)" $10AC9F
+"CMPY (?,PCR)" $10AC9D
+"CMPY (?,S)" $10ACF9
+"CMPY (?,U)" $10ACD9
+"CMPY (?,X)" $10AC99
+"CMPY (?,Y)" $10ACB9
+"CMPY (A,S)" $10ACF6
+"CMPY (A,U)" $10ACD6
+"CMPY (A,X)" $10AC96
+"CMPY (A,Y)" $10ACB6
+"CMPY (B,S)" $10ACF5
+"CMPY (B,U)" $10ACD5
+"CMPY (B,X)" $10AC95
+"CMPY (B,Y)" $10ACB5
+"CMPY (D,S)" $10ACFB
+"CMPY (D,U)" $10ACDB
+"CMPY (D,X)" $10AC9B
+"CMPY (D,Y)" $10ACBB
+"CMPY (x,PCR)" $10AC9C
+"CMPY (x,S)" $10ACF8
+"CMPY (x,U)" $10ACD8
+"CMPY (x,X)" $10AC98
+"CMPY (x,Y)" $10ACB8
+"CMPY ?" $10BC
+"CMPY ?,PCR" $10AC8D
+"CMPY ?,S" $10ACE9
+"CMPY ?,U" $10ACC9
+"CMPY ?,X" $10AC89
+"CMPY ?,Y" $10ACA9
+"CMPY A,S" $10ACE6
+"CMPY A,U" $10ACC6
+"CMPY A,X" $10AC86
+"CMPY A,Y" $10ACA6
+"CMPY B,S" $10ACE5
+"CMPY B,U" $10ACC5
+"CMPY B,X" $10AC85
+"CMPY B,Y" $10ACA5
+"CMPY D,S" $10ACEB
+"CMPY D,U" $10ACCB
+"CMPY D,X" $10AC8B
+"CMPY D,Y" $10ACAB
+"CMPY s,S" $10AC60
+"CMPY s,U" $10AC40
+"CMPY s,X" $10AC00
+"CMPY s,Y" $10AC20
+"CMPY x" $109C
+"CMPY x,PCR" $10AC8C
+"CMPY x,S" $10ACE8
+"CMPY x,U" $10ACC8
+"CMPY x,X" $10AC88
+"CMPY x,Y" $10ACA8
+"CMPY,--S" $10ACE3
+"CMPY,--U" $10ACC3
+"CMPY,--X" $10AC83
+"CMPY,--Y" $10ACA3
+"CMPY,-S" $10ACE2
+"CMPY,-U" $10ACC2
+"CMPY,-X" $10AC82
+"CMPY,-Y" $10ACA2
+"CMPY,S" $10ACE4
+"CMPY,S+" $10ACE0
+"CMPY,S++" $10ACE1
+"CMPY,U" $10ACC4
+"CMPY,U+" $10ACC0
+"CMPY,U++" $10ACC1
+"CMPY,X" $10AC84
+"CMPY,X+" $10AC80
+"CMPY,X++" $10AC81
+"CMPY,Y" $10ACA4
+"CMPY,Y+" $10ACA0
+"CMPY,Y++" $10ACA1
+"COM (,--S)" $63F3
+"COM (,--U)" $63D3
+"COM (,--X)" $6393
+"COM (,--Y)" $63B3
+"COM (,S)" $63F4
+"COM (,S++)" $63F1
+"COM (,U)" $63D4
+"COM (,U++)" $63D1
+"COM (,X)" $6394
+"COM (,X++)" $6391
+"COM (,Y)" $63B4
+"COM (,Y++)" $63B1
+"COM (?)" $639F
+"COM (?,PCR)" $639D
+"COM (?,S)" $63F9
+"COM (?,U)" $63D9
+"COM (?,X)" $6399
+"COM (?,Y)" $63B9
+"COM (A,S)" $63F6
+"COM (A,U)" $63D6
+"COM (A,X)" $6396
+"COM (A,Y)" $63B6
+"COM (B,S)" $63F5
+"COM (B,U)" $63D5
+"COM (B,X)" $6395
+"COM (B,Y)" $63B5
+"COM (D,S)" $63FB
+"COM (D,U)" $63DB
+"COM (D,X)" $639B
+"COM (D,Y)" $63BB
+"COM (x,PCR)" $639C
+"COM (x,S)" $63F8
+"COM (x,U)" $63D8
+"COM (x,X)" $6398
+"COM (x,Y)" $63B8
 "COM ?" $73
-"COM ?,PCR" $63
-"COM ?,S" $63
-"COM ?,U" $63
-"COM ?,X" $63
-"COM ?,Y" $63
-"COM A,S" $63
-"COM A,U" $63
-"COM A,X" $63
-"COM A,Y" $63
-"COM B,S" $63
-"COM B,U" $63
-"COM B,X" $63
-"COM B,Y" $63
-"COM D,S" $63
-"COM D,U" $63
-"COM D,X" $63
-"COM D,Y" $63
-"COM s,S" $63
-"COM s,U" $63
-"COM s,X" $63
-"COM s,Y" $63
+"COM ?,PCR" $638D
+"COM ?,S" $63E9
+"COM ?,U" $63C9
+"COM ?,X" $6389
+"COM ?,Y" $63A9
+"COM A,S" $63E6
+"COM A,U" $63C6
+"COM A,X" $6386
+"COM A,Y" $63A6
+"COM B,S" $63E5
+"COM B,U" $63C5
+"COM B,X" $6385
+"COM B,Y" $63A5
+"COM D,S" $63EB
+"COM D,U" $63CB
+"COM D,X" $638B
+"COM D,Y" $63AB
+"COM s,S" $6360
+"COM s,U" $6340
+"COM s,X" $6300
+"COM s,Y" $6320
 "COM x" $03
-"COM x,PCR" $63
-"COM x,S" $63
-"COM x,U" $63
-"COM x,X" $63
-"COM x,Y" $63
-"COM,--S" $63
-"COM,--U" $63
-"COM,--X" $63
-"COM,--Y" $63
-"COM,-S" $63
-"COM,-U" $63
-"COM,-X" $63
-"COM,-Y" $63
-"COM,S" $63
-"COM,S+" $63
-"COM,S++" $63
-"COM,U" $63
-"COM,U+" $63
-"COM,U++" $63
-"COM,X" $63
-"COM,X+" $63
-"COM,X++" $63
-"COM,Y" $63
-"COM,Y+" $63
-"COM,Y++" $63
+"COM x,PCR" $638C
+"COM x,S" $63E8
+"COM x,U" $63C8
+"COM x,X" $6388
+"COM x,Y" $63A8
+"COM,--S" $63E3
+"COM,--U" $63C3
+"COM,--X" $6383
+"COM,--Y" $63A3
+"COM,-S" $63E2
+"COM,-U" $63C2
+"COM,-X" $6382
+"COM,-Y" $63A2
+"COM,S" $63E4
+"COM,S+" $63E0
+"COM,S++" $63E1
+"COM,U" $63C4
+"COM,U+" $63C0
+"COM,U++" $63C1
+"COM,X" $6384
+"COM,X+" $6380
+"COM,X++" $6381
+"COM,Y" $63A4
+"COM,Y+" $63A0
+"COM,Y++" $63A1
 "COMA" $43
 "COMB" $53
 "CWAI #x" $3C
 "DAA" $19
-"DEC (,--S)" $6A
-"DEC (,--U)" $6A
-"DEC (,--X)" $6A
-"DEC (,--Y)" $6A
-"DEC (,S)" $6A
-"DEC (,S++)" $6A
-"DEC (,U)" $6A
-"DEC (,U++)" $6A
-"DEC (,X)" $6A
-"DEC (,X++)" $6A
-"DEC (,Y)" $6A
-"DEC (,Y++)" $6A
-"DEC (?)" $6A
-"DEC (?,PCR)" $6A
-"DEC (?,S)" $6A
-"DEC (?,U)" $6A
-"DEC (?,X)" $6A
-"DEC (?,Y)" $6A
-"DEC (A,S)" $6A
-"DEC (A,U)" $6A
-"DEC (A,X)" $6A
-"DEC (A,Y)" $6A
-"DEC (B,S)" $6A
-"DEC (B,U)" $6A
-"DEC (B,X)" $6A
-"DEC (B,Y)" $6A
-"DEC (D,S)" $6A
-"DEC (D,U)" $6A
-"DEC (D,X)" $6A
-"DEC (D,Y)" $6A
-"DEC (x,PCR)" $6A
-"DEC (x,S)" $6A
-"DEC (x,U)" $6A
-"DEC (x,X)" $6A
-"DEC (x,Y)" $6A
+"DEC (,--S)" $6AF3
+"DEC (,--U)" $6AD3
+"DEC (,--X)" $6A93
+"DEC (,--Y)" $6AB3
+"DEC (,S)" $6AF4
+"DEC (,S++)" $6AF1
+"DEC (,U)" $6AD4
+"DEC (,U++)" $6AD1
+"DEC (,X)" $6A94
+"DEC (,X++)" $6A91
+"DEC (,Y)" $6AB4
+"DEC (,Y++)" $6AB1
+"DEC (?)" $6A9F
+"DEC (?,PCR)" $6A9D
+"DEC (?,S)" $6AF9
+"DEC (?,U)" $6AD9
+"DEC (?,X)" $6A99
+"DEC (?,Y)" $6AB9
+"DEC (A,S)" $6AF6
+"DEC (A,U)" $6AD6
+"DEC (A,X)" $6A96
+"DEC (A,Y)" $6AB6
+"DEC (B,S)" $6AF5
+"DEC (B,U)" $6AD5
+"DEC (B,X)" $6A95
+"DEC (B,Y)" $6AB5
+"DEC (D,S)" $6AFB
+"DEC (D,U)" $6ADB
+"DEC (D,X)" $6A9B
+"DEC (D,Y)" $6ABB
+"DEC (x,PCR)" $6A9C
+"DEC (x,S)" $6AF8
+"DEC (x,U)" $6AD8
+"DEC (x,X)" $6A98
+"DEC (x,Y)" $6AB8
 "DEC ?" $7A
-"DEC ?,PCR" $6A
-"DEC ?,S" $6A
-"DEC ?,U" $6A
-"DEC ?,X" $6A
-"DEC ?,Y" $6A
-"DEC A,S" $6A
-"DEC A,U" $6A
-"DEC A,X" $6A
-"DEC A,Y" $6A
-"DEC B,S" $6A
-"DEC B,U" $6A
-"DEC B,X" $6A
-"DEC B,Y" $6A
-"DEC D,S" $6A
-"DEC D,U" $6A
-"DEC D,X" $6A
-"DEC D,Y" $6A
-"DEC s,S" $6A
-"DEC s,U" $6A
-"DEC s,X" $6A
-"DEC s,Y" $6A
+"DEC ?,PCR" $6A8D
+"DEC ?,S" $6AE9
+"DEC ?,U" $6AC9
+"DEC ?,X" $6A89
+"DEC ?,Y" $6AA9
+"DEC A,S" $6AE6
+"DEC A,U" $6AC6
+"DEC A,X" $6A86
+"DEC A,Y" $6AA6
+"DEC B,S" $6AE5
+"DEC B,U" $6AC5
+"DEC B,X" $6A85
+"DEC B,Y" $6AA5
+"DEC D,S" $6AEB
+"DEC D,U" $6ACB
+"DEC D,X" $6A8B
+"DEC D,Y" $6AAB
+"DEC s,S" $6A60
+"DEC s,U" $6A40
+"DEC s,X" $6A00
+"DEC s,Y" $6A20
 "DEC x" $0A
-"DEC x,PCR" $6A
-"DEC x,S" $6A
-"DEC x,U" $6A
-"DEC x,X" $6A
-"DEC x,Y" $6A
-"DEC,--S" $6A
-"DEC,--U" $6A
-"DEC,--X" $6A
-"DEC,--Y" $6A
-"DEC,-S" $6A
-"DEC,-U" $6A
-"DEC,-X" $6A
-"DEC,-Y" $6A
-"DEC,S" $6A
-"DEC,S+" $6A
-"DEC,S++" $6A
-"DEC,U" $6A
-"DEC,U+" $6A
-"DEC,U++" $6A
-"DEC,X" $6A
-"DEC,X+" $6A
-"DEC,X++" $6A
-"DEC,Y" $6A
-"DEC,Y+" $6A
-"DEC,Y++" $6A
+"DEC x,PCR" $6A8C
+"DEC x,S" $6AE8
+"DEC x,U" $6AC8
+"DEC x,X" $6A88
+"DEC x,Y" $6AA8
+"DEC,--S" $6AE3
+"DEC,--U" $6AC3
+"DEC,--X" $6A83
+"DEC,--Y" $6AA3
+"DEC,-S" $6AE2
+"DEC,-U" $6AC2
+"DEC,-X" $6A82
+"DEC,-Y" $6AA2
+"DEC,S" $6AE4
+"DEC,S+" $6AE0
+"DEC,S++" $6AE1
+"DEC,U" $6AC4
+"DEC,U+" $6AC0
+"DEC,U++" $6AC1
+"DEC,X" $6A84
+"DEC,X+" $6A80
+"DEC,X++" $6A81
+"DEC,Y" $6AA4
+"DEC,Y+" $6AA0
+"DEC,Y++" $6AA1
 "DECA" $4A
 "DECB" $5A
 "EORA #x" $88
-"EORA (,--S)" $A8
-"EORA (,--U)" $A8
-"EORA (,--X)" $A8
-"EORA (,--Y)" $A8
-"EORA (,S)" $A8
-"EORA (,S++)" $A8
-"EORA (,U)" $A8
-"EORA (,U++)" $A8
-"EORA (,X)" $A8
-"EORA (,X++)" $A8
-"EORA (,Y)" $A8
-"EORA (,Y++)" $A8
-"EORA (?)" $A8
-"EORA (?,PCR)" $A8
-"EORA (?,S)" $A8
-"EORA (?,U)" $A8
-"EORA (?,X)" $A8
-"EORA (?,Y)" $A8
-"EORA (A,S)" $A8
-"EORA (A,U)" $A8
-"EORA (A,X)" $A8
-"EORA (A,Y)" $A8
-"EORA (B,S)" $A8
-"EORA (B,U)" $A8
-"EORA (B,X)" $A8
-"EORA (B,Y)" $A8
-"EORA (D,S)" $A8
-"EORA (D,U)" $A8
-"EORA (D,X)" $A8
-"EORA (D,Y)" $A8
-"EORA (x,PCR)" $A8
-"EORA (x,S)" $A8
-"EORA (x,U)" $A8
-"EORA (x,X)" $A8
-"EORA (x,Y)" $A8
+"EORA (,--S)" $A8F3
+"EORA (,--U)" $A8D3
+"EORA (,--X)" $A893
+"EORA (,--Y)" $A8B3
+"EORA (,S)" $A8F4
+"EORA (,S++)" $A8F1
+"EORA (,U)" $A8D4
+"EORA (,U++)" $A8D1
+"EORA (,X)" $A894
+"EORA (,X++)" $A891
+"EORA (,Y)" $A8B4
+"EORA (,Y++)" $A8B1
+"EORA (?)" $A89F
+"EORA (?,PCR)" $A89D
+"EORA (?,S)" $A8F9
+"EORA (?,U)" $A8D9
+"EORA (?,X)" $A899
+"EORA (?,Y)" $A8B9
+"EORA (A,S)" $A8F6
+"EORA (A,U)" $A8D6
+"EORA (A,X)" $A896
+"EORA (A,Y)" $A8B6
+"EORA (B,S)" $A8F5
+"EORA (B,U)" $A8D5
+"EORA (B,X)" $A895
+"EORA (B,Y)" $A8B5
+"EORA (D,S)" $A8FB
+"EORA (D,U)" $A8DB
+"EORA (D,X)" $A89B
+"EORA (D,Y)" $A8BB
+"EORA (x,PCR)" $A89C
+"EORA (x,S)" $A8F8
+"EORA (x,U)" $A8D8
+"EORA (x,X)" $A898
+"EORA (x,Y)" $A8B8
 "EORA ?" $B8
-"EORA ?,PCR" $A8
-"EORA ?,S" $A8
-"EORA ?,U" $A8
-"EORA ?,X" $A8
-"EORA ?,Y" $A8
-"EORA A,S" $A8
-"EORA A,U" $A8
-"EORA A,X" $A8
-"EORA A,Y" $A8
-"EORA B,S" $A8
-"EORA B,U" $A8
-"EORA B,X" $A8
-"EORA B,Y" $A8
-"EORA D,S" $A8
-"EORA D,U" $A8
-"EORA D,X" $A8
-"EORA D,Y" $A8
-"EORA s,S" $A8
-"EORA s,U" $A8
-"EORA s,X" $A8
-"EORA s,Y" $A8
+"EORA ?,PCR" $A88D
+"EORA ?,S" $A8E9
+"EORA ?,U" $A8C9
+"EORA ?,X" $A889
+"EORA ?,Y" $A8A9
+"EORA A,S" $A8E6
+"EORA A,U" $A8C6
+"EORA A,X" $A886
+"EORA A,Y" $A8A6
+"EORA B,S" $A8E5
+"EORA B,U" $A8C5
+"EORA B,X" $A885
+"EORA B,Y" $A8A5
+"EORA D,S" $A8EB
+"EORA D,U" $A8CB
+"EORA D,X" $A88B
+"EORA D,Y" $A8AB
+"EORA s,S" $A860
+"EORA s,U" $A840
+"EORA s,X" $A800
+"EORA s,Y" $A820
 "EORA x" $98
-"EORA x,PCR" $A8
-"EORA x,S" $A8
-"EORA x,U" $A8
-"EORA x,X" $A8
-"EORA x,Y" $A8
-"EORA,--S" $A8
-"EORA,--U" $A8
-"EORA,--X" $A8
-"EORA,--Y" $A8
-"EORA,-S" $A8
-"EORA,-U" $A8
-"EORA,-X" $A8
-"EORA,-Y" $A8
-"EORA,S" $A8
-"EORA,S+" $A8
-"EORA,S++" $A8
-"EORA,U" $A8
-"EORA,U+" $A8
-"EORA,U++" $A8
-"EORA,X" $A8
-"EORA,X+" $A8
-"EORA,X++" $A8
-"EORA,Y" $A8
-"EORA,Y+" $A8
-"EORA,Y++" $A8
+"EORA x,PCR" $A88C
+"EORA x,S" $A8E8
+"EORA x,U" $A8C8
+"EORA x,X" $A888
+"EORA x,Y" $A8A8
+"EORA,--S" $A8E3
+"EORA,--U" $A8C3
+"EORA,--X" $A883
+"EORA,--Y" $A8A3
+"EORA,-S" $A8E2
+"EORA,-U" $A8C2
+"EORA,-X" $A882
+"EORA,-Y" $A8A2
+"EORA,S" $A8E4
+"EORA,S+" $A8E0
+"EORA,S++" $A8E1
+"EORA,U" $A8C4
+"EORA,U+" $A8C0
+"EORA,U++" $A8C1
+"EORA,X" $A884
+"EORA,X+" $A880
+"EORA,X++" $A881
+"EORA,Y" $A8A4
+"EORA,Y+" $A8A0
+"EORA,Y++" $A8A1
 "EORB #x" $C8
-"EORB (,--S)" $E8
-"EORB (,--U)" $E8
-"EORB (,--X)" $E8
-"EORB (,--Y)" $E8
-"EORB (,S)" $E8
-"EORB (,S++)" $E8
-"EORB (,U)" $E8
-"EORB (,U++)" $E8
-"EORB (,X)" $E8
-"EORB (,X++)" $E8
-"EORB (,Y)" $E8
-"EORB (,Y++)" $E8
-"EORB (?)" $E8
-"EORB (?,PCR)" $E8
-"EORB (?,S)" $E8
-"EORB (?,U)" $E8
-"EORB (?,X)" $E8
-"EORB (?,Y)" $E8
-"EORB (A,S)" $E8
-"EORB (A,U)" $E8
-"EORB (A,X)" $E8
-"EORB (A,Y)" $E8
-"EORB (B,S)" $E8
-"EORB (B,U)" $E8
-"EORB (B,X)" $E8
-"EORB (B,Y)" $E8
-"EORB (D,S)" $E8
-"EORB (D,U)" $E8
-"EORB (D,X)" $E8
-"EORB (D,Y)" $E8
-"EORB (x,PCR)" $E8
-"EORB (x,S)" $E8
-"EORB (x,U)" $E8
-"EORB (x,X)" $E8
-"EORB (x,Y)" $E8
+"EORB (,--S)" $E8F3
+"EORB (,--U)" $E8D3
+"EORB (,--X)" $E893
+"EORB (,--Y)" $E8B3
+"EORB (,S)" $E8F4
+"EORB (,S++)" $E8F1
+"EORB (,U)" $E8D4
+"EORB (,U++)" $E8D1
+"EORB (,X)" $E894
+"EORB (,X++)" $E891
+"EORB (,Y)" $E8B4
+"EORB (,Y++)" $E8B1
+"EORB (?)" $E89F
+"EORB (?,PCR)" $E89D
+"EORB (?,S)" $E8F9
+"EORB (?,U)" $E8D9
+"EORB (?,X)" $E899
+"EORB (?,Y)" $E8B9
+"EORB (A,S)" $E8F6
+"EORB (A,U)" $E8D6
+"EORB (A,X)" $E896
+"EORB (A,Y)" $E8B6
+"EORB (B,S)" $E8F5
+"EORB (B,U)" $E8D5
+"EORB (B,X)" $E895
+"EORB (B,Y)" $E8B5
+"EORB (D,S)" $E8FB
+"EORB (D,U)" $E8DB
+"EORB (D,X)" $E89B
+"EORB (D,Y)" $E8BB
+"EORB (x,PCR)" $E89C
+"EORB (x,S)" $E8F8
+"EORB (x,U)" $E8D8
+"EORB (x,X)" $E898
+"EORB (x,Y)" $E8B8
 "EORB ?" $F8
-"EORB ?,PCR" $E8
-"EORB ?,S" $E8
-"EORB ?,U" $E8
-"EORB ?,X" $E8
-"EORB ?,Y" $E8
-"EORB A,S" $E8
-"EORB A,U" $E8
-"EORB A,X" $E8
-"EORB A,Y" $E8
-"EORB B,S" $E8
-"EORB B,U" $E8
-"EORB B,X" $E8
-"EORB B,Y" $E8
-"EORB D,S" $E8
-"EORB D,U" $E8
-"EORB D,X" $E8
-"EORB D,Y" $E8
-"EORB s,S" $E8
-"EORB s,U" $E8
-"EORB s,X" $E8
-"EORB s,Y" $E8
+"EORB ?,PCR" $E88D
+"EORB ?,S" $E8E9
+"EORB ?,U" $E8C9
+"EORB ?,X" $E889
+"EORB ?,Y" $E8A9
+"EORB A,S" $E8E6
+"EORB A,U" $E8C6
+"EORB A,X" $E886
+"EORB A,Y" $E8A6
+"EORB B,S" $E8E5
+"EORB B,U" $E8C5
+"EORB B,X" $E885
+"EORB B,Y" $E8A5
+"EORB D,S" $E8EB
+"EORB D,U" $E8CB
+"EORB D,X" $E88B
+"EORB D,Y" $E8AB
+"EORB s,S" $E860
+"EORB s,U" $E840
+"EORB s,X" $E800
+"EORB s,Y" $E820
 "EORB x" $D8
-"EORB x,PCR" $E8
-"EORB x,S" $E8
-"EORB x,U" $E8
-"EORB x,X" $E8
-"EORB x,Y" $E8
-"EORB,--S" $E8
-"EORB,--U" $E8
-"EORB,--X" $E8
-"EORB,--Y" $E8
-"EORB,-S" $E8
-"EORB,-U" $E8
-"EORB,-X" $E8
-"EORB,-Y" $E8
-"EORB,S" $E8
-"EORB,S+" $E8
-"EORB,S++" $E8
-"EORB,U" $E8
-"EORB,U+" $E8
-"EORB,U++" $E8
-"EORB,X" $E8
-"EORB,X+" $E8
-"EORB,X++" $E8
-"EORB,Y" $E8
-"EORB,Y+" $E8
-"EORB,Y++" $E8
+"EORB x,PCR" $E88C
+"EORB x,S" $E8E8
+"EORB x,U" $E8C8
+"EORB x,X" $E888
+"EORB x,Y" $E8A8
+"EORB,--S" $E8E3
+"EORB,--U" $E8C3
+"EORB,--X" $E883
+"EORB,--Y" $E8A3
+"EORB,-S" $E8E2
+"EORB,-U" $E8C2
+"EORB,-X" $E882
+"EORB,-Y" $E8A2
+"EORB,S" $E8E4
+"EORB,S+" $E8E0
+"EORB,S++" $E8E1
+"EORB,U" $E8C4
+"EORB,U+" $E8C0
+"EORB,U++" $E8C1
+"EORB,X" $E884
+"EORB,X+" $E880
+"EORB,X++" $E881
+"EORB,Y" $E8A4
+"EORB,Y+" $E8A0
+"EORB,Y++" $E8A1
 "EXG r" $1E
-"INC (,--S)" $6C
-"INC (,--U)" $6C
-"INC (,--X)" $6C
-"INC (,--Y)" $6C
-"INC (,S)" $6C
-"INC (,S++)" $6C
-"INC (,U)" $6C
-"INC (,U++)" $6C
-"INC (,X)" $6C
-"INC (,X++)" $6C
-"INC (,Y)" $6C
-"INC (,Y++)" $6C
-"INC (?)" $6C
-"INC (?,PCR)" $6C
-"INC (?,S)" $6C
-"INC (?,U)" $6C
-"INC (?,X)" $6C
-"INC (?,Y)" $6C
-"INC (A,S)" $6C
-"INC (A,U)" $6C
-"INC (A,X)" $6C
-"INC (A,Y)" $6C
-"INC (B,S)" $6C
-"INC (B,U)" $6C
-"INC (B,X)" $6C
-"INC (B,Y)" $6C
-"INC (D,S)" $6C
-"INC (D,U)" $6C
-"INC (D,X)" $6C
-"INC (D,Y)" $6C
-"INC (x,PCR)" $6C
-"INC (x,S)" $6C
-"INC (x,U)" $6C
-"INC (x,X)" $6C
-"INC (x,Y)" $6C
+"INC (,--S)" $6CF3
+"INC (,--U)" $6CD3
+"INC (,--X)" $6C93
+"INC (,--Y)" $6CB3
+"INC (,S)" $6CF4
+"INC (,S++)" $6CF1
+"INC (,U)" $6CD4
+"INC (,U++)" $6CD1
+"INC (,X)" $6C94
+"INC (,X++)" $6C91
+"INC (,Y)" $6CB4
+"INC (,Y++)" $6CB1
+"INC (?)" $6C9F
+"INC (?,PCR)" $6C9D
+"INC (?,S)" $6CF9
+"INC (?,U)" $6CD9
+"INC (?,X)" $6C99
+"INC (?,Y)" $6CB9
+"INC (A,S)" $6CF6
+"INC (A,U)" $6CD6
+"INC (A,X)" $6C96
+"INC (A,Y)" $6CB6
+"INC (B,S)" $6CF5
+"INC (B,U)" $6CD5
+"INC (B,X)" $6C95
+"INC (B,Y)" $6CB5
+"INC (D,S)" $6CFB
+"INC (D,U)" $6CDB
+"INC (D,X)" $6C9B
+"INC (D,Y)" $6CBB
+"INC (x,PCR)" $6C9C
+"INC (x,S)" $6CF8
+"INC (x,U)" $6CD8
+"INC (x,X)" $6C98
+"INC (x,Y)" $6CB8
 "INC ?" $7C
-"INC ?,PCR" $6C
-"INC ?,S" $6C
-"INC ?,U" $6C
-"INC ?,X" $6C
-"INC ?,Y" $6C
-"INC A,S" $6C
-"INC A,U" $6C
-"INC A,X" $6C
-"INC A,Y" $6C
-"INC B,S" $6C
-"INC B,U" $6C
-"INC B,X" $6C
-"INC B,Y" $6C
-"INC D,S" $6C
-"INC D,U" $6C
-"INC D,X" $6C
-"INC D,Y" $6C
-"INC s,S" $6C
-"INC s,U" $6C
-"INC s,X" $6C
-"INC s,Y" $6C
+"INC ?,PCR" $6C8D
+"INC ?,S" $6CE9
+"INC ?,U" $6CC9
+"INC ?,X" $6C89
+"INC ?,Y" $6CA9
+"INC A,S" $6CE6
+"INC A,U" $6CC6
+"INC A,X" $6C86
+"INC A,Y" $6CA6
+"INC B,S" $6CE5
+"INC B,U" $6CC5
+"INC B,X" $6C85
+"INC B,Y" $6CA5
+"INC D,S" $6CEB
+"INC D,U" $6CCB
+"INC D,X" $6C8B
+"INC D,Y" $6CAB
+"INC s,S" $6C60
+"INC s,U" $6C40
+"INC s,X" $6C00
+"INC s,Y" $6C20
 "INC x" $0C
-"INC x,PCR" $6C
-"INC x,S" $6C
-"INC x,U" $6C
-"INC x,X" $6C
-"INC x,Y" $6C
-"INC,--S" $6C
-"INC,--U" $6C
-"INC,--X" $6C
-"INC,--Y" $6C
-"INC,-S" $6C
-"INC,-U" $6C
-"INC,-X" $6C
-"INC,-Y" $6C
-"INC,S" $6C
-"INC,S+" $6C
-"INC,S++" $6C
-"INC,U" $6C
-"INC,U+" $6C
-"INC,U++" $6C
-"INC,X" $6C
-"INC,X+" $6C
-"INC,X++" $6C
-"INC,Y" $6C
-"INC,Y+" $6C
-"INC,Y++" $6C
+"INC x,PCR" $6C8C
+"INC x,S" $6CE8
+"INC x,U" $6CC8
+"INC x,X" $6C88
+"INC x,Y" $6CA8
+"INC,--S" $6CE3
+"INC,--U" $6CC3
+"INC,--X" $6C83
+"INC,--Y" $6CA3
+"INC,-S" $6CE2
+"INC,-U" $6CC2
+"INC,-X" $6C82
+"INC,-Y" $6CA2
+"INC,S" $6CE4
+"INC,S+" $6CE0
+"INC,S++" $6CE1
+"INC,U" $6CC4
+"INC,U+" $6CC0
+"INC,U++" $6CC1
+"INC,X" $6C84
+"INC,X+" $6C80
+"INC,X++" $6C81
+"INC,Y" $6CA4
+"INC,Y+" $6CA0
+"INC,Y++" $6CA1
 "INCA" $4C
 "INCB" $5C
-"JMP (,--S)" $6E
-"JMP (,--U)" $6E
-"JMP (,--X)" $6E
-"JMP (,--Y)" $6E
-"JMP (,S)" $6E
-"JMP (,S++)" $6E
-"JMP (,U)" $6E
-"JMP (,U++)" $6E
-"JMP (,X)" $6E
-"JMP (,X++)" $6E
-"JMP (,Y)" $6E
-"JMP (,Y++)" $6E
-"JMP (?)" $6E
-"JMP (?,PCR)" $6E
-"JMP (?,S)" $6E
-"JMP (?,U)" $6E
-"JMP (?,X)" $6E
-"JMP (?,Y)" $6E
-"JMP (A,S)" $6E
-"JMP (A,U)" $6E
-"JMP (A,X)" $6E
-"JMP (A,Y)" $6E
-"JMP (B,S)" $6E
-"JMP (B,U)" $6E
-"JMP (B,X)" $6E
-"JMP (B,Y)" $6E
-"JMP (D,S)" $6E
-"JMP (D,U)" $6E
-"JMP (D,X)" $6E
-"JMP (D,Y)" $6E
-"JMP (x,PCR)" $6E
-"JMP (x,S)" $6E
-"JMP (x,U)" $6E
-"JMP (x,X)" $6E
-"JMP (x,Y)" $6E
+"JMP (,--S)" $6EF3
+"JMP (,--U)" $6ED3
+"JMP (,--X)" $6E93
+"JMP (,--Y)" $6EB3
+"JMP (,S)" $6EF4
+"JMP (,S++)" $6EF1
+"JMP (,U)" $6ED4
+"JMP (,U++)" $6ED1
+"JMP (,X)" $6E94
+"JMP (,X++)" $6E91
+"JMP (,Y)" $6EB4
+"JMP (,Y++)" $6EB1
+"JMP (?)" $6E9F
+"JMP (?,PCR)" $6E9D
+"JMP (?,S)" $6EF9
+"JMP (?,U)" $6ED9
+"JMP (?,X)" $6E99
+"JMP (?,Y)" $6EB9
+"JMP (A,S)" $6EF6
+"JMP (A,U)" $6ED6
+"JMP (A,X)" $6E96
+"JMP (A,Y)" $6EB6
+"JMP (B,S)" $6EF5
+"JMP (B,U)" $6ED5
+"JMP (B,X)" $6E95
+"JMP (B,Y)" $6EB5
+"JMP (D,S)" $6EFB
+"JMP (D,U)" $6EDB
+"JMP (D,X)" $6E9B
+"JMP (D,Y)" $6EBB
+"JMP (x,PCR)" $6E9C
+"JMP (x,S)" $6EF8
+"JMP (x,U)" $6ED8
+"JMP (x,X)" $6E98
+"JMP (x,Y)" $6EB8
 "JMP ?" $7E
-"JMP ?,PCR" $6E
-"JMP ?,S" $6E
-"JMP ?,U" $6E
-"JMP ?,X" $6E
-"JMP ?,Y" $6E
-"JMP A,S" $6E
-"JMP A,U" $6E
-"JMP A,X" $6E
-"JMP A,Y" $6E
-"JMP B,S" $6E
-"JMP B,U" $6E
-"JMP B,X" $6E
-"JMP B,Y" $6E
-"JMP D,S" $6E
-"JMP D,U" $6E
-"JMP D,X" $6E
-"JMP D,Y" $6E
-"JMP s,S" $6E
-"JMP s,U" $6E
-"JMP s,X" $6E
-"JMP s,Y" $6E
+"JMP ?,PCR" $6E8D
+"JMP ?,S" $6EE9
+"JMP ?,U" $6EC9
+"JMP ?,X" $6E89
+"JMP ?,Y" $6EA9
+"JMP A,S" $6EE6
+"JMP A,U" $6EC6
+"JMP A,X" $6E86
+"JMP A,Y" $6EA6
+"JMP B,S" $6EE5
+"JMP B,U" $6EC5
+"JMP B,X" $6E85
+"JMP B,Y" $6EA5
+"JMP D,S" $6EEB
+"JMP D,U" $6ECB
+"JMP D,X" $6E8B
+"JMP D,Y" $6EAB
+"JMP s,S" $6E60
+"JMP s,U" $6E40
+"JMP s,X" $6E00
+"JMP s,Y" $6E20
 "JMP x" $0E
-"JMP x,PCR" $6E
-"JMP x,S" $6E
-"JMP x,U" $6E
-"JMP x,X" $6E
-"JMP x,Y" $6E
-"JMP,--S" $6E
-"JMP,--U" $6E
-"JMP,--X" $6E
-"JMP,--Y" $6E
-"JMP,-S" $6E
-"JMP,-U" $6E
-"JMP,-X" $6E
-"JMP,-Y" $6E
-"JMP,S" $6E
-"JMP,S+" $6E
-"JMP,S++" $6E
-"JMP,U" $6E
-"JMP,U+" $6E
-"JMP,U++" $6E
-"JMP,X" $6E
-"JMP,X+" $6E
-"JMP,X++" $6E
-"JMP,Y" $6E
-"JMP,Y+" $6E
-"JMP,Y++" $6E
-"JSR (,--S)" $AD
-"JSR (,--U)" $AD
-"JSR (,--X)" $AD
-"JSR (,--Y)" $AD
-"JSR (,S)" $AD
-"JSR (,S++)" $AD
-"JSR (,U)" $AD
-"JSR (,U++)" $AD
-"JSR (,X)" $AD
-"JSR (,X++)" $AD
-"JSR (,Y)" $AD
-"JSR (,Y++)" $AD
-"JSR (?)" $AD
-"JSR (?,PCR)" $AD
-"JSR (?,S)" $AD
-"JSR (?,U)" $AD
-"JSR (?,X)" $AD
-"JSR (?,Y)" $AD
-"JSR (A,S)" $AD
-"JSR (A,U)" $AD
-"JSR (A,X)" $AD
-"JSR (A,Y)" $AD
-"JSR (B,S)" $AD
-"JSR (B,U)" $AD
-"JSR (B,X)" $AD
-"JSR (B,Y)" $AD
-"JSR (D,S)" $AD
-"JSR (D,U)" $AD
-"JSR (D,X)" $AD
-"JSR (D,Y)" $AD
-"JSR (x,PCR)" $AD
-"JSR (x,S)" $AD
-"JSR (x,U)" $AD
-"JSR (x,X)" $AD
-"JSR (x,Y)" $AD
+"JMP x,PCR" $6E8C
+"JMP x,S" $6EE8
+"JMP x,U" $6EC8
+"JMP x,X" $6E88
+"JMP x,Y" $6EA8
+"JMP,--S" $6EE3
+"JMP,--U" $6EC3
+"JMP,--X" $6E83
+"JMP,--Y" $6EA3
+"JMP,-S" $6EE2
+"JMP,-U" $6EC2
+"JMP,-X" $6E82
+"JMP,-Y" $6EA2
+"JMP,S" $6EE4
+"JMP,S+" $6EE0
+"JMP,S++" $6EE1
+"JMP,U" $6EC4
+"JMP,U+" $6EC0
+"JMP,U++" $6EC1
+"JMP,X" $6E84
+"JMP,X+" $6E80
+"JMP,X++" $6E81
+"JMP,Y" $6EA4
+"JMP,Y+" $6EA0
+"JMP,Y++" $6EA1
+"JSR (,--S)" $ADF3
+"JSR (,--U)" $ADD3
+"JSR (,--X)" $AD93
+"JSR (,--Y)" $ADB3
+"JSR (,S)" $ADF4
+"JSR (,S++)" $ADF1
+"JSR (,U)" $ADD4
+"JSR (,U++)" $ADD1
+"JSR (,X)" $AD94
+"JSR (,X++)" $AD91
+"JSR (,Y)" $ADB4
+"JSR (,Y++)" $ADB1
+"JSR (?)" $AD9F
+"JSR (?,PCR)" $AD9D
+"JSR (?,S)" $ADF9
+"JSR (?,U)" $ADD9
+"JSR (?,X)" $AD99
+"JSR (?,Y)" $ADB9
+"JSR (A,S)" $ADF6
+"JSR (A,U)" $ADD6
+"JSR (A,X)" $AD96
+"JSR (A,Y)" $ADB6
+"JSR (B,S)" $ADF5
+"JSR (B,U)" $ADD5
+"JSR (B,X)" $AD95
+"JSR (B,Y)" $ADB5
+"JSR (D,S)" $ADFB
+"JSR (D,U)" $ADDB
+"JSR (D,X)" $AD9B
+"JSR (D,Y)" $ADBB
+"JSR (x,PCR)" $AD9C
+"JSR (x,S)" $ADF8
+"JSR (x,U)" $ADD8
+"JSR (x,X)" $AD98
+"JSR (x,Y)" $ADB8
 "JSR ?" $BD
-"JSR ?,PCR" $AD
-"JSR ?,S" $AD
-"JSR ?,U" $AD
-"JSR ?,X" $AD
-"JSR ?,Y" $AD
-"JSR A,S" $AD
-"JSR A,U" $AD
-"JSR A,X" $AD
-"JSR A,Y" $AD
-"JSR B,S" $AD
-"JSR B,U" $AD
-"JSR B,X" $AD
-"JSR B,Y" $AD
-"JSR D,S" $AD
-"JSR D,U" $AD
-"JSR D,X" $AD
-"JSR D,Y" $AD
-"JSR s,S" $AD
-"JSR s,U" $AD
-"JSR s,X" $AD
-"JSR s,Y" $AD
+"JSR ?,PCR" $AD8D
+"JSR ?,S" $ADE9
+"JSR ?,U" $ADC9
+"JSR ?,X" $AD89
+"JSR ?,Y" $ADA9
+"JSR A,S" $ADE6
+"JSR A,U" $ADC6
+"JSR A,X" $AD86
+"JSR A,Y" $ADA6
+"JSR B,S" $ADE5
+"JSR B,U" $ADC5
+"JSR B,X" $AD85
+"JSR B,Y" $ADA5
+"JSR D,S" $ADEB
+"JSR D,U" $ADCB
+"JSR D,X" $AD8B
+"JSR D,Y" $ADAB
+"JSR s,S" $AD60
+"JSR s,U" $AD40
+"JSR s,X" $AD00
+"JSR s,Y" $AD20
 "JSR x" $9D
-"JSR x,PCR" $AD
-"JSR x,S" $AD
-"JSR x,U" $AD
-"JSR x,X" $AD
-"JSR x,Y" $AD
-"JSR,--S" $AD
-"JSR,--U" $AD
-"JSR,--X" $AD
-"JSR,--Y" $AD
-"JSR,-S" $AD
-"JSR,-U" $AD
-"JSR,-X" $AD
-"JSR,-Y" $AD
-"JSR,S" $AD
-"JSR,S+" $AD
-"JSR,S++" $AD
-"JSR,U" $AD
-"JSR,U+" $AD
-"JSR,U++" $AD
-"JSR,X" $AD
-"JSR,X+" $AD
-"JSR,X++" $AD
-"JSR,Y" $AD
-"JSR,Y+" $AD
-"JSR,Y++" $AD
-"LBCC ?" $2410
-"LBCS ?" $2510
-"LBEQ ?" $2710
-"LBGE ?" $2C10
-"LBGT ?" $2E10
-"LBHI ?" $2210
-"LBHS ?" $2410
-"LBLE ?" $2F10
-"LBLO ?" $2510
-"LBLS ?" $2310
-"LBLT ?" $2D10
-"LBMI ?" $2B10
-"LBNE ?" $2610
-"LBPL ?" $2A10
+"JSR x,PCR" $AD8C
+"JSR x,S" $ADE8
+"JSR x,U" $ADC8
+"JSR x,X" $AD88
+"JSR x,Y" $ADA8
+"JSR,--S" $ADE3
+"JSR,--U" $ADC3
+"JSR,--X" $AD83
+"JSR,--Y" $ADA3
+"JSR,-S" $ADE2
+"JSR,-U" $ADC2
+"JSR,-X" $AD82
+"JSR,-Y" $ADA2
+"JSR,S" $ADE4
+"JSR,S+" $ADE0
+"JSR,S++" $ADE1
+"JSR,U" $ADC4
+"JSR,U+" $ADC0
+"JSR,U++" $ADC1
+"JSR,X" $AD84
+"JSR,X+" $AD80
+"JSR,X++" $AD81
+"JSR,Y" $ADA4
+"JSR,Y+" $ADA0
+"JSR,Y++" $ADA1
+"LBCC ?" $1024
+"LBCS ?" $1025
+"LBEQ ?" $1027
+"LBGE ?" $102C
+"LBGT ?" $102E
+"LBHI ?" $1022
+"LBHS ?" $1024
+"LBLE ?" $102F
+"LBLO ?" $1025
+"LBLS ?" $1023
+"LBLT ?" $102D
+"LBMI ?" $102B
+"LBNE ?" $1026
+"LBPL ?" $102A
 "LBRA ?" $16
-"LBRN ?" $2110
+"LBRN ?" $1021
 "LBSR ?" $17
-"LBVC ?" $2810
-"LBVS ?" $2910
+"LBVC ?" $1028
+"LBVS ?" $1029
 "LDA #x" $86
-"LDA (,--S)" $A6
-"LDA (,--U)" $A6
-"LDA (,--X)" $A6
-"LDA (,--Y)" $A6
-"LDA (,S)" $A6
-"LDA (,S++)" $A6
-"LDA (,U)" $A6
-"LDA (,U++)" $A6
-"LDA (,X)" $A6
-"LDA (,X++)" $A6
-"LDA (,Y)" $A6
-"LDA (,Y++)" $A6
-"LDA (?)" $A6
-"LDA (?,PCR)" $A6
-"LDA (?,S)" $A6
-"LDA (?,U)" $A6
-"LDA (?,X)" $A6
-"LDA (?,Y)" $A6
-"LDA (A,S)" $A6
-"LDA (A,U)" $A6
-"LDA (A,X)" $A6
-"LDA (A,Y)" $A6
-"LDA (B,S)" $A6
-"LDA (B,U)" $A6
-"LDA (B,X)" $A6
-"LDA (B,Y)" $A6
-"LDA (D,S)" $A6
-"LDA (D,U)" $A6
-"LDA (D,X)" $A6
-"LDA (D,Y)" $A6
-"LDA (x,PCR)" $A6
-"LDA (x,S)" $A6
-"LDA (x,U)" $A6
-"LDA (x,X)" $A6
-"LDA (x,Y)" $A6
+"LDA (,--S)" $A6F3
+"LDA (,--U)" $A6D3
+"LDA (,--X)" $A693
+"LDA (,--Y)" $A6B3
+"LDA (,S)" $A6F4
+"LDA (,S++)" $A6F1
+"LDA (,U)" $A6D4
+"LDA (,U++)" $A6D1
+"LDA (,X)" $A694
+"LDA (,X++)" $A691
+"LDA (,Y)" $A6B4
+"LDA (,Y++)" $A6B1
+"LDA (?)" $A69F
+"LDA (?,PCR)" $A69D
+"LDA (?,S)" $A6F9
+"LDA (?,U)" $A6D9
+"LDA (?,X)" $A699
+"LDA (?,Y)" $A6B9
+"LDA (A,S)" $A6F6
+"LDA (A,U)" $A6D6
+"LDA (A,X)" $A696
+"LDA (A,Y)" $A6B6
+"LDA (B,S)" $A6F5
+"LDA (B,U)" $A6D5
+"LDA (B,X)" $A695
+"LDA (B,Y)" $A6B5
+"LDA (D,S)" $A6FB
+"LDA (D,U)" $A6DB
+"LDA (D,X)" $A69B
+"LDA (D,Y)" $A6BB
+"LDA (x,PCR)" $A69C
+"LDA (x,S)" $A6F8
+"LDA (x,U)" $A6D8
+"LDA (x,X)" $A698
+"LDA (x,Y)" $A6B8
 "LDA ?" $B6
-"LDA ?,PCR" $A6
-"LDA ?,S" $A6
-"LDA ?,U" $A6
-"LDA ?,X" $A6
-"LDA ?,Y" $A6
-"LDA A,S" $A6
-"LDA A,U" $A6
-"LDA A,X" $A6
-"LDA A,Y" $A6
-"LDA B,S" $A6
-"LDA B,U" $A6
-"LDA B,X" $A6
-"LDA B,Y" $A6
-"LDA D,S" $A6
-"LDA D,U" $A6
-"LDA D,X" $A6
-"LDA D,Y" $A6
-"LDA s,S" $A6
-"LDA s,U" $A6
-"LDA s,X" $A6
-"LDA s,Y" $A6
+"LDA ?,PCR" $A68D
+"LDA ?,S" $A6E9
+"LDA ?,U" $A6C9
+"LDA ?,X" $A689
+"LDA ?,Y" $A6A9
+"LDA A,S" $A6E6
+"LDA A,U" $A6C6
+"LDA A,X" $A686
+"LDA A,Y" $A6A6
+"LDA B,S" $A6E5
+"LDA B,U" $A6C5
+"LDA B,X" $A685
+"LDA B,Y" $A6A5
+"LDA D,S" $A6EB
+"LDA D,U" $A6CB
+"LDA D,X" $A68B
+"LDA D,Y" $A6AB
+"LDA s,S" $A660
+"LDA s,U" $A640
+"LDA s,X" $A600
+"LDA s,Y" $A620
 "LDA x" $96
-"LDA x,PCR" $A6
-"LDA x,S" $A6
-"LDA x,U" $A6
-"LDA x,X" $A6
-"LDA x,Y" $A6
-"LDA,--S" $A6
-"LDA,--U" $A6
-"LDA,--X" $A6
-"LDA,--Y" $A6
-"LDA,-S" $A6
-"LDA,-U" $A6
-"LDA,-X" $A6
-"LDA,-Y" $A6
-"LDA,S" $A6
-"LDA,S+" $A6
-"LDA,S++" $A6
-"LDA,U" $A6
-"LDA,U+" $A6
-"LDA,U++" $A6
-"LDA,X" $A6
-"LDA,X+" $A6
-"LDA,X++" $A6
-"LDA,Y" $A6
-"LDA,Y+" $A6
-"LDA,Y++" $A6
+"LDA x,PCR" $A68C
+"LDA x,S" $A6E8
+"LDA x,U" $A6C8
+"LDA x,X" $A688
+"LDA x,Y" $A6A8
+"LDA,--S" $A6E3
+"LDA,--U" $A6C3
+"LDA,--X" $A683
+"LDA,--Y" $A6A3
+"LDA,-S" $A6E2
+"LDA,-U" $A6C2
+"LDA,-X" $A682
+"LDA,-Y" $A6A2
+"LDA,S" $A6E4
+"LDA,S+" $A6E0
+"LDA,S++" $A6E1
+"LDA,U" $A6C4
+"LDA,U+" $A6C0
+"LDA,U++" $A6C1
+"LDA,X" $A684
+"LDA,X+" $A680
+"LDA,X++" $A681
+"LDA,Y" $A6A4
+"LDA,Y+" $A6A0
+"LDA,Y++" $A6A1
 "LDB #x" $C6
-"LDB (,--S)" $E6
-"LDB (,--U)" $E6
-"LDB (,--X)" $E6
-"LDB (,--Y)" $E6
-"LDB (,S)" $E6
-"LDB (,S++)" $E6
-"LDB (,U)" $E6
-"LDB (,U++)" $E6
-"LDB (,X)" $E6
-"LDB (,X++)" $E6
-"LDB (,Y)" $E6
-"LDB (,Y++)" $E6
-"LDB (?)" $E6
-"LDB (?,PCR)" $E6
-"LDB (?,S)" $E6
-"LDB (?,U)" $E6
-"LDB (?,X)" $E6
-"LDB (?,Y)" $E6
-"LDB (A,S)" $E6
-"LDB (A,U)" $E6
-"LDB (A,X)" $E6
-"LDB (A,Y)" $E6
-"LDB (B,S)" $E6
-"LDB (B,U)" $E6
-"LDB (B,X)" $E6
-"LDB (B,Y)" $E6
-"LDB (D,S)" $E6
-"LDB (D,U)" $E6
-"LDB (D,X)" $E6
-"LDB (D,Y)" $E6
-"LDB (x,PCR)" $E6
-"LDB (x,S)" $E6
-"LDB (x,U)" $E6
-"LDB (x,X)" $E6
-"LDB (x,Y)" $E6
+"LDB (,--S)" $E6F3
+"LDB (,--U)" $E6D3
+"LDB (,--X)" $E693
+"LDB (,--Y)" $E6B3
+"LDB (,S)" $E6F4
+"LDB (,S++)" $E6F1
+"LDB (,U)" $E6D4
+"LDB (,U++)" $E6D1
+"LDB (,X)" $E694
+"LDB (,X++)" $E691
+"LDB (,Y)" $E6B4
+"LDB (,Y++)" $E6B1
+"LDB (?)" $E69F
+"LDB (?,PCR)" $E69D
+"LDB (?,S)" $E6F9
+"LDB (?,U)" $E6D9
+"LDB (?,X)" $E699
+"LDB (?,Y)" $E6B9
+"LDB (A,S)" $E6F6
+"LDB (A,U)" $E6D6
+"LDB (A,X)" $E696
+"LDB (A,Y)" $E6B6
+"LDB (B,S)" $E6F5
+"LDB (B,U)" $E6D5
+"LDB (B,X)" $E695
+"LDB (B,Y)" $E6B5
+"LDB (D,S)" $E6FB
+"LDB (D,U)" $E6DB
+"LDB (D,X)" $E69B
+"LDB (D,Y)" $E6BB
+"LDB (x,PCR)" $E69C
+"LDB (x,S)" $E6F8
+"LDB (x,U)" $E6D8
+"LDB (x,X)" $E698
+"LDB (x,Y)" $E6B8
 "LDB ?" $F6
-"LDB ?,PCR" $E6
-"LDB ?,S" $E6
-"LDB ?,U" $E6
-"LDB ?,X" $E6
-"LDB ?,Y" $E6
-"LDB A,S" $E6
-"LDB A,U" $E6
-"LDB A,X" $E6
-"LDB A,Y" $E6
-"LDB B,S" $E6
-"LDB B,U" $E6
-"LDB B,X" $E6
-"LDB B,Y" $E6
-"LDB D,S" $E6
-"LDB D,U" $E6
-"LDB D,X" $E6
-"LDB D,Y" $E6
-"LDB s,S" $E6
-"LDB s,U" $E6
-"LDB s,X" $E6
-"LDB s,Y" $E6
+"LDB ?,PCR" $E68D
+"LDB ?,S" $E6E9
+"LDB ?,U" $E6C9
+"LDB ?,X" $E689
+"LDB ?,Y" $E6A9
+"LDB A,S" $E6E6
+"LDB A,U" $E6C6
+"LDB A,X" $E686
+"LDB A,Y" $E6A6
+"LDB B,S" $E6E5
+"LDB B,U" $E6C5
+"LDB B,X" $E685
+"LDB B,Y" $E6A5
+"LDB D,S" $E6EB
+"LDB D,U" $E6CB
+"LDB D,X" $E68B
+"LDB D,Y" $E6AB
+"LDB s,S" $E660
+"LDB s,U" $E640
+"LDB s,X" $E600
+"LDB s,Y" $E620
 "LDB x" $D6
-"LDB x,PCR" $E6
-"LDB x,S" $E6
-"LDB x,U" $E6
-"LDB x,X" $E6
-"LDB x,Y" $E6
-"LDB,--S" $E6
-"LDB,--U" $E6
-"LDB,--X" $E6
-"LDB,--Y" $E6
-"LDB,-S" $E6
-"LDB,-U" $E6
-"LDB,-X" $E6
-"LDB,-Y" $E6
-"LDB,S" $E6
-"LDB,S+" $E6
-"LDB,S++" $E6
-"LDB,U" $E6
-"LDB,U+" $E6
-"LDB,U++" $E6
-"LDB,X" $E6
-"LDB,X+" $E6
-"LDB,X++" $E6
-"LDB,Y" $E6
-"LDB,Y+" $E6
-"LDB,Y++" $E6
+"LDB x,PCR" $E68C
+"LDB x,S" $E6E8
+"LDB x,U" $E6C8
+"LDB x,X" $E688
+"LDB x,Y" $E6A8
+"LDB,--S" $E6E3
+"LDB,--U" $E6C3
+"LDB,--X" $E683
+"LDB,--Y" $E6A3
+"LDB,-S" $E6E2
+"LDB,-U" $E6C2
+"LDB,-X" $E682
+"LDB,-Y" $E6A2
+"LDB,S" $E6E4
+"LDB,S+" $E6E0
+"LDB,S++" $E6E1
+"LDB,U" $E6C4
+"LDB,U+" $E6C0
+"LDB,U++" $E6C1
+"LDB,X" $E684
+"LDB,X+" $E680
+"LDB,X++" $E681
+"LDB,Y" $E6A4
+"LDB,Y+" $E6A0
+"LDB,Y++" $E6A1
 "LDD #x" $CC
-"LDD (,--S)" $EC
-"LDD (,--U)" $EC
-"LDD (,--X)" $EC
-"LDD (,--Y)" $EC
-"LDD (,S)" $EC
-"LDD (,S++)" $EC
-"LDD (,U)" $EC
-"LDD (,U++)" $EC
-"LDD (,X)" $EC
-"LDD (,X++)" $EC
-"LDD (,Y)" $EC
-"LDD (,Y++)" $EC
-"LDD (?)" $EC
-"LDD (?,PCR)" $EC
-"LDD (?,S)" $EC
-"LDD (?,U)" $EC
-"LDD (?,X)" $EC
-"LDD (?,Y)" $EC
-"LDD (A,S)" $EC
-"LDD (A,U)" $EC
-"LDD (A,X)" $EC
-"LDD (A,Y)" $EC
-"LDD (B,S)" $EC
-"LDD (B,U)" $EC
-"LDD (B,X)" $EC
-"LDD (B,Y)" $EC
-"LDD (D,S)" $EC
-"LDD (D,U)" $EC
-"LDD (D,X)" $EC
-"LDD (D,Y)" $EC
-"LDD (x,PCR)" $EC
-"LDD (x,S)" $EC
-"LDD (x,U)" $EC
-"LDD (x,X)" $EC
-"LDD (x,Y)" $EC
+"LDD (,--S)" $ECF3
+"LDD (,--U)" $ECD3
+"LDD (,--X)" $EC93
+"LDD (,--Y)" $ECB3
+"LDD (,S)" $ECF4
+"LDD (,S++)" $ECF1
+"LDD (,U)" $ECD4
+"LDD (,U++)" $ECD1
+"LDD (,X)" $EC94
+"LDD (,X++)" $EC91
+"LDD (,Y)" $ECB4
+"LDD (,Y++)" $ECB1
+"LDD (?)" $EC9F
+"LDD (?,PCR)" $EC9D
+"LDD (?,S)" $ECF9
+"LDD (?,U)" $ECD9
+"LDD (?,X)" $EC99
+"LDD (?,Y)" $ECB9
+"LDD (A,S)" $ECF6
+"LDD (A,U)" $ECD6
+"LDD (A,X)" $EC96
+"LDD (A,Y)" $ECB6
+"LDD (B,S)" $ECF5
+"LDD (B,U)" $ECD5
+"LDD (B,X)" $EC95
+"LDD (B,Y)" $ECB5
+"LDD (D,S)" $ECFB
+"LDD (D,U)" $ECDB
+"LDD (D,X)" $EC9B
+"LDD (D,Y)" $ECBB
+"LDD (x,PCR)" $EC9C
+"LDD (x,S)" $ECF8
+"LDD (x,U)" $ECD8
+"LDD (x,X)" $EC98
+"LDD (x,Y)" $ECB8
 "LDD ?" $FC
-"LDD ?,PCR" $EC
-"LDD ?,S" $EC
-"LDD ?,U" $EC
-"LDD ?,X" $EC
-"LDD ?,Y" $EC
-"LDD A,S" $EC
-"LDD A,U" $EC
-"LDD A,X" $EC
-"LDD A,Y" $EC
-"LDD B,S" $EC
-"LDD B,U" $EC
-"LDD B,X" $EC
-"LDD B,Y" $EC
-"LDD D,S" $EC
-"LDD D,U" $EC
-"LDD D,X" $EC
-"LDD D,Y" $EC
-"LDD s,S" $EC
-"LDD s,U" $EC
-"LDD s,X" $EC
-"LDD s,Y" $EC
+"LDD ?,PCR" $EC8D
+"LDD ?,S" $ECE9
+"LDD ?,U" $ECC9
+"LDD ?,X" $EC89
+"LDD ?,Y" $ECA9
+"LDD A,S" $ECE6
+"LDD A,U" $ECC6
+"LDD A,X" $EC86
+"LDD A,Y" $ECA6
+"LDD B,S" $ECE5
+"LDD B,U" $ECC5
+"LDD B,X" $EC85
+"LDD B,Y" $ECA5
+"LDD D,S" $ECEB
+"LDD D,U" $ECCB
+"LDD D,X" $EC8B
+"LDD D,Y" $ECAB
+"LDD s,S" $EC60
+"LDD s,U" $EC40
+"LDD s,X" $EC00
+"LDD s,Y" $EC20
 "LDD x" $DC
-"LDD x,PCR" $EC
-"LDD x,S" $EC
-"LDD x,U" $EC
-"LDD x,X" $EC
-"LDD x,Y" $EC
-"LDD,--S" $EC
-"LDD,--U" $EC
-"LDD,--X" $EC
-"LDD,--Y" $EC
-"LDD,-S" $EC
-"LDD,-U" $EC
-"LDD,-X" $EC
-"LDD,-Y" $EC
-"LDD,S" $EC
-"LDD,S+" $EC
-"LDD,S++" $EC
-"LDD,U" $EC
-"LDD,U+" $EC
-"LDD,U++" $EC
-"LDD,X" $EC
-"LDD,X+" $EC
-"LDD,X++" $EC
-"LDD,Y" $EC
-"LDD,Y+" $EC
-"LDD,Y++" $EC
-"LDS #x" $CE10
-"LDS (,--S)" $EE10
-"LDS (,--U)" $EE10
-"LDS (,--X)" $EE10
-"LDS (,--Y)" $EE10
-"LDS (,S)" $EE10
-"LDS (,S++)" $EE10
-"LDS (,U)" $EE10
-"LDS (,U++)" $EE10
-"LDS (,X)" $EE10
-"LDS (,X++)" $EE10
-"LDS (,Y)" $EE10
-"LDS (,Y++)" $EE10
-"LDS (?)" $EE10
-"LDS (?,PCR)" $EE10
-"LDS (?,S)" $EE10
-"LDS (?,U)" $EE10
-"LDS (?,X)" $EE10
-"LDS (?,Y)" $EE10
-"LDS (A,S)" $EE10
-"LDS (A,U)" $EE10
-"LDS (A,X)" $EE10
-"LDS (A,Y)" $EE10
-"LDS (B,S)" $EE10
-"LDS (B,U)" $EE10
-"LDS (B,X)" $EE10
-"LDS (B,Y)" $EE10
-"LDS (D,S)" $EE10
-"LDS (D,U)" $EE10
-"LDS (D,X)" $EE10
-"LDS (D,Y)" $EE10
-"LDS (x,PCR)" $EE10
-"LDS (x,S)" $EE10
-"LDS (x,U)" $EE10
-"LDS (x,X)" $EE10
-"LDS (x,Y)" $EE10
-"LDS ?" $FE10
-"LDS ?,PCR" $EE10
-"LDS ?,S" $EE10
-"LDS ?,U" $EE10
-"LDS ?,X" $EE10
-"LDS ?,Y" $EE10
-"LDS A,S" $EE10
-"LDS A,U" $EE10
-"LDS A,X" $EE10
-"LDS A,Y" $EE10
-"LDS B,S" $EE10
-"LDS B,U" $EE10
-"LDS B,X" $EE10
-"LDS B,Y" $EE10
-"LDS D,S" $EE10
-"LDS D,U" $EE10
-"LDS D,X" $EE10
-"LDS D,Y" $EE10
-"LDS s,S" $EE10
-"LDS s,U" $EE10
-"LDS s,X" $EE10
-"LDS s,Y" $EE10
-"LDS x" $DE10
-"LDS x,PCR" $EE10
-"LDS x,S" $EE10
-"LDS x,U" $EE10
-"LDS x,X" $EE10
-"LDS x,Y" $EE10
-"LDS,--S" $EE10
-"LDS,--U" $EE10
-"LDS,--X" $EE10
-"LDS,--Y" $EE10
-"LDS,-S" $EE10
-"LDS,-U" $EE10
-"LDS,-X" $EE10
-"LDS,-Y" $EE10
-"LDS,S" $EE10
-"LDS,S+" $EE10
-"LDS,S++" $EE10
-"LDS,U" $EE10
-"LDS,U+" $EE10
-"LDS,U++" $EE10
-"LDS,X" $EE10
-"LDS,X+" $EE10
-"LDS,X++" $EE10
-"LDS,Y" $EE10
-"LDS,Y+" $EE10
-"LDS,Y++" $EE10
+"LDD x,PCR" $EC8C
+"LDD x,S" $ECE8
+"LDD x,U" $ECC8
+"LDD x,X" $EC88
+"LDD x,Y" $ECA8
+"LDD,--S" $ECE3
+"LDD,--U" $ECC3
+"LDD,--X" $EC83
+"LDD,--Y" $ECA3
+"LDD,-S" $ECE2
+"LDD,-U" $ECC2
+"LDD,-X" $EC82
+"LDD,-Y" $ECA2
+"LDD,S" $ECE4
+"LDD,S+" $ECE0
+"LDD,S++" $ECE1
+"LDD,U" $ECC4
+"LDD,U+" $ECC0
+"LDD,U++" $ECC1
+"LDD,X" $EC84
+"LDD,X+" $EC80
+"LDD,X++" $EC81
+"LDD,Y" $ECA4
+"LDD,Y+" $ECA0
+"LDD,Y++" $ECA1
+"LDS #x" $10CE
+"LDS (,--S)" $10EEF3
+"LDS (,--U)" $10EED3
+"LDS (,--X)" $10EE93
+"LDS (,--Y)" $10EEB3
+"LDS (,S)" $10EEF4
+"LDS (,S++)" $10EEF1
+"LDS (,U)" $10EED4
+"LDS (,U++)" $10EED1
+"LDS (,X)" $10EE94
+"LDS (,X++)" $10EE91
+"LDS (,Y)" $10EEB4
+"LDS (,Y++)" $10EEB1
+"LDS (?)" $10EE9F
+"LDS (?,PCR)" $10EE9D
+"LDS (?,S)" $10EEF9
+"LDS (?,U)" $10EED9
+"LDS (?,X)" $10EE99
+"LDS (?,Y)" $10EEB9
+"LDS (A,S)" $10EEF6
+"LDS (A,U)" $10EED6
+"LDS (A,X)" $10EE96
+"LDS (A,Y)" $10EEB6
+"LDS (B,S)" $10EEF5
+"LDS (B,U)" $10EED5
+"LDS (B,X)" $10EE95
+"LDS (B,Y)" $10EEB5
+"LDS (D,S)" $10EEFB
+"LDS (D,U)" $10EEDB
+"LDS (D,X)" $10EE9B
+"LDS (D,Y)" $10EEBB
+"LDS (x,PCR)" $10EE9C
+"LDS (x,S)" $10EEF8
+"LDS (x,U)" $10EED8
+"LDS (x,X)" $10EE98
+"LDS (x,Y)" $10EEB8
+"LDS ?" $10FE
+"LDS ?,PCR" $10EE8D
+"LDS ?,S" $10EEE9
+"LDS ?,U" $10EEC9
+"LDS ?,X" $10EE89
+"LDS ?,Y" $10EEA9
+"LDS A,S" $10EEE6
+"LDS A,U" $10EEC6
+"LDS A,X" $10EE86
+"LDS A,Y" $10EEA6
+"LDS B,S" $10EEE5
+"LDS B,U" $10EEC5
+"LDS B,X" $10EE85
+"LDS B,Y" $10EEA5
+"LDS D,S" $10EEEB
+"LDS D,U" $10EECB
+"LDS D,X" $10EE8B
+"LDS D,Y" $10EEAB
+"LDS s,S" $10EE60
+"LDS s,U" $10EE40
+"LDS s,X" $10EE00
+"LDS s,Y" $10EE20
+"LDS x" $10DE
+"LDS x,PCR" $10EE8C
+"LDS x,S" $10EEE8
+"LDS x,U" $10EEC8
+"LDS x,X" $10EE88
+"LDS x,Y" $10EEA8
+"LDS,--S" $10EEE3
+"LDS,--U" $10EEC3
+"LDS,--X" $10EE83
+"LDS,--Y" $10EEA3
+"LDS,-S" $10EEE2
+"LDS,-U" $10EEC2
+"LDS,-X" $10EE82
+"LDS,-Y" $10EEA2
+"LDS,S" $10EEE4
+"LDS,S+" $10EEE0
+"LDS,S++" $10EEE1
+"LDS,U" $10EEC4
+"LDS,U+" $10EEC0
+"LDS,U++" $10EEC1
+"LDS,X" $10EE84
+"LDS,X+" $10EE80
+"LDS,X++" $10EE81
+"LDS,Y" $10EEA4
+"LDS,Y+" $10EEA0
+"LDS,Y++" $10EEA1
 "LDU #x" $CE
-"LDU (,--S)" $EE
-"LDU (,--U)" $EE
-"LDU (,--X)" $EE
-"LDU (,--Y)" $EE
-"LDU (,S)" $EE
-"LDU (,S++)" $EE
-"LDU (,U)" $EE
-"LDU (,U++)" $EE
-"LDU (,X)" $EE
-"LDU (,X++)" $EE
-"LDU (,Y)" $EE
-"LDU (,Y++)" $EE
-"LDU (?)" $EE
-"LDU (?,PCR)" $EE
-"LDU (?,S)" $EE
-"LDU (?,U)" $EE
-"LDU (?,X)" $EE
-"LDU (?,Y)" $EE
-"LDU (A,S)" $EE
-"LDU (A,U)" $EE
-"LDU (A,X)" $EE
-"LDU (A,Y)" $EE
-"LDU (B,S)" $EE
-"LDU (B,U)" $EE
-"LDU (B,X)" $EE
-"LDU (B,Y)" $EE
-"LDU (D,S)" $EE
-"LDU (D,U)" $EE
-"LDU (D,X)" $EE
-"LDU (D,Y)" $EE
-"LDU (x,PCR)" $EE
-"LDU (x,S)" $EE
-"LDU (x,U)" $EE
-"LDU (x,X)" $EE
-"LDU (x,Y)" $EE
+"LDU (,--S)" $EEF3
+"LDU (,--U)" $EED3
+"LDU (,--X)" $EE93
+"LDU (,--Y)" $EEB3
+"LDU (,S)" $EEF4
+"LDU (,S++)" $EEF1
+"LDU (,U)" $EED4
+"LDU (,U++)" $EED1
+"LDU (,X)" $EE94
+"LDU (,X++)" $EE91
+"LDU (,Y)" $EEB4
+"LDU (,Y++)" $EEB1
+"LDU (?)" $EE9F
+"LDU (?,PCR)" $EE9D
+"LDU (?,S)" $EEF9
+"LDU (?,U)" $EED9
+"LDU (?,X)" $EE99
+"LDU (?,Y)" $EEB9
+"LDU (A,S)" $EEF6
+"LDU (A,U)" $EED6
+"LDU (A,X)" $EE96
+"LDU (A,Y)" $EEB6
+"LDU (B,S)" $EEF5
+"LDU (B,U)" $EED5
+"LDU (B,X)" $EE95
+"LDU (B,Y)" $EEB5
+"LDU (D,S)" $EEFB
+"LDU (D,U)" $EEDB
+"LDU (D,X)" $EE9B
+"LDU (D,Y)" $EEBB
+"LDU (x,PCR)" $EE9C
+"LDU (x,S)" $EEF8
+"LDU (x,U)" $EED8
+"LDU (x,X)" $EE98
+"LDU (x,Y)" $EEB8
 "LDU ?" $FE
-"LDU ?,PCR" $EE
-"LDU ?,S" $EE
-"LDU ?,U" $EE
-"LDU ?,X" $EE
-"LDU ?,Y" $EE
-"LDU A,S" $EE
-"LDU A,U" $EE
-"LDU A,X" $EE
-"LDU A,Y" $EE
-"LDU B,S" $EE
-"LDU B,U" $EE
-"LDU B,X" $EE
-"LDU B,Y" $EE
-"LDU D,S" $EE
-"LDU D,U" $EE
-"LDU D,X" $EE
-"LDU D,Y" $EE
-"LDU s,S" $EE
-"LDU s,U" $EE
-"LDU s,X" $EE
-"LDU s,Y" $EE
+"LDU ?,PCR" $EE8D
+"LDU ?,S" $EEE9
+"LDU ?,U" $EEC9
+"LDU ?,X" $EE89
+"LDU ?,Y" $EEA9
+"LDU A,S" $EEE6
+"LDU A,U" $EEC6
+"LDU A,X" $EE86
+"LDU A,Y" $EEA6
+"LDU B,S" $EEE5
+"LDU B,U" $EEC5
+"LDU B,X" $EE85
+"LDU B,Y" $EEA5
+"LDU D,S" $EEEB
+"LDU D,U" $EECB
+"LDU D,X" $EE8B
+"LDU D,Y" $EEAB
+"LDU s,S" $EE60
+"LDU s,U" $EE40
+"LDU s,X" $EE00
+"LDU s,Y" $EE20
 "LDU x" $DE
-"LDU x,PCR" $EE
-"LDU x,S" $EE
-"LDU x,U" $EE
-"LDU x,X" $EE
-"LDU x,Y" $EE
-"LDU,--S" $EE
-"LDU,--U" $EE
-"LDU,--X" $EE
-"LDU,--Y" $EE
-"LDU,-S" $EE
-"LDU,-U" $EE
-"LDU,-X" $EE
-"LDU,-Y" $EE
-"LDU,S" $EE
-"LDU,S+" $EE
-"LDU,S++" $EE
-"LDU,U" $EE
-"LDU,U+" $EE
-"LDU,U++" $EE
-"LDU,X" $EE
-"LDU,X+" $EE
-"LDU,X++" $EE
-"LDU,Y" $EE
-"LDU,Y+" $EE
-"LDU,Y++" $EE
+"LDU x,PCR" $EE8C
+"LDU x,S" $EEE8
+"LDU x,U" $EEC8
+"LDU x,X" $EE88
+"LDU x,Y" $EEA8
+"LDU,--S" $EEE3
+"LDU,--U" $EEC3
+"LDU,--X" $EE83
+"LDU,--Y" $EEA3
+"LDU,-S" $EEE2
+"LDU,-U" $EEC2
+"LDU,-X" $EE82
+"LDU,-Y" $EEA2
+"LDU,S" $EEE4
+"LDU,S+" $EEE0
+"LDU,S++" $EEE1
+"LDU,U" $EEC4
+"LDU,U+" $EEC0
+"LDU,U++" $EEC1
+"LDU,X" $EE84
+"LDU,X+" $EE80
+"LDU,X++" $EE81
+"LDU,Y" $EEA4
+"LDU,Y+" $EEA0
+"LDU,Y++" $EEA1
 "LDX #x" $8E
-"LDX (,--S)" $AE
-"LDX (,--U)" $AE
-"LDX (,--X)" $AE
-"LDX (,--Y)" $AE
-"LDX (,S)" $AE
-"LDX (,S++)" $AE
-"LDX (,U)" $AE
-"LDX (,U++)" $AE
-"LDX (,X)" $AE
-"LDX (,X++)" $AE
-"LDX (,Y)" $AE
-"LDX (,Y++)" $AE
-"LDX (?)" $AE
-"LDX (?,PCR)" $AE
-"LDX (?,S)" $AE
-"LDX (?,U)" $AE
-"LDX (?,X)" $AE
-"LDX (?,Y)" $AE
-"LDX (A,S)" $AE
-"LDX (A,U)" $AE
-"LDX (A,X)" $AE
-"LDX (A,Y)" $AE
-"LDX (B,S)" $AE
-"LDX (B,U)" $AE
-"LDX (B,X)" $AE
-"LDX (B,Y)" $AE
-"LDX (D,S)" $AE
-"LDX (D,U)" $AE
-"LDX (D,X)" $AE
-"LDX (D,Y)" $AE
-"LDX (x,PCR)" $AE
-"LDX (x,S)" $AE
-"LDX (x,U)" $AE
-"LDX (x,X)" $AE
-"LDX (x,Y)" $AE
+"LDX (,--S)" $AEF3
+"LDX (,--U)" $AED3
+"LDX (,--X)" $AE93
+"LDX (,--Y)" $AEB3
+"LDX (,S)" $AEF4
+"LDX (,S++)" $AEF1
+"LDX (,U)" $AED4
+"LDX (,U++)" $AED1
+"LDX (,X)" $AE94
+"LDX (,X++)" $AE91
+"LDX (,Y)" $AEB4
+"LDX (,Y++)" $AEB1
+"LDX (?)" $AE9F
+"LDX (?,PCR)" $AE9D
+"LDX (?,S)" $AEF9
+"LDX (?,U)" $AED9
+"LDX (?,X)" $AE99
+"LDX (?,Y)" $AEB9
+"LDX (A,S)" $AEF6
+"LDX (A,U)" $AED6
+"LDX (A,X)" $AE96
+"LDX (A,Y)" $AEB6
+"LDX (B,S)" $AEF5
+"LDX (B,U)" $AED5
+"LDX (B,X)" $AE95
+"LDX (B,Y)" $AEB5
+"LDX (D,S)" $AEFB
+"LDX (D,U)" $AEDB
+"LDX (D,X)" $AE9B
+"LDX (D,Y)" $AEBB
+"LDX (x,PCR)" $AE9C
+"LDX (x,S)" $AEF8
+"LDX (x,U)" $AED8
+"LDX (x,X)" $AE98
+"LDX (x,Y)" $AEB8
 "LDX ?" $BE
-"LDX ?,PCR" $AE
-"LDX ?,S" $AE
-"LDX ?,U" $AE
-"LDX ?,X" $AE
-"LDX ?,Y" $AE
-"LDX A,S" $AE
-"LDX A,U" $AE
-"LDX A,X" $AE
-"LDX A,Y" $AE
-"LDX B,S" $AE
-"LDX B,U" $AE
-"LDX B,X" $AE
-"LDX B,Y" $AE
-"LDX D,S" $AE
-"LDX D,U" $AE
-"LDX D,X" $AE
-"LDX D,Y" $AE
-"LDX s,S" $AE
-"LDX s,U" $AE
-"LDX s,X" $AE
-"LDX s,Y" $AE
+"LDX ?,PCR" $AE8D
+"LDX ?,S" $AEE9
+"LDX ?,U" $AEC9
+"LDX ?,X" $AE89
+"LDX ?,Y" $AEA9
+"LDX A,S" $AEE6
+"LDX A,U" $AEC6
+"LDX A,X" $AE86
+"LDX A,Y" $AEA6
+"LDX B,S" $AEE5
+"LDX B,U" $AEC5
+"LDX B,X" $AE85
+"LDX B,Y" $AEA5
+"LDX D,S" $AEEB
+"LDX D,U" $AECB
+"LDX D,X" $AE8B
+"LDX D,Y" $AEAB
+"LDX s,S" $AE60
+"LDX s,U" $AE40
+"LDX s,X" $AE00
+"LDX s,Y" $AE20
 "LDX x" $9E
-"LDX x,PCR" $AE
-"LDX x,S" $AE
-"LDX x,U" $AE
-"LDX x,X" $AE
-"LDX x,Y" $AE
-"LDX,--S" $AE
-"LDX,--U" $AE
-"LDX,--X" $AE
-"LDX,--Y" $AE
-"LDX,-S" $AE
-"LDX,-U" $AE
-"LDX,-X" $AE
-"LDX,-Y" $AE
-"LDX,S" $AE
-"LDX,S+" $AE
-"LDX,S++" $AE
-"LDX,U" $AE
-"LDX,U+" $AE
-"LDX,U++" $AE
-"LDX,X" $AE
-"LDX,X+" $AE
-"LDX,X++" $AE
-"LDX,Y" $AE
-"LDX,Y+" $AE
-"LDX,Y++" $AE
-"LDY #x" $8E10
-"LDY (,--S)" $AE10
-"LDY (,--U)" $AE10
-"LDY (,--X)" $AE10
-"LDY (,--Y)" $AE10
-"LDY (,S)" $AE10
-"LDY (,S++)" $AE10
-"LDY (,U)" $AE10
-"LDY (,U++)" $AE10
-"LDY (,X)" $AE10
-"LDY (,X++)" $AE10
-"LDY (,Y)" $AE10
-"LDY (,Y++)" $AE10
-"LDY (?)" $AE10
-"LDY (?,PCR)" $AE10
-"LDY (?,S)" $AE10
-"LDY (?,U)" $AE10
-"LDY (?,X)" $AE10
-"LDY (?,Y)" $AE10
-"LDY (A,S)" $AE10
-"LDY (A,U)" $AE10
-"LDY (A,X)" $AE10
-"LDY (A,Y)" $AE10
-"LDY (B,S)" $AE10
-"LDY (B,U)" $AE10
-"LDY (B,X)" $AE10
-"LDY (B,Y)" $AE10
-"LDY (D,S)" $AE10
-"LDY (D,U)" $AE10
-"LDY (D,X)" $AE10
-"LDY (D,Y)" $AE10
-"LDY (x,PCR)" $AE10
-"LDY (x,S)" $AE10
-"LDY (x,U)" $AE10
-"LDY (x,X)" $AE10
-"LDY (x,Y)" $AE10
-"LDY ?" $BE10
-"LDY ?,PCR" $AE10
-"LDY ?,S" $AE10
-"LDY ?,U" $AE10
-"LDY ?,X" $AE10
-"LDY ?,Y" $AE10
-"LDY A,S" $AE10
-"LDY A,U" $AE10
-"LDY A,X" $AE10
-"LDY A,Y" $AE10
-"LDY B,S" $AE10
-"LDY B,U" $AE10
-"LDY B,X" $AE10
-"LDY B,Y" $AE10
-"LDY D,S" $AE10
-"LDY D,U" $AE10
-"LDY D,X" $AE10
-"LDY D,Y" $AE10
-"LDY s,S" $AE10
-"LDY s,U" $AE10
-"LDY s,X" $AE10
-"LDY s,Y" $AE10
-"LDY x" $9E10
-"LDY x,PCR" $AE10
-"LDY x,S" $AE10
-"LDY x,U" $AE10
-"LDY x,X" $AE10
-"LDY x,Y" $AE10
-"LDY,--S" $AE10
-"LDY,--U" $AE10
-"LDY,--X" $AE10
-"LDY,--Y" $AE10
-"LDY,-S" $AE10
-"LDY,-U" $AE10
-"LDY,-X" $AE10
-"LDY,-Y" $AE10
-"LDY,S" $AE10
-"LDY,S+" $AE10
-"LDY,S++" $AE10
-"LDY,U" $AE10
-"LDY,U+" $AE10
-"LDY,U++" $AE10
-"LDY,X" $AE10
-"LDY,X+" $AE10
-"LDY,X++" $AE10
-"LDY,Y" $AE10
-"LDY,Y+" $AE10
-"LDY,Y++" $AE10
-"LEAS (,--S)" $32
-"LEAS (,--U)" $32
-"LEAS (,--X)" $32
-"LEAS (,--Y)" $32
-"LEAS (,S)" $32
-"LEAS (,S++)" $32
-"LEAS (,U)" $32
-"LEAS (,U++)" $32
-"LEAS (,X)" $32
-"LEAS (,X++)" $32
-"LEAS (,Y)" $32
-"LEAS (,Y++)" $32
-"LEAS (?)" $32
-"LEAS (?,PCR)" $32
-"LEAS (?,S)" $32
-"LEAS (?,U)" $32
-"LEAS (?,X)" $32
-"LEAS (?,Y)" $32
-"LEAS (A,S)" $32
-"LEAS (A,U)" $32
-"LEAS (A,X)" $32
-"LEAS (A,Y)" $32
-"LEAS (B,S)" $32
-"LEAS (B,U)" $32
-"LEAS (B,X)" $32
-"LEAS (B,Y)" $32
-"LEAS (D,S)" $32
-"LEAS (D,U)" $32
-"LEAS (D,X)" $32
-"LEAS (D,Y)" $32
-"LEAS (x,PCR)" $32
-"LEAS (x,S)" $32
-"LEAS (x,U)" $32
-"LEAS (x,X)" $32
-"LEAS (x,Y)" $32
-"LEAS ?,PCR" $32
-"LEAS ?,S" $32
-"LEAS ?,U" $32
-"LEAS ?,X" $32
-"LEAS ?,Y" $32
-"LEAS A,S" $32
-"LEAS A,U" $32
-"LEAS A,X" $32
-"LEAS A,Y" $32
-"LEAS B,S" $32
-"LEAS B,U" $32
-"LEAS B,X" $32
-"LEAS B,Y" $32
-"LEAS D,S" $32
-"LEAS D,U" $32
-"LEAS D,X" $32
-"LEAS D,Y" $32
-"LEAS s,S" $32
-"LEAS s,U" $32
-"LEAS s,X" $32
-"LEAS s,Y" $32
-"LEAS x,PCR" $32
-"LEAS x,S" $32
-"LEAS x,U" $32
-"LEAS x,X" $32
-"LEAS x,Y" $32
-"LEAS,--S" $32
-"LEAS,--U" $32
-"LEAS,--X" $32
-"LEAS,--Y" $32
-"LEAS,-S" $32
-"LEAS,-U" $32
-"LEAS,-X" $32
-"LEAS,-Y" $32
-"LEAS,S" $32
-"LEAS,S+" $32
-"LEAS,S++" $32
-"LEAS,U" $32
-"LEAS,U+" $32
-"LEAS,U++" $32
-"LEAS,X" $32
-"LEAS,X+" $32
-"LEAS,X++" $32
-"LEAS,Y" $32
-"LEAS,Y+" $32
-"LEAS,Y++" $32
-"LEAU (,--S)" $33
-"LEAU (,--U)" $33
-"LEAU (,--X)" $33
-"LEAU (,--Y)" $33
-"LEAU (,S)" $33
-"LEAU (,S++)" $33
-"LEAU (,U)" $33
-"LEAU (,U++)" $33
-"LEAU (,X)" $33
-"LEAU (,X++)" $33
-"LEAU (,Y)" $33
-"LEAU (,Y++)" $33
-"LEAU (?)" $33
-"LEAU (?,PCR)" $33
-"LEAU (?,S)" $33
-"LEAU (?,U)" $33
-"LEAU (?,X)" $33
-"LEAU (?,Y)" $33
-"LEAU (A,S)" $33
-"LEAU (A,U)" $33
-"LEAU (A,X)" $33
-"LEAU (A,Y)" $33
-"LEAU (B,S)" $33
-"LEAU (B,U)" $33
-"LEAU (B,X)" $33
-"LEAU (B,Y)" $33
-"LEAU (D,S)" $33
-"LEAU (D,U)" $33
-"LEAU (D,X)" $33
-"LEAU (D,Y)" $33
-"LEAU (x,PCR)" $33
-"LEAU (x,S)" $33
-"LEAU (x,U)" $33
-"LEAU (x,X)" $33
-"LEAU (x,Y)" $33
-"LEAU ?,PCR" $33
-"LEAU ?,S" $33
-"LEAU ?,U" $33
-"LEAU ?,X" $33
-"LEAU ?,Y" $33
-"LEAU A,S" $33
-"LEAU A,U" $33
-"LEAU A,X" $33
-"LEAU A,Y" $33
-"LEAU B,S" $33
-"LEAU B,U" $33
-"LEAU B,X" $33
-"LEAU B,Y" $33
-"LEAU D,S" $33
-"LEAU D,U" $33
-"LEAU D,X" $33
-"LEAU D,Y" $33
-"LEAU s,S" $33
-"LEAU s,U" $33
-"LEAU s,X" $33
-"LEAU s,Y" $33
-"LEAU x,PCR" $33
-"LEAU x,S" $33
-"LEAU x,U" $33
-"LEAU x,X" $33
-"LEAU x,Y" $33
-"LEAU,--S" $33
-"LEAU,--U" $33
-"LEAU,--X" $33
-"LEAU,--Y" $33
-"LEAU,-S" $33
-"LEAU,-U" $33
-"LEAU,-X" $33
-"LEAU,-Y" $33
-"LEAU,S" $33
-"LEAU,S+" $33
-"LEAU,S++" $33
-"LEAU,U" $33
-"LEAU,U+" $33
-"LEAU,U++" $33
-"LEAU,X" $33
-"LEAU,X+" $33
-"LEAU,X++" $33
-"LEAU,Y" $33
-"LEAU,Y+" $33
-"LEAU,Y++" $33
-"LEAX (,--S)" $30
-"LEAX (,--U)" $30
-"LEAX (,--X)" $30
-"LEAX (,--Y)" $30
-"LEAX (,S)" $30
-"LEAX (,S++)" $30
-"LEAX (,U)" $30
-"LEAX (,U++)" $30
-"LEAX (,X)" $30
-"LEAX (,X++)" $30
-"LEAX (,Y)" $30
-"LEAX (,Y++)" $30
-"LEAX (?)" $30
-"LEAX (?,PCR)" $30
-"LEAX (?,S)" $30
-"LEAX (?,U)" $30
-"LEAX (?,X)" $30
-"LEAX (?,Y)" $30
-"LEAX (A,S)" $30
-"LEAX (A,U)" $30
-"LEAX (A,X)" $30
-"LEAX (A,Y)" $30
-"LEAX (B,S)" $30
-"LEAX (B,U)" $30
-"LEAX (B,X)" $30
-"LEAX (B,Y)" $30
-"LEAX (D,S)" $30
-"LEAX (D,U)" $30
-"LEAX (D,X)" $30
-"LEAX (D,Y)" $30
-"LEAX (x,PCR)" $30
-"LEAX (x,S)" $30
-"LEAX (x,U)" $30
-"LEAX (x,X)" $30
-"LEAX (x,Y)" $30
-"LEAX ?,PCR" $30
-"LEAX ?,S" $30
-"LEAX ?,U" $30
-"LEAX ?,X" $30
-"LEAX ?,Y" $30
-"LEAX A,S" $30
-"LEAX A,U" $30
-"LEAX A,X" $30
-"LEAX A,Y" $30
-"LEAX B,S" $30
-"LEAX B,U" $30
-"LEAX B,X" $30
-"LEAX B,Y" $30
-"LEAX D,S" $30
-"LEAX D,U" $30
-"LEAX D,X" $30
-"LEAX D,Y" $30
-"LEAX s,S" $30
-"LEAX s,U" $30
-"LEAX s,X" $30
-"LEAX s,Y" $30
-"LEAX x,PCR" $30
-"LEAX x,S" $30
-"LEAX x,U" $30
-"LEAX x,X" $30
-"LEAX x,Y" $30
-"LEAX,--S" $30
-"LEAX,--U" $30
-"LEAX,--X" $30
-"LEAX,--Y" $30
-"LEAX,-S" $30
-"LEAX,-U" $30
-"LEAX,-X" $30
-"LEAX,-Y" $30
-"LEAX,S" $30
-"LEAX,S+" $30
-"LEAX,S++" $30
-"LEAX,U" $30
-"LEAX,U+" $30
-"LEAX,U++" $30
-"LEAX,X" $30
-"LEAX,X+" $30
-"LEAX,X++" $30
-"LEAX,Y" $30
-"LEAX,Y+" $30
-"LEAX,Y++" $30
-"LEAY (,--S)" $31
-"LEAY (,--U)" $31
-"LEAY (,--X)" $31
-"LEAY (,--Y)" $31
-"LEAY (,S)" $31
-"LEAY (,S++)" $31
-"LEAY (,U)" $31
-"LEAY (,U++)" $31
-"LEAY (,X)" $31
-"LEAY (,X++)" $31
-"LEAY (,Y)" $31
-"LEAY (,Y++)" $31
-"LEAY (?)" $31
-"LEAY (?,PCR)" $31
-"LEAY (?,S)" $31
-"LEAY (?,U)" $31
-"LEAY (?,X)" $31
-"LEAY (?,Y)" $31
-"LEAY (A,S)" $31
-"LEAY (A,U)" $31
-"LEAY (A,X)" $31
-"LEAY (A,Y)" $31
-"LEAY (B,S)" $31
-"LEAY (B,U)" $31
-"LEAY (B,X)" $31
-"LEAY (B,Y)" $31
-"LEAY (D,S)" $31
-"LEAY (D,U)" $31
-"LEAY (D,X)" $31
-"LEAY (D,Y)" $31
-"LEAY (x,PCR)" $31
-"LEAY (x,S)" $31
-"LEAY (x,U)" $31
-"LEAY (x,X)" $31
-"LEAY (x,Y)" $31
-"LEAY ?,PCR" $31
-"LEAY ?,S" $31
-"LEAY ?,U" $31
-"LEAY ?,X" $31
-"LEAY ?,Y" $31
-"LEAY A,S" $31
-"LEAY A,U" $31
-"LEAY A,X" $31
-"LEAY A,Y" $31
-"LEAY B,S" $31
-"LEAY B,U" $31
-"LEAY B,X" $31
-"LEAY B,Y" $31
-"LEAY D,S" $31
-"LEAY D,U" $31
-"LEAY D,X" $31
-"LEAY D,Y" $31
-"LEAY s,S" $31
-"LEAY s,U" $31
-"LEAY s,X" $31
-"LEAY s,Y" $31
-"LEAY x,PCR" $31
-"LEAY x,S" $31
-"LEAY x,U" $31
-"LEAY x,X" $31
-"LEAY x,Y" $31
-"LEAY,--S" $31
-"LEAY,--U" $31
-"LEAY,--X" $31
-"LEAY,--Y" $31
-"LEAY,-S" $31
-"LEAY,-U" $31
-"LEAY,-X" $31
-"LEAY,-Y" $31
-"LEAY,S" $31
-"LEAY,S+" $31
-"LEAY,S++" $31
-"LEAY,U" $31
-"LEAY,U+" $31
-"LEAY,U++" $31
-"LEAY,X" $31
-"LEAY,X+" $31
-"LEAY,X++" $31
-"LEAY,Y" $31
-"LEAY,Y+" $31
-"LEAY,Y++" $31
-"LSL (,--S)" $68
-"LSL (,--U)" $68
-"LSL (,--X)" $68
-"LSL (,--Y)" $68
-"LSL (,S)" $68
-"LSL (,S++)" $68
-"LSL (,U)" $68
-"LSL (,U++)" $68
-"LSL (,X)" $68
-"LSL (,X++)" $68
-"LSL (,Y)" $68
-"LSL (,Y++)" $68
-"LSL (?)" $68
-"LSL (?,PCR)" $68
-"LSL (?,S)" $68
-"LSL (?,U)" $68
-"LSL (?,X)" $68
-"LSL (?,Y)" $68
-"LSL (A,S)" $68
-"LSL (A,U)" $68
-"LSL (A,X)" $68
-"LSL (A,Y)" $68
-"LSL (B,S)" $68
-"LSL (B,U)" $68
-"LSL (B,X)" $68
-"LSL (B,Y)" $68
-"LSL (D,S)" $68
-"LSL (D,U)" $68
-"LSL (D,X)" $68
-"LSL (D,Y)" $68
-"LSL (x,PCR)" $68
-"LSL (x,S)" $68
-"LSL (x,U)" $68
-"LSL (x,X)" $68
-"LSL (x,Y)" $68
+"LDX x,PCR" $AE8C
+"LDX x,S" $AEE8
+"LDX x,U" $AEC8
+"LDX x,X" $AE88
+"LDX x,Y" $AEA8
+"LDX,--S" $AEE3
+"LDX,--U" $AEC3
+"LDX,--X" $AE83
+"LDX,--Y" $AEA3
+"LDX,-S" $AEE2
+"LDX,-U" $AEC2
+"LDX,-X" $AE82
+"LDX,-Y" $AEA2
+"LDX,S" $AEE4
+"LDX,S+" $AEE0
+"LDX,S++" $AEE1
+"LDX,U" $AEC4
+"LDX,U+" $AEC0
+"LDX,U++" $AEC1
+"LDX,X" $AE84
+"LDX,X+" $AE80
+"LDX,X++" $AE81
+"LDX,Y" $AEA4
+"LDX,Y+" $AEA0
+"LDX,Y++" $AEA1
+"LDY #x" $108E
+"LDY (,--S)" $10AEF3
+"LDY (,--U)" $10AED3
+"LDY (,--X)" $10AE93
+"LDY (,--Y)" $10AEB3
+"LDY (,S)" $10AEF4
+"LDY (,S++)" $10AEF1
+"LDY (,U)" $10AED4
+"LDY (,U++)" $10AED1
+"LDY (,X)" $10AE94
+"LDY (,X++)" $10AE91
+"LDY (,Y)" $10AEB4
+"LDY (,Y++)" $10AEB1
+"LDY (?)" $10AE9F
+"LDY (?,PCR)" $10AE9D
+"LDY (?,S)" $10AEF9
+"LDY (?,U)" $10AED9
+"LDY (?,X)" $10AE99
+"LDY (?,Y)" $10AEB9
+"LDY (A,S)" $10AEF6
+"LDY (A,U)" $10AED6
+"LDY (A,X)" $10AE96
+"LDY (A,Y)" $10AEB6
+"LDY (B,S)" $10AEF5
+"LDY (B,U)" $10AED5
+"LDY (B,X)" $10AE95
+"LDY (B,Y)" $10AEB5
+"LDY (D,S)" $10AEFB
+"LDY (D,U)" $10AEDB
+"LDY (D,X)" $10AE9B
+"LDY (D,Y)" $10AEBB
+"LDY (x,PCR)" $10AE9C
+"LDY (x,S)" $10AEF8
+"LDY (x,U)" $10AED8
+"LDY (x,X)" $10AE98
+"LDY (x,Y)" $10AEB8
+"LDY ?" $10BE
+"LDY ?,PCR" $10AE8D
+"LDY ?,S" $10AEE9
+"LDY ?,U" $10AEC9
+"LDY ?,X" $10AE89
+"LDY ?,Y" $10AEA9
+"LDY A,S" $10AEE6
+"LDY A,U" $10AEC6
+"LDY A,X" $10AE86
+"LDY A,Y" $10AEA6
+"LDY B,S" $10AEE5
+"LDY B,U" $10AEC5
+"LDY B,X" $10AE85
+"LDY B,Y" $10AEA5
+"LDY D,S" $10AEEB
+"LDY D,U" $10AECB
+"LDY D,X" $10AE8B
+"LDY D,Y" $10AEAB
+"LDY s,S" $10AE60
+"LDY s,U" $10AE40
+"LDY s,X" $10AE00
+"LDY s,Y" $10AE20
+"LDY x" $109E
+"LDY x,PCR" $10AE8C
+"LDY x,S" $10AEE8
+"LDY x,U" $10AEC8
+"LDY x,X" $10AE88
+"LDY x,Y" $10AEA8
+"LDY,--S" $10AEE3
+"LDY,--U" $10AEC3
+"LDY,--X" $10AE83
+"LDY,--Y" $10AEA3
+"LDY,-S" $10AEE2
+"LDY,-U" $10AEC2
+"LDY,-X" $10AE82
+"LDY,-Y" $10AEA2
+"LDY,S" $10AEE4
+"LDY,S+" $10AEE0
+"LDY,S++" $10AEE1
+"LDY,U" $10AEC4
+"LDY,U+" $10AEC0
+"LDY,U++" $10AEC1
+"LDY,X" $10AE84
+"LDY,X+" $10AE80
+"LDY,X++" $10AE81
+"LDY,Y" $10AEA4
+"LDY,Y+" $10AEA0
+"LDY,Y++" $10AEA1
+"LEAS (,--S)" $32F3
+"LEAS (,--U)" $32D3
+"LEAS (,--X)" $3293
+"LEAS (,--Y)" $32B3
+"LEAS (,S)" $32F4
+"LEAS (,S++)" $32F1
+"LEAS (,U)" $32D4
+"LEAS (,U++)" $32D1
+"LEAS (,X)" $3294
+"LEAS (,X++)" $3291
+"LEAS (,Y)" $32B4
+"LEAS (,Y++)" $32B1
+"LEAS (?)" $329F
+"LEAS (?,PCR)" $329D
+"LEAS (?,S)" $32F9
+"LEAS (?,U)" $32D9
+"LEAS (?,X)" $3299
+"LEAS (?,Y)" $32B9
+"LEAS (A,S)" $32F6
+"LEAS (A,U)" $32D6
+"LEAS (A,X)" $3296
+"LEAS (A,Y)" $32B6
+"LEAS (B,S)" $32F5
+"LEAS (B,U)" $32D5
+"LEAS (B,X)" $3295
+"LEAS (B,Y)" $32B5
+"LEAS (D,S)" $32FB
+"LEAS (D,U)" $32DB
+"LEAS (D,X)" $329B
+"LEAS (D,Y)" $32BB
+"LEAS (x,PCR)" $329C
+"LEAS (x,S)" $32F8
+"LEAS (x,U)" $32D8
+"LEAS (x,X)" $3298
+"LEAS (x,Y)" $32B8
+"LEAS ?,PCR" $328D
+"LEAS ?,S" $32E9
+"LEAS ?,U" $32C9
+"LEAS ?,X" $3289
+"LEAS ?,Y" $32A9
+"LEAS A,S" $32E6
+"LEAS A,U" $32C6
+"LEAS A,X" $3286
+"LEAS A,Y" $32A6
+"LEAS B,S" $32E5
+"LEAS B,U" $32C5
+"LEAS B,X" $3285
+"LEAS B,Y" $32A5
+"LEAS D,S" $32EB
+"LEAS D,U" $32CB
+"LEAS D,X" $328B
+"LEAS D,Y" $32AB
+"LEAS s,S" $3260
+"LEAS s,U" $3240
+"LEAS s,X" $3200
+"LEAS s,Y" $3220
+"LEAS x,PCR" $328C
+"LEAS x,S" $32E8
+"LEAS x,U" $32C8
+"LEAS x,X" $3288
+"LEAS x,Y" $32A8
+"LEAS,--S" $32E3
+"LEAS,--U" $32C3
+"LEAS,--X" $3283
+"LEAS,--Y" $32A3
+"LEAS,-S" $32E2
+"LEAS,-U" $32C2
+"LEAS,-X" $3282
+"LEAS,-Y" $32A2
+"LEAS,S" $32E4
+"LEAS,S+" $32E0
+"LEAS,S++" $32E1
+"LEAS,U" $32C4
+"LEAS,U+" $32C0
+"LEAS,U++" $32C1
+"LEAS,X" $3284
+"LEAS,X+" $3280
+"LEAS,X++" $3281
+"LEAS,Y" $32A4
+"LEAS,Y+" $32A0
+"LEAS,Y++" $32A1
+"LEAU (,--S)" $33F3
+"LEAU (,--U)" $33D3
+"LEAU (,--X)" $3393
+"LEAU (,--Y)" $33B3
+"LEAU (,S)" $33F4
+"LEAU (,S++)" $33F1
+"LEAU (,U)" $33D4
+"LEAU (,U++)" $33D1
+"LEAU (,X)" $3394
+"LEAU (,X++)" $3391
+"LEAU (,Y)" $33B4
+"LEAU (,Y++)" $33B1
+"LEAU (?)" $339F
+"LEAU (?,PCR)" $339D
+"LEAU (?,S)" $33F9
+"LEAU (?,U)" $33D9
+"LEAU (?,X)" $3399
+"LEAU (?,Y)" $33B9
+"LEAU (A,S)" $33F6
+"LEAU (A,U)" $33D6
+"LEAU (A,X)" $3396
+"LEAU (A,Y)" $33B6
+"LEAU (B,S)" $33F5
+"LEAU (B,U)" $33D5
+"LEAU (B,X)" $3395
+"LEAU (B,Y)" $33B5
+"LEAU (D,S)" $33FB
+"LEAU (D,U)" $33DB
+"LEAU (D,X)" $339B
+"LEAU (D,Y)" $33BB
+"LEAU (x,PCR)" $339C
+"LEAU (x,S)" $33F8
+"LEAU (x,U)" $33D8
+"LEAU (x,X)" $3398
+"LEAU (x,Y)" $33B8
+"LEAU ?,PCR" $338D
+"LEAU ?,S" $33E9
+"LEAU ?,U" $33C9
+"LEAU ?,X" $3389
+"LEAU ?,Y" $33A9
+"LEAU A,S" $33E6
+"LEAU A,U" $33C6
+"LEAU A,X" $3386
+"LEAU A,Y" $33A6
+"LEAU B,S" $33E5
+"LEAU B,U" $33C5
+"LEAU B,X" $3385
+"LEAU B,Y" $33A5
+"LEAU D,S" $33EB
+"LEAU D,U" $33CB
+"LEAU D,X" $338B
+"LEAU D,Y" $33AB
+"LEAU s,S" $3360
+"LEAU s,U" $3340
+"LEAU s,X" $3300
+"LEAU s,Y" $3320
+"LEAU x,PCR" $338C
+"LEAU x,S" $33E8
+"LEAU x,U" $33C8
+"LEAU x,X" $3388
+"LEAU x,Y" $33A8
+"LEAU,--S" $33E3
+"LEAU,--U" $33C3
+"LEAU,--X" $3383
+"LEAU,--Y" $33A3
+"LEAU,-S" $33E2
+"LEAU,-U" $33C2
+"LEAU,-X" $3382
+"LEAU,-Y" $33A2
+"LEAU,S" $33E4
+"LEAU,S+" $33E0
+"LEAU,S++" $33E1
+"LEAU,U" $33C4
+"LEAU,U+" $33C0
+"LEAU,U++" $33C1
+"LEAU,X" $3384
+"LEAU,X+" $3380
+"LEAU,X++" $3381
+"LEAU,Y" $33A4
+"LEAU,Y+" $33A0
+"LEAU,Y++" $33A1
+"LEAX (,--S)" $30F3
+"LEAX (,--U)" $30D3
+"LEAX (,--X)" $3093
+"LEAX (,--Y)" $30B3
+"LEAX (,S)" $30F4
+"LEAX (,S++)" $30F1
+"LEAX (,U)" $30D4
+"LEAX (,U++)" $30D1
+"LEAX (,X)" $3094
+"LEAX (,X++)" $3091
+"LEAX (,Y)" $30B4
+"LEAX (,Y++)" $30B1
+"LEAX (?)" $309F
+"LEAX (?,PCR)" $309D
+"LEAX (?,S)" $30F9
+"LEAX (?,U)" $30D9
+"LEAX (?,X)" $3099
+"LEAX (?,Y)" $30B9
+"LEAX (A,S)" $30F6
+"LEAX (A,U)" $30D6
+"LEAX (A,X)" $3096
+"LEAX (A,Y)" $30B6
+"LEAX (B,S)" $30F5
+"LEAX (B,U)" $30D5
+"LEAX (B,X)" $3095
+"LEAX (B,Y)" $30B5
+"LEAX (D,S)" $30FB
+"LEAX (D,U)" $30DB
+"LEAX (D,X)" $309B
+"LEAX (D,Y)" $30BB
+"LEAX (x,PCR)" $309C
+"LEAX (x,S)" $30F8
+"LEAX (x,U)" $30D8
+"LEAX (x,X)" $3098
+"LEAX (x,Y)" $30B8
+"LEAX ?,PCR" $308D
+"LEAX ?,S" $30E9
+"LEAX ?,U" $30C9
+"LEAX ?,X" $3089
+"LEAX ?,Y" $30A9
+"LEAX A,S" $30E6
+"LEAX A,U" $30C6
+"LEAX A,X" $3086
+"LEAX A,Y" $30A6
+"LEAX B,S" $30E5
+"LEAX B,U" $30C5
+"LEAX B,X" $3085
+"LEAX B,Y" $30A5
+"LEAX D,S" $30EB
+"LEAX D,U" $30CB
+"LEAX D,X" $308B
+"LEAX D,Y" $30AB
+"LEAX s,S" $3060
+"LEAX s,U" $3040
+"LEAX s,X" $3000
+"LEAX s,Y" $3020
+"LEAX x,PCR" $308C
+"LEAX x,S" $30E8
+"LEAX x,U" $30C8
+"LEAX x,X" $3088
+"LEAX x,Y" $30A8
+"LEAX,--S" $30E3
+"LEAX,--U" $30C3
+"LEAX,--X" $3083
+"LEAX,--Y" $30A3
+"LEAX,-S" $30E2
+"LEAX,-U" $30C2
+"LEAX,-X" $3082
+"LEAX,-Y" $30A2
+"LEAX,S" $30E4
+"LEAX,S+" $30E0
+"LEAX,S++" $30E1
+"LEAX,U" $30C4
+"LEAX,U+" $30C0
+"LEAX,U++" $30C1
+"LEAX,X" $3084
+"LEAX,X+" $3080
+"LEAX,X++" $3081
+"LEAX,Y" $30A4
+"LEAX,Y+" $30A0
+"LEAX,Y++" $30A1
+"LEAY (,--S)" $31F3
+"LEAY (,--U)" $31D3
+"LEAY (,--X)" $3193
+"LEAY (,--Y)" $31B3
+"LEAY (,S)" $31F4
+"LEAY (,S++)" $31F1
+"LEAY (,U)" $31D4
+"LEAY (,U++)" $31D1
+"LEAY (,X)" $3194
+"LEAY (,X++)" $3191
+"LEAY (,Y)" $31B4
+"LEAY (,Y++)" $31B1
+"LEAY (?)" $319F
+"LEAY (?,PCR)" $319D
+"LEAY (?,S)" $31F9
+"LEAY (?,U)" $31D9
+"LEAY (?,X)" $3199
+"LEAY (?,Y)" $31B9
+"LEAY (A,S)" $31F6
+"LEAY (A,U)" $31D6
+"LEAY (A,X)" $3196
+"LEAY (A,Y)" $31B6
+"LEAY (B,S)" $31F5
+"LEAY (B,U)" $31D5
+"LEAY (B,X)" $3195
+"LEAY (B,Y)" $31B5
+"LEAY (D,S)" $31FB
+"LEAY (D,U)" $31DB
+"LEAY (D,X)" $319B
+"LEAY (D,Y)" $31BB
+"LEAY (x,PCR)" $319C
+"LEAY (x,S)" $31F8
+"LEAY (x,U)" $31D8
+"LEAY (x,X)" $3198
+"LEAY (x,Y)" $31B8
+"LEAY ?,PCR" $318D
+"LEAY ?,S" $31E9
+"LEAY ?,U" $31C9
+"LEAY ?,X" $3189
+"LEAY ?,Y" $31A9
+"LEAY A,S" $31E6
+"LEAY A,U" $31C6
+"LEAY A,X" $3186
+"LEAY A,Y" $31A6
+"LEAY B,S" $31E5
+"LEAY B,U" $31C5
+"LEAY B,X" $3185
+"LEAY B,Y" $31A5
+"LEAY D,S" $31EB
+"LEAY D,U" $31CB
+"LEAY D,X" $318B
+"LEAY D,Y" $31AB
+"LEAY s,S" $3160
+"LEAY s,U" $3140
+"LEAY s,X" $3100
+"LEAY s,Y" $3120
+"LEAY x,PCR" $318C
+"LEAY x,S" $31E8
+"LEAY x,U" $31C8
+"LEAY x,X" $3188
+"LEAY x,Y" $31A8
+"LEAY,--S" $31E3
+"LEAY,--U" $31C3
+"LEAY,--X" $3183
+"LEAY,--Y" $31A3
+"LEAY,-S" $31E2
+"LEAY,-U" $31C2
+"LEAY,-X" $3182
+"LEAY,-Y" $31A2
+"LEAY,S" $31E4
+"LEAY,S+" $31E0
+"LEAY,S++" $31E1
+"LEAY,U" $31C4
+"LEAY,U+" $31C0
+"LEAY,U++" $31C1
+"LEAY,X" $3184
+"LEAY,X+" $3180
+"LEAY,X++" $3181
+"LEAY,Y" $31A4
+"LEAY,Y+" $31A0
+"LEAY,Y++" $31A1
+"LSL (,--S)" $68F3
+"LSL (,--U)" $68D3
+"LSL (,--X)" $6893
+"LSL (,--Y)" $68B3
+"LSL (,S)" $68F4
+"LSL (,S++)" $68F1
+"LSL (,U)" $68D4
+"LSL (,U++)" $68D1
+"LSL (,X)" $6894
+"LSL (,X++)" $6891
+"LSL (,Y)" $68B4
+"LSL (,Y++)" $68B1
+"LSL (?)" $689F
+"LSL (?,PCR)" $689D
+"LSL (?,S)" $68F9
+"LSL (?,U)" $68D9
+"LSL (?,X)" $6899
+"LSL (?,Y)" $68B9
+"LSL (A,S)" $68F6
+"LSL (A,U)" $68D6
+"LSL (A,X)" $6896
+"LSL (A,Y)" $68B6
+"LSL (B,S)" $68F5
+"LSL (B,U)" $68D5
+"LSL (B,X)" $6895
+"LSL (B,Y)" $68B5
+"LSL (D,S)" $68FB
+"LSL (D,U)" $68DB
+"LSL (D,X)" $689B
+"LSL (D,Y)" $68BB
+"LSL (x,PCR)" $689C
+"LSL (x,S)" $68F8
+"LSL (x,U)" $68D8
+"LSL (x,X)" $6898
+"LSL (x,Y)" $68B8
 "LSL ?" $78
-"LSL ?,PCR" $68
-"LSL ?,S" $68
-"LSL ?,U" $68
-"LSL ?,X" $68
-"LSL ?,Y" $68
-"LSL A,S" $68
-"LSL A,U" $68
-"LSL A,X" $68
-"LSL A,Y" $68
-"LSL B,S" $68
-"LSL B,U" $68
-"LSL B,X" $68
-"LSL B,Y" $68
-"LSL D,S" $68
-"LSL D,U" $68
-"LSL D,X" $68
-"LSL D,Y" $68
-"LSL s,S" $68
-"LSL s,U" $68
-"LSL s,X" $68
-"LSL s,Y" $68
+"LSL ?,PCR" $688D
+"LSL ?,S" $68E9
+"LSL ?,U" $68C9
+"LSL ?,X" $6889
+"LSL ?,Y" $68A9
+"LSL A,S" $68E6
+"LSL A,U" $68C6
+"LSL A,X" $6886
+"LSL A,Y" $68A6
+"LSL B,S" $68E5
+"LSL B,U" $68C5
+"LSL B,X" $6885
+"LSL B,Y" $68A5
+"LSL D,S" $68EB
+"LSL D,U" $68CB
+"LSL D,X" $688B
+"LSL D,Y" $68AB
+"LSL s,S" $6860
+"LSL s,U" $6840
+"LSL s,X" $6800
+"LSL s,Y" $6820
 "LSL x" $08
-"LSL x,PCR" $68
-"LSL x,S" $68
-"LSL x,U" $68
-"LSL x,X" $68
-"LSL x,Y" $68
-"LSL,--S" $68
-"LSL,--U" $68
-"LSL,--X" $68
-"LSL,--Y" $68
-"LSL,-S" $68
-"LSL,-U" $68
-"LSL,-X" $68
-"LSL,-Y" $68
-"LSL,S" $68
-"LSL,S+" $68
-"LSL,S++" $68
-"LSL,U" $68
-"LSL,U+" $68
-"LSL,U++" $68
-"LSL,X" $68
-"LSL,X+" $68
-"LSL,X++" $68
-"LSL,Y" $68
-"LSL,Y+" $68
-"LSL,Y++" $68
+"LSL x,PCR" $688C
+"LSL x,S" $68E8
+"LSL x,U" $68C8
+"LSL x,X" $6888
+"LSL x,Y" $68A8
+"LSL,--S" $68E3
+"LSL,--U" $68C3
+"LSL,--X" $6883
+"LSL,--Y" $68A3
+"LSL,-S" $68E2
+"LSL,-U" $68C2
+"LSL,-X" $6882
+"LSL,-Y" $68A2
+"LSL,S" $68E4
+"LSL,S+" $68E0
+"LSL,S++" $68E1
+"LSL,U" $68C4
+"LSL,U+" $68C0
+"LSL,U++" $68C1
+"LSL,X" $6884
+"LSL,X+" $6880
+"LSL,X++" $6881
+"LSL,Y" $68A4
+"LSL,Y+" $68A0
+"LSL,Y++" $68A1
 "LSLA" $48
 "LSLB" $58
-"LSR (,--S)" $64
-"LSR (,--U)" $64
-"LSR (,--X)" $64
-"LSR (,--Y)" $64
-"LSR (,S)" $64
-"LSR (,S++)" $64
-"LSR (,U)" $64
-"LSR (,U++)" $64
-"LSR (,X)" $64
-"LSR (,X++)" $64
-"LSR (,Y)" $64
-"LSR (,Y++)" $64
-"LSR (?)" $64
-"LSR (?,PCR)" $64
-"LSR (?,S)" $64
-"LSR (?,U)" $64
-"LSR (?,X)" $64
-"LSR (?,Y)" $64
-"LSR (A,S)" $64
-"LSR (A,U)" $64
-"LSR (A,X)" $64
-"LSR (A,Y)" $64
-"LSR (B,S)" $64
-"LSR (B,U)" $64
-"LSR (B,X)" $64
-"LSR (B,Y)" $64
-"LSR (D,S)" $64
-"LSR (D,U)" $64
-"LSR (D,X)" $64
-"LSR (D,Y)" $64
-"LSR (x,PCR)" $64
-"LSR (x,S)" $64
-"LSR (x,U)" $64
-"LSR (x,X)" $64
-"LSR (x,Y)" $64
+"LSR (,--S)" $64F3
+"LSR (,--U)" $64D3
+"LSR (,--X)" $6493
+"LSR (,--Y)" $64B3
+"LSR (,S)" $64F4
+"LSR (,S++)" $64F1
+"LSR (,U)" $64D4
+"LSR (,U++)" $64D1
+"LSR (,X)" $6494
+"LSR (,X++)" $6491
+"LSR (,Y)" $64B4
+"LSR (,Y++)" $64B1
+"LSR (?)" $649F
+"LSR (?,PCR)" $649D
+"LSR (?,S)" $64F9
+"LSR (?,U)" $64D9
+"LSR (?,X)" $6499
+"LSR (?,Y)" $64B9
+"LSR (A,S)" $64F6
+"LSR (A,U)" $64D6
+"LSR (A,X)" $6496
+"LSR (A,Y)" $64B6
+"LSR (B,S)" $64F5
+"LSR (B,U)" $64D5
+"LSR (B,X)" $6495
+"LSR (B,Y)" $64B5
+"LSR (D,S)" $64FB
+"LSR (D,U)" $64DB
+"LSR (D,X)" $649B
+"LSR (D,Y)" $64BB
+"LSR (x,PCR)" $649C
+"LSR (x,S)" $64F8
+"LSR (x,U)" $64D8
+"LSR (x,X)" $6498
+"LSR (x,Y)" $64B8
 "LSR ?" $74
-"LSR ?,PCR" $64
-"LSR ?,S" $64
-"LSR ?,U" $64
-"LSR ?,X" $64
-"LSR ?,Y" $64
-"LSR A,S" $64
-"LSR A,U" $64
-"LSR A,X" $64
-"LSR A,Y" $64
-"LSR B,S" $64
-"LSR B,U" $64
-"LSR B,X" $64
-"LSR B,Y" $64
-"LSR D,S" $64
-"LSR D,U" $64
-"LSR D,X" $64
-"LSR D,Y" $64
-"LSR s,S" $64
-"LSR s,U" $64
-"LSR s,X" $64
-"LSR s,Y" $64
+"LSR ?,PCR" $648D
+"LSR ?,S" $64E9
+"LSR ?,U" $64C9
+"LSR ?,X" $6489
+"LSR ?,Y" $64A9
+"LSR A,S" $64E6
+"LSR A,U" $64C6
+"LSR A,X" $6486
+"LSR A,Y" $64A6
+"LSR B,S" $64E5
+"LSR B,U" $64C5
+"LSR B,X" $6485
+"LSR B,Y" $64A5
+"LSR D,S" $64EB
+"LSR D,U" $64CB
+"LSR D,X" $648B
+"LSR D,Y" $64AB
+"LSR s,S" $6460
+"LSR s,U" $6440
+"LSR s,X" $6400
+"LSR s,Y" $6420
 "LSR x" $04
-"LSR x,PCR" $64
-"LSR x,S" $64
-"LSR x,U" $64
-"LSR x,X" $64
-"LSR x,Y" $64
-"LSR,--S" $64
-"LSR,--U" $64
-"LSR,--X" $64
-"LSR,--Y" $64
-"LSR,-S" $64
-"LSR,-U" $64
-"LSR,-X" $64
-"LSR,-Y" $64
-"LSR,S" $64
-"LSR,S+" $64
-"LSR,S++" $64
-"LSR,U" $64
-"LSR,U+" $64
-"LSR,U++" $64
-"LSR,X" $64
-"LSR,X+" $64
-"LSR,X++" $64
-"LSR,Y" $64
-"LSR,Y+" $64
-"LSR,Y++" $64
+"LSR x,PCR" $648C
+"LSR x,S" $64E8
+"LSR x,U" $64C8
+"LSR x,X" $6488
+"LSR x,Y" $64A8
+"LSR,--S" $64E3
+"LSR,--U" $64C3
+"LSR,--X" $6483
+"LSR,--Y" $64A3
+"LSR,-S" $64E2
+"LSR,-U" $64C2
+"LSR,-X" $6482
+"LSR,-Y" $64A2
+"LSR,S" $64E4
+"LSR,S+" $64E0
+"LSR,S++" $64E1
+"LSR,U" $64C4
+"LSR,U+" $64C0
+"LSR,U++" $64C1
+"LSR,X" $6484
+"LSR,X+" $6480
+"LSR,X++" $6481
+"LSR,Y" $64A4
+"LSR,Y+" $64A0
+"LSR,Y++" $64A1
 "LSRA" $44
 "LSRB" $54
 "MUL" $3D
-"NEG (,--S)" $60
-"NEG (,--U)" $60
-"NEG (,--X)" $60
-"NEG (,--Y)" $60
-"NEG (,S)" $60
-"NEG (,S++)" $60
-"NEG (,U)" $60
-"NEG (,U++)" $60
-"NEG (,X)" $60
-"NEG (,X++)" $60
-"NEG (,Y)" $60
-"NEG (,Y++)" $60
-"NEG (?)" $60
-"NEG (?,PCR)" $60
-"NEG (?,S)" $60
-"NEG (?,U)" $60
-"NEG (?,X)" $60
-"NEG (?,Y)" $60
-"NEG (A,S)" $60
-"NEG (A,U)" $60
-"NEG (A,X)" $60
-"NEG (A,Y)" $60
-"NEG (B,S)" $60
-"NEG (B,U)" $60
-"NEG (B,X)" $60
-"NEG (B,Y)" $60
-"NEG (D,S)" $60
-"NEG (D,U)" $60
-"NEG (D,X)" $60
-"NEG (D,Y)" $60
-"NEG (x,PCR)" $60
-"NEG (x,S)" $60
-"NEG (x,U)" $60
-"NEG (x,X)" $60
-"NEG (x,Y)" $60
+"NEG (,--S)" $60F3
+"NEG (,--U)" $60D3
+"NEG (,--X)" $6093
+"NEG (,--Y)" $60B3
+"NEG (,S)" $60F4
+"NEG (,S++)" $60F1
+"NEG (,U)" $60D4
+"NEG (,U++)" $60D1
+"NEG (,X)" $6094
+"NEG (,X++)" $6091
+"NEG (,Y)" $60B4
+"NEG (,Y++)" $60B1
+"NEG (?)" $609F
+"NEG (?,PCR)" $609D
+"NEG (?,S)" $60F9
+"NEG (?,U)" $60D9
+"NEG (?,X)" $6099
+"NEG (?,Y)" $60B9
+"NEG (A,S)" $60F6
+"NEG (A,U)" $60D6
+"NEG (A,X)" $6096
+"NEG (A,Y)" $60B6
+"NEG (B,S)" $60F5
+"NEG (B,U)" $60D5
+"NEG (B,X)" $6095
+"NEG (B,Y)" $60B5
+"NEG (D,S)" $60FB
+"NEG (D,U)" $60DB
+"NEG (D,X)" $609B
+"NEG (D,Y)" $60BB
+"NEG (x,PCR)" $609C
+"NEG (x,S)" $60F8
+"NEG (x,U)" $60D8
+"NEG (x,X)" $6098
+"NEG (x,Y)" $60B8
 "NEG ?" $70
-"NEG ?,PCR" $60
-"NEG ?,S" $60
-"NEG ?,U" $60
-"NEG ?,X" $60
-"NEG ?,Y" $60
-"NEG A,S" $60
-"NEG A,U" $60
-"NEG A,X" $60
-"NEG A,Y" $60
-"NEG B,S" $60
-"NEG B,U" $60
-"NEG B,X" $60
-"NEG B,Y" $60
-"NEG D,S" $60
-"NEG D,U" $60
-"NEG D,X" $60
-"NEG D,Y" $60
-"NEG s,S" $60
-"NEG s,U" $60
-"NEG s,X" $60
-"NEG s,Y" $60
+"NEG ?,PCR" $608D
+"NEG ?,S" $60E9
+"NEG ?,U" $60C9
+"NEG ?,X" $6089
+"NEG ?,Y" $60A9
+"NEG A,S" $60E6
+"NEG A,U" $60C6
+"NEG A,X" $6086
+"NEG A,Y" $60A6
+"NEG B,S" $60E5
+"NEG B,U" $60C5
+"NEG B,X" $6085
+"NEG B,Y" $60A5
+"NEG D,S" $60EB
+"NEG D,U" $60CB
+"NEG D,X" $608B
+"NEG D,Y" $60AB
+"NEG s,S" $6060
+"NEG s,U" $6040
+"NEG s,X" $6000
+"NEG s,Y" $6020
 "NEG x" $00
-"NEG x,PCR" $60
-"NEG x,S" $60
-"NEG x,U" $60
-"NEG x,X" $60
-"NEG x,Y" $60
-"NEG,--S" $60
-"NEG,--U" $60
-"NEG,--X" $60
-"NEG,--Y" $60
-"NEG,-S" $60
-"NEG,-U" $60
-"NEG,-X" $60
-"NEG,-Y" $60
-"NEG,S" $60
-"NEG,S+" $60
-"NEG,S++" $60
-"NEG,U" $60
-"NEG,U+" $60
-"NEG,U++" $60
-"NEG,X" $60
-"NEG,X+" $60
-"NEG,X++" $60
-"NEG,Y" $60
-"NEG,Y+" $60
-"NEG,Y++" $60
+"NEG x,PCR" $608C
+"NEG x,S" $60E8
+"NEG x,U" $60C8
+"NEG x,X" $6088
+"NEG x,Y" $60A8
+"NEG,--S" $60E3
+"NEG,--U" $60C3
+"NEG,--X" $6083
+"NEG,--Y" $60A3
+"NEG,-S" $60E2
+"NEG,-U" $60C2
+"NEG,-X" $6082
+"NEG,-Y" $60A2
+"NEG,S" $60E4
+"NEG,S+" $60E0
+"NEG,S++" $60E1
+"NEG,U" $60C4
+"NEG,U+" $60C0
+"NEG,U++" $60C1
+"NEG,X" $6084
+"NEG,X+" $6080
+"NEG,X++" $6081
+"NEG,Y" $60A4
+"NEG,Y+" $60A0
+"NEG,Y++" $60A1
 "NEGA" $40
 "NEGB" $50
 "NOP" $12
 "ORA #x" $8A
-"ORA (,--S)" $AA
-"ORA (,--U)" $AA
-"ORA (,--X)" $AA
-"ORA (,--Y)" $AA
-"ORA (,S)" $AA
-"ORA (,S++)" $AA
-"ORA (,U)" $AA
-"ORA (,U++)" $AA
-"ORA (,X)" $AA
-"ORA (,X++)" $AA
-"ORA (,Y)" $AA
-"ORA (,Y++)" $AA
-"ORA (?)" $AA
-"ORA (?,PCR)" $AA
-"ORA (?,S)" $AA
-"ORA (?,U)" $AA
-"ORA (?,X)" $AA
-"ORA (?,Y)" $AA
-"ORA (A,S)" $AA
-"ORA (A,U)" $AA
-"ORA (A,X)" $AA
-"ORA (A,Y)" $AA
-"ORA (B,S)" $AA
-"ORA (B,U)" $AA
-"ORA (B,X)" $AA
-"ORA (B,Y)" $AA
-"ORA (D,S)" $AA
-"ORA (D,U)" $AA
-"ORA (D,X)" $AA
-"ORA (D,Y)" $AA
-"ORA (x,PCR)" $AA
-"ORA (x,S)" $AA
-"ORA (x,U)" $AA
-"ORA (x,X)" $AA
-"ORA (x,Y)" $AA
+"ORA (,--S)" $AAF3
+"ORA (,--U)" $AAD3
+"ORA (,--X)" $AA93
+"ORA (,--Y)" $AAB3
+"ORA (,S)" $AAF4
+"ORA (,S++)" $AAF1
+"ORA (,U)" $AAD4
+"ORA (,U++)" $AAD1
+"ORA (,X)" $AA94
+"ORA (,X++)" $AA91
+"ORA (,Y)" $AAB4
+"ORA (,Y++)" $AAB1
+"ORA (?)" $AA9F
+"ORA (?,PCR)" $AA9D
+"ORA (?,S)" $AAF9
+"ORA (?,U)" $AAD9
+"ORA (?,X)" $AA99
+"ORA (?,Y)" $AAB9
+"ORA (A,S)" $AAF6
+"ORA (A,U)" $AAD6
+"ORA (A,X)" $AA96
+"ORA (A,Y)" $AAB6
+"ORA (B,S)" $AAF5
+"ORA (B,U)" $AAD5
+"ORA (B,X)" $AA95
+"ORA (B,Y)" $AAB5
+"ORA (D,S)" $AAFB
+"ORA (D,U)" $AADB
+"ORA (D,X)" $AA9B
+"ORA (D,Y)" $AABB
+"ORA (x,PCR)" $AA9C
+"ORA (x,S)" $AAF8
+"ORA (x,U)" $AAD8
+"ORA (x,X)" $AA98
+"ORA (x,Y)" $AAB8
 "ORA ?" $BA
-"ORA ?,PCR" $AA
-"ORA ?,S" $AA
-"ORA ?,U" $AA
-"ORA ?,X" $AA
-"ORA ?,Y" $AA
-"ORA A,S" $AA
-"ORA A,U" $AA
-"ORA A,X" $AA
-"ORA A,Y" $AA
-"ORA B,S" $AA
-"ORA B,U" $AA
-"ORA B,X" $AA
-"ORA B,Y" $AA
-"ORA D,S" $AA
-"ORA D,U" $AA
-"ORA D,X" $AA
-"ORA D,Y" $AA
-"ORA s,S" $AA
-"ORA s,U" $AA
-"ORA s,X" $AA
-"ORA s,Y" $AA
+"ORA ?,PCR" $AA8D
+"ORA ?,S" $AAE9
+"ORA ?,U" $AAC9
+"ORA ?,X" $AA89
+"ORA ?,Y" $AAA9
+"ORA A,S" $AAE6
+"ORA A,U" $AAC6
+"ORA A,X" $AA86
+"ORA A,Y" $AAA6
+"ORA B,S" $AAE5
+"ORA B,U" $AAC5
+"ORA B,X" $AA85
+"ORA B,Y" $AAA5
+"ORA D,S" $AAEB
+"ORA D,U" $AACB
+"ORA D,X" $AA8B
+"ORA D,Y" $AAAB
+"ORA s,S" $AA60
+"ORA s,U" $AA40
+"ORA s,X" $AA00
+"ORA s,Y" $AA20
 "ORA x" $9A
-"ORA x,PCR" $AA
-"ORA x,S" $AA
-"ORA x,U" $AA
-"ORA x,X" $AA
-"ORA x,Y" $AA
-"ORA,--S" $AA
-"ORA,--U" $AA
-"ORA,--X" $AA
-"ORA,--Y" $AA
-"ORA,-S" $AA
-"ORA,-U" $AA
-"ORA,-X" $AA
-"ORA,-Y" $AA
-"ORA,S" $AA
-"ORA,S+" $AA
-"ORA,S++" $AA
-"ORA,U" $AA
-"ORA,U+" $AA
-"ORA,U++" $AA
-"ORA,X" $AA
-"ORA,X+" $AA
-"ORA,X++" $AA
-"ORA,Y" $AA
-"ORA,Y+" $AA
-"ORA,Y++" $AA
+"ORA x,PCR" $AA8C
+"ORA x,S" $AAE8
+"ORA x,U" $AAC8
+"ORA x,X" $AA88
+"ORA x,Y" $AAA8
+"ORA,--S" $AAE3
+"ORA,--U" $AAC3
+"ORA,--X" $AA83
+"ORA,--Y" $AAA3
+"ORA,-S" $AAE2
+"ORA,-U" $AAC2
+"ORA,-X" $AA82
+"ORA,-Y" $AAA2
+"ORA,S" $AAE4
+"ORA,S+" $AAE0
+"ORA,S++" $AAE1
+"ORA,U" $AAC4
+"ORA,U+" $AAC0
+"ORA,U++" $AAC1
+"ORA,X" $AA84
+"ORA,X+" $AA80
+"ORA,X++" $AA81
+"ORA,Y" $AAA4
+"ORA,Y+" $AAA0
+"ORA,Y++" $AAA1
 "ORB #x" $CA
-"ORB (,--S)" $EA
-"ORB (,--U)" $EA
-"ORB (,--X)" $EA
-"ORB (,--Y)" $EA
-"ORB (,S)" $EA
-"ORB (,S++)" $EA
-"ORB (,U)" $EA
-"ORB (,U++)" $EA
-"ORB (,X)" $EA
-"ORB (,X++)" $EA
-"ORB (,Y)" $EA
-"ORB (,Y++)" $EA
-"ORB (?)" $EA
-"ORB (?,PCR)" $EA
-"ORB (?,S)" $EA
-"ORB (?,U)" $EA
-"ORB (?,X)" $EA
-"ORB (?,Y)" $EA
-"ORB (A,S)" $EA
-"ORB (A,U)" $EA
-"ORB (A,X)" $EA
-"ORB (A,Y)" $EA
-"ORB (B,S)" $EA
-"ORB (B,U)" $EA
-"ORB (B,X)" $EA
-"ORB (B,Y)" $EA
-"ORB (D,S)" $EA
-"ORB (D,U)" $EA
-"ORB (D,X)" $EA
-"ORB (D,Y)" $EA
-"ORB (x,PCR)" $EA
-"ORB (x,S)" $EA
-"ORB (x,U)" $EA
-"ORB (x,X)" $EA
-"ORB (x,Y)" $EA
+"ORB (,--S)" $EAF3
+"ORB (,--U)" $EAD3
+"ORB (,--X)" $EA93
+"ORB (,--Y)" $EAB3
+"ORB (,S)" $EAF4
+"ORB (,S++)" $EAF1
+"ORB (,U)" $EAD4
+"ORB (,U++)" $EAD1
+"ORB (,X)" $EA94
+"ORB (,X++)" $EA91
+"ORB (,Y)" $EAB4
+"ORB (,Y++)" $EAB1
+"ORB (?)" $EA9F
+"ORB (?,PCR)" $EA9D
+"ORB (?,S)" $EAF9
+"ORB (?,U)" $EAD9
+"ORB (?,X)" $EA99
+"ORB (?,Y)" $EAB9
+"ORB (A,S)" $EAF6
+"ORB (A,U)" $EAD6
+"ORB (A,X)" $EA96
+"ORB (A,Y)" $EAB6
+"ORB (B,S)" $EAF5
+"ORB (B,U)" $EAD5
+"ORB (B,X)" $EA95
+"ORB (B,Y)" $EAB5
+"ORB (D,S)" $EAFB
+"ORB (D,U)" $EADB
+"ORB (D,X)" $EA9B
+"ORB (D,Y)" $EABB
+"ORB (x,PCR)" $EA9C
+"ORB (x,S)" $EAF8
+"ORB (x,U)" $EAD8
+"ORB (x,X)" $EA98
+"ORB (x,Y)" $EAB8
 "ORB ?" $FA
-"ORB ?,PCR" $EA
-"ORB ?,S" $EA
-"ORB ?,U" $EA
-"ORB ?,X" $EA
-"ORB ?,Y" $EA
-"ORB A,S" $EA
-"ORB A,U" $EA
-"ORB A,X" $EA
-"ORB A,Y" $EA
-"ORB B,S" $EA
-"ORB B,U" $EA
-"ORB B,X" $EA
-"ORB B,Y" $EA
-"ORB D,S" $EA
-"ORB D,U" $EA
-"ORB D,X" $EA
-"ORB D,Y" $EA
-"ORB s,S" $EA
-"ORB s,U" $EA
-"ORB s,X" $EA
-"ORB s,Y" $EA
+"ORB ?,PCR" $EA8D
+"ORB ?,S" $EAE9
+"ORB ?,U" $EAC9
+"ORB ?,X" $EA89
+"ORB ?,Y" $EAA9
+"ORB A,S" $EAE6
+"ORB A,U" $EAC6
+"ORB A,X" $EA86
+"ORB A,Y" $EAA6
+"ORB B,S" $EAE5
+"ORB B,U" $EAC5
+"ORB B,X" $EA85
+"ORB B,Y" $EAA5
+"ORB D,S" $EAEB
+"ORB D,U" $EACB
+"ORB D,X" $EA8B
+"ORB D,Y" $EAAB
+"ORB s,S" $EA60
+"ORB s,U" $EA40
+"ORB s,X" $EA00
+"ORB s,Y" $EA20
 "ORB x" $DA
-"ORB x,PCR" $EA
-"ORB x,S" $EA
-"ORB x,U" $EA
-"ORB x,X" $EA
-"ORB x,Y" $EA
-"ORB,--S" $EA
-"ORB,--U" $EA
-"ORB,--X" $EA
-"ORB,--Y" $EA
-"ORB,-S" $EA
-"ORB,-U" $EA
-"ORB,-X" $EA
-"ORB,-Y" $EA
-"ORB,S" $EA
-"ORB,S+" $EA
-"ORB,S++" $EA
-"ORB,U" $EA
-"ORB,U+" $EA
-"ORB,U++" $EA
-"ORB,X" $EA
-"ORB,X+" $EA
-"ORB,X++" $EA
-"ORB,Y" $EA
-"ORB,Y+" $EA
-"ORB,Y++" $EA
+"ORB x,PCR" $EA8C
+"ORB x,S" $EAE8
+"ORB x,U" $EAC8
+"ORB x,X" $EA88
+"ORB x,Y" $EAA8
+"ORB,--S" $EAE3
+"ORB,--U" $EAC3
+"ORB,--X" $EA83
+"ORB,--Y" $EAA3
+"ORB,-S" $EAE2
+"ORB,-U" $EAC2
+"ORB,-X" $EA82
+"ORB,-Y" $EAA2
+"ORB,S" $EAE4
+"ORB,S+" $EAE0
+"ORB,S++" $EAE1
+"ORB,U" $EAC4
+"ORB,U+" $EAC0
+"ORB,U++" $EAC1
+"ORB,X" $EA84
+"ORB,X+" $EA80
+"ORB,X++" $EA81
+"ORB,Y" $EAA4
+"ORB,Y+" $EAA0
+"ORB,Y++" $EAA1
 "ORCC #x" $1A
 "PSHS r" $34
 "PSHU r" $36
 "PULS r" $35
 "PULU r" $37
-"ROL (,--S)" $69
-"ROL (,--U)" $69
-"ROL (,--X)" $69
-"ROL (,--Y)" $69
-"ROL (,S)" $69
-"ROL (,S++)" $69
-"ROL (,U)" $69
-"ROL (,U++)" $69
-"ROL (,X)" $69
-"ROL (,X++)" $69
-"ROL (,Y)" $69
-"ROL (,Y++)" $69
-"ROL (?)" $69
-"ROL (?,PCR)" $69
-"ROL (?,S)" $69
-"ROL (?,U)" $69
-"ROL (?,X)" $69
-"ROL (?,Y)" $69
-"ROL (A,S)" $69
-"ROL (A,U)" $69
-"ROL (A,X)" $69
-"ROL (A,Y)" $69
-"ROL (B,S)" $69
-"ROL (B,U)" $69
-"ROL (B,X)" $69
-"ROL (B,Y)" $69
-"ROL (D,S)" $69
-"ROL (D,U)" $69
-"ROL (D,X)" $69
-"ROL (D,Y)" $69
-"ROL (x,PCR)" $69
-"ROL (x,S)" $69
-"ROL (x,U)" $69
-"ROL (x,X)" $69
-"ROL (x,Y)" $69
+"ROL (,--S)" $69F3
+"ROL (,--U)" $69D3
+"ROL (,--X)" $6993
+"ROL (,--Y)" $69B3
+"ROL (,S)" $69F4
+"ROL (,S++)" $69F1
+"ROL (,U)" $69D4
+"ROL (,U++)" $69D1
+"ROL (,X)" $6994
+"ROL (,X++)" $6991
+"ROL (,Y)" $69B4
+"ROL (,Y++)" $69B1
+"ROL (?)" $699F
+"ROL (?,PCR)" $699D
+"ROL (?,S)" $69F9
+"ROL (?,U)" $69D9
+"ROL (?,X)" $6999
+"ROL (?,Y)" $69B9
+"ROL (A,S)" $69F6
+"ROL (A,U)" $69D6
+"ROL (A,X)" $6996
+"ROL (A,Y)" $69B6
+"ROL (B,S)" $69F5
+"ROL (B,U)" $69D5
+"ROL (B,X)" $6995
+"ROL (B,Y)" $69B5
+"ROL (D,S)" $69FB
+"ROL (D,U)" $69DB
+"ROL (D,X)" $699B
+"ROL (D,Y)" $69BB
+"ROL (x,PCR)" $699C
+"ROL (x,S)" $69F8
+"ROL (x,U)" $69D8
+"ROL (x,X)" $6998
+"ROL (x,Y)" $69B8
 "ROL ?" $79
-"ROL ?,PCR" $69
-"ROL ?,S" $69
-"ROL ?,U" $69
-"ROL ?,X" $69
-"ROL ?,Y" $69
-"ROL A,S" $69
-"ROL A,U" $69
-"ROL A,X" $69
-"ROL A,Y" $69
-"ROL B,S" $69
-"ROL B,U" $69
-"ROL B,X" $69
-"ROL B,Y" $69
-"ROL D,S" $69
-"ROL D,U" $69
-"ROL D,X" $69
-"ROL D,Y" $69
-"ROL s,S" $69
-"ROL s,U" $69
-"ROL s,X" $69
-"ROL s,Y" $69
+"ROL ?,PCR" $698D
+"ROL ?,S" $69E9
+"ROL ?,U" $69C9
+"ROL ?,X" $6989
+"ROL ?,Y" $69A9
+"ROL A,S" $69E6
+"ROL A,U" $69C6
+"ROL A,X" $6986
+"ROL A,Y" $69A6
+"ROL B,S" $69E5
+"ROL B,U" $69C5
+"ROL B,X" $6985
+"ROL B,Y" $69A5
+"ROL D,S" $69EB
+"ROL D,U" $69CB
+"ROL D,X" $698B
+"ROL D,Y" $69AB
+"ROL s,S" $6960
+"ROL s,U" $6940
+"ROL s,X" $6900
+"ROL s,Y" $6920
 "ROL x" $09
-"ROL x,PCR" $69
-"ROL x,S" $69
-"ROL x,U" $69
-"ROL x,X" $69
-"ROL x,Y" $69
-"ROL,--S" $69
-"ROL,--U" $69
-"ROL,--X" $69
-"ROL,--Y" $69
-"ROL,-S" $69
-"ROL,-U" $69
-"ROL,-X" $69
-"ROL,-Y" $69
-"ROL,S" $69
-"ROL,S+" $69
-"ROL,S++" $69
-"ROL,U" $69
-"ROL,U+" $69
-"ROL,U++" $69
-"ROL,X" $69
-"ROL,X+" $69
-"ROL,X++" $69
-"ROL,Y" $69
-"ROL,Y+" $69
-"ROL,Y++" $69
+"ROL x,PCR" $698C
+"ROL x,S" $69E8
+"ROL x,U" $69C8
+"ROL x,X" $6988
+"ROL x,Y" $69A8
+"ROL,--S" $69E3
+"ROL,--U" $69C3
+"ROL,--X" $6983
+"ROL,--Y" $69A3
+"ROL,-S" $69E2
+"ROL,-U" $69C2
+"ROL,-X" $6982
+"ROL,-Y" $69A2
+"ROL,S" $69E4
+"ROL,S+" $69E0
+"ROL,S++" $69E1
+"ROL,U" $69C4
+"ROL,U+" $69C0
+"ROL,U++" $69C1
+"ROL,X" $6984
+"ROL,X+" $6980
+"ROL,X++" $6981
+"ROL,Y" $69A4
+"ROL,Y+" $69A0
+"ROL,Y++" $69A1
 "ROLA" $49
 "ROLB" $59
-"ROR (,--S)" $66
-"ROR (,--U)" $66
-"ROR (,--X)" $66
-"ROR (,--Y)" $66
-"ROR (,S)" $66
-"ROR (,S++)" $66
-"ROR (,U)" $66
-"ROR (,U++)" $66
-"ROR (,X)" $66
-"ROR (,X++)" $66
-"ROR (,Y)" $66
-"ROR (,Y++)" $66
-"ROR (?)" $66
-"ROR (?,PCR)" $66
-"ROR (?,S)" $66
-"ROR (?,U)" $66
-"ROR (?,X)" $66
-"ROR (?,Y)" $66
-"ROR (A,S)" $66
-"ROR (A,U)" $66
-"ROR (A,X)" $66
-"ROR (A,Y)" $66
-"ROR (B,S)" $66
-"ROR (B,U)" $66
-"ROR (B,X)" $66
-"ROR (B,Y)" $66
-"ROR (D,S)" $66
-"ROR (D,U)" $66
-"ROR (D,X)" $66
-"ROR (D,Y)" $66
-"ROR (x,PCR)" $66
-"ROR (x,S)" $66
-"ROR (x,U)" $66
-"ROR (x,X)" $66
-"ROR (x,Y)" $66
+"ROR (,--S)" $66F3
+"ROR (,--U)" $66D3
+"ROR (,--X)" $6693
+"ROR (,--Y)" $66B3
+"ROR (,S)" $66F4
+"ROR (,S++)" $66F1
+"ROR (,U)" $66D4
+"ROR (,U++)" $66D1
+"ROR (,X)" $6694
+"ROR (,X++)" $6691
+"ROR (,Y)" $66B4
+"ROR (,Y++)" $66B1
+"ROR (?)" $669F
+"ROR (?,PCR)" $669D
+"ROR (?,S)" $66F9
+"ROR (?,U)" $66D9
+"ROR (?,X)" $6699
+"ROR (?,Y)" $66B9
+"ROR (A,S)" $66F6
+"ROR (A,U)" $66D6
+"ROR (A,X)" $6696
+"ROR (A,Y)" $66B6
+"ROR (B,S)" $66F5
+"ROR (B,U)" $66D5
+"ROR (B,X)" $6695
+"ROR (B,Y)" $66B5
+"ROR (D,S)" $66FB
+"ROR (D,U)" $66DB
+"ROR (D,X)" $669B
+"ROR (D,Y)" $66BB
+"ROR (x,PCR)" $669C
+"ROR (x,S)" $66F8
+"ROR (x,U)" $66D8
+"ROR (x,X)" $6698
+"ROR (x,Y)" $66B8
 "ROR ?" $76
-"ROR ?,PCR" $66
-"ROR ?,S" $66
-"ROR ?,U" $66
-"ROR ?,X" $66
-"ROR ?,Y" $66
-"ROR A,S" $66
-"ROR A,U" $66
-"ROR A,X" $66
-"ROR A,Y" $66
-"ROR B,S" $66
-"ROR B,U" $66
-"ROR B,X" $66
-"ROR B,Y" $66
-"ROR D,S" $66
-"ROR D,U" $66
-"ROR D,X" $66
-"ROR D,Y" $66
-"ROR s,S" $66
-"ROR s,U" $66
-"ROR s,X" $66
-"ROR s,Y" $66
+"ROR ?,PCR" $668D
+"ROR ?,S" $66E9
+"ROR ?,U" $66C9
+"ROR ?,X" $6689
+"ROR ?,Y" $66A9
+"ROR A,S" $66E6
+"ROR A,U" $66C6
+"ROR A,X" $6686
+"ROR A,Y" $66A6
+"ROR B,S" $66E5
+"ROR B,U" $66C5
+"ROR B,X" $6685
+"ROR B,Y" $66A5
+"ROR D,S" $66EB
+"ROR D,U" $66CB
+"ROR D,X" $668B
+"ROR D,Y" $66AB
+"ROR s,S" $6660
+"ROR s,U" $6640
+"ROR s,X" $6600
+"ROR s,Y" $6620
 "ROR x" $06
-"ROR x,PCR" $66
-"ROR x,S" $66
-"ROR x,U" $66
-"ROR x,X" $66
-"ROR x,Y" $66
-"ROR,--S" $66
-"ROR,--U" $66
-"ROR,--X" $66
-"ROR,--Y" $66
-"ROR,-S" $66
-"ROR,-U" $66
-"ROR,-X" $66
-"ROR,-Y" $66
-"ROR,S" $66
-"ROR,S+" $66
-"ROR,S++" $66
-"ROR,U" $66
-"ROR,U+" $66
-"ROR,U++" $66
-"ROR,X" $66
-"ROR,X+" $66
-"ROR,X++" $66
-"ROR,Y" $66
-"ROR,Y+" $66
-"ROR,Y++" $66
+"ROR x,PCR" $668C
+"ROR x,S" $66E8
+"ROR x,U" $66C8
+"ROR x,X" $6688
+"ROR x,Y" $66A8
+"ROR,--S" $66E3
+"ROR,--U" $66C3
+"ROR,--X" $6683
+"ROR,--Y" $66A3
+"ROR,-S" $66E2
+"ROR,-U" $66C2
+"ROR,-X" $6682
+"ROR,-Y" $66A2
+"ROR,S" $66E4
+"ROR,S+" $66E0
+"ROR,S++" $66E1
+"ROR,U" $66C4
+"ROR,U+" $66C0
+"ROR,U++" $66C1
+"ROR,X" $6684
+"ROR,X+" $6680
+"ROR,X++" $6681
+"ROR,Y" $66A4
+"ROR,Y+" $66A0
+"ROR,Y++" $66A1
 "RORA" $46
 "RORB" $56
 "RTI" $3B
 "RTS" $39
 "SBCA #x" $82
-"SBCA (,--S)" $A2
-"SBCA (,--U)" $A2
-"SBCA (,--X)" $A2
-"SBCA (,--Y)" $A2
-"SBCA (,S)" $A2
-"SBCA (,S++)" $A2
-"SBCA (,U)" $A2
-"SBCA (,U++)" $A2
-"SBCA (,X)" $A2
-"SBCA (,X++)" $A2
-"SBCA (,Y)" $A2
-"SBCA (,Y++)" $A2
-"SBCA (?)" $A2
-"SBCA (?,PCR)" $A2
-"SBCA (?,S)" $A2
-"SBCA (?,U)" $A2
-"SBCA (?,X)" $A2
-"SBCA (?,Y)" $A2
-"SBCA (A,S)" $A2
-"SBCA (A,U)" $A2
-"SBCA (A,X)" $A2
-"SBCA (A,Y)" $A2
-"SBCA (B,S)" $A2
-"SBCA (B,U)" $A2
-"SBCA (B,X)" $A2
-"SBCA (B,Y)" $A2
-"SBCA (D,S)" $A2
-"SBCA (D,U)" $A2
-"SBCA (D,X)" $A2
-"SBCA (D,Y)" $A2
-"SBCA (x,PCR)" $A2
-"SBCA (x,S)" $A2
-"SBCA (x,U)" $A2
-"SBCA (x,X)" $A2
-"SBCA (x,Y)" $A2
+"SBCA (,--S)" $A2F3
+"SBCA (,--U)" $A2D3
+"SBCA (,--X)" $A293
+"SBCA (,--Y)" $A2B3
+"SBCA (,S)" $A2F4
+"SBCA (,S++)" $A2F1
+"SBCA (,U)" $A2D4
+"SBCA (,U++)" $A2D1
+"SBCA (,X)" $A294
+"SBCA (,X++)" $A291
+"SBCA (,Y)" $A2B4
+"SBCA (,Y++)" $A2B1
+"SBCA (?)" $A29F
+"SBCA (?,PCR)" $A29D
+"SBCA (?,S)" $A2F9
+"SBCA (?,U)" $A2D9
+"SBCA (?,X)" $A299
+"SBCA (?,Y)" $A2B9
+"SBCA (A,S)" $A2F6
+"SBCA (A,U)" $A2D6
+"SBCA (A,X)" $A296
+"SBCA (A,Y)" $A2B6
+"SBCA (B,S)" $A2F5
+"SBCA (B,U)" $A2D5
+"SBCA (B,X)" $A295
+"SBCA (B,Y)" $A2B5
+"SBCA (D,S)" $A2FB
+"SBCA (D,U)" $A2DB
+"SBCA (D,X)" $A29B
+"SBCA (D,Y)" $A2BB
+"SBCA (x,PCR)" $A29C
+"SBCA (x,S)" $A2F8
+"SBCA (x,U)" $A2D8
+"SBCA (x,X)" $A298
+"SBCA (x,Y)" $A2B8
 "SBCA ?" $B2
-"SBCA ?,PCR" $A2
-"SBCA ?,S" $A2
-"SBCA ?,U" $A2
-"SBCA ?,X" $A2
-"SBCA ?,Y" $A2
-"SBCA A,S" $A2
-"SBCA A,U" $A2
-"SBCA A,X" $A2
-"SBCA A,Y" $A2
-"SBCA B,S" $A2
-"SBCA B,U" $A2
-"SBCA B,X" $A2
-"SBCA B,Y" $A2
-"SBCA D,S" $A2
-"SBCA D,U" $A2
-"SBCA D,X" $A2
-"SBCA D,Y" $A2
-"SBCA s,S" $A2
-"SBCA s,U" $A2
-"SBCA s,X" $A2
-"SBCA s,Y" $A2
+"SBCA ?,PCR" $A28D
+"SBCA ?,S" $A2E9
+"SBCA ?,U" $A2C9
+"SBCA ?,X" $A289
+"SBCA ?,Y" $A2A9
+"SBCA A,S" $A2E6
+"SBCA A,U" $A2C6
+"SBCA A,X" $A286
+"SBCA A,Y" $A2A6
+"SBCA B,S" $A2E5
+"SBCA B,U" $A2C5
+"SBCA B,X" $A285
+"SBCA B,Y" $A2A5
+"SBCA D,S" $A2EB
+"SBCA D,U" $A2CB
+"SBCA D,X" $A28B
+"SBCA D,Y" $A2AB
+"SBCA s,S" $A260
+"SBCA s,U" $A240
+"SBCA s,X" $A200
+"SBCA s,Y" $A220
 "SBCA x" $92
-"SBCA x,PCR" $A2
-"SBCA x,S" $A2
-"SBCA x,U" $A2
-"SBCA x,X" $A2
-"SBCA x,Y" $A2
-"SBCA,--S" $A2
-"SBCA,--U" $A2
-"SBCA,--X" $A2
-"SBCA,--Y" $A2
-"SBCA,-S" $A2
-"SBCA,-U" $A2
-"SBCA,-X" $A2
-"SBCA,-Y" $A2
-"SBCA,S" $A2
-"SBCA,S+" $A2
-"SBCA,S++" $A2
-"SBCA,U" $A2
-"SBCA,U+" $A2
-"SBCA,U++" $A2
-"SBCA,X" $A2
-"SBCA,X+" $A2
-"SBCA,X++" $A2
-"SBCA,Y" $A2
-"SBCA,Y+" $A2
-"SBCA,Y++" $A2
+"SBCA x,PCR" $A28C
+"SBCA x,S" $A2E8
+"SBCA x,U" $A2C8
+"SBCA x,X" $A288
+"SBCA x,Y" $A2A8
+"SBCA,--S" $A2E3
+"SBCA,--U" $A2C3
+"SBCA,--X" $A283
+"SBCA,--Y" $A2A3
+"SBCA,-S" $A2E2
+"SBCA,-U" $A2C2
+"SBCA,-X" $A282
+"SBCA,-Y" $A2A2
+"SBCA,S" $A2E4
+"SBCA,S+" $A2E0
+"SBCA,S++" $A2E1
+"SBCA,U" $A2C4
+"SBCA,U+" $A2C0
+"SBCA,U++" $A2C1
+"SBCA,X" $A284
+"SBCA,X+" $A280
+"SBCA,X++" $A281
+"SBCA,Y" $A2A4
+"SBCA,Y+" $A2A0
+"SBCA,Y++" $A2A1
 "SBCB #x" $C2
-"SBCB (,--S)" $E2
-"SBCB (,--U)" $E2
-"SBCB (,--X)" $E2
-"SBCB (,--Y)" $E2
-"SBCB (,S)" $E2
-"SBCB (,S++)" $E2
-"SBCB (,U)" $E2
-"SBCB (,U++)" $E2
-"SBCB (,X)" $E2
-"SBCB (,X++)" $E2
-"SBCB (,Y)" $E2
-"SBCB (,Y++)" $E2
-"SBCB (?)" $E2
-"SBCB (?,PCR)" $E2
-"SBCB (?,S)" $E2
-"SBCB (?,U)" $E2
-"SBCB (?,X)" $E2
-"SBCB (?,Y)" $E2
-"SBCB (A,S)" $E2
-"SBCB (A,U)" $E2
-"SBCB (A,X)" $E2
-"SBCB (A,Y)" $E2
-"SBCB (B,S)" $E2
-"SBCB (B,U)" $E2
-"SBCB (B,X)" $E2
-"SBCB (B,Y)" $E2
-"SBCB (D,S)" $E2
-"SBCB (D,U)" $E2
-"SBCB (D,X)" $E2
-"SBCB (D,Y)" $E2
-"SBCB (x,PCR)" $E2
-"SBCB (x,S)" $E2
-"SBCB (x,U)" $E2
-"SBCB (x,X)" $E2
-"SBCB (x,Y)" $E2
+"SBCB (,--S)" $E2F3
+"SBCB (,--U)" $E2D3
+"SBCB (,--X)" $E293
+"SBCB (,--Y)" $E2B3
+"SBCB (,S)" $E2F4
+"SBCB (,S++)" $E2F1
+"SBCB (,U)" $E2D4
+"SBCB (,U++)" $E2D1
+"SBCB (,X)" $E294
+"SBCB (,X++)" $E291
+"SBCB (,Y)" $E2B4
+"SBCB (,Y++)" $E2B1
+"SBCB (?)" $E29F
+"SBCB (?,PCR)" $E29D
+"SBCB (?,S)" $E2F9
+"SBCB (?,U)" $E2D9
+"SBCB (?,X)" $E299
+"SBCB (?,Y)" $E2B9
+"SBCB (A,S)" $E2F6
+"SBCB (A,U)" $E2D6
+"SBCB (A,X)" $E296
+"SBCB (A,Y)" $E2B6
+"SBCB (B,S)" $E2F5
+"SBCB (B,U)" $E2D5
+"SBCB (B,X)" $E295
+"SBCB (B,Y)" $E2B5
+"SBCB (D,S)" $E2FB
+"SBCB (D,U)" $E2DB
+"SBCB (D,X)" $E29B
+"SBCB (D,Y)" $E2BB
+"SBCB (x,PCR)" $E29C
+"SBCB (x,S)" $E2F8
+"SBCB (x,U)" $E2D8
+"SBCB (x,X)" $E298
+"SBCB (x,Y)" $E2B8
 "SBCB ?" $F2
-"SBCB ?,PCR" $E2
-"SBCB ?,S" $E2
-"SBCB ?,U" $E2
-"SBCB ?,X" $E2
-"SBCB ?,Y" $E2
-"SBCB A,S" $E2
-"SBCB A,U" $E2
-"SBCB A,X" $E2
-"SBCB A,Y" $E2
-"SBCB B,S" $E2
-"SBCB B,U" $E2
-"SBCB B,X" $E2
-"SBCB B,Y" $E2
-"SBCB D,S" $E2
-"SBCB D,U" $E2
-"SBCB D,X" $E2
-"SBCB D,Y" $E2
-"SBCB s,S" $E2
-"SBCB s,U" $E2
-"SBCB s,X" $E2
-"SBCB s,Y" $E2
+"SBCB ?,PCR" $E28D
+"SBCB ?,S" $E2E9
+"SBCB ?,U" $E2C9
+"SBCB ?,X" $E289
+"SBCB ?,Y" $E2A9
+"SBCB A,S" $E2E6
+"SBCB A,U" $E2C6
+"SBCB A,X" $E286
+"SBCB A,Y" $E2A6
+"SBCB B,S" $E2E5
+"SBCB B,U" $E2C5
+"SBCB B,X" $E285
+"SBCB B,Y" $E2A5
+"SBCB D,S" $E2EB
+"SBCB D,U" $E2CB
+"SBCB D,X" $E28B
+"SBCB D,Y" $E2AB
+"SBCB s,S" $E260
+"SBCB s,U" $E240
+"SBCB s,X" $E200
+"SBCB s,Y" $E220
 "SBCB x" $D2
-"SBCB x,PCR" $E2
-"SBCB x,S" $E2
-"SBCB x,U" $E2
-"SBCB x,X" $E2
-"SBCB x,Y" $E2
-"SBCB,--S" $E2
-"SBCB,--U" $E2
-"SBCB,--X" $E2
-"SBCB,--Y" $E2
-"SBCB,-S" $E2
-"SBCB,-U" $E2
-"SBCB,-X" $E2
-"SBCB,-Y" $E2
-"SBCB,S" $E2
-"SBCB,S+" $E2
-"SBCB,S++" $E2
-"SBCB,U" $E2
-"SBCB,U+" $E2
-"SBCB,U++" $E2
-"SBCB,X" $E2
-"SBCB,X+" $E2
-"SBCB,X++" $E2
-"SBCB,Y" $E2
-"SBCB,Y+" $E2
-"SBCB,Y++" $E2
+"SBCB x,PCR" $E28C
+"SBCB x,S" $E2E8
+"SBCB x,U" $E2C8
+"SBCB x,X" $E288
+"SBCB x,Y" $E2A8
+"SBCB,--S" $E2E3
+"SBCB,--U" $E2C3
+"SBCB,--X" $E283
+"SBCB,--Y" $E2A3
+"SBCB,-S" $E2E2
+"SBCB,-U" $E2C2
+"SBCB,-X" $E282
+"SBCB,-Y" $E2A2
+"SBCB,S" $E2E4
+"SBCB,S+" $E2E0
+"SBCB,S++" $E2E1
+"SBCB,U" $E2C4
+"SBCB,U+" $E2C0
+"SBCB,U++" $E2C1
+"SBCB,X" $E284
+"SBCB,X+" $E280
+"SBCB,X++" $E281
+"SBCB,Y" $E2A4
+"SBCB,Y+" $E2A0
+"SBCB,Y++" $E2A1
 "SEX" $1D
-"STA (,--S)" $A7
-"STA (,--U)" $A7
-"STA (,--X)" $A7
-"STA (,--Y)" $A7
-"STA (,S)" $A7
-"STA (,S++)" $A7
-"STA (,U)" $A7
-"STA (,U++)" $A7
-"STA (,X)" $A7
-"STA (,X++)" $A7
-"STA (,Y)" $A7
-"STA (,Y++)" $A7
-"STA (?)" $A7
-"STA (?,PCR)" $A7
-"STA (?,S)" $A7
-"STA (?,U)" $A7
-"STA (?,X)" $A7
-"STA (?,Y)" $A7
-"STA (A,S)" $A7
-"STA (A,U)" $A7
-"STA (A,X)" $A7
-"STA (A,Y)" $A7
-"STA (B,S)" $A7
-"STA (B,U)" $A7
-"STA (B,X)" $A7
-"STA (B,Y)" $A7
-"STA (D,S)" $A7
-"STA (D,U)" $A7
-"STA (D,X)" $A7
-"STA (D,Y)" $A7
-"STA (x,PCR)" $A7
-"STA (x,S)" $A7
-"STA (x,U)" $A7
-"STA (x,X)" $A7
-"STA (x,Y)" $A7
+"STA (,--S)" $A7F3
+"STA (,--U)" $A7D3
+"STA (,--X)" $A793
+"STA (,--Y)" $A7B3
+"STA (,S)" $A7F4
+"STA (,S++)" $A7F1
+"STA (,U)" $A7D4
+"STA (,U++)" $A7D1
+"STA (,X)" $A794
+"STA (,X++)" $A791
+"STA (,Y)" $A7B4
+"STA (,Y++)" $A7B1
+"STA (?)" $A79F
+"STA (?,PCR)" $A79D
+"STA (?,S)" $A7F9
+"STA (?,U)" $A7D9
+"STA (?,X)" $A799
+"STA (?,Y)" $A7B9
+"STA (A,S)" $A7F6
+"STA (A,U)" $A7D6
+"STA (A,X)" $A796
+"STA (A,Y)" $A7B6
+"STA (B,S)" $A7F5
+"STA (B,U)" $A7D5
+"STA (B,X)" $A795
+"STA (B,Y)" $A7B5
+"STA (D,S)" $A7FB
+"STA (D,U)" $A7DB
+"STA (D,X)" $A79B
+"STA (D,Y)" $A7BB
+"STA (x,PCR)" $A79C
+"STA (x,S)" $A7F8
+"STA (x,U)" $A7D8
+"STA (x,X)" $A798
+"STA (x,Y)" $A7B8
 "STA ?" $B7
-"STA ?,PCR" $A7
-"STA ?,S" $A7
-"STA ?,U" $A7
-"STA ?,X" $A7
-"STA ?,Y" $A7
-"STA A,S" $A7
-"STA A,U" $A7
-"STA A,X" $A7
-"STA A,Y" $A7
-"STA B,S" $A7
-"STA B,U" $A7
-"STA B,X" $A7
-"STA B,Y" $A7
-"STA D,S" $A7
-"STA D,U" $A7
-"STA D,X" $A7
-"STA D,Y" $A7
-"STA s,S" $A7
-"STA s,U" $A7
-"STA s,X" $A7
-"STA s,Y" $A7
+"STA ?,PCR" $A78D
+"STA ?,S" $A7E9
+"STA ?,U" $A7C9
+"STA ?,X" $A789
+"STA ?,Y" $A7A9
+"STA A,S" $A7E6
+"STA A,U" $A7C6
+"STA A,X" $A786
+"STA A,Y" $A7A6
+"STA B,S" $A7E5
+"STA B,U" $A7C5
+"STA B,X" $A785
+"STA B,Y" $A7A5
+"STA D,S" $A7EB
+"STA D,U" $A7CB
+"STA D,X" $A78B
+"STA D,Y" $A7AB
+"STA s,S" $A760
+"STA s,U" $A740
+"STA s,X" $A700
+"STA s,Y" $A720
 "STA x" $97
-"STA x,PCR" $A7
-"STA x,S" $A7
-"STA x,U" $A7
-"STA x,X" $A7
-"STA x,Y" $A7
-"STA,--S" $A7
-"STA,--U" $A7
-"STA,--X" $A7
-"STA,--Y" $A7
-"STA,-S" $A7
-"STA,-U" $A7
-"STA,-X" $A7
-"STA,-Y" $A7
-"STA,S" $A7
-"STA,S+" $A7
-"STA,S++" $A7
-"STA,U" $A7
-"STA,U+" $A7
-"STA,U++" $A7
-"STA,X" $A7
-"STA,X+" $A7
-"STA,X++" $A7
-"STA,Y" $A7
-"STA,Y+" $A7
-"STA,Y++" $A7
-"STB (,--S)" $E7
-"STB (,--U)" $E7
-"STB (,--X)" $E7
-"STB (,--Y)" $E7
-"STB (,S)" $E7
-"STB (,S++)" $E7
-"STB (,U)" $E7
-"STB (,U++)" $E7
-"STB (,X)" $E7
-"STB (,X++)" $E7
-"STB (,Y)" $E7
-"STB (,Y++)" $E7
-"STB (?)" $E7
-"STB (?,PCR)" $E7
-"STB (?,S)" $E7
-"STB (?,U)" $E7
-"STB (?,X)" $E7
-"STB (?,Y)" $E7
-"STB (A,S)" $E7
-"STB (A,U)" $E7
-"STB (A,X)" $E7
-"STB (A,Y)" $E7
-"STB (B,S)" $E7
-"STB (B,U)" $E7
-"STB (B,X)" $E7
-"STB (B,Y)" $E7
-"STB (D,S)" $E7
-"STB (D,U)" $E7
-"STB (D,X)" $E7
-"STB (D,Y)" $E7
-"STB (x,PCR)" $E7
-"STB (x,S)" $E7
-"STB (x,U)" $E7
-"STB (x,X)" $E7
-"STB (x,Y)" $E7
+"STA x,PCR" $A78C
+"STA x,S" $A7E8
+"STA x,U" $A7C8
+"STA x,X" $A788
+"STA x,Y" $A7A8
+"STA,--S" $A7E3
+"STA,--U" $A7C3
+"STA,--X" $A783
+"STA,--Y" $A7A3
+"STA,-S" $A7E2
+"STA,-U" $A7C2
+"STA,-X" $A782
+"STA,-Y" $A7A2
+"STA,S" $A7E4
+"STA,S+" $A7E0
+"STA,S++" $A7E1
+"STA,U" $A7C4
+"STA,U+" $A7C0
+"STA,U++" $A7C1
+"STA,X" $A784
+"STA,X+" $A780
+"STA,X++" $A781
+"STA,Y" $A7A4
+"STA,Y+" $A7A0
+"STA,Y++" $A7A1
+"STB (,--S)" $E7F3
+"STB (,--U)" $E7D3
+"STB (,--X)" $E793
+"STB (,--Y)" $E7B3
+"STB (,S)" $E7F4
+"STB (,S++)" $E7F1
+"STB (,U)" $E7D4
+"STB (,U++)" $E7D1
+"STB (,X)" $E794
+"STB (,X++)" $E791
+"STB (,Y)" $E7B4
+"STB (,Y++)" $E7B1
+"STB (?)" $E79F
+"STB (?,PCR)" $E79D
+"STB (?,S)" $E7F9
+"STB (?,U)" $E7D9
+"STB (?,X)" $E799
+"STB (?,Y)" $E7B9
+"STB (A,S)" $E7F6
+"STB (A,U)" $E7D6
+"STB (A,X)" $E796
+"STB (A,Y)" $E7B6
+"STB (B,S)" $E7F5
+"STB (B,U)" $E7D5
+"STB (B,X)" $E795
+"STB (B,Y)" $E7B5
+"STB (D,S)" $E7FB
+"STB (D,U)" $E7DB
+"STB (D,X)" $E79B
+"STB (D,Y)" $E7BB
+"STB (x,PCR)" $E79C
+"STB (x,S)" $E7F8
+"STB (x,U)" $E7D8
+"STB (x,X)" $E798
+"STB (x,Y)" $E7B8
 "STB ?" $F7
-"STB ?,PCR" $E7
-"STB ?,S" $E7
-"STB ?,U" $E7
-"STB ?,X" $E7
-"STB ?,Y" $E7
-"STB A,S" $E7
-"STB A,U" $E7
-"STB A,X" $E7
-"STB A,Y" $E7
-"STB B,S" $E7
-"STB B,U" $E7
-"STB B,X" $E7
-"STB B,Y" $E7
-"STB D,S" $E7
-"STB D,U" $E7
-"STB D,X" $E7
-"STB D,Y" $E7
-"STB s,S" $E7
-"STB s,U" $E7
-"STB s,X" $E7
-"STB s,Y" $E7
+"STB ?,PCR" $E78D
+"STB ?,S" $E7E9
+"STB ?,U" $E7C9
+"STB ?,X" $E789
+"STB ?,Y" $E7A9
+"STB A,S" $E7E6
+"STB A,U" $E7C6
+"STB A,X" $E786
+"STB A,Y" $E7A6
+"STB B,S" $E7E5
+"STB B,U" $E7C5
+"STB B,X" $E785
+"STB B,Y" $E7A5
+"STB D,S" $E7EB
+"STB D,U" $E7CB
+"STB D,X" $E78B
+"STB D,Y" $E7AB
+"STB s,S" $E760
+"STB s,U" $E740
+"STB s,X" $E700
+"STB s,Y" $E720
 "STB x" $D7
-"STB x,PCR" $E7
-"STB x,S" $E7
-"STB x,U" $E7
-"STB x,X" $E7
-"STB x,Y" $E7
-"STB,--S" $E7
-"STB,--U" $E7
-"STB,--X" $E7
-"STB,--Y" $E7
-"STB,-S" $E7
-"STB,-U" $E7
-"STB,-X" $E7
-"STB,-Y" $E7
-"STB,S" $E7
-"STB,S+" $E7
-"STB,S++" $E7
-"STB,U" $E7
-"STB,U+" $E7
-"STB,U++" $E7
-"STB,X" $E7
-"STB,X+" $E7
-"STB,X++" $E7
-"STB,Y" $E7
-"STB,Y+" $E7
-"STB,Y++" $E7
-"STD (,--S)" $ED
-"STD (,--U)" $ED
-"STD (,--X)" $ED
-"STD (,--Y)" $ED
-"STD (,S)" $ED
-"STD (,S++)" $ED
-"STD (,U)" $ED
-"STD (,U++)" $ED
-"STD (,X)" $ED
-"STD (,X++)" $ED
-"STD (,Y)" $ED
-"STD (,Y++)" $ED
-"STD (?)" $ED
-"STD (?,PCR)" $ED
-"STD (?,S)" $ED
-"STD (?,U)" $ED
-"STD (?,X)" $ED
-"STD (?,Y)" $ED
-"STD (A,S)" $ED
-"STD (A,U)" $ED
-"STD (A,X)" $ED
-"STD (A,Y)" $ED
-"STD (B,S)" $ED
-"STD (B,U)" $ED
-"STD (B,X)" $ED
-"STD (B,Y)" $ED
-"STD (D,S)" $ED
-"STD (D,U)" $ED
-"STD (D,X)" $ED
-"STD (D,Y)" $ED
-"STD (x,PCR)" $ED
-"STD (x,S)" $ED
-"STD (x,U)" $ED
-"STD (x,X)" $ED
-"STD (x,Y)" $ED
+"STB x,PCR" $E78C
+"STB x,S" $E7E8
+"STB x,U" $E7C8
+"STB x,X" $E788
+"STB x,Y" $E7A8
+"STB,--S" $E7E3
+"STB,--U" $E7C3
+"STB,--X" $E783
+"STB,--Y" $E7A3
+"STB,-S" $E7E2
+"STB,-U" $E7C2
+"STB,-X" $E782
+"STB,-Y" $E7A2
+"STB,S" $E7E4
+"STB,S+" $E7E0
+"STB,S++" $E7E1
+"STB,U" $E7C4
+"STB,U+" $E7C0
+"STB,U++" $E7C1
+"STB,X" $E784
+"STB,X+" $E780
+"STB,X++" $E781
+"STB,Y" $E7A4
+"STB,Y+" $E7A0
+"STB,Y++" $E7A1
+"STD (,--S)" $EDF3
+"STD (,--U)" $EDD3
+"STD (,--X)" $ED93
+"STD (,--Y)" $EDB3
+"STD (,S)" $EDF4
+"STD (,S++)" $EDF1
+"STD (,U)" $EDD4
+"STD (,U++)" $EDD1
+"STD (,X)" $ED94
+"STD (,X++)" $ED91
+"STD (,Y)" $EDB4
+"STD (,Y++)" $EDB1
+"STD (?)" $ED9F
+"STD (?,PCR)" $ED9D
+"STD (?,S)" $EDF9
+"STD (?,U)" $EDD9
+"STD (?,X)" $ED99
+"STD (?,Y)" $EDB9
+"STD (A,S)" $EDF6
+"STD (A,U)" $EDD6
+"STD (A,X)" $ED96
+"STD (A,Y)" $EDB6
+"STD (B,S)" $EDF5
+"STD (B,U)" $EDD5
+"STD (B,X)" $ED95
+"STD (B,Y)" $EDB5
+"STD (D,S)" $EDFB
+"STD (D,U)" $EDDB
+"STD (D,X)" $ED9B
+"STD (D,Y)" $EDBB
+"STD (x,PCR)" $ED9C
+"STD (x,S)" $EDF8
+"STD (x,U)" $EDD8
+"STD (x,X)" $ED98
+"STD (x,Y)" $EDB8
 "STD ?" $FD
-"STD ?,PCR" $ED
-"STD ?,S" $ED
-"STD ?,U" $ED
-"STD ?,X" $ED
-"STD ?,Y" $ED
-"STD A,S" $ED
-"STD A,U" $ED
-"STD A,X" $ED
-"STD A,Y" $ED
-"STD B,S" $ED
-"STD B,U" $ED
-"STD B,X" $ED
-"STD B,Y" $ED
-"STD D,S" $ED
-"STD D,U" $ED
-"STD D,X" $ED
-"STD D,Y" $ED
-"STD s,S" $ED
-"STD s,U" $ED
-"STD s,X" $ED
-"STD s,Y" $ED
+"STD ?,PCR" $ED8D
+"STD ?,S" $EDE9
+"STD ?,U" $EDC9
+"STD ?,X" $ED89
+"STD ?,Y" $EDA9
+"STD A,S" $EDE6
+"STD A,U" $EDC6
+"STD A,X" $ED86
+"STD A,Y" $EDA6
+"STD B,S" $EDE5
+"STD B,U" $EDC5
+"STD B,X" $ED85
+"STD B,Y" $EDA5
+"STD D,S" $EDEB
+"STD D,U" $EDCB
+"STD D,X" $ED8B
+"STD D,Y" $EDAB
+"STD s,S" $ED60
+"STD s,U" $ED40
+"STD s,X" $ED00
+"STD s,Y" $ED20
 "STD x" $DD
-"STD x,PCR" $ED
-"STD x,S" $ED
-"STD x,U" $ED
-"STD x,X" $ED
-"STD x,Y" $ED
-"STD,--S" $ED
-"STD,--U" $ED
-"STD,--X" $ED
-"STD,--Y" $ED
-"STD,-S" $ED
-"STD,-U" $ED
-"STD,-X" $ED
-"STD,-Y" $ED
-"STD,S" $ED
-"STD,S+" $ED
-"STD,S++" $ED
-"STD,U" $ED
-"STD,U+" $ED
-"STD,U++" $ED
-"STD,X" $ED
-"STD,X+" $ED
-"STD,X++" $ED
-"STD,Y" $ED
-"STD,Y+" $ED
-"STD,Y++" $ED
-"STS (,--S)" $EF10
-"STS (,--U)" $EF10
-"STS (,--X)" $EF10
-"STS (,--Y)" $EF10
-"STS (,S)" $EF10
-"STS (,S++)" $EF10
-"STS (,U)" $EF10
-"STS (,U++)" $EF10
-"STS (,X)" $EF10
-"STS (,X++)" $EF10
-"STS (,Y)" $EF10
-"STS (,Y++)" $EF10
-"STS (?)" $EF10
-"STS (?,PCR)" $EF10
-"STS (?,S)" $EF10
-"STS (?,U)" $EF10
-"STS (?,X)" $EF10
-"STS (?,Y)" $EF10
-"STS (A,S)" $EF10
-"STS (A,U)" $EF10
-"STS (A,X)" $EF10
-"STS (A,Y)" $EF10
-"STS (B,S)" $EF10
-"STS (B,U)" $EF10
-"STS (B,X)" $EF10
-"STS (B,Y)" $EF10
-"STS (D,S)" $EF10
-"STS (D,U)" $EF10
-"STS (D,X)" $EF10
-"STS (D,Y)" $EF10
-"STS (x,PCR)" $EF10
-"STS (x,S)" $EF10
-"STS (x,U)" $EF10
-"STS (x,X)" $EF10
-"STS (x,Y)" $EF10
-"STS ?" $FF10
-"STS ?,PCR" $EF10
-"STS ?,S" $EF10
-"STS ?,U" $EF10
-"STS ?,X" $EF10
-"STS ?,Y" $EF10
-"STS A,S" $EF10
-"STS A,U" $EF10
-"STS A,X" $EF10
-"STS A,Y" $EF10
-"STS B,S" $EF10
-"STS B,U" $EF10
-"STS B,X" $EF10
-"STS B,Y" $EF10
-"STS D,S" $EF10
-"STS D,U" $EF10
-"STS D,X" $EF10
-"STS D,Y" $EF10
-"STS s,S" $EF10
-"STS s,U" $EF10
-"STS s,X" $EF10
-"STS s,Y" $EF10
-"STS x" $DF10
-"STS x,PCR" $EF10
-"STS x,S" $EF10
-"STS x,U" $EF10
-"STS x,X" $EF10
-"STS x,Y" $EF10
-"STS,--S" $EF10
-"STS,--U" $EF10
-"STS,--X" $EF10
-"STS,--Y" $EF10
-"STS,-S" $EF10
-"STS,-U" $EF10
-"STS,-X" $EF10
-"STS,-Y" $EF10
-"STS,S" $EF10
-"STS,S+" $EF10
-"STS,S++" $EF10
-"STS,U" $EF10
-"STS,U+" $EF10
-"STS,U++" $EF10
-"STS,X" $EF10
-"STS,X+" $EF10
-"STS,X++" $EF10
-"STS,Y" $EF10
-"STS,Y+" $EF10
-"STS,Y++" $EF10
-"STU (,--S)" $EF
-"STU (,--U)" $EF
-"STU (,--X)" $EF
-"STU (,--Y)" $EF
-"STU (,S)" $EF
-"STU (,S++)" $EF
-"STU (,U)" $EF
-"STU (,U++)" $EF
-"STU (,X)" $EF
-"STU (,X++)" $EF
-"STU (,Y)" $EF
-"STU (,Y++)" $EF
-"STU (?)" $EF
-"STU (?,PCR)" $EF
-"STU (?,S)" $EF
-"STU (?,U)" $EF
-"STU (?,X)" $EF
-"STU (?,Y)" $EF
-"STU (A,S)" $EF
-"STU (A,U)" $EF
-"STU (A,X)" $EF
-"STU (A,Y)" $EF
-"STU (B,S)" $EF
-"STU (B,U)" $EF
-"STU (B,X)" $EF
-"STU (B,Y)" $EF
-"STU (D,S)" $EF
-"STU (D,U)" $EF
-"STU (D,X)" $EF
-"STU (D,Y)" $EF
-"STU (x,PCR)" $EF
-"STU (x,S)" $EF
-"STU (x,U)" $EF
-"STU (x,X)" $EF
-"STU (x,Y)" $EF
+"STD x,PCR" $ED8C
+"STD x,S" $EDE8
+"STD x,U" $EDC8
+"STD x,X" $ED88
+"STD x,Y" $EDA8
+"STD,--S" $EDE3
+"STD,--U" $EDC3
+"STD,--X" $ED83
+"STD,--Y" $EDA3
+"STD,-S" $EDE2
+"STD,-U" $EDC2
+"STD,-X" $ED82
+"STD,-Y" $EDA2
+"STD,S" $EDE4
+"STD,S+" $EDE0
+"STD,S++" $EDE1
+"STD,U" $EDC4
+"STD,U+" $EDC0
+"STD,U++" $EDC1
+"STD,X" $ED84
+"STD,X+" $ED80
+"STD,X++" $ED81
+"STD,Y" $EDA4
+"STD,Y+" $EDA0
+"STD,Y++" $EDA1
+"STS (,--S)" $10EFF3
+"STS (,--U)" $10EFD3
+"STS (,--X)" $10EF93
+"STS (,--Y)" $10EFB3
+"STS (,S)" $10EFF4
+"STS (,S++)" $10EFF1
+"STS (,U)" $10EFD4
+"STS (,U++)" $10EFD1
+"STS (,X)" $10EF94
+"STS (,X++)" $10EF91
+"STS (,Y)" $10EFB4
+"STS (,Y++)" $10EFB1
+"STS (?)" $10EF9F
+"STS (?,PCR)" $10EF9D
+"STS (?,S)" $10EFF9
+"STS (?,U)" $10EFD9
+"STS (?,X)" $10EF99
+"STS (?,Y)" $10EFB9
+"STS (A,S)" $10EFF6
+"STS (A,U)" $10EFD6
+"STS (A,X)" $10EF96
+"STS (A,Y)" $10EFB6
+"STS (B,S)" $10EFF5
+"STS (B,U)" $10EFD5
+"STS (B,X)" $10EF95
+"STS (B,Y)" $10EFB5
+"STS (D,S)" $10EFFB
+"STS (D,U)" $10EFDB
+"STS (D,X)" $10EF9B
+"STS (D,Y)" $10EFBB
+"STS (x,PCR)" $10EF9C
+"STS (x,S)" $10EFF8
+"STS (x,U)" $10EFD8
+"STS (x,X)" $10EF98
+"STS (x,Y)" $10EFB8
+"STS ?" $10FF
+"STS ?,PCR" $10EF8D
+"STS ?,S" $10EFE9
+"STS ?,U" $10EFC9
+"STS ?,X" $10EF89
+"STS ?,Y" $10EFA9
+"STS A,S" $10EFE6
+"STS A,U" $10EFC6
+"STS A,X" $10EF86
+"STS A,Y" $10EFA6
+"STS B,S" $10EFE5
+"STS B,U" $10EFC5
+"STS B,X" $10EF85
+"STS B,Y" $10EFA5
+"STS D,S" $10EFEB
+"STS D,U" $10EFCB
+"STS D,X" $10EF8B
+"STS D,Y" $10EFAB
+"STS s,S" $10EF60
+"STS s,U" $10EF40
+"STS s,X" $10EF00
+"STS s,Y" $10EF20
+"STS x" $10DF
+"STS x,PCR" $10EF8C
+"STS x,S" $10EFE8
+"STS x,U" $10EFC8
+"STS x,X" $10EF88
+"STS x,Y" $10EFA8
+"STS,--S" $10EFE3
+"STS,--U" $10EFC3
+"STS,--X" $10EF83
+"STS,--Y" $10EFA3
+"STS,-S" $10EFE2
+"STS,-U" $10EFC2
+"STS,-X" $10EF82
+"STS,-Y" $10EFA2
+"STS,S" $10EFE4
+"STS,S+" $10EFE0
+"STS,S++" $10EFE1
+"STS,U" $10EFC4
+"STS,U+" $10EFC0
+"STS,U++" $10EFC1
+"STS,X" $10EF84
+"STS,X+" $10EF80
+"STS,X++" $10EF81
+"STS,Y" $10EFA4
+"STS,Y+" $10EFA0
+"STS,Y++" $10EFA1
+"STU (,--S)" $EFF3
+"STU (,--U)" $EFD3
+"STU (,--X)" $EF93
+"STU (,--Y)" $EFB3
+"STU (,S)" $EFF4
+"STU (,S++)" $EFF1
+"STU (,U)" $EFD4
+"STU (,U++)" $EFD1
+"STU (,X)" $EF94
+"STU (,X++)" $EF91
+"STU (,Y)" $EFB4
+"STU (,Y++)" $EFB1
+"STU (?)" $EF9F
+"STU (?,PCR)" $EF9D
+"STU (?,S)" $EFF9
+"STU (?,U)" $EFD9
+"STU (?,X)" $EF99
+"STU (?,Y)" $EFB9
+"STU (A,S)" $EFF6
+"STU (A,U)" $EFD6
+"STU (A,X)" $EF96
+"STU (A,Y)" $EFB6
+"STU (B,S)" $EFF5
+"STU (B,U)" $EFD5
+"STU (B,X)" $EF95
+"STU (B,Y)" $EFB5
+"STU (D,S)" $EFFB
+"STU (D,U)" $EFDB
+"STU (D,X)" $EF9B
+"STU (D,Y)" $EFBB
+"STU (x,PCR)" $EF9C
+"STU (x,S)" $EFF8
+"STU (x,U)" $EFD8
+"STU (x,X)" $EF98
+"STU (x,Y)" $EFB8
 "STU ?" $FF
-"STU ?,PCR" $EF
-"STU ?,S" $EF
-"STU ?,U" $EF
-"STU ?,X" $EF
-"STU ?,Y" $EF
-"STU A,S" $EF
-"STU A,U" $EF
-"STU A,X" $EF
-"STU A,Y" $EF
-"STU B,S" $EF
-"STU B,U" $EF
-"STU B,X" $EF
-"STU B,Y" $EF
-"STU D,S" $EF
-"STU D,U" $EF
-"STU D,X" $EF
-"STU D,Y" $EF
-"STU s,S" $EF
-"STU s,U" $EF
-"STU s,X" $EF
-"STU s,Y" $EF
+"STU ?,PCR" $EF8D
+"STU ?,S" $EFE9
+"STU ?,U" $EFC9
+"STU ?,X" $EF89
+"STU ?,Y" $EFA9
+"STU A,S" $EFE6
+"STU A,U" $EFC6
+"STU A,X" $EF86
+"STU A,Y" $EFA6
+"STU B,S" $EFE5
+"STU B,U" $EFC5
+"STU B,X" $EF85
+"STU B,Y" $EFA5
+"STU D,S" $EFEB
+"STU D,U" $EFCB
+"STU D,X" $EF8B
+"STU D,Y" $EFAB
+"STU s,S" $EF60
+"STU s,U" $EF40
+"STU s,X" $EF00
+"STU s,Y" $EF20
 "STU x" $DF
-"STU x,PCR" $EF
-"STU x,S" $EF
-"STU x,U" $EF
-"STU x,X" $EF
-"STU x,Y" $EF
-"STU,--S" $EF
-"STU,--U" $EF
-"STU,--X" $EF
-"STU,--Y" $EF
-"STU,-S" $EF
-"STU,-U" $EF
-"STU,-X" $EF
-"STU,-Y" $EF
-"STU,S" $EF
-"STU,S+" $EF
-"STU,S++" $EF
-"STU,U" $EF
-"STU,U+" $EF
-"STU,U++" $EF
-"STU,X" $EF
-"STU,X+" $EF
-"STU,X++" $EF
-"STU,Y" $EF
-"STU,Y+" $EF
-"STU,Y++" $EF
-"STX (,--S)" $AF
-"STX (,--U)" $AF
-"STX (,--X)" $AF
-"STX (,--Y)" $AF
-"STX (,S)" $AF
-"STX (,S++)" $AF
-"STX (,U)" $AF
-"STX (,U++)" $AF
-"STX (,X)" $AF
-"STX (,X++)" $AF
-"STX (,Y)" $AF
-"STX (,Y++)" $AF
-"STX (?)" $AF
-"STX (?,PCR)" $AF
-"STX (?,S)" $AF
-"STX (?,U)" $AF
-"STX (?,X)" $AF
-"STX (?,Y)" $AF
-"STX (A,S)" $AF
-"STX (A,U)" $AF
-"STX (A,X)" $AF
-"STX (A,Y)" $AF
-"STX (B,S)" $AF
-"STX (B,U)" $AF
-"STX (B,X)" $AF
-"STX (B,Y)" $AF
-"STX (D,S)" $AF
-"STX (D,U)" $AF
-"STX (D,X)" $AF
-"STX (D,Y)" $AF
-"STX (x,PCR)" $AF
-"STX (x,S)" $AF
-"STX (x,U)" $AF
-"STX (x,X)" $AF
-"STX (x,Y)" $AF
+"STU x,PCR" $EF8C
+"STU x,S" $EFE8
+"STU x,U" $EFC8
+"STU x,X" $EF88
+"STU x,Y" $EFA8
+"STU,--S" $EFE3
+"STU,--U" $EFC3
+"STU,--X" $EF83
+"STU,--Y" $EFA3
+"STU,-S" $EFE2
+"STU,-U" $EFC2
+"STU,-X" $EF82
+"STU,-Y" $EFA2
+"STU,S" $EFE4
+"STU,S+" $EFE0
+"STU,S++" $EFE1
+"STU,U" $EFC4
+"STU,U+" $EFC0
+"STU,U++" $EFC1
+"STU,X" $EF84
+"STU,X+" $EF80
+"STU,X++" $EF81
+"STU,Y" $EFA4
+"STU,Y+" $EFA0
+"STU,Y++" $EFA1
+"STX (,--S)" $AFF3
+"STX (,--U)" $AFD3
+"STX (,--X)" $AF93
+"STX (,--Y)" $AFB3
+"STX (,S)" $AFF4
+"STX (,S++)" $AFF1
+"STX (,U)" $AFD4
+"STX (,U++)" $AFD1
+"STX (,X)" $AF94
+"STX (,X++)" $AF91
+"STX (,Y)" $AFB4
+"STX (,Y++)" $AFB1
+"STX (?)" $AF9F
+"STX (?,PCR)" $AF9D
+"STX (?,S)" $AFF9
+"STX (?,U)" $AFD9
+"STX (?,X)" $AF99
+"STX (?,Y)" $AFB9
+"STX (A,S)" $AFF6
+"STX (A,U)" $AFD6
+"STX (A,X)" $AF96
+"STX (A,Y)" $AFB6
+"STX (B,S)" $AFF5
+"STX (B,U)" $AFD5
+"STX (B,X)" $AF95
+"STX (B,Y)" $AFB5
+"STX (D,S)" $AFFB
+"STX (D,U)" $AFDB
+"STX (D,X)" $AF9B
+"STX (D,Y)" $AFBB
+"STX (x,PCR)" $AF9C
+"STX (x,S)" $AFF8
+"STX (x,U)" $AFD8
+"STX (x,X)" $AF98
+"STX (x,Y)" $AFB8
 "STX ?" $BF
-"STX ?,PCR" $AF
-"STX ?,S" $AF
-"STX ?,U" $AF
-"STX ?,X" $AF
-"STX ?,Y" $AF
-"STX A,S" $AF
-"STX A,U" $AF
-"STX A,X" $AF
-"STX A,Y" $AF
-"STX B,S" $AF
-"STX B,U" $AF
-"STX B,X" $AF
-"STX B,Y" $AF
-"STX D,S" $AF
-"STX D,U" $AF
-"STX D,X" $AF
-"STX D,Y" $AF
-"STX s,S" $AF
-"STX s,U" $AF
-"STX s,X" $AF
-"STX s,Y" $AF
+"STX ?,PCR" $AF8D
+"STX ?,S" $AFE9
+"STX ?,U" $AFC9
+"STX ?,X" $AF89
+"STX ?,Y" $AFA9
+"STX A,S" $AFE6
+"STX A,U" $AFC6
+"STX A,X" $AF86
+"STX A,Y" $AFA6
+"STX B,S" $AFE5
+"STX B,U" $AFC5
+"STX B,X" $AF85
+"STX B,Y" $AFA5
+"STX D,S" $AFEB
+"STX D,U" $AFCB
+"STX D,X" $AF8B
+"STX D,Y" $AFAB
+"STX s,S" $AF60
+"STX s,U" $AF40
+"STX s,X" $AF00
+"STX s,Y" $AF20
 "STX x" $9F
-"STX x,PCR" $AF
-"STX x,S" $AF
-"STX x,U" $AF
-"STX x,X" $AF
-"STX x,Y" $AF
-"STX,--S" $AF
-"STX,--U" $AF
-"STX,--X" $AF
-"STX,--Y" $AF
-"STX,-S" $AF
-"STX,-U" $AF
-"STX,-X" $AF
-"STX,-Y" $AF
-"STX,S" $AF
-"STX,S+" $AF
-"STX,S++" $AF
-"STX,U" $AF
-"STX,U+" $AF
-"STX,U++" $AF
-"STX,X" $AF
-"STX,X+" $AF
-"STX,X++" $AF
-"STX,Y" $AF
-"STX,Y+" $AF
-"STX,Y++" $AF
-"STY (,--S)" $AF10
-"STY (,--U)" $AF10
-"STY (,--X)" $AF10
-"STY (,--Y)" $AF10
-"STY (,S)" $AF10
-"STY (,S++)" $AF10
-"STY (,U)" $AF10
-"STY (,U++)" $AF10
-"STY (,X)" $AF10
-"STY (,X++)" $AF10
-"STY (,Y)" $AF10
-"STY (,Y++)" $AF10
-"STY (?)" $AF10
-"STY (?,PCR)" $AF10
-"STY (?,S)" $AF10
-"STY (?,U)" $AF10
-"STY (?,X)" $AF10
-"STY (?,Y)" $AF10
-"STY (A,S)" $AF10
-"STY (A,U)" $AF10
-"STY (A,X)" $AF10
-"STY (A,Y)" $AF10
-"STY (B,S)" $AF10
-"STY (B,U)" $AF10
-"STY (B,X)" $AF10
-"STY (B,Y)" $AF10
-"STY (D,S)" $AF10
-"STY (D,U)" $AF10
-"STY (D,X)" $AF10
-"STY (D,Y)" $AF10
-"STY (x,PCR)" $AF10
-"STY (x,S)" $AF10
-"STY (x,U)" $AF10
-"STY (x,X)" $AF10
-"STY (x,Y)" $AF10
-"STY ?" $BF10
-"STY ?,PCR" $AF10
-"STY ?,S" $AF10
-"STY ?,U" $AF10
-"STY ?,X" $AF10
-"STY ?,Y" $AF10
-"STY A,S" $AF10
-"STY A,U" $AF10
-"STY A,X" $AF10
-"STY A,Y" $AF10
-"STY B,S" $AF10
-"STY B,U" $AF10
-"STY B,X" $AF10
-"STY B,Y" $AF10
-"STY D,S" $AF10
-"STY D,U" $AF10
-"STY D,X" $AF10
-"STY D,Y" $AF10
-"STY s,S" $AF10
-"STY s,U" $AF10
-"STY s,X" $AF10
-"STY s,Y" $AF10
-"STY x" $9F10
-"STY x,PCR" $AF10
-"STY x,S" $AF10
-"STY x,U" $AF10
-"STY x,X" $AF10
-"STY x,Y" $AF10
-"STY,--S" $AF10
-"STY,--U" $AF10
-"STY,--X" $AF10
-"STY,--Y" $AF10
-"STY,-S" $AF10
-"STY,-U" $AF10
-"STY,-X" $AF10
-"STY,-Y" $AF10
-"STY,S" $AF10
-"STY,S+" $AF10
-"STY,S++" $AF10
-"STY,U" $AF10
-"STY,U+" $AF10
-"STY,U++" $AF10
-"STY,X" $AF10
-"STY,X+" $AF10
-"STY,X++" $AF10
-"STY,Y" $AF10
-"STY,Y+" $AF10
-"STY,Y++" $AF10
+"STX x,PCR" $AF8C
+"STX x,S" $AFE8
+"STX x,U" $AFC8
+"STX x,X" $AF88
+"STX x,Y" $AFA8
+"STX,--S" $AFE3
+"STX,--U" $AFC3
+"STX,--X" $AF83
+"STX,--Y" $AFA3
+"STX,-S" $AFE2
+"STX,-U" $AFC2
+"STX,-X" $AF82
+"STX,-Y" $AFA2
+"STX,S" $AFE4
+"STX,S+" $AFE0
+"STX,S++" $AFE1
+"STX,U" $AFC4
+"STX,U+" $AFC0
+"STX,U++" $AFC1
+"STX,X" $AF84
+"STX,X+" $AF80
+"STX,X++" $AF81
+"STX,Y" $AFA4
+"STX,Y+" $AFA0
+"STX,Y++" $AFA1
+"STY (,--S)" $10AFF3
+"STY (,--U)" $10AFD3
+"STY (,--X)" $10AF93
+"STY (,--Y)" $10AFB3
+"STY (,S)" $10AFF4
+"STY (,S++)" $10AFF1
+"STY (,U)" $10AFD4
+"STY (,U++)" $10AFD1
+"STY (,X)" $10AF94
+"STY (,X++)" $10AF91
+"STY (,Y)" $10AFB4
+"STY (,Y++)" $10AFB1
+"STY (?)" $10AF9F
+"STY (?,PCR)" $10AF9D
+"STY (?,S)" $10AFF9
+"STY (?,U)" $10AFD9
+"STY (?,X)" $10AF99
+"STY (?,Y)" $10AFB9
+"STY (A,S)" $10AFF6
+"STY (A,U)" $10AFD6
+"STY (A,X)" $10AF96
+"STY (A,Y)" $10AFB6
+"STY (B,S)" $10AFF5
+"STY (B,U)" $10AFD5
+"STY (B,X)" $10AF95
+"STY (B,Y)" $10AFB5
+"STY (D,S)" $10AFFB
+"STY (D,U)" $10AFDB
+"STY (D,X)" $10AF9B
+"STY (D,Y)" $10AFBB
+"STY (x,PCR)" $10AF9C
+"STY (x,S)" $10AFF8
+"STY (x,U)" $10AFD8
+"STY (x,X)" $10AF98
+"STY (x,Y)" $10AFB8
+"STY ?" $10BF
+"STY ?,PCR" $10AF8D
+"STY ?,S" $10AFE9
+"STY ?,U" $10AFC9
+"STY ?,X" $10AF89
+"STY ?,Y" $10AFA9
+"STY A,S" $10AFE6
+"STY A,U" $10AFC6
+"STY A,X" $10AF86
+"STY A,Y" $10AFA6
+"STY B,S" $10AFE5
+"STY B,U" $10AFC5
+"STY B,X" $10AF85
+"STY B,Y" $10AFA5
+"STY D,S" $10AFEB
+"STY D,U" $10AFCB
+"STY D,X" $10AF8B
+"STY D,Y" $10AFAB
+"STY s,S" $10AF60
+"STY s,U" $10AF40
+"STY s,X" $10AF00
+"STY s,Y" $10AF20
+"STY x" $109F
+"STY x,PCR" $10AF8C
+"STY x,S" $10AFE8
+"STY x,U" $10AFC8
+"STY x,X" $10AF88
+"STY x,Y" $10AFA8
+"STY,--S" $10AFE3
+"STY,--U" $10AFC3
+"STY,--X" $10AF83
+"STY,--Y" $10AFA3
+"STY,-S" $10AFE2
+"STY,-U" $10AFC2
+"STY,-X" $10AF82
+"STY,-Y" $10AFA2
+"STY,S" $10AFE4
+"STY,S+" $10AFE0
+"STY,S++" $10AFE1
+"STY,U" $10AFC4
+"STY,U+" $10AFC0
+"STY,U++" $10AFC1
+"STY,X" $10AF84
+"STY,X+" $10AF80
+"STY,X++" $10AF81
+"STY,Y" $10AFA4
+"STY,Y+" $10AFA0
+"STY,Y++" $10AFA1
 "SUBA #x" $80
-"SUBA (,--S)" $A0
-"SUBA (,--U)" $A0
-"SUBA (,--X)" $A0
-"SUBA (,--Y)" $A0
-"SUBA (,S)" $A0
-"SUBA (,S++)" $A0
-"SUBA (,U)" $A0
-"SUBA (,U++)" $A0
-"SUBA (,X)" $A0
-"SUBA (,X++)" $A0
-"SUBA (,Y)" $A0
-"SUBA (,Y++)" $A0
-"SUBA (?)" $A0
-"SUBA (?,PCR)" $A0
-"SUBA (?,S)" $A0
-"SUBA (?,U)" $A0
-"SUBA (?,X)" $A0
-"SUBA (?,Y)" $A0
-"SUBA (A,S)" $A0
-"SUBA (A,U)" $A0
-"SUBA (A,X)" $A0
-"SUBA (A,Y)" $A0
-"SUBA (B,S)" $A0
-"SUBA (B,U)" $A0
-"SUBA (B,X)" $A0
-"SUBA (B,Y)" $A0
-"SUBA (D,S)" $A0
-"SUBA (D,U)" $A0
-"SUBA (D,X)" $A0
-"SUBA (D,Y)" $A0
-"SUBA (x,PCR)" $A0
-"SUBA (x,S)" $A0
-"SUBA (x,U)" $A0
-"SUBA (x,X)" $A0
-"SUBA (x,Y)" $A0
+"SUBA (,--S)" $A0F3
+"SUBA (,--U)" $A0D3
+"SUBA (,--X)" $A093
+"SUBA (,--Y)" $A0B3
+"SUBA (,S)" $A0F4
+"SUBA (,S++)" $A0F1
+"SUBA (,U)" $A0D4
+"SUBA (,U++)" $A0D1
+"SUBA (,X)" $A094
+"SUBA (,X++)" $A091
+"SUBA (,Y)" $A0B4
+"SUBA (,Y++)" $A0B1
+"SUBA (?)" $A09F
+"SUBA (?,PCR)" $A09D
+"SUBA (?,S)" $A0F9
+"SUBA (?,U)" $A0D9
+"SUBA (?,X)" $A099
+"SUBA (?,Y)" $A0B9
+"SUBA (A,S)" $A0F6
+"SUBA (A,U)" $A0D6
+"SUBA (A,X)" $A096
+"SUBA (A,Y)" $A0B6
+"SUBA (B,S)" $A0F5
+"SUBA (B,U)" $A0D5
+"SUBA (B,X)" $A095
+"SUBA (B,Y)" $A0B5
+"SUBA (D,S)" $A0FB
+"SUBA (D,U)" $A0DB
+"SUBA (D,X)" $A09B
+"SUBA (D,Y)" $A0BB
+"SUBA (x,PCR)" $A09C
+"SUBA (x,S)" $A0F8
+"SUBA (x,U)" $A0D8
+"SUBA (x,X)" $A098
+"SUBA (x,Y)" $A0B8
 "SUBA ?" $B0
-"SUBA ?,PCR" $A0
-"SUBA ?,S" $A0
-"SUBA ?,U" $A0
-"SUBA ?,X" $A0
-"SUBA ?,Y" $A0
-"SUBA A,S" $A0
-"SUBA A,U" $A0
-"SUBA A,X" $A0
-"SUBA A,Y" $A0
-"SUBA B,S" $A0
-"SUBA B,U" $A0
-"SUBA B,X" $A0
-"SUBA B,Y" $A0
-"SUBA D,S" $A0
-"SUBA D,U" $A0
-"SUBA D,X" $A0
-"SUBA D,Y" $A0
-"SUBA s,S" $A0
-"SUBA s,U" $A0
-"SUBA s,X" $A0
-"SUBA s,Y" $A0
+"SUBA ?,PCR" $A08D
+"SUBA ?,S" $A0E9
+"SUBA ?,U" $A0C9
+"SUBA ?,X" $A089
+"SUBA ?,Y" $A0A9
+"SUBA A,S" $A0E6
+"SUBA A,U" $A0C6
+"SUBA A,X" $A086
+"SUBA A,Y" $A0A6
+"SUBA B,S" $A0E5
+"SUBA B,U" $A0C5
+"SUBA B,X" $A085
+"SUBA B,Y" $A0A5
+"SUBA D,S" $A0EB
+"SUBA D,U" $A0CB
+"SUBA D,X" $A08B
+"SUBA D,Y" $A0AB
+"SUBA s,S" $A060
+"SUBA s,U" $A040
+"SUBA s,X" $A000
+"SUBA s,Y" $A020
 "SUBA x" $90
-"SUBA x,PCR" $A0
-"SUBA x,S" $A0
-"SUBA x,U" $A0
-"SUBA x,X" $A0
-"SUBA x,Y" $A0
-"SUBA,--S" $A0
-"SUBA,--U" $A0
-"SUBA,--X" $A0
-"SUBA,--Y" $A0
-"SUBA,-S" $A0
-"SUBA,-U" $A0
-"SUBA,-X" $A0
-"SUBA,-Y" $A0
-"SUBA,S" $A0
-"SUBA,S+" $A0
-"SUBA,S++" $A0
-"SUBA,U" $A0
-"SUBA,U+" $A0
-"SUBA,U++" $A0
-"SUBA,X" $A0
-"SUBA,X+" $A0
-"SUBA,X++" $A0
-"SUBA,Y" $A0
-"SUBA,Y+" $A0
-"SUBA,Y++" $A0
+"SUBA x,PCR" $A08C
+"SUBA x,S" $A0E8
+"SUBA x,U" $A0C8
+"SUBA x,X" $A088
+"SUBA x,Y" $A0A8
+"SUBA,--S" $A0E3
+"SUBA,--U" $A0C3
+"SUBA,--X" $A083
+"SUBA,--Y" $A0A3
+"SUBA,-S" $A0E2
+"SUBA,-U" $A0C2
+"SUBA,-X" $A082
+"SUBA,-Y" $A0A2
+"SUBA,S" $A0E4
+"SUBA,S+" $A0E0
+"SUBA,S++" $A0E1
+"SUBA,U" $A0C4
+"SUBA,U+" $A0C0
+"SUBA,U++" $A0C1
+"SUBA,X" $A084
+"SUBA,X+" $A080
+"SUBA,X++" $A081
+"SUBA,Y" $A0A4
+"SUBA,Y+" $A0A0
+"SUBA,Y++" $A0A1
 "SUBB #x" $C0
-"SUBB (,--S)" $E0
-"SUBB (,--U)" $E0
-"SUBB (,--X)" $E0
-"SUBB (,--Y)" $E0
-"SUBB (,S)" $E0
-"SUBB (,S++)" $E0
-"SUBB (,U)" $E0
-"SUBB (,U++)" $E0
-"SUBB (,X)" $E0
-"SUBB (,X++)" $E0
-"SUBB (,Y)" $E0
-"SUBB (,Y++)" $E0
-"SUBB (?)" $E0
-"SUBB (?,PCR)" $E0
-"SUBB (?,S)" $E0
-"SUBB (?,U)" $E0
-"SUBB (?,X)" $E0
-"SUBB (?,Y)" $E0
-"SUBB (A,S)" $E0
-"SUBB (A,U)" $E0
-"SUBB (A,X)" $E0
-"SUBB (A,Y)" $E0
-"SUBB (B,S)" $E0
-"SUBB (B,U)" $E0
-"SUBB (B,X)" $E0
-"SUBB (B,Y)" $E0
-"SUBB (D,S)" $E0
-"SUBB (D,U)" $E0
-"SUBB (D,X)" $E0
-"SUBB (D,Y)" $E0
-"SUBB (x,PCR)" $E0
-"SUBB (x,S)" $E0
-"SUBB (x,U)" $E0
-"SUBB (x,X)" $E0
-"SUBB (x,Y)" $E0
+"SUBB (,--S)" $E0F3
+"SUBB (,--U)" $E0D3
+"SUBB (,--X)" $E093
+"SUBB (,--Y)" $E0B3
+"SUBB (,S)" $E0F4
+"SUBB (,S++)" $E0F1
+"SUBB (,U)" $E0D4
+"SUBB (,U++)" $E0D1
+"SUBB (,X)" $E094
+"SUBB (,X++)" $E091
+"SUBB (,Y)" $E0B4
+"SUBB (,Y++)" $E0B1
+"SUBB (?)" $E09F
+"SUBB (?,PCR)" $E09D
+"SUBB (?,S)" $E0F9
+"SUBB (?,U)" $E0D9
+"SUBB (?,X)" $E099
+"SUBB (?,Y)" $E0B9
+"SUBB (A,S)" $E0F6
+"SUBB (A,U)" $E0D6
+"SUBB (A,X)" $E096
+"SUBB (A,Y)" $E0B6
+"SUBB (B,S)" $E0F5
+"SUBB (B,U)" $E0D5
+"SUBB (B,X)" $E095
+"SUBB (B,Y)" $E0B5
+"SUBB (D,S)" $E0FB
+"SUBB (D,U)" $E0DB
+"SUBB (D,X)" $E09B
+"SUBB (D,Y)" $E0BB
+"SUBB (x,PCR)" $E09C
+"SUBB (x,S)" $E0F8
+"SUBB (x,U)" $E0D8
+"SUBB (x,X)" $E098
+"SUBB (x,Y)" $E0B8
 "SUBB ?" $F0
-"SUBB ?,PCR" $E0
-"SUBB ?,S" $E0
-"SUBB ?,U" $E0
-"SUBB ?,X" $E0
-"SUBB ?,Y" $E0
-"SUBB A,S" $E0
-"SUBB A,U" $E0
-"SUBB A,X" $E0
-"SUBB A,Y" $E0
-"SUBB B,S" $E0
-"SUBB B,U" $E0
-"SUBB B,X" $E0
-"SUBB B,Y" $E0
-"SUBB D,S" $E0
-"SUBB D,U" $E0
-"SUBB D,X" $E0
-"SUBB D,Y" $E0
-"SUBB s,S" $E0
-"SUBB s,U" $E0
-"SUBB s,X" $E0
-"SUBB s,Y" $E0
+"SUBB ?,PCR" $E08D
+"SUBB ?,S" $E0E9
+"SUBB ?,U" $E0C9
+"SUBB ?,X" $E089
+"SUBB ?,Y" $E0A9
+"SUBB A,S" $E0E6
+"SUBB A,U" $E0C6
+"SUBB A,X" $E086
+"SUBB A,Y" $E0A6
+"SUBB B,S" $E0E5
+"SUBB B,U" $E0C5
+"SUBB B,X" $E085
+"SUBB B,Y" $E0A5
+"SUBB D,S" $E0EB
+"SUBB D,U" $E0CB
+"SUBB D,X" $E08B
+"SUBB D,Y" $E0AB
+"SUBB s,S" $E060
+"SUBB s,U" $E040
+"SUBB s,X" $E000
+"SUBB s,Y" $E020
 "SUBB x" $D0
-"SUBB x,PCR" $E0
-"SUBB x,S" $E0
-"SUBB x,U" $E0
-"SUBB x,X" $E0
-"SUBB x,Y" $E0
-"SUBB,--S" $E0
-"SUBB,--U" $E0
-"SUBB,--X" $E0
-"SUBB,--Y" $E0
-"SUBB,-S" $E0
-"SUBB,-U" $E0
-"SUBB,-X" $E0
-"SUBB,-Y" $E0
-"SUBB,S" $E0
-"SUBB,S+" $E0
-"SUBB,S++" $E0
-"SUBB,U" $E0
-"SUBB,U+" $E0
-"SUBB,U++" $E0
-"SUBB,X" $E0
-"SUBB,X+" $E0
-"SUBB,X++" $E0
-"SUBB,Y" $E0
-"SUBB,Y+" $E0
-"SUBB,Y++" $E0
+"SUBB x,PCR" $E08C
+"SUBB x,S" $E0E8
+"SUBB x,U" $E0C8
+"SUBB x,X" $E088
+"SUBB x,Y" $E0A8
+"SUBB,--S" $E0E3
+"SUBB,--U" $E0C3
+"SUBB,--X" $E083
+"SUBB,--Y" $E0A3
+"SUBB,-S" $E0E2
+"SUBB,-U" $E0C2
+"SUBB,-X" $E082
+"SUBB,-Y" $E0A2
+"SUBB,S" $E0E4
+"SUBB,S+" $E0E0
+"SUBB,S++" $E0E1
+"SUBB,U" $E0C4
+"SUBB,U+" $E0C0
+"SUBB,U++" $E0C1
+"SUBB,X" $E084
+"SUBB,X+" $E080
+"SUBB,X++" $E081
+"SUBB,Y" $E0A4
+"SUBB,Y+" $E0A0
+"SUBB,Y++" $E0A1
 "SUBD #x" $83
-"SUBD (,--S)" $A3
-"SUBD (,--U)" $A3
-"SUBD (,--X)" $A3
-"SUBD (,--Y)" $A3
-"SUBD (,S)" $A3
-"SUBD (,S++)" $A3
-"SUBD (,U)" $A3
-"SUBD (,U++)" $A3
-"SUBD (,X)" $A3
-"SUBD (,X++)" $A3
-"SUBD (,Y)" $A3
-"SUBD (,Y++)" $A3
-"SUBD (?)" $A3
-"SUBD (?,PCR)" $A3
-"SUBD (?,S)" $A3
-"SUBD (?,U)" $A3
-"SUBD (?,X)" $A3
-"SUBD (?,Y)" $A3
-"SUBD (A,S)" $A3
-"SUBD (A,U)" $A3
-"SUBD (A,X)" $A3
-"SUBD (A,Y)" $A3
-"SUBD (B,S)" $A3
-"SUBD (B,U)" $A3
-"SUBD (B,X)" $A3
-"SUBD (B,Y)" $A3
-"SUBD (D,S)" $A3
-"SUBD (D,U)" $A3
-"SUBD (D,X)" $A3
-"SUBD (D,Y)" $A3
-"SUBD (x,PCR)" $A3
-"SUBD (x,S)" $A3
-"SUBD (x,U)" $A3
-"SUBD (x,X)" $A3
-"SUBD (x,Y)" $A3
+"SUBD (,--S)" $A3F3
+"SUBD (,--U)" $A3D3
+"SUBD (,--X)" $A393
+"SUBD (,--Y)" $A3B3
+"SUBD (,S)" $A3F4
+"SUBD (,S++)" $A3F1
+"SUBD (,U)" $A3D4
+"SUBD (,U++)" $A3D1
+"SUBD (,X)" $A394
+"SUBD (,X++)" $A391
+"SUBD (,Y)" $A3B4
+"SUBD (,Y++)" $A3B1
+"SUBD (?)" $A39F
+"SUBD (?,PCR)" $A39D
+"SUBD (?,S)" $A3F9
+"SUBD (?,U)" $A3D9
+"SUBD (?,X)" $A399
+"SUBD (?,Y)" $A3B9
+"SUBD (A,S)" $A3F6
+"SUBD (A,U)" $A3D6
+"SUBD (A,X)" $A396
+"SUBD (A,Y)" $A3B6
+"SUBD (B,S)" $A3F5
+"SUBD (B,U)" $A3D5
+"SUBD (B,X)" $A395
+"SUBD (B,Y)" $A3B5
+"SUBD (D,S)" $A3FB
+"SUBD (D,U)" $A3DB
+"SUBD (D,X)" $A39B
+"SUBD (D,Y)" $A3BB
+"SUBD (x,PCR)" $A39C
+"SUBD (x,S)" $A3F8
+"SUBD (x,U)" $A3D8
+"SUBD (x,X)" $A398
+"SUBD (x,Y)" $A3B8
 "SUBD ?" $B3
-"SUBD ?,PCR" $A3
-"SUBD ?,S" $A3
-"SUBD ?,U" $A3
-"SUBD ?,X" $A3
-"SUBD ?,Y" $A3
-"SUBD A,S" $A3
-"SUBD A,U" $A3
-"SUBD A,X" $A3
-"SUBD A,Y" $A3
-"SUBD B,S" $A3
-"SUBD B,U" $A3
-"SUBD B,X" $A3
-"SUBD B,Y" $A3
-"SUBD D,S" $A3
-"SUBD D,U" $A3
-"SUBD D,X" $A3
-"SUBD D,Y" $A3
-"SUBD s,S" $A3
-"SUBD s,U" $A3
-"SUBD s,X" $A3
-"SUBD s,Y" $A3
+"SUBD ?,PCR" $A38D
+"SUBD ?,S" $A3E9
+"SUBD ?,U" $A3C9
+"SUBD ?,X" $A389
+"SUBD ?,Y" $A3A9
+"SUBD A,S" $A3E6
+"SUBD A,U" $A3C6
+"SUBD A,X" $A386
+"SUBD A,Y" $A3A6
+"SUBD B,S" $A3E5
+"SUBD B,U" $A3C5
+"SUBD B,X" $A385
+"SUBD B,Y" $A3A5
+"SUBD D,S" $A3EB
+"SUBD D,U" $A3CB
+"SUBD D,X" $A38B
+"SUBD D,Y" $A3AB
+"SUBD s,S" $A360
+"SUBD s,U" $A340
+"SUBD s,X" $A300
+"SUBD s,Y" $A320
 "SUBD x" $93
-"SUBD x,PCR" $A3
-"SUBD x,S" $A3
-"SUBD x,U" $A3
-"SUBD x,X" $A3
-"SUBD x,Y" $A3
-"SUBD,--S" $A3
-"SUBD,--U" $A3
-"SUBD,--X" $A3
-"SUBD,--Y" $A3
-"SUBD,-S" $A3
-"SUBD,-U" $A3
-"SUBD,-X" $A3
-"SUBD,-Y" $A3
-"SUBD,S" $A3
-"SUBD,S+" $A3
-"SUBD,S++" $A3
-"SUBD,U" $A3
-"SUBD,U+" $A3
-"SUBD,U++" $A3
-"SUBD,X" $A3
-"SUBD,X+" $A3
-"SUBD,X++" $A3
-"SUBD,Y" $A3
-"SUBD,Y+" $A3
-"SUBD,Y++" $A3
+"SUBD x,PCR" $A38C
+"SUBD x,S" $A3E8
+"SUBD x,U" $A3C8
+"SUBD x,X" $A388
+"SUBD x,Y" $A3A8
+"SUBD,--S" $A3E3
+"SUBD,--U" $A3C3
+"SUBD,--X" $A383
+"SUBD,--Y" $A3A3
+"SUBD,-S" $A3E2
+"SUBD,-U" $A3C2
+"SUBD,-X" $A382
+"SUBD,-Y" $A3A2
+"SUBD,S" $A3E4
+"SUBD,S+" $A3E0
+"SUBD,S++" $A3E1
+"SUBD,U" $A3C4
+"SUBD,U+" $A3C0
+"SUBD,U++" $A3C1
+"SUBD,X" $A384
+"SUBD,X+" $A380
+"SUBD,X++" $A381
+"SUBD,Y" $A3A4
+"SUBD,Y+" $A3A0
+"SUBD,Y++" $A3A1
 "SWI" $3F
 "SWI1" $3F
-"SWI2" $3F10
-"SWI3" $3F11
+"SWI2" $103F
+"SWI3" $113F
 "SYNC" $13
 "TFR r" $1F
-"TST (,--S)" $6D
-"TST (,--U)" $6D
-"TST (,--X)" $6D
-"TST (,--Y)" $6D
-"TST (,S)" $6D
-"TST (,S++)" $6D
-"TST (,U)" $6D
-"TST (,U++)" $6D
-"TST (,X)" $6D
-"TST (,X++)" $6D
-"TST (,Y)" $6D
-"TST (,Y++)" $6D
-"TST (?)" $6D
-"TST (?,PCR)" $6D
-"TST (?,S)" $6D
-"TST (?,U)" $6D
-"TST (?,X)" $6D
-"TST (?,Y)" $6D
-"TST (A,S)" $6D
-"TST (A,U)" $6D
-"TST (A,X)" $6D
-"TST (A,Y)" $6D
-"TST (B,S)" $6D
-"TST (B,U)" $6D
-"TST (B,X)" $6D
-"TST (B,Y)" $6D
-"TST (D,S)" $6D
-"TST (D,U)" $6D
-"TST (D,X)" $6D
-"TST (D,Y)" $6D
-"TST (x,PCR)" $6D
-"TST (x,S)" $6D
-"TST (x,U)" $6D
-"TST (x,X)" $6D
-"TST (x,Y)" $6D
+"TST (,--S)" $6DF3
+"TST (,--U)" $6DD3
+"TST (,--X)" $6D93
+"TST (,--Y)" $6DB3
+"TST (,S)" $6DF4
+"TST (,S++)" $6DF1
+"TST (,U)" $6DD4
+"TST (,U++)" $6DD1
+"TST (,X)" $6D94
+"TST (,X++)" $6D91
+"TST (,Y)" $6DB4
+"TST (,Y++)" $6DB1
+"TST (?)" $6D9F
+"TST (?,PCR)" $6D9D
+"TST (?,S)" $6DF9
+"TST (?,U)" $6DD9
+"TST (?,X)" $6D99
+"TST (?,Y)" $6DB9
+"TST (A,S)" $6DF6
+"TST (A,U)" $6DD6
+"TST (A,X)" $6D96
+"TST (A,Y)" $6DB6
+"TST (B,S)" $6DF5
+"TST (B,U)" $6DD5
+"TST (B,X)" $6D95
+"TST (B,Y)" $6DB5
+"TST (D,S)" $6DFB
+"TST (D,U)" $6DDB
+"TST (D,X)" $6D9B
+"TST (D,Y)" $6DBB
+"TST (x,PCR)" $6D9C
+"TST (x,S)" $6DF8
+"TST (x,U)" $6DD8
+"TST (x,X)" $6D98
+"TST (x,Y)" $6DB8
 "TST ?" $7D
-"TST ?,PCR" $6D
-"TST ?,S" $6D
-"TST ?,U" $6D
-"TST ?,X" $6D
-"TST ?,Y" $6D
-"TST A,S" $6D
-"TST A,U" $6D
-"TST A,X" $6D
-"TST A,Y" $6D
-"TST B,S" $6D
-"TST B,U" $6D
-"TST B,X" $6D
-"TST B,Y" $6D
-"TST D,S" $6D
-"TST D,U" $6D
-"TST D,X" $6D
-"TST D,Y" $6D
-"TST s,S" $6D
-"TST s,U" $6D
-"TST s,X" $6D
-"TST s,Y" $6D
+"TST ?,PCR" $6D8D
+"TST ?,S" $6DE9
+"TST ?,U" $6DC9
+"TST ?,X" $6D89
+"TST ?,Y" $6DA9
+"TST A,S" $6DE6
+"TST A,U" $6DC6
+"TST A,X" $6D86
+"TST A,Y" $6DA6
+"TST B,S" $6DE5
+"TST B,U" $6DC5
+"TST B,X" $6D85
+"TST B,Y" $6DA5
+"TST D,S" $6DEB
+"TST D,U" $6DCB
+"TST D,X" $6D8B
+"TST D,Y" $6DAB
+"TST s,S" $6D60
+"TST s,U" $6D40
+"TST s,X" $6D00
+"TST s,Y" $6D20
 "TST x" $0D
-"TST x,PCR" $6D
-"TST x,S" $6D
-"TST x,U" $6D
-"TST x,X" $6D
-"TST x,Y" $6D
-"TST,--S" $6D
-"TST,--U" $6D
-"TST,--X" $6D
-"TST,--Y" $6D
-"TST,-S" $6D
-"TST,-U" $6D
-"TST,-X" $6D
-"TST,-Y" $6D
-"TST,S" $6D
-"TST,S+" $6D
-"TST,S++" $6D
-"TST,U" $6D
-"TST,U+" $6D
-"TST,U++" $6D
-"TST,X" $6D
-"TST,X+" $6D
-"TST,X++" $6D
-"TST,Y" $6D
-"TST,Y+" $6D
-"TST,Y++" $6D
+"TST x,PCR" $6D8C
+"TST x,S" $6DE8
+"TST x,U" $6DC8
+"TST x,X" $6D88
+"TST x,Y" $6DA8
+"TST,--S" $6DE3
+"TST,--U" $6DC3
+"TST,--X" $6D83
+"TST,--Y" $6DA3
+"TST,-S" $6DE2
+"TST,-U" $6DC2
+"TST,-X" $6D82
+"TST,-Y" $6DA2
+"TST,S" $6DE4
+"TST,S+" $6DE0
+"TST,S++" $6DE1
+"TST,U" $6DC4
+"TST,U+" $6DC0
+"TST,U++" $6DC1
+"TST,X" $6D84
+"TST,X+" $6D80
+"TST,X++" $6D81
+"TST,Y" $6DA4
+"TST,Y+" $6DA0
+"TST,Y++" $6DA1
 "TSTA" $4D
 "TSTB" $5D
