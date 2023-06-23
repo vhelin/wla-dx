@@ -28,6 +28,7 @@
 
         .db "01>"               ; @BT TEST-01 01 START
         .include "include1.i" namespace i1 ; @BT 05
+        i1.theMacro                        ; @BT 09
         .include "include2.i" namespace i2 ; @BT 07
         .db "<01"                          ; @BT END
 
@@ -42,4 +43,16 @@ init:     foo.myMacro 6         ; @BT 06 07 08
           .db "<03"             ; @BT END
 -:        jp -
         .ends
+
+        .include rum.s namespace "rum"
         
+        .ramsection "ram" slot 1 keep
+          lol: instanceof NotIsolated
+          foo: instanceof foo.MyStruct
+        .ends
+        
+        .section "init2" free keep
+        .db "04>"               ; @BT TEST-04 04 START
+init2:  foo.MyMacro3            ; @BT 00 01 01 02
+        .db "<04"               ; @BT END
+        .ends

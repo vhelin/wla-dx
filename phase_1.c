@@ -132,6 +132,7 @@ struct stringmaptable *g_stringmaptables = NULL;
 struct array *g_arrays_first = NULL;
 struct string *g_fopen_filenames_first = NULL, *g_fopen_filenames_last = NULL;
 struct function *g_functions_first = NULL, *g_functions_last = NULL;
+struct namespace *g_namespaces_first = NULL;
 
 extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name;
 extern int g_source_file_size, g_input_number_error_msg, g_verbose_level, g_output_format, g_open_files, g_input_parse_if;
@@ -886,7 +887,7 @@ int phase_1(void) {
       /* use the caller's namespace? */
       if (m->use_caller_namespace == YES)
         strcpy(m->namespace, g_active_file_info_last->namespace);
-      
+
       /* skip '(' */
       if (g_buffer[g_source_index] == '(' && compare_and_skip_next_symbol('(') == SUCCEEDED)
         got_opening_parenthesis = YES;
@@ -1998,20 +1999,23 @@ int parse_enum_token(void) {
   }
   /* it's an instance of a structure! */
   else if (strcaselesscmp(g_tmp, "INSTANCEOF") == 0 || strcaselesscmp(g_tmp, ".INSTANCEOF") == 0) {
-    int number_result;
-
     if (g_tmp[0] == '.')
       type = STRUCTURE_ITEM_TYPE_DOTTED_INSTANCEOF;
     else
       type = STRUCTURE_ITEM_TYPE_INSTANCEOF;
 
-    if (get_next_token() == FAILED)
+    q = get_next_plain_string();
+    if (q == FAILED)
       return FAILED;
-
-    st = get_structure(g_tmp);
+    if (q == INPUT_NUMBER_EOL) {
+      print_error(ERROR_DIR, "INSTANCEOF need a .STRUCT name.\n");
+      return FAILED;
+    }
+    
+    st = get_structure(g_label);
 
     if (st == NULL) {
-      print_error(ERROR_DIR, "No STRUCT named \"%s\" available.\n", g_tmp);
+      print_error(ERROR_DIR, "No .STRUCT named \"%s\" available.\n", g_label);
       return FAILED;
     }
 
@@ -2092,12 +2096,12 @@ int parse_enum_token(void) {
       }
       else {
         /* get the number of structures to be made */
-        number_result = input_number();
-        if (number_result == INPUT_NUMBER_EOL) {
+        q = input_number();
+        if (q == INPUT_NUMBER_EOL) {
           next_line();
           break;
         }
-        else if (number_result == SUCCEEDED) {
+        else if (q == SUCCEEDED) {
           if (g_parsed_int < 1) {
             print_error(ERROR_DIR, "The number of structures must be greater than 0.\n");
             return FAILED;
@@ -2106,7 +2110,7 @@ int parse_enum_token(void) {
           instances = g_parsed_int;
         }
         else {
-          if (number_result == INPUT_NUMBER_STRING)
+          if (q == INPUT_NUMBER_STRING)
             print_error(ERROR_DIR, "Expected the number of structures, got \"%s\" instead.\n", g_label);
           else
             print_error(ERROR_DIR, "Expected the number of structures.\n");
@@ -2116,8 +2120,8 @@ int parse_enum_token(void) {
         /* test for EOL */
         remember_current_source_file_position();
 
-        number_result = input_number();
-        if (number_result == INPUT_NUMBER_EOL) {
+        q = input_number();
+        if (q == INPUT_NUMBER_EOL) {
           next_line();
           break;
         }
@@ -3975,7 +3979,7 @@ int directive_dstruct(void) {
 
     if (generate_labels == YES)
       fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, iname);
-    
+
     if (get_full_label(iname, full_label) == FAILED)
       return FAILED;
 
@@ -4275,6 +4279,41 @@ int directive_incdir(void) {
 }
 
 
+static int _remember_namespace(char *name) {
+
+  struct namespace *nspace;
+  
+  nspace = calloc(sizeof(struct namespace), 1);
+  if (nspace == NULL) {
+    print_error(ERROR_DIR, "Out of memory while remembering namespace \"%s\".\n", name);
+    return FAILED;
+  }
+
+  strcpy(nspace->name, name);
+      
+  nspace->next = g_namespaces_first;
+  g_namespaces_first = nspace;
+
+  return SUCCEEDED;
+}
+
+
+static int _is_namespace_valid(char *name) {
+
+  int i = 0;
+
+  while (1) {
+    if (name[i] == 0)
+      return YES;
+    else if (name[i] == '.') {
+      print_error(ERROR_DIR, "Namespace (here \"%s\") cannot contain a dot.\n", name);
+      return NO;
+    }
+    i++;
+  }
+}
+
+
 int directive_include(int is_real) {
 
   int o, include_size = 0, accumulated_name_length = 0, character_c_position = 0, got_once = NO;
@@ -4346,7 +4385,13 @@ int directive_include(int is_real) {
         return FAILED;
       }
 
+      if (_is_namespace_valid(g_label) == NO)
+        return FAILED;
+      
       strcpy(namespace, g_label);
+
+      if (_remember_namespace(namespace) == FAILED)
+        return FAILED;
     }
     else if (compare_next_token("ONCE") == SUCCEEDED) {
       skip_next_token();
@@ -5135,6 +5180,9 @@ int directive_section(void) {
         g_label[l] = 0;
       }
 
+      if (_is_namespace_valid(g_label) == NO)
+        return FAILED;
+              
       hashmap_get(g_namespace_map, g_label, (void*)&nspace);
       if (nspace == NULL) {
         nspace = calloc(1, sizeof(struct namespace_def));
@@ -7661,8 +7709,12 @@ int directive_define_def_equ(void) {
   struct definition *d;
   double dou;
 
+  if (g_is_file_isolated_counter > 0)
+    g_force_add_namespace = YES;
   if (get_next_plain_string() == FAILED)
     return FAILED;
+  if (g_is_file_isolated_counter > 0)
+    g_force_add_namespace = NO;
   
   strcpy(label, g_label);
   
@@ -7725,8 +7777,14 @@ int directive_undef_undefine(void) {
 
   q = 0;
   while (1) {
-    int string_result = input_next_string();
+    int string_result;
 
+    if (g_is_file_isolated_counter > 0)
+      g_force_add_namespace = YES;
+    string_result = input_next_string();
+    if (g_is_file_isolated_counter > 0)
+      g_force_add_namespace = NO;
+  
     if (string_result == FAILED)
       return FAILED;
     if (string_result == INPUT_NUMBER_EOL) {
@@ -7956,8 +8014,12 @@ int directive_redefine_redef(void) {
   int j, export, q, size;
   double dou;
 
+  if (g_is_file_isolated_counter > 0)
+    g_force_add_namespace = YES;
   if (get_next_plain_string() == FAILED)
     return FAILED;
+  if (g_is_file_isolated_counter > 0)
+    g_force_add_namespace = NO;
   
   strcpy(label, g_label);
 
@@ -8623,12 +8685,12 @@ int directive_smdheader(void) {
 #endif
 
 
-static int _parse_macro_argument_names(struct macro_static *m, int *count, int inside_parentheses) {
+static int _parse_macro_argument_names(struct macro_static *m, int *count, int is_inside_parentheses) {
 
   while (1) {
     int string_result;
 
-    if (inside_parentheses == YES) {
+    if (is_inside_parentheses == YES) {
       if (compare_and_skip_next_symbol(')') == SUCCEEDED)
         break;
     }
@@ -10747,6 +10809,9 @@ int parse_directive(void) {
           return FAILED;
         }
 
+        if (_is_namespace_valid(g_label) == NO)
+          return FAILED;
+
         strcpy(g_active_file_info_tmp->namespace, g_label);
 
         fprintf(g_file_out_ptr, "t1 %s ", g_active_file_info_tmp->namespace);
@@ -10765,7 +10830,7 @@ int parse_directive(void) {
 
       /* get the isolation counter */
       g_expect_calculations = NO;
-      q = input_number();
+      input_number();
       g_expect_calculations = YES;
       
       g_is_file_isolated_counter = g_parsed_int;

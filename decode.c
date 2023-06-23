@@ -453,7 +453,8 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
         if (code[i] == 0xA || code[i] == ',')
           break;
 
-        c = toupper((int)code[i++]);
+        c = toupper((int)code[i]);
+        i++;
         if (code[i] >= '0' && code[i] <= '7')
           number = code[i++] - '0';
         else {
@@ -487,7 +488,8 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
           /* it's a range! */
           i++;
           
-          c2 = toupper((int)code[i++]);
+          c2 = toupper((int)code[i]);
+          i++;
 
           if (c2 != c) {
             /* different register type */
@@ -3779,7 +3781,6 @@ int evaluate_token(void) {
         if (done == NO)
           break;
 
-        size = s_instruction_tmp->size;
         opcode = s_instruction_tmp->hex;
 
         if (_mc68000_parse_ea(g_buffer, &s_parser_source_index, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)

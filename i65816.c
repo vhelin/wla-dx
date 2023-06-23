@@ -446,9 +446,13 @@ struct instruction g_instructions_table[] = {
   { "MVP <x,<x", 0x44, 5, 0 },
   { "MVN x,x", 0x54, 5, 0 },
   { "MVP x,x", 0x44, 5, 0 },
+  { "MVN ?", 0x54, 2, 0 },
+  { "MVP ?", 0x44, 2, 0 },
   { "MVN.B x,x", 0x54, 5, 0 },
   { "MVP.B x,x", 0x44, 5, 0 },
-
+  { "MVN.W ?", 0x54, 2, 0 },
+  { "MVP.W ?", 0x44, 2, 0 },
+  
   { "NOP", 0xEA, 0, 0 },
 
   { "ORA #x", 0x09, 4, 0 }, /* special case, will expand to 16-bit argument, if needed */

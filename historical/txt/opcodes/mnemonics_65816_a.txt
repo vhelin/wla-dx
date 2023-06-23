@@ -288,8 +288,10 @@ x = 8bit
 "LSR |?,X" $5E
 "LSR" $4A
 "MVN <x,<x" $54
+"MVN ?" $54
 "MVN x,x" $54
 "MVP <x,<x" $44
+"MVP ?" $44
 "MVP x,x" $44
 "NOP" $EA
 "ORA #x" $09

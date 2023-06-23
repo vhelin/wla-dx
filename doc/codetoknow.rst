@@ -98,6 +98,8 @@ Opcodes that make relative label references::
     BBS*
 
 
+.. _codesub65816:
+    
 65816
 -----
 
@@ -141,6 +143,15 @@ Opcodes that make relative label references::
 
 Use ``.WDC`` to start parsing WDC standard assembly code. ``.NOWDC`` sets
 the parser to parse WLA syntax assembly code.
+
+``MVN`` and ``MVP`` work as follows::
+
+    MVN $xx, $yy
+    MVN $xxyy
+    MVP $xx, $yy
+    MVP $xxyy
+
+``xx`` is the source bank, ``yy`` is the target bank.
 
 
 HUC6280

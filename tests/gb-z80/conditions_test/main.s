@@ -302,6 +302,17 @@
         .else
         .db 3
         .endif
+
+        .macro ifmacro
+        .if \1
+        .db 1
+        .else
+        .db 2
+        .endif
+        .endm
+
+        ifmacro (ADD1(1) > SUB1(2)) && (-ADD1(1+1) < -SUB1(4-1)) ; @BT 01
+        ifmacro (ADD1(1) > SUB1(2)) && (-ADD1(1+1) > -SUB1(4-1)) ; @BT 02
         
         .db "<16"               ; @BT END
         

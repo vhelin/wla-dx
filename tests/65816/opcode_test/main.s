@@ -105,6 +105,10 @@ SLOT 0 $0000
     .DB 'B'                 ; @BT 42
     LDX #HEXSIXHUNDRED.w    ; manually generate wrong opcode
                             ; @BT a2 00 06
+    MVN $35, $36            ; @BT 54 36 35
+    MVN $3536               ; @BT 54 36 35
+    MVP $35, $36            ; @BT 44 36 35
+    MVP $3536               ; @BT 44 36 35
     .DB "<06"               ; @BT END
 
         ///////////////////////////////////////////////

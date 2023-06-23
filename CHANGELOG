@@ -3,14 +3,17 @@
 1... WLA GB-Z80/Z80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ----------------------------------------------------------------------------------------------------------
 
-v10.5 (31-May-2023) [ALL] .DSB, .DSW, .DSL and .DSD produced only one pending
+v10.6 (23-Jun-2023) [ALL] Conditions (e.g., "(A > 1 || B < 3)") can now be used
+                      everywhere, outside .IFs.
+
+v10.5 (23-Jun-2023) [ALL] .DSB, .DSW, .DSL and .DSD produced only one pending
                       calculation struct when encountered a pending calculation
                       thus the result was wrong.
                     [ALL] Added .ALIGN.
                     [ALL] Added .ASSERT.
                     [ALL] Added BANK, SLOT, BASE, ORG and ORGA to .SECTION.
                     [ALL] Added BASE to .RAMSECTION.
-                    [ALL] Added a new .SECTION type: SEMISUPERFREE
+                    [ALL] Added a new .SECTION type: SEMISUPERFREE.
                     [ALL] Added AUTOPRIORITY to .SECTION.
                     [ALL] Added ISOLATED to .INCLUDE.
                     [ALL] References inside a .MACRO inside a namespaced file
@@ -19,6 +22,7 @@ v10.5 (31-May-2023) [ALL] .DSB, .DSW, .DSL and .DSD produced only one pending
                       definitions while the .MACRO is running.
                     [68K] Added support for MC68000.
                     [68K] Added .COMPUTESMDCHECKSUM and .SMDHEADER.
+                    [658] Added support for "MVN $xxyy" and "MVP $xxyy".
 
 v10.4 (24-Nov-2022) [ALL] If a value is .DEFINEd later in the same source file
                       than used in a pending calculation, WLA can now solve
@@ -1452,7 +1456,6 @@ v1.0 (12-Dec-1998) The first public release.
 2... WLAB History
 ------------------------------------------------------------------------------
 
-
 v1.2 (31-Mar-2003) Made address printing more useful.
 
 v1.1 (04-Sep-2000) Uses now WLA v6.3+ syntax (introduced commas).
@@ -1464,7 +1467,6 @@ v1.0 (23-Aug-2000) The first public release.
 ------------------------------------------------------------------------------
 3... WLAD History
 ------------------------------------------------------------------------------
-
 
 v1.3 (21-Oct-2000) String detection works better.
 
@@ -1481,8 +1483,9 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
+v5.21 (23-Jun-2023) 
 
-v5.20 (07-May-2022) Added [sectionwriteorder] and [ramsectionwriteorder]
+v5.20 (23-Jun-2023) Added [sectionwriteorder] and [ramsectionwriteorder]
                       to linkfile.
                     Added -pS and -pR that make WLALINK to ignore .SECTION
                       types when writing the .SECTIONs to output, only
