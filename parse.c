@@ -18,7 +18,7 @@
 
 
 int g_input_number_error_msg = YES, g_ss, g_string_size, g_input_float_mode = OFF, g_parse_floats = YES;
-int g_expect_calculations = YES, g_input_parse_if = NO, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO, g_input_parse_special_chars = YES;
+int g_expect_calculations = YES, g_input_allow_leading_hashtag = NO, g_input_has_leading_hashtag = NO, g_input_parse_special_chars = YES;
 int g_input_allow_leading_ampersand = NO, g_plus_and_minus_ends_label = NO, g_get_next_token_use_substitution = YES;
 int g_newline_beginning = ON, g_parsed_double_decimal_numbers = 0, g_operand_hint, g_operand_hint_type;
 int g_input_number_turn_values_into_strings = NO, g_force_add_namespace = NO, g_force_ignore_namespace = NO;
@@ -202,7 +202,7 @@ static int should_we_add_namespace(void) {
 }
 
 
-static char *s_no_namespace_labels[] = {
+static char *s_arg_type_labels[] = {
   "ARG_IMMEDIATE",
   "ARG_NUMBER",
   "ARG_LABEL",
@@ -212,8 +212,27 @@ static char *s_no_namespace_labels[] = {
 };
 
 
+int is_macro_arg_type_label(char *label) {
+
+  int i = 0;
+
+  /* quick exit */
+  if (label[0] != 'A')
+    return NO;
+  
+  while (s_arg_type_labels[i] != NULL) {
+    if (strcaselesscmp(s_arg_type_labels[i], label) == 0)
+      return YES;
+    i++;
+  }
+
+  return NO;
+}
+
+
 int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macros) {
 
+  struct definition *tmp_def;
   int i;
   
   if (g_force_ignore_namespace == YES)
@@ -225,11 +244,9 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
   if (label[0] == '\\' || label[0] == '@' || label[0] == '-' || label[0] == '+' || label[0] == '_')
     return SUCCEEDED;
 
-  i = 0;
-  while (s_no_namespace_labels[i] != NULL) {
-    if (strcaselesscmp(s_no_namespace_labels[i], label) == 0)
+  if (g_macro_active != 0) {
+    if (is_macro_arg_type_label(label) == YES)
       return SUCCEEDED;
-    i++;
   }
   
   /* does the label already contain a namespace? */
@@ -246,8 +263,6 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
 
   /* label reference inside a namespaced .MACRO? */
   if (g_macro_active != 0) {
-    struct definition *tmp_def;
-    
     hashmap_get(g_defines_map, label, (void*)&tmp_def);
     if (tmp_def == NULL) {
       struct macro_runtime *mrt = &g_macro_stack[g_macro_active - 1];
@@ -690,16 +705,12 @@ int input_number(void) {
       else if (ee == '}')
         curly_braces--;
       /* string / symbol -> no calculating */
-      else if (g_input_parse_if == NO && ee == '"')
-        break;
       else if (ee == ',')
-        break;
-      else if (g_input_parse_if == NO && ((ee == '=' && g_buffer[p] == '=') || (ee == '!' && g_buffer[p] == '=')))
         break;
       else if (ee == ' ')
         spaces++;
       else if (curly_braces <= 0 && (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' || ee == '(' ||
-                                     ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':' || ee == '!' || (g_input_parse_if == YES && ee == '='))) {
+                                     ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':' || ee == '!' || (ee == '=' && g_buffer[p] == '='))) {
         if (ee == ':' && spaces > 0)
           break;
         
@@ -1279,6 +1290,14 @@ int input_number(void) {
   }
 
   /* the last choice is a label */
+
+  /* sanity checks for the label */
+  if (e == '(' || e == ')' || e == ',' || e == ']') {
+    if (g_input_number_error_msg == YES)
+      print_error(ERROR_NUM, "Unexpected '%c'!\n", e);
+    return FAILED;
+  }
+
   g_label[0] = e;
   curly_braces = 0;
   for (k = 1; k < MAX_NAME_LENGTH; k++) {
@@ -1312,7 +1331,7 @@ int input_number(void) {
   }
 
   /* size hint? */
-  if (g_label[k-2] == '.') {
+  if (k > 2 && g_label[k-2] == '.') {
     if (g_label[k-1] == 'b' || g_label[k-1] == 'B') {
       g_operand_hint = HINT_8BIT;
       g_operand_hint_type = HINT_TYPE_GIVEN;
@@ -1429,7 +1448,7 @@ int input_number(void) {
   }
 
   process_special_labels(g_label);
-
+  
   return INPUT_NUMBER_ADDRESS_LABEL;
 }
 
@@ -1630,7 +1649,8 @@ int get_next_token(void) {
   }
   else if (g_buffer[g_source_index] == '=' || g_buffer[g_source_index] == '>' || g_buffer[g_source_index] == '<' || g_buffer[g_source_index] == '!') {
     for (g_ss = 0; g_buffer[g_source_index] != 0xA && (g_buffer[g_source_index] == '=' || g_buffer[g_source_index] == '!' || g_buffer[g_source_index] == '<' || g_buffer[g_source_index] == '>')
-           && g_ss < MAX_NAME_LENGTH; g_tmp[g_ss++] = g_buffer[g_source_index++]);
+           && g_ss < MAX_NAME_LENGTH; g_tmp[g_ss++] = g_buffer[g_source_index++])
+      ;
   }
   else {
     int curly_brackets = 0;
@@ -1687,7 +1707,7 @@ int get_next_token(void) {
 int compare_and_skip_next_symbol(char symbol) {
 
   int pos = g_source_index;
-  
+
   while (g_buffer[pos] == ' ')
     pos++;
 

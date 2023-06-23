@@ -2267,7 +2267,7 @@ int write_object_file(void) {
       
     for (ind = 0; ind < stack->stacksize; ind++) {
       fprintf(final_ptr, "%c%c", stack->stack_items[ind].type, stack->stack_items[ind].sign);
-      if (stack->stack_items[ind].type == STACK_ITEM_TYPE_LABEL)
+      if (stack->stack_items[ind].type == STACK_ITEM_TYPE_LABEL || stack->stack_items[ind].type == STACK_ITEM_TYPE_STRING)
         fprintf(final_ptr, "%s%c", stack->stack_items[ind].string, 0);
       else {
         dou = stack->stack_items[ind].value;
@@ -2572,7 +2572,7 @@ int write_library_file(void) {
 
     for (ind = 0; ind < stack->stacksize; ind++) {
       fprintf(final_ptr, "%c%c", stack->stack_items[ind].type, stack->stack_items[ind].sign);
-      if (stack->stack_items[ind].type == STACK_ITEM_TYPE_LABEL)
+      if (stack->stack_items[ind].type == STACK_ITEM_TYPE_LABEL || stack->stack_items[ind].type == STACK_ITEM_TYPE_STRING)
         fprintf(final_ptr, "%s%c", stack->stack_items[ind].string, 0);
       else {
         dou = stack->stack_items[ind].value;

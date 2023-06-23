@@ -18,7 +18,7 @@
 #include "mersenne.h"
 
 
-extern int g_input_number_error_msg, g_bankheader_status, g_input_float_mode, g_global_label_hint, g_input_parse_if;
+extern int g_input_number_error_msg, g_bankheader_status, g_input_float_mode, g_global_label_hint;
 extern int g_source_index, g_source_file_size, g_parsed_int, g_macro_active, g_string_size, g_section_status, g_parse_floats;
 extern char g_xyz[512], *g_buffer, *g_tmp, g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
 extern struct map_t *g_defines_map;
@@ -33,7 +33,7 @@ extern int g_operand_hint, g_operand_hint_type, g_can_calculate_a_minus_b, g_exp
 extern int g_is_file_isolated_counter, g_force_add_namespace;
 
 int g_latest_stack = 0, g_last_stack_id = 0, g_resolve_stack_calculations = YES, g_stack_calculations_max = 0;
-int g_parsing_function_body = NO, g_fail_quetly_on_non_found_functions = NO;
+int g_parsing_function_body = NO, g_fail_quetly_on_non_found_functions = NO, g_input_parse_if = NO;
 struct stack **g_stack_calculations = NULL;
 
 static int s_delta_counter = 0, s_delta_section = -1, s_dsp_file_name_id = 0, s_dsp_line_number = 0;
@@ -42,6 +42,21 @@ static struct stack_item *s_delta_old_pointer = NULL;
 static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 
 PROFILE_GLOBALS_EXTERN();
+
+
+static int _is_stack_condition(struct stack_item st[], int count) {
+
+  while (count > 0) {
+    if (st->type == STACK_ITEM_TYPE_OPERATOR && (st->value == SI_OP_COMPARE_EQ || st->value == SI_OP_COMPARE_NEQ || st->value == SI_OP_COMPARE_LT ||
+                                                 st->value == SI_OP_COMPARE_GT || st->value == SI_OP_COMPARE_LTE || st->value == SI_OP_COMPARE_GTE ||
+                                                 st->value == SI_OP_LOGICAL_AND || st->value == SI_OP_LOGICAL_OR))
+      return YES;
+    count--;
+    st++;
+  }
+
+  return NO;
+}
 
 
 struct stack *allocate_struct_stack(int items) {
@@ -392,6 +407,10 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
         printf("<=");
       else if (value == SI_OP_COMPARE_GTE)
         printf(">=");
+      else if (value == SI_OP_COMPARE_LT)
+        printf("< (LT)");
+      else if (value == SI_OP_COMPARE_GT)
+        printf("> (GT)");
       else if (value == SI_OP_LOGICAL_OR)
         printf("||");
       else if (value == SI_OP_LOGICAL_AND)
@@ -461,8 +480,10 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
       printf("V(%f)", ta[k].value);
     else if (ta[k].type == STACK_ITEM_TYPE_STACK)
       printf("C(%d)", (int)ta[k].value);
-    else if (ta[k].type == STACK_ITEM_TYPE_STRING || ta[k].type == STACK_ITEM_TYPE_LABEL)
+    else if (ta[k].type == STACK_ITEM_TYPE_STRING)
       printf("S(%s)", ta[k].string);
+    else if (ta[k].type == STACK_ITEM_TYPE_LABEL)
+      printf("L(%s)", ta[k].string);
     else
       printf("?");
 
@@ -1276,16 +1297,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       in++;
     }
     else if (*in == '|' && *(in + 1) == '|') {
-      if (g_input_parse_if == YES) {
-        si[q].type = STACK_ITEM_TYPE_OPERATOR;
-        si[q].sign = SI_SIGN_POSITIVE;
-        si[q].value = SI_OP_LOGICAL_OR;
-        can_skip_newline = YES;
-        q++;
-        in += 2;
-      }
-      else
-        break;
+      si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
+      si[q].value = SI_OP_LOGICAL_OR;
+      can_skip_newline = YES;
+      q++;
+      in += 2;
     }
     else if (*in == '|') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
@@ -1296,16 +1313,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       in++;
     }
     else if (*in == '&' && *(in + 1) == '&') {
-      if (g_input_parse_if == YES) {
-        si[q].type = STACK_ITEM_TYPE_OPERATOR;
-        si[q].sign = SI_SIGN_POSITIVE;
-        si[q].value = SI_OP_LOGICAL_AND;
-        can_skip_newline = YES;
-        q++;
-        in += 2;
-      }
-      else
-        break;
+      si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
+      si[q].value = SI_OP_LOGICAL_AND;
+      can_skip_newline = YES;
+      q++;
+      in += 2;
     }
     else if (*in == '&') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
@@ -1345,19 +1358,18 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       in += 2;
     }
     else if (*in == '<' && *(in + 1) == '=') {
-      if (g_input_parse_if == YES) {
-        si[q].type = STACK_ITEM_TYPE_OPERATOR;
-        si[q].sign = SI_SIGN_POSITIVE;
-        si[q].value = SI_OP_COMPARE_LTE;
-        can_skip_newline = YES;
-        q++;
-        in += 2;
-      }
-      else
-        break;
+      si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
+      si[q].value = SI_OP_COMPARE_LTE;
+      can_skip_newline = YES;
+      q++;
+      in += 2;
     }
     else if (*in == '<') {
-      if (g_input_parse_if == YES) {
+      if (q > 0 && 
+          ((si[q-1].type == STACK_ITEM_TYPE_OPERATOR && si[q-1].value == SI_OP_RIGHT) ||
+           si[q-1].type == STACK_ITEM_TYPE_VALUE || si[q-1].type == STACK_ITEM_TYPE_STRING ||
+           si[q-1].type == STACK_ITEM_TYPE_LABEL || si[q-1].type == STACK_ITEM_TYPE_STACK)) {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_LT;
@@ -1366,14 +1378,6 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         in++;
       }
       else {
-        /* should we end parsing here? */
-        if (b == 0 && q > 0) {
-          if ((si[q-1].type == STACK_ITEM_TYPE_OPERATOR && si[q-1].value == SI_OP_RIGHT) ||
-              si[q-1].type == STACK_ITEM_TYPE_VALUE || si[q-1].type == STACK_ITEM_TYPE_STRING ||
-              si[q-1].type == STACK_ITEM_TYPE_LABEL)
-            break;
-        }
-
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_LOW_BYTE;
@@ -1391,19 +1395,18 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       in += 2;
     }
     else if (*in == '>' && *(in + 1) == '=') {
-      if (g_input_parse_if == YES) {
-        si[q].type = STACK_ITEM_TYPE_OPERATOR;
-        si[q].sign = SI_SIGN_POSITIVE;
-        si[q].value = SI_OP_COMPARE_GTE;
-        can_skip_newline = YES;
-        q++;
-        in += 2;
-      }
-      else
-        break;
+      si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
+      si[q].value = SI_OP_COMPARE_GTE;
+      can_skip_newline = YES;
+      q++;
+      in += 2;
     }
     else if (*in == '>') {
-      if (g_input_parse_if == YES) {
+      if (q > 0 &&
+          ((si[q-1].type == STACK_ITEM_TYPE_OPERATOR && si[q-1].value == SI_OP_RIGHT) ||
+           si[q-1].type == STACK_ITEM_TYPE_VALUE || si[q-1].type == STACK_ITEM_TYPE_STRING ||
+           si[q-1].type == STACK_ITEM_TYPE_LABEL || si[q-1].type == STACK_ITEM_TYPE_STACK)) {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_GT;
@@ -1412,14 +1415,6 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         in++;
       }
       else {
-        /* should we end parsing here? */
-        if (b == 0 && q > 0) {
-          if ((si[q-1].type == STACK_ITEM_TYPE_OPERATOR && si[q-1].value == SI_OP_RIGHT) ||
-              si[q-1].type == STACK_ITEM_TYPE_VALUE || si[q-1].type == STACK_ITEM_TYPE_STRING ||
-              si[q-1].type == STACK_ITEM_TYPE_LABEL)
-            break;
-        }
-
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_HIGH_BYTE;
@@ -1457,28 +1452,20 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       }
     }
     else if (*in == '=' && *(in + 1) == '=') {
-      if (g_input_parse_if == YES) {
-        si[q].type = STACK_ITEM_TYPE_OPERATOR;
-        si[q].sign = SI_SIGN_POSITIVE;
-        si[q].value = SI_OP_COMPARE_EQ;
-        can_skip_newline = YES;
-        q++;
-        in += 2;
-      }
-      else
-        break;
+      si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
+      si[q].value = SI_OP_COMPARE_EQ;
+      can_skip_newline = YES;
+      q++;
+      in += 2;
     }
     else if (*in == '!' && *(in + 1) == '=') {
-      if (g_input_parse_if == YES) {
-        si[q].type = STACK_ITEM_TYPE_OPERATOR;
-        si[q].sign = SI_SIGN_POSITIVE;
-        si[q].value = SI_OP_COMPARE_NEQ;
-        can_skip_newline = YES;
-        q++;
-        in += 2;
-      }
-      else
-        break;
+      si[q].type = STACK_ITEM_TYPE_OPERATOR;
+      si[q].sign = SI_SIGN_POSITIVE;
+      si[q].value = SI_OP_COMPARE_NEQ;
+      can_skip_newline = YES;
+      q++;
+      in += 2;
     }
     else if (*in == '!') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;
@@ -2285,101 +2272,109 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       b = 0;
       continue;
     }
-    if (g_input_parse_if == NO) {
-      /* *-1 or *-LABEL? */
-      if (k < q-2 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k].value != SI_OP_RIGHT &&
-          si[k + 1].value == SI_OP_SUB && (si[k + 2].type == STACK_ITEM_TYPE_VALUE || si[k + 2].type == STACK_ITEM_TYPE_LABEL)) {
-        if (si[k + 2].sign == SI_SIGN_POSITIVE)
-          si[k + 2].sign = SI_SIGN_NEGATIVE;
+    /* *-1 or *-LABEL? */
+    if (k < q-2 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k].value != SI_OP_RIGHT &&
+        si[k + 1].value == SI_OP_SUB && (si[k + 2].type == STACK_ITEM_TYPE_VALUE || si[k + 2].type == STACK_ITEM_TYPE_LABEL)) {
+      if (si[k + 2].sign == SI_SIGN_POSITIVE)
+        si[k + 2].sign = SI_SIGN_NEGATIVE;
+      else
+        si[k + 2].sign = SI_SIGN_POSITIVE;
+      /* it wasn't a minus operator, it was a sign */
+      si[k + 1].type = STACK_ITEM_TYPE_DELETED;
+    }
+    /* -abs()? */
+    if (k < q-1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_SUB && si[k+1].type == STACK_ITEM_TYPE_OPERATOR &&
+        (si[k + 1].value == SI_OP_ROUND ||
+         si[k + 1].value == SI_OP_FLOOR ||
+         si[k + 1].value == SI_OP_CEIL ||
+         si[k + 1].value == SI_OP_MIN ||
+         si[k + 1].value == SI_OP_MAX ||
+         si[k + 1].value == SI_OP_ABS ||
+         si[k + 1].value == SI_OP_COS ||
+         si[k + 1].value == SI_OP_SIN ||
+         si[k + 1].value == SI_OP_TAN ||
+         si[k + 1].value == SI_OP_COSH ||
+         si[k + 1].value == SI_OP_SINH ||
+         si[k + 1].value == SI_OP_TANH ||
+         si[k + 1].value == SI_OP_ACOS ||
+         si[k + 1].value == SI_OP_ASIN ||
+         si[k + 1].value == SI_OP_ATAN ||
+         si[k + 1].value == SI_OP_ATAN2 ||
+         si[k + 1].value == SI_OP_LOW_BYTE ||
+         si[k + 1].value == SI_OP_HIGH_BYTE ||
+         si[k + 1].value == SI_OP_LOW_WORD ||
+         si[k + 1].value == SI_OP_HIGH_WORD ||
+         si[k + 1].value == SI_OP_BANK_BYTE ||
+         si[k + 1].value == SI_OP_BANK ||
+         si[k + 1].value == SI_OP_LOG ||
+         si[k + 1].value == SI_OP_LOG10 ||
+         si[k + 1].value == SI_OP_POW ||
+         si[k + 1].value == SI_OP_CLAMP ||
+         si[k + 1].value == SI_OP_SIGN ||
+         si[k + 1].value == SI_OP_SQRT)) {
+      if (k == 0 || (si[k - 1].type == STACK_ITEM_TYPE_OPERATOR && si[k - 1].value == SI_OP_LEFT)) {
+        si[k].type = STACK_ITEM_TYPE_DELETED;
+        if (si[k + 1].sign == SI_SIGN_POSITIVE)
+          si[k + 1].sign = SI_SIGN_NEGATIVE;
         else
-          si[k + 2].sign = SI_SIGN_POSITIVE;
-        /* it wasn't a minus operator, it was a sign */
-        si[k + 1].type = STACK_ITEM_TYPE_DELETED;
+          si[k + 1].sign = SI_SIGN_POSITIVE;
       }
-      /* -abs()? */
-      if (k < q-1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_SUB && si[k+1].type == STACK_ITEM_TYPE_OPERATOR &&
-          (si[k + 1].value == SI_OP_ROUND ||
-           si[k + 1].value == SI_OP_FLOOR ||
-           si[k + 1].value == SI_OP_CEIL ||
-           si[k + 1].value == SI_OP_MIN ||
-           si[k + 1].value == SI_OP_MAX ||
-           si[k + 1].value == SI_OP_ABS ||
-           si[k + 1].value == SI_OP_COS ||
-           si[k + 1].value == SI_OP_SIN ||
-           si[k + 1].value == SI_OP_TAN ||
-           si[k + 1].value == SI_OP_COSH ||
-           si[k + 1].value == SI_OP_SINH ||
-           si[k + 1].value == SI_OP_TANH ||
-           si[k + 1].value == SI_OP_ACOS ||
-           si[k + 1].value == SI_OP_ASIN ||
-           si[k + 1].value == SI_OP_ATAN ||
-           si[k + 1].value == SI_OP_ATAN2 ||
-           si[k + 1].value == SI_OP_LOW_BYTE ||
-           si[k + 1].value == SI_OP_HIGH_BYTE ||
-           si[k + 1].value == SI_OP_LOW_WORD ||
-           si[k + 1].value == SI_OP_HIGH_WORD ||
-           si[k + 1].value == SI_OP_BANK_BYTE ||
-           si[k + 1].value == SI_OP_BANK ||
-           si[k + 1].value == SI_OP_LOG ||
-           si[k + 1].value == SI_OP_LOG10 ||
-           si[k + 1].value == SI_OP_POW ||
-           si[k + 1].value == SI_OP_CLAMP ||
-           si[k + 1].value == SI_OP_SIGN ||
-           si[k + 1].value == SI_OP_SQRT)) {
-        if (k == 0 || (si[k - 1].type == STACK_ITEM_TYPE_OPERATOR && si[k - 1].value == SI_OP_LEFT)) {
-          si[k].type = STACK_ITEM_TYPE_DELETED;
-          if (si[k + 1].sign == SI_SIGN_POSITIVE)
-            si[k + 1].sign = SI_SIGN_NEGATIVE;
-          else
-            si[k + 1].sign = SI_SIGN_POSITIVE;
-        }
+    }
+    /* -C(?)? (stack calculation) */
+    if (k < q-1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_SUB && si[k+1].type == STACK_ITEM_TYPE_STACK) {
+      if (k == 0 || (si[k - 1].type == STACK_ITEM_TYPE_OPERATOR && si[k - 1].value == SI_OP_LEFT)) {
+        si[k].type = STACK_ITEM_TYPE_DELETED;
+        if (si[k + 1].sign == SI_SIGN_POSITIVE)
+          si[k + 1].sign = SI_SIGN_NEGATIVE;
+        else
+          si[k + 1].sign = SI_SIGN_POSITIVE;
       }
-      /* -C(?)? (stack calculation) */
-      if (k < q-1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_SUB && si[k+1].type == STACK_ITEM_TYPE_STACK) {
-        if (k == 0 || (si[k - 1].type == STACK_ITEM_TYPE_OPERATOR && si[k - 1].value == SI_OP_LEFT)) {
-          si[k].type = STACK_ITEM_TYPE_DELETED;
-          if (si[k + 1].sign == SI_SIGN_POSITIVE)
-            si[k + 1].sign = SI_SIGN_NEGATIVE;
-          else
-            si[k + 1].sign = SI_SIGN_POSITIVE;
-        }
-      }
-      if ((q - k) != 1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR &&
-          si[k + 1].value != SI_OP_BANK &&
-          si[k + 1].value != SI_OP_BANK_BYTE &&
-          si[k + 1].value != SI_OP_HIGH_BYTE &&
-          si[k + 1].value != SI_OP_LOW_BYTE &&
-          si[k + 1].value != SI_OP_HIGH_WORD &&
-          si[k + 1].value != SI_OP_LOW_WORD &&
-          si[k + 1].value != SI_OP_ROUND &&
-          si[k + 1].value != SI_OP_FLOOR &&
-          si[k + 1].value != SI_OP_CEIL &&
-          si[k + 1].value != SI_OP_MIN &&
-          si[k + 1].value != SI_OP_MAX &&
-          si[k + 1].value != SI_OP_ABS &&
-          si[k + 1].value != SI_OP_COS &&
-          si[k + 1].value != SI_OP_SIN &&
-          si[k + 1].value != SI_OP_TAN &&
-          si[k + 1].value != SI_OP_COSH &&
-          si[k + 1].value != SI_OP_SINH &&
-          si[k + 1].value != SI_OP_TANH &&
-          si[k + 1].value != SI_OP_ACOS &&
-          si[k + 1].value != SI_OP_ASIN &&
-          si[k + 1].value != SI_OP_ATAN &&
-          si[k + 1].value != SI_OP_ATAN2 &&
-          si[k + 1].value != SI_OP_LOG &&
-          si[k + 1].value != SI_OP_LOG10 &&
-          si[k + 1].value != SI_OP_POW &&
-          si[k + 1].value != SI_OP_CLAMP &&
-          si[k + 1].value != SI_OP_SIGN &&
-          si[k + 1].value != SI_OP_SQRT) {
-        if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
+    }
+    if ((q - k) != 1 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR &&
+        si[k].value != SI_OP_COMPARE_EQ &&
+        si[k].value != SI_OP_COMPARE_NEQ &&
+        si[k].value != SI_OP_COMPARE_LTE &&
+        si[k].value != SI_OP_COMPARE_LT &&
+        si[k].value != SI_OP_COMPARE_GT &&
+        si[k].value != SI_OP_COMPARE_GTE &&
+        si[k].value != SI_OP_LOGICAL_OR &&
+        si[k].value != SI_OP_LOGICAL_AND &&
+        si[k + 1].value != SI_OP_NOT &&
+        si[k + 1].value != SI_OP_BANK &&
+        si[k + 1].value != SI_OP_BANK_BYTE &&
+        si[k + 1].value != SI_OP_HIGH_BYTE &&
+        si[k + 1].value != SI_OP_LOW_BYTE &&
+        si[k + 1].value != SI_OP_HIGH_WORD &&
+        si[k + 1].value != SI_OP_LOW_WORD &&
+        si[k + 1].value != SI_OP_ROUND &&
+        si[k + 1].value != SI_OP_FLOOR &&
+        si[k + 1].value != SI_OP_CEIL &&
+        si[k + 1].value != SI_OP_MIN &&
+        si[k + 1].value != SI_OP_MAX &&
+        si[k + 1].value != SI_OP_ABS &&
+        si[k + 1].value != SI_OP_COS &&
+        si[k + 1].value != SI_OP_SIN &&
+        si[k + 1].value != SI_OP_TAN &&
+        si[k + 1].value != SI_OP_COSH &&
+        si[k + 1].value != SI_OP_SINH &&
+        si[k + 1].value != SI_OP_TANH &&
+        si[k + 1].value != SI_OP_ACOS &&
+        si[k + 1].value != SI_OP_ASIN &&
+        si[k + 1].value != SI_OP_ATAN &&
+        si[k + 1].value != SI_OP_ATAN2 &&
+        si[k + 1].value != SI_OP_LOG &&
+        si[k + 1].value != SI_OP_LOG10 &&
+        si[k + 1].value != SI_OP_POW &&
+        si[k + 1].value != SI_OP_CLAMP &&
+        si[k + 1].value != SI_OP_SIGN &&
+        si[k + 1].value != SI_OP_SQRT) {
+      if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
 #ifdef WLA_DEBUG
-          debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
+        fprintf(stderr, "ERROR NEAR COMPUTATION ITEM %d! (items %d and %d)\n", k, (int)si[k].value, (int)si[k+1].value);
+        debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
 #endif
-          print_error(ERROR_STC, "Error in computation syntax.\n");
-          return FAILED;
-        }
+        print_error(ERROR_STC, "Error in computation syntax.\n");
+        return FAILED;
       }
     }
     if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_SUB && b == 1) {
@@ -2405,13 +2400,17 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       b = 0;
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_LEFT)
       b = 1;
+    else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_RIGHT)
+      b = 0;
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && (si[k].value == SI_OP_COMPARE_EQ ||
                                                         si[k].value == SI_OP_COMPARE_NEQ ||
                                                         si[k].value == SI_OP_COMPARE_LTE ||
                                                         si[k].value == SI_OP_COMPARE_LT ||
                                                         si[k].value == SI_OP_COMPARE_GT ||
-                                                        si[k].value == SI_OP_COMPARE_GTE))
-      b = 1;
+                                                        si[k].value == SI_OP_COMPARE_GTE ||
+                                                        si[k].value == SI_OP_LOGICAL_OR ||
+                                                        si[k].value == SI_OP_LOGICAL_AND))
+                                                        b = 1;
   }
 
   /* turn unary XORs into NOTs */
@@ -2652,9 +2651,13 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       out->sign = in->sign;
     }
     else if (type == STACK_ITEM_TYPE_STRING) {
-      /* fail if we have a string inside a pending calculation! */
-      print_error(ERROR_STC, "A string (\"%s\") inside a calculation doesn't make any sense...\n", in->string);
-      return FAILED;
+      if (_is_stack_condition(ta, d) == NO) {
+        print_error(ERROR_STC, "String \"%s\" inside a calculation doesn't make sense.\n", in->string);
+        return FAILED;
+      }
+      out->type = STACK_ITEM_TYPE_STRING;
+      out->sign = in->sign;
+      strcpy(out->string, in->string);
     }
     else if (type == STACK_ITEM_TYPE_LABEL) {
       out->type = STACK_ITEM_TYPE_LABEL;
@@ -2822,19 +2825,9 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
   hashmap_get(g_defines_map, s->string, (void*)&tmp_def);
   if (tmp_def != NULL) {
     if (tmp_def->type == DEFINITION_TYPE_STRING) {
-      if (g_input_parse_if == NO) {
-        /* change the contents */
-        s->type = STACK_ITEM_TYPE_STRING;
-        strcpy(s->string, tmp_def->string);
-        /*
-        print_error(ERROR_STC, "Definition \"%s\" is a string definition.\n", tmp_def->alias);
-        */
-        return FAILED;
-      }
-      else {
-        *cannot_resolve = 1;
-        strcpy(s->string, tmp_def->string);
-      }
+      s->type = STACK_ITEM_TYPE_STRING;
+      strcpy(s->string, tmp_def->string);
+      *cannot_resolve = 1;
     }
     else if (tmp_def->type == DEFINITION_TYPE_STACK) {
       /* turn this reference to a stack calculation define into a direct reference to the stack calculation as */
@@ -2917,7 +2910,7 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
     s->value = get_label_length(s->string);
     s->type = STACK_ITEM_TYPE_VALUE;
   }
-  
+
   return SUCCEEDED;
 }
 
@@ -3100,57 +3093,57 @@ static int _try_to_calculate(struct stack_item *st) {
 
 int resolve_stack(struct stack_item s[], int stack_item_count) {
 
+  int backup = stack_item_count, cannot_resolve = 0, is_condition = NO;
   struct stack_item *st;
-  int backup = stack_item_count, cannot_resolve = 0;
 
   st = s;
   while (stack_item_count > 0) {
     int process_single = YES;
 
-    if (stack_item_count >= 3 && g_input_parse_if == YES) {
+    if (stack_item_count >= 3) {
       /* [string] [string] ==/!=/</>/<=/>= ? */
-      s += 2;
+      st += 2;
       stack_item_count -= 2;
       
-      if (s->type == STACK_ITEM_TYPE_OPERATOR && (s->value == SI_OP_COMPARE_EQ || s->value == SI_OP_COMPARE_NEQ || s->value == SI_OP_COMPARE_LT ||
-                                                  s->value == SI_OP_COMPARE_GT || s->value == SI_OP_COMPARE_LTE || s->value == SI_OP_COMPARE_GTE)) {
-        s -= 2;
+      if (st->type == STACK_ITEM_TYPE_OPERATOR && (st->value == SI_OP_COMPARE_EQ || st->value == SI_OP_COMPARE_NEQ || st->value == SI_OP_COMPARE_LT ||
+                                                   st->value == SI_OP_COMPARE_GT || st->value == SI_OP_COMPARE_LTE || st->value == SI_OP_COMPARE_GTE)) {
+        st -= 2;
         stack_item_count += 2;
 
-        if (s->type == STACK_ITEM_TYPE_LABEL) {
+        if (st->type == STACK_ITEM_TYPE_LABEL) {
           int cannot;
 
-          if (_process_string(s, &cannot) == FAILED)
+          if (_process_string(st, &cannot) == FAILED)
             return FAILED;
         }
         
-        s++;
+        st++;
         stack_item_count--;
 
-        if (s->type == STACK_ITEM_TYPE_LABEL) {
+        if (st->type == STACK_ITEM_TYPE_LABEL) {
           int cannot;
 
-          if (_process_string(s, &cannot) == FAILED)
+          if (_process_string(st, &cannot) == FAILED)
             return FAILED;
         }
 
-        s += 2;
+        st += 2;
         stack_item_count -= 2;
 
         process_single = NO;
       }
       else {
-        s -= 2;
+        st -= 2;
         stack_item_count += 2;
       }
     }
 
     if (process_single == YES) {
-      if (s->type == STACK_ITEM_TYPE_LABEL) {
-        if (_process_string(s, &cannot_resolve) == FAILED)
+      if (st->type == STACK_ITEM_TYPE_LABEL) {
+        if (_process_string(st, &cannot_resolve) == FAILED)
           return FAILED;
       }
-      s++;
+      st++;
       stack_item_count--;
     }
   }
@@ -3158,12 +3151,13 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
   if (cannot_resolve != 0)
     return FAILED;
 
-  /* find a string, a stack that cannot be calculated and turned into a value here, bank, or a NOT and fail */
+  /* find a stack that cannot be calculated and turned into a value here, or bank and fail */
+  st = s;
   stack_item_count = backup;
   while (stack_item_count > 0) {
     int process_single = YES;
 
-    if (stack_item_count >= 3 && g_input_parse_if == YES) {
+    if (stack_item_count >= 3) {
       /* [string] [string] ==/!= ? */
       st += 2;
       stack_item_count -= 2;
@@ -3177,8 +3171,6 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
           if (_try_to_calculate(st) == FAILED)
             return FAILED;
         }
-        else if ((st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
-          return FAILED;
 
         st++;
         stack_item_count--;
@@ -3187,8 +3179,6 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
           if (_try_to_calculate(st) == FAILED)
             return FAILED;
         }
-        else if ((st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
-          return FAILED;
         
         st += 2;
         stack_item_count -= 2;
@@ -3206,26 +3196,77 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
         if (_try_to_calculate(st) == FAILED)
           return FAILED;
       }
-      if (st->type == STACK_ITEM_TYPE_STRING || st->type == STACK_ITEM_TYPE_LABEL || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
-        return FAILED;
-      if (g_input_parse_if == NO && st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_NOT)
+      if (st->type == STACK_ITEM_TYPE_LABEL || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
         return FAILED;
       stack_item_count--;
       st++;
     }
   }
 
+  /* is this a condition? */
+  if (_is_stack_condition(s, backup) == YES)
+    is_condition = YES;
+
+  /* exits for label, stack and bank */
+  st = s;
+  stack_item_count = backup;
+  while (stack_item_count > 0) {
+    if (st->type == STACK_ITEM_TYPE_LABEL) {
+      if (g_macro_active != 0) {
+        if (is_macro_arg_type_label(st->string) == NO)
+          return FAILED;
+      }
+      else
+        return FAILED;
+    }
+    if (st->type == STACK_ITEM_TYPE_STACK)
+      return FAILED;
+    else if ((st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK))
+      return FAILED;
+    stack_item_count--;
+    st++;
+  }
+
+  /* if this is not a condition then NOT will delay the processing to WLALINK */
+  if (is_condition == YES || g_input_parse_if == YES) {
+#ifdef WLA_DEBUG
+    fprintf(stderr, "RESOLVED (1):\n");
+    debug_print_stack(0, 0, s, backup, 0, NULL);
+#endif
+    return SUCCEEDED;
+  }
+
+  st = s;
+  stack_item_count = backup;
+  while (stack_item_count > 0) {
+    if (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_NOT)
+        return FAILED;
+    if (st->type == STACK_ITEM_TYPE_STRING)
+      return FAILED;
+    stack_item_count--;
+    st++;
+  }
+
+#ifdef WLA_DEBUG
+  fprintf(stderr, "RESOLVED (2):\n");
+  debug_print_stack(0, 0, s, backup, 0, NULL);
+#endif
+  
   return SUCCEEDED;
 }
 
 
 static int _comparing_a_string_with_a_number(char *sp1, char *sp2, struct stack *sta) {
 
-  if ((sp1 != NULL && sp2 == NULL) || (sp1 == NULL && sp2 != NULL)) {  
-    fprintf(stderr, "%s:%d: COMPUTE_STACK: Comparison between a string and a number doesn't work.\n", get_file_name(sta->filename_id), sta->linenumber);
+  if (sp1 != NULL && sp2 == NULL) {  
+    fprintf(stderr, "%s:%d: COMPUTE_STACK: Comparison between a string \"%s\" and a number doesn't work.\n", get_file_name(sta->filename_id), sta->linenumber, sp1);
     return YES;
   }
-
+  else if (sp1 == NULL && sp2 != NULL) {  
+    fprintf(stderr, "%s:%d: COMPUTE_STACK: Comparison between a string \"%s\" and a number doesn't work.\n", get_file_name(sta->filename_id), sta->linenumber, sp2);
+    return YES;
+  }
+  
   return NO;
 }
 
@@ -3270,7 +3311,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
   fprintf(stderr, "SOLVING:\n");
   debug_print_stack(0, 0, s, stack_item_count, 0, NULL);
 #endif
-  
+
   for (r = 0, t = 0; r < stack_item_count; r++, s++) {
     if (s->type == STACK_ITEM_TYPE_VALUE) {
       if (s->sign == SI_SIGN_NEGATIVE)
@@ -3649,17 +3690,11 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         sp[t - 1] = NULL;
         break;
       case SI_OP_NOT:
-        if (g_input_parse_if == YES) {
-          if ((int)v[t - 1] == 0)
-            v[t - 1] = 1;
-          else
-            v[t - 1] = 0;
-          sp[t - 1] = NULL;
-        }
-        else {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: NOT cannot determine the output size.\n", get_file_name(sta->filename_id), sta->linenumber);
-          return FAILED;
-        }
+        if ((int)v[t - 1] == 0)
+          v[t - 1] = 1;
+        else
+          v[t - 1] = 0;
+        sp[t - 1] = NULL;
         break;
       case SI_OP_XOR:
         if (t <= 1) {

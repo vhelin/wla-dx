@@ -8,10 +8,12 @@
 
 
 
-int get_next_token(char *in, char *out, int *pos) {
+int get_next_string(char *in, char *out, int *pos, int *type) {
 
   int i, t;
 
+  *type = LABEL_STATUS_LABEL;
+  
   /* skip white space */
   for (i = 0; in[i] == ' ' || in[i] == 0x09; i++)
     ;
@@ -21,6 +23,7 @@ int get_next_token(char *in, char *out, int *pos) {
 
   /* something between ""? */
   if (in[i] == '"') {
+    *type = LABEL_STATUS_STRING;
     i++;
     for (t = 0; in[i] != '"' && in[i] != 0x09 && in[i] != 0; i++, t++)
       out[t] = in[i];
@@ -38,6 +41,14 @@ int get_next_token(char *in, char *out, int *pos) {
     *pos += i;
 
   return SUCCEEDED;
+}
+
+
+int get_next_token(char *in, char *out, int *pos) {
+
+  int type;
+
+  return get_next_string(in, out, pos, &type);
 }
 
 

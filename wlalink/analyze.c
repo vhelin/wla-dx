@@ -905,15 +905,11 @@ int collect_dlr(void) {
           s->stack_items[n].stack_file_id = -1;
           s->stack_items[n].type = *(t++);
           s->stack_items[n].sign = *(t++);
-          if (s->stack_items[n].type == STACK_ITEM_TYPE_LABEL) {
+          if (s->stack_items[n].type == STACK_ITEM_TYPE_LABEL || s->stack_items[n].type == STACK_ITEM_TYPE_STRING) {
             for (q = 0; *t != 0; t++, q++)
               s->stack_items[n].string[q] = *t;
             s->stack_items[n].string[q] = 0;
             t++;
-          }
-          else if (s->stack_items[n].type == STACK_ITEM_TYPE_STRING) {
-            fprintf(stderr, "COLLECT_DLR: String \"%s\" inside a pending calculation doesn't make any sense. Please fix the calculation.\n", t);
-            return FAILED;
           }
           else {
             READ_DOU;
@@ -1165,15 +1161,11 @@ int collect_dlr(void) {
           s->stack_items[n].stack_file_id = -1;
           s->stack_items[n].type = *(t++);
           s->stack_items[n].sign = *(t++);
-          if (s->stack_items[n].type == STACK_ITEM_TYPE_LABEL) {
+          if (s->stack_items[n].type == STACK_ITEM_TYPE_LABEL || s->stack_items[n].type == STACK_ITEM_TYPE_STRING) {
             for (q = 0; *t != 0; t++, q++)
               s->stack_items[n].string[q] = *t;
             s->stack_items[n].string[q] = 0;
             t++;
-          }
-          else if (s->stack_items[n].type == STACK_ITEM_TYPE_STRING) {
-            fprintf(stderr, "COLLECT_DLR: String \"%s\" inside a pending calculation doesn't make any sense. Please fix the calculation.\n", t);
-            return FAILED;
           }
           else {
             READ_DOU;

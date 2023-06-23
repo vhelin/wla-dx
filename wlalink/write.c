@@ -3062,6 +3062,20 @@ static double _round(double d) {
   }
 }
 
+static int _comparing_a_string_with_a_number(struct stack_item *sp1, struct stack_item *sp2, struct stack *sta) {
+  
+  if (sp1->type == STACK_ITEM_TYPE_STRING && sp2->type != STACK_ITEM_TYPE_STRING) {  
+    fprintf(stderr, "%s:%d: COMPUTE_STACK: Comparison between a string \"%s\" and a number doesn't work.\n", get_file_name(sta->file_id), sta->linenumber, sp1->string);
+    return YES;
+  }
+  else if (sp1->type != STACK_ITEM_TYPE_STRING && sp2->type == STACK_ITEM_TYPE_STRING) {  
+    fprintf(stderr, "%s:%d: COMPUTE_STACK: Comparison between a string \"%s\" and a number doesn't work.\n", get_file_name(sta->file_id), sta->linenumber, sp2->string);
+    return YES;
+  }
+  
+  return NO;
+}
+
 const char *get_stack_item_operator_name(int operator);
 char *get_stack_item_description(struct stack_item *si, int file_id);
 
@@ -3138,6 +3152,14 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
       bank[t] = s->bank;
       t++;
     }
+    else if (s->type == STACK_ITEM_TYPE_STRING) {
+      v_ram[t] = -1;
+      v_rom[t] = -1;
+      slot[t] = -1;
+      base[t] = -1;
+      bank[t] = -1;
+      t++;
+    }
     else if (s->type == STACK_ITEM_TYPE_LABEL) {
       /* parse_stack() turned this string into a value, and embedded the sign into the value */
       if (s->sign == SI_SIGN_NEGATIVE) {
@@ -3195,6 +3217,11 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
     else {
       switch ((int)s->value_ram) {
       case SI_OP_ADD:
+        if (t <= 1) {
+          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Addition is missing an operand.\n", get_file_name(sta->file_id),
+                  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+          return FAILED;
+        }
         v_ram[t - 2] += v_ram[t - 1];
         v_rom[t - 2] += v_rom[t - 1];
         _pass_on_slot(slot, t);
@@ -3203,6 +3230,11 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         t--;
         break;
       case SI_OP_SUB:
+        if (t <= 1) {
+          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Subtraction is missing an operand.\n", get_file_name(sta->file_id),
+                  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+          return FAILED;
+        }
         v_ram[t - 2] -= v_ram[t - 1];
         v_rom[t - 2] -= v_rom[t - 1];
         _pass_on_slot(slot, t);
@@ -3236,6 +3268,11 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         v_rom[t - 1] = (int)v_rom[t - 1] ^ y;
         break;
       case SI_OP_XOR:
+        if (t <= 1) {
+          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: XOR is missing an operand.\n", get_file_name(sta->file_id),
+                  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+          return FAILED;
+        }
         v_ram[t - 2] = (int)v_ram[t - 1] ^ (int)v_ram[t - 2];
         v_rom[t - 2] = (int)v_rom[t - 1] ^ (int)v_rom[t - 2];
         _pass_on_slot(slot, t);
@@ -3682,6 +3719,188 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         _pass_on_slot(slot, t);
         _pass_on_base(base, t);
         _pass_on_bank(bank, t);
+        t--;
+        break;
+      case SI_OP_LOGICAL_OR:
+        if (t <= 1) {
+          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Logical or is missing an operand.\n", get_file_name(sta->file_id),
+                  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+          return FAILED;
+        }
+        if (v_ram[t-1] != 0 || v_ram[t-2] != 0)
+          v_ram[t-2] = 1;
+        else
+          v_ram[t-2] = 0;
+        if (v_rom[t-1] != 0 || v_rom[t-2] != 0)
+          v_rom[t-2] = 1;
+        else
+          v_rom[t-2] = 0;
+        t--;
+        break;
+      case SI_OP_LOGICAL_AND:
+        if (t <= 1) {
+          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Logical and is missing an operand.\n", get_file_name(sta->file_id),
+                  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+          return FAILED;
+        }
+        if (v_ram[t-1] != 0 && v_ram[t-2] != 0)
+          v_ram[t-2] = 1;
+        else
+          v_ram[t-2] = 0;
+        if (v_rom[t-1] != 0 && v_rom[t-2] != 0)
+          v_rom[t-2] = 1;
+        else
+          v_rom[t-2] = 0;
+        t--;
+        break;
+      case SI_OP_COMPARE_LT:
+        if (_comparing_a_string_with_a_number(&sta->stack_items[r-2], &sta->stack_items[r-1], sta) == YES)
+          return FAILED;
+        if (sta->stack_items[r-2].type == STACK_ITEM_TYPE_STRING && sta->stack_items[r-1].type == STACK_ITEM_TYPE_STRING) {
+          if (strcmp(sta->stack_items[r-2].string, sta->stack_items[r-1].string) < 0) {
+            v_ram[t-2] = 1;
+            v_rom[t-2] = 1;
+          }
+          else {
+            v_ram[t-2] = 0;
+            v_rom[t-2] = 0;
+          }
+        }
+        else {
+          if (v_ram[t-2] < v_ram[t-1])
+            v_ram[t-2] = 1;
+          else
+            v_ram[t-2] = 0;
+          if (v_rom[t-2] < v_rom[t-1])
+            v_rom[t-2] = 1;
+          else
+            v_rom[t-2] = 0;
+        }
+        t--;
+        break;
+      case SI_OP_COMPARE_GT:
+        if (_comparing_a_string_with_a_number(&sta->stack_items[r-2], &sta->stack_items[r-1], sta) == YES)
+          return FAILED;
+        if (sta->stack_items[r-2].type == STACK_ITEM_TYPE_STRING && sta->stack_items[r-1].type == STACK_ITEM_TYPE_STRING) {
+          if (strcmp(sta->stack_items[r-2].string, sta->stack_items[r-1].string) > 0) {
+            v_ram[t-2] = 1;
+            v_rom[t-2] = 1;
+          }
+          else {
+            v_ram[t-2] = 0;
+            v_rom[t-2] = 0;
+          }
+        }
+        else {
+          if (v_ram[t-2] > v_ram[t-1])
+            v_ram[t-2] = 1;
+          else
+            v_ram[t-2] = 0;
+          if (v_rom[t-2] > v_rom[t-1])
+            v_rom[t-2] = 1;
+          else
+            v_rom[t-2] = 0;
+        }
+        t--;
+        break;
+      case SI_OP_COMPARE_EQ:
+        if (_comparing_a_string_with_a_number(&sta->stack_items[r-2], &sta->stack_items[r-1], sta) == YES)
+          return FAILED;
+        if (sta->stack_items[r-2].type == STACK_ITEM_TYPE_STRING && sta->stack_items[r-1].type == STACK_ITEM_TYPE_STRING) {
+          if (strcmp(sta->stack_items[r-2].string, sta->stack_items[r-1].string) == 0) {
+            v_ram[t-2] = 1;
+            v_rom[t-2] = 1;
+          }
+          else {
+            v_ram[t-2] = 0;
+            v_rom[t-2] = 0;
+          }
+        }
+        else {
+          if (v_ram[t-2] == v_ram[t-1])
+            v_ram[t-2] = 1;
+          else
+            v_ram[t-2] = 0;
+          if (v_rom[t-2] == v_rom[t-1])
+            v_rom[t-2] = 1;
+          else
+            v_rom[t-2] = 0;
+        }
+        t--;
+        break;
+      case SI_OP_COMPARE_NEQ:
+        if (_comparing_a_string_with_a_number(&sta->stack_items[r-2], &sta->stack_items[r-1], sta) == YES)
+          return FAILED;
+        if (sta->stack_items[r-2].type == STACK_ITEM_TYPE_STRING && sta->stack_items[r-1].type == STACK_ITEM_TYPE_STRING) {
+          if (strcmp(sta->stack_items[r-2].string, sta->stack_items[r-1].string) != 0) {
+            v_ram[t-2] = 1;
+            v_rom[t-2] = 1;
+          }
+          else {
+            v_ram[t-2] = 0;
+            v_rom[t-2] = 0;
+          }
+        }
+        else {
+          if (v_ram[t-2] != v_ram[t-1])
+            v_ram[t-2] = 1;
+          else
+            v_ram[t-2] = 0;
+          if (v_rom[t-2] != v_rom[t-1])
+            v_rom[t-2] = 1;
+          else
+            v_rom[t-2] = 0;
+        }
+        t--;
+        break;
+      case SI_OP_COMPARE_LTE:
+        if (_comparing_a_string_with_a_number(&sta->stack_items[r-2], &sta->stack_items[r-1], sta) == YES)
+          return FAILED;
+        if (sta->stack_items[r-2].type == STACK_ITEM_TYPE_STRING && sta->stack_items[r-1].type == STACK_ITEM_TYPE_STRING) {
+          if (strcmp(sta->stack_items[r-2].string, sta->stack_items[r-1].string) <= 0) {
+            v_ram[t-2] = 1;
+            v_rom[t-2] = 1;
+          }
+          else {
+            v_ram[t-2] = 0;
+            v_rom[t-2] = 0;
+          }
+        }
+        else {
+          if (v_ram[t-2] <= v_ram[t-1])
+            v_ram[t-2] = 1;
+          else
+            v_ram[t-2] = 0;
+          if (v_rom[t-2] <= v_rom[t-1])
+            v_rom[t-2] = 1;
+          else
+            v_rom[t-2] = 0;
+        }
+        t--;
+        break;
+      case SI_OP_COMPARE_GTE:
+        if (_comparing_a_string_with_a_number(&sta->stack_items[r-2], &sta->stack_items[r-1], sta) == YES)
+          return FAILED;
+        if (sta->stack_items[r-2].type == STACK_ITEM_TYPE_STRING && sta->stack_items[r-1].type == STACK_ITEM_TYPE_STRING) {
+          if (strcmp(sta->stack_items[r-2].string, sta->stack_items[r-1].string) >= 0) {
+            v_ram[t-2] = 1;
+            v_rom[t-2] = 1;
+          }
+          else {
+            v_ram[t-2] = 0;
+            v_rom[t-2] = 0;
+          }
+        }
+        else {
+          if (v_ram[t-2] >= v_ram[t-1])
+            v_ram[t-2] = 1;
+          else
+            v_ram[t-2] = 0;
+          if (v_rom[t-2] >= v_rom[t-1])
+            v_rom[t-2] = 1;
+          else
+            v_rom[t-2] = 0;
+        }
         t--;
         break;
       }
@@ -4158,14 +4377,34 @@ int parse_stack(struct stack *sta) {
         else {
           find_label(si->string, s, &l);
 
-          if (l != NULL) {
-            k_rom = l->rom_address;
-            k_ram = l->address;
+          /* find matches until something else than a label is found */
+          while (l != NULL && l->status == LABEL_STATUS_LABEL) {
+            struct label *label_old = l;
+            
+            find_label(l->string, s, &l);
 
-            /* is the reference relative? */
-            if (sta->relative_references == YES) {
-              k_rom = k_rom - sta->address - ed;
-              k_ram = k_ram - sta->memory_address - ed;
+            if (l == NULL) {
+              l = label_old;
+              break;
+            }
+            if (l->status != LABEL_STATUS_LABEL)
+              break;
+          }
+          
+          if (l != NULL) {
+            if (l->status == LABEL_STATUS_STRING) {
+              strcpy(si->string, l->string);
+              si->type = STACK_ITEM_TYPE_STRING;
+            }
+            else {
+              k_rom = l->rom_address;
+              k_ram = l->address;
+
+              /* is the reference relative? */
+              if (sta->relative_references == YES) {
+                k_rom = k_rom - sta->address - ed;
+                k_ram = k_ram - sta->memory_address - ed;
+              }
             }
           }
         }

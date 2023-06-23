@@ -20,7 +20,7 @@ extern FILE *g_file_out_ptr;
 extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name, *g_tmp;
 extern int g_in_enum, g_in_ramsection, g_in_struct, g_macro_id, g_sizeof_g_tmp, g_fail_quetly_on_non_found_functions;
 extern int g_ss, g_source_index, g_parsed_int, g_section_status, g_org_defined, g_bankheader_status, g_macro_active;
-extern int g_source_file_size, g_input_number_error_msg, g_verbose_level, g_output_format, g_open_files, g_input_parse_if;
+extern int g_source_file_size, g_input_number_error_msg, g_verbose_level, g_output_format, g_open_files;
 extern int g_last_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations, g_input_parse_special_chars;
 extern int g_instruction_n[256], g_instruction_p[256];
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type, g_parse_floats;

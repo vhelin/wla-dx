@@ -51,6 +51,9 @@
 #define DATA_TYPE_BLOCK   0
 #define DATA_TYPE_SECTION 1
 
+#define STRING_TYPE_LABEL  0
+#define STRING_TYPE_STRING 1
+
 #define STATE_NONE        0
 #define STATE_OBJECT      1
 #define STATE_LIBRARY     2
@@ -129,10 +132,12 @@ struct sort_capsule {
 #define LABEL_STATUS_STACK      2
 #define LABEL_STATUS_SYMBOL     3
 #define LABEL_STATUS_BREAKPOINT 4
+#define LABEL_STATUS_STRING     5
 
 struct label {
   char name[MAX_NAME_LENGTH + 1];
   char context[MAX_NAME_LENGTH + 1];
+  char string[MAX_NAME_LENGTH + 1];
   int file_id;
   int file_id_source;
   int linenumber;

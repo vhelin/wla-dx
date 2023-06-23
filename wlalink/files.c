@@ -199,10 +199,20 @@ int load_files(char *argv[], int argc) {
       l->alive = YES;
 
       if (get_next_number(&tmp[x], &n, &x) == FAILED) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: Error in DEFINITION value.\n", argv[argc - 2], line);
-        fclose(fop);
-        free(l);
-        return FAILED;
+        int type;
+        
+        if (get_next_string(&tmp[x], l->string, &x, &type) == FAILED) {
+          fprintf(stderr, "%s:%d: LOAD_FILES: Error in DEFINITION value.\n", argv[argc - 2], line);
+          fclose(fop);
+          free(l);
+          return FAILED;
+        }
+
+        l->status = type;
+        l->address = 0;
+        l->rom_address = 0;
+        add_label(l);
+        continue;
       }
 
       l->address = n;

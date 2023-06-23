@@ -789,8 +789,8 @@ int phase_1(void) {
     else if (q == EVALUATE_TOKEN_EOP)
       return SUCCEEDED;
     else if (q == EVALUATE_TOKEN_NOT_IDENTIFIED) {
-      int got_opening_parenthesis = NO;
-
+      int got_opening_parenthesis = NO, end_of_line = NO;
+      
       /* check if it is of the form "LABEL:XYZ" */
       for (q = 0; q < g_ss; q++) {
         if (g_tmp[q] == ':')
@@ -888,15 +888,15 @@ int phase_1(void) {
         strcpy(m->namespace, g_active_file_info_last->namespace);
       
       /* skip '(' */
-      if (compare_and_skip_next_symbol('(') == SUCCEEDED)
+      if (g_buffer[g_source_index] == '(' && compare_and_skip_next_symbol('(') == SUCCEEDED)
         got_opening_parenthesis = YES;
 
       /* collect macro arguments */
       for (p = 0; 1; p++) {
         if (got_opening_parenthesis == YES) {
           /* skip ')' */
-          if (compare_and_skip_next_symbol(')') == SUCCEEDED) {
-          }
+          if (compare_and_skip_next_symbol(')') == SUCCEEDED)
+            break;
         }
 
         /* take away the white space */
@@ -915,8 +915,10 @@ int phase_1(void) {
         g_input_allow_leading_hashtag = NO;
         g_input_allow_leading_ampersand = NO;
         g_input_float_mode = OFF;
-        if (q == INPUT_NUMBER_EOL)
+        if (q == INPUT_NUMBER_EOL) {
+          end_of_line = YES;
           break;
+        }
 
         mrt->argument_data = realloc(mrt->argument_data, (p+1)*sizeof(struct macro_argument *));
         mrt->argument_data[p] = calloc(sizeof(struct macro_argument), 1);
@@ -983,7 +985,8 @@ int phase_1(void) {
         }
       }
 
-      next_line();
+      if (end_of_line == YES)
+        next_line();
 
       mrt->supplied_arguments = p;
       if (macro_start(m, mrt, MACRO_CALLER_NORMAL, p) == FAILED)
@@ -4488,15 +4491,11 @@ int directive_struct(void) {
 
   if (g_is_file_isolated_counter <= 0)
     g_force_ignore_namespace = YES;
-  q = input_number();
+  q = get_next_plain_string();
   if (g_is_file_isolated_counter <= 0)
     g_force_ignore_namespace = NO;
   if (q == FAILED)
     return FAILED;
-  if (q != INPUT_NUMBER_ADDRESS_LABEL && q != INPUT_NUMBER_STRING) {
-    print_error(ERROR_DIR, ".STRUCT needs a name string.\n");
-    return FAILED;
-  }
   
   strcpy(s_active_struct->name, g_label);
 
@@ -7664,7 +7663,7 @@ int directive_define_def_equ(void) {
 
   if (get_next_plain_string() == FAILED)
     return FAILED;
-
+  
   strcpy(label, g_label);
   
   /* check the user doesn't try to define reserved labels */
@@ -7959,7 +7958,7 @@ int directive_redefine_redef(void) {
 
   if (get_next_plain_string() == FAILED)
     return FAILED;
-
+  
   strcpy(label, g_label);
 
   /* check the user doesn't try to define reserved labels */

@@ -20,28 +20,52 @@
 
         .db "01>"               ; @BT TEST-01 01 START
 
+        .if 0 > 1
+        .db $01
+        .else
+        .db $02                 ; @BT 02
+        .endif
+
+        .if 1 || 0
+        .db 9                   ; @BT 09
+        .else
+        .db 8
+        .endif
+
+        .if (0 == 1) || (1 != 2)
+        .db $03                 ; @BT 03
+        .else
+        .db $04
+        .endif
+
         .if 0 > 1 || 0 < 2
         .db $12                 ; @BT 12
         .else
         .db $23
         .endif
 
-        .if 0 > 1 && 0 < 2
-        .db $12
-        .else
-        .db $23                 ; @BT 23
-        .endif
-
-        .if (0 > 1) || (2 < 1) || (1 != 2) || (1 == 2)
+        .if (0 > 1) || (0 < 2)
         .db $12                 ; @BT 12
         .else
         .db $23
         .endif
+        
+        .if 0 > 1 && 0 < 2
+        .db $22
+        .else
+        .db $24                 ; @BT 24
+        .endif
+
+        .if (0 > 1) || (2 < 1) || (1 != 2) || (1 == 2)
+        .db $13                 ; @BT 13
+        .else
+        .db $25
+        .endif
 
         .if !((0 > 1) || (2 < 1) || (1 != 2) || (1 == 2))
-        .db $12
+        .db $14
         .else
-        .db $23                 ; @BT 23
+        .db $26                 ; @BT 26
         .endif
 
         .db "<01"               ; @BT END
@@ -549,12 +573,12 @@ some_label_end:
         .db 1 + (some_label_end - some_label)  ; @BT 41
         .db 1 + some_label_end - some_label + 1  ; @BT 42
         .db (some_label_end - some_label)*2 - (some_label_end - some_label) ; @BT 40
-        .dw (some_label_end - some_label)*2 + some_label - (some_label_end - some_label)*(4-2) ; @BT 00 83
-        .rept (some_label_end - some_label)*2 + 4 - (some_label_end - some_label)*(4-2)
+        .dw (some_label_end - some_label)*2 + some_label - (some_label_end - some_label)*(3-1) ; @BT 00 83
+        .rept (some_label_end - some_label)*2 + 4 - (some_label_end - some_label)*(5-3)
         .db 3                   ; @BT 03 03 03 03
         .endr
         .db "<12"                        ; @BT END
-        
+
         .if LUT_SIZE != LUT_SIZE+0
           .fail "Calculations are broken..."
         .endif
@@ -573,4 +597,3 @@ some_label_end:
         .if (some_label_end-some_label) != some_label_end-some_label
           .fail "Delta calculation is broken!"
         .endif
-        
