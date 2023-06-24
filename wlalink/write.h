@@ -12,7 +12,7 @@ int fix_label_addresses(void);
 int transform_stack_definitions(void);
 int sort_sections(void);
 int insert_sections(void);
-int write_symbol_file(char *outname, unsigned char mode, unsigned char output_addr_to_line);
+int write_symbol_file(char *outname, int mode, int output_addr_to_line);
 int write_gb_header(int name_status);
 int write_rom_file(char *outname);
 int compute_pending_calculations(void);

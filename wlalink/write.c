@@ -2262,7 +2262,7 @@ static void _fprintf_snes_label(FILE *f, struct label *l, int noca5h) {
 }
 
 
-int write_symbol_file(char *outname, unsigned char mode, unsigned char output_addr_to_line) {
+int write_symbol_file(char *outname, int mode, int output_addr_to_line) {
 
   struct source_file_name *src_file;
   struct object_file *obj_file;
