@@ -50,7 +50,9 @@ extern int g_emptyfill;
 extern int *g_banksizes, *g_bankaddress, g_banksize;
 
 struct pointer_array **g_section_table_table = NULL;
-int g_section_table_table_max = -1, g_section_table_table_array_max = 0;
+int g_section_table_table_max = -1;
+
+static int s_section_table_table_array_max = 0;
 
 
 int is_label_anonymous(char *label);
@@ -326,7 +328,7 @@ int add_section(struct section *s) {
   
   if (table > g_section_table_table_max || add_pointer_array == YES) {
     /* expand pointer array (table) */
-    if (add_pointer_to_a_pointer_array((void *)pointer_array, table, (void ***)&g_section_table_table, &g_section_table_table_max, &g_section_table_table_array_max, 256) == FAILED)
+    if (add_pointer_to_a_pointer_array((void *)pointer_array, table, (void ***)&g_section_table_table, &g_section_table_table_max, &s_section_table_table_array_max, 256) == FAILED)
       return FAILED;
   }
 

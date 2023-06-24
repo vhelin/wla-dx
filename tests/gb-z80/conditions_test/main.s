@@ -304,6 +304,7 @@
         .endif
 
         .macro ifmacro
+        .assert \1 == 0 || \1 == 1
         .if \1
         .db 1
         .else
@@ -311,8 +312,34 @@
         .endif
         .endm
 
+        .macro notifmacro
+        .assert \1 == 0 || \1 == 1
+        .if !\1
+        .db 1
+        .else
+        .db 2
+        .endif
+        .endm
+
+        .macro notifmacro2 args condition
+        .assert condition == 0 || condition == 1
+        .if !condition
+        .db 1
+        .else
+        .db 2
+        .endif
+        .endm
+        
         ifmacro (ADD1(1) > SUB1(2)) && (-ADD1(1+1) < -SUB1(4-1)) ; @BT 01
         ifmacro (ADD1(1) > SUB1(2)) && (-ADD1(1+1) > -SUB1(4-1)) ; @BT 02
+        notifmacro (ADD1(1) > SUB1(2)) && (-ADD1(1+1) < -SUB1(4-1)) ; @BT 02
+        notifmacro (ADD1(1) > SUB1(2)) && (-ADD1(1+1) > -SUB1(4-1)) ; @BT 01
+        notifmacro2 (ADD1(1) > SUB1(2)) && (-ADD1(1+1) < -SUB1(4-1)) ; @BT 02
+        notifmacro2 (ADD1(1) > SUB1(2)) && (-ADD1(1+1) > -SUB1(4-1)) ; @BT 01
+
+        .define VALUE_0x1234 0x1234
+
+        .assert (<VALUE_0x1234 == 0x34)
         
         .db "<16"               ; @BT END
         

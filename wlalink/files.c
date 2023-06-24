@@ -26,7 +26,8 @@ extern struct after_section *g_after_sections, *g_after_tmp;
 extern struct section_fix *g_sec_fix_first, *g_sec_fix_tmp;
 
 struct object_file **g_object_files = NULL;
-int g_object_files_max = -1, g_object_files_array_max = 0;
+
+static int s_object_files_max = -1, s_object_files_array_max = 0;
 
 int g_section_write_order[SECTION_TYPES_COUNT-2] = {
   SECTION_STATUS_FORCE,
@@ -1069,7 +1070,7 @@ int load_file(char *file_name, int bank, int slot, char *slot_name, int fix_slot
   o->id = id++;
 
   /* add the pointer also to a pointer array for quick discovery with the ID */
-  if (add_pointer_to_a_pointer_array((void *)o, o->id, (void ***)&g_object_files, &g_object_files_max, &g_object_files_array_max, 64) == FAILED)
+  if (add_pointer_to_a_pointer_array((void *)o, o->id, (void ***)&g_object_files, &s_object_files_max, &s_object_files_array_max, 64) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
@@ -1113,7 +1114,7 @@ static char s_unknown_file_name[] = "?";
 /* NOTE: get_file_name(-1) must return something, like "?", as it's a special case */
 char *get_file_name(int file_id) {
 
-  if (file_id < 0 || file_id > g_object_files_max || g_object_files[file_id] == NULL)
+  if (file_id < 0 || file_id > s_object_files_max || g_object_files[file_id] == NULL)
     return s_unknown_file_name;
   else
     return g_object_files[file_id]->name;
@@ -1122,7 +1123,7 @@ char *get_file_name(int file_id) {
 
 struct object_file *get_file(int file_id) {
 
-  if (file_id < 0 || file_id > g_object_files_max || g_object_files[file_id] == NULL) {
+  if (file_id < 0 || file_id > s_object_files_max || g_object_files[file_id] == NULL) {
     fprintf(stderr, "GET_FILE: Trying to find file %d which has gone missing! Please submit a bug report!\n", file_id);
     return NULL;
   }

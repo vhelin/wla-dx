@@ -50,7 +50,7 @@ struct slot g_slots[256];
 struct after_section *g_after_sections = NULL, *g_after_tmp;
 struct label_sizeof *g_label_sizeofs = NULL;
 struct section_fix *g_sec_fix_first = NULL, *g_sec_fix_tmp = NULL;
-unsigned char *g_rom = NULL, *g_rom_usage = NULL, *g_file_header = NULL, *g_file_footer = NULL, g_symbol_mode = SYMBOL_MODE_NONE;
+unsigned char *g_rom = NULL, *g_rom_usage = NULL, *g_file_header = NULL, *g_file_footer = NULL;
 char g_load_address_label[MAX_NAME_LENGTH + 1], **g_ram_slots[256];
 char g_program_address_start_label[MAX_NAME_LENGTH + 1], g_program_address_end_label[MAX_NAME_LENGTH + 1];
 char g_ext_libdir[MAX_NAME_LENGTH + 2];
@@ -68,7 +68,7 @@ int g_output_type = OUTPUT_TYPE_UNDEFINED, g_sort_sections = YES;
 int g_num_sorted_anonymous_labels = 0, g_use_priority_only_writing_sections = NO, g_use_priority_only_writing_ramsections = NO;
 int g_emptyfill = 0, g_paths_in_linkfile_are_relative_to_linkfile = NO;
 
-static int s_create_sizeof_definitions = YES, s_listfile_data = NO;
+static int s_create_sizeof_definitions = YES, s_listfile_data = NO, s_symbol_mode = SYMBOL_MODE_NONE;
 static unsigned char s_output_addr_to_line = OFF;
 
 extern struct object_file **g_object_files;
@@ -78,173 +78,173 @@ extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 
 #if WLALINK_DEBUG
 
-static const char *g_si_operator_plus = "+";
-static const char *g_si_operator_minus = "-";
-static const char *g_si_operator_multiply = "*";
-static const char *g_si_operator_or = "|";
-static const char *g_si_operator_and = "&";
-static const char *g_si_operator_divide = "/";
-static const char *g_si_operator_power = "^";
-static const char *g_si_operator_shift_left = "<<";
-static const char *g_si_operator_shift_right = ">>";
-static const char *g_si_operator_modulo = "#";
-static const char *g_si_operator_xor = "~";
-static const char *g_si_operator_low_byte = "<";
-static const char *g_si_operator_high_byte = ">";
-static const char *g_si_operator_not = "!";
-static const char *g_si_operator_bank = ":";
-static const char *g_si_operator_unknown = "UNKNOWN!";
-static const char *g_si_operator_compare_lt = "< (LT)";
-static const char *g_si_operator_compare_gt = "> (GT)";
-static const char *g_si_operator_compare_eq = "==";
-static const char *g_si_operator_compare_neq = "!=";
-static const char *g_si_operator_compare_lte = "<=";
-static const char *g_si_operator_compare_gte = ">=";
-static const char *g_si_operator_logical_or = "||";
-static const char *g_si_operator_logical_and = "&&";
-static const char *g_si_operator_low_word = "loword(a)";
-static const char *g_si_operator_high_word = "hiword(a)";
-static const char *g_si_operator_bank_byte = "bankbyte(a)";
-static const char *g_si_operator_round = "round(a)";
-static const char *g_si_operator_floor = "floor(a)";
-static const char *g_si_operator_ceil = "ceil(a)";
-static const char *g_si_operator_min = "min(a,b)";
-static const char *g_si_operator_max = "max(a,b)";
-static const char *g_si_operator_sqrt = "sqrt(a)";
-static const char *g_si_operator_abs = "abs(a)";
-static const char *g_si_operator_cos = "cos(a)";
-static const char *g_si_operator_sin = "sin(a)";
-static const char *g_si_operator_tan = "tan(a)";
-static const char *g_si_operator_cosh = "cosh(a)";
-static const char *g_si_operator_sinh = "sinh(a)";
-static const char *g_si_operator_tanh = "tanh(a)";
-static const char *g_si_operator_acos = "acos(a)";
-static const char *g_si_operator_asin = "asin(a)";
-static const char *g_si_operator_atan = "atan(a)";
-static const char *g_si_operator_negate = "negate(a)";
-static const char *g_si_operator_atan2 = "atan2(a,b)";
-static const char *g_si_operator_log = "log(a)";
-static const char *g_si_operator_log10 = "log10(a)";
-static const char *g_si_operator_pow = "pow(a,b)";
-static const char *g_si_operator_sign = "sign(a)";
-static const char *g_si_operator_clamp = "clamp(v,min,max)";
+static const char *s_si_operator_plus = "+";
+static const char *s_si_operator_minus = "-";
+static const char *s_si_operator_multiply = "*";
+static const char *s_si_operator_or = "|";
+static const char *s_si_operator_and = "&";
+static const char *s_si_operator_divide = "/";
+static const char *s_si_operator_power = "^";
+static const char *s_si_operator_shift_left = "<<";
+static const char *s_si_operator_shift_right = ">>";
+static const char *s_si_operator_modulo = "#";
+static const char *s_si_operator_xor = "~";
+static const char *s_si_operator_low_byte = "<";
+static const char *s_si_operator_high_byte = ">";
+static const char *s_si_operator_not = "!";
+static const char *s_si_operator_bank = ":";
+static const char *s_si_operator_unknown = "UNKNOWN!";
+static const char *s_si_operator_compare_lt = "< (LT)";
+static const char *s_si_operator_compare_gt = "> (GT)";
+static const char *s_si_operator_compare_eq = "==";
+static const char *s_si_operator_compare_neq = "!=";
+static const char *s_si_operator_compare_lte = "<=";
+static const char *s_si_operator_compare_gte = ">=";
+static const char *s_si_operator_logical_or = "||";
+static const char *s_si_operator_logical_and = "&&";
+static const char *s_si_operator_low_word = "loword(a)";
+static const char *s_si_operator_high_word = "hiword(a)";
+static const char *s_si_operator_bank_byte = "bankbyte(a)";
+static const char *s_si_operator_round = "round(a)";
+static const char *s_si_operator_floor = "floor(a)";
+static const char *s_si_operator_ceil = "ceil(a)";
+static const char *s_si_operator_min = "min(a,b)";
+static const char *s_si_operator_max = "max(a,b)";
+static const char *s_si_operator_sqrt = "sqrt(a)";
+static const char *s_si_operator_abs = "abs(a)";
+static const char *s_si_operator_cos = "cos(a)";
+static const char *s_si_operator_sin = "sin(a)";
+static const char *s_si_operator_tan = "tan(a)";
+static const char *s_si_operator_cosh = "cosh(a)";
+static const char *s_si_operator_sinh = "sinh(a)";
+static const char *s_si_operator_tanh = "tanh(a)";
+static const char *s_si_operator_acos = "acos(a)";
+static const char *s_si_operator_asin = "asin(a)";
+static const char *s_si_operator_atan = "atan(a)";
+static const char *s_si_operator_negate = "negate(a)";
+static const char *s_si_operator_atan2 = "atan2(a,b)";
+static const char *s_si_operator_log = "log(a)";
+static const char *s_si_operator_log10 = "log10(a)";
+static const char *s_si_operator_pow = "pow(a,b)";
+static const char *s_si_operator_sign = "sign(a)";
+static const char *s_si_operator_clamp = "clamp(v,min,max)";
 
 const char *get_stack_item_operator_name(int operator) {
 
   if (operator == SI_OP_ADD)
-    return g_si_operator_plus;
+    return s_si_operator_plus;
   else if (operator == SI_OP_SUB)
-    return g_si_operator_minus;
+    return s_si_operator_minus;
   else if (operator == SI_OP_MULTIPLY)
-    return g_si_operator_multiply;
+    return s_si_operator_multiply;
   else if (operator == SI_OP_OR)
-    return g_si_operator_or;
+    return s_si_operator_or;
   else if (operator == SI_OP_AND)
-    return g_si_operator_and;
+    return s_si_operator_and;
   else if (operator == SI_OP_DIVIDE)
-    return g_si_operator_divide;
+    return s_si_operator_divide;
   else if (operator == SI_OP_POWER)
-    return g_si_operator_power;
+    return s_si_operator_power;
   else if (operator == SI_OP_SHIFT_LEFT)
-    return g_si_operator_shift_left;
+    return s_si_operator_shift_left;
   else if (operator == SI_OP_SHIFT_RIGHT)
-    return g_si_operator_shift_right;
+    return s_si_operator_shift_right;
   else if (operator == SI_OP_MODULO)
-    return g_si_operator_modulo;
+    return s_si_operator_modulo;
   else if (operator == SI_OP_XOR)
-    return g_si_operator_xor;
+    return s_si_operator_xor;
   else if (operator == SI_OP_LOW_BYTE)
-    return g_si_operator_low_byte;
+    return s_si_operator_low_byte;
   else if (operator == SI_OP_HIGH_BYTE)
-    return g_si_operator_high_byte;
+    return s_si_operator_high_byte;
   else if (operator == SI_OP_NOT)
-    return g_si_operator_not;
+    return s_si_operator_not;
   else if (operator == SI_OP_BANK)
-    return g_si_operator_bank;
+    return s_si_operator_bank;
   else if (operator == SI_OP_COMPARE_LT)
-    return g_si_operator_compare_lt;
+    return s_si_operator_compare_lt;
   else if (operator == SI_OP_COMPARE_GT)
-    return g_si_operator_compare_gt;
+    return s_si_operator_compare_gt;
   else if (operator == SI_OP_COMPARE_EQ)
-    return g_si_operator_compare_eq;
+    return s_si_operator_compare_eq;
   else if (operator == SI_OP_COMPARE_NEQ)
-    return g_si_operator_compare_neq;
+    return s_si_operator_compare_neq;
   else if (operator == SI_OP_COMPARE_LTE)
-    return g_si_operator_compare_lte;
+    return s_si_operator_compare_lte;
   else if (operator == SI_OP_COMPARE_GTE)
-    return g_si_operator_compare_gte;
+    return s_si_operator_compare_gte;
   else if (operator == SI_OP_LOGICAL_OR)
-    return g_si_operator_logical_or;
+    return s_si_operator_logical_or;
   else if (operator == SI_OP_LOGICAL_AND)
-    return g_si_operator_logical_and;
+    return s_si_operator_logical_and;
   else if (operator == SI_OP_LOW_WORD)
-    return g_si_operator_low_word;
+    return s_si_operator_low_word;
   else if (operator == SI_OP_HIGH_WORD)
-    return g_si_operator_high_word;
+    return s_si_operator_high_word;
   else if (operator == SI_OP_BANK_BYTE)
-    return g_si_operator_bank_byte;
+    return s_si_operator_bank_byte;
   else if (operator == SI_OP_ROUND)
-    return g_si_operator_round;
+    return s_si_operator_round;
   else if (operator == SI_OP_FLOOR)
-    return g_si_operator_floor;
+    return s_si_operator_floor;
   else if (operator == SI_OP_CEIL)
-    return g_si_operator_ceil;
+    return s_si_operator_ceil;
   else if (operator == SI_OP_MIN)
-    return g_si_operator_min;
+    return s_si_operator_min;
   else if (operator == SI_OP_MAX)
-    return g_si_operator_max;
+    return s_si_operator_max;
   else if (operator == SI_OP_SQRT)
-    return g_si_operator_sqrt;
+    return s_si_operator_sqrt;
   else if (operator == SI_OP_ABS)
-    return g_si_operator_abs;
+    return s_si_operator_abs;
   else if (operator == SI_OP_COS)
-    return g_si_operator_cos;
+    return s_si_operator_cos;
   else if (operator == SI_OP_SIN)
-    return g_si_operator_sin;
+    return s_si_operator_sin;
   else if (operator == SI_OP_TAN)
-    return g_si_operator_tan;
+    return s_si_operator_tan;
   else if (operator == SI_OP_COSH)
-    return g_si_operator_cosh;
+    return s_si_operator_cosh;
   else if (operator == SI_OP_SINH)
-    return g_si_operator_sinh;
+    return s_si_operator_sinh;
   else if (operator == SI_OP_TANH)
-    return g_si_operator_tanh;
+    return s_si_operator_tanh;
   else if (operator == SI_OP_ACOS)
-    return g_si_operator_acos;
+    return s_si_operator_acos;
   else if (operator == SI_OP_ASIN)
-    return g_si_operator_asin;
+    return s_si_operator_asin;
   else if (operator == SI_OP_ATAN)
-    return g_si_operator_atan;
+    return s_si_operator_atan;
   else if (operator == SI_OP_NEGATE)
-    return g_si_operator_negate;
+    return s_si_operator_negate;
   else if (operator == SI_OP_ATAN2)
-    return g_si_operator_atan2;
+    return s_si_operator_atan2;
   else if (operator == SI_OP_LOG)
-    return g_si_operator_log;
+    return s_si_operator_log;
   else if (operator == SI_OP_LOG10)
-    return g_si_operator_log10;
+    return s_si_operator_log10;
   else if (operator == SI_OP_POW)
-    return g_si_operator_pow;
+    return s_si_operator_pow;
   else if (operator == SI_OP_SIGN)
-    return g_si_operator_sign;
+    return s_si_operator_sign;
   else if (operator == SI_OP_CLAMP)
-    return g_si_operator_clamp;
+    return s_si_operator_clamp;
   
   fprintf(stderr, "\n");
   fprintf(stderr, "get_stack_item_operator_name(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", operator);
   exit(1);
 
-  return g_si_operator_unknown;
+  return s_si_operator_unknown;
 }
 
-static char g_stack_item_description[512];
+static char s_stack_item_description[512];
 
 char *get_stack_item_description(struct stack_item *si, int file_id) {
 
-  char *sid = g_stack_item_description;
+  char *sid = s_stack_item_description;
 
   if (si == NULL)
-    snprintf(sid, sizeof(g_stack_item_description), "NULL");
+    snprintf(sid, sizeof(s_stack_item_description), "NULL");
   else {
     int type = si->type;
     char sign = '+';
@@ -253,27 +253,27 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
       sign = '-';
     
     if (type == STACK_ITEM_TYPE_VALUE)
-      snprintf(sid, sizeof(g_stack_item_description), "stack_item: value (%c)          : %f/$%x (RAM) %f/$%x (ROM)\n", sign, si->value_ram, (int)si->value_ram, si->value_rom, (int)si->value_rom);
+      snprintf(sid, sizeof(s_stack_item_description), "stack_item: value (%c)          : %f/$%x (RAM) %f/$%x (ROM)\n", sign, si->value_ram, (int)si->value_ram, si->value_rom, (int)si->value_rom);
     else if (type == STACK_ITEM_TYPE_OPERATOR)
-      snprintf(sid, sizeof(g_stack_item_description), "stack_item: operator (%c)       : %s\n", sign, get_stack_item_operator_name((int)si->value_ram));
+      snprintf(sid, sizeof(s_stack_item_description), "stack_item: operator (%c)       : %s\n", sign, get_stack_item_operator_name((int)si->value_ram));
     else if (type == STACK_ITEM_TYPE_STRING)
-      snprintf(sid, sizeof(g_stack_item_description), "stack_item: string             : %s\n", si->string);
+      snprintf(sid, sizeof(s_stack_item_description), "stack_item: string             : %s\n", si->string);
     else if (type == STACK_ITEM_TYPE_LABEL)
-      snprintf(sid, sizeof(g_stack_item_description), "stack_item: label (%c)          : %s\n", sign, si->string);
+      snprintf(sid, sizeof(s_stack_item_description), "stack_item: label (%c)          : %s\n", sign, si->string);
     else if (type == STACK_ITEM_TYPE_STACK) {
       struct stack *st = find_stack((int)si->value_ram, file_id);
 
       if (st == NULL)
-        snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation:       : THIS STACK CALCULATION (id = %d, %s) HAS GONE MISSING!\n", (int)si->value_ram, get_file_name(file_id));
+        snprintf(sid, sizeof(s_stack_item_description), "stack_item: calculation:       : THIS STACK CALCULATION (id = %d, %s) HAS GONE MISSING!\n", (int)si->value_ram, get_file_name(file_id));
       else {
         if (st->computed == YES)
-          snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation: (%c)   : %d (result = %f/$%x (RAM) %f/$%x (ROM), %s)\n", sign, (int)si->value_ram, st->result_ram, (int)st->result_ram, st->result_rom, (int)st->result_rom, get_file_name(st->file_id));
+          snprintf(sid, sizeof(s_stack_item_description), "stack_item: calculation: (%c)   : %d (result = %f/$%x (RAM) %f/$%x (ROM), %s)\n", sign, (int)si->value_ram, st->result_ram, (int)st->result_ram, st->result_rom, (int)st->result_rom, get_file_name(st->file_id));
         else
-          snprintf(sid, sizeof(g_stack_item_description), "stack_item: calculation: (%c)   : %d (result = ?, %s)\n", sign, (int)si->value_ram, get_file_name(st->file_id));
+          snprintf(sid, sizeof(s_stack_item_description), "stack_item: calculation: (%c)   : %d (result = ?, %s)\n", sign, (int)si->value_ram, get_file_name(st->file_id));
       }
     }
     else
-      snprintf(sid, sizeof(g_stack_item_description), "stack_item: UNKNOWN!\n");
+      snprintf(sid, sizeof(s_stack_item_description), "stack_item: UNKNOWN!\n");
   }
   
   return sid;
@@ -754,8 +754,8 @@ int main(int argc, char *argv[]) {
     return 1;
 
   /* export symbolic information file */
-  if (g_symbol_mode != SYMBOL_MODE_NONE) {
-    if (write_symbol_file(argv[argc - 1], g_symbol_mode, s_output_addr_to_line) == FAILED)
+  if (s_symbol_mode != SYMBOL_MODE_NONE) {
+    if (write_symbol_file(argv[argc - 1], s_symbol_mode, s_output_addr_to_line) == FAILED)
       return 1;
   }
 
@@ -1368,11 +1368,11 @@ int parse_flags(char **flags, int flagc) {
       continue;
     }
     else if (!strcmp(flags[count], "-s")) {
-      g_symbol_mode = SYMBOL_MODE_NOCA5H;
+      s_symbol_mode = SYMBOL_MODE_NOCA5H;
       continue;
     }
     else if (!strcmp(flags[count], "-S")) {
-      g_symbol_mode = SYMBOL_MODE_WLA;
+      s_symbol_mode = SYMBOL_MODE_WLA;
       continue;
     }
     else if (!strcmp(flags[count], "-A")) {
