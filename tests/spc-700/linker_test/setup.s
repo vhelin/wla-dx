@@ -119,9 +119,10 @@ __      das
 	sleep
 foul:	push a
 	pop psw
-jee	.dw jee, BAGI-BAGI
+jees    .dw jee, BAGI-BAGI
 	and a, [jee]  +        Y
 	and a,!foul   +  Y
 	das
 	div ya,x
 	asl 10  +  X
+

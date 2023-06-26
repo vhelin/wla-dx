@@ -426,7 +426,7 @@ int find_label(char *str, struct section *s, struct label **out) {
     }
   }
   if (s != NULL) {
-    /* check the section's labels. This is a bit redundant but it might have
+    /* check the section's labels. this is a bit redundant but it might have
        local labels (labels starting with an underscore) */
     if (hashmap_get(s->label_map, str, (void*)&l) == MAP_OK) {
       *out = l;

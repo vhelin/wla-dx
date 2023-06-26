@@ -242,5 +242,5 @@ label:
         .dsd 4, definition & 0xff ; @BT 89 00 00 00 89 00 00 00 89 00 00 00 89 00 00 00
         .dsd 4, 1 + 2             ; @BT 03 00 00 00 03 00 00 00 03 00 00 00 03 00 00 00
         .db "<16"                 ; @BT END
-        
+
         .define definition $6789

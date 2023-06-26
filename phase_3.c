@@ -19,6 +19,7 @@ extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g
 extern struct block_name *g_block_names;
 extern struct after_section *g_after_sections;
 extern struct macro_static *g_macros_first;
+extern struct map_t *g_defines_map;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
 extern char *g_tmp, g_namespace[MAX_NAME_LENGTH + 1];
@@ -61,14 +62,76 @@ int free_label_context_allocations(void) {
 }
 
 
+static int _add_label(struct label_def *l, struct section_def *s, int line_number, int file_name_id) {
+
+  struct definition *tmp_def;
+  int err;
+  
+  /* does a definition with the same name exist? */
+  hashmap_get(g_defines_map, l->label, (void*)&tmp_def);
+  if (tmp_def != NULL) {
+    fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: A definition called \"%s\" exists already, cannot add a label with the same name.\n", get_file_name(file_name_id), line_number, l->label);
+    return FAILED;
+  }
+
+  if (s != NULL) {
+    /* always put the label into the section's label_map */
+    if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
+      fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
+      return FAILED;
+    }
+    if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
+      fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
+      return FAILED;
+    }
+  }
+
+  /* don't put local labels into namespaces or the global namespace */
+  if (s == NULL || l->label[0] != '_') {
+    if (s != NULL && s->nspace != NULL) {
+      /* label in a namespace */
+      if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
+        return FAILED;
+      }
+      if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
+        return FAILED;
+      }
+    }
+    else {
+      /* global label */
+      if (hashmap_get(g_global_unique_label_map, l->label, NULL) == MAP_OK) {
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
+        return FAILED;
+      }
+      if ((err = hashmap_put(g_global_unique_label_map, l->label, l)) != MAP_OK) {
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
+        return FAILED;
+      }
+    }
+  }
+
+  if (g_labels != NULL) {
+    g_label_last->next = l;
+    g_label_last = l;
+  }
+  else {
+    g_labels = l;
+    g_label_last = l;
+  }
+
+  return SUCCEEDED;
+}
+
+        
 int phase_3(void) {
 
   struct section_def *s = NULL;
   struct label_def *l;
   struct block_name *bn;
   struct block *b;
-  int bank = 0, slot = 0, address = 0, file_name_id = 0, inz, line_number = 0, o, address_old = 0;
-  int base = 0, bits_current = 0, x, y, err;
+  int bank = 0, slot = 0, address = 0, file_name_id = 0, inz, line_number = 0, o, address_old = 0, base = 0, bits_current = 0, x, y;
   char tmp_buffer[MAX_NAME_LENGTH + 1], c;
 
   /* initialize label context */
@@ -373,54 +436,8 @@ int phase_3(void) {
             continue;
           }
 
-          /* check the label is not already defined */
-
-          if (s != NULL) {
-            /* always put the label into the section's label_map */
-            if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
-              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
-              return FAILED;
-            }
-            if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
-              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
-              return FAILED;
-            }
-          }
-
-          /* don't put local labels into namespaces or the global namespace */
-          if (s == NULL || l->label[0] != '_') {
-            if (s != NULL && s->nspace != NULL) {
-              /* label in a namespace */
-              if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
-                fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
-                return FAILED;
-              }
-              if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
-                fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
-                return FAILED;
-              }
-            }
-            else {
-              /* global label */
-              if (hashmap_get(g_global_unique_label_map, l->label, NULL) == MAP_OK) {
-                fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
-                return FAILED;
-              }
-              if ((err = hashmap_put(g_global_unique_label_map, l->label, l)) != MAP_OK) {
-                fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
-                return FAILED;
-              }
-            }
-          }
-
-          if (g_labels != NULL) {
-            g_label_last->next = l;
-            g_label_last = l;
-          }
-          else {
-            g_labels = l;
-            g_label_last = l;
-          }
+          if (_add_label(l, s, line_number, file_name_id) == FAILED)
+            return FAILED;
 
           continue;
         }
@@ -1007,54 +1024,8 @@ int phase_3(void) {
           continue;
         }
 
-        /* check the label is not already defined */
-
-        if (s != NULL) {
-          /* always put the label into the section's label_map */
-          if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
-            return FAILED;
-          }
-          if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
-            return FAILED;
-          }
-        }
-
-        /* don't put local labels into namespaces or the global namespace */
-        if (s == NULL || l->label[0] != '_') {
-          if (s != NULL && s->nspace != NULL) {
-            /* label in a namespace */
-            if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
-              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
-              return FAILED;
-            }
-            if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
-              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
-              return FAILED;
-            }
-          }
-          else {
-            /* global label */
-            if (hashmap_get(g_global_unique_label_map, l->label, NULL) == MAP_OK) {
-              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
-              return FAILED;
-            }
-            if ((err = hashmap_put(g_global_unique_label_map, l->label, l)) != MAP_OK) {
-              fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
-              return FAILED;
-            }
-          }
-        }
-
-        if (g_labels != NULL) {
-          g_label_last->next = l;
-          g_label_last = l;
-        }
-        else {
-          g_labels = l;
-          g_label_last = l;
-        }
+        if (_add_label(l, s, line_number, file_name_id) == FAILED)
+          return FAILED;
 
         continue;
       }

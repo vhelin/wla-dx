@@ -850,7 +850,9 @@ int phase_1(void) {
               snprintf(&g_tmp[q - 2], g_sizeof_g_tmp - (q - 2), "%d", g_macro_runtime_current->macro->calls - 1);
           }
 
-          add_label_to_label_stack(g_tmp);
+          if (add_label_to_label_stack(g_tmp) == FAILED)
+            return FAILED;
+          
           fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, g_tmp);
 
           /* move to the end of the label */
@@ -1055,6 +1057,17 @@ int undefine(char *name) {
 }
 
 
+static int _is_a_reserved_label(char *l) {
+
+  if (strcmp(l, "_b") == 0 || strcmp(l, "_f") == 0) {
+    print_error(ERROR_ERR, "\"%s\" is a reserved label, it cannot be defined by the user.\n", l);
+    return YES;
+  }
+
+  return NO;
+}
+
+
 int add_a_new_definition(char *name, double value, char *string, int type, int size) {
 
   struct definition *d;
@@ -1064,6 +1077,9 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
   if (strcmp(".", name) == 0 || strcmp("_sizeof_.", name) == 0)
     return SUCCEEDED;
 
+  if (_is_a_reserved_label(name) == YES)
+    return FAILED;
+  
   hashmap_get(g_defines_map, name, (void*)&d);
   if (d != NULL) {
     if (g_commandline_parsing == OFF)
@@ -1099,9 +1115,9 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
     d->value = value;
   else if (type == DEFINITION_TYPE_STRING || type == DEFINITION_TYPE_ADDRESS_LABEL) {
     d->string = string_duplicate_size(string, size);
-    d->size = size;
     if (d->string == NULL)
       return FAILED;
+    d->size = size;
   }
 
   return SUCCEEDED;
@@ -12580,7 +12596,18 @@ int export_a_definition(char *name) {
 int add_label_to_label_stack(char *l) {
 
   int level = 0, q;
+  struct definition *tmp_def;
 
+  if (_is_a_reserved_label(l) == YES)
+    return FAILED;
+
+  /* cannot create a label as a definition with the same name exists */
+  hashmap_get(g_defines_map, l, (void*)&tmp_def);
+  if (tmp_def != NULL) {
+    print_error(ERROR_ERR, "A definition called \"%s\" exists already, cannot add a label with the same name.\n", l);
+    return FAILED;
+  }
+  
   /* skip anonymous labels */
   if (is_label_anonymous(l) == SUCCEEDED)
     return SUCCEEDED;

@@ -1057,7 +1057,9 @@ int evaluate_token(void) {
         snprintf(&g_tmp[g_ss - 3], g_sizeof_g_tmp - (g_ss - 3), "%d", g_macro_runtime_current->macro->calls - 1);
     }
 
-    add_label_to_label_stack(g_tmp);
+    if (add_label_to_label_stack(g_tmp) == FAILED)
+      return FAILED;
+    
     fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, g_tmp);
 
     return SUCCEEDED;
