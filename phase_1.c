@@ -1059,7 +1059,11 @@ int undefine(char *name) {
 
 static int _is_a_reserved_label(char *l) {
 
-  if (strcmp(l, "_b") == 0 || strcmp(l, "_f") == 0) {
+  /* quick exit */
+  if (l[0] != '_')
+    return NO;
+  
+  if (strcmp(l, "_b") == 0 || strcmp(l, "_f") == 0 || strcmp(l, "_B") == 0 || strcmp(l, "_F") == 0) {
     print_error(ERROR_ERR, "\"%s\" is a reserved label, it cannot be defined by the user.\n", l);
     return YES;
   }
