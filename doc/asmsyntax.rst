@@ -40,6 +40,24 @@ Note that line splitting works only in places where WLA expects a new label,
 number, calculation, etc. String splitting isn't currently supported.
 
 
+Using Commas
+------------
+
+In many places it's possible to give parameters without commas between them::
+
+    .db 1 2 3 4 5 ; 01 02 03 04 05
+
+**CAVEAT! CAVEAT! CAVEAT!**
+
+If you specify the following
+
+    .db 1 -2 3 -4 5 ; FF FF 05
+
+WLA will detect and compute calculations, so to be sure, always use commas::
+
+    .db 1, -2, 3, -4, 5 ; 01 FE 03 FC 05
+
+    
 Labels
 ------
 
