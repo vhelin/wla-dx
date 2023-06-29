@@ -15,7 +15,7 @@
 #include "printf.h"
 
 
-extern int g_source_index, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules;
+extern int g_source_index, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules, g_makefile_add_phony_targets;
 extern char *g_tmp, g_label[MAX_NAME_LENGTH + 1];
 extern struct ext_include_collection g_ext_incdirs;
 extern FILE *g_file_out_ptr;
@@ -511,11 +511,10 @@ char *get_file_name(int id) {
 
 
 /* converts filename to forward slashes for make compatibility */
-void print_file_name(FILE *f, char *prefix, char *file_name) {
+void print_file_name(FILE *f, char *file_name) {
 
   char c;
   
-  fprintf(f, "%s", prefix);
   for (c = *file_name++; c != 0; c = *file_name++) {
     if (c == '\\')
       fputc('/', f);
@@ -524,8 +523,22 @@ void print_file_name(FILE *f, char *prefix, char *file_name) {
   }
 }
 
+void print_makefile_rule(FILE *f, char *target_file_name, char *prerequisite_file_name, int add_phony_target) {
 
-int print_file_names(void) {
+  print_file_name(f, target_file_name);
+  fputc(':', f);
+  fputc(' ', f);
+  print_file_name(f, prerequisite_file_name);
+  fputc('\n', f);
+
+  if (add_phony_target == YES) {
+    print_file_name(f, prerequisite_file_name);
+    fputc(':', f);
+    fputc('\n', f);
+  }
+}
+
+int print_file_names(char *target_file_name) {
 
   struct incbin_file_data *ifd;
   struct file_name_info *fni;
@@ -542,29 +555,30 @@ int print_file_names(void) {
   /* handle the main file name differently */
   while (fni != NULL) {
     if (is_first_line == YES) {
-      print_file_name(stdout, "", fni->name);
+      print_makefile_rule(stdout, target_file_name, fni->name, NO);
       is_first_line = NO;
     }
-    else
-      print_file_name(stdout, " \\\n\t", fni->name);
+    else {
+      print_makefile_rule(stdout, target_file_name, fni->name, g_makefile_add_phony_targets);
+    }
     fni = fni->next;
   }
 
   /* incbin files */
   while (ifd != NULL) {
-    print_file_name(stdout, " \\\n\t", ifd->name);
+    print_makefile_rule(stdout, target_file_name, ifd->name, g_makefile_add_phony_targets);
     ifd = ifd->next;
   }
 
   /* stringmaptable files */
   while (smt != NULL) {
-    print_file_name(stdout, " \\\n\t", smt->filename);
+    print_makefile_rule(stdout, target_file_name, smt->filename, g_makefile_add_phony_targets);
     smt = smt->next;
   }
 
   /* filenames used in .fopens */
   while (fopens != NULL) {
-    print_file_name(stdout, " \\\n\t", fopens->string);
+    print_makefile_rule(stdout, target_file_name, fopens->string, g_makefile_add_phony_targets);
     fopens = fopens->next;
   }
 

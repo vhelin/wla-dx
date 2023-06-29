@@ -1927,8 +1927,7 @@ int phase_4(void) {
 
   /* output makefile rules */
   if (g_makefile_rules == YES) {
-    fprintf(stdout, "%s: ", g_final_name);
-    print_file_names();
+    print_file_names(g_final_name);
   }
 
   /* show project information */
