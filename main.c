@@ -36,7 +36,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.6a (26.6.2023)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.6a (29.6.2023)";
 char g_wla_version[] = "10.5";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -223,7 +223,8 @@ int main(int argc, char *argv[]) {
     printf("-i  Add list file information\n");
     printf("-k  Keep empty sections\n");
     printf("-M  Output makefile rules\n");
-    printf("-MP Create phony a target for each dependency other than the main file\n");
+    printf("-MP Create a phony target for each dependency other than the main file,\n");
+    printf("    use this with -M\n");
     printf("-q  Quiet\n");
     printf("-s  Don't create _sizeof_* and _paddingof_* definitions\n");
     printf("-t  Test assemble\n");

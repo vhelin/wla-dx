@@ -5,6 +5,7 @@ Here are short descriptions for the flags you can give to WLA:
 
 You can supply WLA with some (or all or none) of the following option flags.
 
+-d  Disable WLA's ability to calculate A-B where A and B are labels
 -h  Assume that all label references are 16-bit by default (size hints
     still work). Without this flag it's assumed that label references are
     8-bit unless otherwise specified.
@@ -13,10 +14,14 @@ You can supply WLA with some (or all or none) of the following option flags.
 -k  Keep all empty sections. By default they are discarded.
 -M  WLA generates makefile rules describing the dependencies of the main
     source file.
+-MP Create a phony target for each dependency other than the main file,
+    use this with -M.
 -q  Quiet mode. ``.PRINT*`` -directives output nothing.
 -s  Don't create _sizeof_* and _padding_* definitions.
 -t  Test assemble. Doesn't output any files.
 -v  Verbose mode. Shows a lot of information about the compiling process.
+-v1 Verbose messages (only discard sections)
+-v2 Verbose messages (-v1 plus short summary)
 -x  Extra compile time labels and definitions. WLA does extra work by creating
     few helpful definitions, and labels SECTIONSTART_[section name] and
     SECTIONEND_[section name] at the beginning and end of a section.
