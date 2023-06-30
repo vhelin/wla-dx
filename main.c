@@ -36,7 +36,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.6a (29.6.2023)";
+char g_version_string[] = "$VER: wla-" WLA_NAME " 10.6a (30.6.2023)";
 char g_wla_version[] = "10.5";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -433,9 +433,8 @@ int parse_flags(char **flags, int flagc, int *print_usage) {
     else if (!strcmp(flags[count], "-MF")) {
       if (count + 1 < flagc) {
         g_makefile_rule_file = fopen(flags[count+1], "w");
-        if (g_makefile_rule_file == NULL) {
+        if (g_makefile_rule_file == NULL)
           return FAILED;
-        }
       }
       else
         return FAILED;
