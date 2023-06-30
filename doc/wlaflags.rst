@@ -16,6 +16,7 @@ You can supply WLA with some (or all or none) of the following option flags.
     source file.
 -MP Create a phony target for each dependency other than the main file,
     use this with -M.
+-MF Specify a file to write the dependencies to, use this with -M.
 -q  Quiet mode. ``.PRINT*`` -directives output nothing.
 -s  Don't create _sizeof_* and _padding_* definitions.
 -t  Test assemble. Doesn't output any files.
