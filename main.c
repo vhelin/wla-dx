@@ -73,6 +73,7 @@ extern int g_saved_structures_count, g_sizeof_g_tmp, g_global_listfile_items, *g
 
 int g_output_format = OUTPUT_NONE, g_verbose_level = 0, g_test_mode = OFF;
 int g_extra_definitions = OFF, g_commandline_parsing = ON, g_makefile_rules = NO, g_makefile_add_phony_targets = NO;
+FILE *g_makefile_rule_file = NULL;
 int g_listfile_data = NO, g_quiet = NO, g_use_incdir = NO, g_little_endian = YES;
 int g_create_sizeof_definitions = YES, g_global_label_hint = HINT_NONE, g_keep_empty_sections = NO;
 int g_can_calculate_a_minus_b = YES, g_is_file_isolated_counter = 0;
@@ -156,7 +157,10 @@ int main(int argc, char *argv[]) {
     if (g_label_stack[q] == NULL)
       return 1;
   }
-  
+
+  /* default to output makefile rules to the standard output */
+  g_makefile_rule_file = stdout;
+
   parse_flags_result = FAILED;
   if (argc >= 2) {
     parse_flags_result = parse_flags(argv, argc, &print_usage);
@@ -225,6 +229,7 @@ int main(int argc, char *argv[]) {
     printf("-M  Output makefile rules\n");
     printf("-MP Create a phony target for each dependency other than the main file,\n");
     printf("    use this with -M\n");
+    printf("-MF <FILE> Specify a file to write the dependencies to, use with -M\n");
     printf("-q  Quiet\n");
     printf("-s  Don't create _sizeof_* and _paddingof_* definitions\n");
     printf("-t  Test assemble\n");
@@ -423,6 +428,18 @@ int parse_flags(char **flags, int flagc, int *print_usage) {
     }
     else if (!strcmp(flags[count], "-MP")) {
       g_makefile_add_phony_targets = YES;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-MF")) {
+      if (count + 1 < flagc) {
+        g_makefile_rule_file = fopen(flags[count+1], "w");
+        if (g_makefile_rule_file == NULL) {
+          return FAILED;
+        }
+      }
+      else
+        return FAILED;
+      count++;
       continue;
     }
     else if (!strcmp(flags[count], "-q")) {

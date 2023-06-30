@@ -16,6 +16,7 @@
 
 
 extern int g_source_index, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules, g_makefile_add_phony_targets;
+extern FILE* g_makefile_rule_file;
 extern char *g_tmp, g_label[MAX_NAME_LENGTH + 1];
 extern struct ext_include_collection g_ext_incdirs;
 extern FILE *g_file_out_ptr;
@@ -555,30 +556,30 @@ int print_file_names(char *target_file_name) {
   /* handle the main file name differently */
   while (fni != NULL) {
     if (is_first_line == YES) {
-      print_makefile_rule(stdout, target_file_name, fni->name, NO);
+      print_makefile_rule(g_makefile_rule_file, target_file_name, fni->name, NO);
       is_first_line = NO;
     }
     else {
-      print_makefile_rule(stdout, target_file_name, fni->name, g_makefile_add_phony_targets);
+      print_makefile_rule(g_makefile_rule_file, target_file_name, fni->name, g_makefile_add_phony_targets);
     }
     fni = fni->next;
   }
 
   /* incbin files */
   while (ifd != NULL) {
-    print_makefile_rule(stdout, target_file_name, ifd->name, g_makefile_add_phony_targets);
+    print_makefile_rule(g_makefile_rule_file, target_file_name, ifd->name, g_makefile_add_phony_targets);
     ifd = ifd->next;
   }
 
   /* stringmaptable files */
   while (smt != NULL) {
-    print_makefile_rule(stdout, target_file_name, smt->filename, g_makefile_add_phony_targets);
+    print_makefile_rule(g_makefile_rule_file, target_file_name, smt->filename, g_makefile_add_phony_targets);
     smt = smt->next;
   }
 
   /* filenames used in .fopens */
   while (fopens != NULL) {
-    print_makefile_rule(stdout, target_file_name, fopens->string, g_makefile_add_phony_targets);
+    print_makefile_rule(g_makefile_rule_file, target_file_name, fopens->string, g_makefile_add_phony_targets);
     fopens = fopens->next;
   }
 
