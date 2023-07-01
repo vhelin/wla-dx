@@ -545,7 +545,7 @@ int macro_start_incbin(struct macro_static *m, struct macro_incbin *incbin_data,
   else
     mrt->offset++;
 
-  mrt->argument_data = calloc(sizeof(struct macro_argument *) << 1, 1);
+  mrt->argument_data = calloc(sizeof(struct macro_argument *) * 3, 1);
   mrt->argument_data[0] = calloc(sizeof(struct macro_argument), 1);
   mrt->argument_data[1] = calloc(sizeof(struct macro_argument), 1);
   mrt->argument_data[2] = calloc(sizeof(struct macro_argument), 1);
