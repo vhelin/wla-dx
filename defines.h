@@ -580,6 +580,7 @@ struct macro_incbin {
   int swap;
   int position;
   int left;
+  int filter_size;
 };
 
 #define MACRO_CALLER_NORMAL 0

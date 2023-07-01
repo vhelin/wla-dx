@@ -313,7 +313,7 @@ int include_file(char *name, int *include_size, char *namespace) {
 }
 
 
-int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct macro_static **macro) {
+int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct macro_static **macro, int *filter_size) {
 
   struct incbin_file_data *ifd;
   char *in_tmp, *n;
@@ -384,11 +384,11 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     while (ifd2 != NULL) {
       q++;
       if (ifd2->next == NULL) {
-	ifd2->next = ifd;
-	break;
+        ifd2->next = ifd;
+        break;
       }
       else
-	ifd2 = ifd2->next;
+        ifd2 = ifd2->next;
     }
     
     if (g_incbin_file_data_first == NULL)
@@ -400,6 +400,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   *read = 0;
   *swap = 0;
   *macro = NULL;
+  *filter_size = 1;
   
   while (1) {
     /* SKIP bytes? */
@@ -431,6 +432,21 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       }
 
       *read = g_parsed_int;
+    }
+    /* FILTERSIZE bytes? */
+    else if (compare_next_token("FILTERSIZE") == SUCCEEDED) {
+      skip_next_token();
+      if (input_number() != SUCCEEDED) {
+        print_error(ERROR_DIR, ".INCBIN needs the amount of bytes for FILTERSIZE.\n");
+        return FAILED;
+      }
+
+      if (g_parsed_int < 1 || g_parsed_int > 4) {
+        print_error(ERROR_DIR, "FILTERSIZE must be 1, 2, 3 or 4.\n");
+        return FAILED;
+      }
+
+      *filter_size = g_parsed_int;
     }
     /* SWAP bytes? */
     else if (compare_next_token("SWAP") == SUCCEEDED) {
@@ -484,8 +500,21 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     return FAILED;
   }
 
-  if (*swap == 1 && (*read & 1) == 1) {
-    print_error(ERROR_INB, "The read size of file \"%s\" is odd (%d)! Cannot perform SWAP.\n", g_full_name, *read);
+  if (*swap == 1) {
+    if ((*filter_size == 1 && (*read & 1) != 0) ||
+        (*filter_size == 2 && (*read % 2) != 0) ||
+        (*filter_size == 3 && (*read % 3) != 0) ||
+        (*filter_size == 4 && (*read % 4) != 0)) {
+      if (*filter_size == 1 && (*read & 1) != 0)
+        print_error(ERROR_INB, "The read size of file \"%s\" is odd (%d). Cannot perform SWAP.\n", g_full_name, *read);
+      else
+        print_error(ERROR_INB, "Processing %d bytes at a time from file \"%s\" but it's not divisible by the FILTERSIZE %d. Cannot perform SWAP.\n", *read, g_full_name, *filter_size);
+      return FAILED;
+    }
+  }
+
+  if (*filter_size > 1 && (*read % *filter_size) != 0) {
+    print_error(ERROR_INB, "The FILTERSIZE is %d, but the number of bytes we are going to read is not divisible by it.\n", *read);
     return FAILED;
   }
   
@@ -493,7 +522,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 }
 
 
-char get_file_name_error[] = "GET_FILE_NAME: Internal error.";
+static char s_get_file_name_error[] = "GET_FILE_NAME: Internal error.";
 
 
 char *get_file_name(int id) {
@@ -507,7 +536,7 @@ char *get_file_name(int id) {
     fni = fni->next;
   }
 
-  return get_file_name_error;
+  return s_get_file_name_error;
 }
 
 
@@ -524,6 +553,7 @@ void print_file_name(FILE *f, char *file_name) {
   }
 }
 
+
 void print_makefile_rule(FILE *f, char *target_file_name, char *prerequisite_file_name, int add_phony_target) {
 
   print_file_name(f, target_file_name);
@@ -538,6 +568,7 @@ void print_makefile_rule(FILE *f, char *target_file_name, char *prerequisite_fil
     fputc('\n', f);
   }
 }
+
 
 int print_file_names(char *target_file_name) {
 

@@ -1,0 +1,7 @@
+[objects]
+main.o
+
+[definitions]
+DIVME 524288
+HERE 4096
+

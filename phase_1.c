@@ -532,7 +532,7 @@ int macro_start_incbin(struct macro_static *m, struct macro_incbin *incbin_data,
   else
     incbin_data = mrt->incbin_data;
 
-  if (incbin_data->left == 0) {
+  if (incbin_data->left <= 0) {
     /* free the incbin_data structure! it seems we came here from .ENDM and just ran out of data...
        NOTE: don't free mrt->incbin_data->data as it's a copied pointer */
     free(mrt->incbin_data);
@@ -548,44 +548,86 @@ int macro_start_incbin(struct macro_static *m, struct macro_incbin *incbin_data,
   mrt->argument_data = calloc(sizeof(struct macro_argument *) << 1, 1);
   mrt->argument_data[0] = calloc(sizeof(struct macro_argument), 1);
   mrt->argument_data[1] = calloc(sizeof(struct macro_argument), 1);
-  if (mrt->argument_data == NULL || mrt->argument_data[0] == NULL || mrt->argument_data[1] == NULL) {
+  mrt->argument_data[2] = calloc(sizeof(struct macro_argument), 1);
+  if (mrt->argument_data == NULL || mrt->argument_data[0] == NULL || mrt->argument_data[1] == NULL || mrt->argument_data[2] == NULL) {
     print_error(ERROR_NONE, "Out of memory error while collecting macro arguments.\n");
     return FAILED;
   }
 
   /* filter all the data through that macro */
+  mrt->argument_data[0]->type = SUCCEEDED;
+  mrt->argument_data[0]->start = g_source_index;
   mrt->argument_data[1]->type = SUCCEEDED;
   mrt->argument_data[1]->value = mrt->offset;
-  mrt->argument_data[0]->start = g_source_index;
-  mrt->argument_data[0]->type = SUCCEEDED;
-  mrt->supplied_arguments = 2;
+  mrt->argument_data[2]->type = SUCCEEDED;
+  mrt->argument_data[2]->value = incbin_data->filter_size;
+  mrt->supplied_arguments = 3;
 
-  if (incbin_data->swap != 0) {
-    if (incbin_data->swap == 1) {
-      mrt->argument_data[0]->value = incbin_data->data[incbin_data->position + 1];
-      incbin_data->swap = 2;
+  if (incbin_data->filter_size == 1) {
+    if (incbin_data->swap != 0) {
+      if (incbin_data->swap == 1) {
+        mrt->argument_data[0]->value = incbin_data->data[incbin_data->position + 1];
+        incbin_data->swap = 2;
+      }
+      else {
+        mrt->argument_data[0]->value = incbin_data->data[incbin_data->position];
+        incbin_data->position += 2;
+        incbin_data->swap = 1;
+      }
     }
-    else {
-      mrt->argument_data[0]->value = incbin_data->data[incbin_data->position];
-      incbin_data->position += 2;
-      incbin_data->swap = 1;
-    }
+    else
+      mrt->argument_data[0]->value = incbin_data->data[incbin_data->position++];
   }
-  else
-    mrt->argument_data[0]->value = incbin_data->data[incbin_data->position++];
+  else if (incbin_data->filter_size == 2) {
+    int data1, data2;
 
-  incbin_data->left--;
+    data1 = incbin_data->data[incbin_data->position++];
+    data2 = incbin_data->data[incbin_data->position++];
+    
+    if (incbin_data->swap != 0)
+      mrt->argument_data[0]->value = (data1 << 8) | data2;
+    else
+      mrt->argument_data[0]->value = (data2 << 8) | data1;
+  }
+  else if (incbin_data->filter_size == 3) {
+    int data1, data2, data3;
 
-  if (macro_start(m, mrt, MACRO_CALLER_INCBIN, 1) == FAILED)
+    data1 = incbin_data->data[incbin_data->position++];
+    data2 = incbin_data->data[incbin_data->position++];
+    data3 = incbin_data->data[incbin_data->position++];
+    
+    if (incbin_data->swap != 0)
+      mrt->argument_data[0]->value = (data1 << 16) | (data2 << 8) | data3;
+    else
+      mrt->argument_data[0]->value = (data3 << 16) | (data2 << 8) | data1;
+  }
+  else if (incbin_data->filter_size == 4) {
+    int data1, data2, data3, data4;
+
+    data1 = incbin_data->data[incbin_data->position++];
+    data2 = incbin_data->data[incbin_data->position++];
+    data3 = incbin_data->data[incbin_data->position++];
+    data4 = incbin_data->data[incbin_data->position++];
+    
+    if (incbin_data->swap != 0)
+      mrt->argument_data[0]->value = (data1 << 24) | (data2 << 16) | (data3 << 8) | data4;
+    else
+      mrt->argument_data[0]->value = (data4 << 24) | (data3 << 16) | (data2 << 8) | data1;
+  }
+  
+  incbin_data->left -= incbin_data->filter_size;
+
+  if (macro_start(m, mrt, MACRO_CALLER_INCBIN, 3) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
 }
 
 
-int macro_insert_byte_db(char *name) {
+static int _macro_insert_bytes(char *name, int size) {
 
   struct definition *d;
+  int error = NO;
   
   if (hashmap_get(g_defines_map, "_out", (void*)&d) != MAP_OK)
     hashmap_get(g_defines_map, "_OUT", (void*)&d);
@@ -595,21 +637,59 @@ int macro_insert_byte_db(char *name) {
     return FAILED;
   }
 
-  if (d->type == DEFINITION_TYPE_VALUE) {
-    if (d->value < -128 || d->value > 255) {
-      print_error(ERROR_DIR, ".%s expects 8-bit data, %d is out of range!\n", name, (int)d->value);
-      return FAILED;
+  if (size == 1) {
+    if (d->type == DEFINITION_TYPE_VALUE) {
+      if (d->value < -128 || d->value > 255) {
+        print_error(ERROR_DIR, ".%s expects 8-bit data, %d is out of range!\n", name, (int)d->value);
+        return FAILED;
+      }
+      fprintf(g_file_out_ptr, "d%d ", (int)d->value);
     }
-    fprintf(g_file_out_ptr, "d%d ", (int)d->value);
+    else if (d->type == DEFINITION_TYPE_STACK)
+      fprintf(g_file_out_ptr, "c%d ", (int)d->value);
+    else
+      error = YES;
   }
-  else if (d->type == DEFINITION_TYPE_STACK) {
-    fprintf(g_file_out_ptr, "c%d ", (int)d->value);
+  else if (size == 2) {
+    if (d->type == DEFINITION_TYPE_VALUE) {
+      if (d->value < -32768 || d->value > 32767) {
+        print_error(ERROR_DIR, ".%s expects 16-bit data, %d is out of range!\n", name, (int)d->value);
+        return FAILED;
+      }
+      fprintf(g_file_out_ptr, "y%d ", (int)d->value);
+    }
+    else if (d->type == DEFINITION_TYPE_STACK)
+      fprintf(g_file_out_ptr, "C%d ", (int)d->value);
+    else
+      error = YES;
   }
-  else {
+  else if (size == 3) {
+    if (d->type == DEFINITION_TYPE_VALUE) {
+      if (d->value < -8388608 || d->value > 8388607) {
+        print_error(ERROR_DIR, ".%s expects 24-bit data, %d is out of range!\n", name, (int)d->value);
+        return FAILED;
+      }
+      fprintf(g_file_out_ptr, "z%d ", (int)d->value);
+    }
+    else if (d->type == DEFINITION_TYPE_STACK)
+      fprintf(g_file_out_ptr, "T%d ", (int)d->value);
+    else
+      error = YES;
+  }
+  else if (size == 4) {
+    if (d->type == DEFINITION_TYPE_VALUE)
+      fprintf(g_file_out_ptr, "u%d ", (int)d->value);
+    else if (d->type == DEFINITION_TYPE_STACK)
+      fprintf(g_file_out_ptr, "U%d ", (int)d->value);
+    else
+      error = YES;
+  }
+  
+  if (error == YES) {
     print_error(ERROR_DIR, ".%s cannot handle strings in \"_OUT/_out\".\n", name);
     return FAILED;
   }
-
+  
   return SUCCEEDED;
 }
 
@@ -4476,7 +4556,7 @@ int directive_include(int is_real) {
 int directive_incbin(void) {
 
   struct macro_static *macro;
-  int skip, read, j, o, id, swap;
+  int skip, read, j, o, id, swap, filter_size;
 
   if (g_org_defined == 0 && g_output_format != OUTPUT_LIBRARY) {
     print_error(ERROR_LOG, "Before you can .INCBIN data you'll need to use ORG.\n");
@@ -4497,7 +4577,7 @@ int directive_incbin(void) {
   /* convert the path string to local enviroment */
   localize_path(g_label);
 
-  if (incbin_file(g_label, &id, &swap, &skip, &read, &macro) == FAILED)
+  if (incbin_file(g_label, &id, &swap, &skip, &read, &macro, &filter_size) == FAILED)
     return FAILED;
   
   if (macro == NULL) {
@@ -4523,6 +4603,7 @@ int directive_incbin(void) {
     min->swap = swap;
     min->position = skip;
     min->left = read;
+    min->filter_size = filter_size;
 
     if (macro_start_incbin(macro, min, YES) == FAILED)
       return FAILED;
@@ -9058,7 +9139,7 @@ int directive_endm(void) {
     /* was this a DBM macro call? */
     if (g_macro_stack[g_macro_active].caller == MACRO_CALLER_DBM) {
       /* yep, get the output */
-      if (macro_insert_byte_db("DBM") == FAILED)
+      if (_macro_insert_bytes("DBM", 1) == FAILED)
         return FAILED;
 
       /* continue defining bytes */
@@ -9104,7 +9185,7 @@ int directive_endm(void) {
     /* or was this an INCBIN with a filter macro call? */
     else if (g_macro_stack[g_macro_active].caller == MACRO_CALLER_INCBIN) {
       /* yep, get the output */
-      if (macro_insert_byte_db("INCBIN") == FAILED)
+      if (_macro_insert_bytes("INCBIN", g_macro_stack[g_macro_active].incbin_data->filter_size) == FAILED)
         return FAILED;
 
       /* continue filtering the binary file */

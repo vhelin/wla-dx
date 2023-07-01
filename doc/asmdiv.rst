@@ -2034,7 +2034,14 @@ Here's an example of a filter macro that increments all the bytes by one::
     .redefine _out \1+1
     .endm
 
-Note that the order of the extra commands is important.
+Instead of passing just one byte at a time to the filter macro, you can specify
+the chunk size as follows::
+
+    .INCBIN "kitten.bin" FILTER filtermacro FILTERSIZE 4
+
+``FILTERSIZE`` specifies the chunk size of the number of bytes (read) in \1 in the filter
+macro. \2 in the macro specifies the index of the chunk and \3 specifies the
+size of the chunk (same as ``FILTERSIZE``).
 
 If the file's not found in the ``.INCDIR`` directory, WLA tries to find it
 in the current working directory. If the ``INCDIR`` is specified in the command
