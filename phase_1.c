@@ -652,7 +652,7 @@ static int _macro_insert_bytes(char *name, int size) {
   }
   else if (size == 2) {
     if (d->type == DEFINITION_TYPE_VALUE) {
-      if (d->value < -32768 || d->value > 32767) {
+      if (d->value < -32768 || d->value > 65535) {
         print_error(ERROR_DIR, ".%s expects 16-bit data, %d is out of range!\n", name, (int)d->value);
         return FAILED;
       }
@@ -665,7 +665,7 @@ static int _macro_insert_bytes(char *name, int size) {
   }
   else if (size == 3) {
     if (d->type == DEFINITION_TYPE_VALUE) {
-      if (d->value < -8388608 || d->value > 8388607) {
+      if (d->value < -8388608 || d->value > 16777215) {
         print_error(ERROR_DIR, ".%s expects 24-bit data, %d is out of range!\n", name, (int)d->value);
         return FAILED;
       }
