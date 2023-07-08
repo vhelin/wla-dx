@@ -1993,10 +1993,10 @@ is incbinned.
 
 It is also possible to incbin only n bytes from a file::
 
-    .INCBIN "kitten.bin" READ 10
+    .INCBIN "kitten.bin" READ 10 FREADSIZE bytesRead
 
-Will read ten bytes from the beginning of ``kitten.bin``. Or if you make it
-negative, like::
+Will read ten bytes from the beginning of ``kitten.bin`` and create a definition called ``bytesRead``
+with value 10. If you make ``READ`` negative, like::
 
     .INCBIN "kitten.bin" READ -2
 

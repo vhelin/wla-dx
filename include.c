@@ -316,7 +316,7 @@ int include_file(char *name, int *include_size, char *namespace) {
 int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct macro_static **macro, int *filter_size) {
 
   struct incbin_file_data *ifd;
-  char *in_tmp, *n;
+  char *in_tmp, *n, freadsize_label[MAX_NAME_LENGTH + 1];
   int file_size = 0, q, error_code;
   FILE *f = NULL;
 
@@ -401,6 +401,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   *swap = 0;
   *macro = NULL;
   *filter_size = 1;
+  freadsize_label[0] = 0;
   
   while (1) {
     /* SKIP bytes? */
@@ -452,6 +453,16 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     else if (compare_next_token("SWAP") == SUCCEEDED) {
       skip_next_token();
       *swap = 1;
+    }
+    /* FREADSIZE? */
+    else if (compare_next_token("FREADSIZE") == SUCCEEDED) {
+      skip_next_token();
+
+      /* get the definition label */
+      if (get_next_plain_string() == FAILED)
+        return FAILED;
+
+      strcpy(freadsize_label, g_label);
     }
     /* FSIZE? */
     else if (compare_next_token("FSIZE") == SUCCEEDED) {
@@ -517,6 +528,9 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     print_error(ERROR_INB, "The FILTERSIZE is %d, but the number of bytes we are going to read is not divisible by it.\n", *read);
     return FAILED;
   }
+
+  if (freadsize_label[0] != 0)
+    add_a_new_definition(freadsize_label, (double)*read, NULL, DEFINITION_TYPE_VALUE, 0);
   
   return SUCCEEDED;
 }

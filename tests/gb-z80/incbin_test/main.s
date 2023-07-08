@@ -169,13 +169,14 @@
         .db "<04"               ; @BT END
 
         .db "05>"               ; @BT TEST-05 05 START
-        .incbin "250-255.bin" filter FILTER2 filtersize 2 read 4
+        .incbin "250-255.bin" filter FILTER2 filtersize 2 read 4 freadsize readSize4
                                 ; @BT FE FF
                                 ; @BT FA FE
-        .incbin "250-255.bin" filter FILTER3 filtersize 3 read 6
+        .incbin "250-255.bin" filter FILTER3 filtersize 3 read 6 freadsize readSize6
                                 ; @BT FE FF FA
                                 ; @BT FE FD FE
-        .incbin "250-255.bin" filter FILTER4 filtersize 4 read 8
+        .incbin "250-255.bin" filter FILTER4 filtersize 4 read 8 freadsize readSize8
                                 ; @BT FE FF FA FE
                                 ; @BT FD FE FC FA
+        .db readSize4 + 0, readSize6 + 1, readSize8 - 1 ; @BT 04 07 07
         .db "<05"               ; @BT END
