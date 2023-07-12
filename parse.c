@@ -185,7 +185,7 @@ int compare_next_token(char *token) {
 }
 
 
-static int should_we_add_namespace(void) {
+int should_we_add_namespace(void) {
 
   if (g_force_ignore_namespace == YES)
     return NO;

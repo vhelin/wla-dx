@@ -28,5 +28,10 @@
         .include "bar.asm" namespace "bar" isolated ; @BT 06 06 07 06 01 08 09 0F 09 01
         .db myArg                                   ; @BT 0B
         .db "<01"                                   ; @BT END
-        
-        
+
+        .db "02>"               ; @BT TEST-02 02 START
+        .include "boo.asm" namespace "boo" isolated
+        boo.boo                 ; @BT C3 67 01 00
+                                ; @BT C3 6B 01
+                                ; @BT C3 6E 01
+        .db "<02"               ; @BT END

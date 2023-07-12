@@ -7,4 +7,3 @@
         .macro "fooMacro" args myArg
             .db myArg, \1, \1+1
         .endm
-        

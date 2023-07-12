@@ -1057,6 +1057,13 @@ int evaluate_token(void) {
         snprintf(&g_tmp[g_ss - 3], g_sizeof_g_tmp - (g_ss - 3), "%d", g_macro_runtime_current->macro->calls - 1);
     }
 
+    if (g_macro_active != 0) {
+      if (should_we_add_namespace() == YES) {
+        if (add_namespace_to_a_label(g_tmp, g_sizeof_g_tmp, YES) == FAILED)
+          return FAILED;
+      }
+    }
+    
     if (add_label_to_label_stack(g_tmp) == FAILED)
       return FAILED;
     

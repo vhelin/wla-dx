@@ -857,7 +857,7 @@ int phase_1(void) {
       print_error(ERROR_LOG, "Encountered quoted string \"%s\" where no quoted string should be.\n", g_tmp);
       return FAILED;
     }
-    
+
     q = evaluate_token();
 
 #ifdef SPC700
@@ -928,6 +928,13 @@ int phase_1(void) {
           if (g_macro_active != 0 && q >= 2) {
             if (g_tmp[q - 2] == '\\' && g_tmp[q - 1] == '@')
               snprintf(&g_tmp[q - 2], g_sizeof_g_tmp - (q - 2), "%d", g_macro_runtime_current->macro->calls - 1);
+          }
+
+          if (g_macro_active != 0) {
+            if (should_we_add_namespace() == YES) {
+              if (add_namespace_to_a_label(g_tmp, g_sizeof_g_tmp, YES) == FAILED)
+                return FAILED;
+            }
           }
 
           if (add_label_to_label_stack(g_tmp) == FAILED)
