@@ -35,3 +35,6 @@
                                 ; @BT C3 6B 01
                                 ; @BT C3 6E 01
         .db "<02"               ; @BT END
+
+        .include "nam.asm" namespace "nam" isolated
+        nam.myMacro

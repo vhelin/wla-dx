@@ -186,6 +186,7 @@ _globalFunc:
 
         .define HELLOMOTO 1
 
+_local: 
         .include "macro.s" namespace bar isolated
         .include "macro.s" isolated namespace yor
         .include "macro.s" namespace foo

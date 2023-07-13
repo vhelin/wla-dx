@@ -6,4 +6,3 @@ my2ndLabel\@
           jp my3rdLabel\@
 my3rdLabel\@:
         .endm
-        

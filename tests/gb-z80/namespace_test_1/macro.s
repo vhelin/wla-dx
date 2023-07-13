@@ -7,7 +7,6 @@ someLabel2:
         jr -
         .ends
 
-_local: 
 -:
         ret
         jr -

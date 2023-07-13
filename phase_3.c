@@ -65,8 +65,9 @@ int free_label_context_allocations(void) {
 static int _add_label(struct label_def *l, struct section_def *s, int line_number, int file_name_id) {
 
   struct definition *tmp_def;
+  struct label_def *tmp_label;
   int err;
-  
+
   /* does a definition with the same name exist? */
   hashmap_get(g_defines_map, l->label, (void*)&tmp_def);
   if (tmp_def != NULL) {
@@ -76,7 +77,8 @@ static int _add_label(struct label_def *l, struct section_def *s, int line_numbe
 
   if (s != NULL) {
     /* always put the label into the section's label_map */
-    if (hashmap_get(s->label_map, l->label, NULL) == MAP_OK) {
+    if (hashmap_get(s->label_map, l->label, (void *)&tmp_label) == MAP_OK) {
+      fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the first time.\n", get_file_name(tmp_label->filename_id), tmp_label->linenumber, l->label);
       fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
       return FAILED;
     }
@@ -90,7 +92,8 @@ static int _add_label(struct label_def *l, struct section_def *s, int line_numbe
   if (s == NULL || l->label[0] != '_') {
     if (s != NULL && s->nspace != NULL) {
       /* label in a namespace */
-      if (hashmap_get(s->nspace->label_map, l->label, NULL) == MAP_OK) {
+      if (hashmap_get(s->nspace->label_map, l->label, (void *)&tmp_label) == MAP_OK) {
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the first time.\n", get_file_name(tmp_label->filename_id), tmp_label->linenumber, l->label);
         fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
         return FAILED;
       }
@@ -101,7 +104,8 @@ static int _add_label(struct label_def *l, struct section_def *s, int line_numbe
     }
     else {
       /* global label */
-      if (hashmap_get(g_global_unique_label_map, l->label, NULL) == MAP_OK) {
+      if (hashmap_get(g_global_unique_label_map, l->label, (void *)&tmp_label) == MAP_OK) {
+        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the first time.\n", get_file_name(tmp_label->filename_id), tmp_label->linenumber, l->label);
         fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
         return FAILED;
       }
@@ -1148,6 +1152,10 @@ int add_namespace(char *label, char *name_space, unsigned int label_size, int fi
 
   char buf[MAX_NAME_LENGTH*2+2];
 
+  /* don't add namespace to local labels */
+  if (label[0] == '_')
+    return SUCCEEDED;
+  
   if (strncmp(label, "SECTIONSTART_", strlen("SECTIONSTART_")) == 0)
     return SUCCEEDED;
   if (strncmp(label, "SECTIONEND_", strlen("SECTIONEND_")) == 0)

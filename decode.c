@@ -1063,7 +1063,7 @@ int evaluate_token(void) {
           return FAILED;
       }
     }
-    
+
     if (add_label_to_label_stack(g_tmp) == FAILED)
       return FAILED;
     
