@@ -83,7 +83,6 @@ def generate(cpu, new_line, template):
     # are handled next.
     sources = {
         'main.c': [
-            'main.h',
             'defines.h',
             'hashmap.h',
             'include.h',
@@ -138,7 +137,6 @@ def generate(cpu, new_line, template):
             'phase_1.h',
             'decode.h',
             'defines.h',
-            'main.h',
             'include.h',
             'parse.h',
             'phase_2.h',

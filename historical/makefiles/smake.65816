@@ -39,7 +39,7 @@ include.o: include.c include.h crc32.h defines.h hashmap.h shared.h parse.h phas
 listfile.o: listfile.c listfile.h defines.h hashmap.h shared.h include.h
 	$(CC) $(CFLAGS) listfile.c
 
-main.o: main.c main.h defines.h hashmap.h shared.h hashmap.h include.h listfile.h mersenne.h parse.h phase_1.h phase_2.h phase_3.h phase_4.h printf.h
+main.o: main.c defines.h hashmap.h shared.h hashmap.h include.h listfile.h mersenne.h parse.h phase_1.h phase_2.h phase_3.h phase_4.h printf.h
 	$(CC) $(CFLAGS) main.c
 
 mersenne.o: mersenne.c mersenne.h
@@ -48,7 +48,7 @@ mersenne.o: mersenne.c mersenne.h
 parse.o: parse.c parse.h defines.h hashmap.h shared.h phase_1.h stack.h include.h printf.h
 	$(CC) $(CFLAGS) parse.c
 
-phase_1.o: phase_1.c phase_1.h decode.h defines.h hashmap.h shared.h main.h include.h parse.h phase_2.h phase_3.h stack.h hashmap.h printf.h mersenne.h
+phase_1.o: phase_1.c phase_1.h decode.h defines.h hashmap.h shared.h include.h parse.h phase_2.h phase_3.h stack.h hashmap.h printf.h mersenne.h
 	$(CC) $(CFLAGS) phase_1.c
 
 phase_2.o: phase_2.c phase_2.h defines.h hashmap.h shared.h phase_1.h phase_4.h hashmap.h printf.h

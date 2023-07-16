@@ -113,7 +113,6 @@ endif()
 # WLA-ARCH executables
 set(WLA_SRCS
     main.c
-    main.h
     crc32.c
     crc32.h
     decode.c
