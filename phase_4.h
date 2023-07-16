@@ -14,8 +14,4 @@ int show_project_information_object(void);
 int write_library_file(void);
 int write_object_file(void);
 
-#ifdef W65816
-int get_snes_cpu_bank(struct label_def *l);
-#endif
-
 #endif

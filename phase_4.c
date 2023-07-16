@@ -3241,34 +3241,3 @@ int export_source_file_names(FILE *final_ptr) {
 
   return SUCCEEDED;
 }
-
-
-#if defined(W65816)
-
-int get_snes_cpu_bank(struct label_def *l) {
-
-  struct section_def *s;
-  int x, k;
-
-  if (l->section_status == OFF)
-    k = g_bankaddress[l->bank] + l->address;
-  else {
-    s = g_sections_first;
-    while (s != NULL) {
-      if (l->section_id == s->id)
-        break;
-      else
-        s = s->next;
-    }
-    k = s->address + l->address + g_bankaddress[s->bank];
-  }
-
-  if (g_lorom_defined == 1)
-    x = (k / 0x8000) + l->base;
-  else
-    x = (k / 0x10000) + l->base;
-
-  return x;
-}
-
-#endif

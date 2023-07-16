@@ -11,7 +11,6 @@
 
 #include "defines.h"
 
-#include "main.h"
 #include "include.h"
 #include "parse.h"
 #include "phase_1.h"
@@ -213,7 +212,7 @@ int strcaselesscmp(char *s1, char *s2) {
 }
 
 
-char *string_duplicate_size(char *p, int size) {
+static char *_string_duplicate_size(char *p, int size) {
 
   char *result;
 
@@ -233,9 +232,9 @@ char *string_duplicate_size(char *p, int size) {
 }
 
 
-char *string_duplicate(char *p) {
+static char *_string_duplicate(char *p) {
 
-  return string_duplicate_size(p, (int)strlen(p));
+  return _string_duplicate_size(p, (int)strlen(p));
 }
 
 
@@ -371,7 +370,7 @@ int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
 }
 
 
-int macro_stack_grow(void) {
+static int _macro_stack_grow(void) {
 
   if (g_macro_active == s_macro_stack_size) {
     struct macro_runtime *macro;
@@ -400,7 +399,7 @@ int macro_stack_grow(void) {
 }
 
 
-int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, int nargs) {
+static int _macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, int nargs) {
 
   g_macro_runtime_current = mrt;
   g_macro_active++;
@@ -434,13 +433,13 @@ int macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, i
 }
 
 
-int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
+static int _macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
 
   struct macro_runtime *mrt;
   int start, number_result;
   
   /* start running a macro... run until .ENDM */
-  if (macro_stack_grow() == FAILED)
+  if (_macro_stack_grow() == FAILED)
     return FAILED;
 
   mrt = &g_macro_stack[g_macro_active];
@@ -510,19 +509,19 @@ int macro_start_dxm(struct macro_static *m, int caller, char *name, int first) {
   else
     return FAILED;
 
-  if (macro_start(m, mrt, caller, 1) == FAILED)
+  if (_macro_start(m, mrt, caller, 1) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
 }
 
 
-int macro_start_incbin(struct macro_static *m, struct macro_incbin *incbin_data, int first) {
+static int _macro_start_incbin(struct macro_static *m, struct macro_incbin *incbin_data, int first) {
 
   struct macro_runtime *mrt;
 
   /* start running a macro... run until .ENDM */
-  if (macro_stack_grow() == FAILED)
+  if (_macro_stack_grow() == FAILED)
     return FAILED;
 
   mrt = &g_macro_stack[g_macro_active];
@@ -617,7 +616,7 @@ int macro_start_incbin(struct macro_static *m, struct macro_incbin *incbin_data,
   
   incbin_data->left -= incbin_data->filter_size;
 
-  if (macro_start(m, mrt, MACRO_CALLER_INCBIN, 3) == FAILED)
+  if (_macro_start(m, mrt, MACRO_CALLER_INCBIN, 3) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
@@ -694,7 +693,7 @@ static int _macro_insert_bytes(char *name, int size) {
 }
 
 
-int macro_insert_word_db(char *name) {
+static int _macro_insert_word_db(char *name) {
 
   struct definition *d;
   
@@ -731,7 +730,7 @@ int macro_insert_word_db(char *name) {
 }
 
 
-int macro_insert_long_db(char *name) {
+static int _macro_insert_long_db(char *name) {
 
   struct definition *d;
   
@@ -768,7 +767,7 @@ int macro_insert_long_db(char *name) {
 }
 
 
-int macro_insert_double_dw(char *name) {
+static int _macro_insert_double_dw(char *name) {
 
   struct definition *d;
   
@@ -805,7 +804,7 @@ int macro_insert_double_dw(char *name) {
 }
 
 
-struct structure* get_structure(char *name) {
+static struct structure* _get_structure(char *name) {
 
   struct structure *s = g_structures_first;
   char c1 = name[0];
@@ -965,7 +964,7 @@ int phase_1(void) {
       }
 
       /* start running a macro... run until .ENDM */
-      if (macro_stack_grow() == FAILED)
+      if (_macro_stack_grow() == FAILED)
         return FAILED;
 
       mrt = &g_macro_stack[g_macro_active];
@@ -1079,7 +1078,7 @@ int phase_1(void) {
         next_line();
 
       mrt->supplied_arguments = p;
-      if (macro_start(m, mrt, MACRO_CALLER_NORMAL, p) == FAILED)
+      if (_macro_start(m, mrt, MACRO_CALLER_NORMAL, p) == FAILED)
         return FAILED;
 
       continue;
@@ -1117,7 +1116,7 @@ int redefine(char *name, double value, char *string, int type, int size) {
   else if (type == DEFINITION_TYPE_STACK)
     d->value = value;
   else if (type == DEFINITION_TYPE_STRING || type == DEFINITION_TYPE_ADDRESS_LABEL) {
-    d->string = string_duplicate_size(string, size);
+    d->string = _string_duplicate_size(string, size);
     d->size = size;
     if (d->string == NULL)
       return FAILED;
@@ -1191,7 +1190,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
 
   d->type = type;
   d->string = NULL;
-  d->alias = string_duplicate(name);
+  d->alias = _string_duplicate(name);
   if (d->alias == NULL)
     return FAILED;
 
@@ -1205,7 +1204,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
   else if (type == DEFINITION_TYPE_STACK)
     d->value = value;
   else if (type == DEFINITION_TYPE_STRING || type == DEFINITION_TYPE_ADDRESS_LABEL) {
-    d->string = string_duplicate_size(string, size);
+    d->string = _string_duplicate_size(string, size);
     if (d->string == NULL)
       return FAILED;
     d->size = size;
@@ -2119,7 +2118,7 @@ int parse_enum_token(void) {
       return FAILED;
     }
     
-    st = get_structure(g_label);
+    st = _get_structure(g_label);
 
     if (st == NULL) {
       print_error(ERROR_DIR, "No .STRUCT named \"%s\" available.\n", g_label);
@@ -2568,23 +2567,23 @@ int directive_dbm_dwm_dlm_ddm_filter(void) {
   }
 
   if (strcaselesscmp(g_current_directive, "DBM") == 0) {
-    if (macro_start_dxm(macro, MACRO_CALLER_DBM, g_current_directive, YES) == FAILED)
+    if (_macro_start_dxm(macro, MACRO_CALLER_DBM, g_current_directive, YES) == FAILED)
       return FAILED;
   }
   else if (strcaselesscmp(g_current_directive, "DLM") == 0) {
-    if (macro_start_dxm(macro, MACRO_CALLER_DLM, g_current_directive, YES) == FAILED)
+    if (_macro_start_dxm(macro, MACRO_CALLER_DLM, g_current_directive, YES) == FAILED)
       return FAILED;
   }
   else if (strcaselesscmp(g_current_directive, "DDM") == 0) {
-    if (macro_start_dxm(macro, MACRO_CALLER_DDM, g_current_directive, YES) == FAILED)
+    if (_macro_start_dxm(macro, MACRO_CALLER_DDM, g_current_directive, YES) == FAILED)
       return FAILED;
   }
   else if (strcaselesscmp(g_current_directive, "DWM") == 0) {
-    if (macro_start_dxm(macro, MACRO_CALLER_DWM, g_current_directive, YES) == FAILED)
+    if (_macro_start_dxm(macro, MACRO_CALLER_DWM, g_current_directive, YES) == FAILED)
       return FAILED;
   }
   else if (strcaselesscmp(g_current_directive, "FILTER") == 0) {
-    if (macro_start_dxm(macro, MACRO_CALLER_FILTER, g_current_directive, YES) == FAILED)
+    if (_macro_start_dxm(macro, MACRO_CALLER_FILTER, g_current_directive, YES) == FAILED)
       return FAILED;
   }
   else {
@@ -4025,7 +4024,7 @@ int directive_dstruct(void) {
   }
 
   /* find the structure */
-  s = get_structure(g_label);
+  s = _get_structure(g_label);
 
   if (s == NULL) {
     print_error(ERROR_DIR, "Reference to an unidentified structure \"%s\".\n", g_label);
@@ -4612,7 +4611,7 @@ int directive_incbin(void) {
     min->left = read;
     min->filter_size = filter_size;
 
-    if (macro_start_incbin(macro, min, YES) == FAILED)
+    if (_macro_start_incbin(macro, min, YES) == FAILED)
       return FAILED;
   }
 
@@ -8430,14 +8429,14 @@ int directive_sdsctag(void) {
     }
     else {
       g_sdsctag_name_type = TYPE_STRING;
-      g_sdsctag_name_str = string_duplicate(g_label);
+      g_sdsctag_name_str = _string_duplicate(g_label);
       if (g_sdsctag_name_str == NULL)
         return FAILED;
     }
   }
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
     g_sdsctag_name_type = TYPE_LABEL;
-    g_sdsctag_name_str = string_duplicate(g_label);
+    g_sdsctag_name_str = _string_duplicate(g_label);
     if (g_sdsctag_name_str == NULL)
       return FAILED;
   }
@@ -8466,14 +8465,14 @@ int directive_sdsctag(void) {
     }
     else {
       g_sdsctag_notes_type = TYPE_STRING;
-      g_sdsctag_notes_str = string_duplicate(g_label);
+      g_sdsctag_notes_str = _string_duplicate(g_label);
       if (g_sdsctag_notes_str == NULL)
         return FAILED;
     }
   }
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
     g_sdsctag_notes_type = TYPE_LABEL;
-    g_sdsctag_notes_str = string_duplicate(g_label);
+    g_sdsctag_notes_str = _string_duplicate(g_label);
     if (g_sdsctag_notes_str == NULL)
       return FAILED;
   }
@@ -8502,14 +8501,14 @@ int directive_sdsctag(void) {
     }
     else {
       g_sdsctag_author_type = TYPE_STRING;
-      g_sdsctag_author_str = string_duplicate(g_label);
+      g_sdsctag_author_str = _string_duplicate(g_label);
       if (g_sdsctag_author_str == NULL)
         return FAILED;
     }
   }
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
     g_sdsctag_author_type = TYPE_LABEL;
-    g_sdsctag_author_str = string_duplicate(g_label);
+    g_sdsctag_author_str = _string_duplicate(g_label);
     if (g_sdsctag_author_str == NULL)
       return FAILED;
   }
@@ -9150,43 +9149,43 @@ int directive_endm(void) {
         return FAILED;
 
       /* continue defining bytes */
-      if (macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_DBM, "DBM", NO) == FAILED)
+      if (_macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_DBM, "DBM", NO) == FAILED)
         return FAILED;
     }
     /* was this a DWM macro call? */
     else if (g_macro_stack[g_macro_active].caller == MACRO_CALLER_DWM) {
       /* yep, get the output */
-      if (macro_insert_word_db("DWM") == FAILED)
+      if (_macro_insert_word_db("DWM") == FAILED)
         return FAILED;
 
       /* continue defining words */
-      if (macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_DWM, "DWM", NO) == FAILED)
+      if (_macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_DWM, "DWM", NO) == FAILED)
         return FAILED;
     }
     /* was this a DLM macro call? */
     else if (g_macro_stack[g_macro_active].caller == MACRO_CALLER_DLM) {
       /* yep, get the output */
-      if (macro_insert_long_db("DLM") == FAILED)
+      if (_macro_insert_long_db("DLM") == FAILED)
         return FAILED;
 
       /* continue defining longs */
-      if (macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_DLM, "DLM", NO) == FAILED)
+      if (_macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_DLM, "DLM", NO) == FAILED)
         return FAILED;
     }
     /* was this a DDM macro call? */
     else if (g_macro_stack[g_macro_active].caller == MACRO_CALLER_DDM) {
       /* yep, get the output */
-      if (macro_insert_double_dw("DDM") == FAILED)
+      if (_macro_insert_double_dw("DDM") == FAILED)
         return FAILED;
 
       /* continue defining double words */
-      if (macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_DDM, "DDM", NO) == FAILED)
+      if (_macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_DDM, "DDM", NO) == FAILED)
         return FAILED;
     }
     /* was this a FILTER macro call? */
     else if (g_macro_stack[g_macro_active].caller == MACRO_CALLER_FILTER) {
       /* continue running FILTER */
-      if (macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_FILTER, "FILTER", NO) == FAILED)
+      if (_macro_start_dxm(g_macro_stack[g_macro_active].macro, MACRO_CALLER_FILTER, "FILTER", NO) == FAILED)
         return FAILED;
     }
     /* or was this an INCBIN with a filter macro call? */
@@ -9196,7 +9195,7 @@ int directive_endm(void) {
         return FAILED;
 
       /* continue filtering the binary file */
-      if (macro_start_incbin(g_macro_stack[g_macro_active].macro, NULL, NO) == FAILED)
+      if (_macro_start_incbin(g_macro_stack[g_macro_active].macro, NULL, NO) == FAILED)
         return FAILED;
     }
 
@@ -10300,7 +10299,7 @@ int directive_stringmap_table(void) {
   map->next = g_stringmaptables;
   g_stringmaptables = map;
 
-  map->name = string_duplicate(g_label);
+  map->name = _string_duplicate(g_label);
   if (map->name == NULL) {
     print_error(ERROR_ERR, "STRINGMAPTABLE: Out of memory error.\n");
     return FAILED;
@@ -10319,7 +10318,7 @@ int directive_stringmap_table(void) {
   create_full_name(g_include_dir, g_label);
   localize_path(g_label);
 
-  map->filename = string_duplicate(g_label);
+  map->filename = _string_duplicate(g_label);
   if (map->filename == NULL) {
     print_error(ERROR_ERR, "STRINGMAPTABLE: Out of memory error.\n");
     return FAILED;
@@ -12354,7 +12353,7 @@ int parse_if_directive(void) {
       int result;
       
       g_skip_elifs[g_ifdef] = NO;
-      tmp = string_duplicate(g_current_directive);
+      tmp = _string_duplicate(g_current_directive);
       if (tmp == NULL)
         return FAILED;
       result = find_next_point(tmp);
@@ -12414,7 +12413,7 @@ int parse_if_directive(void) {
             int result;
             
             g_skip_elifs[g_ifdef] = NO;
-            tmp = string_duplicate(g_current_directive);
+            tmp = _string_duplicate(g_current_directive);
             if (tmp == NULL)
               return FAILED;
             result = find_next_point(tmp);

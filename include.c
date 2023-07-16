@@ -70,7 +70,7 @@ int create_full_name(char *dir, char *name) {
 }
 
 
-int try_open_file(char* directory, char* partial_name, FILE** out_result) {
+static int _try_open_file(char* directory, char* partial_name, FILE** out_result) {
 
   int error_code = create_full_name(directory, partial_name);
   if (error_code != SUCCEEDED)
@@ -84,7 +84,7 @@ int try_open_file(char* directory, char* partial_name, FILE** out_result) {
 }
 
 
-static void print_find_error(char* name) {
+static void _print_find_error(char* name) {
 
   int index;
 
@@ -107,14 +107,14 @@ static void print_find_error(char* name) {
 }
 
 
-static int find_file(char *name, FILE **f) {
+static int _find_file(char *name, FILE **f) {
 
   int index;
 
   if (g_use_incdir == YES) {
     /* check all external include directories first */
     for (index = 0; index < g_ext_incdirs.count; index++) {
-      try_open_file(g_ext_incdirs.names[index], name, f);
+      _try_open_file(g_ext_incdirs.names[index], name, f);
 
       /* we succeeded and found a valid file, so escape */
       if (*f != NULL)
@@ -123,7 +123,7 @@ static int find_file(char *name, FILE **f) {
   }
 
   /* fall through to g_include_dir if we either didn't check, or failed to find the file in g_ext_incdirs */
-  try_open_file(g_include_dir, name, f);
+  _try_open_file(g_include_dir, name, f);
   if (*f != NULL)
     return SUCCEEDED;
 
@@ -144,7 +144,7 @@ static int find_file(char *name, FILE **f) {
     return FAILED;
   }
   
-  print_find_error(name);
+  _print_find_error(name);
 
   return FAILED;
 }
@@ -156,7 +156,7 @@ int include_file(char *name, int *include_size, char *namespace) {
   char *tmp_b, *n, change_file_buffer[MAX_NAME_LENGTH * 2];
   FILE *f = NULL;
 
-  int error_code = find_file(name, &f);
+  int error_code = _find_file(name, &f);
   if (error_code != SUCCEEDED)
     return error_code;
 
@@ -320,7 +320,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   int file_size = 0, q, error_code;
   FILE *f = NULL;
 
-  error_code = find_file(name, &f);
+  error_code = _find_file(name, &f);
   if (error_code != SUCCEEDED)
     return error_code;
 
@@ -555,7 +555,7 @@ char *get_file_name(int id) {
 
 
 /* converts filename to forward slashes for make compatibility */
-void print_file_name(FILE *f, char *file_name) {
+static void _print_file_name(FILE *f, char *file_name) {
 
   char c;
   
@@ -568,16 +568,16 @@ void print_file_name(FILE *f, char *file_name) {
 }
 
 
-void print_makefile_rule(FILE *f, char *target_file_name, char *prerequisite_file_name, int add_phony_target) {
+static void _print_makefile_rule(FILE *f, char *target_file_name, char *prerequisite_file_name, int add_phony_target) {
 
-  print_file_name(f, target_file_name);
+  _print_file_name(f, target_file_name);
   fputc(':', f);
   fputc(' ', f);
-  print_file_name(f, prerequisite_file_name);
+  _print_file_name(f, prerequisite_file_name);
   fputc('\n', f);
 
   if (add_phony_target == YES) {
-    print_file_name(f, prerequisite_file_name);
+    _print_file_name(f, prerequisite_file_name);
     fputc(':', f);
     fputc('\n', f);
   }
@@ -601,30 +601,29 @@ int print_file_names(char *target_file_name) {
   /* handle the main file name differently */
   while (fni != NULL) {
     if (is_first_line == YES) {
-      print_makefile_rule(g_makefile_rule_file, target_file_name, fni->name, NO);
+      _print_makefile_rule(g_makefile_rule_file, target_file_name, fni->name, NO);
       is_first_line = NO;
     }
-    else {
-      print_makefile_rule(g_makefile_rule_file, target_file_name, fni->name, g_makefile_add_phony_targets);
-    }
+    else
+      _print_makefile_rule(g_makefile_rule_file, target_file_name, fni->name, g_makefile_add_phony_targets);
     fni = fni->next;
   }
 
   /* incbin files */
   while (ifd != NULL) {
-    print_makefile_rule(g_makefile_rule_file, target_file_name, ifd->name, g_makefile_add_phony_targets);
+    _print_makefile_rule(g_makefile_rule_file, target_file_name, ifd->name, g_makefile_add_phony_targets);
     ifd = ifd->next;
   }
 
   /* stringmaptable files */
   while (smt != NULL) {
-    print_makefile_rule(g_makefile_rule_file, target_file_name, smt->filename, g_makefile_add_phony_targets);
+    _print_makefile_rule(g_makefile_rule_file, target_file_name, smt->filename, g_makefile_add_phony_targets);
     smt = smt->next;
   }
 
   /* filenames used in .fopens */
   while (fopens != NULL) {
-    print_makefile_rule(g_makefile_rule_file, target_file_name, fopens->string, g_makefile_add_phony_targets);
+    _print_makefile_rule(g_makefile_rule_file, target_file_name, fopens->string, g_makefile_add_phony_targets);
     fopens = fopens->next;
   }
 

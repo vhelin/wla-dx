@@ -1173,7 +1173,7 @@ int add_namespace(char *label, char *name_space, unsigned int label_size, int fi
 }
 
 
-int macro_get_by_id(int id, struct macro_static **macro_out) {
+static int _macro_get_by_id(int id, struct macro_static **macro_out) {
 
   struct macro_static *macro;
 
@@ -1196,7 +1196,7 @@ int process_macro_in(int id, char *name, int file_name_id, int line_number) {
   int x;
 
   /* find the .MACRO */
-  macro_get_by_id(id, &macro);
+  _macro_get_by_id(id, &macro);
   if (macro == NULL) {
     fprintf(stderr, "%s:%d: .MACRO %s has gone missing! Please submit a bug report!\n", get_file_name(file_name_id), line_number, name);
     return FAILED;
@@ -1231,7 +1231,7 @@ int process_macro_out(int id, char *name, int file_name_id, int line_number) {
   struct macro_static *macro;
 
   /* find the .MACRO */
-  macro_get_by_id(id, &macro);
+  _macro_get_by_id(id, &macro);
   if (macro == NULL) {
     fprintf(stderr, "%s:%d: .MACRO %s has gone missing! Please submit a bug report!\n", get_file_name(file_name_id), line_number, name);
     return FAILED;

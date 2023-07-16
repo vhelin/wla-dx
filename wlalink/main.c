@@ -10,7 +10,6 @@
 #include <string.h>
 
 #include "defines.h"
-#include "main.h"
 #include "memory.h"
 #include "files.h"
 #include "check.h"
@@ -129,7 +128,7 @@ static const char *s_si_operator_pow = "pow(a,b)";
 static const char *s_si_operator_sign = "sign(a)";
 static const char *s_si_operator_clamp = "clamp(v,min,max)";
 
-const char *get_stack_item_operator_name(int operator) {
+static const char *_get_stack_item_operator_name(int operator) {
 
   if (operator == SI_OP_ADD)
     return s_si_operator_plus;
@@ -231,7 +230,7 @@ const char *get_stack_item_operator_name(int operator) {
     return s_si_operator_clamp;
   
   fprintf(stderr, "\n");
-  fprintf(stderr, "get_stack_item_operator_name(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", operator);
+  fprintf(stderr, "_get_stack_item_operator_name(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", operator);
   exit(1);
 
   return s_si_operator_unknown;
@@ -255,7 +254,7 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
     if (type == STACK_ITEM_TYPE_VALUE)
       snprintf(sid, sizeof(s_stack_item_description), "stack_item: value (%c)          : %f/$%x (RAM) %f/$%x (ROM)\n", sign, si->value_ram, (int)si->value_ram, si->value_rom, (int)si->value_rom);
     else if (type == STACK_ITEM_TYPE_OPERATOR)
-      snprintf(sid, sizeof(s_stack_item_description), "stack_item: operator (%c)       : %s\n", sign, get_stack_item_operator_name((int)si->value_ram));
+      snprintf(sid, sizeof(s_stack_item_description), "stack_item: operator (%c)       : %s\n", sign, _get_stack_item_operator_name((int)si->value_ram));
     else if (type == STACK_ITEM_TYPE_STRING)
       snprintf(sid, sizeof(s_stack_item_description), "stack_item: string             : %s\n", si->string);
     else if (type == STACK_ITEM_TYPE_LABEL)
@@ -279,10 +278,12 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
   return sid;
 }
 
-void _debug_print_label(struct label *l) {
+
+static void _debug_print_label(struct label *l) {
 
   printf("label: \"%s\" file: %s status: %d section: %d (%d) bank: %d slot: %d base: %d address: %d/$%x alive: %d\n", l->name, get_file_name(l->file_id), l->status, l->section, l->section & 0xffff, l->bank, l->slot, l->base, (int)l->address, (int)l->address, l->alive);
 }
+
 
 static void _debug_print_sections(void) {
 
@@ -332,6 +333,687 @@ static void _debug_print_sections(void) {
 
 #endif
 
+
+static int _show_ram_information(int *free, int *total) {
+
+  int printed_something = NO, bank_used, bank_free, slot, bank, i, area_start, area_end;
+  char *slot_usage_data, slot_name[MAX_NAME_LENGTH+1];
+  float f;
+
+  if (g_verbose_level >= 100) {
+    printf("-------------------------------------------------\n");
+    printf("---                   RAM                     ---\n");
+    printf("-------------------------------------------------\n");
+  }
+  
+  *free = 0;
+  *total = 0;
+
+  for (slot = 0; slot < 256; slot++) {
+    for (bank = 0; bank < 256; bank++) {
+      if (g_ram_slots[bank] == NULL)
+        continue;
+
+      slot_usage_data = g_ram_slots[bank][slot];
+      if (slot_usage_data == NULL)
+        continue;
+
+      bank_used = 0;
+      bank_free = 0;
+
+      for (i = 0; i < g_slots[slot].size; i++) {
+        if (slot_usage_data[i] <= 0) {
+          (*free)++;
+          bank_free++;
+        }
+        else
+          bank_used++;
+        (*total)++;
+      }
+
+      /* get slot name */
+      if (g_slots[slot].name[0] != 0)
+        snprintf(slot_name, sizeof(slot_name), "%d (%s)", slot, g_slots[slot].name);
+      else
+        snprintf(slot_name, sizeof(slot_name), "%d", slot);
+
+      f = ((float)bank_free)/(bank_free + bank_used) * 100.0f;
+      if (g_verbose_level >= 100)
+        printf("RAM slot %s bank %d (%d bytes (%.2f%%) free)\n", slot_name, bank, bank_free, f);
+
+      area_start = -1;
+      area_end = -1;
+      
+      for (i = 0; i < g_slots[slot].size; i++) {
+        int print_area = NO;
+        
+        if (slot_usage_data[i] == 0) {
+          if (area_start < 0)
+            area_start = i;
+          area_end = i;
+          
+          if (i == g_slots[slot].size-1)
+            print_area = YES;
+        }
+        else {
+          if (area_start >= 0)
+            print_area = YES;
+        }
+        
+        if (print_area == YES) {
+          if (g_verbose_level >= 100)
+            printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+          area_start = -1;
+          area_end = -1;
+        }
+      }
+      
+      printed_something = YES;
+    }
+  }
+
+  if (printed_something == NO) {
+    if (g_verbose_level >= 100)
+      printf("No .RAMSECTIONs were found, no information about RAM.\n");
+  }
+  
+  return SUCCEEDED;
+}
+
+
+static int _show_headers_and_footers_information(void) {
+
+  struct section *s;
+  int i, prints = 0;
+
+  if (g_verbose_level < 100)
+    return SUCCEEDED;
+  
+  printf("-------------------------------------------------\n");
+  printf("---           HEADERS AND FOOTERS             ---\n");
+  printf("-------------------------------------------------\n");
+
+  if (g_file_header_size != 0) {
+    printf("File header size %d.\n", g_file_header_size);
+    prints++;
+  }
+  if (g_file_footer_size != 0) {
+    printf("File footer size %d.\n", g_file_footer_size);
+    prints++;
+  }
+  
+  i = g_file_header_size + g_file_footer_size;
+  
+  if (g_output_type == OUTPUT_TYPE_CBM_PRG) {
+    printf("2 additional bytes from the CBM PRG header.\n");
+    i += 2;
+    prints++;
+  }
+  
+  if (g_smc_status != 0) {
+    printf("512 additional bytes from the SMC ROM header.\n");
+    i += 512;
+    prints++;
+  }
+
+  s = g_sec_bankhd_first;
+  while (s != NULL) {
+    printf("ROM bank %d header section size %d.\n", s->bank, s->size);
+    i += s->size;
+    s = s->next;
+  }
+
+  if (i != 0) {
+    if (prints > 1)
+      printf("Total %d additional bytes (from headers and footers).\n", i);
+  }
+  else
+    printf("No headers or footers found.\n");
+
+  return SUCCEEDED;
+}
+
+
+static int _show_rom_ram_information(void) {
+
+  int a, address, r, rom_used_bytes = 0, rom_bank_used_bytes, area_start, area_end, ram_free, ram_total;
+  float f;
+
+  if (g_verbose_level <= 1)
+    return SUCCEEDED;
+
+  fflush(stderr);
+  fflush(stdout);
+  
+  if (g_output_mode == OUTPUT_ROM) {
+    /* ROM information */
+
+    if (g_verbose_level >= 100) {
+      printf("-------------------------------------------------\n");
+      printf("---                   ROM                     ---\n");
+      printf("-------------------------------------------------\n");
+    }
+    
+    for (r = 0, address = 0; r < g_rombanks; r++) {
+      int address_old = address;
+    
+      for (a = 0, rom_bank_used_bytes = 0; a < g_banksizes[r]; a++, address++) {
+        if (g_rom_usage[address] != 0) {
+          rom_used_bytes++;
+          rom_bank_used_bytes++;
+        }
+      }
+
+      f = (((float)(g_banksizes[r] - rom_bank_used_bytes))/g_banksizes[r]) * 100.0f;
+      if (g_verbose_level >= 100)
+        printf("ROM bank %d (%d bytes (%.2f%%) free)\n", r, g_banksizes[r] - rom_bank_used_bytes, f);
+
+      address = address_old;
+      area_start = -1;
+      area_end = -1;
+      
+      for (a = 0; a < g_banksizes[r]; a++, address++) {
+        int print_area = NO;
+        
+        if (g_rom_usage[address] == 0) {
+          if (area_start < 0)
+            area_start = a;
+          area_end = a;
+          
+          if (a == g_banksizes[r]-1)
+            print_area = YES;
+        }
+        else {
+          if (area_start >= 0)
+            print_area = YES;
+        }
+        
+        if (print_area == YES) {
+          if (g_verbose_level >= 100)
+            printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+          area_start = -1;
+          area_end = -1;
+        }      
+      }
+    }
+
+    _show_ram_information(&ram_free, &ram_total);
+    _show_headers_and_footers_information();
+    
+    if (g_verbose_level >= 100) {
+      printf("-------------------------------------------------\n");
+      printf("---                 SUMMARY                   ---\n");
+      printf("-------------------------------------------------\n");
+    }
+    
+    f = (((float)(g_romsize - rom_used_bytes))/g_romsize) * 100.0f;
+    printf("ROM: %d bytes (%.2f%%) free of total %d.\n", g_romsize - rom_used_bytes, f, g_romsize);
+
+    if (ram_free <= 0)
+      printf("RAM: No .RAMSECTIONs were found, no information about RAM.\n");
+    else {
+      f = (((float)ram_free)/ram_total) * 100.0f;
+      printf("RAM: %d bytes (%.2f%%) free of total %d.\n", ram_free, f, ram_total);
+    }
+  }
+  else {
+    /* PRG information */
+    int prg_size = g_program_end - g_program_start + 1, used_bytes;
+
+    if (g_verbose_level >= 100) {
+      printf("-------------------------------------------------\n");
+      printf("---                   PRG                     ---\n");
+      printf("-------------------------------------------------\n");
+    }
+    
+    for (a = g_program_start, used_bytes = 0; a <= g_program_end; a++) {
+      if (g_rom_usage[a] != 0)
+        used_bytes++;
+    }
+
+    f = (((float)(prg_size - used_bytes))/prg_size) * 100.0f;
+    if (g_verbose_level >= 100)
+      printf("PRG $%.4x-$%.4x (%d bytes (%.2f%%) free)\n", g_program_start, g_program_end, prg_size - used_bytes, f);
+
+    area_start = -1;
+    area_end = -1;
+      
+    for (a = g_program_start; a < g_program_end; a++) {
+      int print_area = NO;
+        
+      if (g_rom_usage[a] == 0) {
+        if (area_start < 0)
+          area_start = a;
+        area_end = a;
+          
+        if (a == g_program_end-1)
+          print_area = YES;
+      }
+      else {
+        if (area_start >= 0)
+          print_area = YES;
+      }
+        
+      if (print_area == YES) {
+        if (g_verbose_level >= 100)
+          printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+        area_start = -1;
+        area_end = -1;
+      }      
+    }
+    
+    _show_ram_information(&ram_free, &ram_total);
+    _show_headers_and_footers_information();
+
+    if (g_verbose_level >= 100) {
+      printf("-------------------------------------------------\n");
+      printf("---                 SUMMARY                   ---\n");
+      printf("-------------------------------------------------\n");
+    }
+    
+    f = (((float)(prg_size - used_bytes))/prg_size) * 100.0f;
+    printf("PRG: %d bytes (%.2f%%) free of total %d.\n", prg_size - used_bytes, f, prg_size);
+
+    if (ram_free <= 0)
+      printf("RAM: No .RAMSECTIONs were found, no information about RAM.\n");
+    else {
+      f = (((float)ram_free)/ram_total) * 100.0f;
+      printf("RAM: %d bytes (%.2f%%) free of total %d.\n", ram_free, f, ram_total);
+    }
+  }
+
+  fflush(stderr);
+  fflush(stdout);
+  
+  return SUCCEEDED;
+}
+
+
+static void _free_section_allocations(struct section *s) {
+
+  if (s->listfile_cmds != NULL)
+    free(s->listfile_cmds);
+  if (s->listfile_ints != NULL)
+    free(s->listfile_ints);
+
+  if (s->data != NULL)
+    free(s->data);
+
+  if (s->label_map != NULL)
+    hashmap_free(s->label_map);
+
+  if (s->nspace != NULL) {
+    if (s->nspace->label_map != NULL) {
+      hashmap_free(s->nspace->label_map);
+      s->nspace->label_map = NULL;
+    }
+  }
+}
+
+
+static void _procedures_at_exit(void) {
+
+  struct source_file_name *f, *fn;
+  struct object_file *o;
+  struct reference *r;
+  struct section *s;
+  struct stack *sta;
+  struct label *l;
+  struct label_sizeof *ls;
+  int i, p;
+
+  /* free all the dynamically allocated data structures */
+  free(g_object_files);
+
+  for (i = 0; i <= g_section_table_table_max; i++) {
+    if (g_section_table_table[i] != NULL) {
+      free(g_section_table_table[i]->ptr);
+      free(g_section_table_table[i]);
+    }
+  }
+  free(g_section_table_table);
+  
+  while (g_obj_first != NULL) {
+    f = g_obj_first->source_file_names_list;
+    while (f != NULL) {
+      free(f->name);
+      fn = f->next;
+      free(f);
+      f = fn;
+    }
+    free(g_obj_first->data);
+    free(g_obj_first->name);
+    free(g_obj_first->listfile_ints);
+    free(g_obj_first->listfile_cmds);
+    free(g_obj_first->stacks);
+    o = g_obj_first;
+    g_obj_first = g_obj_first->next;
+    free(o);
+  }
+
+  while (g_labels_first != NULL) {
+    l = g_labels_first;
+    g_labels_first = g_labels_first->next;
+    free(l);
+  }
+
+  while (g_label_sizeofs != NULL) {
+    ls = g_label_sizeofs;
+    g_label_sizeofs = g_label_sizeofs->next;
+    free(ls);
+  }
+
+  while (g_reference_first != NULL) {
+    r = g_reference_first;
+    g_reference_first = g_reference_first->next;
+    free(r);
+  }
+
+  while (g_stacks_first != NULL) {
+    sta = g_stacks_first->next;
+    free(g_stacks_first->stack_items);
+    free(g_stacks_first);
+    g_stacks_first = sta;
+  }
+
+  while (g_sec_first != NULL) {
+    s = g_sec_first->next;
+    _free_section_allocations(g_sec_first);
+    free(g_sec_first);
+    g_sec_first = s;
+  }
+
+  while (g_sec_bankhd_first != NULL) {
+    s = g_sec_bankhd_first->next;
+    _free_section_allocations(g_sec_bankhd_first);
+    free(g_sec_bankhd_first);
+    g_sec_bankhd_first = s;
+  }
+
+  while (g_sec_fix_first != NULL) {
+    g_sec_fix_tmp = g_sec_fix_first;
+    g_sec_fix_first = g_sec_fix_first->next;
+    free(g_sec_fix_tmp);
+  }
+
+  g_after_tmp = g_after_sections;
+  while (g_after_tmp != NULL) {
+    g_after_sections = g_after_tmp->next;
+    free(g_after_tmp);
+    g_after_tmp = g_after_sections;
+  }
+
+  if (g_global_unique_label_map != NULL)
+    hashmap_free(g_global_unique_label_map);
+
+  if (g_namespace_map != NULL) {
+    hashmap_free_all_elements(g_namespace_map);
+    hashmap_free(g_namespace_map);
+  }
+
+  free(g_banksizes);
+  free(g_bankaddress);
+
+  /* free RAM slot/bank usage arrays */
+  for (i = 0; i < 256; i++) {
+    if (g_ram_slots[i] != NULL) {
+      for (p = 0; p < 256; p++) {
+        if (g_ram_slots[i][p] != NULL) {
+          free(g_ram_slots[i][p]);
+          g_ram_slots[i][p] = NULL;
+        }
+      }
+      free(g_ram_slots[i]);
+      g_ram_slots[i] = NULL;
+    }
+  }
+  
+  free(g_sorted_anonymous_labels);
+
+  /* free ROM */
+  free(g_rom);
+  free(g_rom_usage);
+}
+
+
+static int _localize_path(char *path) {
+
+  int i;
+  
+  if (path == NULL)
+    return FAILED;
+
+  for (i = 0; path[i] != 0; i++) {
+#if defined(MSDOS)
+    /* '/' -> '\' */
+    if (path[i] == '/')
+      path[i] = '\\';
+#else
+    /* '\' -> '/' */
+    if (path[i] == '\\')
+      path[i] = '/';
+#endif
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _parse_and_set_libdir(char *c, int contains_flag) {
+
+  char n[MAX_NAME_LENGTH + 1];
+  int i;
+
+  /* skip the flag? */
+  if (contains_flag == YES)
+    c += 2;
+
+  if (strlen(c) < 2)
+    return FAILED;
+  
+  for (i = 0; i < MAX_NAME_LENGTH && *c != 0; i++, c++)
+    n[i] = *c;
+  n[i] = 0;
+
+  if (*c != 0)
+    return FAILED;
+
+  _localize_path(n);
+#if defined(MSDOS)
+  snprintf(g_ext_libdir, sizeof(g_ext_libdir), "%s\\", n);
+#else
+  snprintf(g_ext_libdir, sizeof(g_ext_libdir), "%s/", n);
+#endif
+  g_use_libdir = YES;
+
+  return SUCCEEDED;
+}
+
+
+static int _parse_flags(char **flags, int flagc) {
+
+  int output_mode_defined = 0;
+  int count;
+  
+  for (count = 1; count < flagc - 2; count++) {
+    if (!strcmp(flags[count], "-b")) {
+      if (output_mode_defined == 1)
+        return FAILED;
+      output_mode_defined++;
+      g_output_mode = OUTPUT_PRG;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-bS")) {
+      if (count + 1 < flagc) {
+        /* get arg */
+        if (get_next_number(flags[count + 1], &g_program_address_start, NULL) == FAILED) {
+          /* address must be an address label */
+          strncpy(g_program_address_start_label, flags[count + 1], MAX_NAME_LENGTH);
+          g_program_address_start_type = LOAD_ADDRESS_TYPE_LABEL;
+        }
+        else
+          g_program_address_start_type = LOAD_ADDRESS_TYPE_VALUE;
+      }
+      else
+        return FAILED;
+      count++;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-bE")) {
+      if (count + 1 < flagc) {
+        /* get arg */
+        if (get_next_number(flags[count + 1], &g_program_address_end, NULL) == FAILED) {
+          /* address must be an address label */
+          strncpy(g_program_address_end_label, flags[count + 1], MAX_NAME_LENGTH);
+          g_program_address_end_type = LOAD_ADDRESS_TYPE_LABEL;
+        }
+        else
+          g_program_address_end_type = LOAD_ADDRESS_TYPE_VALUE;
+      }
+      else
+        return FAILED;
+      count++;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-r")) {
+      if (output_mode_defined == 1)
+        return FAILED;
+      output_mode_defined++;
+      g_output_mode = OUTPUT_ROM;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-R")) {
+      if (g_paths_in_linkfile_are_relative_to_linkfile == YES)
+        return FAILED;
+      g_paths_in_linkfile_are_relative_to_linkfile = YES;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-t")) {
+      if (count + 1 < flagc) {
+        /* get arg */
+        if (!strcmp(flags[count + 1], "CBMPRG"))
+          g_output_type = OUTPUT_TYPE_CBM_PRG;
+        else
+          return FAILED;
+      }
+      else
+        return FAILED;
+      count++;
+      continue;      
+    }
+    else if (!strcmp(flags[count], "-a")) {
+      if (count + 1 < flagc) {
+        /* get arg */
+        if (get_next_number(flags[count + 1], &g_load_address, NULL) == FAILED) {
+          /* load address must be an address label */
+          strncpy(g_load_address_label, flags[count + 1], MAX_NAME_LENGTH);
+          g_load_address_type = LOAD_ADDRESS_TYPE_LABEL;
+        }
+        else
+          g_load_address_type = LOAD_ADDRESS_TYPE_VALUE;
+      }
+      else
+        return FAILED;
+      count++;
+      continue;      
+    }
+    else if (!strcmp(flags[count], "-L")) {
+      if (count + 1 < flagc) {
+        /* get arg */
+        _parse_and_set_libdir(flags[count+1], NO);
+      }
+      else
+        return FAILED;
+      count++;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-c")) {
+      g_allow_duplicate_labels_and_definitions = YES;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-i")) {
+      s_listfile_data = YES;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-nS")) {
+      g_sort_sections = NO;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-pS")) {
+      g_use_priority_only_writing_sections = YES;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-pR")) {
+      g_use_priority_only_writing_ramsections = YES;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-v")) {
+      g_verbose_level = 100;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-v1")) {
+      g_verbose_level = 1;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-v2")) {
+      g_verbose_level = 2;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-s")) {
+      s_symbol_mode = SYMBOL_MODE_NOCA5H;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-S")) {
+      s_symbol_mode = SYMBOL_MODE_WLA;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-A")) {
+      s_output_addr_to_line = ON;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-d")) {
+      g_discard_unreferenced_sections = ON;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-D")) {
+      s_create_sizeof_definitions = NO;
+      continue;
+    }
+    else {
+      /* legacy support? */
+      if (strncmp(flags[count], "-L", 2) == 0) {
+        /* old library directory */
+        _parse_and_set_libdir(flags[count], YES);
+        continue;
+      }
+      else
+        return FAILED;
+    }
+  }
+  
+  return SUCCEEDED;
+}
+
+
+static int _allocate_rom(void) {
+
+  g_rom = calloc(sizeof(unsigned char) * g_romsize, 1);
+  if (g_rom == NULL) {
+    fprintf(stderr, "_ALLOCATE_ROM: Out of memory.\n");
+    return FAILED;
+  }
+  g_rom_usage = calloc(sizeof(unsigned char) * g_romsize, 1);
+  if (g_rom_usage == NULL) {
+    fprintf(stderr, "_ALLOCATE_ROM: Out of memory.\n");
+    return FAILED;
+  }
+  memset(g_rom, g_emptyfill, g_romsize);
+  memset(g_rom_usage, 0, g_romsize);
+
+  return SUCCEEDED;
+}
+
+
 int main(int argc, char *argv[]) {
 
   int i;
@@ -345,10 +1027,10 @@ int main(int argc, char *argv[]) {
   for (i = 0; i < 256; i++)
     g_ram_slots[i] = NULL;
 
-  atexit(procedures_at_exit);
+  atexit(_procedures_at_exit);
 
   if (argc > 2)
-    i = parse_flags(argv, argc);
+    i = _parse_flags(argv, argc);
   else
     i = FAILED;
 
@@ -479,7 +1161,7 @@ int main(int argc, char *argv[]) {
   */
 
   /* take rom size and allocate memory */
-  if (allocate_rom() == FAILED)
+  if (_allocate_rom() == FAILED)
     return 1;
 
   /* parse data blocks */
@@ -766,688 +1448,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* show rom & ram information */
-  show_rom_ram_information();
+  _show_rom_ram_information();
 
   return 0;
-}
-
-
-int _show_ram_information(int *free, int *total) {
-
-  int printed_something = NO, bank_used, bank_free, slot, bank, i, area_start, area_end;
-  char *slot_usage_data, slot_name[MAX_NAME_LENGTH+1];
-  float f;
-
-  if (g_verbose_level >= 100) {
-    printf("-------------------------------------------------\n");
-    printf("---                   RAM                     ---\n");
-    printf("-------------------------------------------------\n");
-  }
-  
-  *free = 0;
-  *total = 0;
-
-  for (slot = 0; slot < 256; slot++) {
-    for (bank = 0; bank < 256; bank++) {
-      if (g_ram_slots[bank] == NULL)
-        continue;
-
-      slot_usage_data = g_ram_slots[bank][slot];
-      if (slot_usage_data == NULL)
-        continue;
-
-      bank_used = 0;
-      bank_free = 0;
-
-      for (i = 0; i < g_slots[slot].size; i++) {
-        if (slot_usage_data[i] <= 0) {
-          (*free)++;
-          bank_free++;
-        }
-        else
-          bank_used++;
-        (*total)++;
-      }
-
-      /* get slot name */
-      if (g_slots[slot].name[0] != 0)
-        snprintf(slot_name, sizeof(slot_name), "%d (%s)", slot, g_slots[slot].name);
-      else
-        snprintf(slot_name, sizeof(slot_name), "%d", slot);
-
-      f = ((float)bank_free)/(bank_free + bank_used) * 100.0f;
-      if (g_verbose_level >= 100)
-        printf("RAM slot %s bank %d (%d bytes (%.2f%%) free)\n", slot_name, bank, bank_free, f);
-
-      area_start = -1;
-      area_end = -1;
-      
-      for (i = 0; i < g_slots[slot].size; i++) {
-        int print_area = NO;
-        
-        if (slot_usage_data[i] == 0) {
-          if (area_start < 0)
-            area_start = i;
-          area_end = i;
-          
-          if (i == g_slots[slot].size-1)
-            print_area = YES;
-        }
-        else {
-          if (area_start >= 0)
-            print_area = YES;
-        }
-        
-        if (print_area == YES) {
-          if (g_verbose_level >= 100)
-            printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
-          area_start = -1;
-          area_end = -1;
-        }
-      }
-      
-      printed_something = YES;
-    }
-  }
-
-  if (printed_something == NO) {
-    if (g_verbose_level >= 100)
-      printf("No .RAMSECTIONs were found, no information about RAM.\n");
-  }
-  
-  return SUCCEEDED;
-}
-
-
-int _show_headers_and_footers_information(void) {
-
-  struct section *s;
-  int i, prints = 0;
-
-  if (g_verbose_level < 100)
-    return SUCCEEDED;
-  
-  printf("-------------------------------------------------\n");
-  printf("---           HEADERS AND FOOTERS             ---\n");
-  printf("-------------------------------------------------\n");
-
-  if (g_file_header_size != 0) {
-    printf("File header size %d.\n", g_file_header_size);
-    prints++;
-  }
-  if (g_file_footer_size != 0) {
-    printf("File footer size %d.\n", g_file_footer_size);
-    prints++;
-  }
-  
-  i = g_file_header_size + g_file_footer_size;
-  
-  if (g_output_type == OUTPUT_TYPE_CBM_PRG) {
-    printf("2 additional bytes from the CBM PRG header.\n");
-    i += 2;
-    prints++;
-  }
-  
-  if (g_smc_status != 0) {
-    printf("512 additional bytes from the SMC ROM header.\n");
-    i += 512;
-    prints++;
-  }
-
-  s = g_sec_bankhd_first;
-  while (s != NULL) {
-    printf("ROM bank %d header section size %d.\n", s->bank, s->size);
-    i += s->size;
-    s = s->next;
-  }
-
-  if (i != 0) {
-    if (prints > 1)
-      printf("Total %d additional bytes (from headers and footers).\n", i);
-  }
-  else
-    printf("No headers or footers found.\n");
-
-  return SUCCEEDED;
-}
-
-
-int show_rom_ram_information(void) {
-
-  int a, address, r, rom_used_bytes = 0, rom_bank_used_bytes, area_start, area_end, ram_free, ram_total;
-  float f;
-
-  if (g_verbose_level <= 1)
-    return SUCCEEDED;
-
-  fflush(stderr);
-  fflush(stdout);
-  
-  if (g_output_mode == OUTPUT_ROM) {
-    /* ROM information */
-
-    if (g_verbose_level >= 100) {
-      printf("-------------------------------------------------\n");
-      printf("---                   ROM                     ---\n");
-      printf("-------------------------------------------------\n");
-    }
-    
-    for (r = 0, address = 0; r < g_rombanks; r++) {
-      int address_old = address;
-    
-      for (a = 0, rom_bank_used_bytes = 0; a < g_banksizes[r]; a++, address++) {
-        if (g_rom_usage[address] != 0) {
-          rom_used_bytes++;
-          rom_bank_used_bytes++;
-        }
-      }
-
-      f = (((float)(g_banksizes[r] - rom_bank_used_bytes))/g_banksizes[r]) * 100.0f;
-      if (g_verbose_level >= 100)
-        printf("ROM bank %d (%d bytes (%.2f%%) free)\n", r, g_banksizes[r] - rom_bank_used_bytes, f);
-
-      address = address_old;
-      area_start = -1;
-      area_end = -1;
-      
-      for (a = 0; a < g_banksizes[r]; a++, address++) {
-        int print_area = NO;
-        
-        if (g_rom_usage[address] == 0) {
-          if (area_start < 0)
-            area_start = a;
-          area_end = a;
-          
-          if (a == g_banksizes[r]-1)
-            print_area = YES;
-        }
-        else {
-          if (area_start >= 0)
-            print_area = YES;
-        }
-        
-        if (print_area == YES) {
-          if (g_verbose_level >= 100)
-            printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
-          area_start = -1;
-          area_end = -1;
-        }      
-      }
-    }
-
-    _show_ram_information(&ram_free, &ram_total);
-    _show_headers_and_footers_information();
-    
-    if (g_verbose_level >= 100) {
-      printf("-------------------------------------------------\n");
-      printf("---                 SUMMARY                   ---\n");
-      printf("-------------------------------------------------\n");
-    }
-    
-    f = (((float)(g_romsize - rom_used_bytes))/g_romsize) * 100.0f;
-    printf("ROM: %d bytes (%.2f%%) free of total %d.\n", g_romsize - rom_used_bytes, f, g_romsize);
-
-    if (ram_free <= 0)
-      printf("RAM: No .RAMSECTIONs were found, no information about RAM.\n");
-    else {
-      f = (((float)ram_free)/ram_total) * 100.0f;
-      printf("RAM: %d bytes (%.2f%%) free of total %d.\n", ram_free, f, ram_total);
-    }
-  }
-  else {
-    /* PRG information */
-    int prg_size = g_program_end - g_program_start + 1, used_bytes;
-
-    if (g_verbose_level >= 100) {
-      printf("-------------------------------------------------\n");
-      printf("---                   PRG                     ---\n");
-      printf("-------------------------------------------------\n");
-    }
-    
-    for (a = g_program_start, used_bytes = 0; a <= g_program_end; a++) {
-      if (g_rom_usage[a] != 0)
-        used_bytes++;
-    }
-
-    f = (((float)(prg_size - used_bytes))/prg_size) * 100.0f;
-    if (g_verbose_level >= 100)
-      printf("PRG $%.4x-$%.4x (%d bytes (%.2f%%) free)\n", g_program_start, g_program_end, prg_size - used_bytes, f);
-
-    area_start = -1;
-    area_end = -1;
-      
-    for (a = g_program_start; a < g_program_end; a++) {
-      int print_area = NO;
-        
-      if (g_rom_usage[a] == 0) {
-        if (area_start < 0)
-          area_start = a;
-        area_end = a;
-          
-        if (a == g_program_end-1)
-          print_area = YES;
-      }
-      else {
-        if (area_start >= 0)
-          print_area = YES;
-      }
-        
-      if (print_area == YES) {
-        if (g_verbose_level >= 100)
-          printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
-        area_start = -1;
-        area_end = -1;
-      }      
-    }
-    
-    _show_ram_information(&ram_free, &ram_total);
-    _show_headers_and_footers_information();
-
-    if (g_verbose_level >= 100) {
-      printf("-------------------------------------------------\n");
-      printf("---                 SUMMARY                   ---\n");
-      printf("-------------------------------------------------\n");
-    }
-    
-    f = (((float)(prg_size - used_bytes))/prg_size) * 100.0f;
-    printf("PRG: %d bytes (%.2f%%) free of total %d.\n", prg_size - used_bytes, f, prg_size);
-
-    if (ram_free <= 0)
-      printf("RAM: No .RAMSECTIONs were found, no information about RAM.\n");
-    else {
-      f = (((float)ram_free)/ram_total) * 100.0f;
-      printf("RAM: %d bytes (%.2f%%) free of total %d.\n", ram_free, f, ram_total);
-    }
-  }
-
-  fflush(stderr);
-  fflush(stdout);
-  
-  return SUCCEEDED;
-}
-
-
-int localize_path(char *path) {
-
-  int i;
-
-  
-  if (path == NULL)
-    return FAILED;
-
-  for (i = 0; path[i] != 0; i++) {
-#if defined(MSDOS)
-    /* '/' -> '\' */
-    if (path[i] == '/')
-      path[i] = '\\';
-#else
-    /* '\' -> '/' */
-    if (path[i] == '\\')
-      path[i] = '/';
-#endif
-  }
-
-  return SUCCEEDED;
-}
-
-
-static void _free_section_allocations(struct section *s) {
-
-  if (s->listfile_cmds != NULL)
-    free(s->listfile_cmds);
-  if (s->listfile_ints != NULL)
-    free(s->listfile_ints);
-
-  if (s->data != NULL)
-    free(s->data);
-
-  if (s->label_map != NULL)
-    hashmap_free(s->label_map);
-
-  if (s->nspace != NULL) {
-    if (s->nspace->label_map != NULL) {
-      hashmap_free(s->nspace->label_map);
-      s->nspace->label_map = NULL;
-    }
-  }
-}
-
-
-void procedures_at_exit(void) {
-
-  struct source_file_name *f, *fn;
-  struct object_file *o;
-  struct reference *r;
-  struct section *s;
-  struct stack *sta;
-  struct label *l;
-  struct label_sizeof *ls;
-  int i, p;
-
-  /* free all the dynamically allocated data structures */
-  free(g_object_files);
-
-  for (i = 0; i <= g_section_table_table_max; i++) {
-    if (g_section_table_table[i] != NULL) {
-      free(g_section_table_table[i]->ptr);
-      free(g_section_table_table[i]);
-    }
-  }
-  free(g_section_table_table);
-  
-  while (g_obj_first != NULL) {
-    f = g_obj_first->source_file_names_list;
-    while (f != NULL) {
-      free(f->name);
-      fn = f->next;
-      free(f);
-      f = fn;
-    }
-    free(g_obj_first->data);
-    free(g_obj_first->name);
-    free(g_obj_first->listfile_ints);
-    free(g_obj_first->listfile_cmds);
-    free(g_obj_first->stacks);
-    o = g_obj_first;
-    g_obj_first = g_obj_first->next;
-    free(o);
-  }
-
-  while (g_labels_first != NULL) {
-    l = g_labels_first;
-    g_labels_first = g_labels_first->next;
-    free(l);
-  }
-
-  while (g_label_sizeofs != NULL) {
-    ls = g_label_sizeofs;
-    g_label_sizeofs = g_label_sizeofs->next;
-    free(ls);
-  }
-
-  while (g_reference_first != NULL) {
-    r = g_reference_first;
-    g_reference_first = g_reference_first->next;
-    free(r);
-  }
-
-  while (g_stacks_first != NULL) {
-    sta = g_stacks_first->next;
-    free(g_stacks_first->stack_items);
-    free(g_stacks_first);
-    g_stacks_first = sta;
-  }
-
-  while (g_sec_first != NULL) {
-    s = g_sec_first->next;
-    _free_section_allocations(g_sec_first);
-    free(g_sec_first);
-    g_sec_first = s;
-  }
-
-  while (g_sec_bankhd_first != NULL) {
-    s = g_sec_bankhd_first->next;
-    _free_section_allocations(g_sec_bankhd_first);
-    free(g_sec_bankhd_first);
-    g_sec_bankhd_first = s;
-  }
-
-  while (g_sec_fix_first != NULL) {
-    g_sec_fix_tmp = g_sec_fix_first;
-    g_sec_fix_first = g_sec_fix_first->next;
-    free(g_sec_fix_tmp);
-  }
-
-  g_after_tmp = g_after_sections;
-  while (g_after_tmp != NULL) {
-    g_after_sections = g_after_tmp->next;
-    free(g_after_tmp);
-    g_after_tmp = g_after_sections;
-  }
-
-  if (g_global_unique_label_map != NULL)
-    hashmap_free(g_global_unique_label_map);
-
-  if (g_namespace_map != NULL) {
-    hashmap_free_all_elements(g_namespace_map);
-    hashmap_free(g_namespace_map);
-  }
-
-  free(g_banksizes);
-  free(g_bankaddress);
-
-  /* free RAM slot/bank usage arrays */
-  for (i = 0; i < 256; i++) {
-    if (g_ram_slots[i] != NULL) {
-      for (p = 0; p < 256; p++) {
-        if (g_ram_slots[i][p] != NULL) {
-          free(g_ram_slots[i][p]);
-          g_ram_slots[i][p] = NULL;
-        }
-      }
-      free(g_ram_slots[i]);
-      g_ram_slots[i] = NULL;
-    }
-  }
-  
-  free(g_sorted_anonymous_labels);
-
-  /* free ROM */
-  free(g_rom);
-  free(g_rom_usage);
-}
-
-
-int parse_flags(char **flags, int flagc) {
-
-  int output_mode_defined = 0;
-  int count;
-  
-  for (count = 1; count < flagc - 2; count++) {
-    if (!strcmp(flags[count], "-b")) {
-      if (output_mode_defined == 1)
-        return FAILED;
-      output_mode_defined++;
-      g_output_mode = OUTPUT_PRG;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-bS")) {
-      if (count + 1 < flagc) {
-        /* get arg */
-        if (get_next_number(flags[count + 1], &g_program_address_start, NULL) == FAILED) {
-          /* address must be an address label */
-          strncpy(g_program_address_start_label, flags[count + 1], MAX_NAME_LENGTH);
-          g_program_address_start_type = LOAD_ADDRESS_TYPE_LABEL;
-        }
-        else
-          g_program_address_start_type = LOAD_ADDRESS_TYPE_VALUE;
-      }
-      else
-        return FAILED;
-      count++;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-bE")) {
-      if (count + 1 < flagc) {
-        /* get arg */
-        if (get_next_number(flags[count + 1], &g_program_address_end, NULL) == FAILED) {
-          /* address must be an address label */
-          strncpy(g_program_address_end_label, flags[count + 1], MAX_NAME_LENGTH);
-          g_program_address_end_type = LOAD_ADDRESS_TYPE_LABEL;
-        }
-        else
-          g_program_address_end_type = LOAD_ADDRESS_TYPE_VALUE;
-      }
-      else
-        return FAILED;
-      count++;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-r")) {
-      if (output_mode_defined == 1)
-        return FAILED;
-      output_mode_defined++;
-      g_output_mode = OUTPUT_ROM;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-R")) {
-      if (g_paths_in_linkfile_are_relative_to_linkfile == YES)
-        return FAILED;
-      g_paths_in_linkfile_are_relative_to_linkfile = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-t")) {
-      if (count + 1 < flagc) {
-        /* get arg */
-        if (!strcmp(flags[count + 1], "CBMPRG"))
-          g_output_type = OUTPUT_TYPE_CBM_PRG;
-        else
-          return FAILED;
-      }
-      else
-        return FAILED;
-      count++;
-      continue;      
-    }
-    else if (!strcmp(flags[count], "-a")) {
-      if (count + 1 < flagc) {
-        /* get arg */
-        if (get_next_number(flags[count + 1], &g_load_address, NULL) == FAILED) {
-          /* load address must be an address label */
-          strncpy(g_load_address_label, flags[count + 1], MAX_NAME_LENGTH);
-          g_load_address_type = LOAD_ADDRESS_TYPE_LABEL;
-        }
-        else
-          g_load_address_type = LOAD_ADDRESS_TYPE_VALUE;
-      }
-      else
-        return FAILED;
-      count++;
-      continue;      
-    }
-    else if (!strcmp(flags[count], "-L")) {
-      if (count + 1 < flagc) {
-        /* get arg */
-        parse_and_set_libdir(flags[count+1], NO);
-      }
-      else
-        return FAILED;
-      count++;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-c")) {
-      g_allow_duplicate_labels_and_definitions = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-i")) {
-      s_listfile_data = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-nS")) {
-      g_sort_sections = NO;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-pS")) {
-      g_use_priority_only_writing_sections = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-pR")) {
-      g_use_priority_only_writing_ramsections = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-v")) {
-      g_verbose_level = 100;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-v1")) {
-      g_verbose_level = 1;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-v2")) {
-      g_verbose_level = 2;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-s")) {
-      s_symbol_mode = SYMBOL_MODE_NOCA5H;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-S")) {
-      s_symbol_mode = SYMBOL_MODE_WLA;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-A")) {
-      s_output_addr_to_line = ON;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-d")) {
-      g_discard_unreferenced_sections = ON;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-D")) {
-      s_create_sizeof_definitions = NO;
-      continue;
-    }
-    else {
-      /* legacy support? */
-      if (strncmp(flags[count], "-L", 2) == 0) {
-        /* old library directory */
-        parse_and_set_libdir(flags[count], YES);
-        continue;
-      }
-      else
-        return FAILED;
-    }
-  }
-  
-  return SUCCEEDED;
-}
-
-
-int parse_and_set_libdir(char *c, int contains_flag) {
-
-  char n[MAX_NAME_LENGTH + 1];
-  int i;
-
-  /* skip the flag? */
-  if (contains_flag == YES)
-    c += 2;
-
-  if (strlen(c) < 2)
-    return FAILED;
-  
-  for (i = 0; i < MAX_NAME_LENGTH && *c != 0; i++, c++)
-    n[i] = *c;
-  n[i] = 0;
-
-  if (*c != 0)
-    return FAILED;
-
-  localize_path(n);
-#if defined(MSDOS)
-  snprintf(g_ext_libdir, sizeof(g_ext_libdir), "%s\\", n);
-#else
-  snprintf(g_ext_libdir, sizeof(g_ext_libdir), "%s/", n);
-#endif
-  g_use_libdir = YES;
-
-  return SUCCEEDED;
-}
-
-
-int allocate_rom(void) {
-
-  g_rom = calloc(sizeof(unsigned char) * g_romsize, 1);
-  if (g_rom == NULL) {
-    fprintf(stderr, "ALLOCATE_ROM: Out of memory.\n");
-    return FAILED;
-  }
-  g_rom_usage = calloc(sizeof(unsigned char) * g_romsize, 1);
-  if (g_rom_usage == NULL) {
-    fprintf(stderr, "ALLOCATE_ROM: Out of memory.\n");
-    return FAILED;
-  }
-  memset(g_rom, g_emptyfill, g_romsize);
-  memset(g_rom_usage, 0, g_romsize);
-
-  return SUCCEEDED;
 }

@@ -12,6 +12,7 @@
 #include "hashmap.h"
 #include "parse.h"
 #include "phase_1.h"
+#include "phase_3.h"
 #include "stack.h"
 #include "include.h"
 #include "printf.h"
@@ -59,7 +60,7 @@ static int _is_stack_condition(struct stack_item st[], int count) {
 }
 
 
-struct stack *allocate_struct_stack(int items) {
+static struct stack *_allocate_struct_stack(int items) {
 
   struct stack *stack = calloc(sizeof(struct stack), 1);
   if (stack == NULL) {
@@ -329,7 +330,7 @@ static int _break_before_value_or_string(int i, struct stack_item *si) {
 }
 
 #ifdef WLA_DEBUG
-void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int count, int id, struct stack *stack) {
+static void _debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int count, int id, struct stack *stack) {
 
   int k;
   
@@ -470,7 +471,7 @@ void debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int
       else {
         if (value >= (int)strlen(ar)) {
           printf("ERROR!\n");
-          printf("debug_print_stack(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", value);
+          printf("_debug_print_stack(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", value);
           exit(1);
         }
         printf("%c", ar[value]);
@@ -2239,7 +2240,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
 #ifdef WLA_DEBUG
   fprintf(stderr, "PREOPT:\n");
-  debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
+  _debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
 #endif
   
 #ifdef SPC700
@@ -2371,7 +2372,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
 #ifdef WLA_DEBUG
         fprintf(stderr, "ERROR NEAR COMPUTATION ITEM %d! (items %d and %d)\n", k, (int)si[k].value, (int)si[k+1].value);
-        debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
+        _debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
 #endif
         print_error(ERROR_STC, "Error in computation syntax.\n");
         return FAILED;
@@ -2453,7 +2454,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
 #ifdef WLA_DEBUG
   fprintf(stderr, "INFIX:\n");
-  debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
+  _debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
 #endif
     
   /* convert infix stack into postfix stack */
@@ -2552,7 +2553,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
 #ifdef WLA_DEBUG
   fprintf(stderr, "POSTFIX:\n");
-  debug_print_stack(g_active_file_info_last->line_current, -1, ta, d, 0, NULL);
+  _debug_print_stack(g_active_file_info_last->line_current, -1, ta, d, 0, NULL);
 #endif
     
   /* are all the symbols known? */
@@ -2615,7 +2616,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   */
 
   /* we have a stack full of computation and we save it for wlalink */
-  stack = allocate_struct_stack(d);
+  stack = _allocate_struct_stack(d);
   if (stack == NULL)
     return FAILED;
   
@@ -2671,14 +2672,14 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   }
 
 #ifdef WLA_DEBUG
-  debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack_items, d, 0, stack);
+  _debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack_items, d, 0, stack);
 #endif
 
   calculation_stack_insert(stack);
 
 #ifdef WLA_DEBUG
     fprintf(stderr, "RETURN STACK %d\n", g_latest_stack);
-    debug_print_stack(g_active_file_info_last->line_current, g_latest_stack, ta, d, 0, NULL);
+    _debug_print_stack(g_active_file_info_last->line_current, g_latest_stack, ta, d, 0, NULL);
 #endif
 
   return INPUT_NUMBER_STACK;
@@ -2786,6 +2787,41 @@ static void _remove_can_calculate_deltas_pair(struct stack_item *s) {
 }
 
 
+static struct data_stream_item *s_dsp_parent_labels[10];
+static struct map_t *s_dsp_labels_map = NULL;
+
+
+static struct data_stream_item *_data_stream_parser_find_label(char *label, int file_name_id, int line_number) {
+
+  char mangled_label[MAX_NAME_LENGTH+1];
+  struct data_stream_item *dSI;
+
+  strcpy(mangled_label, label);
+  
+  if (is_label_anonymous(label) == NO) {
+    /* if the label has '@' at the start, mangle the label name to get its full form */
+    int n = 0;
+
+    while (n < 10 && label[n] == '@')
+      n++;
+    n--;
+
+    if (n >= 0) {
+      if (s_dsp_parent_labels[n] == NULL) {
+        fprintf(stderr, "_DATA_STREAM_PARSER_FIND_LABEL: Parent of label \"%s\" is missing! Please submit a bug report!\n", label);
+        return NULL;
+      }
+      if (mangle_label(mangled_label, s_dsp_parent_labels[n]->label, n, MAX_NAME_LENGTH, file_name_id, line_number) == FAILED)
+        return NULL;
+    }
+  }
+
+  hashmap_get(s_dsp_labels_map, mangled_label, (void *)&dSI);
+
+  return dSI;
+}
+
+
 static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
 
   struct definition *tmp_def;
@@ -2861,7 +2897,7 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
       data_stream_parser_parse();
 
       if (s->type == STACK_ITEM_TYPE_LABEL)
-        dSI = data_stream_parser_find_label(s->string, s_dsp_file_name_id, s_dsp_line_number);
+        dSI = _data_stream_parser_find_label(s->string, s_dsp_file_name_id, s_dsp_line_number);
 
       if (dSI != NULL) {
         if (s_delta_counter == 0) {
@@ -3231,7 +3267,7 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
   if (is_condition == YES || g_input_parse_if == YES) {
 #ifdef WLA_DEBUG
     fprintf(stderr, "RESOLVED (1):\n");
-    debug_print_stack(0, 0, s, backup, 0, NULL);
+    _debug_print_stack(0, 0, s, backup, 0, NULL);
 #endif
     return SUCCEEDED;
   }
@@ -3249,7 +3285,7 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
 
 #ifdef WLA_DEBUG
   fprintf(stderr, "RESOLVED (2):\n");
-  debug_print_stack(0, 0, s, backup, 0, NULL);
+  _debug_print_stack(0, 0, s, backup, 0, NULL);
 #endif
   
   return SUCCEEDED;
@@ -3316,7 +3352,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
 
 #ifdef WLA_DEBUG
   fprintf(stderr, "SOLVING:\n");
-  debug_print_stack(0, 0, s, stack_item_count, 0, NULL);
+  _debug_print_stack(0, 0, s, stack_item_count, 0, NULL);
 #endif
 
   for (r = 0, t = 0; r < stack_item_count; r++, s++) {
@@ -3800,7 +3836,7 @@ int stack_create_label_stack(char *label) {
     return FAILED;
 
   /* we need to create a stack that holds just one label */
-  stack = allocate_struct_stack(1);
+  stack = _allocate_struct_stack(1);
   if (stack == NULL)
     return FAILED;
 
@@ -3822,7 +3858,7 @@ int stack_create_label_stack(char *label) {
   calculation_stack_insert(stack);
 
 #ifdef WLA_DEBUG
-  debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack_items, 1, 1, stack);
+  _debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack_items, 1, 1, stack);
 #endif
 
   return SUCCEEDED;
@@ -3835,7 +3871,7 @@ int stack_create_stack_stack(int stack_id) {
   struct stack_item *si;
   
   /* we need to create a stack that holds just one computation stack */
-  stack = allocate_struct_stack(1);
+  stack = _allocate_struct_stack(1);
   if (stack == NULL)
     return FAILED;
 
@@ -3855,7 +3891,7 @@ int stack_create_stack_stack(int stack_id) {
   si->is_in_postfix = NO;
 
 #if WLA_DEBUG
-  debug_print_stack(stack->linenumber, stack_id, stack->stack_items, 1, 2, stack);
+  _debug_print_stack(stack->linenumber, stack_id, stack->stack_items, 1, 2, stack);
 #endif
 
   calculation_stack_insert(stack);
@@ -3919,7 +3955,7 @@ int stack_create_stack_caddr_offset(int type, int data, char *label) {
 
   struct stack *stack;
   
-  stack = allocate_struct_stack(3);
+  stack = _allocate_struct_stack(3);
   if (stack == NULL)
     return FAILED;
 
@@ -3936,7 +3972,7 @@ int stack_create_stack_caddr_offset(int type, int data, char *label) {
   calculation_stack_insert(stack);
     
 #if WLA_DEBUG
-  debug_print_stack(stack->linenumber, g_latest_stack, stack->stack_items, 3, -1, stack);
+  _debug_print_stack(stack->linenumber, g_latest_stack, stack->stack_items, 3, -1, stack);
 #endif
 
   return SUCCEEDED;
@@ -3997,7 +4033,7 @@ int stack_add_offset_plus_n_to_stack(int id, int n) {
   si->is_in_postfix = YES;
 
 #if WLA_DEBUG
-  debug_print_stack(stack->linenumber, id, stack->stack_items, stack->stacksize, -1, stack);
+  _debug_print_stack(stack->linenumber, id, stack->stack_items, stack->stacksize, -1, stack);
 #endif
 
   return SUCCEEDED;
@@ -4009,7 +4045,7 @@ int stack_create_stack_caddr_offset_plus_n(int type, int data, char *label, int 
   struct stack *stack;
   struct stack_item *si;
   
-  stack = allocate_struct_stack(5);
+  stack = _allocate_struct_stack(5);
   if (stack == NULL)
     return FAILED;
 
@@ -4044,7 +4080,7 @@ int stack_create_stack_caddr_offset_plus_n(int type, int data, char *label, int 
   calculation_stack_insert(stack);
     
 #if WLA_DEBUG
-  debug_print_stack(stack->linenumber, g_latest_stack, stack->stack_items, 5, -1, stack);
+  _debug_print_stack(stack->linenumber, g_latest_stack, stack->stack_items, 5, -1, stack);
 #endif
 
   return SUCCEEDED;
@@ -4054,8 +4090,6 @@ int stack_create_stack_caddr_offset_plus_n(int type, int data, char *label, int 
 
 
 /* TODO: move the following code to its own file... */
-
-#include "phase_3.h"
 
 #define XSTRINGIFY(x) #x
 #define STRINGIFY(x) XSTRINGIFY(x)
@@ -4069,12 +4103,10 @@ extern FILE *g_file_out_ptr;
 
 /* internal variables for data_stream_parser_parse(), saved here so that the function can continue next time it's called from
    where it left off previous call */
-static struct data_stream_item *s_dsp_parent_labels[10];
 static int s_dsp_last_data_stream_position = 0, s_dsp_has_data_stream_parser_been_initialized = NO;
 static int s_dsp_add = 0, s_dsp_add_old = 0, s_dsp_section_id = -1, s_dsp_bits_current = 0, s_dsp_inz;
 static int s_dstruct_start, s_dstruct_item_offset, s_dstruct_item_size;
 static struct section_def *s_dsp_s = NULL;
-static struct map_t *s_dsp_labels_map = NULL;
 
 
 struct section_def *data_stream_parser_get_current_section(void) {
@@ -4492,35 +4524,3 @@ int data_stream_parser_parse(void) {
   
   return SUCCEEDED;
 }
-
-
-struct data_stream_item *data_stream_parser_find_label(char *label, int file_name_id, int line_number) {
-
-  char mangled_label[MAX_NAME_LENGTH+1];
-  struct data_stream_item *dSI;
-
-  strcpy(mangled_label, label);
-  
-  if (is_label_anonymous(label) == NO) {
-    /* if the label has '@' at the start, mangle the label name to get its full form */
-    int n = 0;
-
-    while (n < 10 && label[n] == '@')
-      n++;
-    n--;
-
-    if (n >= 0) {
-      if (s_dsp_parent_labels[n] == NULL) {
-        fprintf(stderr, "DATA_STREAM_PARSER_FIND_LABEL: Parent of label \"%s\" is missing! Please submit a bug report!\n", label);
-        return NULL;
-      }
-      if (mangle_label(mangled_label, s_dsp_parent_labels[n]->label, n, MAX_NAME_LENGTH, file_name_id, line_number) == FAILED)
-        return NULL;
-    }
-  }
-
-  hashmap_get(s_dsp_labels_map, mangled_label, (void *)&dSI);
-
-  return dSI;
-}
-

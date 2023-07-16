@@ -83,8 +83,64 @@ extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_se
 
 char g_include_directives_name[] = "INCLUDE_DIRECTIVES:";
 
+
 #if defined(W65816)
-void write_snes_cartridge_information(int start);
+
+void _write_snes_cartridge_information(int start) {
+
+  int info_bits;
+
+  info_bits = 32;
+  if (g_hirom_defined != 0)
+    info_bits |= 1;
+  else if (g_exhirom_defined != 0)
+    info_bits |= (1 << 2) | 1;
+  else if (g_exlorom_defined != 0)
+    info_bits |= (1 << 1);
+
+  if (g_fastrom_defined != 0)
+    info_bits += 16;
+
+  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+  snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing SNES ROM information");
+
+  mem_insert_absolute(start, info_bits);
+  
+  if (g_cartridgetype_defined != 0) 
+    mem_insert_absolute(start + 1, g_cartridgetype);
+
+  if (g_snesromsize != 0) 
+    mem_insert_absolute(start + 2, g_snesromsize);
+
+  if (g_sramsize_defined != 0) 
+    mem_insert_absolute(start + 3, g_sramsize);
+
+  if (g_country_defined != 0)
+    mem_insert_absolute(start + 4, g_country);
+
+  if (g_licenseecode_defined != 0)
+    mem_insert_absolute(start + 5, g_licenseecode);
+
+  if (g_version_defined != 0)
+    mem_insert_absolute(start + 6, g_version);
+  
+  /* snes cartridge ID */
+  if (g_snesid_defined != 0) {
+    int i;
+    
+    for (i = 0; i < 4; i++) 
+      mem_insert_absolute(start - (0xD5 - 0xB2) + i, g_snesid[i]);
+  }
+      
+  /* snes cartridge name */
+  if (g_name_defined != 0) {
+    int i;
+    
+    for (i = 0; i < 21; i++)
+      mem_insert_absolute(start - (0xD5 - 0xC0) + i, g_name[i]);
+  }
+}
+
 #endif
 
 
@@ -390,14 +446,14 @@ int phase_2(void) {
     /* snes cartridge information */
     if (g_snes_mode != 0) {
       if (g_hirom_defined != 0)
-        write_snes_cartridge_information(0xFFD5);
+        _write_snes_cartridge_information(0xFFD5);
       else if (g_exhirom_defined != 0) {
-        write_snes_cartridge_information(0x40FFD5);
+        _write_snes_cartridge_information(0x40FFD5);
         /* mirror the info */
-        write_snes_cartridge_information(0xFFD5);
+        _write_snes_cartridge_information(0xFFD5);
       }
       else
-        write_snes_cartridge_information(0x7FD5);
+        _write_snes_cartridge_information(0x7FD5);
     }
   }
 #endif
@@ -570,66 +626,6 @@ int phase_2(void) {
 
   return SUCCEEDED;
 }
-
-
-#if defined(W65816)
-
-void write_snes_cartridge_information(int start) {
-
-  int info_bits;
-
-  info_bits = 32;
-  if (g_hirom_defined != 0)
-    info_bits |= 1;
-  else if (g_exhirom_defined != 0)
-    info_bits |= (1 << 2) | 1;
-  else if (g_exlorom_defined != 0)
-    info_bits |= (1 << 1);
-
-  if (g_fastrom_defined != 0)
-    info_bits += 16;
-
-  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing SNES ROM information");
-
-  mem_insert_absolute(start, info_bits);
-  
-  if (g_cartridgetype_defined != 0) 
-    mem_insert_absolute(start + 1, g_cartridgetype);
-
-  if (g_snesromsize != 0) 
-    mem_insert_absolute(start + 2, g_snesromsize);
-
-  if (g_sramsize_defined != 0) 
-    mem_insert_absolute(start + 3, g_sramsize);
-
-  if (g_country_defined != 0)
-    mem_insert_absolute(start + 4, g_country);
-
-  if (g_licenseecode_defined != 0)
-    mem_insert_absolute(start + 5, g_licenseecode);
-
-  if (g_version_defined != 0)
-    mem_insert_absolute(start + 6, g_version);
-  
-  /* snes cartridge ID */
-  if (g_snesid_defined != 0) {
-    int i;
-    
-    for (i = 0; i < 4; i++) 
-      mem_insert_absolute(start - (0xD5 - 0xB2) + i, g_snesid[i]);
-  }
-      
-  /* snes cartridge name */
-  if (g_name_defined != 0) {
-    int i;
-    
-    for (i = 0; i < 21; i++)
-      mem_insert_absolute(start - (0xD5 - 0xC0) + i, g_name[i]);
-  }
-}
-
-#endif
 
 
 int create_a_new_section_structure(void) {
