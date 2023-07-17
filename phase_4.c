@@ -31,7 +31,7 @@ extern FILE *g_file_out_ptr;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern char *g_tmp, *g_final_name;
 extern int g_rombanks, g_output_format, g_test_mode, g_listfile_data, g_little_endian, g_sizeof_g_tmp;
-extern int g_label_context_running_number;
+extern int g_label_context_running_number, g_continued_parsing_after_an_error;
 
 #ifdef GB
 extern char g_licenseecodenew_c1, g_licenseecodenew_c2;
@@ -1914,6 +1914,9 @@ int phase_4(void) {
   if (compress_stack_calculation_ids() == FAILED)
     return FAILED;
 
+  if (g_continued_parsing_after_an_error == YES)
+    return FAILED;
+
   if (g_output_format == OUTPUT_LIBRARY && g_test_mode == OFF) {
     /* library file output */
     if (write_library_file() == FAILED)
@@ -1926,9 +1929,8 @@ int phase_4(void) {
   }
 
   /* output makefile rules */
-  if (g_makefile_rules == YES) {
+  if (g_makefile_rules == YES)
     print_file_names(g_final_name);
-  }
 
   /* show project information */
   if (g_verbose_level >= 2 && g_output_format == OUTPUT_OBJECT)

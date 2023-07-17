@@ -5,6 +5,8 @@ Here are short descriptions for the flags you can give to WLA:
 
 You can supply WLA with some (or all or none) of the following option flags::
 
+    -c  Continue parsing after an error. Currently we can only continue after
+        encountering an unknown symbol or a mistyped instruction.
     -d  Disable WLA's ability to calculate A-B where A and B are labels
     -h  Assume that all label references are 16-bit by default (size hints
         still work). Without this flag it's assumed that label references are

@@ -22,7 +22,6 @@ extern int g_sms_checksum_size_defined, g_sms_checksum_size, g_smd_checksum;
 int check_file_types(void) {
 
   struct object_file *o;
-
   
   o = g_obj_first;
   while (o != NULL) {
@@ -70,7 +69,6 @@ int check_headers(void) {
   int count = 0, misc_bits, e;
   struct object_file *o;
   unsigned char *t;
-
   
   o = g_obj_first;
   while (o != NULL) {

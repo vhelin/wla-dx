@@ -140,6 +140,7 @@ extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hin
 extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
 extern int g_create_sizeof_definitions, g_input_allow_leading_hashtag, g_input_has_leading_hashtag, g_input_allow_leading_ampersand;
 extern int g_plus_and_minus_ends_label, g_get_next_token_use_substitution, g_input_number_turn_values_into_strings;
+extern int g_continue_parsing_after_an_error, g_continued_parsing_after_an_error;
 extern FILE *g_file_out_ptr;
 extern double g_parsed_double;
 extern char *g_final_name;
@@ -829,7 +830,7 @@ int phase_1(void) {
   struct macro_runtime *mrt;
   struct macro_static *m = NULL;
   int o, p, q;
-  
+
   if (g_verbose_level >= 100)
     printf("Pass 1...\n");
 
@@ -960,7 +961,18 @@ int phase_1(void) {
       
       if (m == NULL) {
         print_error(ERROR_ERR, "Unknown symbol \"%s\".\n", g_tmp);
-        return FAILED;
+        if (g_continue_parsing_after_an_error == YES) {
+          /* find the end of the line and continue parsing on the following line */
+          while (g_buffer[g_source_index] != 0xA)
+            g_source_index++;
+          g_source_index++;
+          g_continued_parsing_after_an_error = YES;
+          next_line();
+
+          continue;
+        }
+        else
+          return FAILED;
       }
 
       /* start running a macro... run until .ENDM */

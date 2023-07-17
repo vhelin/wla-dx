@@ -76,6 +76,7 @@ FILE *g_makefile_rule_file = NULL;
 int g_listfile_data = NO, g_quiet = NO, g_use_incdir = NO, g_little_endian = YES;
 int g_create_sizeof_definitions = YES, g_global_label_hint = HINT_NONE, g_keep_empty_sections = NO;
 int g_can_calculate_a_minus_b = YES, g_is_file_isolated_counter = 0;
+int g_continue_parsing_after_an_error = NO, g_continued_parsing_after_an_error = NO;
 
 char *g_final_name = NULL, *g_asm_name = NULL;
 
@@ -413,6 +414,10 @@ static int _parse_flags(char **flags, int flagc, int *print_usage) {
     }
     else if (!strcmp(flags[count], "-x")) {
       g_extra_definitions = ON;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-c")) {
+      g_continue_parsing_after_an_error = YES;
       continue;
     }
     else {
@@ -913,6 +918,7 @@ int main(int argc, char *argv[]) {
 
     printf("USAGE: %s [OPTIONS] <OUTPUT> <ASM FILE>\n\n", argv[0]);
     printf("OPTIONS:\n");
+    printf("-c  Continue parsing after an error\n");
     printf("-d  Disable WLA's ability to calculate A-B where A and B are labels\n");
     printf("-h  Assume all label references are 16-bit by default (size hints\n");
     printf("    still work)\n");
