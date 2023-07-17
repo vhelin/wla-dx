@@ -23,7 +23,7 @@ extern int g_countrycode, g_countrycode_defined;
 extern int g_version, g_version_defined, g_cartridgetype, g_cartridgetype_defined;
 extern char g_name[32], g_licenseecodenew_c1, g_licenseecodenew_c2;
 
-unsigned char g_nintendo_logo_dat[] = {
+static unsigned char s_nintendo_logo_dat[] = {
   0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B,
   0x03, 0x73, 0x00, 0x83, 0x00, 0x0C, 0x00, 0x0D,
   0x00, 0x08, 0x11, 0x1F, 0x88, 0x89, 0x00, 0x0E,
@@ -81,7 +81,7 @@ extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 
-char g_include_directives_name[] = "INCLUDE_DIRECTIVES:";
+static char s_include_directives_name[] = "INCLUDE_DIRECTIVES:";
 
 
 #if defined(W65816)
@@ -155,12 +155,12 @@ int phase_2(void) {
     printf("Directive checks...\n");
 
   if (g_section_status == ON) {
-    fprintf(stderr, "%s The section \"%s\" was not closed.\n", g_include_directives_name, g_sections_last->name);
+    fprintf(stderr, "%s The section \"%s\" was not closed.\n", s_include_directives_name, g_sections_last->name);
     return FAILED;
   }
 
   if (g_output_format != OUTPUT_LIBRARY && g_rombanks_defined == 0 && g_rombankmap_defined == 0) {
-    fprintf(stderr, "%s ROMBANKS/ROMBANKMAP wasn't defined.\n", g_include_directives_name);
+    fprintf(stderr, "%s ROMBANKS/ROMBANKMAP wasn't defined.\n", s_include_directives_name);
     return FAILED;
   }
 
@@ -468,8 +468,8 @@ int phase_2(void) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing GB ROM Nintendo logo bytes");
 
-      while (nl2 < sizeof(g_nintendo_logo_dat)) {
-        mem_insert_absolute(nl1, g_nintendo_logo_dat[nl2]);
+      while (nl2 < sizeof(s_nintendo_logo_dat)) {
+        mem_insert_absolute(nl1, s_nintendo_logo_dat[nl2]);
         nl1++;
         nl2++;
       }

@@ -33,12 +33,12 @@ extern unsigned char g_asciitable[256];
 extern int g_operand_hint, g_operand_hint_type, g_can_calculate_a_minus_b, g_expect_calculations, g_asciitable_defined;
 extern int g_is_file_isolated_counter, g_force_add_namespace;
 
-int g_latest_stack = 0, g_last_stack_id = 0, g_resolve_stack_calculations = YES, g_stack_calculations_max = 0;
+int g_latest_stack = 0, g_last_stack_id = 0, g_resolve_stack_calculations = YES, s_stack_calculations_max = 0;
 int g_parsing_function_body = NO, g_fail_quetly_on_non_found_functions = NO, g_input_parse_if = NO;
-struct stack **g_stack_calculations = NULL;
 
 static int s_delta_counter = 0, s_delta_section = -1, s_dsp_file_name_id = 0, s_dsp_line_number = 0;
 static struct stack_item *s_delta_old_pointer = NULL;
+static struct stack **s_stack_calculations = NULL;
 
 static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 
@@ -132,18 +132,18 @@ int calculation_stack_insert(struct stack *s) {
   g_latest_stack = g_last_stack_id;
   g_last_stack_id++;
 
-  if (g_latest_stack >= g_stack_calculations_max) {
+  if (g_latest_stack >= s_stack_calculations_max) {
     /* enlarge the pointer array! */
-    g_stack_calculations_max += 4096;
+    s_stack_calculations_max += 4096;
 
-    g_stack_calculations = realloc(g_stack_calculations, sizeof(struct stack *) * g_stack_calculations_max);
-    if (g_stack_calculations == NULL) {
+    s_stack_calculations = realloc(s_stack_calculations, sizeof(struct stack *) * s_stack_calculations_max);
+    if (s_stack_calculations == NULL) {
       print_error(ERROR_NUM, "Out of memory error while trying to enlarge stack calculations pointer array!\n");
       return FAILED;
     }
   }
 
-  g_stack_calculations[g_latest_stack] = s;
+  s_stack_calculations[g_latest_stack] = s;
 
   return SUCCEEDED;
 }
@@ -154,16 +154,16 @@ void free_stack_calculations(void) {
   int i;
 
   for (i = 0; i < g_last_stack_id; i++) {
-    if (g_stack_calculations[i] != NULL)
-      delete_stack_calculation_struct(g_stack_calculations[i]);
+    if (s_stack_calculations[i] != NULL)
+      delete_stack_calculation_struct(s_stack_calculations[i]);
   }
 
-  free(g_stack_calculations);
+  free(s_stack_calculations);
 
-  g_stack_calculations = NULL;
+  s_stack_calculations = NULL;
   g_latest_stack = 0;
   g_last_stack_id = 0;
-  g_stack_calculations_max = 0;
+  s_stack_calculations_max = 0;
 }
 
 
@@ -172,7 +172,7 @@ void delete_stack_calculation_struct(struct stack *s) {
   if (s == NULL)
     print_error(ERROR_WRN, "Deleting a non-existing computation stack! Please submit a bug report!\n");
   else {
-    g_stack_calculations[s->id] = NULL;
+    s_stack_calculations[s->id] = NULL;
 
     free(s->stack_items);
     free(s);
@@ -190,7 +190,7 @@ struct stack *find_stack_calculation(int id, int print_error_message) {
     return NULL;
   }
 
-  s = g_stack_calculations[id];
+  s = s_stack_calculations[id];
 
   if (s == NULL) {
     if (print_error_message == YES)
@@ -211,7 +211,7 @@ int compress_stack_calculation_ids(void) {
 
   /* pending calculations we'll export come first */
   for (i = 0; i < g_last_stack_id; i++) {
-    struct stack *s = g_stack_calculations[i];
+    struct stack *s = s_stack_calculations[i];
 
     if (s == NULL)
       continue;
@@ -223,7 +223,7 @@ int compress_stack_calculation_ids(void) {
 
   /* next come the pending calculations we will not export */
   for (i = 0; i < g_last_stack_id; i++) {
-    struct stack *s = g_stack_calculations[i];
+    struct stack *s = s_stack_calculations[i];
 
     if (s == NULL)
       continue;
@@ -235,15 +235,15 @@ int compress_stack_calculation_ids(void) {
 
   /* 2. reorder the stack calculations into a new pointer array */
 
-  if (g_stack_calculations_max > 0) {
-    stack_calculations = calloc(sizeof(struct stack *) * g_stack_calculations_max, 1);
+  if (s_stack_calculations_max > 0) {
+    stack_calculations = calloc(sizeof(struct stack *) * s_stack_calculations_max, 1);
     if (stack_calculations == NULL) {
-      print_error(ERROR_NUM, "Out of memory error while trying to reorder stack calculations pointer array! g_stack_calculations_max = %d!\n", g_stack_calculations_max);
+      print_error(ERROR_NUM, "Out of memory error while trying to reorder stack calculations pointer array! s_stack_calculations_max = %d!\n", s_stack_calculations_max);
       return FAILED;
     }
 
     for (i = 0; i < g_last_stack_id; i++) {
-      struct stack *s = g_stack_calculations[i];
+      struct stack *s = s_stack_calculations[i];
 
       if (s == NULL)
         continue;
@@ -255,7 +255,7 @@ int compress_stack_calculation_ids(void) {
   /* 3. update all stack calculation IDs in the stack calculations */
 
   for (i = 0; i < g_last_stack_id; i++) {
-    struct stack *s = g_stack_calculations[i];
+    struct stack *s = s_stack_calculations[i];
     int j;
 
     if (s == NULL)
@@ -263,7 +263,7 @@ int compress_stack_calculation_ids(void) {
 
     for (j = 0; j < s->stacksize; j++) {
       if (s->stack_items[j].type == STACK_ITEM_TYPE_STACK) {
-        struct stack *s2 = g_stack_calculations[(int)s->stack_items[j].value];
+        struct stack *s2 = s_stack_calculations[(int)s->stack_items[j].value];
 
         s->stack_items[j].value = (double)s2->compressed_id;
       }
@@ -279,7 +279,7 @@ int compress_stack_calculation_ids(void) {
     hashmap_get(g_defines_map, export_tmp->name, (void*)&tmp_def);
     if (tmp_def != NULL) {
       if (tmp_def->type == DEFINITION_TYPE_STACK) {
-        struct stack *s = g_stack_calculations[(int)tmp_def->value];
+        struct stack *s = s_stack_calculations[(int)tmp_def->value];
 
         if (s != NULL)
           tmp_def->value = (double)s->compressed_id;
@@ -291,13 +291,13 @@ int compress_stack_calculation_ids(void) {
   
   /* 5. delete the old array, replace it with the new array */
 
-  free(g_stack_calculations);
-  g_stack_calculations = stack_calculations;
+  free(s_stack_calculations);
+  s_stack_calculations = stack_calculations;
 
   /* 6. finalize the ID changes */
 
   for (i = 0; i < g_last_stack_id; i++) {
-    struct stack *s = g_stack_calculations[i];
+    struct stack *s = s_stack_calculations[i];
 
     if (s != NULL)
       s->id = s->compressed_id;
@@ -521,7 +521,7 @@ int get_label_length(char *l) {
 }
 
 
-static struct stack_item_priority_item g_stack_item_priority_items[] = {
+static struct stack_item_priority_item s_stack_item_priority_items[] = {
   { SI_OP_LOGICAL_OR, 10 },
   { SI_OP_LOGICAL_AND, 20 },
   { SI_OP_OR, 30 },
@@ -579,9 +579,9 @@ static int _get_op_priority(int op) {
 
   int i = 0;
   
-  while (g_stack_item_priority_items[i].op < 999) {
-    if (g_stack_item_priority_items[i].op == op)
-      return g_stack_item_priority_items[i].priority;
+  while (s_stack_item_priority_items[i].op < 999) {
+    if (s_stack_item_priority_items[i].op == op)
+      return s_stack_item_priority_items[i].priority;
     i++;
   }
 

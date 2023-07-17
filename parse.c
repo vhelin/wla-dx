@@ -23,7 +23,6 @@ int g_input_allow_leading_ampersand = NO, g_plus_and_minus_ends_label = NO, g_ge
 int g_newline_beginning = ON, g_parsed_double_decimal_numbers = 0, g_operand_hint, g_operand_hint_type;
 int g_input_number_turn_values_into_strings = NO, g_force_add_namespace = NO, g_force_ignore_namespace = NO;
 char g_label[MAX_NAME_LENGTH + 1];
-char g_unevaluated_expression[256];
 char g_expanded_macro_string[MAX_NAME_LENGTH + 1];
 double g_parsed_double;
 

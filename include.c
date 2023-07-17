@@ -28,8 +28,10 @@ struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
 struct active_file_info *g_active_file_info_first = NULL, *g_active_file_info_last = NULL, *g_active_file_info_tmp = NULL;
 struct file_name_info *g_file_name_info_first = NULL, *g_file_name_info_last = NULL, *g_file_name_info_tmp;
 char *g_include_in_tmp = NULL, *g_tmp_a = NULL, *g_full_name = NULL, *g_include_dir = NULL, *g_buffer = NULL;
-int g_include_in_tmp_size = 0, g_tmp_a_size = 0, g_file_name_id = 1, g_open_files = 0;
-int g_full_name_size = 0, g_include_dir_size = 0, g_source_file_size = 0;
+int g_include_in_tmp_size = 0, g_tmp_a_size = 0, g_open_files = 0;
+int g_include_dir_size = 0, g_source_file_size = 0;
+
+static int s_file_name_id = 1, s_full_name_size = 0;
 
 
 int create_full_name(char *dir, char *name) {
@@ -48,14 +50,14 @@ int create_full_name(char *dir, char *name) {
     i += (int)strlen(name);
   i++;
 
-  if (i > g_full_name_size) {
+  if (i > s_full_name_size) {
     tmp = realloc(g_full_name, i);
     if (tmp == NULL) {
       fprintf(stderr, "CREATE_FULL_NAME: Out of memory error.\n");
       return FAILED;
     }
     g_full_name = tmp;
-    g_full_name_size = i;
+    s_full_name_size = i;
   }
 
   if (dir != NULL) {
@@ -202,9 +204,9 @@ int include_file(char *name, int *include_size, char *namespace) {
 
     strcpy(n, g_full_name);
     g_file_name_info_tmp->name = n;
-    g_file_name_info_tmp->id = g_file_name_id;
-    id = g_file_name_id;
-    g_file_name_id++;
+    g_file_name_info_tmp->id = s_file_name_id;
+    id = s_file_name_id;
+    s_file_name_id++;
   }
 
   isolation_counter = g_is_file_isolated_counter;

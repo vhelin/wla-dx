@@ -25,7 +25,6 @@
 
 #ifdef GB
 char g_licenseecodenew_c1, g_licenseecodenew_c2;
-int g_gbheader_defined = 0;
 int g_nintendologo_defined = 0;
 int g_computechecksum_defined = 0, g_computecomplementcheck_defined = 0;
 int g_romgbc = 0, g_romdmg = 0, g_romsgb = 0, g_romsize = 0, g_romsize_defined = 0;
@@ -33,6 +32,7 @@ int g_cartridgetype = 0, g_cartridgetype_defined = 0;
 int g_countrycode = 0, g_countrycode_defined = 0;
 int g_licenseecodenew_defined = 0, g_licenseecodeold = 0, g_licenseecodeold_defined = 0;
 int g_version = 0, g_version_defined = 0;
+static int s_gbheader_defined = 0;
 #endif
 
 #ifdef Z80
@@ -42,8 +42,9 @@ int g_sdsctag_name_value, g_sdsctag_notes_value, g_sdsctag_author_value;
 int g_computesmschecksum_defined = 0, g_sdsctag_defined = 0, g_smstag_defined = 0;
 int g_smsheader_defined = 0, g_smsversion = 0, g_smsversion_defined = 0, g_smsregioncode = 0, g_smsregioncode_defined = 0;
 int g_smsproductcode_defined = 0, g_smsproductcode1 = 0, g_smsproductcode2 = 0, g_smsproductcode3 = 0, g_smsreservedspace1 = 0;
-int g_smsreservedspace2 = 0, g_smsreservedspace_defined = 0, g_smsromsize = 0, g_smsromsize_defined = 0;
+int g_smsreservedspace2 = 0, g_smsromsize = 0, g_smsromsize_defined = 0;
 int g_smsforcechecksum = 0, g_smsforcechecksum_defined = 0, g_smschecksumsize = 0, g_smschecksumsize_defined = 0;
+static int s_smsreservedspace_defined = 0;
 #endif
 
 #ifdef MC68000
@@ -66,30 +67,30 @@ int g_org_defined = 1, g_background_defined = 0;
 int g_rombanks = 0, g_rombanks_defined = 0, g_max_address = 0;
 int g_rambanks = 0, g_rambanks_defined = 0;
 int g_emptyfill = 0, g_emptyfill_defined = 0;
-int g_section_status = OFF, g_section_id = 1, g_line_count_status = ON;
-int g_parsed_int, g_source_index, g_parse_dstruct_result, g_ifdef = 0, g_slots_amount = 0, g_skip_elifs[256];
+int g_section_status = OFF, g_section_id = 1;
+int g_parsed_int, g_source_index, g_ifdef = 0, g_slots_amount = 0;
 int g_memorymap_defined = 0;
 int g_banksize_defined = 0, g_banksize = 0;
 int g_rombankmap_defined = 0, *g_banks = NULL, *g_bankaddress = NULL;
 int g_bankheader_status = OFF;
 int g_macro_active = 0;
-int g_repeat_active = 0;
 int g_smc_defined = 0;
 int g_asciitable_defined = 0;
-int g_saved_structures_count = 0, g_saved_structures_max = 0;
+int g_saved_structures_count = 0;
 unsigned char g_asciitable[256];
 
 extern int g_resolve_stack_calculations;
 
 #if defined(W65816)
 char g_snesid[4];
-int g_snesheader_defined = 0, g_snesid_defined = 0, g_snesromsize = 0;
+int g_snesid_defined = 0, g_snesromsize = 0;
 int g_sramsize_defined = 0, g_sramsize = 0, g_country_defined = 0, g_country = 0;
 int g_cartridgetype = 0, g_cartridgetype_defined = 0, g_licenseecode_defined = 0, g_licenseecode = 0;
-int g_version_defined = 0, g_version = 0, g_snesnativevector_defined = 0, g_snesemuvector_defined = 0;
+int g_version_defined = 0, g_version = 0;
 int g_hirom_defined = 0, g_lorom_defined = 0, g_slowrom_defined = 0, g_fastrom_defined = 0, g_snes_mode = 0;
 int g_exlorom_defined = 0, g_exhirom_defined = 0;
 int g_computesneschecksum_defined = 0, g_use_wdc_standard = 0;
+static int s_snesemuvector_defined = 0, s_snesheader_defined = 0, s_snesnativevector_defined = 0;
 #endif
 
 #if defined(GB) || defined(W65816)
@@ -146,10 +147,11 @@ extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern int g_makefile_rules, g_parsing_function_body, g_force_add_namespace, g_is_file_isolated_counter, g_force_ignore_namespace;
 
 static int s_macro_stack_size = 0, s_repeat_stack_size = 0;
-static int s_bank = 0, s_bank_defined = 1;
-static int s_block_status = 0, s_block_name_id = 0;
+static int s_bank = 0, s_bank_defined = 1, s_line_count_status = ON;
+static int s_block_status = 0, s_block_name_id = 0, s_parse_dstruct_result;
 static int s_dstruct_status = OFF, s_current_slot = 0;
 static int s_enumid_defined = 0, s_enumid = 0, s_enumid_adder = 1, s_enumid_export = 0;
+static int s_repeat_active = 0, s_saved_structures_max = 0, s_skip_elifs[256];
 
 #if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(W65816) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
 int g_xbit_size = 0, g_accu_size = 8, g_index_size = 8;
@@ -1373,7 +1375,7 @@ void next_line(void) {
 
   g_newline_beginning = ON;
 
-  if (g_line_count_status == OFF)
+  if (s_line_count_status == OFF)
     return;
 
   if (g_active_file_info_last == NULL)
@@ -1697,9 +1699,9 @@ static int _remember_new_structure(struct structure *st) {
       return SUCCEEDED;
   }
 
-  if (g_saved_structures_count >= g_saved_structures_max) {
-    g_saved_structures_max += 256;
-    g_saved_structures = realloc(g_saved_structures, sizeof(struct structure *) * g_saved_structures_max);
+  if (g_saved_structures_count >= s_saved_structures_max) {
+    s_saved_structures_max += 256;
+    g_saved_structures = realloc(g_saved_structures, sizeof(struct structure *) * s_saved_structures_max);
     if (g_saved_structures == NULL) {
       fprintf(stderr, "_remember_new_structure(): Out of memory error.\n");
       return FAILED;
@@ -3772,7 +3774,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
     else {
       if (*labels_only == NO) {
         /* take care of the strings */
-        if (g_parse_dstruct_result == INPUT_NUMBER_STRING) {
+        if (s_parse_dstruct_result == INPUT_NUMBER_STRING) {
           if (it->size < g_string_size) {
             print_error(ERROR_WRN, "String \"%s\" doesn't fit into the %d bytes of \"%s.%s\". Discarding the overflow.\n", g_label, it->size, s->name, it->name);
             c = it->size;
@@ -3787,56 +3789,56 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
         /* take care of the rest */
         else {
           if (it->size == 1) {
-            if ((g_parse_dstruct_result == SUCCEEDED) && (g_parsed_int < -128 || g_parsed_int > 255)) {
+            if ((s_parse_dstruct_result == SUCCEEDED) && (g_parsed_int < -128 || g_parsed_int > 255)) {
               print_error(ERROR_DIR, "\"%s.%s\" expects 8-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
               return FAILED;
             }
 
-            if (g_parse_dstruct_result == SUCCEEDED)
+            if (s_parse_dstruct_result == SUCCEEDED)
               fprintf(g_file_out_ptr, "d%d ", g_parsed_int);
-            else if (g_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
+            else if (s_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
               fprintf(g_file_out_ptr, "k%d Q%s ", g_active_file_info_last->line_current, g_label);
-            else if (g_parse_dstruct_result == INPUT_NUMBER_STACK)
+            else if (s_parse_dstruct_result == INPUT_NUMBER_STACK)
               fprintf(g_file_out_ptr, "c%d ", g_latest_stack);
 
             o = 1;
           }
           else if (it->size == 2) {
-            if (g_parse_dstruct_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
+            if (s_parse_dstruct_result == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
               print_error(ERROR_DIR, "\"%s.%s\" expects 16-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
               return FAILED;
             }
 
-            if (g_parse_dstruct_result == SUCCEEDED)
+            if (s_parse_dstruct_result == SUCCEEDED)
               fprintf(g_file_out_ptr, "y%d", g_parsed_int);
-            else if (g_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
+            else if (s_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
               fprintf(g_file_out_ptr, "k%d r%s ", g_active_file_info_last->line_current, g_label);
-            else if (g_parse_dstruct_result == INPUT_NUMBER_STACK)
+            else if (s_parse_dstruct_result == INPUT_NUMBER_STACK)
               fprintf(g_file_out_ptr, "C%d ", g_latest_stack);
 
             o = 2;
           }
           else if (it->size == 3) {
-            if (g_parse_dstruct_result == SUCCEEDED && (g_parsed_int < -8388608 || g_parsed_int > 16777215)) {
+            if (s_parse_dstruct_result == SUCCEEDED && (g_parsed_int < -8388608 || g_parsed_int > 16777215)) {
               print_error(ERROR_DIR, "\"%s.%s\" expects 24-bit data, %d is out of range!\n", s->name, it->name, g_parsed_int);
               return FAILED;
             }
 
-            if (g_parse_dstruct_result == SUCCEEDED)
+            if (s_parse_dstruct_result == SUCCEEDED)
               fprintf(g_file_out_ptr, "z%d", g_parsed_int);
-            else if (g_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
+            else if (s_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
               fprintf(g_file_out_ptr, "k%d q%s ", g_active_file_info_last->line_current, g_label);
-            else if (g_parse_dstruct_result == INPUT_NUMBER_STACK)
+            else if (s_parse_dstruct_result == INPUT_NUMBER_STACK)
               fprintf(g_file_out_ptr, "T%d ", g_latest_stack);
 
             o = 3;
           }
           else if (it->size == 4) {
-            if (g_parse_dstruct_result == SUCCEEDED)
+            if (s_parse_dstruct_result == SUCCEEDED)
               fprintf(g_file_out_ptr, "u%d", g_parsed_int);
-            else if (g_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
+            else if (s_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
               fprintf(g_file_out_ptr, "k%d V%s ", g_active_file_info_last->line_current, g_label);
-            else if (g_parse_dstruct_result == INPUT_NUMBER_STACK)
+            else if (s_parse_dstruct_result == INPUT_NUMBER_STACK)
               fprintf(g_file_out_ptr, "U%d ", g_latest_stack);
 
             o = 4;
@@ -3861,8 +3863,8 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
     it = it->next;
 
     if (*labels_only == NO) {
-      g_parse_dstruct_result = input_number();
-      if (!(g_parse_dstruct_result == SUCCEEDED || g_parse_dstruct_result == INPUT_NUMBER_STRING || g_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL || g_parse_dstruct_result == INPUT_NUMBER_STACK))
+      s_parse_dstruct_result = input_number();
+      if (!(s_parse_dstruct_result == SUCCEEDED || s_parse_dstruct_result == INPUT_NUMBER_STRING || s_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL || s_parse_dstruct_result == INPUT_NUMBER_STACK))
         *labels_only = YES; /* ran out of data to read */
     }
   }
@@ -4199,9 +4201,9 @@ int directive_dstruct(void) {
 
   /* legacy syntax */
 
-  g_parse_dstruct_result = input_number();
+  s_parse_dstruct_result = input_number();
 
-  if (g_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL) {
+  if (s_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL) {
     if (g_label[strlen(g_label)-1] == ':') {
       print_error(ERROR_ERR, "Label in a wrong place?\n");
       return FAILED;
@@ -4215,7 +4217,7 @@ int directive_dstruct(void) {
   /* generate padding */
   _generate_dstruct_padding(s, supplied_size);
   
-  if (g_parse_dstruct_result == INPUT_NUMBER_EOL)
+  if (s_parse_dstruct_result == INPUT_NUMBER_EOL)
     next_line();
   else {
     print_error(ERROR_DIR, "Too much data for structure \"%s\".\n", s->name);
@@ -6865,7 +6867,7 @@ int directive_gbheader(void) {
 
   int q, token_result;
     
-  if (g_gbheader_defined != 0) {
+  if (s_gbheader_defined != 0) {
     print_error(ERROR_DIR, ".GBHEADER can be defined only once.\n");
     return FAILED;
   }
@@ -7170,7 +7172,7 @@ int directive_gbheader(void) {
     return FAILED;
   }
 
-  g_gbheader_defined = 1;
+  s_gbheader_defined = 1;
 
   return SUCCEEDED;
 }
@@ -8322,7 +8324,7 @@ int directive_smsheader(void) {
       }
 
       g_smsreservedspace1 = g_parsed_int & 255;
-      g_smsreservedspace_defined = 1;
+      s_smsreservedspace_defined = 1;
 
       q = input_number();
 
@@ -9047,7 +9049,7 @@ int directive_rept_repeat(void) {
     return FAILED;
   }
 
-  if (g_repeat_active == s_repeat_stack_size) {
+  if (s_repeat_active == s_repeat_stack_size) {
     struct repeat_runtime *rr;
 
     s_repeat_stack_size = (s_repeat_stack_size<<1)+2;
@@ -9059,13 +9061,13 @@ int directive_rept_repeat(void) {
     g_repeat_stack = rr;
   }
 
-  g_repeat_stack[g_repeat_active].start = g_source_index;
-  g_repeat_stack[g_repeat_active].counter = g_parsed_int;
-  g_repeat_stack[g_repeat_active].repeats = 0;
-  g_repeat_stack[g_repeat_active].start_line = g_active_file_info_last->line_current;
-  strcpy(g_repeat_stack[g_repeat_active].index_name, index_name);
+  g_repeat_stack[s_repeat_active].start = g_source_index;
+  g_repeat_stack[s_repeat_active].counter = g_parsed_int;
+  g_repeat_stack[s_repeat_active].repeats = 0;
+  g_repeat_stack[s_repeat_active].start_line = g_active_file_info_last->line_current;
+  strcpy(g_repeat_stack[s_repeat_active].index_name, index_name);
 
-  g_repeat_active++;
+  s_repeat_active++;
 
   /* repeat start */
   fprintf(g_file_out_ptr, "j ");
@@ -9226,7 +9228,7 @@ int directive_snesheader(void) {
 
   int token_result;
   
-  if (g_snesheader_defined != 0) {
+  if (s_snesheader_defined != 0) {
     print_error(ERROR_DIR, ".SNESHEADER can be defined only once.\n");
     return FAILED;
   }
@@ -9518,7 +9520,7 @@ int directive_snesheader(void) {
     return FAILED;
   }
 
-  g_snesheader_defined = 1;
+  s_snesheader_defined = 1;
   g_snes_mode++;
 
   return SUCCEEDED;
@@ -9531,7 +9533,7 @@ int directive_snesnativevector(void) {
   int nmi_defined = 0, unused_defined = 0, irq_defined = 0, q, token_result;
   char cop[512], brk[512], abort[512], nmi[512], unused[512], irq[512];
 
-  if (g_snesnativevector_defined != 0) {
+  if (s_snesnativevector_defined != 0) {
     print_error(ERROR_DIR, ".SNESNATIVEVECTOR can be defined only once.\n");
     return FAILED;
   }
@@ -9744,7 +9746,7 @@ int directive_snesnativevector(void) {
     return FAILED;
   }
 
-  g_snesnativevector_defined = 1;
+  s_snesnativevector_defined = 1;
   g_snes_mode++;
 
   return SUCCEEDED;
@@ -9757,7 +9759,7 @@ int directive_snesemuvector(void) {
   int nmi_defined = 0, reset_defined = 0, irqbrk_defined = 0, q, token_result;
   char cop[512], unused[512], abort[512], nmi[512], reset[512], irqbrk[512];
 
-  if (g_snesemuvector_defined != 0) {
+  if (s_snesemuvector_defined != 0) {
     print_error(ERROR_DIR, ".SNESEMUVECTOR can be defined only once.\n");
     return FAILED;
   }
@@ -9970,7 +9972,7 @@ int directive_snesemuvector(void) {
     return FAILED;
   }
 
-  g_snesemuvector_defined = 1;
+  s_snesemuvector_defined = 1;
   g_snes_mode++;
 
   return SUCCEEDED;
@@ -10752,7 +10754,7 @@ int parse_directive(void) {
     if (strcmp(directive_upper, "COMPUTECHECKSUM") == 0 || strcmp(directive_upper, "COMPUTEGBCHECKSUM") == 0) {
       no_library_files(".COMPUTEGBCHECKSUM");
     
-      if (g_gbheader_defined != 0)
+      if (s_gbheader_defined != 0)
         print_error(ERROR_WRN, ".COMPUTEGBCHECKSUM is unnecessary when GBHEADER is defined.\n");
 
       g_computechecksum_defined = 1;
@@ -10764,7 +10766,7 @@ int parse_directive(void) {
     if (strcmp(directive_upper, "COMPUTEGBCOMPLEMENTCHECK") == 0 || strcmp(directive_upper, "COMPUTECOMPLEMENTCHECK") == 0) {
       no_library_files(".COMPUTEGBCOMPLEMENTCHECK");
     
-      if (g_gbheader_defined != 0)
+      if (s_gbheader_defined != 0)
         print_error(ERROR_WRN, ".COMPUTEGBCOMPLEMENTCHECK is unnecessary when GBHEADER is defined.\n");
 
       g_computecomplementcheck_defined = 1;
@@ -10834,7 +10836,7 @@ int parse_directive(void) {
         print_error(ERROR_DIR, ".COMPUTESNESCHECKSUM needs .LOROM, .HIROM or .EXHIROM defined earlier.\n");
         return FAILED;
       }
-      if (g_snesheader_defined != 0) 
+      if (s_snesheader_defined != 0) 
         print_error(ERROR_WRN, ".COMPUTESNESCHECKSUM is unnecessary when .SNESHEADER defined.\n");
 
       g_computesneschecksum_defined = 1;
@@ -11162,16 +11164,16 @@ int parse_directive(void) {
       if (strcmp(directive_upper, "ENDR") == 0) {
         struct repeat_runtime *rr;
     
-        if (g_repeat_active == 0) {
+        if (s_repeat_active == 0) {
           print_error(ERROR_DIR, "There is no open repetition.\n");
           return FAILED;
         }
 
-        rr = &g_repeat_stack[g_repeat_active - 1];
+        rr = &g_repeat_stack[s_repeat_active - 1];
 
         rr->counter--;
         if (rr->counter == 0) {
-          g_repeat_active--;
+          s_repeat_active--;
           
           /* repeat end */
           fprintf(g_file_out_ptr, "J ");
@@ -11627,10 +11629,10 @@ int parse_directive(void) {
 
     /* M */
     if (strcmp(directive_upper, "M") == 0) {
-      if (g_line_count_status == OFF)
-        g_line_count_status = ON;
+      if (s_line_count_status == OFF)
+        s_line_count_status = ON;
       else
-        g_line_count_status = OFF;
+        s_line_count_status = OFF;
       return SUCCEEDED;
     }
 
@@ -12154,7 +12156,7 @@ int parse_if_directive(void) {
       return FAILED;
     }
 
-    g_skip_elifs[g_ifdef] = NO;
+    s_skip_elifs[g_ifdef] = NO;
     g_ifdef--;
     
     return SUCCEEDED;
@@ -12173,11 +12175,11 @@ int parse_if_directive(void) {
 
     hashmap_get(g_defines_map, g_label, (void *)&d);
     if (d != NULL) {
-      g_skip_elifs[g_ifdef] = YES;
+      s_skip_elifs[g_ifdef] = YES;
       return SUCCEEDED;
     }
 
-    g_skip_elifs[g_ifdef] = NO;
+    s_skip_elifs[g_ifdef] = NO;
 
     return find_next_point("IFDEF");
   }
@@ -12201,11 +12203,11 @@ int parse_if_directive(void) {
 
     /* 0 = false, otherwise it's true */
     if (g_parsed_int != 0) {
-      g_skip_elifs[g_ifdef] = YES;
+      s_skip_elifs[g_ifdef] = YES;
       return SUCCEEDED;
     }
     else {
-      g_skip_elifs[g_ifdef] = NO;
+      s_skip_elifs[g_ifdef] = NO;
       return find_next_point("IF");
     }
   }
@@ -12219,7 +12221,7 @@ int parse_if_directive(void) {
     }
 
     /* had an .if already succeeded previously? */
-    if (g_skip_elifs[g_ifdef] == YES)
+    if (s_skip_elifs[g_ifdef] == YES)
       return find_next_point("ELIF");
 
     g_input_parse_if = YES;
@@ -12235,11 +12237,11 @@ int parse_if_directive(void) {
 
     /* 0 = false, otherwise it's true */
     if (g_parsed_int != 0) {
-      g_skip_elifs[g_ifdef] = YES;
+      s_skip_elifs[g_ifdef] = YES;
       return SUCCEEDED;
     }
     else {
-      g_skip_elifs[g_ifdef] = NO;
+      s_skip_elifs[g_ifdef] = NO;
       return find_next_point("ELIF");
     }
   }
@@ -12307,11 +12309,11 @@ int parse_if_directive(void) {
       return FAILED;
 
     if (q == SUCCEEDED) {
-      g_skip_elifs[g_ifdef] = YES;
+      s_skip_elifs[g_ifdef] = YES;
       return SUCCEEDED;
     }
     else {
-      g_skip_elifs[g_ifdef] = NO;
+      s_skip_elifs[g_ifdef] = NO;
       strcpy(k, g_current_directive);
       return find_next_point(k);
     }
@@ -12337,13 +12339,13 @@ int parse_if_directive(void) {
 
     f = fopen(g_label, "r");
     if (f == NULL) {
-      g_skip_elifs[g_ifdef] = NO;
+      s_skip_elifs[g_ifdef] = NO;
       return find_next_point("IFEXISTS");
     }
 
     fclose(f);
 
-    g_skip_elifs[g_ifdef] = YES;
+    s_skip_elifs[g_ifdef] = YES;
       
     return SUCCEEDED;
   }
@@ -12364,7 +12366,7 @@ int parse_if_directive(void) {
       char* tmp;
       int result;
       
-      g_skip_elifs[g_ifdef] = NO;
+      s_skip_elifs[g_ifdef] = NO;
       tmp = _string_duplicate(g_current_directive);
       if (tmp == NULL)
         return FAILED;
@@ -12373,7 +12375,7 @@ int parse_if_directive(void) {
       return result;
     }
 
-    g_skip_elifs[g_ifdef] = YES;
+    s_skip_elifs[g_ifdef] = YES;
     
     return SUCCEEDED;
   }
@@ -12417,14 +12419,14 @@ int parse_if_directive(void) {
           g_parsed_int /= 10;
           if ((o == 0 && g_macro_runtime_current->supplied_arguments < g_parsed_int) ||
               (o == 1 && g_macro_runtime_current->supplied_arguments >= g_parsed_int)) {
-            g_skip_elifs[g_ifdef] = YES;
+            s_skip_elifs[g_ifdef] = YES;
             return SUCCEEDED;
           }
           else {
             char* tmp;
             int result;
             
-            g_skip_elifs[g_ifdef] = NO;
+            s_skip_elifs[g_ifdef] = NO;
             tmp = _string_duplicate(g_current_directive);
             if (tmp == NULL)
               return FAILED;
@@ -12465,16 +12467,16 @@ int find_next_point(char *name) {
       if (strcaselesscmp(g_current_directive, "ENDIF") == 0) {
         depth--;
         if (depth == 0)
-          g_skip_elifs[g_ifdef] = NO;
+          s_skip_elifs[g_ifdef] = NO;
         g_ifdef--;
       }
       if (strcaselesscmp(g_current_directive, "ELSE") == 0 && depth == 1) {
         depth--;
-        if (g_skip_elifs[g_ifdef] == YES)
+        if (s_skip_elifs[g_ifdef] == YES)
           g_source_index = source_index_old;
       }
       if (strcaselesscmp(g_current_directive, "ELIF") == 0 && depth == 1) {
-        if (g_skip_elifs[g_ifdef] == NO) {
+        if (s_skip_elifs[g_ifdef] == NO) {
           /* go backwards so we'll actually parse .ELIF later */
           g_source_index = source_index_old;
           depth--;
@@ -12488,7 +12490,7 @@ int find_next_point(char *name) {
         depth++;
         if (_increase_ifdef() == FAILED)
           return FAILED;
-        g_skip_elifs[g_ifdef] = YES;        
+        s_skip_elifs[g_ifdef] = YES;        
       }
     }
 

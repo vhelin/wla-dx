@@ -48,7 +48,7 @@ extern int g_section_status;
 extern int g_banksize, g_banksize_defined;
 extern int g_slots_amount;
 extern int *g_banks, *g_bankaddress, g_rombankmap_defined;
-extern int g_latest_stack, g_stacks_outside, g_stacks_inside, g_last_stack_id;
+extern int g_latest_stack, g_last_stack_id;
 extern int g_bankheader_status;
 extern int g_smc_defined, g_makefile_rules;
 
@@ -68,13 +68,13 @@ extern int g_computesmdchecksum_defined;
 
 struct label_def *g_unknown_labels = NULL, *g_unknown_labels_last = NULL;
 struct label_def *g_unknown_header_labels = NULL, *g_unknown_header_labels_last = NULL;
-struct label_sizeof *g_label_sizeof_tmp;
 
 char g_mem_insert_action[MAX_NAME_LENGTH * 3 + 1024], g_namespace[MAX_NAME_LENGTH + 1];
 
 static int s_pc_bank = 0, s_pc_full = 0, s_rom_bank, s_mem_insert_overwrite, s_slot = 0, s_base = 0, s_pc_slot, s_pc_slot_max;
 static int s_filename_id, s_line_number, s_dstruct_start = -1, s_special_id = 0;
 static struct after_section *s_after_tmp;
+static struct label_sizeof *s_label_sizeof_tmp;
 
 
 #define WRITEOUT_OV fprintf(final_ptr, "%c%c%c%c", (ov>>24)&0xFF, (ov>>16)&0xFF, (ov>>8)&0xFF, ov&0xFF);
@@ -2280,22 +2280,22 @@ int write_object_file(void) {
 
   /* label sizeofs */
   ov = 0;
-  g_label_sizeof_tmp = g_label_sizeofs;
-  while (g_label_sizeof_tmp != NULL) {
+  s_label_sizeof_tmp = g_label_sizeofs;
+  while (s_label_sizeof_tmp != NULL) {
     ov++;
-    g_label_sizeof_tmp = g_label_sizeof_tmp->next;
+    s_label_sizeof_tmp = s_label_sizeof_tmp->next;
   }
 
   WRITEOUT_OV;
 
-  g_label_sizeof_tmp = g_label_sizeofs;
-  while (g_label_sizeof_tmp != NULL) {
-    fprintf(final_ptr, "%s%c", g_label_sizeof_tmp->name, 0);
+  s_label_sizeof_tmp = g_label_sizeofs;
+  while (s_label_sizeof_tmp != NULL) {
+    fprintf(final_ptr, "%s%c", s_label_sizeof_tmp->name, 0);
 
-    ov = g_label_sizeof_tmp->size;
+    ov = s_label_sizeof_tmp->size;
     WRITEOUT_OV;
 
-    g_label_sizeof_tmp = g_label_sizeof_tmp->next;
+    s_label_sizeof_tmp = s_label_sizeof_tmp->next;
   }    
 
   /* global list file items */
@@ -2585,22 +2585,22 @@ int write_library_file(void) {
 
   /* label sizeofs */
   ov = 0;
-  g_label_sizeof_tmp = g_label_sizeofs;
-  while (g_label_sizeof_tmp != NULL) {
+  s_label_sizeof_tmp = g_label_sizeofs;
+  while (s_label_sizeof_tmp != NULL) {
     ov++;
-    g_label_sizeof_tmp = g_label_sizeof_tmp->next;
+    s_label_sizeof_tmp = s_label_sizeof_tmp->next;
   }
 
   WRITEOUT_OV;
 
-  g_label_sizeof_tmp = g_label_sizeofs;
-  while (g_label_sizeof_tmp != NULL) {
-    fprintf(final_ptr, "%s%c", g_label_sizeof_tmp->name, 0);
+  s_label_sizeof_tmp = g_label_sizeofs;
+  while (s_label_sizeof_tmp != NULL) {
+    fprintf(final_ptr, "%s%c", s_label_sizeof_tmp->name, 0);
 
-    ov = g_label_sizeof_tmp->size;
+    ov = s_label_sizeof_tmp->size;
     WRITEOUT_OV;
 
-    g_label_sizeof_tmp = g_label_sizeof_tmp->next;
+    s_label_sizeof_tmp = s_label_sizeof_tmp->next;
   }
     
   /* global list file items */
