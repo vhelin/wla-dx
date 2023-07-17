@@ -35,8 +35,8 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char g_version_string[] = "$VER: wla-" WLA_NAME " 10.6a (13.7.2023)";
-char g_wla_version[] = "10.5";
+char s_version_string[] = "$VER: wla-" WLA_NAME " 10.6a (13.7.2023)";
+char s_wla_version[] = "10.5";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern struct file_name_info *g_file_name_info_first;
@@ -797,9 +797,9 @@ static int _generate_extra_definitions(void) {
     return FAILED;
   if (add_a_new_definition("wla_time", 0.0, tmp, DEFINITION_TYPE_STRING, (int)strlen(tmp)) == FAILED)
     return FAILED;
-  if (add_a_new_definition("WLA_VERSION", 0.0, g_wla_version, DEFINITION_TYPE_STRING, (int)strlen(g_wla_version)) == FAILED)
+  if (add_a_new_definition("WLA_VERSION", 0.0, s_wla_version, DEFINITION_TYPE_STRING, (int)strlen(s_wla_version)) == FAILED)
     return FAILED;
-  if (add_a_new_definition("wla_version", 0.0, g_wla_version, DEFINITION_TYPE_STRING, (int)strlen(g_wla_version)) == FAILED)
+  if (add_a_new_definition("wla_version", 0.0, s_wla_version, DEFINITION_TYPE_STRING, (int)strlen(s_wla_version)) == FAILED)
     return FAILED;
 
   return SUCCEEDED;
@@ -902,12 +902,12 @@ int main(int argc, char *argv[]) {
     printf("                Programmed by Ville Helin in 1998-2008\n");
     printf("        In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
 
-    length = (int)strlen(g_version_string);
+    length = (int)strlen(s_version_string);
     left = (70 - length) / 2;
 
     for (q = 0; q < left; q++)
       printf(" ");
-    printf("%s", g_version_string);
+    printf("%s", s_version_string);
     
     printf("\n\n");
 

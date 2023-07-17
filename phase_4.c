@@ -68,12 +68,13 @@ extern int g_computesmdchecksum_defined;
 
 struct label_def *g_unknown_labels = NULL, *g_unknown_labels_last = NULL;
 struct label_def *g_unknown_header_labels = NULL, *g_unknown_header_labels_last = NULL;
-struct after_section *g_after_tmp;
 struct label_sizeof *g_label_sizeof_tmp;
 
 char g_mem_insert_action[MAX_NAME_LENGTH * 3 + 1024], g_namespace[MAX_NAME_LENGTH + 1];
+
 static int s_pc_bank = 0, s_pc_full = 0, s_rom_bank, s_mem_insert_overwrite, s_slot = 0, s_base = 0, s_pc_slot, s_pc_slot_max;
 static int s_filename_id, s_line_number, s_dstruct_start = -1, s_special_id = 0;
+static struct after_section *s_after_tmp;
 
 
 #define WRITEOUT_OV fprintf(final_ptr, "%c%c%c%c", (ov>>24)&0xFF, (ov>>16)&0xFF, (ov>>8)&0xFF, ov&0xFF);
@@ -2307,25 +2308,25 @@ int write_object_file(void) {
   
   /* appendto/after sections */
   ov = 0;
-  g_after_tmp = g_after_sections;
-  while (g_after_tmp != NULL) {
-    if (g_after_tmp->alive == YES)
+  s_after_tmp = g_after_sections;
+  while (s_after_tmp != NULL) {
+    if (s_after_tmp->alive == YES)
       ov++;
-    g_after_tmp = g_after_tmp->next;
+    s_after_tmp = s_after_tmp->next;
   }
   WRITEOUT_OV;
 
-  g_after_tmp = g_after_sections;
-  while (g_after_tmp != NULL) {
-    if (g_after_tmp->alive == YES) {
-      ov = g_after_tmp->section->id;
+  s_after_tmp = g_after_sections;
+  while (s_after_tmp != NULL) {
+    if (s_after_tmp->alive == YES) {
+      ov = s_after_tmp->section->id;
       WRITEOUT_OV;
-      fprintf(final_ptr, "%c", g_after_tmp->is_appendto);
-      fprintf(final_ptr, "%s%c", g_after_tmp->section->name, 0);
-      fprintf(final_ptr, "%s%c", g_after_tmp->after, 0);
+      fprintf(final_ptr, "%c", s_after_tmp->is_appendto);
+      fprintf(final_ptr, "%s%c", s_after_tmp->section->name, 0);
+      fprintf(final_ptr, "%s%c", s_after_tmp->after, 0);
     }
       
-    g_after_tmp = g_after_tmp->next;
+    s_after_tmp = s_after_tmp->next;
   }
 
   /* data area */
@@ -2612,25 +2613,25 @@ int write_library_file(void) {
 
   /* appendto/after sections */
   ov = 0;
-  g_after_tmp = g_after_sections;
-  while (g_after_tmp != NULL) {
-    if (g_after_tmp->alive == YES)
+  s_after_tmp = g_after_sections;
+  while (s_after_tmp != NULL) {
+    if (s_after_tmp->alive == YES)
       ov++;
-    g_after_tmp = g_after_tmp->next;
+    s_after_tmp = s_after_tmp->next;
   }
   WRITEOUT_OV;
 
-  g_after_tmp = g_after_sections;
-  while (g_after_tmp != NULL) {
-    if (g_after_tmp->alive == YES) {
-      ov = g_after_tmp->section->id;
+  s_after_tmp = g_after_sections;
+  while (s_after_tmp != NULL) {
+    if (s_after_tmp->alive == YES) {
+      ov = s_after_tmp->section->id;
       WRITEOUT_OV;
-      fprintf(final_ptr, "%c", g_after_tmp->is_appendto);
-      fprintf(final_ptr, "%s%c", g_after_tmp->section->name, 0);
-      fprintf(final_ptr, "%s%c", g_after_tmp->after, 0);
+      fprintf(final_ptr, "%c", s_after_tmp->is_appendto);
+      fprintf(final_ptr, "%s%c", s_after_tmp->section->name, 0);
+      fprintf(final_ptr, "%s%c", s_after_tmp->after, 0);
     }
       
-    g_after_tmp = g_after_tmp->next;
+    s_after_tmp = s_after_tmp->next;
   }
 
   /* sections */

@@ -21,7 +21,7 @@
 
 extern int g_input_number_error_msg, g_bankheader_status, g_input_float_mode, g_global_label_hint;
 extern int g_source_index, g_source_file_size, g_parsed_int, g_macro_active, g_string_size, g_section_status, g_parse_floats;
-extern char g_xyz[512], *g_buffer, *g_tmp, g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
+extern char *g_buffer, *g_tmp, g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
 extern struct map_t *g_defines_map;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct macro_runtime *g_macro_runtime_current;
@@ -4095,8 +4095,6 @@ int stack_create_stack_caddr_offset_plus_n(int type, int data, char *label, int 
 #define STRINGIFY(x) XSTRINGIFY(x)
 #define STRING_READ_FORMAT ("%" STRINGIFY(MAX_NAME_LENGTH) "s ")
 
-struct data_stream_item *g_data_stream_items_first = NULL, *g_data_stream_items_last = NULL;
-
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 extern char g_namespace[MAX_NAME_LENGTH + 1];
 extern FILE *g_file_out_ptr;
@@ -4107,6 +4105,7 @@ static int s_dsp_last_data_stream_position = 0, s_dsp_has_data_stream_parser_bee
 static int s_dsp_add = 0, s_dsp_add_old = 0, s_dsp_section_id = -1, s_dsp_bits_current = 0, s_dsp_inz;
 static int s_dstruct_start, s_dstruct_item_offset, s_dstruct_item_size;
 static struct section_def *s_dsp_s = NULL;
+static struct data_stream_item *s_data_stream_items_first = NULL, *s_data_stream_items_last = NULL;
 
 
 struct section_def *data_stream_parser_get_current_section(void) {
@@ -4128,14 +4127,14 @@ int data_stream_parser_free(void) {
     s_dsp_labels_map = NULL;
   }
   
-  while (g_data_stream_items_first != NULL) {
-    struct data_stream_item *next = g_data_stream_items_first->next;
-    free(g_data_stream_items_first);
-    g_data_stream_items_first = next;
+  while (s_data_stream_items_first != NULL) {
+    struct data_stream_item *next = s_data_stream_items_first->next;
+    free(s_data_stream_items_first);
+    s_data_stream_items_first = next;
   }
 
-  g_data_stream_items_first = NULL;
-  g_data_stream_items_last = NULL;
+  s_data_stream_items_first = NULL;
+  s_data_stream_items_last = NULL;
 
   return SUCCEEDED;
 }
@@ -4462,13 +4461,13 @@ int data_stream_parser_parse(void) {
           }
 
           /* store the entry in a linked list so we can free it later */
-          if (g_data_stream_items_first == NULL) {
-            g_data_stream_items_first = dSI;
-            g_data_stream_items_last = dSI;
+          if (s_data_stream_items_first == NULL) {
+            s_data_stream_items_first = dSI;
+            s_data_stream_items_last = dSI;
           }
           else {
-            g_data_stream_items_last->next = dSI;
-            g_data_stream_items_last = dSI;
+            s_data_stream_items_last->next = dSI;
+            s_data_stream_items_last = dSI;
           }
         }
       }

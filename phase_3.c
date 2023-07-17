@@ -29,10 +29,10 @@ extern int g_global_listfile_items;
 
 struct label_def *g_label_last, *g_label_tmp, *g_labels = NULL;
 struct map_t *g_global_unique_label_map = NULL;
-struct block *g_blocks = NULL;
 struct label_context g_label_context, *g_label_context_first = NULL, *g_label_context_last = NULL;
 
 static int s_dstruct_start, s_dstruct_item_offset, s_dstruct_item_size;
+static struct block *s_blocks = NULL;
 
 int g_label_context_running_number = 0;
 
@@ -332,15 +332,15 @@ int phase_3(void) {
 
         b->filename_id = file_name_id;
         b->line_number = line_number;
-        b->next = g_blocks;
-        g_blocks = b;
+        b->next = s_blocks;
+        s_blocks = b;
         strcpy(b->name, bn->name);
         b->address = address;
         continue;
 
       case 'G':
-        b = g_blocks;
-        g_blocks = g_blocks->next;
+        b = s_blocks;
+        s_blocks = s_blocks->next;
         if (g_quiet == NO)
           printf("%s:%d: INTERNAL_PHASE_1: Block \"%s\" is %d bytes in size.\n", get_file_name(file_name_id), line_number, b->name, address - b->address);
         free(b);
@@ -909,15 +909,15 @@ int phase_3(void) {
       }
       b->filename_id = file_name_id;
       b->line_number = line_number;
-      b->next = g_blocks;
-      g_blocks = b;
+      b->next = s_blocks;
+      s_blocks = b;
       strcpy(b->name, bn->name);
       b->address = address;
       continue;
 
     case 'G':
-      b = g_blocks;
-      g_blocks = g_blocks->next;
+      b = s_blocks;
+      s_blocks = s_blocks->next;
       if (g_quiet == NO) {
         printf("%s:%d: INTERNAL_PHASE_1: Block \"%s\" is %d bytes in size.\n", get_file_name(file_name_id), line_number, b->name, address - b->address);
       }
@@ -1078,8 +1078,8 @@ int phase_3(void) {
     }
   }
 
-  if (g_blocks != NULL) {
-    fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .BLOCK \"%s\" was left open.\n", get_file_name(g_blocks->filename_id), g_blocks->line_number, g_blocks->name);
+  if (s_blocks != NULL) {
+    fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .BLOCK \"%s\" was left open.\n", get_file_name(s_blocks->filename_id), s_blocks->line_number, s_blocks->name);
     return FAILED;
   }
 

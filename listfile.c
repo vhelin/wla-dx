@@ -16,7 +16,7 @@ extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
 extern char *g_tmp, *g_global_listfile_cmds;
-extern int g_verbose_mode, g_section_status, g_cartridgetype, g_output_format, *g_global_listfile_ints, g_global_listfile_items;
+extern int g_section_status, g_cartridgetype, g_output_format, *g_global_listfile_ints, g_global_listfile_items;
 extern int *g_bankaddress;
 
 

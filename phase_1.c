@@ -63,15 +63,12 @@ int g_computesmdchecksum_defined = 0, g_smdheader_defined = NO;
 #endif
 
 int g_org_defined = 1, g_background_defined = 0;
-int g_enumid_defined = 0, g_enumid = 0, g_enumid_adder = 1, g_enumid_export = 0;
-int g_bank = 0, g_bank_defined = 1;
 int g_rombanks = 0, g_rombanks_defined = 0, g_max_address = 0;
 int g_rambanks = 0, g_rambanks_defined = 0;
 int g_emptyfill = 0, g_emptyfill_defined = 0;
 int g_section_status = OFF, g_section_id = 1, g_line_count_status = ON;
 int g_parsed_int, g_source_index, g_parse_dstruct_result, g_ifdef = 0, g_slots_amount = 0, g_skip_elifs[256];
 int g_memorymap_defined = 0;
-int g_defaultslot_defined = 0, g_defaultslot, g_current_slot = 0;
 int g_banksize_defined = 0, g_banksize = 0;
 int g_rombankmap_defined = 0, *g_banks = NULL, *g_bankaddress = NULL;
 int g_bankheader_status = OFF;
@@ -79,8 +76,6 @@ int g_macro_active = 0;
 int g_repeat_active = 0;
 int g_smc_defined = 0;
 int g_asciitable_defined = 0;
-int s_block_status = 0, g_block_name_id = 0;
-int s_dstruct_status = OFF;
 int g_saved_structures_count = 0, g_saved_structures_max = 0;
 unsigned char g_asciitable[256];
 
@@ -151,6 +146,10 @@ extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern int g_makefile_rules, g_parsing_function_body, g_force_add_namespace, g_is_file_isolated_counter, g_force_ignore_namespace;
 
 static int s_macro_stack_size = 0, s_repeat_stack_size = 0;
+static int s_bank = 0, s_bank_defined = 1;
+static int s_block_status = 0, s_block_name_id = 0;
+static int s_dstruct_status = OFF, s_current_slot = 0;
+static int s_enumid_defined = 0, s_enumid = 0, s_enumid_adder = 1, s_enumid_export = 0;
 
 #if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(W65816) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
 int g_xbit_size = 0, g_accu_size = 8, g_index_size = 8;
@@ -178,6 +177,7 @@ static char s_table_format[256];
 static int s_table_defined = 0, s_table_size = 0, s_table_index = 0;
 
 static int s_source_index_old = 0, s_line_current_old = 0;
+static int s_defaultslot_defined = 0, s_defaultslot;
 static int s_autopriority = 65535;
 
 static struct section_def *s_active_ramsection = NULL;
@@ -960,7 +960,7 @@ int phase_1(void) {
       }
       
       if (m == NULL) {
-        print_error(ERROR_ERR, "Unknown symbol \"%s\".\n", g_tmp);
+        print_error(ERROR_ERR, "Cannot process \"%s\". Syntax error?\n", g_tmp);
         if (g_continue_parsing_after_an_error == YES) {
           /* find the end of the line and continue parsing on the following line */
           while (g_buffer[g_source_index] != 0xA)
@@ -2346,7 +2346,7 @@ int directive_org(void) {
   
   no_library_files(".ORG definitions");
     
-  if (g_bank_defined == 0) {
+  if (s_bank_defined == 0) {
     print_error(ERROR_LOG, "No .BANK is defined.\n");
     return FAILED;
   }
@@ -2382,7 +2382,7 @@ int directive_orga(void) {
   
   no_library_files(".ORGA definitions");
     
-  if (g_bank_defined == 0) {
+  if (s_bank_defined == 0) {
     print_error(ERROR_LOG, "No .BANK is defined.\n");
     return FAILED;
   }
@@ -2407,8 +2407,8 @@ int directive_orga(void) {
 
   g_org_defined = 1;
 
-  current_slot_address = g_slots[g_current_slot].address;
-  if (g_parsed_int < current_slot_address || g_parsed_int > (current_slot_address + g_slots[g_current_slot].size)) {
+  current_slot_address = g_slots[s_current_slot].address;
+  if (g_parsed_int < current_slot_address || g_parsed_int > (current_slot_address + g_slots[s_current_slot].size)) {
     print_error(ERROR_DIR, ".ORGA is outside the current SLOT.\n");
     return FAILED;
   }
@@ -2459,9 +2459,9 @@ int directive_slot(void) {
     return FAILED;
   }
 
-  fprintf(g_file_out_ptr, "B%d %d ", g_bank, g_parsed_int);
+  fprintf(g_file_out_ptr, "B%d %d ", s_bank, g_parsed_int);
 
-  g_current_slot = g_parsed_int;
+  s_current_slot = g_parsed_int;
 
   return SUCCEEDED;
 }
@@ -2500,8 +2500,8 @@ int directive_bank(void) {
     return FAILED;
   }
 
-  g_bank = g_parsed_int;
-  g_bank_defined = 1;
+  s_bank = g_parsed_int;
+  s_bank_defined = 1;
 
   if (compare_next_token("SLOT") == SUCCEEDED) {
     skip_next_token();
@@ -2531,17 +2531,17 @@ int directive_bank(void) {
     }
 
     if (g_output_format != OUTPUT_LIBRARY)
-      fprintf(g_file_out_ptr, "B%d %d ", g_bank, g_parsed_int);
+      fprintf(g_file_out_ptr, "B%d %d ", s_bank, g_parsed_int);
 
-    bank = g_bank;
+    bank = s_bank;
     slot = g_parsed_int;
-    g_current_slot = g_parsed_int;
+    s_current_slot = g_parsed_int;
   }
   else {
-    fprintf(g_file_out_ptr, "B%d %d ", g_parsed_int, g_defaultslot);
+    fprintf(g_file_out_ptr, "B%d %d ", g_parsed_int, s_defaultslot);
     bank = g_parsed_int;
-    slot = g_defaultslot;
-    g_current_slot = g_defaultslot;
+    slot = s_defaultslot;
+    s_current_slot = s_defaultslot;
   }
 
   if (g_slots[slot].size < g_banks[bank]) {
@@ -5194,7 +5194,7 @@ int directive_section(void) {
     print_error(ERROR_DIR, "There is already an open section called \"%s\".\n", g_sections_last->name);
     return FAILED;
   }
-  else if (g_output_format != OUTPUT_LIBRARY && g_bank_defined == 0) {
+  else if (g_output_format != OUTPUT_LIBRARY && s_bank_defined == 0) {
     print_error(ERROR_DIR, ".SECTION requires a predefined bank.\n");
     return FAILED;
   }
@@ -5245,8 +5245,8 @@ int directive_section(void) {
       
     g_sec_next = g_sections_first;
     while (g_sec_next != NULL) {
-      if (g_sec_next->name[0] == 'B' && strcmp(g_sec_next->name, g_tmp) == 0 && g_sec_next->bank == g_bank) {
-        print_error(ERROR_DIR, "BANKHEADER section was defined for the second time for bank %d.\n", g_bank);
+      if (g_sec_next->name[0] == 'B' && strcmp(g_sec_next->name, g_tmp) == 0 && g_sec_next->bank == s_bank) {
+        print_error(ERROR_DIR, "BANKHEADER section was defined for the second time for bank %d.\n", s_bank);
         free(g_sec_tmp);
         return FAILED;
       }
@@ -5718,9 +5718,9 @@ int directive_section(void) {
   g_sec_tmp->alive = YES;
   g_sec_tmp->filename_id = g_active_file_info_last->filename_id;
   if (g_sec_tmp->bank < 0)
-    g_sec_tmp->bank = g_bank;
+    g_sec_tmp->bank = s_bank;
   if (g_sec_tmp->slot < 0)
-    g_sec_tmp->slot = g_current_slot;
+    g_sec_tmp->slot = s_current_slot;
   g_section_status = ON;
 
   fprintf(g_file_out_ptr, "S%d ", g_sec_tmp->id);
@@ -6111,7 +6111,7 @@ int directive_block(void) {
   }
 
   strcpy(b->name, g_tmp);
-  b->id = g_block_name_id++;
+  b->id = s_block_name_id++;
   b->next = g_block_names;
   g_block_names = b;
   
@@ -6588,13 +6588,13 @@ int directive_memorymap(void) {
     }
 
     if (strcaselesscmp(g_tmp, ".ENDME") == 0) {
-      if (g_defaultslot_defined == 0) {
+      if (s_defaultslot_defined == 0) {
         print_error(ERROR_DIR, "No DEFAULTSLOT defined.\n");
         return FAILED;
       }
 
-      if (g_slots[g_defaultslot].size == 0) {
-        print_error(ERROR_DIR, "Unknown DEFAULTSLOT %d.\n", g_defaultslot);
+      if (g_slots[s_defaultslot].size == 0) {
+        print_error(ERROR_DIR, "Unknown DEFAULTSLOT %d.\n", s_defaultslot);
         return FAILED;
       }
 
@@ -6614,7 +6614,7 @@ int directive_memorymap(void) {
       slotsize_defined = 1;
     }
     else if (strcaselesscmp(g_tmp, "DEFAULTSLOT") == 0) {
-      if (g_defaultslot_defined != 0) {
+      if (s_defaultslot_defined != 0) {
         print_error(ERROR_DIR, "DEFAULTSLOT can be defined only once.\n");
         return FAILED;
       }
@@ -6628,8 +6628,8 @@ int directive_memorymap(void) {
         return FAILED;
       }
 
-      g_defaultslot_defined = 1;
-      g_defaultslot = g_parsed_int;
+      s_defaultslot_defined = 1;
+      s_defaultslot = g_parsed_int;
     }
     else if (strcaselesscmp(g_tmp, "SLOT") == 0) {
       q = input_number();
@@ -7968,7 +7968,7 @@ int directive_enumid(void) {
     return FAILED;
   }
   else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
-    if (g_enumid_defined == 0) {
+    if (s_enumid_defined == 0) {
       print_error(ERROR_DIR, ".ENUMID needs the initial value when .ENUMID is used the first time.\n");
       return FAILED;
     }
@@ -7978,22 +7978,22 @@ int directive_enumid(void) {
       return FAILED;
     }
 
-    if (add_a_new_definition(g_label, (double)g_enumid, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+    if (add_a_new_definition(g_label, (double)s_enumid, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
 
-    if (g_enumid_export == 1) {
+    if (s_enumid_export == 1) {
       if (export_a_definition(g_label) == FAILED)
         return FAILED;
     }
 
-    g_enumid += g_enumid_adder;
+    s_enumid += s_enumid_adder;
 
     return SUCCEEDED;
   }
   else if (q == SUCCEEDED) {
-    g_enumid = g_parsed_int;
-    g_enumid_adder = 1;
-    g_enumid_export = 0;
+    s_enumid = g_parsed_int;
+    s_enumid_adder = 1;
+    s_enumid_export = 0;
 
     if (compare_next_token("STEP") == SUCCEEDED) {
       skip_next_token();
@@ -8008,16 +8008,16 @@ int directive_enumid(void) {
         return FAILED;
       }
 
-      g_enumid_adder = g_parsed_int;
+      s_enumid_adder = g_parsed_int;
     }
 
     if (compare_next_token("EXPORT") == SUCCEEDED) {
       skip_next_token();
 
-      g_enumid_export = 1;
+      s_enumid_export = 1;
     }
 
-    g_enumid_defined = 1;
+    s_enumid_defined = 1;
 
     return SUCCEEDED;
   }
