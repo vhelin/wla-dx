@@ -817,6 +817,7 @@ struct repeat_runtime {
   int start_line;
   int counter;
   int repeats;
+  int start_ifdef;
   char index_name[MAX_NAME_LENGTH + 1];
 };
 

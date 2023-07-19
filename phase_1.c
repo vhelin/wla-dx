@@ -9065,6 +9065,7 @@ int directive_rept_repeat(void) {
   g_repeat_stack[s_repeat_active].counter = g_parsed_int;
   g_repeat_stack[s_repeat_active].repeats = 0;
   g_repeat_stack[s_repeat_active].start_line = g_active_file_info_last->line_current;
+  g_repeat_stack[s_repeat_active].start_ifdef = g_ifdef;
   strcpy(g_repeat_stack[s_repeat_active].index_name, index_name);
 
   s_repeat_active++;
@@ -10562,6 +10563,97 @@ int directive_rombanksize_banksize(void) {
 }
 
 
+int directive_break(void) {
+
+  int m, line_current = g_active_file_info_last->line_current;
+  struct repeat_runtime *rr;
+  
+  if (s_repeat_active == 0) {
+    print_error(ERROR_DIR, "There is no open .REPT/.REPEAT.\n");
+    return FAILED;
+  }
+
+  rr = &g_repeat_stack[s_repeat_active - 1];
+
+  s_repeat_active--;
+          
+  /* repeat end */
+  fprintf(g_file_out_ptr, "J ");
+
+  if (strlen(rr->index_name) > 0) {
+    if (undefine(rr->index_name) == FAILED)
+      return FAILED;
+  }
+
+  /* find .ENDR */
+  m = g_macro_active;
+
+  /* disable macro decoding */
+  g_macro_active = 0;
+
+  /* don't use substitution in get_next_token() */
+  g_get_next_token_use_substitution = NO;
+
+  while (get_next_token() != FAILED) {
+    if (g_tmp[0] == '.') {
+      if (strcaselesscmp(g_current_directive, "E") == 0)
+        break;
+      if (strcaselesscmp(g_current_directive, "ENDR") == 0) {
+        g_macro_active = m;
+        g_get_next_token_use_substitution = YES;
+        g_ifdef = rr->start_ifdef;
+        return SUCCEEDED;  
+      }
+    }
+  }
+  
+  /* return the condition's line number */
+  g_active_file_info_last->line_current = line_current;
+  print_error(ERROR_DIR, ".REPEAT/.REPT must end to .ENDR.\n");
+
+  return FAILED;
+}
+
+
+int directive_endr_continue(void) {
+
+  struct repeat_runtime *rr;
+  
+  if (s_repeat_active == 0) {
+    print_error(ERROR_DIR, "There is no open .REPT/.REPEAT.\n");
+    return FAILED;
+  }
+
+  rr = &g_repeat_stack[s_repeat_active - 1];
+
+  rr->counter--;
+  if (rr->counter == 0) {
+    s_repeat_active--;
+          
+    /* repeat end */
+    fprintf(g_file_out_ptr, "J ");
+
+    if (strlen(rr->index_name) > 0) {
+      if (undefine(rr->index_name) == FAILED)
+        return FAILED;
+    }
+    return SUCCEEDED;
+  }
+
+  rr->repeats++;
+  if (strlen(rr->index_name) > 0) {
+    if (redefine(rr->index_name, (double)rr->repeats, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+      return FAILED;
+  }
+    
+  g_source_index = rr->start;
+  g_active_file_info_last->line_current = rr->start_line;
+  g_ifdef = rr->start_ifdef;
+
+  return SUCCEEDED;
+}
+
+
 int parse_directive(void) {
 
   char c, directive_upper[MAX_NAME_LENGTH + 1];
@@ -10731,6 +10823,10 @@ int parse_directive(void) {
         fprintf(g_file_out_ptr, "Z ");
         return SUCCEEDED;
       }
+
+      /* BREAK */
+      if (strcmp(directive_upper, "BREAK") == 0)
+        return directive_break();
 
       /* BLOCK */
       if (strcmp(directive_upper, "BLOCK") == 0)
@@ -10959,6 +11055,10 @@ int parse_directive(void) {
       return SUCCEEDED;
     }
     
+    /* CONTINUE */
+    if (strcmp(directive_upper, "CONTINUE") == 0)
+      return directive_endr_continue();
+
     break;
     
   case 'D':
@@ -11161,41 +11261,8 @@ int parse_directive(void) {
         return directive_endm();
     
       /* ENDR */
-      if (strcmp(directive_upper, "ENDR") == 0) {
-        struct repeat_runtime *rr;
-    
-        if (s_repeat_active == 0) {
-          print_error(ERROR_DIR, "There is no open repetition.\n");
-          return FAILED;
-        }
-
-        rr = &g_repeat_stack[s_repeat_active - 1];
-
-        rr->counter--;
-        if (rr->counter == 0) {
-          s_repeat_active--;
-          
-          /* repeat end */
-          fprintf(g_file_out_ptr, "J ");
-
-          if (strlen(rr->index_name) > 0) {
-            if (undefine(rr->index_name) == FAILED)
-              return FAILED;
-          }
-          return SUCCEEDED;
-        }
-
-        rr->repeats++;
-        if (strlen(rr->index_name) > 0) {
-          if (redefine(rr->index_name, (double)rr->repeats, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-            return FAILED;
-        }
-    
-        g_source_index = rr->start;
-        g_active_file_info_last->line_current = rr->start_line;
-
-        return SUCCEEDED;
-      }
+      if (strcmp(directive_upper, "ENDR") == 0)
+        return directive_endr_continue();
 
       /* ENUM */
       if (strcmp(directive_upper, "ENUM") == 0) {
@@ -12102,6 +12169,19 @@ static int _increase_ifdef(void) {
 }
 
 
+static int _decrease_ifdef(void) {
+
+  if (g_ifdef <= 0) {
+    print_error(ERROR_DIR, "Out of .IF stack!\n");
+    return FAILED;
+  }
+
+  g_ifdef--;
+
+  return SUCCEEDED;
+}
+
+
 /* parses only "if" directives. */
 /* this is separate from parse_directive so that enums and ramsections can reuse this */
 int parse_if_directive(void) {
@@ -12138,7 +12218,8 @@ int parse_if_directive(void) {
           r++;
       }
       if (r == 0) {
-        g_ifdef--;
+        if (_decrease_ifdef() == FAILED)
+          return FAILED;
         g_macro_active = m;
         return SUCCEEDED;
       }
@@ -12157,7 +12238,9 @@ int parse_if_directive(void) {
     }
 
     s_skip_elifs[g_ifdef] = NO;
-    g_ifdef--;
+
+    if (_decrease_ifdef() == FAILED)
+      return FAILED;
     
     return SUCCEEDED;
   }
@@ -12468,7 +12551,8 @@ int find_next_point(char *name) {
         depth--;
         if (depth == 0)
           s_skip_elifs[g_ifdef] = NO;
-        g_ifdef--;
+        if (_decrease_ifdef() == FAILED)
+          return FAILED;
       }
       if (strcaselesscmp(g_current_directive, "ELSE") == 0 && depth == 1) {
         depth--;

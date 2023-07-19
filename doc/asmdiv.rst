@@ -106,8 +106,10 @@ ALL  ``.BASE $80``
 ALL  ``.BITS 4 DATA %1011, %0100, %1010, %0101``
 ALL  ``.BLOCK "Block1"``
 ALL  ``.BR``
+ALL  ``.BREAK``
 ALL  ``.BREAKPOINT``
 ALL  ``.BYT 100, $30, %1000, "HELLO WORLD!"``
+ALL  ``.CONTINUE``
 ALL  ``.DATA $ff00, 2``
 ALL  ``.DB 100, $30, %1000, "HELLO WORLD!"``
 ALL  ``.DBCOS 0.2, 10, 3.2, 120, 1.3``
@@ -666,19 +668,27 @@ Use ``.ENDB`` to terminate a ``.BLOCK``. Note that you can nest ``.BLOCK`` s.
 This is not a compulsory directive.
 
 
-``.BREAKPOINT``
----------------
-
-``.BREAKPOINT`` is an alias for ``.BR``.
-
-This is not a compulsory directive.
-
-
 ``.BR``
 -------
 
 Inserts a breakpoint that behaves like a ``.SYM`` without a name. Breakpoints
 can only be seen in WLALINK's symbol file.
+
+This is not a compulsory directive.
+
+
+``.BREAK``
+---------------
+
+Exits the active ``.REPEAT``.
+
+This is not a compulsory directive.
+
+
+``.BREAKPOINT``
+---------------
+
+``.BREAKPOINT`` is an alias for ``.BR``.
 
 This is not a compulsory directive.
 
@@ -759,6 +769,14 @@ that the ROM size must be at least 32KB for LoROM images, 64KB for
 HiROM images and 32.5MBit for ExHiROM.
 
 ``.LOROM``, ``.HIROM`` or ``.EXHIROM`` must be issued before ``.COMPUTESNESCHECKSUM``.
+
+This is not a compulsory directive.
+
+
+``.CONTINUE``
+-------------
+
+Jumps to the beginning of an active ``.REPEAT``.
 
 This is not a compulsory directive.
 
