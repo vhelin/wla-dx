@@ -835,7 +835,7 @@ static int _create_tmp_file(void) {
   if (s_tmpfile_name[0] == '\\')
     s_tmpfile_name = s_tmpfile_name + 1;
 
-  g_file_out_ptr = fopen(s_tmpfile_name, "wb");
+  g_file_out_ptr = fopen(s_tmpfile_name, "w+");
 #else
   g_file_out_ptr = tmpfile();
 #endif
