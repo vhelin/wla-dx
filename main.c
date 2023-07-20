@@ -31,7 +31,7 @@ FILE *g_file_out_ptr = NULL;
 
 /* amiga specific definitions */
 
-#ifdef AMIGA
+#if defined(AMIGA)
 __near long __stack = 200000;
 #endif
 
@@ -85,8 +85,12 @@ struct ext_include_collection g_ext_incdirs;
 static struct structure **s_deletable_structures = NULL;
 static int s_deletable_structures_max = 0, s_deletable_structures_count = 0;
 
-#ifdef Z80
+#if defined(Z80)
 extern char *g_sdsctag_name_str, *g_sdsctag_notes_str, *g_sdsctag_author_str;
+#endif
+
+#if defined(WIN32)
+static char *s_tmpfile_name = NULL;
 #endif
 
 PROFILE_GLOBALS();
@@ -528,6 +532,13 @@ static void _procedures_at_exit(void) {
     g_file_out_ptr = NULL;
   }
 
+#if defined(WIN32)
+  if (s_tmpfile_name != NULL) {
+    remove(s_tmpfile_name);
+    s_tmpfile_name = NULL;
+  }
+#endif
+  
   free(g_macro_stack);
   free(g_repeat_stack);
   free(g_final_name);
@@ -764,7 +775,7 @@ static void _procedures_at_exit(void) {
   
   _free_global_buffers();
   
-#ifdef Z80
+#if defined(Z80)
   free(g_sdsctag_name_str);
   free(g_sdsctag_notes_str);
   free(g_sdsctag_author_str);
@@ -801,6 +812,38 @@ static int _generate_extra_definitions(void) {
     return FAILED;
   if (add_a_new_definition("wla_version", 0.0, s_wla_version, DEFINITION_TYPE_STRING, (int)strlen(s_wla_version)) == FAILED)
     return FAILED;
+
+  return SUCCEEDED;
+}
+
+
+static int _create_tmp_file(void) {
+
+#if defined(WIN32)
+  /* tmpfile uses root of drive on Windows, which is probably not-writable. */
+  s_tmpfile_name = tmpnam(NULL);
+
+  if (s_tmpfile_name == NULL) {
+    fprintf(stderr, "_CREATE_TMP_FILE: Error creating a tmp filename for WLA's internal data stream.\n");
+    return FAILED;
+  }
+
+  /* per: https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/tempnam-wtempnam-tmpnam-wtmpnam?view=msvc-170&redirectedfrom=MSDN
+     when a file name is prepended with a backslash and no path information,
+     such as \fname21, it indicates that the name is valid for the current working
+     directory. */
+  if (s_tmpfile_name[0] == '\\')
+    s_tmpfile_name = s_tmpfile_name + 1;
+
+  g_file_out_ptr = fopen(s_tmpfile_name, "wb");
+#else
+  g_file_out_ptr = tmpfile();
+#endif
+
+  if (g_file_out_ptr == NULL) {
+    fprintf(stderr, "_CREATE_TMP_FILE: Error creating a tmp file for WLA's internal data stream.\n");
+    return FAILED;
+  }
 
   return SUCCEEDED;
 }
@@ -896,7 +939,7 @@ int main(int argc, char *argv[]) {
       printf(" ");
     printf("---\n");
     printf("----------------------------------------------------------------------\n");
-#ifdef AMIGACPU
+#if defined(AMIGACPU)
     printf("                         Compiled for " AMIGACPU "\n");
 #endif
     printf("                Programmed by Ville Helin in 1998-2008\n");
@@ -911,7 +954,7 @@ int main(int argc, char *argv[]) {
     
     printf("\n\n");
 
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
     printf("***  WLA_DEBUG defined - this executable is running in DEBUG mode  ***\n");
     printf("\n");
 #endif
@@ -951,11 +994,8 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  g_file_out_ptr = tmpfile();
-  if (g_file_out_ptr == NULL) {
-    fprintf(stderr, "MAIN: Error creating a tmp file for WLA's internal data stream.\n");
+  if (_create_tmp_file() == FAILED)
     return 1;
-  }
 
   /* small inits */
   if (g_extra_definitions == ON)
