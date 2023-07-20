@@ -23,6 +23,8 @@ extern FILE *g_file_out_ptr;
 extern struct stringmaptable *g_stringmaptables;
 extern struct string *g_fopen_filenames_first;
 extern int g_is_file_isolated_counter;
+
+extern int create_tmp_file(FILE **);
         
 struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
 struct active_file_info *g_active_file_info_first = NULL, *g_active_file_info_last = NULL, *g_active_file_info_tmp = NULL;
@@ -137,7 +139,7 @@ static int _find_file(char *name, FILE **f) {
   /* if we can't find the file, but are only printing makefile rules, silently use an empty file */
   /* a warning might be nice */
   if (g_makefile_rules == YES) {
-    (*f) = tmpfile();
+    create_tmp_file(f);
     if (*f != NULL)
       return SUCCEEDED;
 
