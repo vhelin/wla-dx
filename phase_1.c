@@ -146,6 +146,8 @@ extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern int g_makefile_rules, g_parsing_function_body, g_force_add_namespace, g_is_file_isolated_counter, g_force_ignore_namespace;
 
+extern int create_tmp_file(FILE **);
+
 static int s_macro_stack_size = 0, s_repeat_stack_size = 0;
 static int s_bank = 0, s_bank_defined = 1, s_line_count_status = ON;
 static int s_block_status = 0, s_block_name_id = 0, s_parse_dstruct_result;
@@ -5873,7 +5875,7 @@ int directive_fopen(void) {
   if (f->f == NULL) {
     if (g_makefile_rules == YES) {
       /* lets just use a tmp file for file operations */
-      f->f = tmpfile();
+      create_tmp_file(&f->f);
       if (f->f == NULL) {
         print_error(ERROR_DIR, "Error creating a tmp file for \"%s\"!\n", f->filename);
         return FAILED;
