@@ -85,12 +85,16 @@ struct ext_include_collection g_ext_incdirs;
 static struct structure **s_deletable_structures = NULL;
 static int s_deletable_structures_max = 0, s_deletable_structures_count = 0;
 
+int create_tmp_file(FILE **);
+
 #if defined(Z80)
 extern char *g_sdsctag_name_str, *g_sdsctag_notes_str, *g_sdsctag_author_str;
 #endif
 
 #if defined(WIN32)
-static char *s_tmpfile_name = NULL;
+/* Arbitrary, since TMP_MAX can be rather large. */
+static char * s_tmpfile_names[256];
+static int s_num_tmpfiles = 0;
 #endif
 
 PROFILE_GLOBALS();
@@ -533,10 +537,20 @@ static void _procedures_at_exit(void) {
   }
 
 #if defined(WIN32)
-  if (s_tmpfile_name != NULL) {
-    remove(s_tmpfile_name);
-    s_tmpfile_name = NULL;
+  for(i = 0; i < s_num_tmpfiles; i++) {
+    if (s_tmpfile_names[i] != NULL) {
+      if(s_tmpfile_names[i][0] == '\\')
+        remove(&s_tmpfile_names[i][1]);
+      else
+        remove(s_tmpfile_names[i]);
+      
+      free(s_tmpfile_names[i]);
+      s_tmpfile_names[i] = NULL;
+    }
   }
+
+  s_num_tmpfiles = 0;
+  
 #endif
   
   free(g_macro_stack);
@@ -817,14 +831,33 @@ static int _generate_extra_definitions(void) {
 }
 
 
-static int _create_tmp_file(void) {
-
+int create_tmp_file(FILE ** file_out_ptr) {
 #if defined(WIN32)
-  /* tmpfile uses root of drive on Windows, which is probably not-writable. */
-  s_tmpfile_name = tmpnam(NULL);
+  char * tmpfile_buf;
+  char * tmpfile_name;
 
-  if (s_tmpfile_name == NULL) {
-    fprintf(stderr, "_CREATE_TMP_FILE: Error creating a tmp filename for WLA's internal data stream.\n");
+  *file_out_ptr = NULL;
+
+  if (s_num_tmpfiles >= 255) {
+    fprintf(stderr, "CREATE_TMP_FILE: Maximum number of tmpfiles (256) reached.\n");
+    return FAILED;
+  }
+  
+  /* windows.h MAX_PATH: https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=registry.
+     Let's not bring in windows.h for a single constant. */
+  tmpfile_buf = malloc(260);
+
+  if (tmpfile_buf == NULL) {
+    fprintf(stderr, "CREATE_TMP_FILE: Error allocating a temporary filename buffer.\n");
+    return FAILED;
+  }
+  s_tmpfile_names[s_num_tmpfiles] = tmpfile_buf;
+
+  /* tmpfile uses root of drive on Windows, which is probably not-writable. */
+  tmpfile_name = tmpnam(s_tmpfile_names[s_num_tmpfiles]);
+
+  if (tmpfile_name == NULL) {
+    fprintf(stderr, "CREATE_TMP_FILE: Error creating a tmp filename.\n");
     return FAILED;
   }
 
@@ -832,18 +865,22 @@ static int _create_tmp_file(void) {
      when a file name is prepended with a backslash and no path information,
      such as \fname21, it indicates that the name is valid for the current working
      directory. */
-  if (s_tmpfile_name[0] == '\\')
-    s_tmpfile_name = s_tmpfile_name + 1;
+  if (tmpfile_name[0] == '\\')
+    tmpfile_name = tmpfile_name + 1;
 
-  g_file_out_ptr = fopen(s_tmpfile_name, "w+");
+  *file_out_ptr = fopen(tmpfile_name, "wb+");
 #else
-  g_file_out_ptr = tmpfile();
+  *file_out_ptr = tmpfile();
 #endif
 
-  if (g_file_out_ptr == NULL) {
-    fprintf(stderr, "_CREATE_TMP_FILE: Error creating a tmp file for WLA's internal data stream.\n");
+  if (*file_out_ptr == NULL) {
+    fprintf(stderr, "CREATE_TMP_FILE: Error creating a tmp file.\n");
     return FAILED;
   }
+
+#if defined(WIN32)
+  s_num_tmpfiles++;
+#endif
 
   return SUCCEEDED;
 }
@@ -994,8 +1031,10 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  if (_create_tmp_file() == FAILED)
+  if (create_tmp_file(&g_file_out_ptr) == FAILED) {
+    fprintf(stderr, "MAIN: Error creating a tmp file for WLA's internal data stream.\n");
     return 1;
+  }
 
   /* small inits */
   if (g_extra_definitions == ON)
