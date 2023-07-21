@@ -140,12 +140,12 @@ static int _find_file(char *name, FILE **f) {
   /* a warning might be nice */
   if (g_makefile_rules == YES) {
     create_tmp_file(f);
-    if (*f != NULL)
-      return SUCCEEDED;
+    if (*f == NULL) {
+      print_error(ERROR_INC, "Error creating a tmp file for \"%s\"!\n", name);
+      return FAILED;
+    }
 
-    print_error(ERROR_INC, "Error creating a tmp file for \"%s\"!\n", name);
-
-    return FAILED;
+    return SUCCEEDED;
   }
   
   _print_find_error(name);

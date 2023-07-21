@@ -29,8 +29,6 @@
 
 FILE *g_file_out_ptr = NULL;
 
-/* amiga specific definitions */
-
 #if defined(AMIGA)
 __near long __stack = 200000;
 #endif
@@ -85,15 +83,13 @@ struct ext_include_collection g_ext_incdirs;
 static struct structure **s_deletable_structures = NULL;
 static int s_deletable_structures_max = 0, s_deletable_structures_count = 0;
 
-int create_tmp_file(FILE **);
-
 #if defined(Z80)
 extern char *g_sdsctag_name_str, *g_sdsctag_notes_str, *g_sdsctag_author_str;
 #endif
 
 #if defined(WIN32)
-/* Arbitrary, since TMP_MAX can be rather large. */
-static char * s_tmpfile_names[256];
+/* arbitrary, since TMP_MAX can be rather large. */
+static char *s_tmpfile_names[256];
 static int s_num_tmpfiles = 0;
 #endif
 
@@ -537,9 +533,9 @@ static void _procedures_at_exit(void) {
   }
 
 #if defined(WIN32)
-  for(i = 0; i < s_num_tmpfiles; i++) {
+  for (i = 0; i < s_num_tmpfiles; i++) {
     if (s_tmpfile_names[i] != NULL) {
-      if(s_tmpfile_names[i][0] == '\\')
+      if (s_tmpfile_names[i][0] == '\\')
         remove(&s_tmpfile_names[i][1]);
       else
         remove(s_tmpfile_names[i]);
@@ -550,7 +546,6 @@ static void _procedures_at_exit(void) {
   }
 
   s_num_tmpfiles = 0;
-  
 #endif
   
   free(g_macro_stack);
@@ -831,10 +826,12 @@ static int _generate_extra_definitions(void) {
 }
 
 
+/* TODO: put this and all related into its own .c file */
 int create_tmp_file(FILE ** file_out_ptr) {
+
 #if defined(WIN32)
-  char * tmpfile_buf;
-  char * tmpfile_name;
+  char *tmpfile_buf;
+  char *tmpfile_name;
 
   *file_out_ptr = NULL;
 
@@ -844,7 +841,7 @@ int create_tmp_file(FILE ** file_out_ptr) {
   }
   
   /* windows.h MAX_PATH: https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=registry.
-     Let's not bring in windows.h for a single constant. */
+     let's not bring in windows.h for a single constant. */
   tmpfile_buf = malloc(260);
 
   if (tmpfile_buf == NULL) {
@@ -1031,10 +1028,8 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  if (create_tmp_file(&g_file_out_ptr) == FAILED) {
-    fprintf(stderr, "MAIN: Error creating a tmp file for WLA's internal data stream.\n");
+  if (create_tmp_file(&g_file_out_ptr) == FAILED)
     return 1;
-  }
 
   /* small inits */
   if (g_extra_definitions == ON)
