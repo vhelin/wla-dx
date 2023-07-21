@@ -860,6 +860,10 @@ int phase_1(void) {
       return FAILED;
     }
 
+    /* skip loose '\'s */
+    if (strcmp("\\", g_tmp) == 0)
+      continue;
+
     q = evaluate_token();
 
 #ifdef SPC700
@@ -873,7 +877,7 @@ int phase_1(void) {
       return SUCCEEDED;
     else if (q == EVALUATE_TOKEN_NOT_IDENTIFIED) {
       int got_opening_parenthesis = NO, end_of_line = NO;
-      
+
       /* check if it is of the form "LABEL:XYZ" */
       for (q = 0; q < g_ss; q++) {
         if (g_tmp[q] == ':')

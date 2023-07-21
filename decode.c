@@ -43,6 +43,8 @@ extern int g_input_number_expects_dot;
 static struct instruction *s_instruction_tmp;
 static int s_parser_source_index;
 
+#define IS_THE_MATCH_COMPLETE(x) (s_instruction_tmp->string[x] == 0 && (g_buffer[s_parser_source_index] == 0x0A || g_buffer[s_parser_source_index] == '\\' || (g_buffer[s_parser_source_index] == ' ' && g_buffer[s_parser_source_index+1] == '\\')))
+
 
 static void _output_assembled_instruction(struct instruction *instruction, const char *format, ...) {
 
@@ -421,7 +423,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
   c = toupper((int)code[i]);
 
   if (extras == YES) {
-    if (c == 'C' && toupper((int)code[i+1]) == 'C' && toupper((int)code[i+2]) == 'R' && code[i+3] == 0xA) {
+    if (c == 'C' && toupper((int)code[i+1]) == 'C' && toupper((int)code[i+2]) == 'R' && (code[i+3] == 0xA || (code[i+3] == ' ' && code[i+4] == '\\'))) {
       i += 3;
 
       *mode = B8(00001000);
@@ -429,7 +431,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
 
       return SUCCEEDED;
     }
-    else if (c == 'S' && toupper((int)code[i+1]) == 'R' && (code[i+2] == 0xA || code[i+2] == ',')) {
+    else if (c == 'S' && toupper((int)code[i+1]) == 'R' && (code[i+2] == 0xA || code[i+2] == ',' || (code[i+2] == ' ' && code[i+3] == '\\'))) {
       i += 2;
 
       *mode = B8(00001001);
@@ -437,7 +439,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
 
       return SUCCEEDED;
     }
-    else if (c == 'U' && toupper((int)code[i+1]) == 'S' && toupper((int)code[i+2]) == 'P' && (code[i+3] == 0xA || code[i+3] == ',')) {
+    else if (c == 'U' && toupper((int)code[i+1]) == 'S' && toupper((int)code[i+2]) == 'P' && (code[i+3] == 0xA || code[i+3] == ',' || (code[i+3] == ' ' && code[i+4] == '\\'))) {
       i += 3;
 
       *mode = B8(00001010);
@@ -450,7 +452,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
       int old_i = i, registers = 0, list = 0, success = YES, number, c2, number2;
 
       while (1) {
-        if (code[i] == 0xA || code[i] == ',')
+        if (code[i] == 0xA || code[i] == ',' || (code[i] == ' ' && code[i+1] == '\\'))
           break;
 
         c = toupper((int)code[i]);
@@ -462,7 +464,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
           break;
         }
 
-        if (code[i] == '/' || code[i] == 0xA || code[i] == ',') {
+        if (code[i] == '/' || code[i] == 0xA || code[i] == ',' || (code[i] == ' ' && code[i+1] == '\\')) {
           /* add this register to the list */
           if (c == 'A') {
             if ((list & (1 << (8 + number))) == 0) {
@@ -570,7 +572,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
       *reg1 = code[i] - '0';
 
       i++;
-      if (code[i] == 0xA || code[i] == ',') {
+      if (code[i] == 0xA || code[i] == ',' || (code[i] == ' ' && code[i+1] == '\\')) {
         if (c == 'A')
           *mode = B8(00000001);
         else
@@ -639,7 +641,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
             i++;
           }
 
-          if (code[i] != 0xA && code[i] != ',')
+          if (code[i] != 0xA && code[i] != ',' && code[i] != '\\' && (!(code[i] == ' ' && code[i+1] == '\\')))
             return FAILED;
 
           if (predecrement == YES)
@@ -655,7 +657,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
         }
       }
     }
-
+    
     /* d8 OR d16 here? */
     y = g_source_index;
     g_source_index = i;
@@ -704,7 +706,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
             }
 
             *mode = B8(00000101);
-
+            
             *index = i;
       
             return SUCCEEDED;
@@ -817,7 +819,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
   g_fail_quetly_on_non_found_functions = NO;
   i = g_source_index;
   g_source_index = y;
-    
+
   if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
     return FAILED;
 
@@ -829,7 +831,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
   else
     *data = g_parsed_int;
 
-  if (code[i] == 0xA || code[i] == ',') {
+  if (code[i] == 0xA || code[i] == ',' || code[i] == '\\' || (code[i] == ' ' && code[i+1] == '\\')) {
     /* we have
        111 - 000 - ??? - (xxx).W
        111 - 001 - ??? - (xxx).L */
@@ -934,7 +936,7 @@ static int _mc68000_parse_register(char *code, int *index, int *reg, int *mode) 
       *reg = code[i] - '0';
 
       i++;
-      if (code[i] != 0xA && code[i] != ',')
+      if (code[i] != 0xA && code[i] != ',' && code[i] != '\\' && (!(code[i] == ' ' && code[i+1] == '\\')))
         return FAILED;
 
       if (c == 'A')
@@ -965,7 +967,7 @@ static int _mc68000_parse_register(char *code, int *index, int *reg, int *mode) 
           i++;
         }
 
-        if (code[i] != 0xA && code[i] != ',')
+        if (code[i] != 0xA && code[i] != ',' && code[i] != '\\' && (!(code[i] == ' ' && code[i+1] == '\\')))
           return FAILED;
 
         if (predecrement == YES)
@@ -1145,7 +1147,7 @@ int evaluate_token(void) {
       
     case 0:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
 
@@ -1184,7 +1186,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1231,7 +1233,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1253,7 +1255,7 @@ int evaluate_token(void) {
 
     case 3:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -1275,7 +1277,7 @@ int evaluate_token(void) {
             break;
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
               g_source_index = s_parser_source_index;
               return SUCCEEDED;
@@ -1301,7 +1303,7 @@ int evaluate_token(void) {
             break;
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex);
               g_source_index = s_parser_source_index;
               return SUCCEEDED;
@@ -1328,7 +1330,7 @@ int evaluate_token(void) {
             break;
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d v1 ", g_active_file_info_last->line_current);
               if (z == INPUT_NUMBER_ADDRESS_LABEL)
                 _output_assembled_instruction(s_instruction_tmp, "Q%s ", g_label);
@@ -1372,7 +1374,7 @@ int evaluate_token(void) {
       
     case 0:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           
@@ -1409,7 +1411,7 @@ int evaluate_token(void) {
             break;
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1455,7 +1457,7 @@ int evaluate_token(void) {
           }
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1477,7 +1479,7 @@ int evaluate_token(void) {
       
     case 3:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           
@@ -1519,7 +1521,7 @@ int evaluate_token(void) {
           }
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "y%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1559,7 +1561,7 @@ int evaluate_token(void) {
           }
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "y%d d%d d%d ", s_instruction_tmp->hex, g_parsed_int, s_instruction_tmp->hex_x);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1591,7 +1593,7 @@ int evaluate_token(void) {
             return FAILED;
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "y%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1649,7 +1651,7 @@ int evaluate_token(void) {
                 break;
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (v == SUCCEEDED)
@@ -1694,7 +1696,7 @@ int evaluate_token(void) {
             break;
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
               g_source_index = s_parser_source_index;
               return SUCCEEDED;
@@ -1720,7 +1722,7 @@ int evaluate_token(void) {
             break;
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex);
               g_source_index = s_parser_source_index;
               return SUCCEEDED;
@@ -1764,7 +1766,7 @@ int evaluate_token(void) {
               }
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   if (z == SUCCEEDED)
                     _output_assembled_instruction(s_instruction_tmp, "y%d d%d d%d ", s_instruction_tmp->hex, g_parsed_int, s_instruction_tmp->hex_x);
                   else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1801,7 +1803,7 @@ int evaluate_token(void) {
             break;
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d v1 ", g_active_file_info_last->line_current);
               if (z == INPUT_NUMBER_ADDRESS_LABEL)
                 _output_assembled_instruction(s_instruction_tmp, "Q%s ", g_label);
@@ -1845,7 +1847,7 @@ int evaluate_token(void) {
       
     case 0:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -1873,7 +1875,7 @@ int evaluate_token(void) {
           }
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1919,7 +1921,7 @@ int evaluate_token(void) {
           }
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -1941,7 +1943,7 @@ int evaluate_token(void) {
       
     case 3:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -1974,7 +1976,7 @@ int evaluate_token(void) {
           }
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2016,7 +2018,7 @@ int evaluate_token(void) {
 
     case 0:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -2046,7 +2048,7 @@ int evaluate_token(void) {
             break;
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2092,7 +2094,7 @@ int evaluate_token(void) {
           }
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2114,7 +2116,7 @@ int evaluate_token(void) {
       
     case 3:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -2143,7 +2145,7 @@ int evaluate_token(void) {
             break;
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2195,7 +2197,7 @@ int evaluate_token(void) {
                 break;
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (v == SUCCEEDED)
@@ -2261,7 +2263,7 @@ int evaluate_token(void) {
       
     case 0:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -2291,7 +2293,7 @@ int evaluate_token(void) {
             break;
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2337,7 +2339,7 @@ int evaluate_token(void) {
           }
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2359,7 +2361,7 @@ int evaluate_token(void) {
       
     case 3:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -2388,7 +2390,7 @@ int evaluate_token(void) {
             break;
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2440,7 +2442,7 @@ int evaluate_token(void) {
                 break;
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (v == SUCCEEDED)
@@ -2501,7 +2503,7 @@ int evaluate_token(void) {
           }
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2554,7 +2556,7 @@ int evaluate_token(void) {
 
     case 0:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -2581,7 +2583,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2633,7 +2635,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2665,7 +2667,7 @@ int evaluate_token(void) {
             return FAILED;
     
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d z%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -2725,7 +2727,7 @@ int evaluate_token(void) {
           }
     
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               /* 8BIT */
               if (y == 0) {
                 if (z == SUCCEEDED)
@@ -2791,7 +2793,7 @@ int evaluate_token(void) {
                 break;
 
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   /* NOTE: in the source code it's "MVP/MVN x1, x2", but we output "MVP/MVN x2, x1" */
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
             
@@ -2846,7 +2848,7 @@ int evaluate_token(void) {
             break;
     
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
         
               _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
         
@@ -2918,7 +2920,7 @@ int evaluate_token(void) {
           }
     
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               /* 8BIT */
               if (y == 0) {
                 if (z == SUCCEEDED)
@@ -2952,7 +2954,7 @@ int evaluate_token(void) {
 
     case 8:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -2976,7 +2978,7 @@ int evaluate_token(void) {
             break;
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -3029,7 +3031,7 @@ int evaluate_token(void) {
           }
     
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -3072,7 +3074,7 @@ int evaluate_token(void) {
     case 0:
       /* plain text 8-bit */
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -5629,7 +5631,7 @@ int evaluate_token(void) {
     case 0:
       /* plain text 8-bit */
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -5658,7 +5660,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -5705,7 +5707,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -5728,7 +5730,7 @@ int evaluate_token(void) {
     case 3:
       /* plain text 16-bit */
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -5762,7 +5764,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -5805,7 +5807,7 @@ int evaluate_token(void) {
     case 0:
       /* plain text 8-bit */
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -5834,7 +5836,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -5881,7 +5883,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -5904,7 +5906,7 @@ int evaluate_token(void) {
     case 3:
       /* plain text 16-bit */
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -5938,7 +5940,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -5981,7 +5983,7 @@ int evaluate_token(void) {
     case 0:
       /* plain text 8-bit */
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           if (s_instruction_tmp->hex > 0xFF)
             _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", (s_instruction_tmp->hex >> 8) & 0xFF, s_instruction_tmp->hex & 0xFF);
           else
@@ -6013,7 +6015,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (s_instruction_tmp->hex > 0xFF)
@@ -6067,7 +6069,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (s_instruction_tmp->hex > 0xFF)
@@ -6097,7 +6099,7 @@ int evaluate_token(void) {
     case 3:
       /* plain text 16-bit */
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -6131,7 +6133,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (s_instruction_tmp->hex > 0xFF)
@@ -6182,7 +6184,7 @@ int evaluate_token(void) {
             break;
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (s_instruction_tmp->hex > 0xFF)
@@ -6227,7 +6229,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (s_instruction_tmp->hex > 0xFF)
@@ -6282,7 +6284,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (s_instruction_tmp->hex > 0xFF)
@@ -6312,7 +6314,7 @@ int evaluate_token(void) {
     case 9:
       /* plain text 8-bit + post op byte code */
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
           if (s_instruction_tmp->hex > 0xFF)
@@ -6386,7 +6388,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (s_instruction_tmp->hex > 0xFF)
@@ -6446,7 +6448,7 @@ int evaluate_token(void) {
 
     case 0:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -6477,7 +6479,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -6524,7 +6526,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -6556,7 +6558,7 @@ int evaluate_token(void) {
             break;
     
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
               g_source_index = s_parser_source_index;
               return SUCCEEDED;
@@ -6583,7 +6585,7 @@ int evaluate_token(void) {
             break;
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d v2 ", g_active_file_info_last->line_current);
               if (z == INPUT_NUMBER_ADDRESS_LABEL)
                 _output_assembled_instruction(s_instruction_tmp, "Q%s ", g_label);
@@ -6627,7 +6629,7 @@ int evaluate_token(void) {
 
     case 0:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -6658,7 +6660,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -6705,7 +6707,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -6737,7 +6739,7 @@ int evaluate_token(void) {
             break;
     
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
               g_source_index = s_parser_source_index;
               return SUCCEEDED;
@@ -6764,7 +6766,7 @@ int evaluate_token(void) {
             break;
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d v3 ", g_active_file_info_last->line_current);
               if (z == INPUT_NUMBER_ADDRESS_LABEL)
                 _output_assembled_instruction(s_instruction_tmp, "Q%s ", g_label);
@@ -6808,7 +6810,7 @@ int evaluate_token(void) {
 
     case 0:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -6832,7 +6834,7 @@ int evaluate_token(void) {
             break;
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
           
               if (z == SUCCEEDED)
@@ -6871,7 +6873,7 @@ int evaluate_token(void) {
           }
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
 
               if (z == SUCCEEDED)
@@ -6927,7 +6929,7 @@ int evaluate_token(void) {
                 break;
 
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex | (g_parsed_int << 5));
 
@@ -6988,7 +6990,7 @@ int evaluate_token(void) {
                 break;
 
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex | (((g_parsed_int << 1) + 1) << 4));
 
@@ -7029,7 +7031,7 @@ int evaluate_token(void) {
             break;
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex | (g_parsed_int << 4));
               g_source_index = s_parser_source_index;
               return SUCCEEDED;
@@ -7075,7 +7077,7 @@ int evaluate_token(void) {
                 break;
 
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               
                   if (v == SUCCEEDED)
@@ -7150,7 +7152,7 @@ int evaluate_token(void) {
                 break;
 
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               
                   if (z == SUCCEEDED)
@@ -7230,7 +7232,7 @@ int evaluate_token(void) {
                     break;
 
                   for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                    if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                    if (IS_THE_MATCH_COMPLETE(x)) {
                       _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                       _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex | (g << 5));
 
@@ -7323,7 +7325,7 @@ int evaluate_token(void) {
                     break;
 
                   for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                    if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                    if (IS_THE_MATCH_COMPLETE(x)) {
                       _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                       _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex | (((g << 1) + 1) << 4));
 
@@ -7383,7 +7385,7 @@ int evaluate_token(void) {
             break;
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
           
               if (z == SUCCEEDED)
@@ -7447,7 +7449,7 @@ int evaluate_token(void) {
                 break;
 
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               
                   if (v == SUCCEEDED)
@@ -7495,7 +7497,7 @@ int evaluate_token(void) {
       
     case 0:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -7525,7 +7527,7 @@ int evaluate_token(void) {
             break;
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -7571,7 +7573,7 @@ int evaluate_token(void) {
           }
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -7593,7 +7595,7 @@ int evaluate_token(void) {
 
     case 3:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex);
           g_source_index = s_parser_source_index;
           return SUCCEEDED;
@@ -7686,7 +7688,7 @@ int evaluate_token(void) {
         break;
 
       for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
           _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
 
@@ -7770,7 +7772,7 @@ int evaluate_token(void) {
                 break;
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (v == SUCCEEDED)
@@ -7837,7 +7839,7 @@ int evaluate_token(void) {
               }
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (v == SUCCEEDED)
@@ -7889,7 +7891,7 @@ int evaluate_token(void) {
             break;
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
@@ -7941,7 +7943,7 @@ int evaluate_token(void) {
                 break;
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (v == SUCCEEDED)
@@ -8007,7 +8009,7 @@ int evaluate_token(void) {
 
     case 0:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-        if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
           _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
           
           if (s_instruction_tmp->prefix != 0)
@@ -8031,7 +8033,7 @@ int evaluate_token(void) {
             return FAILED;
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               
               if (s_instruction_tmp->prefix != 0)
@@ -8070,7 +8072,7 @@ int evaluate_token(void) {
           }
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-            if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
               _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
               
               if (z == SUCCEEDED)
@@ -8124,7 +8126,7 @@ int evaluate_token(void) {
               }
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (s_instruction_tmp->prefix != 0)
@@ -8185,7 +8187,7 @@ int evaluate_token(void) {
               }
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (s_instruction_tmp->prefix != 0)
@@ -8242,7 +8244,7 @@ int evaluate_token(void) {
               }
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (s_instruction_tmp->prefix != 0)
@@ -8285,7 +8287,7 @@ int evaluate_token(void) {
                 return FAILED;
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   if (s_instruction_tmp->hex == 0xB0) {
                     /* MOVES */
@@ -8337,7 +8339,7 @@ int evaluate_token(void) {
               }
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (z == SUCCEEDED) {
@@ -8395,7 +8397,7 @@ int evaluate_token(void) {
               }
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (z == SUCCEEDED) {
@@ -8454,7 +8456,7 @@ int evaluate_token(void) {
                 return FAILED;
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (z == SUCCEEDED) {
@@ -8502,7 +8504,7 @@ int evaluate_token(void) {
                 return FAILED;
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (tiny == 0) /* LDB (R*) */
@@ -8540,7 +8542,7 @@ int evaluate_token(void) {
                 return FAILED;
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (z == 0) /* STB (R*) */
@@ -8578,7 +8580,7 @@ int evaluate_token(void) {
                 return FAILED;
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (tiny == 0) /* LDW (R*) */
@@ -8616,7 +8618,7 @@ int evaluate_token(void) {
                 return FAILED;
               
               for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                if (IS_THE_MATCH_COMPLETE(x)) {
                   _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                   
                   if (z == 0) /* STW (R*) */
@@ -8673,7 +8675,7 @@ int evaluate_token(void) {
                   return FAILED;
                 
                 for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                  if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                  if (IS_THE_MATCH_COMPLETE(x)) {
                     _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                     
                     if (s_instruction_tmp->prefix != 0)
@@ -8740,7 +8742,7 @@ int evaluate_token(void) {
                   return FAILED;
                 
                 for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
-                  if (s_instruction_tmp->string[x] == 0 && g_buffer[s_parser_source_index] == 0x0A) {
+                  if (IS_THE_MATCH_COMPLETE(x)) {
                     _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
                     
                     if (s_instruction_tmp->prefix != 0)

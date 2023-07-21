@@ -128,7 +128,7 @@ MORE_ACTION:
 	RST	$10
 	RST	SKELETOR
 	ld	(MORE_ACTION), iy
-	LD	BC, ((((TILESEND-TILES)/8)+1) << 8) | $BE
+	LD	BC, (((((TILESEND-TILES)/8)+1) << 8) | $BE)
 	LD	IX,MAIN + 12 * 2
 	ld	($d980), ix
 	ld	(SKELETOR + 100 - MORE_ACTION), iy

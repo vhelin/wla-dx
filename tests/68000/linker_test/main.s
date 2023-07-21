@@ -1313,6 +1313,15 @@ end_85: .db "<85"                ; @BT END
         movem.w end_88(pc),a0/a5/d1 ; @BT 4C BA 21 02 00 08
         movem.l (end_88,pc,d0),d1-d4/a0-a2/d5/a4 ; @BT 4C FB 17 3E 00 02
 end_88: .db "<88"                ; @BT END
+
+        .db "89>"               ; @BT TEST-89 89 START
+        movem.l (a3),a0/a2/a4-a6/d3-d5/d7 \ movep.l d7,($5678,a2) ; @BT 4C D3 75 B8 0F CA 56 78
+        add.w d1,$1234.w \ add.w d1,$1234.w ; @BT D3 78 12 34 D3 78 12 34
+        move.l ($12,a6,d7),$1234.w \ movep $1234(a7),d4 ; @BT 21 F6 70 12 12 34 09 0F 12 34
+        movem.l (a3),a0/a2/a4-a6/d3-d5/d7 \ movep.l d7,($5678,a2) \ add.w d1,$1234.w \ add.w d1,$1234.w \ move.l ($12,a6,d7),$1234.w \ movep $1234(a7),d4 ; @BT 4C D3 75 B8 0F CA 56 78 D3 78 12 34 D3 78 12 34 21 F6 70 12 12 34 09 0F 12 34
+        neg.b d6 \ neg.w (a4) \ neg.l -(a7) \ neg.b (a6)+ \ neg.w $1234(a5) \ neg.l ($1234,a3) \ neg.b ($12,a1,d5) \ neg.l $1234.w \ neg.w $12345678.l ; @BT  44 06 44 54 44 A7 44 1E 44 6D 12 34 44 AB 12 34 44 31 50 12 44 B8 12 34 44 79 12 34 56 78
+        stop #$1234 \ stop #$0102 ; @BT 4E 72 12 34 4E 72 01 02
+        .db "<89"               ; @BT END
         
         .org $ABCE
 label_ABCE:

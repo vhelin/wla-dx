@@ -131,6 +131,8 @@ address_test_10:
         ld d, >myLabel          ; @BT 16 12
         ld e, <myLabel          ; @BT 1E 34
 
+        ld bc, ($1200 + 1 - 1) | $34 ; @BT 01 34 12
+
         .db "<14"               ; BT END
 
 -:      jp -
