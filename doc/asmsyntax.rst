@@ -33,7 +33,7 @@ Lines can be split using a ``\`` between elements. So instead of writing
 
 it's possible to write
 
-    .db 1, 2, 3, 4 \
+    .db 1, 2, 3, 4 \\
         5, 6, 7, 8
 
 Note that line splitting works only in places where WLA expects a new label,
