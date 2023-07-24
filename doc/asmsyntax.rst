@@ -61,7 +61,7 @@ WLA will detect and compute calculations, so to be sure, always use commas::
 Labels
 ------
 
-Labels are ordinary strings (which can also end to a ``:``). Labels starting
+Labels are ordinary strings (which can also end with a ``:``). Labels starting
 with ``_`` are considered to be local labels and do not show outside sections
 where they were defined, or outside object files, if they were not defined
 inside a section.
