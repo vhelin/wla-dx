@@ -136,7 +136,7 @@ extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hin
 extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
 extern int g_create_sizeof_definitions, g_input_allow_leading_hashtag, g_input_has_leading_hashtag, g_input_allow_leading_ampersand;
 extern int g_plus_and_minus_ends_label, g_get_next_token_use_substitution, g_input_number_turn_values_into_strings;
-extern int g_continue_parsing_after_an_error, g_continued_parsing_after_an_error;
+extern int g_continue_parsing_after_an_error, g_continued_parsing_after_an_error, g_allow_labels_without_colon;
 extern FILE *g_file_out_ptr;
 extern double g_parsed_double;
 extern char *g_final_name;
@@ -929,6 +929,12 @@ int phase_1(void) {
           }
           if (g_bankheader_status == ON) {
             print_error(ERROR_LOG, "BANKHEADER sections don't take labels.\n");
+            return FAILED;
+          }
+
+          /* is labels without ':' at the end forbidden? */
+          if (g_allow_labels_without_colon == NO && q == g_ss) {
+            print_error(ERROR_ERR, "Cannot process \"%s\". Syntax error?\n", g_tmp);
             return FAILED;
           }
 

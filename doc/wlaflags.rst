@@ -25,6 +25,7 @@ You can supply WLA with some (or all or none) of the following option flags::
     -v  Verbose mode. Shows a lot of information about the compiling process.
     -v1 Verbose messages (only discard sections)
     -v2 Verbose messages (-v1 plus short summary)
+    -w  Require labels to end in a colon.
     -x  Extra compile time labels and definitions. WLA does extra work by creating
         few helpful definitions, and labels SECTIONSTART_[section name] and
         SECTIONEND_[section name] at the beginning and end of a section.

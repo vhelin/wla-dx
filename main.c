@@ -33,7 +33,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char s_version_string[] = "$VER: wla-" WLA_NAME " 10.6a (20.7.2023)";
+char s_version_string[] = "$VER: wla-" WLA_NAME " 10.6a (30.7.2023)";
 char s_wla_version[] = "10.6";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -75,6 +75,7 @@ int g_listfile_data = NO, g_quiet = NO, g_use_incdir = NO, g_little_endian = YES
 int g_create_sizeof_definitions = YES, g_global_label_hint = HINT_NONE, g_keep_empty_sections = NO;
 int g_can_calculate_a_minus_b = YES, g_is_file_isolated_counter = 0;
 int g_continue_parsing_after_an_error = NO, g_continued_parsing_after_an_error = NO;
+int g_allow_labels_without_colon = YES;
 
 char *g_final_name = NULL, *g_asm_name = NULL;
 
@@ -371,6 +372,10 @@ static int _parse_flags(char **flags, int flagc, int *print_usage) {
     }
     else if (!strcmp(flags[count], "-v2")) {
       g_verbose_level = 2;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-w")) {
+      g_allow_labels_without_colon = NO;
       continue;
     }
     else if (!strcmp(flags[count], "-h")) {
@@ -1011,6 +1016,7 @@ int main(int argc, char *argv[]) {
     printf("-v  Verbose messages\n");
     printf("-v1 Verbose messages (only discard sections)\n");
     printf("-v2 Verbose messages (-v1 plus short summary)\n");
+    printf("-w  Require labels to end in a colon\n");
     printf("-x  Extra compile time labels and definitions\n");
     printf("-I <DIR>  Include directory\n");
     printf("-D <DEF>  Declare definition\n\n");
