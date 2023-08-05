@@ -64,8 +64,8 @@ int free_label_context_allocations(void) {
 
 static int _add_label(struct label_def *l, struct section_def *s, int line_number, int file_name_id) {
 
-  struct definition *tmp_def;
   struct label_def *tmp_label;
+  struct definition *tmp_def;
   int err;
 
   /* does a definition with the same name exist? */
@@ -131,12 +131,12 @@ static int _add_label(struct label_def *l, struct section_def *s, int line_numbe
         
 int phase_3(void) {
 
+  int bank = 0, slot = 0, address = 0, file_name_id = 0, inz, line_number = 0, o, address_old = 0, base = 0, bits_current = 0, x, y;
+  char tmp_buffer[MAX_NAME_LENGTH + 1], c;
   struct section_def *s = NULL;
   struct label_def *l;
   struct block_name *bn;
   struct block *b;
-  int bank = 0, slot = 0, address = 0, file_name_id = 0, inz, line_number = 0, o, address_old = 0, base = 0, bits_current = 0, x, y;
-  char tmp_buffer[MAX_NAME_LENGTH + 1], c;
 
   /* initialize label context */
   g_label_context.isolated_macro = NULL;

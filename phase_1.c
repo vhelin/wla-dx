@@ -998,10 +998,6 @@ int phase_1(void) {
       mrt->incbin_data = NULL;
       mrt->definition_storage = NULL;
 
-      /* use the caller's namespace? */
-      if (m->use_caller_namespace == YES)
-        strcpy(m->namespace, g_active_file_info_last->namespace);
-
       /* skip '(' */
       if (g_buffer[g_source_index] == '(' && compare_and_skip_next_symbol('(') == SUCCEEDED)
         got_opening_parenthesis = YES;
@@ -8918,12 +8914,9 @@ int directive_macro(void) {
   if (g_is_file_isolated_counter > 0) {
     /* store the namespace so we'll later know in which namespace the .MACRO was defined in */
     strcpy(m->namespace, g_active_file_info_last->namespace);
-    m->use_caller_namespace = NO;
   }
-  else {
+  else
     m->namespace[0] = 0;
-    m->use_caller_namespace = YES;
-  }
 
   strcpy(m->defined_namespace, g_active_file_info_last->namespace);
 
