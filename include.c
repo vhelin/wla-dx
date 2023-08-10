@@ -25,7 +25,7 @@ extern struct string *g_fopen_filenames_first;
 extern int g_is_file_isolated_counter;
 
 extern int create_tmp_file(FILE **);
-
+        
 struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
 struct active_file_info *g_active_file_info_first = NULL, *g_active_file_info_last = NULL, *g_active_file_info_tmp = NULL;
 struct file_name_info *g_file_name_info_first = NULL, *g_file_name_info_last = NULL, *g_file_name_info_tmp;
@@ -145,7 +145,7 @@ static int _find_file(char *name, FILE **f) {
       return FAILED;
     }
 
-      return SUCCEEDED;
+    return SUCCEEDED;
   }
   
   _print_find_error(name);
@@ -388,11 +388,11 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     while (ifd2 != NULL) {
       q++;
       if (ifd2->next == NULL) {
-	ifd2->next = ifd;
-	break;
+        ifd2->next = ifd;
+        break;
       }
       else
-	ifd2 = ifd2->next;
+        ifd2 = ifd2->next;
     }
     
     if (g_incbin_file_data_first == NULL)
@@ -492,7 +492,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       }
       else {
         if (macro_get(g_label, NO, macro) == FAILED)
-        return FAILED;
+          return FAILED;
       }
       
       if (*macro == NULL) {
@@ -515,7 +515,6 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     ifd->size = file_size;
   }
 
-
   /* negative READ? */
   if (*read < 0)
     *read = file_size + *read - *skip;
@@ -536,8 +535,8 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
         print_error(ERROR_INB, "The read size of file \"%s\" is odd (%d). Cannot perform SWAP.\n", g_full_name, *read);
       else
         print_error(ERROR_INB, "Processing %d bytes at a time from file \"%s\" but it's not divisible by the FILTERSIZE %d. Cannot perform SWAP.\n", *read, g_full_name, *filter_size);
-    return FAILED;
-  }
+      return FAILED;
+    }
   }
 
   if (*filter_size > 1 && (*read % *filter_size) != 0) {
