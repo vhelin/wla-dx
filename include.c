@@ -15,7 +15,7 @@
 #include "printf.h"
 
 
-extern int g_source_index, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules, g_makefile_add_phony_targets, g_test_mode;
+extern int g_source_index, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules, g_makefile_add_phony_targets;
 extern FILE* g_makefile_rule_file;
 extern char *g_tmp, g_label[MAX_NAME_LENGTH + 1];
 extern struct ext_include_collection g_ext_incdirs;
@@ -418,7 +418,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
       *skip = g_parsed_int;
 
-      if (g_parsed_int >= file_size && !g_test_mode) {
+      if (g_parsed_int >= file_size && !g_makefile_rules) {
         print_error(ERROR_INB, "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", g_parsed_int, file_size, g_full_name);
         return FAILED;
       }
@@ -504,7 +504,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       break;
   }
 
-  if (g_test_mode) {
+  if (g_makefile_rules) {
     /* If in test mode, fake the data to be enough to read */
     if (*read <= 0)
       file_size = *skip;
