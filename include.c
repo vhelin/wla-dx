@@ -418,7 +418,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
       *skip = g_parsed_int;
 
-      if (g_parsed_int >= file_size) {
+      if (g_parsed_int >= file_size && !g_makefile_rules) {
         print_error(ERROR_INB, "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", g_parsed_int, file_size, g_full_name);
         return FAILED;
       }
@@ -502,6 +502,17 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     }
     else
       break;
+  }
+
+  if (g_makefile_rules) {
+    /* If in test mode, fake the data to be enough to read */
+    if (*read <= 0)
+      file_size = *skip;
+    else
+      file_size = *read + *skip;
+    free(ifd->data);
+    ifd->data = calloc(sizeof(char) * file_size, 1);
+    ifd->size = file_size;
   }
 
   /* negative READ? */
