@@ -20,11 +20,15 @@ Version 1: https://github.com/vhelin/wla-dx/blob/v9.12/doc/symbols.rst
 
 * Base version, including sections [labels], [definitions], [breakpoints], [symbols], [source files], [rom checksum], [addr-to-line mapping]
 
-Version 2: https://github.com/vhelin/wla-dx/blob/master/doc/symbols.rst
+Version 2: https://github.com/vhelin/wla-dx/blob/v10.5/doc/symbols.rst
 
 * Added [information] section
 * Deprecated [source files] section, and replaced with [source files v2]
 * Deprecated [addr-to-line mapping] section definition, and replaced with [addr-to-line mapping v2]
+
+Version 3: https://github.com/vhelin/wla-dx/blob/master/doc/symbols.rst
+
+* Added [sections] and [ramsections] sections
 
 Information For Emulator Developers
 -----------------------------------
@@ -99,3 +103,19 @@ This is a listing of hexadecimal ROM address, bank, ROM bank offset, memory addr
 
 - Regex match: ``[0-9a-fA-F]{8} [0-9a-fA-F]{2}:[0-9a-fA-F]{4} [0-9a-fA-F]{4} [0-9a-fA-F]{4}:[0-9a-fA-F]{4}:[0-9a-fA-F]{8}``
 - Format specifier: ``%8x %2x:%4x %4x %4x:%4x:%8x``
+
+[sections]
+**********
+
+Each line specifies a ``.SECTION``: hexadecimal ROM address, bank, ROM bank offset, memory address, size and name. Use this information for example to locate ``.SECTION`` data in the output.
+
+- Regex match: ``[0-9a-fA-F]{8} [0-9a-fA-F]{2}:[0-9a-fA-F]{4} [0-9a-fA-F]{4} [0-9a-fA-F]{8} .*``
+- Format specifier: ``%.8x %.2x:%.4x %.4x %.8x %s``
+
+[ramsections]
+*************
+
+Each line specifies a ``.RAMSECTION``: hexadecimal bank, RAM bank offset, memory address, size and name. Use this information for example to see where a ``.RAMSECTION`` was placed.
+
+- Regex match: ``[0-9a-fA-F]{2}:[0-9a-fA-F]{4} [0-9a-fA-F]{4} [0-9a-fA-F]{8} .*``
+- Format specifier: ``%.2x:%.4x %.4x %.8x %s``

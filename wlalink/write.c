@@ -52,7 +52,6 @@ extern int g_allow_duplicate_labels_and_definitions;
 static int s_current_stack_calculation_addr = 0;
 
 
-
 static int _sections_sort(const void *a, const void *b) {
 
   if ((*((struct section **)a))->priority < (*((struct section **)b))->priority)
@@ -2270,7 +2269,7 @@ int write_symbol_file(char *outname, int mode, int output_addr_to_line) {
   struct label *l;
   char name[256], list_cmd, *outfile_tmp;
   FILE *f, *outfile;
-  int list_cmd_idx, list_source_file, list_address_offset, y, outfile_size;
+  int list_cmd_idx, list_source_file, list_address_offset, y, outfile_size, got_sections = NO, got_ramsections = NO;
   unsigned long outfile_crc;
   unsigned int name_len;
 
@@ -2346,7 +2345,7 @@ int write_symbol_file(char *outname, int mode, int output_addr_to_line) {
 
     /* info section */
     fprintf(f, "\n[information]\n");
-    fprintf(f, "version 2\n");
+    fprintf(f, "version 3\n");
     
     /* labels */
     l = g_labels_first;
@@ -2478,6 +2477,42 @@ int write_symbol_file(char *outname, int mode, int output_addr_to_line) {
       }
     }
 
+    /* sections */
+    s = g_sec_first;
+    while (s != NULL) {
+      if (s->is_bankheader_section == NO && s->alive == YES) {
+        if (s->status == SECTION_STATUS_FORCE || s->status == SECTION_STATUS_SEMISUPERFREE ||
+            s->status == SECTION_STATUS_SEMISUBFREE || s->status == SECTION_STATUS_SEMIFREE ||
+            s->status == SECTION_STATUS_FREE || s->status == SECTION_STATUS_SUPERFREE ||
+            s->status == SECTION_STATUS_OVERWRITE) {
+          if (got_sections == NO) {
+            fprintf(f, "\n[sections]\n");
+            got_sections = YES;
+          }
+          
+          fprintf(f, "%.8x %.2x:%.4x %.4x %.8x %s\n", s->output_address, s->bank + s->base, s->address, g_slots[s->slot].address + s->address, s->size, s->name);
+        }
+      }
+      s = s->next;
+    }
+
+    /* ramsections */
+    s = g_sec_first;
+    while (s != NULL) {
+      if (s->is_bankheader_section == NO && s->alive == YES) {
+        if (s->status == SECTION_STATUS_RAM_FORCE || s->status == SECTION_STATUS_RAM_SEMIFREE ||
+            s->status == SECTION_STATUS_RAM_SEMISUBFREE || s->status == SECTION_STATUS_RAM_FREE) {
+          if (got_ramsections == NO) {
+            fprintf(f, "\n[ramsections]\n");
+            got_ramsections = YES;
+          }
+          
+          fprintf(f, "%.2x:%.4x %.4x %.8x %s\n", s->bank + s->base, s->address, g_slots[s->slot].address + s->address, s->size, s->name);
+        }
+      }
+      s = s->next;
+    }
+
     if (output_addr_to_line == ON) {
       /* file_id_source to source files */
       fprintf(f, "\n[source files v2]\n");
@@ -2539,7 +2574,6 @@ int write_symbol_file(char *outname, int mode, int output_addr_to_line) {
         }
         s = s->next;
       }
-
     }
   }
 

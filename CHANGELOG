@@ -1503,7 +1503,9 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.21 (23-Jun-2023) 
+v5.21 (16-Aug-2023) WLALINK writes now version 3 WLA symbol files.
+                    Symbol files created with -S contain now [sections] and
+                      [ramsections].
 
 v5.20 (23-Jun-2023) Added [sectionwriteorder] and [ramsectionwriteorder]
                       to linkfile.
