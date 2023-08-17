@@ -4603,7 +4603,7 @@ static int _labels_sort(const void *a, const void *b) {
 }
 
 
-int sort_anonymous_labels() {
+int sort_anonymous_labels(void) {
 
   int j = 0;
   struct label *l;
