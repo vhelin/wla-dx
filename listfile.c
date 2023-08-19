@@ -182,7 +182,7 @@ int listfile_collect(void) {
       origin++;
       continue;
 
-#ifdef SUPERFX
+#if defined(SUPERFX)
     case '*':
       fscanf(g_file_out_ptr, "%*s ");
       add++;
@@ -195,8 +195,11 @@ int listfile_collect(void) {
       origin++;
       continue;
 #endif
-      
-#ifdef W65816
+
+    case '.':
+      continue;
+
+#if defined(W65816)
     case 'M':
 #endif
     case 'r':
@@ -255,7 +258,7 @@ int listfile_collect(void) {
         continue;
       }
       
-#ifdef SPC700
+#if defined(SPC700)
     case 'n':
       fscanf(g_file_out_ptr, "%*d %*s ");
       add += 2;

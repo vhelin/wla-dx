@@ -1,6 +1,6 @@
 
 /*
-  wlalink - part of wla dx gb-z80/z80/6502/65c02/68000/6800/6801/6809/65816/huc6280/spc-700/8008/8080/superfx
+  wlalink - part of wla dx gb-z80/z80/z80n/6502/65c02/68000/6800/6801/6809/65816/huc6280/spc-700/8008/8080/superfx
   macro assembler package by ville helin <ville.helin@iki.fi>. this is gpl software.
 */
 
@@ -20,7 +20,7 @@
 #include "listfile.h"
 #include "parse.h"
 
-#ifdef AMIGA
+#if defined(AMIGA)
 #include "/printf.h"
 #else
 #include "../printf.h"
@@ -33,7 +33,7 @@
 
 char g_version_string[] = "$VER: wlalink 5.21a (16.8.2023)";
 
-#ifdef AMIGA
+#if defined(AMIGA)
 __near long __stack = 200000;
 #endif
 
@@ -1051,7 +1051,7 @@ int main(int argc, char *argv[]) {
       printf(" ");
     printf("---\n");
     printf("----------------------------------------------------------------------\n");
-#ifdef AMIGACPU
+#if defined(AMIGACPU)
     printf("                         Compiled for " AMIGACPU "\n");
 #endif
     printf("                Programmed by Ville Helin in 1998-2008\n");
@@ -1066,7 +1066,7 @@ int main(int argc, char *argv[]) {
     
     printf("\n\n");
 
-#ifdef WLALINK_DEBUG
+#if defined(WLALINK_DEBUG)
     printf("** WLALINK_DEBUG defined - this executable is running in DEBUG mode **\n");
     printf("\n");
 #endif
@@ -1176,7 +1176,7 @@ int main(int argc, char *argv[]) {
   if (check_ramsections() == FAILED)
     return 1;
 
-#ifdef WLALINK_DEBUG
+#if defined(WLALINK_DEBUG)
   printf("\n");
   printf("**********************************************************************\n");
   printf("**********************************************************************\n");
@@ -1187,7 +1187,7 @@ int main(int argc, char *argv[]) {
   printf("**********************************************************************\n");
 #endif
 
-#ifdef WLALINK_DEBUG
+#if defined(WLALINK_DEBUG)
   _debug_print_sections();
 #endif
 
@@ -1239,7 +1239,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-#ifdef WLALINK_DEBUG
+#if defined(WLALINK_DEBUG)
   if (g_labels_first != NULL) {
     struct label *l = g_labels_first;
 
@@ -1257,7 +1257,7 @@ int main(int argc, char *argv[]) {
   }
 #endif
 
-#ifdef WLALINK_DEBUG
+#if defined(WLALINK_DEBUG)
   if (g_label_sizeofs != NULL) {
     struct label_sizeof *ls = g_label_sizeofs;
 
@@ -1277,7 +1277,7 @@ int main(int argc, char *argv[]) {
   }
 #endif
       
-#ifdef WLALINK_DEBUG
+#if defined(WLALINK_DEBUG)
   if (g_stacks_first != NULL) {
     struct stack *s = g_stacks_first;
 
@@ -1310,7 +1310,7 @@ int main(int argc, char *argv[]) {
   /* reserve the bytes the checksummers will use, so no (free type) sections will be placed there */
   reserve_checksum_bytes();
   
-#ifdef WLALINK_DEBUG
+#if defined(WLALINK_DEBUG)
   printf("\n");
   printf("**********************************************************************\n");
   printf("**********************************************************************\n");
@@ -1325,7 +1325,7 @@ int main(int argc, char *argv[]) {
   if (insert_sections() == FAILED)
     return 1;
 
-#ifdef WLALINK_DEBUG
+#if defined(WLALINK_DEBUG)
   _debug_print_sections();
 #endif
   
@@ -1347,7 +1347,7 @@ int main(int argc, char *argv[]) {
   if (sort_anonymous_labels() == FAILED)
     return 1;
 
-#ifdef WLALINK_DEBUG
+#if defined(WLALINK_DEBUG)
   if (g_labels_first != NULL) {
     struct label *l = g_labels_first;
 
@@ -1369,7 +1369,7 @@ int main(int argc, char *argv[]) {
   if (compute_pending_calculations() == FAILED)
     return 1;
 
-#ifdef WLALINK_DEBUG
+#if defined(WLALINK_DEBUG)
   if (g_stacks_first != NULL) {
     struct stack *s = g_stacks_first;
 
@@ -1407,7 +1407,7 @@ int main(int argc, char *argv[]) {
   if (fix_references() == FAILED)
     return 1;
 
-#ifdef WLALINK_DEBUG
+#if defined(WLALINK_DEBUG)
   if (g_reference_first != NULL) {
     struct reference *r = g_reference_first;
 

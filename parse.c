@@ -26,7 +26,7 @@ char g_label[MAX_NAME_LENGTH + 1];
 char g_expanded_macro_string[MAX_NAME_LENGTH + 1];
 double g_parsed_double;
 
-#ifdef SPC700
+#if defined(SPC700)
 int g_input_number_expects_dot = NO;
 #endif
 
@@ -694,7 +694,7 @@ static int _parse_value_into_string(char e) {
 }
 
 
-#ifdef PROFILE_FUNCTIONS
+#if defined(PROFILE_FUNCTIONS)
 int _input_number(void) {
 #else
 int input_number(void) {
@@ -704,7 +704,7 @@ int input_number(void) {
   unsigned char e, ee, check_if_a_definition = YES, can_have_calculations = YES, use_substitution = NO;
   int k, p, q, spaces = 0, curly_braces = 0;
   double decimal_mul;
-#ifdef SPC700
+#if defined(SPC700)
   int dot = 0;
 #endif
 
@@ -1385,7 +1385,7 @@ int input_number(void) {
       g_source_index--;
       break;
     }
-#ifdef SPC700
+#if defined(SPC700)
     else if (e == '.' && g_input_number_expects_dot == YES)
       dot = k;
 #endif
@@ -1423,14 +1423,14 @@ int input_number(void) {
       g_operand_hint_type = HINT_TYPE_GIVEN;
       k -= 2;
     }
-#ifdef SPC700
+#if defined(SPC700)
     else if (g_label[k-1] >= '0' && g_label[k-1] <= '7') {
       k -= 2;
       g_source_index -= 2;
     }
 #endif
   }
-#ifdef SPC700
+#if defined(SPC700)
   else if (dot > 0) {
     g_source_index -= k - dot;
     k -= k - dot;
@@ -2592,7 +2592,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
 }
 
 
-#ifdef PROFILE_FUNCTIONS
+#if defined(PROFILE_FUNCTIONS)
 int input_number(void) {
 
   int ret;

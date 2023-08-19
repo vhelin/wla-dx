@@ -17,7 +17,7 @@
 #define MAX_BYTES_PER_TEST 1024
 
 
-#ifdef AMIGACPU
+#if defined(AMIGACPU)
 __near long __stack = 200000;
 #endif
 
@@ -237,7 +237,7 @@ int main(int argc, char *argv[]) {
   
   if (argc < 2 || argc > 3 || argv == NULL) {
     fprintf(stderr, "\n");
-#ifdef AMIGACPU
+#if defined(AMIGACPU)
     fprintf(stderr, "Byte tester 2.1 (" AMIGACPU ")\n");
 #else
     fprintf(stderr, "Byte tester 2.1\n");

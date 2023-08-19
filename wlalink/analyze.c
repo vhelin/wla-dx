@@ -10,7 +10,7 @@
 #include "listfile.h"
 #include "files.h"
 
-#ifdef AMIGA
+#if defined(AMIGA)
 #include "/printf.h"
 #else
 #include "../printf.h"
@@ -1617,7 +1617,7 @@ static void _free_sort_capsules(struct sort_capsule *sc) {
 }
 
 
-#ifdef WLALINK_DEBUG
+#if defined(WLALINK_DEBUG)
 
 static void _print_sort_capsules(struct sort_capsule *sc, int indentation) {
 
@@ -1803,7 +1803,7 @@ int merge_sections(void) {
     return FAILED;
   }
 
-#ifdef WLALINK_DEBUG
+#if defined(WLALINK_DEBUG)
   
   fflush(stderr);
   fflush(stdout);
@@ -1865,7 +1865,7 @@ int merge_sections(void) {
   g_sec_last = NULL;
   _collect_back_sections(sort_capsules_first);
 
-#ifdef WLALINK_DEBUG
+#if defined(WLALINK_DEBUG)
   
   /* print all sections */
   fflush(stderr);

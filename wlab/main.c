@@ -13,14 +13,12 @@
 #include "defines.h"
 
 
-
-#ifdef AMIGA
+#if defined(AMIGA)
 char version_string[] = "$VER: WLAB 1.2 (31.03.2003)";
 #endif
 
 
 int g_header = ON, g_mode = MODE_NONE, g_print_address = OFF, g_address_size;
-
 
 
 int main(int argc, char *argv[]) {
@@ -29,7 +27,6 @@ int main(int argc, char *argv[]) {
   unsigned char *in;
   char *name;
   int i, file_size, t, address = 0, result;
-
 
   result = SUCCEEDED;
 
@@ -161,7 +158,6 @@ int main(int argc, char *argv[]) {
     }
   }
   else if (g_mode == MODE_BIN) {
-
     int b, c, d;
 
     /* output binary data */
@@ -236,7 +232,6 @@ int print_address(int address, int address_end) {
 int parse_flags(char *f) {
 
   int l;
-
 
   if (*f != '-')
     return FAILED;

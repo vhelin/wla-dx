@@ -226,7 +226,7 @@ int phase_3(void) {
                 get_file_name(file_name_id), line_number);
         return FAILED;
 
-#ifdef SUPERFX
+#if defined(SUPERFX)
 
       case '*':
         if (g_section_status == ON) {
@@ -800,6 +800,9 @@ int phase_3(void) {
       address++;
       continue;
 
+    case '.':
+      continue;
+      
     case 'M':
     case 'r':
       fscanf(g_file_out_ptr, "%*s ");
@@ -812,7 +815,7 @@ int phase_3(void) {
       address += 2;
       continue;
 
-#ifdef SUPERFX
+#if defined(SUPERFX)
 
     case '*':
       fscanf(g_file_out_ptr, "%*s ");
@@ -866,7 +869,7 @@ int phase_3(void) {
         continue;
       }
 
-#ifdef SPC700
+#if defined(SPC700)
     case 'n':
       fscanf(g_file_out_ptr, "%*d %*s ");
       address += 2;

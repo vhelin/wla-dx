@@ -23,7 +23,7 @@
 #include "mersenne.h"
 
 
-#ifdef GB
+#if defined(GB)
 char g_licenseecodenew_c1, g_licenseecodenew_c2;
 int g_nintendologo_defined = 0;
 int g_computechecksum_defined = 0, g_computecomplementcheck_defined = 0;
@@ -35,7 +35,7 @@ int g_version = 0, g_version_defined = 0;
 static int s_gbheader_defined = 0;
 #endif
 
-#ifdef Z80
+#if defined(Z80)
 char *g_sdsctag_name_str = NULL, *g_sdsctag_notes_str = NULL, *g_sdsctag_author_str = NULL;
 int g_sdsctag_name_type, g_sdsctag_notes_type, g_sdsctag_author_type, g_sdsc_ma, g_sdsc_mi;
 int g_sdsctag_name_value, g_sdsctag_notes_value, g_sdsctag_author_value;
@@ -47,7 +47,7 @@ int g_smsforcechecksum = 0, g_smsforcechecksum_defined = 0, g_smschecksumsize = 
 static int s_smsreservedspace_defined = 0;
 #endif
 
-#ifdef MC68000
+#if defined(MC68000)
 char g_smdheader_systemtype[17] = "SEGA MEGA DRIVE ";
 char g_smdheader_copyright[17] = "                ";
 char g_smdheader_titledomestic[49] = "                                                ";
@@ -98,7 +98,7 @@ char g_name[32];
 int g_name_defined = 0;
 #endif
 
-#ifdef SPC700
+#if defined(SPC700)
 extern int g_input_number_expects_dot;
 #endif
 
@@ -868,7 +868,7 @@ int phase_1(void) {
 
     q = evaluate_token();
 
-#ifdef SPC700
+#if defined(SPC700)
     /* instruction parser might set this to YES, inside evaluate_token() */
     g_input_number_expects_dot = NO;
 #endif
@@ -4391,7 +4391,7 @@ int directive_incdir(void) {
   localize_path(g_include_dir);
 
   /* terminate the string with '/' */
-#ifdef MSDOS
+#if defined(MSDOS)
   if (g_include_dir[q - 1] != '\\') {
     g_include_dir[q] = '\\';
     g_include_dir[q + 1] = 0;
@@ -6196,7 +6196,7 @@ int directive_shift(void) {
 }
 
 
-#ifdef GB
+#if defined(GB)
 
 int directive_name_gb(void) {
 
@@ -6869,7 +6869,7 @@ int directive_background(void) {
 }
 
 
-#ifdef GB
+#if defined(GB)
 
 int directive_gbheader(void) {
 
@@ -8191,7 +8191,7 @@ int directive_redefine_redef(void) {
 }
 
 
-#ifdef Z80
+#if defined(Z80)
 
 int directive_smsheader(void) {
   
@@ -8549,7 +8549,7 @@ int directive_sdsctag(void) {
 #endif
 
 
-#ifdef MC68000
+#if defined(MC68000)
 
 static void _copy_and_pad_string(char *output, char *input, int size, char padding) {
 
@@ -10693,7 +10693,7 @@ int parse_directive(void) {
 
   case '2':
 
-#ifdef W65816
+#if defined(W65816)
     /* 24BIT */
     if (strcmp(directive_upper, "24BIT") == 0) {
       g_xbit_size = 24;
@@ -10717,7 +10717,7 @@ int parse_directive(void) {
     
   case 'A':
 
-#ifdef W65816
+#if defined(W65816)
     /* ACCU */
     if (strcmp(directive_upper, "ACCU") == 0) {
       q = input_number();
@@ -10850,7 +10850,7 @@ int parse_directive(void) {
 
   case 'C':
 
-#ifdef GB
+#if defined(GB)
     /* COMPUTECHECKSUM/COMPUTEGBCHECKSUM */
     if (strcmp(directive_upper, "COMPUTECHECKSUM") == 0 || strcmp(directive_upper, "COMPUTEGBCHECKSUM") == 0) {
       no_library_files(".COMPUTEGBCHECKSUM");
@@ -10946,7 +10946,7 @@ int parse_directive(void) {
     }
 #endif
 
-#ifdef MC68000
+#if defined(MC68000)
     /* COMPUTESMDCHECKSUM */
     if (strcmp(directive_upper, "COMPUTESMDCHECKSUM") == 0) {
       no_library_files(".COMPUTESMDCHECKSUM");
@@ -10957,7 +10957,7 @@ int parse_directive(void) {
     }
 #endif
     
-#ifdef Z80
+#if defined(Z80)
     /* COMPUTESMSCHECKSUM */
     if (strcmp(directive_upper, "COMPUTESMSCHECKSUM") == 0) {
       no_library_files(".COMPUTESMSCHECKSUM");
@@ -11143,7 +11143,7 @@ int parse_directive(void) {
       if (strcmp(directive_upper, "DWSIN") == 0 || strcmp(directive_upper, "DBSIN") == 0 || strcmp(directive_upper, "DWCOS") == 0 || strcmp(directive_upper, "DBCOS") == 0)
         return directive_dwsin_dbsin_dwcos_dbcos();
     
-#ifdef GB
+#if defined(GB)
       /* DESTINATIONCODE */
       if (strcmp(directive_upper, "DESTINATIONCODE") == 0) {
         no_library_files(".DESTINATIONCODE");
@@ -11521,7 +11521,7 @@ int parse_directive(void) {
 
   case 'G':
 
-#ifdef GB
+#if defined(GB)
     /* GBHEADER */
     if (strcmp(g_current_directive, "GBHEADER") == 0)
       return directive_gbheader();
@@ -11556,7 +11556,7 @@ int parse_directive(void) {
 
   case 'I':
 
-#ifdef W65816
+#if defined(W65816)
     /* INDEX */
     if (strcmp(directive_upper, "INDEX") == 0) {
       q = input_number();
@@ -11602,7 +11602,7 @@ int parse_directive(void) {
     if (strcmp(directive_upper, "LONG") == 0)
       return directive_dl_long_faraddr();
 
-#ifdef GB
+#if defined(GB)
     /* LICENSEECODENEW */
     if (strcmp(directive_upper, "LICENSEECODENEW") == 0) {
       int token_result;
@@ -11728,7 +11728,7 @@ int parse_directive(void) {
     }
 #endif
 
-#ifdef GB
+#if defined(GB)
     /* NINTENDOLOGO */
     if (strcmp(directive_upper, "NINTENDOLOGO") == 0) {
       no_library_files(".NINTENDOLOGO");
@@ -11817,7 +11817,7 @@ int parse_directive(void) {
     if (strcmp(directive_upper, "RAMSECTION") == 0)
       return directive_ramsection();
 
-#ifdef GB
+#if defined(GB)
     /* RAMSIZE */
     if (strcmp(directive_upper, "RAMSIZE") == 0) {
       no_library_files(".RAMSIZE");
@@ -12020,7 +12020,7 @@ int parse_directive(void) {
       return SUCCEEDED;
     }
 
-#ifdef Z80
+#if defined(Z80)
     /* SMSTAG */
     if (strcmp(directive_upper, "SMSTAG") == 0) {
       no_library_files(".SMSTAG");
@@ -12109,7 +12109,7 @@ int parse_directive(void) {
 
   case 'V':
 
-#ifdef GB
+#if defined(GB)
     /* VERSION */
     if (strcmp(directive_upper, "VERSION") == 0) {
       no_library_files(".VERSION");

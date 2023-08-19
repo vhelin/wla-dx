@@ -11,7 +11,7 @@
 #include "files.h"
 #include "analyze.h"
 
-#ifdef AMIGA
+#if defined(AMIGA)
 #include "/crc32.h"
 #include "/printf.h"
 #else
@@ -1899,12 +1899,32 @@ static int _handle_special_case(int special_id, int file_id, int file_id_source,
       return FAILED;
     }
   }
+  else if (special_id == 4) {
+    /* endianess flipping is handled elsewhere */
+  }
   else {
     fprintf(stderr, "_HANDLE_SPECIAL_CASE: Unknown special case ID %d! This in an internal WLA error. Please submit a bug report!\n", special_id);
     return FAILED;
   }
 
   return SUCCEEDED;
+}
+
+
+static int _flip_endianess(int value, int bits) {
+
+  if (bits == 16) {
+    int top, bottom;
+
+    top = (value >> 8) & 0xFF;
+    bottom = value & 0xFF;
+
+    return (bottom << 8) | top;
+  }
+  else {
+    fprintf(stderr, "_FLIP_ENDIANESS: Only 16-bit values can be flipped at the moment!\n");
+    return value;
+  }
 }
 
 
@@ -1989,6 +2009,12 @@ int fix_references(void) {
 
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT || r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
+        /* special case ID handling! */
+        if (r->special_id == 4) {
+          /* flip endianess */
+          i = _flip_endianess(i, 16);
+        }
+
         if (get_file(r->file_id)->little_endian == YES) {
           mem_insert_ref(x, i & 0xFF);
           mem_insert_ref(x + 1, (i >> 8) & 0xFF);
@@ -2091,6 +2117,13 @@ int fix_references(void) {
       /* direct 16-bit */
       if (r->type == REFERENCE_TYPE_DIRECT_16BIT) {
         i = (int)l->address;
+
+        /* special case ID handling! */
+        if (r->special_id == 4) {
+          /* flip endianess */
+          i = _flip_endianess(i, 16);
+        }
+
         if (get_file(r->file_id)->little_endian == YES) {
           mem_insert_ref(x, i & 0xFF);
           mem_insert_ref(x + 1, (i >> 8) & 0xFF);
@@ -2192,6 +2225,7 @@ int fix_references(void) {
                   get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
           return FAILED;
         }
+
         if (get_file(r->file_id)->little_endian == YES) {
           mem_insert_ref(x, i & 0xFF);
           mem_insert_ref(x + 1, (i >> 8) & 0xFF);
@@ -2227,7 +2261,7 @@ int fix_references(void) {
         }
 
         /* special case ID handling! */
-        if (r->special_id > 0) {
+        if (r->special_id > 0 && r->special_id != 4) {
           if (_handle_special_case(r->special_id, r->file_id, r->file_id_source, r->linenumber, i, &i) == FAILED)
             return FAILED;
         }
@@ -2887,6 +2921,13 @@ int compute_pending_calculations(void) {
                 get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
         return FAILED;
       }
+
+      /* special case ID handling! */
+      if (sta->special_id == 4) {
+        /* flip endianess */
+        k = _flip_endianess(k, 16);
+      }
+      
       if (get_file(sta->file_id)->little_endian == YES) {
         if (mem_insert_ref(a, k & 0xFF) == FAILED)
           return FAILED;

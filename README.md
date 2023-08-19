@@ -2,7 +2,7 @@ WLA DX (Wzonka-Lad Assembler Deluxe)
 ====================================
 
 WLA DX - Yet Another
-GB-Z80/Z80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX
+GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX
 Multi Platform Cross Assembler Package
 
 Azure Pipelines CI:
@@ -21,6 +21,7 @@ memory map (that should be shared across all object and library files).
 Supported architectures are:
 
 * Z80
+* Z80N
 * GB (GB-Z80)
 * 6502
 * 65C02

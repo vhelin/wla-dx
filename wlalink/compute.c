@@ -8,7 +8,7 @@
 #include "memory.h"
 #include "compute.h"
 
-#ifdef AMIGA
+#if defined(AMIGA)
 #include "/printf.h"
 #else
 #include "../printf.h"

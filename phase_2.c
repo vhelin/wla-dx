@@ -15,7 +15,7 @@
 #include "printf.h"
 
 
-#ifdef GB
+#if defined(GB)
 extern int g_licenseecodeold, g_romsize, g_romsize_defined;
 extern int g_nintendologo_defined;
 extern int g_name_defined, g_licenseecodeold_defined, g_licenseecodenew_defined;
@@ -33,7 +33,7 @@ static unsigned char s_nintendo_logo_dat[] = {
 };
 #endif
 
-#ifdef Z80
+#if defined(Z80)
 extern char *g_sdsctag_name_str, *g_sdsctag_notes_str, *g_sdsctag_author_str;
 extern int g_sdsctag_name_type, g_sdsctag_notes_type, g_sdsctag_author_type, g_sdsc_ma, g_sdsc_mi;
 extern int g_sdsctag_name_value, g_sdsctag_notes_value, g_sdsctag_author_value;
@@ -164,7 +164,7 @@ int phase_2(void) {
     return FAILED;
   }
 
-#ifdef Z80
+#if defined(Z80)
   /* SMSTAG */
   if (g_smstag_defined != 0) {
     /* OBSOLETE: MOVED TO wlalink/compute.c/compute_sms_checksum()
@@ -458,7 +458,7 @@ int phase_2(void) {
   }
 #endif
 
-#ifdef GB
+#if defined(GB)
   /* insert the descriptive data (not in library files) */
   if (g_output_format == OUTPUT_OBJECT) {
     if (g_nintendologo_defined != 0) {

@@ -1,0 +1,66 @@
+###################################################
+# WARNING: This file was automatically generated. #
+###################################################
+
+CC = gcc
+CFLAGS = -mtune=i486 -c -O3 -ansi -pedantic -Wall -DMSDOS -DZ80N -DNDEBUG=1
+LD = gcc
+LDFLAGS = -lm
+
+OFILES = main.o crc32.o decode.o hashmap.o include.o listfile.o mersenne.o parse.o phase_1.o phase_2.o phase_3.o phase_4.o printf.o stack.o tz80n.o iz80n.o
+
+all: $(OFILES)
+	$(LD) $(LDFLAGS) $(OFILES) -o w-z80n.exe
+
+
+crc32.o: crc32.c crc32.h
+	$(CC) $(CFLAGS) crc32.c
+
+decode.o: decode.c decode.h parse.h phase_1.h printf.h stack.h
+	$(CC) $(CFLAGS) decode.c
+
+hashmap.o: hashmap.c hashmap.h crc32.h
+	$(CC) $(CFLAGS) hashmap.c
+
+include.o: include.c include.h crc32.h defines.h hashmap.h shared.h parse.h phase_1.h printf.h
+	$(CC) $(CFLAGS) include.c
+
+iz80n.o: iz80n.c 
+	$(CC) $(CFLAGS) iz80n.c
+
+listfile.o: listfile.c listfile.h defines.h hashmap.h shared.h include.h
+	$(CC) $(CFLAGS) listfile.c
+
+main.o: main.c defines.h hashmap.h shared.h hashmap.h include.h listfile.h mersenne.h parse.h phase_1.h phase_2.h phase_3.h phase_4.h printf.h
+	$(CC) $(CFLAGS) main.c
+
+mersenne.o: mersenne.c mersenne.h
+	$(CC) $(CFLAGS) mersenne.c
+
+parse.o: parse.c parse.h defines.h hashmap.h shared.h phase_1.h stack.h include.h printf.h
+	$(CC) $(CFLAGS) parse.c
+
+phase_1.o: phase_1.c phase_1.h decode.h defines.h hashmap.h shared.h include.h parse.h phase_2.h phase_3.h stack.h hashmap.h printf.h mersenne.h
+	$(CC) $(CFLAGS) phase_1.c
+
+phase_2.o: phase_2.c phase_2.h defines.h hashmap.h shared.h phase_1.h phase_4.h hashmap.h printf.h
+	$(CC) $(CFLAGS) phase_2.c
+
+phase_3.o: phase_3.c phase_3.h defines.h hashmap.h shared.h include.h printf.h
+	$(CC) $(CFLAGS) phase_3.c
+
+phase_4.o: phase_4.c defines.h hashmap.h shared.h include.h listfile.h phase_3.h phase_4.h parse.h stack.h printf.h
+	$(CC) $(CFLAGS) phase_4.c
+
+printf.o: printf.c printf.h
+	$(CC) $(CFLAGS) printf.c
+
+stack.o: stack.c stack.h defines.h hashmap.h shared.h hashmap.h parse.h phase_1.h include.h printf.h
+	$(CC) $(CFLAGS) stack.c
+
+tz80n.o: tz80n.c 
+	$(CC) $(CFLAGS) tz80n.c
+
+
+clean:
+	DEL /F /Q *.o; DEL /F /Q *.d; del w-z80n.exe

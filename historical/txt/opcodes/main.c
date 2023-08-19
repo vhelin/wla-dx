@@ -13,6 +13,9 @@
 #ifdef Z80
 #include "../../../iz80.c"
 #endif
+#ifdef Z80N
+#include "../../../iz80n.c"
+#endif
 #ifdef MCS6502
 #include "../../../i6502.c"
 #endif
@@ -99,7 +102,7 @@ int main(int argc, char *argv[]) {
 #if defined(MC68000)
     printf("  { \"%s\", 0x%X, %d },\n", g_instructions_table[i].string, g_instructions_table[i].hex, g_instructions_table[i].type);
 #endif
-#if defined(Z80)
+#if defined(Z80) || defined(Z80N)
     printf("  { \"%s\", 0x%X, %d, %d, %d },\n", g_instructions_table[i].string, g_instructions_table[i].hex, g_instructions_table[i].type, g_instructions_table[i].hex_x, g_instructions_table[i].value);
 #endif
 #if defined(W65816)
@@ -178,7 +181,7 @@ int main(int argc, char *argv[]) {
     printf("$%.2X\n", g_instructions_table[i].hex);
 #endif
 
-#if defined(Z80)
+#if defined(Z80) || defined(Z80N)
     if (g_instructions_table[i].type == 8 || g_instructions_table[i].type == 9 || g_instructions_table[i].type == 10) {
       int k;
 
@@ -391,7 +394,7 @@ int main(int argc, char *argv[]) {
       printf("\"%s\"\n", g_instructions_table[i].string);
 #endif
 
-#if defined(Z80)
+#if defined(Z80) || defined(Z80N)
     if (g_instructions_table[i].hex & 0xFF00)
       printf("$%.2X%.2X", g_instructions_table[i].hex & 0xFF, (g_instructions_table[i].hex >> 8) & 0xFF);
     else

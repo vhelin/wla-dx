@@ -329,7 +329,7 @@ static int _break_before_value_or_string(int i, struct stack_item *si) {
   return FAILED;
 }
 
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
 static void _debug_print_stack(int line_number, int stack_id, struct stack_item *ta, int count, int id, struct stack *stack) {
 
   int k;
@@ -2238,12 +2238,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
   }
 
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
   fprintf(stderr, "PREOPT:\n");
   _debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
 #endif
   
-#ifdef SPC700
+#if defined(SPC700)
   /* check if the computation is of the form "y+X" or "y+Y" and remove that "+X" or "+Y" */
   if (q > 2 && si[q - 2].type == STACK_ITEM_TYPE_OPERATOR && si[q - 2].value == SI_OP_ADD) {
     if (si[q - 1].type == STACK_ITEM_TYPE_LABEL && si[q - 1].string[1] == 0) {
@@ -2370,7 +2370,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[k + 1].value != SI_OP_SIGN &&
         si[k + 1].value != SI_OP_SQRT) {
       if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
         fprintf(stderr, "ERROR NEAR COMPUTATION ITEM %d! (items %d and %d)\n", k, (int)si[k].value, (int)si[k+1].value);
         _debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
 #endif
@@ -2452,7 +2452,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
   }
 
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
   fprintf(stderr, "INFIX:\n");
   _debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
 #endif
@@ -2551,7 +2551,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     d++;
   }
 
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
   fprintf(stderr, "POSTFIX:\n");
   _debug_print_stack(g_active_file_info_last->line_current, -1, ta, d, 0, NULL);
 #endif
@@ -2577,13 +2577,13 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     g_parsed_double = dou;
 
     if (g_input_float_mode == ON) {
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
       fprintf(stderr, "RETURN FLOAT %f\n", dou);
 #endif
       return INPUT_NUMBER_FLOAT;
     }
 
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
     fprintf(stderr, "RETURN INT %d\n", (int)dou);
 #endif
     
@@ -2596,7 +2596,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   if (d == 1 && ta[0].type == STACK_ITEM_TYPE_STRING && ta[0].sign == SI_SIGN_POSITIVE) {
     strcpy(g_label, ta[0].string);
     process_special_labels(g_label);
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
     fprintf(stderr, "RETURN STRING %s\n", g_label);
 #endif
     return STACK_RETURN_STRING;
@@ -2605,7 +2605,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   if (d == 1 && ta[0].type == STACK_ITEM_TYPE_LABEL && ta[0].sign == SI_SIGN_POSITIVE) {
     strcpy(g_label, ta[0].string);
     process_special_labels(g_label);
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
     fprintf(stderr, "RETURN LABEL %s\n", g_label);
 #endif
     return STACK_RETURN_LABEL;
@@ -2671,13 +2671,13 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
   }
 
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
   _debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack_items, d, 0, stack);
 #endif
 
   calculation_stack_insert(stack);
 
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
     fprintf(stderr, "RETURN STACK %d\n", g_latest_stack);
     _debug_print_stack(g_active_file_info_last->line_current, g_latest_stack, ta, d, 0, NULL);
 #endif
@@ -3265,7 +3265,7 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
 
   /* if this is not a condition then NOT will delay the processing to WLALINK */
   if (is_condition == YES || g_input_parse_if == YES) {
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
     fprintf(stderr, "RESOLVED (1):\n");
     _debug_print_stack(0, 0, s, backup, 0, NULL);
 #endif
@@ -3283,7 +3283,7 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
     st++;
   }
 
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
   fprintf(stderr, "RESOLVED (2):\n");
   _debug_print_stack(0, 0, s, backup, 0, NULL);
 #endif
@@ -3350,7 +3350,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
 
   s = sta->stack_items;
 
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
   fprintf(stderr, "SOLVING:\n");
   _debug_print_stack(0, 0, s, stack_item_count, 0, NULL);
 #endif
@@ -3804,7 +3804,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
   }
 
   /*
-    #ifdef W65816
+    #if defined(W65816)
     if (v[0] < -8388608 || v[0] > 16777215) {
     print_error(ERROR_STC, "Out of 24-bit range.\n");
     return FAILED;
@@ -3819,7 +3819,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
 
   *result = v[0];
 
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
   fprintf(stderr, "RESULT = %f\n", *result);
 #endif
   
@@ -3857,7 +3857,7 @@ int stack_create_label_stack(char *label) {
 
   calculation_stack_insert(stack);
 
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
   _debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack_items, 1, 1, stack);
 #endif
 
@@ -4308,7 +4308,7 @@ int data_stream_parser_parse(void) {
       s_dsp_add += 2;
       continue;
 
-#ifdef SUPERFX
+#if defined(SUPERFX)
     case '*':
       fscanf(g_file_out_ptr, "%*s ");
       s_dsp_add++;
@@ -4356,7 +4356,7 @@ int data_stream_parser_parse(void) {
         continue;
       }
 
-#ifdef SPC700
+#if defined(SPC700)
     case 'n':
       fscanf(g_file_out_ptr, "%*d %*s ");
       s_dsp_add += 2;

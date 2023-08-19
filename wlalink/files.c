@@ -10,7 +10,7 @@
 #include "analyze.h"
 #include "write.h"
 
-#ifdef AMIGA
+#if defined(AMIGA)
 #include "/printf.h"
 #else
 #include "../printf.h"

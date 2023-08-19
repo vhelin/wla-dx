@@ -27,7 +27,8 @@ cpus = [
     {'name': 'superfx', 'define': 'SUPERFX'},
     {'name': 'huc6280', 'define': 'HUC6280'},
     {'name': 'spc700', 'define': 'SPC700'},
-    {'name': 'z80', 'define': 'Z80'}
+    {'name': 'z80', 'define': 'Z80'},
+    {'name': 'z80n', 'define': 'Z80N'}
 ]
 
 def main():

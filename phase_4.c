@@ -33,7 +33,7 @@ extern char *g_tmp, *g_final_name;
 extern int g_rombanks, g_output_format, g_test_mode, g_listfile_data, g_little_endian, g_sizeof_g_tmp;
 extern int g_label_context_running_number, g_continued_parsing_after_an_error;
 
-#ifdef GB
+#if defined(GB)
 extern char g_licenseecodenew_c1, g_licenseecodenew_c2;
 extern int g_computechecksum_defined, g_computecomplementcheck_defined;
 extern int g_cartridgetype;
@@ -307,7 +307,7 @@ static void _bits_add_bit(int *bits_byte, int *bits_position, int *bits_to_defin
 
 int phase_4(void) {
 
-  int i, o, z, y, add_old = 0, x, q, inz, ind, bits_position = 0, bits_byte = 0;
+  int i, o, z, y, add_old = 0, x, q, inz, ind, bits_position = 0, bits_byte = 0, flip_endianess = NO;
   char *t, c, tmp_buffer[MAX_NAME_LENGTH + 1];
   struct stack *stack;
   struct definition *tmp_def;
@@ -1148,6 +1148,16 @@ int phase_4(void) {
 
         /* create a what-we-are-doing message for mem_insert*() warnings/errors */
         snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 16-bit computation", get_file_name(s_filename_id), s_line_number);
+
+        /* flip endianess? */
+        if (stack->special_id == 4) {
+          int top, bottom;
+
+          top = (o >> 8) & 0xFF;
+          bottom = o & 0xFF;
+              
+          o = (bottom << 8) | top;
+        }
         
         if (g_little_endian == YES) {
           if (mem_insert(o & 0xFF) == FAILED)
@@ -1177,7 +1187,7 @@ int phase_4(void) {
       
       continue;
 
-#ifdef SPC700
+#if defined(SPC700)
       /* 13BIT COMPUTATION */
 
     case 'N':
@@ -1637,68 +1647,95 @@ int phase_4(void) {
 
       continue;
 
+      /* FLIP THE ENDIANESS OF NEXT 'r' */
+      
+    case '.':
+      flip_endianess = YES;
+      continue;
+      
       /* 16BIT REFERENCE */
 
     case 'r':
-      fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+      {
+        struct label_def *label;
+        
+        fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
 
-      if (g_namespace[0] != 0) {
-        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
-          if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
-            return FAILED;
-        }
-      }
-
-      hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
-      if (tmp_def != NULL) {
-        if (tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
-          return FAILED;
-        }
-        else {
-          if (tmp_def->type == DEFINITION_TYPE_STACK) {
-            if (_try_to_calculate_stack_calculation_define(tmp_def) == FAILED)
+        if (g_namespace[0] != 0) {
+          if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+            if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
               return FAILED;
           }
+        }
 
-          if (tmp_def->type != DEFINITION_TYPE_STACK) {
-            o = (int)tmp_def->value;
-
-            /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-            snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(s_filename_id), s_line_number);
-
-            if (g_little_endian == YES) {
-              if (mem_insert(o & 0xFF) == FAILED)
-                return FAILED;
-              if (mem_insert((o & 0xFF00) >> 8) == FAILED)
-                return FAILED;
-            }
-            else {
-              if (mem_insert((o >> 8) & 0xFF) == FAILED)
-                return FAILED;
-              if (mem_insert(o & 0xFF) == FAILED)
+        hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
+        if (tmp_def != NULL) {
+          if (tmp_def->type == DEFINITION_TYPE_STRING) {
+            fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
+            return FAILED;
+          }
+          else {
+            if (tmp_def->type == DEFINITION_TYPE_STACK) {
+              if (_try_to_calculate_stack_calculation_define(tmp_def) == FAILED)
                 return FAILED;
             }
 
-            continue;
+            if (tmp_def->type != DEFINITION_TYPE_STACK) {
+              o = (int)tmp_def->value;
+
+              /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+              snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 16-bit reference", get_file_name(s_filename_id), s_line_number);
+
+              if (flip_endianess == YES) {
+                int top, bottom;
+
+                top = (o >> 8) & 0xFF;
+                bottom = o & 0xFF;
+              
+                o = (bottom << 8) | top;
+
+                flip_endianess = NO;
+              }
+            
+              if (g_little_endian == YES) {
+                if (mem_insert(o & 0xFF) == FAILED)
+                  return FAILED;
+                if (mem_insert((o & 0xFF00) >> 8) == FAILED)
+                  return FAILED;
+              }
+              else {
+                if (mem_insert((o >> 8) & 0xFF) == FAILED)
+                  return FAILED;
+                if (mem_insert(o & 0xFF) == FAILED)
+                  return FAILED;
+              }
+
+              continue;
+            }
           }
         }
+
+        label = _new_unknown_reference(REFERENCE_TYPE_DIRECT_16BIT);
+        if (label == NULL)
+          return FAILED;
+
+        if (flip_endianess == YES) {
+          flip_endianess = NO;
+          label->special_id = 4;
+        }
+
+        /* create a what-we-are-doing message for mem_insert*() warnings/errors */
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 16-bit reference", get_file_name(s_filename_id), s_line_number);
+
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+
+        continue;
       }
 
-      if (_new_unknown_reference(REFERENCE_TYPE_DIRECT_16BIT) == NULL)
-        return FAILED;
-
-      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 16-bit reference", get_file_name(s_filename_id), s_line_number);
-
-      if (mem_insert_padding() == FAILED)
-        return FAILED;
-      if (mem_insert_padding() == FAILED)
-        return FAILED;
-
-      continue;
-
-#ifdef SPC700
+#if defined(SPC700)
       /* 13BIT REFERENCE */
 
     case 'n':
@@ -1985,7 +2022,7 @@ int write_object_file(void) {
   ind += 128;
 #endif
 
-#ifdef GB
+#if defined(GB)
   if (g_computechecksum_defined != 0)
     ind += 16;
   if (g_computecomplementcheck_defined != 0)
@@ -2004,7 +2041,7 @@ int write_object_file(void) {
     ind |= (g_sramsize & 3) << 1;
 #endif
 
-#ifdef Z80
+#if defined(Z80)
   if (g_smstag_defined != 0)
     ind |= 1 << 3;
   if (g_smsheader_defined != 0)
@@ -2446,7 +2483,7 @@ int write_library_file(void) {
   /* 65816 bit */
   ind |= 1 << 1;
 #endif
-#ifdef CSG65CE02
+#if defined(CSG65CE02)
   /* 65ce02 bit */
   ind |= 1 << 2;
 #endif

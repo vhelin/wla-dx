@@ -1,0 +1,6 @@
+[objects]
+main.o
+
+[definitions]
+VALUE_2 2
+

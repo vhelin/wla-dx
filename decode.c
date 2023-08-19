@@ -36,7 +36,7 @@ extern int g_xbit_size, g_accu_size, g_index_size;
 extern int g_use_wdc_standard;
 #endif
 
-#ifdef SPC700
+#if defined(SPC700)
 extern int g_input_number_expects_dot;
 #endif
 
@@ -56,7 +56,7 @@ static void _output_assembled_instruction(struct instruction *instruction, const
   va_start(ap, format);
 
   vfprintf(g_file_out_ptr, format, ap);
-#ifdef WLA_DEBUG
+#if defined(WLA_DEBUG)
   {
     char ttt[256];
 
@@ -242,7 +242,7 @@ static int _parse_exg_tfr_registers(void) {
 #endif
 
 
-#ifdef SUPERFX
+#if defined(SUPERFX)
 
 /* parse a number [min, max] */
 int _parse_tiny_int(int min, int max) {
@@ -269,7 +269,7 @@ int _parse_tiny_int(int min, int max) {
 #endif
 
 
-#ifdef MC68000
+#if defined(MC68000)
 
 static int _mc68000_size_check(int data, int size) {
 
@@ -997,7 +997,7 @@ static int _mc68000_parse_register(char *code, int *index, int *reg, int *mode) 
 int evaluate_token(void) {
 
   int f, x, y, last_stack_id_backup, instruction_i;
-#if defined(Z80) || defined(SPC700) || defined(W65816) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280)
+#if defined(Z80) || defined(Z80N) || defined(SPC700) || defined(W65816) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280)
   int e, v, h;
   char labelx[MAX_NAME_LENGTH + 1];
 #endif
@@ -1127,7 +1127,7 @@ int evaluate_token(void) {
        after this stack id... */
     last_stack_id_backup = g_last_stack_id;
 
-#ifdef SPC700
+#if defined(SPC700)
     /* does the instruction contain a dot? */
     /* NOTE: as instruction decoders call return, we'll need to set this variable later back to NO */
     g_input_number_expects_dot = s_instruction_tmp->has_dot;
@@ -1135,7 +1135,7 @@ int evaluate_token(void) {
     
     switch (s_instruction_tmp->type) {
 
-#ifdef GB
+#if defined(GB)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -1362,12 +1362,12 @@ int evaluate_token(void) {
       
 #endif
  
-#ifdef Z80
+#if defined(Z80) || defined(Z80N)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
       /*************************************************************************************************/
-      /* <Z80> */
+      /* <Z80/Z80N> */
       /*************************************************************************************************/
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -1594,12 +1594,31 @@ int evaluate_token(void) {
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
             if (IS_THE_MATCH_COMPLETE(x)) {
-              if (z == SUCCEEDED)
-                _output_assembled_instruction(s_instruction_tmp, "y%d y%d ", s_instruction_tmp->hex, g_parsed_int);
-              else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-                _output_assembled_instruction(s_instruction_tmp, "k%d y%d r%s ", g_active_file_info_last->line_current, s_instruction_tmp->hex, g_label);
-              else
-                _output_assembled_instruction(s_instruction_tmp, "y%d C%d ", s_instruction_tmp->hex, g_latest_stack);
+              /* "PUSH ?" hack */
+              if (s_instruction_tmp->hex == 0x8AED) {
+                /* high bytes comes first */
+                if (z == SUCCEEDED)
+                  _output_assembled_instruction(s_instruction_tmp, "y%d d%d d%d ", s_instruction_tmp->hex, ((g_parsed_int) >> 8) & 0xFF, g_parsed_int & 0xFF);
+                else if (z == INPUT_NUMBER_ADDRESS_LABEL)
+                  _output_assembled_instruction(s_instruction_tmp, "k%d y%d . r%s ", g_active_file_info_last->line_current, s_instruction_tmp->hex, g_label);
+                else {
+                  struct stack *stack = find_stack_calculation(g_latest_stack, YES);
+
+                  if (stack == NULL)
+                    return FAILED;
+                  stack->special_id = 4;
+
+                  _output_assembled_instruction(s_instruction_tmp, "y%d C%d ", s_instruction_tmp->hex, g_latest_stack);
+                }
+              }
+              else {
+                if (z == SUCCEEDED)
+                  _output_assembled_instruction(s_instruction_tmp, "y%d y%d ", s_instruction_tmp->hex, g_parsed_int);
+                else if (z == INPUT_NUMBER_ADDRESS_LABEL)
+                  _output_assembled_instruction(s_instruction_tmp, "k%d y%d r%s ", g_active_file_info_last->line_current, s_instruction_tmp->hex, g_label);
+                else
+                  _output_assembled_instruction(s_instruction_tmp, "y%d C%d ", s_instruction_tmp->hex, g_latest_stack);
+              }
               
               g_source_index = s_parser_source_index;
               return SUCCEEDED;
@@ -1828,14 +1847,14 @@ int evaluate_token(void) {
       /*************************************************************************************************/
       /*************************************************************************************************/
       /*************************************************************************************************/
-      /* </Z80> */
+      /* </Z80/Z80N> */
       /*************************************************************************************************/
       /*************************************************************************************************/
       /*************************************************************************************************/
 
 #endif
 
-#ifdef MCS6502
+#if defined(MCS6502)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -2006,7 +2025,7 @@ int evaluate_token(void) {
       
 #endif
 
-#ifdef WDC65C02
+#if defined(WDC65C02)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -2251,7 +2270,7 @@ int evaluate_token(void) {
       
 #endif
 
-#ifdef CSG65CE02
+#if defined(CSG65CE02)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -2544,7 +2563,7 @@ int evaluate_token(void) {
       
 #endif
 
-#ifdef W65816
+#if defined(W65816)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -3061,7 +3080,7 @@ int evaluate_token(void) {
       
 #endif
 
-#ifdef MC68000
+#if defined(MC68000)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -5618,7 +5637,7 @@ int evaluate_token(void) {
 
 #endif
       
-#ifdef MC6800
+#if defined(MC6800)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -5794,7 +5813,7 @@ int evaluate_token(void) {
 
 #endif
       
-#ifdef MC6801
+#if defined(MC6801)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -5970,7 +5989,7 @@ int evaluate_token(void) {
 
 #endif
       
-#ifdef MC6809
+#if defined(MC6809)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -6436,7 +6455,7 @@ int evaluate_token(void) {
 
 #endif
       
-#ifdef I8008
+#if defined(I8008)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -6617,7 +6636,7 @@ int evaluate_token(void) {
 
 #endif
 
-#ifdef I8080
+#if defined(I8080)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -6798,7 +6817,7 @@ int evaluate_token(void) {
 
 #endif
 
-#ifdef SPC700
+#if defined(SPC700)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -7485,7 +7504,7 @@ int evaluate_token(void) {
       
 #endif
 
-#ifdef HUC6280
+#if defined(HUC6280)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -7997,7 +8016,7 @@ int evaluate_token(void) {
       
 #endif
 
-#ifdef SUPERFX
+#if defined(SUPERFX)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
