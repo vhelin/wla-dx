@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------------
 
-v10.6 (19-Aug-2023) [ALL] Conditions (e.g., "(A > 1 || B < 3)") can now be used
+v10.6 (20-Aug-2023) [ALL] Conditions (e.g., "(A > 1 || B < 3)") can now be used
                       everywhere, outside .IFs.
                     [ALL] It's not any more possible to create labels and
                       definitions called "_b" and "_f" as they are reserved names.
@@ -25,6 +25,8 @@ v10.6 (19-Aug-2023) [ALL] Conditions (e.g., "(A > 1 || B < 3)") can now be used
                     [ALL] It's now possible to put multiple instructions on the
                       the same line by separating them with " \ " (whitespace here
                       is important).
+                    [ALL] WLA assembles now "WLAl" object files.
+                    [Z80] Added BASEADDRESS to .SMSHEADER.
                     [Z8N] Added support for Z80N.
 
 v10.5 (23-Jun-2023) [ALL] .DSB, .DSW, .DSL and .DSD produced only one pending
@@ -1504,7 +1506,7 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.21 (16-Aug-2023) WLALINK writes now version 3 WLA symbol files.
+v5.21 (20-Aug-2023) WLALINK writes now version 3 WLA symbol files.
                     Symbol files created with -S contain now [sections] and
                       [ramsections].
 

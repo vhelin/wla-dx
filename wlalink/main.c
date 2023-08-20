@@ -31,7 +31,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.21a (16.8.2023)";
+char g_version_string[] = "$VER: wlalink 5.21a (20.8.2023)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -65,7 +65,7 @@ int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode = 0, g_sm
 int g_smc_status = 0, g_snes_sramsize = 0, g_allow_duplicate_labels_and_definitions = NO;
 int g_output_type = OUTPUT_TYPE_UNDEFINED, g_sort_sections = YES;
 int g_num_sorted_anonymous_labels = 0, g_use_priority_only_writing_sections = NO, g_use_priority_only_writing_ramsections = NO;
-int g_emptyfill = 0, g_paths_in_linkfile_are_relative_to_linkfile = NO;
+int g_emptyfill = 0, g_paths_in_linkfile_are_relative_to_linkfile = NO, g_romheader_baseaddress = -1;
 
 static int s_create_sizeof_definitions = YES, s_listfile_data = NO, s_symbol_mode = SYMBOL_MODE_NONE;
 static unsigned char s_output_addr_to_line = OFF;

@@ -31,7 +31,7 @@ extern FILE *g_file_out_ptr;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern char *g_tmp, *g_final_name;
 extern int g_rombanks, g_output_format, g_test_mode, g_listfile_data, g_little_endian, g_sizeof_g_tmp;
-extern int g_label_context_running_number, g_continued_parsing_after_an_error;
+extern int g_label_context_running_number, g_continued_parsing_after_an_error, g_romheader_baseaddress;
 
 #if defined(GB)
 extern char g_licenseecodenew_c1, g_licenseecodenew_c2;
@@ -1993,7 +1993,7 @@ int write_object_file(void) {
   }
 
   /* header */
-  fprintf(final_ptr, "WLAk%c", g_emptyfill);
+  fprintf(final_ptr, "WLAl%c", g_emptyfill);
 
   /* misc bits */
   ind = 0;
@@ -2088,8 +2088,12 @@ int write_object_file(void) {
   /* sms checksum calculation special range */
   ov = g_smschecksumsize;
   WRITEOUT_OV;
+  /* sms ROM header base address */
+  ov = g_romheader_baseaddress;
+  WRITEOUT_OV;
 #else
   ov = 0;
+  WRITEOUT_OV;
   WRITEOUT_OV;
 #endif
 

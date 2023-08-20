@@ -103,6 +103,7 @@ extern int g_input_number_expects_dot;
 #endif
 
 int g_sizeof_g_tmp = 4096, g_global_listfile_items = 0, *g_global_listfile_ints = NULL;
+int g_romheader_baseaddress = -1, g_romheader_baseaddress_defined = 0;
 char *g_tmp = NULL, *g_global_listfile_cmds = NULL;
 char *g_label_stack[256];
 char g_current_directive[MAX_NAME_LENGTH + 1];
@@ -8380,6 +8381,24 @@ int directive_smsheader(void) {
 
       g_smsforcechecksum = g_parsed_int;
       g_smsforcechecksum_defined = 1;
+    }
+    else if (strcaselesscmp(g_tmp, "BASEADDRESS") == 0) {
+      if (g_romheader_baseaddress_defined == 1) {
+        print_error(ERROR_DIR, "BASEADDRESS is already defined.\n");
+        return FAILED;
+      }
+      
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED) {
+        print_error(ERROR_DIR, "BASEADDRESS needs an immediate value.\n");
+        return FAILED;
+      }
+
+      g_romheader_baseaddress = g_parsed_int;
+      g_romheader_baseaddress_defined = 1;
     }
     else {
       token_result = FAILED;

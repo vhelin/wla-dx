@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file format "WLAk"
+WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file format "WLAl"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAk" - WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file version 36 (02-Apr-2022)
+        "WLAl" - WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file version 37 (20-Aug-2023)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -34,6 +34,7 @@ header:
                    bit 2 - use a special range for sms checksum calculation (1 == yes)
                    bit 3 - sega mega drive checksum (1 == compute))
   4     special range for sms checksum calculation (int)
+  4     base address for SMS ROM header (int)
 
 rom bank map:
 

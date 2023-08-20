@@ -16,7 +16,7 @@
 extern struct object_file *g_obj_first;
 extern int g_emptyfill, g_sms_checksum, g_smstag_defined, g_snes_rom_mode, g_snes_rom_speed, g_smc_status, g_sms_header;
 extern int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode, g_snes_sramsize, g_sms_checksum_already_written;
-extern int g_sms_checksum_size_defined, g_sms_checksum_size, g_smd_checksum;
+extern int g_sms_checksum_size_defined, g_sms_checksum_size, g_smd_checksum, g_romheader_baseaddress;
 
 
 int check_file_types(void) {
@@ -25,7 +25,7 @@ int check_file_types(void) {
   
   o = g_obj_first;
   while (o != NULL) {
-    if (strncmp((char *)o->data, "WLAk", 4) == 0)
+    if (strncmp((char *)o->data, "WLAl", 4) == 0)
       o->format = WLA_VERSION_OBJ;
     else if (strncmp((char *)o->data, "WLAI", 4) == 0)
       o->format = WLA_VERSION_LIB;
@@ -74,7 +74,8 @@ int check_headers(void) {
   while (o != NULL) {
     if (o->format == WLA_VERSION_OBJ) {
       int extr_bits, more_bits;
-      
+
+      /* object file */
       misc_bits = *(o->data + OBJ_MISC_BITS);
       more_bits = *(o->data + OBJ_MORE_BITS);
       extr_bits = *(o->data + OBJ_EXTR_BITS);
@@ -120,7 +121,9 @@ int check_headers(void) {
         g_sms_checksum_size_defined = (extr_bits >> 2) & 1;
         g_smd_checksum = (extr_bits >> 3) & 1;
         /* sms checksum size */
-        g_sms_checksum_size = READ_T_FINAL;
+        g_sms_checksum_size = READ_T;
+        /* ROM header base address */
+        g_romheader_baseaddress = READ_T_FINAL;
       }
       else {
         e = *(o->data + OBJ_EMPTY_FILL);
@@ -195,11 +198,17 @@ int check_headers(void) {
           g_sms_checksum_size_defined = (extr_bits >> 2) & 1;
           g_sms_checksum_size = READ_T_FINAL;
         }
+        
+        t += 4;
+        e = READ_T_FINAL;
+        if (e != -1)
+          g_romheader_baseaddress = e;
       }
 
       count++;
     }
     else {
+      /* library file */
       misc_bits = *(o->data + LIB_MISC_BITS);
 
       if ((misc_bits & 4) != 0)

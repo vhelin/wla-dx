@@ -3413,6 +3413,7 @@ it will be calculated automatically::
         CHECKSUMSIZE 32*1024  ; Uses the first this-many bytes in checksum
                               ;   calculations (excluding header area)
         FORCECHECKSUM $1234   ; Forces the checksum to be this value
+        BASEADDRESS $1FF0     ; Write the header at this address
     .ENDSMS
 
 The ``REGIONCODE`` also defines the system:

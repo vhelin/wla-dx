@@ -42,8 +42,11 @@ BANKS 4
 	REGIONCODE 6
 	PRODUCTCODE 2, 3, 4
 	RESERVEDSPACE $ff, $ff
+        BASEADDRESS $4000
 .ENDSMS
 
+        ; @BT linked.rom
+        
 .define TEST1
 .printt "TEST1 - (default value) "
 .printv dec TEST1
@@ -292,3 +295,11 @@ data2b:	.incbin "data.txt" skip 1 filter macroOne
 	.fread fp d
 	.db d
 	.undefine d
+
+        .BANK 3 SLOT 0
+        .ORG 0
+
+        .db "01>"               ; @BT TEST-01 01 START
+        .db 1                   ; @BT 01
+        .db "<01"               ; @BT END
+        

@@ -148,8 +148,7 @@ int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_
 }
 
 
-/* Get the next token from the input string and write the results on
-   the result argument.  */
+/* get the next token from the input string and write the results on the result argument */
 int get_token(char **input, char *result) {
 
   int n = 0;
@@ -166,53 +165,52 @@ int get_token(char **input, char *result) {
 }
 
 
-/* Extracts contents of byte tester comments in-place. The result is
+/* extracts contents of byte tester comments in-place. the result is
    placed on the input string itself, overwriting its contents.  */
 int extract_comments(char *input, size_t size) {
 
   char *current = input, *output = input, *end = NULL;
 
   while (*current) {
-    int comment_length;
     char *comment = NULL, *result;
+    int comment_length;
 
-    /* Search for the next comment of
-       each type, picking the nearest.  */
+    /* search for the next comment of each type, picking the nearest */
 
-    /* Semicolon comment */
+    /* semicolon comment */
     result = strstr(current, "; @BT");
     if (result) {
       comment = result + 5;
       end = strchr(comment, '\n');
     }
 
-    /* Double slash comment */
+    /* double slash comment */
     result = strstr(current, "// @BT");
     if (result && (!comment || result < comment)) {
       comment = result + 6;
       end = strchr(comment, '\n');
     }
 
-    /* Block comment */
+    /* block comment */
     result = strstr(current, "/* @BT");
     if (result && (!comment || result < comment)) {
       comment = result + 6;
       end = strstr(comment, "*/");
     }
 
-    /* Stop parsing if there is no more comments */
+    /* stop parsing if there is no more comments */
     if (!comment) {
       break;
     }
 
-    /* Extend unclosed comments to the end of the input string.
-       This handles the cases where a semicolon or double slash
+    /* extend unclosed comments to the end of the input string.
+       this handles the cases where a semicolon or double slash
        comment is on the last line, or a unclosed block comment. */
     if (!end) {
       end = input + size;
     }
 
-    /* Overwrite input string with comment contents */
+    /* overwrite input string with comment contents */
     current = comment;
     comment_length = (int)(end - current);
 
@@ -229,10 +227,10 @@ int extract_comments(char *input, size_t size) {
 
 int main(int argc, char *argv[]) {
 
+  int input_size, file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, should_extract_comments = NO, use_address = NO, address = 0, did_we_read_data = NO;
   char tmp[MAX_BYTES_PER_TEST], test_id[MAX_BYTES_PER_TEST], tag_id[MAX_BYTES_PER_TEST];
   char *input_name = NULL, *input, *current = NULL;
   unsigned char bytes[MAX_BYTES_PER_TEST];
-  int input_size, file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, should_extract_comments = NO, use_address = NO, address = 0, did_we_read_data = NO;
   FILE *f;
   
   if (argc < 2 || argc > 3 || argv == NULL) {
@@ -262,7 +260,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  /* Parse flags */
+  /* parse flags */
   for (i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-s") == 0) {
       should_extract_comments = YES;
@@ -294,7 +292,7 @@ int main(int argc, char *argv[]) {
 
   free(input_name);
 
-  /* Extract input from comments in file */
+  /* extract input from comments in file */
   if (should_extract_comments)
     extract_comments(input, input_size);
 

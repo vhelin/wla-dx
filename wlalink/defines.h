@@ -20,8 +20,8 @@
 #define OBJ_MORE_BITS          6
 #define OBJ_EXTR_BITS          7
 #define OBJ_SMS_CHECKSUM_SIZE  8
-#define OBJ_ROMBANKS          12
-#define OBJ_ROMBANKMAP        16
+#define OBJ_ROMBANKS          16
+#define OBJ_ROMBANKMAP        20
 
 #define LIB_FORMAT_INFO       0
 #define LIB_MISC_BITS         4
