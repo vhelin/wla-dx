@@ -22,7 +22,7 @@ extern int g_snes_rom_mode, g_sms_checksum_already_written, g_sms_checksum_size_
 extern int g_romheader_baseaddress;
 
 
-static int _get_sms_tag_address(void) {
+int get_sms_tag_address(void) {
 
   int tag_address = 0x7FF0;
     
@@ -44,7 +44,7 @@ int reserve_checksum_bytes(void) {
   /* reserve checksum bytes so that no free type sections will be placed over them */
   
   if (g_sms_checksum_already_written == 0 && (g_sms_checksum != 0 || g_sms_header != 0)) {
-    int tag_address = _get_sms_tag_address();
+    int tag_address = get_sms_tag_address();
     
     if (g_romsize >= 0x2000) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -79,7 +79,7 @@ int reserve_checksum_bytes(void) {
   }
 
   if (g_smstag_defined != 0 || g_sms_header != 0) {
-    int tag_address = _get_sms_tag_address();
+    int tag_address = get_sms_tag_address();
     
     if (g_romsize >= 0x2000) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -428,7 +428,7 @@ int compute_snes_checksum(void) {
 
 int add_tmr_sega(void) {
 
-  int tag_address = _get_sms_tag_address();
+  int tag_address = get_sms_tag_address();
   
   if (g_romsize < 0x2000) {
     fprintf(stderr, "ADD_TMR_SEGA: A ROM of at least 8KBs is required.\n");
@@ -468,7 +468,7 @@ int compute_sms_checksum(void) {
     return FAILED;
   }
 
-  tag_address = _get_sms_tag_address();
+  tag_address = get_sms_tag_address();
 
   /* NOTE: this is one only if we have nothing written there as we've then reserved the byte (one write). if we had written to that
      previously then it would be > 1 as reserving it would increase the counter by one... */

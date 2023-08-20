@@ -42,8 +42,10 @@ BANKS 4
 	REGIONCODE 6
 	PRODUCTCODE 2, 3, 4
 	RESERVEDSPACE $ff, $ff
-        BASEADDRESS $4000
+        BASEADDRESS $4100
 .ENDSMS
+
+.SDSCTAG 1.0, "DUNGEON MAN", "A wild dungeon exploration game", "Ville Helin"        
 
         ; @BT linked.rom
         

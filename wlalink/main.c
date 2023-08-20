@@ -1220,20 +1220,15 @@ int main(int argc, char *argv[]) {
     return 1;
 
   /* if ROM size < 32KBs, correct SDSC tag sections' addresses */
-  if (g_smstag_defined != 0 && g_romsize < 0x8000) {
+  if (g_smstag_defined != 0) {
+    int tag_address = get_sms_tag_address();
     struct section *s = g_sec_first;
-    int sub = 0x4000; /* assume 16KB ROM size */
 
-    if (g_romsize < 0x4000)
-      sub = 0x6000; /* assume 8KB ROM size */
-    
     while (s != NULL) {
-      if (strcmp(s->name, "!__WLA_SDSCTAG_STRINGS") == 0 ||
-          strcmp(s->name, "!__WLA_SDSCTAG_TIMEDATE") == 0) {
-        /* these sections would originally go to 0x7Fnm, but as we now
-           assume that the ROM is smaller, we'll bring them down */
-        s->address -= sub;
-      }
+      if (strcmp(s->name, "!__WLA_SDSCTAG_STRINGS") == 0)
+        s->address = tag_address - 6;
+      else if (strcmp(s->name, "!__WLA_SDSCTAG_TIMEDATE") == 0)
+        s->address = tag_address - 16;
 
       s = s->next;
     }
