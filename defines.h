@@ -844,6 +844,7 @@ struct repeat_runtime {
   int counter;
   int repeats;
   int start_ifdef;
+  int is_while;
   char index_name[MAX_NAME_LENGTH + 1];
 };
 

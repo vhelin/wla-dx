@@ -70,4 +70,44 @@ BANKS 1
         .endr
         .db "<04"               ; @BT END
 
+
+        .define counter 5
+
+        .db "05>"               ; @BT TEST-05 05 START
+        .while counter > 0
+        .db 1                   ; @BT 01 01 01 01 01
+        .redefine counter = counter - 1
+        .endr        
+        .db "<05"               ; @BT END
+
+
+        .redefine counter 5
+
+        .db "06>"               ; @BT TEST-06 06 START
+        .while counter > 0
+        .if counter <= 2
+        .redefine counter = counter - 1
+        .continue
+        .endif
+        .db 1                   ; @BT 01 01 01
+        .redefine counter = counter - 1
+        .endr        
+        .db "<06"               ; @BT END
+        
+
+        .redefine counter 5
+        .define inside 2
+        .define ALWAYS_1 1
+
+        .db "07>"               ; @BT TEST-07 07 START
+        .while counter > 0 && ALWAYS_1 != 0
+        .redefine inside 2
+        .while inside > 0 && ALWAYS_1 == 1
+        .db 0
+        .redefine inside = inside - 1
+        .endr
+        .db 1                   ; @BT 00 00 01 00 00 01 00 00 01 00 00 01 00 00 01
+        .redefine counter = counter - 1
+        .endr        
+        .db "<07"               ; @BT END
         

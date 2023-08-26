@@ -215,6 +215,7 @@ ALL  ``.UNDEF DEBUG``
 ALL  ``.UNDEFINE DEBUG``
 ALL  ``.UNION name``
 658  ``.WDC``
+ALL  ``.WHILE COUNTER > 0``
 ALL  ``.WORD 16000, 10, 255``
 === ================================================================
 
@@ -680,7 +681,7 @@ This is not a compulsory directive.
 ``.BREAK``
 ---------------
 
-Exits the active ``.REPEAT``.
+Exits the active ``.REPEAT`` or ``.WHILE``.
 
 This is not a compulsory directive.
 
@@ -776,7 +777,7 @@ This is not a compulsory directive.
 ``.CONTINUE``
 -------------
 
-Jumps to the beginning of an active ``.REPEAT``.
+Jumps to the beginning of an active ``.REPEAT`` or ``.WHILE``.
 
 This is not a compulsory directive.
 
@@ -1364,10 +1365,10 @@ one is required to terminate it.
 ``.ENDR``
 ---------
 
-Ends the repetition.
+Ends the ``.REPEAT`` or ``.WHILE``.
 
-This is not a compulsory directive, but when ``.REPEAT`` is used this one is
-required to terminate it.
+This is not a compulsory directive, but when ``.REPEAT`` or ``.WHILE`` is
+used this one is required to terminate it.
 
 
 ``.ENDSNES``
@@ -3845,6 +3846,19 @@ are the same as::
 
 in WLA's own syntax. Beware of the situations where you use '<' and '>' to
 get the low and high bytes!
+
+This is not a compulsory directive.
+
+
+``.WHILE COUNTER > 0``
+----------------------
+
+Repeats the text enclosed between ``.WHILE <CONDITION>`` and ``.ENDR``::
+
+    .WHILE COUNTER > 0
+    .DB COUNTER
+    .REDEFINE COUNTER = COUNTER - 1
+    .ENDR
 
 This is not a compulsory directive.
 

@@ -9010,69 +9010,103 @@ int directive_macro(void) {
 }
 
 
-int directive_rept_repeat(void) {
+static int _find_next_endr(void) {
+
+  int r, m;
+
+  r = 1;
+  m = g_macro_active;
+
+  /* disable macro decoding */
+  g_macro_active = 0;
+
+  while (get_next_token() != FAILED) {
+    if (g_tmp[0] == '.') {
+      if (strcaselesscmp(g_current_directive, "ENDR") == 0) {
+        r--;
+        if (r == 0) {
+          g_macro_active = m;
+          return SUCCEEDED;
+        }
+      }
+      if (strcaselesscmp(g_current_directive, "E") == 0)
+        break;
+      if (strcaselesscmp(g_current_directive, "REPT") == 0 || strcaselesscmp(g_current_directive, "REPEAT") == 0 ||
+          strcaselesscmp(g_current_directive, "WHILE") == 0)
+        r++;
+    }
+  }
+
+  return FAILED;
+}
+
+
+int directive_rept_repeat_while(int is_while) {
   
   char c[16], index_name[MAX_NAME_LENGTH + 1];
-  int q;
+  int q, start;
 
   strcpy(c, g_current_directive);
 
-  q = input_number();
-  if (q == FAILED)
-    return FAILED;
-  if (q != SUCCEEDED) {
-    print_error(ERROR_INP, ".%s needs a count.\n", c);
-    return FAILED;
-  }
-
-  if (g_parsed_int < 0) {
-    print_error(ERROR_DIR, ".%s count value must be positive or zero.\n", c);
-    return FAILED;
-  }
-
-  index_name[0] = 0;
-  if (compare_next_token("INDEX") == SUCCEEDED) {
-    skip_next_token();
-
-    if (input_next_string() != SUCCEEDED)
+  if (is_while == NO) {
+    q = input_number();
+    if (q == FAILED)
       return FAILED;
-
-    if (redefine(g_label, 0.0, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+    if (q != SUCCEEDED) {
+      print_error(ERROR_INP, ".%s needs a count.\n", c);
       return FAILED;
+    }
 
-    strcpy(index_name, g_label);
+    if (g_parsed_int < 0) {
+      print_error(ERROR_DIR, ".%s count value must be positive or zero.\n", c);
+      return FAILED;
+    }
+
+    index_name[0] = 0;
+    if (compare_next_token("INDEX") == SUCCEEDED) {
+      skip_next_token();
+
+      if (input_next_string() != SUCCEEDED)
+        return FAILED;
+
+      if (redefine(g_label, 0.0, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+        return FAILED;
+
+      strcpy(index_name, g_label);
+    }
+
+    start = g_source_index;
   }
-    
+  else {
+    /* while */
+    start = g_source_index;
+
+    g_input_parse_if = YES;
+    q = input_number();
+    g_input_parse_if = NO;
+
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      print_error(ERROR_INP, ".%s needs a condition.\n", c);
+      return FAILED;
+    }
+  }
+
   if (g_parsed_int == 0) {
-    int l, r, m;
+    int l;
 
     l = g_active_file_info_last->line_current;
-    /* find the next compiling point */
-    r = 1;
-    m = g_macro_active;
-    /* disable macro decoding */
-    g_macro_active = 0;
-    while (get_next_token() != FAILED) {
-      if (g_tmp[0] == '.') {
-        if (strcaselesscmp(g_current_directive, "ENDR") == 0)
-          r--;
-        if (strcaselesscmp(g_current_directive, "E") == 0)
-          break;
-        if (strcaselesscmp(g_current_directive, "REPT") == 0 || strcaselesscmp(g_current_directive, "REPEAT") == 0)
-          r++;
-      }
-      if (r == 0) {
-        g_macro_active = m;
-        return SUCCEEDED;
-      }
-    }
+
+    if (_find_next_endr() == SUCCEEDED)
+      return SUCCEEDED;
     
     /* return the condition's line number */
     g_active_file_info_last->line_current = l;
     print_error(ERROR_DIR, ".%s must end to .ENDR.\n", c);
     return FAILED;
   }
-
+  
   if (s_repeat_active == s_repeat_stack_size) {
     struct repeat_runtime *rr;
 
@@ -9085,11 +9119,12 @@ int directive_rept_repeat(void) {
     g_repeat_stack = rr;
   }
 
-  g_repeat_stack[s_repeat_active].start = g_source_index;
+  g_repeat_stack[s_repeat_active].start = start;
   g_repeat_stack[s_repeat_active].counter = g_parsed_int;
   g_repeat_stack[s_repeat_active].repeats = 0;
   g_repeat_stack[s_repeat_active].start_line = g_active_file_info_last->line_current;
   g_repeat_stack[s_repeat_active].start_ifdef = g_ifdef;
+  g_repeat_stack[s_repeat_active].is_while = is_while;
   strcpy(g_repeat_stack[s_repeat_active].index_name, index_name);
 
   s_repeat_active++;
@@ -10650,18 +10685,57 @@ int directive_endr_continue(void) {
 
   rr = &g_repeat_stack[s_repeat_active - 1];
 
-  rr->counter--;
-  if (rr->counter == 0) {
-    s_repeat_active--;
-          
-    /* repeat end */
-    fprintf(g_file_out_ptr, "J ");
+  if (rr->is_while == YES) {
+    int q;
+    
+    /* re-evaluate the condition for .WHILE */
+    g_source_index = rr->start;
+    g_active_file_info_last->line_current = rr->start_line;
+    g_ifdef = rr->start_ifdef;
 
-    if (strlen(rr->index_name) > 0) {
-      if (undefine(rr->index_name) == FAILED)
-        return FAILED;
+    g_input_parse_if = YES;
+    q = input_number();
+    g_input_parse_if = NO;
+
+    if (q == FAILED)
+      return FAILED;
+    if (q != SUCCEEDED) {
+      print_error(ERROR_INP, ".WHILE needs a condition.\n");
+      return FAILED;
     }
-    return SUCCEEDED;
+
+    if (g_parsed_int == 0) {
+      int l;
+
+      s_repeat_active--;
+      l = g_active_file_info_last->line_current;
+
+      /* repeat end */
+      fprintf(g_file_out_ptr, "J ");
+      
+      if (_find_next_endr() == SUCCEEDED)
+        return SUCCEEDED;
+    
+      /* return the condition's line number */
+      g_active_file_info_last->line_current = l;
+      print_error(ERROR_DIR, ".WHILE must end to .ENDR.\n");
+      return FAILED;
+    }
+  }
+  else {
+    rr->counter--;
+    if (rr->counter == 0) {
+      s_repeat_active--;
+          
+      /* repeat end */
+      fprintf(g_file_out_ptr, "J ");
+
+      if (strlen(rr->index_name) > 0) {
+        if (undefine(rr->index_name) == FAILED)
+          return FAILED;
+      }
+      return SUCCEEDED;
+    }
   }
 
   rr->repeats++;
@@ -10669,11 +10743,13 @@ int directive_endr_continue(void) {
     if (redefine(rr->index_name, (double)rr->repeats, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
   }
-    
-  g_source_index = rr->start;
-  g_active_file_info_last->line_current = rr->start_line;
-  g_ifdef = rr->start_ifdef;
 
+  if (rr->is_while == NO) {
+    g_source_index = rr->start;
+    g_active_file_info_last->line_current = rr->start_line;
+    g_ifdef = rr->start_ifdef;
+  }
+  
   return SUCCEEDED;
 }
 
@@ -11814,7 +11890,7 @@ int parse_directive(void) {
 
     /* REPT/REPEAT */
     if (strcmp(directive_upper, "REPT") == 0 || strcmp(directive_upper, "REPEAT") == 0)
-      return directive_rept_repeat();
+      return directive_rept_repeat_while(NO);
 
     /* REDEFINE/REDEF */
     if (strcmp(directive_upper, "REDEFINE") == 0 || strcmp(directive_upper, "REDEF") == 0)
@@ -12160,6 +12236,10 @@ int parse_directive(void) {
     break;
     
   case 'W':
+
+    /* WHILE */
+    if (strcmp(directive_upper, "WHILE") == 0)
+      return directive_rept_repeat_while(YES);
 
     /* WORD? */
     if (strcmp(directive_upper, "WORD") == 0)
