@@ -9048,6 +9048,8 @@ int directive_rept_repeat_while(int is_while) {
 
   strcpy(c, g_current_directive);
 
+  index_name[0] = 0;
+
   if (is_while == NO) {
     q = input_number();
     if (q == FAILED)
@@ -9062,7 +9064,6 @@ int directive_rept_repeat_while(int is_while) {
       return FAILED;
     }
 
-    index_name[0] = 0;
     if (compare_next_token("INDEX") == SUCCEEDED) {
       skip_next_token();
 
