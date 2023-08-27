@@ -28,9 +28,18 @@ start:  nop
         pop af
         ld sp,test1
 startend:
+        .db "00>"               ; @BT TEST-00 00 START
         .define VALUE_1 = 1
-        .db lobyte(startend)-VALUE_1
-
+        .db lobyte(startend)-VALUE_1 ; @BT 05
+        .db lobyte(startend)         ; @BT 06
+        .rept startend - start + startend - start index count
+        .db count                    ; @BT 00 01 02 03 04 05 06 07 08 09 0A 0B
+        .endr
+        .rept lobyte(startend - start + startend - start)/2 index count
+        .db count                    ; @BT 00 01 02 03 04 05
+        .endr
+        .db "<00"                    ; @BT END
+        
 .section "Section1" keep
         .db 0, 1, 2, 3
 test1:
@@ -234,6 +243,7 @@ test13f:.db 1                   ; @BT 01
         .db "15>"               ; @BT TEST-15 15 START
         .define VALUE_100 = 100
         .define VALUE_2 = (test13f@childA - test13f)*2 + (VALUE_100 - VALUE_100) + 2 - 1 - 1
+        .define VALUE_3 = (test13f@childA - test13f)*2 + (VALUE_100 - VALUE_100) + 2 - 1
         .rept (test13f@childA - test13f)*2 + (test13d@child2 - test13d@child1) - (test13b - test13a)*(test13c@childA - test13c)
         .db 3                   ; @BT 03 03
         .endr
@@ -242,6 +252,12 @@ test13f:.db 1                   ; @BT 01
         .endr
         .rept VALUE_2 + (test13f@childA - test13f) - (VALUE_2 - VALUE_2)
         .db 5                   ; @BT 05 05 05
+        .endr
+        .rept lobyte(VALUE_2 + (test13f@childA - test13f) - (VALUE_2 - VALUE_2))
+        .db 5                   ; @BT 05 05 05
+        .endr
+        .rept lobyte(VALUE_3 + lobyte(test13f@childA - test13f) - lobyte(VALUE_2 - VALUE_2))
+        .db 5                   ; @BT 05 05 05 05
         .endr
         .db "<15"               ; @BT END
         
