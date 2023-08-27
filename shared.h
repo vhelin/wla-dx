@@ -103,6 +103,8 @@
 #define TRUE  1
 #define FALSE 0
 
+#define NOT_APPLICABLE 2
+
 #define STACK_ITEM_TYPE_VALUE    0
 #define STACK_ITEM_TYPE_OPERATOR 1
 #define STACK_ITEM_TYPE_LABEL    2

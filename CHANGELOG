@@ -27,6 +27,8 @@ v10.6 (27-Aug-2023) [ALL] Conditions (e.g., "(A > 1 || B < 3)") can now be used
                     [ALL] It's now possible to put multiple instructions on the
                       the same line by separating them with " \ " (whitespace here
                       is important).
+                    [ALL] WLA would crash calculating A-B if A was function(L)
+                      where L is a label.
                     [ALL] WLA assembles now "WLAl" object files.
                     [Z80] Added BASEADDRESS to .SMSHEADER.
                     [Z8N] Added support for Z80N.

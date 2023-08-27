@@ -28,6 +28,8 @@ start:  nop
         pop af
         ld sp,test1
 startend:
+        .define VALUE_1 = 1
+        .db lobyte(startend)-VALUE_1
 
 .section "Section1" keep
         .db 0, 1, 2, 3

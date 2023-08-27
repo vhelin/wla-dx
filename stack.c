@@ -392,6 +392,8 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
     
     if (ta[k].can_calculate_deltas == YES)
       printf("@");
+    else if (ta[k].can_calculate_deltas == NOT_APPLICABLE)
+      printf("*");
     
     if (ta[k].type == STACK_ITEM_TYPE_OPERATOR) {
       int value = (int)ta[k].value;
@@ -1062,6 +1064,7 @@ static int _parse_function_math1_base(char **in, struct stack_item *si, int *q, 
   }
   else if (type == INPUT_NUMBER_ADDRESS_LABEL) {
     si[*q].type = STACK_ITEM_TYPE_LABEL;
+    si[*q].can_calculate_deltas = NOT_APPLICABLE;
     strcpy(si[*q].string, string);
   }
   else if (type == INPUT_NUMBER_STACK) {
@@ -1101,6 +1104,7 @@ static int _parse_function_math2_base(char **in, struct stack_item *si, int *q, 
   }
   else if (type_a == INPUT_NUMBER_ADDRESS_LABEL) {
     si[*q].type = STACK_ITEM_TYPE_LABEL;
+    si[*q].can_calculate_deltas = NOT_APPLICABLE;
     strcpy(si[*q].string, string_a);
   }
   else if (type_a == INPUT_NUMBER_STACK) {
@@ -1117,6 +1121,7 @@ static int _parse_function_math2_base(char **in, struct stack_item *si, int *q, 
   }
   else if (type_b == INPUT_NUMBER_ADDRESS_LABEL) {
     si[*q].type = STACK_ITEM_TYPE_LABEL;
+    si[*q].can_calculate_deltas = NOT_APPLICABLE;
     strcpy(si[*q].string, string_b);
   }
   else if (type_b == INPUT_NUMBER_STACK) {
@@ -1156,6 +1161,7 @@ static int _parse_function_math3_base(char **in, struct stack_item *si, int *q, 
   }
   else if (type_a == INPUT_NUMBER_ADDRESS_LABEL) {
     si[*q].type = STACK_ITEM_TYPE_LABEL;
+    si[*q].can_calculate_deltas = NOT_APPLICABLE;
     strcpy(si[*q].string, string_a);
   }
   else if (type_a == INPUT_NUMBER_STACK) {
@@ -1172,6 +1178,7 @@ static int _parse_function_math3_base(char **in, struct stack_item *si, int *q, 
   }
   else if (type_b == INPUT_NUMBER_ADDRESS_LABEL) {
     si[*q].type = STACK_ITEM_TYPE_LABEL;
+    si[*q].can_calculate_deltas = NOT_APPLICABLE;
     strcpy(si[*q].string, string_b);
   }
   else if (type_b == INPUT_NUMBER_STACK) {
@@ -1188,6 +1195,7 @@ static int _parse_function_math3_base(char **in, struct stack_item *si, int *q, 
   }
   else if (type_c == INPUT_NUMBER_ADDRESS_LABEL) {
     si[*q].type = STACK_ITEM_TYPE_LABEL;
+    si[*q].can_calculate_deltas = NOT_APPLICABLE;
     strcpy(si[*q].string, string_c);
   }
   else if (type_c == INPUT_NUMBER_STACK) {
@@ -2441,8 +2449,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     for (k = 0; k < q; k++) {
       if (si[k].is_in_postfix == YES)
         continue;
-      if (si[k].type == STACK_ITEM_TYPE_LABEL) {
-        if (k+2 < q && si[k+1].type == STACK_ITEM_TYPE_OPERATOR && si[k+1].value == SI_OP_SUB && si[k+2].type == STACK_ITEM_TYPE_LABEL) {
+      if (si[k].type == STACK_ITEM_TYPE_LABEL && si[k].can_calculate_deltas != NOT_APPLICABLE) {
+        if (k+2 < q && si[k+1].type == STACK_ITEM_TYPE_OPERATOR && si[k+1].value == SI_OP_SUB && si[k+2].type == STACK_ITEM_TYPE_LABEL && si[k+2].can_calculate_deltas != NOT_APPLICABLE) {
           /* yes! mark such labels! */
           si[k].can_calculate_deltas = YES;
           si[k+2].can_calculate_deltas = YES;
@@ -2461,9 +2469,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   for (b = 0, k = 0, d = 0; k < q; k++) {
     struct stack_item *out = &ta[d], *in = &si[k];
     int type = si[k].type;
-    
+
     out->can_calculate_deltas = in->can_calculate_deltas;
-    out->is_in_postfix = NO;
+    out->is_in_postfix = YES;
     out->has_been_replaced = in->has_been_replaced;
 
     /* postfix sections are copied 1:1 */
