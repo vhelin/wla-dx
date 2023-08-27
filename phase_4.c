@@ -307,7 +307,7 @@ static void _bits_add_bit(int *bits_byte, int *bits_position, int *bits_to_defin
 
 int phase_4(void) {
 
-  int i, o, z, y, add_old = 0, x, q, inz, ind, bits_position = 0, bits_byte = 0, flip_endianess = NO;
+  int i, o, z, y, add_old = 0, x, q, inz, ind, bits_position = 0, bits_byte = 0, flip_endianess = NO, err;
   char *t, c, tmp_buffer[MAX_NAME_LENGTH + 1];
   struct stack *stack;
   struct definition *tmp_def;
@@ -340,7 +340,9 @@ int phase_4(void) {
       /* SPECIAL CASE ID */
       
     case 'v':
-      fscanf(g_file_out_ptr, "%d ", &s_special_id);       
+      err = fscanf(g_file_out_ptr, "%d ", &s_special_id);       
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
       
     case 'E':
@@ -352,40 +354,56 @@ int phase_4(void) {
       continue;
 
     case 'i':
-      fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
-
+      err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
+      if (err < 2)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       if (process_macro_in(inz, tmp_buffer, s_filename_id, s_line_number) == FAILED)
         return FAILED;
         
       continue;
     case 'I':
-      fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
-
+      err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
+      if (err < 2)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       if (process_macro_out(inz, tmp_buffer, s_filename_id, s_line_number) == FAILED)
         return FAILED;
         
       continue;
 
     case 'g':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
     case 'G':
       continue;
 
     case 'f':
-      fscanf(g_file_out_ptr, "%d ", &s_filename_id);
+      err = fscanf(g_file_out_ptr, "%d ", &s_filename_id);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'k':
-      fscanf(g_file_out_ptr, "%d ", &s_line_number);
+      err = fscanf(g_file_out_ptr, "%d ", &s_line_number);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 't':
-      fscanf(g_file_out_ptr, "%d ", &inz);
+      err = fscanf(g_file_out_ptr, "%d ", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       if (inz == 0)
         g_namespace[0] = 0;
-      else
-        fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
+      else {
+        err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      }
       continue;
         
       /* SECTION */
@@ -393,11 +411,15 @@ int phase_4(void) {
     case 'A':
     case 'S':
       if (c == 'A') {
-        fscanf(g_file_out_ptr, "%d %d ", &x, &ind);
+        err = fscanf(g_file_out_ptr, "%d %d ", &x, &ind);
+        if (err < 2)
+          return print_fscanf_error_accessing_internal_data_stream();
         inz = YES;
       }
       else {
-        fscanf(g_file_out_ptr, "%d ", &x);
+        err = fscanf(g_file_out_ptr, "%d ", &x);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
         inz = NO;
         ind = 0x123456;
       }
@@ -481,8 +503,10 @@ int phase_4(void) {
 
     case 'x':
     case 'o':
-      fscanf(g_file_out_ptr, "%d %d", &ind, &x);
-
+      err = fscanf(g_file_out_ptr, "%d %d", &ind, &x);
+      if (err < 2)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .DSB data", get_file_name(s_filename_id), s_line_number);
 
@@ -513,7 +537,10 @@ int phase_4(void) {
       continue;
 
     case 'X':
-      fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
+      err = fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
+      if (err < 2)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       i = inz & 0xFF;
       inz = (inz >> 8) & 0xFF;
 
@@ -539,7 +566,10 @@ int phase_4(void) {
       continue;
 
     case 'h':
-      fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
+      err = fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
+      if (err < 2)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       x = inz & 0xFF;
       i = (inz >> 8) & 0xFF;
       inz = (inz >> 16) & 0xFF;
@@ -570,7 +600,10 @@ int phase_4(void) {
       continue;
 
     case 'w':
-      fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
+      err = fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
+      if (err < 2)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       x = inz & 0xFF;
       i = (inz >> 8) & 0xFF;
       q = (inz >> 16) & 0xFF;
@@ -608,8 +641,10 @@ int phase_4(void) {
       /* DATA & OPTCODE */
 
     case 'd':
-      fscanf(g_file_out_ptr, "%d", &x);
-
+      err = fscanf(g_file_out_ptr, "%d", &x);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a byte", get_file_name(s_filename_id), s_line_number);
         
@@ -619,7 +654,10 @@ int phase_4(void) {
       continue;
 
     case 'y':
-      fscanf(g_file_out_ptr, "%d", &inz);
+      err = fscanf(g_file_out_ptr, "%d", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       x = inz & 0xFF;
       inz = (inz >> 8) & 0xFF;
 
@@ -642,11 +680,16 @@ int phase_4(void) {
       continue;
 
     case 'b':
-      fscanf(g_file_out_ptr, "%d", &s_base);
+      err = fscanf(g_file_out_ptr, "%d", &s_base);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'z':
-      fscanf(g_file_out_ptr, "%d", &inz);
+      err = fscanf(g_file_out_ptr, "%d", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       x = inz & 0xFF;
       ind = (inz >> 8) & 0xFF;
       inz = (inz >> 16) & 0xFF;
@@ -674,7 +717,10 @@ int phase_4(void) {
       continue;
 
     case 'u':
-      fscanf(g_file_out_ptr, "%d", &inz);
+      err = fscanf(g_file_out_ptr, "%d", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       x = inz & 0xFF;
       q = (inz >> 8) & 0xFF;
       ind = (inz >> 16) & 0xFF;
@@ -713,8 +759,10 @@ int phase_4(void) {
         int bits_to_define;
         char type;
         
-        fscanf(g_file_out_ptr, "%d ", &bits_to_define);
-
+        err = fscanf(g_file_out_ptr, "%d ", &bits_to_define);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      
         if (bits_to_define == 999) {
           /* add the last byte if there is any data in it */
 
@@ -732,13 +780,17 @@ int phase_4(void) {
           continue;
         }
 
-        fscanf(g_file_out_ptr, "%c", &type);
-
+        err = fscanf(g_file_out_ptr, "%c", &type);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      
         if (type == 'a') {
           int data;
           
-          fscanf(g_file_out_ptr, "%d", &data);
-
+          err = fscanf(g_file_out_ptr, "%d", &data);
+          if (err < 1)
+            return print_fscanf_error_accessing_internal_data_stream();
+      
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
           snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .BITS' bits", get_file_name(s_filename_id), s_line_number);
 
@@ -763,8 +815,10 @@ int phase_4(void) {
         else if (type == 'b') {
           struct label_def *label;
           
-          fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
-
+          err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+          if (err < 1)
+            return print_fscanf_error_accessing_internal_data_stream();
+      
           if (g_namespace[0] != 0) {
             if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
               if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
@@ -845,8 +899,10 @@ int phase_4(void) {
           continue;
         }
         else if (type == 'c') {
-          fscanf(g_file_out_ptr, "%d", &inz);
-
+          err = fscanf(g_file_out_ptr, "%d", &inz);
+          if (err < 1)
+            return print_fscanf_error_accessing_internal_data_stream();
+      
           stack = find_stack_calculation(inz, NO);
           if (stack == NULL) {
             fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
@@ -914,8 +970,10 @@ int phase_4(void) {
       /* DATA BLOCK from .INCBIN */
 
     case 'D':
-      fscanf(g_file_out_ptr, "%d %d %d %d", &x, &inz, &z, &y);
-
+      err = fscanf(g_file_out_ptr, "%d %d %d %d", &x, &inz, &z, &y);
+      if (err < 4)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       g_ifd_tmp = g_incbin_file_data_first;
       for (ind = 0; ind != x; ind++)
         g_ifd_tmp = g_ifd_tmp->next;
@@ -949,10 +1007,16 @@ int phase_4(void) {
 
     case 'O':
     case 'B':
-      if (c == 'O')
-        fscanf(g_file_out_ptr, "%d", &s_pc_bank);
+      if (c == 'O') {
+        err = fscanf(g_file_out_ptr, "%d", &s_pc_bank);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      }
       else {
-        fscanf(g_file_out_ptr, "%d %d", &s_rom_bank, &s_slot);
+        err = fscanf(g_file_out_ptr, "%d %d", &s_rom_bank, &s_slot);
+        if (err < 2)
+          return print_fscanf_error_accessing_internal_data_stream();
+
         if (g_banksize_defined == 0)
           g_banksize = g_banks[s_rom_bank];
       }
@@ -972,7 +1036,9 @@ int phase_4(void) {
 
     case 'Y':
       /* skip the symbol */
-      fscanf(g_file_out_ptr, "%*s");
+      err = fscanf(g_file_out_ptr, "%*s");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
       /* LABEL */
@@ -981,8 +1047,10 @@ int phase_4(void) {
         struct label_def *l;
         int m, n = 0, mangled_label = NO;
 
-        fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
-
+        err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+        
         if (is_label_anonymous(g_tmp) == NO) {
           while (n < 10 && g_tmp[n] == '@')
             n++;
@@ -1019,8 +1087,10 @@ int phase_4(void) {
 
     case '-':
     case 'c':
-      fscanf(g_file_out_ptr, "%d", &inz);
-
+      err = fscanf(g_file_out_ptr, "%d", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
@@ -1099,8 +1169,10 @@ int phase_4(void) {
       /* 16BIT COMPUTATION */
 
     case 'C':
-      fscanf(g_file_out_ptr, "%d", &inz);
-
+      err = fscanf(g_file_out_ptr, "%d", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
@@ -1191,8 +1263,10 @@ int phase_4(void) {
       /* 13BIT COMPUTATION */
 
     case 'N':
-      fscanf(g_file_out_ptr, "%d %d", &x, &inz);
-
+      err = fscanf(g_file_out_ptr, "%d %d", &x, &inz);
+      if (err < 2)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
@@ -1269,8 +1343,10 @@ int phase_4(void) {
       /* 24BIT COMPUTATION */
 
     case 'T':
-      fscanf(g_file_out_ptr, "%d", &inz);
-
+      err = fscanf(g_file_out_ptr, "%d", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
@@ -1356,8 +1432,10 @@ int phase_4(void) {
       /* 32BIT COMPUTATION */
 
     case 'U':
-      fscanf(g_file_out_ptr, "%d", &inz);
-
+      err = fscanf(g_file_out_ptr, "%d", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
         fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
@@ -1449,8 +1527,10 @@ int phase_4(void) {
       /* 24BIT REFERENCE */
 
     case 'q':
-      fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
-
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
@@ -1516,8 +1596,10 @@ int phase_4(void) {
       /* 32BIT REFERENCE */
 
     case 'V':
-      fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
-
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
@@ -1589,8 +1671,10 @@ int phase_4(void) {
       /* 16BIT PC RELATIVE REFERENCE */
 
     case 'M':
-      fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
-
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
@@ -1659,8 +1743,10 @@ int phase_4(void) {
       {
         struct label_def *label;
         
-        fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
-
+        err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+        
         if (g_namespace[0] != 0) {
           if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
             if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
@@ -1739,9 +1825,13 @@ int phase_4(void) {
       /* 13BIT REFERENCE */
 
     case 'n':
-      fscanf(g_file_out_ptr, "%d ", &inz);
-      fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
-
+      err = fscanf(g_file_out_ptr, "%d ", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
@@ -1799,8 +1889,10 @@ int phase_4(void) {
       /* 8BIT PC RELATIVE REFERENCE */
 
     case 'R':
-      fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
-
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
@@ -1849,8 +1941,10 @@ int phase_4(void) {
 
     case '*':
     case 'Q':
-      fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
-
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
           if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
@@ -1913,7 +2007,10 @@ int phase_4(void) {
       /* .DSTRUCT stuff */
 
     case 'e':
-      fscanf(g_file_out_ptr, "%d %d ", &x, &y);
+      err = fscanf(g_file_out_ptr, "%d %d ", &x, &y);
+      if (err < 2)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       if (y == -1) {
         /* mark start of .DSTRUCT */
         s_dstruct_start = s_pc_full;

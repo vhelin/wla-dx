@@ -62,6 +62,14 @@ int free_label_context_allocations(void) {
 }
 
 
+int print_fscanf_error_accessing_internal_data_stream(void) {
+
+  fprintf(stderr, "ERROR: Could not read enough elements from the internal data stream. Please submit a bug report!\n");
+
+  return FAILED;
+}
+
+
 static int _add_label(struct label_def *l, struct section_def *s, int line_number, int file_name_id) {
 
   struct label_def *tmp_label;
@@ -131,7 +139,7 @@ static int _add_label(struct label_def *l, struct section_def *s, int line_numbe
         
 int phase_3(void) {
 
-  int bank = 0, slot = 0, address = 0, file_name_id = 0, inz, line_number = 0, o, address_old = 0, base = 0, bits_current = 0, x, y;
+  int bank = 0, slot = 0, address = 0, file_name_id = 0, inz, line_number = 0, o, address_old = 0, base = 0, bits_current = 0, x, y, err;
   char tmp_buffer[MAX_NAME_LENGTH + 1], c;
   struct section_def *s = NULL;
   struct label_def *l;
@@ -171,15 +179,19 @@ int phase_3(void) {
         continue;
 
       case 'i':
-        fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
+        err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
+        if (err < 2)
+          return print_fscanf_error_accessing_internal_data_stream();
 
         if (process_macro_in(inz, tmp_buffer, file_name_id, line_number) == FAILED)
           return FAILED;
         
         continue;
       case 'I':
-        fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
-
+        err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
+        if (err < 2)
+          return print_fscanf_error_accessing_internal_data_stream();
+        
         if (process_macro_out(inz, tmp_buffer, file_name_id, line_number) == FAILED)
           return FAILED;
         
@@ -194,7 +206,10 @@ int phase_3(void) {
 
       case 'x':
       case 'o':
-        fscanf(g_file_out_ptr, "%d %*d ", &inz);
+        err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+
         if (g_section_status == ON) {
           address += inz;
           continue;
@@ -206,7 +221,10 @@ int phase_3(void) {
 
       case 'd':
         if (g_section_status == ON) {
-          fscanf(g_file_out_ptr, "%*s ");
+          err = fscanf(g_file_out_ptr, "%*s ");
+          if (err < 0)
+            return print_fscanf_error_accessing_internal_data_stream();
+
           address++;
           continue;
         }
@@ -217,7 +235,10 @@ int phase_3(void) {
 
       case 'y':
         if (g_section_status == ON) {
-          fscanf(g_file_out_ptr, "%*d ");
+          err = fscanf(g_file_out_ptr, "%*d ");
+          if (err < 0)
+            return print_fscanf_error_accessing_internal_data_stream();
+
           address += 2;
           continue;
         }
@@ -230,7 +251,10 @@ int phase_3(void) {
 
       case '*':
         if (g_section_status == ON) {
-          fscanf(g_file_out_ptr, "%*s ");
+          err = fscanf(g_file_out_ptr, "%*s ");
+          if (err < 0)
+            return print_fscanf_error_accessing_internal_data_stream();
+        
           address++;
           continue;
         }
@@ -241,7 +265,10 @@ int phase_3(void) {
       
       case '-':
         if (g_section_status == ON) {
-          fscanf(g_file_out_ptr, "%*d ");
+          err = fscanf(g_file_out_ptr, "%*d ");
+          if (err < 0)
+            return print_fscanf_error_accessing_internal_data_stream();
+
           address++;
           continue;
         }
@@ -257,8 +284,10 @@ int phase_3(void) {
           int bits_to_add;
           char type;
           
-          fscanf(g_file_out_ptr, "%d ", &bits_to_add);
-
+          err = fscanf(g_file_out_ptr, "%d ", &bits_to_add);
+          if (err < 1)
+            return print_fscanf_error_accessing_internal_data_stream();
+          
           if (bits_to_add == 0) {
             bits_current = 0;
           }
@@ -274,14 +303,25 @@ int phase_3(void) {
               bits_current = 0;
           }
 
-          fscanf(g_file_out_ptr, "%c", &type);
-
-          if (type == 'a')
-            fscanf(g_file_out_ptr, "%*d");
-          else if (type == 'b')
-            fscanf(g_file_out_ptr, "%*s");
-          else if (type == 'c')
-            fscanf(g_file_out_ptr, "%*d");
+          err = fscanf(g_file_out_ptr, "%c", &type);
+          if (err < 1)
+            return print_fscanf_error_accessing_internal_data_stream();
+          
+          if (type == 'a') {
+            err = fscanf(g_file_out_ptr, "%*d");
+            if (err < 0)
+              return print_fscanf_error_accessing_internal_data_stream();
+          }
+          else if (type == 'b') {
+            err = fscanf(g_file_out_ptr, "%*s");
+            if (err < 0)
+              return print_fscanf_error_accessing_internal_data_stream();
+          }
+          else if (type == 'c') {
+            err = fscanf(g_file_out_ptr, "%*d");
+            if (err < 0)
+              return print_fscanf_error_accessing_internal_data_stream();
+          }
           else {
             fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", get_file_name(file_name_id), line_number, type);
             return FAILED;
@@ -294,28 +334,40 @@ int phase_3(void) {
         return FAILED;
         
       case 'v':
-        fscanf(g_file_out_ptr, "%*d ");
+        err = fscanf(g_file_out_ptr, "%*d ");
+        if (err < 0)
+          return print_fscanf_error_accessing_internal_data_stream();
         continue;
         
       case 'b':
-        fscanf(g_file_out_ptr, "%d ", &base);
+        err = fscanf(g_file_out_ptr, "%d ", &base);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
         continue;
 
       case 'f':
-        fscanf(g_file_out_ptr, "%d ", &file_name_id);
+        err = fscanf(g_file_out_ptr, "%d ", &file_name_id);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
         continue;
 
       case 'B':
-        fscanf(g_file_out_ptr, "%d %d ", &bank, &slot);
+        err = fscanf(g_file_out_ptr, "%d %d ", &bank, &slot); 
+        if (err < 2)
+          return print_fscanf_error_accessing_internal_data_stream();
         continue;
 
       case 'k':
-        fscanf(g_file_out_ptr, "%d ", &line_number);
+        err = fscanf(g_file_out_ptr, "%d ", &line_number);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
         continue;
 
       case 'g':
-        fscanf(g_file_out_ptr, "%d ", &x);
-
+        err = fscanf(g_file_out_ptr, "%d ", &x);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+        
         bn = g_block_names;
         while (bn != NULL) {
           if (bn->id == x)
@@ -347,11 +399,17 @@ int phase_3(void) {
         continue;
 
       case 't':
-        fscanf(g_file_out_ptr, "%d ", &inz);
+        err = fscanf(g_file_out_ptr, "%d ", &inz);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+
         if (inz == 0)
           g_namespace[0] = 0;
-        else
-          fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
+        else {
+          err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
+          if (err < 1)
+            return print_fscanf_error_accessing_internal_data_stream();
+        }
         continue;
 
       case 'Z': /* breakpoint */
@@ -362,7 +420,9 @@ int phase_3(void) {
           
           l = calloc(sizeof(struct label_def), 1);
           if (l == NULL) {
-            fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+            err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+            if (err < 1)
+              return print_fscanf_error_accessing_internal_data_stream();
             fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for label \"%s\".\n",
                     get_file_name(file_name_id), line_number, g_tmp);
             return FAILED;
@@ -377,8 +437,11 @@ int phase_3(void) {
 
           if (c == 'Z')
             l->label[0] = 0;
-          else
-            fscanf(g_file_out_ptr, STRING_READ_FORMAT, l->label);
+          else {
+            err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, l->label);
+            if (err < 1)
+              return print_fscanf_error_accessing_internal_data_stream();
+          }
 
           if (c == 'L' && is_label_anonymous(l->label) == NO) {
             /* if the label has '@' at the start, mangle the label name to make it unique */
@@ -447,8 +510,10 @@ int phase_3(void) {
         }
 
       case 'S':
-        fscanf(g_file_out_ptr, "%d ", &inz);
-
+        err = fscanf(g_file_out_ptr, "%d ", &inz);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+        
         address_old = address;
 
         s = g_sections_first;
@@ -528,7 +593,10 @@ int phase_3(void) {
         continue;
 
       case 'O':
-        fscanf(g_file_out_ptr, "%d ", &address);
+        err = fscanf(g_file_out_ptr, "%d ", &address);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+        
         o++;
         continue;
 
@@ -551,35 +619,46 @@ int phase_3(void) {
         continue;
 
       case 'i':
-        fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
-
+        err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
+        if (err < 2)
+          return print_fscanf_error_accessing_internal_data_stream();
+        
         if (process_macro_in(inz, tmp_buffer, file_name_id, line_number) == FAILED)
           return FAILED;
         
         continue;
       case 'I':
-        fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
-
+        err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
+        if (err < 2)
+          return print_fscanf_error_accessing_internal_data_stream();
+        
         if (process_macro_out(inz, tmp_buffer, file_name_id, line_number) == FAILED)
           return FAILED;
         
         continue;
 
       case 'f':
-        fscanf(g_file_out_ptr, "%d ", &file_name_id);
+        err = fscanf(g_file_out_ptr, "%d ", &file_name_id);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
         continue;
 
       case 't':
-        fscanf(g_file_out_ptr, "%d ", &inz);
+        err = fscanf(g_file_out_ptr, "%d ", &inz);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+
         if (inz == 0)
           g_namespace[0] = 0;
         else
-          fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
+          err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
         continue;       
 
       case 'S':
-        fscanf(g_file_out_ptr, "%d ", &inz);
-
+        err = fscanf(g_file_out_ptr, "%d ", &inz);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+        
         address_old = address;
 
         s = g_sections_first;
@@ -616,7 +695,9 @@ int phase_3(void) {
         continue;
 
       case 'k':
-        fscanf(g_file_out_ptr, "%d ", &line_number);
+        err = fscanf(g_file_out_ptr, "%d ", &line_number);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
         continue;
 
       default:
@@ -640,15 +721,19 @@ int phase_3(void) {
       continue;
 
     case 'i':
-      fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
-
+      err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
+      if (err < 2)
+        return print_fscanf_error_accessing_internal_data_stream();
+        
       if (process_macro_in(inz, tmp_buffer, file_name_id, line_number) == FAILED)
         return FAILED;
         
       continue;
     case 'I':
-      fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
-
+      err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
+      if (err < 2)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       if (process_macro_out(inz, tmp_buffer, file_name_id, line_number) == FAILED)
         return FAILED;
         
@@ -663,10 +748,16 @@ int phase_3(void) {
 
     case 'A':
     case 'S':
-      if (c == 'A')
-        fscanf(g_file_out_ptr, "%d %*d", &inz);
-      else
-        fscanf(g_file_out_ptr, "%d ", &inz);
+      if (c == 'A') {
+        err = fscanf(g_file_out_ptr, "%d %*d", &inz);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      }
+      else {
+        err = fscanf(g_file_out_ptr, "%d ", &inz);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      }
 
       address_old = address;
 
@@ -743,60 +834,82 @@ int phase_3(void) {
 
     case 'x':
     case 'o':
-      fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       address += inz;
       continue;
 
     case 'X':
-      fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       address += inz * 2;
       continue;
 
     case 'h':
-      fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       address += inz * 3;
       continue;
 
     case 'w':
-      fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       address += inz * 4;
       continue;
 
     case 'z':
     case 'q':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       address += 3;
       continue;
 
     case 'T':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       address += 3;
       continue;
 
     case 'u':
     case 'V':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       address += 4;
       continue;
 
     case 'U':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       address += 4;
       continue;
 
     case 'v':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
         
     case 'b':
-      fscanf(g_file_out_ptr, "%d ", &base);
+      err = fscanf(g_file_out_ptr, "%d ", &base);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'R':
     case 'Q':
     case 'd':
     case 'c':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       address++;
       continue;
 
@@ -805,25 +918,33 @@ int phase_3(void) {
       
     case 'M':
     case 'r':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       address += 2;
       continue;
 
     case 'y':
     case 'C':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       address += 2;
       continue;
 
 #if defined(SUPERFX)
 
     case '*':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       address++;
       continue;
       
     case '-':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       address++;
       continue;
 
@@ -834,8 +955,10 @@ int phase_3(void) {
         int bits_to_add;
         char type;
           
-        fscanf(g_file_out_ptr, "%d ", &bits_to_add);
-
+        err = fscanf(g_file_out_ptr, "%d ", &bits_to_add);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+        
         if (bits_to_add == 999) {
           bits_current = 0;
 
@@ -853,14 +976,25 @@ int phase_3(void) {
             bits_current = 0;
         }
 
-        fscanf(g_file_out_ptr, "%c", &type);
-
-        if (type == 'a')
-          fscanf(g_file_out_ptr, "%*d");
-        else if (type == 'b')
-          fscanf(g_file_out_ptr, "%*s");
-        else if (type == 'c')
-          fscanf(g_file_out_ptr, "%*d");
+        err = fscanf(g_file_out_ptr, "%c", &type);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+        
+        if (type == 'a') {
+          err = fscanf(g_file_out_ptr, "%*d");
+          if (err < 0)
+            return print_fscanf_error_accessing_internal_data_stream();
+        }
+        else if (type == 'b') {
+          err = fscanf(g_file_out_ptr, "%*s");
+          if (err < 0)
+            return print_fscanf_error_accessing_internal_data_stream();
+        }
+        else if (type == 'c') {
+          err = fscanf(g_file_out_ptr, "%*d");
+          if (err < 0)
+            return print_fscanf_error_accessing_internal_data_stream();
+        }
         else {
           fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", get_file_name(file_name_id), line_number, type);
           return FAILED;
@@ -871,32 +1005,44 @@ int phase_3(void) {
 
 #if defined(SPC700)
     case 'n':
-      fscanf(g_file_out_ptr, "%*d %*s ");
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       address += 2;
       continue;
 
     case 'N':
-      fscanf(g_file_out_ptr, "%*d %*d ");
+      err = fscanf(g_file_out_ptr, "%*d %*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       address += 2;
       continue;
 #endif
 
     case 'D':
-      fscanf(g_file_out_ptr, "%*d %*d %*d %d ", &inz);
+      err = fscanf(g_file_out_ptr, "%*d %*d %*d %d ", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       address += inz;
       continue;
 
     case 'O':
-      fscanf(g_file_out_ptr, "%d ", &address);
+      err = fscanf(g_file_out_ptr, "%d ", &address);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'B':
-      fscanf(g_file_out_ptr, "%d %d ", &bank, &slot);
+      err = fscanf(g_file_out_ptr, "%d %d ", &bank, &slot);
+      if (err < 2)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'g':
-      fscanf(g_file_out_ptr, "%d ", &x);
-
+      err = fscanf(g_file_out_ptr, "%d ", &x);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       bn = g_block_names;
       while (bn != NULL) {
         if (bn->id == x)
@@ -928,11 +1074,17 @@ int phase_3(void) {
       continue;
 
     case 't':
-      fscanf(g_file_out_ptr, "%d ", &inz);
+      err = fscanf(g_file_out_ptr, "%d ", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       if (inz == 0)
         g_namespace[0] = 0;
-      else
-        fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
+      else {
+        err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      }
       continue;
 
     case 'Z': /* breakpoint */
@@ -943,7 +1095,9 @@ int phase_3(void) {
         
         l = calloc(sizeof(struct label_def), 1);
         if (l == NULL) {
-          fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+          err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+          if (err < 1)
+            return print_fscanf_error_accessing_internal_data_stream();
           fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for label \"%s\".\n",
                   get_file_name(file_name_id), line_number, g_tmp);
           return FAILED;
@@ -958,8 +1112,11 @@ int phase_3(void) {
 
         if (c == 'Z')
           l->label[0] = 0;
-        else
-          fscanf(g_file_out_ptr, STRING_READ_FORMAT, l->label);
+        else {
+          err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, l->label);
+          if (err < 1)
+            return print_fscanf_error_accessing_internal_data_stream();
+        }
 
         if (c == 'L' && is_label_anonymous(l->label) == NO) {
           /* if the label has '@' at the start, mangle the label name to make it unique */
@@ -1038,7 +1195,10 @@ int phase_3(void) {
       }
 
     case 'f':
-      fscanf(g_file_out_ptr, "%d ", &file_name_id);
+      err = fscanf(g_file_out_ptr, "%d ", &file_name_id);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       if (s != NULL)
         s->listfile_items++;
       else
@@ -1046,7 +1206,10 @@ int phase_3(void) {
       continue;
 
     case 'k':
-      fscanf(g_file_out_ptr, "%d ", &line_number);
+      err = fscanf(g_file_out_ptr, "%d ", &line_number);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       if (s != NULL)
         s->listfile_items++;
       else
@@ -1054,7 +1217,10 @@ int phase_3(void) {
       continue;
 
     case 'e':
-      fscanf(g_file_out_ptr, "%d %d ", &x, &y);
+      err = fscanf(g_file_out_ptr, "%d %d ", &x, &y);
+      if (err < 2)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       if (y == -1) { /* mark start of .DSTRUCT */
         s_dstruct_start = address;
         s_dstruct_item_offset = -1;

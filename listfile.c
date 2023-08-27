@@ -8,6 +8,7 @@
 
 #include "include.h"
 #include "listfile.h"
+#include "phase_3.h"
 
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -24,7 +25,7 @@ int listfile_collect(void) {
 
   int add = 0, skip = 0, file_name_id = 0, inz, line_number = 0, command = 0, global_command = 0, inside_macro = 0, inside_repeat = 0;
   int x, y, dstruct_start = -1, bits_current = 0, base = 0, bank = 0, origin = 0, origin_old = 0, slot = 0, running_id = 0;
-  int real_line_number = 0;
+  int real_line_number = 0, err;
   struct section_def *section = NULL;
   char c;
 
@@ -52,13 +53,19 @@ int listfile_collect(void) {
       continue;
 
     case 'i':
-      fscanf(g_file_out_ptr, "%*d %*s ");
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       inside_macro++;
       /* HACK! */
       line_number--;
       continue;
     case 'I':
-      fscanf(g_file_out_ptr, "%*d %*s ");
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       inside_macro--;
       continue;
 
@@ -69,17 +76,25 @@ int listfile_collect(void) {
       continue;
 
     case 'g':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
     case 'G':
       continue;
 
     case 'A':
     case 'S':
-      if (c == 'A')
-        fscanf(g_file_out_ptr, "%d %*d", &inz);
-      else
-        fscanf(g_file_out_ptr, "%d ", &inz);
+      if (c == 'A') {
+        err = fscanf(g_file_out_ptr, "%d %*d", &inz);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      }
+      else {
+        err = fscanf(g_file_out_ptr, "%d ", &inz);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      }
 
       origin_old = origin;
       
@@ -116,81 +131,118 @@ int listfile_collect(void) {
 
     case 'x':
     case 'o':
-      fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       add += inz;
       origin += inz;
       continue;
 
     case 'X':
-      fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       add += inz * 2;
       origin += inz * 2;
       continue;
 
     case 'h':
-      fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       add += inz * 3;
       origin += inz * 3;
       continue;
 
     case 'w':
-      fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       add += inz * 4;
       origin += inz * 4;
       continue;
 
     case 'z':
     case 'q':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       add += 3;
       origin += 3;
       continue;
 
     case 'T':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       add += 3;
       origin += 3;
       continue;
 
     case 'u':
     case 'V':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       add += 4;
       origin += 4;
       continue;
 
     case 'U':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       add += 4;
       origin += 4;
       continue;
 
     case 'b':
-      fscanf(g_file_out_ptr, "%d ", &base);
+      err = fscanf(g_file_out_ptr, "%d ", &base);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'v':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'R':
     case 'Q':
     case 'd':
     case 'c':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       add++;
       origin++;
       continue;
 
 #if defined(SUPERFX)
     case '*':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       add++;
       origin++;
       continue;
 
     case '-':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       add++;
       origin++;
       continue;
@@ -203,14 +255,20 @@ int listfile_collect(void) {
     case 'M':
 #endif
     case 'r':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       add += 2;
       origin += 2;
       continue;
 
     case 'y':
     case 'C':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       add += 2;
       origin += 2;
       continue;
@@ -220,8 +278,10 @@ int listfile_collect(void) {
         int bits_to_add;
         char type;
           
-        fscanf(g_file_out_ptr, "%d ", &bits_to_add);
-
+        err = fscanf(g_file_out_ptr, "%d ", &bits_to_add);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      
         if (bits_to_add == 999) {
           bits_current = 0;
 
@@ -242,14 +302,25 @@ int listfile_collect(void) {
             bits_current = 0;
         }
 
-        fscanf(g_file_out_ptr, "%c", &type);
-
-        if (type == 'a')
-          fscanf(g_file_out_ptr, "%*d");
-        else if (type == 'b')
-          fscanf(g_file_out_ptr, "%*s");
-        else if (type == 'c')
-          fscanf(g_file_out_ptr, "%*d");
+        err = fscanf(g_file_out_ptr, "%c", &type);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      
+        if (type == 'a') {
+          err = fscanf(g_file_out_ptr, "%*d");
+          if (err < 0)
+            return print_fscanf_error_accessing_internal_data_stream();
+        }
+        else if (type == 'b') {
+          err = fscanf(g_file_out_ptr, "%*s");
+          if (err < 0)
+            return print_fscanf_error_accessing_internal_data_stream();
+        }
+        else if (type == 'c') {
+          err = fscanf(g_file_out_ptr, "%*d");
+          if (err < 0)
+            return print_fscanf_error_accessing_internal_data_stream();
+        }
         else {
           fprintf(stderr, "%s: LISTFILE_COLLECT: Unknown internal .BITS data type \"%c\". Please submit a bug report!\n", get_file_name(file_name_id), type);
           return FAILED;
@@ -260,47 +331,66 @@ int listfile_collect(void) {
       
 #if defined(SPC700)
     case 'n':
-      fscanf(g_file_out_ptr, "%*d %*s ");
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       add += 2;
       origin += 2;
       continue;
 
     case 'N':
-      fscanf(g_file_out_ptr, "%*d %*d ");
+      err = fscanf(g_file_out_ptr, "%*d %*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       add += 2;
       origin += 2;
       continue;
 #endif
 
     case 'D':
-      fscanf(g_file_out_ptr, "%*d %*d %*d %d ", &inz);
+      err = fscanf(g_file_out_ptr, "%*d %*d %*d %d ", &inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       add += inz;
       origin += inz;
       continue;
 
     case 'O':
-      fscanf(g_file_out_ptr, "%d ", &origin);
+      err = fscanf(g_file_out_ptr, "%d ", &origin);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'B':
-      fscanf(g_file_out_ptr, "%d %d ", &bank, &slot);
+      err = fscanf(g_file_out_ptr, "%d %d ", &bank, &slot);
+      if (err < 2)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'Z':
       continue;
 
     case 't':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
       
     case 'Y':
     case 'L':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'f':
-      fscanf(g_file_out_ptr, "%d ", &file_name_id);
-
+      err = fscanf(g_file_out_ptr, "%d ", &file_name_id);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       if (section != NULL) {
         /* terminate the previous line */
         section->listfile_ints[command*5 + 1] = add;
@@ -329,10 +419,15 @@ int listfile_collect(void) {
 
     case 'k':
       /* all listfile data produced by .MACROs are put where they are called from */
-      if (inside_macro > 0 || inside_repeat > 0)
-        fscanf(g_file_out_ptr, "%d ", &real_line_number);
+      if (inside_macro > 0 || inside_repeat > 0) {
+        err = fscanf(g_file_out_ptr, "%d ", &real_line_number);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      }
       else {
-        fscanf(g_file_out_ptr, "%d ", &line_number);
+        err = fscanf(g_file_out_ptr, "%d ", &line_number);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
         real_line_number = line_number;
       }
       
@@ -374,7 +469,10 @@ int listfile_collect(void) {
       continue;
 
     case 'e':
-      fscanf(g_file_out_ptr, "%d %d ", &x, &y);
+      err = fscanf(g_file_out_ptr, "%d %d ", &x, &y);
+      if (err < 2)
+        return print_fscanf_error_accessing_internal_data_stream();
+      
       if (y == -1) /* Mark start of .DSTRUCT */
         dstruct_start = add;
       else

@@ -4150,6 +4150,7 @@ int data_stream_parser_free(void) {
 
 int data_stream_parser_parse(void) {
 
+  int err;
   char c;
   
   if (g_file_out_ptr == NULL) {
@@ -4187,10 +4188,14 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 'i':
-      fscanf(g_file_out_ptr, "%*d %*s ");
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
     case 'I':
-      fscanf(g_file_out_ptr, "%*d %*s ");
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'P':
@@ -4202,10 +4207,16 @@ int data_stream_parser_parse(void) {
 
     case 'A':
     case 'S':
-      if (c == 'A')
-        fscanf(g_file_out_ptr, "%d %*d", &s_dsp_section_id);
-      else
-        fscanf(g_file_out_ptr, "%d ", &s_dsp_section_id);
+      if (c == 'A') {
+        err = fscanf(g_file_out_ptr, "%d %*d", &s_dsp_section_id);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      }
+      else {
+        err = fscanf(g_file_out_ptr, "%d ", &s_dsp_section_id);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      }
 
       s_dsp_add_old = s_dsp_add;
 
@@ -4247,83 +4258,113 @@ int data_stream_parser_parse(void) {
 
     case 'x':
     case 'o':
-      fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
+      err = fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add += s_dsp_inz;
       continue;
 
     case 'X':
-      fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
+      err = fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add += s_dsp_inz * 2;
       continue;
 
     case 'h':
-      fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
+      err = fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add += s_dsp_inz * 3;
       continue;
 
     case 'w':
-      fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
+      err = fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add += s_dsp_inz * 4;
       continue;
 
     case 'z':
     case 'q':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add += 3;
       continue;
 
     case 'T':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add += 3;
       continue;
 
     case 'u':
     case 'V':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add += 4;
       continue;
 
     case 'U':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add += 4;
       continue;
 
     case 'v':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
         
     case 'b':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'R':
     case 'Q':
     case 'd':
     case 'c':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add++;
       continue;
 
     case 'M':
     case 'r':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add += 2;
       continue;
 
     case 'y':
     case 'C':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add += 2;
       continue;
 
 #if defined(SUPERFX)
     case '*':
-      fscanf(g_file_out_ptr, "%*s ");
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add++;
       continue;
       
     case '-':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add++;
       continue;
 #endif
@@ -4333,8 +4374,10 @@ int data_stream_parser_parse(void) {
         int bits_to_add;
         char type;
           
-        fscanf(g_file_out_ptr, "%d ", &bits_to_add);
-
+        err = fscanf(g_file_out_ptr, "%d ", &bits_to_add);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      
         if (bits_to_add == 999) {
           s_dsp_bits_current = 0;
 
@@ -4352,56 +4395,85 @@ int data_stream_parser_parse(void) {
             s_dsp_bits_current = 0;
         }
 
-        fscanf(g_file_out_ptr, "%c", &type);
-
-        if (type == 'a')
-          fscanf(g_file_out_ptr, "%*d");
-        else if (type == 'b')
-          fscanf(g_file_out_ptr, "%*s");
-        else if (type == 'c')
-          fscanf(g_file_out_ptr, "%*d");
+        err = fscanf(g_file_out_ptr, "%c", &type);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+        
+        if (type == 'a') {
+          err = fscanf(g_file_out_ptr, "%*d");
+          if (err < 0)
+            return print_fscanf_error_accessing_internal_data_stream();
+        }
+        else if (type == 'b') {
+          err = fscanf(g_file_out_ptr, "%*s");
+          if (err < 0)
+            return print_fscanf_error_accessing_internal_data_stream();
+        }
+        else if (type == 'c') {
+          err = fscanf(g_file_out_ptr, "%*d");
+          if (err < 0)
+            return print_fscanf_error_accessing_internal_data_stream();
+        }
 
         continue;
       }
 
 #if defined(SPC700)
     case 'n':
-      fscanf(g_file_out_ptr, "%*d %*s ");
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add += 2;
       continue;
 
     case 'N':
-      fscanf(g_file_out_ptr, "%*d %*d ");
+      err = fscanf(g_file_out_ptr, "%*d %*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add += 2;
       continue;
 #endif
 
     case 'D':
-      fscanf(g_file_out_ptr, "%*d %*d %*d %d ", &s_dsp_inz);
+      err = fscanf(g_file_out_ptr, "%*d %*d %*d %d ", &s_dsp_inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       s_dsp_add += s_dsp_inz;
       continue;
 
     case 'O':
-      fscanf(g_file_out_ptr, "%d ", &s_dsp_add);
+      err = fscanf(g_file_out_ptr, "%d ", &s_dsp_add);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'B':
-      fscanf(g_file_out_ptr, "%*d %*d ");
+      err = fscanf(g_file_out_ptr, "%*d %*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'g':
-      fscanf(g_file_out_ptr, "%*d ");
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'G':
       continue;
 
     case 't':
-      fscanf(g_file_out_ptr, "%d ", &s_dsp_inz);
+      err = fscanf(g_file_out_ptr, "%d ", &s_dsp_inz);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
+
       if (s_dsp_inz == 0)
         g_namespace[0] = 0;
-      else
-        fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
+      else {
+        err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+      }
       continue;
 
     case 'Z': /* breakpoint */
@@ -4409,8 +4481,11 @@ int data_stream_parser_parse(void) {
     case 'L': /* label */
       if (c == 'Z') {
       }
-      else if (c == 'Y')
-        fscanf(g_file_out_ptr, "%*s ");
+      else if (c == 'Y') {
+        err = fscanf(g_file_out_ptr, "%*s ");
+        if (err < 0)
+          return print_fscanf_error_accessing_internal_data_stream();
+      }
       else {
         struct data_stream_item *dSI;
         int mangled_label = NO;
@@ -4421,8 +4496,10 @@ int data_stream_parser_parse(void) {
           return FAILED;
         }
 
-        fscanf(g_file_out_ptr, "%s ", dSI->label);
-
+        err = fscanf(g_file_out_ptr, "%s ", dSI->label);
+        if (err < 1)
+          return print_fscanf_error_accessing_internal_data_stream();
+        
         if (is_label_anonymous(dSI->label) == YES) {
           /* we skip anonymous labels here, too much trouble */
           free(dSI);
@@ -4483,18 +4560,25 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 'f':
-      fscanf(g_file_out_ptr, "%d ", &s_dsp_file_name_id);
+      err = fscanf(g_file_out_ptr, "%d ", &s_dsp_file_name_id);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'k':
-      fscanf(g_file_out_ptr, "%d ", &s_dsp_line_number);
+      err = fscanf(g_file_out_ptr, "%d ", &s_dsp_line_number);
+      if (err < 1)
+        return print_fscanf_error_accessing_internal_data_stream();
       continue;
 
     case 'e':
       {
         int x, y;
         
-        fscanf(g_file_out_ptr, "%d %d ", &x, &y);
+        err = fscanf(g_file_out_ptr, "%d %d ", &x, &y);
+        if (err < 2)
+          return print_fscanf_error_accessing_internal_data_stream();
+
         if (y == -1) {
           /* mark start of .DSTRUCT */
           s_dstruct_start = s_dsp_add;

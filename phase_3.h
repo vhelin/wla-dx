@@ -11,5 +11,6 @@ int process_macro_in(int id, char *name, int file_name_id, int line_number);
 int process_macro_out(int id, char *name, int file_name_id, int line_number);
 int free_label_context_allocations(void);
 int add_context_to_anonymous_label(char *label, int label_size, struct label_context *label_context, int file_name_id, int line_number);
+int print_fscanf_error_accessing_internal_data_stream(void);
 
 #endif
