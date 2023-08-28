@@ -10347,7 +10347,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
 }
 
 
-int directive_stringmap_table(void) {
+int directive_stringmaptable(void) {
 
   int parse_result, line_number = 0;
   FILE* table_file;
@@ -10391,21 +10391,21 @@ int directive_stringmap_table(void) {
 
   /* apply any include dir and convert the path to local enviroment */
   create_full_name(g_include_dir, g_label);
-  localize_path(g_label);
+  localize_path(g_full_name);
 
-  map->filename = _string_duplicate(g_label);
+  map->filename = _string_duplicate(g_full_name);
   if (map->filename == NULL) {
     print_error(ERROR_ERR, "STRINGMAPTABLE: Out of memory error.\n");
     return FAILED;
   }
 
-  table_file = fopen(g_label, "r");
+  table_file = fopen(map->filename, "r");
   if (table_file == NULL) {
     if (g_makefile_rules == YES) {
       /* if in makefile mode, this is not an error, we just make an empty map */
       return SUCCEEDED;
     }
-    print_error(ERROR_DIR, "Error opening file \"%s\".\n", g_label);
+    print_error(ERROR_DIR, "Error opening file \"%s\".\n", map->filename);
     return FAILED;
   }
 
@@ -10441,7 +10441,7 @@ int directive_stringmap_table(void) {
     /* left of = should be a string of hex digits, for a variable whole number of bytes */
     char_count = (int)(equals_pos - p);
     if (char_count == 0) {
-      print_error(ERROR_DIR, "STRINGMAPTABLE: No text before '=' at line %d of file \"%s\".\n", line_number, g_label);
+      print_error(ERROR_DIR, "STRINGMAPTABLE: No text before '=' at line %d of file \"%s\".\n", line_number, map->filename);
       return FAILED;
     }
     entry->bytes_length = char_count / 2 + char_count % 2;
@@ -10461,7 +10461,7 @@ int directive_stringmap_table(void) {
       else if (c >= 'A' && c <= 'F')
         accumulator |= c - 'A' + 10;
       else {
-        print_error(ERROR_DIR, "STRINGMAPTABLE: Invalid hex character '%c' at line %d of file \"%s\".\n", c, line_number, g_label);
+        print_error(ERROR_DIR, "STRINGMAPTABLE: Invalid hex character '%c' at line %d of file \"%s\".\n", c, line_number, map->filename);
         return FAILED;
       }
       /* emit to buffer or shift depending on position */
@@ -10479,7 +10479,7 @@ int directive_stringmap_table(void) {
     p[strcspn(p, "\r\n")] = 0;
     entry->text_length = (int)strlen(++p);
     if (entry->text_length == 0) {
-      print_error(ERROR_DIR, "STRINGMAPTABLE: no text after '=' at line %d of file \"%s\".\n", line_number, g_label);
+      print_error(ERROR_DIR, "STRINGMAPTABLE: no text after '=' at line %d of file \"%s\".\n", line_number, map->filename);
       return FAILED;
     }
     p = equals_pos + 1;
@@ -12086,7 +12086,7 @@ int parse_directive(void) {
     
     /* STRINGMAPTABLE */
     if (strcmp(directive_upper, "STRINGMAPTABLE") == 0)
-      return directive_stringmap_table();
+      return directive_stringmaptable();
     
     /* STRINGMAP */
     if (strcmp(directive_upper, "STRINGMAP") == 0)

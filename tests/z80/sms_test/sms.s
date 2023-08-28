@@ -304,3 +304,7 @@ data2b:	.incbin "data.txt" skip 1 filter macroOne
 
         .stringmaptable foo "table-UTF8.tbl"
         .stringmap foo "あいうえおかきくけこがぎぐげごさ[EOS]"
+
+        .db "08>"               ; @BT TEST-08 08 START
+        .stringmap foo "あいうえお[EOS]" ; @BT 00 01 02 03 04 FE
+        .db "<08"               ; @BT END

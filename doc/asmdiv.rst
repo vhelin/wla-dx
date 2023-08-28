@@ -2075,7 +2075,7 @@ This is not a compulsory directive.
 ------------------------------------------
 
 Changes the current include root directory. Use this to specify main
-directory for the following ``.INCLUDE`` and ``.INCBIN`` directives.
+directory for the following ``.INCLUDE``, ``.INCBIN`` and ``.STRINGMAPTABLE`` directives.
 If you want to change to the current working directory (WLA also defaults
 to this), use::
 
@@ -3555,8 +3555,13 @@ This is not a compulsory directive.
 ``.STRINGMAP script "Hello\n"``
 -------------------------------
 
-``.ASC`` is an alias for ``.DB``, but if you use ``.ASC`` it will remap
-the characters using the mapping given via ``.ASCIITABLE``.
+After you've given the ``.STRINGMAPTABLE``, use ``.STRINGMAP`` to define bytes 
+using the mapping in ``.STRINGMAPTABLE``. For example::
+
+    .STRINGMAP script, "いうえA\n"
+
+``.STRINGMAP`` with ``.STRINGMAPTABLE`` is an alternative way of defining bytes
+to ``.ASC`` and ``.ASCIITABLE``.
 
 This is not a compulsory directive.
 
