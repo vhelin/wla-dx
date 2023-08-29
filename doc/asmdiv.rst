@@ -3560,8 +3560,9 @@ using the mapping in ``.STRINGMAPTABLE``. For example::
 
     .STRINGMAP script, "いうえA\n"
 
-``.STRINGMAP`` with ``.STRINGMAPTABLE`` is an alternative way of defining bytes
-to ``.ASC`` and ``.ASCIITABLE``.
+``.STRINGMAP`` with ``.STRINGMAPTABLE`` is an alternative way of mapping characters
+to ``.ASC`` and ``.ASCIITABLE``. Also note that here the result and the source of
+the mapping can be more than just one byte.
 
 This is not a compulsory directive.
 
