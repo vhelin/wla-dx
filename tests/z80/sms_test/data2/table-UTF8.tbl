@@ -15,6 +15,7 @@ deadBEEF=か
 
 # Line break
 ff=[LF]
+ff=\n
 # Line break with 8px margin
 fd=[LF+]
 # End of text

@@ -10350,7 +10350,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
 int directive_stringmaptable(void) {
 
   int parse_result, line_number = 0;
-  FILE* table_file;
+  FILE *table_file;
   char line_buffer[256];
   struct stringmaptable *map;
 
@@ -10410,11 +10410,10 @@ int directive_stringmaptable(void) {
   }
 
   while (fgets(line_buffer, 256, table_file)) {
-    char* p = line_buffer, *equals_pos;
+    char *p = line_buffer, *equals_pos;
     struct stringmap_entry* entry;
-    int char_count;
-    unsigned char* bytes_writer;
-    int accumulator = 0;
+    unsigned char *bytes_writer;
+    int accumulator = 0, char_count;
 
     line_number++;
 
@@ -10451,9 +10450,11 @@ int directive_stringmaptable(void) {
       return FAILED;
     }
     bytes_writer = entry->bytes;
+
     for (; p != equals_pos; ++p) {
       /* parse character as hex */
       const char c = *p;
+      
       if (c >= '0' && c <= '9')
         accumulator |= c - '0';
       else if (c >= 'a' && c <= 'f')
@@ -10464,6 +10465,7 @@ int directive_stringmaptable(void) {
         print_error(ERROR_DIR, "STRINGMAPTABLE: Invalid hex character '%c' at line %d of file \"%s\".\n", c, line_number, map->filename);
         return FAILED;
       }
+
       /* emit to buffer or shift depending on position */
       if ((equals_pos - p) % 2 == 0) {
         /* even count -> shift */
@@ -10475,8 +10477,13 @@ int directive_stringmaptable(void) {
         accumulator = 0;
       }
     }
+
     /* then the string. we want to remove any trailing CRLF. */
     p[strcspn(p, "\r\n")] = 0;
+
+    /* process special characters like "\n" */
+    process_string_for_special_characters(equals_pos + 1, NULL);
+
     entry->text_length = (int)strlen(++p);
     if (entry->text_length == 0) {
       print_error(ERROR_DIR, "STRINGMAPTABLE: no text after '=' at line %d of file \"%s\".\n", line_number, map->filename);
@@ -10521,14 +10528,14 @@ int directive_stringmap(void) {
     }
   }
   if (table == NULL) {
-    print_error(ERROR_DIR, "STRINGMAP: could not find table called \"%s\".\n", g_label);
+    print_error(ERROR_DIR, "STRINGMAP: Could not find table called \"%s\".\n", g_label);
     return FAILED;    
   }
 
   /* parse the string */
   parse_result = input_number();
   if (parse_result != INPUT_NUMBER_STRING) {
-    print_error(ERROR_DIR, "STRINGMAP: no string given");
+    print_error(ERROR_DIR, "STRINGMAP: No string given.\n");
     return FAILED;    
   }
 
@@ -10555,7 +10562,7 @@ int directive_stringmap(void) {
         /* in makefile mode, it's ignored */
         return SUCCEEDED;
       }
-      print_error(ERROR_DIR, "STRINGMAP: could not find a match in the table at substring \"%s\".\n", p);
+      print_error(ERROR_DIR, "STRINGMAP: Could not find a match in the table at substring \"%s\".\n", p);
       return FAILED;    
     }
     /* else emit */

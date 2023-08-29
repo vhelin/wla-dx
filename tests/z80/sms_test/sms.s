@@ -306,5 +306,5 @@ data2b:	.incbin "data.txt" skip 1 filter macroOne
         .stringmap foo "あいうえおかきくけこがぎぐげごさ[EOS]"
 
         .db "08>"               ; @BT TEST-08 08 START
-        .stringmap foo "あいうえお[EOS]" ; @BT 00 01 02 03 04 FE
+        .stringmap foo "あいうえお[EOS]\n" ; @BT 00 01 02 03 04 FE FF
         .db "<08"               ; @BT END
