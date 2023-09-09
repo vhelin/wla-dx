@@ -260,4 +260,11 @@ test13f:.db 1                   ; @BT 01
         .db 5                   ; @BT 05 05 05 05
         .endr
         .db "<15"               ; @BT END
+
+        .db "16>"               ; @BT TEST-16 16 START
+        .db :startend + 1       ; @BT 01
+        .db "<16"               ; @BT END
+
+        .assert startend == $0006
+        .assert startend - 1 == $0005
         

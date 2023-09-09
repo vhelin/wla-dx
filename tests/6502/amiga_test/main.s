@@ -19,14 +19,13 @@
 
         ; @BT linked.rom
 
-        .db "01>"                                     ; @BT TEST-01 01 START
+        .db "01>"               ; @BT TEST-01 01 START
 label_01:
         .db <$1234              ; @BT 34
         .db >$5678              ; @BT 56
         .db :label_01           ; @BT 01
         .db bank(label_01)      ; @BT 01
-
-        .db "<01"                                     ; @BT END
+        .db "<01"               ; @BT END
 
         .db "02>"                                     ; @BT TEST-02 02 START
         .dw loword($12345678)                         ; @BT 78 56

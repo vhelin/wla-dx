@@ -133,7 +133,7 @@ struct namespace *g_namespaces_first = NULL;
 extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name;
 extern int g_source_file_size, g_input_number_error_msg, g_verbose_level, g_output_format, g_open_files, g_input_parse_if;
 extern int g_last_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations, g_input_parse_special_chars;
-extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type;
+extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type, g_dsp_enable_label_address_conversion;
 extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
 extern int g_create_sizeof_definitions, g_input_allow_leading_hashtag, g_input_has_leading_hashtag, g_input_allow_leading_ampersand;
 extern int g_plus_and_minus_ends_label, g_get_next_token_use_substitution, g_input_number_turn_values_into_strings;
@@ -869,6 +869,10 @@ int phase_1(void) {
 
     q = evaluate_token();
 
+    /* we can again try to turn labels into address values, this was turned off in evaluate_token()
+       when trying to parse instructions */
+    g_dsp_enable_label_address_conversion = YES;
+    
 #if defined(SPC700)
     /* instruction parser might set this to YES, inside evaluate_token() */
     g_input_number_expects_dot = NO;
@@ -7865,8 +7869,10 @@ int directive_define_def_equ(void) {
     skip_next_token();
 
   g_input_float_mode = ON;
+  g_dsp_enable_label_address_conversion = NO;
   q = get_new_definition_data(&j, k, &size, &dou, &export);
   g_input_float_mode = OFF;
+  g_dsp_enable_label_address_conversion = YES;
   if (q == FAILED)
     return FAILED;
 
@@ -8164,8 +8170,10 @@ int directive_redefine_redef(void) {
     skip_next_token();
 
   g_input_float_mode = ON;
+  g_dsp_enable_label_address_conversion = NO;
   q = get_new_definition_data(&j, k, &size, &dou, &export);
   g_input_float_mode = OFF;
+  g_dsp_enable_label_address_conversion = YES;
   if (q == FAILED)
     return FAILED;
 

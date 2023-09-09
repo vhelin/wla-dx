@@ -65,7 +65,7 @@ extern char *g_label_stack[256], *g_tmp, *g_global_listfile_cmds;
 extern char *g_include_in_tmp, *g_tmp_a;
 extern char *g_rom_banks, *g_rom_banks_usage_table;
 extern char *g_include_dir, *g_buffer, *g_full_name;
-extern int g_include_in_tmp_size, g_tmp_a_size, *g_banks, *g_bankaddress;
+extern int g_include_in_tmp_size, g_tmp_a_size, *g_banks, *g_bankaddress, g_dsp_enable_label_address_conversion;
 extern int g_saved_structures_count, g_sizeof_g_tmp, g_global_listfile_items, *g_global_listfile_ints;
 
 int g_output_format = OUTPUT_NONE, g_verbose_level = 0, g_test_mode = OFF;
@@ -75,7 +75,7 @@ int g_listfile_data = NO, g_quiet = NO, g_use_incdir = NO, g_little_endian = YES
 int g_create_sizeof_definitions = YES, g_global_label_hint = HINT_NONE, g_keep_empty_sections = NO;
 int g_can_calculate_a_minus_b = YES, g_is_file_isolated_counter = 0;
 int g_continue_parsing_after_an_error = NO, g_continued_parsing_after_an_error = NO;
-int g_allow_labels_without_colon = YES;
+int g_allow_labels_without_colon = YES, g_is_data_stream_parser_enabled = YES;
 
 char *g_final_name = NULL, *g_asm_name = NULL;
 
@@ -1052,6 +1052,11 @@ int main(int argc, char *argv[]) {
     return 1;
   PROFILE_END("phase_1");
 
+  /* disable data stream parser so it doesn't interfere with phase 2+ - everything the data stream parser
+     can help us with should be done at this point */
+  g_is_data_stream_parser_enabled = NO;
+  g_dsp_enable_label_address_conversion = NO;
+  
   PROFILE_START();
     if (phase_2() == FAILED)
     return 1;
