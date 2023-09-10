@@ -40,7 +40,7 @@ extern struct function *g_functions_first;
 extern struct map_t *g_namespace_map;
 extern struct namespace *g_namespaces_first;
 extern int g_latest_stack, g_asciitable_defined, g_global_label_hint, g_parsing_function_body, g_resolve_stack_calculations;
-extern int g_is_file_isolated_counter;
+extern int g_is_file_isolated_counter, g_can_remember_converted_stack_items;
 
 int parse_string_length(char *end);
 
@@ -788,7 +788,7 @@ int input_number(void) {
         
         /* launch stack calculator */
         p = stack_calculate(&g_buffer[g_source_index - 1], &g_parsed_int, &g_source_index, NO);
-
+        
         if (p == STACK_CALCULATE_DELAY)
           break;
         else if (p == STACK_RETURN_LABEL)
@@ -2565,6 +2565,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
   g_source_index = source_index_original;
 
   /* try to parse the stack calculation */
+  g_can_remember_converted_stack_items = NO;
   if (g_parsing_function_body == NO && resolve_stack(si, fun->stack->stacksize) == SUCCEEDED) {
     struct stack s;
     double dou;
@@ -2574,6 +2575,8 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
     s.linenumber = fun->line_number;
     s.filename_id = fun->filename_id;
 
+    g_can_remember_converted_stack_items = YES;
+    
     if (compute_stack(&s, fun->stack->stacksize, &dou) == FAILED)
       return FAILED;
 
@@ -2585,6 +2588,8 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
     return SUCCEEDED;
   }
 
+  g_can_remember_converted_stack_items = YES;
+  
   /* save the stack calculation */
   _save_stack_calculation(si, fun->stack->stacksize, -1, -1);
 

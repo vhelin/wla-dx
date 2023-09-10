@@ -66,3 +66,13 @@ OVERWRITE_start:
 
         .assert OVERWRITE_start == $2200
         
+        .FUNCTION SUM_AB2(var1,var2) var1*1+var2*1
+        .function SUM_ABC4(varA,varB,varC) SUM_AB2(SUM_AB2(varA,varB),varC)
+        
+        .db "15>"               ; @BT TEST-15 15 START
+        .db SUM_ABC4(5,6,7)     ; @BT 12
+        .db "<15"               ; @BT END
+
+        .db "16>"               ; @BT TEST-16 16 START
+        .db SUM_ABC4(5+0,6+0,7+0)     ; @BT 12
+        .db "<16"               ; @BT END

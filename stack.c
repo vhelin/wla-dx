@@ -37,14 +37,14 @@ extern struct section_def *g_sections_first;
 
 int g_latest_stack = 0, g_last_stack_id = 0, g_resolve_stack_calculations = YES, s_stack_calculations_max = 0;
 int g_parsing_function_body = NO, g_fail_quetly_on_non_found_functions = NO, g_input_parse_if = NO, g_dsp_enable_label_address_conversion = YES;
+int g_can_remember_converted_stack_items = YES;
 
 static int s_delta_counter = 0, s_delta_section = -1, s_dsp_file_name_id = 0, s_dsp_line_number = 0;
 static int s_converted_stack_items_count = 0;
 static struct stack_item *s_delta_old_pointer = NULL;
 static struct stack **s_stack_calculations = NULL;
 static struct stack_item *s_converted_stack_items[1024];
-static char s_converted_stack_item_types[1024];
-static double s_converted_stack_item_values[1024];
+static struct stack_item s_converted_stack_items_backups[1024];
 
 static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 
@@ -602,11 +602,28 @@ static int _get_op_priority(int op) {
 
 static void _return_converted_stack_items(void) {
 
+  struct stack_item *b, *s;
   int i;
 
   for (i = 0; i < s_converted_stack_items_count; i++) {
-    s_converted_stack_items[i]->type = s_converted_stack_item_types[i];
-    s_converted_stack_items[i]->value = s_converted_stack_item_values[i];
+    b = &s_converted_stack_items_backups[i];
+    s = s_converted_stack_items[i];
+
+    /*
+    fprintf(stderr, "RETURN %s: %d %f\n", s->string, s->type, s->value);
+    */
+
+    s->type = b->type;
+    s->sign = b->sign;
+    s->can_calculate_deltas = b->can_calculate_deltas;
+    s->has_been_replaced = b->has_been_replaced;
+    s->is_in_postfix = b->is_in_postfix;
+    s->value = b->value;
+    strcpy(s->string, b->string);
+
+    /*
+    fprintf(stderr, "   NOW %s: %d %f\n", s->string, s->type, s->value);
+    */
   }
 
   s_converted_stack_items_count = 0;
@@ -615,14 +632,30 @@ static void _return_converted_stack_items(void) {
 
 static int _remember_converted_stack_item(struct stack_item *s) {
 
+  struct stack_item *b;
+
+  if (g_can_remember_converted_stack_items == NO)
+    return SUCCEEDED;
+  
   if (s_converted_stack_items_count >= 1024) {
     fprintf(stderr, "_REMEMBER_CONVERTED_STACK_ITEM: Out of space! Please submit a bug report!\n");
     return FAILED;
   }
 
-  s_converted_stack_items[s_converted_stack_items_count] = s;
-  s_converted_stack_item_types[s_converted_stack_items_count] = s->type;
-  s_converted_stack_item_values[s_converted_stack_items_count++] = s->value;
+  /*
+  fprintf(stderr, "REMEMBER %s: %d %f\n", s->string, s->type, s->value);
+  */
+
+  b = &s_converted_stack_items_backups[s_converted_stack_items_count];
+  
+  s_converted_stack_items[s_converted_stack_items_count++] = s;
+  b->type = s->type;
+  b->sign = s->sign;
+  b->can_calculate_deltas = s->can_calculate_deltas;
+  b->has_been_replaced = s->has_been_replaced;
+  b->is_in_postfix = s->is_in_postfix;
+  b->value = s->value;
+  strcpy(b->string, s->string);
   
   return SUCCEEDED;
 }
@@ -2622,9 +2655,13 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     s.linenumber = g_active_file_info_last->line_current;
     s.filename_id = g_active_file_info_last->filename_id;
 
-    if (compute_stack(&s, d, &dou) == FAILED)
+    if (compute_stack(&s, d, &dou) == FAILED) {
+      /* return converted stack items to their original values */
+      _return_converted_stack_items();
+      
       return FAILED;
-    
+    }
+
     g_parsed_double = dou;
 
     /* return converted stack items to their original values */
@@ -3007,13 +3044,14 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
         if (dSI->section_id < 0) {
           /* a label outside .SECTIONs */
 
-          /* later we'll turn this back to a label */
           if (_remember_converted_stack_item(s) == FAILED)
             return FAILED;
           
           s->type = STACK_ITEM_TYPE_VALUE;
           s->value = g_slots[dSI->slot].address + dSI->address;
-          fprintf(stderr, "1: %s -> %.4x\n", s->string, (int)s->value);
+          /*
+          fprintf(stderr, "1: %s -> %d\n", s->string, (int)s->value);
+          */
         }
         else {
           /* a label inside a .SECTION - is the .SECTION of type FORCE/OVERWRITE? */
@@ -3031,7 +3069,9 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
             
             s->type = STACK_ITEM_TYPE_VALUE;
             s->value = g_slots[section->slot].address + dSI->address;
-            fprintf(stderr, "2: %s -> %.4x\n", s->string, (int)s->value);
+            /*
+            fprintf(stderr, "2: %s -> %d\n", s->string, (int)s->value);
+            */
           }
         }
       }
@@ -3212,9 +3252,6 @@ static int _try_to_calculate(struct stack_item *st) {
       return FAILED;
 
     if (s->is_single_instance == YES) {
-      free(s->stack_items);
-      s->stack_items = NULL;
-      s->stacksize = 0;
       s->has_been_calculated = YES;
       s->value = dou;
 
