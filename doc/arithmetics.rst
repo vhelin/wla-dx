@@ -16,6 +16,13 @@ so you can write something like ::
 WLALINK also has this ability so it can compute the pending calculations
 WLA wasn't able to solve.
 
+NOTE! The assembler has only a limited capability to turn labels into addresses. Often
+label references are left for the linker to solve. Currently the assembler
+can do so when the label is outside ``.SECTION`` s or inside ``FORCE`` or
+``OVERWRITE`` ``.SECTION`` s and the label is defined before it is referenced.
+Many directives like ``.ASSERT`` require data that the assembler can immediately
+solve so you might run into problems when feeding labels to directives.
+
 The following operators are valid:
 
 ====== ===============================

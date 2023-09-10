@@ -29,13 +29,23 @@ start:  nop
         .define POSTPONED_TO_LINKER = startend+1
         .define POSTPONED_TO_LINKER2 = FORCE_start+1
         .define POSTPONED_TO_LINKER3 = POSTPONED_TO_LINKER2+$2000
-        
+        .define POSTPONED_TO_LINKER4 = POSTPONED_TO_LINKER
+        .define POSTPONED_TO_LINKER5 = POSTPONED_TO_LINKER+1
+	.define STARTEND_PLUS_1 POSTPONED_TO_LINKER
+	.define STARTEND_PLUS_2 POSTPONED_TO_LINKER+1
+	
 startend:
         
         .db "00>"                ; @BT TEST-00 00 START
         .dw POSTPONED_TO_LINKER  ; @BT 07 20
         .db :POSTPONED_TO_LINKER ; @BT 01
         .db bank(POSTPONED_TO_LINKER) ; @BT 01
+        .dw POSTPONED_TO_LINKER4  ; @BT 07 20
+        .db :POSTPONED_TO_LINKER4 ; @BT 01
+        .db bank(POSTPONED_TO_LINKER4) ; @BT 01
+        .dw POSTPONED_TO_LINKER5  ; @BT 08 20
+        .db :POSTPONED_TO_LINKER5 ; @BT 01
+        .db bank(POSTPONED_TO_LINKER5) ; @BT 01
         .db "<00"                ; @BT END
         
         .db "01>"               ; @BT TEST-01 01 START
@@ -46,10 +56,19 @@ startend:
         .assert startend - 1 == $2005
         .assert startend - start == 6
         .assert startend - 1 - start == 5
+	.assert STARTEND_PLUS_1 == $2007
+	.assert STARTEND_PLUS_1 + 1 == $2008
+	.assert STARTEND_PLUS_2 == $2008
 
+	.define STARTEND_LATER = startend+1
+	
         .section "FORCE" force slot 2 org $101
 FORCE_start:
         .db "02>"               ; @BT TEST-02 02 START
+	.db :STARTEND_LATER	; @BT 01
+	.dw STARTEND_LATER	; @BT 07 20
+	.db :STARTEND_PLUS_2	; @BT 01
+	.db STARTEND_PLUS_2 & 8	; @BT 08
         .db :POSTPONED_TO_LINKER2 ; @BT 01
         .db :POSTPONED_TO_LINKER3 ; @BT 02
         .db POSTPONED_TO_LINKER2 & 0 ; @BT 00

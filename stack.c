@@ -43,8 +43,8 @@ static int s_delta_counter = 0, s_delta_section = -1, s_dsp_file_name_id = 0, s_
 static int s_converted_stack_items_count = 0;
 static struct stack_item *s_delta_old_pointer = NULL;
 static struct stack **s_stack_calculations = NULL;
-static struct stack_item *s_converted_stack_items[1024];
-static struct stack_item s_converted_stack_items_backups[1024];
+static struct stack_item *s_converted_stack_items[64];
+static struct stack_item *s_converted_stack_items_backups = NULL;
 
 static int _resolve_string(struct stack_item *s, int *cannot_resolve);
 
@@ -171,6 +171,9 @@ void free_stack_calculations(void) {
   g_latest_stack = 0;
   g_last_stack_id = 0;
   s_stack_calculations_max = 0;
+
+  free(s_converted_stack_items_backups);
+  s_converted_stack_items_backups = NULL;
 }
 
 
@@ -637,11 +640,19 @@ static int _remember_converted_stack_item(struct stack_item *s) {
   if (g_can_remember_converted_stack_items == NO)
     return SUCCEEDED;
   
-  if (s_converted_stack_items_count >= 1024) {
+  if (s_converted_stack_items_count >= 64) {
     fprintf(stderr, "_REMEMBER_CONVERTED_STACK_ITEM: Out of space! Please submit a bug report!\n");
     return FAILED;
   }
 
+  if (s_converted_stack_items_backups == NULL) {
+    s_converted_stack_items_backups = calloc(sizeof(struct stack_item) * 64, 1);
+    if (s_converted_stack_items_backups == NULL) {
+      print_error(ERROR_ERR, "Out of memory error while allocating s_converted_stack_items_backups.\n");
+      return FAILED;
+    }
+  }
+  
   /*
   fprintf(stderr, "REMEMBER %s: %d %f\n", s->string, s->type, s->value);
   */
@@ -4673,8 +4684,8 @@ int data_stream_parser_parse(void) {
       else {
         struct data_stream_item *dSI;
         int mangled_label = NO;
-
-        dSI = calloc(sizeof(struct data_stream_item), 1);
+	
+	dSI = calloc(sizeof(struct data_stream_item), 1);
         if (dSI == NULL) {
           print_error(ERROR_ERR, "Out of memory error while allocating a data_stream_item.\n");
           return FAILED;
