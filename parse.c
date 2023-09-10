@@ -2413,7 +2413,7 @@ static int _replace_labels_inside_stack_calculation(struct stack_item *stack_ite
 
 int parse_function(char *in, char *name, int *found_function, int *parsed_chars) {
 
-  int res, source_index_original = g_source_index, source_index_backup, i, j, input_float_mode;
+  int res, source_index_original = g_source_index, source_index_backup, i, j, input_float_mode, can_remember_converted_stack_items;
   struct function *fun = g_functions_first;
   struct stack_item *si;
   char c1 = name[0];
@@ -2565,6 +2565,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
   g_source_index = source_index_original;
 
   /* try to parse the stack calculation */
+  can_remember_converted_stack_items = g_can_remember_converted_stack_items;
   g_can_remember_converted_stack_items = NO;
   if (g_parsing_function_body == NO && resolve_stack(si, fun->stack->stacksize) == SUCCEEDED) {
     struct stack s;
@@ -2575,7 +2576,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
     s.linenumber = fun->line_number;
     s.filename_id = fun->filename_id;
 
-    g_can_remember_converted_stack_items = YES;
+    g_can_remember_converted_stack_items = can_remember_converted_stack_items;
     
     if (compute_stack(&s, fun->stack->stacksize, &dou) == FAILED)
       return FAILED;
@@ -2588,7 +2589,7 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
     return SUCCEEDED;
   }
 
-  g_can_remember_converted_stack_items = YES;
+  g_can_remember_converted_stack_items = can_remember_converted_stack_items;
   
   /* save the stack calculation */
   _save_stack_calculation(si, fun->stack->stacksize, -1, -1);
