@@ -2792,6 +2792,11 @@ It is also possible to merge two or more sections using ``APPENDTO``::
     label2    DB
     .ENDS
 
+NOTE! The ``APPENDTO`` ``.SECTION`` s are appended in the order the linker
+sorts them. So first ``PRIORITY`` is considered (0 by default, the bigger the
+value the more important it is) and then the size of the ``.SECTION`` is considered,
+bigger ``.SECTION`` s are more important than smaller.
+
 If you wist to skip some bytes without giving them labels, use ``.`` as
 a label::
 
