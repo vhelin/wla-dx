@@ -31,7 +31,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.21a (20.8.2023)";
+char g_version_string[] = "$VER: wlalink 5.21a (21.9.2023)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -1196,7 +1196,7 @@ int main(int argc, char *argv[]) {
     return 1;
   
   /* append sections */
-  if (merge_sections() == FAILED)
+  if (append_sections() == FAILED)
     return 1;
 
   /* clean up the structures */

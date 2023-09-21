@@ -53,7 +53,8 @@ int discard_unused_sections(void) {
     /* announce all the unreferenced sections that will get dropped */
     s = g_sec_first;
     while (s != NULL) {
-      if (s->alive == NO)
+      /* skip .SECTIONs that have been appended to other .SECTIONs */
+      if (s->alive == NO && s->appended_to == NO)
         fprintf(stderr, "DISCARD: %s: %s: Section \"%s\" was discarded.\n",
                 get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
       s = s->next;

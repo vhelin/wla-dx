@@ -1692,7 +1692,7 @@ static void _propagate_after_target_sections(struct sort_capsule *sc, struct sor
 }
 
 
-int merge_sections(void) {
+int append_sections(void) {
 
   struct after_section *as;
   struct section *s;
@@ -1719,18 +1719,18 @@ int merge_sections(void) {
       return FAILED;
 
     if (as->section_s == NULL) {
-      fprintf(stderr, "MERGE_SECTIONS: Source section \"%s\" was not found, ignoring the -> \"%s\" APPENDTO/AFTER. This shouldn't actually happen so please submit a bug report!\n", as->section, as->after);
+      fprintf(stderr, "APPEND_SECTIONS: Source section \"%s\" was not found, ignoring the -> \"%s\" APPENDTO/AFTER. This shouldn't actually happen so please submit a bug report!\n", as->section, as->after);
       as->alive = NO;
     }
     else if (as->after_s == NULL) {
-      fprintf(stderr, "MERGE_SECTIONS: Target section \"%s\" was not found, ignoring the \"%s\" -> \"%s\" APPENDTO/AFTER.\n", as->after, as->section, as->after);
+      fprintf(stderr, "APPEND_SECTIONS: Target section \"%s\" was not found, ignoring the \"%s\" -> \"%s\" APPENDTO/AFTER.\n", as->after, as->section, as->after);
       as->alive = NO;
     }
     else {
       if (as->section_s->marked == YES) {
         /* another operation for this section! only one is allowed! */
         as->alive = NO;
-        fprintf(stderr, "MERGE_SECTIONS: More than one APPENDTO/AFTER operation marked for section \"%s\" (in file \"%s\")! Only one is allowed thus disabling the following operations. Please make sure there is only one such operation.\n", as->section, get_file_name(as->file_id));
+        fprintf(stderr, "APPEND_SECTIONS: More than one APPENDTO/AFTER operation marked for section \"%s\" (in file \"%s\")! Only one is allowed thus disabling the following operations. Please make sure there is only one such operation.\n", as->section, get_file_name(as->file_id));
       }
       else
         as->section_s->marked = YES;
@@ -1739,7 +1739,7 @@ int merge_sections(void) {
     as = as->next;
   }
 
-  /* put unmarked sections into capsules */
+  /* put unmarked sections into sort capsules */
   s = g_sec_first;
   while (s != NULL) {
     if (s->marked == NO) {
@@ -1789,9 +1789,9 @@ int merge_sections(void) {
   while (as != NULL) {
     if (as->alive == YES && as->inserted == NO) {
       if (as->is_appendto)
-        fprintf(stderr, "MERGE_SECTIONS: Unable to inset operation \"%s\" APPENDTO \"%s\" into our sorting tree. Internal error. Please submit a bug resport!\n", as->section, as->after);
+        fprintf(stderr, "APPEND_SECTIONS: Unable to inset operation \"%s\" APPENDTO \"%s\" into our sorting tree. Internal error. Please submit a bug resport!\n", as->section, as->after);
       else
-        fprintf(stderr, "MERGE_SECTIONS: Unable to inset operation \"%s\" AFTER \"%s\" into our sorting tree. Internal error. Please submit a bug resport!\n", as->section, as->after);
+        fprintf(stderr, "APPEND_SECTIONS: Unable to inset operation \"%s\" AFTER \"%s\" into our sorting tree. Internal error. Please submit a bug resport!\n", as->section, as->after);
       failures++;
     }
 
