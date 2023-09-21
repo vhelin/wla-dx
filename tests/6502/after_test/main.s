@@ -51,7 +51,7 @@ label_C .DB 4, 5
 
         .org $100
 
-        .dw label_1, label_2, label_3, label_4
+        .dw label_1, label_2, label_3, label_4, Empty1, Empty4
         
         .SECTION "Section2"
 label_2:.DB 2, 3
@@ -84,3 +84,25 @@ label_3 .DB 4, 5
    endSuite:
         .db 0
         .ends
+
+        /////////////////////////////////////////////////////////////////////////////
+        // TEST 6
+        /////////////////////////////////////////////////////////////////////////////
+
+        .SECTION "Empty1" SEMIFREE KEEP
+   Empty1:
+        .ENDS
+
+        .SECTION "Empty2" FREE KEEP AFTER "Empty1"
+        .DB "06>"               ; @BT TEST-06 06 START
+        .ENDS                   ; @BT 01 02 03 04
+                                ; @BT END
+
+        .SECTION "Empty4" FREE KEEP AFTER "Empty3"
+   Empty4:
+        .ENDS
+        
+        .SECTION "Empty3" FREE KEEP AFTER "Empty2"
+        .DB 1, 2, 3, 4
+        .DB "<06"
+        .ENDS

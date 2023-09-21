@@ -1,6 +1,6 @@
 
 CC = $(WLAVALGRIND) wla-6502
-CFLAGS = -i -o
+CFLAGS = -i -k -o
 LD = $(WLAVALGRIND) wlalink
 LDFLAGS = -v -d -i -s
 
