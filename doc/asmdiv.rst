@@ -2792,6 +2792,11 @@ It is also possible to merge two or more sections using ``APPENDTO``::
     label2    DB
     .ENDS
 
+NOTE! The ``APPENDTO`` ``.SECTION`` s are appended in the order the linker
+sorts them. So first ``PRIORITY`` is considered (0 by default, the bigger the
+value the more important it is) and then the size of the ``.SECTION`` is considered,
+bigger ``.SECTION`` s are more important than smaller.
+
 If you wist to skip some bytes without giving them labels, use ``.`` as
 a label::
 
@@ -3230,7 +3235,7 @@ Before the sections are inserted into the output file, they are sorted by
 priorities, so that the section with the highest priority is processed first.
 If priorities are the same, then the size of the section matters, and bigger
 sections are processed before smaller ones. The default ``PRIORITY``, when not
-explicitly given, is 0.
+explicitly given, is 0. Note that ``PRIORITY`` accepts negative values as well.
 
 You can use ``AUTOPRIORITY`` instead of ``PRIORITY`` when you want to assign
 descending priority to sections. Using this you can make it so that e.g.,
