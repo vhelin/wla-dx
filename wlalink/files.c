@@ -1091,6 +1091,11 @@ int load_file_data(char *file_name, unsigned char **data, int *size) {
   *size = (int)ftell(fop);
   fseek(fop, 0, SEEK_SET);
 
+  if (*size == 0) {
+    fprintf(stderr, "LOAD_FILE_DATA: File \"%s\" is empty!\n", file_name);
+    return FAILED;
+  }
+  
   *data = calloc(*size, 1);
   if (*data == NULL) {
     fclose(fop);

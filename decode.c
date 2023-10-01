@@ -22,7 +22,7 @@ extern int g_in_enum, g_in_ramsection, g_in_struct, g_macro_id, g_sizeof_g_tmp, 
 extern int g_ss, g_source_index, g_parsed_int, g_section_status, g_org_defined, g_bankheader_status, g_macro_active;
 extern int g_source_file_size, g_input_number_error_msg, g_verbose_level, g_output_format, g_open_files;
 extern int g_last_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations, g_input_parse_special_chars;
-extern int g_instruction_n[256], g_instruction_p[256];
+extern int g_instruction_n[256], g_instruction_p[256], g_dsp_enable_label_address_conversion;
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type, g_parse_floats;
 extern struct instruction g_instructions_table[];
 extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
@@ -1078,6 +1078,10 @@ int evaluate_token(void) {
   instruction_i = g_instruction_p[(unsigned char)g_tmp[0]];
   s_instruction_tmp = &g_instructions_table[instruction_i];
 
+  /* here we need to postpone all labels to the linker as the assembler currently doesn't
+     handle e.g., relative addresses at this stage */
+  g_dsp_enable_label_address_conversion = NO;
+  
   for (f = g_instruction_n[(unsigned char)g_tmp[0]]; f > 0; f--) {
     int result;
     
@@ -1132,7 +1136,7 @@ int evaluate_token(void) {
     /* NOTE: as instruction decoders call return, we'll need to set this variable later back to NO */
     g_input_number_expects_dot = s_instruction_tmp->has_dot;
 #endif
-    
+
     switch (s_instruction_tmp->type) {
 
 #if defined(GB)

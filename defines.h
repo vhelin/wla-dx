@@ -896,6 +896,8 @@ struct data_stream_item {
   char label[MAX_NAME_LENGTH + 1];
   int  section_id;
   int  address;
+  int  bank;
+  int  slot;
   struct data_stream_item *next;
 };
 

@@ -45,7 +45,11 @@ test_data:
         .db "<03"               ; @BT END
 
         .db "04>"               ; @BT TEST-04 04 START
+        .dw CALCULATION_3       ; @BT 19 88
+        .db bank(CALCULATION_3) ; @BT 02
         .db :CALCULATION_3      ; @BT 02
+        .db bank(CALCULATION_3)+1 ; @BT 03
+        .db :CALCULATION_3+1      ; @BT 03
         .dw CALCULATION_3+1     ; @BT 1A 88
         .db "<04"               ; @BT END
 .ends

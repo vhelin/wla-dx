@@ -77,7 +77,7 @@ addr_06:LDA #bank(addr_03) + 1 - 1                                      ; @BT A9
         .DB "<08"                                                       ; @BT END
         
         .DB "09>"                                                       ; @BT TEST-09 09 START
-        .DB bank(addr_03), bankbyte(addr_03 + 100)                      ; @BT 01 01
+        .DB bank(addr_03), bankbyte(addr_03), bankbyte(addr_03 + 100)   ; @BT 01 01 01
         .DB "<09"                                                       ; @BT END
         
         .BANK 15 SLOT 0
