@@ -2380,6 +2380,7 @@ int write_symbol_file(char *outname, int mode, int output_addr_to_line) {
     /* info section */
     fprintf(f, "\n[information]\n");
     fprintf(f, "version 3\n");
+    fprintf(f, "wlasymbol true\n");
     
     /* labels */
     l = g_labels_first;

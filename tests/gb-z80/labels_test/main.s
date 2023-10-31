@@ -134,4 +134,4 @@ OVERWRITE_start:
         .db "<04"                  ; @BT END
 
         .assert SUM_ABC4(startend+1,1,2) == $200A
-        
+        .assert SUM_ABC4(startend+1,1+2,2+2) == SUM_ABC4(1+1,SUM_ABC4(0+0*2,startend+0+1,1+0+2),6-3-1)

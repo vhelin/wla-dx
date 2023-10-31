@@ -29,7 +29,8 @@ Version 2: https://github.com/vhelin/wla-dx/blob/v10.5/doc/symbols.rst
 Version 3: https://github.com/vhelin/wla-dx/blob/master/doc/symbols.rst
 
 * Added [sections] and [ramsections] sections
-
+* Added "wlasymbol true" under [information] section
+  
 Information For Emulator Developers
 -----------------------------------
 
@@ -46,7 +47,7 @@ The following are the list of currently supported sections, what they mean, and 
 [information]
 *************
 
-The only fields this section has currently are "version" and then the version number. [information], if present, must always occur before any other section or data, and its first line will always be the format version.
+The only fields this section has currently are "version" (and then the version number) and "wlasymbol" (which is followed by "true"). [information], if present, must always occur before any other section or data, and its first line will always be the format version.
 
 [labels]
 ********
