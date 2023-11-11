@@ -1100,16 +1100,6 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  {
-    int i;
-    for (q = 0; q < 23; q++) {
-      for (i = 0; i < 80; i++)
-        print_text(YES, "c");
-    }
-    for (i = 0; i < 23; i++)
-      print_text(YES, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadd\n");
-  }
-
   if (g_output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
     char title[] = "WLA " ARCH_STR " Macro Assembler v10.6b";
     int length, left, right;
