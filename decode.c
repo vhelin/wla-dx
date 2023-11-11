@@ -14,6 +14,7 @@
 #include "phase_1.h"
 #include "parse.h"
 #include "printf.h"
+#include "main.h"
 
 
 extern FILE *g_file_out_ptr;
@@ -63,7 +64,7 @@ static void _output_assembled_instruction(struct instruction *instruction, const
     va_end(ap);
     va_start(ap, format);
     vsnprintf(ttt, sizeof(ttt), format, ap);
-    printf("LINE %5d: INSTRUCTION: %16s ::: %s\n", g_active_file_info_last->line_current, instruction->string, ttt);
+    print_text(YES, "LINE %5d: INSTRUCTION: %16s ::: %s\n", g_active_file_info_last->line_current, instruction->string, ttt);
   }
 #endif
 
@@ -7723,7 +7724,7 @@ int evaluate_token(void) {
           else if (v == INPUT_NUMBER_STACK)
             _output_assembled_instruction(s_instruction_tmp, "C%d ", h);
           else {
-            fprintf(stderr, "evaluate_token(): Sanity check failed! Please submit a bug report!\n");
+            print_text(NO, "evaluate_token(): Sanity check failed! Please submit a bug report!\n");
             return FAILED;
           }
 
@@ -7735,7 +7736,7 @@ int evaluate_token(void) {
           else if (t == INPUT_NUMBER_STACK)
             _output_assembled_instruction(s_instruction_tmp, "C%d ", u);
           else {
-            fprintf(stderr, "evaluate_token(): Sanity check failed! Please submit a bug report!\n");
+            print_text(NO, "evaluate_token(): Sanity check failed! Please submit a bug report!\n");
             return FAILED;
           }
           
@@ -7747,7 +7748,7 @@ int evaluate_token(void) {
           else if (z == INPUT_NUMBER_STACK)
             _output_assembled_instruction(s_instruction_tmp, "C%d ", g_latest_stack);
           else {
-            fprintf(stderr, "evaluate_token(): Sanity check failed! Please submit a bug report!\n");
+            print_text(NO, "evaluate_token(): Sanity check failed! Please submit a bug report!\n");
             return FAILED;
           }
           

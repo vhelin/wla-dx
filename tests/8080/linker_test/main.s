@@ -25,6 +25,8 @@ BANKS 4
 
 .EMPTYFILL $AA
 
+        ; @BT linked.rom
+        
 .BANK 0 SLOT 0
 .ORG 0
 
@@ -50,32 +52,32 @@ Main:	nop
 
 .ORG $1000
 .SECTION "EXTRAS" FORCE
-.DB "AA>"
+.DB "AA>"                       ; @BT TEST-AA AA START
 ExtrasStart:
-	jz ExtrasStart
-	jm ExtrasStart
-	cz ExtrasEnd
-	cm ExtrasEnd
+	jz ExtrasStart          ; @BT CA 03 10
+	jm ExtrasStart          ; @BT FA 03 10
+	cz ExtrasEnd            ; @BT CC 0F 10
+	cm ExtrasEnd            ; @BT FC 0F 10
 ExtrasEnd:
-.DB "<AA"
+.DB "<AA"                       ; @BT END
 .DB " "
-.DB "BB>"
-	call ExtrasStart
-	cpe ExtrasStart
-.DB "<BB"
-.DB "GG>"
----     nop
- --     .db -1-1
- -:	.db -1-1
-	jnz -
-	jnz --
-	jnz ---
-.DB "<GG"
-.DB "HH>"
-	.dw _f
- __	.db 0
-	.dw _b
-.DB "<HH"
+.DB "BB>"                       ; @BT TEST-BB BB START
+	call ExtrasStart        ; @BT CD 03 10
+	cpe ExtrasStart         ; @BT EC 03 10
+.DB "<BB"                       ; @BT END
+.DB "GG>"                       ; @BT TEST-GG GG START
+---     nop                     ; @BT 00
+ --     .db -1-1                ; @BT FE
+ -:	.db -1-1                ; @BT FE
+	jnz -                   ; @BT C2 24 10
+	jnz --                  ; @BT C2 23 10
+	jnz ---                 ; @BT C2 22 10
+.DB "<GG"                       ; @BT END
+.DB "HH>"                       ; @BT TEST-HH HH START
+	.dw _f                  ; @BT 36 10
+ __	.db 0                   ; @BT 00
+	.dw _b                  ; @BT 36 10
+.DB "<HH"                       ; @BT END
 .ENDS
 
 .ORG $2000
@@ -117,10 +119,10 @@ DummyMain2:
 
 .include "include2.s"
 
-.DB "CC>"
-JUMP_MACRO $f
-JUMP_MACRO $f
-.DB "<CC"
+.DB "CC>"                       ; @BT TEST-CC CC START
+JUMP_MACRO $f                   ; @BT 00 01 02 03 04 05 06 07 08 09 0A 0B 0F
+JUMP_MACRO $f                   ; @BT 00 01 02 03 04 05 06 07 08 09 0A 0B 00 01 02 03 04 05 06 07 08 09 0A 0B 0F
+.DB "<CC"                       ; @BT END
 
 LABEL	.print "THE END\n"
 
@@ -134,24 +136,24 @@ LABEL	.print "THE END\n"
 	.define INCLUDE "include"
 	.define LU "lu"
 	
-	.DB "10>"
-	.include "{INCLUDE}3.s"
-	.include { "{INCLUDE}3.s" }
-	.include { "inc{LU}de3.s" }
-	.db "<10"
+	.DB "10>"                   ; @BT TEST-10 10 START
+	.include "{INCLUDE}3.s"     ; @BT 08
+	.include { "{INCLUDE}3.s" } ; @BT 07
+	.include { "inc{LU}de3.s" } ; @BT 07
+	.db "<10"                   ; @BT END
 	
-.DB "DD>"
- TEST 3
-.DB "<DD"
+.DB "DD>"                       ; @BT TEST-DD DD START
+ TEST 3                         ; @BT 01 03
+.DB "<DD"                       ; @BT END
 
-.DB "EE>"
-	MACRO_INCLUDE_2
-.DB "<EE"
+.DB "EE>"                       ; @BT TEST-EE EE START
+	MACRO_INCLUDE_2         ; @BT 07 08
+.DB "<EE"                       ; @BT END
 
-.DB "FF>"
-	MACRO_INCLUDE_3
-	MACRO_INCLUDE_3
-.DB "<FF"
+.DB "FF>"                       ; @BT TEST-FF FF START
+	MACRO_INCLUDE_3         ; @BT 01 02 03
+	MACRO_INCLUDE_3         ; @BT 01 02 03
+.DB "<FF"                       ; @BT END
 	
 .SECTION "DUMMY3" FREE
 DummyMain3:

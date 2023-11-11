@@ -15,6 +15,7 @@
 #include "parse.h"
 #include "stack.h"
 #include "printf.h"
+#include "main.h"
 
 
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
@@ -88,6 +89,15 @@ static struct label_sizeof *s_label_sizeof_tmp;
 #define STRING_READ_FORMAT ("%" STRINGIFY(MAX_NAME_LENGTH) "s ")
 
 
+static int _print_fscanf_error_accessing_internal_data_stream(int file_name_id, int line_number) {
+
+  print_text(NO, "%s:%d: INTERNAL_PHASE_2: Could not read enough elements from the internal data stream. Please submit a bug report!\n",
+          get_file_name(file_name_id), line_number);
+
+  return FAILED;
+}
+
+
 static int _try_to_calculate_stack_calculation_define(struct definition *definition) {
 
   struct stack *stack = find_stack_calculation((int)definition->value, YES);
@@ -137,7 +147,7 @@ static struct label_def *_new_unknown_reference(int type) {
 
   label = calloc(sizeof(struct label_def), 1);
   if (label == NULL) {
-    fprintf(stderr, "%s:%d: _NEW_UNKNOWN_REFERENCE: Out of memory.\n", get_file_name(s_filename_id), s_line_number);
+    print_text(NO, "%s:%d: _NEW_UNKNOWN_REFERENCE: Out of memory.\n", get_file_name(s_filename_id), s_line_number);
     return NULL;
   }
 
@@ -186,7 +196,7 @@ static struct label_def *_new_unknown_reference(int type) {
   /* bank header section */
   else {
     if (label->label[0] == '_') {
-      fprintf(stderr, "%s:%d: _NEW_UNKNOWN_REFERENCE: Referring to a local label (\"%s\") from inside a bank header section is not allowed.\n",
+      print_text(NO, "%s:%d: _NEW_UNKNOWN_REFERENCE: Referring to a local label (\"%s\") from inside a bank header section is not allowed.\n",
               get_file_name(s_filename_id), s_line_number, label->label);
       return NULL;
     }
@@ -249,7 +259,7 @@ static int _add_namespace_to_reference(char *label, char *name_space, unsigned i
   
   snprintf(expanded, sizeof(expanded), "%s.%s", name_space, label);
   if (strlen(expanded) >= label_size) {
-    fprintf(stderr, "_ADD_NAMESPACE_TO_REFERENCE: Label expands to \"%s\" which is %d characters too large.\n", expanded, (int)(strlen(expanded)-label_size+1));
+    print_text(NO, "_ADD_NAMESPACE_TO_REFERENCE: Label expands to \"%s\" which is %d characters too large.\n", expanded, (int)(strlen(expanded)-label_size+1));
     return FAILED;
   }
 
@@ -329,7 +339,7 @@ int phase_4(void) {
   s_mem_insert_overwrite = OFF;
 
   if (g_verbose_level >= 100)
-    printf("Internal pass 2...\n");
+    print_text(YES, "Internal pass 2...\n");
 
   /* rewind to the beginning of the internal data stream */
   fseek(g_file_out_ptr, 0, SEEK_SET);
@@ -342,7 +352,7 @@ int phase_4(void) {
     case 'v':
       err = fscanf(g_file_out_ptr, "%d ", &s_special_id);       
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       continue;
       
     case 'E':
@@ -356,7 +366,7 @@ int phase_4(void) {
     case 'i':
       err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
       if (err < 2)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       if (process_macro_in(inz, tmp_buffer, s_filename_id, s_line_number) == FAILED)
         return FAILED;
@@ -365,7 +375,7 @@ int phase_4(void) {
     case 'I':
       err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
       if (err < 2)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       if (process_macro_out(inz, tmp_buffer, s_filename_id, s_line_number) == FAILED)
         return FAILED;
@@ -375,7 +385,7 @@ int phase_4(void) {
     case 'g':
       err = fscanf(g_file_out_ptr, "%*s ");
       if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       continue;
     case 'G':
       continue;
@@ -383,26 +393,26 @@ int phase_4(void) {
     case 'f':
       err = fscanf(g_file_out_ptr, "%d ", &s_filename_id);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       continue;
 
     case 'k':
       err = fscanf(g_file_out_ptr, "%d ", &s_line_number);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       continue;
 
     case 't':
       err = fscanf(g_file_out_ptr, "%d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
 
       if (inz == 0)
         g_namespace[0] = 0;
       else {
         err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       }
       continue;
         
@@ -413,13 +423,13 @@ int phase_4(void) {
       if (c == 'A') {
         err = fscanf(g_file_out_ptr, "%d %d ", &x, &ind);
         if (err < 2)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
         inz = YES;
       }
       else {
         err = fscanf(g_file_out_ptr, "%d ", &x);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
         inz = NO;
         ind = 0x123456;
       }
@@ -440,7 +450,7 @@ int phase_4(void) {
       if (c == 'A') {
         if (inz == NO) {
           /* sanity check */
-          fprintf(stderr, "%s: INTERNAL_PHASE_2: ind has not been set, but we use its value! Please submit a bug report!\n", get_file_name(s_filename_id));
+          print_text(NO, "%s: INTERNAL_PHASE_2: ind has not been set, but we use its value! Please submit a bug report!\n", get_file_name(s_filename_id));
           return FAILED;
         }
         g_sec_tmp->address = ind;
@@ -449,7 +459,7 @@ int phase_4(void) {
       ind = 0;
       if (g_sec_tmp->maxsize_status == ON) {
         if (g_sec_tmp->maxsize < g_sec_tmp->size) {
-          fprintf(stderr, "%s: INTERNAL_PHASE_2: Section \"%s\" (size %d) doesn't fit into the specified %d bytes.\n",
+          print_text(NO, "%s: INTERNAL_PHASE_2: Section \"%s\" (size %d) doesn't fit into the specified %d bytes.\n",
                   get_file_name(s_filename_id), g_sec_tmp->name, g_sec_tmp->size, g_sec_tmp->maxsize);
           return FAILED;
         }
@@ -462,7 +472,7 @@ int phase_4(void) {
       if (g_sec_tmp->size > 0) {
         g_sec_tmp->data = calloc(sizeof(unsigned char) * g_sec_tmp->size, 1);
         if (g_sec_tmp->data == NULL) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Out of memory when trying to allocate room for section \"%s\".\n",
+          print_text(NO, "%s:%d: INTERNAL_PHASE_2: Out of memory when trying to allocate room for section \"%s\".\n",
                   get_file_name(s_filename_id), s_line_number, g_sec_tmp->name);
           return FAILED;
         }
@@ -503,9 +513,9 @@ int phase_4(void) {
 
     case 'x':
     case 'o':
-      err = fscanf(g_file_out_ptr, "%d %d", &ind, &x);
+      err = fscanf(g_file_out_ptr, "%d %d ", &ind, &x);
       if (err < 2)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .DSB data", get_file_name(s_filename_id), s_line_number);
@@ -537,9 +547,9 @@ int phase_4(void) {
       continue;
 
     case 'X':
-      err = fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
+      err = fscanf(g_file_out_ptr, "%d %d ", &ind, &inz);
       if (err < 2)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
 
       i = inz & 0xFF;
       inz = (inz >> 8) & 0xFF;
@@ -566,9 +576,9 @@ int phase_4(void) {
       continue;
 
     case 'h':
-      err = fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
+      err = fscanf(g_file_out_ptr, "%d %d ", &ind, &inz);
       if (err < 2)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
 
       x = inz & 0xFF;
       i = (inz >> 8) & 0xFF;
@@ -600,9 +610,9 @@ int phase_4(void) {
       continue;
 
     case 'w':
-      err = fscanf(g_file_out_ptr, "%d %d", &ind, &inz);
+      err = fscanf(g_file_out_ptr, "%d %d ", &ind, &inz);
       if (err < 2)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
 
       x = inz & 0xFF;
       i = (inz >> 8) & 0xFF;
@@ -641,9 +651,9 @@ int phase_4(void) {
       /* DATA & OPTCODE */
 
     case 'd':
-      err = fscanf(g_file_out_ptr, "%d", &x);
+      err = fscanf(g_file_out_ptr, "%d ", &x);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a byte", get_file_name(s_filename_id), s_line_number);
@@ -654,9 +664,9 @@ int phase_4(void) {
       continue;
 
     case 'y':
-      err = fscanf(g_file_out_ptr, "%d", &inz);
+      err = fscanf(g_file_out_ptr, "%d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
 
       x = inz & 0xFF;
       inz = (inz >> 8) & 0xFF;
@@ -680,15 +690,15 @@ int phase_4(void) {
       continue;
 
     case 'b':
-      err = fscanf(g_file_out_ptr, "%d", &s_base);
+      err = fscanf(g_file_out_ptr, "%d ", &s_base);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       continue;
 
     case 'z':
-      err = fscanf(g_file_out_ptr, "%d", &inz);
+      err = fscanf(g_file_out_ptr, "%d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
 
       x = inz & 0xFF;
       ind = (inz >> 8) & 0xFF;
@@ -717,9 +727,9 @@ int phase_4(void) {
       continue;
 
     case 'u':
-      err = fscanf(g_file_out_ptr, "%d", &inz);
+      err = fscanf(g_file_out_ptr, "%d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
 
       x = inz & 0xFF;
       q = (inz >> 8) & 0xFF;
@@ -761,7 +771,7 @@ int phase_4(void) {
         
         err = fscanf(g_file_out_ptr, "%d ", &bits_to_define);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
         if (bits_to_define == 999) {
           /* add the last byte if there is any data in it */
@@ -782,14 +792,14 @@ int phase_4(void) {
 
         err = fscanf(g_file_out_ptr, "%c", &type);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
         if (type == 'a') {
           int data;
           
           err = fscanf(g_file_out_ptr, "%d", &data);
           if (err < 1)
-            return print_fscanf_error_accessing_internal_data_stream();
+            return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
           snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing .BITS' bits", get_file_name(s_filename_id), s_line_number);
@@ -817,7 +827,7 @@ int phase_4(void) {
           
           err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
           if (err < 1)
-            return print_fscanf_error_accessing_internal_data_stream();
+            return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
           if (g_namespace[0] != 0) {
             if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
@@ -829,7 +839,7 @@ int phase_4(void) {
           hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
           if (tmp_def != NULL) {
             if (tmp_def->type == DEFINITION_TYPE_STRING) {
-              fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
+              print_text(NO, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
               return FAILED;
             }
             else {
@@ -901,11 +911,11 @@ int phase_4(void) {
         else if (type == 'c') {
           err = fscanf(g_file_out_ptr, "%d", &inz);
           if (err < 1)
-            return print_fscanf_error_accessing_internal_data_stream();
+            return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
           stack = find_stack_calculation(inz, NO);
           if (stack == NULL) {
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
+            print_text(NO, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
             return FAILED;
           }
 
@@ -970,9 +980,9 @@ int phase_4(void) {
       /* DATA BLOCK from .INCBIN */
 
     case 'D':
-      err = fscanf(g_file_out_ptr, "%d %d %d %d", &x, &inz, &z, &y);
+      err = fscanf(g_file_out_ptr, "%d %d %d %d ", &x, &inz, &z, &y);
       if (err < 4)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       g_ifd_tmp = g_incbin_file_data_first;
       for (ind = 0; ind != x; ind++)
@@ -1008,14 +1018,14 @@ int phase_4(void) {
     case 'O':
     case 'B':
       if (c == 'O') {
-        err = fscanf(g_file_out_ptr, "%d", &s_pc_bank);
+        err = fscanf(g_file_out_ptr, "%d ", &s_pc_bank);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       }
       else {
-        err = fscanf(g_file_out_ptr, "%d %d", &s_rom_bank, &s_slot);
+        err = fscanf(g_file_out_ptr, "%d %d ", &s_rom_bank, &s_slot);
         if (err < 2)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
 
         if (g_banksize_defined == 0)
           g_banksize = g_banks[s_rom_bank];
@@ -1036,9 +1046,9 @@ int phase_4(void) {
 
     case 'Y':
       /* skip the symbol */
-      err = fscanf(g_file_out_ptr, "%*s");
+      err = fscanf(g_file_out_ptr, "%*s ");
       if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       continue;
 
       /* LABEL */
@@ -1049,7 +1059,7 @@ int phase_4(void) {
 
         err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
         
         if (is_label_anonymous(g_tmp) == NO) {
           while (n < 10 && g_tmp[n] == '@')
@@ -1087,13 +1097,13 @@ int phase_4(void) {
 
     case '-':
     case 'c':
-      err = fscanf(g_file_out_ptr, "%d", &inz);
+      err = fscanf(g_file_out_ptr, "%d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
         return FAILED;
       }
 
@@ -1141,7 +1151,7 @@ int phase_4(void) {
         o = (int)r;
         if (c == '-') {
           if ((o & 1) == 1) {
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: The RAM address must be even.\n", get_file_name(s_filename_id), s_line_number);
+            print_text(NO, "%s:%d: INTERNAL_PHASE_2: The RAM address must be even.\n", get_file_name(s_filename_id), s_line_number);
             return FAILED;
           }
           o = o >> 1;
@@ -1169,13 +1179,13 @@ int phase_4(void) {
       /* 16BIT COMPUTATION */
 
     case 'C':
-      err = fscanf(g_file_out_ptr, "%d", &inz);
+      err = fscanf(g_file_out_ptr, "%d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
         return FAILED;
       }
 
@@ -1263,13 +1273,13 @@ int phase_4(void) {
       /* 13BIT COMPUTATION */
 
     case 'N':
-      err = fscanf(g_file_out_ptr, "%d %d", &x, &inz);
+      err = fscanf(g_file_out_ptr, "%d %d ", &x, &inz);
       if (err < 2)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
         return FAILED;
       }
 
@@ -1312,7 +1322,7 @@ int phase_4(void) {
 
         o = (int)r;
         if (o > 8191 || o < 0) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference value of %d is out of 13-bit range.\n", get_file_name(s_filename_id), s_line_number, o);
+          print_text(NO, "%s:%d: INTERNAL_PHASE_2: Reference value of %d is out of 13-bit range.\n", get_file_name(s_filename_id), s_line_number, o);
           return FAILED;
         }
 
@@ -1343,13 +1353,13 @@ int phase_4(void) {
       /* 24BIT COMPUTATION */
 
     case 'T':
-      err = fscanf(g_file_out_ptr, "%d", &inz);
+      err = fscanf(g_file_out_ptr, "%d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
         return FAILED;
       }
 
@@ -1432,13 +1442,13 @@ int phase_4(void) {
       /* 32BIT COMPUTATION */
 
     case 'U':
-      err = fscanf(g_file_out_ptr, "%d", &inz);
+      err = fscanf(g_file_out_ptr, "%d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       stack = find_stack_calculation(inz, NO);
       if (stack == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
         return FAILED;
       }
 
@@ -1529,7 +1539,7 @@ int phase_4(void) {
     case 'q':
       err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
@@ -1541,7 +1551,7 @@ int phase_4(void) {
       hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
       if (tmp_def != NULL) {
         if (tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
+          print_text(NO, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
           return FAILED;
         }
         else {
@@ -1598,7 +1608,7 @@ int phase_4(void) {
     case 'V':
       err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
@@ -1610,7 +1620,7 @@ int phase_4(void) {
       hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
       if (tmp_def != NULL) {
         if (tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
+          print_text(NO, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
           return FAILED;
         }
         else {
@@ -1673,7 +1683,7 @@ int phase_4(void) {
     case 'M':
       err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
@@ -1685,7 +1695,7 @@ int phase_4(void) {
       hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
       if (tmp_def != NULL) {
         if (tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
+          print_text(NO, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
           return FAILED;
         }
         else {
@@ -1745,7 +1755,7 @@ int phase_4(void) {
         
         err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
         
         if (g_namespace[0] != 0) {
           if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
@@ -1757,7 +1767,7 @@ int phase_4(void) {
         hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
         if (tmp_def != NULL) {
           if (tmp_def->type == DEFINITION_TYPE_STRING) {
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
+            print_text(NO, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
             return FAILED;
           }
           else {
@@ -1827,10 +1837,10 @@ int phase_4(void) {
     case 'n':
       err = fscanf(g_file_out_ptr, "%d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
@@ -1842,7 +1852,7 @@ int phase_4(void) {
       hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
       if (tmp_def != NULL) {
         if (tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
+          print_text(NO, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
           return FAILED;
         }
         else {
@@ -1855,7 +1865,7 @@ int phase_4(void) {
             o = (int)tmp_def->value;
 
             if (o > 8191 || o < 0) {
-              fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference value of \"%s\" (%d) is out of 13-bit range.\n", get_file_name(s_filename_id), s_line_number, g_tmp, o);
+              print_text(NO, "%s:%d: INTERNAL_PHASE_2: Reference value of \"%s\" (%d) is out of 13-bit range.\n", get_file_name(s_filename_id), s_line_number, g_tmp, o);
               return FAILED;
             }
 
@@ -1891,7 +1901,7 @@ int phase_4(void) {
     case 'R':
       err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
@@ -1903,7 +1913,7 @@ int phase_4(void) {
       hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
       if (tmp_def != NULL) {
         if (tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
+          print_text(NO, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
           return FAILED;
         }
         else {
@@ -1943,7 +1953,7 @@ int phase_4(void) {
     case 'Q':
       err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       
       if (g_namespace[0] != 0) {
         if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
@@ -1955,7 +1965,7 @@ int phase_4(void) {
       hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
       if (tmp_def != NULL) {
         if (tmp_def->type == DEFINITION_TYPE_STRING) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
+          print_text(NO, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
           return FAILED;
         }
         else {
@@ -1970,7 +1980,7 @@ int phase_4(void) {
             /* 9-bit short? */
             if (c == '*') {
               if ((o & 1) == 1) {
-                fprintf(stderr, "%s:%d: INTERNAL_PHASE_2: The RAM address must be even.\n", get_file_name(s_filename_id), s_line_number);
+                print_text(NO, "%s:%d: INTERNAL_PHASE_2: The RAM address must be even.\n", get_file_name(s_filename_id), s_line_number);
                 return FAILED;
               }
               o = o >> 1;
@@ -2009,7 +2019,7 @@ int phase_4(void) {
     case 'e':
       err = fscanf(g_file_out_ptr, "%d %d ", &x, &y);
       if (err < 2)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
 
       if (y == -1) {
         /* mark start of .DSTRUCT */
@@ -2085,7 +2095,7 @@ int write_object_file(void) {
   double dou;
 
   if ((final_ptr = fopen(g_final_name, "wb")) == NULL) {
-    fprintf(stderr, "INTERNAL_PHASE_2: Error opening file \"%s\" for writing.\n", g_final_name);
+    print_text(NO, "INTERNAL_PHASE_2: Error opening file \"%s\" for writing.\n", g_final_name);
     return FAILED;
   }
 
@@ -2262,7 +2272,7 @@ int write_object_file(void) {
       WRITEOUT_OV;
 
       /* DEBUG
-         fprintf(stderr, "LABEL: \"%s\" SLOT: %d LINE: %d\n", g_label_tmp->label, g_label_tmp->slot, g_label_tmp->linenumber);
+         print_text(NO, "LABEL: \"%s\" SLOT: %d LINE: %d\n", g_label_tmp->label, g_label_tmp->slot, g_label_tmp->linenumber);
       */
 
       ov = g_label_tmp->address;
@@ -2568,7 +2578,7 @@ int write_library_file(void) {
   double dou;
   
   if ((final_ptr = fopen(g_final_name, "wb")) == NULL) {
-    fprintf(stderr, "INTERNAL_PHASE_2: Error opening file \"%s\" for writing.\n", g_final_name);
+    print_text(NO, "INTERNAL_PHASE_2: Error opening file \"%s\" for writing.\n", g_final_name);
     return FAILED;
   }
 
@@ -2652,7 +2662,7 @@ int write_library_file(void) {
     WRITEOUT_OV;
 
     if (g_label_tmp->section_status == OFF) {
-      fprintf(stderr, "INTERNAL_PHASE_2: Label \"%s\" is outside all sections.\n", g_label_tmp->label);
+      print_text(NO, "INTERNAL_PHASE_2: Label \"%s\" is outside all sections.\n", g_label_tmp->label);
       return FAILED;
     }
 
@@ -2845,9 +2855,9 @@ int show_project_information_object(void) {
   }
 
   if (g_verbose_level >= 100) {
-    printf("-------------------------------------------------\n");
-    printf("---                   ROM                     ---\n");
-    printf("-------------------------------------------------\n");
+    print_text(YES, "-------------------------------------------------\n");
+    print_text(YES, "---                   ROM                     ---\n");
+    print_text(YES, "-------------------------------------------------\n");
   }
     
   for (i = 0; i < g_rombanks; i++) {  
@@ -2884,8 +2894,8 @@ int show_project_information_object(void) {
 
     f = ((float)used_rom)/bank_size * 100.0f;
     if (g_verbose_level >= 100) {
-      printf("ROM bank %d (%d bytes (%.2f%%) used)\n", i, used_rom, f);
-      printf("  - Outside .SECTIONs (%d bytes)\n", used_rom - used_sections);
+      print_text(YES, "ROM bank %d (%d bytes (%.2f%%) used)\n", i, used_rom, f);
+      print_text(YES, "  - Outside .SECTIONs (%d bytes)\n", used_rom - used_sections);
     }
     
     found_block = NO;
@@ -2899,14 +2909,14 @@ int show_project_information_object(void) {
       }
       else if (g_rom_banks_usage_table[bank_address + j] == 0 && found_block == YES) {
         if (g_verbose_level >= 100) {
-          printf("    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j - 1, j - block_start);
+          print_text(YES, "    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j - 1, j - block_start);
           printed_something = YES;
         }
         found_block = NO;
       }
       else if (found_block == YES && j == bank_size - 1) {
         if (g_verbose_level >= 100) {
-          printf("    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j, j - block_start + 1);
+          print_text(YES, "    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j, j - block_start + 1);
           printed_something = YES;
         }
       }
@@ -2914,11 +2924,11 @@ int show_project_information_object(void) {
 
     if (printed_something == NO) {
       if (g_verbose_level >= 100)
-        printf("    - No data outside .SECTIONs.\n");
+        print_text(YES, "    - No data outside .SECTIONs.\n");
     }
     
     if (g_verbose_level >= 100)
-      printf("  - Sections (%d bytes)\n", used_sections);
+      print_text(YES, "  - Sections (%d bytes)\n", used_sections);
 
     printed_something = NO;
     
@@ -2931,7 +2941,7 @@ int show_project_information_object(void) {
             status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE || status == SECTION_STATUS_SUPERFREE ||
             status == SECTION_STATUS_SEMISUBFREE || status == SECTION_STATUS_SEMISUPERFREE) {
           if (g_verbose_level >= 100) {
-            printf("    - .SECTION \"%s\" (%d bytes).\n", s->name, s->size);
+            print_text(YES, "    - .SECTION \"%s\" (%d bytes).\n", s->name, s->size);
             printed_something = YES;
           }
         }
@@ -2942,19 +2952,19 @@ int show_project_information_object(void) {
 
     if (printed_something == NO) {
       if (g_verbose_level >= 100)
-        printf("    - No .SECTIONs found.\n");
+        print_text(YES, "    - No .SECTIONs found.\n");
     }
   }
 
   if (g_verbose_level >= 100) {
-    printf("-------------------------------------------------\n");
-    printf("---                   RAM                     ---\n");
-    printf("-------------------------------------------------\n");
+    print_text(YES, "-------------------------------------------------\n");
+    print_text(YES, "---                   RAM                     ---\n");
+    print_text(YES, "-------------------------------------------------\n");
   }
   
   if (total_used_ram == 0) {
     if (g_verbose_level >= 100)
-      printf("No .RAMSECTIONs were found, no information about RAM.\n");
+      print_text(YES, "No .RAMSECTIONs were found, no information about RAM.\n");
   }
   else {
     char slot_name[MAX_NAME_LENGTH + 1];
@@ -2988,7 +2998,7 @@ int show_project_information_object(void) {
 
         f = ((float)ram_used)/g_slots[slot].size * 100.0f;
         if (g_verbose_level >= 100)
-          printf("RAM slot %s bank %d (%d bytes (%.2f%%) used)\n", slot_name, bank, ram_used, f);
+          print_text(YES, "RAM slot %s bank %d (%d bytes (%.2f%%) used)\n", slot_name, bank, ram_used, f);
 
         s = g_sections_first;
         while (s != NULL) {
@@ -2998,7 +3008,7 @@ int show_project_information_object(void) {
             if (status == SECTION_STATUS_RAM_FREE || status == SECTION_STATUS_RAM_FORCE ||
                 status == SECTION_STATUS_RAM_SEMIFREE || status == SECTION_STATUS_RAM_SEMISUBFREE) {
               if (g_verbose_level >= 100)
-                printf("  - .RAMSECTION \"%s\" (%d bytes).\n", s->name, s->size);
+                print_text(YES, "  - .RAMSECTION \"%s\" (%d bytes).\n", s->name, s->size);
             }
           }
           
@@ -3009,18 +3019,18 @@ int show_project_information_object(void) {
   }
 
   if (g_verbose_level >= 100) {
-    printf("-------------------------------------------------\n");
-    printf("---                 SUMMARY                   ---\n");
-    printf("-------------------------------------------------\n");
+    print_text(YES, "-------------------------------------------------\n");
+    print_text(YES, "---                 SUMMARY                   ---\n");
+    print_text(YES, "-------------------------------------------------\n");
   }
   
   f = ((float)total_used_rom)/total_rom_size * 100.0f;
-  printf("ROM: %d bytes (%.2f%%) used.\n", total_used_rom, f);
+  print_text(YES, "ROM: %d bytes (%.2f%%) used.\n", total_used_rom, f);
   
   if (total_used_ram == 0)
-    printf("RAM: No .RAMSECTIONs were found, no information about RAM.\n");
+    print_text(YES, "RAM: No .RAMSECTIONs were found, no information about RAM.\n");
   else
-    printf("RAM: %d bytes used.\n", total_used_ram);
+    print_text(YES, "RAM: %d bytes used.\n", total_used_ram);
 
   fflush(stderr);
   fflush(stdout);
@@ -3029,15 +3039,15 @@ int show_project_information_object(void) {
   g_sec_tmp = g_sections_first;
   while (g_sec_tmp != NULL) {
     if (g_sec_tmp->status == SECTION_STATUS_HEADER) {
-      printf("Bank %d header section size %d.\n", g_sec_tmp->bank, g_sec_tmp->size);
+      print_text(YES, "Bank %d header section size %d.\n", g_sec_tmp->bank, g_sec_tmp->size);
       ind += g_sec_tmp->size;
     }
     g_sec_tmp = g_sec_tmp->next;
   }
 
   if (ind != 0) {
-    printf("Total %d additional bytes (from headers and footers).\n", ind);
-    printf("Total size %d bytes.\n", ind + g_max_address);
+    print_text(YES, "Total %d additional bytes (from headers and footers).\n", ind);
+    print_text(YES, "Total size %d bytes.\n", ind + g_max_address);
   }
   */
   
@@ -3072,9 +3082,9 @@ int show_project_information_library(void) {
     s = s->next;
   }
 
-  printf("-------------------------------------------------\n");
-  printf("---                   ROM                     ---\n");
-  printf("-------------------------------------------------\n");
+  print_text(YES, "-------------------------------------------------\n");
+  print_text(YES, "---                   ROM                     ---\n");
+  print_text(YES, "-------------------------------------------------\n");
 
   s = g_sections_first;
   while (s != NULL) {
@@ -3083,17 +3093,17 @@ int show_project_information_library(void) {
     if (status == SECTION_STATUS_FREE || status == SECTION_STATUS_FORCE || status == SECTION_STATUS_OVERWRITE ||
         status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE || status == SECTION_STATUS_SUPERFREE ||
         status == SECTION_STATUS_SEMISUBFREE || status == SECTION_STATUS_SEMISUPERFREE)
-      printf(".SECTION \"%s\" (%d bytes).\n", s->name, s->size);
+      print_text(YES, ".SECTION \"%s\" (%d bytes).\n", s->name, s->size);
 
     s = s->next;
   }
 
-  printf("-------------------------------------------------\n");
-  printf("---                   RAM                     ---\n");
-  printf("-------------------------------------------------\n");
+  print_text(YES, "-------------------------------------------------\n");
+  print_text(YES, "---                   RAM                     ---\n");
+  print_text(YES, "-------------------------------------------------\n");
 
   if (total_used_ram == 0)
-    printf("No .RAMSECTIONs were found, no information about RAM.\n");
+    print_text(YES, "No .RAMSECTIONs were found, no information about RAM.\n");
   else {
     s = g_sections_first;
     while (s != NULL) {
@@ -3101,23 +3111,23 @@ int show_project_information_library(void) {
 
       if (status == SECTION_STATUS_RAM_FREE || status == SECTION_STATUS_RAM_FORCE ||
           status == SECTION_STATUS_RAM_SEMIFREE || status == SECTION_STATUS_RAM_SEMISUBFREE)
-        printf(".RAMSECTION \"%s\" (%d bytes).\n", s->name, s->size);
+        print_text(YES, ".RAMSECTION \"%s\" (%d bytes).\n", s->name, s->size);
 
       s = s->next;
     }
   }
 
-  printf("-------------------------------------------------\n");
-  printf("---                 SUMMARY                   ---\n");
-  printf("-------------------------------------------------\n");
+  print_text(YES, "-------------------------------------------------\n");
+  print_text(YES, "---                 SUMMARY                   ---\n");
+  print_text(YES, "-------------------------------------------------\n");
 
   f = ((float)total_used_rom)/total_rom_size * 100.0f;
-  printf("ROM: %d bytes (%.2f%%) used of total %d.\n", total_used_rom, f, total_rom_size);
+  print_text(YES, "ROM: %d bytes (%.2f%%) used of total %d.\n", total_used_rom, f, total_rom_size);
 
   if (total_used_ram == 0)
-    printf("RAM: No .RAMSECTIONs were found, no information about RAM.\n");
+    print_text(YES, "RAM: No .RAMSECTIONs were found, no information about RAM.\n");
   else
-    printf("RAM: %d bytes used.\n", total_used_ram);
+    print_text(YES, "RAM: %d bytes used.\n", total_used_ram);
 
   fflush(stderr);
   fflush(stdout);
@@ -3188,7 +3198,7 @@ int mem_insert(unsigned char x) {
   
   if (g_section_status == ON) {
     if (g_sec_tmp->i >= g_sec_tmp->size || g_sec_tmp->i < 0) {
-      fprintf(stderr, "MEM_INSERT: Overflowed from section \"%s\"; Please send a bug report!\n", g_sec_tmp->name);
+      print_text(NO, "MEM_INSERT: Overflowed from section \"%s\"; Please send a bug report!\n", g_sec_tmp->name);
       return FAILED;
     }
     g_sec_tmp->data[g_sec_tmp->i] = x;
@@ -3200,28 +3210,28 @@ int mem_insert(unsigned char x) {
   }
 
   if (s_pc_bank >= g_banksize) {
-    fprintf(stderr, "MEM_INSERT: Origin ($%x) overflows from bank (%d).\n", s_pc_bank, s_rom_bank);
+    print_text(NO, "MEM_INSERT: Origin ($%x) overflows from bank (%d).\n", s_pc_bank, s_rom_bank);
     if (g_mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
+      print_text(NO, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
   else if (s_pc_full >= g_max_address) {
-    fprintf(stderr, "MEM_INSERT: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", s_pc_full, g_max_address);
+    print_text(NO, "MEM_INSERT: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", s_pc_full, g_max_address);
     if (g_mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
+      print_text(NO, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
   else if (s_pc_slot >= s_pc_slot_max) {
-    fprintf(stderr, "MEM_INSERT: The current address ($%.4x) overflows from SLOT %d.\n", s_pc_slot, s_slot);
+    print_text(NO, "MEM_INSERT: The current address ($%.4x) overflows from SLOT %d.\n", s_pc_slot, s_slot);
     if (g_mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
+      print_text(NO, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
 
   if (g_rom_banks_usage_table[s_pc_full] != 0 && g_rom_banks[s_pc_full] != x && s_mem_insert_overwrite == OFF) {
-    fprintf(stderr, "MEM_INSERT: %d. write into $%.4x (old: $%.2x, new: $%.2x).\n", g_rom_banks_usage_table[s_pc_full], s_pc_full, g_rom_banks[s_pc_full], x & 0xFF);
+    print_text(NO, "MEM_INSERT: %d. write into $%.4x (old: $%.2x, new: $%.2x).\n", g_rom_banks_usage_table[s_pc_full], s_pc_full, g_rom_banks[s_pc_full], x & 0xFF);
     if (g_mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
+      print_text(NO, "   ^ %s\n", g_mem_insert_action);
   }
 
   g_rom_banks_usage_table[s_pc_full] = 2;
@@ -3250,21 +3260,21 @@ int mem_insert_padding(void) {
   }
 
   if (s_pc_bank >= g_banksize) {
-    fprintf(stderr, "MEM_INSERT_PADDING: Origin ($%x) overflows from bank (%d).\n", s_pc_bank, s_rom_bank);
+    print_text(NO, "MEM_INSERT_PADDING: Origin ($%x) overflows from bank (%d).\n", s_pc_bank, s_rom_bank);
     if (g_mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
+      print_text(NO, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
   else if (s_pc_full >= g_max_address) {
-    fprintf(stderr, "MEM_INSERT_PADDING: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", s_pc_full, g_max_address);
+    print_text(NO, "MEM_INSERT_PADDING: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", s_pc_full, g_max_address);
     if (g_mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
+      print_text(NO, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
   else if (s_pc_slot >= s_pc_slot_max) {
-    fprintf(stderr, "MEM_INSERT_PADDING: The current address ($%.4x) overflows from SLOT %d.\n", s_pc_slot, s_slot);
+    print_text(NO, "MEM_INSERT_PADDING: The current address ($%.4x) overflows from SLOT %d.\n", s_pc_slot, s_slot);
     if (g_mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
+      print_text(NO, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
 
@@ -3283,16 +3293,16 @@ int mem_insert_padding(void) {
 int mem_insert_absolute(int add, unsigned char x) {
 
   if (add >= g_max_address) {
-    fprintf(stderr, "MEM_INSERT_ABSOLUTE: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", add, g_max_address);
+    print_text(NO, "MEM_INSERT_ABSOLUTE: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", add, g_max_address);
     if (g_mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
+      print_text(NO, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
 
   if (g_rom_banks_usage_table[add] > 1 && g_rom_banks[add] != x && s_mem_insert_overwrite == OFF) {
-    fprintf(stderr, "MEM_INSERT_ABSOLUTE: %d. write into $%.4x (old: $%.2x, new: $%.2x).\n", g_rom_banks_usage_table[add], add, g_rom_banks[add], x & 0xFF);
+    print_text(NO, "MEM_INSERT_ABSOLUTE: %d. write into $%.4x (old: $%.2x, new: $%.2x).\n", g_rom_banks_usage_table[add], add, g_rom_banks[add], x & 0xFF);
     if (g_mem_insert_action[0] != 0)
-      fprintf(stderr, "   ^ %s\n", g_mem_insert_action);
+      print_text(NO, "   ^ %s\n", g_mem_insert_action);
   }
   
   g_rom_banks_usage_table[add]++;
@@ -3331,7 +3341,7 @@ int export_definitions(FILE *final_ptr) {
     hashmap_get(g_defines_map, export_tmp->name, (void*)&tmp_def);
 
     if (tmp_def == NULL)
-      fprintf(stderr, "WARNING: Trying to export an unknown definition \"%s\".\n", export_tmp->name);
+      print_text(NO, "WARNING: Trying to export an unknown definition \"%s\".\n", export_tmp->name);
     else {
       if (tmp_def->type == DEFINITION_TYPE_VALUE) {
         fprintf(final_ptr, "%s%c", tmp_def->alias, 0x0);
@@ -3339,7 +3349,7 @@ int export_definitions(FILE *final_ptr) {
         WRITEOUT_DOU;
       }
       else if (tmp_def->type == DEFINITION_TYPE_STRING)
-        fprintf(stderr, "INTERNAL_PHASE_2: Definition \"%s\" is a string definition, and it cannot be exported.\n", export_tmp->name);
+        print_text(NO, "INTERNAL_PHASE_2: Definition \"%s\" is a string definition, and it cannot be exported.\n", export_tmp->name);
       else if (tmp_def->type == DEFINITION_TYPE_STACK) {
         fprintf(final_ptr, "%s%c", tmp_def->alias, 0x1);
         dou = tmp_def->value;

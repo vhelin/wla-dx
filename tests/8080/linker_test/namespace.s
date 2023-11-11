@@ -1,4 +1,6 @@
 
+        ; @BT linked.rom
+        
 .macro NAMESPACEMACRO
 	.db \1
 .endm
@@ -23,18 +25,18 @@ NamespaceBonus:
 do:
 @loop:	call @loop
 
-	.db "NS>"
-	NAMESPACEMACRO $aa
-	.dbm INCREMENTMACRO 2
-	.incbin "binaryfile" FILTER INCREMENTMACRO
-	.db "<NS"
+	.db "NS>"               ; @BT TEST-NS NS START
+	NAMESPACEMACRO $aa      ; @BT AA
+	.dbm INCREMENTMACRO 2   ; @BT 03
+	.incbin "binaryfile" FILTER INCREMENTMACRO ; @BT 49 46 4D 4D 50
+	.db "<NS"                                  ; @BT END
 .ends
 
 .section "Main" FREE KEEP
 MainLoop:
-	.db "N1>"
-	.db 1, 0
-	.db "<N1"
+	.db "N1>"               ; @BT TEST-N1 N1 START
+	.db 1, 0                ; @BT 01 00
+	.db "<N1"               ; @BT END
 .ends
 
 .section "Bonus" APPENDTO "Main"

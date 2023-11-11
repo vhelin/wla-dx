@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <errno.h>
 
 #include "defines.h"
 
@@ -17,6 +18,7 @@
 #include "include.h"
 #include "printf.h"
 #include "mersenne.h"
+#include "main.h"
 
 
 extern int g_input_number_error_msg, g_bankheader_status, g_input_float_mode, g_global_label_hint, g_is_data_stream_parser_enabled;
@@ -344,13 +346,13 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
 
   int k;
   
-  printf("LINE %5d: ID = %d (STACK) CALCULATION ID = %d (c%d) ", line_number, id, stack_id, stack_id);
+  print_text(YES, "LINE %5d: ID = %d (STACK) CALCULATION ID = %d (c%d) ", line_number, id, stack_id, stack_id);
   if (stack == NULL)
-    printf("FB?: ");
+    print_text(YES, "FB?: ");
   else if (stack->is_function_body == YES)
-    printf("FBy: ");
+    print_text(YES, "FBy: ");
   else
-    printf("FBn: ");
+    print_text(YES, "FBn: ");
   
   for (k = 0; k < count; k++) {
     char ar[] = "+-*()|&/^01%~<>!:<>";
@@ -395,115 +397,115 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
     
     if (add_sign == YES) {
       if (ta[k].sign == SI_SIGN_POSITIVE)
-        printf("+");
+        print_text(YES, "+");
       else
-        printf("-");
+        print_text(YES, "-");
     }
     
     if (ta[k].can_calculate_deltas == YES)
-      printf("@");
+      print_text(YES, "@");
     else if (ta[k].can_calculate_deltas == NOT_APPLICABLE)
-      printf("*");
+      print_text(YES, "*");
     
     if (ta[k].type == STACK_ITEM_TYPE_OPERATOR) {
       int value = (int)ta[k].value;
 
       if (value == SI_OP_SHIFT_LEFT)
-        printf("<<");
+        print_text(YES, "<<");
       else if (value == SI_OP_SHIFT_RIGHT)
-        printf(">>");
+        print_text(YES, ">>");
       else if (value == SI_OP_COMPARE_EQ)
-        printf("==");
+        print_text(YES, "==");
       else if (value == SI_OP_COMPARE_NEQ)
-        printf("!=");
+        print_text(YES, "!=");
       else if (value == SI_OP_COMPARE_LTE)
-        printf("<=");
+        print_text(YES, "<=");
       else if (value == SI_OP_COMPARE_GTE)
-        printf(">=");
+        print_text(YES, ">=");
       else if (value == SI_OP_COMPARE_LT)
-        printf("< (LT)");
+        print_text(YES, "< (LT)");
       else if (value == SI_OP_COMPARE_GT)
-        printf("> (GT)");
+        print_text(YES, "> (GT)");
       else if (value == SI_OP_LOGICAL_OR)
-        printf("||");
+        print_text(YES, "||");
       else if (value == SI_OP_LOGICAL_AND)
-        printf("&&");
+        print_text(YES, "&&");
       else if (value == SI_OP_LOW_WORD)
-        printf("loword(a)");
+        print_text(YES, "loword(a)");
       else if (value == SI_OP_HIGH_WORD)
-        printf("hiword(a)");
+        print_text(YES, "hiword(a)");
       else if (value == SI_OP_BANK_BYTE)
-        printf("bankbyte(a)");
+        print_text(YES, "bankbyte(a)");
       else if (value == SI_OP_ROUND)
-        printf("round(a)");
+        print_text(YES, "round(a)");
       else if (value == SI_OP_CEIL)
-        printf("ceil(a)");
+        print_text(YES, "ceil(a)");
       else if (value == SI_OP_FLOOR)
-        printf("floor(a)");
+        print_text(YES, "floor(a)");
       else if (value == SI_OP_MIN)
-        printf("min(a,b)");
+        print_text(YES, "min(a,b)");
       else if (value == SI_OP_MAX)
-        printf("max(a,b)");
+        print_text(YES, "max(a,b)");
       else if (value == SI_OP_SQRT)
-        printf("sqrt(a)");
+        print_text(YES, "sqrt(a)");
       else if (value == SI_OP_ABS)
-        printf("abs(a)");
+        print_text(YES, "abs(a)");
       else if (value == SI_OP_COS)
-        printf("cos(a)");
+        print_text(YES, "cos(a)");
       else if (value == SI_OP_SIN)
-        printf("sin(a)");
+        print_text(YES, "sin(a)");
       else if (value == SI_OP_TAN)
-        printf("tan(a)");
+        print_text(YES, "tan(a)");
       else if (value == SI_OP_ACOS)
-        printf("acos(a)");
+        print_text(YES, "acos(a)");
       else if (value == SI_OP_ASIN)
-        printf("asin(a)");
+        print_text(YES, "asin(a)");
       else if (value == SI_OP_ATAN)
-        printf("atan(a)");
+        print_text(YES, "atan(a)");
       else if (value == SI_OP_ATAN2)
-        printf("atan2(a,b)");
+        print_text(YES, "atan2(a,b)");
       else if (value == SI_OP_NEGATE)
-        printf("negate(a)");
+        print_text(YES, "negate(a)");
       else if (value == SI_OP_COSH)
-        printf("cosh(a)");
+        print_text(YES, "cosh(a)");
       else if (value == SI_OP_SINH)
-        printf("sinh(a)");
+        print_text(YES, "sinh(a)");
       else if (value == SI_OP_TANH)
-        printf("tanh(a)");
+        print_text(YES, "tanh(a)");
       else if (value == SI_OP_LOG)
-        printf("log(a)");
+        print_text(YES, "log(a)");
       else if (value == SI_OP_LOG10)
-        printf("log10(a)");
+        print_text(YES, "log10(a)");
       else if (value == SI_OP_POW)
-        printf("pow(a,b)");
+        print_text(YES, "pow(a,b)");
       else if (value == SI_OP_CLAMP)
-        printf("pow(v,min,max)");
+        print_text(YES, "pow(v,min,max)");
       else if (value == SI_OP_SIGN)
-        printf("sign(a)");
+        print_text(YES, "sign(a)");
       else {
         if (value >= (int)strlen(ar)) {
-          printf("ERROR!\n");
-          printf("_debug_print_stack(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", value);
+          print_text(YES, "ERROR!\n");
+          print_text(YES, "_debug_print_stack(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", value);
           exit(1);
         }
-        printf("%c", ar[value]);
+        print_text(YES, "%c", ar[value]);
       }
     }
     else if (ta[k].type == STACK_ITEM_TYPE_VALUE)
-      printf("V(%f)", ta[k].value);
+      print_text(YES, "V(%f)", ta[k].value);
     else if (ta[k].type == STACK_ITEM_TYPE_STACK)
-      printf("C(%d)", (int)ta[k].value);
+      print_text(YES, "C(%d)", (int)ta[k].value);
     else if (ta[k].type == STACK_ITEM_TYPE_STRING)
-      printf("S(%s)", ta[k].string);
+      print_text(YES, "S(%s)", ta[k].string);
     else if (ta[k].type == STACK_ITEM_TYPE_LABEL)
-      printf("L(%s)", ta[k].string);
+      print_text(YES, "L(%s)", ta[k].string);
     else
-      printf("?");
+      print_text(YES, "?");
 
     if (k < count-1)
-      printf(", ");
+      print_text(YES, ", ");
   }
-  printf("\n");
+  print_text(YES, "\n");
 }
 #endif
 
@@ -597,7 +599,7 @@ static int _get_op_priority(int op) {
     i++;
   }
 
-  fprintf(stderr, "_get_op_priority(): No priority for OP %d! Please submit a bug report\n", op);
+  print_text(NO, "_get_op_priority(): No priority for OP %d! Please submit a bug report\n", op);
 
   return 0;
 }
@@ -613,7 +615,7 @@ static void _return_converted_stack_items(void) {
     s = s_converted_stack_items[i];
 
     /*
-    fprintf(stderr, "RETURN %s: %d %f\n", s->string, s->type, s->value);
+    print_text(NO, "RETURN %s: %d %f\n", s->string, s->type, s->value);
     */
 
     s->type = b->type;
@@ -625,7 +627,7 @@ static void _return_converted_stack_items(void) {
     strcpy(s->string, b->string);
 
     /*
-    fprintf(stderr, "   NOW %s: %d %f\n", s->string, s->type, s->value);
+    print_text(NO, "   NOW %s: %d %f\n", s->string, s->type, s->value);
     */
   }
 
@@ -641,7 +643,7 @@ static int _remember_converted_stack_item(struct stack_item *s) {
     return SUCCEEDED;
   
   if (s_converted_stack_items_count >= 64) {
-    fprintf(stderr, "_REMEMBER_CONVERTED_STACK_ITEM: Out of space! Please submit a bug report!\n");
+    print_text(NO, "_REMEMBER_CONVERTED_STACK_ITEM: Out of space! Please submit a bug report!\n");
     return FAILED;
   }
 
@@ -654,7 +656,7 @@ static int _remember_converted_stack_item(struct stack_item *s) {
   }
   
   /*
-  fprintf(stderr, "REMEMBER %s: %d %f\n", s->string, s->type, s->value);
+  print_text(NO, "REMEMBER %s: %d %f\n", s->string, s->type, s->value);
   */
 
   b = &s_converted_stack_items_backups[s_converted_stack_items_count];
@@ -2262,7 +2264,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       else {
         if (d == 0x123456) {
           /* sanity check */
-          fprintf(stderr, "d = 0x123456! Internal error! Please submit a bug report!\n");
+          print_text(NO, "d = 0x123456! Internal error! Please submit a bug report!\n");
           return FAILED;
         }
         
@@ -2334,7 +2336,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   }
 
 #if defined(WLA_DEBUG)
-  fprintf(stderr, "PREOPT:\n");
+  print_text(NO, "PREOPT:\n");
   _debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
 #endif
   
@@ -2466,7 +2468,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[k + 1].value != SI_OP_SQRT) {
       if (si[k].value != SI_OP_LEFT && si[k].value != SI_OP_RIGHT && si[k + 1].value != SI_OP_LEFT && si[k + 1].value != SI_OP_RIGHT) {
 #if defined(WLA_DEBUG)
-        fprintf(stderr, "ERROR NEAR COMPUTATION ITEM %d! (items %d and %d)\n", k, (int)si[k].value, (int)si[k+1].value);
+        print_text(NO, "ERROR NEAR COMPUTATION ITEM %d! (items %d and %d)\n", k, (int)si[k].value, (int)si[k+1].value);
         _debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
 #endif
         print_error(ERROR_STC, "Error in computation syntax.\n");
@@ -2548,7 +2550,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   }
 
 #if defined(WLA_DEBUG)
-  fprintf(stderr, "INFIX:\n");
+  print_text(NO, "INFIX:\n");
   _debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);
 #endif
     
@@ -2647,7 +2649,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   }
 
 #if defined(WLA_DEBUG)
-  fprintf(stderr, "POSTFIX:\n");
+  print_text(NO, "POSTFIX:\n");
   _debug_print_stack(g_active_file_info_last->line_current, -1, ta, d, 0, NULL);
 #endif
     
@@ -2680,13 +2682,13 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     
     if (g_input_float_mode == ON) {
 #if defined(WLA_DEBUG)
-      fprintf(stderr, "RETURN FLOAT %f\n", dou);
+      print_text(NO, "RETURN FLOAT %f\n", dou);
 #endif
       return INPUT_NUMBER_FLOAT;
     }
 
 #if defined(WLA_DEBUG)
-    fprintf(stderr, "RETURN INT %d\n", (int)dou);
+    print_text(NO, "RETURN INT %d\n", (int)dou);
 #endif
     
     *value = (int)dou;
@@ -2702,7 +2704,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     strcpy(g_label, ta[0].string);
     process_special_labels(g_label);
 #if defined(WLA_DEBUG)
-    fprintf(stderr, "RETURN STRING %s\n", g_label);
+    print_text(NO, "RETURN STRING %s\n", g_label);
 #endif
     return STACK_RETURN_STRING;
   }
@@ -2711,13 +2713,13 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     strcpy(g_label, ta[0].string);
     process_special_labels(g_label);
 #if defined(WLA_DEBUG)
-    fprintf(stderr, "RETURN LABEL %s\n", g_label);
+    print_text(NO, "RETURN LABEL %s\n", g_label);
 #endif
     return STACK_RETURN_LABEL;
   }
 
   /*
-    printf("%d %d %s\n", d, ta[0].type, ta[0].string);
+    print_text(YES, "%d %d %s\n", d, ta[0].type, ta[0].string);
   */
 
   /* we have a stack full of computation and we save it for wlalink */
@@ -2783,7 +2785,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   calculation_stack_insert(stack);
 
 #if defined(WLA_DEBUG)
-    fprintf(stderr, "RETURN STACK %d\n", g_latest_stack);
+    print_text(NO, "RETURN STACK %d\n", g_latest_stack);
     _debug_print_stack(g_active_file_info_last->line_current, g_latest_stack, ta, d, 0, NULL);
 #endif
 
@@ -2916,7 +2918,7 @@ static struct data_stream_item *_data_stream_parser_find_label(char *label, int 
 
     if (n >= 0) {
       if (s_dsp_parent_labels[n] == NULL) {
-        fprintf(stderr, "_DATA_STREAM_PARSER_FIND_LABEL: Parent of label \"%s\" is missing! Please submit a bug report!\n", label);
+        print_text(NO, "_DATA_STREAM_PARSER_FIND_LABEL: Parent of label \"%s\" is missing! Please submit a bug report!\n", label);
         return NULL;
       }
       if (mangle_label(mangled_label, s_dsp_parent_labels[n]->label, n, MAX_NAME_LENGTH, file_name_id, line_number) == FAILED)
@@ -2936,15 +2938,15 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
 
   /*
   if (s->type == STACK_ITEM_TYPE_STRING)
-    fprintf(stderr, "STR 1 ***%s***\n", s->string);
+    print_text(NO, "STR 1 ***%s***\n", s->string);
   if (s->type == STACK_ITEM_TYPE_LABEL)
-    fprintf(stderr, "LBL 1 ***%s***\n", s->string);
+    print_text(NO, "LBL 1 ***%s***\n", s->string);
   else if (s->type == STACK_ITEM_TYPE_VALUE)
-    fprintf(stderr, "VAL 1 ***%d***\n", (int)s->value);
+    print_text(NO, "VAL 1 ***%d***\n", (int)s->value);
   else if (s->type == STACK_ITEM_TYPE_STACK)
-    fprintf(stderr, "CAL 1 ***%d***\n", (int)s->value);
+    print_text(NO, "CAL 1 ***%d***\n", (int)s->value);
   else
-    fprintf(stderr, "??? 1\n");
+    print_text(NO, "??? 1\n");
   */
   
   if (g_macro_active != 0) {
@@ -2955,15 +2957,15 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
 
   /*
   if (s->type == STACK_ITEM_TYPE_STRING)
-    fprintf(stderr, "STR 2 ***%s***\n", s->string);
+    print_text(NO, "STR 2 ***%s***\n", s->string);
   if (s->type == STACK_ITEM_TYPE_LABEL)
-    fprintf(stderr, "LBL 2 ***%s***\n", s->string);
+    print_text(NO, "LBL 2 ***%s***\n", s->string);
   else if (s->type == STACK_ITEM_TYPE_VALUE)
-    fprintf(stderr, "VAL 2 ***%d***\n", (int)s->value);
+    print_text(NO, "VAL 2 ***%d***\n", (int)s->value);
   else if (s->type == STACK_ITEM_TYPE_STACK)
-    fprintf(stderr, "CAL 2 ***%d***\n", (int)s->value);
+    print_text(NO, "CAL 2 ***%d***\n", (int)s->value);
   else
-    fprintf(stderr, "??? 2\n");
+    print_text(NO, "??? 2\n");
   */
 
   hashmap_get(g_defines_map, s->string, (void*)&tmp_def);
@@ -3002,7 +3004,8 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
       struct data_stream_item *dSI = NULL;
 
       /* read the labels and their addresses from the internal data stream */
-      data_stream_parser_parse();
+      if (data_stream_parser_parse() == FAILED)
+        return FAILED;
 
       if (s->type == STACK_ITEM_TYPE_LABEL)
         dSI = _data_stream_parser_find_label(s->string, s_dsp_file_name_id, s_dsp_line_number);
@@ -3046,7 +3049,8 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
       struct data_stream_item *dSI = NULL;
 
       /* read the labels and their addresses from the internal data stream */
-      data_stream_parser_parse();
+      if (data_stream_parser_parse() == FAILED)
+        return FAILED;
 
       if (s->type == STACK_ITEM_TYPE_LABEL)
         dSI = _data_stream_parser_find_label(s->string, s_dsp_file_name_id, s_dsp_line_number);
@@ -3061,7 +3065,7 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
           s->type = STACK_ITEM_TYPE_VALUE;
           s->value = g_slots[dSI->slot].address + dSI->address;
           /*
-          fprintf(stderr, "1: %s -> %d\n", s->string, (int)s->value);
+          print_text(NO, "1: %s -> %d\n", s->string, (int)s->value);
           */
         }
         else {
@@ -3081,7 +3085,7 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
             s->type = STACK_ITEM_TYPE_VALUE;
             s->value = g_slots[section->slot].address + dSI->address;
             /*
-            fprintf(stderr, "2: %s -> %d\n", s->string, (int)s->value);
+            print_text(NO, "2: %s -> %d\n", s->string, (int)s->value);
             */
           }
         }
@@ -3466,7 +3470,7 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
   /* if this is not a condition then NOT will delay the processing to WLALINK */
   if (is_condition == YES || g_input_parse_if == YES) {
 #if defined(WLA_DEBUG)
-    fprintf(stderr, "RESOLVED (1):\n");
+    print_text(NO, "RESOLVED (1):\n");
     _debug_print_stack(0, 0, s, backup, 0, NULL);
 #endif
     return SUCCEEDED;
@@ -3484,7 +3488,7 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
   }
 
 #if defined(WLA_DEBUG)
-  fprintf(stderr, "RESOLVED (2):\n");
+  print_text(NO, "RESOLVED (2):\n");
   _debug_print_stack(0, 0, s, backup, 0, NULL);
 #endif
   
@@ -3495,11 +3499,11 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
 static int _comparing_a_string_with_a_number(char *sp1, char *sp2, struct stack *sta) {
 
   if (sp1 != NULL && sp2 == NULL) {  
-    fprintf(stderr, "%s:%d: COMPUTE_STACK: Comparison between a string \"%s\" and a number doesn't work.\n", get_file_name(sta->filename_id), sta->linenumber, sp1);
+    print_text(NO, "%s:%d: COMPUTE_STACK: Comparison between a string \"%s\" and a number doesn't work.\n", get_file_name(sta->filename_id), sta->linenumber, sp1);
     return YES;
   }
   else if (sp1 == NULL && sp2 != NULL) {  
-    fprintf(stderr, "%s:%d: COMPUTE_STACK: Comparison between a string \"%s\" and a number doesn't work.\n", get_file_name(sta->filename_id), sta->linenumber, sp2);
+    print_text(NO, "%s:%d: COMPUTE_STACK: Comparison between a string \"%s\" and a number doesn't work.\n", get_file_name(sta->filename_id), sta->linenumber, sp2);
     return YES;
   }
   
@@ -3551,7 +3555,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
   s = sta->stack_items;
 
 #if defined(WLA_DEBUG)
-  fprintf(stderr, "SOLVING:\n");
+  print_text(NO, "SOLVING:\n");
   _debug_print_stack(0, 0, s, stack_item_count, 0, NULL);
 #endif
 
@@ -3583,7 +3587,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_MULTIPLY:
         if (t <= 1) {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: Multiply is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+          print_text(NO, "%s:%d: COMPUTE_STACK: Multiply is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
           return FAILED;
         }
         v[t - 2] *= v[t - 1];
@@ -3736,7 +3740,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_ACOS:
         if (v[t - 1] < -1.0 || v[t - 1] > 1.0) {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: acos() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->filename_id), sta->linenumber, v[t - 1]);
+          print_text(NO, "%s:%d: COMPUTE_STACK: acos() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->filename_id), sta->linenumber, v[t - 1]);
           return FAILED;
         }
         v[t - 1] = acos(v[t - 1]);
@@ -3746,7 +3750,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_ASIN:
         if (v[t - 1] < -1.0 || v[t - 1] > 1.0) {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: asin() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->filename_id), sta->linenumber, v[t - 1]);
+          print_text(NO, "%s:%d: COMPUTE_STACK: asin() needs a value that is [-1.0, 1.0], %f doesn't work!\n", get_file_name(sta->filename_id), sta->linenumber, v[t - 1]);
           return FAILED;
         }
         v[t - 1] = asin(v[t - 1]);
@@ -3776,7 +3780,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_SQRT:
         if (v[t - 1] < 0.0) {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: sqrt() needs a value that is >= 0.0, %f doesn't work!\n", get_file_name(sta->filename_id), sta->linenumber, v[t - 1]);
+          print_text(NO, "%s:%d: COMPUTE_STACK: sqrt() needs a value that is >= 0.0, %f doesn't work!\n", get_file_name(sta->filename_id), sta->linenumber, v[t - 1]);
           return FAILED;
         }
         v[t - 1] = sqrt(v[t - 1]);
@@ -3921,7 +3925,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_XOR:
         if (t <= 1) {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: XOR is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+          print_text(NO, "%s:%d: COMPUTE_STACK: XOR is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
           return FAILED;
         }
         v[t - 2] = (int)v[t - 1] ^ (int)v[t - 2];
@@ -3930,7 +3934,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_OR:
         if (t <= 1) {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: OR is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+          print_text(NO, "%s:%d: COMPUTE_STACK: OR is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
           return FAILED;
         }
         v[t - 2] = (int)v[t - 1] | (int)v[t - 2];
@@ -3939,7 +3943,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_AND:
         if (t <= 1) {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: AND is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+          print_text(NO, "%s:%d: COMPUTE_STACK: AND is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
           return FAILED;
         }
         v[t - 2] = (int)v[t - 1] & (int)v[t - 2];
@@ -3948,11 +3952,11 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_MODULO:
         if (((int)v[t - 1]) == 0) {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: Modulo by zero.\n", get_file_name(sta->filename_id), sta->linenumber);
+          print_text(NO, "%s:%d: COMPUTE_STACK: Modulo by zero.\n", get_file_name(sta->filename_id), sta->linenumber);
           return FAILED;
         }
         if (t <= 1) {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: Modulo is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+          print_text(NO, "%s:%d: COMPUTE_STACK: Modulo is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
           return FAILED;
         }
         v[t - 2] = (int)v[t - 2] % (int)v[t - 1];
@@ -3961,11 +3965,11 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_DIVIDE:
         if (v[t - 1] == 0.0) {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: Division by zero.\n", get_file_name(sta->filename_id), sta->linenumber);
+          print_text(NO, "%s:%d: COMPUTE_STACK: Division by zero.\n", get_file_name(sta->filename_id), sta->linenumber);
           return FAILED;
         }
         if (t <= 1) {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: Division is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+          print_text(NO, "%s:%d: COMPUTE_STACK: Division is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
           return FAILED;
         }
         v[t - 2] /= v[t - 1];
@@ -3974,7 +3978,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_POWER:
         if (t <= 1) {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: Power is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+          print_text(NO, "%s:%d: COMPUTE_STACK: Power is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
           return FAILED;
         }
         v[t - 2] = pow(v[t - 2], v[t - 1]);
@@ -3983,7 +3987,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_SHIFT_LEFT:
         if (t <= 1) {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: Shift left is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+          print_text(NO, "%s:%d: COMPUTE_STACK: Shift left is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
           return FAILED;
         }
         v[t - 2] = (int)v[t - 2] << (int)v[t - 1];
@@ -3992,7 +3996,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_SHIFT_RIGHT:
         if (t <= 1) {
-          fprintf(stderr, "%s:%d: COMPUTE_STACK: Shift right is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+          print_text(NO, "%s:%d: COMPUTE_STACK: Shift right is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
           return FAILED;
         }
         v[t - 2] = (int)v[t - 2] >> (int)v[t - 1];
@@ -4020,7 +4024,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
   *result = v[0];
 
 #if defined(WLA_DEBUG)
-  fprintf(stderr, "RESULT = %f\n", *result);
+  print_text(NO, "RESULT = %f\n", *result);
 #endif
   
   return SUCCEEDED;
@@ -4119,7 +4123,7 @@ static int _stack_create_stack_caddr_offset(int type, int data, char *label, str
   else if (type == INPUT_NUMBER_STACK)
     si->type = STACK_ITEM_TYPE_STACK;
   else {
-    fprintf(stderr, "%s:%d: STACK_CREATE_STACK_CADDR_OFFSET: Unhandled data type %d! Please submit a bug report!\n", get_file_name(stack->filename_id), stack->linenumber, type);
+    print_text(NO, "%s:%d: STACK_CREATE_STACK_CADDR_OFFSET: Unhandled data type %d! Please submit a bug report!\n", get_file_name(stack->filename_id), stack->linenumber, type);
     return FAILED;
   }
   
@@ -4294,6 +4298,7 @@ int stack_create_stack_caddr_offset_plus_n(int type, int data, char *label, int 
 #define XSTRINGIFY(x) #x
 #define STRINGIFY(x) XSTRINGIFY(x)
 #define STRING_READ_FORMAT ("%" STRINGIFY(MAX_NAME_LENGTH) "s ")
+#define STRING_READ_FORMAT_NO_SPACE ("%" STRINGIFY(MAX_NAME_LENGTH) "s")
 
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 extern char g_namespace[MAX_NAME_LENGTH + 1];
@@ -4320,6 +4325,15 @@ int data_stream_parser_get_current_address(void) {
 }
 
 
+static int _print_fscanf_error_accessing_internal_data_stream(int file_name_id, int line_number, int command, int err) {
+
+  print_text(NO, "%s:%d: data_stream_parser_parse(): Could not read enough elements from the internal data stream. Command = %c. Error = %d. errno = %d. Please submit a bug report!\n",
+          get_file_name(file_name_id), line_number, command, err, errno);
+
+  return FAILED;
+}
+
+
 int data_stream_parser_free(void) {
 
   if (s_dsp_labels_map != NULL) {
@@ -4342,8 +4356,8 @@ int data_stream_parser_free(void) {
 
 int data_stream_parser_parse(void) {
 
-  int err;
-  char c;
+  char c, temp_s[MAX_NAME_LENGTH + 1];
+  int err, temp_1, temp_2, temp_3;
 
   if (g_is_data_stream_parser_enabled == NO)
     return SUCCEEDED;
@@ -4352,6 +4366,8 @@ int data_stream_parser_parse(void) {
     print_error(ERROR_STC, "The internal data stream is closed! It should be open. Please submit a bug report!\n");
     return FAILED;
   }
+
+  fflush(g_file_out_ptr);
 
   if (s_dsp_has_data_stream_parser_been_initialized == NO) {
     /* do the init when we first time come here */
@@ -4383,14 +4399,20 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 'i':
-      err = fscanf(g_file_out_ptr, "%*d %*s ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       continue;
     case 'I':
-      err = fscanf(g_file_out_ptr, "%*d %*s ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       continue;
 
     case 'P':
@@ -4403,14 +4425,14 @@ int data_stream_parser_parse(void) {
     case 'A':
     case 'S':
       if (c == 'A') {
-        err = fscanf(g_file_out_ptr, "%d %*d", &s_dsp_section_id);
-        if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+        err = fscanf(g_file_out_ptr, "%d %d", &s_dsp_section_id, &temp_1);
+        if (err < 2)
+          return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       }
       else {
         err = fscanf(g_file_out_ptr, "%d ", &s_dsp_section_id);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       }
 
       s_dsp_add_old = s_dsp_add;
@@ -4453,113 +4475,119 @@ int data_stream_parser_parse(void) {
 
     case 'x':
     case 'o':
-      err = fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
-      if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d %d ", &s_dsp_inz, &temp_1);
+      if (err < 2)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add += s_dsp_inz;
       continue;
 
     case 'X':
-      err = fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
-      if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d %d ", &s_dsp_inz, &temp_1);
+      if (err < 2)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add += s_dsp_inz * 2;
       continue;
 
     case 'h':
-      err = fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
-      if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d %d ", &s_dsp_inz, &temp_1);
+      if (err < 2)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add += s_dsp_inz * 3;
       continue;
 
     case 'w':
-      err = fscanf(g_file_out_ptr, "%d %*d ", &s_dsp_inz);
-      if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d %d ", &s_dsp_inz, &temp_1);
+      if (err < 2)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add += s_dsp_inz * 4;
       continue;
 
     case 'z':
     case 'q':
-      err = fscanf(g_file_out_ptr, "%*s ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add += 3;
       continue;
 
     case 'T':
-      err = fscanf(g_file_out_ptr, "%*d ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add += 3;
       continue;
 
     case 'u':
     case 'V':
-      err = fscanf(g_file_out_ptr, "%*s ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add += 4;
       continue;
 
     case 'U':
-      err = fscanf(g_file_out_ptr, "%*d ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add += 4;
       continue;
 
     case 'v':
-      err = fscanf(g_file_out_ptr, "%*d ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       continue;
         
     case 'b':
-      err = fscanf(g_file_out_ptr, "%*d ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       continue;
 
     case 'R':
     case 'Q':
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      s_dsp_add++;
+      continue;
+      
     case 'd':
     case 'c':
-      err = fscanf(g_file_out_ptr, "%*s ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add++;
       continue;
 
     case 'M':
     case 'r':
-      err = fscanf(g_file_out_ptr, "%*s ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add += 2;
       continue;
 
     case 'y':
     case 'C':
-      err = fscanf(g_file_out_ptr, "%*d ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add += 2;
       continue;
 
 #if defined(SUPERFX)
     case '*':
-      err = fscanf(g_file_out_ptr, "%*s ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add++;
       continue;
       
     case '-':
-      err = fscanf(g_file_out_ptr, "%*d ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add++;
       continue;
 #endif
@@ -4571,7 +4599,7 @@ int data_stream_parser_parse(void) {
           
         err = fscanf(g_file_out_ptr, "%d ", &bits_to_add);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       
         if (bits_to_add == 999) {
           s_dsp_bits_current = 0;
@@ -4592,22 +4620,22 @@ int data_stream_parser_parse(void) {
 
         err = fscanf(g_file_out_ptr, "%c", &type);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
         
         if (type == 'a') {
-          err = fscanf(g_file_out_ptr, "%*d");
-          if (err < 0)
-            return print_fscanf_error_accessing_internal_data_stream();
+          err = fscanf(g_file_out_ptr, "%d", &temp_1);
+          if (err < 1)
+            return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
         }
         else if (type == 'b') {
-          err = fscanf(g_file_out_ptr, "%*s");
-          if (err < 0)
-            return print_fscanf_error_accessing_internal_data_stream();
+          err = fscanf(g_file_out_ptr, STRING_READ_FORMAT_NO_SPACE, temp_s);
+          if (err < 1)
+            return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
         }
         else if (type == 'c') {
-          err = fscanf(g_file_out_ptr, "%*d");
-          if (err < 0)
-            return print_fscanf_error_accessing_internal_data_stream();
+          err = fscanf(g_file_out_ptr, "%d", &temp_1);
+          if (err < 1)
+            return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
         }
 
         continue;
@@ -4615,43 +4643,46 @@ int data_stream_parser_parse(void) {
 
 #if defined(SPC700)
     case 'n':
-      err = fscanf(g_file_out_ptr, "%*d %*s ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add += 2;
       continue;
 
     case 'N':
-      err = fscanf(g_file_out_ptr, "%*d %*d ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d %d ", &temp_1, &temp_2);
+      if (err < 2)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add += 2;
       continue;
 #endif
 
     case 'D':
-      err = fscanf(g_file_out_ptr, "%*d %*d %*d %d ", &s_dsp_inz);
-      if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d %d %d %d ", &temp_1, &temp_2, &temp_3, &s_dsp_inz);
+      if (err < 4)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add += s_dsp_inz;
       continue;
 
     case 'O':
       err = fscanf(g_file_out_ptr, "%d ", &s_dsp_add);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       continue;
 
     case 'B':
       err = fscanf(g_file_out_ptr, "%d %d ", &s_dsp_bank, &s_dsp_slot);
       if (err < 2)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       continue;
 
     case 'g':
-      err = fscanf(g_file_out_ptr, "%*d ");
-      if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       continue;
 
     case 'G':
@@ -4660,14 +4691,14 @@ int data_stream_parser_parse(void) {
     case 't':
       err = fscanf(g_file_out_ptr, "%d ", &s_dsp_inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
 
       if (s_dsp_inz == 0)
         g_namespace[0] = 0;
       else {
         err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       }
       continue;
 
@@ -4677,9 +4708,9 @@ int data_stream_parser_parse(void) {
       if (c == 'Z') {
       }
       else if (c == 'Y') {
-        err = fscanf(g_file_out_ptr, "%*s ");
-        if (err < 0)
-          return print_fscanf_error_accessing_internal_data_stream();
+        err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
+        if (err < 1)
+          return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       }
       else {
         struct data_stream_item *dSI;
@@ -4693,7 +4724,7 @@ int data_stream_parser_parse(void) {
 
         err = fscanf(g_file_out_ptr, "%s ", dSI->label);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
         
         if (is_label_anonymous(dSI->label) == YES || dSI->label[0] == '_') {
           /* we skip anonymous and local labels here, too much trouble */
@@ -4738,7 +4769,7 @@ int data_stream_parser_parse(void) {
 
           /* store the entry in a hashmap for quick discovery */
           if (hashmap_put(s_dsp_labels_map, dSI->label, dSI) == MAP_OMEM) {
-            fprintf(stderr, "data_stream_parser_parse(): Out of memory error while trying to insert label \"%s\" into a hashmap.\n", dSI->label);
+            print_text(NO, "data_stream_parser_parse(): Out of memory error while trying to insert label \"%s\" into a hashmap.\n", dSI->label);
             return FAILED;
           }
 
@@ -4759,13 +4790,13 @@ int data_stream_parser_parse(void) {
     case 'f':
       err = fscanf(g_file_out_ptr, "%d ", &s_dsp_file_name_id);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       continue;
 
     case 'k':
       err = fscanf(g_file_out_ptr, "%d ", &s_dsp_line_number);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       continue;
 
     case 'e':
@@ -4774,7 +4805,7 @@ int data_stream_parser_parse(void) {
         
         err = fscanf(g_file_out_ptr, "%d %d ", &x, &y);
         if (err < 2)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
 
         if (y == -1) {
           /* mark start of .DSTRUCT */
@@ -4783,7 +4814,7 @@ int data_stream_parser_parse(void) {
         }
         else {
           if (s_dstruct_item_offset != -1 && s_dsp_add - s_dstruct_item_offset > s_dstruct_item_size) {
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: %d too many bytes in struct field.\n", get_file_name(s_dsp_file_name_id), s_dsp_line_number, (s_dsp_add - s_dstruct_item_offset) - s_dstruct_item_size);
+            print_text(NO, "%s:%d: INTERNAL_PHASE_1: %d too many bytes in struct field.\n", get_file_name(s_dsp_file_name_id), s_dsp_line_number, (s_dsp_add - s_dstruct_item_offset) - s_dstruct_item_size);
             return FAILED;
           }
           
@@ -4799,7 +4830,7 @@ int data_stream_parser_parse(void) {
       continue;
 
     default:
-      fprintf(stderr, "data_stream_parser_parse(): Unknown internal symbol \"%c\". Please submit a bug report!\n", c);
+      print_text(NO, "data_stream_parser_parse(): Unknown internal symbol \"%c\". Please submit a bug report!\n", c);
       return FAILED;
     }
   }

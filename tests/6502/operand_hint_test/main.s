@@ -8,6 +8,8 @@ SLOT 0 $8000
 .ROMBANKSIZE $8000
 .ROMBANKS 8
 
+        ; @BT result.rom
+        
 .DEFINE N 3
 .BANK N-3 SLOT 0
 .ORG $0000
@@ -20,37 +22,37 @@ SLOT 0 $8000
 .printt "h\n"
 
 .SECTION "Test" FORCE
-        .db "01>"
-        .db 0ah+1h+2h, 11h, 0abH, dena, pena
-        .db "<01"
-        .db "02>"
-        and 10.b
-        and 10.w
-        and $10.b
-        and $10.w
-        and 10h.b
-        and 10h.w
-        and %10.b
-        and %10.w
-        and ADDR.B
-        and ADDR.W
-        and ADDR-4.b
-        and ADDR+4.w
-        .db "<02"
-        .db "03>"
-label:  lda #(label&$ff)
-        lda #(label>>8)
-        stx 100
-        sta 1000.w
-        and 10
-        stx 1000.w
-        .db "<03"
+        .db "01>"                            ; @BT TEST-01 01 START
+        .db 0ah+1h+2h, 11h, 0abH, dena, pena ; @BT 0D 11 AB 0B 22
+        .db "<01"                            ; @BT END
+        .db "02>"                            ; @BT TEST-02 02 START
+        and 10.b                             ; @BT 25 0A
+        and 10.w                             ; @BT 2D 0A 00
+        and $10.b                            ; @BT 25 10
+        and $10.w                            ; @BT 2D 10 00
+        and 10h.b                            ; @BT 25 10
+        and 10h.w                            ; @BT 2D 10 00
+        and %10.b                            ; @BT 25 02
+        and %10.w                            ; @BT 2D 02 00
+        and ADDR.B                           ; @BT 25 14
+        and ADDR.W                           ; @BT 2D 14 00
+        and ADDR-4.b                         ; @BT 25 10
+        and ADDR+4.w                         ; @BT 2D 18 00
+        .db "<02"                            ; @BT END
+        .db "03>"                            ; @BT TEST-03 03 START
+label:  lda #(label&$ff)                     ; @BT A9 32
+        lda #(label>>8)                      ; @BT A9 80
+        stx 100                              ; @BT 86 64
+        sta 1000.w                           ; @BT 8D E8 03
+        and 10                               ; @BT 25 0A
+        stx 1000.w                           ; @BT 8E E8 03
+        .db "<03"                            ; @BT END
 .ENDS
 
 .section "Names, names, names..." free
         .db name4, 0, name3, 1, name2, 2, name1, 3
 .ends
 
-.db "04>"
-.dbsin 0.2, 10, 3.2, 120, 1.3
-.db "<04"
+.db "04>"                       ; @BT TEST-04 04 START
+.dbsin 0.2, 10, 3.2, 120, 1.3   ; @BT 01 08 0F 15 1C 22 29 2F 35 3B 41
+.db "<04"                       ; @BT END

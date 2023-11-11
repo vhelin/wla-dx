@@ -322,7 +322,7 @@
 
 #define INSTRUCTION_STRING_LENGTH_MAX 18
 #define ARCH_STR "Z80N"
-#define WLA_NAME "z80N"
+#define WLA_NAME "z80n"
 
 #endif
 

@@ -9,13 +9,11 @@ CFILES = main.c memory.c parse.c files.c check.c analyze.c write.c compute.c dis
 HFILES = main.h memory.h parse.h files.h check.h analyze.h write.h compute.h discard.h listfile.h defines.h
 OFILES = main.o memory.o parse.o files.o check.o analyze.o write.o compute.o discard.o listfile.o
 
-ALLFILES = $(CFILES) $(HFILES) $(OFILES)
-
 
 all: main
 
 
-main: $(ALLFILES) smakefile SCOPTIONS
+main: $(CFILES) smakefile SCOPTIONS
 	$(LINKER) $(LFLAGS) FROM LIB:c.o $(OFILES) /crc32.o /hashmap.o /printf.o TO wlalink $(LLIB)
 
 clean:

@@ -6,6 +6,7 @@
 copy makefiles/scoptions.000 to scoptions
 sc define AMIGA=1 define GB=1 igb.c
 sc define AMIGA=1 define Z80=1 iz80.c
+sc define AMIGA=1 define Z80N=1 iz80n.c
 sc define AMIGA=1 define MCS6502=1 i6502.c
 sc define AMIGA=1 define WDC65C02=1 i65c02.c
 sc define AMIGA=1 define CSG65CE02=1 i65ce02.c
@@ -32,6 +33,11 @@ sc define AMIGA=1 define Z80=1 main.c
 slink FROM LIB:c.o main.o /iz80.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
 instruction_table_generator /tz80.c
 delete instruction_table_generator main.o /iz80.o
+
+sc define AMIGA=1 define Z80N=1 main.c
+slink FROM LIB:c.o main.o /iz80n.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /tz80n.c
+delete instruction_table_generator main.o /iz80n.o
 
 sc define AMIGA=1 define MCS6502=1 main.c
 slink FROM LIB:c.o main.o /i6502.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
@@ -178,6 +184,28 @@ copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
 copy wla to binaries/68000/wla-z80
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WLA-Z80N
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+copy makefiles/smake.z80n to smakefile
+copy makefiles/scoptions.020 to scoptions
+smake clean
+smake
+copy wla to binaries/68020/wla-z80n
+
+copy makefiles/smake.z80n to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/68040/wla-z80n
+
+copy makefiles/smake.z80n to smakefile
+copy makefiles/scoptions.000 to scoptions
+smake clean
+smake
+copy wla to binaries/68000/wla-z80n
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WLA-6502

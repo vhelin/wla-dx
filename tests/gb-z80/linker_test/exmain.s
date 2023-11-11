@@ -9,6 +9,8 @@
 
 .OUTNAME "main.o"
 
+        ; @BT linked.gb
+        
 .DEFINE Q 0
 .IF 1 == 1
 .ENDIF
@@ -202,24 +204,24 @@ symbol_check_test:
 .DEFINE X2 $20
 .DEFINE Y2 $40
 
-	.db "01>"
-	.db ~(X2 | Y2)
-	.db ~0
-	.db ~VALUE_FF
-	.db 2~3
-	.db 0+(~1)
-	.db "<01"
+	.db "01>"               ; @BT TEST-01 01 START
+	.db ~(X2 | Y2)          ; @BT 9F
+	.db ~0                  ; @BT FF
+	.db ~VALUE_FF           ; @BT 00
+	.db 2~3                 ; @BT 01
+	.db 0+(~1)              ; @BT FE
+	.db "<01"               ; @BT END
 
-        .db "02>"
-        CPL A
-        CPL
-        .db "<02"
+        .db "02>"               ; @BT TEST-02 02 START
+        CPL A                   ; @BT 2F
+        CPL                     ; @BT 2F
+        .db "<02"               ; @BT END
 
-        .db "03>"
-        STOP $01
-        STOP
-        STOP 1+2+3
-        .db "<03"
+        .db "03>"               ; @BT TEST-03 03 START
+        STOP $01                ; @BT 10 01
+        STOP                    ; @BT 10
+        STOP 1+2+3              ; @BT 10 06
+        .db "<03"               ; @BT END
         
 .DEFINE MOUSEMAN 10
 .DEFINE MUDMAN 11

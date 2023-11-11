@@ -10,6 +10,8 @@
 ; main
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
+        ; @BT result.rom
+        
 .macro extraa
 .redefine juu \1+1
 .endm
@@ -120,9 +122,9 @@ id   dw
 	boola
 .db wla_filename, WLA_FILENAME, wla_time, WLA_TIME, wla_version, WLA_VERSION
 
-        .db "01>"
-        .enum $0000
-        derp DW
+        .db "01>"               ; @BT TEST-01 01 START
+        .enum $0000             ; @BT AD 00 00 AD 00 00 A5 00 A5 00
+        derp DW                 ; @BT END
         .ende
 
         lda derp.w     ; WAS-A-BUG: this will load as from zero-page! BUG!

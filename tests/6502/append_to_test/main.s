@@ -14,12 +14,15 @@
         .BANK 0 SLOT 0
         .ORG 0
 
+        ; @BT linked.rom
+
         /////////////////////////////////////////////////////////////////////////////
         // TEST 1
         /////////////////////////////////////////////////////////////////////////////
         
-        .DB "01>"
-        
+        .DB "01>"               ; @BT TEST-01 01 START
+                                ; @BT 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D
+                                ; @BT END        
         .SECTION "SectionB" FREE APPENDTO "SectionA" PRIORITY 8
 label_B:.DB 3, 4, 5, 6
         .ENDS
@@ -45,9 +48,9 @@ label_C .DB 7, 8
         .org $100
         
         .section "S02.01" FORCE PRIORITY 100
-        .db "02>"
-        .db 0, 1
-        .ends
+        .db "02>"               ; @BT TEST-02 02 START
+        .db 0, 1                ; @BT 00 01 02 03 04 05 06 07 08 09
+        .ends                   ; @BT END
 
         .section "S02.03" FREE APPENDTO "S02.01" PRIORITY 80
         .db 4, 5
@@ -58,6 +61,9 @@ label_C .DB 7, 8
         /////////////////////////////////////////////////////////////////////////////
 
         .org $200
+                                ; @BT TEST-03 03 START
+                                ; @BT 09 08 00 07 06 05 04 03 02 00 01 00
+                                ; @BT END
 
         .section "S03.05" APPENDTO "S03.04"
         .db VALUE_10-9, VALUE_10-10

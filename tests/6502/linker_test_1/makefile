@@ -8,7 +8,9 @@ SFILES = setup.s linker_test.s
 IFILES = defines.i
 OFILES = setup.o linker_test.o
 
-all: $(OFILES) makefile
+all: linked.rom check
+
+linked.rom: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.rom
 
 linker_test.o: linker_test.s defines.i
@@ -16,6 +18,9 @@ linker_test.o: linker_test.s defines.i
 
 setup.o: setup.s defines.i
 	$(CC) $(CFLAGS) setup.o setup.s
+
+check: linked.rom
+	byte_tester -s linker_test.s
 
 
 $(OFILES): $(HFILES)

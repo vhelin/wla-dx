@@ -3,41 +3,43 @@
 ; ROM
 ;-----------------------------------------------------------
 
+        ; @BT linked.rom
+        
 .DEFINE FIVE 5
 .DEFINE TWENTY 20
 	
 .SECTION "LIBRARY 1"
 LibraryMain:
-.DB "01>"
-	PCHL
-	RAR
-	HLT
-	XRI $12+FIVE
-	LXI SP, $1234
-.DB "<01"
+.DB "01>"                       ; @BT TEST-01 01 START
+	PCHL                    ; @BT E9
+	RAR                     ; @BT 1F
+	HLT                     ; @BT 76
+	XRI $12+FIVE            ; @BT EE 17
+	LXI SP, $1234           ; @BT 31 34 12
+.DB "<01"                       ; @BT END
 .DB " "
-.DB "02>"
-	RST 5
-	RST FIVE+1
-.DB "<02"
+.DB "02>"                       ; @BT TEST-02 02 START
+	RST 5                   ; @BT EF
+	RST FIVE+1              ; @BT F7
+.DB "<02"                       ; @BT END
 .DB " "
-.DB "03>"
+.DB "03>"                       ; @BT TEST-03 03 START
 Library03Start:
-	ORI TWENTY
-	SUI 1+2+3
+	ORI TWENTY              ; @BT F6 14
+	SUI 1+2+3               ; @BT D6 06
 Library03End:
-.DB "<03"
+.DB "<03"                       ; @BT END
 .DB " "
-.DB "04>"
-	MOV A, E
-	MOV L,A
-.DB "<04>"
+.DB "04>"                       ; @BT TEST-04 04 START
+	MOV A, E                ; @BT 7B
+	MOV L,A                 ; @BT 6F
+.DB "<04>"                      ; @BT END
 .DB " "
-.DB "05>"
-	RET
-	IN TWENTY-FIVE
-	EI
-.DB "<05"
+.DB "05>"                       ; @BT TEST-05 05 START
+	RET                     ; @BT C9
+	IN TWENTY-FIVE          ; @BT DB 0F
+	EI                      ; @BT FB
+.DB "<05"                       ; @BT END
 .DW ramvar2, othervar2
 .ENDS
 

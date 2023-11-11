@@ -12,6 +12,10 @@
         SLOT 2          $0200   ; main program RAM ("ROM")
 .ENDME
 
+        ; @BT linked.prg
+                                ; @BT TEST-01 -a 0 START
+                                ; @BT 00 C0
+                                ; @BT END
 ;
 ; We'll use .ROMBANKS just to reserve space for the program, which in this
 ; case will later be loaded to RAM.

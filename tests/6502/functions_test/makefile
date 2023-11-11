@@ -31,6 +31,7 @@ check: linked.rom
 	byte_tester -s simple.s
 	byte_tester -s copy.s
 
+
 $(OFILES): $(HFILES)
 
 

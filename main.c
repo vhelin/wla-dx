@@ -25,6 +25,7 @@
 #include "printf.h"
 #include "mersenne.h"
 #include "stack.h"
+#include "main.h"
 
 
 FILE *g_file_out_ptr = NULL;
@@ -33,7 +34,10 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char s_version_string[] = "$VER: wla-" WLA_NAME " 10.6a (10.9.2023)";
+#define DEFAULT_SCREEN_DX 80
+#define DEFAULT_SCREEN_DY 24
+
+char s_version_string[] = "$VER: wla-" WLA_NAME " 10.6b (11.11.2023)";
 char s_wla_version[] = "10.6";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -82,7 +86,9 @@ char *g_final_name = NULL, *g_asm_name = NULL;
 struct ext_include_collection g_ext_incdirs;
 
 static struct structure **s_deletable_structures = NULL;
-static int s_deletable_structures_max = 0, s_deletable_structures_count = 0;
+static int s_screen_dx = DEFAULT_SCREEN_DX, s_screen_dy = DEFAULT_SCREEN_DY, s_line_x = 0, s_line_y = 0;
+static int s_deletable_structures_max = 0, s_deletable_structures_count = 0, s_pause_text = NO;
+static char s_print_text_buffer[4096];
 
 #if defined(Z80)
 extern char *g_sdsctag_name_str, *g_sdsctag_notes_str, *g_sdsctag_author_str;
@@ -95,6 +101,117 @@ static int s_num_tmpfiles = 0;
 #endif
 
 PROFILE_GLOBALS();
+
+
+static void _pause(void) {
+
+  fprintf(stdout, "[Press enter to continue]");
+  getchar();
+
+  s_line_y = 0;
+  s_line_x = 0;
+}
+
+
+static void _print_text(int is_stdout, char *text) {
+
+  if (is_stdout == YES) {
+    fprintf(stdout, "%s", text);
+    fflush(stdout);
+  }
+  else {
+    fprintf(stderr, "%s", text);
+    fflush(stderr);
+  }
+}
+
+
+void print_text_using_args(int is_stdout, const char *format, va_list args) {
+
+  int i, length, start_index = 0;
+  char saved1, saved2;
+
+  vsnprintf(s_print_text_buffer, sizeof(s_print_text_buffer), format, args);
+
+  if (s_pause_text == YES) {
+    /* logic for line counting and pausing after a screen full of text has been printed out */
+    length = (int)strlen(s_print_text_buffer);
+
+    for (i = 0; i < length; i++) {
+      if (s_print_text_buffer[i] == 0xA) {
+        s_line_x = 0;
+        s_line_y++;
+
+        if (i < length-1) {
+          /* we have a linefeed in the middle of the string -> print everything so far */
+          saved1 = s_print_text_buffer[i+1];
+          s_print_text_buffer[i+1] = 0;
+          
+          _print_text(is_stdout, &s_print_text_buffer[start_index]);
+          
+          s_print_text_buffer[i+1] = saved1;
+        }
+        else {
+          /* the end of the line has been reached -> print */
+          _print_text(is_stdout, &s_print_text_buffer[start_index]);
+        }
+
+        if (s_line_y >= s_screen_dy-1)
+          _pause();
+
+        start_index = i+1;
+      }
+      else
+        s_line_x++;
+      
+      if (s_line_x == s_screen_dx) {
+        /* the end of the line has been reached */
+        s_line_x = 0;
+        s_line_y++;
+
+        if (s_line_y >= s_screen_dy-1) {
+          /* printing so far would result in the screen filling up! print everything so far and pause! */
+          saved1 = s_print_text_buffer[i+1];
+          saved2 = s_print_text_buffer[i+2];
+          s_print_text_buffer[i+1] = 0xA;
+          s_print_text_buffer[i+2] = 0;
+          
+          _print_text(is_stdout, &s_print_text_buffer[start_index]);
+          _pause();
+          
+          s_print_text_buffer[i+1] = saved1;
+          s_print_text_buffer[i+2] = saved2;
+          start_index = i+1;
+
+          if (saved1 == 0xA && saved2 == 0) {
+            start_index++;
+            break;
+          }
+        }
+        else {
+          if (s_print_text_buffer[i+1] == 0xA && s_print_text_buffer[i+2] == 0)
+            s_line_y--;
+        }
+      }
+    }
+
+    /* if remaining characters exist, print them */
+    if (start_index < length)
+      _print_text(is_stdout, &s_print_text_buffer[start_index]);
+  }
+  else
+    _print_text(is_stdout, s_print_text_buffer);
+}
+
+
+void print_text(int is_stdout, const char *format, ...) {
+
+  va_list args;
+
+  va_start(args, format);
+  print_text_using_args(is_stdout, format, args);
+  va_end(args);
+}
 
 
 static int _allocate_global_buffers(void) {
@@ -152,7 +269,7 @@ static int _parse_and_add_definition(char *c, int contains_flag) {
         else if ((*c == 'h' || *c == 'H') && *(c+1) == 0)
           break;
         else {
-          fprintf(stderr, "_PARSE_AND_ADD_DEFINITION: Error in value (%s).\n", value);
+          print_text(NO, "_PARSE_AND_ADD_DEFINITION: Error in value (%s).\n", value);
           return FAILED;
         }
       }
@@ -169,7 +286,7 @@ static int _parse_and_add_definition(char *c, int contains_flag) {
         if (*c == '0' || *c == '1')
           i = (i << 1) + *c - '0';
         else {
-          fprintf(stderr, "_PARSE_AND_ADD_DEFINITION: Error in value (%s).\n", value);
+          print_text(NO, "_PARSE_AND_ADD_DEFINITION: Error in value (%s).\n", value);
           return FAILED;
         }
       }
@@ -182,7 +299,7 @@ static int _parse_and_add_definition(char *c, int contains_flag) {
         if (*c >= '0' && *c <= '9')
           i = (i * 10) + *c - '0';
         else {
-          fprintf(stderr, "_PARSE_AND_ADD_DEFINITION: Error in value (%s).\n", value);
+          print_text(NO, "_PARSE_AND_ADD_DEFINITION: Error in value (%s).\n", value);
           return FAILED;
         }
       }
@@ -212,7 +329,7 @@ static int _parse_and_add_definition(char *c, int contains_flag) {
       if (*c == 0)
         result = add_a_new_definition(n, 0.0, s, DEFINITION_TYPE_STRING, (int)strlen(s));
       else {
-        fprintf(stderr, "_PARSE_AND_ADD_DEFINITION: Incorrectly terminated quoted string (%s).\n", value);
+        print_text(NO, "_PARSE_AND_ADD_DEFINITION: Incorrectly terminated quoted string (%s).\n", value);
         result = FAILED;
       }
       
@@ -362,6 +479,28 @@ static int _parse_flags(char **flags, int flagc, int *print_usage) {
       g_keep_empty_sections = YES;
       continue;
     }
+    else if (!strcmp(flags[count], "-p")) {
+      s_pause_text = YES;
+      continue;
+    }
+    else if (!strcmp(flags[count], "-SX")) {
+      if (count + 1 < flagc) {
+        /* parse arg */
+        s_screen_dx = atoi(flags[count+1]);
+        count++;
+      }
+      else
+        return FAILED;
+    }
+    else if (!strcmp(flags[count], "-SY")) {
+      if (count + 1 < flagc) {
+        /* parse arg */
+        s_screen_dy = atoi(flags[count+1]);
+        count++;
+      }
+      else
+        return FAILED;
+    }
     else if (!strcmp(flags[count], "-v")) {
       g_verbose_level = 100;
       continue;
@@ -482,7 +621,7 @@ static void _remember_deletable_structure(struct structure *st) {
     s_deletable_structures_max += 256;
     s_deletable_structures = realloc(s_deletable_structures, sizeof(struct structure *) * s_deletable_structures_max);
     if (s_deletable_structures == NULL) {
-      fprintf(stderr, "_remember_deletable_structure(): Out of memory error.\n");
+      print_text(NO, "_remember_deletable_structure(): Out of memory error.\n");
       return;
     }
   }
@@ -841,7 +980,7 @@ int create_tmp_file(FILE ** file_out_ptr) {
   *file_out_ptr = NULL;
 
   if (s_num_tmpfiles >= 255) {
-    fprintf(stderr, "CREATE_TMP_FILE: Maximum number of tmpfiles (256) reached.\n");
+    print_text(NO, "CREATE_TMP_FILE: Maximum number of tmpfiles (256) reached.\n");
     return FAILED;
   }
   
@@ -850,7 +989,7 @@ int create_tmp_file(FILE ** file_out_ptr) {
   tmpfile_buf = malloc(260);
 
   if (tmpfile_buf == NULL) {
-    fprintf(stderr, "CREATE_TMP_FILE: Error allocating a temporary filename buffer.\n");
+    print_text(NO, "CREATE_TMP_FILE: Error allocating a temporary filename buffer.\n");
     return FAILED;
   }
   s_tmpfile_names[s_num_tmpfiles] = tmpfile_buf;
@@ -859,7 +998,7 @@ int create_tmp_file(FILE ** file_out_ptr) {
   tmpfile_name = tmpnam(s_tmpfile_names[s_num_tmpfiles]);
 
   if (tmpfile_name == NULL) {
-    fprintf(stderr, "CREATE_TMP_FILE: Error creating a tmp filename.\n");
+    print_text(NO, "CREATE_TMP_FILE: Error creating a tmp filename.\n");
     return FAILED;
   }
 
@@ -876,7 +1015,7 @@ int create_tmp_file(FILE ** file_out_ptr) {
 #endif
 
   if (*file_out_ptr == NULL) {
-    fprintf(stderr, "CREATE_TMP_FILE: Error creating a tmp file.\n");
+    print_text(NO, "CREATE_TMP_FILE: Error creating a tmp file.\n");
     return FAILED;
   }
 
@@ -894,7 +1033,7 @@ int main(int argc, char *argv[]) {
   PROFILE_VARIABLES();
 
   if (sizeof(double) != 8) {
-    fprintf(stderr, "MAIN: sizeof(double) == %d != 8. WLA will not work properly.\n", (int)sizeof(double));
+    print_text(NO, "MAIN: sizeof(double) == %d != 8. WLA will not work properly.\n", (int)sizeof(double));
     return 1;
   }
 
@@ -904,7 +1043,7 @@ int main(int argc, char *argv[]) {
   init_genrand((unsigned long)time(NULL));
 
   if (_allocate_global_buffers() == FAILED) {
-    fprintf(stderr, "MAIN: Out of memory error while allocating global buffers.\n");
+    print_text(NO, "MAIN: Out of memory error while allocating global buffers.\n");
     return 1;
   }
   
@@ -961,76 +1100,93 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  {
+    int i;
+    for (q = 0; q < 23; q++) {
+      for (i = 0; i < 80; i++)
+        print_text(YES, "c");
+    }
+    for (i = 0; i < 23; i++)
+      print_text(YES, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadd\n");
+  }
+
   if (g_output_format == OUTPUT_NONE || parse_flags_result == FAILED) {
-    char title[] = "WLA " ARCH_STR " Macro Assembler v10.6a";
+    char title[] = "WLA " ARCH_STR " Macro Assembler v10.6b";
     int length, left, right;
 
     length = (int)strlen(title);
     left = (70 - 3 - 3 - length) / 2;
     right = 70 - 3 - 3 - left - length;
 
-    printf("----------------------------------------------------------------------\n");
-    printf("---");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "---");
     for (q = 0; q < left; q++)
-      printf(" ");
-    printf("%s", title);
+      print_text(YES, " ");
+    print_text(YES, "%s", title);
     for (q = 0; q < right; q++)
-      printf(" ");
-    printf("---\n");
-    printf("----------------------------------------------------------------------\n");
+      print_text(YES, " ");
+    print_text(YES, "---\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
 #if defined(AMIGACPU)
-    printf("                         Compiled for " AMIGACPU "\n");
+    print_text(YES, "                         Compiled for " AMIGACPU "\n");
 #endif
-    printf("                Programmed by Ville Helin in 1998-2008\n");
-    printf("        In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
+    print_text(YES, "                Programmed by Ville Helin in 1998-2008\n");
+    print_text(YES, "        In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
 
     length = (int)strlen(s_version_string);
     left = (70 - length) / 2;
 
     for (q = 0; q < left; q++)
-      printf(" ");
-    printf("%s", s_version_string);
+      print_text(YES, " ");
+    print_text(YES, "%s\n", s_version_string);
     
-    printf("\n\n");
-
+    print_text(YES, "\n");
+    
 #if defined(WLA_DEBUG)
-    printf("***  WLA_DEBUG defined - this executable is running in DEBUG mode  ***\n");
-    printf("\n");
+    print_text(YES, "***  WLA_DEBUG defined - this executable is running in DEBUG mode  ***\n");
+    print_text(YES, "\n");
 #endif
 
-    printf("USAGE: %s [OPTIONS] <OUTPUT> <ASM FILE>\n\n", argv[0]);
-    printf("OPTIONS:\n");
-    printf("-c  Continue parsing after an error\n");
-    printf("-d  Disable WLA's ability to calculate A-B where A and B are labels\n");
-    printf("-h  Assume all label references are 16-bit by default (size hints\n");
-    printf("    still work)\n");
-    printf("-i  Add list file information\n");
-    printf("-k  Keep empty sections\n");
-    printf("-M  Output makefile rules\n");
-    printf("-MP Create a phony target for each dependency other than the main file,\n");
-    printf("    use this with -M\n");
-    printf("-MF <FILE> Specify a file to write the dependencies to, use with -M\n");
-    printf("-q  Quiet\n");
-    printf("-s  Don't create _sizeof_* and _paddingof_* definitions\n");
-    printf("-t  Test assemble\n");
-    printf("-v  Verbose messages\n");
-    printf("-v1 Verbose messages (only discard sections)\n");
-    printf("-v2 Verbose messages (-v1 plus short summary)\n");
-    printf("-w  Require labels to end in a colon\n");
-    printf("-x  Extra compile time labels and definitions\n");
-    printf("-I <DIR>  Include directory\n");
-    printf("-D <DEF>  Declare definition\n\n");
-    printf("OUTPUT:\n");
-    printf("-o <FILE>  Output object file\n");
-    printf("-l <FILE>  Output library file\n\n");
-    printf("EXAMPLES:\n");
-    printf("%s -M -t -o main.o main.asm\n", argv[0]);
-    printf("%s -D VER=1 -D TWO=2 -v -o main.o main.asm\n\n", argv[0]);
+    print_text(YES, "USAGE: %s [OPTIONS] <OUTPUT> <ASM FILE>\n", argv[0]);
+    print_text(YES, "\n");
+    print_text(YES, "OPTIONS:\n");
+    print_text(YES, "-c  Continue parsing after an error\n");
+    print_text(YES, "-d  Disable WLA's ability to calculate A-B where A and B are labels\n");
+    print_text(YES, "-h  Assume all label references are 16-bit by default (size hints\n");
+    print_text(YES, "    still work)\n");
+    print_text(YES, "-i  Add list file information\n");
+    print_text(YES, "-k  Keep empty sections\n");
+    print_text(YES, "-M  Output makefile rules\n");
+    print_text(YES, "-MP Create a phony target for each dependency other than the main file,\n");
+    print_text(YES, "    use this with -M\n");
+    print_text(YES, "-MF <FILE> Specify a file to write the dependencies to, use with -M\n");
+    print_text(YES, "-p  Pause printing after a screen full of text has been printed,\n");
+    print_text(YES, "    use this with -SX and -SY\n");
+    print_text(YES, "-q  Quiet\n");
+    print_text(YES, "-s  Don't create _sizeof_* and _paddingof_* definitions\n");
+    print_text(YES, "-SX <WIDTH> The number of characters per line in console (default %d)\n", DEFAULT_SCREEN_DX);
+    print_text(YES, "-SY <HEIGHT> The number of lines in console (default %d)\n", DEFAULT_SCREEN_DY);
+    print_text(YES, "-t  Test assemble\n");
+    print_text(YES, "-v  Verbose messages\n");
+    print_text(YES, "-v1 Verbose messages (only discard sections)\n");
+    print_text(YES, "-v2 Verbose messages (-v1 plus short summary)\n");
+    print_text(YES, "-w  Require labels to end in a colon\n");
+    print_text(YES, "-x  Extra compile time labels and definitions\n");
+    print_text(YES, "-I <DIR>  Include directory\n");
+    print_text(YES, "-D <DEF>  Declare definition\n");
+    print_text(YES, "\n");
+    print_text(YES, "OUTPUT:\n");
+    print_text(YES, "-o <FILE>  Output object file\n");
+    print_text(YES, "-l <FILE>  Output library file\n");
+    print_text(YES, "\n");
+    print_text(YES, "EXAMPLES:\n");
+    print_text(YES, "%s -M -t -o main.o main.asm\n", argv[0]);
+    print_text(YES, "%s -D VER=1 -D TWO=2 -v -o main.o main.asm\n", argv[0]);
     return 0;
   }
 
   if (strcmp(g_asm_name, g_final_name) == 0) {
-    fprintf(stderr, "MAIN: Input and output files share the same name!\n");
+    print_text(NO, "MAIN: Input and output files share the same name!\n");
     return 1;
   }
 
@@ -1058,7 +1214,7 @@ int main(int argc, char *argv[]) {
   g_dsp_enable_label_address_conversion = NO;
   
   PROFILE_START();
-    if (phase_2() == FAILED)
+  if (phase_2() == FAILED)
     return 1;
   PROFILE_END("phase_2");
 

@@ -5,12 +5,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "defines.h"
 
 #include "include.h"
 #include "phase_3.h"
 #include "printf.h"
+#include "main.h"
 
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -62,9 +64,10 @@ int free_label_context_allocations(void) {
 }
 
 
-int print_fscanf_error_accessing_internal_data_stream(void) {
+static int _print_fscanf_error_accessing_internal_data_stream(int file_name_id, int line_number) {
 
-  fprintf(stderr, "ERROR: Could not read enough elements from the internal data stream. Please submit a bug report!\n");
+  print_text(NO, "%s:%d: INTERNAL_PHASE_1: Could not read enough elements from the internal data stream. errno = %d. Please submit a bug report!\n",
+          get_file_name(file_name_id), line_number, errno);
 
   return FAILED;
 }
@@ -79,19 +82,19 @@ static int _add_label(struct label_def *l, struct section_def *s, int line_numbe
   /* does a definition with the same name exist? */
   hashmap_get(g_defines_map, l->label, (void*)&tmp_def);
   if (tmp_def != NULL) {
-    fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: A definition called \"%s\" exists already, cannot add a label with the same name.\n", get_file_name(file_name_id), line_number, l->label);
+    print_text(NO, "%s:%d: INTERNAL_PHASE_1: A definition called \"%s\" exists already, cannot add a label with the same name.\n", get_file_name(file_name_id), line_number, l->label);
     return FAILED;
   }
 
   if (s != NULL) {
     /* always put the label into the section's label_map */
     if (hashmap_get(s->label_map, l->label, (void *)&tmp_label) == MAP_OK) {
-      fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the first time.\n", get_file_name(tmp_label->filename_id), tmp_label->linenumber, l->label);
-      fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
+      print_text(NO, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the first time.\n", get_file_name(tmp_label->filename_id), tmp_label->linenumber, l->label);
+      print_text(NO, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
       return FAILED;
     }
     if ((err = hashmap_put(s->label_map, l->label, l)) != MAP_OK) {
-      fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
+      print_text(NO, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
       return FAILED;
     }
   }
@@ -101,24 +104,24 @@ static int _add_label(struct label_def *l, struct section_def *s, int line_numbe
     if (s != NULL && s->nspace != NULL) {
       /* label in a namespace */
       if (hashmap_get(s->nspace->label_map, l->label, (void *)&tmp_label) == MAP_OK) {
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the first time.\n", get_file_name(tmp_label->filename_id), tmp_label->linenumber, l->label);
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the first time.\n", get_file_name(tmp_label->filename_id), tmp_label->linenumber, l->label);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
         return FAILED;
       }
       if ((err = hashmap_put(s->nspace->label_map, l->label, l)) != MAP_OK) {
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
         return FAILED;
       }
     }
     else {
       /* global label */
       if (hashmap_get(g_global_unique_label_map, l->label, (void *)&tmp_label) == MAP_OK) {
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the first time.\n", get_file_name(tmp_label->filename_id), tmp_label->linenumber, l->label);
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the first time.\n", get_file_name(tmp_label->filename_id), tmp_label->linenumber, l->label);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: Label \"%s\" was defined for the second time.\n", get_file_name(file_name_id), line_number, l->label);
         return FAILED;
       }
       if ((err = hashmap_put(g_global_unique_label_map, l->label, l)) != MAP_OK) {
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: Hashmap error %d. Please send a bug report!", get_file_name(file_name_id), line_number, err);
         return FAILED;
       }
     }
@@ -158,7 +161,7 @@ int phase_3(void) {
   g_namespace[0] = 0;
   
   if (g_verbose_level >= 100)
-    printf("Internal pass 1...\n");
+    print_text(YES, "Internal pass 1...\n");
 
   /* rewind to the beginning of the internal data stream */
   fseek(g_file_out_ptr, 0, SEEK_SET);
@@ -181,7 +184,7 @@ int phase_3(void) {
       case 'i':
         err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
         if (err < 2)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
 
         if (process_macro_in(inz, tmp_buffer, file_name_id, line_number) == FAILED)
           return FAILED;
@@ -190,7 +193,7 @@ int phase_3(void) {
       case 'I':
         err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
         if (err < 2)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         
         if (process_macro_out(inz, tmp_buffer, file_name_id, line_number) == FAILED)
           return FAILED;
@@ -208,28 +211,28 @@ int phase_3(void) {
       case 'o':
         err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
 
         if (g_section_status == ON) {
           address += inz;
           continue;
         }
 
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
                 get_file_name(file_name_id), line_number);
         return FAILED;
 
       case 'd':
         if (g_section_status == ON) {
-          err = fscanf(g_file_out_ptr, "%*s ");
+          err = fscanf(g_file_out_ptr, "%*d ");
           if (err < 0)
-            return print_fscanf_error_accessing_internal_data_stream();
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
 
           address++;
           continue;
         }
 
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
                 get_file_name(file_name_id), line_number);
         return FAILED;
 
@@ -237,13 +240,13 @@ int phase_3(void) {
         if (g_section_status == ON) {
           err = fscanf(g_file_out_ptr, "%*d ");
           if (err < 0)
-            return print_fscanf_error_accessing_internal_data_stream();
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
 
           address += 2;
           continue;
         }
 
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
                 get_file_name(file_name_id), line_number);
         return FAILED;
 
@@ -253,13 +256,13 @@ int phase_3(void) {
         if (g_section_status == ON) {
           err = fscanf(g_file_out_ptr, "%*s ");
           if (err < 0)
-            return print_fscanf_error_accessing_internal_data_stream();
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         
           address++;
           continue;
         }
 
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
                 get_file_name(file_name_id), line_number);
         return FAILED;
       
@@ -267,13 +270,13 @@ int phase_3(void) {
         if (g_section_status == ON) {
           err = fscanf(g_file_out_ptr, "%*d ");
           if (err < 0)
-            return print_fscanf_error_accessing_internal_data_stream();
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
 
           address++;
           continue;
         }
 
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
                 get_file_name(file_name_id), line_number);
         return FAILED;
 
@@ -286,7 +289,7 @@ int phase_3(void) {
           
           err = fscanf(g_file_out_ptr, "%d ", &bits_to_add);
           if (err < 1)
-            return print_fscanf_error_accessing_internal_data_stream();
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
           
           if (bits_to_add == 0) {
             bits_current = 0;
@@ -305,68 +308,68 @@ int phase_3(void) {
 
           err = fscanf(g_file_out_ptr, "%c", &type);
           if (err < 1)
-            return print_fscanf_error_accessing_internal_data_stream();
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
           
           if (type == 'a') {
             err = fscanf(g_file_out_ptr, "%*d");
             if (err < 0)
-              return print_fscanf_error_accessing_internal_data_stream();
+              return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
           }
           else if (type == 'b') {
             err = fscanf(g_file_out_ptr, "%*s");
             if (err < 0)
-              return print_fscanf_error_accessing_internal_data_stream();
+              return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
           }
           else if (type == 'c') {
             err = fscanf(g_file_out_ptr, "%*d");
             if (err < 0)
-              return print_fscanf_error_accessing_internal_data_stream();
+              return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
           }
           else {
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", get_file_name(file_name_id), line_number, type);
+            print_text(NO, "%s:%d: INTERNAL_PHASE_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", get_file_name(file_name_id), line_number, type);
             return FAILED;
           }
 
           continue;
         }
 
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(file_name_id), line_number);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(file_name_id), line_number);
         return FAILED;
         
       case 'v':
         err = fscanf(g_file_out_ptr, "%*d ");
         if (err < 0)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         continue;
         
       case 'b':
         err = fscanf(g_file_out_ptr, "%d ", &base);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         continue;
 
       case 'f':
         err = fscanf(g_file_out_ptr, "%d ", &file_name_id);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         continue;
 
       case 'B':
         err = fscanf(g_file_out_ptr, "%d %d ", &bank, &slot); 
         if (err < 2)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         continue;
 
       case 'k':
         err = fscanf(g_file_out_ptr, "%d ", &line_number);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         continue;
 
       case 'g':
         err = fscanf(g_file_out_ptr, "%d ", &x);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         
         bn = g_block_names;
         while (bn != NULL) {
@@ -377,7 +380,7 @@ int phase_3(void) {
         
         b = calloc(sizeof(struct block), 1);
         if (b == NULL) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for block \"%s\".\n",
+          print_text(NO, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for block \"%s\".\n",
                   get_file_name(file_name_id), line_number, bn->name);
           return FAILED;
         }
@@ -394,21 +397,21 @@ int phase_3(void) {
         b = s_blocks;
         s_blocks = s_blocks->next;
         if (g_quiet == NO)
-          printf("%s:%d: INTERNAL_PHASE_1: Block \"%s\" is %d bytes in size.\n", get_file_name(file_name_id), line_number, b->name, address - b->address);
+          print_text(YES, "%s:%d: INTERNAL_PHASE_1: Block \"%s\" is %d bytes in size.\n", get_file_name(file_name_id), line_number, b->name, address - b->address);
         free(b);
         continue;
 
       case 't':
         err = fscanf(g_file_out_ptr, "%d ", &inz);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
 
         if (inz == 0)
           g_namespace[0] = 0;
         else {
           err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
           if (err < 1)
-            return print_fscanf_error_accessing_internal_data_stream();
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         }
         continue;
 
@@ -422,8 +425,8 @@ int phase_3(void) {
           if (l == NULL) {
             err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
             if (err < 1)
-              return print_fscanf_error_accessing_internal_data_stream();
-            fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for label \"%s\".\n",
+              return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+            print_text(NO, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for label \"%s\".\n",
                     get_file_name(file_name_id), line_number, g_tmp);
             return FAILED;
           }
@@ -440,7 +443,7 @@ int phase_3(void) {
           else {
             err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, l->label);
             if (err < 1)
-              return print_fscanf_error_accessing_internal_data_stream();
+              return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
           }
 
           if (c == 'L' && is_label_anonymous(l->label) == NO) {
@@ -512,7 +515,7 @@ int phase_3(void) {
       case 'S':
         err = fscanf(g_file_out_ptr, "%d ", &inz);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         
         address_old = address;
 
@@ -553,7 +556,7 @@ int phase_3(void) {
           continue;
         }
 
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(file_name_id), line_number);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(file_name_id), line_number);
         return FAILED;
 
       case 's':
@@ -563,7 +566,7 @@ int phase_3(void) {
         if (s->size == 0 && s->keep == NO && g_keep_empty_sections == NO) {
           struct after_section *as;
  
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: %s: Discarding an empty section \"%s\".\n", get_file_name(file_name_id), line_number, get_file_name(file_name_id), s->name);
+          print_text(NO, "%s:%d: INTERNAL_PHASE_1: %s: Discarding an empty section \"%s\".\n", get_file_name(file_name_id), line_number, get_file_name(file_name_id), s->name);
           s->alive = NO;
 
           /* discard all labels which belong to this section */
@@ -595,13 +598,13 @@ int phase_3(void) {
       case 'O':
         err = fscanf(g_file_out_ptr, "%d ", &address);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         
         o++;
         continue;
 
       default:
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(file_name_id), line_number);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n", get_file_name(file_name_id), line_number);
       }
     }
   }
@@ -621,7 +624,7 @@ int phase_3(void) {
       case 'i':
         err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
         if (err < 2)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         
         if (process_macro_in(inz, tmp_buffer, file_name_id, line_number) == FAILED)
           return FAILED;
@@ -630,7 +633,7 @@ int phase_3(void) {
       case 'I':
         err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
         if (err < 2)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         
         if (process_macro_out(inz, tmp_buffer, file_name_id, line_number) == FAILED)
           return FAILED;
@@ -640,24 +643,27 @@ int phase_3(void) {
       case 'f':
         err = fscanf(g_file_out_ptr, "%d ", &file_name_id);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         continue;
 
       case 't':
         err = fscanf(g_file_out_ptr, "%d ", &inz);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
 
         if (inz == 0)
           g_namespace[0] = 0;
-        else
+        else {
           err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
+          if (err < 1)
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+        }
         continue;       
 
       case 'S':
         err = fscanf(g_file_out_ptr, "%d ", &inz);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         
         address_old = address;
 
@@ -677,7 +683,7 @@ int phase_3(void) {
         }
 
         if (s->address_from_dsp >= 0 && s->address_from_dsp != address) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(file_name_id), line_number, s->name, s->address_from_dsp, address);
+          print_text(NO, "%s:%d: INTERNAL_PHASE_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(file_name_id), line_number, s->name, s->address_from_dsp, address);
           return FAILED;
         }
 
@@ -697,11 +703,11 @@ int phase_3(void) {
       case 'k':
         err = fscanf(g_file_out_ptr, "%d ", &line_number);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         continue;
 
       default:
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: A section must be open before any code/data can be accepted.\n", get_file_name(file_name_id), line_number);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: A section must be open before any code/data can be accepted.\n", get_file_name(file_name_id), line_number);
         return FAILED;
       }
     }
@@ -723,7 +729,7 @@ int phase_3(void) {
     case 'i':
       err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
       if (err < 2)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         
       if (process_macro_in(inz, tmp_buffer, file_name_id, line_number) == FAILED)
         return FAILED;
@@ -732,7 +738,7 @@ int phase_3(void) {
     case 'I':
       err = fscanf(g_file_out_ptr, "%d %s ", &inz, tmp_buffer);
       if (err < 2)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       
       if (process_macro_out(inz, tmp_buffer, file_name_id, line_number) == FAILED)
         return FAILED;
@@ -749,14 +755,14 @@ int phase_3(void) {
     case 'A':
     case 'S':
       if (c == 'A') {
-        err = fscanf(g_file_out_ptr, "%d %*d", &inz);
+        err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       }
       else {
         err = fscanf(g_file_out_ptr, "%d ", &inz);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       }
 
       address_old = address;
@@ -784,7 +790,7 @@ int phase_3(void) {
         s->base = base;
 
       if (s->address_from_dsp >= 0 && s->address_from_dsp != address) {
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(file_name_id), line_number, s->name, s->address_from_dsp, address);
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(file_name_id), line_number, s->name, s->address_from_dsp, address);
         return FAILED;
       }
           
@@ -802,7 +808,7 @@ int phase_3(void) {
         struct after_section *as;
         
         if (g_verbose_level >= 1)
-          fprintf(stderr, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(file_name_id), s->name);
+          print_text(NO, "DISCARD: %s: Discarding an empty section \"%s\".\n", get_file_name(file_name_id), s->name);
         s->alive = NO;
 
         /* discard all labels which belong to this section */
@@ -836,28 +842,28 @@ int phase_3(void) {
     case 'o':
       err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += inz;
       continue;
 
     case 'X':
       err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += inz * 2;
       continue;
 
     case 'h':
       err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += inz * 3;
       continue;
 
     case 'w':
       err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += inz * 4;
       continue;
 
@@ -865,14 +871,14 @@ int phase_3(void) {
     case 'q':
       err = fscanf(g_file_out_ptr, "%*s ");
       if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += 3;
       continue;
 
     case 'T':
       err = fscanf(g_file_out_ptr, "%*d ");
       if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += 3;
       continue;
 
@@ -880,36 +886,42 @@ int phase_3(void) {
     case 'V':
       err = fscanf(g_file_out_ptr, "%*s ");
       if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += 4;
       continue;
 
     case 'U':
       err = fscanf(g_file_out_ptr, "%*d ");
       if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += 4;
       continue;
 
     case 'v':
       err = fscanf(g_file_out_ptr, "%*d ");
       if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       continue;
         
     case 'b':
       err = fscanf(g_file_out_ptr, "%d ", &base);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       continue;
 
     case 'R':
     case 'Q':
-    case 'd':
-    case 'c':
       err = fscanf(g_file_out_ptr, "%*s ");
       if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+      address++;
+      continue;
+      
+    case 'd':
+    case 'c':
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address++;
       continue;
 
@@ -920,7 +932,7 @@ int phase_3(void) {
     case 'r':
       err = fscanf(g_file_out_ptr, "%*s ");
       if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += 2;
       continue;
 
@@ -928,7 +940,7 @@ int phase_3(void) {
     case 'C':
       err = fscanf(g_file_out_ptr, "%*d ");
       if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += 2;
       continue;
 
@@ -937,14 +949,14 @@ int phase_3(void) {
     case '*':
       err = fscanf(g_file_out_ptr, "%*s ");
       if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address++;
       continue;
       
     case '-':
       err = fscanf(g_file_out_ptr, "%*d ");
       if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address++;
       continue;
 
@@ -957,7 +969,7 @@ int phase_3(void) {
           
         err = fscanf(g_file_out_ptr, "%d ", &bits_to_add);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         
         if (bits_to_add == 999) {
           bits_current = 0;
@@ -978,25 +990,25 @@ int phase_3(void) {
 
         err = fscanf(g_file_out_ptr, "%c", &type);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         
         if (type == 'a') {
           err = fscanf(g_file_out_ptr, "%*d");
           if (err < 0)
-            return print_fscanf_error_accessing_internal_data_stream();
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         }
         else if (type == 'b') {
           err = fscanf(g_file_out_ptr, "%*s");
           if (err < 0)
-            return print_fscanf_error_accessing_internal_data_stream();
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         }
         else if (type == 'c') {
           err = fscanf(g_file_out_ptr, "%*d");
           if (err < 0)
-            return print_fscanf_error_accessing_internal_data_stream();
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         }
         else {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", get_file_name(file_name_id), line_number, type);
+          print_text(NO, "%s:%d: INTERNAL_PHASE_1: Unknown internal .BITS data type '%c'. Please submit a bug report!\n", get_file_name(file_name_id), line_number, type);
           return FAILED;
         }
 
@@ -1007,14 +1019,14 @@ int phase_3(void) {
     case 'n':
       err = fscanf(g_file_out_ptr, "%*d %*s ");
       if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += 2;
       continue;
 
     case 'N':
       err = fscanf(g_file_out_ptr, "%*d %*d ");
       if (err < 0)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += 2;
       continue;
 #endif
@@ -1022,26 +1034,26 @@ int phase_3(void) {
     case 'D':
       err = fscanf(g_file_out_ptr, "%*d %*d %*d %d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += inz;
       continue;
 
     case 'O':
       err = fscanf(g_file_out_ptr, "%d ", &address);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       continue;
 
     case 'B':
       err = fscanf(g_file_out_ptr, "%d %d ", &bank, &slot);
       if (err < 2)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       continue;
 
     case 'g':
       err = fscanf(g_file_out_ptr, "%d ", &x);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       
       bn = g_block_names;
       while (bn != NULL) {
@@ -1052,7 +1064,7 @@ int phase_3(void) {
 
       b = calloc(sizeof(struct block), 1);
       if (b == NULL) {
-        fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for block \"%s\".\n",
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for block \"%s\".\n",
                 get_file_name(file_name_id), line_number, bn->name);
         return FAILED;
       }
@@ -1067,23 +1079,22 @@ int phase_3(void) {
     case 'G':
       b = s_blocks;
       s_blocks = s_blocks->next;
-      if (g_quiet == NO) {
-        printf("%s:%d: INTERNAL_PHASE_1: Block \"%s\" is %d bytes in size.\n", get_file_name(file_name_id), line_number, b->name, address - b->address);
-      }
+      if (g_quiet == NO)
+        print_text(YES, "%s:%d: INTERNAL_PHASE_1: Block \"%s\" is %d bytes in size.\n", get_file_name(file_name_id), line_number, b->name, address - b->address);
       free(b);
       continue;
 
     case 't':
       err = fscanf(g_file_out_ptr, "%d ", &inz);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
 
       if (inz == 0)
         g_namespace[0] = 0;
       else {
         err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_namespace);
         if (err < 1)
-          return print_fscanf_error_accessing_internal_data_stream();
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       }
       continue;
 
@@ -1097,8 +1108,8 @@ int phase_3(void) {
         if (l == NULL) {
           err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
           if (err < 1)
-            return print_fscanf_error_accessing_internal_data_stream();
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for label \"%s\".\n",
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+          print_text(NO, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for label \"%s\".\n",
                   get_file_name(file_name_id), line_number, g_tmp);
           return FAILED;
         }
@@ -1115,7 +1126,7 @@ int phase_3(void) {
         else {
           err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, l->label);
           if (err < 1)
-            return print_fscanf_error_accessing_internal_data_stream();
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         }
 
         if (c == 'L' && is_label_anonymous(l->label) == NO) {
@@ -1197,7 +1208,7 @@ int phase_3(void) {
     case 'f':
       err = fscanf(g_file_out_ptr, "%d ", &file_name_id);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       
       if (s != NULL)
         s->listfile_items++;
@@ -1208,7 +1219,7 @@ int phase_3(void) {
     case 'k':
       err = fscanf(g_file_out_ptr, "%d ", &line_number);
       if (err < 1)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
 
       if (s != NULL)
         s->listfile_items++;
@@ -1219,7 +1230,7 @@ int phase_3(void) {
     case 'e':
       err = fscanf(g_file_out_ptr, "%d %d ", &x, &y);
       if (err < 2)
-        return print_fscanf_error_accessing_internal_data_stream();
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
 
       if (y == -1) { /* mark start of .DSTRUCT */
         s_dstruct_start = address;
@@ -1227,7 +1238,7 @@ int phase_3(void) {
       }
       else {
         if (s_dstruct_item_offset != -1 && address - s_dstruct_item_offset > s_dstruct_item_size) {
-          fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: %d too many bytes in struct field.\n", get_file_name(file_name_id), line_number, (address - s_dstruct_item_offset) - s_dstruct_item_size);
+          print_text(NO, "%s:%d: INTERNAL_PHASE_1: %d too many bytes in struct field.\n", get_file_name(file_name_id), line_number, (address - s_dstruct_item_offset) - s_dstruct_item_size);
           return FAILED;
         }
 
@@ -1242,13 +1253,13 @@ int phase_3(void) {
       continue;
 
     default:
-      fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: Unknown internal symbol \"%c\"! Please submit a bug report!\n", get_file_name(file_name_id), line_number, c);
+      print_text(NO, "%s:%d: INTERNAL_PHASE_1: Unknown internal symbol \"%c\"! Please submit a bug report!\n", get_file_name(file_name_id), line_number, c);
       return FAILED;
     }
   }
 
   if (s_blocks != NULL) {
-    fprintf(stderr, "%s:%d: INTERNAL_PHASE_1: .BLOCK \"%s\" was left open.\n", get_file_name(s_blocks->filename_id), s_blocks->line_number, s_blocks->name);
+    print_text(NO, "%s:%d: INTERNAL_PHASE_1: .BLOCK \"%s\" was left open.\n", get_file_name(s_blocks->filename_id), s_blocks->line_number, s_blocks->name);
     return FAILED;
   }
 
@@ -1296,7 +1307,7 @@ int mangle_label(char *label, char *parent, int n, unsigned int label_size, int 
   int len;
 
   if (parent == NULL) {
-    fprintf(stderr, "%s:%d: MANGLE_LABEL: Parent label of label \"%s\" is NULL! Please submit a bug report!\n", get_file_name(file_name_id), line_number, label);
+    print_text(NO, "%s:%d: MANGLE_LABEL: Parent label of label \"%s\" is NULL! Please submit a bug report!\n", get_file_name(file_name_id), line_number, label);
     return FAILED;
   }
 
@@ -1306,7 +1317,7 @@ int mangle_label(char *label, char *parent, int n, unsigned int label_size, int 
   strcpy(&buf[len], label+n);
 
   if (len+strlen(label+n)+1 > label_size) {
-    fprintf(stderr, "%s:%d: MANGLE_LABEL: Child label expands to \"%s\" which is %d characters too large.\n", get_file_name(file_name_id), line_number, buf, (int)(strlen(buf)-label_size+1));
+    print_text(NO, "%s:%d: MANGLE_LABEL: Child label expands to \"%s\" which is %d characters too large.\n", get_file_name(file_name_id), line_number, buf, (int)(strlen(buf)-label_size+1));
     return FAILED;
   }
 
@@ -1332,7 +1343,7 @@ int add_namespace(char *label, char *name_space, unsigned int label_size, int fi
   
   snprintf(buf, sizeof(buf), "%s.%s", name_space, label);
   if (strlen(buf) >= label_size) {
-    fprintf(stderr, "%s:%d: ADD_NAMESPACE: Label expands to \"%s\" which is %d characters too large.\n", get_file_name(file_name_id), line_number, buf, (int)(strlen(buf)-label_size+1));
+    print_text(NO, "%s:%d: ADD_NAMESPACE: Label expands to \"%s\" which is %d characters too large.\n", get_file_name(file_name_id), line_number, buf, (int)(strlen(buf)-label_size+1));
     return FAILED;
   }
 
@@ -1367,7 +1378,7 @@ int process_macro_in(int id, char *name, int file_name_id, int line_number) {
   /* find the .MACRO */
   _macro_get_by_id(id, &macro);
   if (macro == NULL) {
-    fprintf(stderr, "%s:%d: .MACRO %s has gone missing! Please submit a bug report!\n", get_file_name(file_name_id), line_number, name);
+    print_text(NO, "%s:%d: .MACRO %s has gone missing! Please submit a bug report!\n", get_file_name(file_name_id), line_number, name);
     return FAILED;
   }
   
@@ -1377,7 +1388,7 @@ int process_macro_in(int id, char *name, int file_name_id, int line_number) {
     struct label_context *lc = calloc(sizeof(struct label_context), 1);
 
     if (lc == NULL) {
-      fprintf(stderr, "%s:%d: Out of memory while allocating a new label context.\n", get_file_name(file_name_id), line_number);
+      print_text(NO, "%s:%d: Out of memory while allocating a new label context.\n", get_file_name(file_name_id), line_number);
       return FAILED;
     }
 
@@ -1402,7 +1413,7 @@ int process_macro_out(int id, char *name, int file_name_id, int line_number) {
   /* find the .MACRO */
   _macro_get_by_id(id, &macro);
   if (macro == NULL) {
-    fprintf(stderr, "%s:%d: .MACRO %s has gone missing! Please submit a bug report!\n", get_file_name(file_name_id), line_number, name);
+    print_text(NO, "%s:%d: .MACRO %s has gone missing! Please submit a bug report!\n", get_file_name(file_name_id), line_number, name);
     return FAILED;
   }
   
@@ -1442,8 +1453,8 @@ int add_context_to_anonymous_label(char *label, int label_size, struct label_con
       strcpy(label, new_label);
     }
     else {
-      fprintf(stderr, "%s:%d: Cannot add context name to the anonymous/local label, buffer is too small!\n", get_file_name(file_name_id), line_number);
-      fprintf(stderr, "   (new label would have been \"%s:%s_%s_%d\")\n", label, g_asm_name, label_context->isolated_macro->name, label_context->running_number);
+      print_text(NO, "%s:%d: Cannot add context name to the anonymous/local label, buffer is too small!\n", get_file_name(file_name_id), line_number);
+      print_text(NO, "   (new label would have been \"%s:%s_%s_%d\")\n", label, g_asm_name, label_context->isolated_macro->name, label_context->running_number);
       return FAILED;
     }
   }

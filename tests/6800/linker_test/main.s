@@ -25,6 +25,8 @@ BANKS 4
 
 .EMPTYFILL $AA
 
+                        ; @BT linked.rom
+        
 .BANK 0 SLOT 0
 .ORG 0
 

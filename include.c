@@ -13,6 +13,7 @@
 #include "phase_1.h"
 #include "parse.h"
 #include "printf.h"
+#include "main.h"
 
 
 extern int g_source_index, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules, g_makefile_add_phony_targets;
@@ -55,7 +56,7 @@ int create_full_name(char *dir, char *name) {
   if (i > s_full_name_size) {
     tmp = realloc(g_full_name, i);
     if (tmp == NULL) {
-      fprintf(stderr, "CREATE_FULL_NAME: Out of memory error.\n");
+      print_text(NO, "CREATE_FULL_NAME: Out of memory error.\n");
       return FAILED;
     }
     g_full_name = tmp;
@@ -93,21 +94,21 @@ static void _print_find_error(char* name) {
   int index;
 
   if (g_active_file_info_last)
-    fprintf(stderr, "%s:%d: ", get_file_name(g_active_file_info_last->filename_id), g_active_file_info_last->line_current);
+    print_text(NO, "%s:%d: ", get_file_name(g_active_file_info_last->filename_id), g_active_file_info_last->line_current);
 
-  fprintf(stderr, "FIND_FILE: Could not open \"%s\", searched in the following directories:\n", name);
+  print_text(NO, "FIND_FILE: Could not open \"%s\", searched in the following directories:\n", name);
 
   if (g_use_incdir == YES) {
     for (index = 0; index < g_ext_incdirs.count; index++) {
-      fprintf(stderr, "%s\n", g_ext_incdirs.names[index]);
+      print_text(NO, "%s\n", g_ext_incdirs.names[index]);
     }
   }
 
   if (g_include_dir != NULL) {
-    fprintf(stderr, "%s\n", g_include_dir);
+    print_text(NO, "%s\n", g_include_dir);
   }
 
-  fprintf(stderr, "./ (current directory)\n");
+  print_text(NO, "./ (current directory)\n");
 }
 
 

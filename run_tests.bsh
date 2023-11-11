@@ -25,15 +25,17 @@ while arch < archcount
     cd $tests[$t]
 
     # Run test
-	make clean
+    make clean
     make -f makefile
 
     if -f testsfile
       byte_tester testsfile
     endif
 
-	make clean
-	
+    read -p "Press ENTER to continue..."
+
+    make clean
+    
     t++
     cd ..
   endwhile

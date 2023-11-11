@@ -8,11 +8,16 @@ SFILES = main.s
 IFILES = 
 OFILES = main.o
 
-all: $(OFILES) makefile
+all: linked.prg check
+
+linked.prg: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile linked.prg
 
 main.o: main.s
 	$(CC) $(CFLAGS) main.o main.s
+
+check: linked.prg
+	byte_tester -s main.s
 
 
 $(OFILES): $(HFILES)

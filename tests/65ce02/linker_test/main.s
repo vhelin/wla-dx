@@ -28,25 +28,27 @@ BANKS 1
 .BANK 0 SLOT 0
 .ORG $100
 
+        ; @BT linked.prg
+
 .SECTION "MAIN" FORCE
 LoadAddress:
 	JMP LoadAddress
 	
-.DB "01>"
+.DB "01>"                       ; @BT TEST-01 01 START
 AStart:
-	BCC AStart
-	BCC AStart+1
-	BCC AEnd
-	BCC AEnd+1
+	BCC AStart              ; @BT 90 FE
+	BCC AStart+1            ; @BT 90 FD
+	BCC AEnd                ; @BT 90 02
+	BCC AEnd+1              ; @BT 90 01
 AEnd:
-.DB "<01"
+.DB "<01"                       ; @BT END
 
-.DB "02>"
+.DB "02>"                       ; @BT TEST-02 02 START
 BStart:
-	BCC BStart.w
-	BCC BStart.w+1
-	BCC BEnd.w
-	BCC BEnd.w+1
+	BCC BStart.w            ; @BT 93 FE FF
+	BCC BStart.w+1          ; @BT 93 FC FF
+	BCC BEnd.w              ; @BT 93 04 00
+	BCC BEnd.w+1            ; @BT 93 02 00
 BEnd:
-.DB "<02"
+.DB "<02"                       ; @BT END
 .ENDS

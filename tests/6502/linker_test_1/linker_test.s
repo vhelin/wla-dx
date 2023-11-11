@@ -15,10 +15,11 @@
 .DEFINE _CTRLSEL $90
 .DEFINE _CTRLSTA $34
 
-
-.BANK 0 SLOT 0
-	
+        ; @BT linked.rom
+        
+.BANK 0 SLOT 0	
 .ORG 0
+
 .SECTION "Beginning" FORCE
 
 MAIN:   and     :BANKLABEL+5,x
@@ -52,12 +53,12 @@ MORE_ACTION:
 .incdir ""
 .incbin "defines.i"
 
-.DB "CC>"
-	.db ~1
-	.dw ~1
-	.db ~ONE
-	.dw ~ONE
-.DB "<CC"
+.DB "CC>"                       ; @BT TEST-CC CC START
+	.db ~1                  ; @BT FE
+	.dw ~1                  ; @BT FE FF
+	.db ~ONE                ; @BT FE
+	.dw ~ONE                ; @BT FE FF
+.DB "<CC"                       ; @BT END
 
 .ENDS
 

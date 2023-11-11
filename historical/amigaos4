@@ -33,6 +33,10 @@ make -f makefiles/makefile.amiga.z80
 move wla-z80 TO binaries
 
 make -f makefiles/makefile.amiga.z80 clean
+make -f makefiles/makefile.amiga.z80n
+move wla-z80n TO binaries
+
+make -f makefiles/makefile.amiga.z80n clean
 make -f makefiles/makefile.amiga.6502
 move wla-6502 TO binaries
 

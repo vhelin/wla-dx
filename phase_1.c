@@ -21,6 +21,7 @@
 #include "printf.h"
 #include "decode.h"
 #include "mersenne.h"
+#include "main.h"
 
 
 #if defined(GB)
@@ -505,7 +506,7 @@ static int _macro_start_dxm(struct macro_static *m, int caller, char *name, int 
     mrt->string_current = 1;
     mrt->string_last = (int)strlen(g_label);
     /*
-      fprintf(stderr, "got string %s!\n", label);
+      print_text(NO, "got string %s!\n", label);
     */
   }
   else if (number_result == INPUT_NUMBER_STACK)
@@ -718,13 +719,13 @@ static int _macro_insert_word_db(char *name) {
     }
     fprintf(g_file_out_ptr, "y%d ", (int)d->value);
     /*
-      fprintf(stderr, ".DWM: VALUE: %d\n", (int)d->value);
+      print_text(NO, ".DWM: VALUE: %d\n", (int)d->value);
     */
   }
   else if (d->type == DEFINITION_TYPE_STACK) {
     fprintf(g_file_out_ptr, "C%d ", (int)d->value);
     /*
-      fprintf(stderr, ".DWM: STACK: %d\n", (int)d->value);
+      print_text(NO, ".DWM: STACK: %d\n", (int)d->value);
     */
   }
   else {
@@ -755,13 +756,13 @@ static int _macro_insert_long_db(char *name) {
     }
     fprintf(g_file_out_ptr, "z%d ", (int)d->value);
     /*
-      fprintf(stderr, ".DLM: VALUE: %d\n", (int)d->value);
+      print_text(NO, ".DLM: VALUE: %d\n", (int)d->value);
     */
   }
   else if (d->type == DEFINITION_TYPE_STACK) {
     fprintf(g_file_out_ptr, "T%d ", (int)d->value);
     /*
-      fprintf(stderr, ".DLM: STACK: %d\n", (int)d->value);
+      print_text(NO, ".DLM: STACK: %d\n", (int)d->value);
     */
   }
   else {
@@ -792,13 +793,13 @@ static int _macro_insert_double_dw(char *name) {
     }
     fprintf(g_file_out_ptr, "u%d ", (int)d->value);
     /*
-      fprintf(stderr, ".DLM: VALUE: %d\n", (int)d->value);
+      print_text(NO, ".DLM: VALUE: %d\n", (int)d->value);
     */
   }
   else if (d->type == DEFINITION_TYPE_STACK) {
     fprintf(g_file_out_ptr, "U%d ", (int)d->value);
     /*
-      fprintf(stderr, ".DLM: STACK: %d\n", (int)d->value);
+      print_text(NO, ".DLM: STACK: %d\n", (int)d->value);
     */
   }
   else {
@@ -837,7 +838,7 @@ int phase_1(void) {
   int o, p, q;
 
   if (g_verbose_level >= 100)
-    printf("Pass 1...\n");
+    print_text(YES, "Pass 1...\n");
 
   reset_label_stack();
 
@@ -852,7 +853,7 @@ int phase_1(void) {
 
   /* BANK 0 SLOT 0 ORG 0 */
   if (g_output_format != OUTPUT_LIBRARY)
-    fprintf(g_file_out_ptr, "B%d %d O%d", 0, 0, 0);
+    fprintf(g_file_out_ptr, "B%d %d O%d ", 0, 0, 0);
 
   while (1) {
     q = get_next_token();
@@ -1115,7 +1116,7 @@ int phase_1(void) {
       return FAILED;
     }
     else {
-      printf("PHASE_1: Internal error, unknown return type %d.\n", q);
+      print_text(YES, "PHASE_1: Internal error, unknown return type %d.\n", q);
       return FAILED;
     }
   }
@@ -1202,7 +1203,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
     if (g_commandline_parsing == OFF)
       print_error(ERROR_DIR, "\"%s\" was defined for the second time.\n", name);
     else
-      fprintf(stderr, "ADD_A_NEW_DEFINITION: \"%s\" was defined for the second time.\n", name);
+      print_text(NO, "ADD_A_NEW_DEFINITION: \"%s\" was defined for the second time.\n", name);
     return FAILED;
   }
 
@@ -1211,7 +1212,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
     if (g_commandline_parsing == OFF)
       print_error(ERROR_DIR, "Out of memory while trying to add a new definition (\"%s\").\n", name);
     else
-      fprintf(stderr, "ADD_A_NEW_DEFINITION: Out of memory while trying to add a new definition (\"%s\").\n", name);
+      print_text(NO, "ADD_A_NEW_DEFINITION: Out of memory while trying to add a new definition (\"%s\").\n", name);
     return FAILED;
   }
 
@@ -1222,7 +1223,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
     return FAILED;
 
   if ((err = hashmap_put(g_defines_map, d->alias, d)) != MAP_OK) {
-    fprintf(stderr, "ADD_A_NEW_DEFINITION: Hashmap error %d\n", err);
+    print_text(NO, "ADD_A_NEW_DEFINITION: Hashmap error %d\n", err);
     return FAILED;
   }
 
@@ -1307,7 +1308,7 @@ void print_error(int type, char *error, ...) {
   char error_err[] = "ERROR:";
   char error_fai[] = "FAIL:";
   char *t = NULL;
-  va_list argptr;
+  va_list args;
 
   switch (type) {
   case ERROR_FAI:
@@ -1346,16 +1347,16 @@ void print_error(int type, char *error, ...) {
   }
 
   if (g_active_file_info_last != NULL)
-    fprintf(stderr, "%s:%d: ", get_file_name(g_active_file_info_last->filename_id), g_active_file_info_last->line_current);
+    print_text(NO, "%s:%d: ", get_file_name(g_active_file_info_last->filename_id), g_active_file_info_last->line_current);
 
   if (t != NULL) {
-    fputs(t, stderr);
-    fputs(" ", stderr);
+    print_text(NO, t);
+    print_text(NO, " ");
   }
 
-  va_start(argptr, error);
-  vfprintf(stderr, error, argptr);
-  va_end(argptr);
+  va_start(args, error);
+  print_text_using_args(NO, error, args);
+  va_end(args);
 
   fflush(stderr);
 
@@ -1367,18 +1368,14 @@ void print_error(int type, char *error, ...) {
 
 void give_snes_rom_mode_defined_error(char *prior) {
 
-  if (g_lorom_defined != 0) {
+  if (g_lorom_defined != 0)
     print_error(ERROR_DIR, ".LOROM was defined prior to %s.\n", prior);
-  }
-  else if (g_hirom_defined != 0) {
+  else if (g_hirom_defined != 0)
     print_error(ERROR_DIR, ".HIROM was defined prior to %s.\n", prior);
-  }
-  else if (g_exlorom_defined != 0) {
+  else if (g_exlorom_defined != 0)
     print_error(ERROR_DIR, ".EXLOROM was defined prior to %s.\n", prior);
-  }
-  else if (g_exhirom_defined != 0) {
+  else if (g_exhirom_defined != 0)
     print_error(ERROR_DIR, ".EXHIROM was defined prior to %s.\n", prior);
-  }
 }
 
 #endif
@@ -1419,8 +1416,8 @@ void roll_back_to_remembered_source_file_position(void) {
 /* used by .RAMSECTIONs only */
 int add_label_sizeof(char *label, int size) {
 
-  struct label_sizeof *ls;
   char tmpname[MAX_NAME_LENGTH + 8];
+  struct label_sizeof *ls;
 
   if (g_create_sizeof_definitions == NO)
     return SUCCEEDED;
@@ -1716,7 +1713,7 @@ static int _remember_new_structure(struct structure *st) {
     s_saved_structures_max += 256;
     g_saved_structures = realloc(g_saved_structures, sizeof(struct structure *) * s_saved_structures_max);
     if (g_saved_structures == NULL) {
-      fprintf(stderr, "_remember_new_structure(): Out of memory error.\n");
+      print_text(NO, "_remember_new_structure(): Out of memory error.\n");
       return FAILED;
     }
   }
@@ -2831,36 +2828,28 @@ int directive_row_data(void) {
       }
     }
     else if (result == INPUT_NUMBER_ADDRESS_LABEL) {
-      if (s_table_format[s_table_index] == 'b') {
+      if (s_table_format[s_table_index] == 'b')
         fprintf(g_file_out_ptr, "k%d Q%s ", g_active_file_info_last->line_current, g_label);
-      }
-      else if (s_table_format[s_table_index] == 'w') {
+      else if (s_table_format[s_table_index] == 'w')
         fprintf(g_file_out_ptr, "k%d r%s ", g_active_file_info_last->line_current, g_label);
-      }
-      else if (s_table_format[s_table_index] == 'l') {
+      else if (s_table_format[s_table_index] == 'l')
         fprintf(g_file_out_ptr, "k%d q%s ", g_active_file_info_last->line_current, g_label);
-      }
-      else if (s_table_format[s_table_index] == 'd') {
+      else if (s_table_format[s_table_index] == 'd')
         fprintf(g_file_out_ptr, "k%d V%s ", g_active_file_info_last->line_current, g_label);
-      }
       else {
         print_error(ERROR_DIR, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, s_table_format[s_table_index]);
         return FAILED;
       }
     }
     else if (result == INPUT_NUMBER_STACK) {
-      if (s_table_format[s_table_index] == 'b') {
+      if (s_table_format[s_table_index] == 'b')
         fprintf(g_file_out_ptr, "c%d ", g_latest_stack);
-      }
-      else if (s_table_format[s_table_index] == 'w') {
+      else if (s_table_format[s_table_index] == 'w')
         fprintf(g_file_out_ptr, "C%d ", g_latest_stack);
-      }
-      else if (s_table_format[s_table_index] == 'l') {
+      else if (s_table_format[s_table_index] == 'l')
         fprintf(g_file_out_ptr, "T%d ", g_latest_stack);
-      }
-      else if (s_table_format[s_table_index] == 'd') {
+      else if (s_table_format[s_table_index] == 'd')
         fprintf(g_file_out_ptr, "U%d ", g_latest_stack);
-      }
       else {
         print_error(ERROR_DIR, ".%s has encountered an unsupported internal datatype \"%c\".\n", bak, s_table_format[s_table_index]);
         return FAILED;
@@ -3387,7 +3376,7 @@ int directive_dw_word_addr(void) {
     }
 
     if (number_result == SUCCEEDED)
-      fprintf(g_file_out_ptr, "y%d", g_parsed_int);
+      fprintf(g_file_out_ptr, "y%d ", g_parsed_int);
     else if (number_result == INPUT_NUMBER_ADDRESS_LABEL)
       fprintf(g_file_out_ptr, "r%s ", g_label);
     else if (number_result == INPUT_NUMBER_STACK)
@@ -3823,7 +3812,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
             }
 
             if (s_parse_dstruct_result == SUCCEEDED)
-              fprintf(g_file_out_ptr, "y%d", g_parsed_int);
+              fprintf(g_file_out_ptr, "y%d ", g_parsed_int);
             else if (s_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
               fprintf(g_file_out_ptr, "k%d r%s ", g_active_file_info_last->line_current, g_label);
             else if (s_parse_dstruct_result == INPUT_NUMBER_STACK)
@@ -3838,7 +3827,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
             }
 
             if (s_parse_dstruct_result == SUCCEEDED)
-              fprintf(g_file_out_ptr, "z%d", g_parsed_int);
+              fprintf(g_file_out_ptr, "z%d ", g_parsed_int);
             else if (s_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
               fprintf(g_file_out_ptr, "k%d q%s ", g_active_file_info_last->line_current, g_label);
             else if (s_parse_dstruct_result == INPUT_NUMBER_STACK)
@@ -3848,7 +3837,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
           }
           else if (it->size == 4) {
             if (s_parse_dstruct_result == SUCCEEDED)
-              fprintf(g_file_out_ptr, "u%d", g_parsed_int);
+              fprintf(g_file_out_ptr, "u%d ", g_parsed_int);
             else if (s_parse_dstruct_result == INPUT_NUMBER_ADDRESS_LABEL)
               fprintf(g_file_out_ptr, "k%d V%s ", g_active_file_info_last->line_current, g_label);
             else if (s_parse_dstruct_result == INPUT_NUMBER_STACK)
@@ -4062,9 +4051,9 @@ int directive_dstruct(void) {
      {
      struct structure_item *sS = s->items;
         
-     fprintf(stderr, "STRUCT \"%s\" size %d\n", s->name, s->size);
+     print_text(NO, "STRUCT \"%s\" size %d\n", s->name, s->size);
      while (sS != NULL) {
-     fprintf(stderr, "ITEM \"%s\" size %d\n", sS->name, sS->size);
+     print_text(NO, "ITEM \"%s\" size %d\n", sS->name, sS->size);
      sS = sS->next;
      }
      }
@@ -7308,7 +7297,7 @@ int directive_arraydef_arraydefine(void) {
   }
 
   if (name_defined == NO) {
-    fprintf(stderr, ".%s need a name.\n", bak);
+    print_text(NO, ".%s need a name.\n", bak);
     return FAILED;
   }
 
@@ -9183,7 +9172,7 @@ int directive_endm(void) {
       struct definition_storage *ds = storage->next;
       
       if ((q = hashmap_put(g_defines_map, storage->definition->alias, storage->definition)) != MAP_OK) {
-        fprintf(stderr, "DIRECTIVE_ENDM: Hashmap error %d\n", q);
+        print_text(NO, "DIRECTIVE_ENDM: Hashmap error %d\n", q);
         return FAILED;
       }
 
@@ -10082,16 +10071,16 @@ int directive_print(void) {
       }
 
       if (g_quiet == NO) {
-        printf("%s", g_label);
+        print_text(YES, "%s", g_label);
         fflush(stdout);
       }
     }
     else if (number_result == SUCCEEDED) {
       if (g_quiet == NO) {
         if (value_type == 0)
-          printf("%x", g_parsed_int);
+          print_text(YES, "%x", g_parsed_int);
         else
-          printf("%d", g_parsed_int);
+          print_text(YES, "%d", g_parsed_int);
         fflush(stdout);
       }
     }
@@ -10121,7 +10110,7 @@ int directive_printt(void) {
   }
 
   if (g_quiet == NO) {
-    printf("%s", g_label);
+    print_text(YES, "%s", g_label);
     fflush(stdout);
   }
 
@@ -10155,9 +10144,9 @@ int directive_printv(void) {
 
   if (g_quiet == NO) {
     if (m == 0)
-      printf("%x", g_parsed_int);
+      print_text(YES, "%x", g_parsed_int);
     else
-      printf("%d", g_parsed_int);
+      print_text(YES, "%d", g_parsed_int);
     fflush(stdout);
   }
 
@@ -12942,13 +12931,13 @@ int add_label_to_label_stack(char *l) {
     strcpy(g_label_stack[level], &l[level-1]);
 
   /*
-    fprintf(stderr, "*************************************\n");
-    fprintf(stderr, "LABEL STACK:\n");
+    print_text(NO, "*************************************\n");
+    print_text(NO, "LABEL STACK:\n");
     for (q = 0; q < 256; q++) {
     if (g_label_stack[q][0] != 0)
-    fprintf(stderr, "%s LEVEL %d\n", g_label_stack[q], q);
+    print_text(NO, "%s LEVEL %d\n", g_label_stack[q], q);
     }
-    fprintf(stderr, "*************************************\n");
+    print_text(NO, "*************************************\n");
   */
 
   return SUCCEEDED;

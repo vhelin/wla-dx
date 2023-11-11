@@ -13,6 +13,7 @@
 #include "phase_4.h"
 #include "hashmap.h"
 #include "printf.h"
+#include "main.h"
 
 
 #if defined(GB)
@@ -146,21 +147,21 @@ void _write_snes_cartridge_information(int start) {
 
 int phase_2(void) {
 
+  if (g_verbose_level >= 100)
+    print_text(YES, "Directive checks...\n");
+
   if (g_ifdef > 0) {
-    fprintf(stderr, "PHASE_2: %x x .ENDIFs are missing.\n", g_ifdef);
+    print_text(NO, "PHASE_2: %x x .ENDIFs are missing.\n", g_ifdef);
     return FAILED;
   }
 
-  if (g_verbose_level >= 100)
-    printf("Directive checks...\n");
-
   if (g_section_status == ON) {
-    fprintf(stderr, "PHASE_2: %s The section \"%s\" was not closed.\n", s_include_directives_name, g_sections_last->name);
+    print_text(NO, "PHASE_2: %s The section \"%s\" was not closed.\n", s_include_directives_name, g_sections_last->name);
     return FAILED;
   }
 
   if (g_output_format != OUTPUT_LIBRARY && g_rombanks_defined == 0 && g_rombankmap_defined == 0) {
-    fprintf(stderr, "PHASE_2: %s ROMBANKS/ROMBANKMAP wasn't defined.\n", s_include_directives_name);
+    print_text(NO, "PHASE_2: %s ROMBANKS/ROMBANKMAP wasn't defined.\n", s_include_directives_name);
     return FAILED;
   }
 
@@ -211,7 +212,7 @@ int phase_2(void) {
     /* BASEADDRESS override */
     if (g_romheader_baseaddress_defined != 0) {
       if (g_romheader_baseaddress + 16 > g_max_address) {
-        fprintf(stderr, "PHASE_2: Baseaddress ($%x) for SMS ROM header is too large, it overflows from the ROM ($%x bytes)!\n", g_romheader_baseaddress, g_max_address);
+        print_text(NO, "PHASE_2: Baseaddress ($%x) for SMS ROM header is too large, it overflows from the ROM ($%x bytes)!\n", g_romheader_baseaddress, g_max_address);
         return FAILED;
       }
       tag_address = g_romheader_baseaddress;
@@ -570,7 +571,7 @@ int phase_2(void) {
             romsize = 7;
           else /* if (b <= 512) */
             romsize = 8;
-          fprintf(stderr, "PHASE_2: WARNING: The number of ROM banks (%d) is not officially supported. Setting ROM size indicator byte at $0148 to %X...\n", b, romsize);
+          print_text(NO, "PHASE_2: WARNING: The number of ROM banks (%d) is not officially supported. Setting ROM size indicator byte at $0148 to %X...\n", b, romsize);
         }
       }
       

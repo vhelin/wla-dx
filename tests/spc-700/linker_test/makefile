@@ -8,7 +8,9 @@ SFILES = setup.s main.s
 IFILES = defines.i
 OFILES = main.o setup.o
 
-all: $(OFILES) makefile
+all: result.rom check
+
+result.rom: $(OFILES) makefile
 	$(LD) $(LDFLAGS) linkfile result.rom
 
 main.o: main.s defines.i
@@ -16,6 +18,9 @@ main.o: main.s defines.i
 
 setup.o: setup.s defines.i
 	$(CC) $(CFLAGS) setup.o setup.s
+
+check: result.rom
+	byte_tester -s main.s
 
 
 $(OFILES): $(HFILES)

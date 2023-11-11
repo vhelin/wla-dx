@@ -11,6 +11,8 @@
 ; main
 ;»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 
+        ; @BT result.rom
+
 .endasm
 	shuteye wouldn't hurt, but the voices tell me to code...
 .asm
@@ -65,11 +67,11 @@ nollasivu:
 
 .byt 1,>KORBA
 
-	.db "01>"
-	and1 c, /1.1+1
-	and1 c,/4+1+2.1+2-2+1
-	bbc 1+2+3.1+2,3+4+5
-	.db "<01"
+	.db "01>"               ; @BT TEST-01 01 START
+	and1 c, /1.1+1          ; @BT 6A 01 40
+	and1 c,/4+1+2.1+2-2+1   ; @BT 6A 07 40
+	bbc 1+2+3.1+2,3+4+5     ; @BT 73 06 0C
+	.db "<01"               ; @BT END
 
 .if 1 >= 2
  ijo oijo
