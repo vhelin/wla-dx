@@ -8,6 +8,7 @@
 #include "defines.h"
 #include "listfile.h"
 #include "files.h"
+#include "main.h"
 
 
 extern struct object_file *g_obj_first, *g_obj_last, *g_obj_tmp;
@@ -111,14 +112,14 @@ int listfile_write_listfiles(void) {
 
   listfileitems = calloc(sizeof(struct listfileitem) * listfile_item_count, 1);
   if (listfileitems == NULL) {
-    fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
     return FAILED;
   }
 
   listfileitems_ptr = calloc(sizeof(struct listfileitem *) * listfile_item_count, 1);
   if (listfileitems_ptr == NULL) {
     free(listfileitems);
-    fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
     return FAILED;
   }
 
@@ -126,7 +127,7 @@ int listfile_write_listfiles(void) {
   if (listfileitems == NULL) {
     free(listfileitems);
     free(listfileitems_ptr);
-    fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
     return FAILED;
   }
 
@@ -202,17 +203,17 @@ int listfile_write_listfiles(void) {
 
           count++;
           /*
-          fprintf(stderr, "LFI: k %s %d %d %x\n", listfileitems[count-1].sourcefilename, listfileitems[count-1].linenumber, listfileitems[count-1].length, listfileitems[count-1].address);
+          print_text(NO, "LFI: k %s %d %d %x\n", listfileitems[count-1].sourcefilename, listfileitems[count-1].linenumber, listfileitems[count-1].length, listfileitems[count-1].address);
           */
         }
         else {
           /* skip */
           /*
-          fprintf(stderr, "LFI: k SKIPPED\n");
+          print_text(NO, "LFI: k SKIPPED\n");
           */
 
           if (add == -0x12345678) {
-            fprintf(stderr, "LISTFILE_WRITE_LISTFILES: add == -0x12345678! Internal error! Please submit a bug report!\n");
+            print_text(NO, "LISTFILE_WRITE_LISTFILES: add == -0x12345678! Internal error! Please submit a bug report!\n");
             free(listfileitems);
             free(selected_sections);
             return FAILED;
@@ -225,11 +226,11 @@ int listfile_write_listfiles(void) {
         /* another file */
         source_file_id = s->listfile_ints[j*5 + 0];
         /*
-        fprintf(stderr, "LFI: f FILE_ID %d\n", source_file_id);
+        print_text(NO, "LFI: f FILE_ID %d\n", source_file_id);
         */
       }
       else {
-        fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", command);
+        print_text(NO, "LISTFILE_WRITE_LISTFILES: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", command);
         free(listfileitems);
         free(selected_sections);
         return FAILED;
@@ -258,13 +259,13 @@ int listfile_write_listfiles(void) {
           listfileitems[count].real_linenumber = obj->listfile_ints[j*8 + 7];
           count++;
           /*
-          fprintf(stderr, "LFI: k %s %d %d %x\n", listfileitems[count-1].sourcefilename, listfileitems[count-1].linenumber, listfileitems[count-1].length, listfileitems[count-1].address);
+          print_text(NO, "LFI: k %s %d %d %x\n", listfileitems[count-1].sourcefilename, listfileitems[count-1].linenumber, listfileitems[count-1].length, listfileitems[count-1].address);
           */
         }
         else {
           /* skip */
           /*
-          fprintf(stderr, "LFI: k SKIPPED\n");
+          print_text(NO, "LFI: k SKIPPED\n");
           */
         }
       }
@@ -272,11 +273,11 @@ int listfile_write_listfiles(void) {
         /* another file */
         source_file_id = obj->listfile_ints[j*8 + 0];
         /*
-        fprintf(stderr, "LFI: f FILE_ID %d\n", source_file_id);
+        print_text(NO, "LFI: f FILE_ID %d\n", source_file_id);
         */
       }
       else {
-        fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", command);
+        print_text(NO, "LISTFILE_WRITE_LISTFILES: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", command);
         free(listfileitems);
         free(selected_sections);
         return FAILED;
@@ -308,7 +309,7 @@ int listfile_write_listfiles(void) {
 
     source_file = calloc(file_size, 1);
     if (source_file == NULL) {
-      fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
+      print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
       fclose(f);
       free(listfileitems);
       free(listfileitems_ptr);
@@ -316,7 +317,7 @@ int listfile_write_listfiles(void) {
     }
 
     if (fread(source_file, 1, file_size, f) != (size_t)file_size) {
-      fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Could not read all %d bytes of \"%s\"!", file_size, source_file_name);
+      print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not read all %d bytes of \"%s\"!", file_size, source_file_name);
       fclose(f);
       free(listfileitems);
       free(listfileitems_ptr);
@@ -335,7 +336,7 @@ int listfile_write_listfiles(void) {
 
     f = fopen(tmp, "wb");
     if (f == NULL) {
-      fprintf(stderr, "LISTFILE_WRITE_LISTFILES: Could not open file \"%s\" for writing.\n", tmp);
+      print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not open file \"%s\" for writing.\n", tmp);
       free(listfileitems);
       free(listfileitems_ptr);
       free(source_file);
@@ -560,7 +561,7 @@ int listfile_block_read(unsigned char **d, struct section *s) {
 
   if (s->listfile_cmds == NULL || s->listfile_ints == NULL) {
     s->listfile_items = 0;
-    fprintf(stderr, "LISTFILE_BLOCK_READ: Out of memory error.\n");
+    print_text(NO, "LISTFILE_BLOCK_READ: Out of memory error.\n");
     return FAILED;
   }
 
@@ -581,7 +582,7 @@ int listfile_block_read(unsigned char **d, struct section *s) {
     }
     else {
       s->listfile_items = 0;
-      fprintf(stderr, "LISTFILE_BLOCK_READ: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", s->listfile_cmds[i]);
+      print_text(NO, "LISTFILE_BLOCK_READ: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", s->listfile_cmds[i]);
       return FAILED;
     }
   }
@@ -616,7 +617,7 @@ int listfile_block_read_global(unsigned char **d, struct object_file *obj) {
 
   if (obj->listfile_cmds == NULL || obj->listfile_ints == NULL) {
     obj->listfile_items = 0;
-    fprintf(stderr, "LISTFILE_BLOCK_READ_GLOBAL: Out of memory error.\n");
+    print_text(NO, "LISTFILE_BLOCK_READ_GLOBAL: Out of memory error.\n");
     return FAILED;
   }
 
@@ -640,7 +641,7 @@ int listfile_block_read_global(unsigned char **d, struct object_file *obj) {
     }
     else {
       obj->listfile_items = 0;
-      fprintf(stderr, "LISTFILE_BLOCK_READ_GLOBAL: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", obj->listfile_cmds[i]);
+      print_text(NO, "LISTFILE_BLOCK_READ_GLOBAL: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", obj->listfile_cmds[i]);
       return FAILED;
     }
   }

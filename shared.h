@@ -16,6 +16,9 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+#define DEFAULT_SCREEN_DX 80
+#define DEFAULT_SCREEN_DY 24
+
 #ifndef NDEBUG
   #define WLA_DEBUG 1
   #define WLALINK_DEBUG 1

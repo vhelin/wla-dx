@@ -10,6 +10,7 @@
 #include "write.h"
 #include "files.h"
 #include "analyze.h"
+#include "main.h"
 
 #if defined(AMIGA)
 #include "/crc32.h"
@@ -94,7 +95,7 @@ int _cbm_write_prg_header(FILE *f) {
 
   if (g_load_address_type == LOAD_ADDRESS_TYPE_VALUE) {
     address = g_load_address;
-    fprintf(stderr, "Using the address $%x as the load address for the PRG.\n", address & 0xFFFF);
+    print_text(NO, "Using the address $%x as the load address for the PRG.\n", address & 0xFFFF);
   }
   else if (g_load_address_type == LOAD_ADDRESS_TYPE_LABEL) {
     /* find the address of the label */
@@ -103,7 +104,7 @@ int _cbm_write_prg_header(FILE *f) {
     find_label(g_load_address_label, NULL, &l);
 
     if (l == NULL) {
-      fprintf(stderr, "_CBM_WRITE_PRG_HEADER: Cannot find label \"%s\".\n", g_load_address_label);
+      print_text(NO, "_CBM_WRITE_PRG_HEADER: Cannot find label \"%s\".\n", g_load_address_label);
       return FAILED;
     }
 
@@ -112,13 +113,13 @@ int _cbm_write_prg_header(FILE *f) {
                                                                           l->section_struct->status == SECTION_STATUS_RAM_SEMIFREE ||
                                                                           l->section_struct->status == SECTION_STATUS_RAM_SEMISUBFREE ||
                                                                           l->section_struct->alive == NO))) {
-      fprintf(stderr, "_CBM_WRITE_PRG_HEADER: \"%s\" cannot be used as the load address.\n", g_load_address_label);
+      print_text(NO, "_CBM_WRITE_PRG_HEADER: \"%s\" cannot be used as the load address.\n", g_load_address_label);
       return FAILED;
     }
 
     address = (int)l->address;
 
-    fprintf(stderr, "Using the address $%x (of label \"%s\") as the load address for the PRG.\n", address & 0xFFFF, l->name);
+    print_text(NO, "Using the address $%x (of label \"%s\") as the load address for the PRG.\n", address & 0xFFFF, l->name);
   }
   else if (g_load_address_type == LOAD_ADDRESS_TYPE_UNDEFINED) {
     /* find a suitable load address, i.e., the label with the smallest address value */
@@ -149,13 +150,13 @@ int _cbm_write_prg_header(FILE *f) {
     }
 
     if (label == NULL) {
-      fprintf(stderr, "_CBM_WRITE_PRG_HEADER: Cannot find a suitable label to be used as the load address for the PRG.\n");
+      print_text(NO, "_CBM_WRITE_PRG_HEADER: Cannot find a suitable label to be used as the load address for the PRG.\n");
       return FAILED;
     }
 
     address = address2;
 
-    fprintf(stderr, "Using the address $%x (of label \"%s\") as the load address for the PRG.\n", address & 0xFFFF, label->name);
+    print_text(NO, "Using the address $%x (of label \"%s\") as the load address for the PRG.\n", address & 0xFFFF, label->name);
   }
 
   fprintf(f, "%c", address & 0xFF);
@@ -241,7 +242,7 @@ int sort_sections(void) {
 
   sa = calloc(sizeof(struct section *) * sn, 1);
   if (sa == NULL) {
-    fprintf(stderr, "SORT_SECTIONS: Out of memory error.\n");
+    print_text(NO, "SORT_SECTIONS: Out of memory error.\n");
     return FAILED;
   }
 
@@ -283,7 +284,7 @@ static int _after_section_override_ram(struct section *s, char **ram_slots[256],
   char *c;
   
   if (s->after->placed == NO) {
-    fprintf(stderr, "INSERT_SECTIONS: Trying to insert RAMSECTION \"%s\" after \"%s\", but its address is unknown. Internal error. Please submit a bug report!\n", s->name, s->after->name);
+    print_text(NO, "INSERT_SECTIONS: Trying to insert RAMSECTION \"%s\" after \"%s\", but its address is unknown. Internal error. Please submit a bug report!\n", s->name, s->after->name);
     return FAILED;
   }
 
@@ -299,7 +300,7 @@ static int _after_section_override_ram(struct section *s, char **ram_slots[256],
   i = g_slots[s->slot].size;
   for (q = 0; a + q < i && q < s->size; q++) {
     if (c[a + q] != 0) {
-      fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
+      print_text(NO, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
       return FAILED;
     }
   }
@@ -318,7 +319,7 @@ static int _mark_ram_section_area(struct section *s, int address, int max_addres
 
   if (i < s->size) {
     /* address overflow! */
-    fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
+    print_text(NO, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
     return FAILED;        
   }
 
@@ -349,12 +350,12 @@ static int _insert_rom_after_section(struct section *s) {
   g_section_overwrite = OFF;
 
   if (end_address > g_romsize) {
-    fprintf(stderr, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) goes beyond the ROM size.\n", get_file_name(s->file_id),
+    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) goes beyond the ROM size.\n", get_file_name(s->file_id),
             get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
     return FAILED;
   }
   if (s->address + s->size > g_banksize) {
-    fprintf(stderr, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) overflows from ROM bank %d.\n", get_file_name(s->file_id),
+    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) overflows from ROM bank %d.\n", get_file_name(s->file_id),
             get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
     return FAILED;
   }
@@ -376,7 +377,7 @@ static int _insert_rom_after_section(struct section *s) {
     }
   }
   else {
-    fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
+    print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
             get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
     return FAILED;
   }
@@ -438,7 +439,7 @@ static int _unroll_banks(struct section *s, int banks[1024], int *banks_max) {
     }
 
     if (digits == 0) {
-      fprintf(stderr, "%s: %s: _UNROLL_BANKS: Section \"%s\" has malformed BANKS list (%s).\n", get_file_name(s->file_id),
+      print_text(NO, "%s: %s: _UNROLL_BANKS: Section \"%s\" has malformed BANKS list (%s).\n", get_file_name(s->file_id),
               get_source_file_name(s->file_id, s->file_id_source), s->name, s->banks);
       return FAILED;
     }
@@ -447,7 +448,7 @@ static int _unroll_banks(struct section *s, int banks[1024], int *banks_max) {
     c = s->banks[i];
     if (c == 0 || c == '/') {
       if (bank >= 1024) {
-        fprintf(stderr, "%s: %s: _UNROLL_BANKS: Bank %d in Section \"%s\"'s BANKS list is out of range [0, 1023]. Please submit a bug report if this should work!\n", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), bank, s->name);
+        print_text(NO, "%s: %s: _UNROLL_BANKS: Bank %d in Section \"%s\"'s BANKS list is out of range [0, 1023]. Please submit a bug report if this should work!\n", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), bank, s->name);
         return FAILED;
       }
 
@@ -461,7 +462,7 @@ static int _unroll_banks(struct section *s, int banks[1024], int *banks_max) {
 
     /* range? */
     if (c != '-') {
-      fprintf(stderr, "%s: %s: _UNROLL_BANKS: Section \"%s\" has malformed BANKS list (%s).\n", get_file_name(s->file_id),
+      print_text(NO, "%s: %s: _UNROLL_BANKS: Section \"%s\" has malformed BANKS list (%s).\n", get_file_name(s->file_id),
               get_source_file_name(s->file_id, s->file_id_source), s->name, s->banks);
       return FAILED;
     }
@@ -484,14 +485,14 @@ static int _unroll_banks(struct section *s, int banks[1024], int *banks_max) {
     }
 
     if (digits == 0 || (c != 0 && c != '/')) {
-      fprintf(stderr, "%s: %s: _UNROLL_BANKS: Section \"%s\" has malformed BANKS list (%s).\n", get_file_name(s->file_id),
+      print_text(NO, "%s: %s: _UNROLL_BANKS: Section \"%s\" has malformed BANKS list (%s).\n", get_file_name(s->file_id),
               get_source_file_name(s->file_id, s->file_id_source), s->name, s->banks);
       return FAILED;
     }
 
     while (1) {
       if (bank >= 1024) {
-        fprintf(stderr, "%s: %s: _UNROLL_BANKS: Bank %d in Section \"%s\"'s BANKS list is out of range [0, 1023]. Please submit a bug report if this should work!\n", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), bank, s->name);
+        print_text(NO, "%s: %s: _UNROLL_BANKS: Bank %d in Section \"%s\"'s BANKS list is out of range [0, 1023]. Please submit a bug report if this should work!\n", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), bank, s->name);
         return FAILED;
       }
 
@@ -510,7 +511,7 @@ static int _unroll_banks(struct section *s, int banks[1024], int *banks_max) {
   }
 
   if (max <= 0) {
-    fprintf(stderr, "%s: %s: _UNROLL_BANKS: No banks in section \"%s\"'s BANKS list (%s).\n", get_file_name(s->file_id),
+    print_text(NO, "%s: %s: _UNROLL_BANKS: No banks in section \"%s\"'s BANKS list (%s).\n", get_file_name(s->file_id),
             get_source_file_name(s->file_id, s->file_id_source), s->name, s->banks);
     return FAILED;
   }
@@ -588,7 +589,7 @@ static int _write_section_absolute(struct section *s) {
   if (s->after != NULL) {
     /* AFTER section override! */
     if (s->after->placed == NO) {
-      fprintf(stderr, "INSERT_SECTIONS: Trying to insert SECTION \"%s\" after \"%s\", but its address is unknown. Internal error. Please submit a bug report!\n", s->name, s->after->name);
+      print_text(NO, "INSERT_SECTIONS: Trying to insert SECTION \"%s\" after \"%s\", but its address is unknown. Internal error. Please submit a bug report!\n", s->name, s->after->name);
       return FAILED;
     }
 
@@ -601,7 +602,7 @@ static int _write_section_absolute(struct section *s) {
   s->placed = YES;
 
   if (d + s->size > g_romsize) {
-    fprintf(stderr, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) goes beyond the ROM size.\n", get_file_name(s->file_id),
+    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) goes beyond the ROM size.\n", get_file_name(s->file_id),
             get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
     return FAILED;
   }
@@ -643,7 +644,7 @@ static int _write_section_force(struct section *s) {
   if (s->after != NULL) {
     /* AFTER section override! */
     if (s->after->placed == NO) {
-      fprintf(stderr, "INSERT_SECTIONS: Trying to insert SECTION \"%s\" after \"%s\", but its address is unknown. Internal error. Please submit a bug report!\n", s->name, s->after->name);
+      print_text(NO, "INSERT_SECTIONS: Trying to insert SECTION \"%s\" after \"%s\", but its address is unknown. Internal error. Please submit a bug report!\n", s->name, s->after->name);
       return FAILED;
     }
 
@@ -662,12 +663,12 @@ static int _write_section_force(struct section *s) {
   g_section_overwrite = OFF;
   s->placed = YES;
   if (i > g_romsize) {
-    fprintf(stderr, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) goes beyond the ROM size.\n", get_file_name(s->file_id),
+    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) goes beyond the ROM size.\n", get_file_name(s->file_id),
             get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
     return FAILED;
   }
   if (s->address + s->size > g_banksize) {
-    fprintf(stderr, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) overflows from ROM bank %d.\n", get_file_name(s->file_id),
+    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) overflows from ROM bank %d.\n", get_file_name(s->file_id),
             get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
     return FAILED;
   }
@@ -686,7 +687,7 @@ static int _write_section_force(struct section *s) {
     }
   }
   else {
-    fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
+    print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
             get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
     return FAILED;
   }
@@ -727,7 +728,7 @@ static int _write_section_semisuperfree(struct section *s) {
 
     while (1) {
       if (banks[bank] >= g_rombanks) {
-        fprintf(stderr, "%s: %s: INSERT_SECTIONS: Bank %d for section \"%s\" is out of range [0, %d].\n", get_file_name(s->file_id),
+        print_text(NO, "%s: %s: INSERT_SECTIONS: Bank %d for section \"%s\" is out of range [0, %d].\n", get_file_name(s->file_id),
                 get_source_file_name(s->file_id, s->file_id_source), banks[bank], s->name, g_rombanks);
         return FAILED;
       }
@@ -737,7 +738,7 @@ static int _write_section_semisuperfree(struct section *s) {
 
       bank++;
       if (bank == banks_max) {
-        fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes).\n", get_file_name(s->file_id),
+        print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes).\n", get_file_name(s->file_id),
                 get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
         return FAILED;
       }
@@ -795,7 +796,7 @@ static int _write_section_semisubfree(struct section *s) {
           g_pc_bank = f + 1;
       }
       if (g_pc_bank + s->offset >= s->address) {
-        fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
+        print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
                 get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
         return FAILED;
       }
@@ -880,7 +881,7 @@ static int _write_section_free_and_semifree(struct section *s) {
           g_pc_bank = f + 1;
       }
       if (g_pc_bank + s->offset >= g_banksizes[s->bank]) {
-        fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
+        print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
                 get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
         return FAILED;
       }
@@ -1008,7 +1009,7 @@ static int _write_section_superfree(struct section *s) {
           return FAILED;
     }
     else {
-      fprintf(stderr, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
+      print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
               get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
       return FAILED;
     }
@@ -1043,7 +1044,7 @@ static int _write_section_overwrite(struct section *s) {
   if (s->after != NULL) {
     /* AFTER section override! */
     if (s->after->placed == NO) {
-      fprintf(stderr, "INSERT_SECTIONS: Trying to insert SECTION \"%s\" after \"%s\", but its address is unknown. Internal error. Please submit a bug report!\n", s->name, s->after->name);
+      print_text(NO, "INSERT_SECTIONS: Trying to insert SECTION \"%s\" after \"%s\", but its address is unknown. Internal error. Please submit a bug report!\n", s->name, s->after->name);
       return FAILED;
     }
     
@@ -1062,12 +1063,12 @@ static int _write_section_overwrite(struct section *s) {
   s->placed = YES;
       
   if (g_pc_full + s->size > g_romsize) {
-    fprintf(stderr, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) goes beyond the ROM size.\n", get_file_name(s->file_id),
+    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) goes beyond the ROM size.\n", get_file_name(s->file_id),
             get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
     return FAILED;
   }
   if (s->address + s->size > g_banksize) {
-    fprintf(stderr, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) overflows from ROM bank %d.\n", get_file_name(s->file_id),
+    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) overflows from ROM bank %d.\n", get_file_name(s->file_id),
             get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
     return FAILED;
   }
@@ -1125,7 +1126,7 @@ static int _write_ramsection_force(struct section *s) {
   else {
     for (q = 0; address + q < slot_size && q < s->size; q++) {
       if (c[address + q] != 0) {
-        fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
+        print_text(NO, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
         return FAILED;
       }
     }
@@ -1195,7 +1196,7 @@ static int _write_ramsection_semisubfree(struct section *s) {
     }
 
     if (t == 0) {
-      fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
+      print_text(NO, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
       return FAILED;
     }
 
@@ -1265,7 +1266,7 @@ static int _write_ramsection_free_and_semifree(struct section *s) {
     }
 
     if (t == 0) {
-      fprintf(stderr, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
+      print_text(NO, "INSERT_SECTIONS: No room for RAMSECTION \"%s\" (%d bytes) in RAM bank %d.\n", s->name, s->size, s->bank);
       return FAILED;
     }
 
@@ -1311,7 +1312,7 @@ int insert_sections(void) {
       if (g_ram_slots[s->bank] == NULL) {
         g_ram_slots[s->bank] = calloc(sizeof(char *) * 256, 1);
         if (g_ram_slots[s->bank] == NULL) {
-          fprintf(stderr, "INSERT_SECTIONS: Out of memory error.\n");
+          print_text(NO, "INSERT_SECTIONS: Out of memory error.\n");
           return FAILED;
         }
         for (i = 0; i < 256; i++)
@@ -1320,7 +1321,7 @@ int insert_sections(void) {
       if (g_ram_slots[s->bank][s->slot] == NULL) {
         g_ram_slots[s->bank][s->slot] = calloc(g_slots[s->slot].size, 1);
         if (g_ram_slots[s->bank][s->slot] == NULL) {
-          fprintf(stderr, "INSERT_SECTIONS: Out of memory error.\n");
+          print_text(NO, "INSERT_SECTIONS: Out of memory error.\n");
           return FAILED;
         }
         memset(g_ram_slots[s->bank][s->slot], 0, g_slots[s->slot].size);
@@ -1380,7 +1381,7 @@ int insert_sections(void) {
           return FAILED;
       }
       else {
-        fprintf(stderr, "INSERT_SECTIONS: Unhandled .RAMSECTION type %d. Please submit a bug report!\n", status);
+        print_text(NO, "INSERT_SECTIONS: Unhandled .RAMSECTION type %d. Please submit a bug report!\n", status);
         return FAILED;
       }
     }
@@ -1465,7 +1466,7 @@ int insert_sections(void) {
           return FAILED;
       }
       else {
-        fprintf(stderr, "INSERT_SECTIONS: Unhandled .SECTION type %d. Please submit a bug report!\n", status);
+        print_text(NO, "INSERT_SECTIONS: Unhandled .SECTION type %d. Please submit a bug report!\n", status);
         return FAILED;
       }
     }
@@ -1496,13 +1497,13 @@ int transform_stack_definitions(void) {
   while (l != NULL) {
     if (l->status == LABEL_STATUS_STACK) {
       /* DEBUG
-         printf("--------------------------------------\n");
-         printf("name: \"%s\"\n", l->name);
-         printf("sect: \"%d\"\n", l->section);
-         printf("slot: \"%d\"\n", l->slot);
-         printf("status: \"%d\"\n", l->status);
-         printf("file_id: \"%d\"\n", l->file_id);
-         printf("value: \"%d\"\n", l->address);
+         print_text(YES, "--------------------------------------\n");
+         print_text(YES, "name: \"%s\"\n", l->name);
+         print_text(YES, "sect: \"%d\"\n", l->section);
+         print_text(YES, "slot: \"%d\"\n", l->slot);
+         print_text(YES, "status: \"%d\"\n", l->status);
+         print_text(YES, "file_id: \"%d\"\n", l->file_id);
+         print_text(YES, "value: \"%d\"\n", l->address);
       */
 
       /* find the stack associated with the definition */
@@ -1510,12 +1511,12 @@ int transform_stack_definitions(void) {
 
       /* did we find it? */
       if (s == NULL) {
-        fprintf(stderr, "TRANSFORM_STACK_DEFINITIONS: No computation stack associated with computation definition label \"%s\". This is a fatal internal error. Please send the WLA DX author a bug report.\n", l->name);
+        print_text(NO, "TRANSFORM_STACK_DEFINITIONS: No computation stack associated with computation definition label \"%s\". This is a fatal internal error. Please send the WLA DX author a bug report.\n", l->name);
         return FAILED;
       }
       /* is it ok? */
       if (s->computed == NO) {
-        fprintf(stderr, "TRANSFORM_STACK_DEFINITIONS: The computation of definition \"%s\" hasn't been solved. This is a fatal internal error. Please send the WLA DX author a bug report.\n", l->name);
+        print_text(NO, "TRANSFORM_STACK_DEFINITIONS: The computation of definition \"%s\" hasn't been solved. This is a fatal internal error. Please send the WLA DX author a bug report.\n", l->name);
         return FAILED;
       }
 
@@ -1538,9 +1539,9 @@ static int _try_put_label(map_t map, struct label *l) {
 
   if (hashmap_get(map, l->name, NULL) == MAP_OK) {
     if (l->status == LABEL_STATUS_DEFINE)
-      fprintf(stderr, "%s: _TRY_PUT_LABEL: Definition \"%s\" was defined more than once.\n", get_file_name(l->file_id), l->name);
+      print_text(NO, "%s: _TRY_PUT_LABEL: Definition \"%s\" was defined more than once.\n", get_file_name(l->file_id), l->name);
     else
-      fprintf(stderr, "%s: %s:%d: _TRY_PUT_LABEL: Label \"%s\" was defined more than once.\n", get_file_name(l->file_id),
+      print_text(NO, "%s: %s:%d: _TRY_PUT_LABEL: Label \"%s\" was defined more than once.\n", get_file_name(l->file_id),
               get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name);
 
     if (g_allow_duplicate_labels_and_definitions == NO)
@@ -1548,7 +1549,7 @@ static int _try_put_label(map_t map, struct label *l) {
   }
   
   if ((err = hashmap_put(map, l->name, l)) != MAP_OK) {
-    fprintf(stderr, "_TRY_PUT_LABEL: Hashmap error %d. Please send a bug report!\n", err);
+    print_text(NO, "_TRY_PUT_LABEL: Hashmap error %d. Please send a bug report!\n", err);
     return FAILED;
   }
 
@@ -1564,7 +1565,7 @@ int check_ramsections(void) {
   s = g_sec_first;
   while (s != NULL) {
     if (s->bank < 0 && s->slot < 0) {
-      fprintf(stderr, "%s: %s: CHECK_RAMSECTIONS: RAM section \"%s\" has no BANK/SLOT. Give them in the linkfile under [ramsections].\n", get_file_name(s->file_id),
+      print_text(NO, "%s: %s: CHECK_RAMSECTIONS: RAM section \"%s\" has no BANK/SLOT. Give them in the linkfile under [ramsections].\n", get_file_name(s->file_id),
               get_source_file_name(s->file_id, s->file_id_source), s->name);
       return FAILED;
     }
@@ -1628,7 +1629,7 @@ int fix_all_sections(void) {
         
         if (g_sec_fix_tmp->orga >= 0) {
           if (g_sec_fix_tmp->orga < g_slots[s->slot].address || g_sec_fix_tmp->orga >= g_slots[s->slot].address + g_slots[s->slot].size) {
-            fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: ORGA $%.4x is outside of the SLOT %d.\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, g_sec_fix_tmp->orga, s->slot);
+            print_text(NO, "%s:%d: FIX_ALL_SECTIONS: ORGA $%.4x is outside of the SLOT %d.\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, g_sec_fix_tmp->orga, s->slot);
             return FAILED;
           }
           s->address = g_sec_fix_tmp->orga - g_slots[s->slot].address;
@@ -1642,7 +1643,7 @@ int fix_all_sections(void) {
           }
           else if (g_sec_fix_tmp->size < s->size) {
             /* we cannot shrink the section */
-            fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: Shrinking a section (\"%s\" in this case) is not allowed.\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
+            print_text(NO, "%s:%d: FIX_ALL_SECTIONS: Shrinking a section (\"%s\" in this case) is not allowed.\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
             return FAILED;
           }
           else {
@@ -1651,7 +1652,7 @@ int fix_all_sections(void) {
 
             s->data = realloc(s->data, g_sec_fix_tmp->size);
             if (s->data == NULL) {
-              fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: Out of memory error while enlarging section \"%s\".\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
+              print_text(NO, "%s:%d: FIX_ALL_SECTIONS: Out of memory error while enlarging section \"%s\".\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
               return FAILED;
             }
 
@@ -1664,11 +1665,11 @@ int fix_all_sections(void) {
         }
 
         if (s->status == SECTION_STATUS_SEMISUPERFREE && s->banks[0] == 0) {
-          fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: Section \"%s\" is marked as SEMISUPERFREE, but no BANKS are defined.\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
+          print_text(NO, "%s:%d: FIX_ALL_SECTIONS: Section \"%s\" is marked as SEMISUPERFREE, but no BANKS are defined.\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
           return FAILED;
         }
         if (s->status != SECTION_STATUS_SEMISUPERFREE && s->banks[0] != 0) {
-          fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: Section \"%s\" is not SEMISUPERFREE, but BANKS are defined.\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
+          print_text(NO, "%s:%d: FIX_ALL_SECTIONS: Section \"%s\" is not SEMISUPERFREE, but BANKS are defined.\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
           return FAILED;
         }
         
@@ -1678,12 +1679,12 @@ int fix_all_sections(void) {
     }
 
     if (s == NULL) {
-      fprintf(stderr, "%s:%d: FIX_ALL_SECTIONS: Could not find ", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number);
+      print_text(NO, "%s:%d: FIX_ALL_SECTIONS: Could not find ", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number);
       if (g_sec_fix_tmp->is_ramsection == YES)
-        fprintf(stderr, "RAM section");
+        print_text(NO, "RAM section");
       else
-        fprintf(stderr, "section");
-      fprintf(stderr, " \"%s\".\n", g_sec_fix_tmp->name);
+        print_text(NO, "section");
+      print_text(NO, " \"%s\".\n", g_sec_fix_tmp->name);
       return FAILED;
     }
 
@@ -1707,7 +1708,7 @@ int fix_label_sections(void) {
         /* search for the label's section */
         s = find_section(l->section);
         if (s == NULL) {
-          fprintf(stderr, "FIX_LABEL_SECTIONS: Internal error: couldn't find section %d for label \"%s\".\n",
+          print_text(NO, "FIX_LABEL_SECTIONS: Internal error: couldn't find section %d for label \"%s\".\n",
                   l->section, l->name);
           return FAILED;
         }
@@ -1789,7 +1790,7 @@ int fix_label_addresses(void) {
       if (l->status == LABEL_STATUS_LABEL || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
         if (l->section_status == ON) {
           if (l->section_struct == NULL) {
-            fprintf(stderr, "FIX_LABEL_ADDRESSES: Internal error: section_struct is NULL.\n");
+            print_text(NO, "FIX_LABEL_ADDRESSES: Internal error: section_struct is NULL.\n");
             return FAILED;
           }
           s = l->section_struct;
@@ -1808,7 +1809,7 @@ int fix_label_addresses(void) {
               l->address += g_slots[l->slot].address;
           }
           else {
-            fprintf(stderr, "FIX_LABELS: Internal error: label's section ID and its sections section ID don't match!\n");
+            print_text(NO, "FIX_LABELS: Internal error: label's section ID and its sections section ID don't match!\n");
           }
         }
         else {
@@ -1846,7 +1847,7 @@ static int _handle_special_case(int special_id, int file_id, int file_id_source,
     else if (value == 0x38)
       *out = 0xFF;
     else {
-      fprintf(stderr, "%s: %s:%d: _HANDLE_SPECIAL_CASE: RST is expecting $00/$08/$10/$18/$20/$28/$30/$38, got $%.2x instead.\n",
+      print_text(NO, "%s: %s:%d: _HANDLE_SPECIAL_CASE: RST is expecting $00/$08/$10/$18/$20/$28/$30/$38, got $%.2x instead.\n",
               get_file_name(file_id), get_source_file_name(file_id, file_id_source), linenumber, value);
       return FAILED;
     }
@@ -1870,7 +1871,7 @@ static int _handle_special_case(int special_id, int file_id, int file_id_source,
     else if (value == 7)
       *out = 0x3D;
     else {
-      fprintf(stderr, "%s: %s:%d: _HANDLE_SPECIAL_CASE: RST is expecting 0/1/2/3/4/5/6/7, got $%.2x instead.\n",
+      print_text(NO, "%s: %s:%d: _HANDLE_SPECIAL_CASE: RST is expecting 0/1/2/3/4/5/6/7, got $%.2x instead.\n",
               get_file_name(file_id), get_source_file_name(file_id, file_id_source), linenumber, value);
       return FAILED;
     }
@@ -1894,7 +1895,7 @@ static int _handle_special_case(int special_id, int file_id, int file_id_source,
     else if (value == 7)
       *out = 0xFF;
     else {
-      fprintf(stderr, "%s: %s:%d: _HANDLE_SPECIAL_CASE: RST is expecting 0/1/2/3/4/5/6/7, got $%.2x instead.\n",
+      print_text(NO, "%s: %s:%d: _HANDLE_SPECIAL_CASE: RST is expecting 0/1/2/3/4/5/6/7, got $%.2x instead.\n",
               get_file_name(file_id), get_source_file_name(file_id, file_id_source), linenumber, value);
       return FAILED;
     }
@@ -1903,7 +1904,7 @@ static int _handle_special_case(int special_id, int file_id, int file_id_source,
     /* endianess flipping is handled elsewhere */
   }
   else {
-    fprintf(stderr, "_HANDLE_SPECIAL_CASE: Unknown special case ID %d! This in an internal WLA error. Please submit a bug report!\n", special_id);
+    print_text(NO, "_HANDLE_SPECIAL_CASE: Unknown special case ID %d! This in an internal WLA error. Please submit a bug report!\n", special_id);
     return FAILED;
   }
 
@@ -1922,7 +1923,7 @@ static int _flip_endianess(int value, int bits) {
     return (bottom << 8) | top;
   }
   else {
-    fprintf(stderr, "_FLIP_ENDIANESS: Only 16-bit values can be flipped at the moment!\n");
+    print_text(NO, "_FLIP_ENDIANESS: Only 16-bit values can be flipped at the moment!\n");
     return value;
   }
 }
@@ -1990,7 +1991,7 @@ int fix_references(void) {
         find_label(&r->name[1], s, &l);
 
       if (l == NULL || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
-        fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Bank number request for an unknown label \"%s\".\n",
+        print_text(NO, "%s: %s:%d: FIX_REFERENCES: Bank number request for an unknown label \"%s\".\n",
                 get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, &r->name[1]);
         return FAILED;
       }
@@ -2032,7 +2033,7 @@ int fix_references(void) {
       }
       /* direct / relative 8-bit with a definition */
       else if (l->status == LABEL_STATUS_DEFINE) {
-        fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Bank number request for a definition \"%s\"?\n",
+        print_text(NO, "%s: %s:%d: FIX_REFERENCES: Bank number request for a definition \"%s\"?\n",
                 get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, l->name);
         return FAILED;
       }
@@ -2072,7 +2073,7 @@ int fix_references(void) {
           mask = ~((1 << r->bits_to_define) - 1);
 
         if ((i & mask) != 0) {
-          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->bits_to_define, i, i);
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->bits_to_define, i, i);
           return FAILED;
         }
 
@@ -2102,7 +2103,7 @@ int fix_references(void) {
         find_label(r->name, s, &l);
 
       if (l == NULL || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
-        fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Reference to an unknown label \"%s\".\n",
+        print_text(NO, "%s: %s:%d: FIX_REFERENCES: Reference to an unknown label \"%s\".\n",
                 get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
         return FAILED;
       }
@@ -2137,7 +2138,7 @@ int fix_references(void) {
       else if (r->type == REFERENCE_TYPE_DIRECT_13BIT) {
         i = (int)l->address;
         if (i > 8191 || i < 0) {
-          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 13-bit value.\n",
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 13-bit value.\n",
                   get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
           return FAILED;
         }
@@ -2149,12 +2150,12 @@ int fix_references(void) {
       else if (r->type == REFERENCE_TYPE_DIRECT_9BIT_SHORT) {
         i = (int)l->address;
         if (i > 510 || i < 0) {
-          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 9-bit value.\n",
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 9-bit value.\n",
                   get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
           return FAILED;
         }
         if ((i & 1) == 1) {
-          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: The RAM address needs to be even.\n",
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: The RAM address needs to be even.\n",
                   get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber);
           return FAILED;
         }
@@ -2164,7 +2165,7 @@ int fix_references(void) {
       else if (l->status == LABEL_STATUS_DEFINE && (r->type == REFERENCE_TYPE_DIRECT_8BIT || r->type == REFERENCE_TYPE_RELATIVE_8BIT)) {
         i = ((int)l->address) & 0xFFFF;
         if (i > 255 || i < -128) {
-          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8-bit value.\n",
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8-bit value.\n",
                   get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
           return FAILED;
         }
@@ -2206,7 +2207,7 @@ int fix_references(void) {
       else if (r->type == REFERENCE_TYPE_RELATIVE_8BIT) {
         i = (((int)l->address) & 0xFFFF) - r->address - 1;
         if (i < -128 || i > 127) {
-          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a relative 8-bit reference.\n",
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a relative 8-bit reference.\n",
                   get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
           return FAILED;
         }
@@ -2221,7 +2222,7 @@ int fix_references(void) {
           i += 1;
         
         if (i < -32768 || i > 32767) {
-          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a relative 16-bit reference.\n",
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a relative 16-bit reference.\n",
                   get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
           return FAILED;
         }
@@ -2245,7 +2246,7 @@ int fix_references(void) {
           mask = ~((1 << r->bits_to_define) - 1);
 
         if ((i & mask) != 0) {
-          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->bits_to_define, i, i);
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->bits_to_define, i, i);
           return FAILED;
         }
 
@@ -2255,7 +2256,7 @@ int fix_references(void) {
       else {
         i = ((int)l->address) & 0xFFFF;
         if (i > 255) {
-          fprintf(stderr, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8-bit value.\n",
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8-bit value.\n",
                   get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
           return FAILED;
         }
@@ -2286,7 +2287,7 @@ static void _fprintf_snes_label(FILE *f, struct label *l, int noca5h) {
   if (address == 0x10000)
     address = 0;
   else if (address > 0xffff)
-    fprintf(stderr, "%s: %s:%d: _fprintf_snes_label(): The address of label \"%s\" inside a bank is $%.4x > $FFFF! Please submit a bug report!\n", get_file_name(l->file_id), get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name, address);
+    print_text(NO, "%s: %s:%d: _fprintf_snes_label(): The address of label \"%s\" inside a bank is $%.4x > $FFFF! Please submit a bug report!\n", get_file_name(l->file_id), get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name, address);
 
   if (noca5h == YES)
     fprintf(f, "%.4x%.4x %s\n", bank, address, l->name);
@@ -2312,7 +2313,7 @@ int write_symbol_file(char *outname, int mode, int output_addr_to_line) {
 
   name_len = (unsigned int)strlen(outname);
   if (name_len > sizeof(name)-5) {
-    fprintf(stderr, "WRITE_SYMBOL_FILE: File name too long.\n");
+    print_text(NO, "WRITE_SYMBOL_FILE: File name too long.\n");
     return FAILED;
   }
 
@@ -2331,7 +2332,7 @@ int write_symbol_file(char *outname, int mode, int output_addr_to_line) {
 
   f = fopen(name, "wb");
   if (f == NULL) {
-    fprintf(stderr, "WRITE_SYMBOL_FILE: Error opening file \"%s\" for writing.\n", name);
+    print_text(NO, "WRITE_SYMBOL_FILE: Error opening file \"%s\" for writing.\n", name);
     return FAILED;
   }
 
@@ -2569,7 +2570,7 @@ int write_symbol_file(char *outname, int mode, int output_addr_to_line) {
       outfile_tmp = calloc(sizeof(char) * outfile_size, 1);
 
       if (fread(outfile_tmp, 1, outfile_size, outfile) != (size_t) outfile_size) {
-        fprintf(stderr, "WRITE_SYMBOL_FILE: Could not read all %d bytes of \"%s\"!", outfile_size, outname);
+        print_text(NO, "WRITE_SYMBOL_FILE: Could not read all %d bytes of \"%s\"!", outfile_size, outname);
         return FAILED;
       }
 
@@ -2625,7 +2626,7 @@ static int _get_rom_address_of_label(char *label, int *address) {
   find_label(label, NULL, &l);
 
   if (l == NULL) {
-    fprintf(stderr, "_GET_ROM_ADDRESS_OF_LABEL: Cannot find label \"%s\".\n", label);
+    print_text(NO, "_GET_ROM_ADDRESS_OF_LABEL: Cannot find label \"%s\".\n", label);
     return FAILED;
   }
 
@@ -2634,7 +2635,7 @@ static int _get_rom_address_of_label(char *label, int *address) {
                                                                         l->section_struct->status == SECTION_STATUS_RAM_SEMIFREE ||
                                                                         l->section_struct->status == SECTION_STATUS_RAM_SEMISUBFREE ||
                                                                         l->section_struct->alive == NO))) {
-    fprintf(stderr, "_GET_ROM_ADDRESS_OF_LABEL: \"%s\" cannot be used.\n", label);
+    print_text(NO, "_GET_ROM_ADDRESS_OF_LABEL: \"%s\" cannot be used.\n", label);
     return FAILED;
   }
 
@@ -2661,21 +2662,21 @@ int write_rom_file(char *outname) {
   }
 
   if (g_program_address_start > g_romsize) {
-    fprintf(stderr, "WRITE_ROM_FILE: The supplied -bS ($%x) overflows from the ROM!\n", g_program_address_start);
+    print_text(NO, "WRITE_ROM_FILE: The supplied -bS ($%x) overflows from the ROM!\n", g_program_address_start);
     return FAILED;
   }
   if (g_program_address_end > g_romsize) {
-    fprintf(stderr, "WRITE_ROM_FILE: The supplied -bE ($%x) overflows from the ROM!\n", g_program_address_end);
+    print_text(NO, "WRITE_ROM_FILE: The supplied -bE ($%x) overflows from the ROM!\n", g_program_address_end);
     return FAILED;
   }
   if (g_program_address_start >= 0 && g_program_address_end >= 0 && g_program_address_start > g_program_address_end) {
-    fprintf(stderr, "WRITE_ROM_FILE: The supplied -bS ($%x) is larger than -bE ($%x).\n", g_program_address_start, g_program_address_end);
+    print_text(NO, "WRITE_ROM_FILE: The supplied -bS ($%x) is larger than -bE ($%x).\n", g_program_address_start, g_program_address_end);
     return FAILED;
   }
 
   f = fopen(outname, "wb");
   if (f == NULL) {
-    fprintf(stderr, "WRITE_ROM_FILE: Error opening file \"%s\" for writing.\n", outname);
+    print_text(NO, "WRITE_ROM_FILE: Error opening file \"%s\" for writing.\n", outname);
     return FAILED;
   }
 
@@ -2742,7 +2743,7 @@ int write_rom_file(char *outname) {
     g_program_end = e;
 
     if (g_program_address_start >= 0 && g_program_address_end < 0 && b > e) {
-      fprintf(stderr, "WRITE_ROM_FILE: The supplied -bS ($%x) is larger than calculated end ($%x).\n", b, e);
+      print_text(NO, "WRITE_ROM_FILE: The supplied -bS ($%x) is larger than calculated end ($%x).\n", b, e);
       return FAILED;
     }
   }
@@ -2887,7 +2888,7 @@ int compute_pending_calculations(void) {
 
     if (sta->type == STACK_TYPE_8BIT) {
       if (k < -128 || k > 255) {
-        fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 8-bit range.\n",
+        print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 8-bit range.\n",
                 get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
         return FAILED;
       }
@@ -2903,12 +2904,12 @@ int compute_pending_calculations(void) {
     }
     else if (sta->type == STACK_TYPE_9BIT_SHORT) {
       if (k < 0 || k > 510) {
-        fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 9-bit range.\n",
+        print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 9-bit range.\n",
                 get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
         return FAILED;
       }
       if ((k & 1) == 1) {
-        fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: The RAM address needs to be even.\n",
+        print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: The RAM address needs to be even.\n",
                 get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
         return FAILED;
       }
@@ -2918,7 +2919,7 @@ int compute_pending_calculations(void) {
     }
     else if (sta->type == STACK_TYPE_16BIT) {
       if (k < -32768 || k > 65535) {
-        fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range.\n",
+        print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range.\n",
                 get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
         return FAILED;
       }
@@ -2944,7 +2945,7 @@ int compute_pending_calculations(void) {
     }
     else if (sta->type == STACK_TYPE_13BIT) {
       if (k < 0 || k > 8191) {
-        fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 13-bit range.\n",
+        print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 13-bit range.\n",
                 get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
         return FAILED;
       }
@@ -2956,7 +2957,7 @@ int compute_pending_calculations(void) {
     }
     else if (sta->type == STACK_TYPE_24BIT) {
       if (k < -8388608 || k > 16777215) {
-        fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 24-bit range.\n",
+        print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 24-bit range.\n",
                 get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
         return FAILED;
       }
@@ -3006,7 +3007,7 @@ int compute_pending_calculations(void) {
         mask = ~((1 << sta->bits_to_define) - 1);
 
       if ((k & mask) != 0) {
-        fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, sta->bits_to_define, k, k);
+        print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, sta->bits_to_define, k, k);
         return FAILED;
       }
 
@@ -3014,7 +3015,7 @@ int compute_pending_calculations(void) {
         return FAILED;
     }
     else {
-      fprintf(stderr, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Unsupported pending calculation type. Please send an error report!\n",
+      print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Unsupported pending calculation type. Please send an error report!\n",
               get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
     }
 
@@ -3044,7 +3045,7 @@ static int _get_bank_of_address(int address, int slot) {
       start_address += g_banksize;
       j++;
       if (j > 1000000000) {
-        fprintf(stderr, "_GET_BANK_OF_ADDRESS: j > 1000000000! Internal error. Cannot find the BANK. Please submit a bug report.\n");
+        print_text(NO, "_GET_BANK_OF_ADDRESS: j > 1000000000! Internal error. Cannot find the BANK. Please submit a bug report.\n");
         return -1;
       }
     }
@@ -3064,7 +3065,7 @@ static int _get_bank_of_address(int address, int slot) {
     start_address += slot_size;
     j++;
     if (j > 1000000000) {
-      fprintf(stderr, "_GET_BANK_OF_ADDRESS: j > 1000000000! Internal error. Cannot find the BANK. Please submit a bug report.\n");
+      print_text(NO, "_GET_BANK_OF_ADDRESS: j > 1000000000! Internal error. Cannot find the BANK. Please submit a bug report.\n");
       return -1;
     }
   }
@@ -3079,7 +3080,7 @@ static void _pass_on_slot(int *slot, int t) {
     /* sanity check */
     /*
     if (slot[t - 2] != slot[t - 1]) {
-      fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: The passed on SLOT changed from $%x to $%x. This might have no effect, but just to let you know. Please check that the result of this calculation is correct.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, slot[t - 2], slot[t - 1]);
+      print_text(NO, "%s: %s:%d: COMPUTE_STACK: The passed on SLOT changed from $%x to $%x. This might have no effect, but just to let you know. Please check that the result of this calculation is correct.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, slot[t - 2], slot[t - 1]);
     }
     */
     slot[t - 2] = slot[t - 1];
@@ -3095,7 +3096,7 @@ static void _pass_on_base(int *base, int t) {
     /* sanity check */
     /*
     if (base[t - 2] != base[t - 1]) {
-      fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: The passed on BASE changed from $%x to $%x. This might have no effect, but just to let you know. Please check that the result of this calculation is correct.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, base[t - 2], base[t - 1]);
+      print_text(NO, "%s: %s:%d: COMPUTE_STACK: The passed on BASE changed from $%x to $%x. This might have no effect, but just to let you know. Please check that the result of this calculation is correct.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, base[t - 2], base[t - 1]);
     }
     */
     base[t - 2] = base[t - 1];
@@ -3111,7 +3112,7 @@ static void _pass_on_bank(int *bank, int t) {
     /* sanity check */
     /*
     if (bank[t - 2] != bank[t - 1]) {
-      fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: The passed on BANK changed from $%x to $%x. This might have no effect, but just to let you know. Please check that the result of this calculation is correct.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, bank[t - 2], bank[t - 1]);
+      print_text(NO, "%s: %s:%d: COMPUTE_STACK: The passed on BANK changed from $%x to $%x. This might have no effect, but just to let you know. Please check that the result of this calculation is correct.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, bank[t - 2], bank[t - 1]);
     }
     */
     bank[t - 2] = bank[t - 1];
@@ -3141,11 +3142,11 @@ static double _round(double d) {
 static int _comparing_a_string_with_a_number(struct stack_item *sp1, struct stack_item *sp2, struct stack *sta) {
   
   if (sp1->type == STACK_ITEM_TYPE_STRING && sp2->type != STACK_ITEM_TYPE_STRING) {  
-    fprintf(stderr, "%s:%d: COMPUTE_STACK: Comparison between a string \"%s\" and a number doesn't work.\n", get_file_name(sta->file_id), sta->linenumber, sp1->string);
+    print_text(NO, "%s:%d: COMPUTE_STACK: Comparison between a string \"%s\" and a number doesn't work.\n", get_file_name(sta->file_id), sta->linenumber, sp1->string);
     return YES;
   }
   else if (sp1->type != STACK_ITEM_TYPE_STRING && sp2->type == STACK_ITEM_TYPE_STRING) {  
-    fprintf(stderr, "%s:%d: COMPUTE_STACK: Comparison between a string \"%s\" and a number doesn't work.\n", get_file_name(sta->file_id), sta->linenumber, sp2->string);
+    print_text(NO, "%s:%d: COMPUTE_STACK: Comparison between a string \"%s\" and a number doesn't work.\n", get_file_name(sta->file_id), sta->linenumber, sp2->string);
     return YES;
   }
   
@@ -3171,7 +3172,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
   struct stack *st;
 
   if (sta->under_work == YES) {
-    fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: A loop found in computation.\n", get_file_name(sta->file_id),
+    print_text(NO, "%s: %s:%d: COMPUTE_STACK: A loop found in computation.\n", get_file_name(sta->file_id),
             get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
     return FAILED;
   }
@@ -3207,14 +3208,14 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
     char *get_stack_item_description(struct stack_item *si, int file_id);
     int z;
 
-    printf("----------------------------------------------------------------------\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
 
     for (z = 0; z < sta->stacksize; z++) {
     struct stack_item *si = &sta->stack[z];
     printf(get_stack_item_description(si, sta->file_id));
     }
 
-    printf("id: %d file: %s line: %d type %d bank: %d position %d\n", sta->id, get_file_name(sta->file_id), sta->linenumber, sta->type, sta->bank, sta->position);
+    print_text(YES, "id: %d file: %s line: %d type %d bank: %d position %d\n", sta->id, get_file_name(sta->file_id), sta->linenumber, sta->type, sta->bank, sta->position);
     }
   */
 
@@ -3272,7 +3273,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
       st = find_stack((int)s->value_ram, file_id);
 
       if (st == NULL) {
-        fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: A computation stack (id = %d, %s) has gone missing. This is a fatal internal error. Please send the WLA DX author a bug report.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, (int)s->value_ram, get_file_name(file_id));
+        print_text(NO, "%s: %s:%d: COMPUTE_STACK: A computation stack (id = %d, %s) has gone missing. This is a fatal internal error. Please send the WLA DX author a bug report.\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, (int)s->value_ram, get_file_name(file_id));
         return FAILED;
       }
 
@@ -3302,7 +3303,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
       switch ((int)s->value_ram) {
       case SI_OP_ADD:
         if (t <= 1) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Addition is missing an operand.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Addition is missing an operand.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
@@ -3315,7 +3316,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         break;
       case SI_OP_SUB:
         if (t <= 1) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Subtraction is missing an operand.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Subtraction is missing an operand.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
@@ -3344,7 +3345,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         else if (sta->type == STACK_TYPE_32BIT)
           y = 0xFFFFFFFF;
         else {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: NOT cannot determine the output size.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: NOT cannot determine the output size.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
@@ -3353,7 +3354,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         break;
       case SI_OP_XOR:
         if (t <= 1) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: XOR is missing an operand.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: XOR is missing an operand.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
@@ -3366,7 +3367,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         break;
       case SI_OP_MULTIPLY:
         if (t <= 1) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Multiply is missing an operand.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Multiply is missing an operand.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
@@ -3379,7 +3380,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         break;
       case SI_OP_OR:
         if (t <= 1) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: OR is missing an operand.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: OR is missing an operand.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
@@ -3391,7 +3392,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         break;
       case SI_OP_AND:
         if (t <= 1) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: AND is missing an operand.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: AND is missing an operand.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
@@ -3450,11 +3451,11 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         break;        
       case SI_OP_SQRT:
         if (v_ram[t - 1] < 0.0) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: sqrt() needs a value that is >= 0.0, %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_ram[t - 1]);
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: sqrt() needs a value that is >= 0.0, %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_ram[t - 1]);
           return FAILED;
         }
         if (v_rom[t - 1] < 0.0) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: sqrt() needs a value that is >= 0.0, %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_rom[t - 1]);
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: sqrt() needs a value that is >= 0.0, %f doesn't work!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, v_rom[t - 1]);
           return FAILED;
         }
         v_ram[t - 1] = sqrt(v_ram[t - 1]);
@@ -3620,7 +3621,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         z = (int)v_rom[t - 1];
         y = _get_bank_of_address(z, slot[t - 1]);
         if (y < 0) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Could not get the bank number for ROM address %d/$%x (out of bounds).\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Could not get the bank number for ROM address %d/$%x (out of bounds).\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, z, z);
           return FAILED;
         }
@@ -3699,12 +3700,12 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         break;
       case SI_OP_MODULO:
         if (((int)v_ram[t - 1]) == 0 || ((int)v_rom[t - 1]) == 0) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Modulo by zero.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Modulo by zero.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
         if (t <= 1) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Modulo is missing an operand.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Modulo is missing an operand.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
@@ -3717,12 +3718,12 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         break;
       case SI_OP_DIVIDE:
         if (v_ram[t - 1] == 0.0 || v_rom[t - 1] == 0.0) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Division by zero.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Division by zero.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
         if (t <= 1) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Division is missing an operand.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Division is missing an operand.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
@@ -3735,7 +3736,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         break;
       case SI_OP_POWER:
         if (t <= 1) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Power is missing an operand.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Power is missing an operand.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
@@ -3756,7 +3757,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         break;
       case SI_OP_SHIFT_LEFT:
         if (t <= 1) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Shift left is missing an operand.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Shift left is missing an operand.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
@@ -3769,7 +3770,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         break;
       case SI_OP_SHIFT_RIGHT:
         if (t <= 1) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Shift right is missing an operand.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Shift right is missing an operand.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
@@ -3782,7 +3783,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         break;
       case SI_OP_LOGICAL_OR:
         if (t <= 1) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Logical or is missing an operand.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Logical or is missing an operand.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
@@ -3798,7 +3799,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         break;
       case SI_OP_LOGICAL_AND:
         if (t <= 1) {
-          fprintf(stderr, "%s: %s:%d: COMPUTE_STACK: Logical and is missing an operand.\n", get_file_name(sta->file_id),
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Logical and is missing an operand.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           return FAILED;
         }
@@ -3987,7 +3988,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
   sta->under_work = NO;
 
   /*
-    printf("RESULT: %f (RAM) %f (ROM)\n", sta->result_ram, sta->result_rom);
+    print_text(YES, "RESULT: %f (RAM) %f (ROM)\n", sta->result_ram, sta->result_rom);
   */
 
   return SUCCEEDED;
@@ -4017,7 +4018,7 @@ int write_bank_header_calculations(struct stack *sta) {
 
   /* the calculation was not in any bank header? */
   if (s == NULL) {
-    fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: This calculation is marked to be in a section, but we cannot find the section. Skipping... Please send us a bug report about this!\n",
+    print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: This calculation is marked to be in a section, but we cannot find the section. Skipping... Please send us a bug report about this!\n",
             get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
     return SUCCEEDED;
   }
@@ -4026,7 +4027,7 @@ int write_bank_header_calculations(struct stack *sta) {
 
   if (sta->type == STACK_TYPE_8BIT) {
     if (k < -128 || k > 255) {
-      fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 8-bit range.\n",
+      print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 8-bit range.\n",
               get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
       return FAILED;
     }
@@ -4034,12 +4035,12 @@ int write_bank_header_calculations(struct stack *sta) {
   }
   else if (sta->type == STACK_TYPE_9BIT_SHORT) {
     if (k < 0 || k > 510) {
-      fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 9-bit range.\n",
+      print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 9-bit range.\n",
               get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
       return FAILED;
     }
     if ((k & 1) == 1) {
-      fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: The RAM address needs to be even.\n",
+      print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: The RAM address needs to be even.\n",
               get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
       return FAILED;
     }
@@ -4047,7 +4048,7 @@ int write_bank_header_calculations(struct stack *sta) {
   }
   else if (sta->type == STACK_TYPE_16BIT) {
     if (k < -32768 || k > 65535) {
-      fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range.\n",
+      print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range.\n",
               get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
       return FAILED;
     }
@@ -4064,7 +4065,7 @@ int write_bank_header_calculations(struct stack *sta) {
   }
   else if (sta->type == STACK_TYPE_13BIT) {
     if (k < 0 || k > 8191) {
-      fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 13-bit range.\n",
+      print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 13-bit range.\n",
               get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
       return FAILED;
     }
@@ -4079,7 +4080,7 @@ int write_bank_header_calculations(struct stack *sta) {
       mask = ~((1 << sta->bits_to_define) - 1);
 
     if ((k & mask) != 0) {
-      fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, sta->bits_to_define, k, k);
+      print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, sta->bits_to_define, k, k);
       return FAILED;
     }
 
@@ -4111,7 +4112,7 @@ int write_bank_header_calculations(struct stack *sta) {
   }
   else if (sta->type == STACK_TYPE_24BIT) {
     if (k < -8388608 || k > 16777215) {
-      fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 24-bit range.\n",
+      print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 24-bit range.\n",
               get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
       return FAILED;
     }
@@ -4151,7 +4152,7 @@ int write_bank_header_calculations(struct stack *sta) {
     }
   }
   else {
-    fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Unsupported pending calculation type. Please send an error report!\n",
+    print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Unsupported pending calculation type. Please send an error report!\n",
             get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
   }
   
@@ -4192,7 +4193,7 @@ int write_bank_header_references(struct reference *r) {
     /* direct 13-bit */
     else if (r->type == REFERENCE_TYPE_DIRECT_13BIT) {
       if (a > 8191 || a < 0) {
-        fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: Value (%d/$%x) of \"%s\" is too much to be a 13-bit value.\n",
+        print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: Value (%d/$%x) of \"%s\" is too much to be a 13-bit value.\n",
                 get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, a, a, l->name);
         return FAILED;
       }
@@ -4203,7 +4204,7 @@ int write_bank_header_references(struct reference *r) {
     /* direct 8-bit */
     else if (r->type == REFERENCE_TYPE_DIRECT_8BIT) {
       if (a > 255 || a < -128) {
-        fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: Value (%d/$%x) of \"%s\" is too much to be a 8-bit value.\n",
+        print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: Value (%d/$%x) of \"%s\" is too much to be a 8-bit value.\n",
                 get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, a, a, l->name);
         return FAILED;
       }
@@ -4212,12 +4213,12 @@ int write_bank_header_references(struct reference *r) {
     /* direct 9-bit short */
     else if (r->type == REFERENCE_TYPE_DIRECT_9BIT_SHORT) {
       if (a > 510 || a < 0) {
-        fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: Value (%d/$%x) of \"%s\" is too much to be a 9-bit value.\n",
+        print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: Value (%d/$%x) of \"%s\" is too much to be a 9-bit value.\n",
                 get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, a, a, l->name);
         return FAILED;
       }
       if ((a & 1) == 1) {
-        fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: The RAM address needs to be even.\n",
+        print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: The RAM address needs to be even.\n",
                 get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber);
         return FAILED;
       }
@@ -4271,7 +4272,7 @@ int write_bank_header_references(struct reference *r) {
         mask = ~((1 << r->bits_to_define) - 1);
 
       if ((a & mask) != 0) {
-        fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->bits_to_define, a, a);
+        print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: We are defining %d bits, but the given value $%x (%d) uses more bits!\n", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->bits_to_define, a, a);
         return FAILED;
       }
 
@@ -4302,13 +4303,13 @@ int write_bank_header_references(struct reference *r) {
         *t = (unsigned char)bits_byte;
     }
     else {
-      fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: A relative reference (type %d) to label \"%s\".\n",
+      print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: A relative reference (type %d) to label \"%s\".\n",
               get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->type, l->name);
       return FAILED;
     }
   }
   else {
-    fprintf(stderr, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: Reference to an unknown label \"%s\".\n",
+    print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: Reference to an unknown label \"%s\".\n",
             get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
     return FAILED;
   }
@@ -4368,7 +4369,7 @@ int parse_stack(struct stack *sta) {
 
       /* bank number search */
       if (si->string[0] == ':') {
-        fprintf(stderr, "%s: %s:%d: PARSE_STACK: It should be impossible for a string in the stack calculator to begin with ':', but here we are with the label \"%s\"... Internal error!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, si->string);
+        print_text(NO, "%s: %s:%d: PARSE_STACK: It should be impossible for a string in the stack calculator to begin with ':', but here we are with the label \"%s\"... Internal error!\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, si->string);
         return FAILED;
         /*
           if (is_label_anonymous(&si->string[1]) == YES) {
@@ -4417,7 +4418,7 @@ int parse_stack(struct stack *sta) {
           if (sta->position == STACK_POSITION_DEFINITION) {
             k_rom = s_current_stack_calculation_addr;
             k_ram = s_current_stack_calculation_addr;
-            fprintf(stderr, "%s: %s:%d: PARSE_STACK: We have a CADDR inside a calculation inside a definition. Please check that the result is correct...\n", get_file_name(sta->file_id),
+            print_text(NO, "%s: %s:%d: PARSE_STACK: We have a CADDR inside a calculation inside a definition. Please check that the result is correct...\n", get_file_name(sta->file_id),
                     get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
           }
           else {
@@ -4470,7 +4471,7 @@ int parse_stack(struct stack *sta) {
       }
 
       if (l == NULL) {
-        fprintf(stderr, "%s: %s:%d: PARSE_STACK: Unresolved reference to \"%s\".\n", get_file_name(sta->file_id),
+        print_text(NO, "%s: %s:%d: PARSE_STACK: Unresolved reference to \"%s\".\n", get_file_name(sta->file_id),
                 get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, si->string);
         return FAILED;
       }
@@ -4665,7 +4666,7 @@ int sort_anonymous_labels(void) {
 
   g_sorted_anonymous_labels = calloc(sizeof(struct label *) * g_num_sorted_anonymous_labels, 1);
   if (g_sorted_anonymous_labels == NULL) {
-    fprintf(stderr, "SORT_ANONYMOUS_LABELS: Out of memory error.\n");
+    print_text(NO, "SORT_ANONYMOUS_LABELS: Out of memory error.\n");
     return FAILED;
   }
 
@@ -4786,7 +4787,7 @@ static int _create_ram_bank_usage_label(int bank, int slot, char *slot_name, con
   /* create symbols */
   l = calloc(1, sizeof(struct label));
   if (l == NULL) {
-    fprintf(stderr, "CREATE_RAM_BANK_USAGE_SYMBOL: Out of memory error.\n");
+    print_text(NO, "CREATE_RAM_BANK_USAGE_SYMBOL: Out of memory error.\n");
     return FAILED;
   }
   
@@ -4890,7 +4891,7 @@ int generate_sizeof_label_definitions(void) {
 
   labels = calloc(sizeof(struct label *) * labelsN, 1);
   if (labels == NULL) {
-    fprintf(stderr, "GENERATE_SIZEOF_LABEL_DEFINITIONS: Out of memory error.\n");
+    print_text(NO, "GENERATE_SIZEOF_LABEL_DEFINITIONS: Out of memory error.\n");
     return FAILED;
   }
 
@@ -4913,7 +4914,7 @@ int generate_sizeof_label_definitions(void) {
 
   /*
     for (j = 0; j < labelsN; j++) {
-    fprintf(stderr, "LABEL: %s:%d section=%d\n", labels[j]->name, labels[j]->rom_address, labels[j]->section);
+    print_text(NO, "LABEL: %s:%d section=%d\n", labels[j]->name, labels[j]->rom_address, labels[j]->section);
     }
   */
 
@@ -4946,13 +4947,13 @@ int generate_sizeof_label_definitions(void) {
 
     l = calloc(1, sizeof(struct label));
     if (l == NULL) {
-      fprintf(stderr, "GENERATE_SIZEOF_LABEL_DEFINITIONS: Out of memory error.\n");
+      print_text(NO, "GENERATE_SIZEOF_LABEL_DEFINITIONS: Out of memory error.\n");
       free(labels);
       return FAILED;
     }
 
     if (strlen(labels[j]->name)+8+1 >= sizeof(l->name)) {
-      fprintf(stderr, "GENERATE_SIZEOF_LABEL_DEFINITIONS: Expanded label name \"_sizeof_%s\" is %d characters too large.\n",
+      print_text(NO, "GENERATE_SIZEOF_LABEL_DEFINITIONS: Expanded label name \"_sizeof_%s\" is %d characters too large.\n",
               labels[j]->name, (int)(strlen(labels[j]->name)+8+1-sizeof(l->name)));
       free(labels);
       return FAILED;
@@ -5008,7 +5009,7 @@ int fix_sectionstartend_labels(void) {
           if (strlen(tmp) < MAX_NAME_LENGTH)
             strcpy(l2->name, tmp);
           else
-            fprintf(stderr, "FIX_SECTIONSTARTEND_LABELS: Duplicate label \"%s\" is too long to be renamed.\n", l2->name);           
+            print_text(NO, "FIX_SECTIONSTARTEND_LABELS: Duplicate label \"%s\" is too long to be renamed.\n", l2->name);           
         }
         l2 = l2->next;
       }
@@ -5040,7 +5041,7 @@ int get_slot_by_its_name(char *name, int *slot) {
     }
   }
 
-  fprintf(stderr, "GET_SLOT_BY_ITS_NAME: Could not find SLOT \"%s\".\n", name);
+  print_text(NO, "GET_SLOT_BY_ITS_NAME: Could not find SLOT \"%s\".\n", name);
 
   return FAILED;
 }
@@ -5055,7 +5056,7 @@ int get_slot_by_a_value(int value, int *slot) {
 
   if (value < 0) {
     *slot = value;
-    fprintf(stderr, "GET_SLOT_BY_A_VALUE: Internal error.\n");
+    print_text(NO, "GET_SLOT_BY_A_VALUE: Internal error.\n");
     return FAILED;
   }
   
@@ -5063,7 +5064,7 @@ int get_slot_by_a_value(int value, int *slot) {
   if (value < 256) {
     for (i = 0; i < 256; i++) {
       if (g_slots[i].usage == ON && g_slots[i].address == value && value != i && g_slots[value].usage == ON) {
-        fprintf(stderr, "GET_SLOT_BY_A_VALUE: There is a SLOT number %d, but there also is a SLOT (with ID %d) with starting address %d ($%x)... Using SLOT %d.\n", value, i, value, value, value);
+        print_text(NO, "GET_SLOT_BY_A_VALUE: There is a SLOT number %d, but there also is a SLOT (with ID %d) with starting address %d ($%x)... Using SLOT %d.\n", value, i, value, value, value);
         *slot = value;
         return SUCCEEDED;
       }
@@ -5082,7 +5083,7 @@ int get_slot_by_a_value(int value, int *slot) {
 
   *slot = -1;
 
-  fprintf(stderr, "GET_SLOT_BY_A_VALUE: Cannot find SLOT %d.\n", value);
+  print_text(NO, "GET_SLOT_BY_A_VALUE: Cannot find SLOT %d.\n", value);
 
   return FAILED;
 }

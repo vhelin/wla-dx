@@ -7,6 +7,7 @@
 #include "defines.h"
 #include "memory.h"
 #include "compute.h"
+#include "main.h"
 
 #if defined(AMIGA)
 #include "/printf.h"
@@ -177,7 +178,7 @@ int compute_gb_complement_check(void) {
   int res, j;
 
   if (g_romsize < 0x8000) {
-    fprintf(stderr, "COMPUTE_GB_COMPLEMENT_CHECK: GB complement check computing requires a ROM of at least 32KB.\n");
+    print_text(NO, "COMPUTE_GB_COMPLEMENT_CHECK: GB complement check computing requires a ROM of at least 32KB.\n");
     return FAILED;
   }
 
@@ -204,7 +205,7 @@ int compute_smd_checksum(void) {
   int checksum, j;
 
   if (g_romsize < 0x1000) {
-    fprintf(stderr, "COMPUTE_SMD_CHECKSUM: SMD checksum computing requires a ROM of at least 4KB.\n");
+    print_text(NO, "COMPUTE_SMD_CHECKSUM: SMD checksum computing requires a ROM of at least 4KB.\n");
     return FAILED;
   }
 
@@ -231,7 +232,7 @@ int compute_gb_checksum(void) {
   int checksum, j;
   
   if (g_romsize < 0x8000) {
-    fprintf(stderr, "COMPUTE_GB_CHECKSUM: GB checksum computing requires a ROM of at least 32KB.\n");
+    print_text(NO, "COMPUTE_GB_CHECKSUM: GB checksum computing requires a ROM of at least 32KB.\n");
     return FAILED;
   }
 
@@ -356,20 +357,20 @@ int compute_snes_checksum(void) {
   
   if (g_snes_rom_mode == SNES_ROM_MODE_LOROM || g_snes_rom_mode == SNES_ROM_MODE_EXLOROM) {
     if (g_romsize < 0x8000) {
-      fprintf(stderr, "COMPUTE_SNES_CHECKSUM: SNES checksum computing for a LoROM/ExLoROM image requires a ROM of at least 32KB.\n");
+      print_text(NO, "COMPUTE_SNES_CHECKSUM: SNES checksum computing for a LoROM/ExLoROM image requires a ROM of at least 32KB.\n");
       return FAILED;
     }
   }
   else {
     if (g_romsize < 0x10000) {
-      fprintf(stderr, "COMPUTE_SNES_CHECKSUM: SNES checksum computing for a HiROM/ExHiROM image requires a ROM of at least 64KB.\n");
+      print_text(NO, "COMPUTE_SNES_CHECKSUM: SNES checksum computing for a HiROM/ExHiROM image requires a ROM of at least 64KB.\n");
       return FAILED;
     }
   }
 
   mirror_end = _round_up_to_next_power_of_2(g_romsize);
   if (mirror_end == -1) {
-    fprintf(stderr, "COMPUTE_SNES_CHECKSUM: Internal error: failed to round ROM size (%#x).\n", g_romsize);
+    print_text(NO, "COMPUTE_SNES_CHECKSUM: Internal error: failed to round ROM size (%#x).\n", g_romsize);
     return FAILED;
   }
   mirror_begin = (mirror_end == g_romsize) ? g_romsize : mirror_end / 2;
@@ -390,7 +391,7 @@ int compute_snes_checksum(void) {
   for (i = mirror_begin; i < mirror_end; i++) {
     int index = (i - mirror_begin) % (g_romsize - mirror_begin) + mirror_begin;
     if (index >= g_romsize) {
-      fprintf(stderr, "COMPUTE_SNES_CHECKSUM: Internal error: attempted to access byte %#x of ROM with size %#x.\n", index, g_romsize);
+      print_text(NO, "COMPUTE_SNES_CHECKSUM: Internal error: attempted to access byte %#x of ROM with size %#x.\n", index, g_romsize);
       return FAILED;
     }
     checksum += g_rom[index];
@@ -431,7 +432,7 @@ int add_tmr_sega(void) {
   int tag_address = get_sms_tag_address();
   
   if (g_romsize < 0x2000) {
-    fprintf(stderr, "ADD_TMR_SEGA: A ROM of at least 8KBs is required.\n");
+    print_text(NO, "ADD_TMR_SEGA: A ROM of at least 8KBs is required.\n");
     return SUCCEEDED;
   }
 
@@ -464,7 +465,7 @@ int compute_sms_checksum(void) {
     return SUCCEEDED;
 
   if (g_romsize < 0x2000) {
-    fprintf(stderr, "COMPUTE_SMS_CHECKSUM: SMS/GG checksum computing requires a ROM of at least 8KBs.\n");
+    print_text(NO, "COMPUTE_SMS_CHECKSUM: SMS/GG checksum computing requires a ROM of at least 8KBs.\n");
     return FAILED;
   }
 
@@ -513,12 +514,12 @@ int compute_sms_checksum(void) {
       checksum_max = 1024*1024;
     }
     else {
-      fprintf(stderr, "COMPUTE_SMS_CHECKSUM: Unsupported ROMSIZE $%x - not calculating the checksum.\n", rom_size);
+      print_text(NO, "COMPUTE_SMS_CHECKSUM: Unsupported ROMSIZE $%x - not calculating the checksum.\n", rom_size);
       return SUCCEEDED;
     }
 
     if (checksum_max > g_romsize) {
-      fprintf(stderr, "COMPUTE_SMS_CHECKSUM: Defined ROMSIZE $%x (%dKBs) is bigger than the ROM image (%dKBs) itself - not calculating the checksum.\n", rom_size, checksum_max / 1024, g_romsize / 1024);
+      print_text(NO, "COMPUTE_SMS_CHECKSUM: Defined ROMSIZE $%x (%dKBs) is bigger than the ROM image (%dKBs) itself - not calculating the checksum.\n", rom_size, checksum_max / 1024, g_romsize / 1024);
       return FAILED;
     }
 

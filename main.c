@@ -34,10 +34,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-#define DEFAULT_SCREEN_DX 80
-#define DEFAULT_SCREEN_DY 24
-
-char s_version_string[] = "$VER: wla-" WLA_NAME " 10.6b (11.11.2023)";
+char s_version_string[] = "$VER: wla-" WLA_NAME " 10.6b (12.11.2023)";
 char s_wla_version[] = "10.6";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -86,8 +83,8 @@ char *g_final_name = NULL, *g_asm_name = NULL;
 struct ext_include_collection g_ext_incdirs;
 
 static struct structure **s_deletable_structures = NULL;
-static int s_screen_dx = DEFAULT_SCREEN_DX, s_screen_dy = DEFAULT_SCREEN_DY, s_line_x = 0, s_line_y = 0;
-static int s_deletable_structures_max = 0, s_deletable_structures_count = 0, s_pause_text = NO;
+static int s_screen_dx = DEFAULT_SCREEN_DX, s_screen_dy = DEFAULT_SCREEN_DY, s_line_x = 0, s_line_y = 0, s_pause_text = NO;
+static int s_deletable_structures_max = 0, s_deletable_structures_count = 0;
 static char s_print_text_buffer[4096];
 
 #if defined(Z80)
@@ -102,6 +99,14 @@ static int s_num_tmpfiles = 0;
 
 PROFILE_GLOBALS();
 
+
+/************************************************************************/
+/* <REFACTOR>                                                           */
+/************************************************************************/
+
+/* TODO: move _pause(), _print_text(), print_text_using_args() and print_text() into
+   a file of their own that is shared with the assembler and the linker - this exact same
+   code can be found in linker's main.c */
 
 static void _pause(void) {
 
@@ -169,28 +174,24 @@ void print_text_using_args(int is_stdout, const char *format, va_list args) {
         s_line_x = 0;
         s_line_y++;
 
-        if (s_line_y >= s_screen_dy-1) {
-          /* printing so far would result in the screen filling up! print everything so far and pause! */
-          saved1 = s_print_text_buffer[i+1];
-          saved2 = s_print_text_buffer[i+2];
-          s_print_text_buffer[i+1] = 0xA;
-          s_print_text_buffer[i+2] = 0;
+        /* print the line */
+        saved1 = s_print_text_buffer[i+1];
+        saved2 = s_print_text_buffer[i+2];
+        s_print_text_buffer[i+1] = 0xA;
+        s_print_text_buffer[i+2] = 0;
           
-          _print_text(is_stdout, &s_print_text_buffer[start_index]);
+        _print_text(is_stdout, &s_print_text_buffer[start_index]);
+
+        if (s_line_y >= s_screen_dy-1)
           _pause();
           
-          s_print_text_buffer[i+1] = saved1;
-          s_print_text_buffer[i+2] = saved2;
-          start_index = i+1;
+        s_print_text_buffer[i+1] = saved1;
+        s_print_text_buffer[i+2] = saved2;
+        start_index = i+1;
 
-          if (saved1 == 0xA && saved2 == 0) {
-            start_index++;
-            break;
-          }
-        }
-        else {
-          if (s_print_text_buffer[i+1] == 0xA && s_print_text_buffer[i+2] == 0)
-            s_line_y--;
+        if (saved1 == 0xA && saved2 == 0) {
+          start_index++;
+          break;
         }
       }
     }
@@ -212,6 +213,11 @@ void print_text(int is_stdout, const char *format, ...) {
   print_text_using_args(is_stdout, format, args);
   va_end(args);
 }
+
+
+/************************************************************************/
+/* </REFACTOR>                                                           */
+/************************************************************************/
 
 
 static int _allocate_global_buffers(void) {
@@ -407,7 +413,6 @@ static int _parse_flags(char **flags, int flagc, int *print_usage) {
 
       g_test_mode = OFF;
       count++;
-      continue;
     }
     else if (!strcmp(flags[count], "-l")) {
       if (g_output_format != OUTPUT_NONE)
@@ -423,7 +428,6 @@ static int _parse_flags(char **flags, int flagc, int *print_usage) {
 
       g_test_mode = OFF;
       count++;
-      continue;
     }
     else if (!strcmp(flags[count], "-D")) {
       if (count + 1 < flagc) {
@@ -458,7 +462,6 @@ static int _parse_flags(char **flags, int flagc, int *print_usage) {
         return FAILED;
 
       count++;
-      continue;
     }
     else if (!strcmp(flags[count], "-I")) {
       if (count + 1 < flagc) {
@@ -469,20 +472,13 @@ static int _parse_flags(char **flags, int flagc, int *print_usage) {
         return FAILED;
 
       count++;
-      continue;
     }
-    else if (!strcmp(flags[count], "-i")) {
+    else if (!strcmp(flags[count], "-i"))
       g_listfile_data = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-k")) {
+    else if (!strcmp(flags[count], "-k"))
       g_keep_empty_sections = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-p")) {
+    else if (!strcmp(flags[count], "-p"))
       s_pause_text = YES;
-      continue;
-    }
     else if (!strcmp(flags[count], "-SX")) {
       if (count + 1 < flagc) {
         /* parse arg */
@@ -501,50 +497,32 @@ static int _parse_flags(char **flags, int flagc, int *print_usage) {
       else
         return FAILED;
     }
-    else if (!strcmp(flags[count], "-v")) {
+    else if (!strcmp(flags[count], "-v"))
       g_verbose_level = 100;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-v1")) {
+    else if (!strcmp(flags[count], "-v1"))
       g_verbose_level = 1;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-v2")) {
+    else if (!strcmp(flags[count], "-v2"))
       g_verbose_level = 2;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-w")) {
+    else if (!strcmp(flags[count], "-w"))
       g_allow_labels_without_colon = NO;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-h")) {
+    else if (!strcmp(flags[count], "-h"))
       g_global_label_hint = HINT_16BIT;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-s")) {
+    else if (!strcmp(flags[count], "-s"))
       g_create_sizeof_definitions = NO;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-d")) {
+    else if (!strcmp(flags[count], "-d"))
       g_can_calculate_a_minus_b = NO;
-      continue;
-    }
     else if (!strcmp(flags[count], "-t")) {
       g_test_mode = ON;
       test_given = YES;
-      continue;
     }
     else if (!strcmp(flags[count], "-M")) {
       g_makefile_rules = YES;
       g_test_mode = ON;
       g_verbose_level = 0;
       g_quiet = YES;
-      continue;
     }
-    else if (!strcmp(flags[count], "-MP")) {
+    else if (!strcmp(flags[count], "-MP"))
       g_makefile_add_phony_targets = YES;
-      continue;
-    }
     else if (!strcmp(flags[count], "-MF")) {
       if (count + 1 < flagc) {
         g_makefile_rule_file = fopen(flags[count+1], "w");
@@ -554,20 +532,13 @@ static int _parse_flags(char **flags, int flagc, int *print_usage) {
       else
         return FAILED;
       count++;
-      continue;
     }
-    else if (!strcmp(flags[count], "-q")) {
+    else if (!strcmp(flags[count], "-q"))
       g_quiet = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-x")) {
+    else if (!strcmp(flags[count], "-x"))
       g_extra_definitions = ON;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-c")) {
+    else if (!strcmp(flags[count], "-c"))
       g_continue_parsing_after_an_error = YES;
-      continue;
-    }
     else {
       if (count == flagc - 1) {
         g_asm_name = calloc(strlen(flags[count]) + 1, 1);
@@ -583,12 +554,10 @@ static int _parse_flags(char **flags, int flagc, int *print_usage) {
             *print_usage = NO;
             return FAILED;
           }
-          continue;
         }
         else if (strncmp(flags[count], "-I", 2) == 0) {
           /* old include directory */
           _parse_and_add_incdir(flags[count], YES);
-          continue;
         }
         else
           return FAILED;

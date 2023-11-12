@@ -9,6 +9,7 @@
 #include "memory.h"
 #include "listfile.h"
 #include "files.h"
+#include "main.h"
 
 #if defined(AMIGA)
 #include "/printf.h"
@@ -74,7 +75,7 @@ int add_pointer_to_a_pointer_array(void *ptr, int id, void ***array, int *max, i
 
     *array = realloc(*array, sizeof(void **) * j);
     if (*array == NULL) {
-      fprintf(stderr, "add_pointer_to_a_pointer_array(): Out of memory error!\n");
+      print_text(NO, "add_pointer_to_a_pointer_array(): Out of memory error!\n");
       *array_max = 0;
       
       return FAILED;
@@ -210,7 +211,7 @@ static void _print_section_id_tables(void) {
 
   int i, j;
 
-  fprintf(stderr, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+  print_text(NO, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
   
   for (i = 0; i <= g_section_table_table_max; i++) {
     struct pointer_array *pointer_array = (struct pointer_array *)g_section_table_table[i];
@@ -218,9 +219,9 @@ static void _print_section_id_tables(void) {
     if (pointer_array == NULL)
       continue;
     
-    fprintf(stderr, "#####################################################\n");
-    fprintf(stderr, "TABLE %d (0 -> %d)\n", i, pointer_array->max);
-    fprintf(stderr, "#####################################################\n");
+    print_text(NO, "#####################################################\n");
+    print_text(NO, "TABLE %d (0 -> %d)\n", i, pointer_array->max);
+    print_text(NO, "#####################################################\n");
 
     for (j = 0; j <= pointer_array->max; j++) {
       struct section *s = (struct section *)pointer_array->ptr[j];
@@ -228,11 +229,11 @@ static void _print_section_id_tables(void) {
       if (s == NULL)
         continue;
 
-      fprintf(stderr, "SECTION %.6d (%.6d): \"%s\"\n", s->id, j, s->name);
+      print_text(NO, "SECTION %.6d (%.6d): \"%s\"\n", s->id, j, s->name);
     }
   }
 
-  fprintf(stderr, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+  print_text(NO, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 }
 */
 
@@ -248,7 +249,7 @@ int add_section(struct section *s) {
   if (s->size > 0) {
     data = calloc(s->size, 1);
     if (data == NULL) {
-      fprintf(stderr, "%s: ADD_SECTION: Out of memory with section \"%s\".\n", g_obj_tmp->name, s->name);
+      print_text(NO, "%s: ADD_SECTION: Out of memory with section \"%s\".\n", g_obj_tmp->name, s->name);
       return FAILED;
     }
 
@@ -272,7 +273,7 @@ int add_section(struct section *s) {
     ss = g_sec_bankhd_first;
     while (ss != NULL) {
       if (ss->bank == s->bank) {
-        fprintf(stderr, "%s: ADD_SECTION: BANKHEADER section for bank %d was defined for the second time.\n", g_obj_tmp->name, s->bank);
+        print_text(NO, "%s: ADD_SECTION: BANKHEADER section for bank %d was defined for the second time.\n", g_obj_tmp->name, s->bank);
         return FAILED;
       }
       ss = ss->next;
@@ -315,7 +316,7 @@ int add_section(struct section *s) {
     /* allocate container for this table */
     pointer_array = calloc(sizeof(struct pointer_array), 1);
     if (pointer_array == NULL) {
-      fprintf(stderr, "%s: ADD_SECTION: Out of memory with section \"%s\".\n", g_obj_tmp->name, s->name);
+      print_text(NO, "%s: ADD_SECTION: Out of memory with section \"%s\".\n", g_obj_tmp->name, s->name);
       return FAILED;
     }
 
@@ -503,7 +504,7 @@ int obtain_rombankmap(void) {
             g_bankaddress[i] = i * g_banksize;
           }
           else if (g_banksizes[i] != g_banksize) {
-            fprintf(stderr, "OBTAIN_ROMBANKMAP: ROMBANKMAPs don't match.\n");
+            print_text(NO, "OBTAIN_ROMBANKMAP: ROMBANKMAPs don't match.\n");
             return FAILED;
           }
         }
@@ -516,7 +517,7 @@ int obtain_rombankmap(void) {
             g_bankaddress[x] = a;
           }
           else if (g_banksizes[x] != g_banksize) {
-            fprintf(stderr, "OBTAIN_ROMBANKMAP: ROMBANKMAPs don't match.\n");
+            print_text(NO, "OBTAIN_ROMBANKMAP: ROMBANKMAPs don't match.\n");
             return FAILED;
           }
           a += g_banksize;
@@ -531,7 +532,7 @@ int obtain_rombankmap(void) {
   }
 
   if (map_found == OFF) {
-    fprintf(stderr, "OBTAIN_ROMBANKMAP: No object files.\n");
+    print_text(NO, "OBTAIN_ROMBANKMAP: No object files.\n");
     return FAILED;
   }
 
@@ -560,7 +561,7 @@ int obtain_source_file_names(void) {
     for (; x > 0; x--) {
       s = calloc(sizeof(struct source_file_name), 1);
       if (s == NULL) {
-        fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+        print_text(NO, "COLLECT_DLR: Out of memory.\n");
         return FAILED;
       }
 
@@ -571,7 +572,7 @@ int obtain_source_file_names(void) {
       s->name = calloc(z+1, 1);
       if (s->name == NULL) {
         free(s);
-        fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+        print_text(NO, "COLLECT_DLR: Out of memory.\n");
         return FAILED;
       }
 
@@ -639,7 +640,7 @@ int obtain_memorymap(void) {
   }
 
   if (map_found == OFF) {
-    fprintf(stderr, "OBTAIN_MEMORYMAP: No object files.\n");
+    print_text(NO, "OBTAIN_MEMORYMAP: No object files.\n");
     return FAILED;
   }
 
@@ -681,7 +682,7 @@ int obtain_memorymap(void) {
             else if (g_slots[i].name[0] != 0 && s[i].name[0] != 0) {
               /* check that the names match */
               if (strcmp(g_slots[i].name, s[i].name) != 0)
-                fprintf(stderr, "OBTAIN_MEMORYMAP: SLOT %d has two different names (\"%s\" and \"%s\"). Using \"%s\"...\n",
+                print_text(NO, "OBTAIN_MEMORYMAP: SLOT %d has two different names (\"%s\" and \"%s\"). Using \"%s\"...\n",
                         i, g_slots[i].name, s[i].name, g_slots[i].name);
             }
             continue;
@@ -698,7 +699,7 @@ int obtain_memorymap(void) {
       }
 
       if (x == 1) {
-        fprintf(stderr, "OBTAIN_MEMORYMAP: The object files are compiled for different memory architectures.\n");
+        print_text(NO, "OBTAIN_MEMORYMAP: The object files are compiled for different memory architectures.\n");
         return FAILED;
       }
     }
@@ -733,7 +734,7 @@ int collect_dlr(void) {
       for (; i > 0; i--) {
         l = calloc(1, sizeof(struct label));
         if (l == NULL) {
-          fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+          print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
 
@@ -746,7 +747,7 @@ int collect_dlr(void) {
         else if (*t == 1)
           l->status = LABEL_STATUS_STACK;
         else {
-          fprintf(stderr, "COLLECT_DLR: Unknown definition type \"%d\".\n", *t);
+          print_text(NO, "COLLECT_DLR: Unknown definition type \"%d\".\n", *t);
           free(l);
           return FAILED;
         }
@@ -768,7 +769,7 @@ int collect_dlr(void) {
       for (; i > 0; i--) {
         l = calloc(1, sizeof(struct label));
         if (l == NULL) {
-          fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+          print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
         
@@ -783,7 +784,7 @@ int collect_dlr(void) {
         else if (*t == 2)
           l->status = LABEL_STATUS_BREAKPOINT;
         else {
-          fprintf(stderr, "COLLECT_DLR: Unknown label type \"%d\".\n", *t);
+          print_text(NO, "COLLECT_DLR: Unknown label type \"%d\".\n", *t);
           free(l);
           return FAILED;
         }
@@ -815,7 +816,7 @@ int collect_dlr(void) {
       for (; i > 0; i--) {
         r = calloc(sizeof(struct reference), 1);
         if (r == NULL) {
-          fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+          print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
         for (x = 0; *t != 0; t++, x++)
@@ -857,7 +858,7 @@ int collect_dlr(void) {
       for (; i > 0; i--) {
         s = calloc(sizeof(struct stack), 1);
         if (s == NULL) {
-          fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+          print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
 
@@ -893,7 +894,7 @@ int collect_dlr(void) {
         
         s->stack_items = calloc(sizeof(struct stack_item) * x, 1);
         if (s->stack_items == NULL) {
-          fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+          print_text(NO, "COLLECT_DLR: Out of memory.\n");
           free(s);
           return FAILED;
         }
@@ -929,7 +930,7 @@ int collect_dlr(void) {
 
         ls = calloc(sizeof(struct label_sizeof), 1);
         if (ls == NULL) {
-          fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+          print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
 
@@ -958,7 +959,7 @@ int collect_dlr(void) {
 
         g_after_tmp = calloc(1, sizeof(struct after_section));
         if (g_after_tmp == NULL) {
-          fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+          print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
         g_after_tmp->alive = YES;
@@ -997,7 +998,7 @@ int collect_dlr(void) {
       for (; i > 0; i--) {
         l = calloc(1, sizeof(struct label));
         if (l == NULL) {
-          fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+          print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
 
@@ -1010,7 +1011,7 @@ int collect_dlr(void) {
         else if (*t == 1)
           l->status = LABEL_STATUS_STACK;
         else {
-          fprintf(stderr, "COLLECT_DLR: Unknown definition type \"%d\".\n", *t);
+          print_text(NO, "COLLECT_DLR: Unknown definition type \"%d\".\n", *t);
           free(l);
           return FAILED;
         }
@@ -1033,7 +1034,7 @@ int collect_dlr(void) {
       for (; i > 0; i--) {
         l = calloc(1, sizeof(struct label));
         if (l == NULL) {
-          fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+          print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
         
@@ -1048,7 +1049,7 @@ int collect_dlr(void) {
         else if (*t == 2)
           l->status = LABEL_STATUS_BREAKPOINT;
         else {
-          fprintf(stderr, "COLLECT_DLR: Unknown label type \"%d\".\n", *t);
+          print_text(NO, "COLLECT_DLR: Unknown label type \"%d\".\n", *t);
           free(l);
           return FAILED;
         }
@@ -1074,7 +1075,7 @@ int collect_dlr(void) {
       for (; i > 0; i--) {
         r = calloc(sizeof(struct reference), 1);
         if (r == NULL) {
-          fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+          print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
         for (x = 0; *t != 0; t++, x++)
@@ -1113,7 +1114,7 @@ int collect_dlr(void) {
       for (; i > 0; i--) {
         s = calloc(sizeof(struct stack), 1);
         if (s == NULL) {
-          fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+          print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
 
@@ -1149,7 +1150,7 @@ int collect_dlr(void) {
         
         s->stack_items = calloc(sizeof(struct stack_item) * x, 1);
         if (s->stack_items == NULL) {
-          fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+          print_text(NO, "COLLECT_DLR: Out of memory.\n");
           free(s);
           return FAILED;
         }
@@ -1185,7 +1186,7 @@ int collect_dlr(void) {
 
         ls = calloc(sizeof(struct label_sizeof), 1);
         if (ls == NULL) {
-          fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+          print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
 
@@ -1214,7 +1215,7 @@ int collect_dlr(void) {
 
         g_after_tmp = calloc(1, sizeof(struct after_section));
         if (g_after_tmp == NULL) {
-          fprintf(stderr, "COLLECT_DLR: Out of memory.\n");
+          print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
         g_after_tmp->alive = YES;
@@ -1278,7 +1279,7 @@ static int _find_section(char *section_name, struct section **section) {
     if (s1 == s->name[0]) {
       if (strcmp(s->name, section_name) == 0) {
         if (ss != NULL) {
-          fprintf(stderr, "_find_section(): Multiple sections called \"%s\" found for APPENDTO/AFTER operation. Please have only one section called \"%s\" in the source files.\n", section_name, section_name);
+          print_text(NO, "_find_section(): Multiple sections called \"%s\" found for APPENDTO/AFTER operation. Please have only one section called \"%s\" in the source files.\n", section_name, section_name);
           return FAILED;
         }
         ss = s;
@@ -1302,7 +1303,7 @@ static struct section *_find_after_source_section(struct after_section *as) {
     if (_find_section(as->section, &s) == FAILED)
       return FAILED;
     if (s == NULL)
-      fprintf(stderr, "_find_after_source_section(): Cannot find section \"%s\" for appending! Is it defined in the source code? If it is, please submit a bug report!\n", as->section);
+      print_text(NO, "_find_after_source_section(): Cannot find section \"%s\" for appending! Is it defined in the source code? If it is, please submit a bug report!\n", as->section);
     return s;
   }
 
@@ -1313,20 +1314,20 @@ static struct section *_find_after_source_section(struct after_section *as) {
     s = s->next;
   }
   
-  fprintf(stderr, "_find_after_source_section(): Section \"%s\" from file \"%s\" has gone missing. Please submit a bug report! Retrying using its name...\n", as->section, get_file_name(as->file_id));
+  print_text(NO, "_find_after_source_section(): Section \"%s\" from file \"%s\" has gone missing. Please submit a bug report! Retrying using its name...\n", as->section, get_file_name(as->file_id));
 
   s = g_sec_first;
 
   /* use the name... */
   while (s != NULL) {
     if (as->file_id == s->file_id && s->name[0] == as->section[0] && strcmp(s->name, as->section) == 0) {
-      fprintf(stderr, "... Found it!\n");
+      print_text(NO, "... Found it!\n");
       return s;
     }
     s = s->next;
   }
 
-  fprintf(stderr, "_find_after_source_section(): Section \"%s\" from file \"%s\" cannot be found no matter what!\n", as->section, get_file_name(as->file_id));
+  print_text(NO, "_find_after_source_section(): Section \"%s\" from file \"%s\" cannot be found no matter what!\n", as->section, get_file_name(as->file_id));
   
   return NULL;
 }
@@ -1352,7 +1353,7 @@ static struct sort_capsule *_create_sort_capsule(void) {
   struct sort_capsule *sc = calloc(sizeof(struct sort_capsule), 1);
 
   if (sc == NULL) {
-    fprintf(stderr, "_create_sort_capsule(): Out of memory error.\n");
+    print_text(NO, "_create_sort_capsule(): Out of memory error.\n");
     return NULL;
   }
 
@@ -1439,7 +1440,7 @@ static int _append_sections(struct section *s_source, struct section *s_target) 
   size = s_source->size + s_target->size;
   data = calloc(size, 1);
   if (data == NULL) {
-    fprintf(stderr, "_APPEND_SECTIONS: Out of memory while merging \"%s\" -> \"%s\" append.\n", s_source->name, s_target->name);
+    print_text(NO, "_APPEND_SECTIONS: Out of memory while merging \"%s\" -> \"%s\" append.\n", s_source->name, s_target->name);
     return FAILED;
   }
   memcpy(data, s_target->data, s_target->size);
@@ -1576,7 +1577,7 @@ static int _find_and_execute_append(struct sort_capsule *sc) {
         _has_appendto_children(child) == NO) {
       /* sanity check */
       if (sc->section != child->after_section->after_s) {
-        fprintf(stderr, "_find_and_execute_append(): The section dependency tree is corrupted! Please submit a bug report!\n");
+        print_text(NO, "_find_and_execute_append(): The section dependency tree is corrupted! Please submit a bug report!\n");
         return FAILED;
       }
       
@@ -1625,13 +1626,13 @@ static void _print_sort_capsules(struct sort_capsule *sc, int indentation) {
   
   while (sc != NULL) {
     for (i = 0; i < indentation; i++)
-      printf(" ");
-    printf("%s (%d", sc->section->name, sc->section->status);
+      print_text(YES, " ");
+    print_text(YES, "%s (%d", sc->section->name, sc->section->status);
     if (sc->after_section != NULL && sc->after_section->is_appendto == YES)
-      printf(", AP");
+      print_text(YES, ", AP");
     else if (sc->after_section != NULL && sc->after_section->is_appendto == NO)
-      printf(", AF");
-    printf(")\n");
+      print_text(YES, ", AF");
+    print_text(YES, ")\n");
     if (sc->children != NULL)
       _print_sort_capsules(sc->children, indentation + 2);
     sc = sc->next;
@@ -1719,18 +1720,18 @@ int append_sections(void) {
       return FAILED;
 
     if (as->section_s == NULL) {
-      fprintf(stderr, "APPEND_SECTIONS: Source section \"%s\" was not found, ignoring the -> \"%s\" APPENDTO/AFTER. This shouldn't actually happen so please submit a bug report!\n", as->section, as->after);
+      print_text(NO, "APPEND_SECTIONS: Source section \"%s\" was not found, ignoring the -> \"%s\" APPENDTO/AFTER. This shouldn't actually happen so please submit a bug report!\n", as->section, as->after);
       as->alive = NO;
     }
     else if (as->after_s == NULL) {
-      fprintf(stderr, "APPEND_SECTIONS: Target section \"%s\" was not found, ignoring the \"%s\" -> \"%s\" APPENDTO/AFTER.\n", as->after, as->section, as->after);
+      print_text(NO, "APPEND_SECTIONS: Target section \"%s\" was not found, ignoring the \"%s\" -> \"%s\" APPENDTO/AFTER.\n", as->after, as->section, as->after);
       as->alive = NO;
     }
     else {
       if (as->section_s->marked == YES) {
         /* another operation for this section! only one is allowed! */
         as->alive = NO;
-        fprintf(stderr, "APPEND_SECTIONS: More than one APPENDTO/AFTER operation marked for section \"%s\" (in file \"%s\")! Only one is allowed thus disabling the following operations. Please make sure there is only one such operation.\n", as->section, get_file_name(as->file_id));
+        print_text(NO, "APPEND_SECTIONS: More than one APPENDTO/AFTER operation marked for section \"%s\" (in file \"%s\")! Only one is allowed thus disabling the following operations. Please make sure there is only one such operation.\n", as->section, get_file_name(as->file_id));
       }
       else
         as->section_s->marked = YES;
@@ -1789,9 +1790,9 @@ int append_sections(void) {
   while (as != NULL) {
     if (as->alive == YES && as->inserted == NO) {
       if (as->is_appendto)
-        fprintf(stderr, "APPEND_SECTIONS: Unable to inset operation \"%s\" APPENDTO \"%s\" into our sorting tree. Internal error. Please submit a bug resport!\n", as->section, as->after);
+        print_text(NO, "APPEND_SECTIONS: Unable to inset operation \"%s\" APPENDTO \"%s\" into our sorting tree. Internal error. Please submit a bug resport!\n", as->section, as->after);
       else
-        fprintf(stderr, "APPEND_SECTIONS: Unable to inset operation \"%s\" AFTER \"%s\" into our sorting tree. Internal error. Please submit a bug resport!\n", as->section, as->after);
+        print_text(NO, "APPEND_SECTIONS: Unable to inset operation \"%s\" AFTER \"%s\" into our sorting tree. Internal error. Please submit a bug resport!\n", as->section, as->after);
       failures++;
     }
 
@@ -1808,11 +1809,11 @@ int append_sections(void) {
   fflush(stderr);
   fflush(stdout);
 
-  printf("\n");
-  printf("----------------------------------------------------------------------\n");
-  printf("---                 SECTIONS (BEFORE MERGES)                       ---\n");
-  printf("----------------------------------------------------------------------\n");
-  printf("\n");
+  print_text(YES, "\n");
+  print_text(YES, "----------------------------------------------------------------------\n");
+  print_text(YES, "---                 SECTIONS (BEFORE MERGES)                       ---\n");
+  print_text(YES, "----------------------------------------------------------------------\n");
+  print_text(YES, "\n");
 
   _print_sort_capsules(sort_capsules_first, 0);
 
@@ -1871,30 +1872,30 @@ int append_sections(void) {
   fflush(stderr);
   fflush(stdout);
   
-  printf("\n");
-  printf("----------------------------------------------------------------------\n");
-  printf("---              SECTIONS (ORDERED, AFTER MERGES)                  ---\n");
-  printf("----------------------------------------------------------------------\n");
-  printf("\n");
+  print_text(YES, "\n");
+  print_text(YES, "----------------------------------------------------------------------\n");
+  print_text(YES, "---              SECTIONS (ORDERED, AFTER MERGES)                  ---\n");
+  print_text(YES, "----------------------------------------------------------------------\n");
+  print_text(YES, "\n");
   
   s = g_sec_first;
   while (s != NULL) {
     if (s->alive == YES) {
-      printf("\"%s\" (%d", s->name, s->status);
+      print_text(YES, "\"%s\" (%d", s->name, s->status);
       if (s->after != NULL)
-        printf(", AF");
-      printf(")\n");
+        print_text(YES, ", AF");
+      print_text(YES, ")\n");
     }
     else {
-      printf("\"%s\" (%d", s->name, s->status);
+      print_text(YES, "\"%s\" (%d", s->name, s->status);
       if (s->after != NULL)
-        printf(", AF");
-      printf(") DEAD & MERGED\n");
+        print_text(YES, ", AF");
+      print_text(YES, ") DEAD & MERGED\n");
     }
     s = s->next;
   }
 
-  printf("\n");
+  print_text(YES, "\n");
 
   fflush(stderr);
   fflush(stdout);
@@ -1941,7 +1942,7 @@ int parse_data_blocks(void) {
         else if (x == DATA_TYPE_SECTION) {
           s = calloc(sizeof(struct section), 1);
           if (s == NULL) {
-            fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
+            print_text(NO, "PARSE_DATA_BLOCKS: Out of memory.\n");
             return FAILED;
           }
 
@@ -1972,7 +1973,7 @@ int parse_data_blocks(void) {
             if (nspace == NULL) {
               nspace = calloc(sizeof(struct namespace_def), 1);
               if (nspace == NULL) {
-                fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
+                print_text(NO, "PARSE_DATA_BLOCKS: Out of memory.\n");
                 return FAILED;
               }
               nspace->label_map = hashmap_new();
@@ -1994,7 +1995,7 @@ int parse_data_blocks(void) {
           
           s->id = READ_T;
           if (s->id >= 0x10000) {
-            fprintf(stderr, "PARSE_DATA_BLOCKS: Section \"%s\"'s ID %d is too much! Currently we allow only 65535 sections inside an object file. Please open an issue about this in GitHub!\n", s->name, s->id);
+            print_text(NO, "PARSE_DATA_BLOCKS: Section \"%s\"'s ID %d is too much! Currently we allow only 65535 sections inside an object file. Please open an issue about this in GitHub!\n", s->name, s->id);
           }
           s->id += section_id_base;
           s->slot = *(t++);
@@ -2034,7 +2035,7 @@ int parse_data_blocks(void) {
       for ( ; t < p; ) {
         s = calloc(sizeof(struct section), 1);
         if (s == NULL) {
-          fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
+          print_text(NO, "PARSE_DATA_BLOCKS: Out of memory.\n");
           return FAILED;
         }
 
@@ -2064,7 +2065,7 @@ int parse_data_blocks(void) {
           if (nspace == NULL) {
             nspace = calloc(sizeof(struct namespace_def), 1);
             if (nspace == NULL) {
-              fprintf(stderr, "PARSE_DATA_BLOCKS: Out of memory.\n");
+              print_text(NO, "PARSE_DATA_BLOCKS: Out of memory.\n");
               return FAILED;
             }
             nspace->label_map = hashmap_new();
@@ -2077,7 +2078,7 @@ int parse_data_blocks(void) {
 
         s->id = READ_T;
         if (s->id >= 0x10000) {
-          fprintf(stderr, "PARSE_DATA_BLOCKS: Section \"%s\"'s ID %d is too much! Currently we allow only 65535 sections inside a library file. Please open an issue about this in GitHub!\n", s->name, s->id);
+          print_text(NO, "PARSE_DATA_BLOCKS: Section \"%s\"'s ID %d is too much! Currently we allow only 65535 sections inside a library file. Please open an issue about this in GitHub!\n", s->name, s->id);
         }
         s->id += section_id_base;
         s->file_id_source = READ_T;
@@ -2152,7 +2153,7 @@ int obtain_rombanks(void) {
   g_rombanks = rb;
 
   if (s > 1)
-    fprintf(stderr, "OBTAIN_ROMBANKS: Using the biggest selected amount of ROM banks (%d).\n", g_rombanks);
+    print_text(NO, "OBTAIN_ROMBANKS: Using the biggest selected amount of ROM banks (%d).\n", g_rombanks);
 
   return SUCCEEDED;
 }

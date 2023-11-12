@@ -9,6 +9,7 @@
 #include "files.h"
 #include "write.h"
 #include "analyze.h"
+#include "main.h"
 
 
 extern struct reference *g_reference_first, *g_reference_last;
@@ -55,7 +56,7 @@ int discard_unused_sections(void) {
     while (s != NULL) {
       /* skip .SECTIONs that have been appended to other .SECTIONs */
       if (s->alive == NO && s->appended_to == NO)
-        fprintf(stderr, "DISCARD: %s: %s: Section \"%s\" was discarded.\n",
+        print_text(NO, "DISCARD: %s: %s: Section \"%s\" was discarded.\n",
                 get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
       s = s->next;
     }
@@ -103,7 +104,7 @@ int discard_iteration(void) {
     if (l != NULL && l->section_status == ON) {
       s = l->section_struct;
       if (s == NULL)
-        fprintf(stderr, "DISCARD_ITERATION: Internal error! Please send a bug report.\n");
+        print_text(NO, "DISCARD_ITERATION: Internal error! Please send a bug report.\n");
       if (r->section_status == OFF)
         s->referenced++;
       else if (r->section != s->id) {

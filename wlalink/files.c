@@ -9,6 +9,7 @@
 #include "files.h"
 #include "analyze.h"
 #include "write.h"
+#include "main.h"
 
 #if defined(AMIGA)
 #include "/printf.h"
@@ -83,7 +84,7 @@ int load_files(char *argv[], int argc) {
   
   fop = fopen(argv[argc - 2], "rb");
   if (fop == NULL) {
-    fprintf(stderr, "LOAD_FILES: Could not open file \"%s\".\n", argv[argc - 2]);
+    print_text(NO, "LOAD_FILES: Could not open file \"%s\".\n", argv[argc - 2]);
     return FAILED;
   }
 
@@ -143,14 +144,14 @@ int load_files(char *argv[], int argc) {
         continue;
       }
       else {
-        fprintf(stderr, "%s:%d LOAD_FILES: Unknown group \"%s\".\n", argv[argc - 2], line, token);
+        print_text(NO, "%s:%d LOAD_FILES: Unknown group \"%s\".\n", argv[argc - 2], line, token);
         fclose(fop);
         return FAILED;
       }
     }
 
     if (state == STATE_NONE) {
-      fprintf(stderr, "%s:%d: LOAD_FILES: Before file \"%s\" can be loaded you must define a group for it.\n", argv[argc - 2], line, token);
+      print_text(NO, "%s:%d: LOAD_FILES: Before file \"%s\" can be loaded you must define a group for it.\n", argv[argc - 2], line, token);
       fclose(fop);
       return FAILED;
     }
@@ -189,7 +190,7 @@ int load_files(char *argv[], int argc) {
     if (state == STATE_DEFINITION) {
       l = calloc(1, sizeof(struct label));
       if (l == NULL) {
-        fprintf(stderr, "LOAD_FILES: Out of memory.\n");
+        print_text(NO, "LOAD_FILES: Out of memory.\n");
         return FAILED;
       }
       strcpy(l->name, token);
@@ -203,7 +204,7 @@ int load_files(char *argv[], int argc) {
         int type;
         
         if (get_next_string(&tmp[x], l->string, &x, &type) == FAILED) {
-          fprintf(stderr, "%s:%d: LOAD_FILES: Error in DEFINITION value.\n", argv[argc - 2], line);
+          print_text(NO, "%s:%d: LOAD_FILES: Error in DEFINITION value.\n", argv[argc - 2], line);
           fclose(fop);
           free(l);
           return FAILED;
@@ -224,7 +225,7 @@ int load_files(char *argv[], int argc) {
     /* header loading? */
     else if (state == STATE_HEADER) {
       if (g_file_header != NULL) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: There can be only one header file.\n", argv[argc - 2], line);
+        print_text(NO, "%s:%d: LOAD_FILES: There can be only one header file.\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
@@ -236,14 +237,14 @@ int load_files(char *argv[], int argc) {
       if (get_next_token(&tmp[x], token, &x) == FAILED)
         continue;
 
-      fprintf(stderr, "%s:%d: LOAD_FILES: Syntax error.\n", argv[argc - 2], line);
+      print_text(NO, "%s:%d: LOAD_FILES: Syntax error.\n", argv[argc - 2], line);
       fclose(fop);
       return FAILED;
     }
     /* footer loading? */
     else if (state == STATE_FOOTER) {
       if (g_file_footer != NULL) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: There can be only one footer file.\n", argv[argc - 2], line);
+        print_text(NO, "%s:%d: LOAD_FILES: There can be only one footer file.\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
@@ -255,7 +256,7 @@ int load_files(char *argv[], int argc) {
       if (get_next_token(&tmp[x], token, &x) == FAILED)
         continue;
 
-      fprintf(stderr, "%s:%d: LOAD_FILES: Syntax error.\n", argv[argc - 2], line);
+      print_text(NO, "%s:%d: LOAD_FILES: Syntax error.\n", argv[argc - 2], line);
       fclose(fop);
       return FAILED;
     }
@@ -264,13 +265,13 @@ int load_files(char *argv[], int argc) {
       int statuses[SECTION_TYPES_COUNT_ALL], sum, j;
 
       if (s_section_write_order_index > 0) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: Excess data in [sectionwriteorder].\n", argv[argc - 2], line);
+        print_text(NO, "%s:%d: LOAD_FILES: Excess data in [sectionwriteorder].\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
       
       if (sectionwriteorder_defined == YES) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: [sectionwriteorder] was defined twice.\n", argv[argc - 2], line);
+        print_text(NO, "%s:%d: LOAD_FILES: [sectionwriteorder] was defined twice.\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
@@ -299,7 +300,7 @@ int load_files(char *argv[], int argc) {
           status = SECTION_STATUS_OVERWRITE;
         else {
           if (strlen(token) > 0 && token[0] != '[') {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Unknown token \"%s\" in [sectionwriteorder].\n", argv[argc - 2], line, token);
+            print_text(NO, "%s:%d: LOAD_FILES: Unknown token \"%s\" in [sectionwriteorder].\n", argv[argc - 2], line, token);
             fclose(fop);
             return FAILED;
           }
@@ -307,7 +308,7 @@ int load_files(char *argv[], int argc) {
         }
 
         if (statuses[status] != 0) {
-          fprintf(stderr, "%s:%d: LOAD_FILES: \"%s\" was already defined.\n", argv[argc - 2], line, token);
+          print_text(NO, "%s:%d: LOAD_FILES: \"%s\" was already defined.\n", argv[argc - 2], line, token);
           fclose(fop);
           return FAILED;
         }
@@ -315,7 +316,7 @@ int load_files(char *argv[], int argc) {
         statuses[status] = 1;
 
         if (s_section_write_order_index >= SECTION_TYPES_COUNT-2) {
-          fprintf(stderr, "%s:%d: LOAD_FILES: Too many section types in [sectionwriteorder].\n", argv[argc - 2], line);
+          print_text(NO, "%s:%d: LOAD_FILES: Too many section types in [sectionwriteorder].\n", argv[argc - 2], line);
           fclose(fop);
           return FAILED;
         }
@@ -326,7 +327,7 @@ int load_files(char *argv[], int argc) {
           break;
 
         if (fgets(tmp, 255, fop) == NULL) {
-          fprintf(stderr, "%s:%d: LOAD_FILES: Out of lines in [sectionwriteorder].\n", argv[argc - 2], line);
+          print_text(NO, "%s:%d: LOAD_FILES: Out of lines in [sectionwriteorder].\n", argv[argc - 2], line);
           fclose(fop);
           return FAILED;          
         }
@@ -348,7 +349,7 @@ int load_files(char *argv[], int argc) {
       }
 
       if (sum != SECTION_TYPES_COUNT-2) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: Not enough section types (all must be given) in [sectionwriteorder].\n", argv[argc - 2], line);
+        print_text(NO, "%s:%d: LOAD_FILES: Not enough section types (all must be given) in [sectionwriteorder].\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
@@ -360,13 +361,13 @@ int load_files(char *argv[], int argc) {
       int statuses[SECTION_TYPES_COUNT_ALL], sum, j;
 
       if (s_ramsection_write_order_index > 0) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: Excess data in [ramsectionwriteorder].\n", argv[argc - 2], line);
+        print_text(NO, "%s:%d: LOAD_FILES: Excess data in [ramsectionwriteorder].\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
       
       if (ramsectionwriteorder_defined == YES) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: [ramsectionwriteorder] was defined twice.\n", argv[argc - 2], line);
+        print_text(NO, "%s:%d: LOAD_FILES: [ramsectionwriteorder] was defined twice.\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
@@ -389,7 +390,7 @@ int load_files(char *argv[], int argc) {
           status = SECTION_STATUS_RAM_FREE;
         else {
           if (strlen(token) > 0 && token[0] != '[') {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Unknown token \"%s\" in [ramsectionwriteorder].\n", argv[argc - 2], line, token);
+            print_text(NO, "%s:%d: LOAD_FILES: Unknown token \"%s\" in [ramsectionwriteorder].\n", argv[argc - 2], line, token);
             fclose(fop);
             return FAILED;
           }
@@ -397,7 +398,7 @@ int load_files(char *argv[], int argc) {
         }
 
         if (statuses[status] != 0) {
-          fprintf(stderr, "%s:%d: LOAD_FILES: \"%s\" was already defined.\n", argv[argc - 2], line, token);
+          print_text(NO, "%s:%d: LOAD_FILES: \"%s\" was already defined.\n", argv[argc - 2], line, token);
           fclose(fop);
           return FAILED;
         }
@@ -405,7 +406,7 @@ int load_files(char *argv[], int argc) {
         statuses[status] = 1;
 
         if (s_ramsection_write_order_index >= RAMSECTION_TYPES_COUNT) {
-          fprintf(stderr, "%s:%d: LOAD_FILES: Too many section types in [ramsectionwriteorder].\n", argv[argc - 2], line);
+          print_text(NO, "%s:%d: LOAD_FILES: Too many section types in [ramsectionwriteorder].\n", argv[argc - 2], line);
           fclose(fop);
           return FAILED;
         }
@@ -416,7 +417,7 @@ int load_files(char *argv[], int argc) {
           break;
 
         if (fgets(tmp, 255, fop) == NULL) {
-          fprintf(stderr, "%s:%d: LOAD_FILES: Out of lines in [ramsectionwriteorder].\n", argv[argc - 2], line);
+          print_text(NO, "%s:%d: LOAD_FILES: Out of lines in [ramsectionwriteorder].\n", argv[argc - 2], line);
           fclose(fop);
           return FAILED;          
         }
@@ -438,7 +439,7 @@ int load_files(char *argv[], int argc) {
       }
 
       if (sum != RAMSECTION_TYPES_COUNT) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: Not enough section types (all must be given) in [ramsectionwriteorder].\n", argv[argc - 2], line);
+        print_text(NO, "%s:%d: LOAD_FILES: Not enough section types (all must be given) in [ramsectionwriteorder].\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
@@ -451,28 +452,28 @@ int load_files(char *argv[], int argc) {
       while (i == SUCCEEDED) {
         if (strcaselesscmp(token, "bank") == 0) {
           if (bank_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: BANK defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            print_text(NO, "%s:%d: LOAD_FILES: BANK defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
             fclose(fop);
             return FAILED;
           }
           bank_defined = YES;
           
           if (get_next_number(&tmp[x], &bank, &x) == FAILED) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in BANK number.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in BANK number.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
         }
         else if (strcaselesscmp(token, "banks") == 0) {
           if (banks_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: BANKS defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            print_text(NO, "%s:%d: LOAD_FILES: BANKS defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
             fclose(fop);
             return FAILED;
           }
           banks_defined = YES;
           
           if (get_next_token(&tmp[x], token, &x) == FAILED) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in BANKS list.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in BANKS list.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
@@ -481,7 +482,7 @@ int load_files(char *argv[], int argc) {
         }
         else if (strcaselesscmp(token, "slot") == 0) {
           if (slot_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: SLOT defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            print_text(NO, "%s:%d: LOAD_FILES: SLOT defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
             fclose(fop);
             return FAILED;
           }
@@ -490,7 +491,7 @@ int load_files(char *argv[], int argc) {
           
           if (get_next_number(&tmp[x], &slot, &x) == FAILED) {
             if (get_next_token(&tmp[x], token, &x) == FAILED) {
-              fprintf(stderr, "%s:%d: LOAD_FILES: Error in SLOT number.\n", argv[argc - 2], line);
+              print_text(NO, "%s:%d: LOAD_FILES: Error in SLOT number.\n", argv[argc - 2], line);
               fclose(fop);
               return FAILED;
             }
@@ -501,12 +502,12 @@ int load_files(char *argv[], int argc) {
         }
         else if (strcaselesscmp(token, "orga") == 0) {
           if (orga_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: ORGA defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            print_text(NO, "%s:%d: LOAD_FILES: ORGA defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
             fclose(fop);
             return FAILED;
           }
           if (org_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: ORG was already defined before, cannot define ORGA.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: ORG was already defined before, cannot define ORGA.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
@@ -514,19 +515,19 @@ int load_files(char *argv[], int argc) {
           orga_defined = YES;
 
           if (get_next_number(&tmp[x], &orga, &x) == FAILED) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in ORGA number.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in ORGA number.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
         }
         else if (strcaselesscmp(token, "org") == 0) {
           if (org_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: ORG defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            print_text(NO, "%s:%d: LOAD_FILES: ORG defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
             fclose(fop);
             return FAILED;
           }
           if (orga_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: ORGA was already defined before, cannot define ORG.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: ORGA was already defined before, cannot define ORG.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
@@ -534,14 +535,14 @@ int load_files(char *argv[], int argc) {
           org_defined = YES;
 
           if (get_next_number(&tmp[x], &org, &x) == FAILED) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in ORG number.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in ORG number.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
         }
         else if (strcaselesscmp(token, "size") == 0) {
           if (size_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: SIZE defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            print_text(NO, "%s:%d: LOAD_FILES: SIZE defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
             fclose(fop);
             return FAILED;
           }
@@ -549,14 +550,14 @@ int load_files(char *argv[], int argc) {
           size_defined = YES;
 
           if (get_next_number(&tmp[x], &size, &x) == FAILED || size < 0) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in SIZE number.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in SIZE number.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
         }
         else if (strcaselesscmp(token, "bitwindow") == 0) {
           if (bitwindow_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: BITWINDOW defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            print_text(NO, "%s:%d: LOAD_FILES: BITWINDOW defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
             fclose(fop);
             return FAILED;
           }
@@ -564,20 +565,20 @@ int load_files(char *argv[], int argc) {
           bitwindow_defined = YES;
 
           if (get_next_number(&tmp[x], &bitwindow, &x) == FAILED) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in BITWINDOW number.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in BITWINDOW number.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
 
           if (bitwindow == 0) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: BITWINDOW 0 means that the section cannot be placed anywhere.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: BITWINDOW 0 means that the section cannot be placed anywhere.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
         }
         else if (strcaselesscmp(token, "window") == 0) {
           if (window_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: WINDOW defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            print_text(NO, "%s:%d: LOAD_FILES: WINDOW defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
             fclose(fop);
             return FAILED;
           }
@@ -585,26 +586,26 @@ int load_files(char *argv[], int argc) {
           window_defined = YES;
 
           if (get_next_number(&tmp[x], &window_start, &x) == FAILED) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in WINDOW (start) number.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in WINDOW (start) number.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
           
           if (get_next_number(&tmp[x], &window_end, &x) == FAILED) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in WINDOW (end) number.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in WINDOW (end) number.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
 
           if (window_start > window_end) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: WINDOW start ($%.4x) is bigger than WINDOW end ($%.4x) number.\n", argv[argc - 2], line, window_start, window_end);
+            print_text(NO, "%s:%d: LOAD_FILES: WINDOW start ($%.4x) is bigger than WINDOW end ($%.4x) number.\n", argv[argc - 2], line, window_start, window_end);
             fclose(fop);
             return FAILED;
           }
         }
         else if (strcaselesscmp(token, "priority") == 0) {
           if (priority_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: PRIORITY defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            print_text(NO, "%s:%d: LOAD_FILES: PRIORITY defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
             fclose(fop);
             return FAILED;
           }
@@ -612,14 +613,14 @@ int load_files(char *argv[], int argc) {
           priority_defined = YES;
 
           if (get_next_number(&tmp[x], &priority, &x) == FAILED) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in PRIORITY number.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in PRIORITY number.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
         }
         else if (strcaselesscmp(token, "alignment") == 0) {
           if (alignment_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: ALIGNMENT defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            print_text(NO, "%s:%d: LOAD_FILES: ALIGNMENT defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
             fclose(fop);
             return FAILED;
           }
@@ -627,14 +628,14 @@ int load_files(char *argv[], int argc) {
           alignment_defined = YES;
 
           if (get_next_number(&tmp[x], &alignment, &x) == FAILED) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in ALIGNMENT number.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in ALIGNMENT number.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
         }
         else if (strcaselesscmp(token, "offset") == 0) {
           if (offset_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: OFFSET defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            print_text(NO, "%s:%d: LOAD_FILES: OFFSET defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
             fclose(fop);
             return FAILED;
           }
@@ -642,14 +643,14 @@ int load_files(char *argv[], int argc) {
           offset_defined = YES;
 
           if (get_next_number(&tmp[x], &offset, &x) == FAILED) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in OFFSET number.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in OFFSET number.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
         }
         else if (strcaselesscmp(token, "appendto") == 0) {
           if (appendto_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: APPENDTO defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            print_text(NO, "%s:%d: LOAD_FILES: APPENDTO defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
             fclose(fop);
             return FAILED;
           }
@@ -657,14 +658,14 @@ int load_files(char *argv[], int argc) {
           appendto_defined = YES;
 
           if (get_next_token(&tmp[x], appendto_name, &x) == FAILED) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in APPENDTO section name.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in APPENDTO section name.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
         }
         else if (strcaselesscmp(token, "after") == 0) {
           if (after_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: AFTER defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            print_text(NO, "%s:%d: LOAD_FILES: AFTER defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
             fclose(fop);
             return FAILED;
           }
@@ -672,14 +673,14 @@ int load_files(char *argv[], int argc) {
           after_defined = YES;
 
           if (get_next_token(&tmp[x], after_name, &x) == FAILED) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in AFTER section name.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in AFTER section name.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
         }
         else if (strcaselesscmp(token, "keep") == 0) {
           if (keep_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: KEEP defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            print_text(NO, "%s:%d: LOAD_FILES: KEEP defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
             fclose(fop);
             return FAILED;
           }
@@ -694,7 +695,7 @@ int load_files(char *argv[], int argc) {
                                              strcaselesscmp(token, "overwrite") == 0 ||
                                              strcaselesscmp(token, "semisuperfree") == 0)) {
           if (status_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Section type was defined for the second time.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Section type was defined for the second time.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
@@ -721,7 +722,7 @@ int load_files(char *argv[], int argc) {
                                                 strcaselesscmp(token, "semisubfree") == 0 ||
                                                 strcaselesscmp(token, "force") == 0)) {
           if (status_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: RAM section type was defined for the second time.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: RAM section type was defined for the second time.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
@@ -744,31 +745,31 @@ int load_files(char *argv[], int argc) {
       }
       
       if (i == FAILED) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: There is something wrong in a %s's settings.\n", argv[argc - 2], line, state_name);
+        print_text(NO, "%s:%d: LOAD_FILES: There is something wrong in a %s's settings.\n", argv[argc - 2], line, state_name);
         fclose(fop);
         return FAILED;
       }
       if (slot_defined == NO) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: \"%s\" requires a SLOT.\n", argv[argc - 2], line, state_name);
+        print_text(NO, "%s:%d: LOAD_FILES: \"%s\" requires a SLOT.\n", argv[argc - 2], line, state_name);
         fclose(fop);
         return FAILED;
       }
       if (status_defined == YES && status == SECTION_STATUS_SEMISUPERFREE) {
         if (banks_defined == NO) {
-          fprintf(stderr, "%s:%d: LOAD_FILES: SEMISUPERFREE .SECTION \"%s\" requires BANKS to be defined.\n", argv[argc - 2], line, state_name);
+          print_text(NO, "%s:%d: LOAD_FILES: SEMISUPERFREE .SECTION \"%s\" requires BANKS to be defined.\n", argv[argc - 2], line, state_name);
           fclose(fop);
           return FAILED;
         }
       }
       else {
         if (bank_defined == NO) {
-          fprintf(stderr, "%s:%d: LOAD_FILES: \"%s\" requires a BANK to be defined.\n", argv[argc - 2], line, state_name);
+          print_text(NO, "%s:%d: LOAD_FILES: \"%s\" requires a BANK to be defined.\n", argv[argc - 2], line, state_name);
           fclose(fop);
           return FAILED;
         }
       }
       if (appendto_defined == YES && (org_defined == YES || orga_defined == YES || after_defined == YES)) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: \"%s\" can't use APPENDTO with ORG, ORGA or AFTER.\n", argv[argc - 2], line, state_name);
+        print_text(NO, "%s:%d: LOAD_FILES: \"%s\" can't use APPENDTO with ORG, ORGA or AFTER.\n", argv[argc - 2], line, state_name);
         fclose(fop);
         return FAILED;
       }
@@ -776,7 +777,7 @@ int load_files(char *argv[], int argc) {
       /* add a new entry */
       g_sec_fix_tmp = calloc(sizeof(struct section_fix), 1);
       if (g_sec_fix_tmp == NULL) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: Out of memory error.\n", argv[argc - 2], line);
+        print_text(NO, "%s:%d: LOAD_FILES: Out of memory error.\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
@@ -829,7 +830,7 @@ int load_files(char *argv[], int argc) {
       if (appendto_defined == YES || after_defined == YES) {
         g_after_tmp = calloc(1, sizeof(struct after_section));
         if (g_after_tmp == NULL) {
-          fprintf(stderr, "%s:%d: LOAD_FILES: Out of memory error.\n", argv[argc - 2], line);
+          print_text(NO, "%s:%d: LOAD_FILES: Out of memory error.\n", argv[argc - 2], line);
           fclose(fop);
           return FAILED;
         }
@@ -871,21 +872,21 @@ int load_files(char *argv[], int argc) {
       while (i == SUCCEEDED) {
         if (strcaselesscmp(token, "bank") == 0) {
           if (bank_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: BANK defined for the second time for a library file.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: BANK defined for the second time for a library file.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
           bank_defined = YES;
           
           if (get_next_number(&tmp[x], &bank, &x) == FAILED) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in BANK number.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in BANK number.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
         }
         else if (strcaselesscmp(token, "slot") == 0) {
           if (slot_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: SLOT defined for the second time for a library file.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: SLOT defined for the second time for a library file.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
@@ -894,7 +895,7 @@ int load_files(char *argv[], int argc) {
           
           if (get_next_number(&tmp[x], &slot, &x) == FAILED) {
             if (get_next_token(&tmp[x], token, &x) == FAILED) {
-              fprintf(stderr, "%s:%d: LOAD_FILES: Error in SLOT number.\n", argv[argc - 2], line);
+              print_text(NO, "%s:%d: LOAD_FILES: Error in SLOT number.\n", argv[argc - 2], line);
               fclose(fop);
               return FAILED;
             }
@@ -905,14 +906,14 @@ int load_files(char *argv[], int argc) {
         }
         else if (strcaselesscmp(token, "base") == 0) {
           if (base_defined == YES) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: BASE defined for the second time for a library file.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: BASE defined for the second time for a library file.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
           base_defined = YES;
           
           if (get_next_number(&tmp[x], &base, &x) == FAILED) {
-            fprintf(stderr, "%s:%d: LOAD_FILES: Error in BASE number.\n", argv[argc - 2], line);
+            print_text(NO, "%s:%d: LOAD_FILES: Error in BASE number.\n", argv[argc - 2], line);
             fclose(fop);
             return FAILED;
           }
@@ -924,17 +925,17 @@ int load_files(char *argv[], int argc) {
       }
       
       if (i == FAILED) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: No library to load.\n", argv[argc - 2], line);
+        print_text(NO, "%s:%d: LOAD_FILES: No library to load.\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
       if (slot_defined == NO) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: Library file requires a SLOT.\n", argv[argc - 2], line);
+        print_text(NO, "%s:%d: LOAD_FILES: Library file requires a SLOT.\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
       if (bank_defined == NO) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: Library file requires a BANK.\n", argv[argc - 2], line);
+        print_text(NO, "%s:%d: LOAD_FILES: Library file requires a BANK.\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
@@ -971,7 +972,7 @@ int load_files(char *argv[], int argc) {
       }
       
       if (get_next_token(&tmp[x], token, &x) == SUCCEEDED) {
-        fprintf(stderr, "%s:%d: LOAD_FILES: Syntax error.\n", argv[argc - 2], line);
+        print_text(NO, "%s:%d: LOAD_FILES: Syntax error.\n", argv[argc - 2], line);
         fclose(fop);
         return FAILED;
       }
@@ -994,7 +995,7 @@ int load_files(char *argv[], int argc) {
     if (get_next_token(&tmp[x], token, &x) == FAILED)
       continue;
 
-    fprintf(stderr, "%s:%d: LOAD_FILES: Syntax error.\n", argv[argc - 2], line);
+    print_text(NO, "%s:%d: LOAD_FILES: Syntax error.\n", argv[argc - 2], line);
     fclose(fop);
     return FAILED;
   }
@@ -1018,7 +1019,7 @@ int load_file(char *file_name, int bank, int slot, char *slot_name, int fix_slot
   if (o == NULL || name == NULL) {
     free(o);
     free(name);
-    fprintf(stderr, "LOAD_FILE: Out of memory.\n");
+    print_text(NO, "LOAD_FILE: Out of memory.\n");
     return FAILED;
   }
 
@@ -1083,7 +1084,7 @@ int load_file_data(char *file_name, unsigned char **data, int *size) {
 
   fop = fopen(file_name, "rb");
   if (fop == NULL) {
-    fprintf(stderr, "LOAD_FILE_DATA: Could not open file \"%s\".\n", file_name);
+    print_text(NO, "LOAD_FILE_DATA: Could not open file \"%s\".\n", file_name);
     return FAILED;
   }
 
@@ -1092,7 +1093,7 @@ int load_file_data(char *file_name, unsigned char **data, int *size) {
   fseek(fop, 0, SEEK_SET);
 
   if (*size == 0) {
-    fprintf(stderr, "LOAD_FILE_DATA: File \"%s\" is empty!\n", file_name);
+    print_text(NO, "LOAD_FILE_DATA: File \"%s\" is empty!\n", file_name);
     return FAILED;
   }
   
@@ -1103,7 +1104,7 @@ int load_file_data(char *file_name, unsigned char **data, int *size) {
   }
 
   if (fread(*data, 1, *size, fop) != (size_t) *size) {
-    fprintf(stderr, "LOAD_FILE_DATA: Could not read all %d bytes of \"%s\"!", *size, file_name);
+    print_text(NO, "LOAD_FILE_DATA: Could not read all %d bytes of \"%s\"!", *size, file_name);
     return FAILED;
   }
 
@@ -1129,7 +1130,7 @@ char *get_file_name(int file_id) {
 struct object_file *get_file(int file_id) {
 
   if (file_id < 0 || file_id > s_object_files_max || g_object_files[file_id] == NULL) {
-    fprintf(stderr, "GET_FILE: Trying to find file %d which has gone missing! Please submit a bug report!\n", file_id);
+    print_text(NO, "GET_FILE: Trying to find file %d which has gone missing! Please submit a bug report!\n", file_id);
     return NULL;
   }
   

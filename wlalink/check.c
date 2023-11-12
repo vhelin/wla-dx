@@ -7,6 +7,7 @@
 #include "defines.h"
 #include "memory.h"
 #include "files.h"
+#include "main.h"
 
 
 /* read an integer from t */
@@ -30,7 +31,7 @@ int check_file_types(void) {
     else if (strncmp((char *)o->data, "WLAI", 4) == 0)
       o->format = WLA_VERSION_LIB;
     else {
-      fprintf(stderr, "CHECK_FILE_TYPES: File \"%s\" is of unknown format (\"%c%c%c%c\").\n", o->name, o->data[0], o->data[1], o->data[2], o->data[3]);
+      print_text(NO, "CHECK_FILE_TYPES: File \"%s\" is of unknown format (\"%c%c%c%c\").\n", o->name, o->data[0], o->data[1], o->data[2], o->data[3]);
       return FAILED;
     }
     o = o->next;
@@ -128,7 +129,7 @@ int check_headers(void) {
       else {
         e = *(o->data + OBJ_EMPTY_FILL);
         if (e != g_emptyfill) {
-          printf("CHECK_HEADERS: Conflicting empty fill in file \"%s\". Old $%.2x, new $%.2x. Using $%.2x.\n", o->name, g_emptyfill, e, e);
+          print_text(YES, "CHECK_HEADERS: Conflicting empty fill in file \"%s\". Old $%.2x, new $%.2x. Using $%.2x.\n", o->name, g_emptyfill, e, e);
           g_emptyfill = e;
         }
 
@@ -153,14 +154,14 @@ int check_headers(void) {
         
         e = (more_bits >> 1) & 3;
         if (g_snes_sramsize < e) {
-          printf("CHECK_HEADERS: Conflicting SNES SRAM size in file \"%s\". Old $%.2x, new $%.2x. Using $%.2x as it's bigger.\n", o->name, g_snes_sramsize, e, e);
+          print_text(YES, "CHECK_HEADERS: Conflicting SNES SRAM size in file \"%s\". Old $%.2x, new $%.2x. Using $%.2x as it's bigger.\n", o->name, g_snes_sramsize, e, e);
           g_snes_sramsize = e;
         }
 
         if (o->cpu_65816) {
           e = misc_bits & 8;
           if (g_snes_rom_speed != e) {
-            printf("CHECK_HEADERS: Conflicting SNES ROM speed in file \"%s\". Old %s, new %s. Using %s.\n", o->name, _get_snes_rom_speed(g_snes_rom_speed), _get_snes_rom_speed(e), _get_snes_rom_speed(e));
+            print_text(YES, "CHECK_HEADERS: Conflicting SNES ROM speed in file \"%s\". Old %s, new %s. Using %s.\n", o->name, _get_snes_rom_speed(g_snes_rom_speed), _get_snes_rom_speed(e), _get_snes_rom_speed(e));
             g_snes_rom_speed = e;
           }
 
@@ -186,7 +187,7 @@ int check_headers(void) {
               e = SNES_ROM_MODE_EXLOROM;
 
             if (g_snes_rom_mode != e) {
-              printf("CHECK_HEADERS: Conflicting SNES ROM mode in file \"%s\". Old %s, new %s. Using %s.\n", o->name, _get_snes_rom_mode(g_snes_rom_mode), _get_snes_rom_mode(e), _get_snes_rom_mode(e));
+              print_text(YES, "CHECK_HEADERS: Conflicting SNES ROM mode in file \"%s\". Old %s, new %s. Using %s.\n", o->name, _get_snes_rom_mode(g_snes_rom_mode), _get_snes_rom_mode(e), _get_snes_rom_mode(e));
               g_snes_rom_mode = e;
             }
           }
@@ -231,7 +232,7 @@ int check_headers(void) {
   }
 
   if (count == 0) {
-    fprintf(stderr, "CHECK_HEADERS: There's nothing to link.\n");
+    print_text(NO, "CHECK_HEADERS: There's nothing to link.\n");
     return FAILED;
   }
 

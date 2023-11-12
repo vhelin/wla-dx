@@ -19,6 +19,7 @@
 #include "discard.h"
 #include "listfile.h"
 #include "parse.h"
+#include "main.h"
 
 #if defined(AMIGA)
 #include "/printf.h"
@@ -31,7 +32,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.21b (11.11.2023)";
+char g_version_string[] = "$VER: wlalink 5.21b (12.11.2023)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -67,8 +68,10 @@ int g_output_type = OUTPUT_TYPE_UNDEFINED, g_sort_sections = YES;
 int g_num_sorted_anonymous_labels = 0, g_use_priority_only_writing_sections = NO, g_use_priority_only_writing_ramsections = NO;
 int g_emptyfill = 0, g_paths_in_linkfile_are_relative_to_linkfile = NO, g_romheader_baseaddress = -1;
 
+static int s_screen_dx = DEFAULT_SCREEN_DX, s_screen_dy = DEFAULT_SCREEN_DY, s_line_x = 0, s_line_y = 0, s_pause_text = NO;
 static int s_create_sizeof_definitions = YES, s_listfile_data = NO, s_symbol_mode = SYMBOL_MODE_NONE;
 static unsigned char s_output_addr_to_line = OFF;
+static char s_print_text_buffer[4096];
 
 extern struct object_file **g_object_files;
 extern struct pointer_array **g_section_table_table;
@@ -229,8 +232,8 @@ static const char *_get_stack_item_operator_name(int operator) {
   else if (operator == SI_OP_CLAMP)
     return s_si_operator_clamp;
   
-  fprintf(stderr, "\n");
-  fprintf(stderr, "_get_stack_item_operator_name(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", operator);
+  print_text(NO, "\n");
+  print_text(NO, "_get_stack_item_operator_name(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", operator);
   exit(1);
 
   return s_si_operator_unknown;
@@ -281,7 +284,7 @@ char *get_stack_item_description(struct stack_item *si, int file_id) {
 
 static void _debug_print_label(struct label *l) {
 
-  printf("label: \"%s\" file: %s status: %d section: %d (%d) bank: %d slot: %d base: %d address: %d/$%x alive: %d\n", l->name, get_file_name(l->file_id), l->status, l->section, l->section & 0xffff, l->bank, l->slot, l->base, (int)l->address, (int)l->address, l->alive);
+  print_text(YES, "label: \"%s\" file: %s status: %d section: %d (%d) bank: %d slot: %d base: %d address: %d/$%x alive: %d\n", l->name, get_file_name(l->file_id), l->status, l->section, l->section & 0xffff, l->bank, l->slot, l->base, (int)l->address, (int)l->address, l->alive);
 }
 
 
@@ -305,33 +308,152 @@ static void _debug_print_sections(void) {
       "SEMISUPERFREE"
     };
 
-    printf("\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("---                         SECTIONS                               ---\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("\n");
+    print_text(YES, "\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "---                         SECTIONS                               ---\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "\n");
 
     while (s != NULL) {
-      printf("----------------------------------------------------------------------\n");
-      printf("name  : \"%s\"\n", s->name);
-      printf("file  : \"%s\"\n", get_file_name(s->file_id));
-      printf("id    : %d (%d)\n", s->id, s->id & 0xffff);
-      printf("addr  : %d\n", s->address);
-      printf("stat  : %d\n", s->status);
-      printf("bank  : %d\n", s->bank);
-      printf("base  : %d\n", s->base);
-      printf("slot  : %d\n", s->slot);
-      printf("size  : %d\n", s->size);
-      printf("align : %d\n", s->alignment);
-      printf("alive : %d\n", s->alive);
-      printf("status: %s\n", section_status[s->status]);
+      print_text(YES, "----------------------------------------------------------------------\n");
+      print_text(YES, "name  : \"%s\"\n", s->name);
+      print_text(YES, "file  : \"%s\"\n", get_file_name(s->file_id));
+      print_text(YES, "id    : %d (%d)\n", s->id, s->id & 0xffff);
+      print_text(YES, "addr  : %d\n", s->address);
+      print_text(YES, "stat  : %d\n", s->status);
+      print_text(YES, "bank  : %d\n", s->bank);
+      print_text(YES, "base  : %d\n", s->base);
+      print_text(YES, "slot  : %d\n", s->slot);
+      print_text(YES, "size  : %d\n", s->size);
+      print_text(YES, "align : %d\n", s->alignment);
+      print_text(YES, "alive : %d\n", s->alive);
+      print_text(YES, "status: %s\n", section_status[s->status]);
       s = s->next;
     }
-    printf("----------------------------------------------------------------------\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
   }
 }
 
 #endif
+
+/************************************************************************/
+/* <REFACTOR>                                                           */
+/************************************************************************/
+
+/* TODO: move _pause(), _print_text(), print_text_using_args() and print_text() into
+   a file of their own that is shared with the assembler and the linker - this exact same
+   code can be found in assembler's main.c */
+
+static void _pause(void) {
+
+  fprintf(stdout, "[Press enter to continue]");
+  getchar();
+
+  s_line_y = 0;
+  s_line_x = 0;
+}
+
+
+static void _print_text(int is_stdout, char *text) {
+
+  if (is_stdout == YES) {
+    fprintf(stdout, "%s", text);
+    fflush(stdout);
+  }
+  else {
+    fprintf(stderr, "%s", text);
+    fflush(stderr);
+  }
+}
+
+
+void print_text_using_args(int is_stdout, const char *format, va_list args) {
+
+  int i, length, start_index = 0;
+  char saved1, saved2;
+
+  vsnprintf(s_print_text_buffer, sizeof(s_print_text_buffer), format, args);
+
+  if (s_pause_text == YES) {
+    /* logic for line counting and pausing after a screen full of text has been printed out */
+    length = (int)strlen(s_print_text_buffer);
+
+    for (i = 0; i < length; i++) {
+      if (s_print_text_buffer[i] == 0xA) {
+        s_line_x = 0;
+        s_line_y++;
+
+        if (i < length-1) {
+          /* we have a linefeed in the middle of the string -> print everything so far */
+          saved1 = s_print_text_buffer[i+1];
+          s_print_text_buffer[i+1] = 0;
+          
+          _print_text(is_stdout, &s_print_text_buffer[start_index]);
+          
+          s_print_text_buffer[i+1] = saved1;
+        }
+        else {
+          /* the end of the line has been reached -> print */
+          _print_text(is_stdout, &s_print_text_buffer[start_index]);
+        }
+
+        if (s_line_y >= s_screen_dy-1)
+          _pause();
+
+        start_index = i+1;
+      }
+      else
+        s_line_x++;
+      
+      if (s_line_x == s_screen_dx) {
+        /* the end of the line has been reached */
+        s_line_x = 0;
+        s_line_y++;
+
+        /* print the line */
+        saved1 = s_print_text_buffer[i+1];
+        saved2 = s_print_text_buffer[i+2];
+        s_print_text_buffer[i+1] = 0xA;
+        s_print_text_buffer[i+2] = 0;
+          
+        _print_text(is_stdout, &s_print_text_buffer[start_index]);
+
+        if (s_line_y >= s_screen_dy-1)
+          _pause();
+          
+        s_print_text_buffer[i+1] = saved1;
+        s_print_text_buffer[i+2] = saved2;
+        start_index = i+1;
+
+        if (saved1 == 0xA && saved2 == 0) {
+          start_index++;
+          break;
+        }
+      }
+    }
+
+    /* if remaining characters exist, print them */
+    if (start_index < length)
+      _print_text(is_stdout, &s_print_text_buffer[start_index]);
+  }
+  else
+    _print_text(is_stdout, s_print_text_buffer);
+}
+
+
+void print_text(int is_stdout, const char *format, ...) {
+
+  va_list args;
+
+  va_start(args, format);
+  print_text_using_args(is_stdout, format, args);
+  va_end(args);
+}
+
+
+/************************************************************************/
+/* </REFACTOR>                                                           */
+/************************************************************************/
 
 
 static int _show_ram_information(int *free, int *total) {
@@ -341,9 +463,9 @@ static int _show_ram_information(int *free, int *total) {
   float f;
 
   if (g_verbose_level >= 100) {
-    printf("-------------------------------------------------\n");
-    printf("---                   RAM                     ---\n");
-    printf("-------------------------------------------------\n");
+    print_text(YES, "-------------------------------------------------\n");
+    print_text(YES, "---                   RAM                     ---\n");
+    print_text(YES, "-------------------------------------------------\n");
   }
   
   *free = 0;
@@ -379,7 +501,7 @@ static int _show_ram_information(int *free, int *total) {
 
       f = ((float)bank_free)/(bank_free + bank_used) * 100.0f;
       if (g_verbose_level >= 100)
-        printf("RAM slot %s bank %d (%d bytes (%.2f%%) free)\n", slot_name, bank, bank_free, f);
+        print_text(YES, "RAM slot %s bank %d (%d bytes (%.2f%%) free)\n", slot_name, bank, bank_free, f);
 
       area_start = -1;
       area_end = -1;
@@ -402,7 +524,7 @@ static int _show_ram_information(int *free, int *total) {
         
         if (print_area == YES) {
           if (g_verbose_level >= 100)
-            printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+            print_text(YES, "  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
           area_start = -1;
           area_end = -1;
         }
@@ -414,7 +536,7 @@ static int _show_ram_information(int *free, int *total) {
 
   if (printed_something == NO) {
     if (g_verbose_level >= 100)
-      printf("No .RAMSECTIONs were found, no information about RAM.\n");
+      print_text(YES, "No .RAMSECTIONs were found, no information about RAM.\n");
   }
   
   return SUCCEEDED;
@@ -429,46 +551,46 @@ static int _show_headers_and_footers_information(void) {
   if (g_verbose_level < 100)
     return SUCCEEDED;
   
-  printf("-------------------------------------------------\n");
-  printf("---           HEADERS AND FOOTERS             ---\n");
-  printf("-------------------------------------------------\n");
+  print_text(YES, "-------------------------------------------------\n");
+  print_text(YES, "---           HEADERS AND FOOTERS             ---\n");
+  print_text(YES, "-------------------------------------------------\n");
 
   if (g_file_header_size != 0) {
-    printf("File header size %d.\n", g_file_header_size);
+    print_text(YES, "File header size %d.\n", g_file_header_size);
     prints++;
   }
   if (g_file_footer_size != 0) {
-    printf("File footer size %d.\n", g_file_footer_size);
+    print_text(YES, "File footer size %d.\n", g_file_footer_size);
     prints++;
   }
   
   i = g_file_header_size + g_file_footer_size;
   
   if (g_output_type == OUTPUT_TYPE_CBM_PRG) {
-    printf("2 additional bytes from the CBM PRG header.\n");
+    print_text(YES, "2 additional bytes from the CBM PRG header.\n");
     i += 2;
     prints++;
   }
   
   if (g_smc_status != 0) {
-    printf("512 additional bytes from the SMC ROM header.\n");
+    print_text(YES, "512 additional bytes from the SMC ROM header.\n");
     i += 512;
     prints++;
   }
 
   s = g_sec_bankhd_first;
   while (s != NULL) {
-    printf("ROM bank %d header section size %d.\n", s->bank, s->size);
+    print_text(YES, "ROM bank %d header section size %d.\n", s->bank, s->size);
     i += s->size;
     s = s->next;
   }
 
   if (i != 0) {
     if (prints > 1)
-      printf("Total %d additional bytes (from headers and footers).\n", i);
+      print_text(YES, "Total %d additional bytes (from headers and footers).\n", i);
   }
   else
-    printf("No headers or footers found.\n");
+    print_text(YES, "No headers or footers found.\n");
 
   return SUCCEEDED;
 }
@@ -489,9 +611,9 @@ static int _show_rom_ram_information(void) {
     /* ROM information */
 
     if (g_verbose_level >= 100) {
-      printf("-------------------------------------------------\n");
-      printf("---                   ROM                     ---\n");
-      printf("-------------------------------------------------\n");
+      print_text(YES, "-------------------------------------------------\n");
+      print_text(YES, "---                   ROM                     ---\n");
+      print_text(YES, "-------------------------------------------------\n");
     }
     
     for (r = 0, address = 0; r < g_rombanks; r++) {
@@ -506,7 +628,7 @@ static int _show_rom_ram_information(void) {
 
       f = (((float)(g_banksizes[r] - rom_bank_used_bytes))/g_banksizes[r]) * 100.0f;
       if (g_verbose_level >= 100)
-        printf("ROM bank %d (%d bytes (%.2f%%) free)\n", r, g_banksizes[r] - rom_bank_used_bytes, f);
+        print_text(YES, "ROM bank %d (%d bytes (%.2f%%) free)\n", r, g_banksizes[r] - rom_bank_used_bytes, f);
 
       address = address_old;
       area_start = -1;
@@ -530,7 +652,7 @@ static int _show_rom_ram_information(void) {
         
         if (print_area == YES) {
           if (g_verbose_level >= 100)
-            printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+            print_text(YES, "  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
           area_start = -1;
           area_end = -1;
         }      
@@ -541,19 +663,19 @@ static int _show_rom_ram_information(void) {
     _show_headers_and_footers_information();
     
     if (g_verbose_level >= 100) {
-      printf("-------------------------------------------------\n");
-      printf("---                 SUMMARY                   ---\n");
-      printf("-------------------------------------------------\n");
+      print_text(YES, "-------------------------------------------------\n");
+      print_text(YES, "---                 SUMMARY                   ---\n");
+      print_text(YES, "-------------------------------------------------\n");
     }
     
     f = (((float)(g_romsize - rom_used_bytes))/g_romsize) * 100.0f;
-    printf("ROM: %d bytes (%.2f%%) free of total %d.\n", g_romsize - rom_used_bytes, f, g_romsize);
+    print_text(YES, "ROM: %d bytes (%.2f%%) free of total %d.\n", g_romsize - rom_used_bytes, f, g_romsize);
 
     if (ram_free <= 0)
-      printf("RAM: No .RAMSECTIONs were found, no information about RAM.\n");
+      print_text(YES, "RAM: No .RAMSECTIONs were found, no information about RAM.\n");
     else {
       f = (((float)ram_free)/ram_total) * 100.0f;
-      printf("RAM: %d bytes (%.2f%%) free of total %d.\n", ram_free, f, ram_total);
+      print_text(YES, "RAM: %d bytes (%.2f%%) free of total %d.\n", ram_free, f, ram_total);
     }
   }
   else {
@@ -561,9 +683,9 @@ static int _show_rom_ram_information(void) {
     int prg_size = g_program_end - g_program_start + 1, used_bytes;
 
     if (g_verbose_level >= 100) {
-      printf("-------------------------------------------------\n");
-      printf("---                   PRG                     ---\n");
-      printf("-------------------------------------------------\n");
+      print_text(YES, "-------------------------------------------------\n");
+      print_text(YES, "---                   PRG                     ---\n");
+      print_text(YES, "-------------------------------------------------\n");
     }
     
     for (a = g_program_start, used_bytes = 0; a <= g_program_end; a++) {
@@ -573,7 +695,7 @@ static int _show_rom_ram_information(void) {
 
     f = (((float)(prg_size - used_bytes))/prg_size) * 100.0f;
     if (g_verbose_level >= 100)
-      printf("PRG $%.4x-$%.4x (%d bytes (%.2f%%) free)\n", g_program_start, g_program_end, prg_size - used_bytes, f);
+      print_text(YES, "PRG $%.4x-$%.4x (%d bytes (%.2f%%) free)\n", g_program_start, g_program_end, prg_size - used_bytes, f);
 
     area_start = -1;
     area_end = -1;
@@ -596,7 +718,7 @@ static int _show_rom_ram_information(void) {
         
       if (print_area == YES) {
         if (g_verbose_level >= 100)
-          printf("  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
+          print_text(YES, "  - Free space at $%.4x-$%.4x (%d bytes)\n", area_start, area_end, area_end - area_start + 1);
         area_start = -1;
         area_end = -1;
       }      
@@ -606,19 +728,19 @@ static int _show_rom_ram_information(void) {
     _show_headers_and_footers_information();
 
     if (g_verbose_level >= 100) {
-      printf("-------------------------------------------------\n");
-      printf("---                 SUMMARY                   ---\n");
-      printf("-------------------------------------------------\n");
+      print_text(YES, "-------------------------------------------------\n");
+      print_text(YES, "---                 SUMMARY                   ---\n");
+      print_text(YES, "-------------------------------------------------\n");
     }
     
     f = (((float)(prg_size - used_bytes))/prg_size) * 100.0f;
-    printf("PRG: %d bytes (%.2f%%) free of total %d.\n", prg_size - used_bytes, f, prg_size);
+    print_text(YES, "PRG: %d bytes (%.2f%%) free of total %d.\n", prg_size - used_bytes, f, prg_size);
 
     if (ram_free <= 0)
-      printf("RAM: No .RAMSECTIONs were found, no information about RAM.\n");
+      print_text(YES, "RAM: No .RAMSECTIONs were found, no information about RAM.\n");
     else {
       f = (((float)ram_free)/ram_total) * 100.0f;
-      printf("RAM: %d bytes (%.2f%%) free of total %d.\n", ram_free, f, ram_total);
+      print_text(YES, "RAM: %d bytes (%.2f%%) free of total %d.\n", ram_free, f, ram_total);
     }
   }
 
@@ -832,16 +954,14 @@ static int _parse_and_set_libdir(char *c, int contains_flag) {
 
 static int _parse_flags(char **flags, int flagc) {
 
-  int output_mode_defined = 0;
-  int count;
+  int output_mode_defined = 0, count, unknowns = 0;
   
-  for (count = 1; count < flagc - 2; count++) {
+  for (count = 1; count < flagc; count++) {
     if (!strcmp(flags[count], "-b")) {
       if (output_mode_defined == 1)
         return FAILED;
       output_mode_defined++;
       g_output_mode = OUTPUT_PRG;
-      continue;
     }
     else if (!strcmp(flags[count], "-bS")) {
       if (count + 1 < flagc) {
@@ -857,7 +977,6 @@ static int _parse_flags(char **flags, int flagc) {
       else
         return FAILED;
       count++;
-      continue;
     }
     else if (!strcmp(flags[count], "-bE")) {
       if (count + 1 < flagc) {
@@ -873,20 +992,17 @@ static int _parse_flags(char **flags, int flagc) {
       else
         return FAILED;
       count++;
-      continue;
     }
     else if (!strcmp(flags[count], "-r")) {
       if (output_mode_defined == 1)
         return FAILED;
       output_mode_defined++;
       g_output_mode = OUTPUT_ROM;
-      continue;
     }
     else if (!strcmp(flags[count], "-R")) {
       if (g_paths_in_linkfile_are_relative_to_linkfile == YES)
         return FAILED;
       g_paths_in_linkfile_are_relative_to_linkfile = YES;
-      continue;
     }
     else if (!strcmp(flags[count], "-t")) {
       if (count + 1 < flagc) {
@@ -899,7 +1015,6 @@ static int _parse_flags(char **flags, int flagc) {
       else
         return FAILED;
       count++;
-      continue;      
     }
     else if (!strcmp(flags[count], "-a")) {
       if (count + 1 < flagc) {
@@ -915,7 +1030,6 @@ static int _parse_flags(char **flags, int flagc) {
       else
         return FAILED;
       count++;
-      continue;      
     }
     else if (!strcmp(flags[count], "-L")) {
       if (count + 1 < flagc) {
@@ -925,73 +1039,70 @@ static int _parse_flags(char **flags, int flagc) {
       else
         return FAILED;
       count++;
-      continue;
     }
-    else if (!strcmp(flags[count], "-c")) {
+    else if (!strcmp(flags[count], "-c"))
       g_allow_duplicate_labels_and_definitions = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-i")) {
+    else if (!strcmp(flags[count], "-i"))
       s_listfile_data = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-nS")) {
+    else if (!strcmp(flags[count], "-nS"))
       g_sort_sections = NO;
-      continue;
+    else if (!strcmp(flags[count], "-p"))
+      s_pause_text = YES;
+    else if (!strcmp(flags[count], "-SX")) {
+      if (count + 1 < flagc) {
+        /* parse arg */
+        s_screen_dx = atoi(flags[count+1]);
+        count++;
+      }
+      else
+        return FAILED;
     }
-    else if (!strcmp(flags[count], "-pS")) {
+    else if (!strcmp(flags[count], "-SY")) {
+      if (count + 1 < flagc) {
+        /* parse arg */
+        s_screen_dy = atoi(flags[count+1]);
+        count++;
+      }
+      else
+        return FAILED;
+    }
+    else if (!strcmp(flags[count], "-pS"))
       g_use_priority_only_writing_sections = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-pR")) {
+    else if (!strcmp(flags[count], "-pR"))
       g_use_priority_only_writing_ramsections = YES;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-v")) {
+    else if (!strcmp(flags[count], "-v"))
       g_verbose_level = 100;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-v1")) {
+    else if (!strcmp(flags[count], "-v1"))
       g_verbose_level = 1;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-v2")) {
+    else if (!strcmp(flags[count], "-v2"))
       g_verbose_level = 2;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-s")) {
+    else if (!strcmp(flags[count], "-s"))
       s_symbol_mode = SYMBOL_MODE_NOCA5H;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-S")) {
+    else if (!strcmp(flags[count], "-S"))
       s_symbol_mode = SYMBOL_MODE_WLA;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-A")) {
+    else if (!strcmp(flags[count], "-A"))
       s_output_addr_to_line = ON;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-d")) {
+    else if (!strcmp(flags[count], "-d"))
       g_discard_unreferenced_sections = ON;
-      continue;
-    }
-    else if (!strcmp(flags[count], "-D")) {
+    else if (!strcmp(flags[count], "-D"))
       s_create_sizeof_definitions = NO;
-      continue;
-    }
     else {
       /* legacy support? */
       if (strncmp(flags[count], "-L", 2) == 0) {
         /* old library directory */
         _parse_and_set_libdir(flags[count], YES);
-        continue;
       }
+      else if (count >= flagc - 2)
+        unknowns++;
       else
         return FAILED;
     }
   }
-  
-  return SUCCEEDED;
+
+  if (unknowns == 2)  
+    return SUCCEEDED;
+  else
+    return FAILED;
 }
 
 
@@ -999,12 +1110,12 @@ static int _allocate_rom(void) {
 
   g_rom = calloc(sizeof(unsigned char) * g_romsize, 1);
   if (g_rom == NULL) {
-    fprintf(stderr, "_ALLOCATE_ROM: Out of memory.\n");
+    print_text(NO, "_ALLOCATE_ROM: Out of memory.\n");
     return FAILED;
   }
   g_rom_usage = calloc(sizeof(unsigned char) * g_romsize, 1);
   if (g_rom_usage == NULL) {
-    fprintf(stderr, "_ALLOCATE_ROM: Out of memory.\n");
+    print_text(NO, "_ALLOCATE_ROM: Out of memory.\n");
     return FAILED;
   }
   memset(g_rom, g_emptyfill, g_romsize);
@@ -1019,7 +1130,7 @@ int main(int argc, char *argv[]) {
   int i;
 
   if (sizeof(double) != 8) {
-    fprintf(stderr, "MAIN: sizeof(double) == %d != 8. WLALINK will not work properly.\n", (int)(sizeof(double)));
+    print_text(NO, "MAIN: sizeof(double) == %d != 8. WLALINK will not work properly.\n", (int)(sizeof(double)));
     return -1;
   }
 
@@ -1029,7 +1140,7 @@ int main(int argc, char *argv[]) {
 
   atexit(_procedures_at_exit);
 
-  if (argc > 2)
+  if (argc >= 2)
     i = _parse_flags(argv, argc);
   else
     i = FAILED;
@@ -1042,59 +1153,63 @@ int main(int argc, char *argv[]) {
     left = (70 - 3 - 3 - length) / 2;
     right = 70 - 3 - 3 - left - length;
 
-    printf("----------------------------------------------------------------------\n");
-    printf("---");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "---");
     for (i = 0; i < left; i++)
-      printf(" ");
-    printf("%s", title);
+      print_text(YES, " ");
+    print_text(YES, "%s", title);
     for (i = 0; i < right; i++)
-      printf(" ");
-    printf("---\n");
-    printf("----------------------------------------------------------------------\n");
+      print_text(YES, " ");
+    print_text(YES, "---\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
 #if defined(AMIGACPU)
-    printf("                         Compiled for " AMIGACPU "\n");
+    print_text(YES, "                         Compiled for " AMIGACPU "\n");
 #endif
-    printf("                Programmed by Ville Helin in 1998-2008\n");
-    printf("        In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
+    print_text(YES, "                Programmed by Ville Helin in 1998-2008\n");
+    print_text(YES, "        In GitHub since 2014: https://github.com/vhelin/wla-dx\n");
 
     length = (int)strlen(g_version_string);
     left = (70 - length) / 2;
 
     for (i = 0; i < left; i++)
-      printf(" ");
-    printf("%s", g_version_string);
+      print_text(YES, " ");
+    print_text(YES, "%s", g_version_string);
     
-    printf("\n\n");
+    print_text(YES, "\n\n");
 
 #if defined(WLALINK_DEBUG)
-    printf("** WLALINK_DEBUG defined - this executable is running in DEBUG mode **\n");
-    printf("\n");
+    print_text(YES, "** WLALINK_DEBUG defined - this executable is running in DEBUG mode **\n");
+    print_text(YES, "\n");
 #endif
-    printf("USAGE: %s [OPTIONS] <LINK FILE> <OUTPUT FILE>\n\n", argv[0]);
-    printf("OPTIONS:\n");
-    printf("-a <ADDR> Load address (can also be label) for CBM PRG\n");
-    printf("-A  Add address-to-line mapping data to WLA symbol file\n");
-    printf("-b  Program file output\n");
-    printf("-bE Ending address of the program (optional)\n");
-    printf("-bS Starting address of the program (optional)\n");
-    printf("-c  Allow duplicate labels and definitions\n");
-    printf("-d  Discard unreferenced sections\n");
-    printf("-D  Don't create _sizeof_* definitions\n");
-    printf("-i  Write list files\n");
-    printf("-L <DIR> Library directory\n");
-    printf("-nS Don't sort the sections\n");
-    printf("-pR Write .RAMSECTIONs based on PRIORITY only, ignore .RAMSECTION types\n");
-    printf("-pS Write .SECTIONs based on PRIORITY only, ignore .SECTION types\n");
-    printf("-r  ROM file output (default)\n");
-    printf("-R  Make file paths in link file relative to its location\n");
-    printf("-s  Write also a NO$GMB/NO$SNES symbol file\n");
-    printf("-S  Write also a WLA symbol file\n");
-    printf("-t <TYPE> Output type (supported types: 'CBMPRG')\n");
-    printf("-v  Verbose messages (all)\n");
-    printf("-v1 Verbose messages (only discard sections)\n");
-    printf("-v2 Verbose messages (-v1 plus short summary)\n");
-    printf("\n");
-    printf("EXAMPLE: %s -d -v -S linkfile linked.rom\n\n", argv[0]);
+    print_text(YES, "USAGE: %s [OPTIONS] <LINK FILE> <OUTPUT FILE>\n\n", argv[0]);
+    print_text(YES, "OPTIONS:\n");
+    print_text(YES, "-a <ADDR> Load address (can also be label) for CBM PRG\n");
+    print_text(YES, "-A  Add address-to-line mapping data to WLA symbol file\n");
+    print_text(YES, "-b  Program file output\n");
+    print_text(YES, "-bE Ending address of the program (optional)\n");
+    print_text(YES, "-bS Starting address of the program (optional)\n");
+    print_text(YES, "-c  Allow duplicate labels and definitions\n");
+    print_text(YES, "-d  Discard unreferenced sections\n");
+    print_text(YES, "-D  Don't create _sizeof_* definitions\n");
+    print_text(YES, "-i  Write list files\n");
+    print_text(YES, "-L <DIR> Library directory\n");
+    print_text(YES, "-nS Don't sort the sections\n");
+    print_text(YES, "-p  Pause printing after a screen full of text has been printed,\n");
+    print_text(YES, "    use this with -SX and -SY\n");
+    print_text(YES, "-pR Write .RAMSECTIONs based on PRIORITY only, ignore .RAMSECTION types\n");
+    print_text(YES, "-pS Write .SECTIONs based on PRIORITY only, ignore .SECTION types\n");
+    print_text(YES, "-r  ROM file output (default)\n");
+    print_text(YES, "-R  Make file paths in link file relative to its location\n");
+    print_text(YES, "-s  Write also a NO$GMB/NO$SNES symbol file\n");
+    print_text(YES, "-S  Write also a WLA symbol file\n");
+    print_text(YES, "-SX <WIDTH> The number of characters per line in console (default %d)\n", DEFAULT_SCREEN_DX);
+    print_text(YES, "-SY <HEIGHT> The number of lines in console (default %d)\n", DEFAULT_SCREEN_DY);
+    print_text(YES, "-t <TYPE> Output type (supported types: 'CBMPRG')\n");
+    print_text(YES, "-v  Verbose messages (all)\n");
+    print_text(YES, "-v1 Verbose messages (only discard sections)\n");
+    print_text(YES, "-v2 Verbose messages (-v1 plus short summary)\n");
+    print_text(YES, "\n");
+    print_text(YES, "EXAMPLE: %s -d -v -S linkfile linked.rom\n\n", argv[0]);
     return 0;
   }
 
@@ -1121,12 +1236,12 @@ int main(int argc, char *argv[]) {
 
   g_banksizes = calloc(sizeof(int) * g_rombanks, 1);
   if (g_banksizes == NULL) {
-    fprintf(stderr, "MAIN: Out of memory error.\n");
+    print_text(NO, "MAIN: Out of memory error.\n");
     return 1;
   }
   g_bankaddress = calloc(sizeof(int) * g_rombanks, 1);
   if (g_bankaddress == NULL) {
-    fprintf(stderr, "MAIN: Out of memory error.\n");
+    print_text(NO, "MAIN: Out of memory error.\n");
     return 1;
   }
 
@@ -1177,14 +1292,14 @@ int main(int argc, char *argv[]) {
     return 1;
 
 #if defined(WLALINK_DEBUG)
-  printf("\n");
-  printf("**********************************************************************\n");
-  printf("**********************************************************************\n");
-  printf("**********************************************************************\n");
-  printf("*** LOADED LOADED LOADED LOADED LOADED LOADED LOADED LOADED LOADED ***\n");
-  printf("**********************************************************************\n");
-  printf("**********************************************************************\n");
-  printf("**********************************************************************\n");
+  print_text(YES, "\n");
+  print_text(YES, "**********************************************************************\n");
+  print_text(YES, "**********************************************************************\n");
+  print_text(YES, "**********************************************************************\n");
+  print_text(YES, "*** LOADED LOADED LOADED LOADED LOADED LOADED LOADED LOADED LOADED ***\n");
+  print_text(YES, "**********************************************************************\n");
+  print_text(YES, "**********************************************************************\n");
+  print_text(YES, "**********************************************************************\n");
 #endif
 
 #if defined(WLALINK_DEBUG)
@@ -1238,11 +1353,11 @@ int main(int argc, char *argv[]) {
   if (g_labels_first != NULL) {
     struct label *l = g_labels_first;
 
-    printf("\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("---                         LABELS                                 ---\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("\n");
+    print_text(YES, "\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "---                         LABELS                                 ---\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "\n");
 
     while (l != NULL) {
       if (l->alive == YES)
@@ -1256,19 +1371,19 @@ int main(int argc, char *argv[]) {
   if (g_label_sizeofs != NULL) {
     struct label_sizeof *ls = g_label_sizeofs;
 
-    printf("\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("---                      LABEL SIZEOFS                             ---\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("\n");
+    print_text(YES, "\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "---                      LABEL SIZEOFS                             ---\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "\n");
 
     while (ls != NULL) {
-      printf("----------------------------------------------------------------------\n");
-      printf("name: \"%s\" file: %s\n", ls->name, get_file_name(ls->file_id));
-      printf("size: %d\n", ls->size);
+      print_text(YES, "----------------------------------------------------------------------\n");
+      print_text(YES, "name: \"%s\" file: %s\n", ls->name, get_file_name(ls->file_id));
+      print_text(YES, "size: %d\n", ls->size);
       ls = ls->next;
     }
-    printf("----------------------------------------------------------------------\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
   }
 #endif
       
@@ -1276,29 +1391,29 @@ int main(int argc, char *argv[]) {
   if (g_stacks_first != NULL) {
     struct stack *s = g_stacks_first;
 
-    printf("\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("---                    (STACK) CALCULATIONS                        ---\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("\n");
+    print_text(YES, "\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "---                    (STACK) CALCULATIONS                        ---\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "\n");
 
     while (s != NULL) {
-      printf("----------------------------------------------------------------------\n");
+      print_text(YES, "----------------------------------------------------------------------\n");
       {
         int z;
         
         for (z = 0; z < s->stacksize; z++) {
           struct stack_item *si = &s->stack_items[z];
           if (si->stack_file_id >= 0)
-            printf("%s", get_stack_item_description(si, si->stack_file_id));
+            print_text(YES, "%s", get_stack_item_description(si, si->stack_file_id));
           else
-            printf("%s", get_stack_item_description(si, s->file_id));
+            print_text(YES, "%s", get_stack_item_description(si, s->file_id));
         }
       }
-      printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d (%d)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->section & 0xffff);
+      print_text(YES, "id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d (%d)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->section & 0xffff);
       s = s->next;
     }
-    printf("----------------------------------------------------------------------\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
   }
 #endif
 
@@ -1306,14 +1421,14 @@ int main(int argc, char *argv[]) {
   reserve_checksum_bytes();
   
 #if defined(WLALINK_DEBUG)
-  printf("\n");
-  printf("**********************************************************************\n");
-  printf("**********************************************************************\n");
-  printf("**********************************************************************\n");
-  printf("*** RESOLVED RESOLVED RESOLVED RESOLVED RESOLVED RESOLVED RESOLVED ***\n");
-  printf("**********************************************************************\n");
-  printf("**********************************************************************\n");
-  printf("**********************************************************************\n");
+  print_text(YES, "\n");
+  print_text(YES, "**********************************************************************\n");
+  print_text(YES, "**********************************************************************\n");
+  print_text(YES, "**********************************************************************\n");
+  print_text(YES, "*** RESOLVED RESOLVED RESOLVED RESOLVED RESOLVED RESOLVED RESOLVED ***\n");
+  print_text(YES, "**********************************************************************\n");
+  print_text(YES, "**********************************************************************\n");
+  print_text(YES, "**********************************************************************\n");
 #endif
 
   /* insert sections */
@@ -1346,11 +1461,11 @@ int main(int argc, char *argv[]) {
   if (g_labels_first != NULL) {
     struct label *l = g_labels_first;
 
-    printf("\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("---                         LABELS                                 ---\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("\n");
+    print_text(YES, "\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "---                         LABELS                                 ---\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "\n");
 
     while (l != NULL) {
       if (l->alive == YES)
@@ -1368,29 +1483,29 @@ int main(int argc, char *argv[]) {
   if (g_stacks_first != NULL) {
     struct stack *s = g_stacks_first;
 
-    printf("\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("---                    (STACK) CALCULATIONS                        ---\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("\n");
+    print_text(YES, "\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "---                    (STACK) CALCULATIONS                        ---\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "\n");
 
     while (s != NULL) {
-      printf("----------------------------------------------------------------------\n");
+      print_text(YES, "----------------------------------------------------------------------\n");
       {
         int z;
         
         for (z = 0; z < s->stacksize; z++) {
           struct stack_item *si = &s->stack_items[z];
           if (si->stack_file_id >= 0)
-            printf("%s", get_stack_item_description(si, si->stack_file_id));
+            print_text(YES, "%s", get_stack_item_description(si, si->stack_file_id));
           else
-            printf("%s", get_stack_item_description(si, s->file_id));
+            print_text(YES, "%s", get_stack_item_description(si, s->file_id));
         }
       }
-      printf("id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d (%d) result: %f/$%x (ROM) %f/$%x (RAM)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->section & 0xffff, s->result_rom, (int)s->result_rom, s->result_ram, (int)s->result_ram);
+      print_text(YES, "id: %d file: %s line: %d type: %d bank: %d position: %d section_status: %d section: %d (%d) result: %f/$%x (ROM) %f/$%x (RAM)\n", s->id, get_file_name(s->file_id), s->linenumber, s->type, s->bank, s->position, s->section_status, s->section, s->section & 0xffff, s->result_rom, (int)s->result_rom, s->result_ram, (int)s->result_ram);
       s = s->next;
     }
-    printf("----------------------------------------------------------------------\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
   }
 #endif
 
@@ -1406,14 +1521,14 @@ int main(int argc, char *argv[]) {
   if (g_reference_first != NULL) {
     struct reference *r = g_reference_first;
 
-    printf("\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("---                          REFERENCES                            ---\n");
-    printf("----------------------------------------------------------------------\n");
-    printf("\n");
+    print_text(YES, "\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "---                          REFERENCES                            ---\n");
+    print_text(YES, "----------------------------------------------------------------------\n");
+    print_text(YES, "\n");
 
     while (r != NULL) {
-      printf("name: \"%s\" file: %s\n", r->name, get_file_name(r->file_id));
+      print_text(YES, "name: \"%s\" file: %s\n", r->name, get_file_name(r->file_id));
       r = r->next;
     }
   }
