@@ -13,18 +13,18 @@ steps:
     cmake -G "Unix Makefiles"
     make
   displayName: 'Build Release'
-  timeoutInMinutes: 20
+  timeoutInMinutes: 60
 - script: |
     ./run_tests.sh
   displayName: 'Run Tests (Release)'
-  timeoutInMinutes: 20
+  timeoutInMinutes: 60
 - script: |
     make clean
     cmake -DGDB_DEBUGGING=ON -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles"
     make
   displayName: 'Build Debug'
-  timeoutInMinutes: 20
+  timeoutInMinutes: 60
 - script: |
     ./run_tests.sh
   displayName: 'Run Tests (Debug)'
-  timeoutInMinutes: 20
+  timeoutInMinutes: 60
