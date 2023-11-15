@@ -4354,6 +4354,10 @@ int data_stream_parser_free(void) {
 }
 
 
+/* NOTE: on Amiga reading something like "%*d" at the end of the file stream would return -1 even though the
+   integer was there so we'll in such cases read the value into a temp variable that's not used, which seems
+   to solve the issue. that is only needed here as in every other cases we read from the internal file stream
+   writing to it has completed and it ends to an 'E' thus all skips (before it) work */
 int data_stream_parser_parse(void) {
 
   char c, temp_s[MAX_NAME_LENGTH + 1];

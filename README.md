@@ -13,6 +13,10 @@ Azure Pipelines CI:
 * [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status/vhelin.wla-dx%20Windows%20x64?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=10&branchName=master) - Windows x64
 * [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status/vhelin.wla-dx%20Windows%20MSVC?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=8&branchName=master) - Windows MSVC
 
+Documentation:
+
+[![Documentation Status](https://readthedocs.org/projects/wla-dx/badge/?version=latest)](https://wla-dx.readthedocs.io/en/latest/?badge=latest) - Read the Docs
+
 WLA DX is a set of tools to assemble assembly files to object or library files
 (`wla-ARCH`) and linking them together (`wlalink`). WLA DX isn't bound to one
 system (eg. NES or C64), but rather WLA DX allows you to define your own
