@@ -894,7 +894,7 @@ int input_number(void) {
       ma = g_macro_runtime_current->argument_data[g_parsed_int - 1];
       k = ma->type;
       g_input_has_leading_hashtag = ma->has_leading_hashtag;
-      
+        
       if (k == INPUT_NUMBER_ADDRESS_LABEL) {
         strcpy(g_label, ma->string);
         process_special_labels(g_label);
@@ -2019,6 +2019,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up, int *
         }
 
         type = g_macro_runtime_current->argument_data[d - 1]->type;
+        g_input_has_leading_hashtag = g_macro_runtime_current->argument_data[d - 1]->has_leading_hashtag;
 
         /* replace e.g., \1 in the string with processed macro argument */
         if (type == SUCCEEDED || type == INPUT_NUMBER_FLOAT) {
