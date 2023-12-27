@@ -507,13 +507,17 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
   if (g_makefile_rules == YES) {
     /* if in test mode, fake the data to be enough to read */
-    if (*read <= 0)
-      file_size = *skip;
+    if (*read < 0)
+      file_size = *skip - *read;
     else
       file_size = *read + *skip;
-    free(ifd->data);
-    ifd->data = calloc(sizeof(char) * file_size, 1);
-    ifd->size = file_size;
+
+    if (file_size > ifd->size) {
+      /* requested size is now bigger than default 0 bytes */
+      free(ifd->data);
+      ifd->data = calloc(sizeof(char) * file_size, 1);
+      ifd->size = file_size;
+    }
   }
 
   /* negative READ? */
