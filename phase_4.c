@@ -2833,12 +2833,20 @@ int write_library_file(void) {
 int show_project_information_object(void) {
 
   int total_used_ram = 0, total_used_rom = 0, i, printed_something, total_rom_size = 0;
+  unsigned char *rom_banks_usage_table;
   struct section_def *s;
   float f;
     
   fflush(stderr);
   fflush(stdout);
 
+  rom_banks_usage_table = calloc(sizeof(unsigned char) * g_max_address, 1);
+  if (rom_banks_usage_table == NULL) {
+    print_text(NO, "INTERNAL_PHASE_2: Out of memory while allocating ROM bank usage table.\n");
+    return FAILED;
+  }
+  memcpy(rom_banks_usage_table, g_rom_banks_usage_table, sizeof(unsigned char) * g_max_address);
+  
   s = g_sections_first;
   while (s != NULL) {
     int status = s->status;
@@ -2846,10 +2854,6 @@ int show_project_information_object(void) {
     if (status == SECTION_STATUS_RAM_FREE || status == SECTION_STATUS_RAM_FORCE ||
         status == SECTION_STATUS_RAM_SEMIFREE || status == SECTION_STATUS_RAM_SEMISUBFREE)
       total_used_ram += s->size;
-    else if (status == SECTION_STATUS_HEADER) {
-    }
-    else
-      total_used_rom += s->size;
       
     s = s->next;
   }
@@ -2862,40 +2866,77 @@ int show_project_information_object(void) {
     
   for (i = 0; i < g_rombanks; i++) {  
     int bank_address = g_bankaddress[i], j, used_rom = 0, found_block, block_start, used_sections = 0, bank_size = g_banks[i];
+    int uncounted_overwrite_sections = 0;
 
     total_rom_size += bank_size;
     
     /* calculate ROM usage (this bank) */
     for (j = 0; j < bank_size; j++) {
-      if (g_rom_banks_usage_table[bank_address + j] > 0) {
+      if (g_rom_banks_usage_table[bank_address + j] > 0)
         used_rom++;
-        total_used_rom++;
-      }
     }
 
     s = g_sections_first;
     while (s != NULL) {
-      int status = s->status;
-
       if (s->bank == i) {
-        if (status == SECTION_STATUS_FREE || status == SECTION_STATUS_FORCE || status == SECTION_STATUS_OVERWRITE ||
-            status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE || status == SECTION_STATUS_SUPERFREE ||
-            status == SECTION_STATUS_SEMISUBFREE || status == SECTION_STATUS_SEMISUPERFREE) {
-          used_rom += s->size;
+        int status = s->status;
+
+        if (status == SECTION_STATUS_FREE || status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE ||
+            status == SECTION_STATUS_SUPERFREE || status == SECTION_STATUS_SEMISUBFREE || status == SECTION_STATUS_SEMISUPERFREE)
           used_sections += s->size;
+        else if (status == SECTION_STATUS_FORCE) {
+          int banksize = g_banks[s->bank];
+
+          for (j = 0; j < s->size; j++) {
+            int address = g_bankaddress[s->bank] + s->address + j;
+
+            /* stay inside the bank when allocating bytes... */
+            if (s->address + j < banksize)
+              rom_banks_usage_table[address] = 1;
+            /* ... but every byte in a FORCE .SECTION counts */
+            used_sections++;
+          }
         }
       }
       
       s = s->next;
     }
 
+    s = g_sections_first;
+    while (s != NULL) {
+      if (s->bank == i) {
+        if (s->status == SECTION_STATUS_OVERWRITE) {
+          int banksize = g_banks[s->bank];
+
+          for (j = 0; j < s->size; j++) {
+            int address = g_bankaddress[s->bank] + s->address + j;
+
+            if (s->address + j < banksize) {
+              if (rom_banks_usage_table[address] == 0) {
+                rom_banks_usage_table[address] = 1;
+                used_sections++;
+              }
+              else
+                uncounted_overwrite_sections++;
+            }
+            else
+              uncounted_overwrite_sections++;
+          }
+        }
+      }
+      
+      s = s->next;
+    }
+
+    total_used_rom += used_rom + used_sections;
+
     if (used_rom == 0)
       continue;
 
-    f = ((float)used_rom)/bank_size * 100.0f;
     if (g_verbose_level >= 100) {
-      print_text(YES, "ROM bank %d (%d bytes (%.2f%%) used)\n", i, used_rom, f);
-      print_text(YES, "  - Outside .SECTIONs (%d bytes)\n", used_rom - used_sections);
+      f = ((float)(used_rom + used_sections))/bank_size * 100.0f;
+      print_text(YES, "ROM bank %d (%d bytes (%.2f%%) used)\n", i, used_rom + used_sections, f);
+      print_text(YES, "  - Outside .SECTIONs (%d bytes)\n", used_rom);
     }
     
     found_block = NO;
@@ -2928,7 +2969,7 @@ int show_project_information_object(void) {
     }
     
     if (g_verbose_level >= 100)
-      print_text(YES, "  - Sections (%d bytes)\n", used_sections);
+      print_text(YES, "  - Sections (%d bytes)\n", used_sections + uncounted_overwrite_sections);
 
     printed_something = NO;
     
@@ -3050,6 +3091,8 @@ int show_project_information_object(void) {
     print_text(YES, "Total size %d bytes.\n", ind + g_max_address);
   }
   */
+
+  free(rom_banks_usage_table);
   
   return SUCCEEDED;
 }
