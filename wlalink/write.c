@@ -4611,16 +4611,6 @@ static int _labels_compare(const void *a, const void *b) {
   const struct label *l1 = a;
   const struct label *l2 = b;
 
-  if (l1->section_status == OFF && l2->section_status == ON)
-    return 1;
-  if (l1->section_status == ON && l2->section_status == OFF)
-    return -1;
-
-  if (l1->section > l2->section)
-    return 1;
-  else if (l1->section < l2->section)
-    return -1;
-
   if (l1->rom_address > l2->rom_address)
     return 1;
   else if (l1->rom_address < l2->rom_address)
@@ -4933,15 +4923,31 @@ int generate_sizeof_label_definitions(void) {
     }
 
     if (ls == NULL) {
-      if (j == labelsN - 1 || labels[j]->section != labels[j+1]->section) {
-        /* last label in this section */
-        if (labels[j]->section_struct != NULL)
+      if (labels[j]->section_struct != NULL) {
+        /* inside a .SECTION, there are no holes in .SECTIONs so use labels to calculate the size */
+        if (j == labelsN - 1 || labels[j]->section != labels[j+1]->section) {
+          /* last label in this .SECTION */
           size = labels[j]->section_struct->size - labels[j]->address_in_section;
+        }
         else
-          continue;
+          size = (int)labels[j+1]->rom_address - (int)labels[j]->rom_address;
       }
       else {
-        size = (int)labels[j+1]->rom_address - (int)labels[j]->rom_address;
+        /* find the size by examining g_rom_usage */
+        int absolute_end, i;
+        
+        if (j == labelsN - 1)
+          absolute_end = g_romsize;
+        else
+          absolute_end = (int)labels[j+1]->rom_address;
+
+        /* find the next unused byte or encounter absolute_end */
+        for (i = (int)labels[j]->rom_address; i < absolute_end; i++) {
+          if (g_rom_usage[i] == 0)
+            break;
+        }
+
+        size = i - (int)labels[j]->rom_address;
       }
     }
 
