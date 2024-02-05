@@ -1448,7 +1448,7 @@ int main(int argc, char *argv[]) {
     return 1;
   
   /* generate _sizeof_[label] definitions */
-  if (s_create_sizeof_definitions == YES && s_symbol_mode == SYMBOL_MODE_WLA) {
+  if (s_create_sizeof_definitions == YES) {
     if (generate_sizeof_label_definitions() == FAILED)
       return 1;
   }
