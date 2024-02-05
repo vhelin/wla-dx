@@ -4867,7 +4867,7 @@ int generate_sizeof_label_definitions(void) {
   lastL = NULL;
   while (l != NULL) {
     /* skip anonymous labels & child labels */
-    if (l->status == LABEL_STATUS_LABEL && is_label_ok_for_sizeof(l->name) == YES && l->alive == YES &&
+    if (l->status == LABEL_STATUS_LABEL && is_label_ok_for_sizeof(l->name) == YES && l->alive == YES && l->file_id >= 0 &&
         (lastL == NULL || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0 && l->name[strlen(lastL->name)] == '@'))) {
       labelsN++;
       lastL = l;
@@ -4890,7 +4890,7 @@ int generate_sizeof_label_definitions(void) {
   lastL = NULL;
   while (l != NULL) {
     /* skip anonymous labels & child labels */
-    if (l->status == LABEL_STATUS_LABEL && is_label_ok_for_sizeof(l->name) == YES && l->alive == YES &&
+    if (l->status == LABEL_STATUS_LABEL && is_label_ok_for_sizeof(l->name) == YES && l->alive == YES && l->file_id >= 0 &&
         (lastL == NULL || !(strncmp(lastL->name, l->name, strlen(lastL->name)) == 0 && l->name[strlen(lastL->name)] == '@'))) {
       labels[j++] = l;
       lastL = l;

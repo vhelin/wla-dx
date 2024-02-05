@@ -231,6 +231,19 @@ example::
 
 The value of ``_sizeof_Label1`` will still have a value of ``4``.
 
+NOTE: If your code is outside ``.SECTION`` s then an empty byte in the output
+will mark the end of the ``_sizeof_[label]``. Example:
+
+    .ORG $0000
+    Label1:
+    .db 1, 2, 3
+
+    .ORG $0100
+    Label2:
+    .db 4, 5
+
+Here ``_sizeof_Label1`` will be 3 as there is empty space between $0003 - $0100.
+
 
 Number Types
 ------------

@@ -54,3 +54,12 @@ start_010D:
 
 start_010F:
         .db VALUE_2-1, 2, VALUE_2+1
+
+        .define VALUE_3 = 3
+        .export VALUE_3
+        
+        .ramsection "ram" bank 0 slot 0 keep
+vbi_counter:     db
+player_lives:   db
+        .ends
+        

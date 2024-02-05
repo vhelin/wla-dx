@@ -2,4 +2,4 @@
 main.o
 
 [definitions]
-VALUE_2 = 2
+VALUE_2 2
