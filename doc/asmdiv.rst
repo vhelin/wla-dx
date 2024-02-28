@@ -3058,7 +3058,7 @@ This is not a compulsory directive.
 
 ``.SDSCTAG`` adds SDSC tag to your SMS/GG ROM file. The ROM size must be at
 least 8KB just like with ``.COMPUTESMSCHECKSUM`` and ``.SMSTAG``. For more
-information about this header take a look at http://www.smspower.org/dev/sdsc/.
+information about this header take a look at https://www.smspower.org/Development/SDSCHeader.
 Here's an explanation of the arguments::
 
     .SDSCTAG {version number}, {program name}, {program release notes}, {program author}
