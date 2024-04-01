@@ -169,6 +169,7 @@ int phase_3(void) {
   /* first loop */
   o = 0;
   if (g_output_format == OUTPUT_OBJECT) {
+    /* OUTPUT_OBJECT */
     while (o == 0 && fread(&c, 1, 1, g_file_out_ptr) != 0) {
       switch (c) {
 
@@ -609,6 +610,7 @@ int phase_3(void) {
     }
   }
   else {
+    /* OUTPUT_LIBRARY */
     while (o == 0 && fread(&c, 1, 1, g_file_out_ptr) != 0) {
       switch (c) {
 
@@ -638,12 +640,6 @@ int phase_3(void) {
         if (process_macro_out(inz, tmp_buffer, file_name_id, line_number) == FAILED)
           return FAILED;
         
-        continue;
-
-      case 'f':
-        err = fscanf(g_file_out_ptr, "%d ", &file_name_id);
-        if (err < 1)
-          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
         continue;
 
       case 't':
@@ -700,10 +696,28 @@ int phase_3(void) {
         o++;
         continue;
 
+      case 'f':
+        err = fscanf(g_file_out_ptr, "%d ", &file_name_id);
+        if (err < 1)
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+
+        if (s != NULL)
+          s->listfile_items++;
+        else
+          g_global_listfile_items++;
+        
+        continue;
+
       case 'k':
         err = fscanf(g_file_out_ptr, "%d ", &line_number);
         if (err < 1)
           return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+
+        if (s != NULL)
+          s->listfile_items++;
+        else
+          g_global_listfile_items++;
+
         continue;
 
       default:
@@ -1214,6 +1228,7 @@ int phase_3(void) {
         s->listfile_items++;
       else
         g_global_listfile_items++;
+
       continue;
 
     case 'k':
@@ -1225,6 +1240,7 @@ int phase_3(void) {
         s->listfile_items++;
       else
         g_global_listfile_items++;
+
       continue;
 
     case 'e':
