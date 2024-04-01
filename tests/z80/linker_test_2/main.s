@@ -73,7 +73,9 @@ inc a
 dasso
 
 JEESO:
-.DB "hi!", 0
+        .DB "hi!", 0
+
+        JP DoMaths
 
 .macro foobar2
     ld    a,\1

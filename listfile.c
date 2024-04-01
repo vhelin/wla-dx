@@ -511,7 +511,7 @@ int listfile_collect(void) {
       g_global_listfile_items = global_command;
     }
     else {
-      print_text(NO, "LISTFILE_COLLET: We ran out of buffer, cannot continue. Please submit a bug report!\n");
+      print_text(NO, "LISTFILE_COLLECT: We ran out of buffer, cannot continue. Please submit a bug report!\n");
       return FAILED;
     }
   }
