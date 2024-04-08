@@ -1308,7 +1308,7 @@ int insert_sections(void) {
   /* find all touched slots */
   s = g_sec_first;
   while (s != NULL) {
-    if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE || s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) {
+    if ((s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE || s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE) && s->appended_to == NO && s->alive == YES) {
       if (g_ram_slots[s->bank] == NULL) {
         g_ram_slots[s->bank] = calloc(sizeof(char *) * 256, 1);
         if (g_ram_slots[s->bank] == NULL) {
