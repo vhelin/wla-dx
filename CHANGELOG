@@ -3,9 +3,12 @@
 1... WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------------
 
-v10.7 (01-Apr-2023) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
+v10.7 (09-Apr-2024) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
                       calls.
                     [ALL] Listfile creation for library files should now work.
+                    [ALL] If an object file contained only .SECTIONs in ROM
+                      bank X then ROM bank X's allocation info wasn't printed with
+                      -v switch.
 
 v10.6 (19-Nov-2023) [ALL] Conditions (e.g., "(A > 1 || B < 3)") can now be used
                       everywhere, outside .IFs.

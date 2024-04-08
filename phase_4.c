@@ -2930,7 +2930,7 @@ int show_project_information_object(void) {
 
     total_used_rom += used_rom + used_sections;
 
-    if (used_rom == 0)
+    if (used_rom + used_sections == 0)
       continue;
 
     if (g_verbose_level >= 100) {
