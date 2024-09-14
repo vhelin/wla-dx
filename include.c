@@ -112,7 +112,7 @@ static void _print_find_error(char* name) {
 }
 
 
-static int _find_file(char *name, FILE **f) {
+int find_file(char *name, FILE **f) {
 
   int index;
 
@@ -161,7 +161,7 @@ int include_file(char *name, int *include_size, char *namespace) {
   char *tmp_b, *n, change_file_buffer[MAX_NAME_LENGTH * 2];
   FILE *f = NULL;
 
-  int error_code = _find_file(name, &f);
+  int error_code = find_file(name, &f);
   if (error_code != SUCCEEDED)
     return error_code;
 
@@ -325,7 +325,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   int file_size = 0, q, error_code;
   FILE *f = NULL;
 
-  error_code = _find_file(name, &f);
+  error_code = find_file(name, &f);
   if (error_code != SUCCEEDED)
     return error_code;
 

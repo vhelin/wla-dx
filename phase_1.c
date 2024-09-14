@@ -5867,7 +5867,7 @@ int directive_fopen(void) {
   strcpy(f->name, g_tmp);
 
   /* open the file */
-  f->f = fopen(f->filename, "rb");
+  o = find_file(f->filename, &(f->f));
   if (f->f == NULL) {
     if (g_makefile_rules == YES) {
       /* lets just use a tmp file for file operations */
