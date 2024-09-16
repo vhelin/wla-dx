@@ -517,9 +517,6 @@ static int _parse_flags(char **flags, int flagc, int *print_usage) {
     }
     else if (!strcmp(flags[count], "-M")) {
       g_makefile_rules = YES;
-      g_test_mode = ON;
-      g_verbose_level = 0;
-      g_quiet = YES;
     }
     else if (!strcmp(flags[count], "-MP"))
       g_makefile_add_phony_targets = YES;
@@ -563,6 +560,12 @@ static int _parse_flags(char **flags, int flagc, int *print_usage) {
           return FAILED;
       }
     }
+  }
+
+  if (g_makefile_rules == YES && g_makefile_rule_file == stdout) {
+    g_test_mode = ON;
+    g_verbose_level = 0;
+    g_quiet = YES;
   }
 
   /* make sure test mode is still turned on! */
