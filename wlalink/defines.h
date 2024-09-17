@@ -65,9 +65,10 @@
 #define STATE_SECTION_WRITE_ORDER    8
 #define STATE_RAMSECTION_WRITE_ORDER 9
 
-#define SYMBOL_MODE_NONE   0
-#define SYMBOL_MODE_NOCA5H 1
-#define SYMBOL_MODE_WLA    2
+#define SYMBOL_MODE_NONE    0
+#define SYMBOL_MODE_NOCA5H  1
+#define SYMBOL_MODE_WLA     2
+#define SYMBOL_MODE_EQU     3
 
 struct source_file_name {
   char *name;

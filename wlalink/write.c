@@ -2336,9 +2336,9 @@ int write_symbol_file(char *outname, int mode, int output_addr_to_line) {
     return FAILED;
   }
 
-  fprintf(f, "; this file was created with wlalink by ville helin <ville.helin@iki.fi>.\n");
-
   if (mode == SYMBOL_MODE_NOCA5H) {
+    fprintf(f, "; this file was created with wlalink by ville helin <ville.helin@iki.fi>.\n");
+
     /* NOCA$H SYMBOL FILE */
     if (g_snes_mode == 0)
       fprintf(f, "; no$gmb symbolic information for \"%s\".\n", outname);
@@ -2374,8 +2374,29 @@ int write_symbol_file(char *outname, int mode, int output_addr_to_line) {
       l = l->next;
     }
   }
+  else if (mode == SYMBOL_MODE_EQU) {
+    /* EQU SYMBOL FILE */
+    l = g_labels_first;
+    while (l != NULL) {
+      if (l->alive == NO || is_label_anonymous(l->name) == YES || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT || l->status == LABEL_STATUS_DEFINE || l->status == LABEL_STATUS_STACK) {
+        l = l->next;
+        continue;
+      }
+      /* skip all dropped section labels */
+      if (l->section_status == ON) {
+        s = find_section(l->section);
+        if (s->alive == NO) {
+          l = l->next;
+          continue;
+        }
+      }
+      fprintf(f, "%s: equ %.4xH\n", l->name, (int)l->address);
+      l = l->next;
+    }
+  }
   else {
     /* WLA SYMBOL FILE */
+    fprintf(f, "; this file was created with wlalink by ville helin <ville.helin@iki.fi>.\n");
     fprintf(f, "; wla symbolic information for \"%s\".\n", outname);
 
     /* info section */
