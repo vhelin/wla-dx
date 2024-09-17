@@ -1080,6 +1080,8 @@ static int _parse_flags(char **flags, int flagc) {
       s_symbol_mode = SYMBOL_MODE_NOCA5H;
     else if (!strcmp(flags[count], "-S"))
       s_symbol_mode = SYMBOL_MODE_WLA;
+    else if (!strcmp(flags[count], "-sE"))
+      s_symbol_mode = SYMBOL_MODE_EQU;
     else if (!strcmp(flags[count], "-A"))
       s_output_addr_to_line = ON;
     else if (!strcmp(flags[count], "-d"))
@@ -1201,6 +1203,7 @@ int main(int argc, char *argv[]) {
     print_text(YES, "-r  ROM file output (default)\n");
     print_text(YES, "-R  Make file paths in link file relative to its location\n");
     print_text(YES, "-s  Write also a NO$GMB/NO$SNES symbol file\n");
+    print_text(YES, "-sE Write also an EQU symbol file\n");
     print_text(YES, "-S  Write also a WLA symbol file\n");
     print_text(YES, "-SX <WIDTH> The number of characters per line in console (default %d)\n", DEFAULT_SCREEN_DX);
     print_text(YES, "-SY <HEIGHT> The number of lines in console (default %d)\n", DEFAULT_SCREEN_DY);
