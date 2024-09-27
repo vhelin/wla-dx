@@ -180,3 +180,19 @@
                                 ; @BT FD FE FC FA
         .db readSize4 + 0, readSize6 + 1, readSize8 - 1 ; @BT 04 07 07
         .db "<05"               ; @BT END
+
+        .db "06>"               ; @BT TEST-06 06 START
+        .incbin "data3.bin" skip 0 read 9 freadsize readSizeA
+                                ; @BT 31 32 33
+                                ; @BT 34 35 36
+                                ; @BT 61 62 63
+        .db readSizeA           ; @BT 09
+        .incbin "data4.bin" skip 0 read 9 freadsize readSizeB
+                                ; @BT 31 32 33
+                                ; @BT 34 35 36
+                                ; @BT 37 38 61
+        .db readSizeB           ; @BT 09
+        .db "<06"               ; @BT END
+
+        .export readSizeA, readSizeB, readSize6, readSize4
+        

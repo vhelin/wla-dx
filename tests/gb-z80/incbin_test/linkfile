@@ -1,5 +1,6 @@
 [objects]
 main.o
+next.o
 
 [definitions]
 DIVME 524288
