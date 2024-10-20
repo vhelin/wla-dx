@@ -146,7 +146,7 @@ extern char *g_final_name;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
-extern int g_makefile_rules, g_parsing_function_body, g_force_add_namespace, g_is_file_isolated_counter, g_force_ignore_namespace;
+extern int g_makefile_rules, g_makefile_skip_file_handling, g_parsing_function_body, g_force_add_namespace, g_is_file_isolated_counter, g_force_ignore_namespace;
 
 extern int create_tmp_file(FILE **);
 
@@ -5869,7 +5869,7 @@ int directive_fopen(void) {
   /* open the file */
   o = find_file(f->filename, &(f->f));
   if (f->f == NULL) {
-    if (g_makefile_rules == YES) {
+    if (g_makefile_skip_file_handling == YES) {
       /* lets just use a tmp file for file operations */
       create_tmp_file(&f->f);
       if (f->f == NULL) {
@@ -10398,7 +10398,7 @@ int directive_stringmaptable(void) {
 
   table_file = fopen(map->filename, "r");
   if (table_file == NULL) {
-    if (g_makefile_rules == YES) {
+    if (g_makefile_skip_file_handling == YES) {
       /* if in makefile mode, this is not an error, we just make an empty map */
       return SUCCEEDED;
     }
@@ -10555,7 +10555,7 @@ int directive_stringmap(void) {
     }
     /* if no match was found, it's an error */
     if (entry == NULL) {
-      if (g_makefile_rules == YES) {
+      if (g_makefile_skip_file_handling == YES) {
         /* in makefile mode, it's ignored */
         return SUCCEEDED;
       }
