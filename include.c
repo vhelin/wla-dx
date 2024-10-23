@@ -16,7 +16,7 @@
 #include "main.h"
 
 
-extern int g_source_index, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules, g_makefile_add_phony_targets;
+extern int g_source_index, g_extra_definitions, g_parsed_int, g_use_incdir, g_makefile_rules, g_makefile_add_phony_targets, g_makefile_skip_file_handling;
 extern FILE* g_makefile_rule_file;
 extern char *g_tmp, g_label[MAX_NAME_LENGTH + 1];
 extern struct ext_include_collection g_ext_incdirs;
@@ -139,7 +139,7 @@ int find_file(char *name, FILE **f) {
 
   /* if we can't find the file, but are only printing makefile rules, silently use an empty file */
   /* a warning might be nice */
-  if (g_makefile_rules == YES) {
+  if (g_makefile_skip_file_handling == YES) {
     create_tmp_file(f);
     if (*f == NULL) {
       print_error(ERROR_INC, "Error creating a tmp file for \"%s\"!\n", name);
@@ -419,7 +419,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
 
       *skip = g_parsed_int;
 
-      if (g_parsed_int >= file_size && g_makefile_rules == NO) {
+      if (g_parsed_int >= file_size && g_makefile_skip_file_handling == NO) {
         print_error(ERROR_INB, "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", g_parsed_int, file_size, g_full_name);
         return FAILED;
       }
@@ -505,7 +505,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       break;
   }
 
-  if (g_makefile_rules == YES) {
+  if (g_makefile_skip_file_handling == YES) {
     /* if in test mode, fake the data to be enough to read */
     if (*read < 0)
       file_size = *skip - *read;
