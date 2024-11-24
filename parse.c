@@ -1665,6 +1665,8 @@ int get_next_plain_string(void) {
 
 int get_next_token(void) {
 
+  struct definition *tmp_def = NULL;
+  
   skip_whitespace();
 
   /* skip leading commas */
@@ -1769,6 +1771,15 @@ int get_next_token(void) {
   if (g_get_next_token_use_substitution == YES) {
     if (expand_variables_inside_string(g_tmp, g_sizeof_g_tmp, &g_ss) == FAILED)
       return FAILED;
+  }
+
+  /* is it actually a string definition? */
+  hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
+  if (tmp_def != NULL) {
+    if (tmp_def->type == DEFINITION_TYPE_STRING) {
+      strcpy(g_tmp, tmp_def->string);
+      g_ss = (int)strlen(g_tmp);
+    }
   }
   
   return SUCCEEDED;

@@ -5474,6 +5474,7 @@ int directive_section(void) {
 
       g_sec_tmp->offset = g_parsed_int;
     }
+    /* window? */
     else if (compare_next_token("WINDOW") == SUCCEEDED) {
       if (skip_next_token() == FAILED)
         return FAILED;
@@ -5497,6 +5498,7 @@ int directive_section(void) {
         return FAILED;
       }
     }
+    /* bitwindow? */
     else if (compare_next_token("BITWINDOW") == SUCCEEDED) {
       if (skip_next_token() == FAILED)
         return FAILED;
@@ -5513,16 +5515,7 @@ int directive_section(void) {
       
       g_sec_tmp->bitwindow = g_parsed_int;
     }
-    /* the type of the section */
-    else if (compare_next_token("FORCE") == SUCCEEDED) {
-      if (g_output_format == OUTPUT_LIBRARY) {
-        print_error(ERROR_DIR, "Libraries don't take FORCE sections.\n");
-        return FAILED;
-      }
-      g_sec_tmp->status = SECTION_STATUS_FORCE;
-      if (skip_next_token() == FAILED)
-        return FAILED;
-    }
+    /* banks? */
     else if (compare_next_token("BANKS") == SUCCEEDED) {
       if (skip_next_token() == FAILED)
         return FAILED;
@@ -5532,6 +5525,16 @@ int directive_section(void) {
         return FAILED;
 
       strcpy(g_sec_tmp->banks, g_tmp);
+    }
+    /* the type of the section */
+    else if (compare_next_token("FORCE") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+        print_error(ERROR_DIR, "Libraries don't take FORCE sections.\n");
+        return FAILED;
+      }
+      g_sec_tmp->status = SECTION_STATUS_FORCE;
+      if (skip_next_token() == FAILED)
+        return FAILED;
     }
     else if (compare_next_token("SEMISUPERFREE") == SUCCEEDED) {
       if (g_output_format == OUTPUT_LIBRARY) {
@@ -5587,6 +5590,7 @@ int directive_section(void) {
 
       g_sec_tmp->advance_org = NO;
     }
+    /* appendto? */
     else if (compare_next_token("APPENDTO") == SUCCEEDED) {
       struct after_section *after_tmp;
 
@@ -5635,6 +5639,7 @@ int directive_section(void) {
       after_tmp->next = g_after_sections;
       g_after_sections = after_tmp;
     }
+    /* after? */
     else if (compare_next_token("AFTER") == SUCCEEDED) {
       struct after_section *after_tmp;
     
@@ -5680,6 +5685,7 @@ int directive_section(void) {
       after_tmp->next = g_after_sections;
       g_after_sections = after_tmp;
     }
+    /* priority? */
     else if (compare_next_token("PRIORITY") == SUCCEEDED) {
       if (skip_next_token() == FAILED)
         return FAILED;
@@ -5691,12 +5697,14 @@ int directive_section(void) {
 
       g_sec_tmp->priority = g_parsed_int;
     }
+    /* autopriority? */
     else if (compare_next_token("AUTOPRIORITY") == SUCCEEDED) {
       if (skip_next_token() == FAILED)
         return FAILED;
 
       g_sec_tmp->priority = s_autopriority--;
     }
+    /* keep? */
     else if (compare_next_token("KEEP") == SUCCEEDED) {
       if (skip_next_token() == FAILED)
         return FAILED;

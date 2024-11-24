@@ -86,7 +86,7 @@ hello1: .db :hello1      ; @BT 01
         .dsb $4000 0
         .ends
         
-        .section "SemiSuperFreeSection" semisuperfree banks 15-13/10/1 keep slot 2
+        .section "SemiSuperFreeSection1" semisuperfree banks 15-13/10/1 keep slot 2
         .db "08>"               ; @BT TEST-08 08 START
         .dw CADDR               ; @BT 03 80
 banked_1:
@@ -95,6 +95,14 @@ banked_1:
 banked_2:
         .db banked_2 - banked_1 ; @BT 02
         .db "<08"               ; @BT END
+        .ends
+
+        .define BANKS_DEF "15-13/1"
+        
+        .section "SemiSuperFreeSection2" semisuperfree banks BANKS_DEF keep slot 2
+        .db "09>"               ; @BT TEST-09 09 START
+        .db BANKS_DEF           ; @BT 31 35 2D 31 33 2F 31
+        .db "<09"               ; @BT END
         .ends
         
         ;------------------------------------------------------------------------------
