@@ -395,7 +395,8 @@ bcc_test_4:
         bchg d5,d6          ; @BT 0B 46
         bchg #30,d3         ; @BT 08 43 00 1E
         bchg d3,(a6)        ; @BT 07 56
-        bchg #8,(a4)+       ; @BT 08 5C 00 08
+        bchg #7,(a4)+       ; @BT 08 5C 00 07
+        bchg #0,(a4)+       ; @BT 08 5C 00 00
         bchg d2,$1234(a7)   ; @BT 05 6F 12 34
         bchg d2,$1234(SP)   ; @BT 05 6F 12 34
         bchg d2,$1234(sp)   ; @BT 05 6F 12 34        
@@ -410,7 +411,8 @@ bcc_test_4:
         bclr d5,d6          ; @BT 0B 86
         bclr #30,d3         ; @BT 08 83 00 1E
         bclr d3,(a6)        ; @BT 07 96
-        bclr #8,(a4)+       ; @BT 08 9C 00 08
+        bclr #7,(a4)+       ; @BT 08 9C 00 07
+        bclr #0,(a4)+       ; @BT 08 9C 00 00
         bclr d2,$1234(sp)   ; @BT 05 AF 12 34
         bclr d2,$1234(a7)   ; @BT 05 AF 12 34
         bclr d2,$1234(SP)   ; @BT 05 AF 12 34
@@ -425,7 +427,8 @@ bcc_test_4:
         bset d5,d6          ; @BT 0B C6
         bset #30,d3         ; @BT 08 C3 00 1E
         bset d3,(a6)        ; @BT 07 D6
-        bset #8,(a4)+       ; @BT 08 DC 00 08
+        bset #0,(a4)+       ; @BT 08 DC 00 00
+        bset #7,(a4)+       ; @BT 08 DC 00 07
         bset d2,$1234(SP)   ; @BT 05 EF 12 34
         bset d2,$1234(a7)   ; @BT 05 EF 12 34
         bset d2,$1234(sp)   ; @BT 05 EF 12 34
@@ -441,7 +444,8 @@ bcc_test_4:
         btst d5,d6          ; @BT 0B 06
         btst #30,d3         ; @BT 08 03 00 1E
         btst d3,(a6)        ; @BT 07 16
-        btst #8,(a4)+       ; @BT 08 1C 00 08
+        btst #7,(a4)+       ; @BT 08 1C 00 07
+        btst #0,(a4)+       ; @BT 08 1C 00 00
         btst d2,$1234(sp)   ; @BT 05 2F 12 34
         btst d2,$1234(SP)   ; @BT 05 2F 12 34
         btst d2,$1234(a7)   ; @BT 05 2F 12 34

@@ -3884,21 +3884,21 @@ int evaluate_token(void) {
 	if (immediate == YES) {
           if (data_type_y != SUCCEEDED) {
 	    if (register_x_mode == B8(00000000))
-	      print_error(ERROR_NUM, "The value [1, 32] must be known at this stage, it cannot be postponed to the linker.\n");
+	      print_error(ERROR_NUM, "The value [0, 31] must be known at this stage, it cannot be postponed to the linker.\n");
 	    else
-	      print_error(ERROR_NUM, "The value [1, 8] must be known at this stage, it cannot be postponed to the linker.\n");
+	      print_error(ERROR_NUM, "The value [0, 7] must be known at this stage, it cannot be postponed to the linker.\n");
 	    return FAILED;
           }
 
 	  if (register_x_mode == B8(00000000)) {
-	    if (data_y < 1 || data_y > 32) {
-	      print_error(ERROR_NUM, "The value %d is out of range [1, 32].\n", data_y);
+	    if (data_y < 0 || data_y > 31) {
+	      print_error(ERROR_NUM, "The value %d is out of range [0, 31].\n", data_y);
 	      return FAILED;
 	    }
 	  }
 	  else {
-	    if (data_y < 1 || data_y > 8) {
-	      print_error(ERROR_NUM, "The value %d is out of range [1, 8].\n", data_y);
+	    if (data_y < 0 || data_y > 7) {
+	      print_error(ERROR_NUM, "The value %d is out of range [0, 7].\n", data_y);
 	      return FAILED;
 	    }
 	  }
@@ -3936,7 +3936,7 @@ int evaluate_token(void) {
         _output_assembled_instruction(s_instruction_tmp, "y%d ", opcode);
 
 	if (immediate == YES) {
-	  /* output bit number 1-8/1-32 */
+	  /* output bit number 0-7/0-31 */
 	  _output_assembled_instruction(s_instruction_tmp, "d0 d%d ", data_y);
 	}
 
