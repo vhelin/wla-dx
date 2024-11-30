@@ -115,12 +115,18 @@ frank1: .db "<03"               ; @BT END
         .db "<05"               ; @BT END
 
         .db "06>"               ; @BT TEST-06 06 START
+        add.l a3,a7             ; @BT DF CB
+        add.l a3, a7            ; @BT DF CB
+        add.l a3,sp             ; @BT DF CB
+        add.l a3, SP            ; @BT DF CB
         add.w d1, a2            ; @BT D4 C1
         add.l a3, a4            ; @BT D9 CB
         add.w (a5),a6           ; @BT DC D5
         add.w (a1)+,a2          ; @BT D4 D9
         add.l -(a3),a4          ; @BT D9 E3
         add.w $1234.w,a7        ; @BT DE F8 12 34
+        add.w $1234.w,sp        ; @BT DE F8 12 34
+        add.w $1234.w,SP        ; @BT DE F8 12 34
         add.l $12345678.l,a0    ; @BT D1 F9 12 34 56 78
         add.l $12345678,a0      ; @BT D1 F9 12 34 56 78
         add.l label_ABCE,a2     ; @BT D5 F9 00 00 AB CE
@@ -240,6 +246,8 @@ frank3: .db "<08"                ; @BT END
         addx.b -(a1), -(a2)     ; @BT D5 09
         addx.w -(a3), -(a4)     ; @BT D9 4B
         addx.l -(a7), -(a5)     ; @BT DB 8F
+        addx.l -(sp), -(a5)     ; @BT DB 8F
+        addx.l -(SP), -(a5)     ; @BT DB 8F
         .db "<12"               ; @BT END
 
         .db "13>"               ; @BT TEST-13 13 START
@@ -389,6 +397,8 @@ bcc_test_4:
         bchg d3,(a6)        ; @BT 07 56
         bchg #8,(a4)+       ; @BT 08 5C 00 08
         bchg d2,$1234(a7)   ; @BT 05 6F 12 34
+        bchg d2,$1234(SP)   ; @BT 05 6F 12 34
+        bchg d2,$1234(sp)   ; @BT 05 6F 12 34        
         bchg #7,($5678,a6)  ; @BT 08 6E 00 07 56 78
         bchg d1,(8,a5,d2)   ; @BT 03 75 20 08
         bchg d6,-(a1)       ; @BT 0D 61
@@ -401,7 +411,9 @@ bcc_test_4:
         bclr #30,d3         ; @BT 08 83 00 1E
         bclr d3,(a6)        ; @BT 07 96
         bclr #8,(a4)+       ; @BT 08 9C 00 08
+        bclr d2,$1234(sp)   ; @BT 05 AF 12 34
         bclr d2,$1234(a7)   ; @BT 05 AF 12 34
+        bclr d2,$1234(SP)   ; @BT 05 AF 12 34
         bclr #7,($5678,a6)  ; @BT 08 AE 00 07 56 78
         bclr d1,(8,a5,d2)   ; @BT 03 B5 20 08
         bclr d6,-(a1)       ; @BT 0D A1
@@ -414,7 +426,9 @@ bcc_test_4:
         bset #30,d3         ; @BT 08 C3 00 1E
         bset d3,(a6)        ; @BT 07 D6
         bset #8,(a4)+       ; @BT 08 DC 00 08
+        bset d2,$1234(SP)   ; @BT 05 EF 12 34
         bset d2,$1234(a7)   ; @BT 05 EF 12 34
+        bset d2,$1234(sp)   ; @BT 05 EF 12 34
         bset #7,($5678,a6)  ; @BT 08 EE 00 07 56 78
         bset d1,(8,a5,d2)   ; @BT 03 F5 20 08
         bset d6,-(a1)       ; @BT 0D E1
@@ -428,6 +442,8 @@ bcc_test_4:
         btst #30,d3         ; @BT 08 03 00 1E
         btst d3,(a6)        ; @BT 07 16
         btst #8,(a4)+       ; @BT 08 1C 00 08
+        btst d2,$1234(sp)   ; @BT 05 2F 12 34
+        btst d2,$1234(SP)   ; @BT 05 2F 12 34
         btst d2,$1234(a7)   ; @BT 05 2F 12 34
         btst #7,($5678,a6)  ; @BT 08 2E 00 07 56 78
         btst d1,(8,a5,d2)   ; @BT 03 35 20 08
@@ -456,6 +472,8 @@ end_25:
         .db "26>"           ; @BT TEST-26 26 START
         clr.b d6            ; @BT 42 06
         clr.w (a4)          ; @BT 42 54
+        clr.l -(SP)         ; @BT 42 A7
+        clr.l -(sp)         ; @BT 42 A7
         clr.l -(a7)         ; @BT 42 A7
         clr.b (a6)+         ; @BT 42 1E
         clr.w $1234(a5)     ; @BT 42 6D 12 34
@@ -466,9 +484,13 @@ end_25:
         .db "<26"           ; @BT END
 
         .db "27>"           ; @BT TEST-27 27 START
+        cmp.b (a3)+,(sp)+   ; @BT BF 0B
         cmp.b (a3)+,(a7)+   ; @BT BF 0B
+        cmp.b (a3)+,(SP)+   ; @BT BF 0B
         cmp.w (a6)+,(a1)+   ; @BT B3 4E
+        cmpm.b (a3)+,(SP)+  ; @BT BF 0B
         cmpm.b (a3)+,(a7)+  ; @BT BF 0B
+        cmpm.b (a3)+,(sp)+  ; @BT BF 0B
         cmpm.w (a6)+,(a1)+  ; @BT B3 4E
         cmp.l d3,d7         ; @BT BE 83
         cmp.b (a1),d6       ; @BT BC 11
@@ -507,9 +529,11 @@ end_27: .db "<27"           ; @BT END
         cmp.l $1234.w,a1      ; @BT B3 F8 12 34
         cmp.w $12345678.l,a2  ; @BT B4 F9 12 34 56 78
         cmp.l #$1234,a3       ; @BT B7 FC 00 00 12 34
-        cmp.l (end_29,pc),a4  ; @BT B9 FA 00 0A
-        cmp.w end_29(pc),a5   ; @BT BA FA 00 06
-        cmp.l (end_29,pc,d6),a7 ; @BT BF FB 60 02
+        cmp.l (end_29,pc),a4  ; @BT B9 FA 00 12
+        cmp.w end_29(pc),a5   ; @BT BA FA 00 0E
+        cmp.l (end_29,pc,d6),a7 ; @BT BF FB 60 0A
+        cmp.l (end_29,pc,d6),sp ; @BT BF FB 60 06
+        cmp.l (end_29,pc,d6),SP ; @BT BF FB 60 02
 end_29: .db "<29"           ; @BT END
 
         .db "30>"           ; @BT TEST-30 30 START
@@ -534,9 +558,11 @@ end_29: .db "<29"           ; @BT END
         cmpa.l $1234.w,a1      ; @BT B3 F8 12 34
         cmpa.w $12345678.l,a2  ; @BT B4 F9 12 34 56 78
         cmpa.l #$1234,a3       ; @BT B7 FC 00 00 12 34
-        cmpa.l (end_31,pc),a4  ; @BT B9 FA 00 0A
-        cmpa.w end_31(pc),a5   ; @BT BA FA 00 06
-        cmpa.l (end_31,pc,d6),a7 ; @BT BF FB 60 02
+        cmpa.l (end_31,pc),a4  ; @BT B9 FA 00 12
+        cmpa.w end_31(pc),a5   ; @BT BA FA 00 0E
+        cmpa.l (end_31,pc,d6),a7 ; @BT BF FB 60 0A
+        cmpa.l (end_31,pc,d6),SP ; @BT BF FB 60 06
+        cmpa.l (end_31,pc,d6),sp ; @BT BF FB 60 02
 end_31: .db "<31"           ; @BT END
 
         .db "32>"           ; @BT TEST-32 32 START
@@ -697,6 +723,8 @@ end_36: .db "<36"            ; @BT END
 
         .db "43>"            ; @BT TEST-43 43 START
         jmp (a5)             ; @BT 4E D5
+        jmp $1234(sp)        ; @BT 4E EF 12 34
+        jmp $1234(SP)        ; @BT 4E EF 12 34
         jmp $1234(a7)        ; @BT 4E EF 12 34
         jmp ($1234,a6)       ; @BT 4E EE 12 34
         jmp ($12,a4,d3)      ; @BT 4E F4 30 12
@@ -708,6 +736,8 @@ end_43: .db "<43"            ; @BT END
 
         .db "44>"            ; @BT TEST-44 44 START
         jsr (a5)             ; @BT 4E 95
+        jsr $1234(SP)        ; @BT 4E AF 12 34
+        jsr $1234(sp)        ; @BT 4E AF 12 34
         jsr $1234(a7)        ; @BT 4E AF 12 34
         jsr ($1234,a6)       ; @BT 4E AE 12 34
         jsr ($12,a4,d3)      ; @BT 4E B4 30 12
@@ -719,18 +749,24 @@ end_44: .db "<44"            ; @BT END
 
         .db "45>"             ; @BT TEST-45 45 START
         lea (a5),a1           ; @BT 43 D5
+        lea $1234(sp),a2      ; @BT 45 EF 12 34
+        lea $1234(SP),a2      ; @BT 45 EF 12 34
         lea $1234(a7),a2      ; @BT 45 EF 12 34
         lea ($1234,a6),a3     ; @BT 47 EE 12 34
         lea ($12,a4,d3),a4    ; @BT 49 F4 30 12
         lea label_ABCE.w,a5   ; @BT 4B F8 AB CE
         lea label_ABCE.l,a6   ; @BT 4D F9 00 00 AB CE
+        lea end_45(pc),sp     ; @BT 4F FA 00 0E
+        lea end_45(pc),SP     ; @BT 4F FA 00 0A
         lea end_45(pc),a7     ; @BT 4F FA 00 06
         lea (end_45,pc,d2),a1 ; @BT 43 FB 20 02
 end_45: .db "<45"             ; @BT END
         
         .db "46>"             ; @BT TEST-46 46 START
         link a4, #$1234       ; @BT 4E 54 12 34
+        link SP,#$5678        ; @BT 4E 57 56 78
         link a7,#$5678        ; @BT 4E 57 56 78
+        link sp,#$5678        ; @BT 4E 57 56 78
         .db "<46"             ; @BT END
 
         .db "47>"         ; @BT TEST-47 47 START
@@ -788,6 +824,8 @@ end_49: .db "<49"              ; @BT END
         nbcd (a5)              ; @BT 48 15
         nbcd (a6)+             ; @BT 48 1E
         nbcd -(a7)             ; @BT 48 27
+        nbcd -(SP)             ; @BT 48 27
+        nbcd -(sp)             ; @BT 48 27
         nbcd $1234(a1)         ; @BT 48 29 12 34
         nbcd ($12,a2,d3)       ; @BT 48 32 30 12
         nbcd label_ABCE.w      ; @BT 48 38 AB CE
@@ -798,6 +836,8 @@ end_50: .db "<50"              ; @BT END
         neg.b d6            ; @BT 44 06
         neg.w (a4)          ; @BT 44 54
         neg.l -(a7)         ; @BT 44 A7
+        neg.l -(sp)         ; @BT 44 A7
+        neg.l -(SP)         ; @BT 44 A7
         neg.b (a6)+         ; @BT 44 1E
         neg.w $1234(a5)     ; @BT 44 6D 12 34
         neg.l ($1234,a3)    ; @BT 44 AB 12 34
@@ -809,6 +849,8 @@ end_50: .db "<50"              ; @BT END
         .db "52>"            ; @BT TEST-52 52 START
         negx.b d6            ; @BT 40 06
         negx.w (a4)          ; @BT 40 54
+        negx.l -(sp)         ; @BT 40 A7
+        negx.l -(SP)         ; @BT 40 A7
         negx.l -(a7)         ; @BT 40 A7
         negx.b (a6)+         ; @BT 40 1E
         negx.w $1234(a5)     ; @BT 40 6D 12 34
@@ -821,6 +863,8 @@ end_50: .db "<50"              ; @BT END
         .db "53>"           ; @BT TEST-53 53 START
         not.b d6            ; @BT 46 06
         not.w (a4)          ; @BT 46 54
+        not.l -(SP)         ; @BT 46 A7
+        not.l -(sp)         ; @BT 46 A7
         not.l -(a7)         ; @BT 46 A7
         not.b (a6)+         ; @BT 46 1E
         not.w $1234(a5)     ; @BT 46 6D 12 34
@@ -889,7 +933,9 @@ frank5: .db "<54"              ; @BT END
 
         .db "57>"            ; @BT TEST-57 57 START
         pea (a5)             ; @BT 48 55
+        pea $1234(sp)        ; @BT 48 6F 12 34
         pea $1234(a7)        ; @BT 48 6F 12 34
+        pea $1234(SP)        ; @BT 48 6F 12 34
         pea ($1234,a6)       ; @BT 48 6E 12 34
         pea ($12,a4,d3)      ; @BT 48 74 30 12
         pea label_ABCE.w     ; @BT 48 78 AB CE
@@ -948,7 +994,9 @@ end_57: .db "<57"            ; @BT END
         .db "61>"         ; @BT TEST-61 61 START
         scc d6            ; @BT 54 C6
         scs (a4)          ; @BT 55 D4
+        seq -(SP)         ; @BT 57 E7
         seq -(a7)         ; @BT 57 E7
+        seq -(sp)         ; @BT 57 E7
         sf (a6)+          ; @BT 51 DE
         sge $1234(a5)     ; @BT 5C ED 12 34
         sgt ($1234,a3)    ; @BT 5E EB 12 34
@@ -1006,6 +1054,8 @@ frank6: .db "<63"               ; @BT END
         sub.w (a1)+,a2          ; @BT 94 D9
         sub.l -(a3),a4          ; @BT 99 E3
         sub.w $1234.w,a7        ; @BT 9E F8 12 34
+        sub.w $1234.w,SP        ; @BT 9E F8 12 34
+        sub.w $1234.w,sp        ; @BT 9E F8 12 34
         sub.l $12345678.l,a0    ; @BT 91 F9 12 34 56 78
         sub.l $12345678,a0      ; @BT 91 F9 12 34 56 78
         sub.l label_ABCE,a2     ; @BT 95 F9 00 00 AB CE
@@ -1049,6 +1099,8 @@ frank7: .db "<66"               ; @BT END
         suba.w (a1)+,a2          ; @BT 94 D9
         suba.l -(a3),a4          ; @BT 99 E3
         suba.w $1234.w,a7        ; @BT 9E F8 12 34
+        suba.w $1234.w,sp        ; @BT 9E F8 12 34
+        suba.w $1234.w,SP        ; @BT 9E F8 12 34
         suba.l $12345678.l,a0    ; @BT 91 F9 12 34 56 78
         suba.l $12345678,a0      ; @BT 91 F9 12 34 56 78
         suba.l label_ABCE,a2     ; @BT 95 F9 00 00 AB CE
@@ -1124,6 +1176,8 @@ frank8: .db "<68"                ; @BT END
         subx.l d7, d5           ; @BT 9B 87
         subx.b -(a1), -(a2)     ; @BT 95 09
         subx.w -(a3), -(a4)     ; @BT 99 4B
+        subx.l -(sp), -(a5)     ; @BT 9B 8F
+        subx.l -(SP), -(a5)     ; @BT 9B 8F
         subx.l -(a7), -(a5)     ; @BT 9B 8F
         .db "<72"               ; @BT END
 
@@ -1136,6 +1190,8 @@ frank8: .db "<68"                ; @BT END
         .db "74>"         ; @BT TEST-74 74 START
         tas d6            ; @BT 4A C6
         tas (a4)          ; @BT 4A D4
+        tas -(SP)         ; @BT 4A E7
+        tas -(sp)         ; @BT 4A E7
         tas -(a7)         ; @BT 4A E7
         tas (a6)+         ; @BT 4A DE
         tas $1234(a5)     ; @BT 4A ED 12 34
@@ -1155,6 +1211,8 @@ frank8: .db "<68"                ; @BT END
         tst d6            ; @BT 4A 46
         tst (a4)          ; @BT 4A 54
         tst -(a7)         ; @BT 4A 67
+        tst -(sp)         ; @BT 4A 67
+        tst -(SP)         ; @BT 4A 67
         tst (a6)+         ; @BT 4A 5E
         tst $1234(a5)     ; @BT 4A 6D 12 34
         tst ($1234,a3)    ; @BT 4A 6B 12 34
@@ -1166,6 +1224,8 @@ frank8: .db "<68"                ; @BT END
         .db "77>"   ; @BT TEST-77 77 START
         unlk a0     ; @BT 4E 58
         unlk a7     ; @BT 4E 5F
+        unlk SP     ; @BT 4E 5F
+        unlk sp     ; @BT 4E 5F
         unlk a4     ; @BT 4E 5C
         .db "<77"   ; @BT END
 
@@ -1174,6 +1234,8 @@ frank8: .db "<68"                ; @BT END
         move (a4),CCR         ; @BT 44 D4
         move -(a5),CCR        ; @BT 44 E5
         move (a6)+,CCR        ; @BT 44 DE
+        move $1234(sp),CCR    ; @BT 44 EF 12 34
+        move $1234(SP),CCR    ; @BT 44 EF 12 34
         move $1234(a7),CCR    ; @BT 44 EF 12 34
         move ($12,a1,d2),CCR  ; @BT 44 F1 20 12
         move $1234.w,CCR      ; @BT 44 F8 12 34
@@ -1188,6 +1250,8 @@ ccr1:   .db "<78"             ; @BT END
         move (a4),SR         ; @BT 46 D4
         move -(a5),SR        ; @BT 46 E5
         move (a6)+,SR        ; @BT 46 DE
+        move $1234(SP),SR    ; @BT 46 EF 12 34
+        move $1234(sp),SR    ; @BT 46 EF 12 34
         move $1234(a7),SR    ; @BT 46 EF 12 34
         move ($12,a1,d2),SR  ; @BT 46 F1 20 12
         move $1234.w,SR      ; @BT 46 F8 12 34
@@ -1203,6 +1267,8 @@ ccr2:   .db "<79"            ; @BT END
         move sr,-(a5)        ; @BT 40 E5
         move sr,(a6)+        ; @BT 40 DE
         move sr,$1234(a7)    ; @BT 40 EF 12 34
+        move sr,$1234(sp)    ; @BT 40 EF 12 34
+        move sr,$1234(SP)    ; @BT 40 EF 12 34
         move sr,($12,a1,d2)  ; @BT 40 F1 20 12
         move sr,$1234.w      ; @BT 40 F8 12 34
         move sr,$12345678.l  ; @BT 40 F9 12 34 56 78
@@ -1211,6 +1277,8 @@ ccr2:   .db "<79"            ; @BT END
         .db "81>"            ; @BT TEST-81 81 START
         move a3,usp          ; @BT 4E 63
         move a7,USP          ; @BT 4E 67
+        move SP,USP          ; @BT 4E 67
+        move sp,USP          ; @BT 4E 67
         move usp,a2          ; @BT 4E 6A
         move USP,a6          ; @BT 4E 6E
         .db "<81"            ; @BT END
@@ -1228,9 +1296,13 @@ ccr2:   .db "<79"            ; @BT END
 
         .db "83>"                 ; @BT TEST-83 83 START
         movea.w a1,a5             ; @BT 3A 49
+        movea.l sp,a2             ; @BT 24 4F
+        movea.l SP,a2             ; @BT 24 4F
         movea.l a7,a2             ; @BT 24 4F
         movea.w d3,a4             ; @BT 38 43
         movea.l (a1),a0           ; @BT 20 51
+        movea.w -(a2),SP          ; @BT 3E 62
+        movea.w -(a2),sp          ; @BT 3E 62
         movea.w -(a2),a7          ; @BT 3E 62
         movea.l (a3)+,a4          ; @BT 28 5B
         movea.w $1234(a5),a1      ; @BT 32 6D 12 34
@@ -1239,7 +1311,9 @@ ccr2:   .db "<79"            ; @BT END
         movea.w $12345678,a4      ; @BT 38 79 12 34 56 78
         movea.w #$1234,a5         ; @BT 3A 7C 12 34
         movea.l #$12345678,a6     ; @BT 2C 7C 12 34 56 78
-        movea.w end_83(pc),a7     ; @BT 3E 7A 00 06
+        movea.w end_83(pc),a7     ; @BT 3E 7A 00 0E
+        movea.w end_83(pc),sp     ; @BT 3E 7A 00 0A
+        movea.w end_83(pc),SP     ; @BT 3E 7A 00 06
         movea.l (end_83,pc,d2),a1 ; @BT 22 7B 20 02
 end_83: .db "<83"                 ; @BT END
 
@@ -1256,16 +1330,24 @@ end_83: .db "<83"                 ; @BT END
         move.w $12345678,(a4)      ; @BT 38 B9 12 34 56 78
         move.w #$1234,(a5)+        ; @BT 3A FC 12 34
         move.l #$12345678,-(a6)    ; @BT 2D 3C 12 34 56 78
-        move.b end_84(pc),(a7)     ; @BT 1E BA 00 08
-        move.l (end_84,pc,d2),$1234(a7) ; @BT 2F 7B 20 04 12 34
+        move.b end_84(pc),(a7)     ; @BT 1E BA 00 1C
+        move.b end_84(pc),(SP)     ; @BT 1E BA 00 18
+        move.b end_84(pc),(sp)     ; @BT 1E BA 00 14
+        move.l (end_84,pc,d2),$1234(sp) ; @BT 2F 7B 20 10 12 34
+        move.l (end_84,pc,d2),$1234(a7) ; @BT 2F 7B 20 0A 12 34
+        move.l (end_84,pc,d2),$1234(SP) ; @BT 2F 7B 20 04 12 34
 end_84: .db "<84"                  ; @BT END
 
         .db "85>"                ; @BT TEST-85 85 START
         move.w a1,a5             ; @BT 3A 49
+        move.l SP,a2             ; @BT 24 4F
         move.l a7,a2             ; @BT 24 4F
+        move.l sp,a2             ; @BT 24 4F
         move.w d3,a4             ; @BT 38 43
         move.l (a1),a0           ; @BT 20 51
         move.w -(a2),a7          ; @BT 3E 62
+        move.w -(a2),sp          ; @BT 3E 62
+        move.w -(a2),SP          ; @BT 3E 62
         move.l (a3)+,a4          ; @BT 28 5B
         move.w $1234(a5),a1      ; @BT 32 6D 12 34
         move.l ($12,a6,d7),a2    ; @BT 24 76 70 12
@@ -1273,7 +1355,9 @@ end_84: .db "<84"                  ; @BT END
         move.w $12345678,a4      ; @BT 38 79 12 34 56 78
         move.w #$1234,a5         ; @BT 3A 7C 12 34
         move.l #$12345678,a6     ; @BT 2C 7C 12 34 56 78
-        move.w end_85(pc),a7     ; @BT 3E 7A 00 06
+        move.w end_85(pc),a7     ; @BT 3E 7A 00 0E
+        move.w end_85(pc),SP     ; @BT 3E 7A 00 0A
+        move.w end_85(pc),sp     ; @BT 3E 7A 00 06
         move.l (end_85,pc,d2),a1 ; @BT 22 7B 20 02
 end_85: .db "<85"                ; @BT END
 
@@ -1281,23 +1365,43 @@ end_85: .db "<85"                ; @BT END
         movep d3,$1234(a5)       ; @BT 07 8D 12 34
         movep.w d7,($5678,a2)    ; @BT 0F 8A 56 78
         movep $1234(a7),d4       ; @BT 09 0F 12 34
+        movep $1234(sp),d4       ; @BT 09 0F 12 34
+        movep $1234(SP),d4       ; @BT 09 0F 12 34
         movep.w ($5678,a2),d1    ; @BT 03 0A 56 78
         movep.l d3,$1234(a5)     ; @BT 07 CD 12 34
         movep.l d7,($5678,a2)    ; @BT 0F CA 56 78
         movep.l $1234(a7),d4     ; @BT 09 4F 12 34
+        movep.l $1234(SP),d4     ; @BT 09 4F 12 34
+        movep.l $1234(sp),d4     ; @BT 09 4F 12 34
         movep.l ($5678,a2),d1    ; @BT 03 4A 56 78
         .db "<86"                ; @BT END
 
         .db "87>"                ; @BT TEST-87 87 START
+        movem.w d0-d7/a0-sp,(a1) ; @BT 48 91 FF FF
+        movem.w d0-d7/a0-SP,(a1) ; @BT 48 91 FF FF
         movem.w d0-d7/a0-a7,(a1) ; @BT 48 91 FF FF
+        movem.l d0-d3/a4-SP,(a1) ; @BT 48 D1 F0 0F
+        movem.l d0-d3/a4-sp,(a1) ; @BT 48 D1 F0 0F
         movem.l d0-d3/a4-a7,(a1) ; @BT 48 D1 F0 0F
+        movem.w d1/d3/d6-d7/a0/a2/a4-a6,-(sp) ; @BT 48 A7 53 AE
         movem.w d1/d3/d6-d7/a0/a2/a4-a6,-(a7) ; @BT 48 A7 53 AE
+        movem.w d1/d3/d6-d7/a0/a2/a4-a6,-(SP) ; @BT 48 A7 53 AE
+        movem.w d0-d7/a0-SP,$1234(a3) ; @BT 48 AB FF FF 12 34
         movem.w d0-d7/a0-a7,$1234(a3) ; @BT 48 AB FF FF 12 34
+        movem.w d0-d7/a0-sp,$1234(a3) ; @BT 48 AB FF FF 12 34
         movem.l d0-d3/a4-a7,($12,a3,d4) ; @BT 48 F3 F0 0F 40 12
+        movem.l d0-d3/a4-sp,($12,a3,d4) ; @BT 48 F3 F0 0F 40 12
+        movem.l d0-d3/a4-SP,($12,a3,d4) ; @BT 48 F3 F0 0F 40 12
         movem.w d1/d3/d6-d7/a0/a2/a4-a6,$1234.w ; @BT 48 B8 75 CA 12 34
         movem.w d0-d3/d5/a0-a6,$12345678 ; @BT 48 B9 7F 2F 12 34 56 78
         movem d0-d7/a0-a7,(a1) ; @BT 48 91 FF FF
+        movem d0-d7/a0-SP,(a1) ; @BT 48 91 FF FF
+        movem d0-d7/a0-sp,(a1) ; @BT 48 91 FF FF
+        movem d1/d3/d6-d7/a0/a2/a4-a6,-(sp) ; @BT 48 A7 53 AE
+        movem d1/d3/d6-d7/a0/a2/a4-a6,-(SP) ; @BT 48 A7 53 AE
         movem d1/d3/d6-d7/a0/a2/a4-a6,-(a7) ; @BT 48 A7 53 AE
+        movem d0-d7/a0-SP,$1234(a3) ; @BT 48 AB FF FF 12 34
+        movem d0-d7/a0-sp,$1234(a3) ; @BT 48 AB FF FF 12 34
         movem d0-d7/a0-a7,$1234(a3) ; @BT 48 AB FF FF 12 34
         movem d1/d3/d6-d7/a0/a2/a4-a6,$1234.w ; @BT 48 B8 75 CA 12 34
         movem d0-d3/d5/a0-a6,$12345678 ; @BT 48 B9 7F 2F 12 34 56 78
@@ -1306,7 +1410,9 @@ end_85: .db "<85"                ; @BT END
         .db "88>"                ; @BT TEST-88 88 START
         movem.l (a3),a0/a2/a4-a6/d3-d5/d7 ; @BT 4C D3 75 B8
         movem.w (a4)+,a0-a5/d0-d4 ; @BT 4C 9C 3F 1F
+        movem.l $5678(sp),d0-d7   ; @BT 4C EF 00 FF 56 78
         movem.l $5678(a7),d0-d7   ; @BT 4C EF 00 FF 56 78
+        movem.l $5678(SP),d0-d7   ; @BT 4C EF 00 FF 56 78
         movem.l ($78,a1,d2),a0-a5/d0-d1 ; @BT 4C F1 3F 03 20 78
         movem.w $3456.w,a0/a2/a4/a6/d0/d2/d4/d6 ; @BT 4C B8 55 55 34 56
         movem.l $12345678,a0-a2/d0-d2 ; @BT 4C F9 07 07 12 34 56 78
@@ -1317,9 +1423,13 @@ end_88: .db "<88"                ; @BT END
         .db "89>"               ; @BT TEST-89 89 START
         movem.l (a3),a0/a2/a4-a6/d3-d5/d7 \ movep.l d7,($5678,a2) ; @BT 4C D3 75 B8 0F CA 56 78
         add.w d1,$1234.w \ add.w d1,$1234.w ; @BT D3 78 12 34 D3 78 12 34
+        move.l ($12,a6,d7),$1234.w \ movep $1234(SP),d4 ; @BT 21 F6 70 12 12 34 09 0F 12 34
         move.l ($12,a6,d7),$1234.w \ movep $1234(a7),d4 ; @BT 21 F6 70 12 12 34 09 0F 12 34
+        move.l ($12,a6,d7),$1234.w \ movep $1234(sp),d4 ; @BT 21 F6 70 12 12 34 09 0F 12 34
         movem.l (a3),a0/a2/a4-a6/d3-d5/d7 \ movep.l d7,($5678,a2) \ add.w d1,$1234.w \ add.w d1,$1234.w \ move.l ($12,a6,d7),$1234.w \ movep $1234(a7),d4 ; @BT 4C D3 75 B8 0F CA 56 78 D3 78 12 34 D3 78 12 34 21 F6 70 12 12 34 09 0F 12 34
         neg.b d6 \ neg.w (a4) \ neg.l -(a7) \ neg.b (a6)+ \ neg.w $1234(a5) \ neg.l ($1234,a3) \ neg.b ($12,a1,d5) \ neg.l $1234.w \ neg.w $12345678.l ; @BT  44 06 44 54 44 A7 44 1E 44 6D 12 34 44 AB 12 34 44 31 50 12 44 B8 12 34 44 79 12 34 56 78
+        neg.b d6 \ neg.w (a4) \ neg.l -(sp) \ neg.b (a6)+ \ neg.w $1234(a5) \ neg.l ($1234,a3) \ neg.b ($12,a1,d5) \ neg.l $1234.w \ neg.w $12345678.l ; @BT  44 06 44 54 44 A7 44 1E 44 6D 12 34 44 AB 12 34 44 31 50 12 44 B8 12 34 44 79 12 34 56 78
+        neg.b d6 \ neg.w (a4) \ neg.l -(SP) \ neg.b (a6)+ \ neg.w $1234(a5) \ neg.l ($1234,a3) \ neg.b ($12,a1,d5) \ neg.l $1234.w \ neg.w $12345678.l ; @BT  44 06 44 54 44 A7 44 1E 44 6D 12 34 44 AB 12 34 44 31 50 12 44 B8 12 34 44 79 12 34 56 78
         stop #$1234 \ stop #$0102 ; @BT 4E 72 12 34 4E 72 01 02
         .db "<89"               ; @BT END
         

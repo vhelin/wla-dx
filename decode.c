@@ -448,7 +448,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
 
       return SUCCEEDED;
     }
-    else if ((c == 'A' || c == 'D') && (code[i+1] >= '0' && code[i+1] <= '7')) {
+    else if (((c == 'A' || c == 'D') && (code[i+1] >= '0' && code[i+1] <= '7')) || (c == 'S' && toupper((int)code[i+1]) == 'P')) {
       /* try to parse a register list, could be a single register though */
       int old_i = i, registers = 0, list = 0, success = YES, number, c2, number2;
 
@@ -460,6 +460,11 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
         i++;
         if (code[i] >= '0' && code[i] <= '7')
           number = code[i++] - '0';
+        else if (c == 'S' && toupper((int)code[i]) == 'P') {
+          i++;
+          c = 'A';
+          number = 7;
+        }
         else {
           success = NO;
           break;
@@ -494,7 +499,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
           c2 = toupper((int)code[i]);
           i++;
 
-          if (c2 != c) {
+          if ((c2 == 'S' && c != 'A') || (c2 != 'S' && c2 != c)) {
             /* different register type */
             print_error(ERROR_NUM, "Unsupported register range.\n");
             return FAILED;
@@ -502,6 +507,11 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
 
           if (code[i] >= '0' && code[i] <= '7')
             number2 = code[i++] - '0';
+          else if (c2 == 'S' && toupper((int)code[i]) == 'P') {
+            c2 = 'A';
+            number2 = 7;
+            i++;
+          }
           else {
             print_error(ERROR_NUM, "Malformed register range.\n");
             return FAILED;
@@ -563,18 +573,21 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
     }
   }
 
-  if (c == 'A' || c == 'D') {
+  if (c == 'A' || c == 'D' || c == 'S') {
     /* An OR Dn */
     if (predecrement == YES)
       return FAILED;
     
     i++;
-    if (code[i] >= '0' && code[i] <= '7') {
-      *reg1 = code[i] - '0';
+    if ((code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
+      if (c == 'S')
+        *reg1 = 7;
+      else
+        *reg1 = code[i] - '0';
 
       i++;
       if (code[i] == 0xA || code[i] == ',' || (code[i] == ' ' && code[i+1] == '\\')) {
-        if (c == 'A')
+        if (c == 'A' || c == 'S')
           *mode = B8(00000001);
         else
           *mode = B8(00000000);
@@ -626,10 +639,13 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
     c = toupper((int)code[i]);
 
     /* An? */
-    if (c == 'A') {
+    if (c == 'A' || c =='S') {
       i++;
-      if (code[i] >= '0' && code[i] <= '7') {
-        *reg1 = code[i] - '0';
+      if ((code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
+        if (c == 'S')
+          *reg1 = 7;
+        else
+          *reg1 = code[i] - '0';
 
         i++;
         if (code[i] == ')') {
@@ -688,14 +704,17 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
       
       c = toupper((int)code[i]);
 
-      if (c == 'A') {
+      if (c == 'A' || c == 'S') {
         /* (d16,An) OR (d8,An,Dm) */
         if (predecrement == YES)
           return FAILED;
 
         i++;
-        if (code[i] >= '0' && code[i] <= '7') {
-          *reg1 = code[i] - '0';
+        if ((code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
+          if (c == 'S')
+            *reg1 = 7;
+          else
+            *reg1 = code[i] - '0';
 
           i++;
           if (code[i] == ')') {
@@ -880,12 +899,16 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
         }
       }
     }
-    else if (c == 'A') {
+    else if (c == 'A' || c == 'S') {
       /* d16(An) */
       i++;
-      if (code[i] >= '0' && code[i] <= '7') {
+      if ((code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
         *mode = B8(00000101);
-        *reg1 = code[i] - '0';
+
+        if (c == 'S')
+          *reg1 = 7;
+        else
+          *reg1 = code[i] - '0';
 
         i++;
                 
@@ -928,19 +951,22 @@ static int _mc68000_parse_register(char *code, int *index, int *reg, int *mode) 
 
   c = toupper((int)code[i]);
 
-  if (c == 'A' || c == 'D') {
+  if (c == 'A' || c == 'D' || c == 'S') {
     if (predecrement == YES)
       return FAILED;
     
     i++;
-    if (code[i] >= '0' && code[i] <= '7') {
-      *reg = code[i] - '0';
+    if ((code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
+      if (c == 'S')
+        *reg = 7;
+      else
+        *reg = code[i] - '0';
 
       i++;
       if (code[i] != 0xA && code[i] != ',' && code[i] != '\\' && (!(code[i] == ' ' && code[i+1] == '\\')))
         return FAILED;
 
-      if (c == 'A')
+      if (c == 'A' || c == 'S')
         *mode = B8(00000001);
       else
         *mode = B8(00000000);
@@ -951,10 +977,13 @@ static int _mc68000_parse_register(char *code, int *index, int *reg, int *mode) 
 
     c = toupper((int)code[i]);
 
-    if (c == 'A') {
+    if (c == 'A' || c == 'S') {
       i++;
-      if (code[i] >= '0' && code[i] <= '7') {
-        *reg = code[i] - '0';
+      if ((code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
+        if (c == 'S')
+          *reg = 7;
+        else
+          *reg = code[i] - '0';
 
         i++;
         if (code[i] != ')')
