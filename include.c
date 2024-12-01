@@ -267,7 +267,7 @@ int include_file(char *name, int *include_size, char *namespace) {
 
     /* add room for end of file in-macro replacements */
     for (i = 0; i < 1024; i++)
-      g_buffer[g_source_file_size++] = ' ';
+      g_buffer[g_source_file_size++] = 0xA;
 
     *include_size = g_source_file_size;
 

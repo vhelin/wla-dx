@@ -429,6 +429,8 @@ static int _macro_start(struct macro_static *m, struct macro_runtime *mrt, int c
     redefine("wla_filename", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(m->filename_id)));
   }
 
+  fprintf(g_file_out_ptr, "k%d ", m->start_line);
+  
   g_active_file_info_last->line_current = m->start_line;
   g_active_file_info_last->filename_id = m->filename_id;
   g_source_index = m->start;
@@ -1057,7 +1059,7 @@ int phase_1(void) {
     else if (q == EVALUATE_TOKEN_EOP)
       return SUCCEEDED;
     else if (q == EVALUATE_TOKEN_NOT_IDENTIFIED) {
-      int got_opening_parenthesis = NO, end_of_line = NO;
+      int got_opening_parenthesis = NO;
 
       /* check if it is of the form "LABEL:XYZ" */
       for (q = 0; q < g_ss; q++) {
@@ -1206,7 +1208,7 @@ int phase_1(void) {
         g_input_allow_leading_ampersand = NO;
         g_input_float_mode = OFF;
         if (q == INPUT_NUMBER_EOL) {
-          end_of_line = YES;
+          g_source_index = o;
           break;
         }
 
@@ -1274,9 +1276,6 @@ int phase_1(void) {
             redefine(argument_name, g_parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
         }
       }
-
-      if (end_of_line == YES)
-        next_line();
 
       mrt->supplied_arguments = p;
       if (_macro_start(m, mrt, MACRO_CALLER_NORMAL, p) == FAILED)
