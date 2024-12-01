@@ -19,12 +19,40 @@ BANKSIZE $100000
 BANKS 1
 .ENDRO
 
+        .macro INST_1
+        abcd.b d1, \1
+        .endm
+
+        .macro INST_2
+        abcd.b \1, \2
+        .endm
+
+        .macro INST_3
+        INST_2 "d1", \1
+        .endm
+
+        .macro INST_4
+        \1
+        .endm
+
+        .macro INST_5
+        abcd\1 d1, \2
+        .endm
+        
 .EMPTYFILL $AA
 
         .BANK 0 SLOT 0
         .ORG 0
 
                                 ; @BT linked.rom
+
+        .db "00>"               ; @BT TEST-00 00 START
+        INST_4 "nop"            ; @BT 4E 71
+        INST_1 "d2"             ; @BT C5 01
+        INST_2 "d1", "d2"       ; @BT C5 01
+        INST_3 "d2"             ; @BT C5 01
+        INST_5 ".b", "d2"       ; @BT C5 01
+        .db "<00"               ; @BT END
 
         .db "01>"               ; @BT TEST-01 01 START
         illegal                 ; @BT 4A FC
@@ -48,7 +76,7 @@ BANKS 1
         .db "<02"               ; @BT END
 
         .db "03>"               ; @BT TEST-03 03 START
-        add.b d0,d0             ; @BT D0 00
+        add.b d0,d0 \ add.b d0,d0 ; @BT D0 00 D0 00
         add.w d0,d0             ; @BT D0 40
         add.l d0,d0             ; @BT D0 80
         add.b d1,d2             ; @BT D4 01
@@ -1439,3 +1467,11 @@ end_88: .db "<88"                ; @BT END
         
         .org $ABCE
 label_ABCE:
+
+        // just testing that end-of-file in-macro replacements have enough space
+        
+        .macro X
+        \1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1 nop
+        .endm
+
+        X "                                                       "

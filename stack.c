@@ -1893,10 +1893,19 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       
       si[q].string[k] = 0;
       si[q].type = STACK_ITEM_TYPE_STRING;
-      q++;
 
       if (process_string_for_special_characters(si[q].string, NULL) == FAILED)
         return FAILED;
+
+      /* .length? */
+      if (*in == '.' && toupper((int)in[1]) == 'L' && toupper((int)in[2]) == 'E' && toupper((int)in[3]) == 'N' &&
+          toupper((int)in[4]) == 'G' && toupper((int)in[5]) == 'T' && toupper((int)in[6]) == 'H') {
+        in += 7;
+        si[q].value = (int)strlen(si[q].string);
+        si[q].type = STACK_ITEM_TYPE_VALUE;
+      }
+          
+      q++;
     }
     else {
       /* it must be a label! */

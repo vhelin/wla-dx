@@ -188,6 +188,9 @@ static int s_autopriority = 65535;
 
 static struct section_def *s_active_ramsection = NULL;
 
+static char s_replacement_memory[1024], s_replacement_backup[1024];
+static int s_replacement_length = 0, s_replacement_index = -1;
+
 
 #define no_library_files(name)                                          \
   do {                                                                  \
@@ -831,6 +834,169 @@ static struct structure* _get_structure(char *name) {
 int directive_define_def_equ(void);
 
 
+static void _forget_macro_replacements(int move_index) {
+
+  if (s_replacement_index < 0)
+    return;
+
+  /* return what we replaced last time */
+  strncpy(&g_buffer[s_replacement_index], s_replacement_backup, s_replacement_length);
+
+  if (move_index == SUCCEEDED) {
+    /* relocate g_source_index */
+    g_source_index = s_replacement_index;
+    while (g_buffer[g_source_index++] != 0xA)
+      ;
+  }
+    
+  s_replacement_index = -1;
+}
+
+
+static int _run_macro_replacements(void) {
+
+  int i = 0, s, replaces = 0;
+  char c;
+  
+  /* skip empty lines */
+  while (g_source_index < g_source_file_size) {
+    if (g_buffer[g_source_index] == 0xA) {
+      g_source_index++;
+      next_line();
+      continue;
+    }
+    break;
+  }
+
+  /* process white space */
+  s = g_source_index;
+  c = g_buffer[s++];
+
+  while (c == ' ') {
+    s_replacement_memory[i++] = c;
+    c = g_buffer[s++];
+  }
+
+  if (c == '.') {
+    /* directive! abort! */
+    return SUCCEEDED;
+  }
+
+  /* anything to replace on this line? */
+  s--;
+  while (i < (int)sizeof(s_replacement_memory)) {
+    c = g_buffer[s++];
+
+    /* don't replace inside strings */
+    if (c == '"') {
+      s_replacement_memory[i++] = c;
+
+      while (i < (int)sizeof(s_replacement_memory)) {
+        c = g_buffer[s++];
+        if (c == '\\' && g_buffer[s] == '"') {
+          s_replacement_memory[i++] = c;
+          s_replacement_memory[i++] = '"';
+          s++;
+          continue;
+        }
+        else if (c == '"') {
+          s_replacement_memory[i++] = c;
+          break;
+        }
+        else
+          s_replacement_memory[i++] = c;
+      }
+      
+      continue;
+    }
+    
+    if (c == '\\' && g_buffer[s] >= '0' && g_buffer[s] <= '9') {
+      struct macro_argument *ma;
+      int k, x = i, param = 0, add_quotes = NO;
+
+      /* parse param index */
+      s_replacement_memory[x++] = c;
+      for (k = 0; k < 4; k++) {
+        c = g_buffer[s++];
+        s_replacement_memory[x++] = c;
+        if (c >= '0' && c <= '9')
+          param = (param * 10) + (c - '0');
+        else {
+          s--;
+          break;
+        }
+      }
+
+      if (param > g_macro_runtime_current->supplied_arguments) {
+        print_error(ERROR_NUM, "Referencing argument number %d inside macro \"%s\". The macro has only %d arguments.\n", param, g_macro_runtime_current->macro->name, g_macro_runtime_current->supplied_arguments);
+        return FAILED;
+      }
+      if (param == 0) {
+        print_error(ERROR_NUM, "Referencing argument number %d inside macro \"%s\". Macro arguments are counted from 1.\n", param, g_macro_runtime_current->macro->name);
+        return FAILED;
+      }
+
+      ma = g_macro_runtime_current->argument_data[param - 1];
+
+      /* only string parameters can be used to replace references */
+      if (ma->type == INPUT_NUMBER_STRING) {
+        /* add quotes? */
+        if (g_buffer[s] == '.' &&
+            toupper((int)g_buffer[s+1]) == 'L' &&
+            toupper((int)g_buffer[s+2]) == 'E' &&
+            toupper((int)g_buffer[s+3]) == 'N' &&
+            toupper((int)g_buffer[s+4]) == 'G' &&
+            toupper((int)g_buffer[s+5]) == 'T' &&
+            toupper((int)g_buffer[s+6]) == 'H')
+          add_quotes = YES;
+      
+        if (add_quotes == YES)
+          s_replacement_memory[i++] = '"';
+
+        strcpy(&s_replacement_memory[i], ma->string);
+        i += (int)strlen(ma->string);
+
+        if (add_quotes == YES)
+          s_replacement_memory[i++] = '"';
+
+        replaces++;
+      }
+    }
+    else if (c == 0xA) {
+      s_replacement_memory[i++] = 0xA;
+      s_replacement_memory[i] = 0;
+        
+      if (replaces > 0) {
+        /* backup and overwrite! */
+        i++;
+
+        strncpy(s_replacement_backup, &g_buffer[g_source_index], i);
+        if (g_source_index + i < g_source_file_size)
+          strcpy(&g_buffer[g_source_index], s_replacement_memory);
+        else {
+          print_error(ERROR_NUM, "Expected buffer overrun in _run_macro_replacements()! Please submit a bug report!\n");
+          return FAILED;
+        }
+        
+        s_replacement_length = i;
+        s_replacement_index = g_source_index;
+      }
+
+      break;
+    }
+    else
+      s_replacement_memory[i++] = c;
+  }
+
+  if (i >= (int)sizeof(s_replacement_memory) - 1) {
+    print_error(ERROR_LOG, "Out of s_replacement_memory buffer size (buffer %d bytes, got %d bytes) in phase_1.c!\n", (int)sizeof(s_replacement_memory), i);
+    return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
 int phase_1(void) {
 
   struct macro_runtime *mrt;
@@ -856,6 +1022,11 @@ int phase_1(void) {
     fprintf(g_file_out_ptr, "B%d %d O%d ", 0, 0, 0);
 
   while (1) {
+    if (g_macro_active != 0) {
+      if (_run_macro_replacements() == FAILED)
+        return FAILED;
+    }
+    
     q = get_next_token();
     if (q == FAILED)
       return FAILED;
@@ -878,6 +1049,8 @@ int phase_1(void) {
     /* instruction parser might set this to YES, inside evaluate_token() */
     g_input_number_expects_dot = NO;
 #endif
+
+    _forget_macro_replacements(q);
     
     if (q == SUCCEEDED)
       continue;
@@ -9049,11 +9222,13 @@ static int _find_next_endr(void) {
 int directive_rept_repeat_while(int is_while) {
   
   char c[16], index_name[MAX_NAME_LENGTH + 1];
-  int q, start;
+  int q, start, line;
 
   strcpy(c, g_current_directive);
 
   index_name[0] = 0;
+  start = g_source_index;
+  line = g_active_file_info_last->line_current;
 
   if (is_while == NO) {
     q = input_number();
@@ -9080,13 +9255,9 @@ int directive_rept_repeat_while(int is_while) {
 
       strcpy(index_name, g_label);
     }
-
-    start = g_source_index;
   }
   else {
     /* while */
-    start = g_source_index;
-
     g_input_parse_if = YES;
     q = input_number();
     g_input_parse_if = NO;
@@ -9128,7 +9299,7 @@ int directive_rept_repeat_while(int is_while) {
   g_repeat_stack[s_repeat_active].start = start;
   g_repeat_stack[s_repeat_active].counter = g_parsed_int;
   g_repeat_stack[s_repeat_active].repeats = 0;
-  g_repeat_stack[s_repeat_active].start_line = g_active_file_info_last->line_current;
+  g_repeat_stack[s_repeat_active].start_line = line;
   g_repeat_stack[s_repeat_active].start_ifdef = g_ifdef;
   g_repeat_stack[s_repeat_active].is_while = is_while;
   strcpy(g_repeat_stack[s_repeat_active].index_name, index_name);
@@ -10761,6 +10932,10 @@ int directive_endr_continue(void) {
     g_source_index = rr->start;
     g_active_file_info_last->line_current = rr->start_line;
     g_ifdef = rr->start_ifdef;
+
+    /* roll past the count */
+    while (g_buffer[g_source_index++] != 0xA)
+      ;
   }
   
   return SUCCEEDED;

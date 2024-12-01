@@ -175,9 +175,18 @@ SHORT_STRING = "one"
 	.printt "This should be 11: "
 	.printv dec 16-\1.length
 	.print "\n"
-.REPEAT 16-\1.length
-    .DB " "
-.ENDR
+
+        .print "LENGTH\n"
+        .REPEAT 6-\1.length
+          .DB "2"
+        .ENDR
+
+        .print "JOO!\n"
+        .define joo = 2
+        .while joo+\1.length > 0
+          .db "1"
+          .redefine joo = joo-1
+        .endr
 .ENDM
 
 .section "DUMMY4" FREE KEEP

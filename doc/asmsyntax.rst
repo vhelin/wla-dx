@@ -313,6 +313,18 @@ Also note that you can embed calculations into substitutions::
     .DEFINE COUNT = 1
     Label_{COUNT+1}:                    ; -> Label_2
 
+It's also possible to substitute text inside .MACROs::
+
+    .MACRO INST_ABCD
+       abcd.b d1, \1
+    .ENDM
+
+    INST_ABCD "d2"                      ; -> abcd.b d1, d2
+    INST_ABCD "d7"                      ; -> abcd.b d1, d7
+
+Note that this kind of substitution only works for lines with assembly instructions inside
+a .MACRO, it doesn't work e.g., for lines with directive calls.
+
     
 Mnemonics
 ---------

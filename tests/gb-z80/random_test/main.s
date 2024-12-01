@@ -70,3 +70,32 @@ BANKS 1
         .db random(0, 9) - 2*random(0, 9) ; @BT 04
         .db "<05"                  ; @BT END
         
+        // then something completely irrelevant -> in-macro substitution tests!
+
+        .macro INST_1
+        \1 10
+        .endm
+
+        .macro INST_2
+        add \1, \2
+        .endm
+
+        .macro INST_3
+        INST_2 "a", \1
+        .endm
+
+        .macro INST_4
+        \1
+        .endm
+
+        .macro INST_5
+        abcd\1 d1, \2
+        .endm
+
+        .db "06>"               ; @BT TEST-06 06 START
+        INST_1 "add"            ; @BT C6 0A
+        INST_2 "a", "a"         ; @BT 87
+        INST_3 "a"              ; @BT 87
+        INST_4 "rst 8"          ; @BT CF
+        .db "<06"               ; @BT END
+        

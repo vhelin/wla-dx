@@ -157,7 +157,7 @@ int find_file(char *name, FILE **f) {
 
 int include_file(char *name, int *include_size, char *namespace) {
 
-  int file_size, id, change_file_buffer_size, size, isolation_counter;
+  int file_size, id, change_file_buffer_size, size, isolation_counter, i;
   char *tmp_b, *n, change_file_buffer[MAX_NAME_LENGTH * 2];
   FILE *f = NULL;
 
@@ -237,7 +237,7 @@ int include_file(char *name, int *include_size, char *namespace) {
   }
 
   /* read the whole file into a buffer */
-  if (fread(g_include_in_tmp, 1, file_size, f) != (size_t) file_size) {
+  if (fread(g_include_in_tmp, 1, file_size, f) != (size_t)file_size) {
     print_error(ERROR_INC, "Could not read all %d bytes of \"%s\"!", file_size, g_full_name);
     return FAILED;
   }
@@ -248,7 +248,7 @@ int include_file(char *name, int *include_size, char *namespace) {
   g_file_name_info_tmp->checksum = crc32((unsigned char*)g_include_in_tmp, file_size);
 
   if (g_source_file_size == 0) {
-    g_buffer = calloc(sizeof(char) * (change_file_buffer_size + (file_size + 4)), 1);
+    g_buffer = calloc(sizeof(char) * (change_file_buffer_size + (file_size + 4) + 1024), 1);
     if (g_buffer == NULL) {
       print_error(ERROR_INC, "Out of memory while trying to allocate room for \"%s\".\n", g_full_name);
       return FAILED;
@@ -264,6 +264,10 @@ int include_file(char *name, int *include_size, char *namespace) {
     g_buffer[g_source_file_size++] = '.';
     g_buffer[g_source_file_size++] = 'E';
     g_buffer[g_source_file_size++] = ' ';
+
+    /* add room for end of file in-macro replacements */
+    for (i = 0; i < 1024; i++)
+      g_buffer[g_source_file_size++] = ' ';
 
     *include_size = g_source_file_size;
 

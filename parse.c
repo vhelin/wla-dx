@@ -1581,11 +1581,9 @@ int parse_string_length(char *end) {
 }
 
 
-void skip_whitespace(void) {
+static void _skip_whitespace(void) {
 
-  while (1) {
-    if (g_source_index >= g_source_file_size)
-      break;
+  while (g_source_index < g_source_file_size) {
     if (g_buffer[g_source_index] == ' ' || (g_buffer[g_source_index] == '\\' && g_buffer[g_source_index+1] == 0xA)) {
       g_source_index++;
       g_newline_beginning = OFF;
@@ -1600,13 +1598,13 @@ void skip_whitespace(void) {
   }
 }
 
-
+ 
 int get_next_plain_string(void) {
 
   int curly_braces = 0;
   char c;
   
-  skip_whitespace();
+  _skip_whitespace();
 
   g_ss = 0;
   while (1) {
@@ -1667,7 +1665,7 @@ int get_next_token(void) {
 
   struct definition *tmp_def = NULL;
   
-  skip_whitespace();
+  _skip_whitespace();
 
   /* skip leading commas */
   while (g_buffer[g_source_index] == ',')
