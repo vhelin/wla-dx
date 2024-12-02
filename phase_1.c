@@ -963,6 +963,11 @@ static int _run_macro_replacements(void) {
 
         replaces++;
       }
+      else {
+        /* no replacement -> continue as usual */
+        i = x;
+        s++;
+      }
     }
     else if (c == 0xA) {
       s_replacement_memory[i++] = 0xA;
@@ -972,6 +977,7 @@ static int _run_macro_replacements(void) {
         /* backup and overwrite! */
         i++;
 
+        fprintf(stderr, "GOT %s\n", s_replacement_memory);
         strncpy(s_replacement_backup, &g_buffer[g_source_index], i);
         if (g_source_index + i < g_source_file_size)
           strcpy(&g_buffer[g_source_index], s_replacement_memory);

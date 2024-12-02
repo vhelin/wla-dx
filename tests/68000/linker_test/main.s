@@ -38,6 +38,18 @@ BANKS 1
         .macro INST_5
         abcd\1 d1, \2
         .endm
+
+        .macro add_and_store_1
+        move.w #(\1+\2),\3
+        .endm
+
+        .macro add_and_store_2
+        move.l #(\1&\2),\3
+        .endm
+
+        .macro add_and_store_3
+        move.l #(\1>>\2),\3
+        .endm
         
 .EMPTYFILL $AA
 
@@ -52,6 +64,9 @@ BANKS 1
         INST_2 "d1", "d2"       ; @BT C5 01
         INST_3 "d2"             ; @BT C5 01
         INST_5 ".b", "d2"       ; @BT C5 01
+        add_and_store_1 7, 120, "d7" ; @BT 7E 7F
+        add_and_store_2 127, 127, "d7" ; @BT 7E 7F
+        add_and_store_3 255, 1, "d7" ; @BT 7E 7F
         .db "<00"               ; @BT END
 
         .db "01>"               ; @BT TEST-01 01 START
