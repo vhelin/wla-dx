@@ -2991,9 +2991,52 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
       s->value = tmp_def->value;
     }
     else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
-      /* wla cannot resolve address labels (unless outside a section) -> only wlalink can do that */
-      *cannot_resolve = 1;
-      strcpy(s->string, tmp_def->string);
+      /* read the labels and their addresses from the internal data stream */
+      struct data_stream_item *dSI = NULL;
+
+      if (data_stream_parser_parse() == FAILED)
+        return FAILED;
+
+      dSI = _data_stream_parser_find_label(tmp_def->string, s_dsp_file_name_id, s_dsp_line_number);
+      if (dSI != NULL) {
+        if (dSI->section_id < 0) {
+          /* a label outside .SECTIONs */
+
+          if (_remember_converted_stack_item(s) == FAILED)
+            return FAILED;
+          
+          s->type = STACK_ITEM_TYPE_VALUE;
+          s->value = g_slots[dSI->slot].address + dSI->address;
+        }
+        else {
+          /* a label inside a .SECTION - is the .SECTION of type FORCE/OVERWRITE? */
+          struct section_def *section = g_sections_first;
+          
+          while (section != NULL) {
+            if (section->id == dSI->section_id)
+              break;
+            section = section->next;
+          }
+
+          if (section != NULL && (section->status == SECTION_STATUS_FORCE || section->status == SECTION_STATUS_OVERWRITE)) {
+            if (_remember_converted_stack_item(s) == FAILED)
+              return FAILED;
+            
+            s->type = STACK_ITEM_TYPE_VALUE;
+            s->value = g_slots[section->slot].address + dSI->address;
+          }
+          else {
+            /* wla cannot resolve freely floating address labels -> only wlalink can do that */
+            *cannot_resolve = 1;
+            strcpy(s->string, tmp_def->string);
+          }
+        }
+      }
+      else {
+        /* wla cannot resolve freely floating address labels -> only wlalink can do that */
+        *cannot_resolve = 1;
+        strcpy(s->string, tmp_def->string);
+      }
     }
     else {
       s->type = STACK_ITEM_TYPE_VALUE;

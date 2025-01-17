@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------------
 
-v10.7 (02-Dec-2024) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
+v10.7 (17-Jan-2025) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
                       calls.
                     [ALL] Listfile creation for library files should now work.
                     [ALL] If an object file contained only .SECTIONs in ROM
@@ -13,6 +13,9 @@ v10.7 (02-Dec-2024) [ALL] Prefixed by a hashtag didn't propagate though nested .
                     [ALL] BANKS for .SECTION can now be a string definition.
                     [ALL] Quoted string arguments can be used in .MACROs to replace
                       e.g., registers on lines with instructions.
+                    [ALL] A label outside .SECTIONs or inside FORCE or OVERWRITE
+                      .SECTION given to a .MACRO can now be used in calculations as
+                      long it has been defined earlier lexically.
                     [68k] Added alias SP for register a7.
                     [68k] BCLR, BSET and BTST used wrong range [1, 8] / [1, 32] for
                       bits, fixed to [0, 7] / [0, 31].

@@ -106,3 +106,41 @@ label_3 .DB 4, 5
         .DB 1, 2, 3, 4
         .DB "<06"
         .ENDS
+
+        .MACRO BeginProc
+        .ENDM
+
+        .MACRO EndProc ARGS procName
+          .IF procName > $FFFF
+            rtl
+          .ELSE
+            rts
+          .ENDIF
+        .ENDM
+
+        .MACRO EndProc2 ARGS procName
+          EndProc procName
+        .ENDM
+        
+testFunc1:
+        BeginProc
+        .db "07>"               ; @BT TEST-07 07 START
+        lda #43                 ; @BT A9 2B
+        EndProc testFunc1       ; @BT 60
+        .db "<07"               ; @BT END
+
+testFunc2:
+        BeginProc
+        .db "08>"               ; @BT TEST-08 08 START
+        lda #43                 ; @BT A9 2B
+        EndProc2 testFunc2      ; @BT 60
+        .db "<08"               ; @BT END
+        
+        .SECTION "FORCED" FORCE
+testFunc3:
+        BeginProc
+        .db "09>"               ; @BT TEST-09 09 START
+        lda #44                 ; @BT A9 2C
+        EndProc testFunc3       ; @BT 60
+        .db "<09"               ; @BT END
+        .ENDS
