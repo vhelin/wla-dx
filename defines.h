@@ -898,6 +898,7 @@ struct data_stream_item {
   int  address;
   int  bank;
   int  slot;
+  int  base;
   struct data_stream_item *next;
 };
 

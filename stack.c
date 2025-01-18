@@ -49,7 +49,7 @@ static struct stack_item *s_converted_stack_items[64];
 static struct stack_item *s_converted_stack_items_backups = NULL;
 
 static int _resolve_string(struct stack_item *s, int *cannot_resolve);
-
+#define WLA_DEBUG 1
 
 PROFILE_GLOBALS_EXTERN();
 
@@ -3006,7 +3006,10 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
             return FAILED;
           
           s->type = STACK_ITEM_TYPE_VALUE;
-          s->value = g_slots[dSI->slot].address + dSI->address;
+          if (dSI->base > 0)
+            s->value = (dSI->base << 16) | (g_slots[dSI->slot].address + dSI->address);
+          else
+            s->value = g_slots[dSI->slot].address + dSI->address;
         }
         else {
           /* a label inside a .SECTION - is the .SECTION of type FORCE/OVERWRITE? */
@@ -3023,7 +3026,10 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
               return FAILED;
             
             s->type = STACK_ITEM_TYPE_VALUE;
-            s->value = g_slots[section->slot].address + dSI->address;
+            if (section->base > 0)
+              s->value = (section->base << 16) | (g_slots[section->slot].address + section->address);
+            else
+              s->value = g_slots[section->slot].address + section->address;
           }
           else {
             /* wla cannot resolve freely floating address labels -> only wlalink can do that */
@@ -4358,7 +4364,7 @@ extern FILE *g_file_out_ptr;
 
 /* internal variables for data_stream_parser_parse(), saved here so that the function can continue next time it's called from
    where it left off previous call */
-static int s_dsp_last_data_stream_position = 0, s_dsp_has_data_stream_parser_been_initialized = NO;
+static int s_dsp_last_data_stream_position = 0, s_dsp_has_data_stream_parser_been_initialized = NO, s_dsp_base = -1;
 static int s_dsp_add = 0, s_dsp_add_old = 0, s_dsp_section_id = -1, s_dsp_bits_current = 0, s_dsp_inz;
 static int s_dstruct_start, s_dstruct_item_offset, s_dstruct_item_size, s_dsp_bank = 0, s_dsp_slot = 0;
 static struct section_def *s_dsp_s = NULL;
@@ -4595,7 +4601,7 @@ int data_stream_parser_parse(void) {
       continue;
         
     case 'b':
-      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      err = fscanf(g_file_out_ptr, "%d ", &s_dsp_base);
       if (err < 1)
         return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       continue;
@@ -4822,6 +4828,7 @@ int data_stream_parser_parse(void) {
           dSI->section_id = s_dsp_section_id;
           dSI->bank = s_dsp_bank;
           dSI->slot = s_dsp_slot;
+          dSI->base = s_dsp_base;
 
           /* store the entry in a hashmap for quick discovery */
           if (hashmap_put(s_dsp_labels_map, dSI->label, dSI) == MAP_OMEM) {

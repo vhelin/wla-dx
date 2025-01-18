@@ -144,3 +144,18 @@ testFunc3:
         EndProc testFunc3       ; @BT 60
         .db "<09"               ; @BT END
         .ENDS
+
+        .db "10>"               ; @BT TEST-10 10 START
+        .dw testFunc1           ; @BT 27 01
+        .db "<10"               ; @BT END
+
+        .BANK 2 SLOT 1
+        .ORG 0
+        
+testFunc4:
+        BeginProc
+        .db "11>"               ; @BT TEST-11 11 START
+        lda #45                 ; @BT A9 2D
+        EndProc2 testFunc2      ; @BT 60
+        .dw testFunc4           ; @BT 00 20
+        .db "<11"               ; @BT END
