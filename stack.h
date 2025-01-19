@@ -26,6 +26,8 @@ int does_stack_contain_one_label(int id);
 /* TODO: move these to their own file */
 int data_stream_parser_free(void);
 int data_stream_parser_parse(void);
+int data_stream_parser_get_current_bank(void);
+int data_stream_parser_get_current_base(void);
 struct section_def *data_stream_parser_get_current_section(void);
 int data_stream_parser_get_current_address(void);
 

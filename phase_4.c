@@ -3181,10 +3181,10 @@ int show_project_information_library(void) {
 
 int find_label(char *str, struct section_def *s, struct label_def **out) {
 
-  char* str2;
-  char* stripped;
   char prefix[MAX_NAME_LENGTH*2+2];
   struct label_def *l = NULL;
+  char* stripped;
+  char* str2;
   int i;
 
   str2 = strchr(str, '.');

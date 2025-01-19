@@ -70,11 +70,11 @@ int g_rambanks = 0, g_rambanks_defined = 0;
 int g_emptyfill = 0, g_emptyfill_defined = 0;
 int g_section_status = OFF, g_section_id = 1;
 int g_parsed_int, g_source_index, g_ifdef = 0, g_slots_amount = 0;
-int g_memorymap_defined = 0;
+int g_memorymap_defined = 0, g_bank = 0, g_base = -1;
 int g_banksize_defined = 0, g_banksize = 0;
 int g_rombankmap_defined = 0, *g_banks = NULL, *g_bankaddress = NULL;
 int g_bankheader_status = OFF;
-int g_macro_active = 0;
+int g_macro_active = 0, g_current_slot = 0;
 int g_smc_defined = 0;
 int g_asciitable_defined = 0;
 int g_saved_structures_count = 0;
@@ -151,9 +151,9 @@ extern int g_makefile_rules, g_makefile_skip_file_handling, g_parsing_function_b
 extern int create_tmp_file(FILE **);
 
 static int s_macro_stack_size = 0, s_repeat_stack_size = 0;
-static int s_bank = 0, s_bank_defined = 1, s_line_count_status = ON;
+static int s_bank_defined = 1, s_line_count_status = ON;
 static int s_block_status = 0, s_block_name_id = 0, s_parse_dstruct_result;
-static int s_dstruct_status = OFF, s_current_slot = 0;
+static int s_dstruct_status = OFF;
 static int s_enumid_defined = 0, s_enumid = 0, s_enumid_adder = 1, s_enumid_export = 0;
 static int s_repeat_active = 0, s_saved_structures_max = 0, s_skip_elifs[256];
 
@@ -2596,8 +2596,8 @@ int directive_orga(void) {
 
   g_org_defined = 1;
 
-  current_slot_address = g_slots[s_current_slot].address;
-  if (g_parsed_int < current_slot_address || g_parsed_int > (current_slot_address + g_slots[s_current_slot].size)) {
+  current_slot_address = g_slots[g_current_slot].address;
+  if (g_parsed_int < current_slot_address || g_parsed_int > (current_slot_address + g_slots[g_current_slot].size)) {
     print_error(ERROR_DIR, ".ORGA is outside the current SLOT.\n");
     return FAILED;
   }
@@ -2648,9 +2648,9 @@ int directive_slot(void) {
     return FAILED;
   }
 
-  fprintf(g_file_out_ptr, "B%d %d ", s_bank, g_parsed_int);
+  fprintf(g_file_out_ptr, "B%d %d ", g_bank, g_parsed_int);
 
-  s_current_slot = g_parsed_int;
+  g_current_slot = g_parsed_int;
 
   return SUCCEEDED;
 }
@@ -2689,7 +2689,7 @@ int directive_bank(void) {
     return FAILED;
   }
 
-  s_bank = g_parsed_int;
+  g_bank = g_parsed_int;
   s_bank_defined = 1;
 
   if (compare_next_token("SLOT") == SUCCEEDED) {
@@ -2720,17 +2720,17 @@ int directive_bank(void) {
     }
 
     if (g_output_format != OUTPUT_LIBRARY)
-      fprintf(g_file_out_ptr, "B%d %d ", s_bank, g_parsed_int);
+      fprintf(g_file_out_ptr, "B%d %d ", g_bank, g_parsed_int);
 
-    bank = s_bank;
+    bank = g_bank;
     slot = g_parsed_int;
-    s_current_slot = g_parsed_int;
+    g_current_slot = g_parsed_int;
   }
   else {
     fprintf(g_file_out_ptr, "B%d %d ", g_parsed_int, s_defaultslot);
     bank = g_parsed_int;
     slot = s_defaultslot;
-    s_current_slot = s_defaultslot;
+    g_current_slot = s_defaultslot;
   }
 
   if (g_slots[slot].size < g_banks[bank]) {
@@ -5426,8 +5426,8 @@ int directive_section(void) {
       
     g_sec_next = g_sections_first;
     while (g_sec_next != NULL) {
-      if (g_sec_next->name[0] == 'B' && strcmp(g_sec_next->name, g_tmp) == 0 && g_sec_next->bank == s_bank) {
-        print_error(ERROR_DIR, "BANKHEADER section was defined for the second time for bank %d.\n", s_bank);
+      if (g_sec_next->name[0] == 'B' && strcmp(g_sec_next->name, g_tmp) == 0 && g_sec_next->bank == g_bank) {
+        print_error(ERROR_DIR, "BANKHEADER section was defined for the second time for bank %d.\n", g_bank);
         free(g_sec_tmp);
         return FAILED;
       }
@@ -5449,7 +5449,6 @@ int directive_section(void) {
   strcpy(g_sec_tmp->name, g_tmp);
   g_sec_tmp->next = NULL;
   g_sec_tmp->status = SECTION_STATUS_FREE;
-
   g_sec_tmp->label_map = hashmap_new();
 
   if (g_sections_first == NULL) {
@@ -5907,9 +5906,9 @@ int directive_section(void) {
   g_sec_tmp->alive = YES;
   g_sec_tmp->filename_id = g_active_file_info_last->filename_id;
   if (g_sec_tmp->bank < 0)
-    g_sec_tmp->bank = s_bank;
+    g_sec_tmp->bank = g_bank;
   if (g_sec_tmp->slot < 0)
-    g_sec_tmp->slot = s_current_slot;
+    g_sec_tmp->slot = g_current_slot;
   g_section_status = ON;
 
   fprintf(g_file_out_ptr, "S%d ", g_sec_tmp->id);
@@ -7895,6 +7894,8 @@ int directive_function(void) {
       strcmp("hiword", g_label) == 0 ||
       strcmp("bankbyte", g_label) == 0 ||
       strcmp("bank", g_label) == 0 ||
+      strcmp("base", g_label) == 0 ||
+      strcmp("slot", g_label) == 0 ||
       strcmp("round", g_label) == 0 ||
       strcmp("ceil", g_label) == 0 ||
       strcmp("floor", g_label) == 0 ||
@@ -11093,6 +11094,7 @@ int parse_directive(void) {
         }
 
         fprintf(g_file_out_ptr, "b%d ", g_parsed_int);
+        g_base = g_parsed_int;
 
         return SUCCEEDED;
       }

@@ -23,8 +23,9 @@ asc()      Uses ``.ASCIITABLE`` to map the supplied value
 asin()     The same as ANSI C90 asin()
 atan()     The same as ANSI C90 atan()
 atan2()    The same as ANSI C90 atan2()
-bank()     Returns the bank (the same as preceding ``:``)
-bankbyte() Returns the bank byte, bits 16-23
+bank()     Returns the bank of the supplied label (the same as preceding ``:``) or current bank if no arguments
+bankbyte() Returns the current bank byte, bits 16-23 or bank byte of the supplied label
+base()     Returns the base of the supplied label or current base if no arguments
 ceil()     The same as ANSI C90 ceil()
 clamp()    Takes three arguments, value, min and max, clamps the value between min and max
 cos()      The same as ANSI C90 cos()
@@ -46,6 +47,7 @@ round()    The same as ANSI C99 round()
 sign()     Return 0 if the supplied value is 0, -1 if negative and 1 if positive
 sin()      The same as ANSI C90 sin()
 sinh()     The same as ANSI C90 sinh()
+slot()     Returns the current slot
 sqrt()     Returns the square root of the supplied value
 tan()      The same as ANSI C90 tan()
 tanh()     The same as ANSI C90 tanh()
@@ -62,11 +64,17 @@ Here's an example about how these functions can be used ::
 
     .IF defined(USE_DEBUG) && defined(DEBUG_SHOW) && min(VALUE_A, VALUE_B) > 10
   
-    LDX #loword(CPU_ADDR)           ; instead of (CPU_ADDR & $00FFFF)
-    LDA #bankbyte(CPU_ADDR)         ; instead of :CPU_ADDR
+    LDX #lobyte(playMusic)          ; instead of (playMusic & $FF)
+    LDA #bank(playMusic)            ; instead of :playMusic
     .DB random(0, 10)               ; defines a byte with value 0-10
 
     .ENDIF
 
 NOTE: random() needs immediate min and max values.
 
+NOTE: If you use e.g., bank(label) inside an .IF then the current bank for the label
+is given. If WLALINK e.g., changes the label's .SECTION's bank for some reason
+(e.g., the .SECTION is relocated) then .IF is not calculated correctly.
+
+NOTE: bank(), bankbyte(), base() and slot() without arguments use the information
+the assembler knows, not the linker.

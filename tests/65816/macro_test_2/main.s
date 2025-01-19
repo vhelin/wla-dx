@@ -245,7 +245,7 @@ label_\2:
         .ENDM
         
         .MACRO EndProc ARGS procName
-          .IF procName > $FFFF
+          .IF bankbyte(procName) >= 3
             rtl
           .ELSE
             rts
@@ -260,6 +260,10 @@ label_\2:
         .ORG $1000
         .BASE 0
 
+        .print "---------------------------------------------------------------------\n"
+        .print "---                       BANKBYTE()                              ---\n"
+        .print "---------------------------------------------------------------------\n"
+        
 testFunc1:
         BeginProc
         .db "22>"               ; @BT TEST-22 22 START
@@ -278,12 +282,13 @@ testFunc2:
         EndProc2 testFunc2      ; @BT 6B
         .db "<23"               ; @BT END
 
-        .SECTION "FORCED" FORCE BASE 1
+        .SECTION "FORCED1" FORCE BASE 2
 testFunc3:
         BeginProc
         .db "24>"               ; @BT TEST-24 24 START
         lda #44                 ; @BT A9 2C
         EndProc testFunc3       ; @BT 6B
+        .db bankbyte(testFunc3) ; @BT 04
         .db "<24"               ; @BT END
         .ENDS
 
@@ -296,5 +301,16 @@ testFunc4:
         .db "26>"               ; @BT TEST-26 26 START
         lda #45                 ; @BT A9 2D
         EndProc2 testFunc2      ; @BT 6B
-        .dl testFunc4           ; @BT 1B 80 03
+        .dl testFunc4           ; @BT 1C 80 03
         .db "<26"               ; @BT END
+
+        .db "27>"                   ; @BT TEST-27 27 START
+        .db bankbyte()              ; @BT 03
+        .db slot()                  ; @BT 01
+        .section "FORCED2" FORCE BASE 2 SLOT 0
+        .db base()                  ; @BT 02
+        .db bankbyte() + slot() + 1 ; @BT 05
+        .ends
+        .db base() - slot()         ; @BT 00
+        .db "<27"                   ; @BT END
+        
