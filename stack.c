@@ -479,7 +479,7 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
       else if (value == SI_OP_POW)
         print_text(YES, "pow(a,b)");
       else if (value == SI_OP_CLAMP)
-        print_text(YES, "pow(v,min,max)");
+        print_text(YES, "clamp(v,min,max)");
       else if (value == SI_OP_SIGN)
         print_text(YES, "sign(a)");
       else {

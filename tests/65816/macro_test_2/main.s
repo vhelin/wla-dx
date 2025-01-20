@@ -308,9 +308,12 @@ testFunc4:
         .db bankbyte()              ; @BT 03
         .db slot()                  ; @BT 01
         .section "FORCED2" FORCE BASE 2 SLOT 0
+bankbyte4:      
         .db base()                  ; @BT 02
         .db bankbyte() + slot() + 1 ; @BT 05
         .ends
         .db base() - slot()         ; @BT 00
+        .db bankbyte(bankbyte4) != bankbyte() ; @BT 01
+        .db bankbyte(testFunc4) != bankbyte() ; @BT 00
         .db "<27"                   ; @BT END
         
