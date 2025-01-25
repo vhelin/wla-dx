@@ -2446,9 +2446,21 @@ To enable only local label isolation use the keyword ``ISOLATELOCAL`` instead of
 Note that there is an alternative way of defining a ``.MACRO``::
 
     .macro DBSUMOFTWOVALUES(v1,v2) isolated
-    .db v1+v2
+      .db v1+v2
     .endm
 
+To let the ``.MACRO`` create child labels to the latest label defined before
+the ``.MACRO`` is called, use ``CHILDLABELS``::
+
+           .macro extras childlabels
+    child: nop
+           .endm
+
+    parent:
+           extras
+
+The example will create labels ``parent`` and ``parent@child``
+  
 This is not a compulsory directive.
 
 

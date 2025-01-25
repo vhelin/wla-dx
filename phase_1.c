@@ -74,7 +74,7 @@ int g_memorymap_defined = 0, g_bank = 0, g_base = -1;
 int g_banksize_defined = 0, g_banksize = 0;
 int g_rombankmap_defined = 0, *g_banks = NULL, *g_bankaddress = NULL;
 int g_bankheader_status = OFF;
-int g_macro_active = 0, g_current_slot = 0;
+int g_macro_active = 0, g_current_slot = 0, g_current_child_label_level = 0;
 int g_smc_defined = 0;
 int g_asciitable_defined = 0;
 int g_saved_structures_count = 0;
@@ -423,6 +423,7 @@ static int _macro_start(struct macro_static *m, struct macro_runtime *mrt, int c
   mrt->macro_return_i = g_source_index;
   mrt->macro_return_line = g_active_file_info_last->line_current;
   mrt->macro_return_filename_id = g_active_file_info_last->filename_id;
+  mrt->child_label_level = g_current_child_label_level;
 
   if ((g_extra_definitions == ON) && (g_active_file_info_last->filename_id != m->filename_id)) {
     redefine("WLA_FILENAME", 0.0, get_file_name(m->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(m->filename_id)));
@@ -1004,6 +1005,35 @@ static int _run_macro_replacements(void) {
 }
 
 
+int process_label_inside_macro(void) {
+
+  struct macro_runtime *rt;
+  struct macro_static *st;
+  int f;
+    
+  rt = &g_macro_stack[g_macro_active - 1];
+  st = rt->macro;
+
+  if (st->child_labels == YES) {
+    char new_label[MAX_NAME_LENGTH + 1];
+
+    /* prefix the label with enough @s */
+    for (f = 0; f < rt->child_label_level + 1; f++)
+      new_label[f] = '@';
+          
+    strcpy(&new_label[f], g_tmp);
+    strcpy(g_tmp, new_label);
+  }
+
+  if (should_we_add_namespace() == YES) {
+    if (add_namespace_to_a_label(g_tmp, g_sizeof_g_tmp, YES) == FAILED)
+      return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
 int phase_1(void) {
 
   struct macro_runtime *mrt;
@@ -1131,10 +1161,8 @@ int phase_1(void) {
           }
 
           if (g_macro_active != 0) {
-            if (should_we_add_namespace() == YES) {
-              if (add_namespace_to_a_label(g_tmp, g_sizeof_g_tmp, YES) == FAILED)
-                return FAILED;
-            }
+            if (process_label_inside_macro() == FAILED)
+              return FAILED;
           }
 
           if (add_label_to_label_stack(g_tmp) == FAILED)
@@ -9113,6 +9141,7 @@ int directive_macro(void) {
   m->argument_names = NULL;
   m->isolated_local = NO;
   m->isolated_unnamed = NO;
+  m->child_labels = NO;
   m->id = g_macro_id++;
 
   if (g_is_file_isolated_counter > 0) {
@@ -9135,28 +9164,28 @@ int directive_macro(void) {
   while (1) {
     int got_some = NO;
     
-    /* is ISOLATED defined? */
     if (compare_next_token("ISOLATED") == SUCCEEDED) {
       skip_next_token();
       got_some = YES;
       m->isolated_local = YES;
       m->isolated_unnamed = YES;
     }
-
-    /* is ISOLATELOCAL defined? */
-    if (compare_next_token("ISOLATELOCAL") == SUCCEEDED) {
+    else if (compare_next_token("ISOLATELOCAL") == SUCCEEDED) {
       skip_next_token();
       got_some = YES;
       m->isolated_local = YES;
     }
-
-    /* is ISOLATEUNNAMED defined? */
-    if (compare_next_token("ISOLATEUNNAMED") == SUCCEEDED) {
+    else if (compare_next_token("ISOLATEUNNAMED") == SUCCEEDED) {
       skip_next_token();
       got_some = YES;
       m->isolated_unnamed = YES;
     }
-
+    else if (compare_next_token("CHILDLABELS") == SUCCEEDED) {
+      skip_next_token();
+      got_some = YES;
+      m->child_labels = YES;
+    }
+    
     if (got_some == NO)
       break;
   }
@@ -9330,6 +9359,9 @@ int directive_endm(void) {
 
     /* macro call end */
     fprintf(g_file_out_ptr, "I%d %s ", g_macro_stack[g_macro_active].macro->id, g_macro_stack[g_macro_active].macro->name);
+
+    if (g_macro_stack[g_macro_active].macro->child_labels == YES)
+      g_current_child_label_level = g_macro_stack[g_macro_active].child_label_level;
     
     /* free the arguments */
     if (g_macro_stack[g_macro_active].supplied_arguments > 0) {
@@ -13087,6 +13119,10 @@ int add_label_to_label_stack(char *l) {
   int level = 0, q;
   struct definition *tmp_def;
 
+  /* skip anonymous labels */
+  if (is_label_anonymous(l) == SUCCEEDED)
+    return SUCCEEDED;
+
   if (_is_a_reserved_label(l) == YES)
     return FAILED;
 
@@ -13097,11 +13133,7 @@ int add_label_to_label_stack(char *l) {
     return FAILED;
   }
   
-  /* skip anonymous labels */
-  if (is_label_anonymous(l) == SUCCEEDED)
-    return SUCCEEDED;
-
-  for (q = 0; q < MAX_NAME_LENGTH; q++) {
+  for (q = 0; q < MAX_NAME_LENGTH && l[q] != 0; q++) {
     if (l[q] == '@')
       level++;
     else
@@ -13121,6 +13153,8 @@ int add_label_to_label_stack(char *l) {
   else
     strcpy(g_label_stack[level], &l[level-1]);
 
+  g_current_child_label_level = level;
+  
   /*
     print_text(NO, "*************************************\n");
     print_text(NO, "LABEL STACK:\n");

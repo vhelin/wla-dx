@@ -621,6 +621,35 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
         .db "<25"               ; @BT END
         .ends
 
+        .macro apples1 CHILDLABELS
+child1_1   nop
+@child1_2  nop
+@@child1_3 nop
+        .endm
+
+        .macro apples2 CHILDLABELS
+child2_1:   nop
+@child2_2:  nop
+@@child2_3: nop
+          apples1
+        .endm
+
+        .macro apples3
+child3_1   nop
+@child3_2  nop
+@@child3_3 nop
+          apples1
+        .endm
+        
+parent  apples2
+        apples1
+        apples3
+@child:
+
+        .dw parent@child1_1
+        .dw parent@child2_1@child2_2@child2_3@child1_1
+        .dw child3_1@child3_2@child3_3@child1_1@child1_2
+        
         .db "26>"               ; @BT TEST-26 26 START
         .db is("insidesection") ; @BT 00
         .db is("insidesection") == 0 ; @BT 01
