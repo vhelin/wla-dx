@@ -317,3 +317,16 @@ bankbyte4:
         .db bankbyte(testFunc4) != bankbyte() ; @BT 00
         .db "<27"                   ; @BT END
         
+
+        .MACRO KeyToSound ARGS offs
+@keyToSound{\@+1}:
+        nop
+@@noKey:
+        nop
+@@done:
+        .ENDM
+
+macroCall:
+        KeyToSound 1
+        KeyToSound 2
+        

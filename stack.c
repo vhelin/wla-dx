@@ -776,6 +776,156 @@ static int _parse_function_random(char *in, int *result, int *parsed_chars) {
 }
 
 
+static int _parse_function_is(char *in, int *result, int *parsed_chars) {
+
+  int res, old_expect = g_expect_calculations, source_index_original = g_source_index, source_index_backup;
+  
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_index for input_number() */
+
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
+
+  g_expect_calculations = NO;
+  res = input_number();
+  g_expect_calculations = old_expect;
+
+  if (res != INPUT_NUMBER_STRING) {
+    print_error(ERROR_NUM, "is() requires a quoted string.\n");
+    return FAILED;
+  }
+  
+  if (g_buffer[g_source_index] != ')') {
+    print_error(ERROR_NUM, "Malformed \"is(?)\" detected!\n");
+    return FAILED;
+  }
+
+  /* skip ')' */
+  g_source_index++;
+
+  /* count the parsed chars */
+  *parsed_chars = (int)(g_source_index - source_index_backup);
+
+  /* return g_source_index */
+  g_source_index = source_index_original;
+
+  if (strcaselesscmp(g_label, "insidesection") == 0) {
+    if (g_section_status == ON)
+      *result = 1;
+    else
+      *result = 0;
+  }
+  else {
+    print_error(ERROR_NUM, "Unknown string \"%s\" to \"is(?)\"!\n", g_label);
+    return FAILED;
+  }
+  
+  return SUCCEEDED;
+}
+
+
+static int _parse_function_get(char *in, struct stack_item *si, int *parsed_chars) {
+
+  int res, old_expect = g_expect_calculations, source_index_original = g_source_index, source_index_backup;
+  
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_index for input_number() */
+
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
+
+  g_expect_calculations = NO;
+  res = input_number();
+  g_expect_calculations = old_expect;
+
+  if (res != INPUT_NUMBER_STRING) {
+    print_error(ERROR_NUM, "get() requires a quoted string.\n");
+    return FAILED;
+  }
+  
+  if (g_buffer[g_source_index] != ')') {
+    print_error(ERROR_NUM, "Malformed \"get(?)\" detected!\n");
+    return FAILED;
+  }
+
+  /* skip ')' */
+  g_source_index++;
+
+  /* count the parsed chars */
+  *parsed_chars = (int)(g_source_index - source_index_backup);
+
+  /* return g_source_index */
+  g_source_index = source_index_original;
+
+  if (strcaselesscmpn(g_label, "section.", 8) == 0) {
+    if (g_section_status == OFF) {
+      print_error(ERROR_NUM, "No .SECTION is open!\n");
+      return FAILED;
+    }
+  }
+
+  si->sign = SI_SIGN_POSITIVE;
+  si->type = STACK_ITEM_TYPE_VALUE;
+
+  if (strcaselesscmp(g_label, "section.priority") == 0) {
+    si->value = g_sec_tmp->priority;
+    return SUCCEEDED;
+  }
+  else if (strcaselesscmp(g_label, "section.offset") == 0) {
+    si->value = g_sec_tmp->offset;
+    return SUCCEEDED;
+  }
+  else if (strcaselesscmp(g_label, "section.alignment") == 0) {
+    si->value = g_sec_tmp->alignment;
+    return SUCCEEDED;
+  }
+  
+  si->type = STACK_ITEM_TYPE_STRING;
+
+  if (strcaselesscmp(g_label, "section.name") == 0) {
+    strcpy(si->string, g_sec_tmp->name);
+    return SUCCEEDED;
+  }
+  else if (strcaselesscmp(g_label, "section.type") == 0) {
+    if (g_sec_tmp->status == SECTION_STATUS_FREE)
+      strcpy(si->string, "FREE");
+    else if (g_sec_tmp->status == SECTION_STATUS_FORCE)
+      strcpy(si->string, "FORCE");
+    else if (g_sec_tmp->status == SECTION_STATUS_OVERWRITE)
+      strcpy(si->string, "OVERWRITE");
+    else if (g_sec_tmp->status == SECTION_STATUS_HEADER)
+      strcpy(si->string, "HEADER");
+    else if (g_sec_tmp->status == SECTION_STATUS_SEMIFREE)
+      strcpy(si->string, "SEMIFREE");
+    else if (g_sec_tmp->status == SECTION_STATUS_ABSOLUTE)
+      strcpy(si->string, "ABSOLUTE");
+    else if (g_sec_tmp->status == SECTION_STATUS_RAM_FREE)
+      strcpy(si->string, "RAM_FREE");
+    else if (g_sec_tmp->status == SECTION_STATUS_SUPERFREE)
+      strcpy(si->string, "SUPERFREE");
+    else if (g_sec_tmp->status == SECTION_STATUS_SEMISUBFREE)
+      strcpy(si->string, "SEMISUBFREE");
+    else if (g_sec_tmp->status == SECTION_STATUS_RAM_FORCE)
+      strcpy(si->string, "RAM_FORCE");
+    else if (g_sec_tmp->status == SECTION_STATUS_RAM_SEMIFREE)
+      strcpy(si->string, "RAM_SEMIFREE");
+    else if (g_sec_tmp->status == SECTION_STATUS_RAM_SEMISUBFREE)
+      strcpy(si->string, "RAM_SEMISUBFREE");
+    else if (g_sec_tmp->status == SECTION_STATUS_SEMISUPERFREE)
+      strcpy(si->string, "SEMISUPERFREE");
+    else {
+      print_error(ERROR_NUM, "Undefined .SECTION type %d -> please send a bug report!\n", g_sec_tmp->status);
+      return FAILED;
+    }
+
+    return SUCCEEDED;
+  }
+
+  print_error(ERROR_NUM, "Unknown string \"%s\" to \"get(?)\"!\n", g_label);
+  return FAILED;
+}
+
+
 static int _parse_function_defined(char *in, int *result, int *parsed_chars) {
 
   int res, old_expect = g_expect_calculations, source_index_original = g_source_index, source_index_backup;
@@ -2198,6 +2348,15 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_already_processed_function = YES;
           break;
         }
+        else if (k == 3 && strcaselesscmpn(si[q].string, "get(", 4) == 0) {
+          int parsed_chars = 0;
+          
+          if (_parse_function_get(in, &si[q], &parsed_chars) == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_already_processed_function = YES;
+          break;
+        }
         else if (k == 8 && strcaselesscmpn(si[q].string, "bankbyte(", 9) == 0) {
           if (*in == ')') {
             int bankbyte = g_bank;
@@ -2325,6 +2484,15 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           int parsed_chars = 0;
           
           if (_parse_function_defined(in, &d, &parsed_chars) == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_label = NO;
+          break;
+        }
+        else if (k == 2 && strcaselesscmpn(si[q].string, "is(", 3) == 0) {
+          int parsed_chars = 0;
+          
+          if (_parse_function_is(in, &d, &parsed_chars) == FAILED)
             return FAILED;
           in += parsed_chars;
           is_label = NO;

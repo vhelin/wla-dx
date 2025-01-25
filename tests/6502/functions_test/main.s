@@ -619,6 +619,19 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
                                 ; @BT 06 02 06 06 06 00 06 0C 06 01 06 06 06 06 06 0C 06 06 06 06 06 0C 06 02 06 06 06 00 06 0C 06 01 06 06 06 06 06 0C 06 06 06 06 06 0C 06 08
         
         .db "<25"               ; @BT END
-        
         .ends
-        
+
+        .db "26>"               ; @BT TEST-26 26 START
+        .db is("insidesection") ; @BT 00
+        .db is("insidesection") == 0 ; @BT 01
+        .section "INSIDE" FORCE PRIORITY 7 OFFSET 2 ALIGN 4
+        .db is("InsideSection") ; @BT 01
+        .db is("InsideSection") == 0    ; @BT 00
+        .db get("section.priority")     ; @BT 07
+        .db 1+get("section.priority")+1 ; @BT 09
+        .db get("section.name") == "OUTSIDE" ; @BT 00
+        .db get("section.name") == "INSIDE"  ; @BT 01
+        .db get("section.offset")            ; @BT 02
+        .db get("section.alignment")         ; @BT 04
+        .ends
+        .db "<26"               ; @BT END
