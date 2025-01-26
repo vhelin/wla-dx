@@ -1090,7 +1090,7 @@ int evaluate_token(void) {
     }
 
     if (g_macro_active != 0) {
-      if (process_label_inside_macro() == FAILED)
+      if (process_label_inside_macro(YES, g_tmp, g_sizeof_g_tmp) == FAILED)
         return FAILED;
     }
       

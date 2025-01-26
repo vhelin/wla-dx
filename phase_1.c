@@ -1005,11 +1005,11 @@ static int _run_macro_replacements(void) {
 }
 
 
-int process_label_inside_macro(void) {
+int process_label_inside_macro(int add_namespace, char *buffer, int sizeof_buffer) {
 
   struct macro_runtime *rt;
   struct macro_static *st;
-  int f;
+  int f, start = 0;
     
   rt = &g_macro_stack[g_macro_active - 1];
   st = rt->macro;
@@ -1020,13 +1020,17 @@ int process_label_inside_macro(void) {
     /* prefix the label with enough @s */
     for (f = 0; f < rt->child_label_level + 1; f++)
       new_label[f] = '@';
-          
-    strcpy(&new_label[f], g_tmp);
-    strcpy(g_tmp, new_label);
+
+    /* skip initial '?' ? */
+    if (buffer[0] == '?')
+      start = 1;
+    
+    strcpy(&new_label[f], &buffer[start]);
+    strcpy(buffer, new_label);
   }
 
-  if (should_we_add_namespace() == YES) {
-    if (add_namespace_to_a_label(g_tmp, g_sizeof_g_tmp, YES) == FAILED)
+  if (add_namespace == YES && should_we_add_namespace() == YES) {
+    if (add_namespace_to_a_label(buffer, sizeof_buffer, YES) == FAILED)
       return FAILED;
   }
 
@@ -1161,7 +1165,7 @@ int phase_1(void) {
           }
 
           if (g_macro_active != 0) {
-            if (process_label_inside_macro() == FAILED)
+            if (process_label_inside_macro(YES, g_tmp, g_sizeof_g_tmp) == FAILED)
               return FAILED;
           }
 

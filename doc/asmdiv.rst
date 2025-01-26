@@ -2454,12 +2454,16 @@ the ``.MACRO`` is called, use ``CHILDLABELS``::
 
            .macro extras childlabels
     child: nop
+    @granchild:
+           jp ?@granchild
            .endm
 
     parent:
            extras
 
-The example will create labels ``parent`` and ``parent@child``
+The example will create labels ``parent``, ``parent@child`` and ``parent@child@granchild``.
+Note that if you want to reference these labels inside the ``.MACRO`` you'll need to
+prefix the labels with a ``?``.
   
 This is not a compulsory directive.
 

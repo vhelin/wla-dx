@@ -2610,6 +2610,11 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         if (from_substitutor == NO && expand_variables_inside_string(si[q].string, sizeof(((struct stack_item *)0)->string), NULL) == FAILED)
           return FAILED;
 
+        if (g_macro_active != 0) {
+          if (process_label_inside_macro(NO, si[q].string, sizeof(si[q].string)) == FAILED)
+            return FAILED;
+        }
+        
         /* label reference inside a namespaced .MACRO? */
         if (g_is_file_isolated_counter > 0 || g_force_add_namespace == YES) {
           if (add_namespace_to_a_label(si[q].string, sizeof(si[q].string), YES) == FAILED)

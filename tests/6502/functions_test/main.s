@@ -623,21 +623,21 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
 
         .macro apples1 CHILDLABELS
 child1_1   nop
-@child1_2  nop
-@@child1_3 nop
+@child1_2  .dw ?child1_1
+@@child1_3 .dw ?@child1_2+1
         .endm
 
         .macro apples2 CHILDLABELS
 child2_1:   nop
 @child2_2:  nop
-@@child2_3: nop
+@@child2_3: .dw ?child2_1
           apples1
         .endm
 
         .macro apples3
 child3_1   nop
 @child3_2  nop
-@@child3_3 nop
+@@child3_3 .dw @@child3_3
           apples1
         .endm
         

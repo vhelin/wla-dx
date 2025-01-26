@@ -1475,6 +1475,12 @@ int input_number(void) {
   if (expand_variables_inside_string(g_label, sizeof(g_label), &k) == FAILED)
     return FAILED;
 
+  if (g_macro_active > 0 && g_label[0] == '?') {
+    /* CHILDLABELS .MACRO and local reference! */
+    if (process_label_inside_macro(NO, g_label, sizeof(g_label)) == FAILED)
+        return FAILED;
+  }
+  
   if (should_we_add_namespace() == YES) {
     if (add_namespace_to_a_label(g_label, sizeof(g_label), YES) == FAILED)
       return FAILED;
@@ -1519,7 +1525,7 @@ int input_number(void) {
   }
 
   process_special_labels(g_label);
-  
+
   return INPUT_NUMBER_ADDRESS_LABEL;
 }
 

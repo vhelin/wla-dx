@@ -18,7 +18,7 @@ int localize_path(char *path);
 int verify_name_length(char *name);
 int is_reserved_definition(char *t);
 int strcaselesscmp(char *s1, char *s2);
-int process_label_inside_macro(void);
+int process_label_inside_macro(int add_namespace, char *buffer, int sizeof_buffer);
 
 void generate_label(char *header, char *footer);
 void reset_label_stack(void);
