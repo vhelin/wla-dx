@@ -2610,7 +2610,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         if (from_substitutor == NO && expand_variables_inside_string(si[q].string, sizeof(((struct stack_item *)0)->string), NULL) == FAILED)
           return FAILED;
 
-        if (g_macro_active != 0) {
+        if (g_macro_active != 0 && si[q].string[0] == '?') {
           if (process_label_inside_macro(NO, si[q].string, sizeof(si[q].string)) == FAILED)
             return FAILED;
         }
