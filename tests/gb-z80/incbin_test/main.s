@@ -196,3 +196,13 @@
 
         .export readSizeA, readSizeB, readSize6, readSize4
         
+
+        .db "08>"               ; @BT TEST-08 08 START
+        .include "subfolder/subfolder.i"  ; @BT 02 01
+        .incdir "subfolder"
+        .include "subfolder.i"  ; @BT 02 02
+        .include "common.i"     ; @BT 02
+        .incdir ""
+        .include "common.i"     ; @BT 01
+        .db "<08"               ; @BT END
+        

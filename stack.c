@@ -2611,6 +2611,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           return FAILED;
 
         if (g_macro_active != 0 && si[q].string[0] == '?') {
+          /* CHILDLABELS .MACRO and local reference! */
           if (process_label_inside_macro(NO, si[q].string, sizeof(si[q].string)) == FAILED)
             return FAILED;
         }

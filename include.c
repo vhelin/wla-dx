@@ -31,6 +31,7 @@ struct incbin_file_data *g_incbin_file_data_first = NULL, *g_ifd_tmp;
 struct active_file_info *g_active_file_info_first = NULL, *g_active_file_info_last = NULL, *g_active_file_info_tmp = NULL;
 struct file_name_info *g_file_name_info_first = NULL, *g_file_name_info_last = NULL, *g_file_name_info_tmp;
 char *g_include_in_tmp = NULL, *g_tmp_a = NULL, *g_full_name = NULL, *g_include_dir = NULL, *g_buffer = NULL;
+char g_latest_include_dir[MAX_NAME_LENGTH + 1];
 int g_include_in_tmp_size = 0, g_tmp_a_size = 0, g_open_files = 0;
 int g_include_dir_size = 0, g_source_file_size = 0;
 
@@ -75,9 +76,10 @@ int create_full_name(char *dir, char *name) {
 }
 
 
-static int _try_open_file(char* directory, char* partial_name, FILE** out_result) {
+static int _try_open_file(char *directory, char *partial_name, FILE **out_result) {
 
-  int error_code = create_full_name(directory, partial_name);
+  int i, len, error_code = create_full_name(directory, partial_name);
+
   if (error_code != SUCCEEDED)
     return error_code;
   
@@ -85,11 +87,27 @@ static int _try_open_file(char* directory, char* partial_name, FILE** out_result
   if (*out_result == NULL)
     return FAILED;
 
+  /* remember the latest successful directory */
+  g_latest_include_dir[0] = 0;
+
+  len = (int)strlen(g_full_name) - 1;
+  while (len >= 0) {
+    if (g_full_name[len] == '/' || g_full_name[len] == '\\')
+      break;
+    len--;
+  }
+
+  if (len >= 0) {
+    for (i = 0; i <= len; i++)
+      g_latest_include_dir[i] = g_full_name[i];
+    g_latest_include_dir[i] = 0;
+  }
+  
   return SUCCEEDED;
 }
 
 
-static void _print_find_error(char* name) {
+static void _print_find_error(char *name) {
 
   int index;
 
@@ -238,7 +256,7 @@ int include_file(char *name, int *include_size, char *namespace) {
 
   /* read the whole file into a buffer */
   if (fread(g_include_in_tmp, 1, file_size, f) != (size_t)file_size) {
-    print_error(ERROR_INC, "Could not read all %d bytes of \"%s\"!", file_size, g_full_name);
+    print_error(ERROR_INC, "Could not read all %d bytes of \"%s\"!\n", file_size, g_full_name);
     return FAILED;
   }
 
@@ -374,7 +392,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       free(ifd);
       free(n);
       free(in_tmp);
-      print_error(ERROR_INC, "Could not read all %d bytes of \"%s\"!", file_size, g_full_name);
+      print_error(ERROR_INC, "Could not read all %d bytes of \"%s\"!\n", file_size, g_full_name);
       return FAILED;
     }
 

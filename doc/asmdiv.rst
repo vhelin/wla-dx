@@ -2128,6 +2128,10 @@ included only once, use the keyword ``ONCE``::
 
     .INCLUDE "include_one.s" NAMESPACE "once" ONCE
   
+To use the latest directory we've used to ``.INCLUDE`` a file, issue ``RELATIVE``::
+
+    .INCLUDE "common.i" RELATIVE
+  
 This is not a compulsory directive.
 
 

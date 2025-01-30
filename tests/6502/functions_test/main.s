@@ -631,14 +631,14 @@ child1_1   nop
 child2_1:   .db 1 << shift
 @child2_2:  nop
 @@child2_3: .dw ?child2_1
-          apples1
+            apples1
         .endm
 
         .macro apples3 args shift
-child3_1:       .db (1 << shift)
+child3_1:  .db (1 << shift)
 @child3_2  nop
 @@child3_3 .dw @@child3_3
-          apples1
+           apples1
         .endm
         
 parent  apples2 2

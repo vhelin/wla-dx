@@ -131,7 +131,7 @@ struct string *g_fopen_filenames_first = NULL, *g_fopen_filenames_last = NULL;
 struct function *g_functions_first = NULL, *g_functions_last = NULL;
 struct namespace *g_namespaces_first = NULL;
 
-extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name;
+extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name, g_latest_include_dir[MAX_NAME_LENGTH + 1];
 extern int g_source_file_size, g_input_number_error_msg, g_verbose_level, g_output_format, g_open_files, g_input_parse_if;
 extern int g_last_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations, g_input_parse_special_chars;
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type, g_dsp_enable_label_address_conversion;
@@ -4669,7 +4669,7 @@ int directive_include(int is_real) {
 
   while (1) {
     if (compare_next_token("NAMESPACE") == SUCCEEDED || compare_next_token("ONCE") == SUCCEEDED ||
-        compare_next_token("ISOLATED") == SUCCEEDED)
+        compare_next_token("ISOLATED") == SUCCEEDED || compare_next_token("RELATIVE") == SUCCEEDED)
       break;
 
     g_expect_calculations = NO;
@@ -4734,6 +4734,20 @@ int directive_include(int is_real) {
 
       if (g_is_file_isolated_counter == 0)
         g_is_file_isolated_counter++;
+    }
+    else if (compare_next_token("RELATIVE") == SUCCEEDED) {
+      char tmp[MAX_NAME_LENGTH + 1];
+      
+      skip_next_token();
+
+      strcpy(tmp, g_latest_include_dir);
+      for (o = (int)strlen(path) - 1; o >= 0; o--) {
+        if (path[o] == '/' || path[o] == '\\')
+          break;
+      }
+      o++;
+      strcpy(&tmp[(int)strlen(tmp)], &path[o]);
+      strcpy(path, tmp);
     }
     else
       break;
