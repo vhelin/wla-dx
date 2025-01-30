@@ -19,7 +19,7 @@ v10.7 (30-Jan-2025) [ALL] Prefixed by a hashtag didn't propagate though nested .
                     [ALL] Added parameterless versions of bankbyte(), base(), slot()
 	              and bank(). bankbyte(label) and bank(label) can be used in .IFs.
                     [ALL] Added built-in functions is() and get().
-                    [ALL] Added RELATIVE to .INCLUDE.
+                    [ALL] Added LATESTDIR to .INCLUDE.
                     [68k] Added alias SP for register a7.
                     [68k] BCLR, BSET and BTST used wrong range [1, 8] / [1, 32] for
                       bits, fixed to [0, 7] / [0, 31].

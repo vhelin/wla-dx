@@ -4645,6 +4645,16 @@ static int _is_namespace_valid(char *name) {
 }
 
 
+static void _use_dir(char *directory, char *path) {
+
+  char tmp[MAX_NAME_LENGTH + 1];
+
+  strcpy(tmp, directory);
+  strcpy(&tmp[(int)strlen(tmp)], path);
+  strcpy(path, tmp);
+}
+
+
 int directive_include(int is_real) {
 
   int o, include_size = 0, accumulated_name_length = 0, character_c_position = 0, got_once = NO;
@@ -4669,7 +4679,8 @@ int directive_include(int is_real) {
 
   while (1) {
     if (compare_next_token("NAMESPACE") == SUCCEEDED || compare_next_token("ONCE") == SUCCEEDED ||
-        compare_next_token("ISOLATED") == SUCCEEDED || compare_next_token("RELATIVE") == SUCCEEDED)
+        compare_next_token("ISOLATED") == SUCCEEDED || compare_next_token("LATESTDIR") == SUCCEEDED ||
+        compare_next_token("RELATIVEDIR") == SUCCEEDED)
       break;
 
     g_expect_calculations = NO;
@@ -4735,19 +4746,25 @@ int directive_include(int is_real) {
       if (g_is_file_isolated_counter == 0)
         g_is_file_isolated_counter++;
     }
-    else if (compare_next_token("RELATIVE") == SUCCEEDED) {
-      char tmp[MAX_NAME_LENGTH + 1];
-      
+    else if (compare_next_token("LATESTDIR") == SUCCEEDED) {
       skip_next_token();
 
-      strcpy(tmp, g_latest_include_dir);
-      for (o = (int)strlen(path) - 1; o >= 0; o--) {
-        if (path[o] == '/' || path[o] == '\\')
+      _use_dir(g_latest_include_dir, path);
+    }
+    else if (compare_next_token("RELATIVEDIR") == SUCCEEDED) {
+      char tmp[MAX_NAME_LENGTH + 1], *full_path = get_file_name(g_active_file_info_last->filename_id);
+
+      skip_next_token();
+
+      for (o = (int)strlen(full_path) - 1; o >= 0; o--) {
+        if (full_path[o] == '/' || full_path[o] == '\\')
           break;
       }
       o++;
-      strcpy(&tmp[(int)strlen(tmp)], &path[o]);
-      strcpy(path, tmp);
+      strncpy(tmp, full_path, o);
+      tmp[o] = 0;
+
+      _use_dir(tmp, path);
     }
     else
       break;
