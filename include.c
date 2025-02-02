@@ -130,10 +130,22 @@ static void _print_find_error(char *name) {
 }
 
 
-int find_file(char *name, FILE **f) {
+int find_file(char *name, FILE **f, int is_full_path) {
 
   int index;
 
+  if (is_full_path == YES) {
+    create_full_name(NULL, name);
+    
+    (*f) = fopen(name, "rb");
+    if (*f != NULL)
+      return SUCCEEDED;
+
+    _print_find_error(name);
+
+    return FAILED;
+  }
+  
   if (g_use_incdir == YES) {
     /* check all external include directories first */
     for (index = 0; index < g_ext_incdirs.count; index++) {
@@ -173,13 +185,13 @@ int find_file(char *name, FILE **f) {
 }
 
 
-int include_file(char *name, int *include_size, char *namespace) {
+int include_file(char *name, int *include_size, char *namespace, int is_full_path) {
 
   int file_size, id, change_file_buffer_size, size, isolation_counter, i;
   char *tmp_b, *n, change_file_buffer[MAX_NAME_LENGTH * 2];
   FILE *f = NULL;
 
-  int error_code = find_file(name, &f);
+  int error_code = find_file(name, &f, is_full_path);
   if (error_code != SUCCEEDED)
     return error_code;
 
@@ -342,12 +354,132 @@ int include_file(char *name, int *include_size, char *namespace) {
 
 int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct macro_static **macro, int *filter_size) {
 
+  char *in_tmp, *n, freadsize_label[MAX_NAME_LENGTH + 1], fsize_label[MAX_NAME_LENGTH + 1];
+  int file_size = 0, q, error_code, is_full_path = NO;
   struct incbin_file_data *ifd;
-  char *in_tmp, *n, freadsize_label[MAX_NAME_LENGTH + 1];
-  int file_size = 0, q, error_code;
   FILE *f = NULL;
 
-  error_code = find_file(name, &f);
+  *skip = 0;
+  *read = 0;
+  *swap = 0;
+  *macro = NULL;
+  *filter_size = 1;
+  freadsize_label[0] = 0;
+  fsize_label[0] = 0;
+
+  while (1) {
+    /* SKIP bytes? */
+    if (compare_next_token("SKIP") == SUCCEEDED) {
+      skip_next_token();
+
+      if (input_number() != SUCCEEDED) {
+        print_error(ERROR_DIR, ".INCBIN needs the amount of skipped bytes.\n");
+        return FAILED;
+      }
+
+      *skip = g_parsed_int;
+    }
+    /* READ bytes? */
+    else if (compare_next_token("READ") == SUCCEEDED) {
+      skip_next_token();
+
+      if (input_number() != SUCCEEDED) {
+        print_error(ERROR_DIR, ".INCBIN needs the amount of bytes for reading.\n");
+        return FAILED;
+      }
+
+      if (g_parsed_int == 0) {
+        print_error(ERROR_DIR, "READ must be positive or negative, 0 doesn't make sense.\n");
+        return FAILED;
+      }
+
+      *read = g_parsed_int;
+    }
+    /* FILTERSIZE bytes? */
+    else if (compare_next_token("FILTERSIZE") == SUCCEEDED) {
+      skip_next_token();
+
+      if (input_number() != SUCCEEDED) {
+        print_error(ERROR_DIR, ".INCBIN needs the amount of bytes for FILTERSIZE.\n");
+        return FAILED;
+      }
+
+      if (g_parsed_int < 1 || g_parsed_int > 4) {
+        print_error(ERROR_DIR, "FILTERSIZE must be 1, 2, 3 or 4.\n");
+        return FAILED;
+      }
+
+      *filter_size = g_parsed_int;
+    }
+    /* SWAP bytes? */
+    else if (compare_next_token("SWAP") == SUCCEEDED) {
+      skip_next_token();
+      *swap = 1;
+    }
+    /* FREADSIZE? */
+    else if (compare_next_token("FREADSIZE") == SUCCEEDED) {
+      skip_next_token();
+
+      /* get the definition label */
+      if (get_next_plain_string() == FAILED)
+        return FAILED;
+
+      strcpy(freadsize_label, g_label);
+    }
+    /* FSIZE? */
+    else if (compare_next_token("FSIZE") == SUCCEEDED) {
+      skip_next_token();
+
+      /* get the definition label */
+      if (get_next_plain_string() == FAILED)
+        return FAILED;
+
+      strcpy(fsize_label, g_label);
+    }
+    /* FILTER? */
+    else if (compare_next_token("FILTER") == SUCCEEDED) {
+      skip_next_token();
+
+      /* get the filter macro name */
+      if (get_next_plain_string() == FAILED)
+        return FAILED;
+
+      if (g_is_file_isolated_counter <= 0) {
+        if (macro_get(g_label, YES, macro) == FAILED)
+          return FAILED;
+      }
+      else {
+        if (macro_get(g_label, NO, macro) == FAILED)
+          return FAILED;
+      }
+      
+      if (*macro == NULL) {
+        print_error(ERROR_INB, "No MACRO \"%s\" defined.\n", g_label);
+        return FAILED;
+      }
+    }
+    else if (compare_next_token("LATESTDIR") == SUCCEEDED) {
+      skip_next_token();
+
+      use_dir(g_latest_include_dir, name);
+
+      is_full_path = YES;
+    }
+    else if (compare_next_token("RELATIVEDIR") == SUCCEEDED) {
+      char tmp[MAX_NAME_LENGTH + 1], *full_path = get_file_name(g_active_file_info_last->filename_id);
+
+      skip_next_token();
+
+      get_dir(full_path, tmp);
+      use_dir(tmp, name);
+
+      is_full_path = YES;
+    }
+    else
+      break;
+  }
+  
+  error_code = find_file(name, &f, is_full_path);
   if (error_code != SUCCEEDED)
     return error_code;
 
@@ -388,7 +520,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
     }
 
     /* read the whole file into a buffer */
-    if (fread(in_tmp, 1, file_size, f) != (size_t) file_size) {
+    if (fread(in_tmp, 1, file_size, f) != (size_t)file_size) {
       free(ifd);
       free(n);
       free(in_tmp);
@@ -423,110 +555,14 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
   }
 
   *id = q;
-  *skip = 0;
-  *read = 0;
-  *swap = 0;
-  *macro = NULL;
-  *filter_size = 1;
-  freadsize_label[0] = 0;
-  
-  while (1) {
-    /* SKIP bytes? */
-    if (compare_next_token("SKIP") == SUCCEEDED) {
-      skip_next_token();
-      if (input_number() != SUCCEEDED) {
-        print_error(ERROR_DIR, ".INCBIN needs the amount of skipped bytes.\n");
-        return FAILED;
-      }
 
-      *skip = g_parsed_int;
-
-      if (g_parsed_int >= file_size && g_makefile_skip_file_handling == NO) {
-        print_error(ERROR_INB, "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", g_parsed_int, file_size, g_full_name);
-        return FAILED;
-      }
-    }
-    /* READ bytes? */
-    else if (compare_next_token("READ") == SUCCEEDED) {
-      skip_next_token();
-      if (input_number() != SUCCEEDED) {
-        print_error(ERROR_DIR, ".INCBIN needs the amount of bytes for reading.\n");
-        return FAILED;
-      }
-
-      if (g_parsed_int == 0) {
-        print_error(ERROR_DIR, "READ must be positive or negative, 0 doesn't make sense.\n");
-        return FAILED;
-      }
-
-      *read = g_parsed_int;
-    }
-    /* FILTERSIZE bytes? */
-    else if (compare_next_token("FILTERSIZE") == SUCCEEDED) {
-      skip_next_token();
-      if (input_number() != SUCCEEDED) {
-        print_error(ERROR_DIR, ".INCBIN needs the amount of bytes for FILTERSIZE.\n");
-        return FAILED;
-      }
-
-      if (g_parsed_int < 1 || g_parsed_int > 4) {
-        print_error(ERROR_DIR, "FILTERSIZE must be 1, 2, 3 or 4.\n");
-        return FAILED;
-      }
-
-      *filter_size = g_parsed_int;
-    }
-    /* SWAP bytes? */
-    else if (compare_next_token("SWAP") == SUCCEEDED) {
-      skip_next_token();
-      *swap = 1;
-    }
-    /* FREADSIZE? */
-    else if (compare_next_token("FREADSIZE") == SUCCEEDED) {
-      skip_next_token();
-
-      /* get the definition label */
-      if (get_next_plain_string() == FAILED)
-        return FAILED;
-
-      strcpy(freadsize_label, g_label);
-    }
-    /* FSIZE? */
-    else if (compare_next_token("FSIZE") == SUCCEEDED) {
-      skip_next_token();
-
-      /* get the definition label */
-      if (get_next_plain_string() == FAILED)
-        return FAILED;
-
-      add_a_new_definition(g_label, (double)file_size, NULL, DEFINITION_TYPE_VALUE, 0);
-    }
-    /* FILTER? */
-    else if (compare_next_token("FILTER") == SUCCEEDED) {
-      skip_next_token();
-
-      /* get the filter macro name */
-      if (get_next_plain_string() == FAILED)
-        return FAILED;
-
-      if (g_is_file_isolated_counter <= 0) {
-        if (macro_get(g_label, YES, macro) == FAILED)
-          return FAILED;
-      }
-      else {
-        if (macro_get(g_label, NO, macro) == FAILED)
-          return FAILED;
-      }
-      
-      if (*macro == NULL) {
-        print_error(ERROR_INB, "No MACRO \"%s\" defined.\n", g_label);
-        return FAILED;
-      }
-    }
-    else
-      break;
+  if (*skip >= file_size && g_makefile_skip_file_handling == NO) {
+    print_error(ERROR_INB, "SKIP value (%d) is more than the size (%d) of file \"%s\".\n", *skip, file_size, g_full_name);
+    return FAILED;
   }
-
+  if (fsize_label[0] != 0)
+    add_a_new_definition(fsize_label, (double)file_size, NULL, DEFINITION_TYPE_VALUE, 0);
+  
   if (g_makefile_skip_file_handling == YES) {
     /* if in test mode, fake the data to be enough to read */
     if (*read < 0)

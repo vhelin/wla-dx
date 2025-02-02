@@ -195,7 +195,8 @@
         .db "<06"               ; @BT END
 
         .export readSizeA, readSizeB, readSize6, readSize4
-        
+
+        .org $300
 
         .db "08>"               ; @BT TEST-08 08 START
         .include "subfolder/subfolder.i"  ; @BT 02 01
@@ -205,4 +206,30 @@
         .incdir ""
         .include "common.i"     ; @BT 01
         .db "<08"               ; @BT END
+
+        .db "09>"               ; @BT TEST-09 09 START
+        .incbin "data.bin" RELATIVEDIR ; @BT 50 51 52 53
+        .incdir ""
+        .incbin "data.bin"      ; @BT 50 51 52 53
+        .incbin "data.bin" LATESTDIR ; @BT 50 51 52 53
+        .incbin "data.bin" LATESTDIR SWAP ; @BT 51 50 53 52
+        .incbin "data.bin" RELATIVEDIR ; @BT 50 51 52 53
+        .incbin "data.bin" RELATIVEDIR SWAP ; @BT 51 50 53 52
+        .incdir "binaries"
+        .incbin "data.bin" LATESTDIR ; @BT 50 51 52 53
+        .incbin "data.bin" LATESTDIR SWAP ; @BT 51 50 53 52
+        .incbin "data.bin" RELATIVEDIR ; @BT 50 51 52 53
+        .incbin "data.bin" RELATIVEDIR SWAP ; @BT 51 50 53 52
+        .include "data.s"                   ; @BT 01
+        .incbin "data.bin" LATESTDIR ; @BT 30 31 32 33
+        .incbin "data.bin" LATESTDIR SWAP ; @BT 31 30 33 32
+        .incbin "data.bin" RELATIVEDIR ; @BT 50 51 52 53
+        .incbin "data.bin" RELATIVEDIR SWAP ; @BT 51 50 53 52
+        .incdir ""
+        .incbin "data.bin"      ; @BT 50 51 52 53
+        .incbin "data.bin" LATESTDIR ; @BT 50 51 52 53
+        .incbin "data.bin" LATESTDIR SWAP ; @BT 51 50 53 52
+        .incbin "data.bin" RELATIVEDIR ; @BT 50 51 52 53
+        .incbin "data.bin" RELATIVEDIR SWAP ; @BT 51 50 53 52
+        .db "<09"               ; @BT END
         

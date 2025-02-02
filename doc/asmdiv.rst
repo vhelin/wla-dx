@@ -2068,6 +2068,14 @@ in the current working directory. If the ``INCDIR`` is specified in the command
 line, WLA will first search for the file in that directory. If not found, it
 will then proceed as aforementioned.
 
+To use the latest directory we've used to ``.INCLUDE`` or ``.INCBIN`` a file, issue ``LATESTDIR``::
+
+    .INCBIN "rgb.bin" LATESTDIR
+
+To use the current file's directory, issue ``RELATIVEDIR``::
+
+    .INCBIN "rgb.bin" RELATIVEDIR
+
 This is not a compulsory directive.
 
 
@@ -2127,8 +2135,8 @@ If you are using the ``.INCLUDE`` inside a ``.MACRO`` and want to have the file
 included only once, use the keyword ``ONCE``::
 
     .INCLUDE "include_one.s" NAMESPACE "once" ONCE
-  
-To use the latest directory we've used to ``.INCLUDE`` a file, issue ``LATESTDIR``::
+
+To use the latest directory we've used to ``.INCLUDE`` or ``.INCBIN`` a file, issue ``LATESTDIR``::
 
     .INCLUDE "common.i" LATESTDIR
 

@@ -40,7 +40,7 @@
         ; @BT linked.gb
 
         .bank 0 slot 0
-        .org $1000
+        .org $1100
 
         .db "07>"               ; @BT TEST-07 07 START
         .db readSizeA           ; @BT 09

@@ -4645,7 +4645,7 @@ static int _is_namespace_valid(char *name) {
 }
 
 
-static void _use_dir(char *directory, char *path) {
+void use_dir(char *directory, char *path) {
 
   char tmp[MAX_NAME_LENGTH + 1];
 
@@ -4655,9 +4655,23 @@ static void _use_dir(char *directory, char *path) {
 }
 
 
+void get_dir(char *full_path, char *tmp) {
+
+  int o;
+      
+  for (o = (int)strlen(full_path) - 1; o >= 0; o--) {
+    if (full_path[o] == '/' || full_path[o] == '\\')
+      break;
+  }
+  o++;
+  strncpy(tmp, full_path, o);
+  tmp[o] = 0;
+}
+
+
 int directive_include(int is_real) {
 
-  int o, include_size = 0, accumulated_name_length = 0, character_c_position = 0, got_once = NO;
+  int o, include_size = 0, accumulated_name_length = 0, character_c_position = 0, got_once = NO, is_full_path = NO;
   char namespace[MAX_NAME_LENGTH + 1], path[MAX_NAME_LENGTH + 1], accumulated_name[MAX_NAME_LENGTH + 1];
 
   if (is_real == YES) {
@@ -4749,22 +4763,19 @@ int directive_include(int is_real) {
     else if (compare_next_token("LATESTDIR") == SUCCEEDED) {
       skip_next_token();
 
-      _use_dir(g_latest_include_dir, path);
+      use_dir(g_latest_include_dir, path);
+
+      is_full_path = YES;
     }
     else if (compare_next_token("RELATIVEDIR") == SUCCEEDED) {
       char tmp[MAX_NAME_LENGTH + 1], *full_path = get_file_name(g_active_file_info_last->filename_id);
 
       skip_next_token();
 
-      for (o = (int)strlen(full_path) - 1; o >= 0; o--) {
-        if (full_path[o] == '/' || full_path[o] == '\\')
-          break;
-      }
-      o++;
-      strncpy(tmp, full_path, o);
-      tmp[o] = 0;
+      get_dir(full_path, tmp);
+      use_dir(tmp, path);
 
-      _use_dir(tmp, path);
+      is_full_path = YES;
     }
     else
       break;
@@ -4775,7 +4786,7 @@ int directive_include(int is_real) {
     strcpy(namespace, g_active_file_info_last->namespace);
   
   if (is_real == YES) {
-    if (include_file(path, &include_size, namespace) == FAILED)
+    if (include_file(path, &include_size, namespace, is_full_path) == FAILED)
       return FAILED;
   
     /* WARNING: this is tricky: did we just include a file inside a macro? */
@@ -4817,8 +4828,9 @@ int directive_include(int is_real) {
 
 int directive_incbin(void) {
 
-  struct macro_static *macro;
   int skip, read, j, o, id, swap, filter_size;
+  char tmp[MAX_NAME_LENGTH + 1];
+  struct macro_static *macro;
 
   if (g_org_defined == 0 && g_output_format != OUTPUT_LIBRARY) {
     print_error(ERROR_LOG, "Before you can .INCBIN data you'll need to use ORG.\n");
@@ -4838,8 +4850,9 @@ int directive_incbin(void) {
 
   /* convert the path string to local enviroment */
   localize_path(g_label);
+  strcpy(tmp, g_label);
 
-  if (incbin_file(g_label, &id, &swap, &skip, &read, &macro, &filter_size) == FAILED)
+  if (incbin_file(tmp, &id, &swap, &skip, &read, &macro, &filter_size) == FAILED)
     return FAILED;
   
   if (macro == NULL) {
@@ -6114,7 +6127,7 @@ int directive_fopen(void) {
   strcpy(f->name, g_tmp);
 
   /* open the file */
-  o = find_file(f->filename, &(f->f));
+  o = find_file(f->filename, &(f->f), NO);
   if (f->f == NULL) {
     if (g_makefile_skip_file_handling == YES) {
       /* lets just use a tmp file for file operations */
