@@ -34,7 +34,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char s_version_string[] = "$VER: wla-" WLA_NAME " 10.7a (3.2.2025)";
+char s_version_string[] = "$VER: wla-" WLA_NAME " 10.7a (13.2.2025)";
 char s_wla_version[] = "10.7";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -62,7 +62,7 @@ extern struct string *g_fopen_filenames_first, *g_fopen_filenames_last;
 extern struct function *g_functions_first, *g_functions_last;
 extern struct namespace *g_namespaces_first;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024], g_latest_include_dir[MAX_NAME_LENGTH + 1];
-extern char *g_label_stack[256], *g_tmp, *g_global_listfile_cmds;
+extern char *g_label_stack[256], *g_tmp, *g_global_listfile_cmds, g_latest_label[MAX_NAME_LENGTH + 1];
 extern char *g_include_in_tmp, *g_tmp_a;
 extern char *g_rom_banks, *g_rom_banks_usage_table;
 extern char *g_include_dir, *g_buffer, *g_full_name;
@@ -1037,6 +1037,9 @@ int main(int argc, char *argv[]) {
 
   /* init include.c */
   g_latest_include_dir[0] = 0;
+
+  /* init phase_1.c */
+  g_latest_label[0] = 0;
   
   /* init hashmaps */
   g_defines_map = hashmap_new();

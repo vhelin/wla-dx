@@ -135,3 +135,20 @@ OVERWRITE_start:
 
         .assert SUM_ABC4(startend+1,1,2) == $200A
         .assert SUM_ABC4(startend+1,1+2,2+2) == SUM_ABC4(1+1,SUM_ABC4(0+0*2,startend+0+1,1+0+2),6-3-1)
+
+        .bank 2 slot 1
+        .org 0
+
+        .db "05>"               ; @BT TEST-05 05 START
+llabel1:.dw get("label.latest")   ; @BT 03 20
+        .dw 1+get("label.latest") ; @BT 04 20
+        .dw get("label.latest")+2 ; @BT 05 20
+llabel2:.dw get("label.latest")   ; @BT 09 20
+        .dw 1+get("label.latest") ; @BT 0A 20
+        .dw get("label.latest")+2 ; @BT 0B 20
+@child: .dw get("label.latest")   ; @BT 0F 20
+        .dw 1+get("label.latest") ; @BT 10 20
+        .dw get("label.latest")+2 ; @BT 11 20
+        .db "<05"               ; @BT END
+        
+        

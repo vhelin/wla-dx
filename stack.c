@@ -23,7 +23,7 @@
 
 extern int g_input_number_error_msg, g_bankheader_status, g_input_float_mode, g_global_label_hint, g_is_data_stream_parser_enabled;
 extern int g_source_index, g_source_file_size, g_parsed_int, g_macro_active, g_string_size, g_section_status, g_parse_floats;
-extern char *g_buffer, *g_tmp, g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1];
+extern char *g_buffer, *g_tmp, g_expanded_macro_string[256], g_label[MAX_NAME_LENGTH + 1], g_latest_label[MAX_NAME_LENGTH + 1];
 extern struct map_t *g_defines_map;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct macro_runtime *g_macro_runtime_current;
@@ -921,7 +921,15 @@ static int _parse_function_get(char *in, struct stack_item *si, int *parsed_char
     return SUCCEEDED;
   }
 
+  si->type = STACK_ITEM_TYPE_LABEL;
+  
+  if (strcaselesscmp(g_label, "label.latest") == 0) {
+    strcpy(si->string, g_latest_label);
+    return SUCCEEDED;
+  }
+  
   print_error(ERROR_NUM, "Unknown string \"%s\" to \"get(?)\"!\n", g_label);
+
   return FAILED;
 }
 
@@ -1528,7 +1536,7 @@ static int _get_bank_base_slot(struct stack_item *si, int bank, int base, int sl
 
 static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_substitutor, struct stack_item *si, struct stack_item *ta) {
 
-  int q = 0, b = 0, d, k, n, curly_braces = 0, got_label = NO, can_skip_newline = NO;
+  int q = 0, b = 0, d, k, n, curly_braces = 0, got_label = NO, got_get_label = NO, can_skip_newline = NO;
   unsigned char e, op[MAX_STACK_CALCULATOR_ITEMS], sign[MAX_STACK_CALCULATOR_ITEMS];
   double dou = 0.0, dom;
   char *in_original = in;
@@ -2354,7 +2362,14 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           if (_parse_function_get(in, &si[q], &parsed_chars) == FAILED)
             return FAILED;
           in += parsed_chars;
-          is_already_processed_function = YES;
+
+          if (si[q].type == STACK_ITEM_TYPE_LABEL) {
+            k = (int)strlen(si[q].string);
+            is_label = YES;
+            got_get_label = YES;
+          }
+          else
+            is_already_processed_function = YES;
           break;
         }
         else if (k == 8 && strcaselesscmpn(si[q].string, "bankbyte(", 9) == 0) {
@@ -2684,6 +2699,14 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         g_latest_stack = (int)si[0].value;
 
         return INPUT_NUMBER_STACK;
+      }
+      else if (got_get_label == YES && si[0].type == STACK_ITEM_TYPE_LABEL && si[0].sign == SI_SIGN_POSITIVE) {
+        *bytes_parsed += (int)(in - in_original) - 1;
+
+        strcpy(g_label, si[0].string);
+        process_special_labels(g_label);
+
+        return STACK_RETURN_LABEL;
       }
 
       return STACK_CALCULATE_DELAY;

@@ -98,7 +98,8 @@ Here are the supported keyword1s for get() ::
                                     ;   possible strings being "FREE", "FORCE", "OVERWRITE",
                                     ;   "HEADER", "SEMIFREE", "ABSOLUTE", "SUPERFREE",
                                     ;   "SEMISUBFREE" and "SEMISUPERFREE"
-
+    "label.latest"                  ; returns the latest defined label
+                                    
 Here are the supported keyword2s for is() ::
 
     "insidesection"                 ; is the parser at this point inside a .SECTION?

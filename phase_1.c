@@ -106,7 +106,7 @@ extern int g_input_number_expects_dot;
 int g_sizeof_g_tmp = 4096, g_global_listfile_items = 0, *g_global_listfile_ints = NULL;
 int g_romheader_baseaddress = -1, g_romheader_baseaddress_defined = 0;
 char *g_tmp = NULL, *g_global_listfile_cmds = NULL;
-char *g_label_stack[256];
+char *g_label_stack[256], g_latest_label[MAX_NAME_LENGTH + 1];
 char g_current_directive[MAX_NAME_LENGTH + 1];
 
 unsigned char *g_rom_banks = NULL, *g_rom_banks_usage_table = NULL;
@@ -13202,6 +13202,7 @@ int add_label_to_label_stack(char *l) {
     strcpy(g_label_stack[level], &l[level-1]);
 
   g_current_child_label_level = level;
+  strcpy(g_latest_label, l);
   
   /*
     print_text(NO, "*************************************\n");
