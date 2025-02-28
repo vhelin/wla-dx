@@ -46,6 +46,8 @@ log10(exp)             The same as ANSI C90 log10()
 loword(exp)            Returns the low word, bits 0-15
 max(exp1, exp2)        Returns the bigger value
 min(exp1, exp2)        Returns the smaller value
+org()                  Returns the current address since the start of the slot
+orga()                 Returns the current 16-bit memory address
 pow(base, power)       The same as ANSI C90 pow()
 random(min, max)       Returns a pseudo random integer like ``.DBRND`` [min, max]
 round(exp)             The same as ANSI C99 round()
@@ -72,6 +74,7 @@ Here's an example about how these functions can be used ::
     LDX #lobyte(playMusic)          ; instead of (playMusic & $FF)
     LDA #bank(playMusic)            ; instead of :playMusic
     .DB random(0, 10)               ; defines a byte with value 0-10
+    .DL (base() << 16) | orga()     ; defines the current 24-bit address
 
     .ENDIF
 

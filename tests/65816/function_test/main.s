@@ -601,6 +601,9 @@ _0x301:
 
         .db "30>"               ; @BT TEST-30 30 START
         .db sign(101.1)         ; @BT 01
+        .db sign(101.1)+1       ; @BT 02
+        .db 2+sign(101.1)       ; @BT 03
+        .db 2+sign(101.1)+1     ; @BT 04
         .db sign(-101.1)        ; @BT FF
         .db sign(0.0)           ; @BT 00
         .db sign(101.1-101)     ; @BT 01
@@ -658,4 +661,26 @@ _0x301:
         .db -clamp(-VALUE_15, VALUE_4-VALUE_3, VALUE_5-VALUE_3) ; @BT FF
         .db -clamp(VALUE_3, VALUE_4-VALUE_3, VALUE_4+VALUE_1)   ; @BT FD
         .db "<31"                ; @BT END
+
+        .bank 2 slot 1
+        .org 0
+
+        .db "32>"               ; @BT TEST-32 32 START
+        .dw orga()              ; @BT 03 80
+        .dw org()               ; @BT 05 00
+        .dw org() + orga()      ; @BT 0E 80
+        .dw orga()-1            ; @BT 08 80
+        .section "forceORG1" FORCE
+addd1:  .db 1                   ; @BT 01
+        .dw orga()              ; @BT 0C 80
+        .dw org()               ; @BT 0E 00
+        .ends
+        .section "forceORG2" FORCE ORG $10 BASE $C0
+addd2:  .db 2                   ; @BT 02
+        .dw orga()              ; @BT 11 80
+        .dw org()               ; @BT 13 00
+        .dl (base() << 16) | orga() ; @BT 15 80 C0
+        .ends
+        .dl (base() << 16) | orga() ; @BT 18 80 C0
+        .db "<32"               ; @BT END
         
