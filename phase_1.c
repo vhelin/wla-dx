@@ -7993,6 +7993,8 @@ int directive_function(void) {
       strcmp("sign", g_label) == 0 ||
       strcmp("is", g_label) == 0 ||
       strcmp("get", g_label) == 0 ||
+      strcmp("org", g_label) == 0 ||
+      strcmp("orga", g_label) == 0 ||      
       strcmp("abs", g_label) == 0) {
     print_error(ERROR_DIR, "You cannot redefine a built-in .FUNCTION \"%s\"!\n", g_label);
     return FAILED;
