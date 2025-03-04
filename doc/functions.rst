@@ -23,11 +23,11 @@ asc(exp)               Uses ``.ASCIITABLE`` to map the supplied value
 asin(exp)              The same as ANSI C90 asin()
 atan(exp)              The same as ANSI C90 atan()
 atan2(exp)             The same as ANSI C90 atan2()
-bank()                 Returns the current bank
+bank()                 Returns the current bank (*)
 bank(label)            Returns the bank of the supplied label (the same as preceding ``:``)
-bankbyte()             Returns the current bank byte, bits 16-23
+bankbyte()             Returns the current bank byte, bits 16-23 (*)
 bankbyte(label)        Returns the bank byte, bits 16-23, of the supplied label
-base()                 Returns current base
+base()                 Returns current base (*)
 base(label)            Returns the base of the supplied label
 ceil(exp)              The same as ANSI C90 ceil()
 clamp(value, min, max) Clamps the value between min and max
@@ -36,7 +36,7 @@ cosh(exp)              The same as ANSI C90 cosh()
 defined(definition)    Returns 1 (true) if the supplied definition exists, 0 (false) otherwise
 exists(path)           Returns 1 (true) if the supplied file exists, 0 (false) otherwise
 floor(exp)             The same as ANSI C90 floor()
-get(keyword1)
+get(keyword1)          Returns value/string depending on what ``keyword1`` is
 hibyte(exp)            Returns the high byte, bits 8-15 (the same as preceding ``>``)
 hiword(exp)            Returns the high word, bits 16-31
 is(keyword2)           Return 0 (false) or 1 (true), see below for "keyword2"
@@ -46,15 +46,15 @@ log10(exp)             The same as ANSI C90 log10()
 loword(exp)            Returns the low word, bits 0-15
 max(exp1, exp2)        Returns the bigger value
 min(exp1, exp2)        Returns the smaller value
-org()                  Returns the current address since the start of the slot
-orga()                 Returns the current 16-bit memory address
+org()                  Returns the current address since the start of the slot (*)
+orga()                 Returns the current 16-bit memory address (*)
 pow(base, power)       The same as ANSI C90 pow()
 random(min, max)       Returns a pseudo random integer like ``.DBRND`` [min, max]
 round(exp)             The same as ANSI C99 round()
 sign(exp)              Return 0 if the supplied value is 0, -1 if negative and 1 if positive
 sin(exp)               The same as ANSI C90 sin()
 sinh(exp)              The same as ANSI C90 sinh()
-slot()                 Returns the current slot
+slot()                 Returns the current slot (*)
 sqrt(exp)              Returns the square root of the supplied value
 tan(exp)               The same as ANSI C90 tan()
 tanh(exp)              The same as ANSI C90 tanh()
@@ -62,6 +62,9 @@ tanh(exp)              The same as ANSI C90 tanh()
 
 Note! Use bankbyte() with WLA-65816 as on that platform the bank (+ base) bits
 are 16-23. On other platforms bank() works better.
+
+Note! Functions marked with (*) are evaluated in the assembler, so if the linker relocates the
+code then these functions return possibly wrong values.
 
 
 Examples of functions
