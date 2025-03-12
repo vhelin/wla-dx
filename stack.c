@@ -1036,6 +1036,81 @@ static int _parse_function_exists(char *in, int *result, int *parsed_chars) {
 }
 
 
+static int _parse_function_substring(char *in, struct stack_item *si, int *parsed_chars) {
+
+  int i, j, res, old_expect = g_expect_calculations, source_index_original = g_source_index, source_index_backup, index, length;
+  char tmp[MAX_NAME_LENGTH + 1];
+  
+  /* NOTE! we assume that 'in' is actually '&g_buffer[xyz]', so
+     let's update g_source_index for input_number() */
+
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
+
+  /* string */
+  g_expect_calculations = NO;
+  res = input_number();
+
+  if (res != INPUT_NUMBER_ADDRESS_LABEL && res != INPUT_NUMBER_STRING) {
+    print_error(ERROR_NUM, "substring() requires a string to operate on.\n");
+    return FAILED;
+  }
+
+  strcpy(tmp, g_label);
+
+  /* index */
+  g_expect_calculations = YES;
+  res = input_number();
+  
+  if (res != SUCCEEDED) {
+    print_error(ERROR_NUM, "substring() requires index that can be solved right here.\n");
+    return FAILED;
+  }
+
+  index = g_parsed_int;
+  
+  /* length */
+  res = input_number();
+  g_expect_calculations = old_expect;
+
+  if (res != SUCCEEDED) {
+    print_error(ERROR_NUM, "substring() requires length that can be solved right here.\n");
+    return FAILED;
+  }
+
+  length = g_parsed_int;
+  
+  if (g_buffer[g_source_index] != ')') {
+    print_error(ERROR_NUM, "Malformed \"substring(?)\" detected!\n");
+    return FAILED;
+  }
+
+  /* skip ')' */
+  g_source_index++;
+
+  /* count the parsed chars */
+  *parsed_chars = (int)(g_source_index - source_index_backup);
+
+  /* return g_source_index */
+  g_source_index = source_index_original;
+
+  /* perform substring() */
+  si->sign = SI_SIGN_POSITIVE;
+  si->type = STACK_ITEM_TYPE_STRING;
+
+  for (j = 0, i = index; j < length; i++, j++) {
+    if (i < 0 || i >= (int)strlen(tmp)) {
+      print_error(ERROR_NUM, "Index %d is outside string \"%s\"!\n", i, tmp);
+      return FAILED;
+    }
+    si->string[j] = tmp[i];
+  }
+  si->string[j] = 0;
+  
+  return SUCCEEDED;
+}
+
+
 static int _parse_function_math1(char *in, int *type, double *value, char *string, int *parsed_chars, char *name) {
 
   int res, source_index_original = g_source_index, source_index_backup, input_float_mode = g_input_float_mode;
@@ -1826,7 +1901,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       can_skip_newline = YES;
       /* was previous token ')'? */
       if (q > 0 && si[q-1].type == STACK_ITEM_TYPE_OPERATOR && si[q-1].value == SI_OP_RIGHT)
-        break;      
+        break;
       q++;
       b++;
       in++;
@@ -2567,10 +2642,20 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           if (_parse_function_exists(in, &d, &parsed_chars) == FAILED)
             return FAILED;
           in += parsed_chars;
-          is_label = NO;          
+          is_label = NO;
           break;
         }
+        else if (k == 9 && strcaselesscmpn(si[q].string, "substring(", 10) == 0) {
+          int parsed_chars = 0;
 
+          if (_parse_function_substring(in, &si[q], &parsed_chars) == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_label = NO;
+          is_already_processed_function = YES;
+          break;
+        }
+        
         if (e == '(') {
           /* are we calling a user created function? */
           int found_function = NO, res, parsed_chars = 0;
@@ -2739,6 +2824,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
       return SUCCEEDED;
     }
+    
     if (from_substitutor == NO) {
       if (si[0].type == STACK_ITEM_TYPE_STACK) {
         /* update the source pointer */
@@ -2749,14 +2835,29 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         return INPUT_NUMBER_STACK;
       }
       else if (got_get_label == YES && si[0].type == STACK_ITEM_TYPE_LABEL && si[0].sign == SI_SIGN_POSITIVE) {
+        /* update the source pointer */
         *bytes_parsed += (int)(in - in_original) - 1;
 
         strcpy(g_label, si[0].string);
         process_special_labels(g_label);
+        g_string_size = (int)strlen(g_label);
 
         return STACK_RETURN_LABEL;
       }
+      else if (si[0].type == STACK_ITEM_TYPE_STRING && si[0].sign == SI_SIGN_POSITIVE) {
+        /* update the source pointer */
+        *bytes_parsed += (int)(in - in_original) - 1;
 
+        strcpy(g_label, si[0].string);
+        process_special_labels(g_label);
+        g_string_size = (int)strlen(g_label);
+
+#if defined(WLA_DEBUG)
+        print_text(NO, "RETURN STRING %s\n", g_label);
+#endif
+        return STACK_RETURN_STRING;
+      }
+  
       return STACK_CALCULATE_DELAY;
     }
   }
@@ -2984,7 +3085,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       }
     }
   }
-
+  
 #if defined(WLA_DEBUG)
   print_text(NO, "INFIX:\n");
   _debug_print_stack(g_active_file_info_last->line_current, -1, si, q, 0, NULL);

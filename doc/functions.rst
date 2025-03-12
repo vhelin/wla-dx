@@ -56,6 +56,7 @@ sin(exp)               The same as ANSI C90 sin()
 sinh(exp)              The same as ANSI C90 sinh()
 slot()                 Returns the current slot (*)
 sqrt(exp)              Returns the square root of the supplied value
+substring(s, ind, len) Returns a substring of ``s``, starting at index ``ind``, consisting of ``len`` characters
 tan(exp)               The same as ANSI C90 tan()
 tanh(exp)              The same as ANSI C90 tanh()
 ====================== ================================================================================

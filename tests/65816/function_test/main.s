@@ -684,3 +684,13 @@ addd2:  .db 2                   ; @BT 02
         .dl (base() << 16) | orga() ; @BT 18 80 C0
         .db "<32"               ; @BT END
         
+        .db "33>"               ; @BT TEST-33 33 START
+        .db substring("ABCDEFG", 2, 3) ; @BT 43 44 45
+        .db substring("ABCDEFG", 0+2, 4-1) ; @BT 43 44 45
+        .define STRING_ABCDEFG "ABCDEFG"
+        .define STRING_BCD substring(STRING_ABCDEFG, 1, 3)
+        .db substring(STRING_ABCDEFG, 2, 3) ; @BT 43 44 45
+        .db substring(STRING_ABCDEFG, 0+1*2, 4-1-1) ; @BT 43 44
+        .db substring(STRING_BCD, 1, 1)             ; @BT 43
+        .db "<33"               ; @BT END
+        

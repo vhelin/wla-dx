@@ -781,6 +781,16 @@ int input_number(void) {
         break;
       else if (ee == ' ')
         spaces++;
+      else if (ee == '"' && g_buffer[p-2] != '\\') {
+        /* skip quoted strings */
+        while (ee != 0x0A) {
+          ee = g_buffer[p++];
+          if (ee == '"' && g_buffer[p-2] != '\\')
+            break;
+        }
+        if (ee == 0x0A)
+          break;
+      }
       else if (curly_braces <= 0 && (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' || ee == '(' ||
                                      ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':' || ee == '!' || (ee == '=' && g_buffer[p] == '='))) {
         if (ee == ':' && spaces > 0)
@@ -798,8 +808,7 @@ int input_number(void) {
         else
           return p;
       }
-      ee = g_buffer[p];
-      p++;
+      ee = g_buffer[p++];
     }
   }
 
