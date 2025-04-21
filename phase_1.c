@@ -11020,7 +11020,7 @@ int directive_endr_continue(void) {
 
   if (rr->is_while == NO) {
     g_source_index = rr->start;
-    g_active_file_info_last->line_current = rr->start_line;
+    g_active_file_info_last->line_current = rr->start_line + 1;
     g_ifdef = rr->start_ifdef;
 
     /* roll past the count */
