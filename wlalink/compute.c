@@ -201,7 +201,6 @@ int compute_gb_complement_check(void) {
 
 int compute_smd_checksum(void) {
 
-  unsigned short int *rom = (unsigned short int *)g_rom;
   int checksum, j;
 
   if (g_romsize < 0x1000) {
@@ -209,10 +208,17 @@ int compute_smd_checksum(void) {
     return FAILED;
   }
 
+  if (g_romsize & 1) {
+    print_text(NO, "COMPUTE_SMD_CHECKSUM: SMD checksum computing requires a ROM of even length.\n");
+    return FAILED;
+  }
+
   checksum = 0;
 
-  for (j = 0x100; j < g_romsize/2; j++)
-    checksum += rom[j];
+  for (j = 0x200; j < g_romsize; j += 2) {
+    checksum += ((unsigned int)g_rom[j]) << 8;
+    checksum += g_rom[j+1];
+  }
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
   snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s", "Writing SMD ROM checksum bytes");
