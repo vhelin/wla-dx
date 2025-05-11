@@ -1,2 +1,2 @@
 linked.rom
-TEST_01 -a 398 START ff 00 END
+TEST_01 -a 398 START 00 fe END

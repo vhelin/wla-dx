@@ -201,7 +201,8 @@ int compute_gb_complement_check(void) {
 
 int compute_smd_checksum(void) {
 
-  int checksum, j;
+  unsigned int checksum;
+  int j;
 
   if (g_romsize < 0x1000) {
     print_text(NO, "COMPUTE_SMD_CHECKSUM: SMD checksum computing requires a ROM of at least 4KB.\n");
@@ -217,7 +218,7 @@ int compute_smd_checksum(void) {
 
   for (j = 0x200; j < g_romsize; j += 2) {
     checksum += ((unsigned int)g_rom[j]) << 8;
-    checksum += g_rom[j+1];
+    checksum += (unsigned int)g_rom[j+1];
   }
 
   /* create a what-we-are-doing message for mem_insert*() warnings/errors */
