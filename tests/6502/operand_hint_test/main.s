@@ -46,6 +46,8 @@ label:  lda #(label&$ff)                     ; @BT A9 32
         sta 1000.w                           ; @BT 8D E8 03
         and 10                               ; @BT 25 0A
         stx 1000.w                           ; @BT 8E E8 03
+        .define const 2
+        lda #const+1                         ; @BT A9 03
         .db "<03"                            ; @BT END
 .ENDS
 

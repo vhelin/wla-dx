@@ -4632,6 +4632,16 @@ static int _labels_compare(const void *a, const void *b) {
   const struct label *l1 = a;
   const struct label *l2 = b;
 
+  if (l1->section_status == OFF && l2->section_status == ON)
+    return 1;
+  if (l1->section_status == ON && l2->section_status == OFF)
+    return -1;
+  
+  if (l1->section > l2->section)
+    return 1;
+  else if (l1->section < l2->section)
+    return -1;
+
   if (l1->rom_address > l2->rom_address)
     return 1;
   else if (l1->rom_address < l2->rom_address)
