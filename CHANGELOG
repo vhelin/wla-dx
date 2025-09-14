@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------------
 
-v10.7 (22-Apr-2025) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
+v10.7 (14-Sep-2025) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
                       calls.
                     [ALL] Listfile creation for library files should now work.
                     [ALL] If an object file contained only .SECTIONs in ROM
@@ -22,6 +22,7 @@ v10.7 (22-Apr-2025) [ALL] Prefixed by a hashtag didn't propagate though nested .
                       substring().
                     [ALL] Added LATESTDIR and RELATIVEDIR to .INCLUDE and .INCBIN.
                     [ALL] Jump in .ENDR added offset of 1 for line numbers in errors.
+                    [ALL] Added START and STEP to .REPEAT/.REPT.
                     [68k] Added alias SP for register a7.
                     [68k] BCLR, BSET and BTST used wrong range [1, 8] / [1, 32] for
                       bits, fixed to [0, 7] / [0, 31].
@@ -1542,12 +1543,14 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.22 (11-May-2025) When calculating _sizeof_* for lables we now take unused
+v5.22 (14-Sep-2025) When calculating _sizeof_* for lables we now take unused
                       output bytes into account.
                     Appended .RAMSECTIONs were still affecting the original
                       RAM bank in -v listing.
                     Use -sE to write EQU symbol file (e.g., for openMSX).
                     Fixed the calculation of Sega Mega Drive ROM checksum.
+                    -c doesn't generate warnings for duplicate labels as
+                      they are allowed.
 
 v5.21 (19-Nov-2023) WLALINK writes now version 3 WLA symbol files.
                     Symbol files created with -S contain now [sections] and

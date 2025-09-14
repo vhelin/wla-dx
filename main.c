@@ -34,7 +34,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char s_version_string[] = "$VER: wla-" WLA_NAME " 10.7a (22.4.2025)";
+char s_version_string[] = "$VER: wla-" WLA_NAME " 10.7a (14.9.2025)";
 char s_wla_version[] = "10.7";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -515,9 +515,8 @@ static int _parse_flags(char **flags, int flagc, int *print_usage) {
       g_test_mode = ON;
       test_given = YES;
     }
-    else if (!strcmp(flags[count], "-M")) {
+    else if (!strcmp(flags[count], "-M"))
       g_makefile_rules = YES;
-    }
     else if (!strcmp(flags[count], "-MP"))
       g_makefile_add_phony_targets = YES;
     else if (!strcmp(flags[count], "-MF")) {
@@ -530,6 +529,10 @@ static int _parse_flags(char **flags, int flagc, int *print_usage) {
         return FAILED;
       count++;
     }
+    else if (!strcmp(flags[count], "-MG"))
+      g_makefile_skip_file_handling = NO;
+    else if (!strcmp(flags[count], "-MD"))
+      g_test_mode = OFF;
     else if (!strcmp(flags[count], "-q"))
       g_quiet = YES;
     else if (!strcmp(flags[count], "-x"))
@@ -1125,10 +1128,13 @@ int main(int argc, char *argv[]) {
     print_text(YES, "    still work)\n");
     print_text(YES, "-i  Add list file information\n");
     print_text(YES, "-k  Keep empty sections\n");
-    print_text(YES, "-M  Output makefile rules\n");
+    print_text(YES, "-M  Enable makefile generation\n");
     print_text(YES, "-MP Create a phony target for each dependency other than the main file,\n");
     print_text(YES, "    use this with -M\n");
-    print_text(YES, "-MF <FILE> Specify a file to write the dependencies to, use with -M\n");
+    print_text(YES, "-MF <FILE> Specify a file to write the dependencies to instead of stdout,\n");
+    print_text(YES, "    use with -M\n");
+    print_text(YES, "-MG Enable fake file handling, use with -M\n");
+    print_text(YES, "-MD Request .o generation, use with -M\n");
     print_text(YES, "-p  Pause printing after a screen full of text has been printed,\n");
     print_text(YES, "    use this with -SX and -SY\n");
     print_text(YES, "-q  Quiet\n");
