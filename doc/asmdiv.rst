@@ -2935,6 +2935,12 @@ It's also possible to have the repeat counter/index in a definition::
 
 This would define bytes ``0``, ``1``, ``2``, ``3``, ``4`` and ``5``.
 
+To adjust the initial value and step, use::
+
+    .REPEAT 10 START 100 STEP -10 INDEX COUNT
+    .DB COUNT    ; -> 100, 90, 80, 70, 60, 50, 40, 30, 20, 10
+    .ENDR
+
 This is not a compulsory directive.
 
 

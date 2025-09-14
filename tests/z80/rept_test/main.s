@@ -28,6 +28,7 @@ BANKS 10
 .bank 0 slot 0
 .org 0
 
+; @BT linked.prg
 
 	.db	"meh"
 Label:	nop
@@ -199,3 +200,43 @@ Multiply16:
     inc de
     ret
 .ends
+
+        .define TEN 10
+
+        .db "01>"               ; @BT TEST-01 01 START
+        .rept 10 INDEX INDEX
+        .db INDEX               ; @BT 00 01 02 03 04 05 06 07 08 09
+        .endr
+        .rept 6 INDEX INDEX STEP -1 START 9
+        .db INDEX               ; @BT 09 08 07 06 05 04
+        .endr
+        .rept 6 STEP -1 START 9 INDEX INDEX
+        .db INDEX               ; @BT 09 08 07 06 05 04
+        .endr
+        .rept 6 START 3 STEP 2 INDEX INDEX
+        .db INDEX               ; @BT 03 05 07 09 0B 0D
+        .endr
+        .rept 1+2+3 INDEX INDEX STEP 100-101 START 11-1-1
+        .db INDEX               ; @BT 09 08 07 06 05 04
+        .endr
+        .rept TEN-4 STEP TEN-1-TEN START 19-TEN INDEX INDEX
+        .db INDEX               ; @BT 09 08 07 06 05 04
+        .endr
+        .rept 6 START 3 STEP 2 INDEX INDEX
+        .db INDEX               ; @BT 03 05 07 09 0B 0D
+        .endr
+        .REPEAT 500 INDEX COUNT START 500
+Label_{COUNT}:
+        .ENDR
+        .REPEAT 10 START 100 STEP -10 INDEX COUNT
+        .DB COUNT               ; @BT 64 5A 50 46 3C 32 28 1E 14 0A
+        .ENDR
+        .db "<01"               ; @BT END
+        
+        .db "02>"               ; @BT TEST-02 02 START
+        .define COUNTER = TEN-5
+        .while COUNTER > 0
+        .db COUNTER             ; @BT 05 04 03 02 01
+        .redefine COUNTER = COUNTER-1
+        .endr
+        .db "<02"               ; @BT END

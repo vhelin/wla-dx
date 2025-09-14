@@ -9309,7 +9309,7 @@ static int _find_next_endr(void) {
 int directive_rept_repeat_while(int is_while) {
   
   char c[16], index_name[MAX_NAME_LENGTH + 1];
-  int q, start, line;
+  int q, start, line, value = 0, counter = 0, step = 1;
 
   strcpy(c, g_current_directive);
 
@@ -9331,16 +9331,68 @@ int directive_rept_repeat_while(int is_while) {
       return FAILED;
     }
 
-    if (compare_next_token("INDEX") == SUCCEEDED) {
-      skip_next_token();
+    counter = g_parsed_int;
+    
+    while (1) {
+      if (compare_next_token("INDEX") == SUCCEEDED) {
+        skip_next_token();
 
-      if (input_next_string() != SUCCEEDED)
+        if (input_next_string() != SUCCEEDED)
+          return FAILED;
+
+        strcpy(index_name, g_label);
+
+        continue;
+      }
+      else if (compare_next_token("START") == SUCCEEDED) {
+        skip_next_token();
+
+        q = input_number();
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED) {
+          print_error(ERROR_INP, "START must be solvable at this point in time.\n");
+          return FAILED;
+        }
+
+        value = g_parsed_int;
+
+        continue;
+      }
+      else if (compare_next_token("STEP") == SUCCEEDED) {
+        skip_next_token();
+
+        q = input_number();
+        if (q == FAILED)
+          return FAILED;
+        if (q != SUCCEEDED) {
+          print_error(ERROR_INP, "STEP must be solvable at this point in time.\n");
+          return FAILED;
+        }
+
+        step = g_parsed_int;
+
+        continue;
+      }
+
+      /* test for EOL */
+      remember_current_source_file_position();
+
+      q = input_number();
+      if (q == INPUT_NUMBER_EOL) {
+        g_parsed_int = counter;
+        next_line();
+        break;
+      }
+      else {
+        /* this is not yet the end */
+        roll_back_to_remembered_source_file_position();
+      }
+    }
+
+    if (index_name[0] != 0) {
+      if (redefine(index_name, value, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
         return FAILED;
-
-      if (redefine(g_label, 0.0, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
-        return FAILED;
-
-      strcpy(index_name, g_label);
     }
   }
   else {
@@ -9385,7 +9437,8 @@ int directive_rept_repeat_while(int is_while) {
 
   g_repeat_stack[s_repeat_active].start = start;
   g_repeat_stack[s_repeat_active].counter = g_parsed_int;
-  g_repeat_stack[s_repeat_active].repeats = 0;
+  g_repeat_stack[s_repeat_active].value = value;
+  g_repeat_stack[s_repeat_active].step = step;
   g_repeat_stack[s_repeat_active].start_line = line;
   g_repeat_stack[s_repeat_active].start_ifdef = g_ifdef;
   g_repeat_stack[s_repeat_active].is_while = is_while;
@@ -10998,6 +11051,7 @@ int directive_endr_continue(void) {
   }
   else {
     rr->counter--;
+    rr->value += rr->step;
     if (rr->counter == 0) {
       s_repeat_active--;
           
@@ -11012,9 +11066,8 @@ int directive_endr_continue(void) {
     }
   }
 
-  rr->repeats++;
   if (strlen(rr->index_name) > 0) {
-    if (redefine(rr->index_name, (double)rr->repeats, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+    if (redefine(rr->index_name, (double)rr->value, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
       return FAILED;
   }
 
