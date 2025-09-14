@@ -220,5 +220,5 @@ _local:
 
         namespace1.myMacro2 1
 
-
+duplicate_label:
         

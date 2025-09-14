@@ -2,7 +2,7 @@
 CC = $(WLAVALGRIND) wla-gb
 CFLAGS = -x -o
 LD = $(WLAVALGRIND) wlalink
-LDFLAGS = -d -v -S
+LDFLAGS = -d -v -S -c
 
 SFILES = setup.s main.s
 IFILES = defines1.i defines2.i

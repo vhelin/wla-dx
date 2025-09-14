@@ -1538,14 +1538,14 @@ static int _try_put_label(map_t map, struct label *l) {
   int err;
 
   if (hashmap_get(map, l->name, NULL) == MAP_OK) {
-    if (l->status == LABEL_STATUS_DEFINE)
-      print_text(NO, "%s: _TRY_PUT_LABEL: Definition \"%s\" was defined more than once.\n", get_file_name(l->file_id), l->name);
-    else
-      print_text(NO, "%s: %s:%d: _TRY_PUT_LABEL: Label \"%s\" was defined more than once.\n", get_file_name(l->file_id),
-              get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name);
-
-    if (g_allow_duplicate_labels_and_definitions == NO)
+    if (g_allow_duplicate_labels_and_definitions == NO) {
+      if (l->status == LABEL_STATUS_DEFINE)
+        print_text(NO, "%s: _TRY_PUT_LABEL: Definition \"%s\" was defined more than once.\n", get_file_name(l->file_id), l->name);
+      else
+        print_text(NO, "%s: %s:%d: _TRY_PUT_LABEL: Label \"%s\" was defined more than once.\n", get_file_name(l->file_id),
+                   get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name);
       return FAILED;
+    }
   }
   
   if ((err = hashmap_put(map, l->name, l)) != MAP_OK) {
