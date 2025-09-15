@@ -223,20 +223,20 @@ Multiply16:
         .db INDEX               ; @BT 09 08 07 06 05 04
         .endr
         .rept 6 START 3 STEP 2 INDEX INDEX
-        .db INDEX               ; @BT 03 05 07 09 0B 0D
+        .db INDEX               ; @BT 03 05 07 09 $0B 0x0D
         .endr
         .REPEAT 500 INDEX COUNT START 500
 Label_{COUNT}:
         .ENDR
         .REPEAT 10 START 100 STEP -10 INDEX COUNT
-        .DB COUNT               ; @BT 64 5A 50 46 3C 32 28 1E 14 0A
+        .DB COUNT               ; @BT 0d100 5A 0d80 46 3C 32 28 1E 14 0A
         .ENDR
         .db "<01"               ; @BT END
         
         .db "02>"               ; @BT TEST-02 02 START
         .define COUNTER = TEN-5
         .while COUNTER > 0
-        .db COUNTER             ; @BT 05 04 03 02 01
+        .db COUNTER             ; @BT 0d5 0d4 0d3 0d2 0d1
         .redefine COUNTER = COUNTER-1
         .endr
         .db "<02"               ; @BT END

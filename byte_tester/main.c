@@ -155,9 +155,8 @@ int get_token(char **input, char *result) {
 
   sscanf(*input, "%255s%n", result, &n);
 
-  if (!n) {
+  if (!n)
     return FAILED;
-  }
 
   *input += n;
 
@@ -199,16 +198,14 @@ int extract_comments(char *input, size_t size) {
     }
 
     /* stop parsing if there is no more comments */
-    if (!comment) {
+    if (!comment)
       break;
-    }
 
     /* extend unclosed comments to the end of the input string.
        this handles the cases where a semicolon or double slash
        comment is on the last line, or a unclosed block comment. */
-    if (!end) {
+    if (!end)
       end = input + size;
-    }
 
     /* overwrite input string with comment contents */
     current = comment;
@@ -236,9 +233,9 @@ int main(int argc, char *argv[]) {
   if (argc < 2 || argc > 3 || argv == NULL) {
     fprintf(stderr, "\n");
 #if defined(AMIGACPU)
-    fprintf(stderr, "Byte tester 2.1 (" AMIGACPU ")\n");
+    fprintf(stderr, "Byte tester 2.2 (" AMIGACPU ")\n");
 #else
-    fprintf(stderr, "Byte tester 2.1\n");
+    fprintf(stderr, "Byte tester 2.2\n");
 #endif
     fprintf(stderr, "\n");
     fprintf(stderr, "USAGE: %s [-s] <TESTS FILE / SOURCE FILE>\n", argv[0]);
@@ -426,10 +423,16 @@ int main(int argc, char *argv[]) {
 
       if (strlen(tmp) == 1)
         bytes[byte_count] = tmp[0];
+      else if (tmp[0] == '$')
+        bytes[byte_count] = (unsigned char)strtol(&tmp[1], NULL, 16);
       else if (strlen(tmp) == 2)
         bytes[byte_count] = (unsigned char)strtol(tmp, NULL, 16);
+      else if (tmp[0] == '0' && tmp[1] == 'd')
+        bytes[byte_count] = (unsigned char)strtol(&tmp[2], NULL, 10);
+      else if (tmp[0] == '0' && tmp[1] == 'x')
+        bytes[byte_count] = (unsigned char)strtol(&tmp[2], NULL, 16);
       else {
-        fprintf(stderr, "Test \"%s\" FAILED - Unknown data \"%s\" in test \"%s\"! Must either be a character, two character hexadecimal value or END.\n", test_id, tmp, test_id);
+        fprintf(stderr, "Test \"%s\" FAILED - Unknown data \"%s\" in test \"%s\"! Must either be a character, two character hexadecimal value, 0d prefixed 8bit decimal value or END.\n", test_id, tmp, test_id);
         failures = 1;
         end = 1;
         break;
