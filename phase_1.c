@@ -183,6 +183,8 @@ static char s_table_format[256];
 static int s_table_defined = 0, s_table_size = 0, s_table_index = 0;
 
 static int s_source_index_old = 0, s_line_current_old = 0;
+static int s_defaultramsectionslot_defined = 0, s_defaultramsectionslot;
+static int s_defaultsectionslot_defined = 0, s_defaultsectionslot;
 static int s_defaultslot_defined = 0, s_defaultslot;
 static int s_autopriority = 65535;
 
@@ -2630,7 +2632,8 @@ int directive_orga(void) {
 
   current_slot_address = g_slots[g_current_slot].address;
   if (g_parsed_int < current_slot_address || g_parsed_int > (current_slot_address + g_slots[g_current_slot].size)) {
-    print_error(ERROR_DIR, ".ORGA is outside the current SLOT.\n");
+    print_error(ERROR_DIR, ".ORGA ($%.4x) is outside the current SLOT (%d, [$%.4x - $%.4x]).\n", g_parsed_int, g_current_slot,
+                current_slot_address, (unsigned int)(current_slot_address + g_slots[g_current_slot].size - 1));
     return FAILED;
   }
 
@@ -5007,6 +5010,9 @@ int directive_ramsection(void) {
   g_sec_tmp->window_start = -1;
   g_sec_tmp->window_end = -1;
   g_sec_tmp->banks[0] = 0;
+
+  if (s_defaultramsectionslot_defined != 0)
+    g_sec_tmp->slot = s_defaultramsectionslot;
   
   /* add the namespace to the ramsection's name? */
   if (g_active_file_info_last->namespace[0] != 0) {
@@ -5427,7 +5433,8 @@ int directive_ramsection(void) {
     int current_slot_address = g_slots[g_sec_tmp->slot].address;
 
     if (orga_given < current_slot_address || orga_given >= (current_slot_address + g_slots[g_sec_tmp->slot].size)) {
-      print_error(ERROR_DIR, "ORGA is outside the current SLOT.\n");
+      print_error(ERROR_DIR, ".ORGA ($%.4x) is outside the current SLOT (%d, [$%.4x - $%.4x]).\n", orga_given, g_sec_tmp->slot,
+                  current_slot_address, (unsigned int)(current_slot_address + g_slots[g_sec_tmp->slot].size - 1));
       return FAILED;
     }
 
@@ -5494,6 +5501,9 @@ int directive_section(void) {
   g_sec_tmp->bank = -1;
   g_sec_tmp->slot = -1;
   g_sec_tmp->banks[0] = 0;
+
+  if (s_defaultsectionslot_defined != 0)
+    g_sec_tmp->slot = s_defaultsectionslot;
   
   c1 = g_tmp[0];
   
@@ -5999,7 +6009,8 @@ int directive_section(void) {
     int current_slot_address = g_slots[g_sec_tmp->slot].address;
     
     if (orga_given < current_slot_address || orga_given > (current_slot_address + g_slots[g_sec_tmp->slot].size)) {
-      print_error(ERROR_DIR, "ORGA is outside the section's SLOT.\n");
+      print_error(ERROR_DIR, ".ORGA ($%.4x) is outside the current SLOT (%d, [$%.4x - $%.4x]).\n", orga_given, g_sec_tmp->slot,
+                  current_slot_address, (unsigned int)(current_slot_address + g_slots[g_sec_tmp->slot].size - 1));
       return FAILED;
     }
 
@@ -6894,6 +6905,42 @@ int directive_memorymap(void) {
 
       s_defaultslot_defined = 1;
       s_defaultslot = g_parsed_int;
+    }
+    else if (strcaselesscmp(g_tmp, "DEFAULTSECTIONSLOT") == 0) {
+      if (s_defaultsectionslot_defined != 0) {
+        print_error(ERROR_DIR, "DEFAULTSECTIONSLOT can be defined only once.\n");
+        return FAILED;
+      }
+
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED || g_parsed_int > 255 || g_parsed_int < 0) {
+        print_error(ERROR_DIR, "DEFAULTSECTIONSLOT needs an immediate value (0-255) as an ID.\n");
+        return FAILED;
+      }
+
+      s_defaultsectionslot_defined = 1;
+      s_defaultsectionslot = g_parsed_int;
+    }
+    else if (strcaselesscmp(g_tmp, "DEFAULTRAMSECTIONSLOT") == 0) {
+      if (s_defaultramsectionslot_defined != 0) {
+        print_error(ERROR_DIR, "DEFAULTRAMSECTIONSLOT can be defined only once.\n");
+        return FAILED;
+      }
+
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED || g_parsed_int > 255 || g_parsed_int < 0) {
+        print_error(ERROR_DIR, "DEFAULTRAMSECTIONSLOT needs an immediate value (0-255) as an ID.\n");
+        return FAILED;
+      }
+
+      s_defaultramsectionslot_defined = 1;
+      s_defaultramsectionslot = g_parsed_int;
     }
     else if (strcaselesscmp(g_tmp, "SLOT") == 0) {
       q = input_number();

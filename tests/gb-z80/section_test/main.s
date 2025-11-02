@@ -6,6 +6,8 @@
 
 .MEMORYMAP
    DEFAULTSLOT     0
+   DEFAULTSECTIONSLOT 1
+   DEFAULTRAMSECTIONSLOT 3
    ; ROM area
    SLOTSIZE                $4000
    SLOT            0       $0000
@@ -41,19 +43,19 @@ hello1: .db :hello1      ; @BT 01
         .db "<04"        ; @BT END
         .ends
 
-        .section "Bank1Slot1Org6000" bank 1 slot 1 orga $6000 force keep returnorg
+        .section "Bank1Slot1Org6000" bank 1 orga $6000 force keep returnorg
         .db "01>"        ; @BT TEST-01 01 START
         .dw CADDR        ; @BT 03 60
         .db "<01"        ; @BT END
         .ends
 
-        .section "Bank0Slot0Org0000" keep
+        .section "Bank0Slot0Org0000" slot 0 keep
         .db "02>"        ; @BT TEST-02 02 START
         .dw CADDR        ; @BT 03 00
         .db "<02"        ; @BT END
         .ends
 
-        .section "Bank0Slot0Org0200A" keep orga $0200 semifree
+        .section "Bank0Slot0Org0200A" keep orga $0200 slot 0 semifree
         .db "03>"        ; @BT TEST-03 03 START
         .dw CADDR        ; @BT 0B 02
         .db "<03"        ; @BT END
@@ -119,7 +121,7 @@ banked_2:
         ramsection2b_4 db
         .ends
 
-        .ramsection "Ramsection3" orga $c100 bank 0 slot 3 semifree priority 10000 keep
+        .ramsection "Ramsection3" orga $c100 bank 0 semifree priority 10000 keep
         ramsection3a_1 db
         ramsection3b_2 db
         .ends

@@ -240,3 +240,11 @@ Label_{COUNT}:
         .redefine COUNTER = COUNTER-1
         .endr
         .db "<02"               ; @BT END
+
+        .bank 3 slot 0
+        .org 0
+
+        .db 1, 2, 3, 4, 100     ; @BT TEST-03 -a 0x600 START
+                                ; @BT 01 02 03 04 0d100
+                                ; @BT END
+        

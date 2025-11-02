@@ -2515,6 +2515,8 @@ Examples::
     
     .MEMORYMAP
     DEFAULTSLOT 1
+    DEFAULTSECTIONSLOT 1
+    DEFAULTRAMSECTIONSLOT 2
     SLOTSIZE $6000
     SLOT 0 $0000
     SLOTSIZE $2000
@@ -2554,6 +2556,10 @@ can redefine ``SLOTSIZE`` as many times as you wish.
 
 ``DEFAULTSLOT`` describes the default slot for banks which aren't explicitly
 inserted anywhere. Check ``.BANK`` definition for more information.
+
+``DEFAULTSECTIONSLOT`` describes the default slot for a ``.SECTION``.
+
+``DEFAULTRAMSECTIONSLOT`` describes the default slot for a ``.RAMSECTION``.
 
 ``SLOT`` defines a slot and its starting address. ``SLOT`` numbering starts at
 ``0`` and ends to ``255`` so you have 256 slots at your disposal.

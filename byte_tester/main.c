@@ -26,7 +26,35 @@ int _get_next_number(char *in, int *out) {
 
   int i = 0, o, n;
 
-  if (in[i] >= '0' && in[i] <= '9') {
+  if (in[i] == '$' || (in[i] == '0' && in[i+1] == 'x')) {
+    if (in[i] == '$')
+      i++;
+    else
+      i += 2;
+    o = 0;
+    while (TRUE) {
+      if (in[i] >= '0' && in[i] <= '9')
+        o = (o * 16) + in[i] - '0';
+      else if (in[i] >= 'a' && in[i] <= 'f')
+        o = (o * 16) + in[i] - 'a' + 0xA;
+      else if (in[i] >= 'A' && in[i] <= 'F')
+        o = (o * 16) + in[i] - 'A' + 0xA;
+      else if (in[i] == ' ' || in[i] == 0x09 || in[i] == 0)
+        break;
+      else
+        return FAILED;
+      i++;
+    }
+  }
+  else if (in[i] == '0' && in[i+1] == 'd') {
+    /* decimal */
+    i += 2;
+    for (o = 0; in[i] >= '0' && in[i] <= '9'; i++)
+      o = (o * 10) + in[i] - '0';
+    if (!(in[i] == ' ' || in[i] == 0x09 || in[i] == 0))
+      return FAILED;
+  }
+  else if (in[i] >= '0' && in[i] <= '9') {
     /* is it hex after all? */
     n = 0;
     for (o = 0; 1; o++) {
@@ -72,23 +100,6 @@ int _get_next_number(char *in, int *out) {
         o = (o * 10) + in[i] - '0';
       if (!(in[i] == ' ' || in[i] == 0x09 || in[i] == 0))
         return FAILED;
-    }
-  }
-  else if (in[i] == '$') {
-    i++;
-    o = 0;
-    while (TRUE) {
-      if (in[i] >= '0' && in[i] <= '9')
-        o = (o * 16) + in[i] - '0';
-      else if (in[i] >= 'a' && in[i] <= 'f')
-        o = (o * 16) + in[i] - 'a' + 0xA;
-      else if (in[i] >= 'A' && in[i] <= 'F')
-        o = (o * 16) + in[i] - 'A' + 0xA;
-      else if (in[i] == ' ' || in[i] == 0x09 || in[i] == 0)
-        break;
-      else
-        return FAILED;
-      i++;
     }
   }
   else
@@ -233,9 +244,9 @@ int main(int argc, char *argv[]) {
   if (argc < 2 || argc > 3 || argv == NULL) {
     fprintf(stderr, "\n");
 #if defined(AMIGACPU)
-    fprintf(stderr, "Byte tester 2.2 (" AMIGACPU ")\n");
+    fprintf(stderr, "Byte tester 2.3 (" AMIGACPU ")\n");
 #else
-    fprintf(stderr, "Byte tester 2.2\n");
+    fprintf(stderr, "Byte tester 2.3\n");
 #endif
     fprintf(stderr, "\n");
     fprintf(stderr, "USAGE: %s [-s] <TESTS FILE / SOURCE FILE>\n", argv[0]);
