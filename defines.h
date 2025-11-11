@@ -109,6 +109,8 @@
 /* N - 0-7 + stack (2 bytes) */
 /* + - .bits [bits]: a [value] / b [label] / c [stack] */
 /* . - flip the endianess of next r */
+/* ! - stack (2 bytes) wrap around */
+/* ? - 16-bit pc ref wrap around */
 
 /**************************************************************/
 /* gb-z80                                                     */

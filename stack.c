@@ -5118,6 +5118,7 @@ int data_stream_parser_parse(void) {
       s_dsp_add++;
       continue;
 
+    case '?':
     case 'M':
     case 'r':
       err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
@@ -5126,6 +5127,7 @@ int data_stream_parser_parse(void) {
       s_dsp_add += 2;
       continue;
 
+    case '!':
     case 'y':
     case 'C':
       err = fscanf(g_file_out_ptr, "%d ", &temp_1);

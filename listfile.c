@@ -271,6 +271,7 @@ int listfile_collect(void) {
 
 #if defined(W65816)
     case 'M':
+    case '?':
 #endif
     case 'r':
       err = fscanf(g_file_out_ptr, "%*s ");
@@ -283,6 +284,7 @@ int listfile_collect(void) {
 
     case 'y':
     case 'C':
+    case '!':
       err = fscanf(g_file_out_ptr, "%*d ");
       if (err < 0)
         return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);

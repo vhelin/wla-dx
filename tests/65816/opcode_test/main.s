@@ -1,12 +1,12 @@
 
 .MEMORYMAP
 DEFAULTSLOT 0
-SLOTSIZE $100
+SLOTSIZE $10000
 SLOT 0 $0000
 .ENDME
 
-.ROMBANKSIZE $100
-.ROMBANKS 1
+.ROMBANKSIZE $10000
+.ROMBANKS 16
 
 .DEFINE HEXSIXHUNDRED $600
 
@@ -143,3 +143,74 @@ test07c:
         STA (<(<$1122))         ; @BT 92 22
         .db "<09"               ; @BT END
         
+        ///////////////////////////////////////////////
+        // testing PER                               //
+        ///////////////////////////////////////////////
+
+        .bank 1 slot 0
+        .org 0
+
+        .db "10>"               ; @BT TEST-10 10 START
+per_1:  per per_1               ; @BT 62 FD FF
+        per per_2               ; @BT 62 FE EF
+        per per_3               ; @BT 62 FE 0F
+        per 1                   ; @BT 62 01 00
+        .db "<10"               ; @BT END
+
+        .org $100a
+per_3:  
+        
+        .org $F007
+per_2:
+
+        .bank 2 slot 0
+        .org 0
+per_4:
+
+        .org $1000
+
+        .db "11>"               ; @BT TEST-11 11 START
+        per per_4               ; @BT 62 FA EF
+        .db "<11"               ; @BT END
+        
+        .org $F000
+
+        .db "12>"               ; @BT TEST-12 12 START
+        per per_4               ; @BT 62 FA 0F
+        .db "<12"               ; @BT END
+
+        ///////////////////////////////////////////////
+        // testing BRL                               //
+        ///////////////////////////////////////////////
+
+        .bank 3 slot 0
+        .org 0
+
+        .db "13>"               ; @BT TEST-13 13 START
+brl_1:  brl brl_1               ; @BT 82 FD FF
+        brl brl_2               ; @BT 82 FE EF
+        brl brl_3               ; @BT 82 FE 0F
+        brl 2                   ; @BT 82 02 00
+        .db "<13"               ; @BT END
+
+        .org $100a
+brl_3:  
+        
+        .org $F007
+brl_2:
+
+        .bank 4 slot 0
+        .org 0
+brl_4:
+
+        .org $1000
+
+        .db "14>"               ; @BT TEST-14 14 START
+        brl brl_4               ; @BT 82 FA EF
+        .db "<14"               ; @BT END
+        
+        .org $F000
+
+        .db "15>"               ; @BT TEST-15 15 START
+        brl brl_4               ; @BT 82 FA 0F
+        .db "<15"               ; @BT END

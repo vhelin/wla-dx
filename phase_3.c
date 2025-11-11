@@ -941,7 +941,8 @@ int phase_3(void) {
 
     case '.':
       continue;
-      
+
+    case '?':
     case 'M':
     case 'r':
       err = fscanf(g_file_out_ptr, "%*s ");
@@ -950,6 +951,7 @@ int phase_3(void) {
       address += 2;
       continue;
 
+    case '!':
     case 'y':
     case 'C':
       err = fscanf(g_file_out_ptr, "%*d ");
