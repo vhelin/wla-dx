@@ -3015,6 +3015,8 @@ int evaluate_token(void) {
       }
       break;
 
+      /* BRL / PER */
+      
     case 9:
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == '?') {
@@ -3025,7 +3027,7 @@ int evaluate_token(void) {
           g_source_index = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
-          if (z == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 32767))
+          if (z == SUCCEEDED && (g_parsed_int < -65535 || g_parsed_int > 65535))
             break;
 
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
@@ -3033,11 +3035,11 @@ int evaluate_token(void) {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
-                _output_assembled_instruction(s_instruction_tmp, "k%d d%d M%s ", g_active_file_info_last->line_current, s_instruction_tmp->hex, g_label);
+                _output_assembled_instruction(s_instruction_tmp, "k%d d%d ?%s ", g_active_file_info_last->line_current, s_instruction_tmp->hex, g_label);
               else {
                 struct stack *stack;
           
-                _output_assembled_instruction(s_instruction_tmp, "d%d C%d ", s_instruction_tmp->hex, g_latest_stack);
+                _output_assembled_instruction(s_instruction_tmp, "d%d !%d ", s_instruction_tmp->hex, g_latest_stack);
 
                 /* let's configure the stack so that all label references inside are relative */
                 stack = find_stack_calculation(g_latest_stack, YES);

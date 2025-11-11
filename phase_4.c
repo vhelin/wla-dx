@@ -1178,6 +1178,7 @@ int phase_4(void) {
 
       /* 16BIT COMPUTATION */
 
+    case '!':
     case 'C':
       err = fscanf(g_file_out_ptr, "%d ", &inz);
       if (err < 1)
@@ -1204,7 +1205,10 @@ int phase_4(void) {
         stack->slot = s_slot;
       }
 
-      stack->type = STACK_TYPE_16BIT;
+      if (c == '!')
+        stack->type = STACK_TYPE_16BIT_WRAP_AROUND;
+      else
+        stack->type = STACK_TYPE_16BIT;
         
       if (_mangle_stack_references(stack) == FAILED)
         return FAILED;
@@ -1680,6 +1684,7 @@ int phase_4(void) {
 
       /* 16BIT PC RELATIVE REFERENCE */
 
+    case '?':
     case 'M':
       err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
       if (err < 1)
@@ -1728,8 +1733,14 @@ int phase_4(void) {
         }
       }
 
-      if (_new_unknown_reference(REFERENCE_TYPE_RELATIVE_16BIT) == NULL)
-        return FAILED;
+      if (c == '?') {
+        if (_new_unknown_reference(REFERENCE_TYPE_RELATIVE_16BIT_WRAP_AROUND) == NULL)
+          return FAILED;
+      }
+      else {
+        if (_new_unknown_reference(REFERENCE_TYPE_RELATIVE_16BIT) == NULL)
+          return FAILED;
+      }
 
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 16-bit reference", get_file_name(s_filename_id), s_line_number);

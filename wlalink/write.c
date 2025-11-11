@@ -2009,7 +2009,7 @@ int fix_references(void) {
       snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing reference %s: %s:%d: %s.", get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name);
 
       /* direct 16-bit */
-      if (r->type == REFERENCE_TYPE_DIRECT_16BIT || r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
+      if (r->type == REFERENCE_TYPE_DIRECT_16BIT || r->type == REFERENCE_TYPE_RELATIVE_16BIT || r->type == REFERENCE_TYPE_RELATIVE_16BIT_WRAP_AROUND) {
         /* special case ID handling! */
         if (r->special_id == 4) {
           /* flip endianess */
@@ -2214,17 +2214,35 @@ int fix_references(void) {
         mem_insert_ref(x, i & 0xFF);
       }
       /* relative 16-bit with a label */
-      else if (r->type == REFERENCE_TYPE_RELATIVE_16BIT) {
-        i = (((int)l->address) & 0xFFFF) - r->address - 2;
+      else if (r->type == REFERENCE_TYPE_RELATIVE_16BIT || r->type == REFERENCE_TYPE_RELATIVE_16BIT_WRAP_AROUND) {
+        if (r->type == REFERENCE_TYPE_RELATIVE_16BIT_WRAP_AROUND) {
+          i = (((int)l->address) & 0xFFFF) - r->address - 2;
+
+          fprintf(stderr, "1: %x 2: %x\n", (((int)l->address) & 0xffff), r->address);
+        }
+        else
+          i = (((int)l->address) & 0xFFFF) - r->address - 2;
+
         /* NOTE: on 65ce02 the 16-bit relative references don't use the next
            instruction as the starting point, but one byte before it */
         if (get_file(r->file_id)->cpu_65ce02 == YES)
           i += 1;
-        
-        if (i < -32768 || i > 32767) {
-          print_text(NO, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a relative 16-bit reference.\n",
-                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
-          return FAILED;
+
+        fprintf(stderr, "HELLO %x\n", i);
+
+        if (r->type == REFERENCE_TYPE_RELATIVE_16BIT_WRAP_AROUND) {
+          if (i < -65535 || i > 65535) {
+            print_text(NO, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a relative 16-bit reference (wrap around).\n",
+                       get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
+            return FAILED;
+          }
+        }
+        else {
+          if (i < -32768 || i > 32767) {
+            print_text(NO, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d bytes from $%x to $%x \"%s\") for a relative 16-bit reference.\n",
+                       get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, r->address, (int)l->address, l->name);
+            return FAILED;
+          }
         }
 
         if (get_file(r->file_id)->little_endian == YES) {
@@ -2938,11 +2956,20 @@ int compute_pending_calculations(void) {
       if (mem_insert_ref(a, k >> 1) == FAILED)
         return FAILED;
     }
-    else if (sta->type == STACK_TYPE_16BIT) {
-      if (k < -32768 || k > 65535) {
-        print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range.\n",
-                get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
-        return FAILED;
+    else if (sta->type == STACK_TYPE_16BIT || sta->type == STACK_TYPE_16BIT_WRAP_AROUND) {
+      if (sta->type == STACK_TYPE_16BIT_WRAP_AROUND) {
+        if (k < -65535 || k > 65535) {
+          print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range (wrap around).\n",
+                     get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
+          return FAILED;
+        }
+      }
+      else {
+        if (k < -32768 || k > 65535) {
+          print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range.\n",
+                     get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
+          return FAILED;
+        }
       }
 
       /* special case ID handling! */
@@ -3359,7 +3386,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
           y = 0x1FF;
         else if (sta->type == STACK_TYPE_13BIT)
           y = 8191;
-        else if (sta->type == STACK_TYPE_16BIT)
+        else if (sta->type == STACK_TYPE_16BIT || sta->type == STACK_TYPE_16BIT_WRAP_AROUND)
           y = 0xFFFF;
         else if (sta->type == STACK_TYPE_24BIT)
           y = 0xFFFFFF;
@@ -4067,12 +4094,22 @@ int write_bank_header_calculations(struct stack *sta) {
     }
     *t = (k >> 1) & 0xFF;
   }
-  else if (sta->type == STACK_TYPE_16BIT) {
-    if (k < -32768 || k > 65535) {
-      print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range.\n",
-              get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
-      return FAILED;
+  else if (sta->type == STACK_TYPE_16BIT || sta->type == STACK_TYPE_16BIT_WRAP_AROUND) {
+    if (sta->type == STACK_TYPE_16BIT_WRAP_AROUND) {
+      if (k < -65535 || k > 65535) {
+        print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range (wrap around).\n",
+                   get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
+        return FAILED;
+      }
     }
+    else {
+      if (k < -32768 || k > 65535) {
+        print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 16-bit range.\n",
+                   get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
+        return FAILED;
+      }
+    }
+
     if (get_file(sta->file_id)->little_endian == YES) {
       *t = k & 0xFF;
       t++;
@@ -4362,6 +4399,7 @@ int parse_stack(struct stack *sta) {
     ed = 1;
     break;
   case STACK_TYPE_16BIT:
+  case STACK_TYPE_16BIT_WRAP_AROUND:
     /* NOTE: on 65ce02 the 16-bit relative references don't use the next
        instruction as the starting point, but one byte before it */
     if (get_file(sta->file_id)->cpu_65ce02 == YES)
