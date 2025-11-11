@@ -2215,20 +2215,12 @@ int fix_references(void) {
       }
       /* relative 16-bit with a label */
       else if (r->type == REFERENCE_TYPE_RELATIVE_16BIT || r->type == REFERENCE_TYPE_RELATIVE_16BIT_WRAP_AROUND) {
-        if (r->type == REFERENCE_TYPE_RELATIVE_16BIT_WRAP_AROUND) {
-          i = (((int)l->address) & 0xFFFF) - r->address - 2;
-
-          fprintf(stderr, "1: %x 2: %x\n", (((int)l->address) & 0xffff), r->address);
-        }
-        else
-          i = (((int)l->address) & 0xFFFF) - r->address - 2;
+        i = (((int)l->address) & 0xFFFF) - r->address - 2;
 
         /* NOTE: on 65ce02 the 16-bit relative references don't use the next
            instruction as the starting point, but one byte before it */
         if (get_file(r->file_id)->cpu_65ce02 == YES)
           i += 1;
-
-        fprintf(stderr, "HELLO %x\n", i);
 
         if (r->type == REFERENCE_TYPE_RELATIVE_16BIT_WRAP_AROUND) {
           if (i < -65535 || i > 65535) {
