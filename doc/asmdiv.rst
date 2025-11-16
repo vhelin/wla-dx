@@ -1620,7 +1620,7 @@ These work as well::
 
     .FAIL
     .FAIL "EXIT CODE IS 1"
-    .FAIL "UH OH..." 3
+    .FAIL "UH ", "OH...", 3
 
 By default, if you don't specify the error code, it'll be 1.
     

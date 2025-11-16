@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------------
 
-v10.7 (12-Nov-2025) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
+v10.7 (17-Nov-2025) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
                       calls.
                     [ALL] Listfile creation for library files should now work.
                     [ALL] If an object file contained only .SECTIONs in ROM
@@ -25,6 +25,7 @@ v10.7 (12-Nov-2025) [ALL] Prefixed by a hashtag didn't propagate though nested .
                     [ALL] Added START and STEP to .REPEAT/.REPT.
                     [ALL] Added DEFAULTSECTIONSLOT and DEFAULTRAMSECTIONSLOT to
                       .MEMORYMAP.
+                    [ALL] .FAIL can process multiple strings.
                     [658] Fixed BRL and PER to work properly.
                     [68k] Added alias SP for register a7.
                     [68k] BCLR, BSET and BTST used wrong range [1, 8] / [1, 32] for

@@ -11132,6 +11132,43 @@ int directive_endr_continue(void) {
 }
 
 
+int directive_fail(void) {
+
+  int exit_value = 1, strings = 0, q;
+  char s[1024];
+
+  s[0] = 0;
+
+  while (1) {
+    q = input_number();
+
+    if (q == INPUT_NUMBER_EOL) {
+      if (strings == 0)
+        print_error(ERROR_NONE, "HALT: .FAIL found.\n");
+      else
+        print_error(ERROR_FAI, "\"%s\"\n", s);
+      break;
+    }
+    else if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
+      if ((int)strlen(s) + (int)strlen(g_label) < (int)sizeof(s)+1)
+        strcat(s, g_label);
+      strings++;
+    }
+    else if (q == SUCCEEDED)
+      exit_value = g_parsed_int;
+    else {
+      print_error(ERROR_DIR, ".FAIL takes optional strings and error code, but we got something else here...\n");
+      return FAILED;
+    }
+  }
+
+  /* make a silent exit */
+  exit(exit_value);
+
+  return SUCCEEDED;
+}
+
+
 int parse_directive(void) {
 
   char c, directive_upper[MAX_NAME_LENGTH + 1];
@@ -11950,29 +11987,8 @@ int parse_directive(void) {
       return directive_fseek();
 
     /* FAIL */
-    if (strcmp(directive_upper, "FAIL") == 0) {
-      int exit_value = 1;
-    
-      q = input_number();
-      if (q == INPUT_NUMBER_EOL)
-        print_error(ERROR_NONE, "HALT: .FAIL found.\n");
-      else if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
-        print_error(ERROR_FAI, "\"%s\"\n", g_label);
-
-        q = input_number();
-        if (q == SUCCEEDED)
-          exit_value = g_parsed_int;
-      }
-      else if (q == SUCCEEDED)
-        exit_value = g_parsed_int;
-      else {
-        print_error(ERROR_DIR, ".FAIL takes an optional string, but we got something else here...\n");
-        return FAILED;
-      }
-
-      /* make a silent exit */
-      exit(exit_value);
-    }
+    if (strcmp(directive_upper, "FAIL") == 0)
+      return directive_fail();
 
 #if defined(W65816)  
     /* FASTROM */
