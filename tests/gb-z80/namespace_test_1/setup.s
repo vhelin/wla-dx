@@ -86,5 +86,3 @@ func3:
 func3:
 	ret
 .ends
-
-duplicate_label:

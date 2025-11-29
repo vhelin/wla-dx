@@ -1535,9 +1535,10 @@ int transform_stack_definitions(void) {
 
 static int _try_put_label(map_t map, struct label *l) {
 
+  struct label *label;
   int err;
 
-  if (hashmap_get(map, l->name, NULL) == MAP_OK) {
+  if (hashmap_get(map, l->name, (void*)&label) == MAP_OK) {
     if (g_allow_duplicate_labels_and_definitions == NO) {
       if (l->status == LABEL_STATUS_DEFINE)
         print_text(NO, "%s: _TRY_PUT_LABEL: Definition \"%s\" was defined more than once.\n", get_file_name(l->file_id), l->name);
@@ -1546,6 +1547,27 @@ static int _try_put_label(map_t map, struct label *l) {
                    get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name);
       return FAILED;
     }
+    else {
+      if (l->alive == YES && label->alive == YES) {
+        /* check if the values are different */
+        if (l->status == LABEL_STATUS_DEFINE) {
+          if ((int)l->address != (int)label->address) {
+            print_text(NO, "%s: %s:%d: _TRY_PUT_LABEL: Definition \"%s\" ($%.8x) was defined more than once. Another \"%s\" with a different value ($%.8x) was found at %s: %s:%d.\n", get_file_name(l->file_id), get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name, (int)l->address, label->name, (int)label->address, get_file_name(label->file_id), get_source_file_name(label->file_id, label->file_id_source), label->linenumber);
+            return FAILED;
+          }
+        }
+        else {
+          /* label */
+          if ((int)l->address != (int)label->address) {
+            print_text(NO, "%s: %s:%d: _TRY_PUT_LABEL: Label \"%s\" ($%.8x) was defined more than once. Another \"%s\" with a different value ($%.8x) was found at %s: %s:%d.\n", get_file_name(l->file_id), get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name, (int)l->address, label->name, (int)label->address, get_file_name(label->file_id), get_source_file_name(label->file_id, label->file_id_source), label->linenumber);
+            return FAILED;
+          }
+        }
+      }
+    }
+
+    /* don't insert duplicates into the hashmap */
+    return SUCCEEDED;
   }
   
   if ((err = hashmap_put(map, l->name, l)) != MAP_OK) {

@@ -1547,14 +1547,15 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.22 (14-Sep-2025) When calculating _sizeof_* for lables we now take unused
+v5.22 (29-Nov-2025) When calculating _sizeof_* for lables we now take unused
                       output bytes into account.
                     Appended .RAMSECTIONs were still affecting the original
                       RAM bank in -v listing.
                     Use -sE to write EQU symbol file (e.g., for openMSX).
                     Fixed the calculation of Sega Mega Drive ROM checksum.
-                    -c doesn't generate warnings for duplicate labels as
-                      they are allowed.
+                    -c doesn't generate errors for duplicate labels as
+                      they are allowed, but only when their values are
+                      the same.
 
 v5.21 (19-Nov-2023) WLALINK writes now version 3 WLA symbol files.
                     Symbol files created with -S contain now [sections] and

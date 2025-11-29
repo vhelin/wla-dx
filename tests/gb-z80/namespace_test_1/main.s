@@ -219,6 +219,3 @@ _local:
         .db "<04"                      ; @BT END
 
         namespace1.myMacro2 1
-
-duplicate_label:
-        
