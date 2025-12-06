@@ -2632,7 +2632,7 @@ int directive_orga(void) {
 
   current_slot_address = g_slots[g_current_slot].address;
   if (g_parsed_int < current_slot_address || g_parsed_int > (current_slot_address + g_slots[g_current_slot].size)) {
-    print_error(ERROR_DIR, ".ORGA ($%.4x) is outside the current SLOT (%d, [$%.4x - $%.4x]).\n", g_parsed_int, g_current_slot,
+    print_error(ERROR_DIR, ".ORGA ($%.8x) is outside the current SLOT (%d, [$%.8x - $%.8x]).\n", g_parsed_int, g_current_slot,
                 current_slot_address, (unsigned int)(current_slot_address + g_slots[g_current_slot].size - 1));
     return FAILED;
   }
@@ -5206,7 +5206,7 @@ int directive_ramsection(void) {
       g_sec_tmp->window_end = g_parsed_int;
 
       if (g_sec_tmp->window_start > g_sec_tmp->window_end) {
-        print_error(ERROR_DIR, "The start ($%.4x) of the WINDOW is bigger than the end ($%.4x).\n", g_sec_tmp->window_start, g_sec_tmp->window_end);
+        print_error(ERROR_DIR, "The start ($%.8x) of the WINDOW is bigger than the end ($%.8x).\n", g_sec_tmp->window_start, g_sec_tmp->window_end);
         return FAILED;
       }
     }
@@ -5433,7 +5433,7 @@ int directive_ramsection(void) {
     int current_slot_address = g_slots[g_sec_tmp->slot].address;
 
     if (orga_given < current_slot_address || orga_given >= (current_slot_address + g_slots[g_sec_tmp->slot].size)) {
-      print_error(ERROR_DIR, ".ORGA ($%.4x) is outside the current SLOT (%d, [$%.4x - $%.4x]).\n", orga_given, g_sec_tmp->slot,
+      print_error(ERROR_DIR, ".ORGA ($%.8x) is outside the current SLOT (%d, [$%.8x - $%.8x]).\n", orga_given, g_sec_tmp->slot,
                   current_slot_address, (unsigned int)(current_slot_address + g_slots[g_sec_tmp->slot].size - 1));
       return FAILED;
     }
@@ -5756,7 +5756,7 @@ int directive_section(void) {
       g_sec_tmp->window_end = g_parsed_int;
 
       if (g_sec_tmp->window_start > g_sec_tmp->window_end) {
-        print_error(ERROR_DIR, "The start ($%.4x) of the WINDOW is bigger than the end ($%.4x).\n", g_sec_tmp->window_start, g_sec_tmp->window_end);
+        print_error(ERROR_DIR, "The start ($%.8x) of the WINDOW is bigger than the end ($%.8x).\n", g_sec_tmp->window_start, g_sec_tmp->window_end);
         return FAILED;
       }
     }
@@ -6009,7 +6009,7 @@ int directive_section(void) {
     int current_slot_address = g_slots[g_sec_tmp->slot].address;
     
     if (orga_given < current_slot_address || orga_given > (current_slot_address + g_slots[g_sec_tmp->slot].size)) {
-      print_error(ERROR_DIR, ".ORGA ($%.4x) is outside the current SLOT (%d, [$%.4x - $%.4x]).\n", orga_given, g_sec_tmp->slot,
+      print_error(ERROR_DIR, ".ORGA ($%.8x) is outside the current SLOT (%d, [$%.8x - $%.8x]).\n", orga_given, g_sec_tmp->slot,
                   current_slot_address, (unsigned int)(current_slot_address + g_slots[g_sec_tmp->slot].size - 1));
       return FAILED;
     }
