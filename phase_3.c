@@ -493,7 +493,7 @@ int phase_3(void) {
           l->address = address;
           l->bank = s->bank;
           l->slot = s->slot;
-          l->base = s->base;
+          l->base = base;
 
           if (c == 'Z' || is_label_anonymous(l->label) == YES) {
             if (g_labels != NULL) {
@@ -802,6 +802,9 @@ int phase_3(void) {
         s->slot = slot;
       if (s->base < 0)
         s->base = base;
+
+      /* Initialize base from the section's base value */
+      base = s->base;
 
       if (s->address_from_dsp >= 0 && s->address_from_dsp != address) {
         print_text(NO, "%s:%d: INTERNAL_PHASE_1: .SECTION (\"%s\") address sanity check ($%x vs $%x) failed! Please submit a bug report!\n", get_file_name(file_name_id), line_number, s->name, s->address_from_dsp, address);
@@ -1192,7 +1195,7 @@ int phase_3(void) {
           l->address = address - s->address;
           l->bank = s->bank;
           l->slot = s->slot;
-          l->base = s->base;
+          l->base = base;
         }
         else {
           l->section_id = 0;
