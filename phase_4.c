@@ -2961,14 +2961,14 @@ int show_project_information_object(void) {
       }
       else if (g_rom_banks_usage_table[bank_address + j] == 0 && found_block == YES) {
         if (g_verbose_level >= 100) {
-          print_text(YES, "    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j - 1, j - block_start);
+          print_text(YES, "    - Used space at $%.8x-$%.8x (%d bytes).\n", block_start, j - 1, j - block_start);
           printed_something = YES;
         }
         found_block = NO;
       }
       else if (found_block == YES && j == bank_size - 1) {
         if (g_verbose_level >= 100) {
-          print_text(YES, "    - Used space at $%.4x-$%.4x (%d bytes).\n", block_start, j, j - block_start + 1);
+          print_text(YES, "    - Used space at $%.8x-$%.8x (%d bytes).\n", block_start, j, j - block_start + 1);
           printed_something = YES;
         }
       }
@@ -3270,20 +3270,20 @@ int mem_insert(unsigned char x) {
     return FAILED;
   }
   else if (s_pc_full >= g_max_address) {
-    print_text(NO, "MEM_INSERT: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", s_pc_full, g_max_address);
+    print_text(NO, "MEM_INSERT: The current address ($%.8x) exceeds the size of the ROM ($%.8x).\n", s_pc_full, g_max_address);
     if (g_mem_insert_action[0] != 0)
       print_text(NO, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
   else if (s_pc_slot >= s_pc_slot_max) {
-    print_text(NO, "MEM_INSERT: The current address ($%.4x) overflows from SLOT %d.\n", s_pc_slot, s_slot);
+    print_text(NO, "MEM_INSERT: The current address ($%.8x) overflows from SLOT %d.\n", s_pc_slot, s_slot);
     if (g_mem_insert_action[0] != 0)
       print_text(NO, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
 
   if (g_rom_banks_usage_table[s_pc_full] != 0 && g_rom_banks[s_pc_full] != x && s_mem_insert_overwrite == OFF) {
-    print_text(NO, "MEM_INSERT: %d. write into $%.4x (old: $%.2x, new: $%.2x).\n", g_rom_banks_usage_table[s_pc_full], s_pc_full, g_rom_banks[s_pc_full], x & 0xFF);
+    print_text(NO, "MEM_INSERT: %d. write into $%.8x (old: $%.2x, new: $%.2x).\n", g_rom_banks_usage_table[s_pc_full], s_pc_full, g_rom_banks[s_pc_full], x & 0xFF);
     if (g_mem_insert_action[0] != 0)
       print_text(NO, "   ^ %s\n", g_mem_insert_action);
   }
@@ -3320,13 +3320,13 @@ int mem_insert_padding(void) {
     return FAILED;
   }
   else if (s_pc_full >= g_max_address) {
-    print_text(NO, "MEM_INSERT_PADDING: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", s_pc_full, g_max_address);
+    print_text(NO, "MEM_INSERT_PADDING: The current address ($%.8x) exceeds the size of the ROM ($%.8x).\n", s_pc_full, g_max_address);
     if (g_mem_insert_action[0] != 0)
       print_text(NO, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
   else if (s_pc_slot >= s_pc_slot_max) {
-    print_text(NO, "MEM_INSERT_PADDING: The current address ($%.4x) overflows from SLOT %d.\n", s_pc_slot, s_slot);
+    print_text(NO, "MEM_INSERT_PADDING: The current address ($%.8x) overflows from SLOT %d.\n", s_pc_slot, s_slot);
     if (g_mem_insert_action[0] != 0)
       print_text(NO, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
@@ -3347,14 +3347,14 @@ int mem_insert_padding(void) {
 int mem_insert_absolute(int add, unsigned char x) {
 
   if (add >= g_max_address) {
-    print_text(NO, "MEM_INSERT_ABSOLUTE: The current address ($%.4x) exceeds the size of the ROM ($%.4x).\n", add, g_max_address);
+    print_text(NO, "MEM_INSERT_ABSOLUTE: The current address ($%.8x) exceeds the size of the ROM ($%.8x).\n", add, g_max_address);
     if (g_mem_insert_action[0] != 0)
       print_text(NO, "   ^ %s\n", g_mem_insert_action);
     return FAILED;
   }
 
   if (g_rom_banks_usage_table[add] > 1 && g_rom_banks[add] != x && s_mem_insert_overwrite == OFF) {
-    print_text(NO, "MEM_INSERT_ABSOLUTE: %d. write into $%.4x (old: $%.2x, new: $%.2x).\n", g_rom_banks_usage_table[add], add, g_rom_banks[add], x & 0xFF);
+    print_text(NO, "MEM_INSERT_ABSOLUTE: %d. write into $%.8x (old: $%.2x, new: $%.2x).\n", g_rom_banks_usage_table[add], add, g_rom_banks[add], x & 0xFF);
     if (g_mem_insert_action[0] != 0)
       print_text(NO, "   ^ %s\n", g_mem_insert_action);
   }
