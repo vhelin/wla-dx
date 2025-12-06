@@ -82,8 +82,16 @@ int main(int argc, char *argv[]) {
     g_address_size = 2;
   else if (file_size < 0x1000)
     g_address_size = 3;
-  else
+  else if (file_size < 0x10000)
     g_address_size = 4;
+  else if (file_size < 0x100000)
+    g_address_size = 5;
+  else if (file_size < 0x1000000)
+    g_address_size = 6;
+  else if (file_size < 0x10000000)
+    g_address_size = 7;
+  else
+    g_address_size = 8;
 
   /* output header */
 
@@ -205,6 +213,18 @@ int print_address(int address, int address_end) {
     case 4:
       fprintf(stdout, "    ; $%.4x\n", address);
       break;
+    case 5:
+      fprintf(stdout, "    ; $%.5x\n", address);
+      break;
+    case 6:
+      fprintf(stdout, "    ; $%.6x\n", address);
+      break;
+    case 7:
+      fprintf(stdout, "    ; $%.7x\n", address);
+      break;
+    case 8:
+      fprintf(stdout, "    ; $%.8x\n", address);
+      break;
     }
 
     return SUCCEEDED;
@@ -222,6 +242,18 @@ int print_address(int address, int address_end) {
     break;
   case 4:
     fprintf(stdout, "    ; $%.4x-$%.4x\n", address, address_end);
+    break;
+  case 5:
+    fprintf(stdout, "    ; $%.5x-$%.5x\n", address, address_end);
+    break;
+  case 6:
+    fprintf(stdout, "    ; $%.6x-$%.6x\n", address, address_end);
+    break;
+  case 7:
+    fprintf(stdout, "    ; $%.7x-$%.7x\n", address, address_end);
+    break;
+  case 8:
+    fprintf(stdout, "    ; $%.8x-$%.8x\n", address, address_end);
     break;
   }
 
