@@ -1533,48 +1533,58 @@ int transform_stack_definitions(void) {
 }
 
 
-static int _try_put_label(map_t map, struct label *l) {
+static int _try_put_label(map_t map, struct label *l, int duplicate_check) {
 
   struct label *label;
   int err;
 
-  if (hashmap_get(map, l->name, (void*)&label) == MAP_OK) {
-    if (g_allow_duplicate_labels_and_definitions == NO) {
-      if (l->status == LABEL_STATUS_DEFINE)
-        print_text(NO, "%s: _TRY_PUT_LABEL: Definition \"%s\" was defined more than once.\n", get_file_name(l->file_id), l->name);
-      else
-        print_text(NO, "%s: %s:%d: _TRY_PUT_LABEL: Label \"%s\" was defined more than once.\n", get_file_name(l->file_id),
-                   get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name);
-      return FAILED;
-    }
-    else {
-      if (l->alive == YES && label->alive == YES) {
-        /* check if the values are different */
-        if (l->status == LABEL_STATUS_DEFINE) {
-          if ((int)l->address != (int)label->address) {
-            print_text(NO, "%s: %s:%d: _TRY_PUT_LABEL: Definition \"%s\" ($%.8x) was defined more than once. Another \"%s\" with a different value ($%.8x) was found at %s: %s:%d.\n", get_file_name(l->file_id), get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name, (int)l->address, label->name, (int)label->address, get_file_name(label->file_id), get_source_file_name(label->file_id, label->file_id_source), label->linenumber);
-            return FAILED;
+  if (duplicate_check == YES) {
+    /* do only duplicate check */
+    if (hashmap_get(map, l->name, (void*)&label) == MAP_OK) {
+      if (g_allow_duplicate_labels_and_definitions == YES) {
+        if (l->alive == YES && label->alive == YES) {
+          /* check if the values are different */
+          if (l->status == LABEL_STATUS_DEFINE) {
+            if ((int)l->address != (int)label->address) {
+              print_text(NO, "%s: %s:%d: _TRY_PUT_LABEL: Definition \"%s\" ($%.8x) was defined more than once. Another \"%s\" with a different value ($%.8x) was found at %s: %s:%d.\n", get_file_name(l->file_id), get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name, (int)l->address, label->name, (int)label->address, get_file_name(label->file_id), get_source_file_name(label->file_id, label->file_id_source), label->linenumber);
+              return FAILED;
+            }
           }
-        }
-        else {
-          /* label */
-          if ((int)l->address != (int)label->address) {
-            print_text(NO, "%s: %s:%d: _TRY_PUT_LABEL: Label \"%s\" ($%.8x) was defined more than once. Another \"%s\" with a different value ($%.8x) was found at %s: %s:%d.\n", get_file_name(l->file_id), get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name, (int)l->address, label->name, (int)label->address, get_file_name(label->file_id), get_source_file_name(label->file_id, label->file_id_source), label->linenumber);
-            return FAILED;
+          else {
+            if ((int)l->address != (int)label->address) {
+              print_text(NO, "%s: %s:%d: _TRY_PUT_LABEL: Label \"%s\" ($%.8x) was defined more than once. Another \"%s\" with a different value ($%.8x) was found at %s: %s:%d.\n", get_file_name(l->file_id), get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name, (int)l->address, label->name, (int)label->address, get_file_name(label->file_id), get_source_file_name(label->file_id, label->file_id_source), label->linenumber);
+              return FAILED;
+            }
           }
         }
       }
+      
+      /* don't insert duplicates into the hashmap */
+      return SUCCEEDED;
     }
-
-    /* don't insert duplicates into the hashmap */
-    return SUCCEEDED;
+  }
+  else {
+    /* really try to insert the label into a hashmap */
+    if (hashmap_get(map, l->name, (void*)&label) == MAP_OK) {
+      if (g_allow_duplicate_labels_and_definitions == NO) {
+        if (l->status == LABEL_STATUS_DEFINE)
+          print_text(NO, "%s: _TRY_PUT_LABEL: Definition \"%s\" was defined more than once.\n", get_file_name(l->file_id), l->name);
+        else
+          print_text(NO, "%s: %s:%d: _TRY_PUT_LABEL: Label \"%s\" was defined more than once.\n", get_file_name(l->file_id),
+                     get_source_file_name(l->file_id, l->file_id_source), l->linenumber, l->name);
+        return FAILED;
+      }
+      
+      /* don't insert duplicates into the hashmap */
+      return SUCCEEDED;
+    }
+  
+    if ((err = hashmap_put(map, l->name, l)) != MAP_OK) {
+      print_text(NO, "_TRY_PUT_LABEL: Hashmap error %d. Please send a bug report!\n", err);
+      return FAILED;
+    }
   }
   
-  if ((err = hashmap_put(map, l->name, l)) != MAP_OK) {
-    print_text(NO, "_TRY_PUT_LABEL: Hashmap error %d. Please send a bug report!\n", err);
-    return FAILED;
-  }
-
   return SUCCEEDED;
 }
 
@@ -1717,6 +1727,25 @@ int fix_all_sections(void) {
 }
 
 
+/* checks if there are duplicate labels */
+int check_duplicate_labels(void) {
+
+  struct label *l;
+
+  l = g_labels_first;
+  while (l != NULL) {
+    if (l->alive == YES) {
+      if (insert_label_into_maps(l, 0, YES) == FAILED)
+        return FAILED;
+    }
+    
+    l = l->next;
+  }
+
+  return SUCCEEDED;
+}
+
+
 /* determines the section for each label, and calls "insert_label_into_maps" for each. */
 int fix_label_sections(void) {
 
@@ -1738,7 +1767,7 @@ int fix_label_sections(void) {
         l->section_struct = s;
       }
 
-      if (insert_label_into_maps(l, 0) == FAILED)
+      if (insert_label_into_maps(l, 0, NO) == FAILED)
         return FAILED;
     }
     
@@ -1750,7 +1779,7 @@ int fix_label_sections(void) {
 
 
 /* determines which hashmaps are relevant for the label, and adds it to them. */
-int insert_label_into_maps(struct label* l, int is_sizeof) {
+int insert_label_into_maps(struct label* l, int is_sizeof, int duplicate_check) {
 
   int put_in_global = 1;
   int put_in_anything = 1;
@@ -1775,7 +1804,7 @@ int insert_label_into_maps(struct label* l, int is_sizeof) {
 
     if (put_in_anything) {
       /* put label into section's label map */
-      if (_try_put_label(s->label_map, l) == FAILED)
+      if (_try_put_label(s->label_map, l, duplicate_check) == FAILED)
         return FAILED;
 
       if (base_name[0] == '_')
@@ -1783,7 +1812,7 @@ int insert_label_into_maps(struct label* l, int is_sizeof) {
 
       /* put label into section's namespace's label map, if it's not a local label */
       if (s->nspace != NULL && base_name[0] != '_') {
-        if (_try_put_label(s->nspace->label_map, l) == FAILED)
+        if (_try_put_label(s->nspace->label_map, l, duplicate_check) == FAILED)
           return FAILED;
         put_in_global = 0;
       }
@@ -1792,7 +1821,7 @@ int insert_label_into_maps(struct label* l, int is_sizeof) {
 
   /* put the label into the global namespace */
   if (put_in_anything && put_in_global) {
-    if (_try_put_label(g_global_unique_label_map, l) == FAILED)
+    if (_try_put_label(g_global_unique_label_map, l, duplicate_check) == FAILED)
       return FAILED;
   }
 
@@ -4879,7 +4908,7 @@ static int _create_ram_bank_usage_label(int bank, int slot, char *slot_name, con
   l->section_struct = NULL;
   l->section = -1;
 
-  if (insert_label_into_maps(l, 1) == FAILED)
+  if (insert_label_into_maps(l, 1, NO) == FAILED)
     return FAILED;
 
   add_label(l);
@@ -5061,7 +5090,7 @@ int generate_sizeof_label_definitions(void) {
     l->section_struct = labels[j]->section_struct;
     l->section        = labels[j]->section;
 
-    if (insert_label_into_maps(l, 1) == FAILED) {
+    if (insert_label_into_maps(l, 1, NO) == FAILED) {
       free(labels);
       return FAILED;
     }

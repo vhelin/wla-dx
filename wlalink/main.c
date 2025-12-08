@@ -1446,6 +1446,10 @@ int main(int argc, char *argv[]) {
   if (fix_label_addresses() == FAILED)
     return 1;
 
+  /* insert labels into maps (and check for duplicate labels) */
+  if (check_duplicate_labels() == FAILED)
+    return 1;
+  
   /* generate RAM bank usage labels (RAM_USAGE_SLOT_x_BANK_y_START + RAM_USAGE_SLOT_x_BANK_y_END) */
   if (generate_ram_bank_usage_labels() == FAILED)
     return 1;

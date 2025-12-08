@@ -7,7 +7,7 @@ int check_ramsections(void);
 int fix_all_sections(void);
 int fix_references(void);
 int fix_label_sections(void);
-int insert_label_into_maps(struct label *l, int is_sizeof);
+int insert_label_into_maps(struct label* l, int is_sizeof, int duplicate_check);
 int fix_label_addresses(void);
 int transform_stack_definitions(void);
 int sort_sections(void);
@@ -32,5 +32,6 @@ int generate_sizeof_label_definitions(void);
 int fix_sectionstartend_labels(void);
 int get_slot_by_its_name(char *name, int *slot);
 int get_slot_by_a_value(int value, int *slot);
+int check_duplicate_labels(void);
 
 #endif

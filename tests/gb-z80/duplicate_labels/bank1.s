@@ -5,4 +5,4 @@
 MyLabel:
 .ENDS
 
-        .define HELLO 123 EXPORT
+        .define HELLO 120+3 EXPORT
