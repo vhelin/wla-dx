@@ -490,7 +490,7 @@ int phase_4(void) {
       g_sec_tmp->i = 0;
       g_section_status = ON;
 
-      /* Initialize s_base from the section's base value */
+      /* Initialize base from the section's base value */
       s_base = g_sec_tmp->base;
 
       continue;
