@@ -4900,7 +4900,7 @@ int directive_struct(void) {
     return FAILED;
   }
 
-  s_active_struct = calloc(sizeof(struct structure), 1);
+  s_active_struct = calloc(1, sizeof(struct structure));
   if (s_active_struct == NULL) {
     print_error(ERROR_DIR, "Out of memory while allocating a new .STRUCT.\n");
     return FAILED;
