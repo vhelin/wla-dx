@@ -640,7 +640,7 @@ int phase_2(void) {
 
 int create_a_new_section_structure(void) {
 
-  g_sec_tmp = calloc(sizeof(struct section_def), 1);
+  g_sec_tmp = calloc(1, sizeof(struct section_def));
   if (g_sec_tmp == NULL) {
     print_error(ERROR_DIR, "Out of memory while allocating room for a new SECTION.\n");
     return FAILED;

@@ -379,7 +379,7 @@ int phase_3(void) {
           bn = bn->next;
         }
         
-        b = calloc(sizeof(struct block), 1);
+        b = calloc(1, sizeof(struct block));
         if (b == NULL) {
           print_text(NO, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for block \"%s\".\n",
                   get_file_name(file_name_id), line_number, bn->name);
@@ -422,7 +422,7 @@ int phase_3(void) {
         {
           int mangled_label = NO;
           
-          l = calloc(sizeof(struct label_def), 1);
+          l = calloc(1, sizeof(struct label_def));
           if (l == NULL) {
             err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
             if (err < 1)
@@ -1078,7 +1078,7 @@ int phase_3(void) {
         bn = bn->next;
       }
 
-      b = calloc(sizeof(struct block), 1);
+      b = calloc(1, sizeof(struct block));
       if (b == NULL) {
         print_text(NO, "%s:%d: INTERNAL_PHASE_1: Out of memory while trying to allocate room for block \"%s\".\n",
                 get_file_name(file_name_id), line_number, bn->name);
@@ -1120,7 +1120,7 @@ int phase_3(void) {
       {
         int mangled_label = NO;
         
-        l = calloc(sizeof(struct label_def), 1);
+        l = calloc(1, sizeof(struct label_def));
         if (l == NULL) {
           err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
           if (err < 1)
@@ -1403,7 +1403,7 @@ int process_macro_in(int id, char *name, int file_name_id, int line_number) {
   /* is it ISOLATED? */
   if (macro->isolated_local == YES || macro->isolated_unnamed == YES) {
     /* yes, create a new label context for it */
-    struct label_context *lc = calloc(sizeof(struct label_context), 1);
+    struct label_context *lc = calloc(1, sizeof(struct label_context));
 
     if (lc == NULL) {
       print_text(NO, "%s:%d: Out of memory while allocating a new label context.\n", get_file_name(file_name_id), line_number);

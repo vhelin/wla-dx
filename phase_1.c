@@ -231,7 +231,7 @@ static char *_string_duplicate_size(char *p, int size) {
   if (p == NULL)
     return NULL;
 
-  result = calloc(sizeof(char), size + 1);
+  result = calloc(size + 1, sizeof(char));
   if (result == NULL) {
     print_error(ERROR_DIR, "Out of memory while allocating a new string (\"%s\").\n", p);
     return NULL;
@@ -392,7 +392,7 @@ static int _macro_stack_grow(void) {
     old_size = s_macro_stack_size;
     s_macro_stack_size = (s_macro_stack_size<<1)+2;
 
-    macro = calloc(sizeof(struct macro_runtime) * s_macro_stack_size, 1);
+    macro = calloc(s_macro_stack_size, sizeof(struct macro_runtime));
     if (macro == NULL) {
       print_error(ERROR_ERR, "Out of memory error while enlarging macro stack buffer.\n");
       return FAILED;
@@ -482,8 +482,8 @@ static int _macro_start_dxm(struct macro_static *m, int caller, char *name, int 
   }
 
   mrt->argument_data = calloc(sizeof(struct macro_argument *) << 1, 1);
-  mrt->argument_data[0] = calloc(sizeof(struct macro_argument), 1);
-  mrt->argument_data[1] = calloc(sizeof(struct macro_argument), 1);
+  mrt->argument_data[0] = calloc(1, sizeof(struct macro_argument));
+  mrt->argument_data[1] = calloc(1, sizeof(struct macro_argument));
   if (mrt->argument_data == NULL || mrt->argument_data[0] == NULL || mrt->argument_data[1] == NULL) {
     print_error(ERROR_NONE, "Out of memory error while collecting macro arguments.\n");
     return FAILED;
@@ -560,9 +560,9 @@ static int _macro_start_incbin(struct macro_static *m, struct macro_incbin *incb
     mrt->offset++;
 
   mrt->argument_data = calloc(sizeof(struct macro_argument *) * 3, 1);
-  mrt->argument_data[0] = calloc(sizeof(struct macro_argument), 1);
-  mrt->argument_data[1] = calloc(sizeof(struct macro_argument), 1);
-  mrt->argument_data[2] = calloc(sizeof(struct macro_argument), 1);
+  mrt->argument_data[0] = calloc(1, sizeof(struct macro_argument));
+  mrt->argument_data[1] = calloc(1, sizeof(struct macro_argument));
+  mrt->argument_data[2] = calloc(1, sizeof(struct macro_argument));
   if (mrt->argument_data == NULL || mrt->argument_data[0] == NULL || mrt->argument_data[1] == NULL || mrt->argument_data[2] == NULL) {
     print_error(ERROR_NONE, "Out of memory error while collecting macro arguments.\n");
     return FAILED;
@@ -1252,7 +1252,7 @@ int phase_1(void) {
         }
 
         mrt->argument_data = realloc(mrt->argument_data, (p+1)*sizeof(struct macro_argument *));
-        mrt->argument_data[p] = calloc(sizeof(struct macro_argument), 1);
+        mrt->argument_data[p] = calloc(1, sizeof(struct macro_argument));
         if (mrt->argument_data == NULL || mrt->argument_data[p] == NULL) {
           print_error(ERROR_NONE, "Out of memory error while collecting macro arguments.\n");
           return FAILED;
@@ -1289,7 +1289,7 @@ int phase_1(void) {
           hashmap_get(g_defines_map, argument_name, (void*)&definition);
           if (definition != NULL) {
             /* yes, store it! */
-            struct definition_storage *storage = calloc(sizeof(struct definition_storage), 1);
+            struct definition_storage *storage = calloc(1, sizeof(struct definition_storage));
             if (storage == NULL) {
               print_error(ERROR_ERR, "Out of memory error while trying to store a definition.\n");
               return FAILED;
@@ -1418,7 +1418,7 @@ int add_a_new_definition(char *name, double value, char *string, int type, int s
     return FAILED;
   }
 
-  d = calloc(sizeof(struct definition), 1);
+  d = calloc(1, sizeof(struct definition));
   if (d == NULL) {
     if (g_commandline_parsing == OFF)
       print_error(ERROR_DIR, "Out of memory while trying to add a new definition (\"%s\").\n", name);
@@ -1637,7 +1637,7 @@ int add_label_sizeof(char *label, int size) {
   if (strcmp(".", label) == 0)
     return SUCCEEDED;
 
-  ls = calloc(sizeof(struct label_sizeof), 1);
+  ls = calloc(1, sizeof(struct label_sizeof));
   if (ls == NULL) {
     print_error(ERROR_DIR, "Out of memory error while allocating a label_sizeof structure.\n");
     return FAILED;
@@ -1940,7 +1940,7 @@ static int _add_new_stack_item(char *tmpname, int size, int defined_size, int ty
   struct structure_item *si;
 
   /* add this label/value to the struct. */
-  si = calloc(sizeof(struct structure_item), 1);
+  si = calloc(1, sizeof(struct structure_item));
   if (si == NULL) {
     print_error(ERROR_DIR, "Out of memory while allocating a new STRUCT.\n");
     return FAILED;
@@ -1993,7 +1993,7 @@ int parse_enum_token(void) {
     struct union_stack *ust;
     int inz;
 
-    st = calloc(sizeof(struct structure), 1);
+    st = calloc(1, sizeof(struct structure));
     if (st == NULL) {
       print_error(ERROR_DIR, "PARSE_ENUM_TOKEN: Out of memory error.\n");
       return FAILED;
@@ -2017,7 +2017,7 @@ int parse_enum_token(void) {
       next_line();
 
     /* put previous union onto the "stack" */
-    ust = calloc(sizeof(struct union_stack), 1);
+    ust = calloc(1, sizeof(struct union_stack));
     if (ust == NULL) {
       print_error(ERROR_DIR, "PARSE_ENUM_TOKEN: Out of memory error.\n");
       free(st);
@@ -2047,7 +2047,7 @@ int parse_enum_token(void) {
     if (s_enum_offset > s_max_enum_offset)
       s_max_enum_offset = s_enum_offset;
     s_active_struct->size = s_enum_offset - s_union_base_offset;
-    st = calloc(sizeof(struct structure), 1);
+    st = calloc(1, sizeof(struct structure));
     if (st == NULL) {
       print_error(ERROR_DIR, "PARSE_ENUM_TOKEN: Out of memory error.\n");
       return FAILED;
@@ -2111,7 +2111,7 @@ int parse_enum_token(void) {
       s_max_enum_offset = s_enum_offset;
 
     /* create a new structure item of type STRUCTURE_ITEM_TYPE_UNION */
-    si = calloc(sizeof(struct structure_item), 1);
+    si = calloc(1, sizeof(struct structure_item));
     if (si == NULL) {
       print_error(ERROR_DIR, "PARSE_ENUM_TOKEN: Out of memory error.\n");
       return FAILED;
@@ -4617,7 +4617,7 @@ static int _remember_namespace(char *name) {
 
   struct namespace *nspace;
   
-  nspace = calloc(sizeof(struct namespace), 1);
+  nspace = calloc(1, sizeof(struct namespace));
   if (nspace == NULL) {
     print_error(ERROR_DIR, "Out of memory while remembering namespace \"%s\".\n", name);
     return FAILED;
@@ -4867,7 +4867,7 @@ int directive_incbin(void) {
     struct incbin_file_data *ifd;
     struct macro_incbin *min;
 
-    min = calloc(sizeof(struct macro_incbin), 1);
+    min = calloc(1, sizeof(struct macro_incbin));
     if (min == NULL) {
       print_error(ERROR_NONE, "Out of memory error while starting to filter the .INCBINed data.\n");
       return FAILED;
@@ -4980,7 +4980,7 @@ int directive_ramsection(void) {
   if (get_next_token() == FAILED)
     return FAILED;
 
-  g_sec_tmp = calloc(sizeof(struct section_def), 1);
+  g_sec_tmp = calloc(1, sizeof(struct section_def));
   if (g_sec_tmp == NULL) {
     print_error(ERROR_DIR, "Out of memory while allocating room for a new RAMSECTION \"%s\".\n", g_tmp);
     return FAILED;
@@ -5298,7 +5298,7 @@ int directive_ramsection(void) {
       if (skip_next_token() == FAILED)
         return FAILED;
     
-      after_tmp = calloc(sizeof(struct after_section), 1);
+      after_tmp = calloc(1, sizeof(struct after_section));
       if (after_tmp == NULL) {
         print_error(ERROR_DIR, "Out of memory while allocating room for a new APPENDTO \"%s\".\n", g_tmp);
         return FAILED;
@@ -5343,7 +5343,7 @@ int directive_ramsection(void) {
       if (skip_next_token() == FAILED)
         return FAILED;
     
-      after_tmp = calloc(sizeof(struct after_section), 1);
+      after_tmp = calloc(1, sizeof(struct after_section));
       if (after_tmp == NULL) {
         print_error(ERROR_DIR, "Out of memory while allocating room for a new AFTER \"%s\".\n", g_tmp);
         return FAILED;
@@ -5410,7 +5410,7 @@ int directive_ramsection(void) {
   s_enum_ord = 1;
 
   /* setup s_active_struct (ramsection vars stored here temporarily) */
-  s_active_struct = calloc(sizeof(struct structure), 1);
+  s_active_struct = calloc(1, sizeof(struct structure));
   if (s_active_struct == NULL) {
     print_error(ERROR_DIR, "Out of memory while parsing .RAMSECTION.\n");
     return FAILED;
@@ -5474,7 +5474,7 @@ int directive_section(void) {
   if (g_output_format == OUTPUT_LIBRARY)
     g_org_defined = 1;
 
-  g_sec_tmp = calloc(sizeof(struct section_def), 1);
+  g_sec_tmp = calloc(1, sizeof(struct section_def));
   if (g_sec_tmp == NULL) {
     print_error(ERROR_DIR, "Out of memory while allocating room for a new SECTION \"%s\".\n", g_tmp);
     return FAILED;
@@ -5859,7 +5859,7 @@ int directive_section(void) {
       if (skip_next_token() == FAILED)
         return FAILED;
 
-      after_tmp = calloc(sizeof(struct after_section), 1);
+      after_tmp = calloc(1, sizeof(struct after_section));
       if (after_tmp == NULL) {
         print_error(ERROR_DIR, "Out of memory while allocating room for a new APPENDTO \"%s\".\n", g_tmp);
         return FAILED;
@@ -5908,7 +5908,7 @@ int directive_section(void) {
       if (skip_next_token() == FAILED)
         return FAILED;
     
-      after_tmp = calloc(sizeof(struct after_section), 1);
+      after_tmp = calloc(1, sizeof(struct after_section));
       if (after_tmp == NULL) {
         print_error(ERROR_DIR, "Out of memory while allocating room for a new AFTER \"%s\".\n", g_tmp);
         return FAILED;
@@ -6068,7 +6068,7 @@ int directive_fopen(void) {
 
   if (string == NULL) {
     /* remember the file name for makefile generation */
-    string = calloc(sizeof(struct string), 1);
+    string = calloc(1, sizeof(struct string));
     if (string == NULL) {
       print_error(ERROR_DIR, "Out of memory error.\n");
       free(c);
@@ -6121,7 +6121,7 @@ int directive_fopen(void) {
   }
   else {
     /* allocate a new filepointer */
-    f = calloc(sizeof(struct filepointer), 1);
+    f = calloc(1, sizeof(struct filepointer));
     if (f == NULL) {
       print_error(ERROR_DIR, "Out of memory error.\n");
       free(c);
@@ -6379,7 +6379,7 @@ int directive_block(void) {
     return FAILED;
   }
 
-  b = calloc(sizeof(struct block_name), 1);
+  b = calloc(1, sizeof(struct block_name));
   if (b == NULL) {
     print_error(ERROR_DIR, "Out of memory while allocating block name.\n");
     return FAILED;
@@ -7511,7 +7511,7 @@ static struct array *_create_array(char *name, int size) {
   struct array *arr;
   int i, *data;
   
-  arr = calloc(sizeof(struct array), 1);
+  arr = calloc(1, sizeof(struct array));
   if (arr == NULL) {
     print_error(ERROR_DIR, "Out of memory while allocating a new array.\n");
     return NULL;
@@ -8050,7 +8050,7 @@ int directive_function(void) {
 
   strcpy(name, g_label);
   
-  f = calloc(sizeof(struct function), 1);
+  f = calloc(1, sizeof(struct function));
   if (f == NULL) {
     print_error(ERROR_DIR, "Out of memory while allocating a new function.\n");
     return FAILED;
@@ -9217,7 +9217,7 @@ int directive_macro(void) {
     return FAILED;
   }
 
-  m = calloc(sizeof(struct macro_static), 1);
+  m = calloc(1, sizeof(struct macro_static));
   if (m == NULL) {
     print_error(ERROR_DIR, "Out of memory while allocating room for a new .MACRO.\n");
     return FAILED;
@@ -10732,7 +10732,7 @@ int directive_stringmaptable(void) {
   }
 
   /* allocate and insert at the front of the chain */
-  map = calloc(sizeof(struct stringmaptable), 1);
+  map = calloc(1, sizeof(struct stringmaptable));
   if (map == NULL) {
     print_error(ERROR_ERR, "STRINGMAPTABLE: Out of memory error.\n");
     return FAILED;
@@ -10793,7 +10793,7 @@ int directive_stringmaptable(void) {
     if (equals_pos == NULL)
       continue;
 
-    entry = calloc(sizeof(struct stringmap_entry), 1);
+    entry = calloc(1, sizeof(struct stringmap_entry));
     if (entry == NULL) {
       print_error(ERROR_DIR, "STRINGMAPTABLE: Out of memory error.\n");
       return FAILED;
@@ -10810,7 +10810,7 @@ int directive_stringmaptable(void) {
       return FAILED;
     }
     entry->bytes_length = char_count / 2 + char_count % 2;
-    entry->bytes = calloc(sizeof(unsigned char), entry->bytes_length);
+    entry->bytes = calloc(entry->bytes_length, sizeof(unsigned char));
     if (entry->bytes == NULL) {
       print_error(ERROR_DIR, "STRINGMAPTABLE: Out of memory error.\n");
       return FAILED;
@@ -10856,7 +10856,7 @@ int directive_stringmaptable(void) {
       return FAILED;
     }
     p = equals_pos + 1;
-    entry->text = calloc(sizeof(char), strlen(p) + 1);
+    entry->text = calloc(strlen(p) + 1, sizeof(char));
     if (entry->text == NULL) {
       print_error(ERROR_DIR, "STRINGMAPTABLE: Out of memory error.\n");
       return FAILED;
@@ -11487,7 +11487,7 @@ int parse_directive(void) {
         return FAILED;
       }
     
-      g_active_file_info_tmp = calloc(sizeof(struct active_file_info), 1);
+      g_active_file_info_tmp = calloc(1, sizeof(struct active_file_info));
       if (g_active_file_info_tmp == NULL) {
         print_error(ERROR_DIR, "Out of memory while trying allocate error tracking data structure.\n");
         return FAILED;
@@ -11821,7 +11821,7 @@ int parse_directive(void) {
           s_enum_export = NO;
 
         /* setup s_active_struct (enum vars stored here temporarily) */
-        s_active_struct = calloc(sizeof(struct structure), 1);
+        s_active_struct = calloc(1, sizeof(struct structure));
         if (s_active_struct == NULL) {
           print_error(ERROR_DIR, "Out of memory while parsing .ENUM.\n");
           return FAILED;
@@ -13257,7 +13257,7 @@ int export_a_definition(char *name) {
     export = export->next;
   }
 
-  export = calloc(sizeof(struct export_def), 1);
+  export = calloc(1, sizeof(struct export_def));
   if (export == NULL) {
     print_error(ERROR_DIR, "Out of memory while allocating room for \".EXPORT %s\".\n", name);
     return FAILED;

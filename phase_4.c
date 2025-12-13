@@ -145,7 +145,7 @@ static struct label_def *_new_unknown_reference(int type) {
       return NULL;
   }
 
-  label = calloc(sizeof(struct label_def), 1);
+  label = calloc(1, sizeof(struct label_def));
   if (label == NULL) {
     print_text(NO, "%s:%d: _NEW_UNKNOWN_REFERENCE: Out of memory.\n", get_file_name(s_filename_id), s_line_number);
     return NULL;

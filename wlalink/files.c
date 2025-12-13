@@ -775,7 +775,7 @@ int load_files(char *argv[], int argc) {
       }
 
       /* add a new entry */
-      g_sec_fix_tmp = calloc(sizeof(struct section_fix), 1);
+      g_sec_fix_tmp = calloc(1, sizeof(struct section_fix));
       if (g_sec_fix_tmp == NULL) {
         print_text(NO, "%s:%d: LOAD_FILES: Out of memory error.\n", argv[argc - 2], line);
         fclose(fop);
@@ -1014,7 +1014,7 @@ int load_file(char *file_name, int bank, int slot, char *slot_name, int fix_slot
   char *name;
   int size;
 
-  o = calloc(sizeof(struct object_file), 1);
+  o = calloc(1, sizeof(struct object_file));
   name = calloc(strlen(file_name)+1, 1);
   if (o == NULL || name == NULL) {
     free(o);

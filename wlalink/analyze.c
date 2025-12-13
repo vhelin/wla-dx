@@ -314,7 +314,7 @@ int add_section(struct section *s) {
 
   if (pointer_array == NULL) {
     /* allocate container for this table */
-    pointer_array = calloc(sizeof(struct pointer_array), 1);
+    pointer_array = calloc(1, sizeof(struct pointer_array));
     if (pointer_array == NULL) {
       print_text(NO, "%s: ADD_SECTION: Out of memory with section \"%s\".\n", g_obj_tmp->name, s->name);
       return FAILED;
@@ -559,7 +559,7 @@ int obtain_source_file_names(void) {
 
     p = &(o->source_file_names_list);
     for (; x > 0; x--) {
-      s = calloc(sizeof(struct source_file_name), 1);
+      s = calloc(1, sizeof(struct source_file_name));
       if (s == NULL) {
         print_text(NO, "COLLECT_DLR: Out of memory.\n");
         return FAILED;
@@ -814,7 +814,7 @@ int collect_dlr(void) {
 
       /* load references */
       for (; i > 0; i--) {
-        r = calloc(sizeof(struct reference), 1);
+        r = calloc(1, sizeof(struct reference));
         if (r == NULL) {
           print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
@@ -856,7 +856,7 @@ int collect_dlr(void) {
 
       /* load pending calculations */
       for (; i > 0; i--) {
-        s = calloc(sizeof(struct stack), 1);
+        s = calloc(1, sizeof(struct stack));
         if (s == NULL) {
           print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
@@ -892,7 +892,7 @@ int collect_dlr(void) {
         s->base = READ_T;
         s->stacksize = x;
         
-        s->stack_items = calloc(sizeof(struct stack_item) * x, 1);
+        s->stack_items = calloc(x, sizeof(struct stack_item));
         if (s->stack_items == NULL) {
           print_text(NO, "COLLECT_DLR: Out of memory.\n");
           free(s);
@@ -928,7 +928,7 @@ int collect_dlr(void) {
       while (i > 0) {
         i--;
 
-        ls = calloc(sizeof(struct label_sizeof), 1);
+        ls = calloc(1, sizeof(struct label_sizeof));
         if (ls == NULL) {
           print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
@@ -1073,7 +1073,7 @@ int collect_dlr(void) {
 
       /* load references */
       for (; i > 0; i--) {
-        r = calloc(sizeof(struct reference), 1);
+        r = calloc(1, sizeof(struct reference));
         if (r == NULL) {
           print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
@@ -1112,7 +1112,7 @@ int collect_dlr(void) {
 
       /* load pending calculations */
       for (; i > 0; i--) {
-        s = calloc(sizeof(struct stack), 1);
+        s = calloc(1, sizeof(struct stack));
         if (s == NULL) {
           print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
@@ -1148,7 +1148,7 @@ int collect_dlr(void) {
         s->slot = g_obj_tmp->slot;
         s->base = g_obj_tmp->base;
         
-        s->stack_items = calloc(sizeof(struct stack_item) * x, 1);
+        s->stack_items = calloc(x, sizeof(struct stack_item));
         if (s->stack_items == NULL) {
           print_text(NO, "COLLECT_DLR: Out of memory.\n");
           free(s);
@@ -1184,7 +1184,7 @@ int collect_dlr(void) {
       while (i > 0) {
         i--;
 
-        ls = calloc(sizeof(struct label_sizeof), 1);
+        ls = calloc(1, sizeof(struct label_sizeof));
         if (ls == NULL) {
           print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
@@ -1350,7 +1350,7 @@ static void _kill_label(char *name, struct section *s) {
 
 static struct sort_capsule *_create_sort_capsule(void) {
 
-  struct sort_capsule *sc = calloc(sizeof(struct sort_capsule), 1);
+  struct sort_capsule *sc = calloc(1, sizeof(struct sort_capsule));
 
   if (sc == NULL) {
     print_text(NO, "_create_sort_capsule(): Out of memory error.\n");
@@ -1940,7 +1940,7 @@ int parse_data_blocks(void) {
               return FAILED;
         }
         else if (x == DATA_TYPE_SECTION) {
-          s = calloc(sizeof(struct section), 1);
+          s = calloc(1, sizeof(struct section));
           if (s == NULL) {
             print_text(NO, "PARSE_DATA_BLOCKS: Out of memory.\n");
             return FAILED;
@@ -1971,7 +1971,7 @@ int parse_data_blocks(void) {
 
             hashmap_get(g_namespace_map, buf, (void*)&nspace);
             if (nspace == NULL) {
-              nspace = calloc(sizeof(struct namespace_def), 1);
+              nspace = calloc(1, sizeof(struct namespace_def));
               if (nspace == NULL) {
                 print_text(NO, "PARSE_DATA_BLOCKS: Out of memory.\n");
                 return FAILED;
@@ -2033,7 +2033,7 @@ int parse_data_blocks(void) {
       t = g_obj_tmp->data_blocks;
       p = g_obj_tmp->data + g_obj_tmp->size;
       for ( ; t < p; ) {
-        s = calloc(sizeof(struct section), 1);
+        s = calloc(1, sizeof(struct section));
         if (s == NULL) {
           print_text(NO, "PARSE_DATA_BLOCKS: Out of memory.\n");
           return FAILED;
@@ -2063,7 +2063,7 @@ int parse_data_blocks(void) {
 
           hashmap_get(g_namespace_map, buf, (void*)&nspace);
           if (nspace == NULL) {
-            nspace = calloc(sizeof(struct namespace_def), 1);
+            nspace = calloc(1, sizeof(struct namespace_def));
             if (nspace == NULL) {
               print_text(NO, "PARSE_DATA_BLOCKS: Out of memory.\n");
               return FAILED;

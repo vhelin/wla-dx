@@ -71,7 +71,7 @@ static int _is_stack_condition(struct stack_item st[], int count) {
 
 static struct stack *_allocate_struct_stack(int items) {
 
-  struct stack *stack = calloc(sizeof(struct stack), 1);
+  struct stack *stack = calloc(1, sizeof(struct stack));
   if (stack == NULL) {
     print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
     return NULL;
@@ -80,7 +80,7 @@ static struct stack *_allocate_struct_stack(int items) {
   init_stack_struct(stack);
 
   stack->stacksize = items;
-  stack->stack_items = calloc(sizeof(struct stack_item) * items, 1);
+  stack->stack_items = calloc(items, sizeof(struct stack_item));
   if (stack->stack_items == NULL) {
     free(stack);
     print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
@@ -248,7 +248,7 @@ int compress_stack_calculation_ids(void) {
   /* 2. reorder the stack calculations into a new pointer array */
 
   if (s_stack_calculations_max > 0) {
-    stack_calculations = calloc(sizeof(struct stack *) * s_stack_calculations_max, 1);
+    stack_calculations = calloc(s_stack_calculations_max, sizeof(struct stack *));
     if (stack_calculations == NULL) {
       print_error(ERROR_NUM, "Out of memory error while trying to reorder stack calculations pointer array! s_stack_calculations_max = %d!\n", s_stack_calculations_max);
       return FAILED;
@@ -648,7 +648,7 @@ static int _remember_converted_stack_item(struct stack_item *s) {
   }
 
   if (s_converted_stack_items_backups == NULL) {
-    s_converted_stack_items_backups = calloc(sizeof(struct stack_item) * 64, 1);
+    s_converted_stack_items_backups = calloc(64, sizeof(struct stack_item));
     if (s_converted_stack_items_backups == NULL) {
       print_error(ERROR_ERR, "Out of memory error while allocating s_converted_stack_items_backups.\n");
       return FAILED;
@@ -3342,7 +3342,7 @@ static struct stack_item *_stack_calculate_get_array(void) {
     return NULL;
 
   if (s_stack_calculate_si_pointers[s_stack_calculate_pointer_index] == NULL)
-    s_stack_calculate_si_pointers[s_stack_calculate_pointer_index] = calloc(sizeof(struct stack_item) * MAX_STACK_CALCULATOR_ITEMS, 1);
+    s_stack_calculate_si_pointers[s_stack_calculate_pointer_index] = calloc(MAX_STACK_CALCULATOR_ITEMS, sizeof(struct stack_item));
   
   return s_stack_calculate_si_pointers[s_stack_calculate_pointer_index++];
 }
@@ -5276,7 +5276,7 @@ int data_stream_parser_parse(void) {
         struct data_stream_item *dSI;
         int mangled_label = NO;
 	
-	dSI = calloc(sizeof(struct data_stream_item), 1);
+	dSI = calloc(1, sizeof(struct data_stream_item));
         if (dSI == NULL) {
           print_error(ERROR_ERR, "Out of memory error while allocating a data_stream_item.\n");
           return FAILED;

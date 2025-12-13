@@ -2276,7 +2276,7 @@ static int _save_stack_calculation(struct stack_item *stack_items, int stacksize
 
   struct stack *s;
   
-  s = calloc(sizeof(struct stack), 1);
+  s = calloc(1, sizeof(struct stack));
   if (s == NULL) {
     free(stack_items);
     print_error(ERROR_STC, "Out of memory error while allocating room for a new calculation stack.\n");
