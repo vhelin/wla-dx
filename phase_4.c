@@ -164,7 +164,7 @@ static struct label_def *_new_unknown_reference(int type) {
     label->section_struct = g_sec_tmp;
     /* relative address, to the beginning of the section */
     label->address = g_sec_tmp->i;
-    label->base = g_sec_tmp->base;
+    label->base = s_base;
     label->bank = g_sec_tmp->bank;
     label->slot = g_sec_tmp->slot;
   }
@@ -489,6 +489,9 @@ int phase_4(void) {
 
       g_sec_tmp->i = 0;
       g_section_status = ON;
+
+      /* Initialize base from the section's base value */
+      s_base = g_sec_tmp->base;
 
       continue;
 
@@ -922,7 +925,7 @@ int phase_4(void) {
           if (stack->section_status == ON) {
             /* relative address, to the beginning of the section */
             stack->address = g_sec_tmp->i;
-            stack->base = g_sec_tmp->base;
+            stack->base = s_base;
             stack->bank = g_sec_tmp->bank;
             stack->slot = g_sec_tmp->slot;
           }
