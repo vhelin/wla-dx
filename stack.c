@@ -1932,11 +1932,6 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       }
       else
         break;
-
-      if (d != HINT_NONE && k == HINT_TYPE_GIVEN && d != g_operand_hint) {
-        print_error(ERROR_STC, "Confusing operand hint!\n");
-        in++;
-      }
     }
     else if (*in == ')') {
       si[q].type = STACK_ITEM_TYPE_OPERATOR;

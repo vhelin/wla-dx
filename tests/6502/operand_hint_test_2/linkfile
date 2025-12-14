@@ -1,0 +1,6 @@
+[objects]
+main.o
+
+[definitions]
+pena 22h
+dena  bh
