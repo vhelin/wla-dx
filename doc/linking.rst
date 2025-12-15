@@ -204,6 +204,12 @@ following example::
 Here duplicate ``INIT_LEVEL`` labels are accepted as they both point to the
 same memory address (in the program's point of view).
 
+Allow duplicate labels when they have the same values using ``C`` flag.
+
+If you want to allow for some reason duplicate labels (and definitions) when they
+have different values, use the ``c`` flag. The linker will in this case probably
+use those that it processed first.
+
 Note that when you use .RAMSECTIONs, WLALINK will generate labels
 RAM_USAGE_SLOT_[slot name/id]_BANK_[bank number]_START and
 RAM_USAGE_SLOT_[slot name/id]_BANK_[bank number]_END that contain the

@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.22a (29.11.2025)";
+char g_version_string[] = "$VER: wlalink 5.22a (15.12.2025)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -1194,8 +1194,10 @@ int main(int argc, char *argv[]) {
     print_text(YES, "-b  Program file output\n");
     print_text(YES, "-bE Ending address of the program (optional)\n");
     print_text(YES, "-bS Starting address of the program (optional)\n");
-    print_text(YES, "-c  Allow duplicate labels and definitions, even if values are different\n");
-    print_text(YES, "-C  Allow duplicate labels and definitions, but don't allow if values are different\n");
+    print_text(YES, "-c  Allow duplicate labels and definitions, even if values are\n");
+    print_text(YES, "    different\n");
+    print_text(YES, "-C  Allow duplicate labels and definitions, but don't allow if\n");
+    print_text(YES, "    values are different\n");
     print_text(YES, "-d  Discard unreferenced sections\n");
     print_text(YES, "-D  Don't create _sizeof_* definitions\n");
     print_text(YES, "-i  Write list files\n");

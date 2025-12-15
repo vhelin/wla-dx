@@ -2,7 +2,7 @@
 CC = $(WLAVALGRIND) wla-gb
 CFLAGS = -i -x -o
 LD = $(WLAVALRGIND) wlalink
-LDFLAGS = -i -v -c -s
+LDFLAGS = -i -v -C -s
 
 SFILES = bank0.s bank1.s
 IFILES = 
