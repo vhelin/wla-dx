@@ -49,6 +49,7 @@ extern int g_output_type, g_program_address_start, g_program_address_end, g_prog
 extern int g_section_table_table_max, g_section_write_order[SECTION_TYPES_COUNT-2], g_ramsection_write_order[RAMSECTION_TYPES_COUNT];
 extern int g_use_priority_only_writing_sections, g_use_priority_only_writing_ramsections;
 extern int g_allow_duplicate_labels_and_definitions;
+extern int g_allow_value_mismatch_in_duplicate_labels;
 
 static int s_current_stack_calculation_addr = 0;
 
@@ -1541,7 +1542,7 @@ static int _try_put_label(map_t map, struct label *l, int duplicate_check) {
   if (duplicate_check == YES) {
     /* do only duplicate check */
     if (hashmap_get(map, l->name, (void*)&label) == MAP_OK) {
-      if (g_allow_duplicate_labels_and_definitions == YES) {
+      if (g_allow_duplicate_labels_and_definitions == YES && g_allow_value_mismatch_in_duplicate_labels == NO) {
         if (l->alive == YES && label->alive == YES) {
           /* check if the values are different */
           if (l->status == LABEL_STATUS_DEFINE) {
