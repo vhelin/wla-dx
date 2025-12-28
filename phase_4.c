@@ -73,7 +73,7 @@ struct label_def *g_unknown_header_labels = NULL, *g_unknown_header_labels_last 
 char g_mem_insert_action[MAX_NAME_LENGTH * 3 + 1024], g_namespace[MAX_NAME_LENGTH + 1];
 
 static int s_pc_bank = 0, s_pc_full = 0, s_rom_bank, s_mem_insert_overwrite, s_slot = 0, s_base = 0, s_pc_slot, s_pc_slot_max;
-static int s_filename_id, s_line_number, s_dstruct_start = -1, s_special_id = 0;
+static int s_filename_id, s_line_number, s_dstruct_start = -1, s_special_id = 0, s_base_backup = -1;
 static struct after_section *s_after_tmp;
 static struct label_sizeof *s_label_sizeof_tmp;
 
@@ -164,7 +164,7 @@ static struct label_def *_new_unknown_reference(int type) {
     label->section_struct = g_sec_tmp;
     /* relative address, to the beginning of the section */
     label->address = g_sec_tmp->i;
-    label->base = g_sec_tmp->base;
+    label->base = s_base;
     label->bank = g_sec_tmp->bank;
     label->slot = g_sec_tmp->slot;
   }
@@ -447,6 +447,11 @@ int phase_4(void) {
       if (g_sec_tmp->alive == NO)
         continue;
 
+      if (g_sec_tmp->base >= 0) {
+	s_base_backup = s_base;
+	s_base = g_sec_tmp->base;
+      }
+
       if (c == 'A') {
         if (inz == NO) {
           /* sanity check */
@@ -498,6 +503,11 @@ int phase_4(void) {
       g_section_status = OFF;
       g_bankheader_status = OFF;
 
+      if (s_base_backup >= 0) {
+	s_base = s_base_backup;
+	s_base_backup = -1;
+      }
+      
       /* some sections don't affect the ORG outside of them */
       if (g_sec_tmp->advance_org == NO) {
         s_pc_bank = add_old;
@@ -922,7 +932,7 @@ int phase_4(void) {
           if (stack->section_status == ON) {
             /* relative address, to the beginning of the section */
             stack->address = g_sec_tmp->i;
-            stack->base = g_sec_tmp->base;
+            stack->base = s_base;
             stack->bank = g_sec_tmp->bank;
             stack->slot = g_sec_tmp->slot;
           }
@@ -1110,7 +1120,7 @@ int phase_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
-        stack->base = g_sec_tmp->base;
+        stack->base = s_base;
         stack->bank = g_sec_tmp->bank;
         stack->slot = g_sec_tmp->slot;
       }
@@ -1193,7 +1203,7 @@ int phase_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
-        stack->base = g_sec_tmp->base;
+        stack->base = s_base;
         stack->bank = g_sec_tmp->bank;
         stack->slot = g_sec_tmp->slot;
       }
@@ -1290,7 +1300,7 @@ int phase_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
-        stack->base = g_sec_tmp->base;
+        stack->base = s_base;
         stack->bank = g_sec_tmp->bank;
         stack->slot = g_sec_tmp->slot;
       }
@@ -1370,7 +1380,7 @@ int phase_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
-        stack->base = g_sec_tmp->base;
+        stack->base = s_base;
         stack->bank = g_sec_tmp->bank;
         stack->slot = g_sec_tmp->slot;
       }
@@ -1459,7 +1469,7 @@ int phase_4(void) {
       if (stack->section_status == ON) {
         /* relative address, to the beginning of the section */
         stack->address = g_sec_tmp->i;
-        stack->base = g_sec_tmp->base;
+        stack->base = s_base;
         stack->bank = g_sec_tmp->bank;
         stack->slot = g_sec_tmp->slot;
       }

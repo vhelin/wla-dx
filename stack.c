@@ -389,6 +389,7 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
             value == SI_OP_HIGH_WORD ||
             value == SI_OP_BANK_BYTE ||
             value == SI_OP_BANK ||
+	    value == SI_OP_BASE ||
             value == SI_OP_CLAMP ||
             value == SI_OP_SIGN ||
             value == SI_OP_ABS))
@@ -436,6 +437,8 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
         print_text(YES, "hiword(a)");
       else if (value == SI_OP_BANK_BYTE)
         print_text(YES, "bankbyte(a)");
+      else if (value == SI_OP_BASE)
+        print_text(YES, "base(a)");
       else if (value == SI_OP_ROUND)
         print_text(YES, "round(a)");
       else if (value == SI_OP_CEIL)
@@ -560,6 +563,7 @@ static struct stack_item_priority_item s_stack_item_priority_items[] = {
   { SI_OP_HIGH_BYTE, 110 },
   { SI_OP_LOW_WORD, 110 },
   { SI_OP_HIGH_WORD, 110 },
+  { SI_OP_BASE, 110 },
   { SI_OP_BANK, 110 },
   { SI_OP_BANK_BYTE, 110 },
   { SI_OP_ROUND, 110 },
@@ -1591,8 +1595,8 @@ static int _get_bank_base_slot(struct stack_item *si, int bank, int base, int sl
       if (section != NULL) {
         if (bank == YES)
           result += section->bank;
-        if (base == YES && section->base > 0)
-          result += section->base;
+        if (base == YES && dSI->base > 0)
+          result += dSI->base;
         if (slot == YES)
           result += section->slot;
       }
@@ -2451,19 +2455,17 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         }
         else if (k == 8 && strcaselesscmpn(si[q].string, "bankbyte(", 9) == 0) {
           if (*in == ')') {
-            int bankbyte = g_bank;
+            int bankbyte;
             
             in++;
 
-            if (g_section_status == ON) {
+            if (g_section_status == ON)
               bankbyte = g_sec_tmp->bank;
-              if (g_sec_tmp->base > 0)
-                bankbyte += g_sec_tmp->base;
-            }
-            else {
-              if (g_base > 0)
-                bankbyte += g_base;
-            }
+            else
+	      bankbyte = g_bank;
+
+	    if (g_base > 0)
+	      bankbyte += g_base;
 
             si[q].type = STACK_ITEM_TYPE_VALUE;
             si[q].value = bankbyte;
@@ -2473,6 +2475,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           }
           else {
             int enable_label_address_conversion = g_dsp_enable_label_address_conversion;
+
             g_dsp_enable_label_address_conversion = NO;
             if (_parse_function_math1_base(&in, si, &q, "bankbyte(a)", SI_OP_BANK_BYTE) == FAILED)
               return FAILED;
@@ -2495,11 +2498,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           if (*in == ')') {
             in++;
 
-            if (g_section_status == ON)
-              si[q].value = g_sec_tmp->base;
-            else
-              si[q].value = g_base;
-
+	    si[q].value = g_base;
             if (si[q].value < 0)
               si[q].value = 0;
             
@@ -2507,9 +2506,27 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
             si[q].sign = SI_SIGN_POSITIVE;
 
             is_already_processed_function = YES;
-
-            break;
           }
+          else {
+            int enable_label_address_conversion = g_dsp_enable_label_address_conversion;
+          
+            g_dsp_enable_label_address_conversion = NO;
+            if (_parse_function_math1_base(&in, si, &q, "base(a)", SI_OP_BASE) == FAILED)
+              return FAILED;
+
+            if (g_input_parse_if == YES && si[q].type == STACK_ITEM_TYPE_LABEL) {
+              /* delete the base() operator */
+              si[q-1].type = STACK_ITEM_TYPE_DELETED;
+              
+              /* we want base of a label inside .IF -> try to solve it here */
+              if (_get_bank_base_slot(&si[q], NO, YES, NO) == FAILED)
+                return FAILED;
+            }
+
+            g_dsp_enable_label_address_conversion = enable_label_address_conversion;
+            is_already_processed_function = YES;
+          }
+	  break;
         }
         else if (k == 4 && strcaselesscmpn(si[q].string, "slot(", 5) == 0) {
           if (*in == ')') {
@@ -2934,6 +2951,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
          si[k + 1].value == SI_OP_HIGH_WORD ||
          si[k + 1].value == SI_OP_BANK_BYTE ||
          si[k + 1].value == SI_OP_BANK ||
+	 si[k + 1].value == SI_OP_BASE ||
          si[k + 1].value == SI_OP_LOG ||
          si[k + 1].value == SI_OP_LOG10 ||
          si[k + 1].value == SI_OP_POW ||
@@ -2968,6 +2986,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[k].value != SI_OP_LOGICAL_OR &&
         si[k].value != SI_OP_LOGICAL_AND &&
         si[k + 1].value != SI_OP_NOT &&
+        si[k + 1].value != SI_OP_BASE &&
         si[k + 1].value != SI_OP_BANK &&
         si[k + 1].value != SI_OP_BANK_BYTE &&
         si[k + 1].value != SI_OP_HIGH_BYTE &&
@@ -3827,12 +3846,14 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
   int backup = stack_item_count, cannot_resolve = 0, is_condition = NO, enable_label_address_conversion = g_dsp_enable_label_address_conversion;
   struct stack_item *st;
 
-  /* exits for bank and bankbyte */
+  /* exits for bank and bankbyte and base */
   st = s;
   while (stack_item_count > 0) {
     if (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK)
       g_dsp_enable_label_address_conversion = NO;
     else if (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK_BYTE)
+      g_dsp_enable_label_address_conversion = NO;
+    else if (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BASE)
       g_dsp_enable_label_address_conversion = NO;
     stack_item_count--;
     st++;
@@ -4159,7 +4180,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_HIGH_WORD:
         z = ((int)v[t - 1]) >> 16;
-		v[t - 1] = _perform_and(z, 0xFFFF);
+	v[t - 1] = _perform_and(z, 0xFFFF);
         if (s->sign == SI_SIGN_NEGATIVE)
           v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
@@ -4841,7 +4862,7 @@ extern FILE *g_file_out_ptr;
 
 /* internal variables for data_stream_parser_parse(), saved here so that the function can continue next time it's called from
    where it left off previous call */
-static int s_dsp_last_data_stream_position = 0, s_dsp_has_data_stream_parser_been_initialized = NO, s_dsp_base = -1;
+static int s_dsp_last_data_stream_position = 0, s_dsp_has_data_stream_parser_been_initialized = NO, s_dsp_base = -1, s_dsp_base_backup = -1;
 static int s_dsp_add = 0, s_dsp_add_old = 0, s_dsp_section_id = -1, s_dsp_bits_current = 0, s_dsp_inz;
 static int s_dstruct_start, s_dstruct_item_offset, s_dstruct_item_size, s_dsp_bank = 0, s_dsp_slot = 0;
 static struct section_def *s_dsp_s = NULL;
@@ -4997,6 +5018,10 @@ int data_stream_parser_parse(void) {
         return FAILED;
       }
 
+      s_dsp_base_backup = s_dsp_base;
+      if (s_dsp_s->base >= 0)
+	s_dsp_base = s_dsp_s->base;
+
       if (s_dsp_s->status == SECTION_STATUS_FREE || s_dsp_s->status == SECTION_STATUS_RAM_FREE || s_dsp_s->status == SECTION_STATUS_SEMISUPERFREE) {
         s_dsp_add = 0;
         s_dsp_s->address_from_dsp = 0;
@@ -5019,6 +5044,11 @@ int data_stream_parser_parse(void) {
         s_dsp_add = s_dsp_add_old;
       else
         s_dsp_add = s_dsp_add_old + s_dsp_s->size;
+
+      if (s_dsp_base_backup >= 0) {
+	s_dsp_base = s_dsp_base_backup;
+	s_dsp_base_backup = -1;
+      }
       
       s_dsp_section_id = -1;
       s_dsp_s = NULL;

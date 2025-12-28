@@ -70,7 +70,7 @@ int g_rambanks = 0, g_rambanks_defined = 0;
 int g_emptyfill = 0, g_emptyfill_defined = 0;
 int g_section_status = OFF, g_section_id = 1;
 int g_parsed_int, g_source_index, g_ifdef = 0, g_slots_amount = 0;
-int g_memorymap_defined = 0, g_bank = 0, g_base = -1;
+int g_memorymap_defined = 0, g_bank = 0, g_base = -1, g_base_backup = -1;
 int g_banksize_defined = 0, g_banksize = 0;
 int g_rombankmap_defined = 0, *g_banks = NULL, *g_bankaddress = NULL;
 int g_bankheader_status = OFF;
@@ -5099,6 +5099,10 @@ int directive_ramsection(void) {
       }
 
       g_sec_tmp->base = g_parsed_int;
+
+      /* .ENDS restores the backup */
+      g_base_backup = g_base;
+      g_base = g_parsed_int;
     }
     else if (compare_next_token("SLOT") == SUCCEEDED) {
       if (g_output_format == OUTPUT_LIBRARY) {
@@ -5665,6 +5669,10 @@ int directive_section(void) {
       }
 
       g_sec_tmp->base = g_parsed_int;
+
+      /* .ENDS restores the backup */
+      g_base_backup = g_base;
+      g_base = g_parsed_int;
     }
     /* bank? */
     else if (compare_next_token("BANK") == SUCCEEDED) {
@@ -11760,7 +11768,12 @@ int parse_directive(void) {
         g_in_ramsection = NO;
         
         fprintf(g_file_out_ptr, "s ");
-        
+
+	if (g_base_backup >= 0) {
+	  g_base = g_base_backup;
+	  g_base_backup = -1;
+	}
+	
         return SUCCEEDED;
       }
       

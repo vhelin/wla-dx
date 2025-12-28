@@ -3750,6 +3750,15 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
           v_rom[t - 1] = -v_rom[t - 1];
         }
         break;
+      case SI_OP_BASE:
+	y = base[t - 1];
+        v_ram[t - 1] = y & 0xFF;
+        v_rom[t - 1] = y & 0xFF;
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
+        break;
       case SI_OP_LOW_BYTE:
         z = (int)v_ram[t - 1];
         y = (int)v_rom[t - 1];
