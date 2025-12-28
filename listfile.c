@@ -35,7 +35,7 @@ int listfile_collect(void) {
 
   int add = 0, skip = 0, file_name_id = 0, inz, line_number = 0, command = 0, global_command = 0, inside_macro = 0, inside_repeat = 0;
   int x, y, dstruct_start = -1, bits_current = 0, base = 0, bank = 0, origin = 0, origin_old = 0, slot = 0, running_id = 0;
-  int real_line_number = 0, err;
+  int real_line_number = 0, err, base_backup = -1;
   struct section_def *section = NULL;
   char c;
 
@@ -112,6 +112,10 @@ int listfile_collect(void) {
       while (section->id != inz)
         section = section->next;
 
+      base_backup = base;
+      if (section->base >= 0)
+	base = section->base;
+      
       add = 0;
       skip = 0;
       command = 0;
@@ -137,6 +141,12 @@ int listfile_collect(void) {
       section = NULL;
       add = 0;
       skip = 0;
+
+      if (base_backup >= 0) {
+	base = base_backup;
+	base_backup = -1;
+      }
+      
       continue;
 
     case 'x':

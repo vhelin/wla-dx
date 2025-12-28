@@ -142,7 +142,7 @@ static int _add_label(struct label_def *l, struct section_def *s, int line_numbe
         
 int phase_3(void) {
 
-  int bank = 0, slot = 0, address = 0, file_name_id = 0, inz, line_number = 0, o, address_old = 0, base = 0, bits_current = 0, x, y, err;
+  int bank = 0, slot = 0, address = 0, file_name_id = 0, inz, line_number = 0, o, address_old = 0, base = 0, base_backup = -1, bits_current = 0, x, y, err;
   char tmp_buffer[MAX_NAME_LENGTH + 1], c;
   struct section_def *s = NULL;
   struct label_def *l;
@@ -493,7 +493,7 @@ int phase_3(void) {
           l->address = address;
           l->bank = s->bank;
           l->slot = s->slot;
-          l->base = s->base;
+	  l->base = base;
 
           if (c == 'Z' || is_label_anonymous(l->label) == YES) {
             if (g_labels != NULL) {
@@ -524,6 +524,11 @@ int phase_3(void) {
         while (s != NULL && s->id != inz)
           s = s->next;
 
+	/* use .SECTION's base */
+	base_backup = base;
+	if (s->base >= 0)
+	  base = s->base;
+      
         /* a .RAMSECTION? */
         if (s->status == SECTION_STATUS_RAM_FREE) {
           s->address = 0;
@@ -563,6 +568,11 @@ int phase_3(void) {
       case 's':
         s->size = address - s->address;
 
+	if (base_backup >= 0) {
+	  base = base_backup;
+	  base_backup = -1;
+	}
+
         /* discard an empty section? */
         if (s->size == 0 && s->keep == NO && g_keep_empty_sections == NO) {
           struct after_section *as;
@@ -594,7 +604,8 @@ int phase_3(void) {
 
         g_section_status = OFF;
         s = NULL;
-        continue;
+
+	continue;
 
       case 'O':
         err = fscanf(g_file_out_ptr, "%d ", &address);
@@ -689,7 +700,13 @@ int phase_3(void) {
           s->slot = slot;
         if (s->base < 0)
           s->base = base;
-        s->listfile_items = 1;
+
+	/* use .SECTION's base */
+	base_backup = base;
+	if (s->base >= 0)
+	  base = s->base;
+
+	s->listfile_items = 1;
         s->listfile_ints = NULL;
         s->listfile_cmds = NULL;
         g_section_status = ON;
@@ -800,6 +817,12 @@ int phase_3(void) {
         s->bank = bank;
       if (s->slot < 0)
         s->slot = slot;
+
+      /* use .SECTION's base */
+      base_backup = base;
+      if (s->base >= 0)
+	base = s->base;
+
       if (s->base < 0)
         s->base = base;
 
@@ -817,6 +840,11 @@ int phase_3(void) {
     case 's':
       s->size = address - s->address;
 
+      if (base_backup >= 0) {
+	base = base_backup;
+	base_backup = -1;
+      }
+	
       /* discard an empty section? */
       if (s->size == 0 && s->keep == NO && g_keep_empty_sections == NO) {
         struct after_section *as;
@@ -1192,7 +1220,7 @@ int phase_3(void) {
           l->address = address - s->address;
           l->bank = s->bank;
           l->slot = s->slot;
-          l->base = s->base;
+          l->base = base;
         }
         else {
           l->section_id = 0;

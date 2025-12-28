@@ -28,6 +28,9 @@ v10.7 (28-Dec-2025) [ALL] Prefixed by a hashtag didn't propagate though nested .
                     [ALL] .FAIL can process multiple strings.
                     [ALL] When using -h operand hints like .b for labels work now.
                     [ALL] .STRINGMAPTABLE uses now directories specified with -I.
+                    [ALL] .BASE can once again given inside a .SECTION. NOTE: The
+                      old .BASE before the .SECTION is returned after .ENDS.
+                    [ALL] Implemented missing base(label).
                     [658] Fixed BRL and PER to work properly.
                     [68k] Added alias SP for register a7.
                     [68k] BCLR, BSET and BTST used wrong range [1, 8] / [1, 32] for

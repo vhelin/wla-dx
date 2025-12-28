@@ -132,3 +132,16 @@
         .ENUM 0 export
             test    INSTANCEOF both
         .ENDE
+
+labelX:	.db 0, 1, 2, 3
+labelY:
+	.struct SomeStruct
+	    someData ds labelY-labelX
+	.endst
+
+	.db "04>"		; @BT TEST-04 04 START
+	.dstruct SomeStruct1 instanceof SomeStruct values
+            someData: .dd $01234567 ; @BT 67 45 23 01
+	.endst
+	.db "<04"		; @BT END
+	

@@ -623,6 +623,9 @@ label).
 
 On 65816, use ``.LOROM``, ``.HIROM`` or ``.EXHIROM`` to define the ROM mode. 
 
+``.BASE`` can also given inside a ``.SECTION``, but after ``.ENDS`` the
+base value before the ``.SECTION`` is returned.
+
 This is not a compulsory directive.
 
 

@@ -166,6 +166,7 @@
 #define SI_OP_POW         48
 #define SI_OP_CLAMP       49
 #define SI_OP_SIGN        50
+#define SI_OP_BASE        51
 
 #define SI_SIGN_POSITIVE 0
 #define SI_SIGN_NEGATIVE 1
