@@ -6138,7 +6138,7 @@ int directive_fopen(void) {
   strcpy(f->name, g_tmp);
 
   /* open the file */
-  o = find_file(f->filename, &(f->f), NO);
+  o = find_file(f->filename, &(f->f), NO, "rb");
   if (f->f == NULL) {
     if (g_makefile_skip_file_handling == YES) {
       /* lets just use a tmp file for file operations */
@@ -10766,6 +10766,11 @@ int directive_stringmaptable(void) {
   }
 
   table_file = fopen(map->filename, "r");
+  if (table_file == NULL) {
+    if (find_file(map->filename, &table_file, NO, "r") == FAILED)
+      return FAILED;
+  }
+  
   if (table_file == NULL) {
     if (g_makefile_skip_file_handling == YES) {
       /* if in makefile mode, this is not an error, we just make an empty map */

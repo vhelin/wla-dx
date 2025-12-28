@@ -130,14 +130,14 @@ static void _print_find_error(char *name) {
 }
 
 
-int find_file(char *name, FILE **f, int is_full_path) {
+int find_file(char *name, FILE **f, int is_full_path, char *mode) {
 
   int index;
 
   if (is_full_path == YES) {
     create_full_name(NULL, name);
     
-    (*f) = fopen(name, "rb");
+    (*f) = fopen(name, mode);
     if (*f != NULL)
       return SUCCEEDED;
 
@@ -163,7 +163,7 @@ int find_file(char *name, FILE **f, int is_full_path) {
     return SUCCEEDED;
 
   /* if failed try to find the file in the current directory */
-  (*f) = fopen(name, "rb");
+  (*f) = fopen(name, mode);
   if (*f != NULL)
     return SUCCEEDED;
 
@@ -191,7 +191,7 @@ int include_file(char *name, int *include_size, char *namespace, int is_full_pat
   char *tmp_b, *n, change_file_buffer[MAX_NAME_LENGTH * 2];
   FILE *f = NULL;
 
-  int error_code = find_file(name, &f, is_full_path);
+  int error_code = find_file(name, &f, is_full_path, "rb");
   if (error_code != SUCCEEDED)
     return error_code;
 
@@ -479,7 +479,7 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       break;
   }
   
-  error_code = find_file(name, &f, is_full_path);
+  error_code = find_file(name, &f, is_full_path, "rb");
   if (error_code != SUCCEEDED)
     return error_code;
 
