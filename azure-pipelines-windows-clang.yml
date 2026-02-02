@@ -1,5 +1,5 @@
 #
-# WLA DX Windows build script for CMake + MSVC
+# WLA DX Windows build script for CMake + Clang (clang-cl)
 #
 
 trigger:
@@ -16,22 +16,22 @@ strategy:
       config: 'Release'
 
 steps:
-# 1. Build the specific configuration
+# 1. Build the specific configuration using the ClangCL toolset
 - script: |
-    cmake . -B build
+    # -T ClangCL tells CMake to use the LLVM/Clang compiler driver
+    cmake . -B build -T ClangCL
     cmake --build build --config $(config) -j
-  displayName: 'Build $(config)'
+  displayName: 'Build $(config) with Clang'
 
-# 2. Run tests using ONLY the binaries from that build
+# 2. Run tests using the binaries from the Clang build
 - bash: |
-    # Add the specific binary folder created by WLA DX's CMakeLists + MSVC
-    # It follows the pattern: build/binaries/[Configuration]
+    # Add the specific binary folder created by WLA DX's CMakeLists + MSVC/Clang
     export PATH=$PWD/build/binaries/$(config):$PATH
-    
-    # Debugging: List the files to be 100% sure they are there
+
+    # Verify binaries are present
     echo "Checking for binaries in: $PWD/build/binaries/$(config)"
     ls -l $PWD/build/binaries/$(config)
-    
+
     # Run the test script
     ./run_tests.sh
   displayName: 'Run Tests ($(config))'
