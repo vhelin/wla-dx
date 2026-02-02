@@ -22,18 +22,6 @@ steps:
   timeoutInMinutes: 60
 
 - script: |
-    # Explicitly use Unix Makefiles with Clang
-    cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
-    make
-  displayName: 'Build Release (Clang)'
-  timeoutInMinutes: 60
-
-- script: |
-    ./run_tests.sh
-  displayName: 'Run Tests (Release)'
-  timeoutInMinutes: 60
-
-- script: |
     make clean
     # Note: Using your project-specific GDB_DEBUGGING flag as requested
     cmake -DGDB_DEBUGGING=ON -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles"
@@ -44,4 +32,16 @@ steps:
 - script: |
     ./run_tests.sh
   displayName: 'Run Tests (Debug)'
+  timeoutInMinutes: 60
+
+- script: |
+    # Explicitly use Unix Makefiles with Clang
+    cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+    make
+  displayName: 'Build Release (Clang)'
+  timeoutInMinutes: 60
+
+- script: |
+    ./run_tests.sh
+  displayName: 'Run Tests (Release)'
   timeoutInMinutes: 60

@@ -10,10 +10,10 @@ pool:
 
 strategy:
   matrix:
-    Release_Build:
-      config: 'Release'
     Debug_Build:
       config: 'Debug'
+    Release_Build:
+      config: 'Release'
 
 steps:
 # 1. Build the specific configuration
