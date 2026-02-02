@@ -6,16 +6,30 @@ trigger:
 - master
 
 pool:
-  vmImage: 'windows-2022'
+  vmImage: 'windows-2025'
+
+strategy:
+  matrix:
+    Release_Build:
+      config: 'Release'
+    Debug_Build:
+      config: 'Debug'
 
 steps:
+# 1. Build the specific configuration
 - script: |
-    cmake .
-    cmake --build . --config Release -j
-  displayName: 'Build Release'
-  timeoutInMinutes: 60
-- script: |
-    cmake .
-    cmake --build . --config Debug -j
-  displayName: 'Build Debug'
-  timeoutInMinutes: 60
+    cmake . -B build
+    cmake --build build --config $(config) -j
+  displayName: 'Build $(config)'
+
+# 2. Run tests using ONLY the binaries from that build
+- bash: |
+    # Force the PATH to prioritize the specific build folder
+    export PATH=$PWD/build/$(config):$PATH
+    
+    # Verify which executable we are using (optional but good for logs)
+    which wla-z80 || echo "wla-z80 not found in build/$(config)"
+    
+    ./run_tests.sh
+  displayName: 'Run Tests ($(config))'
+  workingDirectory: '$(Build.SourcesDirectory)'
