@@ -1,18 +1,14 @@
 #
 # WLA DX Linux build script (Clang)
 #
-
 trigger:
 - master
-
 pool:
   vmImage: 'ubuntu-latest'
-
 variables:
   # Setting these at the job level ensures CMake picks them up automatically
   CC: clang
   CXX: clang++
-
 steps:
 - script: |
     set -ex
@@ -23,8 +19,12 @@ steps:
 
 - script: |
     make clean
-    # Note: Using your project-specific GDB_DEBUGGING flag as requested
-    cmake -DGDB_DEBUGGING=ON -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles"
+    # Debug build with enhanced warnings to catch uninitialized variables
+    cmake -DGDB_DEBUGGING=ON \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_C_FLAGS="-g -Wall -Wextra -Wuninitialized" \
+          -DCMAKE_CXX_FLAGS="-g -Wall -Wextra -Wuninitialized" \
+          -G "Unix Makefiles"
     make
   displayName: 'Build Debug (Clang)'
   timeoutInMinutes: 60
@@ -35,13 +35,36 @@ steps:
   timeoutInMinutes: 60
 
 - script: |
-    # Explicitly use Unix Makefiles with Clang
-    cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+    make clean
+    # Release build with debug symbols for Valgrind + strict warnings
+    cmake -G "Unix Makefiles" \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_FLAGS="-g -Wall -Wextra -Wuninitialized" \
+          -DCMAKE_CXX_FLAGS="-g -Wall -Wextra -Wuninitialized"
     make
-  displayName: 'Build Release (Clang)'
+  displayName: 'Build Release (Clang) with Debug Symbols'
   timeoutInMinutes: 60
 
 - script: |
     ./run_tests.sh
   displayName: 'Run Tests (Release)'
   timeoutInMinutes: 60
+
+# Optional: Add a sanitizer build to catch issues at runtime
+- script: |
+    make clean
+    cmake -G "Unix Makefiles" \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_C_FLAGS="-g -fsanitize=address,undefined -fno-omit-frame-pointer" \
+          -DCMAKE_CXX_FLAGS="-g -fsanitize=address,undefined -fno-omit-frame-pointer" \
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+    make
+  displayName: 'Build with Sanitizers (Optional)'
+  timeoutInMinutes: 60
+  continueOnError: true
+
+- script: |
+    ./run_tests.sh
+  displayName: 'Run Tests (Sanitizers)'
+  timeoutInMinutes: 60
+  continueOnError: true
