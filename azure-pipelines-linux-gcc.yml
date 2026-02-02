@@ -1,0 +1,36 @@
+#
+# WLA DX Linux build script
+#
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- script: |
+    set -ex
+    sudo apt -y update
+    sudo apt install -y valgrind
+  displayName: 'Install Valgrind'
+  timeoutInMinutes: 60
+- script: |
+    cmake -G "Unix Makefiles"
+    make
+  displayName: 'Build Release'
+  timeoutInMinutes: 60
+- script: |
+    ./run_tests.sh
+  displayName: 'Run Tests (Release)'
+  timeoutInMinutes: 60
+- script: |
+    make clean
+    cmake -DGDB_DEBUGGING=ON -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles"
+    make
+  displayName: 'Build Debug'
+  timeoutInMinutes: 60
+- script: |
+    ./run_tests.sh
+  displayName: 'Run Tests (Debug)'
+  timeoutInMinutes: 60
