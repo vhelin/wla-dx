@@ -49,36 +49,42 @@ endif()
 set(CMAKE_C_STANDARD 90)
 set(CMAKE_C_EXTENSIONS OFF)
 
-if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
-    set(CMAKE_C_STANDARD) # Empty because we use -ansi
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic-errors -Wall -Wextra -ansi")
-    string(REPLACE "-O2" "-O3" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
-    if(CMAKE_C_COMPILER_ID MATCHES "Clang" AND
-            CMAKE_C_COMPILER_VERSION VERSION_LESS 3.8)
-        set(GDB_DEBUGGING OFF)
-        message(STATUS "You need at least clang 3.8 for GDB_DEBUGGING."
-            " Disabling it for now.")
-    endif()
-    if(GDB_DEBUGGING)
-        set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")
-    endif()
-endif()
-
 if(MSVC)
-    # Disable extensions, enable W3 and force warnings as errors
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Za /W3 /WX") 
-    # Enable W4 + WX at your own peril, just shy of 1000 warnings there.
+    # This block handles both standard MSVC and Clang on Windows (clang-cl)
+    add_definitions(/D_CRT_SECURE_NO_WARNINGS)
     
-    # Per http://www.cmake.org/pipermail/cmake/2011-October/046738.html,
-    # replace flags directly instead of appending them.
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+        # For clang-cl, use /clang: to pass GNU flags that it wouldn't normally recognize
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /WX /clang:-pedantic-errors /clang:-ansi")
+    else()
+        # Standard MSVC (cl.exe)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Za /W3 /WX")
+    endif()
+
+    # Optimization override
     string(REPLACE "/O[0-4]" "/Ox" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
-    add_definitions(/D_CRT_SECURE_NO_WARNINGS) # STFU about "unsecure" functions
+
+else()
+    # This block handles GCC and Clang on Linux/macOS
+    if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+        set(CMAKE_C_STANDARD) # Empty because we use -ansi
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic-errors -Wall -Wextra -ansi")
+        string(REPLACE "-O2" "-O3" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+
+        if(CMAKE_C_COMPILER_ID MATCHES "Clang" AND CMAKE_C_COMPILER_VERSION VERSION_LESS 3.8)
+            set(GDB_DEBUGGING OFF)
+            message(STATUS "You need at least clang 3.8 for GDB_DEBUGGING. Disabling it.")
+        endif()
+
+        if(GDB_DEBUGGING)
+            set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")
+        endif()
+    endif()
 endif()
 
-# WATCOM C Compiler works just fine as well. Might be a decent alternative
-# 386 MSDOS compiler as well (compare to DJGPP).
+# Watcom Support
 if(WATCOM)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -za") # Disable extensions
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -za")
     string(REPLACE "-ot" "-ox" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
     string(REGEX REPLACE "-w=[0-4]" "-w=4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 endif()

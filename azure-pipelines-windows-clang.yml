@@ -19,6 +19,7 @@ steps:
 # 1. Build the specific configuration using the ClangCL toolset
 - script: |
     # -T ClangCL tells CMake to use the LLVM/Clang compiler driver
+    if exist build rmdir /s /q build
     cmake . -B build -T ClangCL
     cmake --build build --config $(config) -j
   displayName: 'Build $(config) with Clang'
