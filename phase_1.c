@@ -11187,12 +11187,12 @@ int parse_directive(void) {
   char c, directive_upper[MAX_NAME_LENGTH + 1];
   int q, i, length;
 
-  if ((q = parse_if_directive()) != -1)
-    return q;
-
   /* make valgrind happy */
   directive_upper[0] = 0;
   
+  if ((q = parse_if_directive()) != -1)
+    return q;
+
   /* convert the directive to upper case */
   length = (int)strlen(g_current_directive);
   for (i = 0; i < length; i++)
