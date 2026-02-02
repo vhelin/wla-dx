@@ -24,12 +24,15 @@ steps:
 
 # 2. Run tests using ONLY the binaries from that build
 - bash: |
-    # Force the PATH to prioritize the specific build folder
-    export PATH=$PWD/build/$(config):$PATH
+    # Add the specific binary folder created by WLA DX's CMakeLists + MSVC
+    # It follows the pattern: build/binaries/[Configuration]
+    export PATH=$PWD/build/binaries/$(config):$PATH
     
-    # Verify which executable we are using (optional but good for logs)
-    which wla-z80 || echo "wla-z80 not found in build/$(config)"
+    # Debugging: List the files to be 100% sure they are there
+    echo "Checking for binaries in: $PWD/build/binaries/$(config)"
+    ls -l $PWD/build/binaries/$(config)
     
+    # Run the test script
     ./run_tests.sh
   displayName: 'Run Tests ($(config))'
   workingDirectory: '$(Build.SourcesDirectory)'
