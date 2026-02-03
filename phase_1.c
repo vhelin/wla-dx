@@ -11184,13 +11184,14 @@ int directive_fail(void) {
 
 int parse_directive(void) {
 
-  char c = 0, directive_upper[MAX_NAME_LENGTH + 1];
+  char c, directive_upper[MAX_NAME_LENGTH + 1];
   int q, i, length;
 
   /* make valgrind happy */
   directive_upper[0] = 0;
-  
-  if ((q = parse_if_directive()) != -1)
+
+  q = parse_if_directive();
+  if (q != -1)
     return q;
 
   /* convert the directive to upper case */
