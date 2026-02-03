@@ -11184,7 +11184,7 @@ int directive_fail(void) {
 
 int parse_directive(void) {
 
-  char c, directive_upper[MAX_NAME_LENGTH + 1];
+  char c = 0, directive_upper[MAX_NAME_LENGTH + 1];
   int q, i, length;
 
   /* make valgrind happy */
@@ -12666,6 +12666,9 @@ int parse_directive(void) {
     }
 #endif
     
+    break;
+
+  default:
     break;
   }
   
