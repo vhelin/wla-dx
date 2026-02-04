@@ -68,7 +68,7 @@ else()
     # This block handles GCC and Clang on Linux/macOS
     if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
         set(CMAKE_C_STANDARD) # Empty because we use -ansi
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic-errors -Wall -Wextra -ansi")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic-errors -g -fno-inline -Wall -Wextra -ansi")
         string(REPLACE "-O2" "-O3" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
         if(CMAKE_C_COMPILER_ID MATCHES "Clang" AND CMAKE_C_COMPILER_VERSION VERSION_LESS 3.8)
@@ -79,15 +79,6 @@ else()
         if(GDB_DEBUGGING)
             set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb")
         endif()
-    endif()
-endif()
-
-# Override Release flags for Valgrind debugging
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    if(MSVC)
-        set(CMAKE_C_FLAGS_RELEASE "/Zi /Od" CACHE STRING "" FORCE)
-    else()
-        set(CMAKE_C_FLAGS_RELEASE "-g -O0 -fno-inline" CACHE STRING "" FORCE)
     endif()
 endif()
 
