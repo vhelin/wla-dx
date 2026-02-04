@@ -82,6 +82,15 @@ else()
     endif()
 endif()
 
+# Override Release flags for Valgrind debugging
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    if(MSVC)
+        set(CMAKE_C_FLAGS_RELEASE "/Zi /Od" CACHE STRING "" FORCE)
+    else()
+        set(CMAKE_C_FLAGS_RELEASE "-g -O0 -fno-inline" CACHE STRING "" FORCE)
+    endif()
+endif()
+
 # Watcom Support
 if(WATCOM)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -za")
