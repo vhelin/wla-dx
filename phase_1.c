@@ -11450,10 +11450,6 @@ int parse_directive(void) {
     if (strcmp(directive_upper, "ARRAYDEF") == 0 || strcmp(directive_upper, "ARRAYDEFINE") == 0)
       return directive_arraydef_arraydefine();
 
-    /* ARRAYIN? */
-    if (strcmp(directive_upper, "ARRAYIN") == 0)
-      return directive_arrayin();
-
     /* ARRAYOUT? */
     if (strcmp(directive_upper, "ARRAYOUT") == 0)
       return directive_arrayout();
@@ -11466,12 +11462,15 @@ int parse_directive(void) {
     if (strcmp(directive_upper, "ASM") == 0)
       return SUCCEEDED;
 
+    /* ARRAYIN? */
+    if (strcmp(directive_upper, "ARRAYIN") == 0)
+      return directive_arrayin();
+
     /* ARRAYDB/ARRAYDW/ARRAYDL/ARRAYDD? */
-    if (strcmp(directive_upper, "ARRAYDB") == 0 || strcmp(directive_upper, "ARRAYDW") == 0)
+    fprintf(stderr, "HERE: %s\n", directive_upper);
+    if (strcmp(directive_upper, "ARRAYDB") == 0 || strcmp(directive_upper, "ARRAYDW") == 0 || strcmp(directive_upper, "ARRAYDL") == 0 || strcmp(directive_upper, "ARRAYDD") == 0)
       return directive_arraydb_arraydw_arraydl_arraydd();
-    if (strcmp(directive_upper, "ARRAYDL") == 0 || strcmp(directive_upper, "ARRAYDD") == 0)
-      return directive_arraydb_arraydw_arraydl_arraydd();
-    
+
     /* ASSERT */
     if (strcmp(directive_upper, "ASSERT") == 0)
       return directive_assert();
