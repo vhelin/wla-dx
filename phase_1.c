@@ -11446,14 +11446,6 @@ int parse_directive(void) {
     if (strcmp(directive_upper, "ASC") == 0 || strcmp(directive_upper, "ASCSTR") == 0)
       return directive_asc();
 
-    /* ARRAYDEF/ARRAYDEFINE? */
-    if (strcmp(directive_upper, "ARRAYDEF") == 0 || strcmp(directive_upper, "ARRAYDEFINE") == 0)
-      return directive_arraydef_arraydefine();
-
-    /* ARRAYOUT? */
-    if (strcmp(directive_upper, "ARRAYOUT") == 0)
-      return directive_arrayout();
-
     /* ADDR? */
     if (strcmp(directive_upper, "ADDR") == 0)
       return directive_dw_word_addr();
@@ -11466,11 +11458,20 @@ int parse_directive(void) {
     if (strcmp(directive_upper, "ARRAYIN") == 0)
       return directive_arrayin();
 
-    /* ARRAYDB/ARRAYDW/ARRAYDL/ARRAYDD? */
-    fprintf(stderr, "HERE: %s\n", directive_upper);
-    if (strcmp(directive_upper, "ARRAYDB") == 0 || strcmp(directive_upper, "ARRAYDW") == 0 || strcmp(directive_upper, "ARRAYDL") == 0 || strcmp(directive_upper, "ARRAYDD") == 0)
-      return directive_arraydb_arraydw_arraydl_arraydd();
+    if (length > 6 && strncmp(directive_upper, "ARRAY", 5) == 0) {
+      /* ARRAYDEF/ARRAYDEFINE? */
+      if (strcmp(directive_upper, "ARRAYDEF") == 0 || strcmp(directive_upper, "ARRAYDEFINE") == 0)
+        return directive_arraydef_arraydefine();
 
+      /* ARRAYOUT? */
+      if (strcmp(directive_upper, "ARRAYOUT") == 0)
+        return directive_arrayout();
+    
+      /* ARRAYDB/ARRAYDW/ARRAYDL/ARRAYDD? */
+      if (strcmp(directive_upper, "ARRAYDB") == 0 || strcmp(directive_upper, "ARRAYDW") == 0 || strcmp(directive_upper, "ARRAYDL") == 0 || strcmp(directive_upper, "ARRAYDD") == 0)
+        return directive_arraydb_arraydw_arraydl_arraydd();
+    }
+    
     /* ASSERT */
     if (strcmp(directive_upper, "ASSERT") == 0)
       return directive_assert();
