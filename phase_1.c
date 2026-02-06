@@ -11145,6 +11145,101 @@ int directive_endr_continue(void) {
 }
 
 
+int directive_changefile(void) {
+
+  int q;
+  
+  q = input_number();
+  if (q != SUCCEEDED) {
+    print_error(ERROR_DIR, "Internal error in (internal) .CHANGEFILE. Please submit a bug report...\n");
+    return FAILED;
+  }
+    
+  g_active_file_info_tmp = calloc(1, sizeof(struct active_file_info));
+  if (g_active_file_info_tmp == NULL) {
+    print_error(ERROR_DIR, "Out of memory while trying allocate error tracking data structure.\n");
+    return FAILED;
+  }
+  g_active_file_info_tmp->next = NULL;
+
+  if (g_active_file_info_first == NULL) {
+    g_active_file_info_first = g_active_file_info_tmp;
+    g_active_file_info_last = g_active_file_info_tmp;
+    g_active_file_info_tmp->prev = NULL;
+  }
+  else {
+    g_active_file_info_tmp->prev = g_active_file_info_last;
+    g_active_file_info_last->next = g_active_file_info_tmp;
+    g_active_file_info_last = g_active_file_info_tmp;
+  }
+      
+  g_active_file_info_tmp->line_current = 0;
+  g_active_file_info_tmp->filename_id = g_parsed_int;
+
+  if (g_extra_definitions == ON) {
+    g_file_name_info_tmp = g_file_name_info_first;
+    while (g_file_name_info_tmp != NULL) {
+      if (g_file_name_info_tmp->id == g_parsed_int)
+        break;
+      g_file_name_info_tmp = g_file_name_info_tmp->next;
+    }
+
+    if (g_file_name_info_tmp == NULL) {
+      print_error(ERROR_DIR, "Internal error: Could not find the name of file %d.\n", g_parsed_int);
+      return FAILED;
+    }
+
+    redefine("WLA_FILENAME", 0.0, g_file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(g_file_name_info_tmp->name));
+    redefine("wla_filename", 0.0, g_file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(g_file_name_info_tmp->name));
+  }
+
+  /* output the file id */
+  fprintf(g_file_out_ptr, "f%d ", g_active_file_info_tmp->filename_id);
+    
+  g_open_files++;
+
+  if (compare_next_token("NAMESPACE") == SUCCEEDED) {
+    skip_next_token();
+
+    g_expect_calculations = NO;
+    q = input_number();
+    g_expect_calculations = YES;
+    
+    if (q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
+      print_error(ERROR_DIR, "Internal error: Namespace string is missing.\n");
+      return FAILED;
+    }
+
+    if (_is_namespace_valid(g_label) == NO)
+      return FAILED;
+
+    strcpy(g_active_file_info_tmp->namespace, g_label);
+
+    fprintf(g_file_out_ptr, "t1 %s ", g_active_file_info_tmp->namespace);
+  }
+  else if (compare_next_token("NONAMESPACE") == SUCCEEDED) {
+    skip_next_token();
+      
+    g_active_file_info_tmp->namespace[0] = 0;
+
+    fprintf(g_file_out_ptr, "t0 ");
+  }
+  else {
+    print_error(ERROR_DIR, "Internal error: NAMESPACE/NONAMESPACE is missing.\n");
+    return FAILED;
+  }
+
+  /* get the isolation counter */
+  g_expect_calculations = NO;
+  input_number();
+  g_expect_calculations = YES;
+      
+  g_is_file_isolated_counter = g_parsed_int;
+      
+  return SUCCEEDED;
+}
+
+
 int directive_fail(void) {
 
   int exit_value = 1, strings = 0, q;
@@ -11177,6 +11272,70 @@ int directive_fail(void) {
 
   /* make a silent exit */
   exit(exit_value);
+
+  return SUCCEEDED;
+}
+
+
+int directive_enum(void) {
+
+  int q;
+  
+  if (s_dstruct_status == ON) {
+    print_error(ERROR_DIR, "You can't use start an .ENUM inside .DSTRUCT.\n");
+    return FAILED;
+  }
+
+  q = input_number();
+  if (q == FAILED)
+    return FAILED;
+  if (q != SUCCEEDED) {
+    print_error(ERROR_DIR, ".ENUM needs a starting value.\n");
+    return FAILED;
+  }
+      
+  s_enum_offset = 0;
+  s_last_enum_offset = 0;
+  s_max_enum_offset = 0;
+  s_base_enum_offset = g_parsed_int;
+      
+  /* "ASC" or "DESC"? */
+  if (compare_next_token("ASC") == SUCCEEDED) {
+    s_enum_ord = 1;
+    skip_next_token();
+  }
+  else if (compare_next_token("DESC") == SUCCEEDED) {
+    s_enum_ord = -1;
+    skip_next_token();
+  }
+  else
+    s_enum_ord = 1;
+
+  /* do we have "EXPORT" defined? */
+  if (compare_next_token("EXPORT") == SUCCEEDED) {
+    skip_next_token();
+    s_enum_export = YES;
+  }
+  else
+    s_enum_export = NO;
+
+  /* setup s_active_struct (enum vars stored here temporarily) */
+  s_active_struct = calloc(1, sizeof(struct structure));
+  if (s_active_struct == NULL) {
+    print_error(ERROR_DIR, "Out of memory while parsing .ENUM.\n");
+    return FAILED;
+  }
+  s_active_struct->alive = YES;
+
+  if (_remember_new_structure(s_active_struct) == FAILED)
+    return FAILED;
+
+  s_active_struct->name[0] = '\0';
+  s_active_struct->items = NULL;
+  s_active_struct->last_item = NULL;
+  s_union_stack = NULL;
+
+  g_in_enum = YES;
 
   return SUCCEEDED;
 }
@@ -11497,96 +11656,8 @@ int parse_directive(void) {
 #endif
     
     /* CHANGEFILE (INTERNAL) */
-    if (strcmp(directive_upper, "CHANGEFILE") == 0) {
-      q = input_number();
-      if (q != SUCCEEDED) {
-        print_error(ERROR_DIR, "Internal error in (internal) .CHANGEFILE. Please submit a bug report...\n");
-        return FAILED;
-      }
-    
-      g_active_file_info_tmp = calloc(1, sizeof(struct active_file_info));
-      if (g_active_file_info_tmp == NULL) {
-        print_error(ERROR_DIR, "Out of memory while trying allocate error tracking data structure.\n");
-        return FAILED;
-      }
-      g_active_file_info_tmp->next = NULL;
-
-      if (g_active_file_info_first == NULL) {
-        g_active_file_info_first = g_active_file_info_tmp;
-        g_active_file_info_last = g_active_file_info_tmp;
-        g_active_file_info_tmp->prev = NULL;
-      }
-      else {
-        g_active_file_info_tmp->prev = g_active_file_info_last;
-        g_active_file_info_last->next = g_active_file_info_tmp;
-        g_active_file_info_last = g_active_file_info_tmp;
-      }
-      
-      g_active_file_info_tmp->line_current = 0;
-      g_active_file_info_tmp->filename_id = g_parsed_int;
-
-      if (g_extra_definitions == ON) {
-        g_file_name_info_tmp = g_file_name_info_first;
-        while (g_file_name_info_tmp != NULL) {
-          if (g_file_name_info_tmp->id == g_parsed_int)
-            break;
-          g_file_name_info_tmp = g_file_name_info_tmp->next;
-        }
-
-        if (g_file_name_info_tmp == NULL) {
-          print_error(ERROR_DIR, "Internal error: Could not find the name of file %d.\n", g_parsed_int);
-          return FAILED;
-        }
-
-        redefine("WLA_FILENAME", 0.0, g_file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(g_file_name_info_tmp->name));
-        redefine("wla_filename", 0.0, g_file_name_info_tmp->name, DEFINITION_TYPE_STRING, (int)strlen(g_file_name_info_tmp->name));
-      }
-
-      /* output the file id */
-      fprintf(g_file_out_ptr, "f%d ", g_active_file_info_tmp->filename_id);
-    
-      g_open_files++;
-
-      if (compare_next_token("NAMESPACE") == SUCCEEDED) {
-        skip_next_token();
-
-        g_expect_calculations = NO;
-        q = input_number();
-        g_expect_calculations = YES;
-    
-        if (q != INPUT_NUMBER_STRING && q != INPUT_NUMBER_ADDRESS_LABEL) {
-          print_error(ERROR_DIR, "Internal error: Namespace string is missing.\n");
-          return FAILED;
-        }
-
-        if (_is_namespace_valid(g_label) == NO)
-          return FAILED;
-
-        strcpy(g_active_file_info_tmp->namespace, g_label);
-
-        fprintf(g_file_out_ptr, "t1 %s ", g_active_file_info_tmp->namespace);
-      }
-      else if (compare_next_token("NONAMESPACE") == SUCCEEDED) {
-        skip_next_token();
-      
-        g_active_file_info_tmp->namespace[0] = 0;
-
-        fprintf(g_file_out_ptr, "t0 ");
-      }
-      else {
-        print_error(ERROR_DIR, "Internal error: NAMESPACE/NONAMESPACE is missing.\n");
-        return FAILED;
-      }
-
-      /* get the isolation counter */
-      g_expect_calculations = NO;
-      input_number();
-      g_expect_calculations = YES;
-      
-      g_is_file_isolated_counter = g_parsed_int;
-      
-      return SUCCEEDED;
-    }
+    if (strcmp(directive_upper, "CHANGEFILE") == 0)
+      return directive_changefile();
     
     /* CONTINUE */
     if (strcmp(directive_upper, "CONTINUE") == 0)
@@ -11808,65 +11879,8 @@ int parse_directive(void) {
         return directive_endr_continue();
 
       /* ENUM */
-      if (strcmp(directive_upper, "ENUM") == 0) {
-        if (s_dstruct_status == ON) {
-          print_error(ERROR_DIR, "You can't use start an .ENUM inside .DSTRUCT.\n");
-          return FAILED;
-        }
-
-        q = input_number();
-        if (q == FAILED)
-          return FAILED;
-        if (q != SUCCEEDED) {
-          print_error(ERROR_DIR, ".ENUM needs a starting value.\n");
-          return FAILED;
-        }
-      
-        s_enum_offset = 0;
-        s_last_enum_offset = 0;
-        s_max_enum_offset = 0;
-        s_base_enum_offset = g_parsed_int;
-      
-        /* "ASC" or "DESC"? */
-        if (compare_next_token("ASC") == SUCCEEDED) {
-          s_enum_ord = 1;
-          skip_next_token();
-        }
-        else if (compare_next_token("DESC") == SUCCEEDED) {
-          s_enum_ord = -1;
-          skip_next_token();
-        }
-        else
-          s_enum_ord = 1;
-
-        /* do we have "EXPORT" defined? */
-        if (compare_next_token("EXPORT") == SUCCEEDED) {
-          skip_next_token();
-          s_enum_export = YES;
-        }
-        else
-          s_enum_export = NO;
-
-        /* setup s_active_struct (enum vars stored here temporarily) */
-        s_active_struct = calloc(1, sizeof(struct structure));
-        if (s_active_struct == NULL) {
-          print_error(ERROR_DIR, "Out of memory while parsing .ENUM.\n");
-          return FAILED;
-        }
-        s_active_struct->alive = YES;
-
-        if (_remember_new_structure(s_active_struct) == FAILED)
-          return FAILED;
-
-        s_active_struct->name[0] = '\0';
-        s_active_struct->items = NULL;
-        s_active_struct->last_item = NULL;
-        s_union_stack = NULL;
-
-        g_in_enum = YES;
-
-        return SUCCEEDED;
-      }
+      if (strcmp(directive_upper, "ENUM") == 0)
+        return directive_enum();
     }
     else {    
       /* ENDBITS? */
