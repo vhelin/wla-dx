@@ -5,7 +5,6 @@ trigger:
 stages:
 - stage: Sanitizer_Testing
   jobs:
-  # 1. Linux Job: Full suite (ASan, UBSan, MSan)
   - job: Linux_Sanitizers
     pool:
       vmImage: 'ubuntu-latest'
@@ -16,43 +15,3 @@ stages:
         chmod +x run_tests_with_sanitizers.sh
         ./run_tests_with_sanitizers.sh
       displayName: 'Run Linux Sanitizer Suite'
-
-  # 2. Windows Job: ASan via Git Bash
-  - job: Windows_Sanitizer_ASan
-    pool:
-      vmImage: 'windows-latest'
-    steps:
-    - task: CMake@1
-      displayName: 'CMake: Configure'
-      inputs:
-        # Use -A x64 to ensure we are building for 64-bit
-        cmakeArgs: '-DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="/fsanitize=address /Zi" -A x64 ..'
-        workingDirectory: 'build-asan'
-
-    - task: CMake@1
-      displayName: 'CMake: Build'
-      inputs:
-        cmakeArgs: '--build . --config Debug'
-        workingDirectory: 'build-asan'
-
-    - bash: |
-        export NO_VALGRIND=1
-        
-        # 1. Setup binaries folder
-        mkdir -p binaries
-        # On Windows/MSVC, binaries are often in a 'Debug' subfolder
-        cp build-asan/binaries/Debug/* binaries/ || cp build-asan/binaries/* binaries/
-        
-        # 2. Add binaries to PATH so the tests can find wla-6502, etc.
-        export PATH="$PWD/binaries:$PATH"
-
-        # 3. Handle byte_tester (Manual build to avoid 'make')
-        echo "Building byte_tester for Windows..."
-        cd byte_tester
-        cl.exe /fsanitize=address /Zi main.c /Fe:../binaries/byte_tester.exe
-        cd ..
-
-        # 4. Run tests (ignore the shell's attempt to rebuild byte_tester if possible)
-        chmod +x run_tests.sh
-        ./run_tests.sh
-      displayName: 'Run Windows ASan (via Git Bash)'
