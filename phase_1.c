@@ -11202,7 +11202,8 @@ int parse_directive(void) {
 
   c = directive_upper[0];
 
-  fprintf(stderr, "CHECK: %s - '%c'\n", directive_upper, c);
+  fprintf(stderr, "DIR: %s\n", directive_upper);
+  fflush(stderr);
   
   switch (c) {
   case '1':
@@ -11706,6 +11707,8 @@ int parse_directive(void) {
     if (length == 1) {    
       /* E (INTERNAL) */
       if (strcmp(directive_upper, "E") == 0) {
+        fprintf(stderr, "WE HAVE 'E'!\n");
+        fflush(stderr);
         if (g_active_file_info_last != NULL) {
           g_active_file_info_tmp = g_active_file_info_last;
           g_active_file_info_last = g_active_file_info_last->prev;
@@ -11729,8 +11732,11 @@ int parse_directive(void) {
 
         fprintf(g_file_out_ptr, "E ");
         g_open_files--;
-        if (g_open_files == 0)
+        if (g_open_files == 0) {
+          fprintf(stderr, "THE END\n");
+          fflush(stderr);
           return EVALUATE_TOKEN_EOP;
+        }
 
         if (g_extra_definitions == ON) {
           redefine("WLA_FILENAME", 0.0, get_file_name(g_active_file_info_last->filename_id), DEFINITION_TYPE_STRING, (int)strlen(get_file_name(g_active_file_info_last->filename_id)));
