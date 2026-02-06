@@ -1,0 +1,43 @@
+trigger:
+- master
+- main
+
+stages:
+- stage: Sanitizer_Testing
+  jobs:
+  # 1. Linux Job: Full suite (ASan, UBSan, MSan)
+  - job: Linux_Sanitizers
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - script: |
+        sudo apt-get update
+        sudo apt-get install -y clang
+        chmod +x run_tests_with_sanitizers.sh
+        ./run_tests_with_sanitizers.sh
+      displayName: 'Run Linux Sanitizer Suite'
+
+  # 2. Windows Job: ASan via Git Bash
+  - job: Windows_Sanitizer_ASan
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    # We use bash here to run the shell script on Windows
+    - bash: |
+        export NO_VALGRIND=1
+        
+        # Build using CMake with MSVC's AddressSanitizer
+        mkdir build-asan && cd build-asan
+        # Note: /fsanitize=address is the MSVC flag
+        cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="/fsanitize=address /Zi"
+        cmake --build . --config Debug
+        cd ..
+
+        # Prepare binaries for run_tests.sh
+        mkdir -p binaries
+        cp build-asan/binaries/* binaries/
+        
+        # Run the tests using bash
+        chmod +x run_tests.sh
+        ./run_tests.sh
+      displayName: 'Run Windows Sanitizer ASan'
