@@ -11458,10 +11458,6 @@ int parse_directive(void) {
     if (strcmp(directive_upper, "ARRAYOUT") == 0)
       return directive_arrayout();
 
-    /* ARRAYDB/ARRAYDW/ARRAYDL/ARRAYDD? */
-    if (strcmp(directive_upper, "ARRAYDB") == 0 || strcmp(directive_upper, "ARRAYDW") == 0 || strcmp(directive_upper, "ARRAYDL") == 0 || strcmp(directive_upper, "ARRAYDD") == 0)
-      return directive_arraydb_arraydw_arraydl_arraydd();
-
     /* ADDR? */
     if (strcmp(directive_upper, "ADDR") == 0)
       return directive_dw_word_addr();
@@ -11470,10 +11466,16 @@ int parse_directive(void) {
     if (strcmp(directive_upper, "ASM") == 0)
       return SUCCEEDED;
 
+    /* ARRAYDB/ARRAYDW/ARRAYDL/ARRAYDD? */
+    if (strcmp(directive_upper, "ARRAYDB") == 0 || strcmp(directive_upper, "ARRAYDW") == 0)
+      return directive_arraydb_arraydw_arraydl_arraydd();
+    if (strcmp(directive_upper, "ARRAYDL") == 0 || strcmp(directive_upper, "ARRAYDD") == 0)
+      return directive_arraydb_arraydw_arraydl_arraydd();
+    
     /* ASSERT */
     if (strcmp(directive_upper, "ASSERT") == 0)
       return directive_assert();
-    
+
     break;
 
   case 'B':
