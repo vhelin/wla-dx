@@ -1552,7 +1552,7 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.22 (15-Dec-2025) When calculating _sizeof_* for lables we now take unused
+v5.22 (06-Feb-2026) When calculating _sizeof_* for lables we now take unused
                       output bytes into account.
                     Appended .RAMSECTIONs were still affecting the original
                       RAM bank in -v listing.
@@ -1561,6 +1561,8 @@ v5.22 (15-Dec-2025) When calculating _sizeof_* for lables we now take unused
                     Added -C which doesn't generate errors for duplicate
                       labels or definitions, but only when their values
                       are the same.
+                    Fixed a possible buffer overflow read when generating
+                      listfiles.
 
 v5.21 (19-Nov-2023) WLALINK writes now version 3 WLA symbol files.
                     Symbol files created with -S contain now [sections] and
