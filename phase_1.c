@@ -11356,7 +11356,7 @@ int parse_directive(void) {
   /* convert the directive to upper case */
   length = (int)strlen(g_current_directive);
   for (i = 0; i < length; i++)
-    directive_upper[i] = toupper(g_current_directive[i]);
+    directive_upper[i] = toupper((unsigned char)g_current_directive[i]);
   directive_upper[i] = 0;
 
   c = directive_upper[0];
