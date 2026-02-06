@@ -11346,18 +11346,6 @@ int parse_directive(void) {
   char c, directive_upper[MAX_NAME_LENGTH + 1];
   int q, i, length;
 
-  /* DEBUG: Check g_current_directive */
-  fprintf(stderr, "DEBUG: g_current_directive address: %p\n", (void*)g_current_directive);
-  fprintf(stderr, "DEBUG: First bytes (hex): %02x %02x %02x %02x %02x %02x %02x %02x\n", 
-          (unsigned char)g_current_directive[0],
-          (unsigned char)g_current_directive[1],
-          (unsigned char)g_current_directive[2],
-          (unsigned char)g_current_directive[3],
-          (unsigned char)g_current_directive[4],
-          (unsigned char)g_current_directive[5],
-          (unsigned char)g_current_directive[6],
-          (unsigned char)g_current_directive[7]);
-  
   /* make valgrind happy */
   directive_upper[0] = 0;
 
@@ -11367,16 +11355,12 @@ int parse_directive(void) {
 
   /* convert the directive to upper case */
   length = (int)strlen(g_current_directive);
-  fprintf(stderr, "DEBUG: length = %d\n", length);
   for (i = 0; i < length; i++)
-    directive_upper[i] = toupper((unsigned char)g_current_directive[i]);
+    directive_upper[i] = toupper((int)g_current_directive[i]);
   directive_upper[i] = 0;
 
   c = directive_upper[0];
 
-  fprintf(stderr, "DIR: %s\n", directive_upper);
-  fflush(stderr);
-  
   switch (c) {
   case '1':
 

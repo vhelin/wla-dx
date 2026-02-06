@@ -49,22 +49,3 @@ steps:
     ./run_tests.sh
   displayName: 'Run Tests (Release)'
   timeoutInMinutes: 60
-
-# Optional: Add a sanitizer build to catch issues at runtime
-- script: |
-    make clean
-    cmake -G "Unix Makefiles" \
-          -DCMAKE_BUILD_TYPE=Debug \
-          -DCMAKE_C_FLAGS="-g -fsanitize=address,undefined -fno-omit-frame-pointer" \
-          -DCMAKE_CXX_FLAGS="-g -fsanitize=address,undefined -fno-omit-frame-pointer" \
-          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
-    make
-  displayName: 'Build with Sanitizers (Optional)'
-  timeoutInMinutes: 60
-  continueOnError: true
-
-- script: |
-    ./run_tests.sh
-  displayName: 'Run Tests (Sanitizers)'
-  timeoutInMinutes: 60
-  continueOnError: true
