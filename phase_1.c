@@ -11202,6 +11202,8 @@ int parse_directive(void) {
 
   c = directive_upper[0];
 
+  fprintf(stderr, "CHECK: %s - '%c'\n", directive_upper, c);
+  
   switch (c) {
   case '1':
 
