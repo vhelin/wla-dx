@@ -1,5 +1,5 @@
 #
-# WLA DX Windows XP compatible 32-bit build using Visual Studio solution
+# WLA DX Windows XP compatible 32-bit build using MinGW
 #
 trigger:
 - master
@@ -8,7 +8,6 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: '**/*.sln'
   buildPlatform: 'x86'
   buildConfiguration: 'Release'
 
@@ -16,105 +15,104 @@ steps:
 - checkout: self
   displayName: 'Checkout code'
 
-# Install Visual Studio 2019 Build Tools with XP support
+# Install MinGW
 - powershell: |
-    Write-Host "Downloading Visual Studio 2019 Build Tools..."
-    Invoke-WebRequest -Uri https://aka.ms/vs/16/release/vs_buildtools.exe -OutFile vs_buildtools.exe
+    Write-Host "Installing MinGW for Windows XP compatibility..."
+    choco install mingw --version=8.1.0 --force -y
     
-    Write-Host "Installing VS 2019 Build Tools with XP toolset and dependencies..."
-    Start-Process -Wait -FilePath .\vs_buildtools.exe -ArgumentList `
-      '--quiet', '--wait', '--norestart', '--nocache', `
-      '--installPath', 'C:\VS2019BuildTools', `
-      '--add', 'Microsoft.VisualStudio.Workload.VCTools', `
-      '--add', 'Microsoft.VisualStudio.Component.VC.v141.x86.x64', `
-      '--add', 'Microsoft.VisualStudio.Component.VC.v141.ATL', `
-      '--add', 'Microsoft.VisualStudio.Component.VC.v141.MFC'
+    Write-Host "MinGW installed successfully"
     
-    Write-Host "Visual Studio 2019 Build Tools installed"
+    # Add to PATH
+    $env:Path = "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw32\bin;$env:Path"
     
     # Verify installation
-    if (Test-Path "C:\VS2019BuildTools\MSBuild\Microsoft\VC\v160\Platforms\Win32\PlatformToolsets\v141_xp") {
-        Write-Host "✓ XP toolset found at expected location"
-    } else {
-        Write-Host "⚠ XP toolset not found, listing available toolsets..."
-        Get-ChildItem "C:\VS2019BuildTools\MSBuild\Microsoft\VC\v160\Platforms\Win32\PlatformToolsets" -ErrorAction SilentlyContinue
-    }
-  displayName: 'Install VS 2019 Build Tools with XP toolset'
-  timeoutInMinutes: 30
+    gcc --version
+    g++ --version
+  displayName: 'Install MinGW'
+  timeoutInMinutes: 10
 
-- task: NuGetToolInstaller@1
-  displayName: 'Install NuGet'
+# Build using CMake with MinGW
+- bash: |
+    export PATH="/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw32/bin:$PATH"
+    
+    echo "Building WLA DX with MinGW for Windows XP..."
+    
+    mkdir build-xp
+    cd build-xp
+    
+    # Configure with MinGW Makefiles targeting Windows XP
+    cmake .. -G "MinGW Makefiles" \
+             -DCMAKE_C_COMPILER=gcc \
+             -DCMAKE_BUILD_TYPE=Release \
+             -DCMAKE_C_FLAGS="-m32 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -static-libgcc"
+    
+    # Build
+    cmake --build . --config Release
+    
+    echo "Build complete!"
+  displayName: 'Build with MinGW (XP compatible)'
 
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
-  displayName: 'Restore NuGet packages'
-
-# Use VS 2019 MSBuild instead of VS 2022
+# Verify binaries exist and are valid Windows executables
 - powershell: |
-    Write-Host "Using VS 2019 Build Tools for compilation..."
+    Write-Host "Verifying Windows XP compatible binaries..."
     
-    $msbuild = "C:\VS2019BuildTools\MSBuild\Current\Bin\MSBuild.exe"
-    $solution = Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1
+    $binariesPath = "build-xp\binaries"
     
-    if (-not (Test-Path $msbuild)) {
-        Write-Host "ERROR: MSBuild not found at $msbuild"
+    if (Test-Path $binariesPath) {
+        $exeFiles = Get-ChildItem -Path $binariesPath -Filter *.exe
+        
+        if ($exeFiles.Count -eq 0) {
+            Write-Host "ERROR: No executables found in $binariesPath"
+            exit 1
+        }
+        
+        Write-Host "Found $($exeFiles.Count) executable(s):"
+        
+        foreach ($exe in $exeFiles) {
+            Write-Host "`n  - $($exe.Name)"
+            Write-Host "    Size: $([math]::Round($exe.Length / 1KB, 2)) KB"
+            
+            # Verify it's a valid PE executable
+            $bytes = [System.IO.File]::ReadAllBytes($exe.FullName)
+            if ($bytes[0] -eq 0x4D -and $bytes[1] -eq 0x5A) {
+                Write-Host "    Status: ✓ Valid Windows executable"
+            } else {
+                Write-Host "    Status: ✗ Invalid executable format"
+                exit 1
+            }
+        }
+        
+        Write-Host "`n✓ All binaries verified successfully"
+    } else {
+        Write-Host "ERROR: Binaries directory not found: $binariesPath"
         exit 1
     }
-    
-    Write-Host "Building with: $msbuild"
-    Write-Host "Solution: $($solution.FullName)"
-    
-    & $msbuild $solution.FullName `
-      /p:Configuration=$(buildConfiguration) `
-      /p:Platform=$(buildPlatform) `
-      /p:PlatformToolset=v141_xp `
-      /p:WindowsTargetPlatformVersion=7.0 `
-      /m `
-      /v:minimal
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Build failed with exit code $LASTEXITCODE"
-        exit $LASTEXITCODE
-    }
-  displayName: 'Build solution with VS 2019 MSBuild (XP toolset)'
+  displayName: 'Verify binaries'
 
-- task: VSTest@2
-  inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-  displayName: 'Run Visual Studio tests'
-  continueOnError: true
-
-# Verify XP compatibility
-- powershell: |
-    Write-Host "Verifying Windows XP compatibility..."
-    $exeFiles = Get-ChildItem -Recurse -Filter *.exe | Where-Object { $_.DirectoryName -match "Release" }
-    
-    foreach ($exe in $exeFiles) {
-        Write-Host "`nChecking: $($exe.Name)"
-        dumpbin /headers $exe.FullName | Select-String "machine|subsystem"
-    }
-  displayName: 'Verify XP-compatible binaries'
-  continueOnError: true
-
-- bash: ./run_tests.sh -windows-x86
+# Run tests
+- bash: |
+    export PATH="$PWD/build-xp/binaries:$PATH"
+    ./run_tests.sh -windows-x86
   workingDirectory: '$(Build.SourcesDirectory)'
   displayName: 'Run tests'
   continueOnError: true
 
-- powershell: gci env:* | sort-object name | Format-Table -AutoSize | Out-File $env:BUILD_ARTIFACTSTAGINGDIRECTORY/environment-variables.txt
+# Save environment info
+- powershell: |
+    gci env:* | sort-object name | Format-Table -AutoSize | Out-File $env:BUILD_ARTIFACTSTAGINGDIRECTORY/environment-variables.txt
   displayName: 'Save environment variables'
 
+# Copy binaries to staging
 - task: CopyFiles@2
   inputs:
-    sourceFolder: '$(Build.SourcesDirectory)'
-    contents: '**/$(BuildConfiguration)/**/?(*.exe|*.dll)'
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    sourceFolder: 'build-xp/binaries'
+    contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)/binaries'
   displayName: 'Copy build artifacts'
 
+# Publish artifacts
 - task: PublishBuildArtifacts@1
   inputs:
     pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    artifactName: 'WLA-DX-Windows-XP-32bit'
+    artifactName: 'WLA-DX-Windows-XP-MinGW-32bit'
   displayName: 'Publish artifacts'
