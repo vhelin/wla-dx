@@ -12,6 +12,7 @@ Azure Pipelines CI:
 * [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status/vhelin.wla-dx%20Windows%20x86?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=2&branchName=master) - Windows x86
 * [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status/vhelin.wla-dx%20Windows%20x64?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=10&branchName=master) - Windows x64
 * [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status/vhelin.wla-dx%20Windows%20MSVC?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=8&branchName=master) - Windows MSVC
+* [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status/vhelin.wla-dx%20Sanitizers?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=16&branchName=master) - Linux Sanitizers (ASan, UBSan, MSan)
 
 Documentation:
 

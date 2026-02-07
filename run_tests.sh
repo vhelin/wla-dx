@@ -57,7 +57,13 @@ fi
 # Valgrind test...
 # Makefiles in the tests folder use WLAVALGRIND to run Valgrind at the same time
 # with WLA and WLALINK
-if ! [ -x "$(command -v valgrind)" ]; then
+if [ -n "$NO_VALGRIND" ]; then
+  echo
+  echo '########################################################################'
+  echo 'INFO: Valgrind is disabled via NO_VALGRIND environment variable...'
+  echo '########################################################################'
+  export WLAVALGRIND=
+elif ! [ -x "$(command -v valgrind)" ]; then
   echo
   echo '########################################################################'
   echo 'WARNING: Valgrind is not installed so we cannot perform memory checks...'
