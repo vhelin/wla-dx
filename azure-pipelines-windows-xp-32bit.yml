@@ -1,0 +1,76 @@
+#
+# WLA DX Windows XP compatible 32-bit build (Simple version)
+#
+trigger:
+- master
+
+pool:
+  vmImage: 'windows-2022'
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'x86'
+  buildConfiguration: 'Release'
+
+steps:
+- checkout: self
+  displayName: 'Checkout code'
+
+# Install Visual Studio 2019 Build Tools with XP support
+- powershell: |
+    Write-Host "Downloading Visual Studio 2019 Build Tools..."
+    Invoke-WebRequest -Uri https://aka.ms/vs/16/release/vs_buildtools.exe -OutFile vs_buildtools.exe
+    
+    Write-Host "Installing VS 2019 Build Tools with XP toolset..."
+    Start-Process -Wait -FilePath .\vs_buildtools.exe -ArgumentList `
+      '--quiet', '--wait', '--norestart', '--nocache', `
+      '--add', 'Microsoft.VisualStudio.Component.VC.v141.x86.x64', `
+      '--add', 'Microsoft.VisualStudio.Component.VC.140'
+    
+    Write-Host "Visual Studio 2019 Build Tools installed"
+  displayName: 'Install VS 2019 Build Tools with XP toolset'
+  timeoutInMinutes: 20
+
+- task: NuGetToolInstaller@1
+  displayName: 'Install NuGet'
+
+- task: NuGetCommand@2
+  inputs:
+    restoreSolution: '$(solution)'
+  displayName: 'Restore NuGet packages'
+
+- task: VSBuild@1
+  inputs:
+    solution: '$(solution)'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+    msbuildArgs: '/p:PlatformToolset=v141_xp /p:WindowsTargetPlatformVersion=7.0'
+  displayName: 'Build solution with XP toolset'
+
+- task: VSTest@2
+  inputs:
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+  displayName: 'Run Visual Studio tests'
+  continueOnError: true
+
+- bash: ./run_tests.sh -windows-x86
+  workingDirectory: '$(Build.SourcesDirectory)'
+  displayName: 'Run tests'
+  continueOnError: true
+
+- powershell: gci env:* | sort-object name | Format-Table -AutoSize | Out-File $env:BUILD_ARTIFACTSTAGINGDIRECTORY/environment-variables.txt
+  displayName: 'Save environment variables'
+
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)'
+    contents: '**/$(BuildConfiguration)/**/?(*.exe|*.dll)'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+  displayName: 'Copy build artifacts'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'WLA-DX-Windows-XP-32bit'
+  displayName: 'Publish artifacts'
