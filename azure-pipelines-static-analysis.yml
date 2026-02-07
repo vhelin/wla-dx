@@ -1,0 +1,76 @@
+# Static Analysis Pipeline for WLA DX
+# This pipeline always succeeds - it's informational only
+
+trigger:
+  branches:
+    include:
+    - master
+    - develop
+  paths:
+    include:
+    - '*.c'
+    - '*.h'
+    - 'CMakeLists.txt'
+
+pr:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - '*.c'
+    - '*.h'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- checkout: self
+  displayName: 'Checkout code'
+
+- script: |
+    sudo apt-get update
+    sudo apt-get install -y \
+      cmake \
+      cppcheck \
+      clang \
+      clang-tools \
+      clang-tidy
+  displayName: 'Install static analysis tools'
+
+- script: |
+    chmod +x run_static_analysis.sh
+    
+    echo "Running static analysis (informational only)..."
+    echo ""
+    
+    if ./run_static_analysis.sh; then
+      echo "##vso[task.setvariable variable=analysis_result]PASSED"
+      echo "##vso[task.setvariable variable=analysis_color]green"
+    else
+      echo "##vso[task.setvariable variable=analysis_result]ISSUES_FOUND"
+      echo "##vso[task.setvariable variable=analysis_color]yellow"
+    fi
+  displayName: 'Run static analysis'
+  continueOnError: true
+
+- script: |
+    echo ""
+    echo "========================================="
+    echo "Static Analysis Summary"
+    echo "========================================="
+    echo ""
+    echo "Result: $(analysis_result)"
+    echo ""
+    if [ "$(analysis_result)" = "ISSUES_FOUND" ]; then
+      echo "⚠ Issues were found - review the output above"
+      echo ""
+      echo "This is informational only and does not fail the build."
+      echo "Use the findings as a reference for future improvements."
+    else
+      echo "✓ No issues found!"
+    fi
+    echo ""
+    echo "========================================="
+  displayName: 'Display summary'
+  condition: always()
