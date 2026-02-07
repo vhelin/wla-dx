@@ -7,12 +7,13 @@ Multi Platform Cross Assembler Package
 
 Azure Pipelines CI:
 
-* [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status/vhelin.wla-dx%20Linux?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=1&branchName=master) - Linux
-* [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status/vhelin.wla-dx%20macOS?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=6&branchName=master) - macOS
-* [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status/vhelin.wla-dx%20Windows%20x86?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=2&branchName=master) - Windows x86
-* [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status/vhelin.wla-dx%20Windows%20x64?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=10&branchName=master) - Windows x64
-* [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status/vhelin.wla-dx%20Windows%20MSVC?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=8&branchName=master) - Windows MSVC
-* [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status/vhelin.wla-dx%20Sanitizers?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=16&branchName=master) - Linux Sanitizers (ASan, UBSan, MSan)
+* [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status%2Fvhelin.wla-dx%20Linux%20Sanitizers?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=24&branchName=master) - Linux Sanitizers (ASan, UBSan, MSan)
+* [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status%2Fvhelin.wla-dx%20Windows%20MSVC?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=23&branchName=master) - Windows MSVC
+* [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status%2Fvhelin.wla-dx%20Windows%20Clang?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=22&branchName=master) - Windows Clang
+* [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status%2Fvhelin.wla-dx%20macOS%20GCC?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=21&branchName=master) - macOS GCC
+* [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status%2Fvhelin.wla-dx%20macOS%20Clang?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=20&branchName=master) - macOS Clang
+* [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status%2Fvhelin.wla-dx%20Linux%20GCC?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=19&branchName=master) - Linux GCC
+* [![Build Status](https://dev.azure.com/villehelin0486/villehelin/_apis/build/status%2Fvhelin.wla-dx%20Linux%20Clang?branchName=master)](https://dev.azure.com/villehelin0486/villehelin/_build/latest?definitionId=18&branchName=master) - Linux Clang
 
 Documentation:
 
