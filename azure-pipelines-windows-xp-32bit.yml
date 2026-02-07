@@ -1,0 +1,122 @@
+#
+# WLA DX Windows XP compatible 32-bit build using MSYS2 MinGW
+#
+trigger:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- checkout: self
+  displayName: 'Checkout code'
+
+# Setup MSYS2 MinGW 32-bit
+- bash: |
+    # MSYS2 is pre-installed on Azure agents
+    export PATH="/c/msys64/mingw32/bin:/c/msys64/usr/bin:$PATH"
+    
+    echo "Installing 32-bit MinGW toolchain..."
+    pacman -Sy --noconfirm mingw-w64-i686-toolchain mingw-w64-i686-cmake
+    
+    echo "Verifying installation..."
+    gcc --version
+    gcc -dumpmachine
+  displayName: 'Setup MSYS2 MinGW 32-bit'
+
+# Build
+- bash: |
+    export PATH="/c/msys64/mingw32/bin:/c/msys64/usr/bin:$PATH"
+    
+    echo "Building WLA DX with 32-bit MinGW for Windows XP..."
+    
+    mkdir build-xp
+    cd build-xp
+    
+    cmake .. -G "MinGW Makefiles" \
+             -DCMAKE_C_COMPILER=gcc \
+             -DCMAKE_BUILD_TYPE=Release \
+             -DCMAKE_C_FLAGS="-D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -static-libgcc"
+    
+    cmake --build . --config Release
+    
+    echo "✓ Build complete!"
+  displayName: 'Build with MSYS2 MinGW 32-bit'
+
+# Verify binaries
+- powershell: |
+    Write-Host "Verifying binaries..."
+    
+    if (Test-Path "build-xp\binaries") {
+        $exes = Get-ChildItem -Path "build-xp\binaries" -Filter *.exe
+        Write-Host "✓ Found $($exes.Count) executables in binaries folder:"
+        $exes | ForEach-Object { Write-Host "  - $($_.Name)" }
+    } else {
+        Write-Host "ERROR: Binaries folder not found"
+        exit 1
+    }
+    
+    # Check for byte_tester specifically
+    if (Test-Path "build-xp\binaries\byte_tester.exe") {
+        Write-Host "✓ byte_tester.exe found"
+    } else {
+        Write-Host "WARNING: byte_tester.exe not found in binaries folder"
+        Write-Host "Searching entire build directory..."
+        Get-ChildItem -Path "build-xp" -Recurse -Filter "byte_tester.exe" | ForEach-Object {
+            Write-Host "  Found at: $($_.FullName)"
+        }
+    }
+  displayName: 'Verify binaries'
+
+# Run tests with proper PATH setup
+- bash: |
+    # Add build directory to PATH to find all executables
+    export PATH="$PWD/build-xp/binaries:$PWD/build-xp/byte_tester:$PATH"
+    
+    echo "PATH setup:"
+    echo "$PATH" | tr ':' '\n'
+    echo ""
+    
+    echo "Checking for executables..."
+    which wla-6502 || echo "wla-6502 not found"
+    which wlalink || echo "wlalink not found"
+    which byte_tester || echo "byte_tester not found"
+    echo ""
+    
+    echo "Running tests..."
+    ./run_tests.sh -windows-x86
+  displayName: 'Run tests'
+
+# Save environment info
+- powershell: |
+    gci env:* | sort-object name | Format-Table -AutoSize | Out-File $env:BUILD_ARTIFACTSTAGINGDIRECTORY/environment-variables.txt
+  displayName: 'Save environment variables'
+
+# Copy ALL executables to a single directory for artifacts
+- powershell: |
+    $artifactBinaries = "$(Build.ArtifactStagingDirectory)\binaries"
+    New-Item -ItemType Directory -Force -Path $artifactBinaries | Out-Null
+    
+    # Copy from binaries folder
+    if (Test-Path "build-xp\binaries") {
+        Copy-Item "build-xp\binaries\*" -Destination $artifactBinaries -Recurse -Force
+        Write-Host "Copied from build-xp\binaries"
+    }
+    
+    # Find and copy byte_tester if it's elsewhere
+    Get-ChildItem -Path "build-xp" -Recurse -Filter "byte_tester.exe" | ForEach-Object {
+        Copy-Item $_.FullName -Destination $artifactBinaries -Force
+        Write-Host "Copied $($_.Name) from $($_.DirectoryName)"
+    }
+    
+    # List what we have
+    Write-Host "`nFinal artifact contents:"
+    Get-ChildItem -Path $artifactBinaries | ForEach-Object { Write-Host "  - $($_.Name)" }
+  displayName: 'Prepare artifacts'
+
+# Publish artifacts
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/binaries'
+    artifactName: 'WLA-DX-Windows-XP-32bit'
+  displayName: 'Publish artifacts'
