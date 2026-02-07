@@ -1,0 +1,41 @@
+#
+# WLA DX MacOS build script (GNU GCC)
+#
+
+trigger:
+- master
+
+pool:
+  vmImage: 'macOS-latest'
+
+steps:
+- script: |
+    brew install gcc
+    # Find the versioned name (e.g., gcc-14) and set it for the session
+    echo "##vso[task.setvariable variable=GCC_VER]$(ls /usr/local/bin/gcc-[0-9]* | head -n 1 | grep -o 'gcc-[0-9]*')"
+  displayName: 'Install GNU GCC'
+
+- script: |
+    export CC=gcc-14
+    export CXX=g++-14
+    make clean
+    cmake -DGDB_DEBUGGING=ON -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles"
+    make
+  displayName: 'Build Debug (GCC)'
+  timeoutInMinutes: 60
+- script: |
+    ./run_tests.sh
+  displayName: 'Run Tests (Debug)'
+  timeoutInMinutes: 60
+- script: |
+    make clean
+    export CC=gcc-14
+    export CXX=g++-14
+    cmake -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles"
+    make
+  displayName: 'Build Release (GCC)'
+  timeoutInMinutes: 60
+- script: |
+    ./run_tests.sh
+  displayName: 'Run Tests (Release)'
+  timeoutInMinutes: 60

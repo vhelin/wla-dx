@@ -1,0 +1,35 @@
+#
+# WLA DX MacOS build script (Clang)
+#
+
+trigger:
+- master
+
+pool:
+  vmImage: 'macOS-latest'
+
+variables:
+  CC: clang
+  CXX: clang++
+
+steps:
+- script: |
+    make clean
+    cmake -DGDB_DEBUGGING=ON -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles"
+    make
+  displayName: 'Build Debug (Clang)'
+  timeoutInMinutes: 60
+- script: |
+    ./run_tests.sh
+  displayName: 'Run Tests (Debug)'
+  timeoutInMinutes: 60
+- script: |
+    make clean
+    cmake -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles"
+    make
+  displayName: 'Build Release (Clang)'
+  timeoutInMinutes: 60
+- script: |
+    ./run_tests.sh
+  displayName: 'Run Tests (Release)'
+  timeoutInMinutes: 60
