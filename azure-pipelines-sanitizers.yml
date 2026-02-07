@@ -2,16 +2,15 @@ trigger:
 - master
 - main
 
-stages:
-- stage: Sanitizer_Testing
-  jobs:
-  - job: Linux_Sanitizers
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - script: |
-        sudo apt-get update
-        sudo apt-get install -y clang
-        chmod +x run_tests_with_sanitizers.sh
-        ./run_tests_with_sanitizers.sh
-      displayName: 'Run Linux Sanitizer Suite'
+jobs:
+- job: Linux_Sanitizers
+  displayName: 'Sanitizers'
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - script: |
+      sudo apt-get update
+      sudo apt-get install -y clang
+      chmod +x run_tests_with_sanitizers.sh
+      ./run_tests_with_sanitizers.sh
+    displayName: 'Run Linux Sanitizer Suite'
