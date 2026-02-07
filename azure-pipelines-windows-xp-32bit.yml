@@ -1,11 +1,11 @@
 #
-# WLA DX Windows XP compatible 32-bit build (Simple version)
+# WLA DX Windows XP compatible 32-bit build using Visual Studio solution
 #
 trigger:
 - master
 
 pool:
-  vmImage: 'windows-2022'
+  vmImage: 'windows-latest'
 
 variables:
   solution: '**/*.sln'
@@ -21,15 +21,26 @@ steps:
     Write-Host "Downloading Visual Studio 2019 Build Tools..."
     Invoke-WebRequest -Uri https://aka.ms/vs/16/release/vs_buildtools.exe -OutFile vs_buildtools.exe
     
-    Write-Host "Installing VS 2019 Build Tools with XP toolset..."
+    Write-Host "Installing VS 2019 Build Tools with XP toolset and dependencies..."
     Start-Process -Wait -FilePath .\vs_buildtools.exe -ArgumentList `
       '--quiet', '--wait', '--norestart', '--nocache', `
+      '--installPath', 'C:\VS2019BuildTools', `
+      '--add', 'Microsoft.VisualStudio.Workload.VCTools', `
       '--add', 'Microsoft.VisualStudio.Component.VC.v141.x86.x64', `
-      '--add', 'Microsoft.VisualStudio.Component.VC.140'
+      '--add', 'Microsoft.VisualStudio.Component.VC.v141.ATL', `
+      '--add', 'Microsoft.VisualStudio.Component.VC.v141.MFC'
     
     Write-Host "Visual Studio 2019 Build Tools installed"
+    
+    # Verify installation
+    if (Test-Path "C:\VS2019BuildTools\MSBuild\Microsoft\VC\v160\Platforms\Win32\PlatformToolsets\v141_xp") {
+        Write-Host "✓ XP toolset found at expected location"
+    } else {
+        Write-Host "⚠ XP toolset not found, listing available toolsets..."
+        Get-ChildItem "C:\VS2019BuildTools\MSBuild\Microsoft\VC\v160\Platforms\Win32\PlatformToolsets" -ErrorAction SilentlyContinue
+    }
   displayName: 'Install VS 2019 Build Tools with XP toolset'
-  timeoutInMinutes: 20
+  timeoutInMinutes: 30
 
 - task: NuGetToolInstaller@1
   displayName: 'Install NuGet'
@@ -39,19 +50,52 @@ steps:
     restoreSolution: '$(solution)'
   displayName: 'Restore NuGet packages'
 
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-    msbuildArgs: '/p:PlatformToolset=v141_xp /p:WindowsTargetPlatformVersion=7.0'
-  displayName: 'Build solution with XP toolset'
+# Use VS 2019 MSBuild instead of VS 2022
+- powershell: |
+    Write-Host "Using VS 2019 Build Tools for compilation..."
+    
+    $msbuild = "C:\VS2019BuildTools\MSBuild\Current\Bin\MSBuild.exe"
+    $solution = Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1
+    
+    if (-not (Test-Path $msbuild)) {
+        Write-Host "ERROR: MSBuild not found at $msbuild"
+        exit 1
+    }
+    
+    Write-Host "Building with: $msbuild"
+    Write-Host "Solution: $($solution.FullName)"
+    
+    & $msbuild $solution.FullName `
+      /p:Configuration=$(buildConfiguration) `
+      /p:Platform=$(buildPlatform) `
+      /p:PlatformToolset=v141_xp `
+      /p:WindowsTargetPlatformVersion=7.0 `
+      /m `
+      /v:minimal
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Build failed with exit code $LASTEXITCODE"
+        exit $LASTEXITCODE
+    }
+  displayName: 'Build solution with VS 2019 MSBuild (XP toolset)'
 
 - task: VSTest@2
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
   displayName: 'Run Visual Studio tests'
+  continueOnError: true
+
+# Verify XP compatibility
+- powershell: |
+    Write-Host "Verifying Windows XP compatibility..."
+    $exeFiles = Get-ChildItem -Recurse -Filter *.exe | Where-Object { $_.DirectoryName -match "Release" }
+    
+    foreach ($exe in $exeFiles) {
+        Write-Host "`nChecking: $($exe.Name)"
+        dumpbin /headers $exe.FullName | Select-String "machine|subsystem"
+    }
+  displayName: 'Verify XP-compatible binaries'
   continueOnError: true
 
 - bash: ./run_tests.sh -windows-x86
