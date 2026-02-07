@@ -1,5 +1,5 @@
 #
-# WLA DX Windows XP compatible 32-bit build using MinGW
+# WLA DX Windows XP compatible 32-bit build using MSYS2 MinGW
 #
 trigger:
 - master
@@ -7,114 +7,50 @@ trigger:
 pool:
   vmImage: 'windows-latest'
 
-variables:
-  buildPlatform: 'x86'
-  buildConfiguration: 'Release'
-
 steps:
 - checkout: self
   displayName: 'Checkout code'
 
-# Install 32-bit MinGW
-- powershell: |
-    Write-Host "Installing 32-bit MinGW for Windows XP compatibility..."
-    
-    # Download and install mingw-w64 with 32-bit support
-    $downloadUrl = "https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/8.1.0/threads-posix/dwarf/i686-8.1.0-release-posix-dwarf-rt_v6-rev0.7z/download"
-    $zipFile = "mingw32.7z"
-    $extractPath = "C:\mingw32"
-    
-    Write-Host "Downloading MinGW 32-bit..."
-    Invoke-WebRequest -Uri $downloadUrl -OutFile $zipFile -UserAgent "Mozilla/5.0"
-    
-    Write-Host "Extracting MinGW..."
-    & "C:\Program Files\7-Zip\7z.exe" x $zipFile -o"C:\" -y
-    
-    # Verify installation
-    $gccPath = "$extractPath\mingw32\bin\gcc.exe"
-    if (Test-Path $gccPath) {
-        Write-Host "✓ MinGW 32-bit installed successfully"
-        $env:Path = "$extractPath\mingw32\bin;$env:Path"
-        & "$gccPath" --version
-    } else {
-        Write-Host "ERROR: MinGW installation failed"
-        exit 1
-    }
-  displayName: 'Install 32-bit MinGW'
-  timeoutInMinutes: 10
-
-# Build using CMake with MinGW
+# Setup MSYS2 MinGW 32-bit
 - bash: |
-    export PATH="/c/mingw32/mingw32/bin:$PATH"
+    # MSYS2 is pre-installed on Azure agents
+    export PATH="/c/msys64/mingw32/bin:/c/msys64/usr/bin:$PATH"
     
-    echo "Verifying 32-bit GCC..."
+    echo "Installing 32-bit MinGW toolchain..."
+    pacman -Sy --noconfirm mingw-w64-i686-toolchain mingw-w64-i686-cmake
+    
+    echo "Verifying installation..."
     gcc --version
     gcc -dumpmachine
+  displayName: 'Setup MSYS2 MinGW 32-bit'
+
+# Build
+- bash: |
+    export PATH="/c/msys64/mingw32/bin:/c/msys64/usr/bin:$PATH"
     
     echo "Building WLA DX with 32-bit MinGW for Windows XP..."
     
     mkdir build-xp
     cd build-xp
     
-    # Configure with MinGW Makefiles targeting Windows XP
     cmake .. -G "MinGW Makefiles" \
              -DCMAKE_C_COMPILER=gcc \
              -DCMAKE_BUILD_TYPE=Release \
              -DCMAKE_C_FLAGS="-D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -static-libgcc"
     
-    if [ $? -ne 0 ]; then
-        echo "ERROR: CMake configuration failed"
-        exit 1
-    fi
-    
-    # Build
     cmake --build . --config Release
     
-    if [ $? -ne 0 ]; then
-        echo "ERROR: Build failed"
-        exit 1
-    fi
-    
     echo "✓ Build complete!"
-  displayName: 'Build with 32-bit MinGW (XP compatible)'
+  displayName: 'Build with MSYS2 MinGW 32-bit'
 
-# Verify binaries exist and are valid Windows executables
+# Verify binaries
 - powershell: |
-    Write-Host "Verifying Windows XP compatible binaries..."
-    
-    $binariesPath = "build-xp\binaries"
-    
-    if (Test-Path $binariesPath) {
-        $exeFiles = Get-ChildItem -Path $binariesPath -Filter *.exe
-        
-        if ($exeFiles.Count -eq 0) {
-            Write-Host "ERROR: No executables found in $binariesPath"
-            exit 1
-        }
-        
-        Write-Host "Found $($exeFiles.Count) executable(s):"
-        
-        foreach ($exe in $exeFiles) {
-            Write-Host "`n  - $($exe.Name)"
-            Write-Host "    Size: $([math]::Round($exe.Length / 1KB, 2)) KB"
-            
-            # Verify it's a valid PE executable
-            $bytes = [System.IO.File]::ReadAllBytes($exe.FullName)
-            if ($bytes[0] -eq 0x4D -and $bytes[1] -eq 0x5A) {
-                Write-Host "    Status: ✓ Valid Windows executable"
-            } else {
-                Write-Host "    Status: ✗ Invalid executable format"
-                exit 1
-            }
-        }
-        
-        Write-Host "`n✓ All binaries verified successfully"
+    if (Test-Path "build-xp\binaries") {
+        $exes = Get-ChildItem -Path "build-xp\binaries" -Filter *.exe
+        Write-Host "✓ Found $($exes.Count) executables"
+        $exes | ForEach-Object { Write-Host "  - $($_.Name)" }
     } else {
-        Write-Host "ERROR: Binaries directory not found: $binariesPath"
-        Write-Host "Checking what was created..."
-        Get-ChildItem -Path "build-xp" -Recurse -Filter *.exe | ForEach-Object {
-            Write-Host "Found: $($_.FullName)"
-        }
+        Write-Host "ERROR: No binaries found"
         exit 1
     }
   displayName: 'Verify binaries'
@@ -123,25 +59,10 @@ steps:
 - bash: |
     export PATH="$PWD/build-xp/binaries:$PATH"
     ./run_tests.sh -windows-x86
-  workingDirectory: '$(Build.SourcesDirectory)'
   displayName: 'Run tests'
 
-# Save environment info
-- powershell: |
-    gci env:* | sort-object name | Format-Table -AutoSize | Out-File $env:BUILD_ARTIFACTSTAGINGDIRECTORY/environment-variables.txt
-  displayName: 'Save environment variables'
-
-# Copy binaries to staging
-- task: CopyFiles@2
-  inputs:
-    sourceFolder: 'build-xp/binaries'
-    contents: '**'
-    TargetFolder: '$(Build.ArtifactStagingDirectory)/binaries'
-  displayName: 'Copy build artifacts'
-
-# Publish artifacts
+# Publish
 - task: PublishBuildArtifacts@1
   inputs:
-    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    artifactName: 'WLA-DX-Windows-XP-MinGW-32bit'
-  displayName: 'Publish artifacts'
+    pathtoPublish: 'build-xp/binaries'
+    artifactName: 'WLA-DX-Windows-XP-32bit'
