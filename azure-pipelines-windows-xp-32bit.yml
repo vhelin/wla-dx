@@ -15,27 +15,43 @@ steps:
 - checkout: self
   displayName: 'Checkout code'
 
-# Install MinGW
+# Install 32-bit MinGW
 - powershell: |
-    Write-Host "Installing MinGW for Windows XP compatibility..."
-    choco install mingw --version=8.1.0 --force -y
+    Write-Host "Installing 32-bit MinGW for Windows XP compatibility..."
     
-    Write-Host "MinGW installed successfully"
+    # Download and install mingw-w64 with 32-bit support
+    $downloadUrl = "https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/8.1.0/threads-posix/dwarf/i686-8.1.0-release-posix-dwarf-rt_v6-rev0.7z/download"
+    $zipFile = "mingw32.7z"
+    $extractPath = "C:\mingw32"
     
-    # Add to PATH
-    $env:Path = "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw32\bin;$env:Path"
+    Write-Host "Downloading MinGW 32-bit..."
+    Invoke-WebRequest -Uri $downloadUrl -OutFile $zipFile -UserAgent "Mozilla/5.0"
+    
+    Write-Host "Extracting MinGW..."
+    & "C:\Program Files\7-Zip\7z.exe" x $zipFile -o"C:\" -y
     
     # Verify installation
-    gcc --version
-    g++ --version
-  displayName: 'Install MinGW'
+    $gccPath = "$extractPath\mingw32\bin\gcc.exe"
+    if (Test-Path $gccPath) {
+        Write-Host "✓ MinGW 32-bit installed successfully"
+        $env:Path = "$extractPath\mingw32\bin;$env:Path"
+        & "$gccPath" --version
+    } else {
+        Write-Host "ERROR: MinGW installation failed"
+        exit 1
+    }
+  displayName: 'Install 32-bit MinGW'
   timeoutInMinutes: 10
 
 # Build using CMake with MinGW
 - bash: |
-    export PATH="/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw32/bin:$PATH"
+    export PATH="/c/mingw32/mingw32/bin:$PATH"
     
-    echo "Building WLA DX with MinGW for Windows XP..."
+    echo "Verifying 32-bit GCC..."
+    gcc --version
+    gcc -dumpmachine
+    
+    echo "Building WLA DX with 32-bit MinGW for Windows XP..."
     
     mkdir build-xp
     cd build-xp
@@ -44,13 +60,23 @@ steps:
     cmake .. -G "MinGW Makefiles" \
              -DCMAKE_C_COMPILER=gcc \
              -DCMAKE_BUILD_TYPE=Release \
-             -DCMAKE_C_FLAGS="-m32 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -static-libgcc"
+             -DCMAKE_C_FLAGS="-D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -static-libgcc"
+    
+    if [ $? -ne 0 ]; then
+        echo "ERROR: CMake configuration failed"
+        exit 1
+    fi
     
     # Build
     cmake --build . --config Release
     
-    echo "Build complete!"
-  displayName: 'Build with MinGW (XP compatible)'
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Build failed"
+        exit 1
+    fi
+    
+    echo "✓ Build complete!"
+  displayName: 'Build with 32-bit MinGW (XP compatible)'
 
 # Verify binaries exist and are valid Windows executables
 - powershell: |
@@ -85,6 +111,10 @@ steps:
         Write-Host "`n✓ All binaries verified successfully"
     } else {
         Write-Host "ERROR: Binaries directory not found: $binariesPath"
+        Write-Host "Checking what was created..."
+        Get-ChildItem -Path "build-xp" -Recurse -Filter *.exe | ForEach-Object {
+            Write-Host "Found: $($_.FullName)"
+        }
         exit 1
     }
   displayName: 'Verify binaries'
@@ -95,7 +125,6 @@ steps:
     ./run_tests.sh -windows-x86
   workingDirectory: '$(Build.SourcesDirectory)'
   displayName: 'Run tests'
-  continueOnError: true
 
 # Save environment info
 - powershell: |
