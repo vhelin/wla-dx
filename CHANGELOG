@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------------
 
-v10.7 (28-Dec-2025) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
+v10.7 (08-Feb-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
                       calls.
                     [ALL] Listfile creation for library files should now work.
                     [ALL] If an object file contained only .SECTIONs in ROM
@@ -31,6 +31,8 @@ v10.7 (28-Dec-2025) [ALL] Prefixed by a hashtag didn't propagate though nested .
                     [ALL] .BASE can once again given inside a .SECTION. NOTE: The
                       old .BASE before the .SECTION is returned after .ENDS.
                     [ALL] Implemented missing base(label).
+                    [ALL] Fixed an issue with -h flag and defines in some
+                      instructions being interpreted early as labels.
                     [658] Fixed BRL and PER to work properly.
                     [68k] Added alias SP for register a7.
                     [68k] BCLR, BSET and BTST used wrong range [1, 8] / [1, 32] for

@@ -42,7 +42,7 @@
         .db "01>"               ; @BT TEST-01 01 START
 _0x03:
         .db sumAB(1,2)          ; @BT 03
-        .db 1 + sumAB(1,2)      ; @BT 04
+        .db 1 + sumAB(1,3)      ; @BT 05
         .db sumABC(3,4,5)       ; @BT 0C
         .db sumAB(0+1,0+1+2-1)  ; @BT 03
         .db sumABC(1+2,2+2,2+3) ; @BT 0C

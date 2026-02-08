@@ -2760,28 +2760,54 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       if (is_already_processed_function == YES) {
       }
       else if (is_label == YES) {
-        si[q].string[k] = 0;
-        process_special_labels(si[q].string);
-        si[q].type = STACK_ITEM_TYPE_LABEL;
-        got_label = YES;
+        if (g_parsing_function_body == NO) {
+          char tmp_name[MAX_NAME_LENGTH + 1];
+          struct definition *def;
 
-        if (from_substitutor == NO && expand_variables_inside_string(si[q].string, sizeof(((struct stack_item *)0)->string), NULL) == FAILED)
-          return FAILED;
+          si[q].string[k] = 0;
 
-        if (g_macro_active != 0 && si[q].string[0] == '?') {
-          /* CHILDLABELS .MACRO and local reference! */
-          if (process_label_inside_macro(NO, si[q].string, sizeof(si[q].string)) == FAILED)
-            return FAILED;
+          strcpy(tmp_name, si[q].string);
+          if (g_is_file_isolated_counter > 0 || g_force_add_namespace == YES) {
+            if (add_namespace_to_a_label(tmp_name, sizeof(tmp_name), YES) == FAILED)
+              return FAILED;
+          }
+          
+          /* or is it a define instead? */
+          hashmap_get(g_defines_map, tmp_name, (void*)&def);
+          if (def != NULL) {
+            if (def->type == DEFINITION_TYPE_VALUE) {
+              si[q].type = STACK_ITEM_TYPE_VALUE;
+              si[q].value = def->value;
+              si[q].sign = SI_SIGN_POSITIVE;
+              is_already_processed_function = YES;
+            }
+          }
         }
         
-        /* label reference inside a namespaced .MACRO? */
-        if (g_is_file_isolated_counter > 0 || g_force_add_namespace == YES) {
-          if (add_namespace_to_a_label(si[q].string, sizeof(si[q].string), YES) == FAILED)
+        if (is_already_processed_function == NO) {
+          si[q].string[k] = 0;
+          process_special_labels(si[q].string);
+          si[q].type = STACK_ITEM_TYPE_LABEL;
+          got_label = YES;
+
+          if (from_substitutor == NO && expand_variables_inside_string(si[q].string, sizeof(((struct stack_item *)0)->string), NULL) == FAILED)
             return FAILED;
-        }
-        else {
-          if (add_namespace_to_a_label(si[q].string, sizeof(si[q].string), NO) == FAILED)
-            return FAILED;
+
+          if (g_macro_active != 0 && si[q].string[0] == '?') {
+            /* CHILDLABELS .MACRO and local reference! */
+            if (process_label_inside_macro(NO, si[q].string, sizeof(si[q].string)) == FAILED)
+              return FAILED;
+          }
+        
+          /* label reference inside a namespaced .MACRO? */
+          if (g_is_file_isolated_counter > 0 || g_force_add_namespace == YES) {
+            if (add_namespace_to_a_label(si[q].string, sizeof(si[q].string), YES) == FAILED)
+              return FAILED;
+          }
+          else {
+            if (add_namespace_to_a_label(si[q].string, sizeof(si[q].string), NO) == FAILED)
+              return FAILED;
+          }
         }
       }
       else {
