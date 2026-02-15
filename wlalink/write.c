@@ -2151,8 +2151,22 @@ int fix_references(void) {
         lt.section_status = OFF;
         l = &lt;
       }
-      else
+      else {
         find_label(r->name, s, &l);
+
+        if (l == NULL) {
+          /* didn't find the label, but if it has a namespace, try removing it and try again */
+          i = 0;
+          while (1) {
+            if (r->name[i] == '.' || r->name[i] == 0)
+              break;
+            i++;
+          }
+
+          if (r->name[i] == '.')
+            find_label(&r->name[i + 1], s, &l);
+        }
+      }
 
       if (l == NULL || l->status == LABEL_STATUS_SYMBOL || l->status == LABEL_STATUS_BREAKPOINT) {
         print_text(NO, "%s: %s:%d: FIX_REFERENCES: Reference to an unknown label \"%s\".\n",
@@ -4549,6 +4563,20 @@ int parse_stack(struct stack *sta) {
         else {
           find_label(si->string, s, &l);
 
+          if (l == NULL) {
+            int q = 0;
+            
+            /* didn't find the label, but if it has a namespace, try removing it and try again */
+            while (1) {
+              if (si->string[q] == '.' || si->string[q] == 0)
+                break;
+              q++;
+            }
+
+            if (si->string[q] == '.')
+              find_label(&si->string[q + 1], s, &l);
+          }
+          
           /* find matches until something else than a label is found */
           while (l != NULL && l->status == LABEL_STATUS_LABEL) {
             struct label *label_old = l;

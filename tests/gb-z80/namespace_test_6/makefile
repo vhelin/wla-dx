@@ -17,7 +17,7 @@ main.o: main.s
 	$(CC) $(CFLAGS) main.o main.s
 
 check: linked.gb
-	byte_tester -s main.s
+	byte_tester -s main.s ; byte_tester -s bar.asm
 
 
 $(OFILES): $(HFILES)
