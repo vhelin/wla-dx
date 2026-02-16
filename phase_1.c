@@ -9155,7 +9155,7 @@ int directive_smdheader(void) {
 static int _parse_macro_argument_names(struct macro_static *m, int *count, int is_inside_parentheses) {
 
   while (1) {
-    int string_result;
+    int string_result, start;
 
     if (is_inside_parentheses == YES) {
       if (compare_and_skip_next_symbol(')') == SUCCEEDED)
@@ -9164,6 +9164,7 @@ static int _parse_macro_argument_names(struct macro_static *m, int *count, int i
 
     if (g_is_file_isolated_counter > 0)
       g_force_ignore_namespace = YES;
+    start = g_source_index;
     string_result = input_next_string();
     if (g_is_file_isolated_counter > 0)
       g_force_ignore_namespace = NO;
@@ -9172,7 +9173,8 @@ static int _parse_macro_argument_names(struct macro_static *m, int *count, int i
       return FAILED;
     if (string_result == INPUT_NUMBER_EOL) {
       if (*count != 0) {
-        next_line();
+        /* we back off so the parsing will work */
+        g_source_index = start;
         break;
       }
       print_error(ERROR_DIR, "MACRO \"%s\" is missing argument names?\n", m->name);
