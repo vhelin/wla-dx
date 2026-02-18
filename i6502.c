@@ -446,14 +446,14 @@ struct instruction g_instructions_table[] = {
   { "STA.B x", 0x85, 4, 0 },
   { "STA.W ?", 0x8D, 2, 0 },
 
-  { "STX x,Y", 0x96, 4, 0 },
+  { "STX x,Y", 0x96, 4, 1 },
   { "STX x", 0x86, 4, 1 },
   { "STX ?", 0x8E, 2, 0 },
   { "STX.B x,Y", 0x96, 4, 0 },
   { "STX.B x", 0x86, 4, 0 },
   { "STX.W ?", 0x8E, 2, 0 },
 
-  { "STY x,X", 0x94, 4, 0 },
+  { "STY x,X", 0x94, 4, 1 },
   { "STY x", 0x84, 4, 1 },
   { "STY ?", 0x8C, 2, 0 },
   { "STY.B x,X", 0x94, 4, 0 },

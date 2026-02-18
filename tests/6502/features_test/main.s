@@ -255,7 +255,6 @@ this_is_a_long_label:
         .db BYTES3              ; @BT 01 00 02 02 01 00 02 48 49 01 00 02
         .db "<22"               ; @BT END
 
-
         .struct inside_struct size 4
         data3 db
         data4 db
@@ -278,3 +277,51 @@ this_is_a_long_label:
         dataA dsb 16
         dataB db
         .ende
+
+          MyConst = 2
+        
+          .db "23>"             ; @BT TEST-23 23 START
+          lda #MyConst + 2      ; @BT A9 04
+          lda #MyConst          ; @BT A9 02
+          lda (10, X)           ; @BT A1 0A
+          lda (10), Y           ; @BT B1 0A
+          lda 10, X             ; @BT B5 0A
+          lda 256, X            ; @BT BD 00 01
+          lda 256, Y            ; @BT B9 00 01
+          lda 11                ; @BT A5 0B
+          lda 256               ; @BT AD 00 01
+          lda.b #MyConst + 2    ; @BT A9 04
+          lda.b #MyConst        ; @BT A9 02
+          lda.b (10, X)         ; @BT A1 0A
+          lda.b (10), Y         ; @BT B1 0A
+          lda.b 10, X           ; @BT B5 0A
+          lda.w 256, X          ; @BT BD 00 01
+          lda.w 256, Y          ; @BT B9 00 01
+          lda.b 11              ; @BT A5 0B
+          lda.w 256             ; @BT AD 00 01
+          .db "<23"             ; @BT END
+
+        MyConst2 = $0200
+
+          .db "24>"             ; @BT TEST-24 24 START
+          ldx MyConst2 + $1     ; @BT AE 01 02
+          ldx MyConst2 + $1     ; @BT AE 01 02
+          sta MyConst2 + $1     ; @BT 8D 01 02
+          sta MyConst2 + $1     ; @BT 8D 01 02
+          sty MyConst2 + $1     ; @BT 8C 01 02
+          sty MyConst2 + $1     ; @BT 8C 01 02
+          stx MyConst2 + $1     ; @BT 8E 01 02
+          stx MyConst2 + $1     ; @BT 8E 01 02
+          stx 10,Y              ; @BT 96 0A
+          stx 10                ; @BT 86 0A
+          stx $1234             ; @BT 8E 34 12
+          stx.b 10,Y            ; @BT 96 0A
+          stx.b 10              ; @BT 86 0A
+          stx.w $1234           ; @BT 8E 34 12
+          sty 10,X              ; @BT 94 0A
+          sty 10                ; @BT 84 0A
+          sty $1234             ; @BT 8C 34 12
+          sty.b 10,X            ; @BT 94 0A
+          sty.b 10              ; @BT 84 0A
+          sty.w $1234           ; @BT 8C 34 12
+          .db "<24"             ; @BT END
