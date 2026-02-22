@@ -571,6 +571,14 @@ struct definition {
   int    size;
 };
 
+struct call_stack_item {
+  char filename[MAX_NAME_LENGTH + 1];
+  char macro_name[MAX_NAME_LENGTH + 1];
+  int line_number;  
+  struct call_stack_item *next;
+  struct call_stack_item *prev;
+};
+
 struct after_section {
   char  alive;
   char  is_appendto;
