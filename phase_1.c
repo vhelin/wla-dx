@@ -111,6 +111,7 @@ char g_current_directive[MAX_NAME_LENGTH + 1];
 
 unsigned char *g_rom_banks = NULL, *g_rom_banks_usage_table = NULL;
 
+struct call_stack_item *g_call_stack_items_first = NULL, *g_call_stack_items_last = NULL;
 struct structure **g_saved_structures = NULL;
 struct export_def *g_export_first = NULL, *g_export_last = NULL;
 struct map_t *g_defines_map = NULL;
@@ -135,7 +136,7 @@ extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_includ
 extern int g_source_file_size, g_input_number_error_msg, g_verbose_level, g_output_format, g_open_files, g_input_parse_if;
 extern int g_last_stack_id, g_latest_stack, g_ss, g_commandline_parsing, g_newline_beginning, g_expect_calculations, g_input_parse_special_chars;
 extern int g_extra_definitions, g_string_size, g_input_float_mode, g_operand_hint, g_operand_hint_type, g_dsp_enable_label_address_conversion;
-extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers;
+extern int g_include_dir_size, g_parse_floats, g_listfile_data, g_quiet, g_parsed_double_decimal_numbers, g_print_call_stack_on_exit;
 extern int g_create_sizeof_definitions, g_input_allow_leading_hashtag, g_input_has_leading_hashtag, g_input_allow_leading_ampersand;
 extern int g_plus_and_minus_ends_label, g_get_next_token_use_substitution, g_input_number_turn_values_into_strings;
 extern int g_continue_parsing_after_an_error, g_continued_parsing_after_an_error, g_allow_labels_without_colon;
@@ -333,6 +334,64 @@ static int _get_slot_number_by_a_value(int value, int *slot) {
 }
 
 
+static int _call_stack_item_push(void) {
+
+  struct call_stack_item *csi;
+
+  /* the 1st file in project? */
+  if (g_active_file_info_last == NULL)
+    return SUCCEEDED;
+
+  csi = calloc(1, sizeof(struct call_stack_item));
+  if (csi == NULL) {
+    print_error(ERROR_ERR, "Out of memory error while allocating a call stack item.\n");
+    return FAILED;
+  }
+
+  csi->line_number = g_active_file_info_last->line_current;
+  strcpy(csi->filename, get_file_name(g_active_file_info_last->filename_id));
+  csi->next = NULL;
+  csi->prev = g_call_stack_items_last;
+
+  if (g_macro_runtime_current != NULL && g_macro_runtime_current->macro != NULL)
+    strcpy(csi->macro_name, g_macro_runtime_current->macro->name);
+  else
+    csi->macro_name[0] = 0;
+
+  if (g_call_stack_items_first == NULL)
+    g_call_stack_items_first = csi;
+
+  if (g_call_stack_items_last != NULL)
+    g_call_stack_items_last->next = csi;
+  g_call_stack_items_last = csi;
+
+  return SUCCEEDED;
+}
+
+
+static int _call_stack_item_pop(void) {
+
+  struct call_stack_item *csi;
+  
+  csi = g_call_stack_items_last;
+  if (csi == NULL) {
+    print_error(ERROR_ERR, "Calling _call_stack_item_pop(), but the call stack is empty! Please submit a bug report!\n");
+    return FAILED;
+  }
+
+  if (csi->prev != NULL)
+    csi->prev->next = NULL;
+  else
+    g_call_stack_items_first = NULL;
+
+  g_call_stack_items_last = csi->prev;
+
+  free(csi);
+
+  return SUCCEEDED;
+}
+
+
 int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
 
   struct macro_static *macro;
@@ -404,7 +463,8 @@ static int _macro_stack_grow(void) {
     }
 
     g_macro_stack = macro;
-    g_macro_runtime_current = &g_macro_stack[g_macro_active - 1];
+    if (g_macro_active > 0)
+      g_macro_runtime_current = &g_macro_stack[g_macro_active - 1];
   }
 
   return SUCCEEDED;
@@ -412,6 +472,9 @@ static int _macro_stack_grow(void) {
 
 
 static int _macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, int nargs) {
+
+  if (_call_stack_item_push() == FAILED)
+    return FAILED;
 
   g_macro_runtime_current = mrt;
   g_macro_active++;
@@ -1557,9 +1620,7 @@ void print_error(int type, char *error, ...) {
     break;
   }
 
-  if (g_active_file_info_last != NULL)
-    print_text(NO, "%s:%d: ", get_file_name(g_active_file_info_last->filename_id), g_active_file_info_last->line_current);
-
+  /* print the error */
   if (t != NULL) {
     print_text(NO, t);
     print_text(NO, " ");
@@ -1569,6 +1630,8 @@ void print_error(int type, char *error, ...) {
   print_text_using_args(NO, error, args);
   va_end(args);
 
+  g_print_call_stack_on_exit = YES;
+  
   fflush(stderr);
 
   return;
@@ -9516,6 +9579,9 @@ int directive_endm(void) {
   int q;
   
   if (g_macro_active != 0) {
+    if (_call_stack_item_pop() == FAILED)
+      return FAILED;
+
     g_macro_active--;
 
     /* macro call end */
@@ -11151,6 +11217,9 @@ int directive_changefile(void) {
 
   int q;
   
+  if (_call_stack_item_push() == FAILED)
+    return FAILED;
+
   q = input_number();
   if (q != SUCCEEDED) {
     print_error(ERROR_DIR, "Internal error in (internal) .CHANGEFILE. Please submit a bug report...\n");
@@ -11814,7 +11883,10 @@ int parse_directive(void) {
           g_is_file_isolated_counter--;
         if (g_is_file_isolated_counter == 1)
           g_is_file_isolated_counter = 0;
-          
+
+        if (_call_stack_item_pop() == FAILED)
+          return FAILED;
+        
         return SUCCEEDED;
       }
     }

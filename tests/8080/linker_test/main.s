@@ -89,16 +89,16 @@ DummyMain:
 .ENDS
 
 .MACRO JUMP_MACRO
-	.print "OUTMOST:::IN\n"
+	.print "OUTMOST:::IN - JUMP_MACRO\n"
         MACRO_INCLUDE_1 11 \1
-	.print "OUTMOST:::OUT\n"
+	.print "OUTMOST:::OUT - JUMP_MACRO\n"
 .ENDM
 
 .MACRO MACRO_INCLUDE_1
-	.print "INSIDE:::IN\n"
+	.print "INSIDE:::IN - MACRO_INCLUDE_1\n"
 	.include include1.s
 	.db \2
-	.print "INSIDE:::OUT\n"
+	.print "INSIDE:::OUT - MACRO_INCLUDE_1\n"
 .ENDM
 
 .MACRO MACRO_INCLUDE_2
