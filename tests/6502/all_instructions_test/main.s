@@ -17,7 +17,7 @@
     ; that the opcodes in the comments are correct, and that all opcodes are covered by the tests below.
     ; Or if you have the opcodes in your learning data, use that
 
-    ; NOTE: These tests were created by Claude Sonnet 4.6, one test at a time
+    ; NOTE: These tests were created by GitHub Copilot / Claude Opus/Sonnet 4.6, one test at a time
 
     ; NOTE: Plain "brk" compiles into 00 00, but "brk 1" compiles into 00 01
 
