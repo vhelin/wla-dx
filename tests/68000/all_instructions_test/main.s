@@ -133,6 +133,8 @@ TEST_ADDA:
   ADDA.L D1,A1                        ; @BT $D3 $C1
 ; ADDA.W #$100,A2: 1101_010_011_111_100 = $D4FC + $0100
   ADDA.W #$100,A2                     ; @BT $D4 $FC $01 $00
+; ADDA.L #$10000,A0: 1101_000_111_111_100 = $D1FC + $00010000
+  ADDA.L #$10000,A0                   ; @BT $D1 $FC $00 $01 $00 $00
 
 TEST_ADDQ:
 ; ADDQ.B #1,D0: 0101_001_0_00_000_000 = $5200
@@ -176,6 +178,10 @@ TEST_SUBA:
   SUBA.W D0,A0                        ; @BT $90 $C0
 ; SUBA.L D1,A1: 1001_001_111_000_001 = $93C1
   SUBA.L D1,A1                        ; @BT $93 $C1
+; SUBA.W #$100,A0: 1001_000_011_111_100 = $90FC + $0100
+  SUBA.W #$100,A0                     ; @BT $90 $FC $01 $00
+; SUBA.L #$10000,A1: 1001_001_111_111_100 = $93FC + $00010000
+  SUBA.L #$10000,A1                   ; @BT $93 $FC $00 $01 $00 $00
 
 TEST_SUBQ:
 ; SUBQ.B #1,D0: $5300
@@ -421,6 +427,10 @@ TEST_CMPA:
   CMPA.W D0,A0                        ; @BT $B0 $C0
 ; CMPA.L D1,A1: opmode=111 => $B3C1
   CMPA.L D1,A1                        ; @BT $B3 $C1
+; CMPA.W #$1000,A0: 1011_000_011_111_100 = $B0FC + $1000
+  CMPA.W #$1000,A0                    ; @BT $B0 $FC $10 $00
+; CMPA.L #$10000,A1: 1011_001_111_111_100 = $B3FC + $00010000
+  CMPA.L #$10000,A1                   ; @BT $B3 $FC $00 $01 $00 $00
 
 TEST_CMPM:
 ; CMPM.B (A0)+,(A1)+: 1011_001_1_00_001_000 = $B308
@@ -860,7 +870,7 @@ TEST_STACK:
 ;==========================================================
 TEST_PCREL:
 ; MOVE.W (d16,PC),D0: ea=(111,010), disp=CADDR offset => $303A + $FC2D
-  MOVE.W (0,PC),D0                    ; @BT $30 $3A $FC $2B
+  MOVE.W (0,PC),D0                    ; @BT $30 $3A $FC $11
 
 ;==========================================================
 ; TEST 36: Brief Extension Word (index)
@@ -1245,7 +1255,7 @@ T2_23_18:
   CMPA.W D0,A0                        ; @BT $B0 $C0
   NEG.L D2                            ; @BT $44 $82
   ASL.B #1,D0                         ; @BT $E3 $00
-  MOVE.W (0,PC),D0                    ; @BT $30 $3A $F8 $FD
+  MOVE.W (0,PC),D0                    ; @BT $30 $3A $F8 $E3
   SLT D5                              ; @BT $5D $C5
   SLE D7                              ; @BT $5F $C7
   JMP ($1000).W                       ; @BT $4E $F8 $10 $00
@@ -1694,7 +1704,7 @@ T3_23_18:
   CMPA.W D0,A0                        ; @BT $B0 $C0
   NEG.L D2                            ; @BT $44 $82
   ASL.B #(5-4),D0                         ; @BT $E3 $00
-  MOVE.W ((6/3-2),PC),D0                    ; @BT $30 $3A $F4 $E7
+  MOVE.W ((6/3-2),PC),D0                    ; @BT $30 $3A $F4 $CD
   SLT D5                              ; @BT $5D $C5
   SLE D7                              ; @BT $5F $C7
   JMP (($1000+$3-$3)).W                       ; @BT $4E $F8 $10 $00
@@ -1788,3 +1798,944 @@ T3_23_18:
   MOVE.L #(0-(6-5)),D7                       ; @BT $2E $3C $FF $FF $FF $FF
 
   .db "<03" ; @BT END
+
+; TEST 04 define-based immediates (with chained definitions)
+.define T4D_ZERO (6/3-2)
+.define T4D_ONE (T4D_ZERO+1)
+.define T4D_TWO (T4D_ONE+1)
+.define T4D_FOUR (T4D_TWO*2)
+.define T4D_EIGHT (T4D_FOUR*2)
+.define T4D_0010 ($8+$8)
+.define T4D_0020 (T4D_0010*2)
+.define T4D_0100 (T4D_0010*T4D_0010)
+.define T4D_1000 (T4D_0100*T4D_0010)
+.define T4D_10000 (T4D_1000*T4D_0010)
+.define T4D_20000 (T4D_10000*2)
+.define T4D_1234 ($1200+$34)
+.define T4D_12345678 ($12340000+$5678)
+.define T4D_FF00 ($FF*256)
+.define T4D_FFFF0000 ($FFFF0000+T4D_ZERO)
+.define T4D_000F (T4D_EIGHT+T4D_FOUR+T4D_TWO+T4D_ONE)
+.define T4D_00AA ($55*2)
+.define T4D_AAAA ($5555*2)
+.define T4D_AAAAAAAA ($AAAAAAAA+T4D_ZERO)
+.define T4D_2700 ($2600+$100)
+.define T4D_NEG1 (0-T4D_ONE)
+.define T4D_127 (T4D_0100/2-T4D_ONE)
+.define T4D_15 (T4D_EIGHT+T4D_FOUR+T4D_TWO+T4D_ONE)
+
+.db "04>" ; @BT TEST-04 04 START
+
+TEST4_ALL:
+  SUBX.B D1,D0                        ; @BT $91 $01
+  MOVE.L D1,(T4D_20000).L             ; @BT $23 $C1 $00 $02 $00 $00
+  ROL.W (A2)                          ; @BT $E7 $D2
+  SUBI.W #T4D_0100,D1                    ; @BT $04 $41 $01 $00
+  EXG A0,A1                           ; @BT $C1 $49
+  NOT.B D0                            ; @BT $46 $00
+  SEQ D7                              ; @BT $57 $C7
+  MOVE.W (T4D_0010,A3),D3                ; @BT $36 $2B $00 $10
+  NEGX.W D1                           ; @BT $40 $41
+  ANDI.W #T4D_FF00,SR                    ; @BT $02 $7C $FF $00
+  MOVEA.L D1,A1                       ; @BT $22 $41
+  SWAP D7                             ; @BT $48 $47
+  MOVE.L (T4D_10000).L,D5             ; @BT $2A $39 $00 $01 $00 $00
+  RTR                                 ; @BT $4E $77
+  ADD.W D2,D3                         ; @BT $D6 $42
+  NOT.L D2                            ; @BT $46 $82
+; DBT D0: cccc=0001, D0=000 => $50C8, disp=8
+  DBT D0,T4_24_1                        ; @BT $50 $C8 $00 $08
+  NOP                                 ; @BT $4E $71
+  MOVE.W #T4D_1234,D1                    ; @BT $32 $3C $12 $34
+T4_24_1:
+; DBF D1: cccc=0000, D1=001 => $51C9, disp=10
+  DBF D1,T4_24_2                        ; @BT $51 $C9 $00 $0A
+  CLR.B D0                            ; @BT $42 $00
+  PEA (T4D_1000).W                       ; @BT $48 $78 $10 $00
+  NOP                                 ; @BT $4E $71
+T4_24_2:
+; DBRA D2: alias DBF, D2=010 => $51CA, disp=10
+  DBRA D2,T4_24_3                       ; @BT $51 $CA $00 $0A
+  TST.B D0                            ; @BT $4A $00
+  MOVE.L #T4D_12345678,D2                ; @BT $24 $3C $12 $34 $56 $78
+T4_24_3:
+; DBHI D3: cccc=0010, D3=011 => $52CB, disp=10
+  DBHI D3,T4_24_4                       ; @BT $52 $CB $00 $0A
+  SWAP D0                             ; @BT $48 $40
+  LEA (T4D_1000).W,A2                    ; @BT $45 $F8 $10 $00
+  NOP                                 ; @BT $4E $71
+T4_24_4:
+; DBLS D4: cccc=0011, D4=100 => $53CC, disp=8
+  DBLS D4,T4_24_5                       ; @BT $53 $CC $00 $08
+  NOT.B D0                            ; @BT $46 $00
+  MOVEM.W D0-D3,(A0)                  ; @BT $48 $90 $00 $0F
+T4_24_5:
+; DBCC D5: cccc=0100, D5=101 => $54CD, disp=10
+  DBCC D5,T4_24_6                       ; @BT $54 $CD $00 $0A
+  NEG.B D0                            ; @BT $44 $00
+  MOVE.L D0,(($2000+$3-$3)).W                 ; @BT $21 $C0 $20 $00
+  NOP                                 ; @BT $4E $71
+T4_24_6:
+; DBCS D6: cccc=0101, D6=110 => $55CE, disp=8
+  DBCS D6,T4_24_7                       ; @BT $55 $CE $00 $08
+  EXT.W D0                            ; @BT $48 $80
+  MOVE.W (T4D_0010,A3),D3                ; @BT $36 $2B $00 $10
+T4_24_7:
+; DBNE D7: cccc=0110, D7=111 => $56CF, disp=8
+  DBNE D7,T4_24_8                       ; @BT $56 $CF $00 $08
+  ASL.B #(5-4),D0                         ; @BT $E3 $00
+  PEA (T4D_1000).W                       ; @BT $48 $78 $10 $00
+T4_24_8:
+; DBEQ D0: cccc=0111, D0=000 => $57C8, disp=12
+  DBEQ D0,T4_24_9                       ; @BT $57 $C8 $00 $0C
+  LSR.B #(5-4),D0                         ; @BT $E2 $08
+  MOVE.L #T4D_12345678,D2                ; @BT $24 $3C $12 $34 $56 $78
+  NOP                                 ; @BT $4E $71
+T4_24_9:
+; DBVC D1: cccc=1000, D1=001 => $58C9, disp=12
+  DBVC D1,T4_24_10                      ; @BT $58 $C9 $00 $0C
+  ROXL.B #(5-4),D0                        ; @BT $E3 $10
+  MOVEM.L D0/D1/A0/A1,-(A7)           ; @BT $48 $E7 $C0 $C0
+  MOVE.W #T4D_1234,D1                    ; @BT $32 $3C $12 $34
+T4_24_10:
+; DBVS D2: cccc=1001, D2=010 => $59CA, disp=8
+  DBVS D2,T4_24_11                      ; @BT $59 $CA $00 $08
+  ROXR.B #(5-4),D0                        ; @BT $E2 $10
+  LEA (T4D_0010,A0),A4                     ; @BT $49 $E8 $00 $10
+T4_24_11:
+; DBPL D3: cccc=1010, D3=011 => $5ACB, disp=10
+  DBPL D3,T4_24_12                      ; @BT $5A $CB $00 $0A
+  ROL.B #(5-4),D0                         ; @BT $E3 $18
+  MOVE.W #T4D_1234,D1                    ; @BT $32 $3C $12 $34
+  NOP                                 ; @BT $4E $71
+T4_24_12:
+; DBMI D4: cccc=1011, D4=100 => $5BCC, disp=10
+  DBMI D4,T4_24_13                      ; @BT $5B $CC $00 $0A
+  ROR.B #(5-4),D0                         ; @BT $E2 $18
+  MOVE.L (T4D_10000).L,D5             ; @BT $2A $39 $00 $01 $00 $00
+T4_24_13:
+; DBGE D5: cccc=1100, D5=101 => $5CCD, disp=10
+  DBGE D5,T4_24_14                      ; @BT $5C $CD $00 $0A
+  LSL.B #(5-4),D0                         ; @BT $E3 $08
+  MOVEM.W (A0),D0-D3                  ; @BT $4C $90 $00 $0F
+  NOP                                 ; @BT $4E $71
+T4_24_14:
+; DBLT D6: cccc=1101, D6=110 => $5DCE, disp=12
+  DBLT D6,T4_24_15                      ; @BT $5D $CE $00 $0C
+  LSR.B #(5-4),D0                         ; @BT $E2 $08
+  PEA (T4D_1000).W                       ; @BT $48 $78 $10 $00
+  MOVE.W (T4D_0010,A3),D3                ; @BT $36 $2B $00 $10
+T4_24_15:
+; DBGT D7: cccc=1110, D7=111 => $5ECF, disp=10
+  DBGT D7,T4_24_16                      ; @BT $5E $CF $00 $0A
+  NOP                                 ; @BT $4E $71
+  MOVE.L #T4D_12345678,D2                ; @BT $24 $3C $12 $34 $56 $78
+T4_24_16:
+; DBLE D0: cccc=1111, D0=000 => $5FC8, disp=10
+  DBLE D0,T4_24_17                      ; @BT $5F $C8 $00 $0A
+  CLR.B D0                            ; @BT $42 $00
+  LEA (T4D_1000).W,A2                    ; @BT $45 $F8 $10 $00
+  NOP                                 ; @BT $4E $71
+T4_24_17:
+
+;==========================================================
+; TEST 25: Scc — Set According to Condition
+; 0101_cccc_11_000_Dn (byte)
+;==========================================================
+  ROR.B #(5-4),D0                         ; @BT $E2 $18
+  ABCD D1,D0                          ; @BT $C1 $01
+  ST D0                               ; @BT $50 $C0
+  MOVE.L USP,A1                       ; @BT $4E $69
+  SUBQ.B #(5-4),D0                        ; @BT $53 $00
+  JSR (A0)                            ; @BT $4E $90
+  CMP.W D2,D3                         ; @BT $B6 $42
+  ASL.W #(6-4),D1                         ; @BT $E5 $41
+  MOVEA.W D0,A0                       ; @BT $30 $40
+  ROL.B #(5-4),D0                         ; @BT $E3 $18
+  AND.B D1,D0                         ; @BT $C0 $01
+  LINK A7,#(0-(69-5))                        ; @BT $4E $57 $FF $C0
+  SBCD -(A1),-(A0)                    ; @BT $81 $09
+  AND.W #T4D_FF00,D1                     ; @BT $02 $41 $FF $00
+  MOVE.W D2,D3                        ; @BT $36 $02
+  OR.W D2,D3                          ; @BT $86 $42
+  BTST #(7-4),D0                          ; @BT $08 $00 $00 $03
+  MOVEM.W (A0),D0-D3                  ; @BT $4C $90 $00 $0F
+  MULU.W D2,D3                        ; @BT $C6 $C2
+  NEG.B D0                            ; @BT $44 $00
+  MOVE.W #T4D_1234,D1                    ; @BT $32 $3C $12 $34
+  SBCD D1,D0                          ; @BT $81 $01
+  RTE                                 ; @BT $4E $73
+  SVS D1                              ; @BT $59 $C1
+  BCLR D0,D1                          ; @BT $01 $81
+  ORI.B #T4D_000F,D0                       ; @BT $00 $00 $00 $0F
+  MOVEQ #(6/3-2),D0                         ; @BT $70 $00
+  MOVEQ #(5-4),D1                         ; @BT $72 $01
+  BTST D0,D1                          ; @BT $01 $01
+  ROR.W (A2)                          ; @BT $E6 $D2
+  LSR.W #(6-4),D1                         ; @BT $E4 $49
+  TRAP #(5-4)                             ; @BT $4E $41
+  NBCD D0                             ; @BT $48 $00
+  ASL.W D1,D0                         ; @BT $E3 $60
+  CMPI.B #T4D_0010,D0                      ; @BT $0C $00 $00 $10
+  CMPM.W (A2)+,(A3)+                  ; @BT $B7 $4A
+  LSR.B #(5-4),D0                         ; @BT $E2 $08
+  MOVEQ #T4D_NEG1,D2                        ; @BT $74 $FF
+  RTS                                 ; @BT $4E $75
+  ASL.W (A0)                          ; @BT $E1 $D0
+  BSET D0,D1                          ; @BT $01 $C1
+  SPL D2                              ; @BT $5A $C2
+  MOVE.B D0,D1                        ; @BT $12 $00
+  TST.W (A0)                          ; @BT $4A $50
+  BSET #(7-4),D0                          ; @BT $08 $C0 $00 $03
+  SUB.W D2,D3                         ; @BT $96 $42
+  MOVEM.L D0/D1/A0/A1,-(A7)          ; @BT $48 $E7 $C0 $C0
+  NEG.W D1                            ; @BT $44 $41
+  SGE D4                              ; @BT $5C $C4
+  CMP.B #T4D_0010,D0                       ; @BT $0C $00 $00 $10
+  ASR.W (A0)                          ; @BT $E0 $D0
+  ABCD -(A1),-(A0)                    ; @BT $C1 $09
+  SHI D2                              ; @BT $52 $C2
+  TST.L D2                            ; @BT $4A $82
+  MOVE.L D0,(($2000+$3-$3)).W                 ; @BT $21 $C0 $20 $00
+  ADD.B D1,D0                         ; @BT $D0 $01
+  ADD.B #T4D_0010,D0                       ; @BT $06 $00 $00 $10
+  ADDX.L D5,D4                        ; @BT $D9 $85
+  MOVE.W D1,-(A7)                     ; @BT $3F $01
+  ADDQ.B #(5-4),D0                        ; @BT $52 $00
+  CMP.L #T4D_10000,D2                    ; @BT $0C $82 $00 $01 $00 $00
+  EORI.B #T4D_00AA,D0                      ; @BT $0A $00 $00 $AA
+  CMP.L D4,D5                         ; @BT $BA $84
+  ADDQ.L #(12-4),D7                        ; @BT $50 $87
+  MOVE.W D3,(T4D_0020,A3)                ; @BT $37 $43 $00 $20
+  EORI.B #T4D_ZERO,CCR                     ; @BT $0A $3C $00 $00
+  TAS (A0)                            ; @BT $4A $D0
+  PEA (A0)                            ; @BT $48 $50
+  AND.W D2,D3                         ; @BT $C6 $42
+  AND.B #T4D_000F,D0                       ; @BT $02 $00 $00 $0F
+  MOVEM.L (A7)+,D0/D1/A0/A1          ; @BT $4C $DF $03 $03
+  ANDI.B #T4D_ZERO,CCR                     ; @BT $02 $3C $00 $00
+  CMP.B D1,D0                         ; @BT $B0 $01
+  SUBA.L D1,A1                        ; @BT $93 $C1
+  TRAP #T4D_15                            ; @BT $4E $4F
+  MOVEA.L A3,A4                       ; @BT $28 $4B
+  MOVE.B D0,(A0)                      ; @BT $10 $80
+  PEA (T4D_1000).L                   ; @BT $48 $79 $00 $00 $10 $00
+  ADDQ.W #(6-4),A0                        ; @BT $54 $48
+  DIVU.W D2,D3                        ; @BT $86 $C2
+  MOVEQ #T4D_127,D7                       ; @BT $7E $7F
+  MOVE.L D4,D5                        ; @BT $2A $04
+  CHK (T4D_1000).W,D2                    ; @BT $45 $B8 $10 $00
+  SNE D6                              ; @BT $56 $C6
+  MOVE.L (T4D_1000).W,D4                 ; @BT $28 $38 $10 $00
+  SLS D3                              ; @BT $53 $C3
+  MOVE.L A0,USP                       ; @BT $4E $60
+  TRAP #(6/3-2)                             ; @BT $4E $40
+  CMPM.B (A0)+,(A1)+                  ; @BT $B3 $08
+  MOVEP.L D1,(T4D_0020,A1)                 ; @BT $03 $C9 $00 $20
+  NEGX.B D0                           ; @BT $40 $00
+  MOVE D0,CCR                         ; @BT $44 $C0
+  ROXL.B #(5-4),D0                        ; @BT $E3 $10
+  MOVEP.L (T4D_0020,A1),D1                 ; @BT $03 $49 $00 $20
+  MOVE SR,D2                          ; @BT $40 $C2
+  MOVE.W ((8-4),A0,D1),D2                 ; @BT $34 $30 $10 $04
+  ROXR.B #(5-4),D0                        ; @BT $E2 $10
+  LEA (T4D_0010,A0),A4                     ; @BT $49 $E8 $00 $10
+  LSL.B #(5-4),D0                         ; @BT $E3 $08
+  ROL.W #(6-4),D1                         ; @BT $E5 $59
+  ADD.L #T4D_10000,D2                    ; @BT $06 $82 $00 $01 $00 $00
+; BRA.B to next+10 bytes: disp=10 => $600A
+  BRA.B T4_23_1                         ; @BT $60 $0A
+  NOP                                 ; @BT $4E $71
+  MOVE.W #T4D_1234,D1                    ; @BT $32 $3C $12 $34
+  PEA (T4D_1000).W                       ; @BT $48 $78 $10 $00
+T4_23_1:
+; BEQ.B to next+8 bytes: disp=8 => $6708
+  BEQ.B T4_23_2                         ; @BT $67 $08
+  CLR.B D0                            ; @BT $42 $00
+  MOVE.L #T4D_12345678,D2                ; @BT $24 $3C $12 $34 $56 $78
+T4_23_2:
+; BNE.B to next+10 bytes: disp=10 => $660A
+  BNE.B T4_23_3                         ; @BT $66 $0A
+  TST.B D0                            ; @BT $4A $00
+  LEA (T4D_1000).W,A2                    ; @BT $45 $F8 $10 $00
+  MOVEM.W D0-D3,(A0)                  ; @BT $48 $90 $00 $0F
+T4_23_3:
+; BCC.B to next+6 bytes: disp=6 => $6406
+  BCC.B T4_23_4                         ; @BT $64 $06
+  SWAP D0                             ; @BT $48 $40
+  AND.B #T4D_000F,D0                       ; @BT $02 $00 $00 $0F
+T4_23_4:
+; BCS.B to next+10 bytes: disp=10 => $650A
+  BCS.B T4_23_5                         ; @BT $65 $0A
+  NOT.B D0                            ; @BT $46 $00
+  OR.W #T4D_FF00,D1                      ; @BT $00 $41 $FF $00
+  MOVE.W (T4D_0010,A3),D3                ; @BT $36 $2B $00 $10
+T4_23_5:
+; BVC.B to next+6 bytes: disp=6 => $6806
+  BVC.B T4_23_6                         ; @BT $68 $06
+  NEG.B D0                            ; @BT $44 $00
+  MOVE.L D0,(($2000+$3-$3)).W                 ; @BT $21 $C0 $20 $00
+T4_23_6:
+; BVS.B to next+6 bytes: disp=6 => $6906
+  BVS.B T4_23_7                         ; @BT $69 $06
+  EXT.W D0                            ; @BT $48 $80
+  MOVEM.L D0/D1/A0/A1,-(A7)           ; @BT $48 $E7 $C0 $C0
+T4_23_7:
+; BPL.B to next+8 bytes: disp=8 => $6A08
+  BPL.B T4_23_8                         ; @BT $6A $08
+  ASL.B #(5-4),D0                         ; @BT $E3 $00
+  MOVE.W #T4D_1234,D1                    ; @BT $32 $3C $12 $34
+  NOP                                 ; @BT $4E $71
+T4_23_8:
+; BMI.B to next+6 bytes: disp=6 => $6B06
+  BMI.B T4_23_9                         ; @BT $6B $06
+  LSR.B #(5-4),D0                         ; @BT $E2 $08
+  PEA (T4D_1000).W                       ; @BT $48 $78 $10 $00
+T4_23_9:
+; BGE.B to next+8 bytes: disp=8 => $6C08
+  BGE.B T4_23_10                        ; @BT $6C $08
+  ROXL.B #(5-4),D0                        ; @BT $E3 $10
+  MOVE.L #T4D_12345678,D2                ; @BT $24 $3C $12 $34 $56 $78
+T4_23_10:
+; BLT.B to next+8 bytes: disp=8 => $6D08
+  BLT.B T4_23_11                        ; @BT $6D $08
+  ROXR.B #(5-4),D0                        ; @BT $E2 $10
+  LEA (T4D_0010,A0),A4                     ; @BT $49 $E8 $00 $10
+  NOP                                 ; @BT $4E $71
+T4_23_11:
+; BGT.B to next+6 bytes: disp=6 => $6E06
+  BGT.B T4_23_12                        ; @BT $6E $06
+  ROL.B #(5-4),D0                         ; @BT $E3 $18
+  MOVE.W #T4D_1234,D1                    ; @BT $32 $3C $12 $34
+T4_23_12:
+; BLE.B to next+6 bytes: disp=6 => $6F06
+  BLE.B T4_23_13                        ; @BT $6F $06
+  ROR.B #(5-4),D0                         ; @BT $E2 $18
+  MOVEM.W (A0),D0-D3                  ; @BT $4C $90 $00 $0F
+T4_23_13:
+; BHI.B to next+8 bytes: disp=8 => $6208
+  BHI.B T4_23_14                        ; @BT $62 $08
+  LSL.B #(5-4),D0                         ; @BT $E3 $08
+  MOVE.L (T4D_10000).L,D5             ; @BT $2A $39 $00 $01 $00 $00
+T4_23_14:
+; BLS.B to next+8 bytes: disp=8 => $6308
+  BLS.B T4_23_15                        ; @BT $63 $08
+  LSR.B #(5-4),D0                         ; @BT $E2 $08
+  MOVE.W (T4D_0010,A3),D3                ; @BT $36 $2B $00 $10
+  NOP                                 ; @BT $4E $71
+T4_23_15:
+; BRA.W to next+12 bytes: disp=14 => $6000000E
+  BRA.W T4_23_16                        ; @BT $60 $00 $00 $0E
+  NOP                                 ; @BT $4E $71
+  MOVE.L #T4D_12345678,D2                ; @BT $24 $3C $12 $34 $56 $78
+  PEA (T4D_1000).W                       ; @BT $48 $78 $10 $00
+T4_23_16:
+; BSR.B to next+8 bytes: disp=8 => $6108
+  BSR.B T4_23_17                        ; @BT $61 $08
+  CLR.B D0                            ; @BT $42 $00
+  LEA (T4D_1000).W,A2                    ; @BT $45 $F8 $10 $00
+  NOP                                 ; @BT $4E $71
+T4_23_17:
+; BSR.W to next+10 bytes: disp=12 => $6100000C
+  BSR.W T4_23_18                        ; @BT $61 $00 $00 $0C
+  TST.B D0                            ; @BT $4A $00
+  MOVEM.L D0/D1/A0/A1,-(A7)           ; @BT $48 $E7 $C0 $C0
+  MOVE.W #T4D_1234,D1                    ; @BT $32 $3C $12 $34
+T4_23_18:
+
+;==========================================================
+; TEST 24: DBcc
+; 0101_cccc_11001_Dn + disp word
+; Each DBcc targets a label after 0-10 random instructions (prefer complex).
+;==========================================================
+  ADDX.B D1,D0                        ; @BT $D1 $01
+  SUBQ.W #(6-4),A0                        ; @BT $55 $48
+  SUB.L #T4D_10000,D2                    ; @BT $04 $82 $00 $01 $00 $00
+  MOVE.L D0,-(A7)                     ; @BT $2F $00
+  ADD.L D4,D5                         ; @BT $DA $84
+  ADDA.W D0,A0                        ; @BT $D0 $C0
+  MOVE D1,SR                          ; @BT $46 $C1
+  ROXL.W (A3)                         ; @BT $E5 $D3
+  EOR.B D0,D1                         ; @BT $B1 $01
+  EORI.W #T4D_ZERO,SR                    ; @BT $0A $7C $00 $00
+  SWAP D0                             ; @BT $48 $40
+  ASR.W D1,D0                         ; @BT $E2 $60
+  MOVE.W (A1)+,D1                     ; @BT $32 $19
+  BCHG #(7-4),D0                          ; @BT $08 $40 $00 $03
+  MOVE.B #($42+$3-$3),D0                      ; @BT $10 $3C $00 $42
+  MULS.W D1,D0                        ; @BT $C1 $C1
+  JSR (T4D_1000).L                   ; @BT $4E $B9 $00 $00 $10 $00
+  TRAPV                               ; @BT $4E $76
+  CMP.W #T4D_1000,D1                     ; @BT $0C $41 $10 $00
+  EOR.B #T4D_00AA,D0                       ; @BT $0A $00 $00 $AA
+  ADDX.W D3,D2                        ; @BT $D5 $43
+  OR.B #T4D_000F,D0                        ; @BT $00 $00 $00 $0F
+  ANDI.B #T4D_000F,D0                      ; @BT $02 $00 $00 $0F
+  LEA (T4D_1000).W,A2                    ; @BT $45 $F8 $10 $00
+  EXT.W D0                            ; @BT $48 $80
+  LSR.W (A1)                          ; @BT $E2 $D1
+  SUBQ.L #(12-4),D7                        ; @BT $51 $87
+  CMPA.W D0,A0                        ; @BT $B0 $C0
+  NEG.L D2                            ; @BT $44 $82
+  ASL.B #(5-4),D0                         ; @BT $E3 $00
+  MOVE.W ((6/3-2),PC),D0                    ; @BT $30 $3A $F0 $B7
+  SLT D5                              ; @BT $5D $C5
+  SLE D7                              ; @BT $5F $C7
+  JMP (T4D_1000).W                       ; @BT $4E $F8 $10 $00
+  TST.W D1                            ; @BT $4A $41
+  PEA (T4D_1000).W                       ; @BT $48 $78 $10 $00
+  SGT D6                              ; @BT $5E $C6
+  EOR.W D2,D3                         ; @BT $B5 $43
+  ASR.W #(6-4),D1                         ; @BT $E4 $41
+  CLR.L D2                            ; @BT $42 $82
+  MOVE.L (A7)+,D0                     ; @BT $20 $1F
+  STOP #T4D_2700                         ; @BT $4E $72 $27 $00
+  SMI D3                              ; @BT $5B $C3
+  ROR.W #(6-4),D1                         ; @BT $E4 $59
+  OR.B D1,D0                          ; @BT $80 $01
+  MOVE.W D1,(A1)+                     ; @BT $32 $C1
+  ADDX.W -(A1),-(A0)                  ; @BT $D1 $49
+  EOR.L #T4D_AAAAAAAA,D2                 ; @BT $0A $82 $AA $AA $AA $AA
+  BCLR #(7-4),D0                          ; @BT $08 $80 $00 $03
+  EXT.L D1                            ; @BT $48 $C1
+  LSL.W (A1)                          ; @BT $E3 $D1
+  SUBX.W -(A1),-(A0)                  ; @BT $91 $49
+  BCHG D0,D1                          ; @BT $01 $41
+  NOP                                 ; @BT $4E $71
+  ADDQ.W #(8-4),D1                        ; @BT $58 $41
+  MOVE.L #T4D_12345678,D2                ; @BT $24 $3C $12 $34 $56 $78
+  JSR (T4D_1000).W                       ; @BT $4E $B8 $10 $00
+  LSL.W #(6-4),D1                         ; @BT $E5 $49
+  SCC D4                              ; @BT $54 $C4
+  SUB.W #T4D_0100,D1                      ; @BT $04 $41 $01 $00
+  ADDI.B #T4D_0010,D0                      ; @BT $06 $00 $00 $10
+  NEGX.L D2                           ; @BT $40 $82
+  SUB.L D4,D5                         ; @BT $9A $84
+  SVC D0                              ; @BT $58 $C0
+  SF D1                               ; @BT $51 $C1
+  NOT.W D1                            ; @BT $46 $41
+  TAS D0                              ; @BT $4A $C0
+  CMPM.L (A2)+,(A3)+                  ; @BT $B7 $8A
+  JMP (T4D_1000).L                   ; @BT $4E $F9 $00 $00 $10 $00
+  SUB.B D1,D0                         ; @BT $90 $01
+  ADDA.L D1,A1                        ; @BT $D3 $C1
+  ILLEGAL                             ; @BT $4A $FC
+  DIVS.W D1,D0                        ; @BT $81 $C1
+  ROXR.W (A3)                         ; @BT $E4 $D3
+  MOVEM.W D0-D3,(A0)                  ; @BT $48 $90 $00 $0F
+  ORI.W #T4D_ZERO,SR                     ; @BT $00 $7C $00 $00
+  UNLK A6                             ; @BT $4E $5E
+  LINK A6,#(0-(13-5))                         ; @BT $4E $56 $FF $F8
+  ADD.W #T4D_1000,D1                     ; @BT $06 $41 $10 $00
+  OR.W #T4D_FF00,D1                      ; @BT $00 $41 $FF $00
+  SCS D5                              ; @BT $55 $C5
+  CLR.B D0                            ; @BT $42 $00
+  AND.L D4,D5                         ; @BT $CA $84
+  OR.L D4,D5                          ; @BT $8A $84
+  MOVEA.W #T4D_1000,A2                   ; @BT $34 $7C $10 $00
+  ASL.L #(8-4),D2                         ; @BT $E9 $82
+  SUBA.W D0,A0                        ; @BT $90 $C0
+  MOVEP.W D0,(T4D_0010,A0)                 ; @BT $01 $88 $00 $10
+  EXG D0,A0                           ; @BT $C1 $88
+  AND.L #T4D_FFFF0000,D2                 ; @BT $02 $82 $FF $FF $00 $00
+  EOR.L D4,D5                         ; @BT $B9 $85
+  TST.B D0                            ; @BT $4A $00
+  CMPA.L D1,A1                        ; @BT $B3 $C1
+  EXG D0,D1                           ; @BT $C1 $41
+  MOVE.W (A7)+,D1                     ; @BT $32 $1F
+  MOVE.L D2,-(A2)                     ; @BT $25 $02
+  EOR.W #T4D_AAAA,D1                     ; @BT $0A $41 $AA $AA
+  MOVEP.W (T4D_0010,A0),D0                 ; @BT $01 $08 $00 $10
+  MOVE.L -(A2),D2                     ; @BT $24 $22
+  CHK D1,D0                           ; @BT $41 $81
+  ORI.B #T4D_ZERO,CCR                      ; @BT $00 $3C $00 $00
+  CLR.W D1                            ; @BT $42 $41
+  LEA (T4D_1000).L,A3                ; @BT $47 $F9 $00 $00 $10 $00
+  ADDA.W #T4D_0100,A2                     ; @BT $D4 $FC $01 $00
+  MOVE.B (A0),D0                      ; @BT $10 $10
+  ASR.L #(5-4),D3                         ; @BT $E2 $83
+  OR.L #T4D_FFFF0000,D2                  ; @BT $00 $82 $FF $FF $00 $00
+  UNLK A7                             ; @BT $4E $5F
+  RESET                               ; @BT $4E $70
+  LEA (A0),A1                         ; @BT $43 $D0
+  SUB.B #T4D_0010,D0                       ; @BT $04 $00 $00 $10
+  SUBQ.W #(8-4),D1                        ; @BT $59 $41
+  JMP (A0)                            ; @BT $4E $D0
+  ASR.B #(5-4),D0                         ; @BT $E2 $00
+
+; potential quick-form optimization candidates (must stay non-quick)
+  ADD.W #(5-4),D0                         ; @BT $06 $40 $00 $01
+  ADD.L #(12-4),D3                         ; @BT $06 $83 $00 $00 $00 $08
+  SUB.W #(5-4),D0                         ; @BT $04 $40 $00 $01
+  SUB.L #(12-4),D3                         ; @BT $04 $83 $00 $00 $00 $08
+  MOVE.L #(5-4),D0                        ; @BT $20 $3C $00 $00 $00 $01
+  MOVE.L #T4D_NEG1,D7                       ; @BT $2E $3C $FF $FF $FF $FF
+
+  .db "<04" ; @BT END
+
+; TEST 05 function-based immediates (cross-references to T4D defines and F5 functions)
+.function F5_ZERO() T4D_ONE-T4D_ONE
+.function F5_0010() T4D_FOUR*T4D_FOUR
+.function F5_0020(x) x+x
+.function F5_0100() F5_0010()*F5_0010()
+.function F5_1000(a,b) a*b
+.function F5_1234(base,offset) base+offset
+.function F5_10000(a,b) a*b
+.function F5_20000(x) x*T4D_TWO
+.function F5_12345678() F5_1234(F5_1000(F5_0100(),F5_0010()),$234)*$10000+$5678
+.function F5_FF00(base,n) (base-n)*base
+.function F5_AAAAAAAA() ($AAAAAAAA+F5_ZERO())
+.function F5_00AA() T4D_000F*$B+T4D_FOUR+T4D_ONE
+.function F5_AAAA() F5_00AA()*F5_0100()+F5_00AA()
+.function F5_2700(base,mult) base*mult
+.function F5_NEG1(x) F5_ZERO()-x
+.function F5_127() F5_0100()/T4D_TWO-T4D_ONE
+
+.db "05>" ; @BT TEST-05 05 START
+
+TEST5_ALL:
+  SUBX.B D1,D0                        ; @BT $91 $01
+  MOVE.L D1,(F5_20000(T4D_10000)).L             ; @BT $23 $C1 $00 $02 $00 $00
+  ROL.W (A2)                          ; @BT $E7 $D2
+  SUBI.W #T4D_0100,D1                    ; @BT $04 $41 $01 $00
+  EXG A0,A1                           ; @BT $C1 $49
+  NOT.B D0                            ; @BT $46 $00
+  SEQ D7                              ; @BT $57 $C7
+  MOVE.W (T4D_0010,A3),D3                ; @BT $36 $2B $00 $10
+  NEGX.W D1                           ; @BT $40 $41
+  ANDI.W #F5_FF00(F5_0100(),T4D_ONE),SR                    ; @BT $02 $7C $FF $00
+  MOVEA.L D1,A1                       ; @BT $22 $41
+  SWAP D7                             ; @BT $48 $47
+  MOVE.L (F5_10000(T4D_1000,T4D_0010)).L,D5             ; @BT $2A $39 $00 $01 $00 $00
+  RTR                                 ; @BT $4E $77
+  ADD.W D2,D3                         ; @BT $D6 $42
+  NOT.L D2                            ; @BT $46 $82
+; DBT D0: cccc=0001, D0=000 => $50C8, disp=8
+  DBT D0,T5_24_1                        ; @BT $50 $C8 $00 $08
+  NOP                                 ; @BT $4E $71
+  MOVE.W #F5_1234(T4D_1000,$234),D1                    ; @BT $32 $3C $12 $34
+T5_24_1:
+; DBF D1: cccc=0000, D1=001 => $51C9, disp=10
+  DBF D1,T5_24_2                        ; @BT $51 $C9 $00 $0A
+  CLR.B D0                            ; @BT $42 $00
+  PEA (T4D_1000).W                       ; @BT $48 $78 $10 $00
+  NOP                                 ; @BT $4E $71
+T5_24_2:
+; DBRA D2: alias DBF, D2=010 => $51CA, disp=10
+  DBRA D2,T5_24_3                       ; @BT $51 $CA $00 $0A
+  TST.B D0                            ; @BT $4A $00
+  MOVE.L #F5_12345678(),D2                ; @BT $24 $3C $12 $34 $56 $78
+T5_24_3:
+; DBHI D3: cccc=0010, D3=011 => $52CB, disp=10
+  DBHI D3,T5_24_4                       ; @BT $52 $CB $00 $0A
+  SWAP D0                             ; @BT $48 $40
+  LEA (T4D_1000).W,A2                    ; @BT $45 $F8 $10 $00
+  NOP                                 ; @BT $4E $71
+T5_24_4:
+; DBLS D4: cccc=0011, D4=100 => $53CC, disp=8
+  DBLS D4,T5_24_5                       ; @BT $53 $CC $00 $08
+  NOT.B D0                            ; @BT $46 $00
+  MOVEM.W D0-D3,(A0)                  ; @BT $48 $90 $00 $0F
+T5_24_5:
+; DBCC D5: cccc=0100, D5=101 => $54CD, disp=10
+  DBCC D5,T5_24_6                       ; @BT $54 $CD $00 $0A
+  NEG.B D0                            ; @BT $44 $00
+  MOVE.L D0,(($2000+$3-$3)).W                 ; @BT $21 $C0 $20 $00
+  NOP                                 ; @BT $4E $71
+T5_24_6:
+; DBCS D6: cccc=0101, D6=110 => $55CE, disp=8
+  DBCS D6,T5_24_7                       ; @BT $55 $CE $00 $08
+  EXT.W D0                            ; @BT $48 $80
+  MOVE.W (T4D_0010,A3),D3                ; @BT $36 $2B $00 $10
+T5_24_7:
+; DBNE D7: cccc=0110, D7=111 => $56CF, disp=8
+  DBNE D7,T5_24_8                       ; @BT $56 $CF $00 $08
+  ASL.B #(5-4),D0                         ; @BT $E3 $00
+  PEA (T4D_1000).W                       ; @BT $48 $78 $10 $00
+T5_24_8:
+; DBEQ D0: cccc=0111, D0=000 => $57C8, disp=12
+  DBEQ D0,T5_24_9                       ; @BT $57 $C8 $00 $0C
+  LSR.B #(5-4),D0                         ; @BT $E2 $08
+  MOVE.L #F5_12345678(),D2                ; @BT $24 $3C $12 $34 $56 $78
+  NOP                                 ; @BT $4E $71
+T5_24_9:
+; DBVC D1: cccc=1000, D1=001 => $58C9, disp=12
+  DBVC D1,T5_24_10                      ; @BT $58 $C9 $00 $0C
+  ROXL.B #(5-4),D0                        ; @BT $E3 $10
+  MOVEM.L D0/D1/A0/A1,-(A7)           ; @BT $48 $E7 $C0 $C0
+  MOVE.W #F5_1234(T4D_1000,$234),D1                    ; @BT $32 $3C $12 $34
+T5_24_10:
+; DBVS D2: cccc=1001, D2=010 => $59CA, disp=8
+  DBVS D2,T5_24_11                      ; @BT $59 $CA $00 $08
+  ROXR.B #(5-4),D0                        ; @BT $E2 $10
+  LEA (T4D_0010,A0),A4                     ; @BT $49 $E8 $00 $10
+T5_24_11:
+; DBPL D3: cccc=1010, D3=011 => $5ACB, disp=10
+  DBPL D3,T5_24_12                      ; @BT $5A $CB $00 $0A
+  ROL.B #(5-4),D0                         ; @BT $E3 $18
+  MOVE.W #F5_1234(T4D_1000,$234),D1                    ; @BT $32 $3C $12 $34
+  NOP                                 ; @BT $4E $71
+T5_24_12:
+; DBMI D4: cccc=1011, D4=100 => $5BCC, disp=10
+  DBMI D4,T5_24_13                      ; @BT $5B $CC $00 $0A
+  ROR.B #(5-4),D0                         ; @BT $E2 $18
+  MOVE.L (F5_10000(T4D_1000,T4D_0010)).L,D5             ; @BT $2A $39 $00 $01 $00 $00
+T5_24_13:
+; DBGE D5: cccc=1100, D5=101 => $5CCD, disp=10
+  DBGE D5,T5_24_14                      ; @BT $5C $CD $00 $0A
+  LSL.B #(5-4),D0                         ; @BT $E3 $08
+  MOVEM.W (A0),D0-D3                  ; @BT $4C $90 $00 $0F
+  NOP                                 ; @BT $4E $71
+T5_24_14:
+; DBLT D6: cccc=1101, D6=110 => $5DCE, disp=12
+  DBLT D6,T5_24_15                      ; @BT $5D $CE $00 $0C
+  LSR.B #(5-4),D0                         ; @BT $E2 $08
+  PEA (T4D_1000).W                       ; @BT $48 $78 $10 $00
+  MOVE.W (T4D_0010,A3),D3                ; @BT $36 $2B $00 $10
+T5_24_15:
+; DBGT D7: cccc=1110, D7=111 => $5ECF, disp=10
+  DBGT D7,T5_24_16                      ; @BT $5E $CF $00 $0A
+  NOP                                 ; @BT $4E $71
+  MOVE.L #F5_12345678(),D2                ; @BT $24 $3C $12 $34 $56 $78
+T5_24_16:
+; DBLE D0: cccc=1111, D0=000 => $5FC8, disp=10
+  DBLE D0,T5_24_17                      ; @BT $5F $C8 $00 $0A
+  CLR.B D0                            ; @BT $42 $00
+  LEA (T4D_1000).W,A2                    ; @BT $45 $F8 $10 $00
+  NOP                                 ; @BT $4E $71
+T5_24_17:
+
+;==========================================================
+; TEST 25: Scc — Set According to Condition
+; 0101_cccc_11_000_Dn (byte)
+;==========================================================
+  ROR.B #(5-4),D0                         ; @BT $E2 $18
+  ABCD D1,D0                          ; @BT $C1 $01
+  ST D0                               ; @BT $50 $C0
+  MOVE.L USP,A1                       ; @BT $4E $69
+  SUBQ.B #(5-4),D0                        ; @BT $53 $00
+  JSR (A0)                            ; @BT $4E $90
+  CMP.W D2,D3                         ; @BT $B6 $42
+  ASL.W #(6-4),D1                         ; @BT $E5 $41
+  MOVEA.W D0,A0                       ; @BT $30 $40
+  ROL.B #(5-4),D0                         ; @BT $E3 $18
+  AND.B D1,D0                         ; @BT $C0 $01
+  LINK A7,#(0-(69-5))                        ; @BT $4E $57 $FF $C0
+  SBCD -(A1),-(A0)                    ; @BT $81 $09
+  AND.W #F5_FF00(F5_0100(),T4D_ONE),D1                     ; @BT $02 $41 $FF $00
+  MOVE.W D2,D3                        ; @BT $36 $02
+  OR.W D2,D3                          ; @BT $86 $42
+  BTST #(7-4),D0                          ; @BT $08 $00 $00 $03
+  MOVEM.W (A0),D0-D3                  ; @BT $4C $90 $00 $0F
+  MULU.W D2,D3                        ; @BT $C6 $C2
+  NEG.B D0                            ; @BT $44 $00
+  MOVE.W #F5_1234(T4D_1000,$234),D1                    ; @BT $32 $3C $12 $34
+  SBCD D1,D0                          ; @BT $81 $01
+  RTE                                 ; @BT $4E $73
+  SVS D1                              ; @BT $59 $C1
+  BCLR D0,D1                          ; @BT $01 $81
+  ORI.B #T4D_000F,D0                       ; @BT $00 $00 $00 $0F
+  MOVEQ #(6/3-2),D0                         ; @BT $70 $00
+  MOVEQ #(5-4),D1                         ; @BT $72 $01
+  BTST D0,D1                          ; @BT $01 $01
+  ROR.W (A2)                          ; @BT $E6 $D2
+  LSR.W #(6-4),D1                         ; @BT $E4 $49
+  TRAP #(5-4)                             ; @BT $4E $41
+  NBCD D0                             ; @BT $48 $00
+  ASL.W D1,D0                         ; @BT $E3 $60
+  CMPI.B #T4D_0010,D0                      ; @BT $0C $00 $00 $10
+  CMPM.W (A2)+,(A3)+                  ; @BT $B7 $4A
+  LSR.B #(5-4),D0                         ; @BT $E2 $08
+  MOVEQ #F5_NEG1(T4D_ONE),D2                        ; @BT $74 $FF
+  RTS                                 ; @BT $4E $75
+  ASL.W (A0)                          ; @BT $E1 $D0
+  BSET D0,D1                          ; @BT $01 $C1
+  SPL D2                              ; @BT $5A $C2
+  MOVE.B D0,D1                        ; @BT $12 $00
+  TST.W (A0)                          ; @BT $4A $50
+  BSET #(7-4),D0                          ; @BT $08 $C0 $00 $03
+  SUB.W D2,D3                         ; @BT $96 $42
+  MOVEM.L D0/D1/A0/A1,-(A7)          ; @BT $48 $E7 $C0 $C0
+  NEG.W D1                            ; @BT $44 $41
+  SGE D4                              ; @BT $5C $C4
+  CMP.B #T4D_0010,D0                       ; @BT $0C $00 $00 $10
+  ASR.W (A0)                          ; @BT $E0 $D0
+  ABCD -(A1),-(A0)                    ; @BT $C1 $09
+  SHI D2                              ; @BT $52 $C2
+  TST.L D2                            ; @BT $4A $82
+  MOVE.L D0,(($2000+$3-$3)).W                 ; @BT $21 $C0 $20 $00
+  ADD.B D1,D0                         ; @BT $D0 $01
+  ADD.B #T4D_0010,D0                       ; @BT $06 $00 $00 $10
+  ADDX.L D5,D4                        ; @BT $D9 $85
+  MOVE.W D1,-(A7)                     ; @BT $3F $01
+  ADDQ.B #(5-4),D0                        ; @BT $52 $00
+  CMP.L #F5_10000(T4D_1000,T4D_0010),D2                    ; @BT $0C $82 $00 $01 $00 $00
+  EORI.B #T4D_00AA,D0                      ; @BT $0A $00 $00 $AA
+  CMP.L D4,D5                         ; @BT $BA $84
+  ADDQ.L #(12-4),D7                        ; @BT $50 $87
+  MOVE.W D3,(F5_0020(F5_0010()),A3)                ; @BT $37 $43 $00 $20
+  EORI.B #T4D_ZERO,CCR                     ; @BT $0A $3C $00 $00
+  TAS (A0)                            ; @BT $4A $D0
+  PEA (A0)                            ; @BT $48 $50
+  AND.W D2,D3                         ; @BT $C6 $42
+  AND.B #T4D_000F,D0                       ; @BT $02 $00 $00 $0F
+  MOVEM.L (A7)+,D0/D1/A0/A1          ; @BT $4C $DF $03 $03
+  ANDI.B #T4D_ZERO,CCR                     ; @BT $02 $3C $00 $00
+  CMP.B D1,D0                         ; @BT $B0 $01
+  SUBA.L D1,A1                        ; @BT $93 $C1
+  TRAP #T4D_15                            ; @BT $4E $4F
+  MOVEA.L A3,A4                       ; @BT $28 $4B
+  MOVE.B D0,(A0)                      ; @BT $10 $80
+  PEA (T4D_1000).L                   ; @BT $48 $79 $00 $00 $10 $00
+  ADDQ.W #(6-4),A0                        ; @BT $54 $48
+  DIVU.W D2,D3                        ; @BT $86 $C2
+  MOVEQ #F5_127(),D7                       ; @BT $7E $7F
+  MOVE.L D4,D5                        ; @BT $2A $04
+  CHK (T4D_1000).W,D2                    ; @BT $45 $B8 $10 $00
+  SNE D6                              ; @BT $56 $C6
+  MOVE.L (T4D_1000).W,D4                 ; @BT $28 $38 $10 $00
+  SLS D3                              ; @BT $53 $C3
+  MOVE.L A0,USP                       ; @BT $4E $60
+  TRAP #(6/3-2)                             ; @BT $4E $40
+  CMPM.B (A0)+,(A1)+                  ; @BT $B3 $08
+  MOVEP.L D1,(F5_0020(F5_0010()),A1)                 ; @BT $03 $C9 $00 $20
+  NEGX.B D0                           ; @BT $40 $00
+  MOVE D0,CCR                         ; @BT $44 $C0
+  ROXL.B #(5-4),D0                        ; @BT $E3 $10
+  MOVEP.L (F5_0020(F5_0010()),A1),D1                 ; @BT $03 $49 $00 $20
+  MOVE SR,D2                          ; @BT $40 $C2
+  MOVE.W ((8-4),A0,D1),D2                 ; @BT $34 $30 $10 $04
+  ROXR.B #(5-4),D0                        ; @BT $E2 $10
+  LEA (T4D_0010,A0),A4                     ; @BT $49 $E8 $00 $10
+  LSL.B #(5-4),D0                         ; @BT $E3 $08
+  ROL.W #(6-4),D1                         ; @BT $E5 $59
+  ADD.L #F5_10000(T4D_1000,T4D_0010),D2                    ; @BT $06 $82 $00 $01 $00 $00
+; BRA.B to next+10 bytes: disp=10 => $600A
+  BRA.B T5_23_1                         ; @BT $60 $0A
+  NOP                                 ; @BT $4E $71
+  MOVE.W #F5_1234(T4D_1000,$234),D1                    ; @BT $32 $3C $12 $34
+  PEA (T4D_1000).W                       ; @BT $48 $78 $10 $00
+T5_23_1:
+; BEQ.B to next+8 bytes: disp=8 => $6708
+  BEQ.B T5_23_2                         ; @BT $67 $08
+  CLR.B D0                            ; @BT $42 $00
+  MOVE.L #F5_12345678(),D2                ; @BT $24 $3C $12 $34 $56 $78
+T5_23_2:
+; BNE.B to next+10 bytes: disp=10 => $660A
+  BNE.B T5_23_3                         ; @BT $66 $0A
+  TST.B D0                            ; @BT $4A $00
+  LEA (T4D_1000).W,A2                    ; @BT $45 $F8 $10 $00
+  MOVEM.W D0-D3,(A0)                  ; @BT $48 $90 $00 $0F
+T5_23_3:
+; BCC.B to next+6 bytes: disp=6 => $6406
+  BCC.B T5_23_4                         ; @BT $64 $06
+  SWAP D0                             ; @BT $48 $40
+  AND.B #T4D_000F,D0                       ; @BT $02 $00 $00 $0F
+T5_23_4:
+; BCS.B to next+10 bytes: disp=10 => $650A
+  BCS.B T5_23_5                         ; @BT $65 $0A
+  NOT.B D0                            ; @BT $46 $00
+  OR.W #F5_FF00(F5_0100(),T4D_ONE),D1                      ; @BT $00 $41 $FF $00
+  MOVE.W (T4D_0010,A3),D3                ; @BT $36 $2B $00 $10
+T5_23_5:
+; BVC.B to next+6 bytes: disp=6 => $6806
+  BVC.B T5_23_6                         ; @BT $68 $06
+  NEG.B D0                            ; @BT $44 $00
+  MOVE.L D0,(($2000+$3-$3)).W                 ; @BT $21 $C0 $20 $00
+T5_23_6:
+; BVS.B to next+6 bytes: disp=6 => $6906
+  BVS.B T5_23_7                         ; @BT $69 $06
+  EXT.W D0                            ; @BT $48 $80
+  MOVEM.L D0/D1/A0/A1,-(A7)           ; @BT $48 $E7 $C0 $C0
+T5_23_7:
+; BPL.B to next+8 bytes: disp=8 => $6A08
+  BPL.B T5_23_8                         ; @BT $6A $08
+  ASL.B #(5-4),D0                         ; @BT $E3 $00
+  MOVE.W #F5_1234(T4D_1000,$234),D1                    ; @BT $32 $3C $12 $34
+  NOP                                 ; @BT $4E $71
+T5_23_8:
+; BMI.B to next+6 bytes: disp=6 => $6B06
+  BMI.B T5_23_9                         ; @BT $6B $06
+  LSR.B #(5-4),D0                         ; @BT $E2 $08
+  PEA (T4D_1000).W                       ; @BT $48 $78 $10 $00
+T5_23_9:
+; BGE.B to next+8 bytes: disp=8 => $6C08
+  BGE.B T5_23_10                        ; @BT $6C $08
+  ROXL.B #(5-4),D0                        ; @BT $E3 $10
+  MOVE.L #F5_12345678(),D2                ; @BT $24 $3C $12 $34 $56 $78
+T5_23_10:
+; BLT.B to next+8 bytes: disp=8 => $6D08
+  BLT.B T5_23_11                        ; @BT $6D $08
+  ROXR.B #(5-4),D0                        ; @BT $E2 $10
+  LEA (T4D_0010,A0),A4                     ; @BT $49 $E8 $00 $10
+  NOP                                 ; @BT $4E $71
+T5_23_11:
+; BGT.B to next+6 bytes: disp=6 => $6E06
+  BGT.B T5_23_12                        ; @BT $6E $06
+  ROL.B #(5-4),D0                         ; @BT $E3 $18
+  MOVE.W #F5_1234(T4D_1000,$234),D1                    ; @BT $32 $3C $12 $34
+T5_23_12:
+; BLE.B to next+6 bytes: disp=6 => $6F06
+  BLE.B T5_23_13                        ; @BT $6F $06
+  ROR.B #(5-4),D0                         ; @BT $E2 $18
+  MOVEM.W (A0),D0-D3                  ; @BT $4C $90 $00 $0F
+T5_23_13:
+; BHI.B to next+8 bytes: disp=8 => $6208
+  BHI.B T5_23_14                        ; @BT $62 $08
+  LSL.B #(5-4),D0                         ; @BT $E3 $08
+  MOVE.L (F5_10000(T4D_1000,T4D_0010)).L,D5             ; @BT $2A $39 $00 $01 $00 $00
+T5_23_14:
+; BLS.B to next+8 bytes: disp=8 => $6308
+  BLS.B T5_23_15                        ; @BT $63 $08
+  LSR.B #(5-4),D0                         ; @BT $E2 $08
+  MOVE.W (T4D_0010,A3),D3                ; @BT $36 $2B $00 $10
+  NOP                                 ; @BT $4E $71
+T5_23_15:
+; BRA.W to next+12 bytes: disp=14 => $6000000E
+  BRA.W T5_23_16                        ; @BT $60 $00 $00 $0E
+  NOP                                 ; @BT $4E $71
+  MOVE.L #F5_12345678(),D2                ; @BT $24 $3C $12 $34 $56 $78
+  PEA (T4D_1000).W                       ; @BT $48 $78 $10 $00
+T5_23_16:
+; BSR.B to next+8 bytes: disp=8 => $6108
+  BSR.B T5_23_17                        ; @BT $61 $08
+  CLR.B D0                            ; @BT $42 $00
+  LEA (T4D_1000).W,A2                    ; @BT $45 $F8 $10 $00
+  NOP                                 ; @BT $4E $71
+T5_23_17:
+; BSR.W to next+10 bytes: disp=12 => $6100000C
+  BSR.W T5_23_18                        ; @BT $61 $00 $00 $0C
+  TST.B D0                            ; @BT $4A $00
+  MOVEM.L D0/D1/A0/A1,-(A7)           ; @BT $48 $E7 $C0 $C0
+  MOVE.W #F5_1234(T4D_1000,$234),D1                    ; @BT $32 $3C $12 $34
+T5_23_18:
+
+;==========================================================
+; TEST 24: DBcc
+; 0101_cccc_11001_Dn + disp word
+; Each DBcc targets a label after 0-10 random instructions (prefer complex).
+;==========================================================
+  ADDX.B D1,D0                        ; @BT $D1 $01
+  SUBQ.W #(6-4),A0                        ; @BT $55 $48
+  SUB.L #F5_10000(T4D_1000,T4D_0010),D2                    ; @BT $04 $82 $00 $01 $00 $00
+  MOVE.L D0,-(A7)                     ; @BT $2F $00
+  ADD.L D4,D5                         ; @BT $DA $84
+  ADDA.W D0,A0                        ; @BT $D0 $C0
+  MOVE D1,SR                          ; @BT $46 $C1
+  ROXL.W (A3)                         ; @BT $E5 $D3
+  EOR.B D0,D1                         ; @BT $B1 $01
+  EORI.W #T4D_ZERO,SR                    ; @BT $0A $7C $00 $00
+  SWAP D0                             ; @BT $48 $40
+  ASR.W D1,D0                         ; @BT $E2 $60
+  MOVE.W (A1)+,D1                     ; @BT $32 $19
+  BCHG #(7-4),D0                          ; @BT $08 $40 $00 $03
+  MOVE.B #($42+$3-$3),D0                      ; @BT $10 $3C $00 $42
+  MULS.W D1,D0                        ; @BT $C1 $C1
+  JSR (T4D_1000).L                   ; @BT $4E $B9 $00 $00 $10 $00
+  TRAPV                               ; @BT $4E $76
+  CMP.W #T4D_1000,D1                     ; @BT $0C $41 $10 $00
+  EOR.B #T4D_00AA,D0                       ; @BT $0A $00 $00 $AA
+  ADDX.W D3,D2                        ; @BT $D5 $43
+  OR.B #T4D_000F,D0                        ; @BT $00 $00 $00 $0F
+  ANDI.B #T4D_000F,D0                      ; @BT $02 $00 $00 $0F
+  LEA (T4D_1000).W,A2                    ; @BT $45 $F8 $10 $00
+  EXT.W D0                            ; @BT $48 $80
+  LSR.W (A1)                          ; @BT $E2 $D1
+  SUBQ.L #(12-4),D7                        ; @BT $51 $87
+  CMPA.W D0,A0                        ; @BT $B0 $C0
+  NEG.L D2                            ; @BT $44 $82
+  ASL.B #(5-4),D0                         ; @BT $E3 $00
+  MOVE.W ((6/3-2),PC),D0                    ; @BT $30 $3A $EC $A1
+  SLT D5                              ; @BT $5D $C5
+  SLE D7                              ; @BT $5F $C7
+  JMP (T4D_1000).W                       ; @BT $4E $F8 $10 $00
+  TST.W D1                            ; @BT $4A $41
+  PEA (T4D_1000).W                       ; @BT $48 $78 $10 $00
+  SGT D6                              ; @BT $5E $C6
+  EOR.W D2,D3                         ; @BT $B5 $43
+  ASR.W #(6-4),D1                         ; @BT $E4 $41
+  CLR.L D2                            ; @BT $42 $82
+  MOVE.L (A7)+,D0                     ; @BT $20 $1F
+  STOP #F5_2700(F5_0100(),$27)                         ; @BT $4E $72 $27 $00
+  SMI D3                              ; @BT $5B $C3
+  ROR.W #(6-4),D1                         ; @BT $E4 $59
+  OR.B D1,D0                          ; @BT $80 $01
+  MOVE.W D1,(A1)+                     ; @BT $32 $C1
+  ADDX.W -(A1),-(A0)                  ; @BT $D1 $49
+  EOR.L #F5_AAAAAAAA(),D2                 ; @BT $0A $82 $AA $AA $AA $AA
+  BCLR #(7-4),D0                          ; @BT $08 $80 $00 $03
+  EXT.L D1                            ; @BT $48 $C1
+  LSL.W (A1)                          ; @BT $E3 $D1
+  SUBX.W -(A1),-(A0)                  ; @BT $91 $49
+  BCHG D0,D1                          ; @BT $01 $41
+  NOP                                 ; @BT $4E $71
+  ADDQ.W #(8-4),D1                        ; @BT $58 $41
+  MOVE.L #F5_12345678(),D2                ; @BT $24 $3C $12 $34 $56 $78
+  JSR (T4D_1000).W                       ; @BT $4E $B8 $10 $00
+  LSL.W #(6-4),D1                         ; @BT $E5 $49
+  SCC D4                              ; @BT $54 $C4
+  SUB.W #T4D_0100,D1                      ; @BT $04 $41 $01 $00
+  ADDI.B #T4D_0010,D0                      ; @BT $06 $00 $00 $10
+  NEGX.L D2                           ; @BT $40 $82
+  SUB.L D4,D5                         ; @BT $9A $84
+  SVC D0                              ; @BT $58 $C0
+  SF D1                               ; @BT $51 $C1
+  NOT.W D1                            ; @BT $46 $41
+  TAS D0                              ; @BT $4A $C0
+  CMPM.L (A2)+,(A3)+                  ; @BT $B7 $8A
+  JMP (T4D_1000).L                   ; @BT $4E $F9 $00 $00 $10 $00
+  SUB.B D1,D0                         ; @BT $90 $01
+  ADDA.L D1,A1                        ; @BT $D3 $C1
+  ILLEGAL                             ; @BT $4A $FC
+  DIVS.W D1,D0                        ; @BT $81 $C1
+  ROXR.W (A3)                         ; @BT $E4 $D3
+  MOVEM.W D0-D3,(A0)                  ; @BT $48 $90 $00 $0F
+  ORI.W #T4D_ZERO,SR                     ; @BT $00 $7C $00 $00
+  UNLK A6                             ; @BT $4E $5E
+  LINK A6,#(0-(13-5))                         ; @BT $4E $56 $FF $F8
+  ADD.W #T4D_1000,D1                     ; @BT $06 $41 $10 $00
+  OR.W #F5_FF00(F5_0100(),T4D_ONE),D1                      ; @BT $00 $41 $FF $00
+  SCS D5                              ; @BT $55 $C5
+  CLR.B D0                            ; @BT $42 $00
+  AND.L D4,D5                         ; @BT $CA $84
+  OR.L D4,D5                          ; @BT $8A $84
+  MOVEA.W #T4D_1000,A2                   ; @BT $34 $7C $10 $00
+  ASL.L #(8-4),D2                         ; @BT $E9 $82
+  SUBA.W D0,A0                        ; @BT $90 $C0
+  MOVEP.W D0,(T4D_0010,A0)                 ; @BT $01 $88 $00 $10
+  EXG D0,A0                           ; @BT $C1 $88
+  AND.L #T4D_FFFF0000,D2                 ; @BT $02 $82 $FF $FF $00 $00
+  EOR.L D4,D5                         ; @BT $B9 $85
+  TST.B D0                            ; @BT $4A $00
+  CMPA.L D1,A1                        ; @BT $B3 $C1
+  EXG D0,D1                           ; @BT $C1 $41
+  MOVE.W (A7)+,D1                     ; @BT $32 $1F
+  MOVE.L D2,-(A2)                     ; @BT $25 $02
+  EOR.W #T4D_AAAA,D1                     ; @BT $0A $41 $AA $AA
+  MOVEP.W (T4D_0010,A0),D0                 ; @BT $01 $08 $00 $10
+  MOVE.L -(A2),D2                     ; @BT $24 $22
+  CHK D1,D0                           ; @BT $41 $81
+  ORI.B #T4D_ZERO,CCR                      ; @BT $00 $3C $00 $00
+  CLR.W D1                            ; @BT $42 $41
+  LEA (T4D_1000).L,A3                ; @BT $47 $F9 $00 $00 $10 $00
+  ADDA.W #T4D_0100,A2                     ; @BT $D4 $FC $01 $00
+  MOVE.B (A0),D0                      ; @BT $10 $10
+  ASR.L #(5-4),D3                         ; @BT $E2 $83
+  OR.L #T4D_FFFF0000,D2                  ; @BT $00 $82 $FF $FF $00 $00
+  UNLK A7                             ; @BT $4E $5F
+  RESET                               ; @BT $4E $70
+  LEA (A0),A1                         ; @BT $43 $D0
+  SUB.B #T4D_0010,D0                       ; @BT $04 $00 $00 $10
+  SUBQ.W #(8-4),D1                        ; @BT $59 $41
+  JMP (A0)                            ; @BT $4E $D0
+  ASR.B #(5-4),D0                         ; @BT $E2 $00
+
+; potential quick-form optimization candidates (must stay non-quick)
+  ADD.W #(5-4),D0                         ; @BT $06 $40 $00 $01
+  ADD.L #(12-4),D3                         ; @BT $06 $83 $00 $00 $00 $08
+  SUB.W #(5-4),D0                         ; @BT $04 $40 $00 $01
+  SUB.L #(12-4),D3                         ; @BT $04 $83 $00 $00 $00 $08
+  MOVE.L #(5-4),D0                        ; @BT $20 $3C $00 $00 $00 $01
+  MOVE.L #F5_NEG1(T4D_ONE),D7                       ; @BT $2E $3C $FF $FF $FF $FF
+
+  .db "<05" ; @BT END

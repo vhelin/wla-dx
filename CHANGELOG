@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------------
 
-v10.7 (28-Feb-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
+v10.7 (01-Mar-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
                       calls.
                     [ALL] Listfile creation for library files should now work.
                     [ALL] If an object file contained only .SECTIONs in ROM
@@ -43,6 +43,8 @@ v10.7 (28-Feb-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .
                     [68k] Removed automatic MOVE to MOVEQ, ADD to ADDQ and SUB to
                       SUBQ optimizations as correctness is more important.
                     [650] Fixed STX and STY parsing.
+                    [689] Added space-after-the-instruction versions of instructions
+                      with zero offset indexing, e.g., "LDA ,X" (old: "LDA,X").
 
 v10.6 (19-Nov-2023) [ALL] Conditions (e.g., "(A > 1 || B < 3)") can now be used
                       everywhere, outside .IFs.
@@ -506,8 +508,8 @@ v9.9 (15-Aug-2019) [ALL] Added unions: .UNION (and .NEXTU and .ENDU).
                    [ALL] WLA can now be given string definitions from the
                      command line.
                    [680] Added support for MC6800.
-                   [680] Added support for MC6801.
-                   [680] Added support for MC6809.
+                   [681] Added support for MC6801.
+                   [689] Added support for MC6809.
                    [800] Added support for I8008.
                    [658] 24-bit addresses of .RAMSECTION labels should work
                      now when using .LOROM / .HIROM. / .EXHIROM.
