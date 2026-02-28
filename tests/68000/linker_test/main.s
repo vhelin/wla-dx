@@ -64,9 +64,9 @@ BANKS 1
         INST_2 "d1", "d2"       ; @BT C5 01
         INST_3 "d2"             ; @BT C5 01
         INST_5 ".b", "d2"       ; @BT C5 01
-        add_and_store_1 7, 120, "d7" ; @BT 7E 7F
-        add_and_store_2 127, 127, "d7" ; @BT 7E 7F
-        add_and_store_3 255, 1, "d7" ; @BT 7E 7F
+        add_and_store_1 7, 120, "d7" ; @BT 3E 3C 00 7F
+        add_and_store_2 127, 127, "d7" ; @BT 2E 3C 00 00 00 7F
+        add_and_store_3 255, 1, "d7" ; @BT 2E 3C 00 00 00 7F
         .db "<00"               ; @BT END
 
         .db "01>"               ; @BT TEST-01 01 START
@@ -247,21 +247,21 @@ frank3: .db "<08"                ; @BT END
         .db "<09"                ; @BT END
 
         .db "10>"               ; @BT TEST-10 10 START
-        add.l #2,d1             ; @BT 54 81
-        add.w #3,d2             ; @BT 56 42
-        add.b #4,d4             ; @BT 58 04
-        add.b #5,(a2)           ; @BT 5A 12
-        add.w #6,-(a3)          ; @BT 5C 63
-        add.l #7,(a4)+          ; @BT 5E 9C
-        add.b #8,$3456.w        ; @BT 50 38 34 56
-        add.w #1,$12345678.l    ; @BT 52 79 12 34 56 78
-        add.w #2,$12345678      ; @BT 54 79 12 34 56 78
-        add.b #3,($3456,a5)     ; @BT 56 2D 34 56
-        add.b #4,$3456(a5)      ; @BT 58 2D 34 56
-        add.w #5,($56,a6,d7)    ; @BT 5A 76 70 56
-        add.l #6,a1             ; @BT 5C 89
-        add.l #7,a2             ; @BT 5E 8A
-        add.w #8,a3             ; @BT 50 4B
+        add.l #2,d1             ; @BT 06 81 00 00 00 02
+        add.w #3,d2             ; @BT 06 42 00 03
+        add.b #4,d4             ; @BT 06 04 00 04
+        add.b #5,(a2)           ; @BT 06 12 00 05
+        add.w #6,-(a3)          ; @BT 06 63 00 06
+        add.l #7,(a4)+          ; @BT 06 9C 00 00 00 07
+        add.b #8,$3456.w        ; @BT 06 38 00 08 34 56
+        add.w #1,$12345678.l    ; @BT 06 79 00 01 12 34 56 78
+        add.w #2,$12345678      ; @BT 06 79 00 02 12 34 56 78
+        add.b #3,($3456,a5)     ; @BT 06 2D 00 03 34 56
+        add.b #4,$3456(a5)      ; @BT 06 2D 00 04 34 56
+        add.w #5,($56,a6,d7)    ; @BT 06 76 00 05 70 56
+        add.l #6,a1             ; @BT D3 FC 00 00 00 06
+        add.l #7,a2             ; @BT D5 FC 00 00 00 07
+        add.w #8,a3             ; @BT D6 FC 00 08
         .db "<10"               ; @BT END
 
         .db "11>"               ; @BT TEST-11 11 START
@@ -1182,21 +1182,21 @@ frank8: .db "<68"                ; @BT END
         .db "<69"                 ; @BT END
 
         .db "70>"               ; @BT TEST-70 70 START
-        sub.l #2,d1             ; @BT 55 81
-        sub.w #3,d2             ; @BT 57 42
-        sub.b #4,d4             ; @BT 59 04
-        sub.b #5,(a2)           ; @BT 5B 12
-        sub.w #6,-(a3)          ; @BT 5D 63
-        sub.l #7,(a4)+          ; @BT 5F 9C
-        sub.b #8,$3456.w        ; @BT 51 38 34 56
-        sub.w #1,$12345678.l    ; @BT 53 79 12 34 56 78
-        sub.w #2,$12345678      ; @BT 55 79 12 34 56 78
-        sub.b #3,($3456,a5)     ; @BT 57 2D 34 56
-        sub.b #4,$3456(a5)      ; @BT 59 2D 34 56
-        sub.w #5,($56,a6,d7)    ; @BT 5B 76 70 56
-        sub.l #6,a1             ; @BT 5D 89
-        sub.l #7,a2             ; @BT 5F 8A
-        sub.w #8,a3             ; @BT 51 4B
+        sub.l #2,d1             ; @BT 04 81 00 00 00 02
+        sub.w #3,d2             ; @BT 04 42 00 03
+        sub.b #4,d4             ; @BT 04 04 00 04
+        sub.b #5,(a2)           ; @BT 04 12 00 05
+        sub.w #6,-(a3)          ; @BT 04 63 00 06
+        sub.l #7,(a4)+          ; @BT 04 9C 00 00 00 07
+        sub.b #8,$3456.w        ; @BT 04 38 00 08 34 56
+        sub.w #1,$12345678.l    ; @BT 04 79 00 01 12 34 56 78
+        sub.w #2,$12345678      ; @BT 04 79 00 02 12 34 56 78
+        sub.b #3,($3456,a5)     ; @BT 04 2D 00 03 34 56
+        sub.b #4,$3456(a5)      ; @BT 04 2D 00 04 34 56
+        sub.w #5,($56,a6,d7)    ; @BT 04 76 00 05 70 56
+        sub.l #6,a1             ; @BT 93 FC 00 00 00 06
+        sub.l #7,a2             ; @BT 95 FC 00 00 00 07
+        sub.w #8,a3             ; @BT 96 FC 00 08
         .db "<70"               ; @BT END
 
         .db "71>"               ; @BT TEST-71 71 START
@@ -1335,10 +1335,10 @@ ccr2:   .db "<79"            ; @BT END
         moveq.l #127,d7      ; @BT 7E 7F
         moveq #0,d6          ; @BT 7C 00
         moveq.l #1,d1        ; @BT 72 01
-        move #-128,d3        ; @BT 76 80
-        move.l #127,d7       ; @BT 7E 7F
-        move #0,d6           ; @BT 7C 00
-        move.l #1,d1         ; @BT 72 01
+        move #-128,d3        ; @BT 36 3C FF 80
+        move.l #127,d7       ; @BT 2E 3C 00 00 00 7F
+        move #0,d6           ; @BT 3C 3C 00 00
+        move.l #1,d1         ; @BT 22 3C 00 00 00 01
         .db "<82"            ; @BT END
 
         .db "83>"                 ; @BT TEST-83 83 START

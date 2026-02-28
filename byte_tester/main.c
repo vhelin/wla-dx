@@ -14,7 +14,7 @@
 #define TRUE  1
 #define FALSE 0
 
-#define MAX_BYTES_PER_TEST 1024
+#define MAX_BYTES_PER_TEST 2048
 
 
 #if defined(AMIGACPU)

@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------------
 
-v10.7 (22-Feb-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
+v10.7 (28-Feb-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
                       calls.
                     [ALL] Listfile creation for library files should now work.
                     [ALL] If an object file contained only .SECTIONs in ROM
@@ -40,6 +40,8 @@ v10.7 (22-Feb-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .
                     [68k] Added alias SP for register a7.
                     [68k] BCLR, BSET and BTST used wrong range [1, 8] / [1, 32] for
                       bits, fixed to [0, 7] / [0, 31].
+                    [68k] Removed automatic MOVE to MOVEQ, ADD to ADDQ and SUB to
+                      SUBQ optimizations as correctness is more important.
                     [650] Fixed STX and STY parsing.
 
 v10.6 (19-Nov-2023) [ALL] Conditions (e.g., "(A > 1 || B < 3)") can now be used

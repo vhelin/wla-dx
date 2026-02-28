@@ -3214,21 +3214,26 @@ int evaluate_token(void) {
         if (_mc68000_parse_ea(g_buffer, &s_parser_source_index, &register_y1, &register_y2, &register_y_mode, &data_y, &data_type_y, label_y, NO) == FAILED)
           break;
 
+        if (register_y_mode == B8(00000111) && register_y1 == B8(00000100))
+          immediate = YES;
+
+        /*
         if (register_y_mode == B8(00000111) && register_y1 == B8(00000100)) {
           immediate = YES;
 
-          /* is immediate value [1, 8]? */
+          // is immediate value [1, 8]?
           if (mode == MC68000_MODE_ALL && data_type_y == SUCCEEDED && data_y >= 1 && data_y <= 8) {
             mode = MC68000_MODE_Q;
 
-            /* yes, switch add -> addq */
+            // yes, switch add -> addq
             if (opcode == B16(11010000, 00000000))
               opcode = B16(01010000, 00000000);
-            /* sub -> subq */
+            // sub -> subq
             else if (opcode == B16(10010000, 00000000))
               opcode = B16(01010001, 00000000);            
           }
         }
+        */
         
         /* immediate ea size checks */
         if (data_type_y == SUCCEEDED && immediate == YES) {
@@ -5325,18 +5330,23 @@ int evaluate_token(void) {
           return SUCCEEDED;
         }
 
+        if (register_y_mode == B8(00000111) && register_y1 == B8(00000100))
+          immediate = YES;
+
+        /*
         if (register_y_mode == B8(00000111) && register_y1 == B8(00000100)) {
           immediate = YES;
 
-          /* is immediate value [-128, 127]? */
+          // is immediate value [-128, 127]?
           if (register_x_mode == B8(00000000) && mode == MC68000_MODE_ALL && data_type_y == SUCCEEDED && data_y >= -128 && data_y <= 127) {
             mode = MC68000_MODE_Q;
 
-            /* yes, switch move -> moveq */
+            // yes, switch move -> moveq
             if (opcode == B16(00000000, 00000000))
               opcode = B16(01110000, 00000000);
           }
         }
+        */
 
         /* no special source or target */
         if (register_x_mode > B8(00000111) || register_y_mode > B8(00000111)) {
