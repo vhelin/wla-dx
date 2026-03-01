@@ -73,13 +73,13 @@
     ; Immediate — 8-bit register ops
     ; ==============================================================
     ADCA #$01                ; @BT 89 01
-    ADCB #$02                ; @BT C9 02
+    ADCB #$fe                ; @BT C9 FE
     ADDA #$03                ; @BT 8B 03
     ADDB #$04                ; @BT CB 04
-    ANDA #$06                ; @BT 84 06
+    ANDA #-2                 ; @BT 84 FE
     ANDB #$07                ; @BT C4 07
     BITA #$09                ; @BT 85 09
-    BITB #$0A                ; @BT C5 0A
+    BITB #$88                ; @BT C5 88
     CMPA #$0B                ; @BT 81 0B
     CMPB #$0C                ; @BT C1 0C
     EORA #$13                ; @BT 88 13

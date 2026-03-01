@@ -84,10 +84,10 @@
 
     ; --- Immediate ---
     adca #$01                ; @BT 89 01
-    adcb #$02                ; @BT C9 02
+    adcb #$f1                ; @BT C9 f1
     adda #$03                ; @BT 8B 03
     addb #$04                ; @BT CB 04
-    anda #$05                ; @BT 84 05
+    anda #$80                ; @BT 84 80
     andb #$06                ; @BT C4 06
     bita #$07                ; @BT 85 07
     bitb #$08                ; @BT C5 08

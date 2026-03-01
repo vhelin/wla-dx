@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------------
 
-v10.7 (01-Mar-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
+v10.7 (02-Mar-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
                       calls.
                     [ALL] Listfile creation for library files should now work.
                     [ALL] If an object file contained only .SECTIONs in ROM
@@ -45,6 +45,8 @@ v10.7 (01-Mar-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .
                     [650] Fixed STX and STY parsing.
                     [689] Added space-after-the-instruction versions of instructions
                       with zero offset indexing, e.g., "LDA ,X" (old: "LDA,X").
+                    [68x] Instructions that take 8-bit immediate values can now take
+                      anything that fits into eight bits.
                     [808] Added "MOV M,M", an alias for "HLT".
                     [800] Fixed "LMI"'s opcode to $3E (was $2E).
                     [800] Added "LAA", an alias for "NOP".

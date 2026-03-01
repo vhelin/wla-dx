@@ -98,9 +98,9 @@
     addd #$37                ; @BT C3 37
     anda #$05                ; @BT 84 05
     andb #$06                ; @BT C4 06
-    bita #$07                ; @BT 85 07
+    bita #$97                ; @BT 85 97
     bitb #$08                ; @BT C5 08
-    cmpa #$09                ; @BT 81 09
+    cmpa #-1                 ; @BT 81 FF
     cmpb #$0A                ; @BT C1 0A
     eora #$0B                ; @BT 88 0B
     eorb #$0C                ; @BT C8 0C

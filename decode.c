@@ -5704,8 +5704,45 @@ int evaluate_token(void) {
       }
       break;
 
-    case 5:
     case 1:
+      /* 8-bit signed operand, absolute address */
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
+        if (s_instruction_tmp->string[x] == 'x') {
+          y = g_source_index;
+          g_source_index = s_parser_source_index;
+          z = input_number();
+          s_parser_source_index = g_source_index;
+          g_source_index = y;
+
+          if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
+            return FAILED;
+          if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128)) {
+            print_error(ERROR_NUM, "Out of signed 8-bit range.\n");
+            return FAILED;
+          }
+
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
+              if (z == SUCCEEDED)
+                _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
+              else if (z == INPUT_NUMBER_ADDRESS_LABEL)
+                _output_assembled_instruction(s_instruction_tmp, "k%d d%d Q%s ", g_active_file_info_last->line_current, s_instruction_tmp->hex, g_label);
+              else
+                _output_assembled_instruction(s_instruction_tmp, "d%d c%d ", s_instruction_tmp->hex, g_latest_stack);
+        
+              g_source_index = s_parser_source_index;
+              return SUCCEEDED;
+            }
+            if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+              break;
+          }
+        }
+        if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+          break;
+      }
+      break;
+      
+    case 5:
       /* 8-bit signed operand, relative address */
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
@@ -5880,8 +5917,45 @@ int evaluate_token(void) {
       }
       break;
 
-    case 5:
     case 1:
+      /* 8-bit signed operand, absolute address */
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
+        if (s_instruction_tmp->string[x] == 'x') {
+          y = g_source_index;
+          g_source_index = s_parser_source_index;
+          z = input_number();
+          s_parser_source_index = g_source_index;
+          g_source_index = y;
+
+          if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
+            return FAILED;
+          if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128)) {
+            print_error(ERROR_NUM, "Out of signed 8-bit range.\n");
+            return FAILED;
+          }
+
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
+              if (z == SUCCEEDED)
+                _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", s_instruction_tmp->hex, g_parsed_int);
+              else if (z == INPUT_NUMBER_ADDRESS_LABEL)
+                _output_assembled_instruction(s_instruction_tmp, "k%d d%d Q%s ", g_active_file_info_last->line_current, s_instruction_tmp->hex, g_label);
+              else
+                _output_assembled_instruction(s_instruction_tmp, "d%d c%d ", s_instruction_tmp->hex, g_latest_stack);
+        
+              g_source_index = s_parser_source_index;
+              return SUCCEEDED;
+            }
+            if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+              break;
+          }
+        }
+        if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+          break;
+      }
+      break;
+
+    case 5:
       /* 8-bit signed operand, relative address */
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
@@ -6059,8 +6133,52 @@ int evaluate_token(void) {
       }
       break;
 
-    case 5:
     case 1:
+      /* 8-bit signed operand, absolute address */
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
+        if (s_instruction_tmp->string[x] == 'x') {
+          y = g_source_index;
+          g_source_index = s_parser_source_index;
+          z = input_number();
+          s_parser_source_index = g_source_index;
+          g_source_index = y;
+
+          if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
+            return FAILED;
+          if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128)) {
+            print_error(ERROR_NUM, "Out of signed 8-bit range.\n");
+            return FAILED;
+          }
+
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
+              _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
+
+              if (s_instruction_tmp->hex > 0xFF)
+                _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", (s_instruction_tmp->hex >> 8) & 0xFF, s_instruction_tmp->hex & 0xFF);
+              else
+                _output_assembled_instruction(s_instruction_tmp, "d%d ", s_instruction_tmp->hex);
+        
+              if (z == SUCCEEDED)
+                _output_assembled_instruction(s_instruction_tmp, "d%d ", g_parsed_int);
+              else if (z == INPUT_NUMBER_ADDRESS_LABEL)
+                _output_assembled_instruction(s_instruction_tmp, "Q%s ", g_label);
+              else
+                _output_assembled_instruction(s_instruction_tmp, "c%d ", g_latest_stack);
+        
+              g_source_index = s_parser_source_index;
+              return SUCCEEDED;
+            }
+            if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+              break;
+          }
+        }
+        if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+          break;
+      }
+      break;
+      
+    case 5:
       /* 8-bit signed operand, relative address */
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
