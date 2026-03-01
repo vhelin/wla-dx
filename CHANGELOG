@@ -45,6 +45,10 @@ v10.7 (01-Mar-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .
                     [650] Fixed STX and STY parsing.
                     [689] Added space-after-the-instruction versions of instructions
                       with zero offset indexing, e.g., "LDA ,X" (old: "LDA,X").
+                    [808] Added "MOV M,M", an alias for "HLT".
+                    [800] Fixed "LMI"'s opcode to $3E (was $2E).
+                    [800] Added "LAA", an alias for "NOP".
+                    [800] Added "MOV" versions of the move instructions.
 
 v10.6 (19-Nov-2023) [ALL] Conditions (e.g., "(A > 1 || B < 3)") can now be used
                       everywhere, outside .IFs.

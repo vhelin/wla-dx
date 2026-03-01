@@ -160,6 +160,7 @@ struct instruction g_instructions_table[] = {
   { "MOV M,E", 0x73, 0, 0 },
   { "MOV M,H", 0x74, 0, 0 },
   { "MOV M,L", 0x75, 0, 0 },
+  { "MOV M,M", 0x76, 0, 0 },
   { "MOV M,A", 0x77, 0, 0 },
   { "MOV A,B", 0x78, 0, 0 },
   { "MOV A,C", 0x79, 0, 0 },

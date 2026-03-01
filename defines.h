@@ -17,7 +17,7 @@
 
 /* want to have more operands and operators in a calculation? change this... */
 #if defined(AMIGA) || defined(MSDOS)
-#define MAX_STACK_CALCULATOR_ITEMS 64
+#define MAX_STACK_CALCULATOR_ITEMS 128
 #else
 #define MAX_STACK_CALCULATOR_ITEMS 256
 #endif
@@ -455,7 +455,7 @@
 /* 2 - ?              */
 /* 8 - *           8b */
  
-#define INSTRUCTION_STRING_LENGTH_MAX 6
+#define INSTRUCTION_STRING_LENGTH_MAX 8
 #define ARCH_STR "I8008"
 #define WLA_NAME "8008"
 
