@@ -2,9 +2,9 @@
 # NOTE: -i flag omitted from CFLAGS due to listfile bug with 6809 long branches (LBRA etc.)
 
 CC = $(WLAVALGRIND) wla-6809
-CFLAGS = -o
+CFLAGS = -i -o
 LD = $(WLAVALGRIND) wlalink
-LDFLAGS = -S
+LDFLAGS = -i -S
 
 SFILES = main.s
 OFILES = main.o
