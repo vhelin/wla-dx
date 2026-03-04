@@ -235,11 +235,12 @@ int extract_comments(char *input, size_t size) {
 
 int main(int argc, char *argv[]) {
 
-  int input_size, file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, should_extract_comments = NO, use_address = NO, address = 0, did_we_read_data = NO;
-  char tmp[MAX_BYTES_PER_TEST], test_id[MAX_BYTES_PER_TEST], tag_id[MAX_BYTES_PER_TEST];
-  char *input_name = NULL, *input, *current = NULL;
-  unsigned char bytes[MAX_BYTES_PER_TEST];
-  FILE *f;
+  int input_size, file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, should_extract_comments = NO, use_address = NO, address = 0, did_we_read_data = NO, bytes_capacity = MAX_BYTES_PER_TEST;
+  char *tmp = NULL, *test_id = NULL, *tag_id = NULL;
+  char *input_name = NULL, *input = NULL, *current = NULL;
+  unsigned char *bytes = NULL;
+  FILE *f = NULL;
+  int return_code = 0;
   
   if (argc < 2 || argc > 3 || argv == NULL) {
     fprintf(stderr, "\n");
@@ -283,7 +284,8 @@ int main(int argc, char *argv[]) {
 
   if (f == NULL) {
     fprintf(stderr, "Error opening file \"%s\".\n", argv[1]);
-    return 1;
+    return_code = 1;
+    goto cleanup;
   }
 
   fseek(f, 0, SEEK_END);
@@ -293,12 +295,31 @@ int main(int argc, char *argv[]) {
   input = calloc(input_size + 1, 1);
   current = input;
 
+  tmp = calloc(MAX_BYTES_PER_TEST, 1);
+  test_id = calloc(MAX_BYTES_PER_TEST, 1);
+  tag_id = calloc(MAX_BYTES_PER_TEST, 1);
+  bytes = calloc(bytes_capacity, 1);
+
+  if (tmp == NULL || test_id == NULL || tag_id == NULL || bytes == NULL) {
+    fprintf(stderr, "Error allocating memory for test buffers.\n");
+    fclose(f);
+    free(input_name);
+    free(input);
+    free(tmp);
+    free(test_id);
+    free(tag_id);
+    free(bytes);
+    return 1;
+  }
+
   if (fread(input, 1, input_size, f) != (size_t) input_size) {
     fprintf(stderr, "Could not read all %d bytes of \"%s\"!", input_size, input_name);
-    return FAILED;
+    return_code = 1;
+    goto cleanup;
   };
 
   free(input_name);
+  input_name = NULL;
 
   /* extract input from comments in file */
   if (should_extract_comments)
@@ -307,8 +328,11 @@ int main(int argc, char *argv[]) {
   get_token(&current, tmp);
 
   /* read the binary file */
-  if (_read_binary_file(tmp, &did_we_read_data, f, &file_size) == FAILED)
-    return 1;
+  if (_read_binary_file(tmp, &did_we_read_data, f, &file_size) == FAILED) {
+    f = NULL;
+    return_code = 1;
+    goto cleanup;
+  }
   
   /* execute the tests */
   failures = 0;
@@ -317,8 +341,11 @@ int main(int argc, char *argv[]) {
     if (!get_token(&current, test_id))
       break;
     /* test_id could be filename */
-    if (_read_binary_file(test_id, &did_we_read_data, f, &file_size) == FAILED)
-      return 1;
+    if (_read_binary_file(test_id, &did_we_read_data, f, &file_size) == FAILED) {
+      f = NULL;
+      return_code = 1;
+      goto cleanup;
+    }
     if (did_we_read_data == YES)
       continue;
     if (!get_token(&current, tag_id))
@@ -396,8 +423,10 @@ int main(int argc, char *argv[]) {
         }
       }
 
-      if (got_it == YES)
-        return 1;
+      if (got_it == YES) {
+        failures = 1;
+        break;
+      }
 
       fprintf(stderr, "Test \"%s\" SUCCEEDED!\n", test_id);
 
@@ -417,11 +446,19 @@ int main(int argc, char *argv[]) {
     byte_count = 0;
 
     while (1) {
-      if (byte_count == MAX_BYTES_PER_TEST) {
-        fprintf(stderr, "Test \"%s\" FAILED - Each test can contain max %d bytes.\n", test_id, MAX_BYTES_PER_TEST);
-        failures = 1;
-        end = 1;
-        break;
+      if (byte_count == bytes_capacity) {
+        int new_capacity = bytes_capacity * 2;
+        unsigned char *new_bytes = realloc(bytes, new_capacity);
+
+        if (new_bytes == NULL) {
+          fprintf(stderr, "Test \"%s\" FAILED - Could not allocate memory for test bytes.\n", test_id);
+          failures = 1;
+          end = 1;
+          break;
+        }
+
+        bytes = new_bytes;
+        bytes_capacity = new_capacity;
       }
       
       if (!get_token(&current, tmp)) {
@@ -510,10 +547,19 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "Test \"%s\" SUCCEEDED!\n", test_id);
   }
   
-  fclose(f);
-  
+  return_code = failures;
+
+cleanup:
+  if (f != NULL)
+    fclose(f);
+
   free(input);
+  free(input_name);
+  free(tmp);
+  free(test_id);
+  free(tag_id);
+  free(bytes);
   free(g_binary_file);
   
-  return failures;
+  return return_code;
 }

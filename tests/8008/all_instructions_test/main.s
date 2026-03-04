@@ -568,6 +568,79 @@
     LAM                      ; @BT C7
     LAB                      ; @BT C1
 
+    MVI A,$25                ; @BT 06 25
+    MOV A,A                  ; @BT C0
+    MOV A, B                 ; @BT C1
+    MOV A,  C                ; @BT C2
+    MOV A, D                 ; @BT C3
+    MOV  A,E                 ; @BT C4
+    MOV A,H                  ; @BT C5
+    MOV A,L                  ; @BT C6
+    MOV A,M                  ; @BT C7
+    MOV B,A                  ; @BT C8
+    MOV B,B                  ; @BT C9
+    MOV B,C                  ; @BT CA
+    MOV B,D                  ; @BT CB
+    MOV B,E                  ; @BT CC
+    MOV B,H                  ; @BT CD
+    MVI B,$3C                ; @BT 0E 3C
+    MOV B,L                  ; @BT CE
+    MOV B,M                  ; @BT CF
+    MOV C,A                  ; @BT D0
+    MOV C,B                  ; @BT D1
+    MOV C,C                  ; @BT D2
+    MOV C,D                  ; @BT D3
+    MOV C,E                  ; @BT D4
+    MOV C,H                  ; @BT D5
+    MVI C,$53                  ; @BT 16 53
+    MOV C,L                  ; @BT D6
+    MOV C,M                  ; @BT D7
+    MOV D,A                  ; @BT D8
+    MOV D,B                  ; @BT D9
+    MOV D,C                  ; @BT DA
+    MOV D,D                  ; @BT DB
+    MOV D,E                  ; @BT DC
+    MOV D,H                  ; @BT DD
+    MVI D,$6A                ; @BT 1E 6A
+    MOV D,L                  ; @BT DE
+    MOV D,M                  ; @BT DF
+    MOV E,A                  ; @BT E0
+    MOV E,B                  ; @BT E1
+    MOV E,C                  ; @BT E2
+    MOV E,D                  ; @BT E3
+    MOV E,E                  ; @BT E4
+    MOV E,H                  ; @BT E5
+    MVI E,$81                  ; @BT 26 81
+    MOV E,L                  ; @BT E6
+    MOV E,M                  ; @BT E7
+    MOV H,A                  ; @BT E8
+    MOV H,B                  ; @BT E9
+    MOV H,C                  ; @BT EA
+    MOV H,D                  ; @BT EB
+    MOV H,E                  ; @BT EC
+    MOV H,H                  ; @BT ED
+    MVI H,$98                  ; @BT 2E 98
+    MOV H,L                  ; @BT EE
+    MOV H,M                  ; @BT EF
+    MOV L,A                  ; @BT F0
+    MOV L,B                  ; @BT F1
+    MOV L,C                  ; @BT F2
+    MOV L,D                  ; @BT F3
+    MOV L,E                  ; @BT F4
+    MOV L,H                  ; @BT F5
+    MVI L,$AF                  ; @BT 36 AF
+    MOV L,L                  ; @BT F6
+    MOV L,M                  ; @BT F7
+    MOV M,A                  ; @BT F8
+    MOV M,B                  ; @BT F9
+    MOV M,C                  ; @BT FA
+    MOV M,D                  ; @BT FB
+    MOV M,E                  ; @BT FC
+    MOV M,H                  ; @BT FD
+    MVI M,$C6                  ; @BT 3E C6
+    MOV M,L                  ; @BT FE
+
+
     .db "<02"               ; @BT END
 
     /////////////////////////////////////////////////////////////////////////////
@@ -808,6 +881,79 @@
     LHI (($E0-7)+7)                  ; @BT 2E E0
     LAM                      ; @BT C7
     LAB                      ; @BT C1
+
+    MVI A,$25                ; @BT 06 25
+    MOV A,A                  ; @BT C0
+    MOV A, B                 ; @BT C1
+    MOV A,  C                ; @BT C2
+    MOV A, D                 ; @BT C3
+    MOV  A,E                 ; @BT C4
+    MOV A,H                  ; @BT C5
+    MOV A,L                  ; @BT C6
+    MOV A,M                  ; @BT C7
+    MOV B,A                  ; @BT C8
+    MOV B,B                  ; @BT C9
+    MOV B,C                  ; @BT CA
+    MOV B,D                  ; @BT CB
+    MOV B,E                  ; @BT CC
+    MOV B,H                  ; @BT CD
+    MVI B,$3C                ; @BT 0E 3C
+    MOV B,L                  ; @BT CE
+    MOV B,M                  ; @BT CF
+    MOV C,A                  ; @BT D0
+    MOV C,B                  ; @BT D1
+    MOV C,C                  ; @BT D2
+    MOV C,D                  ; @BT D3
+    MOV C,E                  ; @BT D4
+    MOV C,H                  ; @BT D5
+    MVI C,$53                  ; @BT 16 53
+    MOV C,L                  ; @BT D6
+    MOV C,M                  ; @BT D7
+    MOV D,A                  ; @BT D8
+    MOV D,B                  ; @BT D9
+    MOV D,C                  ; @BT DA
+    MOV D,D                  ; @BT DB
+    MOV D,E                  ; @BT DC
+    MOV D,H                  ; @BT DD
+    MVI D,$6A                ; @BT 1E 6A
+    MOV D,L                  ; @BT DE
+    MOV D,M                  ; @BT DF
+    MOV E,A                  ; @BT E0
+    MOV E,B                  ; @BT E1
+    MOV E,C                  ; @BT E2
+    MOV E,D                  ; @BT E3
+    MOV E,E                  ; @BT E4
+    MOV E,H                  ; @BT E5
+    MVI E,$81                  ; @BT 26 81
+    MOV E,L                  ; @BT E6
+    MOV E,M                  ; @BT E7
+    MOV H,A                  ; @BT E8
+    MOV H,B                  ; @BT E9
+    MOV H,C                  ; @BT EA
+    MOV H,D                  ; @BT EB
+    MOV H,E                  ; @BT EC
+    MOV H,H                  ; @BT ED
+    MVI H,$98                  ; @BT 2E 98
+    MOV H,L                  ; @BT EE
+    MOV H,M                  ; @BT EF
+    MOV L,A                  ; @BT F0
+    MOV L,B                  ; @BT F1
+    MOV L,C                  ; @BT F2
+    MOV L,D                  ; @BT F3
+    MOV L,E                  ; @BT F4
+    MOV L,H                  ; @BT F5
+    MVI L,$AF                  ; @BT 36 AF
+    MOV L,L                  ; @BT F6
+    MOV L,M                  ; @BT F7
+    MOV M,A                  ; @BT F8
+    MOV M,B                  ; @BT F9
+    MOV M,C                  ; @BT FA
+    MOV M,D                  ; @BT FB
+    MOV M,E                  ; @BT FC
+    MOV M,H                  ; @BT FD
+    MVI M,$C6                  ; @BT 3E C6
+    MOV M,L                  ; @BT FE
+
 
     .db "<03"               ; @BT END
 
@@ -1092,6 +1238,79 @@
     LHI (($E0-7)+7)                  ; @BT 2E E0
     LAM                      ; @BT C7
     LAB                      ; @BT C1
+
+    MVI A,$25                ; @BT 06 25
+    MOV A,A                  ; @BT C0
+    MOV A, B                 ; @BT C1
+    MOV A,  C                ; @BT C2
+    MOV A, D                 ; @BT C3
+    MOV  A,E                 ; @BT C4
+    MOV A,H                  ; @BT C5
+    MOV A,L                  ; @BT C6
+    MOV A,M                  ; @BT C7
+    MOV B,A                  ; @BT C8
+    MOV B,B                  ; @BT C9
+    MOV B,C                  ; @BT CA
+    MOV B,D                  ; @BT CB
+    MOV B,E                  ; @BT CC
+    MOV B,H                  ; @BT CD
+    MVI B,$3C                ; @BT 0E 3C
+    MOV B,L                  ; @BT CE
+    MOV B,M                  ; @BT CF
+    MOV C,A                  ; @BT D0
+    MOV C,B                  ; @BT D1
+    MOV C,C                  ; @BT D2
+    MOV C,D                  ; @BT D3
+    MOV C,E                  ; @BT D4
+    MOV C,H                  ; @BT D5
+    MVI C,$53                  ; @BT 16 53
+    MOV C,L                  ; @BT D6
+    MOV C,M                  ; @BT D7
+    MOV D,A                  ; @BT D8
+    MOV D,B                  ; @BT D9
+    MOV D,C                  ; @BT DA
+    MOV D,D                  ; @BT DB
+    MOV D,E                  ; @BT DC
+    MOV D,H                  ; @BT DD
+    MVI D,$6A                ; @BT 1E 6A
+    MOV D,L                  ; @BT DE
+    MOV D,M                  ; @BT DF
+    MOV E,A                  ; @BT E0
+    MOV E,B                  ; @BT E1
+    MOV E,C                  ; @BT E2
+    MOV E,D                  ; @BT E3
+    MOV E,E                  ; @BT E4
+    MOV E,H                  ; @BT E5
+    MVI E,$81                  ; @BT 26 81
+    MOV E,L                  ; @BT E6
+    MOV E,M                  ; @BT E7
+    MOV H,A                  ; @BT E8
+    MOV H,B                  ; @BT E9
+    MOV H,C                  ; @BT EA
+    MOV H,D                  ; @BT EB
+    MOV H,E                  ; @BT EC
+    MOV H,H                  ; @BT ED
+    MVI H,$98                  ; @BT 2E 98
+    MOV H,L                  ; @BT EE
+    MOV H,M                  ; @BT EF
+    MOV L,A                  ; @BT F0
+    MOV L,B                  ; @BT F1
+    MOV L,C                  ; @BT F2
+    MOV L,D                  ; @BT F3
+    MOV L,E                  ; @BT F4
+    MOV L,H                  ; @BT F5
+    MVI L,$AF                  ; @BT 36 AF
+    MOV L,L                  ; @BT F6
+    MOV L,M                  ; @BT F7
+    MOV M,A                  ; @BT F8
+    MOV M,B                  ; @BT F9
+    MOV M,C                  ; @BT FA
+    MOV M,D                  ; @BT FB
+    MOV M,E                  ; @BT FC
+    MOV M,H                  ; @BT FD
+    MVI M,$C6                  ; @BT 3E C6
+    MOV M,L                  ; @BT FE
+
 
     .db "<04"               ; @BT END
 
@@ -1398,5 +1617,78 @@
     LHI (($E0-7)+7)                  ; @BT 2E E0
     LAM                      ; @BT C7
     LAB                      ; @BT C1
+
+    MVI A,$25                ; @BT 06 25
+    MOV A,A                  ; @BT C0
+    MOV A, B                 ; @BT C1
+    MOV A,  C                ; @BT C2
+    MOV A, D                 ; @BT C3
+    MOV  A,E                 ; @BT C4
+    MOV A,H                  ; @BT C5
+    MOV A,L                  ; @BT C6
+    MOV A,M                  ; @BT C7
+    MOV B,A                  ; @BT C8
+    MOV B,B                  ; @BT C9
+    MOV B,C                  ; @BT CA
+    MOV B,D                  ; @BT CB
+    MOV B,E                  ; @BT CC
+    MOV B,H                  ; @BT CD
+    MVI B,$3C                ; @BT 0E 3C
+    MOV B,L                  ; @BT CE
+    MOV B,M                  ; @BT CF
+    MOV C,A                  ; @BT D0
+    MOV C,B                  ; @BT D1
+    MOV C,C                  ; @BT D2
+    MOV C,D                  ; @BT D3
+    MOV C,E                  ; @BT D4
+    MOV C,H                  ; @BT D5
+    MVI C,$53                  ; @BT 16 53
+    MOV C,L                  ; @BT D6
+    MOV C,M                  ; @BT D7
+    MOV D,A                  ; @BT D8
+    MOV D,B                  ; @BT D9
+    MOV D,C                  ; @BT DA
+    MOV D,D                  ; @BT DB
+    MOV D,E                  ; @BT DC
+    MOV D,H                  ; @BT DD
+    MVI D,$6A                ; @BT 1E 6A
+    MOV D,L                  ; @BT DE
+    MOV D,M                  ; @BT DF
+    MOV E,A                  ; @BT E0
+    MOV E,B                  ; @BT E1
+    MOV E,C                  ; @BT E2
+    MOV E,D                  ; @BT E3
+    MOV E,E                  ; @BT E4
+    MOV E,H                  ; @BT E5
+    MVI E,$81                  ; @BT 26 81
+    MOV E,L                  ; @BT E6
+    MOV E,M                  ; @BT E7
+    MOV H,A                  ; @BT E8
+    MOV H,B                  ; @BT E9
+    MOV H,C                  ; @BT EA
+    MOV H,D                  ; @BT EB
+    MOV H,E                  ; @BT EC
+    MOV H,H                  ; @BT ED
+    MVI H,$98                  ; @BT 2E 98
+    MOV H,L                  ; @BT EE
+    MOV H,M                  ; @BT EF
+    MOV L,A                  ; @BT F0
+    MOV L,B                  ; @BT F1
+    MOV L,C                  ; @BT F2
+    MOV L,D                  ; @BT F3
+    MOV L,E                  ; @BT F4
+    MOV L,H                  ; @BT F5
+    MVI L,$AF                  ; @BT 36 AF
+    MOV L,L                  ; @BT F6
+    MOV L,M                  ; @BT F7
+    MOV M,A                  ; @BT F8
+    MOV M,B                  ; @BT F9
+    MOV M,C                  ; @BT FA
+    MOV M,D                  ; @BT FB
+    MOV M,E                  ; @BT FC
+    MOV M,H                  ; @BT FD
+    MVI M,$C6                  ; @BT 3E C6
+    MOV M,L                  ; @BT FE
+
 
     .db "<05"               ; @BT END
