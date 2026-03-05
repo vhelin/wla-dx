@@ -126,7 +126,8 @@ int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_
       return SUCCEEDED;
     }
     fprintf(stderr, "Error opening file \"%s\".\n", filename);
-    fclose(f);
+    if (f != NULL)
+      fclose(f);
     return FAILED;
   }
 
@@ -148,6 +149,7 @@ int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_
 
   if (fread(g_binary_file, 1, *file_size, fb) != (size_t) *file_size) {
     fprintf(stderr, "Could not read all %d bytes of \"%s\"!", *file_size, filename);
+    fclose(fb);
     return FAILED;
   };
 
@@ -233,10 +235,11 @@ int extract_comments(char *input, size_t size) {
 }
 
 
-static int main_run(int argc, char *argv[], char **input_names, int input_name_count, char *input, char *tmp, char *test_id, char *tag_id, unsigned char *bytes) {
+static int main_run(int argc, char *argv[], char **input_names, int input_name_count, char *tmp, char *test_id, char *tag_id) {
 
   int input_size, file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, should_extract_comments = NO, use_address = NO, address = 0, did_we_read_data = NO, bytes_capacity = MAX_BYTES_PER_TEST;
-  char *current = NULL;
+  char *input = NULL, *current = NULL;
+  unsigned char *bytes = NULL;
   FILE *f = NULL;
 
   /* parse flags and collect input filenames */
@@ -270,6 +273,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
 
       if (fs == NULL) {
         fprintf(stderr, "Error opening file \"%s\".\n", input_names[i]);
+        free(input);
         return 1;
       }
 
@@ -278,11 +282,17 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
       fseek(fs, 0, SEEK_SET);
 
       /* grow the buffer: existing data + newline separator + new file + terminator */
-      input = realloc(input, input_size + fs_size + 2);
-      if (input == NULL) {
-        fprintf(stderr, "Error allocating memory for merged input.\n");
-        fclose(fs);
-        return 1;
+      {
+        char *new_input = realloc(input, input_size + fs_size + 2);
+
+        if (new_input == NULL) {
+          fprintf(stderr, "Error allocating memory for merged input.\n");
+          fclose(fs);
+          free(input);
+          return 1;
+        }
+
+        input = new_input;
       }
 
       if (input_size > 0)
@@ -291,6 +301,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
       if (fread(input + input_size, 1, fs_size, fs) != (size_t)fs_size) {
         fprintf(stderr, "Could not read all %d bytes of \"%s\"!", fs_size, input_names[i]);
         fclose(fs);
+        free(input);
         return 1;
       }
 
@@ -300,6 +311,11 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
 
     input[input_size] = 0;
     f = fopen(input_names[0], "rb");
+    if (f == NULL) {
+      fprintf(stderr, "Error opening file \"%s\".\n", input_names[0]);
+      free(input);
+      return 1;
+    }
   }
   else {
     /* single file mode */
@@ -324,11 +340,19 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
     if (fread(input, 1, input_size, f) != (size_t)input_size) {
       fprintf(stderr, "Could not read all %d bytes of \"%s\"!", input_size, input_names[0]);
       fclose(f);
+      free(input);
       return 1;
     }
   }
 
   current = input;
+
+  bytes = calloc(bytes_capacity, 1);
+  if (bytes == NULL) {
+    fprintf(stderr, "Error allocating memory for test bytes.\n");
+    free(input);
+    return 1;
+  }
 
   /* extract input from comments in file */
   if (should_extract_comments)
@@ -339,6 +363,8 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
   /* read the binary file */
   if (_read_binary_file(tmp, &did_we_read_data, f, &file_size) == FAILED) {
     f = NULL;
+    free(input);
+    free(bytes);
     return 1;
   }
 
@@ -354,6 +380,8 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
     /* test_id could be filename */
     if (_read_binary_file(test_id, &did_we_read_data, f, &file_size) == FAILED) {
       f = NULL;
+      free(input);
+      free(bytes);
       return 1;
     }
     if (did_we_read_data == YES)
@@ -396,15 +424,17 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
 
       length = (int)strlen(tmp);
 
-      for (i = 0; i < file_size; i++) {
-        for (j = 0; j < length; j++) {
-          if (g_binary_file[i+j] != tmp[j])
+      if (length <= file_size) {
+        for (i = 0; i <= file_size - length; i++) {
+          for (j = 0; j < length; j++) {
+            if (g_binary_file[i+j] != tmp[j])
+              break;
+          }
+          if (j == length) {
+            /* we found the string -> ok! */
+            got_it = YES;
             break;
-        }
-        if (j == length) {
-          /* we found the string -> ok! */
-          got_it = YES;
-          break;
+          }
         }
       }
 
@@ -421,15 +451,17 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
 
       length = (int)strlen(tmp);
 
-      for (i = 0; i < file_size; i++) {
-        for (j = 0; j < length; j++) {
-          if (g_binary_file[i+j] != tmp[j])
+      if (length <= file_size) {
+        for (i = 0; i <= file_size - length; i++) {
+          for (j = 0; j < length; j++) {
+            if (g_binary_file[i+j] != tmp[j])
+              break;
+          }
+          if (j == length) {
+            /* we found the string -> not ok! */
+            got_it = YES;
             break;
-        }
-        if (j == length) {
-          /* we found the string -> not ok! */
-          got_it = YES;
-          break;
+          }
         }
       }
 
@@ -536,6 +568,12 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
     else
       tag_start = address;
 
+    if (tag_start < 0 || tag_start + byte_count > file_size) {
+      fprintf(stderr, "Test \"%s\" FAILED - Address range is outside the binary file.\n", test_id);
+      failures = 1;
+      continue;
+    }
+
     /* compare bytes */
     wrong_bytes = 0;
     for (i = 0; i < byte_count; i++) {
@@ -560,6 +598,9 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
   if (f != NULL)
     fclose(f);
 
+  free(input);
+  free(bytes);
+
   return failures;
 }
 
@@ -569,8 +610,6 @@ int main(int argc, char *argv[]) {
   char *tmp = NULL, *test_id = NULL, *tag_id = NULL;
   char **input_names = NULL;
   int input_name_count = 0;
-  char *input = NULL;
-  unsigned char *bytes = NULL;
   int i, return_code;
 
   if (argc < 2 || argv == NULL) {
@@ -609,16 +648,14 @@ int main(int argc, char *argv[]) {
   tmp = calloc(MAX_BYTES_PER_TEST, 1);
   test_id = calloc(MAX_BYTES_PER_TEST, 1);
   tag_id = calloc(MAX_BYTES_PER_TEST, 1);
-  bytes = calloc(MAX_BYTES_PER_TEST, 1);
 
-  if (tmp == NULL || test_id == NULL || tag_id == NULL || bytes == NULL) {
+  if (tmp == NULL || test_id == NULL || tag_id == NULL) {
     fprintf(stderr, "Error allocating memory for test buffers.\n");
     return_code = 1;
   }
   else
-    return_code = main_run(argc, argv, input_names, input_name_count, input, tmp, test_id, tag_id, bytes);
+    return_code = main_run(argc, argv, input_names, input_name_count, tmp, test_id, tag_id);
 
-  free(input);
   for (i = 0; i < argc; i++) {
     if (input_names[i] != NULL)
       free(input_names[i]);
@@ -627,7 +664,6 @@ int main(int argc, char *argv[]) {
   free(tmp);
   free(test_id);
   free(tag_id);
-  free(bytes);
   free(g_binary_file);
 
   return return_code;
