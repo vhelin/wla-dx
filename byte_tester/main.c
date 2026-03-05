@@ -233,93 +233,102 @@ int extract_comments(char *input, size_t size) {
 }
 
 
-int main(int argc, char *argv[]) {
+static int main_run(int argc, char *argv[], char **input_names, int input_name_count, char *input, char *tmp, char *test_id, char *tag_id, unsigned char *bytes) {
 
   int input_size, file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, should_extract_comments = NO, use_address = NO, address = 0, did_we_read_data = NO, bytes_capacity = MAX_BYTES_PER_TEST;
-  char *tmp = NULL, *test_id = NULL, *tag_id = NULL;
-  char *input_name = NULL, *input = NULL, *current = NULL;
-  unsigned char *bytes = NULL;
+  char *current = NULL;
   FILE *f = NULL;
-  int return_code = 0;
-  
-  if (argc < 2 || argc > 3 || argv == NULL) {
-    fprintf(stderr, "\n");
-#if defined(AMIGACPU)
-    fprintf(stderr, "Byte tester 2.3 (" AMIGACPU ")\n");
-#else
-    fprintf(stderr, "Byte tester 2.3\n");
-#endif
-    fprintf(stderr, "\n");
-    fprintf(stderr, "USAGE: %s [-s] <TESTS FILE / SOURCE FILE>\n", argv[0]);
-    fprintf(stderr, "\n");
-    fprintf(stderr, "If -s is given then we read tests file data from the comments of a source code file.\n");
-    fprintf(stderr, "\n");
-    fprintf(stderr, "TESTS FILE FORMAT:\n");
-    fprintf(stderr, "\n");
-    fprintf(stderr, "...\n");
-    fprintf(stderr, "<BINARY FILE NAME>\n");
-    fprintf(stderr, "<TEST ID> <TAG ID> START <BYTE 1> <BYTE 2> ... <BYTE N> END /* Require the bytes to be between the tags */\n");
-    fprintf(stderr, "<TEST ID> -a <INTEGER ADDRESS> START <BYTE 1> <BYTE 2> ... <BYTE N> END /* Require the bytes to be at the address */\n");
-    fprintf(stderr, "<TEST ID> -y <STRING> /* Require that the string is found */\n");
-    fprintf(stderr, "<TEST ID> -n <STRING> /* Require that the string is not found */\n");
-    fprintf(stderr, "...\n");
-    fprintf(stderr, "\n");
-    fprintf(stderr, "If <TAG ID> is \"01\", then we test if the bytes between \"01>\" and \"<01\" match with bytes 1...n\n");
-    fprintf(stderr, "\n");
-    return 1;
-  }
 
-  /* parse flags */
+  /* parse flags and collect input filenames */
   for (i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-s") == 0) {
       should_extract_comments = YES;
     }
     else {
-      input_name = calloc(strlen(argv[i]) + 1, 1);
-      strcpy(input_name, argv[i]);
+      input_names[input_name_count] = calloc(strlen(argv[i]) + 1, 1);
+      if (input_names[input_name_count] == NULL) {
+        fprintf(stderr, "Error allocating memory for input filename.\n");
+        return 1;
+      }
+      strcpy(input_names[input_name_count], argv[i]);
+      input_name_count++;
     }
   }
 
-  f = fopen(input_name, "rb");
-
-  if (f == NULL) {
-    fprintf(stderr, "Error opening file \"%s\".\n", argv[1]);
-    return_code = 1;
-    goto cleanup;
-  }
-
-  fseek(f, 0, SEEK_END);
-  input_size = (int)ftell(f);
-  fseek(f, 0, SEEK_SET);
-  /* make sure we allocate one extra byte for terminator 0 */
-  input = calloc(input_size + 1, 1);
-  current = input;
-
-  tmp = calloc(MAX_BYTES_PER_TEST, 1);
-  test_id = calloc(MAX_BYTES_PER_TEST, 1);
-  tag_id = calloc(MAX_BYTES_PER_TEST, 1);
-  bytes = calloc(bytes_capacity, 1);
-
-  if (tmp == NULL || test_id == NULL || tag_id == NULL || bytes == NULL) {
-    fprintf(stderr, "Error allocating memory for test buffers.\n");
-    fclose(f);
-    free(input_name);
-    free(input);
-    free(tmp);
-    free(test_id);
-    free(tag_id);
-    free(bytes);
+  if (input_name_count == 0) {
+    fprintf(stderr, "No input files given.\n");
     return 1;
   }
 
-  if (fread(input, 1, input_size, f) != (size_t) input_size) {
-    fprintf(stderr, "Could not read all %d bytes of \"%s\"!", input_size, input_name);
-    return_code = 1;
-    goto cleanup;
-  };
+  if (should_extract_comments == YES && input_name_count > 1) {
+    /* merge all source files into one buffer, then extract comments */
+    input_size = 0;
 
-  free(input_name);
-  input_name = NULL;
+    for (i = 0; i < input_name_count; i++) {
+      FILE *fs = fopen(input_names[i], "rb");
+      int fs_size;
+
+      if (fs == NULL) {
+        fprintf(stderr, "Error opening file \"%s\".\n", input_names[i]);
+        return 1;
+      }
+
+      fseek(fs, 0, SEEK_END);
+      fs_size = (int)ftell(fs);
+      fseek(fs, 0, SEEK_SET);
+
+      /* grow the buffer: existing data + newline separator + new file + terminator */
+      input = realloc(input, input_size + fs_size + 2);
+      if (input == NULL) {
+        fprintf(stderr, "Error allocating memory for merged input.\n");
+        fclose(fs);
+        return 1;
+      }
+
+      if (input_size > 0)
+        input[input_size++] = '\n';
+
+      if (fread(input + input_size, 1, fs_size, fs) != (size_t)fs_size) {
+        fprintf(stderr, "Could not read all %d bytes of \"%s\"!", fs_size, input_names[i]);
+        fclose(fs);
+        return 1;
+      }
+
+      input_size += fs_size;
+      fclose(fs);
+    }
+
+    input[input_size] = 0;
+    f = fopen(input_names[0], "rb");
+  }
+  else {
+    /* single file mode */
+    f = fopen(input_names[0], "rb");
+
+    if (f == NULL) {
+      fprintf(stderr, "Error opening file \"%s\".\n", input_names[0]);
+      return 1;
+    }
+
+    fseek(f, 0, SEEK_END);
+    input_size = (int)ftell(f);
+    fseek(f, 0, SEEK_SET);
+    /* make sure we allocate one extra byte for terminator 0 */
+    input = calloc(input_size + 1, 1);
+    if (input == NULL) {
+      fprintf(stderr, "Error allocating memory for input.\n");
+      fclose(f);
+      return 1;
+    }
+
+    if (fread(input, 1, input_size, f) != (size_t)input_size) {
+      fprintf(stderr, "Could not read all %d bytes of \"%s\"!", input_size, input_names[0]);
+      fclose(f);
+      return 1;
+    }
+  }
+
+  current = input;
 
   /* extract input from comments in file */
   if (should_extract_comments)
@@ -330,21 +339,22 @@ int main(int argc, char *argv[]) {
   /* read the binary file */
   if (_read_binary_file(tmp, &did_we_read_data, f, &file_size) == FAILED) {
     f = NULL;
-    return_code = 1;
-    goto cleanup;
+    return 1;
   }
-  
+
   /* execute the tests */
   failures = 0;
   end = 0;
   while (end == 0) {
+    use_address = NO;
+    address = 0;
+
     if (!get_token(&current, test_id))
       break;
     /* test_id could be filename */
     if (_read_binary_file(test_id, &did_we_read_data, f, &file_size) == FAILED) {
       f = NULL;
-      return_code = 1;
-      goto cleanup;
+      return 1;
     }
     if (did_we_read_data == YES)
       continue;
@@ -405,12 +415,12 @@ int main(int argc, char *argv[]) {
     }
     else if (strcmp(tag_id, "-n") == 0) {
       int got_it = NO;
-      
+
       if (!get_token(&current, tmp))
         break;
 
       length = (int)strlen(tmp);
-      
+
       for (i = 0; i < file_size; i++) {
         for (j = 0; j < length; j++) {
           if (g_binary_file[i+j] != tmp[j])
@@ -442,7 +452,7 @@ int main(int argc, char *argv[]) {
         break;
       }
     }
-    
+
     byte_count = 0;
 
     while (1) {
@@ -460,12 +470,12 @@ int main(int argc, char *argv[]) {
         bytes = new_bytes;
         bytes_capacity = new_capacity;
       }
-      
+
       if (!get_token(&current, tmp)) {
         end = 1;
         break;
       }
-      
+
       if (strcmp(tmp, "END") == 0)
         break;
 
@@ -525,7 +535,7 @@ int main(int argc, char *argv[]) {
     }
     else
       tag_start = address;
-    
+
     /* compare bytes */
     wrong_bytes = 0;
     for (i = 0; i < byte_count; i++) {
@@ -546,20 +556,79 @@ int main(int argc, char *argv[]) {
     else
       fprintf(stderr, "Test \"%s\" SUCCEEDED!\n", test_id);
   }
-  
-  return_code = failures;
 
-cleanup:
   if (f != NULL)
     fclose(f);
 
+  return failures;
+}
+
+
+int main(int argc, char *argv[]) {
+
+  char *tmp = NULL, *test_id = NULL, *tag_id = NULL;
+  char **input_names = NULL;
+  int input_name_count = 0;
+  char *input = NULL;
+  unsigned char *bytes = NULL;
+  int i, return_code;
+
+  if (argc < 2 || argv == NULL) {
+    fprintf(stderr, "\n");
+#if defined(AMIGACPU)
+    fprintf(stderr, "Byte tester 2.4 (" AMIGACPU ")\n");
+#else
+    fprintf(stderr, "Byte tester 2.4\n");
+#endif
+    fprintf(stderr, "\n");
+    fprintf(stderr, "USAGE: %s [-s] <TESTS FILE / SOURCE FILES...>\n", argv[0]);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "If -s is given then we read tests file data from the comments of source code files.\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "TESTS FILE FORMAT:\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "...\n");
+    fprintf(stderr, "<BINARY FILE NAME>\n");
+    fprintf(stderr, "<TEST ID> <TAG ID> START <BYTE 1> <BYTE 2> ... <BYTE N> END /* Require the bytes to be between the tags */\n");
+    fprintf(stderr, "<TEST ID> -a <INTEGER ADDRESS> START <BYTE 1> <BYTE 2> ... <BYTE N> END /* Require the bytes to be at the address */\n");
+    fprintf(stderr, "<TEST ID> -y <STRING> /* Require that the string is found */\n");
+    fprintf(stderr, "<TEST ID> -n <STRING> /* Require that the string is not found */\n");
+    fprintf(stderr, "...\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "If <TAG ID> is \"01\", then we test if the bytes between \"01>\" and \"<01\" match with bytes 1...n\n");
+    fprintf(stderr, "\n");
+    return 1;
+  }
+
+  input_names = calloc(argc, sizeof(char *));
+  if (input_names == NULL) {
+    fprintf(stderr, "Error allocating memory for input filenames.\n");
+    return 1;
+  }
+
+  tmp = calloc(MAX_BYTES_PER_TEST, 1);
+  test_id = calloc(MAX_BYTES_PER_TEST, 1);
+  tag_id = calloc(MAX_BYTES_PER_TEST, 1);
+  bytes = calloc(MAX_BYTES_PER_TEST, 1);
+
+  if (tmp == NULL || test_id == NULL || tag_id == NULL || bytes == NULL) {
+    fprintf(stderr, "Error allocating memory for test buffers.\n");
+    return_code = 1;
+  }
+  else
+    return_code = main_run(argc, argv, input_names, input_name_count, input, tmp, test_id, tag_id, bytes);
+
   free(input);
-  free(input_name);
+  for (i = 0; i < argc; i++) {
+    if (input_names[i] != NULL)
+      free(input_names[i]);
+  }
+  free(input_names);
   free(tmp);
   free(test_id);
   free(tag_id);
   free(bytes);
   free(g_binary_file);
-  
+
   return return_code;
 }

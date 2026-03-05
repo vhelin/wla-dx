@@ -20,8 +20,7 @@ next.o: next.s
 	$(CC) $(CFLAGS) next.o next.s
 
 check: linked.gb
-	byte_tester -s main.s
-	byte_tester -s next.s
+	byte_tester -s main.s next.s
 
 
 $(OFILES): $(HFILES)

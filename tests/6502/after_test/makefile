@@ -20,8 +20,7 @@ more.o: more.s
 	$(CC) $(CFLAGS) more.o more.s
 
 check: linked.rom
-	byte_tester -s main.s
-	byte_tester -s more.s
+	byte_tester -s main.s more.s
 
 
 $(OFILES): $(HFILES)

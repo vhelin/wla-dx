@@ -23,9 +23,7 @@ extras.lib: extras.s
 	$(CC) -l extras.lib extras.s
 
 check: linked.rom
-	byte_tester -s main.s
-	byte_tester -s namespace.s
-	byte_tester -s library.s
+	byte_tester -s main.s namespace.s library.s
 
 
 $(OFILES): $(HFILES)

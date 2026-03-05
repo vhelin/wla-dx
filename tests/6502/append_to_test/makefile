@@ -23,8 +23,7 @@ last.o: last.s
 	$(CC) $(CFLAGS) last.o last.s
 
 check: linked.rom
-	byte_tester -s main.s
-	byte_tester -s more.s
+	byte_tester -s main.s more.s
 
 
 $(OFILES): $(HFILES)
