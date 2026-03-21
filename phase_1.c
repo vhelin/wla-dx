@@ -160,6 +160,7 @@ static int s_repeat_active = 0, s_saved_structures_max = 0, s_skip_elifs[256];
 
 #if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(W65816) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
 int g_xbit_size = 0, g_accu_size = 8, g_index_size = 8;
+int g_accu_set_by_rep_sep = 0, g_index_set_by_rep_sep = 0;
 #endif
 
 /* vars used when in an enum, ramsection, or struct. */
@@ -11483,8 +11484,17 @@ int parse_directive(void) {
         return FAILED;
       }
 
+      /* Warn when .ACCU overrides a rep/sep-tracked width — this typically
+       * means the assembler's linear tracking diverged from runtime at a
+       * branch merge point. Only warn when the mismatch comes from rep/sep
+       * (not from the assembler's initial default), to avoid false positives
+       * at the start of functions where .ACCU sets the initial width. */
+      if (g_accu_size != g_parsed_int && g_accu_set_by_rep_sep)
+        print_error(ERROR_WRN, ".ACCU %d overrides rep/sep tracking of %d-bit. Likely a branch merge point where linear tracking diverged from runtime.\n", g_parsed_int, g_accu_size);
+
       g_accu_size = g_parsed_int;
-      
+      g_accu_set_by_rep_sep = 0;
+
       return SUCCEEDED;
     }
 #endif
@@ -11898,6 +11908,13 @@ int parse_directive(void) {
     else if (length == 4) {
       /* ENDS */
       if (strcmp(directive_upper, "ENDS") == 0) {
+#if defined(W65816)
+        /* Reset rep/sep tracking at section boundaries — a new section is a
+         * new context, so previous rep/sep state is irrelevant. */
+        g_accu_set_by_rep_sep = 0;
+        g_index_set_by_rep_sep = 0;
+#endif
+
         if (g_section_status == OFF) {
           print_error(ERROR_DIR, "There is no open section.\n");
           return FAILED;
@@ -12167,7 +12184,11 @@ int parse_directive(void) {
         return FAILED;
       }
 
+      if (g_index_size != g_parsed_int && g_index_set_by_rep_sep)
+        print_error(ERROR_WRN, ".INDEX %d overrides rep/sep tracking of %d-bit. Likely a branch merge point where linear tracking diverged from runtime.\n", g_parsed_int, g_index_size);
+
       g_index_size = g_parsed_int;
+      g_index_set_by_rep_sep = 0;
 
       return SUCCEEDED;
     }

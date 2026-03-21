@@ -31,6 +31,7 @@ extern struct active_file_info *g_active_file_info_first, *g_active_file_info_la
 
 #if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(W65816) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)
 extern int g_xbit_size, g_accu_size, g_index_size;
+extern int g_accu_set_by_rep_sep, g_index_set_by_rep_sep;
 #endif
 
 #if defined(W65816)
@@ -2905,17 +2906,25 @@ int evaluate_token(void) {
         
               /* REP */
               if (s_instruction_tmp->skip_xbit == 0) {
-                if (g_parsed_int & 16)
+                if (g_parsed_int & 16) {
                   g_index_size = 16;
-                if (g_parsed_int & 32)
+                  g_index_set_by_rep_sep = 1;
+                }
+                if (g_parsed_int & 32) {
                   g_accu_size = 16;
+                  g_accu_set_by_rep_sep = 1;
+                }
               }
               /* SEP */
               else {
-                if (g_parsed_int & 16)
+                if (g_parsed_int & 16) {
                   g_index_size = 8;
-                if (g_parsed_int & 32)
+                  g_index_set_by_rep_sep = 1;
+                }
+                if (g_parsed_int & 32) {
                   g_accu_size = 8;
+                  g_accu_set_by_rep_sep = 1;
+                }
               }
         
               g_source_index = s_parser_source_index;
