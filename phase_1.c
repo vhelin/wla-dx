@@ -11484,12 +11484,12 @@ int parse_directive(void) {
         return FAILED;
       }
 
-      /* Warn when .ACCU overrides a rep/sep-tracked width — this typically
+      /* Warn when .ACCU overrides a rep/sep-tracked width - this typically
        * means the assembler's linear tracking diverged from runtime at a
        * branch merge point. Only warn when the mismatch comes from rep/sep
        * (not from the assembler's initial default), to avoid false positives
        * at the start of functions where .ACCU sets the initial width. */
-      if (g_accu_size != g_parsed_int && g_accu_set_by_rep_sep)
+      if (g_accu_size != g_parsed_int && g_accu_set_by_rep_sep && g_verbose_level >= 100)
         print_error(ERROR_WRN, ".ACCU %d overrides rep/sep tracking of %d-bit. Likely a branch merge point where linear tracking diverged from runtime.\n", g_parsed_int, g_accu_size);
 
       g_accu_size = g_parsed_int;
@@ -11909,7 +11909,7 @@ int parse_directive(void) {
       /* ENDS */
       if (strcmp(directive_upper, "ENDS") == 0) {
 #if defined(W65816)
-        /* Reset rep/sep tracking at section boundaries — a new section is a
+        /* Reset rep/sep tracking at section boundaries - a new section is a
          * new context, so previous rep/sep state is irrelevant. */
         g_accu_set_by_rep_sep = 0;
         g_index_set_by_rep_sep = 0;
@@ -12184,7 +12184,7 @@ int parse_directive(void) {
         return FAILED;
       }
 
-      if (g_index_size != g_parsed_int && g_index_set_by_rep_sep)
+      if (g_index_size != g_parsed_int && g_index_set_by_rep_sep && g_verbose_level >= 100)
         print_error(ERROR_WRN, ".INDEX %d overrides rep/sep tracking of %d-bit. Likely a branch merge point where linear tracking diverged from runtime.\n", g_parsed_int, g_index_size);
 
       g_index_size = g_parsed_int;
