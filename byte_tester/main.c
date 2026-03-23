@@ -1,5 +1,6 @@
 
 #include <ctype.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,6 +23,72 @@ __near long __stack = 200000;
 #endif
 
 
+static int _append_digit(int *value, int base, int digit) {
+
+  if (*value > (INT_MAX - digit) / base)
+    return FAILED;
+
+  *value = (*value * base) + digit;
+
+  return SUCCEEDED;
+}
+
+
+static int _parse_byte_token(const char *token, unsigned char *out) {
+
+  char *endptr;
+  unsigned long value;
+  size_t len = strlen(token);
+
+  if (len == 1) {
+    *out = (unsigned char)token[0];
+    return SUCCEEDED;
+  }
+
+  if (token[0] == '$') {
+    if (len < 2)
+      return FAILED;
+    value = strtoul(token + 1, &endptr, 16);
+    if (*endptr != 0 || value > 0xFF)
+      return FAILED;
+    *out = (unsigned char)value;
+    return SUCCEEDED;
+  }
+
+  if (len == 2) {
+    if (!isxdigit((unsigned char)token[0]) || !isxdigit((unsigned char)token[1]))
+      return FAILED;
+    value = strtoul(token, &endptr, 16);
+    if (*endptr != 0 || value > 0xFF)
+      return FAILED;
+    *out = (unsigned char)value;
+    return SUCCEEDED;
+  }
+
+  if (token[0] == '0' && token[1] == 'd') {
+    if (token[2] == 0)
+      return FAILED;
+    value = strtoul(token + 2, &endptr, 10);
+    if (*endptr != 0 || value > 0xFF)
+      return FAILED;
+    *out = (unsigned char)value;
+    return SUCCEEDED;
+  }
+
+  if (token[0] == '0' && token[1] == 'x') {
+    if (token[2] == 0)
+      return FAILED;
+    value = strtoul(token + 2, &endptr, 16);
+    if (*endptr != 0 || value > 0xFF)
+      return FAILED;
+    *out = (unsigned char)value;
+    return SUCCEEDED;
+  }
+
+  return FAILED;
+}
+
+
 int _get_next_number(char *in, int *out) {
 
   int i = 0, o, n;
@@ -32,25 +99,46 @@ int _get_next_number(char *in, int *out) {
     else
       i += 2;
     o = 0;
-    while (TRUE) {
-      if (in[i] >= '0' && in[i] <= '9')
-        o = (o * 16) + in[i] - '0';
-      else if (in[i] >= 'a' && in[i] <= 'f')
-        o = (o * 16) + in[i] - 'a' + 0xA;
-      else if (in[i] >= 'A' && in[i] <= 'F')
-        o = (o * 16) + in[i] - 'A' + 0xA;
-      else if (in[i] == ' ' || in[i] == 0x09 || in[i] == 0)
-        break;
-      else
-        return FAILED;
-      i++;
+    {
+      int digits = 0;
+      while (TRUE) {
+        if (in[i] >= '0' && in[i] <= '9') {
+          if (_append_digit(&o, 16, in[i] - '0') == FAILED)
+            return FAILED;
+        }
+        else if (in[i] >= 'a' && in[i] <= 'f') {
+          if (_append_digit(&o, 16, in[i] - 'a' + 0xA) == FAILED)
+            return FAILED;
+        }
+        else if (in[i] >= 'A' && in[i] <= 'F') {
+          if (_append_digit(&o, 16, in[i] - 'A' + 0xA) == FAILED)
+            return FAILED;
+        }
+        else if (in[i] == ' ' || in[i] == 0x09 || in[i] == 0)
+          break;
+        else
+          return FAILED;
+        digits++;
+        i++;
+      }
+
+    if (digits == 0)
+      return FAILED;
     }
   }
   else if (in[i] == '0' && in[i+1] == 'd') {
     /* decimal */
     i += 2;
-    for (o = 0; in[i] >= '0' && in[i] <= '9'; i++)
-      o = (o * 10) + in[i] - '0';
+    {
+      int digits = 0;
+    for (o = 0; in[i] >= '0' && in[i] <= '9'; i++) {
+      if (_append_digit(&o, 10, in[i] - '0') == FAILED)
+        return FAILED;
+      digits++;
+    }
+    if (digits == 0)
+      return FAILED;
+    }
     if (!(in[i] == ' ' || in[i] == 0x09 || in[i] == 0))
       return FAILED;
   }
@@ -78,26 +166,51 @@ int _get_next_number(char *in, int *out) {
     if (n == 1) {
       /* hex */
       o = 0;
-      while (TRUE) {
-        if (in[i] >= '0' && in[i] <= '9')
-          o = (o * 16) + in[i] - '0';
-        else if (in[i] >= 'a' && in[i] <= 'f')
-          o = (o * 16) + in[i] - 'a' + 0xA;
-        else if (in[i] >= 'A' && in[i] <= 'F')
-          o = (o * 16) + in[i] - 'A' + 0xA;
-        else if (in[i] == 'h' || in[i] == 'H')
-          break;
-        else if (in[i] == ' ' || in[i] == 0x09 || in[i] == 0)
-          break;
-        else
-          return FAILED;
-        i++;
+      {
+        int digits = 0;
+        while (TRUE) {
+          if (in[i] >= '0' && in[i] <= '9') {
+            if (_append_digit(&o, 16, in[i] - '0') == FAILED)
+              return FAILED;
+          }
+          else if (in[i] >= 'a' && in[i] <= 'f') {
+            if (_append_digit(&o, 16, in[i] - 'a' + 0xA) == FAILED)
+              return FAILED;
+          }
+          else if (in[i] >= 'A' && in[i] <= 'F') {
+            if (_append_digit(&o, 16, in[i] - 'A' + 0xA) == FAILED)
+              return FAILED;
+          }
+          else if (in[i] == 'h' || in[i] == 'H') {
+            i++;
+            if (!(in[i] == ' ' || in[i] == 0x09 || in[i] == 0))
+              return FAILED;
+            break;
+          }
+          else if (in[i] == ' ' || in[i] == 0x09 || in[i] == 0)
+            break;
+          else
+            return FAILED;
+          digits++;
+          i++;
+        }
+
+      if (digits == 0)
+        return FAILED;
       }
     }
     else {
       /* decimal */
-      for (o = 0; in[i] >= '0' && in[i] <= '9'; i++)
-        o = (o * 10) + in[i] - '0';
+      {
+        int digits = 0;
+      for (o = 0; in[i] >= '0' && in[i] <= '9'; i++) {
+        if (_append_digit(&o, 10, in[i] - '0') == FAILED)
+          return FAILED;
+        digits++;
+      }
+      if (digits == 0)
+        return FAILED;
+      }
       if (!(in[i] == ' ' || in[i] == 0x09 || in[i] == 0))
         return FAILED;
     }
@@ -112,46 +225,82 @@ int _get_next_number(char *in, int *out) {
 
 
 unsigned char *g_binary_file = NULL;
+int g_get_token_overflow = NO;
 
 
-int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_size) {
+static int _looks_like_filename_token(const char *token) {
+
+  return (strchr(token, '.') != NULL || strchr(token, '/') != NULL || strchr(token, '\\') != NULL) ? YES : NO;
+}
+
+
+int _read_binary_file(char *filename, int *did_we_read_data, int *file_size) {
 
   FILE *fb;
+  unsigned char *new_data;
+  long file_size_long;
   
   fb = fopen(filename, "rb");
 
   if (fb == NULL) {
     if (g_binary_file != NULL) {
+      if (_looks_like_filename_token(filename) == YES) {
+        fprintf(stderr, "Error opening file \"%s\".\n", filename);
+        return FAILED;
+      }
       *did_we_read_data = NO;
       return SUCCEEDED;
     }
     fprintf(stderr, "Error opening file \"%s\".\n", filename);
-    if (f != NULL)
-      fclose(f);
     return FAILED;
   }
 
-  fseek(fb, 0, SEEK_END);
-  *file_size = (int)ftell(fb);
-  fseek(fb, 0, SEEK_SET);
+  if (fseek(fb, 0, SEEK_END) != 0) {
+    fprintf(stderr, "Could not seek to end of \"%s\".\n", filename);
+    fclose(fb);
+    return FAILED;
+  }
 
-  if (g_binary_file != NULL)
-    free(g_binary_file);
-  
-  g_binary_file = calloc(*file_size, 1);
-  if (g_binary_file == NULL) {
+  file_size_long = ftell(fb);
+  if (file_size_long < 0) {
+    fprintf(stderr, "Could not determine size of \"%s\".\n", filename);
+    fclose(fb);
+    return FAILED;
+  }
+
+  if (file_size_long > INT_MAX) {
+    fprintf(stderr, "File \"%s\" is too large.\n", filename);
+    fclose(fb);
+    return FAILED;
+  }
+
+  *file_size = (int)file_size_long;
+
+  if (fseek(fb, 0, SEEK_SET) != 0) {
+    fprintf(stderr, "Could not seek to start of \"%s\".\n", filename);
+    fclose(fb);
+    return FAILED;
+  }
+
+  new_data = calloc((*file_size > 0) ? *file_size : 1, 1);
+  if (new_data == NULL) {
     fprintf(stderr, "Error allocating memory for file \"%s\".\n", filename);
-    fclose(f);
     fclose(fb);
     *did_we_read_data = NO;
     return FAILED;
   }
 
-  if (fread(g_binary_file, 1, *file_size, fb) != (size_t) *file_size) {
+  if (fread(new_data, 1, *file_size, fb) != (size_t) *file_size) {
     fprintf(stderr, "Could not read all %d bytes of \"%s\"!", *file_size, filename);
+    free(new_data);
     fclose(fb);
     return FAILED;
   };
+
+  if (g_binary_file != NULL)
+    free(g_binary_file);
+
+  g_binary_file = new_data;
 
   fclose(fb);
 
@@ -164,14 +313,34 @@ int _read_binary_file(char *filename, int *did_we_read_data, FILE *f, int *file_
 /* get the next token from the input string and write the results on the result argument */
 int get_token(char **input, char *result) {
 
-  int n = 0;
+  int length = 0;
+  char *src = *input;
 
-  sscanf(*input, "%255s%n", result, &n);
+  g_get_token_overflow = NO;
 
-  if (!n)
+  while (*src != 0 && isspace((unsigned char)*src))
+    src++;
+
+  if (*src == 0)
     return FAILED;
 
-  *input += n;
+  while (*src != 0 && !isspace((unsigned char)*src)) {
+    if (length >= MAX_BYTES_PER_TEST - 1) {
+      while (*src != 0 && !isspace((unsigned char)*src))
+        src++;
+      result[0] = 0;
+      *input = src;
+      g_get_token_overflow = YES;
+      fprintf(stderr, "Token too long (max %d chars).\n", MAX_BYTES_PER_TEST - 1);
+      return FAILED;
+    }
+    result[length++] = *src;
+    src++;
+  }
+
+  result[length] = 0;
+
+  *input = src;
 
   return SUCCEEDED;
 }
@@ -224,6 +393,9 @@ int extract_comments(char *input, size_t size) {
     current = comment;
     comment_length = (int)(end - current);
 
+    if (output != input && output < current)
+      *output++ = '\n';
+
     memmove(output, current, comment_length);
     output += comment_length;
     current += comment_length;
@@ -244,9 +416,8 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
 
   /* parse flags and collect input filenames */
   for (i = 1; i < argc; i++) {
-    if (strcmp(argv[i], "-s") == 0) {
+    if (strcmp(argv[i], "-s") == 0)
       should_extract_comments = YES;
-    }
     else {
       input_names[input_name_count] = calloc(strlen(argv[i]) + 1, 1);
       if (input_names[input_name_count] == NULL) {
@@ -270,6 +441,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
     for (i = 0; i < input_name_count; i++) {
       FILE *fs = fopen(input_names[i], "rb");
       int fs_size;
+      long fs_size_long;
 
       if (fs == NULL) {
         fprintf(stderr, "Error opening file \"%s\".\n", input_names[i]);
@@ -277,13 +449,49 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
         return 1;
       }
 
-      fseek(fs, 0, SEEK_END);
-      fs_size = (int)ftell(fs);
-      fseek(fs, 0, SEEK_SET);
+      if (fseek(fs, 0, SEEK_END) != 0) {
+        fprintf(stderr, "Could not seek to end of \"%s\".\n", input_names[i]);
+        fclose(fs);
+        free(input);
+        return 1;
+      }
+
+      fs_size_long = ftell(fs);
+      if (fs_size_long < 0) {
+        fprintf(stderr, "Could not determine size of \"%s\".\n", input_names[i]);
+        fclose(fs);
+        free(input);
+        return 1;
+      }
+
+      if (fs_size_long > INT_MAX) {
+        fprintf(stderr, "File \"%s\" is too large.\n", input_names[i]);
+        fclose(fs);
+        free(input);
+        return 1;
+      }
+
+      fs_size = (int)fs_size_long;
+
+      if (fseek(fs, 0, SEEK_SET) != 0) {
+        fprintf(stderr, "Could not seek to start of \"%s\".\n", input_names[i]);
+        fclose(fs);
+        free(input);
+        return 1;
+      }
 
       /* grow the buffer: existing data + newline separator + new file + terminator */
       {
-        char *new_input = realloc(input, input_size + fs_size + 2);
+        char *new_input;
+
+        if (fs_size > INT_MAX - input_size - 2) {
+          fprintf(stderr, "Merged input would be too large.\n");
+          fclose(fs);
+          free(input);
+          return 1;
+        }
+
+        new_input = realloc(input, input_size + fs_size + 2);
 
         if (new_input == NULL) {
           fprintf(stderr, "Error allocating memory for merged input.\n");
@@ -326,9 +534,36 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
       return 1;
     }
 
-    fseek(f, 0, SEEK_END);
-    input_size = (int)ftell(f);
-    fseek(f, 0, SEEK_SET);
+    {
+      long input_size_long;
+
+      if (fseek(f, 0, SEEK_END) != 0) {
+        fprintf(stderr, "Could not seek to end of \"%s\".\n", input_names[0]);
+        fclose(f);
+        return 1;
+      }
+
+      input_size_long = ftell(f);
+      if (input_size_long < 0) {
+        fprintf(stderr, "Could not determine size of \"%s\".\n", input_names[0]);
+        fclose(f);
+        return 1;
+      }
+
+      if (input_size_long > INT_MAX) {
+        fprintf(stderr, "File \"%s\" is too large.\n", input_names[0]);
+        fclose(f);
+        return 1;
+      }
+
+      input_size = (int)input_size_long;
+
+      if (fseek(f, 0, SEEK_SET) != 0) {
+        fprintf(stderr, "Could not seek to start of \"%s\".\n", input_names[0]);
+        fclose(f);
+        return 1;
+      }
+    }
     /* make sure we allocate one extra byte for terminator 0 */
     input = calloc(input_size + 1, 1);
     if (input == NULL) {
@@ -350,6 +585,8 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
   bytes = calloc(bytes_capacity, 1);
   if (bytes == NULL) {
     fprintf(stderr, "Error allocating memory for test bytes.\n");
+    if (f != NULL)
+      fclose(f);
     free(input);
     return 1;
   }
@@ -358,11 +595,19 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
   if (should_extract_comments)
     extract_comments(input, input_size);
 
-  get_token(&current, tmp);
+  if (!get_token(&current, tmp)) {
+    fprintf(stderr, "No binary file name found in input.\n");
+    if (f != NULL)
+      fclose(f);
+    free(input);
+    free(bytes);
+    return 1;
+  }
 
   /* read the binary file */
-  if (_read_binary_file(tmp, &did_we_read_data, f, &file_size) == FAILED) {
-    f = NULL;
+  if (_read_binary_file(tmp, &did_we_read_data, &file_size) == FAILED) {
+    if (f != NULL)
+      fclose(f);
     free(input);
     free(bytes);
     return 1;
@@ -375,19 +620,26 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
     use_address = NO;
     address = 0;
 
-    if (!get_token(&current, test_id))
+    if (!get_token(&current, test_id)) {
+      if (g_get_token_overflow == YES)
+        failures = 1;
       break;
+    }
     /* test_id could be filename */
-    if (_read_binary_file(test_id, &did_we_read_data, f, &file_size) == FAILED) {
-      f = NULL;
+    if (_read_binary_file(test_id, &did_we_read_data, &file_size) == FAILED) {
+      if (f != NULL)
+        fclose(f);
       free(input);
       free(bytes);
       return 1;
     }
     if (did_we_read_data == YES)
       continue;
-    if (!get_token(&current, tag_id))
+    if (!get_token(&current, tag_id)) {
+      if (g_get_token_overflow == YES)
+        failures = 1;
       break;
+    }
 
     if (strlen(tag_id) != 2) {
       fprintf(stderr, "Test \"%s\" FAILED - TAG ID must be exactly two characters long. Error in \"%s\".\n", test_id, tag_id);
@@ -398,8 +650,11 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
     if (strcmp(tag_id, "-a") == 0) {
       use_address = YES;
 
-      if (!get_token(&current, tmp))
+      if (!get_token(&current, tmp)) {
+        if (g_get_token_overflow == YES)
+          failures = 1;
         break;
+      }
 
       if (_get_next_number(tmp, &address) == FAILED) {
         fprintf(stderr, "\"%s\" is not a number.\n", tmp);
@@ -407,8 +662,11 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
         break;
       }
 
-      if (!get_token(&current, tmp))
+      if (!get_token(&current, tmp)) {
+        if (g_get_token_overflow == YES)
+          failures = 1;
         break;
+      }
 
       if (strcmp(tmp, "START") != 0) {
         fprintf(stderr, "Test \"%s\" FAILED - START is missing in \"%s\".\n", test_id, argv[1]);
@@ -419,8 +677,11 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
     else if (strcmp(tag_id, "-y") == 0) {
       int got_it = NO;
 
-      if (!get_token(&current, tmp))
+      if (!get_token(&current, tmp)) {
+        if (g_get_token_overflow == YES)
+          failures = 1;
         break;
+      }
 
       length = (int)strlen(tmp);
 
@@ -442,12 +703,19 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
         fprintf(stderr, "Test \"%s\" SUCCEEDED!\n", test_id);
         continue;
       }
+
+      fprintf(stderr, "Test \"%s\" FAILED - Could not find string \"%s\".\n", test_id, tmp);
+      failures = 1;
+      continue;
     }
     else if (strcmp(tag_id, "-n") == 0) {
       int got_it = NO;
 
-      if (!get_token(&current, tmp))
+      if (!get_token(&current, tmp)) {
+        if (g_get_token_overflow == YES)
+          failures = 1;
         break;
+      }
 
       length = (int)strlen(tmp);
 
@@ -466,6 +734,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
       }
 
       if (got_it == YES) {
+        fprintf(stderr, "Test \"%s\" FAILED - Found forbidden string \"%s\".\n", test_id, tmp);
         failures = 1;
         break;
       }
@@ -475,8 +744,11 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
       continue;
     }
     else {
-      if (!get_token(&current, tmp))
+      if (!get_token(&current, tmp)) {
+        if (g_get_token_overflow == YES)
+          failures = 1;
         break;
+      }
 
       if (strcmp(tmp, "START") != 0) {
         fprintf(stderr, "Test \"%s\" FAILED - START/-a/-y/-n is missing in \"%s\".\n", test_id, argv[1]);
@@ -489,8 +761,18 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
 
     while (1) {
       if (byte_count == bytes_capacity) {
-        int new_capacity = bytes_capacity * 2;
-        unsigned char *new_bytes = realloc(bytes, new_capacity);
+        int new_capacity;
+        unsigned char *new_bytes;
+
+        if (bytes_capacity > INT_MAX / 2) {
+          fprintf(stderr, "Test \"%s\" FAILED - Test byte buffer would overflow.\n", test_id);
+          failures = 1;
+          end = 1;
+          break;
+        }
+
+        new_capacity = bytes_capacity * 2;
+        new_bytes = realloc(bytes, new_capacity);
 
         if (new_bytes == NULL) {
           fprintf(stderr, "Test \"%s\" FAILED - Could not allocate memory for test bytes.\n", test_id);
@@ -504,6 +786,8 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
       }
 
       if (!get_token(&current, tmp)) {
+        if (g_get_token_overflow == YES)
+          failures = 1;
         end = 1;
         break;
       }
@@ -511,17 +795,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
       if (strcmp(tmp, "END") == 0)
         break;
 
-      if (strlen(tmp) == 1)
-        bytes[byte_count] = tmp[0];
-      else if (tmp[0] == '$')
-        bytes[byte_count] = (unsigned char)strtol(&tmp[1], NULL, 16);
-      else if (strlen(tmp) == 2)
-        bytes[byte_count] = (unsigned char)strtol(tmp, NULL, 16);
-      else if (tmp[0] == '0' && tmp[1] == 'd')
-        bytes[byte_count] = (unsigned char)strtol(&tmp[2], NULL, 10);
-      else if (tmp[0] == '0' && tmp[1] == 'x')
-        bytes[byte_count] = (unsigned char)strtol(&tmp[2], NULL, 16);
-      else {
+      if (_parse_byte_token(tmp, &bytes[byte_count]) == FAILED) {
         fprintf(stderr, "Test \"%s\" FAILED - Unknown data \"%s\" in test \"%s\"! Must either be a character, two character hexadecimal value, 0d prefixed 8bit decimal value or END.\n", test_id, tmp, test_id);
         failures = 1;
         end = 1;
@@ -533,12 +807,18 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
 
     /* execute the test */
     if (use_address == NO) {
-      for (i = 0; i < file_size - 2; i++) {
+      if (file_size < 3) {
+        fprintf(stderr, "Test \"%s\" FAILED - Could not find tag \"%s>\".\n", test_id, tag_id);
+        failures = 1;
+        continue;
+      }
+
+      for (i = 0; i <= file_size - 3; i++) {
         if (g_binary_file[i] == tag_id[0] && g_binary_file[i+1] == tag_id[1] && g_binary_file[i+2] == '>')
           break;
       }
 
-      if (i == file_size - 2) {
+      if (i > file_size - 3) {
         fprintf(stderr, "Test \"%s\" FAILED - Could not find tag \"%s>\".\n", test_id, tag_id);
         failures = 1;
         continue;
@@ -546,12 +826,12 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
 
       tag_start = i+3;
 
-      for ( ; i < file_size - 2; i++) {
+      for ( ; i <= file_size - 3; i++) {
         if (g_binary_file[i] == '<' && g_binary_file[i+1] == tag_id[0] && g_binary_file[i+2] == tag_id[1])
           break;
       }
 
-      if (i == file_size - 2) {
+      if (i > file_size - 3) {
         fprintf(stderr, "Test \"%s\" FAILED - Could not find tag \"<%s\".\n", test_id, tag_id);
         failures = 1;
         continue;
@@ -568,7 +848,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
     else
       tag_start = address;
 
-    if (tag_start < 0 || tag_start + byte_count > file_size) {
+    if (tag_start < 0 || tag_start > file_size || byte_count > file_size - tag_start) {
       fprintf(stderr, "Test \"%s\" FAILED - Address range is outside the binary file.\n", test_id);
       failures = 1;
       continue;
