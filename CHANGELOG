@@ -38,6 +38,8 @@ v10.7 (03-Apr-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .
                       of just the file name and line number where it happened.
                     [ALL] 16-bit PC references were not enabled for all supported
                       CPUs (like 6809) in listfiles.
+                    [ALL] Added new operand hint '.z' - 8-bit zero page; It's the
+                      same as .b, but it also takes the lowest 8 bits of the operand.
                     [6**] .b and .w now override .8bit and .16bit.
                     [658] Fixed BRL and PER to work properly.
                     [658] Added a warning when .ACCU or .INDEX directives override

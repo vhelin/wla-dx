@@ -694,6 +694,40 @@ static int _parse_value_into_string(char e) {
 }
 
 
+static int _try_parse_operand_hint(void) {
+
+  char e;
+  
+  e = g_buffer[g_source_index+1];
+  if (e == 'b' || e == 'B') {
+    g_operand_hint = HINT_8BIT;
+    g_operand_hint_type = HINT_TYPE_GIVEN;
+    g_source_index += 2;
+    return SUCCEEDED;
+  }
+  else if (e == 'w' || e == 'W') {
+    g_operand_hint = HINT_16BIT;
+    g_operand_hint_type = HINT_TYPE_GIVEN;
+    g_source_index += 2;
+    return SUCCEEDED;
+  }
+  else if (e == 'l' || e == 'L') {
+    g_operand_hint = HINT_24BIT;
+    g_operand_hint_type = HINT_TYPE_GIVEN;
+    g_source_index += 2;
+    return SUCCEEDED;
+  }
+  else if (e == 'd' || e == 'D') {
+    g_operand_hint = HINT_32BIT;
+    g_operand_hint_type = HINT_TYPE_GIVEN;
+    g_source_index += 2;
+    return SUCCEEDED;
+  }
+
+  return FAILED;
+}
+
+
 #if defined(PROFILE_FUNCTIONS)
 int _input_number(void) {
 #else
@@ -792,7 +826,8 @@ int input_number(void) {
           break;
       }
       else if (curly_braces <= 0 && (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' || ee == '(' ||
-                                     ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':' || ee == '!' || (ee == '=' && g_buffer[p] == '='))) {
+                                     ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':' || ee == '!' || (ee == '=' && g_buffer[p] == '=') ||
+                                     (ee == '.' && (g_buffer[p] == 'z' || g_buffer[p] == 'Z')))) {
         if (ee == ':' && spaces > 0)
           break;
         
@@ -928,29 +963,8 @@ int input_number(void) {
       }
 
       /* does the MACRO argument number end with a .b/.w/.l/.d? */
-      if (e == '.') {
-        e = g_buffer[g_source_index+1];
-        if (e == 'b' || e == 'B') {
-          g_operand_hint = HINT_8BIT;
-          g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_index += 2;
-        }
-        else if (e == 'w' || e == 'W') {
-          g_operand_hint = HINT_16BIT;
-          g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_index += 2;
-        }
-        else if (e == 'l' || e == 'L') {
-          g_operand_hint = HINT_24BIT;
-          g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_index += 2;
-        }
-        else if (e == 'd' || e == 'D') {
-          g_operand_hint = HINT_32BIT;
-          g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_index += 2;
-        }
-      }
+      if (e == '.')
+        _try_parse_operand_hint();
 
       if (k == INPUT_NUMBER_FLOAT) {
         if (g_input_float_mode == ON)
@@ -1008,29 +1022,8 @@ int input_number(void) {
 
     e = g_buffer[g_source_index];
 
-    if (e == '.') {
-      e = g_buffer[g_source_index+1];
-      if (e == 'b' || e == 'B') {
-        g_operand_hint = HINT_8BIT;
-        g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_index += 2;
-      }
-      else if (e == 'w' || e == 'W') {
-        g_operand_hint = HINT_16BIT;
-        g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_index += 2;
-      }
-      else if (e == 'l' || e == 'L') {
-        g_operand_hint = HINT_24BIT;
-        g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_index += 2;
-      }
-      else if (e == 'd' || e == 'D') {
-        g_operand_hint = HINT_32BIT;
-        g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_index += 2;
-      }
-    }
+    if (e == '.')
+      _try_parse_operand_hint();
 
     if (g_operand_hint == HINT_NONE) {
       if (g_parsed_int > 0xFFFFFF)
@@ -1081,29 +1074,8 @@ int input_number(void) {
 
     e = g_buffer[g_source_index];
     
-    if (e == '.') {
-      e = g_buffer[g_source_index+1];
-      if (e == 'b' || e == 'B') {
-        g_operand_hint = HINT_8BIT;
-        g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_index += 2;
-      }
-      else if (e == 'w' || e == 'W') {
-        g_operand_hint = HINT_16BIT;
-        g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_index += 2;
-      }
-      else if (e == 'l' || e == 'L') {
-        g_operand_hint = HINT_24BIT;
-        g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_index += 2;
-      }
-      else if (e == 'd' || e == 'D') {
-        g_operand_hint = HINT_32BIT;
-        g_operand_hint_type = HINT_TYPE_GIVEN;
-        g_source_index += 2;
-      }
-    }
+    if (e == '.')
+      _try_parse_operand_hint();
 
     g_parsed_double = (double)g_parsed_int;
 
@@ -1156,29 +1128,9 @@ int input_number(void) {
           q = 1;
           max_digits = MAX_FLOAT_DIGITS+1;
         }
-        else if (e == 'b' || e == 'B') {
-          g_operand_hint = HINT_8BIT;
-          g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_index += 2;
-          break;
-        }
-        else if (e == 'w' || e == 'W') {
-          g_operand_hint = HINT_16BIT;
-          g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_index += 2;
-          break;
-        }
-        else if (e == 'l' || e == 'L') {
-          g_operand_hint = HINT_24BIT;
-          g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_index += 2;
-          break;
-        }
-        else if (e == 'd' || e == 'D') {
-          g_operand_hint = HINT_32BIT;
-          g_operand_hint_type = HINT_TYPE_GIVEN;
-          g_source_index += 2;
-          break;
+        else {
+          if (_try_parse_operand_hint() == SUCCEEDED)
+            break;
         }
       }
       else if ((e >= 'a' && e <= 'z') || (e >= 'A' && e <= 'Z')) {

@@ -118,15 +118,17 @@ WLA is able to deduce the accumulator/index mode to some extent from
 ``REP``/``SEP``-mnemonics and ``.ACCU`` and ``.INDEX``-directives, but just to
 be sure, terminate the operand with ``.B``, ``.W`` or ``.L``. ::
 
-    AND #10     ; can be two different things, depending on the size of the accu.
-    AND #10.B   ; forces 8-bit immediate value.
-    AND #10.W   ; forces 16-bit immediate value.
+    AND 10     ; can be three different things, depending on the size of the operand.
+    AND 10.B   ; forces 8-bit immediate value.
+    AND 10.W   ; forces 16-bit immediate value.
+    AND 10.L   ; forces 24-bit immediate value.
 
 Or if you must, these work as well::
 
-    AND.B #10   ; the same as "AND #10.B".
-    AND.W #10   ; the same as "AND #10.W".
-
+    AND.B 10   ; the same as "AND 10.B".
+    AND.W 10   ; the same as "AND 10.W".
+    AND.L 10   ; the same as "AND 10.L".
+    
 Opcodes that make relative label references::
 
     BCC
@@ -154,12 +156,26 @@ the parser to parse WLA syntax assembly code.
 ``xx`` is the source bank, ``yy`` is the target bank.
 
 
+MC68000
+-------
+
+In addition to operand hints ``.B``, ``.W`` and ``.L`` we also have ``.D`` (32-bit).
+
+
 HUC6280
 -------
 
 Read the subsection :ref:`codesub6502` as the information applies also to
 HUC6280 coding...
 
+As PC Engine's zero page starts at $2000 (imagine ``ZEROPAGE1`` label's
+address is $2001), operand hint ``.z`` will be useful::
+
+    STA ZEROPAGE1.Z  ; $85 $01
+
+It takes the lowest 8 bits of ``ZEROPAGE1`` and hints the assembler's parser that
+the operand is 8 bits in size.
+    
 Opcodes that make relative label references::
 
     BCC
