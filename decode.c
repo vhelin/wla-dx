@@ -2006,8 +2006,6 @@ int evaluate_token(void) {
       break;
       
     case 4:
-      if (g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
           y = g_source_index;
@@ -2018,6 +2016,8 @@ int evaluate_token(void) {
           
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
+          if ((g_operand_hint == HINT_NONE || (g_operand_hint == HINT_8BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
+            break;
           if (g_operand_hint == HINT_16BIT)
             break;
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128)) {
@@ -2082,8 +2082,6 @@ int evaluate_token(void) {
       
     case 6:
     case 1:
-      if (g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
           y = g_source_index;
@@ -2095,6 +2093,8 @@ int evaluate_token(void) {
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
+            break;
+          if ((g_operand_hint == HINT_NONE || (g_operand_hint == HINT_8BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
             break;
           if (g_operand_hint == HINT_16BIT)
             break;
@@ -2179,8 +2179,6 @@ int evaluate_token(void) {
       break;
       
     case 4:
-      if (g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
           y = g_source_index;
@@ -2192,6 +2190,8 @@ int evaluate_token(void) {
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
+            break;
+          if ((g_operand_hint == HINT_NONE || (g_operand_hint == HINT_8BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
             break;
           if (g_operand_hint == HINT_16BIT)
             break;
@@ -2327,8 +2327,6 @@ int evaluate_token(void) {
       
     case 6:
     case 1:
-      if (g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
           y = g_source_index;
@@ -2340,6 +2338,8 @@ int evaluate_token(void) {
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
+            break;
+          if ((g_operand_hint == HINT_NONE || (g_operand_hint == HINT_8BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
             break;
           if (g_operand_hint == HINT_16BIT)
             break;
@@ -2424,8 +2424,6 @@ int evaluate_token(void) {
       break;
       
     case 4:
-      if (g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
           y = g_source_index;
@@ -2437,6 +2435,8 @@ int evaluate_token(void) {
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
+            break;
+          if ((g_operand_hint == HINT_NONE || (g_operand_hint == HINT_8BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
             break;
           if (g_operand_hint == HINT_16BIT)
             break;
@@ -2666,8 +2666,6 @@ int evaluate_token(void) {
       break;
 
     case 2:
-      if (g_xbit_size > 16 && s_instruction_tmp->skip_xbit == 1)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == '?') {
           y = g_source_index;
@@ -2677,6 +2675,8 @@ int evaluate_token(void) {
           g_source_index = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
+          if ((g_operand_hint == HINT_NONE || (g_operand_hint <= HINT_16BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 16 && s_instruction_tmp->skip_xbit == 1)
+            break;
           if (g_operand_hint == HINT_24BIT && s_instruction_tmp->skip_xbit == 1)
             break;
           if (z == SUCCEEDED && (g_parsed_int < -32768 || g_parsed_int > 65535)) {
@@ -3072,8 +3072,6 @@ int evaluate_token(void) {
       break;
 
     case 0xA:
-      if (g_xbit_size > 8 && s_instruction_tmp->skip_xbit == 2)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
           y = g_source_index;
@@ -3083,6 +3081,8 @@ int evaluate_token(void) {
           g_source_index = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
+          if ((g_operand_hint == HINT_NONE || (g_operand_hint == HINT_8BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 8 && s_instruction_tmp->skip_xbit == 2)
+            break;
           if ((g_operand_hint == HINT_16BIT || g_operand_hint == HINT_24BIT) && s_instruction_tmp->skip_xbit == 2)
             break;
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128)) {
@@ -5851,8 +5851,6 @@ int evaluate_token(void) {
 
     case 4:
       /* 8-bit unsigned operand, absolute address */
-      if (g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
           y = g_source_index;
@@ -5863,6 +5861,8 @@ int evaluate_token(void) {
     
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
+          if ((g_operand_hint == HINT_NONE || (g_operand_hint == HINT_8BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
+            break;
           if (g_operand_hint == HINT_16BIT)
             break;
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < 0)) {
@@ -6064,8 +6064,6 @@ int evaluate_token(void) {
 
     case 4:
       /* 8-bit unsigned operand, absolute address */
-      if (g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
           y = g_source_index;
@@ -6076,6 +6074,8 @@ int evaluate_token(void) {
     
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
+          if ((g_operand_hint == HINT_NONE || (g_operand_hint == HINT_8BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
+            break;
           if (g_operand_hint == HINT_16BIT)
             break;
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < 0)) {
@@ -6301,8 +6301,6 @@ int evaluate_token(void) {
 
     case 4:
       /* 8-bit unsigned operand, absolute address */
-      if (g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
           y = g_source_index;
@@ -6313,6 +6311,8 @@ int evaluate_token(void) {
     
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
+          if ((g_operand_hint == HINT_NONE || (g_operand_hint == HINT_8BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
+            break;
           if (g_operand_hint == HINT_16BIT)
             break;
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < 0)) {
@@ -6352,8 +6352,6 @@ int evaluate_token(void) {
 
     case 6:
       /* 5-bit signed operand, absolute address + post op byte code */
-      if (g_xbit_size >= 8 && s_instruction_tmp->skip_8bit == 1)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 's') {
           y = g_source_index;
@@ -6362,13 +6360,15 @@ int evaluate_token(void) {
           s_parser_source_index = g_source_index;
           g_source_index = y;
 
-          /* TODO: add a mechanism so that we could use 5-bit addreslabel references and calculations */
+          /* TODO: add a mechanism so that we could use 5-bit address label references and calculations */
           /* currently we just fall back to 8-bit/16-bit ones */
           if (z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK)
             break;
           if (z != SUCCEEDED)
             return FAILED;
-          if (g_operand_hint == HINT_8BIT || g_operand_hint == HINT_16BIT)
+          if ((g_operand_hint == HINT_NONE || (g_operand_hint == HINT_8BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size >= 8 && s_instruction_tmp->skip_8bit == 1)
+            break;
+          if ((g_operand_hint == HINT_8BIT || g_operand_hint == HINT_16BIT))
             break;
           if (g_parsed_int > 15 || g_parsed_int < -16)
             break;
@@ -6397,8 +6397,6 @@ int evaluate_token(void) {
 
     case 7:
       /* 8-bit signed operand, relative address + post op byte code */
-      if (g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
           y = g_source_index;
@@ -6409,6 +6407,8 @@ int evaluate_token(void) {
 
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
+          if ((g_operand_hint == HINT_NONE || (g_operand_hint == HINT_8BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
+            break;
           if (g_operand_hint == HINT_16BIT)
             break;
           if (z == SUCCEEDED && (g_parsed_int > 127 || g_parsed_int < -128)) {
@@ -7699,8 +7699,6 @@ int evaluate_token(void) {
 
     case 9:
     case 1:
-      if (g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
           y = g_source_index;
@@ -7712,6 +7710,8 @@ int evaluate_token(void) {
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
+            break;
+          if ((g_operand_hint == HINT_NONE || (g_operand_hint == HINT_8BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
             break;
           if (g_operand_hint == HINT_16BIT)
             break;
@@ -7927,8 +7927,6 @@ int evaluate_token(void) {
       break;
 
     case 5:
-      if (g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
           y = g_source_index;
@@ -7957,6 +7955,8 @@ int evaluate_token(void) {
               if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
                 return FAILED;
               if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
+                break;
+              if ((g_operand_hint == HINT_NONE || (g_operand_hint == HINT_8BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
                 break;
               if (g_operand_hint == HINT_16BIT)
                 break;
@@ -8063,8 +8063,6 @@ int evaluate_token(void) {
       break;
 
     case 7:
-      if (g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
-        break;
       for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
         if (s_instruction_tmp->string[x] == 'x') {
           y = g_source_index;
@@ -8076,6 +8074,8 @@ int evaluate_token(void) {
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
           if (z == SUCCEEDED && (g_parsed_int > 255 || g_parsed_int < -128))
+            break;
+          if ((g_operand_hint == HINT_NONE || (g_operand_hint == HINT_8BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 8 && s_instruction_tmp->skip_8bit == 1)
             break;
           if (g_operand_hint == HINT_16BIT)
             break;

@@ -55,6 +55,16 @@ static int _parse_byte_token(const char *token, unsigned char *out) {
     return SUCCEEDED;
   }
 
+  if (token[0] == '0' && token[1] == 'b') {
+    if (token[2] == 0)
+      return FAILED;
+    value = strtoul(token + 2, &endptr, 2);
+    if (*endptr != 0 || value > 0xFF)
+      return FAILED;
+    *out = (unsigned char)value;
+    return SUCCEEDED;
+  }
+
   if (len == 2) {
     if (!isxdigit((unsigned char)token[0]) || !isxdigit((unsigned char)token[1]))
       return FAILED;
@@ -124,6 +134,28 @@ int _get_next_number(char *in, int *out) {
 
     if (digits == 0)
       return FAILED;
+    }
+  }
+  else if (in[i] == '0' && in[i+1] == 'b') {
+    i += 2;
+    o = 0;
+    {
+      int digits = 0;
+      while (TRUE) {
+        if (in[i] >= '0' && in[i] <= '1') {
+          if (_append_digit(&o, 2, in[i] - '0') == FAILED)
+            return FAILED;
+        }
+        else if (in[i] == ' ' || in[i] == 0x09 || in[i] == 0)
+          break;
+        else
+          return FAILED;
+        digits++;
+        i++;
+      }
+
+      if (digits == 0)
+        return FAILED;
     }
   }
   else if (in[i] == '0' && in[i+1] == 'd') {
@@ -796,7 +828,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
         break;
 
       if (_parse_byte_token(tmp, &bytes[byte_count]) == FAILED) {
-        fprintf(stderr, "Test \"%s\" FAILED - Unknown data \"%s\" in test \"%s\"! Must either be a character, two character hexadecimal value, 0d prefixed 8bit decimal value or END.\n", test_id, tmp, test_id);
+        fprintf(stderr, "Test \"%s\" FAILED - Unknown data \"%s\" in test \"%s\"! Must either be a character, two character hexadecimal value, 0d prefixed 8bit decimal value, 0b prefixed 8bit binary value or END.\n", test_id, tmp, test_id);
         failures = 1;
         end = 1;
         break;
@@ -915,6 +947,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "...\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "If <TAG ID> is \"01\", then we test if the bytes between \"01>\" and \"<01\" match with bytes 1...n\n");
+    fprintf(stderr, "Byte values can be characters, hexadecimal ($12, 12, 0x12), decimal (0d18), or binary (0b10010).\n");
     fprintf(stderr, "\n");
     return 1;
   }

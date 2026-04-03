@@ -325,3 +325,19 @@ this_is_a_long_label:
           sty.b 10              ; @BT 84 0A
           sty.w $1234           ; @BT 8C 34 12
           .db "<24"             ; @BT END
+
+        .db "25>"               ; @BT TEST-25 25 START
+        sta $50                 ; @BT 85 50
+        sta $50.b               ; @BT 85 50
+        sta.b $50               ; @BT 85 50
+        sta.w $50               ; @BT 8D 50 00
+        sta $50                 ; @BT 85 50
+        sta $50.w               ; @BT 8D 50 00
+        .16bit
+        sta $50                 ; @BT 8D 50 00
+        sta $50.b               ; @BT 85 50
+        sta.b $50               ; @BT 85 50
+        sta $50                 ; @BT 8D 50 00
+        sta.w $50               ; @BT 8D 50 00
+        sta $50.w               ; @BT 8D 50 00
+        .db "<25"               ; @BT END
