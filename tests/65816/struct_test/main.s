@@ -144,4 +144,15 @@ labelY:
             someData: .dd $01234567 ; @BT 67 45 23 01
 	.endst
 	.db "<04"		; @BT END
-	
+
+	.struct zerozero
+            zero db
+        .endst
+
+        .db "05>"               ; @BT TEST-05 05 START
+        .dstruct zerozero1 instanceof zerozero values
+            zero: .db 1+2+3     ; @BT 06
+        .endst
+        .db zerozero1.zero      ; @BT 76
+        .db "<05"               ; @BT END
+        

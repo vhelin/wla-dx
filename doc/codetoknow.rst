@@ -118,12 +118,19 @@ WLA is able to deduce the accumulator/index mode to some extent from
 ``REP``/``SEP``-mnemonics and ``.ACCU`` and ``.INDEX``-directives, but just to
 be sure, terminate the operand with ``.B``, ``.W`` or ``.L``. ::
 
+    AND #10    ; can be two different things, depending on the size of the operand.
+    AND #10.B  ; forces 8-bit immediate value.
+    AND #10.W  ; forces 16-bit immediate value.
+
     AND 10     ; can be three different things, depending on the size of the operand.
-    AND 10.B   ; forces 8-bit immediate value.
-    AND 10.W   ; forces 16-bit immediate value.
-    AND 10.L   ; forces 24-bit immediate value.
+    AND 10.B   ; forces 8-bit address.
+    AND 10.W   ; forces 16-bit address.
+    AND 10.L   ; forces 24-bit address.
 
 Or if you must, these work as well::
+
+    AND.B #10  ; the same as "AND #10.B".
+    AND.W #10  ; the same as "AND #10.W".
 
     AND.B 10   ; the same as "AND 10.B".
     AND.W 10   ; the same as "AND 10.W".
