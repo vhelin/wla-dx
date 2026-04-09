@@ -146,13 +146,17 @@ labelY:
 	.db "<04"		; @BT END
 
 	.struct zerozero
-            zero db
+            a db
+            c db
         .endst
 
         .db "05>"               ; @BT TEST-05 05 START
+        .db org()               ; @BT 76
         .dstruct zerozero1 instanceof zerozero values
-            zero: .db 1+2+3     ; @BT 06
+            a: .db 1            ; @BT 01
+            c: .db 1+2+3        ; @BT 06
         .endst
-        .db zerozero1.zero      ; @BT 76
+        .db zerozero1           ; @BT 77
+        .db zerozero1.a	        ; @BT 77
+        .db zerozero1.c         ; @BT 78
         .db "<05"               ; @BT END
-        

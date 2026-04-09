@@ -1910,20 +1910,28 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       b++;
       in++;
     }
-    else if (*in == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D' || *(in+1) == 'z' || *(in+1) == 'Z')) {
+    else if (*in == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D' || *(in+1) == '#')) {
       in++;
-      if (*in == 'b' || *in == 'B') {
-        g_operand_hint = HINT_8BIT;
-        g_operand_hint_type = HINT_TYPE_GIVEN;
-        in++;
-      }
-      else if (*in == 'z' || *in == 'Z') {
-        g_operand_hint = HINT_8BIT;
-        g_operand_hint_type = HINT_TYPE_GIVEN;
-        in++;
 
-        if (q > 0) {
-          /* change the previous stack item si -> "(si & 255)" */
+      if (*in == '#') {
+	in++;
+	if (q > 0) {
+	  unsigned int mask;
+
+	  if (*in == 'b' || *in == 'B')
+	    mask = 0xff;
+	  else if (*in == 'w' || *in == 'W')
+	    mask = 0xffff;
+	  else if (*in == 'l' || *in == 'L')
+	    mask = 0xffffff;
+	  else if (*in == 'd' || *in == 'D')
+	    mask = 0xffffffff;
+	  else {
+	    print_error(ERROR_NUM, "Unknown size hint '%c'.\n", *in);
+	    return FAILED;
+	  }
+	  
+          /* change the previous stack item si -> "(si & mask)" */
           si[q].type = si[q-1].type;
           si[q].sign = si[q-1].sign;
           si[q].value = si[q-1].value;
@@ -1941,7 +1949,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
           si[q].type = STACK_ITEM_TYPE_VALUE;
           si[q].sign = SI_SIGN_POSITIVE;
-          si[q].value = 0xff;
+          si[q].value = mask;
           q++;
           
           si[q].type = STACK_ITEM_TYPE_OPERATOR;
@@ -1949,6 +1957,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           si[q].value = SI_OP_RIGHT;
           q++;
         }
+      }
+
+      if (*in == 'b' || *in == 'B') {
+        g_operand_hint = HINT_8BIT;
+        g_operand_hint_type = HINT_TYPE_GIVEN;
+        in++;
       }
       else if (*in == 'w' || *in == 'W') {
         g_operand_hint = HINT_16BIT;
@@ -2194,7 +2208,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
                    e == ']' || e == '=' || e == '!' || e == '}' || e == '(' || e == 0xA || e == 0)
             break;
           else if (e == '.') {
-            if (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D' || *(in+1) == 'z' || *(in+1) == 'Z')
+            if (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D' || *(in+1) == '#')
               break;
             if (g_parse_floats == NO)
               break;
@@ -2293,7 +2307,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
               e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == ']' ||
               e == '~' || e == '=' || e == '!' || e == 0xA || e == 0)
             break;
-          if (e == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D' || *(in+1) == 'z' || *(in+1) == 'Z') &&
+	  if (e == '.' && *(in+1) == '#')
+	    break;
+          if (e == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D') &&
               (*(in+2) == ' ' || *(in+2) == ')' || *(in+2) == '|' || *(in+2) == '&' || *(in+2) == '+' || *(in+2) == '-' || *(in+2) == '*' ||
                *(in+2) == '/' || *(in+2) == ',' || *(in+2) == '^' || *(in+2) == '<' || *(in+2) == '>' || *(in+2) == '#' || *(in+2) == ']' ||
                *(in+2) == '~' || *(in+2) == 0xA || *(in+2) == 0))

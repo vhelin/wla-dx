@@ -244,10 +244,10 @@ label_19b:
 
         sta <foo                ; @BT 85 00
         sta <foo.b              ; @BT 85 00
-        sta foo.z               ; @BT 85 00
-        sta $12.z               ; @BT 85 12
-        STA $1234.Z             ; @BT 85 34
-        sta $1234.z + 1         ; @BT 85 35
+        sta foo.#b              ; @BT 85 00
+        sta $12.#b              ; @BT 85 12
+        STA $1234.#B            ; @BT 85 34
+        sta $1234.#B + 1        ; @BT 85 35
         sta.b <foo              ; @BT 85 00
         sta <foo                ; @BT 85 00
         sta <foo.w              ; @BT 8D 00 00
@@ -276,10 +276,10 @@ label_19b:
         sta foo                 ; @BT 8D 00 20
         sta <foo                ; @BT 8D 00 00
         sta <foo.b              ; @BT 85 00
-        sta foo.z               ; @BT 85 00
-        sta $12.z               ; @BT 85 12
-        STA $1234.Z             ; @BT 85 34
-        sta $1234.z + 1         ; @BT 85 35
+        sta foo.#b              ; @BT 85 00
+        sta $12.#b              ; @BT 85 12
+        STA $1234.#B            ; @BT 85 34
+        sta $1234.#B + 1        ; @BT 85 35
         sta.b <foo              ; @BT 85 00
         sta <foo                ; @BT 8D 00 00
         sta <foo.w              ; @BT 8D 00 00

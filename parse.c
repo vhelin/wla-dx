@@ -826,8 +826,7 @@ int input_number(void) {
           break;
       }
       else if (curly_braces <= 0 && (ee == '-' || ee == '+' || ee == '*' || ee == '/' || ee == '&' || ee == '|' || ee == '^' || ee == '(' ||
-                                     ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':' || ee == '!' || (ee == '=' && g_buffer[p] == '=') ||
-                                     (ee == '.' && (g_buffer[p] == 'z' || g_buffer[p] == 'Z')))) {
+                                     ee == '<' || ee == '>' || ee == '#' || ee == '~' || ee == ':' || ee == '!' || (ee == '=' && g_buffer[p] == '='))) {
         if (ee == ':' && spaces > 0)
           break;
         

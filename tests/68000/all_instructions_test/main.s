@@ -2738,4 +2738,4 @@ T5_23_18:
   MOVE.L #(5-4),D0                        ; @BT $20 $3C $00 $00 $00 $01
   MOVE.L #F5_NEG1(T4D_ONE),D7                       ; @BT $2E $3C $FF $FF $FF $FF
 
-  .db "<05" ; @BT END
+  .db "<05" ; @BT END

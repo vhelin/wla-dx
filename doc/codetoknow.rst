@@ -176,9 +176,9 @@ Read the subsection :ref:`codesub6502` as the information applies also to
 HUC6280 coding...
 
 As PC Engine's zero page starts at $2000 (imagine ``ZEROPAGE1`` label's
-address is $2001), operand hint ``.z`` will be useful::
+address is $2001), operand hint ``.#b`` will be useful::
 
-    STA ZEROPAGE1.Z  ; $85 $01
+    STA ZEROPAGE1.#B  ; $85 $01
 
 It takes the lowest 8 bits of ``ZEROPAGE1`` and hints the assembler's parser that
 the operand is 8 bits in size.

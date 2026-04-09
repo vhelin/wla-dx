@@ -295,7 +295,7 @@ careful. Still, operand hints override all of these, so use them to be sure.
 To hint that the operand fits 8 bits and also take the lowest 8 bits of the
 operand do this::
 
-    STA ZEROPAGE0.Z  ; $85 $00
+    STA ZEROPAGE0.#B  ; $85 $00
 
 This is not a compulsory directive.
 
