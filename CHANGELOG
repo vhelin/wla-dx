@@ -40,6 +40,9 @@ v10.7 (09-Apr-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .
                       CPUs (like 6809) in listfiles.
                     [ALL] Added new operand hint '.#b' - 8-bit zero page; It's the
                       same as .b, but it also takes the lowest 8 bits of the operand.
+                    [ALL] .STRUCT member names b, w, d and l are now forbidden as
+                      when referencing them the assembler would confuse the
+                      references with size hints.
                     [6**] .b and .w now override .8bit and .16bit.
                     [658] Fixed BRL and PER to work properly.
                     [658] Added a warning when .ACCU or .INDEX directives override

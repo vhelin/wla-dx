@@ -2332,6 +2332,16 @@ int parse_enum_token(void) {
       g_tmp[strlen(g_tmp) - 1] = 0;
     strcpy(tmpname, g_tmp);
 
+    if (g_in_struct == YES && g_tmp[1] == 0) {
+      char c = (char)toupper(g_tmp[0]);
+      
+      /* forbid some struct member names */
+      if (c == 'B' || c == 'W' || c == 'D' || c == 'L') {
+	print_error(ERROR_DIR, "'%c' doesn't work as a .STRUCT member name as the assembler confuses it with a size hint.\n", g_tmp[0]);
+	return FAILED;
+      }
+    }
+
     /* get the size/type */
     if (get_next_token() == FAILED)
       return FAILED;    
