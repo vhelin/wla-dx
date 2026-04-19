@@ -45,13 +45,537 @@ extern int g_file_header_size, g_file_footer_size, *g_bankaddress, *g_banksizes;
 extern int g_memory_file_id, g_memory_file_id_source, g_memory_line_number, g_output_mode;
 extern int g_program_start, g_program_end, g_snes_mode, g_smc_status;
 extern int g_snes_sramsize, g_num_sorted_anonymous_labels, g_sort_sections;
-extern int g_output_type, g_program_address_start, g_program_address_end, g_program_address_start_type, g_program_address_end_type;
+extern int g_output_type, g_c64_crt_type, g_program_address_start, g_program_address_end, g_program_address_start_type, g_program_address_end_type;
 extern int g_section_table_table_max, g_section_write_order[SECTION_TYPES_COUNT-2], g_ramsection_write_order[RAMSECTION_TYPES_COUNT];
 extern int g_use_priority_only_writing_sections, g_use_priority_only_writing_ramsections;
 extern int g_allow_duplicate_labels_and_definitions;
 extern int g_allow_value_mismatch_in_duplicate_labels;
 
 static int s_current_stack_calculation_addr = 0;
+
+
+static void _write_u16be(FILE *f, int value) {
+
+  fprintf(f, "%c", (value >> 8) & 0xFF);
+  fprintf(f, "%c", value & 0xFF);
+}
+
+
+static void _write_u32be(FILE *f, int value) {
+
+  fprintf(f, "%c", (value >> 24) & 0xFF);
+  fprintf(f, "%c", (value >> 16) & 0xFF);
+  fprintf(f, "%c", (value >> 8) & 0xFF);
+  fprintf(f, "%c", value & 0xFF);
+}
+
+
+static char *_get_c64_crt_type_name(int type) {
+
+  if (type == C64_CRT_TYPE_NORMAL_4K)
+    return "NORMAL4K";
+  else if (type == C64_CRT_TYPE_NORMAL_8K)
+    return "NORMAL8K";
+  else if (type == C64_CRT_TYPE_NORMAL_16K)
+    return "NORMAL16K";
+  else if (type == C64_CRT_TYPE_ULTIMAX_4K)
+    return "ULTIMAX4K";
+  else if (type == C64_CRT_TYPE_ULTIMAX_8K)
+    return "ULTIMAX8K";
+  else if (type == C64_CRT_TYPE_ULTIMAX_16K)
+    return "ULTIMAX16K";
+  else if (type == C64_CRT_TYPE_OCEAN)
+    return "OCEAN";
+  else if (type == C64_CRT_TYPE_MAGIC_DESK)
+    return "MAGICDESK";
+  else if (type == C64_CRT_TYPE_EASYFLASH)
+    return "EASYFLASH";
+  else if (type == C64_CRT_TYPE_SIMONS_BASIC)
+    return "SIMONSBASIC";
+  else if (type == C64_CRT_TYPE_EPYX_FASTLOAD)
+    return "EPYXFASTLOAD";
+  else if (type == C64_CRT_TYPE_C64_GS)
+    return "C64GS";
+  else if (type == C64_CRT_TYPE_COMAL80)
+    return "COMAL80";
+  else if (type == C64_CRT_TYPE_GMOD2)
+    return "GMOD2";
+  else if (type == C64_CRT_TYPE_RGCD)
+    return "RGCD";
+  else if (type == C64_CRT_TYPE_GMOD3)
+    return "GMOD3";
+
+  return "UNKNOWN";
+}
+
+
+static int _all_rom_banks_are_size(int bank_size) {
+
+  int i;
+
+  for (i = 0; i < g_rombanks; i++) {
+    if (g_banksizes[i] != bank_size)
+      return NO;
+  }
+
+  return YES;
+}
+
+
+static int _all_rom_banks_are_size_or_pairs(int small_bank_size, int large_bank_size) {
+
+  if (g_rombanks >= 1 && _all_rom_banks_are_size(large_bank_size) == YES)
+    return YES;
+  if (g_rombanks >= 2 && (g_rombanks & 1) == 0 && _all_rom_banks_are_size(small_bank_size) == YES)
+    return YES;
+
+  return NO;
+}
+
+
+static int _write_c64_crt_header_ex(FILE *f, int hardware_type, int exrom, int game, int subtype, char *name) {
+
+  unsigned char cart_name[32];
+  int i, version;
+
+  memset(cart_name, 0, sizeof(cart_name));
+  if (name != NULL) {
+    for (i = 0; i < (int)sizeof(cart_name) - 1 && name[i] != 0; i++)
+      cart_name[i] = (unsigned char)name[i];
+  }
+
+  /* Version 0x0101 is required to use the cartridge subtype/hardware revision byte at offset 0x1A. */
+  version = (subtype != 0) ? 0x0101 : 0x0100;
+
+  fwrite("C64 CARTRIDGE   ", 1, 16, f);
+  _write_u32be(f, 0x40);
+  _write_u16be(f, version);
+  _write_u16be(f, hardware_type);
+  fprintf(f, "%c", exrom & 0xFF);
+  fprintf(f, "%c", game & 0xFF);
+
+  /* $001A = subtype/hardware revision, $001B-$001F reserved. */
+  fprintf(f, "%c", subtype & 0xFF);
+  for (i = 0; i < 5; i++)
+    fprintf(f, "%c", 0);
+
+  fwrite(cart_name, 1, sizeof(cart_name), f);
+
+  return SUCCEEDED;
+}
+
+
+static int _write_c64_crt_header(FILE *f, int hardware_type, int exrom, int game, char *name) {
+
+  return _write_c64_crt_header_ex(f, hardware_type, exrom, game, 0, name);
+}
+
+
+static int _write_c64_crt_chip(FILE *f, int chip_type, int bank, int load_address, int size, unsigned char *data) {
+
+  if (data == NULL)
+    return FAILED;
+
+  fwrite("CHIP", 1, 4, f);
+  _write_u32be(f, 0x10 + size);
+  _write_u16be(f, chip_type);
+  _write_u16be(f, bank);
+  _write_u16be(f, load_address);
+  _write_u16be(f, size);
+  fwrite(data, 1, size, f);
+
+  return SUCCEEDED;
+}
+
+
+static void _get_c64_crt_output_name(char *outname, char *name, int size) {
+
+  char *base, *dot;
+  int length;
+
+  base = strrchr(outname, '/');
+  if (base == NULL)
+    base = strrchr(outname, '\\');
+  if (base == NULL)
+    base = outname;
+  else
+    base++;
+
+  dot = strrchr(base, '.');
+  if (dot == NULL)
+    length = (int)strlen(base);
+  else
+    length = (int)(dot - base);
+
+  if (length >= size)
+    length = size - 1;
+
+  memcpy(name, base, length);
+  name[length] = 0;
+}
+
+
+static int _validate_c64_crt_write(void) {
+
+  if (g_c64_crt_type == C64_CRT_TYPE_UNDEFINED) {
+    print_text(NO, "WRITE_ROM_FILE: C64CRT output requires -c64crt <TYPE>.\n");
+    return FAILED;
+  }
+  if (g_output_mode != OUTPUT_ROM) {
+    print_text(NO, "WRITE_ROM_FILE: C64CRT output requires ROM mode. Remove -b.\n");
+    return FAILED;
+  }
+  if (g_load_address_type != LOAD_ADDRESS_TYPE_UNDEFINED) {
+    print_text(NO, "WRITE_ROM_FILE: C64CRT output does not support -a load addresses.\n");
+    return FAILED;
+  }
+  if (g_program_address_start >= 0 || g_program_address_end >= 0 || g_program_address_start_type != LOAD_ADDRESS_TYPE_UNDEFINED || g_program_address_end_type != LOAD_ADDRESS_TYPE_UNDEFINED) {
+    print_text(NO, "WRITE_ROM_FILE: C64CRT output does not support -bS/-bE program ranges.\n");
+    return FAILED;
+  }
+  if (g_file_header != NULL || g_file_footer != NULL) {
+    print_text(NO, "WRITE_ROM_FILE: C64CRT output does not support [header]/[footer] data in the link file.\n");
+    return FAILED;
+  }
+  if (g_smc_status != 0) {
+    print_text(NO, "WRITE_ROM_FILE: C64CRT output does not support SMC headers.\n");
+    return FAILED;
+  }
+  if (g_sec_bankhd_first != NULL) {
+    print_text(NO, "WRITE_ROM_FILE: C64CRT output does not support BANKHEADER sections.\n");
+    return FAILED;
+  }
+
+  if (g_c64_crt_type == C64_CRT_TYPE_NORMAL_4K) {
+    if (g_rombanks != 1 || g_banksizes[0] != 0x1000) {
+      print_text(NO, "WRITE_ROM_FILE: %s requires exactly one 4KB ROM bank.\n", _get_c64_crt_type_name(g_c64_crt_type));
+      return FAILED;
+    }
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_ULTIMAX_4K) {
+    /* Ultimax 4K accepts either one 4KB bank (ROML; ROMH is synthesized with
+       reset vectors pointing to ROML) or two 4KB banks (bank 0 = ROML,
+       bank 1 = ROMH) for authors who want to provide ROMH content explicitly. */
+    if (!((g_rombanks == 1 && g_banksizes[0] == 0x1000) ||
+          (g_rombanks == 2 && g_banksizes[0] == 0x1000 && g_banksizes[1] == 0x1000))) {
+      print_text(NO, "WRITE_ROM_FILE: ULTIMAX4K requires one or two 4KB ROM banks.\n");
+      return FAILED;
+    }
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_NORMAL_8K || g_c64_crt_type == C64_CRT_TYPE_EPYX_FASTLOAD) {
+    if (g_rombanks != 1 || g_banksizes[0] != 0x2000) {
+      print_text(NO, "WRITE_ROM_FILE: %s requires exactly one 8KB ROM bank.\n", _get_c64_crt_type_name(g_c64_crt_type));
+      return FAILED;
+    }
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_ULTIMAX_8K) {
+    /* Ultimax 8K accepts either one 8KB bank (ROML; ROMH is synthesized with
+       reset vectors pointing to ROML) or two 8KB banks (bank 0 = ROML,
+       bank 1 = ROMH) for authors who want to provide ROMH content explicitly. */
+    if (!((g_rombanks == 1 && g_banksizes[0] == 0x2000) ||
+          (g_rombanks == 2 && g_banksizes[0] == 0x2000 && g_banksizes[1] == 0x2000))) {
+      print_text(NO, "WRITE_ROM_FILE: ULTIMAX8K requires one or two 8KB ROM banks.\n");
+      return FAILED;
+    }
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_SIMONS_BASIC) {
+    /* Simons' BASIC is 16KB and VICE requires two 8KB CHIP blocks at $8000 and $A000. */
+    if (g_rombanks == 1 && g_banksizes[0] == 0x4000)
+      return SUCCEEDED;
+    if (g_rombanks != 2 || _all_rom_banks_are_size(0x2000) == NO) {
+      print_text(NO, "WRITE_ROM_FILE: SIMONSBASIC requires one 16KB ROM bank or two 8KB ROM banks.\n");
+      return FAILED;
+    }
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_NORMAL_16K || g_c64_crt_type == C64_CRT_TYPE_ULTIMAX_16K) {
+    if (g_rombanks == 1 && g_banksizes[0] == 0x4000)
+      return SUCCEEDED;
+    if (g_rombanks != 2 || _all_rom_banks_are_size(0x2000) == NO) {
+      print_text(NO, "WRITE_ROM_FILE: %s requires one 16KB ROM bank or two 8KB ROM banks.\n", _get_c64_crt_type_name(g_c64_crt_type));
+      return FAILED;
+    }
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_OCEAN || g_c64_crt_type == C64_CRT_TYPE_MAGIC_DESK || g_c64_crt_type == C64_CRT_TYPE_GMOD2) {
+    if (g_rombanks < 1 || _all_rom_banks_are_size(0x2000) == NO) {
+      print_text(NO, "WRITE_ROM_FILE: %s requires one or more 8KB ROM banks.\n", _get_c64_crt_type_name(g_c64_crt_type));
+      return FAILED;
+    }
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_RGCD) {
+    /* VICE requires exactly 8 banks (64KB) for RGCD subtype 0. */
+    if (g_rombanks != 8 || _all_rom_banks_are_size(0x2000) == NO) {
+      print_text(NO, "WRITE_ROM_FILE: RGCD requires exactly eight 8KB ROM banks (64KB total).\n");
+      return FAILED;
+    }
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_GMOD3) {
+    /* VICE requires the total flash image to be 2MB, 4MB, 8MB or 16MB
+       (256, 512, 1024 or 2048 banks of 8KB). */
+    if (_all_rom_banks_are_size(0x2000) == NO ||
+        (g_rombanks != 256 && g_rombanks != 512 && g_rombanks != 1024 && g_rombanks != 2048)) {
+      print_text(NO, "WRITE_ROM_FILE: GMOD3 requires 256, 512, 1024 or 2048 banks of 8KB (2MB/4MB/8MB/16MB).\n");
+      return FAILED;
+    }
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_EASYFLASH) {
+    if (g_rombanks < 2 || (g_rombanks & 1) != 0 || _all_rom_banks_are_size(0x2000) == NO) {
+      print_text(NO, "WRITE_ROM_FILE: EASYFLASH requires an even number of 8KB ROM banks.\n");
+      return FAILED;
+    }
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_C64_GS) {
+    /* VICE C64GS is 64 banks of 8KB at $8000 (512KB total). */
+    if (g_rombanks != 64 || _all_rom_banks_are_size(0x2000) == NO) {
+      print_text(NO, "WRITE_ROM_FILE: C64GS requires exactly 64 banks of 8KB (512KB total).\n");
+      return FAILED;
+    }
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_COMAL80) {
+    /* VICE Comal-80 is 4 banks of 16KB at $8000. Accept four 16KB banks or eight 8KB banks. */
+    if (_all_rom_banks_are_size_or_pairs(0x2000, 0x4000) == NO) {
+      print_text(NO, "WRITE_ROM_FILE: COMAL80 requires four 16KB ROM banks or eight 8KB ROM banks.\n");
+      return FAILED;
+    }
+    if (!((g_rombanks == 4 && _all_rom_banks_are_size(0x4000) == YES) ||
+          (g_rombanks == 8 && _all_rom_banks_are_size(0x2000) == YES))) {
+      print_text(NO, "WRITE_ROM_FILE: COMAL80 requires four 16KB ROM banks or eight 8KB ROM banks (64KB total).\n");
+      return FAILED;
+    }
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _write_c64_crt_file(FILE *f, char *outname) {
+
+  char cart_name[33];
+  int i;
+
+  if (_validate_c64_crt_write() == FAILED)
+    return FAILED;
+
+  _get_c64_crt_output_name(outname, cart_name, sizeof(cart_name));
+
+  if (g_c64_crt_type == C64_CRT_TYPE_NORMAL_4K) {
+    if (_write_c64_crt_header(f, 0, 0, 1, cart_name) == FAILED)
+      return FAILED;
+    return _write_c64_crt_chip(f, 0, 0, 0x8000, 0x1000, g_rom + g_bankaddress[0]);
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_NORMAL_8K) {
+    if (_write_c64_crt_header(f, 0, 0, 1, cart_name) == FAILED)
+      return FAILED;
+    return _write_c64_crt_chip(f, 0, 0, 0x8000, 0x2000, g_rom + g_bankaddress[0]);
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_NORMAL_16K) {
+    unsigned char *data;
+    unsigned char buffer[0x4000];
+
+    if (_write_c64_crt_header(f, 0, 0, 0, cart_name) == FAILED)
+      return FAILED;
+
+    /* VICE's generic_crt_attach requires a single 16KB CHIP at $8000. */
+    if (g_rombanks == 1) {
+      data = g_rom + g_bankaddress[0];
+    }
+    else {
+      memcpy(buffer, g_rom + g_bankaddress[0], 0x2000);
+      memcpy(buffer + 0x2000, g_rom + g_bankaddress[1], 0x2000);
+      data = buffer;
+    }
+
+    return _write_c64_crt_chip(f, 0, 0, 0x8000, 0x4000, data);
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_ULTIMAX_4K) {
+    unsigned char romh[0x1000];
+    unsigned char *roml = g_rom + g_bankaddress[0];
+
+    if (_write_c64_crt_header(f, 0, 1, 0, cart_name) == FAILED)
+      return FAILED;
+    if (_write_c64_crt_chip(f, 0, 0, 0x8000, 0x1000, roml) == FAILED)
+      return FAILED;
+
+    if (g_rombanks == 2) {
+      /* Caller supplied an explicit ROMH bank; emit it verbatim. */
+      memcpy(romh, g_rom + g_bankaddress[1], 0x1000);
+    }
+    else {
+      /* Only ROML was provided; synthesize a minimal ROMH containing just the
+         NMI / RESET / IRQ vectors (pointing at the CBM80 cold-start address
+         stored at ROML[0..1]). The rest is left as 0x00 so the cart boots on
+         real hardware without mirroring ROML content into ROMH. */
+      memset(romh, 0, sizeof(romh));
+      romh[0x0FFA] = roml[0]; romh[0x0FFB] = roml[1];
+      romh[0x0FFC] = roml[0]; romh[0x0FFD] = roml[1];
+      romh[0x0FFE] = roml[0]; romh[0x0FFF] = roml[1];
+    }
+    return _write_c64_crt_chip(f, 0, 0, 0xF000, 0x1000, romh);
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_ULTIMAX_8K) {
+    unsigned char romh[0x2000];
+    unsigned char *roml = g_rom + g_bankaddress[0];
+
+    if (_write_c64_crt_header(f, 0, 1, 0, cart_name) == FAILED)
+      return FAILED;
+    if (_write_c64_crt_chip(f, 0, 0, 0x8000, 0x2000, roml) == FAILED)
+      return FAILED;
+
+    if (g_rombanks == 2) {
+      /* Caller supplied an explicit ROMH bank; emit it verbatim. */
+      memcpy(romh, g_rom + g_bankaddress[1], 0x2000);
+    }
+    else {
+      /* Only ROML was provided; synthesize a minimal ROMH with vectors. */
+      memset(romh, 0, sizeof(romh));
+      romh[0x1FFA] = roml[0]; romh[0x1FFB] = roml[1];
+      romh[0x1FFC] = roml[0]; romh[0x1FFD] = roml[1];
+      romh[0x1FFE] = roml[0]; romh[0x1FFF] = roml[1];
+    }
+    return _write_c64_crt_chip(f, 0, 0, 0xE000, 0x2000, romh);
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_ULTIMAX_16K) {
+    unsigned char *low, *high;
+
+    if (_write_c64_crt_header(f, 0, 1, 0, cart_name) == FAILED)
+      return FAILED;
+
+    low = g_rom + g_bankaddress[0];
+    high = (g_rombanks == 1) ? low + 0x2000 : g_rom + g_bankaddress[1];
+
+    if (_write_c64_crt_chip(f, 0, 0, 0x8000, 0x2000, low) == FAILED)
+      return FAILED;
+    return _write_c64_crt_chip(f, 0, 0, 0xE000, 0x2000, high);
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_OCEAN) {
+    if (_write_c64_crt_header(f, 5, 0, 0, cart_name) == FAILED)
+      return FAILED;
+
+    for (i = 0; i < g_rombanks; i++) {
+      if (_write_c64_crt_chip(f, 0, i, 0x8000, 0x2000, g_rom + g_bankaddress[i]) == FAILED)
+        return FAILED;
+    }
+
+    return SUCCEEDED;
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_MAGIC_DESK) {
+    if (_write_c64_crt_header(f, 19, 0, 1, cart_name) == FAILED)
+      return FAILED;
+
+    for (i = 0; i < g_rombanks; i++) {
+      if (_write_c64_crt_chip(f, 0, i, 0x8000, 0x2000, g_rom + g_bankaddress[i]) == FAILED)
+        return FAILED;
+    }
+
+    return SUCCEEDED;
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_EASYFLASH) {
+    if (_write_c64_crt_header(f, 32, 1, 0, cart_name) == FAILED)
+      return FAILED;
+
+    for (i = 0; i < g_rombanks; i += 2) {
+      if (_write_c64_crt_chip(f, 2, i >> 1, 0x8000, 0x2000, g_rom + g_bankaddress[i]) == FAILED)
+        return FAILED;
+      if (_write_c64_crt_chip(f, 2, i >> 1, 0xA000, 0x2000, g_rom + g_bankaddress[i + 1]) == FAILED)
+        return FAILED;
+    }
+
+    return SUCCEEDED;
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_SIMONS_BASIC) {
+    unsigned char *low, *high;
+
+    if (_write_c64_crt_header(f, 4, 0, 1, cart_name) == FAILED)
+      return FAILED;
+
+    low = g_rom + g_bankaddress[0];
+    high = (g_rombanks == 1) ? low + 0x2000 : g_rom + g_bankaddress[1];
+
+    /* VICE expects two 8KB CHIP blocks: $8000 and $A000. */
+    if (_write_c64_crt_chip(f, 0, 0, 0x8000, 0x2000, low) == FAILED)
+      return FAILED;
+    return _write_c64_crt_chip(f, 0, 0, 0xA000, 0x2000, high);
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_EPYX_FASTLOAD) {
+    if (_write_c64_crt_header(f, 10, 0, 1, cart_name) == FAILED)
+      return FAILED;
+    return _write_c64_crt_chip(f, 0, 0, 0x8000, 0x2000, g_rom + g_bankaddress[0]);
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_C64_GS) {
+    /* 64 banks of 8KB at $8000. */
+    if (_write_c64_crt_header(f, 15, 0, 1, cart_name) == FAILED)
+      return FAILED;
+
+    for (i = 0; i < g_rombanks; i++) {
+      if (_write_c64_crt_chip(f, 0, i, 0x8000, 0x2000, g_rom + g_bankaddress[i]) == FAILED)
+        return FAILED;
+    }
+
+    return SUCCEEDED;
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_COMAL80) {
+    /* VICE Comal-80 expects a single 16KB CHIP at $8000 per bank (4 banks). */
+    unsigned char buffer[0x4000];
+    int banks, b;
+
+    if (_write_c64_crt_header(f, 21, 0, 0, cart_name) == FAILED)
+      return FAILED;
+
+    if (g_rombanks == 4 && _all_rom_banks_are_size(0x4000) == YES) {
+      for (b = 0; b < 4; b++) {
+        if (_write_c64_crt_chip(f, 0, b, 0x8000, 0x4000, g_rom + g_bankaddress[b]) == FAILED)
+          return FAILED;
+      }
+    }
+    else {
+      banks = g_rombanks >> 1;
+      for (b = 0; b < banks; b++) {
+        memcpy(buffer, g_rom + g_bankaddress[b * 2], 0x2000);
+        memcpy(buffer + 0x2000, g_rom + g_bankaddress[b * 2 + 1], 0x2000);
+        if (_write_c64_crt_chip(f, 0, b, 0x8000, 0x4000, buffer) == FAILED)
+          return FAILED;
+      }
+    }
+
+    return SUCCEEDED;
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_GMOD2) {
+    if (_write_c64_crt_header(f, 60, 0, 1, cart_name) == FAILED)
+      return FAILED;
+
+    for (i = 0; i < g_rombanks; i++) {
+      if (_write_c64_crt_chip(f, (i == 0) ? 2 : 0, i, 0x8000, 0x2000, g_rom + g_bankaddress[i]) == FAILED)
+        return FAILED;
+    }
+
+    return SUCCEEDED;
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_RGCD) {
+    if (_write_c64_crt_header(f, 57, 0, 1, cart_name) == FAILED)
+      return FAILED;
+
+    for (i = 0; i < g_rombanks; i++) {
+      if (_write_c64_crt_chip(f, 0, i, 0x8000, 0x2000, g_rom + g_bankaddress[i]) == FAILED)
+        return FAILED;
+    }
+
+    return SUCCEEDED;
+  }
+  else if (g_c64_crt_type == C64_CRT_TYPE_GMOD3) {
+    if (_write_c64_crt_header(f, 62, 0, 1, cart_name) == FAILED)
+      return FAILED;
+
+    for (i = 0; i < g_rombanks; i++) {
+      if (_write_c64_crt_chip(f, 2, i, 0x8000, 0x2000, g_rom + g_bankaddress[i]) == FAILED)
+        return FAILED;
+    }
+
+    return SUCCEEDED;
+  }
+
+  print_text(NO, "WRITE_ROM_FILE: Unsupported C64CRT type %d.\n", g_c64_crt_type);
+
+  return FAILED;
+}
 
 
 static int _sections_sort(const void *a, const void *b) {
@@ -2775,6 +3299,17 @@ int write_rom_file(char *outname) {
   if (f == NULL) {
     print_text(NO, "WRITE_ROM_FILE: Error opening file \"%s\" for writing.\n", outname);
     return FAILED;
+  }
+
+  if (g_output_type == OUTPUT_TYPE_C64_CRT) {
+    if (_write_c64_crt_file(f, outname) == FAILED) {
+      fclose(f);
+      return FAILED;
+    }
+
+    fclose(f);
+
+    return SUCCEEDED;
   }
 
   if (g_file_header != NULL)

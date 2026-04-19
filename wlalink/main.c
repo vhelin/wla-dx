@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.22a (16.02.2026)";
+char g_version_string[] = "$VER: wlalink 5.22a (20.04.2026)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -64,7 +64,7 @@ int g_program_start, g_program_end, g_sms_checksum, g_smstag_defined = 0, g_snes
 int g_sms_header = 0, g_sms_checksum_already_written = 0, g_sms_checksum_size_defined = 0, g_sms_checksum_size = 0;
 int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode = 0, g_smd_checksum;
 int g_smc_status = 0, g_snes_sramsize = 0, g_allow_duplicate_labels_and_definitions = NO, g_allow_value_mismatch_in_duplicate_labels = NO;
-int g_output_type = OUTPUT_TYPE_UNDEFINED, g_sort_sections = YES;
+int g_output_type = OUTPUT_TYPE_UNDEFINED, g_c64_crt_type = C64_CRT_TYPE_UNDEFINED, g_sort_sections = YES;
 int g_num_sorted_anonymous_labels = 0, g_use_priority_only_writing_sections = NO, g_use_priority_only_writing_ramsections = NO;
 int g_emptyfill = 0, g_paths_in_linkfile_are_relative_to_linkfile = NO, g_romheader_baseaddress = -1;
 
@@ -955,6 +955,45 @@ static int _parse_and_set_libdir(char *c, int contains_flag) {
 }
 
 
+static int _parse_c64_crt_type(char *type) {
+
+  if (strcaselesscmp(type, "NORMAL4K") == 0)
+    return C64_CRT_TYPE_NORMAL_4K;
+  if (strcaselesscmp(type, "NORMAL8K") == 0)
+    return C64_CRT_TYPE_NORMAL_8K;
+  if (strcaselesscmp(type, "NORMAL16K") == 0)
+    return C64_CRT_TYPE_NORMAL_16K;
+  if (strcaselesscmp(type, "ULTIMAX4K") == 0)
+    return C64_CRT_TYPE_ULTIMAX_4K;
+  if (strcaselesscmp(type, "ULTIMAX8K") == 0)
+    return C64_CRT_TYPE_ULTIMAX_8K;
+  if (strcaselesscmp(type, "ULTIMAX16K") == 0)
+    return C64_CRT_TYPE_ULTIMAX_16K;
+  if (strcaselesscmp(type, "OCEAN") == 0)
+    return C64_CRT_TYPE_OCEAN;
+  if (strcaselesscmp(type, "MAGICDESK") == 0)
+    return C64_CRT_TYPE_MAGIC_DESK;
+  if (strcaselesscmp(type, "EASYFLASH") == 0)
+    return C64_CRT_TYPE_EASYFLASH;
+  if (strcaselesscmp(type, "SIMONSBASIC") == 0)
+    return C64_CRT_TYPE_SIMONS_BASIC;
+  if (strcaselesscmp(type, "EPYXFASTLOAD") == 0)
+    return C64_CRT_TYPE_EPYX_FASTLOAD;
+  if (strcaselesscmp(type, "C64GS") == 0)
+    return C64_CRT_TYPE_C64_GS;
+  if (strcaselesscmp(type, "COMAL80") == 0)
+    return C64_CRT_TYPE_COMAL80;
+  if (strcaselesscmp(type, "GMOD2") == 0)
+    return C64_CRT_TYPE_GMOD2;
+  if (strcaselesscmp(type, "RGCD") == 0)
+    return C64_CRT_TYPE_RGCD;
+  if (strcaselesscmp(type, "GMOD3") == 0)
+    return C64_CRT_TYPE_GMOD3;
+
+  return C64_CRT_TYPE_UNDEFINED;
+}
+
+
 static int _parse_flags(char **flags, int flagc) {
 
   int output_mode_defined = 0, count, unknowns = 0;
@@ -1012,7 +1051,19 @@ static int _parse_flags(char **flags, int flagc) {
         /* get arg */
         if (!strcmp(flags[count + 1], "CBMPRG"))
           g_output_type = OUTPUT_TYPE_CBM_PRG;
+        else if (!strcmp(flags[count + 1], "C64CRT"))
+          g_output_type = OUTPUT_TYPE_C64_CRT;
         else
+          return FAILED;
+      }
+      else
+        return FAILED;
+      count++;
+    }
+    else if (!strcmp(flags[count], "-c64crt")) {
+      if (count + 1 < flagc) {
+        g_c64_crt_type = _parse_c64_crt_type(flags[count + 1]);
+        if (g_c64_crt_type == C64_CRT_TYPE_UNDEFINED)
           return FAILED;
       }
       else
@@ -1192,7 +1243,7 @@ int main(int argc, char *argv[]) {
 #endif
     print_text(YES, "USAGE: %s [OPTIONS] <LINK FILE> <OUTPUT FILE>\n\n", argv[0]);
     print_text(YES, "OPTIONS:\n");
-    print_text(YES, "-a <ADDR> Load address (can also be label) for CBM PRG\n");
+    print_text(YES, "-a  <ADDR> Load address (can also be label) for CBM PRG\n");
     print_text(YES, "-A  Add address-to-line mapping data to WLA symbol file\n");
     print_text(YES, "-b  Program file output\n");
     print_text(YES, "-bE Ending address of the program (optional)\n");
@@ -1204,7 +1255,7 @@ int main(int argc, char *argv[]) {
     print_text(YES, "-d  Discard unreferenced sections\n");
     print_text(YES, "-D  Don't create _sizeof_* definitions\n");
     print_text(YES, "-i  Write list files\n");
-    print_text(YES, "-L <DIR> Library directory\n");
+    print_text(YES, "-L  <DIR> Library directory\n");
     print_text(YES, "-nS Don't sort the sections\n");
     print_text(YES, "-p  Pause printing after a screen full of text has been printed,\n");
     print_text(YES, "    use this with -SX and -SY\n");
@@ -1217,7 +1268,12 @@ int main(int argc, char *argv[]) {
     print_text(YES, "-S  Write also a WLA symbol file\n");
     print_text(YES, "-SX <WIDTH> The number of characters per line in console (default %d)\n", DEFAULT_SCREEN_DX);
     print_text(YES, "-SY <HEIGHT> The number of lines in console (default %d)\n", DEFAULT_SCREEN_DY);
-    print_text(YES, "-t <TYPE> Output type (supported types: 'CBMPRG')\n");
+    print_text(YES, "-t  <TYPE> Output type (supported types: 'CBMPRG', 'C64CRT')\n");
+    print_text(YES, "-c64crt <TYPE> Cartridge type for C64CRT output\n");
+    print_text(YES, "    (supported types: NORMAL4K, NORMAL8K, NORMAL16K, ULTIMAX4K,\n");
+    print_text(YES, "    ULTIMAX8K, ULTIMAX16K, OCEAN, MAGICDESK, EASYFLASH,\n");
+    print_text(YES, "    SIMONSBASIC, EPYXFASTLOAD, C64GS, COMAL80,\n");
+    print_text(YES, "    GMOD2, RGCD, GMOD3)\n");
     print_text(YES, "-v  Verbose messages (all)\n");
     print_text(YES, "-v1 Verbose messages (only discard sections)\n");
     print_text(YES, "-v2 Verbose messages (-v1 plus short summary)\n");
