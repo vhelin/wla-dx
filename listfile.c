@@ -246,6 +246,42 @@ int listfile_collect(void) {
       origin++;
       continue;
 
+    case 'W':
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+
+      add++;
+      origin++;
+      continue;
+
+    case 'K':
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+
+      add += 2;
+      origin += 2;
+      continue;
+
+    case 'H':
+      err = fscanf(g_file_out_ptr, "%*d %*d ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+
+      add += 2;
+      origin += 2;
+      continue;
+
+    case 'a':
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+
+      add++;
+      origin++;
+      continue;
+
     case 'd':
     case 'c':
       err = fscanf(g_file_out_ptr, "%*d ");
@@ -256,7 +292,7 @@ int listfile_collect(void) {
       origin++;
       continue;
 
-#if defined(SUPERFX)
+#if defined(SUPERFX) || defined(CX4)
     case '*':
       err = fscanf(g_file_out_ptr, "%*s ");
       if (err < 0)

@@ -15,9 +15,11 @@ SYNOPSIS
 | ``wla-65816`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-65c02`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-65ce02`` [``OPTIONS``] ``SRC_FILE``
+| ``wla-cx4`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-6800`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-6801`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-6809`` [``OPTIONS``] ``SRC_FILE``
+| ``wla-68000`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-8008`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-8080`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-gb`` [``OPTIONS``] ``SRC_FILE``
@@ -25,6 +27,7 @@ SYNOPSIS
 | ``wla-spc700`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-superfx`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-z80`` [``OPTIONS``] ``SRC_FILE``
+| ``wla-z80n`` [``OPTIONS``] ``SRC_FILE``
 
 
 OPTIONS

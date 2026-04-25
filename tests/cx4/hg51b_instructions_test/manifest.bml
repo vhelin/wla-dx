@@ -1,0 +1,29 @@
+game
+  sha256:   0000000000000000000000000000000000000000000000000000000000000000
+  label:    CX4 INSTRUCTIONS
+  name:     CX4 INSTRUCTIONS
+  title:    CX4 INSTRUCTIONS
+  region:   NTSC
+  revision: 1.0
+  board:    SHVC-1DC0N-01
+    memory
+      type: ROM
+      size: 0x10000
+      content: Program
+    memory
+      type: ROM
+      size: 0xc00
+      content: Data
+      manufacturer: Hitachi
+      architecture: HG51BS169
+      identifier: Cx4
+    memory
+      type: RAM
+      size: 0xc00
+      content: Data
+      manufacturer: Hitachi
+      architecture: HG51BS169
+      identifier: Cx4
+      volatile
+    oscillator
+      frequency: 20000000

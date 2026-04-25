@@ -271,6 +271,318 @@ int _parse_tiny_int(int min, int max) {
 #endif
 
 
+#if defined(CX4)
+
+#define CX4_SHIFTED_A_PLACEHOLDER '@'
+
+static int _cx4_skip_spaces(const char *code, int index) {
+
+  while (code[index] == ' ')
+    index++;
+
+  return index;
+}
+
+
+static int _cx4_looks_like_register_name(char *label) {
+
+  if (strcaselesscmp(label, "A") == 0 || strcaselesscmp(label, "MACH") == 0 || strcaselesscmp(label, "MACL") == 0 ||
+      strcaselesscmp(label, "MDR") == 0 || strcaselesscmp(label, "ROM") == 0 ||
+      strcaselesscmp(label, "ROMB") == 0 || strcaselesscmp(label, "RAM") == 0 || strcaselesscmp(label, "RAMB") == 0 ||
+      strcaselesscmp(label, "MAR") == 0 || strcaselesscmp(label, "DPR") == 0 || strcaselesscmp(label, "IP") == 0 ||
+      strcaselesscmp(label, "PC") == 0 || strcaselesscmp(label, "P") == 0)
+    return YES;
+
+  if ((label[0] == 'R' || label[0] == 'r') && isdigit((unsigned char)label[1]) != 0)
+    return YES;
+  if ((label[0] == 'I' || label[0] == 'i') && (label[1] == 'R' || label[1] == 'r') && isdigit((unsigned char)label[2]) != 0)
+    return YES;
+
+  return NO;
+}
+
+
+static int _cx4_parse_number_at(int *index, int *value, int *result_type, char *label) {
+
+  int old_i, result;
+
+  *index = _cx4_skip_spaces(g_buffer, *index);
+
+  old_i = g_source_index;
+  g_source_index = *index;
+  result = input_number();
+  *index = g_source_index;
+  g_source_index = old_i;
+
+  *result_type = result;
+  if (result == SUCCEEDED)
+    *value = g_parsed_int;
+  else if (result == INPUT_NUMBER_ADDRESS_LABEL && label != NULL)
+    strcpy(label, g_label);
+
+  return result;
+}
+
+
+static int _cx4_parse_uint(int *index, int min, int max, int *value) {
+
+  int result_type, value_local = 0;
+
+  if (_cx4_parse_number_at(index, &value_local, &result_type, NULL) != SUCCEEDED)
+    return FAILED;
+
+  if (value_local < min || value_local > max)
+    return FAILED;
+
+  *value = value_local;
+
+  return SUCCEEDED;
+}
+
+
+static int _cx4_map_register(char *label, int *reg, int gpr_only) {
+
+  int value;
+
+  /* The accumulator A is not addressable as a register; callers that expect
+     A must detect it separately via the identifier stored in g_label. */
+  if (strcaselesscmp(label, "A") == 0)
+    return FAILED;
+  if (strcaselesscmp(label, "MACH") == 0) {
+    *reg = 0x01;
+    return gpr_only == YES ? FAILED : SUCCEEDED;
+  }
+  if (strcaselesscmp(label, "MACL") == 0) {
+    *reg = 0x02;
+    return gpr_only == YES ? FAILED : SUCCEEDED;
+  }
+  if (strcaselesscmp(label, "MDR") == 0) {
+    *reg = 0x03;
+    return gpr_only == YES ? FAILED : SUCCEEDED;
+  }
+  if (strcaselesscmp(label, "ROM") == 0 || strcaselesscmp(label, "ROMB") == 0) {
+    *reg = 0x08;
+    return gpr_only == YES ? FAILED : SUCCEEDED;
+  }
+  if (strcaselesscmp(label, "RAM") == 0 || strcaselesscmp(label, "RAMB") == 0) {
+    *reg = 0x0C;
+    return gpr_only == YES ? FAILED : SUCCEEDED;
+  }
+  if (strcaselesscmp(label, "MAR") == 0) {
+    *reg = 0x13;
+    return gpr_only == YES ? FAILED : SUCCEEDED;
+  }
+  if (strcaselesscmp(label, "DPR") == 0) {
+    *reg = 0x1C;
+    return gpr_only == YES ? FAILED : SUCCEEDED;
+  }
+  if (strcaselesscmp(label, "IP") == 0 || strcaselesscmp(label, "PC") == 0) {
+    *reg = 0x20;
+    return gpr_only == YES ? FAILED : SUCCEEDED;
+  }
+  if (strcaselesscmp(label, "P") == 0) {
+    *reg = 0x28;
+    return gpr_only == YES ? FAILED : SUCCEEDED;
+  }
+
+  if ((label[0] == 'I' || label[0] == 'i') && (label[1] == 'R' || label[1] == 'r')) {
+    value = atoi(label + 2);
+    if (value < 0 || value > 15)
+      return FAILED;
+    *reg = 0x50 + value;
+    return gpr_only == YES ? FAILED : SUCCEEDED;
+  }
+
+  if (label[0] == 'R' || label[0] == 'r') {
+    value = atoi(label + 1);
+    if (value < 0 || value > 15)
+      return FAILED;
+    *reg = 0x60 + value;
+    return SUCCEEDED;
+  }
+
+  return FAILED;
+}
+
+
+static int _cx4_parse_identifier_at(int *index, char *identifier) {
+
+  int i = 0;
+
+  *index = _cx4_skip_spaces(g_buffer, *index);
+  if (isalpha((unsigned char)g_buffer[*index]) == 0)
+    return FAILED;
+
+  while ((isalpha((unsigned char)g_buffer[*index]) != 0 || isdigit((unsigned char)g_buffer[*index]) != 0 || g_buffer[*index] == '_') && i < MAX_NAME_LENGTH) {
+    identifier[i++] = g_buffer[*index];
+    (*index)++;
+  }
+  identifier[i] = 0;
+
+  return SUCCEEDED;
+}
+
+
+static int _cx4_parse_register_at(int *index, int *reg, int gpr_only, int *was_identifier) {
+
+  char identifier[MAX_NAME_LENGTH + 1];
+
+  if (_cx4_parse_identifier_at(index, identifier) == FAILED) {
+    if (was_identifier != NULL)
+      *was_identifier = NO;
+    g_label[0] = 0;
+    return FAILED;
+  }
+
+  if (was_identifier != NULL)
+    *was_identifier = YES;
+
+  strcpy(g_label, identifier);
+
+  return _cx4_map_register(identifier, reg, gpr_only);
+}
+
+
+static int _cx4_parse_shifted_accumulator(int *index, int *shift) {
+
+  int reg, was_identifier = NO, value = 0;
+
+  if (_cx4_parse_register_at(index, &reg, NO, &was_identifier) != FAILED) {
+    /* A named register that isn't A */
+    print_error(ERROR_ERR, "Was expecting accumulator A.\n");
+    return FAILED;
+  }
+
+  if (was_identifier == NO)
+    return FAILED;
+  if (strcaselesscmp(g_label, "A") != 0) {
+    print_error(ERROR_ERR, "Was expecting accumulator A.\n");
+    return FAILED;
+  }
+
+  *index = _cx4_skip_spaces(g_buffer, *index);
+  if (g_buffer[*index] != '<' || g_buffer[*index + 1] != '<') {
+    *shift = 0;
+    return SUCCEEDED;
+  }
+
+  *index += 2;
+  if (_cx4_parse_uint(index, 0, 16, &value) == FAILED) {
+    print_error(ERROR_ERR, "Was expecting shift amount 0, 1, 8 or 16.\n");
+    return FAILED;
+  }
+
+  if (value == 0)
+    *shift = 0;
+  else if (value == 1)
+    *shift = 1;
+  else if (value == 8)
+    *shift = 2;
+  else if (value == 16)
+    *shift = 3;
+  else {
+    print_error(ERROR_ERR, "Cx4 ALU shifts must be 0, 1, 8 or 16.\n");
+    return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
+static void _cx4_emit_word(int word) {
+
+  _output_assembled_instruction(s_instruction_tmp, "k%d d%d d%d ", g_active_file_info_last->line_current, word & 0xFF, (word >> 8) & 0xFF);
+}
+
+
+static void _cx4_emit_low8_word(int opcode, int result_type, int value, const char *label) {
+
+  int high = (opcode >> 8) & 0xFF;
+
+  _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
+  if (result_type == SUCCEEDED)
+    _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", value & 0xFF, high);
+  else if (result_type == INPUT_NUMBER_ADDRESS_LABEL)
+    _output_assembled_instruction(s_instruction_tmp, "Q%s d%d ", label, high);
+  else
+    _output_assembled_instruction(s_instruction_tmp, "c%d d%d ", g_latest_stack, high);
+}
+
+
+/* emit a Cx4 branch/jump instruction where the low byte is a WORD-scaled
+   target (byte address / 2).  Used by BRA/BSR/JMP/JSR/Bxx (decode case 1).
+   The HG51B's program counter counts words (every instruction is 2 bytes),
+   so a label whose byte address is $58 must be encoded as $2C in the
+   operand byte.  At link time REFERENCE_TYPE_DIRECT_9BIT_SHORT performs
+   the same (address >> 1) conversion and an even-address sanity check. */
+static void _cx4_emit_branch_word(int opcode, int result_type, int value, const char *label) {
+
+  int high = (opcode >> 8) & 0xFF;
+
+  _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
+  if (result_type == SUCCEEDED) {
+    if ((value & 1) != 0) {
+      print_error(ERROR_NUM, "Cx4 branch target must be even (was $%x).\n", value);
+      return;
+    }
+    if (value < 0 || value > 510) {
+      print_error(ERROR_NUM, "Cx4 branch target out of 9-bit range (was $%x).\n", value);
+      return;
+    }
+    _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", (value >> 1) & 0xFF, high);
+  }
+  else if (result_type == INPUT_NUMBER_ADDRESS_LABEL)
+    _output_assembled_instruction(s_instruction_tmp, "*%s d%d ", label, high);
+  else
+    _output_assembled_instruction(s_instruction_tmp, "c%d d%d ", g_latest_stack, high);
+}
+
+
+/* emit the low 8 bits of a 16-bit Cx4 opcode where the low-byte imm has a
+   restricted bit width.  "bits" is the maximum bit width (1-8) the low-byte
+   value must fit in; this is also propagated to WLALINK so it can apply the
+   same range check once pending labels resolve. */
+static void _cx4_emit_low_n_word(int opcode, int bits, int result_type, int value, const char *label) {
+
+  int high = (opcode >> 8) & 0xFF;
+
+  _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
+  if (result_type == SUCCEEDED)
+    _output_assembled_instruction(s_instruction_tmp, "d%d d%d ", value & 0xFF, high);
+  else if (result_type == INPUT_NUMBER_ADDRESS_LABEL)
+    _output_assembled_instruction(s_instruction_tmp, "W%d %s d%d ", bits, label, high);
+  else
+    _output_assembled_instruction(s_instruction_tmp, "a%d d%d ", g_latest_stack, high);
+}
+
+
+/* emit a 10-bit Cx4 immediate (RDROM q) as two bytes: low byte = imm[7:0],
+   high byte = opcode_high | ((imm>>8) & 0x03).  With a label, defer the
+   10-bit range check to WLALINK via the "K" emit code. */
+static void _cx4_emit_10bit_word(int opcode, int result_type, int value, const char *label) {
+
+  int high = (opcode >> 8) & 0xFF;
+
+  _output_assembled_instruction(s_instruction_tmp, "k%d ", g_active_file_info_last->line_current);
+  if (result_type == SUCCEEDED) {
+    _output_assembled_instruction(s_instruction_tmp, "d%d d%d ",
+                                  value & 0xFF,
+                                  high | ((value >> 8) & 0x03));
+  }
+  else if (result_type == INPUT_NUMBER_ADDRESS_LABEL) {
+    _output_assembled_instruction(s_instruction_tmp, "K%d %s ", high, label);
+  }
+  else {
+    /* stack calculation: emit a new per-stack code that carries the opcode
+       high byte (the mask to OR with imm[9:8]). Resolution and range-check
+       happen in phase_4 (if the stack resolves there) or in WLALINK. */
+    _output_assembled_instruction(s_instruction_tmp, "H%d %d ", high, g_latest_stack);
+  }
+}
+
+#endif
+
+
 #if defined(MC68000)
 
 static int _mc68000_size_check(int data, int size) {
@@ -1035,7 +1347,7 @@ int evaluate_token(void) {
 #if defined(SPC700)
   int g;
 #endif
-#if !defined(MC68000)
+#if !defined(MC68000) && !defined(CX4)
   int z;
 #endif
 #if defined(HUC6280)
@@ -1045,7 +1357,12 @@ int evaluate_token(void) {
 #if defined(SUPERFX)
   int tiny;
 #endif
-  
+
+#if defined(CX4)
+  int e = 0, q = 0, v = FAILED;
+  char labelx[MAX_NAME_LENGTH + 1];
+#endif
+
   /* are we in an enum, ramsection, or struct? */
   if (g_in_enum == YES || g_in_ramsection == YES || g_in_struct == YES)
     return parse_enum_token();
@@ -8185,6 +8502,270 @@ int evaluate_token(void) {
       /*************************************************************************************************/
       /*************************************************************************************************/
       
+#endif
+
+#if defined(CX4)
+
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+      /* <Cx4> */
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+
+    case 0:
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
+        if (IS_THE_MATCH_COMPLETE(x)) {
+          _cx4_emit_word(s_instruction_tmp->hex);
+          g_source_index = s_parser_source_index;
+          return SUCCEEDED;
+        }
+        if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+          break;
+      }
+      break;
+
+    case 1:
+    case 7:
+    case 0xD:
+      labelx[0] = 0;
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
+        if (s_instruction_tmp->string[x] == 'x') {
+          if (_cx4_parse_number_at(&s_parser_source_index, &e, &v, labelx) == FAILED)
+            return FAILED;
+          if (s_instruction_tmp->type == 0xD) {
+            /* MOV PH,x : 7-bit immediate */
+            if (v == SUCCEEDED && (e < 0 || e > 127)) {
+              print_error(ERROR_NUM, "Out of 7-bit range.\n");
+              return FAILED;
+            }
+          }
+          else if (s_instruction_tmp->type == 1) {
+            /* Branch/jump target : byte address, must be even, 0..510
+               (encoded as 9-bit word address). */
+            if (v == SUCCEEDED && (e < 0 || e > 510 || (e & 1) != 0)) {
+              print_error(ERROR_NUM, "Cx4 branch target out of 9-bit range or odd.\n");
+              return FAILED;
+            }
+          }
+          else {
+            if (v == SUCCEEDED && (e < 0 || e > 255)) {
+              print_error(ERROR_NUM, "Out of 8-bit range.\n");
+              return FAILED;
+            }
+          }
+          if (v == INPUT_NUMBER_ADDRESS_LABEL && _cx4_looks_like_register_name(labelx) == YES)
+            break;
+
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
+              if (s_instruction_tmp->type == 0xD)
+                _cx4_emit_low_n_word(s_instruction_tmp->hex, 7, v, e, labelx);
+              else if (s_instruction_tmp->type == 1)
+                _cx4_emit_branch_word(s_instruction_tmp->hex, v, e, labelx);
+              else
+                _cx4_emit_low8_word(s_instruction_tmp->hex, v, e, labelx);
+              g_source_index = s_parser_source_index;
+              return SUCCEEDED;
+            }
+            if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+              break;
+          }
+        }
+        if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+          break;
+      }
+      break;
+
+    case 2:
+      q = 0;
+      s_parser_source_index = _cx4_skip_spaces(g_buffer, s_parser_source_index);
+      if (_cx4_parse_shifted_accumulator(&s_parser_source_index, &q) == FAILED)
+        break;
+      s_parser_source_index = _cx4_skip_spaces(g_buffer, s_parser_source_index);
+      if (g_buffer[s_parser_source_index] != ',')
+        break;
+      s_parser_source_index++;
+
+      y = 0;
+      if (_cx4_parse_register_at(&s_parser_source_index, &y, NO, NULL) == FAILED) {
+        if (g_label[0] != 0 && _cx4_looks_like_register_name(g_label) == YES)
+          print_error(ERROR_ERR, "Unknown or invalid Cx4 register \"%s\".\n", g_label);
+        break;
+      }
+
+      _cx4_emit_word(s_instruction_tmp->hex + (q << 8) + y);
+      g_source_index = s_parser_source_index;
+      return SUCCEEDED;
+      break;
+
+    case 3:
+      q = 0;
+      labelx[0] = 0;
+      s_parser_source_index = _cx4_skip_spaces(g_buffer, s_parser_source_index);
+      if (_cx4_parse_shifted_accumulator(&s_parser_source_index, &q) == FAILED)
+        break;
+      s_parser_source_index = _cx4_skip_spaces(g_buffer, s_parser_source_index);
+      if (g_buffer[s_parser_source_index] != ',')
+        break;
+      s_parser_source_index++;
+
+      if (_cx4_parse_number_at(&s_parser_source_index, &e, &v, labelx) == FAILED)
+        break;
+      if (v == SUCCEEDED && (e < 0 || e > 255)) {
+        print_error(ERROR_NUM, "Out of 8-bit range.\n");
+        return FAILED;
+      }
+      if (v == INPUT_NUMBER_ADDRESS_LABEL && _cx4_looks_like_register_name(labelx) == YES)
+        break;
+
+      _cx4_emit_low8_word(s_instruction_tmp->hex + (q << 8), v, e, labelx);
+      g_source_index = s_parser_source_index;
+      return SUCCEEDED;
+      break;
+
+    case 4:
+    case 6:
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; x++) {
+        if (s_instruction_tmp->string[x] == 'r') {
+          y = 0;
+          if (_cx4_parse_register_at(&s_parser_source_index, &y, NO, NULL) == FAILED)
+            break;
+          _cx4_emit_word(s_instruction_tmp->hex + y);
+          g_source_index = s_parser_source_index;
+          return SUCCEEDED;
+        }
+        if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+          break;
+        s_parser_source_index++;
+      }
+      break;
+
+    case 0xB:
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; x++) {
+        if (s_instruction_tmp->string[x] == 'r') {
+          y = 0;
+          if (_cx4_parse_register_at(&s_parser_source_index, &y, NO, NULL) == FAILED)
+            break;
+
+          for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; x++) {
+            if (IS_THE_MATCH_COMPLETE(x)) {
+              _cx4_emit_word(s_instruction_tmp->hex + y);
+              g_source_index = s_parser_source_index;
+              return SUCCEEDED;
+            }
+            if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+              break;
+            s_parser_source_index++;
+          }
+          break;
+        }
+        if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+          break;
+        s_parser_source_index++;
+      }
+      break;
+
+    case 5:
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; x++) {
+        if (s_instruction_tmp->string[x] == 'u') {
+          if (_cx4_parse_uint(&s_parser_source_index, 0, 31, &y) == FAILED) {
+            print_error(ERROR_NUM, "Out of 5-bit range.\n");
+            return FAILED;
+          }
+          _cx4_emit_word(s_instruction_tmp->hex + y);
+          g_source_index = s_parser_source_index;
+          return SUCCEEDED;
+        }
+        if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+          break;
+        s_parser_source_index++;
+      }
+      break;
+
+    case 8:
+    case 0xC:
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; x++) {
+        if (s_instruction_tmp->string[x] == 'g') {
+          y = 0;
+          if (_cx4_parse_register_at(&s_parser_source_index, &y, YES, NULL) == FAILED)
+            break;
+          _cx4_emit_word(s_instruction_tmp->hex + (y - 0x60));
+          g_source_index = s_parser_source_index;
+          return SUCCEEDED;
+        }
+        if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+          break;
+        s_parser_source_index++;
+      }
+      break;
+
+    case 9:
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; x++) {
+        if (s_instruction_tmp->string[x] == 'q') {
+          if (_cx4_parse_uint(&s_parser_source_index, 0, 1023, &y) == FAILED) {
+            print_error(ERROR_NUM, "Out of 10-bit range.\n");
+            return FAILED;
+          }
+          _cx4_emit_word(s_instruction_tmp->hex + y);
+          g_source_index = s_parser_source_index;
+          return SUCCEEDED;
+        }
+        if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+          break;
+        s_parser_source_index++;
+      }
+      break;
+
+    case 0xE:
+      labelx[0] = 0;
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; x++) {
+        if (s_instruction_tmp->string[x] == 'q') {
+          if (_cx4_parse_number_at(&s_parser_source_index, &e, &v, labelx) == FAILED)
+            return FAILED;
+          if (v == SUCCEEDED && (e < 0 || e > 1023)) {
+            print_error(ERROR_NUM, "Out of 10-bit range.\n");
+            return FAILED;
+          }
+          if (v == INPUT_NUMBER_ADDRESS_LABEL && _cx4_looks_like_register_name(labelx) == YES)
+            break;
+
+          _cx4_emit_10bit_word(s_instruction_tmp->hex, v, e, labelx);
+          g_source_index = s_parser_source_index;
+          return SUCCEEDED;
+        }
+        if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+          break;
+        s_parser_source_index++;
+      }
+      break;
+
+    case 0xA:
+      for ( ; x < INSTRUCTION_STRING_LENGTH_MAX; x++) {
+        if (s_instruction_tmp->string[x] == 'h') {
+          if (_cx4_parse_uint(&s_parser_source_index, 0, 127, &y) == FAILED) {
+            print_error(ERROR_NUM, "Out of 7-bit range.\n");
+            return FAILED;
+          }
+          _cx4_emit_word(s_instruction_tmp->hex + y);
+          g_source_index = s_parser_source_index;
+          return SUCCEEDED;
+        }
+        if (s_instruction_tmp->string[x] != toupper((int)g_buffer[s_parser_source_index]))
+          break;
+        s_parser_source_index++;
+      }
+      break;
+
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+      /* </Cx4> */
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+      /*************************************************************************************************/
+
 #endif
 
 #if defined(SUPERFX)

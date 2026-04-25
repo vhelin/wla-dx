@@ -84,6 +84,10 @@
 /* q - 24-bit reference      */
 /* V - 32-bit reference      */
 /* * - 9-bit short reference */
+/* W - n-bit (1-8) reference, low byte of a Cx4 word (1 byte) */
+/* K - 10-bit reference, low + (high|imm[9:8]) of a Cx4 word (2 bytes) */
+/* H - 10-bit stack, low + (high|imm[9:8]) of a Cx4 word (2 bytes) */
+/* a - stack (1 byte), Cx4 low-byte immediate */
 /* S - section               */
 /* s - end of section        */
 /* x - dsb                   */
@@ -130,6 +134,34 @@
 #define INSTRUCTION_STRING_LENGTH_MAX 15
 #define ARCH_STR "GB-Z80"
 #define WLA_NAME "gb"
+
+#endif
+
+/**************************************************************/
+/* cx4                                                        */
+/**************************************************************/
+
+#ifdef CX4
+
+/* instruction types */
+
+/* 0  - plain text 16b */
+/* 1  - x             16b, low byte variable */
+/* 2  - @,r           shifted accumulator + register */
+/* 3  - @,x           shifted accumulator + 8-bit operand */
+/* 4  - r             implicit A, register operand */
+/* 5  - u             implicit A, 5-bit immediate */
+/* 6  - r             fixed destination, register source */
+/* 7  - x             fixed destination, 8-bit source */
+/* 8  - g             P destination, GPR source */
+/* 9  - q             10-bit immediate */
+/* A  - h             7-bit immediate */
+/* B  - r             register destination, fixed source */
+/* C  - g             SWAP A,Rn */
+
+#define INSTRUCTION_STRING_LENGTH_MAX 16
+#define ARCH_STR "Cx4"
+#define WLA_NAME "cx4"
 
 #endif
 

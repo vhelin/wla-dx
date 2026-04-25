@@ -5207,6 +5207,40 @@ int data_stream_parser_parse(void) {
         return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add++;
       continue;
+
+    case 'W':
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      s_dsp_add++;
+      continue;
+
+    case 'K':
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      s_dsp_add += 2;
+      continue;
+
+    case 'H':
+      err = fscanf(g_file_out_ptr, "%d %d ", &temp_1, &temp_1);
+      if (err < 2)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      s_dsp_add += 2;
+      continue;
+
+    case 'a':
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      s_dsp_add++;
+      continue;
       
     case 'd':
     case 'c':
@@ -5234,7 +5268,7 @@ int data_stream_parser_parse(void) {
       s_dsp_add += 2;
       continue;
 
-#if defined(SUPERFX)
+#if defined(SUPERFX) || defined(CX4)
     case '*':
       err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
       if (err < 1)

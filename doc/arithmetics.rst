@@ -42,6 +42,11 @@ The following operators are valid:
 ``:``  get the bank byte of an address
 ====== ===============================
 
+Some architectures encode only part of an address in certain operands. For
+example, Cx4 jump, branch and call targets are page-local 8-bit values, so a
+cross-page label reference should use ``<label`` (or ``lobyte(label)``) for the
+encoded operand while page selection is handled separately.
+
 Note that you can do NOT using XOR ::
 
 - ``VALUE_A ~ $FF``   is  8-bit NOT

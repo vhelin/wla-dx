@@ -1186,6 +1186,149 @@ int phase_4(void) {
 
       continue;
 
+      /* CX4 7BIT COMPUTATION (MOV PH: 7-bit immediate in low byte) */
+
+    case 'a':
+      err = fscanf(g_file_out_ptr, "%d ", &inz);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+
+      stack = find_stack_calculation(inz, NO);
+      if (stack == NULL) {
+        print_text(NO, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
+        return FAILED;
+      }
+
+      if (stack->section_status == ON) {
+        stack->address = g_sec_tmp->i;
+        stack->base = s_base;
+        stack->bank = g_sec_tmp->bank;
+        stack->slot = g_sec_tmp->slot;
+      }
+      else {
+        stack->address = s_pc_bank;
+        stack->base = s_base;
+        stack->bank = s_rom_bank;
+        stack->slot = s_slot;
+      }
+
+      stack->type = STACK_TYPE_CX4_7BIT;
+      stack->special_id = 0;
+
+      if (_mangle_stack_references(stack) == FAILED)
+        return FAILED;
+
+      if (g_namespace[0] != 0) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+          if (_add_namespace_to_stack_references(stack, g_namespace) == FAILED)
+            return FAILED;
+        }
+      }
+
+      if (stack->is_function_body == NO && resolve_stack(stack->stack_items, stack->stacksize) == SUCCEEDED) {
+        double r;
+
+        if (compute_stack(stack, stack->stacksize, &r) == FAILED)
+          return FAILED;
+
+        stack->is_function_body = YES;
+
+        o = (int)r;
+        if (o < 0 || o > 0x7F) {
+          print_text(NO, "%s:%d: Value ($%x) of a stack calculation is too much to be a 7-bit value.\n", get_file_name(s_filename_id), s_line_number, o);
+          return FAILED;
+        }
+
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a Cx4 7-bit computation", get_file_name(s_filename_id), s_line_number);
+        if (mem_insert(o & 0xFF) == FAILED)
+          return FAILED;
+      }
+      else {
+        stack->position = STACK_POSITION_CODE;
+
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a Cx4 7-bit computation", get_file_name(s_filename_id), s_line_number);
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+      }
+
+      continue;
+
+      /* CX4 10BIT COMPUTATION (RDROM: opcode-high-byte | imm[9:8]) */
+
+    case 'H':
+      {
+        int high_byte;
+
+        err = fscanf(g_file_out_ptr, "%d %d ", &high_byte, &inz);
+        if (err < 2)
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+
+        stack = find_stack_calculation(inz, NO);
+        if (stack == NULL) {
+          print_text(NO, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
+          return FAILED;
+        }
+
+        if (stack->section_status == ON) {
+          stack->address = g_sec_tmp->i;
+          stack->base = s_base;
+          stack->bank = g_sec_tmp->bank;
+          stack->slot = g_sec_tmp->slot;
+        }
+        else {
+          stack->address = s_pc_bank;
+          stack->base = s_base;
+          stack->bank = s_rom_bank;
+          stack->slot = s_slot;
+        }
+
+        stack->type = STACK_TYPE_CX4_10BIT;
+        stack->special_id = high_byte & 0xFF;
+
+        if (_mangle_stack_references(stack) == FAILED)
+          return FAILED;
+
+        if (g_namespace[0] != 0) {
+          if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+            if (_add_namespace_to_stack_references(stack, g_namespace) == FAILED)
+              return FAILED;
+          }
+        }
+
+        if (stack->is_function_body == NO && resolve_stack(stack->stack_items, stack->stacksize) == SUCCEEDED) {
+          double r;
+
+          if (compute_stack(stack, stack->stacksize, &r) == FAILED)
+            return FAILED;
+
+          stack->is_function_body = YES;
+
+          o = (int)r;
+          if (o < 0 || o > 0x3FF) {
+            print_text(NO, "%s:%d: Value ($%x) of a stack calculation is too much to be a 10-bit value.\n", get_file_name(s_filename_id), s_line_number, o);
+            return FAILED;
+          }
+
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a Cx4 10-bit computation (low byte)", get_file_name(s_filename_id), s_line_number);
+          if (mem_insert(o & 0xFF) == FAILED)
+            return FAILED;
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a Cx4 10-bit computation (high byte)", get_file_name(s_filename_id), s_line_number);
+          if (mem_insert((high_byte & 0xFF) | ((o >> 8) & 0x03)) == FAILED)
+            return FAILED;
+        }
+        else {
+          stack->position = STACK_POSITION_CODE;
+
+          snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a Cx4 10-bit computation", get_file_name(s_filename_id), s_line_number);
+          if (mem_insert_padding() == FAILED)
+            return FAILED;
+          if (mem_insert_padding() == FAILED)
+            return FAILED;
+        }
+      }
+
+      continue;
+
       /* 16BIT COMPUTATION */
 
     case '!':
@@ -2035,6 +2178,122 @@ int phase_4(void) {
 
       continue;
 
+      /* an 8-bit reference with an additional "maximum bits" range check
+         (e.g. Cx4 MOV PH,imm which is 7 bits).  Format: W<bits> <label> */
+    case 'W':
+      {
+        int max_bits;
+        struct label_def *lbl;
+
+        err = fscanf(g_file_out_ptr, "%d ", &max_bits);
+        if (err < 1)
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+        err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+        if (err < 1)
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+
+        if (g_namespace[0] != 0) {
+          if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+            if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
+              return FAILED;
+          }
+        }
+
+        hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
+        if (tmp_def != NULL) {
+          if (tmp_def->type == DEFINITION_TYPE_STRING) {
+            print_text(NO, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
+            return FAILED;
+          }
+          if (tmp_def->type == DEFINITION_TYPE_STACK) {
+            if (_try_to_calculate_stack_calculation_define(tmp_def) == FAILED)
+              return FAILED;
+          }
+          if (tmp_def->type != DEFINITION_TYPE_STACK) {
+            o = (int)tmp_def->value;
+            if (max_bits > 0 && max_bits < 8 && (o & ~((1 << max_bits) - 1)) != 0) {
+              print_text(NO, "%s:%d: INTERNAL_PHASE_2: Value ($%x) of \"%s\" is too much to be a %d-bit value.\n",
+                         get_file_name(s_filename_id), s_line_number, o, g_tmp, max_bits);
+              return FAILED;
+            }
+            snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a %d-bit reference", get_file_name(s_filename_id), s_line_number, max_bits);
+            if (mem_insert(o & 0xFF) == FAILED)
+              return FAILED;
+            continue;
+          }
+        }
+
+        lbl = _new_unknown_reference(REFERENCE_TYPE_DIRECT_8BIT_MAX_BITS);
+        if (lbl == NULL)
+          return FAILED;
+        lbl->bits_to_define = max_bits;
+
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a %d-bit reference", get_file_name(s_filename_id), s_line_number, max_bits);
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        continue;
+      }
+
+      /* a 10-bit Cx4 reference split across two bytes: low byte = imm[7:0],
+         high byte = <mask> | ((imm>>8) & 0x03).  Format: K<mask> <label> */
+    case 'K':
+      {
+        int hi_mask;
+        struct label_def *lbl;
+
+        err = fscanf(g_file_out_ptr, "%d ", &hi_mask);
+        if (err < 1)
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+        err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+        if (err < 1)
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+
+        if (g_namespace[0] != 0) {
+          if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+            if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
+              return FAILED;
+          }
+        }
+
+        hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
+        if (tmp_def != NULL) {
+          if (tmp_def->type == DEFINITION_TYPE_STRING) {
+            print_text(NO, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
+            return FAILED;
+          }
+          if (tmp_def->type == DEFINITION_TYPE_STACK) {
+            if (_try_to_calculate_stack_calculation_define(tmp_def) == FAILED)
+              return FAILED;
+          }
+          if (tmp_def->type != DEFINITION_TYPE_STACK) {
+            o = (int)tmp_def->value;
+            if (o < 0 || o > 1023) {
+              print_text(NO, "%s:%d: INTERNAL_PHASE_2: Value ($%x) of \"%s\" is too much to be a 10-bit value.\n",
+                         get_file_name(s_filename_id), s_line_number, o, g_tmp);
+              return FAILED;
+            }
+            snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a 10-bit reference", get_file_name(s_filename_id), s_line_number);
+            if (mem_insert(o & 0xFF) == FAILED)
+              return FAILED;
+            if (mem_insert(hi_mask | ((o >> 8) & 0x03)) == FAILED)
+              return FAILED;
+            continue;
+          }
+        }
+
+        lbl = _new_unknown_reference(REFERENCE_TYPE_CX4_10BIT);
+        if (lbl == NULL)
+          return FAILED;
+        lbl->special_id = hi_mask;
+
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a 10-bit reference", get_file_name(s_filename_id), s_line_number);
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        continue;
+      }
+
       /* .DSTRUCT stuff */
 
     case 'e':
@@ -2335,6 +2594,8 @@ int write_object_file(void) {
 
     if (g_label_tmp->type == REFERENCE_TYPE_BITS)
       fprintf(final_ptr, "%c%c", g_label_tmp->bits_position, g_label_tmp->bits_to_define);
+    else if (g_label_tmp->type == REFERENCE_TYPE_DIRECT_8BIT_MAX_BITS)
+      fprintf(final_ptr, "%c", g_label_tmp->bits_to_define);
 
     fprintf(final_ptr, "%c", g_label_tmp->slot);
       
@@ -2365,6 +2626,8 @@ int write_object_file(void) {
 
     if (g_label_tmp->type == REFERENCE_TYPE_BITS)
       fprintf(final_ptr, "%c%c", g_label_tmp->bits_position, g_label_tmp->bits_to_define);
+    else if (g_label_tmp->type == REFERENCE_TYPE_DIRECT_8BIT_MAX_BITS)
+      fprintf(final_ptr, "%c", g_label_tmp->bits_to_define);
 
     fprintf(final_ptr, "%c", g_label_tmp->slot);
 
@@ -2689,6 +2952,8 @@ int write_library_file(void) {
 
     if (g_label_tmp->type == REFERENCE_TYPE_BITS)
       fprintf(final_ptr, "%c%c", g_label_tmp->bits_position, g_label_tmp->bits_to_define);
+    else if (g_label_tmp->type == REFERENCE_TYPE_DIRECT_8BIT_MAX_BITS)
+      fprintf(final_ptr, "%c", g_label_tmp->bits_to_define);
       
     ov = g_label_tmp->linenumber;
     WRITEOUT_OV;

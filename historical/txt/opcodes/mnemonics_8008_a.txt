@@ -75,6 +75,7 @@ x = 8bit
 "JTP ?" $78
 "JTS ?" $70
 "JTZ ?" $68
+"LAA" $C0
 "LAB" $C1
 "LAC" $C2
 "LAD" $C3
@@ -143,8 +144,79 @@ x = 8bit
 "LMD" $FB
 "LME" $FC
 "LMH" $FD
-"LMI x" $2E
+"LMI x" $3E
 "LML" $FE
+"MOV A,A" $C0
+"MOV A,B" $C1
+"MOV A,C" $C2
+"MOV A,D" $C3
+"MOV A,E" $C4
+"MOV A,H" $C5
+"MOV A,L" $C6
+"MOV A,M" $C7
+"MOV B,A" $C8
+"MOV B,B" $C9
+"MOV B,C" $CA
+"MOV B,D" $CB
+"MOV B,E" $CC
+"MOV B,H" $CD
+"MOV B,L" $CE
+"MOV B,M" $CF
+"MOV C,A" $D0
+"MOV C,B" $D1
+"MOV C,C" $D2
+"MOV C,D" $D3
+"MOV C,E" $D4
+"MOV C,H" $D5
+"MOV C,L" $D6
+"MOV C,M" $D7
+"MOV D,A" $D8
+"MOV D,B" $D9
+"MOV D,C" $DA
+"MOV D,D" $DB
+"MOV D,E" $DC
+"MOV D,H" $DD
+"MOV D,L" $DE
+"MOV D,M" $DF
+"MOV E,A" $E0
+"MOV E,B" $E1
+"MOV E,C" $E2
+"MOV E,D" $E3
+"MOV E,E" $E4
+"MOV E,H" $E5
+"MOV E,L" $E6
+"MOV E,M" $E7
+"MOV H,A" $E8
+"MOV H,B" $E9
+"MOV H,C" $EA
+"MOV H,D" $EB
+"MOV H,E" $EC
+"MOV H,H" $ED
+"MOV H,L" $EE
+"MOV H,M" $EF
+"MOV L,A" $F0
+"MOV L,B" $F1
+"MOV L,C" $F2
+"MOV L,D" $F3
+"MOV L,E" $F4
+"MOV L,H" $F5
+"MOV L,L" $F6
+"MOV L,M" $F7
+"MOV M,A" $F8
+"MOV M,B" $F9
+"MOV M,C" $FA
+"MOV M,D" $FB
+"MOV M,E" $FC
+"MOV M,H" $FD
+"MOV M,L" $FE
+"MVI A,x" $06
+"MVI B,x" $0E
+"MVI C,x" $16
+"MVI D,x" $1E
+"MVI E,x" $26
+"MVI H,x" $2E
+"MVI L,x" $36
+"MVI M,x" $3E
 "NDA" $A0
 "NDB" $A1
 "NDC" $A2

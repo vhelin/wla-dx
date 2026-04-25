@@ -1,0 +1,43 @@
+// ----------------------------------------------------------------------------
+// Ares 147 folder-pak manifest for the Cx4 "HELLO WORLD!" test.
+//
+// Ares expects a game folder (e.g.  result.sfc/ ) containing:
+//     manifest.bml
+//     program.rom           -- the 64 KB 65816 ROM
+//     hg51bs169.data.rom    -- the 3 KB HG51B data ROM (zero-filled here;
+//                              our microcode does not use RDROM)
+//
+// The presence of  processor  architecture=HG51BS169  is what causes
+// ares/sfc/cartridge/load.cpp -> loadHitachiDSP() to route the cart
+// through the real HG51B interpreter, so our wla-cx4 microcode actually
+// runs instead of hitting the Mega-Man-X2/X3 HLE path.
+// ----------------------------------------------------------------------------
+game
+  sha256:   0000000000000000000000000000000000000000000000000000000000000000
+  label:    CX4 HELLO WORLD
+  name:     CX4 HELLO WORLD
+  title:    CX4 HELLO WORLD
+  region:   NTSC
+  revision: 1.0
+  board:    SHVC-1DC0N-01
+    memory
+      type: ROM
+      size: 0x10000
+      content: Program
+    memory
+      type: ROM
+      size: 0xc00
+      content: Data
+      manufacturer: Hitachi
+      architecture: HG51BS169
+      identifier: Cx4
+    memory
+      type: RAM
+      size: 0xc00
+      content: Data
+      manufacturer: Hitachi
+      architecture: HG51BS169
+      identifier: Cx4
+      volatile
+    oscillator
+      frequency: 20000000

@@ -169,6 +169,7 @@ x = 8bit
 "MOV M,E" $73
 "MOV M,H" $74
 "MOV M,L" $75
+"MOV M,M" $76
 "MVI A,x" $3E
 "MVI B,x" $06
 "MVI C,x" $0E

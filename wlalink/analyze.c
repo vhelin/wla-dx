@@ -831,6 +831,10 @@ int collect_dlr(void) {
           r->bits_position = *(t++);
           r->bits_to_define = *(t++);
         }
+        else if (r->type == REFERENCE_TYPE_DIRECT_8BIT_MAX_BITS) {
+          r->bits_position = 0;
+          r->bits_to_define = *(t++);
+        }
         else {
           r->bits_position = 0;
           r->bits_to_define = 0;
@@ -1090,6 +1094,10 @@ int collect_dlr(void) {
 
         if (r->type == REFERENCE_TYPE_BITS) {
           r->bits_position = *(t++);
+          r->bits_to_define = *(t++);
+        }
+        else if (r->type == REFERENCE_TYPE_DIRECT_8BIT_MAX_BITS) {
+          r->bits_position = 0;
           r->bits_to_define = *(t++);
         }
         else {

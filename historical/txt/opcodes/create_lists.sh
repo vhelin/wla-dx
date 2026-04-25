@@ -212,6 +212,20 @@ export WLA_NICELIST=NICELIST2
 make
 ./op | sort > _superfx_o
 
+# Cx4
+
+make clean
+export WLA_TARGET=CX4
+export WLA_NICELIST=NICELIST1
+make
+./op | sort > _cx4_a
+
+make clean
+export WLA_TARGET=CX4
+export WLA_NICELIST=NICELIST2
+make
+./op | sort > _cx4_o
+
 make clean
 
 # create the final files
@@ -285,6 +299,11 @@ cat header_o_6809.txt _6809_o > mnemonics_6809_o.txt
 
 cat header_a_superfx.txt _superfx_a > mnemonics_superfx_a.txt
 cat header_o_superfx.txt _superfx_o > mnemonics_superfx_o.txt
+
+# Cx4
+
+cat header_a_cx4.txt _cx4_a > mnemonics_cx4_a.txt
+cat header_o_cx4.txt _cx4_o > mnemonics_cx4_o.txt
 
 # cleanup
 

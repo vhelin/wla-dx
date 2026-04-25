@@ -251,7 +251,7 @@ int phase_3(void) {
                 get_file_name(file_name_id), line_number);
         return FAILED;
 
-#if defined(SUPERFX)
+#if defined(SUPERFX) || defined(CX4)
 
       case '*':
         if (g_section_status == ON) {
@@ -958,6 +958,34 @@ int phase_3(void) {
         return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address++;
       continue;
+
+    case 'W':
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+      address++;
+      continue;
+
+    case 'K':
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+      address += 2;
+      continue;
+
+    case 'H':
+      err = fscanf(g_file_out_ptr, "%*d %*d ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+      address += 2;
+      continue;
+
+    case 'a':
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+      address++;
+      continue;
       
     case 'd':
     case 'c':
@@ -988,7 +1016,7 @@ int phase_3(void) {
       address += 2;
       continue;
 
-#if defined(SUPERFX)
+#if defined(SUPERFX) || defined(CX4)
 
     case '*':
       err = fscanf(g_file_out_ptr, "%*s ");

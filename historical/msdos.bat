@@ -92,6 +92,11 @@ make
 move w-huc6280.exe binaries\
 make clean
 
+copy makefiles\makefile.msdos.cx4 MAKEFILE
+make
+move w-cx4.exe binaries\
+make clean
+
 cd wlalink
 copy makefile.msdos MAKEFILE
 make clean

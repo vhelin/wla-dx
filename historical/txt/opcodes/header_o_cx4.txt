@@ -1,0 +1,15 @@
+
+WLA DX: Cx4 mnemonics listed in opcode order.
+
+If you notice any errors or something is missing, please
+open an issue @ https://github.com/vhelin/wla-dx
+
+
+@ = shifted accumulator A (constant placeholder in opcode)
+r = general purpose register
+u = small immediate (rotate/shift count)
+g = small immediate (page bank)
+x = 8bit immediate / page operand / branch target
+q = 10bit ROM address
+PH operand of "MOV PH,x" is a 7bit immediate
+

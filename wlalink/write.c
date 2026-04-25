@@ -2853,6 +2853,37 @@ int fix_references(void) {
         if (mem_insert_bits(x, i, r->bits_position, r->bits_to_define) == FAILED)
           return FAILED;
       }
+      /* 8-bit ref with a maximum bit width (e.g. Cx4 MOV PH, 7-bit imm) */
+      else if (r->type == REFERENCE_TYPE_DIRECT_8BIT_MAX_BITS) {
+        int bits = r->bits_to_define;
+        i = ((int)l->address) & 0xFFFF;
+        if (bits > 0 && bits < 8) {
+          int mask = ~((1 << bits) - 1);
+          if ((i & mask) != 0) {
+            print_text(NO, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a %d-bit value.\n",
+                       get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name, bits);
+            return FAILED;
+          }
+        }
+        else if (i > 255) {
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 8-bit value.\n",
+                     get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
+          return FAILED;
+        }
+        mem_insert_ref(x, i & 0xFF);
+      }
+      /* Cx4 10-bit ref split across two bytes: low = imm[7:0], high = mask | imm[9:8] */
+      else if (r->type == REFERENCE_TYPE_CX4_10BIT) {
+        int hi_mask = r->special_id;
+        i = ((int)l->address) & 0xFFFF;
+        if (i < 0 || i > 1023) {
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: Value ($%x) of \"%s\" is too much to be a 10-bit value.\n",
+                     get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, l->name);
+          return FAILED;
+        }
+        mem_insert_ref(x, i & 0xFF);
+        mem_insert_ref(x + 1, (hi_mask & 0xFF) | ((i >> 8) & 0x03));
+      }
       else {
         i = ((int)l->address) & 0xFFFF;
         if (i > 255) {
@@ -3655,6 +3686,27 @@ int compute_pending_calculations(void) {
       if (mem_insert_bits(a, k, sta->bits_position, sta->bits_to_define) == FAILED)
         return FAILED;
     }
+    else if (sta->type == STACK_TYPE_CX4_10BIT) {
+      if (k < 0 || k > 0x3FF) {
+        print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 10-bit range.\n",
+                get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
+        return FAILED;
+      }
+      /* low byte = imm[7:0], high byte = opcode-high-mask (stored in special_id) | imm[9:8] */
+      if (mem_insert_ref(a, k & 0xFF) == FAILED)
+        return FAILED;
+      if (mem_insert_ref(a + 1, (sta->special_id & 0xFF) | ((k >> 8) & 0x03)) == FAILED)
+        return FAILED;
+    }
+    else if (sta->type == STACK_TYPE_CX4_7BIT) {
+      if (k < 0 || k > 0x7F) {
+        print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Result (%d/$%x) of a computation is out of 7-bit range.\n",
+                get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
+        return FAILED;
+      }
+      if (mem_insert_ref(a, k & 0xFF) == FAILED)
+        return FAILED;
+    }
     else {
       print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Unsupported pending calculation type. Please send an error report!\n",
               get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
@@ -3985,6 +4037,10 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
           y = 0xFFFFFF;
         else if (sta->type == STACK_TYPE_32BIT)
           y = 0xFFFFFFFF;
+        else if (sta->type == STACK_TYPE_CX4_10BIT)
+          y = 0x3FF;
+        else if (sta->type == STACK_TYPE_CX4_7BIT)
+          y = 0x7F;
         else {
           print_text(NO, "%s: %s:%d: COMPUTE_STACK: NOT cannot determine the output size.\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
@@ -4732,6 +4788,24 @@ int write_bank_header_calculations(struct stack *sta) {
     *t = k & 0xFF;
     t++;
     *t = (*t & 0xE0) | ((k >> 8) & 0x1F);
+  }
+  else if (sta->type == STACK_TYPE_CX4_10BIT) {
+    if (k < 0 || k > 0x3FF) {
+      print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 10-bit range.\n",
+              get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
+      return FAILED;
+    }
+    *t = k & 0xFF;
+    t++;
+    *t = (sta->special_id & 0xFF) | ((k >> 8) & 0x03);
+  }
+  else if (sta->type == STACK_TYPE_CX4_7BIT) {
+    if (k < 0 || k > 0x7F) {
+      print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_CALCULATIONS: Result (%d/$%x) of a computation is out of 7-bit range.\n",
+              get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, k, k);
+      return FAILED;
+    }
+    *t = k & 0xFF;
   }
   else if (sta->type == STACK_TYPE_BITS) {
     int mask = 0, bits_position, bits_to_define, bits_byte;

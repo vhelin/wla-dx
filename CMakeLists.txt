@@ -11,6 +11,7 @@ project(WLA-DX C)
 set(ARCHS
     # wla-NAME:compile-def
     "gb:GB"
+    "cx4:CX4"
     "65c02:WDC65C02"
     "65ce02:CSG65CE02"
     "6502:MCS6502"
@@ -176,6 +177,7 @@ foreach(ARCH IN LISTS ARCHS)
         OUTPUT "${TABLE_GEN_OUTPUT}"
         COMMAND ${GEN_PREFIX}gen-${WLA_NAME}
             "${TABLE_GEN_OUTPUT}"
+        DEPENDS gen-${WLA_NAME} "i${WLA_NAME}.c" "defines.h"
         )
 
     # Generate actual wla binary
@@ -198,7 +200,7 @@ endif()
 
 # Packaging via CPack
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
-    "Yet Another GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX Multi Platform Cross Assembler Package")
+    "Yet Another GB-Z80/Cx4/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX Multi Platform Cross Assembler Package")
 set(CPACK_PACKAGE_CHECKSUM MD5) # CPack 3.7+
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_GENERATOR ZIP TGZ 7Z)

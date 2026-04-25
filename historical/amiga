@@ -20,6 +20,7 @@ sc define AMIGA=1 define W65816=1 i65816.c
 sc define AMIGA=1 define SPC700=1 ispc700.c
 sc define AMIGA=1 define HUC6280=1 ihuc6280.c
 sc define AMIGA=1 define SUPERFX=1 isuperfx.c
+sc define AMIGA=1 define CX4=1 icx4.c
 
 copy makefiles/scoptions.000 to instruction_table_generator/scoptions
 cd instruction_table_generator
@@ -104,6 +105,11 @@ slink FROM LIB:c.o main.o /isuperfx.o TO instruction_table_generator LIB LIB:scm
 instruction_table_generator /tsuperfx.c
 delete instruction_table_generator main.o /isuperfx.o
 
+sc define AMIGA=1 define CX4=1 main.c
+slink FROM LIB:c.o main.o /icx4.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /tcx4.c
+delete instruction_table_generator main.o /icx4.o
+
 cd /
 
 if not exists binaries
@@ -162,6 +168,28 @@ copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
 copy wla to binaries/68000/wla-superfx
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WLA-CX4
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+copy makefiles/smake.cx4 to smakefile
+copy makefiles/scoptions.020 to scoptions
+smake clean
+smake
+copy wla to binaries/68020/wla-cx4
+
+copy makefiles/smake.cx4 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/68040/wla-cx4
+
+copy makefiles/smake.cx4 to smakefile
+copy makefiles/scoptions.000 to scoptions
+smake clean
+smake
+copy wla to binaries/68000/wla-cx4
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WLA-Z80

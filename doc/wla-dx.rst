@@ -10,6 +10,7 @@
     asmsyntax
     errormsg
     gb-support
+    cx4
     bugs
     files
     functions

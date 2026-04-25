@@ -55,6 +55,9 @@
 #ifdef MC6809
 #include "../../../i6809.c"
 #endif
+#ifdef CX4
+#include "../../../icx4.c"
+#endif
 
 
 /* this program is used to print out the mnemonic tables */
@@ -110,6 +113,9 @@ int main(int argc, char *argv[]) {
 #endif
 #if defined(SUPERFX)
     printf("  { \"%s\", %d, 0x%X, 0x%X, %d, %d },\n", g_instructions_table[i].string, g_instructions_table[i].type, g_instructions_table[i].hex, g_instructions_table[i].prefix, g_instructions_table[i].min, g_instructions_table[i].max);
+#endif
+#if defined(CX4)
+    printf("  { \"%s\", 0x%X, %d },\n", g_instructions_table[i].string, g_instructions_table[i].hex, g_instructions_table[i].type);
 #endif
     
 #endif
@@ -234,6 +240,11 @@ int main(int argc, char *argv[]) {
 #endif
 
 #if defined(MC68000)
+    printf("\"%s\" ", g_instructions_table[i].string);
+    printf("$%.4X\n", g_instructions_table[i].hex);
+#endif
+
+#if defined(CX4)
     printf("\"%s\" ", g_instructions_table[i].string);
     printf("$%.4X\n", g_instructions_table[i].hex);
 #endif
@@ -448,6 +459,11 @@ int main(int argc, char *argv[]) {
 #endif
 
 #if defined(MC68000)
+    printf("$%.4X ", g_instructions_table[i].hex);
+    printf("\"%s\"\n", g_instructions_table[i].string);
+#endif
+
+#if defined(CX4)
     printf("$%.4X ", g_instructions_table[i].hex);
     printf("\"%s\"\n", g_instructions_table[i].string);
 #endif
