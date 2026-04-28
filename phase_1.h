@@ -38,5 +38,6 @@ void get_dir(char *full_path, char *tmp);
 
 int add_namespace_to_string(char *s, int sizeof_s, char *type);
 int macro_get(char *name, int add_namespace, struct macro_static **macro_out);
+int function_get(char *name, struct function **function_out);
 
 #endif

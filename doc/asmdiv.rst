@@ -120,6 +120,8 @@ ALL  ``.DD $1ffffff, $2000000``
 ALL  ``.DDM filtermacro 1, 2, 3``
 ALL  ``.DEF IF $FF0F``
 ALL  ``.DEFINE IF $FF0F``
+ALL  ``.DELFUNCTION SUM_AB``
+ALL  ``.DELMACRO TEST``
 ALL  ``.DL $102030, $405060``
 ALL  ``.DLM filtermacro 1, 2, 3``
 ALL  ``.DS 256, $10``
@@ -1011,6 +1013,27 @@ works as well. And this works also::
 
     AAA = 10
 
+If the name is followed by ``(``, ``.DEFINE`` creates a function just like
+``.FUNCTION``::
+
+    .DEFINE SUM_AB(varA, varB) (varA + varB)
+
+This is not a compulsory directive.
+
+
+``.DELFUNCTION SUM_AB``
+-----------------------
+
+Deletes the function called ``SUM_AB``.
+
+This is not a compulsory directive.
+
+
+``.DELMACRO TEST``
+------------------
+
+Deletes the macro called ``TEST``.
+
 This is not a compulsory directive.
 
 
@@ -1768,6 +1791,11 @@ Creates a function called ``SUM_AB``. Here are some examples::
     .FUNCTION SUB_A_6(varA) varA-6
     .FUNCTION SUM_ABC(varA, varB, varC) (SUM_AB(varA, varB) + varC)
     .FUNCTION CONSTANT_1() 1
+
+You can also use ``.DEFINE`` to create a function by putting ``(`` immediately
+after the name::
+
+    .DEFINE ADD_THREE(value) value + 3
 
 ``.FUNCTION`` can be used anywhere values are expected::
 

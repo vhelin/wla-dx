@@ -442,6 +442,27 @@ int macro_get(char *name, int add_namespace, struct macro_static **macro_out) {
 }
 
 
+int function_get(char *name, struct function **function_out) {
+
+  struct function *function;
+  char c1;
+
+  c1 = name[0];
+  function = g_functions_first;
+  while (function != NULL) {
+    if (c1 == function->name[0]) {
+      if (strcmp(function->name, name) == 0)
+        break;
+    }
+    function = function->next;
+  }
+
+  *function_out = function;
+
+  return SUCCEEDED;
+}
+
+
 static int _macro_stack_grow(void) {
 
   if (g_macro_active == s_macro_stack_size) {
@@ -8063,23 +8084,20 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
 }
 
 
-int directive_function(void) {
+static int _directive_function_with_name(char *function_name, int opening_parenthesis_read) {
   
   char name[MAX_NAME_LENGTH+1];
   struct function *f;
   int res;
   char c1;
 
-  if (get_next_plain_string() == FAILED)
-    return FAILED;
-
   /* do we already have a function with that name? */
-  c1 = g_label[0];
+  c1 = function_name[0];
   f = g_functions_first;
   while (f != NULL) {
     if (c1 == f->name[0]) {
-      if (strcmp(g_label, f->name) == 0) {
-        print_error(ERROR_DIR, ".FUNCTION called \"%s\" exists already!\n", g_label);
+      if (strcmp(function_name, f->name) == 0) {
+        print_error(ERROR_DIR, ".FUNCTION called \"%s\" exists already!\n", function_name);
         return FAILED;
       }
     }
@@ -8087,50 +8105,59 @@ int directive_function(void) {
   }
 
   /* also check built-in function names */
-  if (strcmp("asc", g_label) == 0 ||
-      strcmp("min", g_label) == 0 ||
-      strcmp("max", g_label) == 0 ||
-      strcmp("random", g_label) == 0 ||
-      strcmp("defined", g_label) == 0 ||
-      strcmp("exists", g_label) == 0 ||
-      strcmp("lobyte", g_label) == 0 ||
-      strcmp("hibyte", g_label) == 0 ||
-      strcmp("loword", g_label) == 0 ||
-      strcmp("hiword", g_label) == 0 ||
-      strcmp("bankbyte", g_label) == 0 ||
-      strcmp("bank", g_label) == 0 ||
-      strcmp("base", g_label) == 0 ||
-      strcmp("slot", g_label) == 0 ||
-      strcmp("round", g_label) == 0 ||
-      strcmp("ceil", g_label) == 0 ||
-      strcmp("floor", g_label) == 0 ||
-      strcmp("sqrt", g_label) == 0 ||
-      strcmp("cos", g_label) == 0 ||
-      strcmp("sin", g_label) == 0 ||
-      strcmp("tan", g_label) == 0 ||
-      strcmp("acos", g_label) == 0 ||
-      strcmp("asin", g_label) == 0 ||
-      strcmp("atan", g_label) == 0 ||
-      strcmp("atan2", g_label) == 0 ||
-      strcmp("cosh", g_label) == 0 ||
-      strcmp("sinh", g_label) == 0 ||
-      strcmp("tanh", g_label) == 0 ||
-      strcmp("log", g_label) == 0 ||
-      strcmp("log10", g_label) == 0 ||
-      strcmp("pow", g_label) == 0 ||
-      strcmp("clamp", g_label) == 0 ||
-      strcmp("sign", g_label) == 0 ||
-      strcmp("is", g_label) == 0 ||
-      strcmp("get", g_label) == 0 ||
-      strcmp("org", g_label) == 0 ||
-      strcmp("orga", g_label) == 0 ||
-      strcmp("substring", g_label) == 0 ||
-      strcmp("abs", g_label) == 0) {
-    print_error(ERROR_DIR, "You cannot redefine a built-in .FUNCTION \"%s\"!\n", g_label);
+  if (strcmp("asc", function_name) == 0 ||
+      strcmp("min", function_name) == 0 ||
+      strcmp("max", function_name) == 0 ||
+      strcmp("random", function_name) == 0 ||
+      strcmp("defined", function_name) == 0 ||
+      strcmp("definedmacro", function_name) == 0 ||
+      strcmp("definedfunction", function_name) == 0 ||
+      strcmp("exists", function_name) == 0 ||
+      strcmp("blank", function_name) == 0 ||
+      strcmp("match", function_name) == 0 ||
+      strcmp("xmatch", function_name) == 0 ||
+      strcmp("left", function_name) == 0 ||
+      strcmp("mid", function_name) == 0 ||
+      strcmp("right", function_name) == 0 ||
+      strcmp("tcount", function_name) == 0 ||
+      strcmp("lobyte", function_name) == 0 ||
+      strcmp("hibyte", function_name) == 0 ||
+      strcmp("loword", function_name) == 0 ||
+      strcmp("hiword", function_name) == 0 ||
+      strcmp("bankbyte", function_name) == 0 ||
+      strcmp("bank", function_name) == 0 ||
+      strcmp("base", function_name) == 0 ||
+      strcmp("slot", function_name) == 0 ||
+      strcmp("round", function_name) == 0 ||
+      strcmp("ceil", function_name) == 0 ||
+      strcmp("floor", function_name) == 0 ||
+      strcmp("sqrt", function_name) == 0 ||
+      strcmp("cos", function_name) == 0 ||
+      strcmp("sin", function_name) == 0 ||
+      strcmp("tan", function_name) == 0 ||
+      strcmp("acos", function_name) == 0 ||
+      strcmp("asin", function_name) == 0 ||
+      strcmp("atan", function_name) == 0 ||
+      strcmp("atan2", function_name) == 0 ||
+      strcmp("cosh", function_name) == 0 ||
+      strcmp("sinh", function_name) == 0 ||
+      strcmp("tanh", function_name) == 0 ||
+      strcmp("log", function_name) == 0 ||
+      strcmp("log10", function_name) == 0 ||
+      strcmp("pow", function_name) == 0 ||
+      strcmp("clamp", function_name) == 0 ||
+      strcmp("sign", function_name) == 0 ||
+      strcmp("is", function_name) == 0 ||
+      strcmp("get", function_name) == 0 ||
+      strcmp("org", function_name) == 0 ||
+      strcmp("orga", function_name) == 0 ||
+      strcmp("substring", function_name) == 0 ||
+      strcmp("abs", function_name) == 0) {
+    print_error(ERROR_DIR, "You cannot redefine a built-in .FUNCTION \"%s\"!\n", function_name);
     return FAILED;
   }
 
-  strcpy(name, g_label);
+  strcpy(name, function_name);
   
   f = calloc(1, sizeof(struct function));
   if (f == NULL) {
@@ -8154,7 +8181,7 @@ int directive_function(void) {
     g_functions_last = f;
   }
 
-  if (compare_and_skip_next_symbol('(') == FAILED) {
+  if (opening_parenthesis_read == NO && compare_and_skip_next_symbol('(') == FAILED) {
     print_error(ERROR_DIR, "Opening parenthesis is missing from function \"%s\".\n", name);
     return FAILED;
   }
@@ -8221,6 +8248,15 @@ int directive_function(void) {
 }
 
 
+int directive_function(void) {
+
+  if (get_next_plain_string() == FAILED)
+    return FAILED;
+
+  return _directive_function_with_name(g_label, NO);
+}
+
+
 int directive_define_def_equ(void) {
   
   char k[256], label[MAX_NAME_LENGTH+1];
@@ -8236,6 +8272,9 @@ int directive_define_def_equ(void) {
     g_force_add_namespace = NO;
   
   strcpy(label, g_label);
+
+  if (strcaselesscmp(g_current_directive, "DEFINE") == 0 && g_buffer[g_source_index] == '(' && compare_and_skip_next_symbol('(') == SUCCEEDED)
+    return _directive_function_with_name(label, YES);
   
   /* check the user doesn't try to define reserved labels */
   if (is_reserved_definition(label) == YES) {
@@ -8322,6 +8361,141 @@ int directive_undef_undefine(void) {
     if (undefine(g_label) == FAILED)
       print_error(ERROR_WRN, "Could not .%s \"%s\".\n", bak, g_label);
   }
+
+  return SUCCEEDED;
+}
+
+
+static void _free_macro_static(struct macro_static *macro) {
+
+  int i;
+
+  if (macro->nargument_names > 0) {
+    for (i = 0; i < macro->nargument_names; i++)
+      free(macro->argument_names[i]);
+    free(macro->argument_names);
+  }
+
+  free(macro);
+}
+
+
+static int _macro_static_is_active(struct macro_static *macro) {
+
+  int i;
+
+  for (i = 0; i < g_macro_active; i++) {
+    if (g_macro_stack[i].macro == macro)
+      return YES;
+  }
+
+  return NO;
+}
+
+
+int directive_delmacro(void) {
+
+  struct macro_static *macro, *previous;
+  char name[MAX_NAME_LENGTH + 1];
+
+  g_force_add_namespace = YES;
+  if (get_next_plain_string() == FAILED) {
+    g_force_add_namespace = NO;
+    return FAILED;
+  }
+  g_force_add_namespace = NO;
+
+  strcpy(name, g_label);
+
+  if (macro_get(name, NO, &macro) == FAILED)
+    return FAILED;
+
+  if (macro == NULL) {
+    print_error(ERROR_WRN, "Could not .DELMACRO \"%s\".\n", name);
+    return SUCCEEDED;
+  }
+
+  if (_macro_static_is_active(macro) == YES) {
+    print_error(ERROR_DIR, "Cannot .DELMACRO currently active macro \"%s\".\n", name);
+    return FAILED;
+  }
+
+  previous = NULL;
+  macro = g_macros_first;
+  while (macro != NULL) {
+    if (strcmp(macro->name, name) == 0)
+      break;
+    previous = macro;
+    macro = macro->next;
+  }
+
+  if (macro == NULL)
+    return SUCCEEDED;
+
+  if (previous == NULL)
+    g_macros_first = macro->next;
+  else
+    previous->next = macro->next;
+
+  if (g_macros_last == macro)
+    g_macros_last = previous;
+
+  _free_macro_static(macro);
+
+  return SUCCEEDED;
+}
+
+
+static void _free_function(struct function *function) {
+
+  int i;
+
+  for (i = 0; i < function->nargument_names; i++)
+    free(function->argument_names[i]);
+
+  free(function);
+}
+
+
+int directive_delfunction(void) {
+
+  struct function *function, *previous;
+  char name[MAX_NAME_LENGTH + 1];
+
+  if (get_next_plain_string() == FAILED)
+    return FAILED;
+
+  strcpy(name, g_label);
+
+  if (function_get(name, &function) == FAILED)
+    return FAILED;
+
+  if (function == NULL) {
+    print_error(ERROR_WRN, "Could not .DELFUNCTION \"%s\".\n", name);
+    return SUCCEEDED;
+  }
+
+  previous = NULL;
+  function = g_functions_first;
+  while (function != NULL) {
+    if (strcmp(function->name, name) == 0)
+      break;
+    previous = function;
+    function = function->next;
+  }
+
+  if (function == NULL)
+    return SUCCEEDED;
+
+  if (previous == NULL)
+    g_functions_first = function->next;
+  else
+    previous->next = function->next;
+
+  if (g_functions_last == function)
+    g_functions_last = previous;
+
+  _free_function(function);
 
   return SUCCEEDED;
 }
@@ -11815,6 +11989,14 @@ int parse_directive(void) {
       /* DEFINE */
       if (strcmp(directive_upper, "DEFINE") == 0)
         return directive_define_def_equ();
+
+      /* DELMACRO */
+      if (strcmp(directive_upper, "DELMACRO") == 0)
+        return directive_delmacro();
+
+      /* DELFUNCTION */
+      if (strcmp(directive_upper, "DELFUNCTION") == 0)
+        return directive_delfunction();
 
       /* DATA? */
       if (strcmp(directive_upper, "DATA") == 0)

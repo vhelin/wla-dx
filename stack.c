@@ -1115,6 +1115,344 @@ static int _parse_function_substring(char *in, struct stack_item *si, int *parse
 }
 
 
+static void _trim_string(char *s) {
+
+  int i, start = 0, end = (int)strlen(s);
+
+  while (s[start] != 0 && isspace((unsigned char)s[start]))
+    start++;
+  while (end > start && isspace((unsigned char)s[end - 1]))
+    end--;
+
+  for (i = 0; start < end; start++, i++)
+    s[i] = s[start];
+  s[i] = 0;
+}
+
+
+static int _parse_string_or_value_argument(char *function_name, char *out, int out_size) {
+
+  int res;
+
+  g_expect_calculations = NO;
+  res = input_number();
+
+  if (res == INPUT_NUMBER_ADDRESS_LABEL || res == INPUT_NUMBER_STRING) {
+    snprintf(out, out_size, "%s", g_label);
+    return SUCCEEDED;
+  }
+
+  if (res == SUCCEEDED) {
+    snprintf(out, out_size, "%d", g_parsed_int);
+    return SUCCEEDED;
+  }
+
+  print_error(ERROR_NUM, "%s() requires a string, label or immediate value.\n", function_name);
+  return FAILED;
+}
+
+
+static int _parse_number_argument(char *function_name, int *out) {
+
+  int res;
+
+  g_expect_calculations = YES;
+  res = input_number();
+
+  if (res != SUCCEEDED) {
+    print_error(ERROR_NUM, "%s() requires a number that can be solved right here.\n", function_name);
+    return FAILED;
+  }
+
+  *out = g_parsed_int;
+
+  return SUCCEEDED;
+}
+
+
+static int _finish_parsed_function(char *in, int source_index_original, int source_index_backup, int old_expect, int *parsed_chars) {
+
+  if (g_buffer[g_source_index] != ')') {
+    print_error(ERROR_NUM, "Malformed \"%s\" detected!\n", in);
+    g_expect_calculations = old_expect;
+    g_source_index = source_index_original;
+    return FAILED;
+  }
+
+  g_source_index++;
+  *parsed_chars = (int)(g_source_index - source_index_backup);
+
+  g_expect_calculations = old_expect;
+  g_source_index = source_index_original;
+
+  return SUCCEEDED;
+}
+
+
+static int _parse_function_blank(char *in, int *result, int *parsed_chars) {
+
+  int old_expect = g_expect_calculations, source_index_original = g_source_index, source_index_backup;
+  char tmp[MAX_NAME_LENGTH + 1];
+
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
+
+  if (g_buffer[g_source_index] == ')')
+    tmp[0] = 0;
+  else {
+    if (_parse_string_or_value_argument("blank", tmp, sizeof(tmp)) == FAILED) {
+      g_expect_calculations = old_expect;
+      g_source_index = source_index_original;
+      return FAILED;
+    }
+  }
+
+  if (_finish_parsed_function("blank(?)", source_index_original, source_index_backup, old_expect, parsed_chars) == FAILED)
+    return FAILED;
+
+  _trim_string(tmp);
+  *result = tmp[0] == 0 ? 1 : 0;
+
+  return SUCCEEDED;
+}
+
+
+static int _get_token(char **cursor, char *token, int token_size, int *type) {
+
+  char *s = *cursor;
+  int i = 0;
+
+  while (*s != 0 && isspace((unsigned char)*s))
+    s++;
+
+  if (*s == 0) {
+    *cursor = s;
+    return FAILED;
+  }
+
+  if (*s == '"') {
+    token[i++] = *s++;
+    while (*s != 0 && i < token_size - 1) {
+      token[i++] = *s;
+      if (*s == '"' && (i < 2 || token[i - 2] != '\\')) {
+        s++;
+        break;
+      }
+      s++;
+    }
+    *type = INPUT_NUMBER_STRING;
+  }
+  else if (isalnum((unsigned char)*s) || *s == '_' || *s == '.' || *s == '$' || *s == '%') {
+    if (isdigit((unsigned char)*s) || *s == '$' || *s == '%')
+      *type = SUCCEEDED;
+    else
+      *type = INPUT_NUMBER_ADDRESS_LABEL;
+
+    while (*s != 0 && i < token_size - 1 && (isalnum((unsigned char)*s) || *s == '_' || *s == '.' || *s == '$' || *s == '%'))
+      token[i++] = *s++;
+  }
+  else {
+    *type = *s;
+    token[i++] = *s++;
+    if ((*token == '=' || *token == '!' || *token == '<' || *token == '>') && *s == '=')
+      token[i++] = *s++;
+  }
+
+  token[i] = 0;
+  *cursor = s;
+
+  return SUCCEEDED;
+}
+
+
+static int _token_count(char *s) {
+
+  int type, count = 0;
+  char token[MAX_NAME_LENGTH + 1];
+
+  while (_get_token(&s, token, sizeof(token), &type) == SUCCEEDED)
+    count++;
+
+  return count;
+}
+
+
+static int _tokens_match(char *a, char *b, int exact) {
+
+  int type_a, type_b;
+  char token_a[MAX_NAME_LENGTH + 1], token_b[MAX_NAME_LENGTH + 1];
+
+  while (1) {
+    int res_a = _get_token(&a, token_a, sizeof(token_a), &type_a);
+    int res_b = _get_token(&b, token_b, sizeof(token_b), &type_b);
+
+    if (res_a == FAILED || res_b == FAILED)
+      return res_a == res_b ? YES : NO;
+
+    if (type_a != type_b)
+      return NO;
+    if (exact == YES && strcmp(token_a, token_b) != 0)
+      return NO;
+  }
+}
+
+
+static int _parse_function_match(char *in, int *result, int *parsed_chars, int exact) {
+
+  int old_expect = g_expect_calculations, source_index_original = g_source_index, source_index_backup;
+  char a[MAX_NAME_LENGTH + 1], b[MAX_NAME_LENGTH + 1];
+
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
+
+  if (_parse_string_or_value_argument(exact == YES ? "xmatch" : "match", a, sizeof(a)) == FAILED ||
+      _parse_string_or_value_argument(exact == YES ? "xmatch" : "match", b, sizeof(b)) == FAILED) {
+    g_expect_calculations = old_expect;
+    g_source_index = source_index_original;
+    return FAILED;
+  }
+
+  if (_finish_parsed_function(exact == YES ? "xmatch(?,?)" : "match(?,?)", source_index_original, source_index_backup, old_expect, parsed_chars) == FAILED)
+    return FAILED;
+
+  *result = _tokens_match(a, b, exact) == YES ? 1 : 0;
+
+  return SUCCEEDED;
+}
+
+
+static int _parse_function_tcount(char *in, int *result, int *parsed_chars) {
+
+  int old_expect = g_expect_calculations, source_index_original = g_source_index, source_index_backup;
+  char tmp[MAX_NAME_LENGTH + 1];
+
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
+
+  if (_parse_string_or_value_argument("tcount", tmp, sizeof(tmp)) == FAILED) {
+    g_expect_calculations = old_expect;
+    g_source_index = source_index_original;
+    return FAILED;
+  }
+
+  if (_finish_parsed_function("tcount(?)", source_index_original, source_index_backup, old_expect, parsed_chars) == FAILED)
+    return FAILED;
+
+  *result = _token_count(tmp);
+
+  return SUCCEEDED;
+}
+
+
+static int _parse_function_definedmacro(char *in, int *result, int *parsed_chars) {
+
+  int old_expect = g_expect_calculations, source_index_original = g_source_index, source_index_backup;
+  char tmp[MAX_NAME_LENGTH + 1];
+  struct macro_static *macro;
+
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
+
+  if (_parse_string_or_value_argument("definedmacro", tmp, sizeof(tmp)) == FAILED) {
+    g_expect_calculations = old_expect;
+    g_source_index = source_index_original;
+    return FAILED;
+  }
+
+  if (_finish_parsed_function("definedmacro(?)", source_index_original, source_index_backup, old_expect, parsed_chars) == FAILED)
+    return FAILED;
+
+  if (macro_get(tmp, YES, &macro) == FAILED)
+    return FAILED;
+
+  *result = macro != NULL ? 1 : 0;
+
+  return SUCCEEDED;
+}
+
+
+static int _parse_function_definedfunction(char *in, int *result, int *parsed_chars) {
+
+  int old_expect = g_expect_calculations, source_index_original = g_source_index, source_index_backup;
+  char tmp[MAX_NAME_LENGTH + 1];
+  struct function *function;
+
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
+
+  if (_parse_string_or_value_argument("definedfunction", tmp, sizeof(tmp)) == FAILED) {
+    g_expect_calculations = old_expect;
+    g_source_index = source_index_original;
+    return FAILED;
+  }
+
+  if (_finish_parsed_function("definedfunction(?)", source_index_original, source_index_backup, old_expect, parsed_chars) == FAILED)
+    return FAILED;
+
+  if (function_get(tmp, &function) == FAILED)
+    return FAILED;
+
+  *result = function != NULL ? 1 : 0;
+
+  return SUCCEEDED;
+}
+
+
+static int _parse_function_left_mid_right(char *in, struct stack_item *si, int *parsed_chars, char *name) {
+
+  int i, old_expect = g_expect_calculations, source_index_original = g_source_index, source_index_backup, start = 0, length, string_length;
+  char tmp[MAX_NAME_LENGTH + 1];
+
+  g_source_index = (int)(in - g_buffer);
+  source_index_backup = g_source_index;
+
+  if (strcmp(name, "mid") == 0) {
+    if (_parse_number_argument(name, &start) == FAILED ||
+        _parse_number_argument(name, &length) == FAILED ||
+        _parse_string_or_value_argument(name, tmp, sizeof(tmp)) == FAILED) {
+      g_expect_calculations = old_expect;
+      g_source_index = source_index_original;
+      return FAILED;
+    }
+  }
+  else {
+    if (_parse_number_argument(name, &length) == FAILED ||
+        _parse_string_or_value_argument(name, tmp, sizeof(tmp)) == FAILED) {
+      g_expect_calculations = old_expect;
+      g_source_index = source_index_original;
+      return FAILED;
+    }
+  }
+
+  if (_finish_parsed_function(strcmp(name, "mid") == 0 ? "mid(start,len,s)" : "left/right(len,s)", source_index_original, source_index_backup, old_expect, parsed_chars) == FAILED)
+    return FAILED;
+
+  string_length = (int)strlen(tmp);
+  if (length < 0) {
+    print_error(ERROR_NUM, "%s() length cannot be negative.\n", name);
+    return FAILED;
+  }
+  if (strcmp(name, "right") == 0)
+    start = string_length - length;
+  if (start < 0 || start > string_length) {
+    print_error(ERROR_NUM, "%s() start index %d is outside string \"%s\"!\n", name, start, tmp);
+    return FAILED;
+  }
+  if (start + length > string_length) {
+    print_error(ERROR_NUM, "%s() length %d runs outside string \"%s\"!\n", name, length, tmp);
+    return FAILED;
+  }
+
+  si->sign = SI_SIGN_POSITIVE;
+  si->type = STACK_ITEM_TYPE_STRING;
+  for (i = 0; i < length; i++)
+    si->string[i] = tmp[start + i];
+  si->string[i] = 0;
+
+  return SUCCEEDED;
+}
+
+
 static int _parse_function_math1(char *in, int *type, double *value, char *string, int *parsed_chars, char *name) {
 
   int res, source_index_original = g_source_index, source_index_backup, input_float_mode = g_input_float_mode;
@@ -2686,6 +3024,60 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_label = NO;
           break;
         }
+        else if (k == 5 && strcaselesscmpn(si[q].string, "blank(", 6) == 0) {
+          int parsed_chars = 0;
+
+          if (_parse_function_blank(in, &d, &parsed_chars) == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_label = NO;
+          break;
+        }
+        else if (k == 5 && strcaselesscmpn(si[q].string, "match(", 6) == 0) {
+          int parsed_chars = 0;
+
+          if (_parse_function_match(in, &d, &parsed_chars, NO) == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_label = NO;
+          break;
+        }
+        else if (k == 6 && strcaselesscmpn(si[q].string, "xmatch(", 7) == 0) {
+          int parsed_chars = 0;
+
+          if (_parse_function_match(in, &d, &parsed_chars, YES) == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_label = NO;
+          break;
+        }
+        else if (k == 6 && strcaselesscmpn(si[q].string, "tcount(", 7) == 0) {
+          int parsed_chars = 0;
+
+          if (_parse_function_tcount(in, &d, &parsed_chars) == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_label = NO;
+          break;
+        }
+        else if (k == 12 && strcaselesscmpn(si[q].string, "definedmacro(", 13) == 0) {
+          int parsed_chars = 0;
+
+          if (_parse_function_definedmacro(in, &d, &parsed_chars) == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_label = NO;
+          break;
+        }
+        else if (k == 15 && strcaselesscmpn(si[q].string, "definedfunction(", 16) == 0) {
+          int parsed_chars = 0;
+
+          if (_parse_function_definedfunction(in, &d, &parsed_chars) == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_label = NO;
+          break;
+        }
         else if (k == 2 && strcaselesscmpn(si[q].string, "is(", 3) == 0) {
           int parsed_chars = 0;
           
@@ -2708,6 +3100,36 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           int parsed_chars = 0;
 
           if (_parse_function_substring(in, &si[q], &parsed_chars) == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_label = NO;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 4 && strcaselesscmpn(si[q].string, "left(", 5) == 0) {
+          int parsed_chars = 0;
+
+          if (_parse_function_left_mid_right(in, &si[q], &parsed_chars, "left") == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_label = NO;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 3 && strcaselesscmpn(si[q].string, "mid(", 4) == 0) {
+          int parsed_chars = 0;
+
+          if (_parse_function_left_mid_right(in, &si[q], &parsed_chars, "mid") == FAILED)
+            return FAILED;
+          in += parsed_chars;
+          is_label = NO;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 5 && strcaselesscmpn(si[q].string, "right(", 6) == 0) {
+          int parsed_chars = 0;
+
+          if (_parse_function_left_mid_right(in, &si[q], &parsed_chars, "right") == FAILED)
             return FAILED;
           in += parsed_chars;
           is_label = NO;

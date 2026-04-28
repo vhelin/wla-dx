@@ -664,3 +664,34 @@ parent  apples2 2
         .db get("section.alignment")         ; @BT 04
         .ends
         .db "<26"               ; @BT END
+
+        .macro METAPRIM_SAMPLE
+        .endm
+
+        .db "27>"               ; @BT TEST-27 27 START
+        .db blank(""), blank("   "), blank("x") ; @BT 01 01 00
+        .db match("lda #1", "foo #2"), xmatch("lda #1", "lda #1"), xmatch("lda #1", "lda #2") ; @BT 01 01 00
+        .db tcount("lda #1,foo") ; @BT 05
+        .db definedmacro(METAPRIM_SAMPLE), definedmacro(NOT_A_MACRO) ; @BT 01 00
+        .db left(2, "abcdef"), mid(2, 3, "abcdef"), right(2, "abcdef") ; @BT 61 62 63 64 65 65 66
+        .db "<27"               ; @BT END
+
+        .macro METAPRIM_DELETE
+        .endm
+        .function METAPRIM_FUNC() 7
+        .define METAPRIM_ALIAS(value) value + 3
+
+        .db "28>"               ; @BT TEST-28 28 START
+        .db definedmacro(METAPRIM_DELETE), definedfunction(METAPRIM_FUNC), definedfunction(METAPRIM_ALIAS) ; @BT 01 01 01
+        .db METAPRIM_FUNC(), METAPRIM_ALIAS(4) ; @BT 07 07
+        .delmacro METAPRIM_DELETE
+        .delfunction METAPRIM_FUNC
+        .delfunction METAPRIM_ALIAS
+        .db definedmacro(METAPRIM_DELETE), definedfunction(METAPRIM_FUNC), definedfunction(METAPRIM_ALIAS) ; @BT 00 00 00
+        .macro METAPRIM_DELETE
+        .endm
+        .function METAPRIM_FUNC() 9
+        .define METAPRIM_ALIAS(value) value + 1
+        .db definedmacro(METAPRIM_DELETE), definedfunction(METAPRIM_FUNC), definedfunction(METAPRIM_ALIAS) ; @BT 01 01 01
+        .db METAPRIM_FUNC(), METAPRIM_ALIAS(6) ; @BT 09 07
+        .db "<28"               ; @BT END
