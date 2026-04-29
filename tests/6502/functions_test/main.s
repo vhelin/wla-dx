@@ -130,6 +130,7 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
         .function SUM_ABC6(varA,varB,varC) SUM_AB3(SUM_AB2(varA,varB),SUM_AB2(2-1,varC-1))
         .function SUM_ABC7(varA,varB,varC) SUM_AB2(SUM_AB2(varA,varB),varC) - 0*SUM_AB2(varA+1,varB)
         .function CONSTANT_1() 1
+        .function CONSTANT_FLOAT() 1.5
         .DEFINE SUM = 0 + 1 + SUM_AB(2, 3) + 4 + 5
 
         .db "15>"               ; @BT TEST-15 15 START
@@ -151,6 +152,10 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
         .db SUM_ABC7(0,1,2)     ; @BT 03
         .db SUM                 ; @BT 0F
         .db "<15"               ; @BT END
+        .db "91>"               ; @BT TEST-91 91 START
+        .db floor(CONSTANT_FLOAT() + 1) ; @BT 02
+        .db floor(CONSTANT_FLOAT() * 3) ; @BT 04
+        .db "<91"               ; @BT END
 
         .db "16>"               ; @BT TEST-16 16 START
         .db SUM_AB(2-1,2+1)     ; @BT 04

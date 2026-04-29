@@ -1365,6 +1365,11 @@ static int _parse_function_definedmacro(char *in, int *result, int *parsed_chars
   if (macro_get(tmp, YES, &macro) == FAILED)
     return FAILED;
 
+  if (macro == NULL && strchr(tmp, '.') != NULL) {
+    if (macro_get(tmp, NO, &macro) == FAILED)
+      return FAILED;
+  }
+
   *result = macro != NULL ? 1 : 0;
 
   return SUCCEEDED;
@@ -3157,7 +3162,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
 
           if (res == FAILED)
             return FAILED;
-          else if (res == SUCCEEDED) {
+          else if (res == SUCCEEDED || res == INPUT_NUMBER_FLOAT) {
             si[q].type = STACK_ITEM_TYPE_VALUE;
             si[q].value = g_parsed_double;
             si[q].sign = SI_SIGN_POSITIVE;

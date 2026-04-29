@@ -8453,6 +8453,11 @@ static void _free_function(struct function *function) {
   for (i = 0; i < function->nargument_names; i++)
     free(function->argument_names[i]);
 
+  if (function->stack != NULL) {
+    delete_stack_calculation_struct(function->stack);
+    function->stack = NULL;
+  }
+  
   free(function);
 }
 
