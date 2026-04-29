@@ -1394,8 +1394,13 @@ static int _parse_function_definedfunction(char *in, int *result, int *parsed_ch
   if (_finish_parsed_function("definedfunction(?)", source_index_original, source_index_backup, old_expect, parsed_chars) == FAILED)
     return FAILED;
 
-  if (function_get(tmp, &function) == FAILED)
+  if (function_get_with_namespace(tmp, YES, &function) == FAILED)
     return FAILED;
+
+  if (function == NULL && strchr(tmp, '.') != NULL) {
+    if (function_get(tmp, &function) == FAILED)
+      return FAILED;
+  }
 
   *result = function != NULL ? 1 : 0;
 

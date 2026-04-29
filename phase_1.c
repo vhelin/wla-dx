@@ -463,6 +463,39 @@ int function_get(char *name, struct function **function_out) {
 }
 
 
+int function_get_with_namespace(char *name, int add_namespace, struct function **function_out) {
+
+  char fullname[MAX_NAME_LENGTH + 1];
+
+  strcpy(fullname, name);
+
+  if (add_namespace == YES) {
+    if (g_macro_active > 0) {
+      struct macro_runtime *rt;
+      struct macro_static *st;
+
+      rt = &g_macro_stack[g_macro_active - 1];
+      st = rt->macro;
+
+      if (st->defined_namespace[0] != 0) {
+        if (_add_namespace_to_string(fullname, sizeof(fullname), ".FUNCTION", st->defined_namespace) == FAILED) {
+          *function_out = NULL;
+          return FAILED;
+        }
+      }
+    }
+    else if (g_active_file_info_last->namespace[0] != 0) {
+      if (add_namespace_to_string(fullname, sizeof(fullname), ".FUNCTION") == FAILED) {
+        *function_out = NULL;
+        return FAILED;
+      }
+    }
+  }
+
+  return function_get(fullname, function_out);
+}
+
+
 static int _macro_stack_grow(void) {
 
   if (g_macro_active == s_macro_stack_size) {
@@ -8396,34 +8429,41 @@ static int _macro_static_is_active(struct macro_static *macro) {
 int directive_delmacro(void) {
 
   struct macro_static *macro, *previous;
-  char name[MAX_NAME_LENGTH + 1];
+  char name[MAX_NAME_LENGTH + 1], resolved_name[MAX_NAME_LENGTH + 1];
 
-  g_force_add_namespace = YES;
+  g_force_ignore_namespace = YES;
   if (get_next_plain_string() == FAILED) {
-    g_force_add_namespace = NO;
+    g_force_ignore_namespace = NO;
     return FAILED;
   }
-  g_force_add_namespace = NO;
+  g_force_ignore_namespace = NO;
 
   strcpy(name, g_label);
 
-  if (macro_get(name, NO, &macro) == FAILED)
+  if (macro_get(name, YES, &macro) == FAILED)
     return FAILED;
+
+  if (macro == NULL && strchr(name, '.') != NULL) {
+    if (macro_get(name, NO, &macro) == FAILED)
+      return FAILED;
+  }
 
   if (macro == NULL) {
     print_error(ERROR_WRN, "Could not .DELMACRO \"%s\".\n", name);
     return SUCCEEDED;
   }
 
+  strcpy(resolved_name, macro->name);
+
   if (_macro_static_is_active(macro) == YES) {
-    print_error(ERROR_DIR, "Cannot .DELMACRO currently active macro \"%s\".\n", name);
+    print_error(ERROR_DIR, "Cannot .DELMACRO currently active macro \"%s\".\n", resolved_name);
     return FAILED;
   }
 
   previous = NULL;
   macro = g_macros_first;
   while (macro != NULL) {
-    if (strcmp(macro->name, name) == 0)
+    if (strcmp(macro->name, resolved_name) == 0)
       break;
     previous = macro;
     macro = macro->next;

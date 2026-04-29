@@ -20,7 +20,7 @@ setup.o: setup.s defines2.i gb_memory1.i
 	$(CC) $(CFLAGS) setup.o setup.s
 
 check: linked.gb
-	byte_tester -s namespaced.i main.s
+	byte_tester -s namespaced.i main.s meta_function.i meta_delmacro.i
 
 
 $(OFILES): $(HFILES)
