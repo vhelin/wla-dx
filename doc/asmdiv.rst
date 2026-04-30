@@ -1013,8 +1013,8 @@ works as well. And this works also::
 
     AAA = 10
 
-If the name is followed by ``(``, ``.DEFINE`` creates a function just like
-``.FUNCTION``::
+If the name is immediately followed by ``(``, ``.DEFINE`` creates a
+function just like ``.FUNCTION``::
 
     .DEFINE SUM_AB(varA, varB) (varA + varB)
 

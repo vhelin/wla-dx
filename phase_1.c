@@ -8117,6 +8117,70 @@ int directive_arraydb_arraydw_arraydl_arraydd(void) {
 }
 
 
+static int _is_built_in_function_name(char *function_name) {
+
+  char *built_in_function_names[] = {
+    "asc",
+    "min",
+    "max",
+    "random",
+    "defined",
+    "definedmacro",
+    "definedfunction",
+    "exists",
+    "blank",
+    "match",
+    "xmatch",
+    "left",
+    "mid",
+    "right",
+    "tcount",
+    "lobyte",
+    "hibyte",
+    "loword",
+    "hiword",
+    "bankbyte",
+    "bank",
+    "base",
+    "slot",
+    "round",
+    "ceil",
+    "floor",
+    "sqrt",
+    "cos",
+    "sin",
+    "tan",
+    "acos",
+    "asin",
+    "atan",
+    "atan2",
+    "cosh",
+    "sinh",
+    "tanh",
+    "log",
+    "log10",
+    "pow",
+    "clamp",
+    "sign",
+    "is",
+    "get",
+    "org",
+    "orga",
+    "substring",
+    "abs",
+    NULL
+  };
+  int i;
+
+  for (i = 0; built_in_function_names[i] != NULL; i++) {
+    if (strcaselesscmp(built_in_function_names[i], function_name) == 0)
+      return YES;
+  }
+
+  return NO;
+}
+
+
 static int _directive_function_with_name(char *function_name, int opening_parenthesis_read) {
   
   char name[MAX_NAME_LENGTH+1];
@@ -8138,54 +8202,7 @@ static int _directive_function_with_name(char *function_name, int opening_parent
   }
 
   /* also check built-in function names */
-  if (strcmp("asc", function_name) == 0 ||
-      strcmp("min", function_name) == 0 ||
-      strcmp("max", function_name) == 0 ||
-      strcmp("random", function_name) == 0 ||
-      strcmp("defined", function_name) == 0 ||
-      strcmp("definedmacro", function_name) == 0 ||
-      strcmp("definedfunction", function_name) == 0 ||
-      strcmp("exists", function_name) == 0 ||
-      strcmp("blank", function_name) == 0 ||
-      strcmp("match", function_name) == 0 ||
-      strcmp("xmatch", function_name) == 0 ||
-      strcmp("left", function_name) == 0 ||
-      strcmp("mid", function_name) == 0 ||
-      strcmp("right", function_name) == 0 ||
-      strcmp("tcount", function_name) == 0 ||
-      strcmp("lobyte", function_name) == 0 ||
-      strcmp("hibyte", function_name) == 0 ||
-      strcmp("loword", function_name) == 0 ||
-      strcmp("hiword", function_name) == 0 ||
-      strcmp("bankbyte", function_name) == 0 ||
-      strcmp("bank", function_name) == 0 ||
-      strcmp("base", function_name) == 0 ||
-      strcmp("slot", function_name) == 0 ||
-      strcmp("round", function_name) == 0 ||
-      strcmp("ceil", function_name) == 0 ||
-      strcmp("floor", function_name) == 0 ||
-      strcmp("sqrt", function_name) == 0 ||
-      strcmp("cos", function_name) == 0 ||
-      strcmp("sin", function_name) == 0 ||
-      strcmp("tan", function_name) == 0 ||
-      strcmp("acos", function_name) == 0 ||
-      strcmp("asin", function_name) == 0 ||
-      strcmp("atan", function_name) == 0 ||
-      strcmp("atan2", function_name) == 0 ||
-      strcmp("cosh", function_name) == 0 ||
-      strcmp("sinh", function_name) == 0 ||
-      strcmp("tanh", function_name) == 0 ||
-      strcmp("log", function_name) == 0 ||
-      strcmp("log10", function_name) == 0 ||
-      strcmp("pow", function_name) == 0 ||
-      strcmp("clamp", function_name) == 0 ||
-      strcmp("sign", function_name) == 0 ||
-      strcmp("is", function_name) == 0 ||
-      strcmp("get", function_name) == 0 ||
-      strcmp("org", function_name) == 0 ||
-      strcmp("orga", function_name) == 0 ||
-      strcmp("substring", function_name) == 0 ||
-      strcmp("abs", function_name) == 0) {
+  if (_is_built_in_function_name(function_name) == YES) {
     print_error(ERROR_DIR, "You cannot redefine a built-in .FUNCTION \"%s\"!\n", function_name);
     return FAILED;
   }
@@ -8228,6 +8245,11 @@ static int _directive_function_with_name(char *function_name, int opening_parent
       next_line();
     else if (res == FAILED)
       return FAILED;
+
+    if (f->nargument_names >= (int)(sizeof(f->argument_names) / sizeof(f->argument_names[0]))) {
+      print_error(ERROR_DIR, ".FUNCTION \"%s\" has too many arguments, maximum is %d.\n", name, (int)(sizeof(f->argument_names) / sizeof(f->argument_names[0])));
+      return FAILED;
+    }
 
     f->argument_names[f->nargument_names] = calloc((int)strlen(g_label) + 1, 1);
     if (f->argument_names[f->nargument_names] == NULL) {
