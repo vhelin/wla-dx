@@ -492,6 +492,44 @@ int phase_4(void) {
           return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
       }
       continue;
+
+      /* ASSERTION STACK CONTEXT */
+
+    case '~':
+      err = fscanf(g_file_out_ptr, "%d ", &inz);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+
+      stack = find_stack_calculation(inz, NO);
+      if (stack == NULL) {
+        print_text(NO, "%s:%d: INTERNAL_PHASE_2: Could not find assertion stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
+        return FAILED;
+      }
+
+      if (stack->section_status == ON) {
+        stack->address = g_sec_tmp->i;
+        stack->base = s_base;
+        stack->bank = g_sec_tmp->bank;
+        stack->slot = g_sec_tmp->slot;
+      }
+      else {
+        stack->address = s_pc_bank;
+        stack->base = s_base;
+        stack->bank = s_rom_bank;
+        stack->slot = s_slot;
+      }
+
+      if (_mangle_stack_references(stack) == FAILED)
+        return FAILED;
+
+      if (g_namespace[0] != 0) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+          if (_add_namespace_to_stack_references(stack, g_namespace) == FAILED)
+            return FAILED;
+        }
+      }
+
+      continue;
         
       /* SECTION */
 

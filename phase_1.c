@@ -11496,6 +11496,9 @@ int directive_assert(void) {
     stack->slot = g_current_slot;
     stack->base = g_base;
     stack->is_assertion_body = YES;
+    stack->position = STACK_POSITION_CODE;
+
+    fprintf(g_file_out_ptr, "~%d ", g_latest_stack);
 
     return _assertion_add(stack, action, message);
   }

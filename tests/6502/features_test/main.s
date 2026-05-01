@@ -25,6 +25,8 @@ assertion_block_end:
 .ASSERT assertion_block_end - assertion_block_start == 4, LDWARNING, "link-time assertion warning"
 .ASSERT 1 + NUMBER_TWO == 3, LDERROR, "link-time assertion failed (2)."
 .ASSERT assertion_block_end == $8002+1, LDERROR, "link-time assertion failed (3)."
+.ASSERT CADDR == $8003, LDERROR, "link-time assertion failed (4)."
+.ASSERT NUMBER_TWO / NUMBER_THREE, LDERROR, "link-time assertion failed (5)."
 
 ; @BT linked.rom
 

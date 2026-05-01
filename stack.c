@@ -5679,6 +5679,12 @@ int data_stream_parser_parse(void) {
       if (err < 1)
         return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       continue;
+
+    case '~':
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      continue;
         
     case 'b':
       err = fscanf(g_file_out_ptr, "%d ", &s_dsp_base);

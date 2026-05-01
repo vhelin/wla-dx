@@ -224,11 +224,32 @@ static int add_assertion(struct assertion *assertion) {
 }
 
 
+static int _read_bounded_string(unsigned char **tp, char *out, char *description) {
+
+  unsigned char *t = *tp;
+  int q;
+
+  for (q = 0; q < MAX_NAME_LENGTH && *t != 0; t++, q++)
+    out[q] = *t;
+  out[q] = 0;
+
+  if (*t != 0) {
+    print_text(NO, "COLLECT_DLR: %s is too long or missing a NUL terminator.\n", description);
+    return FAILED;
+  }
+
+  t++;
+  *tp = t;
+
+  return SUCCEEDED;
+}
+
+
 static int _read_stack_items(unsigned char **tp, struct stack *s) {
 
   unsigned char *t = *tp, *dtmp;
   double dou;
-  int n, q;
+  int n;
 
   for (n = 0; n != s->stacksize; n++) {
     s->stack_items[n].slot = -1;
@@ -238,10 +259,8 @@ static int _read_stack_items(unsigned char **tp, struct stack *s) {
     s->stack_items[n].type = *(t++);
     s->stack_items[n].sign = *(t++);
     if (s->stack_items[n].type == STACK_ITEM_TYPE_LABEL || s->stack_items[n].type == STACK_ITEM_TYPE_STRING) {
-      for (q = 0; *t != 0; t++, q++)
-        s->stack_items[n].string[q] = *t;
-      s->stack_items[n].string[q] = 0;
-      t++;
+      if (_read_bounded_string(&t, s->stack_items[n].string, "Stack item string") == FAILED)
+        return FAILED;
     }
     else {
       READ_DOU;
@@ -261,7 +280,7 @@ static int _read_assertions(unsigned char **tp, int section_id_base, int include
   unsigned char *t = *tp;
   struct assertion *assertion;
   struct stack *s;
-  int i, x, q;
+  int i, x;
 
   i = READ_T;
 
@@ -273,10 +292,10 @@ static int _read_assertions(unsigned char **tp, int section_id_base, int include
     }
 
     assertion->action = *(t++);
-    for (q = 0; *t != 0; t++, q++)
-      assertion->message[q] = *t;
-    assertion->message[q] = 0;
-    t++;
+    if (_read_bounded_string(&t, assertion->message, "Assertion message") == FAILED) {
+      free(assertion);
+      return FAILED;
+    }
 
     s = calloc(1, sizeof(struct stack));
     if (s == NULL) {
@@ -340,15 +359,19 @@ static int _read_assertions(unsigned char **tp, int section_id_base, int include
       return FAILED;
     }
 
-    if (add_stack(s) == FAILED) {
+    if (_read_stack_items(&t, s) == FAILED) {
       free(s->stack_items);
       free(s);
       free(assertion);
       return FAILED;
     }
 
-    if (_read_stack_items(&t, s) == FAILED)
+    if (add_stack(s) == FAILED) {
+      free(s->stack_items);
+      free(s);
+      free(assertion);
       return FAILED;
+    }
 
     assertion->stack = s;
     add_assertion(assertion);

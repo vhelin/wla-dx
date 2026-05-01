@@ -208,6 +208,12 @@ int phase_3(void) {
         address = address_old;
         continue;
 
+      case '~':
+        err = fscanf(g_file_out_ptr, "%d ", &inz);
+        if (err < 1)
+          return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+        continue;
+
       case 'x':
       case 'o':
         err = fscanf(g_file_out_ptr, "%d %*d ", &inz);
@@ -781,6 +787,12 @@ int phase_3(void) {
       continue;
     case 'p':
       address = address_old;
+      continue;
+
+    case '~':
+      err = fscanf(g_file_out_ptr, "%d ", &inz);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       continue;
 
     case 'A':

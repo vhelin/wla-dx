@@ -3744,8 +3744,11 @@ static int _adjust_assertion_stack_address(struct stack *sta, int *skip) {
 
   if (sta->section_status == ON) {
     s = find_section(sta->section);
-    if (s != NULL)
+    if (s != NULL) {
       sta->bank = s->bank;
+      sta->slot = s->slot;
+      sta->base = s->base;
+    }
     if (s != NULL && s->alive == NO) {
       *skip = YES;
       return SUCCEEDED;
@@ -3796,7 +3799,7 @@ int evaluate_deferred_assertions(void) {
     if (compute_stack(sta, &result, NULL, NULL, NULL, NULL) == FAILED)
       return FAILED;
 
-    if ((int)result == 0) {
+    if (result == 0.0) {
       char *message = assertion->message[0] != 0 ? assertion->message : ".ASSERT failed.";
 
       if (assertion->action == ASSERTION_ACTION_LDWARNING) {
