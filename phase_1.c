@@ -465,7 +465,9 @@ int function_get(char *name, struct function **function_out) {
 
 int function_get_with_namespace(char *name, int add_namespace, struct function **function_out) {
 
+  struct function *function;
   char fullname[MAX_NAME_LENGTH + 1];
+  int namespace_added = NO;
 
   strcpy(fullname, name);
 
@@ -482,6 +484,7 @@ int function_get_with_namespace(char *name, int add_namespace, struct function *
           *function_out = NULL;
           return FAILED;
         }
+        namespace_added = YES;
       }
     }
     else if (g_active_file_info_last->namespace[0] != 0) {
@@ -489,10 +492,21 @@ int function_get_with_namespace(char *name, int add_namespace, struct function *
         *function_out = NULL;
         return FAILED;
       }
+      namespace_added = YES;
     }
   }
 
-  return function_get(fullname, function_out);
+  if (namespace_added == YES) {
+    if (function_get(fullname, &function) == FAILED)
+      return FAILED;
+
+    if (function != NULL) {
+      *function_out = function;
+      return SUCCEEDED;
+    }
+  }
+
+  return function_get(name, function_out);
 }
 
 
