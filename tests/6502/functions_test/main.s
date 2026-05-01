@@ -673,9 +673,15 @@ parent  apples2 2
         .macro METAPRIM_SAMPLE
         .endm
 
+        .macro METAPRIM_XMATCH_NUMERIC(value)
+        .db xmatch(\1, $01), xmatch(\1, 1)
+        .endm
+
         .db "27>"               ; @BT TEST-27 27 START
         .db blank(""), blank("   "), blank("x") ; @BT 01 01 00
         .db match("lda #1", "foo #2"), xmatch("lda #1", "lda #1"), xmatch("lda #1", "lda #2") ; @BT 01 01 00
+        .db xmatch(1, 01), xmatch(1, $01), xmatch($01, $01), match(1, $01) ; @BT 00 00 01 01
+        METAPRIM_XMATCH_NUMERIC $01 ; @BT 01 00
         .db tcount("lda #1,foo") ; @BT 05
         .db definedmacro(METAPRIM_SAMPLE), definedmacro(NOT_A_MACRO) ; @BT 01 00
         .db left(2, "abcdef"), mid(2, 3, "abcdef"), right(2, "abcdef") ; @BT 61 62 63 64 65 65 66

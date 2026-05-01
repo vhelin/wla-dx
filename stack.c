@@ -1132,10 +1132,18 @@ static void _trim_string(char *s) {
 
 static int _parse_string_or_value_argument(char *function_name, char *out, int out_size) {
 
-  int res;
+  int res, source_index_start, source_index_after_prefix, source_index_end;
 
   g_expect_calculations = NO;
+  source_index_start = g_source_index;
+
+  for (source_index_after_prefix = source_index_start;
+       g_buffer[source_index_after_prefix] == ' ' || g_buffer[source_index_after_prefix] == ',';
+       source_index_after_prefix++)
+    ;
+
   res = input_number();
+  source_index_end = g_source_index;
 
   if (res == INPUT_NUMBER_ADDRESS_LABEL || res == INPUT_NUMBER_STRING) {
     snprintf(out, out_size, "%s", g_label);
@@ -1143,7 +1151,25 @@ static int _parse_string_or_value_argument(char *function_name, char *out, int o
   }
 
   if (res == SUCCEEDED) {
-    snprintf(out, out_size, "%d", g_parsed_int);
+    if (g_macro_active != 0 && g_buffer[source_index_after_prefix] == '\\') {
+      int i = source_index_after_prefix + 1, argument = 0;
+
+      while (i < source_index_end && g_buffer[i] >= '0' && g_buffer[i] <= '9') {
+        argument = (argument * 10) + g_buffer[i] - '0';
+        i++;
+      }
+
+      if (i == source_index_end && argument > 0 && argument <= g_macro_runtime_current->supplied_arguments) {
+        struct macro_argument *ma = g_macro_runtime_current->argument_data[argument - 1];
+
+        if ((ma->type == SUCCEEDED || ma->type == INPUT_NUMBER_FLOAT) && ma->string[0] != 0) {
+          snprintf(out, out_size, "%s", ma->string);
+          return SUCCEEDED;
+        }
+      }
+    }
+
+    snprintf(out, out_size, "%.*s", source_index_end - source_index_after_prefix, &g_buffer[source_index_after_prefix]);
     return SUCCEEDED;
   }
 

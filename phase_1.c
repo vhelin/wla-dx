@@ -1386,10 +1386,14 @@ int phase_1(void) {
           strcpy(mrt->argument_data[p]->string, g_label);
         else if (q == INPUT_NUMBER_STACK)
           mrt->argument_data[p]->value = (double)g_latest_stack;
-        else if (q == SUCCEEDED)
+        else if (q == SUCCEEDED) {
           mrt->argument_data[p]->value = (double)g_parsed_int;
-        else if (q == INPUT_NUMBER_FLOAT)
+          snprintf(mrt->argument_data[p]->string, sizeof(mrt->argument_data[p]->string), "%.*s", g_source_index - o, &g_buffer[o]);
+        }
+        else if (q == INPUT_NUMBER_FLOAT) {
           mrt->argument_data[p]->value = g_parsed_double;
+          snprintf(mrt->argument_data[p]->string, sizeof(mrt->argument_data[p]->string), "%.*s", g_source_index - o, &g_buffer[o]);
+        }
         else
           return FAILED;
 
