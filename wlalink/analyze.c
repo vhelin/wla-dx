@@ -39,6 +39,7 @@ extern struct object_file *g_obj_first, *g_obj_last, *g_obj_tmp;
 extern struct reference *g_reference_first, *g_reference_last;
 extern struct section *g_sec_first, *g_sec_last, *g_sec_bankhd_first, *g_sec_bankhd_last;
 extern struct stack *g_stacks_first, *g_stacks_last;
+extern struct assertion *g_assertions_first, *g_assertions_last;
 extern struct label *g_labels_first, *g_labels_last;
 extern struct map_t *g_global_unique_label_map;
 extern struct map_t *g_namespace_map;
@@ -201,6 +202,159 @@ int add_stack(struct stack *sta) {
   /* add the pointer also to a pointer array for quick discovery with the ID */
   if (add_pointer_to_a_pointer_array((void *)sta, sta->id, (void ***)&g_obj_tmp->stacks, &g_obj_tmp->stacks_max, &g_obj_tmp->stacks_array_max, 1024) == FAILED)
     return FAILED;
+
+  return SUCCEEDED;
+}
+
+
+static int add_assertion(struct assertion *assertion) {
+
+  assertion->next = NULL;
+
+  if (g_assertions_first == NULL) {
+    g_assertions_first = assertion;
+    g_assertions_last = assertion;
+  }
+  else {
+    g_assertions_last->next = assertion;
+    g_assertions_last = assertion;
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _read_stack_items(unsigned char **tp, struct stack *s) {
+
+  unsigned char *t = *tp, *dtmp;
+  double dou;
+  int n, q;
+
+  for (n = 0; n != s->stacksize; n++) {
+    s->stack_items[n].slot = -1;
+    s->stack_items[n].base = -1;
+    s->stack_items[n].bank = -1;
+    s->stack_items[n].stack_file_id = -1;
+    s->stack_items[n].type = *(t++);
+    s->stack_items[n].sign = *(t++);
+    if (s->stack_items[n].type == STACK_ITEM_TYPE_LABEL || s->stack_items[n].type == STACK_ITEM_TYPE_STRING) {
+      for (q = 0; *t != 0; t++, q++)
+        s->stack_items[n].string[q] = *t;
+      s->stack_items[n].string[q] = 0;
+      t++;
+    }
+    else {
+      READ_DOU;
+      s->stack_items[n].value_ram = dou;
+      s->stack_items[n].value_rom = dou;
+    }
+  }
+
+  *tp = t;
+
+  return SUCCEEDED;
+}
+
+
+static int _read_assertions(unsigned char **tp, int section_id_base, int include_slot_bank_base) {
+
+  unsigned char *t = *tp;
+  struct assertion *assertion;
+  struct stack *s;
+  int i, x, q;
+
+  i = READ_T;
+
+  for (; i > 0; i--) {
+    assertion = calloc(1, sizeof(struct assertion));
+    if (assertion == NULL) {
+      print_text(NO, "COLLECT_DLR: Out of memory.\n");
+      return FAILED;
+    }
+
+    assertion->action = *(t++);
+    for (q = 0; *t != 0; t++, q++)
+      assertion->message[q] = *t;
+    assertion->message[q] = 0;
+    t++;
+
+    s = calloc(1, sizeof(struct stack));
+    if (s == NULL) {
+      print_text(NO, "COLLECT_DLR: Out of memory.\n");
+      free(assertion);
+      return FAILED;
+    }
+
+    s->id = READ_T;
+    s->type = *(t++);
+    if ((s->type & ~(1 << 7)) == STACK_TYPE_ASSERT) {
+      s->type = STACK_TYPE_UNKNOWN;
+      s->relative_references = NO;
+      s->special_id = 0;
+    }
+    else
+      s->special_id = *(t++);
+    s->section = READ_T;
+    if (s->section == 0)
+      s->section_status = OFF;
+    else {
+      s->section_status = ON;
+      s->section += section_id_base;
+    }
+    s->file_id_source = READ_T;
+    x = *(t++);
+    s->position = *(t++);
+
+    if (s->type == STACK_TYPE_BITS) {
+      s->bits_position = *(t++);
+      s->bits_to_define = *(t++);
+    }
+    else {
+      s->bits_position = 0;
+      s->bits_to_define = 0;
+    }
+
+    if (include_slot_bank_base == YES)
+      s->slot = *(t++);
+
+    s->address = READ_T;
+    s->linenumber = READ_T;
+    s->stacksize = x;
+
+    if (include_slot_bank_base == YES) {
+      s->bank = READ_T;
+      s->base = READ_T;
+    }
+    else {
+      s->bank = g_obj_tmp->bank;
+      s->slot = g_obj_tmp->slot;
+      s->base = g_obj_tmp->base;
+    }
+
+    s->is_assertion_body = YES;
+    s->stack_items = calloc(x, sizeof(struct stack_item));
+    if (s->stack_items == NULL) {
+      print_text(NO, "COLLECT_DLR: Out of memory.\n");
+      free(s);
+      free(assertion);
+      return FAILED;
+    }
+
+    if (add_stack(s) == FAILED) {
+      free(s->stack_items);
+      free(s);
+      free(assertion);
+      return FAILED;
+    }
+
+    if (_read_stack_items(&t, s) == FAILED)
+      return FAILED;
+
+    assertion->stack = s;
+    add_assertion(assertion);
+  }
+
+  *tp = t;
 
   return SUCCEEDED;
 }
@@ -926,6 +1080,9 @@ int collect_dlr(void) {
         }
       }
 
+      if (_read_assertions(&t, section_id_base, YES) == FAILED)
+        return FAILED;
+
       /* label sizeofs */
       i = READ_T;
 
@@ -1185,6 +1342,9 @@ int collect_dlr(void) {
           }
         }
       }
+
+      if (_read_assertions(&t, section_id_base, NO) == FAILED)
+        return FAILED;
 
       /* label sizeofs */
       i = READ_T;

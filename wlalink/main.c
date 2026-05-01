@@ -1,6 +1,6 @@
 
 /*
-  wlalink - part of wla dx gb-z80/z80/z80n/6502/65c02/68000/6800/6801/6809/65816/huc6280/spc-700/8008/8080/superfx
+  wlalink - part of wla dx gb-z80/z80/z80n/6502/65c02/68000/6800/6801/6809/65816/huc6280/spc-700/8008/8080/superfx/cx4
   macro assembler package by ville helin <ville.helin@iki.fi>. this is gpl software.
 */
 
@@ -32,7 +32,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.22a (20.04.2026)";
+char g_version_string[] = "$VER: wlalink 5.22a (2.5.2026)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -42,6 +42,7 @@ struct object_file *g_obj_first = NULL, *g_obj_last = NULL, *g_obj_tmp;
 struct reference *g_reference_first = NULL, *g_reference_last = NULL;
 struct section *g_sec_first = NULL, *g_sec_last = NULL, *g_sec_bankhd_first = NULL, *g_sec_bankhd_last = NULL;
 struct stack *g_stacks_first = NULL, *g_stacks_last = NULL;
+struct assertion *g_assertions_first = NULL, *g_assertions_last = NULL;
 struct label *g_labels_first = NULL, *g_labels_last = NULL;
 struct label **g_sorted_anonymous_labels = NULL;
 struct map_t *g_global_unique_label_map = NULL;
@@ -841,6 +842,12 @@ static void _procedures_at_exit(void) {
     g_stacks_first = sta;
   }
 
+  while (g_assertions_first != NULL) {
+    struct assertion *assertion = g_assertions_first->next;
+    free(g_assertions_first);
+    g_assertions_first = assertion;
+  }
+
   while (g_sec_first != NULL) {
     s = g_sec_first->next;
     _free_section_allocations(g_sec_first);
@@ -1550,6 +1557,10 @@ int main(int argc, char *argv[]) {
   
   /* compute pending calculations */
   if (compute_pending_calculations() == FAILED)
+    return 1;
+
+  /* evaluate deferred assertions */
+  if (evaluate_deferred_assertions() == FAILED)
     return 1;
 
 #if defined(WLALINK_DEBUG)

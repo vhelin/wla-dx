@@ -11,10 +11,20 @@
            BANKS 2
         .ENDRO
 
-        .BANK 00  SLOT 0
-        .ORG    0
+        .BANK 0 SLOT 0
+        .ORG 0
 
-.define none    $00
+.define none $00
+
+.ASSERT 0, warning, "immediate assertion warning"
+
+assertion_block_start:
+.db $aa, $bb, $cc
+assertion_block_end:
+.ASSERT assertion_block_end - assertion_block_start == 3, LDERROR, "link-time assertion failed (1)"
+.ASSERT assertion_block_end - assertion_block_start == 4, LDWARNING, "link-time assertion warning"
+.ASSERT 1 + NUMBER_TWO == 3, LDERROR, "link-time assertion failed (2)."
+.ASSERT assertion_block_end == $8002+1, LDERROR, "link-time assertion failed (3)."
 
 ; @BT linked.rom
 

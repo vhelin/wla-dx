@@ -113,6 +113,7 @@ void init_stack_struct(struct stack *s) {
   s->bits_position = 0;
   s->bits_to_define = 0;
   s->is_function_body = NO;
+  s->is_assertion_body = NO;
   s->is_bankheader_section = NO;
   s->is_single_instance = NO;
   s->has_been_calculated = NO;
@@ -5153,6 +5154,33 @@ int stack_create_label_stack(char *label) {
 #if defined(WLA_DEBUG)
   _debug_print_stack(stack->linenumber, g_last_stack_id, stack->stack_items, 1, 1, stack);
 #endif
+
+  return SUCCEEDED;
+}
+
+
+int stack_create_value_stack(double value) {
+
+  struct stack *stack;
+  struct stack_item *si;
+
+  stack = _allocate_struct_stack(1);
+  if (stack == NULL)
+    return FAILED;
+
+  stack->linenumber = g_active_file_info_last->line_current;
+  stack->filename_id = g_active_file_info_last->filename_id;
+  stack->position = STACK_POSITION_DEFINITION;
+
+  si = &stack->stack_items[0];
+  si->type = STACK_ITEM_TYPE_VALUE;
+  si->value = value;
+  si->sign = SI_SIGN_POSITIVE;
+  si->can_calculate_deltas = NO;
+  si->has_been_replaced = NO;
+  si->is_in_postfix = NO;
+
+  calculation_stack_insert(stack);
 
   return SUCCEEDED;
 }

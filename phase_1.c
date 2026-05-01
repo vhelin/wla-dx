@@ -131,6 +131,7 @@ struct array *g_arrays_first = NULL;
 struct string *g_fopen_filenames_first = NULL, *g_fopen_filenames_last = NULL;
 struct function *g_functions_first = NULL, *g_functions_last = NULL;
 struct namespace *g_namespaces_first = NULL;
+struct assertion *g_assertions_first = NULL, *g_assertions_last = NULL;
 
 extern char *g_buffer, *unfolded_buffer, g_label[MAX_NAME_LENGTH + 1], *g_include_dir, *g_full_name, g_latest_include_dir[MAX_NAME_LENGTH + 1];
 extern int g_source_file_size, g_input_number_error_msg, g_verbose_level, g_output_format, g_open_files, g_input_parse_if;
@@ -11294,16 +11295,211 @@ int directive_stringmap(void) {
 }
 
 
-int directive_assert(void) {
+static int _assertion_skip_inline_spaces(void) {
+
+  while (g_buffer[g_source_index] == ' ' || g_buffer[g_source_index] == '\t')
+    g_source_index++;
+
+  return SUCCEEDED;
+}
+
+
+static int _assertion_parse_action(int *action) {
+
+  char action_name[32];
+  int i = 0;
+
+  *action = ASSERTION_ACTION_ERROR;
+
+  _assertion_skip_inline_spaces();
+  if (g_buffer[g_source_index] != ',')
+    return SUCCEEDED;
+  g_source_index++;
+  _assertion_skip_inline_spaces();
+
+  while (i < (int)sizeof(action_name) - 1) {
+    char c = g_buffer[g_source_index];
+
+    if (c == ' ' || c == '\t' || c == ',' || c == 0x0A || c == 0)
+      break;
+
+    action_name[i++] = c;
+    g_source_index++;
+  }
+  action_name[i] = 0;
+
+  if (i == 0) {
+    print_error(ERROR_INP, ".ASSERT needs an action after ','.\n");
+    return FAILED;
+  }
+
+  if (strcaselesscmp(action_name, "warning") == 0)
+    *action = ASSERTION_ACTION_WARNING;
+  else if (strcaselesscmp(action_name, "error") == 0)
+    *action = ASSERTION_ACTION_ERROR;
+  else if (strcaselesscmp(action_name, "ldwarning") == 0)
+    *action = ASSERTION_ACTION_LDWARNING;
+  else if (strcaselesscmp(action_name, "lderror") == 0)
+    *action = ASSERTION_ACTION_LDERROR;
+  else {
+    print_error(ERROR_INP, ".ASSERT action must be one of warning, error, ldwarning or lderror.\n");
+    return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _assertion_parse_message(char *message) {
 
   int q;
 
+  message[0] = 0;
+
+  _assertion_skip_inline_spaces();
+  if (g_buffer[g_source_index] != ',')
+    return SUCCEEDED;
+  g_source_index++;
+
+  q = input_number();
+  if (q == FAILED)
+    return FAILED;
+  if (q != INPUT_NUMBER_STRING) {
+    print_error(ERROR_INP, ".ASSERT message must be a string.\n");
+    return FAILED;
+  }
+
+  memcpy(message, g_label, g_string_size);
+  message[g_string_size] = 0;
+
+  return SUCCEEDED;
+}
+
+
+static int _assertion_add(struct stack *stack, int action, char *message) {
+
+  struct assertion *assertion;
+
+  assertion = calloc(1, sizeof(struct assertion));
+  if (assertion == NULL) {
+    print_error(ERROR_INP, "Out of memory while allocating a new assertion.\n");
+    return FAILED;
+  }
+
+  assertion->stack = stack;
+  assertion->action = action;
+  strcpy(assertion->message, message);
+
+  if (g_assertions_first == NULL) {
+    g_assertions_first = assertion;
+    g_assertions_last = assertion;
+  }
+  else {
+    g_assertions_last->next = assertion;
+    g_assertions_last = assertion;
+  }
+
+  return SUCCEEDED;
+}
+
+
+
+static int _assertion_create_condition_stack(int condition_start, int condition_end, int number_result, int parsed_int, double parsed_double, char *label, int latest_stack) {
+
+  if (number_result == INPUT_NUMBER_ADDRESS_LABEL)
+    return stack_create_label_stack(label);
+  else if (number_result == INPUT_NUMBER_STACK) {
+    g_latest_stack = latest_stack;
+    return SUCCEEDED;
+  }
+  else if (number_result == SUCCEEDED || number_result == INPUT_NUMBER_FLOAT) {
+    char *condition;
+    int condition_length = condition_end - condition_start;
+    int stack_result, bytes_parsed = 0, value = 0;
+    int resolve_stack_calculations = g_resolve_stack_calculations;
+    int input_parse_if = g_input_parse_if;
+
+    if (condition_length < 1) {
+      if (number_result == SUCCEEDED)
+        return stack_create_value_stack((double)parsed_int);
+      return stack_create_value_stack(parsed_double);
+    }
+
+    condition = malloc(condition_length + 1);
+    if (condition == NULL) {
+      print_error(ERROR_INP, "Out of memory while allocating an assertion condition.\n");
+      return FAILED;
+    }
+
+    memcpy(condition, &g_buffer[condition_start], condition_length);
+    condition[condition_length] = 0;
+
+    g_resolve_stack_calculations = NO;
+    g_input_parse_if = NO;
+    stack_result = stack_calculate(condition, &value, &bytes_parsed, NO);
+    g_input_parse_if = input_parse_if;
+    g_resolve_stack_calculations = resolve_stack_calculations;
+    free(condition);
+
+    if (stack_result == FAILED)
+      return FAILED;
+    if (stack_result == INPUT_NUMBER_STACK)
+      return SUCCEEDED;
+    if (number_result == SUCCEEDED)
+      return stack_create_value_stack((double)parsed_int);
+    return stack_create_value_stack(parsed_double);
+  }
+
+  return FAILED;
+}
+
+
+int directive_assert(void) {
+
+  char message[MAX_NAME_LENGTH + 1], label[MAX_NAME_LENGTH + 1];
+  int q, action, parsed_int, latest_stack, condition_start, condition_end;
+  double parsed_double;
+
+  condition_start = g_source_index;
   g_input_parse_if = YES;
   q = input_number();
   g_input_parse_if = NO;
+  condition_end = g_source_index;
 
   if (q == FAILED)
     return FAILED;
+
+  parsed_int = g_parsed_int;
+  parsed_double = g_parsed_double;
+  latest_stack = g_latest_stack;
+  strcpy(label, g_label);
+
+  if (_assertion_parse_action(&action) == FAILED)
+    return FAILED;
+  if (_assertion_parse_message(message) == FAILED)
+    return FAILED;
+
+  if (action == ASSERTION_ACTION_LDWARNING || action == ASSERTION_ACTION_LDERROR) {
+    struct stack *stack;
+
+    if (_assertion_create_condition_stack(condition_start, condition_end, q, parsed_int, parsed_double, label, latest_stack) == FAILED) {
+      print_error(ERROR_INP, ".ASSERT needs a condition.\n");
+      return FAILED;
+    }
+
+    stack = find_stack_calculation(g_latest_stack, YES);
+    if (stack == NULL)
+      return FAILED;
+
+    stack->address = 0;
+    stack->bank = g_bank;
+    stack->slot = g_current_slot;
+    stack->base = g_base;
+    stack->is_assertion_body = YES;
+
+    return _assertion_add(stack, action, message);
+  }
+
   if (q != SUCCEEDED) {
     print_error(ERROR_INP, ".ASSERT needs immediate data.\n");
     return FAILED;
@@ -11312,8 +11508,21 @@ int directive_assert(void) {
   /* 0 = false, otherwise it's true */
   if (g_parsed_int != 0)
     return SUCCEEDED;
+
+  if (action == ASSERTION_ACTION_WARNING) {
+    if (message[0] != 0)
+      print_error(ERROR_WRN, ".ASSERT failed: %s\n", message);
+    else
+      print_error(ERROR_WRN, ".ASSERT failed.\n");
+
+    return SUCCEEDED;
+  }
   else {
-    print_error(ERROR_INP, ".ASSERT failed.\n");
+    if (message[0] != 0)
+      print_error(ERROR_INP, ".ASSERT failed: %s\n", message);
+    else
+      print_error(ERROR_INP, ".ASSERT failed.\n");
+
     return FAILED;
   }
 }

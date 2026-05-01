@@ -570,6 +570,18 @@ This is not a compulsory directive.
 ``.ASSERT`` takes a condition, and if it's evaluated to be true, nothing happens. If
 it's false, then assembling ends right there in an error.
 
+``.ASSERT`` also accepts an optional action and message::
+
+    .ASSERT VALUE_1 == 1, ERROR, "VALUE_1 must be 1."
+    .ASSERT VALUE_1 == 1, WARNING, "VALUE_1 should be 1."
+    .ASSERT label_end-label_start == 3, LDERROR, "Unexpected linked size."
+    .ASSERT label_end-label_start == 3, LDWARNING, "Unexpected linked size."
+
+``ERROR`` is the default action and preserves the immediate fatal behavior.
+``WARNING`` is evaluated by the assembler and lets assembly continue. ``LDERROR``
+and ``LDWARNING`` are evaluated by WLALINK after labels, sections and ``_sizeof_``
+definitions have been resolved.
+
 This is not a compulsory directive.
 
 

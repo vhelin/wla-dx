@@ -28,6 +28,7 @@ extern struct label **g_sorted_anonymous_labels;
 extern struct object_file *g_obj_first, *g_obj_last, *g_obj_tmp;
 extern struct section *g_sec_first, *g_sec_last, *g_sec_bankhd_first, g_sec_bankhd_last;
 extern struct stack *g_stacks_first, *g_stacks_last;
+extern struct assertion *g_assertions_first;
 extern struct map_t *g_global_unique_label_map;
 extern struct map_t *g_namespace_map;
 extern struct slot g_slots[256];
@@ -3437,6 +3438,10 @@ int compute_pending_calculations(void) {
       sta = sta->next;
       continue;
     }
+    if (sta->is_assertion_body == YES) {
+      sta = sta->next;
+      continue;
+    }
 
     if (sta->section_status == ON) {
       /* get section address */
@@ -3475,7 +3480,9 @@ int compute_pending_calculations(void) {
   /* next parse the stack items */
   sta = g_stacks_first;
   while (sta != NULL) {
-    if (sta->position == STACK_POSITION_DEFINITION)
+    if (sta->is_assertion_body == YES)
+      k = 0;
+    else if (sta->position == STACK_POSITION_DEFINITION)
       k = 1;
     else {
       /* skip the calculations inside discarded sections */
@@ -3500,6 +3507,12 @@ int compute_pending_calculations(void) {
   /* then compute and place the results */
   sta = g_stacks_first;
   while (sta != NULL) {
+    /* is the stack inside a definition? */
+    if (sta->is_assertion_body == YES) {
+      sta = sta->next;
+      continue;
+    }
+
     /* is the stack inside a definition? */
     if (sta->position == STACK_POSITION_DEFINITION) {
       /* all the references have been decoded, now compute */
@@ -3714,6 +3727,88 @@ int compute_pending_calculations(void) {
 
     /* next stack computation */
     sta = sta->next;
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _adjust_assertion_stack_address(struct stack *sta, int *skip) {
+
+  struct section *s;
+
+  *skip = NO;
+
+  if (sta->assertion_address_adjusted == YES)
+    return SUCCEEDED;
+
+  if (sta->section_status == ON) {
+    s = find_section(sta->section);
+    if (s != NULL)
+      sta->bank = s->bank;
+    if (s != NULL && s->alive == NO) {
+      *skip = YES;
+      return SUCCEEDED;
+    }
+    if (s == NULL) {
+      *skip = YES;
+      return SUCCEEDED;
+    }
+
+    sta->memory_address = s->address + sta->address + g_slots[sta->slot].address;
+
+    if (s->status != SECTION_STATUS_ABSOLUTE)
+      sta->address += s->address + g_bankaddress[s->bank];
+    else
+      sta->address += s->address;
+  }
+  else {
+    sta->memory_address = sta->address + g_slots[sta->slot].address;
+    sta->address += g_bankaddress[sta->bank];
+  }
+
+  sta->assertion_address_adjusted = YES;
+
+  return SUCCEEDED;
+}
+
+
+int evaluate_deferred_assertions(void) {
+
+  struct assertion *assertion = g_assertions_first;
+
+  while (assertion != NULL) {
+    struct stack *sta = assertion->stack;
+    double result;
+    int skip;
+
+    if (_adjust_assertion_stack_address(sta, &skip) == FAILED)
+      return FAILED;
+    if (skip == YES) {
+      assertion = assertion->next;
+      continue;
+    }
+
+    if (parse_stack(sta) == FAILED)
+      return FAILED;
+
+    s_current_stack_calculation_addr = sta->memory_address;
+    if (compute_stack(sta, &result, NULL, NULL, NULL, NULL) == FAILED)
+      return FAILED;
+
+    if ((int)result == 0) {
+      char *message = assertion->message[0] != 0 ? assertion->message : ".ASSERT failed.";
+
+      if (assertion->action == ASSERTION_ACTION_LDWARNING) {
+        print_text(NO, "%s: %s:%d: WARNING: %s\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, message);
+      }
+      else {
+        print_text(NO, "%s: %s:%d: ERROR: %s\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, message);
+        return FAILED;
+      }
+    }
+
+    assertion = assertion->next;
   }
 
   return SUCCEEDED;

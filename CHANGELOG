@@ -3,8 +3,8 @@
 1... WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------------
 
-v10.7 (01-May-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
-                      calls.
+v10.7 (02-May-2026) [ALL] Prefixed by a hashtag didn't propagate through nested
+                      .MACRO calls.
                     [ALL] Listfile creation for library files should now work.
                     [ALL] If an object file contained only .SECTIONs in ROM
                       bank X then ROM bank X's allocation info wasn't printed with
@@ -47,6 +47,9 @@ v10.7 (01-May-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .
                       when referencing them the assembler would confuse the
                       references with size hints.
                     [ALL] A function can also be now defined using .DEFINE.
+                    [ALL] .ASSERT can now be postponed to link time.
+                    [ALL] WLA assembles now "WLAJ" library files and "WLAm"
+                      object files.
                     [Cx4] Added support for Cx4 (Capcom Custom Chip 4) CPU/DSP.
                     [6**] .b and .w now override .8bit and .16bit.
                     [658] Fixed BRL and PER to work properly.
@@ -1584,7 +1587,7 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.22 (20-Apr-2026) When calculating _sizeof_* for lables we now take unused
+v5.22 (02-May-2026) When calculating _sizeof_* for lables we now take unused
                       output bytes into account.
                     Appended .RAMSECTIONs were still affecting the original
                       RAM bank in -v listing.
@@ -1602,6 +1605,7 @@ v5.22 (20-Apr-2026) When calculating _sizeof_* for lables we now take unused
                       ULTIMAX8K, ULTIMAX16K, OCEAN, MAGICDESK, EASYFLASH,
                       SIMONSBASIC, EPYXFASTLOAD, C64GS, COMAL80, GMOD2,
                       RGCD and GMOD3.
+                    .ASSERT can now be postponed to link time.
 
 v5.21 (19-Nov-2023) WLALINK writes now version 3 WLA symbol files.
                     Symbol files created with -S contain now [sections] and

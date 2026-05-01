@@ -27,6 +27,7 @@ extern struct file_name_info *g_file_name_info_first;
 extern struct slot g_slots[256];
 extern struct after_section *g_after_sections;
 extern struct label_sizeof *g_label_sizeofs;
+extern struct assertion *g_assertions_first;
 extern struct label_context g_label_context, *g_label_context_first, *g_label_context_last;
 extern FILE *g_file_out_ptr;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
@@ -87,6 +88,82 @@ static struct label_sizeof *s_label_sizeof_tmp;
 #define XSTRINGIFY(x) #x
 #define STRINGIFY(x) XSTRINGIFY(x)
 #define STRING_READ_FORMAT ("%" STRINGIFY(MAX_NAME_LENGTH) "s ")
+
+
+static void _write_stack_items(FILE *final_ptr, struct stack *stack) {
+
+  unsigned char *cp;
+  double dou;
+  int ind;
+
+  for (ind = 0; ind < stack->stacksize; ind++) {
+    fprintf(final_ptr, "%c%c", stack->stack_items[ind].type, stack->stack_items[ind].sign);
+    if (stack->stack_items[ind].type == STACK_ITEM_TYPE_LABEL || stack->stack_items[ind].type == STACK_ITEM_TYPE_STRING)
+      fprintf(final_ptr, "%s%c", stack->stack_items[ind].string, 0);
+    else {
+      dou = stack->stack_items[ind].value;
+      WRITEOUT_DOU;
+    }
+  }
+}
+
+
+static int _write_assertions(FILE *final_ptr, int include_slot_bank_base) {
+
+  struct assertion *assertion;
+  int ov;
+
+  ov = 0;
+  assertion = g_assertions_first;
+  while (assertion != NULL) {
+    ov++;
+    assertion = assertion->next;
+  }
+  WRITEOUT_OV;
+
+  assertion = g_assertions_first;
+  while (assertion != NULL) {
+    struct stack *stack = assertion->stack;
+
+    fprintf(final_ptr, "%c%s%c", assertion->action, assertion->message, 0);
+
+    ov = stack->id;
+    WRITEOUT_OV;
+
+    fprintf(final_ptr, "%c", STACK_TYPE_ASSERT);
+
+    ov = stack->section_id;
+    WRITEOUT_OV;
+
+    ov = stack->filename_id;
+    WRITEOUT_OV;
+
+    fprintf(final_ptr, "%c%c", stack->stacksize, stack->position);
+
+    if (include_slot_bank_base == YES)
+      fprintf(final_ptr, "%c", stack->slot);
+
+    ov = stack->address;
+    WRITEOUT_OV;
+
+    ov = stack->linenumber;
+    WRITEOUT_OV;
+
+    if (include_slot_bank_base == YES) {
+      ov = stack->bank;
+      WRITEOUT_OV;
+
+      ov = stack->base;
+      WRITEOUT_OV;
+    }
+
+    _write_stack_items(final_ptr, stack);
+
+    assertion = assertion->next;
+  }
+
+  return SUCCEEDED;
+}
 
 
 static int _print_fscanf_error_accessing_internal_data_stream(int file_name_id, int line_number) {
@@ -2380,7 +2457,7 @@ int write_object_file(void) {
   }
 
   /* header */
-  fprintf(final_ptr, "WLAl%c", g_emptyfill);
+  fprintf(final_ptr, "WLAm%c", g_emptyfill);
 
   /* misc bits */
   ind = 0;
@@ -2656,7 +2733,7 @@ int write_object_file(void) {
 
     if (stack == NULL)
       continue;
-    if (stack->is_function_body == NO)
+    if (stack->is_function_body == NO && stack->is_assertion_body == NO)
       ov++;
   }
   WRITEOUT_OV;
@@ -2666,7 +2743,7 @@ int write_object_file(void) {
 
     if (stack == NULL)
       continue;
-    if (stack->is_function_body == YES)
+    if (stack->is_function_body == YES || stack->is_assertion_body == YES)
       continue;
 
     ov = stack->id;
@@ -2709,6 +2786,10 @@ int write_object_file(void) {
       }
     }
   }
+
+  /* assertions */
+  if (_write_assertions(final_ptr, YES) == FAILED)
+    return FAILED;
 
   /* label sizeofs */
   ov = 0;
@@ -2867,7 +2948,7 @@ int write_library_file(void) {
   }
 
   /* header */
-  fprintf(final_ptr, "WLAI");
+  fprintf(final_ptr, "WLAJ");
 
   /* misc bits */
   ind = 0;
@@ -2971,7 +3052,7 @@ int write_library_file(void) {
 
     if (stack == NULL)
       continue;
-    if (stack->is_function_body == NO)
+    if (stack->is_function_body == NO && stack->is_assertion_body == NO)
       ov++;
   }
   WRITEOUT_OV;
@@ -2981,7 +3062,7 @@ int write_library_file(void) {
 
     if (stack == NULL)
       continue;
-    if (stack->is_function_body == YES)
+    if (stack->is_function_body == YES || stack->is_assertion_body == YES)
       continue;
 
     ov = stack->id;
@@ -3016,6 +3097,10 @@ int write_library_file(void) {
       }
     }
   }
+
+  /* assertions */
+  if (_write_assertions(final_ptr, NO) == FAILED)
+    return FAILED;
 
   /* label sizeofs */
   ov = 0;
