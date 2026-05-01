@@ -3,7 +3,7 @@
 1... WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
 ---------------------------------------------------------------------------------------------------------------
 
-v10.7 (25-Apr-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
+v10.7 (01-May-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .MACRO
                       calls.
                     [ALL] Listfile creation for library files should now work.
                     [ALL] If an object file contained only .SECTIONs in ROM
@@ -18,8 +18,11 @@ v10.7 (25-Apr-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .
                       long it has been defined earlier lexically.
                     [ALL] Added parameterless versions of bankbyte(), base(), slot()
                       and bank(). bankbyte(label) and bank(label) can be used in .IFs.
-                    [ALL] Added built-in functions is(), get(), org(), orga() and
-                      substring().
+                    [ALL] Added built-in functions is(), get(), org(), orga(),
+                      substring(), definedfunction(), definedmacro(), blank(), match(),
+                      xmatch(), tcount(), left(), mid() and right().
+                    [ALL] Added .DELMACRO and .DELFUNCTION for deleting macros and
+                      functions.
                     [ALL] Added LATESTDIR and RELATIVEDIR to .INCLUDE and .INCBIN.
                     [ALL] Jump in .ENDR added offset of 1 for line numbers in errors.
                     [ALL] Added START and STEP to .REPEAT/.REPT.
@@ -43,6 +46,7 @@ v10.7 (25-Apr-2026) [ALL] Prefixed by a hashtag didn't propagate though nested .
                     [ALL] .STRUCT member names b, w, d and l are now forbidden as
                       when referencing them the assembler would confuse the
                       references with size hints.
+                    [ALL] A function can also be now defined using .DEFINE.
                     [Cx4] Added support for Cx4 (Capcom Custom Chip 4) CPU/DSP.
                     [6**] .b and .w now override .8bit and .16bit.
                     [658] Fixed BRL and PER to work properly.

@@ -32,4 +32,7 @@ namespacedLabel:
       callMe                                 ; @BT 22 11
       
       .db "<01"                              ; @BT END
+
+      .include "meta_function.i" namespace "metafunc" isolated
+      .include "meta_delmacro.i" namespace "metadel"
       

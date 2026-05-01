@@ -130,6 +130,7 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
         .function SUM_ABC6(varA,varB,varC) SUM_AB3(SUM_AB2(varA,varB),SUM_AB2(2-1,varC-1))
         .function SUM_ABC7(varA,varB,varC) SUM_AB2(SUM_AB2(varA,varB),varC) - 0*SUM_AB2(varA+1,varB)
         .function CONSTANT_1() 1
+        .function CONSTANT_FLOAT() 1.5
         .DEFINE SUM = 0 + 1 + SUM_AB(2, 3) + 4 + 5
 
         .db "15>"               ; @BT TEST-15 15 START
@@ -151,6 +152,10 @@ addr_10:.DB bank(addr_10), bankbyte(addr_10)    ; @BT 0F 0F
         .db SUM_ABC7(0,1,2)     ; @BT 03
         .db SUM                 ; @BT 0F
         .db "<15"               ; @BT END
+        .db "91>"               ; @BT TEST-91 91 START
+        .db floor(CONSTANT_FLOAT() + 1) ; @BT 02
+        .db floor(CONSTANT_FLOAT() * 3) ; @BT 04
+        .db "<91"               ; @BT END
 
         .db "16>"               ; @BT TEST-16 16 START
         .db SUM_AB(2-1,2+1)     ; @BT 04
@@ -664,3 +669,40 @@ parent  apples2 2
         .db get("section.alignment")         ; @BT 04
         .ends
         .db "<26"               ; @BT END
+
+        .macro METAPRIM_SAMPLE
+        .endm
+
+        .macro METAPRIM_XMATCH_NUMERIC(value)
+        .db xmatch(\1, $01), xmatch(\1, 1)
+        .endm
+
+        .db "27>"               ; @BT TEST-27 27 START
+        .db blank(""), blank("   "), blank("x") ; @BT 01 01 00
+        .db match("lda #1", "foo #2"), xmatch("lda #1", "lda #1"), xmatch("lda #1", "lda #2") ; @BT 01 01 00
+        .db xmatch(1, 01), xmatch(1, $01), xmatch($01, $01), match(1, $01) ; @BT 00 00 01 01
+        METAPRIM_XMATCH_NUMERIC $01 ; @BT 01 00
+        .db tcount("lda #1,foo") ; @BT 05
+        .db definedmacro(METAPRIM_SAMPLE), definedmacro(NOT_A_MACRO) ; @BT 01 00
+        .db left(2, "abcdef"), mid(2, 3, "abcdef"), right(2, "abcdef") ; @BT 61 62 63 64 65 65 66
+        .db "<27"               ; @BT END
+
+        .macro METAPRIM_DELETE
+        .endm
+        .function METAPRIM_FUNC() 7
+        .define METAPRIM_ALIAS(value) value + 3
+
+        .db "28>"               ; @BT TEST-28 28 START
+        .db definedmacro(METAPRIM_DELETE), definedfunction(METAPRIM_FUNC), definedfunction(METAPRIM_ALIAS) ; @BT 01 01 01
+        .db METAPRIM_FUNC(), METAPRIM_ALIAS(4) ; @BT 07 07
+        .delmacro METAPRIM_DELETE
+        .delfunction METAPRIM_FUNC
+        .delfunction METAPRIM_ALIAS
+        .db definedmacro(METAPRIM_DELETE), definedfunction(METAPRIM_FUNC), definedfunction(METAPRIM_ALIAS) ; @BT 00 00 00
+        .macro METAPRIM_DELETE
+        .endm
+        .function METAPRIM_FUNC() 9
+        .define METAPRIM_ALIAS(value) value + 1
+        .db definedmacro(METAPRIM_DELETE), definedfunction(METAPRIM_FUNC), definedfunction(METAPRIM_ALIAS) ; @BT 01 01 01
+        .db METAPRIM_FUNC(), METAPRIM_ALIAS(6) ; @BT 09 07
+        .db "<28"               ; @BT END

@@ -2418,11 +2418,38 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
   *found_function = YES;
 
   /* is the function just a constant? */
-  if (fun->type == SUCCEEDED) {
+  if (fun->type == SUCCEEDED || fun->type == INPUT_NUMBER_FLOAT) {
+    for (i = 0; i < fun->nargument_names; i++) {
+      input_float_mode = g_input_float_mode;
+      g_input_float_mode = ON;
+      res = input_number();
+      while (res == INPUT_NUMBER_EOL) {
+        next_line();
+        res = input_number();
+      }
+      g_input_float_mode = input_float_mode;
+
+      if (res == FAILED)
+        return FAILED;
+      else if (res != SUCCEEDED && res != INPUT_NUMBER_ADDRESS_LABEL && res != INPUT_NUMBER_STACK && res != INPUT_NUMBER_FLOAT) {
+        print_error(ERROR_NUM, "Argument %d is not a value, label or a pending calculation.\n", i+1);
+        return FAILED;
+      }
+    }
+
+    if (g_buffer[g_source_index] != ')') {
+      print_error(ERROR_NUM, "Malformed \"%s()\" detected!\n", name);
+      return FAILED;
+    }
+
+    g_source_index++;
+    *parsed_chars = (int)(g_source_index - source_index_backup);
+    g_source_index = source_index_original;
+
     g_parsed_int = (int)fun->value;
     g_parsed_double = fun->value;
 
-    return SUCCEEDED;
+    return fun->type;
   }
 
   /* clone the stack calculation */

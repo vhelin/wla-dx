@@ -29,27 +29,34 @@ bankbyte()             Returns the current bank byte, bits 16-23 (*)
 bankbyte(label)        Returns the bank byte, bits 16-23, of the supplied label
 base()                 Returns current base (*)
 base(label)            Returns the base of the supplied label
+blank(s)               Returns 1 (true) if ``s`` is empty or whitespace, 0 (false) otherwise
 ceil(exp)              The same as ANSI C90 ceil()
 clamp(value, min, max) Clamps the value between min and max
 cos(exp)               The same as ANSI C90 cos()
 cosh(exp)              The same as ANSI C90 cosh()
 defined(definition)    Returns 1 (true) if the supplied definition exists, 0 (false) otherwise
+definedfunction(func)  Returns 1 (true) if the supplied function exists, 0 (false) otherwise
+definedmacro(macro)    Returns 1 (true) if the supplied macro exists, 0 (false) otherwise
 exists(path)           Returns 1 (true) if the supplied file exists, 0 (false) otherwise
 floor(exp)             The same as ANSI C90 floor()
 get(keyword1)          Returns value/string depending on what ``keyword1`` is
 hibyte(exp)            Returns the high byte, bits 8-15 (the same as preceding ``>``)
 hiword(exp)            Returns the high word, bits 16-31
 is(keyword2)           Return 0 (false) or 1 (true), see below for "keyword2"
+left(len, s)           Returns the leftmost ``len`` characters of ``s``
 lobyte(exp)            Returns the low byte, bits 0-7 (the same as preceding ``<``)
 log(exp)               The same as ANSI C90 log()
 log10(exp)             The same as ANSI C90 log10()
 loword(exp)            Returns the low word, bits 0-15
+match(a, b)            Returns 1 (true) if ``a`` and ``b`` have matching token types
 max(exp1, exp2)        Returns the bigger value
+mid(ind, len, s)       Returns ``len`` characters of ``s``, starting at index ``ind``
 min(exp1, exp2)        Returns the smaller value
 org()                  Returns the current address since the start of the slot (*)
 orga()                 Returns the current 16-bit memory address (*)
 pow(base, power)       The same as ANSI C90 pow()
 random(min, max)       Returns a pseudo random integer like ``.DBRND`` [min, max]
+right(len, s)          Returns the rightmost ``len`` characters of ``s``
 round(exp)             The same as ANSI C99 round()
 sign(exp)              Return 0 if the supplied value is 0, -1 if negative and 1 if positive
 sin(exp)               The same as ANSI C90 sin()
@@ -59,6 +66,8 @@ sqrt(exp)              Returns the square root of the supplied value
 substring(s, ind, len) Returns a substring of ``s``, starting at index ``ind``, consisting of ``len`` characters
 tan(exp)               The same as ANSI C90 tan()
 tanh(exp)              The same as ANSI C90 tanh()
+tcount(s)              Returns the number of tokens in ``s``
+xmatch(a, b)           Returns 1 (true) if ``a`` and ``b`` have the same tokens
 ====================== ================================================================================
 
 Note! Use bankbyte() with WLA-65816 as on that platform the bank (+ base) bits
@@ -66,6 +75,10 @@ are 16-23. On other platforms bank() works better.
 
 Note! Functions marked with (*) are evaluated in the assembler, so if the linker relocates the
 code then these functions return possibly wrong values.
+
+Note! ``match()``, ``xmatch()`` and ``tcount()`` operate on WLA token text supplied as strings
+or expanded macro arguments. ``match()`` compares token types, while ``xmatch()`` compares the
+token text as well.
 
 
 Examples of functions
@@ -79,6 +92,18 @@ Here's an example about how these functions can be used ::
     LDA #bank(playMusic)            ; instead of :playMusic
     .DB random(0, 10)               ; defines a byte with value 0-10
     .DL (base() << 16) | orga()     ; defines the current 24-bit address
+
+    .IF blank("")
+    .ENDIF
+
+    .IF match("lda #1", "foo #2")
+    .ENDIF
+
+    .IF xmatch("lda #1", "lda #1")
+    .ENDIF
+
+    .DB tcount("lda #1,foo")
+    .DB left(4, "WLA-DX")
 
     .ENDIF
 
