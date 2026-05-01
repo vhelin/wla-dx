@@ -113,6 +113,7 @@ void init_stack_struct(struct stack *s) {
   s->bits_position = 0;
   s->bits_to_define = 0;
   s->is_function_body = NO;
+  s->is_assertion_body = NO;
   s->is_bankheader_section = NO;
   s->is_single_instance = NO;
   s->has_been_calculated = NO;
@@ -5158,6 +5159,33 @@ int stack_create_label_stack(char *label) {
 }
 
 
+int stack_create_value_stack(double value) {
+
+  struct stack *stack;
+  struct stack_item *si;
+
+  stack = _allocate_struct_stack(1);
+  if (stack == NULL)
+    return FAILED;
+
+  stack->linenumber = g_active_file_info_last->line_current;
+  stack->filename_id = g_active_file_info_last->filename_id;
+  stack->position = STACK_POSITION_DEFINITION;
+
+  si = &stack->stack_items[0];
+  si->type = STACK_ITEM_TYPE_VALUE;
+  si->value = value;
+  si->sign = SI_SIGN_POSITIVE;
+  si->can_calculate_deltas = NO;
+  si->has_been_replaced = NO;
+  si->is_in_postfix = NO;
+
+  calculation_stack_insert(stack);
+
+  return SUCCEEDED;
+}
+
+
 int stack_create_stack_stack(int stack_id) {
 
   struct stack *stack;
@@ -5647,6 +5675,12 @@ int data_stream_parser_parse(void) {
       continue;
 
     case 'v':
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      continue;
+
+    case '~':
       err = fscanf(g_file_out_ptr, "%d ", &temp_1);
       if (err < 1)
         return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);

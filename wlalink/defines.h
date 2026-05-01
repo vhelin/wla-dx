@@ -298,6 +298,15 @@ struct stack {
   int special_id;
   int bits_position;
   int bits_to_define;
+  int is_assertion_body;
+  int assertion_address_adjusted;
+};
+
+struct assertion {
+  struct assertion *next;
+  struct stack *stack;
+  int action;
+  char message[MAX_NAME_LENGTH + 1];
 };
 
 struct stack_item {

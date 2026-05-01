@@ -85,6 +85,12 @@ int listfile_collect(void) {
     case 'p':
       continue;
 
+    case '~':
+      err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+      continue;
+
     case 'g':
       err = fscanf(g_file_out_ptr, "%*s ");
       if (err < 0)

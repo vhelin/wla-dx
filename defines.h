@@ -826,10 +826,18 @@ struct stack {
   int bits_position;
   int bits_to_define;
   char is_function_body;
+  char is_assertion_body;
   char is_bankheader_section;
   char is_single_instance;
   char has_been_calculated;
   double value;
+};
+
+struct assertion {
+  struct assertion *next;
+  struct stack *stack;
+  int action;
+  char message[MAX_NAME_LENGTH + 1];
 };
 
 struct stack_item {

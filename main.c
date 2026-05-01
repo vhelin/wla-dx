@@ -1,6 +1,6 @@
 
 /*
-  wla - part of wla dx gb-z80/z80/z80n/6502/65c02/68000/6800/6801/6809/65816/huc6280/spc-700/8008/8080/SuperFX
+  wla - part of wla dx gb-z80/z80/z80n/6502/65c02/68000/6800/6801/6809/65816/huc6280/spc-700/8008/8080/SuperFX/Cx4
   macro assembler package by ville helin <ville.helin@iki.fi>. this is gpl software.
 */
 
@@ -34,7 +34,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char s_version_string[] = "$VER: wla-" WLA_NAME " 10.7a (1.5.2026)";
+char s_version_string[] = "$VER: wla-" WLA_NAME " 10.7a (2.5.2026)";
 char s_wla_version[] = "10.7";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -61,6 +61,7 @@ extern struct structure **g_saved_structures;
 extern struct string *g_fopen_filenames_first, *g_fopen_filenames_last;
 extern struct function *g_functions_first, *g_functions_last;
 extern struct namespace *g_namespaces_first;
+extern struct assertion *g_assertions_first;
 extern struct call_stack_item *g_call_stack_items_first, *g_call_stack_items_last;
 extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
 extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
@@ -647,6 +648,7 @@ static void _procedures_at_exit(void) {
   struct block_name *bn;
   struct array *ar1, *ar2;
   struct string *strings;
+  struct assertion *assertion;
   int i, index;
 
   /* delayed printing of call stack as errors might output multiple lines of text
@@ -846,6 +848,12 @@ static void _procedures_at_exit(void) {
     struct namespace *next = g_namespaces_first->next;
     free(g_namespaces_first);
     g_namespaces_first = next;
+  }
+
+  while (g_assertions_first != NULL) {
+    assertion = g_assertions_first->next;
+    free(g_assertions_first);
+    g_assertions_first = assertion;
   }
 
   free_stack_calculations();

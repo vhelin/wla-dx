@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file format "WLAl"
+WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX/Cx4 object file format "WLAm"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAl" - WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX object file version 37 (20-Aug-2023)
+        "WLAm" - WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX/Cx4 object file version 38 (02-May-2026)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -110,7 +110,7 @@ pending calculations:
   ...
   4     id (int)
   1     result type (0 = 8-bit, 1 = 16-bit, 2 = 24-bit, 3 = unknown, 4 = 13-bit, 5 = 32-bit, 6 = bits,
-                     7 = 9-bit short)
+                     7 = 9-bit short, 8 = 16-bit wrap around, 9 = 10-bit, 10 = 7-bit, 11 = assert)
         if bit 7 == 1, then the label references are relative, else absolute
   1     special case ID (0 == not a special case, 1 == Z80/GB-Z80 RST, 2 == 8008 RST, 3 == 8080 RST, 4 == flip endianess)
   4     section (0 = no section, 1+ = section id) (int)
@@ -119,6 +119,33 @@ pending calculations:
   1     position (0 = definition, 1 = elsewhere)
   1     bits starting position (0-7, only present if result type == 6)
   1     bits to define (1-32, only present if result type == 6)
+  1     slot number (0-255)
+  4     relative address (int)
+  4     line number (int)
+  4     bank number (int)
+  4     base (int)
+  ...
+  1     type (0 = value, 1 = operator, 2 = label, 3 = deleted, 4 = stack, 5 = string)
+  1     sign (0 = positive, 1 = negative)
+  8     value (double) OR
+  n     string (0 terminated)
+  ...
+  ...
+
+assertions:
+
+  4     number of assertions (int)
+  ...
+  1     action (3 = linker warning, 4 = linker error)
+  n     message (0 terminated)
+        The following fields are the assertion expression as a simplified calculation stack record.
+        WLALINK evaluates it as a boolean and does not write its value to output.
+  4     stack id (int), used for stack lookup if this expression is referenced by another stack
+  1     stack/result type (11 = assert)
+  4     section (0 = no section, 1+ = section id) (int)
+  4     file id (int)
+  1     number of stack items
+  1     position (0 = definition, 1 = elsewhere)
   1     slot number (0-255)
   4     relative address (int)
   4     line number (int)
@@ -195,7 +222,7 @@ section:
 
 
 
-WLA-GB/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX library file format "WLAI"
+WLA-GB/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX/Cx4 library file format "WLAJ"
 
 
 bytes   description
@@ -203,7 +230,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAI" - WLA-GB/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX library file version 29 (02-Apr-2022)
+        "WLAJ" - WLA-GB/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX/Cx4 library file version 29 (02-May-2026)
   1     misc bits (bit 0 - endianess (1 = big endian)
                    bit 1 - 65816 indicator (1 == 65816)
                    bit 2 - 65ce02 indicator (1 == 65ce02))
@@ -258,7 +285,7 @@ pending calculations:
   ...
   4     id (int)
   1     result type (0 = 8-bit, 1 = 16-bit, 2 = 24-bit, 3 = unknown, 4 = 13-bit, 5 = 32-bit, 6 = bits,
-                     7 = 9-bit short)
+                     7 = 9-bit short, 8 = 16-bit wrap around, 9 = 10-bit, 10 = 7-bit, 11 = assert)
         if bit 7 == 1, then the label references are relative, else absolute
   1     special case ID (0 == not a special case, 1 == Z80/GB-Z80 RST, 2 == 8008 RST, 3 == 8080 RST, 4 == flip endianess)
   4     section (1+ = section id) (int)
@@ -267,6 +294,30 @@ pending calculations:
   1     position (0 = definition, 1 = elsewhere)
   1     bits starting position (0-7, only present if result type == 6)
   1     bits to define (1-32, only present if result type == 6)
+  4     relative address (int)
+  4     line number (int)
+  ...
+  1     type (0 = value, 1 = operator, 2 = label, 3 = deleted, 4 = stack, 5 = string)
+  1     sign (0 = positive, 1 = negative)
+  8     value (double) OR
+  n     string (0 terminated)
+  ...
+  ...
+
+assertions:
+
+  4     number of assertions (int)
+  ...
+  1     action (3 = linker warning, 4 = linker error)
+  n     message (0 terminated)
+        The following fields are the assertion expression as a simplified calculation stack record.
+        WLALINK evaluates it as a boolean and does not write its value to output.
+  4     stack id (int), used for stack lookup if this expression is referenced by another stack
+  1     stack/result type (11 = assert)
+  4     section (1+ = section id) (int)
+  4     file id (int)
+  1     number of stack items
+  1     position (0 = definition, 1 = elsewhere)
   4     relative address (int)
   4     line number (int)
   ...

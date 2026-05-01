@@ -1,3 +1,5 @@
-
 [objects]
 main.o
+[definitions]
+NUMBER_TWO 2
+NUMBER_THREE 3
