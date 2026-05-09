@@ -1587,7 +1587,7 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.22 (09-May-2026) When calculating _sizeof_* for lables we now take unused
+v5.22 (09-May-2026) When calculating _sizeof_* for labels we now take unused
                       output bytes into account.
                     Appended .RAMSECTIONs were still affecting the original
                       RAM bank in -v listing.

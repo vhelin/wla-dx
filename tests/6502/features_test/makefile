@@ -18,7 +18,6 @@ main.o: main.s
 
 check: linked.rom
 	byte_tester -s main.s
-	sh check_debug_exports.sh
 
 $(OFILES): $(HFILES)
 

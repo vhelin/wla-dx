@@ -155,7 +155,7 @@ the PRG. Use the flag ``a`` to specify the load address. It can be a value or
 the name of a label.
 
 If flag ``t`` is used with ``C64CRT``, WLALINK will write a Commodore 64 CRT
-cartridge image. Use flag ``64`` to specify the cartridge type.
+cartridge image. Use flag ``-64`` to specify the cartridge type.
 
 If flag ``i`` is given, WLALINK will write list files. Note that you must
 compile the object and library files with ``-i`` flag as well. Otherwise
