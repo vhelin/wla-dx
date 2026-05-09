@@ -62,6 +62,23 @@ int g_smdheader_extramemory_type_2 = 0xa0, g_smdheader_extramemory_type_3 = 0x20
 char g_smdheader_modemsupport[13] = "            ";
 char g_smdheader_regionsupport[4] = "JUE";
 int g_computesmdchecksum_defined = 0, g_smdheader_defined = NO;
+int g_ngheader_defined = NO, g_ngheader_ngh = 0, g_ngheader_ngh_defined = NO;
+int g_ngheader_systemversion = 0, g_ngheader_promsize = 0, g_ngheader_promsize_defined = NO, g_ngheader_promsize_autopow2 = NO;
+int g_ngheader_backupramptr = 0, g_ngheader_backupramsize = 0;
+int g_ngheader_eyecatcher = 0, g_ngheader_logobank = 0x1b;
+int g_ngheader_jpconfig_type = TYPE_VALUE, g_ngheader_jpconfig_value = 0;
+int g_ngheader_usconfig_type = TYPE_VALUE, g_ngheader_usconfig_value = 0;
+int g_ngheader_euconfig_type = TYPE_VALUE, g_ngheader_euconfig_value = 0;
+int g_ngheader_userentry_type = TYPE_VALUE, g_ngheader_userentry_value = 0;
+int g_ngheader_playerstart_type = TYPE_VALUE, g_ngheader_playerstart_value = 0;
+int g_ngheader_demoend_type = TYPE_VALUE, g_ngheader_demoend_value = 0;
+int g_ngheader_coinsound_type = TYPE_VALUE, g_ngheader_coinsound_value = 0;
+int g_ngheader_securitycodeptr_type = TYPE_VALUE, g_ngheader_securitycodeptr_value = 0;
+int g_ngheader_emit_default_securitycode = NO;
+int g_ngheader_cddacmdptr_defined = NO, g_ngheader_cddacmdptr_value = 0;
+char *g_ngheader_jpconfig_str = NULL, *g_ngheader_usconfig_str = NULL, *g_ngheader_euconfig_str = NULL;
+char *g_ngheader_userentry_str = NULL, *g_ngheader_playerstart_str = NULL, *g_ngheader_demoend_str = NULL;
+char *g_ngheader_coinsound_str = NULL, *g_ngheader_securitycodeptr_str = NULL;
 #endif
 
 int g_org_defined = 1, g_background_defined = 0;
@@ -970,6 +987,12 @@ static struct structure* _get_structure(char *name) {
 
 
 int directive_define_def_equ(void);
+
+#if defined(MC68000)
+int directive_ngheader(void);
+int directive_ngsoftdip(void);
+int directive_ngvectors(void);
+#endif
 
 
 static void _forget_macro_replacements(int move_index) {
@@ -2410,8 +2433,8 @@ int parse_enum_token(void) {
       
       /* forbid some struct member names */
       if (c == 'B' || c == 'W' || c == 'D' || c == 'L') {
-	print_error(ERROR_DIR, "'%c' doesn't work as a .STRUCT member name as the assembler confuses it with a size hint.\n", g_tmp[0]);
-	return FAILED;
+        print_error(ERROR_DIR, "'%c' doesn't work as a .STRUCT member name as the assembler confuses it with a size hint.\n", g_tmp[0]);
+        return FAILED;
       }
     }
 
@@ -9238,6 +9261,94 @@ static void _copy_and_pad_string(char *output, char *input, int size, char paddi
 }
 
 
+static int _ngheader_validate_bcd_word(int value) {
+
+  int shift;
+
+  for (shift = 0; shift < 16; shift += 4) {
+    if (((value >> shift) & 0xF) > 9)
+      return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _ngheader_parse_pointer(const char *field_name, int *type, int *value, char **string_value) {
+
+  int q;
+
+  q = input_number();
+  if (q == FAILED)
+    return FAILED;
+
+  if (q == SUCCEEDED) {
+    *type = TYPE_VALUE;
+    *value = g_parsed_int;
+    *string_value = NULL;
+    return SUCCEEDED;
+  }
+
+  if (q == INPUT_NUMBER_ADDRESS_LABEL) {
+    *type = TYPE_LABEL;
+    *string_value = _string_duplicate(g_label);
+    if (*string_value == NULL)
+      return FAILED;
+    return SUCCEEDED;
+  }
+
+  if (q == INPUT_NUMBER_STACK) {
+    *type = TYPE_STACK_CALCULATION;
+    *value = g_latest_stack;
+    *string_value = NULL;
+    return SUCCEEDED;
+  }
+
+  print_error(ERROR_DIR, "%s expects an address, label or calculation.\n", field_name);
+  return FAILED;
+}
+
+
+static void _ngheader_copy_pointer(int source_type, int source_value, char *source_str,
+                                   int *target_type, int *target_value, char **target_str) {
+
+  *target_type = source_type;
+  *target_value = source_value;
+  *target_str = source_str;
+}
+
+
+static void _ng_emit_jump(int type, int value, char *string_value) {
+
+  fprintf(g_file_out_ptr, "d78 d249 ");
+  if (type == TYPE_VALUE)
+    fprintf(g_file_out_ptr, "u%d ", value);
+  else if (type == TYPE_STACK_CALCULATION)
+    fprintf(g_file_out_ptr, "U%d ", value);
+  else
+    fprintf(g_file_out_ptr, "V%s ", string_value);
+}
+
+
+/* Emit a fixed-length ASCII field into the current section, padded (with
+   0x20) or truncated to match the target width. If 'remap_ascii' is YES,
+   apply the active .ASCIITABLE mapping. */
+static void _ngsoftdip_emit_fixed_string(const char *s, int length, int remap_ascii) {
+
+  int i, ch;
+
+  for (i = 0; i < length; i++) {
+    if (s != NULL && i < (int)strlen(s))
+      ch = (unsigned char)s[i];
+    else
+      ch = 0x20;
+    if (remap_ascii == YES)
+      ch = (int)g_asciitable[ch & 0xFF];
+    fprintf(g_file_out_ptr, "d%d ", ch);
+  }
+}
+
+
 int directive_smdheader(void) {
   
   int q, token_result;
@@ -9483,8 +9594,481 @@ int directive_smdheader(void) {
   return SUCCEEDED;
 }
 
-#endif
 
+int directive_ngheader(void) {
+
+  static char s_ngheader_generated_securitycode_label[] = "*WLA_NG_SECURITY_CODE";
+  int q, token_result;
+  int playerstart_defined = NO, demoend_defined = NO, coinsound_defined = NO;
+  int jpconfig_defined = NO, usconfig_defined = NO, euconfig_defined = NO;
+  int securitycodeptr_defined = NO;
+
+  if (g_ngheader_defined == YES) {
+    print_error(ERROR_DIR, ".NGHEADER can be defined only once.\n");
+    return FAILED;
+  }
+
+  if (g_output_format == OUTPUT_LIBRARY) {
+    print_error(ERROR_DIR, "Libraries don't take .NGHEADER.\n");
+    return FAILED;
+  }
+
+  while ((token_result = get_next_token()) == SUCCEEDED) {
+    if (g_tmp[0] == '.') {
+      q = parse_if_directive();
+      if (q == FAILED)
+        return FAILED;
+      else if (q == SUCCEEDED)
+        continue;
+    }
+
+    if (strcaselesscmp(g_tmp, ".ENDNG") == 0)
+      break;
+    else if (strcaselesscmp(g_tmp, "NGH") == 0) {
+      q = input_number();
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED || g_parsed_int <= 0 || g_parsed_int > 0x9999 || _ngheader_validate_bcd_word(g_parsed_int) == FAILED) {
+        print_error(ERROR_DIR, "NGH expects a non-zero BCD value in the range $0001-$9999.\n");
+        return FAILED;
+      }
+
+      g_ngheader_ngh = g_parsed_int;
+      g_ngheader_ngh_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "SYSTEMVERSION") == 0) {
+      q = input_number();
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED || g_parsed_int < -128 || g_parsed_int > 255) {
+        print_error(ERROR_DIR, "SYSTEMVERSION expects a byte value.\n");
+        return FAILED;
+      }
+
+      g_ngheader_systemversion = g_parsed_int;
+    }
+    else if (strcaselesscmp(g_tmp, "PROMSIZE") == 0) {
+      q = input_number();
+      if (q == FAILED)
+        return FAILED;
+      if (q == INPUT_NUMBER_ADDRESS_LABEL) {
+        if (strcaselesscmp(g_label, "AUTO") == 0) {
+          g_ngheader_promsize_defined = NO;
+          g_ngheader_promsize_autopow2 = NO;
+        }
+        else if (strcaselesscmp(g_label, "AUTOPOW2") == 0) {
+          g_ngheader_promsize_defined = NO;
+          g_ngheader_promsize_autopow2 = YES;
+        }
+        else {
+          print_error(ERROR_DIR, "PROMSIZE expects AUTO, AUTOPOW2 or an integer value.\n");
+          return FAILED;
+        }
+      }
+      else if (q == SUCCEEDED && g_parsed_int >= 0) {
+        g_ngheader_promsize = g_parsed_int;
+        g_ngheader_promsize_defined = YES;
+        g_ngheader_promsize_autopow2 = NO;
+      }
+      else {
+        print_error(ERROR_DIR, "PROMSIZE expects AUTO, AUTOPOW2 or an integer value.\n");
+        return FAILED;
+      }
+    }
+    else if (strcaselesscmp(g_tmp, "BACKUPRAMPTR") == 0) {
+      q = input_number();
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED) {
+        print_error(ERROR_DIR, "BACKUPRAMPTR expects an integer value.\n");
+        return FAILED;
+      }
+
+      g_ngheader_backupramptr = g_parsed_int;
+    }
+    else if (strcaselesscmp(g_tmp, "BACKUPRAMSIZE") == 0) {
+      q = input_number();
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED || g_parsed_int < 0 || g_parsed_int > 4096) {
+        print_error(ERROR_DIR, "BACKUPRAMSIZE expects an integer value in the range [0,4096].\n");
+        return FAILED;
+      }
+
+      g_ngheader_backupramsize = g_parsed_int;
+    }
+    else if (strcaselesscmp(g_tmp, "EYECATCHER") == 0) {
+      q = input_number();
+      if (q == FAILED)
+        return FAILED;
+
+      if (q == SUCCEEDED) {
+        if (g_parsed_int < 0 || g_parsed_int > 2) {
+          print_error(ERROR_DIR, "EYECATCHER expects SYSTEM, GAME, NONE or an integer in the range [0,2].\n");
+          return FAILED;
+        }
+        g_ngheader_eyecatcher = g_parsed_int;
+      }
+      else if (q == INPUT_NUMBER_ADDRESS_LABEL) {
+        if (strcaselesscmp(g_label, "SYSTEM") == 0)
+          g_ngheader_eyecatcher = 0;
+        else if (strcaselesscmp(g_label, "GAME") == 0)
+          g_ngheader_eyecatcher = 1;
+        else if (strcaselesscmp(g_label, "NONE") == 0 || strcaselesscmp(g_label, "NOTHING") == 0)
+          g_ngheader_eyecatcher = 2;
+        else {
+          print_error(ERROR_DIR, "EYECATCHER expects SYSTEM, GAME, NONE or an integer in the range [0,2].\n");
+          return FAILED;
+        }
+      }
+      else {
+        print_error(ERROR_DIR, "EYECATCHER expects SYSTEM, GAME, NONE or an integer in the range [0,2].\n");
+        return FAILED;
+      }
+    }
+    else if (strcaselesscmp(g_tmp, "LOGOBANK") == 0) {
+      q = input_number();
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED || g_parsed_int < -128 || g_parsed_int > 255) {
+        print_error(ERROR_DIR, "LOGOBANK expects a byte value.\n");
+        return FAILED;
+      }
+
+      g_ngheader_logobank = g_parsed_int;
+    }
+    else if (strcaselesscmp(g_tmp, "JPCONFIG") == 0) {
+      if (_ngheader_parse_pointer("JPCONFIG", &g_ngheader_jpconfig_type, &g_ngheader_jpconfig_value, &g_ngheader_jpconfig_str) == FAILED)
+        return FAILED;
+      jpconfig_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "USCONFIG") == 0) {
+      if (_ngheader_parse_pointer("USCONFIG", &g_ngheader_usconfig_type, &g_ngheader_usconfig_value, &g_ngheader_usconfig_str) == FAILED)
+        return FAILED;
+      usconfig_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "EUCONFIG") == 0) {
+      if (_ngheader_parse_pointer("EUCONFIG", &g_ngheader_euconfig_type, &g_ngheader_euconfig_value, &g_ngheader_euconfig_str) == FAILED)
+        return FAILED;
+      euconfig_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "USERENTRY") == 0) {
+      if (_ngheader_parse_pointer("USERENTRY", &g_ngheader_userentry_type, &g_ngheader_userentry_value, &g_ngheader_userentry_str) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "PLAYERSTART") == 0) {
+      if (_ngheader_parse_pointer("PLAYERSTART", &g_ngheader_playerstart_type, &g_ngheader_playerstart_value, &g_ngheader_playerstart_str) == FAILED)
+        return FAILED;
+      playerstart_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "DEMOEND") == 0) {
+      if (_ngheader_parse_pointer("DEMOEND", &g_ngheader_demoend_type, &g_ngheader_demoend_value, &g_ngheader_demoend_str) == FAILED)
+        return FAILED;
+      demoend_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "COINSOUND") == 0) {
+      if (_ngheader_parse_pointer("COINSOUND", &g_ngheader_coinsound_type, &g_ngheader_coinsound_value, &g_ngheader_coinsound_str) == FAILED)
+        return FAILED;
+      coinsound_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "SECURITYCODEPTR") == 0) {
+      if (_ngheader_parse_pointer("SECURITYCODEPTR", &g_ngheader_securitycodeptr_type, &g_ngheader_securitycodeptr_value, &g_ngheader_securitycodeptr_str) == FAILED)
+        return FAILED;
+      securitycodeptr_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "SYSTEM") == 0) {
+      q = input_number();
+      if (q == FAILED)
+        return FAILED;
+      if (q == INPUT_NUMBER_ADDRESS_LABEL) {
+        if (strcaselesscmp(g_label, "CART") == 0 || strcaselesscmp(g_label, "MVS") == 0 || strcaselesscmp(g_label, "AES") == 0)
+          g_ngheader_systemversion = 0;
+        else if (strcaselesscmp(g_label, "CD") == 0 || strcaselesscmp(g_label, "CDDA") == 0)
+          g_ngheader_systemversion = 2;
+        else {
+          print_error(ERROR_DIR, "SYSTEM expects CART, CD or an integer value.\n");
+          return FAILED;
+        }
+      }
+      else if (q == SUCCEEDED) {
+        if (g_parsed_int < -128 || g_parsed_int > 255) {
+          print_error(ERROR_DIR, "SYSTEM expects CART, CD or a byte value.\n");
+          return FAILED;
+        }
+        g_ngheader_systemversion = g_parsed_int;
+      }
+      else {
+        print_error(ERROR_DIR, "SYSTEM expects CART, CD or a byte value.\n");
+        return FAILED;
+      }
+    }
+    else if (strcaselesscmp(g_tmp, "CDDACMDPTR") == 0) {
+      q = input_number();
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED || g_parsed_int < 0 || g_parsed_int > 0xFFFF) {
+        print_error(ERROR_DIR, "CDDACMDPTR expects a Z80 RAM address (word value in the range [0,$FFFF]).\n");
+        return FAILED;
+      }
+
+      g_ngheader_cddacmdptr_value = g_parsed_int;
+      g_ngheader_cddacmdptr_defined = YES;
+    }
+    else {
+      token_result = FAILED;
+      break;
+    }
+  }
+
+  if (token_result != SUCCEEDED) {
+    print_error(ERROR_DIR, "Error in .NGHEADER data structure.\n");
+    return FAILED;
+  }
+
+  if (g_ngheader_ngh_defined == NO) {
+    print_error(ERROR_DIR, ".NGHEADER requires NGH to be defined.\n");
+    return FAILED;
+  }
+
+  if (g_ngheader_userentry_str == NULL && g_ngheader_userentry_type == TYPE_VALUE && g_ngheader_userentry_value == 0) {
+    print_error(ERROR_DIR, ".NGHEADER requires USERENTRY to be defined.\n");
+    return FAILED;
+  }
+
+  if (playerstart_defined == NO)
+    _ngheader_copy_pointer(g_ngheader_userentry_type, g_ngheader_userentry_value, g_ngheader_userentry_str,
+                           &g_ngheader_playerstart_type, &g_ngheader_playerstart_value, &g_ngheader_playerstart_str);
+  if (demoend_defined == NO)
+    _ngheader_copy_pointer(g_ngheader_userentry_type, g_ngheader_userentry_value, g_ngheader_userentry_str,
+                           &g_ngheader_demoend_type, &g_ngheader_demoend_value, &g_ngheader_demoend_str);
+  if (coinsound_defined == NO)
+    _ngheader_copy_pointer(g_ngheader_userentry_type, g_ngheader_userentry_value, g_ngheader_userentry_str,
+                           &g_ngheader_coinsound_type, &g_ngheader_coinsound_value, &g_ngheader_coinsound_str);
+
+  if (jpconfig_defined == NO) {
+    g_ngheader_jpconfig_type = TYPE_VALUE;
+    g_ngheader_jpconfig_value = 0;
+    g_ngheader_jpconfig_str = NULL;
+  }
+  if (usconfig_defined == NO) {
+    g_ngheader_usconfig_type = TYPE_VALUE;
+    g_ngheader_usconfig_value = 0;
+    g_ngheader_usconfig_str = NULL;
+  }
+  if (euconfig_defined == NO) {
+    g_ngheader_euconfig_type = TYPE_VALUE;
+    g_ngheader_euconfig_value = 0;
+    g_ngheader_euconfig_str = NULL;
+  }
+
+  if (securitycodeptr_defined == NO) {
+    g_ngheader_securitycodeptr_type = TYPE_LABEL;
+    g_ngheader_securitycodeptr_str = s_ngheader_generated_securitycode_label;
+    g_ngheader_emit_default_securitycode = YES;
+  }
+  else {
+    g_ngheader_emit_default_securitycode = NO;
+  }
+
+  if (g_ngheader_securitycodeptr_type == TYPE_VALUE && (g_ngheader_securitycodeptr_value & 1) != 0) {
+    print_error(ERROR_DIR, "SECURITYCODEPTR must be word aligned.\n");
+    return FAILED;
+  }
+
+  g_ngheader_defined = YES;
+
+  return SUCCEEDED;
+}
+
+
+int directive_ngsoftdip(void) {
+
+  /* Soft-DIP / BIOS config menu layout as documented on the NeoGeo Dev
+     Wiki 68k_program_header page:
+       offset  0: 16 bytes - game name (upper ASCII, padded with 0x20)
+       offset 16:  6 bytes - special list (default $FF × 6)
+       offset 22: 10 bytes - option list  (default $00 × 10)
+       offset 32: 96 bytes - 8 menu item labels, 12 bytes each
+     The directive emits 128 bytes into the current section. The caller
+     is expected to place a label immediately before the directive and
+     pass that label to .NGHEADER JPCONFIG/USCONFIG/EUCONFIG. */
+
+  char name_buf[17];
+  unsigned char special_buf[6];
+  unsigned char options_buf[10];
+  char text_buf[8][13];
+  int name_defined = NO, special_defined = NO, options_defined = NO;
+  int text_count = 0;
+  int q, i, token_result;
+  const int text_width = 12;
+
+  memset(name_buf, 0x20, 16);
+  name_buf[16] = '\0';
+  for (i = 0; i < 6; i++) special_buf[i] = 0xFF;
+  for (i = 0; i < 10; i++) options_buf[i] = 0x00;
+  for (i = 0; i < 8; i++) {
+    memset(text_buf[i], 0x20, text_width);
+    text_buf[i][text_width] = '\0';
+  }
+
+  while ((token_result = get_next_token()) == SUCCEEDED) {
+    if (g_tmp[0] == '.') {
+      q = parse_if_directive();
+      if (q == FAILED)
+        return FAILED;
+      else if (q == SUCCEEDED)
+        continue;
+    }
+
+    if (strcaselesscmp(g_tmp, ".ENDNGSOFTDIP") == 0)
+      break;
+    else if (strcaselesscmp(g_tmp, "NAME") == 0) {
+      q = input_number();
+      if (q != INPUT_NUMBER_STRING) {
+        print_error(ERROR_DIR, "NAME expects a quoted string.\n");
+        return FAILED;
+      }
+      if (g_string_size > 16) {
+        print_error(ERROR_DIR, "NAME string must be 16 characters or less.\n");
+        return FAILED;
+      }
+      memset(name_buf, 0x20, 16);
+      for (i = 0; i < g_string_size; i++)
+        name_buf[i] = g_label[i];
+      name_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "SPECIAL") == 0) {
+      for (i = 0; i < 6; i++) {
+        q = input_number();
+        if (q != SUCCEEDED || g_parsed_int < -128 || g_parsed_int > 255) {
+          print_error(ERROR_DIR, "SPECIAL expects exactly 6 byte values.\n");
+          return FAILED;
+        }
+        special_buf[i] = (unsigned char)g_parsed_int;
+      }
+      special_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "OPTIONS") == 0) {
+      for (i = 0; i < 10; i++) {
+        q = input_number();
+        if (q != SUCCEEDED || g_parsed_int < -128 || g_parsed_int > 255) {
+          print_error(ERROR_DIR, "OPTIONS expects exactly 10 byte values.\n");
+          return FAILED;
+        }
+        options_buf[i] = (unsigned char)g_parsed_int;
+      }
+      options_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "TEXT") == 0) {
+      q = input_number();
+      if (q != INPUT_NUMBER_STRING) {
+        print_error(ERROR_DIR, "TEXT expects a quoted string.\n");
+        return FAILED;
+      }
+      if (text_count >= 8) {
+        print_error(ERROR_DIR, ".NGSOFTDIP takes at most 8 TEXT entries.\n");
+        return FAILED;
+      }
+      if (g_string_size > text_width) {
+        print_error(ERROR_DIR, "TEXT string must be 12 characters or less.\n");
+        return FAILED;
+      }
+      memset(text_buf[text_count], 0x20, text_width);
+      for (i = 0; i < g_string_size; i++)
+        text_buf[text_count][i] = g_label[i];
+      text_count++;
+    }
+    else {
+      token_result = FAILED;
+      break;
+    }
+  }
+
+  if (token_result != SUCCEEDED) {
+    print_error(ERROR_DIR, "Error in .NGSOFTDIP data structure.\n");
+    return FAILED;
+  }
+
+  if (name_defined == NO) {
+    print_error(ERROR_DIR, ".NGSOFTDIP requires NAME to be defined.\n");
+    return FAILED;
+  }
+
+  /* silence unused-variable warnings when validation passes */
+  (void)special_defined;
+  (void)options_defined;
+
+  /* emit: 16 bytes name, 6 bytes special, 10 bytes options, 8*12 bytes text */
+  _ngsoftdip_emit_fixed_string(name_buf, 16, NO);
+  for (i = 0; i < 6; i++)
+    fprintf(g_file_out_ptr, "d%d ", (int)special_buf[i]);
+  for (i = 0; i < 10; i++)
+    fprintf(g_file_out_ptr, "d%d ", (int)options_buf[i]);
+  for (i = 0; i < 8; i++)
+    _ngsoftdip_emit_fixed_string(text_buf[i], text_width, NO);
+
+  return SUCCEEDED;
+}
+
+
+int directive_ngvectors(void) {
+
+  int vblank_type = TYPE_VALUE, timer_type = TYPE_VALUE, external_type = TYPE_VALUE;
+  int vblank_value = 0, timer_value = 0, external_value = 0;
+  char *vblank_str = NULL, *timer_str = NULL, *external_str = NULL;
+  int vblank_defined = NO, timer_defined = NO, external_defined = NO;
+  int q, token_result;
+
+  while ((token_result = get_next_token()) == SUCCEEDED) {
+    if (g_tmp[0] == '.') {
+      q = parse_if_directive();
+      if (q == FAILED)
+        return FAILED;
+      else if (q == SUCCEEDED)
+        continue;
+    }
+
+    if (strcaselesscmp(g_tmp, ".ENDNGVECTORS") == 0)
+      break;
+    else if (strcaselesscmp(g_tmp, "VBLANK") == 0) {
+      if (_ngheader_parse_pointer("VBLANK", &vblank_type, &vblank_value, &vblank_str) == FAILED)
+        return FAILED;
+      vblank_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "TIMER") == 0) {
+      if (_ngheader_parse_pointer("TIMER", &timer_type, &timer_value, &timer_str) == FAILED)
+        return FAILED;
+      timer_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "EXTERNAL") == 0) {
+      if (_ngheader_parse_pointer("EXTERNAL", &external_type, &external_value, &external_str) == FAILED)
+        return FAILED;
+      external_defined = YES;
+    }
+    else {
+      token_result = FAILED;
+      break;
+    }
+  }
+
+  if (token_result != SUCCEEDED) {
+    print_error(ERROR_DIR, "Error in .NGVECTORS data structure.\n");
+    return FAILED;
+  }
+
+  if (vblank_defined == NO || timer_defined == NO || external_defined == NO) {
+    print_error(ERROR_DIR, ".NGVECTORS requires VBLANK, TIMER and EXTERNAL to be defined.\n");
+    return FAILED;
+  }
+
+  _ng_emit_jump(vblank_type, vblank_value, vblank_str);
+  _ng_emit_jump(timer_type, timer_value, timer_str);
+  _ng_emit_jump(external_type, external_value, external_str);
+
+  return SUCCEEDED;
+}
+
+#endif
 
 static int _parse_macro_argument_names(struct macro_static *m, int *count, int is_inside_parentheses) {
 
@@ -12423,11 +13007,11 @@ int parse_directive(void) {
         
         fprintf(g_file_out_ptr, "s ");
 
-	if (g_base_backup >= 0) {
-	  g_base = g_base_backup;
-	  g_base_backup = -1;
-	}
-	
+  if (g_base_backup >= 0) {
+    g_base = g_base_backup;
+    g_base_backup = -1;
+  }
+  
         return SUCCEEDED;
       }
       
@@ -12824,6 +13408,20 @@ int parse_directive(void) {
     break;
     
   case 'N':
+
+#if defined(MC68000)
+    /* NGHEADER */
+    if (strcmp(directive_upper, "NGHEADER") == 0)
+      return directive_ngheader();
+
+    /* NGSOFTDIP */
+    if (strcmp(directive_upper, "NGSOFTDIP") == 0)
+      return directive_ngsoftdip();
+
+    /* NGVECTORS */
+    if (strcmp(directive_upper, "NGVECTORS") == 0)
+      return directive_ngvectors();
+#endif
 
 #if defined(W65816)
     /* NAME */

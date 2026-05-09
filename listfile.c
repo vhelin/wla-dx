@@ -120,7 +120,7 @@ int listfile_collect(void) {
 
       base_backup = base;
       if (section->base >= 0)
-	base = section->base;
+        base = section->base;
       
       add = 0;
       skip = 0;
@@ -149,8 +149,8 @@ int listfile_collect(void) {
       skip = 0;
 
       if (base_backup >= 0) {
-	base = base_backup;
-	base_backup = -1;
+        base = base_backup;
+        base_backup = -1;
       }
       
       continue;

@@ -563,8 +563,8 @@ int phase_4(void) {
         continue;
 
       if (g_sec_tmp->base >= 0) {
-	s_base_backup = s_base;
-	s_base = g_sec_tmp->base;
+        s_base_backup = s_base;
+        s_base = g_sec_tmp->base;
       }
 
       if (c == 'A') {
@@ -619,8 +619,8 @@ int phase_4(void) {
       g_bankheader_status = OFF;
 
       if (s_base_backup >= 0) {
-	s_base = s_base_backup;
-	s_base_backup = -1;
+        s_base = s_base_backup;
+        s_base_backup = -1;
       }
       
       /* some sections don't affect the ORG outside of them */

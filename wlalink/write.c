@@ -71,6 +71,98 @@ static void _write_u32be(FILE *f, int value) {
 }
 
 
+#define NGHEADER_OFFSET 0x100
+#define NGHEADER_PROMSIZE_OFFSET 0x10A
+#define NGHEADER_PROMSIZE_AUTOPOW2_MARKER 0xFF
+#define NGHEADER_MIB_SIZE 0x100000
+
+
+static int _neogeo_header_uses_autopow2(void) {
+
+  if (g_romsize < NGHEADER_PROMSIZE_OFFSET + 4)
+    return NO;
+
+  if (memcmp(g_rom + NGHEADER_OFFSET, "NEO-GEO", 7) != 0)
+    return NO;
+
+  if (g_rom[NGHEADER_PROMSIZE_OFFSET + 0] != NGHEADER_PROMSIZE_AUTOPOW2_MARKER ||
+      g_rom[NGHEADER_PROMSIZE_OFFSET + 1] != NGHEADER_PROMSIZE_AUTOPOW2_MARKER ||
+      g_rom[NGHEADER_PROMSIZE_OFFSET + 2] != NGHEADER_PROMSIZE_AUTOPOW2_MARKER ||
+      g_rom[NGHEADER_PROMSIZE_OFFSET + 3] != NGHEADER_PROMSIZE_AUTOPOW2_MARKER)
+    return NO;
+
+  return YES;
+}
+
+
+static int _neogeo_next_power_of_two_mib(int size, int *rounded_size) {
+
+  int rounded = NGHEADER_MIB_SIZE;
+
+  while (rounded < size) {
+    if (rounded > 0x40000000) {
+      print_text(NO, "WRITE_ROM_FILE: Neo Geo PROMSIZE AUTOPOW2 overflowed while rounding %d bytes.\n", size);
+      return FAILED;
+    }
+    rounded <<= 1;
+  }
+
+  *rounded_size = rounded;
+
+  return SUCCEEDED;
+}
+
+
+static int _neogeo_apply_promsize_autopow2(int *padded_size) {
+
+  int rounded_size;
+
+  *padded_size = g_romsize;
+
+  if (_neogeo_header_uses_autopow2() == NO)
+    return SUCCEEDED;
+
+  if (g_output_mode != OUTPUT_ROM) {
+    print_text(NO, "WRITE_ROM_FILE: Neo Geo PROMSIZE AUTOPOW2 requires ROM output mode.\n");
+    return FAILED;
+  }
+
+  if (_neogeo_next_power_of_two_mib(g_romsize, &rounded_size) == FAILED)
+    return FAILED;
+
+  g_rom[NGHEADER_PROMSIZE_OFFSET + 0] = (rounded_size >> 24) & 0xFF;
+  g_rom[NGHEADER_PROMSIZE_OFFSET + 1] = (rounded_size >> 16) & 0xFF;
+  g_rom[NGHEADER_PROMSIZE_OFFSET + 2] = (rounded_size >> 8) & 0xFF;
+  g_rom[NGHEADER_PROMSIZE_OFFSET + 3] = rounded_size & 0xFF;
+
+  *padded_size = rounded_size;
+
+  return SUCCEEDED;
+}
+
+
+static int _write_emptyfill_padding(FILE *f, int size) {
+
+  unsigned char buffer[4096];
+
+  if (size <= 0)
+    return SUCCEEDED;
+
+  memset(buffer, g_emptyfill, sizeof(buffer));
+
+  while (size > 0) {
+    int chunk_size = size > (int)sizeof(buffer) ? (int)sizeof(buffer) : size;
+
+    if ((int)fwrite(buffer, 1, chunk_size, f) != chunk_size)
+      return FAILED;
+
+    size -= chunk_size;
+  }
+
+  return SUCCEEDED;
+}
+
+
 static char *_get_c64_crt_type_name(int type) {
 
   if (type == C64_CRT_TYPE_NORMAL_4K)
@@ -3026,6 +3118,32 @@ int write_symbol_file(char *outname, int mode, int output_addr_to_line) {
       l = l->next;
     }
   }
+  else if (mode == SYMBOL_MODE_MAME) {
+    /* MAME-COMPATIBLE FLAT SYMBOL FILE
+       One label per line, formatted as "<hex-address> <name>" where
+       <hex-address> is the CPU-visible flat address of the label. This
+       matches the de-facto flat-symbol format consumed by MAME debugger
+       scripts and generic disassembler symbol importers. */
+    l = g_labels_first;
+    while (l != NULL) {
+      if (l->alive == NO || l->status != LABEL_STATUS_LABEL || is_label_anonymous(l->name) == YES) {
+        l = l->next;
+        continue;
+      }
+      /* skip all dropped section labels */
+      if (l->section_status == ON) {
+        s = find_section(l->section);
+        if (s->alive == NO) {
+          l = l->next;
+          continue;
+        }
+      }
+
+      fprintf(f, "%08x %s\n", (unsigned int)l->address, l->name);
+
+      l = l->next;
+    }
+  }
   else {
     /* WLA SYMBOL FILE */
     fprintf(f, "; this file was created with wlalink by ville helin <ville.helin@iki.fi>.\n");
@@ -3302,7 +3420,7 @@ int write_rom_file(char *outname) {
 
   struct section *s;
   FILE *f;
-  int i, b, e;
+  int i, b, e, neogeo_padded_size;
   
   /* get the addresses of the program start and end */
   if (g_program_address_start_type == LOAD_ADDRESS_TYPE_LABEL) {
@@ -3326,6 +3444,9 @@ int write_rom_file(char *outname) {
     print_text(NO, "WRITE_ROM_FILE: The supplied -bS ($%x) is larger than -bE ($%x).\n", g_program_address_start, g_program_address_end);
     return FAILED;
   }
+
+  if (_neogeo_apply_promsize_autopow2(&neogeo_padded_size) == FAILED)
+    return FAILED;
 
   f = fopen(outname, "wb");
   if (f == NULL) {
@@ -3373,6 +3494,11 @@ int write_rom_file(char *outname) {
       }
 
       fwrite(g_rom + g_bankaddress[i], 1, g_banksizes[i], f);
+    }
+
+    if (_write_emptyfill_padding(f, neogeo_padded_size - g_romsize) == FAILED) {
+      fclose(f);
+      return FAILED;
     }
   }
   /* program file output mode */
@@ -4454,7 +4580,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         break;
       case SI_OP_BASE:
-	y = base[t - 1];
+        y = base[t - 1];
         v_ram[t - 1] = y & 0xFF;
         v_rom[t - 1] = y & 0xFF;
         if (s->sign == SI_SIGN_NEGATIVE) {

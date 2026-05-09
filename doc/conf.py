@@ -3,6 +3,26 @@
 import sys
 import os
 
+try:
+    from sphinx import environment as sphinx_environment
+
+    sphinx_environment.default_settings.pop('embed_images', None)
+    sphinx_environment.default_settings.setdefault('image_loading', 'link')
+except Exception:
+    pass
+
+
+def _prefer_docutils_image_loading(app):
+    settings = getattr(getattr(app, 'env', None), 'settings', None)
+    if settings is not None:
+        settings.pop('embed_images', None)
+        settings.setdefault('image_loading', 'link')
+
+
+def setup(app):
+    app.connect('builder-inited', _prefer_docutils_image_loading)
+    _prefer_docutils_image_loading(app)
+
 # -- General configuration ------------------------------------------------
 
 #needs_sphinx = '1.8.6'

@@ -88,6 +88,7 @@
 #define SYMBOL_MODE_NOCA5H  1
 #define SYMBOL_MODE_WLA     2
 #define SYMBOL_MODE_EQU     3
+#define SYMBOL_MODE_MAME    4
 
 struct source_file_name {
   char *name;

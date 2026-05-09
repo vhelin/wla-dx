@@ -390,7 +390,7 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
             value == SI_OP_HIGH_WORD ||
             value == SI_OP_BANK_BYTE ||
             value == SI_OP_BANK ||
-	    value == SI_OP_BASE ||
+            value == SI_OP_BASE ||
             value == SI_OP_CLAMP ||
             value == SI_OP_SIGN ||
             value == SI_OP_ABS))
@@ -2289,23 +2289,23 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       in++;
 
       if (*in == '#') {
-	in++;
-	if (q > 0) {
-	  unsigned int mask;
+        in++;
+        if (q > 0) {
+          unsigned int mask;
 
-	  if (*in == 'b' || *in == 'B')
-	    mask = 0xff;
-	  else if (*in == 'w' || *in == 'W')
-	    mask = 0xffff;
-	  else if (*in == 'l' || *in == 'L')
-	    mask = 0xffffff;
-	  else if (*in == 'd' || *in == 'D')
-	    mask = 0xffffffff;
-	  else {
-	    print_error(ERROR_NUM, "Unknown size hint '%c'.\n", *in);
-	    return FAILED;
-	  }
-	  
+          if (*in == 'b' || *in == 'B')
+            mask = 0xff;
+          else if (*in == 'w' || *in == 'W')
+            mask = 0xffff;
+          else if (*in == 'l' || *in == 'L')
+            mask = 0xffffff;
+          else if (*in == 'd' || *in == 'D')
+            mask = 0xffffffff;
+          else {
+            print_error(ERROR_NUM, "Unknown size hint '%c'.\n", *in);
+            return FAILED;
+          }
+    
           /* change the previous stack item si -> "(si & mask)" */
           si[q].type = si[q-1].type;
           si[q].sign = si[q-1].sign;
@@ -2682,8 +2682,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
               e == '/' || e == ',' || e == '^' || e == '<' || e == '>' || e == '#' || e == ']' ||
               e == '~' || e == '=' || e == '!' || e == 0xA || e == 0)
             break;
-	  if (e == '.' && *(in+1) == '#')
-	    break;
+          if (e == '.' && *(in+1) == '#')
+            break;
           if (e == '.' && (*(in+1) == 'b' || *(in+1) == 'B' || *(in+1) == 'w' || *(in+1) == 'W' || *(in+1) == 'l' || *(in+1) == 'L' || *(in+1) == 'd' || *(in+1) == 'D') &&
               (*(in+2) == ' ' || *(in+2) == ')' || *(in+2) == '|' || *(in+2) == '&' || *(in+2) == '+' || *(in+2) == '-' || *(in+2) == '*' ||
                *(in+2) == '/' || *(in+2) == ',' || *(in+2) == '^' || *(in+2) == '<' || *(in+2) == '>' || *(in+2) == '#' || *(in+2) == ']' ||
@@ -2886,10 +2886,10 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
             if (g_section_status == ON)
               bankbyte = g_sec_tmp->bank;
             else
-	      bankbyte = g_bank;
+              bankbyte = g_bank;
 
-	    if (g_base > 0)
-	      bankbyte += g_base;
+            if (g_base > 0)
+              bankbyte += g_base;
 
             si[q].type = STACK_ITEM_TYPE_VALUE;
             si[q].value = bankbyte;
@@ -2922,7 +2922,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           if (*in == ')') {
             in++;
 
-	    si[q].value = g_base;
+            si[q].value = g_base;
             if (si[q].value < 0)
               si[q].value = 0;
             
@@ -2950,7 +2950,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
             g_dsp_enable_label_address_conversion = enable_label_address_conversion;
             is_already_processed_function = YES;
           }
-	  break;
+          break;
         }
         else if (k == 4 && strcaselesscmpn(si[q].string, "slot(", 5) == 0) {
           if (*in == ')') {
@@ -3485,7 +3485,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
          si[k + 1].value == SI_OP_HIGH_WORD ||
          si[k + 1].value == SI_OP_BANK_BYTE ||
          si[k + 1].value == SI_OP_BANK ||
-	 si[k + 1].value == SI_OP_BASE ||
+         si[k + 1].value == SI_OP_BASE ||
          si[k + 1].value == SI_OP_LOG ||
          si[k + 1].value == SI_OP_LOG10 ||
          si[k + 1].value == SI_OP_POW ||
@@ -4714,7 +4714,7 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         break;
       case SI_OP_HIGH_WORD:
         z = ((int)v[t - 1]) >> 16;
-	v[t - 1] = _perform_and(z, 0xFFFF);
+        v[t - 1] = _perform_and(z, 0xFFFF);
         if (s->sign == SI_SIGN_NEGATIVE)
           v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;
@@ -5581,7 +5581,7 @@ int data_stream_parser_parse(void) {
 
       s_dsp_base_backup = s_dsp_base;
       if (s_dsp_s->base >= 0)
-	s_dsp_base = s_dsp_s->base;
+        s_dsp_base = s_dsp_s->base;
 
       if (s_dsp_s->status == SECTION_STATUS_FREE || s_dsp_s->status == SECTION_STATUS_RAM_FREE || s_dsp_s->status == SECTION_STATUS_SEMISUPERFREE) {
         s_dsp_add = 0;
@@ -5607,8 +5607,8 @@ int data_stream_parser_parse(void) {
         s_dsp_add = s_dsp_add_old + s_dsp_s->size;
 
       if (s_dsp_base_backup >= 0) {
-	s_dsp_base = s_dsp_base_backup;
-	s_dsp_base_backup = -1;
+        s_dsp_base = s_dsp_base_backup;
+        s_dsp_base_backup = -1;
       }
       
       s_dsp_section_id = -1;
@@ -5899,8 +5899,8 @@ int data_stream_parser_parse(void) {
       else {
         struct data_stream_item *dSI;
         int mangled_label = NO;
-	
-	dSI = calloc(1, sizeof(struct data_stream_item));
+  
+        dSI = calloc(1, sizeof(struct data_stream_item));
         if (dSI == NULL) {
           print_error(ERROR_ERR, "Out of memory error while allocating a data_stream_item.\n");
           return FAILED;

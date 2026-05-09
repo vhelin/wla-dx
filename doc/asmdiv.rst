@@ -48,6 +48,9 @@ GB   ``.COUNTRYCODE 1``
 GB   ``.DESTINATIONCODE 1``
 ALL  ``.EMPTYFILL $C9``
 658  ``.ENDEMUVECTOR``
+68K  ``.ENDNG``
+68K  ``.ENDNGSOFTDIP``
+68K  ``.ENDNGVECTORS``
 658  ``.ENDNATIVEVECTOR``
 658  ``.ENDSNES``
 658  ``.EXHIROM``
@@ -59,6 +62,9 @@ GB   ``.LICENSEECODENEW "1A"``
 GB   ``.LICENSEECODEOLD $1A``
 658  ``.LOROM``
 GB8  ``.NAME "NAME OF THE ROM"``
+68K  ``.NGHEADER``
+68K  ``.NGSOFTDIP``
+68K  ``.NGVECTORS``
 GB   ``.NINTENDOLOGO``
 ALL  ``.OUTNAME "other.o"``
 GB   ``.RAMSIZE 0``
@@ -1394,6 +1400,33 @@ Ends definition of the native mode interrupt vector table.
 
 This is not a compulsory directive, but when ``.SNESNATIVEVECTOR``
 is used this one is required to terminate it.
+
+
+``.ENDNG``
+----------
+
+Ends the Neo Geo cartridge header definition.
+
+This is not a compulsory directive, but when ``.NGHEADER`` is used this one is
+required to terminate it.
+
+
+``.ENDNGSOFTDIP``
+-----------------
+
+Ends the Neo Geo soft-DIP / configuration-menu block definition.
+
+This is not a compulsory directive, but when ``.NGSOFTDIP`` is used this one is
+required to terminate it.
+
+
+``.ENDNGVECTORS``
+-----------------
+
+Ends the Neo Geo interrupt-vector stub table definition.
+
+This is not a compulsory directive, but when ``.NGVECTORS`` is used this one is
+required to terminate it.
 
 
 ``.ENDRO``
@@ -3464,6 +3497,109 @@ three bytes:
         * Bit ``1``: ``0``
         * Bit ``0``: ``0``
 ====== ===================================================================
+
+This is not a compulsory directive.
+
+
+``.NGHEADER``
+--------------
+
+Defines the Neo Geo cartridge header in ``$100-$185`` and, when needed, emits a
+default security code immediately after it. All fields are optional except for
+``NGH`` and ``USERENTRY``. Here are the default values::
+
+    .NGHEADER
+        NGH $1234
+        SYSTEMVERSION 0
+        PROMSIZE AUTO
+        BACKUPRAMPTR 0
+        BACKUPRAMSIZE 0
+        EYECATCHER SYSTEM
+        LOGOBANK $1B
+        JPCONFIG 0
+        USCONFIG 0
+        EUCONFIG 0
+        USERENTRY Start
+        PLAYERSTART Start
+        DEMOEND Start
+        COINSOUND Start
+        SECURITYCODEPTR *generated internal label*
+    .ENDNG
+
+``EYECATCHER`` accepts ``SYSTEM``, ``GAME`` and ``NONE`` as symbolic values.
+``PROMSIZE AUTO`` uses the configured total P ROM size from the active ROM bank
+configuration. ``PROMSIZE AUTOPOW2`` rounds that size up to the next
+power-of-two MiB, writes the rounded size to the header, and pads the linked
+ROM image with ``.EMPTYFILL`` bytes to match.
+
+Two optional fields extend the header for Neo Geo CD builds:
+
+* ``SYSTEM CART`` / ``SYSTEM CD`` - convenience alias for ``SYSTEMVERSION``;
+  sets the system byte at ``$107`` to ``0`` (cartridge) or ``2`` (CD). An
+  integer value is also accepted.
+* ``CDDACMDPTR <word>`` - when present, emits a big-endian 16-bit Z80 RAM
+  address at ``$13A``. This is the CDDA command pointer read by the Neo Geo CD
+  BIOS. Required only for CD builds.
+
+This is not a compulsory directive.
+
+
+``.NGSOFTDIP``
+--------------
+
+Emits a 128-byte Neo Geo BIOS soft-DIP / configuration-menu block at the
+current assembly position, formatted to match the layout expected by the
+``JPCONFIG`` / ``USCONFIG`` / ``EUCONFIG`` pointers in ``.NGHEADER``. Place a
+label immediately before the directive and pass that label to the matching
+``.NGHEADER`` config field. ``NAME`` is required; every other field defaults
+to a blank / ``$FF`` / ``$00`` fill. Example::
+
+    SoftDIPJP:
+    .NGSOFTDIP
+        NAME "TEST GAME"
+        SPECIAL $FF,$FF,$FF,$FF,$FF,$FF
+        OPTIONS $24,$02,$00,$00,$00,$00,$00,$00,$00,$00
+        TEXT "LIVES       "
+        TEXT "1           "
+        TEXT "2           "
+        TEXT "3           "
+        TEXT "4           "
+        TEXT "HOW TO PLAY "
+        TEXT "WITH        "
+        TEXT "WITHOUT     "
+    .ENDNGSOFTDIP
+
+The block layout is:
+
+* 16 bytes - game name (upper ASCII, padded with ``$20``).
+* 6 bytes - ``SPECIAL`` list (default ``$FF`` x 6).
+* 10 bytes - ``OPTIONS`` list (default ``$00`` x 10).
+* 8 x 12 bytes - ``TEXT`` menu labels (default 12 spaces each).
+
+Fewer than eight ``TEXT`` entries is allowed; remaining lines are padded with
+spaces.
+
+This is not a compulsory directive.
+
+
+``.NGVECTORS``
+---------------
+
+Emits three absolute ``jmp`` instructions for the Neo Geo interrupt-vector
+stub table at the current assembly position. Place it at the vector stub
+location used by your startup code, usually with an absolute ``.ORGA``. All
+three fields are required and may be labels, numeric addresses or calculated
+addresses. The emitted order is always ``VBLANK``, ``TIMER``, ``EXTERNAL``::
+
+    .ORGA $0066
+    .NGVECTORS
+        VBLANK   VBlankHandler
+        TIMER    TimerHandler
+        EXTERNAL ExternalHandler
+    .ENDNGVECTORS
+
+This directive emits code only; it does not install interrupt handlers or
+enable interrupts.
 
 This is not a compulsory directive.
 
