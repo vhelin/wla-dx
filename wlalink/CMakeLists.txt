@@ -10,6 +10,8 @@ set(WLALINK_SRCS
     compute.c
     discard.c
     listfile.c
+    dbgmodel.c
+    dbgexp.c
     ../hashmap.c
     ../crc32.c
     ../printf.c

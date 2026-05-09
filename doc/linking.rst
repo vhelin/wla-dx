@@ -128,6 +128,12 @@ If flag ``S`` is used, WLALINK will create a WLA symbol file, that is much
 like NO$GMB symbol file, but shows also symbols, defines, and breakpoints, not
 just labels.
 
+If flag ``E`` is used with a comma- or space-separated list, WLALINK will write
+debug export files for emulators and tools. Supported formats are ``VICE``,
+``RGBDS`` (also ``BGB`` and ``SAMEBOY``), ``MESEN``, ``EMULICIOUS``, ``CSPECT``,
+``NOCASH``, ``MAME`` and ``JSON``. The ``MAME`` format writes a MAME debugger
+command file that can be loaded with MAME's ``source`` debugger command.
+
 If flag ``d`` is used, WLALINK discards all unreferenced ``FREE``, ``SEMIFREE``,
 ``SEMISUBFREE``, ``SUPERFREE`` and ``RAM`` sections. This way you can link big
 libraries to your project and WLALINK will choose only the used sections, so you
@@ -147,6 +153,9 @@ If flag ``t`` is used with ``c64PRG``, WLALINK will add a two byte header to the
 program file (use with flag ``b``). The header contains the load address for
 the PRG. Use the flag ``a`` to specify the load address. It can be a value or
 the name of a label.
+
+If flag ``t`` is used with ``C64CRT``, WLALINK will write a Commodore 64 CRT
+cartridge image. Use flag ``-64`` to specify the cartridge type.
 
 If flag ``i`` is given, WLALINK will write list files. Note that you must
 compile the object and library files with ``-i`` flag as well. Otherwise
@@ -200,7 +209,6 @@ following example::
         RET
     ...
 
-
 Here duplicate ``INIT_LEVEL`` labels are accepted as they both point to the
 same memory address (in the program's point of view).
 
@@ -222,4 +230,5 @@ Examples::
     [seravy@localhost tbp]# wlalink -r linkfile testa.sfc
     [seravy@localhost tbp]# wlalink -d -i -b linkfile testb.sfc
     [seravy@localhost tbp]# wlalink -v -S -L ../../lib linkfile testc.sfc
+    [seravy@localhost tbp]# wlalink -v -i -E mame,json linkfile testd.sfc
     [seravy@localhost tbp]# wlalink -v -b -s -t c64PRG -a LOAD_ADDRESS linkfile linked.prg
