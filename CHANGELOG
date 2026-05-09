@@ -774,7 +774,7 @@ v9.3 (09-Sep-2006) [ALL] Updated makefiles (by Tobias Pflug).
                      labels appear (e.g., only "MAIN+0" used to work).
                    [ALL] Added AmigaOS4 makefiles (by Ventzislav Tzvetkov).
                    [ALL] Some code cleanups.
-                   [ALL] Fixed the WIN32 makefiles (by Daniël Hörchner).
+                   [ALL] Fixed the WIN32 makefiles (by Daniï¿½l Hï¿½rchner).
                    [650] Fixed class 4 opcodes to work again.
 
 v9.2 (22-Aug-2004) [ALL] WLA can generate makefile rules (flag 'M')
@@ -1587,7 +1587,7 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.22 (02-May-2026) When calculating _sizeof_* for lables we now take unused
+v5.22 (09-May-2026) When calculating _sizeof_* for lables we now take unused
                       output bytes into account.
                     Appended .RAMSECTIONs were still affecting the original
                       RAM bank in -v listing.
@@ -1601,10 +1601,12 @@ v5.22 (02-May-2026) When calculating _sizeof_* for lables we now take unused
                     Global references from an isolated .INCLUDE should
                       now work.
                     Added support for Commodore 64 cartridge types (via
-                      -c64crt): NORMAL4K, NORMAL8K, NORMAL16K, ULTIMAX4K,
+                      -64): NORMAL4K, NORMAL8K, NORMAL16K, ULTIMAX4K,
                       ULTIMAX8K, ULTIMAX16K, OCEAN, MAGICDESK, EASYFLASH,
                       SIMONSBASIC, EPYXFASTLOAD, C64GS, COMAL80, GMOD2,
                       RGCD and GMOD3.
+                    Added -E for writing debug exports (VICE, RGBDS, MESEN,
+                      EMULICIOUS, CSPECT, NOCASH, MAME and JSON).
                     .ASSERT can now be postponed to link time.
 
 v5.21 (19-Nov-2023) WLALINK writes now version 3 WLA symbol files.

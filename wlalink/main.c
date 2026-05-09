@@ -18,6 +18,8 @@
 #include "compute.h"
 #include "discard.h"
 #include "listfile.h"
+#include "dbgmodel.h"
+#include "dbgexp.h"
 #include "parse.h"
 #include "main.h"
 
@@ -32,7 +34,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.22a (2.5.2026)";
+char g_version_string[] = "$VER: wlalink 5.22a (9.5.2026)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -71,6 +73,7 @@ int g_emptyfill = 0, g_paths_in_linkfile_are_relative_to_linkfile = NO, g_romhea
 
 static int s_screen_dx = DEFAULT_SCREEN_DX, s_screen_dy = DEFAULT_SCREEN_DY, s_line_x = 0, s_line_y = 0, s_pause_text = NO;
 static int s_create_sizeof_definitions = YES, s_listfile_data = NO, s_symbol_mode = SYMBOL_MODE_NONE;
+static int s_debug_export_flags = 0;
 static unsigned char s_output_addr_to_line = OFF;
 static char s_print_text_buffer[4096];
 
@@ -1067,7 +1070,7 @@ static int _parse_flags(char **flags, int flagc) {
         return FAILED;
       count++;
     }
-    else if (!strcmp(flags[count], "-c64crt")) {
+    else if (!strcmp(flags[count], "-64")) {
       if (count + 1 < flagc) {
         g_c64_crt_type = _parse_c64_crt_type(flags[count + 1]);
         if (g_c64_crt_type == C64_CRT_TYPE_UNDEFINED)
@@ -1149,6 +1152,19 @@ static int _parse_flags(char **flags, int flagc) {
       s_symbol_mode = SYMBOL_MODE_EQU;
     else if (!strcmp(flags[count], "-A"))
       s_output_addr_to_line = ON;
+    else if (!strcmp(flags[count], "-E")) {
+      if (count + 1 < flagc) {
+        if (debug_export_parse_flags(flags[count+1], &s_debug_export_flags) == FAILED)
+          return FAILED;
+      }
+      else
+        return FAILED;
+      count++;
+    }
+    else if (strncmp(flags[count], "-E", 2) == 0) {
+      if (debug_export_parse_flags(&flags[count][2], &s_debug_export_flags) == FAILED)
+        return FAILED;
+    }
     else if (!strcmp(flags[count], "-d"))
       g_discard_unreferenced_sections = ON;
     else if (!strcmp(flags[count], "-D"))
@@ -1261,6 +1277,8 @@ int main(int argc, char *argv[]) {
     print_text(YES, "    values are different\n");
     print_text(YES, "-d  Discard unreferenced sections\n");
     print_text(YES, "-D  Don't create _sizeof_* definitions\n");
+    print_text(YES, "-E  <LIST> Write debug exports (VICE,RGBDS,MESEN,EMULICIOUS,\n");
+    print_text(YES, "    CSPECT,NOCASH,MAME,JSON)\n");
     print_text(YES, "-i  Write list files\n");
     print_text(YES, "-L  <DIR> Library directory\n");
     print_text(YES, "-nS Don't sort the sections\n");
@@ -1276,7 +1294,7 @@ int main(int argc, char *argv[]) {
     print_text(YES, "-SX <WIDTH> The number of characters per line in console (default %d)\n", DEFAULT_SCREEN_DX);
     print_text(YES, "-SY <HEIGHT> The number of lines in console (default %d)\n", DEFAULT_SCREEN_DY);
     print_text(YES, "-t  <TYPE> Output type (supported types: 'CBMPRG', 'C64CRT')\n");
-    print_text(YES, "-c64crt <TYPE> Cartridge type for C64CRT output\n");
+    print_text(YES, "-64 <TYPE> Cartridge type for C64CRT output\n");
     print_text(YES, "    (supported types: NORMAL4K, NORMAL8K, NORMAL16K, ULTIMAX4K,\n");
     print_text(YES, "    ULTIMAX8K, ULTIMAX16K, OCEAN, MAGICDESK, EASYFLASH,\n");
     print_text(YES, "    SIMONSBASIC, EPYXFASTLOAD, C64GS, COMAL80,\n");
@@ -1633,6 +1651,22 @@ int main(int argc, char *argv[]) {
   if (s_symbol_mode != SYMBOL_MODE_NONE) {
     if (write_symbol_file(argv[argc - 1], s_symbol_mode, s_output_addr_to_line) == FAILED)
       return 1;
+  }
+
+  /* export direct emulator/tool debug files */
+  if (s_debug_export_flags != 0) {
+    struct debug_model *debug_model;
+
+    debug_model = debug_model_build(argv[argc - 1]);
+    if (debug_model == NULL) {
+      print_text(NO, "MAIN: Could not build debug export model.\n");
+      return 1;
+    }
+    if (debug_export_all(debug_model, s_debug_export_flags, argv[argc - 1]) == FAILED) {
+      debug_model_free(debug_model);
+      return 1;
+    }
+    debug_model_free(debug_model);
   }
 
   /* write list files */

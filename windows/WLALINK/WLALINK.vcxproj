@@ -25,6 +25,8 @@
     <ClCompile Include="..\..\wlalink\analyze.c" />
     <ClCompile Include="..\..\wlalink\check.c" />
     <ClCompile Include="..\..\wlalink\compute.c" />
+    <ClCompile Include="..\..\wlalink\dbgexp.c" />
+    <ClCompile Include="..\..\wlalink\dbgmodel.c" />
     <ClCompile Include="..\..\wlalink\discard.c" />
     <ClCompile Include="..\..\wlalink\files.c" />
     <ClCompile Include="..\..\wlalink\listfile.c" />
@@ -32,6 +34,10 @@
     <ClCompile Include="..\..\wlalink\memory.c" />
     <ClCompile Include="..\..\wlalink\parse.c" />
     <ClCompile Include="..\..\wlalink\write.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\wlalink\dbgexp.h" />
+    <ClInclude Include="..\..\wlalink\dbgmodel.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

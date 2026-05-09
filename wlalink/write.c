@@ -219,7 +219,7 @@ static void _get_c64_crt_output_name(char *outname, char *name, int size) {
 static int _validate_c64_crt_write(void) {
 
   if (g_c64_crt_type == C64_CRT_TYPE_UNDEFINED) {
-    print_text(NO, "WRITE_ROM_FILE: C64CRT output requires -c64crt <TYPE>.\n");
+    print_text(NO, "WRITE_ROM_FILE: C64CRT output requires -64 <TYPE>.\n");
     return FAILED;
   }
   if (g_output_mode != OUTPUT_ROM) {

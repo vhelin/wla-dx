@@ -2,7 +2,7 @@
 CC = $(WLAVALGRIND) wla-6502
 CFLAGS = -i -o
 LD = $(WLAVALGRIND) wlalink
-LDFLAGS = -v -i -S
+LDFLAGS = -v -i -S -E vice,rgbds,mesen,emulicious,cspect,nocash,mame,json
 
 SFILES = main.s
 IFILES = 
@@ -18,9 +18,10 @@ main.o: main.s
 
 check: linked.rom
 	byte_tester -s main.s
+	sh check_debug_exports.sh
 
 $(OFILES): $(HFILES)
 
 
 clean:
-	rm -f $(OFILES) core *~ *.lst linked.rom linked.sym
+	rm -f $(OFILES) core *~ *.lst linked.rom linked.sym linked.vic linked.rgb linked.msn linked.emu linked.sld linked.noi linked.mam linked.jsn

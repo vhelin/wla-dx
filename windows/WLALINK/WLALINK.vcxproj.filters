@@ -24,6 +24,12 @@
     <ClCompile Include="..\..\wlalink\compute.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\wlalink\dbgexp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\wlalink\dbgmodel.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\wlalink\discard.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -54,5 +60,13 @@
     <ClCompile Include="..\..\printf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\wlalink\dbgexp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\wlalink\dbgmodel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
