@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Generate a one-entry MAME Neo Geo softlist for a local homebrew ROM set."""
 
 import argparse
@@ -10,9 +10,17 @@ import zlib
 
 
 def rom_hashes(path):
+    crc = 0
+    sha1 = hashlib.sha1()
+    size = 0
+
     with open(path, "rb") as handle:
-        data = handle.read()
-    return len(data), "%08x" % (zlib.crc32(data) & 0xFFFFFFFF), hashlib.sha1(data).hexdigest()
+        for data in iter(lambda: handle.read(1024 * 1024), b""):
+            size += len(data)
+            crc = zlib.crc32(data, crc)
+            sha1.update(data)
+
+    return size, "%08x" % (crc & 0xFFFFFFFF), sha1.hexdigest()
 
 
 def rom_line(name, size, crc, sha1, offset, loadflag=None):

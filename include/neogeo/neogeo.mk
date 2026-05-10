@@ -25,8 +25,8 @@
 #   NG_ZIP         - output ZIP path (default: $(NG_GAME_ID).zip).
 #   NG_ZIP_DIR     - staging directory (default: $(NG_GAME_ID)-romset).
 #   NG_ZIP_CMD     - override the zip command invocation. If unset, the
-#                    rule tries 'zip -q -9' first, then 'python -m
-#                    zipfile -c' / 'python3 -m zipfile -c'.
+#                    rule tries 'zip -q -9' first, then Python 3's
+#                    'zipfile -c'.
 #
 # Provided targets:
 #   neogeo-romset   - builds $(NG_ZIP) with MAME-style filenames, such
@@ -49,9 +49,11 @@ ifndef NG_P1
 $(error neogeo.mk: NG_P1 must point at the P1 ROM image)
 endif
 
+NG_NEOGEO_MK_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
 NG_ZIP     ?= $(NG_GAME_ID).zip
 NG_ZIP_DIR ?= $(NG_GAME_ID)-romset
-NG_SOFTLIST_SCRIPT ?= ../../../include/neogeo/gen_softlist.py
+NG_SOFTLIST_SCRIPT ?= $(NG_NEOGEO_MK_DIR)gen_softlist.py
 NG_SOFTLIST_DESC ?= WLA DX $(NG_GAME_ID) homebrew
 NG_SOFTLIST_YEAR ?= 2026
 NG_SOFTLIST_PUBLISHER ?= WLA DX
@@ -59,9 +61,13 @@ NG_MAME_HASHPATH_DIR ?= mame_hashpath
 NG_MAME_ROMPATH_DIR ?= mame_rompath
 NG_SOFTLIST_XML ?= $(NG_MAME_HASHPATH_DIR)/neogeo.xml
 NG_MAME_ROMPATH_ZIP ?= $(NG_MAME_ROMPATH_DIR)/$(notdir $(NG_ZIP))
-MAME ?= /cygdrive/c/Users/ville/Downloads/Mame/mame.exe
-MAME_BIOS_ROMPATH ?= C:/Users/ville/Downloads/Mame/roms
+NG_MAME_AUTO_EXE := $(shell if command -v cygpath >/dev/null 2>&1 && [ -n "$$USERPROFILE" ]; then p=$$(cygpath -u "$$USERPROFILE/Downloads/Mame/mame.exe" 2>/dev/null); if [ -f "$$p" ]; then printf '%s' "$$p"; fi; fi)
+NG_MAME_AUTO_BIOS_ROMPATH := $(shell if command -v cygpath >/dev/null 2>&1 && [ -n "$$USERPROFILE" ]; then p=$$(cygpath -u "$$USERPROFILE/Downloads/Mame/roms" 2>/dev/null); if [ -d "$$p" ]; then cygpath -m "$$p"; fi; fi)
+MAME ?= $(if $(NG_MAME_AUTO_EXE),$(NG_MAME_AUTO_EXE),mame)
+MAME_BIOS_ROMPATH ?= $(NG_MAME_AUTO_BIOS_ROMPATH)
 MAME_FLAGS ?= -window
+MAME_ROMPATH_SEPARATOR ?= $(if $(filter Windows_NT,$(OS)),;,:)
+MAME_ROMPATH ?= ./$(NG_MAME_ROMPATH_DIR)$(if $(strip $(MAME_BIOS_ROMPATH)),$(MAME_ROMPATH_SEPARATOR)$(MAME_BIOS_ROMPATH),)
 
 # Build the list of "source:rom_name" pairs that should be staged.
 NG_ROMSET_PAIRS := $(NG_P1):$(NG_GAME_ID)-p1.bin
@@ -121,7 +127,7 @@ endif
 neogeo-stage: $(NG_ROMSET_SOURCES)
 	@rm -rf "$(NG_ZIP_DIR)"
 	@mkdir -p "$(NG_ZIP_DIR)"
-	@$(foreach pair,$(NG_ROMSET_PAIRS), \
+	@set -e; $(foreach pair,$(NG_ROMSET_PAIRS), \
 	    cp "$(firstword $(subst :, ,$(pair)))" "$(NG_ZIP_DIR)/$(lastword $(subst :, ,$(pair)))"; )
 	@echo "neogeo.mk: staged ROM-set files in $(NG_ZIP_DIR)"
 
@@ -133,12 +139,12 @@ $(NG_ZIP): neogeo-stage
 	  cd "$(NG_ZIP_DIR)" && $(NG_ZIP_CMD) "../$(NG_ZIP)" *; \
 	elif command -v zip >/dev/null 2>&1; then \
 	  cd "$(NG_ZIP_DIR)" && zip -q -9 "../$(NG_ZIP)" *; \
-	elif command -v python >/dev/null 2>&1; then \
-	  cd "$(NG_ZIP_DIR)" && python -m zipfile -c "../$(NG_ZIP)" *; \
 	elif command -v python3 >/dev/null 2>&1; then \
 	  cd "$(NG_ZIP_DIR)" && python3 -m zipfile -c "../$(NG_ZIP)" *; \
+	elif command -v python >/dev/null 2>&1 && python -c 'import sys; raise SystemExit(sys.version_info[0] < 3)' >/dev/null 2>&1; then \
+	  cd "$(NG_ZIP_DIR)" && python -m zipfile -c "../$(NG_ZIP)" *; \
 	else \
-	  echo "neogeo.mk: no zip or python available; set NG_ZIP_CMD to override" >&2; \
+	  echo "neogeo.mk: no zip or Python 3 available; set NG_ZIP_CMD to override" >&2; \
 	  exit 1; \
 	fi
 	@echo "neogeo.mk: wrote $(NG_ZIP)"
@@ -147,9 +153,9 @@ neogeo-softlist: $(NG_SOFTLIST_XML)
 
 $(NG_SOFTLIST_XML): $(NG_ROMSET_SOURCES) $(NG_SOFTLIST_SCRIPT)
 	@mkdir -p "$(NG_MAME_HASHPATH_DIR)" "$(NG_MAME_ROMPATH_DIR)"
-	@if command -v python >/dev/null 2>&1; then PY=python; \
-	 elif command -v python3 >/dev/null 2>&1; then PY=python3; \
-	 else echo "neogeo.mk: python or python3 is required for softlist generation" >&2; exit 1; fi; \
+	@if command -v python3 >/dev/null 2>&1; then PY=python3; \
+	 elif command -v python >/dev/null 2>&1 && python -c 'import sys; raise SystemExit(sys.version_info[0] < 3)' >/dev/null 2>&1; then PY=python; \
+	 else echo "neogeo.mk: Python 3 is required for softlist generation" >&2; exit 1; fi; \
 	 $$PY "$(NG_SOFTLIST_SCRIPT)" $(NG_SOFTLIST_ARGS)
 	@echo "neogeo.mk: wrote $(NG_SOFTLIST_XML)"
 
@@ -162,7 +168,7 @@ neogeo-mame-stage: $(NG_SOFTLIST_XML) $(NG_MAME_ROMPATH_ZIP)
 neogeo-run: neogeo-romset neogeo-mame-stage
 	"$(MAME)" aes \
 	  -hashpath ./$(NG_MAME_HASHPATH_DIR) \
-	  -rompath "./$(NG_MAME_ROMPATH_DIR);$(MAME_BIOS_ROMPATH)" \
+	  -rompath "$(MAME_ROMPATH)" \
 	  -cart1 $(NG_GAME_ID) \
 	  $(MAME_FLAGS)
 

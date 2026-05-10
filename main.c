@@ -954,6 +954,10 @@ static void _procedures_at_exit(void) {
   free(g_sdsctag_author_str);
 #endif
 
+#if defined(MC68000)
+  ngheader_free_allocations();
+#endif
+
   PROFILE_AT_EXIT();
 }
 

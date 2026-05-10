@@ -9274,6 +9274,15 @@ static int _ngheader_validate_bcd_word(int value) {
 }
 
 
+static void _ngheader_free_string(char **string_value) {
+
+  if (*string_value != NULL) {
+    free(*string_value);
+    *string_value = NULL;
+  }
+}
+
+
 static int _ngheader_parse_pointer(const char *field_name, int *type, int *value, char **string_value) {
 
   int q;
@@ -9283,13 +9292,14 @@ static int _ngheader_parse_pointer(const char *field_name, int *type, int *value
     return FAILED;
 
   if (q == SUCCEEDED) {
+    _ngheader_free_string(string_value);
     *type = TYPE_VALUE;
     *value = g_parsed_int;
-    *string_value = NULL;
     return SUCCEEDED;
   }
 
   if (q == INPUT_NUMBER_ADDRESS_LABEL) {
+    _ngheader_free_string(string_value);
     *type = TYPE_LABEL;
     *string_value = _string_duplicate(g_label);
     if (*string_value == NULL)
@@ -9298,14 +9308,59 @@ static int _ngheader_parse_pointer(const char *field_name, int *type, int *value
   }
 
   if (q == INPUT_NUMBER_STACK) {
+    _ngheader_free_string(string_value);
     *type = TYPE_STACK_CALCULATION;
     *value = g_latest_stack;
-    *string_value = NULL;
     return SUCCEEDED;
   }
 
   print_error(ERROR_DIR, "%s expects an address, label or calculation.\n", field_name);
   return FAILED;
+}
+
+
+void ngheader_free_allocations(void) {
+
+  char *strings[8], *owned[8];
+  int count = 0, owned_count = 0, i, j, found;
+
+  strings[count++] = g_ngheader_jpconfig_str;
+  strings[count++] = g_ngheader_usconfig_str;
+  strings[count++] = g_ngheader_euconfig_str;
+  strings[count++] = g_ngheader_userentry_str;
+  strings[count++] = g_ngheader_playerstart_str;
+  strings[count++] = g_ngheader_demoend_str;
+  strings[count++] = g_ngheader_coinsound_str;
+  if (g_ngheader_emit_default_securitycode == NO)
+    strings[count++] = g_ngheader_securitycodeptr_str;
+
+  for (i = 0; i < count; i++) {
+    if (strings[i] == NULL)
+      continue;
+
+    found = NO;
+    for (j = 0; j < owned_count; j++) {
+      if (owned[j] == strings[i]) {
+        found = YES;
+        break;
+      }
+    }
+
+    if (found == NO)
+      owned[owned_count++] = strings[i];
+  }
+
+  for (i = 0; i < owned_count; i++)
+    free(owned[i]);
+
+  g_ngheader_jpconfig_str = NULL;
+  g_ngheader_usconfig_str = NULL;
+  g_ngheader_euconfig_str = NULL;
+  g_ngheader_userentry_str = NULL;
+  g_ngheader_playerstart_str = NULL;
+  g_ngheader_demoend_str = NULL;
+  g_ngheader_coinsound_str = NULL;
+  g_ngheader_securitycodeptr_str = NULL;
 }
 
 
@@ -10064,6 +10119,10 @@ int directive_ngvectors(void) {
   _ng_emit_jump(vblank_type, vblank_value, vblank_str);
   _ng_emit_jump(timer_type, timer_value, timer_str);
   _ng_emit_jump(external_type, external_value, external_str);
+
+  _ngheader_free_string(&vblank_str);
+  _ngheader_free_string(&timer_str);
+  _ngheader_free_string(&external_str);
 
   return SUCCEEDED;
 }
