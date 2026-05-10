@@ -3078,7 +3078,7 @@ int write_symbol_file(char *outname, int mode, int output_addr_to_line) {
       /* skip all dropped section labels */
       if (l->section_status == ON) {
         s = find_section(l->section);
-        if (s->alive == NO) {
+        if (s != NULL && s->alive == NO) {
           l = l->next;
           continue;
         }
