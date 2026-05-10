@@ -59,8 +59,7 @@ nmi_do_reset:
 z80_init:
   im    1
   ld    sp, $FFFF
-  xor   a
-  out   (PORT_BANK_2K), a
+  NG_Z80_ENABLE_NMI
 
   ld    bc, OpcodeJrSelf
   ld    (ResetWaitPc), bc

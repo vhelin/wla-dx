@@ -62,6 +62,8 @@ def main(argv):
     parser.add_argument("--s1")
     parser.add_argument("--c1")
     parser.add_argument("--c2")
+    parser.add_argument("--c3")
+    parser.add_argument("--c4")
     parser.add_argument("--v1")
     parser.add_argument("--v2")
     args = parser.parse_args(argv[1:])
@@ -92,16 +94,30 @@ def main(argv):
     if args.m1:
         add_single_rom_area(lines, "audiocpu", "%s-m1.bin" % game_id, args.m1)
 
+    sprite_pairs = []
     if args.c1 or args.c2:
         if not (args.c1 and args.c2):
             parser.error("--c1 and --c2 must be supplied together")
-        c1_size, c1_crc, c1_sha1 = rom_hashes(args.c1)
-        c2_size, c2_crc, c2_sha1 = rom_hashes(args.c2)
-        sprite_size = max(c1_size, c2_size) * 2
-        add_dataarea(lines, "sprites", sprite_size, [
-            rom_line("%s-c1.bin" % game_id, c1_size, c1_crc, c1_sha1, 0, "load16_byte"),
-            rom_line("%s-c2.bin" % game_id, c2_size, c2_crc, c2_sha1, 1, "load16_byte"),
-        ])
+        sprite_pairs.append((1, args.c1, args.c2))
+    if args.c3 or args.c4:
+        if not (args.c3 and args.c4):
+            parser.error("--c3 and --c4 must be supplied together")
+        if not sprite_pairs:
+            parser.error("--c3/--c4 require --c1/--c2")
+        sprite_pairs.append((3, args.c3, args.c4))
+
+    if sprite_pairs:
+        sprite_roms = []
+        sprite_size = 0
+        for first_rom_number, first_path, second_path in sprite_pairs:
+            first_size, first_crc, first_sha1 = rom_hashes(first_path)
+            second_size, second_crc, second_sha1 = rom_hashes(second_path)
+            sprite_roms.extend([
+                rom_line("%s-c%d.bin" % (game_id, first_rom_number), first_size, first_crc, first_sha1, sprite_size, "load16_byte"),
+                rom_line("%s-c%d.bin" % (game_id, first_rom_number + 1), second_size, second_crc, second_sha1, sprite_size + 1, "load16_byte"),
+            ])
+            sprite_size += max(first_size, second_size) * 2
+        add_dataarea(lines, "sprites", sprite_size, sprite_roms)
 
     if args.v1:
         v1_size, v1_crc, v1_sha1 = rom_hashes(args.v1)

@@ -88,8 +88,7 @@ nmi_do_reset:
 z80_init:
   im    1
   ld    sp, $FFFF            ; temporary stack at top of RAM
-  xor   a
-  out   (PORT_BANK_2K), a    ; select bank 0 and ENABLE NMIs
+  NG_Z80_ENABLE_NMI          ; let the BIOS RESET command reach NMI
 
   ; Wait in RAM until the 68k sends a sound command NMI. This avoids
   ; depending on HALT wakeup behavior while the BIOS is still handing

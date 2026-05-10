@@ -111,10 +111,12 @@
 ;                             after each access.
 ;   REG_VRAMMOD    ($3C0004)  Word. Signed modulo added to VRAMADDR
 ;                             after each VRAMRW access.
-;   REG_LSPCMODE   ($3C0006)  Word. Bits 8..15 = auto-animation speed
-;                             (in frames). Bit 3 = auto-animation
-;                             disable for tiles with the auto-anim
-;                             attribute.
+;   REG_LSPCMODE   ($3C0006)  Word. On write, bits 8..15 set the
+;                             auto-animation speed, bit 3 disables
+;                             auto-animation, and bits 4..7 control
+;                             raster interrupts. On read, bits 15..7
+;                             hold the raster counter and bits 0..2
+;                             hold the auto-animation counter.
 ;
 ; Fix-layer map lives at VRAM $7000-$74FF and is addressed column-
 ; major: tile at (col, row) is at $7000 + (col<<5) + row. Each entry
@@ -151,23 +153,28 @@
 .ENDM
 
 ; NG_ACK_VBLANK
-;   Acknowledges the VBLANK interrupt. VBLANK is IRQ2 (bit 0 of IRQACK).
+;   Acknowledges the VBLANK interrupt. On cartridge systems VBLANK is
+;   68k interrupt level 1 and is acknowledged with bit 2 of IRQACK.
 .MACRO NG_ACK_VBLANK
   move.w #$0004, REG_IRQACK
 .ENDM
 
 ; NG_WAIT_VBLANK
-;   Busy-polls the LSPCMODE raster-position field until the next
-;   VBLANK region is entered. Scanlines 248..263 are outside of the
-;   active display area on NTSC Neo Geo; bit 15 of the raster counter
-;   read from REG_LSPCMODE is set during VBLANK.
+;   Busy-polls the LSPCMODE raster-position field until the display is
+;   outside of the active display area. The raster counter is read from
+;   bits 15..7 of REG_LSPCMODE; active display is $110..$1EF on NTSC
+;   Neo Geo.
 ;
 ;   This macro uses d0 as a scratch register.
 .MACRO NG_WAIT_VBLANK
 \@_wait_vblank_start:
   move.w REG_LSPCMODE, d0
-  btst #7, d0
-  beq.b \@_wait_vblank_start
+  lsr.w #7, d0
+  cmpi.w #$0110, d0
+  bcs.b \@_wait_vblank_done
+  cmpi.w #$01F0, d0
+  bcs.b \@_wait_vblank_start
+\@_wait_vblank_done:
 .ENDM
 
 ; NG_CLEAR_SPRITES

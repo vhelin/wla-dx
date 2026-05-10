@@ -115,6 +115,12 @@ endif
 ifdef NG_C2
 NG_SOFTLIST_ARGS += --c2 "$(NG_C2)"
 endif
+ifdef NG_C3
+NG_SOFTLIST_ARGS += --c3 "$(NG_C3)"
+endif
+ifdef NG_C4
+NG_SOFTLIST_ARGS += --c4 "$(NG_C4)"
+endif
 ifdef NG_V1
 NG_SOFTLIST_ARGS += --v1 "$(NG_V1)"
 endif

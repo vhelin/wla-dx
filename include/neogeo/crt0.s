@@ -1,8 +1,8 @@
 ;
 ; Neo Geo 68k crt0 — minimal startup for homebrew cartridges
 ;
-; Usage: in your main source file, after including macros.inc and
-; 68k.inc (and optionally bios.inc), include this file, then define a
+; Usage: in your main source file, after including macros.inc,
+; 68k.inc and bios.inc, include this file, then define a
 ; label named `main:` that crt0 will `jsr` into. The .NGHEADER
 ; USERENTRY field should point at `_ng_start` (or at a wrapper that
 ; eventually falls through to it).
@@ -142,7 +142,7 @@ _ng_start:
 
   ; --- LSPC init --------------------------------------------------
   NG_VRAM_MOD 1               ; linear post-increment
-  move.w #0, REG_LSPCMODE     ; auto-anim off, raster int off
+  NG_DISABLE_AUTOANIM          ; auto-anim off, raster int off
 
   ; --- hide sprites + clear fix layer ----------------------------
   NG_CLEAR_SPRITES
@@ -186,6 +186,7 @@ _ng_start_init_text_palette:
 
   ; --- if main ever returns, fall into a safe idle loop ---------
 _ng_start_idle:
+  NG_ACK_VBLANK
   NG_KICK_WATCHDOG
   bra.b  _ng_start_idle
 
